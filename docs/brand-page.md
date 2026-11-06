@@ -202,13 +202,13 @@ Five rules for your agent:
 - **`logos` is optional.** A page from before that field lists its logos only as files.
 - **Download `AGENTS.md` into the project.** Agent tools read `AGENTS.md` from a repository, not from a website, so a hosted copy does nothing until someone copies the file in. No `/.well-known/` convention exists for any of these files.
 
-To bring a `DESIGN.md` into Lolly, run `lolly system import DESIGN.md`, which reads the tokens into a new design system. `--dry-run` reads the file and changes nothing. [DESIGN.md in Design Tokens](/info/design-tokens.html#designmd) says what maps to what.
+To bring a `DESIGN.md` into Lolly, run `lolly system import DESIGN.md`, which reads the tokens into a new design system. `--dry-run` reads the file and changes nothing. [DESIGN.md in Design Tokens](/info/design-tokens.html#design-md) says what maps to what.
 
 To draw with the brand rather than read about the brand, use [Lolly's MCP server](/info/mcp.html) or the [CLI](/info/cli-rendering.html). A page cannot render anything by itself, and runs no tools or hooks.
 
 ## What is not built yet
 
-- **A signed page.** See [what the digest does not tell you](#take-a-logo-from-someones-page).
+- **A signed page.** See [what the digest does not tell you](#take-a-logo-from-someone-s-page).
 - **A file that leads back to its page.** Nothing in an exported file records a page's address.
 - **Partner rules in a page.** Clear space, minimum size and allowed treatments are not fields yet. [Working with partners](/info/partners.html) covers what to do today.
 - **Rendering from a page over public MCP, or a directory of pages.**

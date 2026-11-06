@@ -494,9 +494,11 @@ POST /api/v1/users/:id/disabled     # { disabled: true }   (or SCIM active=false
 person's **session epoch**, a counter each session token carries from when it was minted. A
 token minted before the bump is refused from that moment, so every live session of the
 disabled person ends on its next request, with no window to ride out. SCIM `active=false`
-does exactly this. The bounded offboarding operation, which also revokes the person's links
-and tokens, is in [Account data controls](account-lifecycle.md). Both preserve another active
-owner.
+does exactly this. The share, embed, download and collection links the person made stop
+serving at the same moment (`410 LINK_MAKER_DISABLED`), and serve again if the account is
+re-enabled; their guest links already stop with the inviter. The bounded offboarding
+operation, which revokes the person's links and tokens for good, is in [Account data
+controls](account-lifecycle.md). Both preserve another active owner.
 
 Every way a session can end:
 
