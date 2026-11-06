@@ -708,7 +708,7 @@ test('mountRolesStrip: a changed swatch list rebuilds, and puts focus back', () 
 
 test('roleLabel covers every declared role', () => {
   for (const id of ROLE_IDS_ALL) assert.ok(roleLabel(id).length > 0, `${id} has no label`);
-  assert.equal(new Set(ROLE_IDS_ALL.map(roleLabel)).size, ROLE_IDS_ALL.length, 'labels must be distinct');
+  assert.equal(new Set(ROLE_IDS_ALL.map(id => roleLabel(id))).size, ROLE_IDS_ALL.length, 'labels must be distinct');
 });
 
 // ── All seven slots (plan 182 section 5.7 step 1) ────────────────────────────

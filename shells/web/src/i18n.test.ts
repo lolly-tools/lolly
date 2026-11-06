@@ -119,3 +119,12 @@ test('<html dir> stamps rtl for Arabic and restores ltr on the way back', async 
   await setActiveLang('de', { persist: false });
   assert.equal(doc.dir, 'ltr');
 });
+
+test('a value is inert: text holding a placeholder or a replacement pattern comes through as typed', async () => {
+  const { t, tRaw } = await import('./i18n.ts');
+  assert.equal(tRaw('{a} then {b}', { a: '{b}', b: 'B' }), '{b} then B');
+  assert.equal(tRaw('{a}!', { a: '$& $1 $`' }), '$& $1 $`!');
+  assert.equal(t('{a}', { a: '<b>' }), '&lt;b&gt;', 't() still escapes');
+  assert.equal(tRaw('{missing} stays', { other: 1 }), '{missing} stays');
+  assert.equal(tRaw('{constructor}', {}), '{constructor}', 'an inherited name is not a param');
+});

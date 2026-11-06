@@ -44,7 +44,7 @@
  * set, so clearing one is refused; a lead is removed whole or not at all.
  */
 
-import { colorToHex, colourPairContrast, colourRoleMarkOf, contrastRatio, createTokenSet, deriveOnColour, isDerivedOnColourValue, onColourFloor, tokenSetNames, TOKEN_EXT, WEAK_LC as ENGINE_WEAK_LC } from '@lolly/engine';
+import { colorToHex, colourPairContrast, colourRoleMarkOf, contrastRatio, createTokenSet, deriveOnColour, isDerivedOnColourValue, onColourFloor, readColourRoles, tokenSetNames, TOKEN_EXT, WEAK_LC as ENGINE_WEAK_LC } from '@lolly/engine';
 import type { ColourPairContrast } from '@lolly/engine';
 import { escape } from '../../utils.ts';
 import { t, tRaw } from '../../i18n.ts';
@@ -92,9 +92,46 @@ export const ASSIGNABLE_ROLES: readonly RoleId[] =
  *  list above and the module header. */
 const isRoleId = (v: unknown): v is RoleId => ASSIGNABLE_ROLES.includes(v as RoleId);
 
-/** The role's name as the strip shows it. Called per render, never cached at
+/**
+ * What a design system calls each slot (plans/352). Empty on a system that declares no
+ * colour roles, which keeps today's words. On one that does, a filled slot goes by the
+ * role's own word and a slot nothing fills goes by the table's language, so the brand's
+ * "secondary" and Lolly's slot are never the same word. A lookup, never a plain object:
+ * these words come from a token file.
+ */
+export type RoleWords = ReadonlyMap<RoleId, string>;
+
+const NO_WORDS: RoleWords = new Map();
+
+export function roleWords(doc: unknown): RoleWords {
+  const reading = readColourRoles(doc);
+  if (reading.state !== 'declared') return NO_WORDS;
+  const words = new Map<RoleId, string>();
+  for (const held of reading.slots) {
+    const id = held.slot as RoleId;
+    const role = held.roleId ? reading.roles.find(r => r.id === held.roleId) : null;
+    words.set(id, role?.declared ? role.label : UNFILLED_WORD[id]!());
+  }
+  words.set('on-primary', tRaw('On {role}', { role: words.get('primary') ?? t('Lead colour') }));
+  return words;
+}
+
+/** A slot nothing fills, on a system that speaks its own words. The Colour roles table says the same. */
+const UNFILLED_WORD: Partial<Record<RoleId, () => string>> = {
+  primary: () => t('Lead colour'),
+  secondary: () => t('Partner colour'),
+  surface: () => t('Background'),
+  text: () => t('Text'),
+  muted: () => t('Quiet text'),
+  edge: () => t('Hairlines'),
+};
+
+/** The role's name as the strip shows it: the system's own word when it has one
+ *  (`words`, from {@link roleWords}), else today's. Called per render, never cached at
  *  module scope, so a language switch repaints correctly. */
-export function roleLabel(id: RoleId): string {
+export function roleLabel(id: RoleId, words: RoleWords = NO_WORDS): string {
+  const own = words.get(id);
+  if (own) return own;
   switch (id) {
     case 'primary': return t('Primary');
     case 'secondary': return t('Secondary');
@@ -615,6 +652,9 @@ export interface RoleRow {
    *  Secondary pointed at the same swatch as Primary reads "↳ follows Primary".
    *  Empty for every row that is not doing that. */
   follows: string;
+  /** What a write to this row goes to, when that is not `id`: `role:<id>` for one of
+   *  the design system's own colour roles, which may fill no slot at all. */
+  target?: string;
   /** The picker's current selection: a swatch key, or '' for Not set. */
   selected: string;
   contrast: RoleContrast | null;
@@ -685,6 +725,7 @@ export function buildRolesModel(
   ids: readonly RoleId[] = ROLE_IDS,
 ): RolesModel {
   const readouts = roleReadouts(doc, ctx, resolve);
+  const words = roleWords(doc);
   const options = swatches.filter(s => !s.key.startsWith('color.semantic.'));
   const byKey = new Map(options.map(s => [s.key, s]));
   const primaryRef = readouts.primary.ref ?? '';
@@ -697,10 +738,10 @@ export function buildRolesModel(
     // A slot resolving to the SAME swatch the primary sits on is not a second
     // decision - it is the first one, showing through. Naming the colour twice
     // reads as two choices; the arrow says what actually happened.
-    const follows = id !== 'primary' && !!r.ref && r.ref === primaryRef ? roleLabel('primary') : '';
+    const follows = id !== 'primary' && !!r.ref && r.ref === primaryRef ? roleLabel('primary', words) : '';
     return {
       id,
-      label: roleLabel(id),
+      label: roleLabel(id, words),
       hex: r.hex,
       value: follows
         ? tRaw('↳ follows {role}', { role: follows })
@@ -728,7 +769,7 @@ const fmtLc = (lc: number): string => `${lc < 0 ? '-' : ''}${Math.round(Math.abs
 
 /** The readout's three rendered parts, so the string builder and the in-place
  *  patch below cannot drift apart on wording or on the weak-pairing class. */
-function apcaParts(c: RoleContrast): { weak: boolean; title: string; text: string } {
+export function apcaParts(c: RoleContrast): { weak: boolean; title: string; text: string } {
   return {
     weak: c.weak,
     title: tRaw('APCA Lc {lc} ({band}). WCAG {wcag} to 1.', {

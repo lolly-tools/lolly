@@ -1006,6 +1006,15 @@ button.be-lead:hover { background: hsl(var(--muted) / .7); }
   flex: 0 0 auto; font-size: var(--fs-xs); color: hsl(var(--muted-foreground));
 }
 
+/* The Colour roles wing sits above the chips, in the palette's own column, so the In
+   context preview stays beside the table. Open, the table says what the chips say and
+   more, so the chips step aside. */
+[data-be-tab-panel="color"] .be-roles { padding: 0; margin-block-end: var(--sp-4); }
+.be-roles[open] + .be-rolechips-mount { display: none; }
+.be-roles-all { padding-top: var(--sp-3); }
+.be-roles-all-body { display: grid; gap: var(--sp-3); padding-top: var(--sp-3); }
+.be-pal-card--role .be-swatch { cursor: pointer; }
+
 /* ── The role chips at the top of Colours (lib/design-system/role-chips.ts,
       plan 346 change 7). One chip per first decision, each the colour that
       plays the role and its name. A chip is a control, so it sits proud on a
@@ -1154,7 +1163,8 @@ button.be-lead:hover { background: hsl(var(--muted) / .7); }
   .be-bulk-preview { display: inline-flex; }
 }
 .be-preview-empty { display: grid; place-items: center; aspect-ratio: 4 / 3; border-radius: var(--radius); margin: 0; padding: 1rem; background: hsl(var(--muted) / .5); color: hsl(var(--muted-foreground)); font-size: var(--fs-sm); text-align: center; }
-.be-context .be-context-head { margin-bottom: 0; }
+.be-context .be-context-head { margin-bottom: 0; align-items: center; }
+.be-context-head > .view-seg { margin-inline-end: auto; }
 .be-context > .view-seg { width: 100%; }
 .be-context .be-pv-cap { display: none; }
 /* The add area (plan 346 change 18): paste, sample or drop, visible at the top

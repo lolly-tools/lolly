@@ -19,7 +19,6 @@ import { addLead, duplicateLead, leadsEditable, listLeads, removeLead, renameLea
 import type { Lead, LeadEdit } from '../design-system/leads.ts';
 import type { ColourwayEdit } from '@lolly/engine';
 import { nameColor } from '../color-namer.ts';
-import { segHtml } from '../seg.ts';
 import { t, tRaw } from '../../i18n.ts';
 import { escape as escapeText } from '../../utils.ts';
 import { announce } from '../../a11y.ts';
@@ -88,10 +87,12 @@ export function renderColourways(bedit: BrandEditorCtx): void {
   const editable = leadsEditable(bedit.doc);
   const mode = bedit.state.editContext().mode;
   const adding = mount.dataset.adding === 'true';
+  // The look being shown lives with what shows it: the In context preview and the strip.
+  // The table beside this row has light and dark side by side, so it needs no switch.
+  for (const btn of bedit.root.querySelectorAll<HTMLElement>('[data-be-lead-mode]')) btn.setAttribute('aria-pressed', String(btn.dataset.beLeadMode === mode));
   mount.innerHTML = `
     <div class="be-leads-head">
       <span class="be-leads-title">${t('Colourways')}</span>
-      ${segHtml('lead-mode', [{ id: 'light', label: t('Light') }, { id: 'dark', label: t('Dark') }], mode, t('Mode'), { attr: 'data-be-lead-mode' })}
     </div>
     <div class="be-leads-row" role="group" aria-label="${escapeText(t('Colourways'))}">
       ${chipsHtml(bedit, leads, editing)}
@@ -132,16 +133,18 @@ export function wireColourways(bedit: BrandEditorCtx): void {
   bedit.leadsMount = mount;
   if (!mount) return;
   bedit.paletteHooks.push(() => renderColourways(bedit));
+  const onMode = (e: Event): void => {
+    const mode = (e.target as HTMLElement).closest<HTMLElement>('[data-be-lead-mode]');
+    if (!mode) return;
+    const next = mode.dataset.beLeadMode === 'dark' ? 'dark' : 'light';
+    if (next !== bedit.state.editContext().mode) { bedit.currentTheme = next; bedit.swatchEditor.closeEditor(); bedit.ramps.repaintPalette(); }
+  };
+  bedit.root.addEventListener('click', onMode);
+  bedit.cleanups.push(() => bedit.root.removeEventListener('click', onMode));
   mount.addEventListener('click', (e) => {
     const el = e.target as HTMLElement;
     const chip = el.closest<HTMLElement>('[data-be-lead]');
     if (chip) { editLead(bedit, chip.dataset.beLead ?? null); return; }
-    const mode = el.closest<HTMLElement>('[data-be-lead-mode]');
-    if (mode) {
-      const next = mode.dataset.beLeadMode === 'dark' ? 'dark' : 'light';
-      if (next !== bedit.state.editContext().mode) { bedit.currentTheme = next; bedit.swatchEditor.closeEditor(); bedit.ramps.repaintPalette(); }
-      return;
-    }
     if (el.closest('[data-be-lead-add]')) {
       mount.dataset.adding = mount.dataset.adding === 'true' ? 'false' : 'true';
       renderColourways(bedit);

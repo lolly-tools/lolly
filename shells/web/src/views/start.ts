@@ -103,6 +103,12 @@ type RoomsArePanels =
 const ROOMS_ARE_PANELS: RoomsArePanels = true;
 void ROOMS_ARE_PANELS;
 
+/** A managed system shows its colour roles with no controls (plans/352). Its own chunk, so a read-only visit loads the table only when it is drawn. */
+function showReadOnlyColourRoles(viewEl: HTMLElement, doc: unknown): void {
+  const section = viewEl.querySelector<HTMLElement>('[data-colour-roles-readonly]');
+  if (section) void import('../lib/design-system/rooms/colour-roles.ts').then(m => { if (section.isConnected) m.mountColourRolesReadOnly(section, doc); });
+}
+
 export async function mountStart(viewEl: HTMLElement, host: StartHost, params = ''): Promise<void> {
   const start = {} as StartCtx;
   start.navigation = navigationOps(start);
@@ -173,12 +179,13 @@ export async function mountStart(viewEl: HTMLElement, host: StartHost, params = 
           <h1 class="start-title">${t('This brand is set')}</h1>
           <p class="start-sub">${t('This build ships with a fixed brand. Explore its usage rules and examples below.')}</p>
         </header>
-        <section data-token-readonly></section><section data-usage-readonly></section><section data-skills-readonly></section>
+        <section data-colour-roles-readonly></section><section data-token-readonly></section><section data-usage-readonly></section><section data-skills-readonly></section>
       </div>`;
     attachLangMenu(viewEl.querySelector<HTMLElement>('.lang-fab'), host);
     start.navigation.wireBackPill();
     start.navigation.wireHomeFab();
     const tokenDoc = await host.tokens?.raw?.().catch(() => null);
+    showReadOnlyColourRoles(viewEl, tokenDoc);
     const workspace = mountTokenWorkspace(viewEl.querySelector<HTMLElement>('[data-token-readonly]')!, { read: () => tokenDoc, host, label: t('Design system'), context: 'Editable head', consumers: webTokenConsumerSources(host) });
     const usage = mountUsageRoom(viewEl.querySelector<HTMLElement>('[data-usage-readonly]')!, { host: host, readonly: true });
     const skills = mountSkillsRoom(viewEl.querySelector<HTMLElement>('[data-skills-readonly]')!, { host, readonly: true });
@@ -204,12 +211,13 @@ export async function mountStart(viewEl: HTMLElement, host: StartHost, params = 
             <a class="be-btn" href="#/profile?focus=design-systems-section">${t('Switch')}</a>
           </p>
         </header>
-        <section data-token-readonly></section><section data-usage-readonly></section><section data-skills-readonly></section>
+        <section data-colour-roles-readonly></section><section data-token-readonly></section><section data-usage-readonly></section><section data-skills-readonly></section>
       </div>`;
     attachLangMenu(viewEl.querySelector<HTMLElement>('.lang-fab'), host);
     start.navigation.wireBackPill();
     start.navigation.wireHomeFab();
     const tokenDoc = await host.tokens?.raw?.().catch(() => null);
+    showReadOnlyColourRoles(viewEl, tokenDoc);
     const workspace = mountTokenWorkspace(viewEl.querySelector<HTMLElement>('[data-token-readonly]')!, { read: () => tokenDoc, host, label: t('Design system'), context: 'Editable head', consumers: webTokenConsumerSources(host) });
     const usage = mountUsageRoom(viewEl.querySelector<HTMLElement>('[data-usage-readonly]')!, { host: host, readonly: true });
     const skills = mountSkillsRoom(viewEl.querySelector<HTMLElement>('[data-skills-readonly]')!, { host, readonly: true });

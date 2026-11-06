@@ -1,0 +1,304 @@
+/* SPDX-License-Identifier: MPL-2.0 */
+/* ── The Colour roles table (lib/design-system/rooms/colour-roles.ts) ───────────
+   Sits in the panel primitive (.lp): its container query decides between four
+   columns and a stacked card. One markup either way, and light and dark are side
+   by side in both, because the whole point of the table is that nobody has to
+   flip a switch to see a role's other look.
+
+   Tokens only, and no colour on an edge: a row is separated by a neutral hairline,
+   and the one state worth calling out (a copied value) wears a tinted fill. */
+
+.crt {
+  height: auto;
+  display: grid;
+  gap: var(--sp-4);
+  /* The grid track for a look: wide enough for the chip and a hex at this type. */
+  --crt-look-min: calc(8.5rem * var(--a11y-fs));
+}
+.crt > * { min-width: 0; }
+
+.crt-table { display: grid; min-width: 0; }
+
+/* Stacked is the default: this is what a phone and a narrow pane get. The column
+   heads stay in the accessibility tree, and each cell says its own look. */
+.crt-head {
+  position: absolute;
+  width: 1px; height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+.crt-rows { display: grid; gap: var(--sp-3); }
+.crt-row {
+  display: grid;
+  grid-template-columns: repeat(var(--crt-looks, 2), minmax(0, 1fr));
+  gap: var(--sp-3);
+  min-width: 0;
+  padding: var(--sp-4);
+  border-radius: var(--ui-radius-card);
+  background: var(--ui-color-surface-canvas);
+  box-shadow: var(--ui-elevation-control);
+}
+.crt-role, .crt-reads, .crt-removal { grid-column: 1 / -1; min-width: 0; }
+.crt-cell { display: grid; align-content: start; gap: var(--sp-1); min-width: 0; }
+.crt-look {
+  font-size: var(--ui-type-field);
+  font-weight: var(--ui-type-weight-label);
+  text-transform: uppercase;
+  letter-spacing: var(--ui-type-tracking-label);
+  color: var(--ui-color-text-muted);
+}
+.crt-reads { display: grid; align-content: start; gap: var(--sp-1); }
+
+/* Four columns once the pane can hold them. The row becomes a hairline-separated
+   line and the heads come back on screen. */
+@container lp (min-width: 38rem) {
+  .crt-head {
+    position: static;
+    width: auto; height: auto;
+    overflow: visible;
+    clip-path: none;
+    white-space: normal;
+    display: grid;
+    grid-template-columns: minmax(0, 1.25fr) repeat(var(--crt-looks, 2), minmax(var(--crt-look-min), 1fr)) minmax(0, 1.25fr);
+    gap: var(--sp-3);
+    padding: 0 var(--sp-2) var(--sp-2);
+    border-bottom: 1px solid var(--ui-color-border-default);
+  }
+  .crt-head > .lp-label { grid-column: auto; }
+  .crt-rows { gap: 0; }
+  .crt-row {
+    grid-template-columns: minmax(0, 1.25fr) repeat(var(--crt-looks, 2), minmax(var(--crt-look-min), 1fr)) minmax(0, 1.25fr);
+    padding: var(--sp-3) var(--sp-2);
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+    border-bottom: 1px solid var(--ui-color-border-default);
+  }
+  .crt-role { grid-column: auto; }
+  .crt-reads { grid-column: auto; }
+  .crt-removal { grid-column: 1 / -1; }
+  .crt-look { display: none; }
+}
+/* Large text needs the stacked card at any width: the fixed tracks would clip. */
+html[data-a11y-text="large"] .crt-head {
+  position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%);
+}
+html[data-a11y-text="large"] .crt-rows { gap: var(--sp-3); }
+html[data-a11y-text="large"] .crt-row {
+  grid-template-columns: repeat(var(--crt-looks, 2), minmax(0, 1fr));
+  padding: var(--sp-4);
+  border-radius: var(--ui-radius-card);
+  border-bottom: 0;
+  background: var(--ui-color-surface-canvas);
+  box-shadow: var(--ui-elevation-control);
+}
+html[data-a11y-text="large"] .crt-role,
+html[data-a11y-text="large"] .crt-reads { grid-column: 1 / -1; }
+html[data-a11y-text="large"] .crt-look { display: inline; }
+
+/* ── The role's own words ──────────────────────────────────────────────────── */
+.crt-name-row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--sp-1);
+}
+.crt-name-row > .crt-name:first-child { grid-column: 1 / 3; }
+/* A real field at rest, the same box as the reading control beside it. */
+.crt-name.field-input {
+  min-width: 0;
+  height: var(--ui-size-control);
+  min-height: var(--ui-size-control);
+  padding-block: 0;
+  padding-inline: var(--sp-3);
+  font-size: var(--ui-type-body);
+  font-weight: var(--ui-type-weight-section);
+  text-overflow: ellipsis;
+}
+.crt-name--read {
+  display: block;
+  font-weight: var(--ui-type-weight-section);
+  overflow-wrap: anywhere;
+}
+.crt-desc {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  margin: var(--sp-1) 0 0;
+  padding: var(--sp-1) var(--sp-2);
+  border: 0;
+  border-radius: var(--ui-radius-control);
+  background: transparent;
+  color: var(--ui-color-text-muted);
+  font: inherit;
+  font-size: var(--ui-type-help);
+  line-height: 1.4;
+  resize: none;
+  field-sizing: content;
+  overflow-wrap: anywhere;
+}
+.crt-desc:hover { background: var(--ui-color-surface-muted); }
+.crt-desc:focus { outline: none; background: var(--ui-color-surface-muted); box-shadow: var(--ui-effect-focus-halo); }
+.crt-desc--read { padding: 0; }
+.crt-grip { width: calc(var(--ui-size-control) - 6px); cursor: grab; touch-action: none; }
+.crt-grip:active { cursor: grabbing; }
+.crt-grip[aria-pressed="true"] { background: var(--ui-color-selection-surface); color: var(--ui-color-text-default); }
+.crt-row.is-reorder-target { background: var(--ui-color-selection-surface); }
+
+/* ── A value ───────────────────────────────────────────────────────────────── */
+/* The same box as a field, so a row of controls reads as one kind of thing. */
+.lp-swatch.crt-value {
+  display: flex;
+  width: 100%;
+  height: var(--ui-size-control);
+  padding-inline: var(--sp-1) var(--sp-3);
+  border: 0;
+  border-radius: var(--ui-radius-panel);
+  box-shadow: var(--ui-effect-bevel), var(--ui-elevation-control);
+}
+.crt-value--read {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  min-width: 0;
+  font-size: var(--ui-type-body);
+}
+.crt-value > span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-variant-numeric: tabular-nums; }
+/* The sample: the colour with what sits on it, so the pair is seen rather than described. */
+.crt-chip,
+.lp-swatch.crt-value > i.crt-chip {
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+  width: calc(var(--ui-size-control) - 6px);
+  height: calc(var(--ui-size-control) - 6px);
+  border-radius: calc(var(--ui-radius-panel) - 3px);
+  background: var(--crt-bg, transparent);
+  background-image: none;
+  box-shadow: var(--ui-edge-default);
+  color: var(--crt-fg, currentColor);
+  font-size: var(--ui-type-field);
+  font-style: normal;
+  font-weight: var(--ui-type-weight-section);
+  line-height: 1;
+}
+.crt-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0 var(--sp-1);
+  min-width: 0;
+  padding-inline: var(--sp-1);
+  font-size: var(--ui-type-field);
+  color: var(--ui-color-text-muted);
+}
+.crt-meta > .be-role-apca { font-size: var(--ui-type-field); }
+.crt-dot { color: var(--ui-color-text-muted); }
+.crt-derived { cursor: help; }
+.crt-copied { margin-inline-start: auto; padding: 0 var(--sp-2); text-transform: none; letter-spacing: normal; cursor: help; }
+
+/* ── How Lolly reads it ────────────────────────────────────────────────────── */
+.crt-reads-word {
+  display: flex;
+  align-items: center;
+  min-height: var(--ui-size-control);
+  font-weight: var(--ui-type-weight-label);
+}
+.crt-reads-pick.field-select { width: 100%; min-width: 0; height: var(--ui-size-control); min-height: var(--ui-size-control); padding-block: 0; font-size: var(--ui-type-help); }
+.crt-reads .lp-help { grid-column: auto; }
+.crt-also { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--sp-2); }
+.crt-link {
+  padding: var(--sp-1) 0;
+  border: 0;
+  background: none;
+  color: var(--ui-color-text-default);
+  font: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+}
+.crt-link:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 2px; }
+.crt-notice { color: var(--ui-color-status-danger); }
+
+/* ── Removing ──────────────────────────────────────────────────────────────── */
+.lp-status.crt-removal { margin: var(--sp-2) 0 0; }
+.crt-removal .lp-status-copy { flex: 1 1 auto; font-size: var(--ui-type-help); }
+.crt-removal-uses { margin: 0; padding-inline-start: var(--sp-5); display: grid; gap: var(--sp-1); overflow-wrap: anywhere; color: var(--ui-color-text-default); }
+.crt-removal-note { overflow-wrap: anywhere; }
+.crt-removal-actions { display: flex; flex-wrap: wrap; gap: var(--sp-2); margin-top: var(--sp-1); }
+
+/* ── Adding, and the starting points ───────────────────────────────────────── */
+.crt-add { justify-self: start; }
+.crt-adding {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: var(--sp-2);
+}
+.crt-adding > .crt-notice { grid-column: 1 / -1; }
+.crt-start {
+  display: grid;
+  gap: var(--sp-3);
+  padding: var(--sp-4);
+  border-radius: var(--ui-radius-card);
+  background: var(--ui-color-surface-canvas);
+  box-shadow: var(--ui-elevation-control);
+}
+.crt-start-lead { margin: 0; font-size: var(--ui-type-body); }
+.crt-start-picks { display: flex; flex-wrap: wrap; gap: var(--sp-2); }
+.crt-start-field { display: grid; gap: var(--sp-1); }
+.crt-start-field > .lp-label { grid-column: auto; white-space: normal; }
+.crt-start-field .field-input { width: 100%; }
+.crt-start-preview { display: grid; gap: var(--sp-1); margin: 0; padding: 0; list-style: none; }
+.crt-start-preview:empty { display: none; }
+.crt-start-preview > li { display: flex; justify-content: space-between; gap: var(--sp-3); font-size: var(--ui-type-help); }
+.crt-start-word { min-width: 0; font-weight: var(--ui-type-weight-label); overflow-wrap: anywhere; }
+.crt-start-read { flex: none; color: var(--ui-color-text-muted); }
+.crt-start-actions { display: flex; flex-wrap: wrap; gap: var(--sp-2); }
+
+/* ── What no role fills, and what nothing declares ─────────────────────────── */
+.crt-unfilled { display: grid; gap: var(--sp-2); }
+.crt-unfilled > .lp-help { grid-column: auto; }
+.crt-unfilled-list, .crt-token-list { display: flex; flex-wrap: wrap; gap: var(--sp-2) var(--sp-4); margin: 0; padding: 0; list-style: none; }
+.crt-unfilled-list > li { display: inline-flex; align-items: center; gap: var(--sp-2); font-size: var(--ui-type-help); }
+/* One chip, one half per look: a slot's whole story at a glance. */
+.crt-pair {
+  flex: none;
+  display: inline-flex;
+  height: var(--ui-size-icon-lg);
+  border-radius: var(--ui-radius-choice);
+  overflow: hidden;
+  box-shadow: var(--ui-edge-default);
+}
+.crt-pair > i { display: block; width: var(--ui-size-icon-sm); background: var(--crt-bg, transparent); }
+.crt-tokens { display: grid; gap: var(--sp-2); }
+.crt-tokens > .lp-subhead { margin: 0; }
+.crt-token-list { display: grid; }
+.crt-token { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-2); }
+.crt-token-name { flex: 1 1 10rem; min-width: 0; width: auto; height: var(--ui-size-control); min-height: var(--ui-size-control); padding-block: 0; font-size: var(--ui-type-help); }
+.crt-token-id { font-family: var(--ui-type-mono-family); font-size: var(--ui-type-field); color: var(--ui-color-text-muted); overflow-wrap: anywhere; }
+.crt-token--unusable .lp-help { grid-column: auto; flex: 1 1 14rem; }
+.crt-issues .crt-removal-uses { font-size: var(--ui-type-help); color: var(--ui-color-text-muted); }
+
+/* Roomier gutters where the room has room; a phone keeps the width for the values. */
+@media (max-width: 640px) {
+  [data-be-tab-panel="color"] .be-roles > .be-wing-body { padding-inline: var(--sp-3); }
+}
+
+/* ── A managed system's section ────────────────────────────────────────────── */
+.crt-section { display: grid; gap: var(--sp-4); padding: var(--sp-6); }
+.crt-section-head { margin: 0; font-size: var(--fs-lg); font-weight: 650; }
+
+/* ── The value picker ──────────────────────────────────────────────────────── */
+.lp-status.crt-pick-copied { margin: 0; }
+.crt-pick-copied .lp-status-copy { flex: 1 1 auto; align-items: flex-start; }
+.crt-pick-same { justify-self: start; }
+.crt-pick-same[aria-pressed="true"] { background: var(--ui-color-selection-surface); }
+.crt-pick-on { display: flex; align-items: center; gap: var(--sp-2); margin: 0; font-size: var(--ui-type-help); color: var(--ui-color-text-muted); }
+.crt-pick-field { min-width: 0; }
+
+/* Under a coarse pointer every control grows to the touch target. */
+@media (any-pointer: coarse) {
+  .crt-name.field-input, .lp-swatch.crt-value, .crt-reads-pick.field-select, .crt-token-name { min-height: var(--ui-size-target); height: auto; }
+  .crt-grip, .crt-remove { min-width: var(--ui-size-target); min-height: var(--ui-size-target); }
+}
