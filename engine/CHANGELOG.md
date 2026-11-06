@@ -6,10 +6,17 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
-## 1.320.0
+## 1.321.0
 
 - The vector IR gains a `stencil` prim (`VectorStencilPrim` in `emf.ts`): words as one bit per pixel, painted in one ink, so whatever lies under them shows through. `emitEps` paints it with `imagemask` in the ink (RGB or the CMYK mapping), and `emitWmf` with a pair of 1-bit `META_STRETCHDIB` blits, OR then AND, which leaves the page under the words as it was. `emitDxf` counts one as a dropped picture. `emitEmf` draws none.
 - No other module changes. The vector walk (`packages/node-shell/src/svg-ir.ts`) makes a stencil from a picture of a run no font can draw, for EPS and WMF, as a PDF draws such a run as a picture, and DXF stops with a message that names the run instead of outlining boxes. A file with no such run keeps its bytes.
+
+## 1.320.0
+
+- An SVG's Content Credential goes in a `<metadata>` child of the root `<svg>`, the place the C2PA SVG binding defines and c2patool reads. When the page inlined artwork that carries its own manifest, such as a catalog logo, `embedC2pa` used to write the export's manifest over the logo's, inside the logo, and c2patool reported "No claim found" for the file. The logo now keeps its own manifest in its own markup, where the export's hard binding covers those bytes like any others, and the export's claim validates at the root.
+- New leaf module `c2pa-svg.ts`: `locateSvgCredential` finds the root `<svg>`, its first direct `<metadata>` and the manifest in a direct `<metadata>`, reading past comments, CDATA, quoted attribute values and nested artwork in one linear pass. The SVG placer and reader both use it.
+- The reader takes the root's credential first. A file with none there falls back to the first manifest anywhere, which is where exports written before this version put theirs, so a credential someone already holds reads as it did.
+- Default SVG exports that inline credentialed artwork change bytes: the file now holds the export's manifest at the root and the artwork's own in the artwork. Nothing else goes into the file. An SVG with no nested manifest is placed exactly as before. The MCP server no longer strips the inlined artwork's manifest before it stamps, so its files match the web shell's and the CLI's.
 
 ## 1.319.0
 
