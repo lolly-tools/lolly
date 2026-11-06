@@ -4114,7 +4114,7 @@ var ENGINE_VERSION;
 var init_version = __esm({
   "engine/src/version.ts"() {
     "use strict";
-    ENGINE_VERSION = "1.312.0";
+    ENGINE_VERSION = "1.313.0";
   }
 });
 
@@ -10140,15 +10140,15 @@ var init_token_selection = __esm({
 function tokenReferenceUses(value2, type) {
   const refs = [];
   let nodes = 0;
-  function walk3(v, expected, depth) {
+  function walk4(v, expected, depth) {
     if (++nodes > 4096 || depth > 32) return;
     if (typeof v === "string" && /^\{[^{}]+\}$/.test(v)) refs.push({ path: v.slice(1, -1), type: expected });
-    else if (Array.isArray(v)) for (const child2 of v) walk3(child2, compositeElementType(expected), depth + 1);
+    else if (Array.isArray(v)) for (const child2 of v) walk4(child2, compositeElementType(expected), depth + 1);
     else if (v && typeof v === "object") for (const [key2, child2] of Object.entries(v)) {
-      if (!key2.startsWith("$")) walk3(child2, TOKEN_COMPOSITE_FIELDS[expected ?? ""]?.[key2] ?? null, depth + 1);
+      if (!key2.startsWith("$")) walk4(child2, TOKEN_COMPOSITE_FIELDS[expected ?? ""]?.[key2] ?? null, depth + 1);
     }
   }
-  walk3(value2, type, 0);
+  walk4(value2, type, 0);
   return refs;
 }
 var TOKEN_COMPOSITE_FIELDS, compositeElementType;
@@ -36202,7 +36202,7 @@ function normalize(source, viewBox, parseXml, authoredPaint = false) {
     if (name !== "id" && name !== "transform" && !presentation.has(name) && !tags[tag3].includes(name)) throw new Error(`Unsupported SVG attribute ${name}.`);
     attributes2[name] = staticSvgAttribute(name, value2, tag3, authoredPaint);
   }
-  function walk3(element, depth) {
+  function walk4(element, depth) {
     if (++nodes > 4096 || depth > 32) throw new Error("SVG exceeds the supported element or depth limit.");
     const tag3 = element.localName;
     if (element.namespaceURI !== namespace || element.prefix || !Object.hasOwn(tags, tag3) || tag3 === "svg" !== (depth === 0)) throw new Error(`Unsupported SVG element ${tag3}.`);
@@ -36263,7 +36263,7 @@ function normalize(source, viewBox, parseXml, authoredPaint = false) {
     const children2 = [];
     for (const child2 of Array.from(element.childNodes)) {
       if (child2.nodeType === 1) {
-        const node = walk3(child2, depth + 1);
+        const node = walk4(child2, depth + 1);
         if (node) children2.push(node);
       } else if (child2.nodeType === 8) changes.add("Omitted XML comments; source bytes remain pinned.");
       else if (child2.nodeType !== 3 || child2.textContent?.trim()) throw new Error("Unsupported SVG text or node.");
@@ -36276,7 +36276,7 @@ function normalize(source, viewBox, parseXml, authoredPaint = false) {
     return kept2.length ? { tag: "defs", attributes: {}, children: kept2 } : null;
   }
   for (const child2 of Array.from(doc.childNodes)) if (child2 !== doc.documentElement && child2.nodeType !== 8 && (child2.nodeType !== 3 || child2.textContent?.trim())) throw new Error("Unsupported SVG document node.");
-  const tree = walk3(doc.documentElement, 0);
+  const tree = walk4(doc.documentElement, 0);
   viewBox ??= tree.attributes.viewBox?.split(" ").map(Number) ?? [0, 0, Number(tree.attributes.width), Number(tree.attributes.height)];
   if (viewBox.length !== 4 || !viewBox.every(Number.isFinite) || viewBox[2] <= 0 || viewBox[3] <= 0) throw new Error("SVG needs a finite positive viewport.");
   if (tree.attributes.viewBox === void 0 && viewBox[0] === 0 && viewBox[1] === 0 && tree.attributes.width === String(viewBox[2]) && tree.attributes.height === String(viewBox[3])) {
@@ -36384,15 +36384,15 @@ async function inkPreparedEmojiSvg(svg) {
 function visitPreparedEmojiPaints(svg, visit) {
   const record47 = prepared.get(svg);
   if (!record47) throw new Error("SVG has not been admitted.");
-  const walk3 = (node) => {
+  const walk4 = (node) => {
     for (const name of paintNames) {
       const value2 = node.attributes[name];
       if (value2 === void 0 || !hexPaint.test(value2)) continue;
       visit(value2, name);
     }
-    for (const child2 of node.children) walk3(child2);
+    for (const child2 of node.children) walk4(child2);
   };
-  walk3(record47.tree);
+  walk4(record47.tree);
 }
 function emojiSvgChanges(svg) {
   const record47 = prepared.get(svg);
@@ -39214,7 +39214,7 @@ function frozenAssetId(sha256hex, ns2 = "user") {
   return `${ns2}/frozen/${digest2.slice(0, FROZEN_KEY_LEN)}`;
 }
 function walkLeaves(doc, visit) {
-  const walk3 = (node, path) => {
+  const walk4 = (node, path) => {
     if (!isRec3(node)) return;
     if ("$value" in node) {
       visit(node, path);
@@ -39222,10 +39222,10 @@ function walkLeaves(doc, visit) {
     }
     for (const k of Object.keys(node)) {
       if (k.startsWith("$")) continue;
-      walk3(node[k], [...path, k]);
+      walk4(node[k], [...path, k]);
     }
   };
-  walk3(doc, []);
+  walk4(doc, []);
 }
 function collectAssetTokens(doc) {
   const out = [];
@@ -42263,7 +42263,7 @@ function ttmlToCues(source, parse2, opts = {}) {
     if (cues.length >= TTML_LIMITS.maxCues) throw new CaptionFormatError("The TTML file holds too many captions.");
     cues.push({ start: span.begin, end: span.end, text: text13 });
   };
-  const walk3 = (el, parent, preserve) => {
+  const walk4 = (el, parent, preserve) => {
     const isP = el.localName === "p";
     if (el.localName === "head" || el.localName === "metadata") return;
     noteStyle(el);
@@ -42286,9 +42286,9 @@ function ttmlToCues(source, parse2, opts = {}) {
       }
       return;
     }
-    for (const child2 of Array.from(el.children)) walk3(child2, span, keep2);
+    for (const child2 of Array.from(el.children)) walk4(child2, span, keep2);
   };
-  walk3(root2, { begin: 0, end: Infinity }, false);
+  walk4(root2, { begin: 0, end: Infinity }, false);
   return { cues: cues.sort((a, b) => a.start - b.start), issues };
 }
 var TTML_LIMITS, TTML_NS, IMSC11_TEXT_PROFILE, attr;
@@ -60705,15 +60705,15 @@ function diffDocuments(a, b) {
 }
 function tokenValuesFromModel(model2) {
   const out = {};
-  const walk3 = (value2, path) => {
+  const walk4 = (value2, path) => {
     if (!value2 || typeof value2 !== "object") return;
     if (!Array.isArray(value2) && typeof value2.ref === "string") {
       out[path] = { ref: value2.ref, value: value2.value };
       return;
     }
-    for (const [key2, item2] of Object.entries(value2)) walk3(item2, `${path}/${key2}`);
+    for (const [key2, item2] of Object.entries(value2)) walk4(item2, `${path}/${key2}`);
   };
-  for (const input of model2) walk3(input.value, input.id);
+  for (const input of model2) walk4(input.value, input.id);
   return out;
 }
 function semanticJson(value2) {
@@ -65913,7 +65913,7 @@ function vectorPaintMatrices(paint2, count4, authored) {
   function bounds(node) {
     if (!authored) throw new Error("This vector clip needs its authored geometry.");
     const contours = [];
-    function walk3(node2, matrix) {
+    function walk4(node2, matrix) {
       if (node2.tag === "defs") return;
       for (const index2 of node2.contours ?? []) {
         const path = authored[index2], curves2 = toCubics(path).map((curve) => curve.map((value2, i) => {
@@ -65922,9 +65922,9 @@ function vectorPaintMatrices(paint2, count4, authored) {
         }));
         contours.push({ curves: curves2, closed: path.closed });
       }
-      for (const child2 of node2.children ?? []) walk3(child2, multiplyVectorMatrix(matrix, vectorMatrix(child2.attributes.transform)));
+      for (const child2 of node2.children ?? []) walk4(child2, multiplyVectorMatrix(matrix, vectorMatrix(child2.attributes.transform)));
     }
-    walk3(node, identity);
+    walk4(node, identity);
     return pathBounds(contours);
   }
   function visit(node, parent) {
@@ -67005,7 +67005,7 @@ function inspectTokenDocument(doc, opts = {}) {
   const diagnostics = [...selection.diagnostics];
   let nodes = 0;
   let truncated = selection.diagnostics.some((i) => i.code === "limit");
-  function walk3(node, type, path, location4, set, depth) {
+  function walk4(node, type, path, location4, set, depth) {
     if (!record10(node)) return;
     if (depth > 48) {
       truncated = true;
@@ -67026,12 +67026,12 @@ function inspectTokenDocument(doc, opts = {}) {
         sources.push({ set, location: loc, type: typeof child2.$type === "string" ? child2.$type : inherited4, value: structuredClone(child2.$value), active: set === null || selection.sets.includes(set), ...typeof child2.$description === "string" ? { description: child2.$description } : {}, ...record10(child2.$extensions) ? { extensions: structuredClone(child2.$extensions) } : {} });
         definitions.set(p, sources);
         if ("$ref" in child2) diagnostics.push({ code: "unsupported", path: p, message: "JSON Pointer references are retained but not resolved." });
-      } else walk3(child2, inherited4, p, loc, set, depth + 1);
+      } else walk4(child2, inherited4, p, loc, set, depth + 1);
     }
   }
   const sets = tokenSetNames(d);
-  if (sets) for (const set of sets) walk3(d[set], null, "", `/${pointer(set)}`, set, 0);
-  else walk3(d, null, "", "", null, 0);
+  if (sets) for (const set of sets) walk4(d[set], null, "", `/${pointer(set)}`, set, 0);
+  else walk4(d, null, "", "", null, 0);
   const resolved2 = createTokenSet(d, opts);
   const references = (value2) => {
     const out = /* @__PURE__ */ new Set();
@@ -88161,7 +88161,7 @@ function parsePenpotContent(contentJson) {
       if (!firstStyle && t !== "") firstStyle = lf;
     }
   }
-  (function walk3(n7) {
+  (function walk4(n7) {
     if (n7 == null || typeof n7 !== "object") return;
     const type = pget(n7, "type");
     const children2 = pkids(n7);
@@ -88173,7 +88173,7 @@ function parsePenpotContent(contentJson) {
       collectParagraph(n7);
       return;
     }
-    children2.forEach(walk3);
+    children2.forEach(walk4);
   })(root2);
   const fg = firstStyle ? penpotLeafColor(firstStyle) : "";
   let fontFamily = "";
@@ -88202,7 +88202,7 @@ function collectPenpotFontUsage(contentJson) {
   }
   if (!root2 || typeof root2 !== "object") return [];
   const byKey = /* @__PURE__ */ new Map();
-  (function walk3(n7) {
+  (function walk4(n7) {
     if (n7 == null || typeof n7 !== "object") return;
     const fid = pget(n7, "font-id");
     if (fid !== void 0) {
@@ -88225,7 +88225,7 @@ function collectPenpotFontUsage(contentJson) {
         });
       }
     }
-    pkids(n7).forEach(walk3);
+    pkids(n7).forEach(walk4);
   })(root2);
   return [...byKey.values()];
 }
@@ -94298,14 +94298,14 @@ function htmlList(items2, ordered) {
   const list4 = (Array.isArray(items2) ? items2 : []).filter((i2) => i2 && typeof i2 === "object");
   const tag3 = ordered ? "ol" : "ul";
   let i = 0;
-  const walk3 = (level2) => {
+  const walk4 = (level2) => {
     const lis = [];
     while (i < list4.length) {
       const item2 = list4[i];
       const lvl = clampListLevel(item2.level);
       if (lvl < level2) break;
       if (lvl > level2) {
-        const child2 = walk3(lvl);
+        const child2 = walk4(lvl);
         if (lis.length) lis[lis.length - 1] = `${lis[lis.length - 1].slice(0, -5)}${child2}</li>`;
         else lis.push(`<li>${child2}</li>`);
         continue;
@@ -94315,7 +94315,7 @@ function htmlList(items2, ordered) {
     }
     return `<${tag3}>${lis.join("")}</${tag3}>`;
   };
-  return walk3(0);
+  return walk4(0);
 }
 function htmlTable(block) {
   const cell2 = (c, tag3) => {
@@ -101339,7 +101339,7 @@ function slotFor(sh) {
 function penpotComponentSlots(rootShape, lookup4) {
   const out = [];
   const seen = /* @__PURE__ */ new Set();
-  const walk3 = (shape) => {
+  const walk4 = (shape) => {
     if (!isRec5(shape)) return;
     const id3 = str5(shape.id);
     if (id3) {
@@ -101350,9 +101350,9 @@ function penpotComponentSlots(rootShape, lookup4) {
     const slot = slotFor(shape);
     if (slot) out.push({ shapeId: id3, ...slot });
     const kids2 = Array.isArray(shape.shapes) ? shape.shapes : [];
-    for (const k of kids2) walk3(lookup4(String(k)));
+    for (const k of kids2) walk4(lookup4(String(k)));
   };
-  walk3(rootShape);
+  walk4(rootShape);
   return out;
 }
 var str5, isRec5;
@@ -109343,6 +109343,89 @@ var init_brand_map = __esm({
   }
 });
 
+// engine/src/token-scope.ts
+function putOwn(row, key2, value2) {
+  Object.defineProperty(row, key2, { value: value2, enumerable: true, writable: true, configurable: true });
+}
+function copyOf(row) {
+  const copy = Object.create(Object.getPrototypeOf(row));
+  for (const key2 of Object.keys(row)) putOwn(copy, key2, row[key2]);
+  return copy;
+}
+function inVendorExtension(path) {
+  return path[0] === "$extensions" && path[1] === TOKEN_EXT;
+}
+function walk3(node, path, leftOut, seen) {
+  if (!node || typeof node !== "object") return node;
+  if (seen.has(node)) return node;
+  seen.add(node);
+  if (Array.isArray(node)) {
+    let list4 = null;
+    node.forEach((item2, index2) => {
+      const next2 = walk3(item2, [...path, String(index2)], leftOut, seen);
+      if (next2 !== item2) {
+        list4 ??= [...node];
+        list4[index2] = next2;
+      }
+    });
+    return list4 ?? node;
+  }
+  const row = node;
+  let copy = null;
+  const drop = (key2, code) => {
+    copy ??= copyOf(row);
+    delete copy[key2];
+    leftOut.push({ path: path.join("."), field: key2, code });
+  };
+  for (const key2 of Object.keys(row)) {
+    const value2 = row[key2];
+    if (key2 === "$description" && typeof value2 !== "string") {
+      drop(key2, "scope.not-text");
+      continue;
+    }
+    if (typeof value2 === "string") {
+      const words4 = key2 === "$description" || key2 === "description" || inVendorExtension(path) && (key2 === "label" || key2 === "name" && path.length === 2);
+      const code = words4 ? hintOf(value2) : null;
+      if (!code) continue;
+      if (key2 === "label" && typeof row.id === "string") {
+        copy ??= copyOf(row);
+        putOwn(copy, key2, row.id);
+        leftOut.push({ path: path.join("."), field: key2, code });
+      } else drop(key2, code);
+      continue;
+    }
+    if (path.length >= MAX_DEPTH4) {
+      if (value2 && typeof value2 === "object") drop(key2, "scope.depth");
+      continue;
+    }
+    const next2 = walk3(value2, [...path, key2], leftOut, seen);
+    if (next2 !== value2) {
+      copy ??= copyOf(row);
+      putOwn(copy, key2, next2);
+    }
+  }
+  return copy ?? row;
+}
+function leaveOutScopedTokenText(doc) {
+  const leftOut = [];
+  return { doc: walk3(doc, [], leftOut, /* @__PURE__ */ new WeakSet()), leftOut };
+}
+function scopedTokenTextWarnings(leftOut) {
+  const where = (row) => row.path ? `The ${row.field === "label" || row.field === "name" ? row.field : "description"} on ${row.path}` : "The description";
+  if (leftOut.length > 5) return [`${leftOut.length} descriptions and labels speak about permissions or running code, so they were left out. The first is on ${leftOut[0].path || "the document"}.`];
+  return leftOut.map((row) => `${where(row)} speaks about permissions or running code, so it was left out.`);
+}
+var MAX_DEPTH4, hintOf;
+var init_token_scope = __esm({
+  "engine/src/token-scope.ts"() {
+    "use strict";
+    init_brand_skill();
+    init_token_ext();
+    MAX_DEPTH4 = 128;
+    hintOf = (text13) => brandSkillScopeHints(text13)[0]?.code ?? null;
+  }
+});
+
 // engine/src/brand-import.ts
 function structureIssue(value2, budget3) {
   const active = /* @__PURE__ */ new WeakSet();
@@ -109431,8 +109514,8 @@ function coerceTokensDoc(json) {
   const issue2 = topLevelSetIssue(json) ?? structureIssue(json, { nodes: 0 });
   if (issue2) return { doc: null, warnings: [issue2], source: studio ? "tokens-studio" : "dtcg" };
   const older = { n: 0 };
-  const doc = fromOlderTokenFormat(json, older);
-  return { doc, warnings: olderFormatWarning(older.n), source: studio ? "tokens-studio" : "dtcg" };
+  const { doc, leftOut } = leaveOutScopedTokenText(fromOlderTokenFormat(json, older));
+  return { doc, warnings: [...olderFormatWarning(older.n), ...scopedTokenTextWarnings(leftOut)], source: studio ? "tokens-studio" : "dtcg" };
 }
 function assembleTokenSetFiles(files) {
   const warnings2 = [];
@@ -109502,7 +109585,9 @@ function assembleTokenSetFiles(files) {
     warnings2.push("no token set files found");
     return { doc: null, warnings: warnings2, source: "token-set-files" };
   }
-  return { doc, warnings: warnings2, source: "token-set-files" };
+  const scoped = leaveOutScopedTokenText(doc);
+  warnings2.push(...scopedTokenTextWarnings(scoped.leftOut));
+  return { doc: scoped.doc, warnings: warnings2, source: "token-set-files" };
 }
 function parseEntry(entries, path, warnings2, budget3) {
   const raw = entries[path];
@@ -109621,7 +109706,9 @@ function extractPenpotProject(entries) {
     warnings2.push("no tokens.json found in the project");
     return { doc: null, warnings: warnings2, source: "penpot-project" };
   }
-  return { doc, warnings: warnings2, source: "penpot-project" };
+  const scoped = leaveOutScopedTokenText(doc);
+  warnings2.push(...scopedTokenTextWarnings(scoped.leftOut));
+  return { doc: scoped.doc, warnings: warnings2, source: "penpot-project" };
 }
 function pv(o, camel) {
   if (!isRecord3(o)) return void 0;
@@ -109811,6 +109898,7 @@ var init_brand_import = __esm({
     "use strict";
     init_tokens2();
     init_design_map();
+    init_token_scope();
     isRecord3 = (v) => typeof v === "object" && v !== null && !Array.isArray(v);
     BRAND_IMPORT_MAX_PART_BYTES = 16 * 1024 * 1024;
     BRAND_IMPORT_MAX_PART_CHARS = 16 * 1024 * 1024;
@@ -110873,7 +110961,7 @@ var init_penpot_layout = __esm({
 function buildTokenTypeIndex(filtered) {
   const index2 = /* @__PURE__ */ new Map();
   if (!isRec6(filtered)) return index2;
-  const walk3 = (node, path) => {
+  const walk4 = (node, path) => {
     for (const [k, v] of Object.entries(node)) {
       if (k.startsWith("$") || !isRec6(v)) continue;
       const p = path ? `${path}.${k}` : k;
@@ -110887,13 +110975,13 @@ function buildTokenTypeIndex(filtered) {
         }
         set.add(t);
       } else {
-        walk3(v, p);
+        walk4(v, p);
       }
     }
   };
   for (const [setName2, set] of Object.entries(filtered)) {
     if (setName2.startsWith("$") || !isRec6(set)) continue;
-    walk3(set, "");
+    walk4(set, "");
   }
   return index2;
 }
@@ -110949,18 +111037,18 @@ function penpotTokenClosure(filtered) {
   const cycles = [];
   if (!isRec6(filtered)) return { dangling, cycles };
   const value2 = /* @__PURE__ */ new Map();
-  const walk3 = (node, path) => {
+  const walk4 = (node, path) => {
     for (const [k, v] of Object.entries(node)) {
       if (k.startsWith("$") || !isRec6(v)) continue;
       const p = path ? `${path}.${k}` : k;
       if ("$value" in v) {
         if (!value2.has(p)) value2.set(p, v.$value);
-      } else walk3(v, p);
+      } else walk4(v, p);
     }
   };
   for (const [setName2, set] of Object.entries(filtered)) {
     if (setName2.startsWith("$") || !isRec6(set)) continue;
-    walk3(set, "");
+    walk4(set, "");
   }
   const refsOf = (v) => {
     if (typeof v !== "string") return [];
@@ -118233,7 +118321,7 @@ function svgItemsOf(svgText, parseXml, opts = {}) {
     push(item2, 0);
   };
   let useVisits = 0;
-  const walk3 = (el, parent, depth, useDepth, trail) => {
+  const walk4 = (el, parent, depth, useDepth, trail) => {
     if (++tags3 > SVG_CUSTGEOM_MAX_TAGS) throw new CapReached();
     const ns2 = el.namespaceURI;
     if (ns2 && ns2 !== SVG_NS) return;
@@ -118253,7 +118341,7 @@ function svgItemsOf(svgText, parseXml, opts = {}) {
     }
     const state = inherit(el, { ...parent, m: m2 }, style);
     if (tag3 === "g" || tag3 === "a" || tag3 === "svg") {
-      if (depth > MAX_DEPTH4) throw new CapReached();
+      if (depth > MAX_DEPTH5) throw new CapReached();
       let inner = state;
       if (tag3 === "svg" && depth > 0) {
         const x = lengthIn(el.getAttribute("x") ?? void 0, state, "x") ?? 0;
@@ -118277,7 +118365,7 @@ function svgItemsOf(svgText, parseXml, opts = {}) {
         const name = (el.getAttribute("id") ?? "").trim() || (el.getAttribute("class") ?? "").trim().split(/\s+/)[0] || "";
         if (name) inner = { ...inner, groups: [...inner.groups, name.slice(0, MAX_GROUP_NAME)] };
       }
-      for (const child2 of kids(el)) walk3(child2, inner, depth + 1, useDepth, trail);
+      for (const child2 of kids(el)) walk4(child2, inner, depth + 1, useDepth, trail);
       return;
     }
     if (SHAPES2.has(tag3)) {
@@ -118302,9 +118390,9 @@ function svgItemsOf(svgText, parseXml, opts = {}) {
       const next2 = new Set(trail);
       next2.add(target2);
       if (localOf(target2) === "symbol") {
-        for (const child2 of kids(target2)) walk3(child2, placed2, depth + 1, useDepth + 1, next2);
+        for (const child2 of kids(target2)) walk4(child2, placed2, depth + 1, useDepth + 1, next2);
       } else {
-        walk3(target2, placed2, depth + 1, useDepth + 1, next2);
+        walk4(target2, placed2, depth + 1, useDepth + 1, next2);
       }
       return;
     }
@@ -118345,7 +118433,7 @@ function svgItemsOf(svgText, parseXml, opts = {}) {
       }
     }
     const state = inherit(root2, initial, styleOf(root2));
-    for (const child2 of kids(root2)) walk3(child2, state, 1, 0, /* @__PURE__ */ new Set());
+    for (const child2 of kids(root2)) walk4(child2, state, 1, 0, /* @__PURE__ */ new Set());
   } catch (err) {
     if (err instanceof CapReached) return refused("cap-reached", Math.max(seen, items2.length + 1), viewBox ?? { x: 0, y: 0, w: 0, h: 0 });
     throw err;
@@ -118922,7 +119010,7 @@ function vectorItemsDocument(items2) {
   const desc = items2.desc ? `<desc>${escXml(items2.desc)}</desc>` : "";
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${round32(vb.x)} ${round32(vb.y)} ${w} ${h}" width="${w}" height="${h}">${title}${desc}${vectorItemsSvg(items2)}</svg>`;
 }
-var VECTOR_ITEM_MAX_NODES, VECTOR_ITEM_MAX_ENCODED, MAX_VECTOR_ROWS_PER_OBJECT, MAX_VECTOR_ROWS_PER_FRAME, MAX_VECTOR_PATH_CHARS_PER_DOCUMENT, MAX_USE_DEPTH, MAX_DEPTH4, MAX_TITLE, MAX_DESC, MAX_SERIES, MAX_GROUPS, MAX_GROUP_NAME, ENCODE_CHECK_CHARS, SVG_NS, SILENT, SHAPES2, ANIMATION, CapReached, CASCADED, FACE_ONLY, INERT_AT_RULES, MAX_SHEET_CHARS, MAX_SHEET_RULES, MAX_CHAIN, MAX_MATCH_STEPS, ROW_PRECISION_PX, LABEL_GROUP, MAX_GLYPH_SUBPATHS, MAX_GLYPH_SHARE, MAX_HINT_NAMES, MAX_HINT_NAME, VECTOR_ROW_KIND_WORDS;
+var VECTOR_ITEM_MAX_NODES, VECTOR_ITEM_MAX_ENCODED, MAX_VECTOR_ROWS_PER_OBJECT, MAX_VECTOR_ROWS_PER_FRAME, MAX_VECTOR_PATH_CHARS_PER_DOCUMENT, MAX_USE_DEPTH, MAX_DEPTH5, MAX_TITLE, MAX_DESC, MAX_SERIES, MAX_GROUPS, MAX_GROUP_NAME, ENCODE_CHECK_CHARS, SVG_NS, SILENT, SHAPES2, ANIMATION, CapReached, CASCADED, FACE_ONLY, INERT_AT_RULES, MAX_SHEET_CHARS, MAX_SHEET_RULES, MAX_CHAIN, MAX_MATCH_STEPS, ROW_PRECISION_PX, LABEL_GROUP, MAX_GLYPH_SUBPATHS, MAX_GLYPH_SHARE, MAX_HINT_NAMES, MAX_HINT_NAME, VECTOR_ROW_KIND_WORDS;
 var init_svg_items = __esm({
   "engine/src/svg-items.ts"() {
     "use strict";
@@ -118940,7 +119028,7 @@ var init_svg_items = __esm({
     MAX_VECTOR_ROWS_PER_FRAME = 1200;
     MAX_VECTOR_PATH_CHARS_PER_DOCUMENT = 25e5;
     MAX_USE_DEPTH = 8;
-    MAX_DEPTH4 = 64;
+    MAX_DEPTH5 = 64;
     MAX_TITLE = 120;
     MAX_DESC = 500;
     MAX_SERIES = 64;
@@ -127856,7 +127944,7 @@ function svgToPenpotDoc(svgText, o) {
   };
   let shapeBudget = MAX_SHAPES;
   const MAX_WALK_DEPTH = 512;
-  const walk3 = (from, to, parent, out, depth = 0) => {
+  const walk4 = (from, to, parent, out, depth = 0) => {
     if (depth > MAX_WALK_DEPTH) {
       note2("nesting ceiling reached");
       return false;
@@ -127908,7 +127996,7 @@ function svgToPenpotDoc(svgText, o) {
           if (t.name === "svg" && i !== rootIdx) gf = { ...f, m: mul2(f.m, { a: 1, b: 0, c: 0, d: 1, e: parseLen(a.x), f: parseLen(a.y) }) };
           const kids2 = [];
           const inner = { ...gf, opacity: 1, blend: "normal" };
-          if (!walk3(i + 1, close, inner, kids2, depth + 1)) return false;
+          if (!walk4(i + 1, close, inner, kids2, depth + 1)) return false;
           if (kids2.length === 1 && t.name !== "svg") {
             const k = kids2[0];
             if (f.opacity < 1) k.opacity = (k.opacity ?? 1) * f.opacity;
@@ -128103,7 +128191,7 @@ function svgToPenpotDoc(svgText, o) {
         }
         default:
           if (!t.selfClosing && close > i) {
-            if (!walk3(i + 1, close, f, out, depth + 1)) return false;
+            if (!walk4(i + 1, close, f, out, depth + 1)) return false;
           }
           break;
       }
@@ -128126,7 +128214,7 @@ function svgToPenpotDoc(svgText, o) {
   const rootFrame = frameFor2(base, { ...root2, attrs: { ...root2.attrs, transform: "" } });
   if (!rootFrame) return null;
   const children2 = [];
-  if (!walk3(rootIdx + 1, rootClose, rootFrame, children2)) return null;
+  if (!walk4(rootIdx + 1, rootClose, rootFrame, children2)) return null;
   const bg = o.background ? parsePenpotColor(o.background) : null;
   const board = {
     type: "board",
@@ -131653,7 +131741,7 @@ function checkSyntax(tokens3, signal) {
     if (token2.type === "error" || token2.type === "flow-error-end") throw new Refusal(INVALID);
     const scalar6 = CST.isScalar(token2), collection = CST.isCollection(token2);
     if (scalar6 || collection) {
-      if (++nodes > MAX_NODES4 || depth > MAX_DEPTH5) throw new Refusal(LIMIT);
+      if (++nodes > MAX_NODES4 || depth > MAX_DEPTH6) throw new Refusal(LIMIT);
       if (scalar6) {
         checkString(token2.source, MAX_SCALAR, signal);
         const raw = token2.source.trim();
@@ -131699,7 +131787,7 @@ function plainData(node, signal) {
   while (queue2.length) {
     signal?.throwIfAborted();
     const entry2 = queue2.pop(), current = entry2.node;
-    if (++nodes > MAX_NODES4 || entry2.depth > MAX_DEPTH5) throw new Refusal(LIMIT);
+    if (++nodes > MAX_NODES4 || entry2.depth > MAX_DEPTH6) throw new Refusal(LIMIT);
     if (current === null || current === void 0) {
       entry2.assign(null);
       continue;
@@ -131782,14 +131870,14 @@ function readComparisonYaml(text13, signal) {
     return { ok: false, limitation: error2 instanceof Refusal ? error2.limitation : INVALID };
   }
 }
-var MAX_TOKENS, MAX_STACK, MAX_DEPTH5, MAX_NODES4, MAX_SCALAR, MAX_NUMBER, NUMBER_SOURCE, INVALID, LIMIT, SINGLE, REFERENCES, TAGS, KEYS2, MERGE, NUMBERS, Refusal;
+var MAX_TOKENS, MAX_STACK, MAX_DEPTH6, MAX_NODES4, MAX_SCALAR, MAX_NUMBER, NUMBER_SOURCE, INVALID, LIMIT, SINGLE, REFERENCES, TAGS, KEYS2, MERGE, NUMBERS, Refusal;
 var init_compare_yaml = __esm({
   "engine/src/compare-yaml.ts"() {
     "use strict";
     init_compare_budget();
     MAX_TOKENS = 1e5;
     MAX_STACK = 128;
-    MAX_DEPTH5 = 64;
+    MAX_DEPTH6 = 64;
     MAX_NODES4 = 2e4;
     MAX_SCALAR = 64 * 1024;
     MAX_NUMBER = 128;
@@ -136294,7 +136382,8 @@ function mediaSection(doc, catalog, assets) {
     treatments
   };
 }
-function designBrief(doc, catalog, opts = {}) {
+function designBrief(source, catalog, opts = {}) {
+  const { doc, leftOut } = leaveOutScopedTokenText(source);
   const context = brandContext(doc, opts);
   const facts2 = catalog ?? {};
   const assets = (Array.isArray(facts2.assets) ? facts2.assets : []).filter((a) => record29(a) && typeof a.id === "string" && a.deprecated !== true);
@@ -136330,6 +136419,7 @@ function designBrief(doc, catalog, opts = {}) {
     master: masterSection(master, resolve8, masterDeclared ? facts2.masterAsset : void 0),
     houseRules,
     skills,
+    ...leftOut.length ? { leftOut } : {},
     coverage: {
       ...context.coverage,
       themes: themes.length ? "declared" : "unavailable",
@@ -136378,6 +136468,7 @@ var init_design_brief = __esm({
     init_css_color();
     init_brand_skill();
     init_colour_roles();
+    init_token_scope();
     record29 = (v) => !!v && typeof v === "object" && !Array.isArray(v);
     tagsOf = (a) => Array.isArray(a.tags) ? a.tags.filter((t) => typeof t === "string") : [];
     hexOf6 = (value2) => {
@@ -140772,7 +140863,7 @@ function importVectorPaint(svg, parseXml) {
   const admitted3 = admitTextInlineSvg(svg, parseXml, "vector"), doc = parseXml(admitted3), root2 = doc.documentElement;
   const view = (root2.getAttribute("viewBox") ?? "").split(/[\s,]+/).map(Number), width = view[2], height = view[3];
   const paths = [], idMap = new Map(Array.from(doc.getElementsByTagName("*")).filter((el) => el.hasAttribute("id")).map((el) => [el.getAttribute("id"), el]));
-  function walk3(element, definition = false, instance = false) {
+  function walk4(element, definition = false, instance = false) {
     const tag3 = element.localName, attributes2 = Object.fromEntries(Array.from(element.attributes).map((attr7) => [attr7.name, attr7.value]));
     if (instance) delete attributes2.id;
     if (tag3 === "use") {
@@ -140781,7 +140872,7 @@ function importVectorPaint(svg, parseXml) {
       const x = Number(attributes2.x ?? 0), y = Number(attributes2.y ?? 0), own4 = attributes2.transform ?? "";
       for (const key2 of ["href", "x", "y", "width", "height"]) delete attributes2[key2];
       attributes2.transform = `${own4} translate(${x} ${y})`.trim();
-      const child2 = walk3(target2, false, true);
+      const child2 = walk4(target2, false, true);
       return { tag: "g", attributes: attributes2, children: child2 ? [child2] : [] };
     }
     if (geometry2[tag3]) {
@@ -140797,7 +140888,7 @@ function importVectorPaint(svg, parseXml) {
       return { tag: "path", attributes: attributes2, contours: indices };
     }
     const children2 = Array.from(element.children).flatMap((child2) => {
-      const node = walk3(child2, tag3 === "defs", instance);
+      const node = walk4(child2, tag3 === "defs", instance);
       return node ? [node] : [];
     });
     if (tag3 === "svg") {
@@ -140808,7 +140899,7 @@ function importVectorPaint(svg, parseXml) {
     }
     return { tag: tag3, attributes: attributes2, children: children2 };
   }
-  const tree = walk3(root2);
+  const tree = walk4(root2);
   if (!paths.length) throw new Error("This selection has no visible vector geometry.");
   const path = encodeAuthoredPaths(paths), paint2 = parseVectorPaint({ version: 1, width, height, root: tree }, paths.length);
   return { path, paint: paint2 };
@@ -146575,13 +146666,13 @@ function findSlideRegions(source, opts = {}) {
   };
   const tree = build2({ image, x0: 0, y0: 0, w: width, h: height, ground: ground.model, threshold: ground.threshold, depth: 0, gridCells }, void 0);
   const flat = [];
-  const walk3 = (nodes) => {
+  const walk4 = (nodes) => {
     for (const node of nodes) {
       flat.push(node.region);
-      walk3(node.children);
+      walk4(node.children);
     }
   };
-  walk3(tree);
+  walk4(tree);
   const kept2 = overflow ? [] : flat.slice(0, maxRegions);
   const dropped = overflow ? flat.length + overflowSeen : flat.length - kept2.length;
   return {
@@ -149482,7 +149573,7 @@ function mapFontFamilies(source, aliases) {
   const doc = structuredClone(source);
   let nodes = 0;
   const family2 = (v) => typeof v === "string" ? aliases.get(v.toLowerCase()) ?? v : Array.isArray(v) ? v.map(family2) : v;
-  function walk3(v, inherited4, depth) {
+  function walk4(v, inherited4, depth) {
     if (++nodes > 2e4 || depth > 48) throw new Error("The font projection exceeded its scan limit.");
     if (!v || typeof v !== "object" || Array.isArray(v)) return;
     const obj3 = v, type = obj3.$type ?? inherited4;
@@ -149494,9 +149585,9 @@ function mapFontFamilies(source, aliases) {
       }
       return;
     }
-    for (const [key2, child2] of Object.entries(obj3)) if (!key2.startsWith("$")) walk3(child2, type, depth + 1);
+    for (const [key2, child2] of Object.entries(obj3)) if (!key2.startsWith("$")) walk4(child2, type, depth + 1);
   }
-  walk3(doc, null, 0);
+  walk4(doc, null, 0);
   return doc;
 }
 async function verifyPinnedFontBytes(pin, bytes2) {
@@ -151436,7 +151527,7 @@ function admit(root2) {
   }
 }
 function itemSeconds(item2, depth = 0) {
-  if (!isObject2(item2) || depth > MAX_DEPTH6) return 0;
+  if (!isObject2(item2) || depth > MAX_DEPTH7) return 0;
   const range = readRange(item2.source_range);
   if (range) return seconds2(range.duration);
   const kind = schema(item2);
@@ -151481,7 +151572,7 @@ function readOtio(source, options2 = {}) {
   if (trackNodes.length > TIMELINE_MAX_TRACKS) throw new Error(`The timeline exceeds ${TIMELINE_MAX_TRACKS} tracks.`);
   const rates = [];
   const gather = (node, depth) => {
-    if (!isObject2(node) || depth > MAX_DEPTH6) return;
+    if (!isObject2(node) || depth > MAX_DEPTH7) return;
     if (schema(node) === "Clip") {
       const r5 = readRange(node.source_range) ?? (activeMedia(node) && readRange(activeMedia(node).available_range));
       if (r5) rates.push(r5.duration.rate);
@@ -151595,12 +151686,12 @@ function readOtio(source, options2 = {}) {
   report4.add("size", `OpenTimelineIO carries no frame size; ${width}x${height} was assumed.`);
   return buildSequence({ name, rate: rate3, width, height, clips: clips2, report: report4, timecodeStart: timecodeStart || void 0 });
 }
-var MAX_DEPTH6, MAX_NODES5, isObject2, schema, num17, seconds2;
+var MAX_DEPTH7, MAX_NODES5, isObject2, schema, num17, seconds2;
 var init_timeline_otio = __esm({
   "engine/src/timeline-otio.ts"() {
     "use strict";
     init_timeline_common();
-    MAX_DEPTH6 = 24;
+    MAX_DEPTH7 = 24;
     MAX_NODES5 = 4e5;
     isObject2 = (v) => typeof v === "object" && v !== null && !Array.isArray(v);
     schema = (v) => isObject2(v) && typeof v.OTIO_SCHEMA === "string" ? v.OTIO_SCHEMA.split(".")[0] : "";
@@ -151710,7 +151801,7 @@ function readFcpxml(source, parse2) {
     }
   };
   function place2(el, base, lane, depth) {
-    if (depth > MAX_DEPTH7) throw new Error("The FCPXML storyline nests too deeply.");
+    if (depth > MAX_DEPTH8) throw new Error("The FCPXML storyline nests too deeply.");
     if (unsupported(el)) return;
     const dur = parseRationalSeconds(el.getAttribute("duration")) ?? 0, start = parseRationalSeconds(el.getAttribute("start")) ?? 0;
     const name = cleanName2(el.getAttribute("name") ?? "", "Clip");
@@ -151780,13 +151871,13 @@ function readFcpxml(source, parse2) {
   const seqName = cleanName2(sequence.parentElement?.getAttribute("name") ?? "", "Imported timeline");
   return buildSequence({ name: seqName, rate: rate3, width: format.width, height: format.height, clips: clips2, report: report4, timecodeStart: Math.round(origin * fps), dropFrame: drop });
 }
-var MAX_DEPTH7;
+var MAX_DEPTH8;
 var init_timeline_fcpxml = __esm({
   "engine/src/timeline-fcpxml.ts"() {
     "use strict";
     init_adobe_xml();
     init_timeline_common();
-    MAX_DEPTH7 = 16;
+    MAX_DEPTH8 = 16;
   }
 });
 
@@ -152479,17 +152570,17 @@ function pageRect(page3, transform2) {
   const g2 = boxGeomFromBBox({ x: bounds[1], y: bounds[0], width: bounds[3] - bounds[1], height: bounds[2] - bounds[0] }, transform2);
   return { x: g2.x, y: g2.y, w: g2.w, h: g2.h };
 }
-var MAX_MASTERS, MAX_DEPTH8, MasterBook;
+var MAX_MASTERS, MAX_DEPTH9, MasterBook;
 var init_idml_master = __esm({
   "engine/src/idml-master.ts"() {
     "use strict";
     init_design_map();
     init_idml_styles();
     MAX_MASTERS = 256;
-    MAX_DEPTH8 = 8;
+    MAX_DEPTH9 = 8;
     MasterBook = class {
       masters = /* @__PURE__ */ new Map();
-      constructor(entries, pageRectOf, walk3) {
+      constructor(entries, pageRectOf, walk4) {
         if (entries.length > MAX_MASTERS) throw new Error("IDML contains more than 256 master spreads.");
         for (const { id: id3, el } of entries) {
           const pages = Array.from(el.children).filter((c) => c.localName === "Page").flatMap((page3) => {
@@ -152499,7 +152590,7 @@ var init_idml_master = __esm({
           const items2 = [];
           for (const child2 of Array.from(el.children)) {
             if (child2.localName === "Page") continue;
-            const nodes = walk3(child2);
+            const nodes = walk4(child2);
             if (!nodes.length) continue;
             const x0 = Math.min(...nodes.map((n7) => n7.x)), y0 = Math.min(...nodes.map((n7) => n7.y));
             const x1 = Math.max(...nodes.map((n7) => n7.x + n7.w)), y1 = Math.max(...nodes.map((n7) => n7.y + n7.h));
@@ -152518,7 +152609,7 @@ var init_idml_master = __esm({
       place(id3, target2, overrides, stats, depth = 0, seen = /* @__PURE__ */ new Set()) {
         const master = this.masters.get(id3);
         if (!master?.pages.length) return [];
-        if (depth >= MAX_DEPTH8 || seen.has(id3)) {
+        if (depth >= MAX_DEPTH9 || seen.has(id3)) {
           tally2(stats, "master.nested", "dropped");
           return [];
         }
@@ -154160,6 +154251,7 @@ __export(src_exports, {
   learningProgress: () => learningProgress,
   learningRenditions: () => learningRenditions,
   learningSummary: () => learningSummary,
+  leaveOutScopedTokenText: () => leaveOutScopedTokenText,
   lengthCubic: () => lengthCubic,
   licenceDisplayName: () => licenceDisplayName,
   licenceProfile: () => licenceProfile,
@@ -154631,6 +154723,7 @@ __export(src_exports, {
   scanPenpotAppliedTokens: () => scanPenpotAppliedTokens,
   scanPenpotUsage: () => scanPenpotUsage,
   sccToCues: () => sccToCues,
+  scopedTokenTextWarnings: () => scopedTokenTextWarnings,
   scoreArchetypes: () => scoreArchetypes,
   scoreExtract: () => scoreExtract,
   scoreTokenWatermark: () => scoreTokenWatermark,
@@ -155253,6 +155346,7 @@ var init_src2 = __esm({
     init_brand_check();
     init_design_brief();
     init_brand_skill();
+    init_token_scope();
     init_design_house_rules();
     init_creation_feedback();
     init_design_check();
@@ -157726,7 +157820,7 @@ function parseJson(bytes2) {
   }
 }
 function stripSvgC2pa(svg) {
-  return svg.replace(/<metadata><c2pa:manifest>[^<]*<\/c2pa:manifest><\/metadata>/g, "").replace(/<c2pa:manifest>[^<]*<\/c2pa:manifest>/g, "").replace(/ xmlns:c2pa="[^"]*"/g, "");
+  return svg.replace(/<metadata><c2pa:manifest(?:\s[^>]*)?>[^<]*<\/c2pa:manifest><\/metadata>/g, "").replace(/<c2pa:manifest(?:\s[^>]*)?>[^<]*<\/c2pa:manifest>/g, "").replace(/ xmlns:c2pa="[^"]*"/g, "");
 }
 var LOLLY_FILE_FORMAT, LOLLY_READER_VERSION, LOLLY_RENOVATION_MIN_READER, RENOVATION_PROJECT_PART, RENOVATION_PART_KINDS, MAX_RENOVATION_ASSETS, MAX_RENOVATION_ID, MAX_RENOVATION_NAME;
 var init_lolly_file = __esm({
@@ -157880,10 +157974,10 @@ function pdfStreamBytes(stream, cap = Number.POSITIVE_INFINITY) {
     return null;
   }
 }
-function pdfWalkText(walk3, o) {
-  const budget3 = walk3.content;
-  if (!budget3) return decodedText(walk3.ctx, o);
-  const v = walk3.ctx.lookup(o);
+function pdfWalkText(walk4, o) {
+  const budget3 = walk4.content;
+  if (!budget3) return decodedText(walk4.ctx, o);
+  const v = walk4.ctx.lookup(o);
   if (!(v instanceof PDFRawStream)) return null;
   const left = Math.max(0, budget3.limit - budget3.used);
   const bytes2 = pdfStreamBytes(v, left + 1);
@@ -157951,27 +158045,27 @@ async function loadPdfDocument(bytes2) {
   return PDFDocument.load(bytes2, { ignoreEncryption: true, throwOnInvalidObject: false, updateMetadata: false });
 }
 function makePdfWalk(ctx, imageStreams, warn2, decoders = {}, opts = {}) {
-  const walk3 = {
+  const walk4 = {
     ctx,
     imageStreams,
     warn: warn2,
     decoders,
-    resources: (dict, depth) => extractPdfResources(walk3, dict, depth)
+    resources: (dict, depth) => extractPdfResources(walk4, dict, depth)
   };
-  if (opts.bounded) walk3.bound = { stack: /* @__PURE__ */ new Set(), left: PDF_READ_RESOURCE_BUDGET };
-  return walk3;
+  if (opts.bounded) walk4.bound = { stack: /* @__PURE__ */ new Set(), left: PDF_READ_RESOURCE_BUDGET };
+  return walk4;
 }
-function extractPdfResources(walk3, resDict, depth) {
+function extractPdfResources(walk4, resDict, depth) {
   const res = { fonts: {}, xobjects: {}, extgstates: {}, ocgs: {}, shadings: {}, patterns: {} };
-  const dict = dictOf(walk3.ctx, resDict);
+  const dict = dictOf(walk4.ctx, resDict);
   if (!dict || depth > MAX_RESOURCE_DEPTH) return res;
-  const bound = walk3.bound;
-  if (!bound) return fillResources(walk3, res, resDict, depth);
+  const bound = walk4.bound;
+  if (!bound) return fillResources(walk4, res, resDict, depth);
   const refuse4 = (code) => {
     bound.told ??= /* @__PURE__ */ new Set();
     if (!bound.told.has(code)) {
       bound.told.add(code);
-      walk3.warn(code);
+      walk4.warn(code);
     }
     return res;
   };
@@ -157979,13 +158073,13 @@ function extractPdfResources(walk3, resDict, depth) {
   if (bound.left-- <= 0) return refuse4("resources.budget.exhausted");
   bound.stack.add(dict);
   try {
-    return fillResources(walk3, res, resDict, depth);
+    return fillResources(walk4, res, resDict, depth);
   } finally {
     bound.stack.delete(dict);
   }
 }
-function fillResources(walk3, res, resDict, depth) {
-  const ctx = walk3.ctx;
+function fillResources(walk4, res, resDict, depth) {
+  const ctx = walk4.ctx;
   for (const [name, ref2] of dictEntries2(ctx, getKey(ctx, resDict, "ExtGState"))) {
     const ca = numOf(ctx, getKey(ctx, ref2, "ca"));
     const CA = numOf(ctx, getKey(ctx, ref2, "CA"));
@@ -157994,24 +158088,24 @@ function fillResources(walk3, res, resDict, depth) {
     if (ca != null) gs.ca = ca;
     if (CA != null) gs.CA = CA;
     const sm = getKey(ctx, ref2, "SMask");
-    if (sm) gs.smask = dictOf(ctx, sm) ? walk3.decoders.softMask?.(walk3, sm, depth) ?? true : false;
+    if (sm) gs.smask = dictOf(ctx, sm) ? walk4.decoders.softMask?.(walk4, sm, depth) ?? true : false;
   }
   for (const [name, ref2] of dictEntries2(ctx, getKey(ctx, resDict, "Font"))) {
-    res.fonts[name] = buildFontInfo(walk3, ref2, depth);
+    res.fonts[name] = buildFontInfo(walk4, ref2, depth);
   }
   for (const [name, ref2] of dictEntries2(ctx, getKey(ctx, resDict, "XObject"))) {
     const subtype = nameOf(ctx, getKey(ctx, ref2, "Subtype"));
     if (subtype === "Image") {
-      const key2 = `img${walk3.imageStreams.size}`;
-      walk3.imageStreams.set(key2, makeImageDesc(ctx, ref2));
+      const key2 = `img${walk4.imageStreams.size}`;
+      walk4.imageStreams.set(key2, makeImageDesc(ctx, ref2));
       res.xobjects[name] = { kind: "image", imageKey: key2 };
     } else if (subtype === "Form") {
       const mtx = ctx.lookup(getKey(ctx, ref2, "Matrix"));
       res.xobjects[name] = {
         kind: "form",
-        content: pdfWalkText(walk3, ref2) || "",
+        content: pdfWalkText(walk4, ref2) || "",
         matrix: mtx instanceof PDFArray ? mtx.asArray().map((v) => numOf(ctx, v) ?? 0) : void 0,
-        resources: walk3.resources(getKey(ctx, ref2, "Resources"), depth + 1)
+        resources: walk4.resources(getKey(ctx, ref2, "Resources"), depth + 1)
       };
     }
   }
@@ -158019,14 +158113,14 @@ function fillResources(walk3, res, resDict, depth) {
     const label5 = pdfString(ctx, getKey(ctx, ref2, "Name"));
     if (label5) res.ocgs[name] = label5;
   }
-  const shading = walk3.decoders.shading ?? pdfShadingOf;
-  const pattern = walk3.decoders.pattern ?? pdfPatternOf;
+  const shading = walk4.decoders.shading ?? pdfShadingOf;
+  const pattern = walk4.decoders.pattern ?? pdfPatternOf;
   for (const [name, ref2] of dictEntries2(ctx, getKey(ctx, resDict, "Shading"))) {
-    const sh = shading(walk3, ref2);
+    const sh = shading(walk4, ref2);
     if (sh) res.shadings[name] = sh;
   }
   for (const [name, ref2] of dictEntries2(ctx, getKey(ctx, resDict, "Pattern"))) {
-    const pt = pattern(walk3, ref2, depth);
+    const pt = pattern(walk4, ref2, depth);
     if (pt) res.patterns[name] = pt;
   }
   return res;
@@ -158054,15 +158148,15 @@ function makeImageDesc(ctx, ref2, depth = 0) {
   }
   return desc;
 }
-function buildFontInfo(walk3, fontRef, depth) {
-  const ctx = walk3.ctx;
+function buildFontInfo(walk4, fontRef, depth) {
+  const ctx = walk4.ctx;
   const subtype = nameOf(ctx, getKey(ctx, fontRef, "Subtype")) || "";
   const twoByte = subtype === "Type0";
   const rawBase = nameOf(ctx, getKey(ctx, fontRef, "BaseFont")) || "";
   const base = rawBase.replace(/^[A-Z]{6}\+/, "");
-  const metrics = (walk3.decoders.fontMetrics ?? pdfFontWidths)(ctx, fontRef);
+  const metrics = (walk4.decoders.fontMetrics ?? pdfFontWidths)(ctx, fontRef);
   const info = { twoByte, family: base, weight: pdfWeightFromName(base), ...metrics };
-  const tuText = pdfWalkText(walk3, getKey(ctx, fontRef, "ToUnicode"));
+  const tuText = pdfWalkText(walk4, getKey(ctx, fontRef, "ToUnicode"));
   if (tuText) {
     try {
       info.decode = toUnicodeDecoder(parseToUnicode(tuText), twoByte);
@@ -158074,7 +158168,7 @@ function buildFontInfo(walk3, fontRef, depth) {
     const fontMatrix = fmArr instanceof PDFArray ? fmArr.asArray().map((v) => numOf(ctx, v) ?? 0) : [1e-3, 0, 0, 1e-3, 0, 0];
     const charProcs = {};
     for (const [gname, gref] of dictEntries2(ctx, getKey(ctx, fontRef, "CharProcs"))) {
-      const t = pdfWalkText(walk3, gref);
+      const t = pdfWalkText(walk4, gref);
       if (t != null) charProcs[gname] = t;
     }
     const encoding = {};
@@ -158098,7 +158192,7 @@ function buildFontInfo(walk3, fontRef, depth) {
       const w = numOf(ctx, v);
       if (w != null) widths[firstChar + i] = w;
     });
-    info.type3 = { fontMatrix, charProcs, encoding, widths, resources: walk3.resources(getKey(ctx, fontRef, "Resources"), depth + 1) };
+    info.type3 = { fontMatrix, charProcs, encoding, widths, resources: walk4.resources(getKey(ctx, fontRef, "Resources"), depth + 1) };
     info.twoByte = false;
   }
   return info;
@@ -158153,18 +158247,18 @@ function pdfFontWidths(ctx, font) {
   const missing = numOf(ctx, getKey(ctx, getKey(ctx, font, "FontDescriptor"), "MissingWidth"));
   return { ...Object.keys(widths).length ? { widths } : {}, ...missing == null ? {} : { defaultWidth: missing } };
 }
-function functionWork(walk3) {
-  let work = FUNCTION_WORK.get(walk3);
+function functionWork(walk4) {
+  let work = FUNCTION_WORK.get(walk4);
   if (!work) {
     work = { memo: /* @__PURE__ */ new Map(), nodesLeft: PDF_READ_FUNCTION_BUDGET, bytesLeft: PDF_READ_SAMPLE_BUDGET, told: /* @__PURE__ */ new Set() };
-    FUNCTION_WORK.set(walk3, work);
+    FUNCTION_WORK.set(walk4, work);
   }
   return work;
 }
-function tellOnce(walk3, work, code) {
+function tellOnce(walk4, work, code) {
   if (work.told.has(code)) return;
   work.told.add(code);
-  walk3.warn(code);
+  walk4.warn(code);
 }
 function numArray(ctx, o) {
   const v = ctx.lookup(o);
@@ -158197,10 +158291,10 @@ function colourAt(fn, comps, ...inputs) {
     return null;
   }
 }
-function pdfShadingFunction(walk3, o) {
-  const v = walk3.ctx.lookup(o);
+function pdfShadingFunction(walk4, o) {
+  const v = walk4.ctx.lookup(o);
   if (v instanceof PDFArray) {
-    const fns = v.asArray().map((f) => pdfFunction(walk3, f, 0));
+    const fns = v.asArray().map((f) => pdfFunction(walk4, f, 0));
     if (!fns.length || fns.some((f) => !f)) return null;
     return (...inputs) => {
       const out = [];
@@ -158212,13 +158306,13 @@ function pdfShadingFunction(walk3, o) {
       return out;
     };
   }
-  return pdfFunction(walk3, o, 0);
+  return pdfFunction(walk4, o, 0);
 }
-function pdfFunction(walk3, o, depth) {
+function pdfFunction(walk4, o, depth) {
   if (depth > MAX_FUNCTION_DEPTH) return null;
-  const obj3 = walk3.ctx.lookup(o);
+  const obj3 = walk4.ctx.lookup(o);
   if (!obj3) return null;
-  const work = functionWork(walk3);
+  const work = functionWork(walk4);
   let byDepth = work.memo.get(obj3);
   const known3 = byDepth?.[depth];
   if (known3 !== void 0) return known3;
@@ -158228,16 +158322,16 @@ function pdfFunction(walk3, o, depth) {
   }
   byDepth[depth] = null;
   if (work.nodesLeft <= 0) {
-    tellOnce(walk3, work, "function.budget.exhausted");
+    tellOnce(walk4, work, "function.budget.exhausted");
     return null;
   }
   work.nodesLeft--;
-  const fn = parseFunction(walk3, work, o, depth);
+  const fn = parseFunction(walk4, work, o, depth);
   byDepth[depth] = fn;
   return fn;
 }
-function parseFunction(walk3, work, o, depth) {
-  const ctx = walk3.ctx;
+function parseFunction(walk4, work, o, depth) {
+  const ctx = walk4.ctx;
   const d = dictOf(ctx, o);
   if (!d) return null;
   const type = numOf(ctx, d.get(PDFName.of("FunctionType")));
@@ -158255,7 +158349,7 @@ function parseFunction(walk3, work, o, depth) {
   }
   if (type === 3) {
     const subs = ctx.lookup(d.get(PDFName.of("Functions")));
-    const fns = (subs instanceof PDFArray ? subs.asArray() : []).map((f) => pdfFunction(walk3, f, depth + 1));
+    const fns = (subs instanceof PDFArray ? subs.asArray() : []).map((f) => pdfFunction(walk4, f, depth + 1));
     if (!fns.length || fns.some((f) => !f)) return null;
     const bounds = numArray(ctx, d.get(PDFName.of("Bounds"))) ?? [];
     const encode = numArray(ctx, d.get(PDFName.of("Encode"))) ?? [];
@@ -158270,11 +158364,11 @@ function parseFunction(walk3, work, o, depth) {
       return fns[i](hi > lo ? e0 + (tt - lo) * (e1 - e0) / (hi - lo) : e0);
     };
   }
-  if (type === 0) return sampledFunction(walk3, work, o, d0, d1);
+  if (type === 0) return sampledFunction(walk4, work, o, d0, d1);
   return null;
 }
-function sampledFunction(walk3, work, o, d0, d1) {
-  const ctx = walk3.ctx;
+function sampledFunction(walk4, work, o, d0, d1) {
+  const ctx = walk4.ctx;
   const stream = ctx.lookup(o);
   if (!(stream instanceof PDFRawStream)) return null;
   const d = stream.dict;
@@ -158282,23 +158376,23 @@ function sampledFunction(walk3, work, o, d0, d1) {
   const range = numArray(ctx, d.get(PDFName.of("Range"))) ?? [];
   const bps = numOf(ctx, d.get(PDFName.of("BitsPerSample"))) ?? 8;
   if (size.length > 1) {
-    walk3.warn(`function.sampled.inputs (${size.length})`);
+    walk4.warn(`function.sampled.inputs (${size.length})`);
     return null;
   }
   const n7 = Math.floor(size[0] ?? 0), m2 = Math.floor(range.length / 2);
   if (!Number.isFinite(n7) || n7 < 1 || m2 < 1 || bps < 1 || bps > 32) return null;
   const need = Math.ceil(n7 * m2 * bps / 8);
   if (need > MAX_SAMPLE_BYTES) {
-    walk3.warn(`function.sampled.too-large (${need} bytes declared)`);
+    walk4.warn(`function.sampled.too-large (${need} bytes declared)`);
     return null;
   }
   if (need > work.bytesLeft) {
-    tellOnce(walk3, work, "function.samples.budget.exhausted");
+    tellOnce(walk4, work, "function.samples.budget.exhausted");
     return null;
   }
   const filters = filterList(ctx, d.get(PDFName.of("Filter")));
   if (filters.length > 1 || filters.length === 1 && filters[0] !== "FlateDecode") {
-    walk3.warn(`function.sampled.filter (${filters.join(" ")})`);
+    walk4.warn(`function.sampled.filter (${filters.join(" ")})`);
     return null;
   }
   work.bytesLeft -= need;
@@ -158345,35 +158439,35 @@ function collapseStops(ramp) {
   }
   return out;
 }
-function pdfShadingOf(walk3, ref2) {
-  return shadingRead(walk3, ref2)?.shading ?? null;
+function pdfShadingOf(walk4, ref2) {
+  return shadingRead(walk4, ref2)?.shading ?? null;
 }
-function shadingRead(walk3, ref2) {
-  const ctx = walk3.ctx;
+function shadingRead(walk4, ref2) {
+  const ctx = walk4.ctx;
   const d = dictOf(ctx, ref2);
   if (!d) return null;
   const type = numOf(ctx, d.get(PDFName.of("ShadingType")));
   if (type !== 1 && type !== 2 && type !== 3) {
-    walk3.warn(`shading.unsupported (ShadingType ${type ?? "?"})`);
+    walk4.warn(`shading.unsupported (ShadingType ${type ?? "?"})`);
     return null;
   }
   const space = colorSpaceName(ctx, d.get(PDFName.of("ColorSpace"))) ?? "DeviceRGB";
   if (!SHADING_SPACES.has(space)) {
-    walk3.warn(`shading.unsupported (colour space ${space})`);
+    walk4.warn(`shading.unsupported (colour space ${space})`);
     return null;
   }
   const comps = shadingComps(space);
   if (type === 1) {
-    const fn2 = pdfShadingFunction(walk3, d.get(PDFName.of("Function")));
+    const fn2 = pdfShadingFunction(walk4, d.get(PDFName.of("Function")));
     if (!fn2) {
-      walk3.warn("shading.unsupported (function-based, unparsable Function)");
+      walk4.warn("shading.unsupported (function-based, unparsable Function)");
       return null;
     }
     const dom = numArray(ctx, d.get(PDFName.of("Domain"))) ?? [0, 1, 0, 1];
     const domain2 = [dom[0] ?? 0, dom[1] ?? 1, dom[2] ?? 0, dom[3] ?? 1];
     const flat = colourAt(fn2, comps, (domain2[0] + domain2[1]) / 2, (domain2[2] + domain2[3]) / 2);
     if (!flat) {
-      walk3.warn("shading.unsupported (function-based, unevaluable)");
+      walk4.warn("shading.unsupported (function-based, unevaluable)");
       return null;
     }
     let constant = true;
@@ -158384,7 +158478,7 @@ function shadingRead(walk3, ref2) {
         constant = colourAt(fn2, comps, u, v) === flat;
       }
     }
-    walk3.warn(constant ? "shading.type1.flat" : "shading.type1.midpoint");
+    walk4.warn(constant ? "shading.type1.flat" : "shading.type1.midpoint");
     const mtx = numArray(ctx, d.get(PDFName.of("Matrix")));
     const shading = {
       type: 1,
@@ -158399,18 +158493,18 @@ function shadingRead(walk3, ref2) {
   }
   const coords = numArray(ctx, d.get(PDFName.of("Coords"))) ?? [];
   if (type === 2 && coords.length < 4 || type === 3 && coords.length < 6) {
-    walk3.warn("shading.unsupported (bad Coords)");
+    walk4.warn("shading.unsupported (bad Coords)");
     return null;
   }
-  const fn = pdfShadingFunction(walk3, d.get(PDFName.of("Function")));
+  const fn = pdfShadingFunction(walk4, d.get(PDFName.of("Function")));
   if (!fn) {
-    walk3.warn("shading.unsupported (unparsable Function)");
+    walk4.warn("shading.unsupported (unparsable Function)");
     return null;
   }
   const domain = numArray(ctx, d.get(PDFName.of("Domain"))) ?? [0, 1];
   const ramp = rampOf(fn, comps, domain[0] ?? 0, domain[1] ?? 1);
   if (!ramp) {
-    walk3.warn("shading.unsupported (degenerate ramp)");
+    walk4.warn("shading.unsupported (degenerate ramp)");
     return null;
   }
   const ext = boolArray(ctx, d.get(PDFName.of("Extend")));
@@ -158427,25 +158521,25 @@ function shadingRead(walk3, ref2) {
     constant: false
   };
 }
-function pdfPatternOf(walk3, ref2, depth) {
-  const ctx = walk3.ctx;
+function pdfPatternOf(walk4, ref2, depth) {
+  const ctx = walk4.ctx;
   const d = dictOf(ctx, ref2);
   if (!d) return null;
   const ptype = numOf(ctx, d.get(PDFName.of("PatternType")));
   const mtx = numArray(ctx, d.get(PDFName.of("Matrix")));
   const matrix = mtx ? { matrix: mtx } : {};
   if (ptype === 2) {
-    const read = shadingRead(walk3, d.get(PDFName.of("Shading")));
+    const read = shadingRead(walk4, d.get(PDFName.of("Shading")));
     if (!read) return null;
     const { shading, constant } = read;
     if (constant) return { ...matrix, ...shading.flat ? { flat: shading.flat } : {} };
     return { shading, ...matrix, ...shading.flat ? { flat: shading.flat } : {} };
   }
   if (ptype === 1) {
-    const content2 = pdfWalkText(walk3, ref2);
+    const content2 = pdfWalkText(walk4, ref2);
     const bb = numArray(ctx, d.get(PDFName.of("BBox"))) ?? [];
     if (content2 == null || bb.length < 4) {
-      walk3.warn("pattern.unsupported (tiling, no stream or BBox)");
+      walk4.warn("pattern.unsupported (tiling, no stream or BBox)");
       return null;
     }
     const bbox = [bb[0], bb[1], bb[2], bb[3]];
@@ -158453,7 +158547,7 @@ function pdfPatternOf(walk3, ref2, depth) {
       ...matrix,
       tiling: {
         content: content2,
-        resources: walk3.resources(d.get(PDFName.of("Resources")), depth + 1),
+        resources: walk4.resources(d.get(PDFName.of("Resources")), depth + 1),
         bbox,
         xStep: numOf(ctx, d.get(PDFName.of("XStep"))) || bbox[2] - bbox[0],
         yStep: numOf(ctx, d.get(PDFName.of("YStep"))) || bbox[3] - bbox[1],
@@ -158461,7 +158555,7 @@ function pdfPatternOf(walk3, ref2, depth) {
       }
     };
   }
-  walk3.warn(`pattern.unsupported (PatternType ${ptype ?? "?"})`);
+  walk4.warn(`pattern.unsupported (PatternType ${ptype ?? "?"})`);
   return null;
 }
 function interpretPdfDocPage(doc, pageIndex, opts = {}) {
@@ -158472,10 +158566,10 @@ function interpretPdfDocPage(doc, pageIndex, opts = {}) {
   const node = pdfPage.node;
   const mb2 = pdfPage.getMediaBox();
   const imageStreams = /* @__PURE__ */ new Map();
-  const walk3 = (opts.walk ?? ((c, images, warn2) => makePdfWalk(c, images, warn2, {}, { bounded: true })))(ctx, imageStreams, diag);
-  if (opts.maxContentChars !== void 0) walk3.content ??= { used: 0, limit: opts.maxContentChars };
-  const resources = walk3.resources(getKey(ctx, node, "Resources"), 0);
-  let content2 = pdfContentString(ctx, node, walk3.content);
+  const walk4 = (opts.walk ?? ((c, images, warn2) => makePdfWalk(c, images, warn2, {}, { bounded: true })))(ctx, imageStreams, diag);
+  if (opts.maxContentChars !== void 0) walk4.content ??= { used: 0, limit: opts.maxContentChars };
+  const resources = walk4.resources(getKey(ctx, node, "Resources"), 0);
+  let content2 = pdfContentString(ctx, node, walk4.content);
   const inlineImages3 = countPdfInlineImages(content2);
   const invisible = opts.invisibleText ? markPdfInvisibleText(content2) : null;
   if (invisible?.shows) content2 = invisible.content;
@@ -158812,7 +158906,7 @@ function readPdfStructOrder(doc, pageIndex) {
       return;
     }
   };
-  const walk3 = (node, inheritedPg, depth) => {
+  const walk4 = (node, inheritedPg, depth) => {
     if (depth > MAX_STRUCT_DEPTH || out.length > 4096) return;
     const tag3 = node instanceof PDFRef ? node.tag : "";
     if (tag3) {
@@ -158837,15 +158931,15 @@ function readPdfStructOrder(doc, pageIndex) {
         if (kv instanceof PDFNumber) continue;
         const kd = dictOf(ctx, kv);
         if (!kd || nameOf(ctx, kd.get(PDFName.of("Type"))) === "MCR") continue;
-        walk3(kid, pg, depth + 1);
+        walk4(kid, pg, depth + 1);
       }
     } else if (kids2 && !(ctx.lookup(kids2) instanceof PDFNumber)) {
       const kd = dictOf(ctx, kids2);
-      if (kd && nameOf(ctx, kd.get(PDFName.of("Type"))) !== "MCR") walk3(kids2, pg, depth + 1);
+      if (kd && nameOf(ctx, kd.get(PDFName.of("Type"))) !== "MCR") walk4(kids2, pg, depth + 1);
     }
   };
   try {
-    walk3(root2, null, 0);
+    walk4(root2, null, 0);
   } catch {
     return [];
   }
@@ -167037,7 +167131,7 @@ function count3(n7, one, many = `${one}s`) {
   return `${n7} ${n7 === 1 ? one : many}`;
 }
 function walkNameTree(ctx, node, out, seen = /* @__PURE__ */ new Set(), depth = 0) {
-  if (depth > MAX_DEPTH9 || out.length >= MAX_ITEMS2) return out;
+  if (depth > MAX_DEPTH10 || out.length >= MAX_ITEMS2) return out;
   const tag3 = refTag(node);
   if (tag3) {
     if (seen.has(tag3)) return out;
@@ -167106,7 +167200,7 @@ function emptySink() {
   return { scripts: [], uris: [], launches: [], submits: [], remotes: [] };
 }
 function walkAction(ctx, action, sink, seen, depth = 0) {
-  if (depth > MAX_DEPTH9) return;
+  if (depth > MAX_DEPTH10) return;
   const tag3 = refTag(action);
   if (tag3) {
     if (seen.has(tag3)) return;
@@ -167185,7 +167279,7 @@ function fieldValue(ctx, v) {
   return null;
 }
 function walkFields(ctx, node, out, seen, prefix = "", inheritedType = null, depth = 0) {
-  if (depth > MAX_DEPTH9 || out.length >= MAX_ITEMS2) return;
+  if (depth > MAX_DEPTH10 || out.length >= MAX_ITEMS2) return;
   const tag3 = refTag(node);
   if (tag3) {
     if (seen.has(tag3)) return;
@@ -167337,11 +167431,11 @@ function scanPdfStructure(doc) {
   if (pages.length) add3("Pages", count3(pages.length, "page"));
   return out;
 }
-var MAX_DEPTH9, MAX_ITEMS2, LIST_CAP, DETAIL_CAP, NON_MARKUP;
+var MAX_DEPTH10, MAX_ITEMS2, LIST_CAP, DETAIL_CAP, NON_MARKUP;
 var init_pdf_structure = __esm({
   "packages/node-shell/src/pdf-structure.ts"() {
     "use strict";
-    MAX_DEPTH9 = 32;
+    MAX_DEPTH10 = 32;
     MAX_ITEMS2 = 500;
     LIST_CAP = 8;
     DETAIL_CAP = 400;
@@ -168917,7 +169011,7 @@ function countOutline(ctx, outlines) {
 }
 function inherited2(ctx, start, key2) {
   let node = start;
-  for (let depth = 0; node && depth < MAX_DEPTH10; depth++) {
+  for (let depth = 0; node && depth < MAX_DEPTH11; depth++) {
     const value2 = get3(node, key2);
     if (value2 !== void 0) return value2;
     node = dictOf3(ctx, get3(node, "Parent"));
@@ -168926,7 +169020,7 @@ function inherited2(ctx, start, key2) {
 }
 function fieldTag(ctx, widgetRef, widget) {
   let ref2 = widgetRef, node = widget;
-  for (let depth = 0; node && depth < MAX_DEPTH10; depth++) {
+  for (let depth = 0; node && depth < MAX_DEPTH11; depth++) {
     if (get3(node, "T") !== void 0) return ref2 instanceof PDFRef4 ? ref2.tag : null;
     ref2 = get3(node, "Parent");
     node = dictOf3(ctx, ref2);
@@ -168978,7 +169072,7 @@ function countSignatures(ctx, doc) {
       signed++;
       continue;
     }
-    if (kids2 && depth < MAX_DEPTH10) for (const kid of kids2) stack.push({ ref: kid, depth: depth + 1 });
+    if (kids2 && depth < MAX_DEPTH11) for (const kid of kids2) stack.push({ ref: kid, depth: depth + 1 });
   }
   return signed;
 }
@@ -169150,13 +169244,13 @@ function pageEffects(docs, outputPages, inPlace) {
   }
   return effects;
 }
-var MAX_ITEMS3, MAX_ANNOTS_PER_PAGE, MAX_DEPTH10;
+var MAX_ITEMS3, MAX_ANNOTS_PER_PAGE, MAX_DEPTH11;
 var init_pdf_page_effects = __esm({
   "packages/node-shell/src/pdf-page-effects.ts"() {
     "use strict";
     MAX_ITEMS3 = 1e4;
     MAX_ANNOTS_PER_PAGE = 2e3;
-    MAX_DEPTH10 = 32;
+    MAX_DEPTH11 = 32;
   }
 });
 
@@ -169661,26 +169755,26 @@ async function lockPdf(bytes2, password) {
     EncryptMetadata: true
   });
   const encString = async (value2) => PDFHexString3.of(hex4(await encryptObjectBytes(fileKey, rnd(16), value2.asBytes())));
-  const walk3 = async (value2) => {
+  const walk4 = async (value2) => {
     if (value2 instanceof PDFDict8) {
       for (const [key2, child2] of value2.entries()) {
         if (child2 instanceof PDFString3 || child2 instanceof PDFHexString3) value2.set(key2, await encString(child2));
-        else if (child2 instanceof PDFDict8 || child2 instanceof PDFArray9) await walk3(child2);
+        else if (child2 instanceof PDFDict8 || child2 instanceof PDFArray9) await walk4(child2);
       }
     } else if (value2 instanceof PDFArray9) {
       for (let i = 0; i < value2.size(); i++) {
         const child2 = value2.get(i);
         if (child2 instanceof PDFString3 || child2 instanceof PDFHexString3) value2.set(i, await encString(child2));
-        else if (child2 instanceof PDFDict8 || child2 instanceof PDFArray9) await walk3(child2);
+        else if (child2 instanceof PDFDict8 || child2 instanceof PDFArray9) await walk4(child2);
       }
     }
   };
   for (const [ref2, value2] of ctx.enumerateIndirectObjects()) {
     if (value2 instanceof PDFStream3) {
       const encrypted = await encryptObjectBytes(fileKey, rnd(16), new Uint8Array(value2.getContents()));
-      await walk3(value2.dict);
+      await walk4(value2.dict);
       ctx.assign(ref2, PDFRawStream5.of(value2.dict, encrypted));
-    } else if (value2 instanceof PDFDict8 || value2 instanceof PDFArray9) await walk3(value2);
+    } else if (value2 instanceof PDFDict8 || value2 instanceof PDFArray9) await walk4(value2);
     else if (value2 instanceof PDFString3 || value2 instanceof PDFHexString3) ctx.assign(ref2, await encString(value2));
   }
   ctx.trailerInfo.Encrypt = ctx.register(enc6);
@@ -171958,14 +172052,14 @@ async function checkKeepTextOutput(output, bars, fill2) {
     }
     byPage.set(bar.page, [...byPage.get(bar.page) ?? [], toRect(bar)]);
   }
-  const walk3 = walkFor(await loadStandardWidths());
+  const walk4 = walkFor(await loadStandardWidths());
   const burned = hexOf8(fill2);
   for (const [pageNumber, rects] of byPage) {
     const index2 = pageNumber - 1;
     let normal2, glyphs2;
     try {
-      normal2 = interpretPdfDocPage(doc, index2, { walk: walk3, maxContentChars: MAX_CONTENT_CHARS });
-      glyphs2 = interpretPdfDocPage(doc, index2, { walk: walk3, maxContentChars: MAX_CONTENT_CHARS, glyphRuns: true });
+      normal2 = interpretPdfDocPage(doc, index2, { walk: walk4, maxContentChars: MAX_CONTENT_CHARS });
+      glyphs2 = interpretPdfDocPage(doc, index2, { walk: walk4, maxContentChars: MAX_CONTENT_CHARS, glyphRuns: true });
     } catch {
       add3(pageNumber, "unreadable", `Page ${pageNumber} could not be read again to check it.`);
       continue;
@@ -175984,27 +176078,27 @@ async function encryptPdfStrong(blob, password) {
     EncryptMetadata: true
   });
   const encStr = async (o) => PDFHexString3.of(hexU(await encryptObjectBytes(fileKey, rnd(16), o.asBytes())));
-  const walk3 = async (c) => {
+  const walk4 = async (c) => {
     if (c instanceof PDFDict8) {
       for (const [k, v] of c.entries()) {
         if (v instanceof PDFString3 || v instanceof PDFHexString3) c.set(k, await encStr(v));
-        else if (v instanceof PDFDict8 || v instanceof PDFArray9) await walk3(v);
+        else if (v instanceof PDFDict8 || v instanceof PDFArray9) await walk4(v);
       }
     } else if (c instanceof PDFArray9) {
       for (let i = 0; i < c.size(); i++) {
         const v = c.get(i);
         if (v instanceof PDFString3 || v instanceof PDFHexString3) c.set(i, await encStr(v));
-        else if (v instanceof PDFDict8 || v instanceof PDFArray9) await walk3(v);
+        else if (v instanceof PDFDict8 || v instanceof PDFArray9) await walk4(v);
       }
     }
   };
   for (const [ref2, obj3] of ctx.enumerateIndirectObjects()) {
     if (obj3 instanceof PDFStream3) {
       const ct = await encryptObjectBytes(fileKey, rnd(16), new Uint8Array(obj3.getContents()));
-      await walk3(obj3.dict);
+      await walk4(obj3.dict);
       ctx.assign(ref2, PDFRawStream5.of(obj3.dict, ct));
     } else if (obj3 instanceof PDFDict8 || obj3 instanceof PDFArray9) {
-      await walk3(obj3);
+      await walk4(obj3);
     } else if (obj3 instanceof PDFString3 || obj3 instanceof PDFHexString3) {
       ctx.assign(ref2, await encStr(obj3));
     }
@@ -181582,6 +181676,9 @@ async function recordedDesignInFile(bytes2, format, meta) {
   return null;
 }
 
+// services/mcp/src/render.ts
+init_lolly_file();
+
 // packages/node-shell/src/browser-tier.ts
 var NEEDS_BROWSER = "NEEDS_BROWSER";
 var PROSE = /browser canvas|n(?:['’]|o)t available in this app|needs a browser|requires a browser/i;
@@ -183044,7 +183141,7 @@ function runWorker2(job, caps, timeoutMs, limitText) {
 }
 var secondsText = (ms) => ms < 1e4 ? (ms / 1e3).toFixed(1) : String(Math.round(ms / 1e3));
 var digestOf = (song) => createHash9("sha256").update(`${song.lang}\0${song.code}`).digest("hex");
-var copyOf = (k) => ({
+var copyOf2 = (k) => ({
   ...k,
   channels: [k.channels[0].slice(), k.channels[1].slice()],
   findings: k.findings.map((f) => ({ ...f, parts: [...f.parts] })),
@@ -183085,10 +183182,10 @@ async function renderRondoSong(song, opts = {}) {
   if (hit) {
     kept.delete(key2);
     kept.set(key2, hit);
-    return report4(copyOf(hit), true);
+    return report4(copyOf2(hit), true);
   }
   const pending6 = inflight.get(key2);
-  if (pending6) return report4(copyOf(await pending6), true);
+  if (pending6) return report4(copyOf2(await pending6), true);
   const budget3 = opts.budget;
   const remaining = caps.budgetMs === void 0 ? Number.POSITIVE_INFINITY : caps.budgetMs - (budget3?.spentMs ?? 0);
   if (remaining <= 0) {
@@ -183135,7 +183232,7 @@ async function renderRondoSong(song, opts = {}) {
     inflight.delete(key2);
   }
   keep(key2, fresh);
-  return report4(kept.has(key2) ? copyOf(fresh) : fresh, false);
+  return report4(kept.has(key2) ? copyOf2(fresh) : fresh, false);
 }
 
 // packages/node-shell/src/song-provenance.ts
@@ -183768,12 +183865,12 @@ async function tabResources(page3, { pageOnly, received } = {}) {
   try {
     await cdp.send("Page.enable");
     const { frameTree } = await cdp.send("Page.getResourceTree");
-    const walk3 = (t) => {
+    const walk4 = (t) => {
       for (const r5 of t.resources ?? []) where.set(r5.url, { frameId: t.frame.id, mimeType: r5.mimeType });
       where.set(t.frame.url, where.get(t.frame.url) ?? { frameId: t.frame.id, mimeType: t.frame.mimeType ?? "text/html" });
-      for (const c of t.childFrames ?? []) walk3(c);
+      for (const c of t.childFrames ?? []) walk4(c);
     };
-    walk3(frameTree);
+    walk4(frameTree);
     mainFrame = frameTree.frame.id;
   } catch {
   }
@@ -188265,6 +188362,38 @@ function browserQueueOptions(env = process.env) {
 // services/mcp/src/render.ts
 var TIER_A = /* @__PURE__ */ new Set(["svg", "emf", "eps", "eps-cmyk", "dxf", "exr", "hdr", "penpot", "html", "md", "txt", "json", "csv", "ics", "vcf"]);
 var MAX_RASTER_EDGE_PX = 1e4;
+var DAY_MS = 864e5;
+async function readBackCredential(bytes2, setting, deliveredFormat) {
+  const asked = setting.on ? setting.days ?? 30 : "off";
+  if (deliveredFormat === "zip") return { asked, holds: "unread", days: null, selfSigned: false };
+  try {
+    const report4 = await verifyC2pa(bytes2);
+    const signer = report4.signer;
+    return {
+      asked,
+      holds: report4.state,
+      days: signer ? Math.round((Date.parse(signer.notAfter) - Date.parse(signer.notBefore)) / DAY_MS) : null,
+      selfSigned: signer?.selfSigned === true
+    };
+  } catch {
+    return { asked, holds: "unread", days: null, selfSigned: false };
+  }
+}
+function credentialText(readback) {
+  if (!readback) return "";
+  const { asked, holds: holds3, days, selfSigned } = readback;
+  if (holds3 === "unread") {
+    return asked === "off" ? "Content Credentials: the export was told to write none, and this file was not read back." : `Content Credentials: the export was told to write them for ${asked} days, and this file was not read back.`;
+  }
+  if (asked === "off") {
+    return holds3 === "none" ? "Content Credentials: none in this file, as asked." : 'Content Credentials: c2pa: "off" could not be honoured. This file still holds a credential.';
+  }
+  if (holds3 === "none") return `Content Credentials: none in this file, though c2pa asked for ${asked} days. The warnings above say why.`;
+  if (holds3 === "invalid") return "Content Credentials: this file holds a credential that does not verify.";
+  if (days === null) return "Content Credentials: in this file.";
+  if (days !== asked) return `Content Credentials: in this file, but the certificate runs ${days} days, not the ${asked} asked for.`;
+  return `Content Credentials: in this file, ${selfSigned ? "self-signed, " : ""}valid for ${days} days.`;
+}
 function designRecordText(record47) {
   const words4 = designRecordWords(record47, { skills: false, page: false });
   const guided = guidedByWords(record47?.brandSkills);
@@ -188685,6 +188814,7 @@ function exportUrl(base, toolId, query2, fmt6, o) {
   if (o.hdr) p.set("hdr", serializeHdr(o.hdr));
   if (o.depth && o.depth !== "auto") p.set("depth", String(o.depth));
   if (Number(p.get("cuts")) > 1 || p.has("sampletimes")) p.set("c2pa", o.c2pa?.on ? String(o.c2pa.days ?? 1) : "off");
+  else if (o.c2pa?.on === false || o.c2pa?.on && /^pdf/.test(fmt6)) p.set("c2pa", "off");
   if (o.intent) p.set("c2pa", "off");
   p.set("export", "1");
   const q = p.toString();
@@ -188791,17 +188921,20 @@ async function credentialAndRecord(out, o) {
   let stamped = false;
   if (!o.sampled && o.merged.c2pa?.on && C2PA_FORMATS.includes(o.exportFmt) && !(o.exportFmt === "pdf" && o.merged.password)) {
     try {
-      if (o.merged.intent) bytes2 = await (await Promise.resolve().then(() => (init_pdf_classic(), pdf_classic_exports))).classicPdfForStamp(bytes2, o.exportFmt);
+      bytes2 = await (await Promise.resolve().then(() => (init_pdf_classic(), pdf_classic_exports))).classicPdfForStamp(bytes2, o.exportFmt);
     } catch {
     }
+    const clean2 = withoutSvgCredentials(bytes2, o.exportFmt);
     try {
-      bytes2 = await stampC2pa(bytes2, o.exportFmt, o.manifest, o.values, o.merged, o.placed, record47, out.tier.startsWith("B") ? null : o.drawn ?? null);
+      bytes2 = await stampC2pa(clean2, o.exportFmt, o.manifest, o.values, o.merged, o.placed, record47, out.tier.startsWith("B") ? null : o.drawn ?? null);
       stamped = true;
     } catch (e) {
       o.warnings.push(`Content Credentials not attached - ${e.message}`);
     }
   } else if (!o.sampled && o.merged.c2pa?.on) {
-    o.warnings.push(`Format "${o.fmt}" cannot carry Content Credentials - skipped.`);
+    o.warnings.push(o.exportFmt === "pdf" && o.merged.password ? "On a PDF, c2pa cannot be combined with password, so no Content Credential was written." : `Format "${o.fmt}" cannot carry Content Credentials - skipped.`);
+  } else if (o.merged.c2paAsked && o.merged.c2pa?.on === false) {
+    bytes2 = withoutSvgCredentials(bytes2, o.deliveredFormat);
   }
   if (skills.length && !stamped) {
     o.warnings.push('The brand skills were not recorded: this format renders in the browser tier, which writes the file without them, and only a Content Credential can carry them here. Pass c2pa (e.g. "30") to record them.');
@@ -188827,7 +188960,13 @@ async function credentialAndRecord(out, o) {
       intentRecord = { state: "not-recorded", reason: !canCarry ? "no-route" : o.merged.c2pa?.on ? "not-confirmed" : "no-credential" };
     }
   }
-  return { bytes: bytes2, designRecord, ...intentRecord ? { intentRecord } : {} };
+  const readback = o.merged.c2paAsked && o.merged.c2pa ? await readBackCredential(bytes2, o.merged.c2pa, o.deliveredFormat) : void 0;
+  return { bytes: bytes2, designRecord, ...intentRecord ? { intentRecord } : {}, ...readback ? { credential: readback } : {} };
+}
+function withoutSvgCredentials(bytes2, format) {
+  if (format !== "svg" && format !== "svg-anim") return bytes2;
+  const text13 = Buffer.from(bytes2.buffer, bytes2.byteOffset, bytes2.byteLength).toString("latin1");
+  return text13.includes("<c2pa:manifest") ? new Uint8Array(Buffer.from(stripSvgC2pa(text13), "latin1")) : bytes2;
 }
 async function render(toolId, query2, o = {}) {
   if (o.productionReference !== void 0 && o.production === void 0) throw new Error("A production reference requires a production contract.");
@@ -188859,7 +188998,7 @@ async function render(toolId, query2, o = {}) {
     if (error2 instanceof Error) Object.assign(error2, { attempts: run3.attempts.map((a) => a.report) });
     throw error2;
   }
-  return { bytes: last.bytes, mime: last.mime, format: last.format, tier: last.tier, warnings: last.warnings, ...last.rights ? { rights: last.rights } : {}, ...last.audio ? { audio: last.audio } : {}, ...last.audioFailures ? { audioFailures: last.audioFailures } : {}, ...last.songs ? { songs: last.songs } : {}, ...last.designRecord ? { designRecord: last.designRecord } : {}, ...last.intentRecord ? { intentRecord: last.intentRecord } : {}, production: last.report, productionAttempts: run3.attempts.map((a) => a.report) };
+  return { bytes: last.bytes, mime: last.mime, format: last.format, tier: last.tier, warnings: last.warnings, ...last.rights ? { rights: last.rights } : {}, ...last.audio ? { audio: last.audio } : {}, ...last.audioFailures ? { audioFailures: last.audioFailures } : {}, ...last.songs ? { songs: last.songs } : {}, ...last.designRecord ? { designRecord: last.designRecord } : {}, ...last.intentRecord ? { intentRecord: last.intentRecord } : {}, ...last.credential ? { credential: last.credential } : {}, production: last.report, productionAttempts: run3.attempts.map((a) => a.report) };
 }
 async function renderCandidate(toolId, query2, o = {}) {
   const { value: value2, runs: runs2, failures } = await withAudioScope(o.rondo, () => renderCandidateBytes(toolId, query2, o));
@@ -189026,7 +189165,8 @@ async function renderCandidateBytes(toolId, query2, o = {}) {
     ...songs ? { songs } : {},
     ...designRecord ? { designRecord } : {},
     ...finished.intentRecord ? { intentRecord: finished.intentRecord } : {},
-    ...credentialFromIntent ? { credentialFromIntent } : {}
+    ...credentialFromIntent ? { credentialFromIntent } : {},
+    ...finished.credential ? { credential: finished.credential } : {}
   };
 }
 async function rightsResult(evaluation, bytes2) {
@@ -197049,7 +197189,11 @@ var TOOL_DEFS = [
           maxItems: 16,
           description: 'The names of the brand skills (lolly://design-system/skills) you read and followed for this piece. Each is recorded with the design-system record as "guided by" provenance: the skill id, its revision and its hash. It records guidance, not a check: nothing tests the piece against a skill. An unknown name fails the call and lists the available names. Left out with madeWith: false.'
         },
-        c2pa: { type: "string", enum: ["off", "7", "30", "90", "365"], description: "Stamp Content Credentials with the given cert lifetime (days)." },
+        c2pa: {
+          type: "string",
+          enum: ["off", "7", "30", "90", "365"],
+          description: 'Content Credentials for this file. "off": none, on every format. A number: this server stamps one with that certificate lifetime in days. Left out, a browser-free render has none and a browser-tier render (PDF, or a tool laid out in HTML) keeps the one the web shell stamps. When you pass it, the result says what the file holds, read back from the file.'
+        },
         password: { type: "string", description: "Open-password for standard PDF export (never logged)." },
         link: { type: "boolean", description: "Also return the editable lolly.tools link (default true)." },
         ...RENDER_INTENT_ARGS
@@ -197591,6 +197735,7 @@ ${links.renderUrl ?? "(unavailable)"}${check2}`);
           convertPaths: args.convertPaths,
           password: args.password,
           c2pa: c2paSetting(args.c2pa),
+          ...args.c2pa !== void 0 && args.c2pa !== null ? { c2paAsked: true } : {},
           maxRasterPixels: maxRasterPixelsFor(process.env, isHostedServer()),
           rondo: rondoCapsFor(process.env, isHostedServer()),
           ...exportSettings(args),
@@ -197628,7 +197773,9 @@ Rights: ${result.rights.status}` + result.rights.issues.map((issue2) => `
           designRecordText(result.designRecord),
           // The intent, shown at the moment of export as the approval asks, in words read
           // back from the delivered file. It says plainly when the prompt is in the file.
-          intentRecordText(!intended ? null : intended.optedOut ? { state: "not-recorded", reason: "opted-out" } : result.intentRecord ?? { state: "not-recorded", reason: "not-confirmed" }, result.credentialFromIntent === true)
+          intentRecordText(!intended ? null : intended.optedOut ? { state: "not-recorded", reason: "opted-out" } : result.intentRecord ?? { state: "not-recorded", reason: "not-confirmed" }, result.credentialFromIntent === true),
+          // What an explicit `c2pa` asked for and what the delivered file holds.
+          credentialText(result.credential)
         ].filter(Boolean).join("\n");
         const content2 = [{ type: "text", text: header }];
         if (holdResult && result.bytes.byteLength > RESULT_LINK_THRESHOLD) {

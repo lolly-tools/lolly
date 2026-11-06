@@ -24,7 +24,9 @@
  *                     labels, descriptions and the slots each fills, quoted as data;
  *   - `skills`        the brand skills (plan 323): the index of the brand's own guidance per
  *                     discipline, without bodies, plus the name of the baseline Lolly
- *                     generates from this brief.
+ *                     generates from this brief;
+ *   - `leftOut`       only when there is any: where a description or label sat that the
+ *                     scope hints flagged (token-scope.ts), without the text.
  *
  * `coverage` gains one entry per section: `declared` when the pack states it, `derived`
  * when it was computed from the tokens, `neutral` for the stand-in master and
@@ -55,6 +57,7 @@ import { parseColorToSrgb8 } from './css-color.ts';
 import type { BrandCheckCatalogOpts } from './brand-check.ts';
 import { brandSkillsSection } from './brand-skill.ts';
 import { colourRolesBrief } from './colour-roles.ts';
+import { leaveOutScopedTokenText } from './token-scope.ts';
 
 /** One catalog asset, with only the fields the brief reads. */
 export interface DesignBriefAssetV1 {
@@ -389,7 +392,10 @@ function mediaSection(doc: unknown, catalog: DesignBriefCatalogV1, assets: Desig
 }
 
 /** The brief for one token document plus the catalog facts of the pack it belongs to. */
-export function designBrief(doc: unknown, catalog?: DesignBriefCatalogV1 | null, opts: DesignBriefOpts = {}) {
+export function designBrief(source: unknown, catalog?: DesignBriefCatalogV1 | null, opts: DesignBriefOpts = {}) {
+  // Read the words here as well as at import: a document already on disk never passed that
+  // import, and a brief is what an agent reads. `leftOut` gives the place, never the text.
+  const { doc, leftOut } = leaveOutScopedTokenText(source);
   const context = brandContext(doc, opts);
   const facts: DesignBriefCatalogV1 = catalog ?? {};
   const assets = (Array.isArray(facts.assets) ? facts.assets : []).filter((a) => record(a) && typeof a.id === 'string' && a.deprecated !== true);
@@ -427,6 +433,7 @@ export function designBrief(doc: unknown, catalog?: DesignBriefCatalogV1 | null,
     master: masterSection(master, resolve, masterDeclared ? facts.masterAsset : undefined),
     houseRules,
     skills,
+    ...(leftOut.length ? { leftOut } : {}),
     coverage: {
       ...context.coverage,
       themes: (themes.length ? 'declared' : 'unavailable') as Coverage,

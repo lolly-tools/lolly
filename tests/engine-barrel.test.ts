@@ -161,6 +161,11 @@ const EXPECTED: readonly string[] = [
   'brandSkillFilesSize',
   'brandSkillFreshness',
   'brandSkillScopeHints',
+  // 1.312 (scope hints on token documents): the flagged words stay out of an import and of what agents read.
+  'ScopedTokenTextV1',
+  'TokenTextLeftOutV1',
+  'leaveOutScopedTokenText',
+  'scopedTokenTextWarnings',
   'brandSkillsSection',
   'classifyBrandSkillLinks',
   'exportBrandSkillFolder',

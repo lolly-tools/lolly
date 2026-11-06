@@ -6,7 +6,7 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
-## 1.312.0
+## 1.313.0
 
 - Colour roles (new module `colour-roles.ts`, plan 352): a design system's colours in its own words, as `brandSystem.roles[]` with `group: "colourway"` and `bindings[]` with `consumer.slot`. `readColourRoles` says what a document holds, and reports a hand-written file with custom tokens and no record as `undeclared`. `colourRoleTable` gives the studio each role's colour, on-colour and contrast per colourway and look. `addColourRole`, `renameColourRole`, `describeColourRole`, `reorderColourRoles`, `removeColourRole`, `setColourRoles`, `setRoleValue`, `setRoleSameAsLight`, `bindRole` and `unbindRole` edit them, and each returns a refusal with a stable code rather than leaving an alias that points at nothing. A binding is written as an alias inside each colourway set, so every reader of a slot keeps working.
 - A document with no colour roles comes through unchanged, and choosing the shipped words writes nothing. Exported files record nothing new.
@@ -14,6 +14,13 @@ Moved verbatim from the comment block that used to live in `src/index.ts`.
 - `deriveOnColour` picks the colour that sits on a colour by the rule on-primary uses, and `isDerivedOnColourValue` tells a stored pick from a stated value. `colourPairContrast` is the measurement the studio's strip shows, moved here from the shell.
 - `designBrief` gains `colourRoles` when a system declares some: labels, descriptions and the slots each fills, quoted as the system's own words, and each colourway's `slots` lists those roles too. A document with none keeps its brief unchanged.
 - `carryColourRoles` brings colour roles through a rebuilt palette. The colourway editors refuse a theme or set whose name reaches the prototype chain, and no longer walk one.
+
+## 1.312.0
+
+- `leaveOutScopedTokenText` (`token-scope.ts`) takes out of a token document every description the scope hints flag, at any depth, along with a flagged name or label in the vendor extension. A rule, role or guide group keeps its id as its label, so it stays valid. The input is not changed, and an ordinary document comes back as the same object.
+- `coerceTokensDoc`, `assembleTokenSetFiles` and `extractPenpotProject` call it, so a file's flagged text stays out of the stored document on every import route, and `warnings` names where it sat.
+- `designBrief` calls it on what it reads, so a document already on disk behaves the same. Each brief with something left out gains `leftOut`, which lists the place and the hint and never the text. `writeDesignMd` and `buildBrandPage` read the same way, and a brand page lists what it held back.
+- Scope hints stay a line-by-line lint: a description worded another way still arrives, and so do token names and values. Studio edits do not pass through this code, so a person's words stay in their document.
 
 ## 1.311.0
 

@@ -38,6 +38,7 @@
 import { createTokenSet, tokenSetNames } from './tokens.ts';
 import { collectPenpotFontUsage } from './design-map.ts';
 import type { PenpotFontUsage } from './design-map.ts';
+import { leaveOutScopedTokenText, scopedTokenTextWarnings } from './token-scope.ts';
 
 type UnknownRecord = Record<string, unknown>;
 const isRecord = (v: unknown): v is UnknownRecord =>
@@ -214,8 +215,8 @@ export function coerceTokensDoc(json: unknown): TokensExtraction {
   const issue = topLevelSetIssue(json) ?? structureIssue(json, { nodes: 0 });
   if (issue) return { doc: null, warnings: [issue], source: studio ? 'tokens-studio' : 'dtcg' };
   const older = { n: 0 };
-  const doc = fromOlderTokenFormat(json, older) as UnknownRecord;
-  return { doc, warnings: olderFormatWarning(older.n), source: studio ? 'tokens-studio' : 'dtcg' };
+  const { doc, leftOut } = leaveOutScopedTokenText(fromOlderTokenFormat(json, older));
+  return { doc: doc as UnknownRecord, warnings: [...olderFormatWarning(older.n), ...scopedTokenTextWarnings(leftOut)], source: studio ? 'tokens-studio' : 'dtcg' };
 }
 
 /**
@@ -302,7 +303,9 @@ export function assembleTokenSetFiles(files: Record<string, unknown>): TokensExt
     warnings.push('no token set files found');
     return { doc: null, warnings, source: 'token-set-files' };
   }
-  return { doc, warnings, source: 'token-set-files' };
+  const scoped = leaveOutScopedTokenText(doc);
+  warnings.push(...scopedTokenTextWarnings(scoped.leftOut));
+  return { doc: scoped.doc as UnknownRecord, warnings, source: 'token-set-files' };
 }
 
 const decoder = /* lazily shared; TextDecoder is a web+node global */ new TextDecoder();
@@ -469,7 +472,9 @@ export function extractPenpotProject(entries: Record<string, Uint8Array | string
     warnings.push('no tokens.json found in the project');
     return { doc: null, warnings, source: 'penpot-project' };
   }
-  return { doc, warnings, source: 'penpot-project' };
+  const scoped = leaveOutScopedTokenText(doc);
+  warnings.push(...scopedTokenTextWarnings(scoped.leftOut));
+  return { doc: scoped.doc as UnknownRecord, warnings, source: 'penpot-project' };
 }
 
 // ── Usage scan - a token-LESS Penpot project's paints, gradients and fonts ───

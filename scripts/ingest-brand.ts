@@ -627,9 +627,9 @@ function emitPack(
   writeFileSync(join(out, 'README.md'), `# brands/${args.name} - ${args.label} brand pack
 
 Hydrated by \`scripts/ingest-brand.ts\`. The token document at
-\`catalog/assets/${args.ns}/tokens/brand.json\` is the extracted source
-verbatim - re-run the ingest to refresh it, or hand-edit and bump the asset
-version in \`catalog/assets/index.json\`.
+\`catalog/assets/${args.ns}/tokens/brand.json\` is the extracted source, less any
+description the ingest warned it left out - re-run the ingest to refresh it, or
+hand-edit and bump the asset version in \`catalog/assets/index.json\`.
 
 ## Provenance
 
