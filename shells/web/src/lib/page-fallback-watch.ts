@@ -12,7 +12,12 @@ import { notePageFill } from '../bridge/fallback-font-source.ts';
 import { lazyModule } from './lazy-module.ts';
 
 const load = lazyModule(() => import('../bridge/page-fallback-fonts.ts'));
-const ASCII = /^\p{ASCII}*$/u;
+/**
+ * Text that needs no fallback font: ASCII, and emoji with the joiners, selectors and
+ * modifiers that build them, which the emoji pass draws as pictures.
+ */
+const PLAIN = /^(?:\p{ASCII}|\p{Extended_Pictographic}|\p{Emoji_Component})*$/u;
+let codeLoaded = false;
 
 interface Watch { scope: string; running: Promise<void> | null; again: boolean; active: boolean }
 const watches = new WeakMap<Element, Watch>();
@@ -21,8 +26,11 @@ const watches = new WeakMap<Element, Watch>();
 export function notePagePainted(root: Element | null | undefined, scope: string): void {
   if (!root) return;
   let watch = watches.get(root);
-  // The common case: nothing outside ASCII, and no fallback font in use to take away.
-  if (!watch?.active && ASCII.test(root.textContent ?? '')) return;
+  // The common case: nothing outside ASCII and emoji, and no fallback font in use to take away.
+  if (!watch?.active && PLAIN.test(root.textContent ?? '')) return;
+  // Offline, this code may never have reached the device, and a failed chunk load would
+  // read as a stale app. The page keeps the fonts it has; an export still fills on its own.
+  if (!codeLoaded && typeof navigator !== 'undefined' && navigator.onLine === false) return;
   if (!watch) { watch = { scope, running: null, again: false, active: false }; watches.set(root, watch); }
   watch.scope = scope;
   if (watch.running) { watch.again = true; return; }
@@ -31,7 +39,9 @@ export function notePagePainted(root: Element | null | undefined, scope: string)
     try {
       do {
         w.again = false;
-        w.active = await (await load()).syncPageFallbackFonts(root, w.scope);
+        const page = await load();
+        codeLoaded = true;
+        w.active = await page.syncPageFallbackFonts(root, w.scope);
       } while (w.again);
     } catch { /* the page keeps the fonts it had; an export still fills on its own */ }
     finally { w.running = null; }
