@@ -101,6 +101,19 @@ test('keyboard stepping snaps, clamps, and reports through onCommit', () => {
   assert.equal(cs.getAttribute('aria-valuenow'), '1');
 });
 
+test('a slider sitting at 0 steps from 0, not from its minimum', () => {
+  // The start value was read with `|| min`, which turned a 0 into the minimum: the
+  // first key step on a -100 to 100 slider at 0 (Darkroom's Develop rows) went to -99.
+  const el = doc.createElement('div');
+  el.innerHTML = customSliderHtml({ min: -100, max: 100, step: 1, value: 0 });
+  const cs = el.firstElementChild as HTMLElement;
+  doc.body.appendChild(cs);
+  const commits: number[] = [];
+  mountCustomSlider(cs, { onCommit: (v) => commits.push(v) });
+  cs.dispatchEvent(new w.KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true, cancelable: true }));
+  assert.deepEqual(commits, [1]);
+});
+
 test('jelly: the head and tail are promoted only while the spring runs', async () => {
   const el = doc.createElement('div');
   el.innerHTML = customSliderHtml({ min: 0, max: 1, step: 0.25, value: 0.5 });

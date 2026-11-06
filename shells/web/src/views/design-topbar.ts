@@ -52,7 +52,7 @@ import { isTypingTarget } from '../lib/typing-target.ts';
 import { icon, type IconName } from '../lib/icons.ts';
 import { attachShareMeter } from '../lib/url-budget-gauge.ts';
 import type { NarrationActions } from './design-ports.ts';
-import { setText } from '../lib/steady-dom.ts';
+import { mountRollingDigits } from '../components/rolling-digits.ts';
 
 /**
  * Every capability the bar needs, injected. Nothing is imported from the editor:
@@ -761,12 +761,14 @@ export function mountDesignTopbar(opts: DesignTopbarOpts): DesignTopbar {
     redoBtn.disabled = !canRedo;
   });
 
+  // A zoom stop rolls its figures; a pinch, which changes the number every frame, sets them.
+  const zoomSpan = zoomBtn.querySelector<HTMLElement>('.dtb-label');
+  const zoomDigits = zoomSpan ? mountRollingDigits(zoomSpan) : null;
   function setZoomLabel(abs: number): void {
     const pct = Number.isFinite(abs) && abs > 0 ? Math.round(abs * 100) : 100;
-    // A numeral and a sign, not prose - no catalog row to translate.
-    const span = zoomBtn.querySelector('.dtb-label');
-    // Every frame of a pan or zoom: see lib/steady-dom.ts for why this never replaces the node.
-    if (span) setText(span, `${pct}%`);
+    // A numeral and a sign, not prose - no catalog row to translate. Every frame of a pan
+    // or zoom: the readout writes text data and custom properties, never new nodes.
+    zoomDigits?.set(`${pct}%`);
   }
   const unsubZoom = opts.zoom.subscribe(setZoomLabel);
 
