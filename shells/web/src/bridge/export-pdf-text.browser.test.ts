@@ -268,6 +268,19 @@ test('a run in a gradient keeps the gradient as a picture', { skip: SKIP }, asyn
   assert.ok(r.agreement > 0.7, `agreement ${r.agreement}`);
 });
 
+test('a text picture carries no imprint, so the file gains nothing but the words', { skip: SKIP }, async () => {
+  const pg = await page();
+  await exportPdf(line('مرحبا بالعالم.', undefined, 'dir="rtl"'));
+  const applied = await pg.evaluate(async () => {
+    const w = window as any;
+    w.__setup();
+    const sink = { want: true, applied: false };
+    await w.__pdf(document.getElementById('root'), { _imprintSink: sink });
+    return sink.applied;
+  });
+  assert.equal(applied, false);
+});
+
 test('Print PDF draws the same words', { skip: SKIP }, async () => {
   const pg = await page();
   await exportPdf(line('مرحبا بالعالم.', undefined, 'dir="rtl"'));
