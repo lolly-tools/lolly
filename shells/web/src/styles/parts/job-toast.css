@@ -377,10 +377,9 @@ html[data-a11y-motion="reduce"] .undo-toast-bar { animation: none; }
   width: max-content;
   max-width: min(520px, calc(100vw - 2rem));
   padding: 10px 16px;
-  border: 1px solid hsl(var(--border));
   border-radius: var(--radius-lg);
   background: hsl(var(--card)); color: hsl(var(--foreground));
-  box-shadow: 0 8px 28px hsl(0 0% 0% / 0.24);
+  box-shadow: var(--ui-edge-default), var(--ui-elevation-floating);
   font-size: var(--fs-md);
   line-height: 1.4;
   text-align: center;
