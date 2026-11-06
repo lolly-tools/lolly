@@ -123,9 +123,9 @@ joins. Then choose how the domain is proved:
   _lolly-work.northwind.example  TXT  "lw-verify=<token>"
   ```
 
-  The domain shows **Waiting for the DNS record** until Lolly Work finds the record. Lolly Work looks every
-  hour, and **Check now** looks straight away. Once found, the domain shows **DNS verified** and is
-  looked up again every day. If a later lookup finds the record gone, the domain shows **Paused**:
+  The domain shows **Waiting for the DNS record** until Lolly Work finds the record. Lolly Work
+  looks every hour, and **Check now** looks straight away. Once found, the domain shows **DNS
+  verified** and is looked up again every day. If a later lookup finds the record gone, the domain shows **Paused**:
   nobody new joins through it until the record is back, and people already in keep their access.
   A lookup that fails for another reason, such as a timeout, changes nothing.
 - **On your say-so.** The domain is active at once and shows **Admin-asserted**, with your name, the
