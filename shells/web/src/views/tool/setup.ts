@@ -208,10 +208,10 @@ export async function guardNetworkAndSeed(tview: ToolViewCtx): Promise<void> {
   if (urlPassword) {
     const query = tview.urlParams ?? '';
     tview.urlParams = withoutLinkPassword(query);
-    tview.launchQuery = addressAfterLinkPassword(query);
     if (!tview.encLinkQuery) {
       const address = addressAfterLinkPassword(query);
       const base = tview.toolId === 'design' ? '/design' : `/t/${tview.toolId}`;
+      tview.launchQuery = address;
       replaceRouteUrl(address ? `${base}?${address}` : base);
     }
   }

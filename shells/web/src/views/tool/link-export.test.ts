@@ -91,7 +91,6 @@ test('setup takes the password out of every address it could be rebuilt from', (
   const at = setup.indexOf('tview.urlPassword = urlPassword;');
   const block = setup.slice(at, setup.indexOf('tview.urlBleed = urlBleed;', at));
   assert.match(block, /tview\.urlParams = withoutLinkPassword\(query\);/);
-  assert.match(block, /tview\.launchQuery = addressAfterLinkPassword\(query\);/);
-  assert.match(block, /if \(!tview\.encLinkQuery\) \{/, 'a ciphertext link shows no password and stays');
+  assert.match(block, /if \(!tview\.encLinkQuery\) \{[\s\S]*tview\.launchQuery = address;/, 'a ciphertext link shows no password and stays, in the bar and in the entry left behind');
   assert.match(block, /replaceRouteUrl\(/);
 });
