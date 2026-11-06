@@ -53,8 +53,13 @@ export function wireColourRoles(bedit: BrandEditorCtx): void {
     setSlot: (slot, mode, value, continuing) => setSlot(bedit, slot, mode, value, continuing),
   });
   bedit.rolesRoom = room;
+  // A system that gains words of its own while this room is mounted, as an import does, opens with them once.
+  let openedForWords = !!fold?.open;
   // Shut, the table draws nothing a person can see, so a repaint leaves it for the next open.
-  bedit.paletteHooks.push(() => { if (!fold || fold.open) room.render(); });
+  bedit.paletteHooks.push(() => {
+    if (fold && !openedForWords && readColourRoles(bedit.doc).state === 'declared') { openedForWords = true; fold.open = true; return; }
+    if (!fold || fold.open) room.render();
+  });
   fold?.addEventListener('toggle', () => { if (fold.open) room.render(); });
   bedit.cleanups.push(room.destroy);
   // Where the preview is not beside the table, a press takes the person to the preview.

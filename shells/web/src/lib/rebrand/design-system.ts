@@ -28,7 +28,7 @@
  * stub, a partial shell) is an ordinary answer, and a read that throws counts as
  * absent rather than failing the journey.
  */
-import { logoSetInBrandOrder, neutralSlideMaster, type DeckLookV1, type LogoSetV1, type RebrandDesignSystemInputV1 } from '@lolly/engine';
+import { colourRoleThemeAccents, logoSetInBrandOrder, neutralSlideMaster, type DeckLookV1, type LogoSetV1, type RebrandDesignSystemInputV1 } from '@lolly/engine';
 import type { RebrandThemeFactsV1 } from '../../../../../engine/src/deck-compile.ts';
 import type { ArchetypeRefV1, SlideMasterFileV1, SlideMasterV1 } from '@lolly-tools/core';
 import { sha256Hex } from '../../../../../engine/src/bytes.ts';
@@ -226,6 +226,12 @@ export async function readColors(tokens: MasterTokensApi | undefined): Promise<M
 /** A theme name that reads as a dark mode, the node reader's `DARK_THEME_NAME`. */
 const DARK_THEME_NAME = /(^|[\s/_-])dark$/i;
 
+/** The token each theme accent reads, for a design system that declares colour roles. Empty otherwise. */
+export async function readThemeAccents(tokens: MasterTokensApi | undefined): Promise<string[]> {
+  const snapshot = await tokens?.snapshot?.();
+  return colourRoleThemeAccents(snapshot?.document);
+}
+
 /**
  * The pack's dark mode (plan 275 section 6.1): the colour tokens of the first theme
  * the token set names as dark, path to hex. Undefined when it names none. The node
@@ -363,6 +369,7 @@ export async function readActiveDesignSystem(host: DesignSystemHost): Promise<Ac
     identityOf(host),
     readDarkColors(tokens).catch(() => undefined),
   ]);
+  const themeAccents = await readThemeAccents(tokens).catch((): string[] => []);
   const looks = identity.locked ? [] : await readDeckLooks(host, identity.id).catch((): DeckLookV1[] => []);
 
   const available = deviceFamilies();
@@ -390,6 +397,7 @@ export async function readActiveDesignSystem(host: DesignSystemHost): Promise<Ac
     assetHashes,
     neutralMaster: neutral,
     ...(darkColors ? { darkColors } : {}),
+    ...(themeAccents.length ? { themeAccents } : {}),
     ...(identity.locked ? { locked: true } : {}),
     ...(looks.length > 0 ? { looks } : {}),
   };

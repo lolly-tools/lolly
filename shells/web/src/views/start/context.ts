@@ -11,7 +11,8 @@ import type { ModalHandle } from '../../components/modal.ts';
 import type { ActiveRecord } from '../../lib/design-system/active.ts';
 import type { BodyPopoverHandle } from '../../components/body-popover.ts';
 import type { BrandEditorHandle } from '../../lib/brand-editor.ts';
-import type { TokenRoleProposal } from '../../lib/brand-propose.ts';
+import type { ColourRoleProposal, TokenRoleProposal } from '../../lib/brand-propose.ts';
+import type { ColourRoleReview } from '../../lib/design-system/colour-role-review.ts';
 import type { BoardState, OverviewRoom } from '../../lib/design-system/rooms/overview.ts';
 import type { UsageRoom } from '../../lib/design-system/rooms/usage.ts';
 import type { SkillsRoom } from '../../lib/design-system/rooms/skills.ts';
@@ -45,6 +46,16 @@ import type { sourcesOps } from './sources.ts';
 import type { tokensOps } from './tokens.ts';
 import type { lifecycleOps } from './lifecycle.ts';
 import type { barOps } from './bar.ts';
+
+/** The words a token file came with, under review. Nothing is applied until the install button. */
+export interface PendingColourRoles {
+  proposal: ColourRoleProposal;
+  /** The document as written in the file. */
+  raw: Record<string, unknown>;
+  review: ColourRoleReview | null;
+  /** Tokens for slots no word fills, from the same proposal the file's other card would use. */
+  slots: Readonly<Record<string, string | undefined>>;
+}
 
 export interface StartCtx {
   // ---- state (was: closure variables of mountStart) ----
@@ -137,6 +148,8 @@ export interface StartCtx {
   importedDoc: Record<string, unknown> | null;
   pendingUsage: PenpotUsage | null;
   pendingRoles: TokenRoleProposal | null;
+  /** The file's own colour words, shown for review, and the document they apply to. */
+  pendingColourRoles: PendingColourRoles | null;
   roleChoice: string | null;
   pendingTokens: ColorTokenRow[];
   pendingSvgColors: string[];

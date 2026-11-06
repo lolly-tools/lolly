@@ -280,6 +280,7 @@ import { yoursShelfTools, yoursShelfHtml } from './yours-shelf.ts';
 import { captureNeutralPinned, settleForCapture } from '../lib/capture-neutral.ts';
 import { wireArrowNav } from '../lib/arrow-nav.ts';
 import { appPathname } from '../lib/any-site.ts';
+import { holdEarlyDrops } from '../lib/drop-early.ts';
 
 // Lucide "info" and "history" - context-menu / bulk-bar action icons. Path data
 // lives in lib/icons.ts; 'info' is deduped against profile.ts's identical
@@ -476,6 +477,7 @@ function galleryEmptyHtml(loadFailed: boolean): string {
 
 export async function mountGallery(viewEl: HTMLElement, host: GalleryHost, opts: GalleryMountOpts = {}): Promise<void> {
   document.title = opts.only ? 'Utilities - Lolly' : 'Lolly';
+  holdEarlyDrops(viewEl); // a file dropped before the drop router loads (see below)
   // #/?q=<text> restores a handed-off search (plans/99 section 2c): raw for the field's
   // display value, lowercased below for `query` (the same normalisation the input
   // handler applies at each keystroke).
@@ -913,13 +915,12 @@ export async function mountGallery(viewEl: HTMLElement, host: GalleryHost, opts:
     headshotId: profile.headshot?.id,
   });
 
-  // Universal drop front door: any file dragged onto the gallery is sniffed and
-  // routed (design → Design, PDF → import/compress, media → library or
-  // /verify). Scoped to this view's root (its listeners die with the node on
-  // navigation) - never a window/document-global handler. drop-router (~6 KB) is
-  // dynamic-imported off the boot path; kicked at mount, it resolves in ~ms same-origin,
-  // so a file dropped in that sliver is effectively never missed. The cast is erased:
-  // the concrete web host carries the picker's upload surface.
+  // Universal drop front door: any file dragged onto the gallery is sniffed and routed
+  // (design → Design, PDF → import/compress, media → library or /verify). Scoped to this
+  // view's root (its listeners die with the node on navigation) - never a window/document-global
+  // handler. drop-router is dynamic-imported off the boot path, seconds after the paint on a slow
+  // first visit, so holdEarlyDrops() above keeps a file dropped before then (lib/drop-early.ts).
+  // The cast is erased: the concrete web host carries the picker's upload surface.
   void import('../lib/drop-router.ts').then((m) => m.attachDropRouter(viewEl, host as unknown as PickerHost));
 
   // Empty catalog: re-sync, then remount through navigate() ('lolly:remount'), which cleans up and keeps the WebGPU guard.
