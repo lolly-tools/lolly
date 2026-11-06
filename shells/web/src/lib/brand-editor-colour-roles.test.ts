@@ -14,7 +14,7 @@ import { readFileSync } from 'node:fs';
 import { JSDOM } from 'jsdom';
 import { colorToHex, createTokenSet, deriveBrandTokens, danglingColourAliases, readColourRoles } from '@lolly/engine';
 import type { HostV1 } from '@lolly-tools/core/host-v1';
-import { leadTokenSet } from './design-system/leads.ts';
+import { addLead, leadTokenSet } from './design-system/leads.ts';
 
 type Rec = Record<string, unknown>;
 
@@ -315,6 +315,64 @@ test('values: per colourway, "Same as light" a real state, and the rest of the d
     assert.equal(hexIn(h.state.installed, 'indigo', 'light', 'accent'), hexIn(doc, 'indigo', 'light', 'accent'));
     assert.deepEqual(danglingColourAliases(h.state.installed), []);
     assert.equal(h.$('[data-crt-row="accent"] .crt-value').title, 'Loom', 'a palette colour goes by its name');
+  });
+});
+
+test('Keep this colour settles a copied value and moves nothing, including one that follows the other look', async () => {
+  const added = addLead(wefthouse(), { colour: '#118866', name: 'Emerald' });
+  assert.ok(added.ok, added.ok ? '' : added.reasons.join(' '));
+  await withRoom(added.doc, async (h) => {
+    h.click(`[data-be-lead="${added.id}"]`);
+    await h.settle(() => h.$('[data-crt-row="main"] .crt-value').title === '#118866');
+    const flags = (key: string): number => h.root.querySelectorAll(`[data-crt-row="${key}"] .crt-copied`).length;
+    assert.equal(flags('tertiary'), 2, 'both looks are still copies');
+    const dark = hexIn(h.state.installed, added.id!, 'dark', 'tertiary');
+
+    h.$('[data-crt-value="tertiary"][data-crt-mode="dark"]').click();
+    await h.settle(() => !!h.popover());
+    assert.match(h.popover()!.textContent ?? '', /Copied from Indigo/);
+    (h.popover()!.querySelector('[data-crt-keep]') as HTMLElement).click();
+    await h.settle(() => flags('tertiary') === 1);
+    assert.equal(hexIn(h.state.installed, added.id!, 'dark', 'tertiary'), dark);
+
+    // Supporting's dark follows its light in Indigo, and the copy still does.
+    assert.match(h.$('[data-crt-row="supporting"]').textContent ?? '', /Same as light/);
+    assert.equal(flags('supporting'), 2);
+    h.$('[data-crt-value="supporting"][data-crt-mode="dark"]').click();
+    await h.settle(() => !!h.popover());
+    (h.popover()!.querySelector('[data-crt-keep]') as HTMLElement).click();
+    await h.settle(() => flags('supporting') === 1);
+    assert.match(h.$('[data-crt-row="supporting"]').textContent ?? '', /Same as light/, 'it keeps following');
+    assert.deepEqual(danglingColourAliases(h.state.installed), []);
+  });
+});
+
+test('a colour typed into the picker shows while the panel stays open, and one burst is one undo step', async () => {
+  const doc = wefthouse();
+  await withRoom(doc, async (h) => {
+    h.$('[data-crt-value="tertiary"][data-crt-mode="light"]').click();
+    await h.settle(() => !!h.popover());
+    const field = h.popover()!.querySelector<HTMLElement>('[data-crt-field] [data-color-field]');
+    assert.ok(field, 'the studio\'s own picker mounts in the panel');
+    const text = field.querySelector<HTMLInputElement>('input[type="text"]');
+    assert.ok(text, 'with a field that takes any notation');
+    const write = (value: string): void => {
+      text.value = value;
+      text.dispatchEvent(new h.dom.window.Event('input', { bubbles: true }));
+      text.dispatchEvent(new h.dom.window.Event('change', { bubbles: true }));
+    };
+    write('#00aa88');
+    await h.settle(() => hexIn(h.state.installed, 'indigo', 'light', 'tertiary') === '#00aa88');
+    assert.equal(hexIn(h.state.installed, 'indigo', 'light', 'tertiary'), '#00aa88');
+    assert.ok(h.popover(), 'the panel stays open');
+    await h.settle(() => h.$('[data-crt-value="tertiary"][data-crt-mode="light"]').title === '#00aa88');
+    write('#0088aa');
+    await h.settle(() => hexIn(h.state.installed, 'indigo', 'light', 'tertiary') === '#0088aa');
+    document.dispatchEvent(new h.dom.window.KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+    await h.settle(() => !h.popover());
+    h.click('[data-be-undo]');
+    await h.settle(() => hexIn(h.state.installed, 'indigo', 'light', 'tertiary') === hexIn(doc, 'indigo', 'light', 'tertiary'));
+    assert.equal(hexIn(h.state.installed, 'indigo', 'light', 'tertiary'), hexIn(doc, 'indigo', 'light', 'tertiary'), 'one undo goes back past the whole burst');
   });
 });
 

@@ -10,7 +10,7 @@
  */
 import { readColourRoles } from '@lolly/engine';
 import type { ColourRoleEdit } from '../../../../../engine/src/colour-roles.ts';
-import { assignRole, setRoleValue as setSlotValue } from '../design-system/roles.ts';
+import { assignRole, roleLabel, roleWords, setRoleValue as setSlotValue } from '../design-system/roles.ts';
 import type { RoleId } from '../design-system/roles.ts';
 import { mountColourRolesRoom } from '../design-system/rooms/colour-roles.ts';
 import type { SlotId } from '../design-system/colour-roles-model.ts';
@@ -18,9 +18,9 @@ import { tRaw } from '../../i18n.ts';
 import { bindOp, type BrandEditorCtx } from './context.ts';
 
 /** Swap in an edited document: undo snapshot, save, repaint, the steps every edit takes. */
-function commit(bedit: BrandEditorCtx, label: string, edit: ColourRoleEdit): boolean {
+function commit(bedit: BrandEditorCtx, label: string, edit: ColourRoleEdit, continuing = false): boolean {
   if (!edit.ok || !edit.changed) return false;
-  bedit.state.pushUndo(label);
+  if (!continuing) bedit.state.pushUndo(label);
   bedit.doc = edit.doc;
   bedit.swatchEditor.closeEditor();
   bedit.ramps.repaintPalette();
@@ -29,11 +29,11 @@ function commit(bedit: BrandEditorCtx, label: string, edit: ColourRoleEdit): boo
 }
 
 /** A shipped word's colour goes through its slot, which is all the system has until it declares words. */
-function setSlot(bedit: BrandEditorCtx, slot: SlotId, mode: string, value: { key: string } | { literal: string }): boolean {
+function setSlot(bedit: BrandEditorCtx, slot: SlotId, mode: string, value: { key: string } | { literal: string }, continuing = false): boolean {
   const ctx = { lead: bedit.currentLead ?? null, mode };
-  bedit.state.pushUndo(tRaw('Change {role}', { role: slot }));
+  if (!continuing) bedit.state.pushUndo(tRaw('Change {role}', { role: roleLabel(slot as RoleId, roleWords(bedit.doc)) }));
   const wrote = 'key' in value ? assignRole(bedit.doc, slot as RoleId, value.key, ctx) : setSlotValue(bedit.doc, slot as RoleId, value.literal, ctx);
-  if (!wrote) { bedit.undoStack.pop(); return false; }
+  if (!wrote) { if (!continuing) bedit.undoStack.pop(); return false; }
   bedit.ramps.repaintPalette();
   bedit.state.persist(true);
   return true;
@@ -48,8 +48,8 @@ export function wireColourRoles(bedit: BrandEditorCtx): void {
     doc: () => bedit.doc,
     colourway: () => bedit.currentLead ?? null,
     swatches: bedit.roles.roleSwatchOptions,
-    commit: (label, edit) => commit(bedit, label, edit),
-    setSlot: (slot, mode, value) => setSlot(bedit, slot, mode, value),
+    commit: (label, edit, continuing) => commit(bedit, label, edit, continuing),
+    setSlot: (slot, mode, value, continuing) => setSlot(bedit, slot, mode, value, continuing),
   });
   bedit.rolesRoom = room;
   // Shut, the table draws nothing a person can see, so a repaint leaves it for the next open.

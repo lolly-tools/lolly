@@ -290,6 +290,8 @@ html[data-a11y-text="large"] .crt-look { display: inline; }
 .crt-section-head { margin: 0; font-size: var(--fs-lg); font-weight: 650; }
 
 /* ── The value picker ──────────────────────────────────────────────────────── */
+/* The studio's picker opens inside this panel, so it gets more room than a swatch list. */
+.crt-pick.be-rolepick { max-height: min(40rem, calc(100dvh - var(--sp-7))); }
 .lp-status.crt-pick-copied { margin: 0; }
 .crt-pick-copied .lp-status-copy { flex: 1 1 auto; align-items: flex-start; }
 .crt-pick-same { justify-self: start; }

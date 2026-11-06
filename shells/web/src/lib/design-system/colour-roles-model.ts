@@ -74,6 +74,10 @@ export interface RoleValueCell {
   hex: string;
   /** The colour's name or its value, '' when it has none. */
   text: string;
+  /** The value as stored: a literal, or a `{path}` to a named colour. Undefined for a shipped word. */
+  stored?: string;
+  /** The palette colour this value points at, or null for a literal. */
+  ref: string | null;
   /** The look this one follows by an alias, by name, or null. */
   sameAs: string | null;
   /** The sentence saying where a copied value came from, or null once somebody chose one. */
@@ -226,6 +230,8 @@ export function colourRolesModel(doc: unknown, opts: ColourRolesModelOptions = {
       modeName: modeNames.get(cell.mode) ?? cell.mode,
       hex: cell.hex,
       text: nameOf(cell.stored, cell.hex),
+      ...(cell.stored !== undefined ? { stored: cell.stored } : {}),
+      ref: aliasTarget(cell.stored),
       sameAs: cell.sameAs ? modeNames.get(cell.sameAs) ?? cell.sameAs : null,
       copied,
       chipBg: cell.against === 'surface' ? surfaceOf(cell.mode) : cell.hex || 'transparent',
@@ -250,6 +256,7 @@ export function colourRolesModel(doc: unknown, opts: ColourRolesModelOptions = {
     return {
       mode: mode.id, modeName: modeNames.get(mode.id) ?? mode.id, hex,
       text: r?.ref ? (swatchNames.get(r.ref) ?? prettyPath(r.ref)) : hex,
+      ref: r?.ref ?? null,
       sameAs: null, copied: null,
       chipBg: ink ? surfaceOf(mode.id) : hex || 'transparent',
       chipFg: ink ? hex : r?.against ?? '',

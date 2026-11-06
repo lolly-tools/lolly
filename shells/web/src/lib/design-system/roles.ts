@@ -797,8 +797,8 @@ function apcaHtml(c: RoleContrast | null): string {
  *
  * `placeholder` is what the empty option says. A row whose slot is filled by a
  * starter colour (or by the primary showing through) reads "Choose…", because
- * nothing has been chosen for it; a row with a real choice behind it keeps "Not
- * set", which is what selecting the empty option would DO.
+ * nothing has been chosen for it, and so does one holding a literal the list has no
+ * entry for. An empty row keeps "Not set".
  */
 function optionsHtml(options: RoleSwatchOption[], selected: string, placeholder: string, required = false): string {
   const opt = (s: RoleSwatchOption): string =>
@@ -850,7 +850,8 @@ function roleStandInClass(row: RoleRow): string {
 
 /** What the picker's empty option says on this row - see optionsHtml. */
 function rolePlaceholder(row: RoleRow): string {
-  return row.starter || row.follows ? t('Choose…') : t('Not set');
+  // A slot holding a colour of its own is set, whatever the picker can name.
+  return row.starter || row.follows || row.set ? t('Choose…') : t('Not set');
 }
 
 /** Live getters, the same ctx shape `mountPrintLock` and the rooms use - the

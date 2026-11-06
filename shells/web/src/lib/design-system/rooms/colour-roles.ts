@@ -31,7 +31,7 @@ import { announce } from '../../../a11y.ts';
 import { t, tRaw } from '../../../i18n.ts';
 import { canonicalLiftOptions, listLeads } from '../leads.ts';
 import { byNameWord, colourRolesModel, explainRemoval, parseRoleWords, refusalText, sameAsWords, slotWord, specsForShippedRename, specsForWords, STARTING_POINTS } from '../colour-roles-model.ts';
-import type { ColourRolesModel, RoleTableRow, SlotId } from '../colour-roles-model.ts';
+import type { ColourRolesModel, RoleTableRow, RoleValueCell, SlotId } from '../colour-roles-model.ts';
 import { placeBelow, wireSwatchArrows } from '../role-chips.ts';
 import type { RoleSwatchOption } from '../roles.ts';
 import { emptyUi, roomHtml, startPreviewHtml, valuePickerHtml, viewChipsHtml } from './colour-roles-html.ts';
@@ -45,10 +45,11 @@ export interface ColourRolesRoomCtx {
   readOnly?: boolean;
   /** The palette's own colours, offered in the value picker. */
   swatches?(): RoleSwatchOption[];
-  /** The room's one write. False when nothing was written. */
-  commit?(label: string, edit: ColourRoleEdit): boolean;
+  /** The room's one write. False when nothing was written. `continuing` adds to the last
+   *  undo step, for a colour being tuned, so one drag is one step back. */
+  commit?(label: string, edit: ColourRoleEdit, continuing?: boolean): boolean;
   /** A shipped word's colour: a palette colour or a literal, written through the slot. */
-  setSlot?(slot: SlotId, mode: string, value: { key: string } | { literal: string }): boolean;
+  setSlot?(slot: SlotId, mode: string, value: { key: string } | { literal: string }, continuing?: boolean): boolean;
 }
 
 export interface ColourRolesRoomHandle {
@@ -61,9 +62,15 @@ export interface ColourRolesRoomHandle {
   destroy(): void;
 }
 
+/** How long a colour being tuned rests before it is written. */
+const TUNE_PAUSE_MS = 120;
+
 export function mountColourRolesRoom(mount: HTMLElement, ctx: ColourRolesRoomCtx): ColourRolesRoomHandle {
   const ui: RoomUi = emptyUi();
   let popover: BodyPopoverHandle | null = null;
+  let tuneOwed: string | null = null;
+  let tuneTimer: ReturnType<typeof setTimeout> | undefined;
+  let flushTune: (() => void) | null = null;
   let stopReorder: (() => void) | null = null;
   let holdRender = false;
   let renderOwed = false;
@@ -110,7 +117,7 @@ export function mountColourRolesRoom(mount: HTMLElement, ctx: ColourRolesRoomCtx
     }
   };
 
-  const apply = (label: string, edit: ColourRoleEdit, where: string, shown = ''): boolean => {
+  const apply = (label: string, edit: ColourRoleEdit, where: string, shown = '', continuing = false): boolean => {
     if (!edit.ok) {
       const text = refusalText(edit, shown);
       ui.notice = { key: where, text };
@@ -120,7 +127,12 @@ export function mountColourRolesRoom(mount: HTMLElement, ctx: ColourRolesRoomCtx
     }
     ui.notice = null;
     if (!edit.changed) { render(); return false; }
-    const wrote = ctx.commit?.(label, edit) ?? false;
+    // The commit repaints the room, and that hook calls back here: one draw is enough.
+    const held = holdRender;
+    holdRender = true;
+    const wrote = ctx.commit?.(label, edit, continuing) ?? false;
+    holdRender = held;
+    renderOwed = false;
     render();
     return wrote;
   };
@@ -148,10 +160,10 @@ export function mountColourRolesRoom(mount: HTMLElement, ctx: ColourRolesRoomCtx
 
   const closePicker = (returnFocus = false): void => { popover?.close(returnFocus); };
 
-  const writeValue = (key: string, mode: string, row: RoleTableRow, value: { key: string } | { literal: string }): void => {
-    if (row.shipped) { ctx.setSlot?.(key as SlotId, mode, value); return; }
+  const writeValue = (key: string, mode: string, row: RoleTableRow, value: { key: string } | { literal: string }, continuing = false): void => {
+    if (row.shipped) { ctx.setSlot?.(key as SlotId, mode, value, continuing); return; }
     const stored = 'key' in value ? `{${value.key}}` : value.literal;
-    apply(tRaw('Change {role}', { role: row.label }), setRoleValue(ctx.doc(), { roleId: key, colourway: colourway(), mode, value: stored }), `name:${key}`);
+    apply(tRaw('Change {role}', { role: row.label }), setRoleValue(ctx.doc(), { roleId: key, colourway: colourway(), mode, value: stored }), `name:${key}`, '', continuing);
   };
 
   const openValue = (key: string, mode: string, anchorEl?: HTMLElement): void => {
@@ -174,15 +186,15 @@ export function mountColourRolesRoom(mount: HTMLElement, ctx: ColourRolesRoomCtx
     const title = m.colourway && m.modes.length
       ? tRaw('{role} in {colourway}, {look}', { role: row.label, colourway: m.colourway.name, look: cell.modeName })
       : tRaw('{role}, {look}', { role: row.label, look: cell.modeName });
+    const now = (): RoleValueCell | undefined => rowOf(model(), key)?.cells.find(c => c.mode === mode);
     popover = mountBodyPopover(anchor, (el, pop) => {
-      const stored = options.find(s => s.name === cell.text);
       el.innerHTML = valuePickerHtml({
         title,
         caption: cell.sameAs ? sameAsWords(cell.sameAs) : cell.text || t('No colour here'),
         cell,
         sameAs: !row.shipped && firstLook && firstLook !== mode ? { label: sameAsWords(m.modes[0]!.name), pressed: !!cell.sameAs } : null,
         options,
-        current: stored?.key ?? '',
+        current: cell.ref ?? '',
       });
       wireSwatchArrows(el);
       const cap = el.querySelector<HTMLElement>('[data-be-rolepick-cap]');
@@ -199,29 +211,45 @@ export function mountColourRolesRoom(mount: HTMLElement, ctx: ColourRolesRoomCtx
           return;
         }
         if (target.closest('[data-crt-same]')) {
-          if (cell.sameAs) return;
+          if (now()?.sameAs) return;
           pop.close(true);
           apply(sameAsWords(m.modes[0]!.name), setRoleSameAsLight(ctx.doc(), { roleId: key, colourway: colourway(), mode, from: firstLook }), `name:${key}`);
           return;
         }
         if (target.closest('[data-crt-keep]')) {
           pop.close(true);
-          // Setting the colour it already has clears the copied mark, and the value stays.
-          const value = cell.hex;
-          if (value) apply(tRaw('Keep {role}', { role: row.label }), setRoleValue(ctx.doc(), { roleId: key, colourway: colourway(), mode, value }), `name:${key}`);
+          // Stating the value it already holds clears the copied mark, and nothing it draws moves.
+          const held = now();
+          const label = tRaw('Keep {role}', { role: row.label });
+          if (held?.sameAs) apply(label, setRoleSameAsLight(ctx.doc(), { roleId: key, colourway: colourway(), mode, from: firstLook }), `name:${key}`);
+          else if (held?.stored) apply(label, setRoleValue(ctx.doc(), { roleId: key, colourway: colourway(), mode, value: held.stored }), `name:${key}`);
         }
       });
-      // The studio's own picker, for a colour the palette does not hold. A drag writes once it ends.
+      // The studio's own picker, for a colour the palette does not hold. A burst of changes
+      // writes when it pauses, so the table and In context keep up without a save per frame,
+      // and the whole burst is one undo step.
       const field = el.querySelector<HTMLElement>('[data-crt-field]');
       if (field) {
-        let dragging = false;
-        let owed: string | null = null;
-        const write = (value: string): void => { if (value && value !== 'transparent') writeValue(key, mode, row, { literal: value }); };
+        let tuned = false;
+        const flush = (): void => {
+          clearTimeout(tuneTimer);
+          const value = tuneOwed;
+          tuneOwed = null;
+          if (!value || value === 'transparent') return;
+          writeValue(key, mode, row, { literal: value }, tuned);
+          tuned = true;
+          // The panel stays open while a colour is tuned, so what it says keeps up.
+          const held = now();
+          if (cap) cap.textContent = held?.text ?? value;
+          el.querySelector('[data-crt-same]')?.setAttribute('aria-pressed', String(!!held?.sameAs));
+          el.querySelector('[data-be-rolepick][aria-pressed="true"]')?.setAttribute('aria-pressed', 'false');
+          el.querySelector('.crt-pick-copied')?.remove();
+        };
+        flushTune = flush;
         mountColorField(field, `crt-${key}-${mode}`, {
           value: cell.hex, inline: true, modes: true, progressive: true,
-          onChange: (value) => { if (dragging) owed = value; else write(value); },
-          onInteractStart: () => { dragging = true; },
-          onInteractEnd: () => { dragging = false; if (owed) { const value = owed; owed = null; write(value); } },
+          onChange: (value) => { tuneOwed = value; clearTimeout(tuneTimer); tuneTimer = setTimeout(flush, TUNE_PAUSE_MS); },
+          onInteractEnd: flush,
         });
       }
       // Focus sits on what the value is now, or on the panel: landing on some other swatch
@@ -233,7 +261,7 @@ export function mountColourRolesRoom(mount: HTMLElement, ctx: ColourRolesRoomCtx
       trackScroll: true, trackSize: true, position: placeBelow,
       // The colour field floats panels of its own on the body, which are part of this one.
       isInside: (node) => !!(node as Element | null)?.closest?.('.color-popover, [data-color-popover]'),
-      onClose: () => { popover = null; },
+      onClose: () => { flushTune?.(); flushTune = null; popover = null; },
     });
     popover.open();
   };
@@ -463,6 +491,7 @@ export function mountColourRolesRoom(mount: HTMLElement, ctx: ColourRolesRoomCtx
     destroy: () => {
       destroyed = true;
       clearTimeout(timer);
+      clearTimeout(tuneTimer);
       stopReorder?.();
       closePicker();
       mount.removeEventListener('click', ctx.readOnly ? onViewClick : onClick);

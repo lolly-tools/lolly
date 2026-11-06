@@ -139,6 +139,18 @@ test('the room: add, rename, bind, Same as light, switch colourway, In context r
     await picker.waitFor({ state: 'detached' });
     assert.equal(await page.locator('[data-crt-value="tertiary"][data-crt-mode="light"]').evaluate(el => el === document.activeElement), true);
 
+    // A colour typed into the picker shows in the table with the panel still open.
+    await page.locator('[data-crt-value="tertiary"][data-crt-mode="light"]').click();
+    await picker.waitFor();
+    const typed = picker.locator('[data-crt-field] input[type="text"]').first();
+    await typed.fill('#00aa88');
+    await typed.press('Enter');
+    await page.waitForFunction(() => document.querySelector('[data-crt-value="tertiary"][data-crt-mode="light"]')?.getAttribute('title') === '#00aa88');
+    assert.ok(await picker.isVisible(), 'the panel stays open while a colour is tuned');
+    await page.keyboard.press('Escape');
+    await picker.waitFor({ state: 'detached' });
+    await saved(page);
+
     // Reorder from the keyboard, with focus following the row.
     const grip = page.locator('[data-crt-focus="grip:accent"]');
     await grip.focus();

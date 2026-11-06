@@ -1037,7 +1037,7 @@ button.be-lead:hover { background: hsl(var(--muted) / .7); }
   background: var(--sw, transparent); box-shadow: var(--ui-edge-faint);
 }
 .be-rolechip-meta { display: grid; gap: 1px; flex: 1 1 auto; min-width: 0; }
-.be-rolechip-role { font-size: var(--fs-2xs); font-weight: 600; color: hsl(var(--muted-foreground)); }
+.be-rolechip-role { font-size: var(--fs-2xs); font-weight: 600; color: hsl(var(--muted-foreground)); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .be-rolechip-tag { margin-inline-start: var(--sp-3); font-weight: 500; }
 .be-rolechip-tag::before { content: '\00b7'; margin-inline-end: var(--sp-3); }
 .be-rolechip-val { font-size: var(--fs-sm); font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -1069,6 +1069,8 @@ button.be-lead:hover { background: hsl(var(--muted) / .7); }
 /* The swatch popover's "Use as" row - roles reached from the colour itself. */
 .be-useas-row { display: flex; align-items: center; flex-wrap: wrap; gap: .35rem; padding-top: .5rem; border-top: 1px solid hsl(var(--border) / .6); }
 .be-useas-row[hidden] { display: none; }
+/* A design system's own word can run long, and the card is narrow, so the word wraps. */
+.be-useas-row > .be-btn { max-width: 100%; white-space: normal; overflow-wrap: anywhere; text-align: start; }
 .be-useas-label { font-size: var(--fs-2xs); font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: hsl(var(--muted-foreground)); }
 /* A pressed "Use as" means THIS swatch already holds that role - and pressing it
    again is what un-sets the role, so the state is not decoration, it is the
