@@ -26,23 +26,38 @@ function svgOf(markup: string, around = ''): Element {
 }
 const translateX = (el: Element): number => Number(/translate\(([-\d.]+)/.exec(el.getAttribute('transform') ?? '')![1]);
 
-test('a run the font has no glyphs for stays text, not a row of boxes', async () => {
+// Syriac is written right to left and no fallback font covers it yet, so it is the
+// script these tests use for a run that stays text.
+const SYRIAC = 'ܫܠܡܐ ܥܠܡܐ.';
+
+test('a run no font covers stays text, not a row of boxes', async () => {
+  for (const words of [SYRIAC, '漢字テスト']) {
+    const svg = svgOf(`<text x="10" y="40" font-family="Outfit" font-size="20">${words}</text>`);
+    const res = await outlineSvgText(svg, host);
+    assert.equal(res.outlined, 0, words);
+    assert.equal(svg.querySelectorAll('path').length, 0, words);
+    assert.match(res.fallbacks[0]!.reason, /no glyph for/, words);
+    assert.deepEqual(res.filled, [], words);
+    assert.equal(svg.querySelector('text')!.textContent, words);
+  }
+});
+
+test('a run the design system cannot draw outlines with the fallback font for its script', async () => {
   const svg = svgOf('<text x="10" y="40" font-family="Outfit" font-size="20">مرحبا بالعالم.</text>');
   const res = await outlineSvgText(svg, host);
-  assert.equal(res.outlined, 0);
-  assert.equal(svg.querySelectorAll('path').length, 0);
-  assert.match(res.fallbacks[0]!.reason, /no glyph for/);
-  assert.equal(svg.querySelector('text')!.textContent, 'مرحبا بالعالم.');
+  assert.equal(res.outlined, 1);
+  assert.equal(svg.querySelectorAll('text').length, 0);
+  assert.deepEqual(res.filled, [{ label: 'Arabic', family: 'Noto Sans Arabic' }]);
 });
 
 test('a kept run takes the direction set around the <svg>, because that does not travel', async () => {
-  const svg = svgOf('<text x="390" y="40" font-family="Outfit" font-size="20">مرحبا.</text>', 'dir="rtl"');
+  const svg = svgOf(`<text x="390" y="40" font-family="Outfit" font-size="20">${SYRIAC}</text>`, 'dir="rtl"');
   await outlineSvgText(svg, host);
   assert.equal(svg.querySelector('text')!.getAttribute('direction'), 'rtl');
 });
 
 test('dir="auto" around the <svg> reads the run', async () => {
-  const svg = svgOf('<text x="390" y="40" font-family="Outfit" font-size="20">مرحبا.</text>', 'dir="auto"');
+  const svg = svgOf(`<text x="390" y="40" font-family="Outfit" font-size="20">${SYRIAC}</text>`, 'dir="auto"');
   await outlineSvgText(svg, host);
   assert.equal(svg.querySelector('text')!.getAttribute('direction'), 'rtl');
 });

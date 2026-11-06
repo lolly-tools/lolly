@@ -9,7 +9,8 @@
  * scripts/build-mcp-fn.ts builds the script at bundle time and defines it in as
  * `__LOLLY_PAGE_WALK__`, the way it carries the rondocode stage.
  *
- * The font registry is swapped for `page-walk-fonts.ts` (see that file for why),
+ * The font registry is swapped for `page-walk-fonts.ts` and the fallback-font fill for
+ * `page-walk-fill.ts` (see those files for why),
  * and `import.meta.env` carries the values a production Vite build gives the app.
  */
 import { fileURLToPath } from 'node:url';
@@ -19,6 +20,7 @@ const HERE = dirname(fileURLToPath(import.meta.url));
 const WEB_SRC = resolve(HERE, '../../../shells/web/src');
 export const PAGE_WALK_ENTRY = join(WEB_SRC, 'capture/page-walk.ts');
 const FONT_STUB = join(WEB_SRC, 'capture/page-walk-fonts.ts');
+const FILL_STUB = join(WEB_SRC, 'capture/page-walk-fill.ts');
 
 /** The script, defined in by a bundler that built it ahead of time. Undefined from source. */
 declare const __LOLLY_PAGE_WALK__: string | undefined;
@@ -53,6 +55,8 @@ export async function buildPageWalkScript(opts: { minify?: boolean; mangle?: boo
       name: 'page-walk-stubs',
       setup(b) {
         b.onResolve({ filter: /(^|\/)font-registry\.ts$/ }, () => ({ path: FONT_STUB }));
+        // The fallback fonts serve a design system's documents, not a captured page.
+        b.onResolve({ filter: /(^|\/)font-fill\.ts$/ }, () => ({ path: FILL_STUB }));
       },
     }],
   });

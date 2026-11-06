@@ -208,6 +208,7 @@ type CliExportOpts = ExportOpts & import('@lolly-tools/node-shell/pdf-finishing'
   text?: 'outline' | 'live';
   /** Reported per run the svg branch could not outline (see the bridge). */
   onTextFallback?: (run: { text: string; reason: string }) => void;
+  onFillNotice?: (notice: string) => void;
   hdr?: { targets?: readonly string[]; peakNits?: number; reach?: number; lift?: number; richness?: number };
   /** A Design page drawn here from the drawing operations reports its route (plan 326). */
   onExportRoute?: (record: import('../../../engine/src/design-export-route.ts').DesignExportRouteRecord) => void;
@@ -1349,6 +1350,8 @@ async function runToolCliCandidate({ toolId, inputValues, params, repeated = {},
     }
     const textFallbacks: Array<{ text: string; reason: string }> = [];
     exportOpts.onTextFallback = (run) => textFallbacks.push(run);
+    const fillNotices: string[] = [];
+    exportOpts.onFillNotice = (notice) => { if (!fillNotices.includes(notice)) fillNotices.push(notice); };
     // A Design page this shell draws from the operations hands back its route and any
     // credentialed picture's manifest, which the stamp below records (plan 326).
     exportOpts.ingredientSink = opsIngredients;
@@ -1612,6 +1615,10 @@ async function runToolCliCandidate({ toolId, inputValues, params, repeated = {},
         `which follows the web default (${targetFormat.toLowerCase() === 'emf' ? 'live text records' : 'outlined text'}). ` +
         'The file is the same as one exported without the flag.');
     }
+
+    // Fallback fonts that drew what the design system's fonts do not cover: the same
+    // sentence the web export card shows (fallback-fonts.ts fillNotice).
+    for (const notice of fillNotices) note(`Note: ${notice}`);
 
     // Runs the svg branch could not outline. Reported once per run, in the exporter's
     // own terms ("this word, in this font, stays live text"), and refused outright when

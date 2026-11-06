@@ -615,7 +615,8 @@ async function renderViaChromiumShell(
     const observeInputs = await observeProductionInputs(page, toolId, dims.productionInputIds ?? []);
     debug.attach(page);
     page.on('console', (message: ConsoleMessage) => {
-      if (message.text().startsWith(PDF_TEXT_NOTE)) process.stderr.write(`Note: ${sessionExportNote(message.type(), message.text())}\n`);
+      const line = sessionExportNote(message.type(), message.text());
+      if (line && (message.text().startsWith(PDF_TEXT_NOTE) || message.text().startsWith(FILL_NOTE))) process.stderr.write(`Note: ${line}\n`);
     });
     waiting = await waitForExport(page, format);
     const downloadP = waiting.result;
@@ -1059,12 +1060,16 @@ async function exportOpenedSession(
  * `host.log('warn', 'pptx: …')` prints `[warn] pptx: …`; the note is the `pptx: …` part.
  */
 export function sessionExportNote(type: string, text: string): string | null {
+  if (type === 'info' && text.startsWith(FILL_NOTE)) return text.slice('[info] '.length, '[info] '.length + 2000).trimEnd();
   if (type !== 'warning' || !(text.startsWith('[warn] pptx: ') || text.startsWith(PDF_TEXT_NOTE))) return null;
   return text.slice('[warn] '.length, '[warn] '.length + 2000).trimEnd();
 }
 
 /** What a PDF tells the person when it drew text as pictures (export-pdf-text-picture.ts). */
 const PDF_TEXT_NOTE = '[warn] pdf: This PDF draws some text as pictures';
+
+/** What an export tells the person when fallback fonts drew some of its text (font-fill.ts). */
+const FILL_NOTE = '[info] fonts: ';
 
 /** The RenderDims of a session export: the frame and provenance options laid over `dims`. */
 function sessionDims(opts: ExportDesignSessionOptions): RenderDims {

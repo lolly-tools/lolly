@@ -6,6 +6,7 @@ import type { HostV1 } from '@lolly-tools/core/host-v1';
 import { textStrokeAttrs, canVectoriseText, letterSpacingPx, featureSettingsToHb, textBaselineY, applyTextTransform } from './text-svg.ts';
 import type { FontStyleSlice } from './text-svg.ts';
 import type { VectorFont } from './font-registry.ts';
+import { exportFontFamily } from './fallback-font-source.ts';
 import { n2, parseCssColorFull } from './export-css.ts';
 import { firstStrongDirection, hasRtlText, type TextRunDirection } from '@lolly-tools/node-shell/text-bidi';
 
@@ -176,7 +177,7 @@ export async function emitInlineTextSvg(
         t.setAttribute('font-size',         nodeStyle.fontSize);
         t.setAttribute('font-weight',       nodeStyle.fontWeight);
         t.setAttribute('font-style',        nodeStyle.fontStyle);
-        t.setAttribute('font-family',       nodeStyle.fontFamily);
+        t.setAttribute('font-family',       exportFontFamily(nodeStyle.fontFamily));
         if (nodeStyle.letterSpacing && nodeStyle.letterSpacing !== 'normal') {
           t.setAttribute('letter-spacing', nodeStyle.letterSpacing);
         }

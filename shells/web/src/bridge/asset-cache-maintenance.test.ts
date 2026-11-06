@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { holdCatalogAssets, pruneAssetCache, syncAssetIndex } from './asset-cache-maintenance.ts';
+import { holdCatalogAssets, holdFallbackFonts, pruneAssetCache, syncAssetIndex } from './asset-cache-maintenance.ts';
 import type { AssetsDb, AssetMetaRecord } from './assets.ts';
 const id = 'ext/dam/example', file = 'a'.repeat(24), variant = `${id}?file=${file}`;
 function group(version = '2'): AssetMetaRecord {
@@ -86,4 +86,18 @@ test('the held list stays short, newest first, so trying every set does not keep
   assert.deepEqual(f.profile.get('held-catalog-assets'), ['two', 'four', 'three'], 'using a set moves it to the front');
   await holdCatalogAssets(f.db, ['a', 'b', 'c', 'd']);
   assert.deepEqual(f.profile.get('held-catalog-assets'), ['a', 'b', 'c', 'd'], 'a style with many fallbacks still keeps all of them');
+});
+
+test('a fallback font used once survives prunes, and trying emoji sets never evicts it', async () => {
+  const font = (id: string): AssetMetaRecord => ({ id, type: 'data', version: '2.12.0', tier: 'on-demand', formats: [{ format: 'woff2', url: `/catalog/packs/fallback-fonts/${id}.woff2` }] });
+  const arabic = font('community/fallback-font/noto-sans-arabic'), browsed = font('community/fallback-font/noto-sans-thai');
+  const sets = ['set/a', 'set/b', 'set/c', 'set/d'].map((id) => pack(id));
+  const keys = [`${arabic.id}:woff2:2.12.0`, `${browsed.id}:woff2:2.12.0`, ...sets.map((s) => `${s.id}:json:1`)];
+  const f = fixture(keys, [arabic, browsed, ...sets]);
+  await holdFallbackFonts(f.db, [arabic.id]);
+  for (const s of sets) await holdCatalogAssets(f.db, [s.id]);
+  await pruneAssetCache(f.db, [arabic, browsed, ...sets], new Set(), new Set(), f.urls);
+  assert.ok(f.blobs.has(`${arabic.id}:woff2:2.12.0`), 'a script drawn once still draws offline');
+  assert.equal(f.blobs.has(`${browsed.id}:woff2:2.12.0`), false, 'a font no document used is not kept');
+  assert.deepEqual(f.profile.get('held-fallback-fonts'), [arabic.id], 'on a list of its own, never an upload');
 });

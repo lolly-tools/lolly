@@ -6,7 +6,7 @@
  * lived inside export.ts until 2026-09-16 and was moved verbatim. export.ts imports
  * from here; this file never imports export.ts, only the leaf modules both use.
  */
-import { resolveVectorFont } from './font-registry.ts';
+import { resolveExportFont } from './font-fill.ts';
 import type { VectorFont } from './font-registry.ts';
 import { letterSpacingPx, featureSettingsToHb, applyTextTransform, physicalTextAnchor } from './text-svg.ts';
 import { hasRtlText } from '@lolly-tools/node-shell/text-bidi';
@@ -54,7 +54,7 @@ export async function outlineSvgTextRuns(liveSvg: Element, clone: Element, outli
     const fontSizePx = parseFloat(cs.fontSize) || 16;
     const styleSlice = { fontFamily: cs.fontFamily, fontWeight: cs.fontWeight, fontStyle: cs.fontStyle };
     let vf: VectorFont | null = null;
-    try { vf = await resolveVectorFont(styleSlice, raw); } catch { vf = null; }
+    try { vf = await resolveExportFont(styleSlice, raw); } catch { vf = null; }
     if (!vf?.url || !textApi) return null;
     const letterSpacing = letterSpacingPx(cs.letterSpacing);
     const features = featureSettingsToHb(cs.fontFeatureSettings);

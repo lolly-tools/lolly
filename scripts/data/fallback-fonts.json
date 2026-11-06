@@ -1,0 +1,78 @@
+{
+  "$comment": "Pins for the on-demand fallback fonts in community/fallback-fonts. scripts/import-fallback-fonts.ts reads each upstream file from a sparse clone of google/fonts at `commit`, refuses a file whose sha256 differs from the pin, pins the width axis at its default, cuts the Latin, Greek and Cyrillic packs out of Noto Sans by script, and writes WOFF2 files, the licence texts and index.json. `scripts` are ISO 15924 codes: a pack fills characters of those scripts that a design system's fonts cannot draw. `version` is the upstream font version in the catalog's three-part grammar (2.012 becomes 2.12.0).",
+  "source": {
+    "repository": "https://github.com/google/fonts",
+    "commit": "38411257417e616c5d4daa1b9e91a3dbcebe1c2e"
+  },
+  "upstream": {
+    "noto-sans-arabic": {
+      "path": "ofl/notosansarabic/NotoSansArabic[wdth,wght].ttf",
+      "sha256": "63111b5b2e074dd48cc67692e0a2726d86ee94c1c37fe8598257b7b4e87e869e",
+      "bytes": 844676,
+      "fontVersion": "2.012",
+      "repository": "https://github.com/notofonts/arabic",
+      "licence": { "path": "ofl/notosansarabic/OFL.txt", "sha256": "07fc70bfeb985cc1a87a8587d0a0c80bab11c86c9dc3fd95b6f0cb332f983e96" }
+    },
+    "noto-sans-hebrew": {
+      "path": "ofl/notosanshebrew/NotoSansHebrew[wdth,wght].ttf",
+      "sha256": "7ef36a2c3593758cdb622e1bdef4f84523e92fbc3ccc667438dd80ff54c2de88",
+      "bytes": 112640,
+      "fontVersion": "3.001",
+      "repository": "https://github.com/notofonts/hebrew",
+      "licence": { "path": "ofl/notosanshebrew/OFL.txt", "sha256": "9b9fe028b5ba74d231659a1bbaf0ed09b11e759d1ca6a070999e16d151616b47" }
+    },
+    "noto-sans-devanagari": {
+      "path": "ofl/notosansdevanagari/NotoSansDevanagari[wdth,wght].ttf",
+      "sha256": "14ec4af41f27482216d1c2229f417ff9b1425e1babb014e57d1d40d03229853e",
+      "bytes": 641944,
+      "fontVersion": "2.007",
+      "repository": "https://github.com/notofonts/devanagari",
+      "licence": { "path": "ofl/notosansdevanagari/OFL.txt", "sha256": "a216f6f8d85c7228093e0ee5e258d9d377e6671f68acb4db1930b29583d0f331" }
+    },
+    "noto-sans-bengali": {
+      "path": "ofl/notosansbengali/NotoSansBengali[wdth,wght].ttf",
+      "sha256": "dcd42978094e584a849c84a51450eeac40c8826057d566ea6d4b9627a403a05a",
+      "bytes": 463668,
+      "fontVersion": "3.011",
+      "repository": "https://github.com/notofonts/bengali",
+      "licence": { "path": "ofl/notosansbengali/OFL.txt", "sha256": "754f0e221aa7d5a915489f3bf1f20fe53ddc35ab2834a4d91656d78f9622de70" }
+    },
+    "noto-sans-thai": {
+      "path": "ofl/notosansthai/NotoSansThai[wdth,wght].ttf",
+      "sha256": "5a1c559bb539583c8a1fd99d1c5b9491e5e14478c9cd2bd0970d5c3096cc9ef8",
+      "bytes": 218652,
+      "fontVersion": "2.002",
+      "repository": "https://github.com/notofonts/thai",
+      "licence": { "path": "ofl/notosansthai/OFL.txt", "sha256": "2e98fd23a52d253db8612cd5942c8f2ff4111b21d2367050fdca91d8ccc374a0" }
+    },
+    "noto-sans": {
+      "path": "ofl/notosans/NotoSans[wdth,wght].ttf",
+      "sha256": "bfb7bb691513f12e734dc346c03a03f784912432d7e3fa8e56efcf906fe86b3d",
+      "bytes": 2049096,
+      "fontVersion": "2.015",
+      "repository": "https://github.com/notofonts/latin-greek-cyrillic",
+      "licence": { "path": "ofl/notosans/OFL.txt", "sha256": "cee9892f9f0cc8fe882c9e9537ee6a89621d86ee7ceaf70b02e2b2b1c25c061a" }
+    },
+    "noto-sans-italic": {
+      "path": "ofl/notosans/NotoSans-Italic[wdth,wght].ttf",
+      "sha256": "58e6e0ebd1931b29a365aa2d3e2ee9a9e831a3af7cf3ad1462d4e72154f0b291",
+      "bytes": 2322640,
+      "fontVersion": "2.015",
+      "repository": "https://github.com/notofonts/latin-greek-cyrillic",
+      "licence": { "path": "ofl/notosans/OFL.txt", "sha256": "cee9892f9f0cc8fe882c9e9537ee6a89621d86ee7ceaf70b02e2b2b1c25c061a" }
+    }
+  },
+  "packs": [
+    { "id": "community/fallback-font/noto-sans-arabic", "file": "noto-sans-arabic.woff2", "upstream": "noto-sans-arabic", "family": "Noto Sans Arabic", "label": "Arabic", "scripts": ["Arab"], "style": "normal" },
+    { "id": "community/fallback-font/noto-sans-hebrew", "file": "noto-sans-hebrew.woff2", "upstream": "noto-sans-hebrew", "family": "Noto Sans Hebrew", "label": "Hebrew", "scripts": ["Hebr"], "style": "normal" },
+    { "id": "community/fallback-font/noto-sans-devanagari", "file": "noto-sans-devanagari.woff2", "upstream": "noto-sans-devanagari", "family": "Noto Sans Devanagari", "label": "Devanagari", "scripts": ["Deva"], "style": "normal" },
+    { "id": "community/fallback-font/noto-sans-bengali", "file": "noto-sans-bengali.woff2", "upstream": "noto-sans-bengali", "family": "Noto Sans Bengali", "label": "Bengali", "scripts": ["Beng"], "style": "normal" },
+    { "id": "community/fallback-font/noto-sans-thai", "file": "noto-sans-thai.woff2", "upstream": "noto-sans-thai", "family": "Noto Sans Thai", "label": "Thai", "scripts": ["Thai"], "style": "normal" },
+    { "id": "community/fallback-font/noto-sans-cyrillic", "file": "noto-sans-cyrillic.woff2", "upstream": "noto-sans", "family": "Noto Sans", "label": "Cyrillic", "scripts": ["Cyrl"], "style": "normal", "cut": ["Cyrl"] },
+    { "id": "community/fallback-font/noto-sans-cyrillic-italic", "file": "noto-sans-cyrillic-italic.woff2", "upstream": "noto-sans-italic", "family": "Noto Sans", "label": "Cyrillic", "scripts": ["Cyrl"], "style": "italic", "cut": ["Cyrl"] },
+    { "id": "community/fallback-font/noto-sans-greek", "file": "noto-sans-greek.woff2", "upstream": "noto-sans", "family": "Noto Sans", "label": "Greek", "scripts": ["Grek"], "style": "normal", "cut": ["Grek"] },
+    { "id": "community/fallback-font/noto-sans-greek-italic", "file": "noto-sans-greek-italic.woff2", "upstream": "noto-sans-italic", "family": "Noto Sans", "label": "Greek", "scripts": ["Grek"], "style": "italic", "cut": ["Grek"] },
+    { "id": "community/fallback-font/noto-sans-latin", "file": "noto-sans-latin.woff2", "upstream": "noto-sans", "family": "Noto Sans", "label": "Latin", "scripts": ["Latn", "Zyyy"], "style": "normal", "cut": ["Latn", "Zyyy"] },
+    { "id": "community/fallback-font/noto-sans-latin-italic", "file": "noto-sans-latin-italic.woff2", "upstream": "noto-sans-italic", "family": "Noto Sans", "label": "Latin", "scripts": ["Latn", "Zyyy"], "style": "italic", "cut": ["Latn", "Zyyy"] }
+  ]
+}

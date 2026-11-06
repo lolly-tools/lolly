@@ -1,31 +1,31 @@
 {
-  "$comment": "Content profiles - which tool packs, shared asset roots and brand catalog make up one brand. packages/node-shell/src/content-roots.ts resolves the active one per process from LOLLY_PROFILE, the sticky .lolly-profile, then `default`; `pnpm run profile` prints what it resolved and from where, and a catalog script takes --profile=<name>. There are no repo-root tools/ and catalog/ views any more (plan 244). Later tool roots win on id collisions, so a brand pack can override a community tool. Optional `exclude`: tool ids to drop from this profile (e.g. a community tool a brand does not want to ship) - the tool stays available to every other profile. Optional `assets`: shared asset roots, each a directory holding its own index.json plus its files, whose entries are appended to this brand's asset index and whose urls are the profile-independent /catalog/packs/<rootName>/<file>. That is how one emoji pack lives in one place and appears on every brand. An asset id in two roots is refused, never resolved by order. Optional `companions`, with `brandTokens`: a design system offered beside the profile's own, a filtered mount of another pack's catalog. Only the asset ids and family prefixes in its `assets` list are copied, a row the brand already has stays the brand's, and the merge exists in the served index and dist only.",
+  "$comment": "Content profiles - which tool packs, shared asset roots and brand catalog make up one brand. packages/node-shell/src/content-roots.ts resolves the active one per process from LOLLY_PROFILE, the sticky .lolly-profile, then `default`; `pnpm run profile` prints what it resolved and from where, and a catalog script takes --profile=<name>. There are no repo-root tools/ and catalog/ views any more (plan 244). Later tool roots win on id collisions, so a brand pack can override a community tool. Optional `exclude`: tool ids to drop from this profile (e.g. a community tool a brand does not want to ship) - the tool stays available to every other profile. Optional `assets`: shared asset roots, each a directory holding its own index.json plus its files, whose entries are appended to this brand's asset index and whose urls are the profile-independent /catalog/packs/<rootName>/<file>. That is how one emoji pack, or one fallback font, lives in one place and appears on every brand. An asset id in two roots is refused, never resolved by order. Optional `companions`, with `brandTokens`: a design system offered beside the profile's own, a filtered mount of another pack's catalog. Only the asset ids and family prefixes in its `assets` list are copied, a row the brand already has stays the brand's, and the merge exists in the served index and dist only.",
   "default": "suse",
   "profiles": {
     "suse": {
       "label": "SUSE",
       "tools": ["community", "brands/suse/tools"],
       "exclude": ["rebrand-deck", "street-map", "quote-card"],
-      "assets": ["community/emoji-packs"],
+      "assets": ["community/emoji-packs", "community/fallback-fonts"],
       "catalog": "brands/suse/catalog"
     },
     "lolly-start": {
       "label": "Lolly Start (blank brand)",
       "tools": ["community", "brands/lolly-start/tools"],
-      "assets": ["community/emoji-packs"],
+      "assets": ["community/emoji-packs", "community/fallback-fonts"],
       "catalog": "brands/lolly-start/catalog"
     },
     "lolly-demo": {
       "label": "Lolly Demo",
       "tools": ["community", "brands/lolly-demo/tools"],
-      "assets": ["community/emoji-packs"],
+      "assets": ["community/emoji-packs", "community/fallback-fonts"],
       "catalog": "brands/lolly-demo/catalog"
     },
     "suse-with-demo": {
       "label": "SUSE, with Lolly Demo beside it",
       "tools": ["community", "brands/suse/tools"],
       "exclude": ["rebrand-deck", "street-map", "quote-card"],
-      "assets": ["community/emoji-packs"],
+      "assets": ["community/emoji-packs", "community/fallback-fonts"],
       "catalog": "brands/suse/catalog",
       "brandTokens": "suse/tokens/brand",
       "companions": [

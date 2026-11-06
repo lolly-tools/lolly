@@ -20,7 +20,7 @@ import { assertPdfCameOutLocked, assertStandardPasswordFits, standardPdfEncrypti
 import { LOSSLESS_STRENGTH, C2PA_FORMATS, embedWavInfo, writeDocx, writeOdt, hdrBoostToPQ, pqBt2020IccProfile, iccProfileBytes, HDR_PQ_CICP, packTiff, CSS_DPI, encodeBmp, cmykCondition, toPixels, parseDimension, toCssLength, gzip, emitEmf, emitWmf, emitEps, emitDxf, toPoints, exportActionSteps, embedC2pa, ENGINE_VERSION, separationLattice, buildExportMeta, SCREEN_SOURCE_TYPE, CAPTURE_SOURCE_TYPE, extractC2paStore, roundedRectPath, splitCssArgs, insetCorners, uniformRadius, parseCssMatrix, isNonAffineTransform, parseClipShape, parseBoxShadow, gaussianShadowBands, parseTextShadow, videoProvenanceTags, embedMp4Meta, embedWebmMeta, hdrViewTransform, fromU8Srgb, pqToI420P10, pqEncodeFrame, packApng, packWebpAnim } from '@lolly/engine';
 import type { Mat2D, SeparateRgb } from '@lolly/engine';
 import { letterSpacingPx, featureSettingsToHb, canVectoriseText, textBaselineY } from './text-svg.ts';
-import { resolveVectorFont } from './font-registry.ts';
+import { resolveExportFont, extendsChain, withFallbackFonts } from './font-fill.ts';
 import { bakeWebKitBoxShadows } from './webkit-shadow-bake.ts';
 import { newNeutraliseGuard, neutraliseTransform, pdfDrawsThroughMatrix } from './transform-neutralise.ts';
 import { svgDomToIr } from './svg-ir.ts';
@@ -208,7 +208,8 @@ export function createExportAPI(host: WebHost) {
         // the library, which cannot be cancelled. Wait for it, with a bound, or
         // its teardown clears the sandbox iframe and url cache from under THIS render.
         await drainNodeRasters();
-        return await renderFormat(node, format, browserExportProgress(opts));
+        // In step with the live page's fallback fonts, and one card note for what they drew.
+        return await withFallbackFonts(() => renderFormat(node, format, browserExportProgress(opts)));
       } finally {
         restoreMotion();
         resumeThumbRasters();
@@ -3275,7 +3276,7 @@ async function renderInlineContent(
       const fontSizePx = parseFloat(nodeStyle.fontSize) || 16;
       // Resolve the run's real font (SUSE / a user Google font / platform) in
       // BOTH modes - live text needs it to choose embed-vs-outline too.
-      const vf = _host?.text ? await resolveVectorFont(nodeStyle, text) : null;
+      const vf = _host?.text ? await resolveExportFont(nodeStyle, text) : null;
       const fontUrl = vf?.url ?? null;
       const embedUrl = convertPaths ? null : await pdfFontEmbed(vf);
       const hasResolvedFont = Boolean(vf);
@@ -3325,7 +3326,9 @@ async function renderInlineContent(
             // for it means a picture: the base-14 face would print question marks.
             const overridden = bidi.override && ordered;
             const garbled = liveTextWouldGarble(shown, rtl);
-            const outlineRun = !overridden && (outline || (garbled && vectorisable));
+            // A run the design system's fonts cannot draw whole outlines with the faces that
+            // can, fallback fonts included, rather than going in as a picture.
+            const outlineRun = !overridden && (outline || ((garbled || extendsChain(vf)) && vectorisable));
 
             // Shape once and reuse: the shadows and the run itself are the same
             // glyphs, and HarfBuzz shaping is the expensive part of this loop.

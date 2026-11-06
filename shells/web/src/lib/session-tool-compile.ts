@@ -13,6 +13,7 @@ import { resolveVectorFont } from '../bridge/font-registry.ts';
 import { readFontEmbedding } from './font-utils.ts';
 import { designDigest } from './design-tool-compile.ts';
 import { redistribution } from './redistribution.ts';
+import { exportFontFamily } from '../bridge/fallback-font-source.ts';
 
 function dataUrl(bytes: Uint8Array, mime: string): string {
   let binary = '';
@@ -149,14 +150,15 @@ export async function prepareSessionTool(
     css += `@font-face{font-family:'${family}';src:url('${url}');font-weight:${face.face?.weight || style.fontWeight};font-style:${style.fontStyle};}\n`;
   }
   const rootDeclarations = [
-    `font-family:${fontFamilies.get(sourceStyle.fontFamily) || sourceStyle.fontFamily}`,
+    `font-family:${fontFamilies.get(sourceStyle.fontFamily) || exportFontFamily(sourceStyle.fontFamily)}`,
     `color:${sourceStyle.color}`,
   ];
   const sourceText = `${tool.styles || ''}\n${tool.template}\n${tool.hooksSource || ''}`;
   const variables = new Set([...sourceText.matchAll(/var\(\s*(--[\w-]+)/g)].map((m) => m[1]!));
   for (const name of ['--font-brand', '--font-mono', '--font-display']) variables.add(name);
   for (const name of variables) {
-    let value = sourceStyle.getPropertyValue(name).trim();
+    // The live page's own fallback families exist only on this page (fallback-font-source.ts).
+    let value = exportFontFamily(sourceStyle.getPropertyValue(name).trim());
     if (!value) continue;
     if (/[{}<>]|url\(/i.test(value)) throw new Error('Resolve linked style assets before sharing.');
     for (const nested of value.matchAll(/var\(\s*(--[\w-]+)/g)) variables.add(nested[1]!);

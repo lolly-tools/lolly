@@ -1308,6 +1308,11 @@ export function createAssetsAPI(db: AssetsDb, opts: AssetsApiOptions = {}) {
       return (await import('./asset-cache-maintenance.ts')).holdCatalogAssets(db, ids);
     },
 
+    /** Internal: fallback fonts a document drew with, kept through prunes on a list of their own. */
+    async _holdFallbackFonts(ids: readonly string[]): Promise<void> {
+      return (await import('./asset-cache-maintenance.ts')).holdFallbackFonts(db, ids);
+    },
+
     /**
      * Internal: called by syncAssets after writing new metadata.
      *

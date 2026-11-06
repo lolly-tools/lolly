@@ -6,6 +6,12 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+## 1.319.0
+
+- `host.text.toPath`: a `fallbackFonts` entry may carry `fill: true`, a face that draws only what every face before it cannot, the way a browser falls back to a later family in a `font-family` list. With one in the chain, the run is split by grapheme cluster and each cluster goes to the first face that maps all of it, so an earlier face keeps every character it can draw; a space goes to the first face that maps it, as in Chrome. A chain with no `fill` face splits exactly as before, so every existing outline keeps its bytes.
+- No engine module changes. The web and Node shells use it for the on-demand fallback fonts in `community/fallback-fonts` (`docs/fallback-fonts.md`): a run the design system's fonts do not cover is outlined with the later families of its own stack, then an OFL Noto font for the missing script. A run the design system covers takes no fill face and keeps its chain.
+- Exported files gain nothing but the glyph outlines a fallback font drew: no font program, no credit line and no content credential entry.
+
 ## 1.318.0
 
 - Colour roles through other formats and back (new module `colour-role-portable.ts`, plan 352). `adoptColourRoles` brings a file's colours in as roles, in words someone confirmed, through the same edits the studio uses. `withColourwayKindRestored` gives a group called `colourway` its kind back after a format that dropped the kind.

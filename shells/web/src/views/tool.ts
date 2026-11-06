@@ -64,6 +64,7 @@ import { popoversOps } from './tool/popovers.ts';
 import { renderOps } from './tool/render.ts';
 import { setupOps } from './tool/setup.ts';
 import { openDocumentOps } from './tool/open-document.ts';
+import { releasePageWatch } from '../lib/page-fallback-watch.ts';
 export type { IdentityStatus, EmbedDescribe, WebToolHost, ToolRuntime, PanelEl, PrintMarks, ExportDefaults, ActionsApi, ExportExperience, RunExportOpts } from './tool/shared.ts';
 
 
@@ -446,6 +447,8 @@ async function mountToolInto(
   // holder object (not a bare `let`) so the module-level shrinkUrl can share it.
   const barSeq: BarSeq = { v: 0 }; tview.barSeq = barSeq;
   tview.mountLifecycle.add('URL packing', () => { barSeq.v++; });
+  // The canvas's fallback font families (tool/render.ts notePagePainted) go when it does.
+  { const pageRoot = tview.contentEl; tview.mountLifecycle.add('page fallback fonts', () => releasePageWatch(pageRoot)); }
 
   tview.setup.mountActions();
 

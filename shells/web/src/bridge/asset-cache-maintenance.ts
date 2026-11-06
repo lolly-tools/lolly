@@ -11,17 +11,35 @@ import { assetFileMetas } from './asset-file-meta.ts';
  *  this device's cache, so it stays out of the portable backup as they do. */
 const HELD_CATALOG_ASSETS = 'held-catalog-assets';
 const HELD_CATALOG_MAX = 3;
+/** Fallback fonts a document on this device has drawn with, kept apart from the emoji
+ *  sets so trying sets never evicts a script. The whole set of them is small and bounded
+ *  by the catalog, so every one used stays. */
+const HELD_FALLBACK_FONTS = 'held-fallback-fonts';
+const HELD_FALLBACK_MAX = 32;
+
+async function heldList(db: AssetsDb, key: string): Promise<string[]> {
+  const held = await db.get('profile', key);
+  return Array.isArray(held) ? held.filter((id): id is string => typeof id === 'string') : [];
+}
 
 async function heldCatalogAssets(db: AssetsDb): Promise<string[]> {
-  const held = await db.get('profile', HELD_CATALOG_ASSETS);
-  return Array.isArray(held) ? held.filter((id): id is string => typeof id === 'string') : [];
+  return [...await heldList(db, HELD_CATALOG_ASSETS), ...await heldList(db, HELD_FALLBACK_FONTS)];
+}
+
+async function hold(db: AssetsDb, key: string, max: number, ids: readonly string[]): Promise<void> {
+  const prior = await heldList(db, key);
+  const next = [...new Set([...ids, ...prior])].slice(0, Math.max(max, ids.length));
+  if (JSON.stringify(next) !== JSON.stringify(prior)) await db.put('profile', next, key);
 }
 
 /** Newest first. A style with more sets than the limit still keeps every one of them. */
 export async function holdCatalogAssets(db: AssetsDb, ids: readonly string[]): Promise<void> {
-  const prior = await heldCatalogAssets(db);
-  const next = [...new Set([...ids, ...prior])].slice(0, Math.max(HELD_CATALOG_MAX, ids.length));
-  if (JSON.stringify(next) !== JSON.stringify(prior)) await db.put('profile', next, HELD_CATALOG_ASSETS);
+  await hold(db, HELD_CATALOG_ASSETS, HELD_CATALOG_MAX, ids);
+}
+
+/** Newest first, on a list of their own: a fallback font used once stays for offline work. */
+export async function holdFallbackFonts(db: AssetsDb, ids: readonly string[]): Promise<void> {
+  await hold(db, HELD_FALLBACK_FONTS, HELD_FALLBACK_MAX, ids);
 }
 
 export async function pruneAssetCache(db: AssetsDb, currentAssets: AssetMetaRecord[], sessionBlobKeys: Set<string>, requestedKeepIds: Set<string>, urls: { evict(key: string): void; evictPrefix(prefix: string): void }, deferredProviders: readonly string[] = []): Promise<{ blobs: number; meta: number }> {

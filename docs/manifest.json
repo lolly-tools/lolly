@@ -695,6 +695,18 @@
       "group": "Collaborate and export"
     },
     {
+      "slug": "fallback-fonts",
+      "title": "Fallback fonts",
+      "src": "fallback-fonts.md",
+      "description": "Which open fonts draw the scripts a design system's fonts cannot, when one downloads, how the page and the export agree, and what still becomes a picture.",
+      "section": "create",
+      "path": "create/fallback-fonts",
+      "icon": "document",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Collaborate and export"
+    },
+    {
       "slug": "text-composition",
       "title": "Text in Lolly Design",
       "src": "text-composition.md",
