@@ -44,6 +44,8 @@ export const LIB_GROUPS: LibGroup[] = [
   { key: 'icons',         label: 'Icons' },
   // Lolly's own icon set, a family with a name of its own, so it never reads as the
   // Icons of a design system it sits beside. The rows and their ids stay as they are.
+  // The string scan reads only literals, so the title is written out as the view draws
+  // it: t('Lolly etiquette icons'). Until a translation run reaches it, t() shows the English.
   { key: 'etiquette-icons', label: 'Lolly etiquette icons', fixed: true },
   { key: 'illustrations', label: 'Illustrations' },
   // A design system's written guidance: its brand skills (plan 323).
