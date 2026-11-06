@@ -13,6 +13,7 @@ import { textStrokeAttrs, canVectoriseText, textBaselineY, applyTextTransform } 
 import { createInlineTextContext, emitInlineTextSvg, isReplaced } from './export-text.ts';
 import type { InlineTextContext } from './export-text.ts';
 export { decoFlags, mergeDeco, isReplaced, visualLines, pdfInlineNonText } from './export-text.ts';
+export { withEntrancesHeld } from './export-svg-motion.ts';
 export type { Deco } from './export-text.ts';
 import { resolveVectorFont } from './font-registry.ts';
 import { namespaceInlinedSvgIds } from './svg-inline-ids.ts';
@@ -755,6 +756,25 @@ async function vectorTwinEl(el: HTMLCanvasElement, mintPrefix: () => string): Pr
 // a REAL Chromium: jsdom cannot be the oracle for paint order, because the whole
 // thing hinges on getComputedStyle resolving z-index, isolation and display
 // blockification. Not part of the bridge's public surface otherwise.
+/** The file's outer `<svg>`: physical size in its unit, viewBox in CSS px. */
+function createSvgRoot(NS: string, d: ReturnType<typeof exportDims>, vbW: number, vbH: number): Element {
+  const svgEl = document.createElementNS(NS, 'svg');
+  svgEl.setAttribute('xmlns',   NS);
+  svgEl.setAttribute('width',   toCssLength(d.w));
+  svgEl.setAttribute('height',  toCssLength(d.h));
+  svgEl.setAttribute('viewBox', `0 0 ${vbW} ${vbH}`);
+  return svgEl;
+}
+
+/** The group holding every walked element, scaled when the export size differs from the page. */
+function createRootGroup(NS: string, scaleX: number, scaleY: number): Element {
+  const rootG = document.createElementNS(NS, 'g');
+  if (Math.abs(scaleX - 1) > 1e-4 || Math.abs(scaleY - 1) > 1e-4) {
+    rootG.setAttribute('transform', `scale(${scaleX.toFixed(6)},${scaleY.toFixed(6)})`);
+  }
+  return rootG;
+}
+
 export async function renderSvgFromHtml(node: Element, opts: ExportOpts): Promise<Blob> {
   // Capture once before shaping yields; other bridge instances may replace _host.
   const host = _host;
@@ -781,11 +801,7 @@ async function renderHtmlSvg(node: Element, opts: ExportOpts, textContext: Inlin
   const scaleX  = vbW / nodeW;
   const scaleY  = vbH / nodeH;
 
-  const svgEl = document.createElementNS(NS, 'svg');
-  svgEl.setAttribute('xmlns',   NS);
-  svgEl.setAttribute('width',   toCssLength(d.w));
-  svgEl.setAttribute('height',  toCssLength(d.h));
-  svgEl.setAttribute('viewBox', `0 0 ${vbW} ${vbH}`);
+  const svgEl = createSvgRoot(NS, d, vbW, vbH);
 
   const defs     = document.createElementNS(NS, 'defs');
   svgEl.appendChild(defs);
@@ -812,14 +828,10 @@ async function renderHtmlSvg(node: Element, opts: ExportOpts, textContext: Inlin
   let nodesWalked = 0;
   const YIELD_NODES = 200;
 
-  // Motion a tool asked to keep in the file (bridge/export-svg-motion.ts). Off for every
-  // caller but the plain SVG export, and with no marked element it writes nothing.
+  // Motion a tool asked to keep in the file. Only the plain SVG export asks.
   const motion = opts.keepMotion ? createMotionCarrier(document) : null;
 
-  const rootG = document.createElementNS(NS, 'g');
-  if (Math.abs(scaleX - 1) > 1e-4 || Math.abs(scaleY - 1) > 1e-4) {
-    rootG.setAttribute('transform', `scale(${scaleX.toFixed(6)},${scaleY.toFixed(6)})`);
-  }
+  const rootG = createRootGroup(NS, scaleX, scaleY);
   svgEl.appendChild(rootG);
 
   // Emit a vector <clipPath> for a circle()/ellipse()/inset()/polygon() clip-path onto

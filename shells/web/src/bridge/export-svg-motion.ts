@@ -88,7 +88,7 @@ export function createMotionCarrier(doc: Document): {
     },
     finish(svgEl, defs, node) {
       if (!names.size) return;
-      const css = collectKeyframes(doc.styleSheets as unknown as Iterable<CSSStyleSheet>, names);
+      const css = collectKeyframes(Array.from(doc.styleSheets), names);
       if (css) {
         const style = doc.createElementNS('http://www.w3.org/2000/svg', 'style');
         style.textContent = `${css}\n${MOTION_REST_CSS}`;
@@ -130,4 +130,14 @@ export function holdEntrancesFinished(node: Element): () => void {
     }
   }
   return () => { for (const step of undo) step(); };
+}
+
+/** The formats that play a clip. Each of the others is one picture. */
+const CLIP_FORMATS = new Set(['webm', 'mp4', 'gif', 'apng', 'webp-anim', 'svg-anim', 'html']);
+
+/** Hold entrances finished for a still of `format`, around a restore already taken. */
+export function withEntrancesHeld(node: Element, format: string, restore: () => void): () => void {
+  if (CLIP_FORMATS.has(format)) return restore;
+  const release = holdEntrancesFinished(node);
+  return () => { release(); restore(); };
 }

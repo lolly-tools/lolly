@@ -7,7 +7,7 @@
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { collectKeyframes, holdEntrancesFinished, MOTION_REST_CSS, parseSvgMotion, svgMotionStyle } from './export-svg-motion.ts';
+import { collectKeyframes, holdEntrancesFinished, MOTION_REST_CSS, parseSvgMotion, svgMotionStyle, withEntrancesHeld } from './export-svg-motion.ts';
 
 test('a motion is one exact form, because the value ends up in a style attribute', () => {
   assert.deepEqual(parseSvgMotion('qc-rise 400ms cubic-bezier(0.05,0.7,0.1,1) 80ms'), { name: 'qc-rise', durMs: 400, easing: 'cubic-bezier(0.05,0.7,0.1,1)', delayMs: 80 });
@@ -70,4 +70,18 @@ test('a still draws an entrance finished unless the person chose the moment', ()
   const unsaid = piece([[0, 'paused']], '');
   holdEntrancesFinished(unsaid.node);
   assert.equal(unsaid.animations[0]!.currentTime, 0, 'a picture that does not say it plays once is left alone');
+});
+
+test('a clip keeps its own frames, and a still restores what it held', () => {
+  const clip = piece([[12, 'running']]);
+  let restored = 0;
+  withEntrancesHeld(clip.node, 'mp4', () => { restored++; })();
+  assert.equal(clip.animations[0]!.currentTime, 12, 'a clip format leaves the animation alone');
+  assert.equal(restored, 1);
+  const still = piece([[12, 'running']]);
+  const undo = withEntrancesHeld(still.node, 'png', () => { restored++; });
+  assert.equal(still.animations[0]!.currentTime, 3000);
+  undo();
+  assert.equal(still.animations[0]!.currentTime, 12);
+  assert.equal(restored, 2);
 });

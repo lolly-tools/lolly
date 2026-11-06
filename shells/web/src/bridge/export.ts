@@ -76,8 +76,7 @@ import { _host, canvasToBlob, imprintCanvas, exportDims, getDomToImage, swapBlob
 import { beginFrameClock, renderFrameAt, endFrameClock, withStillHold, posedFrame } from './frame-clock.ts';
 import { isTopTailStage, isRecordStage } from './export-shared.ts';
 import type { WebHost, ExportOpts, ExportDims, ImprintState, Rgba } from './export-shared.ts';
-import { holdEntrancesFinished } from './export-svg-motion.ts';
-import { renderSvgFromHtml, stripCommentNodes, inlineBlobUrlsInEl, inlineSvgFromImg, imprintEmbedCanvas, isPaintSkipped, rotationPivot, rasterizePosedNodeToDataUrl, effectSpillCss, detectUnsupportedCss, rasterizeNodeToDataUrl, firstCssUrl, cssUrlToHref, bakeImageFilter, visualLines, mergeDeco, decoFlags, pdfInlineNonText, pseudoDescriptor, type Deco } from './export-svg-walker.ts';
+import { renderSvgFromHtml, withEntrancesHeld, stripCommentNodes, inlineBlobUrlsInEl, inlineSvgFromImg, imprintEmbedCanvas, isPaintSkipped, rotationPivot, rasterizePosedNodeToDataUrl, effectSpillCss, detectUnsupportedCss, rasterizeNodeToDataUrl, firstCssUrl, cssUrlToHref, bakeImageFilter, visualLines, mergeDeco, decoFlags, pdfInlineNonText, pseudoDescriptor, type Deco } from './export-svg-walker.ts';
 import { designOpsSvg, renderDesignOpsPdf } from './export-design-ops.ts';
 import { finishPng, durableEmbedCanvas } from './export-raster-finish.ts';
 import { rasterStyle, coverRasterStyle } from './export-raster-style.ts';
@@ -186,10 +185,7 @@ export function createExportAPI(host: WebHost) {
       // it (the phase-2 WYSIWYG contract).
       const restoreMotion = ((SEQUENCE_MOTION_FORMATS.has(format) || format === 'html') && isSequenceStage(node))
         ? snapshotMotion(node, 'video[data-live-camera-video]')
-        : snapshotMotion(node);
-      const restoreEntrances = SEQUENCE_MOTION_FORMATS.has(format) || format === 'html' || format === 'svg-anim'
-        ? null
-        : holdEntrancesFinished(node);
+        : withEntrancesHeld(node, format, snapshotMotion(node));
 
       // The timeline panel photographs its own clip boxes with the same dom-to-image
       // instance. Its options, url cache, and sandbox iframe are module-global and
@@ -211,7 +207,6 @@ export function createExportAPI(host: WebHost) {
         await drainNodeRasters();
         return await renderFormat(node, format, browserExportProgress(opts));
       } finally {
-        restoreEntrances?.();
         restoreMotion();
         resumeThumbRasters();
         restoreHidden();
