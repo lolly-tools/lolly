@@ -89,6 +89,9 @@ const PATHS = {
   menuDots: '<circle cx="12" cy="5" r="1.9"/><circle cx="12" cy="12" r="1.9"/><circle cx="12" cy="19" r="1.9"/>',
   // Lucide "menu": three lines, the /info phone menu button (docs/build.ts buildNav).
   menuLines: '<path d="M4 6h16M4 12h16M4 18h16"/>',
+  // A page's contents: three ragged rules, like a list of headings (the docs readers'
+  // "Contents" button; /info draws the same mark in docs/build.ts).
+  contents: '<path d="M4 7h16M4 12h11M4 17h13"/>',
   arrowRight: '<path d="M5 12h14"/><path d="m12 5 7 7-7 7"/>',
   // The back pill's leading mark (components/back-pill.ts). A stroked Lucide
   // arrow so the pill reads as one of the top-row chrome set rather than the

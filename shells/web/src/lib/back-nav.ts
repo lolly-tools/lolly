@@ -118,3 +118,69 @@ function labelFor(routeName: string): string {
   const stripped = document.title.replace(/\s*[-–·-]\s*Lolly$/u, '').trim();
   return stripped && stripped !== 'Lolly' ? stripped : t('Home');
 }
+
+// ── Where the reader opened the documentation from ─────────────────────────────
+// A reader who opens the docs from a tool, Settings or a search wants that exact view
+// back when they are done, however many doc pages they read in between. The back pill
+// above names only the view just left, so after one hop from page to page it named the
+// previous page and the way back to the work was gone. Both docs readers keep the
+// origin for this tab instead (sessionStorage: same tab, same origin, never sent
+// anywhere):
+//   - the in-app reader (views/docs.ts) asks docsOrigin() at each mount: a non-docs
+//     view just left becomes the origin, a docs page just left keeps the stored one;
+//   - the static /info site cannot see the app's router, and the served pages carry
+//     Referrer-Policy: no-referrer, so the app notes the view it is leaving when the
+//     page goes away (rememberViewOnLeave, pagehide) and /info reads that note.
+
+const DOCS_ORIGIN_KEY = 'lolly:docsOrigin';
+/** Read by docs/build.ts's origin script on /info: keep the two names in step. */
+export const LEFT_APP_KEY = 'lolly:leftApp';
+
+/** True for the in-app docs reader's own routes (#/docs/…). */
+export function isDocsHref(href: string): boolean {
+  return /#\/docs(?:[/?]|$)/.test(href);
+}
+
+function readView(key: string): PrevView | null {
+  try {
+    const raw = sessionStorage.getItem(key);
+    if (!raw) return null;
+    const v = JSON.parse(raw) as Partial<PrevView>;
+    return typeof v.href === 'string' && v.href && typeof v.label === 'string' && v.label ? { href: v.href, label: v.label } : null;
+  } catch { return null; }
+}
+
+/** The app view this tab opened the documentation from, or null when the docs were
+ *  opened directly. Call from the docs reader's mount, after the router recorded the
+ *  view it left. */
+export function docsOrigin(): PrevView | null {
+  const left = getPrevView();
+  if (left && !isDocsHref(left.href)) {
+    try { sessionStorage.setItem(DOCS_ORIGIN_KEY, JSON.stringify(left)); } catch { /* private mode */ }
+    return left;
+  }
+  return readView(DOCS_ORIGIN_KEY);
+}
+
+let leaveMemoryInstalled = false;
+/** Note the view this page shows when the tab leaves the app for another page (the
+ *  static docs, most often), so /info can offer the way back to it. Called once at
+ *  boot; a note left by an earlier visit is cleared then, since this page is the app. */
+export function rememberViewOnLeave(): void {
+  if (leaveMemoryInstalled || typeof window === 'undefined') return;
+  leaveMemoryInstalled = true;
+  try { sessionStorage.removeItem(LEFT_APP_KEY); } catch { /* private mode */ }
+  window.addEventListener('pagehide', () => {
+    // Leaving from the docs reader: the way back is still the view the docs were
+    // opened from, not the reader.
+    // The live address, not the mount-time snapshot: a tool writes its state into the
+    // URL as it is edited, and the way back should land on that state.
+    const here = !current ? null
+      : isDocsHref(current.href) ? readView(DOCS_ORIGIN_KEY)
+      : { href: toRelative(window.location.href), label: current.label };
+    try {
+      if (here) sessionStorage.setItem(LEFT_APP_KEY, JSON.stringify(here));
+      else sessionStorage.removeItem(LEFT_APP_KEY);
+    } catch { /* private mode */ }
+  });
+}

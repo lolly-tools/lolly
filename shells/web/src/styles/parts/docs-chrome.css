@@ -161,6 +161,132 @@ html[data-a11y-motion="reduce"] .docs-top-btn:active { transform: none; }
 .docs-compact-list .docs-toc-link { border: 0; margin: 0; }
 .docs-compact-list svg { width: 16px; height: 16px; flex: none; }
 
+/* ── The page's contents ────────────────────────────────────────────────────
+   Markup from packages/docs-render contents.ts, behaviour from lib/docs-contents.ts,
+   both readers. Two forms of one list: the rail beside the article on a wide
+   screen, and a floating "Contents" button with a panel everywhere narrower. Each
+   surface decides where they sit and at which width each one shows (docs.css in
+   the app, the site stylesheet in docs/build.ts); this is how they look. The row
+   being read carries aria-current="location" and .active. */
+.docs-toc-head {
+  margin: 0 0 0.65rem;
+  font: 700 calc(0.68rem * var(--a11y-fs, 1)) / 1 var(--font-mono, ui-monospace, monospace);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ui-color-text-muted);
+}
+.docs-toc-list { list-style: none; margin: 0; padding: 0; border-inline-start: 1px solid var(--ui-color-border-default); }
+.docs-toc-link {
+  display: block;
+  margin-inline-start: -1px;
+  padding: 0.28rem 0.85rem;
+  border-inline-start: 2px solid transparent;
+  color: var(--ui-color-text-muted);
+  font-size: calc(0.85rem * var(--a11y-fs, 1));
+  line-height: 1.35;
+  text-decoration: none;
+}
+.docs-toc-link.is-h3 { padding-inline-start: 1.7rem; font-size: calc(0.82rem * var(--a11y-fs, 1)); }
+.docs-toc-link:hover { color: var(--ui-color-text-default); border-inline-start-color: var(--ui-color-border-default); text-decoration: none; }
+.docs-toc-link:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: -2px; }
+/* The section being read: full-strength text and weight, the primary as the marker
+   (a non-text mark, which needs 3:1, not the 4.5:1 small primary text would). */
+.docs-toc-link.active,
+.docs-toc-link[aria-current] {
+  color: var(--ui-color-text-default);
+  font-weight: 600;
+  border-inline-start-color: var(--ui-color-action-primary);
+}
+
+/* The floating control. A labelled pill in the same glass as the top-row buttons,
+   at least 44px tall for a finger, the word beside the glyph so nobody guesses. */
+.doc-contents-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  box-sizing: border-box;
+  min-height: max(44px, var(--chrome-h, 44px));
+  padding: 0 1rem;
+  border: 1px solid var(--ui-color-border-default);
+  border-radius: var(--radius-pill, 999px);
+  background: color-mix(in srgb, var(--ui-color-surface-canvas) 90%, transparent);
+  color: var(--ui-color-text-default);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  box-shadow: var(--ui-elevation-floating);
+  font: 600 calc(0.9375rem * var(--a11y-fs, 1)) / 1 var(--font-brand, system-ui, sans-serif);
+  cursor: pointer;
+}
+.doc-contents-btn:hover { background: var(--ui-color-surface-muted); }
+.doc-contents-btn:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 2px; }
+.doc-contents-btn[aria-expanded="true"] { border-color: var(--ui-color-action-primary); }
+.doc-contents-glyph { display: inline-flex; }
+.doc-contents-glyph svg { width: calc(18px * var(--a11y-fs, 1)); height: calc(18px * var(--a11y-fs, 1)); }
+.doc-contents-panel {
+  position: absolute;
+  inset-inline-end: 0;
+  bottom: calc(100% + 0.5rem);
+  box-sizing: border-box;
+  width: min(22rem, calc(100vw - 2rem));
+  max-height: min(70vh, 34rem);
+  max-height: min(70dvh, 34rem);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 0.5rem;
+  border: 1px solid var(--ui-color-border-default);
+  border-radius: var(--ui-radius-card, 12px);
+  background: var(--ui-color-surface-raised);
+  color: var(--ui-color-text-default);
+  box-shadow: var(--ui-elevation-floating);
+  text-align: start;
+}
+.doc-contents-panel[hidden] { display: none; }
+.doc-contents-title,
+.doc-contents-panel .sidebar-label,
+.doc-contents-panel .sidebar-pathway {
+  margin: 0.5rem 0.6rem 0.4rem;
+  font-size: calc(0.72rem * var(--a11y-fs, 1));
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ui-color-text-muted);
+}
+.doc-contents-panel .docs-toc-list { border: 0; }
+.doc-contents-panel :is(.docs-toc-link, .doc-contents-top, .docs-compact-list a) {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  box-sizing: border-box;
+  min-height: 44px;
+  margin: 0;
+  padding: 0.4rem 0.6rem;
+  border: 0;
+  border-radius: var(--ui-radius-control, 6px);
+  color: var(--ui-color-text-default);
+  font-size: calc(0.95rem * var(--a11y-fs, 1));
+  font-weight: 400;
+  line-height: 1.35;
+  text-decoration: none;
+}
+.doc-contents-panel :is(.docs-toc-link, .doc-contents-top, .docs-compact-list a):hover { background: var(--ui-color-surface-muted); }
+.doc-contents-panel .docs-toc-link[aria-current] { background: var(--ui-color-selection-surface); font-weight: 600; }
+.doc-contents-top { margin-top: 0.25rem; color: var(--ui-color-text-muted); }
+.doc-contents-panel .doc-contents-top { border-top: 1px solid var(--ui-color-border-default); border-radius: 0; color: var(--ui-color-text-muted); }
+.doc-contents-section { margin-top: 0.5rem; padding-top: 0.25rem; border-top: 1px solid var(--ui-color-border-default); }
+@media (prefers-reduced-motion: no-preference) {
+  .doc-contents-panel:not([hidden]) {
+    animation: doc-contents-in var(--ui-motion-overlay, 160ms) var(--ui-motion-standard, ease-out) both;
+    transform-origin: bottom right;
+  }
+  [dir="rtl"] .doc-contents-panel:not([hidden]) { transform-origin: bottom left; }
+}
+html[data-a11y-motion="reduce"] .doc-contents-panel:not([hidden]) { animation: none; }
+@keyframes doc-contents-in { from { opacity: 0; transform: translateY(6px) scale(0.98); } }
+@media (forced-colors: active) {
+  .docs-toc-link[aria-current] { border-inline-start-color: Highlight; }
+  .doc-contents-panel .docs-toc-link[aria-current] { outline: 2px solid Highlight; outline-offset: -2px; }
+}
+
 .footer-sitemap { container-type: inline-size; text-align: start; }
 .footer-sitemap :is(.sitemap-disclosure, .sitemap-section) > summary {
   display: flex;

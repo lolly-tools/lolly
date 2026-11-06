@@ -84,6 +84,10 @@ import {
   PROV_SEAL,
   inline as pkgInline,
   mdToHtml as pkgMdToHtml,
+  hasContents,
+  contentsRailHtml,
+  contentsControlHtml,
+  type ContentsHeading,
   type DocsRenderContext,
   type CredentialFacts,
 } from '../packages/docs-render/src/index.ts';
@@ -1671,6 +1675,8 @@ DOC_ICONS['chrome-close'] = appIcon('close');
 DOC_ICONS['chrome-folder'] = appIcon('folder');
 DOC_ICONS['chrome-hash'] = appIcon('hash');
 DOC_ICONS['chrome-external'] = appIcon('externalLink');
+DOC_ICONS['chrome-back'] = appIcon('arrowLeft');
+DOC_ICONS['chrome-settings'] = appIcon('sliders');
 const DOC_ICON_SPRITE = createIconSprite(DOC_ICONS);
 function docIcon(key: string): string {
   const svg = DOC_ICON_SPRITE.icon(key);
@@ -2519,6 +2525,28 @@ function stripScript(): string {
   return `<script>\n${_stripJs}\n(function(){document.querySelectorAll('nav.docs-pathways').forEach(function(s){LollyDocsStrip.enhancePathwaysStrip(s);});})();\n</script>`;
 }
 
+/**
+ * The page's contents (rail and floating button): shells/web/src/lib/docs-contents.ts, the
+ * module the in-app reader imports, bundled once here so both readers mark the section
+ * being read and open and close the panel the same way. No `jump`: on /info every row is
+ * an ordinary #id link and the browser does the move (and the site's reduced-motion-aware
+ * scroll-behavior with it). The reading line sits under the fixed bar.
+ */
+let _contentsJs: string | null = null;
+function contentsScript(): string {
+  if (_contentsJs === null) {
+    const out = buildSync({
+      entryPoints: [resolve(repoRoot, 'shells/web/src/lib/docs-contents.ts')],
+      bundle: true, write: false, format: 'iife', globalName: 'LollyDocsContents',
+      minify: true, platform: 'browser', target: 'es2019', logLevel: 'silent',
+    });
+    _contentsJs = out.outputFiles[0]!.text.trim();
+  }
+  return `<script>\n${_contentsJs}\n(function(){var a=document.querySelector('main.docs-content');if(!a)return;`
+    + `var bar=document.querySelector('.site-bar');`
+    + `LollyDocsContents.enhanceDocsContents({article:a,root:document,readingLine:function(){return (bar?bar.getBoundingClientRect().bottom:0)+Math.round(innerHeight*0.2);}});})();\n</script>`;
+}
+
 /** The enhancer's words for this page, in its language, as one attribute on the article.
  *  Only pages with a copyable block carry it; attributes never reach the page text that
  *  search and the model index read. */
@@ -3109,9 +3137,10 @@ ${INFO_OPAL_TOKENS}
      reading components (docs-components.css) look the same here as in the app. */
   --ui-color-surface-muted:hsl(var(--secondary));
   --ui-color-border-default:hsl(var(--input));
-  /* The app's type scale multiplies by the a11y text setting (parts/a11y.css), which a
-     static page has no control for. Declared at 1 so the app's type tokens resolve here
-     at their normal sizes instead of computing as invalid. */
+  /* The app's type scale multiplies by the a11y text setting (parts/a11y.css). A static
+     page has no switch of its own, so it reads the app's: the pre-paint script copies
+     Large text from the same mirror the app writes (lolly-a11y, THEME_INIT_SCRIPT) to
+     html[data-a11y-text], and the article and the chrome scale with it, as in the app. */
   --a11y-fs:1;
   --green:hsl(var(--primary));
   --dark:hsl(var(--foreground));
@@ -3261,6 +3290,13 @@ section[id]{scroll-margin-top:calc(var(--site-bar-h) + 2.65rem)}
 .site-launch:hover{text-decoration:none}
 .site-launch svg{width:calc(15px * var(--a11y-fs));height:calc(15px * var(--a11y-fs))}
 [dir="rtl"] .site-launch svg{transform:scaleX(-1)}
+.site-launch>span{display:inline-flex;align-items:center}
+/* The way back (originScript): the back arrow leads and the view's name follows, cut
+   short with an ellipsis when it is long; the forward arrow goes. */
+.site-launch>.site-launch-back,.site-launch[data-origin]>.site-launch-go{display:none}
+.site-launch[data-origin]>.site-launch-back{display:inline-flex}
+.site-launch[data-origin]>.site-launch-label{display:block;max-width:14em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.site-bar--over-hero>.site-launch[data-origin]{display:inline-flex}
 
 /* Language menu: the app's language popover (topbar.css .lang-menu, the same
    role tokens), a raised card with the sort tabs and one column of languages.
@@ -3353,6 +3389,11 @@ html[data-a11y-motion="reduce"] .site-menu[open] .site-sheet{animation:none}
   :root{--site-bar-inset:var(--sp-6)}
   .site-bar{gap:var(--sp-4)}
   .site-fab--theme,.site-fab--lang,.site-fab--github,.site-bar>.site-launch,.site-beta{display:none}
+  /* A reader who came from the app keeps the way back in the bar on a phone: one
+     press, not the menu. The menu's copy of it steps aside. */
+  .site-bar>.site-launch[data-origin]{display:inline-flex;min-width:0;padding-inline:var(--sp-5)}
+  .site-launch[data-origin]>.site-launch-label{max-width:8em}
+  .site-sheet .site-launch[data-origin]{display:none}
 }
 @media(max-width:22.5em){.site-home img{display:none}.site-home{padding-inline:var(--sp-7)}}
 
@@ -3644,7 +3685,7 @@ ${LANDING_CSS}
    is (0,1,1) and gives every page heading a bottom rule and 2rem of padding. Inside a
    band that rule is a second horizontal line under a heading that already sits on
    one, so it has to be out-specified rather than tied with. */
-.docs-masthead h1{margin:0;padding:0;border-bottom:0;color:var(--dark);font-size:clamp(2.25rem,3.4vw,3rem);font-weight:300;line-height:1.15}
+.docs-masthead h1{margin:0;padding:0;border-bottom:0;color:var(--dark);font-size:calc(clamp(2.25rem,3.4vw,3rem) * var(--a11y-fs));font-weight:300;line-height:1.15}
 /* The title row: the page's h1 (the in-app reader's title size and weight) with
    a page's print edition beside it as an app button, on the title's last line
    rather than over the article's first. On a phone the button wraps under the title. */
@@ -4094,39 +4135,33 @@ html[data-a11y-motion="reduce"] .showcase-art [data-sc-i]{opacity:1}
    bytes are exactly what Lolly exported - never re-encode it in a build step.
    Full column width: it is the page's one image and the argument's evidence. */
 .docs-content img[src*="the-flood"]{width:100%;max-width:100%;border-radius:1.2em;box-shadow:0 3px 6px #0002, 0 6px 2em #0001}
-.docs-content h2{font-size:1.75rem;font-weight:350;letter-spacing:normal;text-transform:none;border-top:1px solid var(--border);padding-top:2rem;margin-top:2.5rem;margin-bottom:1rem;color:var(--dark)}
+.docs-content{font-size:calc(1rem * var(--a11y-fs))}
+html[data-a11y-text="large"]{--a11y-fs:1.2}
+.docs-content h2{font-size:calc(1.75rem * var(--a11y-fs));font-weight:350;letter-spacing:normal;text-transform:none;border-top:1px solid var(--border);padding-top:2rem;margin-top:2.5rem;margin-bottom:1rem;color:var(--dark)}
 .docs-content h2:first-of-type{border-top:none;padding-top:0;margin-top:0}
-.docs-content h3{font-size:1.15rem;margin-top:1.75rem;margin-bottom:.5rem;color:var(--dark)}
-.docs-content h4{font-size:1rem;margin-top:1.25rem;margin-bottom:.35rem;color:var(--muted)}
-/* The top bar is fixed, so a heading reached by an #anchor (the jump nav below, a
+.docs-content h3{font-size:calc(1.15rem * var(--a11y-fs));margin-top:1.75rem;margin-bottom:.5rem;color:var(--dark)}
+.docs-content h4{font-size:calc(1rem * var(--a11y-fs));margin-top:1.25rem;margin-bottom:.35rem;color:var(--muted)}
+/* The top bar is fixed, so a heading reached by an #anchor (the page's contents, a
    search result, a shared deep link) would otherwise sit UNDER it. Same idea as
    section[id] on the landing page, with room for the heading's rule. */
 .docs-content h2[id],.docs-content h3[id],.docs-content h4[id]{scroll-margin-top:calc(var(--site-bar-h) + 1.75rem)}
 .docs-content ul,.docs-content ol{margin-bottom:1rem}
-/* ── "On this page" jump nav (long docs pages only - pageJumpNav) ─────────────
-   Bottom-right, deliberately quiet: a 2.25rem disc that reads as page furniture
-   until you want it. Logical inset so the Arabic build puts it in the corner an RTL
-   reader reaches for. Tokens only (--text/--muted/--border/--pale, all redefined by
-   .dark) so dark mode needs no second palette here. */
-.doc-jump{position:fixed;bottom:1rem;inset-inline-end:1rem;z-index:88}
-.doc-jump-btn{display:flex;align-items:center;justify-content:center;width:2.25rem;height:2.25rem;border-radius:999px;border:1px solid var(--border);background:var(--pale);color:var(--muted);cursor:pointer;box-shadow:0 2px 10px #0336331f;transition:color .12s,border-color .12s}
-.doc-jump-btn svg{width:1.1rem;height:1.1rem}
-.doc-jump-btn:hover,.doc-jump-btn[aria-expanded="true"]{color:var(--green);border-color:var(--green)}
-/* The first six declarations are RESETS, not choices. A bare nav element selector
-   used to be the site's top bar (fixed, full-width, flex) and landed on any <nav>
-   on the page; the bar is its own .site-bar now, and the resets stay so no element
-   rule can ever lay this panel out as a strip across the bottom of the window. */
-.doc-jump-nav{position:absolute;display:block;top:auto;width:auto;height:auto;overflow-x:hidden;transition:none;bottom:calc(100% + .5rem);inset-inline-end:0;min-width:14rem;max-width:min(20rem,calc(100vw - 2rem));max-height:min(60vh,26rem);overflow-y:auto;padding:.4rem;background:var(--pale);border:1px solid var(--border);border-radius:10px;box-shadow:0 10px 34px #03363326}
-.doc-jump-nav[hidden]{display:none}
-.doc-jump-title{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);margin:.15rem .5rem .35rem}
-.doc-jump-nav a{display:block;padding:.32rem .5rem;border-radius:6px;font-size:.875rem;line-height:1.35;color:var(--text);text-decoration:none}
-.doc-jump-nav a:hover{background:#50c36918;color:var(--green);text-decoration:none}
-[data-theme="brand"] .doc-jump-nav a:hover{color:#ace1ad}
-.doc-jump-top{margin-top:.25rem;border-top:1px solid var(--border);padding-top:.45rem;color:var(--muted)}
-@media(prefers-reduced-motion:reduce){.doc-jump-btn{transition:none}}
-html[data-a11y-motion="reduce"] .doc-jump-btn{transition:none}
-@media print{.doc-jump{display:none}}
-.docs-content h1{font-size:3rem;color:var(--dark);line-height:1.15;margin-bottom:2rem;padding-bottom:2rem;border-bottom:1px solid var(--border); font-weight:300;}
+/* ── The page's contents: where they sit on /info (their look is docs-chrome.css's) ──
+   From 1180px the rail is a third column beside the article, sticky under the bar,
+   and the wrap and the masthead widen by its width so the article keeps its place
+   under the title. Narrower, the rail goes and the floating Contents button takes
+   the bottom inline-end corner (the corner an Arabic or Urdu reader reaches for). */
+.docs-onpage{display:none}
+.doc-contents{position:fixed;bottom:calc(1rem + var(--safe-bottom,0px));inset-inline-end:calc(1rem + var(--safe-right,0px));z-index:88}
+@media(min-width:1180px){
+  .docs-wrap--rail{grid-template-columns:220px minmax(0,1fr) 14rem;max-width:calc(1180px + 14rem)}
+  .docs-wrap--rail .docs-content{padding-inline-end:2rem}
+  .docs-wrap--rail .docs-onpage{display:block;position:sticky;top:var(--site-bar-h);align-self:start;max-height:calc(100vh - var(--site-bar-h));max-height:calc(100dvh - var(--site-bar-h));overflow-y:auto;overscroll-behavior:contain;padding:2.75rem 1.25rem 2rem 0;box-sizing:border-box}
+  .page-has-rail .docs-masthead .docs-mast-inner,.page-has-rail .docs-strip-band .docs-mast-inner{max-width:calc(1180px + 14rem);padding-inline-end:calc(14rem + 2rem)}
+  .page-has-rail .doc-contents{display:none}
+}
+@media print{.doc-contents,.docs-onpage{display:none!important}}
+.docs-content h1{font-size:calc(3rem * var(--a11y-fs));color:var(--dark);line-height:1.15;margin-bottom:2rem;padding-bottom:2rem;border-bottom:1px solid var(--border); font-weight:300;}
 
 /* Table */
 .table-wrap{overflow-x:auto;margin-bottom:2rem;box-shadow: 0 0 0 1px hsl(var(--border)), 0 .2rem .4rem #00000018; border-radius: 1.5em;}
@@ -4323,7 +4358,7 @@ const GITHUB_LINK    = `<a class="site-fab site-fab--github" href="https://githu
 // pages never load the app's base.css. The read has its own try, so a damaged copy
 // cannot cost the reader the theme. tests/docs-landing-motion.test.ts runs this script
 // against the copy the app's own writer produces.
-const THEME_INIT_SCRIPT = `<script>(function(){var c=localStorage.getItem('theme'),s=window.matchMedia('(prefers-color-scheme:dark)').matches;var t=(c==='light'||c==='dark'||c==='brand')?c:(s?'dark':'light');var r=document.documentElement;r.dataset.theme=t;r.classList.toggle('dark',t==='dark'||t==='brand');try{var ax=JSON.parse(localStorage.getItem('lolly-a11y')||'null');if(ax&&ax.reduceMotion)r.dataset.a11yMotion='reduce';}catch(e){}})();</script>`;
+const THEME_INIT_SCRIPT = `<script>(function(){var c=localStorage.getItem('theme'),s=window.matchMedia('(prefers-color-scheme:dark)').matches;var t=(c==='light'||c==='dark'||c==='brand')?c:(s?'dark':'light');var r=document.documentElement;r.dataset.theme=t;r.classList.toggle('dark',t==='dark'||t==='brand');try{var ax=JSON.parse(localStorage.getItem('lolly-a11y')||'null');if(ax&&ax.reduceMotion)r.dataset.a11yMotion='reduce';if(ax&&ax.largeText)r.dataset.a11yText='large';}catch(e){}})();</script>`;
 
 // Pre-paint, beside the theme flag and for the same reason: it decides how the
 // first frame is painted. It only ARMS the screenshot motion - SHOT_MOTION_SCRIPT
@@ -5129,6 +5164,29 @@ const DOCS_MASTHEAD_SCRIPT = `<script>(function(){
   if(mq.addEventListener) mq.addEventListener('change',function(){ field.rebake(); });
 })();</script>`;
 
+// The way back to the app. The app notes the view a tab leaves it from (sessionStorage
+// lolly:leftApp, shells/web/src/lib/back-nav.ts rememberViewOnLeave): same tab, same
+// origin, read here and never sent anywhere. The served pages carry Referrer-Policy:
+// no-referrer, so that note is the only way this static page can know where the reader
+// was. When it is there, Launch App (bar and menu) becomes "<- <that view>" and points
+// at its exact address; across /info pages the note stays, so the way back survives
+// any number of hops. It is a plain link: Back stays Back. The address must be a path
+// on this origin outside /info, and the name is set as text.
+const ORIGIN_SCRIPT = `<script>(function(){
+  var raw=null;try{raw=sessionStorage.getItem('lolly:leftApp');}catch(e){}
+  if(!raw)return;
+  var v=null;try{v=JSON.parse(raw);}catch(e){return;}
+  if(!v||typeof v.href!=='string'||typeof v.label!=='string'||!v.label)return;
+  if(!/^\/(?!\/)\S*$/.test(v.href)||/^\/info(\/|$)/.test(v.href))return;
+  var name=v.label.slice(0,80);
+  document.querySelectorAll('a.site-launch').forEach(function(a){
+    a.setAttribute('href',v.href);
+    var l=a.querySelector('.site-launch-label');if(l)l.textContent=name;
+    a.setAttribute('aria-label',(a.getAttribute('data-back-label')||'Back to {view}').replace('{view}',name));
+    a.setAttribute('data-origin','');
+  });
+})();</script>`;
+
 // Links into the app's /verify view open as a POPOUT WINDOW, not a tab - the
 // whole point of the link is dragging an image from THIS page into that drop
 // zone, which needs both windows visible side by side. Plain target=_blank
@@ -5276,21 +5334,6 @@ menu.addEventListener('focusout',function(e){if(menu.open&&e.relatedTarget&&!men
 menu.addEventListener('click',function(e){if(e.target.closest&&e.target.closest('.site-sheet a[href]'))close(false);});
 })();</script>`;
 
-// The "On this page" jump nav (pageJumpNav, near wrapPage). Deliberately does NOT
-// touch scrolling: the links are ordinary anchors, so the browser's own jump - and
-// the site's own `scroll-behavior` (already reduced-motion-aware in CSS) - does the
-// move. Closing on link click is the only thing the click handler does; the default
-// navigation runs after it. Esc closes and RETURNS FOCUS to the button, so keyboard
-// reading resumes where it left off rather than at the top of the document.
-const DOC_JUMP_SCRIPT = `<script>(function(){
-  var btn=document.getElementById('docJumpBtn'),nav=document.getElementById('docJumpNav');
-  if(!btn||!nav)return;
-  function setOpen(open){nav.hidden=!open;btn.setAttribute('aria-expanded',open?'true':'false');}
-  btn.addEventListener('click',function(e){e.stopPropagation();setOpen(nav.hidden);});
-  nav.addEventListener('click',function(e){if(e.target.closest('a'))setOpen(false);});
-  document.addEventListener('click',function(e){if(!nav.hidden&&!nav.contains(e.target)&&!btn.contains(e.target))setOpen(false);});
-  document.addEventListener('keydown',function(e){if(e.key==='Escape'&&!nav.hidden){setOpen(false);btn.focus();}});
-})();</script>`;
 
 // ── i18n: site chrome (nav/sidebar/footer labels) + per-locale page sources ──
 //
@@ -5679,7 +5722,13 @@ interface SheetParts {
  */
 function buildNav(lang: Lang, slug: string, isLanding: boolean | undefined, sheet: SheetParts) {
   const launchHref = esc(localizeHref(lang, '/'));
-  const launch = `<a href="${launchHref}" class="btn btn--primary site-launch">${esc(t('Launch App'))}${docIcon('chrome-arrow')}</a>`;
+  // Launch App, or the way back: when this tab came here from the app, the origin
+  // script (originScript) points it at the exact view the reader left and names that
+  // view, so it reads "<- QR Code" rather than starting the app over at Home.
+  const launch = `<a href="${launchHref}" class="btn btn--primary site-launch" data-back-label="${esc(t('Back to {view}'))}">`
+    + `<span class="site-launch-back">${docIcon('chrome-back')}</span><span class="site-launch-label">${esc(t('Launch App'))}</span>`
+    + `<span class="site-launch-go">${docIcon('chrome-arrow')}</span></a>`;
+  const settingsRow = `<a class="profile-menu-item" href="${esc(`${localizeHref(lang, '/')}#/settings`)}"><span>${esc(t('Settings'))}</span>${docIcon('chrome-settings')}</a>`;
   // Beta: English only, and deliberately not run through t() - it must not enter the
   // translation corpora, because it is meant to come straight back out again once the
   // docs are no longer a draft.
@@ -5700,7 +5749,7 @@ function buildNav(lang: Lang, slug: string, isLanding: boolean | undefined, shee
   const disclosures = pages || onPage ? `<div class="docs-compact-nav">${pages}${onPage}</div>` : '';
   const menu = `<details class="site-menu"><summary class="site-fab" aria-label="${esc(t('Menu'))}" title="${esc(t('Menu'))}">`
     + `<span class="site-menu-open">${docIcon('chrome-menu')}</span><span class="site-menu-close">${docIcon('chrome-close')}</span></summary>`
-    + `<div class="site-sheet">${sheet.sections}${disclosures}<div class="site-sheet-tools"><hr class="site-sheet-rule">${themeSeg}${langRow}${githubRow}</div>${launch}</div></details>`;
+    + `<div class="site-sheet">${sheet.sections}${disclosures}<div class="site-sheet-tools"><hr class="site-sheet-rule">${themeSeg}${langRow}${settingsRow}${githubRow}</div>${launch}</div></details>`;
   // Search sits first in the cluster of whole-site controls. Docs pages only - there is
   // no index behind the landing page, and a box that returns nothing is worse than no box.
   return `<header class="site-bar${isLanding ? ' site-bar--over-hero' : ''}">${home}${isLanding ? '' : searchBox(lang)}${langPickerHtml(lang, slug)}${THEME_TOGGLE}${GITHUB_LINK}${launch}${menu}</header>`;
@@ -6231,22 +6280,14 @@ function editionBarHtml(page: Page, lang: Lang): string {
   return chip ? `<div class="docs-edition-bar">${chip}</div>` : '';
 }
 
-// ── "On this page" jump nav ──────────────────────────────────────────────────
-// A long reference page (build-guide runs to nine sections and 60 KB of rendered
-// HTML) gives a reader arriving from search no way back out of the middle of it: the
-// left rail lists PAGES, and the section they want is a scroll away with nothing
-// naming it. So on long pages only, a small fixed control opens the page's own h2
-// list - the ids mdToHtml already stamped, as plain anchors.
-//
-// LONG is measured, not declared per page, so nobody has to remember to turn it on:
-// six sections is where a rail stops being scannable in one glance, and 25 KB of
-// rendered HTML is roughly the same page from the other direction (a page with few
-// but enormous sections still buries its landmarks). Either qualifies.
-const JUMP_MIN_H2 = 6;
-const JUMP_MIN_BYTES = 25_000;
-// A contents mark: three rules, ragged like a list of headings. Not `checklist` from
-// DOC_ICONS - its ticks say "done", and nothing here is done.
-const JUMP_ICON = `<svg viewBox="0 0 24 24" ${DOC_ICON_S}><path d="M4 7h16M4 12h11M4 17h13"/></svg>`;
+// ── The page's contents ───────────────────────────────────────────────────────
+// Every docs page with two or more sections gets them twice, in two forms of one
+// list (packages/docs-render contents.ts): a rail beside the article on a wide
+// screen, and a floating "Contents" button everywhere narrower, so the sections are
+// one press away from any point in the page, also on a phone. Both are plain #id
+// links; the bundled lib/docs-contents.ts marks the section being read and opens
+// and closes the panel. The phone menu keeps its own "On this page" list as well.
+const CONTENTS_ICON = `<svg viewBox="0 0 24 24" ${DOC_ICON_S}><path d="M4 7h16M4 12h11M4 17h13"/></svg>`;
 
 /** A page's h2 headings, in order, as the ids mdToHtml stamped and their text. The jump
  *  nav and the phone menu's "On this page" list both read them. */
@@ -6260,22 +6301,27 @@ function pageHeadings(content: string): Array<{ id: string; text: string }> {
   return items;
 }
 
-function pageJumpNav(content: string): string {
-  const items = pageHeadings(content);
-  // The two thresholds are OR'd; `content` is the rendered body this page will ship,
-  // so the measurement is of the real thing rather than of its source.
-  if (items.length < JUMP_MIN_H2 && content.length < JUMP_MIN_BYTES) return '';
-  const label = t('On this page');
-  const links = items
-    .map(it => `<a href="#${esc(it.id)}">${esc(it.text)}</a>`)
-    .join('');
-  // "#top" is the HTML spec's own name for the top of the document when nothing
-  // carries that id - a browser default, so no script is involved in the scroll.
-  const top = `<a class="doc-jump-top" href="#top">${esc(t('Back to top'))}</a>`;
-  return `<div class="doc-jump">`
-    + `<button type="button" class="doc-jump-btn" id="docJumpBtn" aria-expanded="false" aria-controls="docJumpNav" aria-label="${esc(label)}" title="${esc(label)}">${JUMP_ICON}</button>`
-    + `<nav class="doc-jump-nav" id="docJumpNav" aria-label="${esc(label)}" hidden>`
-    + `<p class="doc-jump-title">${esc(label)}</p>${links}${top}</nav></div>`;
+/** A page's sections and subsections, as the rail lists them. */
+function pageContents(content: string): ContentsHeading[] {
+  const items: ContentsHeading[] = [];
+  for (const m of content.matchAll(/<h([23])\s+id="([^"]*)"[^>]*>([\s\S]*?)<\/h\1>/g)) {
+    const id = m[2]!;
+    const text = htmlToText(m[3]!);
+    if (id && text) items.push({ id, text, level: m[1] === '3' ? 3 : 2 });
+  }
+  return items;
+}
+
+/** The rail and the floating control for one page, or nothing for a page with fewer
+ *  than two sections. */
+function pageContentsParts(content: string): { rail: string; control: string } {
+  const headings = pageContents(content);
+  if (!hasContents(headings)) return { rail: '', control: '' };
+  const labels = { title: t('On this page'), button: t('Contents'), top: t('Back to top') };
+  return {
+    rail: `<div class="docs-onpage">${contentsRailHtml(headings, labels)}</div>`,
+    control: contentsControlHtml({ headings, labels, glyph: CONTENTS_ICON }),
+  };
 }
 
 /**
@@ -6370,7 +6416,7 @@ const DOCS_JS = [
   FORMATS_DIALOG_SCRIPT, THEME_INTERACT_SCRIPT, SHOT_MOTION_SCRIPT, SHOWCASE_SCRIPT,
   SHOT_CRED_SCRIPT, SCROLL_REVEAL_SCRIPT, LIQUID_GLASS_SCRIPT, HERO_CANVAS_SCRIPT,
   DOCS_MASTHEAD_SCRIPT, VERIFY_POPOUT_SCRIPT, DOCS_SEARCH_SCRIPT, HAMBURGER_SCRIPT,
-  DOC_JUMP_SCRIPT, LANG_PICKER_SCRIPT, readingScript(), stripScript(), agentCopyScript(), MAST_CLEAR_SCRIPT,
+  LANG_PICKER_SCRIPT, ORIGIN_SCRIPT, readingScript(), stripScript(), contentsScript(), agentCopyScript(), MAST_CLEAR_SCRIPT,
 ].map(stripScriptTags).join('\n;\n');
 const fingerprint = (s: string): string =>
   createHash('sha256').update(s).digest('base64url').slice(0, 16);
@@ -6385,7 +6431,7 @@ const DOCS_JS_TAG = `<script src="/info/${DOCS_JS_FILE}" defer></script>`;
 
 const NAV_ICON_SPRITE = createIconSprite({
   language: LANG_ICON_SVG, sun: THEME_SVG_SUN, moon: THEME_SVG_MOON, brand: THEME_SVG_BRAND,
-  seal: PROV_SEAL, edition: EDITION_ICON, jump: JUMP_ICON,
+  seal: PROV_SEAL, edition: EDITION_ICON, contents: CONTENTS_ICON,
   ...Object.fromEntries([...GITHUB_LINK.matchAll(/<svg\b[\s\S]*?<\/svg>/g)].map((match, i) => [`nav-${i}`, match[0]])),
   ...Object.fromEntries(Object.entries(SITE_ICONS).map(([key, svg]) => [`site-${key}`, svg])),
   ...Object.fromEntries(Object.entries(FMT_CAT_ICON).map(([key, svg]) => [`format-${key}`, svg])),
@@ -6418,9 +6464,10 @@ function wrapPage(lang: Lang, page: Page, content: string, ogSlugs: Set<string>,
   const edition = editionBarHtml(page, lang);
 
   // Docs pages only: the landing page already carries its own sticky quicknav, and
-  // a second on-page nav in the corner would be two answers to one question. A
-  // generated side-door page has no sidebar to mirror, so it skips the jump nav too.
-  const jump = (isLanding || page.generated || page.immersive) ? '' : pageJumpNav(content);
+  // a second on-page nav would be two answers to one question. A generated side-door
+  // page and an immersive page are built as bands, not sections, so they skip it too.
+  const contents = (isLanding || page.generated || page.immersive) ? { rail: '', control: '' } : pageContentsParts(content);
+  const wrapClass = contents.rail ? 'docs-wrap docs-wrap--rail' : 'docs-wrap';
 
   // The masthead band, and the article body with its h1 lifted out of it. The band
   // opens with the pathways strip and carries the print edition in the title row beside
@@ -6466,12 +6513,13 @@ ${pathwaysBand(strip)}
 </div>`
     : `
 ${mast ? mast.band : pathwaysBand(strip)}
-<div class="docs-wrap">
+<div class="${wrapClass}">
   ${page.rail?.aside ?? buildSidebar(lang, page, activeHref)}
   <main class="docs-content${mast ? '' : ' no-mast'} page-${slugClass}"${mainAttrs}${reading}>
     ${lead}
     ${article}
   </main>
+  ${contents.rail}
 </div>`;
 
   const pageTitle  = isLanding ? LANDING_TITLE : `${t(page.title)} - Lolly`;
@@ -6528,12 +6576,12 @@ ${DOCS_INIT_TAG}
 ${DOCS_CSS_LINK}
 ${NOSCRIPT_NAV}
 </head>
-<body class="page-${slugClass}">
+<body class="page-${slugClass}${contents.rail ? ' page-has-rail' : ''}">
 <a class="skip-link" href="#docs-main">${esc(t('Skip to content'))}</a>
 ${buildNav(lang, page.slug, isLanding, sheet)}
 ${body}
 ${FOOTER(lang, page)}
-${jump}
+${contents.control}
 ${DOCS_JS_TAG}
 </body>
 </html>`);
