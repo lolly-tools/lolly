@@ -103,3 +103,22 @@ test('pausing cancels scheduled work and resumes queued previews after the welco
   f.queue.setPaused(false);
   assert.equal(f.pending.size, 0);
 });
+
+test('a hold stops new renders until released, and holds count independently of setPaused', async () => {
+  const f = fixture(), seen: string[] = [];
+  f.queue.add({ priority: () => 0, run: async () => { seen.push('a'); } });
+  const releaseStrip = f.queue.hold();
+  assert.equal(f.pending.size, 0, 'a held queue schedules nothing');
+  f.queue.add({ priority: () => 0, run: async () => { seen.push('b'); } });
+  assert.equal(f.pending.size, 0);
+  const releaseOther = f.queue.hold();
+  releaseStrip();
+  releaseStrip(); // a second call releases nothing
+  assert.equal(f.pending.size, 0, 'the other hold still stands');
+  f.queue.setPaused(true);
+  releaseOther();
+  assert.equal(f.pending.size, 0, 'setPaused still pauses after every hold is released');
+  f.queue.setPaused(false);
+  await f.drain();
+  assert.deepEqual(seen, ['a', 'b']);
+});

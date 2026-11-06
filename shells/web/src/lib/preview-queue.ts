@@ -27,12 +27,16 @@ export function createPreviewQueue(
   let running = false;
   let destroyed = false;
   let paused = false;
+  /** Short holds from moving strips (a Cover Flow swipe), counted so two strips and
+   *  the welcome dialog's setPaused never release each other's pause. */
+  let holds = 0;
+  const halted = (): boolean => destroyed || paused || holds > 0;
 
   function wake(): void {
-    if (destroyed || paused || running || cancel || !tasks.length) return;
+    if (halted() || running || cancel || !tasks.length) return;
     cancel = schedule(() => {
       cancel = undefined;
-      if (destroyed || paused) return;
+      if (halted()) return;
       // Choose AFTER yielding: a newly queued cover always outranks an extra
       // template, including one that was waiting when this idle was requested.
       tasks = tasks.filter(task => !task.stale?.());
@@ -59,6 +63,20 @@ export function createPreviewQueue(
       paused = value;
       if (paused) { cancel?.(); cancel = undefined; }
       else wake();
+    },
+    /** Hold the queue until the returned release is called (once; later calls do
+     *  nothing). A render already running finishes; nothing new starts meanwhile. */
+    hold(): () => void {
+      holds++;
+      cancel?.();
+      cancel = undefined;
+      let held = true;
+      return () => {
+        if (!held) return;
+        held = false;
+        holds--;
+        wake();
+      };
     },
     destroy(): void { destroyed = true; tasks = []; cancel?.(); cancel = undefined; },
   };

@@ -1,15 +1,17 @@
 // SPDX-License-Identifier: MPL-2.0
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import { test, type TestContext } from 'node:test';
 import { JSDOM } from 'jsdom';
 import { mountFeaturedRow } from './featured-row.ts';
 import { mountCoverFlow } from '../lib/covers-flow.ts';
 import { applyPerfUi, setFlagMirror } from '../feature-flags.ts';
+import type { PreviewQueue } from '../lib/preview-queue.ts';
 
 // Drive the mounted component's real event handlers and animation loop. jsdom
 // supplies the DOM; these layout measurements model a 390px phone with 260px
 // covers, including integer scrollLeft rounding in a browser at device scale 1.
-function fixture(t: TestContext, viewMode: 'coverflow' | 'gallery' = 'coverflow', reduced = false, count = 7, recent?: string, unstyled = false) {
+function fixture(t: TestContext, viewMode: 'coverflow' | 'gallery' = 'coverflow', reduced = false, count = 7, recent?: string, unstyled = false, extra: { previewQueue?: PreviewQueue } = {}) {
   const dom = new JSDOM('<!doctype html><div id="mount"></div>', { url: 'http://localhost/', pretendToBeVisual: true });
   const win = dom.window;
   t.mock.timers.enable({ apis: ['setTimeout', 'setInterval'] });
@@ -44,7 +46,7 @@ function fixture(t: TestContext, viewMode: 'coverflow' | 'gallery' = 'coverflow'
   if (recent) win.localStorage.setItem('lolly-featured-activity:tools', JSON.stringify([recent]));
   const entries = Array.from({ length: count }, (_, i) => ({ id: `tool-${i}`, name: `Tool ${i}`, featured: { blurb: 'Description to omit' } }));
   const handle = mountFeaturedRow(mount, entries, {} as Parameters<typeof mountFeaturedRow>[2], {
-    viewMode, onActivate: id => { opened.push(id); },
+    viewMode, onActivate: id => { opened.push(id); }, ...extra,
   });
   const viewport = mount.querySelector<HTMLElement>('.featured-viewport')!;
   let position = viewport.scrollLeft;
@@ -114,9 +116,17 @@ function monotonic(positions: number[], direction: number): void {
   }
 }
 
-test('a live performance toggle flattens Cover Flow and stops its frame loop', t => {
+test('the frame loop runs only while the fan moves, and the performance toggle flattens and stops it', t => {
   const f = fixture(t);
-  assert.ok(f.frames.size > 0);
+  const section = f.mount.querySelector('.featured')!;
+  assert.equal(f.frames.size, 0, 'a fan at rest schedules no frames');
+  f.viewport.dispatchEvent(new window.KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true }));
+  assert.ok(f.frames.size > 0, 'input starts the loop');
+  assert.ok(section.classList.contains('is-moving'));
+  f.settle();
+  assert.equal(f.frames.size, 0, 'and it stops again at rest');
+  assert.ok(!section.classList.contains('is-moving'));
+  f.viewport.dispatchEvent(new window.KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true }));
   setFlagMirror('perf-ui', true); applyPerfUi(true);
   f.frame();
   assert.equal(f.frames.size, 0);
@@ -185,28 +195,57 @@ test('a relayout with unchanged cover geometry preserves the chosen landing cove
   assert.equal(f.settle().at(-1), 260, 'remeasuring must not snap a short flick back to its start');
 });
 
-test('trackpad swipes build momentum and coast before settling, as on Docs', t => {
+// Andy, 2026-11-06: a trackpad follows the fingers 1:1 and snaps to a cover when its
+// events stop (this replaced the glide that added momentum on top of the operating
+// system's own). A trackpad gesture starts at 1 to 3 px; a mouse notch at 10 px or more.
+test('a trackpad swipe moves the strip exactly as far as the fingers, then lands on a cover', t => {
   const f = fixture(t);
-  let previous = 0;
-  for (let i = 1; i <= 4; i++) {
-    f.viewport.dispatchEvent(new window.WheelEvent('wheel', { deltaX: 40, cancelable: true }));
-    f.frame(30);
-    assert.ok(f.scroll.position > previous);
-    previous = f.scroll.position;
+  const deltas = [1, 2, 4, 8, 16, 28, 40, 44, 40, 32, 24, 16, 10, 6, 3, 2, 1, 1];
+  let sum = 0;
+  for (const deltaX of deltas) {
+    // Two fingers always wobble a little across the swipe; that must not leak in.
+    const event = new window.WheelEvent('wheel', { deltaX, deltaY: deltaX > 3 ? 1 : 0, cancelable: true });
+    f.viewport.dispatchEvent(event);
+    assert.ok(event.defaultPrevented, 'a horizontal swipe belongs to the strip');
+    sum += deltaX;
+    f.frame(16);
+    assert.equal(f.scroll.position, sum, 'no momentum of its own on top of the fingers');
   }
   const positions = f.settle();
-  assert.ok(positions[30]! > previous + 200, 'wheel release keeps gliding after half a second');
-  assert.equal(positions.at(-1)! % 260, 0, 'rests at a cover centre');
+  assert.ok(Math.max(...positions) <= sum, 'never travels past where the fingers left it');
+  assert.equal(positions.at(-1), 260, 'lands on the cover nearest where the fingers stopped');
 });
 
-test('reduced motion applies wheel deltas directly and waits for the stream to finish', t => {
-  const f = fixture(t, 'coverflow', true);
-  for (let i = 1; i <= 4; i++) {
-    f.viewport.dispatchEvent(new window.WheelEvent('wheel', { deltaX: 40, cancelable: true }));
-    f.frame(30);
-    assert.equal(f.scroll.position, i * 40);
+test('a notched mouse wheel steps one cover per notch, and a vertical wheel stays with the page', t => {
+  const f = fixture(t);
+  for (let i = 1; i <= 3; i++) {
+    const notch = new window.WheelEvent('wheel', { deltaX: 13, cancelable: true });
+    f.viewport.dispatchEvent(notch);
+    assert.ok(notch.defaultPrevented);
+    f.settle(60, 400);
+    assert.equal(f.scroll.position, i * 260);
   }
-  assert.equal(f.settle().at(-1), 260);
+  for (const deltaY of [100, 2]) {
+    const vertical = new window.WheelEvent('wheel', { deltaY, cancelable: true });
+    f.viewport.dispatchEvent(vertical);
+    assert.equal(vertical.defaultPrevented, false, 'the page scrolls');
+    f.settle(60, 400);
+  }
+  assert.equal(f.scroll.position, 780);
+});
+
+test('reduced motion follows a trackpad directly and jumps to a cover once its events stop', t => {
+  const f = fixture(t, 'coverflow', true);
+  let sum = 0;
+  for (const deltaX of [2, 30, 60, 50, 18]) {
+    f.viewport.dispatchEvent(new window.WheelEvent('wheel', { deltaX, cancelable: true }));
+    sum += deltaX;
+    f.frame(30);
+    assert.equal(f.scroll.position, sum);
+  }
+  const positions = f.settle();
+  assert.equal(positions.at(-1), 260);
+  assert.ok(positions.every(p => p === sum || p === 260), 'a jump, with no glide in between');
 });
 
 test('a late direction change uses recent movement rather than the original throw', t => {
@@ -523,4 +562,112 @@ test('the Gallery strip holds its drift while the WebGPU startup check runs, the
   root.removeAttribute('data-webgpu-pending');
   f.settle(6, 3000);
   assert.ok(f.scroll.position > start, `the strip drifts once the check settles (${start} -> ${f.scroll.position})`);
+});
+
+test('the centred tool is announced politely once the fan rests after a person moves it', t => {
+  const f = fixture(t);
+  const status = f.mount.querySelector('.featured-status')!;
+  assert.equal(status.getAttribute('aria-live'), 'polite');
+  assert.equal(status.textContent, '', 'nothing is announced on load');
+  f.viewport.dispatchEvent(new window.KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true }));
+  f.frame();
+  assert.equal(status.textContent, '', 'nothing while the fan is still moving');
+  f.settle();
+  assert.equal(status.textContent, 'Tool 1, 2 of 7');
+  f.pointer('pointerdown', 300);
+  f.pointer('pointermove', 280, 25);
+  f.pointer('pointermove', 255, 25);
+  f.pointer('pointerup', 255, 10);
+  f.settle();
+  assert.equal(status.textContent, 'Tool 2, 3 of 7', 'a swipe is announced too');
+});
+
+test('a touch swipe ticks once per cover crossing the centre; mice, keys and reduced motion never do', t => {
+  const calls: number[] = [];
+  const nav = globalThis.navigator as Navigator & { vibrate?: unknown };
+  const had = Object.getOwnPropertyDescriptor(nav, 'vibrate');
+  Object.defineProperty(nav, 'vibrate', { configurable: true, value: (ms: number) => { calls.push(ms); return true; } });
+  t.after(() => { if (had) Object.defineProperty(nav, 'vibrate', had); else Reflect.deleteProperty(nav, 'vibrate'); });
+  const f = fixture(t);
+  f.settle();
+  assert.deepEqual(calls, [], 'nothing on load');
+  f.pointer('pointerdown', 370);
+  for (const x of [290, 210, 130, 50]) { f.pointer('pointermove', x, 20); f.frame(0); }
+  f.pointer('pointerup', 50, 10);
+  const landed = f.settle().at(-1)!;
+  assert.ok(landed >= 780);
+  assert.ok(calls.length >= 2 && calls.length <= landed / 260, `${calls.length} ticks for ${landed / 260} covers`);
+  assert.ok(calls.every(ms => ms === 8));
+  const touchTicks = calls.length;
+  f.pointer('pointerdown', 300, 16, 100, { pointerType: 'mouse' });
+  f.pointer('pointermove', 100, 30, 100, { pointerType: 'mouse' }); f.frame(0);
+  f.pointer('pointerup', 100, 10, 100, { pointerType: 'mouse' });
+  f.settle();
+  f.viewport.dispatchEvent(new window.KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true }));
+  f.settle();
+  assert.equal(calls.length, touchTicks, 'a mouse drag and a key press stay silent');
+});
+
+test('reduced motion never vibrates', t => {
+  const calls: number[] = [];
+  const nav = globalThis.navigator as Navigator & { vibrate?: unknown };
+  const had = Object.getOwnPropertyDescriptor(nav, 'vibrate');
+  Object.defineProperty(nav, 'vibrate', { configurable: true, value: (ms: number) => { calls.push(ms); return true; } });
+  t.after(() => { if (had) Object.defineProperty(nav, 'vibrate', had); else Reflect.deleteProperty(nav, 'vibrate'); });
+  const f = fixture(t, 'coverflow', true);
+  f.pointer('pointerdown', 370);
+  for (const x of [290, 210, 130, 50]) { f.pointer('pointermove', x, 20); f.frame(0); }
+  f.pointer('pointerup', 50, 10);
+  f.settle();
+  assert.deepEqual(calls, []);
+});
+
+test('the preview queue is held while the fan moves and for half a second after it rests', t => {
+  const holds: string[] = [];
+  const queue = {
+    add() {}, wake() {}, setPaused() {}, destroy() {},
+    hold() { holds.push('hold'); return () => { holds.push('release'); }; },
+  } as unknown as PreviewQueue;
+  const f = fixture(t, 'coverflow', false, 7, undefined, false, { previewQueue: queue });
+  f.pointer('pointerdown', 300);
+  assert.deepEqual(holds, [], 'a press alone is not a swipe');
+  f.pointer('pointermove', 280, 25);
+  assert.deepEqual(holds, ['hold']);
+  f.pointer('pointermove', 255, 25);
+  f.pointer('pointerup', 255, 10);
+  f.viewport.dispatchEvent(new window.KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true }));
+  assert.deepEqual(holds, ['hold'], 'more input while moving holds nothing new');
+  f.settle();
+  assert.deepEqual(holds, ['hold'], 'still held as the fan comes to rest');
+  t.mock.timers.tick(499);
+  assert.deepEqual(holds, ['hold']);
+  t.mock.timers.tick(1);
+  assert.deepEqual(holds, ['hold', 'release']);
+});
+
+test('the Docs landing announces a cover the reader moved to, and never its autoplay', t => {
+  const f = fixture(t);
+  const docs = f.mountDocs();
+  const root = docs.strip.closest<HTMLElement>('#coversRoot')!;
+  const status = root.querySelector('.covers-status')!;
+  assert.equal(status.getAttribute('aria-live'), 'polite');
+  root.dispatchEvent(new window.KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true }));
+  f.settle();
+  assert.equal(status.textContent, 'Tool 1');
+  t.mock.timers.tick(13_000); // past the hand-input hold, so the autoplay may step
+  f.settle();
+  t.mock.timers.tick(4_500);
+  f.settle();
+  assert.equal(status.textContent, 'Tool 1', 'the autoplay moves on without speaking');
+});
+
+test('a moving desktop fan drops its blurs, shadows and filters until it rests', () => {
+  const css = readFileSync(new URL('../styles/parts/featured.css', import.meta.url), 'utf8');
+  for (const rule of [
+    /\.featured--coverflow\.is-moving \.ftile \{[^}]*backdrop-filter: none/,
+    /\.featured--coverflow\.is-moving \.ftile-link,\s*\.featured--coverflow\.is-moving \.ftile\.is-centred \.ftile-link \{ box-shadow: none; \}/,
+    /\.featured--coverflow\.is-moving \.ftile-link \.ftile-img \{ filter: none; \}/,
+    /\.featured--coverflow\.is-moving \.ftile-img\.is-active \{ animation-play-state: paused; \}/,
+    /\.featured--coverflow\.is-moving \.featured-go \{[^}]*backdrop-filter: none/,
+  ]) assert.match(css, rule);
 });

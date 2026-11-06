@@ -731,6 +731,29 @@ html[data-webgpu-pending] .featured:not(.featured--static) .ftile-img.is-active 
   }
 }
 
+/* Desktop, while the fan moves (.is-moving, set by featured-row.ts from the first
+   frame of a drag, glide or trackpad follow until it rests): the same per-frame paint
+   the phone block above removes for good, removed here only for the motion. Every
+   cover is re-posed each frame, so the frost (backdrop-filter), the soft shadows, the
+   art's drop-shadow and the Ken Burns scale under it would be re-rasterised every
+   frame; the Open button's blur re-samples the covers sliding beneath it. The
+   brightness dimming stays, as it does on phones: it carries the depth. Everything
+   returns as the fan rests, and the Ken Burns carries on from the frame it held. */
+.featured--coverflow.is-moving .ftile {
+  -webkit-backdrop-filter: none;
+          backdrop-filter: none;
+}
+.featured--coverflow.is-moving .ftile-link,
+.featured--coverflow.is-moving .ftile.is-centred .ftile-link { box-shadow: none; }
+/* .ftile-link .ftile-img ties the hover lift's specificity and comes later, so it wins. */
+.featured--coverflow.is-moving .ftile-link .ftile-img { filter: none; }
+.featured--coverflow.is-moving .ftile-img.is-active { animation-play-state: paused; }
+.featured--coverflow.is-moving .featured-go {
+  -webkit-backdrop-filter: none;
+          backdrop-filter: none;
+  background: #000c;
+}
+
 /* Utilities have an icon and title instead of preview artwork. Keep their
    frames compact across the tablet breakpoint and cap both axes on phones,
    including when larger text expands the preferred cover width. */
