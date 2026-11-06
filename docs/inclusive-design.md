@@ -22,7 +22,7 @@ Accessibility preferences restyle Lolly's own interface: menus, cards, navigatio
 
 Lolly follows the platform's own signals, such as system dark mode and the reduced-motion preference. It also ships four opt-in preferences of its own, on one plain card in **Settings**:
 
-- <!--i:pause--> **Reduce motion** turns off transitions, slides and animated flourishes in the app, and combines with your operating system's setting, never overriding the system. Animated exports keep moving exactly as designed.
+- <!--i:pause--> **Reduce motion** turns off transitions, slides and animated flourishes in the app, and combines with your operating system's setting, never overriding the system. With it on, a swipe in present mode still changes the slide, without the slide following your finger. Animated exports keep moving exactly as designed.
 - <!--i:sunburst--> **High contrast** strengthens borders, text and focus rings around your work. Your brand colours and canvas stay exactly as you set them.
 - <!--i:font--> **Large text** grows the app's type and icon glyphs, and never your designs: its styles stop at the canvas edge.
 - <!--i:eyeoff--> **Hide colourful previews** swaps the gallery's preview artwork for calm icon and text cards, and softens project thumbnails by halving their colour and contrast, so they stay recognisable without the colour noise. Full colour returns the moment you step inside a tool, so high-stimulus imagery appears only in the place you chose to work.
@@ -33,7 +33,7 @@ The same card holds **Dominant hand**. On a foldable, an iPhone Duo or a near-sq
 
 You can set these right now: [open your Accessibility settings](/#/settings?focus=a11y-section). The card is always visible, with no digging, so someone who can barely read the page as it is can still find the switches.
 
-Around the preferences, controls carry accessible names and pressed states, changes are announced to screen readers, overlays close on Escape, the drawing tools answer single keypresses, the arrow keys nudge whatever you have selected, and keyboard focus is visible, strengthened further under high contrast.
+Around the preferences, controls carry accessible names and pressed states, changes are announced to screen readers, overlays close on Escape, the drawing tools answer single keypresses, the arrow keys nudge whatever you have selected, and keyboard focus is visible, strengthened further under high contrast. When you move the gallery's Cover Flow, your screen reader announces the centred tool and its position, such as "Chart, 2 of 6", once the covers come to rest. The ruler dials Lolly Darkroom shows on a phone are standard sliders to assistive technology, and answer the arrow keys, Page Up, Page Down, Home and End.
 
 ## Turning it down, turning it up
 
