@@ -16,6 +16,8 @@ Open the **Darkroom** tool and choose an image. The controls run from broad to f
 - **Treatment**: Colour wash, Duotone, Gradient map or Split tone, in your design system's colours.
 - **Texture**: Film grain, Vignette, Bloom, Halation, Colour fringing, Sharpen and Dust & scratches. **Seed** keeps the grain and dust the same on every render.
 
+On a phone, each slider is a ruler you drag or flick under a fixed centre mark. It comes to rest exactly on a step, and tapping the value above the ruler lets you type a number.
+
 **Before / after split** and **Histogram** help you judge the result. Lolly Darkroom also opens Photoshop and GIMP layers for positioning, blending and export.
 
 To keep HDR or wide-gamut originals at full precision, set **Editing range** to **HDR**; see [Wide colour and HDR editing](/info/hdr-editing.html).
