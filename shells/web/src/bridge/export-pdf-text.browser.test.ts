@@ -320,6 +320,71 @@ test('quotes and dashes in the base font\'s encoding stay live text', { skip: SK
   assert.deepEqual(r.notices, []);
 });
 
+// ── text under a scale ───────────────────────────────────────────────────────
+// A box under transform: scale() was placed by its scaled client rect while its font
+// size, border and radius came from computed style, which a scale does not change, so
+// text under scale(.5) printed at twice its size. The PDF walker now walks a scaled
+// subtree untransformed and draws it through one matrix, as the SVG walker does.
+
+const SCALED: Array<[string, string, Record<string, unknown>]> = [
+  ['scale(.5)', '<div style="transform:scale(.5);transform-origin:0 0;width:1200px"><p style="font-family:Outfit;font-size:48px;margin:16px">Scaled Latin words.</p></div>', {}],
+  ['scale(2)', '<div style="transform:scale(2);transform-origin:0 0;width:300px"><p style="font-family:Outfit;font-size:12px;margin:4px">Doubled small words.</p></div>', {}],
+  ['a chain of scales', '<div style="transform:scale(.8);width:600px;height:120px"><div style="transform:scale(.5);width:1000px;margin-left:-200px"><p style="font-family:Outfit;font-size:56px;margin:0;padding:8px;border:6px solid #c00;border-radius:24px">Chained scales.</p></div></div>', {}],
+  ['an anisotropic scale', '<div style="transform:scale(.5,.8);transform-origin:0 0;width:1200px"><p style="font-family:Outfit;font-size:48px;margin:8px">Squashed words.</p></div>', {}],
+  ['scale(.5) with live text', '<div style="transform:scale(.5);transform-origin:0 0;width:1200px"><p style="font-family:Helvetica,Arial,sans-serif;font-size:48px;margin:16px">Live Latin words.</p></div>', { convertPaths: false }],
+  ['scale(.5) on a bordered, shadowed box', '<div style="transform:scale(.5);transform-origin:0 0;width:1200px;padding:20px"><div style="height:160px;border:10px solid #06c;border-radius:40px;box-shadow:20px 20px 0 #f90"></div></div>', {}],
+];
+
+for (const [label, inner, opts] of SCALED) {
+  test(`text and boxes under ${label} print at the page's size`, { skip: SKIP }, async () => {
+    const r = await exportPdf(inner, opts);
+    assert.ok(r.agreement > 0.93, `the PDF's ink agrees with the page's on only ${(r.agreement * 100).toFixed(1)}%`);
+    assert.equal(r.images, 0, 'still vector');
+  });
+}
+
+// ── print marks beyond the mark font ─────────────────────────────────────────
+
+const MARKED = { provenance: true, cropMarks: true, bleed: '3mm' };
+const marked = (author: string, tool = 'Poster') => ({ ...MARKED, meta: { software: 'Lolly', source: 'https://lolly.tools', tool, author, contact: '', description: '' } });
+
+for (const [label, author, tool, script] of [
+  ['an Arabic name', 'مايا ليندكفيست', 'Poster', 'Arabic'],
+  ['a Chinese name', '林美雅', 'Poster', 'Han'],
+  ['a Cyrillic name', 'Мария Иванова', 'Poster', 'Cyrillic'],
+  ['an emoji in a name', 'Maya 🎨 Lindqvist', 'Poster', 'Emoji'],
+  ['an Arabic tool name', 'Maya Lindqvist', 'ملصق', 'Arabic'],
+] as const) {
+  test(`print marks draw ${label} as a picture, with the notice`, { skip: SKIP }, async () => {
+    const r = await exportPdf(line('Plain Latin artwork.'), marked(author, tool));
+    assert.equal(r.images, 1, 'the credit is one picture');
+    assert.match(r.text, /Made with https:\/\/lolly\.tools/, 'a label the font sets stays text');
+    assert.equal(r.notices.length, 1);
+    assert.match(r.notices[0]!, new RegExp(`as pictures.*\\(${script}\\)`));
+  });
+}
+
+test('Print PDF draws a Chinese name in its marks too', { skip: SKIP }, async () => {
+  const pg = await page();
+  await exportPdf(line('Plain Latin artwork.'));
+  const out = await pg.evaluate(async (o: Record<string, unknown>) => {
+    const w = window as any;
+    w.__notices.length = 0;
+    const blob = await w.__setup().render(document.getElementById('root'), 'pdf-cmyk', o);
+    return { size: blob.size, notices: [...w.__notices] };
+  }, marked('林美雅'));
+  assert.ok(out.size > 1000);
+  assert.deepEqual(out.notices.length, 1);
+  assert.match(out.notices[0]!, /\(Han\)/);
+});
+
+test('print marks with a Latin-1 name stay text, with no picture and no notice', { skip: SKIP }, async () => {
+  const r = await exportPdf(line('Plain Latin artwork.'), marked('José Núñez'));
+  assert.equal(r.images, 0);
+  assert.match(r.text, /José Núñez/);
+  assert.deepEqual(r.notices, []);
+});
+
 // ── left-to-right bytes ──────────────────────────────────────────────────────
 
 const GOLDEN = join(HERE, '__fixtures__/export-pdf-text.golden.json');
@@ -365,6 +430,11 @@ const LTR: Record<string, [string, Record<string, unknown>]> = {
   'gradient': [line('Gradient', 'font-family:Outfit;font-size:30px;margin:8px;background:linear-gradient(90deg,#f00,#00f);-webkit-background-clip:text;background-clip:text;color:transparent'), {}],
   'pseudo': ['<style>.p{position:relative;height:60px;font-family:Outfit;font-size:24px}.p::before{content:"Marker";position:absolute;left:12px;top:12px}</style><div class="p"></div>', {}],
   'native-text': [`<div style="position:absolute;inset:0"><svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" style="display:block"><text x="10" y="40" font-family="Outfit" font-size="24">Native</text><text x="590" y="90" text-anchor="end" font-family="Outfit" font-size="24">Anchored</text></svg></div>`, {}],
+  // A transform that changes no length keeps the path, and the bytes, it had.
+  'translate': [`<div style="transform:translate(30px,6px)">${line('Moved, not scaled.')}</div>`, {}],
+  'mirror': [`<div style="transform:scaleX(-1)">${line('Mirrored, not resized.')}</div>`, {}],
+  // A photo zoomed in its frame fills its scaled box exactly, so it keeps its path too.
+  'zoomed-photo': ['<div style="width:300px;height:100px;margin:8px;overflow:hidden"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAQAAAACCAIAAADwyuo0AAAAGElEQVR42mP4z8DA0PD//wkGhgUBDMgcAIiJCmtHLmfbAAAAAElFTkSuQmCC" style="display:block;width:300px;height:100px;object-fit:cover;object-position:30% 40%;transform-origin:30% 40%;transform:scale(1.6)"></div>', {}],
 };
 
 // Inline runs lean on the platform font backend for each run's advance, so that file's bytes

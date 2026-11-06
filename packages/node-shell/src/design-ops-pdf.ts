@@ -5,7 +5,7 @@ import type { HostV1, IngredientCredential } from '@lolly-tools/core/host-v1';
 import { designPagesPdf } from '../../../engine/src/design-page-svg.ts';
 import type { PrintGeometry } from '../../../engine/src/print-marks.ts';
 import { designOpsNodeHost } from './design-ops-host.ts';
-import { finishPdfX, printGeometryForSize, provenanceLabels, encryptPdfStrong } from './pdf-finishing.ts';
+import { finishPdfX, printGeometryForSize, provenanceLabels, encryptPdfStrong, labelsBeyondStandardFont } from './pdf-finishing.ts';
 import type { PdfFinishingOpts } from './pdf-finishing.ts';
 import { nodeExportRouteChoice } from './export-route.ts';
 
@@ -63,10 +63,16 @@ export async function designOpsPdfNode(node: Element | null | undefined, opts: P
   if (!out.pdf) return { reason: `a page holds features the drawing operations or PDF do not carry yet: ${[...new Set(out.findings.map((f) => `${f.feature} (${f.id})`))].join(', ')}` };
   const bleed = parseDimension(opts.bleed);
   const hasGeo = (bleed ? toPoints(bleed) : 0) > 0 || opts.cropMarks || opts.registrationMarks || opts.bleedMarks || opts.colorBars || opts.provenance;
+  // The mark font holds WinAnsi letters only. A name in another script goes in as a
+  // picture of the words, which a browser makes, so such a page goes to the browser tier.
+  const labels = hasGeo ? provenanceLabels(opts.meta) : null;
+  if (labels && geos.some((g) => g?.primitives.labels?.length) && (await labelsBeyondStandardFont(labels)).length) {
+    return { reason: 'the print marks hold letters the mark font does not have' };
+  }
   try {
     const finished = await finishPdfX(out.pdf, opts, {
       intentKind: 'srgb', log: (level, message) => host.log?.(level, message),
-      ...(hasGeo ? { geos, space: 'rgb', labels: provenanceLabels(opts.meta) } : {}),
+      ...(hasGeo ? { geos, space: 'rgb', labels } : {}),
     });
     // Encryption is last. The caller must skip its C2PA update on encrypted bytes.
     const pdf = opts.strongPassword ? await encryptPdfStrong(finished, opts.strongPassword) : finished;
