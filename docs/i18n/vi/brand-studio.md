@@ -108,13 +108,13 @@ Màu đầu tiên của bạn trở thành **primary**, và một chip xác nh�
 
 Màu của bạn nằm cạnh bản xem trước **In context** trên màn hình rộng, và phía trên nó trên màn hình nhỏ hơn. Bản xem trước hiện một áp phích, biểu đồ hay thẻ giao diện trong bảng màu của bạn. Màu starter ở trong nhóm gập riêng của chúng.
 
-![Phòng Colours trên Lolly Demo: bảng màu trong các nhóm gập, mỗi màu có tên và mã hex, và bản tải bảng màu ở phần đầu](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours)
+![Phòng Colours trên Lolly Demo: bảng màu trong các nhóm gập, mỗi màu có tên và mã hex, và bản tải bảng màu ở phần đầu](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-roles-fold%5D%3Esummary%3Bwait%3A500&format=svg&walker=1&localize=1&dark=1&filename=brand-colours)
 
 ![Phòng Colours sau khi thêm một màu, cùng bảng màu và một bản xem trước bố cục trực tiếp](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dpick&width=1440&height=840&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-editor-add%5D%3Bwait%3A900&format=svg&walker=1&dark=1&filename=bs-colour-first)
 
 ### Vai trò: công cụ đọc gì
 
-![The Colour roles table on Lolly Demo after choosing the suggested words Main, Accent, Supporting and Tertiary: the colourway chips, then each role with its light and dark colour, Main read as the lead colour and Accent as the partner colour, Supporting and Tertiary read by name only and marked Copied, and the readings no role fills listed under the table](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=2720&height=2000&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-roles-fold%5D%3Esummary%3Bwait%3A500%3Bclick%3A%5Bdata-crt-start-open%5D%3Bclick%3A%5Bdata-crt-seed%3D%221%22%5D%3Bclick%3A%5Bdata-crt-start-use%5D%3Bwait%3A900%3Bclick%3A.be-palette-heading%3Eh2%3Bwait%3A300&cropSelector=%5Bdata-be-roles-fold%5D&format=svg&walker=1&dark=1&filename=bs-colour-roles)
+![The Colour roles table on Lolly Demo after choosing the suggested words Main, Accent, Supporting and Tertiary: the colourway chips, then each role with its light and dark colour, Main read as the lead colour and Accent as the partner colour, Supporting and Tertiary read by name only and marked Copied, and the readings no role fills listed under the table](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=2720&height=2000&dpi=192&waitMs=1800&cropSelector=%5Bdata-be-roles-fold%5D&format=svg&walker=1&dark=1&filename=bs-colour-roles)
 
 **Roles** cho biết màu nào đóng vai nào trong mọi công cụ và bản xuất. Chúng là tùy chọn (ba màu rời và không vai trò là một hệ thống hoàn toàn tốt), màu nào cũng có thể nhận một vai trò và số đo tương phản được tính so với bề mặt, APCA trước. Mỗi hàng vai trò hiện một màu của bạn ở độ đậm đầy đủ, một màu starter thế chỗ, hoặc **↳ follows Primary**.
 
@@ -167,7 +167,7 @@ Bốn phần gập nằm dưới bản xem trước và các vai trò. Mỗi ph�
 
 Bảng màu liệt kê màu của bạn trong các nhóm gập, mỗi nhóm có **+ Add** riêng. Tạo và đổi tên nhóm tùy ý. Một vai trò không bao giờ tạo ô thứ hai: ô mà một vai trò trỏ tới đeo một dấu nhỏ thay thế (**P**, **S**, **Su**, **T**). **Colour chart** bên dưới các ô hiện cùng các màu trên **Wheel** OKLCH (kéo một chấm để nhuộm lại, nhấp khoảng trống để thêm ô màu) và biểu đồ **Gamut**, cho thấy dải hiển thị được kết thúc ở đâu. `#/start?area=color&focus=chart` mở thẳng biểu đồ.
 
-![Bảng bảng màu, mọi nhóm có thể gấp lại, với bản tải bảng màu ở phần đầu](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dgenerate%26seed%3D%2523e0452b&width=1440&height=1000&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-add-ramp%3D%22primary%22%5D%3Bwait%3A1200&cropSelector=.be-split-side&walker=1&format=svg&dark=1&filename=bs-palette-pane)
+![Bảng bảng màu, mọi nhóm có thể gấp lại, với bản tải bảng màu ở phần đầu](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dgenerate%26seed%3D%2523e0452b&width=1440&height=1000&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-roles-fold%5D%3Esummary%3Bwait%3A500%3Bclick%3A%5Bdata-be-add-ramp%3D%22primary%22%5D%3Bwait%3A1200&cropSelector=.be-split-side&walker=1&format=svg&dark=1&filename=bs-palette-pane)
 
 ![Bánh xe OKLCH - góc là sắc độ (hue), khoảng cách ra ngoài là độ bão hòa (chroma) và các màu xám chạy theo một dải độ sáng dọc theo cạnh bên](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dgenerate%26seed%3D%2523e0452b&width=1440&height=900&dpi=192&waitMs=2400&css=.start-head%2C.be-pal%2C.be-gradients%7Bdisplay%3Anone%7D&drive=click%3A%5Bdata-be-add-ramp%3D%22primary%22%5D%3Bwait%3A1200%3Bclick%3A%5Bdata-be-chart%5D%20summary%3Bwait%3A900&cropSelector=.be-pal-wheel&walker=1&format=svg&dark=1&filename=bs-colour-wheel)
 

@@ -108,13 +108,13 @@ Lolly Demo처럼 앱과 함께 오고 편집할 수 있는 디자인 시스템�
 
 색상은 넓은 화면에서 **In context** 미리보기 옆에, 작은 화면에서는 위에 놓여요. 미리보기는 팔레트로 만든 포스터, 차트, 인터페이스 카드를 보여줘요. 스타터 색상은 자체 접이식 그룹에 남아요.
 
-![Lolly Demo의 Colours 룸: 접이식 그룹의 팔레트, 이름과 헥스가 있는 각 색상, 머리말에 있는 팔레트 다운로드](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours)
+![Lolly Demo의 Colours 룸: 접이식 그룹의 팔레트, 이름과 헥스가 있는 각 색상, 머리말에 있는 팔레트 다운로드](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-roles-fold%5D%3Esummary%3Bwait%3A500&format=svg&walker=1&localize=1&dark=1&filename=brand-colours)
 
 ![색상 하나를 추가한 뒤의 Colours 룸. 팔레트와 실시간 구성 미리보기가 표시됨](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dpick&width=1440&height=840&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-editor-add%5D%3Bwait%3A900&format=svg&walker=1&dark=1&filename=bs-colour-first)
 
 ### 역할: 도구가 읽는 것
 
-![The Colour roles table on Lolly Demo after choosing the suggested words Main, Accent, Supporting and Tertiary: the colourway chips, then each role with its light and dark colour, Main read as the lead colour and Accent as the partner colour, Supporting and Tertiary read by name only and marked Copied, and the readings no role fills listed under the table](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=2720&height=2000&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-roles-fold%5D%3Esummary%3Bwait%3A500%3Bclick%3A%5Bdata-crt-start-open%5D%3Bclick%3A%5Bdata-crt-seed%3D%221%22%5D%3Bclick%3A%5Bdata-crt-start-use%5D%3Bwait%3A900%3Bclick%3A.be-palette-heading%3Eh2%3Bwait%3A300&cropSelector=%5Bdata-be-roles-fold%5D&format=svg&walker=1&dark=1&filename=bs-colour-roles)
+![The Colour roles table on Lolly Demo after choosing the suggested words Main, Accent, Supporting and Tertiary: the colourway chips, then each role with its light and dark colour, Main read as the lead colour and Accent as the partner colour, Supporting and Tertiary read by name only and marked Copied, and the readings no role fills listed under the table](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=2720&height=2000&dpi=192&waitMs=1800&cropSelector=%5Bdata-be-roles-fold%5D&format=svg&walker=1&dark=1&filename=bs-colour-roles)
 
 **역할**은 모든 도구와 내보내기에서 어떤 색상이 어떤 부분을 맡을지 알려줘요. 선택 사항이에요(역할 없이 느슨한 색상 세 개도 충분히 좋은 시스템이에요). 어떤 색상이든 역할을 맡을 수 있고, 대비 수치는 표면을 기준으로 측정하며 APCA를 먼저 써요. 각 역할 행은 완전한 강도의 자체 색상, 대신 서 있는 스타터 색상, 또는 **↳ follows Primary**를 보여줘요.
 
@@ -167,7 +167,7 @@ Lolly Demo처럼 앱과 함께 오고 편집할 수 있는 디자인 시스템�
 
 팔레트는 색상을 접이식 그룹으로 나열하며 각각 자체 **+ Add**가 있어요. 그룹은 원하는 대로 만들고 이름을 바꾸세요. 역할은 두 번째 타일을 만들지 않아요. 역할이 가리키는 타일에는 대신 작은 표시(**P**, **S**, **Su**, **T**)가 붙어요. 타일 아래 **Colour chart**는 같은 색상을 OKLCH **Wheel**(점을 끌어 색을 바꾸고, 빈 곳을 클릭해 견본을 추가)과 표시 가능한 범위가 끝나는 곳을 보여주는 **Gamut** 차트로 보여줘요. `#/start?area=color&focus=chart`가 차트를 바로 열어요.
 
-![팔레트 패널, 모든 그룹을 접고 펼 수 있으며, 머리말에 팔레트 다운로드가 있음](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dgenerate%26seed%3D%2523e0452b&width=1440&height=1000&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-add-ramp%3D%22primary%22%5D%3Bwait%3A1200&cropSelector=.be-split-side&walker=1&format=svg&dark=1&filename=bs-palette-pane)
+![팔레트 패널, 모든 그룹을 접고 펼 수 있으며, 머리말에 팔레트 다운로드가 있음](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dgenerate%26seed%3D%2523e0452b&width=1440&height=1000&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-roles-fold%5D%3Esummary%3Bwait%3A500%3Bclick%3A%5Bdata-be-add-ramp%3D%22primary%22%5D%3Bwait%3A1200&cropSelector=.be-split-side&walker=1&format=svg&dark=1&filename=bs-palette-pane)
 
 ![OKLCH 휠 - 각도는 색상, 바깥쪽 거리는 채도이며 회색은 옆쪽의 명도 레일을 따라 배치됨](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dgenerate%26seed%3D%2523e0452b&width=1440&height=900&dpi=192&waitMs=2400&css=.start-head%2C.be-pal%2C.be-gradients%7Bdisplay%3Anone%7D&drive=click%3A%5Bdata-be-add-ramp%3D%22primary%22%5D%3Bwait%3A1200%3Bclick%3A%5Bdata-be-chart%5D%20summary%3Bwait%3A900&cropSelector=.be-pal-wheel&walker=1&format=svg&dark=1&filename=bs-colour-wheel)
 

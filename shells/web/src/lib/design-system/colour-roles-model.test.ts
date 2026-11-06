@@ -18,7 +18,8 @@ import type { SlotId } from './colour-roles-model.ts';
 
 type Rec = Record<string, unknown>;
 const wefthouse = (): Rec => JSON.parse(readFileSync(new URL('../../../../../tests/fixtures/colour-roles/wefthouse.tokens.json', import.meta.url), 'utf8')) as Rec;
-const demo = (): Rec => JSON.parse(readFileSync(new URL('../../../../../brands/lolly-demo/catalog/assets/lolly/tokens/demo.json', import.meta.url), 'utf8')) as Rec;
+/** Lolly Demo as it was before it declared its own words (plans/352 R6): a system with no colour roles. */
+const demo = (): Rec => JSON.parse(readFileSync(new URL('../../../../../tests/fixtures/colour-roles/lolly-demo-no-roles.json', import.meta.url), 'utf8')) as Rec;
 const single = (): Rec => deriveBrandTokens({ primary: '#0c322c', name: 'Test' }) as Rec;
 const brandSystem = (doc: Rec): Rec => ((doc.$extensions as Rec)['com.suse.lolly'] as Rec).brandSystem as Rec;
 

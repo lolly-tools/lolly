@@ -38,7 +38,8 @@ const ROOT = resolve(import.meta.dirname, '..');
 const load = (path: string): Rec => JSON.parse(readFileSync(new URL(path, import.meta.url), 'utf8'));
 const WEFTHOUSE = (): Rec => load('./fixtures/colour-roles/wefthouse.tokens.json');
 const NO_ROLES: Record<string, () => Rec> = {
-  'Lolly Demo': () => load('../brands/lolly-demo/catalog/assets/lolly/tokens/demo.json'),
+  // Lolly Demo as it was before it declared its own words (plans/352 R6).
+  'Lolly Demo': () => load('./fixtures/colour-roles/lolly-demo-no-roles.json'),
   'Lolly Start': () => load('../brands/lolly-start/catalog/assets/lolly/tokens/brand.json'),
   'a derived system': () => deriveBrandTokens({ primary: '#2453ff', name: 'Fixture' }) as Rec,
 };

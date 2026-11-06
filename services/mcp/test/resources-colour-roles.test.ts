@@ -15,7 +15,8 @@ import { tokensListing } from '../src/resources.ts';
 type Rec = Record<string, unknown>;
 const load = (path: string): Rec => JSON.parse(readFileSync(new URL(path, import.meta.url), 'utf8'));
 const WEFTHOUSE = (): Rec => load('../../../tests/fixtures/colour-roles/wefthouse.tokens.json');
-const DEMO = (): Rec => load('../../../brands/lolly-demo/catalog/assets/lolly/tokens/demo.json');
+/** Lolly Demo as it was before it declared colour roles (plans/352 R6): a system with none. */
+const DEMO = (): Rec => load('../../../tests/fixtures/colour-roles/lolly-demo-no-roles.json');
 
 test('lolly://tokens states the words as the system\'s own, labelled as data, and shows what each is bound to', () => {
   const listing = tokensListing(WEFTHOUSE());

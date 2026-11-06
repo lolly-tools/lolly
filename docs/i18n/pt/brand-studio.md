@@ -108,13 +108,13 @@ Sua primeira cor vira a **primary**, e um chip confirma, como *"Primary is now V
 
 Suas cores ficam ao lado de uma prévia **In context** em tela larga, e acima dela em uma menor. A prévia mostra um pôster, gráfico ou cartão de interface na sua paleta. As cores iniciais ficam no próprio grupo recolhível.
 
-![A sala Colours no Lolly Demo: a paleta em grupos recolhíveis, cada cor com seu nome e hex, e o download da paleta no cabeçalho](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours)
+![A sala Colours no Lolly Demo: a paleta em grupos recolhíveis, cada cor com seu nome e hex, e o download da paleta no cabeçalho](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-roles-fold%5D%3Esummary%3Bwait%3A500&format=svg&walker=1&localize=1&dark=1&filename=brand-colours)
 
 ![A sala Colours depois de adicionar uma cor, com sua paleta e uma prévia de composição ao vivo](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dpick&width=1440&height=840&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-editor-add%5D%3Bwait%3A900&format=svg&walker=1&dark=1&filename=bs-colour-first)
 
 ### Roles: o que as ferramentas leem
 
-![The Colour roles table on Lolly Demo after choosing the suggested words Main, Accent, Supporting and Tertiary: the colourway chips, then each role with its light and dark colour, Main read as the lead colour and Accent as the partner colour, Supporting and Tertiary read by name only and marked Copied, and the readings no role fills listed under the table](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=2720&height=2000&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-roles-fold%5D%3Esummary%3Bwait%3A500%3Bclick%3A%5Bdata-crt-start-open%5D%3Bclick%3A%5Bdata-crt-seed%3D%221%22%5D%3Bclick%3A%5Bdata-crt-start-use%5D%3Bwait%3A900%3Bclick%3A.be-palette-heading%3Eh2%3Bwait%3A300&cropSelector=%5Bdata-be-roles-fold%5D&format=svg&walker=1&dark=1&filename=bs-colour-roles)
+![The Colour roles table on Lolly Demo after choosing the suggested words Main, Accent, Supporting and Tertiary: the colourway chips, then each role with its light and dark colour, Main read as the lead colour and Accent as the partner colour, Supporting and Tertiary read by name only and marked Copied, and the readings no role fills listed under the table](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=2720&height=2000&dpi=192&waitMs=1800&cropSelector=%5Bdata-be-roles-fold%5D&format=svg&walker=1&dark=1&filename=bs-colour-roles)
 
 As **Roles** dizem qual cor faz cada papel em todas as ferramentas e exportações. São opcionais (três cores soltas e nenhuma função é um sistema perfeitamente bom), qualquer cor pode assumir uma e a leitura de contraste é medida contra a superfície, APCA primeiro. Cada linha de função mostra uma cor própria com força total, uma cor inicial no lugar dela, ou **↳ follows Primary**.
 
@@ -167,7 +167,7 @@ Quatro seções recolhidas ficam abaixo da prévia e das funções. Cada uma abr
 
 A paleta lista suas cores em grupos recolhíveis, cada um com o próprio **+ Add**. Crie e renomeie grupos como quiser. Uma função nunca cria um segundo bloco: um bloco para o qual uma função aponta usa uma pequena marca (**P**, **S**, **Su**, **T**). **Colour chart**, abaixo dos blocos, mostra as mesmas cores na **Wheel** OKLCH (arraste um ponto para recolorir, clique no espaço vazio para adicionar uma amostra) e no gráfico **Gamut**, que mostra onde termina a faixa exibível. `#/start?area=color&focus=chart` abre o gráfico diretamente.
 
-![O painel de paleta, cada grupo dobrável, com o download da paleta no cabeçalho](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dgenerate%26seed%3D%2523e0452b&width=1440&height=1000&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-add-ramp%3D%22primary%22%5D%3Bwait%3A1200&cropSelector=.be-split-side&walker=1&format=svg&dark=1&filename=bs-palette-pane)
+![O painel de paleta, cada grupo dobrável, com o download da paleta no cabeçalho](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dgenerate%26seed%3D%2523e0452b&width=1440&height=1000&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-roles-fold%5D%3Esummary%3Bwait%3A500%3Bclick%3A%5Bdata-be-add-ramp%3D%22primary%22%5D%3Bwait%3A1200&cropSelector=.be-split-side&walker=1&format=svg&dark=1&filename=bs-palette-pane)
 
 ![A roda OKLCH - o ângulo é o matiz, a distância do centro é a croma e os cinzas seguem um trilho de luminosidade na lateral](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dgenerate%26seed%3D%2523e0452b&width=1440&height=900&dpi=192&waitMs=2400&css=.start-head%2C.be-pal%2C.be-gradients%7Bdisplay%3Anone%7D&drive=click%3A%5Bdata-be-add-ramp%3D%22primary%22%5D%3Bwait%3A1200%3Bclick%3A%5Bdata-be-chart%5D%20summary%3Bwait%3A900&cropSelector=.be-pal-wheel&walker=1&format=svg&dark=1&filename=bs-colour-wheel)
 

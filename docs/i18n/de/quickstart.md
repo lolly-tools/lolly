@@ -22,7 +22,7 @@ Wählen Sie den Weg, der zu dem passt, was Sie haben:
 
 Wenn Sie die Galerie zum ersten Mal öffnen, bietet ein kurzer Willkommensdialog dieselben Möglichkeiten: **Make it yours** öffnet Design System Setup, **Bring your design** öffnet eine Dateiauswahl für ein Design, und **Explore the community tools** schließt den Willkommensdialog.
 
-![Der Raum Colours in Design System Setup bei einer frischen Installation: ein Live-Farbfeld, ein Eingabefeld und die ganze erste Entscheidung](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours)
+![Der Raum Colours in Design System Setup bei einer frischen Installation: ein Live-Farbfeld, ein Eingabefeld und die ganze erste Entscheidung](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-roles-fold%5D%3Esummary%3Bwait%3A500&format=svg&walker=1&localize=1&dark=1&filename=brand-colours)
 
 Von dort führen acht Räume so weit, wie Sie möchten, in beliebiger Reihenfolge: **Board**, **Colours**, **Type**, **Logos**, **Tokens**, **Files**, **Rules** und **Skills**. Jede Vorschau in der App aktualisiert sich beim Tippen. [Lolly Design System Setup](/info/brand-studio.html) behandelt jeden Raum.
 
