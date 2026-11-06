@@ -201,7 +201,8 @@ export async function outlineSvgText(
         const f = (await text.fontUrl?.(family, { weight, italic })) ?? null;
         if (f) later.push({ fontUrl: f.url, ...(f.variations ? { variations: f.variations } : {}) });
       }
-      fill = await nodeFillChain((url) => text.characters!(url), [{ fontUrl: font.url, ...(font.variations ? { variations: font.variations } : {}) }], later, raw, { weight, italic });
+      const place = { at: el, document: doc.body ?? doc.documentElement };
+      fill = await nodeFillChain((url) => text.characters!(url), [{ fontUrl: font.url, ...(font.variations ? { variations: font.variations } : {}) }], later, raw, { weight, italic, place });
     }
 
     let shaped: { d: string; advanceWidth: number; notdef?: number } | null = null;

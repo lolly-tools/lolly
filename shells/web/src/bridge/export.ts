@@ -209,7 +209,7 @@ export function createExportAPI(host: WebHost) {
         // its teardown clears the sandbox iframe and url cache from under THIS render.
         await drainNodeRasters();
         // In step with the live page's fallback fonts, and one card note for what they drew.
-        return await withFallbackFonts(() => renderFormat(node, format, browserExportProgress(opts)));
+        return await withFallbackFonts(() => renderFormat(node, format, browserExportProgress(opts)), node);
       } finally {
         restoreMotion();
         resumeThumbRasters();
@@ -3276,7 +3276,7 @@ async function renderInlineContent(
       const fontSizePx = parseFloat(nodeStyle.fontSize) || 16;
       // Resolve the run's real font (SUSE / a user Google font / platform) in
       // BOTH modes - live text needs it to choose embed-vs-outline too.
-      const vf = _host?.text ? await resolveExportFont(nodeStyle, text) : null;
+      const vf = _host?.text ? await resolveExportFont(nodeStyle, text, node.parentElement) : null;
       const fontUrl = vf?.url ?? null;
       const embedUrl = convertPaths ? null : await pdfFontEmbed(vf);
       const hasResolvedFont = Boolean(vf);

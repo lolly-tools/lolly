@@ -806,6 +806,327 @@
           }
         ]
       }
+    },
+    {
+      "id": "community/fallback-font/noto-sans-sc",
+      "name": "Noto Sans SC",
+      "description": "Noto Sans SC 2.004, used only for Simplified Chinese characters that a design system's own fonts cannot draw, so an export keeps those words as vector outlines. Downloaded the first time a document needs it, then kept on the device.",
+      "type": "data",
+      "version": "2.4.0",
+      "tier": "on-demand",
+      "tags": [
+        "fallback-font",
+        "simplified-chinese"
+      ],
+      "formats": [
+        {
+          "format": "woff2",
+          "url": "/catalog/packs/fallback-fonts/noto-sans-sc.woff2",
+          "checksum": "sha256-p8HmnHLGsHEnKD3PwDbMI/E+wvOW38/b1WMVF8vIapg=",
+          "size": 2030044
+        }
+      ],
+      "license": "OFL-1.1",
+      "attribution": "Copyright 2014-2021 Adobe (http://www.adobe.com/), with Reserved Font Name 'Source'",
+      "meta": {
+        "fallbackFont": {
+          "family": "Noto Sans SC",
+          "label": "Simplified Chinese",
+          "scripts": [
+            "Hani",
+            "Bopo"
+          ],
+          "style": "normal",
+          "weight": "100 900",
+          "claims": "U+B7,U+2C7,U+2C9,U+3001-3003,U+3005-3011,U+3013-301F,U+3021-302D,U+3030,U+3037-303F,U+3105-312F,U+3220-3229,U+4E00-9FFF,U+FE45-FE46,U+FF61-FF65",
+          "covers": "U+A4,U+A7-A8,U+B0-B1,U+B7,U+D7,U+F7,U+2C7,U+2C9,U+2010-2016,U+2018-201A,U+201C-201E,U+2025-2026,U+2030,U+2032-2033,U+203B,U+20AC,U+2103,U+2116,U+2190-2193,U+2208,U+220B,U+220F,U+2211,U+221A,U+221D-221E,U+2220,U+2225,U+2227-222B,U+222E,U+2234-2237,U+223D,U+2245,U+2248,U+224C,U+2260-2261,U+2264-2265,U+226E-226F,U+2299,U+22A5,U+2312,U+2460-2469,U+2474-249B,U+2500-254B,U+25A0-25A1,U+25B2-25B3,U+25C6-25C7,U+25CB,U+25CE-25CF,U+2605-2606,U+2640,U+2642,U+3000-303F,U+3041-3093,U+30A1-30F6,U+3105-312F,U+3220-3229,U+4E00-9FFF,U+FE10-FE19,U+FE30-FE4F,U+FF01-FF9F,U+FFA1-FFBE,U+FFC2-FFC7,U+FFCA-FFCF,U+FFD2-FFD7,U+FFDA-FFDC,U+FFE0-FFE6,U+FFE8-FFEE",
+          "ideographs": {
+            "range": "U+4E00-9FFF",
+            "bits": "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"
+          },
+          "han": "zh-Hans",
+          "characterSet": "GB 2312",
+          "upstreamVersion": "2.004",
+          "upstream": {
+            "repository": "https://github.com/google/fonts",
+            "commit": "38411257417e616c5d4daa1b9e91a3dbcebe1c2e",
+            "path": "ofl/notosanssc/NotoSansSC[wght].ttf",
+            "sha256": "sha256:a3041811a78c361b1de50f953c805e0244951c21c5bd412f7232ef0d899af0da",
+            "project": "https://github.com/notofonts/noto-cjk"
+          },
+          "changes": "Cut from Noto Sans SC 2.004 to the GB 2312 characters and the punctuation and fullwidth forms Simplified Chinese running text uses, without Latin, Greek and Cyrillic letters; converted to WOFF2. Outlines unchanged.",
+          "licenceFile": "/catalog/packs/fallback-fonts/OFL-noto-cjk.txt"
+        }
+      },
+      "rights": {
+        "works": [
+          {
+            "id": "community/fallback-font/noto-sans-sc",
+            "title": "Noto Sans SC 2.004",
+            "creators": [
+              {
+                "name": "Adobe",
+                "role": "creator"
+              }
+            ],
+            "sourceUrl": "https://github.com/google/fonts/blob/38411257417e616c5d4daa1b9e91a3dbcebe1c2e/ofl/notosanssc/NotoSansSC[wght].ttf",
+            "revision": "38411257417e616c5d4daa1b9e91a3dbcebe1c2e",
+            "rights": [
+              {
+                "assertedBy": "catalog",
+                "declaration": "OFL-1.1",
+                "evidence": "notice-file",
+                "expression": "OFL-1.1",
+                "status": "parsed",
+                "textHash": "sha256:1c05c68c34f9708415aada51f17e1b0092d2cea709bf4a94cd38114f9e73d7d9",
+                "url": "https://openfontlicense.org/open-font-license-official-text/",
+                "version": "1.1"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "community/fallback-font/noto-sans-tc",
+      "name": "Noto Sans TC",
+      "description": "Noto Sans TC 2.004, used only for Traditional Chinese characters that a design system's own fonts cannot draw, so an export keeps those words as vector outlines. Downloaded the first time a document needs it, then kept on the device.",
+      "type": "data",
+      "version": "2.4.0",
+      "tier": "on-demand",
+      "tags": [
+        "fallback-font",
+        "traditional-chinese"
+      ],
+      "formats": [
+        {
+          "format": "woff2",
+          "url": "/catalog/packs/fallback-fonts/noto-sans-tc.woff2",
+          "checksum": "sha256-PjSwyZsVRqgUVMDjFG6TKXlFuF9eRuxPLlK0rUxwqLI=",
+          "size": 3780000
+        }
+      ],
+      "license": "OFL-1.1",
+      "attribution": "Copyright 2014-2021 Adobe (http://www.adobe.com/), with Reserved Font Name 'Source'",
+      "meta": {
+        "fallbackFont": {
+          "family": "Noto Sans TC",
+          "label": "Traditional Chinese",
+          "scripts": [
+            "Hani",
+            "Bopo"
+          ],
+          "style": "normal",
+          "weight": "100 900",
+          "claims": "U+B7,U+2C7,U+2C9-2CB,U+2D9,U+3001-3003,U+3005-3011,U+3013-301F,U+3021-302D,U+3030,U+3037-303F,U+3105-312F,U+32A3,U+4E00-9FFF,U+FA0C-FA0D,U+FE45-FE46,U+FF61-FF65",
+          "covers": "U+A7,U+AF-B1,U+B7,U+D7,U+F7,U+2C7,U+2C9-2CB,U+2D9,U+2010-2015,U+2018-201A,U+201C-201E,U+2025-2027,U+2030,U+2032-2033,U+2035,U+203B,U+20AC,U+2103,U+2105,U+2109,U+2190-2193,U+2196-2199,U+2215,U+221A,U+221E-2220,U+2223,U+2225,U+2229-222B,U+222E,U+2234-2235,U+2260-2261,U+2266-2267,U+2295,U+2299,U+22A5,U+22BF,U+2500,U+2502,U+250C,U+2510,U+2514,U+2518,U+251C,U+2524,U+252C,U+2534,U+253C,U+2550-2574,U+2581-258F,U+2594-2595,U+25A0-25A1,U+25B2-25B3,U+25BC-25BD,U+25C6-25C7,U+25CB,U+25CE-25CF,U+25E2-25E5,U+2605-2606,U+2640,U+2642,U+3000-303F,U+3105-312F,U+32A3,U+338E-338F,U+339C-339E,U+33A1,U+33C4,U+33CE,U+33D1-33D2,U+33D5,U+4E00-9FFF,U+FA0C-FA0D,U+FE10-FE19,U+FE30-FE52,U+FE54-FE57,U+FE59-FE66,U+FE68-FE6B,U+FF01-FF9F,U+FFA1-FFBE,U+FFC2-FFC7,U+FFCA-FFCF,U+FFD2-FFD7,U+FFDA-FFDC,U+FFE0-FFE6,U+FFE8-FFEE",
+          "ideographs": {
+            "range": "U+4E00-9FFF",
+            "bits": "i/9zw0BoDxus6UzzAAIIwFx5Psp2eUgG3y/w9zoD/6g37z8jBLBZ/crz//+f3vn//6v3fQDA7I6/7tv/A9D6ReH6/t/vv6sQ6/+q/D/v/SSteHZ/DPD/7fbP+iz592vr/R+/lXdmv7/7O7T+rnviEYGmvkE1FMNycH2RcQMAayfLV89wMkfvDdp+dPwG/rS9nz/Ki0l+AFiPIuzrXIq73WDv57YPpJPyuzeeVEvQr5sUxNT3sDAUCggv0Ih+/y8Z2v8H+/F/63vvxRAA/5n//dd5ZwXn/8v9/8NAQPdvjr3635cEwPT/W3vt59B+BOD4n/8+t/59Loj9/3++/oPE9lfz/biA1n3vZ1eIR33/38P/8Kk34H38cG8/muyzTIGGnj9c3Q33GUij/gcAVq//OA2YuO89QGC3ztg1kL9y/z/3fxF6u/f/qwD/vm88qXL+788b8WvbCvzmw37vnJsQ9kjw9Ba1/oJRsce7FYdu3/s/5M1j/8F+fuv9X317d/78C5bq2yli6FPfN+/99TaBvRjcvfzk0v//1z/g/29/+K+um9lu+/UV8al5+708Wq+tutusH/xxeYP3fF/D/99nBZr/Z4Q0FYvf8/lzM733Gl5Avz+g///rAcDf3c8AddOrw/jW7v1D/7evXidCrJuG9tcnvPaH97c1zap24edJn+JcVPKvPyvYYTv8uLvP/317lb/gHP19/0P2X/7/79POxLaNvK3cY+sRWd/QI7S+2/PnH8fbY//k+iuy92M77bqtAf7/fvf/vAL/Mj3v/P8FgPt39bwNAff/+/86v1cA/9977329iNvUyPP/fO3uXf9WDX5frJb/f9XuP0DB+W/n/5t3d46/bl3kz28fX3/g3/7b1/4BAP97+9T/3x8A+P//j/t7AAC/XH////MHoOvnPb/31/u//wNg/f/tv7vvfwJA/v3d//354gtoH/vj+/2vpJ/t9316D/i+7tUPXbuf/dvy+Tt//szraof6c/yV/J+fEPf6t93Nu374zexm8z88/f8/sPfpfgaulgb+dtXXX9E/86MHz7dv0Z9Ef1l73dM7r72pz306/+D76/YBtP//+nq/twDA/Q9//x///P7/lQAA3LVj7z4/f/sbAADo9vvvnt+4n/8/ANB7//Xb3/8/8P2/ACCEvbs3397/bf/zD0xg+177//v6Xv4ZAvR53vn3p/rr6wE0/9Prc+/Xr0DAu3L/3H/x2C/suAv+o90LHx2Pz0crsd7/7n9z2v8kxMtd9/LL/ezttPm/3U3dmY37f7t7r/vdWclP/LX6469fbf//fT8AeNv//7b/fq/7LwKb/8fvpf///wcAAMf/9/H//X+/AQDcvP31v///f///PikAAL7/+X//+25+/f/LngMA4937/8zf9v//fxEA+Pb77+c81+/+798LwL/t3/7N/fV7/UD//1+33/8w+d/7l9zz/vK/34+/338X5u1/D1M1fER+hxL6u0Xg7Z53F4DZv1V+id5vwUcE3npd9/9XBSn3hpX+s5cv8//PdZ/3cRf77jQZ7sw3Ye/Wn0zvj9bd+3N7723+1zGkf17Xl1sP2P+Dnc577CL/3D12h+/n3+39/0/8oHc7/NvtPdx/qW9w9fs/QCx//3+EV+y33pzmL/LrD7XV66/n7S+M8P9/U/Donbn/tWb/j+eB2RC+fJzB49GcMye8DG3/t/y379+g//8Lv3v+/6M/NcwTzZc3dif71s9sflDsMe18Zxz8+va/X7oPL66to/5/8Px03u//APK/+6L+rz3/vJT2uV+t848/bPIfoO//vwEodwVwNf8D2vvS+se/Px1cOv8z7K+3nP42Up96+r8i5/ef//y7Lx22Bu39Hdd93+8j62bx2X7ADT09v99FyYO60X3QnYd7c8/zn/XDDd/+xbMMAoN56MCuc8cPb339Pwnx/1cB+2L/AbT98zsTsLJD014w//8Pn+vv/gPy7z+J+6k3mZ753iynMzf2wa6BPv4gXffyhdXXaf////8H22///8R/2c7vD7578V7wz/a3//dehO/L198OCP///D/u////E//XD6/9f8e9+h8AAAAAAAAAAAAAAAAAAAAAAABA5zi9M/nrf+3+6H92fPez7/+v/rfYb/+/+/v499tSF/niyIVHdZCQ7+P0nm0/Lu42Bbz38397oD9/ZwVg6766AWbY/D9Y98rfh82/oP/NW7/+/ban7+93nN+3P3f4J538t7XK799a+7bxOewf77/7+38NAP7a+71/Tv8zwFr1v/6fv/9fAAAA+P3K//1v/c8BoP/f8vu/33//2v4PCAi6/7/9etfu6/v5Z0Tgk/+X31ef9/7fCIDf3/7F//73+/8DaPtn+mv/f+Jf//9z/9+H++f966f3fr/H7/Megt//dn7fyXl92r7vmx7gfPt3vof7//8b2/9cP+BP/38OX/93v91P8P/////4D76j3/0c/P3/fR+e+/+93N5vP/u6f9/v+xt97C6Or/fyD3vuz5YdxncH/vX/gtnff+Ze/8fu/u95VprP/1/+Xt5uiej5XvTE5gEAfL5/O9/dndXv6aw0U95z9fdLT3v/nv64bkf7DUX//av++9fp/9337f9//d3rfufP/7fpvZHvdV181wAAAAAAAAAAAAAAAAAAAAAAAID67v/xtHa/7y93tr93v5/9/7+Vrvb/dTt/9af5CgAAAAAAAAAA0PvdKzP2f5qr/fzW5vnrv9/fH/T9pv///0p787d/+f7/tlwd9n//5XsfBCQFvp7549vy3+9v//151vzL/ev/7x8AAAAAAACYSOEXgHRq/gB/bfH9f7jz/h/gdvGW7j97jev9//+ts8vvhH/hqk3wvz+/P/7/69f/3/9/z/v/7YU/17wH/64P/q/9v3bv+rs33H+6o/+291b4YN/nYf/fTPuwRf/tffo//x/8Gv//r+PTx4PfV/t97//veBPA/vdfuzTjXg339u/+178AnfX3995R4P/J/n8DAV/vv/Gfp2Ad7//xDwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgDxN+x/ZOnvj/uk/f9w/AAAAAAAAUB/1B74d/Bv5Hrz/cflvvluWVxub/3/8/y6H56/160/z/d8l59wLRF1HV939P+2Qd399yIr6+vnzKiBL7//1z3nTq6ULeveP+72OHwAAAAAAAPNO/VcaAIisrlR2rRf/zbL/L/SqW//bAgAAAAAAwHPq+T8ujvr/u7x20//+7nJ+vX7353/3/c71DwAAAAAAAACpm9vHpH+RyvjOfnp958e9y67cfv12j9OR83zlAS9Md+1go9sH+F73HYEh4GucMDo73vpTf/XDzWG6BwAAAAAAAAAAAAAAAOAm/r75A7XrbePL6S+c3r+Dn7+r9x/V/9+3/t+u/e//fvv97/+qv24AAAAAAAAAAAAAILbNf56+s2LxWA3xe/3x6f2+w8ZtXz3//2nP//T7+9z3TwAgNxEVAAAAAAAAAAAAAAA="
+          },
+          "han": "zh-Hant",
+          "characterSet": "Big5",
+          "upstreamVersion": "2.004",
+          "upstream": {
+            "repository": "https://github.com/google/fonts",
+            "commit": "38411257417e616c5d4daa1b9e91a3dbcebe1c2e",
+            "path": "ofl/notosanstc/NotoSansTC[wght].ttf",
+            "sha256": "sha256:864727d210d54f2537bbe23b3a839436c3992af72de9322af5270897246bd44f",
+            "project": "https://github.com/notofonts/noto-cjk"
+          },
+          "changes": "Cut from Noto Sans TC 2.004 to the Big5 characters and the punctuation and fullwidth forms Traditional Chinese running text uses, without Latin, Greek and Cyrillic letters; converted to WOFF2. Outlines unchanged.",
+          "licenceFile": "/catalog/packs/fallback-fonts/OFL-noto-cjk.txt"
+        }
+      },
+      "rights": {
+        "works": [
+          {
+            "id": "community/fallback-font/noto-sans-tc",
+            "title": "Noto Sans TC 2.004",
+            "creators": [
+              {
+                "name": "Adobe",
+                "role": "creator"
+              }
+            ],
+            "sourceUrl": "https://github.com/google/fonts/blob/38411257417e616c5d4daa1b9e91a3dbcebe1c2e/ofl/notosanstc/NotoSansTC[wght].ttf",
+            "revision": "38411257417e616c5d4daa1b9e91a3dbcebe1c2e",
+            "rights": [
+              {
+                "assertedBy": "catalog",
+                "declaration": "OFL-1.1",
+                "evidence": "notice-file",
+                "expression": "OFL-1.1",
+                "status": "parsed",
+                "textHash": "sha256:1c05c68c34f9708415aada51f17e1b0092d2cea709bf4a94cd38114f9e73d7d9",
+                "url": "https://openfontlicense.org/open-font-license-official-text/",
+                "version": "1.1"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "community/fallback-font/noto-sans-jp",
+      "name": "Noto Sans JP",
+      "description": "Noto Sans JP 2.004, used only for Japanese characters that a design system's own fonts cannot draw, so an export keeps those words as vector outlines. Downloaded the first time a document needs it, then kept on the device.",
+      "type": "data",
+      "version": "2.4.0",
+      "tier": "on-demand",
+      "tags": [
+        "fallback-font",
+        "japanese"
+      ],
+      "formats": [
+        {
+          "format": "woff2",
+          "url": "/catalog/packs/fallback-fonts/noto-sans-jp.woff2",
+          "checksum": "sha256-HLwN8svjkOgnjovDeZ4MZwrsCy4f83T484CQASRUWTs=",
+          "size": 2200028
+        }
+      ],
+      "license": "OFL-1.1",
+      "attribution": "Copyright 2014-2021 Adobe (http://www.adobe.com/), with Reserved Font Name 'Source'",
+      "meta": {
+        "fallbackFont": {
+          "family": "Noto Sans JP",
+          "label": "Japanese",
+          "scripts": [
+            "Hani",
+            "Hira",
+            "Kana"
+          ],
+          "style": "normal",
+          "weight": "100 900",
+          "claims": "U+B7,U+3001-3003,U+3005-3011,U+3013-301F,U+3021-302D,U+3030-3035,U+3037-303F,U+3041-3096,U+3099-30FF,U+31F0-31FF,U+3231-3232,U+3239,U+32A4-32A8,U+3303,U+330D,U+3314,U+3318,U+3322-3323,U+3326-3327,U+332B,U+3336,U+333B,U+3349-334A,U+334D,U+3351,U+3357,U+337B-337E,U+4E00-9FFF,U+F929,U+F9DC,U+FA0E-FA2D,U+FE45-FE46,U+FF61-FF9F",
+          "covers": "U+A7-A8,U+B0-B1,U+B4,U+B6-B7,U+D7,U+F7,U+2010-2015,U+2018-201A,U+201C-201E,U+2020-2021,U+2025-2026,U+2030,U+2032-2033,U+203B,U+2103,U+2116,U+2121,U+2190-2193,U+21D2,U+21D4,U+2200,U+2202-2203,U+2207-2208,U+220B,U+2211,U+221A,U+221D-2220,U+2225,U+2227-222C,U+222E,U+2234-2235,U+223D,U+2260-2261,U+2266-2267,U+226A-226B,U+2282-2283,U+2286-2287,U+22A5,U+22BF,U+2312,U+2460-2473,U+2500-2503,U+250C,U+250F-2510,U+2513-2514,U+2517-2518,U+251B-251D,U+2520,U+2523-2525,U+2528,U+252B-252C,U+252F-2530,U+2533-2534,U+2537-2538,U+253B-253C,U+253F,U+2542,U+254B,U+25A0-25A1,U+25B2-25B3,U+25BC-25BD,U+25C6-25C7,U+25CB,U+25CE-25CF,U+25EF,U+2605-2606,U+2640,U+2642,U+266A,U+266D,U+266F,U+3000-303F,U+3041-3096,U+3099-30FF,U+31F0-31FF,U+3231-3232,U+3239,U+32A4-32A8,U+3303,U+330D,U+3314,U+3318,U+3322-3323,U+3326-3327,U+332B,U+3336,U+333B,U+3349-334A,U+334D,U+3351,U+3357,U+337B-337E,U+338E-338F,U+339C-339E,U+33A1,U+33C4,U+33CD,U+4E00-9FFF,U+F929,U+F9DC,U+FA0E-FA2D,U+FE10-FE19,U+FE30-FE4F,U+FF01-FF9F,U+FFA1-FFBE,U+FFC2-FFC7,U+FFCA-FFCF,U+FFD2-FFD7,U+FFDA-FFDC,U+FFE0-FFE6,U+FFE8-FFEE",
+          "ideographs": {
+            "range": "U+4E00-9FFF",
+            "bits": "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"
+          },
+          "han": "ja",
+          "characterSet": "Shift_JIS (JIS X 0208 with the Windows additions)",
+          "upstreamVersion": "2.004",
+          "upstream": {
+            "repository": "https://github.com/google/fonts",
+            "commit": "38411257417e616c5d4daa1b9e91a3dbcebe1c2e",
+            "path": "ofl/notosansjp/NotoSansJP[wght].ttf",
+            "sha256": "sha256:c2f3b4d463500a2ddcd3849cded1fceeb9fd6d1c32e6cbecd568453ba50fc68f",
+            "project": "https://github.com/notofonts/noto-cjk"
+          },
+          "changes": "Cut from Noto Sans JP 2.004 to the Shift_JIS (JIS X 0208 with the Windows additions) characters and the punctuation and fullwidth forms Japanese running text uses, without Latin, Greek and Cyrillic letters; converted to WOFF2. Outlines unchanged.",
+          "licenceFile": "/catalog/packs/fallback-fonts/OFL-noto-cjk.txt"
+        }
+      },
+      "rights": {
+        "works": [
+          {
+            "id": "community/fallback-font/noto-sans-jp",
+            "title": "Noto Sans JP 2.004",
+            "creators": [
+              {
+                "name": "Adobe",
+                "role": "creator"
+              }
+            ],
+            "sourceUrl": "https://github.com/google/fonts/blob/38411257417e616c5d4daa1b9e91a3dbcebe1c2e/ofl/notosansjp/NotoSansJP[wght].ttf",
+            "revision": "38411257417e616c5d4daa1b9e91a3dbcebe1c2e",
+            "rights": [
+              {
+                "assertedBy": "catalog",
+                "declaration": "OFL-1.1",
+                "evidence": "notice-file",
+                "expression": "OFL-1.1",
+                "status": "parsed",
+                "textHash": "sha256:1c05c68c34f9708415aada51f17e1b0092d2cea709bf4a94cd38114f9e73d7d9",
+                "url": "https://openfontlicense.org/open-font-license-official-text/",
+                "version": "1.1"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "community/fallback-font/noto-sans-kr",
+      "name": "Noto Sans KR",
+      "description": "Noto Sans KR 2.004, used only for Korean characters that a design system's own fonts cannot draw, so an export keeps those words as vector outlines. Downloaded the first time a document needs it, then kept on the device.",
+      "type": "data",
+      "version": "2.4.0",
+      "tier": "on-demand",
+      "tags": [
+        "fallback-font",
+        "korean"
+      ],
+      "formats": [
+        {
+          "format": "woff2",
+          "url": "/catalog/packs/fallback-fonts/noto-sans-kr.woff2",
+          "checksum": "sha256-OwQjPLq1KRmCcLU1jsB8FSJ/S59FCEl5g78wL1PGpqk=",
+          "size": 2506024
+        }
+      ],
+      "license": "OFL-1.1",
+      "attribution": "Copyright 2014-2021 Adobe (http://www.adobe.com/), with Reserved Font Name 'Source'",
+      "meta": {
+        "fallbackFont": {
+          "family": "Noto Sans KR",
+          "label": "Korean",
+          "scripts": [
+            "Hang",
+            "Hani"
+          ],
+          "style": "normal",
+          "weight": "100 900",
+          "claims": "U+B7,U+3001-3003,U+3005-3011,U+3013-301F,U+3021-3030,U+3037-303F,U+3131-318E,U+3200-321C,U+3260-327B,U+4E00-9FFF,U+AC00-D7A3,U+F900-F95E,U+F960-F9A9,U+F9AB-FA0B,U+FE45-FE46,U+FF61-FF65,U+FFA0-FFBE,U+FFC2-FFC7,U+FFCA-FFCF,U+FFD2-FFD7,U+FFDA-FFDC",
+          "covers": "U+A1,U+A4,U+A7-A8,U+AD-AE,U+B0-B4,U+B6-B9,U+BC-BF,U+D7,U+F7,U+2C7,U+2D9,U+2010-2015,U+2018-201A,U+201C-201E,U+2020-2021,U+2025-2026,U+2030,U+2032-2033,U+203B,U+2074,U+20AC,U+2103,U+2109,U+2113,U+2116,U+2121-2122,U+2190-2199,U+21D2,U+21D4,U+2200,U+2202-2203,U+2207-2208,U+220B,U+220F,U+2211,U+221A,U+221D-221E,U+2220,U+2225,U+2227-222C,U+222E,U+2234-2235,U+223D,U+2260-2261,U+2264-2265,U+226A-226B,U+2282-2283,U+2286-2287,U+2299,U+22A5,U+2312,U+2460-246E,U+2474-2482,U+249C-24B5,U+24D0-24E9,U+2500-2503,U+250C-254B,U+2592,U+25A0-25A1,U+25A3-25A9,U+25B2-25B3,U+25B6-25B7,U+25BC-25BD,U+25C0-25C1,U+25C6-25C7,U+25CB,U+25CE-25D1,U+2605-2606,U+260E-260F,U+261C,U+261E,U+2640,U+2642,U+2660-2661,U+2663-2665,U+2667-266A,U+266C-266D,U+3000-303F,U+3041-3093,U+30A1-30F6,U+3131-318E,U+3200-321C,U+3260-327B,U+327F,U+3380-3384,U+3388-33CA,U+33CF-33D0,U+33D3,U+33D6,U+33D8,U+33DB-33DD,U+4E00-9FFF,U+AC00-D7A3,U+F900-F95E,U+F960-F9A9,U+F9AB-FA0B,U+FE10-FE19,U+FE30-FE4F,U+FF01-FFBE,U+FFC2-FFC7,U+FFCA-FFCF,U+FFD2-FFD7,U+FFDA-FFDC,U+FFE0-FFE6,U+FFE8-FFEE",
+          "ideographs": {
+            "range": "U+4E00-9FFF",
+            "bits": "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"
+          },
+          "han": "ko",
+          "characterSet": "KS X 1001 and every Hangul syllable",
+          "upstreamVersion": "2.004",
+          "upstream": {
+            "repository": "https://github.com/google/fonts",
+            "commit": "38411257417e616c5d4daa1b9e91a3dbcebe1c2e",
+            "path": "ofl/notosanskr/NotoSansKR[wght].ttf",
+            "sha256": "sha256:194018e6b2b293a7964f037b25c0249ce1418bc9ab3c971060a03aa57861e252",
+            "project": "https://github.com/notofonts/noto-cjk"
+          },
+          "changes": "Cut from Noto Sans KR 2.004 to the KS X 1001 and every Hangul syllable characters and the punctuation and fullwidth forms Korean running text uses, without Latin, Greek and Cyrillic letters; converted to WOFF2. Outlines unchanged.",
+          "licenceFile": "/catalog/packs/fallback-fonts/OFL-noto-cjk.txt"
+        }
+      },
+      "rights": {
+        "works": [
+          {
+            "id": "community/fallback-font/noto-sans-kr",
+            "title": "Noto Sans KR 2.004",
+            "creators": [
+              {
+                "name": "Adobe",
+                "role": "creator"
+              }
+            ],
+            "sourceUrl": "https://github.com/google/fonts/blob/38411257417e616c5d4daa1b9e91a3dbcebe1c2e/ofl/notosanskr/NotoSansKR[wght].ttf",
+            "revision": "38411257417e616c5d4daa1b9e91a3dbcebe1c2e",
+            "rights": [
+              {
+                "assertedBy": "catalog",
+                "declaration": "OFL-1.1",
+                "evidence": "notice-file",
+                "expression": "OFL-1.1",
+                "status": "parsed",
+                "textHash": "sha256:1c05c68c34f9708415aada51f17e1b0092d2cea709bf4a94cd38114f9e73d7d9",
+                "url": "https://openfontlicense.org/open-font-license-official-text/",
+                "version": "1.1"
+              }
+            ]
+          }
+        ]
+      }
     }
   ]
 }

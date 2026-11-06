@@ -27,9 +27,11 @@ const packs = fallbackPacksFrom(index.assets);
 const pack = (label: string, style = 'normal'): FallbackFontPack => packs.find((p) => p.label === label && p.style === style)!;
 const set = (s: string): Set<number> => new Set([...s].map((c) => c.codePointAt(0)!));
 
-test('the shipped index lists eleven OFL fonts whose files match their records', () => {
-  assert.equal(packs.length, 11);
-  assert.deepEqual([...new Set(packs.map((p) => p.label))].sort(), ['Arabic', 'Bengali', 'Cyrillic', 'Devanagari', 'Greek', 'Hebrew', 'Latin', 'Thai']);
+test('the shipped index lists fifteen OFL fonts whose files match their records', () => {
+  assert.equal(packs.length, 15);
+  assert.deepEqual([...new Set(packs.map((p) => p.label))].sort(), [
+    'Arabic', 'Bengali', 'Cyrillic', 'Devanagari', 'Greek', 'Hebrew', 'Japanese', 'Korean', 'Latin', 'Simplified Chinese', 'Thai', 'Traditional Chinese',
+  ]);
   for (const entry of index.assets) {
     assert.equal(entry.tier, 'on-demand', entry.id);
     assert.equal(entry.license, 'OFL-1.1', entry.id);
@@ -85,7 +87,7 @@ test('uncovered clusters carry their script, and a split cluster counts as uncov
   assert.deepEqual(uncoveredClusters('é', [set('é')]), []);
 });
 
-test('the pack made for a script is chosen, italic where one exists, and CJK is left unfilled', () => {
+test('the pack made for a script is chosen, italic where one exists, and a script with no pack is left unfilled', () => {
   const brand = set('abcdefghijklmnopqrstuvwxyz 0123456789.,');
   const cyr = choosePacks(uncoveredClusters('Привет', [brand]), packs, false);
   assert.deepEqual(cyr.packs.map((p) => p.id), ['community/fallback-font/noto-sans-cyrillic']);
@@ -95,9 +97,9 @@ test('the pack made for a script is chosen, italic where one exists, and CJK is 
   assert.deepEqual(arabItalic.packs.map((p) => p.id), ['community/fallback-font/noto-sans-arabic'], 'Arabic has no italic, so the upright file');
   const mixed = choosePacks(uncoveredClusters('Привет مرحبا שלום', [brand]), packs, false);
   assert.deepEqual(mixed.packs.map((p) => p.label), ['Cyrillic', 'Arabic', 'Hebrew'], 'in the order first needed');
-  const cjk = choosePacks(uncoveredClusters('漢字 かな 한글', [brand]), packs, false);
-  assert.deepEqual(cjk.packs, []);
-  assert.equal(cjk.unfilled.map((c) => c.text).join(''), '漢字かな한글');
+  const tamil = choosePacks(uncoveredClusters('தமிழ் ኢትዮጵያ', [brand]), packs, false);
+  assert.deepEqual(tamil.packs, []);
+  assert.equal(tamil.unfilled.map((c) => c.text).join(''), 'தமிழ்ኢትዮጵያ');
 });
 
 test('a fill face takes only the clusters the faces before it cannot draw', () => {
@@ -137,7 +139,7 @@ test('weight variations clamp to the file axis', () => {
 });
 
 test('the Node shells find every pack on disk', () => {
-  assert.equal(diskFallbackPacks().length, 11);
+  assert.equal(diskFallbackPacks().length, 15);
 });
 
 test('real shaping: a fill face draws Arabic, and Latin keeps the bytes it had', async () => {
@@ -168,5 +170,5 @@ test('nodeFillChain adds the pack only for what the brand lacks, and names it', 
   const ar = await nodeFillChain(characters, chain, [], 'مرحبا 2024', { weight: 700, italic: false });
   assert.deepEqual(ar?.uses, [{ label: 'Arabic', family: 'Noto Sans Arabic' }]);
   assert.deepEqual(ar?.fallbacks, [{ fontUrl: pack('Arabic').url, variations: ['wght=700'], fill: true }]);
-  assert.equal(await nodeFillChain(characters, chain, [], '漢字', { weight: 400, italic: false }), null, 'no pack for CJK yet');
+  assert.equal(await nodeFillChain(characters, chain, [], 'தமிழ்', { weight: 400, italic: false }), null, 'no pack for Tamil yet');
 });

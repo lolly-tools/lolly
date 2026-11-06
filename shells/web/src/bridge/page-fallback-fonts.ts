@@ -20,10 +20,16 @@
  * happens, the CSP needs nothing new (`font-src` already allows `blob:`), and the
  * service worker is not involved. The registry that outlines exports reads stylesheet
  * `@font-face` rules only, so these FontFace objects never become a design system face.
+ *
+ * Chinese, Japanese and Korean text is grouped by the font its export would draw the Han
+ * characters with (fallback-fonts.ts `hanForms`, read per text node with the export's
+ * own inputs: the node's `lang` and the canvas's text), so the page registers the same
+ * one. A canvas holding two of those languages lists both fonts in one family stack, and
+ * the browser draws every Han character with the first; its export draws each run's own.
  */
-import type { FallbackFontPack } from '@lolly-tools/node-shell/fallback-fonts';
+import { hanEvidence, hanForms, hasCjk, runLang, type FallbackFontPack, type HanForm } from '@lolly-tools/node-shell/fallback-fonts';
 import { PAGE_FALLBACK_FAMILY } from './fallback-font-source.ts';
-import { fallbackPackUrl, packsForText, packsGeneration } from './font-fill.ts';
+import { fallbackPackUrl, fallbackPacks, packsForText, packsGeneration } from './font-fill.ts';
 import type { FontStyleSlice } from './text-svg.ts';
 
 /** The font variables tool styles take their families from (brand-vars.ts FONT_SLOTS). */
@@ -38,13 +44,13 @@ const faces = new Map<string, Promise<boolean>>();
 /** A repaint that changes no text (a zoom, a selection) asks the same question again. */
 const answers = new Map<string, Promise<FallbackFontPack[]>>();
 const MAX_ANSWERS = 64;
-function packsFor(style: FontStyleSlice, text: string): Promise<FallbackFontPack[]> {
+function packsFor(style: FontStyleSlice, text: string, han: readonly HanForm[]): Promise<FallbackFontPack[]> {
   // Keyed by the catalog's generation too, so an answer given before the catalog's
   // fallback fonts were known is asked again once they are.
-  const key = `${packsGeneration()}\u0000${style.fontFamily}\u0000${style.fontWeight}\u0000${style.fontStyle}\u0000${text}`;
+  const key = `${packsGeneration()}\u0000${style.fontFamily}\u0000${style.fontWeight}\u0000${style.fontStyle}\u0000${han.join()}\u0000${text}`;
   let hit = answers.get(key);
   if (!hit) {
-    hit = packsForText(style, text);
+    hit = packsForText(style, text, han);
     answers.set(key, hit);
     if (answers.size > MAX_ANSWERS) answers.delete(answers.keys().next().value!);
   }
@@ -84,22 +90,35 @@ export function withFallbackFamilies(stack: string, families: readonly string[])
   return next.join(', ');
 }
 
-/** The canvas's rendered text, grouped by the computed font it is set in. */
-function textByStyle(root: Element): Array<{ style: FontStyleSlice; text: string }> {
-  const groups = new Map<string, { style: FontStyleSlice; text: string }>();
+/**
+ * The canvas's rendered text, grouped by the computed font it is set in and, for Chinese,
+ * Japanese and Korean, by the font its export would draw the Han characters with.
+ */
+async function textByStyle(root: Element): Promise<Array<{ style: FontStyleSlice; text: string; han: readonly HanForm[] }>> {
+  const nodes: Array<{ parent: Element; data: string }> = [];
   const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
   for (let node = walker.nextNode(); node; node = walker.nextNode()) {
     const data = (node as Text).data;
     if (ASCII.test(data)) continue;
     const parent = node.parentElement;
     if (!parent || parent.closest('script,style,template,noscript,textarea') || SKIP_TAGS.has(parent.tagName)) continue;
+    nodes.push({ parent, data });
+  }
+  // The same inputs an export reads (font-fill.ts resolveExportFont): the node's `lang`,
+  // its text and the whole canvas's text. Read only when some text could need them.
+  const cjk = nodes.some((n) => hasCjk(n.data));
+  const packs = cjk ? await fallbackPacks() : [];
+  const evidence = cjk ? hanEvidence(root.textContent ?? '', packs) : null;
+  const groups = new Map<string, { style: FontStyleSlice; text: string; han: readonly HanForm[] }>();
+  for (const { parent, data } of nodes) {
     const cs = getComputedStyle(parent);
     // The stack is read without this module's own families, so the answer does not
     // depend on whether they were added on the last check.
     const fontFamily = withFallbackFamilies(cs.fontFamily, []);
-    const key = `${fontFamily}\u0000${cs.fontWeight}\u0000${cs.fontStyle}`;
+    const han = cjk && hasCjk(data) ? hanForms({ lang: runLang(parent), text: data, document: evidence }, packs) : [];
+    const key = `${fontFamily}\u0000${cs.fontWeight}\u0000${cs.fontStyle}\u0000${han.join()}`;
     let group = groups.get(key);
-    if (!group) { group = { style: { fontFamily, fontWeight: cs.fontWeight, fontStyle: cs.fontStyle }, text: '' }; groups.set(key, group); }
+    if (!group) { group = { style: { fontFamily, fontWeight: cs.fontWeight, fontStyle: cs.fontStyle }, text: '', han }; groups.set(key, group); }
     if (group.text.length < MAX_TEXT_PER_STYLE) group.text += `${data}\n`;
   }
   return [...groups.values()];
@@ -112,8 +131,8 @@ function textByStyle(root: Element): Array<{ style: FontStyleSlice; text: string
  */
 export async function syncPageFallbackFonts(root: Element, scope: string): Promise<boolean> {
   const wanted: FallbackFontPack[] = [];
-  for (const group of textByStyle(root)) {
-    for (const pack of await packsFor(group.style, group.text)) {
+  for (const group of await textByStyle(root)) {
+    for (const pack of await packsFor(group.style, group.text, group.han)) {
       if (!wanted.some((p) => p.id === pack.id)) wanted.push(pack);
     }
   }
