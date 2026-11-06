@@ -51,6 +51,8 @@ async function rasterizeToPng(src: string): Promise<string> {
   return canvas.toDataURL('image/png');
 }
 
+const PROBE_PIXELS = 4_000_000;
+
 /**
  * The pixels of a `<canvas>` as a PNG data URL, for the walker to place on the element's
  * box, or null when there is nothing to place.
@@ -66,15 +68,18 @@ async function rasterizeToPng(src: string): Promise<string> {
  * another origin's pixels have tainted is left out with a warning, as there.
  */
 export function canvasPicture(canvas: HTMLCanvasElement): string | null {
-  const w = canvas.width, h = canvas.height;
-  if (!(w > 0 && h > 0)) return null;
+  if (!(canvas.width > 0 && canvas.height > 0)) return null;
+  // The transparency probe reads at most about four million pixels: a larger canvas is
+  // looked at scaled down, which is all a yes or no about any ink at all needs.
+  const k = Math.min(1, Math.sqrt(PROBE_PIXELS / (canvas.width * canvas.height)));
+  const w = Math.max(1, Math.round(canvas.width * k)), h = Math.max(1, Math.round(canvas.height * k));
   try {
     const probe = document.createElement('canvas');
     probe.width = w;
     probe.height = h;
     const g = probe.getContext('2d', { willReadFrequently: true });
     if (!g) return null;
-    g.drawImage(canvas, 0, 0);
+    g.drawImage(canvas, 0, 0, w, h);
     const px = g.getImageData(0, 0, w, h).data;
     let painted = false;
     for (let i = 3; i < px.length; i += 4) if (px[i] !== 0) { painted = true; break; }
