@@ -176,7 +176,7 @@ test('colour roles first draws the declared roles in brand order, in the piece\'
 
 test('Lolly Demo leads with Lead and Partner, and leaves Paper and Ink to the ground and the words', async () => {
   const doc = DEMO();
-  for (const selection of [{ '': 'light' }, { '': 'dark', colourway: 'midnight' }]) {
+  for (const selection of [{ '': 'light' }, { '': 'dark', colourway: 'midnight' }] as Array<Record<string, string>>) {
     const host = await cli(doc, selection);
     const rt = await mount(host, { ...SIX, palette: 'roles' }, selection);
     const lead = hex(doc, 'color.semantic.primary', { selection }), partner = hex(doc, 'color.semantic.secondary', { selection });
@@ -189,7 +189,7 @@ test('Lolly Demo leads with Lead and Partner, and leaves Paper and Ink to the gr
 
 test('SUSE leads with Primary accent, Supporting accent and Warm accent', { skip: !existsSync(SUSE_TOKENS) && 'brands/suse is not mounted on this machine' }, async () => {
   const doc = JSON.parse(readFileSync(SUSE_TOKENS, 'utf8')) as Rec;
-  for (const selection of [{ '': 'light' }, { '': 'dark', colourway: 'waterhole' }]) {
+  for (const selection of [{ '': 'light' }, { '': 'dark', colourway: 'waterhole' }] as Array<Record<string, string>>) {
     const host = await cli(doc, selection);
     const rt = await mount(host, { ...SIX, palette: 'roles' }, selection);
     const want = [...new Set(['primary', 'secondary', 'warm-accent'].map(id => hex(doc, `color.semantic.${id}`, { selection })))];
