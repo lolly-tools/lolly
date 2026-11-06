@@ -167054,6 +167054,15 @@ var init_webgpu_launch = __esm({
   }
 });
 
+// packages/node-shell/src/canvas-launch.ts
+var CPU_CANVAS_ARGS;
+var init_canvas_launch = __esm({
+  "packages/node-shell/src/canvas-launch.ts"() {
+    "use strict";
+    CPU_CANVAS_ARGS = Object.freeze(["--disable-accelerated-2d-canvas"]);
+  }
+});
+
 // packages/node-shell/src/production-browser.ts
 import { createHash as createHash5 } from "node:crypto";
 async function observeProductionInputs(page3, toolId, ids2) {
@@ -171770,7 +171779,7 @@ function resolveBrowsersDir() {
 function chromiumLaunchArgs(graphics = "software", platform = process.platform) {
   return [
     "--no-sandbox",
-    ...graphics === "software" ? ["--use-angle=swiftshader"] : [],
+    ...graphics === "software" ? ["--use-angle=swiftshader", ...CPU_CANVAS_ARGS] : [],
     "--enable-unsafe-swiftshader",
     ...webGpuLaunchArgs(graphics, platform),
     "--force-color-profile=srgb",
@@ -171817,6 +171826,7 @@ var init_browsers = __esm({
     "use strict";
     init_repo_root();
     init_webgpu_launch();
+    init_canvas_launch();
     INSTALL_BROWSERS_DIR = join16(repoRoot(), ".browsers");
     SIBLING_BROWSERS_DIR = join16(repoRoot(), "services", "mcp", ".browsers");
     BrowserError = class extends Error {
@@ -182887,6 +182897,7 @@ function needsBrowserTier(err) {
 
 // services/mcp/src/render.ts
 init_webgpu_launch();
+init_canvas_launch();
 init_production_browser();
 init_export_wait();
 init_export_lock();
@@ -189949,6 +189960,9 @@ function browserLaunchArgs(env = process.env) {
     // The web shell requires a WebGPU adapter (plan 295). A hosted renderer has no
     // GPU to offer one, so the shared flags name SwiftShader (webgpu-launch.ts).
     ...webGpuLaunchArgs("software"),
+    // Every 2D canvas on the CPU, so the same render gives the same pixels and so the
+    // same bytes (packages/node-shell/src/canvas-launch.ts says why).
+    ...CPU_CANVAS_ARGS,
     "--force-color-profile=srgb",
     "--font-render-hinting=none"
   ];
