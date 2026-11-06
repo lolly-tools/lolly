@@ -29,7 +29,7 @@ you out.
 
 In the console, open **Partner programmes**, type a name such as "Resellers, EMEA" and press
 **Create programme**. The id comes from the name and never changes, so the group stays the same
-when you rename the programme later. On the programme's page, **Owning team** names the group
+when you rename the programme later. On the programme's page, **Owning team** is the group
 inside your organisation that runs the programme; when a partnership ends, its people's projects
 go to that team.
 
