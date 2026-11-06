@@ -157,7 +157,7 @@ sequence only ever rises, so clients accept a rollback.
 |---|---|---|
 | The web app this instance serves | any | Verified with this instance's key. Refreshes on focus and reconnect. |
 | A desktop or mobile app built with this instance's key | any | Verified the same way. |
-| A store desktop or mobile app connected by address | signing with its own key | Refuses this instance's catalogue, with or without an edit, because the app keeps the key built into it. See [Operations](operations.md). Pairing an app with a server, which is planned, is the later fix. |
+| A store desktop or mobile app connected by address | signing with its own key | Refuses this instance's catalogue, with or without an edit, because the app keeps its built-in key. See [Operations](operations.md). Pairing an app with a server, which is planned, is the later fix. |
 | An app holding this design system as a hosted record | open, or signed in | Gets the edit at its next check, at most daily, or from **Check for updates**. |
 | An app holding this design system as a hosted record | gated, not signed in | Stays on the old colours and shows that an update is waiting. |
 
@@ -167,7 +167,7 @@ that route, so Lolly compares the tokens with the catalogue's checksum and the r
 ### Edits and the connect download
 
 A connect pack holds a copy of the tokens, so the pack you uploaded no longer matches once an edit is
-live. Offering it would put the old colours back on every device that imports it.
+live. Offering that pack would put the old colours back on every device that imports the pack.
 
 - **A pack this instance's key signed** carries the edit in a derived copy: the token document changes,
   Lolly Work signs the result with the same key and every other part keeps its bytes. The pack you uploaded is
