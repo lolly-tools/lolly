@@ -16,6 +16,7 @@ import { wantsDeepExport, hdrTune } from './export-deep-choice.ts';
  * every format (raster, SVG walker, PDF) sees the identical mark.
  */
 
+import { assertPdfCameOutLocked, assertStandardPasswordFits, standardPdfEncryption } from './export-password-lock.ts';
 import { LOSSLESS_STRENGTH, C2PA_FORMATS, embedWavInfo, writeDocx, writeOdt, hdrBoostToPQ, pqBt2020IccProfile, iccProfileBytes, HDR_PQ_CICP, packTiff, CSS_DPI, encodeBmp, cmykCondition, toPixels, parseDimension, toCssLength, gzip, emitEmf, emitWmf, emitEps, emitDxf, toPoints, exportActionSteps, embedC2pa, ENGINE_VERSION, separationLattice, buildExportMeta, SCREEN_SOURCE_TYPE, CAPTURE_SOURCE_TYPE, extractC2paStore, roundedRectPath, splitCssArgs, insetCorners, uniformRadius, parseCssMatrix, isAxisAlignedMat, isNonAffineTransform, parseClipShape, parseBoxShadow, gaussianShadowBands, parseTextShadow, videoProvenanceTags, embedMp4Meta, embedWebmMeta, hdrViewTransform, fromU8Srgb, pqToI420P10, pqEncodeFrame, packApng, packWebpAnim } from '@lolly/engine';
 import type { Mat2D, SeparateRgb } from '@lolly/engine';
 import { letterSpacingPx, featureSettingsToHb, canVectoriseText, textBaselineY } from './text-svg.ts';
@@ -367,6 +368,7 @@ async function renderPreparedFormat(node: Element, format: string, opts: ExportO
   // song the sequence mix played). A caller's own filled list is kept.
   if (opts.c2pa) opts._sourceIngredientSink ??= [];
   const blob = await renderFormatDispatch(node, format, opts);
+  await assertPdfCameOutLocked(blob, format, opts);
   const key = format === 'webm' || format === 'mp4'
     ? (blob.type.includes('mp4') ? 'mp4' : 'webm')
     : format === 'webp-anim' ? 'webp'          // animated WebP stamps like a still WebP (placeWebp appends a C2PA RIFF chunk)
@@ -554,6 +556,7 @@ async function renderSequenceCutSheet(node: Element, format: string, opts: Expor
 }
 
 async function renderFormatDispatch(node: Element, format: string, opts: ExportOpts = {}): Promise<Blob> {
+  assertStandardPasswordFits(format, opts);
   const request = sequenceExportRequest(node, format, opts, isSequenceStage(node));
   opts = request.opts;
   if (request.samples) return renderSequenceCutSheet(node, format, opts);
@@ -1752,9 +1755,7 @@ async function renderArtworkPdf(node: Element, opts: ExportOpts, geo: PrintGeome
   // a later pdf-lib pass, which can't reopen an encrypted PDF, so the two are
   // mutually exclusive (the UI hides the password field when marks/bleed are on).
   // `undefined` is a no-op (the document ships unencrypted).
-  const encryption = (opts.password && !geo)
-    ? { userPassword: opts.password, ownerPassword: opts.password, userPermissions: ['print'] }
-    : undefined;
+  const encryption = standardPdfEncryption(opts, geo);
   const pdf = await createPdfDoc({ format: [pageW, pageH], orientation, encryption,
     fontSubset: async (bytes, glyphs) => (await import('./font-subset.ts')).subsetFont(bytes, glyphs, opts.signal),
   });
@@ -2255,9 +2256,7 @@ async function renderMultiPagePdf(pageEls: Element[], opts: ExportOpts, prepare?
   // Lock on open with the standard security handler. An encrypted document and
   // the pdf-lib marks pass are mutually exclusive, so encrypt ONLY when there is
   // no geometry (mirrors renderArtworkPdf). undefined is a no-op (unencrypted).
-  const encryption = (opts.password && !hasGeo)
-    ? { userPassword: opts.password, ownerPassword: opts.password, userPermissions: ['print'] }
-    : undefined;
+  const encryption = standardPdfEncryption(opts, hasGeo);
   const geos: (PrintGeometry | null)[] = [];
   prepare?.(0);
   const first = sizeOf(pageEls[0]!);

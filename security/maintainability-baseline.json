@@ -28,10 +28,10 @@
       "typeEscapes": 17
     },
     "shells/web/src/bridge/export.ts": {
-      "lines": 3743,
+      "lines": 3742,
       "largestFunctionLines": 628,
       "importFanIn": 26,
-      "importFanOut": 75,
+      "importFanOut": 76,
       "typeEscapes": 37
     },
     "shells/web/src/bridge/sequence-render.ts": {

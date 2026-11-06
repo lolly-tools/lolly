@@ -365,6 +365,23 @@ This server's credentials are self-signed. Passing `intent` with no `c2pa` adds 
 
 The [hot-link render URL](#hot-link-render-urls) ignores `c2pa`: Content Credentials are always off there.
 
+### A password on a render
+
+`lolly_render` takes `password`. It locks a `pdf` with 40-bit RC4 and a `zip` with ZipCrypto. Both deter casual opening and do not protect confidential files. The web shell receives the password over a one-time browser binding, so it never goes into an address, a request or a log. It is not part of the `Edit:` link.
+
+The server reads every locked file back before it returns the file. The result has a `Password:` line, such as `Password: this file opens with the password you gave, read back from the file (40-bit RC4).` A ZIP's line says only that the file is encrypted, because the check reads each member's encryption flag and does not try the password. If a file comes back unlocked, the call fails and you get no file.
+
+| You ask for | What happens |
+|---|---|
+| `pdf` | The PDF opens only with that password. A wrong password is refused. It holds no Content Credential, because encrypted bytes cannot take one, and the result says so when you also pass a `c2pa` lifetime. |
+| `zip` | Every member is locked. Any PDF inside is also locked with AES-256 on its own. |
+| Any other format, including `svg`, `png`, `pdf-cmyk` and `cmyk-tiff` | The call fails. You get no file. |
+| `pdf` with `bleed` or `marks` | The call fails. You get no file. |
+| `pdf` with a password beyond plain ASCII | The call fails. You get no file, because readers cannot open a file locked that way at this tier. |
+| The [hot-link render URL](#hot-link-render-urls) with `password` in its query | The route answers 400. Take the password out of the address: a URL reaches logs and caches. |
+
+Only the first 32 characters of a PDF password count. From v1.0.7 to v1.1.3 a `pdf` rendered on the browser tier with `password` came back unprotected, with nothing said, so a PDF from those versions is not locked even though you asked for a password.
+
 ### Emoji: name the set you want drawn
 
 Emoji in a render are drawn from a set somebody chose, never from the machine the server happens to run on. `lolly_render` and `lolly_build_url` both take two optional arguments for that choice and read them the same way, so a link and the file it renders agree:

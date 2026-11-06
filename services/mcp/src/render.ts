@@ -37,6 +37,7 @@ import { needsBrowserTier } from '@lolly-tools/node-shell/browser-tier';
 import { webGpuLaunchArgs } from '@lolly-tools/node-shell/webgpu-launch';
 import { observeProductionInputs } from '@lolly-tools/node-shell/production-browser';
 import { waitForExport, type ExportWait } from '@lolly-tools/node-shell/export-wait';
+import { assertExportLocked, exportPasswordRefusal, exposeExportPassword, type ExportLockReading } from '@lolly-tools/node-shell/export-lock';
 import { checksInOpenedPage, openSessionInPage, OpenSessionError, packageDesignSession, sessionQuery, shortenUrls } from '@lolly-tools/node-shell/open-session';
 import { readFile, stat } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
@@ -187,6 +188,8 @@ export interface RenderResult {
   credentialFromIntent?: boolean;
   /** What an explicit `c2pa` asked for and what the delivered bytes hold. Absent when the caller did not name `c2pa`. */
   credential?: CredentialReadback;
+  /** The password lock read back from the delivered bytes. Absent when no password was asked for. */
+  lock?: ExportLockReading;
 }
 
 /** What an explicit `c2pa` asked for, against what the delivered file holds. */
@@ -218,6 +221,14 @@ async function readBackCredential(bytes: Uint8Array, setting: { on: boolean; day
   } catch {
     return { asked, holds: 'unread', days: null, selfSigned: false };
   }
+}
+
+/** The line a `lolly_render` result prints when a password was asked for. Empty when none was. */
+export function lockText(lock: ExportLockReading | null | undefined): string {
+  if (!lock) return '';
+  const how = lock.opens ? 'opens with the password you gave, read back from the file' : 'is encrypted, read back from the file';
+  const weak = lock.scheme === '40-bit RC4' ? ' That is a deterrent, not protection for confidential files.' : '';
+  return `Password: this file ${how} (${lock.scheme}).${weak}`;
 }
 
 /** The line a `lolly_render` result prints when the caller named `c2pa`. Empty when it did not. */
@@ -947,24 +958,7 @@ export function exportUrl(base: string, toolId: string, query: string, fmt: stri
   return tmpl.replace('{id}', encodeURIComponent(toolId)).replace('{query}', q);
 }
 
-type ExportSecretContext = Pick<import('playwright-core').BrowserContext, 'exposeBinding'>;
-
-/** Publish a PDF password as a one-shot browser-context RPC. It never enters
- * navigation, request headers, console output, or an init-script literal. */
-export async function exposeExportPassword(
-  context: ExportSecretContext,
-  password: string | undefined,
-): Promise<() => void> {
-  let held = password || undefined;
-  if (!held) return () => {};
-  await context.exposeBinding('__lollyTakeExportSecret', (_source, kind: unknown) => {
-    if (kind !== 'pdf-password') return null;
-    const value = held ?? null;
-    held = undefined;
-    return value;
-  });
-  return () => { held = undefined; };
-}
+export { exposeExportPassword };
 
 /**
  * Tier B render - the full browser export pipeline (M1). Serves/points at a real
@@ -998,7 +992,7 @@ async function renderTierB(
     await ctx.addInitScript(() => {
       Object.defineProperty(globalThis, '__LOLLY_AI_DISABLED__', { value: true, writable: false, configurable: false });
     });
-    clearPassword = await exposeExportPassword(ctx, fmt === 'pdf' ? o.password : undefined);
+    clearPassword = await exposeExportPassword(ctx, o.password);
     const page = await ctx.newPage();
     const inputIds = o.production === undefined ? [] : parseProductionSpec(o.production).requirements.filter(r => r.kind === 'input').map(r => r.location);
     const observeInputs = await observeProductionInputs(page, toolId, inputIds);
@@ -1197,7 +1191,7 @@ export async function render(toolId: string, query: string, o: RenderOpts = {}):
   const last = run.attempts.at(-1)!;
   try { await requireProduction(last.report, last.bytes, contract); }
   catch (error) { if (error instanceof Error) Object.assign(error, { attempts: run.attempts.map(a => a.report) }); throw error; }
-  return { bytes: last.bytes, mime: last.mime, format: last.format, tier: last.tier, warnings: last.warnings, ...(last.rights ? { rights: last.rights } : {}), ...(last.audio ? { audio: last.audio } : {}), ...(last.audioFailures ? { audioFailures: last.audioFailures } : {}), ...(last.songs ? { songs: last.songs } : {}), ...(last.designRecord ? { designRecord: last.designRecord } : {}), ...(last.intentRecord ? { intentRecord: last.intentRecord } : {}), ...(last.credential ? { credential: last.credential } : {}), production: last.report, productionAttempts: run.attempts.map(a => a.report) };
+  return { bytes: last.bytes, mime: last.mime, format: last.format, tier: last.tier, warnings: last.warnings, ...(last.rights ? { rights: last.rights } : {}), ...(last.audio ? { audio: last.audio } : {}), ...(last.audioFailures ? { audioFailures: last.audioFailures } : {}), ...(last.songs ? { songs: last.songs } : {}), ...(last.designRecord ? { designRecord: last.designRecord } : {}), ...(last.intentRecord ? { intentRecord: last.intentRecord } : {}), ...(last.credential ? { credential: last.credential } : {}), ...(last.lock ? { lock: last.lock } : {}), production: last.report, productionAttempts: run.attempts.map(a => a.report) };
 }
 
 /** One candidate render as one request scope: its songs share the caps and one time budget. */
@@ -1260,11 +1254,12 @@ async function renderCandidateBytes(toolId: string, query: string, o: RenderOpts
   // file, the editable link and the browser tier's URL alike.
   const emoji: EmojiRequest = { emoji: st.emoji, emojifx: st.emojiFx, emojistyle: st.emojiStyle };
   const warnings: string[] = [];
-  // Open-password is only wired through for standard `pdf` (via the one-shot
-  // browser binding); the
-  // CMYK press path drops it, so the returned PDF would be UNprotected. Report it.
-  if (merged.password && exportFmt === 'pdf-cmyk') {
-    warnings.push('Password is not applied for pdf-cmyk - the returned PDF is not protected. Use format "pdf" for an open-password.');
+  // The password reaches the web shell over the one-time browser binding, and only for a
+  // file that can carry it. Anything else is refused before it renders: an unlocked file
+  // beside a warning is still an unlocked file.
+  if (merged.password) {
+    const refusal = exportPasswordRefusal(exportFmt, { password: merged.password, bleed: st.bleed, marks: st.marks });
+    if (refusal) throw new RenderError(refusal);
   }
   const productionContract = o.production === undefined ? undefined : parseProductionSpec(o.production);
   let out: { bytes: Uint8Array; mime: string; tier: string; productionInputs?: Record<string, string> };
@@ -1355,6 +1350,13 @@ async function renderCandidateBytes(toolId: string, query: string, o: RenderOpts
     catch { /* a note, never a reason to fail a finished render */ }
   }
   let bytes = out.bytes;
+  // Read back before anything else trusts these bytes: a web shell that dropped the
+  // password, for whatever reason, must not get an unlocked file delivered.
+  let lock: ExportLockReading | null = null;
+  if (merged.password) {
+    try { lock = await assertExportLocked(out.bytes, deliveredFormat, merged.password); }
+    catch (error) { throw new RenderError((error as Error).message); }
+  }
   // The browser tier draws its emoji inside the web shell and hands back only
   // the bytes, so the census is established here instead: the same tool, the
   // same values, the same set, hydrated in Node. Without it the credential
@@ -1403,6 +1405,7 @@ async function renderCandidateBytes(toolId: string, query: string, o: RenderOpts
     ...(finished.intentRecord ? { intentRecord: finished.intentRecord } : {}),
     ...(credentialFromIntent ? { credentialFromIntent } : {}),
     ...(finished.credential ? { credential: finished.credential } : {}),
+    ...(lock ? { lock } : {}),
   };
 }
 

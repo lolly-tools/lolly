@@ -51,14 +51,24 @@ describe('a placed tool under a design system with a long emoji style', { skip }
       });
       assert.ok(emojiLength > 4096, `the emoji style alone runs past an embed id, ${emojiLength} characters`);
 
-      await box.click({ force: true });
+      // On a slow runner the view can paint the board again after the first picture appears,
+      // and that drops a selection made on the earlier paint. Select until the section opens.
       const field = page.locator('[data-tool-settings] [data-input-id="url"]').first();
+      for (let attempt = 0; attempt < 5 && !(await field.isVisible()); attempt++) {
+        await box.click({ force: true });
+        await field.waitFor({ timeout: 10_000 }).catch(() => {});
+      }
       await field.waitFor();
       const drawn = (): Promise<string> => page.evaluate(async () => {
         const src = document.querySelector<HTMLImageElement>('.lolly-box[data-box-id="placed"] img.lolly-box-img')?.src;
         return src ? (await fetch(src)).text() : '';
       });
-      const was = await drawn();
+      // The same repaint can leave the box with no picture for a moment.
+      let was = await drawn();
+      for (let attempt = 0; attempt < 40 && !/<svg/.test(was); attempt++) {
+        await page.waitForTimeout(250);
+        was = await drawn();
+      }
       assert.match(was, /<svg/);
       await field.fill('https://example.com/second');
       await page.waitForFunction(

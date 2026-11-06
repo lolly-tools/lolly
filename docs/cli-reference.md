@@ -25,6 +25,7 @@ Every command answers with one code per outcome, so a pipeline can branch on the
 - `lolly compose` refused a spec (with the JSON pointer of the key) or met an output that already exists;
 - `lolly intent` refused a request, or a surface is not ready. The full answer is still on stdout;
 - a Lolly Design document's authoring keys could not be lowered (`AUTHORING_INVALID`);
+- `--password` on a file that cannot carry one (`PASSWORD_UNAVAILABLE`), or a file that came back without its lock (`PASSWORD_NOT_APPLIED`). Nothing is written;
 - a render whose sources still need a rights decision; it still writes its file. `learning build` does the same and lists those blocks in `result.rightsDecisionsRequired`.
 :::
 

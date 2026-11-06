@@ -990,7 +990,7 @@ button.be-lead:hover { background: hsl(var(--muted) / .7); }
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 .be-role-val { font-family: var(--font-mono); font-size: var(--fs-2xs); color: hsl(var(--foreground)); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.be-role-apca { font-family: var(--font-mono); font-size: var(--fs-xs); font-variant-numeric: tabular-nums; color: hsl(var(--muted-foreground)); }
+.be-role-apca { font-size: var(--fs-2xs); color: hsl(var(--muted-foreground)); overflow-wrap: anywhere; }
 .be-role-apca.is-weak { color: hsl(var(--destructive-text)); }
 /* The picker is the assignment control: native, so it is keyboard- and
    phone-native. .field-select supplies the base look; this only bounds it.
@@ -1005,6 +1005,17 @@ button.be-lead:hover { background: hsl(var(--muted) / .7); }
 .be-role.is-derived .be-role-derived {
   flex: 0 0 auto; font-size: var(--fs-xs); color: hsl(var(--muted-foreground));
 }
+
+/* The Colour roles wing sits above the chips, in the palette's own column, so the In
+   context preview stays beside the table. Open, the table says what the chips say and
+   more, so the chips step aside. */
+[data-be-tab-panel="color"] .be-roles { padding: 0; margin-block-end: var(--sp-4); }
+.be-roles[open] + .be-rolechips-mount { display: none; }
+.be-roles-all { padding-top: var(--sp-3); }
+.be-roles-all-body { display: grid; gap: var(--sp-3); padding-top: var(--sp-3); }
+.be-pal-card--role .be-swatch { cursor: pointer; }
+.be-roles-preview { justify-self: start; }
+@media (min-width: 1100px) { .be-roles-preview { display: none; } }
 
 /* ── The role chips at the top of Colours (lib/design-system/role-chips.ts,
       plan 346 change 7). One chip per first decision, each the colour that
@@ -1028,7 +1039,7 @@ button.be-lead:hover { background: hsl(var(--muted) / .7); }
   background: var(--sw, transparent); box-shadow: var(--ui-edge-faint);
 }
 .be-rolechip-meta { display: grid; gap: 1px; flex: 1 1 auto; min-width: 0; }
-.be-rolechip-role { font-size: var(--fs-2xs); font-weight: 600; color: hsl(var(--muted-foreground)); }
+.be-rolechip-role { font-size: var(--fs-2xs); font-weight: 600; color: hsl(var(--muted-foreground)); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .be-rolechip-tag { margin-inline-start: var(--sp-3); font-weight: 500; }
 .be-rolechip-tag::before { content: '\00b7'; margin-inline-end: var(--sp-3); }
 .be-rolechip-val { font-size: var(--fs-sm); font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -1060,6 +1071,8 @@ button.be-lead:hover { background: hsl(var(--muted) / .7); }
 /* The swatch popover's "Use as" row - roles reached from the colour itself. */
 .be-useas-row { display: flex; align-items: center; flex-wrap: wrap; gap: .35rem; padding-top: .5rem; border-top: 1px solid hsl(var(--border) / .6); }
 .be-useas-row[hidden] { display: none; }
+/* A design system's own word can run long, and the card is narrow, so the word wraps. */
+.be-useas-row > .be-btn { max-width: 100%; white-space: normal; overflow-wrap: anywhere; text-align: start; }
 .be-useas-label { font-size: var(--fs-2xs); font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: hsl(var(--muted-foreground)); }
 /* A pressed "Use as" means THIS swatch already holds that role - and pressing it
    again is what un-sets the role, so the state is not decoration, it is the
@@ -1154,7 +1167,8 @@ button.be-lead:hover { background: hsl(var(--muted) / .7); }
   .be-bulk-preview { display: inline-flex; }
 }
 .be-preview-empty { display: grid; place-items: center; aspect-ratio: 4 / 3; border-radius: var(--radius); margin: 0; padding: 1rem; background: hsl(var(--muted) / .5); color: hsl(var(--muted-foreground)); font-size: var(--fs-sm); text-align: center; }
-.be-context .be-context-head { margin-bottom: 0; }
+.be-context .be-context-head { margin-bottom: 0; align-items: center; }
+.be-context-head > .view-seg { margin-inline-end: auto; }
 .be-context > .view-seg { width: 100%; }
 .be-context .be-pv-cap { display: none; }
 /* The add area (plan 346 change 18): paste, sample or drop, visible at the top
