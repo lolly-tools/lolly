@@ -73,7 +73,7 @@ import { isOwnProfile, resolveEmbeddedProfile } from '../lib/press-profile-embed
 import { printSeparation } from '../lib/cmyk-separation.ts';
 import { rgbaToCmyk } from './export-cmyk-raster.ts';
 import type { EmbedResolution } from '../lib/press-profile-embed.ts';
-import { _host, canvasToBlob, imprintCanvas, exportDims, getDomToImage, swapBlobUrls, thumbnailClone, fontMetricsPx, blobToDataUrl, MAX_RASTER_PX, makeRoundedFill, setExportHost, foldIngredientSinks } from './export-shared.ts';
+import { _host, dropInlinedCredentials, canvasToBlob, imprintCanvas, exportDims, getDomToImage, swapBlobUrls, thumbnailClone, fontMetricsPx, blobToDataUrl, MAX_RASTER_PX, makeRoundedFill, setExportHost, foldIngredientSinks } from './export-shared.ts';
 import { beginFrameClock, renderFrameAt, endFrameClock, withStillHold, posedFrame } from './frame-clock.ts';
 import { isTopTailStage, isRecordStage } from './export-shared.ts';
 import type { WebHost, ExportOpts, ExportDims, ImprintState, Rgba } from './export-shared.ts';
@@ -365,7 +365,7 @@ async function renderPreparedFormat(node: Element, format: string, opts: ExportO
   // Sources with no credential of their own that only the render meets (a rondocode
   // song the sequence mix played). A caller's own filled list is kept.
   if (opts.c2pa) opts._sourceIngredientSink ??= [];
-  const blob = await renderFormatDispatch(node, format, opts);
+  const blob = await dropInlinedCredentials(await renderFormatDispatch(node, format, opts), format, opts);
   await assertPdfCameOutLocked(blob, format, opts);
   const key = format === 'webm' || format === 'mp4'
     ? (blob.type.includes('mp4') ? 'mp4' : 'webm')

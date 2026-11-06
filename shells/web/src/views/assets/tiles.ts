@@ -202,15 +202,20 @@ export async function reload(cat: CatCtx): Promise<void> {
   // distinct "couldn't load" state (with a Retry) rather than the identical-looking empty
   // catalogue. The other two loads degrade quietly (uploads/profile are best-effort).
   let failed = false;
-  const [catalog, user, prof, livePal, trashEntries] = await Promise.all([
-    host.assets.query({ includeDeprecated: true }).catch(() => { failed = true; return [] as AssetRef[]; }),
+  // The design system's own material plus what is shared, unless this viewer asked for
+  // everything. A catalog with no scope lists the same rows either way.
+  const everySystem = cat.allSystems && typeof host.assets._queryEverySystem === 'function';
+  const [catalog, user, prof, livePal, trashEntries, scope] = await Promise.all([
+    (everySystem ? host.assets._queryEverySystem!({ includeDeprecated: true }) : host.assets.query({ includeDeprecated: true })).catch(() => { failed = true; return [] as AssetRef[]; }),
     host.assets._listUserAssets().catch(() => [] as AssetRef[]),
     host.profile.get().catch(() => null),
     livePalette(host),
     // The Trash's size for the uploads section's Trash button (plan 277 P3).
     createTrash(host).list({ sessions: false }).catch(() => []),
+    host.assets._assetScope?.().catch(() => null) ?? null,
   ]);
   if (!cat.mounted) return;
+  cat.scope = scope;
   cat.trashCount = trashEntries.length;
   cat.palette = livePal;
   cat.coverMap = loadAudioCovers(prof);

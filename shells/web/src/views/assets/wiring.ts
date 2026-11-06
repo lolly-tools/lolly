@@ -303,6 +303,13 @@ export function wire(cat: CatCtx): void {
       return;
     }
 
+    if (target.closest('.cat-allsystems')) {
+      cat.allSystems = !cat.allSystems;
+      updateRouteParams({ systems: cat.allSystems ? 'all' : null });
+      void cat.tiles.reload().then(() => { if (cat.mounted) cat.sections.rerender(); });
+      return;
+    }
+
     if (target.closest('.cat-showhidden')) { cat.showHidden = !cat.showHidden; updateRouteParams({ hidden: cat.showHidden ? '' : null }); cat.sections.rerender(); return; }
 
     // A swatch card opens that swatch's details, like any other asset card.

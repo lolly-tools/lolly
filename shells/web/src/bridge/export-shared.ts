@@ -39,7 +39,15 @@ export interface ImprintState { want: boolean; applied: boolean }
 // The union of options this host's export path understands. A superset of the
 // engine's ExportOpts - the extra fields (print marks, video timing, c2pa, …)
 // are web-shell extensions the engine passes through untouched.
+export { dropInlinedCredentials } from './export-svg-credentials.ts';
+
 export interface ExportOpts {
+  /**
+   * The caller explicitly opted out of Content Credentials, so the finished SVG holds no
+   * `<c2pa:manifest>`, including the one an inlined catalog logo brings along. Unset on an
+   * export nobody configured, which keeps its bytes.
+   */
+  dropInlinedC2pa?: boolean;
   portableDocument?: import('@lolly-tools/core/host-v1').ExportOpts['portableDocument'];
   /** Linear float render supplied by a tool. Encoded through the normal metadata/credential path. */
   deepFrame?: import('@lolly-tools/core/host-v1').CodecFrame;

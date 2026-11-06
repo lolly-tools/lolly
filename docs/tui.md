@@ -137,7 +137,7 @@ Two more screens open from Tools. `p` opens **Prepare for sharing**, which inspe
 The Export panel has **Format · Width · Height · Unit · DPI · Filename · Folder · Design system · C2PA · Imprint · Durable · Password · Bleed · Print marks · Press profile**, with the output path worked out for you. Exports go to `~/Desktop` by default, and the folder is editable per export.
 
 - **Design system** shows the exact words the export will record about its [design system and colourway](/info/exporting.html#the-design-system-record) in the chosen format, or says when the format carries no metadata. Cycle it to `off` to leave the record out.
-- **C2PA** adds a [Content Credential](/info/exporting.html) and sets its certificate lifetime.
+- **C2PA** adds a [Content Credential](/info/exporting.html) and sets its certificate lifetime. At `off` the file holds none, on every format, and an SVG that inlines credentialed artwork loses that artwork's credential too.
 - **Imprint** adds the pixel watermark; it reads `no pixels to mark` on a vector or data format.
 - **Durable** adds the opt-in neural credential on the raster formats.
 - **Password** locks a rendered PDF or zip.

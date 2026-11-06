@@ -86,6 +86,19 @@ test('a managed system reports it, and a brand lock holds until the manager says
   assert.equal(allowed.logos[0]!.brandLock, undefined);
 });
 
+test("a lock answers for its own system: another tokens row's lock says nothing about this one", async () => {
+  const locked = { id: 'acme/tokens/brand', source: 'library', type: 'tokens', format: 'json', url: '/a.json', meta: { brandLock: true } } as unknown as AssetRef;
+  const other = { id: 'lolly/tokens/demo', source: 'library', type: 'tokens', format: 'json', url: '/d.json', meta: {} } as unknown as AssetRef;
+  const onLocked = hostWith([locked, other], { ...SHIPPED, headId: 'acme/tokens/brand' }).host;
+  assert.equal((await readBrandPageSources(onLocked))!.managed, true, 'its own head is locked');
+  const beside = hostWith([locked, other], { ...SHIPPED, headId: 'lolly/tokens/demo' }).host;
+  assert.equal((await readBrandPageSources(beside))!.managed, false, 'the locked row is the other system\'s');
+  const companion = hostWith([locked, other], { id: 'lolly-demo', label: 'Lolly Demo', headId: 'user/ds/lolly-demo/tokens/brand', locked: false, source: { kind: 'local', from: 'app' } }).host;
+  assert.equal((await readBrandPageSources(companion))!.managed, false, 'a companion is not managed because its catalog holds a locked system');
+  const hosted = hostWith([locked], { id: 'acme', label: 'Acme', headId: 'user/ds/acme/tokens/brand', locked: false, source: { kind: 'hosted', instance: 'https://x.test', packUrl: null, signature: 'verified' } }).host;
+  assert.equal((await readBrandPageSources(hosted))!.managed, true, 'a hosted system keeps reading its catalog as it did');
+});
+
 test('the shipped slot is not an address: the page takes its id from the document or its name', async () => {
   const { host } = hostWith([], SHIPPED);
   const sources = (await readBrandPageSources(host))!;

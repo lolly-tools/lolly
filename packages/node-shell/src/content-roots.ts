@@ -27,6 +27,12 @@
  * working unchanged. readAssetIndex() is the merged index a Node reader wants;
  * materializeInto writes the same merge into dist.
  *
+ * A profile's optional `companions` list offers a second design system beside its own.
+ * Each entry is a FILTERED mount of another pack's catalog: only the asset families it
+ * names are copied in, and a row the brand already has stays the brand's, so a companion
+ * can never change what the profile's own system draws. No other profile is touched, and
+ * the merge exists in readAssetIndex and dist only: neither pack's index is ever rewritten.
+ *
  * The overlay rules are ported from use-profile.ts unchanged: a brand tool.json may
  * declare `"extends": "community"` and carry only the files that differ. The tool is
  * then the per-file union of the community base and the overlay, overlay winning on
@@ -88,6 +94,27 @@ export interface SharedAssetRoot {
   dir: string;
 }
 
+/** A design system a profile offers beside its own: a filtered mount of another
+ *  pack's catalog (profiles.json `companions`). */
+export interface CompanionMount {
+  /** The name the system gets on a device. */
+  label: string;
+  /** Its tokens asset id, which must be one of the mounted rows. */
+  tokens: string;
+  /** Absolute catalog root of the pack the rows and their files come from. */
+  catalogDir: string;
+  /** What is copied, and what this system owns in a merged index: an exact asset id,
+   *  or a family prefix ending in `/` or `-`. Anything not named stays behind. */
+  assets: string[];
+}
+
+/** One companion as the merged asset index states it for a shell. */
+export interface CompanionIndexEntry {
+  tokens: string;
+  label: string;
+  assets: string[];
+}
+
 export interface ContentRoots {
   /** Resolved profile name, e.g. 'suse' or 'lolly-start'. */
   profile: string;
@@ -101,6 +128,11 @@ export interface ContentRoots {
   exclude: ReadonlySet<string>;
   /** The profile's display label from profiles.json (`SUSE`), when it states one. */
   label?: string;
+  /** Design systems this profile offers beside its own. Absent on every other profile. */
+  companions?: CompanionMount[];
+  /** The tokens asset the merged index declares as this profile's own design system.
+   *  A second tokens row makes this necessary, so it travels with `companions`. */
+  brandTokens?: string;
 }
 
 /** The asset index as it is read: every brand key preserved, `assets` merged. */
@@ -109,8 +141,10 @@ export interface AssetIndexFile {
   [key: string]: unknown;
 }
 
+interface ProfileCompanion { catalog: string; label: string; tokens: string; assets: string[] }
 interface Profile {
   label?: string; tools: string[]; catalog: string; assets?: string[]; exclude?: string[];
+  brandTokens?: string; companions?: ProfileCompanion[];
 }
 interface ProfilesFile { default: string; profiles: Record<string, Profile> }
 
@@ -136,7 +170,7 @@ function loadProfiles(root: string): ProfilesFile {
  * with no index.json, so nothing else changes.
  */
 function declaredRoots(p: Profile): string[] {
-  return [...p.tools, p.catalog];
+  return [...p.tools, p.catalog, ...(p.companions ?? []).map((c) => c.catalog)];
 }
 
 /** All of a profile's required content roots exist on disk (a private pack may not). */
@@ -308,6 +342,10 @@ export function contentRoots(opts?: { profile?: string; root?: string }): Conten
     assetRoots: sharedRoots(root, profile.assets ?? [], name),
     exclude: new Set(profile.exclude ?? []),
     ...(typeof profile.label === 'string' && profile.label ? { label: profile.label } : {}),
+    ...(profile.companions?.length ? {
+      companions: profile.companions.map((c) => ({ label: c.label, tokens: c.tokens, catalogDir: join(root, c.catalog), assets: [...c.assets] })),
+      ...(profile.brandTokens ? { brandTokens: profile.brandTokens } : {}),
+    } : {}),
   };
   rootOf.set(resolved, root);
   cache.set(key, resolved);
@@ -642,7 +680,89 @@ export function catalogFile(rel: string, r?: ContentRoots): string {
     const shared = roots.assetRoots.find((a) => a.name === segs[1]);
     if (shared) return join(shared.dir, ...segs.slice(2));
   }
+  if (roots.companions?.length) {
+    const mounted = companionFiles(roots).get(segs.join('/'));
+    if (mounted) return mounted;
+  }
   return join(roots.catalogRoot, ...segs);
+}
+
+/** Whether a companion's `assets` list holds this id: exactly, or as a family prefix. */
+export function companionAssetNamed(assets: readonly string[], id: string): boolean {
+  return assets.some((name) => (name.endsWith('/') || name.endsWith('-') ? id.startsWith(name) : id === name));
+}
+
+interface CompanionRow { id: string; [key: string]: unknown }
+
+/** Every `/catalog/` path a row names: its formats, locales, licence file and any other. */
+function rowCatalogPaths(value: unknown, out: Set<string>): void {
+  if (typeof value === 'string') {
+    if (value.startsWith('/catalog/')) out.add(contained(value.slice('/catalog/'.length)).join('/'));
+  } else if (Array.isArray(value)) {
+    for (const item of value) rowCatalogPaths(item, out);
+  } else if (value && typeof value === 'object') {
+    for (const item of Object.values(value)) rowCatalogPaths(item, out);
+  }
+}
+
+/**
+ * The rows a companion brings: the ones it names, without any id the brand already has
+ * (the brand's row wins, so its samples stay what they are), in the pack's own order.
+ * The tier drops to on-demand: a device on the brand's own system should not spend its
+ * first load on a system it may never open, and the bytes arrive when something asks.
+ */
+function companionRows(companion: CompanionMount, brandIds: ReadonlySet<string>): CompanionRow[] {
+  const path = join(companion.catalogDir, 'assets', 'index.json');
+  const index = JSON.parse(readFileSync(path, 'utf8')) as { assets?: CompanionRow[] };
+  return (index.assets ?? [])
+    .filter((row) => companionAssetNamed(companion.assets, row.id) && !brandIds.has(row.id))
+    .map((row) => ({ ...row, tier: 'on-demand' }));
+}
+
+function brandAssetIds(roots: ContentRoots): Set<string> {
+  const index = JSON.parse(readFileSync(join(roots.catalogRoot, 'assets', 'index.json'), 'utf8')) as AssetIndexFile;
+  return new Set((index.assets ?? []).map((a) => a.id));
+}
+
+/** Resolved per ContentRoots and per state of the indexes read, so a dev server notices a rebuild. */
+const companionFileMemo = new WeakMap<ContentRoots, { stamp: string; files: Map<string, string> }>();
+
+/**
+ * Catalog-relative path to file on disk, for every file the companions' rows name.
+ * Refused, not resolved by order: a path the brand's catalog also has with other bytes,
+ * or that two companions claim differently, because one url would then serve two files.
+ */
+export function companionFiles(roots: ContentRoots): ReadonlyMap<string, string> {
+  const companions = roots.companions ?? [];
+  if (!companions.length) return new Map();
+  const stamp = [roots.catalogRoot, ...companions.map((c) => c.catalogDir)]
+    .map((dir) => statSync(join(dir, 'assets', 'index.json')).mtimeMs).join('|');
+  const memo = companionFileMemo.get(roots);
+  if (memo?.stamp === stamp) return memo.files;
+  const brandIds = brandAssetIds(roots);
+  const files = new Map<string, string>();
+  for (const companion of companions) {
+    const paths = new Set<string>();
+    rowCatalogPaths(companionRows(companion, brandIds), paths);
+    for (const rel of paths) {
+      const from = join(companion.catalogDir, ...rel.split('/'));
+      const prior = files.get(rel);
+      if (prior && prior !== from && !sameFile(prior, from)) {
+        throw new Error(`content-roots: companions claim different files for catalog path "${rel}" (${prior} and ${from})`);
+      }
+      const brand = join(roots.catalogRoot, ...rel.split('/'));
+      if (existsSync(brand) && !sameFile(brand, from)) {
+        throw new Error(`content-roots: companion file "${from}" would replace "${brand}" at catalog path "${rel}", and one url cannot serve both`);
+      }
+      files.set(rel, from);
+    }
+  }
+  companionFileMemo.set(roots, { stamp, files });
+  return files;
+}
+
+function sameFile(a: string, b: string): boolean {
+  return readFileSync(a).equals(readFileSync(b));
 }
 
 /** The files the merged asset index is read from: the brand's, then each mounted
@@ -651,6 +771,7 @@ export function catalogFile(rel: string, r?: ContentRoots): string {
 export function assetIndexFiles(r?: ContentRoots): string[] {
   const roots = r ?? contentRoots();
   const out = [catalogFile('assets/index.json', roots)];
+  for (const companion of roots.companions ?? []) out.push(join(companion.catalogDir, 'assets', 'index.json'));
   for (const shared of roots.assetRoots) {
     const path = join(shared.dir, 'index.json');
     if (existsSync(path)) out.push(path);
@@ -671,7 +792,7 @@ export function assetIndexFiles(r?: ContentRoots): string[] {
 export function readAssetIndex(r?: ContentRoots): AssetIndexFile {
   const roots = r ?? contentRoots();
   const brandPath = catalogFile('assets/index.json', roots);
-  const index = JSON.parse(readFileSync(brandPath, 'utf8')) as AssetIndexFile;
+  const index = readBrandAssetIndex(roots);
   const assets = Array.isArray(index.assets) ? [...index.assets] : [];
   const from = new Map<string, string>(assets.map((a) => [a.id, brandPath]));
   for (const shared of roots.assetRoots) {
@@ -691,6 +812,37 @@ export function readAssetIndex(r?: ContentRoots): AssetIndexFile {
     }
   }
   return { ...index, assets };
+}
+
+/**
+ * The brand's own index with this profile's companions merged in, before any shared
+ * root. A profile with no companions reads its committed file as it is. With companions
+ * the brand's rows come first, so every reader that takes the first tokens asset still
+ * finds the brand's, and the index says so outright with `brandTokens`.
+ */
+export function readBrandAssetIndex(r?: ContentRoots): AssetIndexFile {
+  const roots = r ?? contentRoots();
+  const index = JSON.parse(readFileSync(join(roots.catalogRoot, 'assets', 'index.json'), 'utf8')) as AssetIndexFile;
+  const companions = roots.companions ?? [];
+  if (!companions.length) return index;
+  const assets = Array.isArray(index.assets) ? [...index.assets] : [];
+  const brandIds = new Set(assets.map((a) => a.id));
+  const offered: CompanionIndexEntry[] = [];
+  for (const companion of companions) {
+    for (const row of companionRows(companion, brandIds)) {
+      if (assets.some((a) => a.id === row.id)) {
+        throw new Error(`content-roots: two companions of profile "${roots.profile}" mount asset id "${row.id}"`);
+      }
+      assets.push(row);
+    }
+    offered.push({ tokens: companion.tokens, label: companion.label, assets: [...companion.assets] });
+  }
+  return {
+    ...index,
+    ...(roots.brandTokens ? { brandTokens: roots.brandTokens } : {}),
+    companionDesignSystems: offered,
+    assets,
+  };
 }
 
 /**
@@ -794,7 +946,14 @@ export function materializeInto(dest: string, r?: ContentRoots): void {
   for (const shared of roots.assetRoots) {
     copyTree(shared.dir, join(catalogOut, PACKS_DIR, shared.name));
   }
-  if (roots.assetRoots.length && existsSync(catalogFile('assets/index.json', roots))) {
+  // A companion brings only the files its rows name, never its pack's previews, og
+  // cards, renditions or anything else its catalog holds.
+  for (const [rel, from] of companionFiles(roots)) {
+    const to = join(catalogOut, ...rel.split('/'));
+    mkdirSync(dirname(to), { recursive: true });
+    copyTree(from, to);
+  }
+  if ((roots.assetRoots.length || roots.companions?.length) && existsSync(catalogFile('assets/index.json', roots))) {
     const merged = join(catalogOut, 'assets', 'index.json');
     mkdirSync(join(merged, '..'), { recursive: true });
     writeFileSync(merged, JSON.stringify(readAssetIndex(roots), null, 2) + '\n');
