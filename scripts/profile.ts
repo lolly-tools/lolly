@@ -83,6 +83,9 @@ function main(): void {
   if (roots.assetRoots.length) {
     console.log(`asset roots  ${roots.assetRoots.map((a) => `${rel(a.dir)} (/catalog/packs/${a.name}/)`).join(', ')}`);
   }
+  for (const companion of roots.companions ?? []) {
+    console.log(`companion    ${companion.label} from ${rel(companion.catalogDir)} (${companion.assets.join(', ')})`);
+  }
   console.log(`tools        ${ids.length}`);
   if (roots.exclude.size) console.log(`excluded     ${[...roots.exclude].sort().join(', ')}`);
 

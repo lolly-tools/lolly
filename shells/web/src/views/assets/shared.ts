@@ -18,7 +18,8 @@ import type { FontDownload } from '../../lib/typefaces.ts';
 import type { RewordCandidate, RewordSpan, RewordSuggestion } from '@lolly/engine';
 import type { RewordStatus } from '../../lib/reworder.ts';
 import type { DerivedSignInputs } from '../../lib/derived-asset.ts';
-import type { AssetRef, HostV1, Profile } from '@lolly-tools/core/host-v1';
+import type { AssetQuery, AssetRef, HostV1, Profile } from '@lolly-tools/core/host-v1';
+import type { AssetScope } from '../../lib/design-system/asset-scope.ts';
 import type { EmojiPackPinV1 } from '@lolly-tools/core/emoji-v1';
 import type { EmojiSpecimenSource } from '../../lib/emoji-specimen.ts';
 import { VISUAL_TYPES } from '../../lib/asset-kinds.ts';
@@ -317,6 +318,8 @@ export interface CatalogHost extends HostV1 {
     _updateUserAssetMeta(id: string, meta: Record<string, unknown>, patch?: { aiGenerated?: 'full' | 'partial' | null }): Promise<void>;
     _iconThemes?(): Promise<IconTheme[]>;
     _photoTreatments?(): Promise<PhotoTreatment[]>;
+    _queryEverySystem?(filter?: AssetQuery): Promise<AssetRef[]>;
+    _assetScope?(): Promise<AssetScope | null>;
     _sourceHistory?: ReturnType<typeof import('../../bridge/assets.ts').createAssetsAPI>['_sourceHistory'];
   };
   profile: HostV1['profile'] & { set(profile: Profile): Promise<unknown> };

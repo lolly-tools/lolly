@@ -3641,6 +3641,34 @@
       "reason": "converted corpus fixtures not present (plans/idml-reader/convert.ts)",
       "capability": "fixture",
       "owner": "tests"
+    },
+    {
+      "file": "tests/profile-companion.test.ts",
+      "fullName": "Lolly's marks travel with their recorded terms",
+      "reason": "brands/suse is not checked out",
+      "capability": "brand:suse",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/profile-companion.test.ts",
+      "fullName": "SUSE's rows win the six samples, and every SUSE row comes through unchanged",
+      "reason": "brands/suse is not checked out",
+      "capability": "brand:suse",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/profile-companion.test.ts",
+      "fullName": "the merged index holds both design systems and every reader agrees on the head",
+      "reason": "brands/suse is not checked out",
+      "capability": "brand:suse",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/profile-companion.test.ts",
+      "fullName": "the mount copies a named file set, no audio, skills, slides, renditions, cards or previews",
+      "reason": "brands/suse is not checked out",
+      "capability": "brand:suse",
+      "owner": "tests"
     }
   ]
 }

@@ -158,6 +158,8 @@ export async function mountCatalog(viewEl: HTMLElement, hostIn: HostV1, params =
   // against the bucket table itself (a Set - an object lookup would answer yes to
   // 'constructor'); anything unrecognised leaves the default 'all' standing.
   cat.showHidden = new URLSearchParams(params).has('hidden');
+  cat.scope = null;
+  cat.allSystems = new URLSearchParams(params).get('systems') === 'all';
   // The role colours start behind their card (sections.ts swatchRevealHtml); ?swatches shows them.
   cat.showSwatches = new URLSearchParams(params).has('swatches');
   cat.loadFailed = false;                    // the catalog query threw - a total sync failure, distinct from an empty catalogue
@@ -567,6 +569,12 @@ export async function mountCatalog(viewEl: HTMLElement, hostIn: HostV1, params =
     const { theme } = parseThemedAssetId(linkedAsset);
     const { treatment } = parseTreatedAssetId(linkedAsset);
     const baseId = assetBaseId(linkedAsset);   // strips ?theme= AND ?treatment=
+    // A link can point at another design system's asset: the details open, and the grid stays as it is.
+    if (cat.scope && !cat.assetById.has(baseId)) {
+      const everySystem = await host.assets._queryEverySystem?.({ includeDeprecated: true }).catch(() => [] as AssetRef[]);
+      const found = everySystem?.find(a => assetBaseId(a.id) === baseId);
+      if (found) cat.assetById.set(found.id, found);
+    }
     const ref = cat.assetById.get(baseId)
       ?? cat.assetById.get(linkedAsset)
       ?? [...cat.assetById.values()].find(a => assetBaseId(a.id) === baseId);

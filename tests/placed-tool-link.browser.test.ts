@@ -14,6 +14,7 @@ import { readFileSync } from 'node:fs';
 import { after, before, describe, test } from 'node:test';
 import { chromium, type Browser } from 'playwright';
 import { webGpuLaunchArgs } from '../packages/node-shell/src/webgpu-launch.ts';
+import { gotoSettled } from './helpers/shell-settled.ts';
 
 /** shells/web/src/bridge/tokens.ts `AUTOMATION_DESIGN_SYSTEM_GLOBAL`, read once at boot. */
 const AUTOMATION_DESIGN_SYSTEM_GLOBAL = '__lollyAutomationDesignSystem';
@@ -35,12 +36,19 @@ describe('a placed tool under a design system with a long emoji style', { skip }
     await context.addInitScript(([key, doc]) => { (globalThis as Record<string, unknown>)[key as string] = doc; }, [AUTOMATION_DESIGN_SYSTEM_GLOBAL, DEMO] as const);
     const page = await context.newPage();
     page.setDefaultTimeout(60_000);
+    const mountFailures: string[] = [];
+    page.on('console', message => { if (/View mount failed/.test(message.text())) mountFailures.push(message.text()); });
+    /** A placeholder <img> with no src counts as complete, so wait for a drawn picture. */
+    const pictureDrawn = (): Promise<unknown> => page.waitForFunction(() => {
+      const img = document.querySelector<HTMLImageElement>('.lolly-box[data-box-id="placed"] img.lolly-box-img');
+      return Boolean(img?.src && img.complete && img.naturalWidth > 0);
+    });
     try {
-      await page.goto(`${origin}/#/tool/design?${new URLSearchParams({ boxes: JSON.stringify(BOXES), width: '800', height: '800' })}`);
+      // The board still moves until the view has mounted, so a click before then can miss the box.
+      await gotoSettled(page, `${origin}/#/tool/design?${new URLSearchParams({ boxes: JSON.stringify(BOXES), width: '800', height: '800' })}`);
       const box = page.locator('.lolly-box[data-box-id="placed"]');
       const picture = box.locator('img.lolly-box-img');
-      await picture.waitFor({ state: 'attached' });
-      await page.waitForFunction(() => document.querySelector<HTMLImageElement>('.lolly-box[data-box-id="placed"] img.lolly-box-img')?.complete);
+      await pictureDrawn();
 
       // The bug needs this design system's emoji style, so check the page really has one.
       const emojiLength = await page.evaluate(async () => {
@@ -51,33 +59,25 @@ describe('a placed tool under a design system with a long emoji style', { skip }
       });
       assert.ok(emojiLength > 4096, `the emoji style alone runs past an embed id, ${emojiLength} characters`);
 
-      // On a slow runner the view can paint the board again after the first picture appears,
-      // and that drops a selection made on the earlier paint. Select until the section opens.
-      const field = page.locator('[data-tool-settings] [data-input-id="url"]').first();
-      for (let attempt = 0; attempt < 5 && !(await field.isVisible()); attempt++) {
-        await box.click({ force: true });
-        await field.waitFor({ timeout: 10_000 }).catch(() => {});
-      }
-      await field.waitFor();
-      const drawn = (): Promise<string> => page.evaluate(async () => {
-        const src = document.querySelector<HTMLImageElement>('.lolly-box[data-box-id="placed"] img.lolly-box-img')?.src;
-        return src ? (await fetch(src)).text() : '';
-      });
-      // The same repaint can leave the box with no picture for a moment.
-      let was = await drawn();
-      for (let attempt = 0; attempt < 40 && !/<svg/.test(was); attempt++) {
-        await page.waitForTimeout(250);
-        was = await drawn();
-      }
+      await box.click();
+      // The panel ends in one of two states. Waiting on both says which one at once,
+      // where waiting on the field alone reports a refusal as a 60 second timeout.
+      const settings = page.locator('[data-tool-settings]');
+      const field = settings.locator('[data-input-id="url"]').first();
+      const refused = settings.getByText('This tool is not available here.');
+      await field.or(refused).first().waitFor();
+      assert.equal(await refused.count(), 0, 'the Tool section opened');
+      const drawn = (): Promise<string> => picture.evaluate(async (img: HTMLImageElement) => (await fetch(img.src)).text());
+      const was = await drawn();
       assert.match(was, /<svg/);
       await field.fill('https://example.com/second');
       await page.waitForFunction(
         previous => document.querySelector<HTMLImageElement>('.lolly-box[data-box-id="placed"] img.lolly-box-img')?.src !== previous,
         await picture.evaluate((img: HTMLImageElement) => img.src),
-        { timeout: 30_000 },
       ).catch(() => assert.fail('the picture never changed after an edit in the Tool section'));
-      await page.waitForFunction(() => document.querySelector<HTMLImageElement>('.lolly-box[data-box-id="placed"] img.lolly-box-img')?.complete);
+      await pictureDrawn();
       assert.notEqual(await drawn(), was, 'the new link draws a different code');
+      assert.deepEqual(mountFailures, [], 'the view mounted');
     } finally { await context.close(); }
   });
 });
