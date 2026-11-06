@@ -10,6 +10,7 @@
 import { colorToHex, deriveBrandTokens } from '@lolly/engine';
 import { carryLeads, leadTokenSet } from '../design-system/leads.ts';
 import { carryPaletteGroups } from '../design-system/palette-groups.ts';
+import { carryRootExtensions } from '../design-system/carry-extensions.ts';
 import { RAMP_IDS, getExcludedSwatches, getSwatchFaces, getSwatchPrintOverride, isRec, overlayRampCurves, primaryAnchorPath, setSemanticRampAlias, setSwatchCmykLock, setSwatchExcluded, setSwatchFace, setSwatchSpotLock, setSwatchValue, walkSwatches } from '../brand-doc.ts';
 import type { BrandSwatch } from '../brand-doc.ts';
 import { serializeColor } from '../color-formats.ts';
@@ -153,6 +154,10 @@ export const buildReplacement = (bedit: BrandEditorCtx): { next: Record<string, 
     const keys = new Set(walkSwatches(next, bedit.state.editContext()).map(s => s.key));
     for (const k of wasExcluded) if (keys.has(k)) { setSwatchExcluded(next, k, true); excluded++; }
   }
+  // A rebuild replaces colours. House rules, share cards, the emoji choice, the published
+  // versions and the rest of the root record stay. After the carries above: each of those
+  // decides its own key, and a key it left absent stays absent.
+  carryRootExtensions(bedit.doc, next);
 
   // The carried gradients' stops alias ramp/spectrum/custom keys, and this
   // derive may have rebuilt or dropped their targets (fewer shades; custom
