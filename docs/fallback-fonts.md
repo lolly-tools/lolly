@@ -41,8 +41,8 @@ Latin, Greek and Cyrillic letters are left out of these four fonts, because the 
 Chinese, Japanese and Korean share most of their characters, but each draws many of them differently. The same character 直 is written one way in Chinese and another in Japanese. So one run of text takes all its shared characters from one of these fonts, never two, and Lolly picks that font in this order:
 
 1. The run's language, from the `lang` of its element or the nearest one around it in the document. A tool's language setting, such as the certificate's Language, sets that. The language of Lolly's own interface and the design system's language do not count, so a document exports the same for everyone.
-2. The run's script: kana means Japanese and Hangul means Korean. When the run itself has neither, the whole document is read, so a heading of kanji alone in a Japanese document is drawn in Japanese.
-3. A character that only Traditional Chinese uses, such as 體 or 說, in the run or else in the document, means Traditional Chinese.
+2. The run's script: kana means Japanese and Hangul means Korean. When the run itself has neither, the whole document is read, so a heading of kanji alone in a Japanese document is drawn in Japanese. A document that holds both kana and Hangul settles nothing here.
+3. A character that only Traditional Chinese uses, such as 體 or 說, in the run or else in the document, means Traditional Chinese, unless the same text also holds one that only Simplified Chinese uses.
 4. Otherwise, Simplified Chinese.
 
 A character the chosen font does not have is never taken from one of the other three. It stays a picture, as described below. Kana or Hangul that the chosen font lacks, such as Korean words in a line marked as Japanese, can still come from the Japanese or Korean font, but only when that font would draw no shared character of the line.

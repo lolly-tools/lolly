@@ -37,7 +37,7 @@ export function diskFallbackPacks(roots: ContentRoots = contentRoots()): Fallbac
 }
 
 /** What a document's text shows about its language, read once per document. */
-const evidenceOf = new WeakMap<object, HanEvidence>();
+const hanEvidenceOf = new WeakMap<object, HanEvidence>();
 
 /**
  * A run's element and document, for choosing between the Chinese, Japanese and Korean fonts
@@ -83,8 +83,8 @@ export async function nodeFillChain(
     const doc = opts.place?.document;
     let evidence: HanEvidence | null = null;
     if (doc) {
-      evidence = evidenceOf.get(doc) ?? hanEvidence(doc.textContent ?? '', packs);
-      evidenceOf.set(doc, evidence);
+      evidence = hanEvidenceOf.get(doc) ?? hanEvidence(doc.textContent ?? '', packs);
+      hanEvidenceOf.set(doc, evidence);
     }
     const han = hanForms({ lang: runLang(opts.place?.at), text, document: evidence }, packs);
     for (const pack of choosePacks(found, packs, opts.italic, han).packs) {
