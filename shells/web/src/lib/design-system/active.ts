@@ -29,7 +29,7 @@ import type { DesignSystemRecord } from './registry.ts';
  *  can hand over `host.tokens.activeRecord()`'s answer unchanged. */
 export type ActiveRecord = Pick<
   DesignSystemRecord,
-  'headId' | 'id' | 'label' | 'locked' | 'source'
+  'headId' | 'id' | 'label' | 'locked' | 'source' | 'instanceEdit'
 >;
 
 /**

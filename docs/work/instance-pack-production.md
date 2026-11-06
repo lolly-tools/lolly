@@ -14,6 +14,14 @@ source resolver instead can produce different indexes and tool bytes.
 - <!--i:server--> **Mount it in Lolly Work.** Lolly Work signs the catalogue for each caller when it serves the pack.
 :::
 
+An [edit from the studio](design-system-administration.md#edit-this-instance-from-the-studio) is not
+in the pack, and needs no new pack. The mounted files stay exactly as this page builds them. Lolly Work
+serves the edited tokens from its own storage at a new address, and the catalogue it signs gives those
+tokens' checksum. So the chain a web app checks still holds: signature, then asset index, then tokens
+file. The signature on an edit is this instance's, not the release's. The console shows when an instance
+is serving an edit, with the digest of each revision. Previews and social cards are part of the release,
+so they keep their old colours until the next image.
+
 Run the maintained producer from a qualified Lolly Work checkout with its vendored
 engine and resolver pinned to the reviewed Lolly source. Use clean, isolated
 Lolly source at a full commit, an extracted final signed release and a fresh

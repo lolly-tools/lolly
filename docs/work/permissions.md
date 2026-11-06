@@ -19,15 +19,18 @@ Each role adds to the role below. Grants sit over the roles: any matching deny w
 | `member` | the default for anyone signed in, or a group mapped in `idp.roleGroups.member` | using tools, saving and sharing sessions, creating projects and groups, exporting, delivering to an organisation destination, making links |
 | `author` | `idp.roleGroups.author`, or by default the group `author` | submitting assets to the catalog |
 | `approver` | `idp.roleGroups.approver`, or by default the group `approver` | acting on approvals |
-| `admin` | `idp.roleGroups.admin`, or by default the group `admin` | everything an author and an approver can do, plus running the catalog, policy, grants, links, telemetry, fleet, audit export, projects, server renders and invitations |
+| `brand-manager` | `idp.roleGroups.brand-manager` only, with no default group | what a member can do, plus [editing this instance's colours](design-system-administration.md#edit-this-instance-from-the-studio), publishing its brand page and selecting its design system |
+| `admin` | `idp.roleGroups.admin`, or by default the group `admin` | everything an author, an approver and a brand manager can do, plus running the catalog, policy, grants, links, telemetry, fleet, audit export, projects, server renders and invitations |
 | `owner` | `idp.roleGroups.owner`, or by default the group `owner` | the [owner-only powers](#owner-only-powers) |
 | `guest` | a guest-edit link | nothing: access comes entirely from the link |
 | `automation` | a service token with [scopes](enterprise-identity.md#service-tokens), never a person | using tools, server renders, delivering to an organisation destination, reading the catalog and audit export, each reachable only through the matching scope |
 
 A person's role comes from their effective group set (provider groups plus local groups): the
-highest match in the order `owner`, `admin`, `approver`, `author`, `member`, `viewer`, using
-the groups mapped in `idp.roleGroups`, or for the top four a group of the same name when that
-role has no mapping, otherwise `member`. Mapping your own group names is on [Sign-in and
+highest match in the order `owner`, `admin`, `brand-manager`, `approver`, `author`, `member`,
+`viewer`, using the groups mapped in `idp.roleGroups`, otherwise `member`. For `owner`, `admin`,
+`approver` and `author`, a group of the same name counts when that role has no mapping. A person holds
+one role, so someone mapped to both `brand-manager` and `approver` is a brand manager; add `approval.act`
+with a [grant](#grants) when one person needs both. Mapping your own group names is on [Sign-in and
 sessions](identity.md#groups-role).
 
 ::: details Every action by role
@@ -38,9 +41,10 @@ sessions](identity.md#groups-role).
   `export.download`, `export.request`, `delivery.create`, `link.create`.
 - **`author`**: member, plus `catalog.submit`.
 - **`approver`**: member, plus `approval.act`.
+- **`brand-manager`**: member, plus `brand.edit`, `brand.page.publish`, `brand.switch`.
 - **`admin`**: author and approver, plus `catalog.publish`, `catalog.expire`, `catalog.hold`,
   `catalog.scan`, `catalog.edit`, `catalog.collection.manage`, `catalog.provider.read`,
-  `catalog.provider.manage`, `brand.switch`, `brand.page.publish`, `catalog.injectable.manage`, `policy.edit`,
+  `catalog.provider.manage`, `brand.switch`, `brand.edit`, `brand.page.publish`, `catalog.injectable.manage`, `policy.edit`,
   `grant.edit`, `link.revoke`, `link.create-guest`, `message.send`, `telemetry.view`,
   `fleet.view`, `fleet.manage`, `audit.export`, `project.manage`, `project.archive`,
   `approval.assign`, `export.server`, `user.invite`.
