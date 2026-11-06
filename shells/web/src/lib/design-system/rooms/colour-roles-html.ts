@@ -17,7 +17,7 @@ import { escape as esc } from '../../../utils.ts';
 import { icon } from '../../icons.ts';
 import { BINDABLE_COLOUR_SLOTS, MAX_ROLE_DESCRIPTION, MAX_ROLE_LABEL, STARTING_POINTS, byNameLine, byNameWord, parseRoleWords, readingOption, sameAsWords, slotLine, slotWord, suggestedReadings } from '../colour-roles-model.ts';
 import type { ColourRolesModel, RemovalExplanation, RoleTableRow, RoleValueCell, SlotId } from '../colour-roles-model.ts';
-import { apcaParts } from '../roles.ts';
+
 import type { RoleSwatchOption } from '../roles.ts';
 import { swatchGroupsHtml } from '../role-chips.ts';
 
