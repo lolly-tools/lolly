@@ -96,6 +96,15 @@ export interface TextToPathOpts {
    * way. Optional/additive (v1.159).
    */
   clusters?: boolean;
+  /**
+   * The direction of the paragraph this run sits in, as a browser resolves it: what a
+   * closing full stop or a Latin word inside Arabic is ordered against. The returned
+   * path always reads left to right from x=0, so a caller anchoring a right-to-left line
+   * places it `advanceWidth` left of the line's right edge. Omitted, a run holding
+   * right-to-left characters takes its direction from its first strong character.
+   * Optional/additive (v1.316).
+   */
+  direction?: 'ltr' | 'rtl';
 }
 
 /**

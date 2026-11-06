@@ -31,3 +31,9 @@ test('the web shell routes each Tier A note to the person and to the console lin
   assert.match(loop![1]!, /_host\?\.log\?\.\('warn', `pptx: \$\{line\}\.`\)/, 'the console line the CLI reads');
   assert.match(loop![1]!, /_exportNotice\(/, 'the export card and the aria-live announce');
 });
+
+test('a PDF that drew text as pictures tells the caller, and other pdf lines stay in the log', () => {
+  const line = 'pdf: This PDF draws some text as pictures, because no font it can embed has those letters (Arabic).';
+  assert.equal(sessionExportNote('warning', `[warn] ${line} `), line);
+  assert.equal(sessionExportNote('warning', '[warn] pdf: SUSE-Regular.ttf is not a TrueType file'), null);
+});

@@ -57,6 +57,8 @@ Six destinations and the formats that suit each one.
 
 A wordmark set in your design system's face exports as SVG with every letter as an outlined path, so one file stays crisp at business-card size and at building-wrap size.
 
+Text in another language follows the fonts you have. When a font in your design system has the letters, SVG and PDF draw them as outlines, shaped and in reading order, including right-to-left lines. When none does, an SVG keeps the words as live text that the viewer's own fonts draw, and a PDF draws them as pictures, because a PDF has nothing else to fall back on. The words look as they do on the page but cannot be selected or searched, and the export card tells you which scripts went that way. Add a font with those letters to keep them as vector text.
+
 ![A hairline wide-tracked wordmark reading Aurora, the kind of pure vector artwork the SVG row of the table is about](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DAurora%26weight%3D200%26tracking%3D16%26size%3D200%26full&width=1440&height=900&dpi=192&waitMs=2200&cropSelector=%23tool-canvas&walker=1&format=svg&filename=vt-wordmark-vector)
 
 ::: details Every format and what it is for

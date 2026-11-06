@@ -26,7 +26,7 @@ import type { DesignBoxRowV1, TextMeasureFontsV1, TextMeasureSpecV1 } from '@lol
 import { DESIGN_LINE_HEIGHT, designTextPad, layoutDesignText } from './deck-compile.ts';
 import type { DesignTextRunV1 } from './design-text.ts';
 import { strikeGeometry, underlineGeometry, underlineInkGaps, underlineSpans, type DrawStrike, type DrawUnderline, type StrikeMetrics } from './text-decoration.ts';
-import { DICTIONARY_SCRIPT, drawDesignText, textMeasureSpecOfRow, type DesignTextDrawRunV1, type DesignTextDrawV1, type TextShaperV1 } from './design-text-measure.ts';
+import { DICTIONARY_SCRIPT, RIGHT_TO_LEFT_SCRIPT, drawDesignText, textMeasureSpecOfRow, type DesignTextDrawRunV1, type DesignTextDrawV1, type TextShaperV1 } from './design-text-measure.ts';
 import { translateTextPath } from './text-spacing.ts';
 import { segmentEmojiText } from './emoji-segment.ts';
 import { decodeAuthoredPaths } from './geom/authored-url.ts';
@@ -417,7 +417,7 @@ export function designDrawFindings(row: DesignBoxRowV1, opts: Pick<DesignDrawCom
   if (opts.semantics !== 'preview' && rowStr(row, 'text') && !set('textStory') && !set('textFrame')) {
     // The canvas shrinks fitted text until it fits, and lays right-to-left text out by bidi; the measure does neither.
     if (designFlag(row, 'fitText')) found.push('fit-text');
-    if (rowStr(row, 'textDirection') === 'rtl') found.push('text-direction');
+    if (rowStr(row, 'textDirection') === 'rtl' || RIGHT_TO_LEFT_SCRIPT.test(rowStr(row, 'text'))) found.push('text-direction');
     // The canvas draws emoji from the chosen pack, and breaks these scripts by dictionary; the layout does neither yet.
     if (segmentEmojiText(rowStr(row, 'text')).some((span) => span.kind === 'emoji')) found.push('text-emoji');
     if (DICTIONARY_SCRIPT.test(rowStr(row, 'text'))) found.push('text-dictionary');

@@ -96,7 +96,7 @@ When a tool loads with a language set, through the reserved `lang` URL or CLI pa
 :::
 
 - **Prefill the person's language.** An input can declare `bindToProfile: "lang"` to start from the active language, as a short code such as `en`, `de` or `ar`.
-- **Right-to-left.** Arabic and other right-to-left languages mirror the whole interface, and the shell sets the document direction from the active language. Write your template and CSS so they mirror too: prefer logical properties and `[dir]`-aware rules to fixed left and right.
+- **Right-to-left.** Arabic and other right-to-left languages mirror the whole interface, and the shell sets the document direction from the active language. Write your template and CSS so they mirror too: prefer logical properties and `[dir]`-aware rules to fixed left and right. Exports follow the direction the browser resolved, from `dir` on the element or an ancestor, `dir="auto"` or CSS `direction`: a right-to-left line keeps its order and its right edge in SVG. In a native `<svg>` template, `text-anchor="start"` in right-to-left text means the right edge, on the page and in the file.
 
 ## Example tools
 
