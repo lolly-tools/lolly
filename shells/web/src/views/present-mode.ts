@@ -60,6 +60,7 @@ import { CAPTION_BOX_CLASS } from './timeline-captions.ts';
 import { mountWebFrames, pauseWebFrame, setWebPresenting, stripWebFrames, unmountWebFrames } from '../lib/design-web-mount.ts';
 import { mountPresentInteract, presentBuildSteps } from './present-interact.ts';
 import { clickerKey } from './present-clicker.ts';
+import { mountPresentSwipe, type SwipePlan } from './present-swipe.ts';
 import { trapFocus } from '../lib/focus-trap.ts';
 
 /** How long the HUD stays visible after the last pointer/key wake (the old visualiser panel used 2600). */
@@ -2042,6 +2043,22 @@ export function openPresentMode(opts: OpenPresentOptions): PresentController | n
     if (blackout) { setBlackout(false); return; }
     direction === 1 ? next() : prev();
   };
+  // A sideways swipe on a touch screen is one more edge tap (present-swipe.ts decides
+  // which touches are swipes and which belong to the slide).
+  const swipe = mountPresentSwipe({
+    stage, pages: cloneByIndex, reduced, index: () => active, plan: swipePlan, step: edgeTap,
+    enabled: () => !closed && !overview && !production,
+  });
+  /** What a swipe would do: the slide it reaches, 'end' at a deck's end, or null when
+   *  the step is not a slide change (a build, a focused page, a held or leaving deck). */
+  function swipePlan(direction: 1 | -1): SwipePlan {
+    const exits = !!motion && !!cloneByIndex[active]?.querySelector('[data-t-exit]:not([data-t-exit="none"])');
+    if (blackout || leaveTimer || flying || interact.active || exits) return null;
+    if (direction === 1 ? buildStepsOf(active).some((v) => v > build) : build > 0) return null;
+    const to = direction === 1 ? walkNext(deck, active, { loop }) : walkPrev(deck, active, { loop });
+    if (to === active) return 'end';
+    return { index: to, kind: transitionFor(active, to), dir: navDir(deck.positions[active] ?? null, deck.positions[to] ?? null) };
+  }
   tapPrev.addEventListener('click', () => edgeTap(-1));
   tapNext.addEventListener('click', () => edgeTap(1));
   btnPrev.addEventListener('click', () => { wake(); prev(); });
@@ -2092,6 +2109,7 @@ export function openPresentMode(opts: OpenPresentOptions): PresentController | n
     window.removeEventListener('pagehide', close);
     production?.dispose();
     interact.destroy();
+    swipe.destroy();
     document.removeEventListener('keydown', onKey, true);
     window.removeEventListener('blur', onWindowBlur);
     window.removeEventListener('focus', onWindowFocus);
