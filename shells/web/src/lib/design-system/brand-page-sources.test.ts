@@ -10,7 +10,8 @@ import test from 'node:test';
 import type { AssetRef } from '@lolly-tools/core/host-v1';
 import { brandSkillScopeHints } from '@lolly/engine';
 import { OWNER_PUBLISHED } from '../../../../../engine/src/asset-rights.ts';
-import { buildBrandPage } from '../../../../../engine/src/brand-page.ts';
+import { brandPageDigest, buildBrandPage } from '../../../../../engine/src/brand-page.ts';
+import { bytesToHex, sha256 } from '../../../../../engine/src/bytes.ts';
 import { designSystemHeadId } from '../../../../../engine/src/design-system.ts';
 import { assembleBrandPage, EMPTY_CHOICES, includableLogos, readBrandPageSources } from './brand-page-sources.ts';
 import { agentBrandSkills, briefSkillCatalog, isUnkeptDraft, keepDraftSkill, keepImportedSkill, listActiveBrandSkills, listOfferedBrandSkills } from './brand-skills.ts';
@@ -215,8 +216,16 @@ test('a brand page folder with a hostile description: the review drops the words
   const built = await buildBrandPage({ name: 'Acme', tokens: hostile });
   assert.doesNotMatch(new TextDecoder().decode(built.files.find(file => file.path === 'index.html')!.bytes), MARKERS);
   assert.ok(built.manifest.held.some(row => /description/i.test(row.item)), 'a page holds the description back and lists why');
-  const read = await readBrandPageFolder(Object.fromEntries(built.files.map(file => [file.path, file.bytes])), 'acme');
-  assert.ok(read.ok);
+  assert.doesNotMatch(new TextDecoder().decode(built.files.find(file => file.path === 'tokens/tokens.json')!.bytes), MARKERS, 'its token file does too');
+  // Someone else's folder can still carry the words, with a manifest that vouches for them.
+  const files = Object.fromEntries(built.files.map(file => [file.path, file.bytes]));
+  const tokens = new TextEncoder().encode(JSON.stringify(hostile));
+  files['tokens/tokens.json'] = tokens;
+  const digest = bytesToHex(await sha256(tokens));
+  const body = { ...built.manifest, files: built.manifest.files.map(row => row.path === 'tokens/tokens.json' ? { ...row, size: tokens.length, sha256: digest } : row) };
+  files['brand.json'] = new TextEncoder().encode(JSON.stringify({ ...body, digest: await brandPageDigest(body) }));
+  const read = await readBrandPageFolder(files, 'acme');
+  assert.ok(read.ok, JSON.stringify(read));
   assert.equal(read.source.doc.$description, undefined);
   assert.ok(read.source.findings.some(line => /left out/.test(line)));
 });

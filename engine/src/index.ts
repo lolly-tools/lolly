@@ -732,11 +732,17 @@ export { resolveTokenSelection, tokenSelectionKey, parseTokenSelection } from '.
 // design system, chosen per artefact and composed with light and dark.
 export { readTokenAxes, axisOfKind, modeAxis, ROTATION_POLICIES } from './token-axes.ts';
 export type { TokenAxis, TokenAxisOption, AxisWindow, RotationPolicy } from './token-axes.ts';
-export { COLOURWAY_GROUP, COLOURWAY_ROLES, COLOURWAY_ID, colourwaySetName, colourwayPath, colourwayAxis, canonicalFirst } from './colourway.ts';
+export { COLOURWAY_GROUP, COLOURWAY_ROLES, COLOURWAY_ID, colourwaySetName, colourwayPath, colourwayAxis, canonicalFirst, colourwayLinkOf, colourwayLeaves, colourRoleMarkOf } from './colourway.ts';
+export type { ColourRoleMark } from './colourway.ts';
 export { colourwayFamily, pickColourway, withColourway, liftToColourways, addColourway } from './colourway.ts';
 export type { ColourwayRole, ColourwayLead, RotationContext, ColourwayPick, ColourwayEdit, LiftOptions, ColourwayValues, AddColourwayOptions } from './colourway.ts';
 // Editing an existing set of colourways (plans/319 A2, the Brand Studio's data layer).
 export { renameColourway, reorderColourways, setCanonicalColourway, removeColourway, duplicateColourway, colourwaysEditable, colourwayRolesOf, MAX_COLOURWAY_NAME } from './colourway.ts';
+// Colour roles (plans/352): a design system's colours in its own words, the slots they fill, and every edit.
+export { COLOUR_ROLE_GROUP, COLOUR_SLOTS, BINDABLE_COLOUR_SLOTS, DEFAULT_COLOUR_VOCABULARY, COLOUR_SLOT_READS, COLOUR_ROLE_BY_NAME, COLOUR_ROLE_ID, MAX_COLOUR_ROLES, MAX_ROLE_LABEL, MAX_ROLE_DESCRIPTION, WEAK_LC } from './colour-roles.ts';
+export { colourRoleIdRefusal, isUsableColourRoleId, colourRoleIdFromLabel, readColourRoles, colourRolesEditable, colourRoleTable, colourPairContrast, danglingColourAliases, newlyDangling, colourRolesBrief } from './colour-roles.ts';
+export { addColourRole, setColourRoles, bindRole, unbindRole, renameColourRole, describeColourRole, reorderColourRoles, removeColourRole, setRoleValue, setRoleSameAsLight, refreshDerivedOnColours, carryColourRoles } from './colour-roles.ts';
+export type { ColourRoleEntry, ColourRolesReading, ColourPairContrast, RoleOnColour, ColourRoleCell, ColourRoleTableRow, ColourRoleTable, DanglingAlias, ColourRoleRefusal, ColourRoleUse, ColourRoleEdit, AddColourRoleOptions, SetRoleValueOptions, ColourRoleSpec, ColourRoleCarry, BriefColourRoles } from './colour-roles.ts';
 export type { DuplicateColourwayOptions } from './colourway.ts';
 // plans/319 A4: a tool's manifest `tokenAxes` opt-out, which pins an ignored kind of
 // theme group to its canonical option, and the sentence a shell reports it with.
@@ -746,7 +752,8 @@ export {
   parseOklch, formatOklch, hexToOklch, oklchToHex, mixOklch, contrastRatio, deriveBrandTokens,
   RAMP_STEPS_MIN, RAMP_STEPS_MAX, RAMP_STEPS_DEFAULT,
 } from './brand-derive.ts';
-export { deriveColourwaySlots } from './brand-derive.ts';
+export { deriveColourwaySlots, deriveOnColour, isDerivedOnColourValue, onColourFloor } from './brand-derive.ts';
+export type { OnColourOptions } from './brand-derive.ts';
 export type { Oklch, BrandDeriveOptions, ColourwaySlotOptions, ColourwaySlots } from './brand-derive.ts';
 export { gamutSolid, projectGamutSolid, projectSolidPoint, projectSolidPoints, solidPointOklch, labSolidUnit, gamutSolidToSvg, shadedSolidFill } from './gamut-solid.ts';
 // A brand colour's faces: one canonical value plus per-space/per-profile
@@ -1046,6 +1053,8 @@ export type { DesignBriefAssetV1, DesignBriefCatalogV1, DesignBriefOpts, DesignB
 // Brand skills (plan 323): a brand's standards per discipline as design-system assets.
 export { parseBrandSkill, brandSkillScopeHints, admitBrandSkill, classifyBrandSkillLinks, brandSkillCoverage, brandSkillCoverageFacts, exportBrandSkillFolder, brandSkillFreshness, brandSkillsSection, baselineBrandSkill, measureSvgFamily, spreadExemplars, brandSkillFilesSize } from './brand-skill.ts';
 export type { BrandSkillFindingV1, BrandSkillHeadingV1, BrandSkillLinkV1, ParsedBrandSkillV1, AdmittedBrandSkillV1, BrandSkillAdmissionV1, BrandSkillCatalogAssetV1, BrandSkillLinkClassV1, BrandSkillCoverageFactsV1, BrandSkillCoverageStatusV1, BrandSkillCoverageRowV1, BrandSkillCoverageV1, BrandSkillExportModeV1, BrandSkillExportInputV1, BrandSkillExportV1, BrandSkillFreshnessV1, SvgFamilyMeasureV1 } from './brand-skill.ts';
+export { leaveOutScopedTokenText, scopedTokenTextWarnings } from './token-scope.ts';
+export type { ScopedTokenTextV1, TokenTextLeftOutV1 } from './token-scope.ts';
 export { checkDesignHouseRules, designHouseRules, combinationPolicy, DESIGN_HOUSE_RULE_KINDS } from './design-house-rules.ts';
 export type { DesignHouseRuleKind, DesignHouseRuleOpts, DesignHouseRuleResult, HouseRuleFinding } from './design-house-rules.ts';
 // Creation feedback (engine 1.283): house-rule findings and the writing score for the

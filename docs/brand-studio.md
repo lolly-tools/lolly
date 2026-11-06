@@ -305,7 +305,7 @@ Choose the design-file source and the next card lists the accepted formats as ic
 
 - A **Lolly design-system pack** (`.lolly`, or a legacy `.zip`) installs in one step.
 - A **Penpot** export (`.penpot`) brings its design tokens.
-- A **Design Tokens** (W3C DTCG) or **Tokens Studio** file (`.json`) brings its tokens.
+- A **Design Tokens** (W3C DTCG) or **Tokens Studio** file (`.json`) brings its tokens. A description that asks a reader to ignore instructions, claims permissions or asks to run code is left out, and the import says where it sat. This is a line-by-line check and misses other wording, so read a file from someone you don't know before you apply the tokens.
 - A **plain SVG** is scanned for colours you pick from, the first becoming your primary.
 - A **`DESIGN.md`** (`.md`) goes to **Try these colours** with its tokens as written. Its prose can be kept as a draft brand skill, and the card flags lines that ask a reader to ignore instructions, claim permissions or run code. Agents and brand pages do not see a draft until you press **Keep this skill** in the Skills room, and a kept skill stays internal.
 - A **brand page folder**, picked as a folder, dropped, or zipped, goes to the same review. Every file is checked against the folder's `brand.json`, and one that does not match refuses the whole folder. It adds the tokens. Logos and fonts stay in the folder.

@@ -20,9 +20,13 @@
  *   - `master`        archetypes with their slots in px at the master's size;
  *   - `houseRules`    the brand's machine-checkable rules (`BrandRuleV1`), the same list
  *                     `checkDesignHouseRules` evaluates;
+ *   - `colourRoles`   the system's colours in its own words, only when it declares some:
+ *                     labels, descriptions and the slots each fills, quoted as data;
  *   - `skills`        the brand skills (plan 323): the index of the brand's own guidance per
  *                     discipline, without bodies, plus the name of the baseline Lolly
- *                     generates from this brief.
+ *                     generates from this brief;
+ *   - `leftOut`       only when there is any: where a description or label sat that the
+ *                     scope hints flagged (token-scope.ts), without the text.
  *
  * `coverage` gains one entry per section: `declared` when the pack states it, `derived`
  * when it was computed from the tokens, `neutral` for the stand-in master and
@@ -52,6 +56,8 @@ import { DESIGN_HOUSE_RULE_KINDS, designHouseRules } from './design-house-rules.
 import { parseColorToSrgb8 } from './css-color.ts';
 import type { BrandCheckCatalogOpts } from './brand-check.ts';
 import { brandSkillsSection } from './brand-skill.ts';
+import { colourRolesBrief } from './colour-roles.ts';
+import { leaveOutScopedTokenText } from './token-scope.ts';
 
 /** One catalog asset, with only the fields the brief reads. */
 export interface DesignBriefAssetV1 {
@@ -138,10 +144,11 @@ function themeSection(doc: unknown) {
  * colourway lists the slots it fills in every look, so an agent can say which
  * colourway a piece should use and pass it as `_themes={"<group>":"<id>"}`.
  */
-function colourwaySection(doc: unknown) {
+function colourwaySection(doc: unknown, roleIds: readonly string[] = []) {
   const axes = readTokenAxes(doc).axes;
   const axis = axisOfKind(axes, 'colourway');
   if (!axis) return null;
+  const listed = new Set(['primary', 'on-primary', 'secondary', 'surface', ...roleIds]);
   const mode = modeAxis(axes);
   const looks = mode ? mode.options.map((o) => ({ id: o.id, selection: { [mode.group]: o.id } })) : [{ id: 'default', selection: {} }];
   return {
@@ -155,7 +162,7 @@ function colourwaySection(doc: unknown) {
         const out: Record<string, string> = {};
         for (const c of createTokenSet(doc, { selection: { ...look.selection, [axis.group]: option.id } }).colors()) {
           const slot = c.path.startsWith('color.semantic.') ? c.path.slice('color.semantic.'.length) : '';
-          if (['primary', 'on-primary', 'secondary', 'surface'].includes(slot) && c.value) out[slot] = c.value;
+          if (listed.has(slot) && c.value) out[slot] = c.value;
         }
         return [look.id, out];
       })),
@@ -385,7 +392,10 @@ function mediaSection(doc: unknown, catalog: DesignBriefCatalogV1, assets: Desig
 }
 
 /** The brief for one token document plus the catalog facts of the pack it belongs to. */
-export function designBrief(doc: unknown, catalog?: DesignBriefCatalogV1 | null, opts: DesignBriefOpts = {}) {
+export function designBrief(source: unknown, catalog?: DesignBriefCatalogV1 | null, opts: DesignBriefOpts = {}) {
+  // Read the words here as well as at import: a document already on disk never passed that
+  // import, and a brief is what an agent reads. `leftOut` gives the place, never the text.
+  const { doc, leftOut } = leaveOutScopedTokenText(source);
   const context = brandContext(doc, opts);
   const facts: DesignBriefCatalogV1 = catalog ?? {};
   const assets = (Array.isArray(facts.assets) ? facts.assets : []).filter((a) => record(a) && typeof a.id === 'string' && a.deprecated !== true);
@@ -407,12 +417,14 @@ export function designBrief(doc: unknown, catalog?: DesignBriefCatalogV1 | null,
   // The text styles a Design `$style` resolves to, at the master size, so an agent sizes
   // authored text from the same numbers the expansion writes.
   const styles = textStylesFromBrief({ type, themes, houseRules, theme: opts.theme ?? null }, { width: master.size.width, height: master.size.height });
-  const colourways = colourwaySection(doc);
+  const colourRoles = colourRolesBrief(doc);
+  const colourways = colourwaySection(doc, colourRoles?.roles.map((role) => role.id));
   const skills = brandSkillsSection(assets.filter((a) => a.type === 'skill' && a.skill).map((a) => a.skill!), context.name);
   return {
     ...context,
     themes,
     ...(colourways ? { colourways } : {}),
+    ...(colourRoles ? { colourRoles } : {}),
     combinations,
     type: { ...type, styles },
     logos,
@@ -421,6 +433,7 @@ export function designBrief(doc: unknown, catalog?: DesignBriefCatalogV1 | null,
     master: masterSection(master, resolve, masterDeclared ? facts.masterAsset : undefined),
     houseRules,
     skills,
+    ...(leftOut.length ? { leftOut } : {}),
     coverage: {
       ...context.coverage,
       themes: (themes.length ? 'declared' : 'unavailable') as Coverage,
@@ -435,6 +448,7 @@ export function designBrief(doc: unknown, catalog?: DesignBriefCatalogV1 | null,
       houseRules: (houseRules.length ? 'declared' : 'unavailable') as Coverage,
       houseRuleKinds: [...DESIGN_HOUSE_RULE_KINDS],
       skills: (skills.index.length ? 'declared' : 'generated') as Coverage,
+      ...(colourRoles ? { colourRoles: 'declared' as Coverage } : {}),
     },
   };
 }

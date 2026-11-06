@@ -816,11 +816,11 @@ export interface ColourwaySlotOptions {
 }
 
 /** The three slots a colourway re-points, as stored `oklch()` strings. */
-export interface ColourwaySlots {
+export type ColourwaySlots = {
   primary: string;
   'on-primary': string;
   secondary: string;
-}
+};
 
 /**
  * The primary, on-primary and secondary a new lead colour fills in one look
@@ -853,4 +853,49 @@ export function deriveColourwaySlots(lead: string, opts: ColourwaySlotOptions): 
     'on-primary': formatOklch(onPrimary),
     secondary: formatOklch(ramps.secondary[anchor - 1]!),
   };
+}
+
+// ─── On-colours ──────────────────────────────────────────────────────────────
+
+export interface OnColourOptions {
+  /** Contrast floors: 'comfort' (default) or 'high'. */
+  contrast?: BrandDeriveOptions['contrast'];
+  /** Force white ('light') or black ('dark'). Default 'auto'. */
+  foreground?: BrandDeriveOptions['foreground'];
+}
+
+/** The floor an on-colour must reach against the colour it sits on, as a WCAG ratio. */
+export function onColourFloor(contrast?: BrandDeriveOptions['contrast']): number {
+  return FLOORS[contrast === 'high' ? 'high' : 'comfort'].onPrimary;
+}
+
+/**
+ * The colour that sits on `colour`, by the rule on-primary uses: white, then black,
+ * then the ends of a ramp built from the colour, whichever first reaches the floor.
+ * The colour itself is the brand's and never shifts, which is the one difference from
+ * the pair a whole derived system picks. Null for a colour that cannot be read.
+ */
+export function deriveOnColour(colour: string, opts: OnColourOptions = {}): string | null {
+  const p = parseCssColor(colour);
+  if (!p) return null;
+  if (opts.foreground === 'light') return formatOklch(WHITE);
+  if (opts.foreground === 'dark') return formatOklch(BLACK);
+  const hex = emitHex(p);
+  const floor = onColourFloor(opts.contrast);
+  const picked = pickOnPrimary(hex, deriveRamps(p, 'mono', RAMP_STEPS_DEFAULT).primary, floor);
+  return formatOklch(picked?.value ?? nudged(WHITE, hex, floor));
+}
+
+const DERIVED_INKS: readonly string[] = [formatOklch(WHITE), formatOklch(BLACK)];
+
+/**
+ * Does a stored on-primary read as one Lolly picked, rather than one a token file
+ * states? The pick is white or black in the derive's own notation, or a step of a
+ * derived ramp, so this holds for what `deriveBrandTokens` and the starter write and
+ * for nothing a person names: a hex, or a link to a named colour, stays stated.
+ */
+export function isDerivedOnColourValue(value: unknown): boolean {
+  if (typeof value !== 'string') return false;
+  const v = value.trim();
+  return DERIVED_INKS.includes(v) || /^\{\s*color\.ramp\.[^{}\s]+\s*\}$/.test(v);
 }

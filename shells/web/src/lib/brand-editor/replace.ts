@@ -20,7 +20,7 @@ import { t, tRaw } from '../../i18n.ts';
 import { escape as escapeText } from '../../utils.ts';
 import { announce } from '../../a11y.ts';
 import { playSfx } from '../sfx.ts';
-import { assignRole, readRoles } from '../design-system/roles.ts';
+import { ROLE_IDS_ALL, assignRole, readRoles } from '../design-system/roles.ts';
 import { finishLabel, mountFaces, mountPrintLock, specCard, tileHtml } from './shared.ts';
 import type { ReplacePlan } from './shared.ts';
 import { bindOp, type BrandEditorCtx } from './context.ts';
@@ -164,7 +164,9 @@ export const buildReplacement = (bedit: BrandEditorCtx): { next: Record<string, 
   const pinnedStops = materializeGradientAliases(next, ref => colorToHex(nextSet.resolve(ref)) == null, bedit.state.resolveTokenRef);
 
   const lightSet = isRec(next.light) ? next.light as Record<string, unknown> : next;
-  const roles = countLeaves(bedit, isRec(lightSet.color) ? (lightSet.color as Record<string, unknown>).semantic : null);
+  // The slots the derive wrote. A brand's own colour roles came across with their colours, so they do not count as re-derived.
+  const lightSemantic = isRec(lightSet.color) ? (lightSet.color as Record<string, unknown>).semantic : null;
+  const roles = isRec(lightSemantic) ? ROLE_IDS_ALL.filter(id => id in lightSemantic).length : 0;
   return {
     next,
     plan: {

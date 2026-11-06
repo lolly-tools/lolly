@@ -25,7 +25,7 @@ import type { ExportBrandSkill } from '@lolly-tools/core/host-v1';
 import type { ContentBlock, ToolCallResult } from './protocol.ts';
 import { listTools, loadToolCached, loadIndex, listToolTemplates, loadTemplateSeed } from './catalog.ts';
 import { toolInputSchema, fileInputId } from './schema.ts';
-import { render, transform, isTextFormat, normFormat, emojiSets, emojiSetName, resolveEmojiSetName, maxRasterPixelsFor, previewPng, designRecordText } from './render.ts';
+import { render, transform, isTextFormat, normFormat, emojiSets, emojiSetName, resolveEmojiSetName, maxRasterPixelsFor, previewPng, designRecordText, credentialText } from './render.ts';
 import { withHost } from './host.ts';
 import { audioRunText, rondoCapsFor, songCredentialText } from './audio-runs.ts';
 import type { RenderOpts } from './render.ts';
@@ -431,7 +431,13 @@ export const TOOL_DEFS: McpToolDef[] = [
             + 'It records guidance, not a check: nothing tests the piece against a skill. An unknown name fails the call and lists the available names. '
             + 'Left out with madeWith: false.',
         },
-        c2pa: { type: 'string', enum: ['off', '7', '30', '90', '365'], description: 'Stamp Content Credentials with the given cert lifetime (days).' },
+        c2pa: {
+          type: 'string',
+          enum: ['off', '7', '30', '90', '365'],
+          description: 'Content Credentials for this file. "off": none, on every format. A number: this server stamps one with that certificate lifetime in days. '
+            + 'Left out, a browser-free render has none and a browser-tier render (PDF, or a tool laid out in HTML) keeps the one the web shell stamps. '
+            + 'When you pass it, the result says what the file holds, read back from the file.',
+        },
         password: { type: 'string', description: 'Open-password for standard PDF export (never logged).' },
         link: { type: 'boolean', description: 'Also return the editable lolly.tools link (default true).' },
         ...RENDER_INTENT_ARGS,
@@ -1105,6 +1111,7 @@ export async function callTool(name: string, args: Record<string, unknown>, hold
           convertPaths: args.convertPaths as boolean | undefined,
           password: args.password as string | undefined,
           c2pa: c2paSetting(args.c2pa),
+          ...(args.c2pa !== undefined && args.c2pa !== null ? { c2paAsked: true } : {}),
           maxRasterPixels: maxRasterPixelsFor(process.env, isHostedServer()),
           rondo: rondoCapsFor(process.env, isHostedServer()),
           ...exportSettings(args),
@@ -1154,6 +1161,8 @@ export async function callTool(name: string, args: Record<string, unknown>, hold
           // The intent, shown at the moment of export as the approval asks, in words read
           // back from the delivered file. It says plainly when the prompt is in the file.
           intentRecordText(!intended ? null : intended.optedOut ? { state: 'not-recorded', reason: 'opted-out' } : result.intentRecord ?? { state: 'not-recorded', reason: 'not-confirmed' }, result.credentialFromIntent === true),
+          // What an explicit `c2pa` asked for and what the delivered file holds.
+          credentialText(result.credential),
         ].filter(Boolean).join('\n');
 
         const content: ContentBlock[] = [{ type: 'text', text: header }];

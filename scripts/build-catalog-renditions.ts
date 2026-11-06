@@ -8,12 +8,15 @@ import { pathToFileURL, fileURLToPath } from 'node:url';
 import sharp from 'sharp';
 import { DEFAULT_RASTER_LADDER, signedRendition } from './catalog-renditions.ts';
 import type { RenditionRecord, RenditionCredits } from './catalog-renditions.ts';
+import { renditionRelPath } from './lib/catalog-asset-paths.ts';
 import { catalogRenditionSigner } from './catalog-rendition-signer.ts';
 import type { EmbedOptions } from '../engine/src/c2pa.ts';
 import { verifyC2pa } from '../engine/src/c2pa-verify.ts';
 import { pemToDer } from '../engine/src/x509.ts';
 
 const sha = (b: Uint8Array) => createHash('sha256').update(b).digest('hex');
+/** The id pattern in schemas/asset.schema.json: no empty, `.` or `..` segment can pass. */
+const ASSET_ID = /^[a-z0-9]+(\/[a-z0-9][a-z0-9-]*)+$/;
 interface Format { format: string; url: string; checksum?: string; size?: number; width?: number; height?: number; rendition?: unknown }
 interface Asset { id: string; name?: string; type: string; tags?: string[]; attribution?: string; license?: string; rights?: unknown; formats: Format[] }
 interface Products { v: 1; assets: Array<{ id: string; source: string; credits: RenditionCredits; products: RenditionRecord[] }> }
@@ -78,7 +81,14 @@ export async function applyRenditions(root: string, productsRoot = join(root, 'c
       if (verdict.state !== 'valid' || (trustAnchors?.length && !verdict.trusted)
         || verdict.environment?.sourceSha256 !== sourceHash || verdict.environment?.creditsJson !== JSON.stringify(entry.credits)
         || verdict.environment?.signerVersion !== product.signerVersion) throw new Error('Rendition credential or source credits mismatch');
-      const url = '/' + relative(root, file).split(sep).join('/');
+      // Each id serves its renditions from its own folder, because Lolly Work reads
+      // out.<hash>.webp as also claiming out.webp and refuses two owners for one path.
+      // The bytes are the signed product's, unchanged, so this signs nothing.
+      if (!ASSET_ID.test(asset.id)) throw new Error(`Rendition asset id is not a safe path: ${asset.id}`);
+      const owned = join(productsRoot, renditionRelPath(asset.id, product.file));
+      if (existsSync(owned) && sha(readFileSync(owned)) !== product.sha256) throw new Error('Rendition product collision');
+      if (!existsSync(owned)) { mkdirSync(dirname(owned), { recursive: true }); writeFileSync(owned, bytes, { flag: 'wx' }); }
+      const url = '/' + relative(root, owned).split(sep).join('/');
       if (!url.startsWith('/catalog/')) throw new Error('Rendition products must be within the release catalog');
       if (asset.formats.some(f => f.url === url)) continue;
       asset.formats.push({ format: product.spec.format, url, width: product.width, height: product.height, size: product.size,

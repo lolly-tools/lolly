@@ -993,7 +993,7 @@
     {
       "id": "lolly/demo/sample-photo",
       "name": "Sample photograph",
-      "description": "The sample subject photo tools open on: in this catalog, the lorikeet. It is the same file as Lorikeet with a Lolly, under the id every brand's catalog answers to, so a shared template can ask for a sample photograph without naming a brand. A removable example - delete it any time.",
+      "description": "The sample subject photo tools open on: in this catalog, the lorikeet. It is the same picture as Lorikeet with a Lolly, in a file of its own under the id every brand's catalog answers to, so a shared template can ask for a sample photograph without naming a brand. A removable example - delete it any time.",
       "type": "raster",
       "version": "1.0.0",
       "tier": "on-demand",
@@ -1007,7 +1007,7 @@
       "formats": [
         {
           "format": "jpg",
-          "url": "/catalog/assets/lolly/demo/lorikeet-lollipop.jpg",
+          "url": "/catalog/assets/lolly/demo/sample-photo.jpg",
           "checksum": "sha256-zOaMwbZfLSvt7U+W0OgwLtj6JFRz3Qx5jI8a1nARNZI=",
           "width": 1628,
           "height": 2624,
