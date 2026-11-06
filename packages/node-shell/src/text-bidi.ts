@@ -25,7 +25,7 @@ export type TextRunDirection = 'ltr' | 'rtl';
 /** Bidi classes that put a right-to-left level into a line. */
 const RTL_CLASSES = new Set(['R', 'AL', 'RLE', 'RLO', 'RLI']);
 /** Scripts one general-purpose shaping pass draws correctly, whatever sits beside them. */
-const SIMPLE_SCRIPTS = new Set(['Latn', 'Grek', 'Cyrl', 'Hani', 'Hira', 'Kana', 'Hang', 'Zyyy', 'Zinh', 'Zzzz']);
+const SIMPLE_SCRIPTS = new Set(['Latn', 'Grek', 'Cyrl', 'Armn', 'Geor', 'Ethi', 'Cher', 'Cans', 'Copt', 'Ogam', 'Runr', 'Yiii', 'Hani', 'Hira', 'Kana', 'Hang', 'Bopo', 'Zyyy', 'Zinh', 'Zzzz']);
 function isAscii(text: string): boolean {
   for (let i = 0; i < text.length; i++) if (text.charCodeAt(i) > 127) return false;
   return true;
