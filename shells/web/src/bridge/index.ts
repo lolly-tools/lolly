@@ -179,6 +179,8 @@ export async function createBridge(): Promise<WebHost> {
     entries: async () => ((await db.getAll('asset-meta')) as Array<{ meta?: Record<string, unknown> }>).filter((m) => Boolean(m.meta?.fallbackFont)),
     bytes: async (id) => { const blob = await assetsApi._getBlob(id, { fetchIfMissing: true }); return blob ? new Uint8Array(await blob.arrayBuffer()) : null; },
     hold: (ids) => assetsApi._holdFallbackFonts(ids),
+    // Read at call time: the text facade is created further down this function.
+    characters: async (url) => (await host.text?.characters?.(url)) ?? [],
   });
   // The design-system registry (plans/186): which systems this device holds and
   // which is active. Built BEFORE tokens, which reads the active record's head

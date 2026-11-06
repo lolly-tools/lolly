@@ -21,7 +21,6 @@ import { brandRoleStack, genericFontRole, resolveFamilyChain, resolveVectorFont,
 import { PAGE_FALLBACK_FAMILY, catalogSynced, fallbackFontSource, markFillChain, openFillLog, pageFillSettled } from './fallback-font-source.ts';
 import { _exportNotice } from './export-notice.ts';
 import { _host } from './export-shared.ts';
-import { fontCharacters } from './text.ts';
 import type { FontStyleSlice } from './text-svg.ts';
 
 const ASCII = /^\p{ASCII}*$/u;
@@ -70,8 +69,24 @@ export function fallbackPackUrl(pack: FallbackFontPack): Promise<string | null> 
   return job;
 }
 
-const charactersOf = (urls: readonly string[]): Promise<Array<ReadonlySet<number>>> =>
-  Promise.all(urls.map((url) => fontCharacters(url).catch(() => new Set<number>())));
+const coverage = new Map<string, Promise<ReadonlySet<number>>>();
+
+/**
+ * The characters a face maps, through the host's text API, so the export walker never
+ * loads the text implementation itself. Asked once per file for the session.
+ */
+function charactersIn(url: string): Promise<ReadonlySet<number>> {
+  let hit = coverage.get(url);
+  if (!hit) {
+    const ask = fallbackFontSource()?.characters ?? _host?.text?.characters?.bind(_host.text);
+    hit = (ask ? ask(url) : Promise.resolve([] as readonly number[])).then((list) => new Set(list), () => new Set<number>());
+    coverage.set(url, hit);
+    void hit.then((set) => { if (!set.size && coverage.get(url) === hit) coverage.delete(url); });
+  }
+  return hit;
+}
+
+const charactersOf = (urls: readonly string[]): Promise<Array<ReadonlySet<number>>> => Promise.all(urls.map(charactersIn));
 
 /**
  * The families a browser would try after `resolved` for a character it lacks, in order.

@@ -108,11 +108,6 @@ async function readFont(fontUrl: string, vars: string[], key: string): Promise<F
   return entry;
 }
 
-/** The characters a font file maps, from the same cache toPath shapes with. */
-export async function fontCharacters(fontUrl: string): Promise<ReadonlySet<number>> {
-  return (await loadFace(fontUrl)).unicodes;
-}
-
 /** Internal drawing facts from the same cached font instance that outlines text. */
 export async function webStrikeMetrics(fontUrl: string, variations?: string[]): Promise<StrikeMetrics | null> {
   try {

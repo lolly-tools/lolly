@@ -14,6 +14,8 @@ export interface FallbackFontSource {
   bytes(id: string): Promise<Uint8Array | null>;
   /** Keep these files through a catalog prune, so a script used once still draws offline. */
   hold(ids: readonly string[]): Promise<void>;
+  /** The characters a font file maps, through the host's text API (`host.text.characters`). */
+  characters(fontUrl: string): Promise<readonly number[]>;
 }
 
 let source: FallbackFontSource | null = null;
