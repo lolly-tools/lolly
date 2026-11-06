@@ -84,6 +84,10 @@ export interface ExportOpts {
   c2paAiUpscale?: { model: string; version: string }; // AI-upscaled essence → created = compositeWithTrainedAlgorithmicMedia + a model-naming edit step (runtime-supplied)
   c2paAiIngredients?: Array<{ name: string; kind: 'full' | 'partial' }>; // placed assets the user declared AI-made (runtime-supplied) → composite created step + c2pa.placed + a section 18.28 ai-disclosure
   colorProfile?: string;
+  /** Print every declared spot ink as its process build in the CMYK formats (HostV1
+   *  v1.320, `_spots=process`). A declared finish keeps its own plate. Unset keeps the
+   *  named spot plates, so the default output is unchanged. */
+  spotsAsProcess?: boolean;
   thumbnail?: boolean;
   audio?: ExportAudio;
   /** Normalize the whole exported mix to a target integrated loudness, LKFS
