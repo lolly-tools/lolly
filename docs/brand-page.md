@@ -12,7 +12,7 @@ The folder is static: no scripts, no tracking and nothing loaded from another si
 |---|---|
 | `index.html` | The page for people, drawn with the brand's own tokens, in light and dark. Colourway and mode switches work without scripts. |
 | `index.md` | The same page in Markdown. |
-| `brand.json` | The manifest: every file with its digest, the logos and the surface each one is for, what was held back and why. |
+| `brand.json` | The manifest: every file with its digest, the logos and the surface each one is for, the design system's colour roles if it declares any, what was held back and why. |
 | `DESIGN.md` | The default colourway and mode in the [DESIGN.md](https://github.com/google-labs-code/design.md) format. Lolly targets the format's `alpha` version. |
 | `design/` | A `DESIGN.md` for each colourway and mode. |
 | `AGENTS.md` | Text to paste or download into a project, so an agent working there follows the brand. A design system with colour roles lists them here in its own words, as data, with what Lolly reads each as. |
@@ -142,7 +142,7 @@ A plain text file works too, and becomes the statement. `fonts` says where to ge
 
 ## What the checks say
 
-`checks.json` holds contrast measurements for the colour pairs in every colourway and mode, and house rule checks on example documents. The page shows the same results under "What was checked".
+`checks.json` holds contrast measurements for the colour pairs in every colourway and mode, and house rule checks on example documents. A design system with [colour roles](/info/colourways.html) gets a pair per role, in its own words: the colour that sits on the role, and the role on the background. The page shows the same results under "What was checked".
 
 These are measurements of token pairs and examples. They do not judge a finished piece, and a person still decides.
 
@@ -189,6 +189,7 @@ Start with `llms.txt`, which lists the folder with relative links. Then read `br
 | Every token, with theme groups | `tokens/tokens.json` |
 | Resolved values for one colourway and mode | `tokens/<colourway>.<mode>.tokens.json` |
 | The logo for a surface | `logos` in `brand.json`: each row has `surface`, `mono` and, for the logo the brand leads with, `primary` |
+| The brand's own words for its colours | `colourRoles` in `brand.json`: each row has `id`, `label`, an optional `description`, the `token` to use and the slots it `fills`. An empty `fills` means no tool picks the colour by itself. The key is absent when the design system declares none |
 | How to write, photograph or animate for the brand | `skills/` |
 | What was measured | `checks.json` |
 | What is missing, and why | `held` in `brand.json` |

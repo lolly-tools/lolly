@@ -219,6 +219,55 @@
         }
       }
     },
+    "colourRoles": {
+      "type": "array",
+      "maxItems": 32,
+      "description": "The brand's own colour words, in its order. Optional: a page with none, or from before this field, leaves it out.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "label",
+          "token",
+          "fills"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z][a-z-]{0,31}$"
+          },
+          "label": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 80
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 600
+          },
+          "token": {
+            "type": "string",
+            "pattern": "^color\\.semantic\\.[a-z][a-z-]{0,31}$"
+          },
+          "fills": {
+            "type": "array",
+            "maxItems": 6,
+            "uniqueItems": true,
+            "items": {
+              "enum": [
+                "primary",
+                "secondary",
+                "surface",
+                "text",
+                "muted",
+                "edge"
+              ]
+            }
+          }
+        }
+      }
+    },
     "held": {
       "type": "array",
       "maxItems": 4096,

@@ -1597,6 +1597,7 @@ export async function compiledDeckToPptx(input: CompiledPptxInputV1): Promise<Co
     resolveAsset,
     ...(input.rasterizeSvg ? { rasterizeSvg: input.rasterizeSvg } : {}),
     ...(input.system.compile.fonts ? { fonts: input.system.compile.fonts } : {}),
+    ...(input.system.input.themeAccents?.length ? { themeAccents: input.system.input.themeAccents } : {}),
     shipsFace: input.shipsFace ?? ((file: string) => catalogStaticFace(file)),
   });
   const parts = buildPptxParts(result.slides, {

@@ -18,7 +18,7 @@ import { xlsxRecalc } from '@lolly-tools/node-shell/gridcraft-calc-node';
 import { checkPdfAccessibility } from '@lolly-tools/node-shell/pdf-a11y-node';
 import { isFileTransform } from '@lolly-tools/node-shell/transform-tool';
 import { withoutRecordedBrandPage } from '../../../engine/src/brand-page-address.ts';
-import { assertMotionRequest, assertSampleRequest, sampleOutputFormat, buildExportMeta, designRecordWords, readFileDesignRecord, loadTool, createRuntime, canvasSizeOf, annotateTemplate, parseUrlState, serializeUrlState, serializeHdr, expandQuery, frameFilterApplies, embedC2pa, extractC2paStore, C2PA_FORMATS, c2paDefaultOn, imprintDefaultOn, isImprintFormat, IMPRINT_FORMATS, normalizeLang, parseDataRows, parseTableText, hasEncryptedState, unpackEncrypted, ENC_PARAM, RESERVED, parseRateCard, isRateCardError, validateRateCard, sfntKind, storeZip, readXlsx, listXlsxSheets, rowsToCsv } from '@lolly/engine';
+import { colourRoleThemeAccents, assertMotionRequest, assertSampleRequest, sampleOutputFormat, buildExportMeta, designRecordWords, readFileDesignRecord, loadTool, createRuntime, canvasSizeOf, annotateTemplate, parseUrlState, serializeUrlState, serializeHdr, expandQuery, frameFilterApplies, embedC2pa, extractC2paStore, C2PA_FORMATS, c2paDefaultOn, imprintDefaultOn, isImprintFormat, IMPRINT_FORMATS, normalizeLang, parseDataRows, parseTableText, hasEncryptedState, unpackEncrypted, ENC_PARAM, RESERVED, parseRateCard, isRateCardError, validateRateCard, sfntKind, storeZip, readXlsx, listXlsxSheets, rowsToCsv } from '@lolly/engine';
 import { createHash } from 'node:crypto';
 import type { Lang } from '@lolly/engine';
 import { RONDO_ASSET_FORMAT, RondoSourceError, isRondoFileName, rondoFromFile, rondoSourceBytes } from '@lolly/engine';
@@ -1508,6 +1508,8 @@ async function runToolCliCandidate({ toolId, inputValues, params, repeated = {},
             // The theme fonts and the mono face come from the brand's own font.brand,
             // font.display and font.mono tokens, as authored: never a release's render alias.
             ...(host.tokens ? { brandFont: await (await import('./raster.ts')).authoredBrandFont(host.tokens) } : {}),
+            // A design system with colour roles gives the theme's accents in its own order.
+            ...(host.tokens?.snapshot ? { themeAccents: colourRoleThemeAccents((await host.tokens.snapshot()).document) } : {}),
             // docProps come from the same assembly runtime.export would have used, so a
             // native deck is attributed the way the browser tier's deck was.
             meta: bareRender ? null : await deckDocProps(host, tool.manifest, runtime.getModel(), runtime.madeWith()),

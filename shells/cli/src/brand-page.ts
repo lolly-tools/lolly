@@ -138,8 +138,10 @@ export async function publishBrandPage(flags: Flags, json: boolean): Promise<voi
     try {
       const env = { ...process.env, ...(profile ? { LOLLY_PROFILE: profile } : {}) };
       for (const example of pageSources.BRAND_PAGE_EXAMPLES) {
-        const logo = example.id === 'poster' ? usable(brief.logos.onDark) : usable(brief.logos.onLight);
-        const values = pageSources.brandPageExampleValues(tokens, selection, example, { logo });
+        // Both variants go in, and the example places the one that reads on the colours under the mark.
+        const logos = { onLight: usable(brief.logos.onLight), onDark: usable(brief.logos.onDark) };
+        const values = pageSources.brandPageExampleValues(tokens, selection, example, { logos });
+        if (values) await pageSources.fitBrandPageExampleText(values, tokens, { repoRoot: REPO_ROOT });
         const svg = values ? await drawExample(values, dir, example.id, example.frame, env) : null;
         if (svg) examples.push({ id: example.id, name: example.name, svg });
         else held.push({ item: `Example ${example.name}`, reason: 'the example could not be drawn on this machine', kind: 'content' });

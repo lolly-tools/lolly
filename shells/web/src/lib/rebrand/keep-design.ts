@@ -154,10 +154,11 @@ export function themeHex(value: string | undefined): string | undefined {
 export function keepDesignTheme(
   suggestion: PptxInspectResult['themeSuggestion'],
   colors?: Record<string, string>,
+  accents?: readonly string[],
 ): NonNullable<PptxInspectResult['themeSuggestion']> | undefined {
   const theme = { ...(suggestion ?? {}) };
   if (colors) {
-    const slots = themeSlotsFromColors(colors);
+    const slots = themeSlotsFromColors(colors, accents);
     for (const slot of THEME_SLOTS) {
       const hex = themeHex(slots[slot]?.hex);
       if (hex) theme[slot] = hex;
@@ -172,7 +173,7 @@ export function keepDesignTheme(
  * design system's colour tokens, sets every theme slot a token names
  * (`keepDesignTheme`).
  */
-export function keepDesignPlan(inspected: PptxInspectResult, colors?: Record<string, string>): KeepDesignPlanV1 {
+export function keepDesignPlan(inspected: PptxInspectResult, colors?: Record<string, string>, accents?: readonly string[]): KeepDesignPlanV1 {
   const plan: PptxRebrandPlan = {};
   let themeSlots = 0;
   const fonts: Array<{ from: string; to: string }> = [];
@@ -185,7 +186,7 @@ export function keepDesignPlan(inspected: PptxInspectResult, colors?: Record<str
     fonts.push({ from, to });
   };
 
-  const theme = keepDesignTheme(inspected.themeSuggestion, colors);
+  const theme = keepDesignTheme(inspected.themeSuggestion, colors, accents);
   if (theme && Object.keys(theme).length > 0) {
     plan.theme = { ...theme };
     for (const slot of THEME_COLOUR_SLOTS) {
@@ -251,7 +252,7 @@ export function keepDesignPatch(
     signal.throwIfAborted();
     if (!inspected.ok) throw new KeepDesignError('not-a-deck', 'The file is not a readable PowerPoint deck.');
 
-    const planned = keepDesignPlan(inspected, system.colors);
+    const planned = keepDesignPlan(inspected, system.colors, system.themeAccents);
     const patched = await pptx.rebrand(bytes, planned.plan);
     signal.throwIfAborted();
 

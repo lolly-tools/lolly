@@ -20,6 +20,7 @@ const EXPECTED: readonly string[] = [
   'danglingColourAliases', 'deriveOnColour', 'describeColourRole', 'isDerivedOnColourValue', 'isUsableColourRoleId', 'newlyDangling',
   'onColourFloor', 'readColourRoles', 'refreshDerivedOnColours', 'removeColourRole', 'renameColourRole', 'reorderColourRoles',
   'setColourRoles', 'setRoleSameAsLight', 'setRoleValue', 'unbindRole',
+  'AdoptColourRolesOptions', 'AdoptedColourRole', 'adoptColourRoles', 'colourRoleThemeAccents', 'withColourwayKindRestored',
   // Additive 1.304 approval record in Content Credentials.
   'APPROVAL_RECORD_FORMATS', 'ApprovalNotRecordedReason', 'ApprovalRecordOutcome', 'C2paApprovalRecord',
   'RecordApprovalOptions', 'artworkUnchanged', 'recordApprovalInCredential',
@@ -1388,6 +1389,7 @@ const EXPECTED: readonly string[] = [
   'resolveRebrandDesignSystem',
   'swatchesFromColors',
   'themeSlotsFromColors',
+  'themeSlotTokensFor',
   'neutralSlideMaster',
   'colorTokenHash',
   'THEME_SLOTS',

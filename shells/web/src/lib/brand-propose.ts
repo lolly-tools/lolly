@@ -30,8 +30,11 @@
  * imports lib modules.
  */
 
-import { hexToOklch, contrastRatio, deriveBrandTokens, createTokenSet, typographyFamilies, tokenSetNames, resolveTokenSelection } from '@lolly/engine';
-import type { PenpotUsage, PenpotAppliedToken } from '@lolly/engine';
+import {
+  colorToHex, colourRoleIdFromLabel, colourRoleIdRefusal, hexToOklch, contrastRatio, deriveBrandTokens, createTokenSet, modeAxis, readColourRoles,
+  readTokenAxes, typographyFamilies, tokenSetNames, resolveTokenSelection, withColourwayKindRestored,
+} from '@lolly/engine';
+import type { AdoptedColourRole, PenpotUsage, PenpotAppliedToken } from '@lolly/engine';
 import { addSwatch } from './brand-doc.ts';
 import { setRoleValue } from './design-system/roles.ts';
 import { addStudioToken } from './token-studio.ts';
@@ -448,6 +451,208 @@ export function proposeFontsFromTokens(
     google: [],
     missing: families,
   };
+}
+
+// ── Colour roles from a file's own words ─────────────────────────────────────
+// A file that says `main`, `accent`, `supporting` and `tertiary` has told us what its
+// colours are called. This reads those words and suggests a role for each, and what
+// Lolly reads it as. It is a suggestion and nothing more: the review step shows every
+// row with both editable, nothing is written until the person applies, and no render
+// path can reach this module. There is no model here and no reading for meaning: a word
+// on this list suggests a slot, a word off it is the brand's own and reads by name only.
+
+/** A slot a colour role can fill. */
+export type ColourRoleReading = 'primary' | 'secondary' | 'surface' | 'text' | 'muted' | 'edge';
+
+/** The words that suggest a slot, best first. */
+const READING_WORDS: Readonly<Record<ColourRoleReading, readonly string[]>> = {
+  primary: ['primary', 'brand', 'brand-primary', 'primary-color', 'main', 'lead', 'key'],
+  secondary: ['secondary', 'brand-secondary', 'secondary-color', 'accent', 'partner'],
+  surface: ['surface', 'background', 'bg', 'canvas', 'ground', 'paper'],
+  text: ['text', 'foreground', 'fg', 'on-surface', 'on-background'],
+  muted: ['muted', 'subtle', 'quiet', 'subdued'],
+  edge: ['edge', 'border', 'hairline', 'divider', 'outline', 'rule'],
+};
+/** Words that name a brand's colour with no slot to suggest. They mark a group as holding roles. */
+const BY_NAME_WORDS: readonly string[] = ['supporting', 'support', 'tertiary', 'quaternary', 'highlight', 'neutral', 'signal', 'contrast'];
+const READINGS = Object.keys(READING_WORDS) as ColourRoleReading[];
+const KNOWN_ROLE_WORDS: ReadonlySet<string> = new Set([...READINGS.flatMap(slot => READING_WORDS[slot]), ...BY_NAME_WORDS]);
+
+/** Groups that describe uses or steps, and never the brand's words for its colours. */
+const NOT_ROLE_GROUP = /^color\.(semantic|colourway|chrome|ramp|role|spectrum)\./;
+/** A group with more words than this is a palette. Only the words on the list come from one. */
+const MAX_WORDS_PER_GROUP = 16;
+const MAX_PROPOSED_ROLES = 32;
+
+export interface ColourRoleProposalRow {
+  /** The role's permanent id. */
+  id: string;
+  /** The word, ready to edit. */
+  label: string;
+  description: string;
+  /** The token the colours come from. */
+  path: string;
+  /** What Lolly would read it as, or null to read it by name only. */
+  reads: ColourRoleReading | null;
+  /** The role is a slot by its own id, so its reading cannot move. */
+  fixed: boolean;
+  /** One colour per look, for the swatch. */
+  colours: Array<{ mode: string; hex: string }>;
+}
+
+export interface ColourRoleProposal {
+  rows: ColourRoleProposalRow[];
+  /** Words past the limit, which stay in the file as named colours. */
+  left: number;
+  /** The file defines a lead colour of its own, so no row has to be read as one. */
+  hasLead: boolean;
+}
+
+const NOTHING_TO_PROPOSE: ColourRoleProposal = Object.freeze({ rows: [], left: 0, hasLead: true });
+
+const wordLabel = (word: string): string => {
+  const spaced = word.replace(/[-_]+/g, ' ').trim();
+  return spaced.charAt(0).toUpperCase() + spaced.slice(1);
+};
+
+/**
+ * What a file's words suggest. Empty for a file that declares its roles (it says so
+ * itself, so there is nothing to suggest) and for a file with no such words, which is
+ * what leaves every other document's import exactly as it was.
+ *
+ * Which tokens count: every custom `color.semantic.*` token, because that is already
+ * what paints as a colour of the brand, and in any other group the word-named tokens of
+ * a group holding at least one word from the lists. A word with a digit in it is a step
+ * on a ramp, not a word. A slot's own name in a group is that slot's source once the
+ * file defines the slot, so it needs no role of its own.
+ *
+ * A word suggests a slot when the file leaves that slot open or the slot already draws
+ * that colour in every look. The links a colourway file already holds answer first.
+ */
+export function proposeColourRoles(doc: unknown): ColourRoleProposal {
+  let restored: unknown;
+  let reading: ReturnType<typeof readColourRoles>;
+  try {
+    restored = withColourwayKindRestored(doc);
+    reading = readColourRoles(restored);
+  } catch { return NOTHING_TO_PROPOSE; }
+  if (reading.state === 'declared' || reading.record === 'unreadable') return NOTHING_TO_PROPOSE;
+
+  const axes = readTokenAxes(restored).axes;
+  const mode = modeAxis(axes);
+  const looks = mode ? mode.options.map(o => o.id) : [''];
+  const setFor = (look: string) => createTokenSet(restored, look ? { selection: { [mode!.group]: look } } : {});
+  const sets = new Map(looks.map(look => [look, setFor(look)]));
+  const first = sets.get(looks[0]!)!;
+  const hexIn = (look: string, path: string): string => {
+    const hex = colorToHex(sets.get(look)?.resolve(path));
+    return typeof hex === 'string' && hex.startsWith('#') ? hex.toLowerCase() : '';
+  };
+
+  const colours = first.colors();
+  const wordOf = (path: string): string | null => {
+    const word = roleWord(path);
+    return word && !/\d/.test(word) && !word.startsWith('on-') ? word : null;
+  };
+  const groupOf = (path: string): string => {
+    const segs = path.split('.');
+    const last = segs.at(-1)?.toLowerCase();
+    return segs.slice(0, last === 'default' || last === 'base' ? -2 : -1).join('.');
+  };
+  // Which groups hold roles, and how many words each has.
+  const known = new Set<string>();
+  const counts = new Map<string, number>();
+  for (const c of colours) {
+    if (NOT_ROLE_GROUP.test(c.path)) continue;
+    const word = wordOf(c.path);
+    if (!word) continue;
+    const group = groupOf(c.path);
+    counts.set(group, (counts.get(group) ?? 0) + 1);
+    if (KNOWN_ROLE_WORDS.has(word)) known.add(group);
+  }
+  const undeclared = new Map(reading.roles.filter(role => !role.declared).map(role => [role.id, role]));
+  const slotDefined = (slot: string): boolean => first.has(`color.semantic.${slot}`);
+  const seen = new Set<string>();
+  const found: Array<{ word: string; path: string; description: string | null }> = [];
+  for (const c of colours) {
+    const semantic = /^color\.semantic\.([^.]+)$/.exec(c.path)?.[1];
+    if (semantic) {
+      if (undeclared.has(semantic) && !seen.has(semantic)) { seen.add(semantic); found.push({ word: semantic, path: c.path, description: c.description ?? null }); }
+      continue;
+    }
+    if (NOT_ROLE_GROUP.test(c.path)) continue;
+    const word = wordOf(c.path);
+    if (!word || seen.has(word)) continue;
+    const group = groupOf(c.path);
+    if (!known.has(group)) continue;
+    if ((counts.get(group) ?? 0) > MAX_WORDS_PER_GROUP && !KNOWN_ROLE_WORDS.has(word)) continue;
+    if ((READINGS as string[]).includes(word) && slotDefined(word)) continue;
+    seen.add(word);
+    found.push({ word, path: c.path, description: c.description ?? null });
+  }
+  // A colourway leaf with no link in any look is still a role the file holds.
+  for (const role of undeclared.values()) {
+    if (!seen.has(role.id)) { seen.add(role.id); found.push({ word: role.id, path: role.path, description: role.description ?? null }); }
+  }
+  if (!found.length) return { rows: [], left: 0, hasLead: slotDefined('primary') };
+
+  const kept = found.slice(0, MAX_PROPOSED_ROLES);
+  // Which slot each word suggests: a link the file already holds first, then the word's rank on the list.
+  const reads = new Map<string, ColourRoleReading>();
+  for (const slot of reading.slots) {
+    if (slot.roleId && undeclared.has(slot.roleId) && !reads.has(slot.roleId) && slot.source === 'alias') reads.set(slot.roleId, slot.slot as ColourRoleReading);
+  }
+  const taken = new Set(reads.values());
+  const sameEverywhere = (path: string, slot: string): boolean => looks.every(look => hexIn(look, path) !== '' && hexIn(look, path) === hexIn(look, `color.semantic.${slot}`));
+  for (const slot of READINGS) {
+    if (taken.has(slot)) continue;
+    const ranked = kept
+      .map(row => ({ row, rank: READING_WORDS[slot].indexOf(row.word) }))
+      .filter(hit => hit.rank >= 0 && !reads.has(hit.row.word))
+      .sort((a, b) => a.rank - b.rank)[0];
+    if (!ranked) continue;
+    if (!slotDefined(slot) || sameEverywhere(ranked.row.path, slot)) { reads.set(ranked.row.word, slot); taken.add(slot); }
+  }
+  const usedIds = new Set<string>();
+  const rows = kept.map((row): ColourRoleProposalRow => {
+    const label = wordLabel(row.word).slice(0, 80);
+    let id = row.word;
+    if (colourRoleIdRefusal(id) || usedIds.has(id)) id = colourRoleIdFromLabel(restored, label);
+    for (let i = 0; usedIds.has(id); i += 1) id = colourRoleIdFromLabel(restored, `${label} ${String.fromCharCode(97 + i)}`);
+    usedIds.add(id);
+    const self = (READINGS as string[]).includes(id);
+    return {
+      id, label,
+      description: (typeof row.description === 'string' ? row.description : '').slice(0, 600),
+      path: row.path,
+      reads: self ? id as ColourRoleReading : reads.get(row.word) ?? null,
+      fixed: self,
+      colours: looks.map(look => ({ mode: look, hex: hexIn(look, row.path) })),
+    };
+  });
+  return { rows, left: found.length - kept.length, hasLead: slotDefined('primary') };
+}
+
+/** One row after the person's edits. */
+export interface ColourRoleChoice { id: string; label: string; description: string; reads: ColourRoleReading | null; keep: boolean }
+
+/** The choices a person made, as what `adoptColourRoles` takes. A row they turned off stays a named colour. */
+export function colourRoleSpecs(proposal: ColourRoleProposal, choices: readonly ColourRoleChoice[]): AdoptedColourRole[] {
+  const out: AdoptedColourRole[] = [];
+  for (const choice of choices) {
+    if (!choice.keep) continue;
+    const row = proposal.rows.find(r => r.id === choice.id);
+    if (!row) continue;
+    const label = choice.label.trim() || row.label;
+    const description = choice.description.trim();
+    out.push({
+      id: row.id, label,
+      ...(description ? { description } : {}),
+      ...(row.path !== `color.semantic.${row.id}` ? { from: row.path } : {}),
+      ...(choice.reads && choice.reads !== row.id ? { fills: choice.reads } : {}),
+    });
+  }
+  return out;
 }
 
 /** The set a token-first install writes its semantic roles into. */

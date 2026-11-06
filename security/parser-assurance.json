@@ -1500,8 +1500,8 @@
         "inputSource": "A DESIGN.md the person picked with `lolly system import`, or that a design system import reads",
         "bounds": "1 MiB of text, 40,000 lines, 4,000 tokens, YAML depth 8; anchors, aliases, repeated keys, reserved object keys and duplicate sections are refused",
         "directTests": "`tests/design-md.test.ts`, `tests/brand-page-cli.test.ts`",
-        "fuzzCoverage": "`design-md` mutates a file the writer produced and a hand-written one with fenced token blocks",
-        "notes": "The format is alpha, so the target version is recorded. Prose is kept as text and never acted on. Scope hints are reported, and a file with no hints can still mislead a reader."
+        "fuzzCoverage": "`design-md` mutates a file the writer produced, one with a colour role block and a hand-written one with fenced token blocks",
+        "notes": "The format is alpha, so the target version is recorded. Prose is kept as text and never acted on. Scope hints are reported, and a file with no hints can still mislead a reader. A colour role block is bounded at 256 KiB and read field by field: ids against the role id rule, colours as literals only. One that fails costs the roles, and the file's tokens stand."
       }
     }
   }

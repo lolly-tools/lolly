@@ -159,4 +159,4 @@ Each function works on a copy, resolves every token under every choice of look a
 
 ## Colourways in Penpot
 
-A `.penpot` export keeps the colourway group and its sets, and opens with the canonical colourway turned on so the links resolve. Penpot's theme record has no field for the kind, so the group arrives in Penpot, and comes back from it, as a plain theme group.
+A `.penpot` export keeps the colourway group and its sets, and opens with the canonical colourway turned on so the links resolve. Penpot's theme record has no field for the kind, so the group arrives in Penpot, and comes back from it, as a plain theme group. A design system with colour roles gets the kind back on import, from the group's name, `colourway`, along with its roles' words. [Colour roles in other formats](/info/design-tokens.html#colour-roles-in-other-formats) lists what each format keeps.

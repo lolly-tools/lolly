@@ -48,6 +48,8 @@ import { t, tRaw, tn } from '../i18n.ts';
 import { isTauriShell } from './instance-choice.ts';
 import { NAV_EVENTS } from '../utils.ts';
 import { navigateTo } from '../nav.ts';
+import { afterOwnBack } from './overlay-back.ts';
+import { isFileDrag, takeEarlyDrops } from './drop-early.ts';
 import { announce } from '../a11y.ts';
 import { playSfx } from './sfx.ts';
 import { choiceDialog, confirmDialog, closeConfirmDialogs, noticeDialog } from '../components/confirm-dialog.ts';
@@ -1809,9 +1811,13 @@ const onToolRoute = (id: string): boolean =>
  *  shell for a forced remount via its 'lolly:remount' seam so the stash is
  *  still consumed; plain drops (gallery/dashboard only) never hit it. */
 function routeToConsumer(hash: string, alreadyThere: boolean): void {
+  // The chooser that asked has just closed and may still be popping its own history
+  // entry: the push waits for that pop, as navigateTo's does (overlay-back.ts afterOwnBack).
   if (alreadyThere) {
-    if (window.location.hash !== hash) history.pushState(null, '', hash);
-    window.dispatchEvent(new Event('lolly:remount'));
+    afterOwnBack(() => {
+      if (window.location.hash !== hash) history.pushState(null, '', hash);
+      window.dispatchEvent(new Event('lolly:remount'));
+    });
   } else navigateTo(hash);
 }
 
@@ -1935,14 +1941,16 @@ const ATTACHED = new WeakMap<HTMLElement, () => void>();
  */
 export function attachDropRouter(rootEl: HTMLElement, host: PickerHost, hooks: DropChooserHooks = {}): () => void {
   ATTACHED.get(rootEl)?.();
+  const route = (files: File[]): void => {
+    if (files.length) void (async () => { if (!(await hooks.direct?.(files))) await openDropChooser(files, host, hooks); })();
+  };
   const ac = new AbortController();
   const { signal } = ac;
   let depth = 0;
   let hint: HTMLElement | null = null;
 
-  // A drag of Lolly's own tiles (text/lolly-*, application/x-lolly-*) is never a file
-  // import, even where the browser adds the tile's picture as a file.
-  const isFileDrag = (e: DragEvent): boolean => { const types = e.dataTransfer?.types; return !!types?.includes('Files') && !types.some(type => /^(?:text\/lolly-|application\/x-lolly-)/.test(type)); };
+  // Only file drags from outside (drop-early.ts isFileDrag): a drag of Lolly's own tiles
+  // is never a file import, even where the browser adds the tile's picture as a file.
   const showHint = (on: boolean): void => {
     if (on) {
       if (!hint) {
@@ -1980,8 +1988,7 @@ export function attachDropRouter(rootEl: HTMLElement, host: PickerHost, hooks: D
     if (!isFileDrag(e)) return;
     e.preventDefault();
     showHint(false);
-    const files = [...(e.dataTransfer?.files ?? [])];
-    if (files.length) void (async () => { if (!(await hooks.direct?.(files))) await openDropChooser(files, host, hooks); })();
+    route([...(e.dataTransfer?.files ?? [])]);
   }, { signal });
 
   const teardown = (): void => {
@@ -1997,6 +2004,9 @@ export function attachDropRouter(rootEl: HTMLElement, host: PickerHost, hooks: D
   NAV_EVENTS.forEach((ev) => window.addEventListener(ev, teardown));
   ATTACHED.set(rootEl, teardown);
   rootEl.dataset.dropReady = '';
+  // Files dropped while this module was still loading (drop-early.ts) go the same way.
+  const early = takeEarlyDrops(rootEl);
+  if (early) route(early);
   return teardown;
 }
 

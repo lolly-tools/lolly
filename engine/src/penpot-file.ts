@@ -42,6 +42,11 @@ import { pathBounds, pathFromSubPaths } from './geom/path.ts';
 import { sanitizeAppliedTokens, buildTokenTypeIndex, isSafeTokenPath } from './penpot-bindings.ts';
 import { clamp } from './clamp.ts';
 import { readTokenAxes } from './token-axes.ts';
+import { declaredColourRoleIds } from './colourway.ts';
+import { readColourRoles } from './colour-roles.ts';
+import { roleWordsText } from './colour-role-portable.ts';
+import { leaveOutScopedTokenText } from './token-scope.ts';
+import { brandSkillScopeHints } from './brand-skill.ts';
 import { compileDesignRow, type DrawPaint } from './design-draw.ts';
 import { designDrawPenpot, isPenpotPrimitiveRow } from './design-draw-penpot.ts';
 import { designStrokeAlign, designStrokeHasSides, designStrokeSides, designStrokeSidesApply, strokeSidesEqual } from './design-stroke.ts';
@@ -884,6 +889,19 @@ export function buildPenpotEntries(doc: PenpotDoc, opts: PenpotBuildOptions = {}
 // ─── tokens.json ──────────────────────────────────────────────────────────────
 
 /**
+ * A declared colour role's words, by id, for a Penpot token's description. Null with no
+ * declared roles, which is what leaves such a document's tokens.json as it was. The text
+ * scope hints flag stays out, as on every other route out.
+ */
+function penpotRoleWords(doc: Rec): Map<string, { label: string; description?: string; position: number; total: number }> | null {
+  if (!declaredColourRoleIds(doc).length) return null;
+  const { doc: clean } = leaveOutScopedTokenText(doc);
+  const roles = readColourRoles(clean).roles.filter(role => role.declared);
+  if (!roles.length) return null;
+  return new Map(roles.map((role, index) => [role.id, { label: role.label, ...(role.description ? { description: role.description } : {}), position: index + 1, total: roles.length }]));
+}
+
+/**
  * The brand's Tokens-Studio / DTCG document → what Penpot's multi-set reader
  * accepts: sets of nested groups whose leaves carry `$value` + a `$type` Penpot
  * knows (group-level `$type` is pushed down onto each leaf, unknown types such as
@@ -901,7 +919,8 @@ export function penpotTokensJson(doc: unknown, selection?: PenpotThemeSelection)
   const isTokenLeaf = (v: unknown): v is Rec => isRec(v) && ('$value' in v || 'value' in v);
   const sets: Record<string, unknown> = Object.create(null);
   const reserved = new Set(['$themes', '$metadata', '$description', '$extensions', '$type', '$schema']);
-  const convert = (node: Rec, inherited: string | null): Rec | null => {
+  const words = penpotRoleWords(doc);
+  const convert = (node: Rec, inherited: string | null, at: string): Rec | null => {
     const out: Rec = Object.create(null);
     let kept = 0;
     for (const [k, v] of Object.entries(node)) {
@@ -914,11 +933,14 @@ export function penpotTokensJson(doc: unknown, selection?: PenpotThemeSelection)
         if (typeof mapped !== 'string') continue;
         const leaf: Rec = { $value: '$value' in v ? v.$value : v.value, $type: mapped };
         const desc = v.$description ?? v.description;
-        if (typeof desc === 'string' && desc) leaf.$description = desc;
+        // A colour role's words: the one place Penpot has for them, and what the token said for itself stays after them.
+        const role = at === 'color.semantic' ? words?.get(k) : undefined;
+        if (role) leaf.$description = roleWordsText(role, typeof desc === 'string' && desc && !brandSkillScopeHints(desc).length ? desc : undefined);
+        else if (typeof desc === 'string' && desc) leaf.$description = desc;
         out[k] = leaf; kept++;
       } else if (isRec(v)) {
         const groupType = typeof v.$type === 'string' ? v.$type : inherited;
-        const sub = convert(v, groupType);
+        const sub = convert(v, groupType, at ? `${at}.${k}` : k);
         if (sub) { out[k] = sub; kept++; }
       }
     }
@@ -928,11 +950,11 @@ export function penpotTokensJson(doc: unknown, selection?: PenpotThemeSelection)
   if (hasSets) {
     for (const [name, v] of Object.entries(doc)) {
       if (reserved.has(name) || !isRec(v)) continue;
-      const set = convert(v, typeof v.$type === 'string' ? v.$type : null);
+      const set = convert(v, typeof v.$type === 'string' ? v.$type : null, '');
       if (set) sets[name] = set;
     }
   } else {
-    const set = convert(doc, typeof doc.$type === 'string' ? doc.$type : null);
+    const set = convert(doc, typeof doc.$type === 'string' ? doc.$type : null, '');
     if (set) sets.global = set;
   }
   const setNames = Object.keys(sets);
