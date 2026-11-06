@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
  * The grammar a tool's `data-svg-motion` must match, and what it writes. The walk itself
- * needs a browser: tests/quote-card.browser.test.ts runs it.
+ * needs a browser, so tests/quote-card.browser.test.ts covers the walk.
  *
  * Run with: node --test shells/web/src/bridge/export-svg-motion.test.ts
  */
@@ -9,7 +9,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { collectKeyframes, holdEntrancesFinished, MOTION_REST_CSS, parseSvgMotion, svgMotionStyle } from './export-svg-motion.ts';
 
-test('a motion is one exact form, because the value lands in a style attribute', () => {
+test('a motion is one exact form, because the value ends up in a style attribute', () => {
   assert.deepEqual(parseSvgMotion('qc-rise 400ms cubic-bezier(0.05,0.7,0.1,1) 80ms'), { name: 'qc-rise', durMs: 400, easing: 'cubic-bezier(0.05,0.7,0.1,1)', delayMs: 80 });
   assert.deepEqual(parseSvgMotion('qc-fade 700ms linear 0ms'), { name: 'qc-fade', durMs: 700, easing: 'linear', delayMs: 0 });
   for (const bad of [

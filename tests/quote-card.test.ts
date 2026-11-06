@@ -121,7 +121,7 @@ test('an empty field leaves no gap and no stray punctuation', async () => {
     return m ? words(m[1]!) : '';
   };
   assert.equal(await ref({ name: '', role: '' }), '', 'nothing typed, no reference');
-  assert.doesNotMatch(normal(await hydrate({ quote: 'Q', layout: 'citation', name: '', role: '' })), /qc-rule/, 'and no rule waiting above it');
+  assert.doesNotMatch(normal(await hydrate({ quote: 'Q', layout: 'citation', name: '', role: '' })), /qc-rule/, 'and no rule waiting for one');
   assert.equal(await ref({ name: 'Ada', role: '' }), 'Ada.');
   assert.equal(await ref({ name: 'Ada', role: 'Editor' }), 'Ada, Editor.');
   assert.equal(await ref({ name: '', role: '', source: 'A Work' }), 'A Work.');
@@ -240,7 +240,7 @@ const SYSTEMS: Array<[string, unknown, Record<string, string>]> = [
   ]),
 ];
 
-test('every colour comes from the design system and is measured against the ground it lands on', async () => {
+test('every colour comes from the design system and is measured against its own ground', async () => {
   for (const [name, doc, selection] of SYSTEMS) {
     const set = createTokenSet(doc, { selection } as never);
     const slot = (s: string): string => String(set.resolve(`{color.semantic.${s}}`));

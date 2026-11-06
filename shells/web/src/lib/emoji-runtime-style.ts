@@ -55,7 +55,7 @@ export async function seedEmojiRuntime(runtime: Runtime, host: HostV1, url: Emoj
 }
 
 /**
- * A placed tool's link, keeping the pinned emoji set when the link can hold it. A design
+ * A placed tool's link, keeping the pinned emoji set when the link has room. A design
  * system's own treatment lists its whole palette, which runs to several kilobytes and
  * past what an embed id may be (Lolly Demo's alone is 5.8 KB), and a link that cannot be
  * minted left every field in Design's Tool section doing nothing. Headless renders seed

@@ -9,10 +9,10 @@
 //    typed goes through esc() first. Style values are parsed to a hex colour or a
 //    number before they are written.
 //
-// 3. COLOUR. Each ground has a colour for the words that is made to sit on it. A
-//    decoration or a highlight is measured against the ground it lands on, under the
-//    active colourway, light or dark. The primary colour is never used for words on
-//    the surface.
+// 3. COLOUR. Each ground has a colour for the words made to sit on that ground. A
+//    decoration or a highlight is measured against its own ground, under the active
+//    colourway, light or dark. The primary colour is never used for words on the
+//    surface.
 //
 // 4. MOTION is data here and playback in the template's script: the hook chooses the
 //    units and reads durations and curves from the design system. The script assigns
@@ -27,52 +27,52 @@ function esc(s) {
 }
 // === /lolly:shared esc ===
 
-var GROUNDS = { lead: 1, ink: 1, paper: 1 };
-var MOTIONS = { none: 1, word: 1, line: 1, sweep: 1, draw: 1 };
+const GROUNDS = { lead: 1, ink: 1, paper: 1 };
+const MOTIONS = { none: 1, word: 1, line: 1, sweep: 1, draw: 1 };
 // How far a layout may grow its type to fill the frame. The two original layouts
 // never grow; they only shrink when a long quote would not fit.
-var GROW = { type: 4.5, glyph: 3, pull: 3, citation: 2.4, portrait: 2.4, marker: 2.2 };
-var PLAY_LABEL = 'Play motion';
+const GROW = { type: 4.5, glyph: 3, pull: 3, citation: 2.4, portrait: 2.4, marker: 2.2 };
+const PLAY_LABEL = 'Play motion';
 
 // Built-in timing where a design system names none. A system's motion tokens replace them.
-var UNIT_MS = 400;
-var BLOCK_MS = 700;
-var STAGGER_MS = 80;
-var EASE = 'cubic-bezier(0.05,0.7,0.1,1)';
+const UNIT_MS = 400;
+const BLOCK_MS = 700;
+const STAGGER_MS = 80;
+const EASE = 'cubic-bezier(0.05,0.7,0.1,1)';
 
 // An entrance longer than this stops being an entrance, so a long quote deals faster.
-var MAX_DEAL_MS = 5000;
+const MAX_DEAL_MS = 5000;
 
-var RTL_RE = /[֐-ࣿיִ-﷿ﹰ-﻿]/;
-var LTR_RE = /[A-Za-zÀ-ɏͰ-ϿЀ-ӿ]/;
-var CJK_RE = /[぀-ヿ㐀-䶿一-鿿豈-﫿ｦ-ﾟ]/;
+const RTL_RE = /[֐-ࣿיִ-﷿ﹰ-﻿]/;
+const LTR_RE = /[A-Za-zÀ-ɏͰ-ϿЀ-ӿ]/;
+const CJK_RE = /[぀-ヿ㐀-䶿一-鿿豈-﫿ｦ-ﾟ]/;
 // Kept with the character before: a line never starts with one of these.
-var CJK_CLOSE_RE = /^[、。，．！？：；）」』】〉》”’…ー々]$/;
+const CJK_CLOSE_RE = /^[、。，．！？：；）」』】〉》”’…ー々]$/;
 // Kept with the character after: a line never ends with one of these.
-var CJK_OPEN_RE = /^[（「『【〈《“‘]$/;
+const CJK_OPEN_RE = /^[（「『【〈《“‘]$/;
 
 function clean(v) {
   return v == null ? '' : String(v).trim();
 }
 
 function inputs(model) {
-  var o = {};
-  (model || []).forEach(function (i) { o[i.id] = i.value; });
+  const o = {};
+  (model || []).forEach((i) => { o[i.id] = i.value; });
   return o;
 }
 
 function own(table, key) {
-  return Object.prototype.hasOwnProperty.call(table, key);
+  return Object.hasOwn(table, key);
 }
 
 // ── text units ──────────────────────────────────────────────────────────────
 
-var SEGMENTER = (typeof Intl !== 'undefined' && typeof Intl.Segmenter === 'function')
+const SEGMENTER = (typeof Intl !== 'undefined' && typeof Intl.Segmenter === 'function')
   ? new Intl.Segmenter(undefined, { granularity: 'grapheme' }) : null;
 
 function graphemes(s) {
   if (!SEGMENTER) return Array.from(s);
-  return Array.from(SEGMENTER.segment(s), function (r) { return r.segment; });
+  return Array.from(SEGMENTER.segment(s), (r) => r.segment);
 }
 
 // One run with no spaces in it, as the units that move together. Latin, Arabic and
@@ -81,9 +81,9 @@ function graphemes(s) {
 // the mark at the start or end of a line.
 function runUnits(run) {
   if (!CJK_RE.test(run)) return [run];
-  var out = [];
-  var open = '';
-  graphemes(run).forEach(function (g) {
+  const out = [];
+  let open = '';
+  graphemes(run).forEach((g) => {
     if (CJK_OPEN_RE.test(g)) { open += g; return; }
     if (CJK_CLOSE_RE.test(g) && out.length && !open) { out[out.length - 1] += g; return; }
     out.push(open + g);
@@ -103,24 +103,21 @@ function mixedDirection(text) {
 // The whitespace-separated pieces of a stretch of text, keeping whether a space
 // followed each one, so `dis[appear]s` stays one word on the page.
 function pieces(text) {
-  var out = [];
-  var re = /(\S+)(\s*)/g;
-  var m;
-  var leading = /^\s/.test(text);
-  while ((m = re.exec(text))) out.push({ text: m[1], space: !!m[2] });
-  return { leading: leading, list: out };
+  const list = [];
+  for (const m of text.matchAll(/(\S+)(\s*)/g)) list.push({ text: m[1], space: !!m[2] });
+  return { leading: /^\s/.test(text), list };
 }
 
 // The stretch of the quote the person asked to emphasise, or null. Exact first, then
 // ignoring case. Never a guess: a phrase that is not in the quote marks nothing.
 function findPhrase(quote, phrase) {
   if (!phrase) return null;
-  var at = quote.indexOf(phrase);
-  var end = at + phrase.length;
+  let at = quote.indexOf(phrase);
+  let end = at + phrase.length;
   if (at < 0) {
-    var re;
-    try { re = new RegExp(phrase.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'iu'); } catch (e) { return null; }
-    var m = re.exec(quote);
+    let re;
+    try { re = new RegExp(phrase.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'iu'); } catch { return null; }
+    const m = re.exec(quote);
     if (!m) return null;
     at = m.index;
     end = at + m[0].length;
@@ -138,26 +135,26 @@ function findPhrase(quote, phrase) {
 // The quote's markup, or '' when plain text does the job (no motion by word, no
 // phrase), which is what leaves the original layouts' markup unchanged.
 function quoteMarkup(quote, phrase, opts) {
-  var hit = findPhrase(quote, phrase);
+  const hit = findPhrase(quote, phrase);
   if (!opts.split && !hit) return { html: '', units: 0 };
-  var stretches = hit
+  const stretches = hit
     ? [{ text: quote.slice(0, hit.start) }, { text: quote.slice(hit.start, hit.end), em: true }, { text: quote.slice(hit.end) }]
     : [{ text: quote }];
-  var units = 0;
-  var html = '';
-  stretches.forEach(function (st) {
+  let units = 0;
+  let html = '';
+  stretches.forEach((st) => {
     if (!st.text) return;
     // With no motion by word, plain text stays plain and only a marker needs its own box.
     if (!opts.split && !(st.em && opts.marker)) {
       html += st.em ? '<span class="qc-em">' + esc(st.text) + '</span>' : esc(st.text);
       return;
     }
-    var p = pieces(st.text);
+    const p = pieces(st.text);
     if (p.leading) html += ' ';
-    p.list.forEach(function (piece) {
-      runUnits(piece.text).forEach(function (u) {
+    p.list.forEach((piece) => {
+      runUnits(piece.text).forEach((u) => {
         units++;
-        var cls = 'qc-w' + (st.em ? (opts.marker ? ' qc-hl' : ' qc-em') : '');
+        const cls = 'qc-w' + (st.em ? (opts.marker ? ' qc-hl' : ' qc-em') : '');
         html += '<span class="' + cls + '" aria-hidden="true">'
           + (st.em && opts.marker ? '<span class="qc-hlbg" aria-hidden="true"></span>' : '')
           + esc(u) + '</span>';
@@ -188,14 +185,14 @@ function shortLink(url) {
 }
 
 function sourceLines(v) {
-  var name = clean(v.name);
-  var role = clean(v.role);
-  var work = clean(v.source);
-  var pub = clean(v.publication);
-  var date = clean(v.date);
-  var link = clean(v.link);
-  var cite = work ? '<cite>' + esc(work) + '</cite>' : '';
-  var where = joinParts([esc(pub), esc(date)], ', ');
+  const name = clean(v.name);
+  const role = clean(v.role);
+  const work = clean(v.source);
+  const pub = clean(v.publication);
+  const date = clean(v.date);
+  const link = clean(v.link);
+  const cite = work ? '<cite>' + esc(work) + '</cite>' : '';
+  const where = joinParts([esc(pub), esc(date)], ', ');
   return {
     // Beside any other layout: the work and where it appeared, one line.
     sourceHtml: joinParts([cite, where], ', '),
@@ -209,11 +206,11 @@ function sourceLines(v) {
 // Read once and kept, because onInput runs on every keystroke. A theme or colourway
 // switch reaches onInput as '__tokens', which drops the kept answers.
 
-var _theme = null;
+let _theme = null;
 
 function hex(v) {
   if (typeof v !== 'string') return '';
-  var s = v.trim().toLowerCase();
+  const s = v.trim().toLowerCase();
   if (/^#[0-9a-f]{6}$/.test(s)) return s;
   if (/^#[0-9a-f]{8}$/.test(s)) return s.slice(0, 7);
   if (/^#[0-9a-f]{3}$/.test(s)) return '#' + s[1] + s[1] + s[2] + s[2] + s[3] + s[3];
@@ -221,11 +218,11 @@ function hex(v) {
 }
 
 function durationMs(v) {
-  var n = null;
-  var unit = 'ms';
+  let n = null;
+  let unit = 'ms';
   if (typeof v === 'number') n = v;
   else if (typeof v === 'string') {
-    var m = /^\s*(\d+(?:\.\d+)?|\.\d+)\s*(ms|s)\s*$/i.exec(v);
+    const m = /^\s*(\d+(?:\.\d+)?|\.\d+)\s*(ms|s)\s*$/i.exec(v);
     if (m) { n = Number(m[1]); unit = m[2].toLowerCase(); }
   } else if (v && typeof v === 'object' && typeof v.value === 'number') {
     n = v.value;
@@ -235,10 +232,11 @@ function durationMs(v) {
   return Math.min(4000, unit === 's' ? n * 1000 : n);
 }
 
-function curveCss(v) {
+function curveCss(value) {
+  let v = value;
   if (v && typeof v === 'object' && !Array.isArray(v) && Array.isArray(v.timingFunction)) v = v.timingFunction;
   if (!Array.isArray(v) || v.length !== 4) return '';
-  for (var i = 0; i < 4; i++) if (typeof v[i] !== 'number' || !isFinite(v[i])) return '';
+  for (let i = 0; i < 4; i++) if (typeof v[i] !== 'number' || !Number.isFinite(v[i])) return '';
   if (v[0] < 0 || v[0] > 1 || v[2] < 0 || v[2] > 1) return '';
   return 'cubic-bezier(' + v.join(',') + ')';
 }
@@ -246,10 +244,10 @@ function curveCss(v) {
 // The corner the design system states, as a share of the shorter side of a 1200 px
 // frame, so it scales with the artwork. Empty when the system states no corner.
 function radiusVar(v) {
-  var n = null;
+  let n = null;
   if (typeof v === 'number') n = v;
   else if (typeof v === 'string') {
-    var m = /^\s*(\d+(?:\.\d+)?)\s*(px|rem)\s*$/i.exec(v);
+    const m = /^\s*(\d+(?:\.\d+)?)\s*(px|rem)\s*$/i.exec(v);
     if (m) n = Number(m[1]) * (m[2].toLowerCase() === 'rem' ? 16 : 1);
   } else if (v && typeof v === 'object' && typeof v.value === 'number') {
     n = v.value * (v.unit === 'rem' ? 16 : 1);
@@ -260,10 +258,10 @@ function radiusVar(v) {
 
 async function readTheme() {
   if (_theme) return _theme;
-  var t = { lead: '', onLead: '', partner: '', surface: '', text: '', muted: '', edge: '', unitMs: 0, blockMs: 0, ease: '', radius: '' };
+  const t = { lead: '', onLead: '', partner: '', surface: '', text: '', muted: '', edge: '', unitMs: 0, blockMs: 0, ease: '', radius: '' };
   if (typeof host !== 'undefined' && host && host.tokens && host.tokens.resolve) {
-    var read = async function (ref) {
-      try { return await host.tokens.resolve(ref); } catch (e) { return null; }
+    const read = async (ref) => {
+      try { return await host.tokens.resolve(ref); } catch { return null; }
     };
     t.lead = hex(await read('{color.semantic.primary}'));
     t.onLead = hex(await read('{color.semantic.on-primary}'));
@@ -282,27 +280,27 @@ async function readTheme() {
 }
 
 function luminance(h) {
-  var c = [parseInt(h.slice(1, 3), 16), parseInt(h.slice(3, 5), 16), parseInt(h.slice(5, 7), 16)].map(function (x) {
-    var s = x / 255;
-    return s <= 0.03928 ? s / 12.92 : Math.pow((s + 0.055) / 1.055, 2.4);
+  const c = [parseInt(h.slice(1, 3), 16), parseInt(h.slice(3, 5), 16), parseInt(h.slice(5, 7), 16)].map((x) => {
+    const s = x / 255;
+    return s <= 0.03928 ? s / 12.92 : ((s + 0.055) / 1.055) ** 2.4;
   });
   return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2];
 }
 
 function contrast(a, b) {
-  var la = luminance(a);
-  var lb = luminance(b);
+  const la = luminance(a);
+  const lb = luminance(b);
   return (Math.max(la, lb) + 0.05) / (Math.min(la, lb) + 0.05);
 }
 
 // The first candidate that clears `min` on `ground`, else whichever came closest.
 function readable(candidates, ground, min) {
-  var best = '';
-  var bestScore = -1;
-  for (var i = 0; i < candidates.length; i++) {
-    var c = candidates[i];
+  let best = '';
+  let bestScore = -1;
+  for (let i = 0; i < candidates.length; i++) {
+    const c = candidates[i];
     if (!c) continue;
-    var score = contrast(c, ground);
+    const score = contrast(c, ground);
     if (score >= min) return c;
     if (score > bestScore) { best = c; bestScore = score; }
   }
@@ -313,20 +311,20 @@ function readable(candidates, ground, min) {
 // and the stylesheet's own var() fallbacks draw the card instead.
 function paletteVars(ground, t) {
   if (!t.surface || !t.text || !t.lead) return '';
-  var onLead = t.onLead || readable([t.surface, t.text], t.lead, 4.5);
-  var g = ground === 'lead' ? t.lead : ground === 'ink' ? t.text : t.surface;
-  var ink = ground === 'lead' ? onLead : ground === 'ink' ? t.surface : t.text;
+  const onLead = t.onLead || readable([t.surface, t.text], t.lead, 4.5);
+  const g = ground === 'lead' ? t.lead : ground === 'ink' ? t.text : t.surface;
+  const ink = ground === 'lead' ? onLead : ground === 'ink' ? t.surface : t.text;
   // Decoration is not text, so 3:1 is enough, and the lead colour leads where it can.
-  var deco = readable(ground === 'lead' ? [t.partner, onLead] : [t.lead, t.partner, ink], g, 3);
+  const deco = readable(ground === 'lead' ? [t.partner, onLead] : [t.lead, t.partner, ink], g, 3);
   // The band behind a picture sits on the ground, and is decoration too.
-  var band = readable(ground === 'lead' ? [t.partner, onLead] : [t.lead, t.partner, ink], g, 1.6);
+  const band = readable(ground === 'lead' ? [t.partner, onLead] : [t.lead, t.partner, ink], g, 1.6);
   // An emphasised word is text, so it has to clear 4.5:1, or stay in the ink colour.
-  var em = readable(ground === 'lead' ? [onLead] : ground === 'ink' ? [t.partner, t.lead, ink] : [t.text], g, 4.5);
+  const em = readable(ground === 'lead' ? [onLead] : ground === 'ink' ? [t.partner, t.lead, ink] : [t.text], g, 4.5);
   // A marker is a pair made to sit together: the lead and the colour on it, swapped
   // on the lead's own ground so it still shows.
-  var hlBg = ground === 'lead' ? onLead : readable([t.lead, t.partner, ink], g, 2);
-  var hlInk = hlBg === onLead ? t.lead : readable([onLead, t.surface, t.text], hlBg, 4.5);
-  var vars = ['--qc-deco:' + deco, '--qc-band:' + band, '--qc-em:' + em, '--qc-hl-bg:' + hlBg, '--qc-hl-ink:' + hlInk];
+  const hlBg = ground === 'lead' ? onLead : readable([t.lead, t.partner, ink], g, 2);
+  const hlInk = hlBg === onLead ? t.lead : readable([onLead, t.surface, t.text], hlBg, 4.5);
+  const vars = ['--qc-deco:' + deco, '--qc-band:' + band, '--qc-em:' + em, '--qc-hl-bg:' + hlBg, '--qc-hl-ink:' + hlInk];
   if (t.radius) vars.push('--qc-radius:' + t.radius);
   return vars.join(';');
 }
@@ -334,8 +332,8 @@ function paletteVars(ground, t) {
 // ── the piece as a whole ────────────────────────────────────────────────────
 
 function wordCount(quote) {
-  var latin = quote.split(/\s+/).filter(Boolean).length;
-  var cjk = (quote.match(new RegExp(CJK_RE.source, 'g')) || []).length;
+  const latin = quote.split(/\s+/).filter(Boolean).length;
+  const cjk = (quote.match(new RegExp(CJK_RE.source, 'g')) || []).length;
   // Two CJK characters read about like one word.
   return latin + Math.ceil(cjk / 2);
 }
@@ -347,36 +345,33 @@ function holdMs(words) {
 }
 
 async function compute(model) {
-  var v = inputs(model);
-  var quote = clean(v.quote);
-  var phrase = clean(v.phrase);
-  var layout = String(v.layout || 'beside');
-  var ground = own(GROUNDS, v.ground) ? v.ground : 'lead';
-  var motion = own(MOTIONS, v.motion) ? v.motion : 'none';
-  var isNew = own(GROW, layout);
-  var marker = layout === 'marker';
-  var wantsSplit = (motion === 'word' || motion === 'line') && !mixedDirection(quote);
-  var built = quoteMarkup(quote, phrase, { split: wantsSplit, marker: marker });
-  var src = sourceLines(v);
-  var moving = motion !== 'none';
-  var theme = (isNew || moving || phrase) ? await readTheme() : null;
+  const v = inputs(model);
+  const quote = clean(v.quote);
+  const phrase = clean(v.phrase);
+  const layout = String(v.layout || 'beside');
+  const ground = own(GROUNDS, v.ground) ? v.ground : 'lead';
+  const motion = own(MOTIONS, v.motion) ? v.motion : 'none';
+  const isNew = own(GROW, layout);
+  const marker = layout === 'marker';
+  const wantsSplit = (motion === 'word' || motion === 'line') && !mixedDirection(quote);
+  const built = quoteMarkup(quote, phrase, { split: wantsSplit, marker: marker });
+  const src = sourceLines(v);
+  const moving = motion !== 'none';
+  const theme = (isNew || moving || phrase) ? await readTheme() : null;
 
-  var classes = [];
-  if (moving) classes.push('qc-moving');
-  if (RTL_RE.test(quote)) classes.push('qc-rtl');
-  if (!clean(v.name) && !clean(v.role) && !src.sourceHtml && !src.linkText) classes.push('qc-bare');
+  const classes = isNew && RTL_RE.test(quote) ? 'qc-rtl' : '';
 
-  var words = wordCount(quote);
-  var unitMs = (theme && theme.unitMs) || UNIT_MS;
-  var blockMs = (theme && theme.blockMs) || BLOCK_MS;
-  var stagger = built.units ? Math.min(STAGGER_MS, Math.floor(MAX_DEAL_MS / built.units)) : 0;
+  const words = wordCount(quote);
+  const unitMs = theme?.unitMs || UNIT_MS;
+  const blockMs = theme?.blockMs || BLOCK_MS;
+  const stagger = built.units ? Math.min(STAGGER_MS, Math.floor(MAX_DEAL_MS / built.units)) : 0;
 
   return {
     quoteHtml: built.html,
     sourceHtml: src.sourceHtml,
     refHtml: layout === 'citation' ? src.refHtml : '',
     linkText: src.linkText,
-    qcClass: classes.join(' '),
+    qcClass: classes,
     qcStyle: (isNew || phrase) && theme ? paletteVars(ground, theme) : '',
     qcGrow: GROW[layout] || 0,
     qcGlyph: layout === 'glyph' ? (RTL_RE.test(quote) ? '”' : '“') : '',
@@ -392,7 +387,7 @@ async function compute(model) {
       unitMs: unitMs,
       blockMs: blockMs,
       staggerMs: stagger || STAGGER_MS,
-      ease: (theme && theme.ease) || EASE,
+      ease: theme?.ease || EASE,
       holdMs: holdMs(words),
     }).replace(/</g, '\\u003c') : '',
   };

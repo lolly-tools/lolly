@@ -265,5 +265,5 @@
 
 @keyframes qc-rise { from { opacity: 0; transform: translateY(0.42em); } }
 @keyframes qc-fade { from { opacity: 0; } }
-@keyframes qc-wipe { from { clip-path: inset(-10% 100% -10% -10%); } to { clip-path: inset(-10% -10% -10% -10%); } }
-@keyframes qc-wipe-rtl { from { clip-path: inset(-10% -10% -10% 100%); } to { clip-path: inset(-10% -10% -10% -10%); } }
+@keyframes qc-wipe { from { clip-path: inset(-10% 100% -10% 0); } to { clip-path: inset(-10% -10% -10% -10%); } }
+@keyframes qc-wipe-rtl { from { clip-path: inset(-10% 0 -10% 100%); } to { clip-path: inset(-10% -10% -10% -10%); } }

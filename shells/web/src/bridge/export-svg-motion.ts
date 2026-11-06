@@ -33,7 +33,7 @@ export const MOTION_ATTR = 'data-svg-motion';
 /** In an image, where nothing can seek the animations, the picture is the finished one. */
 export const MOTION_REST_CSS = '@media (scripting: none) { [style*="animation:"] { animation: none !important; } }';
 
-/** One carried animation. Strict, because the value lands in a style attribute. */
+/** One carried animation. Strict, because the value ends up in a style attribute. */
 export interface SvgMotion { name: string; durMs: number; easing: string; delayMs: number }
 
 const MOTION_RE = /^([a-z][a-z0-9-]{0,40}) (\d{1,6}(?:\.\d{1,3})?)ms (linear|ease|ease-in|ease-out|ease-in-out|cubic-bezier\(-?[\d.]+,\s*-?[\d.]+,\s*-?[\d.]+,\s*-?[\d.]+\)) (\d{1,6}(?:\.\d{1,3})?)ms$/;

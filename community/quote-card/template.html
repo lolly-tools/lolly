@@ -2,7 +2,7 @@
   {{#if headshot}}<div class="qc-photo" data-qc-gfx><img src="{{asset headshot}}" alt=""></div>{{/if}}
   <div class="qc-words">
     {{#if qcGlyph}}<span class="qc-bigmark" aria-hidden="true" data-qc-gfx>{{qcGlyph}}</span>{{/if}}
-    {{#unless qcHideMark}}<svg class="qc-mark" viewBox="0 0 48 36" aria-hidden="true" data-qc-gfx><path d="M0 36V20C0 9 7 2 19 0l2 6c-7 2-10 6-10 11h9v19H0Zm27 0V20C27 9 34 2 46 0l2 6c-7 2-10 6-10 11h9v19H27Z"/></svg>{{/unless}}
+    {{#unless qcHideMark}}<svg class="qc-mark" viewBox="0 0 48 36" aria-hidden="true"><path d="M0 36V20C0 9 7 2 19 0l2 6c-7 2-10 6-10 11h9v19H0Zm27 0V20C27 9 34 2 46 0l2 6c-7 2-10 6-10 11h9v19H27Z"/></svg>{{/unless}}
     {{#if qcRules}}<span class="qc-rule qc-rule-top" aria-hidden="true" data-qc-gfx></span>{{/if}}
     <p class="qc-quote" dir="auto">{{#if quoteHtml}}{{{quoteHtml}}}{{else}}{{quote}}{{/if}}</p>
     {{#if refHtml}}<span class="qc-rule" aria-hidden="true" data-qc-gfx></span><p class="qc-ref" dir="auto" data-qc-meta>{{{refHtml}}}</p>{{else}}
@@ -32,15 +32,18 @@
 
     /* Fit: the type grows to fill the frame where the layout wants that, and shrinks
        until the words fit. The two original layouts never grow, and a quote that
-       already fits leaves no trace on them. Past the floor a very long word may break;
-       above it no word does, so one long word sets the size rather than splitting. */
+       already fits leaves no trace on them. Past the floor a very long word may break.
+       Short of the floor no word does, so one long word sets the size rather than splitting. */
     var GROW = parseFloat(ROOT.getAttribute('data-qc-grow')) || 1;
     var FLOOR = 0.25;
     function over() {
+      /* The canvas may be drawn scaled to fit the window, so a box measured on screen
+         and a padding read from the style are in different units until this evens them. */
       var box = words.getBoundingClientRect();
+      var k = words.offsetWidth ? box.width / words.offsetWidth : 1;
       var cs = getComputedStyle(words);
-      var top = box.top + (parseFloat(cs.paddingTop) || 0) - 0.5;
-      var bottom = box.bottom - (parseFloat(cs.paddingBottom) || 0) + 0.5;
+      var top = box.top + (parseFloat(cs.paddingTop) || 0) * k - 0.5;
+      var bottom = box.bottom - (parseFloat(cs.paddingBottom) || 0) * k + 0.5;
       for (var i = 0; i < words.children.length; i++) {
         var kid = words.children[i];
         if (getComputedStyle(kid).position === 'absolute') continue;
@@ -135,7 +138,7 @@
       var rtl = getComputedStyle(quote).direction === 'rtl';
       var units = ROOT.querySelectorAll('.qc-w');
       var marks = ROOT.querySelectorAll('.qc-hlbg');
-      var gfx = ROOT.querySelectorAll('[data-qc-gfx]');
+      var gfx = ROOT.querySelectorAll('[data-qc-gfx], .qc-mark');
       var meta = ROOT.querySelectorAll('[data-qc-meta]');
       var lines = [];
       if (data.motion === 'line') {
@@ -180,14 +183,22 @@
 
     function layout() {
       if (!alive()) return;
+      /* A late font or an emoji pass can arrive while the preview plays. Measure at rest,
+         then carry on from the same moment. */
+      var running = ROOT.classList.contains('qc-playing') ? ROOT.getAnimations({ subtree: true })[0] : null;
+      var at = running ? running.currentTime : 0;
+      var held = running ? running.playState === 'paused' : false;
       settle();
       fit();
       assign();
+      if (!running) return;
+      arm();
+      ROOT.getAnimations({ subtree: true }).forEach(function (a) { if (held) a.pause(); a.currentTime = at; });
     }
     layout();
     if (document.fonts && document.fonts.ready) document.fonts.ready.then(layout);
     /* Emoji are drawn after the paint and again at export, as boxes a little wider than
-       the characters they replace. A microtask, so it lands before the export reads the page. */
+       the characters they replace. A microtask, so the fit is done before the export reads the page. */
     if (typeof MutationObserver === 'function' && words) {
       new MutationObserver(layout).observe(words, { childList: true, subtree: true });
     }

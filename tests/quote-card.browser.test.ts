@@ -103,7 +103,7 @@ describe('Quote in the web shell', { skip }, () => {
       const tool = await loader.getTool('quote-card');
       const out: string[] = [];
       const longName = 'Maximiliana Wolfeschlegelsteinhausenbergerdorff-Featherstonehaugh von Hohenzollern-Sigmaringen';
-      for (const quote of ['Ship it.', LONG, 'أفضل الأدوات تختفي، حتى يتحدث العمل عن نفسه.', '最好的工具会隐于无形，让作品自己说话。']) {
+      for (const quote of ['Ship today.', LONG, 'أفضل الأدوات تختفي، حتى يتحدث العمل عن نفسه.', '最好的工具会隐于无形，让作品自己说话。']) {
         for (const layout of ['beside', 'centred', 'type', 'glyph', 'pull', 'citation', 'portrait', 'marker']) {
           for (const [width, height] of [[1080, 1080], [1080, 1350], [1080, 1920], [1920, 1080], [1500, 500]]) {
             const source = await runtimes.createToolRuntime(tool, host, { quote, layout, name: longName, role: 'Head of Product' });
@@ -162,6 +162,12 @@ describe('Quote in the web shell', { skip }, () => {
       assert.ok(Math.abs(Number(later.time) - 2000) < 80, `the picture follows the playhead, ${later.time}`);
       assert.equal(later.opacity, '1');
       assert.deepEqual(later.states, ['paused'], 'nothing free-runs on its own clock');
+      const ground = () => document.querySelector('[data-anim-src] > svg rect')?.getAttribute('fill');
+      const before = await design.evaluate(ground);
+      await design.mouse.click(700, 110);
+      await design.getByText('Morning', { exact: true }).first().click();
+      await design.waitForFunction(was => document.querySelector('[data-anim-src] > svg rect')?.getAttribute('fill') !== was, before, { timeout: 60_000 });
+      assert.notEqual(await design.evaluate(ground), before, 'the picture follows the colourway');
     } finally { await design.close(); }
   });
 });
