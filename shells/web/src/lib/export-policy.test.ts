@@ -59,3 +59,25 @@ test('setExportPolicy(undefined) restores the dormant default', () => {
   assert.equal(getExportPolicy(), undefined);
   assert.equal(exportAffordance(getExportPolicy()), 'download');
 });
+
+test('a tool\'s own answers count before the deployment-wide ones (plans/82 fault C)', () => {
+  setExportPolicy({
+    canDownload: true, canRequestApproval: true,
+    downloads: { 'campaign-banner': false, 'blocked-tool': false },
+    requests: { 'blocked-tool': false },
+  });
+  const p = getExportPolicy()!;
+  assert.equal(exportAffordance(p, 'campaign-banner'), 'request-approval', 'download withheld for this tool only');
+  assert.equal(exportAffordance(p, 'blocked-tool'), 'blocked', 'neither answer: a note, not a dead button');
+  assert.equal(exportAffordance(p, 'qr-code'), 'download', 'other tools keep the deployment-wide answer');
+  assert.equal(exportAffordance(p), 'download', 'with no tool named, the deployment-wide answer');
+  assert.equal(p.canDownloadFor('campaign-banner'), false);
+  assert.equal(p.canDownloadFor('qr-code'), true);
+});
+
+test('an allow for one tool lifts a deployment-wide withhold for that tool only', () => {
+  setExportPolicy({ canDownload: false, canRequestApproval: false, downloads: { 'qr-code': true } });
+  const p = getExportPolicy()!;
+  assert.equal(exportAffordance(p, 'qr-code'), 'download');
+  assert.equal(exportAffordance(p, 'poster'), 'blocked');
+});

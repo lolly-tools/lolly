@@ -845,6 +845,25 @@ test('member export capabilities + per-tool approvalChain populate the export-po
   assert.equal(openApprovalRequest({ toolId: 'event-badge' }), true, 'opener registered for a member');
 });
 
+test('a tool\'s own export answer from org-config reaches the seam (plans/82 fault C)', async () => {
+  reset();
+  controlPlane({
+    mode: 'open',
+    session: 'member',
+    orgConfig: {
+      instance: { name: 'Acme' },
+      inboxUnread: 0,
+      can: { 'export.download': true, 'export.request': true },
+      tools: { 'campaign-banner': { can: { 'export.download': false } }, 'qr-code': {} },
+    },
+  });
+  await initOrg();
+  const policy = getExportPolicy()!;
+  assert.equal(policy.canDownload, true, 'the deployment-wide answer is unchanged');
+  assert.equal(exportAffordance(policy, 'campaign-banner'), 'request-approval', 'download withheld for the named tool');
+  assert.equal(exportAffordance(policy, 'qr-code'), 'download', 'other tools download as before');
+});
+
 test('export.download absent defaults to allowed (byte-identical to today)', async () => {
   reset();
   controlPlane({
