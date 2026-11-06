@@ -73,7 +73,7 @@ export interface EmojiAPIOptions {
   /** When a pack may be brought onto the device. A test runs this at once. */
   whenIdle?(run: () => void): void;
   /** Loads the code offline drawing needs. A test counts the calls instead. */
-  warmCode?(): Promise<unknown> | void;
+  warmCode?(): unknown;
 }
 
 /** After the tool has painted and the page has gone quiet. */
