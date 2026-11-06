@@ -467,7 +467,9 @@ export async function renderRowToBlob(row: BatchRow, host: HostV1, { format, wid
     posterClock = previewTimeMs !== undefined && Number.isFinite(previewTimeMs)
       ? (await import('../bridge/sequence-dom.ts')).createSequenceTime(canvas) : null;
     posterClock?.apply(Math.max(0, previewTimeMs ?? 0));
-    const fmt = chooseFormat(tool.manifest, format);
+    // A gallery cover for a tool with no still export (galleryArt: "render") is a PNG of its
+    // first page. Only a preview asks for that, so the tool's export list stays as it is.
+    const fmt = previewPage && format === 'png' && tool.manifest.galleryArt === 'render' ? format : chooseFormat(tool.manifest, format);
     // A "reopen in Lolly" link: this tool's short URL carrying the exact inputs +
     // export settings used for THIS render, so a zip recipient can return to
     // lolly.tools and recreate (or tweak) the file. Serialised from the live model so

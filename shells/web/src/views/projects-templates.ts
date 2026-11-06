@@ -59,6 +59,7 @@ export interface TemplatesToolInfo {
   id: string;
   name?: string;
   formats?: readonly string[];
+  galleryArt?: 'render' | 'icon';
   templates?: ReadonlyArray<{
     id: string; name: string; description?: string; category?: string;
     motion?: { posterMs?: number };
@@ -80,6 +81,7 @@ export interface TemplateItem {
   /** This template is the tool's current "Start with". */
   startsHere: boolean;
   formats?: readonly string[];
+  galleryArt?: 'render' | 'icon';
   /** A motion template's poster time, so its preview freezes where the author asked. */
   posterMs?: number;
   /** Own templates carry their seed inline; a shipped one is fetched when it paints. */
@@ -107,8 +109,10 @@ export function buildTemplatesModel(input: {
   const items: TemplateItem[] = [];
   const withAny = new Set<string>();
   const formatsOf = new Map<string, readonly string[] | undefined>();
+  const artOf = new Map<string, 'render' | 'icon' | undefined>();
   for (const tool of tools) {
     formatsOf.set(tool.id, tool.formats);
+    artOf.set(tool.id, tool.galleryArt);
     for (const meta of tool.templates ?? []) {
       const ref = shippedTemplateRef(tool.id, meta.id);
       withAny.add(tool.id);
@@ -116,7 +120,7 @@ export function buildTemplatesModel(input: {
         ref, own: false, toolId: tool.id, toolName: toolName(tool.id), id: meta.id,
         name: meta.name, description: meta.description,
         hidden: hidden.has(ref), startsHere: startOf(tool.id) === ref,
-        formats: tool.formats, posterMs: meta.motion?.posterMs,
+        formats: tool.formats, galleryArt: tool.galleryArt, posterMs: meta.motion?.posterMs,
       });
     }
   }
@@ -127,7 +131,7 @@ export function buildTemplatesModel(input: {
       ref, own: true, toolId: tpl.toolId, toolName: toolName(tpl.toolId), id: tpl.id,
       name: tpl.name, description: tpl.description,
       hidden: false, startsHere: startOf(tpl.toolId) === ref,
-      formats: formatsOf.get(tpl.toolId), values: tpl.values,
+      formats: formatsOf.get(tpl.toolId), galleryArt: artOf.get(tpl.toolId), values: tpl.values,
     });
   }
   // Chips follow the index order for shipped tools, then a tool that only has the
@@ -708,7 +712,7 @@ export function hydrateTemplatePreviews(
       if (!item || !img.isConnected || img.getAttribute('src')) continue;
       try {
         const thumb = await previewDeadline((async () => {
-          const { renderFeaturedVariant } = await import('../lib/featured-render.ts');
+          const { coverFormats, renderFeaturedVariant } = await import('../lib/featured-render.ts');
           const { fetchTemplateFile } = await import('../lib/template-source.ts');
           let values = item.values;
           let posterMs = item.posterMs;
@@ -718,7 +722,7 @@ export function hydrateTemplatePreviews(
             values = file.values as Record<string, unknown>;
             posterMs = posterMs ?? file.motion?.posterMs;
           }
-          return renderFeaturedVariant(host, item.toolId, item.formats, item.id, values, 'template', posterMs);
+          return renderFeaturedVariant(host, item.toolId, coverFormats(item), item.id, values, 'template', posterMs);
         })());
         if (!thumb) throw new Error('Preview unavailable');
         if (img.isConnected && !stopped) {
