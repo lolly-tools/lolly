@@ -56,6 +56,11 @@ describe('Quote in the web shell', { skip }, () => {
     assert.equal((text.match(/animation:qc-rise/g) ?? []).length, 9, 'one group per word');
     assert.match(text, /@media \(scripting: none\)/);
     const placed = await svgOf(`${link({ layout: 'type', motion: 'word' })}&w=801&h=601`, { thumbnail: false, _stack: ['design'] });
+    const described = await page.evaluate(async (url) => {
+      const path = '/src/lib/host-ref.ts';
+      return (await import(path)).getHostRef().compose._describeUrl(url);
+    }, link({ layout: 'type' }));
+    assert.equal(described.followsCanvasSize, true, 'placed in Design, the card takes the shape of its frame');
     assert.doesNotMatch(placed.text, /<text/, 'the render a document keeps carries outlines, because its box is an image');
     assert.match(placed.text, /animation:qc-rise/);
   });

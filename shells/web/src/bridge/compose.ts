@@ -210,6 +210,8 @@ export function createComposeAPI(host: HostV1) {
       // The subset of `formats` that carries movement - the picker uses it to show a
       // still poster while the (slow) motion file encodes only on commit.
       motion,
+      // A tool that lays itself out for the canvas can take the shape it is placed in.
+      followsCanvasSize: r.tool.manifest.render?.followsCanvasSize === true,
       width: r.state.width ?? null,
       height: r.state.height ?? null,
       unit: r.state.unit ?? null,
