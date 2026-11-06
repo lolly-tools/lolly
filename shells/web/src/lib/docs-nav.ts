@@ -8,8 +8,8 @@
  * and the footer sitemap - which the reader used to throw away, stranding the reader
  * on a single page with no way to reach any other doc. This module pulls those nodes
  * out of the parsed document, rewrites their `/info/*.html` links to the in-app reader
- * route, and (for the on-page table of contents) DERIVES a fresh nav from the rehosted
- * content's stamped heading ids. Everything here is progressive: a piece the fetched
+ * route. (The page's contents are derived by views/docs.ts with the shared builder in
+ * packages/docs-render contents.ts.) Everything here is progressive: a piece the fetched
  * page happens not to have is a silent `null`, never an error.
  *
  * All DOM is built with real nodes (importNode / createElement + textContent) rather
@@ -172,51 +172,4 @@ export function extractPathways(doc: Document): HTMLElement | null {
     bar.appendChild(a);
   }
   return bar;
-}
-
-export interface DocsToc {
-  /** The `<nav class="docs-toc">` element, ready to mount. */
-  el: HTMLElement;
-  /** The content headings the TOC links to, in document order - for scroll-spy. */
-  headings: HTMLElement[];
-}
-
-/**
- * Derive an on-page table of contents from the rehosted content's stamped heading ids
- * (h2 / h3 - the build stamps both). Returns null when there are fewer than two h2
- * sections, since a single section is not a table of contents. Each link scroll-jumps
- * within the reader (the caller wires the click to `scrollToHeading`); the `data-toc-target`
- * carries the raw id so the caller need not re-parse the href.
- */
-export function buildToc(content: ParentNode): DocsToc | null {
-  const heads = Array.from(content.querySelectorAll<HTMLElement>('h2[id], h3[id]'));
-  if (heads.filter((h) => h.tagName === 'H2').length < 2) return null;
-
-  const nav = document.createElement('nav');
-  nav.className = 'docs-toc';
-  nav.setAttribute('aria-label', t('On this page'));
-
-  const head = document.createElement('div');
-  head.className = 'docs-toc-head';
-  head.textContent = t('On this page');
-  nav.appendChild(head);
-
-  const list = document.createElement('ul');
-  list.className = 'docs-toc-list';
-  const headings: HTMLElement[] = [];
-  for (const h of heads) {
-    const id = h.id;
-    if (!id) continue;
-    const li = document.createElement('li');
-    const a = document.createElement('a');
-    a.className = h.tagName === 'H3' ? 'docs-toc-link is-h3' : 'docs-toc-link is-h2';
-    a.setAttribute('href', `#${id}`);
-    a.dataset.tocTarget = id;
-    a.textContent = (h.textContent || '').trim();
-    li.appendChild(a);
-    list.appendChild(li);
-    headings.push(h);
-  }
-  nav.appendChild(list);
-  return { el: nav, headings };
 }

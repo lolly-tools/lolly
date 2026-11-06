@@ -282,6 +282,13 @@ html[data-a11y-motion="reduce"] .docs-top-btn:active { transform: none; }
 }
 html[data-a11y-motion="reduce"] .doc-contents-panel:not([hidden]) { animation: none; }
 @keyframes doc-contents-in { from { opacity: 0; transform: translateY(6px) scale(0.98); } }
+/* Tracking pulls a joined script apart (Arabic, Urdu) and breaks conjuncts (Hindi,
+   Bengali), so the two small headings set their letters at the font's own spacing
+   there, in the body face rather than the monospace. */
+:is([dir="rtl"], :lang(hi), :lang(bn)) :is(.docs-toc-head, .doc-contents-title) {
+  letter-spacing: normal;
+  font-family: inherit;
+}
 @media (forced-colors: active) {
   .docs-toc-link[aria-current] { border-inline-start-color: Highlight; }
   .doc-contents-panel .docs-toc-link[aria-current] { outline: 2px solid Highlight; outline-offset: -2px; }

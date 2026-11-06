@@ -88,7 +88,7 @@ test('every article page opens with the masthead band, and the landing does not'
   for (const f of ['build-guide.html', 'trust.html']) {
     const body = bodyOf(page(f));
     assert.match(body, /<div class="docs-masthead">/, `${f} has no masthead band`);
-    // Words only: the chip field left article pages on 2026-11-06 (the landing keeps it).
+    // Words only: the chip field left article pages on 2026-11-06 (the landing keeps its own).
     assert.ok(!/docs-mast-canvas|<canvas/.test(body.slice(body.indexOf('<div class="docs-masthead">'), body.indexOf('<div class="docs-wrap'))), `${f}: the band grew a canvas again`);
     // Full bleed: the band is a sibling of .docs-wrap, so the rail sits under it.
     const bandAt = body.indexOf('<div class="docs-masthead">');

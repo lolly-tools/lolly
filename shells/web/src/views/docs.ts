@@ -84,7 +84,8 @@ type DocsHost = HostV1;
  *  + component HTML + t() labels only - no free/user text reaches this sink.
  *
  *  `origin` is the app view these docs were opened from (lib/back-nav.ts docsOrigin):
- *  the back pill names it and returns to it however many pages were read in between.
+ *  the back pill shows that view's name and returns there, however many pages were
+ *  read in between.
  *  The ground is the quiet band the top row sits on once the page has moved, so the
  *  text never runs under the pills (docs.css .docs-top-ground). */
 function shellHtml(inner: string, origin: PrevView | null): string {
@@ -402,8 +403,9 @@ export async function mountDocs(
   }
   fillSlot('[data-sidebar]', extractSidebar(doc));
   // The rail's first link is the docs front door, which the built page calls Home. In
-  // the app Home is the gallery (the back pill and the Home button say so), so here the
-  // link takes the front door's own name from the strip, Welcome: one word, one place.
+  // the app, Home means the gallery, as on the back pill and in the profile menu, so
+  // here the link takes the front door's own name from the strip, Welcome: one word,
+  // one place.
   const docsHome = viewEl.querySelector<HTMLAnchorElement>('[data-sidebar] .sidebar-home');
   if (docsHome) {
     const arrow = document.createElement('span');
@@ -459,8 +461,8 @@ export async function mountDocs(
       control.querySelector('.doc-contents-panel')?.append(group);
     }
     if (control) viewEl.appendChild(control);
-    // A row scrolls this view: the address is the route here, so a bare #id must not
-    // reach it. The heading takes focus, so keyboard and screen-reader users arrive
+    // A row scrolls this view: in the app the address is the route, so a bare #id must
+    // stay out of the address. The heading takes focus, so keyboard and screen-reader users arrive
     // where they asked to go, and ?h= records the section like any other section link.
     const jump = (id: string): boolean => {
       const behavior: ScrollBehavior = prefersReducedMotion() ? 'auto' : 'smooth';

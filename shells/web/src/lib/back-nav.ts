@@ -122,7 +122,7 @@ function labelFor(routeName: string): string {
 // ── Where the reader opened the documentation from ─────────────────────────────
 // A reader who opens the docs from a tool, Settings or a search wants that exact view
 // back when they are done, however many doc pages they read in between. The back pill
-// above names only the view just left, so after one hop from page to page it named the
+// above shows only the view just left, so after one hop from page to page it showed the
 // previous page and the way back to the work was gone. Both docs readers keep the
 // origin for this tab instead (sessionStorage: same tab, same origin, never sent
 // anywhere):

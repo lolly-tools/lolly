@@ -584,7 +584,9 @@
   display: none;
   position: fixed;
   z-index: 49;
-  bottom: calc(12px + var(--docs-bar-lift, 0px));
+  /* The bar's height already holds the home-indicator inset; with the bar away, the
+     inset itself. The keyboard lift moves it with the bar. */
+  bottom: calc(12px + max(var(--docs-bar-lift, 0px), var(--safe-bottom)) + var(--vv-bottom, 0px));
   inset-inline-end: calc(16px + var(--safe-right));
   transition: bottom var(--ui-motion-overlay) var(--ui-motion-standard);
 }

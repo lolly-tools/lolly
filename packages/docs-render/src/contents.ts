@@ -59,7 +59,7 @@ export interface ContentsControlOpts {
 /**
  * The floating control: a labelled button and the panel it opens. Sections only (no
  * subsections), so the panel reads in one glance on a phone. The panel is `hidden`
- * until the button opens it; the button names the panel through aria-controls.
+ * until the button opens it; the button points at the panel through aria-controls.
  */
 export function contentsControlHtml(o: ContentsControlOpts): string {
   const sections = o.headings.filter((h) => h.level === 2);

@@ -28,7 +28,7 @@ export interface DocsContentsOptions {
    *  answer whether it did. On /info this is absent and the browser follows the link. */
   jump?: (id: string) => boolean;
   /** Where reading happens, in px from the top of the viewport. A heading at or above
-   *  this line is the section being read. */
+   *  the reading line marks the section being read. */
   readingLine?: () => number;
 }
 

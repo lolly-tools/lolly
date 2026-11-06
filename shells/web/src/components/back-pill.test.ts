@@ -323,8 +323,8 @@ for (const layout of ['sidebar', 'design'] as const) {
 }
 
 // ── The docs origin (lib/back-nav.ts docsOrigin / rememberViewOnLeave) ──────────────
-// The docs reader's pill names the app view the docs were opened from and keeps it
-// across doc pages; the view a tab leaves the app from is noted for /info.
+// The docs reader's pill shows the app view the docs were opened from and keeps that
+// view across doc pages; the view a tab leaves the app from is noted for /info.
 
 test('the docs origin is the app view the docs were opened from, held across doc pages', () => {
   clearStored();
