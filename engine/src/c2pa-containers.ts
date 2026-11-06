@@ -28,6 +28,7 @@ import type { Signer, Exclusion, EmbedOptions, PlaceResult } from './c2pa.ts';
 // (GainMapMeta is type-only), so this pulls no pixel machinery into the C2PA path.
 import { repairMpfOffsets } from './gainmap-jpeg.ts';
 import { gunzip, gzip } from './gzip.ts';
+import { locateSvgCredential } from './c2pa-svg.ts';
 
 const te = new TextEncoder();
 
@@ -599,55 +600,43 @@ function placeGif(gif: Uint8Array, manifest: Uint8Array): PlaceResult {
 // with xmlns:c2pa declared on the root. Only the base64 TEXT is excluded from
 // the hard binding - the tags around it are hashed, and the hash is over raw
 // bytes (no XML canonicalisation), so placement is byte-splicing, not DOM work.
-// Scanning is byte-wise over ASCII structural characters (UTF-8 safe).
+// The root's own site is found by locateSvgCredential (c2pa-svg.ts), which reads
+// past nested artwork: an inlined logo that carries its own manifest keeps that
+// manifest as part of its markup, hashed like any other bytes, and the export's
+// goes where c2pa-rs reads one.
 const C2PA_XMLNS = ' xmlns:c2pa="http://c2pa.org/manifest"';
 function placeSvg(svg: Uint8Array, manifest: Uint8Array): PlaceResult {
   const bin = bytesToBin(svg);
-  // Root <svg …> open tag (quote-aware scan for its closing '>').
-  const open = /<svg(?=[\s>])/.exec(bin);
-  if (!open) throw new Error('C2PA embed: not an SVG (no <svg> root)');
-  let i = open.index + 4;
-  let q: string | null = null;
-  for (; i < bin.length; i++) {
-    const ch = bin[i];
-    if (q) { if (ch === q) q = null; }
-    else if (ch === '"' || ch === "'") q = ch;
-    else if (ch === '>') break;
+  const site = locateSvgCredential(bin);
+  if (!site) {
+    if (!/<svg(?=[\s>])/.test(bin)) throw new Error('C2PA embed: not an SVG (no <svg> root)');
+    throw new Error('C2PA embed: unterminated <svg> tag');
   }
-  if (i >= bin.length) throw new Error('C2PA embed: unterminated <svg> tag');
+  const i = site.rootTagEnd;
   if (bin[i - 1] === '/') throw new Error('C2PA embed: self-closing <svg/> cannot hold a manifest');
-  const tagSrc = bin.slice(open.index, i);
-  let doc = bin;
-  let rootEnd = i + 1; // just past '>'
-  if (!tagSrc.includes('xmlns:c2pa')) {
-    doc = bin.slice(0, i) + C2PA_XMLNS + bin.slice(i);
-    rootEnd += C2PA_XMLNS.length;
-  }
-  // Replace an existing manifest element's text, else reuse the first direct
-  // <metadata>, else create one right after the root open tag.
+  // The namespace goes on the root's open tag, so every index past that tag moves by its length.
+  const ns = bin.slice(site.rootStart, i).includes('xmlns:c2pa') ? '' : C2PA_XMLNS;
+  const doc = ns ? bin.slice(0, i) + ns + bin.slice(i) : bin;
+  const at = (index: number): number => (index > i ? index + ns.length : index);
+  // Replace the root's manifest text, else open one in the root's first direct
+  // <metadata>, else create that <metadata> right after the root open tag.
   // base64 with standard alphabet + padding, single line
   const b64 = btoa(bytesToBin(manifest));
-  const existing = /<c2pa:manifest[^>]*>/.exec(doc);
-  let head: string, tail: string, b64Start: number;
-  if (existing) {
-    const close = doc.indexOf('</c2pa:manifest>', existing.index);
-    if (close < 0) throw new Error('C2PA embed: unterminated c2pa:manifest element');
-    head = doc.slice(0, existing.index + existing[0]!.length);
-    tail = doc.slice(close);
-    b64Start = head.length;
+  let head: string, tail: string;
+  if (site.manifest) {
+    if (site.manifest.end < 0) throw new Error('C2PA embed: unterminated c2pa:manifest element');
+    head = doc.slice(0, at(site.manifest.start));
+    tail = doc.slice(at(site.manifest.end));
+  } else if (site.metadataOpenEnd !== null) {
+    head = doc.slice(0, at(site.metadataOpenEnd)) + '<c2pa:manifest>';
+    tail = '</c2pa:manifest>' + doc.slice(at(site.metadataOpenEnd));
   } else {
-    const meta = /<metadata(?=[\s>])[^>]*>/.exec(doc);
-    if (meta && doc[meta.index + meta[0]!.length - 2] !== '/') {
-      head = doc.slice(0, meta.index + meta[0]!.length) + '<c2pa:manifest>';
-      tail = '</c2pa:manifest>' + doc.slice(meta.index + meta[0]!.length);
-    } else {
-      head = doc.slice(0, rootEnd) + '<metadata><c2pa:manifest>';
-      tail = '</c2pa:manifest></metadata>' + doc.slice(rootEnd);
-    }
-    b64Start = head.length;
+    const rootEnd = i + 1 + ns.length;
+    head = doc.slice(0, rootEnd) + '<metadata><c2pa:manifest>';
+    tail = '</c2pa:manifest></metadata>' + doc.slice(rootEnd);
   }
   const out = binToBytes(head + b64 + tail);
-  return { out, exclusions: [{ start: b64Start, length: b64.length }] };
+  return { out, exclusions: [{ start: head.length, length: b64.length }] };
 }
 
 // TIFF: manifest bytes verbatim as tag 0xCD41 (type UNDEFINED) in a dedicated

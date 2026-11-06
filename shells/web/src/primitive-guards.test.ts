@@ -745,7 +745,9 @@ const RAW_HTML_ALLOWED: Record<string, number> = {
   // its words set through textContent); the compact disclosures went (-1); the contents
   // rail and the page bar arrived (+2): both are packages/docs-render contents.ts
   // output, which escapes every heading text and id, with t() labels and a registry icon.
-  'views/docs.ts': 7,
+  // -1 2026-11-06: the reader's own language button went; the app's top row carries
+  // the language menu now (components/view-topbar.ts).
+  'views/docs.ts': 6,
   // #/prepare route scaffold: the shared chrome (backHomeHtml/langFabHtml) plus t() copy,
   // no free text; the panel itself mounts into an empty slot (components/prepare/panel.ts).
   'views/prepare.ts': 1,
