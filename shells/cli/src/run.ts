@@ -50,7 +50,7 @@ import { captureUrl, captureParamsFrom } from '@lolly-tools/node-shell/url-captu
 import { createCliBridge, applyBrandVars, CLI_CAPABILITIES } from './bridge.ts';
 // The `s=` still-export frame filter (plan 112 section 10) - the engine resolves the
 // address, this reads the rendered pages. Same meaning as the web shell's fan-out.
-import { pickFramePage } from './frame-page.ts';
+import { pickFramePage, wholeCanvasNote } from './frame-page.ts';
 import { isOn, rightsMode } from './args.ts';
 import type { HostV1, Profile, ExportOpts, IngredientCredential } from '@lolly-tools/core/host-v1';
 import { DESIGN_STILL_RASTER_FORMATS, type DesignExportRouteRecord } from '../../../engine/src/design-export-route.ts';
@@ -1298,6 +1298,10 @@ async function runToolCliCandidate({ toolId, inputValues, params, repeated = {},
           note(`Rendering slide ${picked.index + 1} of ${picked.total} (--s=${slide}).`);
         }
       }
+    } else {
+      // Several pages and no --s: the image is the whole canvas, so say how to get a page.
+      const pagesNote = wholeCanvasNote(canvas, targetFormat, tool.manifest.render.formats ?? []);
+      if (pagesNote) note(pagesNote);
     }
     if (u !== 'px') exportOpts.dpi = dpi || 300;
     // --depth=8|16|float requests the export's bits per channel (--depth=auto, the
