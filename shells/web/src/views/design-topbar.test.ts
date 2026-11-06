@@ -333,6 +333,32 @@ test('the NN% button opens a menu of stops that zoom to an absolute ratio', () =
   f.bar.destroy();
 });
 
+test('in the phone layout a bar menu goes over the stage, on the body, and keeps the canvas keys out', () => {
+  // The bar lives in the stage, a stacking context of its own, and the phone's inspector
+  // sheet is a body-level surface over the stage's lower half: a menu hung from the bar
+  // had its lower rows painted under the sheet. In the phone layout it goes to the body,
+  // where the bar's own key gate no longer covers it, so it carries the gate itself.
+  const f = fixture();
+  f.stageEl.dataset.designLayout = 'compact';
+  click(f.at('zoom-level'));
+  const menu = dom.window.document.querySelector<HTMLElement>('.dtb-menu')!;
+  assert.ok(menu, 'the menu opened');
+  assert.equal(menu.parentElement, dom.window.document.body, 'on the body, not in the bar');
+  assert.ok(menu.classList.contains('fc-popover--viewport'), 'flagged for the fixed placement');
+  assert.equal(menu.getAttribute('data-canvas-keys'), 'off');
+  // The rows still work and the menu still closes the same way.
+  click(menu.querySelectorAll<HTMLButtonElement>('.dtb-menu-item')[1]!);
+  assert.deepEqual(f.calls.zoom, ['to:1']);
+  assert.equal(dom.window.document.querySelector('.dtb-menu'), null, 'an action row closes it');
+  // On a wide window it hangs from the bar exactly as before.
+  f.stageEl.dataset.designLayout = 'wide';
+  click(f.at('zoom-level'));
+  assert.equal(f.menu()?.parentElement, f.bar.el, 'in the bar on a wide window');
+  assert.ok(!f.menu()!.classList.contains('fc-popover--viewport'));
+  assert.equal(f.menu()!.style.top, '100%');
+  f.bar.destroy();
+});
+
 test('the zoom menu offers Zoom to selection when the host can frame one, greyed with nothing selected', () => {
   let selected = false;
   const zoomCalls: string[] = [];

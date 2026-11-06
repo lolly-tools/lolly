@@ -19,6 +19,7 @@ import { escape as escapeText } from '../../utils.ts';
 import { BLEND_STYLES, HUE_ROUTES, isPolarSpace } from '../../lib/blend-style.ts';
 import { t } from '../../i18n.ts';
 import type { Metrics } from './shared.ts';
+import { mountEditorPanel, placeEditorPanel } from '../free-canvas-popover.ts';
 import { bindOp, type FcCtx } from './context.ts';
 
 /** The parsed spec on a box, or null when it has no (readable) gradient. */
@@ -429,12 +430,14 @@ export function openGradPanel(fc: FcCtx, anchor: HTMLElement): void {
       fc.chromeSync.scheduleSync();
     }); }
   );
-  stageEl.appendChild(p);
+  mountEditorPanel(p, anchor, stageEl);
   fc.morePanel = p;
   const ar = anchor.getBoundingClientRect();
   const sr = stageEl.getBoundingClientRect();
-  p.style.left = Math.min(ar.left - sr.left, sr.width - p.offsetWidth - 8) + 'px';
-  p.style.top = ar.bottom - sr.top + 8 + 'px';
+  placeEditorPanel(p, stageEl, {
+    left: Math.min(ar.left - sr.left, sr.width - p.offsetWidth - 8),
+    top: ar.bottom - sr.top + 8,
+  });
 }
 export function gradientOps(fc: FcCtx) {
   return {

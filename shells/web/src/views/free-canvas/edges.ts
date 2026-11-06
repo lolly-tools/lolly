@@ -16,6 +16,7 @@ import { t } from '../../i18n.ts';
 import { colorFieldHtml, wireColorField } from '../../components/color-field.ts';
 import { SVG, icon } from '../free-canvas-icons.ts';
 import type { Point, Rect } from './shared.ts';
+import { mountEditorPanel, placeEditorPanel } from '../free-canvas-popover.ts';
 import { bindOp, type FcCtx } from './context.ts';
 
 // ── connectors (opt-in via canvas.connect) ───────────────────────────────────
@@ -278,10 +279,10 @@ export function positionEdgePanel(fc: FcCtx): void {
   if (!pts) return;
   const s = fc.stage.nativeToStage(polylineMid(fc, pts).x, polylineMid(fc, pts).y, fc.stage.metrics());
   const sr = stageEl.getBoundingClientRect();
-  fc.edgePanel.style.left =
-    Math.max(6, Math.min(s.x + 14, sr.width - fc.edgePanel.offsetWidth - 8)) + 'px';
-  fc.edgePanel.style.top =
-    Math.max(6, Math.min(s.y + 12, sr.height - fc.edgePanel.offsetHeight - 8)) + 'px';
+  placeEditorPanel(fc.edgePanel, stageEl, {
+    left: Math.max(6, Math.min(s.x + 14, sr.width - fc.edgePanel.offsetWidth - 8)),
+    top: Math.max(6, Math.min(s.y + 12, sr.height - fc.edgePanel.offsetHeight - 8)),
+  });
 }
 export function openEdgePanel(fc: FcCtx): void {
   const { connectCfg, stageEl } = fc;
@@ -412,7 +413,7 @@ export function openEdgePanel(fc: FcCtx): void {
     ev.stopPropagation();
     deleteSelectedEdge(fc);
   });
-  stageEl.appendChild(p);
+  mountEditorPanel(p, null, stageEl);
   fc.edgePanel = p;
   positionEdgePanel(fc);
 }

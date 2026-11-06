@@ -17,7 +17,7 @@ import { escape as escapeText } from '../../utils.ts';
 import { t, tRaw } from '../../i18n.ts';
 import { colorFieldHtml, wireColorField } from '../../components/color-field.ts';
 import { SVG, icon } from '../free-canvas-icons.ts';
-import { mountEditorPanel, placePanelBeside, stageFoot } from '../free-canvas-popover.ts';
+import { mountEditorPanel, placeEditorPanel, placePanelBeside, stageFoot } from '../free-canvas-popover.ts';
 import { FC_TILT, boolOf } from './shared.ts';
 import { bindOp, type FcCtx } from './context.ts';
 
@@ -265,7 +265,7 @@ export function openPagesMenu(fc: FcCtx, anchor: HTMLElement): void {
       runtime.setInput(pages.heightField, +b.dataset.h!);
     }); }
   );
-  stageEl.appendChild(p);
+  mountEditorPanel(p, anchor, stageEl);
   fc.morePanel = p;
   fc.fieldPanels.positionPanelBelow(p, anchor);
 }
@@ -589,13 +589,12 @@ export function openMorePanel(fc: FcCtx, anchor: HTMLElement): void {
     fc.lastMenuAt = { x: r.left, y: r.bottom };
     fc.dialogs.askChoreograph();
   });
-  stageEl.appendChild(p);
+  mountEditorPanel(p, anchor, stageEl);
   fc.morePanel = p;
   const ar = anchor.getBoundingClientRect();
   const sr = stageEl.getBoundingClientRect();
-  p.style.left = Math.min(ar.left - sr.left, sr.width - p.offsetWidth - 8) + 'px';
   const top = ar.bottom - sr.top + 8;
-  p.style.top = top + 'px';
+  placeEditorPanel(p, stageEl, { left: Math.min(ar.left - sr.left, sr.width - p.offsetWidth - 8), top });
   // Clamp to the stage and let the panel scroll (plan 179 C6). It hangs from the object
   // bar, which is pinned to the TOP chrome row, so on a short viewport its last section -
   // Perspective tilt - ran off the bottom of the screen with no way to reach it. A

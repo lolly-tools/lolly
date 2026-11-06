@@ -13,7 +13,7 @@ import { booleanBoxes, boxOutlineKind, simplifyBoxes } from '../vector-ops.ts';
 import type { BooleanOpName } from '../vector-ops.ts';
 import type { HostV1 } from '@lolly-tools/core/host-v1';
 import type { InputValue } from '../../../../../engine/src/inputs.ts';
-import { positionEditorPopover } from '../free-canvas-popover.ts';
+import { mountEditorPanel, placeAtPoint, placeEditorPanel, placePanelBeside, positionEditorPopover, stageFoot } from '../free-canvas-popover.ts';
 import { escape as escapeText } from '../../utils.ts';
 import { t, tRaw } from '../../i18n.ts';
 import { SVG, icon } from '../free-canvas-icons.ts';
@@ -509,11 +509,19 @@ export function openImportPanel(fc: FcCtx, anchor: HTMLElement): void {
     '<input type="checkbox" class="field-check" checked><span></span></label>' +
     '<div class="fc-import-status" role="status" aria-live="polite"></div>';
   panel.addEventListener('pointerdown', (e) => e.stopPropagation());
-  stageEl.appendChild(panel);
+  mountEditorPanel(panel, anchor, stageEl);
+  // Beside its trigger and kept above the phone layout's bottom bar, the size panel's
+  // placement: a More menu at the foot of the screen used to open this below the screen.
   const ar = anchor.getBoundingClientRect();
   const sr = stageEl.getBoundingClientRect();
-  panel.style.left = Math.min(ar.right - sr.left + 8, sr.width - 272) + 'px';
-  panel.style.top = Math.max(6, ar.top - sr.top) + 'px';
+  const at = placePanelBeside(
+    { right: ar.right - sr.left, top: ar.top - sr.top },
+    { w: panel.offsetWidth, h: panel.offsetHeight },
+    { w: sr.width },
+    stageFoot(stageEl, sr)
+  );
+  placeEditorPanel(panel, stageEl, at);
+  if (at.maxHeight != null) panel.style.maxHeight = `${at.maxHeight}px`;
   fc.popover = panel;
 
   const status = panel.querySelector<HTMLElement>('.fc-import-status')!;
@@ -1260,12 +1268,8 @@ export function openContextMenu(fc: FcCtx, clientX: number, clientY: number): vo
   fc.toolbox.fillPopover(fc.popover, items);
   fc.popover.addEventListener('pointerdown', (e) => e.stopPropagation());
   fc.popover.addEventListener('keydown', fc.menus.onPopoverKey);
-  stageEl.appendChild(fc.popover);
-  const sr = stageEl.getBoundingClientRect();
-  const left = Math.max(6, Math.min(clientX - sr.left, sr.width - fc.popover.offsetWidth - 6));
-  const top = Math.max(6, Math.min(clientY - sr.top, sr.height - fc.popover.offsetHeight - 6));
-  fc.popover.style.left = left + 'px';
-  fc.popover.style.top = top + 'px';
+  mountEditorPanel(fc.popover, null, stageEl);
+  placeAtPoint(fc.popover, stageEl, clientX, clientY);
 }
 // Open the menu at a point, selecting whatever is under it first (a right-click on an
 // unselected box acts on THAT box, not on the stale selection). Shared by the desktop
