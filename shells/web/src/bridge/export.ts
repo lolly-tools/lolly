@@ -31,6 +31,8 @@ import { assembleAnimatedSvg } from '../lib/svg-anim-core.ts';
 import { recTransition } from '../lib/transitions.ts';
 import { suspendNodeRasters, drainNodeRasters } from '../lib/clip-thumbs.ts';
 import { subtreePaintsNothing } from './export-pdf-leaf.ts';
+import { canvasPicture, imageDims, imageForPdf } from './export-pdf-picture.ts';
+import { pageFitRegion } from './export-page-fit.ts';
 import { videoMimeCandidates, AUDIO_FRAME_HEADROOM, videoBitrate, videoFramePlan, bppForQuality, codecAdjustedBitrate, LIVE_BITS_PER_PIXEL } from './video-mime.ts';
 import { bedDuckEnvelope, scheduleGainEvents } from './audio-envelope.ts';
 import type { ExportAudioMixIn } from './audio-envelope.ts';
@@ -1726,7 +1728,8 @@ async function renderArtworkPdf(node: Element, opts: ExportOpts, geo: PrintGeome
   const trimH = toPoints(d.h);
   const pageW = geo ? geo.page.w : trimW;
   const pageH = geo ? geo.page.h : trimH;
-  const art   = geo ? geo.artwork : { x: 0, y: 0, w: trimW, h: trimH };
+  // A root that is not the page's shape is drawn as the PNG draws it (export-page-fit.ts).
+  const art   = geo ? geo.artwork : pageFitRegion(node, trimW, trimH);
 
   // orientation must be derived from the actual dimensions - a 'portrait' writer
   // swaps format[0] and format[1] when width > height, which would produce an
@@ -3088,10 +3091,9 @@ async function drawHtmlVectors(pdf: any, node: Element, ox: number, oy: number, 
     // The painter draws gradients, clips and transparency itself, and draws the SVG
     // as a picture at 150 dpi only for what it cannot (svgRasterReason). A mirror the
     // walker left to the box (svgFlips) is drawn by the painter either way.
-    if (tag === 'svg') {
-      await drawSvgVectorsInRegion(pdf, el, x, y, w, h, registeredFonts, imprint, convertPaths, svgFlips(style));
-      return;
-    }
+    if (tag === 'svg') { await drawSvgVectorsInRegion(pdf, el, x, y, w, h, registeredFonts, imprint, convertPaths, svgFlips(style)); return; }
+    // ── Canvas → its pixels, as the SVG walker draws them (export-pdf-picture.ts) ──
+    if (tag === 'canvas') { const png = canvasPicture(el); if (png) pdf.addImage(png, 'PNG', x, y, w, h); return; }
 
     // ── Image (raster, or inlined SVG → vectors) ──────────────────────────────
     if (tag === 'img') {
@@ -3698,48 +3700,6 @@ function normalizeCanvas(src: HTMLCanvasElement, w: number, h: number): HTMLCanv
 // never thrown - a still-blank video is no worse than today. Synchronous + jsdom-safe
 // (videoWidth is 0 there → a clean no-op). gif/apng/animated-webp inside an <img>
 // already export as a still, so only <video> needs this.
-// Natural pixel dimensions of an image href (for cover/contain fitting). Null on failure.
-async function imageDims(src: string): Promise<{ w: number; h: number } | null> {
-  try {
-    const bmp = await createImageBitmap(await (await fetch(src)).blob());
-    const d = { w: bmp.width, h: bmp.height };
-    bmp.close?.();
-    return d;
-  } catch { return null; }
-}
-
-// Pick the addImage format from a data: URL's REAL MIME (the previous
-// `.includes('image/png')` guess silently misclassified WebP/AVIF/GIF user images
-// as PNG, so they were dropped). PNG and JPEG are the two encodings PDF itself
-// carries, so they pass through; everything else (WebP/AVIF/GIF/BMP…) is
-// rasterised to PNG via a canvas first, which is what the old WebP decoder did
-// internally anyway. Non-data / unrecognised sources keep the old PNG fallback.
-async function imageForPdf(src: string): Promise<{ src: string; fmt: string }> {
-  const mime = (/^data:([^;,]+)/i.exec(src)?.[1] || '').toLowerCase();
-  if (mime === 'image/png')  return { src, fmt: 'PNG' };
-  if (mime === 'image/jpeg' || mime === 'image/jpg') return { src, fmt: 'JPEG' };
-  if (mime.startsWith('image/')) {
-    try { return { src: await rasterizeToPng(src), fmt: 'PNG' }; }
-    catch { return { src, fmt: 'PNG' }; }
-  }
-  return { src, fmt: 'PNG' };
-}
-
-// Decode any image source the browser understands and re-encode it as a PNG data
-// URL, so a format PDF can't carry natively can still be placed.
-async function rasterizeToPng(src: string): Promise<string> {
-  const img = await new Promise<HTMLImageElement>((res, rej) => {
-    const i = new Image();
-    i.onload = () => res(i);
-    i.onerror = rej;
-    i.src = src;
-  });
-  const canvas = document.createElement('canvas');
-  canvas.width  = img.naturalWidth  || img.width;
-  canvas.height = img.naturalHeight || img.height;
-  canvas.getContext('2d')!.drawImage(img, 0, 0);
-  return canvas.toDataURL('image/png');
-}
 
 // Best recorder mime, preferring the requested container ('webm' | 'mp4') but
 // falling back to the other so a deep-link/CLI request still produces a video.

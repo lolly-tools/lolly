@@ -252,7 +252,8 @@ test('removing an imported catalogue copy explains the fallback and retains its 
   assert.match(supplied.textContent ?? '', /acme\/tokens\/brand/);
   assert.match(supplied.textContent ?? '', /Asset namespace\s*acme\//);
   assert.equal(supplied.querySelector('[data-ds-act="remove"]'), null);
-  assert.equal(supplied.querySelector('.ds-row-origin a')?.getAttribute('href'), '/info/manage/profiles-and-brands.html#removing-a-catalogue-design-system');
+  // The in-app reader, so the docs' back pill returns to Settings (lib/back-nav.ts docsOrigin).
+  assert.equal(supplied.querySelector('.ds-row-origin a')?.getAttribute('href'), '#/docs/manage/profiles-and-brands?h=removing-a-catalogue-design-system');
   assert.match(await designSystemRemovalMessage(reopened, 'another'), /“Acme” will stay active/);
 });
 
