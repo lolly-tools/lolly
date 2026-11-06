@@ -106574,9 +106574,10 @@ function withColourwayKindRestored(doc) {
   let first = true;
   for (const entry2 of themeEntries(next2)) {
     if (groupOf(entry2) !== COLOURWAY_GROUP) continue;
-    const ext = record17(entry2.$extensions) ? entry2.$extensions : entry2.$extensions = {};
-    const mine = record17(ext[TOKEN_EXT]) ? ext[TOKEN_EXT] : ext[TOKEN_EXT] = {};
-    mine.axis = { kind: "colourway", ...first ? { canonical: true } : {} };
+    if (!record17(entry2.$extensions)) entry2.$extensions = {};
+    const ext = entry2.$extensions;
+    if (!record17(ext[TOKEN_EXT])) ext[TOKEN_EXT] = {};
+    ext[TOKEN_EXT].axis = { kind: "colourway", ...first ? { canonical: true } : {} };
     first = false;
   }
   return next2;
