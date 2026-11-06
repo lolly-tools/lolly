@@ -72,6 +72,8 @@ function catalogPackRef(id: string, version: string): AssetRef {
 export interface EmojiAPIOptions {
   /** When a pack may be brought onto the device. A test runs this at once. */
   whenIdle?(run: () => void): void;
+  /** Loads the code offline drawing needs. A test counts the calls instead. */
+  warmCode?(): Promise<unknown> | void;
 }
 
 /** After the tool has painted and the page has gone quiet. */
@@ -89,6 +91,7 @@ export function createEmojiAPI(assets: EmojiAssets, options: EmojiAPIOptions = {
   let listing = "";
   let holding: string[] = [];
   let holdQueued = false;
+  let codeWarmed = false;
   const held = new Set<string>();
 
   async function entries(): Promise<Entry[]> {
@@ -141,19 +144,27 @@ export function createEmojiAPI(assets: EmojiAssets, options: EmojiAPIOptions = {
     return assets.bytes(await assets.get(entry.assetId, { format: 'json' }));
   }
 
-  /** Bring the catalog packs in force onto the device, once each, away from the tool
-   *  opening. It stores the file only: nothing parses it until a glyph needs drawing. */
+  /**
+   * Get ready to draw with no network, away from the tool opening: the code the pass
+   * needs, then the catalog packs in force, once each. A pack is stored and nothing
+   * parses it until a glyph needs drawing. Save-Data skips the packs and keeps the code,
+   * which is small and is also what draws the placeholder.
+   */
   function holdOnDevice(ids: string[]): void {
-    if (!ids.length) return;
-    void assets._holdCatalogAssets?.(ids)?.catch(() => {});
+    if (ids.length) void assets._holdCatalogAssets?.(ids)?.catch(() => {});
     if (!assets._getBlob) return;
     holding = ids;
     if (holdQueued) return;
     holdQueued = true;
     (options.whenIdle ?? afterFirstPaint)(() => {
       holdQueued = false;
+      if (globalThis.navigator?.onLine === false) return;
+      if (!codeWarmed) {
+        codeWarmed = true;
+        void (options.warmCode ? options.warmCode() : import('./offline-code.ts').then(code => code.warmOfflineCode()));
+      }
       const connection = (globalThis.navigator as { connection?: { saveData?: boolean } } | undefined)?.connection;
-      if (globalThis.navigator?.onLine === false || connection?.saveData) return;
+      if (connection?.saveData) return;
       void (async () => {
         for (const id of holding) {
           if (held.has(id)) continue;

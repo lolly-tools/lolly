@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
  * A pack the catalog serves is catalog material. Opening a tool used to copy the whole
- * pack into the person's uploads, and that copy was also the only thing that kept it
- * on the device. These tests hold both halves: nothing lands in the uploads, and the
- * set still draws with the network off.
+ * pack into the person's uploads, and that copy was also what kept the set through the
+ * prune of files nothing saved refers to. These tests hold both halves: nothing lands in
+ * the uploads, and the set still draws with the network off.
  *
  * The device here behaves as the asset bridge does, over the REAL generated bundle:
  * `_getBlob` answers from the catalog cache and fetches only a current on-demand file
@@ -55,8 +55,7 @@ function device(opts: { uploads?: EmojiAssetRecord[]; cached?: Record<string, Ui
       return listed.map(asset => ({ source: 'library', id: asset.id, type: 'data', format: 'json', url: asset.formats[0]!.url, version: asset.version,
         meta: { ...asset.meta, name: 'x', tags: asset.tags, size: asset.formats[0]!.size } } as unknown as AssetRef));
     },
-    // The route that fetches its url from the network, as the bridge's byte reader
-    // does for a catalog file. A pack must not depend on it.
+    // The placement route, which records a read and writes a second row for it.
     async get(id) { seen.placementReads++; return { source: 'library', id, type: 'data', format: 'json', url: `/catalog/${id}` } as AssetRef; },
     async bytes(target) {
       const id = typeof target === 'string' ? target : target.id;
@@ -91,7 +90,8 @@ function device(opts: { uploads?: EmojiAssetRecord[]; cached?: Record<string, Ui
 /** Holds the idle work until the test releases it, so "before" can be asserted. */
 function idleQueue() {
   const queue: (() => void)[] = [];
-  return { whenIdle: (run: () => void) => { queue.push(run); }, async flush() { for (const run of queue.splice(0)) run(); await new Promise(resolve => setTimeout(resolve, 0)); } };
+  const queued = { codeWarms: 0, whenIdle: (run: () => void) => { queue.push(run); }, warmCode() { queued.codeWarms++; }, async flush() { for (const run of queue.splice(0)) run(); await new Promise(resolve => setTimeout(resolve, 0)); } };
+  return queued;
 }
 
 test('opening a tool pins a catalog pack without copying it or downloading it', async () => {
@@ -123,6 +123,34 @@ test('the set comes onto the device once, later, as one catalog file with no par
   assert.equal(d.uploads.size, 0);
 });
 
+test('the code a first offline emoji needs is brought in once, later, with the set', async () => {
+  // The hidden specimen and the upload write used to load these as a side effect. With
+  // them gone, the first emoji drawn offline hit a chunk that was never fetched and the
+  // shell replaced the whole view. See bridge/offline-code.ts.
+  const d = device();
+  const idle = idleQueue();
+  const api = createEmojiAPI(d.assets, idle);
+  await api.dependencies!([pin]);
+  assert.equal(idle.codeWarms, 0, 'not while the tool is opening');
+  await idle.flush();
+  assert.equal(idle.codeWarms, 1);
+  await api.dependencies!([pin]);
+  await idle.flush();
+  assert.equal(idle.codeWarms, 1, 'and only once');
+});
+
+test('the code list covers every module the runtime\'s emoji pass imports', () => {
+  // A new dynamic import in the pass is a new chunk nothing fetches until it is too late.
+  const runtime = readFileSync(fileURLToPath(new URL('engine/src/runtime.ts', repo)), 'utf8');
+  const start = runtime.indexOf('async function emojiPacksFor('), end = runtime.indexOf('// ── Creative rights');
+  assert.ok(start > 0 && end > start, 'the pass is where this test expects it');
+  const imported = [...runtime.slice(start, end).matchAll(/import\('\.\/(emoji-[a-z-]+)\.ts'\)/g)].map(match => match[1]!);
+  assert.ok(imported.includes('emoji-dom'), 'the scan is still finding the imports');
+  const warmed = readFileSync(fileURLToPath(new URL('shells/web/src/bridge/offline-code.ts', repo)), 'utf8');
+  // Source records are read only from a file that was already drawn with them.
+  for (const name of new Set(imported)) if (name !== 'emoji-source-records') assert.ok(warmed.includes(`engine/src/${name}.ts`), `${name} is warmed for offline`);
+});
+
 test('an offline device or Save-Data leaves the download for later', async () => {
   const offline = device({ online: false });
   const idle = idleQueue();
@@ -141,6 +169,7 @@ test('an offline device or Save-Data leaves the download for later', async () =>
     await createEmojiAPI(saving.assets, later).dependencies!([pin]);
     await later.flush();
     assert.deepEqual(saving.seen.downloads, [], 'Save-Data is respected');
+    assert.equal(later.codeWarms, 1, 'the code still comes: it is small, and it draws the placeholder too');
     assert.deepEqual(saving.seen.held, [[entry.id]], 'the choice is still recorded, for a later open');
   } finally { delete nav.onLine; delete nav.connection; }
 });
@@ -153,7 +182,7 @@ test('a set on the device draws with the network off, from the catalog cache alo
   assert.equal(`sha256:${sha256(manifest!)}`, pin.checksum);
   const art = await api.artwork(pin, glyph.asset as never);
   assert.equal(`sha256:${sha256(art!)}`, glyph.asset.checksum);
-  assert.equal(d.seen.placementReads, 0, 'the route that needs the network is never taken');
+  assert.equal(d.seen.placementReads, 0, 'and the placement route, with its second row, is never taken');
 });
 
 test('offline with nothing held answers null, and the same pin works once back online', async () => {
@@ -162,6 +191,41 @@ test('offline with nothing held answers null, and the same pin works once back o
   assert.equal(await api.manifest(pin), null);
   d.seen.online = true;
   assert.ok(await api.manifest(pin), 'a failed read is not remembered as a refusal');
+});
+
+test('two tabs opening on a first visit both succeed, and neither writes a pack', async () => {
+  // Each tab holds its own emoji host over the one shared device. Before this fix they
+  // raced to write the same user asset, and the store refused the slower one.
+  const d = device();
+  const idle = idleQueue();
+  const [first, second] = await Promise.all([createEmojiAPI(d.assets, idle), createEmojiAPI(d.assets, idle)].map(api => api.dependencies!([pin])));
+  assert.deepEqual(first, second, 'both name the same catalog file');
+  assert.deepEqual(d.seen.writes, [], 'there is no write left to race on');
+  await idle.flush();
+  assert.equal(d.cache.size, 1, 'a second download lands on the same key, so the file is held once');
+  assert.equal(d.uploads.size, 0);
+});
+
+test('two tabs pinning a pack only a person holds still meet at one record', async () => {
+  // This is the write that remains, and it still has to survive the same race.
+  const dom = new JSDOM('');
+  const previous = globalThis.DOMParser;
+  globalThis.DOMParser = dom.window.DOMParser;
+  try {
+    const { fixture } = await import('../../../../tests/helpers/emoji-fixtures.ts');
+    const f = await fixture();
+    const own = new TextEncoder().encode(JSON.stringify({ schemaVersion: 1, kind: 'emoji-pack-bundle', manifest: new TextDecoder().decode(f.bytes), artwork: { '1f600.svg': new TextDecoder().decode(f.artwork) } }));
+    const d = device({ listed: [] });
+    const info = await createEmojiAPI(d.assets, idleQueue()).install!(own);
+    const before = [...d.uploads.keys()];
+    const refused = d.assets._uploadUserAsset!;
+    // The store refuses a write whose record appeared after its read.
+    d.assets._uploadUserAsset = async record => { if (d.uploads.has(record.id)) throw new Error('This asset changed in another view.'); return refused(record); };
+    const [first, second] = await Promise.all([createEmojiAPI(d.assets, idleQueue()), createEmojiAPI(d.assets, idleQueue())].map(api => api.dependencies!([info.pin])));
+    assert.deepEqual(first, second);
+    assert.equal(first[0]!.source, 'user');
+    assert.deepEqual([...d.uploads.keys()], before, 'one record, and neither tab failed');
+  } finally { globalThis.DOMParser = previous; dom.window.close(); }
 });
 
 test('a person\'s uploads are untouched, including one byte-identical to the catalog pack', async () => {

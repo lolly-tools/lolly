@@ -1311,8 +1311,9 @@ export async function createRuntime(
     if (!(root as {querySelector?: (selector:string) => unknown}).querySelector?.('[data-emoji-tool-source]')) {
       const text = root.textContent ?? '';
       if (text !== emojiTextChecked) {
-        emojiTextChecked = text;
+        // Recorded after the await: a chunk that fails to load must not read as "no emoji".
         emojiTextDraws = emojiTextTrigger(text) && (await import('./emoji-segment.ts')).textHoldsEmoji(text);
+        emojiTextChecked = text;
       }
       if (!emojiTextDraws) {
         record(nothing);
