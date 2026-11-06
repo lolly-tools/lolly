@@ -13,7 +13,8 @@ import { firstStrongDirection, hasRtlText, type TextRunDirection } from '@lolly-
 export interface InlineTextContext {
   readonly text: Pick<NonNullable<HostV1['text']>, 'toPath'> | null;
   readonly log: HostV1['log'] | undefined;
-  readonly resolveFont: (style: FontStyleSlice, text: string) => Promise<VectorFont | null>;
+  /** `at` is the run's element, whose `lang` the fallback fonts read (font-fill.ts). */
+  readonly resolveFont: (style: FontStyleSlice, text: string, at?: Element | null) => Promise<VectorFont | null>;
   readonly fontMetrics: (style: CSSStyleDeclaration, size: number) => { ascent: number; descent: number };
   readonly nextShadowId: () => string;
   /** Read text from the flattened tree (page snapshots, ExportOpts.shadowSlots):
@@ -77,7 +78,7 @@ export async function emitInlineTextSvg(
       const fontSizePx = parseFloat(nodeStyle.fontSize) || 16;
       // SUSE statics, a user's Google font (decompressed on demand) or the
       // platform face - whichever the family stack resolves to first.
-      const vf = textApi ? await ctx.resolveFont(nodeStyle, text) : null;
+      const vf = textApi ? await ctx.resolveFont(nodeStyle, text, node.parentElement) : null;
       const fontUrl = vf?.url ?? null;
       const vectorise = canVectoriseText(nodeStyle, fontUrl, Boolean(textApi));
       // Tracking + OpenType feature toggles are baked into the shaped path so the

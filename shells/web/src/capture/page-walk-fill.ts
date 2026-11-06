@@ -13,4 +13,4 @@ export { resolveVectorFont as resolveExportFont } from '../bridge/font-registry.
 export function extendsChain(): boolean { return false; }
 
 /** No live-page fallback fonts to wait for and no note to give. */
-export function withFallbackFonts<T>(render: () => Promise<T>): Promise<T> { return render(); }
+export function withFallbackFonts<T>(render: () => Promise<T>, _root?: Element | null): Promise<T> { return render(); }

@@ -138,8 +138,8 @@ const REPO_ROOT = repoRoot();
  * run in whatever font is on disk would bake a design nobody picked into a file
  * that then looks authoritative.
  */
-function cliResolveFont(host: HostV1, onFill?: (uses: FillUse[]) => void): (style: FontStyleSlice, text: string) => Promise<SvgIrFont | null> {
-  return async (style, runText) => {
+function cliResolveFont(host: HostV1, onFill?: (uses: FillUse[]) => void): (style: FontStyleSlice, text: string, at?: Element) => Promise<SvgIrFont | null> {
+  return async (style, runText, at) => {
     const text = host.text;
     if (!text?.fontUrl) return null;
     const weight = numericWeight(style.fontWeight ?? null);
@@ -154,7 +154,9 @@ function cliResolveFont(host: HostV1, onFill?: (uses: FillUse[]) => void): (styl
       const later = async function* () { for (const fam of families.slice(i + 1)) { const f = await text.fontUrl!(fam, { weight, italic }); if (f) yield { fontUrl: f.url, ...(f.variations ? { variations: f.variations } : {}) }; } };
       const laterFaces: Array<{ fontUrl: string; variations?: string[] }> = [];
       if (!/^\p{ASCII}*$/u.test(runText)) for await (const f of later()) laterFaces.push(f);
-      const fill = await nodeFillChain((url) => text.characters!(url), [{ fontUrl: font.url, ...(font.variations ? { variations: font.variations } : {}) }], laterFaces, runText, { weight, italic });
+      // The run's element and its document choose between the Chinese, Japanese and Korean fonts.
+      const place = { at: at ?? null, document: at?.ownerDocument?.body ?? at?.ownerDocument?.documentElement ?? null };
+      const fill = await nodeFillChain((url) => text.characters!(url), [{ fontUrl: font.url, ...(font.variations ? { variations: font.variations } : {}) }], laterFaces, runText, { weight, italic, place });
       if (!fill) return font;
       onFill?.(fill.uses);
       return { ...font, fallbacks: fill.fallbacks };
