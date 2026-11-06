@@ -77,7 +77,7 @@ Everything that is not a reserved flag is a tool input, checked against the tool
 lolly wordmark --text="Ship today." --width=210 --height=297 --unit=mm --export=pdf --output=page.pdf
 ```
 
-`--unit` takes `px` (the default), `mm`, `cm`, `in`, `pt` or `pc`, and `--dpi` sets raster resolution for physical units (300 by default). `--bleed=<dim>` and `--marks=crop,reg,bleed,bars,prov` add print bleed and marks. They are browser-free for an outlined Lolly Design PDF and use the paint tier for other print formats.
+`--unit` takes `px` (the default), `mm`, `cm`, `in`, `pt` or `pc`, and `--dpi` sets raster resolution for physical units (300 by default). `--bleed=<dim>` and `--marks=crop,reg,bleed,bars,prov` add print bleed and marks. They are browser-free for an outlined Lolly Design PDF and use the paint tier for other print formats. A `prov` label with letters the mark font lacks, such as a name in Arabic, also uses the paint tier, which draws that label as a picture.
 
 `--press-profile=fogra39` (or `fogra51`, `swop`, `gracol`) **names** the CMYK press condition in the PDF's output intent. The CLI has no profile store, so it cannot embed one, and a named-only intent is not PDF/X-4: the output intent is written, the PDF/X-4 version claim is not. Embedding a profile you loaded is a web-shell feature today.
 
