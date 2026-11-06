@@ -1046,6 +1046,8 @@ export type { DesignBriefAssetV1, DesignBriefCatalogV1, DesignBriefOpts, DesignB
 // Brand skills (plan 323): a brand's standards per discipline as design-system assets.
 export { parseBrandSkill, brandSkillScopeHints, admitBrandSkill, classifyBrandSkillLinks, brandSkillCoverage, brandSkillCoverageFacts, exportBrandSkillFolder, brandSkillFreshness, brandSkillsSection, baselineBrandSkill, measureSvgFamily, spreadExemplars, brandSkillFilesSize } from './brand-skill.ts';
 export type { BrandSkillFindingV1, BrandSkillHeadingV1, BrandSkillLinkV1, ParsedBrandSkillV1, AdmittedBrandSkillV1, BrandSkillAdmissionV1, BrandSkillCatalogAssetV1, BrandSkillLinkClassV1, BrandSkillCoverageFactsV1, BrandSkillCoverageStatusV1, BrandSkillCoverageRowV1, BrandSkillCoverageV1, BrandSkillExportModeV1, BrandSkillExportInputV1, BrandSkillExportV1, BrandSkillFreshnessV1, SvgFamilyMeasureV1 } from './brand-skill.ts';
+export { leaveOutScopedTokenText, scopedTokenTextWarnings } from './token-scope.ts';
+export type { ScopedTokenTextV1, TokenTextLeftOutV1 } from './token-scope.ts';
 export { checkDesignHouseRules, designHouseRules, combinationPolicy, DESIGN_HOUSE_RULE_KINDS } from './design-house-rules.ts';
 export type { DesignHouseRuleKind, DesignHouseRuleOpts, DesignHouseRuleResult, HouseRuleFinding } from './design-house-rules.ts';
 // Creation feedback (engine 1.283): house-rule findings and the writing score for the

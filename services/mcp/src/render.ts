@@ -32,6 +32,7 @@ import type { ToolManifest } from '../../../engine/src/loader.ts';
 import { assertRenderOk, RenderIntegrityError } from '@lolly-tools/node-shell/render-integrity';
 import { isDeepFormat, DeepSourceError, needsFloatScene, drawnRootSvg } from '@lolly-tools/node-shell/raster';
 import { buildExportC2paOpts, recordedDesignInFile } from '@lolly-tools/node-shell/c2pa-opts';
+import { stripSvgC2pa } from '@lolly-tools/node-shell/lolly-file';
 import { needsBrowserTier } from '@lolly-tools/node-shell/browser-tier';
 import { webGpuLaunchArgs } from '@lolly-tools/node-shell/webgpu-launch';
 import { observeProductionInputs } from '@lolly-tools/node-shell/production-browser';
@@ -92,6 +93,12 @@ export interface RenderOpts {
   convertPaths?: boolean;
   password?: string;
   c2pa?: { on: boolean; days: number | null } | null;
+  /**
+   * The caller named `c2pa` and is owed an answer (`lolly_render`): the file is held to the
+   * setting and the result says what it holds, read back. Unset on the public GET route,
+   * which forces `c2pa` off for its own reasons and whose bytes do not change.
+   */
+  c2paAsked?: boolean;
   /** The `hdr=` request (url-mode's HdrSettings dials). Parsed from the query when
    *  not given explicitly; required by the pro float formats. */
   hdr?: { peakNits: number; reach: number; lift: number; richness: number } | null;
@@ -178,6 +185,60 @@ export interface RenderResult {
   intentRecord?: IntentRecordOutcome;
   /** This render has a credential only because an intent asked for one: no `c2pa` setting was given. */
   credentialFromIntent?: boolean;
+  /** What an explicit `c2pa` asked for and what the delivered bytes hold. Absent when the caller did not name `c2pa`. */
+  credential?: CredentialReadback;
+}
+
+/** What an explicit `c2pa` asked for, against what the delivered file holds. */
+export interface CredentialReadback {
+  /** `off`, or the certificate lifetime asked for, in days. */
+  asked: 'off' | number;
+  /** The verifier's answer for the final bytes. `unread`: an archive's members, or bytes the verifier could not read. */
+  holds: 'none' | 'valid' | 'invalid' | 'unread';
+  /** The certificate's lifetime in whole days, when one was read. */
+  days: number | null;
+  selfSigned: boolean;
+}
+
+const DAY_MS = 86_400_000;
+
+/** Read a delivered file's credential back, for the sentence the result prints. */
+async function readBackCredential(bytes: Uint8Array, setting: { on: boolean; days: number | null }, deliveredFormat: string): Promise<CredentialReadback> {
+  const asked = setting.on ? setting.days ?? 30 : 'off';
+  if (deliveredFormat === 'zip') return { asked, holds: 'unread', days: null, selfSigned: false };
+  try {
+    const report = await verifyC2pa(bytes);
+    const signer = report.signer;
+    return {
+      asked,
+      holds: report.state,
+      days: signer ? Math.round((Date.parse(signer.notAfter) - Date.parse(signer.notBefore)) / DAY_MS) : null,
+      selfSigned: signer?.selfSigned === true,
+    };
+  } catch {
+    return { asked, holds: 'unread', days: null, selfSigned: false };
+  }
+}
+
+/** The line a `lolly_render` result prints when the caller named `c2pa`. Empty when it did not. */
+export function credentialText(readback: CredentialReadback | null | undefined): string {
+  if (!readback) return '';
+  const { asked, holds, days, selfSigned } = readback;
+  if (holds === 'unread') {
+    return asked === 'off'
+      ? 'Content Credentials: the export was told to write none, and this file was not read back.'
+      : `Content Credentials: the export was told to write them for ${asked} days, and this file was not read back.`;
+  }
+  if (asked === 'off') {
+    return holds === 'none'
+      ? 'Content Credentials: none in this file, as asked.'
+      : 'Content Credentials: c2pa: "off" could not be honoured. This file still holds a credential.';
+  }
+  if (holds === 'none') return `Content Credentials: none in this file, though c2pa asked for ${asked} days. The warnings above say why.`;
+  if (holds === 'invalid') return 'Content Credentials: this file holds a credential that does not verify.';
+  if (days === null) return 'Content Credentials: in this file.';
+  if (days !== asked) return `Content Credentials: in this file, but the certificate runs ${days} days, not the ${asked} asked for.`;
+  return `Content Credentials: in this file, ${selfSigned ? 'self-signed, ' : ''}valid for ${days} days.`;
 }
 
 /**
@@ -873,9 +934,12 @@ export function exportUrl(base: string, toolId: string, query: string, fmt: stri
   if (o.colorProfile) p.set('profile', o.colorProfile);
   if (o.hdr) p.set('hdr', serializeHdr(o.hdr));
   if (o.depth && o.depth !== 'auto') p.set('depth', String(o.depth));
+  // A sample set is stamped by the browser alone, so it takes the setting as given.
   if (Number(p.get('cuts')) > 1 || p.has('sampletimes')) p.set('c2pa', o.c2pa?.on ? String(o.c2pa.days ?? 1) : 'off');
-  // An intent record goes in the credential this server stamps, so the browser writes none of
-  // its own: a PDF it stamped could not take a second one, and `c2pa: "off"` means no credential.
+  // With no setting and no intent the web shell keeps its own default and nothing here is written.
+  // `off` has to reach the browser, which otherwise stamps. A PDF holds one credential, so when
+  // this server is to stamp one, or an intent record is to go in it, the browser writes none.
+  else if (o.c2pa?.on === false || (o.c2pa?.on && /^pdf/.test(fmt))) p.set('c2pa', 'off');
   if (o.intent) p.set('c2pa', 'off');
   p.set('export', '1'); // presence flag → immediate download on load
   const q = p.toString();
@@ -1031,7 +1095,7 @@ export async function credentialAndRecord(
     fmt: string; exportFmt: string; deliveredFormat: string; manifest: ToolManifest; values: Record<string, unknown>;
     merged: RenderOpts; placed: C2paSourceIngredient[]; recorded: ExportMeta | null; sampled: boolean; warnings: string[]; drawn?: DrawnHere | null;
   },
-): Promise<{ bytes: Uint8Array; designRecord: DesignRecord | null; intentRecord?: IntentRecordOutcome }> {
+): Promise<{ bytes: Uint8Array; designRecord: DesignRecord | null; intentRecord?: IntentRecordOutcome; credential?: CredentialReadback }> {
   let bytes = out.bytes;
   type Recorded = Pick<ExportMeta, 'designSystem' | 'designVersion' | 'themes' | 'brandSkills' | 'brandPage'>;
   // What the file's own metadata holds: the browser tier wrote it, so it is read off
@@ -1047,11 +1111,19 @@ export async function credentialAndRecord(
   let stamped = false;
   if (!o.sampled && o.merged.c2pa?.on && C2PA_FORMATS.includes(o.exportFmt as ExportFormat) && !(o.exportFmt === 'pdf' && o.merged.password)) {
     // Told not to stamp, the browser saves a PDF the embedder cannot extend until it has a classic table.
-    try { if (o.merged.intent) bytes = await (await import('@lolly-tools/node-shell/pdf-classic')).classicPdfForStamp(bytes, o.exportFmt); } catch { /* the stamp below reports it */ }
-    try { bytes = await stampC2pa(bytes, o.exportFmt, o.manifest, o.values, o.merged, o.placed, record, out.tier.startsWith('B') ? null : o.drawn ?? null); stamped = true; }
+    try { bytes = await (await import('@lolly-tools/node-shell/pdf-classic')).classicPdfForStamp(bytes, o.exportFmt); } catch { /* the stamp below reports it */ }
+    // The new credential goes where a reader looks for it, not over an inlined picture's own.
+    const clean = withoutSvgCredentials(bytes, o.exportFmt);
+    try { bytes = await stampC2pa(clean, o.exportFmt, o.manifest, o.values, o.merged, o.placed, record, out.tier.startsWith('B') ? null : o.drawn ?? null); stamped = true; }
     catch (e) { o.warnings.push(`Content Credentials not attached - ${(e as Error).message}`); }
   } else if (!o.sampled && o.merged.c2pa?.on) {
-    o.warnings.push(`Format "${o.fmt}" cannot carry Content Credentials - skipped.`);
+    o.warnings.push(o.exportFmt === 'pdf' && o.merged.password
+      ? 'On a PDF, c2pa cannot be combined with password, so no Content Credential was written.'
+      : `Format "${o.fmt}" cannot carry Content Credentials - skipped.`);
+  } else if (o.merged.c2paAsked && o.merged.c2pa?.on === false) {
+    // The browser wrote none of its own, but an inlined picture carries its own credential in.
+    // By what was delivered: a sample set's archive holds its members' offsets, and is left whole.
+    bytes = withoutSvgCredentials(bytes, o.deliveredFormat);
   }
   if (skills.length && !stamped) {
     o.warnings.push('The brand skills were not recorded: this format renders in the browser tier, which writes the file without them, '
@@ -1079,7 +1151,20 @@ export async function credentialAndRecord(
       intentRecord = { state: 'not-recorded', reason: !canCarry ? 'no-route' : o.merged.c2pa?.on ? 'not-confirmed' : 'no-credential' };
     }
   }
-  return { bytes, designRecord, ...(intentRecord ? { intentRecord } : {}) };
+  const readback = o.merged.c2paAsked && o.merged.c2pa ? await readBackCredential(bytes, o.merged.c2pa, o.deliveredFormat) : undefined;
+  return { bytes, designRecord, ...(intentRecord ? { intentRecord } : {}), ...(readback ? { credential: readback } : {}) };
+}
+
+/**
+ * An SVG with every `<c2pa:manifest>` taken out, and only those: an SVG that inlines
+ * credentialed artwork, such as a catalog logo, carries that piece's manifest as well, and a
+ * verifier reads it as the file's own. Any other format, or an SVG with none, comes back as
+ * it was. Latin-1 keeps every byte around the elements exactly as it found them.
+ */
+function withoutSvgCredentials(bytes: Uint8Array, format: string): Uint8Array {
+  if (format !== 'svg' && format !== 'svg-anim') return bytes;
+  const text = Buffer.from(bytes.buffer, bytes.byteOffset, bytes.byteLength).toString('latin1');
+  return text.includes('<c2pa:manifest') ? new Uint8Array(Buffer.from(stripSvgC2pa(text), 'latin1')) : bytes;
 }
 
 /**
@@ -1112,7 +1197,7 @@ export async function render(toolId: string, query: string, o: RenderOpts = {}):
   const last = run.attempts.at(-1)!;
   try { await requireProduction(last.report, last.bytes, contract); }
   catch (error) { if (error instanceof Error) Object.assign(error, { attempts: run.attempts.map(a => a.report) }); throw error; }
-  return { bytes: last.bytes, mime: last.mime, format: last.format, tier: last.tier, warnings: last.warnings, ...(last.rights ? { rights: last.rights } : {}), ...(last.audio ? { audio: last.audio } : {}), ...(last.audioFailures ? { audioFailures: last.audioFailures } : {}), ...(last.songs ? { songs: last.songs } : {}), ...(last.designRecord ? { designRecord: last.designRecord } : {}), ...(last.intentRecord ? { intentRecord: last.intentRecord } : {}), production: last.report, productionAttempts: run.attempts.map(a => a.report) };
+  return { bytes: last.bytes, mime: last.mime, format: last.format, tier: last.tier, warnings: last.warnings, ...(last.rights ? { rights: last.rights } : {}), ...(last.audio ? { audio: last.audio } : {}), ...(last.audioFailures ? { audioFailures: last.audioFailures } : {}), ...(last.songs ? { songs: last.songs } : {}), ...(last.designRecord ? { designRecord: last.designRecord } : {}), ...(last.intentRecord ? { intentRecord: last.intentRecord } : {}), ...(last.credential ? { credential: last.credential } : {}), production: last.report, productionAttempts: run.attempts.map(a => a.report) };
 }
 
 /** One candidate render as one request scope: its songs share the caps and one time budget. */
@@ -1317,6 +1402,7 @@ async function renderCandidateBytes(toolId: string, query: string, o: RenderOpts
     ...(designRecord ? { designRecord } : {}),
     ...(finished.intentRecord ? { intentRecord: finished.intentRecord } : {}),
     ...(credentialFromIntent ? { credentialFromIntent } : {}),
+    ...(finished.credential ? { credential: finished.credential } : {}),
   };
 }
 

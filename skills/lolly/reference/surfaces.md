@@ -142,7 +142,9 @@ or `best`. Omit settings to retain the tool's defaults. Invalid explicit setting
 return an error. Codec availability depends on the browser tier.
 `lolly_render` adds `transparentBg`, `convertPaths`,
 `background`, `colorProfile`, `c2pa` (`off`/`7`/`30`/`90`/`365`), `password` and
-`link` (default true).
+`link` (default true). `c2pa: "off"` means no credential on any format. Left out, a
+browser-free render has none and a browser-tier render keeps the web shell's. When
+you pass it, the result says what the file holds, read back from the file.
 
 **Design documents** are edited through `layerOperations` and `layerPatches`,
 accepted by `lolly_compile`, `lolly_inspect`, `lolly_measure`, `lolly_validate`,

@@ -20,6 +20,7 @@ import { createTokenSet } from './tokens.ts';
 import { TOKEN_EXT } from './token-ext.ts';
 import { designBrief, type DesignBriefCatalogV1, type DesignBriefV1 } from './design-brief.ts';
 import { brandSkillScopeHints } from './brand-skill.ts';
+import { leaveOutScopedTokenText } from './token-scope.ts';
 
 export { DESIGN_MD_TARGET };
 
@@ -86,11 +87,13 @@ export interface DesignMdWriteInputV1 {
 
 /** One DESIGN.md for one colourway and mode. */
 export function writeDesignMd(input: DesignMdWriteInputV1): string {
-  const brief = input.brief ?? designBrief(input.doc, input.catalog ?? null, input.name ? { name: input.name } : {});
+  // A DESIGN.md is written for agents, so a swatch's name and the file's description read as the brief does.
+  const { doc } = leaveOutScopedTokenText(input.doc);
+  const brief = input.brief ?? designBrief(doc, input.catalog ?? null, input.name ? { name: input.name } : {});
   const name = line(input.name ?? brief.name, 200) || 'Design system';
-  const raw = isRow(input.doc) ? input.doc : {};
+  const raw = isRow(doc) ? doc : {};
   const description = line(input.description ?? (typeof raw.$description === 'string' ? raw.$description : ''), 600);
-  const tokens = createTokenSet(input.doc, input.selection ? { selection: input.selection } : {});
+  const tokens = createTokenSet(doc, input.selection ? { selection: input.selection } : {});
   const swatches = tokens.colors().filter(c => typeof c.value === 'string' && parseColor(c.value));
 
   const colors = new Map<string, string>();

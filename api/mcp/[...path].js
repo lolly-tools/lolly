@@ -4114,7 +4114,7 @@ var ENGINE_VERSION;
 var init_version = __esm({
   "engine/src/version.ts"() {
     "use strict";
-    ENGINE_VERSION = "1.311.0";
+    ENGINE_VERSION = "1.312.0";
   }
 });
 
@@ -10121,15 +10121,15 @@ var init_token_selection = __esm({
 function tokenReferenceUses(value2, type) {
   const refs = [];
   let nodes = 0;
-  function walk3(v, expected, depth) {
+  function walk4(v, expected, depth) {
     if (++nodes > 4096 || depth > 32) return;
     if (typeof v === "string" && /^\{[^{}]+\}$/.test(v)) refs.push({ path: v.slice(1, -1), type: expected });
-    else if (Array.isArray(v)) for (const child2 of v) walk3(child2, compositeElementType(expected), depth + 1);
+    else if (Array.isArray(v)) for (const child2 of v) walk4(child2, compositeElementType(expected), depth + 1);
     else if (v && typeof v === "object") for (const [key2, child2] of Object.entries(v)) {
-      if (!key2.startsWith("$")) walk3(child2, TOKEN_COMPOSITE_FIELDS[expected ?? ""]?.[key2] ?? null, depth + 1);
+      if (!key2.startsWith("$")) walk4(child2, TOKEN_COMPOSITE_FIELDS[expected ?? ""]?.[key2] ?? null, depth + 1);
     }
   }
-  walk3(value2, type, 0);
+  walk4(value2, type, 0);
   return refs;
 }
 var TOKEN_COMPOSITE_FIELDS, compositeElementType;
@@ -36004,7 +36004,7 @@ function normalize(source, viewBox, parseXml, authoredPaint = false) {
     if (name !== "id" && name !== "transform" && !presentation.has(name) && !tags[tag3].includes(name)) throw new Error(`Unsupported SVG attribute ${name}.`);
     attributes2[name] = staticSvgAttribute(name, value2, tag3, authoredPaint);
   }
-  function walk3(element, depth) {
+  function walk4(element, depth) {
     if (++nodes > 4096 || depth > 32) throw new Error("SVG exceeds the supported element or depth limit.");
     const tag3 = element.localName;
     if (element.namespaceURI !== namespace || element.prefix || !Object.hasOwn(tags, tag3) || tag3 === "svg" !== (depth === 0)) throw new Error(`Unsupported SVG element ${tag3}.`);
@@ -36065,7 +36065,7 @@ function normalize(source, viewBox, parseXml, authoredPaint = false) {
     const children2 = [];
     for (const child2 of Array.from(element.childNodes)) {
       if (child2.nodeType === 1) {
-        const node = walk3(child2, depth + 1);
+        const node = walk4(child2, depth + 1);
         if (node) children2.push(node);
       } else if (child2.nodeType === 8) changes.add("Omitted XML comments; source bytes remain pinned.");
       else if (child2.nodeType !== 3 || child2.textContent?.trim()) throw new Error("Unsupported SVG text or node.");
@@ -36078,7 +36078,7 @@ function normalize(source, viewBox, parseXml, authoredPaint = false) {
     return kept2.length ? { tag: "defs", attributes: {}, children: kept2 } : null;
   }
   for (const child2 of Array.from(doc.childNodes)) if (child2 !== doc.documentElement && child2.nodeType !== 8 && (child2.nodeType !== 3 || child2.textContent?.trim())) throw new Error("Unsupported SVG document node.");
-  const tree = walk3(doc.documentElement, 0);
+  const tree = walk4(doc.documentElement, 0);
   viewBox ??= tree.attributes.viewBox?.split(" ").map(Number) ?? [0, 0, Number(tree.attributes.width), Number(tree.attributes.height)];
   if (viewBox.length !== 4 || !viewBox.every(Number.isFinite) || viewBox[2] <= 0 || viewBox[3] <= 0) throw new Error("SVG needs a finite positive viewport.");
   if (tree.attributes.viewBox === void 0 && viewBox[0] === 0 && viewBox[1] === 0 && tree.attributes.width === String(viewBox[2]) && tree.attributes.height === String(viewBox[3])) {
@@ -36186,15 +36186,15 @@ async function inkPreparedEmojiSvg(svg) {
 function visitPreparedEmojiPaints(svg, visit) {
   const record46 = prepared.get(svg);
   if (!record46) throw new Error("SVG has not been admitted.");
-  const walk3 = (node) => {
+  const walk4 = (node) => {
     for (const name of paintNames) {
       const value2 = node.attributes[name];
       if (value2 === void 0 || !hexPaint.test(value2)) continue;
       visit(value2, name);
     }
-    for (const child2 of node.children) walk3(child2);
+    for (const child2 of node.children) walk4(child2);
   };
-  walk3(record46.tree);
+  walk4(record46.tree);
 }
 function emojiSvgChanges(svg) {
   const record46 = prepared.get(svg);
@@ -39016,7 +39016,7 @@ function frozenAssetId(sha256hex, ns2 = "user") {
   return `${ns2}/frozen/${digest2.slice(0, FROZEN_KEY_LEN)}`;
 }
 function walkLeaves(doc, visit) {
-  const walk3 = (node, path) => {
+  const walk4 = (node, path) => {
     if (!isRec3(node)) return;
     if ("$value" in node) {
       visit(node, path);
@@ -39024,10 +39024,10 @@ function walkLeaves(doc, visit) {
     }
     for (const k of Object.keys(node)) {
       if (k.startsWith("$")) continue;
-      walk3(node[k], [...path, k]);
+      walk4(node[k], [...path, k]);
     }
   };
-  walk3(doc, []);
+  walk4(doc, []);
 }
 function collectAssetTokens(doc) {
   const out = [];
@@ -42065,7 +42065,7 @@ function ttmlToCues(source, parse2, opts = {}) {
     if (cues.length >= TTML_LIMITS.maxCues) throw new CaptionFormatError("The TTML file holds too many captions.");
     cues.push({ start: span.begin, end: span.end, text: text13 });
   };
-  const walk3 = (el, parent, preserve) => {
+  const walk4 = (el, parent, preserve) => {
     const isP = el.localName === "p";
     if (el.localName === "head" || el.localName === "metadata") return;
     noteStyle(el);
@@ -42088,9 +42088,9 @@ function ttmlToCues(source, parse2, opts = {}) {
       }
       return;
     }
-    for (const child2 of Array.from(el.children)) walk3(child2, span, keep2);
+    for (const child2 of Array.from(el.children)) walk4(child2, span, keep2);
   };
-  walk3(root2, { begin: 0, end: Infinity }, false);
+  walk4(root2, { begin: 0, end: Infinity }, false);
   return { cues: cues.sort((a, b) => a.start - b.start), issues };
 }
 var TTML_LIMITS, TTML_NS, IMSC11_TEXT_PROFILE, attr;
@@ -60507,15 +60507,15 @@ function diffDocuments(a, b) {
 }
 function tokenValuesFromModel(model2) {
   const out = {};
-  const walk3 = (value2, path) => {
+  const walk4 = (value2, path) => {
     if (!value2 || typeof value2 !== "object") return;
     if (!Array.isArray(value2) && typeof value2.ref === "string") {
       out[path] = { ref: value2.ref, value: value2.value };
       return;
     }
-    for (const [key2, item2] of Object.entries(value2)) walk3(item2, `${path}/${key2}`);
+    for (const [key2, item2] of Object.entries(value2)) walk4(item2, `${path}/${key2}`);
   };
-  for (const input of model2) walk3(input.value, input.id);
+  for (const input of model2) walk4(input.value, input.id);
   return out;
 }
 function semanticJson(value2) {
@@ -65715,7 +65715,7 @@ function vectorPaintMatrices(paint2, count4, authored) {
   function bounds(node) {
     if (!authored) throw new Error("This vector clip needs its authored geometry.");
     const contours = [];
-    function walk3(node2, matrix) {
+    function walk4(node2, matrix) {
       if (node2.tag === "defs") return;
       for (const index2 of node2.contours ?? []) {
         const path = authored[index2], curves2 = toCubics(path).map((curve) => curve.map((value2, i) => {
@@ -65724,9 +65724,9 @@ function vectorPaintMatrices(paint2, count4, authored) {
         }));
         contours.push({ curves: curves2, closed: path.closed });
       }
-      for (const child2 of node2.children ?? []) walk3(child2, multiplyVectorMatrix(matrix, vectorMatrix(child2.attributes.transform)));
+      for (const child2 of node2.children ?? []) walk4(child2, multiplyVectorMatrix(matrix, vectorMatrix(child2.attributes.transform)));
     }
-    walk3(node, identity);
+    walk4(node, identity);
     return pathBounds(contours);
   }
   function visit(node, parent) {
@@ -66807,7 +66807,7 @@ function inspectTokenDocument(doc, opts = {}) {
   const diagnostics = [...selection.diagnostics];
   let nodes = 0;
   let truncated = selection.diagnostics.some((i) => i.code === "limit");
-  function walk3(node, type, path, location4, set, depth) {
+  function walk4(node, type, path, location4, set, depth) {
     if (!record10(node)) return;
     if (depth > 48) {
       truncated = true;
@@ -66828,12 +66828,12 @@ function inspectTokenDocument(doc, opts = {}) {
         sources.push({ set, location: loc, type: typeof child2.$type === "string" ? child2.$type : inherited4, value: structuredClone(child2.$value), active: set === null || selection.sets.includes(set), ...typeof child2.$description === "string" ? { description: child2.$description } : {}, ...record10(child2.$extensions) ? { extensions: structuredClone(child2.$extensions) } : {} });
         definitions.set(p, sources);
         if ("$ref" in child2) diagnostics.push({ code: "unsupported", path: p, message: "JSON Pointer references are retained but not resolved." });
-      } else walk3(child2, inherited4, p, loc, set, depth + 1);
+      } else walk4(child2, inherited4, p, loc, set, depth + 1);
     }
   }
   const sets = tokenSetNames(d);
-  if (sets) for (const set of sets) walk3(d[set], null, "", `/${pointer(set)}`, set, 0);
-  else walk3(d, null, "", "", null, 0);
+  if (sets) for (const set of sets) walk4(d[set], null, "", `/${pointer(set)}`, set, 0);
+  else walk4(d, null, "", "", null, 0);
   const resolved2 = createTokenSet(d, opts);
   const references = (value2) => {
     const out = /* @__PURE__ */ new Set();
@@ -87963,7 +87963,7 @@ function parsePenpotContent(contentJson) {
       if (!firstStyle && t !== "") firstStyle = lf;
     }
   }
-  (function walk3(n7) {
+  (function walk4(n7) {
     if (n7 == null || typeof n7 !== "object") return;
     const type = pget(n7, "type");
     const children2 = pkids(n7);
@@ -87975,7 +87975,7 @@ function parsePenpotContent(contentJson) {
       collectParagraph(n7);
       return;
     }
-    children2.forEach(walk3);
+    children2.forEach(walk4);
   })(root2);
   const fg = firstStyle ? penpotLeafColor(firstStyle) : "";
   let fontFamily = "";
@@ -88004,7 +88004,7 @@ function collectPenpotFontUsage(contentJson) {
   }
   if (!root2 || typeof root2 !== "object") return [];
   const byKey = /* @__PURE__ */ new Map();
-  (function walk3(n7) {
+  (function walk4(n7) {
     if (n7 == null || typeof n7 !== "object") return;
     const fid = pget(n7, "font-id");
     if (fid !== void 0) {
@@ -88027,7 +88027,7 @@ function collectPenpotFontUsage(contentJson) {
         });
       }
     }
-    pkids(n7).forEach(walk3);
+    pkids(n7).forEach(walk4);
   })(root2);
   return [...byKey.values()];
 }
@@ -94100,14 +94100,14 @@ function htmlList(items2, ordered) {
   const list4 = (Array.isArray(items2) ? items2 : []).filter((i2) => i2 && typeof i2 === "object");
   const tag3 = ordered ? "ol" : "ul";
   let i = 0;
-  const walk3 = (level2) => {
+  const walk4 = (level2) => {
     const lis = [];
     while (i < list4.length) {
       const item2 = list4[i];
       const lvl = clampListLevel(item2.level);
       if (lvl < level2) break;
       if (lvl > level2) {
-        const child2 = walk3(lvl);
+        const child2 = walk4(lvl);
         if (lis.length) lis[lis.length - 1] = `${lis[lis.length - 1].slice(0, -5)}${child2}</li>`;
         else lis.push(`<li>${child2}</li>`);
         continue;
@@ -94117,7 +94117,7 @@ function htmlList(items2, ordered) {
     }
     return `<${tag3}>${lis.join("")}</${tag3}>`;
   };
-  return walk3(0);
+  return walk4(0);
 }
 function htmlTable(block) {
   const cell2 = (c, tag3) => {
@@ -101141,7 +101141,7 @@ function slotFor(sh) {
 function penpotComponentSlots(rootShape, lookup4) {
   const out = [];
   const seen = /* @__PURE__ */ new Set();
-  const walk3 = (shape) => {
+  const walk4 = (shape) => {
     if (!isRec5(shape)) return;
     const id3 = str5(shape.id);
     if (id3) {
@@ -101152,9 +101152,9 @@ function penpotComponentSlots(rootShape, lookup4) {
     const slot = slotFor(shape);
     if (slot) out.push({ shapeId: id3, ...slot });
     const kids2 = Array.isArray(shape.shapes) ? shape.shapes : [];
-    for (const k of kids2) walk3(lookup4(String(k)));
+    for (const k of kids2) walk4(lookup4(String(k)));
   };
-  walk3(rootShape);
+  walk4(rootShape);
   return out;
 }
 var str5, isRec5;
@@ -107412,6 +107412,759 @@ var init_brand_map = __esm({
   }
 });
 
+// packages/core/src/brand-skill-v1.ts
+function isBrandSkillReference(path) {
+  return typeof path === "string" && /^references\/[A-Za-z0-9_-]+(?:\.[A-Za-z0-9_-]+)*\.(?:md|json|csv|txt)$/.test(path);
+}
+function validateBrandSkillMeta(meta) {
+  if (!record15(meta)) return ["meta.skill must be an object."];
+  const errors = [];
+  if (!isAgentSkillName(meta.name)) errors.push("name must be 1 to 64 lowercase letters, digits and single hyphens.");
+  if (!nonEmpty(meta.description, SKILL_DESCRIPTION_MAX)) errors.push(`description must be 1 to ${SKILL_DESCRIPTION_MAX} characters.`);
+  if (!BRAND_SKILL_DISCIPLINES.includes(meta.discipline)) errors.push(`discipline must be one of ${BRAND_SKILL_DISCIPLINES.join(", ")}.`);
+  if (!BRAND_SKILL_AUDIENCES.includes(meta.audience)) errors.push("audience must be public or internal.");
+  if (!BRAND_SKILL_STATUSES.includes(meta.status)) errors.push("status must be draft or approved.");
+  if (typeof meta.skillRevision !== "string" || !/^[A-Za-z0-9._-]{1,32}$/.test(meta.skillRevision)) errors.push("skillRevision must be 1 to 32 letters, digits, dots, hyphens or underscores.");
+  for (const key2 of ["owner", "maintainer"]) if (meta[key2] !== void 0 && !nonEmpty(meta[key2], 120)) errors.push(`${key2} must be a short name.`);
+  if (meta.revisionNote !== void 0 && !nonEmpty(meta.revisionNote, 500)) errors.push("revisionNote must be 1 to 500 characters.");
+  if (meta.reviewed !== void 0 && (typeof meta.reviewed !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(meta.reviewed))) errors.push("reviewed must be a YYYY-MM-DD date.");
+  if (meta.generated !== void 0 && meta.generated !== true) errors.push("generated is either true or left out.");
+  if (meta.appliesTo !== void 0) {
+    const a = meta.appliesTo;
+    if (!record15(a) || !Object.keys(a).length) errors.push("appliesTo must name at least one of tools, categories, formats, media or families.");
+    else {
+      for (const key2 of Object.keys(a)) if (!["tools", "categories", "formats", "media", "families"].includes(key2)) errors.push(`appliesTo.${key2} is not a known key.`);
+      if (a.tools !== void 0 && !stringList(a.tools, (s) => /^[a-z0-9][a-z0-9-]*$/.test(s))) errors.push("appliesTo.tools must list tool ids.");
+      if (a.categories !== void 0 && !stringList(a.categories, (s) => /^[a-z0-9][a-z0-9-]*$/.test(s))) errors.push("appliesTo.categories must list category ids.");
+      if (a.formats !== void 0 && !stringList(a.formats, (s) => /^[a-z0-9][a-z0-9.+-]*$/.test(s))) errors.push("appliesTo.formats must list export formats.");
+      if (a.media !== void 0 && !stringList(a.media, (s) => BRAND_SKILL_MEDIA.includes(s))) errors.push(`appliesTo.media must list ${BRAND_SKILL_MEDIA.join(", ")}.`);
+      if (a.families !== void 0 && !stringList(a.families, (s) => /^[a-z0-9]+(?:\/[a-z0-9][a-z0-9-]*)*\/$/.test(s))) errors.push('appliesTo.families must list asset id prefixes ending in "/".');
+    }
+  }
+  if (meta.references !== void 0 && (!Array.isArray(meta.references) || meta.references.some((r5) => !record15(r5) || typeof r5.url !== "string" || !/^https?:\/\//.test(r5.url) || typeof r5.asset !== "string" || !r5.asset))) {
+    errors.push("references must list { url, asset } pairs with an http(s) url.");
+  }
+  if (meta.files !== void 0) {
+    if (!Array.isArray(meta.files) || meta.files.length > BRAND_SKILL_MAX_REFERENCES) errors.push(`files must list at most ${BRAND_SKILL_MAX_REFERENCES} references.`);
+    else {
+      const seen = /* @__PURE__ */ new Set();
+      for (const f of meta.files) {
+        if (!record15(f) || !isBrandSkillReference(f.path) || typeof f.url !== "string" || typeof f.checksum !== "string" || typeof f.size !== "number") {
+          errors.push("each file needs a references/ path, a url, a checksum and a size.");
+          continue;
+        }
+        if (seen.has(f.path)) errors.push(`file ${f.path} is listed twice.`);
+        seen.add(f.path);
+      }
+    }
+  }
+  return errors;
+}
+function brandSkillMetaOf(asset2) {
+  if (!record15(asset2) || asset2.type !== "skill" || !record15(asset2.meta)) return null;
+  const meta = asset2.meta.skill;
+  return validateBrandSkillMeta(meta).length ? null : meta;
+}
+function brandSkillIndexEntry(asset2) {
+  const meta = brandSkillMetaOf(asset2);
+  if (!meta || !record15(asset2) || typeof asset2.id !== "string") return null;
+  const formats = Array.isArray(asset2.formats) ? asset2.formats.filter(record15) : [];
+  const entry2 = formats.find((f) => f.format === "md") ?? formats[0];
+  const files = meta.files ?? [];
+  const size = (typeof entry2?.size === "number" ? entry2.size : 0) + files.reduce((n7, f) => n7 + f.size, 0);
+  return {
+    id: asset2.id,
+    name: meta.name,
+    label: typeof asset2.name === "string" && asset2.name.trim() ? asset2.name : meta.name,
+    description: meta.description,
+    discipline: meta.discipline,
+    audience: meta.audience,
+    status: meta.status,
+    skillRevision: meta.skillRevision,
+    version: typeof asset2.version === "string" ? asset2.version : "0.0.0",
+    ...meta.owner ? { owner: meta.owner } : {},
+    ...meta.reviewed ? { reviewed: meta.reviewed } : {},
+    ...meta.maintainer ? { maintainer: meta.maintainer } : {},
+    ...meta.appliesTo ? { appliesTo: meta.appliesTo } : {},
+    ...meta.generated ? { generated: true } : {},
+    ...size ? { size } : {},
+    ...typeof entry2?.checksum === "string" ? { checksum: entry2.checksum } : {},
+    ...files.length ? { references: files.map((f) => f.path) } : {}
+  };
+}
+function isPublicBrandSkillAsset(asset2) {
+  if (!record15(asset2) || asset2.type !== "skill") return true;
+  const meta = record15(asset2.meta) && record15(asset2.meta.skill) ? asset2.meta.skill : null;
+  return meta?.audience === "public";
+}
+var BRAND_SKILL_DISCIPLINES, BRAND_SKILL_AUDIENCES, BRAND_SKILL_STATUSES, BRAND_SKILL_MEDIA, BRAND_SKILL_MAX_BYTES, BRAND_SKILL_FILES_MAX_BYTES, BRAND_SKILL_MAX_REFERENCES, record15, nonEmpty, stringList;
+var init_brand_skill_v1 = __esm({
+  "packages/core/src/brand-skill-v1.ts"() {
+    "use strict";
+    init_skill_frontmatter_v1();
+    BRAND_SKILL_DISCIPLINES = [
+      "brand",
+      "voice",
+      "logo",
+      "colour",
+      "typography",
+      "layout",
+      "photography",
+      "illustration",
+      "iconography",
+      "motion",
+      "sound",
+      "interactive",
+      "presentation",
+      "data-visualisation",
+      "print",
+      "merchandise",
+      "environmental",
+      "social",
+      "accessibility",
+      "other"
+    ];
+    BRAND_SKILL_AUDIENCES = ["public", "internal"];
+    BRAND_SKILL_STATUSES = ["draft", "approved"];
+    BRAND_SKILL_MEDIA = ["print", "screen", "video", "audio"];
+    BRAND_SKILL_MAX_BYTES = 65536;
+    BRAND_SKILL_FILES_MAX_BYTES = 524288;
+    BRAND_SKILL_MAX_REFERENCES = 16;
+    record15 = (v) => !!v && typeof v === "object" && !Array.isArray(v);
+    nonEmpty = (v, max = 200) => typeof v === "string" && v.trim().length > 0 && v.length <= max;
+    stringList = (v, test) => Array.isArray(v) && v.length > 0 && v.length <= 64 && v.every((s) => typeof s === "string" && test(s));
+  }
+});
+
+// engine/src/brand-skill.ts
+function slugOf(text13) {
+  return text13.toLowerCase().replace(/[`*_~]/g, "").replace(/[^\p{L}\p{N}\s-]/gu, "").trim().replace(/\s+/g, "-");
+}
+function bodyLines(body, offset) {
+  let inFence = null;
+  return body.split("\n").map((raw, i) => {
+    const text13 = raw.replace(/\r$/, "");
+    const fence = FENCE.exec(text13);
+    const code = inFence !== null || !!fence;
+    if (fence) inFence = inFence === null ? fence[1] : inFence === fence[1] ? null : inFence;
+    return { text: text13, line: i + 1 + offset, code };
+  });
+}
+function brandSkillScopeHints(text13) {
+  const out = [];
+  text13.split("\n").forEach((line, i) => {
+    for (const p of SCOPE_PATTERNS) if (p.pattern.test(line)) out.push({ code: p.code, severity: "warning", message: p.message, line: i + 1 });
+  });
+  return out;
+}
+function parseBrandSkill(text13) {
+  const frontmatter = parseSkillFrontmatter(text13);
+  const body = frontmatter.body;
+  const offset = frontmatter.present && !frontmatter.errors.some((e) => e.includes("not closed")) ? text13.slice(0, frontmatter.length).split("\n").length - 1 : 0;
+  const rows2 = bodyLines(body, offset);
+  const findings = [];
+  const headings = [];
+  const links = [];
+  for (const row of rows2) {
+    if (row.code) continue;
+    const h = /^\s{0,3}(#{1,6})\s+(.*?)\s*#*\s*$/.exec(row.text);
+    if (h?.[2]) headings.push({ level: h[1].length, text: h[2].replace(/\*\*/g, "").trim(), slug: slugOf(h[2]), line: row.line });
+    let masked = row.text;
+    for (const m2 of row.text.matchAll(MD_LINK2)) {
+      links.push({ target: m2[3], text: m2[2], line: row.line, image: m2[1] === "!" });
+      masked = masked.replace(m2[0], " ".repeat(m2[0].length));
+    }
+    for (const m2 of masked.matchAll(AUTOLINK)) {
+      links.push({ target: m2[1], text: m2[1], line: row.line, image: false });
+      masked = masked.replace(m2[0], " ".repeat(m2[0].length));
+    }
+    for (const m2 of masked.matchAll(BARE_URL)) {
+      const target2 = m2[0].replace(/[.,;:!?]+$/, "");
+      links.push({ target: target2, text: target2, line: row.line, image: false });
+    }
+  }
+  if (!frontmatter.present) {
+    findings.push({ code: "frontmatter.absent", severity: "info", message: "No frontmatter. Lolly supplies the name and description from the catalog record when it hands the skill out." });
+  }
+  for (const error2 of frontmatter.errors) findings.push({ code: "frontmatter.invalid", severity: "error", message: error2, line: 1 });
+  if (frontmatter.present && !frontmatter.errors.length) {
+    const { name, description } = frontmatter.fields;
+    if (name !== void 0 && !isAgentSkillName(name)) findings.push({ code: "frontmatter.name", severity: "warning", message: `The name "${name}" is not an Agent Skills name (lowercase letters, digits and single hyphens, at most 64 characters). Lolly uses the catalog name instead.`, line: 2 });
+    if (description !== void 0 && (!description.trim() || description.length > SKILL_DESCRIPTION_MAX)) findings.push({ code: "frontmatter.description", severity: "warning", message: `The description must be 1 to ${SKILL_DESCRIPTION_MAX} characters. Lolly uses the catalog description instead.` });
+  }
+  if (rows2.length > 500) findings.push({ code: "body.lines", severity: "warning", message: `The body has ${rows2.length} lines. The Agent Skills guide keeps a SKILL.md under 500 and moves detail into references.` });
+  const approxTokens = Math.ceil(body.length / 4);
+  if (approxTokens > 5e3) findings.push({ code: "body.tokens", severity: "warning", message: `The body is about ${approxTokens} tokens. The Agent Skills guide keeps a SKILL.md under 5000 and moves detail into references.` });
+  let open3 = null;
+  for (const row of rows2) if (FENCE.test(row.text)) open3 = open3 === null ? row.line : null;
+  if (open3 !== null) findings.push({ code: "body.fence", severity: "warning", message: "A code fence is never closed, so everything after it reads as code.", line: open3 });
+  const seen = /* @__PURE__ */ new Map();
+  for (const h of headings) {
+    const key2 = `${h.level}:${h.slug}`;
+    if (seen.has(key2)) findings.push({ code: "heading.duplicate", severity: "info", message: `The heading "${h.text}" appears twice at the same level, so a citation to it is ambiguous.`, line: h.line });
+    else seen.set(key2, h.line);
+  }
+  const hosts = /* @__PURE__ */ new Map();
+  for (const l of links) {
+    if (!/^https?:\/\//i.test(l.target)) continue;
+    try {
+      const host = new URL(l.target).host;
+      if (!hosts.has(host)) hosts.set(host, l.line);
+    } catch {
+    }
+  }
+  for (const [host, line] of hosts) findings.push({ code: "link.external", severity: "info", message: `Links to ${host}. Lolly never fetches external links and cannot say whether an agent can open them.`, line });
+  for (const hint of brandSkillScopeHints(body)) findings.push({ ...hint, line: (hint.line ?? 0) + offset });
+  return { frontmatter, body, headings, links, findings, lines: rows2.length, approxTokens };
+}
+async function admitBrandSkill(files) {
+  const paths = Object.keys(files);
+  const refuse3 = (code, reason2) => ({ ok: false, code, reason: reason2 });
+  if (!paths.length) return refuse3("empty", "No files were supplied.");
+  for (const path of paths) {
+    if (path.includes("\\") || path.startsWith("/") || /^[A-Za-z]:/.test(path) || path.split("/").some((p) => p === ".." || p === "." || p === "")) {
+      return refuse3("path", `The path "${path}" leaves the skill folder.`);
+    }
+    if (path.split("/")[0] === "scripts" || EXECUTABLE.test(path)) {
+      return refuse3("executable", `"${path}" is code. A brand skill is guidance, so it cannot carry scripts or executables.`);
+    }
+  }
+  const markdownPaths = paths.filter((p) => /\.md$/i.test(p) && !p.includes("/"));
+  const entryPath = paths.includes("SKILL.md") ? "SKILL.md" : paths.length === 1 && markdownPaths.length === 1 ? markdownPaths[0] : null;
+  if (!entryPath) return refuse3("entry", "No SKILL.md was found. Supply one Markdown file, or a folder with SKILL.md at its top.");
+  const decoder6 = new TextDecoder("utf-8", { fatal: true });
+  const decode = (path) => {
+    try {
+      return decoder6.decode(files[path]).replace(/^﻿/, "");
+    } catch {
+      return null;
+    }
+  };
+  const entryBytes = files[entryPath];
+  if (entryBytes.length > BRAND_SKILL_MAX_BYTES) return refuse3("size", `SKILL.md is ${entryBytes.length} bytes; the limit is ${BRAND_SKILL_MAX_BYTES}.`);
+  const markdown = decode(entryPath);
+  if (markdown === null) return refuse3("encoding", `${entryPath} is not valid UTF-8 text.`);
+  const references = {};
+  const refPaths = paths.filter((p) => p !== entryPath).sort();
+  if (refPaths.length > BRAND_SKILL_MAX_REFERENCES) return refuse3("references", `${refPaths.length} reference files; the limit is ${BRAND_SKILL_MAX_REFERENCES}.`);
+  let total = entryBytes.length;
+  for (const path of refPaths) {
+    if (path.startsWith("assets/")) return refuse3("asset-file", `"${path}" is a file inside the skill. Images and other media a skill refers to must be catalog assets, named by id.`);
+    if (!isBrandSkillReference(path)) return refuse3("reference-path", `"${path}" is not a reference Lolly carries. References sit one level deep under references/ as .md, .json, .csv or .txt.`);
+    total += files[path].length;
+    if (total > BRAND_SKILL_FILES_MAX_BYTES) return refuse3("size", `The skill and its references exceed ${BRAND_SKILL_FILES_MAX_BYTES} bytes.`);
+    const text13 = decode(path);
+    if (text13 === null) return refuse3("encoding", `${path} is not valid UTF-8 text.`);
+    references[path] = text13;
+  }
+  const parsed = parseBrandSkill(markdown);
+  const invalid4 = parsed.findings.find((f) => f.severity === "error");
+  if (invalid4) return refuse3("frontmatter", invalid4.message);
+  let sha2563;
+  if (!refPaths.length) sha2563 = `sha256:${await sha256Hex(entryBytes)}`;
+  else {
+    const rows2 = [];
+    for (const path of ["SKILL.md", ...refPaths]) rows2.push(`${await sha256Hex(path === "SKILL.md" ? entryBytes : files[path])}  ${path}
+`);
+    sha2563 = `sha256:${await sha256Hex(new TextEncoder().encode(rows2.join("")))}`;
+  }
+  return { ok: true, skill: { markdown, references, sha256: sha2563, size: total, parsed } };
+}
+function classifyBrandSkillLinks(links, assets, meta) {
+  const byId = new Map(assets.map((a) => [a.id, a]));
+  const byUrl = /* @__PURE__ */ new Map();
+  const named = [];
+  for (const a of assets) for (const f of a.formats ?? []) {
+    byUrl.set(f.url, a);
+    const w = words(f.url);
+    if (w.length >= 2 && !named.some((n7) => n7.asset.id === a.id)) named.push({ asset: a, words: w });
+  }
+  const approved = new Map((meta?.references ?? []).map((r5) => [r5.url, r5.asset]));
+  const urlOf = (a) => a?.formats?.[0]?.url;
+  return links.map((link) => {
+    const target2 = link.target;
+    const id3 = target2.replace(/^asset:/, "");
+    if (byId.has(id3)) return { ...link, kind: "asset", asset: id3, ...urlOf(byId.get(id3)) ? { assetUrl: urlOf(byId.get(id3)) } : {} };
+    const pathOnly = target2.split(/[?#]/)[0];
+    if (byUrl.has(pathOnly)) {
+      const a = byUrl.get(pathOnly);
+      return { ...link, kind: "asset", asset: a.id, assetUrl: pathOnly };
+    }
+    if (target2.startsWith("#")) return { ...link, kind: "anchor" };
+    if (/^https?:\/\//i.test(target2)) {
+      const mapped = approved.get(target2);
+      if (mapped) return { ...link, kind: "asset", asset: mapped, approved: true, ...urlOf(byId.get(mapped)) ? { assetUrl: urlOf(byId.get(mapped)) } : {} };
+      const linkWords = new Set(words(target2));
+      const hits2 = named.filter((n7) => n7.words.every((w) => linkWords.has(w))).sort((a, b) => b.words.length - a.words.length || a.asset.id.localeCompare(b.asset.id));
+      const best = hits2.length && (hits2.length === 1 || hits2[0].words.length > hits2[1].words.length) ? hits2[0].asset.id : void 0;
+      return { ...link, kind: "external", ...hits2.length ? { candidates: hits2.map((h) => h.asset.id) } : {}, ...best ? { proposed: best } : {} };
+    }
+    if (!/^[a-z][a-z0-9+.-]*:/i.test(target2) && !target2.startsWith("/")) return { ...link, kind: "file" };
+    return { ...link, kind: "other" };
+  });
+}
+function hexOf5(value2) {
+  const m2 = /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.exec(value2.trim());
+  if (!m2) return null;
+  const h = m2[1].toLowerCase();
+  return `#${h.length === 3 ? h.split("").map((c) => c + c).join("") : h}`;
+}
+function familiesOf(stacks) {
+  const out = /* @__PURE__ */ new Set();
+  for (const stack of stacks) for (const part of stack.split(",")) {
+    const name = part.trim().replace(/^["']|["']$/g, "");
+    if (name && !GENERIC_FAMILIES2.has(name.toLowerCase())) out.add(name);
+  }
+  return [...out];
+}
+function brandSkillCoverage(body, facts2) {
+  const declared = /* @__PURE__ */ new Map();
+  for (const c of facts2.colours) {
+    const h = hexOf5(c.value);
+    if (h) declared.set(h, [...declared.get(h) ?? [], c.name ?? c.path ?? h]);
+  }
+  const families = familiesOf(facts2.fonts);
+  const rulesByKind = /* @__PURE__ */ new Map();
+  for (const r5 of facts2.houseRules) rulesByKind.set(r5.kind, [...rulesByKind.get(r5.kind) ?? [], r5]);
+  const rows2 = [];
+  const grouped = /* @__PURE__ */ new Map();
+  const colourSeen = /* @__PURE__ */ new Set();
+  let section = "";
+  const push = (key2, row, value2) => {
+    const hit = grouped.get(key2);
+    if (hit) {
+      if (value2 && !hit.values.includes(value2)) hit.values.push(value2);
+      return;
+    }
+    const fresh = { ...row, ...value2 ? { values: [value2] } : {} };
+    grouped.set(key2, fresh);
+    rows2.push(fresh);
+  };
+  for (const row of bodyLines(body, 0)) {
+    if (row.code) continue;
+    const h = /^\s{0,3}#{1,6}\s+(.*?)\s*#*\s*$/.exec(row.text);
+    if (h) {
+      section = h[1].replace(/\*\*/g, "").trim();
+      continue;
+    }
+    const text13 = row.text.trim();
+    if (!text13) continue;
+    for (const m2 of text13.matchAll(/#(?:[0-9a-f]{6}|[0-9a-f]{3})\b/gi)) {
+      const h6 = hexOf5(m2[0]);
+      if (!h6 || colourSeen.has(`${section}:${h6}`)) continue;
+      colourSeen.add(`${section}:${h6}`);
+      const known3 = declared.has(h6);
+      push(`colour:${section}:${known3}`, {
+        status: known3 ? "agree" : "not-in-tokens",
+        kind: "colour",
+        section,
+        line: row.line,
+        text: text13.slice(0, 160),
+        detail: known3 ? "These values are colours in the design system." : "These values are not colours in the design system. Tokens win when Lolly renders; tell the owner which is right."
+      }, h6);
+    }
+    for (const family2 of families) {
+      if (TYPE_WORDS.test(text13) && !/\blogo\b/i.test(text13) && new RegExp(`(^|[^\\w])${family2.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}([^\\w]|$)`).test(text13)) {
+        push(`font:${family2}`, { status: "agree", kind: "font", section, line: row.line, text: text13.slice(0, 160), detail: `${family2} is a declared font family.` });
+      }
+    }
+    const only = /\b(?:only|always)\s+use\s+(?:the\s+)?([A-Z][\w-]*(?:\s+[A-Z][\w-]*)*)\s+font\b|\bnever use a font that is not (?:the\s+)?([A-Z][\w-]*(?:\s+[A-Z][\w-]*)*)\s+font\b/i.exec(text13);
+    if (only) {
+      const named = only[1] ?? only[2];
+      const others = families.filter((f) => f !== named && !f.startsWith(`${named} `));
+      push(`exclusive:${named}`, {
+        status: others.length ? "conflict" : "agree",
+        kind: "font",
+        section,
+        line: row.line,
+        text: text13.slice(0, 160),
+        detail: others.length ? `The skill allows only ${named}; the design system also declares ${others.join(", ")}. Tell the owner which is right.` : `The design system declares ${named} and no other family.`
+      });
+    }
+    for (const p of RULE_PATTERNS) {
+      if (!p.test(text13)) continue;
+      const rules = rulesByKind.get(p.kind) ?? [];
+      push(`rule:${section}:${p.kind}`, rules.length ? { status: "checked", kind: "rule", section, line: row.line, text: text13.slice(0, 160), ruleKind: p.kind, ruleIds: rules.map((r5) => r5.id), detail: `Lolly checks this kind of statement with ${rules.map((r5) => r5.label ?? r5.id).join(", ")}. Read the rule to see whether it says the same thing.` } : { status: "guidance-only", kind: "rule", section, line: row.line, text: text13.slice(0, 160), ruleKind: p.kind, detail: `Not checked: the design system has no ${p.kind} rule. One could be drafted in the Rules room.` });
+    }
+    for (const p of UNCHECKED_PATTERNS) {
+      if (!p.test(text13) && !p.test(section)) continue;
+      push(`gap:${section}:${p.topic}`, { status: "guidance-only", kind: "rule", section, line: row.line, text: text13.slice(0, 160), detail: `Not checked: Lolly has no rule for ${p.topic} yet.` });
+    }
+  }
+  const summary = { agree: 0, conflict: 0, "not-in-tokens": 0, checked: 0, "guidance-only": 0 };
+  for (const r5 of rows2) summary[r5.status]++;
+  return {
+    rows: rows2,
+    summary,
+    note: "Lines were matched by fixed patterns: colour values, font names and words that point at a house rule. Nothing here says Lolly understood the guide, and lines that matched nothing are guidance for people and agents to read."
+  };
+}
+function brandSkillCoverageFacts(brief2) {
+  const list4 = (v) => Array.isArray(v) ? v.filter((x) => !!x && typeof x === "object") : [];
+  return {
+    colours: list4(brief2?.colors).filter((c) => typeof c.value === "string").map((c) => ({ value: c.value, ...typeof c.name === "string" ? { name: c.name } : {}, ...typeof c.path === "string" ? { path: c.path } : {} })),
+    fonts: list4(brief2?.fonts).map((f) => f.value).filter((v) => typeof v === "string"),
+    houseRules: list4(brief2?.houseRules).filter((r5) => typeof r5.id === "string" && typeof r5.kind === "string").map((r5) => ({ id: r5.id, kind: r5.kind, ...typeof r5.label === "string" ? { label: r5.label } : {} }))
+  };
+}
+function exportBrandSkillFolder(input) {
+  const fm = parseSkillFrontmatter(input.markdown);
+  const name = isAgentSkillName(fm.fields.name) ? fm.fields.name : input.meta.name;
+  const origin = input.origin?.replace(/\/+$/, "");
+  const rewrites = [];
+  const heldBack = [...input.heldBack ?? []];
+  const files = {};
+  let body = fm.body;
+  const seen = /* @__PURE__ */ new Set();
+  for (const link of input.links ?? []) {
+    if (link.kind !== "asset" || !link.asset || seen.has(link.target)) continue;
+    seen.add(link.target);
+    let to = null;
+    if (input.mode === "bundled") {
+      const b = input.bundle?.[link.asset];
+      if (b) {
+        to = `assets/${b.file}`;
+        files[to] = b.bytes;
+      } else if (!heldBack.some((h) => h.asset === link.asset)) heldBack.push({ asset: link.asset, reason: "Not bundled: no redistributable file was supplied for it." });
+    } else if (origin && link.assetUrl) to = `${origin}${link.assetUrl}`;
+    if (to && to !== link.target) {
+      body = body.split(link.target).join(to);
+      rewrites.push({ from: link.target, to });
+    }
+  }
+  const source = origin && input.asset.url ? `${origin}${input.asset.url}` : `asset:${input.asset.id}`;
+  const metadata2 = {
+    ...fm.metadata,
+    "lolly-asset": input.asset.id,
+    "lolly-source": source,
+    "lolly-revision": input.meta.skillRevision,
+    "lolly-version": input.asset.version,
+    "lolly-sha256": input.sha256.replace(/^sha256:/, ""),
+    "lolly-audience": input.meta.audience,
+    ...input.meta.generated ? { "lolly-generated": "true" } : {}
+  };
+  const fields2 = fm.present && !fm.errors.length ? { ...fm.fields, name } : { name, description: input.meta.description, ...input.asset.license ? { license: input.asset.license } : {} };
+  if (!fields2.description?.trim() || fields2.description.length > SKILL_DESCRIPTION_MAX) fields2.description = input.meta.description;
+  files["SKILL.md"] = `${writeSkillFrontmatter(fields2, metadata2)}
+${body.replace(/^\r?\n/, "")}`;
+  for (const [path, text13] of Object.entries(input.references ?? {})) files[path] = text13;
+  for (const [path, bytes2] of Object.entries(input.extras ?? {})) files[path] = bytes2;
+  files["lolly.json"] = `${JSON.stringify({
+    format: "lolly-brand-skill",
+    version: 1,
+    asset: input.asset.id,
+    assetVersion: input.asset.version,
+    name,
+    label: input.asset.name ?? name,
+    ...input.system ? { system: input.system } : {},
+    discipline: input.meta.discipline,
+    audience: input.meta.audience,
+    status: input.meta.status,
+    skillRevision: input.meta.skillRevision,
+    sha256: input.sha256,
+    source,
+    mode: input.mode,
+    ...input.meta.owner ? { owner: input.meta.owner } : {},
+    ...input.meta.maintainer ? { maintainer: input.meta.maintainer } : {},
+    note: "This folder is a snapshot. The body is the brand's text; only the link targets listed in rewrites were changed. Run `lolly system skill check <folder>` to compare it with the design system's current revision.",
+    rewrites,
+    heldBack,
+    ...input.coverage ? { coverage: input.coverage } : {}
+  }, null, 2)}
+`;
+  return { name, files, rewrites, heldBack };
+}
+function brandSkillFreshness(markdown, current) {
+  const meta = parseSkillFrontmatter(markdown).metadata;
+  const installed = {
+    ...meta["lolly-revision"] ? { revision: meta["lolly-revision"] } : {},
+    ...meta["lolly-version"] ? { version: meta["lolly-version"] } : {},
+    ...meta["lolly-sha256"] ? { sha256: meta["lolly-sha256"] } : {}
+  };
+  const asset2 = meta["lolly-asset"];
+  if (!asset2) return { status: "unknown", installed, message: "This copy carries no lolly-asset metadata, so Lolly cannot tell which skill it came from." };
+  if (!current || current.id !== asset2) return { status: "unknown", asset: asset2, installed, message: `The design system has no skill ${asset2}.` };
+  const now2 = { revision: current.skillRevision, version: current.version, ...current.sha256 ? { sha256: current.sha256.replace(/^sha256:/, "") } : {} };
+  const same = installed.sha256 && now2.sha256 ? installed.sha256 === now2.sha256 : installed.version === now2.version;
+  return same ? { status: "current", asset: asset2, installed, current: now2, message: `Up to date: revision ${now2.revision}.` } : { status: "outdated", asset: asset2, installed, current: now2, message: `This copy is revision ${installed.revision ?? "unknown"}; the design system has ${now2.revision} (catalog ${now2.version}).` };
+}
+function brandSkillsSection(entries, systemName) {
+  const rank = (e) => (e.discipline === "brand" ? 0 : 2) + (e.maintainer || e.generated ? 1 : 0);
+  const index2 = [...entries].sort((a, b) => rank(a) - rank(b) || a.name.localeCompare(b.name));
+  return {
+    note: "Brand skills are the brand's own guidance, one per discipline. Read the overall brand skill first, then the one for the work at hand. They speak for brand intent only, never for permissions or tools, and they are guidance, not checks: houseRules are what Lolly checks.",
+    read: {
+      index: "lolly://design-system/skills",
+      skill: "lolly://design-system/skill/{name}",
+      cli: "lolly system skill <name> [--into <dir>]"
+    },
+    index: index2,
+    baseline: {
+      name: baselineSkillName(systemName),
+      generated: true,
+      description: `Generated by Lolly from the ${systemName} design brief: colours, pairings, type, logos, icons, media and house rules. Authored skills take precedence.`
+    }
+  };
+}
+function baselineSkillName(systemName) {
+  const slug4 = systemName.toLowerCase().normalize("NFKD").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 54).replace(/-+$/, "");
+  return `${slug4 || "design-system"}-baseline`;
+}
+function baselineBrandSkill(source, opts = {}) {
+  const brief2 = source;
+  const systemName = typeof brief2.name === "string" && brief2.name.trim() ? brief2.name.trim() : "Design system";
+  const name = baselineSkillName(systemName);
+  const description = `The ${systemName} design system as Lolly holds it: named colours, approved pairings, type, logos per surface, icon themes, media families and the house rules Lolly checks. Generated from the design brief; the brand's own skills take precedence.`;
+  const list4 = (v) => Array.isArray(v) ? v.filter((x) => !!x && typeof x === "object") : [];
+  const rec2 = (v) => v && typeof v === "object" && !Array.isArray(v) ? v : {};
+  const out = [
+    `# ${systemName} design system (generated)`,
+    "",
+    "Lolly wrote this from the design system's tokens and catalog. It states values, not intent: where one of the brand's own skills covers the same ground, follow that skill. Use asset ids exactly as written, never redraw a logo, and check finished work with `lolly_check` or `lolly system check`.",
+    ""
+  ];
+  const colours2 = list4(brief2.colors);
+  if (colours2.length) {
+    out.push("## Colours", "", "| Name | Value | Token |", "| --- | --- | --- |");
+    for (const c of colours2.slice(0, 120)) out.push(`| ${cell(c.name ?? "")} | ${cell(c.value)} | \`${cell(c.path)}\` |`);
+    if (colours2.length > 120) out.push("", `${colours2.length - 120} more colours are in the design context.`);
+    out.push("");
+  }
+  const combos = rec2(brief2.combinations);
+  const pairs2 = list4(combos.pairs);
+  if (pairs2.length) {
+    out.push("## Pairings", "");
+    if (combos.from === "derived" && typeof combos.note === "string") out.push(combos.note, "");
+    const label5 = (s) => {
+      const r5 = rec2(s);
+      return cell(r5.name ?? r5.slot ?? r5.path ?? r5.value);
+    };
+    for (const p of pairs2.slice(0, 24)) {
+      const text13 = list4(p.text).map(label5).filter(Boolean);
+      const graphic = list4(p.graphicOnly ?? p.graphic).map(label5).filter(Boolean);
+      out.push(`- On ${label5(p.background)}: text ${text13.join(", ") || "none"}${graphic.length ? `; graphics only ${graphic.join(", ")}` : ""}.`);
+    }
+    out.push("");
+  }
+  const type = rec2(brief2.type);
+  const families = list4(type.families);
+  if (families.length || list4(type.rules).length) {
+    out.push("## Type", "");
+    for (const f of families) out.push(`- \`${cell(f.path)}\`: ${cell(f.value)}`);
+    for (const r5 of list4(type.rules)) out.push(`- ${cell(r5.label ?? r5.ruleId)} (${cell(r5.requirement ?? "advisory")})`);
+    out.push("");
+  }
+  const logos = rec2(brief2.logos);
+  const variants = list4(logos.variants);
+  if (variants.length) {
+    out.push("## Logos", "");
+    for (const key2 of ["onLight", "onDark", "monoOnLight", "monoOnDark"]) if (typeof logos[key2] === "string") out.push(`- ${key2}: \`${logos[key2]}\``);
+    for (const v of variants.slice(0, 40)) out.push(`- \`${cell(v.id)}\`${v.name ? ` ${cell(v.name)}` : ""} (surface ${cell(v.surface)})`);
+    out.push("", "Write a logo as `<id>?theme=auto` to let it follow the surface under it.", "");
+  }
+  const icons = rec2(brief2.icons);
+  if (typeof icons.count === "number" && icons.count > 0) {
+    out.push("## Icons", "", `${icons.count} icons. Themes:`, "");
+    for (const t of list4(icons.themes)) out.push(`- \`${cell(t.id)}\`: accent ${cell(t.c1)}, base ${cell(t.c2)}${Array.isArray(t.surfaces) ? ` (for ${t.surfaces.map(cell).join(", ")} surfaces)` : ""}`);
+    out.push("", "Write an icon as `<id>?theme=<themeId>` or `<id>?theme=auto`.", "");
+  }
+  const families2 = Object.entries(rec2(rec2(brief2.media).families));
+  if (families2.length) {
+    out.push("## Media", "");
+    for (const [family2, f] of families2) {
+      const r5 = rec2(f);
+      out.push(`- ${cell(family2)}: ${cell(r5.count)} ${cell(r5.type)}${Array.isArray(r5.licenses) && r5.licenses.length ? ` (${r5.licenses.map(cell).join(", ")})` : ""}`);
+    }
+    out.push("", "Ids are references, not a licence: check each family's licence before media leaves the brand.", "");
+  }
+  const rules = list4(brief2.houseRules);
+  if (rules.length) {
+    out.push("## House rules Lolly checks", "");
+    for (const r5 of rules) out.push(`- **${cell(r5.label ?? r5.id)}** (${cell(r5.requirement ?? "advisory")}): ${cell(r5.description ?? r5.kind)}`);
+    out.push("");
+  }
+  const markdown = writeSkillFrontmatter({ name, description }, { "lolly-generated": "true" }) + out.join("\n");
+  const bytes2 = ENCODER.encode(markdown).length;
+  const meta = {
+    name,
+    description,
+    discipline: "brand",
+    audience: "public",
+    status: "draft",
+    skillRevision: opts.revision ?? "generated",
+    maintainer: "lolly",
+    generated: true
+  };
+  return { meta, markdown: bytes2 > BRAND_SKILL_MAX_BYTES ? markdown.slice(0, BRAND_SKILL_MAX_BYTES - 200) + "\n\nThe rest is in the design context.\n" : markdown };
+}
+function measureSvgFamily(sources) {
+  const tally3 = (m2, k) => {
+    m2.set(k, (m2.get(k) ?? 0) + 1);
+  };
+  const views = /* @__PURE__ */ new Map();
+  const fills = /* @__PURE__ */ new Map();
+  const pathCounts = [];
+  const disallowed = { text: 0, image: 0, script: 0, filter: 0 };
+  let themable = 0;
+  for (const svg of sources) {
+    const root2 = /<svg\b[^>]*>/i.exec(svg)?.[0] ?? "";
+    tally3(views, (/\bviewBox\s*=\s*["']([^"']+)["']/i.exec(root2)?.[1] ?? "none").trim().replace(/\s+/g, " "));
+    if (/\.c1\b/.test(svg) && /\.c2\b/.test(svg)) themable++;
+    for (const m2 of svg.matchAll(/\bfill\s*[:=]\s*["']?\s*(#[0-9a-f]{3,8})\b/gi)) tally3(fills, hexOf5(m2[1]) ?? m2[1].toLowerCase());
+    pathCounts.push((svg.match(/<(path|circle|rect|ellipse|polygon|polyline|line)\b/gi) ?? []).length);
+    if (/<text\b/i.test(svg)) disallowed.text++;
+    if (/<image\b/i.test(svg)) disallowed.image++;
+    if (/<script\b|\bon[a-z]+\s*=/i.test(svg)) disallowed.script++;
+    if (/<filter\b/i.test(svg)) disallowed.filter++;
+  }
+  const sorted = (m2) => [...m2].map(([value2, count4]) => ({ value: value2, count: count4 })).sort((a, b) => b.count - a.count || a.value.localeCompare(b.value));
+  const counts = [...pathCounts].sort((a, b) => a - b);
+  return {
+    count: sources.length,
+    viewBoxes: sorted(views),
+    themable,
+    fills: sorted(fills).slice(0, 24),
+    disallowed,
+    paths: { min: counts[0] ?? 0, median: counts[Math.floor(counts.length / 2)] ?? 0, max: counts[counts.length - 1] ?? 0 }
+  };
+}
+function spreadExemplars(ids2, limit3 = 12) {
+  const sorted = [...ids2].sort();
+  if (sorted.length <= limit3) return sorted;
+  const step = sorted.length / limit3;
+  return Array.from({ length: limit3 }, (_, i) => sorted[Math.floor(i * step)]);
+}
+function brandSkillFilesSize(files) {
+  return Object.values(files).reduce((n7, v) => n7 + (typeof v === "string" ? ENCODER.encode(v).length : v.length), 0);
+}
+var FENCE, MD_LINK2, AUTOLINK, BARE_URL, SCOPE_PATTERNS, EXECUTABLE, words, GENERIC_FAMILIES2, TYPE_WORDS, RULE_PATTERNS, UNCHECKED_PATTERNS, ENCODER, cell;
+var init_brand_skill = __esm({
+  "engine/src/brand-skill.ts"() {
+    "use strict";
+    init_brand_skill_v1();
+    init_skill_frontmatter_v1();
+    init_bytes();
+    FENCE = /^\s{0,3}(```|~~~)/;
+    MD_LINK2 = /(!?)\[([^\]\n]*)\]\(\s*<?([^)\s>]+)>?(?:\s+"[^"\n]*")?\s*\)/g;
+    AUTOLINK = /<(https?:\/\/[^>\s]+)>/g;
+    BARE_URL = /https?:\/\/[^\s`'"<>()[\]]+/g;
+    SCOPE_PATTERNS = [
+      { code: "scope.override", pattern: /\b(ignore|disregard|forget)\b.{0,30}\b(previous|prior|above|earlier|other|system)\b.{0,20}\b(instructions?|prompts?|rules?)\b|\b(ignore|disregard|forget)\b.{0,40}\b(instructions?|prompts?)\b/i, message: "Asks the reader to set aside other instructions. A brand skill speaks for brand intent only." },
+      { code: "scope.permission", pattern: /\b(you (are|have been) (granted|given|allowed)|you (now )?have (full |admin |root )?(permission|access|authori[sz]ation)|you are (now )?(authori[sz]ed|permitted)|grant yourself|without asking|do not ask (for )?(permission|confirmation))\b/i, message: "Speaks about permissions. Grants decide what an agent may do; a skill cannot." },
+      { code: "scope.tools", pattern: /^\s*allowed-tools\s*:/i, message: "Names allowed tools. Lolly does not grant tools from a brand skill." },
+      { code: "scope.execute", pattern: /\b(curl|wget)\b[^|\n]*\|\s*(ba|z)?sh\b|\b(run|execute)\s+(this|the following)\s+(command|script|code)\b|\b(run|execute)\b[^.\n]{0,40}\b(commands?|shell)\b|\b(run|execute)\s+`/i, message: "Asks the reader to run code. A brand skill is guidance, not a script." }
+    ];
+    EXECUTABLE = /\.(?:js|mjs|cjs|ts|mts|cts|jsx|tsx|py|pyc|sh|bash|zsh|fish|ps1|psm1|bat|cmd|exe|com|dll|so|dylib|rb|pl|php|lua|jar|class|wasm|bin|app|scr|vbs|applescript)$/i;
+    words = (url) => {
+      const path = url.split(/[?#]/)[0];
+      return (path.split("/").pop() ?? "").replace(/\.[a-z0-9]+$/i, "").toLowerCase().split(/[^a-z0-9]+/).filter(Boolean);
+    };
+    GENERIC_FAMILIES2 = /* @__PURE__ */ new Set(["serif", "sans-serif", "monospace", "cursive", "fantasy", "system-ui", "ui-sans-serif", "ui-serif", "ui-monospace", "ui-rounded", "emoji", "math", "fangsong"]);
+    TYPE_WORDS = /\b(fonts?|typefaces?|type|typography|headlines?|headings?|sub ?heads?|sub ?headlines?|body|titles?|quotes?|text|weights?|captions?|labels?)\b/i;
+    RULE_PATTERNS = [
+      { kind: "text-case", test: (l) => /\b(all caps|uppercase|upper case|sentence case|title case|capitali[sz]ation)\b/i.test(l) },
+      { kind: "text-weight", test: (l) => /\b(semi ?bold|bold|medium|regular|light|weight)\b/i.test(l) && TYPE_WORDS.test(l) },
+      { kind: "text-align", test: (l) => /\b(align(ed|ment)?|centred|centered|justif(y|ied))\b/i.test(l) && TYPE_WORDS.test(l) && !/\blogo\b/i.test(l) },
+      { kind: "color-pairing", test: (l) => /\b(colou?r combinations?|backgrounds? and foregrounds?|\w+ backgrounds?\s*:)/i.test(l) },
+      { kind: "logo-surface", test: (l) => /\blogo\b/i.test(l) && /\b(background|surface|luminance)\b/i.test(l) },
+      { kind: "stroke-on-rounded", test: (l) => /\bstrokes?\b/i.test(l) && /\b(round(ed)?|corners?)\b/i.test(l) },
+      { kind: "dash-reserved", test: (l) => /\bdash(ed|es)?\b/i.test(l) && !/\bdashboards?\b/i.test(l) }
+    ];
+    UNCHECKED_PATTERNS = [
+      { topic: "logo scale", test: (l) => /\blogo\b.*\b\d+\s*%|\b\d+\s*%.*\b(canvas|logo)\b/i.test(l) || /\bscale\b/i.test(l) && /\b(logo|canvas)\b/i.test(l) },
+      { topic: "logo clear space", test: (l) => /\b(clear ?space|clearance|minimum margin|padding around)\b/i.test(l) },
+      { topic: "orphans and widows", test: (l) => /\b(orphans?|widows?)\b/i.test(l) },
+      { topic: "type consistency", test: (l) => /\b(type consistency|same font size|same (font )?weight|consistent (size|weight)s?)\b/i.test(l) },
+      { topic: "logo position", test: (l) => /\b(default position|top-left|top left)\b/i.test(l) }
+    ];
+    ENCODER = new TextEncoder();
+    cell = (v) => String(v ?? "").replace(/[\r\n|]/g, " ").trim();
+  }
+});
+
+// engine/src/token-scope.ts
+function putOwn(row, key2, value2) {
+  Object.defineProperty(row, key2, { value: value2, enumerable: true, writable: true, configurable: true });
+}
+function copyOf(row) {
+  const copy = Object.create(Object.getPrototypeOf(row));
+  for (const key2 of Object.keys(row)) putOwn(copy, key2, row[key2]);
+  return copy;
+}
+function inVendorExtension(path) {
+  return path[0] === "$extensions" && path[1] === TOKEN_EXT;
+}
+function walk3(node, path, leftOut, seen) {
+  if (!node || typeof node !== "object") return node;
+  if (seen.has(node)) return node;
+  seen.add(node);
+  if (Array.isArray(node)) {
+    let list4 = null;
+    node.forEach((item2, index2) => {
+      const next2 = walk3(item2, [...path, String(index2)], leftOut, seen);
+      if (next2 !== item2) {
+        list4 ??= [...node];
+        list4[index2] = next2;
+      }
+    });
+    return list4 ?? node;
+  }
+  const row = node;
+  let copy = null;
+  const drop = (key2, code) => {
+    copy ??= copyOf(row);
+    delete copy[key2];
+    leftOut.push({ path: path.join("."), field: key2, code });
+  };
+  for (const key2 of Object.keys(row)) {
+    const value2 = row[key2];
+    if (key2 === "$description" && typeof value2 !== "string") {
+      drop(key2, "scope.not-text");
+      continue;
+    }
+    if (typeof value2 === "string") {
+      const words4 = key2 === "$description" || key2 === "description" || inVendorExtension(path) && (key2 === "label" || key2 === "name" && path.length === 2);
+      const code = words4 ? hintOf(value2) : null;
+      if (!code) continue;
+      if (key2 === "label" && typeof row.id === "string") {
+        copy ??= copyOf(row);
+        putOwn(copy, key2, row.id);
+        leftOut.push({ path: path.join("."), field: key2, code });
+      } else drop(key2, code);
+      continue;
+    }
+    if (path.length >= MAX_DEPTH4) {
+      if (value2 && typeof value2 === "object") drop(key2, "scope.depth");
+      continue;
+    }
+    const next2 = walk3(value2, [...path, key2], leftOut, seen);
+    if (next2 !== value2) {
+      copy ??= copyOf(row);
+      putOwn(copy, key2, next2);
+    }
+  }
+  return copy ?? row;
+}
+function leaveOutScopedTokenText(doc) {
+  const leftOut = [];
+  return { doc: walk3(doc, [], leftOut, /* @__PURE__ */ new WeakSet()), leftOut };
+}
+function scopedTokenTextWarnings(leftOut) {
+  const where = (row) => row.path ? `The ${row.field === "label" || row.field === "name" ? row.field : "description"} on ${row.path}` : "The description";
+  if (leftOut.length > 5) return [`${leftOut.length} descriptions and labels speak about permissions or running code, so they were left out. The first is on ${leftOut[0].path || "the document"}.`];
+  return leftOut.map((row) => `${where(row)} speaks about permissions or running code, so it was left out.`);
+}
+var MAX_DEPTH4, hintOf;
+var init_token_scope = __esm({
+  "engine/src/token-scope.ts"() {
+    "use strict";
+    init_brand_skill();
+    init_token_ext();
+    MAX_DEPTH4 = 128;
+    hintOf = (text13) => brandSkillScopeHints(text13)[0]?.code ?? null;
+  }
+});
+
 // engine/src/brand-import.ts
 function structureIssue(value2, budget3) {
   const active = /* @__PURE__ */ new WeakSet();
@@ -107500,8 +108253,8 @@ function coerceTokensDoc(json) {
   const issue2 = topLevelSetIssue(json) ?? structureIssue(json, { nodes: 0 });
   if (issue2) return { doc: null, warnings: [issue2], source: studio ? "tokens-studio" : "dtcg" };
   const older = { n: 0 };
-  const doc = fromOlderTokenFormat(json, older);
-  return { doc, warnings: olderFormatWarning(older.n), source: studio ? "tokens-studio" : "dtcg" };
+  const { doc, leftOut } = leaveOutScopedTokenText(fromOlderTokenFormat(json, older));
+  return { doc, warnings: [...olderFormatWarning(older.n), ...scopedTokenTextWarnings(leftOut)], source: studio ? "tokens-studio" : "dtcg" };
 }
 function assembleTokenSetFiles(files) {
   const warnings2 = [];
@@ -107571,7 +108324,9 @@ function assembleTokenSetFiles(files) {
     warnings2.push("no token set files found");
     return { doc: null, warnings: warnings2, source: "token-set-files" };
   }
-  return { doc, warnings: warnings2, source: "token-set-files" };
+  const scoped = leaveOutScopedTokenText(doc);
+  warnings2.push(...scopedTokenTextWarnings(scoped.leftOut));
+  return { doc: scoped.doc, warnings: warnings2, source: "token-set-files" };
 }
 function parseEntry(entries, path, warnings2, budget3) {
   const raw = entries[path];
@@ -107690,7 +108445,9 @@ function extractPenpotProject(entries) {
     warnings2.push("no tokens.json found in the project");
     return { doc: null, warnings: warnings2, source: "penpot-project" };
   }
-  return { doc, warnings: warnings2, source: "penpot-project" };
+  const scoped = leaveOutScopedTokenText(doc);
+  warnings2.push(...scopedTokenTextWarnings(scoped.leftOut));
+  return { doc: scoped.doc, warnings: warnings2, source: "penpot-project" };
 }
 function pv(o, camel) {
   if (!isRecord3(o)) return void 0;
@@ -107880,6 +108637,7 @@ var init_brand_import = __esm({
     "use strict";
     init_tokens2();
     init_design_map();
+    init_token_scope();
     isRecord3 = (v) => typeof v === "object" && v !== null && !Array.isArray(v);
     BRAND_IMPORT_MAX_PART_BYTES = 16 * 1024 * 1024;
     BRAND_IMPORT_MAX_PART_CHARS = 16 * 1024 * 1024;
@@ -108795,7 +109553,7 @@ function importPenpotLayouts(boxes2, sourceIds, shapes2, options2 = {}) {
       }
       if (shape.layoutItemAbsolute === true) row.layoutAbsolute = true;
       if (shape.layoutItemAlignSelf) row.layoutSelf = shape.layoutItemAlignSelf;
-      const margin = record15(shape.layoutItemMargin);
+      const margin = record16(shape.layoutItemMargin);
       SIDES.forEach((side2, i) => {
         row[`layoutMargin${side2}`] = num11(margin[`m${shape.layoutItemMarginType === "multiple" ? i + 1 : i % 2 + 1}`]);
       });
@@ -108804,7 +109562,7 @@ function importPenpotLayouts(boxes2, sourceIds, shapes2, options2 = {}) {
       row.layout = shape.layout;
       row.layoutDirection = shape.layout === "grid" ? shape.layoutGridDir || "row" : shape.layoutFlexDir || "row";
       row.layoutWrap = shape.layoutWrapType === "wrap";
-      const padding = record15(shape.layoutPadding), gap = record15(shape.layoutGap);
+      const padding = record16(shape.layoutPadding), gap = record16(shape.layoutGap);
       SIDES.forEach((side2, i) => {
         row[`layoutPad${side2}`] = num11(padding[`p${shape.layoutPaddingType === "simple" ? i % 2 + 1 : i + 1}`]);
       });
@@ -108837,10 +109595,10 @@ function importPenpotLayouts(boxes2, sourceIds, shapes2, options2 = {}) {
   for (const sourceId of sourceIds) {
     const shape = shapes2[sourceId];
     if (shape?.layout !== "grid") continue;
-    const cells = Object.values(record15(shape.layoutGridCells));
+    const cells = Object.values(record16(shape.layoutGridCells));
     const assigned = /* @__PURE__ */ new Set();
     for (const raw of cells) {
-      const cell2 = record15(raw), children2 = Array.isArray(cell2.shapes) ? cell2.shapes : [];
+      const cell2 = record16(raw), children2 = Array.isArray(cell2.shapes) ? cell2.shapes : [];
       if (!children2.length) {
         if (cell2.areaName || cell2.position === "manual" || cell2.position === "area") add3(sourceId, "penpot.layout.empty-cell", "Empty named or manually placed grid cells cannot be represented in this document.");
         continue;
@@ -108923,7 +109681,7 @@ function exportPenpotLayout(row, children2, tracks) {
   props.layoutGridCells = cells;
   return props;
 }
-var ROOT, SIDES, sizing, ppSizing, num11, record15;
+var ROOT, SIDES, sizing, ppSizing, num11, record16;
 var init_penpot_layout = __esm({
   "engine/src/penpot-layout.ts"() {
     "use strict";
@@ -108934,7 +109692,7 @@ var init_penpot_layout = __esm({
     sizing = (value2) => value2 === "auto" ? "hug" : value2 === "fill" ? "fill" : "fixed";
     ppSizing = (value2) => value2 === "hug" ? "auto" : value2 === "fill" ? "fill" : "fix";
     num11 = (value2, fallback = 0) => value2 == null || value2 === "" ? fallback : Number(value2);
-    record15 = (value2) => value2 && typeof value2 === "object" && !Array.isArray(value2) ? value2 : {};
+    record16 = (value2) => value2 && typeof value2 === "object" && !Array.isArray(value2) ? value2 : {};
   }
 });
 
@@ -108942,7 +109700,7 @@ var init_penpot_layout = __esm({
 function buildTokenTypeIndex(filtered) {
   const index2 = /* @__PURE__ */ new Map();
   if (!isRec6(filtered)) return index2;
-  const walk3 = (node, path) => {
+  const walk4 = (node, path) => {
     for (const [k, v] of Object.entries(node)) {
       if (k.startsWith("$") || !isRec6(v)) continue;
       const p = path ? `${path}.${k}` : k;
@@ -108956,13 +109714,13 @@ function buildTokenTypeIndex(filtered) {
         }
         set.add(t);
       } else {
-        walk3(v, p);
+        walk4(v, p);
       }
     }
   };
   for (const [setName2, set] of Object.entries(filtered)) {
     if (setName2.startsWith("$") || !isRec6(set)) continue;
-    walk3(set, "");
+    walk4(set, "");
   }
   return index2;
 }
@@ -109018,18 +109776,18 @@ function penpotTokenClosure(filtered) {
   const cycles = [];
   if (!isRec6(filtered)) return { dangling, cycles };
   const value2 = /* @__PURE__ */ new Map();
-  const walk3 = (node, path) => {
+  const walk4 = (node, path) => {
     for (const [k, v] of Object.entries(node)) {
       if (k.startsWith("$") || !isRec6(v)) continue;
       const p = path ? `${path}.${k}` : k;
       if ("$value" in v) {
         if (!value2.has(p)) value2.set(p, v.$value);
-      } else walk3(v, p);
+      } else walk4(v, p);
     }
   };
   for (const [setName2, set] of Object.entries(filtered)) {
     if (setName2.startsWith("$") || !isRec6(set)) continue;
-    walk3(set, "");
+    walk4(set, "");
   }
   const refsOf = (v) => {
     if (typeof v !== "string") return [];
@@ -116302,7 +117060,7 @@ function svgItemsOf(svgText, parseXml, opts = {}) {
     push(item2, 0);
   };
   let useVisits = 0;
-  const walk3 = (el, parent, depth, useDepth, trail) => {
+  const walk4 = (el, parent, depth, useDepth, trail) => {
     if (++tags3 > SVG_CUSTGEOM_MAX_TAGS) throw new CapReached();
     const ns2 = el.namespaceURI;
     if (ns2 && ns2 !== SVG_NS) return;
@@ -116322,7 +117080,7 @@ function svgItemsOf(svgText, parseXml, opts = {}) {
     }
     const state = inherit(el, { ...parent, m: m2 }, style);
     if (tag3 === "g" || tag3 === "a" || tag3 === "svg") {
-      if (depth > MAX_DEPTH4) throw new CapReached();
+      if (depth > MAX_DEPTH5) throw new CapReached();
       let inner = state;
       if (tag3 === "svg" && depth > 0) {
         const x = lengthIn(el.getAttribute("x") ?? void 0, state, "x") ?? 0;
@@ -116346,7 +117104,7 @@ function svgItemsOf(svgText, parseXml, opts = {}) {
         const name = (el.getAttribute("id") ?? "").trim() || (el.getAttribute("class") ?? "").trim().split(/\s+/)[0] || "";
         if (name) inner = { ...inner, groups: [...inner.groups, name.slice(0, MAX_GROUP_NAME)] };
       }
-      for (const child2 of kids(el)) walk3(child2, inner, depth + 1, useDepth, trail);
+      for (const child2 of kids(el)) walk4(child2, inner, depth + 1, useDepth, trail);
       return;
     }
     if (SHAPES2.has(tag3)) {
@@ -116371,9 +117129,9 @@ function svgItemsOf(svgText, parseXml, opts = {}) {
       const next2 = new Set(trail);
       next2.add(target2);
       if (localOf(target2) === "symbol") {
-        for (const child2 of kids(target2)) walk3(child2, placed2, depth + 1, useDepth + 1, next2);
+        for (const child2 of kids(target2)) walk4(child2, placed2, depth + 1, useDepth + 1, next2);
       } else {
-        walk3(target2, placed2, depth + 1, useDepth + 1, next2);
+        walk4(target2, placed2, depth + 1, useDepth + 1, next2);
       }
       return;
     }
@@ -116414,7 +117172,7 @@ function svgItemsOf(svgText, parseXml, opts = {}) {
       }
     }
     const state = inherit(root2, initial, styleOf(root2));
-    for (const child2 of kids(root2)) walk3(child2, state, 1, 0, /* @__PURE__ */ new Set());
+    for (const child2 of kids(root2)) walk4(child2, state, 1, 0, /* @__PURE__ */ new Set());
   } catch (err) {
     if (err instanceof CapReached) return refused("cap-reached", Math.max(seen, items2.length + 1), viewBox ?? { x: 0, y: 0, w: 0, h: 0 });
     throw err;
@@ -116991,7 +117749,7 @@ function vectorItemsDocument(items2) {
   const desc = items2.desc ? `<desc>${escXml(items2.desc)}</desc>` : "";
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${round32(vb.x)} ${round32(vb.y)} ${w} ${h}" width="${w}" height="${h}">${title}${desc}${vectorItemsSvg(items2)}</svg>`;
 }
-var VECTOR_ITEM_MAX_NODES, VECTOR_ITEM_MAX_ENCODED, MAX_VECTOR_ROWS_PER_OBJECT, MAX_VECTOR_ROWS_PER_FRAME, MAX_VECTOR_PATH_CHARS_PER_DOCUMENT, MAX_USE_DEPTH, MAX_DEPTH4, MAX_TITLE, MAX_DESC, MAX_SERIES, MAX_GROUPS, MAX_GROUP_NAME, ENCODE_CHECK_CHARS, SVG_NS, SILENT, SHAPES2, ANIMATION, CapReached, CASCADED, FACE_ONLY, INERT_AT_RULES, MAX_SHEET_CHARS, MAX_SHEET_RULES, MAX_CHAIN, MAX_MATCH_STEPS, ROW_PRECISION_PX, LABEL_GROUP, MAX_GLYPH_SUBPATHS, MAX_GLYPH_SHARE, MAX_HINT_NAMES, MAX_HINT_NAME, VECTOR_ROW_KIND_WORDS;
+var VECTOR_ITEM_MAX_NODES, VECTOR_ITEM_MAX_ENCODED, MAX_VECTOR_ROWS_PER_OBJECT, MAX_VECTOR_ROWS_PER_FRAME, MAX_VECTOR_PATH_CHARS_PER_DOCUMENT, MAX_USE_DEPTH, MAX_DEPTH5, MAX_TITLE, MAX_DESC, MAX_SERIES, MAX_GROUPS, MAX_GROUP_NAME, ENCODE_CHECK_CHARS, SVG_NS, SILENT, SHAPES2, ANIMATION, CapReached, CASCADED, FACE_ONLY, INERT_AT_RULES, MAX_SHEET_CHARS, MAX_SHEET_RULES, MAX_CHAIN, MAX_MATCH_STEPS, ROW_PRECISION_PX, LABEL_GROUP, MAX_GLYPH_SUBPATHS, MAX_GLYPH_SHARE, MAX_HINT_NAMES, MAX_HINT_NAME, VECTOR_ROW_KIND_WORDS;
 var init_svg_items = __esm({
   "engine/src/svg-items.ts"() {
     "use strict";
@@ -117009,7 +117767,7 @@ var init_svg_items = __esm({
     MAX_VECTOR_ROWS_PER_FRAME = 1200;
     MAX_VECTOR_PATH_CHARS_PER_DOCUMENT = 25e5;
     MAX_USE_DEPTH = 8;
-    MAX_DEPTH4 = 64;
+    MAX_DEPTH5 = 64;
     MAX_TITLE = 120;
     MAX_DESC = 500;
     MAX_SERIES = 64;
@@ -125925,7 +126683,7 @@ function svgToPenpotDoc(svgText, o) {
   };
   let shapeBudget = MAX_SHAPES;
   const MAX_WALK_DEPTH = 512;
-  const walk3 = (from, to, parent, out, depth = 0) => {
+  const walk4 = (from, to, parent, out, depth = 0) => {
     if (depth > MAX_WALK_DEPTH) {
       note2("nesting ceiling reached");
       return false;
@@ -125977,7 +126735,7 @@ function svgToPenpotDoc(svgText, o) {
           if (t.name === "svg" && i !== rootIdx) gf = { ...f, m: mul2(f.m, { a: 1, b: 0, c: 0, d: 1, e: parseLen(a.x), f: parseLen(a.y) }) };
           const kids2 = [];
           const inner = { ...gf, opacity: 1, blend: "normal" };
-          if (!walk3(i + 1, close, inner, kids2, depth + 1)) return false;
+          if (!walk4(i + 1, close, inner, kids2, depth + 1)) return false;
           if (kids2.length === 1 && t.name !== "svg") {
             const k = kids2[0];
             if (f.opacity < 1) k.opacity = (k.opacity ?? 1) * f.opacity;
@@ -126172,7 +126930,7 @@ function svgToPenpotDoc(svgText, o) {
         }
         default:
           if (!t.selfClosing && close > i) {
-            if (!walk3(i + 1, close, f, out, depth + 1)) return false;
+            if (!walk4(i + 1, close, f, out, depth + 1)) return false;
           }
           break;
       }
@@ -126195,7 +126953,7 @@ function svgToPenpotDoc(svgText, o) {
   const rootFrame = frameFor2(base, { ...root2, attrs: { ...root2.attrs, transform: "" } });
   if (!rootFrame) return null;
   const children2 = [];
-  if (!walk3(rootIdx + 1, rootClose, rootFrame, children2)) return null;
+  if (!walk4(rootIdx + 1, rootClose, rootFrame, children2)) return null;
   const bg = o.background ? parsePenpotColor(o.background) : null;
   const board = {
     type: "board",
@@ -129142,7 +129900,7 @@ function compareStructure(before, after, options2, budget3) {
     const { a, b, left, right } = queue2.pop();
     if (a === b && (a === null || typeof a !== "object")) continue;
     const arrays = Array.isArray(a) && Array.isArray(b);
-    if (arrays || record16(a) && record16(b)) {
+    if (arrays || record17(a) && record17(b)) {
       if (seenA.has(a) || seenB.has(b)) {
         budget3.limit("Repeated or cyclic object references were not compared.");
         continue;
@@ -129167,7 +129925,7 @@ function compareStructure(before, after, options2, budget3) {
           const map = /* @__PURE__ */ new Map();
           for (let i = 0; i < items2.length; i++) {
             const item2 = items2[i];
-            if (!record16(item2) || typeof item2.id !== "string" || map.has(item2.id)) return null;
+            if (!record17(item2) || typeof item2.id !== "string" || map.has(item2.id)) return null;
             map.set(item2.id, i);
           }
           return map;
@@ -129199,7 +129957,7 @@ function compareStructure(before, after, options2, budget3) {
         else queue2.push({ a: ar[key2], b: br[key2], left: lp, right: rp });
       }
     } else {
-      if ([a, b].some((v) => typeof v === "function" || typeof v === "symbol" || v && typeof v === "object" && !Array.isArray(v) && !record16(v))) {
+      if ([a, b].some((v) => typeof v === "function" || typeof v === "symbol" || v && typeof v === "object" && !Array.isArray(v) && !record17(v))) {
         budget3.limit("Only plain structured data is supported.");
         continue;
       }
@@ -129207,12 +129965,12 @@ function compareStructure(before, after, options2, budget3) {
     }
   }
 }
-var record16;
+var record17;
 var init_compare_structure = __esm({
   "engine/src/compare-structure.ts"() {
     "use strict";
     init_compare_budget();
-    record16 = (value2) => !!value2 && typeof value2 === "object" && (Object.getPrototypeOf(value2) === Object.prototype || Object.getPrototypeOf(value2) === null);
+    record17 = (value2) => !!value2 && typeof value2 === "object" && (Object.getPrototypeOf(value2) === Object.prototype || Object.getPrototypeOf(value2) === null);
   }
 });
 
@@ -129722,7 +130480,7 @@ function checkSyntax(tokens3, signal) {
     if (token2.type === "error" || token2.type === "flow-error-end") throw new Refusal(INVALID);
     const scalar6 = CST.isScalar(token2), collection = CST.isCollection(token2);
     if (scalar6 || collection) {
-      if (++nodes > MAX_NODES4 || depth > MAX_DEPTH5) throw new Refusal(LIMIT);
+      if (++nodes > MAX_NODES4 || depth > MAX_DEPTH6) throw new Refusal(LIMIT);
       if (scalar6) {
         checkString(token2.source, MAX_SCALAR, signal);
         const raw = token2.source.trim();
@@ -129768,7 +130526,7 @@ function plainData(node, signal) {
   while (queue2.length) {
     signal?.throwIfAborted();
     const entry2 = queue2.pop(), current = entry2.node;
-    if (++nodes > MAX_NODES4 || entry2.depth > MAX_DEPTH5) throw new Refusal(LIMIT);
+    if (++nodes > MAX_NODES4 || entry2.depth > MAX_DEPTH6) throw new Refusal(LIMIT);
     if (current === null || current === void 0) {
       entry2.assign(null);
       continue;
@@ -129851,14 +130609,14 @@ function readComparisonYaml(text13, signal) {
     return { ok: false, limitation: error2 instanceof Refusal ? error2.limitation : INVALID };
   }
 }
-var MAX_TOKENS, MAX_STACK, MAX_DEPTH5, MAX_NODES4, MAX_SCALAR, MAX_NUMBER, NUMBER_SOURCE, INVALID, LIMIT, SINGLE, REFERENCES, TAGS, KEYS2, MERGE, NUMBERS, Refusal;
+var MAX_TOKENS, MAX_STACK, MAX_DEPTH6, MAX_NODES4, MAX_SCALAR, MAX_NUMBER, NUMBER_SOURCE, INVALID, LIMIT, SINGLE, REFERENCES, TAGS, KEYS2, MERGE, NUMBERS, Refusal;
 var init_compare_yaml = __esm({
   "engine/src/compare-yaml.ts"() {
     "use strict";
     init_compare_budget();
     MAX_TOKENS = 1e5;
     MAX_STACK = 128;
-    MAX_DEPTH5 = 64;
+    MAX_DEPTH6 = 64;
     MAX_NODES4 = 2e4;
     MAX_SCALAR = 64 * 1024;
     MAX_NUMBER = 128;
@@ -131273,7 +132031,7 @@ var init_authoring = __esm({
 });
 
 // engine/src/learning/module.ts
-function record17(v) {
+function record18(v) {
   return !!v && typeof v === "object" && !Array.isArray(v);
 }
 function text8(v, max = LEARNING_LIMITS.text) {
@@ -131301,7 +132059,7 @@ function parseLearningModule(value2) {
   const bad = () => {
     throw new Error("This learning module is invalid or uses an unsupported version.");
   };
-  if (!record17(value2) || ![1, 2].includes(Number(value2.schemaVersion)) || typeof value2.schemaVersion !== "number" || !id2(value2.id) || !Number.isSafeInteger(value2.revision) || Number(value2.revision) < 1)
+  if (!record18(value2) || ![1, 2].includes(Number(value2.schemaVersion)) || typeof value2.schemaVersion !== "number" || !id2(value2.id) || !Number.isSafeInteger(value2.revision) || Number(value2.revision) < 1)
     return bad();
   if (!keys(
     value2,
@@ -131321,17 +132079,17 @@ function parseLearningModule(value2) {
   };
   const sections = /* @__PURE__ */ new Set();
   for (const section of value2.sections) {
-    if (!record17(section) || !unique3(section.id) || !text8(section.title, 500) || !keys(section, "id title"))
+    if (!record18(section) || !unique3(section.id) || !text8(section.title, 500) || !keys(section, "id title"))
       return bad();
     sections.add(String(section.id));
   }
   let blocks = 0;
   for (const lesson of value2.lessons) {
-    if (!record17(lesson) || !unique3(lesson.id) || !text8(lesson.title, 500) || typeof lesson.required !== "boolean" || !Array.isArray(lesson.blocks) || !keys(lesson, "id title required sectionId blocks"))
+    if (!record18(lesson) || !unique3(lesson.id) || !text8(lesson.title, 500) || typeof lesson.required !== "boolean" || !Array.isArray(lesson.blocks) || !keys(lesson, "id title required sectionId blocks"))
       return bad();
     if (lesson.sectionId !== void 0 && !sections.has(String(lesson.sectionId))) return bad();
     for (const block of lesson.blocks) {
-      if (++blocks > LEARNING_LIMITS.blocks || !record17(block) || !unique3(block.id) || !kinds.has(String(block.kind)) || !keys(block, "id kind text richText quiz description decorative transcript captions source"))
+      if (++blocks > LEARNING_LIMITS.blocks || !record18(block) || !unique3(block.id) || !kinds.has(String(block.kind)) || !keys(block, "id kind text richText quiz description decorative transcript captions source"))
         return bad();
       if (value2.schemaVersion === 1 && (block.richText !== void 0 || block.quiz !== void 0 || block.kind === "quiz"))
         return bad();
@@ -131346,12 +132104,12 @@ function parseLearningModule(value2) {
       if (block.decorative !== void 0 && typeof block.decorative !== "boolean") return bad();
       if (block.source !== void 0) {
         const s = block.source;
-        if (!record17(s) || !["asset", "session"].includes(String(s.kind)) || !keys(s, "kind asset slot toolId toolVersion values capturedAt pageIds motion"))
+        if (!record18(s) || !["asset", "session"].includes(String(s.kind)) || !keys(s, "kind asset slot toolId toolVersion values capturedAt pageIds motion"))
           return bad();
-        if (s.kind === "session" && (s.slot !== void 0 && !text8(s.slot, 500) || !id2(s.toolId) || !record17(s.values)))
+        if (s.kind === "session" && (s.slot !== void 0 && !text8(s.slot, 500) || !id2(s.toolId) || !record18(s.values)))
           return bad();
         if (s.kind === "asset") {
-          if (!record17(s.asset) || !text8(s.asset.id, 2e3) || !text8(s.asset.format, 40) || typeof s.asset.url !== "string" || !assetTypes.has(String(s.asset.type)) || !["library", "user", "remote"].includes(String(s.asset.source)))
+          if (!record18(s.asset) || !text8(s.asset.id, 2e3) || !text8(s.asset.format, 40) || typeof s.asset.url !== "string" || !assetTypes.has(String(s.asset.type)) || !["library", "user", "remote"].includes(String(s.asset.source)))
             return bad();
         }
         if (s.toolVersion !== void 0 && !text8(s.toolVersion, 100)) return bad();
@@ -132019,7 +132777,7 @@ function onInput(ctx){return sourceRun('onInput',ctx);}
 });
 
 // engine/src/studio3d-camera-path.ts
-function record18(value2) {
+function record19(value2) {
   return value2 && typeof value2 === "object" && !Array.isArray(value2) ? value2 : {};
 }
 function studioRestPose(scene) {
@@ -132156,7 +132914,7 @@ function studioCameraPreset(kind, view, amount = 1) {
   }
 }
 function studioCameraKeyFromView(values) {
-  const camera = record18(values.camera), target2 = record18(values.target);
+  const camera = record19(values.camera), target2 = record19(values.target);
   return {
     azimuth: num13(camera.azimuth, 25),
     elevation: num13(camera.elevation, 14),
@@ -132192,7 +132950,7 @@ function studioCameraFromKey(values, which) {
   const wanted = typeof which === "string" ? which.trim().toLowerCase() : "";
   const key2 = typeof which === "number" ? rows2[which] : wanted ? rows2.find((row) => studioCameraKeyName(row).toLowerCase() === wanted) : void 0;
   if (!key2) throw new Error("That camera key does not exist.");
-  const target2 = record18(values.target);
+  const target2 = record19(values.target);
   return [
     {
       id: "camera",
@@ -132224,7 +132982,7 @@ var init_studio3d_camera_path = __esm({
 });
 
 // engine/src/studio3d-arrangement.ts
-function record19(value2) {
+function record20(value2) {
   return value2 && typeof value2 === "object" && !Array.isArray(value2) ? value2 : {};
 }
 function studioArrangementRows(values) {
@@ -132232,7 +132990,7 @@ function studioArrangementRows(values) {
     throw new Error("Add at least one object to the arrangement.");
   if (values.objects.length > STUDIO_ARRANGEMENT_LIMIT)
     throw new Error(`Use up to ${STUDIO_ARRANGEMENT_LIMIT} objects in one arrangement.`);
-  return values.objects.map(record19);
+  return values.objects.map(record20);
 }
 function studioObjectId(row, index2, taken) {
   const authored = String(row.id ?? "").trim().toLowerCase().replace(/[^a-z0-9._-]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 40);
@@ -132323,7 +133081,7 @@ var init_studio3d_arrangement = __esm({
 });
 
 // engine/src/studio3d-collection.ts
-function record20(value2) {
+function record21(value2) {
   return value2 && typeof value2 === "object" && !Array.isArray(value2) ? value2 : {};
 }
 function number6(value2, fallback, min, max) {
@@ -132335,7 +133093,7 @@ function items(values) {
     throw new Error("Add at least one item to the collection.");
   if (values.subjects.length > STUDIO_COLLECTION_LIMIT)
     throw new Error(`Use up to ${STUDIO_COLLECTION_LIMIT} items in one collection.`);
-  return values.subjects.map(record20);
+  return values.subjects.map(record21);
 }
 function subjectIds(rows2) {
   const taken = /* @__PURE__ */ new Set();
@@ -132359,7 +133117,7 @@ function itemValues2(values, item2) {
   const kind = item2.kind === "model" ? "model" : item2.kind === "primitive" ? "primitive" : item2.kind === "text" ? "text" : "artwork";
   const scale = number6(item2.scale, 1, 0.5, 2);
   const offsetX = number6(item2.offsetX, 0, -5, 5), offsetY = number6(item2.offsetY, 0, -5, 5);
-  const transform2 = record20(values.transform), position = record20(values.position);
+  const transform2 = record21(values.transform), position = record21(values.position);
   const corrections = {};
   if (scale !== 1)
     corrections.transform = { ...transform2, scale: number6(transform2.scale, 1, 0.1, 5) * scale };
@@ -132369,7 +133127,7 @@ function itemValues2(values, item2) {
       y: number6(position.y, 0.1, -5, 5) + offsetY,
       z: number6(position.z, 0, -5, 5)
     };
-  const camera = record20(values.camera);
+  const camera = record21(values.camera);
   const framing = { ...camera };
   if (enabled2(item2.ownFraming))
     for (const key2 of ["azimuth", "elevation", "fov", "zoom", "panX", "panY", "panZ"]) {
@@ -132446,7 +133204,7 @@ function studioFocusEdit(values, distance4) {
   });
 }
 function studioCollectionSize(values) {
-  const size = record20(values.collectionSize);
+  const size = record21(values.collectionSize);
   const edge = (value2) => {
     const n7 = Number(value2);
     return Math.max(64, Math.min(4096, Number.isFinite(n7) && n7 > 0 ? Math.round(n7) : 1024));
@@ -132693,7 +133451,7 @@ var init_studio3d_motion = __esm({
 });
 
 // engine/src/studio3d.ts
-function record21(value2) {
+function record22(value2) {
   return value2 && typeof value2 === "object" && !Array.isArray(value2) ? value2 : {};
 }
 function number7(value2, fallback, min, max) {
@@ -132712,15 +133470,15 @@ function enabled3(value2, fallback = false) {
   return fallback;
 }
 function vector(value2, keys2, defaults2, limit3) {
-  const v = record21(value2);
+  const v = record22(value2);
   return keys2.map((key2, i) => number7(v[key2], defaults2[i], -limit3, limit3));
 }
 function asset(value2) {
-  const v = record21(value2);
+  const v = record22(value2);
   return {
     id: String(v.id || ""),
     url: typeof v.url === "string" ? v.url : "",
-    name: String(v.name || v.filename || record21(v.meta).name || v.url || ""),
+    name: String(v.name || v.filename || record22(v.meta).name || v.url || ""),
     format: String(v.format || "").toLowerCase()
   };
 }
@@ -132839,9 +133597,9 @@ function arrangementObjects(v) {
   });
 }
 function buildStudioScene(input) {
-  const wrapper = record21(input);
+  const wrapper = record22(input);
   if (wrapper.version !== 1) throw new Error("This studio recipe version is not supported.");
-  const v = studioActiveValues(record21(wrapper.values));
+  const v = studioActiveValues(record22(wrapper.values));
   const arrangement = v.source === "arrangement";
   const objects = arrangement ? arrangementObjects(v) : [];
   if (arrangement && !objects.some((object4) => object4.visible && !object4.pending))
@@ -132863,7 +133621,7 @@ function buildStudioScene(input) {
     ["soft", "dramatic", "electric", "warm", "custom"],
     "dramatic"
   );
-  const drama = number7(v.drama, 0.7, 0, 1), light = record21(v.lightLevels);
+  const drama = number7(v.drama, 0.7, 0, 1), light = record22(v.lightLevels);
   const intensity = number7(light.key, 2.5, 0, 20), fill2 = number7(light.fill, 0.7, 0, 20), rim = number7(light.rim, 3, 0, 20);
   const softness = number7(v.softness, 1.5, 0, 5);
   const placed2 = (role) => vector(v[`${role}Position`], ["x", "y", "z"], STUDIO_PRESET_LIGHT_POSITIONS[role], 30);
@@ -132911,7 +133669,7 @@ function buildStudioScene(input) {
       throw new Error("Add at least one light to the custom studio.");
     if (v.lights.length > 8) throw new Error("A studio supports up to eight lights.");
     lights = v.lights.map((row, i) => {
-      const l = record21(row);
+      const l = record22(row);
       const kind2 = choice2(l.kind, ["directional", "point", "spot", "area"], "directional");
       return {
         id: `light-${i + 1}`,
@@ -132924,7 +133682,7 @@ function buildStudioScene(input) {
       };
     });
   }
-  const camera = record21(v.camera), shape = record21(v.shape), transform2 = record21(v.transform), target2 = record21(v.target);
+  const camera = record22(v.camera), shape = record22(v.shape), transform2 = record22(v.transform), target2 = record22(v.target);
   const backdrop = asset(v.backdropImage);
   const background = color2(v.background, secondary);
   const environmentKind = choice2(
@@ -132942,7 +133700,7 @@ function buildStudioScene(input) {
   if (rows2.length > 32) throw new Error("A studio supports up to 32 material overrides.");
   const seen = /* @__PURE__ */ new Set();
   const overrides = rows2.map((row, i) => {
-    const m2 = record21(row), slot = String(m2.slot || i + 1).trim();
+    const m2 = record22(row), slot = String(m2.slot || i + 1).trim();
     if (seen.has(slot)) throw new Error(`Material slot ${slot} has more than one override.`);
     seen.add(slot);
     const finish2 = typeof m2.finish === "string" && FINISHES.includes(m2.finish) ? m2.finish : void 0;
@@ -133087,7 +133845,7 @@ function cameraKeys(v) {
   if (rows2.length > STUDIO_CAMERA_KEY_LIMIT)
     throw new Error(`A camera path holds up to ${STUDIO_CAMERA_KEY_LIMIT} keys.`);
   return rows2.map((row, i) => {
-    const k = record21(row);
+    const k = record22(row);
     const name = String(k.name || "").trim().slice(0, STUDIO_CAMERA_KEY_NAME_LIMIT);
     return {
       ...name ? { name } : {},
@@ -133161,7 +133919,7 @@ function studioKeyField(key2) {
   const dot = key2.indexOf(".");
   return dot < 0 ? null : key2.slice(dot + 1);
 }
-function record22(value2) {
+function record23(value2) {
   return value2 && typeof value2 === "object" && !Array.isArray(value2) ? value2 : {};
 }
 function clone4(value2) {
@@ -133176,9 +133934,9 @@ function studioLookOf(values) {
       if (values[id3] !== void 0) look3[id3] = clone4(values[id3]);
       continue;
     }
-    const from = record22(values[id3]);
+    const from = record23(values[id3]);
     if (from[field2] === void 0) continue;
-    const into = record22(look3[id3]);
+    const into = record23(look3[id3]);
     into[field2] = clone4(from[field2]);
     look3[id3] = into;
   }
@@ -133195,9 +133953,9 @@ function studioApplyLook(values, look3, overrides = []) {
       if (look3[id3] !== void 0) next2[id3] = clone4(look3[id3]);
       continue;
     }
-    const from = record22(look3[id3]);
+    const from = record23(look3[id3]);
     if (from[field2] === void 0) continue;
-    next2[id3] = { ...record22(next2[id3]), [field2]: clone4(from[field2]) };
+    next2[id3] = { ...record23(next2[id3]), [field2]: clone4(from[field2]) };
   }
   return next2;
 }
@@ -133380,7 +134138,7 @@ function summarizeBrandStyles(mode3, rows2, sampled = 0, truncated = false) {
   const entries = Array.isArray(rows2) ? rows2 : [];
   const values = /* @__PURE__ */ new Map();
   for (const row of entries.slice(0, 2400)) {
-    if (!record23(row) || typeof row.property !== "string" || !properties.has(row.property) || typeof row.value !== "string") continue;
+    if (!record24(row) || typeof row.property !== "string" || !properties.has(row.property) || typeof row.value !== "string") continue;
     const value2 = row.value.trim().replace(/\s+/g, " ");
     if (!value2 || value2.length > 160 || /[<>{};\\]|url\s*\(|var\s*\(/i.test(value2)) continue;
     const property4 = row.property;
@@ -133403,13 +134161,13 @@ function summarizeBrandStyles(mode3, rows2, sampled = 0, truncated = false) {
   };
 }
 function readBrandStyleEvidence(value2) {
-  if (!record23(value2) || value2.version !== 1 || value2.mode !== "computed" && value2.mode !== "declared") return null;
+  if (!record24(value2) || value2.version !== 1 || value2.mode !== "computed" && value2.mode !== "declared") return null;
   const evidence = summarizeBrandStyles(value2.mode, value2.values, typeof value2.sampled === "number" ? value2.sampled : 0, value2.truncated === true);
   const viewport = value2.viewport;
-  if (record23(viewport) && typeof viewport.width === "number" && typeof viewport.height === "number" && Number.isFinite(viewport.width) && Number.isFinite(viewport.height) && viewport.width > 0 && viewport.width < 1e5 && viewport.height > 0 && viewport.height < 1e5 && (viewport.scheme === "light" || viewport.scheme === "dark")) evidence.viewport = { width: viewport.width, height: viewport.height, scheme: viewport.scheme };
+  if (record24(viewport) && typeof viewport.width === "number" && typeof viewport.height === "number" && Number.isFinite(viewport.width) && Number.isFinite(viewport.height) && viewport.width > 0 && viewport.width < 1e5 && viewport.height > 0 && viewport.height < 1e5 && (viewport.scheme === "light" || viewport.scheme === "dark")) evidence.viewport = { width: viewport.width, height: viewport.height, scheme: viewport.scheme };
   return evidence;
 }
-var BRAND_STYLE_PROPERTIES, properties, record23;
+var BRAND_STYLE_PROPERTIES, properties, record24;
 var init_brand_evidence = __esm({
   "engine/src/brand-evidence.ts"() {
     "use strict";
@@ -133427,17 +134185,17 @@ var init_brand_evidence = __esm({
       "border-top-left-radius"
     ];
     properties = new Set(BRAND_STYLE_PROPERTIES);
-    record23 = (v) => !!v && typeof v === "object" && !Array.isArray(v);
+    record24 = (v) => !!v && typeof v === "object" && !Array.isArray(v);
   }
 });
 
 // engine/src/brand-context.ts
 function brandContext(doc, opts = {}) {
   const tokens3 = createTokenSet(doc, { theme: opts.theme });
-  const raw = record24(doc) ? doc : {};
-  const extensions3 = record24(raw.$extensions) ? raw.$extensions : {};
-  const vendor = record24(extensions3[TOKEN_EXT]) ? extensions3[TOKEN_EXT] : {};
-  const reference3 = record24(vendor.reference) ? vendor.reference : {};
+  const raw = record25(doc) ? doc : {};
+  const extensions3 = record25(raw.$extensions) ? raw.$extensions : {};
+  const vendor = record25(extensions3[TOKEN_EXT]) ? extensions3[TOKEN_EXT] : {};
+  const reference3 = record25(vendor.reference) ? vendor.reference : {};
   const entries = tokens3.query();
   const colors = tokens3.colors().map((c) => ({ path: c.path, value: c.value, name: c.name }));
   const fonts = entries.filter((e) => e.type === "fontFamily").flatMap((e) => {
@@ -133478,19 +134236,19 @@ function brandContext(doc, opts = {}) {
   };
 }
 function contextTokens(value2) {
-  if (!record24(value2)) return value2;
+  if (!record25(value2)) return value2;
   if (value2.format === "lolly-design-context") return value2.version === 1 ? value2.tokens : null;
   if (value2.format === "lolly-reference") return value2.version === 1 ? value2.proposedTokens : null;
   return value2;
 }
-var record24, text9;
+var record25, text9;
 var init_brand_context = __esm({
   "engine/src/brand-context.ts"() {
     "use strict";
     init_tokens2();
     init_design_system();
     init_brand_evidence();
-    record24 = (v) => !!v && typeof v === "object" && !Array.isArray(v);
+    record25 = (v) => !!v && typeof v === "object" && !Array.isArray(v);
     text9 = (v, limit3 = 180) => typeof v === "string" && v.trim() ? v.trim().slice(0, limit3) : void 0;
   }
 });
@@ -133510,7 +134268,7 @@ function checkBrandDesign(boxes2, doc, opts = {}) {
   const catalogAssets2 = new Set(Array.isArray(opts.assets) ? opts.assets.filter((id3) => typeof id3 === "string") : []);
   let uploads = 0;
   const nearest3 = /* @__PURE__ */ new Map();
-  const rows2 = Array.isArray(boxes2) ? boxes2.filter(record25) : [];
+  const rows2 = Array.isArray(boxes2) ? boxes2.filter(record26) : [];
   if (!Array.isArray(boxes2)) findings.push({ id: "brand.document", kind: "coverage", status: "unknown", label: "No readable composition." });
   const counts = /* @__PURE__ */ new Map();
   for (const row of rows2) if (typeof row.id === "string") counts.set(row.id, (counts.get(row.id) ?? 0) + 1);
@@ -133535,7 +134293,7 @@ function checkBrandDesign(boxes2, doc, opts = {}) {
       if (field2 === "fg" && !row.text) continue;
       const raw = valueText2(row[field2]);
       if (!raw || raw === "transparent" || raw === "none") continue;
-      const path = aliasPath(raw) ?? (record25(row[field2]) ? valueText2(row[field2]).replace(/^\{|\}$/g, "") : null);
+      const path = aliasPath(raw) ?? (record26(row[field2]) ? valueText2(row[field2]).replace(/^\{|\}$/g, "") : null);
       if (path) {
         if (!tokens3.has(path) || tokens3.get(path)?.type !== "color" || !parseColor(String(tokens3.resolve(path)))) add3(field2, "reference", "unknown", raw);
         else checked2.colors++;
@@ -133583,8 +134341,8 @@ function checkBrandDesign(boxes2, doc, opts = {}) {
         if (!allowedFonts.has(family(resolved2))) add3("font", "font", "review", font, context.fonts[0]?.value, tokens3.has("font.brand") ? "sans" : void 0);
       }
     }
-    const image = valueText2(row.image) || (record25(row.image) && typeof row.image.id === "string" ? row.image.id : "");
-    const upload = image.startsWith("user/") || record25(row.image) && row.image.source === "user";
+    const image = valueText2(row.image) || (record26(row.image) && typeof row.image.id === "string" ? row.image.id : "");
+    const upload = image.startsWith("user/") || record26(row.image) && row.image.source === "user";
     if (image && upload) {
       uploads++;
       const look3 = parseTreatedAssetId(image).treatment;
@@ -133615,13 +134373,13 @@ function checkBrandDesign(boxes2, doc, opts = {}) {
 }
 function applyBrandFix(boxes2, fix) {
   if (!Array.isArray(boxes2) || !["bg", "fg", "stroke", "font"].includes(fix.field)) return null;
-  const matches3 = boxes2.filter((row) => record25(row) && row.id === fix.layerId);
+  const matches3 = boxes2.filter((row) => record26(row) && row.id === fix.layerId);
   if (matches3.length !== 1) return null;
   const target2 = matches3[0];
   if (target2.locked === true || target2.locked === "true" || JSON.stringify(target2[fix.field]) !== JSON.stringify(fix.before)) return null;
   return boxes2.map((row) => row === target2 ? { ...row, [fix.field]: fix.after } : row);
 }
-var record25, valueText2, family;
+var record26, valueText2, family;
 var init_brand_check = __esm({
   "engine/src/brand-check.ts"() {
     "use strict";
@@ -133631,8 +134389,8 @@ var init_brand_check = __esm({
     init_brand_context();
     init_photo_treatment();
     init_icon_theme();
-    record25 = (v) => !!v && typeof v === "object" && !Array.isArray(v);
-    valueText2 = (v) => typeof v === "string" ? v : record25(v) && typeof v.ref === "string" ? v.ref : "";
+    record26 = (v) => !!v && typeof v === "object" && !Array.isArray(v);
+    valueText2 = (v) => typeof v === "string" ? v : record26(v) && typeof v.ref === "string" ? v.ref : "";
     family = (v) => v.split(",")[0].replace(/["']/g, "").trim().toLowerCase();
   }
 });
@@ -133668,7 +134426,7 @@ function covers(over, row) {
   return iw * ih / area2 >= 0.9;
 }
 function paintOf2(layout2, row) {
-  if (row.kind === "image" || valueText3(row.image) || record26(row.image) && typeof row.image.id === "string") return { kind: "image" };
+  if (row.kind === "image" || valueText3(row.image) || record27(row.image) && typeof row.image.id === "string") return { kind: "image" };
   if (typeof row.grad === "string" && row.grad.trim()) return null;
   const raw = valueText3(row.bg);
   if (!raw || raw === "transparent" || raw === "none") return "clear";
@@ -133750,7 +134508,7 @@ function combinationPolicy(doc, theme, selection) {
   const groups = /* @__PURE__ */ new Set();
   for (const entry2 of tokens3.query({ type: "color" })) {
     const vendor = entry2.extensions?.[TOKEN_EXT];
-    const combos = record26(vendor) && record26(vendor.combinations) ? vendor.combinations : null;
+    const combos = record27(vendor) && record27(vendor.combinations) ? vendor.combinations : null;
     if (!combos || typeof entry2.value !== "string") continue;
     const hex4 = hex8(entry2.value);
     if (!hex4) continue;
@@ -133775,9 +134533,9 @@ function hiddenTest(rows2) {
 }
 function catalogAssetNames(catalog) {
   const names = /* @__PURE__ */ new Map();
-  const assets = record26(catalog) && Array.isArray(catalog.assets) ? catalog.assets : [];
+  const assets = record27(catalog) && Array.isArray(catalog.assets) ? catalog.assets : [];
   for (const asset2 of assets) {
-    if (!record26(asset2) || typeof asset2.id !== "string" || typeof asset2.name !== "string") continue;
+    if (!record27(asset2) || typeof asset2.id !== "string" || typeof asset2.name !== "string") continue;
     const name = asset2.name.trim();
     if (name && !names.has(asset2.id)) names.set(asset2.id, name);
   }
@@ -133787,7 +134545,7 @@ function checkDesignHouseRules(boxes2, rules, doc, opts = {}) {
   const findings = [];
   const unknown2 = [];
   let checked2 = 0;
-  const rows2 = Array.isArray(boxes2) ? boxes2.filter(record26) : [];
+  const rows2 = Array.isArray(boxes2) ? boxes2.filter(record27) : [];
   const layout2 = {
     rows: rows2,
     hidden: hiddenTest(rows2),
@@ -133804,17 +134562,17 @@ function checkDesignHouseRules(boxes2, rules, doc, opts = {}) {
     else if (size === top.size) top.count++;
   }
   let pairings = null;
-  const catalogLogos = record26(opts.catalog) && record26(opts.catalog.logos) ? opts.catalog.logos : {};
+  const catalogLogos = record27(opts.catalog) && record27(opts.catalog.logos) ? opts.catalog.logos : {};
   const layers = rows2.slice(0, 5e3).map((row, index2) => ({ row, index: index2 })).filter(({ row }) => !layout2.hidden(row) && typeof row.id === "string" && row.id);
   const texts = layers.filter(({ row }) => textOf7(row).trim() && row.kind !== "image");
   for (const rule of Array.isArray(rules) ? rules : []) {
-    if (!record26(rule) || typeof rule.id !== "string") continue;
+    if (!record27(rule) || typeof rule.id !== "string") continue;
     if (rule.scope?.tools && !rule.scope.tools.includes("design")) continue;
     if (!DESIGN_HOUSE_RULE_KINDS.includes(rule.kind)) {
       unknown2.push(rule.id);
       continue;
     }
-    const p = record26(rule.parameters) ? rule.parameters : {};
+    const p = record27(rule.parameters) ? rule.parameters : {};
     const requirement = rule.requirement === "required" ? "required" : "advisory";
     const add3 = (row, field2, value2, expected, detail) => {
       const artboardId = artboardOf(row);
@@ -134004,7 +134762,7 @@ function checkDesignHouseRules(boxes2, rules, doc, opts = {}) {
         return name ? `\u201C${name}\u201D` : id3;
       };
       for (const { row, index: index2 } of layers) {
-        const raw = valueText3(row.image) || (record26(row.image) && typeof row.image.id === "string" ? row.image.id : "");
+        const raw = valueText3(row.image) || (record27(row.image) && typeof row.image.id === "string" ? row.image.id : "");
         const resolved2 = aliasPath(raw) ? layout2.tokens.resolve(aliasPath(raw)) : raw;
         if (typeof resolved2 !== "string") continue;
         let id3 = stripAssetModifiers(resolved2);
@@ -134015,7 +134773,7 @@ function checkDesignHouseRules(boxes2, rules, doc, opts = {}) {
           table ??= buildSurfaceVariantTable({
             tokens: layout2.tokens,
             rules: [rule],
-            ...record26(opts.catalog) ? { iconThemes: opts.catalog.iconThemes } : {},
+            ...record27(opts.catalog) ? { iconThemes: opts.catalog.iconThemes } : {},
             logos: catalogLogos
           });
           const pick = pickSurfaceVariant(resolved2, kind, table);
@@ -134034,7 +134792,7 @@ function checkDesignHouseRules(boxes2, rules, doc, opts = {}) {
 function designHouseRules(rules) {
   return (rules ?? []).filter((r5) => DESIGN_HOUSE_RULE_KINDS.includes(r5.kind));
 }
-var DESIGN_HOUSE_RULE_KINDS, record26, strings2, num14, valueText3, isHidden, textOf7, HEADLINE_ROLES, HEADLINE_SCALE2, HEADLINE_MIN_PX, ROUNDED_SHAPES, DESIGN_DEFAULT_WEIGHT, DESIGN_DEFAULT_ALIGN, matches2, NUMERIC_TEXT, artboardOf, label2, list2, orList;
+var DESIGN_HOUSE_RULE_KINDS, record27, strings2, num14, valueText3, isHidden, textOf7, HEADLINE_ROLES, HEADLINE_SCALE2, HEADLINE_MIN_PX, ROUNDED_SHAPES, DESIGN_DEFAULT_WEIGHT, DESIGN_DEFAULT_ALIGN, matches2, NUMERIC_TEXT, artboardOf, label2, list2, orList;
 var init_design_house_rules = __esm({
   "engine/src/design-house-rules.ts"() {
     "use strict";
@@ -134055,13 +134813,13 @@ var init_design_house_rules = __esm({
       "dash-reserved",
       "logo-surface"
     ];
-    record26 = (v) => !!v && typeof v === "object" && !Array.isArray(v);
+    record27 = (v) => !!v && typeof v === "object" && !Array.isArray(v);
     strings2 = (v) => Array.isArray(v) ? v.filter((s) => typeof s === "string" && s.length > 0) : [];
     num14 = (v, fallback) => {
       const n7 = typeof v === "number" ? v : typeof v === "string" && v.trim() ? Number(v) : NaN;
       return Number.isFinite(n7) ? n7 : fallback;
     };
-    valueText3 = (v) => typeof v === "string" ? v : record26(v) && typeof v.ref === "string" ? v.ref : "";
+    valueText3 = (v) => typeof v === "string" ? v : record27(v) && typeof v.ref === "string" ? v.ref : "";
     isHidden = (row) => row.hidden === true || row.hidden === "true";
     textOf7 = (row) => typeof row.text === "string" ? row.text : "";
     HEADLINE_ROLES = ["title"];
@@ -134076,676 +134834,6 @@ var init_design_house_rules = __esm({
     label2 = (name) => name.charAt(0).toUpperCase() + name.slice(1);
     list2 = (values) => values.join(", ");
     orList = (values) => values.length > 1 ? `${values.slice(0, -1).join(", ")} or ${values[values.length - 1]}` : values[0] ?? "";
-  }
-});
-
-// packages/core/src/brand-skill-v1.ts
-function isBrandSkillReference(path) {
-  return typeof path === "string" && /^references\/[A-Za-z0-9_-]+(?:\.[A-Za-z0-9_-]+)*\.(?:md|json|csv|txt)$/.test(path);
-}
-function validateBrandSkillMeta(meta) {
-  if (!record27(meta)) return ["meta.skill must be an object."];
-  const errors = [];
-  if (!isAgentSkillName(meta.name)) errors.push("name must be 1 to 64 lowercase letters, digits and single hyphens.");
-  if (!nonEmpty(meta.description, SKILL_DESCRIPTION_MAX)) errors.push(`description must be 1 to ${SKILL_DESCRIPTION_MAX} characters.`);
-  if (!BRAND_SKILL_DISCIPLINES.includes(meta.discipline)) errors.push(`discipline must be one of ${BRAND_SKILL_DISCIPLINES.join(", ")}.`);
-  if (!BRAND_SKILL_AUDIENCES.includes(meta.audience)) errors.push("audience must be public or internal.");
-  if (!BRAND_SKILL_STATUSES.includes(meta.status)) errors.push("status must be draft or approved.");
-  if (typeof meta.skillRevision !== "string" || !/^[A-Za-z0-9._-]{1,32}$/.test(meta.skillRevision)) errors.push("skillRevision must be 1 to 32 letters, digits, dots, hyphens or underscores.");
-  for (const key2 of ["owner", "maintainer"]) if (meta[key2] !== void 0 && !nonEmpty(meta[key2], 120)) errors.push(`${key2} must be a short name.`);
-  if (meta.revisionNote !== void 0 && !nonEmpty(meta.revisionNote, 500)) errors.push("revisionNote must be 1 to 500 characters.");
-  if (meta.reviewed !== void 0 && (typeof meta.reviewed !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(meta.reviewed))) errors.push("reviewed must be a YYYY-MM-DD date.");
-  if (meta.generated !== void 0 && meta.generated !== true) errors.push("generated is either true or left out.");
-  if (meta.appliesTo !== void 0) {
-    const a = meta.appliesTo;
-    if (!record27(a) || !Object.keys(a).length) errors.push("appliesTo must name at least one of tools, categories, formats, media or families.");
-    else {
-      for (const key2 of Object.keys(a)) if (!["tools", "categories", "formats", "media", "families"].includes(key2)) errors.push(`appliesTo.${key2} is not a known key.`);
-      if (a.tools !== void 0 && !stringList(a.tools, (s) => /^[a-z0-9][a-z0-9-]*$/.test(s))) errors.push("appliesTo.tools must list tool ids.");
-      if (a.categories !== void 0 && !stringList(a.categories, (s) => /^[a-z0-9][a-z0-9-]*$/.test(s))) errors.push("appliesTo.categories must list category ids.");
-      if (a.formats !== void 0 && !stringList(a.formats, (s) => /^[a-z0-9][a-z0-9.+-]*$/.test(s))) errors.push("appliesTo.formats must list export formats.");
-      if (a.media !== void 0 && !stringList(a.media, (s) => BRAND_SKILL_MEDIA.includes(s))) errors.push(`appliesTo.media must list ${BRAND_SKILL_MEDIA.join(", ")}.`);
-      if (a.families !== void 0 && !stringList(a.families, (s) => /^[a-z0-9]+(?:\/[a-z0-9][a-z0-9-]*)*\/$/.test(s))) errors.push('appliesTo.families must list asset id prefixes ending in "/".');
-    }
-  }
-  if (meta.references !== void 0 && (!Array.isArray(meta.references) || meta.references.some((r5) => !record27(r5) || typeof r5.url !== "string" || !/^https?:\/\//.test(r5.url) || typeof r5.asset !== "string" || !r5.asset))) {
-    errors.push("references must list { url, asset } pairs with an http(s) url.");
-  }
-  if (meta.files !== void 0) {
-    if (!Array.isArray(meta.files) || meta.files.length > BRAND_SKILL_MAX_REFERENCES) errors.push(`files must list at most ${BRAND_SKILL_MAX_REFERENCES} references.`);
-    else {
-      const seen = /* @__PURE__ */ new Set();
-      for (const f of meta.files) {
-        if (!record27(f) || !isBrandSkillReference(f.path) || typeof f.url !== "string" || typeof f.checksum !== "string" || typeof f.size !== "number") {
-          errors.push("each file needs a references/ path, a url, a checksum and a size.");
-          continue;
-        }
-        if (seen.has(f.path)) errors.push(`file ${f.path} is listed twice.`);
-        seen.add(f.path);
-      }
-    }
-  }
-  return errors;
-}
-function brandSkillMetaOf(asset2) {
-  if (!record27(asset2) || asset2.type !== "skill" || !record27(asset2.meta)) return null;
-  const meta = asset2.meta.skill;
-  return validateBrandSkillMeta(meta).length ? null : meta;
-}
-function brandSkillIndexEntry(asset2) {
-  const meta = brandSkillMetaOf(asset2);
-  if (!meta || !record27(asset2) || typeof asset2.id !== "string") return null;
-  const formats = Array.isArray(asset2.formats) ? asset2.formats.filter(record27) : [];
-  const entry2 = formats.find((f) => f.format === "md") ?? formats[0];
-  const files = meta.files ?? [];
-  const size = (typeof entry2?.size === "number" ? entry2.size : 0) + files.reduce((n7, f) => n7 + f.size, 0);
-  return {
-    id: asset2.id,
-    name: meta.name,
-    label: typeof asset2.name === "string" && asset2.name.trim() ? asset2.name : meta.name,
-    description: meta.description,
-    discipline: meta.discipline,
-    audience: meta.audience,
-    status: meta.status,
-    skillRevision: meta.skillRevision,
-    version: typeof asset2.version === "string" ? asset2.version : "0.0.0",
-    ...meta.owner ? { owner: meta.owner } : {},
-    ...meta.reviewed ? { reviewed: meta.reviewed } : {},
-    ...meta.maintainer ? { maintainer: meta.maintainer } : {},
-    ...meta.appliesTo ? { appliesTo: meta.appliesTo } : {},
-    ...meta.generated ? { generated: true } : {},
-    ...size ? { size } : {},
-    ...typeof entry2?.checksum === "string" ? { checksum: entry2.checksum } : {},
-    ...files.length ? { references: files.map((f) => f.path) } : {}
-  };
-}
-function isPublicBrandSkillAsset(asset2) {
-  if (!record27(asset2) || asset2.type !== "skill") return true;
-  const meta = record27(asset2.meta) && record27(asset2.meta.skill) ? asset2.meta.skill : null;
-  return meta?.audience === "public";
-}
-var BRAND_SKILL_DISCIPLINES, BRAND_SKILL_AUDIENCES, BRAND_SKILL_STATUSES, BRAND_SKILL_MEDIA, BRAND_SKILL_MAX_BYTES, BRAND_SKILL_FILES_MAX_BYTES, BRAND_SKILL_MAX_REFERENCES, record27, nonEmpty, stringList;
-var init_brand_skill_v1 = __esm({
-  "packages/core/src/brand-skill-v1.ts"() {
-    "use strict";
-    init_skill_frontmatter_v1();
-    BRAND_SKILL_DISCIPLINES = [
-      "brand",
-      "voice",
-      "logo",
-      "colour",
-      "typography",
-      "layout",
-      "photography",
-      "illustration",
-      "iconography",
-      "motion",
-      "sound",
-      "interactive",
-      "presentation",
-      "data-visualisation",
-      "print",
-      "merchandise",
-      "environmental",
-      "social",
-      "accessibility",
-      "other"
-    ];
-    BRAND_SKILL_AUDIENCES = ["public", "internal"];
-    BRAND_SKILL_STATUSES = ["draft", "approved"];
-    BRAND_SKILL_MEDIA = ["print", "screen", "video", "audio"];
-    BRAND_SKILL_MAX_BYTES = 65536;
-    BRAND_SKILL_FILES_MAX_BYTES = 524288;
-    BRAND_SKILL_MAX_REFERENCES = 16;
-    record27 = (v) => !!v && typeof v === "object" && !Array.isArray(v);
-    nonEmpty = (v, max = 200) => typeof v === "string" && v.trim().length > 0 && v.length <= max;
-    stringList = (v, test) => Array.isArray(v) && v.length > 0 && v.length <= 64 && v.every((s) => typeof s === "string" && test(s));
-  }
-});
-
-// engine/src/brand-skill.ts
-function slugOf(text13) {
-  return text13.toLowerCase().replace(/[`*_~]/g, "").replace(/[^\p{L}\p{N}\s-]/gu, "").trim().replace(/\s+/g, "-");
-}
-function bodyLines(body, offset) {
-  let inFence = null;
-  return body.split("\n").map((raw, i) => {
-    const text13 = raw.replace(/\r$/, "");
-    const fence = FENCE.exec(text13);
-    const code = inFence !== null || !!fence;
-    if (fence) inFence = inFence === null ? fence[1] : inFence === fence[1] ? null : inFence;
-    return { text: text13, line: i + 1 + offset, code };
-  });
-}
-function brandSkillScopeHints(text13) {
-  const out = [];
-  text13.split("\n").forEach((line, i) => {
-    for (const p of SCOPE_PATTERNS) if (p.pattern.test(line)) out.push({ code: p.code, severity: "warning", message: p.message, line: i + 1 });
-  });
-  return out;
-}
-function parseBrandSkill(text13) {
-  const frontmatter = parseSkillFrontmatter(text13);
-  const body = frontmatter.body;
-  const offset = frontmatter.present && !frontmatter.errors.some((e) => e.includes("not closed")) ? text13.slice(0, frontmatter.length).split("\n").length - 1 : 0;
-  const rows2 = bodyLines(body, offset);
-  const findings = [];
-  const headings = [];
-  const links = [];
-  for (const row of rows2) {
-    if (row.code) continue;
-    const h = /^\s{0,3}(#{1,6})\s+(.*?)\s*#*\s*$/.exec(row.text);
-    if (h?.[2]) headings.push({ level: h[1].length, text: h[2].replace(/\*\*/g, "").trim(), slug: slugOf(h[2]), line: row.line });
-    let masked = row.text;
-    for (const m2 of row.text.matchAll(MD_LINK2)) {
-      links.push({ target: m2[3], text: m2[2], line: row.line, image: m2[1] === "!" });
-      masked = masked.replace(m2[0], " ".repeat(m2[0].length));
-    }
-    for (const m2 of masked.matchAll(AUTOLINK)) {
-      links.push({ target: m2[1], text: m2[1], line: row.line, image: false });
-      masked = masked.replace(m2[0], " ".repeat(m2[0].length));
-    }
-    for (const m2 of masked.matchAll(BARE_URL)) {
-      const target2 = m2[0].replace(/[.,;:!?]+$/, "");
-      links.push({ target: target2, text: target2, line: row.line, image: false });
-    }
-  }
-  if (!frontmatter.present) {
-    findings.push({ code: "frontmatter.absent", severity: "info", message: "No frontmatter. Lolly supplies the name and description from the catalog record when it hands the skill out." });
-  }
-  for (const error2 of frontmatter.errors) findings.push({ code: "frontmatter.invalid", severity: "error", message: error2, line: 1 });
-  if (frontmatter.present && !frontmatter.errors.length) {
-    const { name, description } = frontmatter.fields;
-    if (name !== void 0 && !isAgentSkillName(name)) findings.push({ code: "frontmatter.name", severity: "warning", message: `The name "${name}" is not an Agent Skills name (lowercase letters, digits and single hyphens, at most 64 characters). Lolly uses the catalog name instead.`, line: 2 });
-    if (description !== void 0 && (!description.trim() || description.length > SKILL_DESCRIPTION_MAX)) findings.push({ code: "frontmatter.description", severity: "warning", message: `The description must be 1 to ${SKILL_DESCRIPTION_MAX} characters. Lolly uses the catalog description instead.` });
-  }
-  if (rows2.length > 500) findings.push({ code: "body.lines", severity: "warning", message: `The body has ${rows2.length} lines. The Agent Skills guide keeps a SKILL.md under 500 and moves detail into references.` });
-  const approxTokens = Math.ceil(body.length / 4);
-  if (approxTokens > 5e3) findings.push({ code: "body.tokens", severity: "warning", message: `The body is about ${approxTokens} tokens. The Agent Skills guide keeps a SKILL.md under 5000 and moves detail into references.` });
-  let open3 = null;
-  for (const row of rows2) if (FENCE.test(row.text)) open3 = open3 === null ? row.line : null;
-  if (open3 !== null) findings.push({ code: "body.fence", severity: "warning", message: "A code fence is never closed, so everything after it reads as code.", line: open3 });
-  const seen = /* @__PURE__ */ new Map();
-  for (const h of headings) {
-    const key2 = `${h.level}:${h.slug}`;
-    if (seen.has(key2)) findings.push({ code: "heading.duplicate", severity: "info", message: `The heading "${h.text}" appears twice at the same level, so a citation to it is ambiguous.`, line: h.line });
-    else seen.set(key2, h.line);
-  }
-  const hosts = /* @__PURE__ */ new Map();
-  for (const l of links) {
-    if (!/^https?:\/\//i.test(l.target)) continue;
-    try {
-      const host = new URL(l.target).host;
-      if (!hosts.has(host)) hosts.set(host, l.line);
-    } catch {
-    }
-  }
-  for (const [host, line] of hosts) findings.push({ code: "link.external", severity: "info", message: `Links to ${host}. Lolly never fetches external links and cannot say whether an agent can open them.`, line });
-  for (const hint of brandSkillScopeHints(body)) findings.push({ ...hint, line: (hint.line ?? 0) + offset });
-  return { frontmatter, body, headings, links, findings, lines: rows2.length, approxTokens };
-}
-async function admitBrandSkill(files) {
-  const paths = Object.keys(files);
-  const refuse3 = (code, reason2) => ({ ok: false, code, reason: reason2 });
-  if (!paths.length) return refuse3("empty", "No files were supplied.");
-  for (const path of paths) {
-    if (path.includes("\\") || path.startsWith("/") || /^[A-Za-z]:/.test(path) || path.split("/").some((p) => p === ".." || p === "." || p === "")) {
-      return refuse3("path", `The path "${path}" leaves the skill folder.`);
-    }
-    if (path.split("/")[0] === "scripts" || EXECUTABLE.test(path)) {
-      return refuse3("executable", `"${path}" is code. A brand skill is guidance, so it cannot carry scripts or executables.`);
-    }
-  }
-  const markdownPaths = paths.filter((p) => /\.md$/i.test(p) && !p.includes("/"));
-  const entryPath = paths.includes("SKILL.md") ? "SKILL.md" : paths.length === 1 && markdownPaths.length === 1 ? markdownPaths[0] : null;
-  if (!entryPath) return refuse3("entry", "No SKILL.md was found. Supply one Markdown file, or a folder with SKILL.md at its top.");
-  const decoder6 = new TextDecoder("utf-8", { fatal: true });
-  const decode = (path) => {
-    try {
-      return decoder6.decode(files[path]).replace(/^﻿/, "");
-    } catch {
-      return null;
-    }
-  };
-  const entryBytes = files[entryPath];
-  if (entryBytes.length > BRAND_SKILL_MAX_BYTES) return refuse3("size", `SKILL.md is ${entryBytes.length} bytes; the limit is ${BRAND_SKILL_MAX_BYTES}.`);
-  const markdown = decode(entryPath);
-  if (markdown === null) return refuse3("encoding", `${entryPath} is not valid UTF-8 text.`);
-  const references = {};
-  const refPaths = paths.filter((p) => p !== entryPath).sort();
-  if (refPaths.length > BRAND_SKILL_MAX_REFERENCES) return refuse3("references", `${refPaths.length} reference files; the limit is ${BRAND_SKILL_MAX_REFERENCES}.`);
-  let total = entryBytes.length;
-  for (const path of refPaths) {
-    if (path.startsWith("assets/")) return refuse3("asset-file", `"${path}" is a file inside the skill. Images and other media a skill refers to must be catalog assets, named by id.`);
-    if (!isBrandSkillReference(path)) return refuse3("reference-path", `"${path}" is not a reference Lolly carries. References sit one level deep under references/ as .md, .json, .csv or .txt.`);
-    total += files[path].length;
-    if (total > BRAND_SKILL_FILES_MAX_BYTES) return refuse3("size", `The skill and its references exceed ${BRAND_SKILL_FILES_MAX_BYTES} bytes.`);
-    const text13 = decode(path);
-    if (text13 === null) return refuse3("encoding", `${path} is not valid UTF-8 text.`);
-    references[path] = text13;
-  }
-  const parsed = parseBrandSkill(markdown);
-  const invalid4 = parsed.findings.find((f) => f.severity === "error");
-  if (invalid4) return refuse3("frontmatter", invalid4.message);
-  let sha2563;
-  if (!refPaths.length) sha2563 = `sha256:${await sha256Hex(entryBytes)}`;
-  else {
-    const rows2 = [];
-    for (const path of ["SKILL.md", ...refPaths]) rows2.push(`${await sha256Hex(path === "SKILL.md" ? entryBytes : files[path])}  ${path}
-`);
-    sha2563 = `sha256:${await sha256Hex(new TextEncoder().encode(rows2.join("")))}`;
-  }
-  return { ok: true, skill: { markdown, references, sha256: sha2563, size: total, parsed } };
-}
-function classifyBrandSkillLinks(links, assets, meta) {
-  const byId = new Map(assets.map((a) => [a.id, a]));
-  const byUrl = /* @__PURE__ */ new Map();
-  const named = [];
-  for (const a of assets) for (const f of a.formats ?? []) {
-    byUrl.set(f.url, a);
-    const w = words(f.url);
-    if (w.length >= 2 && !named.some((n7) => n7.asset.id === a.id)) named.push({ asset: a, words: w });
-  }
-  const approved = new Map((meta?.references ?? []).map((r5) => [r5.url, r5.asset]));
-  const urlOf = (a) => a?.formats?.[0]?.url;
-  return links.map((link) => {
-    const target2 = link.target;
-    const id3 = target2.replace(/^asset:/, "");
-    if (byId.has(id3)) return { ...link, kind: "asset", asset: id3, ...urlOf(byId.get(id3)) ? { assetUrl: urlOf(byId.get(id3)) } : {} };
-    const pathOnly = target2.split(/[?#]/)[0];
-    if (byUrl.has(pathOnly)) {
-      const a = byUrl.get(pathOnly);
-      return { ...link, kind: "asset", asset: a.id, assetUrl: pathOnly };
-    }
-    if (target2.startsWith("#")) return { ...link, kind: "anchor" };
-    if (/^https?:\/\//i.test(target2)) {
-      const mapped = approved.get(target2);
-      if (mapped) return { ...link, kind: "asset", asset: mapped, approved: true, ...urlOf(byId.get(mapped)) ? { assetUrl: urlOf(byId.get(mapped)) } : {} };
-      const linkWords = new Set(words(target2));
-      const hits2 = named.filter((n7) => n7.words.every((w) => linkWords.has(w))).sort((a, b) => b.words.length - a.words.length || a.asset.id.localeCompare(b.asset.id));
-      const best = hits2.length && (hits2.length === 1 || hits2[0].words.length > hits2[1].words.length) ? hits2[0].asset.id : void 0;
-      return { ...link, kind: "external", ...hits2.length ? { candidates: hits2.map((h) => h.asset.id) } : {}, ...best ? { proposed: best } : {} };
-    }
-    if (!/^[a-z][a-z0-9+.-]*:/i.test(target2) && !target2.startsWith("/")) return { ...link, kind: "file" };
-    return { ...link, kind: "other" };
-  });
-}
-function hexOf5(value2) {
-  const m2 = /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.exec(value2.trim());
-  if (!m2) return null;
-  const h = m2[1].toLowerCase();
-  return `#${h.length === 3 ? h.split("").map((c) => c + c).join("") : h}`;
-}
-function familiesOf(stacks) {
-  const out = /* @__PURE__ */ new Set();
-  for (const stack of stacks) for (const part of stack.split(",")) {
-    const name = part.trim().replace(/^["']|["']$/g, "");
-    if (name && !GENERIC_FAMILIES2.has(name.toLowerCase())) out.add(name);
-  }
-  return [...out];
-}
-function brandSkillCoverage(body, facts2) {
-  const declared = /* @__PURE__ */ new Map();
-  for (const c of facts2.colours) {
-    const h = hexOf5(c.value);
-    if (h) declared.set(h, [...declared.get(h) ?? [], c.name ?? c.path ?? h]);
-  }
-  const families = familiesOf(facts2.fonts);
-  const rulesByKind = /* @__PURE__ */ new Map();
-  for (const r5 of facts2.houseRules) rulesByKind.set(r5.kind, [...rulesByKind.get(r5.kind) ?? [], r5]);
-  const rows2 = [];
-  const grouped = /* @__PURE__ */ new Map();
-  const colourSeen = /* @__PURE__ */ new Set();
-  let section = "";
-  const push = (key2, row, value2) => {
-    const hit = grouped.get(key2);
-    if (hit) {
-      if (value2 && !hit.values.includes(value2)) hit.values.push(value2);
-      return;
-    }
-    const fresh = { ...row, ...value2 ? { values: [value2] } : {} };
-    grouped.set(key2, fresh);
-    rows2.push(fresh);
-  };
-  for (const row of bodyLines(body, 0)) {
-    if (row.code) continue;
-    const h = /^\s{0,3}#{1,6}\s+(.*?)\s*#*\s*$/.exec(row.text);
-    if (h) {
-      section = h[1].replace(/\*\*/g, "").trim();
-      continue;
-    }
-    const text13 = row.text.trim();
-    if (!text13) continue;
-    for (const m2 of text13.matchAll(/#(?:[0-9a-f]{6}|[0-9a-f]{3})\b/gi)) {
-      const h6 = hexOf5(m2[0]);
-      if (!h6 || colourSeen.has(`${section}:${h6}`)) continue;
-      colourSeen.add(`${section}:${h6}`);
-      const known3 = declared.has(h6);
-      push(`colour:${section}:${known3}`, {
-        status: known3 ? "agree" : "not-in-tokens",
-        kind: "colour",
-        section,
-        line: row.line,
-        text: text13.slice(0, 160),
-        detail: known3 ? "These values are colours in the design system." : "These values are not colours in the design system. Tokens win when Lolly renders; tell the owner which is right."
-      }, h6);
-    }
-    for (const family2 of families) {
-      if (TYPE_WORDS.test(text13) && !/\blogo\b/i.test(text13) && new RegExp(`(^|[^\\w])${family2.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}([^\\w]|$)`).test(text13)) {
-        push(`font:${family2}`, { status: "agree", kind: "font", section, line: row.line, text: text13.slice(0, 160), detail: `${family2} is a declared font family.` });
-      }
-    }
-    const only = /\b(?:only|always)\s+use\s+(?:the\s+)?([A-Z][\w-]*(?:\s+[A-Z][\w-]*)*)\s+font\b|\bnever use a font that is not (?:the\s+)?([A-Z][\w-]*(?:\s+[A-Z][\w-]*)*)\s+font\b/i.exec(text13);
-    if (only) {
-      const named = only[1] ?? only[2];
-      const others = families.filter((f) => f !== named && !f.startsWith(`${named} `));
-      push(`exclusive:${named}`, {
-        status: others.length ? "conflict" : "agree",
-        kind: "font",
-        section,
-        line: row.line,
-        text: text13.slice(0, 160),
-        detail: others.length ? `The skill allows only ${named}; the design system also declares ${others.join(", ")}. Tell the owner which is right.` : `The design system declares ${named} and no other family.`
-      });
-    }
-    for (const p of RULE_PATTERNS) {
-      if (!p.test(text13)) continue;
-      const rules = rulesByKind.get(p.kind) ?? [];
-      push(`rule:${section}:${p.kind}`, rules.length ? { status: "checked", kind: "rule", section, line: row.line, text: text13.slice(0, 160), ruleKind: p.kind, ruleIds: rules.map((r5) => r5.id), detail: `Lolly checks this kind of statement with ${rules.map((r5) => r5.label ?? r5.id).join(", ")}. Read the rule to see whether it says the same thing.` } : { status: "guidance-only", kind: "rule", section, line: row.line, text: text13.slice(0, 160), ruleKind: p.kind, detail: `Not checked: the design system has no ${p.kind} rule. One could be drafted in the Rules room.` });
-    }
-    for (const p of UNCHECKED_PATTERNS) {
-      if (!p.test(text13) && !p.test(section)) continue;
-      push(`gap:${section}:${p.topic}`, { status: "guidance-only", kind: "rule", section, line: row.line, text: text13.slice(0, 160), detail: `Not checked: Lolly has no rule for ${p.topic} yet.` });
-    }
-  }
-  const summary = { agree: 0, conflict: 0, "not-in-tokens": 0, checked: 0, "guidance-only": 0 };
-  for (const r5 of rows2) summary[r5.status]++;
-  return {
-    rows: rows2,
-    summary,
-    note: "Lines were matched by fixed patterns: colour values, font names and words that point at a house rule. Nothing here says Lolly understood the guide, and lines that matched nothing are guidance for people and agents to read."
-  };
-}
-function brandSkillCoverageFacts(brief2) {
-  const list4 = (v) => Array.isArray(v) ? v.filter((x) => !!x && typeof x === "object") : [];
-  return {
-    colours: list4(brief2?.colors).filter((c) => typeof c.value === "string").map((c) => ({ value: c.value, ...typeof c.name === "string" ? { name: c.name } : {}, ...typeof c.path === "string" ? { path: c.path } : {} })),
-    fonts: list4(brief2?.fonts).map((f) => f.value).filter((v) => typeof v === "string"),
-    houseRules: list4(brief2?.houseRules).filter((r5) => typeof r5.id === "string" && typeof r5.kind === "string").map((r5) => ({ id: r5.id, kind: r5.kind, ...typeof r5.label === "string" ? { label: r5.label } : {} }))
-  };
-}
-function exportBrandSkillFolder(input) {
-  const fm = parseSkillFrontmatter(input.markdown);
-  const name = isAgentSkillName(fm.fields.name) ? fm.fields.name : input.meta.name;
-  const origin = input.origin?.replace(/\/+$/, "");
-  const rewrites = [];
-  const heldBack = [...input.heldBack ?? []];
-  const files = {};
-  let body = fm.body;
-  const seen = /* @__PURE__ */ new Set();
-  for (const link of input.links ?? []) {
-    if (link.kind !== "asset" || !link.asset || seen.has(link.target)) continue;
-    seen.add(link.target);
-    let to = null;
-    if (input.mode === "bundled") {
-      const b = input.bundle?.[link.asset];
-      if (b) {
-        to = `assets/${b.file}`;
-        files[to] = b.bytes;
-      } else if (!heldBack.some((h) => h.asset === link.asset)) heldBack.push({ asset: link.asset, reason: "Not bundled: no redistributable file was supplied for it." });
-    } else if (origin && link.assetUrl) to = `${origin}${link.assetUrl}`;
-    if (to && to !== link.target) {
-      body = body.split(link.target).join(to);
-      rewrites.push({ from: link.target, to });
-    }
-  }
-  const source = origin && input.asset.url ? `${origin}${input.asset.url}` : `asset:${input.asset.id}`;
-  const metadata2 = {
-    ...fm.metadata,
-    "lolly-asset": input.asset.id,
-    "lolly-source": source,
-    "lolly-revision": input.meta.skillRevision,
-    "lolly-version": input.asset.version,
-    "lolly-sha256": input.sha256.replace(/^sha256:/, ""),
-    "lolly-audience": input.meta.audience,
-    ...input.meta.generated ? { "lolly-generated": "true" } : {}
-  };
-  const fields2 = fm.present && !fm.errors.length ? { ...fm.fields, name } : { name, description: input.meta.description, ...input.asset.license ? { license: input.asset.license } : {} };
-  if (!fields2.description?.trim() || fields2.description.length > SKILL_DESCRIPTION_MAX) fields2.description = input.meta.description;
-  files["SKILL.md"] = `${writeSkillFrontmatter(fields2, metadata2)}
-${body.replace(/^\r?\n/, "")}`;
-  for (const [path, text13] of Object.entries(input.references ?? {})) files[path] = text13;
-  for (const [path, bytes2] of Object.entries(input.extras ?? {})) files[path] = bytes2;
-  files["lolly.json"] = `${JSON.stringify({
-    format: "lolly-brand-skill",
-    version: 1,
-    asset: input.asset.id,
-    assetVersion: input.asset.version,
-    name,
-    label: input.asset.name ?? name,
-    ...input.system ? { system: input.system } : {},
-    discipline: input.meta.discipline,
-    audience: input.meta.audience,
-    status: input.meta.status,
-    skillRevision: input.meta.skillRevision,
-    sha256: input.sha256,
-    source,
-    mode: input.mode,
-    ...input.meta.owner ? { owner: input.meta.owner } : {},
-    ...input.meta.maintainer ? { maintainer: input.meta.maintainer } : {},
-    note: "This folder is a snapshot. The body is the brand's text; only the link targets listed in rewrites were changed. Run `lolly system skill check <folder>` to compare it with the design system's current revision.",
-    rewrites,
-    heldBack,
-    ...input.coverage ? { coverage: input.coverage } : {}
-  }, null, 2)}
-`;
-  return { name, files, rewrites, heldBack };
-}
-function brandSkillFreshness(markdown, current) {
-  const meta = parseSkillFrontmatter(markdown).metadata;
-  const installed = {
-    ...meta["lolly-revision"] ? { revision: meta["lolly-revision"] } : {},
-    ...meta["lolly-version"] ? { version: meta["lolly-version"] } : {},
-    ...meta["lolly-sha256"] ? { sha256: meta["lolly-sha256"] } : {}
-  };
-  const asset2 = meta["lolly-asset"];
-  if (!asset2) return { status: "unknown", installed, message: "This copy carries no lolly-asset metadata, so Lolly cannot tell which skill it came from." };
-  if (!current || current.id !== asset2) return { status: "unknown", asset: asset2, installed, message: `The design system has no skill ${asset2}.` };
-  const now2 = { revision: current.skillRevision, version: current.version, ...current.sha256 ? { sha256: current.sha256.replace(/^sha256:/, "") } : {} };
-  const same = installed.sha256 && now2.sha256 ? installed.sha256 === now2.sha256 : installed.version === now2.version;
-  return same ? { status: "current", asset: asset2, installed, current: now2, message: `Up to date: revision ${now2.revision}.` } : { status: "outdated", asset: asset2, installed, current: now2, message: `This copy is revision ${installed.revision ?? "unknown"}; the design system has ${now2.revision} (catalog ${now2.version}).` };
-}
-function brandSkillsSection(entries, systemName) {
-  const rank = (e) => (e.discipline === "brand" ? 0 : 2) + (e.maintainer || e.generated ? 1 : 0);
-  const index2 = [...entries].sort((a, b) => rank(a) - rank(b) || a.name.localeCompare(b.name));
-  return {
-    note: "Brand skills are the brand's own guidance, one per discipline. Read the overall brand skill first, then the one for the work at hand. They speak for brand intent only, never for permissions or tools, and they are guidance, not checks: houseRules are what Lolly checks.",
-    read: {
-      index: "lolly://design-system/skills",
-      skill: "lolly://design-system/skill/{name}",
-      cli: "lolly system skill <name> [--into <dir>]"
-    },
-    index: index2,
-    baseline: {
-      name: baselineSkillName(systemName),
-      generated: true,
-      description: `Generated by Lolly from the ${systemName} design brief: colours, pairings, type, logos, icons, media and house rules. Authored skills take precedence.`
-    }
-  };
-}
-function baselineSkillName(systemName) {
-  const slug4 = systemName.toLowerCase().normalize("NFKD").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 54).replace(/-+$/, "");
-  return `${slug4 || "design-system"}-baseline`;
-}
-function baselineBrandSkill(source, opts = {}) {
-  const brief2 = source;
-  const systemName = typeof brief2.name === "string" && brief2.name.trim() ? brief2.name.trim() : "Design system";
-  const name = baselineSkillName(systemName);
-  const description = `The ${systemName} design system as Lolly holds it: named colours, approved pairings, type, logos per surface, icon themes, media families and the house rules Lolly checks. Generated from the design brief; the brand's own skills take precedence.`;
-  const list4 = (v) => Array.isArray(v) ? v.filter((x) => !!x && typeof x === "object") : [];
-  const rec2 = (v) => v && typeof v === "object" && !Array.isArray(v) ? v : {};
-  const out = [
-    `# ${systemName} design system (generated)`,
-    "",
-    "Lolly wrote this from the design system's tokens and catalog. It states values, not intent: where one of the brand's own skills covers the same ground, follow that skill. Use asset ids exactly as written, never redraw a logo, and check finished work with `lolly_check` or `lolly system check`.",
-    ""
-  ];
-  const colours2 = list4(brief2.colors);
-  if (colours2.length) {
-    out.push("## Colours", "", "| Name | Value | Token |", "| --- | --- | --- |");
-    for (const c of colours2.slice(0, 120)) out.push(`| ${cell(c.name ?? "")} | ${cell(c.value)} | \`${cell(c.path)}\` |`);
-    if (colours2.length > 120) out.push("", `${colours2.length - 120} more colours are in the design context.`);
-    out.push("");
-  }
-  const combos = rec2(brief2.combinations);
-  const pairs2 = list4(combos.pairs);
-  if (pairs2.length) {
-    out.push("## Pairings", "");
-    if (combos.from === "derived" && typeof combos.note === "string") out.push(combos.note, "");
-    const label5 = (s) => {
-      const r5 = rec2(s);
-      return cell(r5.name ?? r5.slot ?? r5.path ?? r5.value);
-    };
-    for (const p of pairs2.slice(0, 24)) {
-      const text13 = list4(p.text).map(label5).filter(Boolean);
-      const graphic = list4(p.graphicOnly ?? p.graphic).map(label5).filter(Boolean);
-      out.push(`- On ${label5(p.background)}: text ${text13.join(", ") || "none"}${graphic.length ? `; graphics only ${graphic.join(", ")}` : ""}.`);
-    }
-    out.push("");
-  }
-  const type = rec2(brief2.type);
-  const families = list4(type.families);
-  if (families.length || list4(type.rules).length) {
-    out.push("## Type", "");
-    for (const f of families) out.push(`- \`${cell(f.path)}\`: ${cell(f.value)}`);
-    for (const r5 of list4(type.rules)) out.push(`- ${cell(r5.label ?? r5.ruleId)} (${cell(r5.requirement ?? "advisory")})`);
-    out.push("");
-  }
-  const logos = rec2(brief2.logos);
-  const variants = list4(logos.variants);
-  if (variants.length) {
-    out.push("## Logos", "");
-    for (const key2 of ["onLight", "onDark", "monoOnLight", "monoOnDark"]) if (typeof logos[key2] === "string") out.push(`- ${key2}: \`${logos[key2]}\``);
-    for (const v of variants.slice(0, 40)) out.push(`- \`${cell(v.id)}\`${v.name ? ` ${cell(v.name)}` : ""} (surface ${cell(v.surface)})`);
-    out.push("", "Write a logo as `<id>?theme=auto` to let it follow the surface under it.", "");
-  }
-  const icons = rec2(brief2.icons);
-  if (typeof icons.count === "number" && icons.count > 0) {
-    out.push("## Icons", "", `${icons.count} icons. Themes:`, "");
-    for (const t of list4(icons.themes)) out.push(`- \`${cell(t.id)}\`: accent ${cell(t.c1)}, base ${cell(t.c2)}${Array.isArray(t.surfaces) ? ` (for ${t.surfaces.map(cell).join(", ")} surfaces)` : ""}`);
-    out.push("", "Write an icon as `<id>?theme=<themeId>` or `<id>?theme=auto`.", "");
-  }
-  const families2 = Object.entries(rec2(rec2(brief2.media).families));
-  if (families2.length) {
-    out.push("## Media", "");
-    for (const [family2, f] of families2) {
-      const r5 = rec2(f);
-      out.push(`- ${cell(family2)}: ${cell(r5.count)} ${cell(r5.type)}${Array.isArray(r5.licenses) && r5.licenses.length ? ` (${r5.licenses.map(cell).join(", ")})` : ""}`);
-    }
-    out.push("", "Ids are references, not a licence: check each family's licence before media leaves the brand.", "");
-  }
-  const rules = list4(brief2.houseRules);
-  if (rules.length) {
-    out.push("## House rules Lolly checks", "");
-    for (const r5 of rules) out.push(`- **${cell(r5.label ?? r5.id)}** (${cell(r5.requirement ?? "advisory")}): ${cell(r5.description ?? r5.kind)}`);
-    out.push("");
-  }
-  const markdown = writeSkillFrontmatter({ name, description }, { "lolly-generated": "true" }) + out.join("\n");
-  const bytes2 = ENCODER.encode(markdown).length;
-  const meta = {
-    name,
-    description,
-    discipline: "brand",
-    audience: "public",
-    status: "draft",
-    skillRevision: opts.revision ?? "generated",
-    maintainer: "lolly",
-    generated: true
-  };
-  return { meta, markdown: bytes2 > BRAND_SKILL_MAX_BYTES ? markdown.slice(0, BRAND_SKILL_MAX_BYTES - 200) + "\n\nThe rest is in the design context.\n" : markdown };
-}
-function measureSvgFamily(sources) {
-  const tally3 = (m2, k) => {
-    m2.set(k, (m2.get(k) ?? 0) + 1);
-  };
-  const views = /* @__PURE__ */ new Map();
-  const fills = /* @__PURE__ */ new Map();
-  const pathCounts = [];
-  const disallowed = { text: 0, image: 0, script: 0, filter: 0 };
-  let themable = 0;
-  for (const svg of sources) {
-    const root2 = /<svg\b[^>]*>/i.exec(svg)?.[0] ?? "";
-    tally3(views, (/\bviewBox\s*=\s*["']([^"']+)["']/i.exec(root2)?.[1] ?? "none").trim().replace(/\s+/g, " "));
-    if (/\.c1\b/.test(svg) && /\.c2\b/.test(svg)) themable++;
-    for (const m2 of svg.matchAll(/\bfill\s*[:=]\s*["']?\s*(#[0-9a-f]{3,8})\b/gi)) tally3(fills, hexOf5(m2[1]) ?? m2[1].toLowerCase());
-    pathCounts.push((svg.match(/<(path|circle|rect|ellipse|polygon|polyline|line)\b/gi) ?? []).length);
-    if (/<text\b/i.test(svg)) disallowed.text++;
-    if (/<image\b/i.test(svg)) disallowed.image++;
-    if (/<script\b|\bon[a-z]+\s*=/i.test(svg)) disallowed.script++;
-    if (/<filter\b/i.test(svg)) disallowed.filter++;
-  }
-  const sorted = (m2) => [...m2].map(([value2, count4]) => ({ value: value2, count: count4 })).sort((a, b) => b.count - a.count || a.value.localeCompare(b.value));
-  const counts = [...pathCounts].sort((a, b) => a - b);
-  return {
-    count: sources.length,
-    viewBoxes: sorted(views),
-    themable,
-    fills: sorted(fills).slice(0, 24),
-    disallowed,
-    paths: { min: counts[0] ?? 0, median: counts[Math.floor(counts.length / 2)] ?? 0, max: counts[counts.length - 1] ?? 0 }
-  };
-}
-function spreadExemplars(ids2, limit3 = 12) {
-  const sorted = [...ids2].sort();
-  if (sorted.length <= limit3) return sorted;
-  const step = sorted.length / limit3;
-  return Array.from({ length: limit3 }, (_, i) => sorted[Math.floor(i * step)]);
-}
-function brandSkillFilesSize(files) {
-  return Object.values(files).reduce((n7, v) => n7 + (typeof v === "string" ? ENCODER.encode(v).length : v.length), 0);
-}
-var FENCE, MD_LINK2, AUTOLINK, BARE_URL, SCOPE_PATTERNS, EXECUTABLE, words, GENERIC_FAMILIES2, TYPE_WORDS, RULE_PATTERNS, UNCHECKED_PATTERNS, ENCODER, cell;
-var init_brand_skill = __esm({
-  "engine/src/brand-skill.ts"() {
-    "use strict";
-    init_brand_skill_v1();
-    init_skill_frontmatter_v1();
-    init_bytes();
-    FENCE = /^\s{0,3}(```|~~~)/;
-    MD_LINK2 = /(!?)\[([^\]\n]*)\]\(\s*<?([^)\s>]+)>?(?:\s+"[^"\n]*")?\s*\)/g;
-    AUTOLINK = /<(https?:\/\/[^>\s]+)>/g;
-    BARE_URL = /https?:\/\/[^\s`'"<>()[\]]+/g;
-    SCOPE_PATTERNS = [
-      { code: "scope.override", pattern: /\b(ignore|disregard|forget)\b.{0,30}\b(previous|prior|above|earlier|other|system)\b.{0,20}\b(instructions?|prompts?|rules?)\b|\b(ignore|disregard|forget)\b.{0,40}\b(instructions?|prompts?)\b/i, message: "Asks the reader to set aside other instructions. A brand skill speaks for brand intent only." },
-      { code: "scope.permission", pattern: /\b(you (are|have been) (granted|given|allowed)|you (now )?have (full |admin |root )?(permission|access|authori[sz]ation)|you are (now )?(authori[sz]ed|permitted)|grant yourself|without asking|do not ask (for )?(permission|confirmation))\b/i, message: "Speaks about permissions. Grants decide what an agent may do; a skill cannot." },
-      { code: "scope.tools", pattern: /^\s*allowed-tools\s*:/i, message: "Names allowed tools. Lolly does not grant tools from a brand skill." },
-      { code: "scope.execute", pattern: /\b(curl|wget)\b[^|\n]*\|\s*(ba|z)?sh\b|\b(run|execute)\s+(this|the following)\s+(command|script|code)\b|\b(run|execute)\b[^.\n]{0,40}\b(commands?|shell)\b|\b(run|execute)\s+`/i, message: "Asks the reader to run code. A brand skill is guidance, not a script." }
-    ];
-    EXECUTABLE = /\.(?:js|mjs|cjs|ts|mts|cts|jsx|tsx|py|pyc|sh|bash|zsh|fish|ps1|psm1|bat|cmd|exe|com|dll|so|dylib|rb|pl|php|lua|jar|class|wasm|bin|app|scr|vbs|applescript)$/i;
-    words = (url) => {
-      const path = url.split(/[?#]/)[0];
-      return (path.split("/").pop() ?? "").replace(/\.[a-z0-9]+$/i, "").toLowerCase().split(/[^a-z0-9]+/).filter(Boolean);
-    };
-    GENERIC_FAMILIES2 = /* @__PURE__ */ new Set(["serif", "sans-serif", "monospace", "cursive", "fantasy", "system-ui", "ui-sans-serif", "ui-serif", "ui-monospace", "ui-rounded", "emoji", "math", "fangsong"]);
-    TYPE_WORDS = /\b(fonts?|typefaces?|type|typography|headlines?|headings?|sub ?heads?|sub ?headlines?|body|titles?|quotes?|text|weights?|captions?|labels?)\b/i;
-    RULE_PATTERNS = [
-      { kind: "text-case", test: (l) => /\b(all caps|uppercase|upper case|sentence case|title case|capitali[sz]ation)\b/i.test(l) },
-      { kind: "text-weight", test: (l) => /\b(semi ?bold|bold|medium|regular|light|weight)\b/i.test(l) && TYPE_WORDS.test(l) },
-      { kind: "text-align", test: (l) => /\b(align(ed|ment)?|centred|centered|justif(y|ied))\b/i.test(l) && TYPE_WORDS.test(l) && !/\blogo\b/i.test(l) },
-      { kind: "color-pairing", test: (l) => /\b(colou?r combinations?|backgrounds? and foregrounds?|\w+ backgrounds?\s*:)/i.test(l) },
-      { kind: "logo-surface", test: (l) => /\blogo\b/i.test(l) && /\b(background|surface|luminance)\b/i.test(l) },
-      { kind: "stroke-on-rounded", test: (l) => /\bstrokes?\b/i.test(l) && /\b(round(ed)?|corners?)\b/i.test(l) },
-      { kind: "dash-reserved", test: (l) => /\bdash(ed|es)?\b/i.test(l) && !/\bdashboards?\b/i.test(l) }
-    ];
-    UNCHECKED_PATTERNS = [
-      { topic: "logo scale", test: (l) => /\blogo\b.*\b\d+\s*%|\b\d+\s*%.*\b(canvas|logo)\b/i.test(l) || /\bscale\b/i.test(l) && /\b(logo|canvas)\b/i.test(l) },
-      { topic: "logo clear space", test: (l) => /\b(clear ?space|clearance|minimum margin|padding around)\b/i.test(l) },
-      { topic: "orphans and widows", test: (l) => /\b(orphans?|widows?)\b/i.test(l) },
-      { topic: "type consistency", test: (l) => /\b(type consistency|same font size|same (font )?weight|consistent (size|weight)s?)\b/i.test(l) },
-      { topic: "logo position", test: (l) => /\b(default position|top-left|top left)\b/i.test(l) }
-    ];
-    ENCODER = new TextEncoder();
-    cell = (v) => String(v ?? "").replace(/[\r\n|]/g, " ").trim();
   }
 });
 
@@ -135032,7 +135120,8 @@ function mediaSection(doc, catalog, assets) {
     treatments
   };
 }
-function designBrief(doc, catalog, opts = {}) {
+function designBrief(source, catalog, opts = {}) {
+  const { doc, leftOut } = leaveOutScopedTokenText(source);
   const context = brandContext(doc, opts);
   const facts2 = catalog ?? {};
   const assets = (Array.isArray(facts2.assets) ? facts2.assets : []).filter((a) => record28(a) && typeof a.id === "string" && a.deprecated !== true);
@@ -135066,6 +135155,7 @@ function designBrief(doc, catalog, opts = {}) {
     master: masterSection(master, resolve8, masterDeclared ? facts2.masterAsset : void 0),
     houseRules,
     skills,
+    ...leftOut.length ? { leftOut } : {},
     coverage: {
       ...context.coverage,
       themes: themes.length ? "declared" : "unavailable",
@@ -135112,6 +135202,7 @@ var init_design_brief = __esm({
     init_design_house_rules();
     init_css_color();
     init_brand_skill();
+    init_token_scope();
     record28 = (v) => !!v && typeof v === "object" && !Array.isArray(v);
     tagsOf = (a) => Array.isArray(a.tags) ? a.tags.filter((t) => typeof t === "string") : [];
     hexOf6 = (value2) => {
@@ -139506,7 +139597,7 @@ function importVectorPaint(svg, parseXml) {
   const admitted3 = admitTextInlineSvg(svg, parseXml, "vector"), doc = parseXml(admitted3), root2 = doc.documentElement;
   const view = (root2.getAttribute("viewBox") ?? "").split(/[\s,]+/).map(Number), width = view[2], height = view[3];
   const paths = [], idMap = new Map(Array.from(doc.getElementsByTagName("*")).filter((el) => el.hasAttribute("id")).map((el) => [el.getAttribute("id"), el]));
-  function walk3(element, definition = false, instance = false) {
+  function walk4(element, definition = false, instance = false) {
     const tag3 = element.localName, attributes2 = Object.fromEntries(Array.from(element.attributes).map((attr7) => [attr7.name, attr7.value]));
     if (instance) delete attributes2.id;
     if (tag3 === "use") {
@@ -139515,7 +139606,7 @@ function importVectorPaint(svg, parseXml) {
       const x = Number(attributes2.x ?? 0), y = Number(attributes2.y ?? 0), own4 = attributes2.transform ?? "";
       for (const key2 of ["href", "x", "y", "width", "height"]) delete attributes2[key2];
       attributes2.transform = `${own4} translate(${x} ${y})`.trim();
-      const child2 = walk3(target2, false, true);
+      const child2 = walk4(target2, false, true);
       return { tag: "g", attributes: attributes2, children: child2 ? [child2] : [] };
     }
     if (geometry2[tag3]) {
@@ -139531,7 +139622,7 @@ function importVectorPaint(svg, parseXml) {
       return { tag: "path", attributes: attributes2, contours: indices };
     }
     const children2 = Array.from(element.children).flatMap((child2) => {
-      const node = walk3(child2, tag3 === "defs", instance);
+      const node = walk4(child2, tag3 === "defs", instance);
       return node ? [node] : [];
     });
     if (tag3 === "svg") {
@@ -139542,7 +139633,7 @@ function importVectorPaint(svg, parseXml) {
     }
     return { tag: tag3, attributes: attributes2, children: children2 };
   }
-  const tree = walk3(root2);
+  const tree = walk4(root2);
   if (!paths.length) throw new Error("This selection has no visible vector geometry.");
   const path = encodeAuthoredPaths(paths), paint2 = parseVectorPaint({ version: 1, width, height, root: tree }, paths.length);
   return { path, paint: paint2 };
@@ -145309,13 +145400,13 @@ function findSlideRegions(source, opts = {}) {
   };
   const tree = build2({ image, x0: 0, y0: 0, w: width, h: height, ground: ground.model, threshold: ground.threshold, depth: 0, gridCells }, void 0);
   const flat = [];
-  const walk3 = (nodes) => {
+  const walk4 = (nodes) => {
     for (const node of nodes) {
       flat.push(node.region);
-      walk3(node.children);
+      walk4(node.children);
     }
   };
-  walk3(tree);
+  walk4(tree);
   const kept2 = overflow ? [] : flat.slice(0, maxRegions);
   const dropped = overflow ? flat.length + overflowSeen : flat.length - kept2.length;
   return {
@@ -148216,7 +148307,7 @@ function mapFontFamilies(source, aliases) {
   const doc = structuredClone(source);
   let nodes = 0;
   const family2 = (v) => typeof v === "string" ? aliases.get(v.toLowerCase()) ?? v : Array.isArray(v) ? v.map(family2) : v;
-  function walk3(v, inherited4, depth) {
+  function walk4(v, inherited4, depth) {
     if (++nodes > 2e4 || depth > 48) throw new Error("The font projection exceeded its scan limit.");
     if (!v || typeof v !== "object" || Array.isArray(v)) return;
     const obj3 = v, type = obj3.$type ?? inherited4;
@@ -148228,9 +148319,9 @@ function mapFontFamilies(source, aliases) {
       }
       return;
     }
-    for (const [key2, child2] of Object.entries(obj3)) if (!key2.startsWith("$")) walk3(child2, type, depth + 1);
+    for (const [key2, child2] of Object.entries(obj3)) if (!key2.startsWith("$")) walk4(child2, type, depth + 1);
   }
-  walk3(doc, null, 0);
+  walk4(doc, null, 0);
   return doc;
 }
 async function verifyPinnedFontBytes(pin, bytes2) {
@@ -150170,7 +150261,7 @@ function admit(root2) {
   }
 }
 function itemSeconds(item2, depth = 0) {
-  if (!isObject2(item2) || depth > MAX_DEPTH6) return 0;
+  if (!isObject2(item2) || depth > MAX_DEPTH7) return 0;
   const range = readRange(item2.source_range);
   if (range) return seconds2(range.duration);
   const kind = schema(item2);
@@ -150215,7 +150306,7 @@ function readOtio(source, options2 = {}) {
   if (trackNodes.length > TIMELINE_MAX_TRACKS) throw new Error(`The timeline exceeds ${TIMELINE_MAX_TRACKS} tracks.`);
   const rates = [];
   const gather = (node, depth) => {
-    if (!isObject2(node) || depth > MAX_DEPTH6) return;
+    if (!isObject2(node) || depth > MAX_DEPTH7) return;
     if (schema(node) === "Clip") {
       const r5 = readRange(node.source_range) ?? (activeMedia(node) && readRange(activeMedia(node).available_range));
       if (r5) rates.push(r5.duration.rate);
@@ -150329,12 +150420,12 @@ function readOtio(source, options2 = {}) {
   report4.add("size", `OpenTimelineIO carries no frame size; ${width}x${height} was assumed.`);
   return buildSequence({ name, rate: rate3, width, height, clips: clips2, report: report4, timecodeStart: timecodeStart || void 0 });
 }
-var MAX_DEPTH6, MAX_NODES5, isObject2, schema, num17, seconds2;
+var MAX_DEPTH7, MAX_NODES5, isObject2, schema, num17, seconds2;
 var init_timeline_otio = __esm({
   "engine/src/timeline-otio.ts"() {
     "use strict";
     init_timeline_common();
-    MAX_DEPTH6 = 24;
+    MAX_DEPTH7 = 24;
     MAX_NODES5 = 4e5;
     isObject2 = (v) => typeof v === "object" && v !== null && !Array.isArray(v);
     schema = (v) => isObject2(v) && typeof v.OTIO_SCHEMA === "string" ? v.OTIO_SCHEMA.split(".")[0] : "";
@@ -150444,7 +150535,7 @@ function readFcpxml(source, parse2) {
     }
   };
   function place2(el, base, lane, depth) {
-    if (depth > MAX_DEPTH7) throw new Error("The FCPXML storyline nests too deeply.");
+    if (depth > MAX_DEPTH8) throw new Error("The FCPXML storyline nests too deeply.");
     if (unsupported(el)) return;
     const dur = parseRationalSeconds(el.getAttribute("duration")) ?? 0, start = parseRationalSeconds(el.getAttribute("start")) ?? 0;
     const name = cleanName2(el.getAttribute("name") ?? "", "Clip");
@@ -150514,13 +150605,13 @@ function readFcpxml(source, parse2) {
   const seqName = cleanName2(sequence.parentElement?.getAttribute("name") ?? "", "Imported timeline");
   return buildSequence({ name: seqName, rate: rate3, width: format.width, height: format.height, clips: clips2, report: report4, timecodeStart: Math.round(origin * fps), dropFrame: drop });
 }
-var MAX_DEPTH7;
+var MAX_DEPTH8;
 var init_timeline_fcpxml = __esm({
   "engine/src/timeline-fcpxml.ts"() {
     "use strict";
     init_adobe_xml();
     init_timeline_common();
-    MAX_DEPTH7 = 16;
+    MAX_DEPTH8 = 16;
   }
 });
 
@@ -151213,17 +151304,17 @@ function pageRect(page3, transform2) {
   const g2 = boxGeomFromBBox({ x: bounds[1], y: bounds[0], width: bounds[3] - bounds[1], height: bounds[2] - bounds[0] }, transform2);
   return { x: g2.x, y: g2.y, w: g2.w, h: g2.h };
 }
-var MAX_MASTERS, MAX_DEPTH8, MasterBook;
+var MAX_MASTERS, MAX_DEPTH9, MasterBook;
 var init_idml_master = __esm({
   "engine/src/idml-master.ts"() {
     "use strict";
     init_design_map();
     init_idml_styles();
     MAX_MASTERS = 256;
-    MAX_DEPTH8 = 8;
+    MAX_DEPTH9 = 8;
     MasterBook = class {
       masters = /* @__PURE__ */ new Map();
-      constructor(entries, pageRectOf, walk3) {
+      constructor(entries, pageRectOf, walk4) {
         if (entries.length > MAX_MASTERS) throw new Error("IDML contains more than 256 master spreads.");
         for (const { id: id3, el } of entries) {
           const pages = Array.from(el.children).filter((c) => c.localName === "Page").flatMap((page3) => {
@@ -151233,7 +151324,7 @@ var init_idml_master = __esm({
           const items2 = [];
           for (const child2 of Array.from(el.children)) {
             if (child2.localName === "Page") continue;
-            const nodes = walk3(child2);
+            const nodes = walk4(child2);
             if (!nodes.length) continue;
             const x0 = Math.min(...nodes.map((n7) => n7.x)), y0 = Math.min(...nodes.map((n7) => n7.y));
             const x1 = Math.max(...nodes.map((n7) => n7.x + n7.w)), y1 = Math.max(...nodes.map((n7) => n7.y + n7.h));
@@ -151252,7 +151343,7 @@ var init_idml_master = __esm({
       place(id3, target2, overrides, stats, depth = 0, seen = /* @__PURE__ */ new Set()) {
         const master = this.masters.get(id3);
         if (!master?.pages.length) return [];
-        if (depth >= MAX_DEPTH8 || seen.has(id3)) {
+        if (depth >= MAX_DEPTH9 || seen.has(id3)) {
           tally2(stats, "master.nested", "dropped");
           return [];
         }
@@ -152866,6 +152957,7 @@ __export(src_exports, {
   learningProgress: () => learningProgress,
   learningRenditions: () => learningRenditions,
   learningSummary: () => learningSummary,
+  leaveOutScopedTokenText: () => leaveOutScopedTokenText,
   lengthCubic: () => lengthCubic,
   licenceDisplayName: () => licenceDisplayName,
   licenceProfile: () => licenceProfile,
@@ -153330,6 +153422,7 @@ __export(src_exports, {
   scanPenpotAppliedTokens: () => scanPenpotAppliedTokens,
   scanPenpotUsage: () => scanPenpotUsage,
   sccToCues: () => sccToCues,
+  scopedTokenTextWarnings: () => scopedTokenTextWarnings,
   scoreArchetypes: () => scoreArchetypes,
   scoreExtract: () => scoreExtract,
   scoreTokenWatermark: () => scoreTokenWatermark,
@@ -153945,6 +154038,7 @@ var init_src2 = __esm({
     init_brand_check();
     init_design_brief();
     init_brand_skill();
+    init_token_scope();
     init_design_house_rules();
     init_creation_feedback();
     init_design_check();
@@ -156418,7 +156512,7 @@ function parseJson(bytes2) {
   }
 }
 function stripSvgC2pa(svg) {
-  return svg.replace(/<metadata><c2pa:manifest>[^<]*<\/c2pa:manifest><\/metadata>/g, "").replace(/<c2pa:manifest>[^<]*<\/c2pa:manifest>/g, "").replace(/ xmlns:c2pa="[^"]*"/g, "");
+  return svg.replace(/<metadata><c2pa:manifest(?:\s[^>]*)?>[^<]*<\/c2pa:manifest><\/metadata>/g, "").replace(/<c2pa:manifest(?:\s[^>]*)?>[^<]*<\/c2pa:manifest>/g, "").replace(/ xmlns:c2pa="[^"]*"/g, "");
 }
 var LOLLY_FILE_FORMAT, LOLLY_READER_VERSION, LOLLY_RENOVATION_MIN_READER, RENOVATION_PROJECT_PART, RENOVATION_PART_KINDS, MAX_RENOVATION_ASSETS, MAX_RENOVATION_ID, MAX_RENOVATION_NAME;
 var init_lolly_file = __esm({
@@ -156572,10 +156666,10 @@ function pdfStreamBytes(stream, cap = Number.POSITIVE_INFINITY) {
     return null;
   }
 }
-function pdfWalkText(walk3, o) {
-  const budget3 = walk3.content;
-  if (!budget3) return decodedText(walk3.ctx, o);
-  const v = walk3.ctx.lookup(o);
+function pdfWalkText(walk4, o) {
+  const budget3 = walk4.content;
+  if (!budget3) return decodedText(walk4.ctx, o);
+  const v = walk4.ctx.lookup(o);
   if (!(v instanceof PDFRawStream)) return null;
   const left = Math.max(0, budget3.limit - budget3.used);
   const bytes2 = pdfStreamBytes(v, left + 1);
@@ -156643,27 +156737,27 @@ async function loadPdfDocument(bytes2) {
   return PDFDocument.load(bytes2, { ignoreEncryption: true, throwOnInvalidObject: false, updateMetadata: false });
 }
 function makePdfWalk(ctx, imageStreams, warn2, decoders = {}, opts = {}) {
-  const walk3 = {
+  const walk4 = {
     ctx,
     imageStreams,
     warn: warn2,
     decoders,
-    resources: (dict, depth) => extractPdfResources(walk3, dict, depth)
+    resources: (dict, depth) => extractPdfResources(walk4, dict, depth)
   };
-  if (opts.bounded) walk3.bound = { stack: /* @__PURE__ */ new Set(), left: PDF_READ_RESOURCE_BUDGET };
-  return walk3;
+  if (opts.bounded) walk4.bound = { stack: /* @__PURE__ */ new Set(), left: PDF_READ_RESOURCE_BUDGET };
+  return walk4;
 }
-function extractPdfResources(walk3, resDict, depth) {
+function extractPdfResources(walk4, resDict, depth) {
   const res = { fonts: {}, xobjects: {}, extgstates: {}, ocgs: {}, shadings: {}, patterns: {} };
-  const dict = dictOf(walk3.ctx, resDict);
+  const dict = dictOf(walk4.ctx, resDict);
   if (!dict || depth > MAX_RESOURCE_DEPTH) return res;
-  const bound = walk3.bound;
-  if (!bound) return fillResources(walk3, res, resDict, depth);
+  const bound = walk4.bound;
+  if (!bound) return fillResources(walk4, res, resDict, depth);
   const refuse3 = (code) => {
     bound.told ??= /* @__PURE__ */ new Set();
     if (!bound.told.has(code)) {
       bound.told.add(code);
-      walk3.warn(code);
+      walk4.warn(code);
     }
     return res;
   };
@@ -156671,13 +156765,13 @@ function extractPdfResources(walk3, resDict, depth) {
   if (bound.left-- <= 0) return refuse3("resources.budget.exhausted");
   bound.stack.add(dict);
   try {
-    return fillResources(walk3, res, resDict, depth);
+    return fillResources(walk4, res, resDict, depth);
   } finally {
     bound.stack.delete(dict);
   }
 }
-function fillResources(walk3, res, resDict, depth) {
-  const ctx = walk3.ctx;
+function fillResources(walk4, res, resDict, depth) {
+  const ctx = walk4.ctx;
   for (const [name, ref2] of dictEntries2(ctx, getKey(ctx, resDict, "ExtGState"))) {
     const ca = numOf(ctx, getKey(ctx, ref2, "ca"));
     const CA = numOf(ctx, getKey(ctx, ref2, "CA"));
@@ -156686,24 +156780,24 @@ function fillResources(walk3, res, resDict, depth) {
     if (ca != null) gs.ca = ca;
     if (CA != null) gs.CA = CA;
     const sm = getKey(ctx, ref2, "SMask");
-    if (sm) gs.smask = dictOf(ctx, sm) ? walk3.decoders.softMask?.(walk3, sm, depth) ?? true : false;
+    if (sm) gs.smask = dictOf(ctx, sm) ? walk4.decoders.softMask?.(walk4, sm, depth) ?? true : false;
   }
   for (const [name, ref2] of dictEntries2(ctx, getKey(ctx, resDict, "Font"))) {
-    res.fonts[name] = buildFontInfo(walk3, ref2, depth);
+    res.fonts[name] = buildFontInfo(walk4, ref2, depth);
   }
   for (const [name, ref2] of dictEntries2(ctx, getKey(ctx, resDict, "XObject"))) {
     const subtype = nameOf(ctx, getKey(ctx, ref2, "Subtype"));
     if (subtype === "Image") {
-      const key2 = `img${walk3.imageStreams.size}`;
-      walk3.imageStreams.set(key2, makeImageDesc(ctx, ref2));
+      const key2 = `img${walk4.imageStreams.size}`;
+      walk4.imageStreams.set(key2, makeImageDesc(ctx, ref2));
       res.xobjects[name] = { kind: "image", imageKey: key2 };
     } else if (subtype === "Form") {
       const mtx = ctx.lookup(getKey(ctx, ref2, "Matrix"));
       res.xobjects[name] = {
         kind: "form",
-        content: pdfWalkText(walk3, ref2) || "",
+        content: pdfWalkText(walk4, ref2) || "",
         matrix: mtx instanceof PDFArray ? mtx.asArray().map((v) => numOf(ctx, v) ?? 0) : void 0,
-        resources: walk3.resources(getKey(ctx, ref2, "Resources"), depth + 1)
+        resources: walk4.resources(getKey(ctx, ref2, "Resources"), depth + 1)
       };
     }
   }
@@ -156711,14 +156805,14 @@ function fillResources(walk3, res, resDict, depth) {
     const label5 = pdfString(ctx, getKey(ctx, ref2, "Name"));
     if (label5) res.ocgs[name] = label5;
   }
-  const shading = walk3.decoders.shading ?? pdfShadingOf;
-  const pattern = walk3.decoders.pattern ?? pdfPatternOf;
+  const shading = walk4.decoders.shading ?? pdfShadingOf;
+  const pattern = walk4.decoders.pattern ?? pdfPatternOf;
   for (const [name, ref2] of dictEntries2(ctx, getKey(ctx, resDict, "Shading"))) {
-    const sh = shading(walk3, ref2);
+    const sh = shading(walk4, ref2);
     if (sh) res.shadings[name] = sh;
   }
   for (const [name, ref2] of dictEntries2(ctx, getKey(ctx, resDict, "Pattern"))) {
-    const pt = pattern(walk3, ref2, depth);
+    const pt = pattern(walk4, ref2, depth);
     if (pt) res.patterns[name] = pt;
   }
   return res;
@@ -156746,15 +156840,15 @@ function makeImageDesc(ctx, ref2, depth = 0) {
   }
   return desc;
 }
-function buildFontInfo(walk3, fontRef, depth) {
-  const ctx = walk3.ctx;
+function buildFontInfo(walk4, fontRef, depth) {
+  const ctx = walk4.ctx;
   const subtype = nameOf(ctx, getKey(ctx, fontRef, "Subtype")) || "";
   const twoByte = subtype === "Type0";
   const rawBase = nameOf(ctx, getKey(ctx, fontRef, "BaseFont")) || "";
   const base = rawBase.replace(/^[A-Z]{6}\+/, "");
-  const metrics = (walk3.decoders.fontMetrics ?? pdfFontWidths)(ctx, fontRef);
+  const metrics = (walk4.decoders.fontMetrics ?? pdfFontWidths)(ctx, fontRef);
   const info = { twoByte, family: base, weight: pdfWeightFromName(base), ...metrics };
-  const tuText = pdfWalkText(walk3, getKey(ctx, fontRef, "ToUnicode"));
+  const tuText = pdfWalkText(walk4, getKey(ctx, fontRef, "ToUnicode"));
   if (tuText) {
     try {
       info.decode = toUnicodeDecoder(parseToUnicode(tuText), twoByte);
@@ -156766,7 +156860,7 @@ function buildFontInfo(walk3, fontRef, depth) {
     const fontMatrix = fmArr instanceof PDFArray ? fmArr.asArray().map((v) => numOf(ctx, v) ?? 0) : [1e-3, 0, 0, 1e-3, 0, 0];
     const charProcs = {};
     for (const [gname, gref] of dictEntries2(ctx, getKey(ctx, fontRef, "CharProcs"))) {
-      const t = pdfWalkText(walk3, gref);
+      const t = pdfWalkText(walk4, gref);
       if (t != null) charProcs[gname] = t;
     }
     const encoding = {};
@@ -156790,7 +156884,7 @@ function buildFontInfo(walk3, fontRef, depth) {
       const w = numOf(ctx, v);
       if (w != null) widths[firstChar + i] = w;
     });
-    info.type3 = { fontMatrix, charProcs, encoding, widths, resources: walk3.resources(getKey(ctx, fontRef, "Resources"), depth + 1) };
+    info.type3 = { fontMatrix, charProcs, encoding, widths, resources: walk4.resources(getKey(ctx, fontRef, "Resources"), depth + 1) };
     info.twoByte = false;
   }
   return info;
@@ -156845,18 +156939,18 @@ function pdfFontWidths(ctx, font) {
   const missing = numOf(ctx, getKey(ctx, getKey(ctx, font, "FontDescriptor"), "MissingWidth"));
   return { ...Object.keys(widths).length ? { widths } : {}, ...missing == null ? {} : { defaultWidth: missing } };
 }
-function functionWork(walk3) {
-  let work = FUNCTION_WORK.get(walk3);
+function functionWork(walk4) {
+  let work = FUNCTION_WORK.get(walk4);
   if (!work) {
     work = { memo: /* @__PURE__ */ new Map(), nodesLeft: PDF_READ_FUNCTION_BUDGET, bytesLeft: PDF_READ_SAMPLE_BUDGET, told: /* @__PURE__ */ new Set() };
-    FUNCTION_WORK.set(walk3, work);
+    FUNCTION_WORK.set(walk4, work);
   }
   return work;
 }
-function tellOnce(walk3, work, code) {
+function tellOnce(walk4, work, code) {
   if (work.told.has(code)) return;
   work.told.add(code);
-  walk3.warn(code);
+  walk4.warn(code);
 }
 function numArray(ctx, o) {
   const v = ctx.lookup(o);
@@ -156889,10 +156983,10 @@ function colourAt(fn, comps, ...inputs) {
     return null;
   }
 }
-function pdfShadingFunction(walk3, o) {
-  const v = walk3.ctx.lookup(o);
+function pdfShadingFunction(walk4, o) {
+  const v = walk4.ctx.lookup(o);
   if (v instanceof PDFArray) {
-    const fns = v.asArray().map((f) => pdfFunction(walk3, f, 0));
+    const fns = v.asArray().map((f) => pdfFunction(walk4, f, 0));
     if (!fns.length || fns.some((f) => !f)) return null;
     return (...inputs) => {
       const out = [];
@@ -156904,13 +156998,13 @@ function pdfShadingFunction(walk3, o) {
       return out;
     };
   }
-  return pdfFunction(walk3, o, 0);
+  return pdfFunction(walk4, o, 0);
 }
-function pdfFunction(walk3, o, depth) {
+function pdfFunction(walk4, o, depth) {
   if (depth > MAX_FUNCTION_DEPTH) return null;
-  const obj3 = walk3.ctx.lookup(o);
+  const obj3 = walk4.ctx.lookup(o);
   if (!obj3) return null;
-  const work = functionWork(walk3);
+  const work = functionWork(walk4);
   let byDepth = work.memo.get(obj3);
   const known3 = byDepth?.[depth];
   if (known3 !== void 0) return known3;
@@ -156920,16 +157014,16 @@ function pdfFunction(walk3, o, depth) {
   }
   byDepth[depth] = null;
   if (work.nodesLeft <= 0) {
-    tellOnce(walk3, work, "function.budget.exhausted");
+    tellOnce(walk4, work, "function.budget.exhausted");
     return null;
   }
   work.nodesLeft--;
-  const fn = parseFunction(walk3, work, o, depth);
+  const fn = parseFunction(walk4, work, o, depth);
   byDepth[depth] = fn;
   return fn;
 }
-function parseFunction(walk3, work, o, depth) {
-  const ctx = walk3.ctx;
+function parseFunction(walk4, work, o, depth) {
+  const ctx = walk4.ctx;
   const d = dictOf(ctx, o);
   if (!d) return null;
   const type = numOf(ctx, d.get(PDFName.of("FunctionType")));
@@ -156947,7 +157041,7 @@ function parseFunction(walk3, work, o, depth) {
   }
   if (type === 3) {
     const subs = ctx.lookup(d.get(PDFName.of("Functions")));
-    const fns = (subs instanceof PDFArray ? subs.asArray() : []).map((f) => pdfFunction(walk3, f, depth + 1));
+    const fns = (subs instanceof PDFArray ? subs.asArray() : []).map((f) => pdfFunction(walk4, f, depth + 1));
     if (!fns.length || fns.some((f) => !f)) return null;
     const bounds = numArray(ctx, d.get(PDFName.of("Bounds"))) ?? [];
     const encode = numArray(ctx, d.get(PDFName.of("Encode"))) ?? [];
@@ -156962,11 +157056,11 @@ function parseFunction(walk3, work, o, depth) {
       return fns[i](hi > lo ? e0 + (tt - lo) * (e1 - e0) / (hi - lo) : e0);
     };
   }
-  if (type === 0) return sampledFunction(walk3, work, o, d0, d1);
+  if (type === 0) return sampledFunction(walk4, work, o, d0, d1);
   return null;
 }
-function sampledFunction(walk3, work, o, d0, d1) {
-  const ctx = walk3.ctx;
+function sampledFunction(walk4, work, o, d0, d1) {
+  const ctx = walk4.ctx;
   const stream = ctx.lookup(o);
   if (!(stream instanceof PDFRawStream)) return null;
   const d = stream.dict;
@@ -156974,23 +157068,23 @@ function sampledFunction(walk3, work, o, d0, d1) {
   const range = numArray(ctx, d.get(PDFName.of("Range"))) ?? [];
   const bps = numOf(ctx, d.get(PDFName.of("BitsPerSample"))) ?? 8;
   if (size.length > 1) {
-    walk3.warn(`function.sampled.inputs (${size.length})`);
+    walk4.warn(`function.sampled.inputs (${size.length})`);
     return null;
   }
   const n7 = Math.floor(size[0] ?? 0), m2 = Math.floor(range.length / 2);
   if (!Number.isFinite(n7) || n7 < 1 || m2 < 1 || bps < 1 || bps > 32) return null;
   const need = Math.ceil(n7 * m2 * bps / 8);
   if (need > MAX_SAMPLE_BYTES) {
-    walk3.warn(`function.sampled.too-large (${need} bytes declared)`);
+    walk4.warn(`function.sampled.too-large (${need} bytes declared)`);
     return null;
   }
   if (need > work.bytesLeft) {
-    tellOnce(walk3, work, "function.samples.budget.exhausted");
+    tellOnce(walk4, work, "function.samples.budget.exhausted");
     return null;
   }
   const filters = filterList(ctx, d.get(PDFName.of("Filter")));
   if (filters.length > 1 || filters.length === 1 && filters[0] !== "FlateDecode") {
-    walk3.warn(`function.sampled.filter (${filters.join(" ")})`);
+    walk4.warn(`function.sampled.filter (${filters.join(" ")})`);
     return null;
   }
   work.bytesLeft -= need;
@@ -157037,35 +157131,35 @@ function collapseStops(ramp) {
   }
   return out;
 }
-function pdfShadingOf(walk3, ref2) {
-  return shadingRead(walk3, ref2)?.shading ?? null;
+function pdfShadingOf(walk4, ref2) {
+  return shadingRead(walk4, ref2)?.shading ?? null;
 }
-function shadingRead(walk3, ref2) {
-  const ctx = walk3.ctx;
+function shadingRead(walk4, ref2) {
+  const ctx = walk4.ctx;
   const d = dictOf(ctx, ref2);
   if (!d) return null;
   const type = numOf(ctx, d.get(PDFName.of("ShadingType")));
   if (type !== 1 && type !== 2 && type !== 3) {
-    walk3.warn(`shading.unsupported (ShadingType ${type ?? "?"})`);
+    walk4.warn(`shading.unsupported (ShadingType ${type ?? "?"})`);
     return null;
   }
   const space = colorSpaceName(ctx, d.get(PDFName.of("ColorSpace"))) ?? "DeviceRGB";
   if (!SHADING_SPACES.has(space)) {
-    walk3.warn(`shading.unsupported (colour space ${space})`);
+    walk4.warn(`shading.unsupported (colour space ${space})`);
     return null;
   }
   const comps = shadingComps(space);
   if (type === 1) {
-    const fn2 = pdfShadingFunction(walk3, d.get(PDFName.of("Function")));
+    const fn2 = pdfShadingFunction(walk4, d.get(PDFName.of("Function")));
     if (!fn2) {
-      walk3.warn("shading.unsupported (function-based, unparsable Function)");
+      walk4.warn("shading.unsupported (function-based, unparsable Function)");
       return null;
     }
     const dom = numArray(ctx, d.get(PDFName.of("Domain"))) ?? [0, 1, 0, 1];
     const domain2 = [dom[0] ?? 0, dom[1] ?? 1, dom[2] ?? 0, dom[3] ?? 1];
     const flat = colourAt(fn2, comps, (domain2[0] + domain2[1]) / 2, (domain2[2] + domain2[3]) / 2);
     if (!flat) {
-      walk3.warn("shading.unsupported (function-based, unevaluable)");
+      walk4.warn("shading.unsupported (function-based, unevaluable)");
       return null;
     }
     let constant = true;
@@ -157076,7 +157170,7 @@ function shadingRead(walk3, ref2) {
         constant = colourAt(fn2, comps, u, v) === flat;
       }
     }
-    walk3.warn(constant ? "shading.type1.flat" : "shading.type1.midpoint");
+    walk4.warn(constant ? "shading.type1.flat" : "shading.type1.midpoint");
     const mtx = numArray(ctx, d.get(PDFName.of("Matrix")));
     const shading = {
       type: 1,
@@ -157091,18 +157185,18 @@ function shadingRead(walk3, ref2) {
   }
   const coords = numArray(ctx, d.get(PDFName.of("Coords"))) ?? [];
   if (type === 2 && coords.length < 4 || type === 3 && coords.length < 6) {
-    walk3.warn("shading.unsupported (bad Coords)");
+    walk4.warn("shading.unsupported (bad Coords)");
     return null;
   }
-  const fn = pdfShadingFunction(walk3, d.get(PDFName.of("Function")));
+  const fn = pdfShadingFunction(walk4, d.get(PDFName.of("Function")));
   if (!fn) {
-    walk3.warn("shading.unsupported (unparsable Function)");
+    walk4.warn("shading.unsupported (unparsable Function)");
     return null;
   }
   const domain = numArray(ctx, d.get(PDFName.of("Domain"))) ?? [0, 1];
   const ramp = rampOf(fn, comps, domain[0] ?? 0, domain[1] ?? 1);
   if (!ramp) {
-    walk3.warn("shading.unsupported (degenerate ramp)");
+    walk4.warn("shading.unsupported (degenerate ramp)");
     return null;
   }
   const ext = boolArray(ctx, d.get(PDFName.of("Extend")));
@@ -157119,25 +157213,25 @@ function shadingRead(walk3, ref2) {
     constant: false
   };
 }
-function pdfPatternOf(walk3, ref2, depth) {
-  const ctx = walk3.ctx;
+function pdfPatternOf(walk4, ref2, depth) {
+  const ctx = walk4.ctx;
   const d = dictOf(ctx, ref2);
   if (!d) return null;
   const ptype = numOf(ctx, d.get(PDFName.of("PatternType")));
   const mtx = numArray(ctx, d.get(PDFName.of("Matrix")));
   const matrix = mtx ? { matrix: mtx } : {};
   if (ptype === 2) {
-    const read = shadingRead(walk3, d.get(PDFName.of("Shading")));
+    const read = shadingRead(walk4, d.get(PDFName.of("Shading")));
     if (!read) return null;
     const { shading, constant } = read;
     if (constant) return { ...matrix, ...shading.flat ? { flat: shading.flat } : {} };
     return { shading, ...matrix, ...shading.flat ? { flat: shading.flat } : {} };
   }
   if (ptype === 1) {
-    const content2 = pdfWalkText(walk3, ref2);
+    const content2 = pdfWalkText(walk4, ref2);
     const bb = numArray(ctx, d.get(PDFName.of("BBox"))) ?? [];
     if (content2 == null || bb.length < 4) {
-      walk3.warn("pattern.unsupported (tiling, no stream or BBox)");
+      walk4.warn("pattern.unsupported (tiling, no stream or BBox)");
       return null;
     }
     const bbox = [bb[0], bb[1], bb[2], bb[3]];
@@ -157145,7 +157239,7 @@ function pdfPatternOf(walk3, ref2, depth) {
       ...matrix,
       tiling: {
         content: content2,
-        resources: walk3.resources(d.get(PDFName.of("Resources")), depth + 1),
+        resources: walk4.resources(d.get(PDFName.of("Resources")), depth + 1),
         bbox,
         xStep: numOf(ctx, d.get(PDFName.of("XStep"))) || bbox[2] - bbox[0],
         yStep: numOf(ctx, d.get(PDFName.of("YStep"))) || bbox[3] - bbox[1],
@@ -157153,7 +157247,7 @@ function pdfPatternOf(walk3, ref2, depth) {
       }
     };
   }
-  walk3.warn(`pattern.unsupported (PatternType ${ptype ?? "?"})`);
+  walk4.warn(`pattern.unsupported (PatternType ${ptype ?? "?"})`);
   return null;
 }
 function interpretPdfDocPage(doc, pageIndex, opts = {}) {
@@ -157164,10 +157258,10 @@ function interpretPdfDocPage(doc, pageIndex, opts = {}) {
   const node = pdfPage.node;
   const mb2 = pdfPage.getMediaBox();
   const imageStreams = /* @__PURE__ */ new Map();
-  const walk3 = (opts.walk ?? ((c, images, warn2) => makePdfWalk(c, images, warn2, {}, { bounded: true })))(ctx, imageStreams, diag);
-  if (opts.maxContentChars !== void 0) walk3.content ??= { used: 0, limit: opts.maxContentChars };
-  const resources = walk3.resources(getKey(ctx, node, "Resources"), 0);
-  let content2 = pdfContentString(ctx, node, walk3.content);
+  const walk4 = (opts.walk ?? ((c, images, warn2) => makePdfWalk(c, images, warn2, {}, { bounded: true })))(ctx, imageStreams, diag);
+  if (opts.maxContentChars !== void 0) walk4.content ??= { used: 0, limit: opts.maxContentChars };
+  const resources = walk4.resources(getKey(ctx, node, "Resources"), 0);
+  let content2 = pdfContentString(ctx, node, walk4.content);
   const inlineImages3 = countPdfInlineImages(content2);
   const invisible = opts.invisibleText ? markPdfInvisibleText(content2) : null;
   if (invisible?.shows) content2 = invisible.content;
@@ -157504,7 +157598,7 @@ function readPdfStructOrder(doc, pageIndex) {
       return;
     }
   };
-  const walk3 = (node, inheritedPg, depth) => {
+  const walk4 = (node, inheritedPg, depth) => {
     if (depth > MAX_STRUCT_DEPTH || out.length > 4096) return;
     const tag3 = node instanceof PDFRef ? node.tag : "";
     if (tag3) {
@@ -157529,15 +157623,15 @@ function readPdfStructOrder(doc, pageIndex) {
         if (kv instanceof PDFNumber) continue;
         const kd = dictOf(ctx, kv);
         if (!kd || nameOf(ctx, kd.get(PDFName.of("Type"))) === "MCR") continue;
-        walk3(kid, pg, depth + 1);
+        walk4(kid, pg, depth + 1);
       }
     } else if (kids2 && !(ctx.lookup(kids2) instanceof PDFNumber)) {
       const kd = dictOf(ctx, kids2);
-      if (kd && nameOf(ctx, kd.get(PDFName.of("Type"))) !== "MCR") walk3(kids2, pg, depth + 1);
+      if (kd && nameOf(ctx, kd.get(PDFName.of("Type"))) !== "MCR") walk4(kids2, pg, depth + 1);
     }
   };
   try {
-    walk3(root2, null, 0);
+    walk4(root2, null, 0);
   } catch {
     return [];
   }
@@ -165729,7 +165823,7 @@ function count3(n7, one, many = `${one}s`) {
   return `${n7} ${n7 === 1 ? one : many}`;
 }
 function walkNameTree(ctx, node, out, seen = /* @__PURE__ */ new Set(), depth = 0) {
-  if (depth > MAX_DEPTH9 || out.length >= MAX_ITEMS2) return out;
+  if (depth > MAX_DEPTH10 || out.length >= MAX_ITEMS2) return out;
   const tag3 = refTag(node);
   if (tag3) {
     if (seen.has(tag3)) return out;
@@ -165798,7 +165892,7 @@ function emptySink() {
   return { scripts: [], uris: [], launches: [], submits: [], remotes: [] };
 }
 function walkAction(ctx, action, sink, seen, depth = 0) {
-  if (depth > MAX_DEPTH9) return;
+  if (depth > MAX_DEPTH10) return;
   const tag3 = refTag(action);
   if (tag3) {
     if (seen.has(tag3)) return;
@@ -165877,7 +165971,7 @@ function fieldValue(ctx, v) {
   return null;
 }
 function walkFields(ctx, node, out, seen, prefix = "", inheritedType = null, depth = 0) {
-  if (depth > MAX_DEPTH9 || out.length >= MAX_ITEMS2) return;
+  if (depth > MAX_DEPTH10 || out.length >= MAX_ITEMS2) return;
   const tag3 = refTag(node);
   if (tag3) {
     if (seen.has(tag3)) return;
@@ -166029,11 +166123,11 @@ function scanPdfStructure(doc) {
   if (pages.length) add3("Pages", count3(pages.length, "page"));
   return out;
 }
-var MAX_DEPTH9, MAX_ITEMS2, LIST_CAP, DETAIL_CAP, NON_MARKUP;
+var MAX_DEPTH10, MAX_ITEMS2, LIST_CAP, DETAIL_CAP, NON_MARKUP;
 var init_pdf_structure = __esm({
   "packages/node-shell/src/pdf-structure.ts"() {
     "use strict";
-    MAX_DEPTH9 = 32;
+    MAX_DEPTH10 = 32;
     MAX_ITEMS2 = 500;
     LIST_CAP = 8;
     DETAIL_CAP = 400;
@@ -167609,7 +167703,7 @@ function countOutline(ctx, outlines) {
 }
 function inherited2(ctx, start, key2) {
   let node = start;
-  for (let depth = 0; node && depth < MAX_DEPTH10; depth++) {
+  for (let depth = 0; node && depth < MAX_DEPTH11; depth++) {
     const value2 = get3(node, key2);
     if (value2 !== void 0) return value2;
     node = dictOf3(ctx, get3(node, "Parent"));
@@ -167618,7 +167712,7 @@ function inherited2(ctx, start, key2) {
 }
 function fieldTag(ctx, widgetRef, widget) {
   let ref2 = widgetRef, node = widget;
-  for (let depth = 0; node && depth < MAX_DEPTH10; depth++) {
+  for (let depth = 0; node && depth < MAX_DEPTH11; depth++) {
     if (get3(node, "T") !== void 0) return ref2 instanceof PDFRef4 ? ref2.tag : null;
     ref2 = get3(node, "Parent");
     node = dictOf3(ctx, ref2);
@@ -167670,7 +167764,7 @@ function countSignatures(ctx, doc) {
       signed++;
       continue;
     }
-    if (kids2 && depth < MAX_DEPTH10) for (const kid of kids2) stack.push({ ref: kid, depth: depth + 1 });
+    if (kids2 && depth < MAX_DEPTH11) for (const kid of kids2) stack.push({ ref: kid, depth: depth + 1 });
   }
   return signed;
 }
@@ -167842,13 +167936,13 @@ function pageEffects(docs, outputPages, inPlace) {
   }
   return effects;
 }
-var MAX_ITEMS3, MAX_ANNOTS_PER_PAGE, MAX_DEPTH10;
+var MAX_ITEMS3, MAX_ANNOTS_PER_PAGE, MAX_DEPTH11;
 var init_pdf_page_effects = __esm({
   "packages/node-shell/src/pdf-page-effects.ts"() {
     "use strict";
     MAX_ITEMS3 = 1e4;
     MAX_ANNOTS_PER_PAGE = 2e3;
-    MAX_DEPTH10 = 32;
+    MAX_DEPTH11 = 32;
   }
 });
 
@@ -168353,26 +168447,26 @@ async function lockPdf(bytes2, password) {
     EncryptMetadata: true
   });
   const encString = async (value2) => PDFHexString3.of(hex4(await encryptObjectBytes(fileKey, rnd(16), value2.asBytes())));
-  const walk3 = async (value2) => {
+  const walk4 = async (value2) => {
     if (value2 instanceof PDFDict8) {
       for (const [key2, child2] of value2.entries()) {
         if (child2 instanceof PDFString3 || child2 instanceof PDFHexString3) value2.set(key2, await encString(child2));
-        else if (child2 instanceof PDFDict8 || child2 instanceof PDFArray9) await walk3(child2);
+        else if (child2 instanceof PDFDict8 || child2 instanceof PDFArray9) await walk4(child2);
       }
     } else if (value2 instanceof PDFArray9) {
       for (let i = 0; i < value2.size(); i++) {
         const child2 = value2.get(i);
         if (child2 instanceof PDFString3 || child2 instanceof PDFHexString3) value2.set(i, await encString(child2));
-        else if (child2 instanceof PDFDict8 || child2 instanceof PDFArray9) await walk3(child2);
+        else if (child2 instanceof PDFDict8 || child2 instanceof PDFArray9) await walk4(child2);
       }
     }
   };
   for (const [ref2, value2] of ctx.enumerateIndirectObjects()) {
     if (value2 instanceof PDFStream3) {
       const encrypted = await encryptObjectBytes(fileKey, rnd(16), new Uint8Array(value2.getContents()));
-      await walk3(value2.dict);
+      await walk4(value2.dict);
       ctx.assign(ref2, PDFRawStream5.of(value2.dict, encrypted));
-    } else if (value2 instanceof PDFDict8 || value2 instanceof PDFArray9) await walk3(value2);
+    } else if (value2 instanceof PDFDict8 || value2 instanceof PDFArray9) await walk4(value2);
     else if (value2 instanceof PDFString3 || value2 instanceof PDFHexString3) ctx.assign(ref2, await encString(value2));
   }
   ctx.trailerInfo.Encrypt = ctx.register(enc6);
@@ -170650,14 +170744,14 @@ async function checkKeepTextOutput(output, bars, fill2) {
     }
     byPage.set(bar.page, [...byPage.get(bar.page) ?? [], toRect(bar)]);
   }
-  const walk3 = walkFor(await loadStandardWidths());
+  const walk4 = walkFor(await loadStandardWidths());
   const burned = hexOf8(fill2);
   for (const [pageNumber, rects] of byPage) {
     const index2 = pageNumber - 1;
     let normal2, glyphs2;
     try {
-      normal2 = interpretPdfDocPage(doc, index2, { walk: walk3, maxContentChars: MAX_CONTENT_CHARS });
-      glyphs2 = interpretPdfDocPage(doc, index2, { walk: walk3, maxContentChars: MAX_CONTENT_CHARS, glyphRuns: true });
+      normal2 = interpretPdfDocPage(doc, index2, { walk: walk4, maxContentChars: MAX_CONTENT_CHARS });
+      glyphs2 = interpretPdfDocPage(doc, index2, { walk: walk4, maxContentChars: MAX_CONTENT_CHARS, glyphRuns: true });
     } catch {
       add3(pageNumber, "unreadable", `Page ${pageNumber} could not be read again to check it.`);
       continue;
@@ -174676,27 +174770,27 @@ async function encryptPdfStrong(blob, password) {
     EncryptMetadata: true
   });
   const encStr = async (o) => PDFHexString3.of(hexU(await encryptObjectBytes(fileKey, rnd(16), o.asBytes())));
-  const walk3 = async (c) => {
+  const walk4 = async (c) => {
     if (c instanceof PDFDict8) {
       for (const [k, v] of c.entries()) {
         if (v instanceof PDFString3 || v instanceof PDFHexString3) c.set(k, await encStr(v));
-        else if (v instanceof PDFDict8 || v instanceof PDFArray9) await walk3(v);
+        else if (v instanceof PDFDict8 || v instanceof PDFArray9) await walk4(v);
       }
     } else if (c instanceof PDFArray9) {
       for (let i = 0; i < c.size(); i++) {
         const v = c.get(i);
         if (v instanceof PDFString3 || v instanceof PDFHexString3) c.set(i, await encStr(v));
-        else if (v instanceof PDFDict8 || v instanceof PDFArray9) await walk3(v);
+        else if (v instanceof PDFDict8 || v instanceof PDFArray9) await walk4(v);
       }
     }
   };
   for (const [ref2, obj3] of ctx.enumerateIndirectObjects()) {
     if (obj3 instanceof PDFStream3) {
       const ct = await encryptObjectBytes(fileKey, rnd(16), new Uint8Array(obj3.getContents()));
-      await walk3(obj3.dict);
+      await walk4(obj3.dict);
       ctx.assign(ref2, PDFRawStream5.of(obj3.dict, ct));
     } else if (obj3 instanceof PDFDict8 || obj3 instanceof PDFArray9) {
-      await walk3(obj3);
+      await walk4(obj3);
     } else if (obj3 instanceof PDFString3 || obj3 instanceof PDFHexString3) {
       ctx.assign(ref2, await encStr(obj3));
     }
@@ -180274,6 +180368,9 @@ async function recordedDesignInFile(bytes2, format, meta) {
   return null;
 }
 
+// services/mcp/src/render.ts
+init_lolly_file();
+
 // packages/node-shell/src/browser-tier.ts
 var NEEDS_BROWSER = "NEEDS_BROWSER";
 var PROSE = /browser canvas|n(?:['’]|o)t available in this app|needs a browser|requires a browser/i;
@@ -181736,7 +181833,7 @@ function runWorker2(job, caps, timeoutMs, limitText) {
 }
 var secondsText = (ms) => ms < 1e4 ? (ms / 1e3).toFixed(1) : String(Math.round(ms / 1e3));
 var digestOf = (song) => createHash9("sha256").update(`${song.lang}\0${song.code}`).digest("hex");
-var copyOf = (k) => ({
+var copyOf2 = (k) => ({
   ...k,
   channels: [k.channels[0].slice(), k.channels[1].slice()],
   findings: k.findings.map((f) => ({ ...f, parts: [...f.parts] })),
@@ -181777,10 +181874,10 @@ async function renderRondoSong(song, opts = {}) {
   if (hit) {
     kept.delete(key2);
     kept.set(key2, hit);
-    return report4(copyOf(hit), true);
+    return report4(copyOf2(hit), true);
   }
   const pending6 = inflight.get(key2);
-  if (pending6) return report4(copyOf(await pending6), true);
+  if (pending6) return report4(copyOf2(await pending6), true);
   const budget3 = opts.budget;
   const remaining = caps.budgetMs === void 0 ? Number.POSITIVE_INFINITY : caps.budgetMs - (budget3?.spentMs ?? 0);
   if (remaining <= 0) {
@@ -181827,7 +181924,7 @@ async function renderRondoSong(song, opts = {}) {
     inflight.delete(key2);
   }
   keep(key2, fresh);
-  return report4(kept.has(key2) ? copyOf(fresh) : fresh, false);
+  return report4(kept.has(key2) ? copyOf2(fresh) : fresh, false);
 }
 
 // packages/node-shell/src/song-provenance.ts
@@ -182460,12 +182557,12 @@ async function tabResources(page3, { pageOnly, received } = {}) {
   try {
     await cdp.send("Page.enable");
     const { frameTree } = await cdp.send("Page.getResourceTree");
-    const walk3 = (t) => {
+    const walk4 = (t) => {
       for (const r5 of t.resources ?? []) where.set(r5.url, { frameId: t.frame.id, mimeType: r5.mimeType });
       where.set(t.frame.url, where.get(t.frame.url) ?? { frameId: t.frame.id, mimeType: t.frame.mimeType ?? "text/html" });
-      for (const c of t.childFrames ?? []) walk3(c);
+      for (const c of t.childFrames ?? []) walk4(c);
     };
-    walk3(frameTree);
+    walk4(frameTree);
     mainFrame = frameTree.frame.id;
   } catch {
   }
@@ -186957,6 +187054,38 @@ function browserQueueOptions(env = process.env) {
 // services/mcp/src/render.ts
 var TIER_A = /* @__PURE__ */ new Set(["svg", "emf", "eps", "eps-cmyk", "dxf", "exr", "hdr", "penpot", "html", "md", "txt", "json", "csv", "ics", "vcf"]);
 var MAX_RASTER_EDGE_PX = 1e4;
+var DAY_MS = 864e5;
+async function readBackCredential(bytes2, setting, deliveredFormat) {
+  const asked = setting.on ? setting.days ?? 30 : "off";
+  if (deliveredFormat === "zip") return { asked, holds: "unread", days: null, selfSigned: false };
+  try {
+    const report4 = await verifyC2pa(bytes2);
+    const signer = report4.signer;
+    return {
+      asked,
+      holds: report4.state,
+      days: signer ? Math.round((Date.parse(signer.notAfter) - Date.parse(signer.notBefore)) / DAY_MS) : null,
+      selfSigned: signer?.selfSigned === true
+    };
+  } catch {
+    return { asked, holds: "unread", days: null, selfSigned: false };
+  }
+}
+function credentialText(readback) {
+  if (!readback) return "";
+  const { asked, holds: holds3, days, selfSigned } = readback;
+  if (holds3 === "unread") {
+    return asked === "off" ? "Content Credentials: the export was told to write none, and this file was not read back." : `Content Credentials: the export was told to write them for ${asked} days, and this file was not read back.`;
+  }
+  if (asked === "off") {
+    return holds3 === "none" ? "Content Credentials: none in this file, as asked." : 'Content Credentials: c2pa: "off" could not be honoured. This file still holds a credential.';
+  }
+  if (holds3 === "none") return `Content Credentials: none in this file, though c2pa asked for ${asked} days. The warnings above say why.`;
+  if (holds3 === "invalid") return "Content Credentials: this file holds a credential that does not verify.";
+  if (days === null) return "Content Credentials: in this file.";
+  if (days !== asked) return `Content Credentials: in this file, but the certificate runs ${days} days, not the ${asked} asked for.`;
+  return `Content Credentials: in this file, ${selfSigned ? "self-signed, " : ""}valid for ${days} days.`;
+}
 function designRecordText(record46) {
   const words4 = designRecordWords(record46, { skills: false, page: false });
   const guided = guidedByWords(record46?.brandSkills);
@@ -187377,6 +187506,7 @@ function exportUrl(base, toolId, query2, fmt6, o) {
   if (o.hdr) p.set("hdr", serializeHdr(o.hdr));
   if (o.depth && o.depth !== "auto") p.set("depth", String(o.depth));
   if (Number(p.get("cuts")) > 1 || p.has("sampletimes")) p.set("c2pa", o.c2pa?.on ? String(o.c2pa.days ?? 1) : "off");
+  else if (o.c2pa?.on === false || o.c2pa?.on && /^pdf/.test(fmt6)) p.set("c2pa", "off");
   if (o.intent) p.set("c2pa", "off");
   p.set("export", "1");
   const q = p.toString();
@@ -187483,17 +187613,20 @@ async function credentialAndRecord(out, o) {
   let stamped = false;
   if (!o.sampled && o.merged.c2pa?.on && C2PA_FORMATS.includes(o.exportFmt) && !(o.exportFmt === "pdf" && o.merged.password)) {
     try {
-      if (o.merged.intent) bytes2 = await (await Promise.resolve().then(() => (init_pdf_classic(), pdf_classic_exports))).classicPdfForStamp(bytes2, o.exportFmt);
+      bytes2 = await (await Promise.resolve().then(() => (init_pdf_classic(), pdf_classic_exports))).classicPdfForStamp(bytes2, o.exportFmt);
     } catch {
     }
+    const clean2 = withoutSvgCredentials(bytes2, o.exportFmt);
     try {
-      bytes2 = await stampC2pa(bytes2, o.exportFmt, o.manifest, o.values, o.merged, o.placed, record46, out.tier.startsWith("B") ? null : o.drawn ?? null);
+      bytes2 = await stampC2pa(clean2, o.exportFmt, o.manifest, o.values, o.merged, o.placed, record46, out.tier.startsWith("B") ? null : o.drawn ?? null);
       stamped = true;
     } catch (e) {
       o.warnings.push(`Content Credentials not attached - ${e.message}`);
     }
   } else if (!o.sampled && o.merged.c2pa?.on) {
-    o.warnings.push(`Format "${o.fmt}" cannot carry Content Credentials - skipped.`);
+    o.warnings.push(o.exportFmt === "pdf" && o.merged.password ? "On a PDF, c2pa cannot be combined with password, so no Content Credential was written." : `Format "${o.fmt}" cannot carry Content Credentials - skipped.`);
+  } else if (o.merged.c2paAsked && o.merged.c2pa?.on === false) {
+    bytes2 = withoutSvgCredentials(bytes2, o.deliveredFormat);
   }
   if (skills.length && !stamped) {
     o.warnings.push('The brand skills were not recorded: this format renders in the browser tier, which writes the file without them, and only a Content Credential can carry them here. Pass c2pa (e.g. "30") to record them.');
@@ -187519,7 +187652,13 @@ async function credentialAndRecord(out, o) {
       intentRecord = { state: "not-recorded", reason: !canCarry ? "no-route" : o.merged.c2pa?.on ? "not-confirmed" : "no-credential" };
     }
   }
-  return { bytes: bytes2, designRecord, ...intentRecord ? { intentRecord } : {} };
+  const readback = o.merged.c2paAsked && o.merged.c2pa ? await readBackCredential(bytes2, o.merged.c2pa, o.deliveredFormat) : void 0;
+  return { bytes: bytes2, designRecord, ...intentRecord ? { intentRecord } : {}, ...readback ? { credential: readback } : {} };
+}
+function withoutSvgCredentials(bytes2, format) {
+  if (format !== "svg" && format !== "svg-anim") return bytes2;
+  const text13 = Buffer.from(bytes2.buffer, bytes2.byteOffset, bytes2.byteLength).toString("latin1");
+  return text13.includes("<c2pa:manifest") ? new Uint8Array(Buffer.from(stripSvgC2pa(text13), "latin1")) : bytes2;
 }
 async function render(toolId, query2, o = {}) {
   if (o.productionReference !== void 0 && o.production === void 0) throw new Error("A production reference requires a production contract.");
@@ -187551,7 +187690,7 @@ async function render(toolId, query2, o = {}) {
     if (error2 instanceof Error) Object.assign(error2, { attempts: run3.attempts.map((a) => a.report) });
     throw error2;
   }
-  return { bytes: last.bytes, mime: last.mime, format: last.format, tier: last.tier, warnings: last.warnings, ...last.rights ? { rights: last.rights } : {}, ...last.audio ? { audio: last.audio } : {}, ...last.audioFailures ? { audioFailures: last.audioFailures } : {}, ...last.songs ? { songs: last.songs } : {}, ...last.designRecord ? { designRecord: last.designRecord } : {}, ...last.intentRecord ? { intentRecord: last.intentRecord } : {}, production: last.report, productionAttempts: run3.attempts.map((a) => a.report) };
+  return { bytes: last.bytes, mime: last.mime, format: last.format, tier: last.tier, warnings: last.warnings, ...last.rights ? { rights: last.rights } : {}, ...last.audio ? { audio: last.audio } : {}, ...last.audioFailures ? { audioFailures: last.audioFailures } : {}, ...last.songs ? { songs: last.songs } : {}, ...last.designRecord ? { designRecord: last.designRecord } : {}, ...last.intentRecord ? { intentRecord: last.intentRecord } : {}, ...last.credential ? { credential: last.credential } : {}, production: last.report, productionAttempts: run3.attempts.map((a) => a.report) };
 }
 async function renderCandidate(toolId, query2, o = {}) {
   const { value: value2, runs: runs2, failures } = await withAudioScope(o.rondo, () => renderCandidateBytes(toolId, query2, o));
@@ -187718,7 +187857,8 @@ async function renderCandidateBytes(toolId, query2, o = {}) {
     ...songs ? { songs } : {},
     ...designRecord ? { designRecord } : {},
     ...finished.intentRecord ? { intentRecord: finished.intentRecord } : {},
-    ...credentialFromIntent ? { credentialFromIntent } : {}
+    ...credentialFromIntent ? { credentialFromIntent } : {},
+    ...finished.credential ? { credential: finished.credential } : {}
   };
 }
 async function rightsResult(evaluation, bytes2) {
@@ -195741,7 +195881,11 @@ var TOOL_DEFS = [
           maxItems: 16,
           description: 'The names of the brand skills (lolly://design-system/skills) you read and followed for this piece. Each is recorded with the design-system record as "guided by" provenance: the skill id, its revision and its hash. It records guidance, not a check: nothing tests the piece against a skill. An unknown name fails the call and lists the available names. Left out with madeWith: false.'
         },
-        c2pa: { type: "string", enum: ["off", "7", "30", "90", "365"], description: "Stamp Content Credentials with the given cert lifetime (days)." },
+        c2pa: {
+          type: "string",
+          enum: ["off", "7", "30", "90", "365"],
+          description: 'Content Credentials for this file. "off": none, on every format. A number: this server stamps one with that certificate lifetime in days. Left out, a browser-free render has none and a browser-tier render (PDF, or a tool laid out in HTML) keeps the one the web shell stamps. When you pass it, the result says what the file holds, read back from the file.'
+        },
         password: { type: "string", description: "Open-password for standard PDF export (never logged)." },
         link: { type: "boolean", description: "Also return the editable lolly.tools link (default true)." },
         ...RENDER_INTENT_ARGS
@@ -196283,6 +196427,7 @@ ${links.renderUrl ?? "(unavailable)"}${check2}`);
           convertPaths: args.convertPaths,
           password: args.password,
           c2pa: c2paSetting(args.c2pa),
+          ...args.c2pa !== void 0 && args.c2pa !== null ? { c2paAsked: true } : {},
           maxRasterPixels: maxRasterPixelsFor(process.env, isHostedServer()),
           rondo: rondoCapsFor(process.env, isHostedServer()),
           ...exportSettings(args),
@@ -196320,7 +196465,9 @@ Rights: ${result.rights.status}` + result.rights.issues.map((issue2) => `
           designRecordText(result.designRecord),
           // The intent, shown at the moment of export as the approval asks, in words read
           // back from the delivered file. It says plainly when the prompt is in the file.
-          intentRecordText(!intended ? null : intended.optedOut ? { state: "not-recorded", reason: "opted-out" } : result.intentRecord ?? { state: "not-recorded", reason: "not-confirmed" }, result.credentialFromIntent === true)
+          intentRecordText(!intended ? null : intended.optedOut ? { state: "not-recorded", reason: "opted-out" } : result.intentRecord ?? { state: "not-recorded", reason: "not-confirmed" }, result.credentialFromIntent === true),
+          // What an explicit `c2pa` asked for and what the delivered file holds.
+          credentialText(result.credential)
         ].filter(Boolean).join("\n");
         const content2 = [{ type: "text", text: header }];
         if (holdResult && result.bytes.byteLength > RESULT_LINK_THRESHOLD) {
