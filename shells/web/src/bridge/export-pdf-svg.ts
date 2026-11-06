@@ -37,7 +37,7 @@
  */
 import { _host, blobToDataUrl } from './export-shared.ts';
 import { drawSvgPathToPdf } from './export-pdf-vector.ts';
-import { resolveVectorFont } from './font-registry.ts';
+import { resolveExportFont, extendsChain, noteFillUse } from './font-fill.ts';
 import { embedResolvedFont } from './export-font-data.ts';
 import { embedSuseFont, pdfFontEmbed, suseFontName } from './export-pdf-fonts.ts';
 import { TEXT_PICTURE_DPI, liveTextWouldGarble, notePicturedText, textPicture, undrawableTextError } from './export-pdf-text-picture.ts';
@@ -1011,14 +1011,14 @@ async function drawText(el: Element, ctx: Ctx, alpha: number): Promise<void> {
     // A gradient on a run spans the whole <text>, so its box is the <text>'s.
     const paint = paintFor(styleEl, 'fill', null, ctx, el);
     const a = paint ? clamp01(s.num(styleEl, 'fill-opacity', 1)) * alpha * paint.alpha : 0;
-    const vf = _host?.text ? await resolveVectorFont({ fontFamily: familyRaw, fontWeight: String(weight), fontStyle: italic ? 'italic' : 'normal' }, t.trim()) : null;
+    const vf = _host?.text ? await resolveExportFont({ fontFamily: familyRaw, fontWeight: String(weight), fontStyle: italic ? 'italic' : 'normal' }, t.trim()) : null;
     const embedUrl = convertPaths ? null : await pdfFontEmbed(vf);
     const rtl = s.get(styleEl, 'direction') === 'rtl';
     const ordered = rtl || hasRtlText(t);
     const garbled = liveTextWouldGarble(t, rtl);
     // `start` and `end` follow the direction, so these are sides of the run from here on.
     const side = physicalTextAnchor(anchor, rtl ? 'rtl' : 'ltr');
-    if ((convertPaths || (vf && !embedUrl) || garbled) && _host?.text && vf) {
+    if ((convertPaths || (vf && !embedUrl) || garbled || extendsChain(vf)) && _host?.text && vf) {
       try {
         const shaped = await _host.text.toPath({ text: t, fontUrl: vf.url, fontSize: size, variations: vf.variations, fallbackFonts: vf.fallbacks, ...(ordered ? { direction: rtl ? 'rtl' as const : 'ltr' as const } : {}) });
         if (shaped?.d && !shaped.notdef) {
@@ -1034,6 +1034,7 @@ async function drawText(el: Element, ctx: Ctx, alpha: number): Promise<void> {
             });
             noteDrawn(ctx, pathPointsBox(shaped.d, tx, ty));
           }
+          noteFillUse(vf);
           return adv;
         }
       } catch (e) {

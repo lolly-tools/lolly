@@ -18,7 +18,7 @@
 
 import { svgDomToIr as walkSvgToIr } from '@lolly-tools/node-shell/svg-ir';
 import type { SvgIrContext, VectorIrResult } from '@lolly-tools/node-shell/svg-ir';
-import { resolveVectorFont } from './font-registry.ts';
+import { resolveExportFont, noteFillUse } from './font-fill.ts';
 
 export {
   parseColor, parseTransformList, decomposeAffine, parseSvgDropShadow,
@@ -33,7 +33,10 @@ export type {
  * shell's font registry unless the caller names its own resolver.
  */
 export function svgDomToIr(svgEl: Element, ctx: SvgIrContext = {}): Promise<VectorIrResult> {
-  return walkSvgToIr(svgEl, { resolveFont: resolveVectorFont, readImage: readPageImage, ...ctx });
+  // These formats have no live-text answer for a run they cannot outline, so a run is counted as
+  // drawn by its fallback fonts when they resolve: the export fails otherwise.
+  const resolveFont = async (style: Parameters<typeof resolveExportFont>[0], text: string) => { const vf = await resolveExportFont(style, text); noteFillUse(vf); return vf; };
+  return walkSvgToIr(svgEl, { resolveFont, readImage: readPageImage, ...ctx });
 }
 
 /** An `<image>`'s bytes through the page's own fetch: a catalog path or an allowed

@@ -12,6 +12,7 @@ import type { AssetsAPI, TextAPI, TextPathCluster } from '@lolly-tools/core/host
 import { createTextCompositionAPI } from '@lolly-tools/node-shell/text-composition';
 import { createGlyphCache } from '@lolly-tools/node-shell/text-glyphs';
 import { shapingSegments } from '@lolly-tools/node-shell/text-bidi';
+import { fillSegments } from '@lolly-tools/node-shell/fallback-fonts';
 import { strikeMetricsFact, type StrikeMetrics } from '../../../../engine/src/text-decoration.ts';
 import { registerTextStrikeMetrics } from './text-drawing-facts.ts';
 import type { Blob as HbBlob, Face as HbFace, Font as HbFont, Feature as HbFeature } from 'harfbuzzjs';
@@ -40,6 +41,8 @@ interface FontEntry {
   font: HbFont;
   upem: number;
   unicodes: Set<number>;
+  /** Draws only what the faces before it cannot (TextToPathOpts.fallbackFonts `fill`). */
+  fill?: boolean;
 }
 
 const faceCache = new Map<string, FaceEntry>();
@@ -102,6 +105,11 @@ async function readFont(fontUrl: string, vars: string[], key: string): Promise<F
   const entry = { font, upem, unicodes };
   fontCache.set(key, entry);
   return entry;
+}
+
+/** The characters a font file maps, from the same cache toPath shapes with. */
+export async function fontCharacters(fontUrl: string): Promise<ReadonlySet<number>> {
+  return (await loadFace(fontUrl)).unicodes;
 }
 
 /** Internal drawing facts from the same cached font instance that outlines text. */
@@ -222,10 +230,13 @@ export function createTextAPI(assets?: AssetsAPI): TextAPI {
         return { d: '', advanceWidth: 0, bbox: null, notdef: 0, ...(wantClusters ? { clusters: [] } : {}) };
       }
 
-      const chain = [
+      const chain: FontEntry[] = [
         await loadFont(fontUrl, variations),
-        ...await Promise.all((fallbackFonts ?? []).map(f => loadFont(f.fontUrl, f.variations))),
+        ...await Promise.all((fallbackFonts ?? []).map(async f => (f.fill ? { ...await loadFont(f.fontUrl, f.variations), fill: true } : loadFont(f.fontUrl, f.variations)))),
       ];
+      // A fill face splits the run cluster by cluster, so an earlier face keeps every
+      // character it maps; a chain without one splits as it always did.
+      const split = chain.some(f => f.fill) ? (part: string) => fillSegments(part, chain) : (part: string) => segmentByFace(part, chain);
       const hb = _hb!;
 
       // OpenType feature toggles (e.g. 'liga=0', 'salt=1') let a caller disable
@@ -243,7 +254,7 @@ export function createTextAPI(assets?: AssetsAPI): TextAPI {
       // UTF-16 start in `text` (HarfBuzz cluster values are segment-relative).
       const pieces = wantClusters ? new Map<number, { d: string; x: number; advance: number }>() : null;
 
-      for (const seg of shapingSegments(text, direction, (part) => segmentByFace(part, chain))) {
+      for (const seg of shapingSegments(text, direction, split)) {
         const { font, upem } = chain[seg.face]!;
         const scale = fontSize / upem;
         // letter-spacing is given in px; convert to font units to add to the pen advance.

@@ -15,7 +15,7 @@ import { TEXT_PICTURE_DPI, liveTextWouldGarble, notePicturedText, textPicture, u
 import { drawSvgPathToPdf, pdfRoundedRect } from './export-pdf-vector.ts';
 import { _host, fontMetricsPx } from './export-shared.ts';
 import { pseudoDescriptor } from './export-svg-walker.ts';
-import { resolveVectorFont } from './font-registry.ts';
+import { resolveExportFont, extendsChain, noteFillUse } from './font-fill.ts';
 import { canVectoriseText, textBaselineY } from './text-svg.ts';
 
 type Rgb = [number, number, number];
@@ -58,7 +58,7 @@ export async function pdfPseudoContent(pdf: PdfDoc, el: Element, rootRect: { lef
     }
     if (!ds.text.trim()) continue;
     const fontSizePx = parseFloat(ds.ps.fontSize) || 16;
-    const vf = _host?.text ? await resolveVectorFont(ds.ps, ds.text) : null;
+    const vf = _host?.text ? await resolveExportFont(ds.ps, ds.text) : null;
     const fontUrl = vf?.url ?? null;
     const embedUrl = convertPaths ? null : await pdfFontEmbed(vf);
     const hasResolvedFont = Boolean(vf);
@@ -74,7 +74,7 @@ export async function pdfPseudoContent(pdf: PdfDoc, el: Element, rootRect: { lef
     const ordered = rtl || hasRtlText(ds.text);
     const garbled = liveTextWouldGarble(ds.text, rtl);
     // Outline in convert-paths mode, or for a user font live text can't carry faithfully.
-    if (canVectoriseText(ds.ps, fontUrl, Boolean(_host?.text)) && (convertPaths || (hasResolvedFont && !embedUrl) || garbled)) {
+    if (canVectoriseText(ds.ps, fontUrl, Boolean(_host?.text)) && (convertPaths || (hasResolvedFont && !embedUrl) || garbled || extendsChain(vf))) {
       try {
         const { d, notdef, advanceWidth } = await _host!.text!.toPath({ text: ds.text, fontUrl: fontUrl!, fontSize: fontSizePx, variations: vf!.variations, fallbackFonts: vf!.fallbacks, ...(ordered ? { direction: rtl ? 'rtl' as const : 'ltr' as const } : {}) });
         if (d && !notdef) {
@@ -82,6 +82,7 @@ export async function pdfPseudoContent(pdf: PdfDoc, el: Element, rootRect: { lef
           pdf.setFillColor(textRgb[0], textRgb[1], textRgb[2]);
           drawSvgPathToPdf(pdf, d, (sx: number) => left + sx * cssToPt, (sy: number) => baselinePt + sy * cssToPt);
           pdf.fill();
+          noteFillUse(vf);
           drawn = true;
         }
       } catch (e) { _host?.log?.('warn', `pdf: pseudo text-to-path failed - ${(e as Error).message}`); }

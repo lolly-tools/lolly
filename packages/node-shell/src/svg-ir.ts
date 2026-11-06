@@ -228,8 +228,9 @@ export interface SvgIrFont {
   url: string;
   /** HarfBuzz variation strings for a variable face, e.g. `['wght=700']`. */
   variations?: string[];
-  /** Sibling subsets of the same family, for characters `url` doesn't cover. */
-  fallbacks?: Array<{ fontUrl: string; variations?: string[] }>;
+  /** Sibling subsets of the same family, for characters `url` doesn't cover; a `fill`
+   *  face draws only what the faces before it cannot (fallback-fonts.ts). */
+  fallbacks?: Array<{ fontUrl: string; variations?: string[]; fill?: boolean }>;
 }
 
 /** Context the caller provides to resolve host services + environment. */

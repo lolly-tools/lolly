@@ -29,6 +29,8 @@
 import type { HostV1 } from '@lolly-tools/core/host-v1';
 import { physicalTextAnchor } from '@lolly-tools/node-shell/text-svg';
 import { firstStrongDirection, hasRtlText, type TextRunDirection } from '@lolly-tools/node-shell/text-bidi';
+import { nodeFillChain } from '@lolly-tools/node-shell/fallback-fonts-node';
+import type { FillUse } from '@lolly-tools/node-shell/fallback-fonts';
 
 /** Presentation properties inherited down the SVG tree that this walk reads. */
 const INHERITED = ['font-family', 'font-weight', 'font-style', 'font-size', 'letter-spacing', 'text-anchor', 'fill', 'direction'] as const;
@@ -47,6 +49,8 @@ export interface OutlineResult {
   outlined: number;
   /** Runs left as live `<text>`, with the reason, in document order. */
   fallbacks: Array<{ text: string; reason: string }>;
+  /** Fallback fonts that drew characters the run's own fonts lack, one entry per use. */
+  filled: FillUse[];
 }
 
 /**
@@ -143,7 +147,7 @@ export async function outlineSvgText(
   host: HostV1,
   opts: { getComputedStyle?: ((e: Element) => CSSStyleDeclaration | null) | null } = {},
 ): Promise<OutlineResult> {
-  const result: OutlineResult = { outlined: 0, fallbacks: [] };
+  const result: OutlineResult = { outlined: 0, fallbacks: [], filled: [] };
   const text = host.text;
   const doc = svg.ownerDocument;
   if (!text || !doc) {
@@ -173,9 +177,10 @@ export async function outlineSvgText(
     // to a real sfnt wins. A generic keyword (sans-serif) is left to the last-resort
     // platform face below rather than looked up as a family name.
     let font: { url: string; variations?: string[] } | null = null;
-    for (const family of families) {
-      if (/^(sans-serif|serif|monospace|cursive|fantasy|system-ui)$/i.test(family)) continue;
-      font = (await text.fontUrl?.(family, { weight, italic })) ?? null;
+    const named = families.filter((family) => !/^(sans-serif|serif|monospace|cursive|fantasy|system-ui)$/i.test(family));
+    let at = 0;
+    for (; at < named.length; at++) {
+      font = (await text.fontUrl?.(named[at]!, { weight, italic })) ?? null;
       if (font) break;
     }
     // NO substitute face. Outlining a run in whatever font happens to be on disk would
@@ -187,6 +192,18 @@ export async function outlineSvgText(
       continue;
     }
 
+    // Characters this family cannot draw take the later families of the stack, then the
+    // fallback font for their script (fallback-fonts.ts), as the web export does.
+    let fill: Awaited<ReturnType<typeof nodeFillChain>> = null;
+    if (text.characters && !/^[\x00-\x7f]*$/.test(raw)) {
+      const later: Array<{ fontUrl: string; variations?: string[] }> = [];
+      for (const family of named.slice(at + 1)) {
+        const f = (await text.fontUrl?.(family, { weight, italic })) ?? null;
+        if (f) later.push({ fontUrl: f.url, ...(f.variations ? { variations: f.variations } : {}) });
+      }
+      fill = await nodeFillChain((url) => text.characters!(url), [{ fontUrl: font.url, ...(font.variations ? { variations: font.variations } : {}) }], later, raw, { weight, italic });
+    }
+
     let shaped: { d: string; advanceWidth: number; notdef?: number } | null = null;
     try {
       shaped = await text.toPath({
@@ -195,6 +212,7 @@ export async function outlineSvgText(
         fontSize,
         letterSpacing: letterSpacingPx(prop(el, 'letter-spacing', getComputed), fontSize),
         ...(font.variations ? { variations: font.variations } : {}),
+        ...(fill ? { fallbackFonts: fill.fallbacks } : {}),
         ...(rtl || hasRtlText(raw) ? { direction } : {}),
       });
     } catch (e) {
@@ -224,6 +242,7 @@ export async function outlineSvgText(
     path.setAttribute('transform', `${own ? own + ' ' : ''}translate(${round(tx)} ${round(y)})`);
     el.replaceWith(path);
     result.outlined++;
+    if (fill) result.filled.push(...fill.uses);
   }
   return result;
 }

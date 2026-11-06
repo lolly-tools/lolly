@@ -17,6 +17,7 @@ import { clearSiteToolSources } from './lib/site-tools-context.ts';
 import { mountIOSTextScale } from './lib/ios-text-scale.ts';
 import { overlayAbsorbsPopstate } from './lib/overlay-back.ts';
 import { createBridge } from './bridge/index.ts';
+import { noteCatalogSync } from './bridge/fallback-font-source.ts';
 import { setSceneManifestLoader, SCENE_TOOL_ID } from './bridge/scene-manifest.ts';
 import type { Profile } from '@lolly-tools/core/host-v1';
 import { prepareAssetCatalogFetch, syncCatalog, syncCorePrefetch, defaultFavouriteAssetIds, toolIndexChanged, localizeToolIndex, loadSlimToolIndex } from './catalog/sync.ts';
@@ -1631,6 +1632,8 @@ async function boot(): Promise<void> {
   // existence check. Part of catalogReady so the first gallery paint already includes them.
   //
   const catalogReady = earlyCatalog ?? startBootCatalog(host, coldGallery, signInRequired);
+  // A first visit can paint a tool before its catalog lands; the fallback fonts wait for it.
+  noteCatalogSync(catalogReady);
   // Core-asset warming: 32 fetches / ~787 KB, fire-and-forget, and nothing on screen
   // waits for any of it. Firing at catalog-land put it in direct competition with the
   // first viewport's preview art, so it waits for load + idle now (plans/155 Task 3.6,

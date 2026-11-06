@@ -120,6 +120,8 @@ import { activeNodeDesignSystem, readActiveDesignSystemTokens } from '@lolly-too
 // Text-as-paths on the svg branch (contract section 6a). Local to this shell: it resolves
 // fonts through host.text's headless registry, not the web shell's fetching one.
 import { familyStack, numericWeight, outlineSvgText } from './svg-outline.ts';
+import { nodeFillChain } from '@lolly-tools/node-shell/fallback-fonts-node';
+import { fillNotice, type FillUse } from '@lolly-tools/node-shell/fallback-fonts';
 import { unavailableHere } from './exit-codes.ts';
 import { cliAudioFailureReporter, cliAudioRunReporter } from './song-report.ts';
 const REPO_ROOT = repoRoot();
@@ -136,16 +138,26 @@ const REPO_ROOT = repoRoot();
  * run in whatever font is on disk would bake a design nobody picked into a file
  * that then looks authoritative.
  */
-function cliResolveFont(host: HostV1): (style: FontStyleSlice, text: string) => Promise<SvgIrFont | null> {
-  return async (style) => {
+function cliResolveFont(host: HostV1, onFill?: (uses: FillUse[]) => void): (style: FontStyleSlice, text: string) => Promise<SvgIrFont | null> {
+  return async (style, runText) => {
     const text = host.text;
     if (!text?.fontUrl) return null;
     const weight = numericWeight(style.fontWeight ?? null);
     const italic = /italic|oblique/i.test(style.fontStyle ?? '');
-    for (const family of familyStack(style.fontFamily ?? null)) {
-      if (/^(sans-serif|serif|monospace|cursive|fantasy|system-ui)$/i.test(family)) continue;
-      const font = await text.fontUrl(family, { weight, italic });
-      if (font) return font;
+    const families = familyStack(style.fontFamily ?? null).filter((family) => !/^(sans-serif|serif|monospace|cursive|fantasy|system-ui)$/i.test(family));
+    for (let i = 0; i < families.length; i++) {
+      const font = await text.fontUrl(families[i]!, { weight, italic });
+      if (!font) continue;
+      // Characters the family cannot draw take the later families of the stack, then a
+      // fallback font for the script, so these formats can outline them too.
+      if (!text.characters) return font;
+      const later = async function* () { for (const fam of families.slice(i + 1)) { const f = await text.fontUrl!(fam, { weight, italic }); if (f) yield { fontUrl: f.url, ...(f.variations ? { variations: f.variations } : {}) }; } };
+      const laterFaces: Array<{ fontUrl: string; variations?: string[] }> = [];
+      if (!/^[\x00-\x7f]*$/.test(runText)) for await (const f of later()) laterFaces.push(f);
+      const fill = await nodeFillChain((url) => text.characters!(url), [{ fontUrl: font.url, ...(font.variations ? { variations: font.variations } : {}) }], laterFaces, runText, { weight, italic });
+      if (!fill) return font;
+      onFill?.(fill.uses);
+      return { ...font, fallbacks: fill.fallbacks };
     }
     return null;
   };
@@ -247,6 +259,9 @@ interface CliExportRenderOpts extends ExportOpts {
   /** Reported once per run that could not be outlined, so the runner can warn (and
    *  refuse under --strict) instead of the bridge writing to stderr itself. */
   onTextFallback?: (run: { text: string; reason: string }) => void;
+  /** Said once per export when fallback fonts drew text the design system's fonts do not
+   *  cover (fallback-fonts.ts `fillNotice`), so the runner can print it as a note. */
+  onFillNotice?: (notice: string) => void;
 }
 
 /** Element type of parseIconThemesDoc's result - derived so no engine-internal
@@ -1174,6 +1189,10 @@ async function noteDesignOps(opts: object, ingredients: readonly import('@lolly-
 
   host.export = {
     async render(node: Element, format: string, opts: CliExportRenderOpts = {}): Promise<Blob> {
+      // What fallback fonts drew in this export's outlined text, said once as a note.
+      const fillUses: FillUse[] = [];
+      const collectFill = (uses: FillUse[]): void => { fillUses.push(...uses); };
+      const reportFill = (): void => { const filled = fillNotice(fillUses); if (filled) opts.onFillNotice?.(filled); };
       const unavailable = node.matches('[data-export-error]') ? node : node.querySelector('[data-export-error]');
       // HTML is the runnable template, not a captured result.
       if (format !== 'html' && unavailable) throw new Error(unavailable.getAttribute('data-export-error') || 'The tool is not ready to export.');
@@ -1278,6 +1297,8 @@ async function noteDesignOps(opts: object, ingredients: readonly import('@lolly-
             getComputedStyle: w.getComputedStyle ? (el: Element) => { try { return w.getComputedStyle(el); } catch { return null; } } : null,
           });
           for (const f of res.fallbacks) opts.onTextFallback?.(f);
+          const filled = fillNotice(res.filled);
+          if (filled) opts.onFillNotice?.(filled);
         }
         const raw = w.XMLSerializer
           ? new w.XMLSerializer().serializeToString(svg)
@@ -1303,7 +1324,8 @@ async function noteDesignOps(opts: object, ingredients: readonly import('@lolly-
         // throws. `--text=outline` forces the old always-text-as-paths output.
         const svg = rootSvgOf(node);
         if (!svg) throw new Error('EMF export requires an <svg> in the template (HTML-layout tools need a browser engine - use the desktop app)');
-        const ir = await svgDomToIr(svg, { host, resolveFont: cliResolveFont(host), background: opts.background, textMode: opts.text === 'outline' ? 'outline' : 'live' });
+        const ir = await svgDomToIr(svg, { host, resolveFont: cliResolveFont(host, collectFill), background: opts.background, textMode: opts.text === 'outline' ? 'outline' : 'live' });
+        reportFill();
         const bytes = emitEmf(ir, { width: opts.width, height: opts.height, unit: opts.unit, dpi: opts.dpi });
         // application/x-msmetafile, not RFC 7903 image/emf - Google Drive only
         // opens metafiles in Google Drawings/Slides under the legacy type.
@@ -1385,7 +1407,8 @@ async function noteDesignOps(opts: object, ingredients: readonly import('@lolly-
         // FINISH_MASK_CMYK here exactly as it does in the browser.
         const svg = rootSvgOf(node);
         if (!svg) throw new Error('EPS export requires an <svg> in the template (HTML-layout tools need a browser engine - use the desktop app)');
-        const ir = await svgDomToIr(svg, { host, resolveFont: cliResolveFont(host), background: opts.background, label: 'EPS' });
+        const ir = await svgDomToIr(svg, { host, resolveFont: cliResolveFont(host, collectFill), background: opts.background, label: 'EPS' });
+        reportFill();
         const separate = format === 'eps-cmyk' ? (await pressSeparationFor(opts.colorProfile)).separate : undefined;
         const text = emitEps(ir, {
           width: opts.width, height: opts.height, unit: opts.unit, dpi: opts.dpi,
@@ -1401,7 +1424,8 @@ async function noteDesignOps(opts: object, ingredients: readonly import('@lolly-
         // what is fundamentally text). Text is outlined upstream (host.text present).
         const svg = rootSvgOf(node);
         if (!svg) throw new Error('DXF export requires an <svg> in the template (HTML-layout tools need a browser engine - use the desktop app)');
-        const ir = await svgDomToIr(svg, { host, resolveFont: cliResolveFont(host), background: opts.background, label: 'DXF' });
+        const ir = await svgDomToIr(svg, { host, resolveFont: cliResolveFont(host, collectFill), background: opts.background, label: 'DXF' });
+        reportFill();
         const { text } = emitDxf(ir, { width: opts.width, height: opts.height, unit: opts.unit, dpi: opts.dpi });
         return new Blob([text], { type: 'image/vnd.dxf' });
       }
@@ -1413,7 +1437,8 @@ async function noteDesignOps(opts: object, ingredients: readonly import('@lolly-
         // no comment record to carry a source URL.
         const svg = rootSvgOf(node);
         if (!svg) throw new Error('WMF export requires an <svg> in the template (HTML-layout tools need a browser engine - use the desktop app)');
-        const ir = await svgDomToIr(svg, { host, resolveFont: cliResolveFont(host), background: opts.background, label: 'WMF' });
+        const ir = await svgDomToIr(svg, { host, resolveFont: cliResolveFont(host, collectFill), background: opts.background, label: 'WMF' });
+        reportFill();
         const bytes = emitWmf(ir, { width: opts.width, height: opts.height, unit: opts.unit, dpi: opts.dpi });
         // Same legacy metafile type as EMF above - Drive's Drawings import
         // matches application/x-msmetafile for WMF too.

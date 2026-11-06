@@ -79,11 +79,15 @@ export interface VectorFont {
   /** HarfBuzz variation strings for a variable face, e.g. `['wght=700']`. */
   variations?: string[];
   /** Sibling subsets of the same family, for characters `url` doesn't cover
-   *  (Google's `latin` file has no `Ł`; its `latin-ext` file has no ASCII). */
-  fallbacks?: Array<{ fontUrl: string; variations?: string[]; face?: VectorFontFace }>;
+   *  (Google's `latin` file has no `Ł`; its `latin-ext` file has no ASCII). A `fill`
+   *  entry draws only what the faces before it cannot (font-fill.ts). */
+  fallbacks?: Array<{ fontUrl: string; variations?: string[]; face?: VectorFontFace; fill?: boolean }>;
   /** The SOURCE face behind `url` - see VectorFontFace. Identity only; nothing in the
    *  outlining path reads it. */
   face?: VectorFontFace;
+  /** The fallback fonts this run needs because the design system's fonts do not cover all
+   *  of its text, in words for the export notice. Set only by resolveExportFont. */
+  fill?: Array<{ label: string; family: string }>;
 }
 
 /** One stored face as the registry models it. */
@@ -384,51 +388,9 @@ async function faceUrl(face: RegistryFace): Promise<string> {
  */
 export async function resolveVectorFont(style: FontStyleSlice, text: string): Promise<VectorFont | null> {
   const families = parseFontFamilies(style.fontFamily);
-  const registry = (registryPromise ??= buildRegistry());
-  let faces: Map<string, RegistryFace[]>;
-  try { faces = await registry; }
-  catch { registryPromise = null; faces = new Map(); }
-
-  const tryFamily = async (family: string): Promise<VectorFont | null> => {
-    const key = family.toLowerCase();
-    if (key === 'suse' || key === 'suse mono') {
-      // The catalog statics only exist under a brand that ships them; elsewhere
-      // the path SPA-falls-back to an HTML page, so probe before trusting it and
-      // otherwise fall THROUGH to the registry (the shell-served SUSEMono woff2
-      // discovered from fonts.css outlines fine once decompressed).
-      const url = resolveSuseFontUrl({ ...style, fontFamily: family });
-      if (url && await fontUrlUsable(url)) {
-        // The face states the weight of the static file picked, which may be a nearer cut than the request.
-        const weight = String(suseStaticWeight(parseInt(style.fontWeight ?? '', 10) || 400, key === 'suse mono'));
-        return { url, face: { family, weight, style: style.fontStyle ?? 'normal', source: 'catalog', file: url } };
-      }
-    }
-    const list = releaseFaces.get(key) ?? faces.get(key);
-    if (!list?.length) return null;
-    const chain = pickFaces(list, style, text);
-    if (!chain.length) {
-      if (releaseFaces.has(key)) throw new Error('The pinned release has no face for this text and slant.');
-      return null;
-    }
-    try {
-      // Decode every face in the chain up front; a failure anywhere means this
-      // family can't be trusted to draw the run, so try the next one.
-      const urls = await Promise.all(chain.map(c => faceUrl(c.face)));
-      const [primary, ...rest] = chain.map((c, i) => ({ fontUrl: urls[i]!, variations: c.variations, face: describeFace(family, c.face) }));
-      return {
-        url: primary!.fontUrl,
-        ...(primary!.variations ? { variations: primary!.variations } : {}),
-        ...(rest.length ? { fallbacks: rest } : {}),
-        face: describeFace(family, chain[0]!.face),
-      };
-    } catch (error) {
-      if (releaseFaces.has(key)) throw error;
-      return null; // this family's bytes are unreadable - try the next family
-    }
-  };
-
+  const faces = await registryFaces();
   for (const family of families) {
-    const resolved = await tryFamily(family);
+    const resolved = await tryFamily(family, style, text, faces);
     if (resolved) return resolved;
   }
   // Owner rule (Andy, 2026-08-24): tool text renders in the ACTIVE BRAND's
@@ -443,11 +405,62 @@ export async function resolveVectorFont(style: FontStyleSlice, text: string): Pr
     if (!role) continue;
     for (const fam of brandRoleStack(role)) {
       if (genericFontRole(fam)) continue; // the brand stack ends in generics too
-      const resolved = await tryFamily(fam);
+      const resolved = await tryFamily(fam, style, text, faces);
       if (resolved) return resolved;
     }
   }
   return null;
+}
+
+/** The registry, built once per generation; an unreadable store answers with no faces. */
+async function registryFaces(): Promise<Map<string, RegistryFace[]>> {
+  const registry = (registryPromise ??= buildRegistry());
+  try { return await registry; }
+  catch { registryPromise = null; return new Map(); }
+}
+
+/** One family's chain for `text` on its own, or null when no face of it resolves here. */
+export async function resolveFamilyChain(family: string, style: FontStyleSlice, text: string): Promise<VectorFont | null> {
+  return tryFamily(family, style, text, await registryFaces());
+}
+
+/** One family's chain for `text`, or null when this registry holds no face that can draw it. */
+async function tryFamily(family: string, style: FontStyleSlice, text: string, faces: Map<string, RegistryFace[]>): Promise<VectorFont | null> {
+  const key = family.toLowerCase();
+  if (key === 'suse' || key === 'suse mono') {
+    // The catalog statics only exist under a brand that ships them; elsewhere
+    // the path SPA-falls-back to an HTML page, so probe before trusting it and
+    // otherwise fall THROUGH to the registry (the shell-served SUSEMono woff2
+    // discovered from fonts.css outlines fine once decompressed).
+    const url = resolveSuseFontUrl({ ...style, fontFamily: family });
+    if (url && await fontUrlUsable(url)) {
+      // The face states the weight of the static file picked, which may be a nearer cut than the request.
+      const weight = String(suseStaticWeight(parseInt(style.fontWeight ?? '', 10) || 400, key === 'suse mono'));
+      return { url, face: { family, weight, style: style.fontStyle ?? 'normal', source: 'catalog', file: url } };
+    }
+  }
+  const list = releaseFaces.get(key) ?? faces.get(key);
+  if (!list?.length) return null;
+  const chain = pickFaces(list, style, text);
+  if (!chain.length) {
+    if (releaseFaces.has(key)) throw new Error('The pinned release has no face for this text and slant.');
+    return null;
+  }
+  try {
+    // Decode every face in the chain up front; a failure anywhere means this
+    // family can't be trusted to draw the run, so try the next one.
+    const urls = await Promise.all(chain.map(c => faceUrl(c.face)));
+    const [primary, ...rest] = chain.map((c, i) => ({ fontUrl: urls[i]!, variations: c.variations, face: describeFace(family, c.face) }));
+    return {
+      url: primary!.fontUrl,
+      ...(primary!.variations ? { variations: primary!.variations } : {}),
+      ...(rest.length ? { fallbacks: rest } : {}),
+      face: describeFace(family, chain[0]!.face),
+    };
+  } catch (error) {
+    if (releaseFaces.has(key)) throw error;
+    return null; // this family's bytes are unreadable - try the next family
+  }
 }
 
 /**
@@ -472,7 +485,7 @@ export function genericFontRole(family: string): 'sans' | 'mono' | null {
 
 /** The active brand's family stack for a type role, read from the chrome vars
  *  (tokens.css defaults; brand-vars.ts overrides them per brand). */
-function brandRoleStack(role: 'sans' | 'mono'): string[] {
+export function brandRoleStack(role: 'sans' | 'mono'): string[] {
   let raw = '';
   try {
     if (typeof document !== 'undefined' && document.documentElement) {

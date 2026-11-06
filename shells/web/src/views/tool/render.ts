@@ -33,6 +33,7 @@ import { boundEndpointIds, geometryFastPathPlan } from '../canvas-scene.ts';
 import type { Box } from '../free-canvas-math.ts';
 import { armAutoCopy, resolveCanvasAnnotations } from './shared.ts';
 import { bindOp, type ToolViewCtx } from './context.ts';
+import { notePagePainted } from '../../lib/page-fallback-watch.ts';
 
 /**
  * The Design scene enhancer, once it has been loaded. Module scope rather than a context
@@ -417,6 +418,9 @@ export function paint(tview: ToolViewCtx): void {
     });
   }
   if (contentPainted) canvasEl?.dispatchEvent(new CustomEvent('lolly-canvas-painted'));
+  // Characters the design system's fonts lack take a fallback font on the page too, so the
+  // page and its export agree (docs/fallback-fonts.md). All-ASCII text costs one test.
+  if (contentPainted) notePagePainted(contentEl, canvasScope);
 
   // The canvas just moved (or was rebuilt outright, taking every annotated node
   // with it) and the sidebar was re-synced a moment ago - so any remote focus ring

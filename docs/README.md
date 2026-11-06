@@ -59,6 +59,7 @@ Original Lolly prose is CC BY-SA 4.0; imported Lolly Work prose and screenshots 
 | Lolly Darkroom | [darkroom.md](darkroom.md) |
 | Rebrand a deck | [rebrand.md](rebrand.md) |
 | Formats | [formats.md](formats.md) |
+| Fallback fonts | [fallback-fonts.md](fallback-fonts.md) |
 | Text in Lolly Design | [text-composition.md](text-composition.md) |
 | Wide colour and HDR editing | [hdr-editing.md](hdr-editing.md) |
 | The sequence editor | [sequence-editor.md](sequence-editor.md) |

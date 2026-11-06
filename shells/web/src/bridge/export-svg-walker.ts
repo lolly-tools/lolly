@@ -15,7 +15,7 @@ import { createInlineTextContext, emitInlineTextSvg, isReplaced } from './export
 import type { InlineTextContext } from './export-text.ts';
 export { decoFlags, mergeDeco, isReplaced, visualLines, pdfInlineNonText } from './export-text.ts';
 export type { Deco } from './export-text.ts';
-import { resolveVectorFont } from './font-registry.ts';
+import { resolveExportFont, noteFillUse } from './font-fill.ts';
 import { namespaceInlinedSvgIds } from './svg-inline-ids.ts';
 import { newNeutraliseGuard, neutraliseTransform } from './transform-neutralise.ts';
 import { placeBackground } from './bg-layout.ts';
@@ -760,7 +760,7 @@ export async function renderSvgFromHtml(node: Element, opts: ExportOpts): Promis
   const host = _host;
   const textContext = createInlineTextContext({
     text: opts.convertPaths !== false ? host?.text ?? null : null,
-    log: host?.log?.bind(host), resolveFont: resolveVectorFont, fontMetrics: fontMetricsPx,
+    log: host?.log?.bind(host), resolveFont: resolveExportFont, fontMetrics: fontMetricsPx,
     flatTree: opts.shadowSlots === true,
   });
   return renderHtmlSvg(node, opts, textContext);
@@ -2819,7 +2819,7 @@ async function svgPseudoContent(
     }
     if (!ds.text.trim()) continue;
     const fontSizePx = parseFloat(ds.ps.fontSize) || 16;
-    const vf = vectorText && _host?.text ? await resolveVectorFont(ds.ps, ds.text) : null;
+    const vf = vectorText && _host?.text ? await resolveExportFont(ds.ps, ds.text) : null;
     const fontUrl = vf?.url ?? null;
     const col = parseCssColorFull(ds.ps.color);
     const fillAttr  = col ? `rgb(${col[0]},${col[1]},${col[2]})` : null;
@@ -2842,6 +2842,7 @@ async function svgPseudoContent(
           if (alphaAttr) p.setAttribute('fill-opacity', alphaAttr);
           for (const [k, v] of strokeAttrs) p.setAttribute(k, v);
           parentG_.appendChild(p);
+          noteFillUse(vf);
           placed = true;
         }
       } catch (e) { _host?.log?.('warn', `svg: pseudo text-to-path failed - ${(e as Error).message}`); }
