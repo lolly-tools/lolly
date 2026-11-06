@@ -2444,9 +2444,9 @@ interface FormatLastJson {
   /** A plain line on content sovereignty, with a link to the page that defines the term. */
   control?: { text: string; label: string; slug: string };
 }
-/** Each panel's file, its drawn size and the original it came from. The two raster
- *  panels are raster because of what they show: a video frame is pixels, and Ghostscript's
- *  separation device draws each ink plate as pixels, the way a press RIP sees the file. */
+/** Each panel's file and the original it came from; sizes are read off the files. The
+ *  two raster panels are raster because of what they show: a video frame is pixels, and
+ *  Ghostscript's separation device draws each ink plate as pixels, as a press RIP does. */
 const FORMAT_LAST_PANELS: Record<string, { art: string; source: string }> = {
   slide: { art: 'formats-last-slide.svg', source: 'formats-last.pptx' },
   page: { art: 'formats-last-page.svg', source: 'formats-last.docx' },
