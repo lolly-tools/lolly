@@ -134,7 +134,7 @@ describe('Quote in the web shell', { skip }, () => {
     assert.deepEqual(bad, []);
   });
 
-  test('a placed box plays on Design\'s timeline, seeks exactly and follows a colourway', { timeout: 240_000 }, async () => {
+  test('a placed box plays on Design\'s timeline, seeks exactly and follows a theme choice', { timeout: 240_000 }, async () => {
     const boxes = [{ id: 'q1', kind: 'image', x: 0, y: 0, w: 1600, h: 900, image: { id: `${link({ layout: 'type', ground: 'lead', motion: 'word' })}&w=1600&h=900` }, start: 0, dur: 4 }];
     const design = await browser.newPage({ serviceWorkers: 'block', viewport: { width: 1500, height: 1000 } });
     design.setDefaultNavigationTimeout(90_000);
@@ -173,9 +173,11 @@ describe('Quote in the web shell', { skip }, () => {
       const ground = () => document.querySelector('[data-anim-src] > svg rect')?.getAttribute('fill');
       const before = await design.evaluate(ground);
       await design.mouse.click(700, 110);
-      await design.getByText('Morning', { exact: true }).first().click();
+      // A public clone's design system has no colourways, and every system has a dark look.
+      const morning = design.getByText('Morning', { exact: true }).first();
+      await (await morning.count() ? morning : design.getByText('Dark', { exact: true }).first()).click();
       await design.waitForFunction(was => document.querySelector('[data-anim-src] > svg rect')?.getAttribute('fill') !== was, before, { timeout: 60_000 });
-      assert.notEqual(await design.evaluate(ground), before, 'the picture follows the colourway');
+      assert.notEqual(await design.evaluate(ground), before, 'the picture follows the document\'s choice');
     } finally { await design.close(); }
   });
 });
