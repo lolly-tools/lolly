@@ -98,6 +98,10 @@ test('every feature version 0 does not draw is reported against its row, never d
   assert.deepEqual(by('gone'), [], 'a hidden row draws nothing and reports nothing');
   assert.deepEqual(designDrawFindings({ id: 'c', kind: 'box', grad: 'con_0_ff0000-0_0000ff-100' }), ['conic-gradient']);
   assert.deepEqual(designDrawFindings({ id: 'v', kind: 'web' }), ['non-static-kind']);
+  // The browser orders right-to-left letters by bidi from its own direction; the measure does neither.
+  assert.deepEqual(designDrawFindings({ id: 't', kind: 'text', text: 'مرحبا بالعالم.' }), ['text-direction']);
+  assert.deepEqual(designDrawFindings({ id: 't', kind: 'text', text: 'Hello שלום' }), ['text-direction']);
+  assert.deepEqual(designDrawFindings({ id: 't', kind: 'text', text: 'Plain Latin, Привет, 漢字' }), []);
 });
 
 test('the page emitter escapes document text and draws the same markup the preview draws from the same rows', () => {

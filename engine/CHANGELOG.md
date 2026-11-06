@@ -6,6 +6,10 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+## 1.315.0
+
+- `designDrawFindings` reports `text-direction` for any row holding right-to-left letters, as it did for a row marked right to left. The canvas orders those letters by bidi from its own direction and the measure does not, so the page goes to the walker, which reads the browser, or on the CLI to the browser tier. A row with no right-to-left letters is unaffected.
+
 ## 1.314.0
 
 - `host.text.toPath` gains an optional `direction` (`ltr` or `rtl`), the direction of the paragraph a run sits in. A run that holds right-to-left characters, or a complex script beside another script, now goes through the Unicode bidi analysis and is shaped one direction and script at a time, in visual order. Latin inside Arabic used to come out reversed, digits too, and Arabic after a Latin word lost its joining. With no `direction`, such a run reads from its first strong character.

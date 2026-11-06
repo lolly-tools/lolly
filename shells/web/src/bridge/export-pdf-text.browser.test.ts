@@ -359,8 +359,8 @@ const LTR: Record<string, [string, Record<string, unknown>]> = {
 const GENERATED_PLATFORM_ONLY = new Set(['inline']);
 
 for (const [name, [inner, opts]] of Object.entries(LTR)) {
-  const skip = SKIP || (GENERATED_PLATFORM_ONLY.has(name) && process.platform !== 'darwin' ? 'generated on macOS; another font backend moves inline runs' : false);
-  test(`golden: a left-to-right ${name} PDF keeps its bytes`, { skip }, async () => {
+  if (GENERATED_PLATFORM_ONLY.has(name) && process.platform !== 'darwin') continue;
+  test(`golden: a left-to-right ${name} PDF keeps its bytes`, { skip: SKIP }, async () => {
     const hash = await contentHash((await exportPdf(inner, opts)).bytes);
     assert.equal(await contentHash((await exportPdf(inner, opts)).bytes), hash, 'two renders agree');
     if (UPDATE) { regenerated[name] = hash; return; }

@@ -495,3 +495,14 @@ test('canSetText says what a base-14 face can encode, and embeds nothing to find
   const bytes = new Uint8Array(await (await pdf.output('blob') as Blob).arrayBuffer());
   assert.equal(new TextDecoder('latin1').decode(bytes).includes('/BaseFont'), false, 'no font object from asking');
 });
+
+test('canSetText reads an embedded face and adds no glyph to it', { skip: NO_FONT }, async () => {
+  const pdf = await createPdfDoc({ format: [100, 100] });
+  pdf.addFileToVFS('Outfit.ttf', readFileSync(OUTFIT_TTF).toString('base64'));
+  pdf.addFont('Outfit.ttf', 'Outfit', 'normal');
+  pdf.setFont('Outfit', 'normal');
+  assert.equal(pdf.canSetText('Plain Latin words'), true);
+  assert.equal(pdf.canSetText('مرحبا'), false, 'this face has no Arabic');
+  const bytes = new Uint8Array(await (await pdf.output('blob') as Blob).arrayBuffer());
+  assert.equal(new TextDecoder('latin1').decode(bytes).includes('/FontFile2'), false, 'asking embeds nothing');
+});
