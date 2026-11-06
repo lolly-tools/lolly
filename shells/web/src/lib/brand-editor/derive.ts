@@ -294,6 +294,8 @@ export function seedDraftAndMarkup(bedit: BrandEditorCtx): void {
           <div class="be-wing-body">
             <div class="be-leads" data-be-leads></div>
             <div data-be-role-table></div>
+            ${/* Under 1100px the preview is far down the page, so this button goes there. */''}
+            <button type="button" class="be-btn be-btn--sm be-roles-preview" data-be-roles-preview>${t('See this in context')}</button>
             <details class="be-subst-details be-roles-all">
               <summary><span class="be-subst-details-label">${t('Every colour a tool reads')}</span></summary>
               <div class="be-roles-all-body">

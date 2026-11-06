@@ -15,6 +15,7 @@ import type { RoleId } from '../design-system/roles.ts';
 import { mountColourRolesRoom } from '../design-system/rooms/colour-roles.ts';
 import type { SlotId } from '../design-system/colour-roles-model.ts';
 import { tRaw } from '../../i18n.ts';
+import { prefersReducedMotion } from '../a11y-prefs.ts';
 import { bindOp, type BrandEditorCtx } from './context.ts';
 
 /** Swap in an edited document: undo snapshot, save, repaint, the steps every edit takes. */
@@ -56,6 +57,10 @@ export function wireColourRoles(bedit: BrandEditorCtx): void {
   bedit.paletteHooks.push(() => { if (!fold || fold.open) room.render(); });
   fold?.addEventListener('toggle', () => { if (fold.open) room.render(); });
   bedit.cleanups.push(room.destroy);
+  // Where the preview is not beside the table, a press takes the person to the preview.
+  bedit.ramps.$('[data-be-roles-preview]')?.addEventListener('click', () => {
+    bedit.ramps.$('.be-context')?.scrollIntoView({ block: 'start', behavior: prefersReducedMotion() ? 'auto' : 'smooth' });
+  });
   // A colour role's tile in the palette opens the same picker, on the look being shown.
   const onTile = (e: Event): void => {
     const tile = (e.target as HTMLElement).closest<HTMLElement>('[data-be-role-tile]');

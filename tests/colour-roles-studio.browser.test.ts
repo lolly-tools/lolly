@@ -74,6 +74,7 @@ test('the room: add, rename, bind, Same as light, switch colourway, In context r
     const table = (await page.locator('.crt-table').boundingBox())!;
     const context2 = (await page.locator('.be-context').boundingBox())!;
     assert.ok(context2.x >= table.x + table.width, 'the preview sits beside the table');
+    assert.equal(await page.locator('[data-be-roles-preview]').isVisible(), false, 'so no way to it is needed');
     assert.ok((await page.locator('[data-be-previews]').boundingBox())!.y < 800, 'and is on screen with it');
     const heads = await page.locator('.crt-head [role="columnheader"]').evaluateAll(els => els.map(el => el.textContent));
     assert.deepEqual(heads, ['Role', 'Light', 'Dark', 'Lolly reads this as']);
@@ -237,6 +238,9 @@ test('phone: both looks side by side, no sideways scroll, long and non-Latin lab
       assert.equal(await page.locator(`[data-crt-row="${key}"]`).evaluate(el => el.scrollWidth > el.clientWidth + 1), false, `${key}: nothing overflows its card`);
     }
     assert.ok(await page.locator('[data-crt-row="main"] .crt-look').first().isVisible(), 'each cell says its look at this width');
+    // The preview is far below at this width, so a press goes there.
+    await page.locator('[data-be-roles-preview]').click();
+    await page.waitForFunction(() => { const y = document.querySelector('.be-context')?.getBoundingClientRect().top ?? 9999; return y >= 0 && y < 300; });
     assert.equal(await page.locator('[data-crt-name="main"]').getAttribute('dir'), 'auto');
   } finally { await context.close(); await browser.close(); }
 });

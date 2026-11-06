@@ -1014,6 +1014,8 @@ button.be-lead:hover { background: hsl(var(--muted) / .7); }
 .be-roles-all { padding-top: var(--sp-3); }
 .be-roles-all-body { display: grid; gap: var(--sp-3); padding-top: var(--sp-3); }
 .be-pal-card--role .be-swatch { cursor: pointer; }
+.be-roles-preview { justify-self: start; }
+@media (min-width: 1100px) { .be-roles-preview { display: none; } }
 
 /* ── The role chips at the top of Colours (lib/design-system/role-chips.ts,
       plan 346 change 7). One chip per first decision, each the colour that
