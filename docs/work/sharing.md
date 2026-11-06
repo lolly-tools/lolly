@@ -141,6 +141,10 @@ links](catalog.md#collection-links).
   until its own expiry.
 - **Revocation is immediate** and ends live guest sessions that use the link. A member can
   always revoke their own link; revoking someone else's needs `link.revoke`.
+- **A link stops while the person who made it is disabled.** It answers `410
+  LINK_MAKER_DISABLED`, and a browser reads "This link stopped working". Re-enabling the
+  account restores it. A link made by a service token has no person behind it and is not
+  affected.
 - Guest links are also capped by `policy.guestLinks.maxTtlHours`, and can be switched off
   outright (`403 GUEST_LINKS_DISABLED`).
 

@@ -80,18 +80,41 @@ so the console and CLI always offer the same things.
 |---|---|
 | `principal` | `group:<name>`, `user:<id>`, or `*` |
 | `action` | any action id from the role list above |
-| `resource` | a selector: `*`, `tool:<id>`, `tool:tag/<tag>`, `catalog:tag/<tag>`, `destination:<id>`, … |
+| `resource` | `*`, or one of the forms in [Which permissions narrow](#which-permissions-narrow), such as `tool:<id>` |
 | `effect` | `allow` or `deny` |
 
 Grants take effect on the **next request**: there is no cache to clear and no restart. Every
 change is audited.
 
+A rule that could never apply is refused with `400 GRANT_NEVER_MATCHES`, which says what that
+permission is checked against: a permission no route checks, or a resource it is never checked
+against. The console marks such a rule if one was stored before this check, and deleting the
+rule changes nothing about access.
+
 ::: details How evaluation works
 `server/src/rbac/evaluate.ts` makes every decision, in a fixed order: any matching deny wins,
 then any matching allow, then the role default. It never looks anything up itself. A resource
-arrives as the set of selectors it satisfies, for example
-`['tool:qr-code', 'tool:tag/external-facing', '*']`.
+arrives as the set of selectors it satisfies, for example `['tool:qr-code', '*']`.
 :::
+
+### Which permissions narrow
+
+Every permission is checked against `*`. These are also checked against one resource, so a grant
+can point at one:
+
+| Permissions | Resource forms |
+|---|---|
+| `tool.use`, `export.download`, `export.request`, `export.server`, `link.create`, `link.create-guest` | `tool:<id>` |
+| `delivery.create` | `destination:<id>` |
+| `project.manage` | `project:<id>` |
+| `session.view`, `session.edit`, `comment.view`, `comment.create`, `comment.edit`, `comment.resolve`, `comment.moderate` | `session:<id>`, `project:<id>` |
+| `approval.act` | `chain:<id>`, `approval:<id>`, or the subject of the request |
+
+Every other permission is decided for the whole deployment, so its resource is `*`. Tag
+selectors such as `tool:tag/<tag>` are not checked; list each tool. There is no per-asset or
+per-tag `catalog.read`: to keep assets from a group, narrow who sees them with
+[submission groups](catalog.md#submitting-an-asset) or [provider
+exposure](catalog.md#exposure-governance).
 
 ### Explicit allow and the role default
 
@@ -100,6 +123,11 @@ to allow this". Tool visibility is the example: the `member` default of `tool.us
 otherwise show every governed tool. Those checks use the explicit-grant decision
 (`grantDecision`), which returns `allow`, `deny` or `none`. It matters when you are working out
 why a tool is or is not visible.
+
+For tools the rule is: a matching `tool.use` deny hides the tool, and otherwise the tool shows
+when its overlay's `visibility` admits the person or an allow grant covers them. The catalog
+feed, the tool's files, org-config, Preview, server renders and the organisation MCP all ask
+that one question, so a tool Preview reports as hidden is absent from every one of them.
 
 ## Common recipes
 
@@ -113,10 +141,13 @@ lw grants add group:contractors export.download 'tool:campaign-banner' --effect 
 ```
 
 The contractor opens the campaign banner tool and works on the banner. Deny wins over their member
-default, so the file cannot leave as a download.
+default, so the file cannot leave as a download. org-config carries the tool's own answer in
+`tools["campaign-banner"].can`, where it differs from the deployment-wide `can` bit, and Lolly
+offers **Request approval** or nothing in place of **Download** for that tool only. Preview shows
+the same answer beside the tool. Lolly versions from before this answer existed read only the
+deployment-wide bit, so the per-tool deny needs a current app.
 
-Tag selectors let the same pair cover a whole class of tools (`tool:tag/external-facing`)
-instead of listing ids.
+Add the same pair for each tool the rule covers. Tag selectors are not checked.
 
 ### Let a team contribute assets
 
@@ -209,8 +240,8 @@ their own authority:
 | `token.manage` | mint a service token for automation |
 
 An admin can still shape a catalog provider and copy its files into the instance's own store.
-An owner can hand any of these actions out per resource through a grant, but an admin cannot
-grant one to themselves.
+An owner can grant any of these actions to a group or a person, but an admin cannot grant one
+to themselves.
 
 ### The escalation guard
 
