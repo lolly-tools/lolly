@@ -627,6 +627,21 @@ export function setupStageNav(stageEl: HTMLElement, outerEl: HTMLElement, canvas
     captureOrigin(); tx += dx; ty += dy; contentFit = false; apply();
   }
 
+  // A panel just covered part of the stage (Design's phone panel opening): bring the
+  // selection, else the active artboard, else the whole work, into the band left.
+  function revealSelection(): void {
+    // Last, the canvas itself: a page strip (Record) has no artboards to ask about.
+    const whole = (): StageRect => { const o = canvasEl?.getBoundingClientRect() ?? outerEl.getBoundingClientRect(); return { x: o.left, y: o.top, w: o.width, h: o.height }; };
+    const r = opts?.selectionRect?.() ?? opts?.activeRect?.() ?? opts?.contentRect?.() ?? whole();
+    if (!r || !(r.w > 0) || !(r.h > 0)) return;
+    const sr = stageBox();
+    const pad = 12;
+    const view = { x: sr.left + pad, y: sr.top + pad, w: sr.width - 2 * pad, h: sr.height - 2 * pad };
+    if (!(view.w > 0) || !(view.h > 0)) return;
+    if (r.w > view.w || r.h > view.h) { focusRect(r.x, r.y, r.w, r.h, SEL_MARGIN); return; }
+    revealRect(r, view);
+  }
+
   // Zoom to the current selection's AABB. Deliberately the same framing routine the
   // Artboards navigator gets, at its usual 85% - a selected box wants context around it,
   // where Fit-all wants the tightest honest gutter. Nothing selected = nothing to frame,
@@ -1270,6 +1285,7 @@ export function setupStageNav(stageEl: HTMLElement, outerEl: HTMLElement, canvas
   let textFocusView:{scale:number;tx:number;ty:number;contentFit:boolean;contentFloor:number}|undefined;
   const onTextFocus=(event:Event)=>{const active=(event as CustomEvent<{active:boolean}>).detail?.active;if(active){textFocusView??={scale,tx,ty,contentFit,contentFloor};}else if(textFocusView){({scale,tx,ty,contentFit,contentFloor}=textFocusView);textFocusView=undefined;captureOrigin();apply();}};
   stageEl.addEventListener('fc-text-focus',onTextFocus);
+  stageEl.addEventListener('fc-reveal-selection', revealSelection);
   syncHud();
 
   // A layout change under a held burst releases it, so the next event measures afresh.
@@ -1282,6 +1298,7 @@ export function setupStageNav(stageEl: HTMLElement, outerEl: HTMLElement, canvas
   function destroy(): void {
     destroyed = true;
     stageEl.removeEventListener('fc-text-focus',onTextFocus);
+    stageEl.removeEventListener('fc-reveal-selection', revealSelection);
     stageEl.removeEventListener('fc-touch-handoff', onTouchHandoff);
     stageEl.removeEventListener('fc-touch-tap', onTouchTap);
     window.removeEventListener('resize', onLayoutChange);
@@ -1344,18 +1361,7 @@ export function setupStageNav(stageEl: HTMLElement, outerEl: HTMLElement, canvas
     },
     reset, isZoomed, isUserZoomed, sync: syncHud, fit, fitSelection, focusRect,
     revealRect,
-    revealSelection() {
-      // Last, the canvas itself: a page strip (Record) has no artboards to ask about.
-      const whole = (): StageRect => { const o = canvasEl?.getBoundingClientRect() ?? outerEl.getBoundingClientRect(); return { x: o.left, y: o.top, w: o.width, h: o.height }; };
-      const r = opts?.selectionRect?.() ?? opts?.activeRect?.() ?? opts?.contentRect?.() ?? whole();
-      if (!r || !(r.w > 0) || !(r.h > 0)) return;
-      const sr = stageBox();
-      const pad = 12;
-      const view = { x: sr.left + pad, y: sr.top + pad, w: sr.width - 2 * pad, h: sr.height - 2 * pad };
-      if (!(view.w > 0) || !(view.h > 0)) return;
-      if (r.w > view.w || r.h > view.h) { focusRect(r.x, r.y, r.w, r.h, SEL_MARGIN); return; }
-      revealRect(r, view);
-    },
+    revealSelection,
     zoomBy, zoomTo, actual: absScale,
     // Called back once immediately so a fresh readout paints the current view rather than
     // waiting for the first gesture (the bar mounts before anything has been zoomed).

@@ -96,7 +96,10 @@ test('destroy removes Sequence interaction listeners', () => {
 
 test('on a phone the inspector and the layers list are the two tabs of one drop-down panel', () => {
   // A narrow window in jsdom is the phone layout; the sheet driver needs matchMedia.
-  const mql = (query: string) => ({ matches: /max-width/.test(query), media: query, addEventListener() {}, removeEventListener() {}, addListener() {}, removeListener() {} });
+  const mql = (query: string) => {
+    const max = /max-width:\s*(\d+)px/.exec(query);
+    return { matches: !!max && window.innerWidth <= Number(max[1]), media: query, addEventListener() {}, removeEventListener() {}, addListener() {}, removeListener() {} };
+  };
   (window as unknown as { matchMedia: typeof mql }).matchMedia = mql;
   width(390);
   const layout = document.createElement('div');

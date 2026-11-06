@@ -15,8 +15,6 @@ export function mountDesignPanels(opts: {
   stage: HTMLElement; canvas: HTMLElement; design: DesignCanvasPorts;
   navigator: DesignNavigatorHandle; inspector: DesignInspectorFloatHandle;
   more(anchor: HTMLElement): void;
-  /** Bring the selection into the canvas band when the phone panel opens over the canvas. */
-  revealSelection?(): void;
 }) {
   const { stage, canvas, design, inspector } = opts;
   let adjusting = false, disposed = false, scheduled = false;
@@ -44,9 +42,12 @@ export function mountDesignPanels(opts: {
       inspector.enterPhone(el => phone?.host(el));
       phoneWasOpen = false;
     } else if (!want && phone) {
-      inspector.leavePhone();
-      phone.destroy();
+      // Cleared first: placing the inspector again reports its state, which syncs, which
+      // comes back here.
+      const leaving = phone;
       phone = null;
+      inspector.leavePhone();
+      leaving.destroy();
       put('--design-panel-reserve-top', 0);
       split.sync();
     }
@@ -161,9 +162,10 @@ export function mountDesignPanels(opts: {
     changed = put('--design-panel-reserve-top', phone ? Math.max(0, phone.bandTop() - stage.getBoundingClientRect().top) : 0) || changed;
     design.setColumnWidths(compact ? 0 : navigator.width(), 0);
     if (changed) canvas.dispatchEvent(new Event('canvas-resize'));
-    // Opening to half frames the selection into that band, if the fit left it out.
+    // Opening to half frames the selection into that band, if the fit left it out: the
+    // stage's navigation hears this (views/tool-stage-nav.ts `revealSelection`).
     const phoneOpen = !!phone?.isOpen();
-    if (phoneOpen && !phoneWasOpen) opts.revealSelection?.();
+    if (phoneOpen && !phoneWasOpen) stage.dispatchEvent(new Event('fc-reveal-selection'));
     phoneWasOpen = phoneOpen;
   }
   function schedule(): void {
@@ -183,7 +185,11 @@ export function mountDesignPanels(opts: {
   const resize = typeof ResizeObserver === 'function' ? new ResizeObserver(schedule) : null;
   resize?.observe(stage);
   canvas.addEventListener('canvas-resize', schedule);
-  window.addEventListener('resize', schedule);
+  // The phone panel follows a resize at once, in the same event the inspector's own
+  // resize handler stands aside in, so a window narrowed to a phone never shows the
+  // bottom sheet for a frame first.
+  const onResize = (): void => { followPhone(); schedule(); };
+  window.addEventListener('resize', onResize);
   window.visualViewport?.addEventListener('resize', schedule);
   window.visualViewport?.addEventListener('scroll', schedule);
   sync();
@@ -199,7 +205,7 @@ export function mountDesignPanels(opts: {
       stage.removeEventListener('focusin', onTimelineInteraction);
       stage.removeEventListener('pointerdown', onTimelineInteraction, true);
       canvas.removeEventListener('canvas-resize', schedule);
-      window.removeEventListener('resize', schedule);
+      window.removeEventListener('resize', onResize);
       window.visualViewport?.removeEventListener('resize', schedule);
       window.visualViewport?.removeEventListener('scroll', schedule);
       delete stage.dataset.designLayout;

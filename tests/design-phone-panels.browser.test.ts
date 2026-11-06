@@ -19,7 +19,20 @@ const skip = origin ? false : 'set LOLLY_EXPORT_TEST_URL';
 type Browser = Awaited<ReturnType<typeof getBrowser>>;
 type EditorWindow = Window & { lolly?: { ui?: { apply(state: unknown): void } } };
 
-async function visit(page: Page, tool = 'design', query = 'template=blank'): Promise<void> {
+/**
+ * An artboard with a circle in it, given in the address. Not a template: a template seeds
+ * itself after the view mounts and then poses the editor (its panels included), which
+ * on a slow runner happens after the test has started opening panels.
+ */
+const DOC = new URLSearchParams({
+  width: '1920', height: '1080',
+  boxes: JSON.stringify([
+    { id: 'board', kind: 'frame', x: 0, y: 0, w: 1920, h: 1080, bg: '#ffffff', name: 'Board' },
+    { id: 'disc', kind: 'box', frame: 'board', x: 1200, y: 300, w: 400, h: 400, bg: '#555555', shape: 'circle' },
+  ]),
+}).toString();
+
+async function visit(page: Page, tool = 'design', query = DOC): Promise<void> {
   await page.goto(`${origin}/t/${tool}${query ? `?${query}` : ''}`);
   await page.waitForFunction(() => !!(window as EditorWindow).lolly?.ui);
   await page.locator('dialog.view-loading[open]').waitFor({ state: 'hidden' });
@@ -31,6 +44,7 @@ async function visit(page: Page, tool = 'design', query = 'template=blank'): Pro
     await page.keyboard.press('Escape');
     await page.locator('.tmpl-chooser-modal').waitFor({ state: 'detached' });
   }
+  if (query === DOC) await page.locator('#tool-canvas [data-box-id="disc"]').waitFor();
 }
 
 async function phone(browser: Browser, opts: { large?: boolean; dark?: boolean } = {}): Promise<BrowserContext> {
@@ -172,13 +186,16 @@ test('the canvas keeps its band: the selection is framed below the panel, and a 
     await page.getByRole('button', { name: 'Inspect', exact: true }).last().tap();
     await settled(page);
     const p = (await panel(page))!;
-    await touchDrag(cdp, 200, 700, 500);
-    assert.equal((await panel(page))!.snap, 'half', 'a canvas drag at half');
+    assert.equal(p.snap, 'half', 'Inspect opened the panel to half');
     // The selected circle sits in the band between the panel's edge and the bottom bar.
     const disc = await page.locator('#tool-canvas [data-box-id="disc"]').evaluate(el => {
       const r = el.getBoundingClientRect(); return { top: r.top, bottom: r.bottom };
     });
     assert.ok(disc.top >= p.edge && disc.bottom <= p.barTop, `the selection is in view below the panel: ${JSON.stringify(disc)} edge ${p.edge}`);
+    // A drag on the pasteboard below the artboard, toward the panel, is still the canvas's.
+    const board = await page.locator('#tool-canvas :is([data-box-id="board"], [data-frame-id="board"])').first().evaluate(el => el.getBoundingClientRect().bottom);
+    await touchDrag(cdp, 200, Math.round((board + p.barTop) / 2), Math.round(board + 4));
+    assert.equal((await panel(page))!.snap, 'half', 'a canvas drag at half');
     // And what is under the grip, either side, is the panel's content and the canvas,
     // never the other way round: the grip covers only the room that is free anyway.
     assert.deepEqual(await gripHits(page), { height: 24, above: true, inTop: true, inBottom: true, below: true }, 'at half');
@@ -240,22 +257,23 @@ test('the grip fills the free band in a tool view and covers nothing there', { s
           const grip = document.getElementById('sheet-grip')!.getBoundingClientRect();
           const body = document.querySelector('.sidebar-body')!.getBoundingClientRect();
           const chip = document.querySelector('.stage-nav-profile')!.getBoundingClientRect();
+          const hud = document.querySelector('.stage-nav')!.getBoundingClientRect();
           const hit = (x: number, y: number) => document.elementFromPoint(x, y);
           const g = document.getElementById('sheet-grip');
           return {
-            height: grip.height, top: grip.top, bottom: grip.bottom, bodyBottom: body.bottom, chipTop: chip.top,
+            height: grip.height, top: grip.top, bottom: grip.bottom, bodyBottom: body.bottom, hudTop: hud.top,
             // One pixel either side of each edge: hit testing works in whole pixels.
             aboveIsBody: !!hit(60, grip.top - 1)?.closest('.sidebar-body'),
             topIsGrip: hit(60, grip.top + 1) === g,
             bottomIsGrip: hit(chip.left + chip.width / 2, grip.bottom - 1) === g,
-            chipBelow: !!hit(chip.left + chip.width / 2, grip.bottom + 1)?.closest('.stage-nav-profile'),
+            hudBelow: !!hit(chip.left + chip.width / 2, grip.bottom + 1)?.closest('.stage-nav'),
           };
         });
         // Sub-pixel layout puts the edges a fraction apart; the test is that they meet.
-        assert.ok(Math.abs(r.height - 39) < 0.5, `${tool}: the grip is the whole 39px band (${r.height})`);
+        assert.ok(Math.abs(r.height - 36) < 0.5, `${tool}: the grip is the whole 36px band (${r.height})`);
         assert.ok(r.top >= r.bodyBottom - 0.01 && r.top - r.bodyBottom < 0.5, `${tool}: it starts where the controls end (${r.top} / ${r.bodyBottom})`);
-        assert.ok(r.bottom <= r.chipTop + 0.01 && r.chipTop - r.bottom < 0.5, `${tool}: it ends where the profile chip begins (${r.bottom} / ${r.chipTop})`);
-        assert.deepEqual([r.aboveIsBody, r.topIsGrip, r.bottomIsGrip, r.chipBelow], [true, true, true, true], `${tool}: ${JSON.stringify(r)}`);
+        assert.ok(r.bottom <= r.hudTop + 0.01 && r.hudTop - r.bottom < 0.5, `${tool}: it ends where the HUD with the profile chip begins (${r.bottom} / ${r.hudTop})`);
+        assert.deepEqual([r.aboveIsBody, r.topIsGrip, r.bottomIsGrip, r.hudBelow], [true, true, true, true], `${tool}: ${JSON.stringify(r)}`);
       } finally { await context.close(); }
     }
   } finally { await closeBrowser(); }

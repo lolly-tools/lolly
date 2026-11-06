@@ -19,14 +19,28 @@ import type { CanvasCommitEl } from '../shells/web/src/lib/canvas-commit.ts';
 const origin = process.env.LOLLY_EXPORT_TEST_URL;
 const skip = origin ? false : 'set LOLLY_EXPORT_TEST_URL';
 
+/**
+ * An artboard with a circle in it, given in the address rather than by a template: a
+ * template seeds itself after the view mounts and then poses the editor's panels, which
+ * on a slow runner happens after the test has opened the inspector.
+ */
+const DOC = new URLSearchParams({
+  width: '1920', height: '1080',
+  boxes: JSON.stringify([
+    { id: 'board', kind: 'frame', x: 0, y: 0, w: 1920, h: 1080, bg: '#ffffff', name: 'Board' },
+    { id: 'disc', kind: 'box', frame: 'board', x: 1200, y: 300, w: 400, h: 400, bg: '#555555', shape: 'circle' },
+  ]),
+}).toString();
+
 async function visit(page: Page): Promise<void> {
-  await page.goto(`${origin}/t/design?template=blank`);
+  await page.goto(`${origin}/t/design?${DOC}`);
   await page.waitForFunction(() => !!(window as Window & { lolly?: { ui?: unknown } }).lolly?.ui);
   await page.locator('dialog.view-loading[open]').waitFor({ state: 'hidden' });
   // The editor's chrome is imported after the view mounts; the layout attribute is its own.
   await page.waitForSelector('.tool-stage[data-design-layout]');
   await page.locator('.tool-stage').evaluate(el => Promise.all(el.getAnimations()
     .filter(a => Number.isFinite(a.effect?.getComputedTiming().endTime)).map(a => a.finished)));
+  await page.locator('#tool-canvas [data-box-id="disc"]').waitFor();
 }
 
 async function phone(browser: Awaited<ReturnType<typeof getBrowser>>, large: boolean): Promise<BrowserContext> {

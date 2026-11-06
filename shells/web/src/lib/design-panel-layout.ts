@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /** Shared canvas-space policy for Design panels and compact actions. */
-import { currentLayout, isPhoneLayout, isSplitLayout } from './layout-posture.ts';
+import { PHONE_MAX_WIDTH, currentLayout, isSplitLayout } from './layout-posture.ts';
 
 /**
  * Compact Design: the bottom action bar and the inspector as a sheet. Never in two
@@ -17,12 +17,19 @@ export function compactDesignViewport(): boolean {
 
 /**
  * Design's phone panel: the inspector and the layers list as the two tabs of the tool
- * view's drop-down panel (views/design-phone-panel.ts). The phone layout only, the one
- * every tool's drop-down panel is gated on, so a landscape phone or a small tablet keeps
- * the compact bottom sheets and two panes keep the control pane.
+ * view's drop-down panel (views/design-phone-panel.ts). The phone layout only, read the
+ * way every tool's drop-down panel reads it (phoneLayoutQuery: the width at once, two
+ * panes once settled), so a landscape phone or a small tablet keeps the compact bottom
+ * sheets, two panes keep the control pane, and a window narrowed to a phone gets the
+ * panel in the same frame rather than a bottom sheet first.
  */
 export function phoneDesignPanel(): boolean {
-  try { return compactDesignViewport() && isPhoneLayout(); } catch { return false; }
+  try {
+    const narrow = typeof window.matchMedia === 'function'
+      ? window.matchMedia(`(max-width: ${PHONE_MAX_WIDTH}px)`).matches
+      : window.innerWidth <= PHONE_MAX_WIDTH;
+    return narrow && !isSplitLayout();
+  } catch { return false; }
 }
 
 /** The touch screens where Design's tool rail is a horizontal palette at the foot of

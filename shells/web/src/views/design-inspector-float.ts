@@ -2,9 +2,10 @@
 /** Dock/float ownership for Design's live Inspector panel. */
 
 import { t } from '../i18n.ts';
-import { compactActionsHeight, compactDesignViewport } from '../lib/design-panel-layout.ts';
+import { compactActionsHeight, compactDesignViewport, phoneDesignPanel } from '../lib/design-panel-layout.ts';
 import {
   type DockReleaseReason,
+  dockedFullCount,
   edgeDockHitTest,
   edgeDockPreview,
   edgeDockWidth,
@@ -15,6 +16,7 @@ import {
   showPanel,
 } from '../lib/edge-dock.ts';
 import { icon } from '../lib/icons.ts';
+import { onLayoutChange } from '../lib/layout-posture.ts';
 import { type GripBox, panelGripsHtml, wirePanelGrips } from '../lib/panel-grips.ts';
 import { attachWobble } from '../lib/wobble.ts';
 import type { DesignInspectorHandle } from './design-inspector.ts';
@@ -31,6 +33,9 @@ export interface DesignInspectorFloatOptions {
   inspector: DesignInspectorHandle;
   head: HTMLElement;
   isMobile?(): boolean;
+  /** The window is in the phone layout, where Design's phone panel takes the column
+   *  (enterPhone) on the panels' next sync, so a resize leaves the column alone. */
+  phoneLayout?(): boolean;
   onOpenChange?(open: boolean, reason: OpenReason): void;
   onSheetHeight?(height: number): void;
 }
@@ -73,6 +78,7 @@ export function wireDesignInspectorFloat(
   const { inspector, head } = opts;
   const panel = inspector.el;
   const isMobile = opts.isMobile ?? compactDesignViewport;
+  const phoneLayout = opts.phoneLayout ?? phoneDesignPanel;
   const saved = load();
   let mode: Mode = saved.mode === 'floating' || saved.mode === 'maximized' ? 'floating' : 'edge';
   let box: GripBox | null =
@@ -84,8 +90,10 @@ export function wireDesignInspectorFloat(
   let sheet = false;
   let sheetInvoker: HTMLElement | null = null;
   let releaseAction: 'float' | 'close' | 'destroy' | 'phone' | null = null;
-  // Set while Design's phone panel holds the column (enterPhone).
+  // Set while Design's phone panel holds the column (enterPhone), and while leavePhone
+  // puts it back, so the column rejoins the dock behind whichever tab was showing.
   let phoneHost: ((el: HTMLElement) => void) | null = null;
+  let rejoining = false;
 
   const save = (): void => {
     try {
@@ -237,6 +245,9 @@ export function wireDesignInspectorFloat(
         icon: icon('sliders'),
         label: t('Inspector'),
         onRelease: released,
+        // Back from the phone panel into a column that already shows another panel
+        // (Share, Export): join behind that tab rather than take its place.
+        background: rejoining && dockedFullCount() > 0,
       })
     )
       return false;
@@ -392,7 +403,7 @@ export function wireDesignInspectorFloat(
   });
 
   const onResize = (): void => {
-    if (phoneHost) return;   // the phone panel follows the window itself
+    if (phoneHost || phoneLayout()) return;   // the phone panel follows the window itself
     if (sheet && !isMobile()) { leaveSheet(); panel.remove(); notify(false, 'host'); setOpen(true, 'host'); return; }
     if (sheet) { sizeSheet(); return; }
     if (open && isMobile()) { setOpen(true, 'host'); return; }
@@ -403,6 +414,9 @@ export function wireDesignInspectorFloat(
   window.addEventListener('resize', onResize);
   window.visualViewport?.addEventListener('resize', onResize);
   window.visualViewport?.addEventListener('scroll', onResize);
+  // Two panes come and go a moment after the resize that caused them (layout-posture's
+  // settle), with no resize of their own: a sheet placed in that moment moves then.
+  const offLayout = onLayoutChange(onResize);
   const onSheetKey = (event: KeyboardEvent): void => {
     if (!sheet || event.key !== 'Escape' || event.defaultPrevented || document.querySelector('dialog[open]')) return;
     // A menu or panel open over the sheet is the inner surface: Escape closes that first.
@@ -435,7 +449,11 @@ export function wireDesignInspectorFloat(
     panel.remove();
     // An open column is placed again for the window it is in now: the dock, its float or
     // a bottom sheet. Reported shut first, so the placement below is a fresh open.
-    if (open && !destroyed) { notify(false, 'host'); setOpen(true, 'host'); }
+    if (open && !destroyed) {
+      notify(false, 'host');
+      rejoining = true;
+      try { setOpen(true, 'host'); } finally { rejoining = false; }
+    }
   };
 
   return {
@@ -455,6 +473,7 @@ export function wireDesignInspectorFloat(
       window.removeEventListener('resize', onResize);
       window.visualViewport?.removeEventListener('resize', onResize);
       window.visualViewport?.removeEventListener('scroll', onResize);
+      offLayout();
       document.removeEventListener('keydown', onSheetKey);
       head.removeEventListener('pointerdown', onHeadDown);
       head.removeEventListener('pointermove', onHeadMove);

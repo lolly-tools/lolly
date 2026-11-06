@@ -1951,7 +1951,6 @@ export async function bakeFraming(tview: ToolViewCtx, key: string): Promise<void
               stage: stageEl, canvas: canvasEl, design, navigator: designNav,
               inspector: designInspectorFloat,
               more: anchor => design.openLollyMenu(anchor),
-              revealSelection: () => tview.stageZoom?.revealSelection?.(),
             });
             // The object bar's Text / More / Dims / Stroke buttons reveal a section, and that
             // can arrive while the column is out of the dock - so the handle the overlay gets

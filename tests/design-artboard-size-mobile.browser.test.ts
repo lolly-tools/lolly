@@ -22,6 +22,14 @@ async function visit(page: Page): Promise<void> {
   await page.goto(`${origin}/t/design?template=blank`);
   await page.waitForFunction(() => !!(window as Window & { lolly?: { ui?: unknown } }).lolly?.ui);
   await page.locator('dialog.view-loading[open]').waitFor({ state: 'hidden' });
+  // The editor's chrome is imported after the view mounts, and the template seeds itself
+  // after that: wait for the layout attribute and for the template's artboard.
+  await page.waitForSelector('.tool-stage[data-design-layout]');
+  await page.waitForFunction(() => {
+    const boxes = (document.getElementById('tool-canvas') as CanvasCommitEl | null)?.__lollyModel?.()
+      .find(i => i.id === 'boxes')?.value as Array<Record<string, unknown>> | undefined;
+    return !!boxes?.some(b => b.kind === 'frame');
+  });
   await page.locator('.tool-stage').evaluate(el => Promise.all(el.getAnimations()
     .filter(a => Number.isFinite(a.effect?.getComputedTiming().endTime)).map(a => a.finished)));
 }

@@ -3459,7 +3459,8 @@ html[data-a11y-text="large"] .input-section--dense .input-section-body {
   bottom: calc(var(--capture-bottom) + 14px);
 }
 .tool-layout.is-editor .canvas-record-help {
-  top: calc(max(var(--stage-reserve-top, 0px), var(--stage-rulers-bottom, 0px)) + 14px);
+  /* Below the top bar, the rulers, and on a phone the drop-down panel's edge. */
+  top: calc(max(var(--stage-reserve-top, 0px), var(--stage-rulers-bottom, 0px), var(--design-panel-reserve-top, 0px)) + 14px);
   left: calc(var(--stage-reserve-left, 0px) + 14px);
 }
 .tool-layout.is-editor .canvas-record-timer {
@@ -4046,19 +4047,19 @@ html[data-a11y-text="large"] .input-section--dense .input-section-body {
     /* How far the grip reaches into the sheet and out over the preview, each side of
        the divider. 15 + 15 for a mouse, as it always was. On touch it takes the whole
        free band and no more: in to the scrolling controls' edge (their foot plus the
-       sheet's hairline), out to the profile chip under the sheet (the stage HUD sits
-       --chrome-top below the notch, and the chip 3px inside it, .stage-nav's padding in
-       parts/editor.css). That is 39px on a phone, not 44: the band is 39px wide, and a
-       44px grip would cover a control or the chip, or move one of them. Nothing in the
-       tool view moves for it. tests/design-phone-panels.browser.test.ts checks that the
-       grip ends where the controls and the chip begin. */
+       sheet's hairline), out to the stage HUD under the sheet, which holds the profile
+       chip and sits --chrome-top below the notch. That is 36px on a phone, not 44: the
+       band is 36px wide, and a 44px grip would cover a control or the HUD, or move one
+       of them. Nothing in the tool view moves for it. tests/design-phone-panels.browser
+       and tests/visual-layout.browser check that the grip ends where the controls and
+       the HUD begin. */
     --sheet-grip-in: 15px;
     --sheet-grip-out: 15px;
   }
   @media (any-pointer: coarse) {
     .tool-layout {
       --sheet-grip-in: calc(var(--sheet-body-foot) + 1px);
-      --sheet-grip-out: calc(var(--chrome-top) - var(--safe-top, 0px) + 3px);
+      --sheet-grip-out: calc(var(--chrome-top) - var(--safe-top, 0px));
     }
   }
   .tool-layout[data-sheet="peek"] { --sheet-h: var(--peek-h, calc(56px * var(--a11y-fs))); }
