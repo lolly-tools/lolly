@@ -33,6 +33,7 @@ function loadC2paVerify(): Promise<C2paVerifyModule> {
   return C2PA_VERIFY_MODULE;
 }
 import { instanceFetch } from '../lib/instance.ts';
+import { activeNamespace, assetInScope, assetNamespace, pickPalette, readAssetScope, type AssetScope } from '../lib/design-system/asset-scope.ts';
 // The `zzfxm:` procedural-audio id: an ENGINE-owned asset-id scheme, exactly
 // like tool-url.ts's, because every shell that resolves an asset has to
 // recognise it.
@@ -223,11 +224,11 @@ export const MAX_CREDENTIAL_SCAN_BYTES = 64 * 1024 * 1024;
 
 // Parsed theme list from the catalog's icon-themes palette asset (a palette-type
 // asset tagged "icon-themes"). Cached per session; reset when the catalog syncs.
-let ICON_THEMES_CACHE: Promise<IconTheme[]> | null = null;
+const ICON_THEMES_CACHE = new Map<string, Promise<IconTheme[]>>();
 
 // Parsed treatment list from the catalog's photo-treatments palette asset (a
 // palette-type asset tagged "photo-treatments"). Cached like ICON_THEMES_CACHE.
-let PHOTO_TREATMENTS_CACHE: Promise<PhotoTreatment[]> | null = null;
+const PHOTO_TREATMENTS_CACHE = new Map<string, Promise<PhotoTreatment[]>>();
 
 /**
  * There is no hard cap on how many device images a user may keep. The
@@ -406,7 +407,7 @@ export function createAssetsAPI(db: AssetsDb, opts: AssetsApiOptions = {}) {
 
   /** An upload (`user/...`) or an inline picture (`data:`) with a photo look. */
   const lookedPicture = async (id: string, baseId: string, treatment: string, opts: { version?: string; tokenSelection?: Readonly<Record<string, string>> }): Promise<AssetRef> => {
-    const def = (await api._photoTreatments()).find(t => t.id === treatment);
+    const def = (await api._photoTreatments(baseId)).find(t => t.id === treatment);
     if (baseId.startsWith('user/')) {
       const rec = await (await assetHistory()).readUserAssetVersion(db, baseId, opts.version);
       if (!rec) throw new Error(`User asset not found: ${baseId}`);
@@ -448,6 +449,13 @@ export function createAssetsAPI(db: AssetsDb, opts: AssetsApiOptions = {}) {
       console.warn('[assets] photo look was not applied to an inline picture:', error);
       return { ...ref, id };
     }
+  };
+
+  /** Which palette a theme read answers from: one for a one-system catalog, else one
+   *  per active system and asset namespace, so a switch never reads the other's. */
+  const paletteCacheKey = async (forAssetId?: string): Promise<string> => {
+    const scope = await readAssetScope(db);
+    return scope ? `${activeNamespace(scope)}|${forAssetId ? assetNamespace(forAssetId) : ''}` : '';
   };
 
   const api = {
@@ -625,7 +633,9 @@ export function createAssetsAPI(db: AssetsDb, opts: AssetsApiOptions = {}) {
       };
 
       if (theme) {
-        const def = (await api._iconThemes()).find(t => t.id === theme);
+        // Its own system's pairing, else the active one's: "All design systems" lets a person
+        // pick either, and a one-system catalog reads the same palette both times.
+        const def = (await api._iconThemes(baseId)).find(t => t.id === theme) ?? (await api._iconThemes()).find(t => t.id === theme);
         if (def) {
           // Cache key carries the pairing's colours, so palette edits re-bake,
           // and a resolve whose bake is already minted skips the blob entirely.
@@ -651,7 +661,7 @@ export function createAssetsAPI(db: AssetsDb, opts: AssetsApiOptions = {}) {
       if (treatment && meta.type === 'raster') {
         const { isRasterPhotoLook, photoLookThemeKey, photoLookCacheKey, resolvePhotoLook } = await import('../../../../engine/src/photo-look.ts');
         const { wrapRasterWithTreatment } = await import('../../../../engine/src/photo-treatment.ts');
-        let def = (await api._photoTreatments()).find(t => t.id === treatment);
+        let def = (await api._photoTreatments(baseId)).find(t => t.id === treatment) ?? (await api._photoTreatments()).find(t => t.id === treatment);
         let themeSuffix = '';
         if (def && (isRasterPhotoLook(def) || def.themes)) {
           // A theme variant picks the definition (plan 291 W7); a look only pixels reproduce bakes here.
@@ -718,13 +728,18 @@ export function createAssetsAPI(db: AssetsDb, opts: AssetsApiOptions = {}) {
      * Internal: colour pairings for themable icons, from the catalog's
      * palette asset tagged "icon-themes". [] when the catalog has none.
      * First entry is the default pairing (matches the fills baked into icons).
-     * Caches the in-flight promise so concurrent cold-cache resolves share one
-     * metadata scan; a transient failure is NOT cached (next call retries).
+     * A catalog holding two systems answers from the palette in the namespace of
+     * `forAssetId`, else of the active system (asset-scope.ts `pickPalette`).
+     * Caches the in-flight promise per palette so concurrent cold-cache resolves
+     * share one metadata scan; a transient failure is NOT cached (next call retries).
      */
-    async _iconThemes(): Promise<IconTheme[]> {
-      ICON_THEMES_CACHE ??= (async (): Promise<IconTheme[]> => {
+    async _iconThemes(forAssetId?: string): Promise<IconTheme[]> {
+      const key = await paletteCacheKey(forAssetId);
+      const cached = ICON_THEMES_CACHE.get(key);
+      if (cached) return cached;
+      const pending = (async (): Promise<IconTheme[]> => {
         const all = await db.getAll('asset-meta');
-        const pal = all.find(m => m.type === 'palette' && m.tags?.includes('icon-themes'));
+        const pal = pickPalette(all, 'icon-themes', await readAssetScope(db), forAssetId);
         if (!pal) {
           // Distinguish "synced catalog has no themes" (cacheable) from
           // "metadata hasn't synced yet" (retry once it has).
@@ -735,22 +750,26 @@ export function createAssetsAPI(db: AssetsDb, opts: AssetsApiOptions = {}) {
         const { parseIconThemesDoc } = await import('../../../../engine/src/icon-theme.ts');
         return parseIconThemesDoc(JSON.parse(await blob!.text()));
       })().catch(() => {
-        ICON_THEMES_CACHE = null; // unavailable ≠ broken: icons stay default, retry later
+        ICON_THEMES_CACHE.delete(key); // unavailable ≠ broken: icons stay default, retry later
         return [];
       });
-      return ICON_THEMES_CACHE;
+      ICON_THEMES_CACHE.set(key, pending);
+      return pending;
     },
 
     /**
      * Internal: colour treatments for raster photos, from the catalog's palette
      * asset tagged "photo-treatments". [] when the catalog has none. Same caching
-     * discipline as _iconThemes(); "None" is not listed here (it's the plain
+     * and palette choice as _iconThemes(); "None" is not listed here (it's the plain
      * photo with no id suffix - the picker prepends it).
      */
-    async _photoTreatments(): Promise<PhotoTreatment[]> {
-      PHOTO_TREATMENTS_CACHE ??= (async (): Promise<PhotoTreatment[]> => {
+    async _photoTreatments(forAssetId?: string): Promise<PhotoTreatment[]> {
+      const key = await paletteCacheKey(forAssetId);
+      const cached = PHOTO_TREATMENTS_CACHE.get(key);
+      if (cached) return cached;
+      const pending = (async (): Promise<PhotoTreatment[]> => {
         const all = await db.getAll('asset-meta');
-        const pal = all.find(m => m.type === 'palette' && m.tags?.includes('photo-treatments'));
+        const pal = pickPalette(all, 'photo-treatments', await readAssetScope(db), forAssetId);
         if (!pal) {
           if (!all.length) throw new Error('asset metadata not synced yet');
           return [];
@@ -759,19 +778,34 @@ export function createAssetsAPI(db: AssetsDb, opts: AssetsApiOptions = {}) {
         const { parsePhotoTreatmentsDoc } = await import('../../../../engine/src/photo-treatment.ts');
         return parsePhotoTreatmentsDoc(JSON.parse(await blob!.text()));
       })().catch(() => {
-        PHOTO_TREATMENTS_CACHE = null; // unavailable ≠ broken: photos stay untreated, retry later
+        PHOTO_TREATMENTS_CACHE.delete(key); // unavailable ≠ broken: photos stay untreated, retry later
         return [];
       });
-      return PHOTO_TREATMENTS_CACHE;
+      PHOTO_TREATMENTS_CACHE.set(key, pending);
+      return pending;
     },
 
     async _queryMetadata(filter: AssetQuery = {}): Promise<AssetRef[]> {
       return api.query(filter, { metadataOnly: true });
     },
 
-    async query(filter: AssetQuery = {}, listing: { metadataOnly?: boolean } = {}): Promise<AssetRef[]> {
+    /** Internal: what `query` lists with the design-system scope lifted (the Assets
+     *  view's "All design systems"). The same list as `query` on a one-system catalog. */
+    async _queryEverySystem(filter: AssetQuery = {}): Promise<AssetRef[]> {
+      return api.query(filter, { everySystem: true });
+    },
+
+    /** Internal: the design-system scope lists read through, or null when the catalog declares none. */
+    async _assetScope(): Promise<AssetScope | null> {
+      return readAssetScope(db);
+    },
+
+    async query(filter: AssetQuery = {}, listing: { metadataOnly?: boolean; everySystem?: boolean } = {}): Promise<AssetRef[]> {
       const all = await db.getAll('asset-meta');
-      const filtered = all.filter(m => matchesFilter(m, filter));
+      // A catalog holding two design systems lists the active one's rows and the shared
+      // ones (asset-scope.ts). `get` stays global: a saved session finds its asset by id.
+      const scope = listing.everySystem ? null : await readAssetScope(db);
+      const filtered = all.filter(m => matchesFilter(m, filter) && assetInScope(m.id, scope));
       // Don't pre-resolve blob URLs: that forces every cached blob into
       // memory. Every format carries a static catalog URL (same-origin for
       // core/catalog, CDN for on-demand), so the picker can show a thumbnail
@@ -1112,11 +1146,11 @@ export function createAssetsAPI(db: AssetsDb, opts: AssetsApiOptions = {}) {
      * Internal: called by catalog/sync.js at boot to populate asset metadata.
      * Not part of the public HostV1 bridge contract.
      */
-    async _syncFromIndex(assets: AssetMetaRecord[], source?: { origin: string; tokensHead?: string | null }): Promise<void> {
+    async _syncFromIndex(assets: AssetMetaRecord[], source?: { origin: string; tokensHead?: string | null; companions?: unknown }): Promise<void> {
       const { syncAssetIndex } = await import('./asset-cache-maintenance.ts');
       await syncAssetIndex(db, assets, source, key => { inFlight.delete(key); evictObjectUrlsByPrefix(`library:${key}`); });
-      ICON_THEMES_CACHE = null;       // the icon-themes palette may have changed
-      PHOTO_TREATMENTS_CACHE = null;  // …as may the photo-treatments palette
+      ICON_THEMES_CACHE.clear();       // the icon-themes palette may have changed
+      PHOTO_TREATMENTS_CACHE.clear();  // …as may the photo-treatments palette
     },
 
     /**
