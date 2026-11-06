@@ -299,6 +299,10 @@ html[data-a11y-motion="reduce"] :is(.docs-content, .docs-compact-nav) .doc-detai
 }
 .docs-content > .docs-eyebrow { margin-bottom: var(--sp-4); }
 :is([dir="rtl"], :lang(hi), :lang(bn)) .docs-eyebrow { letter-spacing: normal; text-transform: none; }
+/* Below 1100 px the page bar above the article already names the section and the page,
+   and its sheet lists the groups, so the label would only repeat it and push the first
+   paragraph down (plan 354's phone layout). */
+@media (max-width: 1099px) { .docs-eyebrow { display: none; } }
 .docs-content .docs-pager {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
