@@ -874,7 +874,7 @@ export function buildPrintAndRows(ta: ActionsCtx): void {
   // action is unaffected. The view holds no control-plane knowledge: it asks the seam
   // what it may offer, and routes "Request approval" through the generic opener.
   const affordance = actions.includes('download')
-    ? exportAffordance(getExportPolicy())
+    ? exportAffordance(getExportPolicy(), manifest.id)
     : 'download'; ta.affordance = affordance;
   // Same primary-CTA slot as Download, so it takes the same prominent jelly
   // recipe under the flag (the .download-btn-jelly class is a size/weight hook,
