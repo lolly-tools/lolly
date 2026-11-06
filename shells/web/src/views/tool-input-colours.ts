@@ -25,11 +25,12 @@ import type { WebToolHost } from './tool/shared.ts';
  * offers the shared swatches. Either way it is the same colour field as an
  * ordinary colour input, restricted to swatches when `swatchesOnly` is set.
  */
-export function paletteFieldHtml(id: string, input: Pick<InputModelItem, 'value' | 'palette' | 'swatchesOnly' | 'default' | 'label'>): string {
+export function paletteFieldHtml(id: string, input: Pick<InputModelItem, 'value' | 'palette' | 'swatchesOnly' | 'default' | 'label'>, word = ''): string {
   return colorFieldHtml(id, input.value, {
     swatchesOnly: input.swatchesOnly === true,
     ...(input.palette === LEADS_SWATCH_SOURCE ? { swatchSource: LEADS_SWATCH_SOURCE } : {}),
     ...fieldNaming(input),
+    ...(word ? { name: word } : {}),
   });
 }
 
@@ -38,10 +39,11 @@ export function paletteFieldHtml(id: string, input: Pick<InputModelItem, 'value'
  * input's own label ("Ink: Liquorice #09141a"), and an input whose default is empty
  * may be left empty, so its field takes `auto` (ColorFieldAuto): empty reads as
  * automatic instead of as black. The colour the tool draws there arrives after render
- * from paintAutoColours.
+ * from paintAutoColours. `word` is the design system's word when the input links a colour
+ * role: the value here is flat, and a colourway switch can draw before the swatches move.
  */
-export function colourInputHtml(id: string, input: Pick<InputModelItem, 'value' | 'swatchesOnly' | 'default' | 'label'>): string {
-  return colorFieldHtml(id, input.value, { swatchesOnly: input.swatchesOnly === true, ...fieldNaming(input) });
+export function colourInputHtml(id: string, input: Pick<InputModelItem, 'value' | 'swatchesOnly' | 'default' | 'label'>, word = ''): string {
+  return colorFieldHtml(id, input.value, { swatchesOnly: input.swatchesOnly === true, ...fieldNaming(input), ...(word ? { name: word } : {}) });
 }
 
 /** A block row's colour field (a block field's default decides, as above). */

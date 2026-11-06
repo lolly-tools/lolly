@@ -107,6 +107,17 @@ test('Lolly Demo as shipped: colours counted as Overview counts them, faces and 
   } finally { m.done(); }
 });
 
+test('a design system with colour roles says its lead in its own word', () => {
+  const doc = JSON.parse(readFileSync(new URL('../../../../tests/fixtures/colour-roles/wefthouse.tokens.json', import.meta.url), 'utf8')) as Record<string, any>;
+  doc.base.color.brand.indigo = { $value: '#1b2a6b', $description: 'Indigo' };
+  doc['colourway/indigo'].color.colourway.light.main.$value = '{color.brand.indigo}';
+  const m = mount(doc);
+  try {
+    assert.equal(m.$<HTMLElement>('[data-tk-example]')!.hidden, false);
+    assert.match(m.$('[data-tk-example]')!.textContent!, /^For example, Main is Indigo, #1b2a6b\.$/);
+  } finally { m.done(); }
+});
+
 test('Lolly Demo as the app supplies it: what it holds is its own, with no Starter tag', () => {
   const m = mount(DEMO, new Set(), { supplied: true });
   try {

@@ -39,6 +39,7 @@ import { escape } from '../utils.ts';
 import { t } from '../i18n.ts';
 import { mountModal } from '../components/modal.ts';
 import { announce } from '../a11y.ts';
+import { colourRoleWord } from '../lib/colour-role-words.ts';
 import { blockColourFieldHtml, colourInputHtml, paintAutoColours,
   paletteFieldHtml, wireToolColourFields } from './tool-input-colours.ts';
 import { helpTip, wireHelpTips, linkHelpDescriptions } from '../components/help-tip.ts';
@@ -2607,6 +2608,8 @@ function controlHtml(
   attachedHtml = ''
 ): string {
   const id = escape(input.id);
+  // The link goes in the flattening below, and only the link knows a colour role's word.
+  const colourWord = colourRoleWord((input.value as { ref?: unknown } | null | undefined)?.ref);
   input = { ...input, value: flattenValue(input.value) };
   const val = escape(input.value ?? '');
   switch (input.control) {
@@ -2775,9 +2778,9 @@ function controlHtml(
     case 'color-picker':
       // Shared SUSE colour picker (see components/color-field.js).
       // `swatchesOnly` makes it a palette-restricted picker (no hex/native/alpha).
-      return colourInputHtml(id, input);
+      return colourInputHtml(id, input, colourWord);
     case 'palette-picker':
-      return paletteFieldHtml(id, input);
+      return paletteFieldHtml(id, input, colourWord);
     case 'asset-picker': {
       const v = input.value as AssetRef | null;
       const currentLabel =

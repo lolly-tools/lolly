@@ -187,7 +187,8 @@ export function readIssue(input: IssueInput): IssueModel {
     return true;
   });
   const roleLayers = new Map(splitPalette(palette).roles);
-  const roles = ROLE_LAYERS.flatMap(layer => roleLayers.get(layer) ?? []);
+  // A colourway's own values repeat the roles the system has named, so they leave the fold there.
+  const roles = ROLE_LAYERS.filter(layer => layer !== 'colourway' || !Object.keys(roleWords).length).flatMap(layer => roleLayers.get(layer) ?? []);
 
   const looks = looksOf(doc);
   const modes = leadModes(doc);

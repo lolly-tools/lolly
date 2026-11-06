@@ -18,10 +18,11 @@ import { colourRoleWord, linkedColourWord, setColourRoleWords } from './colour-r
 import { designInputColorValue } from './design-color.ts';
 
 const dom = new JSDOM('<!doctype html><html><body></body></html>', { url: 'https://lolly.tools/' });
-for (const k of ['window', 'document', 'HTMLElement', 'HTMLInputElement', 'Element', 'Node', 'Event', 'KeyboardEvent', 'MouseEvent', 'PointerEvent', 'CustomEvent', 'getComputedStyle', 'MutationObserver']) {
+for (const k of ['window', 'document', 'HTMLElement', 'HTMLInputElement', 'Element', 'Node', 'Event', 'KeyboardEvent', 'MouseEvent', 'PointerEvent', 'CustomEvent', 'getComputedStyle', 'MutationObserver', 'AbortController', 'AbortSignal']) {
   (globalThis as Record<string, unknown>)[k] = (dom.window as unknown as Record<string, unknown>)[k];
 }
 const { colorFieldHtml, colorVarLabel, setSwatches, swatchName, wireColorField } = await import('../components/color-field.ts');
+const { mountTokenBindingField } = await import('../components/token-binding-field.ts');
 
 type Rec = Record<string, any>;
 const load = (path: string): Rec => JSON.parse(readFileSync(new URL(path, import.meta.url), 'utf8'));
@@ -219,4 +220,18 @@ test('Design: a role stays a link on an input that keeps what it is given, and e
   assert.equal(designInputColorValue('#123456', 'sdr'), '#123456');
   setColourRoleWords(new Map());
   assert.match(designInputColorValue(role, 'sdr') as string, /^var\(--brand-token-/, 'a system with no roles writes what it always wrote');
+});
+
+test('Token links show the word beside the path, and a token with no word stays as its path', () => {
+  setColourRoleWords(new Map([['{color.semantic.supporting}', 'Supporting']]));
+  const summary = (ref: string): string => {
+    const root = document.createElement('div');
+    const dispose = mountTokenBindingField(root, { id: 'x', type: 'color', value: { ref, value: '#6c7a89' } } as never, { tokens: undefined } as never, () => {});
+    const text = root.firstElementChild?.textContent ?? '';
+    dispose();
+    return text;
+  };
+  assert.equal(summary('{color.semantic.supporting}'), 'Linked: Supporting · {color.semantic.supporting}');
+  assert.equal(summary('{color.brand.flax}'), 'Linked: {color.brand.flax}');
+  setColourRoleWords(new Map());
 });

@@ -4114,7 +4114,7 @@ var ENGINE_VERSION;
 var init_version = __esm({
   "engine/src/version.ts"() {
     "use strict";
-    ENGINE_VERSION = "1.313.0";
+    ENGINE_VERSION = "1.314.0";
   }
 });
 
@@ -105284,6 +105284,12 @@ function baselineBrandSkill(source, opts = {}) {
     if (colours2.length > 120) out.push("", `${colours2.length - 120} more colours are in the design context.`);
     out.push("");
   }
+  const colourRoles = rec2(brief2.colourRoles);
+  if (list4(colourRoles.roles).length) {
+    out.push("## Colour roles", "", cell(colourRoles.note), "", "| Name | Token | Lolly reads this as |", "| --- | --- | --- |");
+    for (const role of list4(colourRoles.roles)) out.push(`| ${cell(role.label)} | \`${cell(role.reference)}\` | ${(Array.isArray(role.readAs) ? role.readAs : []).map(cell).join("; ")} |`);
+    out.push("");
+  }
   const combos = rec2(brief2.combinations);
   const pairs2 = list4(combos.pairs);
   if (pairs2.length) {
@@ -174917,7 +174923,7 @@ async function paint(value2, host) {
   let text13 = String(value2 ?? "transparent");
   if (text13 === "transparent" || text13 === "none" || !text13) return null;
   if (text13.startsWith("{")) text13 = colorToHex(await host.tokens?.resolve(text13)) ?? "";
-  const variable = /^var\(--brand-(primary|on-primary|secondary|surface|text|muted|edge)\s*(?:,\s*(.+))?\)$/.exec(text13);
+  const variable = /^var\(--brand-([a-z][a-z-]*)\s*(?:,\s*(.+))?\)$/.exec(text13);
   if (variable) text13 = colorToHex(await host.tokens?.resolve(`{color.semantic.${variable[1]}}`)) ?? variable[2] ?? "";
   const rgba2 = parseColorToSrgb8(text13);
   if (!rgba2) throw new Error(`dotLottie: colour ${String(value2)} could not be resolved to a solid paint.`);
@@ -175103,7 +175109,7 @@ async function exportDesignIdml(opts, host) {
     let s = String(value2 ?? "");
     if (!s || s === "transparent" || s === "none") return "Swatch/None";
     if (s.startsWith("{")) s = colorToHex(await host.tokens?.resolve(s)) ?? "";
-    const variable = /^var\(--brand-(primary|on-primary|secondary|surface|text|muted|edge)\s*(?:,\s*(.+))?\)$/.exec(s);
+    const variable = /^var\(--brand-([a-z][a-z-]*)\s*(?:,\s*(.+))?\)$/.exec(s);
     if (variable) s = colorToHex(await host.tokens?.resolve(`{color.semantic.${variable[1]}}`)) ?? variable[2] ?? "";
     const rgba2 = parseColorToSrgb8(s);
     if (rgba2?.[3] !== 1) throw new Error(`IDML requires a solid opaque paint: ${String(value2)}.`);
@@ -176013,6 +176019,19 @@ async function fontsOf(host) {
   const [mono, display, italic] = await Promise.all([slot("mono"), slot("display"), slot("italic")]);
   return { brand, ...mono ? { mono } : {}, ...display ? { display } : {}, ...italic ? { italic } : {} };
 }
+async function colourRoleResolver(host) {
+  try {
+    const document2 = (await host.tokens?.snapshot?.())?.document;
+    if (!document2 || !readColourRoles(document2).roles.some((role) => role.declared)) return null;
+    const set = await host.tokens.get();
+    return (css2) => {
+      const name = /^var\(\s*--brand-([a-z][a-z-]*)\s*(?:,[\s\S]*)?\)$/.exec(css2.trim())?.[1];
+      return name ? colorToHex(set.resolve(`{color.semantic.${name}}`)) ?? null : null;
+    };
+  } catch {
+    return null;
+  }
+}
 async function designOpsNodeHost(host, ctx, outlined = true) {
   const text13 = host.text;
   if (!text13) return null;
@@ -176036,13 +176055,15 @@ async function designOpsNodeHost(host, ctx, outlined = true) {
     return { bytes: bytes2 };
   };
   const fonts = await fontsOf(host);
+  const resolveColor4 = await colourRoleResolver(host);
   return {
     drawing: {
       shaper: createNodeTextShaper({ repoRoot: ctx.repoRoot }),
       ...outlined ? { toPath: (o) => text13.toPath(o) } : {},
       ...outlined ? { strikeMetrics: (url, variations) => nodeStrikeMetrics(url, variations, ctx.repoRoot) } : {},
       picture,
-      ...fonts ? { fonts } : {}
+      ...fonts ? { fonts } : {},
+      ...resolveColor4 ? { resolveColor: resolveColor4 } : {}
     },
     ingredients: () => [...ingredients]
   };
@@ -198316,6 +198337,7 @@ function readProductionReference(value2) {
 
 // services/mcp/src/resources.ts
 init_design_brief();
+init_colour_roles();
 init_design_brief2();
 import { readFile as readFile34 } from "node:fs/promises";
 import { join as join35 } from "node:path";
@@ -198326,9 +198348,9 @@ var RESOURCES = [
   { uri: "lolly://skill", name: "Lolly skill", description: "Shared Lolly workflows and design-system setup. Tool guidance is available through lolly://tool/{id}/skill.", mimeType: "text/markdown" },
   { uri: "lolly://catalog", name: "Tool catalog", description: "The full generated Lolly tool index.", mimeType: "application/json" },
   { uri: "lolly://assets", name: "Brand asset listing", description: "Every catalog asset id with its type, name, tags and formats - the ids lolly://asset/{id} resolves.", mimeType: "application/json" },
-  { uri: "lolly://design-context", name: "Design context", description: "The effective design system with resolved tokens, recorded source observations, coverage and explicit brand rules, plus the brief: approved colour pairings, type per role, logos per surface, icons and their themes, media families, the slide master and machine-checkable house rules. Read-only.", mimeType: "application/json" },
+  { uri: "lolly://design-context", name: "Design context", description: "The effective design system with resolved tokens, recorded source observations, coverage and explicit brand rules, plus the brief: the system's own colour words and what each is bound to, approved colour pairings, type per role, logos per surface, icons and their themes, media families, the slide master and machine-checkable house rules. Read-only.", mimeType: "application/json" },
   { uri: "lolly://design-system/skills", name: "Brand skills", description: "The brand's own guidance per discipline (overall brand, photography, motion, iconography and more) as Agent Skills: the index without bodies, plus the baseline Lolly generates from the design brief. Read the overall brand skill before composing. Skills are guidance for brand intent only; house rules are what Lolly checks.", mimeType: "application/json" },
-  { uri: "lolly://tokens", name: "Brand design tokens", description: "On-brand colour swatches (DTCG) with names and CMYK, from the design system's edit head - never one of its published versions.", mimeType: "application/json" }
+  { uri: "lolly://tokens", name: "Brand design tokens", description: "On-brand colour swatches (DTCG) with names and CMYK, plus the system's own colour words where it declares them, from the design system's edit head - never one of its published versions.", mimeType: "application/json" }
 ];
 var RESOURCE_TEMPLATES = [
   { uriTemplate: "lolly://skill/{path}", name: "Shared skill reference", description: "A Markdown or JSON reference from the overall Lolly skill.", mimeType: "text/markdown" },
@@ -198352,8 +198374,11 @@ async function tokensResource(uri) {
   const tokenPath = contentUrl(tokenUrl);
   if (!tokenPath) throw new Error(`Tokens asset ${tokenAsset2.id}: ${tokenUrl} is not in this profile's catalog.`);
   const doc = JSON.parse(await readFile34(tokenPath, "utf8"));
-  const set = createTokenSet(doc);
-  return { uri, mimeType: "application/json", text: JSON.stringify({ colors: set.colors() }, null, 2) };
+  return { uri, mimeType: "application/json", text: JSON.stringify(tokensListing(doc), null, 2) };
+}
+function tokensListing(doc) {
+  const colourRoles = colourRolesBrief(doc);
+  return { colors: createTokenSet(doc).colors(), ...colourRoles ? { colourRoles } : {} };
 }
 function parseDataUrl(url) {
   const m2 = /^data:([^;,]+)?(;base64)?,(.*)$/s.exec(url);

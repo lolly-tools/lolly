@@ -87,6 +87,12 @@ test('the Settings colour page shows a filled slot in the system\'s word, and a 
   const none = issue(DEMO());
   assert.equal(none.leads[0]!.slots.some(s => 'word' in s), false);
   assert.deepEqual(none.colours.roleWords, {});
+
+  // The colourway's own copies leave the reference list of a system with roles, and only there.
+  const palette = ['color.semantic.main', 'color.colourway.light.main'].map(path => ({ label: path, hex: '#1b2a6b', token: { path } }));
+  const list = (doc: Rec): string[] => readIssue({ doc, palette: palette as never, label: 'x', source: 'x', locked: false }).colours.roles.map(c => c.token!.path);
+  assert.deepEqual(list(WEFTHOUSE()), ['color.semantic.main']);
+  assert.deepEqual(list(DEMO()), ['color.semantic.main', 'color.colourway.light.main']);
 });
 
 // ─── Agents ──────────────────────────────────────────────────────────────────

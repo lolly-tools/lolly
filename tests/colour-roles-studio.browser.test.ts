@@ -275,6 +275,7 @@ test('a role read by name only really is offered: in a tool colour field and in 
     assert.equal(await canvasRole(), '#6c7a89');
     await page.locator('#theme-section [aria-label*="Madder"], #theme-section [title*="Madder"]').first().click();
     await page.waitForFunction(() => getComputedStyle(document.querySelector('#tool-canvas')!).getPropertyValue('--brand-supporting').trim().toLowerCase() === '#7d6b5d');
+    await page.waitForFunction(() => /Supporting/.test(document.querySelectorAll('.color-trigger')[1]?.getAttribute('aria-label') ?? ''));
 
     // Design: the artboard takes the role and follows the colourway too.
     await room('#/tool/design');
