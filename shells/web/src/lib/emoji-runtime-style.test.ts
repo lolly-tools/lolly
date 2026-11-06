@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import type { HostV1 } from '@lolly-tools/core/host-v1';
 import type { Runtime } from '../../../../engine/src/runtime.ts';
 import type { EmojiStyleV1 } from '@lolly-tools/core/emoji-v1';
-import { seedEmojiRuntime, queryWithEmoji } from './emoji-runtime-style.ts';
+import { embedUrlWithEmoji, seedEmojiRuntime, queryWithEmoji } from './emoji-runtime-style.ts';
 import { DEFAULT_EMOJI_PIN, defaultEmojiStyle } from '../../../../engine/src/emoji-default.ts';
 
 const pin = { id: 'test/color', pin: { version: '1.0.0' }, checksum: `sha256:${'a'.repeat(64)}` };
@@ -22,6 +22,15 @@ test('embedded source seeding honors its link and preserves that set in the re-a
   assert.equal(query.get('title'), 'Hello world');
   assert.equal(query.get('rows'), '["x"]');
   assert.equal(queryWithEmoji('title=Hi&emoji=old&emojifx=mono', null), 'title=Hi');
+});
+
+test('a link keeps the pinned set when it fits, and drops it rather than failing to mint', () => {
+  const style = { schemaVersion: 1, primary: { id: 'test/color', pin: { version: '1.0.0' }, checksum: 'sha256:x' }, fallbacks: [], metricsPolicy: 'inline-em-v1', treatment: { mode: 'original', strengthBps: 0 } } as unknown as EmojiStyleV1;
+  const roomy = (query: string): string | null => `https://x/${query}`;
+  assert.match(embedUrlWithEmoji('title=Hi', style, roomy)!, /emoji=test/);
+  const tight = (query: string): string | null => (query.length > 20 ? null : `https://x/${query}`);
+  assert.equal(embedUrlWithEmoji('title=Hi', style, tight), 'https://x/title=Hi');
+  assert.equal(embedUrlWithEmoji('title=Hi', style, () => null), null, 'a link too long without the pin still reports no link');
 });
 
 test('embedded sources retain the runtime default unless a source explicitly selects or clears it', async () => {

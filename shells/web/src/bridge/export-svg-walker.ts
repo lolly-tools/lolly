@@ -25,6 +25,7 @@ import type { ControlDesc } from './form-controls.ts';
 import { stackingRole, isFlexOrGridContainer, orderModifiedChildren, sortUnits } from './stacking-order.ts';
 import type { StackingRole } from './stacking-order.ts';
 import { unscopeStyleEls } from '../lib/scope-css.ts';
+import { createMotionCarrier } from './export-svg-motion.ts';
 import { parseSvgRoot, namespaceSvgRefs } from '../lib/vector-paint.ts';
 import type { VectorTwinCanvas } from '../lib/vector-paint.ts';
 import type { ClipShape } from '../../../../engine/src/css-paint.ts';
@@ -811,6 +812,10 @@ async function renderHtmlSvg(node: Element, opts: ExportOpts, textContext: Inlin
   let nodesWalked = 0;
   const YIELD_NODES = 200;
 
+  // Motion a tool asked to keep in the file (bridge/export-svg-motion.ts). Off for every
+  // caller but the plain SVG export, and with no marked element it writes nothing.
+  const motion = opts.keepMotion ? createMotionCarrier(document) : null;
+
   const rootG = document.createElementNS(NS, 'g');
   if (Math.abs(scaleX - 1) > 1e-4 || Math.abs(scaleY - 1) > 1e-4) {
     rootG.setAttribute('transform', `scale(${scaleX.toFixed(6)},${scaleY.toFixed(6)})`);
@@ -1342,6 +1347,7 @@ async function renderHtmlSvg(node: Element, opts: ExportOpts, textContext: Inlin
     if (style.mixBlendMode && style.mixBlendMode !== 'normal' || style.isolation === 'isolate') {
       g.setAttribute('style', [style.mixBlendMode && style.mixBlendMode !== 'normal' ? `mix-blend-mode:${style.mixBlendMode}` : '', style.isolation === 'isolate' ? 'isolation:isolate' : ''].filter(Boolean).join(';'));
     }
+    motion?.stamp(el, g, style.fontSize);
 
     // filter: drop-shadow(…) → keep vector via a chain of <feDropShadow> on `g`
     // (SVG only; other filter functions can't be reproduced and fall to the raster
@@ -2368,6 +2374,7 @@ async function renderHtmlSvg(node: Element, opts: ExportOpts, textContext: Inlin
   // the walk emitted including passthrough markup; packed path data for a file.
   portableSvgPaint(svgEl);
   if (opts.compactPaths) compactSvgPaths(svgEl);
+  motion?.finish(svgEl, defs, node);
   const xml = injectSvgMeta(new XMLSerializer().serializeToString(svgEl), opts.meta);
 
   // Parse-check before returning. This walker can emit XML that does not parse,

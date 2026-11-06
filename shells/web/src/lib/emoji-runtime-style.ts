@@ -54,6 +54,22 @@ export async function seedEmojiRuntime(runtime: Runtime, host: HostV1, url: Emoj
   if (style !== undefined) await runtime.setEmojiStyle(style);
 }
 
+/**
+ * A placed tool's link, keeping the pinned emoji set when the link can hold it. A design
+ * system's own treatment lists its whole palette, which runs to several kilobytes and
+ * past what an embed id may be (Lolly Demo's alone is 5.8 KB), and a link that cannot be
+ * minted left every field in Design's Tool section doing nothing. Headless renders seed
+ * that same style from the design system (seedEmojiRuntime), so without the pin the
+ * picture is the same.
+ */
+export function embedUrlWithEmoji(
+  query: string,
+  style: EmojiStyleV1 | null,
+  build: (query: string) => string | null,
+): string | null {
+  return build(queryWithEmoji(query, style)) ?? build(query);
+}
+
 /** Keep the pinned set in the lossless source URL used for previews and re-apply. */
 export function queryWithEmoji(query: string, style: EmojiStyleV1 | null): string {
   const params = new URLSearchParams(query);

@@ -76,6 +76,7 @@ import { _host, canvasToBlob, imprintCanvas, exportDims, getDomToImage, swapBlob
 import { beginFrameClock, renderFrameAt, endFrameClock, withStillHold, posedFrame } from './frame-clock.ts';
 import { isTopTailStage, isRecordStage } from './export-shared.ts';
 import type { WebHost, ExportOpts, ExportDims, ImprintState, Rgba } from './export-shared.ts';
+import { holdEntrancesFinished } from './export-svg-motion.ts';
 import { renderSvgFromHtml, stripCommentNodes, inlineBlobUrlsInEl, inlineSvgFromImg, imprintEmbedCanvas, isPaintSkipped, rotationPivot, rasterizePosedNodeToDataUrl, effectSpillCss, detectUnsupportedCss, rasterizeNodeToDataUrl, firstCssUrl, cssUrlToHref, bakeImageFilter, visualLines, mergeDeco, decoFlags, pdfInlineNonText, pseudoDescriptor, type Deco } from './export-svg-walker.ts';
 import { designOpsSvg, renderDesignOpsPdf } from './export-design-ops.ts';
 import { finishPng, durableEmbedCanvas } from './export-raster-finish.ts';
@@ -186,6 +187,9 @@ export function createExportAPI(host: WebHost) {
       const restoreMotion = ((SEQUENCE_MOTION_FORMATS.has(format) || format === 'html') && isSequenceStage(node))
         ? snapshotMotion(node, 'video[data-live-camera-video]')
         : snapshotMotion(node);
+      const restoreEntrances = SEQUENCE_MOTION_FORMATS.has(format) || format === 'html' || format === 'svg-anim'
+        ? null
+        : holdEntrancesFinished(node);
 
       // The timeline panel photographs its own clip boxes with the same dom-to-image
       // instance. Its options, url cache, and sandbox iframe are module-global and
@@ -207,6 +211,7 @@ export function createExportAPI(host: WebHost) {
         await drainNodeRasters();
         return await renderFormat(node, format, browserExportProgress(opts));
       } finally {
+        restoreEntrances?.();
         restoreMotion();
         resumeThumbRasters();
         restoreHidden();
@@ -1428,7 +1433,7 @@ async function renderSvg(node: Element, opts: ExportOpts = {}): Promise<Blob> {
   if (!isSvgRooted(node)) {
     // A Design frame is drawn from the engine's drawing operations when they carry the
     // whole page (plan 295, P3d); otherwise, and for every other tool, by the walker.
-    const inner = await designOpsSvg(node, opts) ?? await renderSvgFromHtml(node, { backdropBlur: true, compactPaths: true, ...opts });
+    const inner = await designOpsSvg(node, opts) ?? await renderSvgFromHtml(node, { backdropBlur: true, compactPaths: true, keepMotion: true, ...opts });
     if (!geo) return inner;
     const artworkEl = new DOMParser().parseFromString(await inner.text(), 'image/svg+xml').documentElement;
     return wrapArtworkSvgWithMarks(artworkEl, geo, opts);

@@ -1,0 +1,16 @@
+{
+  "id": "citation",
+  "name": "Citation",
+  "category": "Publishing",
+  "description": "A passage with its full reference: author, work, publication and date.",
+  "values": {
+    "quote": "We may say most aptly that the Analytical Engine weaves algebraical patterns just as the Jacquard loom weaves flowers and leaves.",
+    "name": "Ada Lovelace",
+    "role": "",
+    "source": "Sketch of the Analytical Engine, Note A",
+    "publication": "Taylor's Scientific Memoirs",
+    "date": "1843",
+    "ground": "paper",
+    "layout": "citation"
+  }
+}

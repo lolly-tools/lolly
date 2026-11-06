@@ -283,6 +283,9 @@ export interface ExportOpts {
    *  canvas, so this does not undo the ingest-time strip of `data-name` /
    *  `inkscape:label`. See engine/src/svg-layers.ts. */
   layerIds?: boolean;
+  /** Keep the CSS animation of each element marked `data-svg-motion` (bridge/export-svg-motion.ts).
+   *  Only the plain SVG export asks: a derived format wants one finished picture. */
+  keepMotion?: boolean;
   /** Pack every `d` as relative path data (svg-portable.ts). Set by the .svg / .svgz
    *  file formats only: EMF/EPS/DXF/PPTX re-parse the walker's output to absolute
    *  coordinates, where it saves nothing and the summed deltas drift in the fourth

@@ -1,9 +1,258 @@
-<div class="qc qc-{{ground}} qc-{{layout}}{{#if headshot}} qc-has-photo{{/if}}">
-  {{#if headshot}}<div class="qc-photo"><img src="{{asset headshot}}" alt=""></div>{{/if}}
+<div class="qc qc-{{ground}} qc-{{layout}}{{#if headshot}} qc-has-photo{{/if}}{{#if qcClass}} {{qcClass}}{{/if}}"{{#if qcStyle}} style="{{qcStyle}}"{{/if}}{{#if qcClipMs}} data-clip-ms="{{qcClipMs}}"{{/if}}{{#if qcGrow}} data-qc-grow="{{qcGrow}}"{{/if}}>
+  {{#if headshot}}<div class="qc-photo" data-qc-gfx><img src="{{asset headshot}}" alt=""></div>{{/if}}
   <div class="qc-words">
-    <svg class="qc-mark" viewBox="0 0 48 36" aria-hidden="true"><path d="M0 36V20C0 9 7 2 19 0l2 6c-7 2-10 6-10 11h9v19H0Zm27 0V20C27 9 34 2 46 0l2 6c-7 2-10 6-10 11h9v19H27Z"/></svg>
-    <p class="qc-quote">{{quote}}</p>
-    {{#if name}}<p class="qc-name">{{name}}</p>{{/if}}
-    {{#if role}}<p class="qc-role">{{role}}</p>{{/if}}
+    {{#if qcGlyph}}<span class="qc-bigmark" aria-hidden="true" data-qc-gfx>{{qcGlyph}}</span>{{/if}}
+    {{#unless qcHideMark}}<svg class="qc-mark" viewBox="0 0 48 36" aria-hidden="true" data-qc-gfx><path d="M0 36V20C0 9 7 2 19 0l2 6c-7 2-10 6-10 11h9v19H0Zm27 0V20C27 9 34 2 46 0l2 6c-7 2-10 6-10 11h9v19H27Z"/></svg>{{/unless}}
+    {{#if qcRules}}<span class="qc-rule qc-rule-top" aria-hidden="true" data-qc-gfx></span>{{/if}}
+    <p class="qc-quote" dir="auto">{{#if quoteHtml}}{{{quoteHtml}}}{{else}}{{quote}}{{/if}}</p>
+    {{#if refHtml}}<span class="qc-rule" aria-hidden="true" data-qc-gfx></span><p class="qc-ref" dir="auto" data-qc-meta>{{{refHtml}}}</p>{{else}}
+    {{#if name}}<p class="qc-name" dir="auto" data-qc-meta>{{name}}</p>{{/if}}
+    {{#if role}}<p class="qc-role" dir="auto" data-qc-meta>{{role}}</p>{{/if}}
+    {{#if sourceHtml}}<p class="qc-source" dir="auto" data-qc-meta>{{{sourceHtml}}}</p>{{/if}}
+    {{/if}}
+    {{#if linkText}}<p class="qc-link" dir="ltr" data-qc-meta>{{linkText}}</p>{{/if}}
+    {{#if qcRules}}<span class="qc-rule qc-rule-bottom" aria-hidden="true" data-qc-gfx></span>{{/if}}
   </div>
+  {{#if hasMotion}}
+  {{!-- The motion pipeline seeks through a clock it finds on a <canvas> descendant
+        (bridge/frame-clock.ts), so this 0 x 0 one carries __lollyFrameRender and paints nothing. --}}
+  <canvas class="qc-clock" width="0" height="0" aria-hidden="true"></canvas>
+  <button type="button" class="qc-play" data-export-hide>{{playLabel}}</button>
+  <script type="application/json" class="qc-motion-data">{{{qcMotionJson}}}</script>
+  {{/if}}
+  <script>
+  (function () {
+    /* Re-runs on every paint, so `var` only and nothing on window. */
+    var cs = document.currentScript;
+    var ROOT = cs && cs.parentNode && cs.parentNode.closest ? cs.parentNode.closest('.qc') : null;
+    if (!ROOT) return;
+    function alive() { return ROOT.isConnected; }
+    var words = ROOT.querySelector('.qc-words');
+    var quote = ROOT.querySelector('.qc-quote');
+
+    /* Fit: the type grows to fill the frame where the layout wants that, and shrinks
+       until the words fit. The two original layouts never grow, and a quote that
+       already fits leaves no trace on them. Past the floor a very long word may break;
+       above it no word does, so one long word sets the size rather than splitting. */
+    var GROW = parseFloat(ROOT.getAttribute('data-qc-grow')) || 1;
+    var FLOOR = 0.25;
+    function over() {
+      var box = words.getBoundingClientRect();
+      var cs = getComputedStyle(words);
+      var top = box.top + (parseFloat(cs.paddingTop) || 0) - 0.5;
+      var bottom = box.bottom - (parseFloat(cs.paddingBottom) || 0) + 0.5;
+      for (var i = 0; i < words.children.length; i++) {
+        var kid = words.children[i];
+        if (getComputedStyle(kid).position === 'absolute') continue;
+        var r = kid.getBoundingClientRect();
+        if (r.height && (r.top < top || r.bottom > bottom)) return true;
+        if (kid.scrollWidth > kid.clientWidth + 1) return true;
+      }
+      return false;
+    }
+    function set(name, v) {
+      if (v === 1) ROOT.style.removeProperty(name);
+      else ROOT.style.setProperty(name, String(Math.round(v * 1000) / 1000));
+    }
+    function search(name, top, floor) {
+      set(name, top);
+      if (!over()) return top;
+      var lo = floor, hi = top;
+      for (var i = 0; i < 9; i++) {
+        var mid = (lo + hi) / 2;
+        set(name, mid);
+        if (over()) hi = mid; else lo = mid;
+      }
+      set(name, lo);
+      return lo;
+    }
+    function fit() {
+      if (!alive() || !words || !words.clientWidth) return;
+      set('--qc-meta-fit', 1);
+      ROOT.classList.remove('qc-break-words');
+      var size = search('--qc-fit', GROW, FLOOR);
+      if (size > FLOOR || !over()) return;
+      /* Still too much at the floor: let long words break, then go smaller, and only
+         then touch the name, because the quote is what the card is for. */
+      ROOT.classList.add('qc-break-words');
+      search('--qc-fit', FLOOR, 0.1);
+      if (over()) search('--qc-meta-fit', 1, 0.35);
+    }
+
+    // qc-motion-start
+    /* Where each part starts and how long it takes, in ms. Everything rests at its
+       finished pose once its step ends, so the last frame of a clip is the finished
+       card. One thing moves at a time: the graphic, then the quote, then the name. */
+    function qcPlan(p, counts) {
+      var steps = { gfx: null, unit: null, block: null, meta: null, end: 0 };
+      var t = 0;
+      if (counts.gfx) {
+        var draw = p.motion === 'draw';
+        steps.gfx = { kind: draw ? 'wipe' : 'fade', at: 0, ms: draw ? p.blockMs : p.unitMs };
+        t = draw ? p.blockMs : Math.round(p.unitMs / 2);
+      }
+      if (p.motion === 'word' && counts.units) {
+        steps.unit = { kind: 'rise', at: t, ms: p.unitMs, gap: p.staggerMs };
+        t += p.staggerMs * (counts.units - 1) + p.unitMs;
+      } else if (p.motion === 'line' && counts.lines) {
+        steps.unit = { kind: 'rise', at: t, ms: p.blockMs, gap: 2 * p.staggerMs, byLine: true };
+        t += 2 * p.staggerMs * (counts.lines - 1) + p.blockMs;
+      } else if (p.motion === 'sweep' && counts.marks) {
+        var slot = Math.max(120, Math.round(Math.min(p.blockMs * 2, 1800) / counts.marks));
+        steps.mark = { kind: 'wipe', at: t, ms: slot, gap: slot };
+        t += slot * counts.marks;
+      } else {
+        steps.block = { kind: 'fade', at: t, ms: p.blockMs };
+        t += p.blockMs;
+      }
+      if (counts.meta) {
+        steps.meta = { kind: 'fade', at: t, ms: p.unitMs, gap: Math.round(p.staggerMs / 2) };
+        t += p.unitMs + steps.meta.gap * (counts.meta - 1);
+      }
+      steps.end = t;
+      return steps;
+    }
+    function qcSpec(kind, rtl, ms, ease, at) {
+      var name = kind === 'wipe' ? (rtl ? 'qc-wipe-rtl' : 'qc-wipe') : 'qc-' + kind;
+      /* A wipe keeps an even pace, so a sweep across several words reads as one stroke. */
+      return name + ' ' + Math.round(ms) + 'ms ' + (kind === 'wipe' ? 'linear' : ease) + ' ' + Math.round(at) + 'ms';
+    }
+    // qc-motion-end
+
+    var data = null;
+    try {
+      var holder = ROOT.querySelector('.qc-motion-data');
+      if (holder) data = JSON.parse(holder.textContent || 'null');
+    } catch (e) { data = null; }
+
+    var clock = ROOT.querySelector('.qc-clock');
+    var play = ROOT.querySelector('.qc-play');
+
+    /* Mark every moving part with its one animation. The SVG export keeps these
+       (bridge/export-svg-motion.ts), and the preview and the clips below play them. */
+    function assign() {
+      if (!data) return;
+      var rtl = getComputedStyle(quote).direction === 'rtl';
+      var units = ROOT.querySelectorAll('.qc-w');
+      var marks = ROOT.querySelectorAll('.qc-hlbg');
+      var gfx = ROOT.querySelectorAll('[data-qc-gfx]');
+      var meta = ROOT.querySelectorAll('[data-qc-meta]');
+      var lines = [];
+      if (data.motion === 'line') {
+        var last = null;
+        units.forEach(function (u) {
+          var top = u.offsetTop;
+          if (last === null || Math.abs(top - last) > u.offsetHeight / 2) { lines.push([]); last = top; }
+          lines[lines.length - 1].push(u);
+        });
+      }
+      ROOT.querySelectorAll('[data-svg-motion]').forEach(function (el) { el.removeAttribute('data-svg-motion'); });
+      var plan = qcPlan(data, { gfx: gfx.length, units: units.length, lines: lines.length, marks: marks.length, meta: meta.length });
+      var mark = function (el, step, i) {
+        el.setAttribute('data-svg-motion', qcSpec(step.kind, rtl, step.ms, data.ease, step.at + (step.gap || 0) * i));
+      };
+      if (plan.gfx) gfx.forEach(function (el) { mark(el, plan.gfx, 0); });
+      if (plan.unit && plan.unit.byLine) lines.forEach(function (line, i) { line.forEach(function (u) { mark(u, plan.unit, i); }); });
+      else if (plan.unit) units.forEach(function (u, i) { mark(u, plan.unit, i); });
+      if (plan.mark) marks.forEach(function (el, i) { mark(el, plan.mark, i); });
+      if (plan.block) mark(quote, plan.block, 0);
+      if (plan.meta) meta.forEach(function (el, i) { mark(el, plan.meta, i); });
+      ROOT.setAttribute('data-clip-ms', String(Math.round(plan.end + data.holdMs)));
+    }
+
+    /* The page at rest is the finished card, so a still never has to be posed by
+       anything but taking the animations away. */
+    function settle() {
+      ROOT.classList.remove('qc-playing');
+      ROOT.querySelectorAll('[data-svg-motion]').forEach(function (el) { el.style.animation = ''; });
+    }
+    function arm() {
+      if (ROOT.classList.contains('qc-playing')) return false;
+      ROOT.classList.add('qc-playing');
+      ROOT.querySelectorAll('[data-svg-motion]').forEach(function (el) {
+        el.style.animation = el.getAttribute('data-svg-motion') + ' both';
+      });
+      return true;
+    }
+    function seek(ms) {
+      ROOT.getAnimations({ subtree: true }).forEach(function (a) { a.pause(); a.currentTime = ms; });
+    }
+
+    function layout() {
+      if (!alive()) return;
+      settle();
+      fit();
+      assign();
+    }
+    layout();
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(layout);
+    /* Emoji are drawn after the paint and again at export, as boxes a little wider than
+       the characters they replace. A microtask, so it lands before the export reads the page. */
+    if (typeof MutationObserver === 'function' && words) {
+      new MutationObserver(layout).observe(words, { childList: true, subtree: true });
+    }
+    if (typeof ResizeObserver === 'function') {
+      var seen = ROOT.clientWidth + 'x' + ROOT.clientHeight;
+      new ResizeObserver(function () {
+        var now = ROOT.clientWidth + 'x' + ROOT.clientHeight;
+        if (now !== seen) { seen = now; layout(); }
+      }).observe(ROOT);
+    }
+    if (!data || !clock) return;
+
+    /* The preview plays once when the motion or the layout changes, never on a
+       keystroke, only in the tool view, and never by itself when the person asked for
+       reduced motion. The button replays it on request. Exports do not read any of
+       this: they drive the clock below. */
+    function reduced() {
+      try {
+        return matchMedia('(prefers-reduced-motion: reduce)').matches ||
+          document.documentElement.getAttribute('data-a11y-motion') === 'reduce';
+      } catch (e) { return false; }
+    }
+    var timer = 0;
+    function start() {
+      if (!alive()) return;
+      settle();
+      arm();
+      clearTimeout(timer);
+      timer = setTimeout(function () { if (alive() && !clock.__lollyFrameDriven) settle(); },
+        (parseFloat(ROOT.getAttribute('data-clip-ms')) || 4000) - data.holdMs + 50);
+    }
+
+    /* Export: t in [0, 1) of a clip `clipSec` long. A still (no clip length) always
+       gets the finished card, so a PDF or a PNG never catches a moment. stillPose says
+       so to the shell, which poses the card this way for the stills that read the page
+       as well as for the rasters. */
+    var release = 0;
+    function watchRelease() {
+      clearTimeout(release);
+      release = setTimeout(function check() {
+        if (!alive()) return;
+        if (clock.__lollyFrameDriven) { release = setTimeout(check, 250); return; }
+        settle();
+      }, 250);
+    }
+    clock.__lollyFrameRender = function (t, clipSec) {
+      if (!alive()) return;
+      clearTimeout(timer);
+      if (!(clipSec > 0)) { settle(); watchRelease(); return; }
+      arm();
+      seek(Math.min(1, Math.max(0, t)) * clipSec * 1000);
+      watchRelease();
+    };
+    clock.__lollyFrameRender.stillPose = true;
+
+    if (play) play.addEventListener('click', function () { if (stage) stage.__qcPlayed = key; start(); });
+    var stage = ROOT.parentNode;
+    var key = data.motion + '|' + ROOT.className;
+    var inView = !!ROOT.closest('#tool-canvas, #tool-content');
+    if (inView && stage && stage.__qcPlayed !== key && !reduced()) {
+      stage.__qcPlayed = key;
+      start();
+    } else if (stage && inView) {
+      stage.__qcPlayed = key;
+    }
+  })();
+  </script>
 </div>

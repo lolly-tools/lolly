@@ -1,0 +1,13 @@
+{
+  "id": "big-type",
+  "name": "Big type",
+  "category": "Social",
+  "description": "The words fill the frame.",
+  "values": {
+    "quote": "Say less. Show more.",
+    "name": "Tomás Rivera",
+    "role": "Creative Director, Fieldwork",
+    "ground": "lead",
+    "layout": "type"
+  }
+}

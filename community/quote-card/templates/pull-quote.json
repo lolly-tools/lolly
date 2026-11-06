@@ -1,0 +1,14 @@
+{
+  "id": "pull-quote",
+  "name": "Pull quote",
+  "category": "Publishing",
+  "description": "Set between two rules, to sit in a column of a page.",
+  "values": {
+    "quote": "The first draft is where the real questions show up.",
+    "name": "Hana Sato",
+    "role": "Editor, The Long Table",
+    "ground": "paper",
+    "layout": "pull"
+  },
+  "gallerySize": { "width": 1200, "height": 1200 }
+}

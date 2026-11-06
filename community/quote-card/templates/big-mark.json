@@ -1,0 +1,13 @@
+{
+  "id": "big-mark",
+  "name": "Big quotation mark",
+  "category": "Social",
+  "description": "The design system's own quotation mark, drawn large.",
+  "values": {
+    "quote": "A brand is what people repeat when you are not in the room.",
+    "name": "Joan Okafor",
+    "role": "Brand Lead, Tideway",
+    "ground": "paper",
+    "layout": "glyph"
+  }
+}
