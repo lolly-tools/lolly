@@ -245,6 +245,7 @@ export function ToolView({ toolId, query, values, fromLink = false, session, bri
   const [unitIdx, setUnitIdx] = useState(0);
   const [dpi, setDpi] = useState('300');
   const [c2paIdx, setC2paIdx] = useState(0);
+  const linkC2paOff = useRef(false);
   const [imprintOn, setImprintOn] = useState(true);    // Lolly Imprint (pixel watermark) - on by default, opt-out per export
   const [madeWithOn, setMadeWithOn] = useState(true);  // design-system record (plans/319) - on by default, opt-out per export
   const [madeWithLine, setMadeWithLine] = useState(''); // the words that record writes, '' when there is nothing to record
@@ -441,6 +442,7 @@ export function ToolView({ toolId, query, values, fromLink = false, session, bri
         setUnitIdx(Math.max(0, UNITS.indexOf(rv.unit ?? r.unit ?? 'px')));
         setDpi(rv.dpi != null ? String(rv.dpi) : '300');
         setC2paIdx(c2paIndexFromSetting(rv.c2pa, m.manifest as unknown as ProvenanceManifest));
+        linkC2paOff.current = rv.c2pa?.on === false;
         // Imprint is the same "absent means the policy" rule as C2PA: a link's explicit
         // imprint=0/1 wins, otherwise the engine's default-on policy decides (off only
         // for render.c2pa:false and on-device privacy tools). Read from the manifest so
@@ -1001,6 +1003,9 @@ export function ToolView({ toolId, query, values, fromLink = false, session, bri
       height: Number.isFinite(h) && h > 0 ? h : undefined,
       unit, dpi: Number.isFinite(dpiN) && dpiN > 0 ? dpiN : 300,
       c2paDays: C2PA_DAYS[c2paIdx] || undefined,
+      // Off on a tool that stamps by default, or a link's own c2pa=off, is the person's choice.
+      // Off on a tool that never stamps is nobody's, and that export keeps its bytes.
+      c2paOff: !C2PA_DAYS[c2paIdx] && (linkC2paOff.current || (manifest ? c2paDefaultOn(manifest as unknown as ProvenanceManifest) : false)) ? true : undefined,
       // The Imprint (pixel watermark). Resolved to an EXPLICIT boolean so every tier
       // agrees: the Tier-A PNG path reads it to embed the mark browser-free, and the
       // Tier-B path forwards imprint=0/1 (an undefined would let the web shell re-default

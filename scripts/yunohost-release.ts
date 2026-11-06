@@ -182,7 +182,7 @@ export async function main(argv = process.argv.slice(2)): Promise<void> {
   assertWebGpuReleaseAllowed(ROOT, 'web');
   const version = args.version ?? upstreamVersion();
   const profile = activeProfile();
-  if (profile === 'suse') throw new Error("content profile is 'suse' (private pack) - build with LOLLY_PROFILE=lolly-start; the YunoHost tarball is public");
+  if (profile === 'suse' || contentRoots().catalogRoot.replaceAll('\\', '/').endsWith('brands/suse/catalog')) throw new Error(`content profile is '${profile}' (private pack) - build with LOLLY_PROFILE=lolly-start; the YunoHost tarball is public`);
 
   if (args.build) {
     console.log(`[yunohost-release] release web build (profile ${profile}, models from ${MODELS_BASE})`);

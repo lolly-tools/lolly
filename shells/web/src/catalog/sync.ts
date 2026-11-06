@@ -36,6 +36,7 @@ import { adoptBootFetch, getInstanceBase, initInstanceBase, instanceFetch, insta
 import { CatalogRefusedError, catalogRefused, catalogRefusedBefore, isAccessRefused, noteCatalogAllowed, noteCatalogRefused } from '../lib/catalog-access.ts';
 import type { RenditionSpec } from '../../../../packages/core/src/delivery-v1.ts';
 import type { CompanionHost } from '../lib/design-system/companions.ts';
+import { readCompanionAssets } from '../lib/design-system/asset-scope.ts';
 
 /** One resolvable file for a catalog asset (an entry in an asset's `formats`).
  *  Structurally matches the bridge's AssetFormat so it flows into
@@ -153,7 +154,7 @@ declare global {
 interface SyncHost {
   log(level: string, msg: string, data?: Record<string, unknown>): void;
   assets: {
-    _syncFromIndex(assets: AssetMetaRecord[], source?: { origin: string; tokensHead?: string | null }): Promise<unknown>;
+    _syncFromIndex(assets: AssetMetaRecord[], source?: { origin: string; tokensHead?: string | null; companions?: unknown }): Promise<unknown>;
     _pruneStale(assets: AssetMetaRecord[], sessionRefs: Set<string>, keepIds?: Set<string>, deferredProviders?: readonly string[]): Promise<{ blobs: number; meta: number }>;
     _hasBlob(key: string): Promise<boolean>;
     _cacheBlob(key: string, blob: Blob): Promise<unknown>;
@@ -663,7 +664,8 @@ async function syncAssets(host: SyncHost, onAssetsReady?: () => unknown, mainten
   try { localStorage.setItem(BRAND_TRUST_MIRROR, JSON.stringify(brandTrust)); } catch { /* storage off */ }
 
   // Write metadata into IndexedDB so host.assets.get(id) can resolve whatever asset.
-  await host.assets._syncFromIndex(index.assets, { origin, ...('brandTokens' in index ? { tokensHead: index.brandTokens } : {}) });
+  const companionAssets = readCompanionAssets(index.companionDesignSystems);
+  await host.assets._syncFromIndex(index.assets, { origin, ...('brandTokens' in index ? { tokensHead: index.brandTokens } : {}), ...(companionAssets.length ? { companions: companionAssets } : {}) });
   await onAssetsReady?.();
   // The companions come from this app's own catalog only: an instance a person
   // connected to gives its own design systems through its pack. They are seeded
