@@ -14,7 +14,7 @@
  */
 
 import type { HostV1 } from '@lolly-tools/core/host-v1';
-import { colorToHex, createTokenSet, isAlias } from '@lolly/engine';
+import { colorToHex, createTokenSet, isAlias, readColourRoles } from '@lolly/engine';
 import {
   listStudioTokens, addStudioToken, setStudioTokenValue, deleteStudioToken,
   defaultValueFor, gradientCss, resolveStopHex, formatStudioValue,
@@ -268,7 +268,7 @@ export interface TokensRoomModel {
   more: StudioToken[];
   /** The palette is only the starter's neutral ramp: Edit in Colours opens that group. */
   starterOnly: boolean;
-  example: { name: string; hex: string } | null;
+  example: { name: string; hex: string; word?: string } | null;
   /**
    * The person's own material per section, the way Overview and the Colours,
    * Type and Logos rooms count it: palette colours (roles re-point, they are not
@@ -369,7 +369,10 @@ export function tokensRoomModel(
   try {
     const primary = roleAssignments(doc, 'light', resolve).primary;
     const named = primary && swatches.find(s => s.key === primary.key);
-    if (primary?.hex && named) example = { name: rampStepName(named.name, named.key), hex: primary.hex };
+    if (primary?.hex && named) {
+      const word = readColourRoles(doc).roles.find(role => role.declared && role.slots.includes('primary'))?.label;
+      example = { name: rampStepName(named.name, named.key), hex: primary.hex, ...(word ? { word } : {}) };
+    }
   } catch { /* no example line */ }
 
   // The colour, typeface and token numbers are the Board's too (design-system/
@@ -745,7 +748,9 @@ export function mountTokensPanel(mount: HTMLElement, ctx: StudioTabCtx): StudioP
   const renderExample = (): void => {
     if (!example) return;
     example.hidden = !model.example;
-    example.textContent = model.example ? tRaw('For example, Primary is {name}, {hex}.', { name: model.example.name, hex: model.example.hex }) : '';
+    example.textContent = !model.example ? ''
+      : model.example.word ? tRaw('For example, {role} is {name}, {hex}.', { role: model.example.word, name: model.example.name, hex: model.example.hex })
+        : tRaw('For example, Primary is {name}, {hex}.', { name: model.example.name, hex: model.example.hex });
   };
 
   // ── Shape and spacing: the two sliders ──────────────────────────────────────

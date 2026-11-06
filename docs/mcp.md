@@ -414,7 +414,7 @@ Agents should not guess asset ids or brand colours. Alongside the tools, the ser
 | `lolly://design-system/skill/{name}/{path}` | A brand skill's `coverage.json` (what the skill says against what Lolly checks), its `lolly.json` or a reference file. |
 | `lolly://catalog` | The full generated tool index. |
 | `lolly://assets` | Every catalog asset id with its type, name, tags and formats. Enumerate here first, so you never invent an id. |
-| `lolly://tokens` | The brand's design tokens (DTCG): named colour swatches with CMYK. |
+| `lolly://tokens` | The brand's design tokens (DTCG): named colour swatches with CMYK. A design system with colour roles adds `colourRoles`: its own words in its own order, quoted as data, with what each is bound to. The design brief carries the same section. |
 | `lolly://tool/{id}` | One tool's manifest summary, input JSON Schema and examples. |
 | `lolly://tool/{id}/preview` | The tool's committed catalog preview (SVG), where one exists. |
 | `lolly://asset/{id}` | A catalog asset (logo, palette, font) resolved to bytes. |

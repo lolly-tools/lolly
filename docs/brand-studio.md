@@ -150,6 +150,8 @@ A reading no role fills stays as the design system defines it, and the room list
 
 **The rest of the room speaks the same words.** The chips, the swatch's **Use as** row and the palette's **Colour roles** group all use the design system's words, and a colour role's tile opens its value. Exported files record nothing new about roles: the colours in a render change because the tokens changed.
 
+**Where a colour is chosen.** Every colour field in a tool and in Lolly Design leads with the design system's roles, in its own order, with each word and what the colour is for on show. **Aa** beside a role picks the colour that sits on that role. The rest follow under **Other colours**, without a colourway's own copies, the on-colours and any reading a role already fills. A pick stays linked to the role and follows the colourway, the field keeps showing the word whichever colourway is chosen, and Settings and Tokens use the word too. A design system with no roles keeps the grid of swatches it has always had.
+
 ### Roles: what tools read
 
 With **Colour roles** shut, the first decisions lead the room as chips, each showing the colour that plays the role and its name. On a system with no words of its own these are **Primary**, **Secondary**, **Surface** and **Text**. Press a chip to choose its colour from the palette's own swatches. **Every colour a tool reads**, at the foot of **Colour roles**, has the full strip.

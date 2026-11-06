@@ -52,6 +52,7 @@ import { escape } from '../utils.ts';
 import { t, tRaw } from '../i18n.ts';
 import { icon } from '../lib/icons.ts';
 import { nameColor } from '../lib/color-namer.ts';
+import { colourRoleWord, setColourRoleWords } from '../lib/colour-role-words.ts';
 import { clamp01 } from '../lib/util/number.ts';
 
 // The attribute selectors below quote a channel or mode id. Browsers expose
@@ -80,6 +81,19 @@ export interface ColorSwatchOption {
   group?: string | null;
   /** canonical token reference ('{color.brand.jungle}') - null for plain colours */
   ref?: string | null;
+  /** Set on a colour role in the design system's own words: it leads the grid with its word showing, and `label` is that word. */
+  role?: ColorRoleSwatch | null;
+}
+
+/** What makes a swatch a colour role (plans/352). lib/colour-role-swatches.ts builds these. */
+export interface ColorRoleSwatch {
+  id: string;
+  /** What the colour is for, in the design system's words. */
+  description?: string;
+  /** The slots this role fills, whose references and variables read its word. */
+  fills?: readonly string[];
+  /** The colour that sits on this role, one press away so the on-colours need not crowd the grid. */
+  on?: { value: string; wide?: string; ref: string; label: string } | null;
 }
 
 /** What onChange receives: a plain colour string, or a token-linked value. */
@@ -136,7 +150,24 @@ let SWATCHES: ColorSwatchOption[] = PALETTE.map(s => ({ value: s.hex, label: s.l
 
 /** Replace the picker's swatches (e.g. with tokens). Ignored if empty/invalid. */
 export function setSwatches(list: ColorSwatchOption[]): void {
-  if (Array.isArray(list) && list.length) SWATCHES = list;
+  if (!Array.isArray(list) || !list.length) return;
+  SWATCHES = list;
+  setColourRoleWords(roleWordsOf(list));
+}
+
+/** Every reference that reads a role's word: its own, each slot it fills, and its on-colour. */
+function roleWordsOf(list: readonly ColorSwatchOption[]): Map<string, string> {
+  const words = new Map<string, string>();
+  for (const { role, ref, label } of list) {
+    if (!role || !label) continue;
+    if (ref) words.set(ref, label);
+    for (const slot of role.fills ?? []) words.set(`{color.semantic.${slot}}`, label);
+    if (role.on) {
+      words.set(role.on.ref, role.on.label);
+      if (role.fills?.includes('primary')) words.set('{color.semantic.on-primary}', role.on.label);
+    }
+  }
+  return words;
 }
 
 /**
@@ -264,6 +295,9 @@ function nameKey(raw: string): string {
  * mid-paste fragment): a name we cannot compute is better absent than guessed.
  */
 export function swatchName(value: unknown): string {
+  // A link says which colour this is, whatever else shares its hex.
+  const linked = colourRoleWord((value as { ref?: unknown } | null | undefined)?.ref);
+  if (linked) return linked;
   const raw = toHex(value);
   if (typeof raw !== 'string' || !raw) return '';
   const v = nameKey(raw);
@@ -358,6 +392,13 @@ export function resolveColorVar(raw: unknown, scope?: Element | null): string {
 /** Brand tokens wear a prefix; anything else is a private variable with no public name. */
 const BRAND_VAR = /^--(?:brand|lolly)-/;
 
+/** The token a brand variable paints: `--brand-primary` is `{color.semantic.primary}`, and `--brand-token-<hex>` holds its path in UTF-8. */
+function brandVarRef(name: string): string {
+  const hex = /^--brand-token-((?:[0-9a-f]{2})+)$/i.exec(name)?.[1];
+  if (!hex) return name.startsWith('--brand-') ? `{color.semantic.${name.slice('--brand-'.length)}}` : '';
+  try { return `{${new TextDecoder('utf-8', { fatal: true }).decode(Uint8Array.from(hex.match(/../g)!, byte => parseInt(byte, 16)))}}`; } catch { return ''; }
+}
+
 /**
  * The human name of a brand token used as a colour: `var(--brand-primary)` → "Primary",
  * `var(--brand-on-primary, #fff)` → "On Primary". '' for a non-token `var()` and for
@@ -366,6 +407,8 @@ const BRAND_VAR = /^--(?:brand|lolly)-/;
 export function colorVarLabel(raw: unknown): string {
   const v = parseColorVar(raw);
   if (!v || !BRAND_VAR.test(v.name)) return '';
+  const word = colourRoleWord(brandVarRef(v.name));
+  if (word) return word;
   return v.name.replace(BRAND_VAR, '').split('-').filter(Boolean)
     .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
     .join(' ');
@@ -1228,10 +1271,42 @@ export function colorFieldHtml(id: string, value: unknown, { float = false, swat
 /** The chip for a swatch with no colour of its own (Transparent, an unreadable value). */
 const NEUTRAL_CHIP = '#c9ccd1';
 
+/**
+ * A colour role's row: its colour and the system's word, on show with no hover, and a
+ * second press target beside it for the colour that sits on it, painted as that colour
+ * because a swatch shows what it gives. No `data-name`: the word is on the row, and a
+ * hover chip would repeat the word. The word and description are the system's own text,
+ * escaped here and marked `dir="auto"` so a label in any script reads in its own direction.
+ */
+function roleSwatchHtml(eid: string, s: ColorSwatchOption): string {
+  const paint = safeCssColor(s.wide ?? s.value);
+  const word = s.label || s.value;
+  const note = s.role?.description ? `<span class="color-role-note" dir="auto" title="${escape(s.role.description)}">${escape(s.role.description)}</span>` : '';
+  const on = s.role?.on;
+  const onPaint = on ? safeCssColor(on.wide ?? on.value) : '';
+  const onButton = on && onPaint ? `<button type="button" class="color-role-on" data-swatch-for="${eid}" data-swatch-value="${escape(on.wide ?? on.value)}" data-swatch-ref="${escape(on.ref)}"
+      data-tip="${escape(on.label)}" aria-label="${escape(on.label)}"><span class="color-role-on-chip" style="background:${escape(onPaint)};color:${escape(paint)}" aria-hidden="true">Aa</span></button>` : '';
+  return `<div class="color-role-row">
+    <button type="button" class="color-role-swatch" data-swatch-for="${eid}" data-swatch-value="${escape(s.wide ?? s.value)}"${s.ref ? ` data-swatch-ref="${escape(s.ref)}"` : ''} aria-label="${escape(word)}"${s.role?.description ? ` aria-description="${escape(s.role.description)}"` : ''}>
+      <span class="color-role-chip" style="background:${escape(paint)}" aria-hidden="true"></span>
+      <span class="color-role-text"><span class="color-role-word" dir="auto">${escape(word)}</span>${note}</span>
+    </button>${onButton}
+  </div>`;
+}
+
 /** The palette swatch buttons for a field - built lazily on first popover open. */
 function swatchButtonsHtml(id: string, source?: string | null): string {
   const eid = escape(id);
-  return swatchesFor(source).map(s => {
+  const list = swatchesFor(source);
+  const roles = list.filter(s => s.role);
+  const plain = roles.length ? list.filter(s => !s.role) : list;
+  const heads = roles.length
+    ? `<div class="color-role-swatches" role="group" aria-label="${escape(t('Colour roles'))}">
+        <span class="color-swatch-head" aria-hidden="true">${escape(t('Colour roles'))}</span>
+        ${roles.map(s => roleSwatchHtml(eid, s)).join('')}
+      </div>${plain.length ? `<span class="color-swatch-head color-swatch-head--rest">${escape(t('Other colours'))}</span>` : ''}`
+    : '';
+  return heads + plain.map(s => {
     const isTrans = s.value === 'transparent';
     const refAttr = s.ref ? ` data-swatch-ref="${escape(s.ref)}"` : '';
     const name = s.label || s.value;
@@ -1659,7 +1734,8 @@ export function wireColorField(scope: HTMLElement, { onChange = () => {}, onInte
       preview.classList.toggle('color-swatch--transparent', isTrans);
       preview.style.background = isTrans ? '' : (value || '#000000');
     }
-    const name = swatchName(value);
+    // A swatch picked with a link keeps that link's word; any other edit asks for the colour's name.
+    const name = colourRoleWord(STATE.get(field)?.ref) || swatchName(value);
     if (nameText) nameText.textContent = name;             // :empty CSS hides it for custom colours
     const trigger = field.querySelector('.color-trigger');
     // The host's own label rides on the field (data-color-label) rather than in a
