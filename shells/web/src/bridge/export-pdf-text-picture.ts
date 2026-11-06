@@ -147,12 +147,24 @@ export function takePicturedTextNotice(pdf: object): string | null {
 }
 
 /**
+ * Runs one finishing step that draws print marks, giving it `labelPicture` for a label
+ * the mark font cannot set, then hands `report` the key those labels were noted under,
+ * so the export notice lists their scripts.
+ */
+export async function withMarkLabelPictures<T>(step: (labelPicture: LabelPictureFn) => Promise<T>, report: (key: object) => void): Promise<T> {
+  const key = {};
+  const out = await step(markLabelPictures(key));
+  report(key);
+  return out;
+}
+
+/**
  * A print mark label the mark font cannot set (a name in Arabic, Chinese or Cyrillic,
  * or with an emoji), as a picture from the browser's text renderer in the face the
  * marks name. pdf-finishing.ts paints its coverage in the label's own ink, and `key`
  * collects the scripts for the export notice, as a pictured run in the artwork does.
  */
-export function markLabelPictures(key: object): LabelPictureFn {
+function markLabelPictures(key: object): LabelPictureFn {
   return async (text, sizePt) => {
     const pic = await markLabelPicture(text, sizePt);
     if (pic) notePicturedText(key, text);

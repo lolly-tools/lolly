@@ -17,12 +17,12 @@ import { wantsDeepExport, hdrTune } from './export-deep-choice.ts';
  */
 
 import { assertPdfCameOutLocked, assertStandardPasswordFits, standardPdfEncryption } from './export-password-lock.ts';
-import { LOSSLESS_STRENGTH, C2PA_FORMATS, embedWavInfo, writeDocx, writeOdt, hdrBoostToPQ, pqBt2020IccProfile, iccProfileBytes, HDR_PQ_CICP, packTiff, CSS_DPI, encodeBmp, cmykCondition, toPixels, parseDimension, toCssLength, gzip, emitEmf, emitWmf, emitEps, emitDxf, toPoints, exportActionSteps, embedC2pa, ENGINE_VERSION, separationLattice, buildExportMeta, SCREEN_SOURCE_TYPE, CAPTURE_SOURCE_TYPE, extractC2paStore, roundedRectPath, splitCssArgs, insetCorners, uniformRadius, parseCssMatrix, isAxisAlignedMat, isNonAffineTransform, parseClipShape, parseBoxShadow, gaussianShadowBands, parseTextShadow, videoProvenanceTags, embedMp4Meta, embedWebmMeta, hdrViewTransform, fromU8Srgb, pqToI420P10, pqEncodeFrame, packApng, packWebpAnim } from '@lolly/engine';
+import { LOSSLESS_STRENGTH, C2PA_FORMATS, embedWavInfo, writeDocx, writeOdt, hdrBoostToPQ, pqBt2020IccProfile, iccProfileBytes, HDR_PQ_CICP, packTiff, CSS_DPI, encodeBmp, cmykCondition, toPixels, parseDimension, toCssLength, gzip, emitEmf, emitWmf, emitEps, emitDxf, toPoints, exportActionSteps, embedC2pa, ENGINE_VERSION, separationLattice, buildExportMeta, SCREEN_SOURCE_TYPE, CAPTURE_SOURCE_TYPE, extractC2paStore, roundedRectPath, splitCssArgs, insetCorners, uniformRadius, parseCssMatrix, isNonAffineTransform, parseClipShape, parseBoxShadow, gaussianShadowBands, parseTextShadow, videoProvenanceTags, embedMp4Meta, embedWebmMeta, hdrViewTransform, fromU8Srgb, pqToI420P10, pqEncodeFrame, packApng, packWebpAnim } from '@lolly/engine';
 import type { Mat2D, SeparateRgb } from '@lolly/engine';
 import { letterSpacingPx, featureSettingsToHb, canVectoriseText, textBaselineY } from './text-svg.ts';
 import { resolveVectorFont } from './font-registry.ts';
 import { bakeWebKitBoxShadows } from './webkit-shadow-bake.ts';
-import { newNeutraliseGuard, neutraliseTransform } from './transform-neutralise.ts';
+import { newNeutraliseGuard, neutraliseTransform, pdfDrawsThroughMatrix } from './transform-neutralise.ts';
 import { svgDomToIr } from './svg-ir.ts';
 import { placeBackground } from './bg-layout.ts';
 import { unscopeStyleEls } from '../lib/scope-css.ts';
@@ -68,7 +68,7 @@ import { createPdfDoc } from './export-pdf-doc.ts';
 import { pdfFontEmbed } from './export-pdf-fonts.ts';
 import { paintSvgToPdf, svgFlips, type SvgFlips } from './export-pdf-svg.ts';
 import { backgroundPicture, clipsBackgroundToText, paintLiveRun, paintOutlinedRun, runPaint } from './export-pdf-text-paint.ts';
-import { TEXT_PICTURE_DPI, liveTextWouldGarble, markLabelPictures, notePicturedText, takePicturedTextNotice, textPicture, undrawableTextError } from './export-pdf-text-picture.ts';
+import { TEXT_PICTURE_DPI, liveTextWouldGarble, notePicturedText, takePicturedTextNotice, textPicture, undrawableTextError, withMarkLabelPictures } from './export-pdf-text-picture.ts';
 import { applyPdfTextStyle, clipOfRun, pdfPseudoContent } from './export-pdf-pseudo-text.ts';
 import { bidiPieces, lineDirection, runBidi } from './export-text.ts';
 import { hasRtlText } from '@lolly-tools/node-shell/text-bidi';
@@ -2327,10 +2327,7 @@ async function embeddedProfile(colorProfile: string | undefined): Promise<EmbedR
 // A mark label in letters the mark font lacks goes in as a picture, with the notice a
 // pictured run in the artwork gives.
 async function finishPdfX(blobOrBytes: Blob | Uint8Array, opts: ExportOpts, settings: PdfFinishSettings = {}): Promise<Blob> {
-  const marks = {};
-  const out = await finishSharedPdfX(blobOrBytes, opts, { ...settings, log: pdfxLog, labelPicture: markLabelPictures(marks) });
-  logPdfWarnings(marks);
-  return out;
+  return withMarkLabelPictures((labelPicture) => finishSharedPdfX(blobOrBytes, opts, { ...settings, log: pdfxLog, labelPicture }), logPdfWarnings);
 }
 
 // Renders an SVG element into a rectangular region of the PDF page: ox/oy are the
@@ -2613,20 +2610,6 @@ async function rasterizeSvgElement(svgEl: Element, pxW: number, pxH: number, fli
 }
 const RASTER_DPI = 200;
 
-/**
- * A replaced element that draws nothing from a computed length: no border, corner,
- * shadow, outline or filter. Under a scale its picture fills the scaled box exactly,
- * which is what the walker's box path draws.
- */
-function barePicture(el: Element, s: CSSStyleDeclaration): boolean {
-  if (!/^(img|svg|video|canvas)$/i.test(el.tagName)) return false;
-  const zero = (v: string): boolean => !parseFloat(v);
-  const none = (v: string): boolean => !v || v === 'none';
-  return zero(s.borderTopWidth) && zero(s.borderRightWidth) && zero(s.borderBottomWidth) && zero(s.borderLeftWidth)
-    && zero(s.borderTopLeftRadius) && zero(s.borderTopRightRadius) && zero(s.borderBottomRightRadius) && zero(s.borderBottomLeftRadius)
-    && none(s.boxShadow) && (s.outlineStyle === 'none' || zero(s.outlineWidth)) && none(s.filter);
-}
-
 // Draws the live DOM as PDF vectors into the rectangular region (ox, oy, regionW,
 // regionH) in page points (top-left origin). Callers pass the full page for an
 // ordinary export, or the bleed box for a print export (so the design bleeds).
@@ -2713,24 +2696,12 @@ async function drawHtmlVectors(pdf: any, node: Element, ox: number, oy: number, 
       }
     }
 
-    // General 2-D transform (rotate+scale / skew / matrix) that isn't a pure rotation:
-    // mirror the SVG walker - neutralise, walk the untransformed subtree, wrap the draw
-    // in the full CTM about the transform-origin. Pure translate → AABB path below;
-    // a real 3-D/perspective pose takes the posed-raster branch straight after this one.
-    //
-    // A scale below the root takes this branch too, as it does in the SVG walker. On
-    // the AABB path a client rect carries the scale but a computed length does not,
-    // so a box was placed right while its font size, border width, radius
-    // and shadow offset were all drawn 1/s too big: text under scale(.5) printed at
-    // twice its size. The root is left out because cssToPt already holds its scale.
-    // Two cases read no length, so they keep the path and the bytes they had: a plain
-    // mirror (scale -1), and a picture with nothing drawn around it, such as a photo
-    // zoomed in its frame, which fills its scaled box exactly.
+    // General 2-D transform (rotate+scale / skew / matrix) that isn't a pure rotation, or a
+    // scale below the root: mirror the SVG walker - neutralise, walk the untransformed subtree,
+    // wrap the draw in the full CTM about the transform-origin (pdfDrawsThroughMatrix says why
+    // a scale goes this way). Pure translate → AABB path; a real 3-D pose → posed raster below.
     const mtx = pureRotationDeg(style.transform) === 0 ? parseCssMatrix(style.transform) : null;
-    const resized = Boolean(mtx && el !== node && isAxisAlignedMat(mtx)
-      && (Math.abs(Math.abs(mtx.a) - 1) > 1e-4 || Math.abs(Math.abs(mtx.d) - 1) > 1e-4))
-      && !barePicture(el, style);
-    if (mtx && (!isAxisAlignedMat(mtx) || resized)) {
+    if (mtx && pdfDrawsThroughMatrix(el, node, style, mtx)) {
       // Same guarded neutralise as the rotation branch above.
       const restore = neutraliseTransform(el, neutralise, warnTransform);
       if (restore) {
@@ -3682,9 +3653,7 @@ async function renderCmykPdf(node: Element, opts: ExportOpts): Promise<Blob> {
     setPageBoxes(page, geo);
     const usedPalette = (opts.palette ?? []).filter(p => usedKeys.has(paletteHitKey(p) as string));
     const marksGeo = printGeometry(node, opts, usedPalette, separate) ?? geo;
-    const marks = {};
-    await drawPrintMarks(page, marksGeo, { space: 'cmyk', labels: provenanceLabels(opts.meta), labelPicture: markLabelPictures(marks) });
-    logPdfWarnings(marks);
+    await withMarkLabelPictures((labelPicture) => drawPrintMarks(page, marksGeo, { space: 'cmyk', labels: provenanceLabels(opts.meta), labelPicture }), logPdfWarnings);
   }
 
   // PDF/X-4 finishing runs AFTER the colour substitution so the claim gate sees
