@@ -128,6 +128,9 @@ function findPhrase(quote, phrase) {
   if (!CJK_RE.test(quote.slice(at, end))) {
     while (at > 0 && !/\s/.test(quote[at - 1])) at--;
     while (end < quote.length && !/\s/.test(quote[end])) end++;
+  } else {
+    // Its closing mark stays with it, so no line starts on that mark.
+    while (end < quote.length && CJK_CLOSE_RE.test(quote[end])) end++;
   }
   return { start: at, end: end };
 }
