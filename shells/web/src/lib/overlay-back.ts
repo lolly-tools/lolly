@@ -139,8 +139,7 @@ export function historySettled(timeoutMs = 500): Promise<void> {
 
 /**
  * Run `push`, a write that adds a history entry, once no Back of this stack's own is
- * waiting to be issued or still on its way. Straight away when none is, which is
- * nearly always.
+ * on its way. Straight away when none is, which is nearly always.
  *
  * A closed overlay pops its entry with `history.back()` on the next task (consume).
  * The pop is asynchronous, and Chromium applies it to whichever entry is current when
@@ -149,9 +148,11 @@ export function historySettled(timeoutMs = 500): Promise<void> {
  * milliseconds (the drop chooser loads a module first, Trust & install writes the
  * tool) pushed in exactly that gap, and the person was taken straight back to where
  * the dialog opened. Waiting here lets the pop finish first, and the push comes after.
+ * A push made before the pop is issued needs no wait: consume sees the address has
+ * moved and leaves the entry alone.
  */
 export function afterOwnBack(push: () => void): void {
-  if (!pendingConsumes && !selfPops) { push(); return; }
+  if (!selfPops) { push(); return; }
   void historySettled().then(push);
 }
 
