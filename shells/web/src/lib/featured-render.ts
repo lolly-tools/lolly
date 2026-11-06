@@ -41,6 +41,15 @@ export function displayFormatOf(formats: readonly string[] | undefined): string 
   return rasterFormatOf(formats);
 }
 
+/**
+ * The formats a gallery cover is drawn in. A tool that exports only video or documents can
+ * state `galleryArt: "render"`: its first page is a real render, drawn as a PNG for the card,
+ * and the tool's export list stays as it is. Every other tool draws in what it exports.
+ */
+export function coverFormats(tool: { formats?: readonly string[]; galleryArt?: 'render' | 'icon' }): readonly string[] | undefined {
+  return tool.galleryArt === 'render' && !displayFormatOf(tool.formats) ? ['png'] : tool.formats;
+}
+
 /** Read any blob to a data-URL as-is (used for SVG - no rasterise/downscale needed). */
 function blobToDataUrl(blob: Blob): Promise<string> {
   return new Promise((resolve, reject) => {
