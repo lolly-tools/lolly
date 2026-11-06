@@ -20,8 +20,7 @@ import { assertPdfCameOutLocked, assertStandardPasswordFits, standardPdfEncrypti
 import { LOSSLESS_STRENGTH, C2PA_FORMATS, embedWavInfo, writeDocx, writeOdt, hdrBoostToPQ, pqBt2020IccProfile, iccProfileBytes, HDR_PQ_CICP, packTiff, CSS_DPI, encodeBmp, cmykCondition, toPixels, parseDimension, toCssLength, gzip, emitEmf, emitWmf, emitEps, emitDxf, toPoints, exportActionSteps, embedC2pa, ENGINE_VERSION, separationLattice, buildExportMeta, SCREEN_SOURCE_TYPE, CAPTURE_SOURCE_TYPE, extractC2paStore, roundedRectPath, splitCssArgs, insetCorners, uniformRadius, parseCssMatrix, isAxisAlignedMat, isNonAffineTransform, parseClipShape, parseBoxShadow, gaussianShadowBands, parseTextShadow, videoProvenanceTags, embedMp4Meta, embedWebmMeta, hdrViewTransform, fromU8Srgb, pqToI420P10, pqEncodeFrame, packApng, packWebpAnim } from '@lolly/engine';
 import type { Mat2D, SeparateRgb } from '@lolly/engine';
 import { letterSpacingPx, featureSettingsToHb, canVectoriseText, textBaselineY } from './text-svg.ts';
-import { resolveExportFont, extendsChain, noteFillUse, beginFillLog } from './font-fill.ts';
-import { pageFillSettled } from './fallback-font-source.ts';
+import { resolveExportFont, extendsChain, withFallbackFonts } from './font-fill.ts';
 import { bakeWebKitBoxShadows } from './webkit-shadow-bake.ts';
 import { newNeutraliseGuard, neutraliseTransform } from './transform-neutralise.ts';
 import { svgDomToIr } from './svg-ir.ts';
@@ -204,22 +203,14 @@ export function createExportAPI(host: WebHost) {
       // two lines (snapshotMotion walks the tree) would suspend frame thumbnails
       // for the rest of the session, with nothing logged and nothing to reset it.
       const resumeThumbRasters = suspendNodeRasters();
-      // What fallback fonts drew in this export, said once on the card when it finishes.
-      const closeFillLog = beginFillLog();
       try {
         // Suspending stops the NEXT shot. It cannot cancel the one already inside
         // the library, which cannot be cancelled. Wait for it, with a bound, or
         // its teardown clears the sandbox iframe and url cache from under THIS render.
         await drainNodeRasters();
-        // The live page may be putting fallback fonts in place for text the design system's
-        // fonts lack; lay the export out in the faces the page will show (bounded).
-        await pageFillSettled();
-        const blob = await renderFormat(node, format, browserExportProgress(opts));
-        const filled = closeFillLog();
-        if (filled) { _host?.log?.('info', `fonts: ${filled}`); _exportNotice(filled); }
-        return blob;
+        // In step with the live page's fallback fonts, and one card note for what they drew.
+        return await withFallbackFonts(() => renderFormat(node, format, browserExportProgress(opts)));
       } finally {
-        closeFillLog();
         restoreMotion();
         resumeThumbRasters();
         restoreHidden();
@@ -3427,7 +3418,6 @@ async function renderInlineContent(
                   // separate alpha states); add withPdfAlpha around the stroke pass if a
                   // translucent text stroke shows up in a fixture.
                   paintOutlinedRun(pdf, d, (sx: number) => left + sx * cssToPt, (sy: number) => baselinePt + sy * cssToPt, nodeStyle, cssToPt, paint);
-                  noteFillUse(vf);
                   drawn = true;
                 }
               } catch (e) {

@@ -15,14 +15,14 @@
  *   for a grapheme cluster that no face before it can draw whole.
  * - Nothing is chosen for text the brand covers, so a run its fonts draw keeps exactly
  *   the chain, and the bytes, it had before.
- * - A cluster no fallback font covers is reported, so the caller keeps its own answer for
+ * - A cluster no fallback font covers is reported; the caller keeps the answer it had for
  *   those characters (a picture in a PDF, live text in an SVG).
  */
 import { emojiGraphemes } from '../../../engine/src/emoji-segment.ts';
 import { textScriptRuns } from '../../../engine/src/text-unicode.ts';
 import { parseUnicodeRange } from './font-faces.ts';
 
-/** One fallback font, as its catalog entry describes it. */
+/** One fallback font, as described by its catalog entry. */
 export interface FallbackFontPack {
   id: string;
   version: string;
@@ -81,7 +81,7 @@ export function fallbackPacksFrom(entries: readonly unknown[]): FallbackFontPack
 
 /** Characters that never need a glyph of their own: spaces, controls and default ignorables. */
 const QUIET = /^[\p{Cc}\p{Z}\p{Default_Ignorable_Code_Point}]$/u;
-/** A space character, which takes a face of its own rather than riding the one before it. */
+/** A space character, which takes a face of its own rather than the face before the space. */
 const SPACE = /^\p{Zs}$/u;
 const isQuiet = (cp: number): boolean => QUIET.test(String.fromCodePoint(cp));
 
@@ -169,7 +169,7 @@ export function packClaims(pack: FallbackFontPack, cp: number): boolean {
 
 /**
  * Which packs fill these clusters, in the order they were first needed, and which clusters
- * none can. A cluster takes a pack made for its script first, then any pack that maps it.
+ * none can. A cluster takes a pack made for its script first, then any pack that maps the cluster.
  * An italic run takes an italic pack where one exists, else the upright one: Arabic,
  * Hebrew, the Indic scripts and Thai have no italic, and a browser slants nothing for them
  * in a face that has none of its own either.
@@ -244,7 +244,7 @@ export interface FillUse { label: string; family: string }
 
 /**
  * The sentence an export shows when a fallback font drew some of its text, or null.
- * Plain words, one sentence, naming each script and the font that drew it.
+ * Plain words, one sentence, giving each script and the font that drew those letters.
  */
 export function fillNotice(uses: readonly FillUse[]): string | null {
   const seen = new Set<string>();

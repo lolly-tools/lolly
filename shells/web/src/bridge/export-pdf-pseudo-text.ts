@@ -15,7 +15,7 @@ import { TEXT_PICTURE_DPI, liveTextWouldGarble, notePicturedText, textPicture, u
 import { drawSvgPathToPdf, pdfRoundedRect } from './export-pdf-vector.ts';
 import { _host, fontMetricsPx } from './export-shared.ts';
 import { pseudoDescriptor } from './export-svg-walker.ts';
-import { resolveExportFont, extendsChain, noteFillUse } from './font-fill.ts';
+import { resolveExportFont, extendsChain } from './font-fill.ts';
 import { canVectoriseText, textBaselineY } from './text-svg.ts';
 
 type Rgb = [number, number, number];
@@ -82,7 +82,6 @@ export async function pdfPseudoContent(pdf: PdfDoc, el: Element, rootRect: { lef
           pdf.setFillColor(textRgb[0], textRgb[1], textRgb[2]);
           drawSvgPathToPdf(pdf, d, (sx: number) => left + sx * cssToPt, (sy: number) => baselinePt + sy * cssToPt);
           pdf.fill();
-          noteFillUse(vf);
           drawn = true;
         }
       } catch (e) { _host?.log?.('warn', `pdf: pseudo text-to-path failed - ${(e as Error).message}`); }

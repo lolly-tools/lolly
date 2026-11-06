@@ -211,7 +211,7 @@ function fmt(n: number): number {
 // FamilyName-FaceName convention (`SUSE-SemiBold.ttf`, `SUSEMono-BoldItalic.ttf`)
 // with variable faces carrying an axis suffix (`SUSE[wght].ttf`,
 // `SUSE-Italic[wght].ttf`); woff2 siblings are skipped, since each has an sfnt twin
-// beside it. Scanned once per repo root, catalog dir first, so a brand's own
+// in the same folder. Scanned once per repo root, catalog dir first, so a brand's own
 // statics still shadow the shell's variable face.
 
 /** The content roots for a given root, or undefined where none resolve (a

@@ -15,7 +15,7 @@ import { createInlineTextContext, emitInlineTextSvg, isReplaced } from './export
 import type { InlineTextContext } from './export-text.ts';
 export { decoFlags, mergeDeco, isReplaced, visualLines, pdfInlineNonText } from './export-text.ts';
 export type { Deco } from './export-text.ts';
-import { resolveExportFont, noteFillUse } from './font-fill.ts';
+import { resolveExportFont } from './font-fill.ts';
 import { exportFontFamily } from './fallback-font-source.ts';
 import { namespaceInlinedSvgIds } from './svg-inline-ids.ts';
 import { newNeutraliseGuard, neutraliseTransform } from './transform-neutralise.ts';
@@ -2843,7 +2843,6 @@ async function svgPseudoContent(
           if (alphaAttr) p.setAttribute('fill-opacity', alphaAttr);
           for (const [k, v] of strokeAttrs) p.setAttribute(k, v);
           parentG_.appendChild(p);
-          noteFillUse(vf);
           placed = true;
         }
       } catch (e) { _host?.log?.('warn', `svg: pseudo text-to-path failed - ${(e as Error).message}`); }

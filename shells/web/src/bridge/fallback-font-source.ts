@@ -5,7 +5,7 @@
  * modules that draw with a fallback font (font-fill.ts, page-fallback-fonts.ts) need no
  * host of their own and load nothing until a document needs one.
  *
- * Kept tiny and free of imports because the boot chunk carries it.
+ * Kept tiny and free of imports because the boot chunk carries this module.
  */
 export interface FallbackFontSource {
   /** The synced catalog entries that carry `meta.fallbackFont`. Reads no bytes. */
@@ -35,7 +35,7 @@ export async function catalogSynced(ms = 15000): Promise<void> {
   if (timer !== undefined) clearTimeout(timer);
 }
 
-/** The prefix of the family names the live page registers fallback fonts under. Exports
+/** The prefix of the family titles the live page registers fallback fonts under. Exports
  *  skip these names and take the same files from the catalog, so a page that registered
  *  one and a page that did not export the same outlines. */
 export const PAGE_FALLBACK_FAMILY = 'Lolly Fallback ';
@@ -43,7 +43,7 @@ export const PAGE_FALLBACK_FAMILY = 'Lolly Fallback ';
 /**
  * A computed `font-family` as an export writes it into a file: without the live page's own
  * fallback families, which exist only on this page. A stack holding none comes back as
- * the same string, so a file that names a font names exactly what it named before.
+ * the same string: a file lists exactly the fonts it listed before.
  */
 export function exportFontFamily(stack: string): string {
   if (!stack.includes(PAGE_FALLBACK_FAMILY)) return stack;
@@ -57,6 +57,36 @@ export function exportFontFamily(stack: string): string {
   }
   parts.push(cur.trim());
   return parts.filter((p) => p && !p.replace(/^["']|["']$/g, '').startsWith(PAGE_FALLBACK_FAMILY)).join(', ');
+}
+
+/** What one fallback font drew, in words for the export notice. */
+export interface FillUseNote { label: string; family: string }
+
+const fillChains = new WeakMap<object, readonly FillUseNote[]>();
+const fillLogs: FillUseNote[][] = [];
+
+/** The fallback fonts a resolved chain carries (font-fill.ts), keyed by the chain itself. */
+export function markFillChain(chain: object, uses: readonly FillUseNote[]): void { fillChains.set(chain, uses); }
+
+/**
+ * A run was shaped from `chain` with no glyph missing (text.ts toPath), so it is drawn
+ * with the fallback fonts the chain carries: every open export log records them.
+ */
+export function noteShapedChain(chain: object | undefined): void {
+  if (!chain || !fillLogs.length) return;
+  const uses = fillChains.get(chain);
+  if (uses) for (const log of fillLogs) log.push(...uses);
+}
+
+/** Collect what fallback fonts draw from now on; the closer returns the list and stops. */
+export function openFillLog(): () => FillUseNote[] {
+  const log: FillUseNote[] = [];
+  fillLogs.push(log);
+  return () => {
+    const at = fillLogs.lastIndexOf(log);
+    if (at !== -1) fillLogs.splice(at, 1);
+    return log;
+  };
 }
 
 const pagePending = new Set<Promise<unknown>>();

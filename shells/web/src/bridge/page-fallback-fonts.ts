@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Fallback fonts on the live page, so the page and its export draw a script the design
+ * Fallback fonts on the live page: the page and the export draw a script the design
  * system's fonts lack in the same font (docs/fallback-fonts.md).
  *
  * Without this, a browser draws such characters in whatever system font it finds while
@@ -15,7 +15,7 @@
  * has reaches the fallback font.
  *
  * Nothing changes for a canvas whose text the design system covers: no font loads and no
- * variable is touched, so its page and its exports keep their bytes. The faces are
+ * variable is touched, and the page and every export keep their bytes. The faces are
  * created from the same catalog-cache bytes the export reads, so no second download
  * happens, the CSP needs nothing new (`font-src` already allows `blob:`), and the
  * service worker is not involved. The registry that outlines exports reads stylesheet
@@ -30,7 +30,7 @@ import type { FontStyleSlice } from './text-svg.ts';
 const FONT_VARS = ['--font-brand', '--font-mono', '--font-display', '--font-italic'] as const;
 const GENERIC = /^(serif|sans-serif|monospace|cursive|fantasy|system-ui|math|emoji|fangsong|ui-serif|ui-sans-serif|ui-monospace|ui-rounded)$/i;
 const SKIP_TAGS = new Set(['SCRIPT', 'STYLE', 'TEMPLATE', 'NOSCRIPT', 'TEXTAREA']);
-const ASCII = /^[\x00-\x7f]*$/;
+const ASCII = /^\p{ASCII}*$/u;
 /** Text checked per style is capped, so a very long document stays cheap to recheck. */
 const MAX_TEXT_PER_STYLE = 65536;
 
@@ -108,7 +108,7 @@ function textByStyle(root: Element): Array<{ style: FontStyleSlice; text: string
 /**
  * Check the canvas `root` and bring its fallback fonts in line with what its export would
  * draw with. `scope` is the selector the tool's styles are scoped to. Returns whether any
- * fallback font is now in use on it.
+ * fallback font is now in use on that canvas.
  */
 export async function syncPageFallbackFonts(root: Element, scope: string): Promise<boolean> {
   const wanted: FallbackFontPack[] = [];

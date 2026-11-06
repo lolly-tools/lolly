@@ -4,7 +4,7 @@
  * (docs/fallback-fonts.md). The tool view calls `notePagePainted` after each paint. A
  * canvas whose text is all ASCII costs one test of its text and nothing more; otherwise
  * bridge/page-fallback-fonts.ts loads and decides, with the export's own rule, whether a
- * fallback font should draw some of it. An export started meanwhile waits for that
+ * fallback font should draw some of that text. An export started meanwhile waits for that
  * decision (fallback-font-source.ts `pageFillSettled`), so it lays the text out in the
  * same faces the page shows.
  */
@@ -12,7 +12,7 @@ import { notePageFill } from '../bridge/fallback-font-source.ts';
 import { lazyModule } from './lazy-module.ts';
 
 const load = lazyModule(() => import('../bridge/page-fallback-fonts.ts'));
-const ASCII = /^[\x00-\x7f]*$/;
+const ASCII = /^\p{ASCII}*$/u;
 
 interface Watch { scope: string; running: Promise<void> | null; again: boolean; active: boolean }
 const watches = new WeakMap<Element, Watch>();
@@ -40,7 +40,7 @@ export function notePagePainted(root: Element | null | undefined, scope: string)
   notePageFill(job);
 }
 
-/** When the canvas is torn down: its fallback families go with it. */
+/** When the canvas is torn down, its fallback families are removed as well. */
 export function releasePageWatch(root: Element | null | undefined): void {
   if (!root) return;
   const watch = watches.get(root);

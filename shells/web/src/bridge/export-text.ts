@@ -6,7 +6,6 @@ import type { HostV1 } from '@lolly-tools/core/host-v1';
 import { textStrokeAttrs, canVectoriseText, letterSpacingPx, featureSettingsToHb, textBaselineY, applyTextTransform } from './text-svg.ts';
 import type { FontStyleSlice } from './text-svg.ts';
 import type { VectorFont } from './font-registry.ts';
-import { noteFillUse } from './font-fill.ts';
 import { exportFontFamily } from './fallback-font-source.ts';
 import { n2, parseCssColorFull } from './export-css.ts';
 import { firstStrongDirection, hasRtlText, type TextRunDirection } from '@lolly-tools/node-shell/text-bidi';
@@ -160,7 +159,6 @@ export async function emitInlineTextSvg(
               if (alphaAttr) p.setAttribute('fill-opacity', alphaAttr);
               for (const [k, v] of strokeAttrs) p.setAttribute(k, v);
               appendWithShadows(p);
-              noteFillUse(vf);
               return;
             }
           } catch (e) {

@@ -6,7 +6,7 @@
  * lived inside export.ts until 2026-09-16 and was moved verbatim. export.ts imports
  * from here; this file never imports export.ts, only the leaf modules both use.
  */
-import { resolveExportFont, noteFillUse } from './font-fill.ts';
+import { resolveExportFont } from './font-fill.ts';
 import type { VectorFont } from './font-registry.ts';
 import { letterSpacingPx, featureSettingsToHb, applyTextTransform, physicalTextAnchor } from './text-svg.ts';
 import { hasRtlText } from '@lolly-tools/node-shell/text-bidi';
@@ -61,9 +61,7 @@ export async function outlineSvgTextRuns(liveSvg: Element, clone: Element, outli
     try {
       const rtl = cs.direction === 'rtl';
       const r = await textApi.toPath({ text: raw, fontUrl: vf.url, fontSize: fontSizePx, features: features as string[], letterSpacing, variations: vf.variations, fallbackFonts: vf.fallbacks, ...(rtl || hasRtlText(raw) ? { direction: rtl ? 'rtl' as const : 'ltr' as const } : {}) });
-      if (!r.d || (r.notdef ?? 0)) return null;
-      noteFillUse(vf);
-      return { d: r.d, adv: r.advanceWidth || 0 };
+      return r.d && !(r.notdef ?? 0) ? { d: r.d, adv: r.advanceWidth || 0 } : null;
     } catch (e) {
       _host?.log?.('warn', `svg: SVG-text outline failed, keeping <text> - ${(e as Error).message}`);
       return null;

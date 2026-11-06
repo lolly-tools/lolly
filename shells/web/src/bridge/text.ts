@@ -13,6 +13,7 @@ import { createTextCompositionAPI } from '@lolly-tools/node-shell/text-compositi
 import { createGlyphCache } from '@lolly-tools/node-shell/text-glyphs';
 import { shapingSegments } from '@lolly-tools/node-shell/text-bidi';
 import { fillSegments } from '@lolly-tools/node-shell/fallback-fonts';
+import { noteShapedChain } from './fallback-font-source.ts';
 import { strikeMetricsFact, type StrikeMetrics } from '../../../../engine/src/text-decoration.ts';
 import { registerTextStrikeMetrics } from './text-drawing-facts.ts';
 import type { Blob as HbBlob, Face as HbFace, Font as HbFont, Feature as HbFeature } from 'harfbuzzjs';
@@ -318,6 +319,8 @@ export function createTextAPI(assets?: AssetsAPI): TextAPI {
         penPx += penX * scale;
       }
 
+      // A run drawn whole with a fallback chain the export resolved (font-fill.ts).
+      if (!notdef) noteShapedChain(fallbackFonts);
       return {
         d,
         advanceWidth: penPx,

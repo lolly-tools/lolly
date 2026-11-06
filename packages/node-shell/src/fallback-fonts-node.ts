@@ -33,7 +33,7 @@ export function diskFallbackPacks(roots: ContentRoots = contentRoots()): Fallbac
   return packs;
 }
 
-/** A face as toPath takes it. */
+/** A face in the shape toPath takes. */
 export interface FillFace { fontUrl: string; variations?: string[] }
 
 /**
@@ -49,7 +49,7 @@ export async function nodeFillChain(
   text: string,
   opts: { weight: number; italic: boolean; roots?: ContentRoots },
 ): Promise<{ fallbacks: Array<FillFace & { fill: true }>; uses: FillUse[] } | null> {
-  if (/^[\x00-\x7f]*$/.test(text)) return null;
+  if (/^\p{ASCII}*$/u.test(text)) return null;
   const cover = async (url: string): Promise<ReadonlySet<number>> => new Set(await characters(url).catch(() => []));
   const urls = chain.map((f) => f.fontUrl);
   const sets = await Promise.all(urls.map(cover));

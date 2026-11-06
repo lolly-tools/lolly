@@ -1632,7 +1632,7 @@ async function boot(): Promise<void> {
   // existence check. Part of catalogReady so the first gallery paint already includes them.
   //
   const catalogReady = earlyCatalog ?? startBootCatalog(host, coldGallery, signInRequired);
-  // A first visit can paint a tool before its catalog lands; the fallback fonts wait for it.
+  // A first visit can paint a tool before its catalog arrives; the fallback fonts wait for the sync.
   noteCatalogSync(catalogReady);
   // Core-asset warming: 32 fetches / ~787 KB, fire-and-forget, and nothing on screen
   // waits for any of it. Firing at catalog-land put it in direct competition with the

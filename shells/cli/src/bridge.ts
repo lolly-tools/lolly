@@ -153,7 +153,7 @@ function cliResolveFont(host: HostV1, onFill?: (uses: FillUse[]) => void): (styl
       if (!text.characters) return font;
       const later = async function* () { for (const fam of families.slice(i + 1)) { const f = await text.fontUrl!(fam, { weight, italic }); if (f) yield { fontUrl: f.url, ...(f.variations ? { variations: f.variations } : {}) }; } };
       const laterFaces: Array<{ fontUrl: string; variations?: string[] }> = [];
-      if (!/^[\x00-\x7f]*$/.test(runText)) for await (const f of later()) laterFaces.push(f);
+      if (!/^\p{ASCII}*$/u.test(runText)) for await (const f of later()) laterFaces.push(f);
       const fill = await nodeFillChain((url) => text.characters!(url), [{ fontUrl: font.url, ...(font.variations ? { variations: font.variations } : {}) }], laterFaces, runText, { weight, italic });
       if (!fill) return font;
       onFill?.(fill.uses);

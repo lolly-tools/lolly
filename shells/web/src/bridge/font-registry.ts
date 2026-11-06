@@ -85,9 +85,6 @@ export interface VectorFont {
   /** The SOURCE face behind `url` - see VectorFontFace. Identity only; nothing in the
    *  outlining path reads it. */
   face?: VectorFontFace;
-  /** The fallback fonts this run needs because the design system's fonts do not cover all
-   *  of its text, in words for the export notice. Set only by resolveExportFont. */
-  fill?: Array<{ label: string; family: string }>;
 }
 
 /** One stored face as the registry models it. */
@@ -424,7 +421,7 @@ export async function resolveFamilyChain(family: string, style: FontStyleSlice, 
   return tryFamily(family, style, text, await registryFaces());
 }
 
-/** One family's chain for `text`, or null when this registry holds no face that can draw it. */
+/** One family's chain for `text`, or null when this registry holds no face that can draw the text. */
 async function tryFamily(family: string, style: FontStyleSlice, text: string, faces: Map<string, RegistryFace[]>): Promise<VectorFont | null> {
   const key = family.toLowerCase();
   if (key === 'suse' || key === 'suse mono') {

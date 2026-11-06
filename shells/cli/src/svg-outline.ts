@@ -195,7 +195,7 @@ export async function outlineSvgText(
     // Characters this family cannot draw take the later families of the stack, then the
     // fallback font for their script (fallback-fonts.ts), as the web export does.
     let fill: Awaited<ReturnType<typeof nodeFillChain>> = null;
-    if (text.characters && !/^[\x00-\x7f]*$/.test(raw)) {
+    if (text.characters && !/^\p{ASCII}*$/u.test(raw)) {
       const later: Array<{ fontUrl: string; variations?: string[] }> = [];
       for (const family of named.slice(at + 1)) {
         const f = (await text.fontUrl?.(family, { weight, italic })) ?? null;

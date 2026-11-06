@@ -37,7 +37,7 @@
  */
 import { _host, blobToDataUrl } from './export-shared.ts';
 import { drawSvgPathToPdf } from './export-pdf-vector.ts';
-import { resolveExportFont, extendsChain, noteFillUse } from './font-fill.ts';
+import { resolveExportFont, extendsChain } from './font-fill.ts';
 import { embedResolvedFont } from './export-font-data.ts';
 import { embedSuseFont, pdfFontEmbed, suseFontName } from './export-pdf-fonts.ts';
 import { TEXT_PICTURE_DPI, liveTextWouldGarble, notePicturedText, textPicture, undrawableTextError } from './export-pdf-text-picture.ts';
@@ -1034,7 +1034,6 @@ async function drawText(el: Element, ctx: Ctx, alpha: number): Promise<void> {
             });
             noteDrawn(ctx, pathPointsBox(shaped.d, tx, ty));
           }
-          noteFillUse(vf);
           return adv;
         }
       } catch (e) {

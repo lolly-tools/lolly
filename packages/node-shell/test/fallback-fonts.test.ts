@@ -79,7 +79,7 @@ test('uncovered clusters carry their script, and a split cluster counts as uncov
   const found = uncoveredClusters('Hello مرحبا 2024.', [latin]);
   assert.deepEqual([...new Set(found.map((c) => c.script))], ['Arab']);
   assert.equal(found.map((c) => c.text).join(''), 'مرحبا');
-  // e + combining acute: each character is mapped, but by two faces, so no one face draws it.
+  // e + combining acute: each character is mapped, but by two faces, so no one face draws the pair.
   const split = uncoveredClusters('é', [set('e'), set('́')]);
   assert.equal(split.length, 1);
   assert.deepEqual(uncoveredClusters('é', [set('é')]), []);

@@ -169,22 +169,17 @@ export async function createBridge(): Promise<WebHost> {
   // With nothing published it returns on a property read, so an unversioned
   // install pays nothing for it.
   let preservePinned: ((id: string, o?: { reclaiming?: boolean }) => Promise<void>) | null = null;
-  host.assets = createAssetsAPI(db as unknown as Parameters<typeof createAssetsAPI>[0], {
+  const assetsApi = createAssetsAPI(db as unknown as Parameters<typeof createAssetsAPI>[0], {
     preservePinned: (id, o) => preservePinned?.(id, o) ?? Promise.resolve(),
-  }) as unknown as WebHost['assets'];
+  });
+  host.assets = assetsApi as unknown as WebHost['assets'];
   // Fallback fonts come from the catalog cache like any on-demand catalog file: fetched
   // the first time a document needs one, then held for offline use. Never an upload.
-  {
-    const cache = host.assets as unknown as {
-      _getBlob(id: string, o?: { fetchIfMissing?: boolean }): Promise<Blob | null>;
-      _holdFallbackFonts(ids: readonly string[]): Promise<void>;
-    };
-    provideFallbackFontSource({
-      entries: async () => ((await db.getAll('asset-meta')) as Array<{ meta?: Record<string, unknown> }>).filter((m) => Boolean(m.meta?.fallbackFont)),
-      bytes: async (id) => { const blob = await cache._getBlob(id, { fetchIfMissing: true }); return blob ? new Uint8Array(await blob.arrayBuffer()) : null; },
-      hold: (ids) => cache._holdFallbackFonts(ids),
-    });
-  }
+  provideFallbackFontSource({
+    entries: async () => ((await db.getAll('asset-meta')) as Array<{ meta?: Record<string, unknown> }>).filter((m) => Boolean(m.meta?.fallbackFont)),
+    bytes: async (id) => { const blob = await assetsApi._getBlob(id, { fetchIfMissing: true }); return blob ? new Uint8Array(await blob.arrayBuffer()) : null; },
+    hold: (ids) => assetsApi._holdFallbackFonts(ids),
+  });
   // The design-system registry (plans/186): which systems this device holds and
   // which is active. Built BEFORE tokens, which reads the active record's head
   // through the host slice; its probe closes over the assets bridge for the

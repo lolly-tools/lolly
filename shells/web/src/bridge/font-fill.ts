@@ -18,11 +18,13 @@
 import { parseFontFamilies } from '@lolly-tools/node-shell/font-faces';
 import { choosePacks, fallbackPacksFrom, fillNotice, packVariations, uncoveredClusters, type FallbackFontPack, type FillUse } from '@lolly-tools/node-shell/fallback-fonts';
 import { brandRoleStack, genericFontRole, resolveFamilyChain, resolveVectorFont, type VectorFont } from './font-registry.ts';
-import { PAGE_FALLBACK_FAMILY, catalogSynced, fallbackFontSource } from './fallback-font-source.ts';
+import { PAGE_FALLBACK_FAMILY, catalogSynced, fallbackFontSource, markFillChain, openFillLog, pageFillSettled } from './fallback-font-source.ts';
+import { _exportNotice } from './export-notice.ts';
+import { _host } from './export-shared.ts';
 import { fontCharacters } from './text.ts';
 import type { FontStyleSlice } from './text-svg.ts';
 
-const ASCII = /^[\x00-\x7f]*$/;
+const ASCII = /^\p{ASCII}*$/u;
 
 let packList: Promise<FallbackFontPack[]> | null = null;
 let packsKnown = 0;
@@ -145,7 +147,9 @@ async function withFill(base: VectorFont, style: FontStyleSlice, text: string): 
     uses.push({ label: pack.label, family: pack.family });
   }
   if (!added.length) return base;
-  return { ...base, fallbacks: [...(base.fallbacks ?? []), ...added], ...(uses.length ? { fill: uses } : {}) };
+  const fallbacks = [...(base.fallbacks ?? []), ...added];
+  if (uses.length) markFillChain(fallbacks, uses);
+  return { ...base, fallbacks };
 }
 
 /**
@@ -168,21 +172,22 @@ export function extendsChain(vf: VectorFont | null | undefined): boolean {
   return Boolean(vf?.fallbacks?.some((f) => f.fill));
 }
 
-const logs: FillUse[][] = [];
-
-/** Start collecting what fallback fonts drew; the closer returns the export notice or null. */
-export function beginFillLog(): () => string | null {
-  const log: FillUse[] = [];
-  logs.push(log);
-  return () => {
-    const at = logs.lastIndexOf(log);
-    if (at !== -1) logs.splice(at, 1);
-    return fillNotice(log);
-  };
+/**
+ * One export's render, in step with the fallback fonts: it waits (bounded) for the live
+ * page to put its fallback fonts in place, so the export lays text out in the faces the
+ * page shows, and afterwards puts one note on the export card for the fonts that drew
+ * some of the text.
+ */
+export async function withFallbackFonts<T>(render: () => Promise<T>): Promise<T> {
+  const close = openFillLog();
+  try {
+    await pageFillSettled();
+    const out = await render();
+    const filled = fillNotice(close());
+    if (filled) { _host?.log?.('info', `fonts: ${filled}`); _exportNotice(filled); }
+    return out;
+  } finally {
+    close();
+  }
 }
 
-/** Record that a run was outlined with `vf`, after it was. */
-export function noteFillUse(vf: VectorFont | null | undefined): void {
-  if (!vf?.fill?.length) return;
-  for (const log of logs) log.push(...vf.fill);
-}
