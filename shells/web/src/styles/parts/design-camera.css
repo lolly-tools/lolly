@@ -4,5 +4,8 @@
 [data-camera-state="live"] > img:not([data-motion-still]) { visibility: hidden; }
 .live-camera-controls { position: absolute; z-index: 30; display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-2); padding: var(--sp-2); max-width: calc(100% - 2 * var(--sp-2)); border-radius: var(--ui-radius-surface); background: var(--ui-color-surface-canvas); color: var(--ui-color-text-default); box-shadow: var(--ui-edge-faint), var(--ui-elevation-sheet); }
 .live-camera-controls[hidden] { display: none; }
+/* Over the stage in Design's phone layout (positionEditorPopover), where the inspector
+   sheet would otherwise cover the controls of a camera it is inspecting. */
+.live-camera-controls.fc-popover--viewport { position: fixed; z-index: 9500; }
 .live-camera-controls .btn { min-width: 0; }
 .live-camera-status { flex-basis: 100%; max-width: 24rem; font-size: var(--fs-sm); }

@@ -21,6 +21,7 @@ import { t, tRaw, tn } from '../../i18n.ts';
 import { SVG, icon } from '../free-canvas-icons.ts';
 import { centreCtxBar, ctxTopBand } from './shared.ts';
 import type { PenPart, Point, PopItem } from './shared.ts';
+import { mountEditorPanel, placeAtPoint } from '../free-canvas-popover.ts';
 import { bindOp, type FcCtx } from './context.ts';
 
 /** One set of spline-type names for every surface that offers them - the pen bar's
@@ -698,12 +699,8 @@ export function openPenNodeMenu(fc: FcCtx, clientX: number, clientY: number): vo
   fc.toolbox.fillPopover(fc.popover, items);
   fc.popover.addEventListener('pointerdown', (e) => e.stopPropagation());
   fc.popover.addEventListener('keydown', fc.menus.onPopoverKey);
-  stageEl.appendChild(fc.popover);
-  const sr = stageEl.getBoundingClientRect();
-  fc.popover.style.left =
-    Math.max(6, Math.min(clientX - sr.left, sr.width - fc.popover.offsetWidth - 6)) + 'px';
-  fc.popover.style.top =
-    Math.max(6, Math.min(clientY - sr.top, sr.height - fc.popover.offsetHeight - 6)) + 'px';
+  mountEditorPanel(fc.popover, null, stageEl);
+  placeAtPoint(fc.popover, stageEl, clientX, clientY);
 }
 /** Delete the selected nodes, or with only handles selected, retract those handles: the
  *  one action behind Delete, the bar's bin button and the right-click menu. */

@@ -218,6 +218,11 @@
   overflow-y: auto;
   overscroll-behavior: contain;
 }
+/* In Design's phone layout the menu leaves the bar for the body (positionEditorPopover in
+   free-canvas-popover.ts) and is placed in viewport coordinates, below its trigger,
+   above the inspector sheet and the navigator. The gap below the trigger is in its
+   placement, so the margin goes. */
+.dtb-menu.fc-popover--viewport { position: fixed; z-index: 9500; margin-block-start: 0; }
 .dtb-menu-item {
   display: flex;
   align-items: center;

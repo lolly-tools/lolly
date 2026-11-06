@@ -1098,6 +1098,60 @@ test('in the phone layout the size panel goes over the stage even from a control
   } finally { f.destroy(); }
 });
 
+test('in the phone layout a menu opened from a control INSIDE the stage goes over it and ends above the bar', () => {
+  // The inspector sheet is a body-level fixed surface over the stage's lower half, and the
+  // stage is a stacking context of its own, so a menu appended to the stage had its lower
+  // rows painted under the sheet whatever its z-index. In the phone layout every menu goes
+  // to the body, whichever control opened the menu.
+  const f = mount([frameBox('f1', 0, 0)], { chrome: {} });
+  try {
+    f.stageEl.dataset.designLayout = 'compact';
+    const bar = dom.window.document.createElement('div');
+    bar.className = 'design-compact-actions';
+    bar.getBoundingClientRect = () => rect(0, 700, 1024, 60);
+    const more = dom.window.document.createElement('button');
+    more.setAttribute('aria-haspopup', 'menu');
+    more.getBoundingClientRect = () => rect(800, 708, 100, 44);
+    bar.appendChild(more);
+    f.stageEl.appendChild(bar);
+    f.design.openLollyMenu(more);
+    assert.equal(f.stageEl.querySelector('.fc-popover'), null, 'not in the stage');
+    const pop = dom.window.document.body.querySelector<HTMLElement>(':scope > .fc-popover')!;
+    assert.ok(pop?.classList.contains('fc-popover--viewport'), 'on the body, flagged for the fixed placement');
+    // Its room ends at the bar's top (700), 12 short of it, from the top of the screen.
+    assert.equal(pop.style.maxHeight, `${700 - 12}px`);
+    pop.querySelector<HTMLElement>('.fc-pop-item')!.dispatchEvent(new W.KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true }));
+    assert.equal(dom.window.document.querySelector('.fc-popover'), null, 'Escape closes it on the body too');
+    bar.remove();
+  } finally { f.destroy(); }
+});
+
+test('in the phone layout a panel opened at a point (no trigger) goes over the stage too', () => {
+  // The two-finger tap's context menu, the confirm and lift dialogs and the connector
+  // panel open at a point or over the canvas rather than beside a control. On a wide
+  // window they stay in the stage, as they always did.
+  const f = mount([frameBox('f1', 0, 0), childBox('b1', 'f1', 40)], { chrome: {} });
+  try {
+    const target = f.canvasEl.querySelector<HTMLElement>('[data-box-id="b1"]') ?? f.canvasEl;
+    const open = (): HTMLElement | null => {
+      target.dispatchEvent(new W.MouseEvent('contextmenu', { bubbles: true, cancelable: true, clientX: 120, clientY: 80 }));
+      return dom.window.document.querySelector<HTMLElement>('.fc-popover');
+    };
+    let menu = open();
+    assert.ok(menu, 'a right-click opens the menu');
+    assert.equal(menu!.parentElement, f.stageEl, 'in the stage on a wide window');
+    assert.ok(!menu!.classList.contains('fc-popover--viewport'));
+    menu!.dispatchEvent(new W.KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true }));
+    f.stageEl.dataset.designLayout = 'compact';
+    menu = open();
+    assert.equal(menu!.parentElement, dom.window.document.body, 'on the body in the phone layout');
+    assert.ok(menu!.classList.contains('fc-popover--viewport'));
+    // The stage sits at the viewport's corner here, so the point is the same either way.
+    assert.equal(menu!.style.left, '120px');
+    assert.equal(menu!.style.top, '80px');
+  } finally { f.destroy(); }
+});
+
 test('mounting the inspector pins the object bar; unmounting it lets the bar auto-hide again', () => {
   const f = mount([frameBox('f1', 0, 0)], { chrome: {} });
   try {

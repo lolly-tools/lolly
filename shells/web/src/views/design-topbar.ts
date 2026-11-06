@@ -46,6 +46,7 @@
  * additions must answer in those units or the readout lies.
  */
 import { compactDesignViewport } from '../lib/design-panel-layout.ts';
+import { positionEditorPopover } from './free-canvas-popover.ts';
 import { behindSplitTab, onDockTabChange, revealSplitTab } from '../lib/edge-dock.ts';
 import { t } from '../i18n.ts';
 import { isTypingTarget } from '../lib/typing-target.ts';
@@ -478,11 +479,6 @@ export function mountDesignTopbar(opts: DesignTopbarOpts): DesignTopbar {
     menu.className = 'dtb-menu';
     menu.setAttribute('role', 'menu');
     menu.setAttribute('aria-label', anchor.getAttribute('aria-label') || '');
-    menu.style.top = '100%';
-    // offsetLeft is measured against `root` (the nearest positioned ancestor), so the
-    // menu hangs under its own trigger without a client-rect read.
-    if (align === 'end') menu.style.right = Math.max(0, root.clientWidth - (anchor.offsetLeft + anchor.offsetWidth)) + 'px';
-    else menu.style.left = Math.max(0, anchor.offsetLeft) + 'px';
 
     for (const row of rows) {
       const item = doc.createElement('button');
@@ -529,7 +525,20 @@ export function mountDesignTopbar(opts: DesignTopbarOpts): DesignTopbar {
     }
 
     menu.addEventListener('keydown', onMenuKey);
-    root.appendChild(menu);
+    if (opts.stageEl.dataset.designLayout === 'compact') {
+      // The phone layout: the menu goes over the stage, on the body, where the inspector
+      // sheet and the navigator cannot cover its lower rows (positionEditorPopover). Out
+      // of the bar, its keys no longer pass the bar's own gate, so it carries the gate.
+      menu.setAttribute('data-canvas-keys', 'off');
+      positionEditorPopover(menu, anchor, opts.stageEl);
+    } else {
+      menu.style.top = '100%';
+      // offsetLeft is measured against `root` (the nearest positioned ancestor), so the
+      // menu hangs under its own trigger without a client-rect read.
+      if (align === 'end') menu.style.right = Math.max(0, root.clientWidth - (anchor.offsetLeft + anchor.offsetWidth)) + 'px';
+      else menu.style.left = Math.max(0, anchor.offsetLeft) + 'px';
+      root.appendChild(menu);
+    }
     openEl = menu;
     openAnchor = anchor;
     if (anchor.hasAttribute('aria-expanded')) anchor.setAttribute('aria-expanded', 'true');
