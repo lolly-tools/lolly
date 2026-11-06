@@ -108,13 +108,13 @@
 
 Цветовете ти стоят до преглед **In context** на широк екран и над него на по-малък. Прегледът показва плакат, диаграма или карта на интерфейс в твоята палитра. Стартовите цветове остават в собствена сгъваема група.
 
-![Стаята Colours върху Lolly Demo: палитрата в сгъваеми групи, всеки цвят с име и hex, и изтеглянето на палитрата в главата ѝ](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours)
+![Стаята Colours върху Lolly Demo: палитрата в сгъваеми групи, всеки цвят с име и hex, и изтеглянето на палитрата в главата ѝ](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-roles-fold%5D%3Esummary%3Bwait%3A500&format=svg&walker=1&localize=1&dark=1&filename=brand-colours)
 
 ![Стаята Цветове след добавяне на един цвят, с нейната палитра и жив преглед на композицията](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dpick&width=1440&height=840&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-editor-add%5D%3Bwait%3A900&format=svg&walker=1&dark=1&filename=bs-colour-first)
 
 ### Роли: какво четат инструментите
 
-![The Colour roles table on Lolly Demo after choosing the suggested words Main, Accent, Supporting and Tertiary: the colourway chips, then each role with its light and dark colour, Main read as the lead colour and Accent as the partner colour, Supporting and Tertiary read by name only and marked Copied, and the readings no role fills listed under the table](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=2720&height=2000&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-roles-fold%5D%3Esummary%3Bwait%3A500%3Bclick%3A%5Bdata-crt-start-open%5D%3Bclick%3A%5Bdata-crt-seed%3D%221%22%5D%3Bclick%3A%5Bdata-crt-start-use%5D%3Bwait%3A900%3Bclick%3A.be-palette-heading%3Eh2%3Bwait%3A300&cropSelector=%5Bdata-be-roles-fold%5D&format=svg&walker=1&dark=1&filename=bs-colour-roles)
+![The Colour roles table on Lolly Demo after choosing the suggested words Main, Accent, Supporting and Tertiary: the colourway chips, then each role with its light and dark colour, Main read as the lead colour and Accent as the partner colour, Supporting and Tertiary read by name only and marked Copied, and the readings no role fills listed under the table](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=2720&height=2000&dpi=192&waitMs=1800&cropSelector=%5Bdata-be-roles-fold%5D&format=svg&walker=1&dark=1&filename=bs-colour-roles)
 
 **Roles** казват кой цвят изпълнява всяка част във всеки инструмент и експорт. Те са незадължителни (три свободни цвята и никакви роли е напълно добра система), всеки цвят може да получи такава, а показанието за контраст се измерва спрямо повърхността, първо APCA. Редът на всяка роля показва собствен цвят с пълна сила, стартов цвят, който замества, или **↳ follows Primary**.
 
@@ -167,7 +167,7 @@
 
 Палитрата изброява цветовете ти в сгъваеми групи, всяка със собствен **+ Add**. Създавай и преименувай групи както искаш. Роля никога не прави втора плочка: плочка, към която сочи роля, носи малка маркировка (**P**, **S**, **Su**, **T**). **Colour chart** под плочките показва същите цветове върху **Wheel** на OKLCH (влачи точка, за да преоцветиш, щракни празно място, за да добавиш мостра) и диаграмата **Gamut**, която показва докъде стига показваният обхват. `#/start?area=color&focus=chart` отваря диаграмата директно.
 
-![Полето с палитрата, всяка група сгъваема, с изтеглянето на палитрата в главата му](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dgenerate%26seed%3D%2523e0452b&width=1440&height=1000&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-add-ramp%3D%22primary%22%5D%3Bwait%3A1200&cropSelector=.be-split-side&walker=1&format=svg&dark=1&filename=bs-palette-pane)
+![Полето с палитрата, всяка група сгъваема, с изтеглянето на палитрата в главата му](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dgenerate%26seed%3D%2523e0452b&width=1440&height=1000&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-roles-fold%5D%3Esummary%3Bwait%3A500%3Bclick%3A%5Bdata-be-add-ramp%3D%22primary%22%5D%3Bwait%3A1200&cropSelector=.be-split-side&walker=1&format=svg&dark=1&filename=bs-palette-pane)
 
 ![OKLCH колелото - ъгълът е нюанс, разстоянието навън е наситеност, а сивите се движат по релса на светлината отстрани](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dgenerate%26seed%3D%2523e0452b&width=1440&height=900&dpi=192&waitMs=2400&css=.start-head%2C.be-pal%2C.be-gradients%7Bdisplay%3Anone%7D&drive=click%3A%5Bdata-be-add-ramp%3D%22primary%22%5D%3Bwait%3A1200%3Bclick%3A%5Bdata-be-chart%5D%20summary%3Bwait%3A900&cropSelector=.be-pal-wheel&walker=1&format=svg&dark=1&filename=bs-colour-wheel)
 

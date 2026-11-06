@@ -669,11 +669,11 @@
           "$description": "Supporting accent: the mark green"
         },
         "surface": {
-          "$value": "{color.brand.sugar}",
+          "$value": "{color.colourway.light.surface}",
           "$description": "Canvas and page background"
         },
         "text": {
-          "$value": "{color.brand.liquorice}",
+          "$value": "{color.colourway.light.text}",
           "$description": "Main foreground, 18.6:1 on Sugar"
         },
         "muted": {
@@ -683,6 +683,14 @@
         "edge": {
           "$value": "{color.brand.pebble}",
           "$description": "Hairlines and borders"
+        },
+        "on-secondary": {
+          "$value": "{color.colourway.light.on-secondary}",
+          "$type": "color"
+        },
+        "on-surface": {
+          "$value": "{color.colourway.light.on-surface}",
+          "$type": "color"
         }
       },
       "role": {
@@ -806,11 +814,11 @@
           "$description": "Supporting accent: the mark green"
         },
         "surface": {
-          "$value": "{color.brand.liquorice}",
+          "$value": "{color.colourway.dark.surface}",
           "$description": "Canvas and page background: the Liquorice hull"
         },
         "text": {
-          "$value": "{color.brand.sugar}",
+          "$value": "{color.colourway.dark.text}",
           "$description": "Main foreground, 18.6:1 on Liquorice"
         },
         "muted": {
@@ -820,6 +828,14 @@
         "edge": {
           "$value": "{color.brand.basalt}",
           "$description": "Hairlines and borders"
+        },
+        "on-secondary": {
+          "$value": "{color.colourway.dark.on-secondary}",
+          "$type": "color"
+        },
+        "on-surface": {
+          "$value": "{color.colourway.dark.on-surface}",
+          "$type": "color"
         }
       },
       "role": {
@@ -945,6 +961,32 @@
           },
           "secondary": {
             "$value": "{color.brand.bunyapine}"
+          },
+          "on-secondary": {
+            "$value": "oklch(100% 0 0)",
+            "$extensions": {
+              "com.suse.lolly": {
+                "colourRole": {
+                  "derived": true
+                }
+              }
+            }
+          },
+          "surface": {
+            "$value": "{color.brand.sugar}"
+          },
+          "on-surface": {
+            "$value": "oklch(0% 0 0)",
+            "$extensions": {
+              "com.suse.lolly": {
+                "colourRole": {
+                  "derived": true
+                }
+              }
+            }
+          },
+          "text": {
+            "$value": "{color.brand.liquorice}"
           }
         },
         "$type": "color",
@@ -957,6 +999,32 @@
           },
           "secondary": {
             "$value": "{color.brand.bunyapine}"
+          },
+          "on-secondary": {
+            "$value": "oklch(100% 0 0)",
+            "$extensions": {
+              "com.suse.lolly": {
+                "colourRole": {
+                  "derived": true
+                }
+              }
+            }
+          },
+          "surface": {
+            "$value": "{color.brand.liquorice}"
+          },
+          "on-surface": {
+            "$value": "oklch(100% 0 0)",
+            "$extensions": {
+              "com.suse.lolly": {
+                "colourRole": {
+                  "derived": true
+                }
+              }
+            }
+          },
+          "text": {
+            "$value": "{color.brand.sugar}"
           }
         }
       }
@@ -975,6 +1043,32 @@
           },
           "secondary": {
             "$value": "{color.brand.lagoon}"
+          },
+          "on-secondary": {
+            "$value": "oklch(0% 0 0)",
+            "$extensions": {
+              "com.suse.lolly": {
+                "colourRole": {
+                  "derived": true
+                }
+              }
+            }
+          },
+          "surface": {
+            "$value": "{color.brand.sugar}"
+          },
+          "on-surface": {
+            "$value": "oklch(0% 0 0)",
+            "$extensions": {
+              "com.suse.lolly": {
+                "colourRole": {
+                  "derived": true
+                }
+              }
+            }
+          },
+          "text": {
+            "$value": "{color.brand.liquorice}"
           }
         },
         "dark": {
@@ -986,8 +1080,35 @@
           },
           "secondary": {
             "$value": "{color.brand.sky}"
+          },
+          "on-secondary": {
+            "$value": "oklch(0% 0 0)",
+            "$extensions": {
+              "com.suse.lolly": {
+                "colourRole": {
+                  "derived": true
+                }
+              }
+            }
+          },
+          "surface": {
+            "$value": "{color.brand.liquorice}"
+          },
+          "on-surface": {
+            "$value": "oklch(100% 0 0)",
+            "$extensions": {
+              "com.suse.lolly": {
+                "colourRole": {
+                  "derived": true
+                }
+              }
+            }
+          },
+          "text": {
+            "$value": "{color.brand.sugar}"
           }
-        }
+        },
+        "$type": "color"
       }
     }
   },
@@ -1004,6 +1125,32 @@
           },
           "secondary": {
             "$value": "{color.brand.olive}"
+          },
+          "on-secondary": {
+            "$value": "oklch(0% 0 0)",
+            "$extensions": {
+              "com.suse.lolly": {
+                "colourRole": {
+                  "derived": true
+                }
+              }
+            }
+          },
+          "surface": {
+            "$value": "{color.brand.sugar}"
+          },
+          "on-surface": {
+            "$value": "oklch(0% 0 0)",
+            "$extensions": {
+              "com.suse.lolly": {
+                "colourRole": {
+                  "derived": true
+                }
+              }
+            }
+          },
+          "text": {
+            "$value": "{color.brand.liquorice}"
           }
         },
         "dark": {
@@ -1015,8 +1162,35 @@
           },
           "secondary": {
             "$value": "{color.brand.green-apple}"
+          },
+          "on-secondary": {
+            "$value": "oklch(0% 0 0)",
+            "$extensions": {
+              "com.suse.lolly": {
+                "colourRole": {
+                  "derived": true
+                }
+              }
+            }
+          },
+          "surface": {
+            "$value": "{color.brand.liquorice}"
+          },
+          "on-surface": {
+            "$value": "oklch(100% 0 0)",
+            "$extensions": {
+              "com.suse.lolly": {
+                "colourRole": {
+                  "derived": true
+                }
+              }
+            }
+          },
+          "text": {
+            "$value": "{color.brand.sugar}"
           }
-        }
+        },
+        "$type": "color"
       }
     }
   },
@@ -1033,6 +1207,32 @@
           },
           "secondary": {
             "$value": "{color.brand.bark}"
+          },
+          "on-secondary": {
+            "$value": "oklch(100% 0 0)",
+            "$extensions": {
+              "com.suse.lolly": {
+                "colourRole": {
+                  "derived": true
+                }
+              }
+            }
+          },
+          "surface": {
+            "$value": "{color.brand.sugar}"
+          },
+          "on-surface": {
+            "$value": "oklch(0% 0 0)",
+            "$extensions": {
+              "com.suse.lolly": {
+                "colourRole": {
+                  "derived": true
+                }
+              }
+            }
+          },
+          "text": {
+            "$value": "{color.brand.liquorice}"
           }
         },
         "dark": {
@@ -1044,8 +1244,35 @@
           },
           "secondary": {
             "$value": "{color.brand.pancake}"
+          },
+          "on-secondary": {
+            "$value": "oklch(0% 0 0)",
+            "$extensions": {
+              "com.suse.lolly": {
+                "colourRole": {
+                  "derived": true
+                }
+              }
+            }
+          },
+          "surface": {
+            "$value": "{color.brand.liquorice}"
+          },
+          "on-surface": {
+            "$value": "oklch(100% 0 0)",
+            "$extensions": {
+              "com.suse.lolly": {
+                "colourRole": {
+                  "derived": true
+                }
+              }
+            }
+          },
+          "text": {
+            "$value": "{color.brand.sugar}"
           }
-        }
+        },
+        "$type": "color"
       }
     }
   },
@@ -1062,6 +1289,32 @@
           },
           "secondary": {
             "$value": "{color.brand.khaki}"
+          },
+          "on-secondary": {
+            "$value": "oklch(100% 0 0)",
+            "$extensions": {
+              "com.suse.lolly": {
+                "colourRole": {
+                  "derived": true
+                }
+              }
+            }
+          },
+          "surface": {
+            "$value": "{color.brand.sugar}"
+          },
+          "on-surface": {
+            "$value": "oklch(0% 0 0)",
+            "$extensions": {
+              "com.suse.lolly": {
+                "colourRole": {
+                  "derived": true
+                }
+              }
+            }
+          },
+          "text": {
+            "$value": "{color.brand.liquorice}"
           }
         },
         "dark": {
@@ -1073,8 +1326,35 @@
           },
           "secondary": {
             "$value": "{color.brand.banksia}"
+          },
+          "on-secondary": {
+            "$value": "oklch(0% 0 0)",
+            "$extensions": {
+              "com.suse.lolly": {
+                "colourRole": {
+                  "derived": true
+                }
+              }
+            }
+          },
+          "surface": {
+            "$value": "{color.brand.liquorice}"
+          },
+          "on-surface": {
+            "$value": "oklch(100% 0 0)",
+            "$extensions": {
+              "com.suse.lolly": {
+                "colourRole": {
+                  "derived": true
+                }
+              }
+            }
+          },
+          "text": {
+            "$value": "{color.brand.sugar}"
           }
-        }
+        },
+        "$type": "color"
       }
     }
   },
@@ -1091,6 +1371,32 @@
           },
           "secondary": {
             "$value": "{color.brand.jacaranda}"
+          },
+          "on-secondary": {
+            "$value": "oklch(0% 0 0)",
+            "$extensions": {
+              "com.suse.lolly": {
+                "colourRole": {
+                  "derived": true
+                }
+              }
+            }
+          },
+          "surface": {
+            "$value": "{color.brand.sugar}"
+          },
+          "on-surface": {
+            "$value": "oklch(0% 0 0)",
+            "$extensions": {
+              "com.suse.lolly": {
+                "colourRole": {
+                  "derived": true
+                }
+              }
+            }
+          },
+          "text": {
+            "$value": "{color.brand.liquorice}"
           }
         },
         "dark": {
@@ -1102,8 +1408,35 @@
           },
           "secondary": {
             "$value": "{color.brand.swell}"
+          },
+          "on-secondary": {
+            "$value": "oklch(0% 0 0)",
+            "$extensions": {
+              "com.suse.lolly": {
+                "colourRole": {
+                  "derived": true
+                }
+              }
+            }
+          },
+          "surface": {
+            "$value": "{color.brand.liquorice}"
+          },
+          "on-surface": {
+            "$value": "oklch(100% 0 0)",
+            "$extensions": {
+              "com.suse.lolly": {
+                "colourRole": {
+                  "derived": true
+                }
+              }
+            }
+          },
+          "text": {
+            "$value": "{color.brand.sugar}"
           }
-        }
+        },
+        "$type": "color"
       }
     }
   },
@@ -1114,7 +1447,56 @@
         "schemaVersion": 1,
         "id": "lolly-demo",
         "label": "Lolly Demo",
-        "roles": [],
+        "roles": [
+          {
+            "id": "primary",
+            "label": "Lead",
+            "description": "Shapes on the page, 3:1 or more. Words on the lead, 4.5:1 or more.",
+            "group": "colourway",
+            "resources": [
+              {
+                "type": "token",
+                "path": "color.semantic.primary"
+              }
+            ]
+          },
+          {
+            "id": "secondary",
+            "label": "Partner",
+            "description": "Shapes on the page, 3:1 or more.",
+            "group": "colourway",
+            "resources": [
+              {
+                "type": "token",
+                "path": "color.semantic.secondary"
+              }
+            ]
+          },
+          {
+            "id": "surface",
+            "label": "Paper",
+            "description": "Sugar in the light look, the Liquorice hull in the dark. Most work is Liquorice on Sugar.",
+            "group": "colourway",
+            "resources": [
+              {
+                "type": "token",
+                "path": "color.semantic.surface"
+              }
+            ]
+          },
+          {
+            "id": "text",
+            "label": "Ink",
+            "description": "Liquorice on Sugar in the light look, Sugar on Liquorice in the dark.",
+            "group": "colourway",
+            "resources": [
+              {
+                "type": "token",
+                "path": "color.semantic.text"
+              }
+            ]
+          }
+        ],
         "bindings": [],
         "rules": [
           {

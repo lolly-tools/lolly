@@ -17,12 +17,12 @@ import { wantsDeepExport, hdrTune } from './export-deep-choice.ts';
  */
 
 import { assertPdfCameOutLocked, assertStandardPasswordFits, standardPdfEncryption } from './export-password-lock.ts';
-import { LOSSLESS_STRENGTH, C2PA_FORMATS, embedWavInfo, writeDocx, writeOdt, hdrBoostToPQ, pqBt2020IccProfile, iccProfileBytes, HDR_PQ_CICP, packTiff, CSS_DPI, encodeBmp, cmykCondition, toPixels, parseDimension, toCssLength, gzip, emitEmf, emitWmf, emitEps, emitDxf, toPoints, exportActionSteps, embedC2pa, ENGINE_VERSION, separationLattice, buildExportMeta, SCREEN_SOURCE_TYPE, CAPTURE_SOURCE_TYPE, extractC2paStore, roundedRectPath, splitCssArgs, insetCorners, uniformRadius, parseCssMatrix, isAxisAlignedMat, isNonAffineTransform, parseClipShape, parseBoxShadow, gaussianShadowBands, parseTextShadow, videoProvenanceTags, embedMp4Meta, embedWebmMeta, hdrViewTransform, fromU8Srgb, pqToI420P10, pqEncodeFrame, packApng, packWebpAnim } from '@lolly/engine';
+import { LOSSLESS_STRENGTH, C2PA_FORMATS, embedWavInfo, writeDocx, writeOdt, hdrBoostToPQ, pqBt2020IccProfile, iccProfileBytes, HDR_PQ_CICP, packTiff, CSS_DPI, encodeBmp, cmykCondition, toPixels, parseDimension, toCssLength, gzip, emitEmf, emitWmf, emitEps, emitDxf, toPoints, exportActionSteps, embedC2pa, ENGINE_VERSION, separationLattice, buildExportMeta, SCREEN_SOURCE_TYPE, CAPTURE_SOURCE_TYPE, extractC2paStore, roundedRectPath, splitCssArgs, insetCorners, uniformRadius, parseCssMatrix, isNonAffineTransform, parseClipShape, parseBoxShadow, gaussianShadowBands, parseTextShadow, videoProvenanceTags, embedMp4Meta, embedWebmMeta, hdrViewTransform, fromU8Srgb, pqToI420P10, pqEncodeFrame, packApng, packWebpAnim } from '@lolly/engine';
 import type { Mat2D, SeparateRgb } from '@lolly/engine';
 import { letterSpacingPx, featureSettingsToHb, canVectoriseText, textBaselineY } from './text-svg.ts';
 import { resolveExportFont, extendsChain, withFallbackFonts } from './font-fill.ts';
 import { bakeWebKitBoxShadows } from './webkit-shadow-bake.ts';
-import { newNeutraliseGuard, neutraliseTransform } from './transform-neutralise.ts';
+import { newNeutraliseGuard, neutraliseTransform, pdfDrawsThroughMatrix } from './transform-neutralise.ts';
 import { svgDomToIr } from './svg-ir.ts';
 import { placeBackground } from './bg-layout.ts';
 import { unscopeStyleEls } from '../lib/scope-css.ts';
@@ -68,7 +68,7 @@ import { createPdfDoc } from './export-pdf-doc.ts';
 import { pdfFontEmbed } from './export-pdf-fonts.ts';
 import { paintSvgToPdf, svgFlips, type SvgFlips } from './export-pdf-svg.ts';
 import { backgroundPicture, clipsBackgroundToText, paintLiveRun, paintOutlinedRun, runPaint } from './export-pdf-text-paint.ts';
-import { TEXT_PICTURE_DPI, liveTextWouldGarble, notePicturedText, takePicturedTextNotice, textPicture, undrawableTextError } from './export-pdf-text-picture.ts';
+import { TEXT_PICTURE_DPI, liveTextWouldGarble, notePicturedText, takePicturedTextNotice, textPicture, undrawableTextError, withMarkLabelPictures } from './export-pdf-text-picture.ts';
 import { applyPdfTextStyle, clipOfRun, pdfPseudoContent } from './export-pdf-pseudo-text.ts';
 import { bidiPieces, lineDirection, runBidi } from './export-text.ts';
 import { hasRtlText } from '@lolly-tools/node-shell/text-bidi';
@@ -2325,8 +2325,10 @@ async function embeddedProfile(colorProfile: string | undefined): Promise<EmbedR
 // finishPrintPdf so the plain RGB path loads pdf-lib exactly once; the CMYK path
 // has its own pdf-lib pass and calls applyPdfX inside it (see renderCmykPdf).
 // Never fed an encrypted blob - pdf-lib can't reopen an RC4-locked document.
+// A mark label in letters the mark font lacks goes in as a picture, with the notice a
+// pictured run in the artwork gives.
 async function finishPdfX(blobOrBytes: Blob | Uint8Array, opts: ExportOpts, settings: PdfFinishSettings = {}): Promise<Blob> {
-  return finishSharedPdfX(blobOrBytes, opts, { ...settings, log: pdfxLog });
+  return withMarkLabelPictures((labelPicture) => finishSharedPdfX(blobOrBytes, opts, { ...settings, log: pdfxLog, labelPicture }), logPdfWarnings);
 }
 
 // Renders an SVG element into a rectangular region of the PDF page: ox/oy are the
@@ -2695,12 +2697,12 @@ async function drawHtmlVectors(pdf: any, node: Element, ox: number, oy: number, 
       }
     }
 
-    // General 2-D transform (rotate+scale / skew / matrix) that isn't a pure rotation:
-    // mirror the SVG walker - neutralise, walk the untransformed subtree, wrap the draw
-    // in the full CTM about the transform-origin. Pure translate/scale → AABB path below;
-    // a real 3-D/perspective pose takes the posed-raster branch straight after this one.
+    // General 2-D transform (rotate+scale / skew / matrix) that isn't a pure rotation, or a
+    // scale below the root: mirror the SVG walker - neutralise, walk the untransformed subtree,
+    // wrap the draw in the full CTM about the transform-origin (pdfDrawsThroughMatrix says why
+    // a scale goes this way). Pure translate → AABB path; a real 3-D pose → posed raster below.
     const mtx = pureRotationDeg(style.transform) === 0 ? parseCssMatrix(style.transform) : null;
-    if (mtx && !isAxisAlignedMat(mtx)) {
+    if (mtx && pdfDrawsThroughMatrix(el, node, style, mtx)) {
       // Same guarded neutralise as the rotation branch above.
       const restore = neutraliseTransform(el, neutralise, warnTransform);
       if (restore) {
@@ -3654,7 +3656,7 @@ async function renderCmykPdf(node: Element, opts: ExportOpts): Promise<Blob> {
     setPageBoxes(page, geo);
     const usedPalette = (opts.palette ?? []).filter(p => usedKeys.has(paletteHitKey(p) as string));
     const marksGeo = printGeometry(node, opts, usedPalette, separate) ?? geo;
-    await drawPrintMarks(page, marksGeo, { space: 'cmyk', labels: provenanceLabels(opts.meta) });
+    await withMarkLabelPictures((labelPicture) => drawPrintMarks(page, marksGeo, { space: 'cmyk', labels: provenanceLabels(opts.meta), labelPicture }), logPdfWarnings);
   }
 
   // PDF/X-4 finishing runs AFTER the colour substitution so the claim gate sees

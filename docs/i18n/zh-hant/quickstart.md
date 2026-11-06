@@ -22,7 +22,7 @@ lolly.tools 會在 **Lolly Demo** 中開啟，這是 Lolly 自己的範例設計
 
 你第一次開啟圖庫時，簡短的歡迎畫面會提供相同的選項：**Make it yours** 開啟 Design System Setup，**Bring your design** 開啟設計的檔案選擇器，**Explore the community tools** 則關閉歡迎畫面。
 
-![全新安裝的 Design System Setup 中的 Colours 房間：一個即時色塊、一個欄位，以及第一個決定的全部](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours)
+![全新安裝的 Design System Setup 中的 Colours 房間：一個即時色塊、一個欄位，以及第一個決定的全部](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-roles-fold%5D%3Esummary%3Bwait%3A500&format=svg&walker=1&localize=1&dark=1&filename=brand-colours)
 
 從這裡開始，八個房間可依任意順序帶你走到你想要的程度：**Board**、**Colours**、**Type**、**Logos**、**Tokens**、**Files**、**Rules** 與 **Skills**。你輸入時，應用程式中的每個預覽都會更新。[Lolly Design System Setup](/info/brand-studio.html) 涵蓋每個房間。
 

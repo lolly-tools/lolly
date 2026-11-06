@@ -9,10 +9,10 @@ Roughly 869,000 lines of TypeScript, tests included, and 65,000 lines of CSS.
 
 | Directory | Source | Tests | CSS |
 |---|---|---|---|
-| `views/` | 604 files, 223,076 lines | 324 files, 101,204 lines | 12 files, 1,686 lines |
-| `lib/` | 924 files, 191,208 lines | 566 files, 109,991 lines | 13 files, 1,856 lines |
+| `views/` | 604 files, 223,093 lines | 324 files, 101,219 lines | 12 files, 1,686 lines |
+| `lib/` | 924 files, 191,224 lines | 566 files, 110,013 lines | 13 files, 1,856 lines |
 | `bridge/` | 261 files, 58,244 lines | 149 files, 31,281 lines | none |
-| `components/` | 136 files, 31,700 lines | 67 files, 16,658 lines | 24 files, 1,635 lines |
+| `components/` | 136 files, 31,704 lines | 67 files, 16,659 lines | 24 files, 1,635 lines |
 | `org/` | 87 files, 21,584 lines | 60 files, 17,731 lines | none |
 | `collab/` | 20 files, 13,570 lines | 22 files, 14,247 lines | none |
 | `pro/` | 32 files, 9,428 lines | 16 files, 2,305 lines | 3 files, 1,256 lines |
@@ -67,7 +67,7 @@ Do not be ambushed by these. The largest source files, by line count:
 | 3,277 | `bridge/export-svg-walker.ts` | **none** |
 | 3,009 | `lib/rebrand/controller.ts` | yes |
 | 2,980 | `bridge/sequence-render.ts` | yes |
-| 2,899 | `views/projects.ts` | none |
+| 2,890 | `views/projects.ts` | none |
 | 2,845 | `views/gallery.ts` | none |
 | 2,661 | `views/deck-editor.ts` | yes |
 | 2,652 | `views/design-import.ts` | **none** |

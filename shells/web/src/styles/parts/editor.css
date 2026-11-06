@@ -472,6 +472,11 @@ html[data-a11y-motion="reduce"] .fc-btn-lolly:focus-visible svg .lolly-mark__spi
    column, a fixed sibling stacked at 9400): spawnPopover puts it on the body in
    viewport coordinates, above the column, or it opens behind it. */
 .fc-popover.fc-popover--viewport { position: fixed; z-index: 9500; max-height: 76vh; }
+/* The same move for an editor PANEL (mountEditorPanel, free-canvas-popover.ts): opened
+   from a control outside the stage, or anywhere in Design's phone layout, where the
+   inspector sheet and the navigator lie over the stage. Its height is capped inline
+   only when it would not fit; the width cap keeps it on a narrow phone. */
+.fc-panel.fc-popover--viewport { position: fixed; z-index: 9500; max-inline-size: calc(100vw - 12px); }
 
 /* Import a design (openImportPanel) - the chrome that used to live in `style=` attributes
    on every element, hard-coding a brand green that never themed. Now class-driven, so it
@@ -1369,8 +1374,9 @@ html[data-a11y-motion="reduce"] .fc-toolbar .fc-btn { transition: none; }
 }
 .fc-edge-actions .fc-cbtn svg { width: calc(15px * var(--a11y-fs)); height: calc(15px * var(--a11y-fs)); }
 
-/* Canvas-size panel - presets grid + custom width/height. */
-.fc-size-panel { min-width: 262px; }
+/* Canvas-size panel - presets grid + custom width/height. It scrolls only once
+   placePanelBeside has written a max-height (a short phone, or large text). */
+.fc-size-panel { min-width: 262px; overflow-y: auto; overscroll-behavior: contain; }
 .fc-panel-head { }
 .fc-size-presets { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-3); }
 .fc-size-preset {

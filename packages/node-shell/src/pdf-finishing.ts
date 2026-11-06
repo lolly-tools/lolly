@@ -3,7 +3,7 @@
 import { parseDimension, toPoints, computePrintGeometry, roundedRectPath, rgbToCmyk, FINISH_MASK_CMYK, buildEncryptDictValues, preparePassword, encryptObjectBytes, toolCredit } from '@lolly/engine';
 import type { BrandPaletteEntry, SeparateRgb } from '@lolly/engine';
 import type { ExportOpts, ExportMeta } from '@lolly-tools/core/host-v1';
-import type { LabelSlot, PrintGeometry } from '../../../engine/src/print-marks.ts';
+import type { LabelAnchor, LabelSlot, PrintGeometry } from '../../../engine/src/print-marks.ts';
 import type { CornerRadii } from '../../../engine/src/css-box.ts';
 import { applyPdfX } from './pdfx.ts';
 import type { PdfXLog } from './pdfx.ts';
@@ -34,6 +34,48 @@ export interface PdfFinishSettings {
   space?: string;
   labels?: LabelsRecord | null;
   log?: PdfXLog | null;
+  /** Draws a label the standard mark font cannot set. See LabelPictureFn. */
+  labelPicture?: LabelPictureFn | null;
+}
+
+/**
+ * A mark label as a picture of its words, from a shell that can draw any script. All
+ * lengths are in points, measured from the picture's top-left corner. `coverage` holds
+ * one byte per pixel, row by row: how much of that pixel the words cover, 0 to 255.
+ */
+export interface LabelPicture {
+  coverage: Uint8Array;
+  width: number;
+  height: number;
+  /** The whole picture. */
+  w: number;
+  h: number;
+  /** Where the words start, and how far they run. */
+  left: number;
+  advance: number;
+  /** Down to the baseline. */
+  baseline: number;
+}
+/** A picture of `text` set at `sizePt`, or null when this shell cannot make one. */
+export type LabelPictureFn = (text: string, sizePt: number) => Promise<LabelPicture | null>;
+
+/**
+ * The labels the standard mark font (Helvetica, WinAnsi) cannot set. A name in Arabic,
+ * Chinese or Cyrillic, or with an emoji, is one of these, and pdf-lib stops the whole
+ * export on that label. Such a label goes in as a picture instead (`labelPicture`).
+ */
+export async function labelsBeyondStandardFont(labels: LabelsRecord | null | undefined): Promise<string[]> {
+  const texts = Object.values(labels ?? {}).filter((t): t is string => Boolean(t));
+  if (!texts.length) return [];
+  const { StandardFontEmbedder, StandardFonts } = await import('pdf-lib') as any;
+  // The set drawPrintMarks's font.getCharacterSet() returns, read without a document.
+  const settable = new Set<number>(StandardFontEmbedder.for(StandardFonts.Helvetica).encoding.supportedCodePoints);
+  return texts.filter((t) => !standardFontSets(t, settable));
+}
+
+function standardFontSets(text: string, settable: ReadonlySet<number>): boolean {
+  for (const ch of text) if (!settable.has(ch.codePointAt(0)!)) return false;
+  return true;
 }
 
 // Normalise the shell's brand palette (hex + CMYK 0–100, and/or an independent
@@ -185,7 +227,7 @@ export async function encryptPdfStrong(blob: Blob, password: string): Promise<Bl
 
 export async function finishPdfX(
   blobOrBytes: Blob | Uint8Array, opts: PdfFinishingOpts,
-  { intentKind = 'srgb', geo = null, geos = null, space = 'rgb', labels = null, log = null }:
+  { intentKind = 'srgb', geo = null, geos = null, space = 'rgb', labels = null, log = null, labelPicture = null }:
     PdfFinishSettings = {},
 ): Promise<Blob> {
   const { PDFDocument } = await import('pdf-lib') as any;
@@ -205,7 +247,7 @@ export async function finishPdfX(
       const g = perPage[i];
       if (!g) continue;
       setPageBoxes(pages[i], g);
-      await drawPrintMarks(pages[i], g, { space, labels });
+      await drawPrintMarks(pages[i], g, { space, labels, labelPicture });
     }
   }
   await applyPdfX(pdfDoc, opts, intentKind, { log });
@@ -254,8 +296,9 @@ export function setPageBoxes(page: any, geo: PrintGeometry): void {
 // the two sit side by side for comparison; the generic bar's 'page' cells follow
 // the page space. `labels` (optional) maps each engine label slot → its string.
 // Engine coords are top-left; flip y.
-export async function drawPrintMarks(page: any, geo: PrintGeometry, { space = 'rgb', labels }: { space?: string; labels?: LabelsRecord | null } = {}): Promise<void> {
-  const { rgb, cmyk, degrees, StandardFonts } = await import('pdf-lib') as any;
+export async function drawPrintMarks(page: any, geo: PrintGeometry, { space = 'rgb', labels, labelPicture }: { space?: string; labels?: LabelsRecord | null; labelPicture?: LabelPictureFn | null } = {}): Promise<void> {
+  const lib = await import('pdf-lib') as any;
+  const { rgb, cmyk, degrees, StandardFonts } = lib;
   const H = geo.page.h;
   const fy = (y: number) => H - y;
   const markColor = space === 'cmyk' ? cmyk(1, 1, 1, 1) : rgb(0, 0, 0);
@@ -288,9 +331,16 @@ export async function drawPrintMarks(page: any, geo: PrintGeometry, { space = 'r
   const slots = (geo.primitives.labels ?? []).filter(l => labels?.[l.slot]);
   if (slots.length) {
     const font = await page.doc.embedFont(StandardFonts.Helvetica);
+    const settable = new Set<number>(font.getCharacterSet());
     const textColor = space === 'cmyk' ? cmyk(0, 0, 0, 0.7) : rgb(0.35, 0.35, 0.35);
     for (const l of slots) {
       const text = labels![l.slot]!;
+      if (!standardFontSets(text, settable)) {
+        const pic = await labelPicture?.(text, l.size);
+        if (!pic) throw new Error(`This PDF cannot draw "${text.slice(0, 40)}" in its print marks: the mark font has no letters for it and a picture of the words could not be made. Turn off Stamp details, or export a PNG.`);
+        drawLabelPicture(page, lib, pic, l, fy(l.y), space);
+        continue;
+      }
       // Right-aligned horizontal text shifts left by its measured width; rotated
       // text (read-up) starts at its anchor and climbs, so no shift needed.
       const shift = (l.rotation === 0 && l.align === 'right') ? font.widthOfTextAtSize(text, l.size) : 0;
@@ -299,4 +349,36 @@ export async function drawPrintMarks(page: any, geo: PrintGeometry, { space = 'r
       });
     }
   }
+}
+
+/**
+ * One label as a picture. The words' coverage is the soft mask of an image filled with the
+ * label's own ink, so it prints in the colour a set label does: grey on an RGB page, K only
+ * on a CMYK one. The picture turns about the label's anchor on the baseline, as set text does.
+ */
+function drawLabelPicture(page: any, lib: any, pic: LabelPicture, l: LabelAnchor, anchorY: number, space: string): void {
+  const { pushGraphicsState, popGraphicsState, concatTransformationMatrix, drawObject } = lib;
+  const ctx = page.doc.context;
+  const image = (data: Uint8Array, colorSpace: string, extra: Record<string, unknown> = {}): unknown => ctx.register(ctx.flateStream(data, {
+    Type: 'XObject', Subtype: 'Image', Width: pic.width, Height: pic.height, ColorSpace: colorSpace, BitsPerComponent: 8, ...extra,
+  }));
+  // The ink a set label's text takes in drawPrintMarks: rgb 0.35 grey, or cmyk 0 0 0 0.7.
+  const ink = space === 'cmyk' ? [0, 0, 0, 179] : [89, 89, 89];
+  const fill = new Uint8Array(pic.width * pic.height * ink.length);
+  for (let i = 0; i < fill.length; i += ink.length) fill.set(ink, i);
+  const mask = image(pic.coverage, 'DeviceGray');
+  const name = page.node.newXObject('Label', image(fill, space === 'cmyk' ? 'DeviceCMYK' : 'DeviceRGB', { SMask: mask }));
+  // Snapped, so a quarter turn writes 0 rather than 6e-17 into the matrix.
+  const turn = (l.rotation * Math.PI) / 180, snap = (v: number): number => (Math.abs(v) < 1e-9 ? 0 : v);
+  const cos = snap(Math.cos(turn)), sin = snap(Math.sin(turn));
+  // Right-aligned set text moves left by its width; the picture moves by the words' advance.
+  const ax = l.x - (l.rotation === 0 && l.align === 'right' ? pic.advance : 0);
+  // The picture's bottom-left corner, measured from the anchor and turned with the label.
+  const dx = -pic.left, dy = -(pic.h - pic.baseline);
+  page.pushOperators(
+    pushGraphicsState(),
+    concatTransformationMatrix(pic.w * cos, pic.w * sin, -pic.h * sin, pic.h * cos, ax + dx * cos - dy * sin, anchorY + dx * sin + dy * cos),
+    drawObject(name),
+    popGraphicsState(),
+  );
 }

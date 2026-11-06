@@ -1036,6 +1036,68 @@ test('a mark OUTSIDE the stage (the docked HUD) opens its menu in the viewport, 
   } finally { f.destroy(); }
 });
 
+test('the size panel opened from a door OUTSIDE the stage goes over it, takes focus, and Escape hands focus back', () => {
+  // The inspector's Size door lives in the docked column, a floating inspector or the
+  // phone's sheet: all body-level surfaces over the stage. The stage is position:fixed,
+  // so a panel inside it opened BEHIND the door that asked for it, on a phone under the
+  // sheet whose rows then took the taps meant for the presets.
+  const f = mount([frameBox('f1', 0, 0)], { chrome: {} });
+  try {
+    f.stageEl.getBoundingClientRect = () => rect(40, 20, NATIVE, NATIVE);
+    const door = dom.window.document.createElement('button');
+    door.dataset.act = 'documentsize';
+    door.getBoundingClientRect = () => rect(300, 120, 120, 32);
+    dom.window.document.body.appendChild(door);   // not a stage descendant
+    door.focus();
+    f.design.inspectorActions.openDocumentSize!(door);
+    assert.equal(f.stageEl.querySelector('.fc-size-panel'), null, 'not in the stage');
+    const panel = dom.window.document.body.querySelector<HTMLElement>(':scope > .fc-size-panel')!;
+    assert.ok(panel, 'on the body');
+    assert.ok(panel.classList.contains('fc-popover--viewport'), 'flagged for the fixed placement over the stage');
+    // Placed against the STAGE as it always was (the door's right edge plus 8, its own
+    // top, both stage-relative), then moved by the stage's own offset into viewport space.
+    assert.equal(panel.style.left, `${300 + 120 - 40 + 8 + 40}px`);
+    assert.equal(panel.style.top, `${120 - 20 + 20}px`);
+    assert.equal(panel.getAttribute('role'), 'dialog');
+    assert.equal(panel.getAttribute('aria-label'), 'Artboard size');
+    assert.equal(dom.window.document.activeElement, panel, 'focus moved into the panel');
+    // The inspector rebuilds its column on a model change, so the door that opened the
+    // panel can be a new node by the time it closes.
+    door.remove();
+    const rebuilt = dom.window.document.createElement('button');
+    rebuilt.dataset.act = 'documentsize';
+    dom.window.document.body.appendChild(rebuilt);
+    panel.dispatchEvent(new W.KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true }));
+    assert.equal(dom.window.document.querySelector('.fc-size-panel'), null, 'Escape closes it wherever it lives');
+    assert.equal(dom.window.document.activeElement, rebuilt, 'and focus goes back to the Size door');
+    rebuilt.remove();
+  } finally { f.destroy(); }
+});
+
+test('in the phone layout the size panel goes over the stage even from a control inside it', () => {
+  // The bottom bar's More menu lives inside the stage, but in the phone layout the
+  // inspector sheet and the navigator lie over the stage's lower half, so a panel opened
+  // from it has to clear them too, and stop above the bar.
+  const f = mount([frameBox('f1', 0, 0)], { chrome: {} });
+  try {
+    f.stageEl.dataset.designLayout = 'compact';
+    const bar = dom.window.document.createElement('div');
+    bar.className = 'design-compact-actions';
+    bar.getBoundingClientRect = () => rect(0, 940, NATIVE, 60);
+    const more = dom.window.document.createElement('button');
+    more.getBoundingClientRect = () => rect(700, 950, 100, 44);
+    bar.appendChild(more);
+    f.stageEl.appendChild(bar);
+    f.design.inspectorActions.openDocumentSize!(more);
+    const panel = dom.window.document.body.querySelector<HTMLElement>(':scope > .fc-size-panel')!;
+    assert.ok(panel?.classList.contains('fc-popover--viewport'), 'over the stage');
+    // jsdom lays the panel out at zero size, so only the foot rule moves it: its top is
+    // pulled up from the trigger's 950 to 8 above the bar.
+    assert.equal(panel.style.top, `${940 - 8}px`);
+    bar.remove();
+  } finally { f.destroy(); }
+});
+
 test('mounting the inspector pins the object bar; unmounting it lets the bar auto-hide again', () => {
   const f = mount([frameBox('f1', 0, 0)], { chrome: {} });
   try {

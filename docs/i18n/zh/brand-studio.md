@@ -108,13 +108,13 @@
 
 在宽屏上，你的颜色位于 **In context** 预览旁边，在较小的屏幕上则位于其上方。预览以你的调色板显示海报、图表或界面卡片。起步颜色留在它们自己的折叠组中。
 
-![Lolly Demo 上的 Colours 房间：折叠组中的调色板，每个颜色带有名称和十六进制值，头部是调色板下载](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours)
+![Lolly Demo 上的 Colours 房间：折叠组中的调色板，每个颜色带有名称和十六进制值，头部是调色板下载](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-roles-fold%5D%3Esummary%3Bwait%3A500&format=svg&walker=1&localize=1&dark=1&filename=brand-colours)
 
 ![添加一个颜色后的 Colours 房间，带有它的调色板和一个实时的构图预览](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dpick&width=1440&height=840&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-editor-add%5D%3Bwait%3A900&format=svg&walker=1&dark=1&filename=bs-colour-first)
 
 ### 角色：工具读取什么
 
-![The Colour roles table on Lolly Demo after choosing the suggested words Main, Accent, Supporting and Tertiary: the colourway chips, then each role with its light and dark colour, Main read as the lead colour and Accent as the partner colour, Supporting and Tertiary read by name only and marked Copied, and the readings no role fills listed under the table](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=2720&height=2000&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-roles-fold%5D%3Esummary%3Bwait%3A500%3Bclick%3A%5Bdata-crt-start-open%5D%3Bclick%3A%5Bdata-crt-seed%3D%221%22%5D%3Bclick%3A%5Bdata-crt-start-use%5D%3Bwait%3A900%3Bclick%3A.be-palette-heading%3Eh2%3Bwait%3A300&cropSelector=%5Bdata-be-roles-fold%5D&format=svg&walker=1&dark=1&filename=bs-colour-roles)
+![The Colour roles table on Lolly Demo after choosing the suggested words Main, Accent, Supporting and Tertiary: the colourway chips, then each role with its light and dark colour, Main read as the lead colour and Accent as the partner colour, Supporting and Tertiary read by name only and marked Copied, and the readings no role fills listed under the table](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=2720&height=2000&dpi=192&waitMs=1800&cropSelector=%5Bdata-be-roles-fold%5D&format=svg&walker=1&dark=1&filename=bs-colour-roles)
 
 **角色**说明了哪种颜色在每个工具和导出中承担哪个部分。它们是可选的（三个没有角色的零散颜色也是一个完全合格的系统），任何颜色都可以担任一个角色，对比度读数是针对表面测量的，优先使用 APCA。每个角色行显示的是全强度的自有颜色、顶替的起步颜色，或 **↳ follows Primary**。
 
@@ -167,7 +167,7 @@
 
 调色板把你的颜色列在折叠组中，每组都有自己的 **+ Add**。可以随意创建和重命名组。角色绝不会产生第二个方块：角色所指向的方块会改戴一个小标记（**P**、**S**、**Su**、**T**）。方块下方的 **Colour chart** 把同样的颜色显示在 OKLCH 的 **Wheel** 上（拖动圆点可重新着色，点击空白处可添加色板）以及 **Gamut** 图上，后者显示可显示范围在哪里结束。`#/start?area=color&focus=chart` 会直接打开该图表。
 
-![调色板面板，每组都可折叠，调色板下载位于其头部](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dgenerate%26seed%3D%2523e0452b&width=1440&height=1000&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-add-ramp%3D%22primary%22%5D%3Bwait%3A1200&cropSelector=.be-split-side&walker=1&format=svg&dark=1&filename=bs-palette-pane)
+![调色板面板，每组都可折叠，调色板下载位于其头部](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dgenerate%26seed%3D%2523e0452b&width=1440&height=1000&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-roles-fold%5D%3Esummary%3Bwait%3A500%3Bclick%3A%5Bdata-be-add-ramp%3D%22primary%22%5D%3Bwait%3A1200&cropSelector=.be-split-side&walker=1&format=svg&dark=1&filename=bs-palette-pane)
 
 ![OKLCH 色轮 - 角度代表色相，距中心的距离代表彩度，灰色沿侧边的明度轨道排列](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dgenerate%26seed%3D%2523e0452b&width=1440&height=900&dpi=192&waitMs=2400&css=.start-head%2C.be-pal%2C.be-gradients%7Bdisplay%3Anone%7D&drive=click%3A%5Bdata-be-add-ramp%3D%22primary%22%5D%3Bwait%3A1200%3Bclick%3A%5Bdata-be-chart%5D%20summary%3Bwait%3A900&cropSelector=.be-pal-wheel&walker=1&format=svg&dark=1&filename=bs-colour-wheel)
 

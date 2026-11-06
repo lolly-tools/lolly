@@ -79,10 +79,25 @@ handoff with one named owner.
   2026.8.24 set, with the Palette influence control's "Full" setting (`snap`),
   so every paint moves to its nearest Opal colour while skin tones, flags and
   custom symbols keep their own. A link's choice or a saved session's own style
-  still comes first. The style pins the first 64 colours the token bridge lists
-  for Lolly Demo, the emoji palette's limit; the ones left over are a role that repeats
-  Avocado and the chrome slots, which repeat named colours apart from Honey
-  deep and the dark hover. Rewrite the block after a colour change.
+  still comes first. The style pins the first 64 colours the token bridge listed
+  for Lolly Demo before it declared its colour roles, the emoji palette's limit.
+  Since then the bridge lists the colours on Partner and Paper among the first 64,
+  which repeat Sugar and Void, so a short `emojifx` link resolves a palette with
+  other token ids and the same colours. The colours left over are roles that repeat
+  Meringue, Arvo and Avocado, the chrome slots, which repeat named colours apart
+  from Honey deep and the dark hover, and the colourway's own copies. Rewrite the
+  block after a colour change.
+- **Colour roles in its own words.** The `brandSystem` record declares four
+  colour roles, each one the slot it fills, so no slot became an alias and no
+  colour a tool reads moved: Lead (`primary`) and Partner (`secondary`), from the
+  Colourways part of the Lolly brand standards (`/brand`), and Paper (`surface`)
+  and Ink (`text`), from the brand skill ("Liquorice #09141a is the ink and Sugar
+  #ffffff is the paper"). Lolly reads them as the lead colour, the partner colour,
+  the background and the text. The colours that sit on Partner and Paper are
+  worked out by Lolly and marked as derived, and Paper and Ink hold a copy of
+  each look's colour in every colourway, so a colourway can give either one a
+  colour of its own. `tests/shipped-colour-roles.test.ts` shows that renders stay
+  the same.
 - **Four house rules.** The tokens carry a `brandSystem` in
   `$extensions['com.suse.lolly']` whose rules Design checks layer by layer
   (`engine/src/design-house-rules.ts`): the export panel's Before you export

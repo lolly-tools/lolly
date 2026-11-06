@@ -12,7 +12,7 @@
  */
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { wrapsInWalker, animatesTransform } from './transform-neutralise.ts';
+import { wrapsInWalker, animatesTransform, pdfDrawsThroughMatrix } from './transform-neutralise.ts';
 
 test('wrapsInWalker mirrors the walker branches exactly', () => {
   // Nothing to neutralise.
@@ -64,4 +64,34 @@ test('animatesTransform picks out exactly the animations that defeat the neutral
   // stopping it would take motion from the page for nothing.
   assert.equal(animatesTransform({ transitionProperty: 'rotate' }), false);
   assert.equal(animatesTransform({ effect: { getKeyframes: () => [{ offset: 0, scale: '1.4' }] } }), false);
+});
+
+test('pdfDrawsThroughMatrix: a scale below the root goes through the matrix; a bare picture keeps the box path', () => {
+  const flat = {
+    borderTopWidth: '0px', borderRightWidth: '0px', borderBottomWidth: '0px', borderLeftWidth: '0px',
+    borderTopLeftRadius: '0px', borderTopRightRadius: '0px', borderBottomRightRadius: '0px', borderBottomLeftRadius: '0px',
+    boxShadow: 'none', outlineStyle: 'none', outlineWidth: '0px', filter: 'none',
+  };
+  const style = (more: Record<string, string> = {}) => ({ ...flat, ...more }) as unknown as CSSStyleDeclaration;
+  const el = (tagName: string) => ({ tagName }) as Element;
+  const m = (a: number, b: number, c: number, d: number) => ({ a, b, c, d, e: 0, f: 0 });
+  const root = el('DIV'), div = el('DIV'), img = el('IMG');
+  // Text and boxes under a scale: every computed length would otherwise be 1/s too big.
+  assert.equal(pdfDrawsThroughMatrix(div, root, style(), m(0.5, 0, 0, 0.5)), true);
+  assert.equal(pdfDrawsThroughMatrix(div, root, style(), m(2, 0, 0, 2)), true);
+  assert.equal(pdfDrawsThroughMatrix(div, root, style(), m(0.5, 0, 0, 0.8)), true);
+  // The root's own scale is already in the walker's cssToPt.
+  assert.equal(pdfDrawsThroughMatrix(root, root, style(), m(0.5, 0, 0, 0.5)), false);
+  // A translation changes no length. A mirror is not axis-aligned, so it took the matrix
+  // before this change too, and still does.
+  assert.equal(pdfDrawsThroughMatrix(div, root, style(), m(1, 0, 0, 1)), false);
+  assert.equal(pdfDrawsThroughMatrix(div, root, style(), m(-1, 0, 0, 1)), true);
+  assert.equal(pdfDrawsThroughMatrix(div, root, style(), m(1, 0, 0, -1)), true);
+  // A photo zoomed in its frame fills its scaled box; one with a corner or a shadow does not.
+  assert.equal(pdfDrawsThroughMatrix(img, root, style(), m(1.6, 0, 0, 1.6)), false);
+  assert.equal(pdfDrawsThroughMatrix(img, root, style({ borderTopLeftRadius: '12px' }), m(1.6, 0, 0, 1.6)), true);
+  assert.equal(pdfDrawsThroughMatrix(img, root, style({ boxShadow: 'rgb(0, 0, 0) 0px 2px 4px 0px' }), m(1.6, 0, 0, 1.6)), true);
+  // Anything not axis-aligned, the root included, as before.
+  assert.equal(pdfDrawsThroughMatrix(root, root, style(), m(1, 0, 0.4, 1)), true);
+  assert.equal(pdfDrawsThroughMatrix(img, root, style(), m(0.866, 0.5, -0.5, 0.866)), true);
 });

@@ -108,13 +108,13 @@ Lolly Demoのように、アプリに付属していて編集できるデザイ�
 
 色は、広い画面では**In context**プレビューの横に、小さい画面ではその上に並びます。プレビューには、ポスター、グラフ、インターフェースカードがパレットで表示されます。スターターの色は、独自の折りたたみグループにとどまります。
 
-![Lolly DemoのColoursルーム: 折りたたみグループに入ったパレット、名前と16進値付きの各色、ヘッダーにあるパレットのダウンロード](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours)
+![Lolly DemoのColoursルーム: 折りたたみグループに入ったパレット、名前と16進値付きの各色、ヘッダーにあるパレットのダウンロード](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-roles-fold%5D%3Esummary%3Bwait%3A500&format=svg&walker=1&localize=1&dark=1&filename=brand-colours)
 
 ![色を1つ追加した後のColoursルーム。パレットとライブの構成プレビューが表示されている](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dpick&width=1440&height=840&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-editor-add%5D%3Bwait%3A900&format=svg&walker=1&dark=1&filename=bs-colour-first)
 
 ### 役割: ツールが読むもの
 
-![The Colour roles table on Lolly Demo after choosing the suggested words Main, Accent, Supporting and Tertiary: the colourway chips, then each role with its light and dark colour, Main read as the lead colour and Accent as the partner colour, Supporting and Tertiary read by name only and marked Copied, and the readings no role fills listed under the table](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=2720&height=2000&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-roles-fold%5D%3Esummary%3Bwait%3A500%3Bclick%3A%5Bdata-crt-start-open%5D%3Bclick%3A%5Bdata-crt-seed%3D%221%22%5D%3Bclick%3A%5Bdata-crt-start-use%5D%3Bwait%3A900%3Bclick%3A.be-palette-heading%3Eh2%3Bwait%3A300&cropSelector=%5Bdata-be-roles-fold%5D&format=svg&walker=1&dark=1&filename=bs-colour-roles)
+![The Colour roles table on Lolly Demo after choosing the suggested words Main, Accent, Supporting and Tertiary: the colourway chips, then each role with its light and dark colour, Main read as the lead colour and Accent as the partner colour, Supporting and Tertiary read by name only and marked Copied, and the readings no role fills listed under the table](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=2720&height=2000&dpi=192&waitMs=1800&cropSelector=%5Bdata-be-roles-fold%5D&format=svg&walker=1&dark=1&filename=bs-colour-roles)
 
 **Roles**は、すべてのツールと書き出しで、どの色がどの役割を担うかを示します。任意であり(3つのばらばらの色で役割がなくても、まったく問題のないシステムです)、どの色にも役割を与えられ、コントラストの表示はサーフェスに対して測定され、APCAが先に表示されます。各役割の行には、通常の強さで表示されるご自身の色、代わりに使われているスターターの色、または**↳ follows Primary**が表示されます。
 
@@ -167,7 +167,7 @@ Lolly Demoのように、アプリに付属していて編集できるデザイ�
 
 パレットには、ご自身の色が折りたたみグループで一覧になり、それぞれに専用の**+ Add**があります。グループは自由に作成、名前変更できます。役割が2つ目のタイルを作ることはなく、役割が指すタイルには、代わりに小さな印(**P**、**S**、**Su**、**T**)が付きます。タイルの下の**Colour chart**は、同じ色をOKLCHの**Wheel**(点をドラッグして再着色し、空いている場所をクリックしてスウォッチを追加)と、表示可能な範囲の限界を示す**Gamut**チャートで表示します。`#/start?area=color&focus=chart`でチャートを直接開きます。
 
-![パレットペイン。すべてのグループが折りたたみ可能で、ヘッダーにパレットのダウンロードがある](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dgenerate%26seed%3D%2523e0452b&width=1440&height=1000&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-add-ramp%3D%22primary%22%5D%3Bwait%3A1200&cropSelector=.be-split-side&walker=1&format=svg&dark=1&filename=bs-palette-pane)
+![パレットペイン。すべてのグループが折りたたみ可能で、ヘッダーにパレットのダウンロードがある](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dgenerate%26seed%3D%2523e0452b&width=1440&height=1000&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-roles-fold%5D%3Esummary%3Bwait%3A500%3Bclick%3A%5Bdata-be-add-ramp%3D%22primary%22%5D%3Bwait%3A1200&cropSelector=.be-split-side&walker=1&format=svg&dark=1&filename=bs-palette-pane)
 
 ![OKLCHホイール - 角度が色相、外側への距離が彩度、グレーは側面のライトネスレールに沿って並ぶ](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dgenerate%26seed%3D%2523e0452b&width=1440&height=900&dpi=192&waitMs=2400&css=.start-head%2C.be-pal%2C.be-gradients%7Bdisplay%3Anone%7D&drive=click%3A%5Bdata-be-add-ramp%3D%22primary%22%5D%3Bwait%3A1200%3Bclick%3A%5Bdata-be-chart%5D%20summary%3Bwait%3A900&cropSelector=.be-pal-wheel&walker=1&format=svg&dark=1&filename=bs-colour-wheel)
 

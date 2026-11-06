@@ -28,6 +28,8 @@ type Rec = Record<string, any>;
 const load = (path: string): Rec => JSON.parse(readFileSync(new URL(path, import.meta.url), 'utf8'));
 const WEFTHOUSE = (): Rec => load('../../../../tests/fixtures/colour-roles/wefthouse.tokens.json');
 const DEMO = (): Rec => load('../../../../brands/lolly-demo/catalog/assets/lolly/tokens/demo.json');
+/** Lolly Demo as it was before it declared colour roles (plans/352 R6): a system with none. */
+const NO_ROLES = (): Rec => load('../../../../tests/fixtures/colour-roles/lolly-demo-no-roles.json');
 const START = (): Rec => load('../../../../brands/lolly-start/catalog/assets/lolly/tokens/brand.json');
 
 const hostOf = (doc: unknown, selection: Record<string, string> = {}): { host: never; swatches: ColorSwatch[] } => ({
@@ -53,8 +55,8 @@ const openGrid = (id = 'cf'): HTMLElement => {
 };
 const picked: unknown[] = [];
 
-test('the shipped systems declare no colour roles, so each of these proofs is about them', () => {
-  for (const doc of [DEMO(), START()]) {
+test('Lolly Start and Lolly Demo before its words declare no colour roles, so each of these proofs is about them', () => {
+  for (const doc of [NO_ROLES(), START()]) {
     assert.equal(declaresColourRoles(doc), false);
     assert.equal(readColourRoles(doc).roles.some(role => role.declared), false);
   }
@@ -64,7 +66,7 @@ test('the shipped systems declare no colour roles, so each of these proofs is ab
 });
 
 test('a system with no roles keeps every colour, in order, with the fields it always had', async () => {
-  for (const doc of [DEMO(), START()]) {
+  for (const doc of [NO_ROLES(), START()]) {
     const { host, swatches } = hostOf(doc);
     const options = await colourFieldOptions(host, swatches, { wide: true });
     assert.equal(options.length, swatches.length, 'nothing is left out, the colourway copies included');
@@ -78,14 +80,23 @@ test('a system with no roles keeps every colour, in order, with the fields it al
   }
 });
 
-test('Lolly Demo still offers its six colourway copies, because it declares no roles', async () => {
-  const { host, swatches } = hostOf(DEMO());
+test('a system with no roles still offers its colourway copies: Lolly Demo before its words had six', async () => {
+  const { host, swatches } = hostOf(NO_ROLES());
   const options = await colourFieldOptions(host, swatches, { wide: true });
   assert.equal(options.filter(o => /^\{color\.colourway\./.test(o.ref ?? '')).length, 6);
 });
 
-test('a system with no roles draws the same grid, and no word map, with no heading in it', async () => {
+test('Lolly Demo leads with its own words, and its colourway copies stay out', async () => {
   const { host, swatches } = hostOf(DEMO());
+  const options = await colourFieldOptions(host, swatches, { wide: true });
+  const words = readColourRoles(DEMO()).roles.filter(role => role.declared).map(role => role.label);
+  assert.deepEqual(options.filter(o => o.role).map(o => o.label), words);
+  assert.deepEqual(options.slice(0, words.length).map(o => o.label), words, 'first in the list');
+  assert.equal(options.filter(o => /^\{color\.colourway\./.test(o.ref ?? '')).length, 0);
+});
+
+test('a system with no roles draws the same grid, and no word map, with no heading in it', async () => {
+  const { host, swatches } = hostOf(NO_ROLES());
   const options = await colourFieldOptions(host, swatches, { wide: true });
   setSwatches(options);
   const grid = openGrid();

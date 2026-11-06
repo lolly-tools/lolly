@@ -4,8 +4,9 @@ import assert from 'node:assert/strict';
 import { JSDOM } from 'jsdom';
 
 const dom = new JSDOM('<!doctype html><body></body>', { url: 'https://instance.test/#/p' });
-Object.assign(globalThis, { window: dom.window, document: dom.window.document, location: dom.window.location });
-const { projectsDropHooks, sharedDropTarget } = await import('./projects-drop.ts');
+Object.assign(globalThis, { window: dom.window, document: dom.window.document, location: dom.window.location, Element: dom.window.Element, AbortController: dom.window.AbortController });
+const { projectsDropDoor, projectsDropHooks, sharedDropTarget } = await import('./projects-drop.ts');
+const { takeEarlyDrops } = await import('../lib/drop-early.ts');
 
 test('the shared project and folder come from the address', () => {
   assert.deepEqual(sharedDropTarget('#/p?team=prj_1'), { projectId: 'prj_1', folderId: null });
@@ -29,4 +30,18 @@ test('at the top of Projects, and for .lolly files, the chooser still runs', asy
   });
   assert.equal(await inFolder.direct!([new dom.window.File(['x'], 'pack.lolly') as unknown as File]), false);
   assert.equal(inFolder.hint!(), 'Drop to add to this folder');
+});
+
+test('the drop door holds a file dropped before Projects has read the library', () => {
+  const view = document.createElement('main');
+  document.body.append(view);
+  projectsDropDoor(view, {
+    host: {} as never, folderTarget: () => null, addToFolder: async () => {}, refresh: async () => {}, mounted: () => true,
+  });
+  const notes = new dom.window.File(['x'], 'notes.txt') as unknown as File;
+  const event = new dom.window.Event('drop', { bubbles: true, cancelable: true });
+  Object.defineProperty(event, 'dataTransfer', { value: { types: ['Files'], files: [notes] } });
+  view.dispatchEvent(event);
+  assert.equal(event.defaultPrevented, true, 'the browser does not open the file');
+  assert.deepEqual(takeEarlyDrops(view), [notes], 'kept for the router');
 });

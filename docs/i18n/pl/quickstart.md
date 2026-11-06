@@ -22,7 +22,7 @@ Wybierz drogę odpowiednią do tego, co masz:
 
 Przy pierwszym otwarciu galerii krótkie powitanie oferuje te same wybory: **Make it yours** otwiera Design System Setup, **Bring your design** otwiera selektor plików dla projektu, a **Explore the community tools** zamyka powitanie.
 
-![Pokój Colours w Design System Setup na świeżej instalacji: jeden żywy znacznik, jedno pole i cała pierwsza decyzja](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours)
+![Pokój Colours w Design System Setup na świeżej instalacji: jeden żywy znacznik, jedno pole i cała pierwsza decyzja](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-roles-fold%5D%3Esummary%3Bwait%3A500&format=svg&walker=1&localize=1&dark=1&filename=brand-colours)
 
 Stamtąd osiem pokoi zaprowadzi Cię tak daleko, jak chcesz, w dowolnej kolejności: **Board**, **Colours**, **Type**, **Logos**, **Tokens**, **Files**, **Rules** i **Skills**. Każdy podgląd w aplikacji aktualizuje się w trakcie pisania. [Lolly Design System Setup](/info/brand-studio.html) opisuje każdy pokój.
 

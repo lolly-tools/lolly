@@ -177023,6 +177023,17 @@ var init_pdfx2 = __esm({
 });
 
 // packages/node-shell/src/pdf-finishing.ts
+async function labelsBeyondStandardFont(labels) {
+  const texts = Object.values(labels ?? {}).filter((t) => Boolean(t));
+  if (!texts.length) return [];
+  const { StandardFontEmbedder, StandardFonts: StandardFonts2 } = await import("pdf-lib");
+  const settable = new Set(StandardFontEmbedder.for(StandardFonts2.Helvetica).encoding.supportedCodePoints);
+  return texts.filter((t) => !standardFontSets(t, settable));
+}
+function standardFontSets(text13, settable) {
+  for (const ch of text13) if (!settable.has(ch.codePointAt(0))) return false;
+  return true;
+}
 function brandSwatchPalette(palette, separate = rgbToCmyk) {
   const out = [], seen = /* @__PURE__ */ new Set();
   for (const { hex: hex4, cmyk, label: label5, spot } of palette ?? []) {
@@ -177132,7 +177143,7 @@ async function encryptPdfStrong(blob, password) {
   const out = await doc.save({ useObjectStreams: false });
   return new Blob([out], { type: "application/pdf" });
 }
-async function finishPdfX(blobOrBytes, opts, { intentKind = "srgb", geo = null, geos = null, space = "rgb", labels = null, log = null } = {}) {
+async function finishPdfX(blobOrBytes, opts, { intentKind = "srgb", geo = null, geos = null, space = "rgb", labels = null, log = null, labelPicture = null } = {}) {
   const { PDFDocument: PDFDocument5 } = await import("pdf-lib");
   const bytes2 = blobOrBytes instanceof Uint8Array ? blobOrBytes : new Uint8Array(await blobOrBytes.arrayBuffer());
   const pdfDoc = await PDFDocument5.load(bytes2, { updateMetadata: false });
@@ -177143,7 +177154,7 @@ async function finishPdfX(blobOrBytes, opts, { intentKind = "srgb", geo = null, 
       const g2 = perPage[i];
       if (!g2) continue;
       setPageBoxes(pages[i], g2);
-      await drawPrintMarks(pages[i], g2, { space, labels });
+      await drawPrintMarks(pages[i], g2, { space, labels, labelPicture });
     }
   }
   await applyPdfX(pdfDoc, opts, intentKind, { log });
@@ -177170,8 +177181,9 @@ function setPageBoxes(page3, geo) {
   page3.setTrimBox(...box4(geo.boxes.trim));
   page3.setArtBox(...box4(geo.boxes.trim));
 }
-async function drawPrintMarks(page3, geo, { space = "rgb", labels } = {}) {
-  const { rgb: rgb3, cmyk, degrees, StandardFonts: StandardFonts2 } = await import("pdf-lib");
+async function drawPrintMarks(page3, geo, { space = "rgb", labels, labelPicture } = {}) {
+  const lib = await import("pdf-lib");
+  const { rgb: rgb3, cmyk, degrees, StandardFonts: StandardFonts2 } = lib;
   const H = geo.page.h;
   const fy = (y) => H - y;
   const markColor = space === "cmyk" ? cmyk(1, 1, 1, 1) : rgb3(0, 0, 0);
@@ -177199,9 +177211,16 @@ async function drawPrintMarks(page3, geo, { space = "rgb", labels } = {}) {
   const slots = (geo.primitives.labels ?? []).filter((l) => labels?.[l.slot]);
   if (slots.length) {
     const font = await page3.doc.embedFont(StandardFonts2.Helvetica);
+    const settable = new Set(font.getCharacterSet());
     const textColor = space === "cmyk" ? cmyk(0, 0, 0, 0.7) : rgb3(0.35, 0.35, 0.35);
     for (const l of slots) {
       const text13 = labels[l.slot];
+      if (!standardFontSets(text13, settable)) {
+        const pic = await labelPicture?.(text13, l.size);
+        if (!pic) throw new Error(`This PDF cannot draw "${text13.slice(0, 40)}" in its print marks: the mark font has no letters for it and a picture of the words could not be made. Turn off Stamp details, or export a PNG.`);
+        drawLabelPicture(page3, lib, pic, l, fy(l.y), space);
+        continue;
+      }
       const shift = l.rotation === 0 && l.align === "right" ? font.widthOfTextAtSize(text13, l.size) : 0;
       page3.drawText(text13, {
         x: l.x - shift,
@@ -177213,6 +177232,34 @@ async function drawPrintMarks(page3, geo, { space = "rgb", labels } = {}) {
       });
     }
   }
+}
+function drawLabelPicture(page3, lib, pic, l, anchorY, space) {
+  const { pushGraphicsState, popGraphicsState, concatTransformationMatrix, drawObject } = lib;
+  const ctx = page3.doc.context;
+  const image = (data, colorSpace, extra = {}) => ctx.register(ctx.flateStream(data, {
+    Type: "XObject",
+    Subtype: "Image",
+    Width: pic.width,
+    Height: pic.height,
+    ColorSpace: colorSpace,
+    BitsPerComponent: 8,
+    ...extra
+  }));
+  const ink = space === "cmyk" ? [0, 0, 0, 179] : [89, 89, 89];
+  const fill2 = new Uint8Array(pic.width * pic.height * ink.length);
+  for (let i = 0; i < fill2.length; i += ink.length) fill2.set(ink, i);
+  const mask = image(pic.coverage, "DeviceGray");
+  const name = page3.node.newXObject("Label", image(fill2, space === "cmyk" ? "DeviceCMYK" : "DeviceRGB", { SMask: mask }));
+  const turn2 = l.rotation * Math.PI / 180, snap = (v) => Math.abs(v) < 1e-9 ? 0 : v;
+  const cos2 = snap(Math.cos(turn2)), sin2 = snap(Math.sin(turn2));
+  const ax = l.x - (l.rotation === 0 && l.align === "right" ? pic.advance : 0);
+  const dx = -pic.left, dy = -(pic.h - pic.baseline);
+  page3.pushOperators(
+    pushGraphicsState(),
+    concatTransformationMatrix(pic.w * cos2, pic.w * sin2, -pic.h * sin2, pic.h * cos2, ax + dx * cos2 - dy * sin2, anchorY + dx * sin2 + dy * cos2),
+    drawObject(name),
+    popGraphicsState()
+  );
 }
 var init_pdf_finishing = __esm({
   "packages/node-shell/src/pdf-finishing.ts"() {
@@ -177269,11 +177316,15 @@ async function designOpsPdfNode(node, opts, host, ctx) {
   if (!out.pdf) return { reason: `a page holds features the drawing operations or PDF do not carry yet: ${[...new Set(out.findings.map((f) => `${f.feature} (${f.id})`))].join(", ")}` };
   const bleed = parseDimension(opts.bleed);
   const hasGeo = (bleed ? toPoints(bleed) : 0) > 0 || opts.cropMarks || opts.registrationMarks || opts.bleedMarks || opts.colorBars || opts.provenance;
+  const labels = hasGeo ? provenanceLabels(opts.meta) : null;
+  if (labels && geos.some((g2) => g2?.primitives.labels?.length) && (await labelsBeyondStandardFont(labels)).length) {
+    return { reason: "the print marks hold letters the mark font does not have" };
+  }
   try {
     const finished = await finishPdfX(out.pdf, opts, {
       intentKind: "srgb",
       log: (level2, message) => host.log?.(level2, message),
-      ...hasGeo ? { geos, space: "rgb", labels: provenanceLabels(opts.meta) } : {}
+      ...hasGeo ? { geos, space: "rgb", labels } : {}
     });
     const pdf = opts.strongPassword ? await encryptPdfStrong(finished, opts.strongPassword) : finished;
     host.log?.("info", `Design PDF export: ${ids2.length} pages drawn from the drawing operations without a browser.`);

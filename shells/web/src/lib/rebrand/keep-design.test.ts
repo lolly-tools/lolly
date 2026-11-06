@@ -19,7 +19,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { existsSync, readFileSync } from 'node:fs';
 import { JSDOM } from 'jsdom';
-import { compileFaithful, neutralSlideMaster, type RebrandDesignSystemInputV1 } from '@lolly/engine';
+import { compileFaithful, createTokenSet, neutralSlideMaster, type RebrandDesignSystemInputV1 } from '@lolly/engine';
 import { createPptxAPI, inflatePptx } from '@lolly-tools/node-shell/pptx';
 import { sourceDeckFromPptx } from '@lolly-tools/node-shell/rebrand/source-pptx';
 import type { CompiledDeckV1 } from '@lolly-tools/core/rebrand-v1';
@@ -208,30 +208,12 @@ function suseColors(): Record<string, string> | null {
   const url = new URL('brands/suse/catalog/assets/suse/tokens/brand.json', REPO);
   if (!existsSync(url)) return null;
   const doc: unknown = JSON.parse(readFileSync(url, 'utf8'));
-  const raw = new Map<string, string>();
-  const walk = (node: unknown, path: string[]): void => {
-    if (!node || typeof node !== 'object') return;
-    const value = Reflect.get(node, '$value');
-    if (typeof value === 'string') {
-      raw.set(path.join('.'), value);
-      return;
-    }
-    for (const [key, child] of Object.entries(node)) if (!key.startsWith('$')) walk(child, [...path, key]);
-  };
-  if (doc && typeof doc === 'object') {
-    walk(Reflect.get(doc, 'base'), []);
-    walk(Reflect.get(doc, 'light'), []);
-  }
-  const resolve = (value: string, depth = 0): string | undefined => {
-    const ref = /^\{(.+)\}$/.exec(value.trim());
-    if (!ref) return /^#[0-9a-f]{6}$/i.test(value.trim()) ? value.trim() : undefined;
-    const next = ref[1] ? raw.get(ref[1]) : undefined;
-    return next === undefined || depth > 8 ? undefined : resolve(next, depth + 1);
-  };
+  // Resolved the way the shell reads a design system (readColors in design-system.ts):
+  // through the token set, so a slot that links into a colourway set resolves too.
   const out: Record<string, string> = {};
-  for (const [path, value] of raw) {
-    const hex = resolve(value);
-    if (hex && path.startsWith('color.')) out[path] = hex;
+  for (const swatch of createTokenSet(doc).colors()) {
+    const value = String(swatch.value);
+    if (swatch.path.startsWith('color.') && /^#[0-9a-f]{6}$/i.test(value)) out[swatch.path] = value;
   }
   return out;
 }
