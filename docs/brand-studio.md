@@ -118,6 +118,8 @@ Your colours sit beside an **In context** preview on a wide screen, and above it
 
 The design system says what its colours are called and what each is for, and Lolly reads that. **Colour roles** sits at the head of the Colours room. On a wide screen **In context** shares the view, so a change shows on the poster, chart and interface card as you make the change.
 
+![The Colour roles table on Lolly Demo after choosing the suggested words Main, Accent, Supporting and Tertiary: the colourway chips, then each role with its light and dark colour, Main read as the lead colour and Accent as the partner colour, Supporting and Tertiary read by name only and marked Copied, and the readings no role fills listed under the table](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=2720&height=2000&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-roles-fold%5D%3Esummary%3Bwait%3A500%3Bclick%3A%5Bdata-crt-start-open%5D%3Bclick%3A%5Bdata-crt-seed%3D%221%22%5D%3Bclick%3A%5Bdata-crt-start-use%5D%3Bwait%3A900%3Bclick%3A.be-palette-heading%3Eh2%3Bwait%3A300&cropSelector=%5Bdata-be-roles-fold%5D&format=svg&walker=1&dark=1&filename=bs-colour-roles)
+
 The table has four columns, and on a phone each row becomes a card that keeps light and dark side by side:
 
 | Column | What it holds |
@@ -149,6 +151,8 @@ A reading no role fills stays as the design system defines it, and the room list
 **A hand-written file.** Colours a token file holds that no role declares are listed under **In this file, with no role yet**, each with a field for a word and **Make a role**. They keep working by name either way. A token with digits in its name cannot be a role, so it stays in the file and keeps working by its path. A record in the file that does not validate shows the table with no controls and says why.
 
 **The rest of the room speaks the same words.** The chips, the swatch's **Use as** row and the palette's **Colour roles** group all use the design system's words, and a colour role's tile opens its value. Exported files record nothing new about roles: the colours in a render change because the tokens changed.
+
+**Where the words go.** The words and descriptions travel with the design system. Agents read them in the design brief, `lolly://tokens` and a brand page's `AGENTS.md`, the terminal shows them in `lolly system status`, and a brand page lists them in `brand.json` and measures a contrast pair for each role. Each export format keeps what it has room for: DTCG and Tokens Studio files keep everything, `DESIGN.md` keeps the words and the readings, and a PowerPoint theme keeps only the brand's order. [Colour roles in other formats](/info/design-tokens.html#colour-roles-in-other-formats) has the full list. Words are always quoted as the design system's data, never read as instructions.
 
 **Where a colour is chosen.** Every colour field in a tool and in Lolly Design leads with the design system's roles, in its own order, with each word and what the colour is for on show. **Aa** beside a role picks the colour that sits on that role. The rest follow under **Other colours**, without a colourway's own copies, the on-colours and any reading a role already fills. A pick stays linked to the role and follows the colourway, the field keeps showing the word whichever colourway is chosen, and Settings and Tokens use the word too. A design system with no roles keeps the grid of swatches it has always had.
 
@@ -434,7 +438,7 @@ Choose **Remove** from a system's menu; the confirmation says which system will 
 
 Removing a supplied system only hides it: its catalogue assets stay, **Bring back** shows it again and it returns by itself if you remove everything else. Removing an imported or edited copy does not remove the supplied system, its logos or its fonts, and if the copy was active, the supplied system becomes active again. Removing an active hosted copy clears only that copy's connection; a separately chosen instance stays selected.
 
-Changing what a server supplies is an administrator's task: its operator changes the source catalogue and redeploys, or a Lolly Work administrator reviews and applies a server change. Edits here stay local. See [Removing a catalogue design system](/info/configuration.html#removing-a-catalogue-design-system) and [Configuration](/info/configuration.html#supplied-and-local-design-systems).
+Changing what a server supplies is an administrator's task: its operator changes the source catalogue and redeploys, or a Lolly Work administrator reviews and applies a server change. Edits here stay local, with one exception: on a Lolly Work instance that grants you `brand.edit`, a managed system also offers **Edit for** that instance, which opens an editing copy, and **Send to** that instance in **Versions** sends its colours, colourways, colour roles and brand page address back. [Edit this instance from the studio](/info/work-design-system-administration.html#edit-this-instance-from-the-studio) covers what an edit can change and how the instance serves the change. See [Removing a catalogue design system](/info/configuration.html#removing-a-catalogue-design-system) and [Configuration](/info/configuration.html#supplied-and-local-design-systems).
 
 ## Use design context outside the app
 

@@ -114,6 +114,8 @@
 
 ### भूमिकाएँ: टूल क्या पढ़ते हैं
 
+![The Colour roles table on Lolly Demo after choosing the suggested words Main, Accent, Supporting and Tertiary: the colourway chips, then each role with its light and dark colour, Main read as the lead colour and Accent as the partner colour, Supporting and Tertiary read by name only and marked Copied, and the readings no role fills listed under the table](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=2720&height=2000&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-roles-fold%5D%3Esummary%3Bwait%3A500%3Bclick%3A%5Bdata-crt-start-open%5D%3Bclick%3A%5Bdata-crt-seed%3D%221%22%5D%3Bclick%3A%5Bdata-crt-start-use%5D%3Bwait%3A900%3Bclick%3A.be-palette-heading%3Eh2%3Bwait%3A300&cropSelector=%5Bdata-be-roles-fold%5D&format=svg&walker=1&dark=1&filename=bs-colour-roles)
+
 **Roles** बताती हैं कि हर टूल और एक्सपोर्ट में कौन सा रंग कौन सा हिस्सा निभाता है। वे वैकल्पिक हैं (तीन ढीले रंग और कोई भूमिका नहीं, एकदम ठीक सिस्टम है), कोई भी रंग एक ले सकता है और कंट्रास्ट रीडआउट सतह के सामने मापा जाता है, पहले APCA। हर भूमिका पंक्ति पूरी तीव्रता का अपना रंग, खड़ा हुआ starter रंग, या **↳ follows Primary** दिखाती है।
 
 जब पैलेट में शेड हों, तो पट्टी सातों भूमिकाएँ दिखाती है जो टूल पढ़ सकता है: Primary, Secondary, Surface, Text, Muted, Edge और On primary। On primary प्राथमिक से व्युत्पन्न है, **Derived** पढ़ता है और उसका कोई पिकर नहीं।

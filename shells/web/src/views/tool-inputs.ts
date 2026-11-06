@@ -42,11 +42,7 @@ import { announce } from '../a11y.ts';
 import { blockColourFieldHtml, colourInputHtml, paintAutoColours,
   paletteFieldHtml, wireToolColourFields } from './tool-input-colours.ts';
 import { helpTip, wireHelpTips, linkHelpDescriptions } from '../components/help-tip.ts';
-import {
-  customSliderHtml,
-  mountCustomSlider,
-  SLIDER_DRAG_EVENT,
-} from '../components/custom-slider.ts';
+import { customSliderHtml, mountCustomSlider, rulerDialFor, SLIDER_DRAG_EVENT } from '../components/custom-slider.ts';
 import { canSkipInputsRebuild, staticInputControl } from './inputs-sync.ts';
 import { dragTravel } from '../lib/pointer-wrap.ts';
 import { jellyActive, jellyEnabled } from '../lib/jelly.ts';
@@ -921,7 +917,7 @@ export function renderInputs(
     const input = panelModel.find((i) => i.id === id);
 
     if (input?.control === 'slider') {
-      setupCustomSlider(control, runtime, id, onDirty);
+      setupCustomSlider(control, runtime, id, onDirty, toolId);
       return;
     }
 
@@ -3754,12 +3750,7 @@ function setupVectorControl(
   });
 }
 
-function setupCustomSlider(
-  el: HTMLElement,
-  runtime: Runtime,
-  id: string,
-  onDirty?: (id: string) => void
-): void {
+function setupCustomSlider(el: HTMLElement, runtime: Runtime, id: string, onDirty?: (id: string) => void, toolId?: string): void {
   // Live numeric readout next to the label. The panel rebuild is suppressed during a
   // slider drag (_sliderDragging), so update this span directly or it stalls mid-drag.
   const valueOut = el.closest('.input-row')?.querySelector<HTMLElement>('.input-value');
@@ -3767,6 +3758,10 @@ function setupCustomSlider(
     onInput(v) {
       if (valueOut) valueOut.textContent = String(v);
       runtime.setInput(id, v);
+    },
+    // A dial's glide: the number moves, the canvas redraws once at rest (onCommit).
+    onPreview(v) {
+      if (valueOut) valueOut.textContent = String(v);
     },
     onCommit(v) {
       // Keep the readout fresh here too, not just in onInput: a keyboard step
@@ -3784,7 +3779,7 @@ function setupCustomSlider(
     onDragEnd() {
       _sliderDragging = false;
     },
-  });
+  }, { ruler: rulerDialFor(toolId), readout: valueOut }); // a phone ruler for the tools trying it
 }
 
 export {

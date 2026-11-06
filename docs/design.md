@@ -244,6 +244,8 @@ The arrow beside **Present** opens **Present from this slide**, **Speaker view**
 
 A small control bar fades in when you move the pointer and hides again when you stop. If the browser blocks the speaker pop-up, speaker view opens as a panel over the deck. Notes belong to each artboard and never appear on the slide.
 
+On a touch screen, swipe left for the next step or slide and right to go back. A **Slide** or **Fade** transition follows your finger and finishes when you let go; a **Cut**, **Morph** or **Fly between artboards** transition plays in full once you let go, and a short, slow swipe changes nothing. Web page boxes, video controls, boxes that scroll and selected text keep their own gestures, so a swipe never starts on one of them, and vertical scrolling and pinch zoom work as usual. With reduced motion the slide still changes, without following your finger.
+
 - **Reveal steps.** Right-click a box and choose **Reveal at step 1**, **2** or **3** instead of **Always visible**, and the box waits until you advance onto its step. Boxes sharing a number arrive together.
 - **Kiosk.** Give an artboard a **Length** and the deck holds there for that long, then advances behind a thin progress bar. Add `kiosk` to the link and the deck wraps at the end, for signage.
 - **Sub-slide stacks.** Right-click an artboard and choose **Stack under the previous slide** to make it a step of that slide. The overview shows one card, and the inspector's **Stack** row says which slide the artboard belongs to.

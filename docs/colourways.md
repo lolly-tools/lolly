@@ -102,11 +102,11 @@ A rule is applied when each piece is made, and the piece stores the colourway it
 
 The **Colours** room makes and edits colourways. Open **Colour roles**: the **Colourways** row at its head shows one chip per colourway in its lead colour, with **Default** on the canonical one. The table under the row shows each [colour role](/info/brand-studio.html#colour-roles-what-the-colours-are-called) for the chosen colourway, with light and dark side by side.
 
-1. Press **+ Add** and choose one of the palette's colours. The new colourway takes that colour as its lead, and Lolly works out the colour that sits on the lead and the partner, for light and for dark: the same values a whole design system derived from that colour would use. The surface, the text and the ramps stay the design system's own. On a design system with one lead colour, the first **+ Add** makes the current lead the canonical colourway, named after its colour, and nothing it draws changes.
+1. Press **+ Add** and choose one of the palette's colours. The new colourway takes that colour as its lead, and Lolly works out the colour that sits on the lead and the partner, for light and for dark: the same values a whole design system derived from that colour would use. The surface, the text and the ramps stay the design system's own. On a design system with colour roles, the lead and partner go to the roles read as those colours, and every other role starts with the canonical colourway's colour, marked **Copied** until you choose one. On a design system with one lead colour, the first **+ Add** makes the current lead the canonical colourway, named after its colour, and nothing it draws changes.
 2. Choose a chip to edit that colourway. The table, the strip, the palette and the previews then read and write that colourway. The **Light** and **Dark** switch beside **In context** chooses which look the preview and palette show.
 3. With a colourway chosen, type a new name in the name field, or press **Duplicate**, **Make default** or **Remove**. The canonical colourway cannot be removed.
 
-Each edit goes through the room's undo and saving, and Lolly refuses an edit that would change how any other colourway or look draws. A managed design system opens read-only: its page shows the colourways as a chooser and the colour roles for the chosen one, with no editing controls. When a token file encodes its colourways in a way the studio cannot edit, the row gives the reason, and choosing a colourway in a tool still works.
+Each edit goes through the room's undo and saving, and Lolly refuses an edit that would change how any other colourway or look draws. A managed design system opens read-only: its page shows the colourways as a chooser and the colour roles for the chosen one, with no editing controls. On a Lolly Work instance that lets you edit its design system, **Edit for** the instance opens an editing copy, and **Send to** the instance sends the colourways and colour roles back ([Edit this instance from the studio](/info/work-design-system-administration.html#edit-this-instance-from-the-studio)). When a token file encodes its colourways in a way the studio cannot edit, the row gives the reason, and choosing a colourway in a tool still works.
 
 Three things are not in the room yet and are written in the token file: the order of the colourways, a date window on a colourway and a rotation rule for the group.
 
@@ -139,7 +139,7 @@ A colourway is a theme group of kind `colourway` ([Design Tokens](/info/design-t
 }
 ```
 
-The path segment after `color.colourway` is the look's theme id (`light`, `dark`). Every colourway re-points `primary`, `on-primary` and `secondary`. A colourway can also re-point `surface` for a tinted background; then every look links its surface the same way, and the other colourways keep their own. Slots no colourway re-points, such as `text`, `muted` and `edge`, stay ordinary values in the light and dark sets. `com.suse.lolly` is Lolly's vendor extension key, written in the reverse-domain form DTCG asks for. Token files already carry it, so it does not change.
+The path segment after `color.colourway` is the look's theme id (`light`, `dark`). Every colourway re-points `primary`, `on-primary` and `secondary`. A colourway can also re-point `surface` for a tinted background; then every look links its surface the same way, and the other colourways keep their own. Slots no colourway re-points, such as `text`, `muted` and `edge`, stay ordinary values in the light and dark sets. A design system with colour roles holds each role's colour per colourway in the same sets ([Colour roles in each colourway](#colour-roles-in-each-colourway)). `com.suse.lolly` is Lolly's vendor extension key, written in the reverse-domain form DTCG asks for. Token files already carry it, so it does not change.
 
 ::: details Naming rules for colourways
 A colourway id may not repeat any other theme id in the file, so `light` and `dark` are never colourway ids. A colourway name may not repeat any other theme's id or name, in any case, and has at most 80 characters (`MAX_COLOURWAY_NAME`), because a theme request matches by name: a colourway called Light would answer every request for the light look. The same rules apply to the canonical colourway that `liftToColourways` creates.
@@ -156,6 +156,49 @@ Five more functions edit the colourways a file already has. `renameColourway` ch
 
 Each function works on a copy, resolves every token under every choice of look and colourway before and after, and refuses the edit with reasons when a remaining choice would draw something different. Two changes are intended: after `setCanonicalColourway`, a piece that chose no colourway draws the new canonical one, and after `removeColourway`, a piece that stored the removed colourway draws the canonical one. `colourwaysEditable` says whether a file's colourways can be edited this way, and why not. The Colours room's colourway controls call these functions, and Lolly Design System Setup's **Rebuild palette** keeps every colourway ([Lolly Design System Setup](/info/brand-studio.html#committing-a-generated-palette)).
 :::
+
+### Colour roles in each colourway
+
+A design system with [colour roles](/info/brand-studio.html#colour-roles-what-the-colours-are-called) holds every role's colour in every colourway, for each look, beside the slots. The record at `$extensions["com.suse.lolly"].brandSystem` lists the roles with `"group": "colourway"` in the brand's order, and its bindings say which slot each role fills. Wefthouse, an invented textile brand, trimmed to one colourway and its light look:
+
+```json
+{
+  "$extensions": { "com.suse.lolly": { "brandSystem": {
+    "schemaVersion": 1, "id": "wefthouse", "label": "Wefthouse", "rules": [],
+    "roles": [
+      { "id": "main", "label": "Main", "description": "The cloth's ground colour", "group": "colourway",
+        "resources": [{ "type": "token", "path": "color.semantic.main" }] },
+      { "id": "accent", "label": "Accent", "group": "colourway",
+        "resources": [{ "type": "token", "path": "color.semantic.accent" }] },
+      { "id": "supporting", "label": "Supporting", "group": "colourway",
+        "resources": [{ "type": "token", "path": "color.semantic.supporting" }] }
+    ],
+    "bindings": [
+      { "id": "lead", "roleId": "main", "consumer": { "slot": "primary" } },
+      { "id": "partner", "roleId": "accent", "consumer": { "slot": "secondary" } }
+    ] } } },
+  "light": { "color": { "$type": "color", "semantic": {
+    "primary":    { "$value": "{color.colourway.light.primary}" },
+    "main":       { "$value": "{color.colourway.light.main}" },
+    "on-main":    { "$value": "{color.colourway.light.on-main}" },
+    "supporting": { "$value": "{color.colourway.light.supporting}" } } } },
+  "colourway/indigo": { "color": { "$type": "color", "colourway": { "light": {
+    "primary":    { "$value": "{color.colourway.light.main}" },
+    "on-primary": { "$value": "{color.colourway.light.on-main}" },
+    "secondary":  { "$value": "{color.colourway.light.accent}" },
+    "main":       { "$value": "#1b2a6b" },
+    "on-main":    { "$value": "oklch(100% 0 0)", "$extensions": { "com.suse.lolly": { "colourRole": { "derived": true } } } },
+    "accent":     { "$value": "#b23a48" },
+    "supporting": { "$value": "#6c7a89" } } } } }
+}
+```
+
+- **Values.** A role's colour lives at `color.colourway.<look>.<id>` in each colourway's set, and `color.semantic.<id>` in each look links to that colour. So `{color.semantic.main}` in a colour field and `--brand-main` on a canvas follow the piece's colourway and look, the same way the lead colour does.
+- **Bindings.** A slot a role fills is an alias to that role inside every colourway's set: here `primary` reads Main and `secondary` reads Accent. Everything that reads a slot keeps working with no change, and moving a binding rewrites those aliases and never a value. A role whose id is a slot's own name, such as `primary`, is that slot and needs no alias.
+- **On-colours.** Lolly works out the colour that sits on each role, per look and colourway, by the rule it uses for the colour on the lead, and marks it `colourRole.derived`. An on-colour the file states with no mark wins and stays.
+- **Nothing missing.** Every colourway holds a colour for every role. Adding a colourway, or duplicating one that lacks a role, copies the role's colour from the canonical colourway, and adding a role with no colours of its own copies the partner colour. Each copy is marked `colourRole.seeded` until someone chooses, and Lolly Design System Setup shows such a value as **Copied**. A dark value can follow the light one with an alias such as `{color.colourway.light.supporting}`, which the room shows as **Same as light**.
+
+A design system that declares no colour roles holds none of this, and every colourway function writes its file exactly as it did before colour roles existed. Exported files record the design system, its version and the theme choices, and nothing about roles.
 
 ## Colourways in Penpot
 
