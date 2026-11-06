@@ -146,6 +146,16 @@ test('parseShotRecipes: waitSelector is carried through decoded', () => {
   assert.equal(recipes[0]!.waitSelector, '.viz-panel[data-demo-settled]');
 });
 
+test('parseShotRecipes: system= names a fixture design system and must be kebab-case', () => {
+  const ok = parseShotRecipes('![Roles](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&system=wefthouse&walker=1&format=svg&filename=roles)');
+  assert.deepEqual(ok.problems, []);
+  assert.equal(ok.recipes[0]!.system, 'wefthouse');
+  const none = parseShotRecipes('![Roles](/t/url-shot?url=%2F%23%2Fstart&format=svg&filename=roles)');
+  assert.equal(none.recipes[0]!.system, undefined, 'no system= leaves the pinned brand in charge');
+  const bad = parseShotRecipes('![Roles](/t/url-shot?url=%2F%23%2Fstart&system=..%2Fsecret&format=svg&filename=roles)');
+  assert.ok(bad.problems.some((p) => p.includes('system=')));
+});
+
 test('parseShotRecipes: identical duplicates share a baseline; conflicts and bad params are problems', () => {
   const same = '/t/url-shot?url=%2F%23%2F&format=svg&filename=gallery';
   const dup = parseShotRecipes(`![a](${same})\n![b](${same})`);

@@ -82,7 +82,7 @@ Ogni marchio finisce in una griglia di otto slot facoltativi, uno per **orientam
 
 Un gruppo senza ancora marchi si richiude in una riga; aprilo per vedere i suoi slot. Fai clic su uno slot per aggiungere un PNG, SVG, JPEG o WebP, oppure fai clic su uno slot pieno per sostituire il marchio. Tutto resta su questo dispositivo.
 
-![Gli slot dei loghi con Horizontal e Vertical aperti: ogni trattamento è uno slot a sé, e ogni slot è facoltativo](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dlogos&width=1440&height=1600&dpi=192&waitMs=1600&drive=click%3A.be-logo-identity%3Edetails%3Anth-of-type%281%29%3Esummary%3Bclick%3A.be-logo-identity%3Edetails%3Anth-of-type%282%29%3Esummary%3Bwait%3A600&cropSelector=.be-logo-grid&format=svg&walker=1&dark=1&filename=bs-logo-slots)
+![Gli slot dei loghi con Horizontal e Vertical aperti: ogni trattamento è uno slot a sé, e ogni slot è facoltativo](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dlogos&system=new-design-system&width=1440&height=1600&dpi=192&waitMs=1600&drive=click%3A.be-logo-identity%3Edetails.be-logo-group--fold%3Anot%28.be-logo-group--custom%29%3Esummary%3Bwait%3A600&cropSelector=.be-logo-grid&format=svg&walker=1&dark=1&filename=bs-logo-slots)
 
 - **Custom marks** sono marchi che il tuo brand chiama con un nome proprio, come un'icona, uno stemma o una favicon.
 - **More identities.** Un sotto-brand, un prodotto o un evento può avere un proprio set completo: **+ Add another logo** e dai un nome al set. Il tuo set principale è "Your logo". [Brand architectures](/info/brand-architectures.html) mostra quando un'identità di logo è il blocco giusto.
@@ -114,7 +114,7 @@ I tuoi colori stanno accanto a un'anteprima **In context** su uno schermo largo,
 
 ### Ruoli: ciò che leggono gli strumenti
 
-![The Colour roles table on Lolly Demo after choosing the suggested words Main, Accent, Supporting and Tertiary: the colourway chips, then each role with its light and dark colour, Main read as the lead colour and Accent as the partner colour, Supporting and Tertiary read by name only and marked Copied, and the readings no role fills listed under the table](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=2720&height=2000&dpi=192&waitMs=1800&cropSelector=%5Bdata-be-roles-fold%5D&format=svg&walker=1&dark=1&filename=bs-colour-roles)
+![The Colour roles table on Lolly Demo after choosing the suggested words Main, Accent, Supporting and Tertiary: the colourway chips, then each role with its light and dark colour, Main read as the lead colour and Accent as the partner colour, Supporting and Tertiary read by name only and marked Copied, and the readings no role fills listed under the table](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&system=wefthouse&width=2720&height=2000&dpi=192&waitMs=1800&cropSelector=%5Bdata-be-roles-fold%5D&format=svg&walker=1&dark=1&filename=bs-colour-roles)
 
 I **Roles** dicono quale colore svolge ogni parte in ogni strumento ed esportazione. Sono facoltativi (tre colori sciolti e nessun ruolo sono un sistema perfettamente valido), qualsiasi colore può prenderne uno e la lettura del contrasto è misurata rispetto alla superficie, APCA per prima. Ogni riga di ruolo mostra un colore proprio a piena intensità, un colore starter che fa le veci, oppure **↳ follows Primary**.
 
@@ -206,7 +206,7 @@ I download della palette (design token, CSS, SCSS, GIMP e Adobe Swatch Exchange)
 
 Senza un carattere proprio, la stanza è una sola scheda: **Primary**, composto a dimensione di lettura nel carattere che lo serve oggi, con un tag **Starter**, un pulsante **Choose for Primary** e la riga *"Nothing installs until you choose one."* Titoli, codice e corsivo seguono il primario finché non li scegli; **Choose them separately** mostra le loro schede.
 
-![La stanza Tipografia senza ancora nessun carattere scelto - una card a dimensione di lettura, un'etichetta Starter su di essa, e un Choose for Primary pieno](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&dark=1&filename=brand-type)
+![La stanza Tipografia senza ancora nessun carattere scelto - una card a dimensione di lettura, un'etichetta Starter su di essa, e un Choose for Primary pieno](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&system=new-design-system&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&dark=1&filename=brand-type)
 
 Scegli un carattere e la stanza si apre in quattro schede di ruolo, l'elenco Fonts e un campione live:
 
@@ -217,7 +217,7 @@ Scegli un carattere e la stanza si apre in quattro schede di ruolo, l'elenco Fon
 
 Una scheda è tinta solo dove hai installato quel carattere. Il suo pulsante dice per quale ruolo è: **Change Headings** su un carattere tuo e **Choose for Headings** ovunque altrove. La riga di esempio va a capo invece di tagliarsi. Nulla su una scheda conferma qualcosa: il pulsante apre lo stage di confronto per quel ruolo.
 
-![Le quattro card di ruolo rivelate - ciascuna impostata nel carattere che la serve, con un'etichetta Starter dove nessuno ne ha scelto uno e Corsivo che segue il primario](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&width=1440&height=1000&dpi=192&waitMs=2600&drive=click%3A%5Bdata-be-typemore-toggle%5D%3Bwait%3A600&cropSelector=.be-typecard-grid&walker=1&format=svg&dark=1&filename=bs-type-specimen)
+![Le quattro card di ruolo rivelate - ciascuna impostata nel carattere che la serve, con un'etichetta Starter dove nessuno ne ha scelto uno e Corsivo che segue il primario](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&system=new-design-system&width=1440&height=1000&dpi=192&waitMs=2600&drive=click%3A%5Bdata-be-typemore-toggle%5D%3Bwait%3A600&cropSelector=.be-typecard-grid&walker=1&format=svg&dark=1&filename=bs-type-specimen)
 
 ### Il palco di confronto
 

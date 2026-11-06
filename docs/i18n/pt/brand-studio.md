@@ -82,7 +82,7 @@ Toda marca termina em uma grade de oito slots opcionais, um por **orientation** 
 
 Um grupo ainda sem marcas se recolhe em uma linha; abra-o para ver os slots. Clique em um slot para adicionar um PNG, SVG, JPEG ou WebP, ou clique em um slot preenchido para substituir a marca. Tudo fica neste dispositivo.
 
-![Os slots de logotipo com Horizontal e Vertical abertos: cada tratamento é um slot próprio, e todos os slots são opcionais](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dlogos&width=1440&height=1600&dpi=192&waitMs=1600&drive=click%3A.be-logo-identity%3Edetails%3Anth-of-type%281%29%3Esummary%3Bclick%3A.be-logo-identity%3Edetails%3Anth-of-type%282%29%3Esummary%3Bwait%3A600&cropSelector=.be-logo-grid&format=svg&walker=1&dark=1&filename=bs-logo-slots)
+![Os slots de logotipo com Horizontal e Vertical abertos: cada tratamento é um slot próprio, e todos os slots são opcionais](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dlogos&system=new-design-system&width=1440&height=1600&dpi=192&waitMs=1600&drive=click%3A.be-logo-identity%3Edetails.be-logo-group--fold%3Anot%28.be-logo-group--custom%29%3Esummary%3Bwait%3A600&cropSelector=.be-logo-grid&format=svg&walker=1&dark=1&filename=bs-logo-slots)
 
 - **Custom marks** são marcas que a sua marca chama pelo próprio nome, como um ícone, um brasão ou um favicon.
 - **More identities.** Uma submarca, produto ou evento pode ter um conjunto completo próprio: **+ Add another logo** e dê um nome ao conjunto. Seu conjunto principal é "Your logo". [Brand architectures](/info/brand-architectures.html) mostra quando uma identidade de logotipo é o bloco certo.
@@ -114,7 +114,7 @@ Suas cores ficam ao lado de uma prévia **In context** em tela larga, e acima de
 
 ### Roles: o que as ferramentas leem
 
-![The Colour roles table on Lolly Demo after choosing the suggested words Main, Accent, Supporting and Tertiary: the colourway chips, then each role with its light and dark colour, Main read as the lead colour and Accent as the partner colour, Supporting and Tertiary read by name only and marked Copied, and the readings no role fills listed under the table](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=2720&height=2000&dpi=192&waitMs=1800&cropSelector=%5Bdata-be-roles-fold%5D&format=svg&walker=1&dark=1&filename=bs-colour-roles)
+![The Colour roles table on Lolly Demo after choosing the suggested words Main, Accent, Supporting and Tertiary: the colourway chips, then each role with its light and dark colour, Main read as the lead colour and Accent as the partner colour, Supporting and Tertiary read by name only and marked Copied, and the readings no role fills listed under the table](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&system=wefthouse&width=2720&height=2000&dpi=192&waitMs=1800&cropSelector=%5Bdata-be-roles-fold%5D&format=svg&walker=1&dark=1&filename=bs-colour-roles)
 
 As **Roles** dizem qual cor faz cada papel em todas as ferramentas e exportações. São opcionais (três cores soltas e nenhuma função é um sistema perfeitamente bom), qualquer cor pode assumir uma e a leitura de contraste é medida contra a superfície, APCA primeiro. Cada linha de função mostra uma cor própria com força total, uma cor inicial no lugar dela, ou **↳ follows Primary**.
 
@@ -206,7 +206,7 @@ Os downloads da paleta (design tokens, CSS, SCSS, GIMP e Adobe Swatch Exchange) 
 
 Sem uma fonte própria, a sala é um único cartão: **Primary**, composto em tamanho de leitura na fonte que o atende hoje, com uma etiqueta **Starter**, um botão **Choose for Primary** e a linha *"Nothing installs until you choose one."* Headings, code e italic seguem a primária até você escolhê-los; **Choose them separately** mostra os cartões deles.
 
-![A sala Type sem fonte escolhida ainda - um cartão em tamanho de leitura, uma tag Starter nele, e um Choose for Primary preenchido](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&dark=1&filename=brand-type)
+![A sala Type sem fonte escolhida ainda - um cartão em tamanho de leitura, uma tag Starter nele, e um Choose for Primary preenchido](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&system=new-design-system&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&dark=1&filename=brand-type)
 
 Escolha uma fonte e a sala se abre em quatro cartões de função, na lista Fonts e em um espécime ao vivo:
 
@@ -217,7 +217,7 @@ Escolha uma fonte e a sala se abre em quatro cartões de função, na lista Font
 
 Um cartão só é tingido onde você instalou aquela fonte. O botão diz para qual função ele serve: **Change Headings** em uma fonte sua e **Choose for Headings** nos demais casos. A linha de amostra quebra em vez de ser cortada. Nada em um cartão confirma nada: o botão abre o palco de comparação para aquela função.
 
-![Os quatro cartões de papel revelados - cada um na fonte que o atende, com uma tag Starter onde ninguém escolheu uma e Italic seguindo a primária](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&width=1440&height=1000&dpi=192&waitMs=2600&drive=click%3A%5Bdata-be-typemore-toggle%5D%3Bwait%3A600&cropSelector=.be-typecard-grid&walker=1&format=svg&dark=1&filename=bs-type-specimen)
+![Os quatro cartões de papel revelados - cada um na fonte que o atende, com uma tag Starter onde ninguém escolheu uma e Italic seguindo a primária](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&system=new-design-system&width=1440&height=1000&dpi=192&waitMs=2600&drive=click%3A%5Bdata-be-typemore-toggle%5D%3Bwait%3A600&cropSelector=.be-typecard-grid&walker=1&format=svg&dark=1&filename=bs-type-specimen)
 
 ### O palco de comparação
 

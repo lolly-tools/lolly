@@ -82,7 +82,7 @@
 
 এখনও চিহ্নহীন গ্রুপ এক লাইনে গুটিয়ে থাকে; তার স্লট দেখতে খুলুন। একটি PNG, SVG, JPEG বা WebP যোগ করতে স্লটে ক্লিক করুন, অথবা চিহ্ন প্রতিস্থাপন করতে ভরা স্লটে ক্লিক করুন। সবকিছু এই ডিভাইসে থাকে।
 
-![Horizontal ও Vertical খোলা অবস্থায় লোগো স্লট: প্রতিটি ট্রিটমেন্ট একটি আলাদা স্লট, এবং প্রতিটি স্লট ঐচ্ছিক](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dlogos&width=1440&height=1600&dpi=192&waitMs=1600&drive=click%3A.be-logo-identity%3Edetails%3Anth-of-type%281%29%3Esummary%3Bclick%3A.be-logo-identity%3Edetails%3Anth-of-type%282%29%3Esummary%3Bwait%3A600&cropSelector=.be-logo-grid&format=svg&walker=1&dark=1&filename=bs-logo-slots)
+![Horizontal ও Vertical খোলা অবস্থায় লোগো স্লট: প্রতিটি ট্রিটমেন্ট একটি আলাদা স্লট, এবং প্রতিটি স্লট ঐচ্ছিক](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dlogos&system=new-design-system&width=1440&height=1600&dpi=192&waitMs=1600&drive=click%3A.be-logo-identity%3Edetails.be-logo-group--fold%3Anot%28.be-logo-group--custom%29%3Esummary%3Bwait%3A600&cropSelector=.be-logo-grid&format=svg&walker=1&dark=1&filename=bs-logo-slots)
 
 - **Custom marks** হলো আপনার ব্র্যান্ডের নিজের নামে ডাকা চিহ্ন, যেমন একটি আইকন, ক্রেস্ট বা ফেভিকন।
 - **আরও পরিচয়।** একটি সাব-ব্র্যান্ড, পণ্য বা ইভেন্টের নিজস্ব পূর্ণ সেট থাকতে পারে: **+ Add another logo** এবং সেটের একটি নাম দিন। আপনার প্রধান সেট "Your logo"। লোগো পরিচয় কখন সঠিক ব্লক তা [Brand architectures](/info/brand-architectures.html) দেখায়।
@@ -114,7 +114,7 @@
 
 ### রোল: টুল যা পড়ে
 
-![The Colour roles table on Lolly Demo after choosing the suggested words Main, Accent, Supporting and Tertiary: the colourway chips, then each role with its light and dark colour, Main read as the lead colour and Accent as the partner colour, Supporting and Tertiary read by name only and marked Copied, and the readings no role fills listed under the table](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=2720&height=2000&dpi=192&waitMs=1800&cropSelector=%5Bdata-be-roles-fold%5D&format=svg&walker=1&dark=1&filename=bs-colour-roles)
+![The Colour roles table on Lolly Demo after choosing the suggested words Main, Accent, Supporting and Tertiary: the colourway chips, then each role with its light and dark colour, Main read as the lead colour and Accent as the partner colour, Supporting and Tertiary read by name only and marked Copied, and the readings no role fills listed under the table](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&system=wefthouse&width=2720&height=2000&dpi=192&waitMs=1800&cropSelector=%5Bdata-be-roles-fold%5D&format=svg&walker=1&dark=1&filename=bs-colour-roles)
 
 **Roles** বলে প্রতিটি টুল ও এক্সপোর্টে কোন রঙ কোন ভূমিকা পালন করে। এগুলো ঐচ্ছিক (তিনটি আলগা রঙ ও কোনো রোল না থাকাও একটি পুরোপুরি ভালো সিস্টেম), যেকোনো রঙ একটি নিতে পারে এবং কনট্রাস্ট রিডআউট সারফেসের বিপরীতে মাপা হয়, APCA আগে। প্রতিটি রোল সারি দেখায় পূর্ণ জোরে একটি নিজস্ব রঙ, একটি starter রঙ বদলি হিসেবে, বা **↳ follows Primary**।
 
@@ -206,7 +206,7 @@
 
 নিজস্ব ফেস না থাকলে রুমটি একটি কার্ড: **Primary**, আজ যে ফেস তাকে পরিবেশন করছে তাতে পড়ার মাপে সাজানো, একটি **Starter** ট্যাগ, একটি **Choose for Primary** বোতাম এবং লাইন *"Nothing installs until you choose one."* সহ। আপনি না বাছা পর্যন্ত Headings, code ও italic প্রাইমারি অনুসরণ করে; **Choose them separately** তাদের কার্ড দেখায়।
 
-![এখনো কোনো face বেছে নেওয়া হয়নি এমন Type room - reading সাইজে একটা কার্ড, তাতে একটা Starter ট্যাগ, আর একটা ভরা Choose for Primary](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&dark=1&filename=brand-type)
+![এখনো কোনো face বেছে নেওয়া হয়নি এমন Type room - reading সাইজে একটা কার্ড, তাতে একটা Starter ট্যাগ, আর একটা ভরা Choose for Primary](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&system=new-design-system&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&dark=1&filename=brand-type)
 
 একটি ফেস বাছুন, রুম চারটি রোল কার্ড, Fonts তালিকা ও একটি লাইভ নমুনায় খোলে:
 
@@ -217,7 +217,7 @@
 
 একটি কার্ডে রঙ থাকে কেবল যেখানে আপনি সেই ফেস ইনস্টল করেছেন। তার বোতাম বলে এটি কোন রোলের জন্য: আপনার নিজের ফেসে **Change Headings**, অন্য সব জায়গায় **Choose for Headings**। নমুনা লাইনটি কেটে না গিয়ে ভাঁজ হয়ে নামে। কার্ডের কিছুই কিছু কমিট করে না: বোতাম সেই রোলের জন্য তুলনা মঞ্চ খোলে।
 
-![সামনে আনা চারটা role কার্ড - প্রতিটা সেই face-এ সেট যা তাকে সার্ভ করে, যেখানে কেউ কিছু বেছে নেয়নি সেখানে একটা Starter ট্যাগ আর প্রাইমারি অনুসরণ করা Italic](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&width=1440&height=1000&dpi=192&waitMs=2600&drive=click%3A%5Bdata-be-typemore-toggle%5D%3Bwait%3A600&cropSelector=.be-typecard-grid&walker=1&format=svg&dark=1&filename=bs-type-specimen)
+![সামনে আনা চারটা role কার্ড - প্রতিটা সেই face-এ সেট যা তাকে সার্ভ করে, যেখানে কেউ কিছু বেছে নেয়নি সেখানে একটা Starter ট্যাগ আর প্রাইমারি অনুসরণ করা Italic](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&system=new-design-system&width=1440&height=1000&dpi=192&waitMs=2600&drive=click%3A%5Bdata-be-typemore-toggle%5D%3Bwait%3A600&cropSelector=.be-typecard-grid&walker=1&format=svg&dark=1&filename=bs-type-specimen)
 
 ### কম্পেয়ার স্টেজ
 

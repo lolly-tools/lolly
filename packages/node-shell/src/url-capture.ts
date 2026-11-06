@@ -22,6 +22,7 @@
  * Extras beyond a plain shot: crop insets (left/right/top/bottom), a recolor pass
  * (filter presets + optional tint), custom CSS, scroll depth, and a settle delay.
  */
+import type { Page } from 'playwright-core';
 import { getBrowser, BrowserError } from './browsers.ts';
 import { captureVectorShot } from './url-vector-capture.ts';
 import { VECTOR_SHOT_MAX_DISTANCE } from './page-text.ts';
@@ -147,6 +148,13 @@ export interface CaptureParams {
   actions?: DriveStep[];
   /** Pipeline-only drive behaviour (the in-page click fallback). See DriveOpts. */
   driveOpts?: DriveOpts;
+  /**
+   * Optional step run once, after the page exists and before it loads `url`.
+   * Pipeline-only, like `initScript`: the docs-shots pipeline uses it to install a
+   * fixture design system for a `system=` recipe. That install needs a booted shell,
+   * so it cannot be an init script, and it must finish before the shot's route loads.
+   */
+  beforeLoad?: (page: Page) => Promise<void>;
 }
 
 /**
@@ -387,6 +395,7 @@ export async function captureUrl(
         if (kind === 'font' || kind === 'stylesheet') received.set(r.url(), r);
       });
     }
+    if (params.beforeLoad) await params.beforeLoad(page);
     await page.goto(params.url, { waitUntil: 'load', timeout: 45_000 }).catch((e: Error) => {
       throw new BrowserError(`Couldn't load ${params.url}: ${e.message}`);
     });

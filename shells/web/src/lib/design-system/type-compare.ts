@@ -504,10 +504,24 @@ export function defaultSpecimen(systemName: string | null, t: TFn): string {
   return usableSystemName(systemName) ?? t('Sphinx of black quartz, judge my vow');
 }
 
-/** The installed tokens asset's label. Duck-typed through the same narrow cast
- *  the Overview room uses - these are web-shell extensions, absent from the
- *  tool-facing HostV1 type. Never throws: no name is a fine answer. */
+/** The ACTIVE design system's name: its registry label, the name the studio's bar
+ *  shows. Only a host with no registry falls back to the installed tokens asset's
+ *  label. The asset read is user-first and knows nothing of which system is active,
+ *  so on lolly.tools it answered with the Lolly Starter companion whenever that had
+ *  been seeded on the device, and with Lolly Demo when it had not yet: the specimen
+ *  depended on which finished first. Duck-typed through the same narrow cast the
+ *  Overview room uses - these are web-shell extensions, absent from the tool-facing
+ *  HostV1 type. Never throws: no name is a fine answer. */
 export async function readSystemName(host: HostV1): Promise<string | null> {
+  const tokens = host?.tokens as unknown as {
+    activeRecord?(): Promise<{ label?: unknown } | null>;
+  } | undefined;
+  if (typeof tokens?.activeRecord === 'function') {
+    try {
+      const record = await tokens.activeRecord();
+      if (record) return usableSystemName(record.label);
+    } catch { /* the registry is unreadable: fall through to the asset label */ }
+  }
   const assets = host?.assets as unknown as {
     _findMetaByType?(type: string): Promise<{ name?: string; meta?: Record<string, unknown> } | null>;
   } | undefined;

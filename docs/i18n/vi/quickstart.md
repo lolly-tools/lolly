@@ -22,7 +22,7 @@ Hãy chọn lộ trình phù hợp với những gì bạn có:
 
 Lần đầu bạn mở thư viện, một lời chào ngắn đưa ra cùng các lựa chọn đó: **Make it yours** mở Design System Setup, **Bring your design** mở bộ chọn tệp cho một thiết kế và **Explore the community tools** đóng lời chào.
 
-![Phòng Colours của Design System Setup trên bản cài mới: một chip trực tiếp, một ô nhập và toàn bộ quyết định đầu tiên](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-roles-fold%5D%3Esummary%3Bwait%3A500&format=svg&walker=1&localize=1&dark=1&filename=brand-colours)
+![Phòng Colours của Design System Setup trên bản cài mới: một chip trực tiếp, một ô nhập và toàn bộ quyết định đầu tiên](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&system=new-design-system&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&dark=1&filename=bs-colours-new-system)
 
 Từ đó, tám phòng đưa nó đi xa tùy ý bạn, theo thứ tự nào cũng được: **Board**, **Colours**, **Type**, **Logos**, **Tokens**, **Files**, **Rules** và **Skills**. Mọi bản xem trước trong ứng dụng cập nhật khi bạn gõ. [Lolly Design System Setup](/info/brand-studio.html) giới thiệu từng phòng.
 
