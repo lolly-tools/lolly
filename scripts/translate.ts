@@ -758,6 +758,9 @@ export const DOCS_PAGES: Array<{ slug: string; src: string }> = [
   // or builds a sponsor wall is often working in a language other than the lead brand's.
   { slug: 'partners', src: 'partners.md' },
   { slug: 'exporting', src: 'exporting.md' },
+  // Fallback fonts: the reader whose script a design system's fonts lack is the one this
+  // page is for, so it is read in that reader's language more than most.
+  { slug: 'fallback-fonts', src: 'fallback-fonts.md' },
   // The Rondocode credential detail moved here from Export a file in plan 322. The
   // colour notes that left the same page went to colour-engine, a tool-author
   // reference, which stays English with the other engineering pages.
