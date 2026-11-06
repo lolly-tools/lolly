@@ -61,3 +61,22 @@ export function queryWithEmoji(query: string, style: EmojiStyleV1 | null): strin
   if (style) for (const [key, value] of Object.entries(emojiParams(style))) params.set(key, value);
   return params.toString();
 }
+
+/**
+ * A placed tool's link, keeping the pinned emoji set. The saved style comes first. A design
+ * system's treatment lists its whole palette, which can run past what an embed id may be
+ * (Lolly Demo's link is 5.8 KB), and a link that cannot be minted left every field in Design's
+ * Tool section doing nothing. The two short params come next: they carry the same set and
+ * treatment, and the render reads the palette from the same design system. With no room even
+ * for those the link goes without, and the render seeds from the design system instead.
+ */
+export function embedUrlWithEmoji(
+  query: string,
+  style: EmojiStyleV1 | null,
+  build: (query: string) => string | null,
+): string | null {
+  const whole = queryWithEmoji(query, style);
+  const short = new URLSearchParams(whole);
+  short.delete('emojistyle');
+  return build(whole) ?? build(short.toString()) ?? build(queryWithEmoji(query, null));
+}

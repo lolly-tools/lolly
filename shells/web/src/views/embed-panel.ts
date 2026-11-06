@@ -85,8 +85,8 @@ export async function mountEmbedPanel(
 
   const render = async (): Promise<void> => {
     const seq = ++renderSeq;
-    const query = emojiStyle.queryWithEmoji(shareUrlState(child.getModel()), child.emoji.style);
-    const next = buildEmbedUrl({ toolId: parsed.toolId, format, query });
+    const next = emojiStyle.embedUrlWithEmoji(shareUrlState(child.getModel()), child.emoji.style,
+      (query) => buildEmbedUrl({ toolId: parsed.toolId, format, query }));
     const ref = next
       ? await host.compose!.renderUrl!(next, {
           format,
