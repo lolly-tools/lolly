@@ -405,10 +405,12 @@ Two kinds of lock, both made on your device. The export panel's *Password protec
 
 **A PDF open-password** has two tiers once you type a password:
 
-- **Weak**: 40-bit RC4, a deterrent rather than protection. Its password can travel in a share link, in clear text. RGB `pdf` only.
-- **Strong**: AES-256 (PDF 2.0). Typed at export and never put in a link. It also applies to Print PDFs and to each PDF inside a batch ZIP. A Strong-locked Print PDF keeps its CMYK, marks and output intent but drops the PDF/X-4 claim.
+- **Weak**: 40-bit RC4, a deterrent rather than protection. RGB `pdf` with no print marks or bleed, and plain ASCII passwords: a password with other characters moves to Strong, because readers cannot open a file locked that way at this tier. Only the first 32 characters count.
+- **Strong**: AES-256 (PDF 2.0). It also applies to Print PDFs and to each PDF inside a batch ZIP. A Strong-locked Print PDF keeps its CMYK, marks and output intent but drops the PDF/X-4 claim.
 
-**A locked ZIP** covers a ZIP export, a folder download from Projects or a batch, with one password at two tiers: **Weak** (ZipCrypto, a deterrent; it can travel in a `?password=` link) or **Strong** (AES-256, typed at export, never in a link). The password protects every member, and any PDF inside is also locked with AES-256 on its own, so it stays locked after the ZIP is unpacked. The prompt appears when the download starts; a blank password means no lock.
+**A locked ZIP** covers a ZIP export, a folder download from Projects or a batch, with one password at two tiers: **Weak** (ZipCrypto, a deterrent) or **Strong** (AES-256). The password protects every member, and any PDF inside is also locked with AES-256 on its own, so it stays locked after the ZIP is unpacked. The prompt appears when the download starts; a blank password means no lock.
+
+**A typed password stays out of links at both tiers.** The address bar and a copied link never hold the password. If a file arrives through a `?password=` link, Lolly reads the value and takes it out of the address straight away. A link asking for a lock its file cannot hold writes no file and says why: see [`password`](/info/url-parameters.html).
 
 **A password-gated share link** asks the recipient for a password before it opens. The whole link state is encrypted with AES-256 under a key derived from the password (PBKDF2), so only ciphertext travels and decryption happens in the recipient's browser. The server that serves the link never sees the password or the design. Turn it on in the **Share** dialog. An encrypted link opens only in Lolly, never as an embedded image. See [URL Mode](/info/url-mode.html).
 

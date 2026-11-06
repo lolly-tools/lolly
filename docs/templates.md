@@ -93,7 +93,7 @@ Open the **Projects** view and choose the **Templates** tile. Inside a folder, t
 
 It is a view, not a folder: nothing can be dragged into it, and it has no rename or delete of its own.
 
-![The Templates collection filtered to QR event starting points](/t/url-shot?url=%2F%23%2Fp%2F__templates__%3Ftool%3Dqr-code%26q%3Devent&width=1440&height=1000&dpi=192&waitMs=1600&waitSelector=.tpl-sec%3Anot%28%3Ahas%28img%5Bdata-tpl-preview%5D%3Anot%28%5Bdata-preview-state%3D%22ready%22%5D%29%29%29&walker=1&format=svg&dark=1&filename=templates-collection)
+![The Templates collection filtered to QR menu starting points](/t/url-shot?url=%2F%23%2Fp%2F__templates__%3Ftool%3Dqr-code%26q%3Dmenu&width=1440&height=820&dpi=192&waitMs=1600&waitSelector=.tpl-sec%3Anot%28%3Ahas%28img%5Bdata-tpl-preview%5D%3Anot%28%5Bdata-preview-state%3D%22ready%22%5D%29%29%29&walker=1&format=svg&dark=1&filename=templates-collection)
 
 ### Start from New asset
 
@@ -106,7 +106,7 @@ Both actions leave the template unchanged. To rename, hide or delete a template,
 
 Template cards load previews as they come into view, using your current brand. An unavailable preview keeps the template's name and a **Preview unavailable** label. If your saved templates cannot be loaded, **Try again** retries the list while keeping available choices visible.
 
-![The New asset picker with rendered QR templates and their Add actions](/t/url-shot?url=%2F%23%2Fp&width=1440&height=850&dpi=192&waitMs=1600&drive=click%3A%5Bdata-create-btn%3D%22tool%22%5D%3Bclick%3A%5Bdata-tab%3D%22templates%22%5D%3Bpress%3AQ%7Con%3D.asset-picker-search%3Bpress%3AR%3Bhover%3A.asset-picker-toolcell%3Alast-child+img%5Bdata-preview-state%3D%22ready%22%5D&cropSelector=.asset-picker-panel&walker=1&format=svg&dark=1&filename=templates-picker)
+![The New asset picker with rendered QR templates and their Add actions](/t/url-shot?url=%2F%23%2Fp&width=1440&height=700&dpi=192&waitMs=1600&drive=click%3A%5Bdata-create-btn%3D%22tool%22%5D%3Bclick%3A%5Bdata-tab%3D%22templates%22%5D%3Bpress%3AQ%7Con%3D.asset-picker-search%3Bpress%3AR%3Bpress%3ASpace%3Bpress%3AM%3Bpress%3AE%3Bpress%3AN%3Bpress%3AU%3Bhover%3A.asset-picker-toolcell%3Alast-child+img%5Bdata-preview-state%3D%22ready%22%5D&cropSelector=.asset-picker-panel&walker=1&format=svg&dark=1&filename=templates-picker)
 
 ### Hide or delete, depending on the author
 

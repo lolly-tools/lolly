@@ -318,9 +318,9 @@ export function readPassword(ta: ActionsCtx): void {
   // marks / pdf-cmyk. When Standard can't apply we disable it and fall to Strong.
   // The same two hints serve the PDF and the ZIP lock.
   const STD_LOCK_HINT =
-    'The password travels in share links, so treat this as a deterrent, not protection for confidential files.'; ta.STD_LOCK_HINT = STD_LOCK_HINT;
+    'A deterrent, not protection for confidential files. The password stays out of links.'; ta.STD_LOCK_HINT = STD_LOCK_HINT;
   const STRONG_LOCK_HINT =
-    'The password is never put in a link and can’t be recovered if lost.'; ta.STRONG_LOCK_HINT = STRONG_LOCK_HINT;
+    'The password stays out of links and can’t be recovered if lost.'; ta.STRONG_LOCK_HINT = STRONG_LOCK_HINT;
 }
 
 export function wirePrint(ta: ActionsCtx): void {
@@ -403,14 +403,13 @@ export function wirePrint(ta: ActionsCtx): void {
     );
   }
 
-  // PDF open-password - clear-text in the URL by design (see pdfPassRow). Syncs on
-  // input so a crafted/edited link round-trips; syncUrl gates it to the pdf format.
+  // PDF open-password. Typed here it stays here: it is never written to the address
+  // or a copied link (see collectExportParams).
   el.querySelector<HTMLInputElement>('[data-action="pdf-password"]')?.addEventListener(
     'input',
     () => {
       ta.pwFromUrl = false;
       ta.refresh.refreshLockTier();
-      onUrlSync?.('password');
     }
   );
 
@@ -463,15 +462,12 @@ export function wirePrint(ta: ActionsCtx): void {
     }
   );
 
-  // Encryption-tier switch: refresh the hint/constraints, re-evaluate the C2PA
-  // exclusion, and re-sync the URL - the strong tier is deliberately never written
-  // to a link, so switching to it drops any ?password= that was there.
+  // Encryption-tier switch: refresh the hint/constraints and re-evaluate the C2PA exclusion.
   el.querySelector<HTMLSelectElement>('[data-action="pdf-lock-tier"]')?.addEventListener(
     'change',
     () => {
       ta.refresh.refreshLockTier();
       ta.refresh.refreshC2paUi('tier');
-      onUrlSync?.('password');
     }
   );
 
@@ -1078,8 +1074,8 @@ export function wireApprovalAndActions(ta: ActionsCtx): void {
               el!.querySelector<HTMLSelectElement>('[data-action="pdf-lock-tier"]')?.value ===
               'strong';
             // Strong (AES-256, encrypt-last) composes with RGB pdf AND print pdf-cmyk;
-            // the 40-bit standard lock is applied by the writer and RGB-pdf only.
-            if (strong && (fmt === 'pdf' || fmt === 'pdf-cmyk')) return { strongPassword: pw };
+            // the 40-bit standard lock is RGB pdf only, so a Print PDF is always strong.
+            if (fmt === 'pdf-cmyk' || (strong && fmt === 'pdf')) return { strongPassword: pw };
             if (fmt === 'pdf') return { password: pw };
             return {};
           })(),

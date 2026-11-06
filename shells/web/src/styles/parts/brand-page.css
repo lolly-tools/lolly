@@ -100,3 +100,25 @@
     .ca-body { padding-inline: var(--ui-space-panel); }
   }
 }
+
+/* Send to {host}: a short sheet, because it holds a list and a decision. */
+@layer views {
+  .instance-edit-sheet { width: min(640px, calc(100vw - 32px)); height: fit-content; max-height: calc(100dvh - 40px); }
+  .ie-body { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; display: flex; flex-direction: column; gap: var(--sp-4); padding: 0 var(--ui-space-page) var(--sp-5); }
+  .ie-heading { margin: 0; font-size: var(--ui-type-body); }
+  .ie-lines, .ie-refused { display: grid; gap: var(--sp-3); margin: 0; padding: 0; list-style: none; }
+  .ie-refused { padding-inline-start: 1.1em; list-style: disc; }
+  .ie-line { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--sp-2) var(--sp-4); }
+  .ie-line-name { min-width: 0; overflow-wrap: anywhere; font-size: var(--ui-type-body); }
+  .ie-line-values { display: inline-flex; flex-wrap: wrap; align-items: center; gap: var(--sp-2) var(--sp-3); min-width: 0; color: var(--ui-color-text-muted); font-size: var(--ui-type-body); }
+  .ie-value { display: inline-flex; align-items: center; gap: var(--sp-2); min-width: 0; }
+  .ie-value-text { overflow-wrap: anywhere; }
+  .ie-swatch { flex: none; width: 16px; height: 16px; border: 1px solid var(--ui-color-border-default); border-radius: var(--ui-radius-control); forced-color-adjust: none; }
+  .ie-more > summary { cursor: pointer; min-height: var(--ui-size-target); display: flex; align-items: center; font-size: var(--ui-type-body); }
+  .ie-moved { margin: 0; font-size: var(--ui-type-body); }
+  .instance-edit-sheet .bp-actions { flex-wrap: wrap; }
+  @media (max-width: 899px) {
+    .instance-edit-sheet { width: 100vw; height: 100dvh; max-height: none; }
+    .ie-body { padding-inline: var(--ui-space-panel); }
+  }
+}

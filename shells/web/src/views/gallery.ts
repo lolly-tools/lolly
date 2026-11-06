@@ -53,7 +53,7 @@ import { galleryPreviewLooks, galleryLookHref, renderGalleryLook, galleryPreview
 import { createPreviewQueue } from '../lib/preview-queue.ts';
 import { galleryWelcomeStep } from './gallery-welcome.ts';
 import { loadGalleryLook } from './gallery-look-loader.ts';
-import { renderFeaturedVariant, renderFeaturedPages, displayFormatOf } from '../lib/featured-render.ts';
+import { renderFeaturedVariant, renderFeaturedPages, coverFormats, displayFormatOf } from '../lib/featured-render.ts';
 import { currentTheme } from '../theme.ts';
 import { prefersReducedMotion } from '../lib/a11y-prefs.ts';
 import { wireStripMenu } from './gallery-strip-menu.ts';
@@ -704,7 +704,7 @@ export async function mountGallery(viewEl: HTMLElement, host: GalleryHost, opts:
     const featured = t.featured ?? { blurb: t.description };
     return {
       id: t.id, name: t.name, icon: t.icon, version: t.version, galleryPreview: !iconHero,
-      formats: t.formats, status: t.status,
+      formats: coverFormats(t), status: t.status,
       examples: iconHero ? undefined : t.examples,
       // `featured.variants` is the pre-`examples` alias resolveExamples() still
       // honours, so an icon-hero entry must shed it too or the looks come back.
@@ -1301,7 +1301,7 @@ export async function mountGallery(viewEl: HTMLElement, host: GalleryHost, opts:
     const toolId = gcar.dataset.tool;
     const tool = toolId ? toolById.get(toolId) : undefined;
     if (!tool) return;
-    const fmt = displayFormatOf(tool.formats);
+    const fmt = displayFormatOf(coverFormats(tool));
     if (!fmt) return;
     // perf-ui: skip the live grid-tile preview render (renderFeaturedVariant / renderFeaturedPages
     // rasterise on the main thread) - settle the tile on its static icon instead. Adding has-art
@@ -2573,7 +2573,7 @@ async function hydrateInfoTemplates(
     try {
       const values = await fetchTemplateValues(tool.id, tp.id);
       if (!values || !dialog.isConnected) continue;
-      const thumb = await renderFeaturedVariant(host, tool.id, tool.formats, tp.id, values as Record<string, unknown>, 'template', tp.motion?.posterMs);
+      const thumb = await renderFeaturedVariant(host, tool.id, coverFormats(tool), tp.id, values as Record<string, unknown>, 'template', tp.motion?.posterMs);
       if (!dialog.isConnected || !thumb) continue;
       img.src = thumb;   // the [src] CSS reveals it; the glyph sits behind
     } catch { /* leave the glyph */ }
@@ -2585,7 +2585,7 @@ async function hydrateInfoTemplates(
     const img = dialog.querySelector<HTMLImageElement>(`.meta-look[data-utpl="${esc(ut.id)}"] .meta-look-img`);
     if (!img || img.getAttribute('src')) continue;
     try {
-      const thumb = await renderFeaturedVariant(host, tool.id, tool.formats, ut.id, ut.values, 'template');
+      const thumb = await renderFeaturedVariant(host, tool.id, coverFormats(tool), ut.id, ut.values, 'template');
       if (!dialog.isConnected || !thumb) continue;
       img.src = thumb;
     } catch { /* leave the glyph */ }

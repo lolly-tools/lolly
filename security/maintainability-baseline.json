@@ -28,7 +28,7 @@
       "typeEscapes": 17
     },
     "shells/web/src/bridge/export.ts": {
-      "lines": 3779,
+      "lines": 3778,
       "largestFunctionLines": 628,
       "importFanIn": 26,
       "importFanOut": 73,
@@ -391,7 +391,7 @@
     "shells/web/src/views/record-control.ts": 1,
     "shells/web/src/views/screen-capture-control.ts": 1,
     "shells/web/src/views/sequence-clock.ts": 4,
-    "shells/web/src/views/start.ts": 5,
+    "shells/web/src/views/start.ts": 3,
     "shells/web/src/views/start/brand.ts": 3,
     "shells/web/src/views/start/candidates.ts": 1,
     "shells/web/src/views/start/exporting.ts": 2,

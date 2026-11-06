@@ -28,7 +28,7 @@
    }
   },
   "filter": {
-   "version": "1.5.3",
+   "version": "1.5.4",
    "light": {
     "templateId": "colour-scanlines",
     "file": "/catalog/previews/covers/filter.light.webp"
@@ -39,7 +39,7 @@
    }
   },
   "chart": {
-   "version": "1.27.2",
+   "version": "1.27.3",
    "light": {
     "templateId": "brand-bars",
     "file": "/catalog/previews/covers/chart.light.svg"
@@ -50,7 +50,7 @@
    }
   },
   "snippet": {
-   "version": "1.7.0",
+   "version": "1.7.1",
    "light": {
     "templateId": "brand-starter",
     "file": "/catalog/previews/covers/snippet.light.svg"
@@ -214,7 +214,7 @@
    }
   },
   "3d": {
-   "version": "1.3.1",
+   "version": "1.3.2",
    "light": {
     "file": "/catalog/previews/covers/3d.light.webp"
    },
@@ -223,7 +223,7 @@
    }
   },
   "wayfinding-signage": {
-   "version": "1.2.4",
+   "version": "1.2.5",
    "light": {
     "file": "/catalog/previews/covers/wayfinding-signage.light.svg"
    },
@@ -392,6 +392,17 @@
    "dark": {
     "templateId": "subtitles",
     "file": "/catalog/previews/covers/captions.dark.webp"
+   }
+  },
+  "record": {
+   "version": "1.4.5",
+   "light": {
+    "templateId": "landscape-intro",
+    "file": "/catalog/previews/covers/record.light.webp"
+   },
+   "dark": {
+    "templateId": "landscape-intro",
+    "file": "/catalog/previews/covers/record.dark.webp"
    }
   },
   "multi-page-pdf": {

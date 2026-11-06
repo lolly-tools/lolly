@@ -146,7 +146,8 @@ the instance key into the web app it installs.
 instance, so this instance's own catalogue reaches only an app built with this instance's
 key. Pairing an app with a server, which is planned, can carry the key ID beside the
 server's certificate fingerprint, so the app can check the key it reads against one it
-was given in person.
+was given in person. The same limit applies to an
+[edit from the studio](design-system-administration.md#what-apps-get): a store app does not receive one.
 
 ## Backup and restore
 

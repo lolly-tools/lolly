@@ -10,6 +10,7 @@
 import { isDurableFmt } from '../export-durable-card.ts';
 import { isC2paFmt, isHdrFmt, isImprintFmt } from './shared.ts';
 import { bindOp, type ActionsCtx } from './context.ts';
+import { standardPdfPasswordIsTypable } from '../../lib/export-password.ts';
 
 // Print marks card: reveal its body when enabled, and hide the open-password
 // card while it's on (marks/bleed route through pdf-lib, which can't encrypt).
@@ -87,7 +88,7 @@ export function refreshNotesHandoutUi(ta: ActionsCtx): void {
   }
 }
 export function refreshLockTier(ta: ActionsCtx): void {
-  const { STD_LOCK_HINT, STRONG_LOCK_HINT, el, formatEl, initialFmt, onUrlSync } = ta;
+  const { STD_LOCK_HINT, STRONG_LOCK_HINT, el, formatEl, initialFmt } = ta;
   const tierEl = el!.querySelector<HTMLSelectElement>('[data-action="pdf-lock-tier"]');
   if (!tierEl) return;
   const fmt = formatEl?.value ?? initialFmt;
@@ -96,7 +97,9 @@ export function refreshLockTier(ta: ActionsCtx): void {
     el!.querySelector<HTMLInputElement>('[data-action="print-enable"]')?.checked ?? false;
   // ZIP: both tiers always apply. PDF: RC4 "standard" needs a plain RGB pdf with no
   // finishing pass; print / CMYK / crop-marks force the strong (encrypt-last) tier.
-  const standardOk = isZip || (fmt === 'pdf' && !marksOn);
+  // A non-ASCII password opens nothing at the weak PDF tier, so it takes the strong one.
+  const typed = el!.querySelector<HTMLInputElement>('[data-action="pdf-password"]')?.value ?? '';
+  const standardOk = isZip || (fmt === 'pdf' && !marksOn && (!typed || standardPdfPasswordIsTypable(typed)));
   const stdOpt = tierEl.querySelector<HTMLOptionElement>('option[value="standard"]');
   if (stdOpt) stdOpt.disabled = !standardOk;
   if (!standardOk) tierEl.value = 'strong';
@@ -104,10 +107,7 @@ export function refreshLockTier(ta: ActionsCtx): void {
   // the tier is strong (whether force-flipped here or picked by the user).
   if (tierEl.value === 'strong' && ta.pwFromUrl) {
     const pwEl = el!.querySelector<HTMLInputElement>('[data-action="pdf-password"]');
-    if (pwEl?.value) {
-      pwEl.value = '';
-      onUrlSync?.('password');
-    }
+    if (pwEl?.value) pwEl.value = '';
     ta.pwFromUrl = false;
   }
   // The strength choice and its hint mean nothing without a password, so both
@@ -119,13 +119,13 @@ export function refreshLockTier(ta: ActionsCtx): void {
     hintEl.hidden = !hasPw;
     const strong = tierEl.value === 'strong';
     hintEl.textContent = strong
-      ? (standardOk ? '' : 'Print, CMYK and crop-marked PDFs use the strong lock. ') +
+      ? (standardOk ? '' : (fmt === 'pdf' && !marksOn ? 'A password with characters beyond plain ASCII uses the strong lock. ' : 'Print, CMYK and crop-marked PDFs use the strong lock. ')) +
         STRONG_LOCK_HINT
       : STD_LOCK_HINT;
   }
 }
 export function refreshC2paUi(ta: ActionsCtx, changed?: string): void {
-  const { c2paEl, formatEl, initialFmt, onUrlSync, pdfPassEl } = ta;
+  const { c2paEl, formatEl, initialFmt, pdfPassEl } = ta;
   if (!c2paEl) return;
   // The exclusion is a PDF-only fact (only an encrypted PDF can't take the
   // credential); on any other format a lingering password in the hidden
@@ -138,7 +138,6 @@ export function refreshC2paUi(ta: ActionsCtx, changed?: string): void {
   }
   if (changed === 'c2pa' && c2paEl.checked && pdfPassEl.value) {
     pdfPassEl.value = '';
-    onUrlSync?.('password');
     refreshLockTier(ta);
   }
   if (pdfPassEl.value) c2paEl.checked = false;

@@ -17,6 +17,7 @@ import { logoWords } from '../../lib/design-system/logo-words.ts';
 import { renameDesignSystem } from '../../lib/design-system/manage.ts';
 import { mountVersionsRoom } from '../../lib/design-system/rooms/versions.ts';
 import { mountCheckpointRecovery } from '../../lib/design-system/checkpoint-recovery.ts';
+import { connectedInstance, onConnectedInstance } from '../../lib/brand-page-hosting.ts';
 import { readIndex } from '../../lib/design-system/versions-io.ts';
 import { playSfx } from '../../lib/sfx.ts';
 import { escape as escapeText } from '../../utils.ts';
@@ -296,6 +297,9 @@ export function wireRecoveryAndVersions(start: StartCtx): void {
     openConnectAgent: () => {
       void import('../../lib/design-system/connect-agent-sheet.ts').then(m => m.openConnectAgentSheet(host), () => start.exporting.showNote(t('Could not open this. Please try again.'), true));
     },
+    // The row shows only while the instance still says this person may send.
+    instanceHost: () => start.instanceEdit && connectedInstance()?.brandEdits ? start.instanceEdit.instanceEdit?.host ?? null : null,
+    openInstanceEdit: () => { void openInstanceEdit(start); },
   }; start.versionsCtx = versionsCtx;
   start.recovery = null as StartCtx['recovery'];
   viewEl.querySelector('[data-start-recovery]')?.addEventListener('click', () => {
@@ -323,6 +327,8 @@ export function wireRecoveryAndVersions(start: StartCtx): void {
   // quiet "Versions & publishing" line under the export actions is the way in.
   // The head is already memoised by the tokens bridge, so this reads no more than
   // hasPublishableSystem did, and never on a render or an export path.
+  // A copy that goes back to an instance sends from this room, so it is there from the start.
+  start.versionsOffered ||= !!start.instanceEdit;
   void readIndex(versionsCtx)
     .then((index) => {
       if (!shell.isConnected) return;
@@ -336,6 +342,57 @@ export function wireRecoveryAndVersions(start: StartCtx): void {
     });
 }
 
+/** Make or reopen the copy that goes back to the instance, and open the studio on that copy. */
+export async function editForInstance(start: StartCtx, say: (message: string) => void): Promise<void> {
+  const hosting = connectedInstance()?.brandEdits;
+  if (!hosting) return;
+  try {
+    const [{ startInstanceEdit }, { switchDesignSystem }] = await Promise.all([
+      import('../../lib/design-system/instance-edit.ts'),
+      import('../../lib/design-system/switch.ts'),
+    ]);
+    const copy = await startInstanceEdit(start.host, hosting);
+    await switchDesignSystem(start.host, copy.id, { route: 'start' });
+  } catch (error) {
+    say(error instanceof Error ? error.message : t('Could not open this. Please try again.'));
+  }
+}
+
+/** The Send to {host} sheet, for the copy open in this studio. */
+export async function openInstanceEdit(start: StartCtx): Promise<void> {
+  const hosting = connectedInstance()?.brandEdits;
+  if (!hosting || !start.instanceEdit) return;
+  try {
+    const { openInstanceEditSheet } = await import('../../lib/design-system/instance-edit-sheet.ts');
+    await openInstanceEditSheet(start.host, start.instanceEdit, hosting);
+    start.versions?.refresh();
+  } catch { start.exporting.showNote(t('Could not open this. Please try again.'), true); }
+}
+
+/** One plain line says what reaches the instance from this copy, with the button that sends the copy. */
+export function wireInstanceEditLine(start: StartCtx): void {
+  const line = start.viewEl.querySelector<HTMLElement>('[data-ds-instance-line]');
+  const record = start.instanceEdit;
+  if (!line || !record?.instanceEdit) return;
+  const host = record.instanceEdit.host;
+  const paint = (): void => {
+    if (!line.isConnected) { stop(); return; }
+    const canSend = !!connectedInstance()?.brandEdits;
+    line.hidden = !canSend;
+    if (!canSend) { line.replaceChildren(); return; }
+    const text = document.createElement('span');
+    text.textContent = tRaw('Editing for {host}. Colours, colour roles and the brand page address go there when you send. Everything else stays on this device.', { host });
+    const send = document.createElement('button');
+    send.type = 'button';
+    send.className = 'be-btn ds-instance-send';
+    send.textContent = tRaw('Send to {host}', { host });
+    send.addEventListener('click', () => { void openInstanceEdit(start); });
+    line.replaceChildren(text, send);
+  };
+  const stop = onConnectedInstance(paint);
+  paint();
+}
+
 export function brandOps(start: StartCtx) {
   return {
     checkpointBeforeInstall: bindOp(start, checkpointBeforeInstall),
@@ -343,5 +400,7 @@ export function brandOps(start: StartCtx) {
     refreshName: bindOp(start, refreshName),
     mountEditor: bindOp(start, mountEditor),
     wireRecoveryAndVersions: bindOp(start, wireRecoveryAndVersions),
+    editForInstance: bindOp(start, editForInstance),
+    wireInstanceEditLine: bindOp(start, wireInstanceEditLine),
   };
 }

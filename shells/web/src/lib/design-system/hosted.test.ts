@@ -104,6 +104,34 @@ async function rig() {
   return { db, assets, registry, host };
 }
 
+const sri = async (text: string): Promise<string> => `sha256-${btoa(String.fromCharCode(...new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text)))))}`;
+
+test('tokens read from a catalog have to match it, and nothing signed them whatever a pack said before', async () => {
+  const r = await rig();
+  const raw = JSON.stringify(TOKENS_DOC);
+  const routesWith = async (bytes: string, checksum: string) => routes({
+    [`${BASE}/catalog/assets/acme/tokens/brand.json`]: new Blob([bytes], { type: 'application/json' }),
+    [`${BASE}/catalog/assets/index.json`]: { ...INDEX, assets: INDEX.assets.map(a => a.id === 'acme/tokens/brand' ? { ...a, checksum: undefined, formats: [{ format: 'json', url: a.formats[0]!.url, checksum }] } : a) },
+    [`${BASE}/api/v1/instance`]: manifest({ brand: { ...manifest().brand, checksum: checksum } }),
+  });
+  const good = await sri(raw);
+  stubFetch(await routesWith(raw, good));
+  const record = await addHostedDesignSystem(r.host as never, BASE);
+  assert.equal(record.source.kind === 'hosted' && record.source.signature, 'unsigned');
+  // A record once filled from a verified pack does not keep saying so.
+  await r.registry.put({ ...record, source: { ...record.source, signature: 'verified' } as typeof record.source });
+  const edited = JSON.stringify({ ...TOKENS_DOC, $description: 'edited' });
+  stubFetch(await routesWith(edited, await sri(edited)));
+  assert.equal(await refreshHostedDesignSystem(r.host as never, record.id, { force: true }), 'updated');
+  const updated = (await r.registry.get(record.id))!;
+  assert.equal(updated.source.kind === 'hosted' && updated.source.signature, 'unsigned');
+  // A document that does not match its catalog is not kept, and the row says an update is waiting.
+  stubFetch(await routesWith(edited, await sri('something else')));
+  assert.equal(await refreshHostedDesignSystem(r.host as never, record.id, { force: true }), 'stale');
+  const stale = (await r.registry.get(record.id))!;
+  assert.equal(stale.source.kind === 'hosted' && stale.source.stale, true);
+});
+
 test('shapeHostedManifest reads the brand block and tolerates an older manifest without one', () => {
   const m = shapeHostedManifest(manifest());
   assert.equal(m?.name, 'Acme');
