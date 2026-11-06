@@ -3,6 +3,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { galleryPreviewLooks, galleryLookHref } from './gallery-preview.ts';
+import { coverFormats } from './featured-render.ts';
 import { previewContextSignature } from './preview-context.ts';
 
 test('Design discovery uses the available templates and opens the exact selected template', async () => {
@@ -36,6 +37,15 @@ test('a curated cover leads without changing template order or losing its open t
 test('tools without a displayable export keep their icon card', () => {
   assert.deepEqual(galleryPreviewLooks({ id: 'record', formats: ['webm', 'mp4'] }), []);
   assert.deepEqual(galleryPreviewLooks({ id: 'deck-builder', formats: ['pptx'] }), []);
+  assert.deepEqual(galleryPreviewLooks({ id: 'spatial-photo', formats: ['png'], galleryArt: 'icon' }), []);
+});
+
+test('a tool with no still export that states render art draws a template as a PNG cover', () => {
+  const tool = { id: 'record', formats: ['webm', 'mp4'], galleryArt: 'render' as const, templates: [{ id: 'landscape-intro', name: 'Landscape intro', galleryCover: true }] };
+  assert.deepEqual(galleryPreviewLooks(tool).map(look => look.templateId), ['landscape-intro']);
+  assert.deepEqual(coverFormats(tool), ['png']);
+  assert.deepEqual(tool.formats, ['webm', 'mp4'], 'the export list stays as it is');
+  assert.deepEqual(coverFormats({ formats: ['svg', 'png'], galleryArt: 'render' }), ['svg', 'png'], 'a tool that exports a still draws in what it exports');
   assert.deepEqual(galleryPreviewLooks({ id: 'spatial-photo', formats: ['png'], galleryArt: 'icon' }), []);
 });
 

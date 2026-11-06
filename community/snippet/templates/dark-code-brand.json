@@ -1,0 +1,27 @@
+{
+  "id": "dark-code-brand",
+  "name": "Dark code, design system",
+  "category": "Still",
+  "description": "A dark editor on the design system's own ground, for a dark page.",
+  "values": {
+    "scene": "still",
+    "language": "python",
+    "theme": "suse-dark",
+    "windowStyle": "redmond",
+    "lineNumbers": true,
+    "showWindow": true,
+    "shadow": true,
+    "scale": 100,
+    "lineHeight": 1.65,
+    "blinkCursor": false,
+    "textOverflow": "fit",
+    "wrapText": false,
+    "calloutMode": "off",
+    "windowRotate": 0,
+    "windowTiltX": 0,
+    "windowTiltY": 0,
+    "code": "def greet(name):\n    message = f\"Hello, {name}!\"\n    return message\n\nprint(greet(\"World\"))",
+    "fileName": "hello.py"
+  },
+  "galleryTheme": "dark"
+}

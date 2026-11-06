@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 import type { HostV1 } from '@lolly-tools/core/host-v1';
 import { mountFeaturedRow, type FeaturedEntry, type FeaturedRowHandle, type FeaturedViewMode } from '../components/featured-row.ts';
+import { coverFormats } from '../lib/featured-render.ts';
 import { galleryPreviewLooks } from '../lib/gallery-preview.ts';
 import { segHtml } from '../lib/seg.ts';
 import type { GalleryTool } from './gallery.ts';
@@ -25,7 +26,7 @@ function featuredEntries(): FeaturedEntry[] {
       const iconHero = tool.category === 'utility';
       return {
         id: tool.id, name: tool.name, icon: tool.icon, version: tool.version,
-        formats: tool.formats, status: tool.status, galleryPreview: !iconHero,
+        formats: coverFormats(tool), status: tool.status, galleryPreview: !iconHero,
         examples: iconHero ? undefined : galleryPreviewLooks(tool),
         featured: { ...tool.featured, blurb: tool.featured?.blurb ?? tool.description, ...(iconHero ? { variants: undefined } : {}) },
       };

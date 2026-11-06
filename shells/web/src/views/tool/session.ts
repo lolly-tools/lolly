@@ -915,6 +915,7 @@ export async function bakeFraming(tview: ToolViewCtx, key: string): Promise<void
         templates,
         host: tview.host,
         formats: tview.tool.manifest.render?.formats,
+        galleryArt: tview.tool.manifest.galleryArt,
         hiddenDefaults: defaultHiddenTemplateRefs(),
         // Mid-session, so "Update from this document" on one of the person's own
         // templates has a document to take - the same snapshot a template save keeps.

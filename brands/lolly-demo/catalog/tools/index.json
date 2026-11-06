@@ -1,12 +1,12 @@
 {
   "version": "1",
-  "generatedAt": "2026-11-05T23:53:32.366Z",
+  "generatedAt": "2026-11-06T01:34:06.269Z",
   "tools": [
     {
       "id": "3d",
       "name": "3D",
       "description": "Load a 3D model into a lit scene, orbit and pose the camera, and render a still or a turntable animation.",
-      "version": "1.3.1",
+      "version": "1.3.2",
       "status": "official",
       "category": "designer",
       "tags": [
@@ -2389,7 +2389,7 @@
       "id": "chart",
       "name": "Chart",
       "description": "Charts from first paste to advanced visualisation - explained data recommendations, explicit field mapping, 35 classic vector families including Pareto, bullet targets and range bars, sixteen statistical and editorial articulations, real-z 3-D scenes, cinematic flights, deterministic motion, accessible descriptions and styles compiled from the active design system.",
-      "version": "1.27.2",
+      "version": "1.27.3",
       "status": "official",
       "category": "designer",
       "tags": [
@@ -2540,10 +2540,18 @@
       ],
       "templates": [
         {
+          "id": "brand-bars-areas-dark",
+          "name": "Brand area, dark",
+          "category": "Brand",
+          "description": "The same area for a dark ground: it takes a colour that shows on it.",
+          "galleryTheme": "dark"
+        },
+        {
           "id": "brand-bars-areas",
           "name": "Brand area",
           "category": "Brand",
-          "description": "A clean palette study: colourful bars on transparency, ready for your data."
+          "description": "A clean palette study: colourful bars on transparency, ready for your data.",
+          "galleryTheme": "light"
         },
         {
           "id": "brand-bars-dark",
@@ -2554,10 +2562,18 @@
           "galleryTheme": "dark"
         },
         {
+          "id": "brand-bars-donut-dark",
+          "name": "Brand donut, dark",
+          "category": "Brand",
+          "description": "The same donut for a dark ground: the first slices take colours that show on it.",
+          "galleryTheme": "dark"
+        },
+        {
           "id": "brand-bars-donut",
           "name": "Brand donut",
           "category": "Brand",
-          "description": "A clean palette study: colourful bars on transparency, ready for your data."
+          "description": "A clean palette study: colourful bars on transparency, ready for your data.",
+          "galleryTheme": "light"
         },
         {
           "id": "brand-bars",
@@ -5740,7 +5756,7 @@
       "id": "filter",
       "name": "Filter",
       "description": "One tool for photo effects: pick halftone, scanline, posterize, voronoi, dither or ASCII art (vector) or duotone, pixel-stretch, misprint or glitch (raster). Design system overlays, live camera and exports to as many formats as each effect supports.",
-      "version": "1.5.3",
+      "version": "1.5.4",
       "status": "official",
       "category": "designer",
       "tags": [
@@ -10411,13 +10427,14 @@
       "id": "record",
       "name": "Record",
       "description": "Design your own top and tail cards, then record a clip and Lolly wraps them around it automatically.",
-      "version": "1.4.4",
+      "version": "1.4.5",
       "status": "official",
       "category": "everyone",
       "capabilities": [
         "camera",
         "microphone"
       ],
+      "galleryArt": "render",
       "tags": [
         "video",
         "record",
@@ -10453,6 +10470,15 @@
       "exportable": true,
       "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"2\" y=\"6\" width=\"20\" height=\"12\" rx=\"2\"/><path d=\"M8 6v12\"/><path d=\"M16 6v12\"/><circle cx=\"12\" cy=\"12\" r=\"2.4\" fill=\"currentColor\" stroke=\"none\"/></svg>",
       "preview": "/catalog/previews/record.svg",
+      "templates": [
+        {
+          "id": "landscape-intro",
+          "name": "Landscape clip",
+          "category": "Brand",
+          "description": "A wide top card with a portrait and a name, a name strap for your clip and a tail card.",
+          "galleryCover": true
+        }
+      ],
       "paged": true,
       "i18n": {
         "ar": {
@@ -11637,7 +11663,7 @@
       "id": "snippet",
       "name": "Snippet",
       "description": "Present text in a desktop window, as a still image or a directed interaction with typing, selections, autocomplete and motion.",
-      "version": "1.7.0",
+      "version": "1.7.1",
       "status": "official",
       "category": "everyone",
       "requires": [
@@ -11713,10 +11739,18 @@
       ],
       "templates": [
         {
+          "id": "autocomplete-brand",
+          "name": "Accept a suggestion, design system",
+          "category": "Animated",
+          "description": "Type the opening, reveal a suggestion and accept the rest, on the design system's own dark ground.",
+          "galleryTheme": "dark"
+        },
+        {
           "id": "autocomplete",
           "name": "Accept a suggestion",
           "category": "Animated",
-          "description": "Type the opening, reveal a suggestion and accept the remaining text."
+          "description": "Type the opening, reveal a suggestion and accept the remaining text.",
+          "galleryTheme": "light"
         },
         {
           "id": "brand-starter",
@@ -11726,10 +11760,18 @@
           "galleryCover": true
         },
         {
+          "id": "dark-code-brand",
+          "name": "Dark code, design system",
+          "category": "Still",
+          "description": "A dark editor on the design system's own ground, for a dark page.",
+          "galleryTheme": "dark"
+        },
+        {
           "id": "dark-code",
           "name": "Dark code",
           "category": "Still",
-          "description": "A dark editor with clear syntax colours for technical slides."
+          "description": "A dark editor with clear syntax colours for technical slides.",
+          "galleryTheme": "light"
         },
         {
           "id": "light-code",
