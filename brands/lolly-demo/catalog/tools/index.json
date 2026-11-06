@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-11-05T23:53:32.366Z",
+  "generatedAt": "2026-11-06T00:29:02.246Z",
   "tools": [
     {
       "id": "3d",
@@ -14666,8 +14666,8 @@
     {
       "id": "quote-card",
       "name": "Quote",
-      "description": "A quotation card with a speaker's picture, name and role, for social posts and slides, in the active design system.",
-      "version": "1.0.0",
+      "description": "A quotation in the active design system: a speaker card, a pull quote, a citation with its source, big type, a marker on the key phrase, with optional motion that carries into Design.",
+      "version": "1.1.0",
       "status": "community",
       "category": "everyone",
       "tags": [
@@ -14676,7 +14676,9 @@
         "testimonial",
         "pull quote",
         "social",
-        "speaker"
+        "speaker",
+        "citation",
+        "motion"
       ],
       "formats": [
         "png",
@@ -14686,7 +14688,12 @@
         "penpot",
         "pdf",
         "avif",
-        "tiff"
+        "tiff",
+        "mp4",
+        "webm",
+        "gif",
+        "apng",
+        "webp-anim"
       ],
       "width": 1600,
       "height": 1200,
@@ -14695,11 +14702,53 @@
       "preview": "/catalog/previews/quote-card.svg",
       "templates": [
         {
+          "id": "big-mark",
+          "name": "Big quotation mark",
+          "category": "Social",
+          "description": "The design system's own quotation mark, drawn large."
+        },
+        {
+          "id": "big-type",
+          "name": "Big type",
+          "category": "Social",
+          "description": "The words fill the frame."
+        },
+        {
+          "id": "citation",
+          "name": "Citation",
+          "category": "Publishing",
+          "description": "A passage with its full reference: author, work, publication and date."
+        },
+        {
+          "id": "marker",
+          "name": "Marker",
+          "category": "Social",
+          "description": "A marker across the phrase that matters most."
+        },
+        {
+          "id": "portrait",
+          "name": "Portrait",
+          "category": "Social",
+          "description": "The picture takes half the frame, edge to edge."
+        },
+        {
+          "id": "pull-quote",
+          "name": "Pull quote",
+          "category": "Publishing",
+          "description": "Set between two rules, to sit in a column of a page."
+        },
+        {
           "id": "speaker",
           "name": "Speaker quote",
           "category": "Social",
           "description": "A short line beside the person who said it.",
           "galleryCover": true
+        },
+        {
+          "id": "word-by-word",
+          "name": "Word by word",
+          "category": "Motion",
+          "description": "The quote arrives one word at a time. Place the tool in Design and it plays on the timeline."
         },
         {
           "id": "words-only",

@@ -1,0 +1,14 @@
+{
+  "id": "word-by-word",
+  "name": "Word by word",
+  "category": "Motion",
+  "description": "The quote arrives one word at a time. Place the tool in Design and it plays on the timeline.",
+  "values": {
+    "quote": "Say less. Show more.",
+    "name": "Tomás Rivera",
+    "role": "Creative Director, Fieldwork",
+    "ground": "ink",
+    "layout": "type",
+    "motion": "word"
+  }
+}

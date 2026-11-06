@@ -55,14 +55,219 @@
 .qc-quote {
   margin: 0;
   font-family: var(--font-display, var(--font-brand, ui-sans-serif, system-ui, sans-serif));
-  font-size: 8.4cqmin;
+  font-size: calc(8.4cqmin * var(--qc-fit, 1));
   font-weight: 400;
   line-height: 1.12;
   text-wrap: balance;
 }
 .qc-name,
-.qc-role { margin: 0; font-size: 3.5cqmin; line-height: 1.3; }
+.qc-role { margin: 0; font-size: calc(3.5cqmin * var(--qc-meta-fit, 1)); line-height: 1.3; overflow-wrap: anywhere; }
 .qc-name { margin-top: 2.4cqmin; font-weight: 500; }
 .qc-centred { justify-content: center; text-align: center; }
 .qc-centred .qc-words { align-items: center; }
 .qc-centred .qc-photo { display: none; }
+
+/* What the citation fields add to any layout. */
+.qc-source,
+.qc-link,
+.qc-ref { margin: 0; overflow-wrap: anywhere; }
+.qc-source { font-size: calc(2.8cqmin * var(--qc-meta-fit, 1)); line-height: 1.35; }
+.qc-source cite:not(.qc-cite-upright),
+.qc-ref cite:not(.qc-cite-upright) { font-family: var(--font-italic, var(--font-brand, ui-sans-serif, system-ui, sans-serif)); font-style: italic; }
+.qc-cite-upright { font-style: normal; }
+.qc-link { font-family: var(--font-mono, ui-monospace, monospace); font-size: calc(2.2cqmin * var(--qc-meta-fit, 1)); line-height: 1.35; }
+.qc-link-part { display: inline-block; }
+/* The link always reads left to right, and still sits on the same edge as the lines above. */
+.qc-link-end { text-align: right; }
+
+/* The emphasised phrase, outside the marker layout. */
+.qc-em { color: var(--qc-em, inherit); font-weight: 500; }
+
+.qc-break-words .qc-quote { overflow-wrap: anywhere; }
+
+/* The layouts that came later share a tighter stack: the quote, then the source. */
+.qc[data-qc-grow] .qc-words { gap: 0; }
+.qc[data-qc-grow] .qc-quote { margin-bottom: 3cqmin; }
+.qc[data-qc-grow] .qc-name { margin-top: 0; font-size: calc(3.7cqmin * var(--qc-meta-fit, 1)); }
+.qc[data-qc-grow] .qc-role { font-size: calc(3.3cqmin * var(--qc-meta-fit, 1)); }
+.qc[data-qc-grow] .qc-source { font-size: calc(3cqmin * var(--qc-meta-fit, 1)); }
+.qc[data-qc-grow] .qc-role,
+.qc[data-qc-grow] .qc-source,
+.qc[data-qc-grow] .qc-link { margin-top: 0.5cqmin; }
+
+/* The units motion moves. Each is a box of its own, so the SVG export can give it a group. */
+.qc-w { display: inline-block; }
+
+/* Big type: the words are the picture. */
+.qc-type .qc-words { padding: 6.5cqmin; justify-content: flex-start; }
+.qc-type .qc-quote {
+  flex: 1 1 auto;
+  font-size: calc(10cqmin * var(--qc-fit, 1));
+  font-weight: 500;
+  line-height: 1.03;
+  letter-spacing: -0.015em;
+  text-wrap: pretty;
+}
+
+/* Where a layout has no room for a whole picture, the person is a small round portrait. */
+.qc-type .qc-photo,
+.qc-glyph .qc-photo,
+.qc-pull .qc-photo,
+.qc-marker .qc-photo {
+  position: absolute;
+  z-index: 1;
+  inset-inline-end: 6.5cqmin;
+  bottom: 6.5cqmin;
+  width: 15cqmin;
+  height: 15cqmin;
+  flex: none;
+  border-radius: 50%;
+  overflow: hidden;
+  background: var(--qc-band);
+}
+.qc-type .qc-photo img,
+.qc-glyph .qc-photo img,
+.qc-pull .qc-photo img,
+.qc-marker .qc-photo img {
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 22%;
+}
+.qc-citation .qc-photo { display: none; }
+.qc-type.qc-has-photo .qc-words,
+.qc-glyph.qc-has-photo .qc-words,
+.qc-pull.qc-has-photo .qc-words,
+.qc-marker.qc-has-photo .qc-words { padding-inline-end: 8cqmin; }
+.qc-type.qc-has-photo [data-qc-meta],
+.qc-glyph.qc-has-photo [data-qc-meta],
+.qc-pull.qc-has-photo [data-qc-meta],
+.qc-marker.qc-has-photo [data-qc-meta] { padding-inline-end: 16cqmin; }
+
+/* A big quotation mark: the design system's own glyph is the graphic. */
+.qc[data-qc-grow].qc-rtl { direction: rtl; }
+.qc-glyph .qc-words {
+  position: relative;
+  justify-content: flex-end;
+  padding: 7cqmin;
+  padding-top: 40cqmin;
+}
+.qc-bigmark {
+  position: absolute;
+  inset-inline-start: 6cqmin;
+  top: 1cqmin;
+  font-family: var(--font-display, var(--font-brand, ui-sans-serif, system-ui, sans-serif));
+  font-size: 92cqmin;
+  font-weight: 500;
+  line-height: 0.95;
+  color: var(--qc-deco, var(--qc-accent));
+}
+.qc-glyph .qc-quote {
+  position: relative;
+  font-size: calc(7.6cqmin * var(--qc-fit, 1));
+  text-wrap: pretty;
+}
+.qc-glyph [data-qc-meta] { position: relative; }
+@container (min-aspect-ratio: 5/4) {
+  .qc-glyph .qc-words { padding-top: 7cqmin; padding-inline-start: 50cqmin; justify-content: center; }
+  .qc-bigmark { top: 8cqmin; font-size: 86cqmin; }
+}
+
+/* A pull quote: set between two rules, as it sits in a column of a page. */
+.qc-pull .qc-words { padding: 8cqmin; }
+.qc-pull .qc-rule { display: block; flex: none; background: var(--qc-deco, var(--qc-accent)); }
+.qc-pull .qc-rule-top { height: 1.1cqmin; margin-bottom: 4cqmin; }
+.qc-pull .qc-rule-bottom { height: 0.3cqmin; margin-top: 4cqmin; }
+.qc-pull .qc-quote {
+  font-size: calc(6.8cqmin * var(--qc-fit, 1));
+  line-height: 1.14;
+  text-wrap: pretty;
+}
+
+/* A citation: body text with a proper reference under a short rule. */
+.qc-citation .qc-words { padding: 9cqmin; }
+.qc-citation .qc-quote {
+  font-family: var(--font-brand, ui-sans-serif, system-ui, sans-serif);
+  font-size: calc(4.8cqmin * var(--qc-fit, 1));
+  line-height: 1.42;
+  text-wrap: pretty;
+}
+.qc-citation .qc-rule {
+  display: block;
+  flex: none;
+  width: 18cqmin;
+  height: 0.35cqmin;
+  margin-bottom: 2.4cqmin;
+  background: var(--qc-deco, var(--qc-accent));
+}
+.qc-citation .qc-ref { font-size: calc(3.3cqmin * var(--qc-meta-fit, 1)); line-height: 1.45; }
+.qc-citation .qc-link { font-size: calc(2.7cqmin * var(--qc-meta-fit, 1)); margin-top: 1.2cqmin; }
+
+/* Portrait: the picture takes half the frame, edge to edge. The stage is a grid so each
+   part can choose its side by the frame's shape, which the frame itself cannot query. */
+.qc-portrait {
+  display: grid;
+  grid-template-columns: 46% 54%;
+  grid-template-rows: 52% 48%;
+}
+.qc-portrait .qc-photo { grid-area: 1 / 1 / 2 / 3; overflow: hidden; }
+.qc-portrait .qc-photo img { inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 22%; }
+.qc-portrait .qc-words { grid-area: 2 / 1 / 3 / 3; min-height: 0; padding: 6cqmin 7cqmin; }
+.qc-portrait:not(.qc-has-photo) .qc-words { grid-area: 1 / 1 / 3 / 3; padding: 8cqmin; }
+.qc-portrait .qc-quote { font-size: calc(6.6cqmin * var(--qc-fit, 1)); text-wrap: pretty; }
+@container (min-aspect-ratio: 5/4) {
+  .qc-portrait .qc-photo { grid-area: 1 / 1 / 3 / 2; }
+  .qc-portrait .qc-words { grid-area: 1 / 2 / 3 / 3; }
+}
+
+/* A marker across the phrase that matters. */
+.qc-marker .qc-words { padding: 8cqmin; }
+.qc-marker .qc-quote {
+  font-size: calc(9cqmin * var(--qc-fit, 1));
+  font-weight: 500;
+  line-height: 1.2;
+  text-wrap: pretty;
+}
+.qc-hl { position: relative; z-index: 0; color: var(--qc-hl-ink, var(--brand-on-primary, #fff)); }
+.qc-hlbg {
+  position: absolute;
+  z-index: -1;
+  inset: 0.04em -0.14em;
+  background: var(--qc-hl-bg, var(--brand-primary, #1e293b));
+}
+
+/* The clock paints nothing, and the replay button belongs to the preview, never the file. */
+.qc-clock { position: absolute; width: 0; height: 0; }
+.qc-play {
+  position: absolute;
+  right: 1.6cqmin;
+  bottom: 1.6cqmin;
+  z-index: 5;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.9cqmin;
+  padding: 1cqmin 1.8cqmin;
+  border: 1px solid rgb(0 0 0 / 0.14);
+  border-radius: 999px;
+  background: rgb(255 255 255 / 0.94);
+  color: #14181f;
+  font: 500 max(12px, 1.7cqmin) / 1 var(--font-brand, ui-sans-serif, system-ui, sans-serif);
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.16);
+  cursor: pointer;
+}
+.qc-play::before {
+  content: '';
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: 0.6em 0 0.6em 0.95em;
+  border-color: transparent transparent transparent currentColor;
+}
+.qc-play:hover { background: #ffffff; }
+.qc-play:focus-visible { outline: 2px solid #2563eb; outline-offset: 2px; }
+
+@keyframes qc-rise { from { opacity: 0; transform: translateY(0.42em); } }
+@keyframes qc-fade { from { opacity: 0; } }
+@keyframes qc-wipe { from { clip-path: inset(-10% 100% -10% 0); } to { clip-path: inset(-10% -10% -10% -10%); } }
+@keyframes qc-wipe-rtl { from { clip-path: inset(-10% 0 -10% 100%); } to { clip-path: inset(-10% -10% -10% -10%); } }

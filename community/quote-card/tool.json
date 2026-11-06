@@ -1,9 +1,9 @@
 {
   "id": "quote-card",
   "name": "Quote",
-  "description": "A quotation card with a speaker's picture, name and role, for social posts and slides, in the active design system.",
-  "a11yLabel": "Quotation from {{name}}: {{quote}}",
-  "version": "1.0.0",
+  "description": "A quotation in the active design system: a speaker card, a pull quote, a citation with its source, big type, a marker on the key phrase, with optional motion that carries into Design.",
+  "a11yLabel": "Quotation{{#if name}} from {{name}}{{/if}}: {{quote}}",
+  "version": "1.1.0",
   "engineVersion": "^1.0.0",
   "status": "community",
   "category": "everyone",
@@ -13,7 +13,9 @@
     "testimonial",
     "pull quote",
     "social",
-    "speaker"
+    "speaker",
+    "citation",
+    "motion"
   ],
   "render": {
     "width": 1600,
@@ -26,7 +28,12 @@
       "penpot",
       "pdf",
       "avif",
-      "tiff"
+      "tiff",
+      "mp4",
+      "webm",
+      "gif",
+      "apng",
+      "webp-anim"
     ],
     "actions": [
       "copy",
@@ -36,7 +43,15 @@
     "filenameFrom": [
       "name"
     ],
-    "transparentBg": false
+    "transparentBg": false,
+    "video": {
+      "wait": 0,
+      "duration": 6
+    },
+    "followsCanvasSize": true,
+    "sectionIcons": {
+      "Source": "link"
+    }
   },
   "isolate": true,
   "inputs": [
@@ -46,6 +61,13 @@
       "type": "longtext",
       "required": true,
       "default": "The best tools disappear, so the work can speak."
+    },
+    {
+      "id": "phrase",
+      "label": "Phrase to emphasise",
+      "type": "text",
+      "default": "",
+      "help": "Copy a few words from the quote. Marker draws across them; other layouts set them in a stronger colour."
     },
     {
       "id": "name",
@@ -93,7 +115,6 @@
       "label": "Layout",
       "type": "select",
       "default": "beside",
-      "display": "segmented",
       "options": [
         {
           "value": "beside",
@@ -102,8 +123,95 @@
         {
           "value": "centred",
           "label": "Words only"
+        },
+        {
+          "value": "type",
+          "label": "Big type"
+        },
+        {
+          "value": "glyph",
+          "label": "Big quotation mark"
+        },
+        {
+          "value": "pull",
+          "label": "Pull quote"
+        },
+        {
+          "value": "citation",
+          "label": "Citation"
+        },
+        {
+          "value": "portrait",
+          "label": "Portrait"
+        },
+        {
+          "value": "marker",
+          "label": "Marker"
+        }
+      ]
+    },
+    {
+      "id": "source",
+      "label": "Source",
+      "type": "text",
+      "default": "",
+      "section": "Source",
+      "help": "The book, paper, talk or article it comes from. Leave a field empty and it leaves nothing behind."
+    },
+    {
+      "id": "publication",
+      "label": "Publication",
+      "type": "text",
+      "default": "",
+      "section": "Source"
+    },
+    {
+      "id": "date",
+      "label": "Date",
+      "type": "text",
+      "default": "",
+      "section": "Source",
+      "placeholder": "1843"
+    },
+    {
+      "id": "url",
+      "label": "Link",
+      "type": "url",
+      "default": "",
+      "section": "Source"
+    },
+    {
+      "id": "motion",
+      "label": "Motion",
+      "type": "select",
+      "default": "none",
+      "help": "Video, GIF and SVG play the motion. Placed in Design, the picture plays on the timeline. PNG, PDF and other stills always show the finished card.",
+      "options": [
+        {
+          "value": "none",
+          "label": "None"
+        },
+        {
+          "value": "word",
+          "label": "Word by word"
+        },
+        {
+          "value": "line",
+          "label": "Line by line"
+        },
+        {
+          "value": "sweep",
+          "label": "Marker sweep"
+        },
+        {
+          "value": "draw",
+          "label": "Graphic first"
         }
       ]
     }
-  ]
+  ],
+  "hooks": {
+    "onInit": true,
+    "onInput": true
+  }
 }

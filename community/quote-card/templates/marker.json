@@ -1,0 +1,14 @@
+{
+  "id": "marker",
+  "name": "Marker",
+  "category": "Social",
+  "description": "A marker across the phrase that matters most.",
+  "values": {
+    "quote": "Good work needs room to breathe.",
+    "phrase": "room to breathe",
+    "name": "Maya Lindqvist",
+    "role": "Head of Product, Northline Studio",
+    "ground": "paper",
+    "layout": "marker"
+  }
+}
