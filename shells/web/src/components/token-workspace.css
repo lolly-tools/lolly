@@ -36,6 +36,12 @@
 .tw-links { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: var(--sp-2); }
 .tw-detail li > code { display: block; }
 .tw-detail dd { margin-inline-start: 0; }
+/* A colour role's value in each colourway (plans/352): the colourway's name, then each look. */
+.tw-role-values { border-collapse: collapse; margin-block: var(--sp-2); font-size: var(--ui-type-help); }
+.tw-role-values th, .tw-role-values td { text-align: start; padding: var(--sp-1) var(--sp-3) var(--sp-1) 0; vertical-align: middle; }
+.tw-role-values thead th { color: var(--ui-color-text-muted); font-weight: 600; }
+.tw-role-values tbody th { font-weight: 500; }
+.tw-role-value { display: flex; align-items: center; gap: var(--sp-2); white-space: nowrap; }
 .tw-pages { margin-block: .75rem; }
 .token-workspace details { margin-block: .75rem; }
 /* The workspace's own folds (Generate a scale, Review an upstream update, Edit the
