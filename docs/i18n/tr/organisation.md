@@ -2,6 +2,8 @@
 
 Kuruluşun kendi Lolly'sini işletebilir: seçtiği araçlar ve tasarım sistemleriyle aynı uygulama. Bu sayfa ona nasıl ulaşacağını, nasıl giriş yapacağını ve bunu yaptığında nelerin değiştiğini gösterir.
 
+Kuruluşun kurulumunu planlıyorsan, [Use Lolly with your existing DAM](/info/use-with-dam.html), insanlar Lolly'de içerik üretmeye başlarken onaylı bir kitaplığın yerinde nasıl kalabileceğini açıklar. [Content sovereignty](/info/content-sovereignty.html), oluşturma, yönetişim, depolama ve taşınabilirlik üzerindeki daha geniş denetimi anlatır.
+
 ::: note Kuruluşundan neye ihtiyacın var
 Kuruluşunun Lolly'sinin web adresi, ya da kuruluşunun hazırladığı bir `.lolly` kurulum dosyası. lolly.tools tek başına bir kuruluşa bağlanmaz.
 :::
@@ -10,13 +12,13 @@ Kuruluşunun Lolly'sinin web adresi, ya da kuruluşunun hazırladığı bir `.lo
 
 Kuruluşunun verdiği adresi aç. Sayfa girişi isterse **Sign in** düğmesine bas ve açtığı giriş sayfasını izle. Ondan sonra, kuruluşunun araçları ve tasarım sistemleriyle her Lolly gibi çalışır.
 
-Ayrıca lolly.tools'tan da başlayabilirsin: **Settings** bölümünü aç, **Lolly instance** kartında **Open a workspace** düğmesine bas, adresi gir ve **Open this instance** düğmesine bas. Tarayıcı kuruluşunun kendi adresine gider; çünkü bir tarayıcı başka bir Lolly'nin araçlarını lolly.tools'tan yükleyemez.
+Ayrıca lolly.tools'tan da başlayabilirsin: **Settings** görünümünü aç, **Lolly instance** kartında **Open a workspace** düğmesine bas, adresi gir ve **Open this instance** düğmesine bas. Tarayıcı kuruluşunun kendi adresine gider; çünkü bir tarayıcı başka bir Lolly'nin araçlarını lolly.tools'tan yükleyemez.
 
 ![Settings içindeki Lolly instance kartı: kuruluşunun çalışma alanını açtığın veya uygulamanın araçlarını nereden aldığını değiştirdiğin yer](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dinstance-section&width=1440&height=1400&dpi=192&waitMs=2000&format=svg&cropSelector=%23instance-section&walker=1&dark=1&filename=org-instance-card)
 
 ## Masaüstü veya mobil uygulamada
 
-Uygulama paketlenmiş araçlarıyla başlar. Bağlanmak için **Settings** bölümünü aç ve **Lolly instance** kartında **Change** düğmesine bas. Sayfa **Where should Lolly get its tools?** diye sorar.
+Uygulama paketlenmiş araçlarıyla başlar. Bağlanmak için **Settings** görünümünü aç ve **Lolly instance** kartında **Change** düğmesine bas. Sayfa **Where should Lolly get its tools?** diye sorar.
 
 1. **Bir Lolly örneğine bağlan**'ı seç.
 2. Kuruluşunun web adresini gir ve **Kontrol et ve bağlan**'a bas.

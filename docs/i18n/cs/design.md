@@ -1,5 +1,7 @@
 # Design: volné plátno
 
+<a id="design-the-free-canvas"></a>
+
 Design je nástroj pro rozvržení, která žádná šablona nepokrývá: plakát od nuly, sada snímků, pohybový kus se zvukovou stopou. Místo formuláře ovládacích prvků dostaneš plátno z polí, která přetahuješ, měníš jim velikost, otáčíš je a píšeš do nich. Exportuje se stejnou vykreslovací cestou jako každý jiný nástroj, takže to, co vidíš na plátně, je soubor, který dostaneš.
 
 Tato stránka provádí plátnem od prvního pole po hotovou sadu snímků: okno, tvarování polí, kreslení vlastních tvarů, umisťování 3D scén a jiných nástrojů, přidávání času, kontrola výsledku a prezentování hotové sady. [Používání Lolly](/info/using.html) pokrývá, co Design sdílí s každým nástrojem, třeba ukládání a sdílení.
@@ -27,7 +29,7 @@ Plátno funguje jako návrhářův stůl kolem kreslicí plochy:
 
 **Navigator** vypisuje každou kreslicí plochu (s nadpisem **Artboards**, v sadě snímků **Slides**) jako sbalitelnou skupinu jejích **Layers**. Vyber název kreslicí plochy, abys na ni skočil, rozbal ji pro výběr nebo přeřazení vrstev a šipkami se pohybuj seznamem; Left se vrátí na nadpis kreslicí plochy. **Pages** seskupuje kreslicí plochy do pojmenovaných stránek a výběr stránky mění jen to, které kreslicí plochy editor ukazuje.
 
-**Inspector** staví na první místo ovládání textu nebo obrázku vybraného objektu. Čipy voleb pokrývají rychlé volby a **Advanced** drží podrobnosti stylu. Na telefonu se Inspector otevře jako list z **More actions**; Escape nebo Back list zavře a výběr zůstane.
+**Inspector** staví na první místo ovládání textu nebo obrázku vybraného objektu. Čipy voleb pokrývají rychlé volby a **Advanced** drží podrobnosti stylu. Na telefonu sdílejí Inspector a seznam vrstev jeden panel, který se vysouvá zpod horní lišty, tentýž panel, v němž každý jiný nástroj drží své ovládání. **Inspect** a **Layer/Page** na liště dole otevřou panel na své kartě. Přetažením úchytu na jeho dolním okraji, nebo klepnutím na úchyt, přesuneš panel mezi proužkem se dvěma kartami, polovinou obrazovky a téměř celou obrazovkou. V polovině ukazuje plátno pod panelem tvůj výběr. Escape složí panel zpět na proužek a výběr zůstane.
 
 ![Sekce Document v Inspectoru: karty Selection a Canvas, pak Dimensions a Style & look](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3Dfeature-tour&width=1440&height=900&dpi=192&waitMs=3500&cropSelector=.fc-insp&walker=1&format=svg&dark=1&filename=design-narration)
 
@@ -141,7 +143,7 @@ Trasování sleduje to, co ukazuje rámeček, takže oříznutý obrázek (Cover
 - Poloměr rohů, maska tvaru a efekt na rámečku obrázku se na cesty nepoužijí.
 - Stejný obrázek a stejná předvolba vždy dají stejné tvary.
 
-## Strokes
+## Obrysy
 
 Pole, obrázek, plocha i cesta z pera mohou nést obrys: barvu, šířku a styl (plný, čárkovaný nebo tečkovaný). Řádky obrysu jsou v Inspector pod **Fill** a tlačítko **Stroke** na liště objektu je otevře.
 
@@ -241,6 +243,8 @@ Dokument Design složený z kreslicích ploch už je sada snímků. Stiskni **Pr
 | **Escape** | Sloupne jednu vrstvu: přehled na sadu, sada na editor |
 
 Malý ovládací pruh se objeví, když pohneš ukazatelem, a znovu se skryje, když přestaneš. Pokud prohlížeč blokuje vyskakovací okno řečníka, zobrazení řečníka se otevře jako panel nad sadou. Poznámky patří ke každé kreslicí ploše a na snímku se nikdy neobjeví.
+
+Na dotykové obrazovce přejeď doleva pro další krok nebo snímek a doprava pro návrat. Přechod **Slide** nebo **Fade** sleduje tvůj prst a dokončí se, když pustíš; přechod **Cut**, **Morph** nebo **Fly between artboards** se přehraje celý, jakmile pustíš, a krátké pomalé přejetí nezmění nic. Pole webové stránky, ovládání videa, pole, která se posouvají, a vybraný text si drží vlastní gesta, takže přejetí na nich nikdy nezačne, a svislé posouvání a zoom štípnutím fungují jako obvykle. Při omezeném pohybu se snímek stále změní, ale nesleduje prst.
 
 - **Postupné odkrývání.** Klikni pravým tlačítkem na pole a místo **Always visible** zvol **Reveal at step 1**, **2** nebo **3** a pole počká, až postoupíš na jeho krok. Pole se stejným číslem přijdou společně.
 - **Kiosk.** Dej kreslicí ploše **Length** a sada tam tak dlouho setrvá a pak postoupí za tenkým ukazatelem průběhu. Přidej do odkazu `kiosk` a sada se na konci zacyklí, pro digitální signage.

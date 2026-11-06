@@ -72,7 +72,7 @@ shells/tui/         src/main.tsx (the full-screen app), src/bridge.ts
 
 ![430px 宽屏幕上的音频图：上方是控制项面板，下方是完成的方形作品，以及浮动的导出按钮](/t/url-shot?url=%2F%23%2Ftool%2Faudiogram%3Faudio%3Dlolly%2Floops%2Ffireplace-loop%26title%3DField%2520notes%26subtitle%3DEpisode%252012%26style%3Dwave&width=430&height=900&dpi=192&waitMs=3200&css=%23ag-wave%7Bdisplay%3Anone!important%7D.ag-ph%7Bdisplay%3Ablock!important%7D&walker=1&format=svg&rasterDpi=110&dark=1&filename=ov2-phone-audiogram)
 
-网页应用还附带 **Batch**（`#/batch`，`shells/web/src/pro/`），一个电子表格式的网格，可以跨一个或多个工具一次渲染多行；[批量生成与多重编辑](/info/batch.html#make-many-versions-of-one-design)介绍了 Batch。**Settings → Capabilities** 梳理了平台声明自己能做的一切。
+网页应用还附带 **Batch**（`#/batch`，`shells/web/src/pro/`），一个电子表格式的网格，可以跨一个或多个工具一次渲染多行；[批量生成与 Lolly Multi-edit](/info/batch.html#make-many-versions-of-one-design)介绍了 Batch。**Settings → Capabilities** 梳理了平台声明自己能做的一切。
 
 ![全新安装后的 Batch：一个空行在等待工具，电子表格界面和它的 Render 按钮在任何数据到来之前就已就位](/t/url-shot?url=%2F%23%2Fbatch&width=1440&height=900&dpi=192&waitMs=3500&walker=1&format=svg&dark=1&filename=ov2-batch-grid)
 
@@ -141,7 +141,7 @@ CLI 根据其参数构建同样的 URL 状态并运行同一条管线，所以 C
 
 - **`asset`**，带有 `filter` 和 `allowUpload`，是通往素材系统的桥梁。`allowUpload: false` 把一个槽位限制为库中的素材，用户上传与库共用 `AssetRef` 形状。
 - **`blocks`** 是在侧面板中编辑的重复字段组，Meeting Planner、Wayfinding、Diagrams 等工具都在使用。点击渲染出的块会聚焦到它的行。
-- **`file`** 在内存中保存用户自己的文件，供 Strip Hidden Data 和 Compress 之类的设备端实用工具使用，**`vector`** 则把一组固定的数字归为一个控制项。
+- **`file`** 在内存中保存用户自己的文件，供 Lolly Strip Hidden Data 和 Compress 之类的设备端实用工具使用，**`vector`** 则把一组固定的数字归为一个控制项。
 
 ### 9. 模板没有逻辑
 
@@ -149,7 +149,7 @@ CLI 根据其参数构建同样的 URL 状态并运行同一条管线，所以 C
 
 ### 10. 工具可以组合其他工具
 
-一个工具可以嵌入另一个工具的渲染结果，而无需工具之间互相导入；由引擎解析这种组合。清单可以声明 `composes: [{ id, tool, inputs }]`，并用 `{{asset <id>}}` 放置子项，可移植的嵌入 URL（`https://lolly.tools/tool/<id>.svg?…`）会在本地渲染子项，Design 就是这样放置实时二维码或图表的。SVG 子项在 SVG 或 PDF 父项中保持矢量。子项是中间产物，绝不加水印或盖章，无法渲染子项的外壳会让该槽位留空，而父项仍会渲染。[组合与品牌叠加](/info/tool-composition.html)有详细说明。
+一个工具可以嵌入另一个工具的渲染结果，而无需工具之间互相导入；由引擎解析这种组合。清单可以声明 `composes: [{ id, tool, inputs }]`，并用 `{{asset <id>}}` 放置子项，可移植的嵌入 URL（`https://lolly.tools/tool/<id>.svg?…`）会在本地渲染子项，Lolly Design 就是这样放置实时二维码或图表的。SVG 子项在 SVG 或 PDF 父项中保持矢量。子项是中间产物，绝不加水印或盖章，无法渲染子项的外壳会让该槽位留空，而父项仍会渲染。[组合与品牌叠加](/info/tool-composition.html)有详细说明。
 
 ## 我们选择不做什么
 

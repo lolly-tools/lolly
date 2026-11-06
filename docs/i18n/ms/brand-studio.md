@@ -1,10 +1,12 @@
-# Design System Setup
+# Lolly Design System Setup
 
-Logo, warna dan muka taip anda berada di satu tempat, supaya setiap alat, halaman dan eksport melukis dengannya. Tempat itu ialah **Design System Setup**, di `#/start`.
+<a id="design-system-setup"></a>
+
+Logo, warna dan muka taip anda patut berada di satu tempat, supaya setiap alat, halaman dan eksport melukis dengannya. Tempat itu ialah **Lolly Design System Setup**, di `#/start`.
 
 Mulakan dengan apa sahaja yang anda ada. Letakkan logo dan Lolly membaca warnanya. Pilih muka taip, atau letakkan fail fon yang dilesenkan syarikat anda. Setiap perubahan ditunjukkan merentasi keseluruhan apl serta-merta. Logo, fon dan token anda kekal pada peranti ini. Memilih Google Font ialah satu-satunya langkah yang menjangkau keluar: Lolly bertanya dahulu, kemudian mengambil keluarga itu sekali.
 
-Apabila ia kelihatan betul, namakan sistem reka bentuk dan tekan **Export**. Anda mendapat satu fail `.lolly` untuk disimpan, dibuka pada peranti lain atau diserahkan kepada rakan sekerja. [Lolly Settings](/info/dashboard.html#design-system) menunjukkan sistem aktif baca sahaja, dan kulitnya memaut kembali ke sini untuk penyuntingan.
+Apabila ia nampak betul, namakan sistem reka bentuk itu dan tekan **Export**. Anda mendapat satu fail `.lolly` untuk disimpan, dibuka pada peranti lain atau diserahkan kepada rakan sekerja. [Lolly Settings](/info/dashboard.html#design-system) menunjukkan sistem aktif sebagai baca sahaja, dan kulitnya memaut kembali ke sini untuk penyuntingan.
 
 ## Jadikan milik anda dalam lima minit
 
@@ -94,9 +96,9 @@ Bilik membesar bersama sistem reka bentuk: lawatan pertama ialah satu keputusan,
 
 ### Warna pertama
 
-Sistem tanpa warna sendiri dibuka pada satu cip besar dan satu medan, dengan baris yang menyatakan bahawa peranan, teduhan dan tetapan cetakan tiba semasa sistem membesar.
+Sistem tanpa warna sendiri menunjukkan neutral starter, terbuka dalam kumpulan sendiri, dan di bahagian atas bilik itu medan tampal dan letak bergaris putus-putus: satu cip besar dan satu medan. Letakkan imej atau senarai warna di mana-mana pada medan itu, dan Lolly membaca warna daripada apa yang anda letakkan.
 
-- **Cip ialah pemilih.** Tekan **Pick a colour** dan kad OKLCH studio dibuka, dibenihkan dengan apa yang dipegang medan: nama, roda, empat dail, alfa dan **Stored as**, dengan **Cancel** dan **Add colour** di kaki. Tiada apa-apa sampai ke sistem sehingga anda menekan **Add colour**.
+- **Cip ialah pemilih.** Tekan **Pick a colour** dan kad OKLCH studio dibuka, dibenihkan dengan apa yang dipegang medan: nama dan hex warna itu dahulu, dengan ruang warna, roda, empat dail dan alfa di bawah **Fine-tune**, serta **Cancel** dan **Add colour** di kaki. Tiada apa-apa sampai ke sistem sehingga anda menekan **Add colour**.
 - **Medan menerima sebarang notasi**: `#e0452b`, `rgb(224 69 43)`, `oklch(58% .19 32)` atau nama warna. Tampal senarai dan ia menjadi baris cip untuk ditambah satu demi satu atau dengan **Add all**.
 - **Dua lagi cara masuk.** **Pick a colour from the screen** menggunakan penitis mata di mana pelayar mempunyainya, dan **Take colours from an image** membaca tangkapan skrin atau foto pada peranti ini.
 - **Add tidak pernah dilumpuhkan.** Dengan medan kosong ia membuka pemilih; teks yang tidak boleh dibacanya mendapat baris di bawah medan yang menyatakannya.
@@ -106,23 +108,65 @@ Warna pertama anda menjadi **primary**, dan cip mengesahkannya, seperti *"Primar
 
 ### Seiring palet berkembang
 
-Warna anda berada di sebelah pratonton **In context** pada skrin lebar, dan di atasnya pada skrin lebih kecil. Pratonton menunjukkan poster, carta atau kad antara muka dalam palet anda. Warna starter kekal dalam kumpulan terlipat sendiri.
+Warna anda berada di sebelah pratonton **In context** pada skrin lebar, dan di atasnya pada skrin lebih kecil. Pratonton menunjukkan poster, carta atau kad antara muka dalam palet anda. Warna starter kekal dalam kumpulan terlipat sendiri, yang terlipat apabila sistem sudah mempunyai warna sendiri, dan medan tampal dan letak menjadi satu baris padat. Eksport berada dalam **Export** bar dan dalam bilik Tokens, jadi kepala bilik tidak membawa apa-apa.
 
 ![Bilik Colours pada Lolly Demo: palet dalam kumpulan terlipat, setiap warna dengan nama dan hex, dan muat turun palet di kepala](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-roles-fold%5D%3Esummary%3Bwait%3A500&format=svg&walker=1&localize=1&dark=1&filename=brand-colours)
 
-![Bilik Colours selepas menambah satu warna, dengan paletnya dan satu pratonton komposisi langsung](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dpick&width=1440&height=840&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-editor-add%5D%3Bwait%3A900&format=svg&walker=1&dark=1&filename=bs-colour-first)
+![Bilik Colours pada Lolly Demo selepas menambah satu warna: jadual Colour roles, kemudian cip warna baharu yang menawarkan Use as Lead? dan Fine-tune, di sebelah pratonton komposisi langsung](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dpick&width=1440&height=840&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-editor-add%5D%3Bwait%3A900&format=svg&walker=1&dark=1&filename=bs-colour-first)
+
+### Peranan warna: apa nama warna itu
+
+Sistem reka bentuk menyatakan apa nama warnanya dan untuk apa setiap satu, dan Lolly membacanya. **Colour roles** berada di kepala bilik Colours. Pada skrin lebar **In context** berkongsi paparan, jadi perubahan ditunjukkan pada poster, carta dan kad antara muka semasa anda membuat perubahan itu.
+
+![Jadual Colour roles pada Lolly Demo dalam perkataannya sendiri: cip colourway, kemudian Lead, Partner, Paper dan Ink, masing-masing dengan warna terang dan gelapnya, dibaca sebagai warna utama, warna rakan kongsi, latar belakang dan teks, dengan Quiet text dan Hairlines disenaraikan di bawah jadual sebagai bacaan yang tidak diisi mana-mana peranan](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=2720&height=2000&dpi=192&waitMs=1800&cropSelector=%5Bdata-be-roles-fold%5D&format=svg&walker=1&dark=1&filename=bs-colour-roles)
+
+Jadual itu mempunyai empat lajur, dan pada telefon setiap baris menjadi kad yang menyimpan terang dan gelap bersebelahan:
+
+| Lajur | Apa yang dipegangnya |
+|---|---|
+| **Peranan** | Perkataan sistem reka bentuk sendiri, yang boleh anda sunting di tempat, dan satu baris yang menyatakan untuk apa warna itu |
+| **Terang** dan **Gelap** | Warna dalam rupa itu bagi colourway yang dipilih, dengan nama atau nilainya, dan kontrasnya |
+| **Lolly membaca ini sebagai** | Apa yang dilakukan alat dengan peranan itu, dalam perkataan Lolly sendiri |
+
+**Cara Lolly membaca peranan.** Setiap bacaan diambil oleh satu peranan, jadi memilih bacaan yang dipegang peranan lain memindahkan bacaan itu ke sini. Lolly tidak pernah membaca makna daripada sesuatu perkataan.
+
+| Bacaan | Akibatnya |
+|---|---|
+| **Warna utama** | Bentuk besar, butang, warna yang menjadi pilihan utama alat |
+| **Warna rakan kongsi** | Warna kedua yang dicapai alat |
+| **Latar belakang** | Berada di belakang segala yang lain |
+| **Teks** | Tajuk dan teks badan |
+| **Teks senyap** | Kapsyen dan cetakan kecil |
+| **Garis halus** | Garisan, sempadan dan pembahagi |
+| **Mengikut nama sahaja** | Tiada alat memilih peranan itu dengan sendirinya. Ia ditawarkan dalam setiap medan warna dan dalam Design, tempat pilihan kekal dipautkan, jadi ia mengikut colourway |
+
+Bacaan yang tidak diisi mana-mana peranan kekal seperti yang ditakrifkan sistem reka bentuk, dan bilik itu menyenaraikannya di bawah jadual. Peranan yang berkongsi id dengan sesuatu bacaan, seperti peranan bernama Primary, ialah bacaan itu dan tidak boleh dialihkan.
+
+**Nilai.** Tekan nilai untuk memilih warna bagi peranan itu, dalam rupa itu, dalam colourway yang dipilih. **Sama seperti terang** menjadikan nilai gelap mengikut nilai terang sehingga anda memilih warna sendiri. Cip **Aa** menunjukkan teks yang dipilih Lolly untuk diletakkan pada warna itu, dan baris di bawah nilai menyatakan bagaimana teks itu dibaca, bagi setiap rupa: **Teks mudah dibaca**, **Teks besar sahaja** atau **Sukar dibaca sebagai teks**. Itu tentang teks pada warna dan tidak mengatakan apa-apa terhadap warna itu sendiri, yang masih boleh sesuai untuk bentuk dan kawasan besar. Peranan yang dibaca mengikut nama sahaja menunjukkan perkataan yang sama tanpa warna amaran, kerana tiada alat meletakkan teks padanya dengan sendirinya. Angka di sebalik perkataan itu, APCA dahulu dan WCAG kedua, ada dalam tip alat dan dalam pemilih. **Warna teks sendiri** menandakan nilai yang failnya menyatakan warna teks, yang kekal. **Disalin** menandakan nilai yang datang daripada colourway lain atau daripada warna rakan kongsi dan belum dipilih oleh sesiapa; **Kekalkan warna ini** dalam pemilih menetapkan nilai itu.
+
+**Titik permulaan.** Sistem reka bentuk tanpa peranan sendiri menunjukkan perkataan hari ini: Primary, Secondary, Surface dan Text. Tiada apa-apa ditulis sehingga anda mengubah satu. **+ Tambah peranan** menawarkan **Primary, Secondary** atau **Main, Accent, Supporting, Tertiary** sebagai cadangan, atau sebarang perkataan yang anda taip, dengan bacaan yang akan diperoleh setiap satu. Dua perkataan pertama menjadi warna utama dan warna rakan kongsi. Alat terus melukis warna yang sama, dan pada sistem dengan satu warna utama, colourway pertama dinamakan sempena warna itu.
+
+**Menamakan semula, menyusun semula, membuang.** Menamakan semula hanya mengubah perkataan, jadi segala yang menggunakan peranan itu terus berfungsi. Seret peranan pada pemegangnya, atau tekan Space pada pemegang, gunakan kekunci anak panah dan tekan Space untuk melepas. **Remove** menyatakan apa yang masih menggunakan peranan itu. Apabila alat membacanya, **Alih keluar dan kekalkan warna itu** membiarkan setiap bacaan dengan warna yang dilukisnya sekarang. Peraturan dalaman, kumpulan panduan, medan alat atau token lain yang menggunakan peranan itu memegangnya sehingga penggunaan itu berubah. Dokumen Design yang disimpan juga boleh menggunakan peranan mengikut nama, dan Lolly tidak dapat melihat itu daripada fail token: dokumen yang berbuat demikian melaporkan warna itu sebagai tidak diselesaikan.
+
+**Fail yang ditulis tangan.** Warna yang dipegang fail token tetapi tiada peranan mengisytiharkannya disenaraikan di bawah **Dalam fail ini, belum ada peranan**, masing-masing dengan medan untuk satu perkataan dan **Buat peranan**. Ia terus berfungsi mengikut nama dalam kedua-dua keadaan. Token dengan digit dalam namanya tidak boleh menjadi peranan, jadi ia kekal dalam fail dan terus berfungsi mengikut lalunya. Rekod dalam fail yang tidak disahkan menunjukkan jadual tanpa kawalan dan menyatakan sebabnya.
+
+**Selebihnya bilik itu menggunakan perkataan yang sama.** Cip, baris **Use as** swatch dan kumpulan **Colour roles** palet semuanya menggunakan perkataan sistem reka bentuk, dan jubin peranan warna membuka nilainya. Fail yang dieksport tidak merekodkan apa-apa yang baharu tentang peranan: warna dalam render berubah kerana token berubah.
+
+**Ke mana perkataan itu pergi.** Perkataan dan huraian bergerak bersama sistem reka bentuk. Ejen membacanya dalam ringkasan reka bentuk, `lolly://tokens` dan `AGENTS.md` halaman jenama, terminal menunjukkannya dalam `lolly system status`, dan halaman jenama menyenaraikannya dalam `brand.json` dan mengukur satu pasangan kontras bagi setiap peranan. Setiap format eksport mengekalkan apa yang ada ruangnya: fail DTCG dan Tokens Studio mengekalkan semuanya, `DESIGN.md` mengekalkan perkataan dan bacaan, dan tema PowerPoint hanya mengekalkan susunan jenama. [Colour roles in other formats](/info/design-tokens.html#colour-roles-in-other-formats) mempunyai senarai penuh. Perkataan sentiasa dipetik sebagai data sistem reka bentuk, tidak pernah dibaca sebagai arahan.
+
+**Di mana warna dipilih.** Setiap medan warna dalam alat dan dalam Lolly Design bermula dengan peranan sistem reka bentuk, mengikut susunannya sendiri, dengan setiap perkataan dan untuk apa warna itu ditunjukkan. **Aa** di sebelah peranan memilih warna yang diletakkan pada peranan itu. Selebihnya mengikut di bawah **Warna lain**, tanpa salinan colourway sendiri, warna-pada dan sebarang bacaan yang sudah diisi peranan. Pilihan kekal dipautkan kepada peranan dan mengikut colourway, medan terus menunjukkan perkataan itu walau colourway mana dipilih, dan Settings serta Tokens turut menggunakan perkataan itu. Sistem reka bentuk tanpa peranan mengekalkan grid swatch yang sentiasa ada padanya.
 
 ### Peranan: apa yang dibaca alat
 
-![The Colour roles table on Lolly Demo after choosing the suggested words Main, Accent, Supporting and Tertiary: the colourway chips, then each role with its light and dark colour, Main read as the lead colour and Accent as the partner colour, Supporting and Tertiary read by name only and marked Copied, and the readings no role fills listed under the table](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=2720&height=2000&dpi=192&waitMs=1800&cropSelector=%5Bdata-be-roles-fold%5D&format=svg&walker=1&dark=1&filename=bs-colour-roles)
+Apabila **Colour roles** ditutup, keputusan pertama mendahului bilik sebagai cip, masing-masing menunjukkan warna yang memainkan peranan itu dan namanya. Pada sistem tanpa perkataan sendiri ini ialah **Primary**, **Secondary**, **Surface** dan **Text**. Tekan cip untuk memilih warnanya daripada swatch palet sendiri. **Setiap warna yang dibaca alat**, di kaki **Colour roles**, mempunyai jalur penuh.
 
-**Roles** menyatakan warna mana memainkan setiap bahagian dalam setiap alat dan eksport. Ia pilihan (tiga warna longgar tanpa peranan ialah sistem yang baik sempurna), mana-mana warna boleh mengambil satu dan bacaan kontras diukur terhadap permukaan, APCA dahulu. Setiap baris peranan menunjukkan warna sendiri pada kekuatan penuh, warna starter yang bertumpu atau **↳ follows Primary**.
+**Roles** menyatakan warna mana memainkan setiap bahagian dalam setiap alat dan eksport. Ia pilihan (tiga warna longgar tanpa peranan ialah sistem yang baik sempurna), mana-mana warna boleh mengambil satu dan bacaan menunjukkan bagaimana teks dibaca, diukur terhadap permukaan, APCA dahulu. Setiap baris peranan menunjukkan warna sendiri pada kekuatan penuh, warna starter yang bertumpu atau **↳ follows Primary**.
 
-Setelah palet mempunyai teduhan, jalur menunjukkan ketujuh-tujuh peranan yang boleh dibaca alat: Primary, Secondary, Surface, Text, Muted, Edge dan On primary. On primary diperoleh daripada primer, berbunyi **Derived** dan tidak mempunyai pemilih.
+Jalur menunjukkan ketujuh-tujuh peranan yang boleh dibaca alat: Primary, Secondary, Surface, Text, Muted, Edge dan On primary, dalam perkataan sistem reka bentuk sendiri di mana ada. On primary diperoleh daripada primary, berbunyi **Derived** dan tidak mempunyai pemilih. Suis **Terang** dan **Gelap** di sebelahnya, dan yang di sebelah **In context**, memilih rupa mana yang ditunjukkan jalur, palet dan pratonton.
 
 Aksen apl sendiri mengikut sistem reka bentuk secara lalai. Itulah tetapan **Interface follows the design system** dalam **Settings → Appearance**; mematikan tetapan membiarkan chrome apl neutral, manakala alat, kanvas dan eksport mengikut sistem reka bentuk dalam kedua-dua keadaan.
 
-**Colourways.** Sistem reka bentuk boleh memegang beberapa warna utama, masing-masing dipilih bagi setiap karya. Baris **Skema warna** di kepala **Peranan warna** menunjukkan satu cip bagi setiap colourway, dengan **Lalai** pada yang kanonik. **+ Tambah** memulakan colourway baharu daripada salah satu warna palet. Pilih satu cip, dan jalur peranan, palet dan pratonton menyunting colourway itu, dalam rupa yang dipilih oleh suis **Terang** dan **Gelap**; colourway yang dipilih boleh dinamakan semula, diduakan, dijadikan lalai atau dialih keluar. Pada sistem dengan colourway, setiap colourway memerlukan primer dan sekunder sendiri, dan permukaan sendiri apabila colourway mewarnai latar, jadi peranan itu kekal ditetapkan dalam penyunting swatch. [Add colourways to a design system](/info/colourways.html#add-colourways-to-a-design-system) mempunyai langkah dan format token, dan [Lolly Demo in use](/info/lolly-demo-in-use.html#colourways-on-real-work) menunjukkan colourway pada kerja sebenar.
+**Colourways.** Sistem reka bentuk boleh memegang beberapa warna utama, masing-masing dipilih bagi setiap karya. Baris **Skema warna** di kepala **Peranan warna** menunjukkan satu cip bagi setiap colourway, dengan **Lalai** pada yang kanonik. **+ Tambah** memulakan colourway baharu daripada salah satu warna palet. Pilih satu cip, dan jadual, jalur, palet dan pratonton menunjukkan colourway itu; colourway yang dipilih boleh dinamakan semula, diduakan, dijadikan lalai atau dialih keluar. Pada sistem dengan colourway, setiap colourway memerlukan primary dan secondary sendiri, dan surface sendiri apabila colourway mewarnai latar, jadi peranan itu kekal ditetapkan dalam penyunting swatch. [Add colourways to a design system](/info/colourways.html#add-colourways-to-a-design-system) mempunyai langkah dan format token, dan [Lolly Demo in use](/info/lolly-demo-in-use.html#colourways-on-real-work) menunjukkan colourway pada kerja sebenar.
 
 ### Cari lebih banyak warna
 
@@ -165,7 +209,7 @@ Empat bahagian terlipat berada di bawah pratonton dan peranan. Setiap satu dibuk
 
 ### Palet dan setiap swatch
 
-Palet menyenaraikan warna anda dalam kumpulan terlipat, masing-masing dengan **+ Add** sendiri. Cipta dan namakan semula kumpulan sesuka hati. Peranan tidak pernah membuat jubin kedua: jubin yang ditunjuk peranan memakai tanda kecil sebaliknya (**P**, **S**, **Su**, **T**). **Colour chart** di bawah jubin menunjukkan warna yang sama pada **Wheel** OKLCH (seret titik untuk mewarnakan semula, klik ruang kosong untuk menambah swatch) dan carta **Gamut**, yang menunjukkan di mana julat boleh dipaparkan berakhir. `#/start?area=color&focus=chart` membuka carta terus.
+Palet menyenaraikan warna anda dalam kumpulan terlipat, masing-masing dengan **+ Add** sendiri. Cipta dan namakan semula kumpulan sesuka hati. Peranan tidak pernah membuat jubin kedua: jubin yang ditunjuk peranan memakai nama peranan itu sebaliknya, seperti **Primary**. **Colour chart** di bawah jubin menunjukkan warna yang sama pada **Wheel** OKLCH (seret titik untuk mewarnakan semula, klik ruang kosong untuk menambah swatch) dan carta **Gamut**, yang menunjukkan di mana julat boleh dipaparkan berakhir. `#/start?area=color&focus=chart` membuka carta terus.
 
 ![Anak tetingkap palet, setiap kumpulan boleh dilipat, dengan muat turun palet di kepalanya](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dgenerate%26seed%3D%2523e0452b&width=1440&height=1000&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-roles-fold%5D%3Esummary%3Bwait%3A500%3Bclick%3A%5Bdata-be-add-ramp%3D%22primary%22%5D%3Bwait%3A1200&cropSelector=.be-split-side&walker=1&format=svg&dark=1&filename=bs-palette-pane)
 
@@ -176,7 +220,7 @@ Klik swatch untuk membuka penyuntingnya:
 - **Rename** swatch.
 - **Tetapkan warna** pada peluncur OKLCH, atau dalam **Hex**, **HSL**, **RGB** atau **CMYK**. Medan nilai membaca dan menulis dalam ruang aktif. CMYK di sini menetapkan warna skrin melalui penukaran; untuk menyemat dakwat tepat, gunakan **Print substitutes**.
 - **Stored as** memilih cara swatch disimpan: **LCH** (lalai, persepsi dan gamut luas), Hex, RGB atau HSL.
-- **Use as** memberi swatch peranan secara terus. Tekan peranan yang diserlahkan sekali lagi untuk mengosongkan peranan.
+- **Use as** memberi swatch peranan secara terus, dalam perkataan sistem reka bentuk sendiri di mana ada. Tekan peranan yang diserlahkan sekali lagi untuk mengosongkan peranan.
 - **Print substitutes** (terlipat): kunci **CMYK** daripada **Auto** kepada nilai dakwat tepat, atau tetapkan **Spot colour** dengan **Name** (seperti `PANTONE 186 C`), **Book** pilihan dan **Finish** untuk foil, emboss, deboss, varnis spot, soft touch atau die cut, crease atau perforation. Mesin cetak menggunakan kunci ini apabila anda mengeksport PDF atau TIFF CMYK; lihat [Colour profiles](/info/exporting.html#colour-profiles).
 - **In other spaces** (terlipat): satu nilai bagi setiap ruang warna, diperoleh atau dikarang oleh anda, dan yang dikarang menang semasa eksport.
 
@@ -185,7 +229,7 @@ Klik swatch untuk membuka penyuntingnya:
 ::: details Bekerja dengan banyak swatch
 Setiap swatch mempunyai pemegang seret. Seret untuk menyusun semula dalam kumpulan, atau fokuskan pemegang, tekan Space, gunakan kekunci anak panah dan tekan Space sekali lagi untuk melepas; Escape membatalkan. Pada telefon palet menunjukkan empat warna sebaris dan pemegang muncul dalam mod Select, dan bukan sebagai baris di bawah setiap warna. Untuk memindahkan warna antara kumpulan, gunakan kawalan **Group** penyunting atau pilih beberapa dan gunakan **Move to**.
 
-Pemilihan tidak memerlukan mod. Bar muncul dengan jubin pertama yang dipilih dan pergi bersama yang terakhir.
+Pemilihan tidak memerlukan suis berasingan. Bar dan kotak semak muncul dengan jubin pertama yang dipilih dan pergi bersama yang terakhir.
 
 - **Seret pada ruang kosong** untuk melukis segi empat tepat; setiap jubin yang disentuhnya menyertai pilihan, merentasi kumpulan. Bahagian terlipat tidak menambah apa-apa.
 - **Shift-klik** mengambil julat mengikut susunan bacaan, **Cmd/Ctrl-klik** menogol satu jubin, dan klik biasa membuka penyunting.
@@ -245,11 +289,11 @@ Token ialah nilai bernama di sebalik sistem reka bentuk: warna, muka taip, logo,
 
 - **Kepala** memberikan contoh daripada sistem anda sendiri (*Primary is Spearmint, #033633*) dan tindakan fail: **Download** (keseluruhan sistem sebagai token reka bentuk, atau palet dalam lima format lain), **Copy CSS** dan **Add from…** untuk membaca semula fail JSON.
 - **Jubin** mengira setiap jenis token dan melompat ke bahagiannya: Colours, Type, Logos, Shape and spacing, More dan All tokens. Ia mengira apa yang dipegang setiap bahagian; bahagian yang hanya memegang apa yang datang bersama starter kosong memakai teg **Starter**, dan sistem yang datang bersama apl mengira bahannya sendiri tanpa teg. Pada telefon jubin dibalut kepada dua baris, tiga sebaris.
-- **Colours** bermula dengan pasangan yang diletakkan alat bersama (teks pada permukaan, pada primer, muted pada permukaan) dengan bacaan APCA dalam cerah dan gelap, dan menandakan **Weak contrast** di mana pasangan kurang. Kemudian setiap kumpulan warna: ramp sebagai satu baris cip, warna lain dengan nilai dan rujukan yang digunakan alat, seperti `{color.brand.spearmint}`. Tekan rujukan untuk menyalin rujukan. **Edit in Colours** membuka kumpulan dalam bilik Colours.
+- **Colours** bermula dengan pasangan yang diletakkan alat bersama (teks pada permukaan, pada primer, muted pada permukaan) dengan bacaan APCA dalam cerah dan gelap, dan menandakan **Weak contrast** di mana pasangan kurang. Kemudian setiap kumpulan warna: ramp sebagai satu baris cip, warna lain dengan nilai dan rujukan yang digunakan alat, seperti `{color.brand.spearmint}`. Tekan rujukan untuk menyalin rujukan. **Edit in Colours** membuka kumpulan dalam bilik Colours. Pada sistem reka bentuk dengan [peranan warna](#colour-roles-what-the-colours-are-called), **Colour roles** datang dahulu, dengan setiap peranan sekali dalam perkataan dan susunan sistem itu sendiri. Satu peranan menyimpan satu warna untuk setiap skema warna dan rupa, dan warna itu kekal bersama peranan dan tidak muncul sebagai warna tersendiri: ubahnya dalam jadual Colour roles.
 - **Type** dan **Logos** menyenaraikan muka bagi setiap peranan dan setiap slot logo, dengan **Edit in Type** dan **Edit in Logos** setelah anda mempunyai milik sendiri.
 - **Shape and spacing** memegang **Rounded corners** (`shape.radius`) dan **Spacing rhythm** (`space.base`). Masing-masing berbunyi *Lolly default* sehingga anda menggerakkan peluncur dan *Yours* selepas itu, menyimpan serta-merta dan boleh dibatalkan.
 - **More tokens** menambah jarak, saiz, lebar lejang, kelegapan, putaran, nombor biasa dan bayang, disimpan sebagai [token reka bentuk](/info/design-tokens.html) piawai.
-- **App appearance (advanced)** menyenaraikan warna, saiz dan bayang yang digunakan skrin Lolly sendiri, dan **Inspect every token (advanced)** mencari dan menyunting mana-mana nilai tersimpan, menunjukkan setiap perubahan untuk disemak dahulu.
+- **App appearance (advanced)** menyenaraikan warna, saiz dan bayang yang digunakan skrin Lolly sendiri, dan **Inspect every token (advanced)** mencari dan menyunting mana-mana nilai tersimpan, menunjukkan setiap perubahan untuk disemak dahulu. Di sana nilai peranan warna dalam setiap skema warna disenaraikan bersama peranan itu: pilih token peranan itu untuk melihat satu baris bagi setiap skema warna, terang dan gelap bersebelahan, dan baris kiraan menyatakan berapa banyak nilai yang dipegang oleh peranan. Sistem reka bentuk baca sahaja menunjukkan senarai yang sama.
 
 Bahagian tanpa apa-apa di dalamnya menawarkan cara mengisi jurang: **Pick a colour**, **Choose a face** atau **Add a logo**.
 
@@ -261,20 +305,22 @@ Letakkan fail yang disimpan jenama anda, selain logo: fail **vector**, **image**
 
 **Rules** meletakkan pilihan jenama anda untuk bekerja: apa yang boleh diubah orang, apa yang kekal tetap dan apa yang boleh disemak Lolly.
 
-![Rules pada Lolly Demo: kad Brand rules kosong dengan Add your first rule, kemudian Try your brand in use dengan contohnya sedia untuk dirender](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dusage&width=1440&height=1200&dpi=192&waitMs=2400&cropSelector=%23start-panel-usage&format=svg&walker=1&dark=1&filename=bs-usage-rules)
+![Rules pada Lolly Demo: empat peraturan dalaman, masing-masing ditandakan Checked in Lolly Design dan Required atau Advisory, kemudian Try your design system in use dengan contohnya sedia untuk dirender](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dusage&width=1440&height=1200&dpi=192&waitMs=2400&cropSelector=%23start-panel-usage&format=svg&walker=1&dark=1&filename=bs-usage-rules)
 
 **Brand rules** menyenaraikan peraturan anda. **Add rule** (atau **Add your first rule**) membuka borang ringkas:
 
 - **Rule name** dalam perkataan anda sendiri, seperti *Beacon accents*;
 - **Check**: **Colour choices**, **Font choices**, **Fixed artwork** atau **Text length**, dengan peranan jenama yang digunakannya, di bawah nama anda sendiri bagi peranan itu;
-- **Example** yang digunakannya (Poster, Title slide, Content slide atau Chart), **Mode** dan sama ada ia **Required** atau **Advisory**;
+- **Example** yang digunakannya (Poster, Title slide, Content slide atau Lolly Chart), **Mode** dan sama ada ia **Required** atau **Advisory**;
 - **Reviewed by**, kemudian **Save draft** atau **Approve & save**.
 
 Kelulusan merekodkan keputusan anda sendiri pada peranti ini. Peraturan wajib yang diluluskan mengekang poster boleh guna semula, dan semakan hanya meliputi PNG contoh; ia tidak mengubah alat lain.
 
-Peraturan yang dibawa sistem reka bentuk dalam fail tokennya, seperti pasangan warna yang diluluskan, berat dan penjajaran teks atau logo bagi setiap permukaan, disenaraikan di sini sebagai **Checked in Design**. Design menyemaknya lapisan demi lapisan dalam kad **Before you export** panel eksport, dan `lolly check` melakukan perkara yang sama untuk dokumen Design tersimpan ([Before you export](/info/design.html#before-you-export)). Peraturan yang tiada penyemaknya dalam binaan ini disimpan seperti yang dibekalkan dan ditandakan **Unchecked**.
+Peraturan yang dibawa sistem reka bentuk dalam fail tokennya, seperti pasangan warna yang diluluskan, berat dan penjajaran teks atau logo bagi setiap permukaan, disenaraikan di sini sebagai **Checked in Lolly Design**. Lolly Design menyemaknya lapisan demi lapisan dalam kad **Before you export** panel eksport, dan `lolly check` melakukan perkara yang sama untuk dokumen Lolly Design yang disimpan ([Before you export](/info/design.html#before-you-export)). Peraturan yang tiada penyemaknya dalam binaan ini disimpan seperti yang dibekalkan dan ditandakan **Unchecked**.
 
-**Try your brand in use** merender empat contoh daripada semakan semasa dengan **Render & check examples**. Pilih **Brand mode** dan **Try your own text** untuk tajuk, teks sokongan dan teks slaid. Setiap contoh melaporkan apa yang diukur, dengan **See checks & sources** dan **Download check report**, dan **Make reusable poster** memuat turun `.lolly` yang susun atur tetap dan pilihan input yang diluluskan dibawa bersama fail. Contoh adalah setempat: tiada apa-apa diterbitkan atau diluluskan dengan menjalankan semakan.
+Lolly Demo membawa empat peraturan dalaman yang diluluskan. Tajuk tidak pernah ditetapkan dalam huruf besar: peraturan itu wajib, jadi `lolly check` melaporkan tajuk dalam huruf besar sebagai ralat. Tiga yang lain bersifat nasihat. Teks badan dijajarkan ke kiri. Tanda primer diletakkan pada permukaan cerah dan tanda terbalik pada permukaan gelap. Garis putus-putus bermaksud letakkan di sini.
+
+**Try your design system in use** merender empat contoh daripada semakan semasa dengan **Render & check examples**. Pilih **Mode** dan **Try your own text** untuk tajuk, teks sokongan dan teks slaid. Setiap contoh melaporkan apa yang diukur, dengan **See checks & sources** dan **Download check report**, dan **Make reusable poster** memuat turun `.lolly` yang susun atur tetap dan pilihan input yang diluluskan dibawa bersama fail. Contoh adalah setempat: tiada apa-apa diterbitkan atau diluluskan dengan menjalankan semakan.
 
 Binaan yang dihantar dengan jenama tetap menunjukkan peraturan dan contoh yang sama baca sahaja, di bawah *This brand is set*.
 
@@ -288,7 +334,7 @@ Binaan yang dihantar dengan jenama tetap menunjukkan peraturan dan contoh yang s
 
 **Add from…** dalam bar membuka pemilih yang bertanya apa yang anda ada, bukan apa formatnya:
 
-- **Design tokens or a design file**: JSON DTCG atau Tokens Studio, projek Penpot, zip set token, pek sistem reka bentuk Lolly atau SVG.
+- **Design tokens or a design file**: JSON DTCG atau Tokens Studio, projek Penpot, zip set token, pek sistem reka bentuk Lolly, SVG, `DESIGN.md` atau folder halaman jenama.
 - **PDF**: dek atau fail garis panduan, dibaca pada peranti ini untuk warna, lambang dan muka taip terbenamnya.
 - **Logo or screenshot**: imej menjadi palet yang dicadangkan, dibaca pada peranti ini. Ia membaca warna, bukan muka taip atau reka letak.
 - **Saved web page**: satu fail HTML dan fail CSS-nya, atau HTML atau CSS yang ditampal, sehingga 20 fail dan 2 MB. Hanya teks yang anda bekalkan dibaca: sumber yang dipaut tidak diambil dan skrip tidak dijalankan.
@@ -301,8 +347,18 @@ Pilih sumber fail reka bentuk dan kad seterusnya menyenaraikan format yang diter
 
 - **Pek sistem reka bentuk Lolly** (`.lolly`, atau `.zip` legasi) dipasang dalam satu langkah.
 - Eksport **Penpot** (`.penpot`) membawa token reka bentuknya.
-- Fail **Design Tokens** (W3C DTCG) atau **Tokens Studio** (`.json`) membawa tokennya.
-- **SVG biasa** diimbas untuk warna yang anda pilih, yang pertama menjadi primer anda.
+- Fail **Design Tokens** (W3C DTCG) atau **Tokens Studio** (`.json`) membawa tokennya. Huraian yang meminta pembaca mengabaikan arahan, mendakwa kebenaran atau meminta kod dijalankan ditinggalkan, dan import menyatakan di mana ia berada. Ini semakan baris demi baris dan terlepas perkataan lain, jadi bacalah fail daripada orang yang anda tidak kenali sebelum anda menggunakan token.
+- **SVG biasa** diimbas untuk warna yang anda pilih, yang pertama menjadi primary anda.
+- **`DESIGN.md`** (`.md`) pergi ke **Try these colours** dengan tokennya seperti yang ditulis. Prosanya boleh disimpan sebagai draf kemahiran jenama, dan kad menandakan baris yang meminta pembaca mengabaikan arahan, mendakwa kebenaran atau menjalankan kod. Ejen dan halaman jenama tidak melihat draf sehingga anda menekan **Keep this skill** dalam bilik Skills, dan kemahiran yang disimpan kekal dalaman.
+- **Folder halaman jenama**, yang dipilih sebagai folder, diletakkan atau dizip, pergi ke semakan yang sama. Setiap fail disemak terhadap `brand.json` folder itu, dan satu yang tidak sepadan menolak seluruh folder. Ia menambah token. Logo dan fon kekal dalam folder.
+
+Lolly membaca halaman jenama daripada fail yang anda bekalkan. Ia tidak mengambil alamat laman lain.
+
+### Fail dengan perkataan warnanya sendiri
+
+Fail token atau `DESIGN.md` boleh menggunakan perkataannya sendiri untuk warnanya, seperti main, accent, supporting dan tertiary. Apabila Lolly menemui perkataan sedemikian, semakan menyenaraikan setiap satu sebelum apa-apa digunakan: perkataan itu, warnanya dalam setiap rupa, token asalnya dan apa yang akan dibaca Lolly sebagai. Lolly mencadangkan bacaan itu daripada perkataan sahaja, berdasarkan senarai pendek, dan tidak menggunakan model. Perkataan di luar senarai tiba sebagai milik jenama sendiri, **Mengikut nama sahaja**. Namakan semula mana-mana perkataan, nyatakan untuk apa ia, bacalah sebagai sesuatu yang lain, atau nyahtanda untuk membiarkannya sebagai warna bernama.
+
+**Install with these roles** menulisnya, dan **Install without roles** memasang fail tepat seperti ia datang. Fail tanpa perkataan sedemikian tidak menunjukkan langkah baharu. Fail yang menyatakan peranannya sendiri, seperti yang ditulis Lolly, menunjukkannya seperti yang ditulis dan memasangnya tanpa perubahan, dan anda boleh menyuntingnya kemudian dalam bilik Colours. Terminal tidak mempunyai semakan, jadi `lolly system import` mengekalkan rekod yang dinyatakan dan membiarkan perkataan fail lain sebagai warna bernama.
 
 ### Semak rujukan
 
@@ -316,7 +372,7 @@ Import PDF dan fail reka bentuk mengekalkan kawalan semakan sendiri. Item dalam 
 
 Buka **Find a look** daripada Board atau daripada senarai sistem reka bentuk dalam Settings. Layari sistem yang disimpan pada peranti ini dan beberapa contoh Lolly boleh guna semula, dan cari mengikut nama, teg warna atau fon yang diisytiharkan. **Closest to my current palette** mengisih mengikut persamaan warna yang diukur, dengan fon yang sepadan memutuskan seri; ia bukan skor kualiti.
 
-Pilih satu rupa untuk menyemaknya, atau dua untuk dibandingkan bersebelahan. Memilih tidak mengubah apa-apa. **Use this saved system** bertukar kepadanya, dan **Use these colours** menggunakan warna contoh melalui titik semak biasa, mengekalkan fon anda. **Restore brand settings** memulihkan rupa sebelumnya. Sistem tersimpan mempunyai **Search tags** boleh sunting di bawah **Details and design context**. Contoh ialah resipi warna Lolly asli, tanpa koleksi yang diraut dan tanpa akaun.
+Klik satu rupa untuk mempratonton dalam konteks. Pratonton tidak mengubah apa-apa. **Use this look** pada setiap kad menggunakan rupa itu. Sistem tersimpan menjadi yang aktif, yang tidak menyunting apa-apa. Warna contoh melalui titik semak biasa ke dalam sistem reka bentuk yang terbuka, yang logo, fon dan segala yang tidak ditakrifkan contoh itu kekal seperti sedia ada. **Compare looks** menambah kotak semak pada setiap kad, supaya anda boleh memilih dua dan membandingkannya bersebelahan. **Restore brand settings** memulihkan rupa sebelumnya. Sistem tersimpan mempunyai **Search tags** boleh sunting di bawah **Details and design context**. Contoh ialah resipi warna Lolly asli, tanpa koleksi yang diraut dan tanpa akaun.
 
 ![Bandingkan Sunroom dan Orchard bersebelahan sebelum menggunakan mana-mana satu sistem warna.](/t/url-shot?url=%2F%23%2Fstart&width=1280&height=900&dpi=96&waitMs=3000&format=svg&filename=brand-compare-looks&try=1&drive=click%3A%5Bdata-ds-door%3D%22looks%22%5D%3Bwait%3A500%3Bclick%3A%5Bdata-looks-compare-toggle%5D%3Bclick%3A%5Bdata-look-select%3D%22example%3Asunroom%22%5D%3Bclick%3A%5Bdata-look-select%3D%22example%3Aorchard%22%5D%3Bclick%3A%5Bdata-looks-review%5D%3Bwait%3A500&cropSelector=.ds-looks-comparison&waitSelector=%5Bdata-ds-door%3D%22looks%22%5D&walker=1&rasterDpi=96)
 
@@ -344,13 +400,35 @@ Versi yang diterbitkan ialah **salinan kekal yang bernama** yang disimpan pada p
 
 **Publish only** menyimpan versi tanpa mengubah apa yang diikuti alat; **Publish and make active** menjadikan alat dan apl mengikut versi itu. **Follow the latest again** menjadikan setiap suntingan aktif sebaik anda membuat suntingan itu.
 
+### Terbitkan halaman jenama
+
+[Halaman jenama](/info/brand-page.html) ialah satu alamat untuk orang dan untuk ejen: halaman yang menunjukkan logo, warna, jenis huruf dan contoh, dengan fakta yang sama dalam fail di sebelah halaman. **Publish a brand page**, di bawah Versions & publishing, menunjukkan halaman langsung dan, di sebelah halaman:
+
+- **Menjadi awam**: setiap fail, dikumpulkan, dengan saiznya.
+- **Ditahan**: apa yang kekal di luar, dan sebabnya. Logo tanpa lesen yang direkodkan kekal di luar sehingga anda menanda nama logo itu. Fail fon memerlukan lesen yang direkodkan yang membenarkan pengedaran semula, dan halaman menunjukkan spesimen beroutline apabila fail itu kekal di luar. Kemahiran jenama dalaman tidak pernah muncul.
+- **Apa yang disemak**: pasangan warna bagi setiap colourway dan mod, serta peraturan dalaman. Ini ialah pengukuran, bukan keputusan.
+- **Dalam perkataan anda**: pernyataan penggunaan dan satu kenalan. Halaman mencetak apa yang anda tulis dan Lolly tidak menambah lesen atau dakwaan undang-undang. Satu suis mematikan baris "Made with Lolly" di pengaki.
+- **Pada eksport**: suis yang [merekodkan alamat halaman dalam eksport sistem reka bentuk ini](/info/brand-page.html#lead-back-from-your-files). Ia mati sehingga anda menghidupkannya, ia memerlukan alamat `https`, dan ia tidak bergerak bersama pek atau salinan. Sistem reka bentuk yang dikunci tidak menunjukkan suis itu, kerana pengurusnya yang memutuskan.
+
+**Download folder** menyimpan folder sebagai ZIP untuk anda hoskan di mana-mana yang anda pilih, dan tiada apa-apa menjadi awam sehingga anda berbuat demikian. Dalam terminal, `lolly system publish --out=<dir>` menulis folder yang sama. Instans yang menyajikan halaman jenama turut menawarkan **Publish to** alamatnya, iaitu satu tekanan yang jelas, dan melalui rantaian kelulusannya apabila ada. Sistem reka bentuk terurus hanya diterbitkan apabila pengurusnya membenarkan.
+
+### Sambung ejen
+
+**Connect an agent**, di tempat yang sama, memberi anda teks untuk ditampal dan menyatakan apa yang boleh dilakukan setiap pilihan:
+
+- **`AGENTS.md`** dalam projek: ejen membaca nama dan peraturan sistem. Ia tidak melukis apa-apa dan tidak memerlukan pelayan.
+- **Pelayan awam Lolly**: melukis dengan Lolly Demo, sistem mana pun yang anda buka di sini. Ia tidak memerlukan kunci.
+- **Instans anda**: melukis dengan sistem yang dipegang instans itu, dan membaca token perkhidmatan daripada pemboleh ubah persekitaran. Helaian memberikan nama pemboleh ubah dan tidak pernah menunjukkan token.
+
+Apabila tiada pelayan terhos melukis dengan sistem anda, helaian menyatakannya.
+
 ## Urus sistem reka bentuk anda
 
 Buka **Settings → Preferences → Design systems** untuk menukar, menambah atau membuang sistem. **Open** memilih sistem dan membukanya di sini; **Make a new one** mencipta sistem setempat dan membukanya dengan medan namanya sedia. Satu sistem aktif pada satu masa, untuk seluruh peranti. [Brand architectures](/info/brand-architectures.html) membantu memutuskan bila jenama memerlukan sistem reka bentuk sendiri.
 
 **Dari mana sistem datang.** Sistem yang dibekalkan katalog penempatan berbunyi **Came with this app**, atau **From this instance** dalam apl yang disambungkan kepada satu. Kembangkan **Catalogue source** untuk melihat siapa yang membekalkannya, aset token dan ruang namanya serta versi atau checksum yang diketahui; jika penyegaran gagal, bahan yang dicache dilabelkan.
 
-**Sistem terurus adalah baca sahaja.** Sistem berbunyi **Managed by this instance** (atau **Managed by this app** dalam apl desktop tanpa instans) apabila katalognya mengunci sistem. Anda boleh menggunakan dan memuat turunnya, dan membukanya di sini menunjukkan nota baca sahaja dengan **Make an editable copy** dan **Switch**. Sistem setempat anda sendiri kekal boleh sunting, walaupun yang terurus datang dahulu. Binaan dengan satu jenama tetap membuka Design System Setup pada *This brand is set*, dengan token dan peraturan penggunaan jenama untuk dibaca.
+**Sistem terurus adalah baca sahaja.** Sistem berbunyi **Managed by this instance** (atau **Managed by this app** dalam apl desktop tanpa instans) apabila katalognya mengunci sistem. Anda boleh menggunakan dan memuat turunnya, dan membukanya di sini menunjukkan nota baca sahaja dengan **Make an editable copy** dan **Switch**, kemudian peranan warna dan tokennya tanpa kawalan penyuntingan. Sistem setempat anda sendiri kekal boleh sunting, walaupun yang terurus datang dahulu. Binaan dengan satu jenama tetap membuka Lolly Design System Setup pada *This brand is set*, dengan token dan peraturan penggunaan jenama untuk dibaca.
 
 **Setiap sistem lain yang dibekalkan adalah milik anda** untuk disembunyi, disunting dan ditetapkan semula, termasuk Lolly Demo dan Lolly Starter pada lolly.tools. Menyunting satu mengekalkan namanya dan menandakan baris **Edited here**, dan **Reset to original** dalam menunya membuang perubahan yang dibuat pada peranti ini. Starter kosong ialah pengecualian: perubahan pertama di situ memulakan sistem reka bentuk anda sendiri, jadi Lolly bertanya sekali apa nama sistem baharu. [Lolly Demo in use](/info/lolly-demo-in-use.html#switch-to-your-own) menunjukkan apa yang digantikan sistem anda sendiri.
 
@@ -360,16 +438,17 @@ Pilih **Remove** daripada menu sistem; pengesahan menyatakan sistem mana yang ak
 
 Membuang sistem yang dibekalkan hanya menyembunyikannya: aset katalognya kekal, **Bring back** menunjukkannya semula dan ia kembali dengan sendirinya jika anda membuang yang lain. Membuang salinan yang diimport atau disunting tidak membuang sistem yang dibekalkan, logo atau fontnya, dan jika salinan itu aktif, sistem yang dibekalkan menjadi aktif semula. Membuang salinan terhos yang aktif hanya mengosongkan sambungan salinan itu; instans yang dipilih secara berasingan kekal dipilih.
 
-Mengubah apa yang dibekalkan pelayan ialah tugas pentadbir: pengendalinya mengubah katalog sumber dan menempatkan semula, atau pentadbir Lolly Work menyemak dan menggunakan perubahan pelayan. Suntingan di sini kekal setempat. Lihat [Removing a catalogue design system](/info/configuration.html#removing-a-catalogue-design-system) dan [Configuration](/info/configuration.html#supplied-and-local-design-systems).
+Mengubah apa yang dibekalkan pelayan ialah tugas pentadbir: pengendalinya mengubah katalog sumber dan menempatkan semula, atau pentadbir Lolly Work menyemak dan menggunakan perubahan pelayan. Suntingan di sini kekal setempat, dengan satu pengecualian: pada instans Lolly Work yang memberi anda `brand.edit`, sistem terurus turut menawarkan **Edit for** instans itu, yang membuka salinan penyuntingan, dan **Send to** instans itu dalam **Versions** menghantar semula warna, colourway, peranan warna dan alamat halaman jenamanya. [Edit this instance from the studio](/info/work-design-system-administration.html#edit-this-instance-from-the-studio) meliputi apa yang boleh diubah oleh suntingan dan cara instans menyajikan perubahan itu. Lihat [Removing a catalogue design system](/info/configuration.html#removing-a-catalogue-design-system) dan [Configuration](/info/configuration.html#supplied-and-local-design-systems).
 
 ## Gunakan konteks reka bentuk di luar apl
 
-**Download design context** menyimpan dokumen token, warna yang diselesaikan, keluarga fon yang diisytiharkan, id aset, bukti sumber di mana direkodkan, liputan dan peraturan eksplisit, tanpa fail fon dan tanpa bukti pemilikan. Baris perintah membaca fail tanpa pelayan: `lolly system import` menjadikannya sistem reka bentuk terminal dan `lolly system check` menyemak input Design terhadap konteks tersimpan. [Bring your design system](/info/cli.html#bring-your-design-system) meliputi import dan [Which design system a command uses](/info/cli-decks.html#which-design-system-a-command-uses) meliputi semakan, dan klien MCP membaca ringkasan yang sama daripada `lolly://design-context` ([MCP Server](/info/mcp.html)).
+**Download design context** menyimpan dokumen token, warna yang diselesaikan, keluarga fon yang diisytiharkan, id aset, bukti sumber di mana direkodkan, liputan dan peraturan eksplisit, tanpa fail fon dan tanpa bukti pemilikan. Baris perintah membaca fail tanpa pelayan: `lolly system import` menjadikannya sistem reka bentuk terminal dan `lolly system check` menyemak input Lolly Design terhadap konteks tersimpan. [Bring your design system](/info/cli.html#bring-your-design-system) meliputi import dan [Which design system a command uses](/info/cli-decks.html#which-design-system-a-command-uses) meliputi semakan, dan klien MCP membaca ringkasan yang sama daripada `lolly://design-context` ([MCP Server](/info/mcp.html)).
 
 ## Ke mana seterusnya
 
 - **[Using Lolly](/info/using.html)**: alat, penyimpanan, perkongsian dan Assets.
-- **[Brand architectures](/info/brand-architectures.html)**: bagaimana bahagian, produk, jenama yang disokong, pelanggan dan musim dipetakan kepada sistem reka bentuk, colourway dan identiti logo.
-- **[Design Tokens](/info/design-tokens.html)**: model token tempat jenama anda ditulis.
-- **[Export a file](/info/exporting.html)**: unit cetakan, CMYK dan format yang dirender jenama anda.
-- **[Working with partners](/info/partners.html)**: berkongsi jenama anda dengan rakan kongsi, dan bekerja dalam jenama yang diberikan kepada anda.
+- **[Seni bina jenama](/info/brand-architectures.html)**: cara bahagian, produk, jenama yang disokong, pelanggan dan musim dipetakan kepada sistem reka bentuk, colourway dan identiti logo.
+- **[Bekerja dengan rakan kongsi](/info/partners.html)**: berkongsi jenama anda dengan rakan kongsi, dan bekerja dalam jenama yang diberikan kepada anda.
+- **[Halaman jenama](/info/brand-page.html)**: terbitkan sistem reka bentuk anda pada satu alamat, sebagai kit akhbar dan kit ejen.
+- **[Design Tokens](/info/design-tokens.html)**: model token yang menjadi tulisan jenama anda.
+- **[Eksport fail](/info/exporting.html)**: unit cetakan, CMYK dan format yang dirender jenama anda.

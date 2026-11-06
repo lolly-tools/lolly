@@ -1,8 +1,10 @@
-# Batch en Multi-edit
+# Lolly Batch en Lolly Multi-edit
+
+<a id="batch-and-multi-edit"></a>
 
 Zodra je vaak hetzelfde soort bestand maakt, komen twee klussen naar boven. Soms heb je veel versies van één ontwerp nodig: een kaart in een tiental talen, of elk formaat van een banner. Soms heb je meerdere verschillende opgeslagen ontwerpen en wil je dat één wijziging ze allemaal bereikt, zoals een nieuwe datum of een nieuwe kop.
 
-**Batch** doet de eerste klus en **Multi-edit** de tweede. Beide draaien op je apparaat en exporteren via hetzelfde renderpad als de tools zelf.
+**Lolly Batch** doet de eerste klus en **Lolly Multi-edit** de tweede. Beide draaien op je apparaat en exporteren via hetzelfde renderpad als de tools zelf.
 
 ::: cols
 ## Batch
@@ -10,9 +12,10 @@ Zodra je vaak hetzelfde soort bestand maakt, komen twee klussen naar boven. Soms
 - Eén sjabloon, veel rijen. Elke rij is één set invoer en maakt één bestand.
 - Vul de rijen door te typen, te plakken uit een spreadsheet of een CSV te importeren.
 - Geen grens aan rijen; 50 per pagina getoond.
-- Opent via **Batch** in de kop van Projects (`#/batch`).
+- Opent via **Lolly Batch** in de kop van Projects (`#/batch`).
 
-## Multi-edit
+<a id="multi-edit"></a>
+## Lolly Multi-edit
 
 - Twee tot acht verschillende opgeslagen ontwerpen, naast elkaar als live kaarten.
 - Eén zijbalk bewerkt de invoer die ze delen, daarna die van elke kaart zelf.
@@ -22,7 +25,7 @@ Zodra je vaak hetzelfde soort bestand maakt, komen twee klussen naar boven. Soms
 
 ## Maak veel versies van één ontwerp
 
-Open **Projects** en druk in de kop op **Batch**. Het raster begint met één rij: kies daarin een sjabloon, en dupliceer dan de rij of plak gegevens uit je spreadsheet. Als Batch vanuit een map wordt geopend, brengt het je terug naar die map.
+Open de weergave **Projects** en druk in de kop op **Batch**. Het raster begint met één rij: kies daarin een sjabloon, en dupliceer dan de rij of plak gegevens uit je spreadsheet. Als Batch vanuit een map wordt geopend, brengt het je terug naar die map.
 
 ![Batch op een nieuw raster: de bestandsnaam en de rijtools bovenaan, en de sjabloonlijst van de eerste rij open op de tools die je kunt kiezen](/t/url-shot?url=%2F%23%2Fbatch&width=1440&height=900&dpi=192&waitMs=3500&walker=1&format=svg&dark=1&filename=use-batch-toolbar)
 
@@ -46,9 +49,13 @@ Elke rij behoudt haar eigen themakeuzes: licht of donker, en een colourway wanne
 
 Een CSV draagt de keuzes in een kolom `_themes` na de formaatkolommen, met dezelfde JSON als de linkparameter `_themes`, bijvoorbeeld `{"":"dark","colourway":"beach"}`. Een lege cel, of `{}`, betekent de standaardwaarden van het design system. De kolom wordt alleen geschreven wanneer een rij keuzes heeft, dus een batch zonder keuzes exporteert dezelfde CSV als eerder. Bij import wordt een cel die geen geldige themakeuzes is als probleem vermeld en rendert haar rij in de standaardwaarden. Het raster heeft nog geen bediening om de keuzes van een rij te wijzigen, dus stel ze in de CSV of in de opgeslagen sessie in.
 
+### Een taal voor elke rij
+
+Een tool die zijn eigen tekst afdrukt, zoals Certificate, kan een kolom `language` met een korte taalcode zoals `de`, `ja` of `ar` accepteren. Elke rij drukt dan zijn tekst en zijn datum in die taal af, en Arabische en Urdu-rijen worden van rechts naar links opgemaakt. Een lege cel volgt de taal van de app. Een taal waarvan Lolly nog geen vertaling heeft, wordt in het Engels afgedrukt, datum inbegrepen, zodat een certificaat nooit half vertaald is.
+
 ### Batch, of Render folder
 
-Batch maakt veel varianten van één sjabloon. Om sessies opnieuw te renderen die je al hebt opgeslagen, selecteer je ze in Projects en gebruik je **Render selection**, of **Render folder** voor een hele map; [Je werk vinden en terughalen](/info/find-your-work.html#find-something-you-saved) behandelt beide.
+Lolly Batch maakt veel varianten van één sjabloon. Om sessies opnieuw te renderen die je al hebt opgeslagen, selecteer je ze in Projects en gebruik je **Render selection**, of **Render folder** voor een hele map; [Je werk vinden en terughalen](/info/find-your-work.html#find-something-you-saved) behandelt beide.
 
 ## Bewerk meerdere opgeslagen ontwerpen samen
 
@@ -69,7 +76,7 @@ Elke kaart tekent in de themakeuzes van haar eigen sessie, ook een tool die in h
 - **Maximaal acht.** Elke kaart laadt zijn eigen live runtime, en acht is het aantal dat responsief blijft. Een link die om meer vraagt, of om een sessie die niet meer bestaat, zegt dat in plaats van half te laden.
 - **De link is lokaal.** Hij noemt je eigen opgeslagen slots, dus hij heropent die set op dit apparaat. Het is geen deellink.
 - **Voor iets groters** kies je **Edit as sheet** in dezelfde selectiebalk. Het opent de hele selectie als rijen in het batchraster (`#/batch?s=…`), zonder groottegrens en zonder regel dat het dezelfde tool moet zijn. Mappen blijven buiten beide: open een map in het raster met **Sessions → Folders…**, of render er een met **Render folder** in Projects.
-- **Zoeken bereikt Multi-edit niet.** Het is de ene weergave die de zoekbalk niet kent.
+- **Zoeken bereikt Lolly Multi-edit niet.** Het is de ene weergave die de zoekbalk niet kent.
 
 ## Waar je hierna heen kunt
 

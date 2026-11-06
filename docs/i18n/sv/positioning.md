@@ -2,9 +2,13 @@
 
 Lolly är två delar av ett projekt med öppen källkod. **Lolly** är motorn, apparna och verktygen för att skapa, redigera, konvertera och exportera på din enhet, utan konto. **Lolly Work** är organisationsservern, driven på din egen infrastruktur, för inloggning, delade projekt, godkännanden och serverrendering. Båda är MPL-2.0. Den här sidan jämför paret med de andra sätten folk designar, styr och producerar filer.
 
+Den organiserande idén är [innehållssuveränitet](/info/content-sovereignty.html): kontroll över hur innehåll skapas, styrs, lagras och flyttas mellan valda system. Kreativa program kan leverera designer, en DAM kan förbli källan till sanning, och Lolly kan göra tillåtna indata och godkända tillgångar till nya filer. [Använd Lolly med din befintliga DAM](/info/use-with-dam.html) beskriver den kombinationen.
+
 ## Dagens verktyg
 
 Varje ring poängsätter hur fullständigt en produktklass levererar en förmåga, med varje klass poängsatt på sin bästa representant. Kolumnen Lolly täcker Lolly och Lolly Work tillsammans, och varje rad säger vilken del som ger vad. Öppna ett radnamn för resonemanget bakom dess poäng. Kolumnerna är sorterade efter raden Overall completeness överst: medelvärdet av de poängsatta raderna, med kostnadsraden undantagen.
+
+Poängen utgår från Lollys preferens för kontroll utan konto eller molnförutsättning. De är en jämförelse under de kriterierna, inte en neutral rangordning av produkters fullständighet eller en upphandlingspoäng för företag. Läs förmågornas, driftsättningens och beläggens gränser var för sig när du utvärderar ett särskilt arbetsflöde.
 
 ::: figure positioning-comparison
 Förmågejämförelse: konkurrentundersökning och poäng från augusti 2026; täckningen för Lolly + Lolly Work granskad 28 september 2026. Poängsättning: 0 saknas, 25 nödlösning, 50 verklig men begränsad eller partiell, 75 stark med förbehåll, 100 kärnkompetens.
@@ -43,9 +47,11 @@ Lollys levande samarbete inkluderar direkta privata collabs mellan två enheter 
 
 Importerade designer och delade designtokens låter ett team kombinera Lolly med specialistprogram, medan Lolly Work styr delade tillgångar, granskning och leverans.
 
-En hel presentation visar taket: i **Markdown Slides** deklareras en presentation som data, läggs ut live och exporteras som en inbyggd, redigerbar PowerPoint-fil.
+För team med en kurerad DAM är det bästa att börja med att behålla det biblioteket och dess administratörer på plats. [SUSE:s Brandfolder-erfarenhet](/info/suse-brandfolder.html) beskriver hur integrationen stödde införande och förändringsarbete kring godkännanden. DAM-leverantörer och implementeringspartner kan utvärdera samma upplägg genom [partnerarbetsflödet](/info/dam-partners.html).
 
-![Markdown Slides i delad vy: presentationens bilder listade som block till vänster, den utlagda presentationen renderas till höger](/t/url-shot?url=%2F%23%2Ftool%2Fdeck-studio&width=1440&height=900&dpi=192&waitMs=2600&walker=1&format=svg&dark=1&filename=ov2-deck-studio-output)
+En hel presentation visar taket: i **Lolly Markdown Slides** deklareras en presentation som data, läggs ut live och exporteras som en inbyggd, redigerbar PowerPoint-fil.
+
+![Lolly Markdown Slides i delad vy: presentationens bilder listade som block till vänster, den utlagda presentationen renderas till höger](/t/url-shot?url=%2F%23%2Ftool%2Fdeck-studio&width=1440&height=900&dpi=192&waitMs=2600&walker=1&format=svg&dark=1&filename=ov2-deck-studio-output)
 
 ## Reglerna finns i verktyget
 

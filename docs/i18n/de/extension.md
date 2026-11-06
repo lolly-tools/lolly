@@ -10,26 +10,29 @@ Sie geben jede Anfrage frei, und die Desktop-App erledigt dieselben Aufgaben ohn
 
 ## Vor der Installation
 
-Solange die Erweiterung nicht installiert ist, öffnet sich **URL Screenshot** trotzdem, sodass Sie eine Aufnahme zusammenstellen können. Ein Hinweis oben bei den Steuerelementen des Tools sagt, was fehlt.
+Solange die Erweiterung nicht installiert ist, öffnet sich **Lolly URL Screenshot** trotzdem, sodass Sie eine Aufnahme zusammenstellen können. Ein Hinweis oben bei den Steuerelementen des Tools sagt, was fehlt.
 
 ![Der Hinweis des URL-Screenshot-Werkzeugs, der die Erweiterung anbietet, angezeigt wenn die Erfassung in eine Datei keinen Host zum Ausführen hat](/t/url-shot?url=%2F%23%2Ftool%2Furl-shot&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&cropSelector=%23capture-hint-notice&dark=1&filename=exp-url-shot-notice)
 
 Jedes Steuerelement funktioniert, während Sie warten: die Ziel-URL, die Scrolltiefe, die Beruhigungsverzögerung, die Beschnitt-Einzüge und die Umfärbung. Nur die Aufnahme selbst braucht die Erweiterung.
 
-![Die URL-Screenshot-Steuerungen mit Ziel-URL, Scroll-Tiefe, Beruhigungspause und Zuschnittsrändern, alle nutzbar bevor die Erweiterung existiert](/t/url-shot?url=%2F%23%2Ftool%2Furl-shot%3Furl%3Dhttps%3A%2F%2Flolly.tools%26scrollDepth%3D0.3%26waitMs%3D1200&width=1440&height=2200&dpi=192&waitMs=2400&format=svg&css=%23tool-canvas%7Bdisplay%3Anone%7D&cropSelector=%23tool-inputs&walker=1&dark=1&filename=fq-url-shot-controls)
+![Die Steuerelemente von Lolly URL Screenshot mit Ziel-URL, Scroll-Tiefe, Beruhigungspause und Zuschnittsrändern, alle nutzbar, bevor die Erweiterung existiert](/t/url-shot?url=%2F%23%2Ftool%2Furl-shot%3Furl%3Dhttps%3A%2F%2Flolly.tools%26scrollDepth%3D0.3%26waitMs%3D1200&width=1440&height=2200&dpi=192&waitMs=2400&format=svg&css=%23tool-canvas%7Bdisplay%3Anone%7D&cropSelector=%23tool-inputs&walker=1&dark=1&filename=fq-url-shot-controls)
 
 ## Installation
 
 **Aus dem Chrome Web Store:** demnächst. Sobald die Erweiterung veröffentlicht ist, installieren Sie sie mit einem Klick.
 
-**Selbst laden (Entwickler).** Die Erweiterung liegt im Repository unter `shells/chrome-extension/`. Dieser Ordner ist der Produktions-Build, der nur mit Lolly unter `https://lolly.tools` funktioniert.
+**Selbst laden (Entwickler).** Der Quellcode der Erweiterung liegt im Repository unter `shells/chrome-extension/`. Der Paketierungsschritt baut aus diesem Ordner das Produktionspaket, das nur mit Lolly unter `https://lolly.tools` funktioniert.
 
-1. Öffnen Sie `chrome://extensions`.
-2. Schalten Sie **Developer mode** ein (oben rechts).
-3. Klicken Sie auf **Load unpacked** und wählen Sie den Ordner `shells/chrome-extension/`.
-4. Laden Sie den Lolly-Tab neu. Die Erkennung geschieht beim Laden der Seite, sodass die Aufforderung "Get the extension" verschwindet. **URL Screenshot** (unter Utilities) kann dann Aufnahmen in eine Datei speichern und steht im Batch-Modus zur Verfügung.
+1. Führen Sie `pnpm run pack:chrome-extension` aus. Es baut das Paket in `dist/chrome-extension/`.
+2. Öffnen Sie `chrome://extensions`.
+3. Schalten Sie **Developer mode** ein (oben rechts).
+4. Klicken Sie auf **Load unpacked** und wählen Sie den Ordner `dist/chrome-extension/`.
+5. Laden Sie den Lolly-Tab neu. Die Erkennung geschieht beim Laden der Seite, sodass die Aufforderung "Get the extension" verschwindet. **Lolly URL Screenshot** (unter Utilities) kann dann Aufnahmen in eine Datei speichern und steht im Lolly-Batch-Modus zur Verfügung.
 
 Für einen lokalen Entwicklungsserver führen Sie `pnpm run pack:chrome-extension:dev` aus und laden stattdessen `dist/chrome-extension-dev`. Dieses Paket akzeptiert auch `http://localhost:5173` und hat **Development** im Namen.
+
+Auch das Laden des Ordners `shells/chrome-extension/` selbst funktioniert, für PNG-Screenshots. Dieser Ordner hat keinen Seitendurchlauf (den baut der Paketierungsschritt ein), daher enthält ein SVG daraus einen Screenshot statt Formen.
 
 ## Was geschieht, wenn Lolly fragt
 
@@ -40,15 +43,20 @@ Für einen lokalen Entwicklungsserver führen Sie `pnpm run pack:chrome-extensio
 3. **Chrome fragt einmal pro Website.** Wenn Sie zum ersten Mal eine Anfrage für eine Website freigeben, fragt Chrome außerdem, ob die Erweiterung auf diese Website zugreifen darf. Chrome behält diesen Zugriff, sobald Sie ihn erlauben, aber jede spätere Anfrage braucht weiterhin ihr eigenes **Approve once**.
 4. **Die Seite wird in einem Hintergrund-Tab gelesen.** Die Erweiterung öffnet die Zielseite in einem Hintergrund-Tab, nimmt sie über das DevTools Protocol auf (dasselbe `Page.captureScreenshot`, das die Desktop-App nutzt), schließt den Tab und gibt das Ergebnis an den Lolly-Tab zurück, der gefragt hat.
 
+Für ein **SVG** läuft die Erweiterung durch die Seite, statt ein Bild des Bildschirms aufzunehmen. Ein mit der Erweiterung paketiertes Skript liest das Layout der Seite in diesem Hintergrund-Tab und macht aus der Seite Formen und Text in Umrissen, sodass die Datei in jeder Größe scharf bleibt und jeder Teil bearbeitbar ist. Bilder auf der Seite kommen als die Bilder herüber, die sie sind, und was die Seite mit einem Canvas, einem Video oder einem Effekt zeichnet, für den SVG keine Form hat, wird aus einem Screenshot desselben Moments kopiert. Lolly vergleicht das Ergebnis mit diesem Screenshot, und weichen beide zu stark voneinander ab, enthält das SVG stattdessen den Screenshot.
+
+Um den Text in der eigenen Schrift der Seite in Umrisse zu setzen, übergibt die Erweiterung Lolly die Schriftdateien, die die Seite geladen hat. Chrome hält die Bytes einer Schrift nicht dort, wo eine Erweiterung sie lesen kann, daher fragt die Erweiterung die Seite noch einmal nach jeder Schrift. Ihr Browser antwortet meist aus seinem Cache, und die eigene Sicherheitsrichtlinie der Seite gilt weiterhin für diese Anfrage.
+
 Eine Freigabe gilt für eine Anfrage und läuft nach 30 Sekunden ab. Nur eine Anfrage kann gleichzeitig warten oder laufen, und eine freigegebene Anfrage endet nach 55 Sekunden. Schließt oder ändert sich die Lolly-Seite oder wechselt die Zielseite zu einer anderen Website, wird die Anfrage abgebrochen.
 
-Die Aufnahme läuft in Ihrem Browser, in Ihrem Netzwerk, sodass `localhost` und interne Websites funktionieren. Die Seite lädt mit Ihrer Browsersitzung, eine Seite, bei der Sie angemeldet sind, kann also private Informationen im Ergebnis zeigen. Die Aufnahme wird nicht hochgeladen: Der einzige Netzwerkverkehr ist Ihr eigener Browser, der die Seite lädt, um die Sie gebeten haben.
+Die Aufnahme läuft in Ihrem Browser, in Ihrem Netzwerk, sodass `localhost` und interne Websites funktionieren. Die Seite lädt mit Ihrer Browsersitzung, eine Seite, bei der Sie angemeldet sind, kann also private Informationen im Ergebnis zeigen. Die Aufnahme wird nicht hochgeladen: Der einzige Netzwerkverkehr ist Ihr eigener Browser, der die Seite lädt, um die Sie gebeten haben, und bei einem SVG zusätzlich die Schriftdateien dieser Seite ein zweites Mal.
 
 Während eine Aufnahme läuft, sehen Sie auf dem temporären Tab eventuell kurz ein Banner *"…started debugging this browser"*. Das ist das DevTools Protocol bei der Arbeit, und das Banner verschwindet, wenn die Aufnahme fertig ist.
 
-## Eine Website für Design System Setup lesen
+<a id="reading-a-site-for-design-system-setup"></a>
+## Eine Website für Lolly Design System Setup lesen
 
-Die Quelle **Website** in Design System Setup beginnt ein Designsystem aus einer Website, die Sie schon haben. In einem Chromium-Browser liest die Erweiterung die Seite. In der Desktop-App ruft die App die Seite selbst ab. In einem Browser ohne Erweiterung wird die Kachel Website nicht angeboten.
+Die Quelle **Website** in Lolly Design System Setup beginnt ein Designsystem aus einer Website, die Sie schon haben. In einem Chromium-Browser liest die Erweiterung die Seite. In der Desktop-App ruft die App die Seite selbst ab. In einem Browser ohne Erweiterung wird die Kachel Website nicht angeboten.
 
 - **Eine Adresse, eine Seite.** Nach Ihrer Freigabe öffnet die Erweiterung die Seite in derselben Art Hintergrund-Tab, liest das gerenderte Markup, den Stylesheet-Text und eine Handvoll Icon- und Logobilder und schließt dann den Tab. Sie folgt keinen Links und crawlt nicht.
 - **Anderswo gehostete Stylesheets** (ein CDN oder ein Schriftdienst) werden ebenfalls abgerufen, weil die Farben und Schriften der Seite in ihnen liegen. Origin-übergreifende Anfragen gehen ohne Ihre Cookies; Anfragen desselben Origins nutzen sie, wie die Seite selbst es täte.
@@ -59,11 +67,11 @@ Das Einfügen einer Adresse füllt nur das Feld. Nichts wird gelesen, bis Sie da
 
 ## Berechtigungen
 
-Das `manifest.json` der Erweiterung deklariert vier Berechtigungen, dazu Websitezugriff, den sie für jeweils eine Website erfragt. Es setzt `minimum_chrome_version: 111`, und die aktuelle Version ist 0.4.0.
+Das `manifest.json` der Erweiterung deklariert vier Berechtigungen, dazu Websitezugriff, den sie für jeweils eine Website erfragt. Es setzt `minimum_chrome_version: 111`, und die aktuelle Version ist 0.5.0.
 
 | Berechtigung | Wofür sie da ist | Wann sie gewährt wird |
 |---|---|---|
-| `debugger` | Steuert den Hintergrund-Tab über das DevTools Protocol, das den Screenshot aufnimmt. | Bei der Installation |
+| `debugger` | Steuert den Hintergrund-Tab über das DevTools Protocol, das den Screenshot aufnimmt und bei einem SVG den Seitendurchlauf ausführt. | Bei der Installation |
 | `tabs` | Öffnet den temporären Hintergrund-Tab und schließt ihn danach und prüft, dass sich weder die Lolly-Seite noch die Zielseite seit Ihrer Freigabe bewegt hat. | Bei der Installation |
 | `scripting` | Führt den Ein-Seiten-Leser innerhalb der von Ihnen genannten Website aus, für die Quelle Website. | Bei der Installation |
 | `storage` | Notiert die ID eines von ihr geöffneten Tabs, nur im Sitzungsspeicher, damit der Tab auch dann noch schließt, wenn der Browser die Erweiterung mitten im Lesen aussetzt. Beim nächsten Start geleert; nichts über Sie wird gespeichert. | Bei der Installation |

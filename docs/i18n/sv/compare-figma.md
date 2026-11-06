@@ -16,7 +16,7 @@ Båda låter dig arrangera typ, former och bilder på en yta och arbeta med andr
 
 Lolly gör en design till ett [återanvändbart verktyg med regler](/info/create-a-tool.html). Verktyget körs i webbläsaren eller CLI och tar sina indata från en länk, ett skript eller ett batchrutnät, så en mall tjänar en person som redigerar en fil och ett team som gör många.
 
-![Designs öppna yta, med Import a design i verktygsfältets Lolly-meny](/info/shots/design.svg)
+![Lolly Designs öppna yta, med Import a design i verktygsfältets Lolly-meny](/info/shots/design.svg)
 
 En [privat collab](/info/collaborate.html) parar ihop två enheter direkt, utan konto och utan internet i ett delat nätverk. Fristående Lolly renderar offline. Content Credentials är på som standard för exporter som stöds, och du kan stänga av dem.
 

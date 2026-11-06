@@ -12,7 +12,7 @@ Het startscherm: vier tabbladen bovenaan en de balk onderaan. Een tool toont, ee
 
 Vier tabbladen lopen bovenaan het startscherm: **Tools**, **Utilities**, **Assets** en **Projects**. Tools zijn waarmee je maakt, Utilities zijn werkbanken voor klussen zoals een bestand omzetten, controleren of opschonen, Assets is je bibliotheek en Projects bevat wat je opsloeg.
 
-De balk onderaan bevat **Open**, **Settings**, een zoekveld, **Verify** en **What?**. Hij verschijnt op Tools, Utilities, Assets, Projects, Settings en de gidsen die je in de app leest, en stapt opzij zodra een tool open is. [Zoeken](/info/search.html) bereikt vanuit dat veld je tools, opgeslagen werk, assets en instellingen. [Ask Lolly](/info/ask.html) beantwoordt een getypte vraag met de passende sectie uit deze gidsen.
+De balk onderaan bevat **Open**, **Settings**, een zoekveld, een **Verify**-snelkoppeling naar Lolly Verify en **What?**. Hij verschijnt op Tools, Utilities, Assets, Projects, Settings en de gidsen die je in de app leest, en stapt opzij zodra een tool open is. [Lolly Search](/info/search.html) bereikt vanuit dat veld je tools, opgeslagen werk, assets en instellingen. [Ask Lolly](/info/ask.html) beantwoordt een getypte vraag met de passende sectie uit deze gidsen.
 
 Klik op een kaart om iets nieuws in die tool te beginnen. Opgeslagen werk heropen je in plaats daarvan vanuit **Projects**.
 
@@ -22,7 +22,7 @@ Elke tool is een gesplitste weergave: de **bediening** aan de ene kant en een li
 
 ![De gesplitste weergave van een tool - de bedieningsstack links, en de live gegroepeerde staafdiagram die hij rechts tekent](/t/url-shot?url=%2F%23%2Ftool%2Fchart%3Fct%3Dbar%26t%3DExample%2520data%26st%3DSample%2520values%252C%2520not%2520a%2520real%2520dataset%26d%3DMonth%252CSeries%2520A%252CSeries%2520B%252CSeries%2520C%250AJan%252C12%252C9%252C5%250AFeb%252C18%252C14%252C7%250AMar%252C24%252C17%252C11%250AApr%252C29%252C23%252C15%26lg%3D1&width=1440&height=900&dpi=192&waitMs=2500&walker=1&format=svg&dark=1&filename=vt-tool-split-view)
 
-**Design** is de uitzondering. Het opent als een vrij canvas van vakken die je sleept, vergroot of verkleint en waarin je typt, met een eigen bovenbalk, tijdlijn en deckbediening. [Design: het vrije canvas](/info/design.html) is de gids ervoor.
+**Lolly Design** is de uitzondering. Het opent als een vrij canvas van vakken die je sleept, vergroot of verkleint en waarin je typt, met een eigen bovenbalk, tijdlijn en deckbediening. [Lolly Design: het vrije canvas](/info/design.html) is de gids ervoor.
 
 ## Wijzig wat de tool je laat wijzigen
 
@@ -36,7 +36,7 @@ Een tool toont alleen de invoer die bedoeld is om te variëren. De maker heeft d
 
 **Keuzes van het design system.** Wanneer je design system meer dan één colourway biedt, een lichte en een donkere look of een andere themakeuze, staan ze in een sectie **Design system** onder de bediening. Een keuze verschijnt alleen wanneer ze deze tool verandert, dus een bestandshulpprogramma toont helemaal geen sectie. Elke colourway is een stip in zijn eigen kleuren, licht en donker zijn twee knoppen en elke andere keuze is een lijst.
 
-De keuze hoort bij dit stuk. Ze reist mee in de link en de opgeslagen sessie, elke kleur die aan het design system is gekoppeld volgt haar en de eigen kleuren van de app blijven zoals ze zijn. Design toont dezelfde keuzes in het tabblad **Canvas** van de Inspector. Een tool waarvan de kleuren zijn inhoud zijn, kan op de canonieke colourway blijven, en biedt dan geen colourway-stippen. [Lolly Demo in gebruik](/info/lolly-demo-in-use.html#colourways-on-real-work) toont colourways op echt werk.
+De keuze hoort bij dit stuk. Ze reist mee in de link en de opgeslagen sessie, elke kleur die aan het design system is gekoppeld volgt haar en de eigen kleuren van de app blijven zoals ze zijn. Lolly Design toont dezelfde keuzes in het tabblad **Canvas** van de Inspector. Een tool waarvan de kleuren zijn inhoud zijn, kan op de canonieke colourway blijven, en biedt dan geen colourway-stippen. [Lolly Demo in gebruik](/info/lolly-demo-in-use.html#colourways-on-real-work) toont colourways op echt werk.
 
 ### Het voorbeeld zoomen en verschuiven
 
@@ -47,7 +47,7 @@ De voorvertoning toont altijd precies wat er geëxporteerd wordt.
 - **Aanraken:** knijp om te zoomen, sleep om te verschuiven en tik tweemaal om te passen.
 - **Zoom-HUD:** houd de Lolly-swirl in de hoek ingedrukt om `−`, **Fit** en `+` uit te klappen. Een korte tik op de swirl opent nog steeds je profielmenu.
 
-In Design neemt **Fit all** de tekenborden en losse lagen mee. Je kunt handmatig onder 20% uitzoomen totdat de hele pagina de helft van de weergave vult. De vaste ondergrens is de laagste van 5% van de gewone Fit-schaal en 2% absolute zoom.
+In Lolly Design neemt **Fit all** de tekenborden en losse lagen mee. Je kunt handmatig onder 20% uitzoomen totdat de hele pagina de helft van de weergave vult. De vaste ondergrens is de laagste van 5% van de gewone Fit-schaal en 2% absolute zoom.
 
 Een wijziging van het uitvoerformaat zet de weergave altijd terug naar een schone pasvorm.
 
@@ -55,7 +55,7 @@ Een wijziging van het uitvoerformaat zet de weergave altijd terug naar een schon
 
 ### Ongedaan maken en opnieuw
 
-**Cmd/Ctrl-Z** gaat een stap terug en **Cmd/Ctrl-Shift-Z** (of **Cmd/Ctrl-Y**) een stap vooruit. Hetzelfde paar staat als knoppen **Undo** en **Redo** boven de bediening (in Design staan ze in de bovenbalk), en elk wordt grijs wanneer er niets meer terug te nemen is. Een melding zegt welke invoer elke undo herstelde, met een knop **Redo** in de melding.
+**Cmd/Ctrl-Z** gaat een stap terug en **Cmd/Ctrl-Shift-Z** (of **Cmd/Ctrl-Y**) een stap vooruit. Hetzelfde paar staat als knoppen **Undo** en **Redo** boven de bediening (in Lolly Design staan ze in de bovenbalk), en elk wordt grijs wanneer er niets meer terug te nemen is. Een melding zegt welke invoer elke undo herstelde, met een knop **Redo** in de melding.
 
 - **Een sleepbeweging is één stap.** Herhaalde wijzigingen aan één instelling binnen een halve seconde worden samengevoegd, dus een schuifregelaar over zijn bereik trekken is één undo.
 - **De laatste 100 stappen worden bewaard.** Een nieuwe bewerking na een undo wist de voorwaartse stapel.
@@ -72,7 +72,7 @@ De effecten van de tool **Filter** (Halftone, Scanline, Posterize, Voronoi, Duot
 
 Om je werk te bewaren druk je op **Save**, het vinkje naast **Export** op de renderpil. Nieuw werk gaat naar **My library**, eerder opgeslagen werk wordt bijgewerkt waar het staat en er wordt niets gedownload. Het exportpaneel heeft dezelfde knop **Save**.
 
-Om te kiezen waar het heen gaat, druk je op **Save as**, naast **Download** in het exportpaneel. Laat onder **Save to a project** **My library** geselecteerd of kies een project (**＋ New project…** maakt er een), en druk dan op **Save**; **Save as a template** bewaart het ontwerp als [sjabloon](/info/templates.html), een startpunt voor nieuwe documenten. In Design staat **Save as** in het Lolly-menu; druk op een telefoon op **•••**, dan op **File menu**, dan op **Save as**.
+Om te kiezen waar het heen gaat, druk je op **Save as**, naast **Download** in het exportpaneel. Laat onder **Save to a project** **My library** geselecteerd of kies een project (**＋ New project…** maakt er een), en druk dan op **Save**; **Save as a template** bewaart het ontwerp als [sjabloon](/info/templates.html), een startpunt voor nieuwe documenten. In Lolly Design staat **Save as** in het Lolly-menu; druk op een telefoon op **•••**, dan op **File menu**, dan op **Save as**.
 
 ![De renderpil in twee helften: Export, met een pijl omhoog die het exportpaneel opent, en Save, met een vinkje dat ter plekke opslaat](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools&width=1440&height=900&dpi=192&waitMs=2500&css=%23tool-inputs%7Bdisplay%3Anone%7D&cropSelector=.render-pill&walker=1&format=svg&dark=1&filename=use-render-pill)
 
@@ -162,7 +162,7 @@ Een volledige apparaatback-up is geen `.lolly`. Het blijft een `LollyTools-….z
 
 Een `.lolly` is een gewone zip. Hernoem het naar `.zip` om erin te kijken: je eigen afbeeldingen staan onder `assets/uploads/`, catalogusafbeeldingen onder `assets/catalog/`, `manifest.json` noemt elk bestand, en een README zegt wat het bestand is.
 
-macOS, Windows, Linux, iOS en Android registreren allemaal het formaat, bestandsbeheerders op desktop tonen het als een Lolly-document en GNOME Files kan de eigen miniatuur van een opgeslagen sessie tonen. Openen vanuit Design System Setup beveelt de design-systeemactie aan wanneer een gedeeld ontwerp er een bevat, maar verbergt nooit **Open shared design**.
+macOS, Windows, Linux, iOS en Android registreren allemaal het formaat, bestandsbeheerders op desktop tonen het als een Lolly-document en GNOME Files kan de eigen miniatuur van een opgeslagen sessie tonen. Openen vanuit Lolly Design System Setup beveelt de design-systeemactie aan wanneer een gedeeld ontwerp er een bevat, maar verbergt nooit **Open shared design**.
 
 Een document dat vanuit een andere app op iOS of Android wordt overhandigd, is begrensd op 48 MB, omdat de overdracht de bytes over de appgrens kopieert, en de app zegt dat. **Open** binnen Lolly heeft zo'n grens niet, dus gebruik dat voor een grotere bundel.
 
@@ -173,7 +173,7 @@ Een link en een bestand geven allebei een momentopname door. Voor live bewerken 
 
 ## Assets - je bibliotheek
 
-**Assets** (`#/a`) verzamelt alles waaruit je tools kunnen putten: merklogo's, afbeeldingen, audio en beweging, gegroepeerd per soort, samen met je eigen bestanden. Je uploads worden op je apparaat bewaard. Een organisatie die Lolly Work gebruikt kan ook een gedeelde catalogus leveren onder haar eigen toegangsregels; zie [Lolly gebruiken bij je organisatie](/info/organisation.html).
+**Lolly Assets** (`#/a`) verzamelt alles waaruit je tools kunnen putten: merklogo's, afbeeldingen, audio en beweging, gegroepeerd per soort, samen met je eigen bestanden. Je uploads worden op je apparaat bewaard. Een organisatie die Lolly Work gebruikt kan ook een gedeelde catalogus leveren onder haar eigen toegangsregels; zie [Lolly gebruiken bij je organisatie](/info/organisation.html).
 
 ![Assets - merkassets, stalen en lettertypen, plus je eigen uploads](/t/url-shot?url=%2F%23%2Fa%3Fsection%3Dswatches%2Cfonts&width=1440&height=900&dpi=96&waitMs=2400&css=.plat-swatch-grid~%2A%7Bdisplay%3Anone%7D&walker=1&format=svg&localize=1&dark=1&filename=assets)
 
@@ -267,12 +267,25 @@ Op een smal scherm wordt de indeling één kolom:
 
 ![Een tool op een schermbreedte van een telefoon - bedieningselementen als sheet bovenin, het gegenereerde palet dat de voorvertoning eronder vult en de renderpil die onderaan het midden zweeft](/t/url-shot?url=%2F%23%2Ftool%2Fcolor-palette%3Fseed%3Df97316%26harmony%3Dadjacent-3%26steps%3D9&width=430&height=900&dpi=192&waitMs=2200&walker=1&format=svg&dark=1&filename=vt-phone-palette)
 
+## Opvouwbare apparaten en iPhone Duo
+
+Op een opvouwbaar apparaat, een iPhone Duo of een bijna vierkant touchscreen legt Lolly een tool uit in twee panelen, zoals de pagina's van een boek:
+
+- **Bediening aan de ene kant, het canvas aan de andere.** De bediening staat weg van de hand waarmee je tekent. Kies **Dominant hand** in **Settings → Accessibility**, of druk bovenaan de bediening op **Swap sides**. In een taal van rechts naar links spiegelen de kanten.
+- **De scheiding is het scharnier.** Wanneer het apparaat zijn vouw meldt, komen de panelen samen bij de vouw, zodat geen bediening en geen artwork op de vouwlijn ligt. Op een doorlopend scherm sleep je de scheiding naar een derde, de helft of twee derde van de breedte. Lolly onthoudt je keuze per weergave op dit apparaat.
+- **Op tafel.** Half open met de vouw dwars over het scherm krijgt het canvas de bovenste helft en staat de bediening onder de vouw. Wanneer je presenteert, staat de dia bovenaan, met je notities, de volgende dia en **Back** en **Next** eronder. In Sequence staat het voorbeeld bovenaan en de tijdlijn eronder.
+- **Lolly Design, Brand Studio en Assets.** In Lolly Design zijn de inspector, de lagen en het exportpaneel tabbladen naast het canvas, en de tools staan langs de buitenrand van het canvas, onder je tekenhand. Als er meer tools zijn dan er passen, scrolt de kolom en laat een vervaging met een pijl zien aan welke kant de rest staat. Op tafel lopen de tools in plaats daarvan langs de onderkant van het canvas. Brand Studio houdt het Board aan de ene kant en de ruimte die je opent aan de andere. In Assets opent het detail van een asset naast de bibliotheek, zodat de volgende tik de volgende asset op dezelfde plek toont.
+- **Niets op de vouwlijn.** Bij een gemelde vouw opent een dialoogvenster op de pagina met de bediening, en dat geldt ook voor het zoekvak onderaan het startscherm en de resultaten ervan. Een plat scherm houdt ze in het midden.
+- **Vouwen verliest niets.** Vouwen, uitvouwen of het apparaat draaien behoudt je document, je selectie, de zoom en het veld waarin je typte, met de cursor waar je die liet staan.
+
+Het buitenscherm van een opvouwbaar apparaat houdt de telefoonindeling hierboven, en dat geldt ook voor een Lolly-venster in één helft van een gesplitst scherm.
+
 ## Instellingen, geluid en comfort
 
 **Settings**, onderaan het startscherm, bevat je gegevens, je design systems, toegankelijkheid, opslag en offline downloads. [Lolly Settings](/info/dashboard.html) brengt elk tabblad in kaart.
 
 - **Je gegevens en pasfoto** vullen elke tool in die ze gebruikt, zoals een e-mailhandtekening of een badge. [Profielen](/info/profile.html) behandelt ze.
-- **Toegankelijkheid** heeft vier comfortschakelaars: **Reduce motion**, **Hide colourful previews**, **High contrast** en **Large text**. Ze veranderen de app rond je werk, nooit een toolcanvas of een export.
+- **Toegankelijkheid** heeft vier comfortschakelaars: **Reduce motion**, **Hide colourful previews**, **High contrast** en **Large text**. Ze veranderen de app rond je werk, nooit een toolcanvas of een export. Naast deze schakelaars kiest **Dominant hand** aan welke kant de bediening staat in twee panelen.
 - **Geluid** speelt zachte ondersteunende geluiden bij wat je doet, en **Neurospicy Mode** speelt een rustige focustrack. Beide staan uit totdat je ze aanzet, in **Settings → Accessibility** of het profielmenu.
 - **Available offline** downloadt de rest van de app, je tools, de catalogus en de gidsen voordat je de verbinding verliest. Lolly is een webapp die je kunt installeren: gebruik de installatieknop van je browser, of *Zet op beginscherm* op een telefoon, voor een app op volledig scherm die zichzelf bijwerkt wanneer je weer online bent.
 - **Storage** toont wat Lolly op dit apparaat bewaart. [Als je je browsergegevens wist](/info/find-your-work.html#if-you-clear-your-browser-data) legt uit wat wissen verwijdert, en het [Privacybeleid](/info/privacy.html) noemt alles wat de app ophaalt of verstuurt.
@@ -283,10 +296,10 @@ Een leeg paneel of een melding "failed to fetch" direct na een update verdwijnt 
 
 ## Waar je hierna heen kunt
 
-- **[Design: het vrije canvas](/info/design.html)**: het canvas, vormen, de tijdlijn en een deck presenteren.
-- **[Batch en Multi-edit](/info/batch.html)**: veel versies van één ontwerp, of meerdere opgeslagen ontwerpen samen bewerken.
+- **[Lolly Design: het vrije canvas](/info/design.html)**: het canvas, vormen, de tijdlijn en een deck presenteren.
+- **[Batch en Lolly Multi-edit](/info/batch.html)**: veel versies van één ontwerp, of meerdere opgeslagen ontwerpen samen bewerken.
 - **[Een bestand exporteren](/info/exporting.html)**: een formaat, grootte, drukeenheden, transparantie en video kiezen.
-- **[Een ontwerp importeren](/info/design-import.html)**: breng een Figma-, Penpot-, Illustrator- of InDesign-bestand in Design en blijf bewerken.
+- **[Een ontwerp importeren](/info/design-import.html)**: breng een Figma-, Penpot-, Illustrator- of InDesign-bestand in Lolly Design en blijf bewerken.
 - **[Sjablonen](/info/templates.html)**: opgeslagen startpunten voor een tool.
-- **[Wide Colour en HDR](/info/hdr-editing.html)**: behoud de oorspronkelijke beeldprecisie in Design en Darkroom.
+- **[Wide Colour en HDR](/info/hdr-editing.html)**: behoud de oorspronkelijke beeldprecisie in Lolly Design en Lolly Darkroom.
 - **[Je werk vinden en terughalen](/info/find-your-work.html)**: waar alles staat, en hoe je het naar een ander apparaat verplaatst.

@@ -1,5 +1,7 @@
 # Design: la tela libera
 
+<a id="design-the-free-canvas"></a>
+
 Design è lo strumento per i layout che nessun template copre: un poster da zero, un deck di slide, un pezzo animato con una colonna sonora. Invece di un modulo di controlli, hai una tela di box che trascini, ridimensioni, ruoti e in cui scrivi. Esporta attraverso lo stesso percorso di rendering di ogni altro strumento, quindi ciò che vedi sulla tela è il file che ottieni.
 
 Questa pagina percorre la tela dal primo box a un deck finito: la finestra, la modellazione dei box, il disegno di forme tue, l'inserimento di scene 3D e altri strumenti, l'aggiunta del tempo, il controllo del risultato e la presentazione del deck finito. [Usare Lolly](/info/using.html) tratta ciò che Design condivide con ogni strumento, come il salvataggio e la condivisione.
@@ -27,7 +29,7 @@ La tela funziona come il banco di lavoro di un designer attorno all'artboard:
 
 Il **Navigator** elenca ogni artboard (con l'intestazione **Artboards**, o **Slides** in un deck) come un gruppo comprimibile dei suoi **Layers**. Seleziona il nome di un'artboard per saltarci, espandila per selezionare o riordinare i suoi livelli e usa i tasti freccia per muoverti nell'elenco; Sinistra torna all'intestazione dell'artboard. **Pages** raggruppa le artboard in pagine con nome, e scegliere una pagina cambia solo quali artboard mostra l'editor.
 
-L'**Inspector** mette per primi i controlli di testo o immagine dell'oggetto selezionato. I chip di opzione coprono le scelte rapide, e **Advanced** contiene i dettagli di stile. Su un telefono l'Inspector si apre come pannello da **More actions**; Escape o Indietro chiude il pannello e mantiene la selezione.
+L'**Inspector** mette per primi i controlli di testo o immagine dell'oggetto selezionato. I chip di opzione coprono le scelte rapide, e **Advanced** contiene i dettagli di stile. Su un telefono l'Inspector e l'elenco dei livelli condividono un unico pannello che scende da sotto la barra superiore, lo stesso pannello in cui ogni altro strumento tiene i suoi controlli. **Inspect** e **Layer/Page** nella barra in basso aprono il pannello sulla relativa scheda. Trascina la maniglia sul suo bordo inferiore, o toccala, per portare il pannello tra una striscia con le due schede, metà schermo e quasi tutto lo schermo. A metà, la tela sotto il pannello mostra la tua selezione. Escape ripiega il pannello sulla striscia e mantiene la selezione.
 
 ![La sezione Document dell'Inspector: le schede Selection e Canvas, poi Dimensions e Style & look](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3Dfeature-tour&width=1440&height=900&dpi=192&waitMs=3500&cropSelector=.fc-insp&walker=1&format=svg&dark=1&filename=design-narration)
 
@@ -241,6 +243,8 @@ La freccia accanto a **Present** apre **Present from this slide**, **Speaker vie
 | **Escape** | Toglie uno strato: dalla panoramica al deck, dal deck all'editor |
 
 Una piccola barra di controllo compare in dissolvenza quando muovi il puntatore e si nasconde di nuovo quando smetti. Se il browser blocca il pop-up del relatore, la vista relatore si apre come pannello sopra il deck. Le note appartengono a ciascuna artboard e non compaiono mai sulla slide.
+
+Su uno schermo touch, scorri a sinistra per il passo o la slide successiva e a destra per tornare indietro. Una transizione **Slide** o **Fade** segue il dito e si completa quando lo rilasci; una transizione **Cut**, **Morph** o **Fly between artboards** viene riprodotta per intero dopo il rilascio, e uno scorrimento breve e lento non cambia nulla. I box pagina web, i controlli video, i box che scorrono e il testo selezionato mantengono i propri gesti, quindi uno scorrimento non inizia mai su uno di essi, e lo scorrimento verticale e lo zoom a pizzico funzionano come al solito. Con il movimento ridotto la slide cambia comunque, senza seguire il dito.
 
 - **Passaggi di rivelazione.** Fai clic destro su un box e scegli **Reveal at step 1**, **2** o **3** invece di **Always visible**, e il box aspetta finché non avanzi fino al suo passaggio. I box che condividono un numero arrivano insieme.
 - **Kiosk.** Dai a un'artboard una **Length** e il deck resta lì per quel tempo, poi avanza dietro una sottile barra di avanzamento. Aggiungi `kiosk` al link e il deck ricomincia alla fine, per le insegne.

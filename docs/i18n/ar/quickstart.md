@@ -84,5 +84,5 @@ pnpm run ingest:brand ./my-tokens.json --name acme --label "Acme" --activate
 - <!--i:people--> **[أنشئ](/info/creators.html)**: الصنع والتحريك والتسجيل والمشاركة والتصدير.
 - <!--i:code--> **[أتمت](/info/builders.html)**: أنظمة التصميم وتأليف الأدوات وسطر الأوامر والروابط والوكلاء.
 - <!--i:usercheck--> **[أدِر](/info/operators.html)**: تشغيل Lolly لفريق مع Lolly Work.
-- <!--i:server--> **[انشر](/info/operate.html)**: استضافة Lolly وLolly Lolly Work.
+- <!--i:server--> **[انشر](/info/operate.html)**: استضافة Lolly وLolly Work.
 - <!--i:shieldcheck--> **[ثقة](/info/trust.html)**: الخصوصية والأمان والتحقق من ملف بنفسك.

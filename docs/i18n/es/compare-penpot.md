@@ -14,7 +14,7 @@ Los [design tokens de Penpot](https://help.penpot.app/user-guide/design-systems/
 
 ## Cómo hace Lolly el trabajo que se solapa
 
-El lienzo Design de Lolly crea recursos editables y puede convertir un diseño en una [herramienta con reglas](/info/create-a-tool.html). La misma herramienta renderiza en el navegador, la aplicación de escritorio o la CLI y crea variantes a partir de datos. Lolly independiente renderiza y firma en el dispositivo, sin cuenta ni servidor. Una [collab privada](/info/collaborate.html) empareja dos dispositivos directamente.
+El lienzo de Lolly Design crea recursos editables y puede convertir un diseño en una [herramienta con reglas](/info/create-a-tool.html). La misma herramienta renderiza en el navegador, la aplicación de escritorio o la CLI y crea variantes a partir de datos. Lolly independiente renderiza y firma en el dispositivo, sin cuenta ni servidor. Una [collab privada](/info/collaborate.html) empareja dos dispositivos directamente.
 
 ## Con una organización
 

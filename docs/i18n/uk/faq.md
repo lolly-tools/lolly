@@ -39,7 +39,7 @@ lolly.tools відкривається в [Lolly Demo](/info/lolly-demo.html), �
 
 ## Чи можу я використати власний бренд?
 
-Так. **Design System Setup** (`#/start`) будує дизайн-систему з одного кольору, файлу токенів дизайну чи готового дизайну, і кожен інструмент потім малює за вашою дизайн-системою. [Почати](/info/quickstart.html#put-your-brand-in) проводить трьома шляхами.
+Так. **Lolly Design System Setup** (`#/start`) будує дизайн-систему з одного кольору, файлу токенів дизайну чи готового дизайну, і кожен інструмент потім малює за вашою дизайн-системою. [Почати](/info/quickstart.html#put-your-brand-in) проводить трьома шляхами.
 
 Дизайн-система, яку надає ваша організація чи збірка, є керованою: вона показує замок і доступна лише для читання, а для змін можна створити редаговану копію.
 
@@ -80,9 +80,9 @@ lolly.tools відкривається в [Lolly Demo](/info/lolly-demo.html), �
 
 ## Чи може Lolly редагувати та рендерити мої файли Figma, Penpot, Illustrator чи InDesign?
 
-Так. Відкрийте **Design** і клацніть **Імпортувати дизайн**: він приймає рідний Figma **.fig** (Save local copy), експорт Penpot **.penpot**, Illustrator **.ai** або **.pdf**, InDesign **.idml** (File → Export → InDesign Markup) чи **будь-який SVG**. Вам не потрібні ні обліковий запис, ні плагін, ні ліцензія на дизайн-застосунок.
+Так. Відкрийте інструмент **Design** і клацніть **Імпортувати дизайн**: він приймає рідний Figma **.fig** (Save local copy), експорт Penpot **.penpot**, Illustrator **.ai** або **.pdf**, InDesign **.idml** (File → Export → InDesign Markup) чи **будь-який SVG**. Вам не потрібні ні обліковий запис, ні плагін, ні ліцензія на дизайн-застосунок.
 
-![Відкрите полотно Design - пункт «Імпортувати дизайн» у меню Lolly на панелі інструментів](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D17ZTfS8MwEMf_mryO5NZ288GHrdqJv1CUvWdtOgppMtJMNv96yaV1iRNEQRBZoblwab53l0-uq915bXgrCOSDpf3LzgANnQ4eI0rrPJn7Gh9cd0sE8lIryxtFIFfatFx6L4F0Mi-11GbUiZYr25QjK3bW-S8I5MnUbRXKCkMgb5uqki6JFFU7rjoXYsSgT8GaLebKZSeGAPkUYypMHp80DeugYYR4J_U7X4XRkY8dFHuTYEJ-jDWM3qoqsEHo4Y20-xJi-SPVaOfRUuAL1hiZXNrG4gH6M85Z5lTAk8x8DdlnPL8gecVfBIEU6F5v0bbCor3VUu4JpOPCKTCWsPI9rBS107d6QyCfRET_Ac6wX36X6UpX-49Ip1mAlMEPkM6QX20aoSpECLTmpadcazPQ9hPlWxboRndWmFEIG1s4Yp3E3Ts-0f4GbcruWHLzlC0frmfpfbGk82LxmD0vUndSTcvXAoknWBKCz5LDSIdiRHV0D2Tfq1BIvdY42Zim5WZ_-n3_mRvwBg&width=1360&height=850&dpi=192&waitMs=3000&format=svg&walker=1&chrome=1&localize=1&dark=1&filename=design)
+![Відкрите полотно Lolly Design - пункт «Імпортувати дизайн» у меню Lolly на панелі інструментів](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D17ZTfS8MwEMf_mryO5NZ288GHrdqJv1CUvWdtOgppMtJMNv96yaV1iRNEQRBZoblwab53l0-uq915bXgrCOSDpf3LzgANnQ4eI0rrPJn7Gh9cd0sE8lIryxtFIFfatFx6L4F0Mi-11GbUiZYr25QjK3bW-S8I5MnUbRXKCkMgb5uqki6JFFU7rjoXYsSgT8GaLebKZSeGAPkUYypMHp80DeugYYR4J_U7X4XRkY8dFHuTYEJ-jDWM3qoqsEHo4Y20-xJi-SPVaOfRUuAL1hiZXNrG4gH6M85Z5lTAk8x8DdlnPL8gecVfBIEU6F5v0bbCor3VUu4JpOPCKTCWsPI9rBS107d6QyCfRET_Ac6wX36X6UpX-49Ip1mAlMEPkM6QX20aoSpECLTmpadcazPQ9hPlWxboRndWmFEIG1s4Yp3E3Ts-0f4GbcruWHLzlC0frmfpfbGk82LxmD0vUndSTcvXAoknWBKCz5LDSIdiRHV0D2Tfq1BIvdY42Zim5WZ_-n3_mRvwBg&width=1360&height=850&dpi=192&waitMs=3000&format=svg&walker=1&chrome=1&localize=1&dark=1&filename=design)
 
 Шари прибувають як редаговані блоки: текст лишається редагованим, фігури залишаються фігурами, а зображення потрапляють у вашу бібліотеку. Збережіть, і **Поділитися з правилами** може перетворити макет на інструмент, який хто завгодно з Lolly може заповнити знову. Див. [Імпорт дизайну](/info/design-import.html).
 
@@ -98,9 +98,9 @@ Feature flags вмикають або вимикають частини Lolly. �
 
 ## Чим утиліти відрізняються від інструментів?
 
-Утиліта виконує одне швидке завдання над файлом, який у вас уже є, наприклад стискає PDF, конвертує фото або вилучає приховані дані, і багато з них працюють на вашому пристрої без жодного завантаження. Вони існують, щоб завдання, які люди зазвичай віддають випадковому сайту, лишалися всередині Lolly. Стиснення контракту, конвертація святкових фото з місцем зйомки всередині чи вставлення токена в онлайн-форматер не повинні означати передачу файлу сайту з невідомим зберіганням, юрисдикцією та бізнес-моделлю. [Утиліти](/info/utilities.html) їх перелічують, а [The trade we never agreed to](/info/status-quo.html) розповідає історію за ними.
+Утиліта виконує одне швидке завдання над файлом, який у вас уже є, наприклад стискає PDF, конвертує фото або вилучає приховані дані, і багато з них працюють на вашому пристрої без жодного завантаження. Вони існують, щоб завдання, які люди зазвичай віддають випадковому сайту, лишалися всередині Lolly. Стиснення контракту, конвертація святкових фото з місцем зйомки всередині чи вставлення токена в онлайн-форматер не повинні означати передачу файлу сайту з невідомим зберіганням, юрисдикцією та бізнес-моделлю. [Lolly Utilities](/info/utilities.html) їх перелічує, а [The trade we never agreed to](/info/status-quo.html) розповідає історію за ними.
 
-![Вигляд Утиліт: Strip Hidden Data, Compress PDF, Convert Image та інші завдання на пристрої в одному місці](/t/url-shot?url=%2F%23%2Fu&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone!important%7D&tolerance=0.03&format=svg&walker=1&dark=1&filename=use-utilities&try=1)
+![Вигляд Утиліт: Lolly Strip Hidden Data, Compress PDF, Convert Image та інші завдання на пристрої в одному місці](/t/url-shot?url=%2F%23%2Fu&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone!important%7D&tolerance=0.03&format=svg&walker=1&dark=1&filename=use-utilities&try=1)
 
 ## Чи може наша організація користуватися SSO, спільними проєктами та затвердженнями?
 
@@ -110,7 +110,7 @@ Feature flags вмикають або вимикають частини Lolly. �
 
 ## Які перешкоди можуть виникнути під час впровадження Lolly?
 
-Здебільшого змінюється бік виробництва, а не технологія. Команді, яка хоче керований набір інструментів, потрібна людина, що створить її дизайн-систему та перші шаблони, хоча будь-хто може почати створювати власні інструменти в Design вже в перший день, без git. А наявні процеси продовжують працювати, навіть коли їхній результат не відповідає бренду, тож добре перетворений один видимий результат, до і після поруч, переконує швидше за план.
+Здебільшого змінюється бік виробництва, а не технологія. Команді, яка хоче керований набір інструментів, потрібна людина, що створить її дизайн-систему та перші шаблони, хоча будь-хто може почати створювати власні інструменти в Lolly Design вже в перший день, без git. А наявні процеси продовжують працювати, навіть коли їхній результат не відповідає бренду, тож добре перетворений один видимий результат, до і після поруч, переконує швидше за план.
 
 [Adoption & Governance](/info/adoption-governance.html) охоплює введення за ролями, як вимірювати пілот і як може виглядати процес керування.
 
@@ -144,3 +144,11 @@ Lolly розроблено за допомогою написання коду �
 ## Який смак у того логотипа Lolly?
 
 Хтось каже лайм, хтось — м'ята, а іноді й яблуко; Lolly дарує солодощі, а смак створюєте ви!
+
+## Що Lolly означає під суверенітетом над вмістом?
+
+Контроль над тим, як ваш вміст створюється, керується, зберігається й переноситься між системами, які ви обираєте. Lolly підтримує локальне виробництво, редаговану роботу й переносні інструменти; Lolly Work додає спільні сервіси, що контролюються організацією. Ліцензії на джерела, доступні залежності та потоки даних робочого процесу все одно мають значення. [What is content sovereignty?](/info/content-sovereignty.html) пояснює кожен контроль і його межі.
+
+## Чи можемо ми зберегти наш наявний DAM?
+
+Так. Підтримуваний DAM може лишатися джерелом істини, поки Lolly Work підключає вибрані ресурси до інструментів Lolly. Доступ до джерела, дозволені правки, права на використання та затвердження готового результату - окремі рішення. [Use Lolly with your existing DAM](/info/use-with-dam.html) пояснює цю схему, а [SUSE's Brandfolder experience](/info/suse-brandfolder.html) фіксує успішне використання під час впровадження.

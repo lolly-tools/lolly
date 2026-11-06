@@ -1,4 +1,4 @@
-# Manage
+# Zarządzaj
 
 Lolly działa na urządzeniu każdej osoby. Gdy zespół potrzebuje logowania, wspólnych projektów, nadzorowanych zasobów, przeglądów i zadań serwerowych, organizacja dodaje **Lolly Work**, serwer organizacji tego samego projektu open source. Te strony są dla tego, kto konfiguruje i utrzymuje ten serwer.
 
@@ -13,6 +13,8 @@ Zacznij od [Use Lolly at your organisation](/info/organisation.html), aby zobacz
 - [Profiles, brands and tool configuration](/info/configuration.html) omawia, które narzędzia i systemy projektowe niesie kompilacja Lolly.
 
 ## Połącz zasoby i przeglądaj pracę
+
+- [Use Lolly with your existing DAM](/info/use-with-dam.html) wyjaśnia autorytet źródła i połączoną produkcję. [The SUSE Brandfolder account](/info/suse-brandfolder.html) opisuje doświadczenie wdrożenia, a [Plan a DAM transition](/info/dam-transition.html) omawia opcjonalne późniejsze przejście.
 
 - [Design-system administration](/info/work-design-system-administration.html) omawia inwentarz źródeł, przeglądane zmiany i wycofywanie.
 - [Catalog and content](/info/work-catalog.html) omawia wspólne zasoby i reguły ekspozycji. [Provider guides](/info/work-provider-guides.html) podaje konfigurację i wymagania weryfikacji każdej platformy źródłowej.

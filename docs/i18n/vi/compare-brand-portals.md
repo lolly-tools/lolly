@@ -1,8 +1,16 @@
 # Lolly và cổng thương hiệu
 
-_Kiểm tra lần cuối: 28 tháng 9 năm 2026._
+_Định vị cập nhật: 31 tháng 10 năm 2026. Ví dụ năng lực của nhà cung cấp được kiểm tra: 28 tháng 9 năm 2026._
 
 Nếu tổ chức của bạn giữ tài nguyên đã duyệt trong Bynder, Frontify, Marq hoặc Brandfolder, trang này so sánh điều đó với Lolly cộng Lolly Work: mọi người tìm tài nguyên thương hiệu ra sao, và tạo tệp mới từ đó thế nào.
+
+## Giữ cổng thông tin hiện có của bạn
+
+Một DAM hiện có có thể vẫn là nguồn ghi chép. Các trình kết nối danh mục của Lolly Work đưa một phần được chọn của thư viện đó vào Lolly, nơi mọi người tạo tệp mới theo quy tắc của tổ chức. Các ràng buộc nguồn được hỗ trợ của DAM và quy tắc hiển thị của Lolly Work chi phối quyền truy cập; việc xem xét đầu ra cuối cùng là một quyết định riêng.
+
+[Use Lolly with your existing DAM](/info/use-with-dam.html) giải thích các trách nhiệm và giới hạn. [SUSE's Brandfolder experience](/info/suse-brandfolder.html) ghi lại một lần tích hợp thành công đã hỗ trợ việc quản lý thay đổi của quản trị viên trước một cuộc chuyển đổi đã lên kế hoạch. Giữ nguồn được kết nối vẫn là một lựa chọn được hỗ trợ.
+
+Mục đích của Lolly là [chủ quyền nội dung](/info/content-sovereignty.html), gồm quyền kiểm soát sản xuất và tự do chọn hệ thống. Thư viện và phê duyệt riêng của nó hỗ trợ các tổ chức chọn tự vận hành những năng lực đó. [Lolly for DAM vendors and implementation partners](/info/dam-partners.html) mô tả cách quy trình được kết nối có thể thêm giá trị cho một hệ thống ghi chép hiện có.
 
 ## Một cổng thông tin lâu đời làm tốt hơn điều gì
 
@@ -26,11 +34,12 @@ Cả hai đều bao gồm tài nguyên đã duyệt, mẫu bị khóa, kiểm so
 | Giấy phép và ghi công | Lolly ghi giấy phép của mỗi nguồn mà một tệp dùng và chuẩn bị phần ghi công cần có; [Creative rights and credits](/info/creative-rights.html) giải thích nó ghi gì và phần ghi công được viết ở đâu. Nó không xác nhận quyền. |
 | Báo cáo | Số lần dùng và tải tài nguyên, hoạt động công cụ và xuất, bảng điều khiển và nhật ký kiểm toán. Việc gán lượt dùng theo chính sách telemetry của bản triển khai; cài đặt gán mặc định đòi sự đồng ý. |
 | Phân phối | Liên kết hết hạn, thu hồi được, bộ sưu tập chung, truy cập khách và bàn giao tới các đích tổ chức đã cấu hình. |
+| Một trang thương hiệu công khai | Lolly viết một [trang thương hiệu](/info/brand-page.html) tĩnh, từ Lolly Design System Setup hoặc dòng lệnh: logo, màu sắc, kiểu chữ, quy tắc và ví dụ cho con người, cùng token, `DESIGN.md` và skill cho agent. Bạn tự lưu trữ thư mục đó, hoặc một quản trị viên bật [lưu trữ trang thương hiệu](/info/work-design-system-administration.html#host-a-brand-page) trong Lolly Work, mặc định đang tắt. |
 
 [Catalog and content](/info/work-catalog.html), [Approvals](/info/work-approvals.html) và [Policy and governance](/info/work-governance.html) mô tả các tính năng này và cấu hình của chúng.
 
-## Giữ cổng thông tin hiện có của bạn
+## Đánh giá quy trình kết hợp
 
-Một DAM hiện có có thể vẫn là nguồn chân lý. Các trình kết nối danh mục của Lolly Work đưa tài nguyên đã duyệt của nó vào Lolly, nơi mọi người tạo tệp mới theo quy tắc của tổ chức. Đó là một lựa chọn tích hợp; thư viện và phê duyệt riêng của Lolly có đó khi tổ chức muốn tự vận hành. [What runs where](/info/compare.html#what-runs-where) liệt kê các giới hạn mà mọi so sánh dùng chung.
+Dùng [chuỗi sản xuất thẻ sự kiện](/info/dam-production.html) để kiểm tra quyền truy cập nguồn, các chỉnh sửa được phép, việc xem xét đầu ra và bàn giao với thư viện của chính bạn. [What runs where](/info/compare.html#what-runs-where) liệt kê các giới hạn mà mọi so sánh dùng chung. Một kết nối nguồn tự nó không thiết lập quan hệ đối tác với nhà cung cấp hay tư cách đạt chuẩn cho mọi tenant.
 
 Xem [How Lolly compares](/info/positioning.html) để so sánh khả năng. Tên nhà cung cấp chỉ nhằm xác định các sản phẩm được so sánh; Lolly không liên kết với họ.

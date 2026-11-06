@@ -12,7 +12,7 @@ Ang ilang converter site ay humahawak ng mga format na hindi kaya ng Lolly, at w
 
 Ang browser-based na converter ay maaaring mag-upload ng file para iproseso o mag-convert nang lokal. Pinoproseso ng mga conversion utility ng Lolly ang file nang lokal, walang account, ad o tracker, at hindi nagdaragdag ng Lolly watermark o Content Credentials. Kapag na-save na ang mga asset na kailangan ng conversion, gumagana ang mga ito offline. Ang laki ng file ay limitado ng memory ng device at ng partikular na format reader.
 
-![Ang Utilities view: Strip Hidden Data, Compress PDF, Convert Image at iba pang on-device na trabaho sa iisang lugar](/t/url-shot?url=%2F%23%2Fu&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%2C.brand-tips%7Bdisplay%3Anone!important%7D&tolerance=0.03&waitSelector=.utilities-view%5Bdata-shots-settled%5D&format=svg&walker=1&dark=1&filename=aud-utilities)
+![Ang Utilities view: Lolly Strip Hidden Data, Compress PDF, Convert Image at iba pang on-device na trabaho sa iisang lugar](/t/url-shot?url=%2F%23%2Fu&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%2C.brand-tips%7Bdisplay%3Anone!important%7D&tolerance=0.03&waitSelector=.utilities-view%5Bdata-shots-settled%5D&format=svg&walker=1&dark=1&filename=aud-utilities)
 
 Inililista ng [Bawat format na kayang buksan at gawin ng Lolly](/info/formats.html) ang mga sinusuportahang conversion at ang mga limitasyon nila, kasama ang HEIC to JPG, PNG to SVG at PDF to images.
 

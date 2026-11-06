@@ -14,9 +14,9 @@ Canva 把龐大的範本與圖庫、應用程式和託管的團隊工作流程�
 
 ## Lolly 如何完成重疊的工作
 
-Lolly 工具編碼了人們可以做的更改，同一個工具可在瀏覽器、桌面應用程式或 CLI 中執行。在 Design 畫布上製作的版面可以成為[附規則的工具](/info/create-a-tool.html)，而一個工具可以從一張值的表格製作許多檔案。
+Lolly 工具編碼了人們可以做的更改，同一個工具可在瀏覽器、桌面應用程式或 CLI 中執行。在 Lolly Design 畫布上製作的版面可以成為[附規則的工具](/info/create-a-tool.html)，而一個工具可以從一張值的表格製作許多檔案。
 
-![Design 的自由畫布，其提供的色彩、字型與素材都是設計系統自己的](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&dark=1&filename=aud-open-canvas)
+![Lolly Design 的自由畫布，其提供的色彩、字型與素材都是設計系統自己的](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&dark=1&filename=aud-open-canvas)
 
 單機版 Lolly 讓製作與匯出留在裝置上，不需要帳號，並且在素材儲存後可離線運作。兩個人可以在[私人協作](/info/collaborate.html)中從裝置到裝置即時編輯。支援的匯出預設開啟 Content Credentials，你可以關閉它。
 

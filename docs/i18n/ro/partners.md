@@ -6,8 +6,9 @@ Două cuvinte înseamnă același lucru peste tot în această pagină. **Brandu
 
 ## Cum tratează Lolly astăzi două branduri
 
-- **Un singur sistem de design desenează fiecare piesă.** Se aplică culorile, tipografia și regulile brandului principal. Marca partenerului intră ca grafică: o imagine din Assets sau o marcă personalizată păstrată într-un sistem de design.
-- **Un brand călătorește ca fișier.** Un fișier de sistem de design (`.lolly`) poartă tokenuri, fonturi și sigle. Un instrument reutilizabil făcut cu **Share with rules** poartă un aspect finit, cu intrările pe care le permiți. Abilitățile de brand călătoresc în fișiere proprii.
+- **Un singur sistem de design desenează fiecare piesă.** Se aplică culorile, tipografia și regulile de casă ale brandului principal. Marca partenerului intră ca grafică: o imagine din Assets sau o marcă personalizată păstrată într-un sistem de design.
+- **Un brand călătorește ca fișier.** Un fișier de sistem de design (`.lolly`) poartă tokenuri, fonturi și logo-uri. Un instrument reutilizabil făcut cu **Share with rules** poartă un aspect finit, cu intrările pe care le permiți. Abilitățile de brand călătoresc în fișiere proprii.
+- **Un brand poate avea și o adresă.** O [pagină de brand](/info/brand-page.html) publică logo-uri, culori, fonturi și reguli pe care un partener le poate citi, cu tokenuri și abilități pentru uneltele lui.
 - **Lolly verifică doar regulile brandului principal.** Nu cunoaște regulile partenerului, cum sunt spațiul liber sau dimensiunea minimă, așa că verifică-le în ghidurile partenerului însuși.
 
 ## Partajează-ți brandul cu un partener
@@ -16,10 +17,11 @@ Două cuvinte înseamnă același lucru peste tot în această pagină. **Brandu
 
 | Trimiți | Cum | Partenerul primește | Potrivit pentru |
 | --- | --- | --- | --- |
-| Un fișier de sistem de design | **Export** în bara de sus din [Lolly Design System Setup](/info/brand-studio.html#move-a-brand-between-devices) | Tokenurile, fonturile, siglele și preferința ta de temă, ca un sistem de design la care poate trece | Un partener care face multe piese în brandul tău |
-| Un instrument reutilizabil | În Design, **Share with rules** ([Partajează un design cu reguli](/info/create-a-tool.html)) | Un aspect finit, cu intrările pe care le permiți, cum ar fi numele și sigla partenerului. Fișierul poartă culorile, fonturile și imaginile deja rezolvate, așa că sistemul de design propriu al partenerului nu poate restiliza grafica fixă | Un fluturaș, un ecuson sau un banner în co-branding pe care îl completează fiecare partener |
+| Un fișier de sistem de design | **Export** în bara de sus din [Lolly Design System Setup](/info/brand-studio.html#move-a-brand-between-devices) | Tokenurile, fonturile, logo-urile și preferința ta de temă, ca un sistem de design la care poate trece | Un partener care face multe piese în brandul tău |
+| Un instrument reutilizabil | În Lolly Design, **Share with rules** ([Partajează un design cu reguli](/info/create-a-tool.html)) | Un aspect finit, cu intrările pe care le permiți, cum ar fi numele și logo-ul partenerului. Fișierul poartă culorile, fonturile și imaginile deja rezolvate, așa că sistemul de design propriu al partenerului nu poate restiliza grafica fixă | Un fluturaș, un ecuson sau un banner în co-branding pe care îl completează fiecare partener |
 | Abilități de brand | Camera **Skills**: **Download skill (.zip)** sau **Copy as one file** | Standardele tale scrise, pentru oamenii și agenții partenerului | Oricare dintre variantele de mai sus, când o parte din muncă o face un agent |
-| Tokenuri | **Tokens (.json)** în meniul **More** al studioului | Documentul simplu de tokenuri de design, fără fonturi și sigle | Uneltele de design sau procesul de build ale partenerului |
+| O pagină de brand | **Publish a brand page** în Lolly Design System Setup sau `lolly system publish` scrie un folder pe care îl găzduiești ([Pagini de brand](/info/brand-page.html)) | Logo-urile, culorile, fonturile și regulile tale curente la o singură adresă, cu tokenuri și abilități pentru uneltele lor. Logo-urile și fișierele de font apar când drepturile lor o permit, iar pagina listează ce a reținut | Partajarea cu oameni cărora nu le trimiți fișiere |
+| Tokenuri | **Tokens (.json)** în meniul **More** al studioului | Documentul simplu de tokenuri de design, fără fonturi și logo-uri | Uneltele de design sau procesul de build ale partenerului |
 
 ![Design System Setup pe Lolly Demo, deschis la camera Skills: Export în bară, meniul More deschis la Tokens (.json), iar Download skill (.zip) și Copy as one file lângă abilitatea aleasă](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dskills&width=1200&height=900&dpi=192&waitMs=1800&waitSelector=.skills-reader-actions&drive=click%3A%5Bdata-ds-more%5D%3Bwait%3A500&format=svg&walker=1&dark=1&filename=partners-send)
 
@@ -108,22 +110,27 @@ Exportă peretele ca PNG, SVG, PDF sau PDF CMYK pentru tipar. Setează altă dim
 
 Într-un terminal, `lolly run logo-wall logos/*.png --output=wall.svg` construiește peretele dintr-un folder de imagini, iar un CSV cu coloanele `logo` și `tier` construiește un perete pe niveluri. SVG și PNG nu au nevoie de browser ([Un perete de sponsori cu niveluri](/info/cli-rendering.html#a-sponsor-wall-with-tiers)).
 
+Când un sponsor publică o [pagină de brand](/info/brand-page.html), `lolly run logo-wall --logos-from=<address or folder>` ia logo-ul lui curent pentru suprafață și tipărește ce spune pagina lui despre utilizare. Repetă opțiunea pentru fiecare sponsor.
+
 Logo Wall nu cunoaște regulile niciunui sponsor. Tier și Presence stabilesc dimensiuni relative între ele, nu dimensiunea minimă a unui sponsor, și nimic nu verifică spațiul liber dintre vecini. Verifică peretele finit față de ghidurile fiecărui sponsor, la dimensiunea la care va fi tipărit sau afișat.
 
 ## Ce nu face Lolly încă
 
 - O piesă este desenată într-un singur sistem de design. Culorile, tipografia și regulile partenerului nu sunt un sistem de design în interiorul piesei, iar marca partenerului este o imagine.
-- Regulile partenerului nu sunt păstrate și nici verificate: spațiul liber, dimensiunea minimă și tratamentele permise, cum ar fi o singură culoare sau varianta inversată. Lolly verifică doar regulile brandului principal.
-- Nu există încă un kit de partener: un pachet ușor care ar păstra siglele, culorile și regulile unui partener pentru folosirea în lucrările altui brand.
+- Regulile partenerului nu sunt păstrate și nici verificate: spațiul liber, dimensiunea minimă și tratamentele permise, cum ar fi o singură culoare sau varianta inversată. Lolly verifică doar regulile de casă ale brandului principal.
+- Nu există încă un kit de partener: un pachet ușor care ar păstra logo-urile, culorile și regulile unui partener pentru folosirea în lucrările altui brand.
 - Lolly nu generează un lockup din două mărci pentru un aranjament de tip „cu”, „în parteneriat cu” sau „de”. Adaugă un lockup finit ca marcă personalizată.
 - Un singur sistem de design este activ pentru întreg dispozitivul, deci două branduri nu pot fi deschise unul lângă altul.
 - Un fișier de sistem de design este o copie a brandului așa cum a fost exportat, și nimic nu actualizează copia. Un fișier de sistem de design exportat din aplicație nu poartă abilitățile de brand, așa că trimite-le ca fișiere proprii.
-- Un export înregistrează sistemul de design și varianta de culoare ale brandului principal, nu brandul partenerului.
+- Un export înregistrează sistemul de design și colourway-ul brandului principal, nu brandul partenerului.
+- Un logo luat dintr-o pagină de brand este o imagine în rândul lui, iar rândul nu ține minte pagina. Nimic nu arată cine a publicat o pagină, așa că verifică adresa singur.
+- Aplicația web găzduită nu poate prelua pagina altui brand, pentru că Content Security Policy permite doar gazde cu nume. Ia logo-ul într-un terminal sau salvează fișierul și adaugă-l în **Assets**.
 
 ## Ce urmează
 
 - **[Arhitecturi de brand](/info/brand-architectures.html)**: co-branding, white label și celelalte aranjamente, cu ce faci în Lolly pentru fiecare.
 - **[Partajează un design cu reguli](/info/create-a-tool.html)**: instrumente reutilizabile cu aspect fix și intrările pe care le alegi.
 - **[Abilități de brand](/info/brand-skills.html)**: cum sunt scrise, citite și date unui agent abilitățile.
-- **[Lolly Design System Setup](/info/brand-studio.html)**: sigle, mărci personalizate și mutarea unui sistem de design între dispozitive.
+- **[Lolly Design System Setup](/info/brand-studio.html)**: logo-uri, mărci personalizate și mutarea unui sistem de design între dispozitive.
+- **[Pagini de brand](/info/brand-page.html)**: publică-ți brandul la o singură adresă și ia logo-ul unui partener de la a lui.
 - **[Drepturi creative și credite](/info/creative-rights.html)**: ce înregistrează Lolly despre lucrările pe care le desenează.

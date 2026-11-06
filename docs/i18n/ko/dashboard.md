@@ -1,4 +1,4 @@
-# Settings
+# 설정
 
 Settings에서는 Lolly가 나에게 맞게 동작하는 방식을 바꿔요. 내 세부 정보, 사용하는 디자인 시스템, 접근성, 이 기기에 저장된 것, 오프라인으로 준비된 것이에요. 홈 화면 하단 막대의 **Settings** 또는 아바타 메뉴에서 열어요. **Preferences**로 열리며 옆에 탭이 네 개 더 있어요.
 
@@ -34,7 +34,7 @@ Preferences는 옆에 **설정 레일**이 있고 레일 위에 입력하는 대
 
 테마 카드는 실시간 미리보기이며 고르는 즉시 이 기기에만 적용돼요.
 
-![Three theme cards, each previewing its own type and colour, with the active one flagged](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dappearance-section&width=1440&height=1400&dpi=192&waitMs=1600&walker=1&format=svg&cropSelector=.profile-card--appearance&dark=1&filename=pd-theme-picker)
+![각각 자체 서체와 색상을 미리 보여주고 활성 카드에 표시가 있는 테마 카드 세 장](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dappearance-section&width=1440&height=1400&dpi=192&waitMs=1600&walker=1&format=svg&cropSelector=.profile-card--appearance&dark=1&filename=pd-theme-picker)
 
 ### 접근성
 

@@ -6,8 +6,9 @@ Due parole significano la stessa cosa in tutta questa pagina. Il **brand princip
 
 ## Come Lolly gestisce oggi due brand
 
-- **Un solo design system disegna ogni pezzo.** Si applicano i colori, i caratteri e le regole di stile del brand principale. Il marchio del partner entra come grafica: un'immagine da Assets, oppure un segno personalizzato conservato in un design system.
-- **Un brand viaggia come file.** Un file di design system (`.lolly`) contiene token, font e loghi. Uno strumento riutilizzabile creato con **Share with rules** contiene un layout finito con gli input che permetti. Le skill del brand viaggiano in file a parte.
+- **Un solo design system disegna ogni pezzo.** Si applicano i colori, i caratteri e le regole di stile del brand principale. Il marchio del partner entra come grafica: un'immagine da Risorse, oppure un segno personalizzato conservato in un design system.
+- **Un brand viaggia come file.** Un file di design system (`.lolly`) contiene token, font e loghi. Uno strumento riutilizzabile creato con **Condividi con regole** contiene un layout finito con gli input che permetti. Le skill del brand viaggiano in file a parte.
+- **Un brand può anche avere un indirizzo.** Una [pagina del brand](/info/brand-page.html) pubblica loghi, colori, tipografia e regole che un partner può leggere, con token e skill per i suoi strumenti.
 - **Lolly controlla soltanto le regole del brand principale.** Non conosce le regole del partner, come l'area di rispetto o la dimensione minima, quindi verificale sulle linee guida del partner stesso.
 
 ## Condividi il tuo brand con un partner
@@ -17,9 +18,10 @@ Due parole significano la stessa cosa in tutta questa pagina. Il **brand princip
 | Cosa inviare | Come | Cosa riceve il partner | Adatto a |
 | --- | --- | --- | --- |
 | Un file di design system | **Export** nella barra in alto di [Lolly Design System Setup](/info/brand-studio.html#move-a-brand-between-devices) | I tuoi token, font, loghi e la preferenza del tema, come un design system a cui può passare | Un partner che realizza molti pezzi nel tuo brand |
-| Uno strumento riutilizzabile | In Design, **Share with rules** ([Condividi un design con regole](/info/create-a-tool.html)) | Un layout finito con gli input che permetti, come il suo nome e il suo logo. Il file contiene colori, font e immagini già risolti, così il suo design system non può cambiare lo stile della grafica fissa | Un volantino, un badge o un banner in co-branding che ogni partner compila |
-| Skill del brand | La stanza **Skills**: **Download skill (.zip)** o **Copy as one file** | I tuoi standard scritti, per le sue persone e i suoi agenti | Uno dei due casi sopra, quando un agente svolge parte del lavoro |
-| Token | **Tokens (.json)** nel menu **More** dello studio | Il documento di design token puro, senza font né loghi | Gli strumenti di design o la build del partner |
+| Uno strumento riutilizzabile | In Lolly Design, **Condividi con regole** ([Condividi un design con regole](/info/create-a-tool.html)) | Un layout finito con gli input che permetti, come il suo nome e il suo logo. Il file contiene colori, font e immagini già risolti, così il suo design system non può cambiare lo stile della grafica fissa | Un volantino, un badge o un banner in co-branding che ogni partner compila |
+| Skill del brand | La stanza **Skills**: **Scarica skill (.zip)** o **Copia come file unico** | I tuoi standard scritti, per le sue persone e i suoi agenti | Uno dei due casi sopra, quando un agente svolge parte del lavoro |
+| Una pagina del brand | **Pubblica una pagina del brand** in Lolly Design System Setup, oppure `lolly system publish`, scrive una cartella che ospiti tu ([Pagine del brand](/info/brand-page.html)) | I tuoi loghi, colori, tipografia e regole attuali a un unico indirizzo, con token e skill per i suoi strumenti. Loghi e file di font compaiono quando i loro diritti lo consentono, e la pagina elenca ciò che ha trattenuto | Condividere con persone a cui non invii file |
+| Token | **Token (.json)** nel menu **Altro** dello studio | Il documento di design token puro, senza font né loghi | Gli strumenti di design o la build del partner |
 
 ![Design System Setup su Lolly Demo, aperto sulla stanza Skills: Export nella barra, il menu More aperto su Tokens (.json), e Download skill (.zip) e Copy as one file accanto alla skill scelta](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dskills&width=1200&height=900&dpi=192&waitMs=1800&waitSelector=.skills-reader-actions&drive=click%3A%5Bdata-ds-more%5D%3Bwait%3A500&format=svg&walker=1&dark=1&filename=partners-send)
 
@@ -108,6 +110,8 @@ Esporta il muro come PNG, SVG, PDF o PDF CMYK per la stampa. Imposta un'altra di
 
 In un terminale, `lolly run logo-wall logos/*.png --output=wall.svg` costruisce il muro da una cartella di immagini, e un CSV con colonne `logo` e `tier` costruisce un muro a livelli. SVG e PNG non richiedono un browser ([Un muro di sponsor con livelli](/info/cli-rendering.html#a-sponsor-wall-with-tiers)).
 
+Quando uno sponsor pubblica una [pagina del brand](/info/brand-page.html), `lolly run logo-wall --logos-from=<address or folder>` prende il suo logo attuale per la superficie e stampa ciò che la sua pagina dice sull'uso. Ripeti il flag per ogni sponsor.
+
 Logo Wall non conosce le regole di nessuno sponsor. Tiers e Presence impostano dimensioni relative tra loro, non la dimensione minima di uno sponsor, e nulla controlla l'area di rispetto tra loghi vicini. Controlla il muro finito con le linee guida di ogni sponsor, alla dimensione in cui verrà stampato o mostrato.
 
 ## Cosa Lolly non fa ancora
@@ -118,7 +122,9 @@ Logo Wall non conosce le regole di nessuno sponsor. Tiers e Presence impostano d
 - Lolly non genera un lockup da due marchi per una formula "con", "in collaborazione con" o "di". Aggiungi un lockup finito come segno personalizzato.
 - Un solo design system è attivo per l'intero dispositivo, quindi due brand non possono essere aperti fianco a fianco.
 - Un file di design system è una copia del brand com'era all'esportazione, e nulla aggiorna la copia. Un file di design system esportato dall'app non contiene le skill del brand, quindi inviale come file a parte.
-- Un'esportazione registra il design system e il colourway del brand principale, non il brand del partner.
+- Un'esportazione registra il design system e la colourway del brand principale, non il brand del partner.
+- Un logo preso da una pagina del brand è un'immagine nella sua riga, e la riga non ricorda la pagina. Nulla mostra chi ha pubblicato una pagina, quindi controlla tu l'indirizzo.
+- L'app web ospitata non può recuperare la pagina di un altro brand, perché la sua Content Security Policy consente solo host con nome. Prendi il logo in un terminale, oppure salva il file e aggiungilo in **Risorse**.
 
 ## Dove andare adesso
 
@@ -126,4 +132,5 @@ Logo Wall non conosce le regole di nessuno sponsor. Tiers e Presence impostano d
 - **[Condividi un design con regole](/info/create-a-tool.html)**: strumenti riutilizzabili con un layout fisso e gli input che scegli.
 - **[Skill del brand](/info/brand-skills.html)**: come le skill vengono scritte, lette e affidate a un agente.
 - **[Lolly Design System Setup](/info/brand-studio.html)**: loghi, segni personalizzati e spostamento di un design system tra dispositivi.
+- **[Pagine del brand](/info/brand-page.html)**: pubblica il tuo brand a un unico indirizzo e prendi il logo di un partner dal suo.
 - **[Diritti creativi e crediti](/info/creative-rights.html)**: cosa registra Lolly sulle opere che disegna.

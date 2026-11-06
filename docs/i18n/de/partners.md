@@ -8,6 +8,7 @@ Zwei Begriffe bedeuten auf dieser Seite überall dasselbe. Die **führende Marke
 
 - **Ein Designsystem zeichnet jedes Stück.** Farben, Schrift und Hausregeln der führenden Marke gelten. Das Zeichen des Partners kommt als Artwork hinein: als Bild aus Assets oder als benutzerdefinierte Marke, die in einem Designsystem liegt.
 - **Eine Marke reist als Datei.** Eine Designsystem-Datei (`.lolly`) enthält Tokens, Schriften und Logos. Ein wiederverwendbares Tool, das mit **Share with rules** entsteht, enthält ein fertiges Layout mit den Eingaben, die Sie erlauben. Marken-Skills reisen als eigene Dateien.
+- **Eine Marke kann auch eine Adresse haben.** Eine [Markenseite](/info/brand-page.html) veröffentlicht Logos, Farben, Schrift und Regeln zum Lesen für einen Partner, mit Tokens und Skills für dessen Tools.
 - **Lolly prüft nur die Regeln der führenden Marke.** Es kennt die Regeln des Partners nicht, etwa Schutzraum oder Mindestgröße. Prüfen Sie diese anhand der eigenen Richtlinien des Partners.
 
 ## Ihre Marke mit einem Partner teilen
@@ -17,8 +18,9 @@ Zwei Begriffe bedeuten auf dieser Seite überall dasselbe. Die **führende Marke
 | Senden | Wie | Der Partner erhält | Eignet sich für |
 | --- | --- | --- | --- |
 | Eine Designsystem-Datei | **Export** in der Leiste oben in [Lolly Design System Setup](/info/brand-studio.html#move-a-brand-between-devices) | Ihre Tokens, Schriften, Logos und die Themenwahl, als Designsystem, zu dem er wechseln kann | Einen Partner, der viele Stücke in Ihrer Marke erstellt |
-| Ein wiederverwendbares Tool | In Design **Share with rules** ([Ein Design mit Regeln teilen](/info/create-a-tool.html)) | Ein fertiges Layout mit den Eingaben, die Sie erlauben, etwa sein Name und sein Logo. Die Datei enthält die aufgelösten Farben, Schriften und Bilder, sodass sein eigenes Designsystem das feste Artwork nicht umgestalten kann | Einen gemeinsamen Flyer, ein Badge oder ein Banner, das jeder Partner selbst ausfüllt |
+| Ein wiederverwendbares Tool | In Lolly Design **Share with rules** ([Ein Design mit Regeln teilen](/info/create-a-tool.html)) | Ein fertiges Layout mit den Eingaben, die Sie erlauben, etwa sein Name und sein Logo. Die Datei enthält die aufgelösten Farben, Schriften und Bilder, sodass sein eigenes Designsystem das feste Artwork nicht umgestalten kann | Einen gemeinsamen Flyer, ein Badge oder ein Banner, das jeder Partner selbst ausfüllt |
 | Marken-Skills | Der Raum **Skills**: **Download skill (.zip)** oder **Copy as one file** | Ihre schriftlichen Standards, für seine Leute und seine Agenten | Eine der beiden anderen Varianten, wenn ein Agent einen Teil der Arbeit übernimmt |
+| Eine Markenseite | **Publish a brand page** in Lolly Design System Setup oder `lolly system publish` schreibt einen Ordner, den Sie hosten ([Markenseiten](/info/brand-page.html)) | Ihre aktuellen Logos, Farben, Schrift und Regeln an einer Adresse, mit Tokens und Skills für seine Tools. Logos und Schriftdateien erscheinen, wenn ihre Rechte es erlauben, und die Seite listet auf, was sie zurückgehalten hat | Das Teilen mit Menschen, denen Sie keine Dateien senden |
 | Tokens | **Tokens (.json)** im Menü **More** des Studios | Das schlichte Design-Tokens-Dokument, ohne Schriften und Logos | Die eigenen Design-Werkzeuge oder den eigenen Build eines Partners |
 
 ![Design System Setup mit Lolly Demo, geöffnet im Raum Skills: Export in der Leiste, das Menü More offen auf Tokens (.json), und Download skill (.zip) sowie Copy as one file neben dem gewählten Skill](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dskills&width=1200&height=900&dpi=192&waitMs=1800&waitSelector=.skills-reader-actions&drive=click%3A%5Bdata-ds-more%5D%3Bwait%3A500&format=svg&walker=1&dark=1&filename=partners-send)
@@ -108,6 +110,8 @@ Exportieren Sie die Wand als PNG, SVG, PDF oder als CMYK-PDF für den Druck. Ste
 
 In einem Terminal baut `lolly run logo-wall logos/*.png --output=wall.svg` die Wand aus einem Ordner mit Bildern, und eine CSV mit den Spalten `logo` und `tier` baut eine Wand mit Stufen. SVG und PNG brauchen keinen Browser ([Eine Sponsorenwand mit Stufen](/info/cli-rendering.html#a-sponsor-wall-with-tiers)).
 
+Veröffentlicht ein Sponsor eine [Markenseite](/info/brand-page.html), übernimmt `lolly run logo-wall --logos-from=<address or folder>` dessen aktuelles Logo für die Fläche und gibt aus, was seine Seite zur Nutzung sagt. Wiederholen Sie das Flag für jeden Sponsor.
+
 Logo Wall kennt die Regeln keines Sponsors. Tiers und Presence legen Größen im Verhältnis zueinander fest, nicht die Mindestgröße eines Sponsors, und nichts prüft den Schutzraum zwischen Nachbarn. Prüfen Sie die fertige Wand anhand der Richtlinien jedes Sponsors in der Größe, in der sie gedruckt oder gezeigt wird.
 
 ## Was Lolly noch nicht kann
@@ -119,6 +123,8 @@ Logo Wall kennt die Regeln keines Sponsors. Tiers und Presence legen Größen im
 - Ein Designsystem ist für das ganze Gerät aktiv, daher lassen sich zwei Marken nicht nebeneinander öffnen.
 - Eine Designsystem-Datei ist eine Kopie der Marke, wie sie exportiert wurde, und nichts aktualisiert die Kopie. Eine aus der App exportierte Designsystem-Datei enthält keine Marken-Skills; senden Sie diese als eigene Dateien.
 - Ein Export hält das Designsystem und die Farbvariante der führenden Marke fest, nicht die Marke des Partners.
+- Ein Logo von einer Markenseite ist ein Bild in seiner Zeile, und die Zeile merkt sich die Seite nicht. Nichts zeigt, wer eine Seite veröffentlicht hat, also prüfen Sie die Adresse selbst.
+- Die gehostete Web-App kann die Seite einer anderen Marke nicht abrufen, weil ihre Content Security Policy nur benannte Hosts zulässt. Holen Sie das Logo in einem Terminal oder speichern Sie die Datei und fügen Sie sie in **Assets** hinzu.
 
 ## Wie es weitergeht
 
@@ -126,4 +132,5 @@ Logo Wall kennt die Regeln keines Sponsors. Tiers und Presence legen Größen im
 - **[Ein Design mit Regeln teilen](/info/create-a-tool.html)**: wiederverwendbare Tools mit festem Layout und den Eingaben, die Sie wählen.
 - **[Marken-Skills](/info/brand-skills.html)**: wie Skills geschrieben, gelesen und an einen Agenten übergeben werden.
 - **[Lolly Design System Setup](/info/brand-studio.html)**: Logos, benutzerdefinierte Marken und das Verschieben eines Designsystems zwischen Geräten.
+- **[Markenseiten](/info/brand-page.html)**: Ihre Marke an einer Adresse veröffentlichen und das Logo eines Partners von dessen Seite holen.
 - **[Kreativrechte und Credits](/info/creative-rights.html)**: was Lolly über die Werke festhält, die es zeichnet.

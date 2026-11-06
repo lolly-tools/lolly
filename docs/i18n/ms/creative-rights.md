@@ -22,7 +22,7 @@ Memilih set tidak pernah disekat, dan kawalan set menunjukkan lesen di tempat an
 
 ## Apa yang anda lihat, dan apa yang perlu dilakukan
 
-Perkataan yang sama muncul dalam panel eksport, Verify, baris perintah dan hasil mesin, kira-kira mengikut betapa kerap anda akan menemuinya.
+Perkataan yang sama muncul dalam panel eksport, Lolly Verify, baris perintah dan hasil mesin, kira-kira mengikut betapa kerap anda akan menemuinya.
 
 | Apa yang anda lihat | Maksudnya |
 |---|---|
@@ -51,12 +51,14 @@ Lolly tidak pernah menyatakan "copyright verified", "legally safe", "fully clear
 
 - **Dalam katalog.** Helaian karya menunjukkan sumber dan penciptanya, nama lesen kanonik dengan label asal dikekalkan di bawahnya, kredit boleh salin di mana direkodkan dan satu baris menyatakan apa yang diminta penggunaannya. Jubin menyatakan keperluan; ia tidak pernah mendakwa eksport telah selesai.
 - **Dalam panel eksport.** Kad Source credits muncul di dalam Content protection sebaik render menggunakan karya yang direkodkan, di sebelah Licence yang anda pilih untuk eksport anda sendiri. Ia menunjukkan keadaan, teks kredit di sebalik Details, butang Copy credit dan kad sebaris apabila keputusan perlu dibuat. Keputusan tidak pernah dialog yang menyekat: muat turun dengan tindakan tertinggal masih diteruskan.
-- **Dalam fail.** Eksport yang meletakkan karya yang direkodkan menulis satu ramuan sumber Content Credentials bagi setiap karya berbeza, terikat kepada bait asal pada alamat awamnya, dan membawa pencipta, lesen dan pautannya, sumber, semakan dan perubahan. Lolly menandatangani apa yang diperhatikannya. Ia tidak pernah menandatangani tuntutan bagi pihak artis hulu, dan Verify menyatakan yang mana satu berlaku.
+- **Dalam fail.** Eksport yang meletakkan karya yang direkodkan menulis satu ramuan sumber Content Credentials bagi setiap karya berbeza, terikat kepada bait asal pada alamat awamnya, dan membawa pencipta, lesen dan pautannya, sumber, semakan dan perubahan. Lolly menandatangani apa yang diperhatikannya. Ia tidak pernah menandatangani tuntutan bagi pihak artis hulu, dan Lolly Verify menyatakan yang mana satu berlaku.
 - **Dalam pakej.** Muat turun yang tidak boleh memegang kredensial, seperti animasi `.lottie`, membawa kredit sebagai `CREDITS.txt` dan `credits.json` di dalam pakej. Ia dibaca semula selepas menulis, dan tiada kredensial bertandatangan didakwa untuknya.
 - **Selepas menulis.** Bait yang dihantar dibaca semula sebelum apa-apa menyatakan kredit disertakan. Kredensial yang tidak disahkan tidak dikira sebagai kredit dihantar.
-- **Dalam fail `.lolly` boleh sunting.** Bait dibawa hanya apabila lesen yang disemak merekodkan kebenaran untuk menyerahkan sumber. `CREDITS.txt` pek menyenaraikan apa yang dibawa, di bawah lesen apa dan apa yang ditahan dengan sebabnya. Lesen yang tidak direkodkan ditahan. Anda masih boleh menyertakan kandungan yang ditahan dengan sengaja, dan fail kredit merekodkan bahawa itu pilihan anda.
-- **Dalam Verify.** Panel Sources menyenaraikan setiap sumber yang direkodkan fail, dengan ringkasan yang dikira, kredit, butang Copy credit, pautan Open source yang hanya dibuka apabila anda meminta dan had yang dinyatakan bagi apa yang diperiksa. Soalan Check for this use muncul hanya apabila anda memilih penggunaan, dan tiada apa-apa diambil untuk menjawab soalan itu.
+- **Dalam fail `.lolly` boleh sunting.** Bait dibawa hanya apabila lesen yang disemak merekodkan kebenaran untuk menyerahkan sumber, atau baris itu membawa syarat pemiliknya sendiri. `CREDITS.txt` pek menyenaraikan apa yang dibawa, di bawah lesen apa dan apa yang ditahan dengan sebabnya. Lesen yang tidak direkodkan ditahan. Anda masih boleh menyertakan kandungan yang ditahan dengan sengaja, dan fail kredit merekodkan bahawa itu pilihan anda.
+- **Dalam Lolly Verify.** Panel Sources menyenaraikan setiap sumber yang direkodkan fail, dengan ringkasan yang dikira, kredit, butang Copy credit, pautan Open source yang hanya dibuka apabila anda meminta dan had yang dinyatakan bagi apa yang diperiksa. Soalan Check for this use muncul hanya apabila anda memilih penggunaan, dan tiada apa-apa diambil untuk menjawab soalan itu.
 - **Apabila anda membuang metadata.** Pelucutan memberitahu anda berapa banyak kredit sumber yang tidak lagi dibawa fail, menawarkan teks kredit dan menawarkan fail bersih dengan kredit dalam fail berasingan. Bait yang dilucutkan tidak pernah dicap semula.
+
+**Tanda milik pemilik sendiri.** Pemilik jarang meletakkan logo di bawah lesen terbuka. Baris yang rekod haknya menyatakan `own-work`, dengan pemilik dan syaratnya, boleh dibawa dalam fail `.lolly` dan pada [halaman jenama](/info/brand-page.html#publish-your-own-marks). Ia dibawa sebagai "Owner-published, not an open licence", dengan syarat di sebelah fail. Ini membaca apa yang dinyatakan katalog. Lolly tidak menyemak siapa yang memiliki sesuatu tanda. Rekod tanpa pemilik, syarat kosong atau tanpa pengisytiharan kekal ditahan, begitu juga tanda milik orang lain yang tiada rekod sedemikian.
 
 ::: details Lesen yang telah disemak Lolly
 Versi peraturan `rights-rules-2026-11-05.1`. Setiap peraturan dibaca daripada teks undang-undang lesen itu sendiri, dan bahagian asalnya dipetik di sini dan di sebelah peraturan dalam `engine/src/rights-profiles.ts`. Versi dan port dikekalkan seperti yang direkodkan: pengisytiharan CC BY 3.0 mengekalkan versinya sendiri dan bukan dilaporkan sebagai 4.0 kerana pemilih apl lebih suka 4.0.
@@ -69,6 +71,7 @@ Versi peraturan `rights-rules-2026-11-05.1`. Setiap peraturan dibaca daripada te
 | CC-PDDC | Tiada. Apa yang direkodkan ialah penegasan itu sendiri dan siapa yang membuatnya, kerana perakuan ialah kenyataan satu pihak dan bukan bukti. | Perenggan [dedikasi dan perakuan](https://creativecommons.org/licenses/publicdomain/) |
 | Apache License 2.0 | Notis daripada sumber dan teks atribusi fail NOTICE dibawa bersama karya yang diedarkan. Penggunaan masa jalan tidak meminta apa-apa. Lesen yang meminta teks notis dan karya yang tidak membawanya dilaporkan sebagai jurang. | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0), bahagian 4, syarat 1 hingga 4 |
 | MIT | Baris hak cipta dan notis kebenaran dibawa bersama salinan dan bahagian substansial. Penggunaan masa jalan dan rujukan tidak meminta apa-apa. | [MIT](https://opensource.org/license/mit), syarat notis kebenaran |
+| ISC | Sama seperti MIT, dalam perkataan yang lebih ringkas: baris hak cipta dan notis kebenaran dibawa bersama salinan. Penggunaan masa jalan dan rujukan tidak meminta apa-apa. | [ISC](https://opensource.org/license/isc-license-txt), syarat notis kebenaran |
 | SIL OFL 1.1 | Merender teks dengan fon tidak meminta apa-apa daripada teks. Menyerahkan fail fon membawa lesen, notis hak cipta dan peraturan nama terpelihara. | [OFL 1.1](https://openfontlicense.org/open-font-license-official-text/), syarat 2, 3 dan 5; [OFL FAQ](https://openfontlicense.org/ofl-faq/) tentang dokumen |
 
 **Direkodkan, tidak ditafsirkan.** CC BY-NC, CC BY-ND dan gabungan NC-SA serta NC-ND dikenali, syaratnya disenaraikan dan tiada peraturan di sini membacanya. Ia melaporkan `licence.unknown` dengan baris yang menamakan syarat. Konteks komersial tidak dapat dibaca daripada harga atau akaun, dan setiap teks gabungan memerlukan semakannya sendiri sebelum peraturan membaca teks itu.
@@ -119,7 +122,7 @@ Lima modul enjin, semuanya tulen: tiada rangkaian, tiada jam, tiada sistem fail.
 | `engine/src/rights-evaluate.ts` | Pengelasan, isu, pelan atribusi dan cap jari. Deterministik: fakta yang sama dalam susunan berbeza memberi jawapan yang sama. |
 | `engine/src/rights-attribution.ts` | Kredit boleh baca, fail pendamping, ramuan sumber dan resit yang diukur selepas menulis. |
 | `engine/src/rights-companion.ts` | Bacaan semula kredit pakej (`CREDITS.txt` dan `credits.json` di dalam muat turun berasaskan ZIP), yang mengesahkan kredit tanpa mendakwa kredensial bertandatangan. |
-| `engine/src/rights-report.ts` | Kredensial yang disahkan dibaca semula sebagai tiga soalan yang ditanya Verify. |
+| `engine/src/rights-report.ts` | Kredensial yang disahkan dibaca semula sebagai tiga soalan yang ditanya Lolly Verify. |
 
 Fail jangkaan dalam `tests/fixtures/rights/` ditulis daripada teks lesen dan bukan daripada output penilai, dan README-nya memetik bahagian di sebalik setiap jangkaan.
 :::

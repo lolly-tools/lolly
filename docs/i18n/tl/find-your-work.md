@@ -37,7 +37,7 @@ Ang item ay pinangalanan ayon sa file name na tinype mo sa export panel, o ayon 
 :::
 
 ::: details Paggamit ng Mga Project
-Puwede mo ring buksan ang **Mga Project** mula sa **Mga Setting → Imbakan → Mga naka-save na session → Ayusin sa Projects**. Gumagana ito tulad ng isang file manager:
+Puwede mo ring buksan ang **Mga Project** view mula sa **Mga Setting → Imbakan → Mga naka-save na session → Ayusin sa Projects**. Gumagana ito tulad ng isang file manager:
 
 ![Ang Mga Project bago pa man magkaroon ng na-save: ang mga tile na New folder, New asset at Templates, ang History clock sa kanang itaas at ang Search all projects bar sa ilalim](/t/url-shot?url=%2F%23%2Fp&width=1440&height=900&dpi=192&waitMs=1200&walker=1&format=svg&localize=1&dark=1&filename=projects)
 <!--
@@ -101,17 +101,17 @@ Sa mga tool na nag-sa-save habang ginagawa mo, may kopya ang History ng mga nata
 :::
 
 ::: details Aling mga tool ang nag-sa-save habang ginagawa mo
-Sa web app, nag-sa-save habang ginagawa mo ang bawat tool na gumagawa ng dokumento: Design, Chart, QR Code, Text, Sandbox at ang iba pa. Hindi ito ginagawa ng mga sumusunod na tool:
+Sa web app, nag-sa-save habang ginagawa mo ang bawat tool na gumagawa ng dokumento: Lolly Design, Lolly Chart, QR Code, Text, Lolly Sandbox at ang iba pa. Hindi ito ginagawa ng mga sumusunod na tool:
 
 - mga tool na gumagana sa file na dala mo, tulad ng Redact, Sign o Convert Image, dahil hindi kailanman nag-iingat ng kopya ng file na iyon ang Lolly;
-- mga tool na nagre-record mula sa camera, mikropono o screen mo, tulad ng Record, Screen Capture at Voice Recorder;
+- mga tool na nagre-record mula sa camera, mikropono o screen mo, tulad ng Record, Lolly Screen Capture at Lolly Voice Recorder;
 - tool na walang babaguhin, tulad ng Countdown.
 
 Sa ibang mga tool, ang unang pagbabago mo ay nagfa-file ng gawa sa **Projects** na parang nag-save ka, at ang mga susunod na pagbabago ay iniingatan habang gumagawa ka kapag natapos nang gumuhit ang tool. Ang hindi pa na-save na likha ay nasa Projects pa rin pagkatapos mong isara ang tab, at muling bumubukas na may markang unsaved ang mga pagbabago nito.
 
 Itinatapon pa rin ng **Leave anyway** ang mga pagbabagong iyon, at nag-iingat ang History ng kopya ng mga itinapong edit sa loob ng 30 araw. Ang muling pagbubukas ng tool mula sa home screen ay nagsisimula ng bagong likha; buksan ang nauna mula sa Projects.
 
-Ang 3D at Darkroom ay nagse-save habang gumagawa ka, pero hindi sila nag-iingat ng file na nilo-load mo sa kanila, tulad ng 3D model o LUT. Iniingatan ng History at **Save** ang pangalan, uri at laki ng file, hindi ang file. Kapag muli mong binuksan ang gawa, sinasabi ng tala kung aling file iyon, at gumagana ang tool nang wala ito hanggang i-load mo muli. Itago ang mga orihinal mong file.
+Ang 3D at Lolly Darkroom ay nagse-save habang gumagawa ka, pero hindi sila nag-iingat ng file na nilo-load mo sa kanila, tulad ng 3D model o LUT. Iniingatan ng History at **Save** ang pangalan, uri at laki ng file, hindi ang file. Kapag muli mong binuksan ang gawa, sinasabi ng tala kung aling file iyon, at gumagana ang tool nang wala ito hanggang i-load mo muli. Itago ang mga orihinal mong file.
 
 Kapag naka-on ang [Sync](/info/sync.html), pumupunta rin sa ibang device mo ang isang likhang na-file sa ganitong paraan, tulad ng iba pang laman ng Projects. Nananatili ang mga bersyon nito sa device kung saan ito ginawa.
 
@@ -147,14 +147,14 @@ Sa iPhone, iPad at Android, pinapalitan ng bagong file ang naunang isa na may pa
 
 Para buksan ang mas naunang bersyon:
 
-1. Pindutin ang **History**, ang clock button sa tabi ng **I-undo** at **I-redo**. Sa Design, nasa top bar ang **History**; sa telepono, pindutin ang **•••** at pagkatapos ay **History**. Sa mga tool na walang **I-undo**, tulad ng Text at Sandbox, nasa tabi ng **Home** ang **History** sa kaliwang itaas.
+1. Pindutin ang **History**, ang clock button sa tabi ng **I-undo** at **I-redo**. Sa Lolly Design, nasa top bar ang **History**; sa telepono, pindutin ang **•••** at pagkatapos ay **History**. Sa mga tool na walang **I-undo**, tulad ng Text at Lolly Sandbox, nasa tabi ng **Home** ang **History** sa kaliwang itaas.
 2. Hanapin ang bersyon ayon sa petsa at oras nito. Kinukuha ang mga row ng **Automatic checkpoint** habang ginagawa mo ito; ang mga row ng **Saved version** ay ang mga oras na nag-save ka.
 3. Pindutin ang **Open as a copy**. Bubukas ang bersyon bilang bagong likha, at mananatili ang isang bukas ka na sa dating anyo. Nasa **Mga Project** ang kopya, may "(copy)" pagkatapos ng pangalan nito.
 
 Para itago ang isang bersyon ayon sa pangalan, pindutin ang **Name version**, mag-type ng pangalan at pindutin ang **Keep milestone**. Nakalista ang mga pinangalanang bersyon sa **History** page, sa ilalim ng **Milestones**.
 
 ::: details Ang History panel at ang History page
-Nililista rin ng **History** panel ang mga row ng **Recovered work**, at hawak ng **Protected drafts** ang huli mong mga edit sa pagitan ng mga checkpoint, may **Open draft as a copy**. Tinutulungan ka ng **Compare** at **Check assets** na pumili bago ka magbukas ng kopya. Baguhin ang **This creation** tungong **All history on this device** para makita ang bawat likha.
+Nililista rin ng **History** panel ang mga row ng **Recovered work**, at hawak ng **Protected drafts** ang huli mong mga edit sa pagitan ng mga checkpoint, may **Open draft as a copy**. Tinutulungan ka ng **Lolly Compare** at **Check assets** na pumili bago ka magbukas ng kopya. Baguhin ang **This creation** tungong **All history on this device** para makita ang bawat likha.
 
 Nagiging mas iilan ang Automatic checkpoint habang tumatagal: isa kada minuto para sa huling oras, isa kada oras para sa huling araw, isa kada araw para sa 30 araw, tapos isa kada linggo. Iniingatan lahat ang mga Saved version at ang mga pinangalanang bersyon. Ang pagbura ng isang likha ay naglilipat din ng mga bersyon nito sa **Trash**, at inaalis ito ng **I-delete nang tuluyan**.
 

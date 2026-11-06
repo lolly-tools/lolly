@@ -16,7 +16,7 @@ Oba pozwalają układać tekst, kształty i obrazy na kanwie i pracować z innym
 
 Lolly zamienia projekt w [narzędzie wielokrotnego użytku z regułami](/info/create-a-tool.html). Narzędzie działa w przeglądarce lub CLI i bierze dane wejściowe z linku, skryptu lub siatki batch, więc jeden szablon służy osobie edytującej jeden plik i zespołowi tworzącemu wiele.
 
-![Otwarta kanwa Design z Import a design w menu Lolly na pasku narzędzi](/info/shots/design.svg)
+![Otwarta kanwa Lolly Design z Import a design w menu Lolly na pasku narzędzi](/info/shots/design.svg)
 
 [Prywatny collab](/info/collaborate.html) łączy dwa urządzenia bezpośrednio, bez konta i bez internetu w sieci wspólnej. Samodzielne Lolly renderuje offline. Content Credentials są domyślnie włączone dla obsługiwanych eksportów i możesz je wyłączyć.
 

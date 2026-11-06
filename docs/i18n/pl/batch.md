@@ -1,8 +1,10 @@
-# Batch i Multi-edit
+# Lolly Batch i Lolly Multi-edit
+
+<a id="batch-and-multi-edit"></a>
 
 Gdy często tworzysz ten sam rodzaj pliku, pojawiają się dwa zadania. Czasem potrzebujesz wielu wersji jednego projektu: karty w kilkunastu językach albo każdego rozmiaru banera. Czasem masz kilka różnych zapisanych projektów i chcesz, by jedna zmiana dotarła do wszystkich, na przykład nowa data lub nowy nagłówek.
 
-**Batch** wykonuje pierwsze zadanie, a **Multi-edit** drugie. Oba działają na Twoim urządzeniu i eksportują tą samą ścieżką renderowania co same narzędzia.
+**Lolly Batch** wykonuje pierwsze zadanie, a **Lolly Multi-edit** drugie. Oba działają na Twoim urządzeniu i eksportują tą samą ścieżką renderowania co same narzędzia.
 
 ::: cols
 ## Batch
@@ -10,9 +12,10 @@ Gdy często tworzysz ten sam rodzaj pliku, pojawiają się dwa zadania. Czasem p
 - Jeden szablon, wiele wierszy. Każdy wiersz to jeden zestaw danych wejściowych i tworzy jeden plik.
 - Wypełniaj wiersze, wpisując, wklejając z arkusza kalkulacyjnego lub importując CSV.
 - Bez limitu wierszy; 50 na stronie.
-- Otwiera się z **Batch** w nagłówku Projects (`#/batch`).
+- Otwiera się z **Lolly Batch** w nagłówku Projects (`#/batch`).
 
-## Multi-edit
+<a id="multi-edit"></a>
+## Lolly Multi-edit
 
 - Od dwóch do ośmiu różnych zapisanych projektów, obok siebie jako żywe karty.
 - Jeden pasek boczny edytuje wspólne dane wejściowe, a potem własne każdej karty.
@@ -22,7 +25,7 @@ Gdy często tworzysz ten sam rodzaj pliku, pojawiają się dwa zadania. Czasem p
 
 ## Twórz wiele wersji jednego projektu
 
-Otwórz **Projects** i naciśnij **Batch** w jego nagłówku. Siatka zaczyna się od jednego wiersza: wybierz w nim szablon, a potem zduplikuj wiersz lub wklej dane z arkusza kalkulacyjnego. Otwarty z wnętrza folderu Batch zwraca Cię do tego folderu.
+Otwórz widok **Projects** i naciśnij **Batch** w jego nagłówku. Siatka zaczyna się od jednego wiersza: wybierz w nim szablon, a potem zduplikuj wiersz lub wklej dane z arkusza kalkulacyjnego. Otwarty z wnętrza folderu Batch zwraca Cię do tego folderu.
 
 ![Batch na nowej siatce: nazwa pliku i narzędzia wierszy u góry, a lista szablonów pierwszego wiersza otwarta na narzędziach do wyboru](/t/url-shot?url=%2F%23%2Fbatch&width=1440&height=900&dpi=192&waitMs=3500&walker=1&format=svg&dark=1&filename=use-batch-toolbar)
 
@@ -46,9 +49,13 @@ Każdy wiersz zachowuje własne wybory motywu: jasny lub ciemny oraz colourway, 
 
 CSV niesie te wybory w kolumnie `_themes` po kolumnach rozmiaru, z tym samym JSON co parametr linku `_themes`, na przykład `{"":"dark","colourway":"beach"}`. Pusta komórka lub `{}` oznacza domyślne wartości systemu projektowego. Kolumna jest zapisywana tylko wtedy, gdy jakiś wiersz ma wybory, więc batch bez nich eksportuje ten sam CSV co wcześniej. Przy imporcie komórka, która nie jest prawidłowym wyborem motywu, jest wymieniana jako problem, a jej wiersz renderuje się w wartościach domyślnych. Siatka nie ma jeszcze kontrolki do zmiany wyborów wiersza, więc ustaw je w CSV lub w zapisanej sesji.
 
+### Język dla każdego wiersza
+
+Narzędzie, które drukuje własne teksty, takie jak Certificate, może przyjąć kolumnę `language` z krótkim kodem języka, takim jak `de`, `ja` lub `ar`. Każdy wiersz drukuje wtedy swoje teksty i datę w tym języku, a wiersze po arabsku i w urdu są układane od prawej do lewej. Pusta komórka podąża za językiem aplikacji. Język, którego tłumaczenia Lolly jeszcze nie ma, drukuje się po angielsku, łącznie z datą, więc certyfikat nigdy nie jest przetłumaczony do połowy.
+
 ### Batch lub Render folder
 
-Batch tworzy wiele wariantów jednego szablonu. Aby ponownie wyrenderować już zapisane sesje, zaznacz je w Projects i użyj **Render selection**, lub **Render folder** dla całego folderu; [Find and recover your work](/info/find-your-work.html#find-something-you-saved) opisuje oba.
+Lolly Batch tworzy wiele wariantów jednego szablonu. Aby ponownie wyrenderować już zapisane sesje, zaznacz je w Projects i użyj **Render selection**, lub **Render folder** dla całego folderu; [Find and recover your work](/info/find-your-work.html#find-something-you-saved) opisuje oba.
 
 ## Edytuj razem kilka zapisanych projektów
 
@@ -69,7 +76,7 @@ Każda karta rysuje się w wyborach motywu własnej sesji, w tym narzędzia umie
 - **Najwyżej osiem.** Każda karta montuje własne działające środowisko, a osiem to liczba, przy której wszystko pozostaje responsywne. Link prosi o więcej lub o sesję, która już nie istnieje, i mówi o tym, zamiast ładować się częściowo.
 - **Link jest lokalny.** Wskazuje Twoje własne zapisane sloty, więc otwiera ten zestaw na tym urządzeniu. Nie jest linkiem udostępniania.
 - **Dla czegoś większego** wybierz **Edit as sheet** na tym samym pasku zaznaczania. Otwiera całe zaznaczenie jako wiersze w siatce batch (`#/batch?s=…`), bez limitu rozmiaru i bez reguły tego samego narzędzia. Foldery zostają poza oboma: otwórz folder w siatce przez **Sessions → Folders…** albo wyrenderuj go przez **Render folder** w Projects.
-- **Wyszukiwanie nie sięga Multi-edit.** To jedyny widok, o którym pasek wyszukiwania nie wie.
+- **Wyszukiwanie nie sięga Lolly Multi-edit.** To jedyny widok, o którym pasek wyszukiwania nie wie.
 
 ## Dokąd dalej
 

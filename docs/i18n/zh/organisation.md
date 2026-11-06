@@ -2,6 +2,8 @@
 
 你的组织可以运行自己的 Lolly：同一个应用，使用它选定的工具和设计系统。本页介绍如何访问它、如何登录，以及登录后有什么变化。
 
+如果你正在规划组织的设置，[将 Lolly 与你现有的 DAM 配合使用](/info/use-with-dam.html)说明了已获批准的资料库如何保持原位，同时人们开始在 Lolly 中制作内容。[内容自主权](/info/content-sovereignty.html)介绍了对创建、治理、存储和可移植性的更广泛控制。
+
 ::: note 你需要从组织获取的信息
 它的 Lolly 网址，或者你的组织制作的 `.lolly` 设置文件。lolly.tools 本身不会连接到某个组织。
 :::
@@ -10,13 +12,13 @@
 
 打开你的组织给你的地址。如果页面要求你登录，请按 **Sign in**，并按它打开的登录页面操作。之后它就像任何 Lolly 一样运作，使用你所在组织的工具和设计系统。
 
-你也可以从 lolly.tools 开始：打开 **Settings**，在 **Lolly instance** 卡片上按 **Open a workspace**，输入地址并按 **Open this instance**。浏览器会前往你所在组织自己的地址，因为浏览器无法从 lolly.tools 加载另一个 Lolly 的工具。
+你也可以从 lolly.tools 开始：打开 **Settings** 视图，在 **Lolly instance** 卡片上按 **Open a workspace**，输入地址并按 **Open this instance**。浏览器会前往你所在组织自己的地址，因为浏览器无法从 lolly.tools 加载另一个 Lolly 的工具。
 
 ![Settings 中的 Lolly instance 卡片，你可以在这里打开所在组织的工作区，或更改应用获取工具的来源](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dinstance-section&width=1440&height=1400&dpi=192&waitMs=2000&format=svg&cropSelector=%23instance-section&walker=1&dark=1&filename=org-instance-card)
 
 ## 在桌面版或移动版应用中
 
-应用启动时使用其内置工具。要连接，请打开 **Settings**，在 **Lolly instance** 卡片上按 **Change**。弹出的面板会问 **Where should Lolly get its tools?**
+应用启动时使用其内置工具。要连接，请打开 **Settings** 视图，在 **Lolly instance** 卡片上按 **Change**。弹出的面板会问 **Where should Lolly get its tools?**
 
 1. 选择**连接到 Lolly 实例**。
 2. 输入你的组织的网址，然后按**检查并连接**。

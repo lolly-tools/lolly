@@ -2,9 +2,13 @@
 
 Lolly er to deler av ett åpen kildekode-prosjekt. **Lolly** er motoren, appene og verktøyene for å lage, redigere, konvertere og eksportere på enheten din, uten konto. **Lolly Work** er organisasjonsserveren, kjørt på din egen infrastruktur, for pålogging, delte prosjekter, godkjenninger og servergjengivelse. Begge er MPL-2.0. Denne siden sammenligner paret med de andre måtene folk designer, styrer og produserer filer på.
 
+Den organiserende ideen er [innholdssuverenitet](/info/content-sovereignty.html): kontroll over hvordan innhold lages, styres, lagres og flyttes på tvers av valgte systemer. Kreative programmer kan levere design, en DAM kan forbli kilden som gjelder, og Lolly kan gjøre tillatte inndata og godkjente ressurser om til nye filer. [Use Lolly with your existing DAM](/info/use-with-dam.html) beskriver den kombinasjonen.
+
 ## Dagens verktøy
 
 Hver ring scorer hvor fullstendig en produktklasse leverer en kapabilitet, der hver klasse scores på sin beste representant. Kolonnen Lolly dekker Lolly og Lolly Work sammen, og hver rad sier hvilken del som leverer hva. Åpne et radnavn for begrunnelsen bak scoren. Kolonner er sortert etter raden Overall completeness øverst: gjennomsnittet av de scorede radene, med utgiftsraden utelatt.
+
+Poengsummene bruker Lollys preferanse for kontroll uten krav om konto eller sky. De er en sammenligning etter disse kriteriene, ikke en nøytral rangering av produktfullstendighet eller en innkjøpsscore for store virksomheter. Les grensene for funksjoner, driftsmåte og dokumentasjon hver for seg når du vurderer en bestemt arbeidsflyt.
 
 ::: figure positioning-comparison
 Kapabilitetssammenligning: konkurrentundersøkelse og score fra august 2026; dekning for Lolly + Lolly Work gjennomgått 28. september 2026. Scoring: 0 fraværende, 25 nødløsning, 50 reell men begrenset eller delvis, 75 sterk med forbehold, 100 kjernekompetanse.
@@ -43,9 +47,11 @@ Lollys live samarbeid omfatter direkte private collabs mellom to enheter og aute
 
 Importerte design og delte designtokener lar et team kombinere Lolly med spesialiserte applikasjoner, mens Lolly Work styrer delte ressurser, gjennomgang og levering.
 
-En hel presentasjon viser taket: i **Markdown Slides** deklareres en presentasjon som data, legges ut live og eksporteres som en innebygd, redigerbar PowerPoint-fil.
+For team med en kuratert DAM start med å beholde det biblioteket og administratorene dets på plass. [SUSE's Brandfolder experience](/info/suse-brandfolder.html) registrerer hvordan integrasjonen støttet innføring og endringsledelse for godkjenning. DAM-leverandører og implementeringspartnere kan vurdere den samme ordningen gjennom [the partner workflow](/info/dam-partners.html).
 
-![Markdown Slides i delt visning: presentasjonens lysbilder listet som blokker til venstre, den utlagte presentasjonen gjengitt til høyre](/t/url-shot?url=%2F%23%2Ftool%2Fdeck-studio&width=1440&height=900&dpi=192&waitMs=2600&walker=1&format=svg&dark=1&filename=ov2-deck-studio-output)
+En hel presentasjon viser taket: i **Lolly Markdown Slides** deklareres en presentasjon som data, legges ut live og eksporteres som en innebygd, redigerbar PowerPoint-fil.
+
+![Lolly Markdown Slides i delt visning: presentasjonens lysbilder listet som blokker til venstre, den utlagte presentasjonen gjengitt til høyre](/t/url-shot?url=%2F%23%2Ftool%2Fdeck-studio&width=1440&height=900&dpi=192&waitMs=2600&walker=1&format=svg&dark=1&filename=ov2-deck-studio-output)
 
 ## Reglene ligger i verktøyet
 

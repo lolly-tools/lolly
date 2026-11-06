@@ -16,7 +16,7 @@ _最終確認日: 2026年9月28日。_
 
 Lollyは、デザインを[ルール付きの再利用可能なツール](/info/create-a-tool.html)に変えます。ツールはブラウザまたはCLIで動作し、入力をリンク、スクリプト、バッチグリッドから受け取るため、1つのテンプレートが、1つのファイルを編集する個人にも、多くのファイルを作るチームにも役立ちます。
 
-![Designのオープンキャンバス。ツールバーのLollyメニューにImport a designがある](/info/shots/design.svg)
+![Lolly Designのオープンキャンバス。ツールバーのLollyメニューにImport a designがある](/info/shots/design.svg)
 
 [プライベートコラボ](/info/collaborate.html)は、2台のデバイスを直接つなぎ、アカウントも、共有ネットワーク上ではインターネットも不要です。単独のLollyはオフラインでレンダリングします。Content Credentialsは対応する書き出しで既定でオンですが、オフにもできます。
 

@@ -57,6 +57,8 @@ Lolly Work 还可以把文件交付到已配置的 S3、WebDAV 和 HTTP 目的�
 
 用设计系统字体排版的字标会导出为 SVG，每个字母都是转曲的路径，所以一个文件在名片尺寸和大楼外墙尺寸下都同样清晰。
 
+其他语言的文字会跟随你已有的字体。当设计系统中的某个字体包含这些字母时，SVG 和 PDF 会把它们绘制为轮廓，经过排版、按阅读顺序排列，包括从右到左的行。当没有字体包含时，Lolly 会用[备用字体](/info/fallback-fonts.html)绘制这些字母，导出卡片会说明由哪个字体绘制。任何备用字体都没有覆盖的文字，在 SVG 中保持为实时文字，由查看者自己的字体绘制；在 PDF 中则变成图片，因为 PDF 没有别的可以回退的东西。这些文字看起来与页面上一样，但无法选择或搜索，导出卡片会告诉你哪些文字系统是这样处理的。添加一个包含这些字母的字体，就能让它们保持为矢量文字。
+
 ![一个字距很宽的极细字标，写着 Aurora，这正是表格中 SVG 一行所说的纯矢量作品](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DAurora%26weight%3D200%26tracking%3D16%26size%3D200%26full&width=1440&height=900&dpi=192&waitMs=2200&cropSelector=%23tool-canvas&walker=1&format=svg&filename=vt-wordmark-vector)
 
 ::: details 每种格式及其用途
@@ -227,7 +229,7 @@ Street Map 是最清楚的例子。整个设计本来就是描边，所以每条
 
 **Print PDF** 针对具名的印刷条件写出 CMYK，默认为 **Coated FOGRA39**。带有实测油墨值的品牌色板保留这些数值。其他颜色通过印刷配置文件转换：默认使用 Lolly 自带的 Coated FOGRA39 配置文件，或在你选择其 **Embed** 行时使用你自己的配置文件。灰色和黑色只保留在黑版上，因此小字不会套印不准。FOGRA51、SWOP 和 GRACoL 使用标准的设备转换。**Print TIFF** 写出供 RIP 使用的 DeviceCMYK 像素，并在其 TIFF 元数据中记录同样的印刷条件。Colour profile 控制项同时作用于两者；详见[颜色配置文件](#colour-profiles)。
 
-**Print marks & bleed** 在印刷格式上有自己的卡片：以毫米计的出血，以及 Crop、Registration、Bleed、Colour bars 和 Stamp details。
+**Print marks & bleed** 在印刷格式上有自己的卡片：以毫米计的出血，以及 Crop、Registration、Bleed、Colour bars 和 Stamp details。Stamp details 会在页边距中印出日期、工具和你的姓名。如果姓名或工具名称使用了页边距字体没有的字母，例如阿拉伯文、中文、西里尔文或 emoji，就会以同样的灰色绘制为图片，导出卡片会列出这些文字系统。
 
 有些工具生成**多页 PDF**：封面、按需流动到任意页数的内容和封底，如 *Booklet* 工具。每页都是 A4、US Letter 或 A5 的真正竖版 PDF 页面，你可以强制任何块另起一页。这些是没有裁切或出血标记的 RGB 文档，那些标记属于单页 Print PDF。Design PDF 也可以是 **Notes handout**：每张幻灯片一个竖版页面，下方是其演讲者备注。
 
@@ -355,15 +357,19 @@ Lolly 附带一个 CMYK 配置文件，它按 Fogra 的 FOGRA39 特性化数据�
 
 **指导代理的品牌技能。** 当代理制作了作品并指明它读取并遵循的[品牌技能](/info/brand-skills.html)时，记录还会列出每项技能及其修订版本，例如 *Guided by: acme-brand 1.0*。这些字的意思是该技能指导了这项工作。它们不是检查：Lolly 不会对照技能测试作品。只有代理自己的声明才会加入该列表，目前这意味着 [MCP 服务器](/info/mcp.html)的 `lolly_render` 的 `brandSkills` 参数，所以在应用中或通过分享链接制作的作品不带这个列表。Content Credential 把该列表作为 `brandSkills` 保存，这是一个 JSON 值，包含每项技能的 ID、名称、修订版本和 SHA-256 哈希。XMP 数据包和 SVG 元数据以 `lolly:BrandSkills` 保存同一个值，由该记录写出的 PDF 每项技能增加一个关键词，描述保持原样。内部技能按其 ID、名称、修订版本和哈希记录，绝不记录其文本。同样的开关会连同记录的其余部分一起省略该列表：**Design system** 卡片、`_madewith=0`、`--no-madewith` 和 `madeWith: false`。当 MCP 服务器在浏览器中绘制文件时（PDF、JPEG 以及其无浏览器路径无法写出的其他格式），文件自己的元数据不含该列表，只有 Content Credential 可以保存。传入 `c2pa` 可保留记录；没有凭据时，渲染会警告品牌技能没有被记录。
 
-**读回记录。** [Verify](/verify) 在文件的凭据详情中把该记录列为 **Design system**，把任何品牌技能列为 **Guided by**。*Recreate with these settings* 会在记录的版本和配色方案下重新打开工具。当这台设备持有具有相同 ID 和名称的设计系统时，链接会以记录的设计系统打开；否则会以你当前的设计系统打开。
+**品牌页面，在其发布者选择启用时。** 设计系统的发布者可以选择在导出中记录其[品牌页面](/info/brand-page.html#lead-back-from-your-files)的地址。该设置按设计系统分别设定，在有人开启之前是关闭的。开启后，卡片会把地址加到同一行中，例如 *Records: Acme · Colourway: Beach · Brand page: https://acme.example/brand/acme/*，取消勾选该卡片时，地址会和其余内容一起被去掉。记录只包含地址，不包含该页面的其他任何信息。文件中的其他内容都不会改变，没有地址的设计系统写出的文件与以往完全相同。
+
+**地址不会随包传递。** 已签名文件中的记录会被视为签名者自己的说法，所以地址不能在没有选择它的人身上自行开启，包也不能把别人的文件指向它自己选定的页面。`.lolly` 包、设计系统的副本或分叉、**Try these colours**、恢复的备份，以及为单次运行提供的令牌文件，到达时该设置都是关闭的。你可以自己开启它，使用你输入的地址。受管理的设计系统是唯一的例外：它保留其管理者在源令牌中设置的地址。详情见[从你的文件引向回来](/info/brand-page.html#lead-back-from-your-files)。
+
+**读回记录。** [Lolly Verify](/verify) 在文件的凭据详情中把该记录列为 **Design system**，把任何品牌技能列为 **Guided by**。品牌页面单独显示，作为[签名者对地址的记录](/info/what-verify-checks.html#brand-page)。*Recreate with these settings* 会在记录的版本和配色方案下重新打开工具。当这台设备持有具有相同 ID 和名称的设计系统时，链接会以记录的设计系统打开；否则会以你当前的设计系统打开。
 
 ::: details 什么写在哪里，以及哪些运行会省略记录
 | 位置 | 写入的内容 |
 |---|---|
-| Content Credential | `tools.lolly.export` 断言中的 `designSystem`（ID）、`designSystemLabel`、`designVersion` 和 `themes`，每个都是纯文本值；`themes` 是选择的 JSON 列表 |
-| PNG、JPEG、WebP 和 JXL | 与这四个相同的值，作为文件 XMP 数据包的 `lolly:` 属性，位于命名空间 `https://lolly.tools/ns/export/1.0/` |
+| Content Credential | `tools.lolly.export` 断言中的 `designSystem`（ID）、`designSystemLabel`、`designVersion` 和 `themes`，每个都是纯文本值；`themes` 是选择的 JSON 列表。发布者选择启用时还有 `brandPage` |
+| PNG、JPEG、WebP 和 JXL | 相同的值，作为文件 XMP 数据包的 `lolly:` 属性，位于命名空间 `https://lolly.tools/ns/export/1.0/`。发布者选择启用时还有 `lolly:BrandPage` |
 | SVG | `<metadata>` 块内的相同 `lolly:` 属性 |
-| PDF | 关键词，例如 *Design system: Acme* 和 *Colourway: Beach* |
+| PDF | 关键词，例如 *Design system: Acme*、*Colourway: Beach*，以及在发布者选择启用时的 *Brand page: https://acme.example/brand/acme/* |
 | 每种带有描述字段的格式 | 描述，在工具旁带有配色方案 |
 
 只有存在可记录的内容并且格式能容纳该记录时，才会出现这张卡片。CSV、JSON、日历文件和其他文本或数据格式不含元数据，EPS、EMF、DXF 和 BMP 没有用于该记录的字段。HTML、Markdown 和 CSS 只在其 Content Credential 中保存该记录，所以对它们而言，卡片不显示描述行，并且在 **C2PA Credentials** 关闭时隐藏。设计系统没有提供的字段不会写入文件。
@@ -379,12 +385,14 @@ Lolly 附带一个 CMYK 配置文件，它按 Fogra 的 FOGRA39 特性化数据�
 
 ![已勾选的 C2PA Credentials 卡片，复选框旁边是凭据有效期](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26format%3Dpng%26c2pa%3D30%26options&width=1440&height=900&dpi=192&waitMs=2000&format=svg&cropSelector=.export-c2pa%5Bdata-c2pa-only%5D&walker=1&dark=1&filename=exp-c2pa-card)
 
-- **默认开启。** **C2PA Credentials** 卡片对几乎每个工具都是预先选中的。可以在一次导出中取消勾选，或在链接中传入 `c2pa=off`。工具可以在其清单中选择退出。
+- **默认开启。** **C2PA Credentials** 卡片对几乎每个工具都是预先选中的。可以在一次导出中取消勾选，或在链接中传入 `c2pa=off`。无论哪种方式，文件都不含凭据，嵌入了带凭据的作品（例如目录中的徽标）的 SVG 也会失去该作品的凭据。去掉的只有凭据：Lolly Imprint 和文件的其他元数据都保留。工具可以在其清单中选择退出。
 - **格式。** PDF（RGB 和 Print）、PNG 和 APNG、JPG、GIF、SVG 和 SVGZ、TIFF（RGB 和 Print）、WebP（静态和动画）、AVIF、MP4、WebM，音频容器 MP3、WAV、M4A、OGG/Opus 和 FLAC，以及 HTML、Markdown 和 CSS。ZIP 会给每个受支持的成员盖章，Animated SVG 就是这样得到凭据的。MP4、AVIF 和 M4A 使用标准 BMFF 绑定，MP3 使用其 ID3v2 映射，所以 `c2patool` 和其他阅读器可以验证它们。WebM 和 OGG/Opus 暂时没有标准映射，所以 Lolly 将清单作为 Matroska 附件和 OpusTags 字段携带，由 Lolly 自己的验证器检查。SVGZ 是压缩的 SVG，而 C2PA 规范没有定义压缩形式，所以凭据在压缩之前就写入 SVG：Lolly 的验证器按文件原样读取，`c2patool` 则在文件解压（`gunzip`）后读取同一份凭据。ICO、EPS、EMF、DXF、BMP、PPTX、Office 格式和其他文本及数据格式没有 C2PA 容器。
-- **记录什么。** 制作文件的工具和应用、签名时间、导出它的外壳、对于导出为图片、SVG 或 PDF 的 Design 页面则是绘制它的渲染器（`tools.lolly.export` 断言中的 `route`：`gpu` 表示 GPU 页面渲染器，`operations` 表示写成矢量的绘制操作，`compatibility` 表示浏览器自己的渲染器）及该渲染器的版本（`renderer`：GPU 配方、`design-draw-v` 及其版本，或 `dom-to-image` 和 `dom-walker`；浏览器自己的版本从不记录）、在 **Design system** 卡片勾选期间的[设计系统和配色方案](#the-design-system-record)，以及有效设置：菜单选项、数字、开关和颜色按原样记录，而输入的任何内容（标题、名称、备注、链接和日期）只记录指纹，所以文字本身不在文件中。绑定到个人资料的字段、未启用的控制项、浏览器版本和操作系统详细信息都不包含在内。只有当 Settings → Preferences → Your details 下的 **Use my details to create** 开启时，你的姓名和电子邮件才会作为作者出现。导出所放置的来源会作为素材来源传递：[署名作品](#source-credits)，例如 emoji，以及视频或音频导出中的 [Rondocode 歌曲](/info/rondocode.html#songs-in-the-credential)。
+- **记录什么。** 制作文件的工具和应用、签名时间、导出它的外壳、对于导出为图片、SVG 或 PDF 的 Lolly Design 页面则是绘制它的渲染器（`tools.lolly.export` 断言中的 `route`：`gpu` 表示 GPU 页面渲染器，`operations` 表示写成矢量的绘制操作，`compatibility` 表示浏览器自己的渲染器）及该渲染器的版本（`renderer`：GPU 配方、`design-draw-v` 及其版本，或 `dom-to-image` 和 `dom-walker`；浏览器自己的版本从不记录）、在 **Design system** 卡片勾选期间的[设计系统和配色方案](#the-design-system-record)，以及有效设置：菜单选项、数字、开关和颜色按原样记录，而输入的任何内容（标题、名称、备注、链接和日期）只记录指纹，所以文字本身不在文件中。绑定到个人资料的字段、未启用的控制项、浏览器版本和操作系统详细信息都不包含在内。只有当 Settings → Preferences → Your details 下的 **Use my details to create** 开启时，你的姓名和电子邮件才会作为作者出现。导出所放置的来源会作为素材来源传递：[署名作品](#source-credits)，例如 emoji，以及视频或音频导出中的 [Lolly Rondocode 歌曲](/info/rondocode.html#songs-in-the-credential)。
+- **已记录批准时的批准信息。** 通过 [Lolly Work](/info/work-approvals.html#review-an-exported-file) 批准的文件可以在此凭据之上带有第二份已签名的记录：批准 ID、决定的日期和所审阅文件的摘要。不含姓名、电子邮件、分组、评论或链条名称。它在请求对话框中默认勾选，可以在单次请求中取消勾选，也可以为整个实例关闭。它记录的是某位签名者陈述了一项决定，并不表示作品符合任何标准。
+- **它被要求做什么，针对由[意图](/info/visual-intent.html#what-goes-in-the-file)制作的文件。** 用途、载体、工具、语言、规则和词汇的版本，以及意图摘要。场合、受众、地区和提示词只记录指纹，除非运行该渲染的人或智能体要求记录提示词的原文。只有从意图开始的渲染才会带有这些内容，运行时会说明记录了什么，也可以不记录。
 - **接收者看到什么。** Adobe 应用、`c2patool` 和 contentcredentials.org/verify 等 C2PA 工具会读取清单并显示声明。Lolly 使用在你设备上生成的密钥签名，而不是来自信任列表的证书，所以查看器会报告凭据为 *unverified*：结构和篡改证据是真实的，签名者则没有被担保。要改变这一点，请在 Settings → Preferences → Content Credentials 下注册**已验证身份**；参见 [Content Credentials 身份](/info/content-credentials-identity.html)。
-- **检查文件。** 把任何文件拖到 [Verify](/verify)，或运行 `lolly validate <file>`，即可得到设备端报告，开头说明文件是否由 Lolly 制作，以及此后是否有变化。Verify 也会查看凭据之外的内容；参见 [Verify 检查什么](/info/what-verify-checks.html)。
-- **隐私。** 签名密钥是为该次导出生成的，绝不离开你的设备，声明只包含出处元数据已经携带的内容。转换你自己文件的隐私实用工具不添加凭据，*Strip Hidden Data* 会像移除其他元数据一样移除 C2PA 清单。Rondocode 实用工具制作新音频，所以它会为所写内容签名（[Rondocode 歌曲](/info/rondocode.html#files-from-the-rondocode-utility)）。
+- **检查文件。** 把任何文件拖到 [Lolly Verify](/verify)，或运行 `lolly validate <file>`，即可得到设备端报告，开头说明文件是否由 Lolly 制作，以及此后是否有变化。Lolly Verify 也会查看凭据之外的内容；参见 [Lolly Verify 检查什么](/info/what-verify-checks.html)。
+- **隐私。** 签名密钥是为该次导出生成的，绝不离开你的设备，声明只包含出处元数据已经携带的内容。转换你自己文件的隐私实用工具不添加凭据，*Lolly Strip Hidden Data* 会像移除其他元数据一样移除 C2PA 清单。Rondocode 实用工具制作新音频，所以它会为所写内容签名（[Lolly Rondocode 歌曲](/info/rondocode.html#files-from-the-rondocode-utility)）。
 - **相互作用。** 设有密码的 PDF 无法携带 Content Credentials，两个等级皆然。凭据最后添加，覆盖完成的字节，位于 DPI、EXIF、颜色配置文件、PDF/X 元数据和印刷标记之后。
 
 ### 来源署名
@@ -399,10 +407,12 @@ Lolly 附带一个 CMYK 配置文件，它按 Fogra 的 FOGRA39 特性化数据�
 
 **PDF 打开密码**在你输入密码后有两个等级：
 
-- **Weak**：40 位 RC4，只是一种威慑而非保护。它的密码可以明文随分享链接传递。仅限 RGB `pdf`。
-- **Strong**：AES-256（PDF 2.0）。在导出时输入，绝不放入链接。它也适用于 Print PDF 以及批量 ZIP 内的每个 PDF。使用 Strong 锁定的 Print PDF 保留其 CMYK、标记和输出意图，但放弃 PDF/X-4 声明。
+- **Weak**：40 位 RC4，只是一种威慑而非保护。仅限不带印刷标记或出血的 RGB `pdf`，且密码只能是普通 ASCII：含其他字符的密码会改用 Strong，因为阅读器无法打开以这种方式在此等级加锁的文件。只有前 32 个字符有效。
+- **Strong**：AES-256（PDF 2.0）。它也适用于 Print PDF 以及批量 ZIP 内的每个 PDF。使用 Strong 锁定的 Print PDF 保留其 CMYK、标记和输出意图，但放弃 PDF/X-4 声明。
 
-**带锁的 ZIP** 涵盖 ZIP 导出、从 Projects 或批处理下载的文件夹，使用一个密码，分两个等级：**Weak**（ZipCrypto，只是威慑；可以随 `?password=` 链接传递）或 **Strong**（AES-256，在导出时输入，绝不放入链接）。密码保护每个成员，其中的任何 PDF 还会各自用 AES-256 单独加锁，所以 ZIP 解压之后它仍然是锁定的。提示在下载开始时出现；留空密码表示不加锁。
+**带锁的 ZIP** 涵盖 ZIP 导出、从 Projects 或批处理下载的文件夹，使用一个密码，分两个等级：**Weak**（ZipCrypto，只是威慑）或 **Strong**（AES-256）。密码保护每个成员，其中的任何 PDF 还会各自用 AES-256 单独加锁，所以 ZIP 解压之后它仍然是锁定的。提示在下载开始时出现；留空密码表示不加锁。
+
+**两个等级下，输入的密码都不会出现在链接中。** 地址栏和复制的链接从不包含密码。如果文件是通过 `?password=` 链接到达的，Lolly 会读取该值并立即把它从地址中去掉。要求给文件加上它无法容纳的锁的链接不会写出文件，并会说明原因：参见 [`password`](/info/url-parameters.html)。
 
 **密码保护的分享链接**会在打开之前向接收者索要密码。整个链接状态用由密码派生的密钥（PBKDF2）以 AES-256 加密，所以传递的只有密文，解密发生在接收者的浏览器中。提供链接的服务器永远看不到密码或设计。在 **Share** 对话框中开启它。加密的链接只能在 Lolly 中打开，绝不能作为嵌入图片。参见 [URL 模式](/info/url-mode.html)。
 

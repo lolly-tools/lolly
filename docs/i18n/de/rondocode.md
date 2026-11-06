@@ -1,4 +1,6 @@
-# Rondocode-Songs
+# Lolly Rondocode-Songs
+
+<a id="rondocode-songs"></a>
 
 Ein Rondocode-Song ist Musik, als Code geschrieben: Synthesizer, Patterns und ein Mix, die beim Tippen abgespielt werden. Lolly kann einen Song unter einem Video abspielen, und das Utility **Rondocode** lässt Sie einen schreiben und als Audio exportieren. Beide halten den Song in den Content Credentials der Datei fest, sodass die Musik sagt, woher sie stammt.
 
@@ -12,7 +14,7 @@ Vom Terminal aus nimmt `lolly mix` einen Song als gesamten Soundtrack; siehe [CL
 
 ## Einen Song schreiben und exportieren
 
-Öffnen Sie **Rondocode** aus **Utilities**, um in Rondocodes Live-Editor einen Song zu schreiben und ihn beim Tippen zu hören. Exportieren Sie ihn als **WAV**, **MP3**, **M4A**, **Opus** oder **FLAC**, als ZIP aus Stems, als **MIDI** oder als Aufnahme dessen, was gerade läuft. Im Terminal schreibt `lolly rondocode --export=mid` dieselbe MIDI-Datei. **Export length** legt fest, wie viele Sekunden ein Audioexport dauert. Die Song-Datei selbst (`.rondo.json`) ist Ihr Code, wie geschrieben, und trägt nichts Hinzugefügtes.
+Öffnen Sie das Tool **Rondocode** aus **Utilities**, um in Rondocodes Live-Editor einen Song zu schreiben und ihn beim Tippen zu hören. Exportieren Sie ihn als **WAV**, **MP3**, **M4A**, **Opus** oder **FLAC**, als ZIP aus Stems, als **MIDI** oder als Aufnahme dessen, was gerade läuft. Im Terminal schreibt `lolly rondocode --export=mid` dieselbe MIDI-Datei. **Export length** legt fest, wie viele Sekunden ein Audioexport dauert. Die Song-Datei selbst (`.rondo.json`) ist Ihr Code, wie geschrieben, und trägt nichts Hinzugefügtes.
 
 Ein Song kann seine Texte mit `sing()` singen. Der Gesang wird auf Ihrem Gerät von heruntergeladenen Stimmmodellen erzeugt, und eine Datei mit synthetisiertem Gesang erklärt den Gesang immer als KI-erzeugt (siehe [KI-Funktionen](/info/ai-features.html)).
 
@@ -24,11 +26,11 @@ Ein Video- oder Audioexport, der einen Rondocode-Song abspielt, hält jeden Song
 - das SHA-256 seiner Datei `.rondo.json`;
 - wie er gerendert wurde: in Lollys Sandbox, die Ausführungsklasse `vm`, mit Version und Seed des Renderers und jedem Teil, den das Rendering nicht abspielen konnte.
 
-Musik, die aus dem Code eines Songs berechnet wird, ist als algorithmische Medien gekennzeichnet, sodass Verify sie nicht als KI markiert. Vor dem Export listet eine Zeile unter **Download** die Songs auf, die das Credential festhalten wird; nach dem Export meldet dieselbe Zeile, was ein Lesen der gelieferten Datei ergeben hat. Entfernen Sie das Häkchen bei **C2PA Credentials**, um den Eintrag wegzulassen. Ein Standbild hält keinen Song fest, weil es keinen Ton trägt. `lolly mix` und der [MCP-Server](/info/mcp.html) schreiben denselben Eintrag.
+Musik, die aus dem Code eines Songs berechnet wird, ist als algorithmische Medien markiert, daher kennzeichnet Lolly Verify sie nicht als KI. Vor dem Export listet eine Zeile unter **Download** die Songs auf, die das Credential festhalten wird; nach dem Export meldet dieselbe Zeile, was ein Lesen der gelieferten Datei ergeben hat. Entfernen Sie das Häkchen bei **C2PA Credentials**, um den Eintrag wegzulassen. Ein Standbild hält keinen Song fest, weil es keinen Ton trägt. `lolly mix` und der [MCP-Server](/info/mcp.html) schreiben denselben Eintrag.
 
 ## Dateien aus dem Utility Rondocode
 
-Die meisten Utilities auf dem Gerät schreiben kein Credential, weil sie eine Datei umwandeln, die Ihnen schon gehört. Rondocode erzeugt neues Audio, sodass jede Audiodatei, die es schreibt, Content Credentials trägt, die den Song als ihre Quelle festhalten: seinen Namen, das SHA-256 seiner Datei `.rondo.json` und wo sein Code lief. Das umfasst WAV, MP3, M4A, Opus, FLAC, jeden Stem in einem Stems-ZIP und eine Aufnahme dessen, was gerade läuft.
+Die meisten Utilities auf dem Gerät schreiben kein Credential, weil sie eine Datei umwandeln, die Ihnen schon gehört. Lolly Rondocode erzeugt neues Audio, sodass jede Audiodatei, die es schreibt, Content Credentials trägt, die den Song als ihre Quelle festhalten: seinen Namen, das SHA-256 seiner Datei `.rondo.json` und wo sein Code lief. Das umfasst WAV, MP3, M4A, Opus, FLAC, jeden Stem in einem Stems-ZIP und eine Aufnahme dessen, was gerade läuft.
 
 - Die eigenen Renderings des Editors laufen in seinem privaten Frame (die Ausführungsklasse `frame`) und halten die Version des Editors fest.
 - Ein Rendering über die CLI oder einen Share-Link läuft in der Klasse `vm` und hält Version und Seed des Renderers fest.

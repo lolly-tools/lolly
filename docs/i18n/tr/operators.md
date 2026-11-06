@@ -1,4 +1,4 @@
-# Manage
+# Yönet
 
 Lolly her kişinin cihazında çalışır. Bir ekibin giriş, paylaşılan projeler, yönetilen varlıklar, incelemeler ve sunucu işleri gerektirdiği durumda kuruluş, aynı projenin açık kaynak kuruluş sunucusu olan **Lolly Work**'ü ekler. Bu sayfalar o sunucuyu kuran ve ona bakan kişi içindir.
 
@@ -13,6 +13,8 @@ Lolly her kişinin cihazında çalışır. Bir ekibin giriş, paylaşılan proje
 - [Profiles, brands and tool configuration](/info/configuration.html) bir Lolly derlemesinin hangi araçları ve tasarım sistemlerini taşıdığını kapsar.
 
 ## Varlıkları bağla ve işi incele
+
+- [Use Lolly with your existing DAM](/info/use-with-dam.html) kaynak yetkisini ve bağlantılı üretimi açıklar. [The SUSE Brandfolder account](/info/suse-brandfolder.html) benimseme deneyimini kaydeder, [Plan a DAM transition](/info/dam-transition.html) ise sonradan isteğe bağlı bir geçişi kapsar.
 
 - [Design-system administration](/info/work-design-system-administration.html) kaynak envanterini, incelenen değişiklikleri ve geri almayı kapsar.
 - [Catalog and content](/info/work-catalog.html) paylaşılan varlıkları ve gösterim kurallarını kapsar. [Provider guides](/info/work-provider-guides.html) her kaynak platformun kurulum ve doğrulama gereksinimlerini verir.

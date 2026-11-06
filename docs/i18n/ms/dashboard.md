@@ -1,4 +1,4 @@
-# Settings
+# Tetapan
 
 Settings ialah tempat anda mengubah cara Lolly berfungsi untuk anda: butiran anda, sistem reka bentuk yang anda gunakan, kebolehcapaian, apa yang disimpan pada peranti ini dan apa yang sedia luar talian. Bukanya dengan **Settings** dalam bar di kaki skrin utama, atau daripada menu avatar anda. Ia dibuka pada **Preferences**, dengan empat tab lagi di sebelahnya.
 
@@ -34,9 +34,9 @@ Preferences ialah satu halaman panjang dengan **rel tetapan** di sisi dan medan 
 
 Kad tema ialah pratonton langsung dan digunakan sebaik sahaja anda memilih satu, pada peranti ini sahaja.
 
-![Three theme cards, each previewing its own type and colour, with the active one flagged](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dappearance-section&width=1440&height=1400&dpi=192&waitMs=1600&walker=1&format=svg&cropSelector=.profile-card--appearance&dark=1&filename=pd-theme-picker)
+![Tiga kad tema, masing-masing mempratonton jenis dan warnanya sendiri, dengan yang aktif ditandakan](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dappearance-section&width=1440&height=1400&dpi=192&waitMs=1600&walker=1&format=svg&cropSelector=.profile-card--appearance&dark=1&filename=pd-theme-picker)
 
-### Accessibility
+### Kebolehcapaian
 
 **Settings → Preferences → Accessibility** memegang empat tetapan keselesaan untuk apl di sekeliling kerja anda. Setiap satu mati sehingga anda menghidupkannya, dan tiada satu pun sampai ke dalam kanvas alat atau eksport, jadi apl yang lebih tenang tidak pernah menggerakkan satu piksel fail yang anda hantar.
 
@@ -51,7 +51,7 @@ Kad yang sama memegang **Sound**, lapisan lembut bunyi bantuan untuk apa yang an
 
 Antara muka boleh dilayari dengan papan kekunci, kawalan tersuai membawa label untuk pembaca skrin dan pratonton langsung setiap alat didedahkan sebagai satu imej berlabel yang menerangkan apa yang ditunjukkannya.
 
-### Storage
+### Storan
 
 Meter storan mengambil kira setiap bait yang dipegang pemasangan ini, kategori demi kategori, berbanding apa yang dilaporkan pelayar.
 
@@ -64,7 +64,7 @@ Di bawah meter:
 - **Remove automatic checkpoints older than 30 days** membebaskan ruang History dan mengekalkan versi tersimpan dan bernama.
 - **Clear all my data** membuang segala yang disimpan Lolly dalam pelayar ini, selepas anda menaip perkataan untuk mengesahkan. [If you clear your browser data](/info/find-your-work.html#if-you-clear-your-browser-data) menyenaraikan apa yang hilang.
 
-### Available offline
+### Tersedia luar talian
 
 Lolly mencache skrin semasa anda melawatinya, yang hanya meliputi tempat yang sudah anda pergi. **Available offline** adalah untuk perjalanan yang anda nampak akan datang: muat turun bahagian yang anda perlukan dan perhatikan satu bar kemajuan, dan segala yang anda ambil terus berfungsi tanpa sambungan.
 
@@ -86,13 +86,13 @@ Muat turun disambung semula di mana ia berhenti jika anda membatalkan atau kehil
 - **Leave** membuang sistem reka bentuk, alat dan katalog instans, dan kerja anda sendiri kekal. Lihat [Use Lolly at your organisation](/info/organisation.html#leaving).
 - Apabila anda log masuk ke organisasi, **Sign out** menamatkan sesi ini dan **Sign out everywhere** menamatkan sesi anda pada setiap peranti, termasuk yang ini.
 
-## This device
+## Peranti ini
 
 - <!--i:monitor--> **This Machine** - skrin, input, grafik, memori, kodek, bahagian belakang storan dan lain-lain, dibaca secara langsung daripada sesi ini. Tiada apa-apa disimpan dan tiada apa-apa dihantar. Ia dibuka sendiri pada skrin lebar, di mana tab disusun dalam dua lajur.
 - <!--i:neurobeat--> **Sound** - bunyi antara muka dan gelung fokus Neurospicy, satu-satunya suis pada tab ini yang menulis apa-apa.
 - <!--i:database--> **Storage** - paparan baca sahaja meter dalam [Preferences](#storage), iaitu tempat anda mengosongkan atau membawa data anda.
 
-## Design system
+## Sistem reka bentuk
 
 Sistem reka bentuk aktif, disusun untuk dibaca. Apabila pelayar ini memegang dua atau lebih sistem reka bentuk, jalur kulit kecil di bahagian atas menyenaraikannya: pilih satu untuk menjadikannya aktif, dan **Undo** dalam notis yang mengikuti mengembalikan yang sebelumnya.
 

@@ -14,9 +14,9 @@ Canva는 대규모 템플릿 및 스톡 라이브러리, 앱, 호스팅 팀 워�
 
 ## Lolly가 겹치는 작업을 하는 방법
 
-Lolly 도구는 사람들이 바꿀 수 있는 변경을 인코딩하고, 같은 도구가 브라우저, 데스크톱 앱, CLI에서 실행돼요. Design 캔버스에서 만든 레이아웃은 [규칙이 있는 도구](/info/create-a-tool.html)가 될 수 있고, 한 도구가 값의 표로 많은 파일을 만들 수 있어요.
+Lolly 도구는 사람들이 바꿀 수 있는 변경을 인코딩하고, 같은 도구가 브라우저, 데스크톱 앱, CLI에서 실행돼요. Lolly Design 캔버스에서 만든 레이아웃은 [규칙이 있는 도구](/info/create-a-tool.html)가 될 수 있고, 한 도구가 값의 표로 많은 파일을 만들 수 있어요.
 
-![Design의 자유 캔버스: 제공되는 색상, 서체, 에셋이 디자인 시스템 자체의 것이에요](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&dark=1&filename=aud-open-canvas)
+![Lolly Design의 자유 캔버스: 제공되는 색상, 서체, 에셋이 디자인 시스템 자체의 것이에요](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&dark=1&filename=aud-open-canvas)
 
 독립 실행형 Lolly는 계정 없이 기기에서 만들고 내보내며, 에셋이 저장되면 오프라인에서도 작동해요. 두 사람이 [비공개 collab](/info/collaborate.html)에서 기기 대 기기로 실시간 편집할 수 있어요. 지원되는 내보내기에는 Content Credentials가 기본으로 켜져 있고 끌 수 있어요.
 

@@ -26,7 +26,7 @@
 
 1. 按工具左上角的**首页**。
 2. 打开主屏幕顶部的**项目**标签页（在手机上是一个文件夹图标）。
-3. 看第一屏。保存到**我的素材库**的作品就在那里，每个项目则是一个文件夹。要一次搜索所有文件夹，请在屏幕底部输入**搜索所有项目…**。
+3. 看第一屏。Lolly Work 保存到**我的素材库**的作品就在那里，每个项目则是一个文件夹。要一次搜索所有文件夹，请在屏幕底部输入**搜索所有项目…**。
 
 项目以你在导出面板中输入的文件名命名，如果没有输入，则以其工具命名，例如 **QR Code**。打开该项目，所有设置都回来了，可以更改并再次导出。要以这种方式保留新作品，请参见[保存与继续](/info/using.html#saving-continuing)。
 
@@ -37,7 +37,7 @@
 :::
 
 ::: details 在项目中操作
-你也可以从**设置 → 存储空间 → 已保存的会话 → 在项目中整理**打开**项目**。它的使用方式就像一个文件管理器：
+你也可以从**设置 → 存储空间 → 已保存的会话 → 在项目中整理**打开**项目**视图。它的使用方式就像一个文件管理器：
 
 ![项目还没有任何保存内容时的样子：新建文件夹、新建素材和模板磁贴，右上角的 History 时钟按钮，以及底部的搜索所有项目栏](/t/url-shot?url=%2F%23%2Fp&width=1440&height=900&dpi=192&waitMs=1200&walker=1&format=svg&localize=1&dark=1&filename=projects)
 <!--
@@ -101,17 +101,17 @@ not visible in the closed menu, so the alt does not list them.
 :::
 
 ::: details 哪些工具会随手保存
-在网页版应用中，每个用于制作文档的工具都会随手保存：Design、Chart、QR Code、Text、Sandbox 及其余的同类工具。以下这些工具则不会：
+在网页版应用中，每个用于制作文档的工具都会随手保存：Lolly Design、Lolly Chart、QR Code、Text、Lolly Sandbox 及其余的同类工具。以下这些工具则不会：
 
 - 处理你带来的文件的工具，例如 Redact、Sign 或 Convert Image，因为 Lolly 从不保留该文件的副本；
-- 从你的摄像头、麦克风或屏幕录制的工具，例如 Record、Screen Capture 和 Voice Recorder；
+- 从你的摄像头、麦克风或屏幕录制的工具，例如 Record、Lolly Screen Capture 和 Lolly Voice Recorder；
 - 没有可更改内容的工具，例如 Countdown。
 
 在其他工具中，你的第一次更改就会把作品归入 **Projects**，如同你保存过一样，之后在工具绘制完成后，更改会随你工作而保留。未保存的创作在你关闭标签页后仍在 Projects 中，重新打开时其更改会标记为未保存。
 
 **Leave anyway** 仍会放弃这些更改，History 会把被放弃的编辑保留 30 天。从主屏幕再次打开该工具会开始一个新的创作；请从 Projects 打开之前的那个。
 
-3D 和 Darkroom 会边做边保存，但它们不保留你载入的文件，例如 3D 模型或 LUT。History 和 **Save** 保留的是文件的名称、类型和大小，而不是文件本身。当你再次打开作品时，提示会说明那是哪个文件，工具在你重新载入它之前不使用它也能工作。请保留你的原始文件。
+3D 和 Lolly Darkroom 会边做边保存，但它们不保留你载入的文件，例如 3D 模型或 LUT。History 和 **Save** 保留的是文件的名称、类型和大小，而不是文件本身。当你再次打开作品时，提示会说明那是哪个文件，工具在你重新载入它之前不使用它也能工作。请保留你的原始文件。
 
 开启[同步](/info/sync.html)后，以这种方式归档的创作会像项目中的其他内容一样，同步到你的其他设备。它的各个版本则留在制作它们的那台设备上。
 
@@ -147,14 +147,14 @@ not visible in the closed menu, so the alt does not list them.
 
 要打开更早的版本：
 
-1. 按 **History**，也就是**撤销**和**重做**旁边的时钟按钮。在 Design 中，**History** 位于顶部栏；在手机上，按 **•••**，然后按 **History**。在没有**撤销**的工具中，例如 Text 和 Sandbox，**History** 位于左上角的**首页**旁边。
+1. 按 **History**，也就是**撤销**和**重做**旁边的时钟按钮。在 Lolly Design 中，**History** 位于顶部栏；在手机上，按 **•••**，然后按 **History**。在没有**撤销**的工具中，例如 Text 和 Lolly Sandbox，**History** 位于左上角的**首页**旁边。
 2. 按日期和时间找到相应版本。**Automatic checkpoint** 行是你操作过程中自动生成的；**Saved version** 行则是你保存的时刻。
 3. 按 **Open as a copy**。该版本会作为一份新创作打开，而你原本打开的那一份保持不变。这份副本会出现在**项目**中，名称后面带有“(copy)”。
 
 要按名称保留一个版本，请按 **Name version**，输入一个名称，然后按 **Keep milestone**。具名版本会列在 **History** 页面的 **Milestones** 下。
 
 ::: details History 面板与 History 页面
-**History** 面板还会列出 **Recovered work** 行，**Protected drafts** 则保存着你在各检查点之间的最新更改，并提供 **Open draft as a copy**。**Compare** 和 **Check assets** 可以帮助你在打开一份副本之前先做判断。把 **This creation** 切换为 **All history on this device**，即可查看所有创作。
+**History** 面板还会列出 **Recovered work** 行，**Protected drafts** 则保存着你在各检查点之间的最新更改，并提供 **Open draft as a copy**。**Lolly Compare** 和 **Check assets** 可以帮助你在打开一份副本之前先做判断。把 **This creation** 切换为 **All history on this device**，即可查看所有创作。
 
 Automatic checkpoint 会随着时间推移而变得稀疏：最近一小时内每分钟一个，最近一天内每小时一个，30 天内每天一个，此后每周一个。已保存的版本和具名版本则全部保留。删除一份创作也会把它的版本移入**回收站**，**永久删除**则会将它们一并移除。
 

@@ -1,5 +1,7 @@
 # Design: canvas tự do
 
+<a id="design-the-free-canvas"></a>
+
 Design là công cụ cho những bố cục mà không mẫu nào bao quát được: một tấm áp phích từ đầu, một bộ trang chiếu, một tác phẩm chuyển động có nhạc nền. Thay vì một biểu mẫu các điều khiển, bạn có một canvas các hộp để kéo, đổi kích thước, xoay và gõ vào. Nó xuất qua cùng đường kết xuất như mọi công cụ khác, nên những gì bạn thấy trên canvas là tệp bạn nhận được.
 
 Trang này dẫn qua canvas từ hộp đầu tiên đến một bộ trang hoàn chỉnh: cửa sổ, tạo hình các hộp, vẽ hình khối của riêng bạn, đặt cảnh 3D và các công cụ khác, thêm thời gian, kiểm tra kết quả và trình chiếu bộ trang hoàn chỉnh. [Using Lolly](/info/using.html) đề cập những gì Design dùng chung với mọi công cụ, như lưu và chia sẻ.
@@ -27,7 +29,7 @@ Canvas hoạt động như bàn dán của nhà thiết kế quanh artboard:
 
 **Navigator** liệt kê mọi artboard (có đề mục **Artboards**, hoặc **Slides** trong bộ trang) dưới dạng một nhóm gập của các **Layers** của nó. Chọn tên artboard để nhảy tới đó, mở rộng để chọn hoặc sắp xếp lại các lớp và dùng phím mũi tên để di chuyển trong danh sách; Left quay về đề mục artboard. **Pages** gom artboard thành các trang có tên, và chọn một trang chỉ đổi artboard nào trình soạn thảo hiển thị.
 
-**Inspector** đặt các điều khiển văn bản hoặc ảnh của đối tượng đã chọn lên đầu. Các chip tùy chọn bao quát những lựa chọn nhanh, và **Advanced** chứa chi tiết tạo kiểu. Trên điện thoại, Inspector mở như một tấm từ **More actions**; Escape hoặc Back đóng tấm và giữ vùng chọn của bạn.
+**Inspector** đặt các điều khiển văn bản hoặc ảnh của đối tượng đã chọn lên đầu. Các chip tùy chọn bao quát những lựa chọn nhanh, và **Advanced** chứa chi tiết tạo kiểu. Trên điện thoại, Inspector và danh sách lớp dùng chung một bảng thả xuống từ dưới thanh trên, cùng bảng mà mọi công cụ khác dùng để đặt các điều khiển của mình. **Inspect** và **Layer/Page** trong thanh ở dưới mở bảng ở thẻ tương ứng. Kéo tay nắm ở mép dưới của bảng, hoặc chạm vào tay nắm, để chuyển bảng giữa một dải chỉ có hai thẻ, nửa màn hình và gần hết màn hình. Ở mức nửa màn hình, canvas bên dưới bảng hiện vùng chọn của bạn. Escape gấp bảng về dải và giữ vùng chọn của bạn.
 
 ![Phần Document của Inspector: các thẻ Selection và Canvas, rồi Dimensions và Style & look](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3Dfeature-tour&width=1440&height=900&dpi=192&waitMs=3500&cropSelector=.fc-insp&walker=1&format=svg&dark=1&filename=design-narration)
 
@@ -241,6 +243,8 @@ Mũi tên cạnh **Present** mở **Present from this slide**, **Speaker view**,
 | **Escape** | Bóc một lớp: tổng quan về bộ trang, bộ trang về trình soạn thảo |
 
 Một thanh điều khiển nhỏ hiện dần khi bạn di chuyển con trỏ và ẩn lại khi bạn dừng. Nếu trình duyệt chặn cửa sổ bật lên của speaker view, speaker view mở như một bảng phủ lên bộ trang. Ghi chú thuộc về từng artboard và không bao giờ hiện trên trang chiếu.
+
+Trên màn hình cảm ứng, vuốt sang trái để tới bước hoặc trang chiếu kế tiếp và sang phải để quay lại. Chuyển cảnh **Slide** hoặc **Fade** theo ngón tay bạn và hoàn tất khi bạn nhả tay; chuyển cảnh **Cut**, **Morph** hoặc **Fly between artboards** chạy đầy đủ sau khi bạn nhả tay, và một cú vuốt ngắn, chậm không đổi gì. Hộp trang web, điều khiển video, hộp cuộn được và văn bản đang chọn giữ cử chỉ riêng của chúng, nên một cú vuốt không bao giờ bắt đầu trên chúng, còn cuộn dọc và thu phóng bằng hai ngón vẫn hoạt động như thường. Khi giảm chuyển động, trang chiếu vẫn đổi, nhưng không theo ngón tay bạn.
 
 - **Reveal steps.** Nhấp chuột phải một hộp và chọn **Reveal at step 1**, **2** hoặc **3** thay cho **Always visible**, và hộp chờ đến khi bạn tiến tới bước của nó. Các hộp chung số xuất hiện cùng nhau.
 - **Kiosk.** Cho một artboard một **Length** và bộ trang dừng ở đó từng ấy thời gian, rồi tiến tiếp sau một thanh tiến trình mảnh. Thêm `kiosk` vào liên kết và bộ trang quay vòng ở cuối, cho bảng hiệu.

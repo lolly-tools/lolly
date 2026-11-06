@@ -1,4 +1,6 @@
-# Rondocode şarkıları
+# Lolly Rondocode şarkıları
+
+<a id="rondocode-songs"></a>
 
 Bir rondocode şarkısı kod olarak yazılmış müziktir: sentezleyiciler, kalıplar ve bir miks; yazdıkça çalınır. Lolly bir videonun altında bir şarkı çalabilir ve **Rondocode** yardımcı aracı bir tane yazıp ses olarak dışa aktarmana izin verir. İkisi de şarkıyı dosyanın Content Credentials içinde kaydeder; böylece müzik nereden geldiğini söyler.
 
@@ -12,7 +14,7 @@ Terminalden `lolly mix` bir şarkıyı tüm ses kaydı olarak alır; bkz. [CLI r
 
 ## Bir şarkı yaz ve dışa aktar
 
-Rondocode'un canlı düzenleyicisinde bir şarkı yazmak ve yazdıkça duymak için **Utilities** içinden **Rondocode** aç. Onu **WAV**, **MP3**, **M4A**, **Opus** veya **FLAC** olarak, bir kök (stem) ZIP'i olarak, **MIDI** olarak ya da çalanın bir kaydı olarak dışa aktar. Terminalden `lolly rondocode --export=mid` aynı MIDI dosyasını yazar. **Export length** bir ses dışa aktarmasının kaç saniye süreceğini belirler. Şarkı dosyasının kendisi (`.rondo.json`) yazdığın hâliyle kodundur ve eklenmiş hiçbir şey taşımaz.
+Rondocode'un canlı düzenleyicisinde bir şarkı yazmak ve yazdıkça duymak için **Utilities** içinden **Rondocode** aracını aç. Onu **WAV**, **MP3**, **M4A**, **Opus** veya **FLAC** olarak, bir kök (stem) ZIP'i olarak, **MIDI** olarak ya da çalanın bir kaydı olarak dışa aktar. Terminalden `lolly rondocode --export=mid` aynı MIDI dosyasını yazar. **Export length** bir ses dışa aktarmasının kaç saniye süreceğini belirler. Şarkı dosyasının kendisi (`.rondo.json`) yazdığın hâliyle kodundur ve eklenmiş hiçbir şey taşımaz.
 
 Bir şarkı sözlerini `sing()` ile söyleyebilir. Şarkı söyleme, cihazında indirilen ses modelleriyle yapılır ve sentezlenmiş şarkı söyleme tutan bir dosya, söylemeyi her zaman yapay zekâ üretimi olarak bildirir (bkz. [AI features](/info/ai-features.html)).
 
@@ -24,11 +26,11 @@ Bir rondocode şarkısı çalan bir video veya ses dışa aktarması, her şark�
 - `.rondo.json` dosyasının SHA-256 değeri;
 - nasıl render edildiği: Lolly'nin sanal alanında, `vm` yürütme sınıfı, render edicinin sürümü ve tohumu ve render'ın çalamadığı her parça.
 
-Bir şarkının kodundan hesaplanan müzik algoritmik medya olarak işaretlenir; bu yüzden Verify onu yapay zekâ olarak işaretlemez. Dışa aktarmadan önce **Download** altındaki bir satır kimlik bilgisinin kaydedeceği şarkıları listeler; dışa aktarmadan sonra aynı satır teslim edilen dosyanın okunmasında bulunanı bildirir. Kaydı dışarıda bırakmak için **C2PA Credentials** işaretini kaldır. Durağan bir görsel ses taşımadığı için hiçbir şarkı kaydetmez. `lolly mix` ve [MCP server](/info/mcp.html) aynı kaydı yazar.
+Bir şarkının kodundan hesaplanan müzik algoritmik medya olarak işaretlenir; bu yüzden Lolly Verify onu yapay zekâ olarak işaretlemez. Dışa aktarmadan önce **Download** altındaki bir satır kimlik bilgisinin kaydedeceği şarkıları listeler; dışa aktarmadan sonra aynı satır teslim edilen dosyanın okunmasında bulunanı bildirir. Kaydı dışarıda bırakmak için **C2PA Credentials** işaretini kaldır. Durağan bir görsel ses taşımadığı için hiçbir şarkı kaydetmez. `lolly mix` ve [MCP server](/info/mcp.html) aynı kaydı yazar.
 
 ## Rondocode yardımcı aracından dosyalar
 
-Cihaz üzerindeki yardımcı araçların çoğu, zaten sahip olduğun bir dosyayı dönüştürdükleri için kimlik bilgisi yazmaz. Rondocode yeni ses yapar; bu yüzden yazdığı her ses dosyası şarkıyı kaynağı olarak kaydeden Content Credentials taşır: adı, `.rondo.json` dosyasının SHA-256 değeri ve kodunun nerede çalıştığı. Bu WAV, MP3, M4A, Opus, FLAC, bir kök ZIP'indeki her kök ve çalanın bir kaydını kapsar.
+Cihaz üzerindeki yardımcı araçların çoğu, zaten sahip olduğun bir dosyayı dönüştürdükleri için kimlik bilgisi yazmaz. Lolly Rondocode yeni ses yapar; bu yüzden yazdığı her ses dosyası şarkıyı kaynağı olarak kaydeden Content Credentials taşır: adı, `.rondo.json` dosyasının SHA-256 değeri ve kodunun nerede çalıştığı. Bu WAV, MP3, M4A, Opus, FLAC, bir kök ZIP'indeki her kök ve çalanın bir kaydını kapsar.
 
 - Düzenleyicinin kendi render'ları özel çerçevesinde (`frame` yürütme sınıfı) çalışır ve düzenleyicinin sürümünü kaydeder.
 - CLI veya bir paylaşım bağlantısıyla yapılan bir render `vm` sınıfında çalışır ve render edicinin sürümünü ve tohumunu kaydeder.

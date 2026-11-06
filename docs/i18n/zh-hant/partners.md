@@ -8,6 +8,7 @@
 
 - **每件作品由一個設計系統繪製。** 適用主導品牌的顏色、字體和內部規則。夥伴的標記作為素材圖形放入：可以是來自 Assets 的圖片，也可以是保存在設計系統中的自訂標記。
 - **品牌以檔案形式傳遞。** 設計系統檔案（`.lolly`）包含權杖、字體和標誌。用 **Share with rules** 製作的可重複使用工具包含一個完成的版面，以及你允許修改的輸入項。品牌技能則以各自獨立的檔案傳遞。
+- **品牌也可以有一個位址。** [品牌頁面](/info/brand-page.html)會發布標誌、顏色、字體和規則供夥伴閱讀，並附上供他們工具使用的權杖與技能。
 - **Lolly 只檢查主導品牌的規則。** 它不了解夥伴的規則，例如留白或最小尺寸，所以請對照夥伴自己的指南自行檢查。
 
 ## 與夥伴分享你的品牌
@@ -17,8 +18,9 @@
 | 傳送 | 方式 | 夥伴得到 | 適合 |
 | --- | --- | --- | --- |
 | 設計系統檔案 | 在 [Lolly Design System Setup](/info/brand-studio.html#move-a-brand-between-devices) 頂端列中點選 **Export** | 你的權杖、字體、標誌和主題偏好，成為一個他們可以切換使用的設計系統 | 要用你的品牌製作大量作品的夥伴 |
-| 可重複使用工具 | 在 Design 中點選 **Share with rules**（[分享附帶規則的設計](/info/create-a-tool.html)） | 一個完成的版面，以及你允許修改的輸入項，例如他們的名稱和標誌。檔案攜帶已確定的顏色、字體和圖片，因此他們自己的設計系統無法改變固定的圖稿樣式 | 每個夥伴各自填寫的聯名傳單、徽章或橫幅 |
+| 可重複使用工具 | 在 Lolly Design 中點選 **Share with rules**（[分享附帶規則的設計](/info/create-a-tool.html)） | 一個完成的版面，以及你允許修改的輸入項，例如他們的名稱和標誌。檔案攜帶已確定的顏色、字體和圖片，因此他們自己的設計系統無法改變固定的圖稿樣式 | 每個夥伴各自填寫的聯名傳單、徽章或橫幅 |
 | 品牌技能 | **Skills** 房間：**Download skill (.zip)** 或 **Copy as one file** | 你書面寫下的標準，供他們的團隊和 AI 代理使用 | 上述任一方式，當有一部分工作由 AI 代理完成時 |
+| 品牌頁面 | 在 Lolly Design System Setup 中點選 **Publish a brand page**，或用 `lolly system publish`，寫出一個由你代管的資料夾（[品牌頁面](/info/brand-page.html)） | 你目前的標誌、顏色、字體和規則集中在同一個位址，並附上供他們工具使用的權杖與技能。標誌與字型檔案會在權利允許時出現，頁面也會列出它排除了什麼 | 與你不會傳送檔案給的對象分享 |
 | 權杖 | 工作室 **More** 選單中的 **Tokens (.json)** | 純粹的設計權杖文件，不含字體和標誌 | 夥伴自己的設計工具或建置流程 |
 
 ![Lolly Demo 上的 Design System Setup，開啟在 Skills 房間：頂端列有 Export，More 選單展開到 Tokens (.json)，所選技能旁邊是 Download skill (.zip) 和 Copy as one file](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dskills&width=1200&height=900&dpi=192&waitMs=1800&waitSelector=.skills-reader-actions&drive=click%3A%5Bdata-ds-more%5D%3Bwait%3A500&format=svg&walker=1&dark=1&filename=partners-send)
@@ -108,6 +110,8 @@
 
 在終端機中，`lolly run logo-wall logos/*.png --output=wall.svg` 會用一個圖片資料夾產生標誌牆，帶有 `logo` 和 `tier` 欄的 CSV 則產生分層的標誌牆。SVG 和 PNG 不需要瀏覽器（[分層的贊助商牆](/info/cli-rendering.html#a-sponsor-wall-with-tiers)）。
 
+當贊助者發布[品牌頁面](/info/brand-page.html)時，`lolly run logo-wall --logos-from=<address or folder>` 會取用他們目前的標誌放到該版面上，並印出他們的頁面對使用方式的說明。每個贊助者各重複一次該旗標。
+
 標誌牆不了解任何贊助商的規則。Tier 和 Presence 設定的是各標誌之間的相對大小，而不是贊助商的最小尺寸，也沒有任何檢查會核對相鄰標誌之間的留白。請按完成的標誌牆實際印刷或展示的尺寸，對照每位贊助商的指南檢查。
 
 ## Lolly 目前還不能做什麼
@@ -119,6 +123,8 @@
 - 整台裝置同一時間只有一個設計系統處於使用狀態，所以無法並排開啟兩個品牌。
 - 設計系統檔案是品牌在匯出時的一份副本，不會有任何東西更新這份副本。從應用程式匯出的設計系統檔案不含品牌技能，請把它們作為獨立的檔案傳送。
 - 匯出檔案記錄的是主導品牌的設計系統和配色方案，而不是夥伴的品牌。
+- 取自品牌頁面的標誌，在它的列中只是一張圖片，該列不會記得那個頁面。沒有任何東西顯示是誰發布了頁面，所以請自行檢查位址。
+- 代管的網頁應用程式無法擷取另一個品牌的頁面，因為它的 Content Security Policy 只允許指定的主機。請在終端機中取得標誌，或把檔案存下來，再於 **Assets** 中加入該檔案。
 
 ## 接下來往哪裡走
 
@@ -126,4 +132,5 @@
 - **[分享附帶規則的設計](/info/create-a-tool.html)**：版面固定、輸入項由你選擇的可重複使用工具。
 - **[品牌技能](/info/brand-skills.html)**：技能如何撰寫、閱讀並交給 AI 代理。
 - **[Lolly Design System Setup](/info/brand-studio.html)**：標誌、自訂標記，以及在裝置之間搬移設計系統。
+- **[品牌頁面](/info/brand-page.html)**：把你的品牌發布在同一個位址，並從夥伴的頁面取得他們的標誌。
 - **[創作權益與署名](/info/creative-rights.html)**：Lolly 對所繪作品記錄了哪些內容。

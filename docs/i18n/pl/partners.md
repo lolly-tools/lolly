@@ -6,8 +6,9 @@ Dwa słowa znaczą na tej stronie wszędzie to samo. **Marka wiodąca** to marka
 
 ## Jak Lolly obsługuje dziś dwie marki
 
-- **Jeden system projektowy rysuje każdy materiał.** Obowiązują kolory, krój pisma i reguły marki wiodącej. Znak partnera wchodzi jako grafika: obraz z Assets albo niestandardowy znak przechowywany w systemie projektowym.
+- **Jeden system projektowy rysuje każdy materiał.** Obowiązują kolory, krój pisma i reguły marki wiodącej. Znak partnera wchodzi jako grafika: obraz z Zasobów albo niestandardowy znak przechowywany w systemie projektowym.
 - **Marka podróżuje jako plik.** Plik systemu projektowego (`.lolly`) zawiera tokeny, czcionki i logo. Narzędzie wielokrotnego użytku zrobione przez **Share with rules** zawiera jeden gotowy układ z danymi wejściowymi, na które pozwalasz. Umiejętności marki podróżują jako osobne pliki.
+- **Marka może mieć też adres.** [Strona marki](/info/brand-page.html) publikuje logo, kolory, krój pisma i reguły do przeczytania przez partnera, z tokenami i umiejętnościami dla jego narzędzi.
 - **Lolly sprawdza tylko reguły marki wiodącej.** Nie zna reguł partnera, takich jak pole ochronne czy minimalny rozmiar, więc sprawdź je w wytycznych samego partnera.
 
 ## Udostępnij swoją markę partnerowi
@@ -17,8 +18,9 @@ Dwa słowa znaczą na tej stronie wszędzie to samo. **Marka wiodąca** to marka
 | Wyślij | Jak | Partner dostaje | Pasuje do |
 | --- | --- | --- | --- |
 | Plik systemu projektowego | **Export** na pasku u góry w [Lolly Design System Setup](/info/brand-studio.html#move-a-brand-between-devices) | Twoje tokeny, czcionki, logo i preferencję motywu jako system projektowy, na który może się przełączyć | Partnera, który robi wiele materiałów w Twojej marce |
-| Narzędzie wielokrotnego użytku | W Design **Share with rules** ([Udostępnij projekt z regułami](/info/create-a-tool.html)) | Jeden gotowy układ z danymi wejściowymi, na które pozwalasz, takimi jak nazwa i logo partnera. Plik niesie rozwiązane kolory, czcionki i obrazy, więc własny system projektowy partnera nie może zmienić stylu stałej grafiki | Wspólną ulotkę, identyfikator lub baner, które każdy partner uzupełnia |
+| Narzędzie wielokrotnego użytku | W Lolly Design **Share with rules** ([Udostępnij projekt z regułami](/info/create-a-tool.html)) | Jeden gotowy układ z danymi wejściowymi, na które pozwalasz, takimi jak nazwa i logo partnera. Plik niesie rozwiązane kolory, czcionki i obrazy, więc własny system projektowy partnera nie może zmienić stylu stałej grafiki | Wspólną ulotkę, identyfikator lub baner, które każdy partner uzupełnia |
 | Umiejętności marki | Pokój **Skills**: **Download skill (.zip)** lub **Copy as one file** | Twoje spisane standardy, dla ludzi partnera i jego agentów | Każdą z powyższych opcji, gdy część pracy robi agent |
+| Strona marki | **Publish a brand page** w Lolly Design System Setup lub `lolly system publish` zapisuje folder, który hostujesz ([Strony marki](/info/brand-page.html)) | Twoje bieżące logo, kolory, krój pisma i reguły pod jednym adresem, z tokenami i umiejętnościami dla jego narzędzi. Logo i pliki czcionek pojawiają się, gdy pozwalają na to prawa, a strona wymienia to, co wstrzymała | Dzielenie się z ludźmi, którym nie wysyłasz plików |
 | Tokeny | **Tokens (.json)** w menu **More** studia | Zwykły dokument tokenów projektowych, bez czcionek i logo | Własne narzędzia projektowe partnera lub jego proces budowania |
 
 ![Design System Setup na Lolly Demo, otwarte w pokoju Skills: Export na pasku, menu More otwarte na Tokens (.json) oraz Download skill (.zip) i Copy as one file obok wybranej umiejętności](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dskills&width=1200&height=900&dpi=192&waitMs=1800&waitSelector=.skills-reader-actions&drive=click%3A%5Bdata-ds-more%5D%3Bwait%3A500&format=svg&walker=1&dark=1&filename=partners-send)
@@ -108,6 +110,8 @@ Wyeksportuj ścianę jako PNG, SVG, PDF albo PDF CMYK do druku. Ustaw inny rozmi
 
 W terminalu `lolly run logo-wall logos/*.png --output=wall.svg` buduje ścianę z folderu obrazów, a CSV z kolumnami `logo` i `tier` buduje ścianę z poziomami. SVG i PNG nie potrzebują przeglądarki ([Ściana sponsorów z poziomami](/info/cli-rendering.html#a-sponsor-wall-with-tiers)).
 
+Gdy sponsor publikuje [stronę marki](/info/brand-page.html), `lolly run logo-wall --logos-from=<address or folder>` bierze jego bieżące logo dla powierzchni i drukuje to, co jego strona mówi o użyciu. Powtórz flagę dla każdego sponsora.
+
 Ściana logo nie zna reguł żadnego sponsora. Tier i Presence ustawiają rozmiary względem siebie, a nie minimalny rozmiar sponsora, i nic nie sprawdza pola ochronnego między sąsiadami. Sprawdź gotową ścianę z wytycznymi każdego sponsora w rozmiarze, w jakim będzie drukowana lub pokazywana.
 
 ## Czego Lolly jeszcze nie robi
@@ -119,6 +123,8 @@ W terminalu `lolly run logo-wall logos/*.png --output=wall.svg` buduje ścianę 
 - Jeden system projektowy jest aktywny na całym urządzeniu, więc dwie marki nie mogą być otwarte obok siebie.
 - Plik systemu projektowego jest kopią marki z chwili eksportu i nic tej kopii nie aktualizuje. Plik systemu projektowego wyeksportowany z aplikacji nie zawiera umiejętności marki, więc wyślij je jako osobne pliki.
 - Eksport zapisuje system projektowy i wariant kolorystyczny marki wiodącej, a nie markę partnera.
+- Logo wzięte ze strony marki jest obrazem w swoim wierszu, a wiersz nie pamięta strony. Nic nie pokazuje, kto opublikował stronę, więc sprawdź adres sam.
+- Hostowana aplikacja internetowa nie może pobrać strony innej marki, bo jej Content Security Policy dopuszcza tylko wymienione hosty. Weź logo w terminalu albo zapisz plik i dodaj go w **Zasobach**.
 
 ## Dokąd dalej
 
@@ -126,4 +132,5 @@ W terminalu `lolly run logo-wall logos/*.png --output=wall.svg` buduje ścianę 
 - **[Udostępnij projekt z regułami](/info/create-a-tool.html)**: narzędzia wielokrotnego użytku ze stałym układem i danymi wejściowymi, które wybierasz.
 - **[Umiejętności marki](/info/brand-skills.html)**: jak umiejętności są pisane, czytane i przekazywane agentowi.
 - **[Lolly Design System Setup](/info/brand-studio.html)**: logo, znaki niestandardowe i przenoszenie systemu projektowego między urządzeniami.
+- **[Strony marki](/info/brand-page.html)**: opublikuj swoją markę pod jednym adresem i weź logo partnera z jego strony.
 - **[Prawa twórcze i podziękowania](/info/creative-rights.html)**: co Lolly zapisuje o dziełach, które rysuje.

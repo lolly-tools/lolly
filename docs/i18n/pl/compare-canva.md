@@ -14,9 +14,9 @@ Oba pozwalają zacząć od szablonu i stworzyć gotową grafikę bez bycia proje
 
 ## Jak Lolly wykonuje wspólne zadanie
 
-Narzędzie Lolly koduje zmiany, które ludzie mogą wprowadzać, a to samo narzędzie działa w przeglądarce, aplikacji komputerowej lub CLI. Układ zrobiony na kanwie Design może stać się [narzędziem z regułami](/info/create-a-tool.html), a jedno narzędzie może tworzyć wiele plików z tabeli wartości.
+Narzędzie Lolly koduje zmiany, które ludzie mogą wprowadzać, a to samo narzędzie działa w przeglądarce, aplikacji komputerowej lub CLI. Układ zrobiony na kanwie Lolly Design może stać się [narzędziem z regułami](/info/create-a-tool.html), a jedno narzędzie może tworzyć wiele plików z tabeli wartości.
 
-![Swobodna kanwa Design, na której oferowane kolory, kroje i zasoby to własne elementy systemu projektowego](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&dark=1&filename=aud-open-canvas)
+![Swobodna kanwa Lolly Design, na której oferowane kolory, kroje i zasoby to własne elementy systemu projektowego](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&dark=1&filename=aud-open-canvas)
 
 Samodzielne Lolly zachowuje tworzenie i eksport na urządzeniu, bez konta, i działa offline, gdy jego zasoby są zapisane. Dwie osoby mogą edytować na żywo w [prywatnym collabie](/info/collaborate.html), urządzenie do urządzenia. Content Credentials są domyślnie włączone dla obsługiwanych eksportów i możesz je wyłączyć.
 

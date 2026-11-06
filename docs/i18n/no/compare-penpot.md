@@ -14,7 +14,7 @@ Hvis teamet ditt designer i Penpot, virker Lolly ved siden av Penpot: begge er �
 
 ## Hvordan Lolly gjør den overlappende jobben
 
-Lollys Design-lerret lager redigerbare ressurser og kan gjøre en layout om til et [verktøy med regler](/info/create-a-tool.html). Det samme verktøyet gjengir i nettleseren, skrivebordsappen eller CLI-et og lager varianter fra data. Frittstående Lolly gjengir og signerer på enheten, uten konto eller server. En [private collab](/info/collaborate.html) kobler to enheter direkte.
+Lollys Lolly Design-lerret lager redigerbare ressurser og kan gjøre en layout om til et [verktøy med regler](/info/create-a-tool.html). Det samme verktøyet gjengir i nettleseren, skrivebordsappen eller CLI-et og lager varianter fra data. Frittstående Lolly gjengir og signerer på enheten, uten konto eller server. En [private collab](/info/collaborate.html) kobler to enheter direkte.
 
 ## Med en organisasjon
 

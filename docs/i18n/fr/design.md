@@ -1,5 +1,7 @@
 # Design : le canevas libre
 
+<a id="design-the-free-canvas"></a>
+
 Design est l'outil des mises en page qu'aucun modèle ne couvre : une affiche partie de zéro, un deck de diapositives, une pièce animée avec une bande-son. Au lieu d'un formulaire de contrôles, tu as un canevas de blocs que tu fais glisser, redimensionnes, tournes et dans lesquels tu tapes du texte. Il exporte par le même chemin de rendu que tous les autres outils, donc ce que tu vois sur le canevas est le fichier que tu obtiens.
 
 Cette page parcourt le canevas du premier bloc au deck terminé : la fenêtre, la mise en forme des blocs, le dessin de tes propres formes, le placement de scènes 3D et d'autres outils, l'ajout du temps, la vérification du résultat et la présentation du deck terminé. [Using Lolly](/info/using.html) couvre ce que Design partage avec chaque outil, comme l'enregistrement et le partage.
@@ -27,7 +29,7 @@ Le canevas fonctionne comme la table de travail d'un designer autour du plan de 
 
 Le **Navigator** liste chaque plan de travail (titré **Artboards**, ou **Slides** dans un deck) comme un groupe repliable de ses **Layers**. Sélectionne le nom d'un plan de travail pour y aller, déploie-le pour sélectionner ou réordonner ses calques et utilise les flèches du clavier pour parcourir la liste ; Gauche revient au titre du plan de travail. **Pages** regroupe les plans de travail en pages nommées, et choisir une page ne change que les plans de travail que l'éditeur affiche.
 
-L'**Inspector** place en premier les contrôles de texte ou d'image de l'objet sélectionné. Des pastilles d'options couvrent les choix rapides, et **Advanced** contient le détail du style. Sur un téléphone, l'Inspector s'ouvre en feuille depuis **More actions** ; Échap ou Retour ferme la feuille et conserve ta sélection.
+L'**Inspector** place en premier les contrôles de texte ou d'image de l'objet sélectionné. Des pastilles d'options couvrent les choix rapides, et **Advanced** contient le détail du style. Sur un téléphone, l'Inspector et la liste des calques partagent un même panneau qui descend sous la barre du haut, le même panneau où tous les autres outils gardent leurs contrôles. **Inspect** et **Layer/Page** dans la barre du bas ouvrent le panneau sur leur onglet. Fais glisser la poignée de son bord inférieur, ou touche-la, pour faire passer le panneau entre une bande avec les deux onglets, la moitié de l'écran et presque tout l'écran. À la moitié, le canevas sous le panneau montre ta sélection. Échap replie le panneau en bande et conserve ta sélection.
 
 ![La section Document de l'Inspector : les onglets Selection et Canvas, puis Dimensions et Style & look](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3Dfeature-tour&width=1440&height=900&dpi=192&waitMs=3500&cropSelector=.fc-insp&walker=1&format=svg&dark=1&filename=design-narration)
 
@@ -141,7 +143,7 @@ La vectorisation suit ce que montre le bloc, donc une image recadrée (Cover) ne
 - Le rayon des angles, un masque de forme et un effet sur le bloc d'image ne sont pas appliqués aux tracés.
 - La même image et le même préréglage donnent toujours les mêmes formes.
 
-## Strokes
+## Traits
 
 Un bloc, une image, un plan de travail et un tracé au stylo peuvent chacun porter un trait : une couleur, une largeur et un style (plein, tirets ou pointillés). Les lignes du trait se trouvent sous **Fill** dans l'Inspector, et le bouton **Stroke** de la barre d'objet les ouvre.
 
@@ -241,6 +243,8 @@ La flèche à côté de **Present** ouvre **Present from this slide**, **Speaker
 | **Escape** | Retirer une couche : de la vue d'ensemble au deck, du deck à l'éditeur |
 
 Une petite barre de contrôle apparaît en fondu quand tu bouges le pointeur et se masque de nouveau quand tu t'arrêtes. Si le navigateur bloque la fenêtre contextuelle du présentateur, la vue présentateur s'ouvre en panneau par-dessus le deck. Les notes appartiennent à chaque plan de travail et n'apparaissent jamais sur la diapositive.
+
+Sur un écran tactile, balaie vers la gauche pour passer à l'étape ou à la diapositive suivante, et vers la droite pour revenir. Une transition **Slide** ou **Fade** suit ton doigt et se termine quand tu le relâches ; une transition **Cut**, **Morph** ou **Fly between artboards** se joue en entier une fois que tu relâches, et un balayage court et lent ne change rien. Les blocs de page web, les commandes vidéo, les blocs qui défilent et le texte sélectionné gardent leurs propres gestes, donc un balayage ne démarre jamais sur l'un d'eux, et le défilement vertical et le zoom par pincement fonctionnent comme d'habitude. Avec le mouvement réduit, la diapositive change quand même, sans suivre ton doigt.
 
 - **Étapes d'apparition.** Fais un clic droit sur un bloc et choisis **Reveal at step 1**, **2** ou **3** au lieu de **Always visible**, et le bloc attend que tu avances jusqu'à son étape. Les blocs qui partagent un numéro arrivent ensemble.
 - **Kiosque.** Donne une **Length** à un plan de travail et le deck s'y arrête pour cette durée, puis avance derrière une fine barre de progression. Ajoute `kiosk` au lien et le deck reboucle à la fin, pour de l'affichage dynamique.

@@ -1,5 +1,7 @@
 # Design: kanvas bebas
 
+<a id="design-the-free-canvas"></a>
+
 Design ialah alat untuk reka letak yang tidak diliputi templat: poster dari awal, dek slaid, karya gerakan dengan runut bunyi. Daripada borang kawalan, anda mendapat kanvas kotak yang anda seret, ubah saiz, putar dan taip ke dalamnya. Ia mengeksport melalui laluan render yang sama seperti setiap alat lain, jadi apa yang anda lihat pada kanvas ialah fail yang anda dapat.
 
 Halaman ini menelusuri kanvas daripada kotak pertama hingga dek siap: tetingkap, membentuk kotak, melukis bentuk anda sendiri, meletakkan adegan 3D dan alat lain, menambah masa, menyemak hasil dan membentang dek yang siap. [Using Lolly](/info/using.html) meliputi apa yang dikongsi Design dengan setiap alat, seperti menyimpan dan berkongsi.
@@ -27,7 +29,7 @@ Kanvas berfungsi seperti papan tampal pereka di sekeliling artboard:
 
 **Navigator** menyenaraikan setiap artboard (bertajuk **Artboards**, atau **Slides** dalam dek) sebagai kumpulan lipat **Layers**nya. Pilih nama artboard untuk melompat ke sana, kembangkannya untuk memilih atau menyusun semula lapisannya dan gunakan kekunci anak panah untuk bergerak melalui senarai; Kiri kembali ke tajuk artboard. **Pages** mengumpulkan artboard ke dalam halaman bernama, dan memilih halaman hanya mengubah artboard yang ditunjukkan penyunting.
 
-**Inspector** meletakkan kawalan teks atau imej objek yang dipilih dahulu. Cip pilihan meliputi pilihan pantas, dan **Advanced** menyimpan butiran penggayaan. Pada telefon, Inspector dibuka sebagai helaian daripada **More actions**; Escape atau Back menutup helaian dan mengekalkan pilihan anda.
+**Inspector** meletakkan kawalan teks atau imej objek yang dipilih dahulu. Cip pilihan meliputi pilihan pantas, dan **Advanced** menyimpan butiran penggayaan. Pada telefon, Inspector dan senarai lapisan berkongsi satu panel yang turun dari bawah bar atas, panel yang sama tempat setiap alat lain menyimpan kawalannya. **Inspect** dan **Layer/Page** dalam bar di bahagian bawah membuka panel pada tabnya. Seret pemegang pada tepi bawahnya, atau ketuk pemegang itu, untuk menggerakkan panel antara jalur dengan dua tab, separuh skrin dan hampir seluruh skrin. Pada separuh, kanvas di bawah panel menunjukkan pilihan anda. Escape melipat panel kembali ke jalur dan mengekalkan pilihan anda.
 
 ![Bahagian Document dalam Inspector: tab Selection dan Canvas, kemudian Dimensions dan Style & look](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3Dfeature-tour&width=1440&height=900&dpi=192&waitMs=3500&cropSelector=.fc-insp&walker=1&format=svg&dark=1&filename=design-narration)
 
@@ -241,6 +243,8 @@ Anak panah di sebelah **Present** membuka **Present from this slide**, **Speaker
 | **Escape** | Kupas satu lapisan: gambaran keseluruhan ke dek, dek ke penyunting |
 
 Bar kawalan kecil muncul perlahan apabila anda menggerakkan penuding dan bersembunyi semula apabila anda berhenti. Jika pelayar menyekat pop timbul penutur, paparan penutur dibuka sebagai panel di atas dek. Nota milik setiap artboard dan tidak pernah muncul pada slaid.
+
+Pada skrin sentuh, leret ke kiri untuk langkah atau slaid seterusnya dan ke kanan untuk kembali. Peralihan **Slide** atau **Fade** mengikut jari anda dan selesai apabila anda melepaskannya; peralihan **Cut**, **Morph** atau **Fly between artboards** dimainkan sepenuhnya selepas anda melepaskan, dan leretan pendek yang perlahan tidak mengubah apa-apa. Kotak halaman web, kawalan video, kotak yang boleh digulung dan teks yang dipilih mengekalkan gerak isyaratnya sendiri, jadi leretan tidak pernah bermula pada salah satu daripadanya, dan penggulungan menegak serta zum cubit berfungsi seperti biasa. Dengan gerakan dikurangkan, slaid masih bertukar, tanpa mengikut jari anda.
 
 - **Langkah dedah.** Klik kanan kotak dan pilih **Reveal at step 1**, **2** atau **3** dan bukan **Always visible**, dan kotak menunggu sehingga anda maju ke langkahnya. Kotak yang berkongsi nombor tiba bersama.
 - **Kiosk.** Beri artboard **Length** dan dek berhenti di situ selama itu, kemudian maju di sebalik bar kemajuan nipis. Tambah `kiosk` pada pautan dan dek berulang di hujung, untuk papan tanda.

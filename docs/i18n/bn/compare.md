@@ -11,7 +11,7 @@ _সর্বশেষ যাচাই: 28 সেপ্টেম্বর 2026�
 - [Lolly and Figma](/info/compare-figma.html): ডিজাইন, লাইভ সহযোগিতা ও পুনর্ব্যবহারযোগ্য অ্যাসেট প্রোডাকশন।
 - [Lolly and Penpot](/info/compare-penpot.html): ওপেন-সোর্স ডিজাইন, শেয়ার করা টোকেন ও প্রতিষ্ঠানের কাজ।
 - [Lolly and brand portals](/info/compare-brand-portals.html): অনুমোদিত লাইব্রেরি, লক করা টেমপ্লেট, পরিচয়, পর্যালোচনা ও রিপোর্টিং।
-- [Lolly and rendering APIs](/info/compare-render-apis.html): আপনার ডিভাইসে, CI-তে বা Lolly Work সার্ভারে স্বয়ংক্রিয় তৈরি।
+- [Lolly and rendering APIs](/info/compare-render-apis.html): আপনার ডিভাইসে, CI-তে বা আপনার নিজের সার্ভারে স্বয়ংক্রিয় তৈরি, এবং Bannerbear বা Placid থেকে [how to move](/info/work-move-from-render-api.html)।
 - [Lolly and online file converters](/info/compare-converters.html): আপনার নিজের ডিভাইসে ফরম্যাট রূপান্তর।
 
 সক্ষমতা ধরে ধরে তুলনার জন্য [Lolly-র তুলনা কেমন](/info/positioning.html) দেখুন। প্রতিটি তুলনার তারিখ দেওয়া আছে; কোনো দাবি যদি আর কোনো একটি পণ্যের সঙ্গেও না মেলে, তবে তা সংশোধন করা দরকার।

@@ -14,9 +14,9 @@ Ambos permitem partir de um template e produzir um gráfico final sem ser design
 
 ## Como o Lolly faz o trabalho em comum
 
-Uma ferramenta do Lolly codifica as mudanças que as pessoas podem fazer, e a mesma ferramenta roda no navegador, no app desktop ou na CLI. Um layout criado no canvas do Design pode se tornar uma [ferramenta com regras](/info/create-a-tool.html), e uma ferramenta pode gerar muitos arquivos a partir de uma tabela de valores.
+Uma ferramenta do Lolly codifica as mudanças que as pessoas podem fazer, e a mesma ferramenta roda no navegador, no app desktop ou na CLI. Um layout criado no canvas do Lolly Design pode se tornar uma [ferramenta com regras](/info/create-a-tool.html), e uma ferramenta pode gerar muitos arquivos a partir de uma tabela de valores.
 
-![O canvas livre do Design, onde as cores, fontes e recursos oferecidos são os do próprio sistema de design](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&dark=1&filename=aud-open-canvas)
+![O canvas livre do Lolly Design, onde as cores, fontes e recursos oferecidos são os do próprio sistema de design](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&dark=1&filename=aud-open-canvas)
 
 O Lolly autônomo mantém a criação e a exportação no dispositivo, sem conta, e funciona offline depois que os recursos são salvos. Duas pessoas podem editar ao vivo em um [collab privado](/info/collaborate.html), de dispositivo a dispositivo. As Content Credentials vêm ativadas por padrão nas exportações compatíveis, e você pode desativá-las.
 

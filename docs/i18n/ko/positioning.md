@@ -2,9 +2,13 @@
 
 Lolly는 하나의 오픈 소스 프로젝트의 두 부분이에요. **Lolly**는 계정 없이 기기에서 만들고, 편집하고, 변환하고, 내보내는 엔진, 앱, 도구예요. **Lolly Work**는 로그인, 공유 프로젝트, 승인, 서버 렌더링을 위한 조직 서버이며 자체 인프라에서 운영해요. 둘 다 MPL-2.0이에요. 이 페이지는 이 둘을 사람들이 디자인하고, 관리하고, 파일을 만드는 다른 방법과 비교해요.
 
+조직화 아이디어는 [콘텐츠 주권](/info/content-sovereignty.html)이에요. 콘텐츠가 선택한 시스템에 걸쳐 만들어지고, 관리되고, 저장되고, 이동하는 방식을 통제하는 것이에요. 크리에이티브 애플리케이션이 디자인을 제공하고, DAM이 기록의 원본으로 남을 수 있으며, Lolly는 허용된 입력과 승인된 에셋을 새 파일로 바꿀 수 있어요. [기존 DAM과 함께 Lolly 사용하기](/info/use-with-dam.html)가 이 조합을 설명해요.
+
 ## 오늘날의 도구들
 
 각 링은 제품 부류가 기능을 얼마나 완전하게 제공하는지를 점수로 매기며, 모든 부류는 최고 대표 제품을 기준으로 해요. Lolly 열은 Lolly와 Lolly Work를 함께 다루고, 각 행은 어느 부분이 무엇을 제공하는지 밝혀요. 행 이름을 열면 점수의 근거를 볼 수 있어요. 열은 맨 위의 Overall completeness 행으로 정렬돼요. 지출 행을 제외한 점수 행의 평균이에요.
+
+점수는 계정이나 클라우드 요구 없이 통제할 수 있는 쪽을 선호하는 Lolly의 기준을 사용해요. 이 기준에 따른 비교이며, 제품 완성도에 대한 중립적인 순위나 엔터프라이즈 조달 점수가 아니에요. 특정 워크플로를 평가할 때는 기능, 배포, 근거의 한계를 따로 읽으세요.
 
 ::: figure positioning-comparison
 기능 비교: 경쟁사 조사와 점수는 2026년 8월 기준이고, Lolly + Lolly Work 범위는 2026년 9월 28일에 검토했어요. 점수 기준: 0은 없음, 25는 임시방편 수준, 50은 실제로 있지만 제한되거나 부분적, 75는 단서가 있는 강점, 100은 핵심 역량.
@@ -43,9 +47,11 @@ Lolly의 실시간 협업에는 두 기기 간 직접 비공개 collab과, 공�
 
 가져온 디자인과 공유 디자인 토큰으로 팀은 Lolly를 전문 애플리케이션과 결합할 수 있고, Lolly Work는 공유 에셋, 검토, 전달을 관리해요.
 
-전체 슬라이드 덱이 한계를 보여줘요. **Markdown Slides**에서 덱은 데이터로 선언되고, 실시간으로 배치되고, 네이티브하며 편집 가능한 PowerPoint 파일로 내보내져요.
+엄선한 DAM이 있는 팀은 그 라이브러리와 관리자를 그대로 두는 것에서 시작하세요. [SUSE의 Brandfolder 경험](/info/suse-brandfolder.html)은 통합이 도입과 승인 변경 관리를 어떻게 뒷받침했는지 기록해요. DAM 공급업체와 구현 파트너는 [파트너 워크플로](/info/dam-partners.html)로 같은 구성을 평가할 수 있어요.
 
-![분할 보기의 Markdown Slides: 왼쪽에는 블록으로 나열된 덱의 슬라이드, 오른쪽에는 배치된 덱이 렌더링돼요](/t/url-shot?url=%2F%23%2Ftool%2Fdeck-studio&width=1440&height=900&dpi=192&waitMs=2600&walker=1&format=svg&dark=1&filename=ov2-deck-studio-output)
+전체 슬라이드 덱이 한계를 보여줘요. **Lolly Markdown Slides**에서 덱은 데이터로 선언되고, 실시간으로 배치되고, 네이티브하며 편집 가능한 PowerPoint 파일로 내보내져요.
+
+![분할 보기의 Lolly Markdown Slides: 왼쪽에는 블록으로 나열된 덱의 슬라이드, 오른쪽에는 배치된 덱이 렌더링돼요](/t/url-shot?url=%2F%23%2Ftool%2Fdeck-studio&width=1440&height=900&dpi=192&waitMs=2600&walker=1&format=svg&dark=1&filename=ov2-deck-studio-output)
 
 ## 규칙은 도구에 있어요
 

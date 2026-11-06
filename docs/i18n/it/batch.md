@@ -1,8 +1,10 @@
-# Batch e Multi-edit
+# Lolly Batch e Lolly Multi-edit
+
+<a id="batch-and-multi-edit"></a>
 
 Quando crei spesso lo stesso tipo di file emergono due compiti. A volte servono molte versioni di un design: una scheda in una dozzina di lingue, o ogni misura di un banner. A volte hai diversi design salvati e vuoi che una modifica li raggiunga tutti, come una nuova data o un nuovo titolo.
 
-**Batch** svolge il primo compito e **Multi-edit** il secondo. Entrambi girano sul tuo dispositivo ed esportano attraverso lo stesso percorso di rendering degli strumenti stessi.
+**Lolly Batch** svolge il primo compito e **Lolly Multi-edit** il secondo. Entrambi girano sul tuo dispositivo ed esportano attraverso lo stesso percorso di rendering degli strumenti stessi.
 
 ::: cols
 ## Batch
@@ -10,9 +12,10 @@ Quando crei spesso lo stesso tipo di file emergono due compiti. A volte servono 
 - Un template, molte righe. Ogni riga è un insieme di input e produce un file.
 - Compila le righe digitando, incollando da un foglio di calcolo o importando un CSV.
 - Nessun limite di righe; ne vengono mostrate 50 per pagina.
-- Si apre da **Batch** nell'intestazione di Projects (`#/batch`).
+- Si apre da **Lolly Batch** nell'intestazione di Projects (`#/batch`).
 
-## Multi-edit
+<a id="multi-edit"></a>
+## Lolly Multi-edit
 
 - Da due a otto design salvati diversi, affiancati come schede live.
 - Una sola barra laterale modifica gli input che condividono, poi quelli propri di ogni scheda.
@@ -22,7 +25,7 @@ Quando crei spesso lo stesso tipo di file emergono due compiti. A volte servono 
 
 ## Crea molte versioni di un design
 
-Apri **Projects** e premi **Batch** nella sua intestazione. La griglia parte con una riga: scegli un template al suo interno, poi duplica la riga o incolla dati dal tuo foglio di calcolo. Se aperto dall'interno di una cartella, Batch ti riporta a quella cartella.
+Apri la vista **Projects** e premi **Batch** nella sua intestazione. La griglia parte con una riga: scegli un template al suo interno, poi duplica la riga o incolla dati dal tuo foglio di calcolo. Se aperto dall'interno di una cartella, Batch ti riporta a quella cartella.
 
 ![Batch su una griglia nuova: il nome del file e gli strumenti di riga in alto, e l'elenco dei template della prima riga aperto sugli strumenti che puoi scegliere](/t/url-shot?url=%2F%23%2Fbatch&width=1440&height=900&dpi=192&waitMs=3500&walker=1&format=svg&dark=1&filename=use-batch-toolbar)
 
@@ -46,9 +49,13 @@ Ogni riga conserva le proprie scelte di tema: chiaro o scuro, e una colourway qu
 
 Un CSV porta le scelte in una colonna `_themes` dopo le colonne di dimensione, con lo stesso JSON del parametro di link `_themes`, per esempio `{"":"dark","colourway":"beach"}`. Una cella vuota, o `{}`, indica i valori predefiniti del design system. La colonna viene scritta solo quando qualche riga ha delle scelte, quindi un batch senza scelte esporta lo stesso CSV di prima. All'importazione, una cella che non contiene scelte di tema valide viene elencata come problema e la sua riga viene renderizzata con i valori predefiniti. La griglia non ha ancora un controllo per cambiare le scelte di una riga, quindi impostale nel CSV o nella sessione salvata.
 
+### Una lingua per ogni riga
+
+Uno strumento che stampa un proprio testo, come Certificate, può accettare una colonna `language` con un breve codice di lingua come `de`, `ja` o `ar`. Ogni riga stampa allora il proprio testo e la propria data in quella lingua, e le righe in arabo e urdu vengono impaginate da destra a sinistra. Una cella vuota segue la lingua dell'app. Una lingua di cui Lolly non ha ancora la traduzione viene stampata in inglese, data compresa, così un certificato non è mai tradotto a metà.
+
 ### Batch, oppure Render folder
 
-Batch crea molte varianti di un template. Per rieseguire il rendering di sessioni già salvate, selezionale in Projects e usa **Render selection**, oppure **Render folder** per un'intera cartella; [Find and recover your work](/info/find-your-work.html#find-something-you-saved) tratta entrambi.
+Lolly Batch crea molte varianti di un template. Per rieseguire il rendering di sessioni già salvate, selezionale in Projects e usa **Render selection**, oppure **Render folder** per un'intera cartella; [Find and recover your work](/info/find-your-work.html#find-something-you-saved) tratta entrambi.
 
 ## Modifica insieme più design salvati
 
@@ -69,7 +76,7 @@ Ogni scheda si disegna con le scelte di tema della propria sessione, compreso un
 - **Otto al massimo.** Ogni scheda monta un proprio runtime live, e otto è il numero che resta reattivo. Un link che ne chiede di più, o una sessione che non esiste più, lo dice invece di caricarsi a metà.
 - **Il link è locale.** Indica i tuoi slot salvati, quindi riapre quell'insieme su questo dispositivo. Non è un link di condivisione.
 - **Per qualcosa di più grande,** scegli **Edit as sheet** nella stessa barra di selezione. Apre l'intera selezione come righe nella griglia batch (`#/batch?s=…`), senza limite di dimensione e senza la regola dello stesso strumento. Le cartelle restano fuori da entrambi: apri una cartella nella griglia con **Sessions → Folders…**, oppure eseguine il rendering con **Render folder** in Projects.
-- **La ricerca non raggiunge Multi-edit.** È l'unica vista che la barra di ricerca non conosce.
+- **La ricerca non raggiunge Lolly Multi-edit.** È l'unica vista che la barra di ricerca non conosce.
 
 ## Dove andare adesso
 

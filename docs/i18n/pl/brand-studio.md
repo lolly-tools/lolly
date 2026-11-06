@@ -1,6 +1,8 @@
-# Design System Setup
+# Lolly Design System Setup
 
-Twoje logo, kolory i kroje pisma należą w jednym miejscu, aby każde narzędzie, strona i eksport rysowały z nich. Tym miejscem jest **Design System Setup** pod `#/start`.
+<a id="design-system-setup"></a>
+
+Twoje logo, kolory i kroje pisma należą w jednym miejscu, aby każde narzędzie, strona i eksport rysowały z nich. Tym miejscem jest **Lolly Design System Setup** pod `#/start`.
 
 Zacznij od tego, co masz. Upuść logo, a Lolly odczyta jego kolory. Wybierz krój pisma albo upuść plik czcionki, którą licencjonuje Twoja firma. Każda zmiana od razu widać w całej aplikacji. Twoje logo, czcionki i tokeny zostają na tym urządzeniu. Wybór czcionki Google to jedyny krok, który sięga na zewnątrz: Lolly najpierw pyta, a potem pobiera rodzinę raz.
 
@@ -94,35 +96,77 @@ Pokój rośnie razem z systemem projektowym: pierwsza wizyta to jedna decyzja, a
 
 ### Pierwszy kolor
 
-System bez własnych kolorów otwiera się na jednym dużym znaczniku i jednym polu, z linią mówiącą, że role, odcienie i ustawienia druku pojawią się, gdy system urośnie.
+System bez własnych kolorów pokazuje neutralne kolory startowe, otwarte we własnej grupie, a u góry pokoju przerywane pole wklejania i upuszczania: jeden duży znacznik i jedno pole. Upuść obraz lub listę kolorów w dowolnym miejscu pola, a Lolly odczyta kolory z tego, co upuściłeś.
 
-- **Znacznik jest selektorem.** Naciśnij **Pick a colour**, a otwiera się karta OKLCH studia, zasilona tym, co zawiera pole: nazwa, koło, cztery pokrętła, alfa i **Stored as**, z **Cancel** i **Add colour** na dole. Nic nie trafia do systemu, dopóki nie naciśniesz **Add colour**.
-- **Pole przyjmuje dowolny zapis**: `#e0452b`, `rgb(224 69 43)`, `oklch(58% .19 32)` lub nazwę koloru. Wklej listę, a stanie się rzędem znaczników do dodania pojedynczo lub przez **Add all**.
-- **Dwa kolejne sposoby.** **Pick a colour from the screen** używa zakraplacza, gdy przeglądarka go ma, a **Take colours from an image** czyta zrzut ekranu lub zdjęcie na tym urządzeniu.
-- **Add nigdy nie jest wyłączone.** Przy pustym polu otwiera selektor; tekst, którego nie potrafi odczytać, dostaje pod polem linię mówiącą o tym.
+- **Znacznik jest selektorem.** Naciśnij **Wybierz kolor**, a otwiera się karta OKLCH studia, zasilona tym, co zawiera pole: najpierw nazwa koloru i hex, a pod **Dostrój** przestrzenie kolorów, koło, cztery pokrętła i alfa, z **Anuluj** i **Dodaj kolor** na dole. Nic nie trafia do systemu, dopóki nie naciśniesz **Dodaj kolor**.
+- **Pole przyjmuje dowolny zapis**: `#e0452b`, `rgb(224 69 43)`, `oklch(58% .19 32)` lub nazwę koloru. Wklej listę, a stanie się rzędem znaczników do dodania pojedynczo lub przez **Dodaj wszystko**.
+- **Dwa kolejne sposoby.** **Wybierz kolor z ekranu** używa zakraplacza, gdy przeglądarka go ma, a **Pobierz kolory z obrazu** czyta zrzut ekranu lub zdjęcie na tym urządzeniu.
+- **Dodaj nigdy nie jest wyłączone.** Przy pustym polu otwiera selektor; tekst, którego nie potrafi odczytać, dostaje pod polem linię mówiącą o tym.
 
 Twój pierwszy kolor staje się **primary**, a znacznik to potwierdza, na przykład *"Primary is now Vivid Violet"*, z **Fine-tune** do dostrojenia koloru.
 
 
 ### W miarę jak paleta rośnie
 
-Twoje kolory leżą obok podglądu **In context** na szerokim ekranie i nad nim na mniejszym. Podgląd pokazuje plakat, wykres lub kartę interfejsu w Twojej palecie. Kolory startowe zostają we własnej zwijanej grupie.
+Twoje kolory leżą obok podglądu **W kontekście** na szerokim ekranie i nad nim na mniejszym. Podgląd pokazuje plakat, wykres lub kartę interfejsu w Twojej palecie. Kolory startowe zostają we własnej zwijanej grupie, która zwija się, gdy system ma już własne kolory, a pole wklejania i upuszczania staje się jednym zwartym rzędem. Eksport jest w **Eksportuj** na pasku i w pokoju Tokens, więc nagłówek pokoju go nie zawiera.
 
 ![Pokój Colours w Lolly Demo: paleta w zwijanych grupach, każdy kolor z nazwą i hex, oraz pobieranie palety w nagłówku](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-roles-fold%5D%3Esummary%3Bwait%3A500&format=svg&walker=1&localize=1&dark=1&filename=brand-colours)
 
-![Pokój Colours po dodaniu jednego koloru, z jego paletą i żywym podglądem kompozycji](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dpick&width=1440&height=840&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-editor-add%5D%3Bwait%3A900&format=svg&walker=1&dark=1&filename=bs-colour-first)
+![Pokój Colours w Lolly Demo po dodaniu jednego koloru: tabela Colour roles, potem znacznik nowego koloru z opcjami Use as Lead? i Fine-tune, obok żywego podglądu kompozycji](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dpick&width=1440&height=840&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-editor-add%5D%3Bwait%3A900&format=svg&walker=1&dark=1&filename=bs-colour-first)
+
+### Role kolorów: jak nazywają się kolory
+
+System projektowy mówi, jak nazywają się jego kolory i do czego służy każdy z nich, a Lolly to odczytuje. **Role kolorów** są na początku pokoju Colours. Na szerokim ekranie **W kontekście** dzieli widok, więc zmiana widać na plakacie, wykresie i karcie interfejsu w trakcie jej wprowadzania.
+
+![Tabela Colour roles w Lolly Demo we własnych słowach: znaczniki colourway, potem Lead, Partner, Paper i Ink, każda z kolorem jasnym i ciemnym, odczytane jako kolor wiodący, kolor partnera, tło i tekst, a Quiet text i Hairlines wymienione pod tabelą jako odczyty, których żadna rola nie wypełnia](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=2720&height=2000&dpi=192&waitMs=1800&cropSelector=%5Bdata-be-roles-fold%5D&format=svg&walker=1&dark=1&filename=bs-colour-roles)
+
+Tabela ma cztery kolumny, a na telefonie każdy wiersz staje się kartą, która trzyma jasny i ciemny obok siebie:
+
+| Kolumna | Co zawiera |
+|---|---|
+| **Rola** | Własne słowo systemu projektowego, które możesz edytować w miejscu, oraz linia mówiąca, do czego służy kolor |
+| **Jasny** i **Ciemny** | Kolor w tym wyglądzie dla wybranego colourway, z jego nazwą lub wartością i kontrastem |
+| **Lolly odczytuje to jako** | Co narzędzie robi z rolą, własnymi słowami Lolly |
+
+**Jak Lolly odczytuje rolę.** Każdy odczyt przypada jednej roli, więc wybranie odczytu, który ma inna rola, przenosi ten odczyt tutaj. Lolly nigdy nie wyczytuje znaczenia ze słowa.
+
+| Odczyt | Co z niego wynika |
+|---|---|
+| **Kolor wiodący** | Duże kształty, przyciski, kolor, od którego narzędzie zaczyna |
+| **Kolor partnera** | Drugi kolor, po który sięga narzędzie |
+| **Tło** | Leży za wszystkim innym |
+| **Tekst** | Nagłówki i tekst podstawowy |
+| **Tekst drugorzędny** | Podpisy i drobny druk |
+| **Cienkie linie** | Linie, obramowania i separatory |
+| **Tylko po nazwie** | Żadne narzędzie nie wybiera tej roli samo. Jest oferowana w każdym polu koloru i w Design, gdzie wybór pozostaje powiązany, więc podąża za colourway |
+
+Odczyt, którego żadna rola nie wypełnia, zostaje taki, jak definiuje go system projektowy, a pokój wymienia je pod tabelą. Rola, która ma id odczytu, na przykład rola o nazwie Primary, jest tym odczytem i nie można jej przenieść.
+
+**Wartości.** Naciśnij wartość, aby wybrać kolor dla tej roli, w tym wyglądzie, w wybranym colourway. **Tak samo jak jasny** sprawia, że ciemna wartość podąża za jasną, dopóki nie wybierzesz własnego koloru. Znacznik **Aa** pokazuje tekst, który Lolly dobiera do koloru, a linia pod wartością mówi, jak ten tekst się czyta, dla każdego wyglądu: **Tekst jest czytelny**, **Tylko duży tekst** lub **Trudny do odczytania jako tekst**. Dotyczy to tekstu na kolorze i nic nie mówi przeciw samemu kolorowi, który nadal może sprawdzać się w kształtach i dużych polach. Rola odczytywana tylko po nazwie pokazuje te same słowa bez koloru ostrzeżenia, bo żadne narzędzie samo nie kładzie na niej tekstu. Liczby za słowami, najpierw APCA, potem WCAG, są w podpowiedzi i w selektorze. **Własny kolor tekstu** oznacza wartość, której plik podaje kolor tekstu, który zostaje. **Skopiowano** oznacza wartość, która pochodzi z innego colourway lub z koloru partnera i której nikt jeszcze nie wybrał; **Zachowaj ten kolor** w selektorze rozstrzyga wartość.
+
+**Punkty startowe.** System projektowy bez własnych ról pokazuje dzisiejsze słowa: Primary, Secondary, Surface i Text. Nic nie jest zapisywane, dopóki jednego nie zmienisz. **+ Dodaj rolę** oferuje jako sugestie **Primary, Secondary** albo **Main, Accent, Supporting, Tertiary** lub dowolne słowa, które wpiszesz, z odczytem, jaki każde by dostało. Pierwsze dwa słowa stają się kolorem wiodącym i kolorem partnera. Narzędzia rysują nadal te same kolory, a w systemie z jednym kolorem wiodącym pierwszy colourway nosi nazwę od tego koloru.
+
+**Zmiana nazwy, kolejności, usuwanie.** Zmiana nazwy zmienia tylko słowo, więc wszystko, co używa roli, nadal działa. Przeciągnij rolę za uchwyt albo naciśnij Space na uchwycie, użyj klawiszy strzałek i naciśnij Space, aby upuścić. **Usuń** mówi, co jeszcze używa roli. Gdy narzędzia ją czytają, **Usuń i zachowaj te kolory** zostawia każdemu odczytowi kolor, który rysuje teraz. Reguła marki, grupa przewodnika, pole narzędzia lub inny token, który używa roli, trzyma ją, dopóki to użycie się nie zmieni. Zapisany dokument Design może też użyć roli po nazwie, a Lolly nie widzi tego w pliku tokenów: dokument, który to robi, zgłasza kolor jako nierozwiązany.
+
+**Plik napisany ręcznie.** Kolory, które plik tokenów zawiera, a żadna rola ich nie deklaruje, są wymienione pod **W tym pliku, jeszcze bez roli**, każdy z polem na słowo i **Utwórz rolę**. Tak czy inaczej nadal działają po nazwie. Token z cyframi w nazwie nie może być rolą, więc zostaje w pliku i działa po swojej ścieżce. Zapis w pliku, który się nie waliduje, pokazuje tabelę bez kontrolek i mówi dlaczego.
+
+**Reszta pokoju mówi tymi samymi słowami.** Znaczniki, wiersz **Użyj jako** próbki i grupa **Role kolorów** palety używają słów systemu projektowego, a kafel roli koloru otwiera jej wartość. Wyeksportowane pliki nie zapisują o rolach nic nowego: kolory w renderze zmieniają się, bo zmieniły się tokeny.
+
+**Dokąd trafiają słowa.** Słowa i opisy podróżują z systemem projektowym. Agenci czytają je w briefie projektowym, `lolly://tokens` i `AGENTS.md` strony marki, terminal pokazuje je w `lolly system status`, a strona marki wymienia je w `brand.json` i mierzy parę kontrastu dla każdej roli. Każdy format eksportu zachowuje to, na co ma miejsce: pliki DTCG i Tokens Studio zachowują wszystko, `DESIGN.md` zachowuje słowa i odczyty, a motyw PowerPoint zachowuje tylko kolejność marki. [Colour roles in other formats](/info/design-tokens.html#colour-roles-in-other-formats) podaje pełną listę. Słowa są zawsze cytowane jako dane systemu projektowego, nigdy czytane jako instrukcje.
+
+**Gdzie wybiera się kolor.** Każde pole koloru w narzędziu i w Lolly Design zaczyna się od ról systemu projektowego, w jego własnej kolejności, z widocznym każdym słowem i tym, do czego służy kolor. **Aa** obok roli wybiera kolor, który leży na tej roli. Reszta następuje pod **Pozostałe kolory**, bez własnych kopii colourway, kolorów na kolorze i odczytów, które rola już wypełnia. Wybór pozostaje powiązany z rolą i podąża za colourway, pole nadal pokazuje słowo bez względu na wybrany colourway, a Settings i Tokens też używają tego słowa. System projektowy bez ról zachowuje siatkę próbek, którą zawsze miał.
 
 ### Role: co czytają narzędzia
 
-![The Colour roles table on Lolly Demo after choosing the suggested words Main, Accent, Supporting and Tertiary: the colourway chips, then each role with its light and dark colour, Main read as the lead colour and Accent as the partner colour, Supporting and Tertiary read by name only and marked Copied, and the readings no role fills listed under the table](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=2720&height=2000&dpi=192&waitMs=1800&cropSelector=%5Bdata-be-roles-fold%5D&format=svg&walker=1&dark=1&filename=bs-colour-roles)
+Gdy **Role kolorów** są zamknięte, pierwsze decyzje prowadzą pokój jako znaczniki, każdy z kolorem, który gra rolę, i jego nazwą. W systemie bez własnych słów są to **Podstawowy**, **Wtórny**, **Powierzchnia** i **Tekst**. Naciśnij znacznik, aby wybrać jego kolor spośród próbek palety. **Każdy kolor, który odczytuje narzędzie**, na dole **Ról kolorów**, ma pełny pasek.
 
-**Roles** mówią, który kolor gra jaką rolę w każdym narzędziu i eksporcie. Są opcjonalne (trzy luźne kolory i brak ról to w pełni dobry system), każdy kolor może mieć jedną, a odczyt kontrastu jest mierzony względem powierzchni, najpierw APCA. Każdy wiersz roli pokazuje własny kolor w pełnej sile, zastępczy kolor startowy albo **↳ follows Primary**.
+**Role** mówią, który kolor gra jaką część w każdym narzędziu i eksporcie. Są opcjonalne (trzy luźne kolory i brak ról to w pełni dobry system), każdy kolor może mieć jedną, a odczyt mówi, jak czyta się tekst, mierzony względem powierzchni, najpierw APCA. Każdy wiersz roli pokazuje własny kolor w pełnej sile, zastępczy kolor startowy albo **↳ podąża za Podstawowym**.
 
-Gdy paleta ma odcienie, pasek pokazuje wszystkie siedem ról, które może czytać narzędzie: Primary, Secondary, Surface, Text, Muted, Edge i On primary. On primary jest wyprowadzony z koloru podstawowego, brzmi **Derived** i nie ma selektora.
+Pasek pokazuje wszystkie siedem ról, które może czytać narzędzie: Primary, Secondary, Surface, Text, Muted, Edge i On primary, słowami systemu projektowego, gdy je ma. On primary jest wyprowadzony z koloru podstawowego, brzmi **Wyprowadzony** i nie ma selektora. Przełącznik **Jasny** i **Ciemny** obok niego oraz ten obok **W kontekście** wybierają, który wygląd pokazują pasek, paleta i podgląd.
 
 Własny akcent aplikacji domyślnie podąża za systemem projektowym. To ustawienie **Interface follows the design system** w **Settings → Appearance**; wyłączenie go zostawia obramowanie aplikacji neutralne, a narzędzia, kanwy i eksporty podążają za systemem projektowym w obu przypadkach.
 
-**Colourways.** System projektowy może mieć kilka kolorów wiodących, wybieranych dla każdej pracy. Wiersz **Warianty kolorystyczne** na początku **Role kolorów** pokazuje po jednym chipie na każdy colourway, a **Domyślny** oznacza ten kanoniczny. **+ Dodaj** tworzy nowy colourway na podstawie jednego z kolorów palety. Wybierz chip, a pasek ról, paleta i podglądy edytują ten colourway, w wyglądzie wybranym przełącznikiem **Jasny** i **Ciemny**; wybranemu colourway można zmienić nazwę, zduplikować go, ustawić jako domyślny lub usunąć. W systemie z colourway każdy colourway potrzebuje własnego koloru podstawowego i drugorzędnego, a własnej powierzchni, gdy colourway barwią tło, więc te role zostają w edytorze próbek. [Add colourways to a design system](/info/colourways.html#add-colourways-to-a-design-system) zawiera kroki i format tokenów, a [Lolly Demo in use](/info/lolly-demo-in-use.html#colourways-on-real-work) pokazuje colourway na prawdziwej pracy.
+**Colourways.** System projektowy może mieć kilka kolorów wiodących, wybieranych dla każdej pracy. Wiersz **Warianty kolorystyczne** na początku **Ról kolorów** pokazuje po jednym znaczniku na colourway, a **Domyślny** oznacza ten kanoniczny. **+ Dodaj** tworzy nowy colourway na podstawie jednego z kolorów palety. Wybierz znacznik, a tabela, pasek, paleta i podglądy pokazują ten colourway; wybranemu colourway można zmienić nazwę, zduplikować go, ustawić jako domyślny lub usunąć. W systemie z colourway każdy colourway potrzebuje własnego koloru podstawowego i drugorzędnego, a własnej powierzchni, gdy colourway barwią tło, więc te role zostają w edytorze próbek. [Add colourways to a design system](/info/colourways.html#add-colourways-to-a-design-system) zawiera kroki i format tokenów, a [Lolly Demo in use](/info/lolly-demo-in-use.html#colourways-on-real-work) pokazuje colourway na prawdziwej pracy.
 
 ### Znajdź więcej kolorów
 
@@ -165,7 +209,7 @@ Cztery zwinięte sekcje leżą pod podglądem i rolami. Każda otwiera się bezp
 
 ### Paleta i każda próbka
 
-Paleta wymienia Twoje kolory w zwijanych grupach, każda z własnym **+ Add**. Twórz i zmieniaj nazwy grup, jak chcesz. Rola nigdy nie tworzy drugiego kafla: kafel, na który wskazuje rola, nosi zamiast tego mały znak (**P**, **S**, **Su**, **T**). **Colour chart** pod kaflami pokazuje te same kolory na **Wheel** OKLCH (przeciągnij kropkę, aby przekolorować, kliknij puste miejsce, aby dodać próbkę) i wykresie **Gamut**, który pokazuje, gdzie kończy się zakres wyświetlania. `#/start?area=color&focus=chart` otwiera wykres bezpośrednio.
+Paleta wymienia Twoje kolory w zwijanych grupach, każda z własnym **+ Dodaj**. Twórz i zmieniaj nazwy grup, jak chcesz. Rola nigdy nie tworzy drugiego kafla: kafel, na który wskazuje rola, nosi zamiast tego nazwę roli, na przykład **Podstawowy**. **Wykres kolorów** pod kaflami pokazuje te same kolory na **Kole** OKLCH (przeciągnij kropkę, aby przekolorować, kliknij puste miejsce, aby dodać próbkę) i wykresie **Gamut**, który pokazuje, gdzie kończy się zakres wyświetlania. `#/start?area=color&focus=chart` otwiera wykres bezpośrednio.
 
 ![Panel palety, każda grupa zwijalna, z pobieraniem palety w nagłówku](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dgenerate%26seed%3D%2523e0452b&width=1440&height=1000&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-roles-fold%5D%3Esummary%3Bwait%3A500%3Bclick%3A%5Bdata-be-add-ramp%3D%22primary%22%5D%3Bwait%3A1200&cropSelector=.be-split-side&walker=1&format=svg&dark=1&filename=bs-palette-pane)
 
@@ -174,10 +218,10 @@ Paleta wymienia Twoje kolory w zwijanych grupach, każda z własnym **+ Add**. T
 Kliknij próbkę, aby otworzyć jej edytor:
 
 - **Rename** próbkę.
-- **Ustaw kolor** na suwakach OKLCH lub w **Hex**, **HSL**, **RGB** albo **CMYK**. Pole wartości czyta i zapisuje w aktywnej przestrzeni. CMYK tutaj ustawia kolor ekranowy przez konwersję; aby przypiąć dokładne farby, użyj **Print substitutes**.
-- **Stored as** wybiera, jak próbka jest zapisana: **LCH** (domyślnie, percepcyjny i szeroki gamut), Hex, RGB lub HSL.
-- **Use as** nadaje próbce rolę bezpośrednio. Naciśnij podświetloną rolę ponownie, aby ją wyczyścić.
-- **Print substitutes** (zwinięte): zablokuj **CMYK** z **Auto** na dokładne wartości farb albo ustaw **Spot colour** z **Name** (takim jak `PANTONE 186 C`), opcjonalną **Book** i **Finish** dla folii, wytłoczenia, wgłębienia, lakieru wybiórczego, soft touch albo wykrojnika, bigowania lub perforacji. Maszyna drukarska używa tych blokad, gdy eksportujesz PDF lub TIFF CMYK; zobacz [Colour profiles](/info/exporting.html#colour-profiles).
+- **Ustaw kolor** na suwakach OKLCH lub w **Hex**, **HSL**, **RGB** albo **CMYK**. Pole wartości czyta i zapisuje w aktywnej przestrzeni. CMYK tutaj ustawia kolor ekranowy przez konwersję; aby przypiąć dokładne farby, użyj **Zamienniki drukowe**.
+- **Zapisane jako** wybiera, jak próbka jest zapisana: **LCH** (domyślnie, percepcyjny i szeroki gamut), Hex, RGB lub HSL.
+- **Użyj jako** nadaje próbce rolę bezpośrednio, słowami systemu projektowego, gdy je ma. Naciśnij podświetloną rolę ponownie, aby ją wyczyścić.
+- **Zamienniki drukowe** (zwinięte): zablokuj **CMYK** z **Auto** na dokładne wartości farb albo ustaw **Kolor spot** z **Nazwą** (taką jak `PANTONE 186 C`), opcjonalną **Book** i **Wykończeniem** dla folii, wytłoczenia, wgłębienia, lakieru wybiórczego, soft touch albo wykrojnika, bigowania lub perforacji. Maszyna drukarska używa tych blokad, gdy eksportujesz PDF lub TIFF CMYK; zobacz [Colour profiles](/info/exporting.html#colour-profiles).
 - **In other spaces** (zwinięte): wartość dla każdej przestrzeni kolorów, wyprowadzona lub napisana przez Ciebie, a napisana wygrywa przy eksporcie.
 
 **Usuwanie próbki** jest bezpieczne. Wyprowadzone odcienie i role motywu są ukrywane, więc nic, co je czyta, się nie psuje, a dodane przez Ciebie kolory są usuwane.
@@ -185,7 +229,7 @@ Kliknij próbkę, aby otworzyć jej edytor:
 ::: details Praca z wieloma próbkami
 Każda próbka ma uchwyt do przeciągania. Przeciągnij, aby zmienić kolejność w grupie, lub ustaw fokus na uchwycie, naciśnij Space, użyj klawiszy strzałek i naciśnij Space ponownie, aby upuścić; Escape anuluje. Na telefonie paleta pokazuje cztery kolory w rzędzie, a uchwyty pojawiają się w trybie Select, zamiast jako rząd pod każdym kolorem. Aby przenieść kolory między grupami, użyj kontrolki **Group** edytora lub zaznacz kilka i użyj **Move to**.
 
-Zaznaczanie nie wymaga trybu. Pasek pojawia się z pierwszym zaznaczonym kaflem i znika z ostatnim.
+Zaznaczanie nie wymaga osobnego przełącznika. Pasek i pola wyboru pojawiają się z pierwszym zaznaczonym kaflem i znikają z ostatnim.
 
 - **Przeciągnij po pustym miejscu**, aby narysować prostokąt; każdy kafel, którego dotknie, dołącza do zaznaczenia, także między grupami. Zwinięta sekcja niczego nie dodaje.
 - **Kliknięcie z Shift** bierze zakres w kolejności czytania, **kliknięcie z Cmd/Ctrl** przełącza jeden kafel, a zwykłe kliknięcie otwiera edytor.
@@ -245,11 +289,11 @@ Tokeny to nazwane wartości za systemem projektowym: kolory, kroje pisma, logo, 
 
 - **Nagłówek** podaje przykład z Twojego systemu (*Primary is Spearmint, #033633*) i akcje na pliku: **Download** (cały system jako tokeny projektowe lub paleta w pięciu innych formatach), **Copy CSS** i **Add from…** do wczytania pliku JSON z powrotem.
 - **Kafle** liczą każdy rodzaj tokenu i przeskakują do jego sekcji: Colours, Type, Logos, Shape and spacing, More i All tokens. Liczą to, co zawiera każda sekcja; sekcja zawierająca tylko to, co przyszło z pustym szablonem startowym, nosi tag **Starter**, a system, który przyszedł z aplikacją, liczy własny materiał bez tagu. Na telefonie kafle zawijają się do dwóch rzędów po trzy.
-- **Colours** zaczyna się od par, które narzędzia zestawiają (tekst na powierzchni, na kolorze podstawowym, przygaszony na powierzchni) z odczytem APCA w jasnym i ciemnym oraz oznacza **Weak contrast**, gdzie para nie dosięga. Potem każda grupa kolorów: rampa jako jeden rząd znaczników, inne kolory z wartością i odwołaniem, którego używają narzędzia, takim jak `{color.brand.spearmint}`. Naciśnij odwołanie, aby je skopiować. **Edit in Colours** otwiera grupę w pokoju Colours.
+- **Colours** zaczyna się od par, które narzędzia zestawiają (tekst na powierzchni, na kolorze podstawowym, przygaszony na powierzchni) z odczytem APCA w jasnym i ciemnym oraz oznacza **Weak contrast**, gdzie para nie dosięga. Potem każda grupa kolorów: rampa jako jeden rząd znaczników, inne kolory z wartością i odwołaniem, którego używają narzędzia, takim jak `{color.brand.spearmint}`. Naciśnij odwołanie, aby je skopiować. **Edit in Colours** otwiera grupę w pokoju Colours. W systemie projektowym z [rolami kolorów](#colour-roles-what-the-colours-are-called) pierwsze są **Colour roles**, każda rola raz, własnymi słowami i w kolejności systemu. Rola zawiera kolor dla każdego wariantu kolorystycznego i wyglądu, a te kolory zostają przy roli i nie pojawiają się jako osobne kolory: zmieniaj je w tabeli Colour roles.
 - **Type** i **Logos** wymieniają krój dla każdej roli i każdy slot logo, z **Edit in Type** i **Edit in Logos**, gdy masz własne.
 - **Shape and spacing** zawiera **Rounded corners** (`shape.radius`) i **Spacing rhythm** (`space.base`). Każdy brzmi *Lolly default*, dopóki nie przesuniesz suwaka, i *Yours* potem, zapisuje się od razu i można go cofnąć.
 - **More tokens** dodaje odstępy, rozmiary, grubość obrysu, krycie, obrót, zwykłe liczby i cienie, zapisane jako standardowe [tokeny projektowe](/info/design-tokens.html).
-- **App appearance (advanced)** wymienia kolory, rozmiary i cienie używane przez własne ekrany Lolly, a **Inspect every token (advanced)** przeszukuje i edytuje każdą zapisaną wartość, pokazując każdą zmianę do przeglądu najpierw.
+- **App appearance (advanced)** wymienia kolory, rozmiary i cienie używane przez własne ekrany Lolly, a **Inspect every token (advanced)** przeszukuje i edytuje każdą zapisaną wartość, pokazując każdą zmianę do przeglądu najpierw. Tam wartości roli koloru w każdym wariancie kolorystycznym są wymienione razem z rolą: wybierz token roli, aby zobaczyć po jednym wierszu na wariant, jasny i ciemny obok siebie, a wiersz z liczbą mówi, ile wartości zawierają role. System projektowy tylko do odczytu pokazuje tę samą listę.
 
 Sekcja, w której nic nie ma, oferuje sposób na wypełnienie luki: **Pick a colour**, **Choose a face** lub **Add a logo**.
 
@@ -259,22 +303,24 @@ Upuść pliki, które przechowuje Twoja marka, poza logo: pliki **vector**, **im
 
 ## Rules
 
-**Rules** wprawia w ruch wybory Twojej marki: co ludzie mogą zmieniać, co pozostaje stałe i co Lolly może sprawdzić.
+**Rules** wprzęga wybory Twojej marki do pracy: co ludzie mogą zmienić, co zostaje stałe i co Lolly może sprawdzić.
 
-![Rules w Lolly Demo: pusta karta Brand rules z Add your first rule, potem Try your brand in use z gotowymi do renderowania przykładami](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dusage&width=1440&height=1200&dpi=192&waitMs=2400&cropSelector=%23start-panel-usage&format=svg&walker=1&dark=1&filename=bs-usage-rules)
+![Rules w Lolly Demo: cztery reguły marki, każda oznaczona Checked in Lolly Design oraz Required lub Advisory, potem Try your design system in use z gotowymi do wyrenderowania przykładami](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dusage&width=1440&height=1200&dpi=192&waitMs=2400&cropSelector=%23start-panel-usage&format=svg&walker=1&dark=1&filename=bs-usage-rules)
 
 **Brand rules** wymienia Twoje reguły. **Add rule** (lub **Add your first rule**) otwiera krótki formularz:
 
-- **Rule name** Twoimi słowami, na przykład *Beacon accents*;
-- **Check**: **Colour choices**, **Font choices**, **Fixed artwork** lub **Text length**, z rolą marki, której używa, pod Twoją własną nazwą roli;
-- **Example**, do którego się stosuje (Poster, Title slide, Content slide lub Chart), **Mode** i to, czy jest **Required**, czy **Advisory**;
-- **Reviewed by**, potem **Save draft** lub **Approve & save**.
+- **Nazwa reguły** Twoimi słowami, na przykład *Beacon accents*;
+- **Sprawdzenie**: **Colour choices**, **Font choices**, **Fixed artwork** lub **Text length**, z rolą marki, której używa, pod Twoją własną nazwą tej roli;
+- **Przykład**, do którego się stosuje (Poster, Title slide, Content slide lub Lolly Chart), **Tryb** oraz to, czy jest **Wymagana** czy **Advisory**;
+- **Sprawdził**, potem **Zapisz szkic** lub **Zatwierdź i zapisz**.
 
 Zatwierdzenie zapisuje Twoją własną decyzję na tym urządzeniu. Zatwierdzone reguły wymagane ograniczają plakat wielokrotnego użytku, a kontrole obejmują tylko przykładowe PNG; nie zmieniają żadnego innego narzędzia.
 
-Reguły, które system projektowy niesie w pliku tokenów, takie jak zatwierdzone zestawienia kolorów, grubość i wyrównanie tekstu lub logo na powierzchnię, są tu wymienione jako **Checked in Design**. Design sprawdza je warstwa po warstwie na karcie **Before you export** w panelu eksportu, a `lolly check` robi to samo dla zapisanego dokumentu Design ([Before you export](/info/design.html#before-you-export)). Reguła, dla której ta kompilacja nie ma sprawdzacza, jest zachowana tak, jak dostarczono, i oznaczona **Unchecked**.
+Reguły, które system projektowy niesie ze sobą w pliku tokenów, takie jak zatwierdzone pary kolorów, grubość i wyrównanie tekstu albo logo dla każdej powierzchni, są tu wymienione jako **Checked in Lolly Design**. Lolly Design sprawdza je warstwa po warstwie na karcie **Przed eksportem** w panelu eksportu, a `lolly check` robi to samo dla zapisanego dokumentu Lolly Design ([Before you export](/info/design.html#before-you-export)). Reguła, do której ta kompilacja nie ma sprawdzania, jest zachowana tak, jak ją dostarczono, i oznaczona jako **Niesprawdzone**.
 
-**Try your brand in use** renderuje cztery przykłady z bieżącej rewizji przez **Render & check examples**. Wybierz **Brand mode** i **Try your own text** dla nagłówka, tekstu pomocniczego i tekstu slajdu. Każdy przykład zgłasza, co zmierzono, z **See checks & sources** i **Download check report**, a **Make reusable poster** pobiera `.lolly`, którego stały układ i zatwierdzone wybory danych wejściowych podróżują z plikiem. Przykłady są lokalne: uruchomienie kontroli niczego nie publikuje ani nie zatwierdza.
+Lolly Demo przynosi cztery zatwierdzone reguły marki. Nagłówki nigdy nie są składane wersalikami: ta reguła jest wymagana, więc `lolly check` zgłasza nagłówek z wersalików jako błąd. Pozostałe trzy są doradcze. Tekst podstawowy jest wyrównany do lewej. Znaki podstawowe leżą na jasnych powierzchniach, a odwrócone na ciemnych. Linie przerywane oznaczają: upuść tutaj.
+
+**Wypróbuj swój system projektowy w użyciu** renderuje cztery przykłady z bieżącej wersji przez **Wyrenderuj i sprawdź przykłady**. Wybierz **Tryb** i **Wypróbuj własny tekst** dla nagłówka, tekstu pomocniczego i tekstu slajdu. Każdy przykład zgłasza, co zmierzono, z **Zobacz kontrole i źródła** i **Pobierz raport kontroli**, a **Zrób plakat wielokrotnego użytku** pobiera `.lolly`, którego stały układ i zatwierdzone wybory danych wejściowych podróżują z plikiem. Przykłady są lokalne: uruchomienie sprawdzenia niczego nie publikuje ani nie zatwierdza.
 
 Kompilacja dostarczana ze stałą marką pokazuje te same reguły i przykłady tylko do odczytu, pod *This brand is set*.
 
@@ -286,23 +332,33 @@ Kompilacja dostarczana ze stałą marką pokazuje te same reguły i przykłady t
 
 ## Wprowadź markę
 
-**Add from…** na pasku otwiera selektor, który pyta, co masz, a nie jaki to format:
+**Dodaj z…** na pasku otwiera selektor, który pyta, co masz, a nie jaki to format:
 
-- **Design tokens or a design file**: JSON DTCG lub Tokens Studio, projekt Penpot, zip zestawów tokenów, paczka systemu projektowego Lolly lub SVG.
-- **PDF**: prezentacja lub plik wytycznych, czytany na tym urządzeniu pod kątem kolorów, znaków i osadzonych krojów.
-- **Logo or screenshot**: obraz staje się sugerowaną paletą, czytaną na tym urządzeniu. Czyta kolory, a nie krój ani układ.
-- **Saved web page**: jeden plik HTML i jego pliki CSS albo wklejony HTML lub CSS, do 20 plików i 2 MB. Czytany jest tylko tekst, który dostarczysz: powiązane zasoby nie są pobierane, a skrypty nie działają.
-- **Font file**: TTF, OTF lub WOFF. Otwiera pokój Type, gdzie krój się instaluje.
-- **Website**: jedna strona, czytana pod kątem kolorów i typografii. Ten kafel pojawia się tylko na urządzeniu, które może czytać stronę, i mówi, którego czytnika używa: aplikacji na tym urządzeniu albo rozszerzenia przeglądarki w karcie w tle, zalogowanego jako Ty. Podanie adresu URL tylko wypełnia pole; naciśnięcie fetch jest zgodą.
+- **Design tokens or a design file**: JSON DTCG lub Tokens Studio, projekt Penpot, zip zestawów tokenów, pakiet systemu projektowego Lolly, SVG, `DESIGN.md` lub folder strony marki.
+- **PDF**: prezentacja lub plik wytycznych, czytany na tym urządzeniu pod kątem kolorów, znaków i osadzonych krojów pisma.
+- **Logo lub zrzut ekranu**: obraz staje się sugerowaną paletą, czytaną na tym urządzeniu. Odczytuje kolory, nie krój pisma ani układ.
+- **Zapisana strona internetowa**: jeden plik HTML i jego pliki CSS albo wklejony HTML lub CSS, do 20 plików i 2 MB. Czytany jest tylko tekst, który dostarczysz: połączone zasoby nie są pobierane, a skrypty się nie uruchamiają.
+- **Plik czcionki**: TTF, OTF lub WOFF. Otwiera pokój Type, gdzie krój się instaluje.
+- **Strona internetowa**: jedna strona, czytana pod kątem kolorów i kroju pisma. Ten kafel pojawia się tylko na urządzeniu, które potrafi odczytać stronę, i mówi, którego czytnika używa: aplikacji na tym urządzeniu albo rozszerzenia przeglądarki w karcie w tle, zalogowanego jako Ty. Wpisanie adresu URL tylko wypełnia pole; zgodą jest naciśnięcie pobierania.
 
 Wybierz źródło pliku projektu, a następna karta wymienia akceptowane formaty jako kafle z ikonami, z całą kartą jako jednym celem upuszczania. Możesz też upuścić plik prosto na studio.
 
 ![Karta importu - akceptowane formaty prowadzą jako kafelki z ikonami, a cała karta jest jednym obszarem upuszczania](/t/url-shot?url=%2F%23%2Fstart%3Fsource%3Dfile&width=1440&height=900&dpi=192&waitMs=1600&css=.start-import-modal%20.modal-msg%2C.start-import-modal%20.modal-title%7Bdisplay%3Anone%7D&cropSelector=.start-import-drop&walker=1&format=svg&dark=1&filename=bs-brand-import-formats)
 
-- **Paczka systemu projektowego Lolly** (`.lolly` lub starszy `.zip`) instaluje się w jednym kroku.
+- **Pakiet systemu projektowego Lolly** (`.lolly` lub starszy `.zip`) instaluje się w jednym kroku.
 - Eksport **Penpot** (`.penpot`) wnosi swoje tokeny projektowe.
-- Plik **Design Tokens** (W3C DTCG) lub **Tokens Studio** (`.json`) wnosi swoje tokeny.
+- Plik **Design Tokens** (W3C DTCG) lub **Tokens Studio** (`.json`) wnosi swoje tokeny. Opis, który prosi czytelnika o zignorowanie instrukcji, deklaruje uprawnienia lub prosi o uruchomienie kodu, jest pomijany, a import mówi, gdzie się znajdował. To sprawdzenie linia po linii i nie wychwytuje innych sformułowań, więc przeczytaj plik od kogoś, kogo nie znasz, zanim zastosujesz tokeny.
 - **Zwykły SVG** jest skanowany pod kątem kolorów, z których wybierasz, a pierwszy staje się Twoim kolorem podstawowym.
+- **`DESIGN.md`** (`.md`) trafia do **Try these colours** z tokenami tak, jak je napisano. Jego prozę można zachować jako szkic umiejętności marki, a karta oznacza linie, które proszą czytelnika o zignorowanie instrukcji, deklarację uprawnień lub uruchomienie kodu. Agenci i strony marki nie widzą szkicu, dopóki nie naciśniesz **Zachowaj tę umiejętność** w pokoju Skills, a zachowana umiejętność pozostaje wewnętrzna.
+- **Folder strony marki**, wybrany jako folder, upuszczony lub spakowany, trafia do tego samego przeglądu. Każdy plik jest sprawdzany względem `brand.json` folderu, a plik, który nie pasuje, odrzuca cały folder. Dodaje tokeny. Logo i czcionki zostają w folderze.
+
+Lolly czyta stronę marki z plików, które dostarczysz. Nie pobiera adresu innej witryny.
+
+### Plik z własnymi słowami o kolorach
+
+Plik tokenów lub `DESIGN.md` może używać własnych słów dla swoich kolorów, takich jak main, accent, supporting i tertiary. Gdy Lolly znajdzie takie słowa, przegląd wymienia każde z nich, zanim cokolwiek zostanie zastosowane: słowo, jego kolor w każdym wyglądzie, token, z którego pochodzi, i jako co Lolly by je odczytał. Lolly sugeruje te odczyty wyłącznie ze słów, względem krótkiej listy, i nie używa żadnego modelu. Słowo spoza listy trafia jako własne słowo marki, **Tylko po nazwie**. Zmień nazwę dowolnego słowa, powiedz, do czego służy, odczytaj je jako coś innego albo odznacz je, aby zostało nazwanym kolorem.
+
+**Zainstaluj z tymi rolami** zapisuje je, a **Zainstaluj bez ról** instaluje plik dokładnie takim, jaki przyszedł. Plik bez takich słów nie pokazuje nowego kroku. Plik, który podaje własne role, taki jak napisany przez Lolly, pokazuje je tak, jak napisano, i instaluje bez zmian, a później możesz je edytować w pokoju Colours. Terminal nie ma przeglądu, więc `lolly system import` zachowuje podany zapis, a słowa z innych plików zostawia jako nazwane kolory.
 
 ### Przejrzyj odniesienie
 
@@ -316,7 +372,7 @@ Importy PDF i plików projektowych zachowują własne kontrolki przeglądu. Elem
 
 Otwórz **Find a look** z Board lub z listy systemów projektowych w Settings. Przeglądaj systemy zapisane na tym urządzeniu i kilka przykładów Lolly wielokrotnego użytku oraz szukaj po nazwie, tagu koloru lub deklarowanej czcionce. **Closest to my current palette** sortuje według zmierzonego podobieństwa kolorów, a pasujące czcionki rozstrzygają remisy; to nie jest ocena jakości.
 
-Zaznacz jeden wygląd, aby go przejrzeć, lub dwa, aby porównać obok siebie. Zaznaczanie niczego nie zmienia. **Use this saved system** przełącza na niego, a **Use these colours** stosuje kolory przykładu przez zwykły punkt kontrolny, zachowując Twoje czcionki. **Restore brand settings** przywraca poprzedni wygląd. Zapisane systemy mają edytowalne **Search tags** w **Details and design context**. Przykłady to oryginalne przepisy kolorów Lolly, bez zeskrobanej kolekcji i bez konta.
+Kliknij styl, aby zobaczyć go w kontekście. Podgląd niczego nie zmienia. **Użyj tego stylu** na każdej karcie używa tego stylu. Zapisany system staje się aktywnym, co niczego nie edytuje. Kolory przykładu przechodzą zwykłym punktem kontrolnym do otwartego systemu projektowego, którego logo, czcionki i wszystko inne, czego przykład nie definiuje, zostają bez zmian. **Porównaj style** dodaje pole wyboru do każdej karty, więc możesz wybrać dwa i porównać je obok siebie. **Przywróć ustawienia marki** odzyskuje poprzedni styl. Zapisane systemy mają edytowalne **Szukaj etykiet** pod **Szczegóły i kontekst projektowy**. Przykłady to oryginalne receptury kolorów Lolly, bez zebranej kolekcji i bez konta.
 
 ![Porównaj Sunroom i Orchard obok siebie, zanim zastosujesz którykolwiek z systemów kolorów.](/t/url-shot?url=%2F%23%2Fstart&width=1280&height=900&dpi=96&waitMs=3000&format=svg&filename=brand-compare-looks&try=1&drive=click%3A%5Bdata-ds-door%3D%22looks%22%5D%3Bwait%3A500%3Bclick%3A%5Bdata-looks-compare-toggle%5D%3Bclick%3A%5Bdata-look-select%3D%22example%3Asunroom%22%5D%3Bclick%3A%5Bdata-look-select%3D%22example%3Aorchard%22%5D%3Bclick%3A%5Bdata-looks-review%5D%3Bwait%3A500&cropSelector=.ds-looks-comparison&waitSelector=%5Bdata-ds-door%3D%22looks%22%5D&walker=1&rasterDpi=96)
 
@@ -344,13 +400,35 @@ Opublikowana wersja to **stała, nazwana kopia** zachowana na tym urządzeniu. N
 
 **Publish only** zachowuje wersję bez zmiany tego, za czym podążają narzędzia; **Publish and make active** sprawia, że narzędzia i aplikacja podążają za tą wersją. **Follow the latest again** sprawia, że każda edycja wchodzi na żywo w chwili jej wykonania.
 
+### Opublikuj stronę marki
+
+[Strona marki](/info/brand-page.html) to jeden adres dla ludzi i dla agentów: strona, która pokazuje logo, kolory, kroje pisma i przykłady, z tymi samymi faktami w plikach obok strony. **Opublikuj stronę marki**, pod Wersje i publikowanie, pokazuje działającą stronę i obok niej:
+
+- **Zostaje upublicznione**: każdy plik, pogrupowany, z rozmiarem.
+- **Wstrzymane**: co zostało poza, i dlaczego. Logo bez zapisanej licencji zostaje poza, dopóki nie zaznaczysz nazwy logo. Plik czcionki wymaga zapisanej licencji, która pozwala go przekazywać dalej, a strona pokazuje próbkę z konturów, gdy plik zostaje poza. Wewnętrzne umiejętności marki nigdy się nie pojawiają.
+- **Co sprawdzono**: pary kolorów dla każdego colourway i trybu oraz reguły marki. To pomiary, a nie werdykt.
+- **Własnymi słowami**: oświadczenie o użyciu i kontakt. Strona drukuje to, co napiszesz, a Lolly nie dodaje żadnej licencji ani deklaracji prawnej. Przełącznik wyłącza linię „Made with Lolly” w stopce.
+- **W eksportach**: przełącznik, który [zapisuje adres strony w eksportach tego systemu projektowego](/info/brand-page.html#lead-back-from-your-files). Jest wyłączony, dopóki go nie włączysz, wymaga adresu `https` i nie podróżuje z pakietem ani kopią. Zablokowany system projektowy nie pokazuje przełącznika, bo decyduje jego zarządca.
+
+**Pobierz folder** zapisuje folder jako ZIP, który hostujesz, gdzie zechcesz, i nic nie staje się publiczne, dopóki tego nie zrobisz. W terminalu `lolly system publish --out=<dir>` zapisuje ten sam folder. Instancja, która serwuje strony marki, oferuje też **Opublikuj w** swoim adresie, co jest jednym jawnym naciśnięciem i przechodzi przez łańcuch zatwierdzeń, jeśli taki ma. Zarządzany system projektowy publikuje się tylko wtedy, gdy zarządca na to pozwala.
+
+### Podłącz agenta
+
+**Podłącz agenta**, w tym samym miejscu, daje tekst do wklejenia i mówi, co potrafi każda opcja:
+
+- **`AGENTS.md`** w projekcie: agenci czytają nazwy i reguły systemu. Niczego nie rysuje i nie wymaga serwera.
+- **Publiczny serwer Lolly**: rysuje z Lolly Demo, niezależnie od tego, który system masz tu otwarty. Nie wymaga klucza.
+- **Twoja instancja**: rysuje z systemami, które instancja przechowuje, i czyta token usługi ze zmiennej środowiskowej. Arkusz podaje nazwę zmiennej i nigdy nie pokazuje tokenu.
+
+Gdy żaden hostowany serwer nie rysuje z Twoim systemem, arkusz o tym mówi.
+
 ## Zarządzaj swoimi systemami projektowymi
 
 Otwórz **Settings → Preferences → Design systems**, aby przełączać, dodawać lub usuwać systemy. **Open** wybiera system i otwiera go tutaj; **Make a new one** tworzy lokalny system i otwiera go z gotowym polem nazwy. Aktywny jest jeden system naraz, dla całego urządzenia. [Brand architectures](/info/brand-architectures.html) pomaga zdecydować, kiedy marka potrzebuje własnego systemu projektowego.
 
 **Skąd pochodzi system.** System dostarczony przez katalog wdrożenia brzmi **Came with this app** albo **From this instance** w aplikacji połączonej z jedną. Rozwiń **Catalogue source**, aby zobaczyć, kto go dostarcza, jego zasób tokenów i przestrzeń nazw oraz znaną wersję lub sumę kontrolną; jeśli odświeżenie zawiedzie, materiał z pamięci podręcznej jest oznaczony.
 
-**Systemy zarządzane są tylko do odczytu.** System brzmi **Managed by this instance** (albo **Managed by this app** w aplikacji komputerowej bez instancji), gdy jego katalog go blokuje. Możesz go używać i pobierać, a otwarcie go tutaj pokazuje uwagę tylko do odczytu z **Make an editable copy** i **Switch**. Twoje własne lokalne systemy pozostają edytowalne, nawet gdy zarządzany był pierwszy. Kompilacja z jedną stałą marką otwiera Design System Setup na *This brand is set*, z tokenami marki i regułami użycia do przeczytania.
+**Zarządzane systemy są tylko do odczytu.** System jest opisany jako **Zarządzane przez tę instancję** (lub **Zarządzane przez tę aplikację** w aplikacji desktopowej bez instancji), gdy jego katalog blokuje system. Możesz go używać i pobrać, a otwarcie go tutaj pokazuje notatkę tylko do odczytu z **Zrób edytowalną kopię** i **Przełącz**, potem jego role kolorów i tokeny bez kontrolek edycji. Twoje własne lokalne systemy pozostają edytowalne, nawet gdy zarządzany pojawił się pierwszy. Kompilacja z jedną stałą marką otwiera Lolly Design System Setup na *Ta marka jest ustawiona*, z tokenami i regułami użycia marki do przeczytania.
 
 **Każdy inny dostarczony system jest Twój** do ukrycia, edycji i resetowania, w tym Lolly Demo i Lolly Starter na lolly.tools. Edycja jednego zachowuje jego nazwę i oznacza wiersz **Edited here**, a **Reset to original** w jego menu odrzuca zmiany wykonane na tym urządzeniu. Pusty starter jest wyjątkiem: pierwsza zmiana tam zaczyna Twój własny system projektowy, więc Lolly raz pyta, jak nazwać nowy system. [Lolly Demo in use](/info/lolly-demo-in-use.html#switch-to-your-own) pokazuje, co Twój własny system zastępuje.
 
@@ -360,16 +438,17 @@ Wybierz **Remove** z menu systemu; potwierdzenie mówi, który system będzie po
 
 Usunięcie dostarczonego systemu tylko go ukrywa: jego zasoby katalogu zostają, **Bring back** pokazuje go ponownie, a wraca sam, jeśli usuniesz wszystko inne. Usunięcie zaimportowanej lub edytowanej kopii nie usuwa dostarczonego systemu, jego logo ani czcionek, a jeśli kopia była aktywna, dostarczony system znów staje się aktywny. Usunięcie aktywnej kopii hostowanej czyści tylko połączenie tej kopii; osobno wybrana instancja pozostaje wybrana.
 
-Zmiana tego, co dostarcza serwer, jest zadaniem administratora: jego operator zmienia katalog źródłowy i wdraża ponownie, albo administrator Lolly Work przegląda i stosuje zmianę serwera. Edycje tutaj zostają lokalne. Zobacz [Removing a catalogue design system](/info/configuration.html#removing-a-catalogue-design-system) i [Configuration](/info/configuration.html#supplied-and-local-design-systems).
+Zmiana tego, co dostarcza serwer, to zadanie administratora: jego operator zmienia katalog źródłowy i wdraża ponownie albo administrator Lolly Work przegląda i stosuje zmianę serwera. Edycje tutaj pozostają lokalne, z jednym wyjątkiem: w instancji Lolly Work, która przyznaje Ci `brand.edit`, zarządzany system oferuje też **Edytuj dla** tej instancji, co otwiera kopię do edycji, a **Wyślij do** tej instancji w **Wersje** odsyła jego kolory, colourway, role kolorów i adres strony marki. [Edit this instance from the studio](/info/work-design-system-administration.html#edit-this-instance-from-the-studio) opisuje, co edycja może zmienić i jak instancja serwuje zmianę. Zobacz [Removing a catalogue design system](/info/configuration.html#removing-a-catalogue-design-system) i [Configuration](/info/configuration.html#supplied-and-local-design-systems).
 
 ## Używaj kontekstu projektowego poza aplikacją
 
-**Download design context** zapisuje dokument tokenów, rozwiązane kolory, deklarowane rodziny czcionek, identyfikatory zasobów, dowody źródłowe tam, gdzie zapisane, pokrycie i jawne reguły, bez plików czcionek i bez dowodu własności. Wiersz poleceń czyta plik bez serwera: `lolly system import` czyni go systemem projektowym terminala, a `lolly system check` sprawdza dane wejściowe Design względem zapisanego kontekstu. [Bring your design system](/info/cli.html#bring-your-design-system) opisuje import, a [Which design system a command uses](/info/cli-decks.html#which-design-system-a-command-uses) opisuje sprawdzanie, a klient MCP czyta ten sam brief z `lolly://design-context` ([MCP Server](/info/mcp.html)).
+**Pobierz kontekst projektowy** zapisuje dokument tokenów, rozwiązane kolory, zadeklarowane rodziny czcionek, id zasobów, dowody źródłowe, gdzie je zapisano, pokrycie i jawne reguły, bez plików czcionek i bez dowodu własności. Wiersz poleceń czyta plik bez serwera: `lolly system import` czyni go systemem projektowym terminala, a `lolly system check` sprawdza dane wejściowe Lolly Design względem zapisanego kontekstu. [Bring your design system](/info/cli.html#bring-your-design-system) opisuje import, a [Which design system a command uses](/info/cli-decks.html#which-design-system-a-command-uses) opisuje sprawdzanie, a klient MCP czyta ten sam brief z `lolly://design-context` ([MCP Server](/info/mcp.html)).
 
 ## Dokąd dalej
 
-- **[Using Lolly](/info/using.html)**: narzędzia, zapisywanie, udostępnianie i Assets.
-- **[Brand architectures](/info/brand-architectures.html)**: jak działy, produkty, marki poparte, klienci i sezony mapują się na systemy projektowe, colourway i tożsamości logo.
+- **[Using Lolly](/info/using.html)**: narzędzia, zapisywanie, udostępnianie i Zasoby.
+- **[Brand architectures](/info/brand-architectures.html)**: jak działy, produkty, marki poparte, klienci i sezony odwzorowują się na systemy projektowe, colourway i tożsamości logo.
+- **[Working with partners](/info/partners.html)**: udostępnianie marki partnerowi i praca w marce, którą dostałeś.
+- **[Brand pages](/info/brand-page.html)**: opublikuj swój system projektowy pod jednym adresem, jako zestaw prasowy i zestaw dla agentów.
 - **[Design Tokens](/info/design-tokens.html)**: model tokenów, w którym zapisana jest Twoja marka.
-- **[Export a file](/info/exporting.html)**: jednostki druku, CMYK i formaty, w które renderuje Twoja marka.
-- **[Współpraca z partnerami](/info/partners.html)**: udostępnianie marki partnerowi i praca w marce, którą dostałeś.
+- **[Export a file](/info/exporting.html)**: jednostki druku, CMYK i formaty, do których renderuje się Twoja marka.

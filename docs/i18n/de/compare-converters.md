@@ -12,7 +12,7 @@ Manche Konverter-Websites beherrschen Formate, die Lolly nicht kann, und brauche
 
 Ein browserbasierter Konverter lädt eine Datei zur Verarbeitung hoch oder wandelt lokal um. Die Umwandlungs-Utilities von Lolly verarbeiten die Datei lokal, ohne Konto, Werbung oder Tracker, und fügen kein Lolly-Wasserzeichen und keine Content Credentials hinzu. Sobald die Assets gespeichert sind, die eine Umwandlung braucht, funktionieren sie offline. Die Dateigröße ist durch den Arbeitsspeicher des Geräts und den jeweiligen Format-Leser begrenzt.
 
-![Die Ansicht Utilities: Strip Hidden Data, Compress PDF, Convert Image und die anderen Aufgaben auf dem Gerät an einem Ort](/t/url-shot?url=%2F%23%2Fu&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%2C.brand-tips%7Bdisplay%3Anone!important%7D&tolerance=0.03&waitSelector=.utilities-view%5Bdata-shots-settled%5D&format=svg&walker=1&dark=1&filename=aud-utilities)
+![Die Ansicht Utilities: Lolly Strip Hidden Data, Compress PDF, Convert Image und die anderen Aufgaben auf dem Gerät an einem Ort](/t/url-shot?url=%2F%23%2Fu&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%2C.brand-tips%7Bdisplay%3Anone!important%7D&tolerance=0.03&waitSelector=.utilities-view%5Bdata-shots-settled%5D&format=svg&walker=1&dark=1&filename=aud-utilities)
 
 [Jedes Format, das Lolly öffnen und erzeugen kann](/info/formats.html) listet die unterstützten Umwandlungen und ihre Grenzen auf, einschließlich HEIC zu JPG, PNG zu SVG und PDF zu Bildern.
 

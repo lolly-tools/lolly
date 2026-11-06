@@ -1,4 +1,6 @@
-# Lagu Rondocode
+# Lagu Lolly Rondocode
+
+<a id="rondocode-songs"></a>
 
 Lagu rondocode adalah musik yang ditulis sebagai kode: synth, pola, dan mix, dimainkan saat Anda mengetik. Lolly dapat memutar lagu di bawah video, dan utilitas **Rondocode** memungkinkan Anda menulis satu dan mengekspornya sebagai audio. Keduanya mencatat lagu dalam Content Credentials file, sehingga musik menyatakan asalnya.
 
@@ -12,7 +14,7 @@ Dari terminal, `lolly mix` menerima lagu sebagai seluruh soundtrack; lihat [CLI 
 
 ## Tulis dan ekspor lagu
 
-Buka **Rondocode** dari **Utilities** untuk menulis lagu di editor langsung rondocode dan mendengarnya saat Anda mengetik. Ekspor sebagai **WAV**, **MP3**, **M4A**, **Opus**, atau **FLAC**, sebagai ZIP stem, sebagai **MIDI**, atau sebagai rekaman apa yang sedang diputar. Dari terminal, `lolly rondocode --export=mid` menulis file MIDI yang sama. **Export length** menetapkan berapa detik ekspor audio berlangsung. File lagu itu sendiri (`.rondo.json`) adalah kode Anda sebagaimana ditulis dan tidak membawa tambahan apa pun.
+Buka alat **Rondocode** dari **Utilities** untuk menulis lagu di editor langsung rondocode dan mendengarnya saat Anda mengetik. Ekspor sebagai **WAV**, **MP3**, **M4A**, **Opus**, atau **FLAC**, sebagai ZIP stem, sebagai **MIDI**, atau sebagai rekaman apa yang sedang diputar. Dari terminal, `lolly rondocode --export=mid` menulis file MIDI yang sama. **Export length** menetapkan berapa detik ekspor audio berlangsung. File lagu itu sendiri (`.rondo.json`) adalah kode Anda sebagaimana ditulis dan tidak membawa tambahan apa pun.
 
 Lagu dapat menyanyikan liriknya dengan `sing()`. Nyanyian dibuat di perangkat Anda oleh model suara yang diunduh, dan file yang memuat nyanyian sintetis selalu mendeklarasikan nyanyian itu sebagai buatan AI (lihat [AI features](/info/ai-features.html)).
 
@@ -24,11 +26,11 @@ Ekspor video atau audio yang memutar lagu rondocode mencatat setiap lagu dalam C
 - SHA-256 dari file `.rondo.json`-nya;
 - bagaimana ia dirender: di sandbox Lolly, kelas eksekusi `vm`, dengan versi dan seed perender, dan bagian apa pun yang tidak dapat diputar render.
 
-Musik yang dihitung dari kode lagu ditandai sebagai media algoritmik, sehingga Verify tidak menandainya sebagai AI. Sebelum Anda mengekspor, baris di bawah **Download** mencantumkan lagu yang akan dicatat kredensial; setelah ekspor, baris yang sama melaporkan apa yang ditemukan pembacaan file yang dikirim. Hapus centang **C2PA Credentials** untuk tidak menyertakan catatan. Gambar diam tidak mencatat lagu, karena tidak membawa suara. `lolly mix` dan [server MCP](/info/mcp.html) menulis catatan yang sama.
+Musik yang dihitung dari kode lagu ditandai sebagai media algoritmik, sehingga Lolly Verify tidak menandainya sebagai AI. Sebelum Anda mengekspor, baris di bawah **Download** mencantumkan lagu yang akan dicatat kredensial; setelah ekspor, baris yang sama melaporkan apa yang ditemukan pembacaan file yang dikirim. Hapus centang **C2PA Credentials** untuk tidak menyertakan catatan. Gambar diam tidak mencatat lagu, karena tidak membawa suara. `lolly mix` dan [server MCP](/info/mcp.html) menulis catatan yang sama.
 
 ## File dari utilitas Rondocode
 
-Sebagian besar utilitas di perangkat tidak menulis kredensial, karena mentransformasi file yang sudah Anda miliki. Rondocode membuat audio baru, jadi setiap file audio yang ditulisnya membawa Content Credentials yang mencatat lagu sebagai sumbernya: namanya, SHA-256 file `.rondo.json`-nya, dan tempat kodenya dijalankan. Itu mencakup WAV, MP3, M4A, Opus, FLAC, setiap stem dalam ZIP stem, dan rekaman apa yang sedang diputar.
+Sebagian besar utilitas di perangkat tidak menulis kredensial, karena mentransformasi file yang sudah Anda miliki. Lolly Rondocode membuat audio baru, jadi setiap file audio yang ditulisnya membawa Content Credentials yang mencatat lagu sebagai sumbernya: namanya, SHA-256 file `.rondo.json`-nya, dan tempat kodenya dijalankan. Itu mencakup WAV, MP3, M4A, Opus, FLAC, setiap stem dalam ZIP stem, dan rekaman apa yang sedang diputar.
 
 - Render editor sendiri berjalan di frame privatnya (kelas eksekusi `frame`) dan mencatat versi editor.
 - Render yang dibuat CLI atau tautan berbagi berjalan di kelas `vm` dan mencatat versi dan seed perender.

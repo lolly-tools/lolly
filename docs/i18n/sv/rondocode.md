@@ -1,4 +1,6 @@
-# Rondocode-sånger
+# Lolly Rondocode-sånger
+
+<a id="rondocode-songs"></a>
 
 En rondocode-sång är musik skriven som kod: synthar, mönster och en mix, spelad medan du skriver. Lolly kan spela en sång under en video, och verktyget **Rondocode** låter dig skriva en och exportera den som ljud. Båda registrerar sången i filens Content Credentials, så att musiken säger var den kommer ifrån.
 
@@ -12,7 +14,7 @@ Från terminalen tar `lolly mix` en sång som hela ljudspåret; se [CLI-renderin
 
 ## Skriv och exportera en sång
 
-Öppna **Rondocode** från **Utilities** för att skriva en sång i rondocodes levande redigerare och höra den medan du skriver. Exportera den som **WAV**, **MP3**, **M4A**, **Opus** eller **FLAC**, som en ZIP med stems, som **MIDI**, eller som en inspelning av det som spelas. Från terminalen skriver `lolly rondocode --export=mid` samma MIDI-fil. **Export length** anger hur många sekunder en ljudexport varar. Själva sångfilen (`.rondo.json`) är din kod som skriven och bär inget tillagt.
+Öppna verktyget **Rondocode** från **Utilities** för att skriva en sång i rondocodes levande redigerare och höra den medan du skriver. Exportera den som **WAV**, **MP3**, **M4A**, **Opus** eller **FLAC**, som en ZIP med stems, som **MIDI**, eller som en inspelning av det som spelas. Från terminalen skriver `lolly rondocode --export=mid` samma MIDI-fil. **Export length** anger hur många sekunder en ljudexport varar. Själva sångfilen (`.rondo.json`) är din kod som skriven och bär inget tillagt.
 
 En sång kan sjunga sin text med `sing()`. Sången görs på din enhet av nedladdade röstmodeller, och en fil som håller syntetiserad sång deklarerar alltid sången som AI-genererad (se [AI-funktioner](/info/ai-features.html)).
 
@@ -24,11 +26,11 @@ En video- eller ljudexport som spelar en rondocode-sång registrerar varje sång
 - SHA-256 av dess `.rondo.json`-fil;
 - hur den renderades: i Lollys sandlåda, exekveringsklassen `vm`, med renderarens version och seed, och varje del renderingen inte kunde spela.
 
-Musik som beräknats från en sångs kod märks som algoritmiskt medium, så Verify flaggar den inte som AI. Innan du exporterar listar en rad under **Download** sångerna credentialen kommer att registrera; efter exporten rapporterar samma rad vad en läsning av den levererade filen hittade. Avmarkera **C2PA Credentials** för att lämna posten utanför. En stillbild registrerar ingen sång, eftersom den inte bär något ljud. `lolly mix` och [MCP-servern](/info/mcp.html) skriver samma post.
+Musik som beräknats från en sångs kod märks som algoritmiskt medium, så Lolly Verify flaggar den inte som AI. Innan du exporterar listar en rad under **Download** sångerna credentialen kommer att registrera; efter exporten rapporterar samma rad vad en läsning av den levererade filen hittade. Avmarkera **C2PA Credentials** för att lämna posten utanför. En stillbild registrerar ingen sång, eftersom den inte bär något ljud. `lolly mix` och [MCP-servern](/info/mcp.html) skriver samma post.
 
 ## Filer från verktyget Rondocode
 
-De flesta verktyg på enheten skriver ingen credential, eftersom de omvandlar en fil du redan äger. Rondocode gör nytt ljud, så varje ljudfil det skriver bär Content Credentials som registrerar sången som sin källa: dess namn, SHA-256 av dess `.rondo.json`-fil och var dess kod kördes. Det gäller WAV, MP3, M4A, Opus, FLAC, varje stem i en stems-ZIP och en inspelning av det som spelas.
+De flesta verktyg på enheten skriver ingen credential, eftersom de omvandlar en fil du redan äger. Lolly Rondocode gör nytt ljud, så varje ljudfil det skriver bär Content Credentials som registrerar sången som sin källa: dess namn, SHA-256 av dess `.rondo.json`-fil och var dess kod kördes. Det gäller WAV, MP3, M4A, Opus, FLAC, varje stem i en stems-ZIP och en inspelning av det som spelas.
 
 - Redigerarens egna renderingar körs i dess privata ram (exekveringsklassen `frame`) och registrerar redigerarens version.
 - En rendering gjord av CLI eller en delningslänk körs i klassen `vm` och registrerar renderarens version och seed.

@@ -64,7 +64,7 @@ Sotto il misuratore:
 - **Remove automatic checkpoints older than 30 days** libera spazio in History e mantiene le versioni salvate e con nome.
 - **Clear all my data** rimuove tutto ciò che Lolly conserva in questo browser, dopo che digiti una parola per confermare. [If you clear your browser data](/info/find-your-work.html#if-you-clear-your-browser-data) elenca cosa viene eliminato.
 
-### Available offline
+### Disponibile offline
 
 Lolly mette in cache le schermate mentre le visiti, il che copre solo i posti in cui sei già stato. **Available offline** serve per il viaggio che vedi arrivare: scarica le parti che ti serviranno e guarda una sola barra di avanzamento, e tutto ciò che hai preso continua a funzionare senza connessione.
 
@@ -92,7 +92,7 @@ I download riprendono da dove si erano fermati se annulli o perdi la connessione
 - <!--i:neurobeat--> **Sound** - i suoni dell'interfaccia e i loop di concentrazione Neurospicy, l'unico interruttore di questa scheda che scrive qualcosa.
 - <!--i:database--> **Storage** - una vista di sola lettura del misuratore in [Preferences](#storage), che è il posto in cui cancelli o porti via i tuoi dati.
 
-## Design system
+## Sistema di design
 
 Il design system attivo, presentato per essere letto. Quando questo browser contiene due o più design system, una striscia di piccole copertine in alto li elenca: sceglierne una la rende attiva, e **Undo** nell'avviso che segue rimette quella precedente.
 

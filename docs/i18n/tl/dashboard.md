@@ -1,4 +1,4 @@
-# Settings
+# Mga Setting
 
 Ang Settings ang lugar kung saan mo binabago kung paano gumagana ang Lolly para sa iyo: ang mga detalye mo, ang design system na ginagamit mo, accessibility, kung ano ang naka-store sa device na ito at kung ano ang handa offline. Buksan ito gamit ang **Settings** sa bar sa paanan ng home screen, o mula sa avatar menu mo. Bumubukas ito sa **Preferences**, na may apat pang tab sa tabi.
 
@@ -51,7 +51,7 @@ Hawak din ng parehong card ang **Sound**, isang banayad na patong ng assistive n
 
 Maaaring i-navigate ang interface gamit ang keyboard, may label ang mga custom na kontrol para sa screen reader at ang live preview ng bawat tool ay inilalantad bilang iisang may-label na larawan na naglalarawan ng ipinapakita.
 
-### Storage
+### Imbakan
 
 Binibilang ng storage meter ang bawat byte na hawak ng install na ito, kategorya por kategorya, laban sa iniuulat ng browser.
 
@@ -64,7 +64,7 @@ Sa ilalim ng meter:
 - Ang **Remove automatic checkpoints older than 30 days** ay nagpapalaya ng espasyo ng History at iniingatan ang mga naka-save at pinangalanang bersyon.
 - Inaalis ng **Clear all my data** ang lahat ng iniingatan ng Lolly sa browser na ito, pagkatapos mong mag-type ng salita para kumpirmahin. Inililista ng [Kung i-clear mo ang browser data mo](/info/find-your-work.html#if-you-clear-your-browser-data) kung ano ang nawawala.
 
-### Available offline
+### Magagamit offline
 
 Nagka-cache ang Lolly ng mga screen habang binibisita mo ang mga ito, na sumasaklaw lang sa kung saan ka na nakapunta. Ang **Available offline** ay para sa biyaheng nakikita mo nang darating: i-download ang mga bahaging kakailanganin mo at manood ng isang progress bar, at patuloy na gagana ang lahat ng kinuha mo kahit walang koneksyon.
 
@@ -86,7 +86,7 @@ Sinasabi ng **Lolly instance** kung saan kumukuha ang install na ito ng mga tool
 - Inaalis ng **Leave** ang design system, mga tool at catalogue ng instance, at nananatili ang sarili mong gawa. Tingnan ang [Gamitin ang Lolly sa organisasyon mo](/info/organisation.html#leaving).
 - Kapag naka-sign in ka sa organisasyon, tinatapos ng **Sign out** ang session na ito at tinatapos ng **Sign out everywhere** ang mga session mo sa bawat device, kasama ang isang ito.
 
-## This device
+## Ang device na ito
 
 - <!--i:monitor--> **This Machine** - screen, input, graphics, memory, codec, storage backend at iba pa, binabasa nang live mula sa session na ito. Walang iniimbak at walang ipinapadala. Kusa itong bumubukas sa malapad na screen, kung saan inilalatag ang tab sa dalawang column.
 - <!--i:neurobeat--> **Sound** - ang mga tunog ng interface at ang mga Neurospicy focus loop, ang nag-iisang switch sa tab na ito na nagsusulat ng anuman.
