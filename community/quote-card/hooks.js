@@ -125,12 +125,12 @@ function findPhrase(quote, phrase) {
     at = m.index;
     end = at + m[0].length;
   }
-  // A marker stops at a word's edge: cutting one would let the line break inside it,
-  // and would break the shaping of a joining script. Han and Kana have no such edge.
+  // A marker stops at a space: cutting a word would let the line break inside it and
+  // break the shaping of a joining script, and a mark left beside the marker would sit
+  // half under its edge. Han and Kana have no spaces and run to their own characters.
   if (!CJK_RE.test(quote.slice(at, end))) {
-    var letter = /[\p{L}\p{M}\p{N}]/u;
-    while (at > 0 && letter.test(quote[at - 1]) && letter.test(quote[at])) at--;
-    while (end < quote.length && letter.test(quote[end]) && letter.test(quote[end - 1])) end++;
+    while (at > 0 && !/\s/.test(quote[at - 1])) at--;
+    while (end < quote.length && !/\s/.test(quote[end])) end++;
   }
   return { start: at, end: end };
 }

@@ -142,7 +142,7 @@ test('the phrase marks what was typed, and never a guess', async () => {
   assert.equal(marked(await marker('The best tools disappear.', 'BEST TOOLS')), 'best tools', 'ignoring case');
   assert.equal(marked(await marker('The best tools disappear.', 'worst')), '', 'not in the quote, so nothing');
   assert.equal(marked(await marker('The best tools disappear.', '')), '');
-  assert.equal(marked(await marker('The best tools disappear, so.', 'disappear')), 'disappear', 'stops at the comma');
+  assert.equal(marked(await marker('The best tools disappear, so.', 'disappear')), 'disappear,', 'a mark stays with its word, so it never sits half under the edge');
   assert.equal(marked(await marker('Disappearing acts', 'appear')), 'Disappearing', 'a word is not cut in two');
   assert.doesNotMatch(normal(await hydrate({ quote: 'Plain words', phrase: 'Plain', layout: 'type' })), /qc-hl/, 'other layouts strengthen it instead');
   assert.match(await hydrate({ quote: 'Plain words', phrase: 'Plain', layout: 'type' }), /<span class="qc-em">Plain<\/span>/);
