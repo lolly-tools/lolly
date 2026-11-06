@@ -328,7 +328,7 @@
     "shells/web/src/lib/upscaler.ts": 4,
     "shells/web/src/lib/video-jobs.ts": 3,
     "shells/web/src/lib/viz-stock.ts": 3,
-    "shells/web/src/main.ts": 44,
+    "shells/web/src/main.ts": 41,
     "shells/web/src/org/ai-policy.ts": 1,
     "shells/web/src/org/collab-handle.ts": 1,
     "shells/web/src/pro/batch.ts": 1,

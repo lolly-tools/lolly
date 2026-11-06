@@ -88,8 +88,8 @@ export function beginViewLoading(delayMs = VIEW_LOADING_DELAY_MS): ViewLoading {
       onEscape: () => {},
       onClose: () => handle.close(),
     });
-    // While the card covers a view that takes dropped files, a file dropped on the card
-    // is the view's (lib/drop-early.ts). Without a view holding drops, this changes nothing.
+    // A file dropped on the card is held until the view is ready, then given to what the
+    // view shows at the same point, never to the card itself (lib/drop-early.ts).
     modal.el.setAttribute(DROP_STAND_IN, '');
     shown = modal;
   }, delayMs);

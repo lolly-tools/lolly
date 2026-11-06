@@ -363,3 +363,28 @@ html[data-a11y-motion="reduce"] .job-bar-fill { animation: none; transition: non
 @keyframes undo-toast-drain { from { transform: scaleX(1); } to { transform: scaleX(0); } }
 html[data-a11y-motion="reduce"] .undo-toast-bar { animation: none; }
 @media (prefers-reduced-motion: reduce) { .undo-toast-bar { animation: none; } }
+
+/* ── The early-drop note (lib/drop-hold-note.ts) - the same cluster and look ─
+   What happened to a file dropped while Lolly was still loading: waiting, refused,
+   or not opened. Bottom-centre at the undo toasts' height (the two do not show at
+   once: this one belongs to loading, they to editing). It rises in at the overlay
+   motion tokens; under reduced motion (OS query AND the app pref) it simply appears. */
+.drop-hold-note {
+  position: fixed;
+  left: 50%; transform: translateX(-50%);
+  bottom: calc(4.5rem + var(--safe-bottom) + var(--vv-bottom, 0px));
+  z-index: 9400;
+  width: max-content;
+  max-width: min(520px, calc(100vw - 2rem));
+  padding: 10px 16px;
+  border-radius: var(--radius-lg);
+  background: hsl(var(--card)); color: hsl(var(--foreground));
+  box-shadow: var(--ui-edge-default), var(--ui-elevation-floating);
+  font-size: var(--fs-md);
+  line-height: 1.4;
+  text-align: center;
+  animation: drop-hold-note-in var(--ui-motion-overlay) var(--ui-motion-standard) both;
+}
+@keyframes drop-hold-note-in { from { opacity: 0; transform: translate(-50%, 6px); } }
+html[data-a11y-motion="reduce"] .drop-hold-note { animation: none; }
+@media (prefers-reduced-motion: reduce) { .drop-hold-note { animation: none; } }

@@ -49,7 +49,7 @@ import { isTauriShell } from './instance-choice.ts';
 import { NAV_EVENTS } from '../utils.ts';
 import { navigateTo } from '../nav.ts';
 import { afterOwnBack } from './overlay-back.ts';
-import { isFileDrag, takeEarlyDrops } from './drop-early.ts';
+import { isFileDrag, releaseEarlyDrops } from './drop-early.ts';
 import { announce } from '../a11y.ts';
 import { playSfx } from './sfx.ts';
 import { choiceDialog, confirmDialog, closeConfirmDialogs, noticeDialog } from '../components/confirm-dialog.ts';
@@ -2004,9 +2004,9 @@ export function attachDropRouter(rootEl: HTMLElement, host: PickerHost, hooks: D
   NAV_EVENTS.forEach((ev) => window.addEventListener(ev, teardown));
   ATTACHED.set(rootEl, teardown);
   rootEl.dataset.dropReady = '';
-  // Files dropped while this module was still loading (drop-early.ts) go the same way.
-  const early = takeEarlyDrops(rootEl);
-  if (early) route(early);
+  // A file dropped while this module was still loading (drop-early.ts) is dropped
+  // again where it was, a task later, and reaches these listeners like any other.
+  releaseEarlyDrops(rootEl);
   return teardown;
 }
 

@@ -477,7 +477,7 @@ function galleryEmptyHtml(loadFailed: boolean): string {
 
 export async function mountGallery(viewEl: HTMLElement, host: GalleryHost, opts: GalleryMountOpts = {}): Promise<void> {
   document.title = opts.only ? 'Utilities - Lolly' : 'Lolly';
-  holdEarlyDrops(viewEl); // a file dropped before the drop router loads (see below)
+  holdEarlyDrops(viewEl); // a file dropped before the drop router loads waits for it (see below)
   // #/?q=<text> restores a handed-off search (plans/99 section 2c): raw for the field's
   // display value, lowercased below for `query` (the same normalisation the input
   // handler applies at each keystroke).
@@ -919,7 +919,7 @@ export async function mountGallery(viewEl: HTMLElement, host: GalleryHost, opts:
   // (design → Design, PDF → import/compress, media → library or /verify). Scoped to this
   // view's root (its listeners die with the node on navigation) - never a window/document-global
   // handler. drop-router is dynamic-imported off the boot path, seconds after the paint on a slow
-  // first visit, so holdEarlyDrops() above keeps a file dropped before then (lib/drop-early.ts).
+  // first visit, so holdEarlyDrops() above keeps a file dropped before then for it (lib/drop-early.ts).
   // The cast is erased: the concrete web host carries the picker's upload surface.
   void import('../lib/drop-router.ts').then((m) => m.attachDropRouter(viewEl, host as unknown as PickerHost));
 
