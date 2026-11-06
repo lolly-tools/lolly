@@ -4,7 +4,7 @@ import type { HostV1 } from '@lolly-tools/core/host-v1';
 import type { PreviewsAPI } from '../bridge/previews.ts';
 import type { FeaturedVariant } from '../components/featured-row.ts';
 import { instanceFetch, instancePath } from './instance.ts';
-import { renderFeaturedVariant } from './featured-render.ts';
+import { coverFormats, renderFeaturedVariant } from './featured-render.ts';
 import { parseTemplateMotion, type TemplateMotion } from './template-motion.ts';
 import { toolSeedHref } from './seed-url.ts';
 import { bakedCover } from './gallery-covers.ts';
@@ -27,7 +27,8 @@ export function galleryPreviewPriority(card: HTMLElement, cover: boolean, captur
 
 export function galleryPreviewLooks(tool: GalleryPreviewSource): FeaturedVariant[] {
   if (tool.galleryArt === 'icon') return [];
-  if (tool.formats && !tool.formats.some(f => ['svg', 'png', 'jpg', 'jpeg', 'webp'].includes(f))) return [];
+  const formats = coverFormats(tool);
+  if (formats && !formats.some(f => ['svg', 'png', 'jpg', 'jpeg', 'webp'].includes(f))) return [];
   const templates = (tool.templates?.filter(t => t.id && t.name) ?? [])
     .sort((a, b) => Number(b.galleryCover === true) - Number(a.galleryCover === true));
   return templates.length
@@ -68,5 +69,5 @@ export async function renderGalleryLook(
       values = withGallerySize(file.values, file.gallerySize); motion = parseTemplateMotion(file.motion);
     } else if (!Object.keys(values).length) throw new Error(`Template ${look.templateId} is unavailable`);
   }
-  return renderFeaturedVariant(host, tool.id, tool.formats, look.templateId ?? index, values, `gallery@${tool.version ?? 'current'}`, motion?.posterMs);
+  return renderFeaturedVariant(host, tool.id, coverFormats(tool), look.templateId ?? index, values, `gallery@${tool.version ?? 'current'}`, motion?.posterMs);
 }

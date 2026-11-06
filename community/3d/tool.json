@@ -1,7 +1,7 @@
 {
   "id": "3d",
   "name": "3D",
-  "version": "1.3.1",
+  "version": "1.3.2",
   "engineVersion": "^1.0.0",
   "status": "official",
   "singleInstance": true,
@@ -78,9 +78,9 @@
       "help": "The base shot. A camera move (below) animates from here.",
       "fields": [
         { "id": "fov", "label": "Field of view", "symbol": "°", "min": 20, "max": 90, "step": 1, "default": 45 },
-        { "id": "rotation", "label": "Rotation", "symbol": "°", "min": 0, "max": 360, "step": 1, "default": 215 },
+        { "id": "rotation", "label": "Rotation", "symbol": "°", "min": 0, "max": 360, "step": 1, "default": 35 },
         { "id": "tilt", "label": "Tilt", "symbol": "°", "min": -10, "max": 80, "step": 1, "default": 12 },
-        { "id": "zoom", "label": "Zoom", "symbol": "×", "min": 0.4, "max": 2.5, "step": 0.05, "default": 1 },
+        { "id": "zoom", "label": "Zoom", "symbol": "×", "min": 0.4, "max": 2.5, "step": 0.05, "default": 1.3 },
         { "id": "pan", "label": "Pan", "symbol": "↔", "min": -1, "max": 1, "step": 0.05, "default": 0 }
       ]
     },
