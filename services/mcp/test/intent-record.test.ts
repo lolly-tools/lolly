@@ -138,13 +138,14 @@ test('a render with no intent and no c2pa does not change by a byte: no credenti
   assert.equal((await verify(plain)).json.report.state, 'none');
 });
 
-test('the browser never stamps a file that carries an intent, whichever way c2pa is set', () => {
+test('a file that carries an intent: the browser stamps first for this server to replace, and "off" still means none', () => {
   const intent = { purpose: 'direct' } as never;
   const urlFor = (o: Parameters<typeof exportUrl>[4]): URLSearchParams => {
     const url = exportUrl('http://shell.test', 'certificate', 'firstname=Sam', 'pdf', o);
     return new URLSearchParams(url.slice(url.indexOf('?') + 1));
   };
-  assert.equal(urlFor({ intent, c2pa: { on: true, days: null } }).get('c2pa'), 'off');
+  // The browser's credential is the record of the pictures placed in the file, read before this server's credential replaces the browser's.
+  assert.equal(urlFor({ intent, c2pa: { on: true, days: null } }).get('c2pa'), '1');
   assert.equal(urlFor({ intent, c2pa: { on: false, days: null } }).get('c2pa'), 'off');
   assert.equal(urlFor({ c2pa: null }).get('c2pa'), null, 'a render with no intent keeps the export as it was');
 });

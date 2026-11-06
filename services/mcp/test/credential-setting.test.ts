@@ -19,7 +19,7 @@ import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { PDFDocument } from 'pdf-lib';
-import { embedC2pa, gzip, verifyC2pa } from '../../../engine/src/index.ts';
+import { embedC2pa, exportActionSteps, extractC2paStore, gzip, prepareC2paIngredientFromStore, verifyC2pa, CAPTURE_SOURCE_TYPE, GENERATED_SOURCE_TYPE } from '../../../engine/src/index.ts';
 import { buildExportC2paOpts } from '../../../packages/node-shell/src/c2pa-opts.ts';
 import { credentialAndRecord, credentialText, exportUrl, render } from '../src/render.ts';
 import type { CredentialReadback, RenderOpts } from '../src/render.ts';
@@ -58,14 +58,20 @@ test('with no c2pa and no intent, the address the browser opens does not change'
   }
 });
 
-test('"off" reaches the browser on every format, and a lifetime reaches it only where it stamps alone', () => {
-  for (const fmt of ['pdf', 'pdf-cmyk', 'png', 'svg', 'jpg', 'webp', 'mp4']) {
+test('"off" reaches the browser on every format, and with a lifetime the browser stamps first', () => {
+  for (const fmt of ['pdf', 'pdf-cmyk', 'png', 'svg', 'jpg', 'webp', 'mp4', 'tiff']) {
     assert.equal(URL_OF(fmt, { c2pa: { on: false, days: null } }).get('c2pa'), 'off', fmt);
   }
-  // A PDF holds one credential, so the browser writes none and this server writes the one.
-  for (const fmt of ['pdf', 'pdf-cmyk']) assert.equal(URL_OF(fmt, { c2pa: { on: true, days: 90 } }).get('c2pa'), 'off', fmt);
-  // Every other format's stamp replaces the browser's, whose song ingredients it reads first.
-  for (const fmt of ['png', 'svg', 'jpg', 'webp', 'mp4']) assert.equal(URL_OF(fmt, { c2pa: { on: true, days: 90 } }).get('c2pa'), null, fmt);
+  // This server's stamp takes the place of the browser's, whose record of the placed pictures
+  // and songs it reads first, so the browser stamps on every format, a PDF included.
+  for (const fmt of ['pdf', 'pdf-cmyk', 'png', 'svg', 'jpg', 'webp', 'mp4']) assert.equal(URL_OF(fmt, { c2pa: { on: true, days: 90 } }).get('c2pa'), '1', fmt);
+  // A TIFF keeps a replaced credential as a second one, so there the browser writes none, and an
+  // `off` that is not the caller's leaves inlined artwork alone.
+  for (const fmt of ['tiff', 'cmyk-tiff']) {
+    const p = URL_OF(fmt, { c2pa: { on: true, days: 90 } });
+    assert.equal(p.get('c2pa'), 'off', fmt);
+    assert.equal(p.get('_keepinlinedc2pa'), '1', fmt);
+  }
   // A sample set is never stamped here, so the browser has to take the setting as given.
   assert.equal(URL_OF('pdf', { c2pa: { on: true, days: 90 } }, 'cuts=3').get('c2pa'), '90');
   assert.equal(URL_OF('png', { c2pa: { on: true, days: 90 } }, 'cuts=3').get('c2pa'), '90');
@@ -191,12 +197,74 @@ test('when a web shell stamps anyway, the result does not pretend otherwise', as
   const off = await finish(stamped, 'pdf', { c2pa: { on: false, days: null }, c2paAsked: true });
   assert.equal(off.credential?.holds, 'valid');
   assert.match(credentialText(off.credential), /c2pa: "off" could not be honoured\. This file still holds a credential\./);
-  // A lifetime, and the stamp is refused over the one already there: the old mismatch, now said.
+  // A lifetime over the browser's own: its update comes off and this server's goes on, once.
   const warnings: string[] = [];
-  const days = await finish(await browserStampedPdf(30), 'pdf', { c2pa: { on: true, days: 90 }, c2paAsked: true }, 'B', warnings);
-  assert.match(warnings.join(' '), /Content Credentials not attached/);
-  assert.deepEqual(days.credential, { asked: 90, holds: 'valid', days: 30, selfSigned: true });
-  assert.match(credentialText(days.credential), /the certificate runs 30 days, not the 90 asked for/);
+  const browser = await browserStampedPdf(30);
+  const days = await finish(browser, 'pdf', { c2pa: { on: true, days: 90 }, c2paAsked: true }, 'B', warnings);
+  assert.deepEqual(warnings, []);
+  assert.deepEqual(days.credential, { asked: 90, holds: 'valid', days: 90, selfSigned: true });
+  assert.equal((((await verifyC2pa(days.bytes)).environment) as Record<string, unknown>).surface, 'mcp');
+  const count = (bytes: Uint8Array) => Buffer.from(bytes).toString('latin1').split('/AFRelationship /C2PA_Manifest').length - 1;
+  assert.equal(count(days.bytes), 1, 'one credential, and no dead copy of the browser\'s');
+  assert.equal((await PDFDocument.load(days.bytes, { updateMetadata: false })).getTitle(), 'Certificate');
+});
+
+// ── The pictures the browser recorded ────────────────────────────────────────
+
+/** A placed picture with a credential of its own, as the browser carries one: its manifests, a component. */
+async function placedPicture(title: string, sourceType: string) {
+  const picture = await embedC2pa(PNG_1PX, 'png', { title, claimGenerator: 'Camera or generator', actions: [{ action: 'c2pa.created', digitalSourceType: sourceType }] });
+  const found = extractC2paStore(picture)!;
+  return { ...prepareC2paIngredientFromStore(found.store, found.format)!, relationship: 'componentOf' };
+}
+/** A file the browser stamped holding an uploaded photo and a picture declared AI-made. */
+async function browserStampedWithPictures(bytes: Uint8Array, format: string): Promise<Uint8Array> {
+  const opts = buildExportC2paOpts({ surface: 'cli', manifest: MANIFEST, model: [], format, days: 30 });
+  const aiIngredients = [{ name: 'Generated sky', kind: 'full' as const }];
+  return embedC2pa(bytes, format, {
+    ...opts, environment: { ...(opts.environment as Record<string, unknown>), surface: 'web' },
+    actions: exportActionSteps(format, { aiIngredients }), aiDisclosure: {},
+    ingredients: [await placedPicture('Harbour photo', CAPTURE_SOURCE_TYPE), await placedPicture('Generated sky', GENERATED_SOURCE_TYPE)],
+  });
+}
+const PNG_1PX = Uint8Array.from(Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==', 'base64'));
+
+test('a lifetime keeps the pictures the browser recorded, the AI-made one included, on PNG, SVG and PDF', async () => {
+  const doc = await PDFDocument.create();
+  doc.addPage([200, 100]);
+  const files: Array<[string, Uint8Array]> = [
+    ['png', PNG_1PX],
+    ['svg', new TextEncoder().encode('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><rect width="10" height="10"/></svg>')],
+    ['pdf', await doc.save({ useObjectStreams: false })],
+  ];
+  for (const [format, plain] of files) {
+    const browser = await browserStampedWithPictures(plain, format);
+    const warnings: string[] = [];
+    const out = await finish(browser, format, { c2pa: { on: true, days: 90 }, c2paAsked: true }, 'B', warnings);
+    assert.deepEqual(warnings, [], format);
+    const report = await verifyC2pa(out.bytes);
+    assert.equal(report.state, 'valid', format);
+    assert.equal((report.environment as Record<string, unknown>).surface, 'mcp', `${format}: this server's credential`);
+    assert.equal(lifetimeDays(report.signer), 90, format);
+    const active = report.ingredients!.at(-1)!.manifest;
+    assert.deepEqual(report.ingredients!.filter((i) => i.manifest === active).map((i) => [i.title, i.relationship, i.credentialed]),
+      [['Harbour photo', 'componentOf', true], ['Generated sky', 'componentOf', true]], format);
+    assert.ok(report.history!.some((s) => s.action === 'c2pa.placed' && s.digitalSourceType === GENERATED_SOURCE_TYPE), `${format}: the AI picture's source type`);
+    assert.ok(report.history!.some((s) => s.description === 'Placed AI-declared ingredient: Generated sky (AI-generated)'), `${format}: the AI declaration`);
+    assert.ok(report.aiDisclosure, `${format}: the AI disclosure`);
+  }
+});
+
+test('a browser-free render and a browser credential with no pictures carry nothing in', async () => {
+  // Tier A: there is no browser credential to read, so a file with one is not read for pictures.
+  const browser = await browserStampedWithPictures(PNG_1PX, 'png');
+  const tierA = await verifyC2pa((await finish(browser, 'png', { c2pa: { on: true, days: 30 }, c2paAsked: true }, 'A')).bytes);
+  assert.equal(tierA.ingredients, undefined);
+  // A browser credential with none: this server's credential holds none.
+  const plain = await embedC2pa(PNG_1PX, 'png', stampedBy('web', 'png', 30));
+  const carried = await verifyC2pa((await finish(plain, 'png', { c2pa: { on: true, days: 30 }, c2paAsked: true })).bytes);
+  assert.equal(carried.ingredients, undefined);
+  assert.equal(carried.aiDisclosure, undefined);
 });
 
 test('a format with nowhere to put one, a PDF with a password and an archive each get a plain answer', async () => {

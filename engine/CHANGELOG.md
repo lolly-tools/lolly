@@ -6,6 +6,14 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+## 1.321.0
+
+- `placedPicturesOf(store)` (new, `c2pa-extract.ts`): the record of placed pictures in a Content Credential, read back for a shell that writes its own credential in place of that one. It gives each credentialed ingredient the active manifest names, with its title, format, relationship, AI source type and the manifests it brought, verbatim, plus the AI facts the steps state (the pieces declared AI-made, and the model that enlarged one). Source ingredients (emoji, songs) are not read: they have their own census.
+- `aiFactsFromSteps` (`c2pa.ts`) reads the two AI steps `exportActionSteps` writes, and counts a reading only when writing it again gives the same words. `exportActionSteps` writes those steps through the same two helpers, with the same text as before.
+- `pdfWithoutCredential(pdf)` (new, `c2pa-containers.ts`): the bytes before the credential update `embedC2paInPdf` appends, when that update is the last thing in the file. Null for anything else.
+- The MCP server uses all three for a lifetime (`c2pa: "7"` to `"365"`) and for an intent on the browser tier. The browser now stamps first on those routes, a PDF included, and the server reads the browser credential's record of the placed pictures, AI-made ones included, before its own credential takes that one's place. A PDF's browser update comes off first, so the file holds one credential. A TIFF keeps a replaced credential as a second one, so there the browser writes none, as it already did for an intent.
+- Nothing is added that the browser credential did not hold. A render with no `c2pa` and no intent is unchanged, and so is every browser-free render.
+
 ## 1.319.0
 
 - `host.text.toPath`: a `fallbackFonts` entry may carry `fill: true`, a face that draws only what every face before it cannot, the way a browser falls back to a later family in a `font-family` list. With one in the chain, the run is split by grapheme cluster and each cluster goes to the first face that maps all of it, so an earlier face keeps every character it can draw; a space goes to the first face that maps it, as in Chrome. A chain with no `fill` face splits exactly as before, so every existing outline keeps its bytes.

@@ -109,3 +109,31 @@ test('certificate PNG and qr-code PDF: "off" means none, and a lifetime is this 
   assert.equal(qrSeven.state, 'valid');
   assert.equal(qrSeven.days, 7);
 });
+
+test('a lifetime keeps the pictures the web shell recorded: an uploaded photo and an AI-made picture', { skip, timeout: 300_000 }, async () => {
+  const { embedC2pa, CAPTURE_SOURCE_TYPE, GENERATED_SOURCE_TYPE } = await import('../../../engine/src/index.ts');
+  const { Resvg } = await import('@resvg/resvg-js');
+  const art = (fill: string): Uint8Array => new Uint8Array(new Resvg(`<svg xmlns="http://www.w3.org/2000/svg" width="160" height="100"><rect width="160" height="100" fill="${fill}"/></svg>`).render().asPng());
+  const picture = async (title: string, digitalSourceType: string, fill: string): Promise<string> =>
+    `data:image/png;base64,${Buffer.from(await embedC2pa(art(fill), 'png', { title, claimGenerator: 'Camera or generator', actions: [{ action: 'c2pa.created', digitalSourceType }] })).toString('base64')}`;
+  const args = {
+    toolId: 'multi-page-pdf', format: 'svg', link: false,
+    inputs: { coverLogo: await picture('Harbour photo', CAPTURE_SOURCE_TYPE, '#2266aa'), coverImage: await picture('Generated sky', GENERATED_SOURCE_TYPE, '#cc5522') },
+  };
+  const placed = async (bytes: Buffer): Promise<string[]> => {
+    const report = await verifyC2pa(bytes);
+    const active = report.ingredients?.at(-1)?.manifest;
+    return (report.ingredients ?? []).filter((i) => i.manifest === active).map((i) => `${i.title}/${i.relationship}`).sort();
+  };
+  const both = ['Generated sky/componentOf', 'Harbour photo/componentOf'];
+  const plain = await renderOf(args);
+  assert.equal(plain.surface, 'web');
+  assert.deepEqual(await placed(plain.bytes), both, 'the web shell records both');
+  const thirty = await renderOf({ ...args, c2pa: '30' });
+  assert.equal(thirty.state, 'valid');
+  assert.equal(thirty.surface, 'mcp');
+  assert.equal(thirty.days, 30);
+  assert.deepEqual(await placed(thirty.bytes), both, 'and this server\'s credential keeps both');
+  const report = await verifyC2pa(thirty.bytes);
+  assert.ok(report.history!.some((s) => s.action === 'c2pa.placed' && s.digitalSourceType === GENERATED_SOURCE_TYPE), 'with the AI source type');
+});
