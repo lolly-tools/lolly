@@ -8,8 +8,8 @@
  * and the footer sitemap - which the reader used to throw away, stranding the reader
  * on a single page with no way to reach any other doc. This module pulls those nodes
  * out of the parsed document, rewrites their `/info/*.html` links to the in-app reader
- * route, and (for the on-page table of contents) DERIVES a fresh nav from the rehosted
- * content's stamped heading ids. Everything here is progressive: a piece the fetched
+ * route. (The page's contents are derived by views/docs.ts with the shared builder in
+ * packages/docs-render contents.ts.) Everything here is progressive: a piece the fetched
  * page happens not to have is a silent `null`, never an error.
  *
  * All DOM is built with real nodes (importNode / createElement + textContent) rather
@@ -127,11 +127,11 @@ export function extractContactFooter(doc: Document): HTMLElement | null {
 }
 
 /**
- * The PATHWAYS strip (Welcome · Quickstart · For Creators · For Builders · For Operators
+ * The PATHWAYS strip (the documentation sections: Start · Create · Automate · Manage
  * · Trust). Since plan 277 step 3c the built page carries the strip itself -
  * `nav.docs-pathways`, at the top of an article's masthead band, or in the phone menu on
  * a page with no band - so the reader adopts that very element, links rewritten like
- * the rail's: both readers show one strip, with the build's Welcome tab, `.active` and
+ * the rail's: both readers show one strip, with the build's `.active` and
  * `aria-current`. A page built before then (an older cache, a pinned build) has only the
  * old top bar's `.nav-group` anchors, which are rebuilt into the same strip as before.
  */
@@ -146,14 +146,8 @@ export function extractPathways(doc: Document): HTMLElement | null {
   const bar = document.createElement('nav');
   bar.className = 'docs-pathways';
   bar.setAttribute('aria-label', t('Documentation sections'));
-  // The front door itself, ahead of the pathway hubs (Andy, 2026-08-17): the strip
-  // used to start at Quickstart with no way back to the docs home the footer "What?"
-  // pill lands on. views/docs.ts marks it active when the reader IS on the landing.
-  const home = document.createElement('a');
-  home.className = 'docs-pathway docs-pathway-home';
-  home.textContent = t('Welcome');
-  home.setAttribute('href', '#/docs/index');
-  bar.appendChild(home);
+  // The sections only, as the built strip carries them since plan 354 D2: the docs front
+  // door is the bottom bar's Docs button, not a tab.
   for (const src of anchors) {
     const a = document.createElement('a');
     a.className = 'docs-pathway';
@@ -172,51 +166,4 @@ export function extractPathways(doc: Document): HTMLElement | null {
     bar.appendChild(a);
   }
   return bar;
-}
-
-export interface DocsToc {
-  /** The `<nav class="docs-toc">` element, ready to mount. */
-  el: HTMLElement;
-  /** The content headings the TOC links to, in document order - for scroll-spy. */
-  headings: HTMLElement[];
-}
-
-/**
- * Derive an on-page table of contents from the rehosted content's stamped heading ids
- * (h2 / h3 - the build stamps both). Returns null when there are fewer than two h2
- * sections, since a single section is not a table of contents. Each link scroll-jumps
- * within the reader (the caller wires the click to `scrollToHeading`); the `data-toc-target`
- * carries the raw id so the caller need not re-parse the href.
- */
-export function buildToc(content: ParentNode): DocsToc | null {
-  const heads = Array.from(content.querySelectorAll<HTMLElement>('h2[id], h3[id]'));
-  if (heads.filter((h) => h.tagName === 'H2').length < 2) return null;
-
-  const nav = document.createElement('nav');
-  nav.className = 'docs-toc';
-  nav.setAttribute('aria-label', t('On this page'));
-
-  const head = document.createElement('div');
-  head.className = 'docs-toc-head';
-  head.textContent = t('On this page');
-  nav.appendChild(head);
-
-  const list = document.createElement('ul');
-  list.className = 'docs-toc-list';
-  const headings: HTMLElement[] = [];
-  for (const h of heads) {
-    const id = h.id;
-    if (!id) continue;
-    const li = document.createElement('li');
-    const a = document.createElement('a');
-    a.className = h.tagName === 'H3' ? 'docs-toc-link is-h3' : 'docs-toc-link is-h2';
-    a.setAttribute('href', `#${id}`);
-    a.dataset.tocTarget = id;
-    a.textContent = (h.textContent || '').trim();
-    li.appendChild(a);
-    list.appendChild(li);
-    headings.push(h);
-  }
-  nav.appendChild(list);
-  return { el: nav, headings };
 }
