@@ -1351,6 +1351,70 @@ html[data-a11y-motion="reduce"] .covers-open-btn{transition:none}
 @media (prefers-reduced-motion: reduce){.covers--fan .cover-card{transition:none}}
 html[data-a11y-motion="reduce"] .covers--fan .cover-card{transition:none}
 
+/* ── beat 1b: choose the format last ──────────────────────────────────────
+   Between the hero and the covers, on the same dark ground (.hero-wrap paints it, as
+   for the covers). One piece as five real files, each drawn by its own reader. Each
+   panel grows by its own aspect ratio (--fl-a, which build.ts reads off the file), so
+   every panel stands at one height and none is cropped: four landscape files and one
+   portrait page. Under 720px the row becomes a filmstrip that swipes. Nothing here moves. */
+.fl-section{position:relative;z-index:1;color:hsl(var(--on-band-dark));padding:1rem 1.5rem 1.5rem}
+.fl-inner{max-width:1120px;margin:0 auto;text-align:center}
+.fl-title{margin:0 0 .6rem;font-size:clamp(1.6rem,3.4vw,2.5rem);font-weight:800;line-height:1.1;letter-spacing:0;text-transform:none;color:hsl(var(--on-band-dark));text-wrap:balance}
+.fl-line{max-width:44rem;margin:0 auto;font-size:clamp(.95rem,1.6vw,1.075rem);line-height:1.6;color:hsl(var(--on-band-dark) / .78);text-wrap:balance}
+.fl-control{max-width:44rem;margin:.7rem auto 0;font-size:.9rem;line-height:1.5;color:hsl(var(--on-band-dark) / .7)}
+.fl-control a{color:hsl(var(--on-band-dark));font-weight:700;text-decoration:underline;text-underline-offset:.2em}
+.fl-row{list-style:none;margin:1.75rem 0 0;padding:0;display:flex;gap:14px;align-items:flex-start}
+.fl-out{flex:var(--fl-a,1.7778) 1 0;min-width:0;margin:0}
+.fl-out a{display:flex;flex-direction:column;gap:.5rem;color:inherit;text-decoration:none;border-radius:10px}
+.fl-out a:focus-visible{outline:2px solid hsl(var(--on-band-dark));outline-offset:4px}
+.fl-art{display:block;border-radius:8px;overflow:hidden;background:#fff;box-shadow:0 18px 36px -18px rgba(0,0,0,.6),0 0 0 1px hsl(var(--on-band-dark) / .14)}
+.fl-out a:hover .fl-art{box-shadow:0 18px 36px -18px rgba(0,0,0,.6),0 0 0 2px hsl(var(--on-band-dark) / .55)}
+.fl-art img{display:block;width:100%;height:auto;aspect-ratio:auto}
+.fl-cap{display:flex;align-items:baseline;justify-content:center;flex-wrap:wrap;gap:.1rem .45rem;font-size:.82rem;line-height:1.3}
+.fl-cap b{font-weight:700}
+.fl-cap i{font-style:normal;font-family:'SUSE Mono','SF Mono',monospace;font-size:.92em;color:hsl(var(--on-band-dark) / .66)}
+.fl-formats{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:.55rem 1.4rem;margin-top:1.5rem}
+.fl-chips{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:.35rem;margin:0}
+.fl-chips-label{font-size:.62rem;font-weight:800;text-transform:uppercase;letter-spacing:.12em;color:hsl(var(--on-band-dark) / .6);margin-inline-end:.25rem}
+.fl-chip{display:inline-flex;align-items:center;padding:.28em .66em;border-radius:1em;border:1px solid hsl(var(--on-band-dark) / .26);color:hsl(var(--on-band-dark));font-family:'SUSE Mono','SF Mono',monospace;font-size:.74rem;font-weight:700;letter-spacing:.03em;text-decoration:none;white-space:nowrap}
+.fl-chip:hover{border-color:hsl(var(--on-band-dark) / .7);text-decoration:none}
+.fl-chip:focus-visible,.fl-more:focus-visible{outline:2px solid hsl(var(--on-band-dark));outline-offset:2px}
+.fl-more{font-size:.9rem;font-weight:700;color:hsl(var(--on-band-dark));text-decoration:none;white-space:nowrap}
+.fl-more:hover{text-decoration:underline}
+@media(max-width:719px){
+  .fl-section{padding-left:0;padding-right:0}
+  .fl-inner{max-width:none}
+  .fl-title,.fl-line,.fl-control,.fl-formats{padding-left:1.25rem;padding-right:1.25rem}
+  .fl-row{display:flex;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;padding:0 1.25rem 1rem;scroll-padding-inline:1.25rem;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+  .fl-row::-webkit-scrollbar{display:none}
+  .fl-out{flex:0 0 auto;scroll-snap-align:start}
+  .fl-art{height:150px;width:auto}
+  .fl-art img{height:150px;width:auto}
+  .fl-formats{flex-direction:column;gap:.6rem;margin-top:.75rem}
+}
+
+/* The proof on the formats page: the same five panels, larger, each with the reader
+   that drew it, its credential and the original file. On a wide page the slide and the
+   portrait page share the first row (two thirds and one third), and the other three
+   take a third each; on a phone, one column. */
+.fl-figure{margin:2rem 0 2.5rem}
+.fl-panels{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:1.4rem 1.1rem}
+.fl-panel{grid-column:span 2;margin:0;min-width:0;display:flex;flex-direction:column;gap:.55rem}
+.fl-panel--slide{grid-column:span 4}
+.fl-panel-art{position:relative;border-radius:8px;overflow:hidden;background:#fff;box-shadow:0 0 0 1px var(--border)}
+.fl-panel-art>img{display:block;width:100%;height:auto}
+.fl-panel figcaption{font-size:.85rem;line-height:1.45;color:var(--muted)}
+.fl-panel figcaption b{color:var(--text);font-weight:700;margin-inline-end:.25em}
+.fl-panel-file{display:inline-flex;align-items:center;gap:.25em;margin-inline-start:.4em;font-family:'SUSE Mono','SF Mono',monospace;font-size:.78rem;font-weight:700;color:var(--green);text-decoration:none;white-space:nowrap}
+.fl-panel-file:hover{text-decoration:underline}
+.fl-panel-file svg{width:.95em;height:.95em}
+.fl-figure-caption{margin:1rem 0 0;font-size:.875rem;line-height:1.55;color:var(--muted)}
+@media(max-width:640px){
+  .fl-panels{grid-template-columns:minmax(0,1fr)}
+  .fl-panel,.fl-panel--slide{grid-column:auto}
+  .fl-panel--page .fl-panel-art{max-width:70%;align-self:center}
+}
+
 /* ── beat 3: what / why ─────────────────────────────────────────────────── */
 .whatwhy-section{padding:4rem 1.5rem 2.5rem}
 .whatwhy-inner{max-width:1120px;margin:0 auto;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(300px,100%),1fr));gap:2.5rem 3.5rem}

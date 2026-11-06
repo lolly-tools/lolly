@@ -570,6 +570,15 @@ function clampN(v: unknown, dflt: number, lo: number, hi: number): number {
  */
 const fv = (b: Box, field: string | undefined): unknown => (field ? b[field] : undefined);
 
+/**
+ * The column head: the one selected thing's own `name`, else what `kind` of thing it is.
+ * A multi-selection has no one section that could carry the count now that the paint
+ * groups stand on their own, so the head shows the count.
+ */
+function headText(g: Gate, name: string, kind: string): string {
+  return g.kind === 'multi' ? t('{n} selected', { n: g.ids.length }) : g.kind === 'empty' ? t('Document') : g.kind === 'guide' ? t('Guide') : name || kind;
+}
+
 /** `CSS.escape` where the platform has it (jsdom does not), for a manifest field name. */
 const q = (s: unknown): string =>
   (typeof CSS !== 'undefined' && typeof CSS.escape === 'function') ? CSS.escape(String(s)) : String(s).replace(/["\\]/g, '\\$&');
@@ -1945,6 +1954,11 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
     });
   }
 
+  const paintHead = (g: Gate): void => { // what is selected (headText); the phone panel's strip shows this too
+    colTitle.textContent = headText(g, g.box ? String(fv(g.box, F_NAME) ?? '').trim() : '', !g.box ? '' : kindOf(g.box) === 'webcam' ? t('Camera') : g.kind === 'frame' ? t('Artboard') : kindOf(g.box));
+    colTitle.title = colTitle.textContent;
+  };
+
   function render(g: Gate): void {
     const keep = focusKey(typeof document !== 'undefined' ? document.activeElement : null);
     parkToolPanel();
@@ -1963,13 +1977,7 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
     // replaces, and it is mounted again below when the Document section is showing.
     emojiMounted?.destroy();
     emojiMounted = null;
-    // The column head says WHAT is selected: the one selected thing's own name, else
-    // what kind of thing it is. A multi-selection has no one section that could carry
-    // the count now that the paint groups stand on their own, so the head shows the count.
-    const headName = g.box ? String(fv(g.box, F_NAME) ?? '').trim() : '';
-    const headKind = !g.box ? '' : kindOf(g.box) === 'webcam' ? t('Camera') : g.kind === 'frame' ? t('Artboard') : kindOf(g.box);
-    colTitle.textContent = g.kind === 'multi' ? t('{n} selected', { n: g.ids.length }) : g.kind === 'empty' ? t('Document') : g.kind === 'guide' ? t('Guide') : headName || headKind;
-    colTitle.title = colTitle.textContent;
+    paintHead(g);
     selectionTab.setAttribute('aria-pressed', String(!documentView));
     documentTab.setAttribute('aria-pressed', String(documentView));
     // One section. The head is a GRID whose last column is the caret, so a
@@ -2436,7 +2444,8 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
     // Closing cancels token actions and resets the memo. Disposal invalidates a
     // pending lookup even if this column reopens. Subscriptions stay live so
     // reopening paints the current selection.
-    if (!open) { tokenDisposers.forEach(dispose => { dispose(); }); tokenDisposers = []; lastSig = null; pendingRebuild = false; disarmSettle(); return; }
+    // Shut but still on the page (the phone panel's peek shows this head), the head alone stays current.
+    if (!open) { tokenDisposers.forEach(dispose => { dispose(); }); tokenDisposers = []; lastSig = null; pendingRebuild = false; disarmSettle(); if (el.isConnected) paintHead(gate()); return; }
     const g = gate();
     const sig = signature(g);
     if (!force && sig === lastSig) return;
@@ -2480,7 +2489,7 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
     if (ev.metaKey || ev.ctrlKey) return;
     if (ev.key === 'Escape') {
       if (ev.defaultPrevented) return;
-      if (el.classList.contains('is-compact-sheet')) return;
+      if (el.classList.contains('is-compact-sheet') || el.closest('.design-phone-panel')) return; // a phone's sheet or panel folds on Escape
       if (el.closest('dialog')) { ev.stopPropagation(); return; }
       // Escape here must NOT reach the editor's ladder. With the column mounted the
       // object bar's buttons open no floating panel, so `dismissFloating()` finds

@@ -12,7 +12,7 @@ import './export-share.css';
 export function canExportLolly(toolId: string): boolean {
   const policy = getExportPolicy();
   const formats = policy?.formatsFor(toolId);
-  return policy?.canDownload !== false && (!formats || formats.includes('lolly'));
+  return (policy ? policy.canDownloadFor(toolId) : true) && (!formats || formats.includes('lolly'));
 }
 
 /** What a tool mount does with the Share deep link: `?share`, or the `_dialog=share` the

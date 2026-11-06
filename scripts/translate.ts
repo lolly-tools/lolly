@@ -373,7 +373,7 @@ function evalDataLiteral<T>(text: string, what: string, where = 'docs/build.ts')
  * tests/docs-landing-i18n.test.ts pins the two lists and the file list equal,
  * so a key added on one side cannot be quietly missed on the other.
  */
-export const LANDING_SITE_JSON = ['hero-chrome.json', 'covers.json', 'whatwhy.json', 'persona.json', 'work.json', 'behind.json'];
+export const LANDING_SITE_JSON = ['hero-chrome.json', 'format-last.json', 'covers.json', 'whatwhy.json', 'persona.json', 'work.json', 'behind.json'];
 export const LANDING_I18N_SKIP = ['href', 'slug', 'class', 'img', 'video', 'mascot', 'id', 'count', 'note'];
 
 /** Every translatable string in one landing JSON value, in document order. */

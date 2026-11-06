@@ -2394,6 +2394,23 @@
       }
     },
     {
+      "slug": "work-partner-programmes",
+      "title": "Partner programmes",
+      "src": "work/partner-programmes.md",
+      "section": "manage",
+      "group": "People and access",
+      "path": "manage/partner-programmes",
+      "icon": "usercheck",
+      "aliases": [],
+      "contentLicense": "MPL-2.0",
+      "description": "Name each kind of partner and choose the tools and assets its people get, with nothing internal shared by default.",
+      "work": {
+        "slug": "partner-programmes",
+        "path": "partner-programmes.md",
+        "icon": "instance"
+      }
+    },
+    {
       "slug": "work-document-agents",
       "title": "Invite an agent",
       "src": "work/document-agents.md",

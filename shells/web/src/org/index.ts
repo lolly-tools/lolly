@@ -146,6 +146,10 @@ export interface ToolPolicySpec {
    *  this set, the same cooperative overlay a choice input gets - the control
    *  plane enforces the same set on its own render path. */
   formats?: string[];
+  /** This tool's own answer for an export action, where it differs from the
+   *  deployment-wide `can` bit (a grant named the tool). Mapped onto the
+   *  export-policy seam's per-tool answers. */
+  can?: { 'export.download'?: boolean; 'export.request'?: boolean };
 }
 
 /** A tool the instance injects into the gallery (control-plane shape). `toolId` is
@@ -736,17 +740,24 @@ function applyExportPolicy(config: OrgConfig | null, failClosed = false): void {
   // orgFlagGovernance below, not applied here.
   const chains: Record<string, string> = {};
   const formats: Record<string, string[]> = {};
+  const downloads: Record<string, boolean> = {};
+  const requests: Record<string, boolean> = {};
   for (const [toolId, spec] of Object.entries(config.tools ?? {})) {
     if (spec?.approvalChain) chains[toolId] = spec.approvalChain;
     // An empty list is a real (fully restrictive) policy and is passed through - 
     // the view's never-empty rule decides what to render, not this mapper.
     if (Array.isArray(spec?.formats)) formats[toolId] = spec.formats.filter((f): f is string => typeof f === 'string');
+    // A tool's own export answer, present only where a grant named the tool.
+    if (typeof spec?.can?.['export.download'] === 'boolean') downloads[toolId] = spec.can['export.download'];
+    if (typeof spec?.can?.['export.request'] === 'boolean') requests[toolId] = spec.can['export.request'];
   }
   setExportPolicy({
     canDownload: can['export.download'] !== false,
     canRequestApproval: !!can['export.request'],
     chains,
     formats,
+    downloads,
+    requests,
   });
 }
 
