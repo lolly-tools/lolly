@@ -3451,6 +3451,9 @@ ${LANDING_CSS}
 .sidebar-label:first-child{margin-top:0}
 .sidebar-home{display:block;font-size:.8125rem;color:var(--muted)!important;margin-bottom:1rem;padding:0!important}
 .sidebar-home:hover{color:var(--green)!important;background:none!important}
+/* The rail's link to the docs front door reads "<- Docs", the one name the app gives it
+   too (plan 354 D2); the arrow points back toward the inline start in either direction. */
+[dir="rtl"] .docs-sidebar-home-arrow{display:inline-block;transform:scaleX(-1)}
 /* Docs search - in the TOPBAR, not the rail. It sits with the other whole-site
    controls (language, theme, launch) because it acts on the whole site: the rail
    answers "what is there", the box answers "where is the thing I already know I
@@ -6174,7 +6177,7 @@ function buildSidebar(lang: Lang, page: Page, activeHref: string) {
     return `<div class="sidebar-label">${esc(t(g.label))}</div>\n    ${links}`;
   }).join('\n    ');
   return `<aside class="docs-sidebar">
-    <a href="${localeHref(lang, 'index')}" class="sidebar-home">${esc(t('← Home'))}</a>
+    <a href="${localeHref(lang, 'index')}" class="sidebar-home"><span class="docs-sidebar-home-arrow" aria-hidden="true">←</span> ${esc(t('Docs'))}</a>
     <div class="sidebar-pathway">${esc(t(sb.title))}</div>
     ${groups}
   </aside>`;
