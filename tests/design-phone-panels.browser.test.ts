@@ -88,10 +88,20 @@ const gripHits = (page: Page) => page.evaluate(() => {
   };
 });
 
+/**
+ * A drag that stops before the finger lifts. On Linux, Chromium turns a release that is
+ * still moving into a fling, and over `touch-action: none` the next tap within about half
+ * a second only stops that fling and never becomes a click (a plain page does the same).
+ * The panel snaps by where it is let go, not by speed, so the pause changes no stop.
+ */
 async function touchDrag(cdp: CDPSession, x: number, from: number, to: number, steps = 10): Promise<void> {
   await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x, y: from, id: 1 }] });
   for (let i = 1; i <= steps; i++) {
     await cdp.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x, y: from + (to - from) * (i / steps), id: 1 }] });
+  }
+  for (let i = 0; i < 4; i++) {
+    await new Promise(resolve => setTimeout(resolve, 40));
+    await cdp.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x, y: to, id: 1 }] });
   }
   await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
 }
