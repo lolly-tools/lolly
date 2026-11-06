@@ -1,13 +1,22 @@
 # Telemetry and dashboards
 
-Lolly Work counts what people do in Lolly so admins can see which tools are used and what gets
+Lolly Work can count what people do in Lolly so admins can see which tools are used and what gets
 exported. It never records what anyone typed or made. Each event carries a short, fixed list of
 labels, such as a tool id or a file format. Anything else is dropped before it is stored, and so
 is any label longer than 200 characters.
 
+**Lolly's own apps do not send these events today.** Lolly Work accepts them, checks them and
+charts them, and the consent route exists. But the web app, the desktop and mobile apps, the
+command line and the terminal app never post to `/api/v1/telemetry`, and none of them asks a
+person for consent. The usage charts in the console therefore stay empty unless a client of your
+own sends events. This page describes what Lolly Work does with events that arrive, for such
+clients. The audit log, the activity feed's audit half and the Fleet view do not depend on these
+events.
+
 Whether an event identifies the person is your choice. With the defaults (`telemetry: "standard"`,
-`telemetryAttribution: "opt-in"`), events stay anonymous until that person agrees in their app.
-Set `telemetry: "aggregate"` to never store a name, or `"off"` to store nothing at all.
+`telemetryAttribution: "opt-in"`), events stay anonymous until that person agrees through the
+consent route. Set `telemetry: "aggregate"` to never store a name, or `"off"` to store nothing at
+all.
 
 ::: figure work-telemetry-ingest
 Every event passes the same checks at ingest, in this order, before anything is written.
@@ -38,11 +47,12 @@ would already have stored the data:
 | `telemetry: "standard"`, `telemetryAttribution: "opt-in"` (the defaults) | events, with a user id only after that person agrees |
 | `telemetry: "standard"`, `telemetryAttribution: "default"` | events with the user id |
 
-Consent is per person, through `POST /api/v1/telemetry/consent`. The person's Lolly app asks
-them, and Lolly Work honours the answer. Both keys are in
+Consent is per person, through `POST /api/v1/telemetry/consent`. Lolly Work stores the answer and
+honours it when an event arrives. A client that sends events must ask the person itself and pass
+the answer on, because Lolly's own apps do not ask today. Both keys are in
 [configuration](configuration.md#telemetry-activity-and-retention).
 
-## What is recorded
+## What Lolly Work records from a sending client
 
 | Event | Labels |
 |---|---|
@@ -61,15 +71,15 @@ them, and Lolly Work honours the answer. Both keys are in
 
 An unknown event id is dropped, not stored and ignored. `seconds` is a numeric label for
 seat-utility rollups. No label anywhere in the list holds free text, so the first rule holds
-without anyone having to review what is sent. CLI sessions are not captured, because they are
-short or instantaneous.
+without anyone having to review what is sent.
 
-Events arrive at `POST /api/v1/telemetry`, rate-limited per IP (`rateLimit.telemetry`, default
+Clients send events to `POST /api/v1/telemetry`, rate-limited per IP (`rateLimit.telemetry`, default
 capacity 120, refill 4 a second).
 
 ## Dashboards
 
-The console turns these events, and the audit log, into three views. The routes behind them are
+The console turns these events, and the audit log, into four views. The Overview figures and the
+telemetry half of the activity feed stay empty until a client sends events. The routes behind them are
 in the [API reference](api.md#telemetry-activity-audit-fleet-and-setup).
 
 | View | Route | Action |
@@ -86,13 +96,13 @@ over the last 14 days, with a data table under every chart.
 
 **Activity** is one timeline over two existing records: the audit log (the authoritative "who
 did what") and *attributed* usage telemetry, meaning only events that carry a user id, so the
-feed can show who acted. Nothing new is collected to build the feed. It offers facets for
-category and actor.
+feed can show who acted. Nothing new is collected to build the feed. With no client sending
+events, the feed shows the audit log alone. It offers facets for category and actor.
 
 ![The activity feed: a linear, readable record where every noun links back](shots/activity-timeline.svg)
 
 **Fleet** answers "which Lolly versions are talking to this deploy" from the `X-Lolly-Client`
-header: shell, shell version, engine version, platform, request counts and last seen. Publish
+header that Lolly's apps add to their requests, not from telemetry events: shell, shell version, engine version, platform, request counts and last seen. Publish
 checks and upgrade nudges start there, and message targeting can then pick an audience by
 groups, shell and engine-version range ([messages](api.md#approvals-and-inbox)).
 
@@ -104,9 +114,10 @@ What the deploy shows members about its own measurement is a policy choice, and 
 states its posture in the interface rather than hiding it: an internal deploy shows utilisation
 in full.
 
-Downloads are measured per item. A shell sends `catalog.asset-download` when a catalog asset
-leaves as a file, with a coarse `via` label (`direct`, `link` or `zip`) and no file name. The
-Overview shows "Most-downloaded catalog items" beside "Most-used" (assets opened or placed).
+Downloads are measured per item, for a client that sends them. That client sends
+`catalog.asset-download` when a catalog asset leaves as a file, with a coarse `via` label
+(`direct`, `link` or `zip`) and no file name. The Overview shows "Most-downloaded catalog items"
+beside "Most-used" (assets opened or placed), and both stay empty until events arrive.
 Downloads follow the same attribution rule as every other event. Transforms and crops count as
 tool activity, not a separate event, and the console says that on the page.
 
