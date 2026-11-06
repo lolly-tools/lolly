@@ -106,7 +106,7 @@ Add a new profile rather than changing the one you run, and name what to bring:
     "label": "Lolly Demo",
     "catalog": "brands/lolly-demo/catalog",
     "tokens": "lolly/tokens/demo",
-    "assets": ["lolly/tokens/demo", "lolly/logo/", "lolly/icons/", "lolly/font/", "lolly/palette/opal-"]
+    "assets": ["lolly/tokens/demo", "lolly/logo/", "lolly/icons/", "lolly/font/", "lolly/palette/opal-icon-themes", "lolly/palette/opal-photo-treatments"]
   }]
 }
 ```

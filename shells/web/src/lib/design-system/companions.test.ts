@@ -12,7 +12,7 @@ import assert from 'node:assert/strict';
 import { createAssetsAPI } from '../../bridge/assets.ts';
 import { createTokensAPI, USER_TOKENS_ID } from '../../bridge/tokens.ts';
 import { createDesignSystemRegistry, type RegistryDb } from './registry.ts';
-import { readCompanionDesignSystems, seedCompanionDesignSystems, type CompanionHost } from './companions.ts';
+import { readCompanionDesignSystems, seedCompanionDesignSystems, type CompanionDesignSystem, type CompanionHost } from './companions.ts';
 import { removeDesignSystem, renameDesignSystem } from './manage.ts';
 import { DESIGN_SYSTEMS_LISTED_EVENT } from './list-event.ts';
 import { resetDesignSystem, resetKind } from './reset.ts';
@@ -22,7 +22,7 @@ import bundledStarter from '../../../../../brands/lolly-start/catalog/assets/lol
 
 const CATALOG_DOC = { color: { brand: { ink: { $type: 'color', $value: '#1d1d1d' } } } };
 const DEMO = { id: 'lolly/tokens/demo', name: 'Lolly Demo', doc: { color: { brand: { mint: { $type: 'color', $value: '#3fd1a4' } } } } };
-const STARTER = [{ tokens: 'lolly/tokens/brand', label: 'Lolly Starter' }];
+const STARTER: CompanionDesignSystem[] = [{ tokens: 'lolly/tokens/brand', label: 'Lolly Starter' }];
 const blobOf = (doc: unknown) => new Blob([JSON.stringify(doc)], { type: 'application/json' });
 
 function memDb() {

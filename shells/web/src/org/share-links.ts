@@ -207,11 +207,21 @@ export function buildInstanceShareSection(ctx: ShareSectionContext, config: OrgC
     const row = document.createElement('div');
     row.className = 'share-instance-row share-instance-held';
     row.style.marginBottom = rows.guest ? '.9rem' : '0';
-    row.innerHTML =
-      `<div class="share-option"><strong style="font-weight:650">${escape(t('Rendered link'))}</strong></div>` +
-      `<p style="margin:.25rem 0 0;font-size:13px;color:hsl(var(--muted-foreground))">${escape(renderedLinkHeldText(drawsOther.own))} ` +
-      `<a href="#/settings?focus=design-systems-section" data-held-switch>${escape(t('Design systems'))}</a></p>`;
-    row.querySelector('[data-held-switch]')?.addEventListener('click', () => ctx.close?.());
+    const name = document.createElement('div');
+    name.className = 'share-option';
+    const strong = document.createElement('strong');
+    strong.style.fontWeight = '650';
+    strong.textContent = t('Rendered link');
+    name.append(strong);
+    const why = document.createElement('p');
+    why.style.cssText = 'margin:.25rem 0 0;font-size:13px;color:hsl(var(--muted-foreground))';
+    why.textContent = `${renderedLinkHeldText(drawsOther.own)} `;
+    const link = document.createElement('a');
+    link.href = '#/settings?focus=design-systems-section';
+    link.textContent = t('Design systems');
+    link.addEventListener('click', () => ctx.close?.());
+    why.append(link);
+    row.append(name, why);
     section.appendChild(row);
   } else if (rows.rendered) {
     const tip = helpTip(t('A link that opens the rendered image directly.'));
