@@ -755,7 +755,7 @@
   "shells/web/src/lib/design-system/reference-look.ts": 1,
   "shells/web/src/lib/design-system/registry.ts": 1,
   "shells/web/src/lib/design-system/roles.test.ts": 3,
-  "shells/web/src/lib/design-system/roles.ts": 9,
+  "shells/web/src/lib/design-system/roles.ts": 8,
   "shells/web/src/lib/design-system/rooms/overview.test.ts": 2,
   "shells/web/src/lib/design-system/rooms/overview.ts": 6,
   "shells/web/src/lib/design-system/rooms/versions.test.ts": 5,

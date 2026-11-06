@@ -40,3 +40,54 @@ export interface BrandPolicyMappingV1 {
   mode: string;
   fields: Partial<Record<'accent' | 'type' | 'device' | 'heading' | 'body', string>>;
 }
+
+/**
+ * The engine's colour slots. A brand's colour role can fill one; these names stay an
+ * implementation detail the interface shows only as the answer to "how does Lolly read this?".
+ */
+export type ColourSlotV1 = 'primary' | 'on-primary' | 'secondary' | 'surface' | 'text' | 'muted' | 'edge';
+
+/** One colour in a design system's own words: a `roles[]` entry with `group: "colourway"`, or a token nothing declares. */
+export interface ColourRoleV1 {
+  /** Permanent. Lowercase letters and hyphens, so `--brand-<id>` is a usable variable. */
+  id: string;
+  /** Free, bounded, inert text. For a role nothing declares, the id made readable. */
+  label: string;
+  description?: string;
+  /** False for a hand-written token the record does not list. It keeps working by name. */
+  declared: boolean;
+  /** Its token path, `color.semantic.<id>`. */
+  path: string;
+  /** The slots it fills. Empty means it is read by name only. */
+  slots: ColourSlotV1[];
+}
+
+/** What fills one slot, and how the file says so. */
+export interface ColourSlotReadingV1 {
+  slot: ColourSlotV1;
+  /** The role that fills the slot; null when the system defines the slot itself. */
+  roleId: string | null;
+  /** `binding`: the record binds the slot. `self`: the role is the slot. `alias`: only the file's aliases point at the role. `system`: no role fills this slot. */
+  source: 'binding' | 'self' | 'alias' | 'system';
+  /** False when the record binds the slot and the colours do not link to that role yet. */
+  written: boolean;
+}
+
+export interface ColourRoleIssueV1 {
+  /** Stable, for an interface to explain. */
+  code: string;
+  message: string;
+  subject?: string;
+}
+
+/** What a document says about its colour roles. See `readColourRoles` in the engine. */
+export interface ColourRolesReadingV1 {
+  /** `default`: none at all. `declared`: the record lists some. `undeclared`: the tokens hold some and nothing lists them. */
+  state: 'default' | 'declared' | 'undeclared';
+  record: 'absent' | 'readable' | 'unreadable';
+  /** Declared roles in brand order, then undeclared ones as the document has them. */
+  roles: ColourRoleV1[];
+  /** The six slots a role can fill. */
+  slots: ColourSlotReadingV1[];
+  issues: ColourRoleIssueV1[];
+}
