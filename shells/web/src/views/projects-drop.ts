@@ -8,6 +8,7 @@
  */
 import type { PickerHost } from './picker.ts';
 import type { DropChooserHooks } from '../lib/drop-router.ts';
+import { holdEarlyDrops } from '../lib/drop-early.ts';
 import { announce } from '../a11y.ts';
 import { t, tRaw } from '../i18n.ts';
 
@@ -78,5 +79,30 @@ export function projectsDropHooks(o: ProjectsDropContext): DropChooserHooks {
       if (o.mounted()) await o.refresh();
       return true;
     },
+  };
+}
+
+/**
+ * Open the Projects drop door at mount. Projects reads the whole library before it first
+ * paints, and on a first visit that read also waits for a module to download. A file
+ * dropped meanwhile, on the boot screen or on the route's Loading card, used to find no
+ * listener, so the browser opened the file and left Lolly. It is now held from this
+ * call (lib/drop-early.ts, as on the gallery). The view calls the returned attach after
+ * each render: the router then takes over the root, routes the held file as if dropped
+ * then, and files what it stores into the folder on screen. Attaching again replaces
+ * the live attachment.
+ */
+export function projectsDropDoor(viewEl: HTMLElement, o: ProjectsDropContext): () => void {
+  holdEarlyDrops(viewEl);
+  let router: Promise<typeof import('../lib/drop-router.ts')> | undefined;
+  return () => {
+    router ??= import('../lib/drop-router.ts');
+    void router.then(({ attachDropRouter }) => {
+      if (!o.mounted()) return;
+      attachDropRouter(viewEl, o.host, { ...projectsDropHooks(o), onStored: (ids) => {
+        const target = o.folderTarget();
+        void (async () => { if (target) for (const id of ids) await o.addToFolder(target, id); await o.refresh(); })();
+      } });
+    });
   };
 }
