@@ -137,7 +137,7 @@ function serveDist(): Promise<Served> {
 
 // Reserved params we set ourselves on the export URL. Cleared from the inbound query
 // first so the export dims/format/password win over anything the saved session encoded.
-const EXPORT_URL_RESERVED = ['format', 'export', 'copy', 'width', 'w', 'height', 'h', 'unit', 'dpi', 'password', 'bleed', 'marks', 'imprint', 'durable', 'profile', 'c2pa', 'preview', 'options', 'fps', 'seconds', 'wait', 'codec', 'vq', 'hdr', 'depth', 'cuts', 'sampletimes', 'motionblur', 'seqrange'];
+const EXPORT_URL_RESERVED = ['_keepinlinedc2pa', 'format', 'export', 'copy', 'width', 'w', 'height', 'h', 'unit', 'dpi', 'password', 'bleed', 'marks', 'imprint', 'durable', 'profile', 'c2pa', 'preview', 'options', 'fps', 'seconds', 'wait', 'codec', 'vq', 'hdr', 'depth', 'cuts', 'sampletimes', 'motionblur', 'seqrange'];
 
 export function exportUrl(base: string, toolId: string, query: string, fmt: string, dims: RenderDims): string {
   const p = new URLSearchParams(query);
@@ -190,7 +190,12 @@ export function exportUrl(base: string, toolId: string, query: string, fmt: stri
     if (v.codec) p.set('codec', v.codec);
     if (v.quality) p.set('vq', v.quality);
   }
-  if (dims.c2pa === false) p.set('c2pa', 'off');
+  if (dims.c2pa === false) {
+    p.set('c2pa', 'off');
+    // This shell stamps afterwards, or resolved a tool's default: nobody asked for an inlined
+    // picture's own credential to go, so the web shell leaves those bytes alone.
+    if (dims.keepInlinedC2pa) p.set('_keepinlinedc2pa', '1');
+  }
   else if (dims.c2pa) p.set('c2pa', [7, 30, 90, 365].includes(Number(dims.c2paDays)) ? String(dims.c2paDays) : '1');
   p.set('export', '1'); // presence flag → the web shell auto-exports on load
   return `${base}/#/tool/${encodeURIComponent(toolId)}?${p.toString()}`;
@@ -373,6 +378,8 @@ export interface RenderDims extends ProductionBrowserOptions {
   madeWith?: boolean | null;
   /** Ephemeral-certificate lifetime in days (7/30/90/365) when c2pa is on. */
   c2paDays?: number | null;
+  /** `c2pa: false` here is not the caller's opt-out, so a manifest inlined artwork brought stays. */
+  keepInlinedC2pa?: boolean;
   /** The deck state address (url-mode's `s`, plan 112): a 1-based slide position, a frame
    *  id, or either with an `.N` build suffix. Forwarded so the web shell's per-slide export
    *  fan-out renders just that slide - the browser tier is the CLI's still-export path for

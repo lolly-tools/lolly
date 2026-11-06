@@ -323,6 +323,9 @@ export async function linkExport(tview: ToolViewCtx): Promise<void> {
   // password (the same exclusion the popup enforces; the bridge would
   // skip it anyway).
   const wantC2pa = urlC2pa ? urlC2pa.on : c2paDefaultOn(tview.tool.manifest);
+  // Off means none, so an inlined logo's own manifest goes too. Only an explicit off: `off`
+  // from a Node shell that stamps afterwards, or that resolved a tool default, says keep.
+  if (urlC2pa?.on === false && !tview.urlFlags.has('_keepinlinedc2pa')) expOpts.dropInlinedC2pa = true;
   if (wantC2pa && C2PA_FORMATS.includes(fmt) && !expOpts.password) {
     expOpts.c2pa = true;
     if (urlC2pa?.days) expOpts.c2paDays = urlC2pa.days;

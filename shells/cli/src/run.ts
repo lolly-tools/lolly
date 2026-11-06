@@ -38,6 +38,7 @@ import type { SigningIdentity } from '@lolly-tools/node-shell/signing-identity';
 import { catalogFile, readAssetIndex, readToolManifest, readToolText } from '@lolly-tools/node-shell/content-roots';
 // Fail loud: never write a degenerate file + exit 0 when the render silently failed.
 import { assertRenderOk } from '@lolly-tools/node-shell/render-integrity';
+import { withoutSvgCredentials } from '@lolly-tools/node-shell/lolly-file';
 // Fail loud, part two: refuse bytes that are demonstrably not the requested container
 // (headless Chromium has no AV1 encoder, so an --export=avif used to write PNG).
 import { assertFormatBytes, sniffFormat, formatAllows } from '@lolly-tools/node-shell/format-sniff';
@@ -1106,6 +1107,9 @@ async function runToolCliCandidate({ toolId, inputValues, params, repeated = {},
   // An explicit setting always wins over the manifest default; `null` from parseUrlState
   // is what "nobody said" means.
   const wantC2pa = bareRender ? false : c2pa ? c2pa.on : c2paDefaultOn(tool.manifest);
+  // The caller's own opt-out, as opposed to a tool that does not stamp by default. Only this
+  // takes an inlined picture's credential out of the file: a render with no setting keeps its bytes.
+  const optedOutC2pa = bareRender || c2pa?.on === false;
   // Whether the CALLER asked for Content Credentials, as opposed to inheriting them.
   // Every "could not stamp" message below is gated on this: a warning is a promise the
   // run did not keep, and under --strict it is an exit code, so a default nobody chose
@@ -1369,6 +1373,7 @@ async function runToolCliCandidate({ toolId, inputValues, params, repeated = {},
       // An intent record is the same case: it has no way to reach the browser over a URL,
       // so the credential that carries it is applied in Node below.
       c2pa: wantC2pa && !identity && !intentRecord, c2paDays: c2pa?.days ?? undefined,
+      keepInlinedC2pa: !optedOutC2pa,
       // The deck state address, forwarded so the BROWSER tier applies the same one-slide
       // filter the web shell applies to `?s=`. Carried whenever it was given: a format the
       // filter skips is skipped there too (frameFilterApplies is the shared rule), so this
@@ -1687,6 +1692,12 @@ async function runToolCliCandidate({ toolId, inputValues, params, repeated = {},
     // credential at all, so with the default on this branch would have printed a line on
     // every single data-format render - noise about a promise nobody made.
     warn('C2PA_SKIPPED', `format "${finalFormat}" has no C2PA container - Content Credentials skipped.`);
+  }
+  // Off means none. An SVG that inlines credentialed artwork, such as a catalog logo, still
+  // holds that piece's manifest, and a verifier reads it as this file's own.
+  if (optedOutC2pa) {
+    const clean = withoutSvgCredentials(new Uint8Array(buf), finalFormat);
+    if (clean.byteLength !== buf.byteLength) buf = Buffer.from(clean);
   }
   // The Imprint's own skip, same rule: a note by default, a warning when asked for.
   if (imprintFloorSkip) {

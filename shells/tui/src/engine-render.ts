@@ -16,6 +16,7 @@ import { assertFormatBytes } from '@lolly-tools/node-shell/format-sniff';
 import { NODE_FORMATS, needsFloatScene, pxDims, eligibleForResvgPng, rasterizeTierAPng, canCarryPrintPrep, printPrepRefusal, svgExportSize } from '@lolly-tools/node-shell/raster';
 import { buildExportC2paOpts } from '@lolly-tools/node-shell/c2pa-opts';
 import { assertRenderOk } from '@lolly-tools/node-shell/render-integrity';
+import { withoutSvgCredentials } from '@lolly-tools/node-shell/lolly-file';
 import type { RenderDims } from '@lolly-tools/node-shell/webshell-render';
 import { toolFetchFile } from './catalog.ts';
 import { getProfile } from './store.ts';
@@ -244,7 +245,11 @@ export async function renderSvg(runtime: Runtime, dom: JSDOM, dims?: ExportDims)
  *  `unit`; a physical unit qualifies them so the engine converts per format). Extends
  *  the shared render dims (incl. the `password` PDF-lock param) with the TUI's
  *  Content-Credentials window. */
-export interface ExportDims extends RenderDims { c2paDays?: number }
+export interface ExportDims extends RenderDims {
+  c2paDays?: number;
+  /** The caller's own "no credential": none is stamped, and none stays in the file. */
+  c2paOff?: boolean;
+}
 
 /**
  * Export the current state to `outPath` in `format`, honouring optional output
@@ -280,7 +285,8 @@ export async function exportToFile(
     // metadata). A requested credential must succeed before bytes are written.
     // The Tier-B (web shell) branch already stamped via the forwarded ?c2pa param, so it
     // passes viaWebShell=true to skip re-stamping (avoids a double credential).
-    let out = bytes;
+    // Off means none: an SVG that inlines credentialed artwork still holds that piece's manifest.
+    let out = dims.c2paOff ? withoutSvgCredentials(bytes, fmt) : bytes;
     if (dims.c2paDays && !transform && !viaWebShell && C2PA_FORMATS.includes(fmt)) {
       try {
         // Match the web/CLI tools.lolly.export enrichment: context + date + output
@@ -388,10 +394,10 @@ export async function exportToFile(
   const { renderViaWebShell } = await import('@lolly-tools/node-shell/webshell-render');
   const id = (manifest as { id: string }).id;
   // Let the web shell be the single c2pa authority for this tier: forward the credential
-  // setting (c2paDays>0 ⇒ on at that lifetime; 0 ⇒ the tool's own default) and skip the
+  // setting (c2paDays>0 ⇒ on at that lifetime; c2paOff ⇒ off; neither ⇒ the tool's own default) and skip the
   // Node re-stamp in write(). This also carries any bleed/marks/imprint/pressProfile the
   // shared RenderDims holds through exportUrl.
-  const webDims = { ...dims, c2pa: dims.c2paDays ? true : undefined, c2paDays: dims.c2paDays };
+  const webDims = { ...dims, c2pa: dims.c2paDays ? true : dims.c2paOff ? false : undefined, c2paDays: dims.c2paDays };
   const { bytes } = await renderViaWebShell(id, currentQuery(runtime), fmt, webDims);
   return write(bytes, true);
 }

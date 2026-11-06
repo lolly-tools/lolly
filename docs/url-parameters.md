@@ -116,6 +116,8 @@ For the print formats, a named condition such as `fogra51` is written into the P
 | `licence` | web + CLI (`--licence=`) | The licence you declare for your own export, written into the file's licence metadata. |
 
 ::: details More on c2pa
+`c2pa=off` means the file holds no credential. An SVG or SVGZ that inlines credentialed artwork, such as a catalog logo, loses that artwork's credential too, because a verifier reads it as the file's own. Only the credential goes: the Lolly Imprint and the file's other metadata stay. The same goes for the export card's box when you untick it, for `--c2pa=off` and `--no-provenance` on the CLI, and for the TUI's C2PA row at `off`. With no setting at all, nothing here changes the file.
+
 A tool opts out with `render.c2pa: false`, and an on-device privacy utility never carries a credential. `c2pa=1`, or a bare `--c2pa` on the CLI, uses the default lifetime of 30 days. In the web app, an enrolled identity's certificate window, fixed at enrolment, takes precedence and the lifetime value is ignored. The CLI signs with an ephemeral certificate only. `--no-provenance` turns off the credential and the imprint together, which is how you get byte-identical output from run to run. On a PDF, `c2pa` cannot be combined with `password`. The MCP server's `lolly_render` takes the same values through its `c2pa` argument and has its own default: [Content Credentials and the c2pa argument](/info/mcp.html#content-credentials-and-the-c2pa-argument).
 :::
 
