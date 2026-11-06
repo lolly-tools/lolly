@@ -40,6 +40,16 @@
       "repository": "https://github.com/storytold/craft-libs",
       "source": "https://github.com/storytold/craft-libs/blob/f8f8829cc7be65d466d687dae381d1ca60e31242/crates/cms/profiles/craft-coated-fogra39.icc",
       "localChanges": false
+    },
+    {
+      "name": "@hayderkg/detent",
+      "version": "0.1.1",
+      "license": "MIT",
+      "path": "shells/web/src/lib/detent-physics.ts",
+      "sha256": "379de0c4f337b86bb91815b4497d4f4ae9953b3f2b1c8999eb06a66bad97fe73",
+      "repository": "https://github.com/hayderkg/detent",
+      "source": "https://github.com/hayderkg/detent/tree/2887e4abcc3ddfbdb3f2b76bec6049665e1bbb94/src",
+      "localChanges": true
     }
   ],
   "sourceTrees": [

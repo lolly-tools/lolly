@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 import { COVERFLOW_TUCK, coverflowPose } from '../lib/coverflow-geometry.ts';
+import type { CoverflowGrid } from '../lib/coverflow-motion.ts';
 
 interface Cover { el: HTMLElement; center: number; width: number; drawnCenter: number }
 export interface CoverflowHandle {
@@ -9,6 +10,8 @@ export interface CoverflowHandle {
   /** Rebase by whole periods without changing the visible fan. Returns the shift. */
   normalize(): number;
   nearest(position?: number): number;
+  /** Where every cover, copies included, comes to rest: the release planner's rows. */
+  grid(): CoverflowGrid;
   target(el: HTMLElement): number;
   atClientX(x: number): HTMLElement | null;
   step(direction: number, position?: number): number;
@@ -151,6 +154,13 @@ export function mountCoverflow(
   return {
     refresh, paint, normalize,
     nearest: position => targetAt(nearestIndex(position)),
+    grid: () => ({
+      origin: targetAt(0),
+      // The average spacing, so rounding in one offsetLeft does not drift every row.
+      pitch: covers.length > 1 ? (targetAt(covers.length - 1) - targetAt(0)) / (covers.length - 1) : pitch,
+      count: covers.length,
+      at: targetAt,
+    }),
     target: el => targetAt(covers.findIndex(cover => cover.el === el)),
     first: () => targetAt(clones),
     last: () => targetAt(clones + originals.length - 1),

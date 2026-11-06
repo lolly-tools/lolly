@@ -90,6 +90,14 @@ Only `tool.json` and `template.html` are required. Add the others when the tool 
 | `lib/` | Vendored scripts and data the tool loads. | |
 | `assets/` | Tool-local images and fonts. | [Assets and file utilities](/info/tool-files.html) |
 
+## Draw in the design system's colours
+
+A tool written for any design system takes its colours from seven CSS variables on the canvas, each with a fallback for a design system that leaves one out: `var(--brand-primary, #2a1a5e)` for the lead colour, then `--brand-on-primary`, `--brand-secondary`, `--brand-surface`, `--brand-text`, `--brand-muted` and `--brand-edge`. Lolly fills them from the design system the person has open, in the piece's look and colourway, in the web app, the desktop apps and the command line alike.
+
+Some design systems call their colours by their own words, such as a textile brand's Main, Accent, Supporting and Tertiary. These are [colour roles](/info/brand-studio.html#colour-roles-what-the-colours-are-called), and a tool needs no change for them. The design system says which role Lolly reads as each slot, so `--brand-primary` holds whichever role is read as the lead colour. A role that fills no slot is read by name only: no tool draws that role unless a person chooses it in a colour field. A pick stays linked to the role, and the template and hooks receive the role's colour for the piece's look and colourway, never the link.
+
+[Templates and rendering](/info/tool-rendering.html#design-system-colours-in-templates-and-styles) lists every variable, including each role's own `--brand-<id>`, and which token paints each one.
+
 ## Find the part you need
 
 Each guide below has a public reference tool in `community/` that you can open in Lolly and read in the repository.

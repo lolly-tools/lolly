@@ -34,6 +34,7 @@ test('a slow mount gets the Lolly status card without changing browser history',
     assert.equal(card()!.querySelector('[role="status"]')?.textContent, 'Loading…');
     assert.equal(card()!.querySelectorAll('.lolly-mark__spin-1').length, 2);
     assert.equal(history.length, before);
+    assert.ok(card()!.hasAttribute('data-drop-stand-in'), 'a file dropped on the card is held for a view that holds drops');
     card()!.dispatchEvent(new dom.window.Event('cancel', { cancelable: true }));
     card()!.dispatchEvent(new dom.window.MouseEvent('click', { clientX: -1, clientY: -1 }));
     assert.ok(card()?.open, 'Escape and stray backdrop clicks do not hide feedback');

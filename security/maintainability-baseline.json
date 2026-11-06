@@ -91,14 +91,14 @@
       "typeEscapes": 3
     },
     "shells/web/src/views/projects.ts": {
-      "lines": 2025,
-      "largestFunctionLines": 2677,
+      "lines": 2018,
+      "largestFunctionLines": 2668,
       "importFanIn": 1,
       "importFanOut": 62,
       "typeEscapes": 8
     },
     "shells/web/src/views/tool-inputs.ts": {
-      "lines": 2784,
+      "lines": 2778,
       "largestFunctionLines": 2037,
       "importFanIn": 8,
       "importFanOut": 43,

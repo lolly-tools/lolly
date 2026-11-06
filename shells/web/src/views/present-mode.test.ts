@@ -1331,3 +1331,69 @@ test('motion: a slide that arrives BEHIND the overview map holds its clock until
     `the entrance plays for the audience that can now see it (opacity ${headline.style.opacity})`);
   ctl.close(); cleanup();
 });
+
+// ── Touch swiping (present-swipe.ts), wired to the deck ─────────────────────────────
+
+/** A one-finger touch swipe across the active slide (negative `dx` is Next). */
+function touchSwipe(dx: number, pointerType = 'touch', on = '.pr-stage .pr-page.pr-active'): void {
+  const target = document.body.querySelector<HTMLElement>(on)!;
+  const fire = (type: string, x: number, t: number): void => {
+    const ev = new win.Event(type, { bubbles: true, cancelable: true });
+    Object.defineProperties(ev, {
+      pointerType: { value: pointerType }, pointerId: { value: 7 }, isPrimary: { value: true },
+      clientX: { value: x }, clientY: { value: 300 }, timeStamp: { value: t },
+    });
+    target.dispatchEvent(ev);
+  };
+  fire('pointerdown', 600, 0);
+  for (let i = 1; i <= 6; i++) fire('pointermove', 600 + (dx * i) / 6, i * 16);
+  fire('pointerup', 600 + dx, 6 * 16);
+}
+
+test('touch swipe: a step like an edge tap, builds first; the end of a deck gives, a loop wraps', () => {
+  const src = makeRichSource([{ id: 'a', builds: [1] }, { id: 'b' }]);
+  const ctl = openPresentMode({ source: src })!;
+  touchSwipe(-500);
+  assert.equal(ctl.frameId, 'a', 'the first swipe reveals the build');
+  assert.ok(shown(buildBoxes(0, 1)));
+  touchSwipe(-500);
+  assert.equal(ctl.frameId, 'b');
+  touchSwipe(-500);
+  assert.equal(ctl.frameId, 'b', 'no slide past the end without loop');
+  touchSwipe(500);
+  assert.equal(ctl.frameId, 'a', 'swiping right goes back, arriving with its builds shown');
+  assert.ok(shown(buildBoxes(0, 1)));
+  ctl.close(); cleanup();
+
+  const looped = openPresentMode({ source: makeSource(['a', 'b']), loop: true })!;
+  looped.go('2');
+  touchSwipe(-500);
+  assert.equal(looped.frameId, 'a', 'a looping deck wraps');
+  looped.close(); cleanup();
+});
+
+test('touch swipe: lifts a blackout without moving; the overview and a mouse drag ignore it', () => {
+  const ctl = openPresentMode({ source: makeSource(['a', 'b']) })!;
+  document.dispatchEvent(new win.KeyboardEvent('keydown', { key: 'b' }));
+  touchSwipe(-500);
+  assert.equal(stageEl()!.classList.contains('pr-blackout'), false, 'the swipe lifts the blackout');
+  assert.equal(ctl.frameId, 'a', 'and is spent doing so');
+  touchSwipe(-500, 'mouse');
+  assert.equal(ctl.frameId, 'a', 'a mouse drag is not a swipe');
+  document.dispatchEvent(new win.KeyboardEvent('keydown', { key: 'o' }));
+  touchSwipe(-500);
+  assert.equal(ctl.overview, true, 'the overview is a map; a swipe does not leave it');
+  assert.equal(ctl.frameId, 'a');
+  ctl.close(); cleanup();
+});
+
+test('touch swipe: the in-page speaker view swipes on its Current slide, not on its notes', () => {
+  const ctl = openPresentMode({ source: makeRichSource([{ id: 'a', notes: 'Say hello' }, { id: 'b', notes: 'Then this' }]) })!;
+  ctl.speaker();
+  assert.ok(document.body.querySelector('.pr-stage .pr-speaker'), 'the panel opened in the page');
+  touchSwipe(-500, 'touch', '.pr-speaker .pr-sp-notes');
+  assert.equal(ctl.frameId, 'a', 'the notes keep their own scroll and text');
+  touchSwipe(-500, 'touch', '.pr-speaker .pr-sp-now');
+  assert.equal(ctl.frameId, 'b', 'a swipe on the Current slide moves the deck');
+  ctl.close(); cleanup();
+});

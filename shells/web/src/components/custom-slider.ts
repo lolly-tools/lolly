@@ -11,6 +11,9 @@
  *
  *   · `customSliderHtml()` + `mountCustomSlider()` - the tool sidebar's path,
  *     and anything else building its own markup.
+ *   · `mountCustomSlider(el, hooks, { ruler: true })` - the same control drawn as a
+ *     ruler dial in the phone layout (components/slider-ruler.ts), for the tools
+ *     trying it; the track comes back above the phone width.
  *   · `upgradeRangeInput()` - the chrome's path. A `.field-range` input is left in
  *     the DOM as the value + event carrier and a real slider is mounted beside it,
  *     so the ~20 surfaces holding a reference to that input (reading `.value`,
@@ -27,6 +30,9 @@ import { linkInputLabels } from './input-labels.ts';
 // The shared read (OS query OR the app's own pref) rather than a local matchMedia,
 // so the profile toggle reaches the egg-trail spring too.
 import { prefersReducedMotion } from '../lib/a11y-prefs.ts';
+import { attachRuler, rulerDialFor } from './slider-ruler.ts';
+
+export { rulerDialFor };
 
 export interface CustomSliderSpec {
   min: number;
@@ -47,6 +53,12 @@ export interface CustomSliderHooks {
   onInput?: (v: number) => void;
   /** A settled value: pointer release, or a keyboard step. */
   onCommit?: (v: number) => void;
+  /**
+   * A value a ruler dial's glide passes on its way to rest (phone layout only). Show
+   * it cheaply: the commit that follows carries the value the dial rests on. Without
+   * this hook the glide reports through onInput.
+   */
+  onPreview?: (v: number) => void;
   onDragStart?: () => void;
   onDragEnd?: () => void;
 }
@@ -79,6 +91,14 @@ export function customSliderHtml(spec: CustomSliderSpec): string {
   </div>`;
 }
 
+/** How a slider presents itself, beyond the track. */
+export interface CustomSliderOptions {
+  /** Draw as a ruler dial while the shell is in its phone layout. */
+  ruler?: boolean;
+  /** The row's live readout, which the dial turns into a way to type a number. */
+  readout?: HTMLElement | null;
+}
+
 /** A mounted slider's handle - for pushing a value in from outside. */
 export interface MountedSlider {
   /** Move the slider to `v` (snapped + clamped) without firing any hook. */
@@ -90,7 +110,7 @@ export interface MountedSlider {
  * tick and the jelly egg-trail. Reads its bounds from the data-* attributes the
  * markup above carries.
  */
-export function mountCustomSlider(el: HTMLElement, hooks: CustomSliderHooks = {}): MountedSlider {
+export function mountCustomSlider(el: HTMLElement, hooks: CustomSliderHooks = {}, opts: CustomSliderOptions = {}): MountedSlider {
   const min  = parseFloat(el.dataset.min ?? '');
   const max  = parseFloat(el.dataset.max ?? '');
   const step = parseFloat(el.dataset.step ?? '') || 1;
@@ -99,7 +119,10 @@ export function mountCustomSlider(el: HTMLElement, hooks: CustomSliderHooks = {}
   const fill  = el.querySelector<HTMLElement>('.cs-fill')!;
   const thumb = el.querySelector<HTMLElement>('.cs-thumb')!;
 
-  let lastSnapped = parseFloat(el.getAttribute('aria-valuenow') ?? '') || min;
+  // `|| min` here once turned a value of 0 into the minimum, so the first key step
+  // on a -100 to 100 slider sitting at 0 jumped to -99.
+  const initial = parseFloat(el.getAttribute('aria-valuenow') ?? '');
+  let lastSnapped = Number.isFinite(initial) ? initial : min;
 
   // ── Jelly egg-trail (flag-gated, purely visual) ──────────────────────────
   // The thumb chases the value with a soft, VISIBLE elastic lag - the same feel
@@ -180,11 +203,11 @@ export function mountCustomSlider(el: HTMLElement, hooks: CustomSliderHooks = {}
     thumb.style.willChange = on ? 'transform' : '';
     if (jTail) jTail.style.willChange = on ? 'transform, opacity' : '';
   }
-  function jWake(): void { if (jelly && !jRaf) { jLastT = 0; jHint(true); jRaf = requestAnimationFrame(jStep); } }
+  function jWake(): void { if (jelly && !jRaf && !ruler?.active) { jLastT = 0; jHint(true); jRaf = requestAnimationFrame(jStep); } }
   // Keyboard/step change: yank the tail-tip back so the tail flicks out in the
   // step direction, then the spring reels it in.
   function jImpulse(dir: number): void {
-    if (!jelly) return;
+    if (!jelly || ruler?.active) return;
     jVis = (Number.isFinite(jVis) ? jVis : jThumbPx()) - dir * 14;
     jWake();
   }
@@ -207,11 +230,43 @@ export function mountCustomSlider(el: HTMLElement, hooks: CustomSliderHooks = {}
     thumb.style.left = pct + '%';
   }
 
+  // The phone presentation. It reports through the same hooks as the track: a value
+  // per step the finger passes, one commit where it comes to rest, and drag start and
+  // end around the whole gesture, glide included. Steps a glide passes go to onPreview.
+  // A sidebar holds off rebuilding until the dial rests.
+  const passTo = (v: number, report?: (v: number) => void): void => {
+    if (v === lastSnapped) return;
+    lastSnapped = v;
+    setThumb(v);
+    setAria(v);
+    report?.(v);
+    playSliderTick();
+  };
+  const ruler = opts.ruler
+    ? attachRuler(el, {
+        min, max, step,
+        label: el.getAttribute('aria-label') ?? '',
+        value: () => lastSnapped,
+        input: (v) => passTo(v, hooks.onInput),
+        preview: (v) => passTo(v, hooks.onPreview ?? hooks.onInput),
+        commit(v) {
+          lastSnapped = v;
+          setThumb(v);
+          setAria(v);
+          hooks.onCommit?.(v);
+        },
+        dragStart: () => hooks.onDragStart?.(),
+        dragEnd: () => hooks.onDragEnd?.(),
+        readout: opts.readout,
+      })
+    : null;
+
   // Pointerdown cancellation does not cancel the click generated on release.
   // Inside a label, that default action can activate a neighbouring button.
   el.addEventListener('click', e => e.preventDefault());
 
   el.addEventListener('pointerdown', e => {
+    if (ruler?.active) return; // the dial runs its own gesture
     e.preventDefault();
     el.focus({ preventScroll: true }); // so the keyboard handler is live right after a click
     el.setPointerCapture(e.pointerId);
@@ -267,6 +322,7 @@ export function mountCustomSlider(el: HTMLElement, hooks: CustomSliderHooks = {}
     setThumb(lastSnapped);
     setAria(lastSnapped);
     hooks.onCommit?.(lastSnapped);
+    ruler?.show(lastSnapped, true);
   });
 
   return {
@@ -277,6 +333,7 @@ export function mountCustomSlider(el: HTMLElement, hooks: CustomSliderHooks = {}
       setThumb(snapped);
       setAria(snapped);
       jWake();
+      ruler?.show(snapped, false);
     },
   };
 }

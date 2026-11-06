@@ -134,6 +134,41 @@ test('watch debounces source changes, ignores output changes and stops on a sign
   }
 });
 
+test('watch is listening before it says it is waiting', async () => {
+  // A change made the moment the line appears must be seen, so the watchers have to
+  // exist by then. Before, the line came first and a quick change could be missed.
+  const order = join(root, 'watch-order.log'), out = join(root, 'watch-order');
+  await writeFile(csv, rows('Ordered'));
+  const preload = fileURLToPath(new URL('./helpers/watch-order-preload.ts', import.meta.url));
+  const child = spawn(
+    process.execPath,
+    ['--import', preload, entry, 'batch', csv, '--watch', '--jobs=1', `--out-dir=${out}`],
+    { env: { ...env, LOLLY_WATCH_ORDER_LOG: order }, stdio: ['ignore', 'pipe', 'pipe'] }
+  );
+  let stderr = '';
+  child.stderr.on('data', (data) => {
+    stderr += data.toString();
+  });
+  child.stdout.resume();
+  const finished = new Promise<number | null>((resolve) => child.once('exit', (code) => resolve(code)));
+  try {
+    await until(() => stderr.includes('Watching the CSV'));
+    await writeFile(csv, 'invalid header\n');
+    await until(() => stderr.includes('Batch source error:'));
+    child.kill('SIGINT');
+    await finished;
+    const counts = (await readFile(order, 'utf8')).trim().split('\n').map(Number);
+    assert.equal(counts.length, 2, 'one count for each waiting line');
+    assert.ok(counts.every((n) => n > 0), `watchers open when each line was written: ${counts.join(', ')}`);
+  } finally {
+    if (child.exitCode === null) {
+      child.kill('SIGTERM');
+      await finished;
+    }
+    await writeFile(csv, rows());
+  }
+});
+
 test('cancelling active workers writes a resumable receipt and clears staging and locks', async () => {
   const slow = join(root, 'slow.csv'),
     out = join(root, 'cancelled');

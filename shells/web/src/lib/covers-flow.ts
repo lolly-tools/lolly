@@ -10,14 +10,16 @@
  * scrollLeft is the single source of
  * truth, and each cover's transform is a pure function of its LAYOUT offset
  * from the viewport centre - offsetLeft/offsetWidth are transform-independent,
- * so there is no feedback loop. One rAF loop owns scrollLeft in three states:
+ * so there is no feedback loop. One rAF loop owns scrollLeft, and it runs only
+ * while the fan moves:
  *   1. dragging  - the pointer sets it (mouse, pen and touch alike; the strip
  *                  is touch-action: pan-y in fan mode so vertical stays with
  *                  the page);
- *   2. coasting  - a flick release or a horizontal wheel spin decays with
- *                  friction ("wheel physics");
- *   3. settling  - ease onto the chosen cover (a dot, an arrow, a key, the
- *                  autoplay, a side click) or, with none chosen, the nearest.
+ *   2. gliding   - at a release the cover nearest the throw's projected end is
+ *                  chosen and reached with one spring (Detent's physics); a dot,
+ *                  an arrow, a key, the autoplay and a side click use the same
+ *                  spring; a trackpad is followed 1:1 and settles on a cover once
+ *                  its events stop.
  * CSS scroll-snap is OFF in fan mode. A snap area is the TRANSFORMED border
  * box, so native snap chased the tuck every frame and fought both the settle
  * and the drag (the 2026-09-02 "buggy sideways scroll and drag"). Native
@@ -58,7 +60,7 @@
  * the Design cover, posed at Lolly's hue.
  */
 
-import { CoverflowGesture, CoverflowMotion, COVERFLOW_WHEEL_REST_MS } from './coverflow-motion.ts';
+import { CoverflowGesture, CoverflowMotion, coverflowHaptics, coverflowWheel, type CoverflowGrid } from './coverflow-motion.ts';
 import { COVERFLOW_TUCK as CF_TUCK, coverflowPose } from './coverflow-geometry.ts';
 import { prefersReducedMotion } from './a11y-prefs.ts';
 import { startupMotionHeld } from './startup-motion.ts';
@@ -225,9 +227,18 @@ export function mountCoverFlow(root: ParentNode): void {
   let geom: Geom[] = [];
   let period = 0;                 // strip distance between a cover and its clone one loop away
   let raf = 0;
-  let lastTs = 0;
   const motion = new CoverflowMotion();
   const gesture = new CoverflowGesture();
+  const haptics = coverflowHaptics(reduced);
+  // Polite word to a screen reader of the cover a reader's own input brought to the
+  // centre (never the autoplay, which would talk every few seconds).
+  const status = document.createElement('p');
+  status.className = 'sr-only covers-status';
+  status.setAttribute('aria-live', 'polite');
+  status.setAttribute('aria-atomic', 'true');
+  rootEl.appendChild(status);
+  let announceArmed = false;
+  let restIndex = -1;           // REAL index the fan last came to rest on
   let dragging = false;
   let dragMoved = false;
   let dragPointerId = -1;
@@ -240,7 +251,6 @@ export function mountCoverFlow(root: ParentNode): void {
   let hov = false;
   let lastCur = -1;               // REAL index last laid out as current
   let restT: ReturnType<typeof setTimeout> | 0 = 0;
-  let wheelSettleT: ReturnType<typeof setTimeout> | 0 = 0;
 
   const dotEls: HTMLButtonElement[] = [];
   if (!dots.childElementCount) {
@@ -258,6 +268,14 @@ export function mountCoverFlow(root: ParentNode): void {
 
   const half = (): number => strip.clientWidth / 2;
   const centerOf = (i: number): number => (geom[i]?.center ?? 0) - half();
+  /** Every cover's resting position, clones included: the release planner's rows. */
+  const grid = (): CoverflowGrid => ({
+    origin: centerOf(0),
+    // The average spacing, so rounding in one offsetLeft does not drift every row.
+    pitch: geom.length > 1 ? (centerOf(geom.length - 1) - centerOf(0)) / (geom.length - 1) : (geom[0]?.w ?? 0),
+    count: geom.length,
+    at: centerOf,
+  });
 
   /** Snapshot the layout geometry once per (re)layout so the hot loop is write-only. */
   function measure(): void {
@@ -289,6 +307,7 @@ export function mountCoverFlow(root: ParentNode): void {
     if (!shift) return;
     strip.scrollLeft += shift;
     motion.shift(shift);
+    haptics.shift(shift);
   }
 
   function nearestTarget(position = strip.scrollLeft): number {
@@ -371,12 +390,11 @@ export function mountCoverFlow(root: ParentNode): void {
   }
 
   // ── The motion loop ─────────────────────────────────────────────────────
+  // Runs only while the fan moves; the resize handler repaints a still fan.
   function loop(): void { if (!raf) raf = requestAnimationFrame(tick); }
   function tick(ts: number): void {
     raf = 0;
-    if (!fan || !rootEl.isConnected) { lastTs = 0; return; }
-    const dt = lastTs ? Math.min(200, ts - lastTs) : 0;
-    lastTs = ts;
+    if (!fan || !rootEl.isConnected) return;
     if (dragging) {
       // Pointer travel is applied HERE, once per frame, however many move events
       // arrived - a 120 Hz pointer on a 60 Hz screen otherwise writes scrollLeft
@@ -386,28 +404,50 @@ export function mountCoverFlow(root: ParentNode): void {
       loop();
       return;
     }
-    motion.reconcile(strip.scrollLeft);
-    const active = motion.advance(dt, nearestTarget, reduced());
+    motion.advance(ts, grid, reduced());
     writeMotion();
-    if (active) loop();
-    else lastTs = 0;
+    if (motion.active) loop();
+    else settled();
   }
 
   function writeMotion(): void {
     strip.scrollLeft = motion.position;
     motion.reconcile(strip.scrollLeft);
+    haptics.moved(motion.position, grid());
     rebase();
     layout();
   }
 
-  /** Ease onto an ABSOLUTE strip index (a neighbour of the current one, usually). */
+  /** At rest: say which cover a reader's own input centred, if it changed. */
+  function settled(): void {
+    haptics.end();
+    const r = real(curIndex());
+    if (announceArmed && r !== restIndex) status.textContent = cards[r]?.querySelector('.cover-cap b')?.textContent ?? '';
+    announceArmed = false;
+    restIndex = r;
+  }
+
+  /** Glide onto an ABSOLUTE strip index (a neighbour of the current one, usually). */
   function go(i: number): void {
     if (!fan) return;
     i = Math.max(0, Math.min(all.length - 1, i));
     hold = Date.now() + HOLD_MS;
+    announceArmed = true;
+    haptics.end();
     motion.reconcile(strip.scrollLeft);
-    motion.select(centerOf(i));
+    motion.select(centerOf(i), performance.now(), reduced());
+    if (reduced()) writeMotion();
     loop();
+  }
+  /** The resting position `direction` covers from `from` (a running target), else
+   *  from the cover nearest the centre now. */
+  function stepFrom(direction: 1 | -1, from: number | undefined): number {
+    let i = curIndex();
+    if (from !== undefined) {
+      let bd = Infinity;
+      geom.forEach((_, j) => { const d = Math.abs(centerOf(j) - from); if (d < bd) { bd = d; i = j; } });
+    }
+    return centerOf(Math.max(0, Math.min(all.length - 1, i + direction)));
   }
   /** Ease onto a REAL cover by the shortest way round the loop. */
   function goReal(r: number): void {
@@ -431,6 +471,7 @@ export function mountCoverFlow(root: ParentNode): void {
     motion.reset(strip.scrollLeft);
     lastCur = -1;
     layout();
+    restIndex = real(curIndex());
   }
   enterFan();
 
@@ -451,7 +492,13 @@ export function mountCoverFlow(root: ParentNode): void {
     if (!fan || raf || dragging) return;
     layout();
     clearTimeout(nativeSettleT);
-    nativeSettleT = setTimeout(() => { if (!raf && !dragging) { motion.select(nearestTarget()); loop(); } }, 120);
+    nativeSettleT = setTimeout(() => {
+      if (raf || dragging) return;
+      motion.reconcile(strip.scrollLeft);
+      motion.select(nearestTarget(), performance.now(), reduced());
+      if (reduced()) writeMotion();
+      loop();
+    }, 120);
   }, { passive: true });
 
   // ── Input ────────────────────────────────────────────────────────────────
@@ -464,33 +511,32 @@ export function mountCoverFlow(root: ParentNode): void {
     if (e.key === 'ArrowRight') { go(curIndex() + 1); e.preventDefault(); }
   });
 
-  // Horizontal wheel (trackpad swipe) spins the fan with momentum; a vertical
+  // A horizontal trackpad swipe is followed 1:1 and settles on a cover when its
+  // events stop; a notched mouse wheel steps one cover per notch. A vertical
   // wheel ALWAYS falls through to the page - the strip never captures it.
+  const wheel = coverflowWheel(motion, {
+    grid,
+    step: stepFrom,
+    reduced,
+    kick: () => {
+      hold = Date.now() + HOLD_MS;
+      announceArmed = true;
+      haptics.end();
+      if (reduced()) writeMotion();
+      loop();
+    },
+  });
   strip.addEventListener('wheel', (e) => {
-    if (!fan || Math.abs(e.deltaX) <= Math.abs(e.deltaY)) return;
-    e.preventDefault();
-    hold = Date.now() + HOLD_MS;
+    if (!fan) return;
     motion.reconcile(strip.scrollLeft);
-    const still = reduced();
-    motion.wheel(e.deltaX, still);
-    if (still) {
-      cancelAnimationFrame(raf);
-      raf = 0;
-      lastTs = 0;
-      writeMotion();
-      clearTimeout(wheelSettleT);
-      wheelSettleT = setTimeout(() => { motion.select(nearestTarget()); loop(); }, COVERFLOW_WHEEL_REST_MS);
-      return;
-    }
-    if (!raf) lastTs = performance.now();
-    loop();
+    wheel(e);
   }, { passive: false });
 
   strip.addEventListener('pointerdown', (e) => {
     if (!fan || dragging || !e.isPrimary) return;
     if (e.pointerType !== 'touch' && e.button !== 0 && e.button !== 1) return;
     motion.reset(strip.scrollLeft);
-    clearTimeout(wheelSettleT);
+    haptics.begin(e.pointerType, strip.scrollLeft);
     dragging = true;
     dragMoved = false;
     dragPointerId = e.pointerId;
@@ -519,7 +565,7 @@ export function mountCoverFlow(root: ParentNode): void {
     }
     if (dragAxis === 'vertical') return;
     const dx = e.clientX - lastPointerX;
-    if (Math.abs(e.clientX - dragStartX) > DRAG_SLOP) dragMoved = true;
+    if (Math.abs(e.clientX - dragStartX) > DRAG_SLOP) { dragMoved = true; announceArmed = true; }
     pendingDx += dx;
     gesture.move(e.clientX, e.timeStamp);
     lastPointerX = e.clientX;
@@ -541,9 +587,9 @@ export function mountCoverFlow(root: ParentNode): void {
     // first key or when focus leaves, so keyboard users still see the ring.
     if (e.pointerType !== 'touch') { rootEl.setAttribute('data-focus-by', 'pointer'); rootEl.focus({ preventScroll: true }); }
     const still = reduced();
-    motion.release(gesture.release(e.timeStamp, e.type !== 'pointerup' || !dragMoved, still));
-    lastTs = e.timeStamp;
-    if (still) { motion.advance(0, nearestTarget, true); writeMotion(); }
+    // Plan the glide now: the cover nearest the throw's projected end, one spring.
+    motion.release(gesture.release(e.timeStamp, e.type !== 'pointerup' || !dragMoved, still), e.timeStamp, grid(), still);
+    if (still) writeMotion();
     if (!dragMoved && e.type === 'pointerup' && e.button === 0) {
       // Cards are pointer-events:none, so map the press to a cover by its DRAWN
       // centre (layout centre + this frame's tuck) and centre that cover.
@@ -575,7 +621,7 @@ export function mountCoverFlow(root: ParentNode): void {
     videoPolicy(lastCur);
     if (reduced() || !fan || hov || dragging || Date.now() < hold || document.hidden || motion.active || startupMotionHeld()) return;
     // Always one step on: the loop re-bases, so there is no "back to the start".
-    motion.select(centerOf(curIndex() + 1));
+    motion.select(centerOf(curIndex() + 1), performance.now());
     loop();
   }, AUTOPLAY_MS);
 }

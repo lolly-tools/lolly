@@ -839,6 +839,16 @@ const MANIFEST: {
       note: 'The Canny thresholds, the chain following with its one-pixel gap bridge and the Douglas-Peucker simplification, translated into Lolly\'s own code from Composa (https://github.com/dvdstelt/Composa), src/Composa.Core/Painting/EdgeTracer.cs. No Composa source file is copied. Used by the MCP server\'s lolly_trace_edges.',
       where: 'web',
     },
+    {
+      name: 'Detent physics (@hayderkg/detent, vendored)',
+      version: '0.1.1 (git 2887e4abcc3ddfbdb3f2b76bec6049665e1bbb94)',
+      spdx: 'MIT',
+      copyright: 'Copyright (c) 2026 Hayder',
+      files: 'shells/web/src/lib/detent-physics.ts',
+      text: `Copyright (c) 2026 Hayder\n\n${MIT_BODY}`,
+      note: 'The framework-free physics of Detent (https://github.com/hayderkg/detent): src/physics/* (springs, the coast and release planner, the velocity tracker, snapping, rubber band and tick crossings), the Physics presets and the wheel and trackpad reading from src/engine/engine.ts, joined into one file with the full notice in its header and its local changes listed there. The byte pin is in security/vendor-artifacts.json. Drives the Cover Flow, the ruler dial and present-mode swipes. Detent\'s demo site carries no licence, so nothing from it is copied.',
+      where: 'web',
+    },
   ],
   icons: [
     {

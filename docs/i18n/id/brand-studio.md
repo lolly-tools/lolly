@@ -114,6 +114,8 @@ Warna Anda berada di samping pratinjau **In context** pada layar lebar, dan di a
 
 ### Peran: yang dibaca alat
 
+![The Colour roles table on Lolly Demo after choosing the suggested words Main, Accent, Supporting and Tertiary: the colourway chips, then each role with its light and dark colour, Main read as the lead colour and Accent as the partner colour, Supporting and Tertiary read by name only and marked Copied, and the readings no role fills listed under the table](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=2720&height=2000&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-roles-fold%5D%3Esummary%3Bwait%3A500%3Bclick%3A%5Bdata-crt-start-open%5D%3Bclick%3A%5Bdata-crt-seed%3D%221%22%5D%3Bclick%3A%5Bdata-crt-start-use%5D%3Bwait%3A900%3Bclick%3A.be-palette-heading%3Eh2%3Bwait%3A300&cropSelector=%5Bdata-be-roles-fold%5D&format=svg&walker=1&dark=1&filename=bs-colour-roles)
+
 **Roles** menyatakan warna mana yang memerankan setiap bagian di tiap alat dan ekspor. Peran bersifat opsional (tiga warna lepas tanpa peran adalah sistem yang sangat baik), warna apa pun dapat mengambil satu, dan pembacaan kontras diukur terhadap permukaan, APCA lebih dulu. Setiap baris peran menampilkan warna sendiri dengan kekuatan penuh, warna starter yang menggantikan, atau **↳ follows Primary**.
 
 Begitu palet memiliki shade, strip menampilkan ketujuh peran yang dapat dibaca alat: Primary, Secondary, Surface, Text, Muted, Edge, dan On primary. On primary diturunkan dari primary, berbunyi **Derived**, dan tidak memiliki pemilih.

@@ -60617,6 +60617,33 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
+--------------------------------------------------------------------------------
+Detent physics (@hayderkg/detent, vendored) 0.1.1 (git 2887e4abcc3ddfbdb3f2b76bec6049665e1bbb94)
+SPDX-License-Identifier: MIT
+Files: shells/web/src/lib/detent-physics.ts
+Copyright: Copyright (c) 2026 Hayder
+The framework-free physics of Detent (https://github.com/hayderkg/detent): src/physics/* (springs, the coast and release planner, the velocity tracker, snapping, rubber band and tick crossings), the Physics presets and the wheel and trackpad reading from src/engine/engine.ts, joined into one file with the full notice in its header and its local changes listed there. The byte pin is in security/vendor-artifacts.json. Drives the Cover Flow, the ruler dial and present-mode swipes. Detent's demo site carries no licence, so nothing from it is copied.
+
+Copyright (c) 2026 Hayder
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
 ================================================================================
 ICONS
 ================================================================================

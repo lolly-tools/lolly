@@ -472,7 +472,7 @@ function firstPassSource(system: FirstPassDesignSystemV1 & ThemeCarryV1): ThemeS
   const known = themeSourceOf(system);
   if (known) return known;
   const carried = system.themeSource;
-  if (carried) return { colors: carried.colors, ...(carried.darkColors ? { darkColors: carried.darkColors } : {}), master: system.master };
+  if (carried) return { colors: carried.colors, ...(carried.darkColors ? { darkColors: carried.darkColors } : {}), ...(carried.themeAccents?.length ? { themeAccents: carried.themeAccents } : {}), master: system.master };
   const colors: Record<string, string> = {};
   for (const swatch of system.swatches) colors[swatch.path] = swatch.hex;
   return { colors, master: system.master };

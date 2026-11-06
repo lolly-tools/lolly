@@ -114,6 +114,8 @@
 
 ### رول: ٹولز کیا پڑھتے ہیں
 
+![The Colour roles table on Lolly Demo after choosing the suggested words Main, Accent, Supporting and Tertiary: the colourway chips, then each role with its light and dark colour, Main read as the lead colour and Accent as the partner colour, Supporting and Tertiary read by name only and marked Copied, and the readings no role fills listed under the table](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=2720&height=2000&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-roles-fold%5D%3Esummary%3Bwait%3A500%3Bclick%3A%5Bdata-crt-start-open%5D%3Bclick%3A%5Bdata-crt-seed%3D%221%22%5D%3Bclick%3A%5Bdata-crt-start-use%5D%3Bwait%3A900%3Bclick%3A.be-palette-heading%3Eh2%3Bwait%3A300&cropSelector=%5Bdata-be-roles-fold%5D&format=svg&walker=1&dark=1&filename=bs-colour-roles)
+
 **Roles** بتاتے ہیں کہ ہر ٹول اور ایکسپورٹ میں کون سا رنگ کون سا کردار ادا کرتا ہے۔ وہ اختیاری ہیں (تین ڈھیلے رنگ اور کوئی رول نہیں بالکل اچھا سسٹم ہے)، کوئی بھی رنگ ایک لے سکتا ہے اور کنٹراسٹ ریڈ آؤٹ سطح کے مقابل ناپا جاتا ہے، پہلے APCA۔ ہر رول کی قطار پوری قوت پر اپنا رنگ، کھڑا ہوا starter رنگ، یا **↳ follows Primary** دکھاتی ہے۔
 
 جب پیلیٹ میں شیڈز ہوں تو پٹی وہ سب سات رول دکھاتی ہے جو ٹول پڑھ سکتا ہے: Primary، Secondary، Surface، Text، Muted، Edge اور On primary۔ On primary، primary سے اخذ ہوتا ہے، **Derived** پڑھتا ہے اور پکر نہیں رکھتا۔

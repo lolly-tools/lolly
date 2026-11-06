@@ -25,7 +25,7 @@
  * link to its tool, so the whole feature degrades to "a scrollable row of links".
  */
 
-import { CoverflowGesture, CoverflowMotion, COVERFLOW_WHEEL_REST_MS } from '../lib/coverflow-motion.ts';
+import { CoverflowGesture, CoverflowMotion, coverflowHaptics, coverflowWheel, type CoverflowGrid } from '../lib/coverflow-motion.ts';
 import { mountCoverflow, type CoverflowHandle } from './coverflow.ts';
 import { featuredStartIndex, recordFeaturedActivity, type FeaturedCollection } from '../lib/featured-activity.ts';
 import type { PreviewQueue } from '../lib/preview-queue.ts';
@@ -41,6 +41,7 @@ import { playSfx } from '../lib/sfx.ts';
 import { dragTravel, type DragTravel } from '../lib/pointer-wrap.ts';
 import { currentTheme } from '../theme.ts';
 import { icon } from '../lib/icons.ts';
+import { tRaw } from '../i18n.ts';
 import type { HostV1 } from '@lolly-tools/core/host-v1';
 import type { PreviewsAPI } from '../bridge/previews.ts';
 
@@ -275,6 +276,7 @@ export function mountFeaturedRow(
         <ul class="featured-track">${entries.map((e, i) => tileMarkup(e, i === initialIndex, tileMenu)).join('')}</ul>
       </div>
       <button type="button" class="featured-go">Open ${ARROW}</button>
+      <p class="visually-hidden featured-status" aria-live="polite" aria-atomic="true"></p>
       <div class="featured-grip" aria-hidden="true"><span class="featured-grip-bar"></span></div>
     </section>`;
 
@@ -447,7 +449,22 @@ export function mountFeaturedRow(
   let velocity = 0;   // px/s, for flick / wheel inertia
   const cfMotion = new CoverflowMotion();
   const cfGesture = new CoverflowGesture();
-  let cfWheelUntil = 0;
+  const cfGrid = (): CoverflowGrid => flow?.grid() ?? { origin: 0, pitch: 0, count: 0 };
+  // A haptic tick per cover crossing the centre, during a person's own touch gesture.
+  const haptics = coverflowHaptics(() => reduced);
+  // While the fan moves (and QUEUE_RESUME_MS after it rests) the preview queue starts
+  // no new render: a render landing mid-swipe was a 0.25 to 1 s frame.
+  const QUEUE_RESUME_MS = 500;
+  let cfMoving = false;
+  let cfHolding = false;
+  let releaseQueueHold: (() => void) | null = null;
+  let queueResumeT: ReturnType<typeof setTimeout> | undefined;
+  // The centred tool is announced politely when the fan comes to rest after a
+  // person moved it; never on load, never for a focus move (the link reads itself).
+  const status = mount.querySelector<HTMLElement>('.featured-status');
+  let selectedIndex = initialIndex;
+  let restIndex = initialIndex;   // the tool centred when the fan last came to rest
+  let announceArmed = false;
 
   // Drag state - mouse/pen "grab and shift" (horizontal carousel pan).
   let dragging = false;
@@ -522,16 +539,16 @@ export function mountFeaturedRow(
     const shift = flow.normalize();
     if (shift) {
       cfMotion.shift(shift);
+      haptics.shift(shift);
     }
     flow.paint();
-    section.classList.toggle('is-moving', dragging || cfMotion.active || performance.now() < cfWheelUntil);
   }
   const coverScrollLeft = (el: HTMLElement): number => flow?.target(el) ?? 0;
   const coverAtClientX = (x: number): HTMLElement | null => flow?.atClientX(x) ?? null;
-  const nearestCoverScrollLeft = (position = viewport.scrollLeft): number => flow?.nearest(position) ?? 0;
   function writeCoverflow(): void {
     viewport.scrollLeft = cfMotion.position;
     cfMotion.reconcile(viewport.scrollLeft);
+    haptics.moved(cfMotion.position, cfGrid());
     layoutCoverflow();
   }
   function flushDrag(): void {
@@ -541,32 +558,98 @@ export function mountFeaturedRow(
     writeCoverflow();
   }
 
-  function snapToCover(to: number): void {
+  /** Glide to a cover with the one spring (keys, a side cover's click, focus). Reduced
+   *  motion jumps there. `announce` false: the move came from focus, which reads itself. */
+  function snapToCover(to: number, announce = true): void {
     cfMotion.reconcile(viewport.scrollLeft);
-    cfMotion.select(to);
-    if (reduced) {
-      cfMotion.advance(0, nearestCoverScrollLeft, true);
+    haptics.end();
+    cfMotion.select(to, performance.now(), reduced);
+    if (reduced) writeCoverflow();
+    coverflowMoved(announce);
+  }
+
+  /** The fan started moving: mark it (the stylesheet drops its paint effects), hold
+   *  the preview queue, and run the frame loop until it rests. */
+  function coverflowMoved(announce = true): void {
+    if (!coverflow || destroyed) return;
+    if (announce) announceArmed = true;
+    clearTimeout(queueResumeT);
+    if (!cfMoving) {
+      cfMoving = true;
+      section.classList.add('is-moving');
+    }
+    if (!cfHolding) {
+      cfHolding = true;
+      releaseQueueHold = opts.previewQueue?.hold() ?? null;
+    }
+    startRaf();
+  }
+
+  function releaseCoverflowHold(): void {
+    clearTimeout(queueResumeT);
+    if (!cfHolding) return;
+    cfHolding = false;
+    const release = releaseQueueHold;
+    releaseQueueHold = null;
+    release?.();
+    resumeQueue();
+  }
+
+  /** The fan is at rest: restore its paint effects, let previews render again after a
+   *  short beat, and tell a screen reader which tool is centred if a person moved the fan. */
+  function coverflowSettled(): void {
+    haptics.end();
+    if (cfMoving) {
+      cfMoving = false;
+      section.classList.remove('is-moving');
+    }
+    clearTimeout(queueResumeT);
+    if (cfHolding) queueResumeT = setTimeout(releaseCoverflowHold, QUEUE_RESUME_MS);
+    if (announceArmed && selectedIndex !== restIndex && status) {
+      status.textContent = tRaw('{name}, {position} of {total}', {
+        name: entries[selectedIndex]?.name ?? '',
+        position: selectedIndex + 1,
+        total: entries.length,
+      });
+    }
+    announceArmed = false;
+    restIndex = selectedIndex;
+  }
+
+  /** Drop any motion in progress, for a mode switch or the performance toggle. */
+  function stopCoverflow(): void {
+    cfMotion.reset(viewport.scrollLeft);
+    announceArmed = false;
+    coverflowSettled();
+    releaseCoverflowHold();
+  }
+
+  /** One Cover Flow frame. The loop runs only while the fan moves: a drag, a glide,
+   *  or a trackpad being followed. At rest it stops; a resize repaints through
+   *  setupLoop, and any input starts it again. */
+  function coverflowFrame(ts: number): void {
+    if (!visible || document.hidden) { coverflowSettled(); return; }
+    // The pointer owns scrollLeft while dragging. flushDrag already lays the fan out
+    // after its write; a second layout would read scrollLeft back for nothing.
+    if (dragging) { if (pendingDx) flushDrag(); else layoutCoverflow(); }
+    else {
+      cfMotion.advance(ts, cfGrid, reduced);
       writeCoverflow();
     }
+    if (dragging || cfMotion.active) raf = requestAnimationFrame(tick);
+    else coverflowSettled();
   }
 
   function tick(ts: number): void {
     if (destroyed) { raf = 0; return; }             // stop rescheduling once torn down
     if (!onScreen) { raf = 0; return; }             // parked off-screen - the observer restarts us
+    if (coverflow) { raf = 0; coverflowFrame(ts); return; }
     raf = requestAnimationFrame(tick);
     const dt = lastTs ? ts - lastTs : 0;
     lastTs = ts;
     if (!visible || document.hidden || dt <= 0 || dt > 200) return; // skip huge gaps
-    // (1) pointer owns scrollLeft. flushDrag already lays the fan out after its write;
-    // a second layout would read scrollLeft back and force a reflow for nothing.
-    if (dragging) { if (coverflow) { if (pendingDx) flushDrag(); else layoutCoverflow(); } return; }
-
-    if (coverflow) {
-      cfMotion.reconcile(viewport.scrollLeft);
-      if (!reduced || ts >= cfWheelUntil) cfMotion.advance(dt, nearestCoverScrollLeft, reduced);
-      writeCoverflow();
-      return;
-    }
+    // (1) pointer owns scrollLeft while dragging.
+    if (dragging) return;
 
     if (Math.abs(velocity) > INERTIA_MIN_V) {      // (2) flick / wheel coast
       viewport.scrollLeft += (velocity * dt) / 1000;
@@ -591,6 +674,7 @@ export function mountFeaturedRow(
         looping = false;
         halfWidth = 0;
         flow = mountCoverflow(viewport, track, { initialIndex, onChange(index) {
+          selectedIndex = index;
           if (flickIndex !== index) { if (flickIndex !== -1) flick(); flickIndex = index; }
           const button = section.querySelector('.featured-go');
           button?.setAttribute('aria-label', `Open ${entries[index]?.name ?? ''}`);
@@ -716,23 +800,36 @@ export function mountFeaturedRow(
   };
 
   // ── Wheel ─────────────────────────────────────────────────────────────────────
-  // Horizontal wheel (trackpad swipe) spins the carousel with momentum - the only
-  // axis the strip owns. A vertical wheel ALWAYS falls through and scrolls the
-  // PAGE, in every view mode: the strip must never capture it (scroll hijack - 
-  // the old vertical-flips-examples gesture trapped readers trying to get past
-  // the row). Non-passive so the horizontal branch can preventDefault.
+  // Horizontal is the only axis the strip owns. A vertical wheel ALWAYS falls
+  // through and scrolls the PAGE, in every view mode: the strip must never capture
+  // it (scroll hijack - the old vertical-flips-examples gesture trapped readers
+  // trying to get past the row). Non-passive so the horizontal branch can
+  // preventDefault. In the Gallery strip a horizontal wheel spins the carousel
+  // with momentum. Cover Flow reads each wheel gesture the way Detent does
+  // (lib/coverflow-motion.ts): a trackpad is followed 1:1 and settles on a cover
+  // when its events stop, and a notched mouse wheel steps one cover per notch.
+  const cfWheel = coverflowWheel(cfMotion, {
+    grid: cfGrid,
+    step: (direction, from) => flow?.step(direction, from) ?? viewport.scrollLeft,
+    reduced: () => reduced,
+    kick: () => {
+      manualUntil = performance.now() + RESUME_DELAY_MS;
+      haptics.end();
+      if (reduced) writeCoverflow();
+      coverflowMoved();
+    },
+  });
   viewport.addEventListener('wheel', (e) => {
-    if (reduced && !coverflow) return;
+    if (coverflow) {
+      if (!flow) return;
+      cfMotion.reconcile(viewport.scrollLeft);
+      cfWheel(e);
+      return;
+    }
+    if (reduced) return;
     if (Math.abs(e.deltaX) <= Math.abs(e.deltaY)) return;    // vertical → page scroll
     manualUntil = performance.now() + RESUME_DELAY_MS;
     e.preventDefault();
-    if (coverflow) {
-      cfMotion.reconcile(viewport.scrollLeft);
-      cfMotion.wheel(e.deltaX, reduced);
-      cfWheelUntil = performance.now() + COVERFLOW_WHEEL_REST_MS;
-      if (reduced) writeCoverflow();
-      return;
-    }
     velocity = clampV(velocity + e.deltaX * WHEEL_TO_VELOCITY);
   }, { signal });
 
@@ -778,6 +875,7 @@ export function mountFeaturedRow(
       onLost: () => endDrag(new PointerEvent('pointercancel', { pointerId: dragPointerId, pointerType: e.pointerType })),
     });
     lastMoveTs = performance.now();
+    if (coverflow) { haptics.begin(e.pointerType, viewport.scrollLeft); startRaf(); }
     try { viewport.setPointerCapture(e.pointerId); } catch { /* capture is best-effort */ }
     // Stop the browser turning the drag into a text selection / native image-drag.
     if (e.pointerType !== 'touch') e.preventDefault();
@@ -808,6 +906,7 @@ export function mountFeaturedRow(
     if (coverflow) {
       pendingDx += dx; // coalesced with every pointer sample into the next frame
       cfGesture.move(dragX, e.timeStamp);
+      if (!cfMoving && dx) coverflowMoved();
     } else viewport.scrollLeft -= dx;                        // content follows the pointer
     normalizeWrap();
     const dtm = now - lastMoveTs;
@@ -840,9 +939,10 @@ export function mountFeaturedRow(
     manualUntil = performance.now() + RESUME_DELAY_MS;       // let the coast finish before drift
     const cancelled = e.type !== 'pointerup';
     if (coverflow) {
-      cfMotion.release(cfGesture.release(e.timeStamp, cancelled || !dragMoved, reduced));
-      lastTs = e.timeStamp;
-      if (reduced) { cfMotion.advance(0, nearestCoverScrollLeft, true); writeCoverflow(); }
+      // Plan the glide now: the cover nearest the throw's projected end, one spring.
+      cfMotion.release(cfGesture.release(e.timeStamp, cancelled || !dragMoved, reduced), e.timeStamp, cfGrid(), reduced);
+      if (reduced) writeCoverflow();
+      startRaf();
     } else if (cancelled || reduced || performance.now() - lastMoveTs > 80) velocity = 0;
     if (cancelled) { pressLink = null; suppressNextClick = true; return; }
     // As on Docs, take focus on release so a mouse/trackpad grab can be
@@ -933,7 +1033,7 @@ export function mountFeaturedRow(
   viewport.addEventListener('focusin', (event) => {
     if (!coverflow || !flow) return;
     const tile = (event.target as Element).closest<HTMLElement>('.ftile:not(.ftile--clone)');
-    if (tile) snapToCover(flow.target(tile));
+    if (tile) snapToCover(flow.target(tile), false);
   }, { signal });
   viewport.addEventListener('blur', () => { delete viewport.dataset.focusBy; }, { signal });
 
@@ -1117,14 +1217,14 @@ export function mountFeaturedRow(
       // Other consumers keep their own queue, paused while their row is off-screen.
       let queueArmed = false;
       const pumpQueue = (): void => {
-        if (destroyed || !onScreen || perfUiOn()) return;
+        if (destroyed || !onScreen || perfUiOn() || cfHolding) return;
         const job = jobs.shift();
         if (!job) return;
         void renderJob(job).finally(() => {
           if (!destroyed && onScreen && !perfUiOn() && jobs.length) ricId = ric(pumpQueue);
         });
       };
-      resumeQueue = (): void => { if (queueArmed && !destroyed && onScreen && !perfUiOn() && jobs.length) ricId = ric(pumpQueue); };
+      resumeQueue = (): void => { if (queueArmed && !destroyed && onScreen && !perfUiOn() && !cfHolding && jobs.length) ricId = ric(pumpQueue); };
       const armQueue = (): void => { if (queueArmed || destroyed || !jobs.length) return; queueArmed = true; ricId = ric(pumpQueue); };
       if (document.readyState === 'complete') ricId = ric(armQueue);
       else window.addEventListener('load', () => ric(armQueue), { once: true, signal });
@@ -1138,7 +1238,7 @@ export function mountFeaturedRow(
     section.classList.toggle('featured--coverflow', coverflow);
     velocity = pendingDx = 0;
     dragging = false;
-    cfMotion.reset(viewport.scrollLeft);
+    stopCoverflow();
     cancelAnimationFrame(raf); raf = 0;
     if (fadeTimer) { clearInterval(fadeTimer); fadeTimer = undefined; }
     if (ricId) { cancelRic(ricId); ricId = 0; }
@@ -1151,8 +1251,9 @@ export function mountFeaturedRow(
       visible = v;
       opts.previewQueue?.wake();
       // Re-measure when re-shown: the row may have been laid out (or the window
-      // resized) while hidden, so the loop's overflow decision can be stale.
-      if (v) setupLoop();
+      // resized) while hidden, so the loop's overflow decision can be stale. A glide
+      // that was under way when the row hid carries on from where its clock is now.
+      if (v) { setupLoop(); if (coverflow && cfMotion.active) startRaf(); }
     },
     setViewMode(mode: FeaturedViewMode) {
       requestedViewMode = mode;
@@ -1160,7 +1261,7 @@ export function mountFeaturedRow(
       if (next === coverflow) return;
       coverflow = next;
       velocity = 0;
-      cfMotion.reset(viewport.scrollLeft);
+      stopCoverflow();
       flickIndex = -1;   // the two modes index differently - don't flick on the switchover
       section.classList.toggle('featured--coverflow', coverflow);
       pendingDx = 0;
@@ -1219,6 +1320,9 @@ export function mountFeaturedRow(
       sizeObserver?.disconnect();
       cancelAnimationFrame(raf);
       cancelAnimationFrame(resizeRaf);
+      clearTimeout(queueResumeT);
+      releaseQueueHold?.();
+      releaseQueueHold = null;
       clearTimeout(relayout);
       clearTimeout(shiftClsTimer);
       if (fadeTimer) clearInterval(fadeTimer);

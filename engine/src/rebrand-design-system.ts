@@ -77,6 +77,12 @@ export interface RebrandDesignSystemInputV1 {
    * pack's own colours before a theme.
    */
   darkColors?: Record<string, string>;
+  /**
+   * The token each theme accent reads when the design system declares colour roles, in
+   * the brand's order (`colourRoleThemeAccents`). Absent otherwise, and not part of the
+   * token hash, which identifies the colours and not their order.
+   */
+  themeAccents?: readonly string[];
 }
 
 /** The input, its snapshot, and the two shapes the first pass and the compile take. */
@@ -126,6 +132,20 @@ export const THEME_SLOT_TOKENS: Readonly<Partial<Record<ThemeSlotV1, string>>> =
   accent3: 'color.semantic.accent',
 });
 
+const ACCENT_SLOTS = ['accent1', 'accent2', 'accent3', 'accent4', 'accent5', 'accent6'] as const;
+
+/**
+ * The slot table for a design system that declares colour roles: the accents read the
+ * brand's own colours in the brand's order, and the three neutrals stay as they are. A
+ * document with none gets `THEME_SLOT_TOKENS` itself, so its theme cannot move.
+ */
+export function themeSlotTokensFor(accents?: readonly string[] | null): Readonly<Partial<Record<ThemeSlotV1, string>>> {
+  if (!accents?.length) return THEME_SLOT_TOKENS;
+  const out: Partial<Record<ThemeSlotV1, string>> = { dk1: THEME_SLOT_TOKENS.dk1, lt1: THEME_SLOT_TOKENS.lt1, dk2: THEME_SLOT_TOKENS.dk2 };
+  ACCENT_SLOTS.forEach((slot, i) => { if (accents[i]) out[slot] = accents[i]; });
+  return Object.freeze(out);
+}
+
 /**
  * The placeholder slot names a slide uses through the master's default colour
  * map. A source colour names `tx1` or `bg1` far more often than `dk1` or `lt1`,
@@ -146,10 +166,11 @@ const THEME_SLOT_ALIAS_NAMES: readonly ThemeSlotAliasV1[] = ['bg1', 'bg2', 'tx1'
  * placeholder aliases (`tx1`, `bg1`, `tx2`, `bg2`) are answered too, with the
  * entry of the slot they stand for.
  */
-export function themeSlotsFromColors(colors: Record<string, string>): Record<string, { hex: string; path?: string }> {
+export function themeSlotsFromColors(colors: Record<string, string>, accents?: readonly string[] | null): Record<string, { hex: string; path?: string }> {
   const out: Record<string, { hex: string; path?: string }> = {};
+  const table = themeSlotTokensFor(accents);
   for (const slot of [...THEME_SLOTS].sort(compareText)) {
-    const tokenPath = THEME_SLOT_TOKENS[slot];
+    const tokenPath = table[slot];
     if (tokenPath === undefined) continue;
     const hex = colors[tokenPath];
     if (typeof hex !== 'string' || hex.length === 0) continue;
@@ -343,7 +364,7 @@ export async function resolveRebrandDesignSystem(raw: RebrandDesignSystemInputV1
   // The solve may still move it for contrast or distinction (see `assignColors`),
   // so a slot colour that cannot hold on the source ground is not an unresolved
   // colour the way a pinned one was.
-  const slots = themeSlotsFromColors(colors);
+  const slots = themeSlotsFromColors(colors, input.themeAccents);
   // The shape also carries its colours, dark mode included, as plain data
   // (`ThemeCarryV1`), so a structured clone posted to a worker is themed the way
   // this realm themes it rather than from its swatches alone.
@@ -353,7 +374,7 @@ export async function resolveRebrandDesignSystem(raw: RebrandDesignSystemInputV1
     fonts: faces,
     master: input.master,
     slots: structuredClone(slots),
-    themeSource: { colors: { ...colors }, ...(input.darkColors ? { darkColors: sortedRecord(input.darkColors) } : {}) },
+    themeSource: { colors: { ...colors }, ...(input.darkColors ? { darkColors: sortedRecord(input.darkColors) } : {}), ...(input.themeAccents?.length ? { themeAccents: [...input.themeAccents] } : {}) },
   };
 
   const tokens = new Map(Object.entries(colors));
@@ -371,6 +392,7 @@ export async function resolveRebrandDesignSystem(raw: RebrandDesignSystemInputV1
     colors,
     master: input.master,
     ...(input.darkColors ? { darkColors: sortedRecord(input.darkColors) } : {}),
+    ...(input.themeAccents?.length ? { themeAccents: [...input.themeAccents] } : {}),
   };
   for (const shape of [result, firstPass, compile]) THEME_SOURCES.set(shape, { source });
   return result;
@@ -403,6 +425,8 @@ export interface ThemeSourceV1 {
   /** The pack's dark mode, when it states one. */
   darkColors?: Record<string, string>;
   master: SlideMasterV1;
+  /** The token each theme accent reads, when the design system declares colour roles. */
+  themeAccents?: readonly string[];
 }
 
 /** A saved look's colours, token path to hex, which a `look` theme lays over the design system for one project. */
@@ -1060,11 +1084,11 @@ function isCompileShape(value: object): value is RenovateDesignSystemV1 {
  * never reads it, and a shape without it falls back to its swatches.
  */
 export interface ThemeCarryV1 {
-  themeSource?: { colors: Record<string, string>; darkColors?: Record<string, string> };
+  themeSource?: { colors: Record<string, string>; darkColors?: Record<string, string>; themeAccents?: readonly string[] };
 }
 
 function carryOf(source: ThemeSourceV1): NonNullable<ThemeCarryV1['themeSource']> {
-  return { colors: sortedRecord(source.colors), ...(source.darkColors ? { darkColors: sortedRecord(source.darkColors) } : {}) };
+  return { colors: sortedRecord(source.colors), ...(source.darkColors ? { darkColors: sortedRecord(source.darkColors) } : {}), ...(source.themeAccents?.length ? { themeAccents: [...source.themeAccents] } : {}) };
 }
 
 function readCarry(system: object): ThemeCarryV1['themeSource'] | undefined {
@@ -1075,7 +1099,8 @@ function readCarry(system: object): ThemeCarryV1['themeSource'] | undefined {
   if (colors === null || typeof colors !== 'object') return undefined;
   const dark = 'darkColors' in carried ? carried.darkColors : undefined;
   const asRecord = (value: object): Record<string, string> => Object.fromEntries(Object.entries(value).filter((entry): entry is [string, string] => typeof entry[1] === 'string'));
-  return { colors: asRecord(colors), ...(dark !== null && typeof dark === 'object' ? { darkColors: asRecord(dark) } : {}) };
+  const accents = 'themeAccents' in carried && Array.isArray(carried.themeAccents) ? carried.themeAccents.filter((path): path is string => typeof path === 'string') : [];
+  return { colors: asRecord(colors), ...(dark !== null && typeof dark === 'object' ? { darkColors: asRecord(dark) } : {}), ...(accents.length ? { themeAccents: accents } : {}) };
 }
 
 /**
@@ -1109,7 +1134,7 @@ function themeFirstPass(system: FirstPassDesignSystemV1, themed: ThemedColorsV1,
     master: shapeMaster(system.master, themed, theme, source),
     themeSource: carryOf(source),
   };
-  if (system.slots) out.slots = themeSlotsFromColors(themed.colors);
+  if (system.slots) out.slots = themeSlotsFromColors(themed.colors, source.themeAccents);
   return out;
 }
 
@@ -1167,7 +1192,7 @@ export function systemForPlan(system: unknown, plan?: ThemedPlanLikeV1 | null, o
       ...system,
       input: { ...system.input, master: shapeMaster(system.input.master, themed, theme, source) },
       snapshot: { ...system.snapshot, theme: structuredClone(theme) },
-      slots: themeSlotsFromColors(themed.colors),
+      slots: themeSlotsFromColors(themed.colors, source.themeAccents),
       firstPass: remember(themeFirstPass(system.firstPass, themed, theme, source)),
       compile: remember(themeCompile(system.compile, themed, theme)),
     });
