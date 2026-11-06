@@ -36,9 +36,11 @@ handoff with one named owner.
 - **The former id, kept as an alias.** The design system shipped as
   `lolly/tokens/opal` from 16 October 2026, after its palette. Asset ids
   are permanent, so that entry stays in the index with `"deprecated": true` and
-  `"replacedBy": "lolly/tokens/demo"`, reading the same `demo.json`: a saved
-  reference to the old id still resolves, while discovery, the asset browser and
-  queries only offer `lolly/tokens/demo`. The alias comes after the design system
+  `"replacedBy": "lolly/tokens/demo"`. It reads `opal.json`, a byte-for-byte copy of
+  `demo.json`, because Lolly Work needs each catalog file to have one owning id, and
+  `tests/tokens-head.test.ts` fails when the two differ, so copy `demo.json` over it
+  after any edit. A saved reference to the old id still resolves, while discovery, the
+  asset browser and queries only offer `lolly/tokens/demo`. The alias comes after the design system
   in the index and has no `brand` tag, because the CLI, the MCP server and the
   share-card builder pick the first tokens asset by index order or by that tag;
   `validate:catalog` fails when those readers would disagree with `brandTokens`.

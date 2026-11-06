@@ -72,13 +72,19 @@ test('Lolly Demo ships as lolly/tokens/demo with lolly/tokens/opal kept as a dep
   assert.equal(opal.deprecated, true);
   assert.equal(opal.replacedBy, 'lolly/tokens/demo');
   assert.ok(!opal.tags?.includes('brand'));
-  // One file answers both ids, so the alias can never drift from the design system.
-  assert.deepEqual(opal.formats, demo.formats);
+  // Each id owns its file, because Lolly Work refuses two owners for one path. The alias
+  // still reads the design system itself, so its file is held to the same bytes here.
   const format = demo.formats![0]!;
+  const alias = opal.formats![0]!;
   assert.equal(format.url, '/catalog/assets/lolly/tokens/demo.json');
+  assert.equal(alias.url, '/catalog/assets/lolly/tokens/opal.json');
   const bytes = readFileSync(join(ROOT, 'brands/lolly-demo/catalog/assets/lolly/tokens/demo.json'));
   assert.equal(format.checksum, `sha256-${createHash('sha256').update(bytes).digest('base64')}`);
-  assert.equal(existsSync(join(ROOT, 'brands/lolly-demo/catalog/assets/lolly/tokens/opal.json')), false);
+  assert.equal(alias.checksum, format.checksum);
+  assert.deepEqual(
+    readFileSync(join(ROOT, 'brands/lolly-demo/catalog/assets/lolly/tokens/opal.json')), bytes,
+    'demo.json changed: copy it over opal.json so a saved reference to the old id reads the same design system, then run pnpm run build:catalog:all',
+  );
   // Every reader picks the same asset: index order, the brand tag and a
   // query, which leaves deprecated assets out (host.assets.query on web and Node).
   assert.equal(pickHeadAssetId(all.map(asset => asset.id)), 'lolly/tokens/demo');
