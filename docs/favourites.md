@@ -58,7 +58,7 @@ The same star works on a **utility** card in the Utilities view - Lolly Verify, 
 Open **View options** and, under **Favourites**, choose how the strip itself looks:
 
 - **Gallery** - a slow, calm filmstrip that drifts sideways on its own and pauses the moment you touch the strip.
-- **Cover Flow** - the same tiles fanned out in 3-D, one centred and upright, the rest tucked back at an angle; drag or flick through them, then press **Open** on whichever one is centred.
+- **Cover Flow** - the same tiles fanned out in 3-D, one centred and upright, the rest tucked back at an angle; drag or flick through them, then press **Open** on whichever one is centred. A sideways trackpad swipe moves the covers with your fingers, a mouse wheel that scrolls sideways steps one cover per notch, and the arrow keys, Home and End work too.
 
 A new install opens on Cover Flow at every screen width, and the fan works with touch as well as a mouse. Once you pick one yourself, Lolly remembers your choice.
 

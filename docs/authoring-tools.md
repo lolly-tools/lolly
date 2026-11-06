@@ -86,7 +86,7 @@ Only `tool.json` and `template.html` are required. Add the others when the tool 
 | `templates/` | Curated starting points. | [Tool templates](/info/tool-starters.html) |
 | `i18n/<lang>.json` | Translated labels, help and options. | [Publish and localize a tool](/info/tool-publishing.html#localizing-a-tool) |
 | `SKILL.md`, `skill.json`, `skill/` | Guidance for agents that use the tool. | [Tool skills](/info/tool-skills.html) |
-| `intents.json` | The purposes the tool serves. Without this file the tool is not offered for an intent. | [Tool manifests](/info/tool-manifest.html#what-a-tool-is-for-intentsjson) |
+| `intents.json` | The purposes the tool serves. Without this file the tool is not offered for an intent. | [Tool manifests](/info/tool-manifest.html#what-a-tool-is-for-intents-json) |
 | `lib/` | Vendored scripts and data the tool loads. | |
 | `assets/` | Tool-local images and fonts. | [Assets and file utilities](/info/tool-files.html) |
 
