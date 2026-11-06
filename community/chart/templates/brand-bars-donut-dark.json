@@ -1,0 +1,28 @@
+{
+  "id": "brand-bars-donut-dark",
+  "name": "Brand donut, dark",
+  "category": "Brand",
+  "description": "The same donut for a dark ground: the first slices take colours that show on it.",
+  "values": {
+    "renderMode": "vector",
+    "chartType": "donut",
+    "chartStyle": "technical",
+    "data": "Category,Value\nA,46\nB,68\nC,58\nD,95",
+    "colorBy": "category",
+    "palette": "ordered",
+    "heading": "",
+    "subheading": "",
+    "showAxes": false,
+    "showGrid": false,
+    "showLegend": false,
+    "showValues": false,
+    "transparentBg": true,
+    "cornerRadius": 6,
+    "differentiate": "colour",
+    "donutRadius": 0.62,
+    "sliceGap": 2,
+    "palette1": "{color.semantic.secondary}",
+    "palette2": "{color.semantic.surface}"
+  },
+  "galleryTheme": "dark"
+}
