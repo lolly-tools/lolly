@@ -164,7 +164,7 @@ The answer has the shape in [Reading the answer](/info/visual-intent.html#readin
 
 - A tool appears only when the caller may render that tool: the `render` scope, `tool.use`, `export.server`, the token's tool list and tool visibility all apply. A hidden tool appears nowhere in the answer, and preferring one reads like preferring a tool that does not exist.
 - A tool appears only when this deployment and tool policy leave it a format. Many tools with a declared purpose lay out HTML or run hooks, so an instance with no render worker offers few of them and can answer `refused`. Discovery's `unavailable` says which tools need the worker.
-- A tool with no [`intents.json`](/info/tool-manifest.html#what-a-tool-is-for-intentsjson) is not offered.
+- A tool with no [`intents.json`](/info/tool-manifest.html#what-a-tool-is-for-intents-json) is not offered.
 - A locked or hidden input is never filled. Content meant for one is listed in `unused`, and a role that needs one is met when the server holds a value.
 - Choices narrow to what policy allows. A purpose or a declared surface that depends on a value this caller may not set is not offered. An input limited to a list of values can be filled from an intent only when it is a `select`.
 
