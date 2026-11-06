@@ -548,6 +548,66 @@ test('buildCmykPaletteMap: an ordinary spot ink is byte-identical to before', ()
   assert.deepEqual(process.get(cmykKey(1, 0, 0)), { cmyk: [0, 1, 1, 0] });
 });
 
+// ── Spots as process (engine 1.320, ExportOpts.spotsAsProcess) ───────────────
+// Opt-in. Every declared spot INK becomes the process build its /Separation would
+// have named as the alternate; a FINISH keeps its plate, because its alternate is
+// the black mask and printing that would be the very failure the mask exists to show.
+
+test('buildCmykPaletteMap: spotsAsProcess writes an ink as the alternate its Separation names', () => {
+  const palette = [
+    { hex: '#0C322C', spot: { name: 'Pine' } },                                   // spot only: press build
+    { hex: '#FF0000', cmyk: [0, 100, 100, 0], spot: { name: 'Warm Red' } },       // declared build wins
+    { hex: '#C9A227', spot: { name: 'Gold', finish: 'foil' as const } },          // a finish keeps its plate
+    { hex: '#00FF00', cmyk: [60, 0, 100, 0] },                                     // plain process lock
+  ];
+  const kept = buildCmykPaletteMap(palette);
+  const flat = buildCmykPaletteMap(palette, rgbToCmyk, { spotsAsProcess: true });
+  const pine = cmykKey(0x0C / 255, 0x32 / 255, 0x2C / 255);
+  const gold = cmykKey(0xC9 / 255, 0xA2 / 255, 0x27 / 255);
+  // The ink's process build is exactly its Separation's alternate (tint 1 = spot.cmyk).
+  assert.deepEqual(flat.get(pine), { cmyk: kept.get(pine)!.spot!.cmyk });
+  assert.deepEqual(flat.get(cmykKey(1, 0, 0)), { cmyk: [0, 1, 1, 0] });
+  // The finish is untouched: same spot hit, same mask alternate, same finish.
+  assert.deepEqual(flat.get(gold), kept.get(gold));
+  assert.equal(flat.get(gold)!.spot!.finish, 'foil');
+  // A process lock was never a spot and stays as it was.
+  assert.deepEqual(flat.get(cmykKey(0, 1, 0)), kept.get(cmykKey(0, 1, 0)));
+  // No ink is left to become a named plate; only the finish is.
+  assert.deepEqual([...assignSpotResourceNames(flat).keys()], ['Gold']);
+});
+
+test('buildCmykPaletteMap: spotsAsProcess uses the press separation it is handed', () => {
+  const press = (): [number, number, number, number] => [0.11, 0.22, 0.33, 0.44];
+  const flat = buildCmykPaletteMap([{ hex: '#0C322C', spot: { name: 'Pine' } }], press, { spotsAsProcess: true });
+  assert.deepEqual(flat.get(cmykKey(0x0C / 255, 0x32 / 255, 0x2C / 255)), { cmyk: [0.11, 0.22, 0.33, 0.44] });
+});
+
+test('buildCmykPaletteMap: the option absent or false gives the map it always gave', () => {
+  const palette = [
+    { hex: '#0C322C', spot: { name: 'Pine' } },
+    { hex: '#FF0000', cmyk: [0, 100, 100, 0], spot: { name: 'Warm Red' } },
+    { hex: '#C9A227', spot: { name: 'Gold', finish: 'emboss' as const } },
+  ];
+  const before = buildCmykPaletteMap(palette);
+  assert.deepEqual(buildCmykPaletteMap(palette, rgbToCmyk, {}), before);
+  assert.deepEqual(buildCmykPaletteMap(palette, rgbToCmyk, { spotsAsProcess: false }), before);
+});
+
+test('substitutePdfRgb: with spotsAsProcess an ink writes DeviceCMYK and a finish still overprints its plate', () => {
+  const map = buildCmykPaletteMap([
+    { hex: '#0C322C', spot: { name: 'Pine' } },
+    { hex: '#C9A227', spot: { name: 'Gold', finish: 'foil' } },
+  ], rgbToCmyk, { spotsAsProcess: true });
+  const spotNames = assignSpotResourceNames(map);
+  const usedSpots = new Set<string>();
+  const [c, m, y, k] = rgbToCmyk(0x0C / 255, 0x32 / 255, 0x2C / 255);
+  const ink = substitutePdfRgb('0.05 0.2 0.17 rg', map, spotNames, undefined, usedSpots);
+  assert.equal(ink, `/GSfk gs ${cmykN(c)} ${cmykN(m)} ${cmykN(y)} ${cmykN(k)} k`);
+  const finish = substitutePdfRgb('0.79 0.64 0.15 rg', map, spotNames, undefined, usedSpots);
+  assert.equal(finish, '/GSfo gs /CS1 cs 1 scn');
+  assert.deepEqual([...usedSpots], ['Gold']);
+});
+
 test('buildCmykPaletteMap: an unrecognised finish is honoured, not discarded', () => {
   // FinishKind is an OPEN union (host-v1): a house process must behave like any
   // other finish, never like an error and never like a plain ink.

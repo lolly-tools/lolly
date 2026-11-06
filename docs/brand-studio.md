@@ -221,7 +221,7 @@ Click a swatch to open its editor:
 - **Set the colour** on OKLCH sliders, or in **Hex**, **HSL**, **RGB** or **CMYK**. The value field reads and writes in the active space. CMYK here sets the screen colour by conversion; to pin exact inks, use **Print substitutes**.
 - **Stored as** chooses how the swatch is saved: **LCH** (the default, perceptual and wide-gamut), Hex, RGB or HSL.
 - **Use as** gives the swatch a role directly, in the design system's own words where it has them. Press a highlighted role again to clear the role.
-- **Print substitutes** (folded): lock **CMYK** from **Auto** to exact ink values, or set a **Spot colour** with a **Name** (such as `PANTONE 186 C`), an optional **Book** and a **Finish** for foil, emboss, deboss, spot varnish, soft touch or a die cut, crease or perforation. A press uses these locks when you export a CMYK PDF or TIFF; see [Colour profiles](/info/exporting.html#colour-profiles).
+- **Print substitutes** (folded): lock **CMYK** from **Auto** to exact ink values, or set a **Spot colour** with a **Name** (such as `PANTONE 186 C`), an optional **Book** and a **Finish** for foil, emboss, deboss, spot varnish, soft touch or a die cut, crease or perforation. A press uses these locks when you export a CMYK PDF or TIFF; see [Colour profiles](/info/exporting.html#colour-profiles). A spot ink prints on its own plate in a Print PDF; to print every spot ink in process for one export, see [Spot inks as process](/info/exporting.html#spot-inks-as-process).
 - **In other spaces** (folded): a value per colour space, derived or authored by you, and an authored one wins at export.
 
 **Deleting a swatch** is safe. Derived shades and theme roles are hidden, so nothing that reads them breaks, while colours you added are removed.

@@ -37,6 +37,9 @@ const EXPECTED: readonly string[] = [
   'DXF_LIMITS', 'DXF_MAX_BOXES', 'DxfDesignResult', 'DxfImport', 'DxfImportOptions', 'DxfRaw', 'DxfReader',
   'DxfReport', 'DxfStroke', 'DxfText', 'DxfUnits',
   'aciToHex', 'dxfReportLines', 'dxfToDesign', 'dxfUnits', 'flattenDxf', 'importDxf', 'looksLikeDxf',
+  // Additive 1.320 spots as process: the CMYK palette's opt-in to print every spot ink in process,
+  // and the `_spots` URL param that asks for the choice.
+  'CmykPaletteOptions', 'SpotsSetting', 'parseSpots',
   // Additive 1.297 press separation: RGB to CMYK through a press profile, and its raster lattice.
   'CmykSeparation', 'DEVICE_SEPARATION', 'NEUTRAL_EPSILON', 'SeparateRgb', 'iccSeparation', 'separationLattice',
   // Additive 1.293 canvas size: the one conversion every shell hands a tool's hooks and template.

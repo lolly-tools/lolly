@@ -6,6 +6,12 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+## 1.320.0
+
+- Spots as process, an opt-in export choice for the CMYK formats. `ExportOpts.spotsAsProcess` (host-v1, optional) and `buildCmykPaletteMap(palette, separate, { spotsAsProcess })` (new `CmykPaletteOptions`) write every declared spot ink as its process alternate: the swatch's own CMYK lock, or the press conversion of its colour, which is the value the ink's /Separation already named as its alternate. A Print PDF then has the four process plates and nothing more. A declared finish (foil, emboss, deboss, spot varnish, soft touch, die cut, crease, perforation) is not an ink and keeps its own named plate, because converting it would print its black mask.
+- New reserved URL param `_spots`, read by `parseUrlState` into `spots` and written by `serializeUrlState` from `spots`; `parseSpots` is exported. Only `_spots=process` turns the choice on: absence and every other value keep the spot plates. Minted in the `_` namespace, so no tool input can collide with it.
+- Off by default. With the option absent, `buildCmykPaletteMap` returns the same map as before and every CMYK file keeps its bytes. The Print TIFF and EPS (CMYK) already write each ink as its process build, since they have no named plates, so the choice changes only the Print PDF today. Nothing is recorded about the choice: no metadata, no content credential entry and no export card line.
+
 ## 1.319.0
 
 - `host.text.toPath`: a `fallbackFonts` entry may carry `fill: true`, a face that draws only what every face before it cannot, the way a browser falls back to a later family in a `font-family` list. With one in the chain, the run is split by grapheme cluster and each cluster goes to the first face that maps all of it, so an earlier face keeps every character it can draw; a space goes to the first face that maps it, as in Chrome. A chain with no `fill` face splits exactly as before, so every existing outline keeps its bytes.

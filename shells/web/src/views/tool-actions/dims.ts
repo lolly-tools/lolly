@@ -17,7 +17,7 @@ import { bumpMetric } from '../../metrics.js';
 import { convertExportDimensionFields, exportPixelSize, type ExportDimensionOpts } from '../export-dimension-fields.ts';
 import { aspectWarning } from '../export-size.js';
 import type { RunExportOpts } from '../tool.ts';
-import { printEnabled } from './shared.ts';
+import { printEnabled, spotsAsProcessChecked } from './shared.ts';
 import { bindOp, type ActionsCtx } from './context.ts';
 
 export const dimDpi = (ta: ActionsCtx): number => {
@@ -181,11 +181,16 @@ export function wireFidelityWarning(ta: ActionsCtx): void {
 // so an ordinary PDF stays trim-sized with no marks.
 export function printOpts(ta: ActionsCtx): RunExportOpts {
   const { el } = ta;
-  if (!printEnabled(el)) return {};
+  // Spot inks as process sits in the Colour profile card, not the marks card, so it
+  // rides whether or not marks and bleed are on. Off writes nothing, which is what
+  // keeps every existing CMYK export byte-identical.
+  const spots: RunExportOpts = spotsAsProcessChecked(el) ? { spotsAsProcess: true } : {};
+  if (!printEnabled(el)) return spots;
   const mm = parseFloat(
     el!.querySelector<HTMLInputElement>('[data-action="print-bleed"]')?.value ?? ''
   );
   return {
+    ...spots,
     bleed: mm > 0 ? `${mm}mm` : undefined,
     cropMarks: el!.querySelector<HTMLInputElement>('[data-action="mark-crop"]')?.checked ?? false,
     registrationMarks:

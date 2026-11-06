@@ -135,7 +135,7 @@ const C2PA_DAYS = [0, 7, 30, 90, 365];
 // web shell's isDurableFmt (views/tool-actions.ts). The embed itself runs in the web
 // shell's export path, so a durable export always routes via the Tier-B browser.
 const DURABLE_FMTS = ['png', 'jpg', 'jpeg', 'webp', 'avif', 'tiff'];
-type ExportKey = 'format' | 'width' | 'height' | 'unit' | 'dpi' | 'filename' | 'folder' | 'madewith' | 'c2pa' | 'imprint' | 'durable' | 'password' | 'bleed' | 'marks' | 'pressProfile';
+type ExportKey = 'format' | 'width' | 'height' | 'unit' | 'dpi' | 'filename' | 'folder' | 'madewith' | 'c2pa' | 'imprint' | 'durable' | 'password' | 'bleed' | 'marks' | 'pressProfile' | 'spots';
 // Export-settings rows. `cycle` fields step with ←/→; `text` fields open an editor.
 const EXPORT_FIELDS: Array<{ key: ExportKey; label: string; kind: 'cycle' | 'text' }> = [
   { key: 'format', label: 'Format', kind: 'cycle' },
@@ -155,7 +155,12 @@ const EXPORT_FIELDS: Array<{ key: ExportKey; label: string; kind: 'cycle' | 'tex
   { key: 'bleed', label: 'Bleed', kind: 'text' },
   { key: 'marks', label: 'Print marks', kind: 'text' },
   { key: 'pressProfile', label: 'Press profile', kind: 'text' },
+  // Spot inks as process (engine 1.320): off keeps each spot ink on its own plate in a
+  // Print PDF. On prints them in process; finishes keep their plates either way.
+  { key: 'spots', label: 'Spot inks', kind: 'cycle' },
 ];
+// The formats whose output the Spot inks row can change: the CMYK ones.
+const CMYK_FMTS = ['pdf-cmyk', 'cmyk-tiff', 'eps-cmyk'];
 
 const TOOL_SHORTCUTS: Shortcut[] = [{ key: 'tab', label: 'panel' }, { key: 'j/k', label: 'move' }, { key: '⏎/e', label: 'edit' },
        { key: '←→', label: 'cycle' }, { key: 'x', label: 'export' }, { key: 's', label: 'save' },
@@ -250,6 +255,7 @@ export function ToolView({ toolId, query, values, fromLink = false, session, bri
   const [madeWithOn, setMadeWithOn] = useState(true);  // design-system record (plans/319) - on by default, opt-out per export
   const [madeWithLine, setMadeWithLine] = useState(''); // the words that record writes, '' when there is nothing to record
   const [durableOn, setDurableOn] = useState(false);   // opt-in durable (TrustMark) credential - raster only, Tier-B
+  const [spotsProcess, setSpotsProcess] = useState(false); // spot inks as process (`_spots=process`) - opt-in, CMYK only
   const [filename, setFilename] = useState('');
   const [password, setPassword] = useState('');   // standard PDF open-password (from ?password= or typed)
   const [linkKnobs, setLinkKnobs] = useState<string[]>([]);   // export knobs a share link pre-set (shown in the panel)
@@ -451,6 +457,7 @@ export function ToolView({ toolId, query, values, fromLink = false, session, bri
         // `_madewith=0` in a link leaves the design-system record out; absent records the system.
         setMadeWithOn(rv.madeWith !== false);
         setDurableOn(Boolean(rv.durable));
+        setSpotsProcess(rv.spots === 'process');
         setFilename(rv.filename ? rv.filename : slug(m.manifest.name ?? toolId));
         setPassword(rv.password ?? '');
         // Print-prep from the link (pdf/pdf-cmyk/cmyk-tiff via the Tier-B web shell).
@@ -468,6 +475,7 @@ export function ToolView({ toolId, query, values, fromLink = false, session, bri
           rv.unit && 'unit', rv.dpi != null && 'dpi', rv.c2pa?.on && 'credential',
           rv.password && 'password', rv.filename && 'filename', rv.lang && `lang ${rv.lang}`,
           rv.bleed && 'bleed', rv.marks && 'marks', rv.durable && 'durable', rv.profile && 'press',
+          rv.spots === 'process' && 'spot inks as process',
         ].filter(Boolean) as string[];
         setLinkKnobs(knobs);
         const hookErr = m.runtime.hookErrors[0];
@@ -805,6 +813,9 @@ export function ToolView({ toolId, query, values, fromLink = false, session, bri
         // overstate an unconditional in-pixel mark. Raster formats mark every pixel.
         ? (imprintOn ? (isImprintContainerFormat(fmt) ? 'on · embedded images only' : 'on · in-pixel mark') : 'off')
         : (imprintOn ? 'on (formats with pixels only)' : 'no pixels to mark');
+      case 'spots': return CMYK_FMTS.includes(fmt)
+        ? (spotsProcess ? 'as process · finishes keep their plates' : 'own plates')
+        : (spotsProcess ? 'as process (CMYK formats only)' : 'CMYK formats only');
       case 'durable': return DURABLE_FMTS.includes(fmt)
         ? (durableOn ? 'on · in-pixel mark' : 'off')
         : (durableOn ? 'on (raster formats only)' : 'raster only');
@@ -950,7 +961,7 @@ export function ToolView({ toolId, query, values, fromLink = false, session, bri
     const positive = (raw: string) => { const n = Number(raw); return Number.isFinite(n) && n > 0 ? n : undefined; };
     return { format: fmt, width: positive(width), height: positive(height), unit, dpi: positive(dpi),
       filename, c2pa: !!C2PA_DAYS[c2paIdx], c2paDays: C2PA_DAYS[c2paIdx], imprint: imprintOn, madeWith: madeWithOn,
-      durable: durableOn, ...linkPrint, profile: linkPrint.pressProfile };
+      durable: durableOn, ...linkPrint, profile: linkPrint.pressProfile, ...(spotsProcess ? { spots: 'process' as const } : {}) };
   }
   const snapshotQuery = runtime ? currentQuery(runtime, documentOptions()) : '';
   useEffect(() => { if (runtime && !loading && cleanQuery.current === null) cleanQuery.current = snapshotQuery; }, [runtime, loading, snapshotQuery]);
@@ -1022,6 +1033,8 @@ export function ToolView({ toolId, query, values, fromLink = false, session, bri
       password: password || undefined,
       // Print-prep carried from a share link (no TUI rows yet) - honoured on the Tier-B tier.
       ...linkPrint,
+      // Spot inks as process: only a request travels (`_spots=process`), CMYK formats only.
+      ...(spotsProcess && CMYK_FMTS.includes(fmt) ? { spotsAsProcess: true } : {}),
     };
     const inBytes = fileRef?.size;   // transform utilities: for the before→after headline
     (async () => {
@@ -1332,6 +1345,7 @@ export function ToolView({ toolId, query, values, fromLink = false, session, bri
         else if (f.key === 'imprint') setImprintOn(v => !v);
         else if (f.key === 'madewith') setMadeWithOn(v => !v);
         else if (f.key === 'durable') setDurableOn(v => !v);
+        else if (f.key === 'spots') setSpotsProcess(v => !v);
         return;
       }
       if ((key.return || input === 'e') && f.kind === 'text') { setDraft(exportFieldValue(f.key)); setMode('editing'); }

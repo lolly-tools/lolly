@@ -138,7 +138,7 @@ function serveDist(): Promise<Served> {
 
 // Reserved params we set ourselves on the export URL. Cleared from the inbound query
 // first so the export dims/format/password win over anything the saved session encoded.
-const EXPORT_URL_RESERVED = ['_keepinlinedc2pa', 'format', 'export', 'copy', 'width', 'w', 'height', 'h', 'unit', 'dpi', 'password', 'bleed', 'marks', 'imprint', 'durable', 'profile', 'c2pa', 'preview', 'options', 'fps', 'seconds', 'wait', 'codec', 'vq', 'hdr', 'depth', 'cuts', 'sampletimes', 'motionblur', 'seqrange'];
+const EXPORT_URL_RESERVED = ['_keepinlinedc2pa', 'format', 'export', 'copy', 'width', 'w', 'height', 'h', 'unit', 'dpi', 'password', 'bleed', 'marks', 'imprint', 'durable', 'profile', 'c2pa', 'preview', 'options', 'fps', 'seconds', 'wait', 'codec', 'vq', 'hdr', 'depth', 'cuts', 'sampletimes', 'motionblur', 'seqrange', '_spots'];
 
 export function exportUrl(base: string, toolId: string, query: string, fmt: string, dims: RenderDims): string {
   const p = new URLSearchParams(query);
@@ -170,6 +170,8 @@ export function exportUrl(base: string, toolId: string, query: string, fmt: stri
   // travels (plans/319): --no-madewith reaches the browser tier as `_madewith=0`.
   if (dims.madeWith === false) p.set('_madewith', '0');
   if (dims.pressProfile) p.set('profile', dims.pressProfile);    // URL 'profile' = CMYK press condition
+  // Spot inks as process for the CMYK formats: opt-in, so only the request travels.
+  if (dims.spotsAsProcess) p.set('_spots', 'process');
   // Content Credentials: forward the setting so the web shell is the single c2pa authority
   // for the browser tier (the Node post-stamp is skipped when this path ran; see run.ts /
   // engine-render.ts, which avoids the pre-existing double-stamp).
@@ -373,6 +375,9 @@ export interface RenderDims extends ProductionBrowserOptions {
   /** CMYK press condition (e.g. "fogra39") for pdf-cmyk / cmyk-tiff. Named distinctly
    *  from the CLI's --profile (the user-profile FILE) to avoid the url-mode collision. */
   pressProfile?: string;
+  /** Print every declared spot ink as its process build in the CMYK formats, forwarded
+   *  as `_spots=process`. Absent or false writes nothing, so the spot plates stay. */
+  spotsAsProcess?: boolean;
   /** Content Credentials: true/off/undefined. undefined ⇒ the web shell's tool default. */
   c2pa?: boolean | null;
   /** The design-system record (plans/319). `false` = the explicit opt-out, forwarded as

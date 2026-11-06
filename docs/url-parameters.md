@@ -103,9 +103,12 @@ Each of `fps`, `seconds`, `wait`, `codec` and `vq` is the URL form of a control 
 | `bleed` | web + CLI (browser tier) | Bleed for `pdf`, `pdf-cmyk` and `cmyk-tiff`, as a dimension such as `3mm` or `0.125in`. [How to use](/info/url-export.html#print-ready-output) |
 | `marks` | web + CLI (browser tier) | Print marks for the same formats, as a list of `crop`, `reg`, `bleed`, `bars` and `prov`. |
 | `profile` | web + CLI | The colour profile. For `png` and `jpg`, `srgb` (the default) embeds an sRGB profile and `none` leaves it out. For `pdf-cmyk` and `cmyk-tiff`, the press condition, such as `fogra51`, or `own` to embed a CMYK profile loaded on this device. |
+| `_spots` | web + CLI (`--spots=process`) + MCP (`spots: "process"`) | How the CMYK formats print the design system's spot inks. Off by default, so each spot ink prints on its own named plate. `_spots=process` prints each spot ink with the four process inks instead. Finishes keep their own plates. [Exporting](/info/exporting.html#spot-inks-as-process) |
 
-::: details More on profile
+::: details More on profile and _spots
 For the print formats, a named condition such as `fogra51` is written into the PDF's output intent without profile bytes, because no CMYK ICC profile ships with Lolly, and recorded in the TIFF's provenance. `profile=own` embeds a CMYK profile loaded on the device the link is opened on, which a conformant PDF/X-4 Print PDF needs; [Print-ready output](/info/url-export.html#print-ready-output) covers what else can withhold that claim. `own` resolves only when exactly one such profile is loaded; otherwise it writes no output intent and declares nothing. A profile's digest never travels in a link: which profile is embedded, and so the file's size, is the recipient device's business.
+
+**`_spots=process`** writes each spot ink as the CMYK build the design system gives that colour. A colour with no build of its own takes the press condition's conversion, the same as any other colour in the artwork. The Print PDF then has the four process plates and nothing more. A finish such as foil, emboss, spot varnish or a die line is not an ink, so it keeps its own named plate. Printing a finish in process would put its black mask on the page. The Print TIFF and `eps-cmyk` have no named plates, so they print each ink in process with or without this parameter. Only `process` turns the choice on: any other value, or none, keeps the spot plates. The choice travels in a share link, like `profile`, and is not recorded in the file.
 :::
 
 ## Provenance and metadata
