@@ -280,13 +280,16 @@ test('fills the pathways, sidebar, sitemap and TOC nav slots', async () => {
   assert.equal(toc.hidden, false, 'the TOC slot is shown once the content has >= 2 h2 sections');
   const tocLinks = toc.querySelectorAll('.docs-toc a.is-h2[data-contents-target]');
   assert.equal(tocLinks.length, 3, 'one TOC entry per stamped h2 heading');
-  // The same contents as the floating button narrower down (packages/docs-render contents.ts).
-  const control = view.querySelector<HTMLElement>(':scope > .doc-contents');
-  assert.ok(control, 'no floating Contents control for the narrow layout');
-  assert.equal(control!.querySelector('.doc-contents-btn')?.textContent?.trim(), 'Contents');
-  assert.equal(control!.querySelectorAll('#docContentsPanel .docs-toc-list a[data-contents-target]').length, 3);
-  // The section's pages ride in the panel, with no phone disclosures above the article.
-  assert.ok(control!.querySelector('.doc-contents-section .docs-compact-list a'), "the panel lost the section's pages");
+  // The page bar carries the same contents below 1100px (packages/docs-render contents.ts),
+  // at the top of the reader, before the article: no floating button at the bottom.
+  const bar = view.querySelector<HTMLElement>('[data-reader] > .doc-pagebar');
+  assert.ok(bar, 'no page bar for the narrow layout');
+  assert.ok(bar!.nextElementSibling?.classList.contains('docs-reader-grid'), 'the bar sits right above the article grid');
+  assert.equal(view.querySelector('.doc-contents:not(.doc-pagebar)'), null, 'a floating Contents control came back');
+  assert.equal(bar!.querySelector('.doc-pagebar-btn')?.getAttribute('aria-expanded'), 'false');
+  assert.equal(bar!.querySelectorAll('#docContentsPanel .docs-toc-list a[data-contents-target]').length, 3, 'the sheet lists the page\'s sections');
+  assert.ok(bar!.querySelector('.doc-sheet-sections a.docs-pathway'), 'the sheet lists the documentation sections');
+  assert.ok(bar!.querySelector('.doc-sheet-group .docs-compact-list a'), "the sheet lost the section's pages");
   assert.equal(view.querySelector('.docs-compact-nav'), null, 'the old phone disclosures came back');
 
   view.remove();
@@ -378,7 +381,7 @@ const BAND_PAGE_HTML = `<!doctype html><html><head><title>Quickstart - Lolly</ti
     </div></details>
   </header>
   <div class="docs-masthead"><div class="docs-mast-inner">
-    <nav class="docs-pathways" aria-label="Documentation sections"><a class="docs-pathway docs-pathway-home" href="/info/de/index.html">Willkommen</a><a class="docs-pathway active" href="/info/de/start/quickstart.html" aria-current="page">Schnellstart</a><a class="docs-pathway" href="/info/de/create/creators.html">Für Kreative</a></nav>
+    <nav class="docs-pathways" aria-label="Documentation sections"><a class="docs-pathway active" href="/info/de/start/quickstart.html" aria-current="page">Schnellstart</a><a class="docs-pathway" href="/info/de/create/creators.html">Für Kreative</a></nav>
     <div class="mast-title"><h1 id="quickstart">Schnellstart</h1><div class="docs-edition-bar"><a class="docs-edition" href="/info/editions/quickstart.pdf">PDF</a></div></div>
   </div></div>
   <div class="docs-wrap">
@@ -391,7 +394,23 @@ const BAND_PAGE_HTML = `<!doctype html><html><head><title>Quickstart - Lolly</ti
   </div>
 </body></html>`;
 
-test('adopts the built pathways strip, links rewritten, with its Welcome tab and current section', async () => {
+test('a right-to-left page reads right to left in the reader, whatever the app language', async () => {
+  // #/docs/ar/... used to lay Arabic out left to right: the reader took the app's direction.
+  stubOkFetch(PAGE_HTML.replace('<html>', '<html lang="ar" dir="rtl">'));
+  const view = freshView();
+  await mountDocs(view, host, 'quickstart', 'ar', '');
+  const reader = view.querySelector<HTMLElement>('[data-reader]')!;
+  assert.equal(reader.getAttribute('dir'), 'rtl');
+  assert.equal(reader.getAttribute('lang'), 'ar');
+  view.remove();
+  stubOkFetch();
+  const ltr = freshView();
+  await mountDocs(ltr, host, 'quickstart', 'de', '');
+  assert.equal(ltr.querySelector('[data-reader]')!.getAttribute('dir'), 'ltr', 'a left-to-right page states its direction too');
+  ltr.remove();
+});
+
+test('adopts the built pathways strip, links rewritten, with its current section', async () => {
   stubOkFetch(BAND_PAGE_HTML);
   const view = freshView();
 
@@ -400,10 +419,11 @@ test('adopts the built pathways strip, links rewritten, with its Welcome tab and
   const strip = view.querySelector<HTMLElement>('[data-pathways] nav.docs-pathways')!;
   assert.ok(strip, 'the strip is the built element, adopted into the pathways slot');
   const tabs = [...strip.querySelectorAll<HTMLAnchorElement>('a.docs-pathway')];
-  assert.deepEqual(tabs.map((a) => a.textContent), ['Willkommen', 'Schnellstart', 'Für Kreative'], 'the build\'s own tabs and words, not a rebuilt list');
-  assert.deepEqual(tabs.map((a) => a.getAttribute('href')), ['#/docs/index', '#/docs/start/quickstart', '#/docs/create/creators'], 'the tabs route inside the app');
-  assert.ok(tabs[1]!.classList.contains('active') && tabs[1]!.getAttribute('aria-current') === 'page', 'the current section rides across');
-  assert.ok(tabs[0]!.classList.contains('docs-pathway-home'), 'the Welcome tab keeps the class the landing marks active');
+  assert.deepEqual(tabs.map((a) => a.textContent), ['Schnellstart', 'Für Kreative'], 'the build\'s own tabs and words, not a rebuilt list');
+  assert.deepEqual(tabs.map((a) => a.getAttribute('href')), ['#/docs/start/quickstart', '#/docs/create/creators'], 'the tabs route inside the app');
+  assert.ok(tabs[0]!.classList.contains('active') && tabs[0]!.getAttribute('aria-current') === 'page', 'the current section rides across');
+  // The bar takes the section from the strip and the page from its title.
+  assert.equal(view.querySelector('.doc-pagebar-section')?.textContent, 'Schnellstart');
   // The rail slot takes the real rail, never the phone menu's copy of it (which comes first in the page).
   assert.ok(view.querySelector('[data-sidebar] aside.docs-sidebar'), 'the rail is the aside, not the sheet\'s compact list');
   // The band's title row gives the article its h1 alone: the print edition stays behind.
@@ -419,14 +439,15 @@ test('a landing that carries its strip in a band of its own shows it once, in th
   // inside <main class="docs-landing">; the phone menu's copy is a plain group, not a nav.
   const html = LANDING_HTML
     .replace('<nav class="nav-group">', '<header class="site-bar"><div class="site-sheet-sections" role="group" aria-label="Documentation sections"><a class="docs-pathway" href="/info/de/start/quickstart.html">Schnellstart</a></div></header><nav class="nav-group">')
-    .replace('<section class="hero reveal">', '<div class="docs-strip-band docs-strip-band--flow"><div class="docs-mast-inner"><nav class="docs-pathways" aria-label="Documentation sections"><a class="docs-pathway docs-pathway-home active" href="/info/de/index.html" aria-current="page">Willkommen</a><a class="docs-pathway" href="/info/de/start/quickstart.html">Schnellstart</a></nav></div></div><section class="hero reveal">');
+    .replace('<section class="hero reveal">', '<div class="docs-strip-band docs-strip-band--flow"><div class="docs-mast-inner"><nav class="docs-pathways" aria-label="Documentation sections"><a class="docs-pathway" href="/info/de/start/quickstart.html">Schnellstart</a><a class="docs-pathway" href="/info/de/create/creators.html">Für Kreative</a></nav></div></div><section class="hero reveal">');
   stubOkFetch(html);
   const view = freshView();
 
   await mountDocs(view, host, 'index', 'de', '');
 
   const tabs = [...view.querySelectorAll<HTMLAnchorElement>('[data-pathways] a.docs-pathway')].map((a) => a.textContent);
-  assert.deepEqual(tabs, ['Willkommen', 'Schnellstart'], 'the slot adopts the band\'s strip, not the menu\'s rows');
+  assert.deepEqual(tabs, ['Schnellstart', 'Für Kreative'], 'the slot adopts the band\'s strip, not the menu\'s rows');
+  assert.equal(view.querySelector('.doc-pagebar'), null, 'the landing has its own quicknav and no page bar');
   assert.equal(view.querySelector('[data-content] .docs-strip-band'), null, 'the band is dropped from the rehosted landing, so the strip shows once');
   assert.equal(view.querySelectorAll('nav.docs-pathways').length, 1, 'exactly one strip on screen');
 

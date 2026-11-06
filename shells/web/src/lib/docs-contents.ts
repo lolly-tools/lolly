@@ -1,17 +1,17 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
  * A page's contents, for both readers: the rail beside the article on a wide screen and
- * the floating "Contents" button everywhere narrower (markup from packages/docs-render
- * contents.ts, styles in styles/parts/docs-chrome.css). The in-app reader imports this
+ * the page bar ("Create v Export a file") with its one sheet everywhere narrower (markup
+ * from packages/docs-render contents.ts, styles in styles/parts/docs-chrome.css). The in-app reader imports this
  * module (views/docs.ts) and docs/build.ts bundles the same file into the /info page
  * script, so the two readers open, close and follow the page the same way.
  *
  * What it does:
  *   - marks the section being read in every list (`aria-current="location"`), and keeps
  *     that row in view inside a rail that scrolls on its own;
- *   - opens and closes the floating panel. Escape closes it and returns focus to the
- *     button; so does choosing a row. A press outside, or focus moving out, closes it
- *     without taking focus anywhere. Escape is only taken while the panel is open.
+ *   - opens and closes the page bar's sheet. Escape closes it and returns focus to the
+ *     button. Choosing any link in the sheet closes the sheet. A press outside, or focus moving out,
+ *     closes it without taking focus anywhere. Escape is only taken while it is open.
  *   - in the app only, hands a row's click to `jump`, which scrolls the reader's own
  *     view: there the address is the route, so a bare `#id` must stay out of the address.
  *
@@ -22,7 +22,7 @@
 export interface DocsContentsOptions {
   /** The article the links point into. */
   article: ParentNode;
-  /** The element holding the rail and the floating control (the page, or the reader). */
+  /** The element holding the rail and the page bar (the page, or the reader). */
   root: ParentNode;
   /** In the app: scroll to the heading with this id ('' is the top of the page) and
    *  answer whether it did. On /info this is absent and the browser follows the link. */
@@ -32,7 +32,7 @@ export interface DocsContentsOptions {
   readingLine?: () => number;
 }
 
-/** Wire the page's contents lists and floating control. Returns the function that
+/** Wire the page's contents lists and the page bar. Returns the function that
  *  removes every listener it added. A page with no contents is a no-op. */
 export function enhanceDocsContents(o: DocsContentsOptions): () => void {
   const doc = (o.root as Node).ownerDocument ?? (o.root as Document);
@@ -96,13 +96,11 @@ export function enhanceDocsContents(o: DocsContentsOptions): () => void {
     const a = (me.target as Element | null)?.closest?.('a[data-contents-target]') as HTMLAnchorElement | null;
     if (!a || me.defaultPrevented) return;
     if (me.metaKey || me.ctrlKey || me.shiftKey || me.altKey || me.button > 0) return;
-    const inPanel = !!control && control.contains(a);
-    if (inPanel) close(false);
-    if (o.jump && o.jump(a.dataset.contentsTarget || '')) me.preventDefault();
+    if (o.jump?.(a.dataset.contentsTarget || '')) me.preventDefault();
   };
   listen(o.root, 'click', onRow);
 
-  // ── The floating control ──────────────────────────────────────────────────────
+  // ── The page bar and its sheet ───────────────────────────────────────────────
   const btn = control?.querySelector<HTMLButtonElement>('.doc-contents-btn') ?? null;
   const panel = control?.querySelector<HTMLElement>('.doc-contents-panel') ?? null;
   const isOpen = (): boolean => !!panel && !panel.hidden;
@@ -111,7 +109,11 @@ export function enhanceDocsContents(o: DocsContentsOptions): () => void {
     panel.hidden = false;
     btn.setAttribute('aria-expanded', 'true');
     mark();
-    const first = panel.querySelector<HTMLAnchorElement>('a[aria-current]') ?? panel.querySelector<HTMLAnchorElement>('a');
+    // The section being read first, then the first of this page's headings, then the
+    // first link at all (a page with no headings opens on the sections).
+    const first = panel.querySelector<HTMLAnchorElement>('a[aria-current="location"]')
+      ?? panel.querySelector<HTMLAnchorElement>('a[data-contents-target]')
+      ?? panel.querySelector<HTMLAnchorElement>('a');
     first?.focus({ preventScroll: true });
     // The current row may sit below the panel's fold.
     if (first) keepInView(first);
@@ -134,6 +136,11 @@ export function enhanceDocsContents(o: DocsContentsOptions): () => void {
     }, { capture: true });
     listen(doc, 'pointerdown', (e) => {
       if (isOpen() && !control.contains(e.target as Node)) close(false);
+    });
+    // Any link chosen in the sheet closes it: a heading scrolls this page, a section or
+    // page opens another one.
+    listen(panel, 'click', (e) => {
+      if ((e.target as Element | null)?.closest?.('a')) close(false);
     });
     listen(control, 'focusout', (e) => {
       const next = (e as FocusEvent).relatedTarget as Node | null;

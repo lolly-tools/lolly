@@ -127,11 +127,11 @@ export function extractContactFooter(doc: Document): HTMLElement | null {
 }
 
 /**
- * The PATHWAYS strip (Welcome · Quickstart · For Creators · For Builders · For Operators
+ * The PATHWAYS strip (the documentation sections: Start · Create · Automate · Manage
  * · Trust). Since plan 277 step 3c the built page carries the strip itself -
  * `nav.docs-pathways`, at the top of an article's masthead band, or in the phone menu on
  * a page with no band - so the reader adopts that very element, links rewritten like
- * the rail's: both readers show one strip, with the build's Welcome tab, `.active` and
+ * the rail's: both readers show one strip, with the build's `.active` and
  * `aria-current`. A page built before then (an older cache, a pinned build) has only the
  * old top bar's `.nav-group` anchors, which are rebuilt into the same strip as before.
  */
@@ -146,14 +146,8 @@ export function extractPathways(doc: Document): HTMLElement | null {
   const bar = document.createElement('nav');
   bar.className = 'docs-pathways';
   bar.setAttribute('aria-label', t('Documentation sections'));
-  // The front door itself, ahead of the pathway hubs (Andy, 2026-08-17): the strip
-  // used to start at Quickstart with no way back to the docs home the footer "What?"
-  // pill lands on. views/docs.ts marks it active when the reader IS on the landing.
-  const home = document.createElement('a');
-  home.className = 'docs-pathway docs-pathway-home';
-  home.textContent = t('Welcome');
-  home.setAttribute('href', '#/docs/index');
-  bar.appendChild(home);
+  // The sections only, as the built strip carries them since plan 354 D2: the docs front
+  // door is the bottom bar's Docs button, not a tab.
   for (const src of anchors) {
     const a = document.createElement('a');
     a.className = 'docs-pathway';

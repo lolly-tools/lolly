@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 // The page's contents, as both readers show them: a rail beside the article on a wide
-// screen, and one floating "Contents" button with a panel everywhere narrower. Pure
+// screen, and the page bar with its one sheet everywhere narrower. Pure
 // string assembly over a list of headings, so docs/build.ts writes the markup into the
 // static page and the in-app reader (shells/web/src/views/docs.ts) writes the same
 // markup from the article it has just rehosted. Behaviour (opening, closing, marking the
@@ -22,10 +22,6 @@ export interface ContentsHeading {
 export interface ContentsLabels {
   /** The list's name: "On this page". */
   title: string;
-  /** The floating button's visible word: "Contents". */
-  button: string;
-  /** The last row of the panel: "Back to top". */
-  top: string;
 }
 
 /** A rail or panel is worth showing from two sections up: one section is not a list. */
@@ -46,30 +42,50 @@ export function contentsRailHtml(headings: readonly ContentsHeading[], labels: C
     + `<ul class="docs-toc-list">${linksHtml(headings)}</ul></nav>`;
 }
 
-export interface ContentsControlOpts {
+export interface PageBarOpts {
+  /** The section the page sits in, in the strip's own word ("Create"). */
+  section: string;
+  /** The page's own title, or '' on a section's own hub page. */
+  page: string;
+  /** This page's headings; the sheet lists the sections (level 2). */
   headings: readonly ContentsHeading[];
-  labels: ContentsLabels;
-  /** Trusted SVG markup for the button's glyph. */
-  glyph: string;
-  /** Trusted markup for a second group after the sections (the app's "pages in this
-   *  section", which has no other home on a phone). Empty on /info. */
-  extra?: string;
+  labels: ContentsLabels & {
+    /** The accessible name of the sections list: "Documentation sections". */
+    sections: string;
+  };
+  /** Trusted markup: the documentation sections as links (the strip's own anchors). */
+  sectionsHtml: string;
+  /** Trusted markup: this section's pages, with the current one marked, and its title. */
+  pages: { title: string; html: string } | null;
+  /** Trusted SVG markup for the disclosure chevron. */
+  chevron: string;
 }
 
 /**
- * The floating control: a labelled button and the panel it opens. Sections only (no
- * subsections), so the panel reads in one glance on a phone. The panel is `hidden`
- * until the button opens it; the button points at the panel through aria-controls.
+ * The page bar: one line under the top row on a phone or a narrow window, reading
+ * "Create v Export a file", that opens one sheet holding every way around the docs:
+ * the sections, this page's headings (the one being read marked) and this section's
+ * pages. It replaces the pathways strip and the rail where they do not fit, so the
+ * article starts high and the ways around stay one press away at any scroll. The
+ * button's words are its accessible name; the sheet is `hidden` until it opens.
  */
-export function contentsControlHtml(o: ContentsControlOpts): string {
+export function pageBarHtml(o: PageBarOpts): string {
   const sections = o.headings.filter((h) => h.level === 2);
-  return `<div class="doc-contents" data-doc-contents>`
-    + `<button type="button" class="doc-contents-btn" aria-expanded="false" aria-controls="docContentsPanel">`
-    + `<span class="doc-contents-glyph" aria-hidden="true">${o.glyph}</span><span>${esc(o.labels.button)}</span></button>`
+  const page = o.page && o.page !== o.section
+    ? `<span class="doc-pagebar-page">${esc(o.page)}</span>` : '';
+  const onPage = sections.length >= 2
+    ? `<nav class="doc-sheet-group" aria-label="${escAttr(o.labels.title)}"><p class="doc-contents-title" aria-hidden="true">${esc(o.labels.title)}</p>`
+      + `<ul class="docs-toc-list">${linksHtml(sections)}</ul></nav>`
+    : '';
+  const pages = o.pages
+    ? `<nav class="doc-sheet-group" aria-label="${escAttr(o.pages.title)}"><p class="doc-contents-title" aria-hidden="true">${esc(o.pages.title)}</p>${o.pages.html}</nav>`
+    : '';
+  return `<div class="doc-pagebar" data-doc-contents>`
+    + `<button type="button" class="doc-contents-btn doc-pagebar-btn" aria-expanded="false" aria-controls="docContentsPanel">`
+    + `<span class="doc-pagebar-section">${esc(o.section)}</span>`
+    + `<span class="doc-pagebar-chev" aria-hidden="true">${o.chevron}</span>${page}</button>`
     + `<div class="doc-contents-panel" id="docContentsPanel" hidden>`
-    + `<nav aria-label="${escAttr(o.labels.title)}"><p class="doc-contents-title" aria-hidden="true">${esc(o.labels.title)}</p>`
-    + `<ul class="docs-toc-list">${linksHtml(sections)}</ul></nav>`
-    + (o.extra ?? '')
-    + `<a class="doc-contents-top" href="#top" data-contents-target="">${esc(o.labels.top)}</a>`
+    + `<nav class="doc-sheet-sections" aria-label="${escAttr(o.labels.sections)}">${o.sectionsHtml}</nav>`
+    + onPage + pages
     + `</div></div>`;
 }

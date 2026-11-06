@@ -9,7 +9,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { JSDOM } from 'jsdom';
-import { contentsRailHtml, contentsControlHtml } from '../../../../packages/docs-render/src/contents.ts';
+import { contentsRailHtml, pageBarHtml } from '../../../../packages/docs-render/src/contents.ts';
 
 const dom = new JSDOM('<!doctype html><html><body></body></html>', { url: 'https://lolly.tools/info/create/using.html' });
 const w = dom.window;
@@ -19,7 +19,7 @@ Object.assign(globalThis, { window: w, document: w.document, Element: w.Element,
 
 const { enhanceDocsContents } = await import('./docs-contents.ts');
 
-const labels = { title: 'On this page', button: 'Contents', top: 'Back to top' };
+const labels = { title: 'On this page' };
 const heads = [
   { id: 'one', text: 'One', level: 2 as const },
   { id: 'one-a', text: 'One A', level: 3 as const },
@@ -31,7 +31,8 @@ function page(tops: Record<string, number>) {
   const d = w.document;
   d.body.innerHTML = `<main class="docs-content"><h2 id="one">One</h2><h3 id="one-a">One A</h3><h2 id="two">Two</h2></main>`
     + contentsRailHtml(heads, labels)
-    + contentsControlHtml({ headings: heads, labels, glyph: '' });
+    + pageBarHtml({ section: 'Create', page: 'Using Lolly', headings: heads, labels: { ...labels, sections: 'Documentation sections' },
+      sectionsHtml: '<a class="docs-pathway active" href="#/docs/creators" aria-current="true">Create</a>', pages: null, chevron: '' });
   for (const [id, top] of Object.entries(tops)) {
     (d.getElementById(id) as HTMLElement).getBoundingClientRect = () => ({ top, bottom: top + 20, left: 0, right: 0, width: 0, height: 20, x: 0, y: top, toJSON: () => ({}) });
   }
@@ -40,10 +41,10 @@ function page(tops: Record<string, number>) {
 }
 const current = (d: Document) => [...d.querySelectorAll('a[aria-current="location"]')].map((a) => a.getAttribute('data-contents-target'));
 
-test('the section above the reading line is marked in the rail and the panel', () => {
+test('the section above the reading line is marked in the rail and the sheet', () => {
   const { d, article } = page({ one: -400, 'one-a': 50, two: 900 });
   const off = enhanceDocsContents({ article, root: d, readingLine: () => 100 });
-  // The rail marks the subsection; the panel lists sections only, so it marks the section.
+  // The rail marks the subsection; the sheet lists sections only, so it marks the section.
   assert.deepEqual(current(d), ['one-a', 'one']);
   off();
 });
@@ -55,7 +56,7 @@ test('nothing is marked above the first section', () => {
   off();
 });
 
-test('the panel opens on the button, closes on Escape and gives focus back', () => {
+test('the sheet opens on the bar, closes on Escape and gives focus back', () => {
   const { d, article } = page({ one: -400, 'one-a': -200, two: 50 });
   const off = enhanceDocsContents({ article, root: d, readingLine: () => 100 });
   const btn = d.querySelector('.doc-contents-btn') as HTMLButtonElement;
@@ -77,7 +78,7 @@ test('the panel opens on the button, closes on Escape and gives focus back', () 
   off();
 });
 
-test('a press outside closes the panel', () => {
+test('a press outside closes the sheet', () => {
   const { d, article } = page({ one: 0, 'one-a': 0, two: 0 });
   const off = enhanceDocsContents({ article, root: d });
   (d.querySelector('.doc-contents-btn') as HTMLButtonElement).click();
@@ -109,11 +110,16 @@ test('in the app a row goes to jump, which takes the click; on /info the browser
   off2();
 });
 
-test('choosing a row in the panel closes it', () => {
+test('choosing a heading or a section in the sheet closes it', () => {
   const { d, article } = page({ one: 0, 'one-a': 0, two: 0 });
   const off = enhanceDocsContents({ article, root: d, jump: () => true });
   (d.querySelector('.doc-contents-btn') as HTMLButtonElement).click();
   (d.querySelector('#docContentsPanel a[data-contents-target="one"]') as HTMLAnchorElement).click();
+  assert.equal((d.getElementById('docContentsPanel') as HTMLElement).hidden, true);
+  (d.querySelector('.doc-contents-btn') as HTMLButtonElement).click();
+  const section = d.querySelector('#docContentsPanel .docs-pathway') as HTMLAnchorElement;
+  section.addEventListener('click', (e) => e.preventDefault()); // jsdom would navigate
+  section.click();
   assert.equal((d.getElementById('docContentsPanel') as HTMLElement).hidden, true);
   off();
 });

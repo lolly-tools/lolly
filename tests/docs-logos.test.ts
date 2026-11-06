@@ -234,20 +234,23 @@ test('the markdown twin carries no logo markers', { skip: built }, () => {
   assert.match(twin, /k3s/);
 });
 
-// ─── the page's contents (rail + floating button) ────────────────────────────
+// ─── the page's contents (rail + page bar) ───────────────────────────────────
 
-test('a page with sections gets the contents rail and button, and a one-section page does not', { skip: built }, () => {
+test('a page with sections gets the contents rail, and every docs page gets the page bar', { skip: built }, () => {
   const long = readFileSync(builtPage('host-api'), 'utf-8');
   assert.match(long, /<div class="docs-wrap docs-wrap--rail">/, 'host-api has sections but no rail column');
   assert.match(long, /<div class="docs-onpage"><nav class="docs-toc" aria-label="On this page">/);
-  assert.match(long, /data-doc-contents/, 'no floating Contents control');
-  assert.match(long, /class="doc-contents-btn" aria-expanded="false" aria-controls="docContentsPanel"/);
+  assert.match(long, /<div class="doc-pagebar" data-doc-contents><button type="button" class="doc-contents-btn doc-pagebar-btn" aria-expanded="false" aria-controls="docContentsPanel">/);
   assert.match(long, /<div class="doc-contents-panel" id="docContentsPanel" hidden>/);
   assert.match(long, /href="#rules-of-the-contract" data-contents-target="rules-of-the-contract"/, 'the contents do not list the page h2 anchors');
-  assert.match(long, /class="doc-contents-top" href="#top"/, 'no Back to top entry');
-  // trust.html is short, but it has sections: short pages get their contents too now.
-  const short = readFileSync(builtPage('trust'), 'utf-8');
-  assert.match(short, /data-doc-contents/, 'a short page with sections lost its contents');
+  // The bar comes before the band, at the top of the page, not floating at the bottom.
+  assert.ok(long.indexOf('class="doc-pagebar"') < long.indexOf('class="docs-masthead"'), 'the bar is not above the band');
+  assert.ok(!/class="doc-contents"[ >]|doc-jump/.test(long), 'a floating contents control came back');
+  // Where the bar is, the phone menu keeps only the site's own controls.
+  const menu = /<div class="site-sheet">[\s\S]*?<\/details>/.exec(long)?.[0] ?? '';
+  assert.ok(!/site-sheet-sections|docs-compact-nav/.test(menu), 'the menu still repeats the sections and pages the bar holds');
+  // trust.html is short, but it has sections: short pages get their contents too.
+  assert.match(readFileSync(builtPage('trust'), 'utf-8'), /docs-wrap--rail/, 'a short page with sections lost its rail');
 });
 
 test('the contents ship on locale pages too', { skip: built }, () => {
@@ -259,11 +262,11 @@ test('the contents ship on locale pages too', { skip: built }, () => {
   assert.match(marks, /<span class="doc-logo"/, 'the marks do not survive the locale build');
 });
 
-test('the contents rail is placed only from 1180px, and the button steps back there', { skip: built }, () => {
+test('the contents rail takes over from the page bar at 1100px', { skip: built }, () => {
   const css = linked(readFileSync(builtPage('build-kubernetes'), 'utf-8'), 'css');
   assert.ok(css.length > 1000, 'the linked stylesheet is missing or empty');
   assert.match(css, /\.docs-onpage\{display:none\}/, 'the rail shows at every width');
-  assert.match(css, /@media\(min-width:1180px\)\{[^]*?\.page-has-rail \.doc-contents\{display:none\}/, 'the button stays beside the rail');
+  assert.match(css, /@media\(min-width:1100px\)\{\s*\.doc-pagebar\{display:none\}/, 'the bar stays beside the rail');
 });
 
 test('the contents script closes on Escape, returns focus and leaves the move to the browser', { skip: built }, () => {

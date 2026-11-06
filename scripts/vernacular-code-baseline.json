@@ -787,7 +787,7 @@
   "shells/web/src/lib/display-gamut.ts": 3,
   "shells/web/src/lib/docs-formats.ts": 2,
   "shells/web/src/lib/docs-landing.ts": 3,
-  "shells/web/src/lib/docs-nav.ts": 2,
+  "shells/web/src/lib/docs-nav.ts": 1,
   "shells/web/src/lib/docs-rehost.ts": 1,
   "shells/web/src/lib/docs-tryit.ts": 1,
   "shells/web/src/lib/dom-penpot.ts": 4,

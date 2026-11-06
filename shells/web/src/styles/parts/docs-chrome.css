@@ -7,7 +7,7 @@
      - the round top-row button (.site-fab on /info, .docs-top-btn in the app),
        sized on the top-row height (--chrome-h), so it is exactly as tall as
        the home pill and the app's own back pill beside it;
-     - the pathways strip (Welcome and the five documentation sections), which
+     - the pathways strip (the documentation sections), which
        /info builds and the in-app reader adopts from the fetched page;
      - the compact lists inside the two disclosures (the section's pages and On
        this page): the in-app reader's phone navigation and the /info menu;
@@ -164,10 +164,11 @@ html[data-a11y-motion="reduce"] .docs-top-btn:active { transform: none; }
 /* ── The page's contents ────────────────────────────────────────────────────
    Markup from packages/docs-render contents.ts, behaviour from lib/docs-contents.ts,
    both readers. Two forms of one list: the rail beside the article on a wide
-   screen, and a floating "Contents" button with a panel everywhere narrower. Each
+   screen, and the page bar's sheet everywhere narrower. Each
    surface decides where they sit and at which width each one shows (docs.css in
    the app, the site stylesheet in docs/build.ts); this is how they look. The row
-   being read carries aria-current="location" and .active. */
+   being read carries aria-current="location" and .active. The rail starts at 1100px
+   on both surfaces; below that the page bar holds the same list in its sheet. */
 .docs-toc-head {
   margin: 0 0 0.65rem;
   font: 700 calc(0.68rem * var(--a11y-fs, 1)) / 1 var(--font-mono, ui-monospace, monospace);
@@ -198,38 +199,51 @@ html[data-a11y-motion="reduce"] .docs-top-btn:active { transform: none; }
   border-inline-start-color: var(--ui-color-action-primary);
 }
 
-/* The floating control. A labelled pill in the same glass as the top-row buttons,
-   at least 44px tall for a finger, the word beside the glyph so nobody guesses. */
-.doc-contents-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
+/* The page bar: one line under the top row ("Create v Export a file") opening one
+   sheet with the sections, this page's headings and this section's pages. Sticky,
+   on the canvas at most of its strength with one hairline under it, so the article
+   passes beneath it. Each surface decides where it sits and below which width it
+   shows (docs.css, the site stylesheet in docs/build.ts). */
+.doc-pagebar {
+  position: sticky;
+  z-index: 40;
   box-sizing: border-box;
-  min-height: max(44px, var(--chrome-h, 44px));
-  padding: 0 1rem;
+  padding: 6px 0;
+  background: color-mix(in srgb, var(--ui-color-surface-canvas) 92%, transparent);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  box-shadow: 0 1px 0 var(--ui-color-border-default);
+}
+.doc-pagebar-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 44px;
+  padding: 0 0.75rem;
   border: 1px solid var(--ui-color-border-default);
   border-radius: var(--radius-pill, 999px);
-  background: color-mix(in srgb, var(--ui-color-surface-canvas) 90%, transparent);
+  background: var(--ui-color-surface-raised);
   color: var(--ui-color-text-default);
-  -webkit-backdrop-filter: blur(8px);
-  backdrop-filter: blur(8px);
-  box-shadow: var(--ui-elevation-floating);
-  font: 600 calc(0.9375rem * var(--a11y-fs, 1)) / 1 var(--font-brand, system-ui, sans-serif);
+  font: 400 calc(0.9375rem * var(--a11y-fs, 1)) / 1.2 var(--font-brand, system-ui, sans-serif);
+  text-align: start;
   cursor: pointer;
 }
-.doc-contents-btn:hover { background: var(--ui-color-surface-muted); }
-.doc-contents-btn:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 2px; }
-.doc-contents-btn[aria-expanded="true"] { border-color: var(--ui-color-action-primary); }
-.doc-contents-glyph { display: inline-flex; }
-.doc-contents-glyph svg { width: calc(18px * var(--a11y-fs, 1)); height: calc(18px * var(--a11y-fs, 1)); }
+.doc-pagebar-btn:hover { background: var(--ui-color-surface-muted); }
+.doc-pagebar-btn:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 2px; }
+.doc-pagebar-btn[aria-expanded="true"] { border-color: var(--ui-color-action-primary); }
+.doc-pagebar-section { flex: none; font-weight: 600; }
+.doc-pagebar-chev { flex: none; display: inline-flex; color: var(--ui-color-text-muted); transform: rotate(90deg); transition: transform var(--ui-motion-feedback); }
+.doc-pagebar-btn[aria-expanded="true"] .doc-pagebar-chev { transform: rotate(270deg); }
+.doc-pagebar-chev svg { width: calc(16px * var(--a11y-fs, 1)); height: calc(16px * var(--a11y-fs, 1)); }
+.doc-pagebar-page { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--ui-color-text-muted); }
 .doc-contents-panel {
   position: absolute;
-  inset-inline-end: 0;
-  bottom: calc(100% + 0.5rem);
+  inset-inline: 0;
+  top: calc(100% + 0.25rem);
   box-sizing: border-box;
-  width: min(22rem, calc(100vw - 2rem));
-  max-height: min(70vh, 34rem);
-  max-height: min(70dvh, 34rem);
+  max-height: min(72dvh, 40rem);
   overflow-y: auto;
   overscroll-behavior: contain;
   padding: 0.5rem;
@@ -241,6 +255,10 @@ html[data-a11y-motion="reduce"] .docs-top-btn:active { transform: none; }
   text-align: start;
 }
 .doc-contents-panel[hidden] { display: none; }
+/* The sections, as a wrap of text tabs: the strip's own links, current one marked. */
+.doc-sheet-sections { display: flex; flex-wrap: wrap; gap: 0.25rem 1.1rem; padding: 0.35rem 0.6rem 0.6rem; }
+.doc-sheet-sections .docs-pathway { min-height: 32px; display: inline-flex; align-items: center; }
+.doc-sheet-group { margin-top: 0.25rem; padding-top: 0.25rem; border-top: 1px solid var(--ui-color-border-default); }
 .doc-contents-title,
 .doc-contents-panel .sidebar-label,
 .doc-contents-panel .sidebar-pathway {
@@ -252,7 +270,7 @@ html[data-a11y-motion="reduce"] .docs-top-btn:active { transform: none; }
   color: var(--ui-color-text-muted);
 }
 .doc-contents-panel .docs-toc-list { border: 0; }
-.doc-contents-panel :is(.docs-toc-link, .doc-contents-top, .docs-compact-list a) {
+.doc-contents-panel :is(.docs-toc-link, .docs-compact-list a) {
   display: flex;
   align-items: center;
   gap: 0.55rem;
@@ -268,24 +286,23 @@ html[data-a11y-motion="reduce"] .docs-top-btn:active { transform: none; }
   line-height: 1.35;
   text-decoration: none;
 }
-.doc-contents-panel :is(.docs-toc-link, .doc-contents-top, .docs-compact-list a):hover { background: var(--ui-color-surface-muted); }
+.doc-contents-panel :is(.docs-toc-link, .docs-compact-list a):hover { background: var(--ui-color-surface-muted); }
 .doc-contents-panel .docs-toc-link[aria-current] { background: var(--ui-color-selection-surface); font-weight: 600; }
-.doc-contents-top { margin-top: 0.25rem; color: var(--ui-color-text-muted); }
-.doc-contents-panel .doc-contents-top { border-top: 1px solid var(--ui-color-border-default); border-radius: 0; color: var(--ui-color-text-muted); }
-.doc-contents-section { margin-top: 0.5rem; padding-top: 0.25rem; border-top: 1px solid var(--ui-color-border-default); }
 @media (prefers-reduced-motion: no-preference) {
   .doc-contents-panel:not([hidden]) {
     animation: doc-contents-in var(--ui-motion-overlay, 160ms) var(--ui-motion-standard, ease-out) both;
-    transform-origin: bottom right;
   }
-  [dir="rtl"] .doc-contents-panel:not([hidden]) { transform-origin: bottom left; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .doc-pagebar-chev { transition: none; }
 }
 html[data-a11y-motion="reduce"] .doc-contents-panel:not([hidden]) { animation: none; }
-@keyframes doc-contents-in { from { opacity: 0; transform: translateY(6px) scale(0.98); } }
+html[data-a11y-motion="reduce"] .doc-pagebar-chev { transition: none; }
+@keyframes doc-contents-in { from { opacity: 0; transform: translateY(-4px); } }
 /* Tracking pulls a joined script apart (Arabic, Urdu) and breaks conjuncts (Hindi,
-   Bengali), so the two small headings set their letters at the font's own spacing
+   Bengali), so the small headings set their letters at the font's own spacing
    there, in the body face rather than the monospace. */
-:is([dir="rtl"], :lang(hi), :lang(bn)) :is(.docs-toc-head, .doc-contents-title) {
+:is([dir="rtl"], :lang(hi), :lang(bn)) :is(.docs-toc-head, .doc-contents-title, .doc-contents-panel .sidebar-label) {
   letter-spacing: normal;
   font-family: inherit;
 }

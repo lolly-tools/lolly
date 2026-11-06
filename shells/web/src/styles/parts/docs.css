@@ -567,34 +567,46 @@
 .docs-contact-slot .founded-badge img { display: block; width: 15em; max-width: 100%; height: auto; }
 .docs-contact-slot .docs-license { margin: .5rem 0 0; font-size: calc(.6875rem * var(--a11y-fs, 1)); font-weight: 300; line-height: 1.6; }
 
-/* responsive: fold the rails away on narrow screens. The page's contents move to the
-   floating Contents button there, and the section's pages ride in its panel. */
-@media (max-width: 1024px) {
-  .docs-reader-grid { grid-template-columns: minmax(0, 1fr); }
-  .docs-sidebar-slot,
+/* responsive: the pages rail folds away at 1024px and below, the contents rail below
+   1100px (plan 354: "On this page" from 1100px on both surfaces). Below 1100px the
+   page bar carries both lists in its sheet. */
+@media (max-width: 1099px) {
+  .docs-reader-grid { grid-template-columns: 14rem minmax(0, 1fr); }
   .docs-toc-slot { display: none; }
 }
-
-/* The floating Contents button (packages/docs-render contents.ts; its look and panel are
-   docs-chrome.css's, shared with /info). It shows wherever the rail does not: at 1024px
-   and below, and in full-width reading, which folds the rails away. It rides above the
-   app's bottom bar (--docs-bar-lift, measured by views/docs.ts) and drops with it when
-   the bar steps away on a phone. */
-.docs-view > .doc-contents {
-  display: none;
-  position: fixed;
-  z-index: 49;
-  /* The bar's height already holds the home-indicator inset; with the bar away, the
-     inset itself. The keyboard lift moves it with the bar. */
-  bottom: calc(12px + max(var(--docs-bar-lift, 0px), var(--safe-bottom)) + var(--vv-bottom, 0px));
-  inset-inline-end: calc(16px + var(--safe-right));
-  transition: bottom var(--ui-motion-overlay) var(--ui-motion-standard);
-}
-.docs-reader--wide ~ .doc-contents { display: block; }
 @media (max-width: 1024px) {
-  .docs-view > .doc-contents { display: block; }
-  /* The last lines of the article clear the button. */
-  .docs-content { padding-bottom: 6rem; }
+  .docs-reader-grid { grid-template-columns: minmax(0, 1fr); }
+  .docs-sidebar-slot { display: none; }
+}
+
+/* The page bar (packages/docs-render contents.ts; its look and sheet are
+   docs-chrome.css's, shared with /info): sticky under the app's top row below 1100px,
+   above the bottom bar so an open sheet is never under it. The headings it jumps to
+   clear the row and the bar. */
+.docs-reader > .doc-pagebar {
+  top: calc(var(--chrome-top) + var(--chrome-h) + 0.5rem + var(--vv-top, 0px));
+  z-index: 51;
+  margin-bottom: 0.5rem;
+}
+@media (min-width: 1100px) {
+  .docs-reader > .doc-pagebar { display: none; }
+}
+@media (max-width: 1099px) {
+  .docs-content h2[id], .docs-content h3[id], .docs-content h4[id] {
+    scroll-margin-top: calc(var(--chrome-top) * 2 + var(--chrome-h) + 4.5rem);
+  }
+}
+/* On a phone the bar's sheet carries the sections, so the strip goes and the page
+   opens on the bar, the title and the first paragraph. */
+@media (max-width: 640px) {
+  .docs-reader:has(> .doc-pagebar) { padding-top: calc(var(--chrome-top) + var(--chrome-h) + 0.5rem); }
+  .docs-reader:has(> .doc-pagebar) > .docs-pathways-slot { display: none; }
+  .docs-reader:has(> .doc-pagebar) .docs-content { padding-top: 1rem; }
+  .docs-reader:has(> .doc-pagebar) .docs-content h1 {
+    font-size: calc(2.1rem * var(--a11y-fs, 1));
+    margin-bottom: 1rem;
+    padding-bottom: 1rem;
+  }
 }
 
 /* The ground under the top row (views/docs.ts sets [data-scrolled] once the page has
@@ -626,14 +638,12 @@
 }
 @media (prefers-reduced-motion: reduce) {
   html[data-docs-reading] .gallery-footer,
-  .docs-view > .doc-contents,
   .docs-top-ground { transition: none; }
 }
 html[data-a11y-motion="reduce"][data-docs-reading] .gallery-footer,
-html[data-a11y-motion="reduce"] .docs-view > .doc-contents,
 html[data-a11y-motion="reduce"] .docs-top-ground { transition: none; }
 
-/* The rail's link to the docs front door, renamed Welcome in the app (views/docs.ts):
+/* The rail's link to the docs front door, called Docs in the app (views/docs.ts):
    its arrow points back toward the inline start in either direction. */
 [dir="rtl"] .docs-sidebar-home-arrow { display: inline-block; transform: scaleX(-1); }
 

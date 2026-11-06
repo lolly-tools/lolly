@@ -43,6 +43,6 @@ export {
   type NoteKind, type ComponentKind, type NoteParts, type DetailsParts, type CodeParts,
 } from './components.ts';
 export {
-  hasContents, contentsRailHtml, contentsControlHtml,
-  type ContentsHeading, type ContentsLabels, type ContentsControlOpts,
+  hasContents, contentsRailHtml, pageBarHtml,
+  type ContentsHeading, type ContentsLabels, type PageBarOpts,
 } from './contents.ts';

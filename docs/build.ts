@@ -86,7 +86,7 @@ import {
   mdToHtml as pkgMdToHtml,
   hasContents,
   contentsRailHtml,
-  contentsControlHtml,
+  pageBarHtml,
   type ContentsHeading,
   type DocsRenderContext,
   type CredentialFacts,
@@ -628,9 +628,9 @@ const MASTHEADS: Record<string, string> = {
   'mcp': 'mcp',                             // one port, bidirectional call-and-return (Fable 5)
 };
 
-// The documentation sections, in the order the pathways strip shows them (pathwaysStrip,
-// after its Welcome tab). The inner arrays are the clusters the old top bar divided;
-// the strip reads them flat. Home is the strip's Welcome tab, not an entry here.
+// The documentation sections, in the order the pathways strip shows them
+// (pathwaysStrip). The inner arrays are the clusters the old top bar divided; the strip
+// reads them flat. The docs front door is not a section and has no entry here.
 interface NavLink {
   label: string;
   href: string;
@@ -3290,13 +3290,17 @@ section[id]{scroll-margin-top:calc(var(--site-bar-h) + 2.65rem)}
 .site-launch:hover{text-decoration:none}
 .site-launch svg{width:calc(15px * var(--a11y-fs));height:calc(15px * var(--a11y-fs))}
 [dir="rtl"] .site-launch svg{transform:scaleX(-1)}
-.site-launch>span{display:inline-flex;align-items:center}
-/* The way back (originScript): the back arrow leads and the view's name follows, cut
-   short with an ellipsis when it is long; the forward arrow goes. */
-.site-launch>.site-launch-back,.site-launch[data-origin]>.site-launch-go{display:none}
-.site-launch[data-origin]>.site-launch-back{display:inline-flex}
-.site-launch[data-origin]>.site-launch-label{display:block;max-width:14em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.site-bar--over-hero>.site-launch[data-origin]{display:inline-flex}
+/* The way back (ORIGIN_SCRIPT), beside Launch App: the back arrow and the name of the
+   app view this tab came from, cut short with an ellipsis when it is long. Hidden
+   until the script finds one. */
+/* The same pill as the Lolly home button opposite (.site-home): glass, the bar's
+   radius, the inset glow and the drop, so the bar's two pills read as one pair. */
+.site-return{display:inline-flex;align-items:center;gap:var(--sp-3);flex:0 1 auto;min-width:0;box-sizing:border-box;min-height:var(--chrome-h);padding-inline:var(--sp-6);border:1px solid transparent;border-radius:calc(var(--radius) * 1.5);font-size:var(--fs-md);font-weight:600;line-height:1;color:var(--ui-color-text-default);text-decoration:none;white-space:nowrap;box-shadow:inset 0 -.1em 1em 1px hsl(var(--primary) / .22),0 .1em .3em #0002}
+.site-return[hidden]{display:none}
+.site-return:hover{text-decoration:none}
+.site-return svg{flex:none;width:calc(15px * var(--a11y-fs));height:calc(15px * var(--a11y-fs))}
+[dir="rtl"] .site-return svg{transform:scaleX(-1)}
+.site-return-label{display:block;max-width:14em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 
 /* Language menu: the app's language popover (topbar.css .lang-menu, the same
    role tokens), a raised card with the sort tabs and one column of languages.
@@ -3390,10 +3394,9 @@ html[data-a11y-motion="reduce"] .site-menu[open] .site-sheet{animation:none}
   .site-bar{gap:var(--sp-4)}
   .site-fab--theme,.site-fab--lang,.site-fab--github,.site-bar>.site-launch,.site-beta{display:none}
   /* A reader who came from the app keeps the way back in the bar on a phone: one
-     press, not the menu. The menu's copy of it steps aside. */
-  .site-bar>.site-launch[data-origin]{display:inline-flex;min-width:0;padding-inline:var(--sp-5)}
-  .site-launch[data-origin]>.site-launch-label{max-width:8em}
-  .site-sheet .site-launch[data-origin]{display:none}
+     press, not the menu. Launch App waits in the menu. */
+  .site-return{padding-inline:var(--sp-5)}
+  .site-return-label{max-width:8em}
 }
 @media(max-width:22.5em){.site-home img{display:none}.site-home{padding-inline:var(--sp-7)}}
 
@@ -4144,20 +4147,36 @@ html[data-a11y-text="large"]{--a11y-fs:1.2}
 .docs-content h2[id],.docs-content h3[id],.docs-content h4[id]{scroll-margin-top:calc(var(--site-bar-h) + 1.75rem)}
 .docs-content ul,.docs-content ol{margin-bottom:1rem}
 /* ── The page's contents: where they sit on /info (their look is docs-chrome.css's) ──
-   From 1180px the rail is a third column beside the article, sticky under the bar,
+   From 1100px the rail is a third column beside the article, sticky under the bar,
    and the wrap and the masthead widen by its width so the article keeps its place
-   under the title. Narrower, the rail goes and the floating Contents button takes
-   the bottom inline-end corner (the corner an Arabic or Urdu reader reaches for). */
+   under the title. Below 1100px the page bar takes over: sticky under the site bar,
+   its sheet holding the sections, the headings and the pages. It sits before the
+   band, so the band no longer clears the site bar itself; on a phone the band's own
+   strip goes, because the bar's sheet carries the sections. */
 .docs-onpage{display:none}
-.doc-contents{position:fixed;bottom:calc(1rem + var(--safe-bottom,0px));inset-inline-end:calc(1rem + var(--safe-right,0px));z-index:88}
-@media(min-width:1180px){
+.doc-pagebar{top:var(--site-bar-h);margin-top:var(--site-bar-h);z-index:90;padding-inline:max(1rem,calc((100% - 46rem) / 2))}
+@media(max-width:1099px){
+  .doc-pagebar+.docs-masthead{padding-top:1.5rem}
+  .doc-pagebar+.docs-strip-band{padding-top:1.25rem}
+}
+@media(max-width:768px){.doc-pagebar+.docs-masthead{padding-top:1rem;min-height:0}}
+@media(max-width:640px){
+  .doc-pagebar+.docs-masthead .docs-pathways{display:none}
+  .doc-pagebar+.docs-strip-band:not(:has(.docs-edition-bar)){display:none}
+  .doc-pagebar+.docs-strip-band .docs-pathways{display:none}
+  .doc-pagebar+.docs-masthead{padding-bottom:1rem}
+  .doc-pagebar+.docs-masthead .docs-mast-inner{gap:0}
+  .doc-pagebar+.docs-masthead h1{font-size:calc(2.1rem * var(--a11y-fs))}
+  .doc-pagebar~.docs-wrap .docs-content{padding-top:1.25rem}
+}
+@media(min-width:1100px){
+  .doc-pagebar{display:none}
   .docs-wrap--rail{grid-template-columns:220px minmax(0,1fr) 14rem;max-width:calc(1180px + 14rem)}
   .docs-wrap--rail .docs-content{padding-inline-end:2rem}
   .docs-wrap--rail .docs-onpage{display:block;position:sticky;top:var(--site-bar-h);align-self:start;max-height:calc(100vh - var(--site-bar-h));max-height:calc(100dvh - var(--site-bar-h));overflow-y:auto;overscroll-behavior:contain;padding:2.75rem 1.25rem 2rem 0;box-sizing:border-box}
   .page-has-rail .docs-masthead .docs-mast-inner,.page-has-rail .docs-strip-band .docs-mast-inner{max-width:calc(1180px + 14rem);padding-inline-end:calc(14rem + 2rem)}
-  .page-has-rail .doc-contents{display:none}
 }
-@media print{.doc-contents,.docs-onpage{display:none!important}}
+@media print{.doc-pagebar,.docs-onpage{display:none!important}}
 .docs-content h1{font-size:calc(3rem * var(--a11y-fs));color:var(--dark);line-height:1.15;margin-bottom:2rem;padding-bottom:2rem;border-bottom:1px solid var(--border); font-weight:300;}
 
 /* Table */
@@ -5128,10 +5147,10 @@ const HERO_CANVAS_SCRIPT = `<script>(function(){
 // lolly:leftApp, shells/web/src/lib/back-nav.ts rememberViewOnLeave): same tab, same
 // origin, read here and never sent anywhere. The served pages carry Referrer-Policy:
 // no-referrer, so that note is the only way this static page can know where the reader
-// was. When it is there, Launch App (bar and menu) becomes "<- <that view>" and points
-// at its exact address; across /info pages the note stays, so the way back survives
-// any number of hops. It is a plain link: Back stays Back. The address must be a path
-// on this origin outside /info, and the name is set as text.
+// was. When it is there, the return pill beside Launch App shows "<- <that view>" and
+// points at its exact address; across /info pages the note stays, so the way back
+// survives any number of hops. It is a plain link: Back stays Back. The address must be
+// a path on this origin outside /info, and the name is set as text.
 const ORIGIN_SCRIPT = `<script>(function(){
   var raw=null;try{raw=sessionStorage.getItem('lolly:leftApp');}catch(e){}
   if(!raw)return;
@@ -5139,11 +5158,11 @@ const ORIGIN_SCRIPT = `<script>(function(){
   if(!v||typeof v.href!=='string'||typeof v.label!=='string'||!v.label)return;
   if(!/^\\/(?!\\/)\\S*$/.test(v.href)||/^\\/info(\\/|$)/.test(v.href))return;
   var name=v.label.slice(0,80);
-  document.querySelectorAll('a.site-launch').forEach(function(a){
+  document.querySelectorAll('a.site-return').forEach(function(a){
     a.setAttribute('href',v.href);
-    var l=a.querySelector('.site-launch-label');if(l)l.textContent=name;
+    var l=a.querySelector('.site-return-label');if(l)l.textContent=name;
     a.setAttribute('aria-label',(a.getAttribute('data-back-label')||'Back to {view}').replace('{view}',name));
-    a.setAttribute('data-origin','');
+    a.hidden=false;
   });
 })();</script>`;
 
@@ -5616,7 +5635,7 @@ const LANG_PICKER_SCRIPT = `<script>
 </script>`;
 
 /**
- * The pathways strip: Welcome (the landing) and the five documentation sections, as
+ * The pathways strip: the documentation sections, as
  * text tabs (plan 277 step 3c, decision D15). The in-app reader adopts this very
  * element from the fetched page (lib/docs-nav.ts extractPathways), so both readers
  * show one strip rather than two copies built apart. The current section is
@@ -5628,17 +5647,20 @@ const LANG_PICKER_SCRIPT = `<script>
  * not a second navigation landmark of the same name, and not a `nav.docs-pathways`,
  * so the in-app reader always adopts the page's own strip.
  */
-function pathwaysStrip(lang: Lang, activeHref: string, activePathway: Pathway | undefined, isLanding: boolean, inSheet = false): string {
-  const tab = (href: string, label: string, current: '' | 'page' | 'true', extra = ''): string =>
-    `<a class="docs-pathway${extra}${current ? ' active' : ''}" href="${localeHref(lang, hrefToSlug(href))}"${current ? ` aria-current="${current}"` : ''}>${esc(label)}</a>`;
-  const home = tab('/info/index.html', t('Welcome'), isLanding ? 'page' : '', ' docs-pathway-home');
+function pathwaysStrip(lang: Lang, activeHref: string, activePathway: Pathway | undefined, isLanding: boolean, inSheet: boolean | 'links' = false): string {
+  const tab = (href: string, label: string, current: '' | 'page' | 'true'): string =>
+    `<a class="docs-pathway${current ? ' active' : ''}" href="${localeHref(lang, hrefToSlug(href))}"${current ? ` aria-current="${current}"` : ''}>${esc(label)}</a>`;
+  // The sections only. The docs front door is not a section: the bar's Lolly pill goes
+  // there on /info, and the app's bottom bar calls it Docs (Andy, 2026-11-06, plan 354
+  // D2: "Docs" everywhere, and "Welcome" leaves the section tabs).
   const links = NAV.flat().map((n) => {
     const current = isLanding ? '' : n.href === activeHref ? 'page' : NAV_PATHWAY[n.href] === activePathway ? 'true' : '';
     return tab(n.href, t(n.label), current);
   }).join('');
+  if (inSheet === 'links') return links;
   return inSheet
-    ? `<div class="site-sheet-sections" role="group" aria-label="${esc(t('Documentation sections'))}">${home}${links}</div>`
-    : `<nav class="docs-pathways" aria-label="${esc(t('Documentation sections'))}">${home}${links}</nav>`;
+    ? `<div class="site-sheet-sections" role="group" aria-label="${esc(t('Documentation sections'))}">${links}</div>`
+    : `<nav class="docs-pathways" aria-label="${esc(t('Documentation sections'))}">${links}</nav>`;
 }
 
 /** The strip in a slim band of its own, for a page with no masthead: at the top of the
@@ -5682,12 +5704,11 @@ interface SheetParts {
  */
 function buildNav(lang: Lang, slug: string, isLanding: boolean | undefined, sheet: SheetParts) {
   const launchHref = esc(localizeHref(lang, '/'));
-  // Launch App, or the way back: when this tab came here from the app, the origin
-  // script (originScript) points it at the exact view the reader left and names that
-  // view, so it reads "<- QR Code" rather than starting the app over at Home.
-  const launch = `<a href="${launchHref}" class="btn btn--primary site-launch" data-back-label="${esc(t('Back to {view}'))}">`
-    + `<span class="site-launch-back">${docIcon('chrome-back')}</span><span class="site-launch-label">${esc(t('Launch App'))}</span>`
-    + `<span class="site-launch-go">${docIcon('chrome-arrow')}</span></a>`;
+  const launch = `<a href="${launchHref}" class="btn btn--primary site-launch">${esc(t('Launch App'))}${docIcon('chrome-arrow')}</a>`;
+  // The way back, beside Launch App rather than in its place (plan 354 D7): hidden until
+  // the origin script (ORIGIN_SCRIPT) finds the app view this tab came from, then it
+  // names that view and points at its exact address, so it reads "<- QR Code".
+  const back = `<a href="${launchHref}" class="btn--glass site-return" data-back-label="${esc(t('Back to {view}'))}" hidden>${docIcon('chrome-back')}<span class="site-return-label"></span></a>`;
   const settingsRow = `<a class="profile-menu-item" href="${esc(`${localizeHref(lang, '/')}#/settings`)}"><span>${esc(t('Settings'))}</span>${docIcon('chrome-settings')}</a>`;
   // Beta: English only, and deliberately not run through t() - it must not enter the
   // translation corpora, because it is meant to come straight back out again once the
@@ -5712,7 +5733,7 @@ function buildNav(lang: Lang, slug: string, isLanding: boolean | undefined, shee
     + `<div class="site-sheet">${sheet.sections}${disclosures}<div class="site-sheet-tools"><hr class="site-sheet-rule">${themeSeg}${langRow}${settingsRow}${githubRow}</div>${launch}</div></details>`;
   // Search sits first in the cluster of whole-site controls. Docs pages only - there is
   // no index behind the landing page, and a box that returns nothing is worse than no box.
-  return `<header class="site-bar${isLanding ? ' site-bar--over-hero' : ''}">${home}${isLanding ? '' : searchBox(lang)}${langPickerHtml(lang, slug)}${THEME_TOGGLE}${GITHUB_LINK}${launch}${menu}</header>`;
+  return `<header class="site-bar${isLanding ? ' site-bar--over-hero' : ''}">${home}${isLanding ? '' : searchBox(lang)}${langPickerHtml(lang, slug)}${THEME_TOGGLE}${GITHUB_LINK}${back}${launch}${menu}</header>`;
 }
 
 /**
@@ -6240,14 +6261,13 @@ function editionBarHtml(page: Page, lang: Lang): string {
   return chip ? `<div class="docs-edition-bar">${chip}</div>` : '';
 }
 
-// ── The page's contents ───────────────────────────────────────────────────────
-// Every docs page with two or more sections gets them twice, in two forms of one
-// list (packages/docs-render contents.ts): a rail beside the article on a wide
-// screen, and a floating "Contents" button everywhere narrower, so the sections are
-// one press away from any point in the page, also on a phone. Both are plain #id
-// links; the bundled lib/docs-contents.ts marks the section being read and opens
-// and closes the panel. The phone menu keeps its own "On this page" list as well.
-const CONTENTS_ICON = `<svg viewBox="0 0 24 24" ${DOC_ICON_S}><path d="M4 7h16M4 12h11M4 17h13"/></svg>`;
+// ── The page's contents and the page bar ─────────────────────────────────────────
+// Two forms of one list (packages/docs-render contents.ts): a rail beside the article
+// from 1100px, and below that the page bar ("Create v Export a file"), whose one sheet
+// holds the sections, this page's headings and this section's pages, so every way
+// around is one press away from any point in the page, also on a phone. The headings
+// are plain #id links; the bundled lib/docs-contents.ts marks the section being read
+// and opens and closes the sheet.
 
 /** A page's h2 headings, in order, as the ids mdToHtml stamped and their text. The jump
  *  nav and the phone menu's "On this page" list both read them. */
@@ -6272,16 +6292,25 @@ function pageContents(content: string): ContentsHeading[] {
   return items;
 }
 
-/** The rail and the floating control for one page, or nothing for a page with fewer
- *  than two sections. */
-function pageContentsParts(content: string): { rail: string; control: string } {
+/** The rail (two sections or more) and the page bar for one page. The bar's sheet holds
+ *  the sections, this page's headings and this section's pages (`pages`, the same list
+ *  the rail shows, or a generated page's own). A generated page keeps its one column,
+ *  so it gets the bar and no rail. */
+function pageNavParts(lang: Lang, page: Page, activeHref: string, content: string, pages: { title: string; body: string } | null): { rail: string; bar: string } {
   const headings = pageContents(content);
-  if (!hasContents(headings)) return { rail: '', control: '' };
-  const labels = { title: t('On this page'), button: t('Contents'), top: t('Back to top') };
-  return {
-    rail: `<div class="docs-onpage">${contentsRailHtml(headings, labels)}</div>`,
-    control: contentsControlHtml({ headings, labels, glyph: CONTENTS_ICON }),
-  };
+  const labels = { title: t('On this page') };
+  const rail = !page.generated && hasContents(headings) ? `<div class="docs-onpage">${contentsRailHtml(headings, labels)}</div>` : '';
+  const hub = NAV.flat().find((n) => NAV_PATHWAY[n.href] === page.pathway);
+  const bar = pageBarHtml({
+    section: hub ? t(hub.label) : t('Docs'),
+    page: t(page.title),
+    headings,
+    labels: { ...labels, sections: t('Documentation sections') },
+    sectionsHtml: pathwaysStrip(lang, activeHref, page.pathway, false, 'links'),
+    pages: pages ? { title: pages.title, html: pages.body } : null,
+    chevron: docIcon('adm-chevron'),
+  });
+  return { rail, bar };
 }
 
 /**
@@ -6392,7 +6421,7 @@ const DOCS_JS_TAG = `<script src="/info/${DOCS_JS_FILE}" defer></script>`;
 
 const NAV_ICON_SPRITE = createIconSprite({
   language: LANG_ICON_SVG, sun: THEME_SVG_SUN, moon: THEME_SVG_MOON, brand: THEME_SVG_BRAND,
-  seal: PROV_SEAL, edition: EDITION_ICON, contents: CONTENTS_ICON,
+  seal: PROV_SEAL, edition: EDITION_ICON,
   ...Object.fromEntries([...GITHUB_LINK.matchAll(/<svg\b[\s\S]*?<\/svg>/g)].map((match, i) => [`nav-${i}`, match[0]])),
   ...Object.fromEntries(Object.entries(SITE_ICONS).map(([key, svg]) => [`site-${key}`, svg])),
   ...Object.fromEntries(Object.entries(FMT_CAT_ICON).map(([key, svg]) => [`format-${key}`, svg])),
@@ -6427,8 +6456,6 @@ function wrapPage(lang: Lang, page: Page, content: string, ogSlugs: Set<string>,
   // Docs pages only: the landing page already carries its own sticky quicknav, and
   // a second on-page nav would be two answers to one question. A generated side-door
   // page and an immersive page are built as bands, not sections, so they skip it too.
-  const contents = (isLanding || page.generated || page.immersive) ? { rail: '', control: '' } : pageContentsParts(content);
-  const wrapClass = contents.rail ? 'docs-wrap docs-wrap--rail' : 'docs-wrap';
 
   // The masthead band, and the article body with its h1 lifted out of it. The band
   // opens with the pathways strip and carries the print edition in the title row beside
@@ -6443,10 +6470,18 @@ function wrapPage(lang: Lang, page: Page, content: string, ogSlugs: Set<string>,
   const article = mast ? mast.rest : content;
   const lead = mast ? '' : edition;
   const reading = readingAttr(content);
-  const sheet: SheetParts = {
-    pages: isLanding ? null
-      : page.rail ? { title: page.rail.mobileTitle, body: page.rail.mobile }
-      : sheetPagesHtml(lang, page.pathway ?? 'builders', activeHref),
+  const sectionPages = isLanding ? null
+    : page.rail ? { title: page.rail.mobileTitle, body: page.rail.mobile }
+    : sheetPagesHtml(lang, page.pathway ?? 'builders', activeHref);
+  // The page bar and the rail. The landing and an immersive page are built as bands,
+  // not sections: the landing has its own quicknav, and both keep the phone menu's
+  // sections instead of a bar.
+  const contents = (isLanding || page.immersive) ? { rail: '', bar: '' } : pageNavParts(lang, page, activeHref, article, sectionPages);
+  const wrapClass = contents.rail ? 'docs-wrap docs-wrap--rail' : 'docs-wrap';
+  // Where the bar is, it holds the sections, the pages and the headings, so the phone
+  // menu keeps only the site's own controls (plan 354).
+  const sheet: SheetParts = contents.bar ? { pages: null, headings: [], sections: '' } : {
+    pages: sectionPages,
     headings: (isLanding || page.immersive) ? [] : pageHeadings(article),
     sections: pathwaysStrip(lang, activeHref, page.pathway, !!isLanding, true),
   };
@@ -6464,6 +6499,7 @@ function wrapPage(lang: Lang, page: Page, content: string, ogSlugs: Set<string>,
   const body = isLanding ? `<main class="docs-landing page-${slugClass}"${mainAttrs}>${edition}${content}</main>`
     : page.immersive ? `<main class="docs-landing docs-immersive page-${slugClass}"${mainAttrs}>${pathwaysBand(strip + edition, { wide: true })}${content}</main>`
     : page.generated ? `
+${contents.bar}
 ${pathwaysBand(strip)}
 <div class="docs-wrap">
   ${page.rail?.aside ?? buildSidebar(lang, page, activeHref)}
@@ -6473,6 +6509,7 @@ ${pathwaysBand(strip)}
   </main>
 </div>`
     : `
+${contents.bar}
 ${mast ? mast.band : pathwaysBand(strip)}
 <div class="${wrapClass}">
   ${page.rail?.aside ?? buildSidebar(lang, page, activeHref)}
@@ -6542,7 +6579,6 @@ ${NOSCRIPT_NAV}
 ${buildNav(lang, page.slug, isLanding, sheet)}
 ${body}
 ${FOOTER(lang, page)}
-${contents.control}
 ${DOCS_JS_TAG}
 </body>
 </html>`);

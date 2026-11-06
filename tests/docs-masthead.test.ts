@@ -124,7 +124,11 @@ test('a page with no masthead still opens with the pathways strip, once, in its 
     assert.equal(navs.length, 1, `${rel}: expected exactly one pathways strip, found ${navs.length}`);
     const header = /<header class="site-bar[\s\S]*?<\/header>/.exec(body)?.[0] ?? '';
     assert.ok(!header.includes('<nav class="docs-pathways"'), `${rel}: the strip must sit in the page, not in the bar or its menu`);
-    assert.match(header, /<div class="site-sheet-sections" role="group" aria-label="[^"]+">/, `${rel}: the phone menu no longer opens with the sections`);
+    // The phone reaches the sections through the page bar's sheet on a docs page, and
+    // through the menu on the landing and an immersive page, which have no bar.
+    const hasBar = /<div class="doc-pagebar" data-doc-contents>/.test(body);
+    if (hasBar) assert.match(body, /<nav class="doc-sheet-sections" aria-label="[^"]+">/, `${rel}: the page bar's sheet lost the sections`);
+    else assert.match(header, /<div class="site-sheet-sections" role="group" aria-label="[^"]+">/, `${rel}: the phone menu no longer opens with the sections`);
     assert.match(body, /<div class="docs-strip-band[^"]*"><div class="docs-mast-inner"><nav class="docs-pathways"/, `${rel}: the strip is not in its own band`);
   }
 });

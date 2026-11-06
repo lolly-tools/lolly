@@ -47,7 +47,7 @@ import { backHomeHtml, mountBackPill } from '../components/back-pill.ts';
 import { docsOrigin, type PrevView } from '../lib/back-nav.ts';
 import { enhanceDocsContents } from '../lib/docs-contents.ts';
 import { prefersReducedMotion } from '../lib/a11y-prefs.ts';
-import { contentsRailHtml, contentsControlHtml, hasContents, type ContentsHeading } from '../../../../packages/docs-render/src/contents.ts';
+import { contentsRailHtml, pageBarHtml, hasContents, type ContentsHeading } from '../../../../packages/docs-render/src/contents.ts';
 import { createThemeToggle } from '../components/theme-toggle.ts';
 import { attachLangMenu } from '../components/lang-menu.ts';
 import { attachProfileMenu } from '../components/profile-menu.ts';
@@ -365,9 +365,14 @@ export async function mountDocs(
     slot.hidden = false;
   };
   fillSlot('[data-pathways]', pathwaysStrip);
-  // The strip's prepended "Welcome" tab is the landing itself - active only there
-  // (the per-page .active marks ride across from the fetched nav for the rest).
-  if (isLanding) viewEl.querySelector('.docs-pathway-home')?.classList.add('active');
+  // The fetched page's own language and direction for everything rehosted from it (the
+  // strip, the rails, the article): #/docs/ar/… reads right to left even when the app's
+  // own language does not.
+  const readerEl = viewEl.querySelector<HTMLElement>('[data-reader]');
+  const fetchedDir = doc.documentElement.getAttribute('dir') === 'rtl' ? 'rtl' : 'ltr';
+  readerEl?.setAttribute('dir', fetchedDir);
+  const fetchedLang = doc.documentElement.getAttribute('lang');
+  if (fetchedLang) readerEl?.setAttribute('lang', fetchedLang);
   // On a phone the strip keeps one line and scrolls, as on /info: fade the edges
   // with tabs beyond them and bring the current section into view (lib/docs-strip.ts).
   const strip = viewEl.querySelector<HTMLElement>('.docs-pathways');
@@ -404,15 +409,15 @@ export async function mountDocs(
   fillSlot('[data-sidebar]', extractSidebar(doc));
   // The rail's first link is the docs front door, which the built page calls Home. In
   // the app, Home means the gallery, as on the back pill and in the profile menu, so
-  // here the link takes the front door's own name from the strip, Welcome: one word,
-  // one place.
+  // here the link takes the name the bottom bar gives the front door: Docs (plan 354
+  // D2, one word for one place).
   const docsHome = viewEl.querySelector<HTMLAnchorElement>('[data-sidebar] .sidebar-home');
   if (docsHome) {
     const arrow = document.createElement('span');
     arrow.className = 'docs-sidebar-home-arrow';
     arrow.setAttribute('aria-hidden', 'true');
     arrow.textContent = '←';
-    docsHome.replaceChildren(arrow, ` ${t('Welcome')}`);
+    docsHome.replaceChildren(arrow, ` ${t('Docs')}`);
   }
   fillSlot('[data-sitemap]', extractSitemap(doc));
   // The founded-by-SUSE badge + "Questions? Contact fitzy@suse.com" line from the built
@@ -420,47 +425,62 @@ export async function mountDocs(
   // the rest of that footer with it so the reader isn't missing the site's contact.
   fillSlot('[data-contact]', extractContactFooter(doc));
 
-  // ── The page's contents (packages/docs-render contents.ts + lib/docs-contents.ts) ──
-  // The same two forms /info has: the rail beside the article on a wide screen and the
-  // floating "Contents" button everywhere narrower (docs.css decides which one shows),
-  // both marking the section being read. On a phone the button used to be two
-  // disclosures above the article, out of reach once the reader had scrolled; now it
-  // stays one press away. Its panel also lists this section's pages, which have no other
-  // home on a phone. The landing and an immersive page are bands rather than sections,
-  // and the landing's own quicknav already jumps between them, so they get none.
+  // ── The page's contents and the page bar (packages/docs-render contents.ts) ──────
+  // The same two forms /info has: the rail beside the article from 1100px, and below
+  // that the page bar ("Create v Export a file"), whose one sheet holds the sections,
+  // this page's headings and this section's pages (docs.css decides which shows). Both
+  // mark the section being read (lib/docs-contents.ts). The landing and an immersive
+  // page are bands rather than sections, and the landing's own quicknav already jumps
+  // between them, so they get neither.
   const headings: ContentsHeading[] = (isLanding || isImmersive) ? [] : [...node.querySelectorAll<HTMLElement>('h2[id], h3[id]')]
     .map((h) => ({ id: h.id, text: (h.textContent || '').replace(/\s+/g, ' ').trim(), level: h.tagName === 'H3' ? 3 as const : 2 as const }))
     .filter((h) => h.text);
-  if (hasContents(headings)) {
-    const labels = { title: t('On this page'), button: t('Contents'), top: t('Back to top') };
-    const tocSlot = viewEl.querySelector<HTMLElement>('[data-toc]');
-    // The builder escapes every heading text and id; the labels are t() strings.
-    if (tocSlot) { tocSlot.innerHTML = contentsRailHtml(headings, labels); tocSlot.hidden = false; }
-    const holder = document.createElement('div');
-    holder.innerHTML = contentsControlHtml({ headings, labels, glyph: icon('contents') });
-    const control = holder.firstElementChild as HTMLElement | null;
-    const rail = viewEl.querySelector<HTMLElement>('[data-sidebar] > .docs-sidebar');
-    if (control && rail) {
-      // A copy of the section's rail, from our own build: its links are already
-      // rewritten to #/docs/… and the current page is already marked.
-      const copy = rail.cloneNode(true) as HTMLElement;
-      const title = copy.querySelector('.sidebar-pathway')?.textContent?.trim() || t('Documentation');
-      copy.querySelector('.sidebar-pathway')?.remove();
-      copy.querySelector('.sidebar-home')?.remove();
-      const list = document.createElement('div');
-      list.className = 'docs-compact-list';
-      list.append(...Array.from(copy.childNodes));
-      const group = document.createElement('nav');
-      group.className = 'doc-contents-section';
-      group.setAttribute('aria-label', title);
-      const head = document.createElement('p');
-      head.className = 'doc-contents-title';
-      head.setAttribute('aria-hidden', 'true');
-      head.textContent = title;
-      group.append(head, list);
-      control.querySelector('.doc-contents-panel')?.append(group);
+  if (!isLanding && !isImmersive) {
+    const labels = { title: t('On this page') };
+    if (hasContents(headings)) {
+      const tocSlot = viewEl.querySelector<HTMLElement>('[data-toc]');
+      // The builder escapes every heading text and id; the label is a t() string.
+      if (tocSlot) { tocSlot.innerHTML = contentsRailHtml(headings, labels); tocSlot.hidden = false; }
     }
-    if (control) viewEl.appendChild(control);
+    // The sections and the section's pages are copies of our own build's strip and rail:
+    // their links are already rewritten to #/docs/... and the current ones marked.
+    const stripLinks = [...viewEl.querySelectorAll<HTMLAnchorElement>('[data-pathways] .docs-pathway')];
+    const sectionName = viewEl.querySelector('[data-pathways] .docs-pathway.active')?.textContent?.trim() || t('Docs');
+    const pageTitle = node.querySelector('h1')?.textContent?.replace(/\s+/g, ' ').trim() ?? '';
+    const holder = document.createElement('div');
+    holder.innerHTML = pageBarHtml({
+      section: sectionName,
+      page: pageTitle,
+      headings,
+      labels: { ...labels, sections: t('Documentation sections') },
+      sectionsHtml: '',
+      pages: null,
+      chevron: icon('chevronRight'),
+    });
+    const bar = holder.firstElementChild as HTMLElement | null;
+    if (bar) {
+      bar.querySelector('.doc-sheet-sections')?.append(...stripLinks.map((a) => a.cloneNode(true)));
+      const rail = viewEl.querySelector<HTMLElement>('[data-sidebar] > .docs-sidebar');
+      if (rail) {
+        const copy = rail.cloneNode(true) as HTMLElement;
+        const title = copy.querySelector('.sidebar-pathway')?.textContent?.trim() || t('Documentation');
+        copy.querySelector('.sidebar-pathway')?.remove();
+        copy.querySelector('.sidebar-home')?.remove();
+        const list = document.createElement('div');
+        list.className = 'docs-compact-list';
+        list.append(...Array.from(copy.childNodes));
+        const group = document.createElement('nav');
+        group.className = 'doc-sheet-group';
+        group.setAttribute('aria-label', title);
+        const head = document.createElement('p');
+        head.className = 'doc-contents-title';
+        head.setAttribute('aria-hidden', 'true');
+        head.textContent = title;
+        group.append(head, list);
+        bar.querySelector('.doc-contents-panel')?.append(group);
+      }
+      viewEl.querySelector('[data-reader] > .docs-reader-grid')?.before(bar);
+    }
     // A row scrolls this view: in the app the address is the route, so a bare #id must
     // stay out of the address. The heading takes focus, so keyboard and screen-reader users arrive
     // where they asked to go, and ?h= records the section like any other section link.
@@ -474,7 +494,7 @@ export async function mountDocs(
       updateRouteParams({ h: id });
       return true;
     };
-    // The reading line sits a quarter of the way down, under the top row.
+    // The reading line sits a quarter of the way down, under the top row and the bar.
     scope.add(enhanceDocsContents({ article: node, root: viewEl, jump, readingLine: () => Math.round(window.innerHeight * 0.25) }));
   }
 
@@ -506,12 +526,10 @@ export async function mountDocs(
   // under the pills ([data-scrolled], docs.css). On a phone the app's bottom bar steps
   // away while the reader reads down and comes back on any scroll up and at the end of
   // the page (html[data-docs-bar="tucked"]; docs.css gates it to phone widths and holds
-  // it still under Reduce motion). The Contents button rides above the bar
-  // (--docs-bar-lift). Both attributes leave with the view.
+  // it still under Reduce motion). Both attributes leave with the view.
   const root = document.documentElement;
   root.setAttribute('data-docs-reading', '');
   scope.add(() => { root.removeAttribute('data-docs-reading'); root.removeAttribute('data-docs-bar'); });
-  const phone = typeof window.matchMedia === 'function' ? window.matchMedia('(max-width: 640px)') : null;
   let lastY = window.scrollY;
   const posture = (): void => {
     const y = window.scrollY;
@@ -521,12 +539,8 @@ export async function mountDocs(
     else if (y > lastY + 6) root.setAttribute('data-docs-bar', 'tucked');
     else if (y < lastY - 6) root.removeAttribute('data-docs-bar');
     lastY = y;
-    const bar = document.querySelector<HTMLElement>('.gallery-footer');
-    const tucked = !!phone?.matches && root.getAttribute('data-docs-bar') === 'tucked';
-    viewEl.style.setProperty('--docs-bar-lift', `${!bar || bar.hidden || tucked ? 0 : bar.offsetHeight}px`);
   };
   scope.listen(window, 'scroll', posture, { passive: true });
-  scope.listen(window, 'resize', posture, { passive: true });
   posture();
 
   armViewEnter(viewEl, '.docs-content, .docs-landing');
