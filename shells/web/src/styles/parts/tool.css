@@ -1015,6 +1015,13 @@
    floats itself against its own line box, and moving that would shift the
    floating-label offsets tuned further down this sheet. */
 .input-row:has(.custom-slider) > .input-label { line-height: 1.25; }
+/* A ruler dial row (components/slider-ruler.ts, phone layout only): the caption
+   and the value share one line, the value at the far end as the button that opens
+   a number field. */
+.input-row:has(> .cs-ruler) > .input-label { display: flex; align-items: center; gap: var(--sp-2); }
+.input-row:has(> .cs-ruler) > .input-label > .input-label-text {
+  display: flex; align-items: center; flex: 1 1 auto; min-width: 0; gap: var(--sp-2); overflow: visible;
+}
 
 .input-value {
   font-size: var(--fs-xs);
@@ -1565,6 +1572,7 @@ span.flatpickr-weekday {
   gap: 8px 12px;
   align-items: start;
 }
+.input-section--dense .input-section-body > .input-row:has(> .cs-ruler),
 .input-section--dense .input-section-body > .input-row:has(.vector-input),
 .input-section--dense .input-section-body > .input-row:has(.tone-curve-field),
 .input-section--dense .input-section-body > .input-row:has(textarea),
