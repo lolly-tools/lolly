@@ -6,6 +6,11 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+## 1.320.0
+
+- The vector IR gains a `stencil` prim (`VectorStencilPrim` in `emf.ts`): words as one bit per pixel, painted in one ink, so whatever lies under them shows through. `emitEps` paints it with `imagemask` in the ink (RGB or the CMYK mapping), and `emitWmf` with a pair of 1-bit `META_STRETCHDIB` blits, OR then AND, which leaves the page under the words as it was. `emitDxf` counts one as a dropped picture. `emitEmf` draws none.
+- No other module changes. The vector walk (`packages/node-shell/src/svg-ir.ts`) makes a stencil from a picture of a run no font can draw, for EPS and WMF, as a PDF draws such a run as a picture, and DXF stops with a message that names the run instead of outlining boxes. A file with no such run keeps its bytes.
+
 ## 1.319.0
 
 - `host.text.toPath`: a `fallbackFonts` entry may carry `fill: true`, a face that draws only what every face before it cannot, the way a browser falls back to a later family in a `font-family` list. With one in the chain, the run is split by grapheme cluster and each cluster goes to the first face that maps all of it, so an earlier face keeps every character it can draw; a space goes to the first face that maps it, as in Chrome. A chain with no `fill` face splits exactly as before, so every existing outline keeps its bytes.

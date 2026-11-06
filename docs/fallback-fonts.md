@@ -71,6 +71,10 @@ The command line prints the same sentence as a note.
 
 A character outside the four national sets has no fallback font. Rare characters such as 𠮷, the characters added for Hong Kong by its supplementary set, and scripts without a fallback font, such as Tamil, Ethiopic or Syriac, are all treated the same way. In a PDF the line that holds one goes in as a 300 dpi picture, and the export panel lists the scripts. In an SVG the run stays live text, which the reader's own fonts draw.
 
+An EPS or WMF has no live text to fall back on, so the run goes in as a 300 dpi picture too. The picture paints the text's colour only where the letters are, so the background under the words shows through. The export panel lists the scripts, as it does for a PDF. A picture is drawn upright only, so a turned or slanted run stops the export with a message that quotes the run. In a WMF the picture is a mask and paint pair of bitmap operations, which Microsoft Office and LibreOffice draw as intended; an app that ignores them, such as Inkscape, shows the words on a white box.
+
+A DXF goes to cutting machines and CAD software, which need outlines, so a run no font can draw stops a DXF export. The message quotes the run and gives its script, so you can add a font with those letters or export SVG or PDF. Before, these formats drew an empty box for each such letter.
+
 ## Licences and credits
 
 Every fallback font is under the SIL Open Font License 1.1, and each catalog entry records that licence with a hash of the licence text, so the rights rules in [Creative rights and credits](/info/creative-rights.html) read the licence like any other font's. The licence texts sit beside the fonts. The Noto Sans files declare no Reserved Font Name. The Chinese, Japanese and Korean fonts are Adobe's, and reserve the name Source; the cut files keep their Noto names, which do not use that name.

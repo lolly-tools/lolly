@@ -23,7 +23,7 @@ import { letterSpacingPx, featureSettingsToHb, canVectoriseText, textBaselineY }
 import { resolveExportFont, extendsChain, withFallbackFonts } from './font-fill.ts';
 import { bakeWebKitBoxShadows } from './webkit-shadow-bake.ts';
 import { newNeutraliseGuard, neutraliseTransform, pdfDrawsThroughMatrix } from './transform-neutralise.ts';
-import { svgDomToIr } from './svg-ir.ts';
+import { svgDomToIr, type SvgIrContext } from './svg-ir.ts';
 import { placeBackground } from './bg-layout.ts';
 import { unscopeStyleEls } from '../lib/scope-css.ts';
 import { tRaw } from '../i18n.ts';
@@ -1627,16 +1627,38 @@ async function renderWmf(node: Element, opts: ExportOpts = {}): Promise<Blob> {
     const xml = await svgBlob.text();
     svgEl = new DOMParser().parseFromString(xml, 'image/svg+xml').documentElement;
   }
+  const pictured = {};
   const ir = await svgDomToIr(svgEl, {
     host: _host,
     getComputedStyle: (el: Element) => window.getComputedStyle(el),
     background: opts.background,
     label: 'WMF',
+    ...pictureUncoveredText(pictured),
   });
   const bytes = emitWmf(ir, { width: opts.width, height: opts.height, unit: opts.unit, dpi: opts.dpi, attribution: opts.metadata !== false });
+  notePicturedTextIn(pictured, 'WMF');
   // Same legacy metafile type as EMF (see renderEmf) - Google Drive's Drawings
   // import matches application/x-msmetafile for WMF too.
   return new Blob([bytes as BlobPart], { type: 'application/x-msmetafile' });
+}
+
+/**
+ * The walk's settings for an EPS or WMF: a run no font can draw goes in as a picture by
+ * the browser's own text renderer, as in a PDF, and `key` collects its scripts for the
+ * export notice.
+ */
+function pictureUncoveredText(key: object): Pick<SvgIrContext, 'uncoveredText' | 'pictureText' | 'onPicturedText'> {
+  return {
+    uncoveredText: 'picture',
+    pictureText: async (run) => (await import('./export-text-stencil.ts')).pictureTextRun(run),
+    onPicturedText: (text) => notePicturedText(key, text),
+  };
+}
+
+/** One notice on the export card naming the scripts an EPS or WMF drew as pictures. */
+function notePicturedTextIn(key: object, format: 'EPS' | 'WMF'): void {
+  const pictured = takePicturedTextNotice(key, format);
+  if (pictured) { _host?.log?.('warn', `${format.toLowerCase()}: ${pictured}`); _exportNotice(pictured); }
 }
 
 // EPS is a fourth sink on the SVG vector pipeline (alongside SVG, PDF, and EMF):
@@ -1659,11 +1681,13 @@ async function renderEps(node: Element, opts: ExportOpts = {}, cmyk = false): Pr
     const xml = await svgBlob.text();
     svgEl = new DOMParser().parseFromString(xml, 'image/svg+xml').documentElement;
   }
+  const pictured = {};
   const ir = await svgDomToIr(svgEl, {
     host: _host,
     getComputedStyle: (el: Element) => window.getComputedStyle(el),
     background: opts.background,
     label: 'EPS',
+    ...pictureUncoveredText(pictured),
   });
   // Print geometry (bleed + marks + colour bar), when requested - same source as the
   // PDF path. Null when neither is set, so a plain EPS export is byte-identical.
@@ -1676,6 +1700,7 @@ async function renderEps(node: Element, opts: ExportOpts = {}, cmyk = false): Pr
     ...(cmyk && separate ? { cmykPalette: buildCmykPaletteMap(opts.palette ?? [], separate), separate } : {}),
     ...(geo ? { geometry: geo, markSpace: cmyk ? 'cmyk' as const : 'rgb' as const } : {}),
   });
+  notePicturedTextIn(pictured, 'EPS');
   return new Blob([text], { type: 'application/postscript' });
 }
 
@@ -1698,6 +1723,8 @@ async function renderDxf(node: Element, opts: ExportOpts = {}): Promise<Blob> {
     getComputedStyle: (el: Element) => window.getComputedStyle(el),
     background: opts.background,
     label: 'DXF',
+    // Cutting machines and CAD need outlines: a run no font can draw stops the export.
+    uncoveredText: 'refuse',
   });
   const { text, droppedImages } = emitDxf(ir, { width: opts.width, height: opts.height, unit: opts.unit, dpi: opts.dpi, attribution: opts.metadata !== false });
   if (droppedImages > 0) {

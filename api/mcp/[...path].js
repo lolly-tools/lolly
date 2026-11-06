@@ -4114,7 +4114,7 @@ var ENGINE_VERSION;
 var init_version = __esm({
   "engine/src/version.ts"() {
     "use strict";
-    ENGINE_VERSION = "1.319.0";
+    ENGINE_VERSION = "1.320.0";
   }
 });
 
@@ -86861,6 +86861,27 @@ function emitImagePrim(prim, out) {
   out.push(">");
   out.push("grestore");
 }
+function emitStencilPrim(prim, cmyk, out, palette, separate) {
+  const pxW = Math.max(1, Math.round(prim.pxW));
+  const pxH = Math.max(1, Math.round(prim.pxH));
+  const need = Math.ceil(pxW / 8) * pxH;
+  out.push("gsave");
+  out.push(colorOp(prim.fill, cmyk, palette, separate));
+  out.push(n2(prim.x) + " " + n2(prim.y) + " translate");
+  out.push(n2(prim.w) + " " + n2(prim.h) + " scale");
+  out.push("<< /ImageType 1 /Width " + pxW + " /Height " + pxH + " /BitsPerComponent 1 /Decode [1 0] /ImageMatrix [" + pxW + " 0 0 " + pxH + " 0 0] /DataSource currentfile /ASCIIHexDecode filter >> imagemask");
+  let line = "";
+  for (let i = 0; i < need; i++) {
+    line += HEX2[i < prim.bits.length ? prim.bits[i] : 0];
+    if (line.length >= 64) {
+      out.push(line);
+      line = "";
+    }
+  }
+  if (line) out.push(line);
+  out.push(">");
+  out.push("grestore");
+}
 function emitPathPrim2(prim, cmyk, out, palette, separate) {
   const { subpaths, fill: fill2, stroke, fillRule } = prim;
   if (!subpaths || !subpaths.length) return;
@@ -86919,6 +86940,7 @@ function emitEps(ir, opts = {}) {
     for (const prim of ir.prims || []) {
       if (prim && prim.type === "path") emitPathPrim2(prim, cmyk, L, opts.cmykPalette, opts.separate);
       else if (prim && prim.type === "image") emitImagePrim(prim, L);
+      else if (prim && prim.type === "stencil") emitStencilPrim(prim, cmyk, L, opts.cmykPalette, opts.separate);
     }
     L.push("grestore");
     emitMarksPs(geo, opts.markSpace ?? (cmyk ? "cmyk" : "rgb"), L);
@@ -86928,6 +86950,7 @@ function emitEps(ir, opts = {}) {
     for (const prim of ir.prims || []) {
       if (prim && prim.type === "path") emitPathPrim2(prim, cmyk, L, opts.cmykPalette, opts.separate);
       else if (prim && prim.type === "image") emitImagePrim(prim, L);
+      else if (prim && prim.type === "stencil") emitStencilPrim(prim, cmyk, L, opts.cmykPalette, opts.separate);
     }
   }
   L.push("grestore");
@@ -87051,7 +87074,7 @@ function emitDxf(ir, opts = {}) {
   let droppedImages = 0;
   for (const prim of ir.prims || []) {
     if (!prim) continue;
-    if (prim.type === "image") {
+    if (prim.type === "image" || prim.type === "stencil") {
       droppedImages++;
       continue;
     }
@@ -89544,6 +89567,52 @@ function emitPathPrim3(prim, out, tol) {
   out.push(recDeleteObject2(OBJ_PEN));
   out.push(recDeleteObject2(OBJ_BRUSH));
 }
+function recStretchDib1(prim, rows2, zero2, one, rop) {
+  const pxW = Math.max(1, Math.round(prim.pxW));
+  const pxH = Math.max(1, Math.round(prim.pxH));
+  const stride = Math.ceil(pxW / 32) * 4;
+  const dib = new Uint8Array(40 + 8 + stride * pxH);
+  const dv = new DataView(dib.buffer);
+  dv.setUint32(0, 40, true);
+  dv.setInt32(4, pxW, true);
+  dv.setInt32(8, pxH, true);
+  dv.setUint16(12, 1, true);
+  dv.setUint16(14, 1, true);
+  dv.setUint32(16, 0, true);
+  dv.setUint32(20, stride * pxH, true);
+  dv.setUint32(32, 2, true);
+  dib.set([zero2.b & 255, zero2.g & 255, zero2.r & 255, 0, one.b & 255, one.g & 255, one.r & 255, 0], 40);
+  const rowBytes = Math.ceil(pxW / 8);
+  for (let y = 0; y < pxH; y++) dib.set(rows2.subarray(y * rowBytes, (y + 1) * rowBytes), 48 + (pxH - 1 - y) * stride);
+  const head2 = rec(META_STRETCHDIB, [
+    rop & 65535,
+    rop >>> 16 & 65535,
+    DIB_RGB_COLORS2,
+    clampI16(pxH),
+    clampI16(pxW),
+    0,
+    0,
+    clampI16(prim.h),
+    clampI16(prim.w),
+    clampI16(prim.y),
+    clampI16(prim.x)
+  ]);
+  const out = new Uint8Array(head2.length + dib.length);
+  out.set(head2, 0);
+  out.set(dib, head2.length);
+  new DataView(out.buffer).setUint32(0, out.length / 2, true);
+  return out;
+}
+function emitStencilPrim2(prim, out) {
+  const pxW = Math.max(1, Math.round(prim.pxW));
+  const pxH = Math.max(1, Math.round(prim.pxH));
+  const rowBytes = Math.ceil(pxW / 8);
+  const ink = new Uint8Array(rowBytes * pxH);
+  ink.set(prim.bits.subarray(0, ink.length));
+  const black = { r: 0, g: 0, b: 0 }, white = { r: 255, g: 255, b: 255 };
+  out.push(recStretchDib1(prim, ink, black, white, SRCPAINT));
+  out.push(recStretchDib1(prim, ink, white, prim.fill, SRCAND));
+}
 function headerMath2(ir, opts) {
   const Wpx = Math.max(1, Math.round(ir.width));
   const Hpx = Math.max(1, Math.round(ir.height));
@@ -89591,7 +89660,8 @@ function emitWmf(ir, opts = {}) {
     if (prim?.type === "path") {
       emitPathPrim3(prim, body, tol);
       hasPath = true;
-    } else if (prim?.type === "text") {
+    } else if (prim?.type === "stencil") emitStencilPrim2(prim, body);
+    else if (prim?.type === "text") {
       throw new Error(`WMF cannot carry live text (run "${prim.text.slice(0, 24)}") - build the IR with textMode 'outline'`);
     }
   }
@@ -89619,7 +89689,7 @@ function emitWmf(ir, opts = {}) {
   }
   return out;
 }
-var META_EOF, META_SETPOLYFILLMODE, META_SETWINDOWORG, META_SETWINDOWEXT, META_POLYGON, META_POLYLINE, META_SELECTOBJECT, META_DELETEOBJECT, META_CREATEPENINDIRECT, META_CREATEBRUSHINDIRECT, ALTERNATE2, WINDING2, PS_SOLID, PS_NULL, BS_SOLID2, BS_HOLLOW, PLACEABLE_KEY, METAFILE_MEMORY, MHDR_WORDS, MHDR_VERSION, INT16_MIN, INT16_MAX, clampI16, MAX_POLY_POINTS, colorWords, recSetWindowOrg, recSetWindowExt, recSetPolyFillMode2, recCreatePen, recCreateBrush2, recSelectObject2, recDeleteObject2, recEof2, mid2, OBJ_BRUSH, OBJ_PEN, STOCK_NULL_BRUSH, STOCK_NULL_PEN;
+var META_EOF, META_SETPOLYFILLMODE, META_SETWINDOWORG, META_SETWINDOWEXT, META_POLYGON, META_POLYLINE, META_SELECTOBJECT, META_DELETEOBJECT, META_CREATEPENINDIRECT, META_CREATEBRUSHINDIRECT, META_STRETCHDIB, SRCAND, SRCPAINT, DIB_RGB_COLORS2, ALTERNATE2, WINDING2, PS_SOLID, PS_NULL, BS_SOLID2, BS_HOLLOW, PLACEABLE_KEY, METAFILE_MEMORY, MHDR_WORDS, MHDR_VERSION, INT16_MIN, INT16_MAX, clampI16, MAX_POLY_POINTS, colorWords, recSetWindowOrg, recSetWindowExt, recSetPolyFillMode2, recCreatePen, recCreateBrush2, recSelectObject2, recDeleteObject2, recEof2, mid2, OBJ_BRUSH, OBJ_PEN, STOCK_NULL_BRUSH, STOCK_NULL_PEN;
 var init_wmf = __esm({
   "engine/src/wmf.ts"() {
     "use strict";
@@ -89634,6 +89704,10 @@ var init_wmf = __esm({
     META_DELETEOBJECT = 496;
     META_CREATEPENINDIRECT = 762;
     META_CREATEBRUSHINDIRECT = 764;
+    META_STRETCHDIB = 3907;
+    SRCAND = 8913094;
+    SRCPAINT = 15597702;
+    DIB_RGB_COLORS2 = 0;
     ALTERNATE2 = 1;
     WINDING2 = 2;
     PS_SOLID = 0;
@@ -170481,6 +170555,14 @@ function firstStrongDirection(text13) {
   }
   return "ltr";
 }
+function scriptsOf(text13) {
+  const out = /* @__PURE__ */ new Set();
+  for (const char of text13) {
+    const script = textScript(char.codePointAt(0));
+    if (script !== "Zyyy" && script !== "Zinh" && script !== "Zzzz") out.add(script);
+  }
+  return [...out];
+}
 function mixesComplexScript(text13) {
   if (isAscii(text13)) return false;
   const scripts = textScriptRuns(text13).map((run3) => run3.script).filter((script) => script !== "Zyyy" && script !== "Zinh" && script !== "Zzzz");
@@ -179171,7 +179253,7 @@ async function renderViaChromiumShell(toolId, query2, format, dims = {}) {
     debug.attach(page3);
     page3.on("console", (message) => {
       const line = sessionExportNote(message.type(), message.text());
-      if (line && (message.text().startsWith(PDF_TEXT_NOTE) || message.text().startsWith(FILL_NOTE))) process.stderr.write(`Note: ${line}
+      if (line && (PICTURE_NOTES.some((note2) => message.text().startsWith(note2)) || message.text().startsWith(FILL_NOTE))) process.stderr.write(`Note: ${line}
 `);
     });
     waiting = await waitForExport(page3, format);
@@ -179425,7 +179507,7 @@ async function exportOpenedSession(page3, base, query2, format, dims, debug, lab
 }
 function sessionExportNote(type, text13) {
   if (type === "info" && text13.startsWith(FILL_NOTE)) return text13.slice("[info] ".length, "[info] ".length + 2e3).trimEnd();
-  if (type !== "warning" || !(text13.startsWith("[warn] pptx: ") || text13.startsWith(PDF_TEXT_NOTE))) return null;
+  if (type !== "warning" || !(text13.startsWith("[warn] pptx: ") || PICTURE_NOTES.some((note2) => text13.startsWith(note2)))) return null;
   return text13.slice("[warn] ".length, "[warn] ".length + 2e3).trimEnd();
 }
 function sessionDims(opts) {
@@ -179586,7 +179668,7 @@ async function designChecksViaSession(bytes2, opts = {}) {
     throw withDebugLog(err instanceof OpenSessionError ? new BrowserError(err.message) : err, "design.check", debug);
   }
 }
-var MIME4, served2, EXPORT_URL_RESERVED2, tierBDebugConfig, DEBUG_MAX_LINES, NO_DEBUG, PAGE_DESIGN_SYSTEM_GLOBAL, PDF_TEXT_NOTE, FILL_NOTE, DESKTOP_REQUEST_MAX_BYTES, DESKTOP_REQUEST_MARGIN;
+var MIME4, served2, EXPORT_URL_RESERVED2, tierBDebugConfig, DEBUG_MAX_LINES, NO_DEBUG, PAGE_DESIGN_SYSTEM_GLOBAL, PICTURE_NOTES, FILL_NOTE, DESKTOP_REQUEST_MAX_BYTES, DESKTOP_REQUEST_MARGIN;
 var init_webshell_render = __esm({
   "packages/node-shell/src/webshell-render.ts"() {
     "use strict";
@@ -179642,7 +179724,7 @@ var init_webshell_render = __esm({
       write: () => null
     };
     PAGE_DESIGN_SYSTEM_GLOBAL = "__lollyAutomationDesignSystem";
-    PDF_TEXT_NOTE = "[warn] pdf: This PDF draws some text as pictures";
+    PICTURE_NOTES = ["pdf", "eps", "wmf"].map((f) => `[warn] ${f}: This ${f.toUpperCase()} draws some text as pictures`);
     FILL_NOTE = "[info] fonts: ";
     DESKTOP_REQUEST_MAX_BYTES = 1 << 20;
     DESKTOP_REQUEST_MARGIN = 4 * 1024;
@@ -183358,6 +183440,30 @@ function applyElementTransform(el, t) {
   const transform2 = el.getAttribute?.("transform") || "";
   return transform2 ? matMul7(t, parseTransformList(transform2)) : t;
 }
+var scriptLabels = typeof Intl !== "undefined" && "DisplayNames" in Intl ? new Intl.DisplayNames(["en"], { type: "script" }) : null;
+function scriptWords(text13) {
+  const codes = scriptsOf(text13);
+  const list4 = codes.length > 1 ? codes.filter((c) => c !== "Latn") : codes;
+  const names = list4.map((c) => {
+    try {
+      return scriptLabels?.of(c) ?? c;
+    } catch {
+      return c;
+    }
+  });
+  return names.length ? ` (${names.join(", ")})` : "";
+}
+var quoteRun = (text13) => `"${[...text13].length > 40 ? `${[...text13].slice(0, 40).join("")}...` : text13}"`;
+function stencilBits(alpha, pxW, pxH) {
+  const rowBytes = Math.ceil(pxW / 8);
+  const bits = new Uint8Array(rowBytes * pxH);
+  for (let y = 0; y < pxH; y++) {
+    for (let x = 0; x < pxW; x++) {
+      if ((alpha[y * pxW + x] ?? 0) >= 128) bits[y * rowBytes + (x >> 3)] |= 128 >> (x & 7);
+    }
+  }
+  return bits;
+}
 async function readInlineImage(href) {
   let url;
   try {
@@ -183700,6 +183806,7 @@ async function svgDomToIr(svgEl, ctx = {}) {
     let rgb3 = opacity >= 0.01 ? parseColor2(fillStr) : null;
     if (!rgb3) return;
     rgb3 = flatten3(rgb3, opacity, bg);
+    const ink = rgb3;
     const cs = getComputedStyle2 ? safeComputed(getComputedStyle2, el) : null;
     const family2 = prop2(el, style, "font-family", null) ?? cs?.fontFamily ?? "";
     const weight = String(prop2(el, style, "font-weight", null) ?? cs?.fontWeight ?? "400");
@@ -183716,6 +183823,51 @@ async function svgDomToIr(svgEl, ctx = {}) {
       return Boolean(live2);
     };
     if (!ordered && keepLive()) return;
+    const uncovered = async () => {
+      const which = `${LABEL2} export stopped at the text ${quoteRun(raw)}: no font here has its letters${scriptWords(raw)}.`;
+      if (ctx.uncoveredText === "refuse") {
+        throw new Error(`${which} ${LABEL2} goes to cutting machines and CAD, which need outlines, so the text is not drawn as boxes or as a picture. Add a font with those letters, or export SVG or PDF.`);
+      }
+      const { et } = m2;
+      const sx = Math.hypot(et.a, et.b), sy = Math.hypot(et.c, et.d);
+      if (!(sx > 0 && sy > 0) || Math.abs(et.b) / sx > 1e-3 || Math.abs(et.c) / sy > 1e-3 || et.a < 0 || et.d < 0) {
+        throw new Error(`${which} Its picture cannot be turned or slanted in ${LABEL2}. Add a font with those letters, or export SVG or PDF.`);
+      }
+      if (!ctx.pictureText) {
+        throw Object.assign(new Error(`${which} This app has no text renderer to draw them as a picture. Add a font with those letters, or export SVG or PDF.`), { code: NEEDS_BROWSER });
+      }
+      const pic = await ctx.pictureText({
+        text: raw,
+        fontFamily: family2,
+        fontWeight: weight,
+        fontStyle: italic ? "italic" : "normal",
+        fontSize,
+        ...letterSpacingCss ? { letterSpacing: letterSpacingCss } : {},
+        direction: rtl ? "rtl" : "ltr",
+        lang: el.closest?.("[lang]")?.getAttribute("lang") ?? null,
+        // 300 picture pixels to the inch of the device px this walk writes.
+        scale: 300 / 96 * Math.max(sx * regX, sy * regY)
+      });
+      if (!pic || !(pic.pxW > 0) || !(pic.pxH > 0)) throw new Error(`${which} The text renderer could not draw them as a picture. Export SVG or PDF.`);
+      const x2 = len(prop2(el, style, "x"), vbW);
+      const y2 = len(prop2(el, style, "y"), vbH);
+      const anchor2 = physicalTextAnchor(prop2(el, style, "text-anchor", null) ?? cs?.textAnchor, direction2);
+      const start = anchor2 === "middle" ? x2 - pic.advance / 2 : anchor2 === "end" ? x2 - pic.advance : x2;
+      const a = m2.mapPt(start + pic.left, y2 + pic.top);
+      const b = m2.mapPt(start + pic.left + pic.width, y2 + pic.top + pic.height);
+      prims.push({
+        type: "stencil",
+        x: Math.min(a.x, b.x),
+        y: Math.min(a.y, b.y),
+        w: Math.abs(b.x - a.x),
+        h: Math.abs(b.y - a.y),
+        pxW: pic.pxW,
+        pxH: pic.pxH,
+        bits: stencilBits(pic.alpha, pic.pxW, pic.pxH),
+        fill: rgbObj(ink)
+      });
+      ctx.onPicturedText?.(raw);
+    };
     const fontStyleObj = {
       fontFamily: family2,
       fontWeight: weight,
@@ -183740,6 +183892,10 @@ async function svgDomToIr(svgEl, ctx = {}) {
       throw new Error(`EMF export: text shaping failed for "${raw.slice(0, 24)}" - ${e.message}`);
     }
     if (ordered && result?.notdef && keepLive()) return;
+    if (result?.notdef && ctx.uncoveredText) {
+      await uncovered();
+      return;
+    }
     if (!result?.d) return;
     const x = len(prop2(el, style, "x"), vbW);
     const y = len(prop2(el, style, "y"), vbH);
@@ -188731,7 +188887,7 @@ async function createCliBridge({ profile: profile2 = {}, dom, catalogAssets: cat
       if (format === "eps" || format === "eps-cmyk") {
         const svg = rootSvgOf(node);
         if (!svg) throw new Error("EPS export requires an <svg> in the template (HTML-layout tools need a browser engine - use the desktop app)");
-        const ir = await svgDomToIr(svg, { host, resolveFont: cliResolveFont(host, collectFill), background: opts.background, label: "EPS" });
+        const ir = await svgDomToIr(svg, { host, resolveFont: cliResolveFont(host, collectFill), background: opts.background, label: "EPS", uncoveredText: "picture" });
         reportFill();
         const separate = format === "eps-cmyk" ? (await pressSeparationFor(opts.colorProfile)).separate : void 0;
         const text13 = emitEps(ir, {
@@ -188748,7 +188904,7 @@ async function createCliBridge({ profile: profile2 = {}, dom, catalogAssets: cat
       if (format === "dxf") {
         const svg = rootSvgOf(node);
         if (!svg) throw new Error("DXF export requires an <svg> in the template (HTML-layout tools need a browser engine - use the desktop app)");
-        const ir = await svgDomToIr(svg, { host, resolveFont: cliResolveFont(host, collectFill), background: opts.background, label: "DXF" });
+        const ir = await svgDomToIr(svg, { host, resolveFont: cliResolveFont(host, collectFill), background: opts.background, label: "DXF", uncoveredText: "refuse" });
         reportFill();
         const { text: text13 } = emitDxf(ir, { width: opts.width, height: opts.height, unit: opts.unit, dpi: opts.dpi });
         return new Blob([text13], { type: "image/vnd.dxf" });
@@ -188756,7 +188912,7 @@ async function createCliBridge({ profile: profile2 = {}, dom, catalogAssets: cat
       if (format === "wmf") {
         const svg = rootSvgOf(node);
         if (!svg) throw new Error("WMF export requires an <svg> in the template (HTML-layout tools need a browser engine - use the desktop app)");
-        const ir = await svgDomToIr(svg, { host, resolveFont: cliResolveFont(host, collectFill), background: opts.background, label: "WMF" });
+        const ir = await svgDomToIr(svg, { host, resolveFont: cliResolveFont(host, collectFill), background: opts.background, label: "WMF", uncoveredText: "picture" });
         reportFill();
         const bytes2 = emitWmf(ir, { width: opts.width, height: opts.height, unit: opts.unit, dpi: opts.dpi });
         return new Blob([bytes2], { type: "application/x-msmetafile" });

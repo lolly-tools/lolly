@@ -57,7 +57,7 @@ Six destinations and the formats that suit each one.
 
 A wordmark set in your design system's face exports as SVG with every letter as an outlined path, so one file stays crisp at business-card size and at building-wrap size.
 
-Text in another language follows the fonts you have. When a font in your design system has the letters, SVG and PDF draw them as outlines, shaped and in reading order, including right-to-left lines. When none does, Lolly draws those letters with a [fallback font](/info/fallback-fonts.html), and the export card says which font drew them. Text that no fallback font covers stays live text in an SVG, which the viewer's own fonts draw, and becomes pictures in a PDF, because a PDF has nothing else to fall back on. Those words look as they do on the page but cannot be selected or searched, and the export card tells you which scripts went that way. Add a font with those letters to keep them as vector text.
+Text in another language follows the fonts you have. When a font in your design system has the letters, SVG and PDF draw them as outlines, shaped and in reading order, including right-to-left lines. When none does, Lolly draws those letters with a [fallback font](/info/fallback-fonts.html), and the export card says which font drew them. Text that no fallback font covers stays live text in an SVG, which the viewer's own fonts draw, and becomes pictures in a PDF, EPS or WMF, because those formats have nothing else to fall back on. A DXF export stops at such text and quotes it, because a cutter needs outlines. Those words look as they do on the page but cannot be selected or searched, and the export card tells you which scripts went that way. Add a font with those letters to keep them as vector text.
 
 ![A hairline wide-tracked wordmark reading Aurora, the kind of pure vector artwork the SVG row of the table is about](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DAurora%26weight%3D200%26tracking%3D16%26size%3D200%26full&width=1440&height=900&dpi=192&waitMs=2200&cropSelector=%23tool-canvas&walker=1&format=svg&filename=vt-wordmark-vector)
 
@@ -215,7 +215,7 @@ SCC output has not been checked against a real broadcast tool or hardware decode
 
 ### DXF (cut files)
 
-Lolly Asset Export, Diagrams, Growth, Lolly Logo Wall, QR Code, Street Map, Wayfinding and Wordmark export **DXF**, the AutoCAD R12 interchange format that laser cutters, vinyl plotters and CNC software read. Geometry is written as outline paths in millimetres, text is outlined and colour maps to the nearest AutoCAD Color Index, which usually drives the cutter's operation. DXF is line art only: a photographic or filtered region has no cut path and is dropped, with a warning. Use SVG or PDF to keep raster content.
+Lolly Asset Export, Diagrams, Growth, Lolly Logo Wall, QR Code, Street Map, Wayfinding and Wordmark export **DXF**, the AutoCAD R12 interchange format that laser cutters, vinyl plotters and CNC software read. Geometry is written as outline paths in millimetres, text is outlined and colour maps to the nearest AutoCAD Color Index, which usually drives the cutter's operation. DXF is line art only: a photographic or filtered region has no cut path and is dropped, with a warning. Use SVG or PDF to keep raster content. Text in letters no font here has, with no [fallback font](/info/fallback-fonts.html) either, stops the export with a message that quotes the text, because a cutter cannot follow a box or a picture.
 
 Street Map is the clearest case. The whole design is already strokes, so every road and canal becomes a cut path.
 

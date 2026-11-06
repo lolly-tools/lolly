@@ -38,6 +38,14 @@ test('a PDF that drew text as pictures tells the caller, and other pdf lines sta
   assert.equal(sessionExportNote('warning', '[warn] pdf: SUSE-Regular.ttf is not a TrueType file'), null);
 });
 
+test('an EPS or WMF that drew text as pictures tells the caller too', () => {
+  for (const f of ['eps', 'wmf']) {
+    const line = `${f}: This ${f.toUpperCase()} draws some text as pictures, because no font it can outline has those letters (Tamil).`;
+    assert.equal(sessionExportNote('warning', `[warn] ${line} `), line);
+  }
+  assert.equal(sessionExportNote('warning', '[warn] eps: something else'), null);
+});
+
 test('an export whose text a fallback font drew tells the caller which font', () => {
   const line = "fonts: Arabic text is drawn with Noto Sans Arabic, because this design system's fonts do not have those letters.";
   // host.log('info', …) prints as [info] with a trailing space, as warn does.

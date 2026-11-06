@@ -1409,7 +1409,9 @@ async function noteDesignOps(opts: object, ingredients: readonly import('@lolly-
         // FINISH_MASK_CMYK here exactly as it does in the browser.
         const svg = rootSvgOf(node);
         if (!svg) throw new Error('EPS export requires an <svg> in the template (HTML-layout tools need a browser engine - use the desktop app)');
-        const ir = await svgDomToIr(svg, { host, resolveFont: cliResolveFont(host, collectFill), background: opts.background, label: 'EPS' });
+        // A run no font can draw goes in as a picture, which needs a text renderer: the
+        // walk stops with NEEDS_BROWSER and the browser tier draws the file.
+        const ir = await svgDomToIr(svg, { host, resolveFont: cliResolveFont(host, collectFill), background: opts.background, label: 'EPS', uncoveredText: 'picture' });
         reportFill();
         const separate = format === 'eps-cmyk' ? (await pressSeparationFor(opts.colorProfile)).separate : undefined;
         const text = emitEps(ir, {
@@ -1426,7 +1428,7 @@ async function noteDesignOps(opts: object, ingredients: readonly import('@lolly-
         // what is fundamentally text). Text is outlined upstream (host.text present).
         const svg = rootSvgOf(node);
         if (!svg) throw new Error('DXF export requires an <svg> in the template (HTML-layout tools need a browser engine - use the desktop app)');
-        const ir = await svgDomToIr(svg, { host, resolveFont: cliResolveFont(host, collectFill), background: opts.background, label: 'DXF' });
+        const ir = await svgDomToIr(svg, { host, resolveFont: cliResolveFont(host, collectFill), background: opts.background, label: 'DXF', uncoveredText: 'refuse' });
         reportFill();
         const { text } = emitDxf(ir, { width: opts.width, height: opts.height, unit: opts.unit, dpi: opts.dpi });
         return new Blob([text], { type: 'image/vnd.dxf' });
@@ -1439,7 +1441,7 @@ async function noteDesignOps(opts: object, ingredients: readonly import('@lolly-
         // no comment record to carry a source URL.
         const svg = rootSvgOf(node);
         if (!svg) throw new Error('WMF export requires an <svg> in the template (HTML-layout tools need a browser engine - use the desktop app)');
-        const ir = await svgDomToIr(svg, { host, resolveFont: cliResolveFont(host, collectFill), background: opts.background, label: 'WMF' });
+        const ir = await svgDomToIr(svg, { host, resolveFont: cliResolveFont(host, collectFill), background: opts.background, label: 'WMF', uncoveredText: 'picture' });
         reportFill();
         const bytes = emitWmf(ir, { width: opts.width, height: opts.height, unit: opts.unit, dpi: opts.dpi });
         // Same legacy metafile type as EMF above - Drive's Drawings import

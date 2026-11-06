@@ -616,7 +616,7 @@ async function renderViaChromiumShell(
     debug.attach(page);
     page.on('console', (message: ConsoleMessage) => {
       const line = sessionExportNote(message.type(), message.text());
-      if (line && (message.text().startsWith(PDF_TEXT_NOTE) || message.text().startsWith(FILL_NOTE))) process.stderr.write(`Note: ${line}\n`);
+      if (line && (PICTURE_NOTES.some((note) => message.text().startsWith(note)) || message.text().startsWith(FILL_NOTE))) process.stderr.write(`Note: ${line}\n`);
     });
     waiting = await waitForExport(page, format);
     const downloadP = waiting.result;
@@ -1061,12 +1061,12 @@ async function exportOpenedSession(
  */
 export function sessionExportNote(type: string, text: string): string | null {
   if (type === 'info' && text.startsWith(FILL_NOTE)) return text.slice('[info] '.length, '[info] '.length + 2000).trimEnd();
-  if (type !== 'warning' || !(text.startsWith('[warn] pptx: ') || text.startsWith(PDF_TEXT_NOTE))) return null;
+  if (type !== 'warning' || !(text.startsWith('[warn] pptx: ') || PICTURE_NOTES.some((note) => text.startsWith(note)))) return null;
   return text.slice('[warn] '.length, '[warn] '.length + 2000).trimEnd();
 }
 
-/** What a PDF tells the person when it drew text as pictures (export-pdf-text-picture.ts). */
-const PDF_TEXT_NOTE = '[warn] pdf: This PDF draws some text as pictures';
+/** What a PDF, EPS or WMF tells the person when it drew text as pictures (export-pdf-text-picture.ts). */
+const PICTURE_NOTES = ['pdf', 'eps', 'wmf'].map((f) => `[warn] ${f}: This ${f.toUpperCase()} draws some text as pictures`);
 
 /** What an export tells the person when fallback fonts drew some of its text (font-fill.ts). */
 const FILL_NOTE = '[info] fonts: ';
