@@ -15,6 +15,7 @@
  * a message rather than leaving the words out.
  */
 import { hasComplexScript, hasRtlText, scriptsOf } from '@lolly-tools/node-shell/text-bidi';
+import type { LabelPicture, LabelPictureFn } from '@lolly-tools/node-shell/pdf-finishing';
 import { rasterizeNodeToDataUrl } from './export-svg-walker.ts';
 import { MAX_RASTER_PX } from './export-shared.ts';
 
@@ -126,6 +127,8 @@ export function notePicturedText(pdf: object, text: string): void {
   let scripts = pictured.get(pdf);
   if (!scripts) { scripts = new Set(); pictured.set(pdf, scripts); }
   for (const script of scriptsOf(text)) scripts.add(script);
+  // Emoji belong to no script (Common), so they are named on their own: "Emoji".
+  if (/\p{Extended_Pictographic}/u.test(text)) scripts.add('Zsye');
 }
 
 const scriptNames = new Intl.DisplayNames(['en'], { type: 'script' });
@@ -141,6 +144,65 @@ export function takePicturedTextNotice(pdf: object): string | null {
   const which = names.length ? ` (${names.join(', ')})` : '';
   return `This PDF draws some text as pictures, because no font it can embed has those letters${which}. `
     + 'The words look as they do on the page but cannot be selected or searched. Add a font with those letters to keep them as vector text.';
+}
+
+/**
+ * A print mark label the mark font cannot set (a name in Arabic, Chinese or Cyrillic,
+ * or with an emoji), as a picture from the browser's text renderer in the face the
+ * marks name. pdf-finishing.ts paints its coverage in the label's own ink, and `key`
+ * collects the scripts for the export notice, as a pictured run in the artwork does.
+ */
+export function markLabelPictures(key: object): LabelPictureFn {
+  return async (text, sizePt) => {
+    const pic = await markLabelPicture(text, sizePt);
+    if (pic) notePicturedText(key, text);
+    return pic;
+  };
+}
+
+async function markLabelPicture(text: string, sizePt: number): Promise<LabelPicture | null> {
+  // A point of the label is one layout px here, so the picture's lengths are points.
+  const lineH = Math.ceil(sizePt * 1.5);
+  const style = { 'font-family': 'Helvetica, Arial, sans-serif', 'font-size': `${sizePt}px`, color: '#000' };
+  // The stand-in textPicture makes, measured first: how far the words run, and where a
+  // box of this line height puts their baseline. An empty inline-block sits on that baseline.
+  const probe = document.createElement('div');
+  probe.style.cssText = 'position:absolute;left:-99999px;top:0;margin:0;padding:0;border:0;display:block;white-space:pre;'
+    + `width:max-content;line-height:${lineH}px;font-family:${style['font-family']};font-size:${sizePt}px`;
+  probe.textContent = text;
+  const mark = probe.appendChild(document.createElement('span'));
+  mark.style.cssText = 'display:inline-block;width:0;height:0;vertical-align:baseline';
+  document.body.appendChild(probe);
+  let advance: number, baseline: number;
+  try {
+    const box = probe.getBoundingClientRect();
+    advance = box.width;
+    baseline = mark.getBoundingClientRect().bottom - box.top;
+  } finally { probe.remove(); }
+  if (!(advance > 0)) return null;
+  const pic = await textPicture({ text, style, direction: 'ltr', box: { w: advance, h: lineH }, scale: TEXT_PICTURE_DPI / 72 });
+  if (!pic) return null;
+  const img = new Image();
+  img.src = pic.src;
+  try { await img.decode(); } catch { return null; }
+  const width = img.naturalWidth, height = img.naturalHeight;
+  const canvas = document.createElement('canvas');
+  canvas.width = width; canvas.height = height;
+  const g = canvas.getContext('2d');
+  if (!g || !width || !height) return null;
+  g.drawImage(img, 0, 0);
+  const px = g.getImageData(0, 0, width, height).data;
+  // Black words: coverage is opacity times darkness, which holds on a clear or a white ground.
+  const coverage = new Uint8Array(width * height);
+  for (let i = 0; i < coverage.length; i++) {
+    const lum = 0.2126 * px[i * 4]! + 0.7152 * px[i * 4 + 1]! + 0.0722 * px[i * 4 + 2]!;
+    coverage[i] = Math.round((px[i * 4 + 3]! * (255 - lum)) / 255);
+  }
+  return {
+    coverage, width, height,
+    w: pic.w + 2 * pic.pad, h: pic.h + 2 * pic.pad,
+    left: pic.pad, advance, baseline: pic.pad + baseline,
+  };
 }
 
 /** Why a PDF stopped, for text it could not draw at all. */

@@ -229,7 +229,7 @@ Scroll, and the camera pulls back through the actual geometry: seven paths, no p
 
 **Print PDF** writes CMYK against a named press condition, **Coated FOGRA39** by default. Brand swatches with measured ink values keep those values. Other colours are converted through a press profile: Lolly's own Coated FOGRA39 profile by default, or your own profile when you choose its **Embed** row. Greys and black stay on the black plate alone, so small type cannot misregister. FOGRA51, SWOP and GRACoL use a standard device conversion. **Print TIFF** writes DeviceCMYK pixels for a RIP and records the same press condition in its TIFF metadata. The Colour profile control drives both; [Colour profiles](#colour-profiles) has the detail.
 
-**Print marks & bleed** has its own card on the print formats: the bleed in millimetres plus Crop, Registration, Bleed, Colour bars and Stamp details.
+**Print marks & bleed** has its own card on the print formats: the bleed in millimetres plus Crop, Registration, Bleed, Colour bars and Stamp details. Stamp details prints the date, the tool and your name in the margin. A name or tool name in letters the margin font lacks, such as Arabic, Chinese, Cyrillic or an emoji, is drawn as a picture in the same grey, and the export card lists those scripts.
 
 Some tools build a **multi-page PDF**: a cover, content that flows onto as many pages as it needs and a back page, as in the *Booklet* tool. Each page is a true portrait PDF page in A4, US Letter or A5, and you can force any block onto a new page. These are RGB documents without crop or bleed marks, which belong to the single-page Print PDF. A Lolly Design PDF can also be a **Notes handout**: a portrait page for each slide with its speaker notes underneath.
 

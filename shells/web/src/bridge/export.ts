@@ -68,7 +68,7 @@ import { createPdfDoc } from './export-pdf-doc.ts';
 import { pdfFontEmbed } from './export-pdf-fonts.ts';
 import { paintSvgToPdf, svgFlips, type SvgFlips } from './export-pdf-svg.ts';
 import { backgroundPicture, clipsBackgroundToText, paintLiveRun, paintOutlinedRun, runPaint } from './export-pdf-text-paint.ts';
-import { TEXT_PICTURE_DPI, liveTextWouldGarble, notePicturedText, takePicturedTextNotice, textPicture, undrawableTextError } from './export-pdf-text-picture.ts';
+import { TEXT_PICTURE_DPI, liveTextWouldGarble, markLabelPictures, notePicturedText, takePicturedTextNotice, textPicture, undrawableTextError } from './export-pdf-text-picture.ts';
 import { applyPdfTextStyle, clipOfRun, pdfPseudoContent } from './export-pdf-pseudo-text.ts';
 import { bidiPieces, lineDirection, runBidi } from './export-text.ts';
 import { hasRtlText } from '@lolly-tools/node-shell/text-bidi';
@@ -2324,8 +2324,13 @@ async function embeddedProfile(colorProfile: string | undefined): Promise<EmbedR
 // finishPrintPdf so the plain RGB path loads pdf-lib exactly once; the CMYK path
 // has its own pdf-lib pass and calls applyPdfX inside it (see renderCmykPdf).
 // Never fed an encrypted blob - pdf-lib can't reopen an RC4-locked document.
+// A mark label in letters the mark font lacks goes in as a picture, with the notice a
+// pictured run in the artwork gives.
 async function finishPdfX(blobOrBytes: Blob | Uint8Array, opts: ExportOpts, settings: PdfFinishSettings = {}): Promise<Blob> {
-  return finishSharedPdfX(blobOrBytes, opts, { ...settings, log: pdfxLog });
+  const marks = {};
+  const out = await finishSharedPdfX(blobOrBytes, opts, { ...settings, log: pdfxLog, labelPicture: markLabelPictures(marks) });
+  logPdfWarnings(marks);
+  return out;
 }
 
 // Renders an SVG element into a rectangular region of the PDF page: ox/oy are the
@@ -2608,6 +2613,20 @@ async function rasterizeSvgElement(svgEl: Element, pxW: number, pxH: number, fli
 }
 const RASTER_DPI = 200;
 
+/**
+ * A replaced element that draws nothing from a computed length: no border, corner,
+ * shadow, outline or filter. Under a scale its picture fills the scaled box exactly,
+ * which is what the walker's box path draws.
+ */
+function barePicture(el: Element, s: CSSStyleDeclaration): boolean {
+  if (!/^(img|svg|video|canvas)$/i.test(el.tagName)) return false;
+  const zero = (v: string): boolean => !parseFloat(v);
+  const none = (v: string): boolean => !v || v === 'none';
+  return zero(s.borderTopWidth) && zero(s.borderRightWidth) && zero(s.borderBottomWidth) && zero(s.borderLeftWidth)
+    && zero(s.borderTopLeftRadius) && zero(s.borderTopRightRadius) && zero(s.borderBottomRightRadius) && zero(s.borderBottomLeftRadius)
+    && none(s.boxShadow) && (s.outlineStyle === 'none' || zero(s.outlineWidth)) && none(s.filter);
+}
+
 // Draws the live DOM as PDF vectors into the rectangular region (ox, oy, regionW,
 // regionH) in page points (top-left origin). Callers pass the full page for an
 // ordinary export, or the bleed box for a print export (so the design bleeds).
@@ -2696,10 +2715,22 @@ async function drawHtmlVectors(pdf: any, node: Element, ox: number, oy: number, 
 
     // General 2-D transform (rotate+scale / skew / matrix) that isn't a pure rotation:
     // mirror the SVG walker - neutralise, walk the untransformed subtree, wrap the draw
-    // in the full CTM about the transform-origin. Pure translate/scale → AABB path below;
+    // in the full CTM about the transform-origin. Pure translate → AABB path below;
     // a real 3-D/perspective pose takes the posed-raster branch straight after this one.
+    //
+    // A scale below the root takes this branch too, as it does in the SVG walker. On
+    // the AABB path a client rect carries the scale but a computed length does not,
+    // so a box was placed right while its font size, border width, radius
+    // and shadow offset were all drawn 1/s too big: text under scale(.5) printed at
+    // twice its size. The root is left out because cssToPt already holds its scale.
+    // Two cases read no length, so they keep the path and the bytes they had: a plain
+    // mirror (scale -1), and a picture with nothing drawn around it, such as a photo
+    // zoomed in its frame, which fills its scaled box exactly.
     const mtx = pureRotationDeg(style.transform) === 0 ? parseCssMatrix(style.transform) : null;
-    if (mtx && !isAxisAlignedMat(mtx)) {
+    const resized = Boolean(mtx && el !== node && isAxisAlignedMat(mtx)
+      && (Math.abs(Math.abs(mtx.a) - 1) > 1e-4 || Math.abs(Math.abs(mtx.d) - 1) > 1e-4))
+      && !barePicture(el, style);
+    if (mtx && (!isAxisAlignedMat(mtx) || resized)) {
       // Same guarded neutralise as the rotation branch above.
       const restore = neutraliseTransform(el, neutralise, warnTransform);
       if (restore) {
@@ -3651,7 +3682,9 @@ async function renderCmykPdf(node: Element, opts: ExportOpts): Promise<Blob> {
     setPageBoxes(page, geo);
     const usedPalette = (opts.palette ?? []).filter(p => usedKeys.has(paletteHitKey(p) as string));
     const marksGeo = printGeometry(node, opts, usedPalette, separate) ?? geo;
-    await drawPrintMarks(page, marksGeo, { space: 'cmyk', labels: provenanceLabels(opts.meta) });
+    const marks = {};
+    await drawPrintMarks(page, marksGeo, { space: 'cmyk', labels: provenanceLabels(opts.meta), labelPicture: markLabelPictures(marks) });
+    logPdfWarnings(marks);
   }
 
   // PDF/X-4 finishing runs AFTER the colour substitution so the claim gate sees
