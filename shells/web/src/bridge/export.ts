@@ -3236,7 +3236,7 @@ async function drawHtmlVectors(pdf: any, node: Element, ox: number, oy: number, 
         await visit(child);
       }
       await renderInlineContent(pdf, el, style, rootRect, scaleX, scaleY, cssToPt, registeredFonts, visit, convertPaths, imprint, rasterFallback);
-      await pdfPseudoContent(pdf, el, rootRect, scaleX, scaleY, cssToPt, registeredFonts, convertPaths, rasterFallback, imprint);
+      await pdfPseudoContent(pdf, el, rootRect, scaleX, scaleY, cssToPt, registeredFonts, convertPaths, rasterFallback);
     };
     if (clipsOverflow && (hasRadius || spillsBox)) await withPdfRoundedClip(pdf, x, y, w, h, radii, uniform, drawContent);
     else await drawContent();
@@ -3348,7 +3348,7 @@ async function renderInlineContent(
               const pic = rasterFallback ? await textPicture({
                 text: shown, style: nodeStyle, direction, override: overridden, box: { w: r.width * toLayout, h: r.height * toLayout },
                 scale: (TEXT_PICTURE_DPI / 72) * cssToPt, clip: paint.under ? clipOfRun(node.parentElement, r, toLayout) : undefined,
-                lang: node.parentElement?.closest('[lang]')?.getAttribute('lang'), imprint,
+                lang: node.parentElement?.closest('[lang]')?.getAttribute('lang'),
               }) : null;
               if (!pic) throw undrawableTextError(shown);
               pdf.addImage(pic.src, 'PNG', x - pic.pad * cssToPt, (r.top - rootRect.top) * scaleY - pic.pad * cssToPt, (pic.w + 2 * pic.pad) * cssToPt, (pic.h + 2 * pic.pad) * cssToPt);

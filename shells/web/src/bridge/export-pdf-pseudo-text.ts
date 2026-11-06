@@ -13,7 +13,7 @@ import { embedSuseFont, pdfFontEmbed, suseFontName } from './export-pdf-fonts.ts
 import { clipsBackgroundToText } from './export-pdf-text-paint.ts';
 import { TEXT_PICTURE_DPI, liveTextWouldGarble, notePicturedText, textPicture, undrawableTextError } from './export-pdf-text-picture.ts';
 import { drawSvgPathToPdf, pdfRoundedRect } from './export-pdf-vector.ts';
-import { _host, fontMetricsPx, type ImprintState } from './export-shared.ts';
+import { _host, fontMetricsPx } from './export-shared.ts';
 import { pseudoDescriptor } from './export-svg-walker.ts';
 import { resolveVectorFont } from './font-registry.ts';
 import { canVectoriseText, textBaselineY } from './text-svg.ts';
@@ -38,7 +38,7 @@ export function clipOfRun(el: Element | null, r: DOMRect, toLayout: number): Non
 }
 
 // Emit any ::before/::after markers of `el` into the PDF (mirrors svgPseudoContent).
-export async function pdfPseudoContent(pdf: PdfDoc, el: Element, rootRect: { left: number; top: number }, scaleX: number, scaleY: number, cssToPt: number, registeredFonts: Set<unknown>, convertPaths: boolean, rasterFallback = true, imprint?: ImprintState): Promise<void> {
+export async function pdfPseudoContent(pdf: PdfDoc, el: Element, rootRect: { left: number; top: number }, scaleX: number, scaleY: number, cssToPt: number, registeredFonts: Set<unknown>, convertPaths: boolean, rasterFallback = true): Promise<void> {
   for (const name of ['::before', '::after']) {
     const ds = pseudoDescriptor(el, name);
     if (!ds) continue;
@@ -89,7 +89,7 @@ export async function pdfPseudoContent(pdf: PdfDoc, el: Element, rootRect: { lef
     if (!drawn) {
       await applyPdfTextStyle(pdf, ds.ps, cssToPt, registeredFonts, embedUrl);
       if (garbled || !pdf.canSetText(ds.text)) {
-        const pic = rasterFallback ? await textPicture({ text: ds.text, style: ds.ps, direction: rtl ? 'rtl' : 'ltr', box: { w: ds.w, h: lineHPx }, scale: (TEXT_PICTURE_DPI / 72) * cssToPt, imprint }) : null;
+        const pic = rasterFallback ? await textPicture({ text: ds.text, style: ds.ps, direction: rtl ? 'rtl' : 'ltr', box: { w: ds.w, h: lineHPx }, scale: (TEXT_PICTURE_DPI / 72) * cssToPt }) : null;
         if (!pic) throw undrawableTextError(ds.text);
         pdf.addImage(pic.src, 'PNG', x - pic.pad * cssToPt, y - pic.pad * cssToPt, (pic.w + 2 * pic.pad) * cssToPt, (pic.h + 2 * pic.pad) * cssToPt);
         notePicturedText(pdf, ds.text);

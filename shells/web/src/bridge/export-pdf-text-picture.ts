@@ -16,7 +16,7 @@
  */
 import { hasComplexScript, hasRtlText, scriptsOf } from '@lolly-tools/node-shell/text-bidi';
 import { rasterizeNodeToDataUrl } from './export-svg-walker.ts';
-import { MAX_RASTER_PX, type ImprintState } from './export-shared.ts';
+import { MAX_RASTER_PX } from './export-shared.ts';
 
 /** Sharper than the 200 dpi of other pictures in a PDF, because these are words. */
 export const TEXT_PICTURE_DPI = 300;
@@ -52,7 +52,6 @@ export interface TextPictureRun {
   clip?: { image: string; size: string; position: string; repeat: string };
   /** The element's language, which selects local letter forms. */
   lang?: string | null;
-  imprint?: ImprintState | undefined;
 }
 
 export interface TextPicture {
@@ -114,7 +113,8 @@ export async function textPicture(run: TextPictureRun): Promise<TextPicture | nu
     // Past the cap on an axis, both shrink together, so the words keep their shape.
     const fit = Math.min(1, (MAX_RASTER_PX - 2) / ((r.width + 2 * pad) * run.scale), (MAX_RASTER_PX - 2) / ((r.height + 2 * pad) * run.scale));
     const scale = run.scale * fit;
-    const src = await rasterizeNodeToDataUrl(stand, Math.max(2, Math.round(r.width * scale)), Math.max(2, Math.round(r.height * scale)), undefined, run.imprint, false, Math.round(pad * scale));
+    // No imprint: the picture stands in for words and adds nothing but those words to the file.
+    const src = await rasterizeNodeToDataUrl(stand, Math.max(2, Math.round(r.width * scale)), Math.max(2, Math.round(r.height * scale)), undefined, undefined, false, Math.round(pad * scale));
     return src ? { src, pad, w: r.width, h: r.height } : null;
   } finally { stand.remove(); }
 }
