@@ -11,6 +11,7 @@ import type { installUserTokens } from '../../bridge/tokens.ts';
 import { t } from '../../i18n.ts';
 import type { LangSwitchHost } from '../../i18n.ts';
 import type { DesignCensus } from '../../lib/design-system/census.ts';
+import type { ManageHost } from '../../lib/design-system/manage.ts';
 import type { SwitchHost } from '../../lib/design-system/switch.ts';
 import type { StartArea, StartSource } from '../../lib/design-system/start-route.ts';
 import type { detectFontFormat } from '../../lib/font-utils.ts';
@@ -22,7 +23,7 @@ export type ViewElement = HTMLElement & { _cleanup?: () => void };
 
 /** Whatever host installUserTokens needs - stays in lock-step with the bridge -
  *  plus the profile slice the language switcher persists its choice through. */
-export type StartHost = Parameters<typeof installUserTokens>[0] & LangSwitchHost & SwitchHost & UsageHost & UserFontsHost;
+export type StartHost = Parameters<typeof installUserTokens>[0] & LangSwitchHost & SwitchHost & UsageHost & UserFontsHost & ManageHost;
 
 // ── The import card's format marks ───────────────────────────────────────────
 // Recognition beats description: the four accepted formats lead the card as
