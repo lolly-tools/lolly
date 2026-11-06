@@ -8,7 +8,7 @@
  * Pure and DOM-free. The doc is untrusted: text comes back as plain text for
  * the renderer to escape, and every colour is a `#rrggbb` from preview.ts.
  */
-import { createTokenSet } from '@lolly/engine';
+import { createTokenSet, readColourRoles } from '@lolly/engine';
 import type { PaletteEntry } from '../../palette.ts';
 import { groupPalette, isLockedInk, splitPalette, type PaletteRamp } from '../swatches.ts';
 import { logoTokensOf, LOGO_DEFAULT_IDENTITY } from '../brand-logos.ts';
@@ -34,6 +34,8 @@ export interface LookSlot {
   name: string;
   /** The mode's own description of the slot, or ''. */
   note: string;
+  /** The design system's own word for this slot, when one of its colour roles fills the slot. */
+  word?: string;
 }
 
 export interface IssueLogo {
@@ -57,6 +59,8 @@ export interface IssueModel {
     ramps: PaletteRamp[];
     spectrum: PaletteEntry[];
     roles: PaletteEntry[];
+    /** The design system's own word for a colour role's token path. Empty when it declares none. */
+    roleWords: Record<string, string>;
     lockedInks: number;
   };
   fonts: FontRoleRead[];
@@ -144,19 +148,34 @@ function logosOf(doc: unknown): IssueLogo[] {
 }
 
 /** The four lead colours of one look, each with the colour's name and the mode's note. */
-function leadSlots(doc: unknown, look: CoverLook, theme: string | undefined, core: readonly PaletteEntry[]): LookSlot[] {
+function leadSlots(doc: unknown, look: CoverLook, theme: string | undefined, core: readonly PaletteEntry[], words: Readonly<Record<string, string>>): LookSlot[] {
   const notes = new Map<string, string>();
   for (const swatch of createTokenSet(doc, theme ? { theme } : {}).colors()) {
     if (typeof swatch.description === 'string' && swatch.description) notes.set(swatch.path, swatch.description);
   }
   const nameOf = (hex: string): string => core.find(c => hexOf(c.hex) === hex)?.label ?? '';
   const slots: Array<[LookSlot['role'], string]> = [['surface', look.surface], ['text', look.ink], ['primary', look.primary], ['secondary', look.secondary]];
-  return slots.map(([role, hex]) => ({ role, hex, name: nameOf(hex), note: notes.get(`color.semantic.${role}`) ?? '' }));
+  return slots.map(([role, hex]) => {
+    const word = words[`color.semantic.${role}`];
+    return { role, hex, name: nameOf(hex), note: notes.get(`color.semantic.${role}`) ?? '', ...(word ? { word } : {}) };
+  });
+}
+
+/** Each declared colour role's word by token path, and by the path of each slot it fills. */
+function colourRoleWordsOf(doc: unknown): Record<string, string> {
+  const words: Record<string, string> = {};
+  for (const role of readColourRoles(doc).roles) {
+    if (!role.declared) continue;
+    words[role.path] = role.label;
+    for (const slot of role.slots) words[`color.semantic.${slot}`] = role.label;
+  }
+  return words;
 }
 
 /** Read the issue for one design system. Never throws on a malformed doc. */
 export function readIssue(input: IssueInput): IssueModel {
   const { doc, palette } = input;
+  const roleWords = colourRoleWordsOf(doc);
   const core = coreColoursOf(palette);
   const { brand: named, ramps } = groupPalette(core);
   const seen = new Set<string>();
@@ -173,8 +192,8 @@ export function readIssue(input: IssueInput): IssueModel {
   const looks = looksOf(doc);
   const modes = leadModes(doc);
   const modeId = (mode: 'light' | 'dark'): string | undefined => modes.find(m => m.id.toLowerCase() === mode)?.id;
-  const leads: IssueModel['leads'] = [{ mode: 'light', slots: leadSlots(doc, looks.light, modeId('light'), core) }];
-  if (looks.dark) leads.push({ mode: 'dark', slots: leadSlots(doc, looks.dark, modeId('dark'), core) });
+  const leads: IssueModel['leads'] = [{ mode: 'light', slots: leadSlots(doc, looks.light, modeId('light'), core, roleWords) }];
+  if (looks.dark) leads.push({ mode: 'dark', slots: leadSlots(doc, looks.dark, modeId('dark'), core, roleWords) });
 
   const fonts = fontRolesOf(doc);
   const logos = logosOf(doc);
@@ -186,7 +205,7 @@ export function readIssue(input: IssueInput): IssueModel {
     standfirst: standfirstOf(doc),
     looks,
     leads,
-    colours: { core, named, ramps, spectrum, roles, lockedInks: core.filter(isLockedInk).length },
+    colours: { core, named, ramps, spectrum, roles, roleWords, lockedInks: core.filter(isLockedInk).length },
     fonts,
     logos,
     colourways,

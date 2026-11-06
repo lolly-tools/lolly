@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /** Node font and picture facts for the same Design drawing pipeline as the web shell. */
-import { extractC2paStore, prepareC2paIngredientFromStore } from '@lolly/engine';
+import { colorToHex, extractC2paStore, prepareC2paIngredientFromStore, readColourRoles } from '@lolly/engine';
 import type { HostV1, IngredientCredential } from '@lolly-tools/core/host-v1';
 import type { TextMeasureFontsV1 } from '@lolly-tools/core/text-measure-v1';
 import type { DesignPageSvgHost } from '../../../engine/src/design-page-svg.ts';
@@ -29,6 +29,24 @@ async function fontsOf(host: HostV1): Promise<TextMeasureFontsV1 | undefined> {
  * page no longer needs the browser tier for that alone. `ingredients()` lists them,
  * once each by active manifest; one the engine cannot prepare is left out, as on the web.
  */
+/**
+ * What a `var(--brand-<id>, fallback)` in a row draws on a design system that declares
+ * colour roles (plans/352): the role's colour in this run's choices, which is what the
+ * web shell's canvas gives. Null for any other system, whose page keeps drawing the
+ * fallback the variable holds, so its exports do not move.
+ */
+async function colourRoleResolver(host: HostV1): Promise<((css: string) => string | null) | null> {
+  try {
+    const document = (await host.tokens?.snapshot?.())?.document;
+    if (!document || !readColourRoles(document).roles.some(role => role.declared)) return null;
+    const set = await host.tokens!.get();
+    return (css) => {
+      const name = /^var\(\s*--brand-([a-z][a-z-]*)\s*(?:,[\s\S]*)?\)$/.exec(css.trim())?.[1];
+      return name ? colorToHex(set.resolve(`{color.semantic.${name}}`)) ?? null : null;
+    };
+  } catch { return null; }
+}
+
 export async function designOpsNodeHost(host: HostV1, ctx: { repoRoot: string }, outlined = true): Promise<{ drawing: DesignPageSvgHost; ingredients: () => IngredientCredential[] } | null> {
   const text = host.text;
   if (!text) return null;
@@ -52,6 +70,7 @@ export async function designOpsNodeHost(host: HostV1, ctx: { repoRoot: string },
   };
 
   const fonts = await fontsOf(host);
+  const resolveColor = await colourRoleResolver(host);
   return {
     drawing: {
       shaper: createNodeTextShaper({ repoRoot: ctx.repoRoot }),
@@ -59,6 +78,7 @@ export async function designOpsNodeHost(host: HostV1, ctx: { repoRoot: string },
       ...(outlined ? { strikeMetrics: (url: string, variations?: string[]) => nodeStrikeMetrics(url, variations, ctx.repoRoot) } : {}),
       picture,
       ...(fonts ? { fonts } : {}),
+      ...(resolveColor ? { resolveColor } : {}),
     },
     ingredients: () => [...ingredients],
   };

@@ -7,11 +7,16 @@
  * writes nothing, so the document stays byte-identical. Light and dark stay side by side
  * at phone width.
  *
+ * Where a colour is chosen (plans/352 R3), the word is on show with no hover, first and in
+ * brand order, in a tool's field and in Design, and a design system with no roles keeps the
+ * grid it has always had.
+ *
  *   LOLLY_IMPORT_TEST_URL=http://127.0.0.1:5173 node --import ./tests/browser-gpu.ts --test tests/colour-roles-studio.browser.test.ts
  */
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
+import { inflateRawSync } from 'node:zlib';
 import { chromium } from 'playwright';
 import type { BrowserContext, Page } from 'playwright';
 import { shellSettled } from './helpers/shell-settled.ts';
@@ -50,6 +55,23 @@ const saved = (page: Page): Promise<unknown> => page.locator('.be-palette [data-
 const names = (page: Page): Promise<string[]> => page.locator('[data-crt-name]').evaluateAll(els => els.map(el => (el as HTMLInputElement).value));
 const poster = (page: Page): Promise<string> => page.locator('[data-be-previews] .be-pv:not([hidden])').evaluate(el => el.innerHTML.toLowerCase());
 const roleOf = (raw: Rec, id: string): Rec | undefined => raw.$extensions['com.suse.lolly'].brandSystem.roles.find((r: Rec) => r.id === id);
+const openGrid = (page: Page) => page.locator('.color-popover:not([hidden]) .color-swatches');
+/** A Design address as readable text: `z=` is a tag plus base64url of raw DEFLATE, and the row is encoded twice over. */
+const designQuery = (href: string): string => {
+  const z = new URL(href).searchParams.get('z');
+  const text = z ? inflateRawSync(Buffer.from(z.slice(1), 'base64url')).toString('utf8') : new URL(href).search;
+  return decodeURIComponent(decodeURIComponent(text));
+};
+/** The address follows an edit after a short wait, so read until it says what is expected. */
+const addressSays = async (page: Page, want: RegExp): Promise<string> => {
+  let query = '';
+  for (let attempt = 0; attempt < 60; attempt += 1) {
+    query = designQuery(await page.evaluate(() => location.href));
+    if (want.test(query)) return query;
+    await page.waitForTimeout(250);
+  }
+  assert.fail(`the address never matched ${want}:\n${query.slice(0, 2000)}`);
+};
 
 test('the room: add, rename, bind, Same as light, switch colourway, In context repaints, and a reload keeps every word', options, async () => {
   const browser = await chromium.launch({ headless: true, channel: process.env.LOLLY_BROWSER_CHANNEL });
@@ -213,9 +235,8 @@ test('the room: add, rename, bind, Same as light, switch colourway, In context r
 
 /**
  * The table says a role read by name only is "offered in colour fields and Design", so
- * this holds that true: the role is in a tool's colour field and in Design's picker, and
- * a pick stays linked, so it follows the colourway. Plans/352 R3 gives these swatches the
- * system's own word in place of the "Semantic" group name this looks them up by.
+ * this holds that true: the role is in a tool's colour field and in Design's picker with
+ * its word on show, and a pick stays linked, so it follows the colourway.
  */
 test('a role read by name only really is offered: in a tool colour field and in Design, linked to the colourway', options, async () => {
   const browser = await chromium.launch({ headless: true, channel: process.env.LOLLY_BROWSER_CHANNEL });
@@ -225,7 +246,7 @@ test('a role read by name only really is offered: in a tool colour field and in 
     const page = await context.newPage();
     await open(page);
     await install(page, fixture);
-    const swatch = page.locator('[aria-label="Semantic · Supporting"], [title="Semantic · Supporting"]').first();
+    const swatch = page.locator('.color-popover:not([hidden]) .color-role-swatch[aria-label="Supporting"]');
     const room = async (hash: string): Promise<void> => {
       await page.goto(`${origin}/${hash}`, { waitUntil: 'load' });
       await page.reload({ waitUntil: 'networkidle' }); await shellSettled(page);
@@ -237,10 +258,19 @@ test('a role read by name only really is offered: in a tool colour field and in 
     const field = page.locator('.color-trigger').nth(1);
     await field.scrollIntoViewIfNeeded();
     await field.click();
-    await swatch.waitFor({ state: 'attached' });
+    await swatch.waitFor();
+    // Found with no hover: the word is text on the row, and the roles come first in brand order.
+    assert.deepEqual(await openGrid(page).locator('.color-role-word').allInnerTexts(), ['Main', 'Accent', 'Supporting', 'Tertiary']);
+    assert.ok(await swatch.locator('.color-role-word').isVisible());
+    const offered = await openGrid(page).locator('button').evaluateAll(els => els.map(el => el.getAttribute('aria-label') ?? ''));
+    assert.deepEqual(offered.slice(0, 2), ['Main', 'On Main']);
+    assert.deepEqual(offered.filter(name => /^(Light|Dark) · /.test(name)), [], 'no colourway copies');
+    assert.deepEqual(offered.filter(name => /^Semantic · (On |Primary|Secondary|Main|Accent|Supporting|Tertiary)/.test(name)), [], 'no On tokens, and no second name for a role');
+    assert.ok(offered.includes('Semantic · Surface'), 'a slot no role fills stays as the system defines it');
     await swatch.click();
     await page.keyboard.press('Escape');
     await page.waitForFunction(() => decodeURIComponent(location.href).includes('{color.semantic.supporting}'));
+    assert.match((await field.getAttribute('aria-label'))!, /Supporting/);
     const canvasRole = (): Promise<string> => page.evaluate(() => getComputedStyle(document.querySelector('#tool-canvas')!).getPropertyValue('--brand-supporting').trim().toLowerCase());
     assert.equal(await canvasRole(), '#6c7a89');
     await page.locator('#theme-section [aria-label*="Madder"], #theme-section [title*="Madder"]').first().click();
@@ -249,15 +279,80 @@ test('a role read by name only really is offered: in a tool colour field and in 
     // Design: the artboard takes the role and follows the colourway too.
     await room('#/tool/design');
     await page.keyboard.press('Escape');
-    await page.locator('.color-trigger').first().click();
-    await swatch.waitFor({ state: 'attached' });
+    const well = page.locator('.color-trigger').first();
+    await well.click();
+    await swatch.waitFor();
+    assert.deepEqual(await openGrid(page).locator('.color-role-word').allInnerTexts(), ['Main', 'Accent', 'Supporting', 'Tertiary']);
     await swatch.click();
     await page.keyboard.press('Escape');
     const fill = (): Promise<boolean> => page.evaluate((want) => [...document.querySelectorAll<HTMLElement>('#tool-canvas *')].some(el => getComputedStyle(el).backgroundColor === want), 'rgb(108, 122, 137)');
     await page.waitForFunction((want) => [...document.querySelectorAll<HTMLElement>('#tool-canvas *')].some(el => getComputedStyle(el).backgroundColor === want), 'rgb(108, 122, 137)');
     assert.equal(await fill(), true, 'the artboard draws Supporting in Indigo');
+    // The word comes from the row's link, and the link is what the row stores beside its literal.
+    await page.waitForFunction(() => document.querySelector('.color-trigger .color-trigger-name')?.textContent === 'Supporting');
+    await page.waitForFunction(() => document.querySelector('.color-trigger')?.getAttribute('aria-label')?.includes('Supporting'));
+    await addressSays(page, /"bg":\{"ref":"\{color\.semantic\.supporting\}","status":"linked","value":"#6c7a89"\}/);
     await page.getByRole('button', { name: 'Madder', exact: true }).click();
     await page.waitForFunction((want) => [...document.querySelectorAll<HTMLElement>('#tool-canvas *')].some(el => getComputedStyle(el).backgroundColor === want), 'rgb(125, 107, 93)');
+    await page.waitForFunction(() => document.querySelector('.color-trigger')?.getAttribute('aria-label')?.includes('#7d6b5d'));
+    assert.equal(await page.locator('.color-trigger .color-trigger-name').first().textContent(), 'Supporting', 'the link names the colour whatever the colourway');
+    await addressSays(page, /"bg":\{"ref":"\{color\.semantic\.supporting\}","status":"linked","value":"#7d6b5d"\}/);
+  } finally { await context.close(); await browser.close(); }
+});
+
+test('Design: a role picked for the canvas default is stored as the link, and survives a reload and a colourway switch', options, async () => {
+  const browser = await chromium.launch({ headless: true, channel: process.env.LOLLY_BROWSER_CHANNEL });
+  const context = await browser.newContext({ viewport: { width: 1360, height: 900 }, reducedMotion: 'reduce', serviceWorkers: 'block' });
+  try {
+    await prepare(context);
+    const page = await context.newPage();
+    await open(page);
+    await install(page, fixture);
+    await page.goto(`${origin}/#/tool/design`, { waitUntil: 'load' });
+    await page.reload({ waitUntil: 'networkidle' }); await shellSettled(page);
+    await page.locator('dialog.view-loading[open]').waitFor({ state: 'hidden', timeout: 60_000 }).catch(() => {});
+    await page.keyboard.press('Escape');
+    const fill = page.locator('[data-color-field="fc-insp-bg"] .color-trigger');
+    await fill.click();
+    await openGrid(page).locator('[aria-label="Tertiary"]').click();
+    await page.keyboard.press('Escape');
+    await page.waitForFunction(() => document.querySelector('[data-color-field="fc-insp-bg"] .color-trigger-name')?.textContent === 'Tertiary');
+    const query = await addressSays(page, /background=\{color\.semantic\.tertiary\}/);
+    assert.ok(!query.includes('--brand-token-'), 'it reads as the role, not as a hex variable with a stale fallback');
+    await page.getByRole('button', { name: 'Madder', exact: true }).click();
+    await page.waitForFunction(() => document.querySelector('[data-color-field="fc-insp-bg"] .color-trigger')?.getAttribute('aria-label')?.includes('#e3cfae'));
+    assert.equal(await page.locator('[data-color-field="fc-insp-bg"] .color-trigger-name').textContent(), 'Tertiary');
+    const address = await page.evaluate(() => location.href);
+    await page.goto(address, { waitUntil: 'load' });
+    await page.reload({ waitUntil: 'networkidle' }); await shellSettled(page);
+    await page.locator('dialog.view-loading[open]').waitFor({ state: 'hidden', timeout: 60_000 }).catch(() => {});
+    await page.locator('[data-color-field="fc-insp-bg"] .color-trigger').waitFor({ state: 'attached' });
+    assert.equal(await page.locator('[data-color-field="fc-insp-bg"] .color-trigger-name').textContent(), 'Tertiary', 'a reload keeps the word');
+  } finally { await context.close(); await browser.close(); }
+});
+
+test('a design system with no roles keeps the grid it has always had: every colour, in order, with no headings', options, async () => {
+  const browser = await chromium.launch({ headless: true, channel: process.env.LOLLY_BROWSER_CHANNEL });
+  const context = await browser.newContext({ viewport: { width: 1360, height: 900 }, reducedMotion: 'reduce', serviceWorkers: 'block' });
+  try {
+    await prepare(context);
+    const page = await context.newPage();
+    await page.goto(`${origin}/#/tool/qr-code?url=https%3A%2F%2Flolly.tools`, { waitUntil: 'networkidle' });
+    await shellSettled(page);
+    await page.locator('dialog.view-loading[open]').waitFor({ state: 'hidden', timeout: 60_000 }).catch(() => {});
+    const expected = await page.evaluate(async () => {
+      const path = '/src/bridge/index.ts';
+      const host = await (await import(path)).createBridge();
+      const swatches = await host.tokens.colors() as Array<{ name: string; group: string | null; ref: string }>;
+      return swatches.map(s => [s.group ? `${s.group} · ${s.name}` : s.name, s.ref]);
+    });
+    const field = page.locator('.color-trigger').nth(1);
+    await field.scrollIntoViewIfNeeded();
+    await field.click();
+    await openGrid(page).locator('.color-swatch').first().waitFor();
+    assert.equal(await openGrid(page).locator('.color-role-swatches, .color-swatch-head').count(), 0);
+    const drawn = await openGrid(page).locator('> *').evaluateAll(els => els.map(el => [el.getAttribute('aria-label'), el.getAttribute('data-swatch-ref')]));
+    assert.deepEqual(drawn, expected);
   } finally { await context.close(); await browser.close(); }
 });
 
@@ -292,6 +387,27 @@ test('phone: both looks side by side, no sideways scroll, long and non-Latin lab
     await page.locator('[data-be-roles-preview]').click();
     await page.waitForFunction(() => { const y = document.querySelector('.be-context')?.getBoundingClientRect().top ?? 9999; return y >= 0 && y < 300; });
     assert.equal(await page.locator('[data-crt-name="main"]').getAttribute('dir'), 'auto');
+
+    // The same words where a colour is chosen: all on one screen, inside it, and each a full target.
+    await page.goto(`${origin}/#/tool/qr-code?url=https%3A%2F%2Flolly.tools`, { waitUntil: 'load' });
+    await page.reload({ waitUntil: 'networkidle' }); await shellSettled(page);
+    await page.locator('dialog.view-loading[open]').waitFor({ state: 'hidden', timeout: 60_000 }).catch(() => {});
+    const field = page.locator('.color-trigger:visible').nth(1);
+    await field.scrollIntoViewIfNeeded();
+    await field.click();
+    const grid = openGrid(page);
+    await grid.locator('.color-role-swatch').first().waitFor();
+    assert.deepEqual(await grid.locator('.color-role-word').allInnerTexts(), ['القماش الأساسي', '主色调', 'Selvedge and small print 🧵🪡', 'A very long role name that a brand guideline might really use somewhere']);
+    assert.equal(await grid.locator('.color-role-word').first().getAttribute('dir'), 'auto');
+    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth + 1), false, 'no sideways page scroll');
+    assert.equal(await grid.evaluate(el => el.scrollWidth > el.clientWidth + 1), false, 'nothing overflows the grid');
+    for (const row of await grid.locator('.color-role-row').all()) {
+      const box = (await row.boundingBox())!;
+      assert.ok(box.x >= 0 && box.x + box.width <= 390, 'the row is inside the screen');
+      assert.ok((await row.locator('.color-role-swatch').boundingBox())!.height >= 44, 'a full target');
+      const on = (await row.locator('.color-role-on').boundingBox())!;
+      assert.ok(on.height >= 44 && on.width >= 44, 'and so is the colour that sits on it');
+    }
   } finally { await context.close(); await browser.close(); }
 });
 

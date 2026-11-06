@@ -121,7 +121,7 @@ Design-system commands: lolly system status | list | use | import | add | export
 
 Piped into another program, the same bare `lolly` lists the tools instead.
 
-A terminal design system is the colours, type and logos every render then uses. Build one from a single colour with `system init`, or bring one in with `system import`: a `.lolly` pack, a tokens file, a Penpot file, a token zip or an SVG. `system add` keeps fonts, logos and other source material with the system. `system status` shows which system is active, `system use <id>` switches and `system export` writes the active one as a portable `.lolly` pack.
+A terminal design system is the colours, type and logos every render then uses. Build one from a single colour with `system init`, or bring one in with `system import`: a `.lolly` pack, a tokens file, a Penpot file, a token zip or an SVG. `system add` keeps fonts, logos and other source material with the system. `system status` shows which system is active, with its colour roles in its own words and what Lolly reads each as, `system use <id>` switches and `system export` writes the active one as a portable `.lolly` pack.
 
 The CLI and the TUI share one store, so a system set up in one is active in the other. [Where saved sessions live](/info/cli-reference.html#where-saved-sessions-live) says which directory holds the store. [Token workflows](/info/token-workflows.html) covers `system inspect`, `diff`, `generate` and `sync`.
 
