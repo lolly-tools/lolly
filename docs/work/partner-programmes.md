@@ -114,8 +114,8 @@ joins the programme and the company, without an invitation each. Only an address
 provider has verified counts. A claimed address never does, and the exact domain is matched, so
 `emea.northwind.example` needs its own entry.
 
-**Preview** first lists the people at that domain who already sign in here and whether each
-joins. Then choose how the domain is proved:
+**Preview** first lists the people at that domain who already sign in here, and whether each
+joins now, joins later or does not join, with the reason. Then choose how the domain is proved:
 
 - **Proved by DNS** (the usual way). You get a TXT record for the partner to publish in their DNS:
 
@@ -130,8 +130,9 @@ joins. Then choose how the domain is proved:
   A lookup that fails for another reason, such as a timeout, changes nothing.
 - **On your say-so.** The domain is active at once and shows **Admin-asserted**, with your name, the
   date and the reason you give. All three go in Audit as `programme.domain.assert`. Use this when
-  the partner cannot publish a DNS record, for example while a contract is being signed. You can
-  switch a domain to DNS proof later.
+  the partner cannot publish a DNS record, for example while a contract is being signed. A domain
+  waiting for its record has **Activate without DNS** for the same override, and an admin-asserted
+  domain has **Prove by DNS instead** to move it to DNS proof.
 
 Two kinds of domain are refused either way: public mail domains, such as `gmail.com` or
 `outlook.com`, where anyone can have an address; and your own domains, which are your workspace's
