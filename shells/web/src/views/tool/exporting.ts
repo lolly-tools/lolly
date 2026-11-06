@@ -10,6 +10,8 @@ import { holdUpdateWork } from '../../lib/update-work-state.ts';
  */
 import { C2PA_FORMATS, DEFAULT_CMYK_CONDITION, VIDEO_CODEC_STRINGS, hasVideoParams } from '@lolly/engine';
 import { mergeExportPrefs } from '../../lib/export-prefs.ts';
+import { automationPasswordExpected } from '../../lib/automation-export-secret.ts';
+import { LinkPasswordRefused, linkPasswordRefusal } from '../../lib/export-password.ts';
 import { flushAddressWrites } from '../../lib/url-state.ts';
 import { holdStageView } from '../../lib/stage-lod.ts';
 import { withStudioExport } from '../../lib/studio-export-guard.ts';
@@ -286,6 +288,15 @@ export function settleLinkExport(tview: ToolViewCtx, canvas: LinkExportSize['can
  */
 export async function linkExport(tview: ToolViewCtx): Promise<void> {
   const fmt = tview.urlFormat || tview.tool.manifest.render.formats[0]!;
+  // The password comes in the link or, from automation, over the one-time binding, and the
+  // two travel the same way from here. A request this file cannot honour stops here, before
+  // any work: an unlocked file is what must not come out of this function.
+  const password = tview.urlPassword || tview.automationPassword || undefined;
+  if (password || automationPasswordExpected()) {
+    if (!password) throw new Error('A password was asked for and did not arrive, so nothing was written.');
+    const refusal = linkPasswordRefusal(fmt, { password, bleed: tview.urlBleed, marks: tview.urlMarks });
+    if (refusal) throw new LinkPasswordRefused(refusal);
+  }
   // Brand vars land async (tokens fetch), so they are awaited with quiescence: a link
   // export captures the branded canvas, not the fallbacks. The live palette (for CMYK
   // ink substitution) comes from the same tokens fetch and waits with them.
@@ -294,7 +305,7 @@ export async function linkExport(tview: ToolViewCtx): Promise<void> {
   const [, , palette] = await Promise.all([waitForQuiescence(tview.contentEl), tview.brandVarsReady, livePalette(tview.host)]);
   const size = linkExportSizeFor(tview);
   await settleLinkExport(tview, size.canvas);
-  const { urlBleed, urlC2pa, urlDepth, urlDurable, urlFilename, urlHdr, urlHeight, urlImprint, urlMarks, urlNostage, urlPassword, urlProfile, urlVideo, urlWidth } = tview;
+  const { urlBleed, urlC2pa, urlDepth, urlDurable, urlFilename, urlHdr, urlHeight, urlImprint, urlMarks, urlNostage, urlProfile, urlVideo, urlWidth } = tview;
   const name = urlFilename || tview.tool.manifest.id;
   const expOpts: RunExportOpts = {
     width: size.width,
@@ -314,9 +325,8 @@ export async function linkExport(tview: ToolViewCtx): Promise<void> {
   // HTML: honour ?nostage so a deep link auto-exports the full-page document
   // (no fixed-size canvas frame) - mirrors the panel's "Full page" toggle.
   if (fmt === 'html' && urlNostage) expOpts.fullPage = true;
-  // Standard lock: honour ?password= so a deep link can auto-export a locked
-  // PDF or ZIP bundle (basic lock; clear-text in the URL by design - see pdfPassRow).
-  if ((fmt === 'pdf' || fmt === 'zip') && urlPassword) expOpts.password = urlPassword;
+  // Standard lock, read above. The refusal has already seen the format.
+  if (password) expOpts.password = password;
   // Content Credentials: ?c2pa= wins (on/off + ephemeral-cert lifetime,
   // e.g. c2pa=90 or c2pa=off - see url-mode.js); absent it falls back to
   // a render.c2pa tool's popup default. Never stamped alongside a

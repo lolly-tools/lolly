@@ -52,7 +52,7 @@ Some rules hold for every table:
 | `height` / `h` | web + CLI | Output height, as a value in `unit`. Also fills in the export panel. |
 | `unit` | web + CLI | The unit for `width` and `height`: `px` (the default), `mm`, `cm`, `in`, `pt` or `pc`. |
 | `dpi` | web + CLI | Raster resolution for physical units (default `300`). Ignored for `px` and for vector formats. |
-| `password` | web + CLI | An open password for `pdf` and `zip`, standard tier only. It travels in clear text in the link, so it deters casual opening and does not protect confidential material. [Exporting](/info/exporting.html#password-protection) |
+| `password` | web + CLI | An open password for `pdf` and `zip`, standard tier only, read when a link opens. It deters casual opening and does not protect confidential material. Lolly never writes it into a link. [Exporting](/info/exporting.html#password-protection) |
 
 ::: details Size on a document with several artboards
 On a Lolly Design document with more than one artboard, the artboards are the size truth. `width` and `height` describe the active artboard: the selected one for still formats, the one under the playhead for animated ones. In the app the export panel mirrors that artboard as it changes, and editing the fields resizes that artboard.
@@ -61,7 +61,11 @@ Each format resolves the boards its own way. Still images fan out to one file pe
 :::
 
 ::: details More on password
-The export panel's strong AES-256 tier, which also covers `pdf-cmyk`, is typed at export and never travels in a link. The CLI applies `password` wherever it can render a PDF. It is ignored when `bleed` or `marks` is on, because an encrypted PDF cannot carry print finishing, and it cannot be combined with `c2pa` on a PDF.
+A link can bring a password, and the web app reads the value and takes it out of the address straight away, along with `export` and `copy`, so a reload opens the tool instead of writing the file again with no lock. Your browser may still remember the address you opened, so type the password in the export panel when you can. The address bar, a copied link, a saved session and the file's own metadata never hold the password.
+
+A password must be able to protect the file, or nothing is written. In the web app, the CLI and the TUI, `password` on any format other than `pdf` or `zip`, or on a `pdf` with `bleed` or `marks`, is refused. So is a `pdf` password beyond plain ASCII, because readers cannot open a file locked that way at this tier. Only the first 32 characters of a `pdf` password count. An encrypted PDF cannot take `c2pa`, so a locked PDF holds no credential.
+
+The export panel's strong AES-256 tier, which also covers `pdf-cmyk`, print marks and any alphabet, is typed at export and never travels in a link. The hot-link render URL has no lock, so it refuses `password` with a 400.
 :::
 
 ## Motion and timed documents
