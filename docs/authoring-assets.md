@@ -97,6 +97,7 @@ A tool that embeds another tool's output through `composes` ([Composition and br
 - **`id` is forever.** Once published, never rename or reuse an id. A different logo gets a different id.
 - **Bump `version` on every byte change.** Tools cache by id and version, so a missed bump means stale bytes everywhere.
 - **Always include a `checksum`.** A SHA-256 in SRI form checks integrity end to end and stops a poisoned CDN copy.
+- **Each id has its own file.** Two ids may hold identical bytes, but never one file between them. Lolly Work decides whether a file may be served from the one asset that owns the file, so a withdrawal can name what it withdraws, and it refuses a catalog with two owners for one path. `validate:catalog` fails on that catalog, and counts a `name.<16 hex>.ext` address as also claiming `name.ext`.
 - **Deprecate, don't delete.** Set `"deprecated": true` and optionally `"replacedBy": "new/asset/id"`. Existing references keep resolving, because a deprecated asset's own bytes keep loading. `replacedBy` guides people and catalog screens to the successor and is **never a runtime redirect**: `get(id)` always returns the original asset, so a link or saved session renders exactly what it always did. The build checks that the chain points at a real asset that is not itself deprecated, but nothing follows the chain when an id resolves.
 
 ## Rights and credits
@@ -239,7 +240,7 @@ by its full source SHA-256, rather than by an asset ID:
 ```json
 {
   "format": "webp",
-  "url": "/catalog/renditions/example-640.webp",
+  "url": "/catalog/renditions/acme/photo/example/out.0123456789abcdef.webp",
   "checksum": "sha256-...",
   "size": 12345,
   "rendition": {

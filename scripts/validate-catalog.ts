@@ -29,6 +29,8 @@ import type { ToolManifest } from '../engine/src/loader.ts';
  *     it has none. Reads catalog/previews/blank-report.json and refuses a stale one
  *   - Every asset format URL resolves to a file that exists on disk
  *   - Every asset checksum matches the file's actual SHA-256 on disk
+ *   - No two asset ids claim one catalog file, by Lolly Work's own path rules, including
+ *     the renditions a release will add (scripts/lib/catalog-asset-paths.ts)
  *   - Every asset `depth` label matches a re-sniff of the file's own header
  *     (and no unsniffable/non-raster format carries one)
  *   - Every `canvas.*Field` names a real sub-field id in the sibling `fields`
@@ -85,6 +87,7 @@ import { TOOL_INTENTS_FILE } from '../packages/core/src/intent-v1.ts';
 // from the shells', it either passes a pack that cannot resolve or fails one that can.
 import { isVersionAssetId, readVersionIndex, DESIGN_VERSION_LATEST } from '../engine/src/design-version.ts';
 import { tokensHeadProblems } from './lib/tokens-head.ts';
+import { assetPathProblems, renditionSourceProblems, withRenditionFormats } from './lib/catalog-asset-paths.ts';
 import { parseRateCard, isRateCardError } from '../engine/src/rate-card.ts';
 // The filename shape the catalog signer enumerates for starter templates. Imported
 // rather than restated so a template that ships can never be one the envelope skips:
@@ -1774,6 +1777,7 @@ for (const asset of assetsIndex.assets) {
 // the glyph count and every artwork hash - which is the whole contract a shell relies
 // on before it hands a byte of a pack to a renderer.
 
+const sharedRootAssets: any[] = [];
 for (const shared of contentRoots().assetRoots) {
   const indexPath = join(shared.dir, 'index.json');
   if (!existsSync(indexPath)) {
@@ -1787,6 +1791,7 @@ for (const shared of contentRoots().assetRoots) {
     errors.push(`shared asset root "${shared.name}": index.json is not valid JSON - ${(err as Error).message}`);
     continue;
   }
+  sharedRootAssets.push(...(sharedIndex.assets ?? []));
   const prefix = `/catalog/packs/${shared.name}/`;
   // Resolved once, so the containment check below compares like with like: a
   // checkout can itself sit behind a link (/tmp on macOS is one), and comparing a
@@ -1879,6 +1884,16 @@ for (const shared of contentRoots().assetRoots) {
       errors.push(`${where} bundle audit failed: ${(err as Error).message}`);
     }
   }
+}
+
+// One file, one owner. Lolly Work refuses an index where two ids claim one path and
+// answers 503 for this catalog's files, and no reader on this side would notice. The
+// index checked is the merged one a pack mounts, plus the renditions a release adds.
+{
+  const renditions = readCatalogJsonOptional('renditions/index.json');
+  const mounted = { assets: [...assetsIndex.assets, ...sharedRootAssets] };
+  for (const problem of assetPathProblems(withRenditionFormats(mounted, renditions))) errors.push(`assets/index.json: ${problem}`);
+  errors.push(...renditionSourceProblems(mounted, renditions));
 }
 
 // The first icon-themes pairing is the DEFAULT the picker maps to a plain
