@@ -9,17 +9,17 @@ Roughly 862,000 lines of TypeScript, tests included, and 65,000 lines of CSS.
 
 | Directory | Source | Tests | CSS |
 |---|---|---|---|
-| `views/` | 603 files, 222,517 lines | 322 files, 100,786 lines | 12 files, 1,686 lines |
-| `lib/` | 919 files, 189,518 lines | 560 files, 108,953 lines | 13 files, 1,856 lines |
+| `views/` | 603 files, 222,538 lines | 322 files, 100,786 lines | 12 files, 1,686 lines |
+| `lib/` | 921 files, 189,702 lines | 561 files, 109,202 lines | 13 files, 1,856 lines |
 | `bridge/` | 258 files, 57,680 lines | 147 files, 30,168 lines | none |
-| `components/` | 134 files, 30,780 lines | 64 files, 16,298 lines | 24 files, 1,635 lines |
+| `components/` | 134 files, 30,857 lines | 64 files, 16,298 lines | 24 files, 1,635 lines |
 | `org/` | 87 files, 21,584 lines | 60 files, 17,731 lines | none |
 | `collab/` | 20 files, 13,570 lines | 22 files, 14,247 lines | none |
 | `pro/` | 32 files, 9,428 lines | 16 files, 2,305 lines | 3 files, 1,256 lines |
 | `catalog/` | 12 files, 2,118 lines | 10 files, 1,256 lines | none |
 | `capture/` | 5 files, 781 lines | none | none |
 | `ext/` | 2 files, 136 lines | 1 file, 86 lines | none |
-| `styles/` | none | 12 files, 2,183 lines | 144 files, 58,660 lines |
+| `styles/` | none | 12 files, 2,183 lines | 144 files, 58,776 lines |
 
 Plus 53 `.ts`/`.js` files at the top level of `src/`, 19,821 lines all told, of which 27 are tests and 3 are ambient declarations. `main.ts` is 2,390 of that.
 <!-- web-src-dirs:end -->
@@ -71,11 +71,11 @@ Do not be ambushed by these. The largest source files, by line count:
 | 2,844 | `views/gallery.ts` | none |
 | 2,661 | `views/deck-editor.ts` | yes |
 | 2,652 | `views/design-import.ts` | **none** |
-| 2,633 | `views/design-inspector.ts` | yes |
+| 2,634 | `views/design-inspector.ts` | yes |
 | 2,615 | `views/timeline-math.ts` | yes |
 | 2,527 | `views/free-canvas.ts` | yes, nine `free-canvas-*.test.ts` files |
+| 2,480 | `components/color-field.ts` | yes |
 | 2,448 | `views/free-canvas-math.ts` | yes |
-| 2,404 | `components/color-field.ts` | yes |
 | 2,390 | `main.ts` | yes |
 | 2,281 | `lib/drop-router.ts` | yes |
 | 2,246 | `views/present-mode.ts` | yes |
