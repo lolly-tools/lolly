@@ -112,7 +112,8 @@ import { THEME_SEG, chooseDocumentTheme, documentThemeRows, documentThemeSignatu
 import { icon } from '../lib/icons.ts';
 import type { IconName } from '../lib/icons.ts';
 import { colorFieldHtml, wireColorField, resolveColorVar, colorVarLabel } from '../components/color-field.ts';
-import { designColorValue } from '../lib/design-color.ts';
+import { designColorValue, designInputColorValue } from '../lib/design-color.ts';
+import { linkedColourWord } from '../lib/colour-role-words.ts';
 import { numField } from '../components/num-field.ts';
 import { areaRow, readRow, selectRow, textRow, toggleRow } from './design-inspector-rows.ts';
 import { createAspectLocks, sizeAndScaleRows, wireAspectLocks } from './design-inspector-aspect.ts';
@@ -917,7 +918,7 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
    * the token's own name onto the trigger. The MODEL is untouched - the `var()` stays
    * in the box until the user picks something else.
    */
-  function colorField(id: string, raw: unknown, label = '', mixed = false): string {
+  function colorField(id: string, raw: unknown, label = '', mixed = false, word = ''): string {
     // A colour whose value is a design-token alias reaches this row as the runtime's
     // unresolved ref OBJECT, not a string: the engine parses `{color.semantic.surface}`
     // (the design tool's own background default) into `{ ref, _unresolved }`. Stringifying
@@ -954,7 +955,7 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
     // An unset colour is "None", not an empty cell. `colorVarLabel` answers only
     // for a brand token, and the value answers for a hand-picked colour; with
     // neither, the honest word is the one the picker itself would show.
-    return colorFieldHtml(id, resolved, { float: true, name: colorVarLabel(val) || resolved || t('None'), label });
+    return colorFieldHtml(id, resolved, { float: true, name: word || colorVarLabel(val) || resolved || t('None'), label });
   }
 
   /** The manifest's own options for a field, `[value, label]`, already translated. */
@@ -1063,8 +1064,8 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
       + (value === 'mixed' ? ` aria-valuetext="${escape(t('Mixed'))}"` : '') + '>'
       + numCell('', field, value, { name: label, min, max, pair: key, ...o }) + (o.after ?? ''));
 
-  const colorRow = (label: string, id: string, raw: unknown, extra = '', mixed = false): string =>
-    `<div class="fc-row"><span>${label}</span><span class="fc-cfield">${colorField(id, raw, label, mixed)}</span>${extra}</div>`;
+  const colorRow = (label: string, id: string, raw: unknown, extra = '', mixed = false, word = ''): string =>
+    `<div class="fc-row"><span>${label}</span><span class="fc-cfield">${colorField(id, raw, label, mixed, word)}</span>${extra}</div>`;
 
   /**
    * A row that opens another surface. FRAMED, with a trailing chevron, because
@@ -1373,10 +1374,10 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
       + `${dimCell(t('H'), cfg.hField, h, { min: 1, max: 100000, name: t('Height') })}</div>`
       + (cfg.fillField
         ? colorRow(t('Fill'), 'fc-insp-fill', fv(b, cfg.fillField),
-          `<button type="button" class="fc-cbtn fc-insp-mini" data-act="gradient">${t('Gradient')}</button>`)
+          `<button type="button" class="fc-cbtn fc-insp-mini" data-act="gradient">${t('Gradient')}</button>`, false, linkedColourWord(b, cfg.fillField, fv(b, cfg.fillField)))
         : '')
       + (cfg.fillField && actions.useAsInput ? doorBtn(t('Use fill as input'), 'input-fill', 'sliders') : '')
-      + (cfg.strokeField ? colorRow(t('Stroke'), 'fc-insp-stroke', fv(b, cfg.strokeField)) : '')
+      + (cfg.strokeField ? colorRow(t('Stroke'), 'fc-insp-stroke', fv(b, cfg.strokeField), '', false, linkedColourWord(b, cfg.strokeField, fv(b, cfg.strokeField))) : '')
       + (cfg.strokeWField ? strokeUi.rows(cfg.strokeWField, [b], false) : '') + strokeStyleRow(fieldDefs as BlockFieldSpec[], cfg, b, [b], selectRow)
       + (clipF ? toggleRow(t('Clip children'), clipF, boolOf(b[clipF], true)) : '')
       + transitionRows(b)
@@ -1433,9 +1434,9 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
     return (cfg.fillField
       ? colorRow(t('Fill'), 'fc-insp-fill', K.shown(b, 'fill', fv(b, cfg.fillField)),
         `<button type="button" class="fc-cbtn fc-insp-mini" data-act="gradient">${t('Gradient')}</button>${K.diamond('fill')}`,
-        differs(rows, cfg.fillField))
+        differs(rows, cfg.fillField), linkedColourWord(b, cfg.fillField, K.shown(b, 'fill', fv(b, cfg.fillField))))
       : '')
-      + (cfg.strokeField ? colorRow(t('Stroke'), 'fc-insp-stroke', K.shown(b, 'stroke', fv(b, cfg.strokeField)), K.diamond('stroke'), differs(rows, cfg.strokeField)) : '')
+      + (cfg.strokeField ? colorRow(t('Stroke'), 'fc-insp-stroke', K.shown(b, 'stroke', fv(b, cfg.strokeField)), K.diamond('stroke'), differs(rows, cfg.strokeField), linkedColourWord(b, cfg.strokeField, K.shown(b, 'stroke', fv(b, cfg.strokeField)))) : '')
       + (cfg.strokeWField ? strokeUi.rows(cfg.strokeWField, rows, true) : '') + strokeStyleRow(fieldDefs as BlockFieldSpec[], cfg, b, rows, selectRow);
   }
 
@@ -1468,7 +1469,7 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
     const shBlur = agree(rows, (r) => Math.round(clampN(fv(r, cfg.shadowBlurField), 10, 0, 300)));
     return (cfg.shadowField ? segRow(FIELD_GLYPH.shadowIc, t('Apply to'), segHtml(cfg.shadowField, shadowCur, shadowChoices, t('Apply to'))) : '')
       + (cfg.shadowColorField
-        ? colorRow(t('Colour'), 'fc-insp-shadow', fv(b, cfg.shadowColorField) ?? '#00000055', '', differs(rows, cfg.shadowColorField))
+        ? colorRow(t('Colour'), 'fc-insp-shadow', fv(b, cfg.shadowColorField) ?? '#00000055', '', differs(rows, cfg.shadowColorField), linkedColourWord(b, cfg.shadowColorField, fv(b, cfg.shadowColorField)))
         : '')
       + `<div class="fc-dims-row"><span class="fc-dims-ic" data-tip="${escape(t('Offset'))}">${icon('move')}</span>`
       + (cfg.shadowXField ? dimCell(t('X'), cfg.shadowXField, shX, { name: t('Shadow X'), min: -300, max: 300 }) : '')
@@ -1552,7 +1553,7 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
         + `<button type="button" class="fc-cbtn" data-act="smaller" aria-label="${escape(t('Smaller text'))}">A-</button>`
         + numCell('', cfg.fontSizeField, num(cfg.fontSizeField, 48, 1, 2000), { name: t('Size'), min: 4, max: 2000, unit: 'px' })
         + `<button type="button" class="fc-cbtn" data-act="bigger" aria-label="${escape(t('Bigger text'))}">A+</button></div></div>` : '')
-      + (cfg.textColorField ? colorRow(t('Colour'), 'fc-insp-fg', fv(b, cfg.textColorField), '', mixed(cfg.textColorField)) : '')
+      + (cfg.textColorField ? colorRow(t('Colour'), 'fc-insp-fg', fv(b, cfg.textColorField), '', mixed(cfg.textColorField), linkedColourWord(b, cfg.textColorField, fv(b, cfg.textColorField))) : '')
       + (cfg.textColorField && actions.useAsInput ? doorBtn(t('Use colour as input'), 'input-fg', 'sliders') : '')
       + align
       // Vertical align sits WITH horizontal align, because that is the pair
@@ -2120,7 +2121,7 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
         if (id === 'fc-insp-interact-highlight') { if (interactionColour?.isConnected) commitWebInteractColour(model, interactionIds, val); return; }
         const colour = designColorValue(val, model.getInput('editingRange'), detail);
         if (id === 'fc-insp-guide' && renderedGuideId) { opts.guides?.update(renderedGuideId, { color: typeof val === 'object' ? val.value : val }); return; }
-        if (id === 'fc-insp-bg') { model.setInput('background', colour); return; }
+        if (id === 'fc-insp-bg') { model.setInput('background', designInputColorValue(val, model.getInput('editingRange'), detail)); return; }
         write(colorTarget(cfg, id), colour);
       },
     });

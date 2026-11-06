@@ -15,7 +15,7 @@ The folder is static: no scripts, no tracking and nothing loaded from another si
 | `brand.json` | The manifest: every file with its digest, the logos and the surface each one is for, the design system's colour roles if it declares any, what was held back and why. |
 | `DESIGN.md` | The default colourway and mode in the [DESIGN.md](https://github.com/google-labs-code/design.md) format. Lolly targets the format's `alpha` version. |
 | `design/` | A `DESIGN.md` for each colourway and mode. |
-| `AGENTS.md` | Text to paste or download into a project, so an agent working there follows the brand. |
+| `AGENTS.md` | Text to paste or download into a project, so an agent working there follows the brand. A design system with colour roles lists them here in its own words, as data, with what Lolly reads each as. |
 | `llms.txt` | An index of the folder for agents, with relative links. |
 | `checks.json` | What was measured for each colourway and mode. |
 | `tokens/` | The design system as [DTCG tokens](/info/design-tokens.html), plus resolved copies per colourway and mode. |

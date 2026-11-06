@@ -641,7 +641,7 @@ test('a brand page shows the brand\'s words, per colourway and mode, and checks 
   assert.match(md, /\| Main \| #1b2a6b \| The cloth's ground colour \| Lead colour \|/);
   assert.match(md, /\| Background \| #faf7f2 \| `color\.semantic\.surface` \|/);
   const agents = fileOf(built, 'AGENTS.md');
-  assert.match(agents, /\| Main \| `color\.semantic\.main` \| #1b2a6b \| Lead colour \|/);
+  assert.match(agents, /\| Main \| `color\.semantic\.main` \| #1b2a6b \| Lead colour: /);
   assert.match(agents, /^> Main: The cloth's ground colour$/m);
   assert.match(fileOf(built, 'design/weld.dark.DESIGN.md'), /Lolly reads this as: lead colour/);
   // Every token this folder names resolves in the file for that look.

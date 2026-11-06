@@ -11,6 +11,8 @@ import { activeFrameIdFor } from '../free-canvas-math.ts';
 import { LOLLY_MARK_SVG } from '../../lib/lolly-mark.ts';
 import { t } from '../../i18n.ts';
 import { wireColorField } from '../../components/color-field.ts';
+import { linkedColourWord } from '../../lib/colour-role-words.ts';
+import { designInputColorValue } from '../../lib/design-color.ts';
 import { SVG, icon } from '../free-canvas-icons.ts';
 import { slotGlyphs, type PopItem } from './shared.ts';
 import { bindOp, type FcCtx } from './context.ts';
@@ -677,7 +679,7 @@ export function buildToolbar(fc: FcCtx): void {
 // delegated listeners on the scope it is handed, so re-wiring one in place would fire
 // every later edit twice.
 /** What the swatch edits right now. `frameId` empty = the document background. */
-export function bgTarget(fc: FcCtx): { frameId: string; value: unknown; tip: string } {
+export function bgTarget(fc: FcCtx): { frameId: string; value: unknown; tip: string; word?: string } {
   const { cfg, frameCfg } = fc;
   if (frameCfg && cfg.fillField) {
     const boxes = fc.select.getBoxes();
@@ -688,6 +690,7 @@ export function bgTarget(fc: FcCtx): { frameId: string; value: unknown; tip: str
         frameId: fid,
         value: fb ? (fb[cfg.fillField] ?? '') : '',
         tip: t('Artboard fill'),
+        word: linkedColourWord(fb, cfg.fillField, fb?.[cfg.fillField]),
       };
     }
   }
@@ -705,7 +708,7 @@ export function paintBgField(fc: FcCtx): void {
   // seeded this swatch BLACK and its sliders a blue that came from the field's own
   // neutral seed. `seededColorField` reads the token off the canvas's computed style
   // and labels the trigger with the token's name; the model keeps the `var()`.
-  wrap.innerHTML = fc.contextBar.seededColorField('fc-bg', tgt.value);
+  wrap.innerHTML = fc.contextBar.seededColorField('fc-bg', tgt.value, tgt.word);
   wrap.addEventListener('pointerdown', (e) => e.stopPropagation());
   fc.bgSlot.replaceChildren(wrap);
   wireColorField(wrap, {
@@ -727,7 +730,7 @@ export function paintBgField(fc: FcCtx): void {
         return;
       }
       onDirty?.(bgInputId);
-      runtime.setInput(bgInputId, col);
+      runtime.setInput(bgInputId, designInputColorValue(val, runtime.getModel().find(input => input.id === 'editingRange')?.value, detail));
     },
   });
 }
