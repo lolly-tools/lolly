@@ -18,7 +18,7 @@ import { deliverBatchFile, releaseBackgroundDelivery } from '../../lib/backgroun
 import { approvalPdfPreview, approvalWantsArtifact, openApprovalRequest } from '../../lib/approval-request.ts';
 import { isAudioFormat as isAudioFmt } from '../../lib/audio-encode.js';
 import { stageDeckAsSequence, stagedDeckMs } from '../../lib/deck-as-sequence.ts';
-import { fansOutPerPage, stagePages } from '../../lib/export-target.ts';
+import { fansOutPerPage, pageExportSize, stagePages } from '../../lib/export-target.ts';
 import { saveExportPrefs } from '../../lib/export-prefs.ts';
 import { livePalette } from '../../lib/live-palette.ts';
 import { isModuleFormat, modUrlToWavBlobUrl } from '../../lib/mod-render.ts';
@@ -1375,8 +1375,7 @@ export function wireApprovalAndActions(ta: ActionsCtx): void {
                   }
                   const pb = await runtime.export(el, fmt, {
                     ...pageOpts,
-                    width: el.offsetWidth,
-                    height: el.offsetHeight,
+                    ...pageExportSize(el, exportDims, pageSource),
                   });
                   out.push({ name: `${filename}-${i + 1}.${extFor(fmt, pb)}`, blob: pb });
                 }

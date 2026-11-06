@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MPL-2.0
-import { frameFilterApplies, selectFramePage } from '@lolly/engine';
+import { frameFilterApplies, parseDimension, selectFramePage, toCssPx, toUnit } from '@lolly/engine';
 // Export-target opt-in (plan: sandbox render). A tool whose exported output is
 // NOT its whole canvas - e.g. a code sandbox whose rendered preview is transplanted
 // into a same-origin mirror node - marks that node with `data-export-root`; the
@@ -74,4 +74,26 @@ export function stagePages(render: { pages?: unknown; paged?: boolean }, hasFram
 export function fansOutPerPage(fmt: string, animated: boolean, pages: StagePages): boolean {
   if (animated || WHOLE_DOCUMENT_FORMATS.has(fmt)) return false;
   return !(pages.paged && DOCUMENT_TEXT_FORMATS.has(fmt));
+}
+
+/** The size the panel asks for, as `exportDims` gives it: px numbers, or a unit and a DPI. */
+export interface PanelDims { width?: number | string; height?: number | string; dpi?: number }
+
+/**
+ * The size one page box is exported at. A page strip or a Design frame has always used its
+ * own layout size in pixels, and still does. A paged document's page box is one of its
+ * pages, so it keeps the size the panel shows, with the panel's unit and DPI: an A4 sheet
+ * at 300 DPI stays 2480 x 3508 pixels instead of its 794 x 1123 CSS box. A page whose box
+ * is not that size (more than a pixel off on a side) keeps its own size, in the same unit.
+ */
+export function pageExportSize(page: { offsetWidth: number; offsetHeight: number }, dims: PanelDims, pages: StagePages): PanelDims {
+  const own = { width: page.offsetWidth, height: page.offsetHeight };
+  if (!pages.paged) return own;
+  const w = parseDimension(dims.width ?? null), h = parseDimension(dims.height ?? null);
+  if (!w || !h) return own;
+  const dpi = dims.dpi ? { dpi: dims.dpi } : {};
+  if (Math.abs(toCssPx(w) - own.width) <= 1 && Math.abs(toCssPx(h) - own.height) <= 1) return { width: dims.width, height: dims.height, ...dpi };
+  if (w.unit === 'px') return own;
+  const inUnit = (px: number): string => `${+toUnit({ value: px, unit: 'px' }, w.unit).toFixed(3)}${w.unit}`;
+  return { width: inUnit(own.width), height: inUnit(own.height), ...dpi };
 }

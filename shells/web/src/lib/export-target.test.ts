@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { addressedFramePage, fansOutPerPage, stagePages } from './export-target.ts';
+import { addressedFramePage, fansOutPerPage, pageExportSize, stagePages } from './export-target.ts';
 
 /** Three artboards as the canvas renders them: [data-pdf-page] with their frame ids. */
 function canvasOf(ids: string[]) {
@@ -53,4 +53,17 @@ test('single pictures fan out; whole documents, motion and a paged document\'s t
   // A page strip or Design frames keep the rule they had for these (Record's sidecars).
   assert.equal(fansOutPerPage('srt', false, frames), true);
   assert.equal(fansOutPerPage('vtt', false, frames), true);
+});
+
+test("a paged document's page keeps the panel's size, unit and DPI; a frame keeps its own box", () => {
+  const paged = { frames: false, paged: true };
+  const frames = { frames: true, paged: false };
+  const a4 = { offsetWidth: 794, offsetHeight: 1123 };
+  const panel = { width: '210mm', height: '297mm', dpi: 300 };
+  assert.deepEqual(pageExportSize(a4, panel, paged), panel, 'an A4 sheet at 300 DPI stays one');
+  assert.deepEqual(pageExportSize(a4, panel, frames), { width: 794, height: 1123 }, 'frames: their own box, as before');
+  assert.deepEqual(pageExportSize({ offsetWidth: 1200, offsetHeight: 900 }, { width: 1200, height: 900 }, paged), { width: 1200, height: 900 });
+  // A page that is not the panel's size keeps its own, in the panel's unit.
+  assert.deepEqual(pageExportSize({ offsetWidth: 1123, offsetHeight: 794 }, panel, paged), { width: '297.127mm', height: '210.079mm', dpi: 300 });
+  assert.deepEqual(pageExportSize({ offsetWidth: 600, offsetHeight: 400 }, { width: 1200, height: 900 }, paged), { width: 600, height: 400 });
 });
