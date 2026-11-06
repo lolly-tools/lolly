@@ -40,6 +40,8 @@ export const ACTIVE_DESIGN_SYSTEM_KEY = 'active-design-system';
 /** Profile-KV list of the catalog's companion systems this device has already
  *  been given (companions.ts), so one a person removed is not seeded again. */
 export const SEEDED_DESIGN_SYSTEMS_KEY = 'seeded-design-systems';
+/** What an absent or shipped pointer reads as: the catalog's own system. */
+export const SHIPPED_ACTIVE_FALLBACK = SHIPPED_DESIGN_SYSTEM_ID;
 
 /** The signature verdict a pack import recorded (lib/pack-store.ts). */
 export type PackSignature = 'verified' | 'unverified' | 'unsigned';
@@ -53,8 +55,9 @@ export type DesignSystemSource =
       from?: 'app' | 'shipped';
       /** `from: 'app'` only: the companion's tokens asset and name, which "Reset to
        *  original" brings back (reset.ts). Records seeded before this was kept
-       *  have none and reset to the starter under their current name. */
-      companion?: { tokens: string; label: string };
+       *  have none and reset to the starter under their current name. `instance`
+       *  says an instance's catalog offered it, which is what its row then says. */
+      companion?: { tokens: string; label: string; instance?: boolean };
     }
   | {
       kind: 'file'; fileName?: string; publisher?: string; version?: string;

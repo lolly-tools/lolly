@@ -55,7 +55,7 @@ import type { ToolManifest } from '../engine/src/loader.ts';
 import { readFileSync, readdirSync, realpathSync, statSync, existsSync } from 'node:fs';
 import { analyseRequires } from './tool-requires.ts';
 import {
-  catalogFile, contentRoots, contentUrlFile, toolDirs as resolveToolDirs, toolFile,
+  catalogFile, contentRoots, contentUrlFile, readBrandAssetIndex, toolDirs as resolveToolDirs, toolFile,
   readToolManifest, listToolFiles,
 } from '@lolly-tools/node-shell/content-roots';
 import { parseToolAssetId } from '@lolly-tools/node-shell/tool-asset-id';
@@ -181,7 +181,9 @@ const validateSlideMasters = ajv.compile<any>(slideMasterSchema);
 const errors: string[] = [];
 const warnings: string[] = [];
 
-const assetsIndex = readCatalogJson('assets/index.json');
+// The brand's own index, plus the rows a profile's companions mount: the same merge a
+// pack serves, so every rule below judges the rows a shell will really read.
+const assetsIndex: any = readBrandAssetIndex();
 const toolsIndex = readCatalogJson('tools/index.json');
 
 // Tool ids for the active profile, overlay-aware and already excluding pack
@@ -1072,7 +1074,14 @@ const RASTER_PREVIEW_CHANGES: Record<string, { drop: Record<string, string>; add
 };
 
 /** The raster list for the active profile: the shared entries with that pack's changes. */
-const PREVIEW_PROFILE = contentRoots().profile;
+// Read by catalog, not by profile name: a profile that only adds a companion serves its
+// brand's previews, so the brand's written reasons are the ones that hold for it.
+const PREVIEW_PROFILE = ((): string => {
+  const name = contentRoots().profile;
+  const profiles = (readJson('profiles.json') as { profiles?: Record<string, { catalog?: string }> }).profiles ?? {};
+  const catalog = profiles[name]?.catalog;
+  return Object.keys(profiles).find(other => catalog && profiles[other]?.catalog === catalog) ?? name;
+})();
 const RASTER_ALLOWED: Record<string, string> = (() => {
   const changes = RASTER_PREVIEW_CHANGES[PREVIEW_PROFILE];
   if (!changes) return RASTER_PREVIEWS;
@@ -1900,10 +1909,14 @@ for (const shared of contentRoots().assetRoots) {
 // (suffix-less) id - it only reads true if it matches the fills actually baked
 // into the icons. Reordering the palette without recolouring the icons would
 // silently mislabel every default pick.
+// A profile that mounts a companion holds two palettes, and each answers for the icons in
+// its own namespace, which is the palette the asset bridge resolves them against.
+const assetNamespace = (id: string): string => id.split('/')[0]!;
 for (const pal of iconThemePalettes) {
   const first = pal.themes[0];
   if (!first) continue;
   for (const icon of themableIconDefaults) {
+    if (iconThemePalettes.length > 1 && assetNamespace(icon.assetId) !== assetNamespace(pal.assetId)) continue;
     if (icon.c1.toLowerCase() !== first.c1.toLowerCase() || icon.c2.toLowerCase() !== first.c2.toLowerCase()) {
       errors.push(`[asset ${icon.assetId}] default fills (${icon.c1}/${icon.c2}) don't match the first icon-themes pairing "${first.id}" (${first.c1}/${first.c2}) in ${pal.assetId}`);
     }

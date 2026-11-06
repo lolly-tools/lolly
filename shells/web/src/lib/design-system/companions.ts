@@ -12,8 +12,13 @@
  * A companion becomes an ordinary local system: editable in the studio,
  * removable from the profile card, never activated by seeding. Each one is
  * seeded once per device. The profile KV remembers it (SEEDED_DESIGN_SYSTEMS_KEY),
- * so a system the person removed does not come back on the next sync. A locked
- * build (brandLock) is a single-system device and gets none.
+ * so a system the person removed does not come back on the next sync.
+ *
+ * A brand lock does not stop this. brandLock keeps the catalog's own system read-only
+ * and it stays read-only here; an explicit companion list is the catalog itself saying
+ * a second system may sit beside it, so a locked catalog with no list still gets none.
+ * The entry's `assets` list (lib/design-system/asset-scope.ts) is what keeps the two
+ * systems' material apart, and only a profile that mounts rows writes one.
  */
 import { STARTER_TOKENS_ID, starterSeed, type StarterHost } from './starter.ts';
 import { createDesignSystem, type ManageHost } from './manage.ts';
@@ -26,6 +31,8 @@ export interface CompanionDesignSystem {
   tokens: string;
   /** The name the system gets on this device. */
   label: string;
+  /** The rows this companion owns in the catalog, when it mounted any. */
+  assets?: string[];
 }
 
 /** The well-formed entries of an index's `companionDesignSystems`, in order. */
@@ -34,10 +41,11 @@ export function readCompanionDesignSystems(value: unknown): CompanionDesignSyste
   const out: CompanionDesignSystem[] = [];
   for (const entry of value) {
     if (typeof entry !== 'object' || entry === null) continue;
-    const { tokens, label } = entry as Record<string, unknown>;
+    const { tokens, label, assets } = entry as Record<string, unknown>;
     if (typeof tokens !== 'string' || !tokens || typeof label !== 'string' || !label.trim()) continue;
     if (out.some(c => c.tokens === tokens)) continue;
-    out.push({ tokens, label: label.trim() });
+    const named = Array.isArray(assets) ? assets.filter((name): name is string => typeof name === 'string' && name.length > 0) : [];
+    out.push({ tokens, label: label.trim(), ...(named.length ? { assets: named } : {}) });
   }
   return out;
 }
@@ -80,14 +88,14 @@ function seedEach(host: CompanionHost, companions: CompanionDesignSystem[]): Pro
     const registry = host.designSystems;
     registry.bust();
     const shipped = await registry.get('shipped');
-    if (!shipped || shipped.locked) return [];
+    if (!shipped) return [];
     const done = new Set(await registry.seeded());
     const made: DesignSystemRecord[] = [];
     for (const companion of companions) {
       if (done.has(companion.tokens) || companion.tokens === shipped.headId) continue;
       const doc = await companionDoc(host, companion.tokens);
       if (!doc) continue; // not readable yet; the next sync tries again
-      const record = await createDesignSystem(host, { label: companion.label, seedDoc: doc, source: { kind: 'local', from: 'app', companion: { tokens: companion.tokens, label: companion.label } } });
+      const record = await createDesignSystem(host, { label: companion.label, seedDoc: doc, source: { kind: 'local', from: 'app', companion: { tokens: companion.tokens, label: companion.label, ...(companion.assets ? { instance: true } : {}) } } });
       await registry.markSeeded(companion.tokens, true);
       made.push(record);
     }

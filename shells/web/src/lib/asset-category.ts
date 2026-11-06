@@ -25,7 +25,7 @@ export interface LibGroup {
   /** Set on the groups audio belongs in; the rest are for pictures. `other` takes either. */
   audio?: true;
   /** Set on a group an asset belongs to by what it is: the group is never offered as a
-   *  place to move an asset, and an override never moves an asset into or out of the group. */
+   *  place to move an asset, and an override never moves an asset into the group. */
   fixed?: true;
 }
 
@@ -42,6 +42,9 @@ export const LIB_GROUPS: LibGroup[] = [
   { key: 'photos',        label: 'Photos' },
   { key: 'headshots',     label: 'Headshots' },
   { key: 'icons',         label: 'Icons' },
+  // Lolly's own icon set, a family with a name of its own, so it never reads as the
+  // Icons of a design system it sits beside. The rows and their ids stay as they are.
+  { key: 'etiquette-icons', label: 'Lolly etiquette icons', fixed: true },
   { key: 'illustrations', label: 'Illustrations' },
   // A design system's written guidance: its brand skills (plan 323).
   { key: 'guidelines',    label: 'Guidelines' },
@@ -108,6 +111,7 @@ export function libCategory(ref: AssetRef | undefined, overrides?: Record<string
   if (t.has('headshot'))     return 'headshots';  // headshots collapse separately from photos
   if (t.has('illustration')) return 'illustrations';
   if (t.has('photo'))        return 'photos';
+  if (t.has('etiquette'))    return 'etiquette-icons';
   if (t.has('themable'))     return 'icons';
   // An upload carries no library tags, and a raster image is a photo far more often
   // than anything else; Recategorise moves the exceptions.

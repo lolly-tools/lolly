@@ -1181,8 +1181,8 @@ export async function initOrgWithAuth(auth: AuthConfig): Promise<OrgState | null
       unregisterShareSection = registerShareSection(async (sctx) => {
         const cfg = orgConfig();
         if (!cfg) return null;
-        const { buildInstanceShareSection } = await import('./share-links.ts');
-        return buildInstanceShareSection(sctx, cfg);
+        const { buildInstanceShareSection, renderedLinkHold } = await import('./share-links.ts');
+        return buildInstanceShareSection(sctx, cfg, await renderedLinkHold());
       });
       // Surface the instance's shared team projects in the Projects view, through
       // the generic lib/session-source.ts seam (so the view stays control-plane-

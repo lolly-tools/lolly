@@ -158,6 +158,8 @@ export async function mountCatalog(viewEl: HTMLElement, hostIn: HostV1, params =
   // against the bucket table itself (a Set - an object lookup would answer yes to
   // 'constructor'); anything unrecognised leaves the default 'all' standing.
   cat.showHidden = new URLSearchParams(params).has('hidden');
+  cat.scope = null;
+  cat.allSystems = new URLSearchParams(params).get('systems') === 'all';
   // The role colours start behind their card (sections.ts swatchRevealHtml); ?swatches shows them.
   cat.showSwatches = new URLSearchParams(params).has('swatches');
   cat.loadFailed = false;                    // the catalog query threw - a total sync failure, distinct from an empty catalogue

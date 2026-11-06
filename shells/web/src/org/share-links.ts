@@ -15,6 +15,10 @@
  *     recipient can edit for a bounded time, optionally password-protected; their
  *     saves land in the inviter's project.
  *
+ * The server draws a rendered link with the instance's own tokens. On a catalog that
+ * offers a second design system, the row says so and offers no link while that system is
+ * active (lib/design-system/asset-scope.ts `serverDrawsOtherSystem`).
+ *
  * Both go through the documented Links API (POST /api/v1/links, same-origin cookie),
  * routed via instanceFetch so a shell pointed at a remote instance mints against
  * THAT instance. Errors surface inline in the row (never an alert()).
@@ -23,6 +27,8 @@
  */
 
 import { instanceFetch, instancePath } from '../lib/instance.ts';
+import { openDB } from '../bridge/db.ts';
+import { serverDrawsOtherSystem, type AssetScopeDb } from '../lib/design-system/asset-scope.ts';
 import { governedParamKeys } from '../lib/input-policy.ts';
 import { getTool } from '../bridge/tool-loader.ts';
 import type { ShareSectionContext } from '../lib/share-sections.ts';
@@ -106,6 +112,14 @@ export function renderedMintBody(target: MintTarget, open: boolean): MintBody {
   return { kind: 'embed', target: open ? { ...target, open: true } : target };
 }
 
+/** The refusal a person reads in place of "Get link" while another design system is
+ *  active: what the instance draws with, and what to do about it. Pure. */
+export function renderedLinkHeldText(own: string): string {
+  return own
+    ? tRaw('This instance draws rendered links in {name}. Switch to {name} to make one.', { name: own })
+    : tRaw("This instance draws rendered links in its own design system. Switch to that one to make one.");
+}
+
 async function mintLink(body: MintBody): Promise<MintResult> {
   const res = await instanceFetch(instancePath('/api/v1/links'), {
     method: 'POST',
@@ -164,7 +178,7 @@ function makeErrorLine(): { el: HTMLElement; set(msg: string): void; clear(): vo
  * instance links (so the dialog adds nothing - dormant even for a signed-in member
  * without link permissions).
  */
-export function buildInstanceShareSection(ctx: ShareSectionContext, config: OrgConfig): HTMLElement | null {
+export function buildInstanceShareSection(ctx: ShareSectionContext, config: OrgConfig, drawsOther?: { own: string } | null): HTMLElement | null {
   const can = (config as OrgConfig & { can?: Record<string, boolean> }).can;
   const rows = instanceShareRows(can);
   if (!rows.rendered && !rows.guest) return null;
@@ -186,7 +200,20 @@ export function buildInstanceShareSection(ctx: ShareSectionContext, config: OrgC
   section.innerHTML = `<h3 style="margin:0 0 .5rem;font-size:.82rem;font-weight:650;letter-spacing:.02em;text-transform:uppercase;color:hsl(var(--muted-foreground))">${escape(heading)}</h3>`;
 
   // ── Rendered link ───────────────────────────────────────────────────────────
-  if (rows.rendered) {
+  if (rows.rendered && drawsOther) {
+    // The server renders with the instance's tokens and has no way to read a design
+    // system held in this browser. A link made now would come out in the instance's
+    // colours while the person is looking at another system's, so it is not offered.
+    const row = document.createElement('div');
+    row.className = 'share-instance-row share-instance-held';
+    row.style.marginBottom = rows.guest ? '.9rem' : '0';
+    row.innerHTML =
+      `<div class="share-option"><strong style="font-weight:650">${escape(t('Rendered link'))}</strong></div>` +
+      `<p style="margin:.25rem 0 0;font-size:13px;color:hsl(var(--muted-foreground))">${escape(renderedLinkHeldText(drawsOther.own))} ` +
+      `<a href="#/settings?focus=design-systems-section" data-held-switch>${escape(t('Design systems'))}</a></p>`;
+    row.querySelector('[data-held-switch]')?.addEventListener('click', () => ctx.close?.());
+    section.appendChild(row);
+  } else if (rows.rendered) {
     const tip = helpTip(t('A link that opens the rendered image directly.'));
     const row = document.createElement('div');
     row.className = 'share-instance-row';
@@ -296,4 +323,13 @@ export function buildInstanceShareSection(ctx: ShareSectionContext, config: OrgC
   }
 
   return section;
+}
+
+/** What the section needs to know about the design system in use, read once per open. */
+export async function renderedLinkHold(): Promise<{ own: string } | null> {
+  try {
+    return await serverDrawsOtherSystem(await openDB() as unknown as AssetScopeDb);
+  } catch {
+    return null;
+  }
 }
