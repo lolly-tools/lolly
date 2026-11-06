@@ -206,7 +206,7 @@ Select a clip and the inspector gives the same edits as numbers: **Length**, **T
 
 ## Before you export
 
-Lolly Design checks your document before you send the file. The **Before you export** card, in the Inspector's **Document** section and again in the export panel, reads the saved layer structure, then looks at the settled canvas for clipped text and flat-colour contrast. It asks the same font registry the SVG and PDF outlining uses whether each text run has font bytes that can be embedded. Image and gradient backgrounds are listed as visual checks rather than given a made-up contrast score.
+Lolly Design checks your document before you send the file. The **Before you export** card, in the Inspector's **Document** section and again in the export panel, reads the saved layer structure, then looks at the settled canvas for clipped text and flat-colour contrast. It asks the same font registry the SVG and PDF outlining uses whether each text run has font bytes that can be embedded. Text that a [fallback font](/info/fallback-fonts.html) draws in the export counts as covered. A script with no fallback font, or a Chinese, Japanese or Korean character outside the sets those fonts hold, is still reported. Image and gradient backgrounds are listed as visual checks rather than given a made-up contrast score.
 
 ### Check a composition against the design system
 

@@ -23,7 +23,7 @@
 import { parseFontFamilies } from '@lolly-tools/node-shell/font-faces';
 import {
   choosePacks, fallbackPacksFrom, fillNotice, hanEvidence, hanForms, packVariations, runLang, uncoveredClusters,
-  type FallbackFontPack, type FillUse, type HanContext, type HanEvidence, type HanForm,
+  type FallbackFontPack, type FillCluster, type FillUse, type HanContext, type HanEvidence, type HanForm,
 } from '@lolly-tools/node-shell/fallback-fonts';
 import { brandRoleStack, genericFontRole, resolveFamilyChain, resolveVectorFont, type VectorFont } from './font-registry.ts';
 import { PAGE_FALLBACK_FAMILY, catalogSynced, fallbackFontSource, markFillChain, openFillLog, pageFillSettled } from './fallback-font-source.ts';
@@ -149,8 +149,11 @@ export async function resolveExportFont(style: FontStyleSlice, text: string, at?
   catch { return base; }
 }
 
-/** What a run needs beyond its first family: later families of its stack, then packs. */
-interface FillPlan { added: Entry[]; packs: FallbackFontPack[]; italic: boolean; weight: number }
+/**
+ * What a run needs beyond its first family: later families of its stack, then packs.
+ * `unfilled` holds the clusters that no face and no pack can draw.
+ */
+interface FillPlan { added: Entry[]; packs: FallbackFontPack[]; unfilled: FillCluster[]; italic: boolean; weight: number }
 
 async function fillPlan(base: VectorFont, style: FontStyleSlice, text: string, han?: HanChoice): Promise<FillPlan | null> {
   const urls = [base.url, ...(base.fallbacks ?? []).map((f) => f.fontUrl)];
@@ -176,12 +179,13 @@ async function fillPlan(base: VectorFont, style: FontStyleSlice, text: string, h
   const italic = style.fontStyle === 'italic' || style.fontStyle === 'oblique';
   const weight = parseInt(style.fontWeight ?? '', 10) || 400;
   let packs: FallbackFontPack[] = [];
+  let unfilled: FillCluster[] = [];
   if (found.length) {
     const all = await fallbackPacks();
     const forms = Array.isArray(han) ? han as readonly HanForm[] : hanForms(typeof han === 'function' ? han(all) : han as HanContext | undefined, all);
-    packs = choosePacks(found, all, italic, forms).packs;
+    ({ packs, unfilled } = choosePacks(found, all, italic, forms));
   }
-  return { added, packs, italic, weight };
+  return { added, packs, unfilled, italic, weight };
 }
 
 async function withFill(base: VectorFont, style: FontStyleSlice, text: string, han?: HanChoice): Promise<VectorFont> {
@@ -215,6 +219,43 @@ export async function packsForText(style: FontStyleSlice, text: string, han?: re
     if (!base) return [];
     return (await fillPlan(base, style, text, han))?.packs ?? [];
   } catch { return []; }
+}
+
+/** A run's element, which gives its `lang`, and the document that holds the run. */
+export interface RunPlace { at?: Element | null; root?: Element | null }
+
+const placeEvidence = new WeakMap<Element, { text: string; packs: readonly FallbackFontPack[]; evidence: HanEvidence }>();
+
+/** What the document `root` shows about its language, read once while its text stays the same. */
+function rootEvidence(root: Element, packs: readonly FallbackFontPack[]): HanEvidence {
+  const text = root.textContent ?? '';
+  const hit = placeEvidence.get(root);
+  if (hit && hit.text === text && hit.packs === packs) return hit.evidence;
+  const evidence = hanEvidence(text, packs);
+  placeEvidence.set(root, { text, packs, evidence });
+  return evidence;
+}
+
+/**
+ * Does an export draw every character of this run, with the fonts it fills from? Asked
+ * when shaping the run with `base`, the resolveVectorFont answer, missed a glyph. This reads the same coverage the export
+ * reads: the character map of each face in the run's own stack, then the coverage table
+ * that each fallback font's catalog entry records, with the same Chinese, Japanese and
+ * Korean choice (`place` gives the run's `lang` and its document). It downloads nothing.
+ *
+ * False for ASCII text, because an export never fills ASCII. False when any cluster has
+ * no font, such as a script with no fallback font or a Chinese character outside the
+ * national sets: an export draws those as a picture in a PDF and as live text in an SVG.
+ */
+export async function fillDrawsAll(base: VectorFont, style: FontStyleSlice, text: string, place?: RunPlace): Promise<boolean> {
+  if (ASCII.test(text)) return false;
+  const han: HanChoice = (packs) => ({ lang: runLang(place?.at), text, document: place?.root ? rootEvidence(place.root, packs) : null });
+  try {
+    const plan = await fillPlan(base, style, text, han);
+    // No plan means the faces' character maps hold every cluster, yet shaping still
+    // missed a glyph: the export draws that run as it is, so it is not covered.
+    return plan !== null && plan.unfilled.length === 0;
+  } catch { return false; }
 }
 
 /** Does this resolved font draw with faces the run's first family does not hold? */

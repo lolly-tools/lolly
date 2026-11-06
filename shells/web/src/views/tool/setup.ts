@@ -733,7 +733,7 @@ export function documentSurface(tview: ToolViewCtx): void {
         boxes: () => tview.runtime.getModel().find((input) => input.id === 'boxes')?.value,
         whenSettled: () => tview.runtime.whenSettled(),
         paintPending: () => tview.rafId !== 0 || tview.pendingFrame !== null,
-        resolveFont: (style, text) => fontCoversText(style, text, tview.host.text),
+        resolveFont: (style, text, place) => fontCoversText(style, text, tview.host.text, undefined, place),
       });
     },
   }; tview.documentSurface = documentSurface;
