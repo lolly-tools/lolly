@@ -74,6 +74,7 @@ import { announce } from '../../a11y.ts';
 import { detectFontFormat, parseFontMetadata, readFontEmbedding, validateFontFile } from '../font-utils.ts';
 import type { FontEmbedding, FontFormat } from '../font-utils.ts';
 import { variableWeightRange } from './font-resolve.ts';
+import { activeDesignSystemRecord } from './active.ts';
 // Type-only, erased at build: the grammar helpers below speak the ownership
 // report's own vocabulary without pulling its module (or user-fonts) into this
 // lazy chunk.
@@ -504,24 +505,19 @@ export function defaultSpecimen(systemName: string | null, t: TFn): string {
   return usableSystemName(systemName) ?? t('Sphinx of black quartz, judge my vow');
 }
 
-/** The ACTIVE design system's name: its registry label, the name the studio's bar
- *  shows. Only a host with no registry falls back to the installed tokens asset's
- *  label. The asset read is user-first and knows nothing of which system is active,
- *  so on lolly.tools it answered with the Lolly Starter companion whenever that had
- *  been seeded on the device, and with Lolly Demo when it had not yet: the specimen
- *  depended on which finished first. Duck-typed through the same narrow cast the
- *  Overview room uses - these are web-shell extensions, absent from the tool-facing
- *  HostV1 type. Never throws: no name is a fine answer. */
+/** The ACTIVE design system's name: its registry label (active.ts), the name the
+ *  studio's bar shows. Only a host whose registry is missing or unreadable falls
+ *  back to the installed tokens asset's label. The asset read is user-first and
+ *  knows nothing of which system is active, so on lolly.tools it answered with the
+ *  Lolly Starter companion whenever that had been seeded on the device, and with
+ *  Lolly Demo when it had not yet: the specimen depended on which finished first.
+ *  The asset read is duck-typed through the same narrow cast the Overview room uses -
+ *  these are web-shell extensions, absent from the tool-facing HostV1 type. Never
+ *  throws: no name is a fine answer. */
 export async function readSystemName(host: HostV1): Promise<string | null> {
-  const tokens = host?.tokens as unknown as {
-    activeRecord?(): Promise<{ label?: unknown } | null>;
-  } | undefined;
-  if (typeof tokens?.activeRecord === 'function') {
-    try {
-      const record = await tokens.activeRecord();
-      if (record) return usableSystemName(record.label);
-    } catch { /* the registry is unreadable: fall through to the asset label */ }
-  }
+  // Null when there is no registry or it cannot be read: the asset label answers then.
+  const record = host ? await activeDesignSystemRecord(host) : null;
+  if (record) return usableSystemName(record.label);
   const assets = host?.assets as unknown as {
     _findMetaByType?(type: string): Promise<{ name?: string; meta?: Record<string, unknown> } | null>;
   } | undefined;
