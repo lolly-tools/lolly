@@ -8,6 +8,7 @@ import type { FontStyleSlice } from './text-svg.ts';
 import type { VectorFont } from './font-registry.ts';
 import { exportFontFamily } from './fallback-font-source.ts';
 import { n2, parseCssColorFull } from './export-css.ts';
+import { stylePaintsBox } from './export-pdf-leaf.ts';
 import { firstStrongDirection, hasRtlText, type TextRunDirection } from '@lolly-tools/node-shell/text-bidi';
 
 export interface InlineTextContext {
@@ -309,15 +310,24 @@ export function isReplaced(el: Element): boolean {
  *   the pass descends only through inline-level elements. A placement inside an
  *   inline-flex wrapper is the case in point, because a flex item is blockified. The
  *   SVG walker visits these through visitThroughInline; drawBox does the same here.
+ * - An inline-block or inline-flex box that paints a box of its own (a fill, a background
+ *   image, a border or a shadow) is drawn by `drawBox` too, wherever it sits in the line,
+ *   which paints the box and then its text and pseudo-content. The block loop leaves
+ *   these boxes to this pass, and this pass used to descend for their text alone, so a
+ *   `<button>` printed its label without its fill: white words on Claim's pale page. The
+ *   SVG walker visits every inline-block as a box (hasOwnBox in export-svg-walker.ts).
+ *   One that paints no box keeps the text-only path, and its bytes.
  *
- * A block's own children are left to the block loop and to this pass as before, and so
+ * A block's other children are left to the block loop and to this pass as before, and so
  * is anything inside an `<svg>`, which belongs to that picture and its painter.
  */
 export async function pdfInlineNonText(el: Element, blockEl: Node, drawBox: (box: Element) => Promise<void>): Promise<boolean> {
   const tag = el.tagName.toLowerCase();
   if (tag === 'br' || el.classList.contains('lolly-emoji-text')) return true;
   const parent = el.parentNode as Element | null;
-  if (parent === blockEl || parent?.namespaceURI === 'http://www.w3.org/2000/svg') return false;
+  if (parent?.namespaceURI === 'http://www.w3.org/2000/svg') return false;
+  if (paintedInlineBox(el)) { await drawBox(el); return true; }
+  if (parent === blockEl) return false;
   if (tag !== 'svg') {
     const display = getComputedStyle(el).display;
     if (display === 'none' || display === 'contents' || INLINE_LEVEL.has(display)) return false;
@@ -328,6 +338,13 @@ export async function pdfInlineNonText(el: Element, blockEl: Node, drawBox: (box
 
 /** The displays the PDF inline pass descends through. */
 const INLINE_LEVEL = new Set(['inline', 'inline-block', 'inline-flex']);
+
+/** An inline-block or inline-flex box, other than a picture, whose own style paints a box. */
+function paintedInlineBox(el: Element): boolean {
+  if (isReplaced(el)) return false;
+  const style = getComputedStyle(el);
+  return (style.display === 'inline-block' || style.display === 'inline-flex') && stylePaintsBox(style);
+}
 
 /** How the browser ordered the text in this element: its direction and any override. */
 export interface RunBidi { direction: TextRunDirection; override: boolean; plaintext: boolean }
