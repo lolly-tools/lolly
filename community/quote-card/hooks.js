@@ -44,6 +44,7 @@ const EASE = 'cubic-bezier(0.05,0.7,0.1,1)';
 const MAX_DEAL_MS = 5000;
 
 const RTL_RE = /[֐-ࣿיִ-﷿ﹰ-﻿]/;
+const ARABIC_RE = /[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]/;
 const LTR_RE = /[A-Za-zÀ-ɏͰ-ϿЀ-ӿ]/;
 const CJK_RE = /[぀-ヿ㐀-䶿一-鿿豈-﫿ｦ-ﾟ]/;
 // Kept with the character before: a line never starts with one of these.
@@ -179,12 +180,27 @@ function joinParts(parts, sep) {
   return parts.filter(Boolean).join(sep);
 }
 
+// A list in Arabic script takes its own comma.
+function commaFor(text) {
+  return ARABIC_RE.test(text) ? '\u060C ' : ', ';
+}
+
 function period(html) {
-  return html && !/[.!?…。！？]$/.test(html.replace(/<[^>]+>/g, '')) ? html + '.' : html;
+  return html && !/[.!?…。！？؟۔]$/.test(html.replace(/<[^>]+>/g, '')) ? html + '.' : html;
 }
 
 function shortLink(url) {
   return url.replace(/^https?:\/\//i, '').replace(/^www\./i, '').replace(/\/$/, '');
+}
+
+// A link wraps the way a person would break it by hand: between its path parts and query
+// parameters first, each part staying whole while it fits on a line, then at the punctuation
+// inside a part. A word is cut only when that word alone is wider than the frame.
+function linkMarkup(url) {
+  const parts = shortLink(url).match(/[^/?&#]*\/+|[?&#][^/?&#]*|[^/?&#]+/g) || [];
+  return parts
+    .map((part) => '<span class="qc-link-part">' + part.split(/(?=[._~%=-])/).map(esc).join('<wbr>') + '</span>')
+    .join('<wbr>');
 }
 
 function sourceLines(v) {
@@ -194,14 +210,16 @@ function sourceLines(v) {
   const pub = clean(v.publication);
   const date = clean(v.date);
   const link = clean(v.link);
-  const cite = work ? '<cite>' + esc(work) + '</cite>' : '';
-  const where = joinParts([esc(pub), esc(date)], ', ');
+  // Arabic and Hebrew have no italic of their own, and a face slanted by machine reads as a mistake.
+  const cite = work ? (RTL_RE.test(work) ? '<cite class="qc-cite-upright">' : '<cite>') + esc(work) + '</cite>' : '';
+  const comma = commaFor(name + role + work + pub);
+  const where = joinParts([esc(pub), esc(date)], comma);
   return {
     // Beside any other layout: the work and where it appeared, one line.
-    sourceHtml: joinParts([cite, where], ', '),
+    sourceHtml: joinParts([cite, where], comma),
     // A citation runs them together as one reference, the way a paper does.
-    refHtml: joinParts([period(joinParts([esc(name), esc(role)], ', ')), period(cite), period(where)], ' '),
-    linkText: link ? shortLink(link) : '',
+    refHtml: joinParts([period(joinParts([esc(name), esc(role)], comma)), period(cite), period(where)], ' '),
+    linkHtml: link ? linkMarkup(link) : '',
   };
 }
 
@@ -356,7 +374,8 @@ async function compute(model) {
     quoteHtml: built.html,
     sourceHtml: src.sourceHtml,
     refHtml: layout === 'citation' ? src.refHtml : '',
-    linkText: src.linkText,
+    linkHtml: src.linkHtml,
+    linkClass: RTL_RE.test(quote) && layout !== 'centred' ? ' qc-link-end' : '',
     qcClass: classes,
     qcStyle: (isNew || phrase) && theme ? paletteVars(ground, theme, !isNew) : '',
     qcGrow: GROW[layout] || 0,

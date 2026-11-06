@@ -72,9 +72,13 @@
 .qc-link,
 .qc-ref { margin: 0; overflow-wrap: anywhere; }
 .qc-source { font-size: calc(2.8cqmin * var(--qc-meta-fit, 1)); line-height: 1.35; }
-.qc-source cite,
-.qc-ref cite { font-family: var(--font-italic, var(--font-brand, ui-sans-serif, system-ui, sans-serif)); font-style: italic; }
+.qc-source cite:not(.qc-cite-upright),
+.qc-ref cite:not(.qc-cite-upright) { font-family: var(--font-italic, var(--font-brand, ui-sans-serif, system-ui, sans-serif)); font-style: italic; }
+.qc-cite-upright { font-style: normal; }
 .qc-link { font-family: var(--font-mono, ui-monospace, monospace); font-size: calc(2.2cqmin * var(--qc-meta-fit, 1)); line-height: 1.35; }
+.qc-link-part { display: inline-block; }
+/* The link always reads left to right, and still sits on the same edge as the lines above. */
+.qc-link-end { text-align: right; }
 
 /* The emphasised phrase, outside the marker layout. */
 .qc-em { color: var(--qc-em, inherit); font-weight: 500; }

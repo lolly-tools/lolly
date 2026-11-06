@@ -134,6 +134,64 @@ describe('Quote in the web shell', { skip }, () => {
     assert.deepEqual(bad, []);
   });
 
+  test('a citation link breaks at a separator, and an Arabic card keeps it on the same edge', { timeout: 180_000 }, async () => {
+    const SKETCH = 'https://en.wikisource.org/wiki/Scientific_Memoirs/3/Sketch_of_the_Analytical_Engine';
+    const arabic = { quote: 'أفضل الأدوات تختفي، حتى يتحدث العمل عن نفسه.', name: 'مايا ليندكفيست', role: 'رئيسة المنتج', source: 'كتاب الأدوات' };
+    const ada = { quote: 'We may say most aptly that the Analytical Engine weaves algebraical patterns.', name: 'Ada Lovelace', role: '', source: 'Sketch of the Analytical Engine' };
+    const measure = (values: Record<string, unknown>, width: number, height: number): Promise<{ lines: string[]; linkRight: number; refRight: number; linkLeft: number; refLeft: number; overflow: boolean }> => page.evaluate(async ({ values, width, height }) => {
+      const paths = ['/src/pro/render-export.ts', '/src/lib/host-ref.ts', '/src/lib/mount-runtime.ts', '/src/bridge/tool-loader.ts'];
+      const [exportsModule, hosts, runtimes, loader] = await Promise.all(paths.map(path => import(path)));
+      const tool = await loader.getTool('quote-card');
+      const source = await runtimes.createToolRuntime(tool, hosts.getHostRef(), values);
+      const mounted = await exportsModule.mountDocumentExport(tool, hosts.getHostRef(), source, { width, height });
+      try {
+        await new Promise(resolve => setTimeout(resolve, 80));
+        const link = mounted.canvas.querySelector('.qc-link') as HTMLElement;
+        const lines: { top: number; text: string }[] = [];
+        const walker = document.createTreeWalker(link, NodeFilter.SHOW_TEXT);
+        for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+          for (let i = 0; i < node.textContent!.length; i++) {
+            const range = document.createRange();
+            range.setStart(node, i);
+            range.setEnd(node, i + 1);
+            const top = Math.round(range.getBoundingClientRect().top);
+            const line = lines[lines.length - 1];
+            if (line && Math.abs(line.top - top) < 3) line.text += node.textContent![i];
+            else lines.push({ top, text: node.textContent![i]! });
+          }
+        }
+        const ink = (element: Element): DOMRect => {
+          const range = document.createRange();
+          range.selectNodeContents(element);
+          return range.getBoundingClientRect();
+        };
+        const ref = mounted.canvas.querySelector('.qc-ref')!;
+        return {
+          lines: lines.map(line => line.text),
+          linkRight: ink(link).right, linkLeft: ink(link).left, refRight: ink(ref).right, refLeft: ink(ref).left,
+          overflow: link.scrollWidth > link.clientWidth + 1,
+        };
+      } finally { mounted.destroy?.(); source.destroy?.(); }
+    }, { values, width, height });
+
+    const whole = SKETCH.replace('https://', '');
+    for (const [width, height] of [[1600, 1200], [1080, 1080], [1080, 1920], [600, 800], [420, 420]] as const) {
+      for (const values of [ada, arabic]) {
+        const got = await measure({ ...values, layout: 'citation', ground: 'paper', link: SKETCH }, width, height);
+        assert.equal(got.lines.join(''), whole, `${width}x${height}: every character, in order`);
+        assert.equal(got.overflow, false, `${width}x${height}: the link stays inside its line`);
+        got.lines.slice(0, -1).forEach((line, i) => {
+          const next = got.lines[i + 1]!;
+          assert.ok(line.endsWith('/') || /^[._~?#%&=-]/.test(next), `${width}x${height}: "${line}" then "${next}" breaks between two letters`);
+        });
+      }
+    }
+    const end = await measure({ ...arabic, layout: 'citation', ground: 'paper', link: SKETCH }, 1600, 1200);
+    assert.ok(Math.abs(end.linkRight - end.refRight) < 2, `an Arabic card's link ends on the edge of its reference, ${end.linkRight} and ${end.refRight}`);
+    const start = await measure({ ...ada, layout: 'citation', ground: 'paper', link: SKETCH }, 1600, 1200);
+    assert.ok(Math.abs(start.linkLeft - start.refLeft) < 2, `a Latin card's link starts on the edge of its reference, ${start.linkLeft} and ${start.refLeft}`);
+  });
+
   test('a placed box plays on Design\'s timeline, seeks exactly and follows a theme choice', { timeout: 240_000 }, async () => {
     const boxes = [{ id: 'q1', kind: 'image', x: 0, y: 0, w: 1600, h: 900, image: { id: `${link({ layout: 'type', ground: 'lead', motion: 'word' })}&w=1600&h=900` }, start: 0, dur: 4 }];
     const design = await browser.newPage({ serviceWorkers: 'block', viewport: { width: 1500, height: 1000 } });

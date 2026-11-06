@@ -10,7 +10,7 @@
     {{#if role}}<p class="qc-role" dir="auto" data-qc-meta>{{role}}</p>{{/if}}
     {{#if sourceHtml}}<p class="qc-source" dir="auto" data-qc-meta>{{{sourceHtml}}}</p>{{/if}}
     {{/if}}
-    {{#if linkText}}<p class="qc-link" dir="ltr" data-qc-meta>{{linkText}}</p>{{/if}}
+    {{#if linkHtml}}<p class="qc-link{{linkClass}}" dir="ltr" data-qc-meta>{{{linkHtml}}}</p>{{/if}}
     {{#if qcRules}}<span class="qc-rule qc-rule-bottom" aria-hidden="true" data-qc-gfx></span>{{/if}}
   </div>
   {{#if hasMotion}}

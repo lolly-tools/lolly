@@ -113,6 +113,39 @@ test('nothing the person typed reaches the page unescaped', async () => {
   }
 });
 
+const linkLine = async (values: Record<string, InputValue>): Promise<{ cls: string; parts: string[] }> => {
+  const html = normal(await hydrate({ quote: 'Q', layout: 'citation', ...values }));
+  const m = /<p class="(qc-link[^"]*)"[^>]*>([\s\S]*?)<\/p>/.exec(html)!;
+  return { cls: m[1]!, parts: [...m[2]!.matchAll(/<span class="qc-link-part">([\s\S]*?)<\/span>/g)].map((part) => part[1]!) };
+};
+
+test('a link offers its path parts first, then the punctuation inside a part, and keeps every character', async () => {
+  const { parts } = await linkLine({ link: 'https://www.example.org/wiki/Scientific_Memoirs/3/Sketch_of_the-Engine?a=1&b=2#end/' });
+  assert.deepEqual(parts.map((part) => part.replace(/<wbr>/g, '')), ['example.org/', 'wiki/', 'Scientific_Memoirs/', '3/', 'Sketch_of_the-Engine', '?a=1', '&amp;b=2', '#end']);
+  assert.equal(parts[2], 'Scientific<wbr>_Memoirs/');
+  assert.equal(parts[4], 'Sketch<wbr>_of<wbr>_the<wbr>-Engine');
+  assert.equal(parts[5], '?a<wbr>=1');
+  assert.deepEqual((await linkLine({ link: 'https://example.com/' })).parts, ['example<wbr>.com']);
+  const evil = await linkLine({ link: 'https://x.org/<img src=y onerror=z>' });
+  assert.doesNotMatch(evil.parts.join(''), /<img/);
+  assert.match(evil.parts.join('').replace(/<wbr>/g, ''), /&lt;img src=y onerror=z&gt;/);
+});
+
+test('in Arabic the reference takes its own comma, the work stays upright and the link keeps to the same edge', async () => {
+  const arabic = { quote: 'أفضل الأدوات تختفي', name: 'مايا', role: 'رئيسة', source: 'كتاب', publication: 'مجلة', date: '2024', link: 'https://example.org/a' };
+  const html = normal(await hydrate({ ...arabic, layout: 'citation' }));
+  const ref = /<p class="qc-ref"[^>]*>([\s\S]*?)<\/p>/.exec(html)![1]!;
+  assert.equal(ref, 'مايا\u060C رئيسة. <cite class="qc-cite-upright">كتاب</cite>. مجلة\u060C 2024.');
+  assert.equal((await linkLine({ ...arabic })).cls, 'qc-link qc-link-end');
+  assert.equal((await linkLine({ ...arabic, layout: 'beside' })).cls, 'qc-link qc-link-end', 'a person reads the card from the same side in any layout');
+  assert.equal((await linkLine({ ...arabic, layout: 'centred' })).cls, 'qc-link', 'centred stays centred');
+  assert.equal((await linkLine({ link: 'https://example.org/a' })).cls, 'qc-link');
+  const latin = normal(await hydrate({ quote: 'Q', layout: 'citation', name: 'Ada', role: 'Editor', source: 'A Work', publication: 'Nature', date: '1843' }));
+  assert.match(latin, /Ada, Editor\. <cite>A Work<\/cite>\. Nature, 1843\./, 'Latin keeps its comma and its italic');
+  const asked = normal(await hydrate({ quote: 'Q', layout: 'citation', name: 'مايا', role: '', source: 'لماذا؟' }));
+  assert.match(asked, /لماذا؟<\/cite>(?!\.)/, 'a question mark in Arabic is not doubled');
+});
+
 test('an empty field leaves no gap and no stray punctuation', async () => {
   const words = (html: string): string => normal(html).replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim();
   const ref = async (values: Record<string, InputValue>): Promise<string> => {
