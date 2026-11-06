@@ -4,7 +4,8 @@
    app's buttons.css, and the in-app reader (views/docs.ts) imports it ahead of
    docs.css. It holds the pieces the two readers show the same way:
 
-     - the round top-row button (.site-fab on /info, .docs-top-btn in the app),
+     - the round top-row button (.site-fab on /info; the app's reader uses the
+       app's own top row since plan 354),
        sized on the top-row height (--chrome-h), so it is exactly as tall as
        the home pill and the app's own back pill beside it;
      - the pathways strip (the documentation sections), which
@@ -20,11 +21,9 @@
    docs.css. */
 
 /* ── Round top-row button ───────────────────────────────────────────────────
-   Language, Theme, GitHub, Search and Menu on /info; Wide, Theme and the
-   profile link in the in-app reader. A glass circle on the canvas with one
-   hairline, the glyph on the type multiplier. */
-.site-fab,
-.docs-top-btn {
+   Language, Theme, GitHub, Search and Menu on /info. A glass circle on the canvas
+   with one hairline, the glyph on the type multiplier. */
+.site-fab {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -44,30 +43,22 @@
   cursor: pointer;
   transition: background var(--ui-motion-feedback), border-color var(--ui-motion-feedback), transform var(--ui-motion-feedback);
 }
-.site-fab:hover,
-.docs-top-btn:hover {
+.site-fab:hover {
   background: var(--ui-color-surface-muted);
   border-color: color-mix(in srgb, var(--ui-color-text-default) 25%, transparent);
   text-decoration: none;
 }
-.site-fab:active,
-.docs-top-btn:active { transform: scale(0.94); }
-.site-fab:focus-visible,
-.docs-top-btn:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 2px; }
-.site-fab svg,
-.docs-top-btn svg { width: calc(18px * var(--a11y-fs, 1)); height: calc(18px * var(--a11y-fs, 1)); }
+.site-fab:active { transform: scale(0.94); }
+.site-fab:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 2px; }
+.site-fab svg { width: calc(18px * var(--a11y-fs, 1)); height: calc(18px * var(--a11y-fs, 1)); }
 @media (prefers-reduced-motion: reduce) {
-  .site-fab,
-  .docs-top-btn { transition: none; }
-  .site-fab:active,
-  .docs-top-btn:active { transform: none; }
+  .site-fab { transition: none; }
+  .site-fab:active { transform: none; }
 }
 /* The app's Reduce motion switch, for both readers: /info never loads base.css, and
    base.css's own block shortens animations but leaves transitions and the press. */
-html[data-a11y-motion="reduce"] .site-fab,
-html[data-a11y-motion="reduce"] .docs-top-btn { transition: none; }
-html[data-a11y-motion="reduce"] .site-fab:active,
-html[data-a11y-motion="reduce"] .docs-top-btn:active { transform: none; }
+html[data-a11y-motion="reduce"] .site-fab { transition: none; }
+html[data-a11y-motion="reduce"] .site-fab:active { transform: none; }
 
 /* ── Pathways strip ─────────────────────────────────────────────────────────
    Text tabs. The current section takes the full-strength text colour, its weight
@@ -208,7 +199,7 @@ html[data-a11y-motion="reduce"] .docs-top-btn:active { transform: none; }
   position: sticky;
   z-index: 40;
   box-sizing: border-box;
-  padding: 6px 0;
+  padding: var(--sp-3) 0;
   background: color-mix(in srgb, var(--ui-color-surface-canvas) 92%, transparent);
   -webkit-backdrop-filter: blur(12px);
   backdrop-filter: blur(12px);
@@ -217,55 +208,56 @@ html[data-a11y-motion="reduce"] .docs-top-btn:active { transform: none; }
 .doc-pagebar-btn {
   display: flex;
   align-items: center;
-  gap: 0.4rem;
+  gap: var(--sp-3);
   box-sizing: border-box;
   width: 100%;
-  min-height: 44px;
-  padding: 0 0.75rem;
+  min-height: var(--ui-size-target);
+  padding: 0 var(--sp-6);
   border: 1px solid var(--ui-color-border-default);
-  border-radius: var(--radius-pill, 999px);
+  border-radius: var(--radius-pill);
   background: var(--ui-color-surface-raised);
   color: var(--ui-color-text-default);
-  font: 400 calc(0.9375rem * var(--a11y-fs, 1)) / 1.2 var(--font-brand, system-ui, sans-serif);
+  font: 400 var(--fs-lg) / 1.2 var(--font-brand, system-ui, sans-serif);
   text-align: start;
   cursor: pointer;
 }
 .doc-pagebar-btn:hover { background: var(--ui-color-surface-muted); }
 .doc-pagebar-btn:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 2px; }
-.doc-pagebar-btn[aria-expanded="true"] { border-color: var(--ui-color-action-primary); }
+.doc-pagebar-btn[aria-expanded="true"] { background: var(--ui-color-selection-surface); }
 .doc-pagebar-section { flex: none; font-weight: 600; }
 .doc-pagebar-chev { flex: none; display: inline-flex; color: var(--ui-color-text-muted); transform: rotate(90deg); transition: transform var(--ui-motion-feedback); }
 .doc-pagebar-btn[aria-expanded="true"] .doc-pagebar-chev { transform: rotate(270deg); }
-.doc-pagebar-chev svg { width: calc(16px * var(--a11y-fs, 1)); height: calc(16px * var(--a11y-fs, 1)); }
+.doc-pagebar-chev svg { width: var(--fs-xl); height: var(--fs-xl); }
 .doc-pagebar-page { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--ui-color-text-muted); }
 .doc-contents-panel {
   position: absolute;
   inset-inline: 0;
-  top: calc(100% + 0.25rem);
+  top: calc(100% + var(--sp-2));
   box-sizing: border-box;
   max-height: min(72dvh, 40rem);
   overflow-y: auto;
   overscroll-behavior: contain;
-  padding: 0.5rem;
-  border: 1px solid var(--ui-color-border-default);
-  border-radius: var(--ui-radius-card, 12px);
+  padding: var(--sp-4);
+  border-radius: var(--ui-radius-card);
   background: var(--ui-color-surface-raised);
   color: var(--ui-color-text-default);
-  box-shadow: var(--ui-elevation-floating);
+  /* The floating level of surfaces.css: the faint ring and the floating drop. */
+  box-shadow: var(--ui-edge-faint), var(--ui-elevation-floating);
   text-align: start;
 }
 .doc-contents-panel[hidden] { display: none; }
 /* The sections, as a wrap of text tabs: the strip's own links, current one marked. */
-.doc-sheet-sections { display: flex; flex-wrap: wrap; gap: 0.25rem 1.1rem; padding: 0.35rem 0.6rem 0.6rem; }
+.doc-sheet-sections { display: flex; flex-wrap: wrap; gap: var(--sp-2) var(--sp-7); padding: var(--sp-3) var(--sp-5) var(--sp-5); }
 .doc-sheet-sections .docs-pathway { min-height: 32px; display: inline-flex; align-items: center; }
-.doc-sheet-group { margin-top: 0.25rem; padding-top: 0.25rem; border-top: 1px solid var(--ui-color-border-default); }
+@media (pointer: coarse) { .doc-sheet-sections .docs-pathway { min-height: var(--ui-size-target); } }
+.doc-sheet-group { margin-top: var(--sp-2); padding-top: var(--sp-2); border-top: 1px solid var(--ui-color-border-default); }
 .doc-contents-title,
 .doc-contents-panel .sidebar-label,
 .doc-contents-panel .sidebar-pathway {
-  margin: 0.5rem 0.6rem 0.4rem;
-  font-size: calc(0.72rem * var(--a11y-fs, 1));
+  margin: var(--sp-4) var(--sp-5) var(--sp-3);
+  font-size: var(--fs-2xs);
   font-weight: 700;
-  letter-spacing: 0.08em;
+  letter-spacing: var(--ui-type-tracking-label);
   text-transform: uppercase;
   color: var(--ui-color-text-muted);
 }
@@ -273,15 +265,15 @@ html[data-a11y-motion="reduce"] .docs-top-btn:active { transform: none; }
 .doc-contents-panel :is(.docs-toc-link, .docs-compact-list a) {
   display: flex;
   align-items: center;
-  gap: 0.55rem;
+  gap: var(--sp-4);
   box-sizing: border-box;
-  min-height: 44px;
+  min-height: var(--ui-size-target);
   margin: 0;
-  padding: 0.4rem 0.6rem;
+  padding: var(--sp-3) var(--sp-5);
   border: 0;
-  border-radius: var(--ui-radius-control, 6px);
+  border-radius: var(--ui-radius-control);
   color: var(--ui-color-text-default);
-  font-size: calc(0.95rem * var(--a11y-fs, 1));
+  font-size: var(--fs-lg);
   font-weight: 400;
   line-height: 1.35;
   text-decoration: none;
