@@ -190,6 +190,14 @@ The optional `checks` list records which rules ran: each is `completed` (includi
 If your brand declares a spot ink that is really a **finish** (a foil, an emboss, a spot varnish, a cutting rule), the CMYK PDF writes it as its own named plate, which overprints the artwork beneath. Its process fallback is a 100% black mask, so a RIP that flattens spots prints an obvious mask rather than a plausible metallic. The CMYK TIFF and `eps-cmyk` have no named plates, so they write the finish as that black mask. Agree with your printer how they want the finish supplied before you send the file.
 :::
 
+`--spots=process` prints every spot **ink** with the four process inks, for one export: each ink takes the CMYK build its design system gives it, so a CMYK PDF has the cyan, magenta, yellow and black plates and nothing more. Use it when a printer asks for a plain four-colour file from a design system that gives its colours spot inks, such as Lolly Demo:
+
+```bash
+LOLLY_PROFILE=lolly-demo lolly run design --boxes-data=slides.json --export=pdf-cmyk --spots=process --output=four-colour.pdf
+```
+
+A finish is not an ink, so it keeps its own plate with `--spots=process`. Printing a finish in process would put its black mask on the page. The CMYK TIFF and `eps-cmyk` print every ink in process already, so the flag does not change them. It is off by default, the same choice as `_spots=process` in a link and **Print spot inks as process** in the app, and the file records nothing about the choice. Any value other than `process` is refused with exit `2`.
+
 <a id="check-a-design-document-in-ci-lolly-check"></a>
 ## Check a Lolly Design document in CI (lolly check)
 
