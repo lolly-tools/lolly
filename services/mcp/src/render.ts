@@ -32,7 +32,7 @@ import type { ToolManifest } from '../../../engine/src/loader.ts';
 import { assertRenderOk, RenderIntegrityError } from '@lolly-tools/node-shell/render-integrity';
 import { isDeepFormat, DeepSourceError, needsFloatScene, drawnRootSvg } from '@lolly-tools/node-shell/raster';
 import { buildExportC2paOpts, recordedDesignInFile } from '@lolly-tools/node-shell/c2pa-opts';
-import { stripSvgC2pa } from '@lolly-tools/node-shell/lolly-file';
+import { withoutSvgCredentials } from '@lolly-tools/node-shell/lolly-file';
 import { needsBrowserTier } from '@lolly-tools/node-shell/browser-tier';
 import { webGpuLaunchArgs } from '@lolly-tools/node-shell/webgpu-launch';
 import { observeProductionInputs } from '@lolly-tools/node-shell/production-browser';
@@ -1147,18 +1147,6 @@ export async function credentialAndRecord(
   }
   const readback = o.merged.c2paAsked && o.merged.c2pa ? await readBackCredential(bytes, o.merged.c2pa, o.deliveredFormat) : undefined;
   return { bytes, designRecord, ...(intentRecord ? { intentRecord } : {}), ...(readback ? { credential: readback } : {}) };
-}
-
-/**
- * An SVG with every `<c2pa:manifest>` taken out, and only those: an SVG that inlines
- * credentialed artwork, such as a catalog logo, carries that piece's manifest as well, and a
- * verifier reads it as the file's own. Any other format, or an SVG with none, comes back as
- * it was. Latin-1 keeps every byte around the elements exactly as it found them.
- */
-function withoutSvgCredentials(bytes: Uint8Array, format: string): Uint8Array {
-  if (format !== 'svg' && format !== 'svg-anim') return bytes;
-  const text = Buffer.from(bytes.buffer, bytes.byteOffset, bytes.byteLength).toString('latin1');
-  return text.includes('<c2pa:manifest') ? new Uint8Array(Buffer.from(stripSvgC2pa(text), 'latin1')) : bytes;
 }
 
 /**

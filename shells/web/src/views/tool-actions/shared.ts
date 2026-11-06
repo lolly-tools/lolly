@@ -4,6 +4,7 @@
  * constants and pure helpers that used to sit above renderActions(). Moved here verbatim so
  * no feature module has to import the orchestrator file. The export actions bar under a mounted tool.
  */
+import { c2paDefaultOn } from '../../lib/c2pa-policy.ts';
 import { C2PA_FORMATS, PRINT_MARK_FORMATS, SEPARATING_FORMATS } from '@lolly/engine';
 import { fmtLabel } from '../../lib/export-format-info.ts';
 export { FMT_LABEL, fmtLabel, keepFormat, CMYK_TIFF_OK, TIFF_OK } from '../../lib/export-format-info.ts';
@@ -50,6 +51,21 @@ export const FMT_EXT: Record<string, string> = {
 // hidden and opts.c2pa never set, silently dropping the default provenance.
 export const isC2paFmt = (f: string | undefined): boolean =>
   !!f && (C2PA_FORMATS.includes(f) || f === 'webp-anim');
+
+/**
+ * The C2PA box is unticked by choice: on a tool that stamps by default, or against a link that
+ * said off. An unticked box on a tool that never stamps is nobody's choice, so that export
+ * keeps its bytes.
+ */
+export function c2paBoxOptedOut(
+  el: ParentNode | null | undefined,
+  exportDefaults: { c2pa?: { on: boolean } | null | undefined },
+  manifest: Parameters<typeof c2paDefaultOn>[0],
+): boolean {
+  const box = el?.querySelector<HTMLInputElement>('[data-action="pdf-c2pa"]');
+  if (!box || box.checked) return false;
+  return exportDefaults.c2pa?.on === false || c2paDefaultOn(manifest);
+}
 
 // The durable in-pixel watermark embeds two ways: the standalone raster encoders
 // (renderRaster/renderBitmap/renderTiff's opts.imprint branch), and - for the
