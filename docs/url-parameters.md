@@ -61,7 +61,7 @@ Each format resolves the boards its own way. Still images fan out to one file pe
 :::
 
 ::: details More on password
-A link can bring a password, and the web app reads the value and takes it out of the address straight away, along with `export` and `copy`, so a reload opens the tool instead of writing the file again with no lock. Your browser may still remember the address you opened, so type the password in the export panel when you can. The address bar, a copied link, a saved session and the file's own metadata never hold it.
+A link can bring a password, and the web app reads the value and takes it out of the address straight away, along with `export` and `copy`, so a reload opens the tool instead of writing the file again with no lock. Your browser may still remember the address you opened, so type the password in the export panel when you can. The address bar, a copied link, a saved session and the file's own metadata never hold the password.
 
 A password must be able to protect the file, or nothing is written. In the web app, the CLI and the TUI, `password` on any format other than `pdf` or `zip`, or on a `pdf` with `bleed` or `marks`, is refused. So is a `pdf` password beyond plain ASCII, because readers cannot open a file locked that way at this tier. Only the first 32 characters of a `pdf` password count. An encrypted PDF cannot take `c2pa`, so a locked PDF holds no credential.
 
