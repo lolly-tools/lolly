@@ -548,6 +548,7 @@ export async function templatePick(tview: ToolViewCtx): Promise<void> {
           templates,
           host: tview.host,
           formats: tview.tool.manifest.render?.formats,
+          galleryArt: tview.tool.manifest.galleryArt,
           // "Blank canvas" on a frame-based tool is the default document's artboards with
           // nothing on them, not the composed cover the default opens with (plan 179).
           blankSeed: () => blankTemplateSeed(tview.tool.manifest.inputs),
