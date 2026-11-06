@@ -29,6 +29,7 @@
 
   .bp-section { display: flex; flex-direction: column; gap: var(--sp-4); }
   .bp-section[hidden] { display: none; }
+  .bp-section[data-bp-record] { gap: var(--sp-2); }
   .bp-section h3 { display: flex; align-items: baseline; justify-content: space-between; gap: var(--sp-4); margin: 0; font-size: var(--ui-type-body); font-weight: 600; }
   .bp-disclose > summary { cursor: pointer; min-height: var(--ui-size-target); display: flex; align-items: center; }
   .bp-disclose > summary h3 { flex: 1 1 auto; }

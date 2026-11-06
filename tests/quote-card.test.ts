@@ -212,6 +212,26 @@ test('the export clock declares a still pose, and the preview respects reduced m
   assert.doesNotMatch(css, /prefers-reduced-motion/, 'an export never reads the preference');
 });
 
+test('durations and the curve come from the design system where it names them', async () => {
+  const data = (html: string) => JSON.parse(/class="qc-motion-data">([\s\S]*?)<\/script>/.exec(html)![1]!);
+  const tokens = {
+    resolve: async (ref: string) => ({
+      '{motion.duration.medium}': { value: 250, unit: 'ms' },
+      '{motion.duration.long}': '0.9s',
+      '{motion.curve.emphasised}': [0.2, 0, 0, 1],
+    } as Record<string, unknown>)[ref] ?? null,
+    colors: async () => [],
+    get: async () => ({}),
+  };
+  const named = data(await hydrate({ quote: 'Say less.', layout: 'type', motion: 'word' }, baseHost({ tokens })));
+  assert.equal(named.unitMs, 250);
+  assert.equal(named.blockMs, 900);
+  assert.equal(named.ease, 'cubic-bezier(0.2,0,0,1)');
+  const silent = data(await hydrate({ quote: 'Say less.', layout: 'type', motion: 'word' }));
+  assert.equal(silent.unitMs, 400, 'a system that names no motion keeps the built-in timing');
+  assert.equal(silent.ease, 'cubic-bezier(0.05,0.7,0.1,1)');
+});
+
 // ── Colours ─────────────────────────────────────────────────────────────────
 
 function luminance(hex: string): number {

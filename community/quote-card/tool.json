@@ -2,7 +2,7 @@
   "id": "quote-card",
   "name": "Quote",
   "description": "A quotation in the active design system: a speaker card, a pull quote, a citation with its source, big type, a marker on the key phrase, with optional motion that carries into Design.",
-  "a11yLabel": "Quotation from {{name}}: {{quote}}",
+  "a11yLabel": "Quotation{{#if name}} from {{name}}{{/if}}: {{quote}}",
   "version": "1.1.0",
   "engineVersion": "^1.0.0",
   "status": "community",

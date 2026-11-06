@@ -10,7 +10,7 @@ import { readVersionIndex, stripVersionIndex, withVersionIndex, versionAssetId }
 import { readJson, verifyIntegrity } from '../bundle.ts';
 import { prepareTokenAdoption, type AdoptionHost } from './adoption-material.ts';
 
-export async function adoptBrandPack(host: AdoptionHost, files: Unzipped, readerVersion: number, opts: { system?: string; create?: DesignSystemRecord; activate?: boolean; validateFile?: (row: VersionedUserAsset) => Promise<void> } = {}): Promise<BrandImportSummary> {
+export async function adoptBrandPack(host: AdoptionHost, files: Unzipped, readerVersion: number, opts: { system?: string; create?: DesignSystemRecord; activate?: boolean; brandPage?: 'manager'; validateFile?: (row: VersionedUserAsset) => Promise<void> } = {}): Promise<BrandImportSummary> {
   const manifest = readJson(files, 'manifest.json');
   if (manifest?.format !== 'lolly-brand' || (manifest.minReader ?? manifest.formatVersion ?? 1) > readerVersion) throw new Error('This design system needs a newer Lolly reader.');
   if (!host.brandAdoption) throw new Error('This shell cannot apply a design system safely.');
@@ -59,6 +59,7 @@ export async function adoptBrandPack(host: AdoptionHost, files: Unzipped, reader
   if (['light', 'dark', 'brand'].includes(theme)) { summary.theme = theme; summary.prefs = 1; }
   const prepared = await prepareTokenAdoption(host, snapshot, candidateDoc, rows, {
     appearance: summary.theme ? { theme: summary.theme } : undefined, retainedVersions: local, selectedFontIds, validateFile: opts.validateFile,
+    ...(opts.brandPage ? { brandPage: opts.brandPage } : {}),
   });
   await host.brandAdoption.commit(prepared.candidate, { activate: opts.activate });
   return summary;

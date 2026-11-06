@@ -2506,6 +2506,20 @@ test('the Design system card is pre-checked, outside Protection, and shows the e
   h.dispose();
 });
 
+test('a recorded brand page shows on the card in the same line, and unticking the card takes the address out', async () => {
+  const preview = { ...PERSIMMON_PREVIEW, record: { ...PERSIMMON_PREVIEW.record, brandPage: 'https://acme.example/brand/acme/' } };
+  const h = mount({ seqMs: null, formats: ['png'], madeWith: { preview } });
+  await settle();
+  const card = h.panel.querySelector('[data-madewith-section]') as HTMLElement;
+  assert.equal(card.querySelector('[data-madewith-record]')!.textContent, 'Records: Acme <Client> · Colourway: Persimmon · Brand page: https://acme.example/brand/acme/');
+  assert.equal(card.querySelector('[data-madewith-description]')!.textContent, 'Description: Made with https://lolly.tools : Chart (Persimmon colourway)', 'the description does not change');
+  const toggle = card.querySelector('[data-action="madewith"]') as HTMLInputElement;
+  toggle.checked = false;
+  toggle.dispatchEvent(new Event('change', { bubbles: true }));
+  assert.equal(card.querySelector('[data-madewith-record]')!.textContent, 'Records nothing about the design system.');
+  h.dispose();
+});
+
 test('unticking the card turns the runtime switch off and shows the plain description', async () => {
   const h = mount({ seqMs: null, formats: ['png'], madeWith: { preview: PERSIMMON_PREVIEW } });
   await settle();

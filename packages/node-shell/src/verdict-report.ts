@@ -32,7 +32,7 @@
  */
 
 import type { C2paReport, C2paVerdict } from '@lolly/engine';
-import { rightsReportFromC2pa } from '@lolly/engine';
+import { brandPageHost, rightsReportFromC2pa } from '@lolly/engine';
 import { VERDICT_SLUGS } from './verdict-slugs.ts';
 
 /**
@@ -108,6 +108,30 @@ export function verdictApproval(report: C2paReport): VerdictApproval | null {
       : changed ? 'This file changed after the approval was recorded, or the record itself was altered.'
       : lapsed ? 'The signing certificate has lapsed, so this approval can no longer be confirmed.'
       : 'This approval record did not pass its checks, so it cannot be relied on.',
+  };
+}
+
+/** What a credential records about the brand page. Scrubbed, and data throughout. */
+export interface VerdictBrandPage {
+  /** The host and the address, or nothing when a recorded address was left out. */
+  facts: Array<[label: string, value: string]>;
+  note: string;
+}
+
+/**
+ * The brand page a signer recorded, or why a recorded address was left out, or null when
+ * the file holds none. The wording is the record's: the signer recorded an address, and
+ * nothing shows that the page belongs to anyone. A terminal link is never written.
+ */
+export function verdictBrandPage(report: C2paReport): VerdictBrandPage | null {
+  if (report.brandPageDropped === 'credential') return { facts: [], note: 'This file holds a brand page address, but its credential did not verify, so the address is left out here.' };
+  if (report.brandPageDropped === 'address') return { facts: [], note: 'This file holds a brand page address that is not a plain https address, so the address is left out here.' };
+  const address = report.brandPage;
+  const host = brandPageHost(address);
+  if (!address || !host) return null;
+  return {
+    facts: [['Host', cleanControlChars(host)], ['Address', cleanControlChars(address)]],
+    note: 'Recorded data. The signer recorded this address. It does not show that the page belongs to anyone.',
   };
 }
 

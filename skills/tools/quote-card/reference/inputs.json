@@ -129,7 +129,7 @@
     "label": "Motion",
     "type": "select",
     "default": "none",
-    "help": "Video, GIF and SVG play it. A picture placed in Design plays it on the timeline. PNG, PDF and other stills always show the finished card.",
+    "help": "Video, GIF and SVG play the motion. Placed in Design, the picture plays on the timeline. PNG, PDF and other stills always show the finished card.",
     "options": [
       {
         "value": "none",

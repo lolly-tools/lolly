@@ -148,34 +148,44 @@
   // The factor is resolution-independent: a label's text width and the box it
   // sits in both scale with the sign, so the ratio (and therefore the needed
   // shrink) is the same at A4 or A1, portrait or landscape - one measurement holds
-  // for every export size. We measure at the currently-applied scale and back-
-  // solve, so it's exact in a single pass with no reset-to-full-size flash.
+  // for every export size.
+  //
+  // An export starts once the canvas has been quiet for a moment, and a busy page can
+  // take longer than that to reach its next frame. So a fit never waits for a frame:
+  // reading a box lays the sign out on the spot. A label left at full size shows its
+  // first letter and nothing else.
+  var script = document.currentScript;
+  var way = ((script && script.parentNode) || document).querySelector('.way');
+  if (!way) return;
+  var labels = way.querySelectorAll('.way-label');
+  if (!labels.length) return;
+
+  // Always measures at full size, in one task so nothing paints between the two writes.
+  // It runs more than once on a sign, and the answer has to be the same each time.
+  // Returns whether the labels had a size to measure.
   function fit() {
-    var way = document.querySelector('.way');
-    if (!way) return;
-    var labels = document.querySelectorAll('.way-label');
-    if (!labels.length) return;
-    var cur = parseFloat(way.style.getPropertyValue('--label-scale')) || 1;
-    var scale = 1;
+    way.style.setProperty('--label-scale', '1');
+    var scale = 1, measured = false;
     for (var i = 0; i < labels.length; i++) {
-      var el = labels[i];
-      var avail = el.clientWidth, need = el.scrollWidth;   // box vs full text width
-      if (avail > 0 && need > avail) {
-        var fitScale = cur * avail / need;
-        if (fitScale < scale) scale = fitScale;
+      var avail = labels[i].clientWidth, need = labels[i].scrollWidth;  // box vs full text width
+      if (avail > 0) {
+        measured = true;
+        if (need > avail && avail / need < scale) scale = avail / need;
       }
     }
     if (scale < 1) scale *= 0.985;                         // hairline rounding margin
     way.style.setProperty('--label-scale', String(scale));
+    return measured;
   }
-  function run() { try { fit(); } catch (e) { /* never block the render */ } }
+  function run() { try { return fit(); } catch (e) { return true; /* never block the render */ } }
 
-  // Glyph widths are only correct once the brand's font has loaded; measure
-  // then, one frame later so layout has flushed at the sign's final size.
-  if (document.fonts && document.fonts.ready) {
-    document.fonts.ready.then(function () { requestAnimationFrame(run); });
-  } else {
-    requestAnimationFrame(run);
+  // A sign with no size yet (its stage is hidden) is fitted when it gets one.
+  if (!run() && window.ResizeObserver) {
+    var sized = new ResizeObserver(function () { if (!way.isConnected || run()) sized.disconnect(); });
+    sized.observe(way);
   }
+  // Glyph widths are only correct once the brand's font has loaded. Laying the text out
+  // is what starts that font loading, so this has to ask after the fit above.
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(run);
 })();
 </script>

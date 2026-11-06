@@ -492,8 +492,11 @@ export async function renderRowToBlob(row: BatchRow, host: HostV1, { format, wid
     if (watermark !== undefined) exportOpts.watermark = watermark;
     if (embedMeta !== undefined) exportOpts.embedMeta = embedMeta;
     if (thumbnail !== undefined) exportOpts.thumbnail = thumbnail;
-    // An SVG displayed as an image cannot use the page's installed brand fonts.
-    if (thumbnail && fmt === 'svg') exportOpts.convertPaths = true;
+    // An SVG displayed as an image cannot use the page's installed brand fonts. A child
+    // composed into another tool is one too, at any quality: its box is an <img>, so live
+    // text there draws in whatever the viewer's machine has, and only a machine with the
+    // face installed hides the problem.
+    if ((thumbnail || composeStack?.length) && fmt === 'svg') exportOpts.convertPaths = true;
     // Content Credentials: a REAL batch/zip render signs by default under the same
     // policy as the tool view's Export button (previously the whole batch pipeline
     // silently skipped signing). Compose children (embedMeta:false) and thumbnails

@@ -8,6 +8,7 @@
  * from mountStart() by scripts/split-closure.ts.
  */
 import { t, tRaw } from '../../i18n.ts';
+import { withoutRecordedBrandPage } from '../../../../../engine/src/brand-page-address.ts';
 import { playSfx } from '../../lib/sfx.ts';
 import { saveBlob } from '../../pro/zip.ts';
 import { bindOp, type StartCtx } from './context.ts';
@@ -91,7 +92,7 @@ export function wireTokensExport(start: StartCtx): void {
         if (!start.headDoc) start.exporting.showNote(t('There are no tokens to export yet.'), true);
         else {
           await saveBlob(
-            new Blob([JSON.stringify(start.headDoc, null, 2)], { type: 'application/json' }),
+            new Blob([JSON.stringify(withoutRecordedBrandPage(start.headDoc), null, 2)], { type: 'application/json' }),
             'tokens.json'
           );
           start.exporting.showNote(tRaw('Exported {filename}', { filename: 'tokens.json' }));

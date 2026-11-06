@@ -55,6 +55,9 @@ describe('Quote in the web shell', { skip }, () => {
     assert.match(text, /@keyframes qc-rise/);
     assert.equal((text.match(/animation:qc-rise/g) ?? []).length, 9, 'one group per word');
     assert.match(text, /@media \(scripting: none\)/);
+    const placed = await svgOf(`${link({ layout: 'type', motion: 'word' })}&w=801&h=601`, { thumbnail: false, _stack: ['design'] });
+    assert.doesNotMatch(placed.text, /<text/, 'the render a document keeps carries outlines, because its box is an image');
+    assert.match(placed.text, /animation:qc-rise/);
   });
 
   test('an image of the file shows the finished card, the same ink as a still', { timeout: 120_000 }, async () => {

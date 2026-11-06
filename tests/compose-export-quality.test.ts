@@ -43,6 +43,10 @@ test('the quality reaches the renderer and the cache key', () => {
   assert.match(compose, /_stack: opts\._stack \?\? \[\], thumbnail,/, 'renderUrl passes its answer down');
 });
 
+test('a composed SVG keeps its words as outlines at export quality too, because its box is an image', () => {
+  assert.match(source('shells/web/src/pro/render-export.ts'), /\(thumbnail \|\| composeStack\?\.length\) && fmt === 'svg'/);
+});
+
 test('the embed hydrator asks for export quality, because an embed is in the output', () => {
   assert.match(source('shells/web/src/bridge/embed.ts'), /thumbnail: false,/, 'resolveLollyToolUrl composes at export quality');
 });

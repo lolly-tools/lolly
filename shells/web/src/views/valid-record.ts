@@ -17,7 +17,9 @@ import { icon as glyph } from '../lib/icons.ts';
 import { formatMetaInstant } from '../lib/meta-dates.ts';
 import { metaRow } from '../lib/meta-rows.ts';
 import { copyText } from '../lib/copy-text.ts';
+import { brandPageHost } from '../../../../engine/src/brand-page-address.ts';
 import { isFingerprint } from './valid-made-from.ts';
+import { metadataLinkHtml, wireMetadataLinks } from './valid-links.ts';
 import { hashFailed, isExpiredOnly, resolveState } from './valid-verdict.ts';
 import type { VerifyReport } from './valid-verdict.ts';
 
@@ -190,9 +192,42 @@ export function madeForPanelHtml(report: VerifyReport): string {
     </div>`;
 }
 
-/** Both panels, in reading order: whether it was approved, then why it exists. */
+/** The host as an inert link: nothing loads, and a click opens the warning about where it goes. */
+function brandPageLinkHtml(address: string): string {
+  return metadataLinkHtml(address, brandPageHost(address) ?? address);
+}
+
+/**
+ * The brand page the signer recorded, or why a recorded address was left out. The signer
+ * recorded an address and nothing shows that the page belongs to anyone, because a forged
+ * page is a real risk. Nothing here fetches or previews the page.
+ */
+export function brandPagePanelHtml(report: VerifyReport): string {
+  const heading = `<h3>${svgIcon('globe')}<span>${t('Brand page')}</span></h3>`;
+  if (report.brandPageDropped) {
+    return `
+    <div class="valid-record valid-panel" data-record-panel="brandPage" tabindex="-1">
+      ${heading}
+      <p class="valid-input-note">${report.brandPageDropped === 'credential'
+    ? t('This file holds a brand page address, but its credential did not verify, so the address is left out here.')
+    : t('This file holds a brand page address that is not a plain https address, so the address is left out here.')}</p>
+    </div>`;
+  }
+  const host = brandPageHost(report.brandPage);
+  if (!host || !report.brandPage) return '';
+  const { pathname } = new URL(report.brandPage);
+  return `
+    <div class="valid-record valid-panel" data-record-panel="brandPage" tabindex="-1">
+      ${heading}
+      <dl class="valid-input-list">${row(t('Recorded address'), brandPageLinkHtml(report.brandPage)
+    + (pathname === '/' ? '' : ` <span class="valid-recorded-path">${escapeText(pathname)}</span>`))}</dl>
+      <p class="valid-input-note">${t('The signer recorded this address. It does not show that the page belongs to anyone.')}</p>
+    </div>`;
+}
+
+/** The panels in reading order: whether it was approved, why it exists, then where it leads back to. */
 export function recordPanelsHtml(report: VerifyReport): string {
-  return approvedPanelHtml(report) + madeForPanelHtml(report);
+  return approvedPanelHtml(report) + madeForPanelHtml(report) + brandPagePanelHtml(report);
 }
 
 /** One line for a Details row, whatever the prompt's own line breaks are. */
@@ -220,6 +255,7 @@ export function recordRowsHtml(report: VerifyReport, hasApprovalRow: boolean): s
       rows.push(metaRow('prompt', t('Prompt'), fingerprintCell(intent.promptFingerprint)));
     }
   }
+  if (report.brandPage && brandPageHost(report.brandPage)) rows.push(metaRow('brandPage', t('Brand page'), brandPageLinkHtml(report.brandPage)));
   return rows.join('');
 }
 
@@ -234,6 +270,7 @@ export function paintAssetRecord(sheet: HTMLElement, report: VerifyReport): void
   const rows = recordRowsHtml(report, !!kept);
   const id = list?.querySelector('[data-meta="id"]');
   (id ?? list)?.insertAdjacentHTML(id ? 'beforebegin' : 'beforeend', rows);
+  if (report.brandPage && !sheet.dataset.recordLinksWired) { sheet.dataset.recordLinksWired = '1'; wireMetadataLinks(sheet); }
   const check = approvalCheck(report);
   if (check === 'intact' || !(report.approval || kept)) { wireRecordPanels(sheet); return; }
   if (kept) {

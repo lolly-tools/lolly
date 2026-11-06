@@ -241,24 +241,9 @@ function curveCss(value) {
   return 'cubic-bezier(' + v.join(',') + ')';
 }
 
-// The corner the design system states, as a share of the shorter side of a 1200 px
-// frame, so it scales with the artwork. Empty when the system states no corner.
-function radiusVar(v) {
-  let n = null;
-  if (typeof v === 'number') n = v;
-  else if (typeof v === 'string') {
-    const m = /^\s*(\d+(?:\.\d+)?)\s*(px|rem)\s*$/i.exec(v);
-    if (m) n = Number(m[1]) * (m[2].toLowerCase() === 'rem' ? 16 : 1);
-  } else if (v && typeof v === 'object' && typeof v.value === 'number') {
-    n = v.value * (v.unit === 'rem' ? 16 : 1);
-  }
-  if (n === null || !(n >= 0)) return '';
-  return (Math.round(n / 12 * 100) / 100) + 'cqmin';
-}
-
 async function readTheme() {
   if (_theme) return _theme;
-  const t = { lead: '', onLead: '', partner: '', surface: '', text: '', muted: '', edge: '', unitMs: 0, blockMs: 0, ease: '', radius: '' };
+  const t = { lead: '', onLead: '', partner: '', surface: '', text: '', muted: '', edge: '', unitMs: 0, blockMs: 0, ease: '' };
   if (typeof host !== 'undefined' && host && host.tokens && host.tokens.resolve) {
     const read = async (ref) => {
       try { return await host.tokens.resolve(ref); } catch { return null; }
@@ -273,7 +258,6 @@ async function readTheme() {
     t.unitMs = durationMs(await read('{motion.duration.medium}'));
     t.blockMs = durationMs(await read('{motion.duration.long}'));
     t.ease = curveCss(await read('{motion.curve.emphasised}'));
-    t.radius = radiusVar(await read('{shape.radius}'));
   }
   _theme = t;
   return t;
@@ -309,7 +293,7 @@ function readable(candidates, ground, min) {
 
 // The colours a new layout reads. Empty when the design system could not be read,
 // and the stylesheet's own var() fallbacks draw the card instead.
-function paletteVars(ground, t) {
+function paletteVars(ground, t, emphasisOnly) {
   if (!t.surface || !t.text || !t.lead) return '';
   const onLead = t.onLead || readable([t.surface, t.text], t.lead, 4.5);
   const g = ground === 'lead' ? t.lead : ground === 'ink' ? t.text : t.surface;
@@ -324,9 +308,8 @@ function paletteVars(ground, t) {
   // on the lead's own ground so it still shows.
   const hlBg = ground === 'lead' ? onLead : readable([t.lead, t.partner, ink], g, 2);
   const hlInk = hlBg === onLead ? t.lead : readable([onLead, t.surface, t.text], hlBg, 4.5);
-  const vars = ['--qc-deco:' + deco, '--qc-band:' + band, '--qc-em:' + em, '--qc-hl-bg:' + hlBg, '--qc-hl-ink:' + hlInk];
-  if (t.radius) vars.push('--qc-radius:' + t.radius);
-  return vars.join(';');
+  if (emphasisOnly) return '--qc-em:' + em;
+  return ['--qc-deco:' + deco, '--qc-band:' + band, '--qc-em:' + em, '--qc-hl-bg:' + hlBg, '--qc-hl-ink:' + hlInk].join(';');
 }
 
 // ── the piece as a whole ────────────────────────────────────────────────────
@@ -372,7 +355,7 @@ async function compute(model) {
     refHtml: layout === 'citation' ? src.refHtml : '',
     linkText: src.linkText,
     qcClass: classes,
-    qcStyle: (isNew || phrase) && theme ? paletteVars(ground, theme) : '',
+    qcStyle: (isNew || phrase) && theme ? paletteVars(ground, theme, !isNew) : '',
     qcGrow: GROW[layout] || 0,
     qcGlyph: layout === 'glyph' ? (RTL_RE.test(quote) ? '”' : '“') : '',
     qcRules: layout === 'pull',

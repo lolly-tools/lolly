@@ -18,6 +18,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { zipSync, unzipSync, strToU8, strFromU8 } from 'fflate';
 import { exportBackup, importBackup, BACKUP_FORMAT } from '../shells/web/src/data-transfer.ts';
+import { withRecordedBrandPage } from '../engine/src/brand-page-address.ts';
 
 // Crack a bundle Blob open to its flat path→bytes map (to inspect or tamper with a
 // part), and re-seal a mutated map back into the raw bytes importBackup accepts.
@@ -399,4 +400,19 @@ test('refuses a bundle that requires a newer reader', async () => {
     () => importBackup({ host: makeHost(), storage: makeStorage() }, reseal(files)),
     /newer version/i,
   );
+});
+
+// A backup file can come from anyone, so a restored system records no brand page (plan 351 B5).
+test('a restored backup clears a recorded brand page address and leaves every other row alone', async () => {
+  const src = await seedSource();
+  const doc = { color: { a: { $type: 'color', $value: '#123456' } } };
+  await src.host.assets._importUserAsset({ id: 'user/tokens/brand', type: 'tokens', format: 'json', blob: new Blob([JSON.stringify(withRecordedBrandPage(doc, 'https://evil.example/'))], { type: 'application/json' }), version: '1.0.0', meta: { name: 'Brand' } });
+  const { blob } = await exportBackup({ host: src.host, storage: src.storage });
+  const dst = { host: makeHost(), storage: makeStorage() };
+  await importBackup(dst, await blob.arrayBuffer());
+  const rows = await dst.host.assets._exportUserAssets();
+  const head = rows.find((row: { id: string }) => row.id === 'user/tokens/brand');
+  assert.equal(await head.blob.text(), JSON.stringify(doc));
+  const pic = rows.find((row: { id: string }) => row.id === 'user/upload/1700-pic.jpg');
+  assert.deepEqual(new Uint8Array(await pic.blob.arrayBuffer()), src.picBytes);
 });

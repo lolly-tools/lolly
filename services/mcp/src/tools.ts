@@ -19,7 +19,7 @@ import { MOTION_EXPORT_ARGS, motionExportSettings, type MotionExportSettings } f
 // Relative import (not `@lolly-tools/node-shell/...`): this file is inlined into the
 // serverless bundle, same as render.ts's node-shell imports.
 import { VERDICT_SLUGS } from '@lolly-tools/node-shell/verdict-slugs';
-import { cleanControlChars, verdictFacts, verdictChecks, verdictApproval, verdictIntent, verdictSources } from '@lolly-tools/node-shell/verdict-report';
+import { cleanControlChars, verdictFacts, verdictChecks, verdictApproval, verdictBrandPage, verdictIntent, verdictSources } from '@lolly-tools/node-shell/verdict-report';
 import type { ToolManifest } from '../../../engine/src/loader.ts';
 import type { ExportBrandSkill } from '@lolly-tools/core/host-v1';
 import type { ContentBlock, ToolCallResult } from './protocol.ts';
@@ -210,7 +210,7 @@ const EXPORT_ARGS = {
   durable: { type: 'boolean', description: 'Embed the durable Content Credential that survives re-encoding (opt-in, off by default).' },
   madeWith: {
     type: 'boolean',
-    description: "The design-system record: the design system, its published version and its colourway, written into the file's metadata and Content Credential, "
+    description: "The design-system record: the design system, its published version and its colourway, plus its brand page address when its publisher opted in, written into the file's metadata and Content Credential, "
       + 'with the colourway beside the tool in the description. ON by default - pass false to leave it out (the `_madewith=0` link param).',
   },
 };
@@ -879,6 +879,14 @@ function verifyText(name: string, report: VerifyReport, headline: string): strin
     lines.push('Intent:');
     for (const [k, v] of intent.facts) lines.push(`  ${k.padEnd(11)} ${v}`);
     if (intent.prompt) lines.push(`  ${intent.promptNote}`, `  ${'Prompt'.padEnd(11)} ${intent.prompt}`);
+  }
+  // The address the signer recorded, labelled as data: an agent must not fetch or follow
+  // it on the strength of this report, and it says nothing about who the page belongs to.
+  const page = verdictBrandPage(report);
+  if (page) {
+    lines.push('Brand page:');
+    for (const [k, v] of page.facts) lines.push(`  ${k.padEnd(11)} ${v}`);
+    lines.push(`  ${page.note}`);
   }
   const sources = verdictSources(report);
   if (sources) {

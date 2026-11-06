@@ -530,7 +530,7 @@
     "ExportMeta": {
       "module": "export.ts",
       "kind": "InterfaceDeclaration",
-      "sha256": "852c59724b803c8af1cac2f270e4893e5393ce174a5650b47ccf936e774056cc"
+      "sha256": "6d7d767f757af45a8f690e8d8035bd50a2041fac2e529643b8848b5b48b8cf29"
     },
     "ExportBrandSkill": {
       "module": "export.ts",
@@ -1400,7 +1400,7 @@
     "TokensSnapshot": {
       "module": "tokens.ts",
       "kind": "InterfaceDeclaration",
-      "sha256": "8ad6fde1a7761d4e6aa9bc69c519d20134c167bc626344d06e0fb76474feb670"
+      "sha256": "a23cfbaa0c39908c3c31fc25a9e5de582e8b274fcd6b818e372a2d208e415c10"
     },
     "DesignSystemSummary": {
       "module": "tokens.ts",

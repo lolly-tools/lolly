@@ -360,6 +360,7 @@ A [brand page](/info/brand-page.html) is one address for people and for agents: 
 - **Held back**: what stayed out, and why. A logo with no recorded licence stays out until you tick the logo's name. A font file needs a recorded licence that allows passing it on, and the page shows an outlined specimen when the file stays out. Internal brand skills never appear.
 - **What was checked**: colour pairs per colourway and mode, and the house rules. These are measurements, not a verdict.
 - **In your words**: a usage statement and a contact. The page prints what you write and Lolly adds no licence or legal claim. A switch turns off the "Made with Lolly" line in the footer.
+- **On exports**: a switch that [records the page's address in this design system's exports](/info/brand-page.html#lead-back-from-your-files). It is off until you turn it on, it needs an `https` address, and it does not travel with a pack or a copy. A locked design system does not show the switch, because its manager decides.
 
 **Download folder** saves the folder as a ZIP for you to host wherever you choose, and nothing goes public until you do. In a terminal, `lolly system publish --out=<dir>` writes the same folder. An instance that serves brand pages also offers **Publish to** its address, which is one explicit press, and goes through its approval chain when it has one. A managed design system publishes only when its manager allows.
 

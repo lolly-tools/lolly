@@ -61,7 +61,7 @@ function linkedText(text: string, renderText: (text: string) => string): string 
 
 export function wireMetadataLinks(root: HTMLElement): void {
   const openWarning = (event: MouseEvent) => {
-    if (event.button === 2) return;
+    if (event.button === 2 || event.defaultPrevented) return;
     const button = event.target instanceof Element ? event.target.closest<HTMLElement>('[data-metadata-url]') : null;
     const value = button?.dataset.metadataUrl ?? '';
     const url = metadataUrl(value) ?? (/^(?:mailto|tel):/i.test(value) ? contactUrl(value) : null);
