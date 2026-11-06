@@ -40,6 +40,25 @@ export async function catalogSynced(ms = 15000): Promise<void> {
  *  one and a page that did not export the same outlines. */
 export const PAGE_FALLBACK_FAMILY = 'Lolly Fallback ';
 
+/**
+ * A computed `font-family` as an export writes it into a file: without the live page's own
+ * fallback families, which exist only on this page. A stack holding none comes back as
+ * the same string, so a file that names a font names exactly what it named before.
+ */
+export function exportFontFamily(stack: string): string {
+  if (!stack.includes(PAGE_FALLBACK_FAMILY)) return stack;
+  const parts: string[] = [];
+  let cur = '', quote = '';
+  for (const ch of stack) {
+    if (quote) { cur += ch; if (ch === quote) quote = ''; }
+    else if (ch === '"' || ch === "'") { quote = ch; cur += ch; }
+    else if (ch === ',') { parts.push(cur.trim()); cur = ''; }
+    else cur += ch;
+  }
+  parts.push(cur.trim());
+  return parts.filter((p) => p && !p.replace(/^["']|["']$/g, '').startsWith(PAGE_FALLBACK_FAMILY)).join(', ');
+}
+
 const pagePending = new Set<Promise<unknown>>();
 
 /** The live page is deciding or loading its fallback fonts; an export waits for that. */

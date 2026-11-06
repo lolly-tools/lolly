@@ -16,6 +16,7 @@ import type { InlineTextContext } from './export-text.ts';
 export { decoFlags, mergeDeco, isReplaced, visualLines, pdfInlineNonText } from './export-text.ts';
 export type { Deco } from './export-text.ts';
 import { resolveExportFont, noteFillUse } from './font-fill.ts';
+import { exportFontFamily } from './fallback-font-source.ts';
 import { namespaceInlinedSvgIds } from './svg-inline-ids.ts';
 import { newNeutraliseGuard, neutraliseTransform } from './transform-neutralise.ts';
 import { placeBackground } from './bg-layout.ts';
@@ -2856,7 +2857,7 @@ async function svgPseudoContent(
       t.setAttribute('font-size',         ds.ps.fontSize);
       t.setAttribute('font-weight',       ds.ps.fontWeight);
       t.setAttribute('font-style',        ds.ps.fontStyle);
-      t.setAttribute('font-family',       ds.ps.fontFamily);
+      t.setAttribute('font-family',       exportFontFamily(ds.ps.fontFamily));
       if (fillAttr)  t.setAttribute('fill',         fillAttr);
       if (alphaAttr) t.setAttribute('fill-opacity', alphaAttr);
       for (const [k, v] of strokeAttrs) t.setAttribute(k, v);

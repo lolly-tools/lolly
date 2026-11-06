@@ -105,9 +105,17 @@ test('a fill face takes only the clusters the faces before it cannot draw', () =
   const arabic = { unicodes: set('مرحبا 2024.Hel'), fill: true };
   assert.deepEqual(fillSegments('Hello مرحبا 2024.', [brand, arabic]), [
     { text: 'Hello ', face: 0 },
-    { text: 'مرحبا ', face: 1 },
-    { text: '2024.', face: 0 },
-  ], 'digits and Latin stay with the brand even though the fill face maps them');
+    { text: 'مرحبا', face: 1 },
+    { text: ' 2024.', face: 0 },
+  ], 'digits, Latin and the space stay with the brand even though the fill face maps them');
+  // Chrome draws a space between two fallback words in the first font that has one, so
+  // the export does too: otherwise the line comes out wider than the page by the
+  // difference between the two spaces, once per space.
+  assert.deepEqual(fillSegments('مرحبا بالعالم', [brand, arabic]), [
+    { text: 'مرحبا', face: 1 }, { text: ' ', face: 0 }, { text: 'بالعالم', face: 1 },
+  ]);
+  const noSpace = { unicodes: set('Hello') };
+  assert.deepEqual(fillSegments('مرحبا بالعالم', [noSpace, arabic]), [{ text: 'مرحبا بالعالم', face: 1 }], 'a brand with no space glyph leaves it to the fill face');
   assert.deepEqual(fillSegments('Hello', [brand, arabic]), [{ text: 'Hello', face: 0 }]);
   assert.deepEqual(fillSegments('漢', [brand, arabic]), [{ text: '漢', face: 0 }], 'nothing maps it: it stays put and shapes as .notdef');
 });

@@ -21,3 +21,12 @@ test('the page reads a stack without its own families, so a recheck gives the sa
   assert.equal(withFallbackFamilies(once, []), "'Outfit', sans-serif");
   assert.equal(withFallbackFamilies(once, ['Lolly Fallback Noto Sans Arabic']), once);
 });
+
+test('an export never writes the page-only family names into a file', async () => {
+  const { exportFontFamily } = await import('./fallback-font-source.ts');
+  const plain = 'Outfit, SUSE, ui-sans-serif, system-ui, sans-serif';
+  assert.equal(exportFontFamily(plain), plain, 'a stack with none comes back as the same string');
+  assert.equal(exportFontFamily('Outfit, SUSE, "Lolly Fallback Noto Sans Arabic", "Lolly Fallback Noto Sans", ui-sans-serif, system-ui, sans-serif'), plain);
+  assert.equal(exportFontFamily(`"SUSE Mono", 'Lolly Fallback Noto Sans Hebrew', monospace`), '"SUSE Mono", monospace');
+  assert.equal(exportFontFamily(withFallbackFamilies(plain, ['Lolly Fallback Noto Sans Thai'])), plain, 'the round trip from the page stack');
+});

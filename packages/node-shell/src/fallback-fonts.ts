@@ -81,6 +81,8 @@ export function fallbackPacksFrom(entries: readonly unknown[]): FallbackFontPack
 
 /** Characters that never need a glyph of their own: spaces, controls and default ignorables. */
 const QUIET = /^[\p{Cc}\p{Z}\p{Default_Ignorable_Code_Point}]$/u;
+/** A space character, which takes a face of its own rather than riding the one before it. */
+const SPACE = /^\p{Zs}$/u;
 const isQuiet = (cp: number): boolean => QUIET.test(String.fromCodePoint(cp));
 
 /** The code points of a cluster that have to be drawn. */
@@ -203,8 +205,8 @@ export interface ChainFace { unicodes: Coverage; fill?: boolean }
 /**
  * Split `text` into runs one face draws, for a chain that holds a fill face. Each grapheme
  * cluster goes to the first face that maps all of it, so a brand face keeps every
- * character it can draw and a fill face takes only what came before it could not. Spaces
- * and joiners stay with the face before them, so a word is never split at a space. A
+ * character it can draw and a fill face takes only what came before it could not. A space
+ * goes to the first face that maps it, as in a browser, and a joiner stays with its cluster. A
  * cluster no face covers stays with the current face and shapes as `.notdef`, which the
  * caller counts.
  *
@@ -220,6 +222,15 @@ export function fillSegments(text: string, chain: readonly ChainFace[]): Array<{
       let at = chain.findIndex((f) => coversAll(f.unicodes, cps));
       if (at === -1) at = chain.findIndex((f) => f.unicodes.has(cps[0]!));
       if (at !== -1) cur = at;
+    } else {
+      // A space between two words a fill face draws is drawn by the first face that maps
+      // it, as Chrome does: measured, the browser's line is narrower by exactly the
+      // difference between the brand's space and the fallback font's, once per space.
+      const spaces = [...c.text].map((ch) => ch.codePointAt(0)!).filter((cp) => SPACE.test(String.fromCodePoint(cp)));
+      if (spaces.length) {
+        const at = chain.findIndex((f) => coversAll(f.unicodes, spaces));
+        if (at !== -1) cur = at;
+      }
     }
     const last = segs[segs.length - 1];
     if (last && last.face === cur) last.text += c.text;
