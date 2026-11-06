@@ -569,6 +569,12 @@ export async function mountCatalog(viewEl: HTMLElement, hostIn: HostV1, params =
     const { theme } = parseThemedAssetId(linkedAsset);
     const { treatment } = parseTreatedAssetId(linkedAsset);
     const baseId = assetBaseId(linkedAsset);   // strips ?theme= AND ?treatment=
+    // A link can point at another design system's asset. It opens, though the grid does not list it.
+    if (cat.scope && !cat.assetById.has(baseId)) {
+      const everySystem = await host.assets._queryEverySystem?.({ includeDeprecated: true }).catch(() => [] as AssetRef[]);
+      const found = everySystem?.find(a => assetBaseId(a.id) === baseId);
+      if (found) cat.assetById.set(found.id, found);
+    }
     const ref = cat.assetById.get(baseId)
       ?? cat.assetById.get(linkedAsset)
       ?? [...cat.assetById.values()].find(a => assetBaseId(a.id) === baseId);

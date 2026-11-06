@@ -633,7 +633,9 @@ export function createAssetsAPI(db: AssetsDb, opts: AssetsApiOptions = {}) {
       };
 
       if (theme) {
-        const def = (await api._iconThemes(baseId)).find(t => t.id === theme);
+        // Its own system's pairing, else the active one's: "All design systems" lets a person
+        // pick either, and a one-system catalog reads the same palette both times.
+        const def = (await api._iconThemes(baseId)).find(t => t.id === theme) ?? (await api._iconThemes()).find(t => t.id === theme);
         if (def) {
           // Cache key carries the pairing's colours, so palette edits re-bake,
           // and a resolve whose bake is already minted skips the blob entirely.
@@ -659,7 +661,7 @@ export function createAssetsAPI(db: AssetsDb, opts: AssetsApiOptions = {}) {
       if (treatment && meta.type === 'raster') {
         const { isRasterPhotoLook, photoLookThemeKey, photoLookCacheKey, resolvePhotoLook } = await import('../../../../engine/src/photo-look.ts');
         const { wrapRasterWithTreatment } = await import('../../../../engine/src/photo-treatment.ts');
-        let def = (await api._photoTreatments(baseId)).find(t => t.id === treatment);
+        let def = (await api._photoTreatments(baseId)).find(t => t.id === treatment) ?? (await api._photoTreatments()).find(t => t.id === treatment);
         let themeSuffix = '';
         if (def && (isRasterPhotoLook(def) || def.themes)) {
           // A theme variant picks the definition (plan 291 W7); a look only pixels reproduce bakes here.
