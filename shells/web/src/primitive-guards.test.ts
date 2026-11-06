@@ -1767,7 +1767,7 @@ const RAW_HTML_ALLOWED: Record<string, number> = {
   // translated labels are escaped, properties are allowlisted, and counts and
   // viewport dimensions were bounded by readBrandStyleEvidence before rendering.
   // Reviewed summaries escape source values; segment markup uses its shared renderer.
-  'views/start/reference.ts': 3,
+  'views/start/reference.ts': 4,   // plans/352 R4: + the colour role review; t() strings and escape()d values only
   // Rule labels, origins, resources and text escape at interpolation; IDs and states are bounded.
   'lib/design-system/rooms/usage.ts': 2,
   // Skills room (plan 323): the room shell and the reader escape every catalog and skill
