@@ -543,6 +543,25 @@
 
 /* docs sidebar rail (extracted .docs-sidebar) */
 .sidebar-pathway,.sidebar-label{margin-top:2em; margin-bottom: .5rem; font-weight:500;}
+/* The rail from the built page (docs/build.ts buildSidebar): the hub as the heading
+   link, then the groups as folds, open where the current page is. */
+.docs-sidebar-slot a.sidebar-pathway { display: block; margin-top: 0; padding: 0 .55rem .5rem; color: hsl(var(--foreground)); font-weight: 600; background: none; }
+.docs-sidebar-slot a.sidebar-pathway:hover,
+.docs-sidebar-slot a.sidebar-pathway.active { color: hsl(var(--primary)); background: none; }
+.docs-sidebar-slot .sidebar-group { margin-top: var(--sp-5); }
+.docs-sidebar-slot .sidebar-group > summary {
+  display: flex; align-items: center; justify-content: space-between; gap: var(--sp-4);
+  min-height: 32px; margin: 0; padding: 0 .55rem; border-radius: 7px;
+  color: hsl(var(--muted-foreground)); cursor: pointer; list-style: none;
+}
+.docs-sidebar-slot .sidebar-group > summary::-webkit-details-marker { display: none; }
+.docs-sidebar-slot .sidebar-group > summary:hover { background: hsl(var(--muted)); color: hsl(var(--foreground)); }
+.docs-sidebar-slot .sidebar-group > summary:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 2px; }
+.docs-sidebar-slot .sidebar-chev { display: inline-flex; flex: none; transform: rotate(90deg); transition: transform var(--ui-motion-feedback); }
+.docs-sidebar-slot .sidebar-group[open] > summary .sidebar-chev { transform: rotate(270deg); }
+@media (pointer: coarse) { .docs-sidebar-slot .sidebar-group > summary { min-height: var(--ui-size-target); } }
+@media (prefers-reduced-motion: reduce) { .docs-sidebar-slot .sidebar-chev { transition: none; } }
+html[data-a11y-motion="reduce"] .docs-sidebar-slot .sidebar-chev { transition: none; }
 .docs-sidebar-slot { position: sticky; top: calc(var(--docs-chrome-clear, 4.75rem) + var(--chrome-top, 0.75rem) + 2.9rem); align-self: start; max-height: calc(100vh - var(--docs-chrome-clear, 4.75rem) - var(--chrome-top, 0.75rem) - 7.4rem); overflow-y: auto; font-size: calc(.9rem * var(--a11y-fs, 1)); }
 .docs-sidebar-slot :is(ul, ol) { list-style: none; margin: 0; padding: 0; }
 .docs-sidebar-slot a { display: flex; align-items: center; gap: .55rem; color: hsl(var(--muted-foreground)); text-decoration: none; padding: .32rem .55rem; border-radius: 7px; line-height: 1.35; }
@@ -657,9 +676,6 @@
 html[data-a11y-motion="reduce"][data-docs-reading] .gallery-footer,
 html[data-a11y-motion="reduce"] .docs-top-ground { transition: none; }
 
-/* The rail's link to the docs front door, called Docs in the app (views/docs.ts):
-   its arrow points back toward the inline start in either direction. */
-[dir="rtl"] .docs-sidebar-home-arrow { display: inline-block; transform: scaleX(-1); }
 
 /* ── Landing mode: #/docs/index (plans/123) ───────────────────────────────────
    The front door rehosted through the reader (views/docs.ts + lib/docs-landing.ts).
