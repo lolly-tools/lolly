@@ -116,7 +116,7 @@ Your colours sit beside an **In context** preview on a wide screen, and above it
 
 ### Colour roles: what the colours are called
 
-The design system says what its colours are called and what each is for, and Lolly reads that. **Colour roles** sits at the head of the Colours room, with **In context** beside it on a wide screen, so a change shows on the poster, chart and interface card as you make it.
+The design system says what its colours are called and what each is for, and Lolly reads that. **Colour roles** sits at the head of the Colours room. On a wide screen **In context** shares the view, so a change shows on the poster, chart and interface card as you make the change.
 
 The table has four columns, and on a phone each row becomes a card that keeps light and dark side by side:
 
@@ -140,7 +140,7 @@ The table has four columns, and on a phone each row becomes a card that keeps li
 
 A reading no role fills stays as the design system defines it, and the room lists those under the table. A role that shares a reading's own id, such as a role called Primary, is that reading and cannot be moved.
 
-**Values.** Press a value to choose a colour for that role, in that look, in the chosen colourway. **Same as light** makes the dark value follow the light one until you choose a colour of its own. The **Aa** chip shows the colour with what sits on it. **Derived** means Lolly works out that colour and keeps it current, and **Stated** means the file states it. **Copied** marks a value that came from another colourway or from the partner colour and that nobody has chosen yet; **Keep this colour** in the picker settles it.
+**Values.** Press a value to choose a colour for that role, in that look, in the chosen colourway. **Same as light** makes the dark value follow the light one until you choose a colour of its own. The **Aa** chip shows the colour with the colour that sits on top. **Derived** means Lolly works out the colour on top and keeps that current, and **Stated** means the file gives the colour on top. **Copied** marks a value that came from another colourway or from the partner colour and that nobody has chosen yet; **Keep this colour** in the picker settles the value.
 
 **Starting points.** A design system with no roles of its own shows today's words: Primary, Secondary, Surface and Text. Nothing is written until you change one. **+ Add a role** offers **Primary, Secondary** or **Main, Accent, Supporting, Tertiary** as suggestions, or any words you type, with the reading each would get. The first two words become the lead colour and the partner colour. Tools keep drawing the same colours, and on a system with one lead colour the first colourway is named after that colour.
 
