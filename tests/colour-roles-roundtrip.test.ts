@@ -17,7 +17,7 @@ import { tmpdir } from 'node:os';
 import { join, relative, resolve } from 'node:path';
 import test from 'node:test';
 import Ajv from 'ajv/dist/2020.js';
-import { zipSync } from 'fflate';
+import { strFromU8, unzipSync, zipSync } from 'fflate';
 
 import { assembleTokenSetFiles, coerceTokensDoc, extractPenpotProject } from '../engine/src/brand-import.ts';
 import { deriveBrandTokens } from '../engine/src/brand-derive.ts';
@@ -28,6 +28,7 @@ import { colourRoleMarkOf, colourwayAxis, nodeAt } from '../engine/src/colourway
 import { parseDesignMd, writeDesignMd } from '../engine/src/design-md.ts';
 import { buildPenpotEntries, penpotTokensJson } from '../engine/src/penpot-file.ts';
 import { resolveRebrandDesignSystem, themeSlotsFromColors, themeSlotTokensFor, THEME_SLOT_TOKENS, neutralSlideMaster } from '../engine/src/rebrand-design-system.ts';
+import { seedFrame } from '../engine/src/slide-master.ts';
 import { TOKEN_EXT } from '../engine/src/token-ext.ts';
 import { createTokenSet } from '../engine/src/tokens.ts';
 import { designFramesToPptx } from '../packages/node-shell/src/design-pptx.ts';
@@ -569,6 +570,30 @@ test('PPTX: with no declared roles the table is the frozen one itself, and the t
     const passed = await designFramesToPptx({ frames: framesAt, tokens, tokenColors, themeAccents: colourRoleThemeAccents(doc) });
     assert.equal(JSON.stringify(passed.theme), JSON.stringify(plain.theme), name);
   }
+});
+
+test('PPTX through the real CLI: a deck drawn in Wefthouse leads with its roles in order, and Lolly Start keeps its theme', { timeout: 300_000 }, () => {
+  const dir = mkdtempSync(join(tmpdir(), 'lolly-roles-pptx-'));
+  try {
+    const master = (JSON.parse(readFileSync(new URL('../brands/lolly-start/catalog/assets/lolly/slides/masters.json', import.meta.url), 'utf8')) as { masters: never[] }).masters[0]!;
+    const seeded = seedFrame(master, 'title', { frameId: 'f0', x: 0, y: 0 })!;
+    const rows = join(dir, 'rows.json');
+    writeFileSync(rows, JSON.stringify([seeded.frame, ...seeded.layers]));
+    const lolly = cli(dir);
+    const accentsFor = (name: string, doc: unknown, ...extra: string[]): string[] => {
+      const file = join(dir, `${name}.json`);
+      writeFileSync(file, JSON.stringify(doc));
+      lolly('system', 'import', file, `--name=${name}`);
+      const out = join(dir, `${name}.pptx`);
+      lolly('run', 'design', `--boxes-data=${rows}`, '--export=pptx', `--output=${out}`, ...extra);
+      const theme = strFromU8(unzipSync(new Uint8Array(readFileSync(out)))['ppt/theme/theme1.xml']!);
+      return [1, 2, 3, 4, 5, 6].map(n => new RegExp(`<a:accent${n}>.*?val="([0-9A-Fa-f]{6})"`).exec(theme)?.[1] ?? '');
+    };
+    assert.deepEqual(accentsFor('indigo', WEFTHOUSE()).slice(0, 4), ['1B2A6B', 'B23A48', '6C7A89', 'D9C7A0']);
+    assert.deepEqual(accentsFor('madder', WEFTHOUSE(), '--_themes={"colourway":"madder"}').slice(0, 4), ['8E1F2F', '23395B', '7D6B5D', 'E3CFAE']);
+    // The same deck on the engine before this work wrote exactly these.
+    assert.deepEqual(accentsFor('start', NO_ROLES['Lolly Start']!()), ['1D1D1D', '525252', '3E3E3E', '6F6F6F', '999999', 'BABABA']);
+  } finally { rmSync(dir, { recursive: true, force: true }); }
 });
 
 // ─── Brand page ──────────────────────────────────────────────────────────────
