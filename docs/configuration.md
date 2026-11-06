@@ -88,7 +88,36 @@ A catalogue can offer design systems beside its own. List them as `companionDesi
 "companionDesignSystems": [{ "tokens": "lolly/tokens/brand", "label": "Lolly Starter" }]
 ```
 
-Each entry must be a tokens asset in the same index, or `lolly/tokens/brand`, the blank starter every web build carries. `validate:catalog` checks the list. A browser gets each companion once, as a local system the person can edit, reset to the original or remove, and the active system does not change. lolly.tools offers Lolly Starter beside Lolly Demo this way. A locked catalogue (`brandLock`) offers no companions.
+Each entry must be a tokens asset in the same index, or `lolly/tokens/brand`, the blank starter every web build carries. `validate:catalog` checks the list. A browser gets each companion once, as a local system the person can edit, reset to the original or remove, and the active system does not change. lolly.tools offers Lolly Starter beside Lolly Demo this way. A brand lock does not stop a list: the catalogue's own system stays read-only and the companions sit beside it, so a locked catalogue with no list simply offers none.
+
+### Offer a second design system on an instance
+
+A profile can mount a second design system beside its own, so people on one instance can try another system without a second deployment. The instance's own system stays the default and stays locked if it was. People choose the second one in **Settings → Design systems**, and the choice stays in that browser. Nothing changes for anyone who leaves that choice alone.
+
+Add a new profile rather than changing the one you run, and name what to bring:
+
+```json
+"acme-with-demo": {
+  "tools": ["community", "brands/acme/tools"],
+  "assets": ["community/emoji-packs"],
+  "catalog": "brands/acme/catalog",
+  "brandTokens": "acme/tokens/brand",
+  "companions": [{
+    "label": "Lolly Demo",
+    "catalog": "brands/lolly-demo/catalog",
+    "tokens": "lolly/tokens/demo",
+    "assets": ["lolly/tokens/demo", "lolly/logo/", "lolly/icons/", "lolly/font/", "lolly/palette/opal-icon-themes", "lolly/palette/opal-photo-treatments"]
+  }]
+}
+```
+
+Each `assets` entry is an exact id, or a family when it ends in `/` or `-`. Only those rows and the files they name are copied, with their licences and rights records as they are. Previews, share cards, renditions and everything else in the other pack stay behind. Mounted rows are `on-demand`, so a person on your own system does not download them on first load.
+
+`brandTokens` is required in practice: with two tokens assets Lolly Work needs to be told which one is the instance's. Your own rows win any id both packs hold, so anything both packs call the same keeps your bytes. The merge exists only in the served index and in the built tree; neither pack's files change, and your first profile keeps building the same bytes.
+
+Check it with `node scripts/validate-catalog.ts --profile=acme-with-demo`, then build the shell and the pack under the new name. See [Design-system administration](/info/work-design-system-administration.html#offer-a-second-design-system) for what a person on Lolly Work sees.
+
+Lists follow the active design system by namespace, in the Assets view, the asset picker and search. A row a companion names belongs to it, a row in the namespace of the instance's tokens belongs to the instance's system, and anything else (a sample both use, an emoji set, a shared asset) is always listed. **All design systems** in the Assets toolbar shows everything. A saved session keeps drawing whichever system is active, because an asset is still found by its id.
 
 On Lolly Work, an authenticated administrator can follow **Manage instance design systems** to inspect server sources and preview a change of default or a retirement. Stopping a connect download leaves the mounted catalogue available. A newer server advertises revisions: safe views refresh on focus or reconnect, while an open tool or an editable local copy gets a notice and keeps its work. Older servers keep their existing refresh behaviour.
 

@@ -288,6 +288,8 @@ export type VizModule = typeof import('../../lib/viz-tool-mount.ts');
  * typecheck without changing what's passed at runtime.
  */
 export interface RunExportOpts {
+  /** An explicit `c2pa=off` or an unticked C2PA box: no manifest stays in an SVG (bridge/export-svg-credentials.ts). */
+  dropInlinedC2pa?: boolean;
   cuts?: number;
   sampleTimes?: readonly number[];
   motionBlur?: import('../../../../../engine/src/motion-sampling.ts').MotionBlur;

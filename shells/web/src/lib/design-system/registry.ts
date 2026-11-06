@@ -53,8 +53,9 @@ export type DesignSystemSource =
       from?: 'app' | 'shipped';
       /** `from: 'app'` only: the companion's tokens asset and name, which "Reset to
        *  original" brings back (reset.ts). Records seeded before this was kept
-       *  have none and reset to the starter under their current name. */
-      companion?: { tokens: string; label: string };
+       *  have none and reset to the starter under their current name. `instance`
+       *  says an instance's catalog offered it, which is what its row then says. */
+      companion?: { tokens: string; label: string; instance?: boolean };
     }
   | {
       kind: 'file'; fileName?: string; publisher?: string; version?: string;

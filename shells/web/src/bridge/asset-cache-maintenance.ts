@@ -89,7 +89,7 @@ export async function pruneAssetCache(db: AssetsDb, currentAssets: AssetMetaReco
 }
 
 /** Write fresh metadata and retire bytes when a DAM changes URLs without a version bump. */
-export async function syncAssetIndex(db: AssetsDb, assets: AssetMetaRecord[], source: { origin: string; tokensHead?: string | null } | undefined, invalidate: (key: string) => void): Promise<void> {
+export async function syncAssetIndex(db: AssetsDb, assets: AssetMetaRecord[], source: { origin: string; tokensHead?: string | null; companions?: unknown } | undefined, invalidate: (key: string) => void): Promise<void> {
   const old = new Map((await Promise.all(assets.map(meta => db.get('asset-meta', meta.id)))).filter((meta): meta is AssetMetaRecord => !!meta).map(meta => [meta.id, meta]));
   for (const incoming of assets) {
     const previous = old.get(incoming.id);

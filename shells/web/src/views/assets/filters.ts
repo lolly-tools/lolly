@@ -20,6 +20,7 @@ import { fold } from '../../lib/search/match.ts';
 import { hexToOklch, parseHex } from '../../../../../engine/src/brand-derive.ts';
 import { rgbToCmyk } from '../../../../../engine/src/color.ts';
 import { categoryGlyph } from '../../lib/category-icons.ts';
+import { icon } from '../../lib/icons.ts';
 import type { PaletteEntry } from '../../palette.ts';
 import type { AssetRef } from '@lolly-tools/core/host-v1';
 import { ASSET_PAGE_SIZE, CAT_ICONS, CHEVRON, TYPE_FILTERS, emojiPackMeta, isThemable, showMoreHtml } from './shared.ts';
@@ -262,6 +263,10 @@ export function assetsSectionHtml(cat: CatCtx): string {
       </div>`;
   const collapseLabel = anyExpanded ? t('Collapse all') : t('Expand all');
   const showHiddenLabel = cat.showHidden ? t('Hide hidden') : t('Show hidden ({n})', { n: hiddenItems.length });
+  // A catalog holding two design systems lists the active one's material. This is the one
+  // plain way to see everything, and it stays reachable while searching. A catalog with
+  // one system has no scope, so the toolbar has no extra button.
+  const allSystemsLabel = t('All design systems');
   // Reserve the counter's width for the widest string it can ever show, so switching filters
   // (which only ever shrink the number) never re-widths the centred toolbar pill and shifts the
   // filter buttons. Floor the digit count at 4 - a few thousand assets - so the reservation
@@ -276,6 +281,7 @@ export function assetsSectionHtml(cat: CatCtx): string {
         <span class="cat-count" style="min-width:${countCh}ch">${cat.query
           ? (tn('1 asset found', '{n} assets found', { n: visible.length }))
           : (tn('1 asset', '{n} assets', { n: visible.length }))}</span>
+        ${cat.scope ? `<button type="button" class="cat-showhidden cat-allsystems${cat.allSystems ? ' is-on' : ''}" aria-pressed="${cat.allSystems}" aria-label="${escapeText(allSystemsLabel)}" title="${escapeText(allSystemsLabel)}">${icon('layersStack', { size: 15 })}<span class="cat-btn-label">${allSystemsLabel}</span></button>` : ''}
         ${cat.query ? '' : `<button type="button" class="cat-showhidden cat-collapse-all" aria-label="${escapeText(collapseLabel)}" title="${escapeText(collapseLabel)}">${anyExpanded ? CAT_ICONS.collapse : CAT_ICONS.expand}<span class="cat-btn-label">${collapseLabel}</span></button>`}
         ${hiddenItems.length && !cat.query ? `<button type="button" class="cat-showhidden${cat.showHidden ? ' is-on' : ''}" aria-pressed="${cat.showHidden}" aria-label="${escapeText(showHiddenLabel)}" title="${escapeText(showHiddenLabel)}">${cat.showHidden ? CAT_ICONS.eyeOff : CAT_ICONS.eye}<span class="cat-btn-label">${showHiddenLabel}</span></button>` : ''}
       </div>`;

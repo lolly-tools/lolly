@@ -19,7 +19,8 @@ export function sourceLine(record: DesignSystemRecord, now = Date.now()): string
   switch (s.kind) {
     case 'shipped': return catalogSourceLabel(record);
     case 'local':
-      if (s.from === 'app') return t('Came with this app');
+      // Offered by an instance's catalog, a person there did not get it with an app.
+      if (s.from === 'app') return s.companion?.instance ? t('From this instance') : t('Came with this app');
       if (s.from === 'shipped') return t('Edited here');
       return s.forkedFrom ? tRaw('Made here, copied from {name}', { name: s.forkedFrom.id }) : t('Made here');
     case 'file': return s.publisher ? tRaw('From a file by {publisher}', { publisher: s.publisher }) : t('From a file');
