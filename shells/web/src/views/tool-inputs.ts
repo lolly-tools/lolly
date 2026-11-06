@@ -3553,8 +3553,8 @@ async function openEmbedEditor(
       pending = null;
       applyBtn.disabled = true;
       previewEl.innerHTML = `<div class="asset-picker-loading">Rendering…</div>`;
-      const query = emojiStyle.queryWithEmoji(shareUrlState(child.getModel()), child.emoji.style);
-      const url = buildEmbedUrl({ toolId: parsed.toolId, format: fmtSel.value, query });
+      const url = emojiStyle.embedUrlWithEmoji(shareUrlState(child.getModel()), child.emoji.style,
+        (query) => buildEmbedUrl({ toolId: parsed.toolId, format: fmtSel.value, query }));
       const ref = url
         ? await host.compose!.renderUrl!(url, {
             format: fmtSel.value,
