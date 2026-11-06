@@ -142,3 +142,28 @@ test('a saved full-height Inspector remains movable and resizable without header
   assert.equal(isDocked('inspector'), false);
   assert.equal(f.el.isConnected, false);
 });
+
+test('Design\'s phone panel takes the column from the dock, owns its placement, and gives it back', () => {
+  const f = fixture();
+  f.handle.setOpen(true);
+  assert.equal(isDocked('inspector'), true, 'starts in the one right dock');
+  const slot = document.createElement('div');
+  document.body.append(slot);
+  f.handle.enterPhone((el) => { slot.append(el); });
+  assert.equal(isDocked('inspector'), false, 'it leaves the dock');
+  assert.equal(f.el.parentElement, slot, 'for the panel');
+  assert.equal(f.el.classList.contains('is-floating'), false);
+  // Open and shut are the panel's peek and tab: the controller only reports them.
+  assert.equal(f.handle.setOpen(false), false);
+  assert.equal(f.el.parentElement, slot, 'shut, it stays in the panel');
+  assert.equal(f.open(), false);
+  assert.equal(f.handle.setOpen(true, 'user'), true);
+  assert.equal(f.el.parentElement, slot);
+  assert.deepEqual(f.changes.slice(-2), [[false, 'user'], [true, 'user']]);
+  // The panel lets it go: an open column is placed again for the window it is in now.
+  f.handle.leavePhone();
+  assert.equal(isDocked('inspector'), true, 'back in the dock');
+  assert.equal(f.open(), true);
+  slot.remove();
+  f.handle.destroy();
+});

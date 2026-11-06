@@ -7,7 +7,7 @@
      - the round top-row button (.site-fab on /info, .docs-top-btn in the app),
        sized on the top-row height (--chrome-h), so it is exactly as tall as
        the home pill and the app's own back pill beside it;
-     - the pathways strip (Welcome and the five documentation sections), which
+     - the pathways strip (the documentation sections), which
        /info builds and the in-app reader adopts from the fetched page;
      - the compact lists inside the two disclosures (the section's pages and On
        this page): the in-app reader's phone navigation and the /info menu;
@@ -160,6 +160,156 @@ html[data-a11y-motion="reduce"] .docs-top-btn:active { transform: none; }
 .docs-compact-list .docs-toc-list { border: 0; }
 .docs-compact-list .docs-toc-link { border: 0; margin: 0; }
 .docs-compact-list svg { width: 16px; height: 16px; flex: none; }
+
+/* ── The page's contents ────────────────────────────────────────────────────
+   Markup from packages/docs-render contents.ts, behaviour from lib/docs-contents.ts,
+   both readers. Two forms of one list: the rail beside the article on a wide
+   screen, and the page bar's sheet everywhere narrower. Each
+   surface decides where they sit and at which width each one shows (docs.css in
+   the app, the site stylesheet in docs/build.ts); this is how they look. The row
+   being read carries aria-current="location" and .active. The rail starts at 1100px
+   on both surfaces; below that the page bar holds the same list in its sheet. */
+.docs-toc-head {
+  margin: 0 0 0.65rem;
+  font: 700 calc(0.68rem * var(--a11y-fs, 1)) / 1 var(--font-mono, ui-monospace, monospace);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ui-color-text-muted);
+}
+.docs-toc-list { list-style: none; margin: 0; padding: 0; border-inline-start: 1px solid var(--ui-color-border-default); }
+.docs-toc-link {
+  display: block;
+  margin-inline-start: -1px;
+  padding: 0.28rem 0.85rem;
+  border-inline-start: 2px solid transparent;
+  color: var(--ui-color-text-muted);
+  font-size: calc(0.85rem * var(--a11y-fs, 1));
+  line-height: 1.35;
+  text-decoration: none;
+}
+.docs-toc-link.is-h3 { padding-inline-start: 1.7rem; font-size: calc(0.82rem * var(--a11y-fs, 1)); }
+.docs-toc-link:hover { color: var(--ui-color-text-default); border-inline-start-color: var(--ui-color-border-default); text-decoration: none; }
+.docs-toc-link:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: -2px; }
+/* The section being read: full-strength text and weight, the primary as the marker
+   (a non-text mark, which needs 3:1, not the 4.5:1 small primary text would). */
+.docs-toc-link.active,
+.docs-toc-link[aria-current] {
+  color: var(--ui-color-text-default);
+  font-weight: 600;
+  border-inline-start-color: var(--ui-color-action-primary);
+}
+
+/* The page bar: one line under the top row ("Create v Export a file") opening one
+   sheet with the sections, this page's headings and this section's pages. Sticky,
+   on the canvas at most of its strength with one hairline under it, so the article
+   passes beneath it. Each surface decides where it sits and below which width it
+   shows (docs.css, the site stylesheet in docs/build.ts). */
+.doc-pagebar {
+  position: sticky;
+  z-index: 40;
+  box-sizing: border-box;
+  padding: 6px 0;
+  background: color-mix(in srgb, var(--ui-color-surface-canvas) 92%, transparent);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--ui-color-border-default);
+}
+.doc-pagebar-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 44px;
+  padding: 0 0.75rem;
+  border: 1px solid var(--ui-color-border-default);
+  border-radius: var(--radius-pill, 999px);
+  background: var(--ui-color-surface-raised);
+  color: var(--ui-color-text-default);
+  font: 400 calc(0.9375rem * var(--a11y-fs, 1)) / 1.2 var(--font-brand, system-ui, sans-serif);
+  text-align: start;
+  cursor: pointer;
+}
+.doc-pagebar-btn:hover { background: var(--ui-color-surface-muted); }
+.doc-pagebar-btn:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 2px; }
+.doc-pagebar-btn[aria-expanded="true"] { border-color: var(--ui-color-action-primary); }
+.doc-pagebar-section { flex: none; font-weight: 600; }
+.doc-pagebar-chev { flex: none; display: inline-flex; color: var(--ui-color-text-muted); transform: rotate(90deg); transition: transform var(--ui-motion-feedback); }
+.doc-pagebar-btn[aria-expanded="true"] .doc-pagebar-chev { transform: rotate(270deg); }
+.doc-pagebar-chev svg { width: calc(16px * var(--a11y-fs, 1)); height: calc(16px * var(--a11y-fs, 1)); }
+.doc-pagebar-page { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--ui-color-text-muted); }
+.doc-contents-panel {
+  position: absolute;
+  inset-inline: 0;
+  top: calc(100% + 0.25rem);
+  box-sizing: border-box;
+  max-height: min(72dvh, 40rem);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 0.5rem;
+  border: 1px solid var(--ui-color-border-default);
+  border-radius: var(--ui-radius-card, 12px);
+  background: var(--ui-color-surface-raised);
+  color: var(--ui-color-text-default);
+  box-shadow: var(--ui-elevation-floating);
+  text-align: start;
+}
+.doc-contents-panel[hidden] { display: none; }
+/* The sections, as a wrap of text tabs: the strip's own links, current one marked. */
+.doc-sheet-sections { display: flex; flex-wrap: wrap; gap: 0.25rem 1.1rem; padding: 0.35rem 0.6rem 0.6rem; }
+.doc-sheet-sections .docs-pathway { min-height: 32px; display: inline-flex; align-items: center; }
+.doc-sheet-group { margin-top: 0.25rem; padding-top: 0.25rem; border-top: 1px solid var(--ui-color-border-default); }
+.doc-contents-title,
+.doc-contents-panel .sidebar-label,
+.doc-contents-panel .sidebar-pathway {
+  margin: 0.5rem 0.6rem 0.4rem;
+  font-size: calc(0.72rem * var(--a11y-fs, 1));
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ui-color-text-muted);
+}
+.doc-contents-panel .docs-toc-list { border: 0; }
+.doc-contents-panel :is(.docs-toc-link, .docs-compact-list a) {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  box-sizing: border-box;
+  min-height: 44px;
+  margin: 0;
+  padding: 0.4rem 0.6rem;
+  border: 0;
+  border-radius: var(--ui-radius-control, 6px);
+  color: var(--ui-color-text-default);
+  font-size: calc(0.95rem * var(--a11y-fs, 1));
+  font-weight: 400;
+  line-height: 1.35;
+  text-decoration: none;
+}
+.doc-contents-panel :is(.docs-toc-link, .docs-compact-list a):hover { background: var(--ui-color-surface-muted); }
+.doc-contents-panel .docs-toc-link[aria-current] { background: var(--ui-color-selection-surface); font-weight: 600; }
+@media (prefers-reduced-motion: no-preference) {
+  .doc-contents-panel:not([hidden]) {
+    animation: doc-contents-in var(--ui-motion-overlay, 160ms) var(--ui-motion-standard, ease-out) both;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .doc-pagebar-chev { transition: none; }
+}
+html[data-a11y-motion="reduce"] .doc-contents-panel:not([hidden]) { animation: none; }
+html[data-a11y-motion="reduce"] .doc-pagebar-chev { transition: none; }
+@keyframes doc-contents-in { from { opacity: 0; transform: translateY(-4px); } }
+/* Tracking pulls a joined script apart (Arabic, Urdu) and breaks conjuncts (Hindi,
+   Bengali), so the small headings set their letters at the font's own spacing
+   there, in the body face rather than the monospace. */
+:is([dir="rtl"], :lang(hi), :lang(bn)) :is(.docs-toc-head, .doc-contents-title, .doc-contents-panel .sidebar-label) {
+  letter-spacing: normal;
+  font-family: inherit;
+}
+@media (forced-colors: active) {
+  .docs-toc-link[aria-current] { border-inline-start-color: Highlight; }
+  .doc-contents-panel .docs-toc-link[aria-current] { outline: 2px solid Highlight; outline-offset: -2px; }
+}
 
 .footer-sitemap { container-type: inline-size; text-align: start; }
 .footer-sitemap :is(.sitemap-disclosure, .sitemap-section) > summary {

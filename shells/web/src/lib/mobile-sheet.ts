@@ -11,7 +11,9 @@
  * `--sheet-h` / `data-sheet` / `--peek-h` / `is-sheet-dragging` /
  * `.sidebar-header`. The studio passes `anchor: 'bottom'` (panel rises from the
  * bottom, grip on its TOP edge - the drag delta and the snap thirds flip) and
- * its own names so two sheets never collide on one page.
+ * its own names so two sheets never collide on one page. Design's phone panel
+ * (views/design-phone-panel.ts) takes the tool view's names, so it gets the same
+ * stops and settle, and hangs below Design's top bar, which `inset` describes.
  */
 import { phoneLayoutQuery } from './layout-posture.ts';
 
@@ -60,6 +62,14 @@ export interface MobileSheetOptions {
   /** Fires on each drag move (no argument) and each snap (with the state). */
   onChange?: ((state?: SheetState) => void) | null;
   names?: Partial<SheetNames>;
+  /**
+   * How far from the anchor edge the sheet's own box begins, in px: a fixed bar the sheet
+   * hangs from, as Design's panel hangs below Design's top bar. The height var still
+   * measures from the anchor edge, so every stop in CSS means the same place on screen
+   * as it does for a sheet with no bar, and the box itself is that height less the
+   * inset. Read live, because the bar follows the type size. Default 0.
+   */
+  inset?: () => number;
 }
 
 export interface MobileSheetHandle {
@@ -92,6 +102,7 @@ export function setupMobileSheet(layoutEl: HTMLElement, sidebarEl: HTMLElement, 
   // 'bottom' flips the drag delta: the panel grows as the finger moves UP.
   const dir = anchor === 'bottom' ? -1 : 1;
   const onChange = opts.onChange;
+  const inset = (): number => Math.max(0, opts.inset?.() ?? 0);
   const SNAPS: readonly SheetState[] = opts.states ?? ['peek', 'half', 'full'];
   // The default is the phone LAYOUT, not the raw width: a 626px foldable in two panes
   // (lib/layout-posture.ts) matches `max-width: 640px` and has no sheet to drag.
@@ -116,11 +127,24 @@ export function setupMobileSheet(layoutEl: HTMLElement, sidebarEl: HTMLElement, 
   // pre-measurement fallback.
   let PEEK = 56;
 
+  // The grip is a button, so it says whether the sheet is open past its first stop.
+  const sayExpanded = (): void => gripEl.setAttribute('aria-expanded', String(state !== SNAPS[0]));
+
   function setState(s: SheetState): void {
     state = s;
     layoutEl.style.removeProperty(names.heightVar); // drop any drag override; the per-state var animates in
     layoutEl.setAttribute(names.stateAttr, s);
+    sayExpanded();
     onChange?.(s);
+  }
+
+  // A tap walks the stops with a bounce (peek, half, full and back). Shared by a tap on
+  // the grip and by the grip's keyboard activation.
+  function step(): void {
+    const idx = Math.max(0, SNAPS.indexOf(state));
+    if (idx === 0) tapDir = 1;
+    else if (idx === SNAPS.length - 1) tapDir = -1;
+    setState(SNAPS[idx + tapDir]!);
   }
 
   const endDrag = () => {
@@ -139,10 +163,7 @@ export function setupMobileSheet(layoutEl: HTMLElement, sidebarEl: HTMLElement, 
         // visible - is always one tap from either extreme, and you can always
         // recentre the divider after moving it; the sheet never jumps the full
         // span in a single tap.
-        const idx = Math.max(0, SNAPS.indexOf(state));
-        if (idx === 0) tapDir = 1;
-        else if (idx === SNAPS.length - 1) tapDir = -1;
-        setState(SNAPS[idx + tapDir]!);
+        step();
       } else {
         layoutEl.style.removeProperty(names.heightVar); // header tap: no-op
       }
@@ -172,7 +193,7 @@ export function setupMobileSheet(layoutEl: HTMLElement, sidebarEl: HTMLElement, 
       if (!mq.matches || (guard && !guard(e))) return;
       dragging = true; moved = false; tapMode = tapToggles;
       startY = e.clientY;
-      startH = sidebarEl.getBoundingClientRect().height;
+      startH = sidebarEl.getBoundingClientRect().height + inset();
       layoutEl.classList.add(names.draggingClass);
       handleEl.setPointerCapture(e.pointerId);
       e.preventDefault();
@@ -200,6 +221,12 @@ export function setupMobileSheet(layoutEl: HTMLElement, sidebarEl: HTMLElement, 
   // wanted - grab anywhere on it that isn't an actual control and drag the sheet
   // through its three stops.
   addDragHandle(gripEl, { tapToggles: true });
+  // The grip is a button, and Enter or Space on it is a click with no pointer behind it
+  // (detail 0). That click steps the stops the way a tap does, so a keyboard can move the
+  // sheet too; a pointer's own click is already answered by the drag handle above.
+  const onGripKeyClick = (e: MouseEvent): void => { if (e.detail === 0 && mq.matches) step(); };
+  gripEl.addEventListener('click', onGripKeyClick);
+  cleanups.push(() => gripEl.removeEventListener('click', onGripKeyClick));
   const headerEl = names.headerSel ? sidebarEl.querySelector<HTMLElement>(names.headerSel) : null;
   // Drive the peek height from the header's real height so the minimized sheet
   // shows the whole header. The tool view's header is content-based and
@@ -209,7 +236,7 @@ export function setupMobileSheet(layoutEl: HTMLElement, sidebarEl: HTMLElement, 
   const measurePeek = (): void => {
     if (!headerEl) return;
     const h = Math.ceil(headerEl.getBoundingClientRect().height);
-    if (h > 0) { PEEK = h; layoutEl.style.setProperty(names.peekVar, h + 'px'); }
+    if (h > 0) { PEEK = h + inset(); layoutEl.style.setProperty(names.peekVar, PEEK + 'px'); }
   };
   if (headerEl) {
     addDragHandle(headerEl, {
@@ -225,6 +252,7 @@ export function setupMobileSheet(layoutEl: HTMLElement, sidebarEl: HTMLElement, 
   // collapse the sheet out from under you.
 
   layoutEl.setAttribute(names.stateAttr, state); // define the var; only consumed under the mobile media query
+  sayExpanded();
 
   return {
     refresh: measurePeek,
@@ -236,6 +264,7 @@ export function setupMobileSheet(layoutEl: HTMLElement, sidebarEl: HTMLElement, 
       layoutEl.removeAttribute(names.stateAttr);
       layoutEl.style.removeProperty(names.heightVar);
       layoutEl.style.removeProperty(names.peekVar);
+      gripEl.removeAttribute('aria-expanded');
     },
   };
 }
