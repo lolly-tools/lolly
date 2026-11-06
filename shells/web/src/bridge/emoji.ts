@@ -11,7 +11,7 @@
 import type { AssetRef, EmojiAPI } from '@lolly-tools/core/host-v1';
 import { EMOJI_BUNDLE_MAX_BYTES } from '@lolly-tools/core/emoji-v1';
 import type { EmojiGlyphV1, EmojiPackBundleV1, EmojiPackPinV1, EmojiSetInfoV1 } from '@lolly-tools/core/emoji-v1';
-import { storeEmojiBundle, userEmojiRefs, type EmojiStorage } from './emoji-storage.ts';
+import { storeEmojiBundle, userEmojiRefs, type EmojiStorage, writeOnce } from './emoji-storage.ts';
 import { admitEmojiBundle } from '../../../../engine/src/emoji-bundle.ts';
 import type { EmojiXmlParser } from '../../../../engine/src/emoji-svg.ts';
 import { sha256Hex } from '../../../../engine/src/bytes.ts';
@@ -215,8 +215,7 @@ export function createEmojiAPI(assets: EmojiAssets, options: EmojiAPIOptions = {
       for (const glyph of admitted.manifest.glyphs.filter(glyph => glyph.meaning.kind === 'custom')) {
         const meaningDigest = await sha256Hex(new TextEncoder().encode(JSON.stringify(glyph.meaning)));
         const id = `user/emoji-symbol/${pin.checksum.slice(7)}/${meaningDigest}`;
-        if (await assets._getUserRecord?.(id)) continue;
-        await assets._uploadUserAsset!({ id, type: 'vector', format: 'svg', version: pin.pin.version,
+        await writeOnce(assets, { id, type: 'vector', format: 'svg', version: pin.pin.version,
           blob: new Blob([admitted.bundle.artwork[glyph.asset.url]!], { type: 'image/svg+xml' }),
           meta: { name: glyph.label, tags: ['emoji-symbol'], license: glyph.source.license, attribution: glyph.source.attribution,
             emojiSymbol: { meaning: glyph.meaning, pack: pin },

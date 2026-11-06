@@ -303,6 +303,10 @@ test('only a locked catalogue system reads as managed; an editable one says wher
   const { _setBaseForTests } = await import('../instance.ts');
   const shipped = (headId: string, locked = false) => ({ id: 'shipped', label: 'X', ns: '', headId, source: { kind: 'shipped' }, locked, createdAt: 0, lastUsedAt: 0 }) as never;
   assert.equal(sourceLine(shipped('lolly/tokens/demo')), 'Came with this app');
+  const companion = (instance: boolean) => ({ id: 'c', label: 'C', ns: 'user/ds/c/', headId: 'user/ds/c/tokens/brand', locked: false, createdAt: 0, lastUsedAt: 0,
+    source: { kind: 'local' as const, from: 'app' as const, companion: { tokens: 't', label: 'C', ...(instance ? { instance: true } : {}) } } });
+  assert.equal(sourceLine(companion(false)), 'Came with this app', "lolly.tools' starter did come with the app");
+  assert.equal(sourceLine(companion(true)), 'From this instance', "an instance's companion did not");
   assert.equal(sourceLine(shipped('lolly/tokens/brand')), 'Came with this app');
   assert.equal(sourceLine(shipped('acme/tokens/brand')), 'Came with this app');
   assert.equal(sourceLine(shipped('acme/tokens/brand', true)), 'Managed by this instance');

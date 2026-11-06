@@ -15,6 +15,10 @@
  *     recipient can edit for a bounded time, optionally password-protected; their
  *     saves land in the inviter's project.
  *
+ * The server draws a rendered link with the instance's own tokens. On a catalog that
+ * offers a second design system, the row says so and offers no link while that system is
+ * active (lib/design-system/asset-scope.ts `serverDrawsOtherSystem`).
+ *
  * Both go through the documented Links API (POST /api/v1/links, same-origin cookie),
  * routed via instanceFetch so a shell pointed at a remote instance mints against
  * THAT instance. Errors surface inline in the row (never an alert()).
@@ -23,6 +27,8 @@
  */
 
 import { instanceFetch, instancePath } from '../lib/instance.ts';
+import { openDB } from '../bridge/db.ts';
+import { serverDrawsOtherSystem } from '../lib/design-system/asset-scope.ts';
 import { governedParamKeys } from '../lib/input-policy.ts';
 import { getTool } from '../bridge/tool-loader.ts';
 import type { ShareSectionContext } from '../lib/share-sections.ts';
@@ -106,6 +112,14 @@ export function renderedMintBody(target: MintTarget, open: boolean): MintBody {
   return { kind: 'embed', target: open ? { ...target, open: true } : target };
 }
 
+/** The refusal a person reads in place of "Get link" while another design system is
+ *  active: what the instance draws with, and how to make a link. Pure. */
+export function renderedLinkHeldText(own: string): string {
+  return own
+    ? tRaw('This instance draws rendered links in {name}. Switch to {name} to make one.', { name: own })
+    : tRaw("This instance draws rendered links in its own design system. Switch to that one to make one.");
+}
+
 async function mintLink(body: MintBody): Promise<MintResult> {
   const res = await instanceFetch(instancePath('/api/v1/links'), {
     method: 'POST',
@@ -159,12 +173,34 @@ function makeErrorLine(): { el: HTMLElement; set(msg: string): void; clear(): vo
   };
 }
 
+/** Replace the Rendered link row's offer with why it is not offered. The server renders with
+ *  the instance's tokens and cannot read a design system held in this browser, so a link made
+ *  now would come out in the instance's colours while the person looks at another's. */
+function holdRenderedLink(row: HTMLElement, own: string, ctx: ShareSectionContext): void {
+  const name = document.createElement('div');
+  name.className = 'share-option';
+  const strong = document.createElement('strong');
+  strong.style.fontWeight = '650';
+  strong.textContent = t('Rendered link');
+  name.append(strong);
+  const why = document.createElement('p');
+  why.style.cssText = 'margin:.25rem 0 0;font-size:13px;color:hsl(var(--muted-foreground))';
+  why.textContent = `${renderedLinkHeldText(own)} `;
+  const link = document.createElement('a');
+  link.href = '#/settings?focus=design-systems-section';
+  link.textContent = t('Design systems');
+  link.addEventListener('click', () => ctx.close?.());
+  why.append(link);
+  row.classList.add('share-instance-held');
+  row.replaceChildren(name, why);
+}
+
 /**
  * Build the "On this instance" section, or null when the caller may create no
  * instance links (so the dialog adds nothing - dormant even for a signed-in member
  * without link permissions).
  */
-export function buildInstanceShareSection(ctx: ShareSectionContext, config: OrgConfig): HTMLElement | null {
+export function buildInstanceShareSection(ctx: ShareSectionContext, config: OrgConfig, readHold: () => Promise<{ own: string } | null> = renderedLinkHold): HTMLElement | null {
   const can = (config as OrgConfig & { can?: Record<string, boolean> }).can;
   const rows = instanceShareRows(can);
   if (!rows.rendered && !rows.guest) return null;
@@ -214,7 +250,17 @@ export function buildInstanceShareSection(ctx: ShareSectionContext, config: OrgC
     // A link already shown no longer matches a changed choice.
     openBox?.addEventListener('change', () => { result.el.hidden = true; });
     const btn = row.querySelector<HTMLButtonElement>('[data-act="mint-rendered"]')!;
+    // The row reads as usual straight away, so the section mounts when it always did and a
+    // catalog with one design system never changes. The read below can only replace the row.
+    const held = async (): Promise<boolean> => {
+      const hold = await readHold();
+      if (hold) holdRenderedLink(row, hold.own, ctx);
+      return !!hold;
+    };
+    void held();
     btn.addEventListener('click', async () => {
+      // Asked again here, because the design system may have changed since the row was drawn.
+      if (await held()) return;
       err.clear();
       btn.disabled = true;
       const label = btn.textContent;
@@ -270,7 +316,17 @@ export function buildInstanceShareSection(ctx: ShareSectionContext, config: OrgC
     const btn = row.querySelector<HTMLButtonElement>('[data-act="mint-guest"]')!;
     const ttlSel = row.querySelector<HTMLSelectElement>('[data-guest-ttl]')!;
     const pw = row.querySelector<HTMLInputElement>('[data-guest-pw]')!;
+    // The row reads as usual straight away, so the section mounts when it always did and a
+    // catalog with one design system never changes. The read below can only replace the row.
+    const held = async (): Promise<boolean> => {
+      const hold = await readHold();
+      if (hold) holdRenderedLink(row, hold.own, ctx);
+      return !!hold;
+    };
+    void held();
     btn.addEventListener('click', async () => {
+      // Asked again here, because the design system may have changed since the row was drawn.
+      if (await held()) return;
       err.clear();
       btn.disabled = true;
       const label = btn.textContent;
@@ -296,4 +352,13 @@ export function buildInstanceShareSection(ctx: ShareSectionContext, config: OrgC
   }
 
   return section;
+}
+
+/** What the section needs to know about the design system in use, read once per open. */
+export async function renderedLinkHold(): Promise<{ own: string } | null> {
+  try {
+    return await serverDrawsOtherSystem(await openDB());
+  } catch {
+    return null;
+  }
 }

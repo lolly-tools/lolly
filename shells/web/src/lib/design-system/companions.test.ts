@@ -12,7 +12,7 @@ import assert from 'node:assert/strict';
 import { createAssetsAPI } from '../../bridge/assets.ts';
 import { createTokensAPI, USER_TOKENS_ID } from '../../bridge/tokens.ts';
 import { createDesignSystemRegistry, type RegistryDb } from './registry.ts';
-import { readCompanionDesignSystems, seedCompanionDesignSystems, type CompanionHost } from './companions.ts';
+import { readCompanionDesignSystems, seedCompanionDesignSystems, type CompanionDesignSystem, type CompanionHost } from './companions.ts';
 import { removeDesignSystem, renameDesignSystem } from './manage.ts';
 import { DESIGN_SYSTEMS_LISTED_EVENT } from './list-event.ts';
 import { resetDesignSystem, resetKind } from './reset.ts';
@@ -22,7 +22,7 @@ import bundledStarter from '../../../../../brands/lolly-start/catalog/assets/lol
 
 const CATALOG_DOC = { color: { brand: { ink: { $type: 'color', $value: '#1d1d1d' } } } };
 const DEMO = { id: 'lolly/tokens/demo', name: 'Lolly Demo', doc: { color: { brand: { mint: { $type: 'color', $value: '#3fd1a4' } } } } };
-const STARTER = [{ tokens: 'lolly/tokens/brand', label: 'Lolly Starter' }];
+const STARTER: CompanionDesignSystem[] = [{ tokens: 'lolly/tokens/brand', label: 'Lolly Starter' }];
 const blobOf = (doc: unknown) => new Blob([JSON.stringify(doc)], { type: 'application/json' });
 
 function memDb() {
@@ -137,16 +137,32 @@ test('seeding tells a view already showing the list, once, and only when it adde
   }
 });
 
-test('a locked build gets no companion, and nor does a catalog naming its own system', async () => {
-  const locked = await rig({ catalog: DEMO });
-  await locked.db.put('asset-meta', { id: DEMO.id, type: 'tokens', name: DEMO.name, version: '1.0.0', brandLock: true, formats: [{ format: 'json', url: '/x.json' }] });
-  const lockedRegistry = createDesignSystemRegistry(locked.db as unknown as RegistryDb, {
-    catalogTokens: async () => ({ id: DEMO.id, name: DEMO.name, brandLock: true }),
-    legacyHead: async () => null,
-  });
-  assert.deepEqual(await seed({ ...locked.host, designSystems: lockedRegistry }), []);
+test('a catalog naming its own system gets no companion', async () => {
   const start = await rig();   // lolly-start ships the starter itself
   assert.deepEqual(await seed(start.host), []);
+});
+
+test('a locked catalog with an explicit list gets its companion, and its own lock stays', async () => {
+  const locked = await rig({ catalog: DEMO });
+  const SUSE_LIKE = { id: DEMO.id, name: DEMO.name, brandLock: true };
+  await locked.db.put('asset-meta', { ...SUSE_LIKE, type: 'tokens', version: '1.0.0', formats: [{ format: 'json', url: '/x.json' }] });
+  await locked.db.put('asset-meta', { id: 'acme/tokens/brand', type: 'tokens', name: 'Acme Tokens', version: '1.0.0', formats: [{ format: 'json', url: '/acme.json' }] });
+  await locked.db.put('asset-blob', blobOf(CATALOG_DOC), 'acme/tokens/brand:json:1.0.0');
+  const lockedRegistry = createDesignSystemRegistry(locked.db as unknown as RegistryDb, {
+    catalogTokens: async () => SUSE_LIKE,
+    legacyHead: async () => null,
+  });
+  await lockedRegistry.ensure();
+  const host = { ...locked.host, designSystems: lockedRegistry };
+  assert.deepEqual(await seed(host, []), [], 'no list, no second system');
+  const [made] = await seed(host, [{ tokens: 'acme/tokens/brand', label: 'Acme', assets: ['acme/tokens/brand', 'acme/logo/'] }]);
+  assert.equal(made?.label, 'Acme');
+  assert.equal(made?.locked, false, 'the companion is the person\'s to edit');
+  assert.deepEqual(made?.source, { kind: 'local', from: 'app', companion: { tokens: 'acme/tokens/brand', label: 'Acme', instance: true } });
+  const shipped = await lockedRegistry.get('shipped');
+  assert.equal(shipped?.locked, true, "the catalog's own system stays read-only");
+  assert.equal(await lockedRegistry.activeId(), 'shipped', 'seeding never switches, so the catalog system stays the default');
+  await assert.rejects(lockedRegistry.setShippedHidden(true), /locked build/);
 });
 
 test('a companion held in the catalog is copied from its own document', async () => {

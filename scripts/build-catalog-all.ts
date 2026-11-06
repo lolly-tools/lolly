@@ -37,7 +37,7 @@ import { fileURLToPath } from 'node:url';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 
-interface Profile { label?: string; tools: string[]; catalog: string; assets?: string[] }
+interface Profile { label?: string; tools: string[]; catalog: string; assets?: string[]; companions?: { catalog: string }[] }
 interface ProfilesFile { default: string; profiles: Record<string, Profile> }
 
 /** The per-profile catalog pipeline, exactly what `pnpm run build:catalog` runs.
@@ -70,7 +70,7 @@ function main(): void {
   // fewer entry in it. content-roots.ts isComplete draws the line the same way.
   const runnable = names.filter((n) => {
     const p = cfg.profiles[n]!;
-    return [...p.tools, p.catalog].every((r) => existsSync(join(ROOT, r)));
+    return [...p.tools, p.catalog, ...(p.companions ?? []).map((c) => c.catalog)].every((r) => existsSync(join(ROOT, r)));
   });
   const skipped = names.filter((n) => !runnable.includes(n));
 
@@ -84,7 +84,9 @@ function main(): void {
   if (!checkOnly) process.stdout.write(run(SHARED));
   for (const name of runnable) {
     console.log(`\n── ${name} ${cfg.profiles[name]!.label ? `(${cfg.profiles[name]!.label})` : ''}`);
-    if (!checkOnly) for (const s of BUILD) process.stdout.write(run(s, name));
+    // A profile that adds a companion serves its brand's catalog, already built above:
+    // what it merges exists only in the served index, so there is nothing of its own to write.
+    if (!checkOnly && !cfg.profiles[name]!.companions?.length) for (const s of BUILD) process.stdout.write(run(s, name));
     if (validate) {
       try {
         process.stdout.write(run('validate-catalog.ts', name));
