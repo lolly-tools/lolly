@@ -189,11 +189,12 @@ export interface RenderResult {
  * carries none.
  */
 export function designRecordText(record: DesignRecord | null | undefined): string {
-  const words = designRecordWords(record, { skills: false });
+  const words = designRecordWords(record, { skills: false, page: false });
   const guided = guidedByWords(record?.brandSkills);
   const said = [
     words && `Recorded the design system: ${words}.`,
     guided && `Recorded as guided by: ${guided}.`,
+    record?.brandPage && `Recorded the brand page address: ${record.brandPage}.`,
   ].filter(Boolean);
   return said.length ? `${said.join(' ')} Pass madeWith: false to leave the record out.` : '';
 }
@@ -987,7 +988,7 @@ export async function stampC2pa(
   bytes: Uint8Array, fmt: string, manifest: ToolManifest, values: Record<string, unknown>, o: RenderOpts,
   ingredients: C2paSourceIngredient[] = [],
   /** The design-system record the file's own metadata carries (plans/319), for the credential. */
-  meta: Pick<ExportMeta, 'designSystem' | 'designVersion' | 'themes' | 'brandSkills'> | null = null,
+  meta: Pick<ExportMeta, 'designSystem' | 'designVersion' | 'themes' | 'brandSkills' | 'brandPage'> | null = null,
   /** What a browser-free render drew from the operations: its credentialed pictures and its route (plan 326). */
   drawn: DrawnHere | null = null,
 ): Promise<Uint8Array> {
@@ -1032,7 +1033,7 @@ export async function credentialAndRecord(
   },
 ): Promise<{ bytes: Uint8Array; designRecord: DesignRecord | null; intentRecord?: IntentRecordOutcome }> {
   let bytes = out.bytes;
-  type Recorded = Pick<ExportMeta, 'designSystem' | 'designVersion' | 'themes' | 'brandSkills'>;
+  type Recorded = Pick<ExportMeta, 'designSystem' | 'designVersion' | 'themes' | 'brandSkills' | 'brandPage'>;
   // What the file's own metadata holds: the browser tier wrote it, so it is read off
   // the bytes; a browser-free render embedded `recorded`.
   const inFile: Recorded | null = out.tier.startsWith('B')

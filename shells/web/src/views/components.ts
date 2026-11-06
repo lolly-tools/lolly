@@ -239,6 +239,7 @@ function createPreviews(): { renderers: LivePreviews; dispose: () => void } {
       found: true, state: 'valid', checks: [],
       approval: { approvalId: 'apr_example', decidedAt: '2026-11-05T10:15:00Z', reviewedSha256: `sha256:${'ab'.repeat(32)}` },
       intent: { purpose: 'invite', surface: 'social-square', tool: 'QR Code', prompt: 'A square invitation for the spring meetup, with a code for the booking page.' },
+      brandPage: 'https://acme.example/brand/acme/',
     } as never) },
 
     // ── Primitives-section live renderers (component audit recs 1/5/6/8/11/12) ──

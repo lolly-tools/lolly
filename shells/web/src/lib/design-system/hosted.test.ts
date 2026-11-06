@@ -12,6 +12,7 @@
 import { test, afterEach } from 'node:test';
 import assert from 'node:assert/strict';
 import { createAssetsAPI } from '../../bridge/assets.ts';
+import { withRecordedBrandPage } from '../../../../../engine/src/brand-page-address.ts';
 import { createTokensAPI } from '../../bridge/tokens.ts';
 import { createDesignSystemRegistry, type RegistryDb } from './registry.ts';
 import { addHostedDesignSystem, checkHostedDesignSystems, refreshHostedDesignSystem, shapeHostedManifest } from './hosted.ts';
@@ -187,4 +188,20 @@ test('a change that cannot be brought down marks the record stale; checkHostedDe
   // The material on the device is untouched.
   const head = JSON.parse(await (await r.assets._getBlob('user/ds/acme/tokens/brand'))!.text());
   assert.equal(head.color.brand.jungle.$value, '#30ba78');
+});
+
+// A managed system keeps the address its manager set (plan 351 B5).
+test('a managed system records the address from its manager\'s source, and a copy of the system does not', async () => {
+  const r = await rig();
+  stubFetch(routes({ [`${BASE}/catalog/assets/acme/tokens/brand.json`]: withRecordedBrandPage(TOKENS_DOC, 'https://acme.example/brand/') }));
+  const rec = await addHostedDesignSystem(r.host as unknown as Parameters<typeof addHostedDesignSystem>[0], BASE);
+  assert.equal(rec.locked, true);
+  await r.registry.setActive(rec.id);
+  r.host.tokens!.bust({ lock: true });
+  assert.equal((await r.host.tokens!.snapshot()).brandPage, 'https://acme.example/brand/');
+  const { createDesignSystem } = await import('./manage.ts');
+  const copy = await createDesignSystem(r.host as unknown as Parameters<typeof createDesignSystem>[0], { label: 'Acme copy', seedFrom: rec.id });
+  await r.registry.setActive(copy.id);
+  r.host.tokens!.bust({ lock: true });
+  assert.equal((await r.host.tokens!.snapshot()).brandPage, undefined);
 });

@@ -23,7 +23,7 @@ export function adoptionOf(host: object): BrandAdoptionAPI | undefined {
 export async function prepareTokenAdoption(
   host: AdoptionHost, snapshot: AdoptionSnapshot, document: unknown,
   incoming: VersionedUserAsset[] = [],
-  options: { labelIfNew?: string; appearance?: { theme?: 'light' | 'dark' | 'brand' }; retainedVersions?: VersionIndex; selectedFontIds?: string[]; validateFile?: (row: VersionedUserAsset) => Promise<void>; keepRefs?: readonly string[] } = {},
+  options: { brandPage?: 'manager'; labelIfNew?: string; appearance?: { theme?: 'light' | 'dark' | 'brand' }; retainedVersions?: VersionIndex; selectedFontIds?: string[]; validateFile?: (row: VersionedUserAsset) => Promise<void>; keepRefs?: readonly string[] } = {},
 ) {
   if (!host.brandAdoption) throw new Error('This shell cannot apply a design system safely. Update Lolly and try again.');
   const doc = structuredClone(document);
@@ -104,6 +104,8 @@ export async function prepareTokenAdoption(
     : staged.filter(row => row.type === 'font').map(row => row.id);
   const candidate = await host.brandAdoption.prepare(snapshot, {
     doc: candidateDoc, assets: staged, labelIfNew: options.labelIfNew, appearance: options.appearance,
+    // This path brings in material from elsewhere, so a brand page address clears (plan 351 B5).
+    brandPage: options.brandPage ?? 'replaced',
     ...(fonts.length || options.selectedFontIds ? { importedFonts: fonts } : {}),
   });
   return { candidate, doc: candidateDoc };

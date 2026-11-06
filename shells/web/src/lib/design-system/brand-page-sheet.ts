@@ -16,8 +16,10 @@ import { icon } from '../icons.ts';
 import { fmtBytes } from '../format.ts';
 import { zipAsync } from '../zip.ts';
 import { OWNER_PUBLISHED } from '../../../../../engine/src/asset-rights.ts';
+import { brandPageAddress } from '../../../../../engine/src/brand-page-address.ts';
 import { connectedInstance, type BrandPageHostingV1 } from '../brand-page-hosting.ts';
 import { brandPagePreviewHtml } from './brand-page-preview.ts';
+import { readBrandPageSetting, writeBrandPageSetting } from './brand-page-record.ts';
 import {
   assembleBrandPage, drawBrandPageExamples, drawBrandPageOutlines, EMPTY_CHOICES, includableLogos, readBrandPageSources,
   type BrandPageChoices, type BrandPageHost, type BrandPageSources,
@@ -174,6 +176,14 @@ export async function openBrandPageSheet(host: BrandPageHost): Promise<void> {
             <span>${t('Show “Made with Lolly” in the footer')}</span>
           </label>
         </section>
+        <section class="bp-section" data-bp-record hidden>
+          <h3>${t('On exports')}</h3>
+          <label class="field-toggle bp-switch">
+            <input type="checkbox" class="field-check" data-bp-record-on disabled>
+            <span>${t('Record the page address in exports')}</span>
+          </label>
+          <p class="bp-note" data-bp-record-note role="status" aria-live="polite"></p>
+        </section>
         <section class="bp-section">
           <h3><span data-bp-public-title>${t('Goes public')}</span> <span class="bp-count" data-bp-total></span></h3>
           <p class="bp-note" data-bp-owner-note hidden>${t('Owner-published logos go out on the terms their record states, and the page prints those terms.')}</p>
@@ -263,6 +273,51 @@ export async function openBrandPageSheet(host: BrandPageHost): Promise<void> {
   let latest: BrandPageBuildV1 | null = null;
   let revision = 0;
 
+  // Whether exports name the page. Off until there is a page to name, and each change is
+  // the person's own act: nothing here turns the setting on for them.
+  const recordBox = $('[data-bp-record]');
+  const recordOn = $<HTMLInputElement>('[data-bp-record-on]');
+  const recordNote = $('[data-bp-record-note]');
+  const setting = await readBrandPageSetting(host).catch(() => ({ address: null, locked: true }));
+  if (!alive) return closed;
+  let recorded = setting.address;
+  /** The address an instance gave back for a live page. */
+  let hostedAddress: string | null = null;
+  let hostedRefused = false;
+  const addressNow = (): string | null => hosting && may ? hostedAddress ?? recorded : brandPageAddress(choices.origin);
+  const paintRecord = (): void => {
+    const address = addressNow();
+    recordOn.checked = !!recorded;
+    recordOn.disabled = !recorded && !address;
+    recordNote.textContent = recorded ? tRaw('Exports record {address}. The export panel shows this and can leave the record out.', { address: recorded })
+      : address ? t('Turn this on once the page is live. The export panel shows the address and can leave the record out.')
+      : hostedRefused || (!hosting && choices.origin.trim()) ? t('Only an https address on a named host can be recorded.')
+      : hosting ? t('You can turn this on once the page is published.')
+      : t('Add the page address under “Where it will live” first.');
+  };
+  const saveRecord = async (address: string | null): Promise<void> => {
+    recordOn.disabled = true;
+    try {
+      await writeBrandPageSetting(host, address, sources.name);
+      recorded = address;
+    } catch (error) {
+      say(tRaw('Could not save this: {error}', { error: String((error as Error)?.message ?? error) }), true);
+    }
+    if (alive) paintRecord();
+  };
+  recordBox.hidden = setting.locked || blockedByManager;
+  if (recorded && !hosting && !choices.origin) {
+    choices.origin = recorded;
+    origin.value = recorded;
+  }
+  if (recorded && !hosting) $<HTMLDetailsElement>('[data-bp-address]').open = true;
+  recordOn.addEventListener('change', () => { void saveRecord(recordOn.checked ? addressNow() : null); });
+  // Editing the address while the setting is on moves the setting, or turns it off if the new one cannot be recorded.
+  origin.addEventListener('change', () => {
+    if (recorded && !hosting && brandPageAddress(choices.origin) !== recorded) void saveRecord(brandPageAddress(choices.origin));
+  });
+  paintRecord();
+
   const paint = (build: BrandPageBuildV1): void => {
     latest = build;
     frame.srcdoc = brandPagePreviewHtml(build.files.map(file => ({ path: file.path, mediaType: file.mediaType, bytes: file.bytes })));
@@ -310,7 +365,7 @@ export async function openBrandPageSheet(host: BrandPageHost): Promise<void> {
     const target = event.target as HTMLElement;
     if (target === statement) choices.statement = statement.value;
     else if (target === contact) choices.contact = contact.value;
-    else if (target === origin) choices.origin = origin.value;
+    else if (target === origin) { choices.origin = origin.value; paintRecord(); }
     else if (target === madeWith) choices.madeWith = madeWith.checked;
     else if (target instanceof HTMLInputElement && target.dataset.bpInclude) {
       const id = target.dataset.bpInclude;
@@ -387,6 +442,10 @@ export async function openBrandPageSheet(host: BrandPageHost): Promise<void> {
             const open = $<HTMLAnchorElement>('[data-bp-open]');
             open.href = result.url;
             open.hidden = false;
+            hostedAddress = brandPageAddress(result.url);
+            hostedRefused = !hostedAddress;
+            if (recorded && hostedAddress && hostedAddress !== recorded) await saveRecord(hostedAddress);
+            else paintRecord();
           }
         } catch (error) {
           say(tRaw('{host} did not take the folder: {error}', { host: active.host, error: String((error as Error)?.message ?? error) }), true);

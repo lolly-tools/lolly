@@ -13,6 +13,7 @@ import { basename, join } from 'node:path';
 import { mkdir, readFile, rename, writeFile } from 'node:fs/promises';
 import { storeZip } from '@lolly/engine';
 import { resolveStateDir } from './state-dir.ts';
+import { settleBrandPageWrite, withoutRecordedBrandPage } from '../../../engine/src/brand-page-address.ts';
 
 const FORMAT = 1;
 const INDEX_FILE = 'design-systems.json';
@@ -117,7 +118,8 @@ export async function exportActiveDesignSystem(): Promise<{
 
   const encode = (value: unknown): Uint8Array => new TextEncoder().encode(JSON.stringify(value, null, 2) + '\n');
   const entries: Array<{ name: string; bytes: Uint8Array }> = [
-    { name: 'tokens.json', bytes: encode(tokens) },
+    // The setting behind a recorded brand page address stays with this machine (plan 351 B5).
+    { name: 'tokens.json', bytes: encode(withoutRecordedBrandPage(tokens)) },
     { name: 'fonts.json', bytes: encode([]) },
     { name: 'logos.json', bytes: encode([]) },
     { name: 'prefs.json', bytes: encode({}) },
@@ -167,7 +169,8 @@ export async function createNodeDesignSystem(input: {
   const now = new Date().toISOString();
   const tokensFile = input.tokens === null ? null : `design-systems/${id}/tokens.json`;
   await mkdir(join(rootDir(), id), { recursive: true });
-  if (tokensFile) await writeFile(join(resolveStateDir().dir, tokensFile), JSON.stringify(input.tokens, null, 2) + '\n', { mode: 0o600 });
+  // A new system is an import or a copy, so a brand page address never arrives with it (plan 351 B5).
+  if (tokensFile) await writeFile(join(resolveStateDir().dir, tokensFile), JSON.stringify(withoutRecordedBrandPage(input.tokens), null, 2) + '\n', { mode: 0o600 });
   const record: NodeDesignSystem = {
     id, label: input.label.trim() || 'My design system', createdAt: now, updatedAt: now,
     source: input.source ?? { kind: 'manual' }, tokensFile, resources: [],
@@ -186,13 +189,17 @@ export async function writeNodeDesignSystemTokens(input: {
   tokens: unknown;
   source: NodeDesignSystem['source'];
   label?: string;
+  /** The publisher's own --record-address. Otherwise this head's own setting stands, whatever `tokens` holds (plan 351 B5). */
+  brandPage?: 'publisher';
 }): Promise<NodeDesignSystem> {
   const registry = await readRegistry();
   const record = registry.systems.find(s => s.id === input.id);
   if (!record) throw new Error(`There is no design system “${input.id}”.`);
   const rel = `design-systems/${record.id}/tokens.json`;
   await mkdir(join(rootDir(), record.id), { recursive: true });
-  await writeFile(join(resolveStateDir().dir, rel), JSON.stringify(input.tokens, null, 2) + '\n', { mode: 0o600 });
+  const current: unknown = !input.brandPage && record.tokensFile ? await readFile(join(resolveStateDir().dir, record.tokensFile), 'utf8').then(JSON.parse).catch(() => null) : null;
+  const tokens = settleBrandPageWrite(input.tokens, current, input.brandPage);
+  await writeFile(join(resolveStateDir().dir, rel), JSON.stringify(tokens, null, 2) + '\n', { mode: 0o600 });
   record.tokensFile = rel;
   record.source = input.source;
   if (input.label) record.label = input.label;

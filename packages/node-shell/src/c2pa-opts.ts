@@ -168,7 +168,7 @@ export function buildExportC2paOpts(o: BuildExportC2paOpts): ExportC2paOpts {
 export async function recordedDesignInFile(
   bytes: Uint8Array,
   format: string,
-  meta?: Pick<ExportMeta, 'designSystem' | 'designVersion' | 'themes' | 'brandSkills'> | null,
+  meta?: Pick<ExportMeta, 'designSystem' | 'designVersion' | 'themes' | 'brandSkills' | 'brandPage'> | null,
 ): Promise<DesignRecord | null> {
   const own = readFileDesignRecord(bytes);
   if (own) return own;
@@ -180,7 +180,7 @@ export async function recordedDesignInFile(
   }
   if (format === 'pdf' || format === 'pdf-cmyk') {
     const fromMeta = designRecordFrom(meta);
-    if (fromMeta.designSystem || fromMeta.designVersion || fromMeta.themes || fromMeta.brandSkills) return fromMeta;
+    if (fromMeta.designSystem || fromMeta.designVersion || fromMeta.themes || fromMeta.brandSkills || fromMeta.brandPage) return fromMeta;
   }
   return null;
 }

@@ -449,6 +449,12 @@ export interface ExportMeta {
    * records written before engine 1.282 and on hand-built metas.
    */
   brandSkills?: ExportBrandSkill[];
+  /**
+   * The address of the design system's published brand page (v1.311, plan 351 B5),
+   * written only when its publisher opted in and the design-system record is on. The
+   * signer records an address. It does not show that the page belongs to anyone.
+   */
+  brandPage?: string;
 }
 
 /** One brand skill revision that guided an export (plan 323). */

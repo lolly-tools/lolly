@@ -30,6 +30,11 @@
  * the runtime fills from `ExportOpts.brandSkills` while the record is on), never
  * inferred. The words are "guided by": a skill is guidance, and nothing here
  * checks the export against one. With no skills nothing is added anywhere.
+ *
+ * The brand page address (plan 351 B5, approved on the same condition): the address
+ * of the design system's published page, written only when its publisher opted in
+ * (`TokensSnapshot.brandPage`). The signer records an address, and nothing here
+ * shows that the page belongs to anyone. With no address nothing is added anywhere.
  */
 import type { ExportBrandSkill, ExportMeta, ExportThemeChoice, Profile, ProfileAPI, TokenAxisKind, TokensSnapshot } from './bridge/host-v1.ts';
 import { TOKEN_AXIS_KINDS } from '@lolly-tools/core/host-v1';
@@ -37,6 +42,7 @@ import { isAgentSkillName } from '@lolly-tools/core/skill-frontmatter-v1';
 import { canonicalJson } from './canonical-json.ts';
 import { DESIGN_VERSION_LATEST } from './design-version.ts';
 import { isDesignSystemId } from './design-system.ts';
+import { brandPageAddress } from './brand-page-address.ts';
 import { modeAxis, readTokenAxes } from './token-axes.ts';
 import { resolveTokenSelection } from './token-selection.ts';
 
@@ -82,7 +88,7 @@ export interface ExportMetaOptions {
 }
 
 /** The record fields of an export's metadata, as the readers and writers below take them. */
-export type DesignRecordFields = Pick<ExportMeta, 'designSystem' | 'designVersion' | 'themes' | 'brandSkills'>;
+export type DesignRecordFields = Pick<ExportMeta, 'designSystem' | 'designVersion' | 'themes' | 'brandSkills' | 'brandPage'>;
 
 /** The design-system part of an export's metadata (plans/319). Every field is optional. */
 export interface DesignRecord {
@@ -91,6 +97,8 @@ export interface DesignRecord {
   themes?: ExportThemeChoice[];
   /** The brand skills that guided an agent-made piece (plan 323). */
   brandSkills?: ExportBrandSkill[];
+  /** The brand page address the publisher chose to record (plan 351 B5). */
+  brandPage?: string;
 }
 
 /** What an export would write about its design system, shown before anything is written. */
@@ -224,6 +232,8 @@ export function designRecordOf(snapshot: TokensSnapshot | null | undefined, mani
   if (version && version !== DESIGN_VERSION_LATEST && version !== 'head') out.designVersion = version;
   const themes = recordedThemes(snapshot, manifest);
   if (themes.length) out.themes = themes;
+  const page = brandPageAddress(snapshot.brandPage);
+  if (page) out.brandPage = page;
   return out;
 }
 
@@ -267,12 +277,13 @@ export function designRecordFrom(meta: DesignRecordFields | null | undefined): D
     ...(meta.designVersion ? { designVersion: meta.designVersion } : {}),
     ...(meta.themes?.length ? { themes: meta.themes.map(t => ({ ...t })) } : {}),
     ...(meta.brandSkills?.length ? { brandSkills: meta.brandSkills.map(s => ({ ...s })) } : {}),
+    ...(meta.brandPage ? { brandPage: meta.brandPage } : {}),
   };
 }
 
 /** True when the record holds nothing to write. */
 export function isEmptyDesignRecord(record: DesignRecord | null | undefined): boolean {
-  return !record || (!record.designSystem && !record.designVersion && !record.themes?.length && !record.brandSkills?.length);
+  return !record || (!record.designSystem && !record.designVersion && !record.themes?.length && !record.brandSkills?.length && !record.brandPage);
 }
 
 /** The colourway a record names, if any. */
@@ -297,16 +308,18 @@ export function toolCredit(meta: Pick<ExportMeta, 'tool' | 'themes'> | null | un
  * an export writes them: "Acme · Version 2026-10 · Colourway: Persimmon", ending
  * in "Guided by: acme-brand 1.0" when an agent declared brand skills. The web
  * shell builds the same line through its own translations. Empty for an empty
- * record. `skills: false` leaves the brand skills out, for a caller that names
- * them on a line of their own or compares design systems only.
+ * record. `skills: false` leaves the brand skills out and `page: false` the brand
+ * page address, for a caller that prints them on a line of their own or compares
+ * design systems only.
  */
-export function designRecordWords(record: DesignRecord | null | undefined, opts: { skills?: boolean } = {}): string {
+export function designRecordWords(record: DesignRecord | null | undefined, opts: { skills?: boolean; page?: boolean } = {}): string {
   if (!record) return '';
   const parts: string[] = [];
   if (record.designSystem) parts.push(record.designSystem.label);
   if (record.designVersion) parts.push(`Version ${record.designVersion}`);
   for (const t of record.themes ?? []) parts.push(`${themeChoiceLabel(t)}: ${t.name}`);
   const guided = opts.skills === false ? '' : guidedByWords(record.brandSkills);
+  if (record.brandPage && opts.page !== false) parts.push(`Brand page: ${record.brandPage}`);
   if (guided) parts.push(`Guided by: ${guided}`);
   return parts.join(' · ');
 }
@@ -347,6 +360,9 @@ export function designRecordEnvironment(meta: DesignRecordFields | null | undefi
   // string. Re-checked here, so a hand-built meta cannot write an unbounded value.
   const skills = brandSkillRecords(meta?.brandSkills);
   if (skills.length) out.brandSkills = canonicalJson(skills);
+  // Re-checked for the same reason: this value becomes something a person can click.
+  const page = brandPageAddress(meta?.brandPage);
+  if (page) out.brandPage = page;
   return out;
 }
 
@@ -360,6 +376,8 @@ export function designRecordKeywords(meta: DesignRecordFields | null | undefined
   if (meta.designSystem?.label) out.push(`Design system: ${meta.designSystem.label}`);
   if (meta.designVersion) out.push(`Design version: ${meta.designVersion}`);
   for (const t of meta.themes ?? []) out.push(`${themeChoiceLabel(t)}: ${t.name}`);
+  const page = brandPageAddress(meta.brandPage);
+  if (page) out.push(`Brand page: ${page}`);
   for (const s of brandSkillRecords(meta.brandSkills)) out.push(`Guided by: ${brandSkillLabel(s)}`);
   return out;
 }
@@ -405,6 +423,7 @@ const XML_PROPS = [
   ['designVersion', 'DesignVersion'],
   ['themes', 'Themes'],
   ['brandSkills', 'BrandSkills'],
+  ['brandPage', 'BrandPage'],
 ] as const;
 
 /**
@@ -506,6 +525,8 @@ export function readDesignRecord(env: Readonly<Record<string, unknown>> | null |
   if (themes.length) out.themes = themes;
   const brandSkills = parseBrandSkills(env.brandSkills);
   if (brandSkills.length) out.brandSkills = brandSkills;
+  const page = brandPageAddress(env.brandPage);
+  if (page) out.brandPage = page;
   return isEmptyDesignRecord(out) ? null : out;
 }
 

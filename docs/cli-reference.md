@@ -269,6 +269,8 @@ The source is `--file=<tokens>`, then a content profile you name with `--profile
 | `--include=<id,id>` | Logos to publish although no licence is recorded for them: your stated choice. |
 | `--no-examples` | Leave out the drawn examples. |
 | `--no-made-with-link` | Leave out the "Made with Lolly" link in the page's footer. It is on by default. |
+| `--record-address` | After writing the folder, record `--origin` on the active terminal design system, so its [exports name the page](/info/brand-page.html#lead-back-from-your-files). Needs a plain `https` address on a named host. Off by default. Turn this on once the page is live there. |
+| `--no-record-address` | Remove that setting from the active terminal design system. |
 | `--name=<name>`, `--id=<id>` | Override the name and the id. |
 
 **What is held back.** A logo with no recorded licence stays out unless you name the logo with `--include`. A logo whose rights record says `own-work`, with its owner and terms, travels as "Owner-published, not an open licence" ([Publish your own marks](/info/brand-page.html#publish-your-own-marks)). A font file needs a recorded licence that allows passing the file on, and `--include` does not change that: the page gives the name of the face and draws its specimen as vector outlines. Internal brand skills never appear. The command, `brand.json` and the page each list what was held back and why.

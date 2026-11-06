@@ -92,6 +92,8 @@ export { toCSV, parseDelimited, detectDelimiter, parseBatchCsv, batchCsvTemplate
 export type { BatchRow } from './batch.ts';
 export { buildExportMeta, designRecordCarrier, designRecordEnvironment, designRecordFrom, designRecordWords, guidedByWords, readDesignRecord, readDesignRecordXml, themesSelection, toolCredit, pdfKeywords } from './metadata.ts';
 export type { DesignRecord, MadeWithPreview } from './metadata.ts';
+export { BRAND_PAGE_ADDRESS_MAX, brandPageAddress, brandPageHost, carriesRecordedBrandPage, readRecordedBrandPage, settleBrandPageWrite, withRecordedBrandPage, withoutRecordedBrandPage } from './brand-page-address.ts';
+export type { BrandPageWrite } from './brand-page-address.ts';
 export { extractFileMetadata, extractXmpPacket, readFileDesignRecord, readMpfIndex, appendedIsExpected, META_GROUP_ORDER, META_GROUP_LABEL } from './file-metadata.ts';
 export type { FileMetadata, MetaField, MetaGroup } from './file-metadata.ts';
 export { softwareName, softwareOrigins, xmlProvenanceFields } from './software-origin.ts';

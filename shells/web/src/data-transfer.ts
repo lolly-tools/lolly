@@ -39,6 +39,7 @@
  */
 
 import { strToU8 } from 'fflate';
+import { carriesRecordedBrandPage, withRecordedBrandPage } from '../../../engine/src/brand-page-address.ts';
 import { assetRecordsToImport, restoreBackupSessions, writeBackupSessions, type BackupState, type BackupHistoryMode } from './lib/backup-sessions.ts';
 import { backupOwnCounts } from './lib/backup-summary.ts';
 import { mergeProfileRecords } from './lib/profile-merge.ts';
@@ -211,6 +212,18 @@ export const PREF_KEYS = ['theme', 'sidebarWidth', 'ct-metrics'];
 // newer (forward-compatible) writer - left untouched and counted as `skipped` so
 // the round-trip is honest about what it didn't restore rather than silently
 // dropping it. `assets/blobs/*` is the open-ended image payload.
+/**
+ * A backup file can come from anyone, so a restored design system records no brand page
+ * address until its owner turns that on again (plan 351 B5). Any other row is left alone.
+ */
+async function withoutBrandPageInRow<T extends Record<string, unknown>>(record: T): Promise<T> {
+  const blob = record.blob;
+  if (record.type !== 'tokens' || !(blob instanceof Blob)) return record;
+  const doc: unknown = await blob.text().then(JSON.parse).catch(() => null);
+  if (!carriesRecordedBrandPage(doc)) return record;
+  return { ...record, blob: new Blob([JSON.stringify(withRecordedBrandPage(doc, null))], { type: blob.type }) };
+}
+
 const KNOWN_PARTS = new Set(['manifest.json', 'profile.json', 'sessions.json', 'assets.json', 'prefs.json', 'design-systems.json']);
 function isKnownPart(path: string, historySupported: boolean, revisionsSupported: boolean): boolean {
   return KNOWN_PARTS.has(path) || path === README_NAME || path.startsWith('assets/blobs/')
@@ -534,7 +547,7 @@ export async function importBackup(
     // video/animation can trip IndexedDB's quota, which _importUserAsset does NOT
     // pre-check) must not abort the rest of the restore. Skip + count the casualty.
     try {
-      await host.assets._importUserAsset(record);
+      await host.assets._importUserAsset(await withoutBrandPageInRow(record));
       summary.userAssets++;
     } catch (e) {
       // Counted (not folded into `skipped`, which is reassigned below) so the UI can

@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import { mkdtemp, readFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { deriveBrandTokens, readZip, summarizeTokensDoc } from '@lolly/engine';
+import { deriveBrandTokens, readRecordedBrandPage, readZip, summarizeTokensDoc, withRecordedBrandPage } from '@lolly/engine';
 
 const dir = await mkdtemp(join(tmpdir(), 'lolly-node-systems-'));
 process.env.LOLLY_STATE_DIR = dir;
@@ -55,4 +55,21 @@ test('an active system exports as a portable .lolly pack with retained resources
   assert.ok(files.has('tokens.json'));
   assert.ok(files.has('resources/mark.svg'));
   assert.equal(JSON.parse(Buffer.from(files.get('manifest.json')!).toString('utf8')).format, 'lolly-brand');
+});
+
+// A recorded brand page address does not travel (plan 351 B5).
+test('a new terminal system never holds an address, an edit keeps its own, and a pack leaves the setting behind', async () => {
+  const PAGE = 'https://acme.example/brand/';
+  const doc = { color: { a: { $type: 'color', $value: '#123456' } } };
+  const created = await store.createNodeDesignSystem({ label: 'Imported', tokens: withRecordedBrandPage(doc, 'https://evil.example/'), source: { kind: 'manual' } });
+  assert.deepEqual(await store.readActiveDesignSystemTokens(), doc);
+  await store.writeNodeDesignSystemTokens({ id: created.id, tokens: withRecordedBrandPage(doc, 'https://evil.example/'), source: created.source });
+  assert.deepEqual(await store.readActiveDesignSystemTokens(), doc, 'an edit cannot add an address');
+  await store.writeNodeDesignSystemTokens({ id: created.id, tokens: withRecordedBrandPage(doc, PAGE), source: created.source, brandPage: 'publisher' });
+  assert.equal(readRecordedBrandPage(await store.readActiveDesignSystemTokens()), PAGE, 'the publisher\'s own flag');
+  await store.writeNodeDesignSystemTokens({ id: created.id, tokens: doc, source: created.source });
+  assert.equal(readRecordedBrandPage(await store.readActiveDesignSystemTokens()), PAGE, 'an edit keeps the head\'s own');
+  const pack = await store.exportActiveDesignSystem();
+  const files = new Map(readZip(pack.bytes).map(entry => [entry.name, entry.bytes]));
+  assert.deepEqual(JSON.parse(Buffer.from(files.get('tokens.json')!).toString('utf8')), doc);
 });

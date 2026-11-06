@@ -48,6 +48,7 @@ import { zipAsync } from './lib/zip.ts';
 import { selectAdoptionFonts } from './lib/design-system/adoption-fonts.ts';
 import type { BrandAdoptionAPI } from './bridge/brand-adoption.ts';
 import { brandResourceAssetIds } from '../../../engine/src/brand-resources.ts';
+import { withoutRecordedBrandPage } from '../../../engine/src/brand-page-address.ts';
 import {
   BUNDLE_HEADER, README_NAME, buildIntegrity, readJson, unzipBundle, verifyIntegrity,
   type BundleEntry,
@@ -413,7 +414,8 @@ export async function exportBrandPack(
   }
   if (doc) {
     entries['tokens.json'] = strToU8(
-      JSON.stringify(toLegacy ? rewriteAssetRefs(doc, toLegacy) : doc, null, 2));
+      // The setting behind a recorded brand page address stays with this device (plan 351 B5).
+      JSON.stringify(withoutRecordedBrandPage(toLegacy ? rewriteAssetRefs(doc, toLegacy) : doc), null, 2));
   }
 
   /**
@@ -674,6 +676,8 @@ export async function importBrandPack(
      *  its tools are cached; a background/for-later targeted import leaves the
      *  current device connection untouched. */
     activateInstance?: boolean;
+    /** A managed system's sync from its manager's source keeps a brand page address (plan 351 B5). A pack from a file never does. */
+    brandPage?: 'manager';
   },
 ): Promise<BrandImportSummary> {
   const files: Unzipped = (bytes instanceof ArrayBuffer || bytes instanceof Uint8Array)
@@ -686,6 +690,7 @@ export async function importBrandPack(
     const adoptionHost = { brandAdoption: host.brandAdoption, assets: { _getBlob: host.assets._getBlob.bind(host.assets), get: host.assets.get.bind(host.assets) } };
     const summary = await adoptBrandPack(adoptionHost, files, BRAND_READER_VERSION, {
       system: opts?.target?.system, create: opts?.create, activate: !opts?.target && !opts?.create,
+      ...(opts?.brandPage ? { brandPage: opts.brandPage } : {}),
     });
     summary.adopted = true;
     summary.skipped = Object.keys(files).filter(path => !path.endsWith('/') && !isKnownPart(path)).length;
@@ -884,6 +889,7 @@ export async function importBrandPack(
     await installUserTokens(host as Parameters<typeof installUserTokens>[0], payload, {
       label: record?.label ?? (typeof manifest.label === 'string' ? manifest.label : 'Imported brand'),
       ...toSystem,
+      brandPage: opts?.brandPage ?? 'replaced',
     });
     summary.tokens = true;
   } else if (added.length) {
