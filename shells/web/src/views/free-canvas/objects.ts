@@ -160,7 +160,7 @@ export function loopTiming(
  * A tool chosen to be placed, rendered with its own defaults in the format the tool
  * itself offers first (svg when it has one): the picker hands it to Design as it comes,
  * and its inputs are the inspector's to show. A tool that lays itself out for the canvas
- * (render.followsCanvasSize) is drawn at the shape of the frame it was dropped in, so a
+ * (render.followsCanvasSize) is drawn at the size of the frame it was dropped in, so a
  * 16:9 frame does not hold a 4:3 card between two bars. Null when the tool cannot be
  * rendered.
  */

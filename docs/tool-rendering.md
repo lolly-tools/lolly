@@ -157,7 +157,7 @@ The value is the name of an `@keyframes` rule in your `styles.css`, then a durat
 
 The attribute plays nothing on the page, because the file and the canvas have different clocks. Three rules keep them apart:
 
-- **The page at rest is the finished piece.** Give an element its animation only while something is playing it. A still export reads the page at rest, so a PNG or a PDF never catches an empty first frame. Declare a frame clock with `stillPose` as set out above, and have the clock arm the animations during a clip and take them away for a still.
+- **The page at rest is the finished piece.** Give an element its animation only during playback. A still export reads the page at rest, so a PNG or a PDF never catches an empty first frame. Declare a frame clock with `stillPose` as set out above, and have the clock arm the animations during a clip and take them away for a still.
 - **The plain SVG export keeps the motion.** Formats derived from the walk, such as Penpot, EMF and DXF, get one finished picture. In an `<img>`, where nothing can seek the animation, the file shows the finished picture too. Opened on its own in a browser, the file plays once and holds.
 - **Say how long the piece lasts.** Put `data-clip-ms` on the stage. The export's Duration field follows the value, and a box in Lolly Design gets a clip that long. Design's timeline then seeks the animation, so the frame on the board is the frame the video export draws.
 
