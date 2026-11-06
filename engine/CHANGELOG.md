@@ -6,6 +6,12 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+## 1.314.0
+
+- `host.text.toPath` gains an optional `direction` (`ltr` or `rtl`), the direction of the paragraph a run sits in. A run that holds right-to-left characters, or a complex script beside another script, now goes through the Unicode bidi analysis and is shaped one direction and script at a time, in visual order. Latin inside Arabic used to come out reversed, digits too, and Arabic after a Latin word lost its joining. With no `direction`, such a run reads from its first strong character.
+- A run with neither shapes as it always did and keeps its bytes, which is every purely left-to-right Latin, Greek, Cyrillic or CJK run.
+- A tool that outlines right-to-left text itself reads `advanceWidth` to anchor the right edge: the path still reads left to right from x=0.
+
 ## 1.313.0
 
 - Colour roles (new module `colour-roles.ts`, plan 352): a design system's colours in its own words, as `brandSystem.roles[]` with `group: "colourway"` and `bindings[]` with `consumer.slot`. `readColourRoles` says what a document holds, and reports a hand-written file with custom tokens and no record as `undeclared`. `colourRoleTable` gives the studio each role's colour, on-colour and contrast per colourway and look. `addColourRole`, `renameColourRole`, `describeColourRole`, `reorderColourRoles`, `removeColourRole`, `setColourRoles`, `setRoleValue`, `setRoleSameAsLight`, `bindRole` and `unbindRole` edit them, and each returns a refusal with a stable code rather than leaving an alias that points at nothing. A binding is written as an alias inside each colourway set, so every reader of a slot keeps working.

@@ -27,16 +27,18 @@
  */
 
 import type { HostV1 } from '@lolly-tools/core/host-v1';
+import { physicalTextAnchor } from '@lolly-tools/node-shell/text-svg';
+import { firstStrongDirection, hasRtlText, type TextRunDirection } from '@lolly-tools/node-shell/text-bidi';
 
 /** Presentation properties inherited down the SVG tree that this walk reads. */
-const INHERITED = ['font-family', 'font-weight', 'font-style', 'font-size', 'letter-spacing', 'text-anchor', 'fill'] as const;
+const INHERITED = ['font-family', 'font-weight', 'font-style', 'font-size', 'letter-spacing', 'text-anchor', 'fill', 'direction'] as const;
 type InheritedProp = (typeof INHERITED)[number];
 
 /** Attributes that describe the TEXT LAYOUT and mean nothing on the outlined path. */
 const DROP_ON_PATH = new Set([
   'x', 'y', 'dx', 'dy', 'text-anchor', 'font-family', 'font-weight', 'font-style',
   'font-size', 'font-stretch', 'font-variant', 'letter-spacing', 'word-spacing',
-  'xml:space', 'dominant-baseline', 'alignment-baseline', 'textLength', 'lengthAdjust',
+  'xml:space', 'dominant-baseline', 'alignment-baseline', 'textLength', 'lengthAdjust', 'direction',
   'transform',   // re-composed with the glyph translate below
 ]);
 
@@ -68,6 +70,19 @@ function prop(el: Element, name: InheritedProp, getComputed: ((e: Element) => CS
   const camel = name.replace(/-([a-z])/g, (_, c: string) => c.toUpperCase());
   const v = (cs as unknown as Record<string, unknown>)[camel];
   return typeof v === 'string' && v ? v : null;
+}
+
+/**
+ * A run's direction: the SVG `direction` property, else the nearest `dir` around it,
+ * with `dir="auto"` read from the run's own text, because this DOM has no layout.
+ */
+function textDirection(el: Element, raw: string, getComputed: ((e: Element) => CSSStyleDeclaration | null) | null): TextRunDirection {
+  const stated = prop(el, 'direction', getComputed)?.trim().toLowerCase();
+  if (stated === 'rtl') return 'rtl';
+  const dir = el.closest?.('[dir]')?.getAttribute('dir')?.trim().toLowerCase();
+  if (dir === 'rtl') return 'rtl';
+  if (dir === 'auto') return firstStrongDirection(raw);
+  return 'ltr';
 }
 
 /** First number of an SVG coordinate list ("10 20" / "10,20") - 0 when absent. */
@@ -141,6 +156,11 @@ export async function outlineSvgText(
     const raw = (el.textContent ?? '').replace(/\s+/g, ' ').trim();
     if (!raw) continue;
 
+    const direction = textDirection(el, raw, getComputed);
+    const rtl = direction === 'rtl';
+    // A kept run stands alone in the file, and a direction set around the <svg> does not travel.
+    if (rtl) el.setAttribute('direction', 'rtl');
+
     const blocked = unplaceableReason(el);
     if (blocked) { result.fallbacks.push({ text: raw, reason: blocked }); continue; }
 
@@ -167,7 +187,7 @@ export async function outlineSvgText(
       continue;
     }
 
-    let shaped: { d: string; advanceWidth: number } | null = null;
+    let shaped: { d: string; advanceWidth: number; notdef?: number } | null = null;
     try {
       shaped = await text.toPath({
         text: raw,
@@ -175,14 +195,18 @@ export async function outlineSvgText(
         fontSize,
         letterSpacing: letterSpacingPx(prop(el, 'letter-spacing', getComputed), fontSize),
         ...(font.variations ? { variations: font.variations } : {}),
+        ...(rtl || hasRtlText(raw) ? { direction } : {}),
       });
     } catch (e) {
       result.fallbacks.push({ text: raw, reason: `shaping failed - ${(e as Error).message}` });
       continue;
     }
     if (!shaped?.d) { result.fallbacks.push({ text: raw, reason: 'the font produced no glyph outlines' }); continue; }
+    // An outline of a glyph the face does not have is a row of boxes. Live text can still
+    // reach a font that has it, on the machine that opens the file.
+    if (shaped.notdef) { result.fallbacks.push({ text: raw, reason: `the font has no glyph for ${shaped.notdef} character${shaped.notdef === 1 ? '' : 's'} in this run` }); continue; }
 
-    const anchor = (prop(el, 'text-anchor', getComputed) ?? 'start').trim().toLowerCase();
+    const anchor = physicalTextAnchor(prop(el, 'text-anchor', getComputed), direction);
     const x = coord(el.getAttribute('x')) + coord(el.getAttribute('dx'));
     const y = coord(el.getAttribute('y')) + coord(el.getAttribute('dy'));
     const adv = shaped.advanceWidth || 0;

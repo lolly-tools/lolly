@@ -16,7 +16,7 @@
 export {
   textStrokeAttrs,
   suseWeightName, suseStaticWeight, SUSE_FONT_DIR, suseFontFile, resolveSuseFontUrl,
-  canVectoriseText, featureSettingsToHb, letterSpacingPx, textBaselineY,
+  canVectoriseText, featureSettingsToHb, letterSpacingPx, textBaselineY, physicalTextAnchor,
 } from '@lolly-tools/node-shell/text-svg';
 
 export type { TextStrokeSlice, FontStyleSlice } from '@lolly-tools/node-shell/text-svg';

@@ -36,7 +36,8 @@ import type { HostV1, TextPathResult } from '@lolly-tools/core/host-v1';
 import type { PathSegment } from '../../../engine/src/svg-path.ts';
 import type { VectorTextPrim, VectorPrim, Rgb } from '../../../engine/src/emf.ts';
 import { gaussianShadowRings } from '../../../engine/src/css-box.ts';
-import { canVectoriseText, featureSettingsToHb, letterSpacingPx } from './text-svg.ts';
+import { canVectoriseText, featureSettingsToHb, letterSpacingPx, physicalTextAnchor } from './text-svg.ts';
+import { hasRtlText } from './text-bidi.ts';
 import type { FontStyleSlice } from './text-svg.ts';
 
 const SKIP = new Set(['defs', 'clippath', 'lineargradient', 'radialgradient',
@@ -651,7 +652,7 @@ export async function svgDomToIr(svgEl: Element, ctx: SvgIrContext = {}): Promis
     const weightNum = wRaw === 'bold' ? 700 : Number.isFinite(parseFloat(wRaw)) ? Math.round(parseFloat(wRaw)) : 400;
 
     const { x, y } = m.mapPt(len(prop(el, style, 'x'), vbW), len(prop(el, style, 'y'), vbH));
-    const anchor = prop(el, style, 'text-anchor', null) ?? r.cs?.textAnchor ?? 'start';
+    const anchor = physicalTextAnchor(prop(el, style, 'text-anchor', null) ?? r.cs?.textAnchor, prop(el, style, 'direction', null) ?? r.cs?.direction);
     return {
       type: 'text', x, y, text: r.raw,
       fontFamily: face,
@@ -689,10 +690,18 @@ export async function svgDomToIr(svgEl: Element, ctx: SvgIrContext = {}): Promis
     // in Office / Google Drawings. Needs NO host.text - the renderer's own
     // metrics lay the run out. Anything GDI text can't express faithfully falls
     // through to the outline path below, per run, so fidelity never regresses.
-    if (liveText) {
+    // GDI text has no bidi order, so right-to-left text outlines when a face covers those
+    // characters. It stays live only when none does, because then the reader's fonts are all there is.
+    const direction = prop(el, style, 'direction', null) ?? cs?.direction;
+    const rtl = direction === 'rtl';
+    const ordered = rtl || hasRtlText(raw);
+    const keepLive = (): boolean => {
+      if (!liveText) return false;
       const live = liveTextPrim(el, style, m, { raw, rgb, family, weight, italic, fontSize, letterSpacingCss, cs });
-      if (live) { prims.push(live); return; }
-    }
+      if (live) prims.push(live);
+      return Boolean(live);
+    };
+    if (!ordered && keepLive()) return;
 
     const fontStyleObj = { fontFamily: family, fontWeight: weight, fontStyle: italic ? 'italic' : 'normal',
       letterSpacing: letterSpacingCss };
@@ -702,6 +711,7 @@ export async function svgDomToIr(svgEl: Element, ctx: SvgIrContext = {}): Promis
     const fontUrl = vf?.url ?? null;
 
     if (!canVectoriseText(fontStyleObj, fontUrl, Boolean(textApi))) {
+      if (ordered && keepLive()) return;
       throw new Error(
         `${LABEL} export requires outlined text, but the run "${raw.slice(0, 24)}" could not be ` +
         `vectorized (font-family "${family || 'inherited'}"${textApi ? '' : '; no text-shaping in this shell'}). ` +
@@ -714,15 +724,17 @@ export async function svgDomToIr(svgEl: Element, ctx: SvgIrContext = {}): Promis
 
     let result: TextPathResult;
     try {
-      result = await textApi!.toPath({ text: raw, fontUrl: fontUrl!, fontSize, features: features as string[], letterSpacing, variations: vf!.variations, fallbackFonts: vf!.fallbacks });
+      result = await textApi!.toPath({ text: raw, fontUrl: fontUrl!, fontSize, features: features as string[], letterSpacing, variations: vf!.variations, fallbackFonts: vf!.fallbacks, ...(ordered ? { direction: rtl ? 'rtl' as const : 'ltr' as const } : {}) });
     } catch (e) {
+      if (ordered && keepLive()) return;
       throw new Error(`EMF export: text shaping failed for "${raw.slice(0, 24)}" - ${(e as Error).message}`);
     }
+    if (ordered && result?.notdef && keepLive()) return;
     if (!result?.d) return;            // whitespace-only / no glyphs
 
     const x = len(prop(el, style, 'x'), vbW);
     const y = len(prop(el, style, 'y'), vbH);
-    const anchor = prop(el, style, 'text-anchor', null) ?? cs?.textAnchor ?? 'start';
+    const anchor = physicalTextAnchor(prop(el, style, 'text-anchor', null) ?? cs?.textAnchor, direction);
     const adv = result.advanceWidth || 0;
     const xAdj = anchor === 'middle' ? x - adv / 2 : anchor === 'end' ? x - adv : x;
 

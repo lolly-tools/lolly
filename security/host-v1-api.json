@@ -1325,7 +1325,7 @@
     "TextToPathOpts": {
       "module": "text.ts",
       "kind": "InterfaceDeclaration",
-      "sha256": "bb406b3f5cd8fc31671cf1d629e4379633800391a3ff0823809fa65b13a45a49"
+      "sha256": "a24af374b1b7e760c042f9e8f3f01228c5586f7fa75e7d7e3dcbe930df746257"
     },
     "TextPathCluster": {
       "module": "text.ts",

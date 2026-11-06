@@ -11,7 +11,7 @@ Roughly 858,000 lines of TypeScript, tests included, and 65,000 lines of CSS.
 |---|---|---|---|
 | `views/` | 603 files, 222,357 lines | 322 files, 100,748 lines | 12 files, 1,686 lines |
 | `lib/` | 909 files, 187,041 lines | 555 files, 107,646 lines | 13 files, 1,856 lines |
-| `bridge/` | 256 files, 57,548 lines | 146 files, 30,101 lines | none |
+| `bridge/` | 256 files, 57,651 lines | 146 files, 30,401 lines | none |
 | `components/` | 134 files, 30,780 lines | 64 files, 16,298 lines | 24 files, 1,635 lines |
 | `org/` | 86 files, 21,471 lines | 59 files, 17,654 lines | none |
 | `collab/` | 20 files, 13,570 lines | 22 files, 14,247 lines | none |
@@ -64,7 +64,7 @@ Do not be ambushed by these. The largest source files, by line count:
 | 3,799 | `views/tool-inputs.ts` | none |
 | 3,780 | `views/picker.ts` | partial - the format and embeddability rules are extracted to `picker-formats.ts` and covered by `picker-formats.test.ts`, plus `picker-initial-tab.test.ts`; the 3,000-line panel body is not. |
 | 3,624 | `views/color-lab.ts` | yes |
-| 3,273 | `bridge/export-svg-walker.ts` | **none** |
+| 3,277 | `bridge/export-svg-walker.ts` | **none** |
 | 3,009 | `lib/rebrand/controller.ts` | yes |
 | 2,980 | `bridge/sequence-render.ts` | yes |
 | 2,899 | `views/projects.ts` | none |

@@ -247,6 +247,15 @@ const FIXTURES: Record<string, string> = {
     '<rect x="5" y="5" width="290" height="90" fill="#e0f0ff"/>' +
     '<text x="20" y="60" font-family="Outfit" font-size="32" fill="#123456">SVG text</text>' +
     '</svg>',
+  // Left-to-right paragraphs next to the right-to-left work in export-text.ts: inline
+  // runs, wrapping, tracking and decoration, and a paragraph holding an Arabic phrase its
+  // font does not cover, which stays a <text> with no direction. These bytes were written
+  // by main before that work, so a change here means a left-to-right file moved.
+  'ltr-inline':
+    '<div style="font-family:Outfit;font-size:22px;color:#123456;width:300px;letter-spacing:.5px;text-decoration:underline">' +
+    'Plain words with a <b>bold</b> run, wrapped over two lines of the box.</div>',
+  'ltr-arabic-phrase':
+    '<div style="font-family:Outfit;font-size:22px;color:#123456">She said مرحبا بالعالم. Then left.</div>',
   // A linear-gradient background: SVG keeps it as <linearGradient>; the
   // EMF/EPS/DXF IR flattens gradients to solids upstream.
   'linear-gradient':
@@ -255,6 +264,8 @@ const FIXTURES: Record<string, string> = {
 };
 
 const FORMATS: Format[] = ['svg', 'emf', 'eps', 'dxf'];
+/** EPS and DXF have no live text, so those two have nothing to say about a run no font covers. */
+const LIVE_TEXT_ONLY = new Set(['ltr-arabic-phrase']);
 
 /** Format-specific structural markers: proof the golden is non-trivial output
  *  of the RIGHT container, not an empty or error string. */
@@ -286,6 +297,7 @@ function assertStructure(format: Format, out: string, fixture: string): void {
 
 for (const [fixture, inner] of Object.entries(FIXTURES)) {
   for (const format of FORMATS) {
+    if (LIVE_TEXT_ONLY.has(fixture) && (format === 'eps' || format === 'dxf')) continue;
     test(`golden: ${fixture} renders byte-exact ${format}`, { skip: SKIP }, async () => {
       const [a, b] = await renderTwice(inner, format);
       // Determinism FIRST: a golden over unstable bytes is worse than no golden.

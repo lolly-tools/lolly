@@ -8,7 +8,8 @@
  */
 import { resolveVectorFont } from './font-registry.ts';
 import type { VectorFont } from './font-registry.ts';
-import { letterSpacingPx, featureSettingsToHb, applyTextTransform } from './text-svg.ts';
+import { letterSpacingPx, featureSettingsToHb, applyTextTransform, physicalTextAnchor } from './text-svg.ts';
+import { hasRtlText } from '@lolly-tools/node-shell/text-bidi';
 import { _host, fontMetricsPx } from './export-shared.ts';
 import { n2 } from './export-css.ts';
 
@@ -29,6 +30,10 @@ import { n2 } from './export-css.ts';
 // attribute would not) so they never fall through to the 'SUSE' var fallback. When
 // `outline` is false (the "Convert paths" toggle off) every run is left as editable text
 // with only the family baked, honouring the user's request.
+//
+// A run's direction comes from the page around the <svg>, which the standalone file does
+// not have. A right-to-left run states its direction on a kept <text>, and an outlined
+// one reads `text-anchor` against it, so `start` stays the right edge as it was on screen.
 export async function outlineSvgTextRuns(liveSvg: Element, clone: Element, outline: boolean): Promise<void> {
   const liveTexts = liveSvg.querySelectorAll('text');
   const cloneTexts = clone.querySelectorAll('text');
@@ -54,7 +59,8 @@ export async function outlineSvgTextRuns(liveSvg: Element, clone: Element, outli
     const letterSpacing = letterSpacingPx(cs.letterSpacing);
     const features = featureSettingsToHb(cs.fontFeatureSettings);
     try {
-      const r = await textApi.toPath({ text: raw, fontUrl: vf.url, fontSize: fontSizePx, features: features as string[], letterSpacing, variations: vf.variations, fallbackFonts: vf.fallbacks });
+      const rtl = cs.direction === 'rtl';
+      const r = await textApi.toPath({ text: raw, fontUrl: vf.url, fontSize: fontSizePx, features: features as string[], letterSpacing, variations: vf.variations, fallbackFonts: vf.fallbacks, ...(rtl || hasRtlText(raw) ? { direction: rtl ? 'rtl' as const : 'ltr' as const } : {}) });
       return r.d && !(r.notdef ?? 0) ? { d: r.d, adv: r.advanceWidth || 0 } : null;
     } catch (e) {
       _host?.log?.('warn', `svg: SVG-text outline failed, keeping <text> - ${(e as Error).message}`);
@@ -106,6 +112,7 @@ export async function outlineSvgTextRuns(liveSvg: Element, clone: Element, outli
     // rule may name tspans directly, so each kept tspan gets its own resolved family.
     const bakeFamily = () => {
       cl.style.fontFamily = cs.fontFamily;
+      if (cs.direction === 'rtl' && !cl.getAttribute('direction')) cl.setAttribute('direction', 'rtl');
       const liveSpans = live.querySelectorAll('tspan');
       const cloneSpans = cl.querySelectorAll('tspan');
       if (liveSpans.length === cloneSpans.length) {
@@ -133,7 +140,8 @@ export async function outlineSvgTextRuns(liveSvg: Element, clone: Element, outli
       const y = num(live.getAttribute('y')) + rel(live.getAttribute('dy'), fontSizePx) + baselineShift(live, cs, fontSizePx);
       let adv = shaped.adv;
       if (adv <= 0) { try { adv = live.getComputedTextLength(); } catch { adv = 0; } }
-      const xAdj = anchor === 'middle' ? x - adv / 2 : anchor === 'end' ? x - adv : x;
+      const side = physicalTextAnchor(anchor, cs.direction);
+      const xAdj = side === 'middle' ? x - adv / 2 : side === 'end' ? x - adv : x;
       cl.replaceWith(runPath(shaped.d, `${own ? own + ' ' : ''}translate(${n2(xAdj)},${n2(y)})`, live, cs, true));
       continue;
     }
@@ -159,10 +167,11 @@ export async function outlineSvgTextRuns(liveSvg: Element, clone: Element, outli
       if (!shaped) { failed = true; break; }
       let adv = shaped.adv;
       if (adv <= 0) { try { adv = (span as SVGTextContentElement).getComputedTextLength(); } catch { adv = 0; } }
-      const spanAnchor = span.getAttribute('text-anchor') || anchor;
+      const spanAnchor = physicalTextAnchor(span.getAttribute('text-anchor') || anchor, scs.direction);
       const xAdj = spanAnchor === 'middle' ? penX - adv / 2 : spanAnchor === 'end' ? penX - adv : penX;
       paths.push(runPath(shaped.d, `translate(${n2(xAdj)},${n2(penY + shift)})`, span, scs, true));
-      penX = xAdj + adv;
+      // Right-to-left runs follow each other leftwards.
+      penX = scs.direction === 'rtl' ? xAdj : xAdj + adv;
     }
     if (failed || !paths.length) { bakeFamily(); continue; }
     const group = document.createElementNS(NS, 'g');
