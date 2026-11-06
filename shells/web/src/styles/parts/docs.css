@@ -622,7 +622,7 @@
   background: color-mix(in srgb, var(--ui-color-surface-canvas) 88%, transparent);
   -webkit-backdrop-filter: blur(12px);
   backdrop-filter: blur(12px);
-  box-shadow: 0 1px 0 var(--ui-color-border-default);
+  border-bottom: 1px solid var(--ui-color-border-default);
   opacity: 0;
   pointer-events: none;
   transition: opacity var(--ui-motion-feedback);
