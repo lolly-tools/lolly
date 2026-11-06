@@ -485,10 +485,12 @@ export async function productionBatchCli(
         planned = await planProductionBatch(path, options);
       } catch (error) {
         if (!options.watch || signalCode) throw error;
+        // Listening before saying so: a change made as soon as the line appears is seen.
+        const changed = waitForChanges([path]);
         process.stderr.write(
           `Batch source error: ${(error as Error).message}. Waiting for the CSV to change.\n`
         );
-        await waitForChanges([path]);
+        await changed;
         continue;
       }
       const planId = digest(
@@ -791,8 +793,11 @@ export async function productionBatchCli(
         process.stderr.write('Source changed during the batch; replanning.\n');
         continue;
       }
+      // The watchers exist before this message goes out, so a change made the moment
+      // the message appears is not missed.
+      const changed = waitForChanges([path, ...planned.jobs.flatMap((job) => job.files)]);
       process.stderr.write('Watching the CSV and its file inputs. Ctrl-C stops.\n');
-      await waitForChanges([path, ...planned.jobs.flatMap((job) => job.files)]);
+      await changed;
     } while (!signalCode);
     return signalCode;
   } finally {
