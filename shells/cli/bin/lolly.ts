@@ -380,7 +380,8 @@ Export options:
                            See /info/build/cli-signing.html
   --durable=1              embed the durable Content Credential (neural TrustMark).
                            Off by default (a neural encode, and a model download)
-  --password=<pw>          PDF open-password (visible in \`ps\`; see --password-stdin)
+  --password=<pw>          open password for a pdf or zip, read back before the file is
+                           written; any other format exits 4 (visible in \`ps\`; see --password-stdin)
   --password-stdin         read the password from stdin instead of argv
   --depth=8|16|float       requested bits per channel; --hdr=1 for the float view transform
   --fps=<n> --seconds=<s>  video clip controls (mp4/webm/gif/apng): frame rate and length;
