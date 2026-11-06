@@ -114,8 +114,10 @@ joins the programme and the company, without an invitation each. Only an address
 provider has verified counts. A claimed address never does, and the exact domain is matched, so
 `emea.northwind.example` needs its own entry.
 
-**Preview** first lists the people at that domain who already sign in here, and whether each
-joins now, joins later or does not join, with the reason. Then choose how the domain is proved:
+**Preview** first lists the people at that domain who already sign in here. Partner accounts
+(people who are, or were, in a programme) show whether each joins now, joins later or does not
+join, with the reason. Everyone else is listed apart as **Already in this workspace as staff: will
+not join**, with the count. Then choose how the domain is proved:
 
 - **Proved by DNS** (the usual way). You get a TXT record for the partner to publish in their DNS:
 
@@ -139,12 +141,24 @@ Two kinds of domain are refused either way: public mail domains, such as `gmail.
 address, a domain a sign-in provider is limited to, and the domains of your owners' and admins'
 addresses. People at a public mail domain are added by list instead.
 
-When a domain becomes active, the people at it who already sign in join at once, if a provider has
-verified their address. Everyone else joins at their next sign-in. A person joins through a domain
-once, so removing someone from the programme in **People** sticks. Lolly Work never adds a domain's
-programme to an admin, an owner, a disabled account or an account your SCIM connector manages:
-SCIM decides for the people it manages. With single sign-on, the programme and company are added on
-top of the groups the provider sends.
+When a domain becomes active, the partner accounts at it join at once, if a provider has verified
+their address, and the rest of them join at their next sign-in. People who sign in for the first
+time with an address there join too. A person joins through a domain once, so removing someone from
+the programme in **People** sticks.
+
+Staff are never moved by a domain on its own. Joining a programme limits someone to its tools and
+assets, so an account that already signs in here and is not a partner keeps its access when you add
+its domain, at that moment and at every later sign-in. That protects your own people when a domain
+also carries staff: a second corporate domain, a subsidiary, or a domain in
+`idp.admission.domains`. When you do mean to move them, for example while moving a partner from
+`idp.admission.domains` to a domain here, tick **Also move these accounts into the programme as
+partners** in the preview. The move is recorded in Audit as `programme.domain.move-staff`, with the
+accounts moved. A partner domain never lets staff in on its own either, so revoking a staff
+member's invitation still stops their sign-in.
+
+Lolly Work never adds a domain's programme to an admin, an owner, a disabled account or an account
+your SCIM connector manages: SCIM decides for the people it manages. With single sign-on, the
+programme and company are added on top of the groups the provider sends.
 
 **Remove** stops new people joining through a domain. People who already joined stay until you end
 their access or their end date passes. The programme's **People** list says who joined through a
@@ -221,7 +235,7 @@ POST   /api/v1/programmes/exit                    # { programme | company | doma
                                                   # projects: team-readonly, me-readonly, me or keep
 POST   /api/v1/programmes/sweep                   # end what has passed its end date, and look up the domains that are due
 GET    /api/v1/partner-domains[?programme=<id>]   # every partner domain, its proof, the record to publish and its programmes
-PUT    /api/v1/partner-domains/:domain            # { programme?, company?, endsAt?, proof?: "txt" | "admin", reason?, dryRun? }
+PUT    /api/v1/partner-domains/:domain            # { programme?, company?, endsAt?, proof?: "txt" | "admin", reason?, dryRun?, moveStaff? }
 POST   /api/v1/partner-domains/:domain/check      # look the TXT record up now
 DELETE /api/v1/partner-domains/:domain[?programme=<id>]
 ```
@@ -234,7 +248,8 @@ and each grant and collection change it makes is audited as its own `grant.creat
 Adding people is audited per person as `programme.member.add` (with the account or invitation,
 never the address, and `via: "domain"` with the domain for someone who joined through one), and
 companies as `programme.company.create`, `.edit` and `.delete`. Domains are audited as
-`programme.domain.add`, `.rule`, `.assert`, `.proof`, `.verify`, `.pause` and `.remove`.
+`programme.domain.add`, `.rule`, `.assert`, `.proof`, `.verify`, `.pause`, `.move-staff` and
+`.remove`.
 
 The same steps from the command line:
 
@@ -242,6 +257,8 @@ The same steps from the command line:
 lw people import resellers-emea roster.csv            # a preview; add --apply to do it
 lw domains add northwind.example --programme resellers-emea --company northwind --ends 2027-06-30
 lw domains add northwind.example --programme resellers-emea --assert --reason "Agreement 4411"
+lw domains add northwind.example --programme resellers-emea --dry-run      # staff are listed with their ids
+lw domains add northwind.example --programme resellers-emea --move-staff <id,id>
 lw domains check northwind.example
 lw people exit --domain northwind.example             # a preview; add --apply to do it
 ```
