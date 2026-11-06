@@ -2630,6 +2630,24 @@ function stripScript(): string {
  * an ordinary #id link and the browser does the move (and the site's reduced-motion-aware
  * scroll-behavior with it). The reading line sits under the fixed bar.
  */
+/**
+ * The docs search ranking (plan 354 D4): shells/web/src/lib/search/docs-rank.ts, the module
+ * the app's spotlight ranks docs with, bundled once here so both searches read the one
+ * index the same way and put a page ahead of its sections. DOCS_SEARCH_SCRIPT calls the bundle.
+ */
+let _rankJs: string | null = null;
+function docsRankScript(): string {
+  if (_rankJs === null) {
+    const out = buildSync({
+      entryPoints: [resolve(repoRoot, 'shells/web/src/lib/search/docs-rank.ts')],
+      bundle: true, write: false, format: 'iife', globalName: 'LollyDocsRank',
+      minify: true, platform: 'browser', target: 'es2019', logLevel: 'silent',
+    });
+    _rankJs = out.outputFiles[0]!.text.trim();
+  }
+  return `<script>\n${_rankJs}\n</script>`;
+}
+
 let _contentsJs: string | null = null;
 function contentsScript(): string {
   if (_contentsJs === null) {
@@ -5287,34 +5305,16 @@ var out=document.getElementById('docs-search-results');
 var base=wrap.getAttribute('data-search-base')||'/info';
 var records=null,pending=null,active=-1,timer;
 
-// Fold case and diacritics, so "recuperer" finds "récupérer" and the reverse.
-// NFD splits an accented letter into base + combining mark and the range strip
-// removes the mark; scripts that neither case-fold nor decompose pass through
-// unchanged, which is the correct no-op rather than a wrong transform.
-function norm(s){return String(s).toLowerCase().normalize('NFD').replace(/[\\u0300-\\u036f]/g,'');}
-
+// Folding and ranking are LollyDocsRank (docsRankScript, the app's own docs-rank.ts):
+// case and diacritics fold, every term must match (adding a word narrows), and a page
+// matched in its title leads its sections.
 function load(){
   if(records)return Promise.resolve(records);
   if(!pending)pending=fetch(base+'/search-index.json')
     .then(function(r){return r.ok?r.json():[];})
-    .then(function(j){records=j.map(function(r){r._=norm(r.h+' '+r.t+' '+r.x);return r;});return records;})
+    .then(function(j){records=LollyDocsRank.prepareRecords(j);return records;})
     .catch(function(){records=[];return records;});
   return pending;
-}
-
-// Every term must appear somewhere in the record - an AND, so adding a word
-// narrows rather than widens. Where it matched decides the rank: a heading beats
-// a page title beats body prose.
-function score(r,terms){
-  var h=norm(r.h),t=norm(r.t),s=0;
-  for(var i=0;i<terms.length;i++){
-    var q=terms[i];
-    if(r._.indexOf(q)<0)return 0;
-    if(h.indexOf(q)===0)s+=8;else if(h.indexOf(q)>=0)s+=5;
-    else if(t.indexOf(q)>=0)s+=3;else s+=1;
-  }
-  if(!r.h)s+=1;
-  return s;
 }
 
 function close(){out.hidden=true;out.textContent='';active=-1;input.setAttribute('aria-expanded','false');input.removeAttribute('aria-activedescendant');}
@@ -5372,11 +5372,8 @@ function run(){
   if(!q){close();return;}
   load().then(function(rs){
     if(input.value.trim()!==q)return;   // a later keystroke already won
-    var terms=norm(q).split(/\\s+/).filter(Boolean);
-    var hits=[];
-    for(var i=0;i<rs.length;i++){var s=score(rs[i],terms);if(s>0)hits.push({r:rs[i],s:s});}
-    hits.sort(function(a,b){return b.s-a.s;});
-    render(hits.slice(0,12).map(function(x){return x.r;}));
+    var hits=LollyDocsRank.rankDocs(rs,LollyDocsRank.tokenize(q));
+    render(hits.slice(0,12).map(function(x){return x.rec;}));
   });
 }
 
@@ -6509,7 +6506,7 @@ const DOCS_JS = [
   CHIP_FIELD_JS,
   FORMATS_DIALOG_SCRIPT, THEME_INTERACT_SCRIPT, SHOT_MOTION_SCRIPT, SHOWCASE_SCRIPT,
   SHOT_CRED_SCRIPT, SCROLL_REVEAL_SCRIPT, LIQUID_GLASS_SCRIPT, HERO_CANVAS_SCRIPT,
-  VERIFY_POPOUT_SCRIPT, DOCS_SEARCH_SCRIPT, HAMBURGER_SCRIPT,
+  VERIFY_POPOUT_SCRIPT, docsRankScript(), DOCS_SEARCH_SCRIPT, HAMBURGER_SCRIPT,
   LANG_PICKER_SCRIPT, ORIGIN_SCRIPT, readingScript(), stripScript(), contentsScript(), agentCopyScript(), MAST_CLEAR_SCRIPT,
 ].map(stripScriptTags).join('\n;\n');
 const fingerprint = (s: string): string =>
