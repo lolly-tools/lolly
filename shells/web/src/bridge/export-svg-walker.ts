@@ -2820,7 +2820,7 @@ async function svgPseudoContent(
     }
     if (!ds.text.trim()) continue;
     const fontSizePx = parseFloat(ds.ps.fontSize) || 16;
-    const vf = vectorText && _host?.text ? await resolveExportFont(ds.ps, ds.text) : null;
+    const vf = vectorText && _host?.text ? await resolveExportFont(ds.ps, ds.text, el) : null;
     const fontUrl = vf?.url ?? null;
     const col = parseCssColorFull(ds.ps.color);
     const fillAttr  = col ? `rgb(${col[0]},${col[1]},${col[2]})` : null;

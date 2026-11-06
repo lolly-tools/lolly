@@ -549,8 +549,8 @@ While a hold is set, a revocation, or any edit that would make the asset unavail
 `validUntil` in the past, a `validFrom` in the future), is refused with `409 ASSET_HELD`, and the
 hold note travels with the refusal. Release the hold first; that friction is the point. Edits
 that remove nothing (scheduling a *future* expiry, extending a window) still go through, and a
-hold never blocks *serving*. Setting and releasing needs `catalog.hold` (admin, narrowable per
-resource with a grant), and is audited as `catalog.hold` and `catalog.hold.release`. An owner is
+hold never blocks *serving*. Setting and releasing needs `catalog.hold` (admin, grantable to a
+group or a person), and is audited as `catalog.hold` and `catalog.hold.release`. An owner is
 not required, because a hold can only keep something available.
 
 A hold on a **federated** `ext/*` asset implies a pin: its bytes are copied into the instance's

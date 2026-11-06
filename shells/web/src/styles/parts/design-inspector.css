@@ -413,6 +413,139 @@
 .tool-stage[data-design-layout="compact"] .tl-panel { bottom: calc(var(--design-actions-h) + var(--design-viewport-inset, 0px)); }
 .tool-stage[data-design-layout="compact"].is-text-editing .design-compact-actions button:not(.design-text-done) { display: none; }
 
+/* ── Design's inputs on a phone (views/design-phone-panel.ts) ─────────────────────
+   The tool view's drop-down inputs panel, on the same .tool-layout, with the inspector
+   and the layers list as its two tabs. Its stops (--sheet-h by data-sheet), its settle
+   (--sheet-settle), its grip (.sheet-grip) and its crop fade are the mobile block of
+   parts/tool.css, so they are not restated here. What is Design's: where it hangs
+   (under the top bar, the driver's inset), how far it may open (down to the bottom
+   bar), and what fills it. The phone layout only; a wider compact window keeps the
+   bottom sheets above. */
+@media (max-width: 640px) {
+  .tool-layout.is-editor {
+    --sheet-inset: max(0px, calc(var(--design-topbar-h, 58px) - var(--safe-top, 0px)));
+    --design-bar-h: calc(60px + var(--safe-bottom, 0px));
+    /* No further than the bottom bar, less the grip's reach over the canvas. */
+    --sheet-room: calc(100dvh - var(--vv-bottom, 0px) - var(--safe-top, 0px) - var(--design-bar-h) - var(--sheet-grip-out));
+    /* The grip takes the room that is free anyway, as a tool's does, and none is set
+       aside for it. In: the panel body's foot, the tool sheet's own 15px, plus the
+       hairline. Out: 8px, inside the gutter a fit leaves above the artwork (3% of the
+       canvas band: 11px at half on a 390 x 844 phone, 9px on a 360 x 740 one), so the
+       grip never lies on the artwork of a fitted canvas. 24px at half and full. */
+    --sheet-grip-in: calc(var(--sheet-body-foot) + 1px);
+    --sheet-grip-out: 8px;
+    /* The head strip's foot, below its tabs. */
+    --dpp-head-foot: 6px;
+  }
+  /* At the peek there is no body below the head strip, so the grip's reach in stops at
+     the strip's foot, below the tabs, and its reach out is longer, inside the wider
+     gutter a fit leaves in the taller band (3% of 672px on a 390 x 844 phone): 24px. */
+  .tool-layout.is-editor[data-sheet="peek"] {
+    --sheet-grip-in: var(--dpp-head-foot);
+    --sheet-grip-out: 18px;
+  }
+  .design-phone-panel {
+    position: fixed;
+    /* One pixel up, so its top hairline lies on the top bar's own and reads as one line. */
+    top: calc(var(--vv-top, 0px) + var(--safe-top, 0px) + var(--sheet-inset) - 1px);
+    left: var(--vv-left, 0px);
+    width: 100%;
+    height: calc(var(--sheet-h) - var(--sheet-inset) + 1px);
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    z-index: var(--z-overlay);
+    background: var(--ui-color-surface-muted);
+    color: var(--ui-color-text-default);
+    border: 1px solid var(--ui-color-border-default);
+    border-radius: 0 0 var(--ui-radius-panel) var(--ui-radius-panel);
+    box-shadow: var(--shadow-3);
+    overflow: hidden;
+    transition: height var(--sheet-settle);
+  }
+  /* 1:1 with the finger while dragged, as the tool view's sheet is. Said here, not by
+     the tool view's rule: this sheet is unlayered and that rule is in the views layer,
+     which an unlayered `transition` would beat. */
+  .tool-layout.is-sheet-dragging .design-phone-panel { transition: none; }
+  /* Reduce motion, either switch: the panel jumps to its stop, as the grip does. */
+  html[data-a11y-motion="reduce"] .design-phone-panel { transition: none; }
+  @media (prefers-reduced-motion: reduce) {
+    .design-phone-panel { transition: none; }
+  }
+  /* The head strip is the peek, and the panel's wide drag handle (the tabs stay taps). */
+  .dpp-head {
+    flex: none;
+    display: flex;
+    align-items: center;
+    gap: var(--sp-3);
+    padding: var(--dpp-head-foot) var(--sp-4) var(--dpp-head-foot) var(--dpp-head-foot);
+    touch-action: none;
+    cursor: grab;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  .tool-layout.is-sheet-dragging .dpp-head { cursor: grabbing; }
+  .dpp-tabs { flex: none; padding: 0; }
+  .dpp-tabs button { min-height: var(--ui-size-target); }
+  .dpp-tabs button[aria-selected="true"] {
+    background: var(--ui-color-selection-surface);
+    color: var(--ui-color-text-default);
+  }
+  .dpp-name {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    text-align: end;
+    /* The column head it stands in for was an eyebrow ("BOX", "DOCUMENT"): the panel
+       primitive's field eyebrow, smaller than the tabs beside it. */
+    color: var(--ui-color-text-muted);
+    font-size: var(--ui-type-field);
+    text-transform: uppercase;
+    letter-spacing: var(--ui-type-tracking-label);
+  }
+  /* The body ends where the grip's reach into the panel begins, as a tool's does. */
+  .dpp-body {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    margin-bottom: var(--sheet-body-foot);
+  }
+  .design-phone-panel[data-tab="inspect"] .dpp-body > .fc-nav,
+  .design-phone-panel[data-tab="layers"] .dpp-body > .fc-insp { display: none; }
+  .dpp-body > .fc-insp { flex: 1 1 auto; height: auto; background: transparent; }
+  /* The strip names the selection, and the grip, the strip and Escape close the panel. */
+  .dpp-body > .fc-insp .fc-insp-headbar { display: none; }
+  .dpp-body > .fc-nav {
+    position: static;
+    flex: 1 1 auto;
+    width: auto !important;
+    height: auto;
+    min-height: 0;
+    padding: 0 var(--sp-3);
+    background: transparent;
+    box-shadow: none;
+    border: 0;
+    border-radius: 0;
+    z-index: auto;
+  }
+  .dpp-body > .fc-nav :is(.fc-nav-head, .fc-nav-rail-slot, .fc-nav-rail, .fc-nav-grip) { display: none; }
+  /* The half stop's height at the sheet's origin, which the module reads without
+     waiting for a settle (the canvas band below the panel). */
+  .dpp-probe {
+    position: fixed;
+    top: calc(var(--vv-top, 0px) + var(--safe-top, 0px));
+    left: 0;
+    width: 0;
+    height: var(--sheet-half);
+    visibility: hidden;
+    pointer-events: none;
+  }
+  .tool-view.is-chrome-hidden :is(.design-phone-panel, .tool-layout.is-editor > .sheet-grip) { display: none; }
+}
+
 /* A field's keyframe diamond (plans/328): beside Fill, Stroke, Stroke width and Corner
    radius while the timeline is open. Hollow and quiet when the property is not
    animated, hollow in the accent when it is, filled when the playhead is on its key.

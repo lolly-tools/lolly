@@ -17,10 +17,23 @@
  *   the chain, and the bytes, it had before.
  * - A cluster no fallback font covers is reported; the caller keeps the answer it had for
  *   those characters (a picture in a PDF, live text in an SVG).
+ *
+ * Chinese, Japanese and Korean share the Han characters but draw many of them
+ * differently. One run takes every Han character from one of those fonts only, the one
+ * `hanForms` picks from the run's language, then its script, then a stated default.
+ * See docs/fallback-fonts.md.
  */
 import { emojiGraphemes } from '../../../engine/src/emoji-segment.ts';
 import { textScriptRuns } from '../../../engine/src/text-unicode.ts';
 import { parseUnicodeRange } from './font-faces.ts';
+
+/** The language whose forms a Chinese, Japanese or Korean fallback font draws Han characters in. */
+export type HanForm = 'zh-Hans' | 'zh-Hant' | 'ja' | 'ko';
+const HAN_FORMS: readonly string[] = ['zh-Hans', 'zh-Hant', 'ja', 'ko'];
+
+/** The block whose coverage a Chinese, Japanese or Korean pack records as a bitmap. */
+const IDEOGRAPHS_FROM = 0x4E00;
+const IDEOGRAPHS_TO = 0x9FFF;
 
 /** One fallback font, as described by its catalog entry. */
 export interface FallbackFontPack {
@@ -43,6 +56,36 @@ export interface FallbackFontPack {
   format: string;
   checksum?: string;
   size?: number;
+  /** For a Chinese, Japanese or Korean font: the language whose Han forms it draws. */
+  han?: HanForm;
+  /**
+   * Which code points of U+4E00 to U+9FFF the file maps, one bit each, lowest first. The
+   * block is listed whole in `claims` and `covers`; this says which of it is really there.
+   */
+  ideographs?: Uint8Array;
+}
+
+/** Base64 to bytes, without reaching for a platform decoder. */
+function fromBase64(text: string): Uint8Array | null {
+  const ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
+  const clean = text.replace(/=+$/, '');
+  if (/[^A-Za-z0-9+/]/.test(clean)) return null;
+  const out = new Uint8Array(Math.floor((clean.length * 6) / 8));
+  let acc = 0, bits = 0, at = 0;
+  for (const ch of clean) {
+    acc = (acc << 6) | ALPHABET.indexOf(ch);
+    bits += 6;
+    if (bits >= 8) { bits -= 8; out[at++] = (acc >> bits) & 0xff; }
+  }
+  return out;
+}
+
+/** A pack's ideograph bitmap, when its entry carries one for exactly the block it lists. */
+function ideographsOf(meta: Record<string, unknown>): Uint8Array | undefined {
+  const raw = meta.ideographs as { range?: unknown; bits?: unknown } | undefined;
+  if (raw?.range !== 'U+4E00-9FFF' || typeof raw.bits !== 'string') return undefined;
+  const bits = fromBase64(raw.bits);
+  return bits && bits.length * 8 >= IDEOGRAPHS_TO - IDEOGRAPHS_FROM + 1 ? bits : undefined;
 }
 
 interface PackEntry {
@@ -58,8 +101,11 @@ export function fallbackPacksFrom(entries: readonly unknown[]): FallbackFontPack
     const meta = entry?.meta?.fallbackFont;
     const format = entry?.formats?.[0];
     if (!meta || typeof entry.id !== 'string' || typeof entry.version !== 'string' || typeof format?.url !== 'string') continue;
-    const { family, label, scripts, style, weight, claims, covers } = meta as Record<string, unknown>;
+    const { family, label, scripts, style, weight, claims, covers, han } = meta as Record<string, unknown>;
     if (typeof family !== 'string' || typeof label !== 'string' || !Array.isArray(scripts) || typeof claims !== 'string' || typeof covers !== 'string') continue;
+    // A Chinese, Japanese or Korean entry without its bitmap would claim the whole block.
+    const ideographs = ideographsOf(meta as Record<string, unknown>);
+    if (han !== undefined && (typeof han !== 'string' || !HAN_FORMS.includes(han) || !ideographs)) continue;
     out.push({
       id: entry.id,
       version: entry.version,
@@ -74,6 +120,8 @@ export function fallbackPacksFrom(entries: readonly unknown[]): FallbackFontPack
       format: typeof format.format === 'string' ? format.format : 'woff2',
       ...(typeof format.checksum === 'string' ? { checksum: format.checksum } : {}),
       ...(typeof format.size === 'number' ? { size: format.size } : {}),
+      ...(typeof han === 'string' ? { han: han as HanForm } : {}),
+      ...(ideographs ? { ideographs } : {}),
     });
   }
   return out;
@@ -156,15 +204,154 @@ const inRanges = (list: Array<[number, number]>, cp: number): boolean => {
   return false;
 };
 
+/** A code point of a pack's range list, refined by its ideograph bitmap inside that block. */
+function mapsPoint(pack: FallbackFontPack, list: Array<[number, number]>, cp: number): boolean {
+  if (pack.ideographs && cp >= IDEOGRAPHS_FROM && cp <= IDEOGRAPHS_TO) {
+    const i = cp - IDEOGRAPHS_FROM;
+    return ((pack.ideographs[i >> 3]! >> (i & 7)) & 1) === 1;
+  }
+  return inRanges(list, cp);
+}
+
 /** Does this pack's file map every one of these characters? */
 export function packCovers(pack: FallbackFontPack, cps: readonly number[]): boolean {
   const list = ranges(pack.covers);
-  return cps.every((cp) => inRanges(list, cp));
+  return cps.every((cp) => mapsPoint(pack, list, cp));
 }
 
 /** Is this character one the pack is chosen for (its own script, not a shared space or digit)? */
 export function packClaims(pack: FallbackFontPack, cp: number): boolean {
-  return inRanges(ranges(pack.claims), cp);
+  return mapsPoint(pack, ranges(pack.claims), cp);
+}
+
+// ── Chinese, Japanese and Korean: which font draws a run's Han characters ────
+
+/** The scripts whose clusters a Chinese, Japanese or Korean font may draw. */
+const CJK_SCRIPTS = new Set(['Hani', 'Hira', 'Kana', 'Hang', 'Bopo']);
+const KANA = /^[\p{Script=Hiragana}\p{Script=Katakana}]$/u;
+const HANGUL = /^\p{Script=Hangul}$/u;
+const HAN = /^\p{Script=Han}$/u;
+/** Any character a Chinese, Japanese or Korean run can hold, punctuation included. */
+const CJK_ANY = /[\p{scx=Han}\p{scx=Hiragana}\p{scx=Katakana}\p{scx=Hangul}\p{scx=Bopomofo}]/u;
+
+/** Does this text hold anything a Chinese, Japanese or Korean font would be chosen for? */
+export function hasCjk(text: string): boolean { return CJK_ANY.test(text); }
+
+/**
+ * The Han forms a BCP 47 language tag asks for, or null for a tag that gives no Chinese,
+ * Japanese or Korean (or none at all). Chinese is Traditional for the Hant script and for
+ * Taiwan, Hong Kong and Macao, and for Cantonese; otherwise Simplified.
+ */
+export function hanFormOfLang(lang: string | null | undefined): HanForm | null {
+  if (!lang) return null;
+  const [primary, ...rest] = lang.trim().toLowerCase().replace(/_/g, '-').split('-');
+  if (primary === 'ja') return 'ja';
+  if (primary === 'ko') return 'ko';
+  if (primary !== 'zh' && primary !== 'cmn' && primary !== 'yue') return null;
+  if (rest.includes('hant')) return 'zh-Hant';
+  if (rest.includes('hans')) return 'zh-Hans';
+  if (primary === 'yue' || rest.some((r) => r === 'tw' || r === 'hk' || r === 'mo' || r === 'yue')) return 'zh-Hant';
+  return 'zh-Hans';
+}
+
+/** What a stretch of text shows about its language, for `hanForms`. */
+export interface HanEvidence {
+  /** Which of kana and Hangul comes first, if either does. */
+  first: 'ja' | 'ko' | null;
+  kana: boolean;
+  hangul: boolean;
+  /** A Han character only the Traditional Chinese font has. */
+  traditional: boolean;
+  /** A Han character only the Simplified Chinese font has. */
+  simplified: boolean;
+}
+
+/** Read `text` for kana, Hangul, and Han characters only one form of Chinese writes. */
+export function hanEvidence(text: string, packs: readonly FallbackFontPack[]): HanEvidence {
+  const out: HanEvidence = { first: null, kana: false, hangul: false, traditional: false, simplified: false };
+  const sc = packs.find((p) => p.han === 'zh-Hans');
+  const tc = packs.find((p) => p.han === 'zh-Hant');
+  for (const ch of text) {
+    const cp = ch.codePointAt(0)!;
+    // Nothing below the Hangul jamo is evidence; most text ends its check here.
+    if (cp < 0x1100) continue;
+    if (KANA.test(ch)) { out.kana = true; out.first ??= 'ja'; }
+    else if (HANGUL.test(ch)) { out.hangul = true; out.first ??= 'ko'; }
+    else if (sc && tc && HAN.test(ch)) {
+      const s = packCovers(sc, [cp]), t = packCovers(tc, [cp]);
+      if (t && !s) out.traditional = true;
+      else if (s && !t) out.simplified = true;
+    }
+  }
+  return out;
+}
+
+/** What `hanForms` reads for one run. */
+export interface HanContext {
+  /**
+   * The run's language: the `lang` of its element or of the nearest ancestor that has
+   * one, inside the document being drawn (`runLang`). The app's own language and the
+   * design system's never count.
+   */
+  lang?: string | null;
+  /** The run's own text. */
+  text?: string;
+  /** What the whole document's text shows (`hanEvidence`), when the caller has read the document. */
+  document?: HanEvidence | null;
+}
+
+/**
+ * Which Chinese, Japanese or Korean font draws a run's Han characters, first choice first.
+ *
+ * 1. The run's language, when it names Chinese, Japanese or Korean.
+ * 2. Its script: kana means Japanese and Hangul means Korean, read in the run first, then
+ *    in the whole document when the document holds only one of the two.
+ * 3. A Han character that only Traditional Chinese writes, in the run and then in the
+ *    document, means Traditional Chinese, unless the same text holds one only
+ *    Simplified Chinese writes.
+ * 4. Otherwise Simplified Chinese.
+ *
+ * The first answer draws the run's Han characters. When the run also holds kana or Hangul
+ * that font cannot draw, Japanese or Korean follows it in the list, for those letters
+ * only (`choosePacks` keeps every Han character away from that font). The answer depends on the
+ * document alone, never on who exports it or in which app language, so every export of
+ * it is the same.
+ */
+export function hanForms(ctx: HanContext | undefined, packs: readonly FallbackFontPack[]): HanForm[] {
+  const run = hanEvidence(ctx?.text ?? '', packs);
+  const doc = ctx?.document;
+  const traditional = (run.traditional && !run.simplified) || (!run.simplified && Boolean(doc?.traditional) && !doc?.simplified);
+  const first: HanForm = hanFormOfLang(ctx?.lang)
+    ?? run.first
+    ?? (doc && doc.kana !== doc.hangul ? (doc.kana ? 'ja' : 'ko') : null)
+    ?? (traditional ? 'zh-Hant' : 'zh-Hans');
+  const forms: HanForm[] = [first];
+  // Kana before Hangul when the run shows both, in the order they first appear.
+  const letters: HanForm[] = run.first === 'ko' ? ['ko', 'ja'] : ['ja', 'ko'];
+  for (const form of letters) if (form !== first && (form === 'ja' ? run.kana : run.hangul)) forms.push(form);
+  return forms;
+}
+
+/** An element as `runLang` reads it: any DOM, the browser's or jsdom's. */
+export interface LangElement {
+  getAttribute(name: string): string | null;
+  getAttributeNS?(namespace: string, name: string): string | null;
+  readonly parentElement: LangElement | null;
+  readonly ownerDocument?: { readonly documentElement?: unknown } | null;
+}
+
+/**
+ * A run's language: the `lang` (or `xml:lang`) of its element or the nearest ancestor that
+ * has one. The page's root element carries the app's own language, which is the person's
+ * and not the document's, so the search ends before the root element. Null when nothing says.
+ */
+export function runLang(el: LangElement | null | undefined): string | null {
+  for (let e = el; e; e = e.parentElement) {
+    if (e === e.ownerDocument?.documentElement) return null;
+    const lang = e.getAttribute('lang') ?? e.getAttributeNS?.('http://www.w3.org/XML/1998/namespace', 'lang') ?? null;
+    if (lang !== null) return lang;
+  }
+  return null;
 }
 
 /**
@@ -173,8 +360,14 @@ export function packClaims(pack: FallbackFontPack, cp: number): boolean {
  * An italic run takes an italic pack where one exists, else the upright one: Arabic,
  * Hebrew, the Indic scripts and Thai have no italic, and a browser slants nothing for them
  * in a face that has none of its own either.
+ *
+ * Chinese, Japanese and Korean fonts follow `han` (from `hanForms`): only a Chinese,
+ * Japanese or Korean cluster takes one, and only the first form's font draws Han
+ * characters, so no word mixes two of them. A Han character that font lacks stays
+ * unfilled. A later form's font takes only the kana or Hangul the first cannot draw, and
+ * is left out when it would also draw a Han character the first lacks.
  */
-export function choosePacks(found: readonly FillCluster[], packs: readonly FallbackFontPack[], italic: boolean): { packs: FallbackFontPack[]; unfilled: FillCluster[] } {
+export function choosePacks(found: readonly FillCluster[], packs: readonly FallbackFontPack[], italic: boolean, han: readonly HanForm[] = ['zh-Hans']): { packs: FallbackFontPack[]; unfilled: FillCluster[] } {
   const chosen: FallbackFontPack[] = [];
   const unfilled: FillCluster[] = [];
   const styled = (list: readonly FallbackFontPack[]): FallbackFontPack[] => {
@@ -189,14 +382,29 @@ export function choosePacks(found: readonly FillCluster[], packs: readonly Fallb
     return out;
   };
   const usable = styled(packs);
+  const plain = usable.filter((p) => !p.han);
+  const [primary, ...others] = han.map((form) => usable.find((p) => p.han === form)).filter((p): p is FallbackFontPack => Boolean(p));
+  const withPrimary = primary ? [...plain, primary] : plain;
+  // A later form's font draws only kana or Hangul, and never when it would also be the
+  // first face in the chain to map a Han character the first form's font lacks.
+  const lacking = primary ? found.filter((c) => CJK_SCRIPTS.has(c.script) && drawn(c.text).some((cp) => HAN.test(String.fromCodePoint(cp))) && !packCovers(primary, drawn(c.text))) : [];
+  const secondary = others.filter((p) => !lacking.some((c) => packCovers(p, drawn(c.text))));
   for (const c of found) {
     const cps = drawn(c.text);
-    const own = usable.filter((p) => p.scripts.includes(c.script) && packCovers(p, cps));
-    const pack = own[0] ?? usable.find((p) => packCovers(p, cps));
+    // Only a Chinese, Japanese or Korean cluster may take one of their fonts, so a symbol
+    // in an English line never downloads one.
+    const cjk = CJK_SCRIPTS.has(c.script);
+    const candidates = cjk ? withPrimary : plain;
+    const own = candidates.filter((p) => p.scripts.includes(c.script) && packCovers(p, cps));
+    let pack = own[0] ?? candidates.find((p) => packCovers(p, cps));
+    if (!pack && cjk && !cps.some((cp) => HAN.test(String.fromCodePoint(cp)))) pack = secondary.find((p) => packCovers(p, cps));
     if (!pack) { unfilled.push(c); continue; }
     if (!chosen.includes(pack)) chosen.push(pack);
   }
-  return { packs: chosen, unfilled };
+  // The first form's font goes before any later one, so the chain gives it every Han
+  // character both could draw.
+  const later = (p: FallbackFontPack): boolean => others.includes(p);
+  return { packs: [...chosen.filter((p) => !later(p)), ...chosen.filter(later)], unfilled };
 }
 
 /** A face in a shaping chain, as toPath sees it: what it maps, and whether it only fills. */
@@ -267,7 +475,8 @@ export function fillNotice(uses: readonly FillUse[]): string | null {
 /** The characters a pack is chosen for, as code points. */
 export function claimedPoints(pack: FallbackFontPack): number[] {
   const out: number[] = [];
-  for (const [lo, hi] of ranges(pack.claims)) for (let cp = lo; cp <= hi; cp++) out.push(cp);
+  const list = ranges(pack.claims);
+  for (const [lo, hi] of list) for (let cp = lo; cp <= hi; cp++) if (mapsPoint(pack, list, cp)) out.push(cp);
   return out;
 }
 

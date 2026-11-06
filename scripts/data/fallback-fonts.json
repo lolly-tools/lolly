@@ -1,8 +1,32 @@
 {
-  "$comment": "Pins for the on-demand fallback fonts in community/fallback-fonts. scripts/import-fallback-fonts.ts reads each upstream file from a sparse clone of google/fonts at `commit`, refuses a file whose sha256 differs from the pin, pins the width axis at its default, cuts the Latin, Greek and Cyrillic packs out of Noto Sans by script, and writes WOFF2 files, the licence texts and index.json. `scripts` are ISO 15924 codes: a pack fills characters of those scripts that a design system's fonts cannot draw. `version` is the upstream font version in the catalog's three-part grammar (2.012 becomes 2.12.0).",
+  "$comment": "Pins for the on-demand fallback fonts in community/fallback-fonts. scripts/import-fallback-fonts.ts reads each upstream file from a sparse clone of google/fonts at `commit`, refuses a file whose sha256 differs from the pin, pins the width axis at its default where the font has one (`pinWidth`), cuts the Latin, Greek and Cyrillic packs out of Noto Sans by script, cuts the Chinese, Japanese and Korean packs to a national character set (`charset`, defined in the script from the WHATWG encoding indexes pinned under `charsets`) plus `add`, and writes WOFF2 files, the licence texts and index.json. `scripts` are ISO 15924 codes: a pack fills characters of those scripts that a design system's fonts cannot draw. `han` is the language whose Han forms a Chinese, Japanese or Korean pack draws. `version` is the upstream font version in the catalog's three-part grammar (2.012 becomes 2.12.0).",
   "source": {
     "repository": "https://github.com/google/fonts",
     "commit": "38411257417e616c5d4daa1b9e91a3dbcebe1c2e"
+  },
+  "charsets": {
+    "$comment": "The national character sets the Chinese, Japanese and Korean packs are cut to, read from the Encoding Standard's index files at this commit (fetched with git into dist/, never committed, each checked against its sha256). Only which code points each set holds is used. `runningText` is added to every one of those packs: the punctuation, dashes, quotation marks and fullwidth forms their running text uses.",
+    "repository": "https://github.com/whatwg/encoding",
+    "commit": "be17ac5c49881336538acfc7b40dba3c8009144b",
+    "indexes": {
+      "gb18030": {
+        "path": "index-gb18030.txt",
+        "sha256": "746b3c55f1a8ec4b90b451f384437a17fd37cd51cd668456a28071a758d10784"
+      },
+      "big5": {
+        "path": "index-big5.txt",
+        "sha256": "08e24270c8e95d998c994c03f907e972480dc01f58743e078654cc466203c8ff"
+      },
+      "jis0208": {
+        "path": "index-jis0208.txt",
+        "sha256": "341dcde7e8b984e9c7bbf5ed75c8da7c6087d47083a1a2b3ed558bfd5bef9468"
+      },
+      "euc-kr": {
+        "path": "index-euc-kr.txt",
+        "sha256": "89af20dd867c84cefb710b1790229786cfef2bf11916361a210d81b90381e267"
+      }
+    },
+    "runningText": "U+B7,U+2010-2015,U+2018-201F,U+2025-2026,U+2030,U+2032-2033,U+203B,U+3000-303F,U+FE10-FE1F,U+FE30-FE4F,U+FF00-FFEF"
   },
   "upstream": {
     "noto-sans-arabic": {
@@ -60,6 +84,46 @@
       "fontVersion": "2.015",
       "repository": "https://github.com/notofonts/latin-greek-cyrillic",
       "licence": { "path": "ofl/notosans/OFL.txt", "sha256": "cee9892f9f0cc8fe882c9e9537ee6a89621d86ee7ceaf70b02e2b2b1c25c061a" }
+    },
+    "noto-sans-sc": {
+      "path": "ofl/notosanssc/NotoSansSC[wght].ttf",
+      "sha256": "a3041811a78c361b1de50f953c805e0244951c21c5bd412f7232ef0d899af0da",
+      "bytes": 17772300,
+      "fontVersion": "2.004",
+      "repository": "https://github.com/notofonts/noto-cjk",
+      "creator": "Adobe",
+      "pinWidth": false,
+      "licence": { "path": "ofl/notosanssc/OFL.txt", "sha256": "1c05c68c34f9708415aada51f17e1b0092d2cea709bf4a94cd38114f9e73d7d9" }
+    },
+    "noto-sans-tc": {
+      "path": "ofl/notosanstc/NotoSansTC[wght].ttf",
+      "sha256": "864727d210d54f2537bbe23b3a839436c3992af72de9322af5270897246bd44f",
+      "bytes": 11941968,
+      "fontVersion": "2.004",
+      "repository": "https://github.com/notofonts/noto-cjk",
+      "creator": "Adobe",
+      "pinWidth": false,
+      "licence": { "path": "ofl/notosanstc/OFL.txt", "sha256": "1c05c68c34f9708415aada51f17e1b0092d2cea709bf4a94cd38114f9e73d7d9" }
+    },
+    "noto-sans-jp": {
+      "path": "ofl/notosansjp/NotoSansJP[wght].ttf",
+      "sha256": "c2f3b4d463500a2ddcd3849cded1fceeb9fd6d1c32e6cbecd568453ba50fc68f",
+      "bytes": 9589900,
+      "fontVersion": "2.004",
+      "repository": "https://github.com/notofonts/noto-cjk",
+      "creator": "Adobe",
+      "pinWidth": false,
+      "licence": { "path": "ofl/notosansjp/OFL.txt", "sha256": "1c05c68c34f9708415aada51f17e1b0092d2cea709bf4a94cd38114f9e73d7d9" }
+    },
+    "noto-sans-kr": {
+      "path": "ofl/notosanskr/NotoSansKR[wght].ttf",
+      "sha256": "194018e6b2b293a7964f037b25c0249ce1418bc9ab3c971060a03aa57861e252",
+      "bytes": 10414588,
+      "fontVersion": "2.004",
+      "repository": "https://github.com/notofonts/noto-cjk",
+      "creator": "Adobe",
+      "pinWidth": false,
+      "licence": { "path": "ofl/notosanskr/OFL.txt", "sha256": "1c05c68c34f9708415aada51f17e1b0092d2cea709bf4a94cd38114f9e73d7d9" }
     }
   },
   "packs": [
@@ -73,6 +137,10 @@
     { "id": "community/fallback-font/noto-sans-greek", "file": "noto-sans-greek.woff2", "upstream": "noto-sans", "family": "Noto Sans", "label": "Greek", "scripts": ["Grek"], "style": "normal", "cut": ["Grek"] },
     { "id": "community/fallback-font/noto-sans-greek-italic", "file": "noto-sans-greek-italic.woff2", "upstream": "noto-sans-italic", "family": "Noto Sans", "label": "Greek", "scripts": ["Grek"], "style": "italic", "cut": ["Grek"] },
     { "id": "community/fallback-font/noto-sans-latin", "file": "noto-sans-latin.woff2", "upstream": "noto-sans", "family": "Noto Sans", "label": "Latin", "scripts": ["Latn", "Zyyy"], "style": "normal", "cut": ["Latn", "Zyyy"] },
-    { "id": "community/fallback-font/noto-sans-latin-italic", "file": "noto-sans-latin-italic.woff2", "upstream": "noto-sans-italic", "family": "Noto Sans", "label": "Latin", "scripts": ["Latn", "Zyyy"], "style": "italic", "cut": ["Latn", "Zyyy"] }
+    { "id": "community/fallback-font/noto-sans-latin-italic", "file": "noto-sans-latin-italic.woff2", "upstream": "noto-sans-italic", "family": "Noto Sans", "label": "Latin", "scripts": ["Latn", "Zyyy"], "style": "italic", "cut": ["Latn", "Zyyy"] },
+    { "id": "community/fallback-font/noto-sans-sc", "file": "noto-sans-sc.woff2", "upstream": "noto-sans-sc", "family": "Noto Sans SC", "label": "Simplified Chinese", "scripts": ["Hani", "Bopo"], "style": "normal", "han": "zh-Hans", "charset": "gb2312", "add": "U+3100-312F" },
+    { "id": "community/fallback-font/noto-sans-tc", "file": "noto-sans-tc.woff2", "upstream": "noto-sans-tc", "family": "Noto Sans TC", "label": "Traditional Chinese", "scripts": ["Hani", "Bopo"], "style": "normal", "han": "zh-Hant", "charset": "big5", "add": "U+3100-312F" },
+    { "id": "community/fallback-font/noto-sans-jp", "file": "noto-sans-jp.woff2", "upstream": "noto-sans-jp", "family": "Noto Sans JP", "label": "Japanese", "scripts": ["Hani", "Hira", "Kana"], "style": "normal", "han": "ja", "charset": "shift_jis", "add": "U+3040-30FF,U+31F0-31FF" },
+    { "id": "community/fallback-font/noto-sans-kr", "file": "noto-sans-kr.woff2", "upstream": "noto-sans-kr", "family": "Noto Sans KR", "label": "Korean", "scripts": ["Hang", "Hani"], "style": "normal", "han": "ko", "charset": "ksx1001", "add": "U+3130-318F" }
   ]
 }

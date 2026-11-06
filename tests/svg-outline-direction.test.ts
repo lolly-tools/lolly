@@ -31,7 +31,7 @@ const translateX = (el: Element): number => Number(/translate\(([-\d.]+)/.exec(e
 const SYRIAC = 'ܫܠܡܐ ܥܠܡܐ.';
 
 test('a run no font covers stays text, not a row of boxes', async () => {
-  for (const words of [SYRIAC, '漢字テスト']) {
+  for (const words of [SYRIAC, 'ኢትዮጵያ']) {
     const svg = svgOf(`<text x="10" y="40" font-family="Outfit" font-size="20">${words}</text>`);
     const res = await outlineSvgText(svg, host);
     assert.equal(res.outlined, 0, words);
@@ -48,6 +48,26 @@ test('a run the design system cannot draw outlines with the fallback font for it
   assert.equal(res.outlined, 1);
   assert.equal(svg.querySelectorAll('text').length, 0);
   assert.deepEqual(res.filled, [{ label: 'Arabic', family: 'Noto Sans Arabic' }]);
+});
+
+test('Chinese, Japanese and Korean outline with one font per run, chosen by lang and then by script', async () => {
+  const fontOf = (res: Awaited<ReturnType<typeof outlineSvgText>>) => res.filled.map((u) => u.family);
+  // Kana in the run: Japanese, so 直 is the Japanese form.
+  const ja = svgOf('<text x="10" y="40" font-family="Outfit" font-size="20">直角です</text>');
+  assert.deepEqual(fontOf(await outlineSvgText(ja, host)), ['Noto Sans JP']);
+  assert.equal(ja.querySelectorAll('text').length, 0);
+  // A kanji-only title in a Japanese document, with no lang anywhere: the document's kana decide.
+  const title = svgOf('<text x="10" y="40" font-family="Outfit" font-size="20">直角</text><text x="10" y="80" font-family="Outfit" font-size="20">これは本文です</text>');
+  assert.deepEqual(fontOf(await outlineSvgText(title, host)), ['Noto Sans JP', 'Noto Sans JP']);
+  // A lang around the drawing wins over the script.
+  const tw = svgOf('<text x="10" y="40" font-family="Outfit" font-size="20">直角</text>', 'lang="zh-TW"');
+  assert.deepEqual(fontOf(await outlineSvgText(tw, host)), ['Noto Sans TC']);
+  // With nothing to go on, Simplified Chinese.
+  const zh = svgOf('<text x="10" y="40" font-family="Outfit" font-size="20">直角</text>');
+  assert.deepEqual(fontOf(await outlineSvgText(zh, host)), ['Noto Sans SC']);
+  // The page's own language is the app's, not the document's.
+  const dom = new JSDOM('<!doctype html><html lang="ja"><body><svg xmlns="http://www.w3.org/2000/svg"><text x="10" y="40" font-family="Outfit" font-size="20">直角</text></svg></body></html>');
+  assert.deepEqual(fontOf(await outlineSvgText(dom.window.document.querySelector('svg')!, host)), ['Noto Sans SC']);
 });
 
 test('a kept run takes the direction set around the <svg>, because that does not travel', async () => {

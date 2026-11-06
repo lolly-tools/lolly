@@ -3459,7 +3459,8 @@ html[data-a11y-text="large"] .input-section--dense .input-section-body {
   bottom: calc(var(--capture-bottom) + 14px);
 }
 .tool-layout.is-editor .canvas-record-help {
-  top: calc(max(var(--stage-reserve-top, 0px), var(--stage-rulers-bottom, 0px)) + 14px);
+  /* Below the top bar, the rulers, and on a phone the drop-down panel's edge. */
+  top: calc(max(var(--stage-reserve-top, 0px), var(--stage-rulers-bottom, 0px), var(--design-panel-reserve-top, 0px)) + 14px);
   left: calc(var(--stage-reserve-left, 0px) + 14px);
 }
 .tool-layout.is-editor .canvas-record-timer {
@@ -4035,14 +4036,39 @@ html[data-a11y-text="large"] .input-section--dense .input-section-body {
        that far down (see .sidebar's `top` below) - without it the preview would
        start under the peek bar's true bottom edge instead of clear of it. */
     --preview-top: calc(var(--safe-top, 0px) + var(--peek-h, calc(56px * var(--a11y-fs))) + 0dvh);
+    /* The two open stops and the settle, named once. Design's phone panel
+       (views/design-phone-panel.ts, parts/design-inspector.css) is the same sheet on the
+       same element, so it reads these too and a change here moves both. */
+    --sheet-half: min(50dvh, var(--sheet-room));
+    --sheet-full: min(90dvh, var(--sheet-room));
+    --sheet-settle: 0.34s var(--ease-out);
+    /* The scrolling controls end this far above the sheet's edge (.sidebar-body). */
+    --sheet-body-foot: 15px;
+    /* How far the grip reaches into the sheet and out over the preview, each side of
+       the divider. 15 + 15 for a mouse, as it always was. On touch it takes the whole
+       free band and no more: in to the scrolling controls' edge (their foot plus the
+       sheet's hairline), out to the stage HUD under the sheet, which holds the profile
+       chip and sits --chrome-top below the notch. That is 36px on a phone, not 44: the
+       band is 36px wide, and a 44px grip would cover a control or the HUD, or move one
+       of them. Nothing in the tool view moves for it. tests/design-phone-panels.browser
+       and tests/visual-layout.browser check that the grip ends where the controls and
+       the HUD begin. */
+    --sheet-grip-in: 15px;
+    --sheet-grip-out: 15px;
+  }
+  @media (any-pointer: coarse) {
+    .tool-layout {
+      --sheet-grip-in: calc(var(--sheet-body-foot) + 1px);
+      --sheet-grip-out: calc(var(--chrome-top) - var(--safe-top, 0px));
+    }
   }
   .tool-layout[data-sheet="peek"] { --sheet-h: var(--peek-h, calc(56px * var(--a11y-fs))); }
   /* Clamped against the visible area, not just 100dvh: the soft keyboard eats
      the bottom of the viewport without shrinking dvh, so an unclamped 50/90dvh
      sheet would run its own bottom edge (and whatever control sits there)
      under the keyboard. min() is a no-op while --vv-bottom is 0px. */
-  .tool-layout[data-sheet="half"] { --sheet-h: min(50dvh, var(--sheet-room)); }
-  .tool-layout[data-sheet="full"] { --sheet-h: min(90dvh, var(--sheet-room)); }
+  .tool-layout[data-sheet="half"] { --sheet-h: var(--sheet-half); }
+  .tool-layout[data-sheet="full"] { --sheet-h: var(--sheet-full); }
 
   /* Controls panel - anchored at the top, grip on its bottom edge. The --vv-*
      offsets (set by the VisualViewport shim in main.js) keep it pinned to the
@@ -4062,7 +4088,7 @@ html[data-a11y-text="large"] .input-section--dense .input-section-body {
     border: 1px solid hsl(var(--border));
     border-radius: 0 0 var(--ui-radius-panel) var(--ui-radius-panel);
     box-shadow: var(--shadow-3);
-    transition: height 0.34s var(--ease-out); /* confident, decelerating settle */
+    transition: height var(--sheet-settle); /* confident, decelerating settle */
     z-index: var(--z-overlay);
     /* Clip the sheet so the form can't spill past its rounded bottom edge. The
        grip is NOT a child (it's a sibling in tool.js, position:fixed) so this
@@ -4087,16 +4113,20 @@ html[data-a11y-text="large"] .input-section--dense .input-section-body {
     display: flex;
     position: fixed;
     left: var(--vv-left, 0px); right: auto; width: 100%;
-    top: calc(var(--sheet-h) + var(--vv-top, 0px) + var(--safe-top, 0px));   /* tracks the sheet + the visible-area + notch offset */
-    transform: translateY(-50%);
-    height: 30px;                 /* generous hit area straddling the divider */
+    /* Tracks the sheet, the visible-area offset and the notch, and straddles the divider
+       by the two reaches set on .tool-layout above. The pill sits on the divider itself,
+       whatever the two reaches are. */
+    top: calc(var(--sheet-h) + var(--vv-top, 0px) + var(--safe-top, 0px) - var(--sheet-grip-in));
+    height: calc(var(--sheet-grip-in) + var(--sheet-grip-out));
+    align-items: flex-start;
+    padding-top: calc(var(--sheet-grip-in) - 2px);
     z-index: 60;                  /* above the panel (50) and the preview */
-    transition: top 0.34s var(--ease-out); /* match the sheet's settle */
+    transition: top var(--sheet-settle); /* match the sheet's settle */
   }
   .tool-layout.is-sheet-dragging .sheet-grip { transition: none; }
 
   /* End the scrolling controls above the grip's inward half. */
-  .sidebar-body { margin-bottom: 15px; }
+  .sidebar-body { margin-bottom: var(--sheet-body-foot); }
 
   /* Keep the existing canvas controls below the sheet, including its drag grip. */
   .tool-layout:has(> .sidebar):not(.is-editor) .tool-stage > :is(.stage-nav:not([data-docked]), .canvas-record-help) {
@@ -4165,8 +4195,9 @@ html[data-a11y-text="large"] .input-section--dense .input-section-body {
      never takes a tap. Colour rides --card (the sheet's own background token)
      so it fades to the same surface in both themes; the sheet's overflow:hidden
      clip already rounds its bottom two corners for free. The grip lives outside
-     .sidebar entirely (see above) so this can't touch it. */
-  .sidebar::after {
+     .sidebar entirely (see above) so this can't touch it. Design's phone panel is
+     the same sheet and crops the same way, so it takes the same fade. */
+  :is(.sidebar, .design-phone-panel)::after {
     content: "";
     position: absolute;
     left: 0; right: 0; bottom: 0;

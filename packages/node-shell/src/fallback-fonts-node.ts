@@ -12,7 +12,10 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { contentRoots, contentUrlFile, type ContentRoots } from './content-roots.ts';
-import { choosePacks, fallbackPacksFrom, packVariations, uncoveredClusters, type FallbackFontPack, type FillUse } from './fallback-fonts.ts';
+import {
+  choosePacks, fallbackPacksFrom, hanEvidence, hanForms, packVariations, runLang, uncoveredClusters,
+  type FallbackFontPack, type FillUse, type HanEvidence, type LangElement,
+} from './fallback-fonts.ts';
 
 const listed = new Map<string, FallbackFontPack[]>();
 
@@ -33,6 +36,16 @@ export function diskFallbackPacks(roots: ContentRoots = contentRoots()): Fallbac
   return packs;
 }
 
+/** What a document's text shows about its language, read once per document. */
+const hanEvidenceOf = new WeakMap<object, HanEvidence>();
+
+/**
+ * A run's element and document, for choosing between the Chinese, Japanese and Korean fonts
+ * (fallback-fonts.ts `hanForms`): its element, whose `lang` counts, and the document it
+ * belongs to, whose text is read for kana and Hangul.
+ */
+export interface FillPlace { at?: LangElement | null; document?: { readonly textContent: string | null } | null }
+
 /** A face in the shape toPath takes. */
 export interface FillFace { fontUrl: string; variations?: string[] }
 
@@ -47,7 +60,7 @@ export async function nodeFillChain(
   chain: readonly FillFace[],
   later: readonly FillFace[],
   text: string,
-  opts: { weight: number; italic: boolean; roots?: ContentRoots },
+  opts: { weight: number; italic: boolean; roots?: ContentRoots; place?: FillPlace },
 ): Promise<{ fallbacks: Array<FillFace & { fill: true }>; uses: FillUse[] } | null> {
   if (/^\p{ASCII}*$/u.test(text)) return null;
   const cover = async (url: string): Promise<ReadonlySet<number>> => new Set(await characters(url).catch(() => []));
@@ -66,7 +79,15 @@ export async function nodeFillChain(
   }
   const uses: FillUse[] = [];
   if (found.length) {
-    for (const pack of choosePacks(found, diskFallbackPacks(opts.roots), opts.italic).packs) {
+    const packs = diskFallbackPacks(opts.roots);
+    const doc = opts.place?.document;
+    let evidence: HanEvidence | null = null;
+    if (doc) {
+      evidence = hanEvidenceOf.get(doc) ?? hanEvidence(doc.textContent ?? '', packs);
+      hanEvidenceOf.set(doc, evidence);
+    }
+    const han = hanForms({ lang: runLang(opts.place?.at), text, document: evidence }, packs);
+    for (const pack of choosePacks(found, packs, opts.italic, han).packs) {
       add.push({ fontUrl: pack.url, variations: packVariations(pack, opts.weight), fill: true });
       uses.push({ label: pack.label, family: pack.family });
     }

@@ -241,7 +241,8 @@ export interface SvgIrContext {
   /** Which font file backs an outlined run. The web shell passes its font
    *  registry; a shell with no registry passes nothing, and every <text> then
    *  takes the same route as an unresolvable family (see canVectoriseText). */
-  resolveFont?: (style: FontStyleSlice, text: string) => Promise<SvgIrFont | null>;
+  /** `at` is the run's element, whose `lang` the fallback fonts read (fallback-fonts.ts). */
+  resolveFont?: (style: FontStyleSlice, text: string, at?: Element) => Promise<SvgIrFont | null>;
   /** User-facing label for log/error text. Defaults to 'EMF'. */
   label?: string;
   /** 'outline' (default) shapes every <text> to paths via host.text - the
@@ -708,7 +709,7 @@ export async function svgDomToIr(svgEl: Element, ctx: SvgIrContext = {}): Promis
       letterSpacing: letterSpacingCss };
     // The brand statics, the user's own Google fonts, or the platform face - this
     // format has no <text> fallback, so an unresolvable family is fatal.
-    const vf = (textApi && ctx.resolveFont) ? await ctx.resolveFont(fontStyleObj, raw) : null;
+    const vf = (textApi && ctx.resolveFont) ? await ctx.resolveFont(fontStyleObj, raw, el) : null;
     const fontUrl = vf?.url ?? null;
 
     if (!canVectoriseText(fontStyleObj, fontUrl, Boolean(textApi))) {

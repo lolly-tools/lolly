@@ -22,6 +22,14 @@ async function visit(page: Page): Promise<void> {
   await page.goto(`${origin}/t/design?template=blank`);
   await page.waitForFunction(() => !!(window as Window & { lolly?: { ui?: unknown } }).lolly?.ui);
   await page.locator('dialog.view-loading[open]').waitFor({ state: 'hidden' });
+  // The editor's chrome is imported after the view mounts, and the template seeds itself
+  // after that: wait for the layout attribute and for the template's artboard.
+  await page.waitForSelector('.tool-stage[data-design-layout]');
+  await page.waitForFunction(() => {
+    const boxes = (document.getElementById('tool-canvas') as CanvasCommitEl | null)?.__lollyModel?.()
+      .find(i => i.id === 'boxes')?.value as Array<Record<string, unknown>> | undefined;
+    return !!boxes?.some(b => b.kind === 'frame');
+  });
   await page.locator('.tool-stage').evaluate(el => Promise.all(el.getAnimations()
     .filter(a => Number.isFinite(a.effect?.getComputedTiming().endTime)).map(a => a.finished)));
 }
@@ -69,8 +77,8 @@ test('the artboard size picker opens above the phone inspector sheet and its cho
         assert.equal(await page.locator('.tool-stage').getAttribute('data-design-layout'), 'compact', 'phone layout');
 
         // From the inspector sheet: Inspect, then the Document section's Size door.
-        await page.getByRole('button', { name: 'Inspect', exact: true }).tap();
-        await page.waitForSelector('.fc-insp.is-compact-sheet');
+        await page.getByRole('button', { name: 'Inspect', exact: true }).last().tap();
+        await page.waitForSelector('.design-phone-panel[data-snap="half"][data-tab="inspect"]');
         const door = page.locator('.fc-insp [data-act="documentsize"]');
         await door.tap();
         await page.waitForSelector('.fc-size-panel');
@@ -95,7 +103,7 @@ test('the artboard size picker opens above the phone inspector sheet and its cho
         // Escape closes the picker, not the sheet, and focus goes back to the Size door.
         await page.keyboard.press('Escape');
         await page.waitForSelector('.fc-size-panel', { state: 'detached' });
-        assert.equal(await page.locator('.fc-insp.is-compact-sheet').count(), 1, `the sheet stays open (${label})`);
+        assert.equal(await page.locator('.design-phone-panel[data-snap="half"]').count(), 1, `the panel stays open (${label})`);
         assert.equal(await page.evaluate(() => document.activeElement?.getAttribute('data-act')), 'documentsize',
           `focus is back on the Size door (${label})`);
 
