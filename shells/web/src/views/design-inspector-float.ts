@@ -385,7 +385,8 @@ export function wireDesignInspectorFloat(
   window.visualViewport?.addEventListener('scroll', onResize);
   const onSheetKey = (event: KeyboardEvent): void => {
     if (!sheet || event.key !== 'Escape' || event.defaultPrevented || document.querySelector('dialog[open]')) return;
-    if (document.querySelector('.color-popover:not([hidden]), .fc-popover, .dtb-menu')) return;
+    // A menu or panel open over the sheet is the inner surface: Escape closes that first.
+    if (document.querySelector('.color-popover:not([hidden]), .fc-popover, .fc-panel, .dtb-menu')) return;
     event.preventDefault(); event.stopPropagation(); setOpen(false);
   };
   document.addEventListener('keydown', onSheetKey);
