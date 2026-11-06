@@ -19,14 +19,14 @@
  */
 import { inspectDesignV1 } from '@lolly-tools/core';
 import type { DesignInspectionV1 } from '@lolly-tools/core';
-import { auditMountedDesign, type MountedDesignAudit, type MountedFontStyle } from './design-mounted-audit.ts';
+import { auditMountedDesign, type MountedDesignAudit, type MountedFontResolver } from './design-mounted-audit.ts';
 
 /** The page hook's answer format, read by packages/node-shell/src/check.ts. */
 export const DESIGN_CHECK_PAGE_FORMAT = 'lolly-design-check-page' as const;
 
 export interface DesignChecksOptions {
-  /** Font coverage: true when the face that renders `style` covers `text`. */
-  resolveFont?: (style: MountedFontStyle, text: string) => Promise<boolean>;
+  /** Font coverage: true when the faces an export draws `text` with cover every character. */
+  resolveFont?: MountedFontResolver;
   /** The canvas size for the structure report, when the caller knows the size. */
   width?: number;
   height?: number;

@@ -51,10 +51,20 @@ export interface MountedFontStyle {
   fontStyle: string;
 }
 
+/** A rendered run's element, for its `lang`, and the canvas that holds the run. */
+export interface MountedFontPlace {
+  at: Element;
+  root: Element;
+}
+
+/** `true` when the fonts an export draws the run with cover every character of the run. */
+export type MountedFontResolver = (style: MountedFontStyle, text: string, place?: MountedFontPlace) => Promise<boolean>;
+
 export interface MountedDesignAuditOptions {
   /** The same resolver SVG/PDF text outlining uses. `true` means real font bytes
-   * cover the run; absent means font readiness is left unchecked. */
-  resolveFont?: (style: MountedFontStyle, text: string) => Promise<boolean>;
+   * cover the run, the bundled fallback fonts included; absent means font readiness
+   * is left unchecked. */
+  resolveFont?: MountedFontResolver;
   /** Test seam; the default is the browser's computed cascade. */
   styleOf?: (element: Element) => CSSStyleDeclaration;
   /** Obsolete audits stop between bounded batches and never publish partial findings. */
@@ -314,6 +324,7 @@ export async function auditMountedDesign(
     {
       style: MountedFontStyle;
       text: string;
+      at: Element;
       layers: DesignLayerInspectionV1[];
     }
   >();
@@ -405,10 +416,12 @@ export async function auditMountedDesign(
         fontWeight: computed.fontWeight ?? '400',
         fontStyle: computed.fontStyle ?? 'normal',
       };
-      const key = JSON.stringify([style, run.text]);
+      // The run's language chooses between the Chinese, Japanese and Korean fonts, so
+      // the same text in two languages is checked twice.
+      const key = JSON.stringify([style, run.text, run.at.closest('[lang]')?.getAttribute('lang') ?? '']);
       const existing = fontRuns.get(key);
       if (existing) { if (!existing.layers.includes(layer)) existing.layers.push(layer); }
-      else fontRuns.set(key, { style, text: run.text, layers: [layer] });
+      else fontRuns.set(key, { style, text: run.text, at: run.at, layers: [layer] });
     }
   }
 
@@ -421,7 +434,7 @@ export async function auditMountedDesign(
       await Promise.all(runs.slice(offset, offset + 8).map(async (run) => {
         let resolved = false;
         try {
-          resolved = await options.resolveFont!(run.style, run.text);
+          resolved = await options.resolveFont!(run.style, run.text, { at: run.at, root: canvas });
         } catch {
           resolved = false;
         }
