@@ -30,6 +30,20 @@ roles remain separate.
 IDs. It is independent of the studio rooms and contains no HTML or executable
 content. A future guide exporter can use these same groups.
 
+## Colour roles
+
+A role with `group: "colourway"` names a colour in the brand's own words. Its value lives per colourway and per look at `color.colourway.<mode>.<id>`, and `color.semantic.<id>` links to it, so `--brand-<id>` paints and `{color.semantic.<id>}` resolves in a colour field. A role with any other group is left alone by everything in `engine/src/colour-roles.ts`.
+
+A binding with `consumer.slot` set to one of the six slots a role can fill (`primary`, `secondary`, `surface`, `text`, `muted`, `edge`) and no `tool` says what Lolly reads the role as. The binding is also written into the tokens: inside each colourway set, `color.colourway.<mode>.<slot>` holds an alias to the role. Every existing reader of a slot therefore keeps working unchanged, and changing the mapping moves aliases and no values. Binding `primary` moves `on-primary` to the role's on-colour too, unless the file states its own. A role that fills no slot is read by name only: no tool picks it by itself.
+
+A role's id is permanent and uses lowercase letters and hyphens, because `--brand-<id>` needs that. A slot's own name is allowed, and the role is then that slot with no alias. `on-*`, `token-*`, `warn`, `warn-ink`, `lead-count`, `constructor` and `prototype` are reserved. A label with no Latin letters gets a generated id made of letters. Labels may be in any language, and a rename touches only the label.
+
+On-colours are worked out per role, look and colourway by the rule `on-primary` uses, stored at `color.colourway.<mode>.on-<id>` and marked `colourRole.derived` in the token's vendor extension. An on-colour with no mark is stated in the file, and it wins. A value copied rather than chosen carries `colourRole.seeded`, which is how a surface can say it still needs a choice. Dark can follow light by an alias, shown as "Same as light".
+
+Nothing dangles. Adding or copying a colourway fills every role, removing a role that fills a slot is refused until the slot is let go with its current colour, and a house rule, guide group, tool binding or token that uses a role always refuses its removal. A document with no colour roles comes through every function unchanged, and choosing the shipped words (Primary, Secondary, Surface, Text) writes nothing. Exported files record nothing new: the export record stays design system, version and theme choice.
+
+A hand-written file that holds custom colour tokens and declares none reads as `undeclared`: the tokens are listed with `declared: false`, keep working by name and survive every edit, and adding one by its id declares it where it stands. Design documents can refer to a role by `{color.semantic.<id>}`, and Lolly cannot see those references from a token file, so removing a role that a saved document uses leaves that document's colour to report as unresolved.
+
 ## Rules and authority
 
 A rule carries a kind, parameters, target role IDs, optional tool/mode/output
