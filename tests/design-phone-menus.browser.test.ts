@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
  * On a phone, every menu, panel and floating control Design opens sits ABOVE the
- * inspector sheet, and every row of it takes a tap.
+ * inspector's panel, and every row of it takes a tap.
  *
  * The stage is `position: fixed`, so it is a stacking context of its own, and the
  * inspector sheet is a body-level fixed surface stacked over the stage. A menu appended to the
@@ -38,11 +38,16 @@ async function phone(browser: Awaited<ReturnType<typeof getBrowser>>, large: boo
   return context;
 }
 
+/** The inspector open at half in the phone panel (views/design-phone-panel.ts). */
 async function openSheet(page: Page): Promise<void> {
-  if (await page.locator('.fc-insp.is-compact-sheet').count()) return;
-  await page.getByRole('button', { name: 'Inspect', exact: true }).tap();
-  await page.waitForSelector('.fc-insp.is-compact-sheet');
+  if (await page.locator('.design-phone-panel[data-snap="half"][data-tab="inspect"]').count()) return;
+  await page.getByRole('button', { name: 'Inspect', exact: true }).last().tap();
+  await page.waitForSelector('.design-phone-panel[data-snap="half"][data-tab="inspect"]');
 }
+/** The part of the screen the open panel covers. */
+const panelBox = (page: Page) => page.locator('.design-phone-panel').evaluate(el => {
+  const r = el.getBoundingClientRect(); return { top: r.top, edge: r.bottom };
+});
 
 /**
  * For each row of the open menu: brought into view inside the menu's own scroll, is the
@@ -107,7 +112,7 @@ test('every phone menu and panel Design opens sits above the inspector sheet and
         // Escape closes the menu, not the sheet, and focus goes back to the More button.
         await page.keyboard.press('Escape');
         await page.waitForSelector('.fc-popover', { state: 'detached' });
-        assert.equal(await page.locator('.fc-insp.is-compact-sheet').count(), 1, `the sheet stays open (${label})`);
+        assert.equal(await page.locator('.design-phone-panel[data-snap="half"]').count(), 1, `the panel stays open (${label})`);
         assert.equal(await page.evaluate(() => document.activeElement?.textContent), 'More', `focus is back on More (${label})`);
 
         // The top bar's own menu, then the File menu it leads to.
@@ -119,14 +124,15 @@ test('every phone menu and panel Design opens sits above the inspector sheet and
         assert.deepEqual(await coveredRows(page, '.fc-popover', '.fc-pop-item, .fc-pop-gitem'), [], `File menu (${label})`);
         await closeAll(page);
 
-        // The context menu, opened at a point on the canvas above the sheet.
+        // The context menu, opened at a point on the canvas just below the panel: a menu
+        // that tall is pulled up to fit above the bar, so it lies over the panel.
         await openSheet(page);
-        const sheetTop = await page.locator('.fc-insp').evaluate(el => el.getBoundingClientRect().top);
+        const { edge } = await panelBox(page);
         // A right-click's event, sent to whatever is at the point: on a phone it is what a
         // long press gives (Android) and what the two-finger tap opens.
         await page.evaluate((y) => {
           document.elementFromPoint(120, y)!.dispatchEvent(new MouseEvent('contextmenu', { bubbles: true, cancelable: true, clientX: 120, clientY: y, button: 2 }));
-        }, Math.max(140, sheetTop - 40));
+        }, edge + 40);
         await page.waitForSelector('.fc-popover');
         assert.deepEqual(await coveredRows(page, '.fc-popover', '.fc-pop-item, .fc-pop-gitem'), [], `context menu (${label})`);
         await closeAll(page);
@@ -157,9 +163,9 @@ test('a camera\'s controls stay above the inspector sheet that is inspecting it'
     await page.touchscreen.tap(200, 250);
     await page.waitForSelector('.live-camera-controls:not([hidden])');
     await openSheet(page);
-    // Move the camera down until its top edge is just inside the sheet, which is where
-    // the controls are placed: level with the camera's top.
-    const sheetTop = await page.locator('.fc-insp').evaluate(el => el.getBoundingClientRect().top);
+    // Move the camera until its top edge is inside the area the panel covers, which is
+    // where the controls are placed: level with the camera's top.
+    const target = (await panelBox(page)).edge - 60;
     await page.evaluate((target) => {
       const canvas = document.getElementById('tool-canvas') as CanvasCommitEl;
       const marker = canvas.querySelector<HTMLElement>('[data-live-camera]')!;
@@ -169,11 +175,11 @@ test('a camera\'s controls stay above the inspector sheet that is inspecting it'
       const r = marker.getBoundingClientRect();
       const scale = r.height / Number(box.h);
       canvas.__lollyCommit!('boxes', boxes.map(b => b.id === id ? { ...b, y: Number(b.y) + (target - r.top) / scale } : b) as never);
-    }, sheetTop + 20);
+    }, target);
     await page.waitForFunction((top) => {
       const r = document.querySelector('[data-live-camera]')?.getBoundingClientRect();
       return !!r && Math.abs(r.top - top) < 4;
-    }, sheetTop + 20);
+    }, target);
     await page.waitForFunction(() => {
       const c = document.querySelector('.live-camera-controls');
       return !!c && c.getBoundingClientRect().top > 0;

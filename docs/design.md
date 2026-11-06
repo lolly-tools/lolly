@@ -29,7 +29,7 @@ The canvas works like a designer's pasteboard around the artboard:
 
 The **Navigator** lists every artboard (headed **Artboards**, or **Slides** in a deck) as a folding group of its **Layers**. Select an artboard's name to jump there, expand it to select or reorder its layers and use the arrow keys to move through the list; Left returns to the artboard heading. **Pages** groups artboards into named pages, and choosing a page only changes which artboards the editor shows.
 
-The **Inspector** puts the selected object's text or image controls first. Option chips cover the quick choices, and **Advanced** holds the styling detail. On a phone the Inspector opens as a sheet from **More actions**; Escape or Back closes the sheet and keeps your selection.
+The **Inspector** puts the selected object's text or image controls first. Option chips cover the quick choices, and **Advanced** holds the styling detail. On a phone the Inspector and the layers list share one panel that drops down from under the top bar, the same panel every other tool keeps its controls in. **Inspect** and **Layer/Page** in the bar at the bottom open the panel on their tab. Drag the handle on its lower edge, or tap the handle, to move the panel between a strip with the two tabs, half the screen and nearly all of the screen. At half, the canvas below the panel shows your selection. Escape folds the panel back to the strip and keeps your selection.
 
 ![The Inspector's Document section: the Selection and Canvas tabs, then Dimensions and Style & look](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3Dfeature-tour&width=1440&height=900&dpi=192&waitMs=3500&cropSelector=.fc-insp&walker=1&format=svg&dark=1&filename=design-narration)
 

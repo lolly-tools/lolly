@@ -93,3 +93,58 @@ test('destroy removes Sequence interaction listeners', () => {
     assert.deepEqual(f.state(), { timelineOpen: true, inspectorOpen: true, timelineCloses: 0 });
   } finally { f.close(); }
 });
+
+test('on a phone the inspector and the layers list are the two tabs of one drop-down panel', () => {
+  // A narrow window in jsdom is the phone layout; the sheet driver needs matchMedia.
+  const mql = (query: string) => ({ matches: /max-width/.test(query), media: query, addEventListener() {}, removeEventListener() {}, addListener() {}, removeListener() {} });
+  (window as unknown as { matchMedia: typeof mql }).matchMedia = mql;
+  width(390);
+  const layout = document.createElement('div');
+  layout.className = 'tool-layout is-editor';
+  const stage = document.createElement('div'), canvas = document.createElement('div');
+  const navEl = document.createElement('aside');
+  navEl.className = 'fc-nav';
+  stage.append(canvas, navEl); layout.append(stage); document.body.append(layout);
+  const inspEl = document.createElement('aside');
+  inspEl.className = 'fc-insp';
+  let inspectorOpen = false, navigatorOpen = false, phoneHost: ((el: HTMLElement) => void) | null = null, left = 0;
+  const handle = mountDesignPanels({
+    stage, canvas,
+    design: { isTimelineOpen: () => false, toggleTimeline() {}, setColumnWidths() {} } as unknown as Parameters<typeof mountDesignPanels>[0]['design'],
+    navigator: {
+      el: navEl, isOpen: () => navigatorOpen, width: () => 0,
+      // As the view wires it (views/tool/session.ts): an open column is activated.
+      setOpen(value: boolean) { navigatorOpen = value; if (value) handle.activate('navigator'); handle.sync(); },
+    } as unknown as Parameters<typeof mountDesignPanels>[0]['navigator'],
+    inspector: {
+      isOpen: () => inspectorOpen,
+      setOpen(value: boolean) { inspectorOpen = value; if (value) handle.activate('inspector'); handle.sync(); return value; },
+      enterPhone(host: (el: HTMLElement) => void) { phoneHost = host; host(inspEl); },
+      leavePhone() { phoneHost = null; left++; inspEl.remove(); },
+    } as unknown as Parameters<typeof mountDesignPanels>[0]['inspector'],
+    more() {},
+  });
+  try {
+    flush();
+    const panel = layout.querySelector<HTMLElement>('.design-phone-panel');
+    assert.ok(panel, 'the panel is mounted in the phone layout');
+    assert.ok(phoneHost, 'and it holds the inspector');
+    assert.equal(navEl.parentElement, panel!.querySelector('.dpp-body'), 'and the layers list');
+    assert.equal(panel!.dataset.snap, 'peek');
+    // The bottom bar's buttons pick the tab and open the panel to half.
+    const bar = (name: string) => [...stage.querySelectorAll<HTMLButtonElement>('.design-compact-actions button')].find(b => b.textContent === name)!;
+    bar('Inspect').click(); flush();
+    assert.deepEqual([inspectorOpen, panel!.dataset.snap, panel!.dataset.tab], [true, 'half', 'inspect']);
+    // (Where the canvas band starts is measured layout, which the browser test checks.)
+    assert.equal(stage.style.getPropertyValue('--design-panel-reserve'), '', 'the bottom sheet\'s reserve is not written');
+    bar('Layer/Page').click(); flush();
+    assert.deepEqual([inspectorOpen, navigatorOpen, panel!.dataset.tab, panel!.dataset.snap], [false, true, 'layers', 'half']);
+    bar('Layer/Page').click(); flush();
+    assert.deepEqual([navigatorOpen, panel!.dataset.snap], [false, 'peek'], 'the same button folds it');
+    // A wide window takes the panel down and hands both columns back.
+    width(1440);
+    assert.equal(layout.querySelector('.design-phone-panel'), null);
+    assert.equal(left, 1, 'the inspector was let go');
+    assert.equal(navEl.parentElement, stage, 'the layers list is home');
+  } finally { handle.destroy(); flush(); layout.remove(); delete (window as unknown as { matchMedia?: unknown }).matchMedia; }
+});
