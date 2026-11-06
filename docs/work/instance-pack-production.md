@@ -19,7 +19,7 @@ in the pack, and needs no new pack. The mounted files stay exactly as this page 
 serves the edited tokens from its own storage at a new address, and the catalogue it signs gives those
 tokens' checksum. So the chain a web app checks still holds: signature, then asset index, then tokens
 file. The signature on an edit is this instance's, not the release's. The console shows when an instance
-runs edited tokens, with the digest of each revision. Previews and social cards are part of the release,
+is serving an edit, with the digest of each revision. Previews and social cards are part of the release,
 so they keep their old colours until the next image.
 
 Run the maintained producer from a qualified Lolly Work checkout with its vendored

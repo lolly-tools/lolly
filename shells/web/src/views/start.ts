@@ -199,7 +199,7 @@ export async function mountStart(viewEl: HTMLElement, host: StartHost, params = 
         <header class="start-head">
           <p class="start-eyebrow">${t('Design system')}</p>
           <h1 class="start-title">${escapeText(active.label)}</h1>
-          <p class="start-sub">${t('This design system is read-only: its colours, type and logos are kept current from where it came. Make an editable copy to change them, or switch to another design system.')}</p>
+          <p class="start-sub" data-ds-readonly-line>${t('This design system is read-only: its colours, type and logos are kept current from where it came. Make an editable copy to change them, or switch to another design system.')}</p>
           <p class="start-sub start-manager" data-ds-manager hidden></p>
           <p class="start-sub">
             <button type="button" class="be-btn" data-ds-fork>${t('Make an editable copy')}</button>
@@ -218,7 +218,7 @@ export async function mountStart(viewEl: HTMLElement, host: StartHost, params = 
     // Someone the instance says can change this system gets the way in here, because
     // a read-only system never reaches the rooms below.
     const managerSlot = viewEl.querySelector<HTMLElement>('[data-ds-manager]')!;
-    const stopManager = mountManagerActions(managerSlot, {
+    const stopManager = mountManagerActions(managerSlot, viewEl.querySelector<HTMLElement>('[data-ds-readonly-line]')!, {
       edit: () => { void start.brand.editForInstance((message) => { managerSlot.append(' ', message); }); },
       publish: () => { void import('../lib/design-system/brand-page-sheet.ts').then(m => m.openBrandPageSheet(host)); },
     });

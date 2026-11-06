@@ -8,6 +8,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { withRecordedBrandPage, readRecordedBrandPage } from '../../../../../engine/src/brand-page-address.ts';
 import { TOKEN_EXT } from '../../../../../engine/src/token-ext.ts';
+import { readFileSync } from 'node:fs';
 import { connectedInstanceFrom } from '../../org/brand-page-publish.ts';
 import { buildInstanceEdit } from './instance-edit.ts';
 import { managerActions } from './manager-actions.ts';
@@ -134,10 +135,10 @@ const CAN_PUBLISH = { maxBundleBytes: 1, partBytes: 1, approval: false };
 const CAN_EDIT = { maxDocumentBytes: 1, approval: false };
 
 test('no capability, nothing new: a member gets neither action', () => {
-  assert.deepEqual(managerActions(null), { editLabel: null, publishLabel: null }, 'no instance');
+  assert.deepEqual(managerActions(null), { editLabel: null, publishLabel: null, note: null }, 'no instance');
   const member = connectedInstanceFrom({ can: { 'brand.edit': false } }, true);
   assert.equal(member!.brandEdits, null);
-  assert.deepEqual(managerActions(member), { editLabel: null, publishLabel: null });
+  assert.deepEqual(managerActions(member), { editLabel: null, publishLabel: null, note: null }, 'a member keeps the page line as it is');
   // A bit with no block, or a block with no bit, offers nothing: both have to hold.
   assert.equal(connectedInstanceFrom({ can: { 'brand.edit': true } }, true)!.brandEdits, null);
   assert.equal(connectedInstanceFrom({ brandEdits: CAN_EDIT, can: {} }, true)!.brandEdits, null);
@@ -149,10 +150,20 @@ test('a manager gets the edit, and publishing follows its own capability', () =>
   const actions = managerActions(manager);
   assert.match(actions.editLabel!, /^Edit for /);
   assert.equal(actions.publishLabel, 'Publish a brand page');
+  // The line says what this person can do, and an editable copy stays the way to a personal version.
+  assert.match(actions.note!, /You can edit its colours, colour roles and brand page address for /);
+  assert.match(actions.note!, /Make an editable copy for a personal version/);
+  assert.equal(/to change them/.test(actions.note!), false);
   const editOnly = managerActions(connectedInstanceFrom({ brandEdits: CAN_EDIT, can: { 'brand.edit': true } }, true));
   assert.ok(editOnly.editLabel);
   assert.equal(editOnly.publishLabel, null);
   const publishOnly = managerActions(connectedInstanceFrom({ brandPages: CAN_PUBLISH, can: {} }, true));
   assert.equal(publishOnly.editLabel, null);
   assert.equal(publishOnly.publishLabel, 'Publish a brand page');
+  assert.equal(publishOnly.note, null, 'publishing alone does not change the line');
+});
+
+test("a member's line on a read-only system is the sentence it always was", () => {
+  const start = readFileSync(new URL('../../views/start.ts', import.meta.url), 'utf8');
+  assert.ok(start.includes("t('This design system is read-only: its colours, type and logos are kept current from where it came. Make an editable copy to change them, or switch to another design system.')"));
 });

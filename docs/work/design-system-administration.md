@@ -107,7 +107,7 @@ signed connect pack, review rule mappings again and republish the brand page. Ch
 that an edit cannot carry stay on your device, and the sheet says so.
 
 Each send is an immutable revision with a digest, who sent the revision and when. **This Deploy →
-Design system** shows whether the instance runs edited tokens, the history, what each revision
+Design system** shows whether the instance is serving an edit, the history, what each revision
 changed, and a rollback. Sends, going live, rollbacks and changes to the switches below are in the
 [audit trail](audit.md).
 
@@ -134,21 +134,21 @@ does it, stays yours.
 
 ### After a new image
 
-An edit records the mounted tokens it was made on. A new image with the same tokens changes nothing.
+An edit records the tokens the image held when the edit was made. A new image with the same tokens changes nothing.
 When the tokens differ, the edit's changes apply to the new document:
 
 - **The edit stays on top.** The new image's other changes come through, and the console shows a quiet
   note. If the image and the edit changed the same thing, the note lists that, and the edit wins.
-- **An edit that can no longer apply is not half applied.** If something it names has gone, such as a
+- **An edit that can no longer apply is not half applied.** If something it changes has gone, such as a
   colour, a colour role or an alias target, Lolly Work serves the new image's own tokens, whole. The console
   lists what has gone, and people who hold `brand.edit` get a message whichever way the switch is set.
   The revision stays in the history. Send a new edit, or choose **Clear this edit**.
-- **A stored edit that cannot be read** serves the mounted tokens, and the console says so. The edit
+- **A stored edit that cannot be read** serves the image's own colours, and the console says so. The edit
   comes back when storage can be read.
 
 ### Rolling back
 
-**Roll back to the mounted tokens** drops the edit, and the mounted tokens are served again exactly as
+**Roll back this edit** drops the edit, and the image's own colours are served again exactly as
 they were. No approval is needed. **Go back to this** on an earlier revision sends what that revision
 changed again, on today's image, as a new revision, so a chain still decides. The catalogue's signed
 sequence only ever rises, so clients accept a rollback.
@@ -189,7 +189,7 @@ address and the opaque tokens document against the selected source, and keeps th
 archive bytes exactly as they are: signed bytes are never rewritten. Verifying the signature is
 the importing client's job, and Lolly Work's `signed` flag only reports that `pack.sig` is present.
 Unsigned uploads are allowed only in development mode. Under a live edit, a pack may hold either the
-mounted tokens or the edited ones ([Edits and the connect download](#edits-and-the-connect-download)).
+image's own tokens or the edited ones ([Edits and the connect download](#edits-and-the-connect-download)).
 
 - Changing the default withdraws a download bound to another source or source revision. Upload a
   matching pack before offering downloads again.
