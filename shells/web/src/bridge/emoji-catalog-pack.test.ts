@@ -2,7 +2,7 @@
 /**
  * A pack the catalog serves is catalog material. Opening a tool used to copy the whole
  * pack into the person's uploads, and that copy was also what kept the set through the
- * prune of files nothing saved refers to. These tests hold both halves: nothing lands in
+ * prune of files nothing saved refers to. These tests hold both halves: nothing reaches
  * the uploads, and the set still draws with the network off.
  *
  * The device here behaves as the asset bridge does, over the REAL generated bundle:
@@ -55,7 +55,7 @@ function device(opts: { uploads?: EmojiAssetRecord[]; cached?: Record<string, Ui
       return listed.map(asset => ({ source: 'library', id: asset.id, type: 'data', format: 'json', url: asset.formats[0]!.url, version: asset.version,
         meta: { ...asset.meta, name: 'x', tags: asset.tags, size: asset.formats[0]!.size } } as unknown as AssetRef));
     },
-    // The placement route, which records a read and writes a second row for it.
+    // The placement route, which records a read in a second row.
     async get(id) { seen.placementReads++; return { source: 'library', id, type: 'data', format: 'json', url: `/catalog/${id}` } as AssetRef; },
     async bytes(target) {
       const id = typeof target === 'string' ? target : target.id;
@@ -223,7 +223,7 @@ test('two tabs pinning a pack only a person holds still meet at one record', asy
     d.assets._uploadUserAsset = async record => { if (d.uploads.has(record.id)) throw new Error('This asset changed in another view.'); return refused(record); };
     const [first, second] = await Promise.all([createEmojiAPI(d.assets, idleQueue()), createEmojiAPI(d.assets, idleQueue())].map(api => api.dependencies!([info.pin])));
     assert.deepEqual(first, second);
-    assert.equal(first[0]!.source, 'user');
+    assert.equal(first![0]!.source, 'user');
     assert.deepEqual([...d.uploads.keys()], before, 'one record, and neither tab failed');
   } finally { globalThis.DOMParser = previous; dom.window.close(); }
 });

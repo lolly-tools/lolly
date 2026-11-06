@@ -4114,7 +4114,7 @@ var ENGINE_VERSION;
 var init_version = __esm({
   "engine/src/version.ts"() {
     "use strict";
-    ENGINE_VERSION = "1.313.0";
+    ENGINE_VERSION = "1.314.0";
   }
 });
 
@@ -37147,6 +37147,16 @@ var init_emoji_default = __esm({
   }
 });
 
+// engine/src/emoji-trigger.ts
+var EMOJI_TEXT_TRIGGER, emojiTextTrigger;
+var init_emoji_trigger = __esm({
+  "engine/src/emoji-trigger.ts"() {
+    "use strict";
+    EMOJI_TEXT_TRIGGER = /[\uD800-\uDBFF][\uDC00-\uDFFF]|[\u200D\u20E3\uFE0F\u00A9\u00AE\u203C\u2049\u2122\u2139\u2194-\u21AA\u231A-\u231B\u2328\u23CF-\u23FA\u24C2\u25AA-\u25FE\u2600-\u27BF\u2934-\u2935\u2B00-\u2BFF\u3030\u303D\u3297\u3299]/;
+    emojiTextTrigger = (text13) => EMOJI_TEXT_TRIGGER.test(text13);
+  }
+});
+
 // engine/src/emoji-rights.ts
 function checksumBytes(checksum, what) {
   const hex4 = CHECKSUM.exec(checksum)?.[1];
@@ -40810,6 +40820,14 @@ var init_text_17_0 = __esm({
 });
 
 // engine/src/emoji-segment.ts
+var emoji_segment_exports = {};
+__export(emoji_segment_exports, {
+  EMOJI_TEXT_MAX_UNITS: () => EMOJI_TEXT_MAX_UNITS,
+  emojiGraphemes: () => emojiGraphemes,
+  requiresEmojiBidiLayout: () => requiresEmojiBidiLayout,
+  segmentEmojiText: () => segmentEmojiText,
+  textHoldsEmoji: () => textHoldsEmoji
+});
 function property(point3, table, fallback = "") {
   let low = 0, high = table.length - 1;
   while (low <= high) {
@@ -40862,6 +40880,13 @@ function emojiGraphemes(text13) {
 function requiresEmojiBidiLayout(text13) {
   for (const char of text13) if (property(char.codePointAt(0), text_17_0_default.bidi)) return true;
   return false;
+}
+function textHoldsEmoji(text13) {
+  try {
+    return segmentEmojiText(text13).some((span) => span.kind !== "text");
+  } catch {
+    return true;
+  }
 }
 function segmentEmojiText(text13) {
   const result = [];
@@ -44996,7 +45021,7 @@ function revertEmojiDom(root2) {
   }
   return reverted;
 }
-var ELEMENT_NODE, TEXT_NODE, EMOJI_SPAN_CLASS, EMOJI_UNSET_CLASS, EMOJI_TEXT_CLASS, EMOJI_UNSET_LABEL, EMOJI_PLACEHOLDER_SVG, PLACEHOLDER_STYLE, HIDDEN_TEXT_STYLE, ARTWORK_ATTRIBUTES, SKIP_TAGS, TRIGGER, emojiTextTrigger, isEmojiSpan, isUnsetSpan, meaningKey3, shortSum, SCOPE_PATTERN, CHUNK_UNITS, CHUNK_BACKOFF, JOINER, ZWJ, TRIGGER_ALL;
+var ELEMENT_NODE, TEXT_NODE, EMOJI_SPAN_CLASS, EMOJI_UNSET_CLASS, EMOJI_TEXT_CLASS, EMOJI_UNSET_LABEL, EMOJI_PLACEHOLDER_SVG, PLACEHOLDER_STYLE, HIDDEN_TEXT_STYLE, ARTWORK_ATTRIBUTES, SKIP_TAGS, isEmojiSpan, isUnsetSpan, meaningKey3, shortSum, SCOPE_PATTERN, CHUNK_UNITS, CHUNK_BACKOFF, JOINER, ZWJ, TRIGGER_ALL;
 var init_emoji_dom = __esm({
   "engine/src/emoji-dom.ts"() {
     "use strict";
@@ -45005,6 +45030,7 @@ var init_emoji_dom = __esm({
     init_emoji_pack();
     init_emoji_inline();
     init_emoji_segment();
+    init_emoji_trigger();
     ELEMENT_NODE = 1;
     TEXT_NODE = 3;
     EMOJI_SPAN_CLASS = "lolly-emoji";
@@ -45016,8 +45042,6 @@ var init_emoji_dom = __esm({
     HIDDEN_TEXT_STYLE = "position:absolute;width:1px;height:1px;margin:-1px;padding:0;border:0;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap";
     ARTWORK_ATTRIBUTES = ' aria-hidden="true" focusable="false" style="display:block;width:100%;height:100%"';
     SKIP_TAGS = /* @__PURE__ */ new Set(["SCRIPT", "STYLE", "TEXTAREA", "INPUT", "SELECT", "OPTION", "SVG", "CANVAS", "NOSCRIPT"]);
-    TRIGGER = /[\uD800-\uDBFF][\uDC00-\uDFFF]|[\u200D\u20E3\uFE0F\u00A9\u00AE\u203C\u2049\u2122\u2139\u2194-\u21AA\u231A-\u231B\u2328\u23CF-\u23FA\u24C2\u25AA-\u25FE\u2600-\u27BF\u2934-\u2935\u2B00-\u2BFF\u3030\u303D\u3297\u3299]/;
-    emojiTextTrigger = (text13) => TRIGGER.test(text13);
     isEmojiSpan = (element) => /(?:^|\s)lolly-emoji(?:\s|$)/.test(element.getAttribute("class") ?? "");
     isUnsetSpan = (element) => /(?:^|\s)lolly-emoji--unset(?:\s|$)/.test(element.getAttribute("class") ?? "");
     meaningKey3 = (meaning) => meaning.kind === "unicode" ? meaning.key : meaning.id;
@@ -45027,7 +45051,7 @@ var init_emoji_dom = __esm({
     CHUNK_BACKOFF = 64;
     JOINER = /[\uDC00-\uDFFF]|\u200D|\u20E3|\uFE0E|\uFE0F/;
     ZWJ = "\u200D";
-    TRIGGER_ALL = new RegExp(`(?:${TRIGGER.source})+`, "g");
+    TRIGGER_ALL = new RegExp(`(?:${EMOJI_TEXT_TRIGGER.source})+`, "g");
   }
 });
 
@@ -54567,7 +54591,8 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
   const emojiPacks = /* @__PURE__ */ new Map();
   const emojiListeners = /* @__PURE__ */ new Set();
   let emojiChain = Promise.resolve();
-  const EMOJI_MAYBE = /[\u00A9-\uFFFF]/;
+  let emojiTextChecked = null;
+  let emojiTextDraws = false;
   let emojiAssets = [];
   let emojiStyleGeneration = 0;
   let emojiStyleSettled = 0;
@@ -54675,9 +54700,16 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
       emojiNode = root2;
       emojiCensusKnown = false;
     }
-    if (!EMOJI_MAYBE.test(root2.textContent ?? "") && !root2.querySelector?.("[data-emoji-tool-source]")) {
-      record47(nothing);
-      return { present: true, ...nothing };
+    if (!root2.querySelector?.("[data-emoji-tool-source]")) {
+      const text13 = root2.textContent ?? "";
+      if (text13 !== emojiTextChecked) {
+        emojiTextDraws = emojiTextTrigger(text13) && (await Promise.resolve().then(() => (init_emoji_segment(), emoji_segment_exports))).textHoldsEmoji(text13);
+        emojiTextChecked = text13;
+      }
+      if (!emojiTextDraws) {
+        record47(nothing);
+        return { present: true, ...nothing };
+      }
     }
     const style = emojiStyle;
     if (!style) {
@@ -56095,6 +56127,7 @@ var init_runtime = __esm({
     init_design_export_route();
     init_src();
     init_emoji_default();
+    init_emoji_trigger();
     init_emoji_rights();
     init_rights_attribution();
     init_rights_evaluate();

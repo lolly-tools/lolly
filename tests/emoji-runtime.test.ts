@@ -348,7 +348,7 @@ test('text with no emoji loads no pack, whatever language it is in', async () =>
   assert.equal((await runtime.applyEmojiToDom(drawn.canvas)).replaced, 1);
   assert.deepEqual(reads, [PACK_ID], 'a real emoji still does');
 
-  // Asking for emoji presentation makes a bare sign a real emoji, and a pack carries it.
+  // Asking for emoji presentation makes a bare sign a real emoji, drawn from the pack.
   const asked = page('<p>\u26a0\ufe0f careful</p>');
   assert.equal((await runtime.applyEmojiToDom(asked.canvas)).replaced, 1, 'the same sign with a variation selector draws');
 });

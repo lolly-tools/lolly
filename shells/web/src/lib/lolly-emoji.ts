@@ -91,11 +91,10 @@ export async function prepareLollyEmoji(input: LollyBuildInput): Promise<LollyBu
       result = (async () => {
         const lib = await readCatalog?.(key).catch(() => null);
         if (!lib || (lib.licensed && !input.includeLicensed && !lib.chosen)) return null;
-        const bytes = lib.bytes instanceof Uint8Array ? lib.bytes : new Uint8Array(await lib.bytes.arrayBuffer());
+        const blob = lib.bytes instanceof Blob ? lib.bytes : new Blob([lib.bytes.slice()], { type: 'application/json' });
         const { readEmojiBundle } = await import('../../../../engine/src/emoji-bundle.ts');
-        const read = await readEmojiBundle(bytes);
-        const record: BeamAssetRecord = { id: key, type: 'data', format: 'json', version: read.info.pin.pin.version,
-          blob: new Blob([bytes as unknown as BlobPart], { type: 'application/json' }),
+        const read = await readEmojiBundle(new Uint8Array(await blob.arrayBuffer()));
+        const record: BeamAssetRecord = { id: key, type: 'data', format: 'json', version: read.info.pin.pin.version, blob,
           meta: { name: read.info.label, tags: ['emoji-pack'], license: read.info.license, attribution: read.info.attribution } };
         return { read, record };
       })();

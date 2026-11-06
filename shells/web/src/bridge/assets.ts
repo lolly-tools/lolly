@@ -1301,7 +1301,7 @@ export function createAssetsAPI(db: AssetsDb, opts: AssetsApiOptions = {}) {
 
     /**
      * Internal: catalog files this device should keep although no saved document
-     * names them yet, such as the emoji set an unsaved piece draws with. A short
+     * refers to them yet, such as the emoji set an unsaved piece draws with. A short
      * list, newest first, so trying every set does not keep every set.
      */
     async _holdCatalogAssets(ids: readonly string[]): Promise<void> {

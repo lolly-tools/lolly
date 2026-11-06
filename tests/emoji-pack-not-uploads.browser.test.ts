@@ -4,9 +4,9 @@
  *
  * Opening any tool used to copy the whole set into the person's uploads, where it was
  * listed as theirs, counted against their storage and could not be deleted once a saved
- * document named it. That copy was also what kept the set through the prune of files
- * nothing saved refers to. So these run the real mount over real IndexedDB, and check
- * the set still draws with no way to reach the pack file.
+ * document referred to the copy. That copy was also what kept the set through the prune of
+ * files nothing saved refers to. So these run the real mount over real IndexedDB, and
+ * check the set still draws with no way to reach the pack file.
  *
  *   LOLLY_EXPORT_TEST_URL=http://127.0.0.1:5173 LOLLY_WEB_BASE=http://127.0.0.1:4173 node --test tests/emoji-pack-not-uploads.browser.test.ts
  *

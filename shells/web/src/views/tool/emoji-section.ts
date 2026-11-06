@@ -142,7 +142,7 @@ export async function mountEmojiSection(opts: EmojiSectionOpts): Promise<EmojiSe
   const { mountEmojiStyleControl, EMOJI_SPECIMEN } = await import('../../components/emoji-style-control.ts');
 
   // The specimen costs the whole set: a download the first time and a parse each
-  // time. Most tools never show this section, so it waits until someone opens it.
+  // time. Most tools never show this section, so the drawing waits until it is opened.
   const isShown = (): boolean => !section.hidden && section.open;
   let revealSpecimen: (() => void) | null = null;
   const specimenShown = (): Promise<void> => (isShown() ? Promise.resolve() : new Promise(resolve => { revealSpecimen = resolve; }));

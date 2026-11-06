@@ -196,8 +196,8 @@ test('text presentation selectors carry no artwork, and ordered fallback retains
   assert.deepEqual(await api.artwork(fallback.read.info.pin, fallback.manifest.glyphs[0]!.asset), new Uint8Array(f.artwork));
 });
 
-// A pack the catalog serves is named in the document, not held by it. The file still has
-// to open offline with its own artwork, so the used glyphs are read from the catalog.
+// A document refers to a pack the catalog serves and holds none of its bytes. A file still
+// has to open offline with its own artwork, so the used glyphs are read from the catalog.
 async function catalogSource(keys = ['1f600', '1f603', '1f604']) {
   const multi = await multiSource(keys);
   const file = new TextEncoder().encode(JSON.stringify({ ...JSON.parse(await [...multi.sender.records.values()][0]!.blob!.text()) }));
