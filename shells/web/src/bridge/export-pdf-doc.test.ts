@@ -483,3 +483,15 @@ test('text can be set invisible to stay searchable, or as a clip for what is pai
   assert.match(content, /q\nBT\n[^\n]+ Tf\n3 Tr\n[^\n]+ Tm\n<[^>]*> Tj\nET\nQ/, 'invisible text is render mode 3, undone by its own Q');
   assert.match(content, /q\nBT\n[^\n]+ Tf\n7 Tr\n[^\n]+ Tm\n<[^>]*> Tj\nET\n0 Tr\n[^\n]+ re\nf\nQ/, 'a clip is render mode 7 with no Q of its own, so the rect after it is clipped');
 });
+
+test('canSetText says what a base-14 face can encode, and embeds nothing to find out', async () => {
+  const pdf = await createPdfDoc({ format: [100, 100] });
+  pdf.setFont('helvetica', 'normal');
+  assert.equal(pdf.canSetText('Plain Latin'), true);
+  assert.equal(pdf.canSetText('“Quoted” — €5, café'), true, 'WinAnsi holds these');
+  assert.equal(pdf.canSetText('مرحبا'), false);
+  assert.equal(pdf.canSetText('Łódź'), false, 'Polish letters are outside WinAnsi');
+  assert.equal(pdf.canSetText('漢字'), false);
+  const bytes = new Uint8Array(await (await pdf.output('blob') as Blob).arrayBuffer());
+  assert.equal(new TextDecoder('latin1').decode(bytes).includes('/BaseFont'), false, 'no font object from asking');
+});

@@ -16,7 +16,6 @@ import { wantsDeepExport, hdrTune } from './export-deep-choice.ts';
  * every format (raster, SVG walker, PDF) sees the identical mark.
  */
 
-import { embedResolvedFont } from './export-font-data.ts';
 import { LOSSLESS_STRENGTH, C2PA_FORMATS, embedWavInfo, writeDocx, writeOdt, hdrBoostToPQ, pqBt2020IccProfile, iccProfileBytes, HDR_PQ_CICP, packTiff, CSS_DPI, encodeBmp, cmykCondition, toPixels, parseDimension, toCssLength, gzip, emitEmf, emitWmf, emitEps, emitDxf, toPoints, exportActionSteps, embedC2pa, ENGINE_VERSION, separationLattice, buildExportMeta, SCREEN_SOURCE_TYPE, CAPTURE_SOURCE_TYPE, extractC2paStore, roundedRectPath, splitCssArgs, insetCorners, uniformRadius, parseCssMatrix, isAxisAlignedMat, isNonAffineTransform, parseClipShape, parseBoxShadow, gaussianShadowBands, parseTextShadow, videoProvenanceTags, embedMp4Meta, embedWebmMeta, hdrViewTransform, fromU8Srgb, pqToI420P10, pqEncodeFrame, packApng, packWebpAnim } from '@lolly/engine';
 import type { Mat2D, SeparateRgb } from '@lolly/engine';
 import { letterSpacingPx, featureSettingsToHb, canVectoriseText, textBaselineY } from './text-svg.ts';
@@ -53,7 +52,7 @@ import type { C2paReport } from '../../../../engine/src/c2pa-verify.ts';
 import type { C2paActionInput } from '../../../../engine/src/c2pa.ts';
 import type { PrintGeometry } from '../../../../engine/src/print-marks.ts';
 import type { CornerRadii, CornerPair } from '../../../../engine/src/css-box.ts';
-import { n2, parseCssColorFull, resolveRadii, parseCssColor, objectPositionFractions, parseCssLen } from './export-css.ts';
+import { n2, parseCssColorFull, resolveRadii, objectPositionFractions, parseCssLen } from './export-css.ts';
 import { renderPptx, sourceAuthorOf } from './export-pptx.ts';
 import { domToRichDoc, domToDocBlocks } from './doc-blocks.ts';
 import { insertWebpMeta, insertAvifExif, iccWanted, insertPngPhys, insertPngMeta, insertPngIcc, patchJpegDpi, insertJpegExif, insertJpegXmp, insertJpegIcc, setAvifCicp, injectSvgMeta, inflateBytes, deflateBytes, withGifComment } from './export-image-meta.ts';
@@ -65,9 +64,13 @@ import { printGeometryForSize, provenanceLabels, setPageBoxes, drawPrintMarks, f
 import type { LabelsRecord, PdfFinishSettings } from '@lolly-tools/node-shell/pdf-finishing';
 export { encryptPdfStrong } from '@lolly-tools/node-shell/pdf-finishing';
 import { createPdfDoc } from './export-pdf-doc.ts';
-import { embedSuseFont, pdfFontEmbed, suseFontName } from './export-pdf-fonts.ts';
+import { pdfFontEmbed } from './export-pdf-fonts.ts';
 import { paintSvgToPdf, svgFlips, type SvgFlips } from './export-pdf-svg.ts';
 import { backgroundPicture, clipsBackgroundToText, paintLiveRun, paintOutlinedRun, runPaint } from './export-pdf-text-paint.ts';
+import { TEXT_PICTURE_DPI, liveTextWouldGarble, notePicturedText, takePicturedTextNotice, textPicture, undrawableTextError } from './export-pdf-text-picture.ts';
+import { applyPdfTextStyle, clipOfRun, pdfPseudoContent } from './export-pdf-pseudo-text.ts';
+import { bidiPieces, lineDirection, runBidi } from './export-text.ts';
+import { hasRtlText } from '@lolly-tools/node-shell/text-bidi';
 import { isOwnProfile, resolveEmbeddedProfile } from '../lib/press-profile-embed.ts';
 import { printSeparation } from '../lib/cmyk-separation.ts';
 import { rgbaToCmyk } from './export-cmyk-raster.ts';
@@ -76,7 +79,7 @@ import { _host, canvasToBlob, imprintCanvas, exportDims, getDomToImage, swapBlob
 import { beginFrameClock, renderFrameAt, endFrameClock, withStillHold, posedFrame } from './frame-clock.ts';
 import { isTopTailStage, isRecordStage } from './export-shared.ts';
 import type { WebHost, ExportOpts, ExportDims, ImprintState, Rgba } from './export-shared.ts';
-import { renderSvgFromHtml, stripCommentNodes, inlineBlobUrlsInEl, inlineSvgFromImg, imprintEmbedCanvas, isPaintSkipped, rotationPivot, rasterizePosedNodeToDataUrl, effectSpillCss, detectUnsupportedCss, rasterizeNodeToDataUrl, firstCssUrl, cssUrlToHref, bakeImageFilter, visualLines, mergeDeco, decoFlags, pdfInlineNonText, pseudoDescriptor, type Deco } from './export-svg-walker.ts';
+import { renderSvgFromHtml, stripCommentNodes, inlineBlobUrlsInEl, inlineSvgFromImg, imprintEmbedCanvas, isPaintSkipped, rotationPivot, rasterizePosedNodeToDataUrl, effectSpillCss, detectUnsupportedCss, rasterizeNodeToDataUrl, firstCssUrl, cssUrlToHref, bakeImageFilter, visualLines, mergeDeco, decoFlags, pdfInlineNonText, type Deco } from './export-svg-walker.ts';
 import { designOpsSvg, renderDesignOpsPdf } from './export-design-ops.ts';
 import { finishPng, durableEmbedCanvas } from './export-raster-finish.ts';
 import { rasterStyle, coverRasterStyle } from './export-raster-style.ts';
@@ -99,7 +102,6 @@ export type { Deco } from './export-svg-walker.ts';
 export { pureRotationDeg, renderSvg, renderEmf, renderEps, renderDxf };
 
 // ── Local types ─────────────────────────────────────────────────────────────
-type Rgb = [number, number, number];
 
 
 // User-visible EXPORT QUALITY notices (not errors): the frame rate was lowered to
@@ -1779,6 +1781,8 @@ async function renderArtworkPdf(node: Element, opts: ExportOpts, geo: PrintGeome
 // it could not embed) reaches the user through the host log, not silence.
 function logPdfWarnings(pdf: { takeWarnings?: () => string[] }): void {
   for (const msg of pdf.takeWarnings?.() ?? []) _host?.log?.('warn', msg);
+  const pictured = takePicturedTextNotice(pdf);
+  if (pictured) { _host?.log?.('warn', `pdf: ${pictured}`); _exportNotice(pictured); }
 }
 
 // Stamp the document-info dictionary (creator/author/title/…) onto a document.
@@ -3232,8 +3236,8 @@ async function drawHtmlVectors(pdf: any, node: Element, ox: number, oy: number, 
             && child.tagName.toLowerCase() !== 'svg') continue;
         await visit(child);
       }
-      await renderInlineContent(pdf, el, style, rootRect, scaleX, scaleY, cssToPt, registeredFonts, visit, convertPaths, imprint);
-      await pdfPseudoContent(pdf, el, rootRect, scaleX, scaleY, cssToPt, registeredFonts, convertPaths);
+      await renderInlineContent(pdf, el, style, rootRect, scaleX, scaleY, cssToPt, registeredFonts, visit, convertPaths, imprint, rasterFallback);
+      await pdfPseudoContent(pdf, el, rootRect, scaleX, scaleY, cssToPt, registeredFonts, convertPaths, rasterFallback, imprint);
     };
     if (clipsOverflow && (hasRadius || spillsBox)) await withPdfRoundedClip(pdf, x, y, w, h, radii, uniform, drawContent);
     else await drawContent();
@@ -3260,7 +3264,7 @@ async function drawHtmlVectors(pdf: any, node: Element, ox: number, oy: number, 
 async function renderInlineContent(
   pdf: any, blockEl: any, blockStyle: CSSStyleDeclaration,
   rootRect: { left: number; top: number }, scaleX: number, scaleY: number, cssToPt: number,
-  registeredFonts: Set<unknown>, drawBox: (el: Element) => Promise<void>, convertPaths = true, imprint?: ImprintState,
+  registeredFonts: Set<unknown>, drawBox: (el: Element) => Promise<void>, convertPaths = true, imprint?: ImprintState, rasterFallback = true,
 ): Promise<void> {
   async function walk(node: any, nodeStyle: CSSStyleDeclaration, deco: Deco): Promise<void> {
     if (node.nodeType === 3) {
@@ -3289,6 +3293,8 @@ async function renderInlineContent(
       const paint = await runPaint(pdf, node.parentElement, nodeStyle, rootRect, scaleX, scaleY, cssToPt, (box, w, h) => backgroundPicture(box, w, h, RASTER_DPI, imprint));
       const textRgb = paint.rgb;
       const { ascent, descent } = fontMetricsPx(nodeStyle, fontSizePx);
+      const bidi = runBidi(node.parentElement);
+      const vectorisable = canVectoriseText(nodeStyle, fontUrl, Boolean(_host?.text));
 
       // Use the browser's actual line breaks + per-line positions (exact match to
       // on-screen and the SVG output), NOT a writer-side line breaker - which re-measures
@@ -3300,7 +3306,7 @@ async function renderInlineContent(
       let offset = 0;
       for (const seg of segs) {
         if (seg.trim().length > 0) {
-          for (const line of visualLines(node, offset, offset + seg.length)) {
+          for (const visual of visualLines(node, offset, offset + seg.length)) for (const line of bidiPieces(node, visual, bidi)) {
             const r = line.rect;
             if (r.width < 0.5 || r.height < 0.5) continue;
             const x = (r.left - rootRect.left) * scaleX;
@@ -3309,31 +3315,60 @@ async function renderInlineContent(
             // riding the top of its line box. (Was `top + ascent`, i.e. half-leading = 0.)
             const baselinePt = textBaselineY(r.top - rootRect.top, r.height, ascent, descent) * scaleY;
             const shown = applyTextTransform(line.text, nodeStyle.textTransform);
+            const direction = lineDirection(bidi, shown);
+            const rtl = direction === 'rtl';
+            const ordered = rtl || hasRtlText(shown);
+            const direct = ordered ? { direction } : {};
+            // Live text is one glyph per character, left to right. Text that needs more
+            // than that outlines even with "Convert paths" off, and a font with no glyphs
+            // for it means a picture: the base-14 face would print question marks.
+            const overridden = bidi.override && ordered;
+            const garbled = liveTextWouldGarble(shown, rtl);
+            const outlineRun = !overridden && (outline || (garbled && vectorisable));
 
             // Shape once and reuse: the shadows and the run itself are the same
             // glyphs, and HarfBuzz shaping is the expensive part of this loop.
             let shapedD: string | null | undefined;
+            let shapedAdvance = 0;
             const textPathFor = async (t: string): Promise<string | null> => {
               if (shapedD !== undefined) return shapedD;
               try {
-                const res = await _host!.text!.toPath({ text: t, fontUrl: fontUrl!, fontSize: fontSizePx, features: features as string[], letterSpacing, variations: vf!.variations, fallbackFonts: vf!.fallbacks });
+                const res = await _host!.text!.toPath({ text: t, fontUrl: fontUrl!, fontSize: fontSizePx, features: features as string[], letterSpacing, variations: vf!.variations, fallbackFonts: vf!.fallbacks, ...direct });
                 shapedD = res.d && !res.notdef ? res.d : null;
+                shapedAdvance = res.advanceWidth;
               } catch { shapedD = null; }
               return shapedD;
             };
+            // A right-to-left run sits on the line's right edge; the path reads from its left.
+            const pathX = (): number => (rtl ? (r.right - rootRect.left) * scaleX - shapedAdvance * cssToPt : x);
+            const liveOk = !garbled && !overridden && pdf.canSetText(shown);
+            const pictured = !liveOk && !(outlineRun && await textPathFor(shown) !== null);
+            if (pictured) {
+              // Client px to layout px: a scaled ancestor moves the first, not the font size.
+              const toLayout = scaleX / cssToPt;
+              const pic = rasterFallback ? await textPicture({
+                text: shown, style: nodeStyle, direction, override: overridden, box: { w: r.width * toLayout, h: r.height * toLayout },
+                scale: (TEXT_PICTURE_DPI / 72) * cssToPt, clip: paint.under ? clipOfRun(node.parentElement, r, toLayout) : undefined,
+                lang: node.parentElement?.closest('[lang]')?.getAttribute('lang'), imprint,
+              }) : null;
+              if (!pic) throw undrawableTextError(shown);
+              pdf.addImage(pic.src, 'PNG', x - pic.pad * cssToPt, (r.top - rootRect.top) * scaleY - pic.pad * cssToPt, (pic.w + 2 * pic.pad) * cssToPt, (pic.h + 2 * pic.pad) * cssToPt);
+              notePicturedText(pdf, shown);
+            }
 
             // ── text-shadow, back-to-front (CSS paints the first-listed on top) ──
             // A hard offset is exact vector: the same run again, shifted, in the
             // shadow colour. A blurred one has no PDF operator, so the outlined path
             // is baked to a shadow-only bitmap - the same compromise the box shadows
             // make here, and far smaller than baking the text itself.
-            const tShadows = parseTextShadow(nodeStyle.textShadow).reverse();
+            // A picture holds its own shadow.
+            const tShadows = pictured ? [] : parseTextShadow(nodeStyle.textShadow).reverse();
             for (const tsh of tShadows) {
               const scol = parseCssColorFull(tsh.color);
               if (!scol) continue;
               try {
                 if (tsh.blur > 0) {
-                  const d0 = outline ? await textPathFor(shown) : null;
+                  const d0 = outlineRun ? await textPathFor(shown) : null;
                   const pad = tsh.blur * 3 + Math.abs(tsh.x) + Math.abs(tsh.y) + 8;
                   const png = await rasterizeTextShadow(
                     d0 ? { d: d0 } : { text: shown, style: nodeStyle },
@@ -3341,19 +3376,19 @@ async function renderInlineContent(
                     textBaselineY(0, r.height, ascent, descent), pad,
                     (RASTER_DPI / 72) * scaleX, (RASTER_DPI / 72) * scaleY, imprint);
                   if (png) {
-                    pdf.addImage(png, 'PNG', x - pad * scaleX,
+                    pdf.addImage(png, 'PNG', pathX() - pad * scaleX,
                       (r.top - rootRect.top - pad) * scaleY,
                       (r.width + 2 * pad) * scaleX, (r.height + 2 * pad) * scaleY);
                   }
                   continue;
                 }
                 // Hard offset.
-                const d0 = outline ? await textPathFor(shown) : null;
+                const d0 = outlineRun ? await textPathFor(shown) : null;
                 if (d0) {
                   pdf.setFillColor(scol[0], scol[1], scol[2]);
                   withPdfAlpha(pdf, scol[3], () => {
                     drawSvgPathToPdf(pdf, d0,
-                      (sx: number) => x + (sx + tsh.x) * cssToPt,
+                      (sx: number) => pathX() + (sx + tsh.x) * cssToPt,
                       (sy: number) => baselinePt + (sy + tsh.y) * cssToPt);
                     pdf.fill();
                   });
@@ -3368,18 +3403,19 @@ async function renderInlineContent(
               } catch { /* a shadow that won't draw must not take the text with it */ }
             }
 
-            let drawn = false;
-            if (outline) {
+            let drawn = pictured;
+            if (!drawn && outlineRun) {
               try {
                 // A glyph the face lacks (notdef) would print as tofu - fall through
                 // to pdf.text, which at least renders through an embedded/base font.
-                const { d, notdef } = await _host!.text!.toPath({ text: shown, fontUrl: fontUrl!, fontSize: fontSizePx, features: features as string[], letterSpacing, variations: vf!.variations, fallbackFonts: vf!.fallbacks });
+                const { d, notdef, advanceWidth } = await _host!.text!.toPath({ text: shown, fontUrl: fontUrl!, fontSize: fontSizePx, features: features as string[], letterSpacing, variations: vf!.variations, fallbackFonts: vf!.fallbacks, ...direct });
                 if (d && !notdef) {
+                  const left = rtl ? (r.right - rootRect.left) * scaleX - advanceWidth * cssToPt : x;
                   // Fill, text stroke and any background-clip: text background (export-pdf-text-paint.ts).
                   // ponytail: stroke-opacity is not applied there (fill and stroke would need
                   // separate alpha states); add withPdfAlpha around the stroke pass if a
                   // translucent text stroke shows up in a fixture.
-                  paintOutlinedRun(pdf, d, (sx: number) => x + sx * cssToPt, (sy: number) => baselinePt + sy * cssToPt, nodeStyle, cssToPt, paint);
+                  paintOutlinedRun(pdf, d, (sx: number) => left + sx * cssToPt, (sy: number) => baselinePt + sy * cssToPt, nodeStyle, cssToPt, paint);
                   drawn = true;
                 }
               } catch (e) {
@@ -3418,83 +3454,6 @@ async function renderInlineContent(
   }
 
   for (const child of blockEl.childNodes) await walk(child, blockStyle, decoFlags(blockStyle));
-}
-
-// Emit any ::before/::after markers of `el` into the PDF (mirrors svgPseudoContent).
-async function pdfPseudoContent(pdf: any, el: Element, rootRect: { left: number; top: number }, scaleX: number, scaleY: number, cssToPt: number, registeredFonts: Set<unknown>, convertPaths: boolean): Promise<void> {
-  for (const name of ['::before', '::after']) {
-    const ds = pseudoDescriptor(el, name);
-    if (!ds) continue;
-    const x = (ds.x - rootRect.left) * scaleX;
-    const y = (ds.y - rootRect.top)  * scaleY;
-    if (ds.bg && ds.w > 0.5 && ds.h > 0.5) {
-      const w = ds.w * scaleX, h = ds.h * scaleY;
-      const radii: CornerRadii = {
-        topLeft:     [ds.radii.topLeft[0]     * scaleX, ds.radii.topLeft[1]     * scaleY],
-        topRight:    [ds.radii.topRight[0]    * scaleX, ds.radii.topRight[1]    * scaleY],
-        bottomRight: [ds.radii.bottomRight[0] * scaleX, ds.radii.bottomRight[1] * scaleY],
-        bottomLeft:  [ds.radii.bottomLeft[0]  * scaleX, ds.radii.bottomLeft[1]  * scaleY],
-      };
-      const uniform: CornerPair | null = ds.uniform ? [ds.uniform[0] * scaleX, ds.uniform[1] * scaleY] : null;
-      pdf.setFillColor(ds.bg[0], ds.bg[1], ds.bg[2]);
-      pdfRoundedRect(pdf, x, y, w, h, radii, uniform, 'F');
-    }
-    if (!ds.text.trim()) continue;
-    const fontSizePx = parseFloat(ds.ps.fontSize) || 16;
-    const vf = _host?.text ? await resolveVectorFont(ds.ps, ds.text) : null;
-    const fontUrl = vf?.url ?? null;
-    const embedUrl = convertPaths ? null : await pdfFontEmbed(vf);
-    const hasResolvedFont = Boolean(vf);
-    const textRgb = parseCssColor(ds.ps.color) || ([0, 0, 0] as Rgb);
-    // Baseline within the marker's line box (half-leading + ascent), matching the SVG
-    // pseudo path's textBaselineY - so a bullet/arrow lines up with the main text (which
-    // is now also centred), not riding the top of its box.
-    const lineHPx = parseFloat(ds.ps.lineHeight) || fontSizePx * 1.2;
-    const { ascent: pAsc, descent: pDesc } = fontMetricsPx(ds.ps, fontSizePx);
-    const baselinePt = textBaselineY(ds.y - rootRect.top, lineHPx, pAsc, pDesc) * scaleY;
-    let drawn = false;
-    // Outline in convert-paths mode, or for a user font live text can't carry faithfully.
-    if (canVectoriseText(ds.ps, fontUrl, Boolean(_host?.text)) && (convertPaths || (hasResolvedFont && !embedUrl))) {
-      try {
-        const { d, notdef } = await _host!.text!.toPath({ text: ds.text, fontUrl: fontUrl!, fontSize: fontSizePx, variations: vf!.variations, fallbackFonts: vf!.fallbacks });
-        if (d && !notdef) {
-          pdf.setFillColor(textRgb[0], textRgb[1], textRgb[2]);
-          drawSvgPathToPdf(pdf, d, (sx: number) => x + sx * cssToPt, (sy: number) => baselinePt + sy * cssToPt);
-          pdf.fill();
-          drawn = true;
-        }
-      } catch (e) { _host?.log?.('warn', `pdf: pseudo text-to-path failed - ${(e as Error).message}`); }
-    }
-    if (!drawn) {
-      await applyPdfTextStyle(pdf, ds.ps, cssToPt, registeredFonts, embedUrl);
-      pdf.text(ds.text, x, baselinePt, { baseline: 'alphabetic' });
-    }
-  }
-}
-
-// Sets the text color, font size, and the font to draw pdf.text() with. The
-// font is chosen in order: a faithfully-embeddable user font (its sfnt URL,
-// pre-decided by pdfFontEmbed) → the SUSE static for the weight/style →
-// Helvetica. Embeds whichever it picks into the PDF (once) as a side effect.
-async function applyPdfTextStyle(pdf: any, style: CSSStyleDeclaration, cssToPt: number, registeredFonts: Set<unknown>, userEmbedUrl: string | null = null): Promise<void> {
-  const textRgb = parseCssColor(style.color) || ([0, 0, 0] as Rgb);
-  pdf.setTextColor(textRgb[0], textRgb[1], textRgb[2]);
-  const pdfSize = parseFloat(style.fontSize) * cssToPt;
-  pdf.setFontSize(pdfSize);
-  const weight = parseInt(style.fontWeight) || 400;
-  const italic  = style.fontStyle === 'italic' || style.fontStyle === 'oblique';
-  const family  = (style.fontFamily || '').toLowerCase();
-  if (userEmbedUrl) {
-    const name = await embedResolvedFont(pdf, registeredFonts, userEmbedUrl);
-    if (name) { pdf.setFont(name, 'normal'); return; }
-  }
-  if (family.includes('suse')) {
-    const mono = family.includes('mono');
-    const suseStyle = await embedSuseFont(pdf, registeredFonts, weight, italic, mono);
-    if (suseStyle) { pdf.setFont(suseFontName(mono), suseStyle); return; }
-  }
-  const fallback = weight >= 600 ? (italic ? 'bolditalic' : 'bold') : (italic ? 'italic' : 'normal');
-  pdf.setFont('helvetica', fallback);
 }
 
 // Clips an image to a circle via an offscreen canvas. Used for headshots that

@@ -18,7 +18,7 @@
  * run, returns null and shapes exactly as it always did, so its outlines keep their
  * bytes.
  */
-import { analyzeTextBidi, reorderTextRuns, textBidiClass, textLineLevels, textScriptRuns } from '../../../engine/src/text-unicode.ts';
+import { analyzeTextBidi, reorderTextRuns, textBidiClass, textLineLevels, textScript, textScriptRuns } from '../../../engine/src/text-unicode.ts';
 
 export type TextRunDirection = 'ltr' | 'rtl';
 
@@ -47,6 +47,23 @@ export function firstStrongDirection(text: string): TextRunDirection {
     if (cls === 'L') return 'ltr';
   }
   return 'ltr';
+}
+
+/** Does this text hold a script whose letters change shape or place when shaped? */
+export function hasComplexScript(text: string): boolean {
+  if (isAscii(text)) return false;
+  for (const char of text) if (!SIMPLE_SCRIPTS.has(textScript(char.codePointAt(0)!))) return true;
+  return false;
+}
+
+/** The scripts in this text, as codes such as `Arab`, leaving out punctuation and digits. */
+export function scriptsOf(text: string): string[] {
+  const out = new Set<string>();
+  for (const char of text) {
+    const script = textScript(char.codePointAt(0)!);
+    if (script !== 'Zyyy' && script !== 'Zinh' && script !== 'Zzzz') out.add(script);
+  }
+  return [...out];
 }
 
 function mixesComplexScript(text: string): boolean {
