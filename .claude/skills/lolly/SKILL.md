@@ -274,6 +274,8 @@ A default render embeds a fresh timestamp (Content Credentials and the pixel
 imprint), so it is not byte-identical run to run. When you need deterministic
 bytes (a build step, a cached asset, a diff), turn provenance off:
 `--no-provenance` on the CLI, `c2pa: "off"` with `imprint: false` on
-`lolly_render`, or the public render route (which never signs). Ask before
+`lolly_render`, or the public render route (which never signs). A PDF or an SVG
+from the browser tier still differs run to run, in its dates and generated ids,
+though it holds no credential. Ask before
 stripping provenance from a deliverable a person will publish: the credential is
 what proves the file was made with Lolly.
