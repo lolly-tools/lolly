@@ -10,6 +10,10 @@
     "image": {
       "id": "lolly/demo/sample-character"
     },
-    "as_bgColor": "{color.semantic.surface}"
+    "as_bgColor": "{color.semantic.surface}",
+    "as_invert": true,
+    "as_colorMode": "mono",
+    "as_fgColor": "{color.semantic.text}",
+    "as_fontWeight": "500"
   }
 }

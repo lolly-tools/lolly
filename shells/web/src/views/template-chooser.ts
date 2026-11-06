@@ -188,6 +188,8 @@ interface ChooserOpts {
   host?: HostV1;
   /** The tool's render.formats - the preview renders vector-first at displayFormatOf. */
   formats?: readonly string[];
+  /** The manifest's `galleryArt`, for a tool whose previews draw as a PNG (coverFormats). */
+  galleryArt?: 'render' | 'icon';
   /**
    * Called synchronously, once the modal exists, with a function that force-closes it - 
    * exactly as if Escape/backdrop/× had been used - and resolves the returned promise
@@ -880,7 +882,8 @@ export function openTemplateChooser(opts: ChooserOpts): Promise<Record<string, I
           // Yield before the render-engine chunk is even requested: the tool is mounting
           // underneath this modal right now and its own lazy chunks are in flight.
           await whenIdle();
-          const { renderFeaturedVariant } = await import('../lib/featured-render.ts');
+          const { coverFormats, renderFeaturedVariant } = await import('../lib/featured-render.ts');
+          const previewFormats = coverFormats({ formats, galleryArt: opts.galleryArt });
           while (queue.length && !settled) {
             const id = queue.shift()!;
             const values = await getValues(id).catch(() => null);
@@ -894,7 +897,7 @@ export function openTemplateChooser(opts: ChooserOpts): Promise<Record<string, I
             try {
               const src = await renderFeaturedVariant(
                 host as Parameters<typeof renderFeaturedVariant>[0],
-                opts.toolId, formats, id, values as Record<string, unknown>, previewNs, byId.get(id)?.motion?.posterMs,
+                opts.toolId, previewFormats, id, values as Record<string, unknown>, previewNs, byId.get(id)?.motion?.posterMs,
               );
               refreshBrand();
               if (settled || !src || renderedBrandTag !== brandTagApplied) continue;

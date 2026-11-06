@@ -20,5 +20,6 @@
     "cornerRadius": 6,
     "differentiate": "colour",
     "showPoints": false
-  }
+  },
+  "galleryTheme": "light"
 }

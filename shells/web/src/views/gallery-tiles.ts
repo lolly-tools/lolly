@@ -17,7 +17,7 @@ import { t, tRaw } from '../i18n.ts';
 import { icon } from '../lib/icons.ts';
 import { toolSupport } from '../capabilities.ts';
 import { resolveExamples } from '../components/featured-row.ts';
-import { displayFormatOf } from '../lib/featured-render.ts';
+import { coverFormats, displayFormatOf } from '../lib/featured-render.ts';
 import { selectToggle } from '../folder-tiles.ts';
 import { carouselDotsMarkup, carouselNavMarkup } from './gallery-carousel.ts';
 import type { StateEntry } from '@lolly-tools/core/host-v1';
@@ -78,7 +78,7 @@ function iconBackdrop(icon: string | undefined): string {
  * tool with no examples, no raster format, or one the shell can't run.
  */
 export function galleryExampleLooks(tool: GalleryTool, darkTheme: boolean, max = EXAMPLE_MAX): Array<{ v: FeaturedVariant; i: number }> {
-  if (!displayFormatOf(tool.formats)) return [];
+  if (!displayFormatOf(coverFormats(tool))) return [];
   return resolveExamples(tool)
     .map((v, i) => ({ v, i }))
     // Same theme filter as the featured row: a reverse/white look on a light tile (or a
