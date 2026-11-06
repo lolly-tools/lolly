@@ -39,6 +39,44 @@
       else if (!wide && chosen && !framed) location.replace('/any-site' + location.pathname + location.search + location.hash);
     })();
   </script>
+  <!-- Early drops. Until the app has loaded, nothing takes a dropped file, so the browser
+       would open it and leave Lolly. This keeps every file drop made before any app code
+       has run: its files, its point and what it was dropped on. lib/drop-early.ts takes
+       them over when main.ts starts (installDropHold, which calls stop()) and gives each
+       to the page under it once that page is ready. Same file-drag rule as isFileDrag
+       there: files, never a drag of Lolly's own tiles. Before the stylesheet below, so
+       it runs at once instead of waiting for the sheet. -->
+  <script id="lolly-drop-hold">
+    (() => {
+      var drops = [];
+      var tile = /^(?:text\/lolly-|application\/x-lolly-)/;
+      var files = function (e) {
+        var types = e.defaultPrevented || !e.dataTransfer ? null : [].slice.call(e.dataTransfer.types || []);
+        return !!types && types.indexOf('Files') >= 0 && !types.some(function (type) { return tile.test(type); });
+      };
+      var over = function (e) {
+        if (!files(e)) return;
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'copy';
+      };
+      var drop = function (e) {
+        if (!files(e)) return;
+        e.preventDefault();
+        drops.push({ files: [].slice.call(e.dataTransfer.files || []), x: e.clientX, y: e.clientY, target: e.target });
+      };
+      addEventListener('dragenter', over);
+      addEventListener('dragover', over);
+      addEventListener('drop', drop);
+      window.__lollyEarlyDrops = {
+        stop: function () {
+          removeEventListener('dragenter', over);
+          removeEventListener('dragover', over);
+          removeEventListener('drop', drop);
+          return drops;
+        },
+      };
+    })();
+  </script>
   <!-- Page pinch-zoom is enabled (WCAG 1.4.4 - never lock it). The mobile
        controls sheet is position:fixed and would otherwise strand off-screen
        while zoomed; a VisualViewport shim (main.js) re-pins it to the visible
@@ -470,7 +508,7 @@
            (tokens.css), and #008657 only if no stylesheet has loaded yet.
            --boot-mark still lets a deployment set it outright. Everything else
            in the artwork is greyscale. -->
-      <p class="loading"><svg xmlns="http://www.w3.org/2000/svg" class="lolly-icon loading-icon" width="76" height="76" aria-hidden="true" viewBox="0 0 285.75 285.75">
+      <p class="loading" data-drop-stand-in><svg xmlns="http://www.w3.org/2000/svg" class="lolly-icon loading-icon" width="76" height="76" aria-hidden="true" viewBox="0 0 285.75 285.75">
   <defs>
     <radialGradient id="k" cx="880.759" cy="708.563" r="30.665" fx="880.759" fy="708.563" gradientTransform="matrix(4.6 0 0 4.6 -3908.588 -3116.499)" gradientUnits="userSpaceOnUse" href="#a"/>
     <radialGradient id="l" cx="880.759" cy="708.563" r="104.651" fx="880.759" fy="708.563" gradientTransform="translate(-992.344 -770.4)scale(1.289)" gradientUnits="userSpaceOnUse" href="#b"/>

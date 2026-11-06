@@ -79,6 +79,7 @@ import { recordTool, recordBatch, bumpMetric, recordFormat } from './metrics.ts'
 import { announce } from './a11y.ts';
 import { beginViewFade } from './view-fade.ts';
 import { beginViewLoading, type ViewLoading } from './components/view-loading.ts';
+import { installDropHold, viewFailed, viewLoading, viewReady, type DropNote } from './lib/drop-early.ts';
 import { noteLeavingHref, takeLeavingHref, recordLeave, noteMountedView } from './lib/back-nav.ts';
 import { startWebGpuCheck, webGpuChecked } from './lib/webgpu/device.ts';
 import { STARTUP_PENDING_ATTRIBUTE } from './lib/startup-motion.ts';
@@ -103,6 +104,26 @@ function installCollabWiring(): void {
     .then(m => { m.installNearbyBoot(); return import('./collab/nearby-accept.ts'); })
     .then(m => m.installNearbyAccept());
 }
+// A file dropped while Lolly is still loading is kept, not opened by the browser, and
+// given to the page under it once that page is ready (lib/drop-early.ts). Installed
+// first, so it takes over from index.html's boot script with no gap. A drop nothing on
+// the page took opens the front door's chooser, once boot has the host (it waits in
+// `unclaimedDrop` until then); a framed tool shows a note instead.
+let openFrontDoor: ((files: File[]) => void) | null = null;
+let unclaimedDrop: File[] | null = null;
+let dropNotes: Promise<typeof import('./lib/drop-hold-note.ts')> | undefined;
+const dropNote = (note: DropNote): void => {
+  dropNotes ??= import('./lib/drop-hold-note.ts');
+  void dropNotes.then(m => m.showDropHoldNote(note));
+};
+installDropHold({
+  tell: dropNote,
+  unclaimed: files => {
+    if (isIframeMode()) dropNote({ kind: 'unclaimed', files: files.map(file => file.name) });
+    else if (openFrontDoor) openFrontDoor(files);
+    else unclaimedDrop = files;
+  },
+});
 // A tool shown with `?iframe` inside another page keeps nothing and joins nothing
 // (lib/iframe-mode.ts): no collab or nearby listeners in a frame.
 applyIframeModeAttr();
@@ -395,6 +416,7 @@ function webGpuFailed(): boolean { return webGpuStop !== null; }
 
 function showWebGpuCard(): void {
   if (!webGpuStop) return;
+  viewFailed();
   const { error } = webGpuStop;
   void import('./lib/boot-error.ts').then(({ showBootError }) => showBootError(error))
     .catch(() => showReloadCard(error instanceof Error ? error.message : String(error)));
@@ -489,6 +511,10 @@ async function navigate(host: WebHost, opts: { force?: boolean } = {}): Promise<
   };
   const leftHandoff = !!prevSig && ROUTES[(JSON.parse(prevSig) as string[])[0] as RouteName]?.handoff === true;
   if (prevSig && viewIdent(routeSig) !== viewIdent(prevSig) && !leftHandoff) recordLeave(leftHref);
+  // File drops are held until this view has mounted; one made for another view is not
+  // opened here (lib/drop-early.ts).
+  const dropView = viewIdent(routeSig);
+  viewLoading(dropView);
 
   const view = document.getElementById('view') as ViewElement;
   // Tell the search bar whether this navigation redraws the route already showing: a
@@ -926,6 +952,7 @@ async function navigate(host: WebHost, opts: { force?: boolean } = {}): Promise<
   // (the tool view's /t/<id> rewrite) is done - snapshot it as the candidate
   // "previous view" for the next navigation's back pill.
   noteMountedView(route.name);
+  viewReady(dropView);
 
   // Reconcile the persistent jelly tab pill (view-toggle.ts): listing views
   // show it (the pill slides to the active tab), everything else hides it.
@@ -1872,21 +1899,26 @@ async function boot(): Promise<void> {
   // drop-router (the sniff + chooser module) is itself dynamic-imported off the boot
   // path now; its heavy import/ingest dependencies are also lazy.
   void import('./lib/drop-router.ts').then((m) => {
-    m.initShareTargetIngest(host as unknown as Parameters<typeof m.initShareTargetIngest>[0]);
+    const pickerHost = host as unknown as Parameters<typeof m.openDropChooser>[1];
+    // A file dropped while Lolly loaded that nothing on the page took (see installDropHold).
+    openFrontDoor = files => { void m.openDropChooser(files, pickerHost); };
+    if (unclaimedDrop) openFrontDoor(unclaimedDrop);
+    unclaimedDrop = null;
+    m.initShareTargetIngest(pickerHost);
     // App Links (plan 171): a tapped https://lolly.tools/t/… link that opened the
     // Android app resolves to its in-app route. Feature-detected no-op elsewhere.
-    m.initDeepLinkIntake(host as unknown as Parameters<typeof m.initDeepLinkIntake>[0]);
+    m.initDeepLinkIntake(pickerHost);
     // The installed PWA's own two doors (plan 202 WP4.3), both probes:
     //   share target - the service worker parked the shared files and redirected
     //     here; this drains that stash into the drop chooser.
     //   file handlers - the OS "Open with" launch delivers its files on
     //     launchQueue, which only Chromium-family browsers define. Same chooser,
     //     so a .lolly opened from Finder asks the same question a dropped one does.
-    void m.initShareTargetFileIntake(host as unknown as Parameters<typeof m.initShareTargetFileIntake>[0]);
+    void m.initShareTargetFileIntake(pickerHost);
     const launchQueue = (window as Window & { launchQueue?: LaunchQueue }).launchQueue;
     if (typeof launchQueue?.setConsumer === 'function') {
       launchQueue.setConsumer((params) => {
-        void m.openLaunchedFiles(params, host as unknown as Parameters<typeof m.openLaunchedFiles>[1]);
+        void m.openLaunchedFiles(params, pickerHost);
       });
     }
     // Desktop integration poll loop (plans/174): drains the native event queue -
@@ -2340,6 +2372,7 @@ const CHUNK_RELOAD_KEY = 'lolly-chunk-reload-at';
 // A visible, always-actionable fallback - the last-resort alternative to a blank
 // container. Mirrors boot()'s error card (className 'error', a .btn Reload).
 function showReloadCard(message?: string): void {
+  viewFailed();
   const view = document.getElementById('view');
   if (!view) return;
   view.textContent = '';
@@ -2381,6 +2414,7 @@ if (import.meta.env.PROD) {
 
 boot().catch(err => {
   console.error('Boot failed:', err);
+  viewFailed();
   // A stale-shell chunk failure during boot recovers the same way navigation does - 
   // reload onto the fresh shell (or a visible Reload card), never a dead screen.
   if (import.meta.env.PROD && looksLikeChunkError(err)) { recoverFromStaleShell(); return; }

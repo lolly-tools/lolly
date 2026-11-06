@@ -85,11 +85,11 @@ export function projectsDropHooks(o: ProjectsDropContext): DropChooserHooks {
 /**
  * Open the Projects drop door at mount. Projects reads the whole library before it first
  * paints, and on a first visit that read also waits for a module to download. A file
- * dropped meanwhile, on the boot screen or on the route's Loading card, used to find no
- * listener, so the browser opened the file and left Lolly. It is now held from this
- * call (lib/drop-early.ts, as on the gallery). The view calls the returned attach after
- * each render: the router then takes over the root, routes the held file as if dropped
- * then, and files what it stores into the folder on screen. Attaching again replaces
+ * dropped meanwhile, on the boot screen or on the route's Loading card, is held while
+ * the view loads (lib/drop-early.ts), and this call keeps it held past the mount until
+ * the router listens on the root. The view calls the returned attach after each render:
+ * the router then takes over the root, the held file is dropped again where it was, and
+ * the router files what it stores into the folder on screen. Attaching again replaces
  * the live attachment.
  */
 export function projectsDropDoor(viewEl: HTMLElement, o: ProjectsDropContext): () => void {
