@@ -1,4 +1,4 @@
-<div class="lolly3d-wrap" data-lolly-anno="{{scene}} {{background}} {{bgColor2}} {{cameraMove}} {{easing}} {{tint}}">
+<div class="lolly3d-wrap" data-export-error="The 3D scene is still drawing. Try again in a moment." data-lolly-anno="{{scene}} {{background}} {{bgColor2}} {{cameraMove}} {{easing}} {{tint}}">
   <canvas class="lolly3d-canvas" id="lolly3d-canvas" data-canvas-input="model" data-capture-stream></canvas>
 </div>
 <script type="application/json" id="lolly3d-state">{{{_state}}}</script>
@@ -271,6 +271,8 @@
       }).then(function () {
         if (!alive() || disposed) return;
         renderFrame(0);
+        // A scene that has not drawn is not a picture, so export is refused until this frame exists.
+        if (canvas.parentNode && canvas.parentNode.removeAttribute) canvas.parentNode.removeAttribute('data-export-error');
         fireReady();
         if (!disposed) loop();
       });
