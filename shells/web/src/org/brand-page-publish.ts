@@ -8,6 +8,7 @@
 import { instanceFetch, instancePath } from '../lib/instance.ts';
 import type { BrandPageHostingV1, BrandPagePublishedV1, ConnectedInstanceV1 } from '../lib/brand-page-hosting.ts';
 import { artifactChecksum, sendApprovalFile } from './approval-artifact.ts';
+import { brandEditHosting, type BrandEditsCapability } from './brand-edit-send.ts';
 
 export interface BrandPagesCapability { maxBundleBytes: number; maxFileBytes?: number; partBytes: number; approval: boolean }
 
@@ -39,7 +40,7 @@ async function publishBundle(base: string, capability: BrandPagesCapability, bun
 }
 
 /** The report for the Design System Setup sheets. Null when no instance is connected. */
-export function connectedInstanceFrom(config: { brandPages?: BrandPagesCapability | null } | null, connected: boolean): ConnectedInstanceV1 | null {
+export function connectedInstanceFrom(config: { brandPages?: BrandPagesCapability | null; brandEdits?: BrandEditsCapability | null; can?: Record<string, boolean> | null } | null, connected: boolean): ConnectedInstanceV1 | null {
   if (!connected) return null;
   const base = instanceOrigin();
   const host = new URL(base).host;
@@ -48,5 +49,7 @@ export function connectedInstanceFrom(config: { brandPages?: BrandPagesCapabilit
     host, base, approval: capability.approval === true, maxBundleBytes: capability.maxBundleBytes,
     publish: ({ bundle }) => publishBundle(base, capability, bundle),
   } : null;
-  return { host, mcpUrl: `${base}/api/v1/mcp`, brandPages };
+  // The bit and the block together: an older server has neither, so nothing is offered.
+  const edits = config?.can?.['brand.edit'] === true ? config.brandEdits : null;
+  return { host, mcpUrl: `${base}/api/v1/mcp`, brandPages, brandEdits: edits ? brandEditHosting(host, base, edits) : null };
 }

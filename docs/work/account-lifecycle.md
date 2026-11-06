@@ -71,7 +71,7 @@ a credential's owner is a separate, explicit action.
 
 `GET /api/v1/users/:id/subject-export` needs an owner, and each successful read is recorded in
 the audit log. It returns the account plus one category of direct metadata: `identities`,
-`projects`, `credentials`, `links`, `approvals`, `brandPages`, `telemetry`, `fleet` or `audit`. Choose a category with
+`projects`, `credentials`, `links`, `approvals`, `brandPages`, `brandEdits`, `telemetry`, `fleet` or `audit`. Choose a category with
 `?category=credentials`. Pages default to 100 rows and accept a `limit` from 1 to 200.
 
 ```sh

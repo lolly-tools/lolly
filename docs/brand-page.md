@@ -102,11 +102,11 @@ Your exports can name your page, so a file someone finds later leads back to the
 
 **In a terminal.** Add `--record-address` to `lolly system publish --origin=<address>`, and `--no-record-address` removes the setting. Both change the active terminal design system.
 
-**For a managed design system.** A managed design system is read-only on people's devices, so its manager sets this in the source tokens, at `$extensions["com.suse.lolly"].exportRecord.brandPage`. Everyone using that system then records the address, and each person's card shows the address and can leave it out. A content profile's tokens work the same way.
+**For a managed design system.** A managed design system is read-only on people's devices, so its manager sets this for everyone. On a Lolly Work instance that [lets you edit it](/info/work-design-system-administration.html#edit-this-instance-from-the-studio), choose **Edit for** that instance, turn the switch on in the same sheet, then choose **Send to** that instance. With no instance, set the address in the source tokens, at `$extensions["com.suse.lolly"].exportRecord.brandPage`. Everyone using that system then records the address, and each person's card shows the address and can leave it out. A content profile's tokens work the same way.
 
 **The setting does not travel.** A record in a signed file reads as the signer's own. If the setting moved with the design system, importing someone's pack would write their address into your signed exports, and a hostile pack could point everyone's files at a page of its choosing. So the setting stays with the design system it was turned on for:
 
-- A `.lolly` pack, a Lolly file that carries a design system, a tokens file imported or given for one run, **Try these colours**, a restored backup, and a copy or fork of a design system all arrive with the setting off, with the same bytes as a source that never held the setting. This holds for a pack made from a managed system too.
+- A `.lolly` pack, a Lolly file that carries a design system, a tokens file imported or given for one run, **Try these colours**, a restored backup, and a copy or fork of a design system all arrive with the setting off, with the same bytes as a source that never held the setting. This holds for a pack made from a managed system too. The one exception is the editing copy from **Edit for** an instance, which is the manager's own source: it starts with the address that instance records, so sending does not clear the address.
 - Importing over a design system that has the setting on turns the setting off, because the material was replaced.
 - Exported packs and tokens files leave the setting out.
 - Editing your own design system keeps your setting.
