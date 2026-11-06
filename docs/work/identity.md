@@ -206,6 +206,10 @@ The checks run in this order, and the first one that applies decides:
    regard to case. The domain is the part after the last `@`, matched exactly, so
    `example.com` does not admit `sub.example.com`. An empty policy (`{}`) admits invitations
    only.
+6. **Partner programmes.** A partner domain that is proved and not paused admits a verified
+   address at that exact domain, and a person who joined a programme through a domain stays
+   admitted while that membership lasts. Both are kept in the database, not in this
+   configuration ([Partner programmes](partner-programmes.md#add-people-by-domain)).
 
 With `hostedDomain` set, only accounts in that Google Workspace get past step 2, invited
 people included. To let in people from outside it, add a second Google registration without

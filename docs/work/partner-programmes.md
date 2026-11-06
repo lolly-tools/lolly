@@ -106,12 +106,56 @@ Joining a programme also adds the `partner` group. Leaving a programme keeps it,
 partner sees only your design system's essentials rather than everything internal. To make an
 account internal, remove `partner` from that person in **People**.
 
+## Add people by domain
+
+Under **Domains** on the programme's page, add a partner's domain, such as `northwind.example`,
+with an optional company and end date. Anyone who signs in with an address at that domain then
+joins the programme and the company, without an invitation each. Only an address the sign-in
+provider has verified counts. A claimed address never does, and the exact domain is matched, so
+`emea.northwind.example` needs its own entry.
+
+**Preview** first lists the people at that domain who already sign in here and whether each
+joins. Then choose how the domain is proved:
+
+- **Proved by DNS** (the usual way). You get a TXT record for the partner to publish in their DNS:
+
+  ```
+  _lolly-work.northwind.example  TXT  "lw-verify=<token>"
+  ```
+
+  The domain shows **Waiting for the DNS record** until Lolly Work finds the record. Lolly Work looks every
+  hour, and **Check now** looks straight away. Once found, the domain shows **DNS verified** and is
+  looked up again every day. If a later lookup finds the record gone, the domain shows **Paused**:
+  nobody new joins through it until the record is back, and people already in keep their access.
+  A lookup that fails for another reason, such as a timeout, changes nothing.
+- **On your say-so.** The domain is active at once and shows **Admin-asserted**, with your name, the
+  date and the reason you give. All three go in Audit as `programme.domain.assert`. Use this when
+  the partner cannot publish a DNS record, for example while a contract is being signed. You can
+  switch a domain to DNS proof later.
+
+Two kinds of domain are refused either way: public mail domains, such as `gmail.com` or
+`outlook.com`, where anyone can have an address; and your own domains, which are your workspace's
+address, a domain a sign-in provider is limited to, and the domains of your owners' and admins'
+addresses. People at a public mail domain are added by list instead.
+
+When a domain becomes active, the people at it who already sign in join at once, if a provider has
+verified their address. Everyone else joins at their next sign-in. A person joins through a domain
+once, so removing someone from the programme in **People** sticks. Lolly Work never adds a domain's
+programme to an admin, an owner, a disabled account or an account your SCIM connector manages:
+SCIM decides for the people it manages. With single sign-on, the programme and company are added on
+top of the groups the provider sends.
+
+**Remove** stops new people joining through a domain. People who already joined stay until you end
+their access or their end date passes. The programme's **People** list says who joined through a
+domain.
+
 ## End dates
 
-An end date on a line ends that person's access through the programme at the end of that day,
+An end date on a line, or on a domain, ends access through the programme at the end of that day,
 in UTC, without anyone having to remember. The server checks every minute, takes the programme's
 and company's groups off the account, keeps the `partner` group and withdraws an invitation the
-line made that nobody has accepted. Each ending is audited as `programme.member.end`. A
+line made that nobody has accepted. Each ending is audited as `programme.member.end`. A domain's
+end date also stops anyone new joining through it, audited as `programme.domain.rule.end`. A
 deployment that runs as serverless functions calls `POST /api/v1/programmes/sweep` on a schedule
 instead.
 
@@ -139,9 +183,9 @@ still include.
 ### End a partnership
 
 **End this partnership** on the programme's page, or `POST /api/v1/programmes/exit` with a
-programme, a company or a list of addresses, first shows what ending it does: the accounts, the
-projects each owns, the links each made and the invitations still open. Choose what happens to
-their projects:
+programme, a company, a domain or a list of addresses, first shows what ending it does: the
+accounts, the projects each owns, the links each made, the invitations still open and the domains
+that stop letting people join. Choose what happens to their projects:
 
 - **Move their projects to the owning team, read-only** (the default when the programme has an
   owning team): the person who made the programme becomes the owner (you, when that account
@@ -151,7 +195,9 @@ their projects:
 - **Move their projects to me, editable.**
 - **Leave their projects where they are.**
 
-Confirming then, in one step, disables each account and signs it out everywhere, revokes the
+Confirming then, in one step, first withdraws those domains (a whole domain when you chose one,
+or the programme's or company's entries on every domain otherwise), so nobody new joins while the
+rest runs. It then disables each account and signs it out everywhere, revokes the
 links, agent tokens and password links each person made, ends their memberships and withdraws the
 open invitations. Only partner accounts are touched: an internal account in a list is shown as
 left alone. Each account is audited as `user.offboard` and the whole step as `programme.exit`.
@@ -170,9 +216,13 @@ PUT    /api/v1/programmes/:id/companies/:company  # { name }
 DELETE /api/v1/programmes/:id/companies/:company
 GET    /api/v1/programmes/:id/people              # people, companies and open invitations
 POST   /api/v1/programmes/:id/people              # { text } or { rows }: a preview; add "apply": true to do it
-POST   /api/v1/programmes/exit                    # { programme | company | emails, projects?, transferTo? }: a preview; "apply": true does it
+POST   /api/v1/programmes/exit                    # { programme | company | domain | emails, projects?, transferTo? }: a preview; "apply": true does it
                                                   # projects: team-readonly, me-readonly, me or keep
-POST   /api/v1/programmes/sweep                   # end the memberships whose end date has passed
+POST   /api/v1/programmes/sweep                   # end what has passed its end date, and look up the domains that are due
+GET    /api/v1/partner-domains[?programme=<id>]   # every partner domain, its proof, the record to publish and its programmes
+PUT    /api/v1/partner-domains/:domain            # { programme?, company?, endsAt?, proof?: "txt" | "admin", reason?, dryRun? }
+POST   /api/v1/partner-domains/:domain/check      # look the TXT record up now
+DELETE /api/v1/partner-domains/:domain[?programme=<id>]
 ```
 
 A `PUT` that leaves out `tools` or `collections` keeps what the programme had. Each change is
@@ -181,11 +231,23 @@ and each grant and collection change it makes is audited as its own `grant.creat
 `grant.delete` or `catalog.collection.edit`, with `via: "programme:<id>"`.
 
 Adding people is audited per person as `programme.member.add` (with the account or invitation,
-never the address), and companies as `programme.company.create`, `.edit` and `.delete`.
+never the address, and `via: "domain"` with the domain for someone who joined through one), and
+companies as `programme.company.create`, `.edit` and `.delete`. Domains are audited as
+`programme.domain.add`, `.rule`, `.assert`, `.proof`, `.verify`, `.pause` and `.remove`.
+
+The same steps from the command line:
+
+```bash
+lw people import resellers-emea roster.csv            # a preview; add --apply to do it
+lw domains add northwind.example --programme resellers-emea --company northwind --ends 2027-06-30
+lw domains add northwind.example --programme resellers-emea --assert --reason "Agreement 4411"
+lw domains check northwind.example
+lw people exit --domain northwind.example             # a preview; add --apply to do it
+```
 
 ## Not yet
 
-Admitting everyone at a partner's verified domain, a programme's folder in a connected provider,
+A programme's folder in a connected provider,
 partner company profiles with their own logos, agent tokens for a programme and templates
 published to a programme are planned.
 
