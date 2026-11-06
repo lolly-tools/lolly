@@ -156418,7 +156418,7 @@ function parseJson(bytes2) {
   }
 }
 function stripSvgC2pa(svg) {
-  return svg.replace(/<metadata><c2pa:manifest>[^<]*<\/c2pa:manifest><\/metadata>/g, "").replace(/<c2pa:manifest>[^<]*<\/c2pa:manifest>/g, "").replace(/ xmlns:c2pa="[^"]*"/g, "");
+  return svg.replace(/<metadata><c2pa:manifest(?:\s[^>]*)?>[^<]*<\/c2pa:manifest><\/metadata>/g, "").replace(/<c2pa:manifest(?:\s[^>]*)?>[^<]*<\/c2pa:manifest>/g, "").replace(/ xmlns:c2pa="[^"]*"/g, "");
 }
 var LOLLY_FILE_FORMAT, LOLLY_READER_VERSION, LOLLY_RENOVATION_MIN_READER, RENOVATION_PROJECT_PART, RENOVATION_PART_KINDS, MAX_RENOVATION_ASSETS, MAX_RENOVATION_ID, MAX_RENOVATION_NAME;
 var init_lolly_file = __esm({
@@ -180274,6 +180274,9 @@ async function recordedDesignInFile(bytes2, format, meta) {
   return null;
 }
 
+// services/mcp/src/render.ts
+init_lolly_file();
+
 // packages/node-shell/src/browser-tier.ts
 var NEEDS_BROWSER = "NEEDS_BROWSER";
 var PROSE = /browser canvas|n(?:['’]|o)t available in this app|needs a browser|requires a browser/i;
@@ -186957,6 +186960,38 @@ function browserQueueOptions(env = process.env) {
 // services/mcp/src/render.ts
 var TIER_A = /* @__PURE__ */ new Set(["svg", "emf", "eps", "eps-cmyk", "dxf", "exr", "hdr", "penpot", "html", "md", "txt", "json", "csv", "ics", "vcf"]);
 var MAX_RASTER_EDGE_PX = 1e4;
+var DAY_MS = 864e5;
+async function readBackCredential(bytes2, setting, deliveredFormat) {
+  const asked = setting.on ? setting.days ?? 30 : "off";
+  if (deliveredFormat === "zip") return { asked, holds: "unread", days: null, selfSigned: false };
+  try {
+    const report4 = await verifyC2pa(bytes2);
+    const signer = report4.signer;
+    return {
+      asked,
+      holds: report4.state,
+      days: signer ? Math.round((Date.parse(signer.notAfter) - Date.parse(signer.notBefore)) / DAY_MS) : null,
+      selfSigned: signer?.selfSigned === true
+    };
+  } catch {
+    return { asked, holds: "unread", days: null, selfSigned: false };
+  }
+}
+function credentialText(readback) {
+  if (!readback) return "";
+  const { asked, holds: holds3, days, selfSigned } = readback;
+  if (holds3 === "unread") {
+    return asked === "off" ? "Content Credentials: the export was told to write none, and this file was not read back." : `Content Credentials: the export was told to write them for ${asked} days, and this file was not read back.`;
+  }
+  if (asked === "off") {
+    return holds3 === "none" ? "Content Credentials: none in this file, as asked." : 'Content Credentials: c2pa: "off" could not be honoured. This file still holds a credential.';
+  }
+  if (holds3 === "none") return `Content Credentials: none in this file, though c2pa asked for ${asked} days. The warnings above say why.`;
+  if (holds3 === "invalid") return "Content Credentials: this file holds a credential that does not verify.";
+  if (days === null) return "Content Credentials: in this file.";
+  if (days !== asked) return `Content Credentials: in this file, but the certificate runs ${days} days, not the ${asked} asked for.`;
+  return `Content Credentials: in this file, ${selfSigned ? "self-signed, " : ""}valid for ${days} days.`;
+}
 function designRecordText(record46) {
   const words4 = designRecordWords(record46, { skills: false, page: false });
   const guided = guidedByWords(record46?.brandSkills);
@@ -187377,6 +187412,7 @@ function exportUrl(base, toolId, query2, fmt6, o) {
   if (o.hdr) p.set("hdr", serializeHdr(o.hdr));
   if (o.depth && o.depth !== "auto") p.set("depth", String(o.depth));
   if (Number(p.get("cuts")) > 1 || p.has("sampletimes")) p.set("c2pa", o.c2pa?.on ? String(o.c2pa.days ?? 1) : "off");
+  else if (o.c2pa?.on === false || o.c2pa?.on && /^pdf/.test(fmt6)) p.set("c2pa", "off");
   if (o.intent) p.set("c2pa", "off");
   p.set("export", "1");
   const q = p.toString();
@@ -187483,17 +187519,20 @@ async function credentialAndRecord(out, o) {
   let stamped = false;
   if (!o.sampled && o.merged.c2pa?.on && C2PA_FORMATS.includes(o.exportFmt) && !(o.exportFmt === "pdf" && o.merged.password)) {
     try {
-      if (o.merged.intent) bytes2 = await (await Promise.resolve().then(() => (init_pdf_classic(), pdf_classic_exports))).classicPdfForStamp(bytes2, o.exportFmt);
+      bytes2 = await (await Promise.resolve().then(() => (init_pdf_classic(), pdf_classic_exports))).classicPdfForStamp(bytes2, o.exportFmt);
     } catch {
     }
+    const clean2 = withoutSvgCredentials(bytes2, o.exportFmt);
     try {
-      bytes2 = await stampC2pa(bytes2, o.exportFmt, o.manifest, o.values, o.merged, o.placed, record46, out.tier.startsWith("B") ? null : o.drawn ?? null);
+      bytes2 = await stampC2pa(clean2, o.exportFmt, o.manifest, o.values, o.merged, o.placed, record46, out.tier.startsWith("B") ? null : o.drawn ?? null);
       stamped = true;
     } catch (e) {
       o.warnings.push(`Content Credentials not attached - ${e.message}`);
     }
   } else if (!o.sampled && o.merged.c2pa?.on) {
-    o.warnings.push(`Format "${o.fmt}" cannot carry Content Credentials - skipped.`);
+    o.warnings.push(o.exportFmt === "pdf" && o.merged.password ? "On a PDF, c2pa cannot be combined with password, so no Content Credential was written." : `Format "${o.fmt}" cannot carry Content Credentials - skipped.`);
+  } else if (o.merged.c2paAsked && o.merged.c2pa?.on === false) {
+    bytes2 = withoutSvgCredentials(bytes2, o.deliveredFormat);
   }
   if (skills.length && !stamped) {
     o.warnings.push('The brand skills were not recorded: this format renders in the browser tier, which writes the file without them, and only a Content Credential can carry them here. Pass c2pa (e.g. "30") to record them.');
@@ -187519,7 +187558,13 @@ async function credentialAndRecord(out, o) {
       intentRecord = { state: "not-recorded", reason: !canCarry ? "no-route" : o.merged.c2pa?.on ? "not-confirmed" : "no-credential" };
     }
   }
-  return { bytes: bytes2, designRecord, ...intentRecord ? { intentRecord } : {} };
+  const readback = o.merged.c2paAsked && o.merged.c2pa ? await readBackCredential(bytes2, o.merged.c2pa, o.deliveredFormat) : void 0;
+  return { bytes: bytes2, designRecord, ...intentRecord ? { intentRecord } : {}, ...readback ? { credential: readback } : {} };
+}
+function withoutSvgCredentials(bytes2, format) {
+  if (format !== "svg" && format !== "svg-anim") return bytes2;
+  const text13 = Buffer.from(bytes2.buffer, bytes2.byteOffset, bytes2.byteLength).toString("latin1");
+  return text13.includes("<c2pa:manifest") ? new Uint8Array(Buffer.from(stripSvgC2pa(text13), "latin1")) : bytes2;
 }
 async function render(toolId, query2, o = {}) {
   if (o.productionReference !== void 0 && o.production === void 0) throw new Error("A production reference requires a production contract.");
@@ -187551,7 +187596,7 @@ async function render(toolId, query2, o = {}) {
     if (error2 instanceof Error) Object.assign(error2, { attempts: run3.attempts.map((a) => a.report) });
     throw error2;
   }
-  return { bytes: last.bytes, mime: last.mime, format: last.format, tier: last.tier, warnings: last.warnings, ...last.rights ? { rights: last.rights } : {}, ...last.audio ? { audio: last.audio } : {}, ...last.audioFailures ? { audioFailures: last.audioFailures } : {}, ...last.songs ? { songs: last.songs } : {}, ...last.designRecord ? { designRecord: last.designRecord } : {}, ...last.intentRecord ? { intentRecord: last.intentRecord } : {}, production: last.report, productionAttempts: run3.attempts.map((a) => a.report) };
+  return { bytes: last.bytes, mime: last.mime, format: last.format, tier: last.tier, warnings: last.warnings, ...last.rights ? { rights: last.rights } : {}, ...last.audio ? { audio: last.audio } : {}, ...last.audioFailures ? { audioFailures: last.audioFailures } : {}, ...last.songs ? { songs: last.songs } : {}, ...last.designRecord ? { designRecord: last.designRecord } : {}, ...last.intentRecord ? { intentRecord: last.intentRecord } : {}, ...last.credential ? { credential: last.credential } : {}, production: last.report, productionAttempts: run3.attempts.map((a) => a.report) };
 }
 async function renderCandidate(toolId, query2, o = {}) {
   const { value: value2, runs: runs2, failures } = await withAudioScope(o.rondo, () => renderCandidateBytes(toolId, query2, o));
@@ -187718,7 +187763,8 @@ async function renderCandidateBytes(toolId, query2, o = {}) {
     ...songs ? { songs } : {},
     ...designRecord ? { designRecord } : {},
     ...finished.intentRecord ? { intentRecord: finished.intentRecord } : {},
-    ...credentialFromIntent ? { credentialFromIntent } : {}
+    ...credentialFromIntent ? { credentialFromIntent } : {},
+    ...finished.credential ? { credential: finished.credential } : {}
   };
 }
 async function rightsResult(evaluation, bytes2) {
@@ -195741,7 +195787,11 @@ var TOOL_DEFS = [
           maxItems: 16,
           description: 'The names of the brand skills (lolly://design-system/skills) you read and followed for this piece. Each is recorded with the design-system record as "guided by" provenance: the skill id, its revision and its hash. It records guidance, not a check: nothing tests the piece against a skill. An unknown name fails the call and lists the available names. Left out with madeWith: false.'
         },
-        c2pa: { type: "string", enum: ["off", "7", "30", "90", "365"], description: "Stamp Content Credentials with the given cert lifetime (days)." },
+        c2pa: {
+          type: "string",
+          enum: ["off", "7", "30", "90", "365"],
+          description: 'Content Credentials for this file. "off": none, on every format. A number: this server stamps one with that certificate lifetime in days. Left out, a browser-free render has none and a browser-tier render (PDF, or a tool laid out in HTML) keeps the one the web shell stamps. When you pass it, the result says what the file holds, read back from the file.'
+        },
         password: { type: "string", description: "Open-password for standard PDF export (never logged)." },
         link: { type: "boolean", description: "Also return the editable lolly.tools link (default true)." },
         ...RENDER_INTENT_ARGS
@@ -196283,6 +196333,7 @@ ${links.renderUrl ?? "(unavailable)"}${check2}`);
           convertPaths: args.convertPaths,
           password: args.password,
           c2pa: c2paSetting(args.c2pa),
+          ...args.c2pa !== void 0 && args.c2pa !== null ? { c2paAsked: true } : {},
           maxRasterPixels: maxRasterPixelsFor(process.env, isHostedServer()),
           rondo: rondoCapsFor(process.env, isHostedServer()),
           ...exportSettings(args),
@@ -196320,7 +196371,9 @@ Rights: ${result.rights.status}` + result.rights.issues.map((issue2) => `
           designRecordText(result.designRecord),
           // The intent, shown at the moment of export as the approval asks, in words read
           // back from the delivered file. It says plainly when the prompt is in the file.
-          intentRecordText(!intended ? null : intended.optedOut ? { state: "not-recorded", reason: "opted-out" } : result.intentRecord ?? { state: "not-recorded", reason: "not-confirmed" }, result.credentialFromIntent === true)
+          intentRecordText(!intended ? null : intended.optedOut ? { state: "not-recorded", reason: "opted-out" } : result.intentRecord ?? { state: "not-recorded", reason: "not-confirmed" }, result.credentialFromIntent === true),
+          // What an explicit `c2pa` asked for and what the delivered file holds.
+          credentialText(result.credential)
         ].filter(Boolean).join("\n");
         const content2 = [{ type: "text", text: header }];
         if (holdResult && result.bytes.byteLength > RESULT_LINK_THRESHOLD) {

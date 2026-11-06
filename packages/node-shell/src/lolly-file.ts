@@ -298,7 +298,7 @@ function parseJson(bytes: Uint8Array | undefined): unknown {
  */
 export function stripSvgC2pa(svg: string): string {
   return svg
-    .replace(/<metadata><c2pa:manifest>[^<]*<\/c2pa:manifest><\/metadata>/g, '')
-    .replace(/<c2pa:manifest>[^<]*<\/c2pa:manifest>/g, '')
+    .replace(/<metadata><c2pa:manifest(?:\s[^>]*)?>[^<]*<\/c2pa:manifest><\/metadata>/g, '')
+    .replace(/<c2pa:manifest(?:\s[^>]*)?>[^<]*<\/c2pa:manifest>/g, '')
     .replace(/ xmlns:c2pa="[^"]*"/g, '');
 }
