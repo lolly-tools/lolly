@@ -98,7 +98,9 @@ function activeKeys(): ViewToggleKey[] {
   return KEYS.filter(k => k !== 'utilities' || (flagEnabledSync(UTILITIES_FLAG_ID) && !catalogHasNoUtilities(index)));
 }
 
-export function viewToggle(active: ViewToggleKey): string {
+/** `active` null: a view that is none of the four (the docs reader) shows the tabs with
+ *  none marked current. */
+export function viewToggle(active: ViewToggleKey | null): string {
   const opt = (key: ViewToggleKey, href: string, label: string) =>
     `<a href="${href}" class="view-toggle-opt${active === key ? ' is-active' : ''}"` +
     // The active tab is a no-op navigation → stays silent; the others play the "navigate"

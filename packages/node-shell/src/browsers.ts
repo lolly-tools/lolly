@@ -26,6 +26,9 @@ import { existsSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { repoRoot } from './repo-root.ts';
 import { webGpuLaunchArgs } from './webgpu-launch.ts';
+import { CPU_CANVAS_ARGS } from './canvas-launch.ts';
+
+export { CPU_CANVAS_ARGS };
 
 /** Where `lolly install-browser` puts Chromium - a package-neutral repo-root dir. */
 export const INSTALL_BROWSERS_DIR = join(repoRoot(), '.browsers');
@@ -60,10 +63,12 @@ let browserPromise: Promise<import('playwright-core').Browser> | null = null;
  * The flags getBrowser launches with (see the comment at its launch for the rendering
  * pins). The web shell requires a WebGPU adapter (plan 295): webGpuLaunchArgs names
  * SwiftShader for software graphics, and for `auto` on Linux, where a GPU-less host has
- * no other adapter (webgpu-launch.ts). Exported so a test can pin them without a browser.
+ * no other adapter (webgpu-launch.ts). An export (`software`) also draws every 2D canvas
+ * on the CPU, so the same render gives the same bytes (canvas-launch.ts). Exported so a
+ * test can pin them without a browser.
  */
 export function chromiumLaunchArgs(graphics: 'software' | 'auto' = 'software', platform: NodeJS.Platform = process.platform): string[] {
-  return ['--no-sandbox', ...(graphics === 'software' ? ['--use-angle=swiftshader'] : []), '--enable-unsafe-swiftshader',
+  return ['--no-sandbox', ...(graphics === 'software' ? ['--use-angle=swiftshader', ...CPU_CANVAS_ARGS] : []), '--enable-unsafe-swiftshader',
     ...webGpuLaunchArgs(graphics, platform), '--force-color-profile=srgb', '--font-render-hinting=none'];
 }
 

@@ -89,8 +89,9 @@ test('Lolly Demo as shipped: colours counted as Overview counts them, faces and 
     assert.equal(n('shape'), '2');
     // 93 until plans/329 seeded the motion scale: three durations, three curves, two springs.
     // 101 until Lolly Demo declared its colour roles (plans/352 R6): the colours on Partner
-    // and Paper with their links, and Paper and Ink in each of the six colourways.
-    assert.equal(n('all'), '111');
+    // and Paper with their links, and Paper and Ink in each of the six colourways. 111 until
+    // each role's values in the colourways counted with the role: seven names in two looks.
+    assert.equal(n('all'), '97');
     for (const id of ['color', 'type', 'logos', 'shape', 'more']) assert.ok(m.$(`[data-tk-sec="${id}"]`), id);
     assert.match(m.$('[data-tk-body="type"] .tk-empty')!.textContent!, /No typeface of your own yet\. Tools use the starter faces below until you choose one\./);
     assert.equal(m.el.querySelectorAll('[data-tk-body="type"] .tk-group .tk-row').length, 4, 'the four faces sit under the Starter head');
@@ -119,6 +120,40 @@ test('a design system with colour roles says its lead in its own word', () => {
     assert.equal(m.$<HTMLElement>('[data-tk-example]')!.hidden, false);
     assert.match(m.$('[data-tk-example]')!.textContent!, /^For example, Main is Indigo, #1b2a6b\.$/);
   } finally { m.done(); }
+});
+
+test('a system with colour roles lists each role once, in its own words and order, and no colour twice', () => {
+  const words = (doc: Record<string, unknown>): string[] => tokensRoomModel(doc).groups.find(g => g.id === 'colour-roles')?.rows.map(r => r.name) ?? [];
+  assert.deepEqual(words(DEMO), ['Lead', 'Partner', 'Paper', 'Ink']);
+  const wefthouse = JSON.parse(readFileSync(new URL('../../../../tests/fixtures/colour-roles/wefthouse.tokens.json', import.meta.url), 'utf8')) as Record<string, unknown>;
+  assert.deepEqual(words(wefthouse), ['Main', 'Accent', 'Supporting', 'Tertiary']);
+  for (const [name, doc] of [['Lolly Demo', DEMO], ['Wefthouse', wefthouse]] as const) {
+    const model = tokensRoomModel(doc);
+    assert.equal(model.groups[0]!.id, 'colour-roles', `${name}: the roles come first`);
+    const keys = model.groups.flatMap(g => g.rows.map(r => r.key));
+    assert.equal(new Set(keys).size, keys.length, `${name}: no token is listed twice`);
+    assert.deepEqual(keys.filter(k => k.startsWith('color.colourway.')), [], `${name}: no colourway value is listed as a token`);
+  }
+  // Wefthouse's Main fills primary and Accent fills secondary, so those slots are the roles by another name.
+  const keys = tokensRoomModel(wefthouse).groups.flatMap(g => g.rows.map(r => r.key));
+  for (const slot of ['color.semantic.primary', 'color.semantic.on-primary', 'color.semantic.secondary']) assert.ok(!keys.includes(slot), slot);
+  const m = mount(DEMO);
+  try {
+    const group = m.$('[data-tk-group="colour-roles"]')!;
+    assert.match(group.querySelector('.tk-group-name')!.textContent!, /^Colour roles$/);
+    assert.match(group.querySelector('.tk-group-note')!.textContent!, /Change them in the Colour roles table in Colours\./);
+    assert.deepEqual([...group.querySelectorAll('.tk-color-name')].map(e => e.textContent), ['Lead', 'Partner', 'Paper', 'Ink']);
+    assert.ok(group.querySelector('[data-tk-copy="{color.semantic.primary}"]'), 'a role row copies the role\'s own reference');
+  } finally { m.done(); }
+});
+
+test('a system with no colour roles keeps its Roles group as it was', () => {
+  const noRoles = JSON.parse(readFileSync(new URL('../../../../tests/fixtures/colour-roles/lolly-demo-no-roles.json', import.meta.url), 'utf8')) as Record<string, unknown>;
+  for (const doc of [STARTER, noRoles]) {
+    const model = tokensRoomModel(doc);
+    assert.equal(model.groups.some(g => g.id === 'colour-roles'), false);
+    assert.ok(model.groups.some(g => g.rows.some(r => r.key === 'color.semantic.primary' && r.name === 'Primary')), 'Primary keeps its row under the Roles group');
+  }
 });
 
 test('Lolly Demo as the app supplies it: what it holds is its own, with no Starter tag', () => {
