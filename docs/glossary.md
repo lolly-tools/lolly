@@ -32,6 +32,8 @@ Keep literal labels in instructions: "Open the **Design** tool" tells someone wh
 
 **Brand architecture.** How an organisation relates its brands to one another, from one masterbrand with coloured divisions to brands with no visible relationship. Lolly maps each arrangement onto design systems, colourways and logo identities; see [Brand architectures](/info/brand-architectures.html). Work that carries a partner's or sponsor's brand beside your own is covered in [Working with partners](/info/partners.html).
 
+**Partner kit.** A light pack that would hold another brand's logos, colours and rules for use in work made in your design system. Lolly does not have partner kits yet: the partner's mark goes in as a picture from Assets or as a custom mark, and you check the mark against the partner's own guidelines. On a piece with two brands, the **lead brand** is the one whose design system draws the piece, and the **partner** is the other. See [Working with partners](/info/partners.html).
+
 **Brand skill.** A brand's standards for one discipline (the overall brand, photography, motion, iconography and so on), written as an Agent Skill: a Markdown file, with optional text references, that people and AI agents read. It is a catalog asset of type `skill` with a permanent id such as `lolly/skill/photography`, carried with the design system it belongs to, and Lolly never rewrites its text. Each skill is `public` or `internal`, and internal skills stay out of every static catalog. A skill is guidance and never gives a pass or a fail; the design system's house rules are what Lolly checks. Not the Lolly skill, which says how to operate Lolly, and not a tool skill, which says how to operate one tool. See [Brand skills](/info/brand-skills.html).
 
 **Tool.** One kind of thing Lolly makes, such as Lolly QR Code, Lolly Chart or Lolly Certificate, with the fields you fill in. The tool holds the layout and rules; you supply the words, pictures or data. Lolly Design is the tool with an open canvas.
@@ -59,6 +61,8 @@ Keep literal labels in instructions: "Open the **Design** tool" tells someone wh
 **Available offline.** The download manager in **Settings → Preferences** that fetches fonts, shaping code and on-device models ahead of time, so a tool needs no network afterwards.
 
 **Export.** Turning what a tool shows into a file in a format you choose, such as PNG, PDF or SVG. Physical sizes (`mm`, `in`, `pt`) and `dpi` are worked out per format at export time.
+
+**Fallback font.** An open Noto font that draws the letters your design system's fonts do not have, such as Arabic or Cyrillic beside a Latin-only brand font, so those words stay vector in an export instead of becoming a picture. Your design system's fonts always come first. A fallback font downloads only when a document needs one, then stays on the device, and the export panel says which font drew which words. See [Fallback fonts](/info/fallback-fonts.html).
 
 **Content Credentials.** The signed record (C2PA) a file can carry, stating who made it and with what. Authoring tools turn credentials on by default unless their manifest opts out, and you can turn them off for an export. Inputs are recorded as fingerprints, not their values, and your name goes in only if you opt in. See [Content Credentials](/info/content-credentials-identity.html).
 
