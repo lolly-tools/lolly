@@ -73,7 +73,7 @@
     },
     {
       "id": "lolly/demo/sample-photo",
-      "source": "/catalog/assets/lolly/demo/lorikeet-lollipop.jpg",
+      "source": "/catalog/assets/lolly/demo/sample-photo.jpg",
       "credits": {
         "title": "Sample photograph",
         "license": "CC0-1.0"
