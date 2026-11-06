@@ -367,8 +367,8 @@ html[data-a11y-motion="reduce"] .undo-toast-bar { animation: none; }
 /* ── The early-drop note (lib/drop-hold-note.ts) - the same cluster and look ─
    What happened to a file dropped while Lolly was still loading: waiting, refused,
    or not opened. Bottom-centre at the undo toasts' height (the two do not show at
-   once: this one belongs to loading, they to editing). It rises in over 160ms;
-   under reduced motion (OS query AND the app pref) it simply appears. */
+   once: this one belongs to loading, they to editing). It rises in at the overlay
+   motion tokens; under reduced motion (OS query AND the app pref) it simply appears. */
 .drop-hold-note {
   position: fixed;
   left: 50%; transform: translateX(-50%);
@@ -384,7 +384,7 @@ html[data-a11y-motion="reduce"] .undo-toast-bar { animation: none; }
   font-size: var(--fs-md);
   line-height: 1.4;
   text-align: center;
-  animation: drop-hold-note-in 160ms ease-out both;
+  animation: drop-hold-note-in var(--ui-motion-overlay) var(--ui-motion-standard) both;
 }
 @keyframes drop-hold-note-in { from { opacity: 0; transform: translate(-50%, 6px); } }
 html[data-a11y-motion="reduce"] .drop-hold-note { animation: none; }
