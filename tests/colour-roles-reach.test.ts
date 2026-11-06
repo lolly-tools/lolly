@@ -207,12 +207,12 @@ test('--brand-<id> and {color.semantic.<id>} draw the role in a real tool and a 
   });
 });
 
-test('a variable a system with no roles holds keeps drawing its fallback on the CLI, as it did', { timeout: 120_000 }, () => {
+test('a slot variable draws the design system\'s colour on the CLI on a system with no roles too', { timeout: 120_000 }, () => {
   withTerminalSystem((cli, dir) => {
     const rows = JSON.stringify([{ id: 'a', kind: 'frame', x: 0, y: 0, w: 400, h: 200, bg: 'var(--brand-primary, #abcdef)' }]);
     const page = join(dir, 'design.svg');
     cli('design', `--boxes=${rows}`, '--s=1', `--output=${page}`);
-    assert.deepEqual(fillsOf(readFileSync(page, 'utf8')), ['#abcdef']);
+    assert.deepEqual(fillsOf(readFileSync(page, 'utf8')), [String(createTokenSet(DEMO()).colors().find(s => s.path === 'color.semantic.primary')!.value).toLowerCase()]);
   });
 });
 

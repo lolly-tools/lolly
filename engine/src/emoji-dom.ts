@@ -8,6 +8,7 @@ import type { VerifiedEmojiPack } from './emoji-pack.ts';
 import { emojiInlineStyle, prepareEmojiText } from './emoji-inline.ts';
 import type { EmojiArtworkCache, EmojiTextIO, EmojiTextSegmentV1, PreparedEmojiText } from './emoji-inline.ts';
 import { EMOJI_TEXT_MAX_UNITS } from './emoji-segment.ts';
+import { EMOJI_TEXT_TRIGGER, emojiTextTrigger } from './emoji-trigger.ts';
 import type { EmojiLineSource } from './emoji-line.ts';
 
 /**
@@ -93,17 +94,7 @@ const ARTWORK_ATTRIBUTES = ' aria-hidden="true" focusable="false" style="display
 /** SVG text uses the shaped vector pass; form controls use their editing overlays. */
 const SKIP_TAGS = new Set(['SCRIPT', 'STYLE', 'TEXTAREA', 'INPUT', 'SELECT', 'OPTION', 'SVG', 'CANVAS', 'NOSCRIPT']);
 
-/**
- * A cheap pre-check before the pinned tables are consulted: surrogate pairs
- * (which covers the regional indicators), variation selector 16, zero-width
- * joiner, the keycap mark and the BMP emoji ranges. Written in escapes so the
- * source file carries no invisible characters. A trigger only:
- * `segmentEmojiText` decides what is really an emoji.
- */
-const TRIGGER = /[\uD800-\uDBFF][\uDC00-\uDFFF]|[\u200D\u20E3\uFE0F\u00A9\u00AE\u203C\u2049\u2122\u2139\u2194-\u21AA\u231A-\u231B\u2328\u23CF-\u23FA\u24C2\u25AA-\u25FE\u2600-\u27BF\u2934-\u2935\u2B00-\u2BFF\u3030\u303D\u3297\u3299]/;
-
-/** Exposed for tests and for a host that wants the same pre-check. */
-export const emojiTextTrigger = (text: string): boolean => TRIGGER.test(text);
+export { emojiTextTrigger };
 
 const isEmojiSpan = (element: EmojiDomElement): boolean => /(?:^|\s)lolly-emoji(?:\s|$)/.test(element.getAttribute('class') ?? '');
 const isUnsetSpan = (element: EmojiDomElement): boolean => /(?:^|\s)lolly-emoji--unset(?:\s|$)/.test(element.getAttribute('class') ?? '');
@@ -243,7 +234,7 @@ function chunkText(text: string): string[] {
 }
 
 /** Every emoji-looking run in a chunk the segmenter refused, one at a time. */
-const TRIGGER_ALL = new RegExp(`(?:${TRIGGER.source})+`, 'g');
+const TRIGGER_ALL = new RegExp(`(?:${EMOJI_TEXT_TRIGGER.source})+`, 'g');
 
 /**
  * What to draw when the segmenter will not read a run at all: an unpaired
