@@ -9,7 +9,7 @@
     "chartStyle": "technical",
     "data": "Category,Value\nA,36\nB,58\nC,45\nD,82\nE,68\nF,95",
     "colorBy": "category",
-    "palette": "ordered",
+    "palette": "suse",
     "heading": "",
     "subheading": "",
     "showAxes": false,
