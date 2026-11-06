@@ -7,6 +7,7 @@ import { textStrokeAttrs, canVectoriseText, letterSpacingPx, featureSettingsToHb
 import type { FontStyleSlice } from './text-svg.ts';
 import type { VectorFont } from './font-registry.ts';
 import { n2, parseCssColorFull } from './export-css.ts';
+import { firstStrongDirection, hasRtlText, type TextRunDirection } from '@lolly-tools/node-shell/text-bidi';
 
 export interface InlineTextContext {
   readonly text: Pick<NonNullable<HostV1['text']>, 'toPath'> | null;
@@ -132,22 +133,27 @@ export async function emitInlineTextSvg(
         parentG.appendChild(el);
       };
 
+      const bidi = runBidi(node.parentElement);
       // Emit one run, positioned at its own line box `r`. Used per visual line.
       const placeLine = async (lineText: string, r: DOMRect) => {
         lineText = applyTextTransform(lineText, nodeStyle.textTransform);
         const x = r.left - rootRect.left;
         const top = r.top - rootRect.top;
-        if (vectorise) {
+        const direction = lineDirection(bidi, lineText);
+        const rtl = direction === 'rtl';
+        const ordered = rtl || hasRtlText(lineText);
+        // bidi-override reverses the characters themselves, which a shaper does not do.
+        if (vectorise && !(bidi.override && ordered)) {
           try {
             // `notdef` > 0 means this face has no glyph for something in the run - 
             // outlining would draw tofu, so keep the <text> fallback instead.
-            const { d, notdef } = await textApi!.toPath({ text: lineText, fontUrl: fontUrl!, fontSize: fontSizePx, features: features as string[], letterSpacing, variations: vf!.variations, fallbackFonts: vf!.fallbacks });
+            const { d, notdef, advanceWidth } = await textApi!.toPath({ text: lineText, fontUrl: fontUrl!, fontSize: fontSizePx, features: features as string[], letterSpacing, variations: vf!.variations, fallbackFonts: vf!.fallbacks, ...(ordered ? { direction } : {}) });
             if (d && !notdef) {
               const { ascent, descent } = ctx.fontMetrics(nodeStyle, fontSizePx);
               const by = textBaselineY(top, r.height, ascent, descent);
               const p = document.createElementNS(NS, 'path');
               p.setAttribute('d', d);
-              p.setAttribute('transform', `translate(${n2(x)},${n2(by)})`);
+              p.setAttribute('transform', `translate(${n2(rtl ? r.right - rootRect.left - advanceWidth : x)},${n2(by)})`);
               if (fillAttr)  p.setAttribute('fill', fillAttr);
               if (alphaAttr) p.setAttribute('fill-opacity', alphaAttr);
               for (const [k, v] of strokeAttrs) p.setAttribute(k, v);
@@ -159,7 +165,12 @@ export async function emitInlineTextSvg(
           }
         }
         const t = document.createElementNS(NS, 'text');
-        t.setAttribute('x',                 String(n2(x)));
+        // SVG text defaults to left to right, whatever the page around it did. A
+        // right-to-left line states its direction, which keeps a closing full stop or a
+        // Latin word where the browser put it, and is anchored at its right edge.
+        t.setAttribute('x',                 String(n2(rtl ? r.right - rootRect.left : x)));
+        if (rtl) t.setAttribute('direction', 'rtl');
+        if (bidi.override && ordered) t.setAttribute('unicode-bidi', 'bidi-override');
         t.setAttribute('y',                 String(n2(top)));
         t.setAttribute('dominant-baseline', 'text-before-edge');
         t.setAttribute('font-size',         nodeStyle.fontSize);
@@ -208,8 +219,10 @@ export async function emitInlineTextSvg(
         if (seg.trim().length > 0) {
           for (const line of visualLines(node, offset, offset + seg.length)) {
             if (line.rect.width > 0.5 && line.rect.height > 0.5) {
-              await placeLine(line.text, line.rect);
-              drawDeco(line.rect);
+              for (const piece of bidiPieces(node, line, bidi)) {
+                await placeLine(piece.text, piece.rect);
+                drawDeco(piece.rect);
+              }
             }
           }
         }
@@ -315,12 +328,82 @@ export async function pdfInlineNonText(el: Element, blockEl: Node, drawBox: (box
 /** The displays the PDF inline pass descends through. */
 const INLINE_LEVEL = new Set(['inline', 'inline-block', 'inline-flex']);
 
+/** How the browser ordered the text in this element: its direction and any override. */
+export interface RunBidi { direction: TextRunDirection; override: boolean; plaintext: boolean }
+
+/**
+ * The bidi context a text node's parent gives its text, read from the browser's computed
+ * style, so `dir` on any ancestor, `dir="auto"` and CSS `direction` all arrive resolved.
+ * An inline element with no `unicode-bidi` does not open a context of its own: its
+ * `direction` only takes effect with one, so the answer comes from further up.
+ */
+export function runBidi(el: Element | null): RunBidi {
+  for (let cur = el; cur; cur = cur.parentElement ?? ((cur.getRootNode() as ShadowRoot).host ?? null)) {
+    const s = getComputedStyle(cur);
+    const ub = s.unicodeBidi || 'normal';
+    if (ub !== 'normal' || (s.display !== 'inline' && s.display !== 'contents')) {
+      return { direction: s.direction === 'rtl' ? 'rtl' : 'ltr', override: ub.includes('override'), plaintext: ub === 'plaintext' };
+    }
+  }
+  return { direction: 'ltr', override: false, plaintext: false };
+}
+
+/** The direction text is ordered in. `plaintext` takes that per paragraph from the text. */
+export function lineDirection(bidi: RunBidi, text: string): TextRunDirection {
+  return bidi.plaintext ? firstStrongDirection(text) : bidi.direction;
+}
+
+/**
+ * A line of a text node as the pieces the browser placed. Mostly that is one piece: a
+ * line of Arabic with a Latin word in it is shaped whole and comes out in the same
+ * order. It stops being one piece when something else sits inside the line: in
+ * `<p dir="rtl">Hello <b>World</b> again.</p>` the last text node has "again" to the
+ * right of the bold word and the full stop to the left of "Hello", so its box spans
+ * the bold word and no single run fits that box. Each stretch then takes the browser's
+ * place for that stretch. Left-to-right text never reaches any of this.
+ */
+export function bidiPieces(node: Node, line: VisualLine, bidi: RunBidi): VisualLine[] {
+  if (lineDirection(bidi, line.text) !== 'rtl' && !hasRtlText(line.text)) return [line];
+  const probe = document.createRange();
+  probe.setStart(node, line.start);
+  probe.setEnd(node, line.end);
+  const boxes = Array.from(probe.getClientRects()).filter((b) => b.width > 0 && b.height > 0).sort((a, b) => a.left - b.left);
+  if (!boxes.some((b, i) => i > 0 && b.left - boxes[i - 1]!.right > 1)) return [line];
+  const spans = new Map<DOMRect, { start: number; end: number }>();
+  const full = node.textContent as string;
+  for (let at = line.start; at < line.end;) {
+    const next = at + String.fromCodePoint(full.codePointAt(at)!).length;
+    probe.setStart(node, at);
+    probe.setEnd(node, next);
+    const r = probe.getClientRects()[0];
+    const box = r && (boxes.find((b) => r.left + r.width / 2 >= b.left - 0.5 && r.left + r.width / 2 <= b.right + 0.5) ?? boxes[0]);
+    if (box) {
+      const span = spans.get(box);
+      if (span) span.end = next; else spans.set(box, { start: at, end: next });
+    }
+    at = next;
+  }
+  const pieces: VisualLine[] = [];
+  for (const span of spans.values()) {
+    const slice = full.slice(span.start, span.end);
+    const start = span.start + slice.length - slice.trimStart().length;
+    const end = span.end - (slice.length - slice.trimEnd().length);
+    if (end <= start) continue;
+    probe.setStart(node, start);
+    probe.setEnd(node, end);
+    pieces.push({ text: full.slice(start, end), rect: probe.getBoundingClientRect(), start, end });
+  }
+  return pieces.length ? pieces : [line];
+}
+
+export interface VisualLine { text: string; rect: DOMRect; start: number; end: number }
+
 // Split a text node's [start,end) offset range into visual lines, so CSS soft
 // wrapping (which inserts no '\n') is honoured. We walk characters and start a
 // new line whenever a glyph's top jumps; each line's edge whitespace is trimmed
 // so its rect.left aligns with the first rendered glyph (collapsed leading spaces
-// would otherwise shift the shaped run). Returns [{ text, rect }] per line.
-export function visualLines(node: Node, start: number, end: number): { text: string; rect: DOMRect }[] {
+// would otherwise shift the shaped run). Returns [{ text, rect, start, end }] per line.
+export function visualLines(node: Node, start: number, end: number): VisualLine[] {
   const probe = document.createRange();
   const breaks = [start];
   let prevTop: number | null = null;
@@ -336,7 +419,7 @@ export function visualLines(node: Node, start: number, end: number): { text: str
   breaks.push(end);
 
   const full = node.textContent as string;
-  const out: { text: string; rect: DOMRect }[] = [];
+  const out: VisualLine[] = [];
   for (let k = 0; k + 1 < breaks.length; k++) {
     let s = breaks[k]!, e = breaks[k + 1]!;
     const slice = full.slice(s, e);
@@ -345,7 +428,7 @@ export function visualLines(node: Node, start: number, end: number): { text: str
     if (e <= s) continue;
     probe.setStart(node, s);
     probe.setEnd(node, e);
-    out.push({ text: full.slice(s, e), rect: probe.getBoundingClientRect() });
+    out.push({ text: full.slice(s, e), rect: probe.getBoundingClientRect(), start: s, end: e });
   }
   return out;
 }

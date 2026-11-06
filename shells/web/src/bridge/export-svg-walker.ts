@@ -10,6 +10,7 @@ import { bakeNestedSvgPaint } from './export-svg-bake.ts';
 import { canCarryWatermark, parseDropShadowFilter, splitCssArgs, parseConicGradient, toCssPx, toCssLength, parseClipShape, parseCssMatrix, isAxisAlignedMat, matToSvg, matAboutPivot, isNonAffineTransform, CSS_DPI, parseBoxShadow, roundedRectPath, insetCorners, gaussianShadowRings, uniformRadius, extractC2paStore, prepareC2paIngredientFromStore } from '@lolly/engine';
 import type { Mat2D } from '@lolly/engine';
 import { textStrokeAttrs, canVectoriseText, textBaselineY, applyTextTransform } from './text-svg.ts';
+import { hasRtlText } from '@lolly-tools/node-shell/text-bidi';
 import { createInlineTextContext, emitInlineTextSvg, isReplaced } from './export-text.ts';
 import type { InlineTextContext } from './export-text.ts';
 export { decoFlags, mergeDeco, isReplaced, visualLines, pdfInlineNonText } from './export-text.ts';
@@ -2825,16 +2826,18 @@ async function svgPseudoContent(
     const alphaAttr = col && col[3] < 1 ? String(col[3]) : null;
     const lineH = parseFloat(ds.ps.lineHeight) || fontSizePx * 1.2;
     const strokeAttrs = textStrokeAttrs(ds.ps, parseCssColorFull);
+    const rtl = ds.ps.direction === 'rtl';
+    const ordered = rtl || hasRtlText(ds.text);
     let placed = false;
     if (vectorText && canVectoriseText(ds.ps, fontUrl, Boolean(_host?.text))) {
       try {
-        const { d, notdef } = await _host!.text!.toPath({ text: ds.text, fontUrl: fontUrl!, fontSize: fontSizePx, variations: vf!.variations, fallbackFonts: vf!.fallbacks });
+        const { d, notdef, advanceWidth } = await _host!.text!.toPath({ text: ds.text, fontUrl: fontUrl!, fontSize: fontSizePx, variations: vf!.variations, fallbackFonts: vf!.fallbacks, ...(ordered ? { direction: rtl ? 'rtl' as const : 'ltr' as const } : {}) });
         if (d && !notdef) {
           const { ascent, descent } = fontMetricsPx(ds.ps, fontSizePx);
           const by = textBaselineY(y, lineH, ascent, descent);
           const p = document.createElementNS(NS, 'path');
           p.setAttribute('d', d);
-          p.setAttribute('transform', `translate(${n2(x)},${n2(by)})`);
+          p.setAttribute('transform', `translate(${n2(rtl ? x + ds.w - advanceWidth : x)},${n2(by)})`);
           if (fillAttr)  p.setAttribute('fill', fillAttr);
           if (alphaAttr) p.setAttribute('fill-opacity', alphaAttr);
           for (const [k, v] of strokeAttrs) p.setAttribute(k, v);
@@ -2845,7 +2848,8 @@ async function svgPseudoContent(
     }
     if (!placed) {
       const t = document.createElementNS(NS, 'text');
-      t.setAttribute('x',                 String(n2(x)));
+      t.setAttribute('x',                 String(n2(rtl ? x + ds.w : x)));
+      if (rtl) t.setAttribute('direction', 'rtl');
       t.setAttribute('y',                 String(n2(y)));
       t.setAttribute('dominant-baseline', 'text-before-edge');
       t.setAttribute('font-size',         ds.ps.fontSize);

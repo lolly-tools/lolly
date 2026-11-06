@@ -79,6 +79,7 @@
     "./fonts": "./src/fonts.ts",
     "./skera.wasm": "./wasm/skera/skera.wasm",
     "./text-svg": "./src/text-svg.ts",
+    "./text-bidi": "./src/text-bidi.ts",
     "./font-faces": "./src/font-faces.ts",
     "./page-text": "./src/page-text.ts",
     "./svg-ir": "./src/svg-ir.ts",

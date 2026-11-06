@@ -26,6 +26,7 @@ import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { catalogFile, contentRoots, contentUrlFile } from './content-roots.ts';
+import { shapingSegments } from './text-bidi.ts';
 
 import type { AssetsAPI, TextAPI, TextPathCluster } from '@lolly-tools/core/host-v1';
 import { createTextCompositionAPI } from './text-composition.ts';
@@ -340,7 +341,7 @@ export function createNodeTextAPI({ repoRoot, assets, parseXml }: { repoRoot: st
   return {
     ...composition,
     async characters(fontUrl) { return [...(await loadFace(fontUrl, repoRoot)).unicodes].sort((a, b) => a - b); },
-    async toPath({ text, fontUrl, fontSize, features, letterSpacing = 0, variations, fallbackFonts, clusters: wantClusters, preserveWhitespaceAdvance = false }) {
+    async toPath({ text, fontUrl, fontSize, features, letterSpacing = 0, variations, fallbackFonts, clusters: wantClusters, preserveWhitespaceAdvance = false, direction }) {
       if (!text || (!preserveWhitespaceAdvance && !text.trim())) {
         return { d: '', advanceWidth: 0, bbox: null, notdef: 0, ...(wantClusters ? { clusters: [] } : {}) };
       }
@@ -360,9 +361,8 @@ export function createNodeTextAPI({ repoRoot, assets, parseXml }: { repoRoot: st
       let notdef = 0;
       let x1 = Infinity, y1 = Infinity, x2 = -Infinity, y2 = -Infinity;
       const pieces = wantClusters ? new Map<number, { d: string; x: number; advance: number }>() : null;
-      let segStart = 0;
 
-      for (const seg of segmentByFace(text, chain)) {
+      for (const seg of shapingSegments(text, direction, (part) => segmentByFace(part, chain))) {
         const { font, upem } = chain[seg.face]!;
         const scale = fontSize / upem;
         const lsUnits = Number.isFinite(letterSpacing) && letterSpacing ? letterSpacing / scale : 0;
@@ -370,6 +370,7 @@ export function createNodeTextAPI({ repoRoot, assets, parseXml }: { repoRoot: st
 
         const buf = new hb.Buffer();
         buf.addText(seg.text);
+        if (seg.script) { buf.setDirection(seg.rtl ? hb.Direction.RTL : hb.Direction.LTR); buf.setScript(seg.script); }
         buf.guessSegmentProperties();
         hb.shape(font, buf, feats.length ? (feats as HbFeature[]) : undefined);
 
@@ -393,7 +394,7 @@ export function createNodeTextAPI({ repoRoot, assets, parseXml }: { repoRoot: st
           const glyphD = rawPath ? transformPath(rawPath, ox, oy, scale) : '';
           if (glyphD) d += glyphD;
           if (pieces) {
-            const key = segStart + cluster;
+            const key = seg.start + cluster;
             const piece = pieces.get(key);
             const penPxHere = (originUnits + penX) * scale;
             const advPx = (xAdvance + lsUnits) * scale;
@@ -416,7 +417,6 @@ export function createNodeTextAPI({ repoRoot, assets, parseXml }: { repoRoot: st
           penX += xAdvance + lsUnits;
         }
         penPx += penX * scale;
-        segStart += seg.text.length;
       }
 
       return {
