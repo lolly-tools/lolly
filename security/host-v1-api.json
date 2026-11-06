@@ -1390,7 +1390,7 @@
     "TokenInspection": {
       "module": "tokens.ts",
       "kind": "InterfaceDeclaration",
-      "sha256": "f779a58f20aea406cb2400ff997e552efb06c4e4c31baf06258fa97f961595ee"
+      "sha256": "5ecb9320da82649141771529142c6bbb147f6db3b86503c970798992a2244888"
     },
     "TokensAPI": {
       "module": "tokens.ts",
