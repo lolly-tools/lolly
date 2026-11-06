@@ -47,7 +47,15 @@ const DECK = `<div class="lolly-frames">
   </div>
 </div>`;
 
-async function fixture(page: Page, initial = 'a'): Promise<void> {
+/** Three artboards far apart on the canvas and no frame-level transitions, so the
+ *  deck-wide Fly between artboards governs every move and each flight has two legs. */
+const FLIGHT_DECK = `<div class="lolly-frames">
+  <div class="lolly-frame-page" data-frame-id="a" style="left:0;top:0;width:1280px;height:720px;background:#0c322c;color:#fff"><h1 style="margin:48px;font:600 64px system-ui">Slide A</h1></div>
+  <div class="lolly-frame-page" data-frame-id="b" style="left:3200px;top:1800px;width:1280px;height:720px;background:#30ba78;color:#0c322c"><h1 style="margin:48px;font:600 64px system-ui">Slide B</h1></div>
+  <div class="lolly-frame-page" data-frame-id="c" style="left:6400px;top:0;width:1280px;height:720px;background:#2453ff;color:#fff"><h1 style="margin:48px;font:600 64px system-ui">Slide C</h1></div>
+</div>`;
+
+async function fixture(page: Page, initial = 'a', opts: { deck?: string; transition?: 'slide' | 'flight' } = {}): Promise<void> {
   const shell = await page.request.get(origin!);
   assert.ok(shell.ok(), 'the configured shell responds');
   const shellDoc = new JSDOM(await shell.text(), { url: origin }).window.document;
@@ -78,12 +86,12 @@ async function fixture(page: Page, initial = 'a'): Promise<void> {
   const address = server.address(); assert.ok(address && typeof address !== 'string');
   await page.goto(`http://127.0.0.1:${address.port}/swipe-fixture`);
   await page.addScriptTag({ content: await presenterBundle() });
-  await page.evaluate(({ deck, initial }) => {
+  await page.evaluate(({ deck, initial, transition }) => {
     const source = document.querySelector<HTMLElement>('#tool-canvas')!;
     source.innerHTML = deck.replaceAll('ORIGIN', location.origin);
     const win = window as unknown as SwipeWindow;
-    win.presentation = win.LollyPresent.openPresentMode({ source, initial })!;
-  }, { deck: DECK, initial });
+    win.presentation = win.LollyPresent.openPresentMode({ source, initial, ...(transition ? { transition } : {}) })!;
+  }, { deck: opts.deck ?? DECK, initial, transition: opts.transition });
   await page.locator('.pr-stage .pr-page.pr-active').waitFor();
   // The deck opens with its pages easing down to their fitted scale; touch once at rest.
   await page.waitForFunction(() => {
@@ -265,5 +273,45 @@ test('with reduced motion a swipe still changes the slide, with nothing followin
     await swipe(t, start.x, start.y, -220, 0, { midway: async () => { mid.held = await poseOf(page, 'a'); } });
     assert.deepEqual(mid.held, { tx: '', op: '', transition: '' }, 'nothing moves under the finger');
     await settled(page, 'b');
+  } finally { await browser.close(); }
+});
+
+/** The scale of the canvas camera (the frames container) on the first frame painted after
+ *  a move, and the fitted scale of the slide that was on screen before the move. */
+async function firstFlightFrame(page: Page, move: () => Promise<void>): Promise<{ first: number; fitted: number }> {
+  const fitted = await page.evaluate(() => Number(document.querySelector<HTMLElement>('.pr-stage .pr-page.pr-active')!.style.getPropertyValue('--pr-scale')));
+  await page.evaluate(() => {
+    const win = window as unknown as { firstFrameScale?: number };
+    delete win.firstFrameScale;
+    const read = (): void => {
+      requestAnimationFrame(() => { win.firstFrameScale = new DOMMatrix(getComputedStyle(document.querySelector('.pr-stage .pr-frames')!).transform).a; });
+    };
+    // Captured before the deck's own listeners run, so the frame read is the first one
+    // painted after the move they start.
+    window.addEventListener('keydown', read, { capture: true, once: true });
+    window.addEventListener('pointerup', read, { capture: true, once: true });
+  });
+  await move();
+  await page.waitForFunction(() => typeof (window as unknown as { firstFrameScale?: number }).firstFrameScale === 'number');
+  const first = await page.evaluate(() => (window as unknown as { firstFrameScale: number }).firstFrameScale);
+  return { first, fitted };
+}
+
+test('the first Fly between artboards move starts from the slide on screen, for a key and for a swipe', { skip, timeout: 90_000 }, async () => {
+  const browser = await chromium.launch({ headless: true });
+  try {
+    const { page } = await phone(browser);
+    await fixture(page, 'a', { deck: FLIGHT_DECK, transition: 'flight' });
+    const byKey = await firstFlightFrame(page, () => page.keyboard.press('ArrowRight'));
+    assert.ok(byKey.fitted > 0 && byKey.fitted < 0.5, `a 1280 px slide fits a phone well below full size: ${byKey.fitted}`);
+    assert.ok(byKey.first <= byKey.fitted * 1.02, `ArrowRight: the camera's first frame is the slide on screen (scale ${byKey.first}), not the unscaled canvas (fitted ${byKey.fitted})`);
+    await settled(page, 'b');
+
+    const { page: second, t: finger } = await phone(browser);
+    await fixture(second, 'a', { deck: FLIGHT_DECK, transition: 'flight' });
+    const start = await point(second, 0.85);
+    const bySwipe = await firstFlightFrame(second, () => swipe(finger, start.x, start.y, -220));
+    assert.ok(bySwipe.first <= bySwipe.fitted * 1.02, `swipe: the camera's first frame is the slide on screen (scale ${bySwipe.first}), not the unscaled canvas (fitted ${bySwipe.fitted})`);
+    await settled(second, 'b');
   } finally { await browser.close(); }
 });

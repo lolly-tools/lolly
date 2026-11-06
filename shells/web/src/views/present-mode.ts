@@ -830,6 +830,10 @@ export function openPresentMode(opts: OpenPresentOptions): PresentController | n
         cloneByIndex[i]!.style.setProperty('--pr-cy', `${s.y}px`);
       }
       setCamera(cameraFor(frameRect(active), viewport(), FLIGHT_MARGIN), 0);
+      // Settle that pose now. The first leg is set in the same task, and without a style
+      // pass between the two the container eased out of its stacked-stage transform (none),
+      // so a deck's first flight began on the full-size canvas and zoomed down from there.
+      void window.getComputedStyle(framesEl).transform;
     } else {
       releaseCamera();
       framesEl.style.removeProperty('transition-property');
