@@ -394,6 +394,21 @@ const BAND_PAGE_HTML = `<!doctype html><html><head><title>Quickstart - Lolly</ti
   </div>
 </body></html>`;
 
+test('the article is where Skip to content lands, and the app top row replaces the reader buttons', async () => {
+  stubOkFetch();
+  const view = freshView();
+  await mountDocs(view, host, 'quickstart', 'de', '');
+  const article = view.querySelector('[data-content] article.docs-content');
+  assert.ok(article?.hasAttribute('data-skip-target'), 'the skip link would land on the view, before the top row and the rail');
+  // The app's own top row: the four tabs (none current) and the avatar menu.
+  const tabs = view.querySelector('.gallery-topbar .view-toggle');
+  assert.ok(tabs, 'the reader lost the app top row');
+  assert.equal(tabs!.querySelector('[aria-current]'), null, 'reading the docs is none of the four tabs');
+  assert.ok(view.querySelector('.gallery-topright .profile-link'), 'no avatar menu');
+  assert.equal(view.querySelector('.docs-topright, .docs-top-btn'), null, 'the reader\'s own round buttons came back');
+  view.remove();
+});
+
 test('a right-to-left page reads right to left in the reader, whatever the app language', async () => {
   // #/docs/ar/... used to lay Arabic out left to right: the reader took the app's direction.
   stubOkFetch(PAGE_HTML.replace('<html>', '<html lang="ar" dir="rtl">'));
