@@ -396,6 +396,8 @@ export type LeadCarry =
     kept: Array<{ id: string; name: string }>;
     /** Colours of kept leads that followed a rebuilt shade and were pinned to the colour they had. */
     pinned: number;
+    /** Colour role values of the canonical lead, or a look's own tokens, pinned the same way. */
+    rolesPinned: number;
   }
   | { ok: false; reasons: string[] };
 
@@ -423,9 +425,9 @@ export type LeadCarry =
 export function carryLeads(from: unknown, to: unknown): LeadCarry {
   const axis = colourwayAxis(from);
   if (!axis || !isRec(from) || !isRec(to)) {
-    if (!isRec(from) || !isRec(to)) return { ok: true, doc: to as Rec, canonical: null, kept: [], pinned: 0 };
+    if (!isRec(from) || !isRec(to)) return { ok: true, doc: to as Rec, canonical: null, kept: [], pinned: 0, rolesPinned: 0 };
     const single = carryColourRoles(from, to);
-    return single.ok ? { ok: true, doc: single.doc, canonical: null, kept: [], pinned: single.pinned } : single;
+    return single.ok ? { ok: true, doc: single.doc, canonical: null, kept: [], pinned: 0, rolesPinned: single.pinned } : single;
   }
   const editableFrom = colourwaysEditable(from);
   if (!editableFrom.ok) return editableFrom;
@@ -514,7 +516,7 @@ export function carryLeads(from: unknown, to: unknown): LeadCarry {
   const carriedRoles = carryColourRoles(from, next);
   if (!carriedRoles.ok) return carriedRoles;
   next = carriedRoles.doc;
-  let pinned = carriedRoles.pinned;
+  let pinned = 0;
 
   // A kept lead that followed a rebuilt shade keeps the colour it had. A link inside the
   // lead's set is left alone: it reads a role, and the role is what gets pinned.
@@ -538,7 +540,7 @@ export function carryLeads(from: unknown, to: unknown): LeadCarry {
     const dangling = newlyDangling(to, next);
     if (dangling.length) return { ok: false, reasons: [`The rebuilt palette would leave ${[...new Set(dangling.map(d => d.path))].slice(0, 3).join(', ')} pointing at nothing, so it cannot keep this design system's colour roles.`] };
   }
-  return { ok: true, doc: next, canonical: { id: canonical.id, name: canonical.name }, kept: kept.map(({ id, name }) => ({ id, name })), pinned };
+  return { ok: true, doc: next, canonical: { id: canonical.id, name: canonical.name }, kept: kept.map(({ id, name }) => ({ id, name })), pinned, rolesPinned: carriedRoles.pinned };
 }
 
 /**

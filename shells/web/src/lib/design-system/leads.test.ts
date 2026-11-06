@@ -438,7 +438,8 @@ test('carryLeads: a stated on-colour stays stated, and a role that followed a re
   // The brand colours do not survive a derive, so the links are pinned to what they drew.
   assert.equal(leaf(carried.doc, 'colourway/madder', 'light', 'tertiary').$value, '#faf7f2');
   assert.equal(leaf(carried.doc, 'colourway/indigo', 'light', 'tertiary').$value, '#1c1a17');
-  assert.equal(carried.pinned, 2);
+  assert.equal(carried.pinned, 1, 'the kept lead');
+  assert.equal(carried.rolesPinned, 1, 'the canonical lead');
 });
 
 test('carryLeads: a slot beyond the four stays re-pointed, and a hand-written system keeps its tokens with no record', () => {
@@ -482,7 +483,7 @@ test('carryLeads: a single-lead system with a custom token of its own keeps it t
   for (const mode of ['light', 'dark']) {
     assert.equal(createTokenSet(carried.doc, { theme: mode }).resolve('color.semantic.success'), createTokenSet(from, { theme: mode }).resolve('color.semantic.success'), 'pinned: the rebuilt ramp would have moved it');
   }
-  assert.equal(carried.ok && carried.pinned, 2);
+  assert.equal(carried.ok && carried.rolesPinned, 2);
 });
 
 test('leadSlotPath follows a bound slot to the role that holds its colour', () => {

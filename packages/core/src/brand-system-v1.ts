@@ -67,7 +67,7 @@ export interface ColourSlotReadingV1 {
   slot: ColourSlotV1;
   /** The role that fills the slot; null when the system defines the slot itself. */
   roleId: string | null;
-  /** `binding`: the record says so. `self`: the role is the slot. `alias`: only the file's aliases say so. `system`: no role fills it. */
+  /** `binding`: the record binds the slot. `self`: the role is the slot. `alias`: only the file's aliases point at the role. `system`: no role fills this slot. */
   source: 'binding' | 'self' | 'alias' | 'system';
   /** False when the record binds the slot and the colours do not link to that role yet. */
   written: boolean;

@@ -41,7 +41,7 @@ const record = (v: unknown): v is Rec => !!v && typeof v === 'object' && !Array.
 /** The group id the studio writes for colourways. Imported documents may use another, declared by `kind`. */
 export const COLOURWAY_GROUP = 'colourway';
 
-/** The `group` a `brandSystem` role carries when it names a colour every colourway fills. */
+/** The `group` a `brandSystem` role carries when it is a colour every colourway fills. */
 export const COLOUR_ROLE_GROUP = 'colourway';
 
 /** The semantic slots every colourway re-points. */
@@ -210,7 +210,7 @@ const COLOUR_DATA = ['cmyk', 'spot', 'faces'] as const;
 export const MAX_CHECKED_SELECTIONS = 256;
 
 /**
- * Names that reach the prototype chain when used as a key. A token file is untrusted,
+ * Keys that reach the prototype chain. A token file is untrusted,
  * and a theme id, a set name and a role name all become path segments here, so none of
  * these is ever walked or written.
  */
@@ -489,7 +489,7 @@ export function liftToColourways(doc: unknown, opts: LiftOptions = {}): Colourwa
 
 /**
  * One look's colours for a colourway. Each value is a colour or a `{token.path}` link.
- * Any other key names a colour role the design system already has (`accent`).
+ * Any other key is a colour role the design system already has (`accent`).
  */
 export type ColourwayValues = Partial<Record<ColourwayRole, string>> & Record<(typeof COLOURWAY_ROLES)[number], string> & { [role: string]: string | undefined };
 
@@ -519,7 +519,7 @@ export function colourwayLinkOf(value: unknown): { mode: string; role: string } 
   return m ? { mode: m[1]!, role: m[2]! } : null;
 }
 
-/** The role names one colourway set holds for one look, in the order they appear. */
+/** The roles one colourway set holds for one look, in the order they appear. */
 export function colourwayLeaves(set: unknown, mode: string): string[] {
   let node: unknown = set;
   for (const seg of ['color', 'colourway', mode]) {
@@ -660,7 +660,7 @@ export function addColourway(doc: unknown, opts: AddColourwayOptions): Colourway
   const given = new Set<string>();
   for (const option of mode.options) {
     const values = ownValue(opts.values, option.id)!;
-    // The canonical colourway first; a role it lacks in a hand-written file comes from whichever colourway has it.
+    // The canonical colourway first; a role missing there in a hand-written file comes from the first colourway with that role.
     const sources = colourways.options.map(o => colourwaySetOf(next, colourways, o.id)!).sort((x, y) => Number(y === canonicalSet) - Number(x === canonicalSet));
     const leaves = sources.flatMap(from => colourwayLeaves(next[from], option.id));
     const names = [...new Set([...roles, ...leaves])];
@@ -691,7 +691,7 @@ export function addColourway(doc: unknown, opts: AddColourwayOptions): Colourway
         given.add(`${option.id}\0${name}`);
         if (!fixed && mark?.derived) setColourRoleMark(node, { derived: true });
       } else if (!fixed) {
-        // A derived on-colour stays derived and is worked out below; anything else is a copy, and says so.
+        // A derived on-colour stays derived and is worked out below; anything else is marked as a copy.
         setColourRoleMark(node, mark?.derived ? { derived: true } : { seeded: colourways.canonical });
       }
       setNodeAt(body, path, node);

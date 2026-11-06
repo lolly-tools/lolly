@@ -147,8 +147,11 @@ export function colourRoleIdFromLabel(doc: unknown, label: string): string {
 }
 
 /** Control characters and the invisible bidirectional overrides have no place in a label. */
-const UNPRINTABLE = /[\u0000-\u001f\u007f-\u009f‪-‮⁦-⁩]/g;
-const cleanText = (value: unknown): string => (typeof value === 'string' ? value.normalize('NFC').replace(UNPRINTABLE, ' ').trim() : '');
+const isUnprintable = (code: number): boolean => code < 0x20 || (code >= 0x7f && code <= 0x9f) || (code >= 0x202a && code <= 0x202e) || (code >= 0x2066 && code <= 0x2069);
+/** A label or description as inert text. Cut well past either limit first, so a hostile file stays cheap to read. */
+const cleanText = (value: unknown): string => (typeof value === 'string'
+  ? Array.from(value.slice(0, 8192).normalize('NFC'), ch => (isUnprintable(ch.codePointAt(0)!) ? ' ' : ch)).join('').trim()
+  : '');
 const prettify = (id: string): string => id.replace(/-+/g, ' ').replace(/^\w/, c => c.toUpperCase());
 
 // ─── Reading ─────────────────────────────────────────────────────────────────
@@ -192,7 +195,7 @@ function colourwayed(doc: unknown): Colourwayed | null {
 
 /** Does every colourway write this slot as an alias to this role, in every look? */
 function bindingWritten(doc: Rec, cw: Colourwayed | null, slot: string, roleId: string): boolean {
-  if (!cw || !cw.sets.size) return false;
+  if (!cw?.sets.size) return false;
   for (const set of cw.sets.values()) {
     for (const look of cw.mode.options) {
       const link = colourwayLinkOf(nodeAt(doc[set], colourwayPath(look.id, slot))?.$value);
@@ -212,7 +215,7 @@ function aliasedRole(doc: Rec, cw: Colourwayed | null, slot: string): string | n
   return link && link.mode === look.id ? link.role : null;
 }
 
-/** Colour role names the tokens hold beyond the slots, whether or not anything declares them. */
+/** The colour roles the tokens hold beyond the slots, whether or not anything declares them. */
 function tokenRoleNames(doc: unknown, cw: Colourwayed | null): string[] {
   const names = new Set<string>();
   const add = (name: string): void => { if (names.size < 256 && !isStudioName(name) && !name.startsWith('on-')) names.add(name); };
@@ -244,10 +247,11 @@ function tokenRoleNames(doc: unknown, cw: Colourwayed | null): string[] {
  *
  * `record` is `unreadable` when `brandSystem` fails `readBrandSystem`: the entries are
  * still read one by one for display, and writes are refused so the original is kept.
- * Anything odd lands in `issues` with a stable code: `role-id-unusable`,
+ * Anything odd goes in `issues` with a stable code: `role-id-unusable`,
  * `duplicate-role`, `token-name-unusable`, `binding-unknown-role`, `slot-bound-twice`,
  * `slot-not-bindable`, `binding-not-written`, `record-unreadable`, `label-too-long`,
- * `description-too-long`, `label-missing`, `too-many-roles`, `unsafe-theme-id`.
+ * `description-too-long`, `label-missing`, `too-many-roles`, `unsafe-theme-id`,
+ * `value-missing`.
  *
  * A slot bound twice takes the first binding. A role's `slots` come from the bindings
  * (and, for a slot nothing declares, from the aliases the file wrote), so `written:
@@ -321,6 +325,14 @@ export function readColourRoles(doc: unknown): ColourRolesReading {
     return { slot, roleId: null, source: 'system', written: true };
   });
   for (const reading of slots) if (reading.roleId) byId.get(reading.roleId)?.slots.push(reading.slot);
+
+  // A declared role a colourway holds no value for, which a hand-written file can have. Lolly's own edits never leave this gap.
+  if (cw && record(doc)) {
+    for (const role of declared) {
+      const known = [...cw.sets].filter(([, set]) => cw.mode.options.every(look => nodeAt(doc[set], colourwayPath(look.id, role.id))));
+      if (known.length && known.length < cw.sets.size) issue('value-missing', `${role.label} has no colour in ${cw.sets.size - known.length} of the colourways.`, role.id);
+    }
+  }
 
   return {
     state: declared.length ? 'declared' : undeclared.length ? 'undeclared' : 'default',
@@ -510,15 +522,15 @@ export type ColourRoleRefusal =
   | 'role-in-use' | 'not-a-colour' | 'unknown-colourway' | 'unknown-mode' | 'same-as-itself' | 'order-mismatch'
   | 'would-dangle' | 'would-change' | 'too-many-themes';
 
-/** What still uses a role, so the interface can say so before anything is lost. */
+/** What still uses a role, so the interface can warn before anything is lost. */
 export interface ColourRoleUse {
   /** Slots it fills. Pass `release: true` to let them go. */
   slots: string[];
-  /** Rule ids that name it. A rule is the brand's own statement, so this always refuses. */
+  /** Rule ids that list this role. A rule is the brand's own statement, so this always refuses. */
   rules: string[];
-  /** Guide group ids that list it. */
+  /** Guide group ids that list this role. */
   guideGroups: string[];
-  /** Tokens whose aliases reach it. */
+  /** Tokens whose aliases reach this role. */
   tokens: string[];
   /** Binding ids that give it to a tool's own field. */
   toolBindings: string[];
@@ -532,7 +544,7 @@ export type ColourRoleEdit =
     changed: boolean;
     /** The role an add created, or the one it adopted. */
     id?: string;
-    /** Slots a removal let go of. Each keeps the colour it drew and says so as a slot no role fills. */
+    /** Slots a removal let go of. Each keeps the colour it drew and reads as a slot no role fills. */
     released?: string[];
   }
   | { ok: false; code: ColourRoleRefusal; reasons: string[]; inUse?: ColourRoleUse };
@@ -695,7 +707,7 @@ export interface AddColourRoleOptions {
   values?: Record<string, Record<string, string>>;
   /** Take this slot's colours as the role's own and bind the slot to it, so nothing a render draws moves. */
   fills?: string;
-  /** Names the canonical colourway when the document still has one lead. */
+  /** The canonical colourway's id and name, when the document still has one lead. */
   lift?: LiftOptions;
   /** The record's label, when the document has no record yet. */
   systemLabel?: string;
@@ -709,7 +721,7 @@ export interface AddColourRoleOptions {
  *
  * Naming an `id` the tokens already hold declares that role as it stands (a hand-written
  * `color.semantic.accent`, or a slot's own name), and every colour stays where it is.
- * With `fills`, the slot's colours move into the role and the slot links to it.
+ * With `fills`, the slot's colours move into the role and the slot links to that role.
  *
  * Refused for a bad or reserved id, a taken id or name, more than `MAX_COLOUR_ROLES`
  * roles, a colour that cannot be read, a document whose colourways Lolly cannot edit,
@@ -991,8 +1003,8 @@ export function reorderColourRoles(doc: unknown, order: readonly string[]): Colo
  * A role that fills a slot is refused with `code: 'role-in-use'` and `inUse`, naming
  * what uses it, so the interface can warn. Pass `release: true` to let its slots go:
  * each keeps the colour it draws. A house rule, a guide group or a tool's binding that
- * names the role, and a token whose alias reaches it, always refuse: removing the role
- * would break them.
+ * lists the role, and a token with an alias to the role, always refuse: removing the
+ * role would break them.
  */
 export function removeColourRole(doc: unknown, id: string, opts: { release?: boolean } = {}): ColourRoleEdit {
   const bad = recordRefusal(doc);
@@ -1220,8 +1232,8 @@ function isDefaultVocabulary(specs: readonly ColourRoleSpec[]): boolean {
 /**
  * Set the whole vocabulary in one edit, for a starting point or a saved list. Roles the
  * list leaves out are removed, the rest are added, renamed or described, and the list's
- * order becomes the brand's. All of it lands or none of it does: the first refusal is
- * returned, and the document stays as it was. A role that fills a slot needs
+ * order becomes the brand's. The first refusal stops the whole edit and is returned, and
+ * the document stays as it was. A role that fills a slot needs
  * `release: true` to go, as in `removeColourRole`.
  *
  * On a document with no declared colour roles, the shipped words (Primary, Secondary,
@@ -1293,7 +1305,7 @@ export type ColourRoleCarry =
  * other colourway's set copied whole. Returns `to` itself, untouched, when `from` has no
  * colour roles and no custom colour tokens, so a document without them rebuilds as before.
  *
- * - The record comes across whole, with any house rules in it.
+ * - The record comes across whole, house rules included.
  * - A slot bound to a role stays bound. The fresh value of that slot becomes the role's
  *   value in the canonical colourway, because the rebuild re-derives the canonical lead:
  *   Main follows the new starting colour just as Primary would. A stated on-colour stays.
@@ -1328,7 +1340,7 @@ export function carryColourRoles(from: unknown, to: Rec): ColourRoleCarry {
     }
   }
 
-  // The canonical colourway: bindings first, so a role takes its slot's fresh value.
+  // The canonical colourway. Bindings go first, because a role takes the fresh value of the slot it fills.
   if (fromCw && toCw) {
     const fromSet = fromCw.sets.get(fromCw.axis.canonical);
     const toSet = toCw.sets.get(toCw.axis.canonical);
@@ -1442,7 +1454,7 @@ export interface BriefColourRoles {
     fills: string[];
     /** What Lolly does with it, in plain English. */
     readAs: string[];
-    /** Its text speaks about permissions or running code, so the brief shows its id, not its words. */
+    /** Its text speaks about permissions or running code, so the brief shows the id in place of the words. */
     held?: true;
   }>;
   /** Each slot, with the role that fills it, or null where the system defines the slot itself. */

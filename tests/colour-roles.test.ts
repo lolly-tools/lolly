@@ -35,6 +35,7 @@ import { readTokenAxes, axisOfKind, modeAxis } from '../engine/src/token-axes.ts
 import { inspectTokenDocument } from '../engine/src/token-inspect.ts';
 import { TOKEN_EXT } from '../engine/src/token-ext.ts';
 import { createCliBridge, applyBrandVars } from '../shells/cli/src/bridge.ts';
+import { applyBrandFaces } from '../shells/web/src/brand-faces.ts';
 import type { BrandSystemV1 } from '../packages/core/src/brand-system-v1.ts';
 
 type Rec = Record<string, unknown>;
@@ -184,6 +185,15 @@ test('a Design colour reference to a role resolves through a real render, in the
   assert.deepEqual(fills('{"colourway":"madder","":"dark"}'), ['#14161f', '#ff8c9a', '#b39f7c', '#ff8c9a', '#000000']);
 });
 
+test('the web shell\'s paint reads the same token paths: --brand-main and --brand-primary both paint', () => {
+  const { window } = new JSDOM('<!doctype html><html><body><div id="canvas"></div></body></html>');
+  const el = window.document.getElementById('canvas')!;
+  applyBrandFaces(el as never, createTokenSet(WEFTHOUSE(), { selection: select('weld', 'dark') }).colors());
+  assert.equal(el.style.getPropertyValue('--brand-main'), '#ffe08a');
+  assert.equal(el.style.getPropertyValue('--brand-primary'), '#ffe08a');
+  assert.equal(el.style.getPropertyValue('--brand-on-tertiary'), '#000000');
+});
+
 // ─── The export record ───────────────────────────────────────────────────────
 
 test('the export record stays design system, version and theme choice: no role data is written', () => {
@@ -219,7 +229,7 @@ test('addColourway: a new colourway keeps every custom role, and a value given f
   assert.equal(nodeAt(set, 'color.colourway.dark.accent')!.$value, '#e0a999');
   assert.equal(nodeAt(set, 'color.colourway.dark.on-main')!.$value, '#0b1d17');
   assert.equal(hex(edit.doc, select('woad', 'light'), 'color.semantic.primary'), '#2e5e4e');
-  // A role nobody gave a value for is copied from the canonical colourway, and says so.
+  // A role nobody gave a value for is copied from the canonical colourway, and marked.
   const supporting = nodeAt(set, 'color.colourway.light.supporting')!;
   assert.equal(supporting.$value, '#6c7a89');
   assert.equal(colourRoleMarkOf(supporting)?.seeded, 'indigo');
@@ -270,6 +280,7 @@ test('duplicate and remove keep every role, and a duplicate of a partial colourw
   const partial = WEFTHOUSE();
   const group = (rawSet(partial, 'weld') as { color: { colourway: { light: Rec; dark: Rec } } }).color.colourway;
   delete group.light.tertiary; delete group.dark.tertiary;
+  assert.deepEqual(readColourRoles(partial).issues.map(i => [i.code, i.subject]), [['value-missing', 'tertiary']], 'the gap is reported');
   const filled = duplicateColourway(partial, 'weld', { id: 'weld-two', name: 'Weld Two' });
   assert.ok(filled.ok, filled.ok ? '' : filled.reasons.join(' '));
   assert.equal(hex(filled.doc, select('weld-two', 'light'), 'color.semantic.tertiary'), '#d9c7a0', 'copied from the canonical colourway');
@@ -429,7 +440,7 @@ test('a slot already filled cannot be taken by a role that is the slot, and a sl
   const withOther = ok(addColourRole(doc, { label: 'Other', value: '#112233' }));
   refused(bindRole(withOther, 'primary', 'other'), 'slot-is-a-role');
   refused(unbindRole(withOther, 'primary'), 'slot-is-a-role');
-  // Removing the role leaves the slot as the system defines it.
+  // Removing the role leaves the slot's own colours in place.
   const removed = ok(removeColourRole(withOther, 'primary'));
   assertSound(removed, 'a slot undeclared');
   assert.equal(hex(removed, { colourway: 'spearmint', '': 'light' }, 'color.semantic.primary'), hex(start, { colourway: 'spearmint', '': 'light' }, 'color.semantic.primary'));
@@ -677,7 +688,7 @@ test('setColourRoles sets a vocabulary in one edit, in order, and a refusal leav
   const next = ok(setColourRoles(doc, [{ id: 'tertiary', label: 'Third' }, { label: 'Main' }, { label: 'Accent' }]));
   assert.deepEqual(readColourRoles(next).roles.map(r => [r.id, r.label]), [['tertiary', 'Third'], ['main', 'Main'], ['accent', 'Accent']]);
   assertSound(next, 'setColourRoles again');
-  // A role in use refuses, and nothing landed.
+  // A role in use refuses, and the document stays as it was.
   const blocked = setColourRoles(doc, [{ label: 'Accent' }, { label: 'Stripe', value: '#112233' }]);
   refused(blocked, 'role-in-use');
   const released = ok(setColourRoles(doc, [{ label: 'Accent' }, { label: 'Stripe', value: '#112233' }], { release: true }));
@@ -703,7 +714,7 @@ for (const [name, fixture] of Object.entries(NO_ROLES)) {
     colourRolesEditable(doc);
     assert.equal(JSON.stringify(doc), bytes, 'reading writes nothing');
 
-    // Choosing the shipped words writes nothing, whichever starting point names them.
+    // Choosing the shipped words writes nothing, whichever starting point offers them.
     for (const words of [
       [{ label: 'Primary' }, { label: 'Secondary' }],
       [{ label: 'Primary' }, { label: 'Secondary' }, { label: 'Surface' }, { label: 'Text' }],
@@ -1004,7 +1015,7 @@ test('a cycle in aliases: defined reads, no hang, and an edit that makes one is 
   assert.equal(row.cells[0]!.hex, '', 'a colour that never resolves reads as none');
   assert.equal(row.cells[0]!.contrast, null);
   assert.ok(danglingColourAliases(doc).some(d => d.path === 'color.colourway.light.supporting'));
-  // The gap was already there, so an unrelated edit still works and does not claim to have made it.
+  // The gap was already there, so an unrelated edit still works and is not blamed for the gap.
   ok(setRoleValue(doc, { roleId: 'main', colourway: 'indigo', mode: 'light', value: '#101010' }));
   ok(renameColourRole(doc, 'supporting', 'Band'));
   // Copying the colourway keeps the gap rather than crashing.
@@ -1055,8 +1066,8 @@ test('hostile themes and keys: nothing reaches the prototype, and each answer is
   // Keys in a caller's own object: a look or a role called constructor is not a colour.
   const hand = handWritten();
   for (const look of ['light', 'dark']) {
-    (((hand[look] as Rec).color as Rec).semantic as Rec).constructor = { $value: `{color.colourway.${look}.constructor}`, $type: 'color' };
-    for (const id of ['one', 'two']) (((hand[`colourway/${id}`] as Rec).color as Rec).colourway as Record<string, Rec>)[look]!.constructor = { $value: '#123123' };
+    Object.assign(((hand[look] as Rec).color as Rec).semantic as Rec, { constructor: { $value: `{color.colourway.${look}.constructor}`, $type: 'color' } });
+    for (const id of ['one', 'two']) Object.assign((((hand[`colourway/${id}`] as Rec).color as Rec).colourway as Record<string, Rec>)[look]!, { constructor: { $value: '#123123' } });
   }
   assert.doesNotThrow(() => colourwayRolesOf(hand));
   assert.equal(colourwayRolesOf(hand).includes('constructor'), false);
@@ -1068,7 +1079,7 @@ test('hostile themes and keys: nothing reaches the prototype, and each answer is
   assert.deepEqual(polluted(), []);
 
   // Text is bounded and inert: control characters and invisible overrides go, markup stays text.
-  const shady = ok(addColourRole(WEFTHOUSE(), { label: '  Sel\u0000vedge‮  ', description: '<img src=x onerror=alert(1)>', value: '#123123' }));
+  const shady = ok(addColourRole(WEFTHOUSE(), { label: '  Sel\u0000vedge\u202e  ', description: '<img src=x onerror=alert(1)>', value: '#123123' }));
   const role = readColourRoles(shady).roles.at(-1)!;
   assert.equal(role.label, 'Sel vedge');
   assert.equal(role.description, '<img src=x onerror=alert(1)>', 'stored as text, for the interface to escape');

@@ -375,7 +375,7 @@ function stampGroup(leaf: Rec): void {
  * link Lolly cannot follow is refused (see the module header).
  *
  * Only the named role is touched, except that assigning Primary re-picks a derived
- * on-primary that no longer reads on it. See the module header for why `muted` and
+ * on-primary that no longer reads on the new colour. See the module header for why `muted` and
  * `edge` are left exactly as they were, and a stated on-primary with them.
  *
  * A slot bound to one of the brand's colour roles (plans/352) writes to that role's
