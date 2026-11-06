@@ -6,11 +6,13 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
-## 1.314.0
+## 1.315.0
 
 - `host.text.toPath` gains an optional `direction` (`ltr` or `rtl`), the direction of the paragraph a run sits in. A run that holds right-to-left characters, or a complex script beside another script, now goes through the Unicode bidi analysis and is shaped one direction and script at a time, in visual order. Latin inside Arabic used to come out reversed, digits too, and Arabic after a Latin word lost its joining. With no `direction`, such a run reads from its first strong character.
 - A run with neither shapes as it always did and keeps its bytes, which is every purely left-to-right Latin, Greek, Cyrillic or CJK run.
 - A tool that outlines right-to-left text itself reads `advanceWidth` to anchor the right edge: the path still reads left to right from x=0.
+
+## 1.314.0
 
 - A brand page's `AGENTS.md` gains a **Colour roles** section when a design system declares some (plan 352 R3): each word in brand order, its token, its colour in the canonical colourway and what Lolly reads it as, under a line saying the words are data. A system with none writes the file it always wrote. `brand.json` does not change shape.
 - `baselineBrandSkill` lists the same words from the brief, so the generated skill and the design context agree.
