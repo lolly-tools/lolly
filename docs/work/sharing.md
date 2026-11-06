@@ -143,7 +143,7 @@ links](catalog.md#collection-links).
   always revoke their own link; revoking someone else's needs `link.revoke`.
 - **A link stops while the person who made it is disabled.** It answers `410
   LINK_MAKER_DISABLED`, and a browser reads "This link stopped working". Re-enabling the
-  account restores it. A link made by a service token has no person behind it and is not
+  account restores the link. A link made by a service token has no person behind the link and is not
   affected.
 - Guest links are also capped by `policy.guestLinks.maxTtlHours`, and can be switched off
   outright (`403 GUEST_LINKS_DISABLED`).
