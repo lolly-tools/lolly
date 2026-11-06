@@ -29,6 +29,9 @@ const readInk = (page: Page) => page.evaluate(() => {
 async function visit(page: Page): Promise<void> {
   await page.goto(`${origin}/t/design?template=video&editingRange=hdr`);
   await page.waitForFunction(() => !!(window as EditorWindow).lolly?.ui);
+  // The editor's chrome is imported after the view mounts: wait for its layout attribute
+  // as well as the timeline, so a test reads the layout it is in, never a missing one.
+  await page.waitForSelector('.tool-stage[data-design-layout]');
   await page.waitForSelector('.tl-panel:not([hidden])');
   // The editor paints before the mount finishes, and the shared Loading card
   // (components/view-loading.ts) keeps the page inert until then: keys pressed on
@@ -43,12 +46,20 @@ async function visit(page: Page): Promise<void> {
 test('Design keeps compact actions, panels and timeline resizing usable across the viewport matrix', { skip, timeout: 180000 }, async () => {
   const browser = await getBrowser({ graphics: 'auto' });
   try {
-    for (const [width, height] of [[320, 568], [360, 640], [390, 844], [768, 1024], [844, 390], [1024, 768], [1440, 1000]]) {
+    // Each window and the layout Design must take there: compact on phones and the
+    // landscape phone, wide on the tablets (two panes) and the desktop. Stated, not read,
+    // so a window in the wrong layout fails instead of skipping its checks.
+    const matrix: Array<[number, number, 'compact' | 'wide']> = [
+      [320, 568, 'compact'], [360, 640, 'compact'], [390, 844, 'compact'], [768, 1024, 'wide'],
+      [844, 390, 'compact'], [1024, 768, 'wide'], [1440, 1000, 'wide'],
+    ];
+    for (const [width, height, layout] of matrix) {
       const context = await browser.newContext({ serviceWorkers: 'block', viewport: { width: width!, height: height! }, hasTouch: true });
       try {
         const page = await context.newPage();
         await visit(page);
-        const compact = await page.locator('.tool-stage').getAttribute('data-design-layout') === 'compact';
+        assert.equal(await page.locator('.tool-stage').getAttribute('data-design-layout'), layout, `the ${layout} layout at ${width}x${height}`);
+        const compact = layout === 'compact';
         if (compact) {
           const profile = page.locator('.design-topbar .profile-link:visible');
           const box = (await profile.boundingBox())!;
