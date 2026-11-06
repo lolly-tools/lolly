@@ -28,10 +28,6 @@ import { pickWebCodecsVideo } from './video-shared.ts';
 import { narrationDwellMs } from "../lib/motion-model.ts";
 import { pureRotationDeg, detectUnsupportedCss, inlineBlobUrlsInEl, rasterizeNodeToDataUrl, imprintEmbedCanvas, stripCommentNodes, _host, _exportNotice, type ExportOpts, type ImprintState } from "./export.ts";
 
-// Moved to office-shared.ts, which the Word export reads them from too; re-exported for
-// the callers that import them from here.
-export { canvasColorResolver, sourceAuthorOf };
-
 type Rgba = [number, number, number, number];
 
 const PPTX_MIME = 'application/vnd.openxmlformats-officedocument.presentationml.presentation';
