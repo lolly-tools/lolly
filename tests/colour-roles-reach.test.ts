@@ -35,7 +35,8 @@ import { readIssue } from '../shells/web/src/lib/design-system/issue-model.ts';
 type Rec = Record<string, any>;
 const load = (path: string): Rec => JSON.parse(readFileSync(new URL(path, import.meta.url), 'utf8'));
 const WEFTHOUSE = (): Rec => load('./fixtures/colour-roles/wefthouse.tokens.json');
-const DEMO = (): Rec => load('../brands/lolly-demo/catalog/assets/lolly/tokens/demo.json');
+/** Lolly Demo as it was before it declared colour roles (plans/352 R6): a system with none. */
+const DEMO = (): Rec => load('./fixtures/colour-roles/lolly-demo-no-roles.json');
 const ok = (edit: { ok: boolean; doc?: Rec; reasons?: string[] }): Rec => {
   assert.ok(edit.ok, edit.reasons?.join(' ') ?? '');
   return edit.doc!;
@@ -150,6 +151,7 @@ test('a brand page with no colour roles has no such section, and its AGENTS.md r
 
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
 const FIXTURE = fileURLToPath(new URL('./fixtures/colour-roles/wefthouse.tokens.json', import.meta.url));
+const NO_ROLES = fileURLToPath(new URL('./fixtures/colour-roles/lolly-demo-no-roles.json', import.meta.url));
 
 function withTerminalSystem(run: (cli: (...args: string[]) => string, dir: string) => void): void {
   const dir = mkdtempSync(join(tmpdir(), 'lolly-reach-'));
@@ -209,6 +211,7 @@ test('--brand-<id> and {color.semantic.<id>} draw the role in a real tool and a 
 
 test('a slot variable draws the design system\'s colour on the CLI on a system with no roles too', { timeout: 120_000 }, () => {
   withTerminalSystem((cli, dir) => {
+    cli('system', 'import', NO_ROLES);
     const rows = JSON.stringify([{ id: 'a', kind: 'frame', x: 0, y: 0, w: 400, h: 200, bg: 'var(--brand-primary, #abcdef)' }]);
     const page = join(dir, 'design.svg');
     cli('design', `--boxes=${rows}`, '--s=1', `--output=${page}`);

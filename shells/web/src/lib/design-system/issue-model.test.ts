@@ -18,14 +18,16 @@ const START = read('../../../../../brands/lolly-start/catalog/assets/lolly/token
 
 const issueOf = (doc: unknown, label: string) => readIssue({ doc, palette: docPalette(doc), label, source: 'Came with this app', locked: false });
 
-test('Lolly Demo: 33 named colours, each with an exact ink; its spectrum and 37 role colours stay out of the count', () => {
+test('Lolly Demo: 33 named colours, each with an exact ink; its spectrum and 33 role colours stay out of the count', () => {
   const issue = issueOf(DEMO, 'Lolly Demo');
   assert.equal(issue.colours.core.length, 33);
   assert.equal(issue.colours.named.length, 33);
   assert.deepEqual(issue.colours.ramps, []);
   assert.equal(issue.colours.spectrum.length, 8, 'the spectrum is read from the whole palette: its swatches alias brand greens');
-  assert.equal(issue.colours.roles.length, 7 + 17 + 7 + 6);
-  assert.deepEqual([...new Set(issue.colours.roles.map(c => c.token?.path.split('.')[1]))], ['semantic', 'role', 'chrome', 'colourway']);
+  // Lolly Demo declares colour roles (plans/352 R6), so the slots gain the colours on
+  // Partner and Paper, and the six colourway copies leave the list.
+  assert.equal(issue.colours.roles.length, 9 + 17 + 7);
+  assert.deepEqual([...new Set(issue.colours.roles.map(c => c.token?.path.split('.')[1]))], ['semantic', 'role', 'chrome']);
   assert.equal(issue.colours.lockedInks, 33);
   assert.equal(issue.facts.colours, 33);
 });
