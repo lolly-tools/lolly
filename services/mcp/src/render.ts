@@ -1106,9 +1106,9 @@ export async function credentialAndRecord(
   if (!o.sampled && o.merged.c2pa?.on && C2PA_FORMATS.includes(o.exportFmt as ExportFormat) && !(o.exportFmt === 'pdf' && o.merged.password)) {
     // Told not to stamp, the browser saves a PDF the embedder cannot extend until it has a classic table.
     try { bytes = await (await import('@lolly-tools/node-shell/pdf-classic')).classicPdfForStamp(bytes, o.exportFmt); } catch { /* the stamp below reports it */ }
-    // The new credential goes where a reader looks for it, not over an inlined picture's own.
-    const clean = withoutSvgCredentials(bytes, o.exportFmt);
-    try { bytes = await stampC2pa(clean, o.exportFmt, o.manifest, o.values, o.merged, o.placed, record, out.tier.startsWith('B') ? null : o.drawn ?? null); stamped = true; }
+    // On an SVG the embedder puts this credential in the root's metadata, in place of the
+    // browser's, and an inlined picture keeps its own credential in its own markup.
+    try { bytes = await stampC2pa(bytes, o.exportFmt, o.manifest, o.values, o.merged, o.placed, record, out.tier.startsWith('B') ? null : o.drawn ?? null); stamped = true; }
     catch (e) { o.warnings.push(`Content Credentials not attached - ${(e as Error).message}`); }
   } else if (!o.sampled && o.merged.c2pa?.on) {
     o.warnings.push(o.exportFmt === 'pdf' && o.merged.password

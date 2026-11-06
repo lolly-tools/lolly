@@ -73,10 +73,15 @@ test('CLI: --c2pa=off and --no-provenance on an SVG hold, and only the credentia
   cli(['certificate', '--firstname=Ana', '--export=svg'], plain);
   assert.equal((await verifyC2pa(await readFile(plain))).state, 'valid', 'no setting keeps the default credential');
   assert.equal(content(await readFile(plain, 'latin1')), content(await readFile(off, 'latin1')), 'nothing but the credential differs');
-  // Where a credential goes is not this change's business: one manifest, in place of the logo's.
+  // The default credential sits in the root's metadata, where c2patool reads one, and the
+  // inlined logo keeps its own manifest in its own markup.
   const placed = await readFile(plain, 'latin1');
-  assert.equal(placed.match(/<c2pa:manifest/g)?.length, 1);
-  assert.ok(placed.indexOf('<c2pa:manifest') > placed.indexOf('<svg', 10), 'it stays in the inlined artwork, as placeSvg puts it');
+  assert.equal(placed.match(/<c2pa:manifest/g)?.length, 2, 'the file\'s and the logo\'s');
+  assert.ok(placed.indexOf('<c2pa:manifest') < placed.indexOf('<svg', placed.indexOf('<svg') + 4), 'the file\'s comes ahead of the inlined artwork');
+  if (hasC2patool) {
+    const said = spawnSync('c2patool', [plain], { encoding: 'utf8' });
+    assert.doesNotMatch(`${said.stdout}${said.stderr}`, /No claim found/, 'c2patool reads the claim');
+  }
   const ninety = join(dir, 'cli-ninety.svg');
   cli(['certificate', '--firstname=Ana', '--c2pa=90', '--export=svg'], ninety);
   assert.equal((await verifyC2pa(await readFile(ninety))).state, 'valid', 'a lifetime is still a credential');
