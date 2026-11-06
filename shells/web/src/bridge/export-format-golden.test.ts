@@ -304,8 +304,8 @@ function assertStructure(format: Format, out: string, fixture: string): void {
 for (const [fixture, inner] of Object.entries(FIXTURES)) {
   for (const format of FORMATS) {
     if (LIVE_TEXT_ONLY.has(fixture) && (format === 'eps' || format === 'dxf')) continue;
-    const skip = SKIP || (GENERATED_PLATFORM_ONLY.has(fixture) && process.platform !== 'darwin' ? 'generated on macOS; another font backend moves inline runs' : false);
-    test(`golden: ${fixture} renders byte-exact ${format}`, { skip }, async () => {
+    if (GENERATED_PLATFORM_ONLY.has(fixture) && process.platform !== 'darwin') continue;
+    test(`golden: ${fixture} renders byte-exact ${format}`, { skip: SKIP }, async () => {
       const [a, b] = await renderTwice(inner, format);
       // Determinism FIRST: a golden over unstable bytes is worse than no golden.
       assert.ok(a === b,
