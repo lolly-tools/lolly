@@ -173,12 +173,34 @@ function makeErrorLine(): { el: HTMLElement; set(msg: string): void; clear(): vo
   };
 }
 
+/** Replace the Rendered link row's offer with why it is not offered. The server renders with
+ *  the instance's tokens and cannot read a design system held in this browser, so a link made
+ *  now would come out in the instance's colours while the person looks at another's. */
+function holdRenderedLink(row: HTMLElement, own: string, ctx: ShareSectionContext): void {
+  const name = document.createElement('div');
+  name.className = 'share-option';
+  const strong = document.createElement('strong');
+  strong.style.fontWeight = '650';
+  strong.textContent = t('Rendered link');
+  name.append(strong);
+  const why = document.createElement('p');
+  why.style.cssText = 'margin:.25rem 0 0;font-size:13px;color:hsl(var(--muted-foreground))';
+  why.textContent = `${renderedLinkHeldText(own)} `;
+  const link = document.createElement('a');
+  link.href = '#/settings?focus=design-systems-section';
+  link.textContent = t('Design systems');
+  link.addEventListener('click', () => ctx.close?.());
+  why.append(link);
+  row.classList.add('share-instance-held');
+  row.replaceChildren(name, why);
+}
+
 /**
  * Build the "On this instance" section, or null when the caller may create no
  * instance links (so the dialog adds nothing - dormant even for a signed-in member
  * without link permissions).
  */
-export function buildInstanceShareSection(ctx: ShareSectionContext, config: OrgConfig, drawsOther?: { own: string } | null): HTMLElement | null {
+export function buildInstanceShareSection(ctx: ShareSectionContext, config: OrgConfig, readHold: () => Promise<{ own: string } | null> = renderedLinkHold): HTMLElement | null {
   const can = (config as OrgConfig & { can?: Record<string, boolean> }).can;
   const rows = instanceShareRows(can);
   if (!rows.rendered && !rows.guest) return null;
@@ -200,30 +222,7 @@ export function buildInstanceShareSection(ctx: ShareSectionContext, config: OrgC
   section.innerHTML = `<h3 style="margin:0 0 .5rem;font-size:.82rem;font-weight:650;letter-spacing:.02em;text-transform:uppercase;color:hsl(var(--muted-foreground))">${escape(heading)}</h3>`;
 
   // ── Rendered link ───────────────────────────────────────────────────────────
-  if (rows.rendered && drawsOther) {
-    // The server renders with the instance's tokens and has no way to read a design
-    // system held in this browser. A link made now would come out in the instance's
-    // colours while the person is looking at another system's, so it is not offered.
-    const row = document.createElement('div');
-    row.className = 'share-instance-row share-instance-held';
-    row.style.marginBottom = rows.guest ? '.9rem' : '0';
-    const name = document.createElement('div');
-    name.className = 'share-option';
-    const strong = document.createElement('strong');
-    strong.style.fontWeight = '650';
-    strong.textContent = t('Rendered link');
-    name.append(strong);
-    const why = document.createElement('p');
-    why.style.cssText = 'margin:.25rem 0 0;font-size:13px;color:hsl(var(--muted-foreground))';
-    why.textContent = `${renderedLinkHeldText(drawsOther.own)} `;
-    const link = document.createElement('a');
-    link.href = '#/settings?focus=design-systems-section';
-    link.textContent = t('Design systems');
-    link.addEventListener('click', () => ctx.close?.());
-    why.append(link);
-    row.append(name, why);
-    section.appendChild(row);
-  } else if (rows.rendered) {
+  if (rows.rendered) {
     const tip = helpTip(t('A link that opens the rendered image directly.'));
     const row = document.createElement('div');
     row.className = 'share-instance-row';
@@ -251,7 +250,17 @@ export function buildInstanceShareSection(ctx: ShareSectionContext, config: OrgC
     // A link already shown no longer matches a changed choice.
     openBox?.addEventListener('change', () => { result.el.hidden = true; });
     const btn = row.querySelector<HTMLButtonElement>('[data-act="mint-rendered"]')!;
+    // The row reads as usual straight away, so the section mounts when it always did and a
+    // catalog with one design system never changes. The read below can only replace the row.
+    const held = async (): Promise<boolean> => {
+      const hold = await readHold();
+      if (hold) holdRenderedLink(row, hold.own, ctx);
+      return !!hold;
+    };
+    void held();
     btn.addEventListener('click', async () => {
+      // Asked again here, because the design system may have changed since the row was drawn.
+      if (await held()) return;
       err.clear();
       btn.disabled = true;
       const label = btn.textContent;
@@ -307,7 +316,17 @@ export function buildInstanceShareSection(ctx: ShareSectionContext, config: OrgC
     const btn = row.querySelector<HTMLButtonElement>('[data-act="mint-guest"]')!;
     const ttlSel = row.querySelector<HTMLSelectElement>('[data-guest-ttl]')!;
     const pw = row.querySelector<HTMLInputElement>('[data-guest-pw]')!;
+    // The row reads as usual straight away, so the section mounts when it always did and a
+    // catalog with one design system never changes. The read below can only replace the row.
+    const held = async (): Promise<boolean> => {
+      const hold = await readHold();
+      if (hold) holdRenderedLink(row, hold.own, ctx);
+      return !!hold;
+    };
+    void held();
     btn.addEventListener('click', async () => {
+      // Asked again here, because the design system may have changed since the row was drawn.
+      if (await held()) return;
       err.clear();
       btn.disabled = true;
       const label = btn.textContent;

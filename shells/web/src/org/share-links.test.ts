@@ -22,22 +22,48 @@ const { buildInstanceShareSection, renderedLinkHeldText } = await import('./shar
 const ctx = { toolId: 'qr-code', baseParts: ['url=https%3A%2F%2Fx.test', 'format=svg'], copy: async () => {} };
 const config = { instance: { name: 'Proof' }, can: { 'link.create': true, 'export.server': true } } as never;
 
-test('with the catalog system active the row offers a link, exactly as before', () => {
-  for (const hold of [undefined, null]) {
-    const section = buildInstanceShareSection(ctx, config, hold)!;
-    assert.ok(section.querySelector('[data-act="mint-rendered"]'));
-    assert.ok(section.querySelector('[data-rendered-open]'));
-    assert.equal(section.querySelector('.share-instance-held'), null);
-  }
+const settled = () => new Promise(resolve => setTimeout(resolve, 0));
+const noHold = async () => null;
+const hold = async () => ({ own: 'SUSE' });
+
+test('with the catalog system active the row offers a link, exactly as before', async () => {
+  const section = buildInstanceShareSection(ctx, config, noHold)!;
+  await settled();
+  assert.ok(section.querySelector('[data-act="mint-rendered"]'));
+  assert.ok(section.querySelector('[data-rendered-open]'));
+  assert.equal(section.querySelector('.share-instance-held'), null);
 });
 
-test('with another system active the row says what the instance draws in and offers nothing', () => {
-  const section = buildInstanceShareSection(ctx, config, { own: 'SUSE' })!;
+test('the section is built at once, so it mounts when it always did', () => {
+  const section = buildInstanceShareSection(ctx, config, () => new Promise(() => {}))!;
+  assert.ok(section.querySelector('[data-act="mint-rendered"]'), 'an unanswered read leaves the row as it is');
+});
+
+test('with another system active the row says what the instance draws in and offers nothing', async () => {
+  const section = buildInstanceShareSection(ctx, config, hold)!;
+  await settled();
   assert.equal(section.querySelector('[data-act="mint-rendered"]'), null, 'no way to mint');
   assert.equal(section.querySelector('[data-rendered-open]'), null);
   const held = section.querySelector('.share-instance-held')!;
   assert.match(held.textContent ?? '', /This instance draws rendered links in SUSE\. Switch to SUSE to make one\./);
   assert.equal(held.querySelector('a')?.getAttribute('href'), '#/settings?focus=design-systems-section');
+});
+
+test('a switch after the row was drawn is caught at the click, and nothing is minted', async () => {
+  const realFetch = globalThis.fetch;
+  let posted = 0;
+  globalThis.fetch = (async () => { posted += 1; return new Response('{}'); }) as typeof fetch;
+  try {
+    let answer: { own: string } | null = null;
+    const section = buildInstanceShareSection(ctx, config, async () => answer)!;
+    await settled();
+    const button = section.querySelector<HTMLButtonElement>('[data-act="mint-rendered"]')!;
+    answer = { own: 'SUSE' };
+    button.click();
+    await settled();
+    assert.equal(posted, 0, 'no request reached the server');
+    assert.ok(section.querySelector('.share-instance-held'));
+  } finally { globalThis.fetch = realFetch; }
 });
 
 test('the words still read when the name is not known', () => {
@@ -46,5 +72,5 @@ test('the words still read when the name is not known', () => {
 });
 
 test('a caller who may not create links sees no row either way', () => {
-  assert.equal(buildInstanceShareSection(ctx, { can: {} } as never, { own: 'SUSE' }), null);
+  assert.equal(buildInstanceShareSection(ctx, { can: {} } as never, hold), null);
 });
