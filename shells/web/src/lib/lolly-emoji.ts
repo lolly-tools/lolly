@@ -65,7 +65,7 @@ export async function prepareLollyEmoji(input: LollyBuildInput): Promise<LollyBu
   const records = new Map(input.userAssets.map(record => [record.id, record]));
   const loaded = new Map<string, Promise<{ read: ReadBundle; record: BeamAssetRecord } | null>>();
   const groups = new Map<string, Group>();
-  const pending: Array<{ target: Row; keys: string[] }> = [];
+  const pending: Array<{ target: Row; keys: string[]; byReference: Row[] }> = [];
   let visited = 0;
   const load = (key: string) => {
     let result = loaded.get(key);
@@ -75,6 +75,28 @@ export async function prepareLollyEmoji(input: LollyBuildInput): Promise<LollyBu
         if (!record?.blob || !record.meta?.emoji) return null;
         const { readEmojiBundle } = await import('../../../../engine/src/emoji-bundle.ts');
         const read = await readEmojiBundle(new Uint8Array(await record.blob.arrayBuffer()));
+        return { read, record };
+      })();
+      loaded.set(key, result);
+    }
+    return result;
+  };
+  // A pack the catalog serves is read through the same resolver and held to the same
+  // answer as any other catalog file. Null means it stays a reference by id: there is
+  // no resolver, the bytes cannot be read, or the sender's rules hold them back.
+  const readCatalog = input.resolveEmojiPack ?? input.resolveLibrary;
+  const loadCatalog = (key: string) => {
+    let result = loaded.get(key);
+    if (!result) {
+      result = (async () => {
+        const lib = await readCatalog?.(key).catch(() => null);
+        if (!lib || (lib.licensed && !input.includeLicensed && !lib.chosen)) return null;
+        const bytes = lib.bytes instanceof Uint8Array ? lib.bytes : new Uint8Array(await lib.bytes.arrayBuffer());
+        const { readEmojiBundle } = await import('../../../../engine/src/emoji-bundle.ts');
+        const read = await readEmojiBundle(bytes);
+        const record: BeamAssetRecord = { id: key, type: 'data', format: 'json', version: read.info.pin.pin.version,
+          blob: new Blob([bytes as unknown as BlobPart], { type: 'application/json' }),
+          meta: { name: read.info.label, tags: ['emoji-pack'], license: read.info.license, attribution: read.info.attribution } };
         return { read, record };
       })();
       loaded.set(key, result);
@@ -103,37 +125,47 @@ export async function prepareLollyEmoji(input: LollyBuildInput): Promise<LollyBu
       // New snapshots record the render census. Design's text is already in its rows.
       const toolId = typeof value.__toolId === 'string' ? value.__toolId : owner;
       const legacy = toolId !== 'design' && !Array.isArray(value.__emojiUsage);
-      if (!legacy) {
+      const fromCatalog = value.__emojiAssets.some(ref => isRow(ref) && ref.source === 'library');
+      if (!legacy || fromCatalog) {
         const usage = await contentUsage(value);
-        if (!usage.present) result.__emojiAssets = [];
+        if (!usage.present && !legacy) result.__emojiAssets = [];
         else {
           const deps = [];
+          const byReference: Row[] = [];
           for (const ref of value.__emojiAssets) {
             if (!isRow(ref) || typeof ref.id !== 'string') throw new Error('Invalid saved emoji dependency.');
-            const dep = await load(assetDependency(ref as { id: string }).key);
-            if (!dep) throw new Error('Restore the saved emoji pack before exporting this document.');
-            deps.push(dep);
+            const key = assetDependency(ref as { id: string }).key;
+            const dep = ref.source === 'library' ? await loadCatalog(key) : await load(key);
+            if (dep) deps.push(dep);
+            else if (ref.source === 'library' || legacy) byReference.push(ref);
+            else throw new Error('Restore the saved emoji pack before exporting this document.');
           }
           const { parseEmojiParams } = await import('../../../../engine/src/emoji-style.ts');
           const { resolveEmoji } = await import('../../../../engine/src/emoji-resolve.ts');
           const parsed = parseEmojiParams(isRow(value.__emoji) ? value.__emoji : {}, deps.map(dep => dep.read.info), []);
-          if (!parsed.style) throw new Error('Restore the saved emoji style before exporting this document.');
           const keys = deps.map(addGroup);
-          const reads = deps.map(dep => dep.read);
-          for (const text of usage.texts) {
-            const resolved = resolveEmoji({ kind: 'unicode', text }, parsed.style, reads.map(read => read.pack));
-            if (resolved.status === 'resolved') groups.get(pinKey(resolved.value.pack))!.urls.add(resolved.value.glyph.asset.url);
-            else if (resolved.status === 'unresolved' && resolved.issue.code === 'pack-unavailable') {
-              throw new Error('Restore the saved emoji pack before exporting this document.');
+          if (parsed.style) {
+            const reads = deps.map(dep => dep.read);
+            // With no render census the fixed emoji a template draws are unknown, so the
+            // whole set travels, as it does for a pack a person holds.
+            if (legacy) for (const dep of deps) for (const glyph of dep.read.manifest.glyphs) groups.get(pinKey(dep.read.info.pin))!.urls.add(glyph.asset.url);
+            for (const text of usage.texts) {
+              const resolved = resolveEmoji({ kind: 'unicode', text }, parsed.style, reads.map(read => read.pack));
+              if (resolved.status === 'resolved') groups.get(pinKey(resolved.value.pack))!.urls.add(resolved.value.glyph.asset.url);
+              else if (resolved.status === 'unresolved' && resolved.issue.code === 'pack-unavailable' && !byReference.length) {
+                throw new Error('Restore the saved emoji pack before exporting this document.');
+              }
             }
-          }
-          for (const source of usage.rendered) {
-            if (typeof source.packId !== 'string' || typeof source.assetId !== 'string') continue;
-            const group = groups.get(JSON.stringify([source.packId, source.version, source.checksum]));
-            const glyph = group?.read.manifest.glyphs.find(glyph => glyph.asset.id === source.assetId);
-            if (group && glyph) group.urls.add(glyph.asset.url);
-          }
-          pending.push({ target: result, keys });
+            for (const source of usage.rendered) {
+              if (typeof source.packId !== 'string' || typeof source.assetId !== 'string') continue;
+              const group = groups.get(JSON.stringify([source.packId, source.version, source.checksum]));
+              const glyph = group?.read.manifest.glyphs.find(glyph => glyph.asset.id === source.assetId);
+              if (group && glyph) group.urls.add(glyph.asset.url);
+            }
+          // With no bytes to read and no style to read them by, the document simply
+          // names its sets and the receiver's own catalog draws them.
+          } else if (deps.length) throw new Error('Restore the saved emoji style before exporting this document.');
+          pending.push({ target: result, keys, byReference });
         }
       }
     }
@@ -178,6 +210,6 @@ export async function prepareLollyEmoji(input: LollyBuildInput): Promise<LollyBu
         emoji: { ...labels, id: pin.id, version: pin.pin.version, checksum: pin.checksum }, emojiArtworkCount: group.urls.size } });
     replacements.set(key, { source: 'user', id, type: 'data', format: 'json', pin: { version: digest, format: 'json' } });
   }
-  for (const { target, keys } of pending) target.__emojiAssets = [...new Set(keys)].map(key => replacements.get(key)!);
+  for (const { target, keys, byReference } of pending) target.__emojiAssets = [...[...new Set(keys)].map(key => replacements.get(key)!), ...byReference];
   return { ...input, session, ...(project ? { project } : {}), ...(templates ? { templates } : {}), userAssets: [...input.userAssets, ...extra] };
 }

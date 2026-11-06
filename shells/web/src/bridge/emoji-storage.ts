@@ -12,6 +12,10 @@ export type EmojiStorage = Pick<AssetsAPI, 'query' | 'get' | 'bytes'> & {
   _exportUserAssets?(): Promise<EmojiAssetRecord[]>;
   _uploadUserAsset?(record: EmojiAssetRecord): Promise<void>;
   _getUserRecord?(id: string): Promise<EmojiAssetRecord | null>;
+  /** The device's catalog cache: answers from it, and fetches only an on-demand file it lacks. */
+  _getBlob?(id: string, opts?: { format?: string; version?: string; fetchIfMissing?: boolean }): Promise<Blob | null>;
+  /** Keep these catalog ids through the prune of files nothing saved refers to. */
+  _holdCatalogAssets?(ids: readonly string[]): Promise<void>;
 };
 
 export async function userEmojiRefs(assets: EmojiStorage): Promise<AssetRef[]> {

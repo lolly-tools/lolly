@@ -195,3 +195,72 @@ test('text presentation selectors carry no artwork, and ordered fallback retains
   assert.deepEqual(parseEmojiParams(emojiParams(chosen), await api.sets(), []).style, chosen);
   assert.deepEqual(await api.artwork(fallback.read.info.pin, fallback.manifest.glyphs[0]!.asset), new Uint8Array(f.artwork));
 });
+
+// A pack the catalog serves is named in the document, not held by it. The file still has
+// to open offline with its own artwork, so the used glyphs are read from the catalog.
+async function catalogSource(keys = ['1f600', '1f603', '1f604']) {
+  const multi = await multiSource(keys);
+  const file = new TextEncoder().encode(JSON.stringify({ ...JSON.parse(await [...multi.sender.records.values()][0]!.blob!.text()) }));
+  const version = multi.read.info.pin.pin.version;
+  const ref = { source: 'library', id: multi.read.info.pin.id, type: 'data', format: 'json', version, pin: { version, format: 'json' } };
+  const resolved: string[] = [];
+  const resolveLibrary = async (id: string) => { resolved.push(id); return { bytes: file, mime: 'application/json', type: 'data', format: 'json', label: multi.read.info.label }; };
+  return { ...multi, ref, file, resolved, resolveLibrary, session: { ...multi.session, __emojiAssets: [ref] } };
+}
+
+test('a catalog pack travels as the glyphs the document uses and opens offline on a fresh device', async () => {
+  const { session, read, resolveLibrary, resolved } = await catalogSource();
+  const source = { ...session, text: '😀' };
+  const before = structuredClone(source);
+  const saved = await buildLollyFile({ session: source, toolId: 'design', userAssets: [], resolveLibrary });
+  assert.ok(resolved.length, 'the bytes came from the catalog, because the sender holds no copy');
+  const { packs, parsed } = await unpack(saved);
+  assert.deepEqual(packs.map(pack => Object.keys(pack.artwork)), [['1f600.svg']], 'one glyph, never the set');
+  assert.equal(packs[0]!.manifest, read.bundle.manifest, 'with the exact manifest, so the pin still holds');
+  assert.equal(parsed.manifest.assets.filter(a => a.kind === 'asset' && a.source === 'library').length, 0, 'and no whole catalog file rides along');
+  assert.deepEqual(source, before, 'saving leaves the editable session unchanged');
+  const receiver = memory();
+  await ingestLollyFile(new Uint8Array(await saved.blob.arrayBuffer()), receiver as unknown as BeamPackHost);
+  const api = createEmojiAPI(receiver.assets);
+  assert.deepEqual(await api.artwork(read.info.pin, read.manifest.glyphs[0]!.asset), new Uint8Array(f.artwork));
+  assert.equal(await api.artwork(read.info.pin, read.manifest.glyphs[1]!.asset), null);
+});
+
+test('a document with no emoji carries nothing from a catalog pack', async () => {
+  const { session, resolveLibrary, resolved } = await catalogSource();
+  const saved = await buildLollyFile({ session: { ...session, text: 'One change. Every detail.' }, toolId: 'design', userAssets: [], resolveLibrary });
+  assert.equal(saved.manifest.counts.assets, 0);
+  assert.deepEqual(resolved, [], 'the pack is not even read');
+  assert.deepEqual(((await unpack(saved)).parsed.session as { __emojiAssets: unknown[] }).__emojiAssets, []);
+});
+
+test('a catalog pack with no way to read its bytes travels by name, without failing the export', async () => {
+  const { session, ref } = await catalogSource();
+  const saved = await buildLollyFile({ session: { ...session, text: '😀' }, toolId: 'design', userAssets: [] });
+  const { parsed, packs } = await unpack(saved);
+  assert.deepEqual(packs, []);
+  assert.deepEqual((parsed.session as { __emojiAssets: unknown[] }).__emojiAssets, [ref], 'the document still names its set');
+});
+
+test('a caller that sends other catalog files by name can still carry the used glyphs', async () => {
+  const { session, resolveLibrary } = await catalogSource();
+  const saved = await buildLollyFile({ session: { ...session, text: '😃' }, toolId: 'design', userAssets: [], resolveEmojiPack: resolveLibrary });
+  assert.deepEqual((await unpack(saved)).packs.map(pack => Object.keys(pack.artwork)), [['1f603.svg']]);
+});
+
+test('a catalog pack the sender\'s rules hold back stays out of the file', async () => {
+  const { session, resolveLibrary } = await catalogSource();
+  const held = async (id: string) => ({ ...await resolveLibrary(id), licensed: true, holdReason: 'a rule' });
+  const withheld = await buildLollyFile({ session: { ...session, text: '😀' }, toolId: 'design', userAssets: [], resolveLibrary: held });
+  assert.deepEqual((await unpack(withheld)).packs, []);
+  assert.equal(withheld.manifest.assets.some(asset => asset.kind === 'asset'), false);
+  const chosen = await buildLollyFile({ session: { ...session, text: '😀' }, toolId: 'design', userAssets: [], resolveLibrary: held, includeLicensed: true });
+  assert.deepEqual((await unpack(chosen)).packs.map(pack => Object.keys(pack.artwork)), [['1f600.svg']], 'the sender can still choose to carry it');
+});
+
+test('with no render census the whole catalog set travels, as a held pack does', async () => {
+  const { session, resolveLibrary } = await catalogSource();
+  const { __emojiUsage: _dropped, ...unknownCensus } = { ...session, __toolId: 'chart', text: 'No emoji typed here.' };
+  const saved = await buildLollyFile({ session: unknownCensus, toolId: 'chart', userAssets: [], resolveLibrary });
+  assert.equal(Object.keys((await unpack(saved)).packs[0]!.artwork).length, 3, 'a template can draw fixed emoji its inputs do not show');
+});

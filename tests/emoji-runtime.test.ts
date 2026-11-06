@@ -324,6 +324,35 @@ test('plain text never loads the pinned tables', async () => {
   assert.equal(view.canvas.innerHTML, '<p>plain latin words only</p>');
 });
 
+test('text with no emoji loads no pack, whatever language it is in', async () => {
+  const api = await catalogEmoji();
+  const reads: string[] = [];
+  const counting: EmojiAPI = { ...api, manifest: (pin) => { reads.push(pin.id); return api.manifest(pin); } };
+  const { host } = hostDouble(counting);
+  const runtime = await createRuntime(toolDouble(), host);
+  await runtime.setEmojiStyle(await starterStyle());
+
+  const quiet = page('<p>Caf\u00e9 \u2014 \u201cquoted\u201d \u65e5\u672c\u8a9e \u041f\u0440\u0438\u0432\u0435\u0442</p>');
+  const result = await runtime.applyEmojiToDom(quiet.canvas);
+  assert.deepEqual([result.replaced, result.unresolved], [0, 0]);
+  assert.deepEqual(reads, [], 'a curly quote or an accented letter is not worth downloading a set for');
+  assert.equal(runtime.emoji.replaced, 0, 'and the counts the Emoji section reads still settle');
+
+  // Emoji-shaped, and still text: these are what a template's small print is made of.
+  const shaped = page('<p>\u00a9 2026 \u26a0 Scannability \u2192 next \u2713 done \u2122</p>');
+  assert.equal((await runtime.applyEmojiToDom(shaped.canvas)).replaced, 0);
+  assert.deepEqual(reads, [], 'the pass would draw nothing here, so nothing is loaded');
+  assert.equal(shaped.canvas.innerHTML, '<p>\u00a9 2026 \u26a0 Scannability \u2192 next \u2713 done \u2122</p>');
+
+  const drawn = page(`<p>Caf\u00e9 ${GRIN}</p>`);
+  assert.equal((await runtime.applyEmojiToDom(drawn.canvas)).replaced, 1);
+  assert.deepEqual(reads, [PACK_ID], 'a real emoji still does');
+
+  // Asking for emoji presentation makes a bare sign a real emoji, and a pack carries it.
+  const asked = page('<p>\u26a0\ufe0f careful</p>');
+  assert.equal((await runtime.applyEmojiToDom(asked.canvas)).replaced, 1, 'the same sign with a variation selector draws');
+});
+
 // ── Chrome that draws its own emoji ─────────────────────────────────────────
 // The sidebar's emoji table cells and the picker grid run the same pass over
 // their own elements. Two things must not happen when they do: the chrome's

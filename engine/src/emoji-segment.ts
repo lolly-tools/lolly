@@ -63,6 +63,15 @@ export function requiresEmojiBidiLayout(text: string): boolean {
   return false;
 }
 
+/**
+ * Whether the pass would draw anything for this text. A bare copyright sign, warning
+ * sign or arrow stays text, so it asks for no set. Text the segmenter refuses says
+ * yes, and the pass then decides node by node.
+ */
+export function textHoldsEmoji(text: string): boolean {
+  try { return segmentEmojiText(text).some(span => span.kind !== 'text'); } catch { return true; }
+}
+
 export function segmentEmojiText(text: string): EmojiTextSpan[] {
   const result: EmojiTextSpan[] = [];
   for (const cluster of emojiGraphemes(text)) {

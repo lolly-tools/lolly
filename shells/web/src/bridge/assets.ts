@@ -1266,10 +1266,19 @@ export function createAssetsAPI(db: AssetsDb, opts: AssetsApiOptions = {}) {
     },
 
     /**
+     * Internal: catalog files this device should keep although no saved document
+     * names them yet, such as the emoji set an unsaved piece draws with. A short
+     * list, newest first, so trying every set does not keep every set.
+     */
+    async _holdCatalogAssets(ids: readonly string[]): Promise<void> {
+      return (await import('./asset-cache-maintenance.ts')).holdCatalogAssets(db, ids);
+    },
+
+    /**
      * Internal: called by syncAssets after writing new metadata.
      *
-     * Keeps core files, explicit downloads, and exact saved dependencies. An
-     * exact dependency survives source replacement or index withdrawal.
+     * Keeps core files, explicit downloads, held files and exact saved dependencies.
+     * An exact dependency survives source replacement or index withdrawal.
      *
      * This prevents on-demand blobs from accumulating when a user browses the
      * asset picker without saving a session.

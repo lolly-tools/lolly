@@ -6,6 +6,11 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+## 1.314.0
+
+- `runEmojiPass` finds out whether a tree would draw anything before it loads a style's packs. The older test matched every character from U+00A9 up, so a curly quote, an accented letter or any text in most scripts loaded a whole set and the pinned tables. It now asks `emojiTextTrigger` (new leaf module `emoji-trigger.ts`), which needs no tables, and then `textHoldsEmoji` (`emoji-segment.ts`), the pass's own test, so a bare warning sign or copyright sign in a template loads no set either. Every entry and qualification alias in the pinned table still answers yes to the trigger, which `tests/emoji-dom.test.ts` checks.
+- No change to the contract: `host.emoji.dependencies` may now return `source: 'library'` refs, which the contract's `AssetRef[]` already allowed. The web host does so for a pack its catalog serves, so opening a tool no longer stores a copy of the pack as a user asset.
+
 ## 1.313.0
 
 - Colour roles (new module `colour-roles.ts`, plan 352): a design system's colours in its own words, as `brandSystem.roles[]` with `group: "colourway"` and `bindings[]` with `consumer.slot`. `readColourRoles` says what a document holds, and reports a hand-written file with custom tokens and no record as `undeclared`. `colourRoleTable` gives the studio each role's colour, on-colour and contrast per colourway and look. `addColourRole`, `renameColourRole`, `describeColourRole`, `reorderColourRoles`, `removeColourRole`, `setColourRoles`, `setRoleValue`, `setRoleSameAsLight`, `bindRole` and `unbindRole` edit them, and each returns a refusal with a stable code rather than leaving an alias that points at nothing. A binding is written as an alias inside each colourway set, so every reader of a slot keeps working.
