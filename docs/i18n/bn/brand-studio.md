@@ -108,13 +108,13 @@
 
 আপনার রঙ চওড়া পর্দায় একটি **In context** প্রিভিউয়ের পাশে বসে, ছোট পর্দায় তার ওপরে। প্রিভিউ আপনার প্যালেটে একটি পোস্টার, চার্ট বা ইন্টারফেস কার্ড দেখায়। starter রঙ তাদের নিজের গুটানো গ্রুপে থাকে।
 
-![Lolly Demo-তে Colours রুম: গুটানো গ্রুপে প্যালেট, প্রতিটি রঙ নাম ও হেক্সসহ, এবং মাথায় প্যালেট ডাউনলোড](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours)
+![Lolly Demo-তে Colours রুম: গুটানো গ্রুপে প্যালেট, প্রতিটি রঙ নাম ও হেক্সসহ, এবং মাথায় প্যালেট ডাউনলোড](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-roles-fold%5D%3Esummary%3Bwait%3A500&format=svg&walker=1&localize=1&dark=1&filename=brand-colours)
 
 ![একটা রং যোগ করার পর Colours room, তার palette আর একটা লাইভ কম্পোজিশন প্রিভিউসহ](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dpick&width=1440&height=840&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-editor-add%5D%3Bwait%3A900&format=svg&walker=1&dark=1&filename=bs-colour-first)
 
 ### রোল: টুল যা পড়ে
 
-![The Colour roles table on Lolly Demo after choosing the suggested words Main, Accent, Supporting and Tertiary: the colourway chips, then each role with its light and dark colour, Main read as the lead colour and Accent as the partner colour, Supporting and Tertiary read by name only and marked Copied, and the readings no role fills listed under the table](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=2720&height=2000&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-roles-fold%5D%3Esummary%3Bwait%3A500%3Bclick%3A%5Bdata-crt-start-open%5D%3Bclick%3A%5Bdata-crt-seed%3D%221%22%5D%3Bclick%3A%5Bdata-crt-start-use%5D%3Bwait%3A900%3Bclick%3A.be-palette-heading%3Eh2%3Bwait%3A300&cropSelector=%5Bdata-be-roles-fold%5D&format=svg&walker=1&dark=1&filename=bs-colour-roles)
+![The Colour roles table on Lolly Demo after choosing the suggested words Main, Accent, Supporting and Tertiary: the colourway chips, then each role with its light and dark colour, Main read as the lead colour and Accent as the partner colour, Supporting and Tertiary read by name only and marked Copied, and the readings no role fills listed under the table](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=2720&height=2000&dpi=192&waitMs=1800&cropSelector=%5Bdata-be-roles-fold%5D&format=svg&walker=1&dark=1&filename=bs-colour-roles)
 
 **Roles** বলে প্রতিটি টুল ও এক্সপোর্টে কোন রঙ কোন ভূমিকা পালন করে। এগুলো ঐচ্ছিক (তিনটি আলগা রঙ ও কোনো রোল না থাকাও একটি পুরোপুরি ভালো সিস্টেম), যেকোনো রঙ একটি নিতে পারে এবং কনট্রাস্ট রিডআউট সারফেসের বিপরীতে মাপা হয়, APCA আগে। প্রতিটি রোল সারি দেখায় পূর্ণ জোরে একটি নিজস্ব রঙ, একটি starter রঙ বদলি হিসেবে, বা **↳ follows Primary**।
 
@@ -167,7 +167,7 @@
 
 প্যালেট আপনার রঙ গুটানো গ্রুপে তালিকাভুক্ত করে, প্রতিটির নিজস্ব **+ Add** সহ। ইচ্ছেমতো গ্রুপ বানান ও নাম বদলান। একটি রোল কখনও দ্বিতীয় টাইল বানায় না: রোল যে টাইলের দিকে নির্দেশ করে তা পরিবর্তে একটি ছোট চিহ্ন পরে (**P**, **S**, **Su**, **T**)। টাইলের নিচের **Colour chart** একই রঙ OKLCH **Wheel**-এ (একটি বিন্দু টেনে রঙ বদলান, নতুন সোয়াচ যোগ করতে ফাঁকা জায়গায় ক্লিক করুন) এবং **Gamut** চার্টে দেখায়, যা দেখায় প্রদর্শনযোগ্য পরিসর কোথায় শেষ। `#/start?area=color&focus=chart` চার্ট সরাসরি খোলে।
 
-![palette প্যানেল, প্রতিটা group ভাঁজ করার যোগ্য, মাথায় প্যালেট ডাউনলোড](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dgenerate%26seed%3D%2523e0452b&width=1440&height=1000&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-add-ramp%3D%22primary%22%5D%3Bwait%3A1200&cropSelector=.be-split-side&walker=1&format=svg&dark=1&filename=bs-palette-pane)
+![palette প্যানেল, প্রতিটা group ভাঁজ করার যোগ্য, মাথায় প্যালেট ডাউনলোড](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dgenerate%26seed%3D%2523e0452b&width=1440&height=1000&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-roles-fold%5D%3Esummary%3Bwait%3A500%3Bclick%3A%5Bdata-be-add-ramp%3D%22primary%22%5D%3Bwait%3A1200&cropSelector=.be-split-side&walker=1&format=svg&dark=1&filename=bs-palette-pane)
 
 ![OKLCH হুইল - কোণ মানে hue, বাইরে দূরত্ব মানে chroma আর ধূসরগুলো পাশে একটা lightness রেলে চলে](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dgenerate%26seed%3D%2523e0452b&width=1440&height=900&dpi=192&waitMs=2400&css=.start-head%2C.be-pal%2C.be-gradients%7Bdisplay%3Anone%7D&drive=click%3A%5Bdata-be-add-ramp%3D%22primary%22%5D%3Bwait%3A1200%3Bclick%3A%5Bdata-be-chart%5D%20summary%3Bwait%3A900&cropSelector=.be-pal-wheel&walker=1&format=svg&dark=1&filename=bs-colour-wheel)
 

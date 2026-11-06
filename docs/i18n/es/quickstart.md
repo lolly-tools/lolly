@@ -22,7 +22,7 @@ Elige la ruta que corresponda a lo que tienes:
 
 La primera vez que abres la galería, una breve bienvenida ofrece las mismas opciones: **Make it yours** abre Design System Setup, **Bring your design** abre un selector de archivos para un diseño y **Explore the community tools** cierra la bienvenida.
 
-![La sala Colours de Design System Setup en una instalación nueva: una muestra en vivo, un campo y toda la primera decisión](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours)
+![La sala Colours de Design System Setup en una instalación nueva: una muestra en vivo, un campo y toda la primera decisión](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-roles-fold%5D%3Esummary%3Bwait%3A500&format=svg&walker=1&localize=1&dark=1&filename=brand-colours)
 
 A partir de ahí, ocho salas lo llevan tan lejos como quieras, en cualquier orden: **Board**, **Colours**, **Type**, **Logos**, **Tokens**, **Files**, **Rules** y **Skills**. Todas las vistas previas de la aplicación se actualizan mientras escribes. [Lolly Design System Setup](/info/brand-studio.html) cubre cada sala.
 

@@ -108,13 +108,13 @@
 
 آپ کے رنگ چوڑی اسکرین پر **In context** پری ویو کے ساتھ بیٹھتے ہیں، اور چھوٹی پر اس کے اوپر۔ پری ویو آپ کی پیلیٹ میں پوسٹر، چارٹ یا انٹرفیس کارڈ دکھاتا ہے۔ Starter رنگ اپنے تہہ شدہ گروپ میں رہتے ہیں۔
 
-![Lolly Demo پر Colours روم: تہہ شدہ گروپس میں پیلیٹ، ہر رنگ اپنے نام اور hex کے ساتھ، اور سر میں پیلیٹ ڈاؤن لوڈ](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours)
+![Lolly Demo پر Colours روم: تہہ شدہ گروپس میں پیلیٹ، ہر رنگ اپنے نام اور hex کے ساتھ، اور سر میں پیلیٹ ڈاؤن لوڈ](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-roles-fold%5D%3Esummary%3Bwait%3A500&format=svg&walker=1&localize=1&dark=1&filename=brand-colours)
 
 ![ایک رنگ شامل کرنے کے بعد Colours کمرہ، اس کے پیلیٹ اور ایک لائیو کمپوزیشن پیش نظارے کے ساتھ](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dpick&width=1440&height=840&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-editor-add%5D%3Bwait%3A900&format=svg&walker=1&dark=1&filename=bs-colour-first)
 
 ### رول: ٹولز کیا پڑھتے ہیں
 
-![The Colour roles table on Lolly Demo after choosing the suggested words Main, Accent, Supporting and Tertiary: the colourway chips, then each role with its light and dark colour, Main read as the lead colour and Accent as the partner colour, Supporting and Tertiary read by name only and marked Copied, and the readings no role fills listed under the table](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=2720&height=2000&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-roles-fold%5D%3Esummary%3Bwait%3A500%3Bclick%3A%5Bdata-crt-start-open%5D%3Bclick%3A%5Bdata-crt-seed%3D%221%22%5D%3Bclick%3A%5Bdata-crt-start-use%5D%3Bwait%3A900%3Bclick%3A.be-palette-heading%3Eh2%3Bwait%3A300&cropSelector=%5Bdata-be-roles-fold%5D&format=svg&walker=1&dark=1&filename=bs-colour-roles)
+![The Colour roles table on Lolly Demo after choosing the suggested words Main, Accent, Supporting and Tertiary: the colourway chips, then each role with its light and dark colour, Main read as the lead colour and Accent as the partner colour, Supporting and Tertiary read by name only and marked Copied, and the readings no role fills listed under the table](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=2720&height=2000&dpi=192&waitMs=1800&cropSelector=%5Bdata-be-roles-fold%5D&format=svg&walker=1&dark=1&filename=bs-colour-roles)
 
 **Roles** بتاتے ہیں کہ ہر ٹول اور ایکسپورٹ میں کون سا رنگ کون سا کردار ادا کرتا ہے۔ وہ اختیاری ہیں (تین ڈھیلے رنگ اور کوئی رول نہیں بالکل اچھا سسٹم ہے)، کوئی بھی رنگ ایک لے سکتا ہے اور کنٹراسٹ ریڈ آؤٹ سطح کے مقابل ناپا جاتا ہے، پہلے APCA۔ ہر رول کی قطار پوری قوت پر اپنا رنگ، کھڑا ہوا starter رنگ، یا **↳ follows Primary** دکھاتی ہے۔
 
@@ -167,7 +167,7 @@
 
 پیلیٹ آپ کے رنگ تہہ شدہ گروپس میں درج کرتی ہے، ہر ایک اپنے **+ Add** کے ساتھ۔ گروپس اپنی مرضی سے بنائیں اور ان کا نام بدلیں۔ رول کبھی دوسری ٹائل نہیں بناتا: جس ٹائل کی طرف رول اشارہ کرے وہ اس کی جگہ چھوٹا نشان پہنتی ہے (**P**، **S**، **Su**، **T**)۔ ٹائلوں کے نیچے **Colour chart** وہی رنگ OKLCH **Wheel** پر دکھاتا ہے (رنگ بدلنے کے لیے نقطہ گھسیٹیں، swatch شامل کرنے کے لیے خالی جگہ پر کلک کریں) اور **Gamut** چارٹ، جو دکھاتا ہے کہ قابل نمائش حد کہاں ختم ہوتی ہے۔ `#/start?area=color&focus=chart` چارٹ سیدھا کھولتا ہے۔
 
-![پیلیٹ پین، ہر گروپ فولڈ ایبل، پیلیٹ ڈاؤن لوڈ اس کے سر میں](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dgenerate%26seed%3D%2523e0452b&width=1440&height=1000&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-add-ramp%3D%22primary%22%5D%3Bwait%3A1200&cropSelector=.be-split-side&walker=1&format=svg&dark=1&filename=bs-palette-pane)
+![پیلیٹ پین، ہر گروپ فولڈ ایبل، پیلیٹ ڈاؤن لوڈ اس کے سر میں](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dgenerate%26seed%3D%2523e0452b&width=1440&height=1000&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-roles-fold%5D%3Esummary%3Bwait%3A500%3Bclick%3A%5Bdata-be-add-ramp%3D%22primary%22%5D%3Bwait%3A1200&cropSelector=.be-split-side&walker=1&format=svg&dark=1&filename=bs-palette-pane)
 
 ![OKLCH وہیل - زاویہ ہیو ہے، باہر کا فاصلہ کروما ہے اور گرے رنگ سائیڈ پر ایک لائٹنس ریل کے ساتھ چلتے ہیں](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dgenerate%26seed%3D%2523e0452b&width=1440&height=900&dpi=192&waitMs=2400&css=.start-head%2C.be-pal%2C.be-gradients%7Bdisplay%3Anone%7D&drive=click%3A%5Bdata-be-add-ramp%3D%22primary%22%5D%3Bwait%3A1200%3Bclick%3A%5Bdata-be-chart%5D%20summary%3Bwait%3A900&cropSelector=.be-pal-wheel&walker=1&format=svg&dark=1&filename=bs-colour-wheel)
 

@@ -22,7 +22,7 @@ Piliin ang rutang tugma sa meron ka:
 
 Sa unang beses mong buksan ang gallery, nag-aalok ang maikling welcome ng parehong mga pagpipilian: binubuksan ng **Make it yours** ang Design System Setup, binubuksan ng **Bring your design** ang file picker para sa design at isinasara ng **Explore the community tools** ang welcome.
 
-![Ang Colours room ng Design System Setup sa bagong install: isang live na chip, isang field at ang kabuuan ng unang desisyon](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours)
+![Ang Colours room ng Design System Setup sa bagong install: isang live na chip, isang field at ang kabuuan ng unang desisyon](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-roles-fold%5D%3Esummary%3Bwait%3A500&format=svg&walker=1&localize=1&dark=1&filename=brand-colours)
 
 Mula roon, walong room ang magdadala nito hanggang saan mo gusto, sa anumang pagkakasunod-sunod: **Board**, **Colours**, **Type**, **Logos**, **Tokens**, **Files**, **Rules** at **Skills**. Nag-a-update ang bawat preview sa app habang nagta-type ka. Sinasaklaw ng [Lolly Design System Setup](/info/brand-studio.html) ang bawat room.
 

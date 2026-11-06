@@ -22,7 +22,7 @@ Vyber cestu, která odpovídá tomu, co máš:
 
 Při prvním otevření galerie krátké uvítání nabídne stejné volby: **Make it yours** otevře Design System Setup, **Bring your design** otevře výběr souboru pro návrh a **Explore the community tools** uvítání zavře.
 
-![Místnost Colours v Design System Setup na čerstvé instalaci: jeden živý čip, jedno pole a celé první rozhodnutí](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours)
+![Místnost Colours v Design System Setup na čerstvé instalaci: jeden živý čip, jedno pole a celé první rozhodnutí](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-roles-fold%5D%3Esummary%3Bwait%3A500&format=svg&walker=1&localize=1&dark=1&filename=brand-colours)
 
 Odtud tě osm místností dovede tak daleko, jak chceš, v libovolném pořadí: **Board**, **Colours**, **Type**, **Logos**, **Tokens**, **Files**, **Rules** a **Skills**. Každý náhled v aplikaci se aktualizuje při psaní. Každou místnost popisuje [Lolly Design System Setup](/info/brand-studio.html).
 
