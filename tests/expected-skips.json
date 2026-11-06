@@ -1481,7 +1481,7 @@
     },
     {
       "file": "tests/docs-logos.test.ts",
-      "fullName": "a long page gets the jump nav and a short one does not",
+      "fullName": "a page with sections gets the contents rail, and every docs page gets the page bar",
       "reason": "no built /info on disk - run `pnpm run build:info`",
       "capability": "docs-build",
       "owner": "tests"
@@ -1516,21 +1516,21 @@
     },
     {
       "file": "tests/docs-logos.test.ts",
-      "fullName": "the jump nav is exempted from the rules that own every other <nav>",
+      "fullName": "the contents rail takes over from the page bar at 1100px",
       "reason": "no built /info on disk - run `pnpm run build:info`",
       "capability": "docs-build",
       "owner": "tests"
     },
     {
       "file": "tests/docs-logos.test.ts",
-      "fullName": "the jump nav script closes on Escape and returns focus",
+      "fullName": "the contents script closes on Escape, returns focus and leaves the move to the browser",
       "reason": "no built /info on disk - run `pnpm run build:info`",
       "capability": "docs-build",
       "owner": "tests"
     },
     {
       "file": "tests/docs-logos.test.ts",
-      "fullName": "the jump nav ships on locale pages too",
+      "fullName": "the contents ship on locale pages too",
       "reason": "no built /info on disk - run `pnpm run build:info`",
       "capability": "docs-build",
       "owner": "tests"
@@ -1544,7 +1544,7 @@
     },
     {
       "file": "tests/docs-masthead.test.ts",
-      "fullName": "a banked masthead would replace the canvas, not join it",
+      "fullName": "a banked masthead replaces the plain band, not joins it",
       "reason": "no built /info on disk - run `pnpm run build:info`",
       "capability": "docs-build",
       "owner": "tests"
@@ -1579,7 +1579,7 @@
     },
     {
       "file": "tests/docs-masthead.test.ts",
-      "fullName": "the canvas never takes a pointer event, in either instance",
+      "fullName": "the landing canvas never takes a pointer event, and the band scrims neither",
       "reason": "no built /info on disk - run `pnpm run build:info`",
       "capability": "docs-build",
       "owner": "tests"
@@ -1600,7 +1600,7 @@
     },
     {
       "file": "tests/docs-masthead.test.ts",
-      "fullName": "the landing and the masthead draw from the same generated list",
+      "fullName": "every page ships the one generated list the landing draws from",
       "reason": "no built /info on disk - run `pnpm run build:info`",
       "capability": "docs-build",
       "owner": "tests"
@@ -1614,21 +1614,14 @@
     },
     {
       "file": "tests/docs-masthead.test.ts",
-      "fullName": "the masthead burst yields to links, buttons and text selection",
+      "fullName": "the landing hero keeps its plain, unguarded chip field",
       "reason": "no built /info on disk - run `pnpm run build:info`",
       "capability": "docs-build",
       "owner": "tests"
     },
     {
       "file": "tests/docs-masthead.test.ts",
-      "fullName": "the masthead script honours reduced motion, off-screen and hidden tabs",
-      "reason": "no built /info on disk - run `pnpm run build:info`",
-      "capability": "docs-build",
-      "owner": "tests"
-    },
-    {
-      "file": "tests/docs-masthead.test.ts",
-      "fullName": "with nothing mapped, every page still gets the default field - not a blank band",
+      "fullName": "with nothing mapped, every page gets the plain band - words, no field",
       "reason": "no built /info on disk - run `pnpm run build:info`",
       "capability": "docs-build",
       "owner": "tests"
