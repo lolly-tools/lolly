@@ -187,7 +187,7 @@ test('Lolly Demo leads with Lead and Partner, and leaves Paper and Ink to the gr
   }
 });
 
-test('SUSE leads with Primary accent, Supporting accent and Warm accent', { skip: !existsSync(SUSE_TOKENS) && 'brands/suse is not on disk (a public clone)' }, async () => {
+test('SUSE leads with Primary accent, Supporting accent and Warm accent', { skip: !existsSync(SUSE_TOKENS) && 'brands/suse is not mounted on this machine' }, async () => {
   const doc = JSON.parse(readFileSync(SUSE_TOKENS, 'utf8')) as Rec;
   for (const selection of [{ '': 'light' }, { '': 'dark', colourway: 'waterhole' }]) {
     const host = await cli(doc, selection);
