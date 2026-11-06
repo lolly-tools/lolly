@@ -12,7 +12,8 @@
  */
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { addColourway, createTokenSet, deriveBrandTokens, deriveColourwaySlots, colourwayAxis, readTokenAxes } from '@lolly/engine';
+import { readFileSync } from 'node:fs';
+import { addColourway, bindRole, colorToHex, createTokenSet, danglingColourAliases, deriveBrandTokens, deriveColourwaySlots, deriveOnColour, colourwayAxis, readColourRoles, readTokenAxes } from '@lolly/engine';
 import type { ColourwayValues } from '@lolly/engine';
 import {
   addLead, canonicalLead, carryLeads, colourwaySetsOf, duplicateLead, editContextOf, hasLeads, isColourwayKey,
@@ -369,3 +370,124 @@ test('carryLeads refuses a design system whose colourways Lolly cannot edit', ()
   assert.equal(carried.ok, false);
 });
 
+// ── Colour roles through the rebuild (plans/352) ────────────────────────────
+
+const WEFTHOUSE = (): Rec => JSON.parse(readFileSync(new URL('../../../../../tests/fixtures/colour-roles/wefthouse.tokens.json', import.meta.url), 'utf8')) as Rec;
+const rebuilt = (primary: string): Rec => deriveBrandTokens({ primary, name: 'Rebuilt' }) as Rec;
+const brandSystem = (doc: Rec): Rec => ((doc.$extensions as Rec)['com.suse.lolly'] as Rec).brandSystem as Rec;
+const leaf = (doc: Rec, set: string, mode: string, name: string): Rec => (((doc[set] as Rec).color as Rec).colourway as Record<string, Record<string, Rec>>)[mode]![name]!;
+
+test('carryLeads: every colour role comes across, a bound slot stays bound, and nothing dangles', () => {
+  const from = WEFTHOUSE();
+  const carried = carryLeads(from, rebuilt('#7a1fa2'));
+  assert.ok(carried.ok, carried.ok ? '' : carried.reasons.join(' '));
+  const { doc } = carried;
+  assert.deepEqual(danglingColourAliases(doc), []);
+  // The record whole: the words, the bindings, the other groups and the rules.
+  assert.deepEqual(brandSystem(doc), brandSystem(from));
+  assert.deepEqual(readColourRoles(doc).roles.map(r => [r.id, r.label, r.slots]), readColourRoles(from).roles.map(r => [r.id, r.label, r.slots]));
+  assert.deepEqual(readColourRoles(doc).issues, []);
+  // The links, so the names still paint.
+  for (const mode of ['light', 'dark']) {
+    const semantic = ((doc[mode] as Rec).color as Rec).semantic as Record<string, Rec>;
+    for (const role of ['main', 'accent', 'supporting', 'tertiary']) {
+      assert.equal(semantic[role]!.$value, `{color.colourway.${mode}.${role}}`);
+      assert.equal(semantic[`on-${role}`]!.$value, `{color.colourway.${mode}.on-${role}}`);
+    }
+  }
+  const fresh = rebuilt('#7a1fa2');
+  const freshHex = (mode: string, slot: string): unknown => colorToHex(createTokenSet(fresh, { theme: mode }).resolve(`color.semantic.${slot}`));
+  for (const mode of ['light', 'dark']) {
+    // The canonical lead follows the new colour: the slot still links, and the role took the fresh value.
+    assert.equal(leaf(doc, 'colourway/indigo', mode, 'primary').$value, `{color.colourway.${mode}.main}`);
+    assert.equal(leaf(doc, 'colourway/indigo', mode, 'secondary').$value, `{color.colourway.${mode}.accent}`);
+    assert.equal(leaf(doc, 'colourway/indigo', mode, 'on-primary').$value, `{color.colourway.${mode}.on-main}`);
+    assert.equal(colorToHex(resolveIn(doc, 'indigo', mode, 'color.semantic.main')), freshHex(mode, 'primary'));
+    assert.equal(colorToHex(resolveIn(doc, 'indigo', mode, 'color.semantic.primary')), freshHex(mode, 'primary'));
+    assert.equal(colorToHex(resolveIn(doc, 'indigo', mode, 'color.semantic.accent')), freshHex(mode, 'secondary'));
+    // A role that fills no slot keeps the colour it had.
+    assert.equal(resolveIn(doc, 'indigo', mode, 'color.semantic.tertiary'), resolveIn(from, 'indigo', mode, 'color.semantic.tertiary'));
+    // Every other colourway looks exactly as it did.
+    for (const lead of ['madder', 'weld']) {
+      for (const name of ['primary', 'on-primary', 'secondary', 'main', 'on-main', 'accent', 'on-accent', 'supporting', 'on-supporting', 'tertiary', 'on-tertiary']) {
+        assert.equal(resolveIn(doc, lead, mode, `color.semantic.${name}`), resolveIn(from, lead, mode, `color.semantic.${name}`), `${lead} ${mode} ${name}`);
+      }
+    }
+  }
+  assert.deepEqual(doc['colourway/madder'], from['colourway/madder'], 'kept whole');
+  // "Same as light" survives as a link.
+  assert.equal(leaf(doc, 'colourway/indigo', 'dark', 'supporting').$value, '{color.colourway.light.supporting}');
+  // A derived on-colour follows the rebuilt role.
+  const onMain = leaf(doc, 'colourway/indigo', 'light', 'on-main');
+  assert.equal((((onMain.$extensions as Rec)['com.suse.lolly'] as Rec).colourRole as Rec).derived, true);
+  assert.equal(onMain.$value, deriveOnColour(colorToHex(resolveIn(doc, 'indigo', 'light', 'color.semantic.main')) as string));
+});
+
+test('carryLeads: a stated on-colour stays stated, and a role that followed a rebuilt shade keeps its colour', () => {
+  const from = WEFTHOUSE();
+  // Madder is canonical here, so its stated on-accent is on the lead being rebuilt.
+  const canonical = setCanonicalLead(from, 'madder');
+  assert.ok(canonical.ok);
+  const source = canonical.doc;
+  leaf(source, 'colourway/madder', 'light', 'tertiary').$value = '{color.brand.flax}';
+  leaf(source, 'colourway/indigo', 'light', 'tertiary').$value = '{color.brand.loom}';
+  const carried = carryLeads(source, rebuilt('#7a1fa2'));
+  assert.ok(carried.ok, carried.ok ? '' : carried.reasons.join(' '));
+  assert.deepEqual(danglingColourAliases(carried.doc), []);
+  assert.equal(leaf(carried.doc, 'colourway/madder', 'light', 'on-accent').$value, '#fff8e7');
+  // The brand colours do not survive a derive, so the links are pinned to what they drew.
+  assert.equal(leaf(carried.doc, 'colourway/madder', 'light', 'tertiary').$value, '#faf7f2');
+  assert.equal(leaf(carried.doc, 'colourway/indigo', 'light', 'tertiary').$value, '#1c1a17');
+  assert.equal(carried.pinned, 2);
+});
+
+test('carryLeads: a slot beyond the four stays re-pointed, and a hand-written system keeps its tokens with no record', () => {
+  const bound = bindRole(WEFTHOUSE(), 'text', 'supporting');
+  assert.ok(bound.ok);
+  const carried = carryLeads(bound.doc, rebuilt('#7a1fa2'));
+  assert.ok(carried.ok, carried.ok ? '' : carried.reasons.join(' '));
+  assert.deepEqual(danglingColourAliases(carried.doc), []);
+  assert.equal(readColourRoles(carried.doc).slots.find(s => s.slot === 'text')!.roleId, 'supporting');
+  assert.equal(readColourRoles(carried.doc).slots.find(s => s.slot === 'text')!.written, true);
+  assert.equal(resolveIn(carried.doc, 'madder', 'light', 'color.semantic.text'), '#7d6b5d', 'a kept lead still draws its own');
+
+  const hand = addLead(single(), { colour: '#e05a2b', name: 'Persimmon', canonical: { name: 'Pine' } });
+  assert.ok(hand.ok);
+  for (const mode of ['light', 'dark']) {
+    const semantic = ((hand.doc[mode] as Rec).color as Rec).semantic as Rec;
+    semantic.accent = { $value: `{color.colourway.${mode}.accent}` };
+    semantic.success = { $value: '#00aa55' };
+    for (const [set, colour] of [['colourway/pine', '#112233'], ['colourway/persimmon', '#332211']] as const) {
+      (((hand.doc[set] as Rec).color as Rec).colourway as Record<string, Rec>)[mode]!.accent = { $value: colour };
+    }
+  }
+  const handCarried = carryLeads(hand.doc, rebuilt('#7a1fa2'));
+  assert.ok(handCarried.ok, handCarried.ok ? '' : handCarried.reasons.join(' '));
+  assert.deepEqual(danglingColourAliases(handCarried.doc), []);
+  assert.equal(readColourRoles(handCarried.doc).state, 'undeclared');
+  assert.equal(((handCarried.doc.$extensions as Rec | undefined)), undefined, 'nothing declares them, so no record appears');
+  assert.equal(resolveIn(handCarried.doc, 'pine', 'dark', 'color.semantic.accent'), '#112233');
+  assert.equal(resolveIn(handCarried.doc, 'persimmon', 'dark', 'color.semantic.accent'), '#332211');
+  assert.equal(resolveIn(handCarried.doc, 'pine', 'dark', 'color.semantic.success'), '#00aa55');
+});
+
+test('carryLeads: a single-lead system with a custom token of its own keeps it through the rebuild', () => {
+  const from = single();
+  for (const mode of ['light', 'dark']) (((from[mode] as Rec).color as Rec).semantic as Rec).success = { $value: '{color.ramp.primary.5}' };
+  const fresh = rebuilt('#7a1fa2');
+  const carried = carryLeads(from, fresh);
+  assert.ok(carried.ok, carried.ok ? '' : carried.reasons.join(' '));
+  assert.notEqual(carried.doc, fresh);
+  assert.deepEqual(danglingColourAliases(carried.doc), []);
+  for (const mode of ['light', 'dark']) {
+    assert.equal(createTokenSet(carried.doc, { theme: mode }).resolve('color.semantic.success'), createTokenSet(from, { theme: mode }).resolve('color.semantic.success'), 'pinned: the rebuilt ramp would have moved it');
+  }
+  assert.equal(carried.ok && carried.pinned, 2);
+});
+
+test('leadSlotPath follows a bound slot to the role that holds its colour', () => {
+  const doc = WEFTHOUSE();
+  assert.deepEqual(leadSlotPath(doc, '{color.colourway.light.primary}', 'primary', 'madder'), ['colourway/madder', 'color', 'colourway', 'light', 'main']);
+  assert.deepEqual(leadSlotPath(doc, '{color.colourway.dark.on-primary}', 'on-primary'), ['colourway/indigo', 'color', 'colourway', 'dark', 'on-main']);
+  assert.deepEqual(leadSlotPath(doc, '{color.colourway.dark.supporting}', 'supporting', 'indigo'), ['colourway/indigo', 'color', 'colourway', 'dark', 'supporting'], 'a look that follows another look is not a binding');
+});

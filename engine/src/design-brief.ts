@@ -20,6 +20,8 @@
  *   - `master`        archetypes with their slots in px at the master's size;
  *   - `houseRules`    the brand's machine-checkable rules (`BrandRuleV1`), the same list
  *                     `checkDesignHouseRules` evaluates;
+ *   - `colourRoles`   the system's colours in its own words, only when it declares some:
+ *                     labels, descriptions and the slots each fills, quoted as data;
  *   - `skills`        the brand skills (plan 323): the index of the brand's own guidance per
  *                     discipline, without bodies, plus the name of the baseline Lolly
  *                     generates from this brief.
@@ -52,6 +54,7 @@ import { DESIGN_HOUSE_RULE_KINDS, designHouseRules } from './design-house-rules.
 import { parseColorToSrgb8 } from './css-color.ts';
 import type { BrandCheckCatalogOpts } from './brand-check.ts';
 import { brandSkillsSection } from './brand-skill.ts';
+import { colourRolesBrief } from './colour-roles.ts';
 
 /** One catalog asset, with only the fields the brief reads. */
 export interface DesignBriefAssetV1 {
@@ -138,10 +141,11 @@ function themeSection(doc: unknown) {
  * colourway lists the slots it fills in every look, so an agent can say which
  * colourway a piece should use and pass it as `_themes={"<group>":"<id>"}`.
  */
-function colourwaySection(doc: unknown) {
+function colourwaySection(doc: unknown, roleIds: readonly string[] = []) {
   const axes = readTokenAxes(doc).axes;
   const axis = axisOfKind(axes, 'colourway');
   if (!axis) return null;
+  const listed = new Set(['primary', 'on-primary', 'secondary', 'surface', ...roleIds]);
   const mode = modeAxis(axes);
   const looks = mode ? mode.options.map((o) => ({ id: o.id, selection: { [mode.group]: o.id } })) : [{ id: 'default', selection: {} }];
   return {
@@ -155,7 +159,7 @@ function colourwaySection(doc: unknown) {
         const out: Record<string, string> = {};
         for (const c of createTokenSet(doc, { selection: { ...look.selection, [axis.group]: option.id } }).colors()) {
           const slot = c.path.startsWith('color.semantic.') ? c.path.slice('color.semantic.'.length) : '';
-          if (['primary', 'on-primary', 'secondary', 'surface'].includes(slot) && c.value) out[slot] = c.value;
+          if (listed.has(slot) && c.value) out[slot] = c.value;
         }
         return [look.id, out];
       })),
@@ -407,12 +411,14 @@ export function designBrief(doc: unknown, catalog?: DesignBriefCatalogV1 | null,
   // The text styles a Design `$style` resolves to, at the master size, so an agent sizes
   // authored text from the same numbers the expansion writes.
   const styles = textStylesFromBrief({ type, themes, houseRules, theme: opts.theme ?? null }, { width: master.size.width, height: master.size.height });
-  const colourways = colourwaySection(doc);
+  const colourRoles = colourRolesBrief(doc);
+  const colourways = colourwaySection(doc, colourRoles?.roles.map((role) => role.id));
   const skills = brandSkillsSection(assets.filter((a) => a.type === 'skill' && a.skill).map((a) => a.skill!), context.name);
   return {
     ...context,
     themes,
     ...(colourways ? { colourways } : {}),
+    ...(colourRoles ? { colourRoles } : {}),
     combinations,
     type: { ...type, styles },
     logos,
@@ -435,6 +441,7 @@ export function designBrief(doc: unknown, catalog?: DesignBriefCatalogV1 | null,
       houseRules: (houseRules.length ? 'declared' : 'unavailable') as Coverage,
       houseRuleKinds: [...DESIGN_HOUSE_RULE_KINDS],
       skills: (skills.index.length ? 'declared' : 'generated') as Coverage,
+      ...(colourRoles ? { colourRoles: 'declared' as Coverage } : {}),
     },
   };
 }

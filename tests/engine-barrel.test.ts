@@ -10,6 +10,16 @@ import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
 
 const EXPECTED: readonly string[] = [
+  // Additive colour roles (plans/352): a design system's colours in its own words.
+  'AddColourRoleOptions', 'BINDABLE_COLOUR_SLOTS', 'BriefColourRoles', 'COLOUR_ROLE_BY_NAME', 'COLOUR_ROLE_GROUP', 'COLOUR_ROLE_ID',
+  'COLOUR_SLOTS', 'COLOUR_SLOT_READS', 'ColourPairContrast', 'ColourRoleCarry', 'ColourRoleCell', 'ColourRoleEdit', 'ColourRoleEntry',
+  'ColourRoleMark', 'ColourRoleRefusal', 'ColourRoleSpec', 'ColourRoleTable', 'ColourRoleTableRow', 'ColourRoleUse', 'ColourRolesReading',
+  'DEFAULT_COLOUR_VOCABULARY', 'DanglingAlias', 'MAX_COLOUR_ROLES', 'MAX_ROLE_DESCRIPTION', 'MAX_ROLE_LABEL', 'OnColourOptions', 'RoleOnColour',
+  'SetRoleValueOptions', 'WEAK_LC', 'addColourRole', 'bindRole', 'carryColourRoles', 'colourPairContrast', 'colourRoleIdFromLabel',
+  'colourRoleIdRefusal', 'colourRoleMarkOf', 'colourRoleTable', 'colourRolesBrief', 'colourRolesEditable', 'colourwayLeaves', 'colourwayLinkOf',
+  'danglingColourAliases', 'deriveOnColour', 'describeColourRole', 'isDerivedOnColourValue', 'isUsableColourRoleId', 'newlyDangling',
+  'onColourFloor', 'readColourRoles', 'refreshDerivedOnColours', 'removeColourRole', 'renameColourRole', 'reorderColourRoles',
+  'setColourRoles', 'setRoleSameAsLight', 'setRoleValue', 'unbindRole',
   // Additive 1.304 approval record in Content Credentials.
   'APPROVAL_RECORD_FORMATS', 'ApprovalNotRecordedReason', 'ApprovalRecordOutcome', 'C2paApprovalRecord',
   'RecordApprovalOptions', 'artworkUnchanged', 'recordApprovalInCredential',

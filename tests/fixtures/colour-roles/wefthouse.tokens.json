@@ -1,0 +1,705 @@
+{
+  "$description": "Wefthouse, an invented textile brand: four colour roles in its own words, three colourways, light and dark. A test fixture, not a real company.",
+  "$metadata": {
+    "tokenSetOrder": [
+      "base",
+      "light",
+      "dark",
+      "colourway/indigo",
+      "colourway/madder",
+      "colourway/weld"
+    ]
+  },
+  "$themes": [
+    {
+      "id": "light",
+      "name": "light",
+      "selectedTokenSets": {
+        "base": "enabled",
+        "light": "enabled"
+      }
+    },
+    {
+      "id": "dark",
+      "name": "dark",
+      "selectedTokenSets": {
+        "base": "enabled",
+        "dark": "enabled"
+      }
+    },
+    {
+      "id": "indigo",
+      "name": "Indigo",
+      "group": "colourway",
+      "selectedTokenSets": {
+        "colourway/indigo": "enabled"
+      },
+      "$extensions": {
+        "com.suse.lolly": {
+          "axis": {
+            "kind": "colourway",
+            "canonical": true
+          }
+        }
+      }
+    },
+    {
+      "id": "madder",
+      "name": "Madder",
+      "group": "colourway",
+      "selectedTokenSets": {
+        "colourway/madder": "enabled"
+      },
+      "$extensions": {
+        "com.suse.lolly": {
+          "axis": {
+            "kind": "colourway"
+          }
+        }
+      }
+    },
+    {
+      "id": "weld",
+      "name": "Weld",
+      "group": "colourway",
+      "selectedTokenSets": {
+        "colourway/weld": "enabled"
+      },
+      "$extensions": {
+        "com.suse.lolly": {
+          "axis": {
+            "kind": "colourway"
+          }
+        }
+      }
+    }
+  ],
+  "base": {
+    "color": {
+      "$type": "color",
+      "brand": {
+        "flax": {
+          "$value": "#faf7f2",
+          "$description": "Flax"
+        },
+        "loom": {
+          "$value": "#1c1a17",
+          "$description": "Loom"
+        },
+        "slate": {
+          "$value": "#14161f",
+          "$description": "Slate"
+        }
+      }
+    }
+  },
+  "light": {
+    "color": {
+      "$type": "color",
+      "semantic": {
+        "primary": {
+          "$value": "{color.colourway.light.primary}"
+        },
+        "on-primary": {
+          "$value": "{color.colourway.light.on-primary}"
+        },
+        "secondary": {
+          "$value": "{color.colourway.light.secondary}"
+        },
+        "surface": {
+          "$value": "{color.brand.flax}"
+        },
+        "text": {
+          "$value": "{color.brand.loom}"
+        },
+        "muted": {
+          "$value": "#6b655c"
+        },
+        "edge": {
+          "$value": "#d9d3c7"
+        },
+        "main": {
+          "$value": "{color.colourway.light.main}"
+        },
+        "on-main": {
+          "$value": "{color.colourway.light.on-main}"
+        },
+        "accent": {
+          "$value": "{color.colourway.light.accent}"
+        },
+        "on-accent": {
+          "$value": "{color.colourway.light.on-accent}"
+        },
+        "supporting": {
+          "$value": "{color.colourway.light.supporting}"
+        },
+        "on-supporting": {
+          "$value": "{color.colourway.light.on-supporting}"
+        },
+        "tertiary": {
+          "$value": "{color.colourway.light.tertiary}"
+        },
+        "on-tertiary": {
+          "$value": "{color.colourway.light.on-tertiary}"
+        }
+      }
+    }
+  },
+  "dark": {
+    "color": {
+      "$type": "color",
+      "semantic": {
+        "primary": {
+          "$value": "{color.colourway.dark.primary}"
+        },
+        "on-primary": {
+          "$value": "{color.colourway.dark.on-primary}"
+        },
+        "secondary": {
+          "$value": "{color.colourway.dark.secondary}"
+        },
+        "surface": {
+          "$value": "{color.brand.slate}"
+        },
+        "text": {
+          "$value": "{color.brand.flax}"
+        },
+        "muted": {
+          "$value": "#a39c90"
+        },
+        "edge": {
+          "$value": "#3a3d4a"
+        },
+        "main": {
+          "$value": "{color.colourway.dark.main}"
+        },
+        "on-main": {
+          "$value": "{color.colourway.dark.on-main}"
+        },
+        "accent": {
+          "$value": "{color.colourway.dark.accent}"
+        },
+        "on-accent": {
+          "$value": "{color.colourway.dark.on-accent}"
+        },
+        "supporting": {
+          "$value": "{color.colourway.dark.supporting}"
+        },
+        "on-supporting": {
+          "$value": "{color.colourway.dark.on-supporting}"
+        },
+        "tertiary": {
+          "$value": "{color.colourway.dark.tertiary}"
+        },
+        "on-tertiary": {
+          "$value": "{color.colourway.dark.on-tertiary}"
+        }
+      }
+    }
+  },
+  "colourway/indigo": {
+    "color": {
+      "$type": "color",
+      "colourway": {
+        "light": {
+          "primary": {
+            "$value": "{color.colourway.light.main}"
+          },
+          "on-primary": {
+            "$value": "{color.colourway.light.on-main}"
+          },
+          "secondary": {
+            "$value": "{color.colourway.light.accent}"
+          },
+          "main": {
+            "$value": "#1b2a6b"
+          },
+          "on-main": {
+            "$value": "oklch(100% 0 0)",
+            "$extensions": {
+              "com.suse.lolly": {
+                "colourRole": {
+                  "derived": true
+                }
+              }
+            }
+          },
+          "accent": {
+            "$value": "#b23a48"
+          },
+          "on-accent": {
+            "$value": "oklch(100% 0 0)",
+            "$extensions": {
+              "com.suse.lolly": {
+                "colourRole": {
+                  "derived": true
+                }
+              }
+            }
+          },
+          "supporting": {
+            "$value": "#6c7a89"
+          },
+          "on-supporting": {
+            "$value": "oklch(0% 0 0)",
+            "$extensions": {
+              "com.suse.lolly": {
+                "colourRole": {
+                  "derived": true
+                }
+              }
+            }
+          },
+          "tertiary": {
+            "$value": "#d9c7a0"
+          },
+          "on-tertiary": {
+            "$value": "oklch(0% 0 0)",
+            "$extensions": {
+              "com.suse.lolly": {
+                "colourRole": {
+                  "derived": true
+                }
+              }
+            }
+          }
+        },
+        "dark": {
+          "primary": {
+            "$value": "{color.colourway.dark.main}"
+          },
+          "on-primary": {
+            "$value": "{color.colourway.dark.on-main}"
+          },
+          "secondary": {
+            "$value": "{color.colourway.dark.accent}"
+          },
+          "main": {
+            "$value": "#8fa2ff"
+          },
+          "on-main": {
+            "$value": "oklch(0% 0 0)",
+            "$extensions": {
+              "com.suse.lolly": {
+                "colourRole": {
+                  "derived": true
+                }
+              }
+            }
+          },
+          "accent": {
+            "$value": "#f08a96"
+          },
+          "on-accent": {
+            "$value": "oklch(0% 0 0)",
+            "$extensions": {
+              "com.suse.lolly": {
+                "colourRole": {
+                  "derived": true
+                }
+              }
+            }
+          },
+          "supporting": {
+            "$value": "{color.colourway.light.supporting}"
+          },
+          "on-supporting": {
+            "$value": "{color.colourway.light.on-supporting}",
+            "$extensions": {
+              "com.suse.lolly": {
+                "colourRole": {
+                  "derived": true
+                }
+              }
+            }
+          },
+          "tertiary": {
+            "$value": "#a8966f"
+          },
+          "on-tertiary": {
+            "$value": "oklch(0% 0 0)",
+            "$extensions": {
+              "com.suse.lolly": {
+                "colourRole": {
+                  "derived": true
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "colourway/madder": {
+    "color": {
+      "$type": "color",
+      "colourway": {
+        "light": {
+          "primary": {
+            "$value": "{color.colourway.light.main}"
+          },
+          "on-primary": {
+            "$value": "{color.colourway.light.on-main}"
+          },
+          "secondary": {
+            "$value": "{color.colourway.light.accent}"
+          },
+          "main": {
+            "$value": "#8e1f2f"
+          },
+          "on-main": {
+            "$value": "oklch(100% 0 0)",
+            "$extensions": {
+              "com.suse.lolly": {
+                "colourRole": {
+                  "derived": true
+                }
+              }
+            }
+          },
+          "accent": {
+            "$value": "#23395b"
+          },
+          "on-accent": {
+            "$value": "#fff8e7",
+            "$description": "Bleached linen on navy"
+          },
+          "supporting": {
+            "$value": "#7d6b5d"
+          },
+          "on-supporting": {
+            "$value": "oklch(100% 0 0)",
+            "$extensions": {
+              "com.suse.lolly": {
+                "colourRole": {
+                  "derived": true
+                }
+              }
+            }
+          },
+          "tertiary": {
+            "$value": "#e3cfae"
+          },
+          "on-tertiary": {
+            "$value": "oklch(0% 0 0)",
+            "$extensions": {
+              "com.suse.lolly": {
+                "colourRole": {
+                  "derived": true
+                }
+              }
+            }
+          }
+        },
+        "dark": {
+          "primary": {
+            "$value": "{color.colourway.dark.main}"
+          },
+          "on-primary": {
+            "$value": "{color.colourway.dark.on-main}"
+          },
+          "secondary": {
+            "$value": "{color.colourway.dark.accent}"
+          },
+          "main": {
+            "$value": "#ff8c9a"
+          },
+          "on-main": {
+            "$value": "oklch(0% 0 0)",
+            "$extensions": {
+              "com.suse.lolly": {
+                "colourRole": {
+                  "derived": true
+                }
+              }
+            }
+          },
+          "accent": {
+            "$value": "#9fb6df"
+          },
+          "on-accent": {
+            "$value": "oklch(0% 0 0)",
+            "$extensions": {
+              "com.suse.lolly": {
+                "colourRole": {
+                  "derived": true
+                }
+              }
+            }
+          },
+          "supporting": {
+            "$value": "#b8a595"
+          },
+          "on-supporting": {
+            "$value": "oklch(0% 0 0)",
+            "$extensions": {
+              "com.suse.lolly": {
+                "colourRole": {
+                  "derived": true
+                }
+              }
+            }
+          },
+          "tertiary": {
+            "$value": "#b39f7c"
+          },
+          "on-tertiary": {
+            "$value": "oklch(0% 0 0)",
+            "$extensions": {
+              "com.suse.lolly": {
+                "colourRole": {
+                  "derived": true
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "colourway/weld": {
+    "color": {
+      "$type": "color",
+      "colourway": {
+        "light": {
+          "primary": {
+            "$value": "{color.colourway.light.main}"
+          },
+          "on-primary": {
+            "$value": "{color.colourway.light.on-main}"
+          },
+          "secondary": {
+            "$value": "{color.colourway.light.accent}"
+          },
+          "main": {
+            "$value": "#c9a227"
+          },
+          "on-main": {
+            "$value": "oklch(0% 0 0)",
+            "$extensions": {
+              "com.suse.lolly": {
+                "colourRole": {
+                  "derived": true
+                }
+              }
+            }
+          },
+          "accent": {
+            "$value": "#2f4f4f"
+          },
+          "on-accent": {
+            "$value": "oklch(100% 0 0)",
+            "$extensions": {
+              "com.suse.lolly": {
+                "colourRole": {
+                  "derived": true
+                }
+              }
+            }
+          },
+          "supporting": {
+            "$value": "#8a8560"
+          },
+          "on-supporting": {
+            "$value": "oklch(0% 0 0)",
+            "$extensions": {
+              "com.suse.lolly": {
+                "colourRole": {
+                  "derived": true
+                }
+              }
+            }
+          },
+          "tertiary": {
+            "$value": "#efe6c4"
+          },
+          "on-tertiary": {
+            "$value": "oklch(0% 0 0)",
+            "$extensions": {
+              "com.suse.lolly": {
+                "colourRole": {
+                  "derived": true
+                }
+              }
+            }
+          }
+        },
+        "dark": {
+          "primary": {
+            "$value": "{color.colourway.dark.main}"
+          },
+          "on-primary": {
+            "$value": "{color.colourway.dark.on-main}"
+          },
+          "secondary": {
+            "$value": "{color.colourway.dark.accent}"
+          },
+          "main": {
+            "$value": "#ffe08a"
+          },
+          "on-main": {
+            "$value": "oklch(0% 0 0)",
+            "$extensions": {
+              "com.suse.lolly": {
+                "colourRole": {
+                  "derived": true
+                }
+              }
+            }
+          },
+          "accent": {
+            "$value": "#8fbcbc"
+          },
+          "on-accent": {
+            "$value": "oklch(0% 0 0)",
+            "$extensions": {
+              "com.suse.lolly": {
+                "colourRole": {
+                  "derived": true
+                }
+              }
+            }
+          },
+          "supporting": {
+            "$value": "#c7c192"
+          },
+          "on-supporting": {
+            "$value": "oklch(0% 0 0)",
+            "$extensions": {
+              "com.suse.lolly": {
+                "colourRole": {
+                  "derived": true
+                }
+              }
+            }
+          },
+          "tertiary": {
+            "$value": "#bfb68f"
+          },
+          "on-tertiary": {
+            "$value": "oklch(0% 0 0)",
+            "$extensions": {
+              "com.suse.lolly": {
+                "colourRole": {
+                  "derived": true
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "$extensions": {
+    "com.suse.lolly": {
+      "brandSystem": {
+        "schemaVersion": 1,
+        "id": "wefthouse",
+        "label": "Wefthouse",
+        "roles": [
+          {
+            "id": "typeface",
+            "label": "Typeface",
+            "group": "Type",
+            "resources": [
+              {
+                "type": "token",
+                "path": "font.family.body"
+              }
+            ]
+          },
+          {
+            "id": "main",
+            "label": "Main",
+            "description": "The cloth's ground colour",
+            "group": "colourway",
+            "resources": [
+              {
+                "type": "token",
+                "path": "color.semantic.main"
+              }
+            ]
+          },
+          {
+            "id": "accent",
+            "label": "Accent",
+            "description": "The woven stripe",
+            "group": "colourway",
+            "resources": [
+              {
+                "type": "token",
+                "path": "color.semantic.accent"
+              }
+            ]
+          },
+          {
+            "id": "supporting",
+            "label": "Supporting",
+            "description": "The selvedge and the small print",
+            "group": "colourway",
+            "resources": [
+              {
+                "type": "token",
+                "path": "color.semantic.supporting"
+              }
+            ]
+          },
+          {
+            "id": "tertiary",
+            "label": "Tertiary",
+            "group": "colourway",
+            "resources": [
+              {
+                "type": "token",
+                "path": "color.semantic.tertiary"
+              }
+            ]
+          }
+        ],
+        "bindings": [
+          {
+            "id": "lead",
+            "roleId": "main",
+            "consumer": {
+              "slot": "primary"
+            }
+          },
+          {
+            "id": "partner",
+            "roleId": "accent",
+            "consumer": {
+              "slot": "secondary"
+            }
+          },
+          {
+            "id": "swatch-card",
+            "roleId": "tertiary",
+            "consumer": {
+              "tool": "brand-poster",
+              "slot": "accent"
+            }
+          }
+        ],
+        "rules": [
+          {
+            "id": "headline-case",
+            "label": "Headlines stay in sentence case",
+            "kind": "text-case",
+            "roleIds": [],
+            "parameters": {
+              "case": "sentence"
+            },
+            "requirement": "advisory",
+            "origin": {
+              "kind": "manual",
+              "author": "Wefthouse"
+            },
+            "review": {
+              "state": "draft"
+            }
+          }
+        ]
+      }
+    }
+  }
+}

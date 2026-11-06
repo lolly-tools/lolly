@@ -8,17 +8,22 @@
  * all is valid - nothing here ever invents a swatch, and nothing forces a slot
  * to be filled.
  *
- * WHAT THIS MODULE DELIBERATELY DOES NOT DO. It writes the one slot it is asked
- * to write, and nothing else. `deriveBrandTokens` maintains `on-primary`,
+ * WHAT THIS MODULE DELIBERATELY DOES NOT DO. It writes the slot it is asked to
+ * write, and one derived companion. `deriveBrandTokens` maintains `on-primary`,
  * `muted` and `edge` as a contrast-enforced SET (see engine/brand-derive.ts's
  * buildSemantic: the primary step itself shifts along its ramp until a passing
  * on-primary exists), and `setSemanticRampAlias` in brand-doc.ts - the only
- * other role write in the shell - likewise touches exactly the named role. So
- * assigning Primary here does not re-pick on-primary: re-deriving those pairs
- * from one hand-assigned swatch would be new policy, and the readouts below
- * exist precisely so a pairing the user has broken is VISIBLE rather than
- * silently corrected. Regenerating the derived set is what the Generate wing's
- * Replace-palette path is for.
+ * other role write in the shell - likewise touches exactly the named role.
+ * `muted` and `edge` are never re-picked: the readouts below exist so a pairing the
+ * user has broken is VISIBLE rather than silently corrected, and regenerating that
+ * set is what the Generate wing's Replace-palette path is for.
+ *
+ * ON PRIMARY IS THE ONE EXCEPTION (plans/352). The strip shows it as Derived with no
+ * picker, so nobody can repair it by hand: assigning Primary re-picks a derived
+ * on-primary that no longer reads on the new colour, by the rule the derive uses
+ * (`deriveOnColour`). One that still reads stays, and so does one a token file states,
+ * which is any on-primary `isDerivedOnColourValue` does not recognise: a hex or a link
+ * to a named colour. The readout still reports a stated pair that does not read.
  *
  * Pure and DOM-free down to `roleContrast`; `rolesStripHtml` is a pure string
  * builder over a model, and `mountRolesStrip` is the only part that touches the
@@ -39,11 +44,11 @@
  * set, so clearing one is refused; a lead is removed whole or not at all.
  */
 
-import { colorToHex, contrastRatio, apcaVerdict, tokenSetNames, TOKEN_EXT } from '@lolly/engine';
-import type { ApcaUse } from '@lolly/engine';
+import { colorToHex, colourPairContrast, colourRoleMarkOf, contrastRatio, createTokenSet, deriveOnColour, isDerivedOnColourValue, onColourFloor, tokenSetNames, TOKEN_EXT, WEAK_LC as ENGINE_WEAK_LC } from '@lolly/engine';
+import type { ColourPairContrast } from '@lolly/engine';
 import { escape } from '../../utils.ts';
 import { t, tRaw } from '../../i18n.ts';
-import { colourwaySetsOf, editContextOf, isColourwayLink, leadSlotPath } from './leads.ts';
+import { colourwaySetsOf, editContextOf, isColourwayLink, leadSelection, leadSlotPath } from './leads.ts';
 import type { EditContextInput } from './leads.ts';
 
 type Rec = Record<string, unknown>;
@@ -369,8 +374,12 @@ function stampGroup(leaf: Rec): void {
  * into the lead's own colour, and the mode's link is left alone; a role whose
  * link Lolly cannot follow is refused (see the module header).
  *
- * Only the named role is touched. See the module header for why `on-primary`,
- * `muted` and `edge` are left exactly as they were.
+ * Only the named role is touched, except that assigning Primary re-picks a derived
+ * on-primary that no longer reads on it. See the module header for why `muted` and
+ * `edge` are left exactly as they were, and a stated on-primary with them.
+ *
+ * A slot bound to one of the brand's colour roles (plans/352) writes to that role's
+ * colour, through `leadSlotPath`, so the binding survives.
  */
 export function assignRole(doc: unknown, role: RoleId, swatchKey: string, ctx?: EditContextInput): boolean {
   if (!isRec(doc) || !isRoleId(role)) return false;
@@ -382,17 +391,45 @@ export function assignRole(doc: unknown, role: RoleId, swatchKey: string, ctx?: 
   for (const loc of locations) {
     const parent = loc.kind === 'lead' ? groupAt(doc, loc.path.slice(0, -1)) : semanticGroupAt(doc, loc.path.slice(0, -3));
     if (!parent) continue;
-    const prev = isRec(parent[role]) ? parent[role] as Rec : null;
+    // A bound slot's colour lives under the role's own name, not the slot's.
+    const name = loc.path[loc.path.length - 1]!;
+    const prev = isRec(parent[name]) ? parent[name] as Rec : null;
     const leaf: Rec = prev ?? {};
     leaf.$value = `{${key}}`;
     leaf.$type = 'color';
     // The palette heading belongs on the role's slot. A lead's own colour is
     // never a tile, so it carries no heading of its own.
     if (loc.kind === 'slot') stampGroup(leaf);
-    parent[role] = leaf;
+    parent[name] = leaf;
     wrote = true;
   }
+  if (wrote && role === 'primary') repickOnPrimary(doc, ctx);
   return wrote;
+}
+
+/**
+ * Re-pick a derived on-primary that no longer reads on the primary just assigned, per
+ * mode set the assignment touched. A stated one stays, one that still reads stays, and
+ * an absent one stays absent: nothing here invents a slot.
+ */
+function repickOnPrimary(doc: Rec, ctx?: EditContextInput): void {
+  const c = ctx === undefined || ctx === null ? null : editContextOf(ctx);
+  for (const loc of roleLocations(doc, 'on-primary', ctx)) {
+    if (loc.kind === 'locked') continue;
+    const leaf = at(doc, loc.path);
+    if (!leaf) continue;
+    const markedDerived = colourRoleMarkOf(leaf)?.derived === true;
+    if (!markedDerived && !isDerivedOnColourValue(leaf.$value)) continue;
+    // The mode set this location answers for: the set itself for a slot, the path's mode for a lead's colour.
+    const mode = c?.mode ?? (loc.kind === 'lead' ? loc.path[3] : loc.path[0]);
+    const tokens = createTokenSet(doc, leadSelection(doc, { lead: c?.lead ?? null, mode: mode ?? 'light' }));
+    const lead = colorToHex(tokens.resolve('color.semantic.primary'));
+    if (typeof lead !== 'string' || !lead.startsWith('#')) continue;
+    const ink = colorToHex(tokens.resolve('color.semantic.on-primary'));
+    if (typeof ink === 'string' && ink.startsWith('#') && contrastRatio(ink, lead) >= onColourFloor()) continue;
+    const picked = deriveOnColour(lead);
+    if (picked) leaf.$value = picked;
+  }
 }
 
 /** A mode set's `color.semantic` group, created when the set has a `color`
@@ -450,8 +487,9 @@ export function setRoleValue(doc: unknown, role: RoleId, value: string, ctx?: Ed
   for (const loc of locations) {
     const parent = loc.kind === 'lead' ? groupAt(doc, loc.path.slice(0, -1)) : semanticGroupAt(doc, loc.path.slice(0, -3));
     if (!parent) continue;
-    if (!isRec(parent[role])) parent[role] = {};
-    const leaf = parent[role] as Rec;
+    const name = loc.path[loc.path.length - 1]!;
+    if (!isRec(parent[name])) parent[name] = {};
+    const leaf = parent[name] as Rec;
     leaf.$value = value;
     wrote = true;
   }
@@ -463,35 +501,15 @@ export function setRoleValue(doc: unknown, role: RoleId, value: string, ctx?: Ed
 /** The Lc under which the strip paints its readout as a warning: APCA's
  *  headline floor, the point below which a pair carries nothing but icons and
  *  borders. Not a pass/fail - APCA has none - just where the readout stops
- *  being reassuring. */
-export const WEAK_LC = 45;
+ *  being reassuring. The engine's, so a colour role's readout is this one. */
+export const WEAK_LC = ENGINE_WEAK_LC;
 
-export interface RoleContrast {
-  /** Signed Lc: positive for dark-on-light, negative for light-on-dark. */
-  lc: number;
-  use: ApcaUse;
-  /** The band's short phrase, ready to show. */
-  label: string;
-  /** WCAG 2.1 ratio, 1–21. Secondary by house rule: tooltip only. */
-  wcag: number;
-  /** |Lc| below {@link WEAK_LC}. */
-  weak: boolean;
-}
+export type RoleContrast = ColourPairContrast;
 
 /** APCA first, WCAG second. Null when either colour is unreadable, which the
  *  strip renders as nothing at all rather than a misleading zero. */
 export function roleContrast(fgHex: string, bgHex: string): RoleContrast | null {
-  if (!fgHex || !bgHex) return null;
-  const v = apcaVerdict(fgHex, bgHex);
-  if (!v) return null;
-  const wcag = contrastRatio(fgHex, bgHex);
-  return {
-    lc: v.lc,
-    use: v.use,
-    label: v.label,
-    wcag: Number.isFinite(wcag) ? wcag : NaN,
-    weak: v.abs < WEAK_LC,
-  };
+  return colourPairContrast(fgHex, bgHex);
 }
 
 /** One role's readout: what it is, and how it reads against the colour it is
