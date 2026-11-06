@@ -5137,7 +5137,7 @@ const ORIGIN_SCRIPT = `<script>(function(){
   if(!raw)return;
   var v=null;try{v=JSON.parse(raw);}catch(e){return;}
   if(!v||typeof v.href!=='string'||typeof v.label!=='string'||!v.label)return;
-  if(!/^\/(?!\/)\S*$/.test(v.href)||/^\/info(\/|$)/.test(v.href))return;
+  if(!/^\\/(?!\\/)\\S*$/.test(v.href)||/^\\/info(\\/|$)/.test(v.href))return;
   var name=v.label.slice(0,80);
   document.querySelectorAll('a.site-launch').forEach(function(a){
     a.setAttribute('href',v.href);

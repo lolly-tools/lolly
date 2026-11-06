@@ -509,7 +509,7 @@ export async function mountDocs(
   const root = document.documentElement;
   root.setAttribute('data-docs-reading', '');
   scope.add(() => { root.removeAttribute('data-docs-reading'); root.removeAttribute('data-docs-bar'); });
-  const phone = window.matchMedia('(max-width: 640px)');
+  const phone = typeof window.matchMedia === 'function' ? window.matchMedia('(max-width: 640px)') : null;
   let lastY = window.scrollY;
   const posture = (): void => {
     const y = window.scrollY;
@@ -520,7 +520,7 @@ export async function mountDocs(
     else if (y < lastY - 6) root.removeAttribute('data-docs-bar');
     lastY = y;
     const bar = document.querySelector<HTMLElement>('.gallery-footer');
-    const tucked = phone.matches && root.getAttribute('data-docs-bar') === 'tucked';
+    const tucked = !!phone?.matches && root.getAttribute('data-docs-bar') === 'tucked';
     viewEl.style.setProperty('--docs-bar-lift', `${!bar || bar.hidden || tucked ? 0 : bar.offsetHeight}px`);
   };
   scope.listen(window, 'scroll', posture, { passive: true });

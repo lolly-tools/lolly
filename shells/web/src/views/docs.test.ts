@@ -278,37 +278,42 @@ test('fills the pathways, sidebar, sitemap and TOC nav slots', async () => {
   // The TOC is DERIVED from the rehosted content's h2[id] set (three sections here).
   const toc = view.querySelector<HTMLElement>('[data-toc]')!;
   assert.equal(toc.hidden, false, 'the TOC slot is shown once the content has >= 2 h2 sections');
-  const tocLinks = toc.querySelectorAll('.docs-toc a[data-toc-target]');
+  const tocLinks = toc.querySelectorAll('.docs-toc a.is-h2[data-contents-target]');
   assert.equal(tocLinks.length, 3, 'one TOC entry per stamped h2 heading');
+  // The same contents as the floating button narrower down (packages/docs-render contents.ts).
+  const control = view.querySelector<HTMLElement>(':scope > .doc-contents');
+  assert.ok(control, 'no floating Contents control for the narrow layout');
+  assert.equal(control!.querySelector('.doc-contents-btn')?.textContent?.trim(), 'Contents');
+  assert.equal(control!.querySelectorAll('#docContentsPanel .docs-toc-list a[data-contents-target]').length, 3);
+  // The section's pages ride in the panel, with no phone disclosures above the article.
+  assert.ok(control!.querySelector('.doc-contents-section .docs-compact-list a'), "the panel lost the section's pages");
+  assert.equal(view.querySelector('.docs-compact-nav'), null, 'the old phone disclosures came back');
 
   view.remove();
 });
 
-test('the pathway strip carries the AI-scan donut linking to verify for this page', async () => {
+test('the article ends with a labelled Check this page link to verify for this page', async () => {
   stubOkFetch();
   const view = freshView();
 
   await mountDocs(view, host, 'quickstart', 'de', '');
 
+  assert.equal(view.querySelector('.docs-pathways .docs-tsig-donut, .docs-pathways .docs-page-check'), null,
+    'the score went back into the section strip');
   // Queried by class, href read via getAttribute: nwsapi cannot match an attribute
   // selector whose quoted value carries the '%' of an encoded path.
-  const donut = view.querySelector<HTMLAnchorElement>('.docs-pathways a.docs-tsig-donut');
-  assert.ok(donut, 'the donut sits inside the pathway strip');
+  const check = view.querySelector<HTMLAnchorElement>('[data-content] a.docs-page-check');
+  assert.ok(check, 'the check line closes the content column');
   assert.equal(
-    donut!.getAttribute('href'),
+    check!.getAttribute('href'),
     `#/verify?src=${encodeURIComponent('/info/de/quickstart.html')}&check=1`,
     'pressing it opens the verify report for the exact served page, credential auto-checked',
   );
-  const svg = donut!.querySelector('svg[data-band]');
-  assert.ok(svg, 'the ring carries the analyser band for the CSS colour');
-  const score = Number(donut!.querySelector('.docs-tsig-num')?.textContent);
+  assert.ok(check!.querySelector('svg[data-band][aria-hidden="true"]'), 'the ring carries the band and stays decorative');
+  const score = Number(check!.querySelector('.docs-tsig-num')?.textContent);
   assert.ok(Number.isInteger(score) && score >= 0 && score <= 100, 'the score inside the ring is a 0-100 integer');
-  assert.ok(/Signal score/.test(donut!.getAttribute('aria-label') || ''), 'the link names the score for readers');
-  assert.equal(
-    donut!.getAttribute('data-tip'),
-    donut!.getAttribute('aria-label'),
-    'the styled tooltip carries the same text as the aria-label (tooltip.css contract)',
-  );
+  assert.equal(check!.querySelector('.docs-page-check-label')?.textContent, 'Check this page');
+  assert.match(check!.querySelector('.docs-page-check-score')?.textContent ?? '', /Signal score \d+ of 100/, 'the words name the score');
 
   view.remove();
 });

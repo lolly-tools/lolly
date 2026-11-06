@@ -321,3 +321,59 @@ for (const layout of ['sidebar', 'design'] as const) {
     assert.equal(window.location.pathname + window.location.hash, '/#/', 'a clean tool leaves immediately');
   });
 }
+
+// ── The docs origin (lib/back-nav.ts docsOrigin / rememberViewOnLeave) ──────────────
+// The docs reader's pill names the app view the docs were opened from and keeps it
+// across doc pages; the view a tab leaves the app from is noted for /info.
+
+test('the docs origin is the app view the docs were opened from, held across doc pages', () => {
+  clearStored();
+  walkFrom('tool', 'QR Code - Lolly', '/t/qr-code', '/#/docs/create/exporting');
+  assert.deepEqual(backNav.docsOrigin(), { href: '/t/qr-code', label: 'QR Code' });
+  // A hop from one doc page to the next: the view just left is a docs page.
+  walkFrom('docs', 'Export a file - Lolly', '/#/docs/create/exporting', '/#/docs/start/make-something');
+  assert.equal(backNav.getPrevView()?.label, 'Export a file');
+  assert.deepEqual(backNav.docsOrigin(), { href: '/t/qr-code', label: 'QR Code' }, 'the hop replaced the origin');
+  // Arriving in the docs from somewhere else in the app starts a new origin.
+  walkFrom('settings', 'Settings - Lolly', '/#/settings', '/#/docs/trust/privacy');
+  assert.deepEqual(backNav.docsOrigin(), { href: '/#/settings', label: 'Settings' });
+});
+
+test('the docs pill names the origin, not the doc page just left', () => {
+  clearStored();
+  withHistoryEntry();
+  walkFrom('tool', 'QR Code - Lolly', '/t/qr-code', '/#/docs/create/exporting');
+  backNav.docsOrigin(); // the reader's mount on the first page
+  walkFrom('docs', 'Export a file - Lolly', '/#/docs/create/exporting', '/#/docs/start/make-something');
+  const origin = backNav.docsOrigin()!;
+  const target = resolveBackTarget({ href: origin.href, label: origin.label });
+  assert.equal(target.label, 'QR Code');
+  assert.equal(target.href, '/t/qr-code');
+  // The entry behind is a doc page, so the pill goes forward to the origin rather than
+  // popping history to a page it does not name.
+  assert.equal(target.useHistory, false);
+});
+
+test('leaving the app notes the live address of the view shown, for /info', () => {
+  clearStored();
+  sessionStorage.setItem(backNav.LEFT_APP_KEY, JSON.stringify({ href: '/stale', label: 'Stale' }));
+  backNav.rememberViewOnLeave();
+  assert.equal(sessionStorage.getItem(backNav.LEFT_APP_KEY), null, 'a note from an earlier visit survived boot');
+  document.title = 'QR Code - Lolly';
+  dom.reconfigure({ url: 'http://localhost/t/qr-code' });
+  backNav.noteMountedView('tool');
+  // The tool writes its state into the address after mounting.
+  dom.reconfigure({ url: 'http://localhost/t/qr-code?url=https%3A%2F%2Fexample.com' });
+  dom.window.dispatchEvent(new dom.window.Event('pagehide'));
+  assert.deepEqual(JSON.parse(sessionStorage.getItem(backNav.LEFT_APP_KEY)!), { href: '/t/qr-code?url=https%3A%2F%2Fexample.com', label: 'QR Code' });
+});
+
+test('leaving from the docs reader notes the docs origin, not the reader', () => {
+  clearStored();
+  walkFrom('tool', 'QR Code - Lolly', '/t/qr-code', '/#/docs/create/exporting');
+  backNav.docsOrigin();
+  document.title = 'Export a file - Lolly';
+  backNav.noteMountedView('docs');
+  dom.window.dispatchEvent(new dom.window.Event('pagehide'));
+  assert.deepEqual(JSON.parse(sessionStorage.getItem(backNav.LEFT_APP_KEY)!), { href: '/t/qr-code', label: 'QR Code' });
+});
