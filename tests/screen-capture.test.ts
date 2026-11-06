@@ -588,7 +588,6 @@ test('ENGINE_VERSION is 1.315.0', () => {
   // 1.314.0 carries colour roles to agents and to every paint path. Capture is unchanged.
   // 1.315.0 adds an optional direction to host.text.toPath and orders right-to-left runs. Capture is unchanged.
   assert.equal(ENGINE_VERSION, '1.315.0');
-  assert.equal(ENGINE_VERSION, '1.314.0');
 });
 
 // ─── loadTool: a ^1.54.0 tool loads against this engine ───────────────────────
