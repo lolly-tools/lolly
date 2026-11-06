@@ -1307,6 +1307,24 @@ With a chain set, a decision on the approval must carry `brandPageDigest`, the `
 
 `GET /api/v1/org-config` gains `brandPages { maxBundleBytes, maxFileBytes, partBytes, approval }` and `can['brand.page.publish']` for a caller who may publish on an instance with the feature on. `GET /api/v1/discovery` gains `brandPages { enabled, index, convention }`.
 
+## Design system edits
+
+[An edit from the studio](design-system-administration.md#edit-this-instance-from-the-studio) changes this instance's colours, colour roles and brand page address with no pack rebuild. A service token limited to scopes reaches none of these routes.
+
+| Route | Needs | Answers |
+|---|---|---|
+| `GET /api/v1/brand/edits` | `brand.edit` | `200 { available, sourceId, baseChecksum, edit, pending, revisions, settings, connect }` |
+| `GET /api/v1/brand/edits/document` | `brand.edit` | `200 { sourceId, label, baseChecksum, base, served, live }`: the mounted document and the served one, as text |
+| `POST /api/v1/brand/edits/preview` | `brand.edit` | Body `{ document, digest, base }`. `200 { lines, outOfScope, invalid, unchanged, approval, connect, digest, revision, reviewToken }`. Saves nothing |
+| `POST /api/v1/brand/edits` | `brand.edit` | Body as preview, plus `revision` and `reviewToken`. `201` when live, `202 { approvalId }` when waiting on a chain, `200 { unchanged }`. `422 BRAND_EDIT_OUT_OF_SCOPE` lists what changed. `409 STALE_PREVIEW` and `409 BRAND_EDIT_BASE_MOVED` ask you to review again |
+| `POST /api/v1/brand/edits/rollback` | `brand.edit` | Empty body drops the edit. `{ to: n }` sends revision `n` again as a new revision |
+| `POST /api/v1/brand/edits/keep` | `brand.edit` | Keeps an edit after a new image |
+| `PUT /api/v1/brand/edits/settings` | `policy.edit` | Body `{ approvalChain, lookAfterImage }`. Both start off |
+| `GET /api/v1/brand/edits/revisions/:n` | `brand.edit`, or `approval.act` on its request | `200 { revision, lines }` |
+| `GET /api/v1/brand/edits/revisions/:n/document` | as above | The document as sent. Its SHA-256 is the revision's digest |
+
+`document` is the token document as text, and `digest` is the SHA-256 of those bytes. `base` is the mounted document's checksum, from the document route. `connect` says what becomes of the connect download: `none`, `derived`, `withdrawn` or `stopped`. `GET /api/v1/org-config` gains `brandEdits { maxDocumentBytes, approval }` and `can['brand.edit']` for someone who may send one.
+
 ## Governance, approvals and inbox
 
 Tool policy, grants and approval chains, the approvals people act on and the inbox where

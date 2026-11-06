@@ -8,6 +8,7 @@
 import type { SplitViewHandle } from '../../lib/split-panes.ts';
 import type { PenpotUsage, TokensExtraction } from '@lolly/engine';
 import type { ModalHandle } from '../../components/modal.ts';
+import type { ActiveRecord } from '../../lib/design-system/active.ts';
 import type { BodyPopoverHandle } from '../../components/body-popover.ts';
 import type { BrandEditorHandle } from '../../lib/brand-editor.ts';
 import type { TokenRoleProposal } from '../../lib/brand-propose.ts';
@@ -103,6 +104,8 @@ export interface StartCtx {
   trayUi: TrayUi | null;
   worthExporting: boolean;
   versionsOffered: boolean;
+  /** This studio's record when it is an editing copy that goes back to an instance. */
+  instanceEdit: ActiveRecord | null;
   openVersions: () => void;
   headDoc: Record<string, unknown> | null;
   getOnDeviceArmed: boolean;
