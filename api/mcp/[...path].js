@@ -4114,7 +4114,7 @@ var ENGINE_VERSION;
 var init_version = __esm({
   "engine/src/version.ts"() {
     "use strict";
-    ENGINE_VERSION = "1.319.0";
+    ENGINE_VERSION = "1.320.0";
   }
 });
 
@@ -89737,12 +89737,17 @@ function custGeomXml(shape) {
 function pathXml(shape, id3) {
   return `<p:sp><p:nvSpPr><p:cNvPr id="${id3}" name="path${id3}"/><p:cNvSpPr/><p:nvPr/></p:nvSpPr><p:spPr>${xfrmXml(shape)}${custGeomXml(shape)}${fillXml(shape.fill)}${lineXml(shape.line)}</p:spPr><p:txBody><a:bodyPr/><a:lstStyle/><a:p/></p:txBody></p:sp>`;
 }
+function faceXml(font) {
+  if (!font) return "";
+  const face = xmlEsc3(font);
+  return `<a:latin typeface="${face}"/><a:ea typeface="${face}"/><a:cs typeface="${face}"/>`;
+}
 function runXml(run3) {
   const u = run3.underline ? ' u="sng"' : "";
   const strike = run3.strike ? ' strike="sngStrike"' : "";
   const attrs = `lang="en-US" sz="${clampInt3(run3.sizePt * 100, 100, 4e5)}" b="${run3.bold ? 1 : 0}" i="${run3.italic ? 1 : 0}"${u}${strike} dirty="0"`;
   const fill2 = run3.color ? `<a:solidFill>${clr(run3.color, run3.alpha)}</a:solidFill>` : "";
-  const font = run3.font ? `<a:latin typeface="${xmlEsc3(run3.font)}"/><a:cs typeface="${xmlEsc3(run3.font)}"/>` : "";
+  const font = faceXml(run3.font);
   const rid = run3.linkSlide != null && slideLinkRid ? slideLinkRid(run3.linkSlide) : void 0;
   const hlink = rid ? `<a:hlinkClick r:id="${rid}" action="ppaction://hlinksldjump"/>` : "";
   const rPr = `<a:rPr ${attrs}>${fill2}${font}${hlink}</a:rPr>`;
@@ -90158,7 +90163,7 @@ function layoutPlaceholderXml(ph, id3) {
   const bind = phXml(ph);
   if (!bind) return "";
   const st = ph.style ?? {};
-  const defRPr = `<a:defRPr sz="${clampInt3((st.sizePt ?? 18) * 100, 100, 4e5)}">` + (st.color ? `<a:solidFill>${clr(st.color)}</a:solidFill>` : "") + (st.font ? `<a:latin typeface="${xmlEsc3(st.font)}"/><a:cs typeface="${xmlEsc3(st.font)}"/>` : "") + `</a:defRPr>`;
+  const defRPr = `<a:defRPr sz="${clampInt3((st.sizePt ?? 18) * 100, 100, 4e5)}">` + (st.color ? `<a:solidFill>${clr(st.color)}</a:solidFill>` : "") + faceXml(st.font) + `</a:defRPr>`;
   const lvl1 = `<a:lvl1pPr${st.align ? ` algn="${st.align}"` : ""}>${st.bullet ? "" : "<a:buNone/>"}${defRPr}</a:lvl1pPr>`;
   const prompt = ph.prompt ? `<a:p><a:r><a:rPr lang="en-US" dirty="0"/><a:t>${xmlEsc3(ph.prompt)}</a:t></a:r></a:p>` : `<a:p/>`;
   return `<p:sp><p:nvSpPr><p:cNvPr id="${id3}" name="ph${id3}"/><p:cNvSpPr><a:spLocks noGrp="1"/></p:cNvSpPr><p:nvPr>${bind}</p:nvPr></p:nvSpPr><p:spPr>${xfrmXml(ph)}<a:prstGeom prst="rect"><a:avLst/></a:prstGeom></p:spPr><p:txBody><a:bodyPr anchor="${ph.anchor ?? "t"}"/><a:lstStyle>${lvl1}</a:lstStyle>${prompt}</p:txBody></p:sp>`;
@@ -157486,7 +157491,7 @@ async function lowerLayer(ctx, sink, row, origin, binding, masterStyle, master, 
     return;
   }
   const shapeKind = str10(row, "shape"), radiusPx = shapeKind === "rounded" ? num18(row, "radius") : 0;
-  const radius = shapeKind === "rounded" ? { radius: emu2(radiusPx) } : {};
+  const radius = outlineOf3(shapeKind, radiusPx, box4);
   const gradFill = linearGradBox(row) ? gradSpecFill(str10(row, "grad").trim(), { flipH: bool2(row, "flipH"), flipV: bool2(row, "flipV") }) : null;
   const capture = { kind, shapeKind, radius: radiusPx, strokeWidth: strokeW };
   const metadata2 = gradFill && "grad" in gradFill ? capturePptxGradientMetadata(row) : null;
@@ -157519,6 +157524,12 @@ async function lowerLayer(ctx, sink, row, origin, binding, masterStyle, master, 
     ...radius
   };
   sink.shapes.push(rect);
+}
+function outlineOf3(shapeKind, radiusPx, box4) {
+  if (shapeKind === "circle" || shapeKind === "ellipse") return { geom: "ellipse" };
+  if (shapeKind === "pill") return { radius: Math.round(Math.min(box4.cx, box4.cy) / 2) };
+  if (shapeKind === "rounded") return { radius: emu2(radiusPx) };
+  return {};
 }
 function noteDash(ctx, row) {
   const dash = str10(row, "strokeDash");
