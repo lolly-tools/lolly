@@ -1295,17 +1295,37 @@ test('the frame arm requires canvas.frameField, not merely a boxes canvas (Org C
   );
 });
 
-test('render.paged (multi-page-pdf / doc-studio) is NOT admitted to the still fanout', async () => {
-  // render.paged marks the paged document tools whose SVG/still export must stay ONE
-  // whole-canvas file. It carries no frameField and no render.pages, so it must not fan out.
+test('render.paged (Battlecards, Booklet, Print Sheet, Doc Studio) fans its stills out per page', async () => {
+  // A paged document's single-image export used to be one whole-canvas file: the first page
+  // only, cropped to the export size, with nothing said about the rest. It now writes one
+  // file per [data-pdf-page], as a page strip and Design frames always have.
   const h = mountPaged({ pages: 4, render: { layout: 'document', paged: true }, inputs: [] });
   h.download();
   await settle();
-  assert.equal(
-    h.pageExports().length,
-    0,
-    'render.paged stays a single whole-canvas file - never per-page stills'
-  );
+  assert.equal(h.pageExports().length, 4, 'one still per page');
+  assert.deepEqual(h.pageExports().map((e) => e.format), ['png', 'png', 'png', 'png']);
+});
+
+test('a paged document with one page box writes one file, cropped to the page box', async () => {
+  const h = mountPaged({ pages: 1, render: { paged: true }, inputs: [] });
+  h.download();
+  await settle();
+  assert.equal(h.pageExports().length, 1, 'the page box, not the whole canvas');
+  assert.equal(h.downloads().filter((n) => n.endsWith('.zip')).length, 0, 'not a ZIP of one');
+});
+
+test("a paged document's PDF and its text formats stay one file", async () => {
+  for (const fmt of ['pdf', 'md']) {
+    const h = mountPaged({
+      pages: 3,
+      render: { paged: true, formats: ['png', 'svg', 'pdf', 'md'] },
+      inputs: [],
+    });
+    h.setFormat(fmt);
+    h.download();
+    await settle();
+    assert.equal(h.pageExports().length, 0, `${fmt} carries every page in one file`);
+  }
 });
 
 test('carousel-maker (render.pages) keeps fanning out unchanged', async () => {
