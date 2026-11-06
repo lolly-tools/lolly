@@ -6,11 +6,18 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
-## 1.320.0
+## 1.321.0
 
 - Spots as process, an opt-in export choice for the CMYK formats. `ExportOpts.spotsAsProcess` (host-v1, optional) and `buildCmykPaletteMap(palette, separate, { spotsAsProcess })` (new `CmykPaletteOptions`) write every declared spot ink as its process alternate: the swatch's own CMYK lock, or the press conversion of its colour, which is the value the ink's /Separation already named as its alternate. A Print PDF then has the four process plates and nothing more. A declared finish (foil, emboss, deboss, spot varnish, soft touch, die cut, crease, perforation) is not an ink and keeps its own named plate, because converting it would print its black mask.
 - New reserved URL param `_spots`, read by `parseUrlState` into `spots` and written by `serializeUrlState` from `spots`; `parseSpots` is exported. Only `_spots=process` turns the choice on: absence and every other value keep the spot plates. Minted in the `_` namespace, so no tool input can collide with it.
 - Off by default. With the option absent, `buildCmykPaletteMap` returns the same map as before and every CMYK file keeps its bytes. The Print TIFF and EPS (CMYK) already write each ink as its process build, since they have no named plates, so the choice changes only the Print PDF today. Nothing is recorded about the choice: no metadata, no content credential entry and no export card line.
+
+## 1.320.0
+
+- An SVG's Content Credential goes in a `<metadata>` child of the root `<svg>`, the place the C2PA SVG binding defines and c2patool reads. When the page inlined artwork that carries its own manifest, such as a catalog logo, `embedC2pa` used to write the export's manifest over the logo's, inside the logo, and c2patool reported "No claim found" for the file. The logo now keeps its own manifest in its own markup, where the export's hard binding covers those bytes like any others, and the export's claim validates at the root.
+- New leaf module `c2pa-svg.ts`: `locateSvgCredential` finds the root `<svg>`, its first direct `<metadata>` and the manifest in a direct `<metadata>`, reading past comments, CDATA, quoted attribute values and nested artwork in one linear pass. The SVG placer and reader both use it.
+- The reader takes the root's credential first. A file with none there falls back to the first manifest anywhere, which is where exports written before this version put theirs, so a credential someone already holds reads as it did.
+- Default SVG exports that inline credentialed artwork change bytes: the file now holds the export's manifest at the root and the artwork's own in the artwork. Nothing else goes into the file. An SVG with no nested manifest is placed exactly as before. The MCP server no longer strips the inlined artwork's manifest before it stamps, so its files match the web shell's and the CLI's.
 
 ## 1.319.0
 

@@ -830,14 +830,11 @@ const SIDEBARS: Record<Pathway, { title: string; groups: SideGroup[] }> = {
       { slug: 'build-obs', label: 'Linux packages' },
       { slug: 'ios-build', label: 'Building for iOS' },
     ] },
-    { label: 'Jobs, sharing and delivery', items: [
+    { label: 'Also in other sections', items: [
       { slug: 'work-renders', label: 'Render jobs and batches' },
     ] },
   ] },
   managers: { title: 'Manage', groups: [
-    { label: 'Product, organisation and vocabulary', items: [
-      { slug: 'organisation', label: 'Use Lolly at your organisation' },
-    ] },
     { label: 'Administration, policy and approvals', items: [
       { slug: 'operators', label: 'Manage' },
       { slug: 'configuration', label: 'Profiles, brands and tool configuration' },
@@ -872,18 +869,12 @@ const SIDEBARS: Record<Pathway, { title: string; groups: SideGroup[] }> = {
       { slug: 'work-provider-o365', label: 'Microsoft 365 / SharePoint' },
       { slug: 'work-provider-tenant-check', label: 'Check a source on your own tenant' },
     ] },
-    { label: 'Instance configuration, SSO and signing', items: [
-      { slug: 'work-identity-providers', label: 'Sign-in provider recipes' },
-    ] },
     { label: 'People and access', items: [
       { slug: 'work-identity', label: 'Sign-in and sessions' },
       { slug: 'work-account-lifecycle', label: 'Account data controls' },
       { slug: 'work-invitations', label: 'Invite people and handle requests' },
       { slug: 'work-partner-programmes', label: 'Partner programmes' },
       { slug: 'work-permissions', label: 'Roles and grants' },
-    ] },
-    { label: 'Agents, APIs and integrations', items: [
-      { slug: 'work-document-agents', label: 'Invite an agent' },
     ] },
     { label: 'Jobs, sharing and delivery', items: [
       { slug: 'work-sharing', label: 'Share renders and links' },
@@ -893,24 +884,15 @@ const SIDEBARS: Record<Pathway, { title: string; groups: SideGroup[] }> = {
       { slug: 'work-delivery', label: 'Organisation delivery destinations' },
       { slug: 'work-project-portability', label: 'Preview a project transfer' },
     ] },
-    { label: 'Privacy, data and trust boundaries', items: [
+    { label: 'Also in other sections', items: [
+      { slug: 'organisation', label: 'Use Lolly at your organisation' },
+      { slug: 'work-identity-providers', label: 'Sign-in provider recipes' },
+      { slug: 'work-document-agents', label: 'Invite an agent' },
       { slug: 'work-data-lifecycle', label: 'Lolly Work storage and data lifecycle' },
-    ] },
-    { label: 'Operations, monitoring and recovery', items: [
       { slug: 'work-audit', label: 'Audit log' },
     ] },
   ] },
   operators: { title: 'Deploy', groups: [
-    { label: 'URL and CLI automation', items: [
-      { slug: 'cli-signing', label: 'Signing from the terminal' },
-    ] },
-    { label: 'Build and contribute to the apps', items: [
-      { slug: 'build-guide', label: 'Build Guide' },
-      { slug: 'build-terminal', label: 'Build the CLI and TUI' },
-      { slug: 'build-desktop', label: 'Build the desktop app' },
-      { slug: 'build-mobile', label: 'Build the mobile apps' },
-      { slug: 'build-obs', label: 'Linux packages' },
-    ] },
     { label: 'Updates, qualification and release history', items: [
       { slug: 'catalog-resource-reading', label: 'Read verified catalog resources' },
       { slug: 'deploy-delivery', label: 'Delivery deployment' },
@@ -946,18 +928,22 @@ const SIDEBARS: Record<Pathway, { title: string; groups: SideGroup[] }> = {
       { slug: 'work-wasm-deployment', label: 'WebAssembly and Kubewarden choices' },
       { slug: 'work-admission-policy', label: 'Admission policy with Kubewarden' },
     ] },
-    { label: 'People and access', items: [
-      { slug: 'work-identity', label: 'Sign-in and sessions' },
-    ] },
-    { label: 'Privacy, data and trust boundaries', items: [
-      { slug: 'work-data-lifecycle', label: 'Lolly Work storage and data lifecycle' },
-    ] },
     { label: 'Operations, monitoring and recovery', items: [
       { slug: 'work-operations', label: 'Keep Lolly Work running' },
       { slug: 'work-metrics', label: 'Metrics and alerts' },
       { slug: 'work-production-readiness', label: 'Check a deployment before production' },
       { slug: 'work-telemetry', label: 'Telemetry and dashboards' },
       { slug: 'work-audit', label: 'Audit log' },
+    ] },
+    { label: 'Also in other sections', items: [
+      { slug: 'cli-signing', label: 'Signing from the terminal' },
+      { slug: 'build-guide', label: 'Build Guide' },
+      { slug: 'build-terminal', label: 'Build the CLI and TUI' },
+      { slug: 'build-desktop', label: 'Build the desktop app' },
+      { slug: 'build-mobile', label: 'Build the mobile apps' },
+      { slug: 'build-obs', label: 'Linux packages' },
+      { slug: 'work-identity', label: 'Sign-in and sessions' },
+      { slug: 'work-data-lifecycle', label: 'Lolly Work storage and data lifecycle' },
     ] },
   ] },
   trust: { title: 'Trust', groups: [
@@ -991,16 +977,10 @@ const SIDEBARS: Record<Pathway, { title: string; groups: SideGroup[] }> = {
       { slug: 'work-security-platform', label: 'Lolly Work security overview' },
       { slug: 'work-data-lifecycle', label: 'Lolly Work storage and data lifecycle' },
     ] },
-    { label: 'People and access', items: [
+    { label: 'Also in other sections', items: [
       { slug: 'work-account-lifecycle', label: 'Account data controls' },
-    ] },
-    { label: 'Instance configuration, SSO and signing', items: [
       { slug: 'work-c2pa', label: 'Configure Lolly Work export signing' },
-    ] },
-    { label: 'Administration, policy and approvals', items: [
       { slug: 'work-ai-policy', label: 'Manage organisation AI policy' },
-    ] },
-    { label: 'Operations, monitoring and recovery', items: [
       { slug: 'work-telemetry', label: 'Telemetry and dashboards' },
       { slug: 'work-audit', label: 'Audit log' },
     ] },
@@ -2620,7 +2600,8 @@ function stripScript(): string {
     });
     _stripJs = out.outputFiles[0]!.text.trim();
   }
-  return `<script>\n${_stripJs}\n(function(){document.querySelectorAll('nav.docs-pathways').forEach(function(s){LollyDocsStrip.enhancePathwaysStrip(s);});})();\n</script>`;
+  return `<script>\n${_stripJs}\n(function(){document.querySelectorAll('nav.docs-pathways').forEach(function(s){LollyDocsStrip.enhancePathwaysStrip(s);});`
+    + `var rail=document.querySelector('aside.docs-sidebar');if(rail)LollyDocsStrip.revealCurrentPage(rail);})();\n</script>`;
 }
 
 /**
@@ -3549,11 +3530,20 @@ ${LANDING_CSS}
    half of this: a first group whose label only repeats the pathway is dropped. */
 .sidebar-label{font-size:.6875rem;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);font-weight:600;margin:2rem 0 .5rem}
 .sidebar-label:first-child{margin-top:0}
-.sidebar-home{display:block;font-size:.8125rem;color:var(--muted)!important;margin-bottom:1rem;padding:0!important}
-.sidebar-home:hover{color:var(--green)!important;background:none!important}
-/* The rail's link to the docs front door reads "<- Docs", the one name the app gives it
-   too (plan 354 D2); the arrow points back toward the inline start in either direction. */
-[dir="rtl"] .docs-sidebar-home-arrow{display:inline-block;transform:scaleX(-1)}
+/* The rail's folds (buildSidebar): each group is a native disclosure whose summary is
+   the group's eyebrow, open where the current page is. The summary keeps the eyebrow's
+   type and gains the chevron the sitemap uses; the gap above it is the group break. */
+.sidebar-group{margin-top:1rem}
+.sidebar-group>summary.sidebar-label{display:flex;align-items:center;justify-content:space-between;gap:.5rem;min-height:32px;margin:0 0 .25rem;padding:0 .5rem;border-radius:5px;cursor:pointer;list-style:none}
+.sidebar-group>summary::-webkit-details-marker{display:none}
+.sidebar-group>summary:hover{background:var(--pale);color:var(--text)}
+.sidebar-group>summary:focus-visible{outline:2px solid var(--ui-color-focus-ring);outline-offset:2px}
+.sidebar-chev{display:inline-flex;flex:none;width:1em;height:1em;transform:rotate(90deg);transition:transform var(--ui-motion-feedback)}
+.sidebar-chev svg{width:100%;height:100%}
+.sidebar-group[open]>summary .sidebar-chev{transform:rotate(270deg)}
+@media(prefers-reduced-motion:reduce){.sidebar-chev{transition:none}}
+html[data-a11y-motion="reduce"] .sidebar-chev{transition:none}
+@media(pointer:coarse){.sidebar-group>summary.sidebar-label{min-height:var(--ui-size-target)}}
 /* Docs search - in the TOPBAR, not the rail. It sits with the other whole-site
    controls (language, theme, launch) because it acts on the whole site: the rail
    answers "what is there", the box answers "where is the thing I already know I
@@ -3621,6 +3611,10 @@ ${LANDING_CSS}
 .spec-heads a{font-size:.8125rem;color:var(--muted);padding:.2rem .5rem}
 .spec-heads a.is-sub{padding-left:1.1rem}
 .sidebar-pathway{font-size:1.0625rem;font-weight:700;color:var(--dark);margin-top:2rem; margin-bottom:.75rem;padding-bottom:.75rem;border-bottom:1px solid var(--border)}
+/* The heading is the section's hub page, a link (plan 354); out-specify the rail's row rule. */
+.docs-sidebar a.sidebar-pathway{display:block;margin-top:0;padding:0 .5rem .75rem;border-radius:0;font-size:1.0625rem;color:var(--dark)}
+.docs-sidebar a.sidebar-pathway:hover{color:var(--green);background:none}
+.docs-sidebar a.sidebar-pathway.active{color:var(--green);background:none}
 .docs-sidebar a{display:flex;align-items:flex-start;gap:.5rem;padding:.3rem .5rem;font-size:.875rem;color:var(--text);border-radius:5px}
 .docs-sidebar a:hover{color:var(--green);background:var(--pale);text-decoration:none}
 .docs-sidebar a.active{color:var(--green);font-weight:600;background:var(--pale)}
@@ -6269,17 +6263,27 @@ function repeatsPathwayTitle(groupLabel: string, pathwayTitle: string): boolean 
 function buildSidebar(lang: Lang, page: Page, activeHref: string) {
   const pathway: Pathway = page.pathway ?? 'builders';
   const sb = SIDEBARS[pathway];
+  // The section's hub is the rail's heading, a link (plan 354), so it is not a row too.
+  const hub = PATHWAY_HUB[pathway];
+  const hubHref = `/info/${hub}.html`;
+  const holds = (g: SideGroup): boolean => g.items.some((it) => `/info/${it.slug}.html` === activeHref);
+  const anyOpen = sb.groups.some(holds);
   const groups = sb.groups.map((g, i) => {
-    const links = g.items.map(it => sidebarLinkHtml(lang, it, activeHref, true)).join('\n    ');
-    // The first group's links hang straight off the pathway heading when its own
-    // label would only say that heading again. Every later group keeps its
-    // eyebrow: those are the real divisions in the rail.
-    if (i === 0 && repeatsPathwayTitle(g.label, sb.title)) return links;
-    return `<div class="sidebar-label">${esc(t(g.label))}</div>\n    ${links}`;
+    const items = g.items.filter((it) => it.slug !== hub);
+    if (!items.length) return '';
+    const links = items.map(it => sidebarLinkHtml(lang, it, activeHref, true)).join('\n    ');
+    // The first group's links hang straight off the heading when its own label would
+    // only say the heading again. Every later group is a fold: open where the current
+    // page is (or the first one, on the hub), closed elsewhere, so a rail of fifty pages
+    // reads as a handful of names until a reader opens one.
+    if (i === 0 && repeatsPathwayTitle(g.label, sb.title)) return `<div class="sidebar-lead">${links}</div>`;
+    const open = holds(g) || (!anyOpen && i === 0);
+    return `<details class="sidebar-group"${open ? ' open' : ''}><summary class="sidebar-label"><span>${esc(t(g.label))}</span>`
+      + `<span class="sidebar-chev" aria-hidden="true">${docIcon('adm-chevron')}</span></summary>${links}</details>`;
   }).join('\n    ');
+  const current = hubHref === activeHref ? ' aria-current="page"' : '';
   return `<aside class="docs-sidebar">
-    <a href="${localeHref(lang, 'index')}" class="sidebar-home"><span class="docs-sidebar-home-arrow" aria-hidden="true">←</span> ${esc(t('Docs'))}</a>
-    <div class="sidebar-pathway">${esc(t(sb.title))}</div>
+    <a href="${localeHref(lang, hub)}" class="sidebar-pathway${current ? ' active' : ''}"${current}>${esc(t(sb.title))}</a>
     ${groups}
   </aside>`;
 }
@@ -6296,12 +6300,15 @@ function buildSidebar(lang: Lang, page: Page, activeHref: string) {
  */
 function sheetPagesHtml(lang: Lang, pathway: Pathway, activeHref: string): { title: string; body: string } {
   const sb = SIDEBARS[pathway];
-  const groups = sb.groups.map((g, i) =>
-    (i === 0 && repeatsPathwayTitle(g.label, sb.title)
+  const hub = PATHWAY_HUB[pathway];
+  const groups = sb.groups.map((g, i) => {
+    const items = g.items.filter((it) => it.slug !== hub);
+    if (!items.length) return '';
+    return (i === 0 && repeatsPathwayTitle(g.label, sb.title)
       ? ''
       : `<div class="sidebar-label">${esc(t(g.label))}</div>`)
-    + g.items.map(it => sidebarLinkHtml(lang, it, activeHref, true)).join(''),
-  ).join('');
+      + items.map(it => sidebarLinkHtml(lang, it, activeHref, true)).join('');
+  }).join('');
   return { title: t(sb.title), body: `<div class="docs-compact-list">${groups}</div>` };
 }
 

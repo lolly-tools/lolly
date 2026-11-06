@@ -155,7 +155,7 @@ const EXPORT_FIELDS: Array<{ key: ExportKey; label: string; kind: 'cycle' | 'tex
   { key: 'bleed', label: 'Bleed', kind: 'text' },
   { key: 'marks', label: 'Print marks', kind: 'text' },
   { key: 'pressProfile', label: 'Press profile', kind: 'text' },
-  // Spot inks as process (engine 1.320): off keeps each spot ink on its own plate in a
+  // Spot inks as process (engine 1.321): off keeps each spot ink on its own plate in a
   // Print PDF. On prints them in process; finishes keep their plates either way.
   { key: 'spots', label: 'Spot inks', kind: 'cycle' },
 ];

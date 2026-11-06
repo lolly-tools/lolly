@@ -1914,7 +1914,7 @@ async function brandCmykPalette(host: HostV1, separate?: SeparateRgb, options: C
   try {
     const colors = await host.tokens?.colors?.();
     if (!Array.isArray(colors) || colors.length === 0) return new Map();
-    // `options.spotsAsProcess` (engine 1.320) leaves EPS bytes as they were: EPS has no
+    // `options.spotsAsProcess` (engine 1.321) leaves EPS bytes as they were: EPS has no
     // named plates, so an ink was already its process build here. Passed through so
     // the choice means one thing in every CMYK sink.
     return buildCmykPaletteMap(colors.map(c => ({

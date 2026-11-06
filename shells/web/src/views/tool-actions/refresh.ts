@@ -75,7 +75,7 @@ export function refreshPrintUi(ta: ActionsCtx): void {
   refreshNotesHandoutUi(ta);
 }
 /**
- * "Print spot inks as process" (engine 1.320): shown for the Print PDF, the one
+ * "Print spot inks as process" (engine 1.321): shown for the Print PDF, the one
  * format that writes named spot plates, and only once the design system is known
  * to declare a spot ink. A palette of finishes alone has nothing to convert, and an
  * unresolved palette is not evidence of an ink. Called again when the palette arrives.

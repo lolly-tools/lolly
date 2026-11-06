@@ -41,3 +41,18 @@ export function enhancePathwaysStrip(strip: HTMLElement): () => void {
     resize?.disconnect();
   };
 }
+
+/**
+ * The section's rail, for both readers: a rail can run to fifty pages, and the current
+ * one used to start below the fold of the rail itself. This scrolls the rail (never the
+ * page) so the current row sits a third of the way down. A rail that does not scroll on
+ * its own is left alone.
+ */
+export function revealCurrentPage(rail: HTMLElement): void {
+  const current = rail.querySelector<HTMLElement>('a.active, a[aria-current="page"]');
+  if (!current || rail.scrollHeight <= rail.clientHeight) return;
+  const r = current.getBoundingClientRect();
+  const b = rail.getBoundingClientRect();
+  if (r.top >= b.top && r.bottom <= b.bottom - 24) return;
+  rail.scrollTop += (r.top - b.top) - rail.clientHeight / 3;
+}

@@ -123,7 +123,7 @@ export interface RenderOpts {
   rondo?: RondoCaps;
   /** The design-system record (the `_madewith` param, plans/319): false leaves it out. */
   madeWith?: boolean | null;
-  /** Spot inks as process for the CMYK formats (the `_spots` param, engine 1.320). The
+  /** Spot inks as process for the CMYK formats (the `_spots` param, engine 1.321). The
    *  browser tier reads it from the query; the browser-free eps-cmyk gets it as an export
    *  option. Absent keeps the spot plates. */
   spots?: 'process' | null;
@@ -360,7 +360,7 @@ function exportOpts(o: RenderOpts): ExportOpts & { password?: string } {
   // enforce that). Dropping it here made the same URL render differently on MCP
   // than on the CLI - depth=float silently came back as 16-bit HALF.
   if (o.depth && o.depth !== 'auto') opts.depth = o.depth;
-  // `_spots=process` prints each spot ink in process; off writes nothing (engine 1.320).
+  // `_spots=process` prints each spot ink in process; off writes nothing (engine 1.321).
   if (o.spots === 'process') opts.spotsAsProcess = true;
   // `_madewith=0` leaves the design-system record out of the file (plans/319).
   if (o.madeWith === false) opts.madeWith = false;
@@ -1116,9 +1116,9 @@ export async function credentialAndRecord(
   if (!o.sampled && o.merged.c2pa?.on && C2PA_FORMATS.includes(o.exportFmt as ExportFormat) && !(o.exportFmt === 'pdf' && o.merged.password)) {
     // Told not to stamp, the browser saves a PDF the embedder cannot extend until it has a classic table.
     try { bytes = await (await import('@lolly-tools/node-shell/pdf-classic')).classicPdfForStamp(bytes, o.exportFmt); } catch { /* the stamp below reports it */ }
-    // The new credential goes where a reader looks for it, not over an inlined picture's own.
-    const clean = withoutSvgCredentials(bytes, o.exportFmt);
-    try { bytes = await stampC2pa(clean, o.exportFmt, o.manifest, o.values, o.merged, o.placed, record, out.tier.startsWith('B') ? null : o.drawn ?? null); stamped = true; }
+    // On an SVG the embedder puts this credential in the root's metadata, in place of the
+    // browser's, and an inlined picture keeps its own credential in its own markup.
+    try { bytes = await stampC2pa(bytes, o.exportFmt, o.manifest, o.values, o.merged, o.placed, record, out.tier.startsWith('B') ? null : o.drawn ?? null); stamped = true; }
     catch (e) { o.warnings.push(`Content Credentials not attached - ${(e as Error).message}`); }
   } else if (!o.sampled && o.merged.c2pa?.on) {
     o.warnings.push(o.exportFmt === 'pdf' && o.merged.password

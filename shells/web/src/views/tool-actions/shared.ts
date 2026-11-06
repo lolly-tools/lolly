@@ -120,7 +120,7 @@ export const isPressFmt = (f: string | undefined): boolean => SEPARATING_FORMATS
 // decoder, shared with the batch/folder render path (which previously had no way
 // to read a stored CSV back and so dropped print marks entirely).
 
-// The Colour profile card's "Print spot inks as process" box (engine 1.320). Read
+// The Colour profile card's "Print spot inks as process" box (engine 1.321). Read
 // whether or not the box is on screen: it lives in the CMYK card, which only CMYK
 // formats show, and the bridge ignores the option everywhere else.
 export const spotsAsProcessChecked = (el: Element | null | undefined): boolean =>

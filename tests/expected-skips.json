@@ -1480,6 +1480,27 @@
       "owner": "tests"
     },
     {
+      "file": "tests/docs-nav-budget.test.ts",
+      "fullName": "a long section rail shows a handful of rows until a reader opens a group",
+      "reason": "no built /info on disk - run `pnpm run build:info`",
+      "capability": "docs-build",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/docs-nav-budget.test.ts",
+      "fullName": "the skip link is the first stop and lands on the article, past the bar and the rail",
+      "reason": "no built /info on disk - run `pnpm run build:info`",
+      "capability": "docs-build",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/docs-nav-budget.test.ts",
+      "fullName": "the sections row holds the sections and nothing else, so it stays one row",
+      "reason": "no built /info on disk - run `pnpm run build:info`",
+      "capability": "docs-build",
+      "owner": "tests"
+    },
+    {
       "file": "tests/docs-logos.test.ts",
       "fullName": "a page with sections gets the contents rail, and every docs page gets the page bar",
       "reason": "no built /info on disk - run `pnpm run build:info`",
