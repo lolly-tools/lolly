@@ -21,8 +21,9 @@
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import { JSDOM } from 'jsdom';
-import { colorToHex, createTokenSet, deriveBrandTokens } from '@lolly/engine';
+import { colorToHex, createTokenSet, danglingColourAliases, deriveBrandTokens, deriveOnColour, readColourRoles } from '@lolly/engine';
 import type { HostV1 } from '@lolly-tools/core/host-v1';
 import { addSwatch, walkSwatches } from './brand-doc.ts';
 import { readRoles } from './design-system/roles.ts';
@@ -345,4 +346,52 @@ test('Rebuild palette on a single-lead system hands the fresh derive back untouc
   const carried = carryLeads(single, fresh);
   assert.ok(carried.ok && carried.canonical === null && carried.kept.length === 0);
   assert.equal(JSON.stringify(carried.ok ? carried.doc : null), before, 'the fresh derive is handed back untouched');
+});
+
+test('Rebuild palette, the whole path through the room: colour roles, bindings and rules survive, and undo restores them', async () => {
+  const wefthouse = JSON.parse(readFileSync(new URL('../../../../tests/fixtures/colour-roles/wefthouse.tokens.json', import.meta.url), 'utf8')) as Rec;
+  const h = harness(structuredClone(wefthouse), wefthouse);
+  const { root, $, click, settle, tiles, host } = h;
+  let editor: Awaited<ReturnType<typeof import('./brand-editor.ts')['mountBrandEditor']>> | undefined;
+  try {
+    const { mountBrandEditor } = await import('./brand-editor.ts');
+    editor = await mountBrandEditor(root, host); await settle(() => tiles() > 0);
+    click('[data-be-replace-palette]');
+    const review = $('[data-be-review]').textContent ?? '';
+    assert.match(review, /The Indigo colourway follows the new starting colour/);
+    assert.match(review, /2 other colourways keep their own colours: Madder, Weld/);
+    assert.match(review, /7 roles re-derived/, 'the brand\'s own roles came across, and are not counted as re-derived');
+    const before = structuredClone(h.state.installed);
+    click('[data-be-review-go]');
+    await settle(() => JSON.stringify(h.state.installed) !== JSON.stringify(before));
+    const after = h.state.installed;
+
+    assert.deepEqual(danglingColourAliases(after), [], 'no alias is left pointing at nothing');
+    const reading = readColourRoles(after);
+    assert.equal(reading.state, 'declared');
+    assert.deepEqual(reading.issues, []);
+    assert.deepEqual(reading.roles.map(r => [r.id, r.label, r.slots]), [['main', 'Main', ['primary']], ['accent', 'Accent', ['secondary']], ['supporting', 'Supporting', []], ['tertiary', 'Tertiary', []]]);
+    const system = ((after.$extensions as Rec)['com.suse.lolly'] as Rec).brandSystem as Rec;
+    assert.deepEqual(system, ((wefthouse.$extensions as Rec)['com.suse.lolly'] as Rec).brandSystem, 'the record, with its other roles and rules, is whole');
+    for (const mode of ['light', 'dark']) {
+      const semantic = ((after[mode] as Rec).color as Rec).semantic as Record<string, Rec>;
+      assert.equal(semantic.main!.$value, `{color.colourway.${mode}.main}`, `${mode}: --brand-main still paints`);
+      assert.equal(semantic.primary!.$value, `{color.colourway.${mode}.primary}`);
+      const indigo = ((after['colourway/indigo'] as Rec).color as Rec).colourway as Record<string, Record<string, Rec>>;
+      assert.equal(indigo[mode]!.primary!.$value, `{color.colourway.${mode}.main}`, `${mode}: the binding is still an alias`);
+      assert.equal(resolveIn(after, 'indigo', mode, 'main'), resolveIn(after, 'indigo', mode, 'primary'));
+      assert.equal(resolveIn(after, 'indigo', mode, 'tertiary'), resolveIn(wefthouse, 'indigo', mode, 'tertiary'), `${mode}: a role that fills no slot keeps its colour`);
+      assert.equal(colorToHex(resolveIn(after, 'indigo', mode, 'on-main')), colorToHex(deriveOnColour(colorToHex(resolveIn(after, 'indigo', mode, 'main')) as string)), `${mode}: the derived on-colour followed`);
+    }
+    assert.deepEqual(after['colourway/madder'], wefthouse['colourway/madder']);
+    assert.deepEqual(after['colourway/weld'], wefthouse['colourway/weld']);
+    assert.deepEqual(listLeads(after).map(l => l.id), ['indigo', 'madder', 'weld']);
+
+    click('[data-be-review-undo]');
+    await settle(() => JSON.stringify(h.state.installed) === JSON.stringify(before));
+    assert.deepEqual(h.state.installed, before, 'undo puts the whole document back');
+  } finally {
+    editor?.teardown();
+    h.restore();
+  }
 });

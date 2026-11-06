@@ -28,8 +28,9 @@
  * never the policy. Adding a colourway changes what a policy would pick for NEW
  * work and nothing that already exists.
  */
-import { createTokenSet, isAlias } from './tokens.ts';
+import { colorToHex, createTokenSet, isAlias } from './tokens.ts';
 import { parseColor } from './css-color.ts';
+import { deriveOnColour } from './brand-derive.ts';
 import { TOKEN_EXT } from './token-ext.ts';
 import { readTokenAxes, axisOfKind, modeAxis, type TokenAxis, type RotationPolicy } from './token-axes.ts';
 import { resolveTokenSelection } from './token-selection.ts';
@@ -39,6 +40,9 @@ const record = (v: unknown): v is Rec => !!v && typeof v === 'object' && !Array.
 
 /** The group id the studio writes for colourways. Imported documents may use another, declared by `kind`. */
 export const COLOURWAY_GROUP = 'colourway';
+
+/** The `group` a `brandSystem` role carries when it is a colour every colourway fills. */
+export const COLOUR_ROLE_GROUP = 'colourway';
 
 /** The semantic slots every colourway re-points. */
 export const COLOURWAY_ROLES = Object.freeze(['primary', 'on-primary', 'secondary'] as const);
@@ -205,49 +209,62 @@ const COLOUR_DATA = ['cmyk', 'spot', 'faces'] as const;
  */
 export const MAX_CHECKED_SELECTIONS = 256;
 
-function nodeAt(root: unknown, path: string): Rec | undefined {
+/**
+ * Keys that reach the prototype chain. A token file is untrusted,
+ * and a theme id, a set name and a role name all become path segments here, so none of
+ * these is ever walked or written.
+ */
+const UNSAFE_KEYS: ReadonlySet<string> = new Set(['__proto__', 'constructor', 'prototype']);
+export const isSafeKey = (key: string): boolean => !UNSAFE_KEYS.has(key);
+
+/** The token at a dotted path, reading own properties only. */
+export function nodeAt(root: unknown, path: string): Rec | undefined {
   let node: unknown = root;
   for (const seg of path.split('.')) {
-    if (!record(node)) return undefined;
+    if (!record(node) || !Object.hasOwn(node, seg)) return undefined;
     node = node[seg];
   }
   return record(node) && '$value' in node ? node : undefined;
 }
 
-function ensureGroupAt(root: Rec, segs: readonly string[]): Rec {
+/** The group at these segments, created when absent. Refuses a segment that reaches the prototype chain. */
+export function ensureGroupAt(root: Rec, segs: readonly string[]): Rec {
   let node = root;
   for (const seg of segs) {
-    if (!record(node[seg])) node[seg] = {};
+    if (!isSafeKey(seg)) throw new Error(`${seg} cannot name a token group.`);
+    if (!Object.hasOwn(node, seg) || !record(node[seg])) node[seg] = {};
     node = node[seg] as Rec;
   }
   return node;
 }
 
-function setNodeAt(root: Rec, path: string, value: Rec): void {
+export function setNodeAt(root: Rec, path: string, value: Rec): void {
   const segs = path.split('.');
-  ensureGroupAt(root, segs.slice(0, -1))[segs[segs.length - 1]!] = value;
+  const leaf = segs[segs.length - 1]!;
+  if (!isSafeKey(leaf)) throw new Error(`${leaf} cannot name a token.`);
+  ensureGroupAt(root, segs.slice(0, -1))[leaf] = value;
 }
 
 /** The set order the resolver uses: `$metadata.tokenSetOrder`, then the remaining sets as they appear. */
-function setOrder(doc: Rec): string[] {
+export function setOrder(doc: Rec): string[] {
   const keys = Object.keys(doc).filter(k => !k.startsWith('$') && record(doc[k]));
   const meta = record(doc.$metadata) ? doc.$metadata : {};
   const order = Array.isArray(meta.tokenSetOrder) ? meta.tokenSetOrder.filter((s): s is string => typeof s === 'string' && keys.includes(s)) : [];
   return [...new Set([...order, ...keys])];
 }
 
-const enabledSets = (raw: Rec): string[] =>
+export const enabledSets = (raw: Rec): string[] =>
   record(raw.selectedTokenSets) ? Object.entries(raw.selectedTokenSets).filter(([, status]) => status && status !== 'disabled').map(([set]) => set) : [];
 
-const groupOf = (t: Rec): string => (typeof t.group === 'string' ? t.group : '');
-const optionIdOf = (t: Rec): string => (typeof t.id === 'string' ? t.id : typeof t.name === 'string' ? t.name : '');
-const themeEntries = (doc: Rec): Rec[] => (Array.isArray(doc.$themes) ? doc.$themes.filter(record) : []);
+export const groupOf = (t: Rec): string => (typeof t.group === 'string' ? t.group : '');
+export const optionIdOf = (t: Rec): string => (typeof t.id === 'string' ? t.id : typeof t.name === 'string' ? t.name : '');
+export const themeEntries = (doc: Rec): Rec[] => (Array.isArray(doc.$themes) ? doc.$themes.filter(record) : []);
 
-/** The one set a colourway option turns on, or null when it turns on none or several. */
-function colourwaySetOf(doc: Rec, axis: TokenAxis, option: string): string | null {
+/** The one set a colourway option turns on, or null when it turns on none, several or one with an unsafe name. */
+export function colourwaySetOf(doc: Rec, axis: TokenAxis, option: string): string | null {
   const entry = themeEntries(doc).find(t => groupOf(t) === axis.group && optionIdOf(t) === option);
   const sets = entry ? enabledSets(entry) : [];
-  return sets.length === 1 ? sets[0]! : null;
+  return sets.length === 1 && isSafeKey(sets[0]!) ? sets[0]! : null;
 }
 
 /**
@@ -279,7 +296,7 @@ function snapshotSelections(doc: unknown, selections: readonly Record<string, st
 }
 
 /** Reasons the edit changed what an existing selection resolves to; empty when nothing changed. */
-function unchanged(before: unknown, after: unknown, selections: readonly Record<string, string>[], verb: string): string[] {
+export function unchanged(before: unknown, after: unknown, selections: readonly Record<string, string>[], verb: string): string[] {
   const was = snapshotSelections(before, selections), now = snapshotSelections(after, selections);
   const changed = [...new Set([...was].filter(([key, value]) => now.get(key) !== value).map(([key]) => key.split('\0')[1]!))];
   return changed.length ? [`${verb} would change ${changed.slice(0, 3).join(', ')}${changed.length > 3 ? ` and ${changed.length - 3} more` : ''}.`] : [];
@@ -339,7 +356,7 @@ function locateSlot(doc: Rec, role: string, mode: TokenAxis): { slots: ModeSlot[
 }
 
 /** Is this slot already pointed at its colourway primitive in every look? */
-function isLifted(doc: Rec, role: string, mode: TokenAxis): boolean {
+export function isLifted(doc: Rec, role: string, mode: TokenAxis): boolean {
   const base = resolveTokenSelection(doc).choices;
   return mode.options.every(option => {
     const active = resolveTokenSelection(doc, { selection: { ...base, [mode.group]: option.id } }).sets;
@@ -353,7 +370,7 @@ function isLifted(doc: Rec, role: string, mode: TokenAxis): boolean {
  * into every colourway that lacks one. Each colourway's primitive goes into the one
  * set that colourway turns on; a colourway that turns on none or several refuses.
  */
-function liftRole(next: Rec, role: string, mode: TokenAxis, colourways: TokenAxis): string[] {
+export function liftRole(next: Rec, role: string, mode: TokenAxis, colourways: TokenAxis): string[] {
   if (isLifted(next, role, mode)) return [];
   const located = locateSlot(next, role, mode);
   if ('reasons' in located) return located.reasons;
@@ -393,7 +410,11 @@ function themeIds(doc: Rec): Set<string> {
   return new Set(themeEntries(doc).flatMap(t => [t.id, t.name].filter((v): v is string => typeof v === 'string')));
 }
 
-const tooMany = (verb: string): string[] => [`The design system has more than ${MAX_CHECKED_SELECTIONS} combinations of themes, so ${verb} cannot check that nothing changes.`];
+/** Reasons a theme id cannot be used as a path segment. A token file is untrusted. */
+const unsafeThemeIds = (axes: readonly TokenAxis[]): string[] =>
+  axes.some(axis => axis.options.some(option => !isSafeKey(option.id))) ? ['A theme in this design system has an id Lolly will not use as a key, so its colours cannot be edited.'] : [];
+
+export const tooMany = (verb: string): string[] => [`The design system has more than ${MAX_CHECKED_SELECTIONS} combinations of themes, so ${verb} cannot check that nothing changes.`];
 
 export interface LiftOptions {
   /** The canonical colourway's id. Default `main`. */
@@ -434,6 +455,8 @@ export function liftToColourways(doc: unknown, opts: LiftOptions = {}): Colourwa
   if (!record(doc) || !Array.isArray(doc.$themes) || !doc.$themes.length) return { ok: false, reasons: ['Colourways need a design system with light and dark themes.'] };
   const { axes } = readTokenAxes(doc);
   if (axisOfKind(axes, 'colourway')) return { ok: true, doc: structuredClone(doc) };
+  const unsafe = unsafeThemeIds(axes);
+  if (unsafe.length) return { ok: false, reasons: unsafe };
   const mode = modeAxis(axes);
   if (!mode) return { ok: false, reasons: ['Mark which theme group holds light and dark before adding colourways.'] };
   const id = opts.id ?? 'main';
@@ -464,8 +487,11 @@ export function liftToColourways(doc: unknown, opts: LiftOptions = {}): Colourwa
   return changed.length ? { ok: false, reasons: changed } : { ok: true, doc: next };
 }
 
-/** One look's colours for a colourway. Each value is a colour or a `{token.path}` link. */
-export type ColourwayValues = Partial<Record<ColourwayRole, string>> & Record<(typeof COLOURWAY_ROLES)[number], string>;
+/**
+ * One look's colours for a colourway. Each value is a colour or a `{token.path}` link.
+ * Any other key is a colour role the design system already has (`accent`).
+ */
+export type ColourwayValues = Partial<Record<ColourwayRole, string>> & Record<(typeof COLOURWAY_ROLES)[number], string> & { [role: string]: string | undefined };
 
 export interface AddColourwayOptions {
   id: string;
@@ -478,11 +504,97 @@ export interface AddColourwayOptions {
 
 const usableColour = (v: unknown): v is string => typeof v === 'string' && (isAlias(v) || parseColor(v) !== null);
 
+/** A key of a caller's object, own properties only: a role or look named `constructor` is not a colour. */
+const ownValue = <T>(values: Record<string, T> | undefined, key: string): T | undefined =>
+  values && Object.hasOwn(values, key) ? values[key] : undefined;
+
+/**
+ * A link inside a colourway set, from one role to another: `{color.colourway.<mode>.<role>}`.
+ * Null for anything else. A slot bound to a brand's role holds one of these, and so does
+ * a role whose dark value follows its light one.
+ */
+export function colourwayLinkOf(value: unknown): { mode: string; role: string } | null {
+  if (typeof value !== 'string') return null;
+  const m = /^\{\s*color\.colourway\.([^.{}\s]+)\.([^.{}\s]+)\s*\}$/.exec(value.trim());
+  return m ? { mode: m[1]!, role: m[2]! } : null;
+}
+
+/** The roles one colourway set holds for one look, in the order they appear. */
+export function colourwayLeaves(set: unknown, mode: string): string[] {
+  let node: unknown = set;
+  for (const seg of ['color', 'colourway', mode]) {
+    if (!record(node) || !Object.hasOwn(node, seg)) return [];
+    node = node[seg];
+  }
+  if (!record(node)) return [];
+  const group = node;
+  return Object.keys(group).filter(k => !k.startsWith('$') && isSafeKey(k) && record(group[k]) && '$value' in (group[k] as Rec));
+}
+
+/** What Lolly records on a token it wrote for a colour role, under the vendor key `colourRole`. */
+export interface ColourRoleMark {
+  /** The value was copied, not chosen: the colourway or slot it was copied from. */
+  seeded?: string;
+  /** An on-colour Lolly worked out. One without this mark is stated and is never replaced. */
+  derived?: true;
+}
+
+export function colourRoleMarkOf(node: unknown): ColourRoleMark | null {
+  const ext = record(node) && record(node.$extensions) ? node.$extensions[TOKEN_EXT] : undefined;
+  return record(ext) && record(ext.colourRole) ? ext.colourRole as ColourRoleMark : null;
+}
+
+/** Set or clear a token's mark, leaving no empty extension behind. */
+export function setColourRoleMark(node: Rec, mark: ColourRoleMark | null): void {
+  if (mark) {
+    if (!record(node.$extensions)) node.$extensions = {};
+    const ext = node.$extensions as Rec;
+    if (!record(ext[TOKEN_EXT])) ext[TOKEN_EXT] = {};
+    (ext[TOKEN_EXT] as Rec).colourRole = mark;
+    return;
+  }
+  if (!record(node.$extensions) || !record(node.$extensions[TOKEN_EXT])) return;
+  const vendor = node.$extensions[TOKEN_EXT] as Rec;
+  delete vendor.colourRole;
+  if (!Object.keys(vendor).length) delete node.$extensions[TOKEN_EXT];
+  if (!Object.keys(node.$extensions).length) delete node.$extensions;
+}
+
+/**
+ * Work out every derived on-colour one colourway set holds again, against the colour
+ * its role now has. A stated on-colour, and one that follows another look by a link, is
+ * left alone. Changes `doc` in place; only ever called on a clone. Returns how many moved.
+ */
+export function refreshOnColoursIn(doc: Rec, set: string, group: string, optionId: string, mode: TokenAxis, skip: ReadonlySet<string> = new Set()): number {
+  let moved = 0;
+  for (const look of mode.options) {
+    const names = colourwayLeaves(doc[set], look.id).filter(name => name.startsWith('on-') && !skip.has(`${look.id}\0${name}`));
+    if (!names.length) continue;
+    const tokens = createTokenSet(doc, { selection: { [mode.group]: look.id, [group]: optionId } });
+    for (const name of names) {
+      const leaf = nodeAt(doc[set], colourwayPath(look.id, name))!;
+      if (!colourRoleMarkOf(leaf)?.derived || isAlias(leaf.$value)) continue;
+      const hex = colorToHex(tokens.resolve(colourwayPath(look.id, name.slice(3))));
+      const next = typeof hex === 'string' ? deriveOnColour(hex) : null;
+      if (next && next !== leaf.$value) { leaf.$value = next; moved += 1; }
+    }
+  }
+  return moved;
+}
+
 /**
  * Add a colourway. Lifts the document first when it has a single lead. A
  * `surface` value re-points the surface too; every existing colourway keeps the
  * surface it had, and a later colourway that gives none keeps the canonical one.
  * The new colourway goes last; the canonical one stays first.
+ *
+ * Every colour role the canonical colourway holds comes across, so the new colourway
+ * never leaves a link pointing at nothing. A role this call gives no value for is
+ * copied from the canonical colourway and marked `colourRole.seeded`, which is how a
+ * surface can say it still needs a choice. A slot bound to a role stays bound: a value
+ * given for the slot is the value of the role it reads, and the slot keeps its link. A
+ * value for a role the looks hold themselves re-points that role, as a surface value
+ * does, and a value for a name the design system does not have is refused.
  *
  * Refused when the document already encodes colourways some other way (its slots
  * do not link to `color.colourway.*`, or a colourway turns on more than one set):
@@ -498,6 +610,8 @@ export function addColourway(doc: unknown, opts: AddColourwayOptions): Colourway
   const mode = modeAxis(axes);
   const colourways = axisOfKind(axes, 'colourway');
   if (!mode || !colourways) return { ok: false, reasons: ['Colourways need a design system with light and dark themes.'] };
+  const unsafe = unsafeThemeIds(axes);
+  if (unsafe.length) return { ok: false, reasons: unsafe };
   const reasons: string[] = [];
   const foreign = COLOURWAY_ROLES.filter(role => !isLifted(next, role, mode));
   const unset = colourways.options.filter(o => colourwaySetOf(next, colourways, o.id) === null);
@@ -505,34 +619,82 @@ export function addColourway(doc: unknown, opts: AddColourwayOptions): Colourway
     return { ok: false, reasons: ['This design system encodes its colourways its own way, so Lolly can choose between them but cannot add one.'] };
   }
   reasons.push(...idReasons(next, opts.id), ...nameReasons(next, colourways.group, opts.name));
+  const named = new Set<string>();
   for (const option of mode.options) {
-    const values = opts.values[option.id];
+    const values = ownValue(opts.values, option.id);
     if (!values) { reasons.push(`Give the ${option.name} colours for ${opts.name}.`); continue; }
     for (const role of COLOURWAY_ROLES) if (!usableColour(values[role])) reasons.push(`The ${option.name} ${role} for ${opts.name} is not a colour.`);
     if (values.surface !== undefined && !usableColour(values.surface)) reasons.push(`The ${option.name} surface for ${opts.name} is not a colour.`);
+    for (const role of Object.keys(values)) {
+      if ((COLOURWAY_ROLES as readonly string[]).includes(role) || role === 'surface') continue;
+      if (!isSafeKey(role)) { reasons.push(`${role} cannot name a colour role.`); continue; }
+      if (values[role] !== undefined && !usableColour(values[role])) reasons.push(`The ${option.name} ${role} for ${opts.name} is not a colour.`);
+      named.add(role);
+    }
   }
   if (reasons.length) return { ok: false, reasons };
   const selections = checkedSelections(axes, mode);
   if (!selections) return { ok: false, reasons: tooMany('adding a colourway') };
   const before = structuredClone(next);
 
-  const roles: ColourwayRole[] = [...COLOURWAY_ROLES];
-  const tinted = mode.options.some(option => opts.values[option.id]!.surface !== undefined);
+  const roles: string[] = [...COLOURWAY_ROLES];
+  const tinted = mode.options.some(option => ownValue(opts.values, option.id)!.surface !== undefined);
   if (tinted || isLifted(next, 'surface', mode)) {
     const surfaceReasons = liftRole(next, 'surface', mode, colourways);
     if (surfaceReasons.length) return { ok: false, reasons: surfaceReasons };
     roles.push('surface');
   }
   const canonicalSet = colourwaySetOf(next, colourways, colourways.canonical)!;
+  // A value for a role the looks hold themselves re-points that role, as a surface value does.
+  for (const role of named) {
+    if (colourwayLeaves(next[canonicalSet], mode.options[0]!.id).includes(role)) continue;
+    if (!mode.options.every(option => createTokenSet(next, { selection: { [mode.group]: option.id } }).has(`color.semantic.${role}`))) {
+      return { ok: false, reasons: [`${role} is not a colour role in this design system, so ${opts.name} cannot give it a colour. Add the role first.`] };
+    }
+    const roleReasons = liftRole(next, role, mode, colourways);
+    if (roleReasons.length) return { ok: false, reasons: roleReasons };
+  }
   const set = colourwaySetName(opts.id);
   if (record(next[set])) return { ok: false, reasons: [`The design system already has a token set called ${set}.`] };
   const body: Rec = { color: { $type: 'color', colourway: {} } };
+  const given = new Set<string>();
   for (const option of mode.options) {
-    const values = opts.values[option.id]!;
-    for (const role of roles) {
-      // A colourway that gives no surface keeps the canonical one.
-      const value = values[role] ?? nodeAt(next[canonicalSet], colourwayPath(option.id, role))?.$value;
-      setNodeAt(body, colourwayPath(option.id, role), { $value: structuredClone(value) });
+    const values = ownValue(opts.values, option.id)!;
+    // The canonical colourway first; a role missing there in a hand-written file comes from the first colourway with that role.
+    const sources = colourways.options.map(o => colourwaySetOf(next, colourways, o.id)!).sort((x, y) => Number(y === canonicalSet) - Number(x === canonicalSet));
+    const leaves = sources.flatMap(from => colourwayLeaves(next[from], option.id));
+    const names = [...new Set([...roles, ...leaves])];
+    const canonicalOf = (role: string): Rec | undefined => {
+      for (const from of sources) { const node = nodeAt(next[from], colourwayPath(option.id, role)); if (node) return node; }
+      return undefined;
+    };
+    // A slot bound to a role keeps its link, and a value given for the slot is the role's.
+    const boundTo = new Map<string, string>();
+    for (const name of names) {
+      const link = colourwayLinkOf(canonicalOf(name)?.$value);
+      if (link && link.mode === option.id && link.role !== name) boundTo.set(name, link.role);
+    }
+    const chosen = new Map<string, string>();
+    for (const name of names) { const v = ownValue(values, name); if (typeof v === 'string') chosen.set(name, v); }
+    for (const [slot, role] of boundTo) {
+      if (chosen.has(slot) && ownValue(values, role) === undefined) chosen.set(role, chosen.get(slot)!);
+    }
+    for (const name of names) {
+      const path = colourwayPath(option.id, name);
+      const from = canonicalOf(name);
+      if (boundTo.has(name)) { setNodeAt(body, path, { $value: structuredClone(from!.$value) }); continue; }
+      const value = chosen.get(name);
+      const node: Rec = { $value: value ?? structuredClone(from?.$value) };
+      const fixed = (COLOURWAY_ROLES as readonly string[]).includes(name) || name === 'surface';
+      const mark = colourRoleMarkOf(from);
+      if (value !== undefined) {
+        given.add(`${option.id}\0${name}`);
+        if (!fixed && mark?.derived) setColourRoleMark(node, { derived: true });
+      } else if (!fixed) {
+        // A derived on-colour stays derived and is worked out below; anything else is marked as a copy.
+        setColourRoleMark(node, mark?.derived ? { derived: true } : { seeded: colourways.canonical });
+      }
+      setNodeAt(body, path, node);
     }
   }
   next[set] = body;
@@ -540,17 +702,34 @@ export function addColourway(doc: unknown, opts: AddColourwayOptions): Colourway
   annotate(entry, { kind: 'colourway' });
   (next.$themes as unknown[]).push(entry);
   if (record(next.$metadata) && Array.isArray(next.$metadata.tokenSetOrder)) next.$metadata.tokenSetOrder = [...next.$metadata.tokenSetOrder, set];
+  refreshOnColoursIn(next, set, colourways.group, opts.id, mode, given);
 
   // Existing pairings are untouched (a surface lift may have rewritten their links)...
   const changed = unchanged(before, next, selections, 'Adding this colourway');
   if (changed.length) return { ok: false, reasons: changed };
-  // ...and every role of every pairing, the new colourway's included, is a colour.
-  const broken = unresolvedRoles(next, mode, colourways.group, [...colourways.options, { id: opts.id, name: opts.name.trim() }], roles);
-  return broken.length ? { ok: false, reasons: broken } : { ok: true, doc: next };
+  // ...every role of every pairing, the new colourway's included, is a colour...
+  const fresh = { id: opts.id, name: opts.name.trim() };
+  const broken = unresolvedRoles(next, mode, colourways.group, [...colourways.options, fresh], roles);
+  if (broken.length) return { ok: false, reasons: broken };
+  // ...and nothing in the new colourway points at nothing, unless the canonical one already did.
+  const gaps = gapsIn(next, mode, colourways, fresh);
+  return gaps.length ? { ok: false, reasons: gaps } : { ok: true, doc: next };
+}
+
+/** Reasons a new colourway leaves an alias pointing at nothing where the canonical colourway does not. */
+function gapsIn(doc: Rec, mode: TokenAxis, colourways: TokenAxis, option: { id: string; name: string }): string[] {
+  const out: string[] = [];
+  for (const look of mode.options) {
+    const canonical = createTokenSet(doc, { selection: { [mode.group]: look.id, [colourways.group]: colourways.canonical } });
+    for (const entry of createTokenSet(doc, { selection: { [mode.group]: look.id, [colourways.group]: option.id } }).query()) {
+      if (isAlias(entry.value) && !isAlias(canonical.resolve(entry.path))) out.push(`${entry.path} would point at nothing in the ${option.name} colourway.`);
+    }
+  }
+  return out.slice(0, 3);
 }
 
 /** Reasons a pairing of look and colourway leaves a role without a colour; empty when every role resolves. */
-function unresolvedRoles(doc: Rec, mode: TokenAxis, group: string, options: ReadonlyArray<{ id: string; name: string }>, roles: readonly ColourwayRole[]): string[] {
+function unresolvedRoles(doc: Rec, mode: TokenAxis, group: string, options: ReadonlyArray<{ id: string; name: string }>, roles: readonly string[]): string[] {
   for (const look of mode.options) {
     for (const option of options) {
       const set = createTokenSet(doc, { selection: { [mode.group]: look.id, [group]: option.id } });
@@ -609,7 +788,7 @@ function nameReasons(doc: Rec, group: string, name: string, except?: string): st
  * combination. Null when there are more than `MAX_CHECKED_SELECTIONS`, so an
  * edit is refused rather than checked partly.
  */
-function everySelection(axes: readonly TokenAxis[]): Record<string, string>[] | null {
+export function everySelection(axes: readonly TokenAxis[]): Record<string, string>[] | null {
   let combos: Record<string, string>[] = [{}];
   for (const axis of axes) {
     combos = combos.flatMap(c => axis.options.map(o => ({ ...c, [axis.group]: o.id })));
@@ -636,6 +815,8 @@ function editable(doc: unknown, encoded: boolean): Editable | { reasons: string[
   if (encoded) {
     const mode = modeAxis(axes);
     if (!mode) return { reasons: ['Colourways need a design system with light and dark themes.'] };
+    const unsafe = unsafeThemeIds(axes);
+    if (unsafe.length) return { reasons: unsafe };
     const foreign = COLOURWAY_ROLES.some(role => !isLifted(doc, role, mode)) || colourways.options.some(o => colourwaySetOf(doc, colourways, o.id) === null);
     if (foreign) return { reasons: [FOREIGN_ENCODING] };
   }
@@ -814,15 +995,28 @@ export function duplicateColourway(doc: unknown, id: string, opts: DuplicateColo
   if (reasons.length) return { ok: false, reasons };
   const set = colourwaySetName(opts.id);
   if (record(next[set])) return { ok: false, reasons: [`The design system already has a token set called ${set}.`] };
-  next[set] = structuredClone(next[colourwaySetOf(next, colourways, id)!]);
+  const source = next[colourwaySetOf(next, colourways, id)!];
+  next[set] = record(source) ? structuredClone(source) : {};
+  // A hand-written source can lack a role the canonical colourway has. The copy gets it, marked as a copy.
+  const canonicalSet = colourwaySetOf(next, colourways, colourways.canonical)!;
+  for (const look of mode.options) {
+    for (const name of colourwayLeaves(next[canonicalSet], look.id)) {
+      const path = colourwayPath(look.id, name);
+      if (nodeAt(next[set], path)) continue;
+      const node: Rec = { $value: structuredClone(nodeAt(next[canonicalSet], path)!.$value) };
+      setColourRoleMark(node, { seeded: colourways.canonical });
+      setNodeAt(next[set] as Rec, path, node);
+    }
+  }
   const entry: Rec = { id: opts.id, name: opts.name.trim(), group: colourways.group, selectedTokenSets: { [set]: 'enabled' } };
   annotate(entry, { kind: 'colourway' });
   (next.$themes as unknown[]).push(entry);
   if (record(next.$metadata) && Array.isArray(next.$metadata.tokenSetOrder)) next.$metadata.tokenSetOrder = [...next.$metadata.tokenSetOrder, set];
   const result = checked(doc, next, axes, 'Copying this colourway');
   if (!result.ok) return result;
-  const roles: ColourwayRole[] = isLifted(next, 'surface', mode) ? [...COLOURWAY_ROLES, 'surface'] : [...COLOURWAY_ROLES];
-  const broken = unresolvedRoles(next, mode, colourways.group, [{ id: opts.id, name: opts.name.trim() }], roles);
+  const fresh = { id: opts.id, name: opts.name.trim() };
+  const fixed = COLOURWAY_ROLES.concat(isLifted(next, 'surface', mode) ? ['surface'] as never[] : []);
+  const broken = [...unresolvedRoles(next, mode, colourways.group, [fresh], fixed), ...gapsIn(next, mode, colourways, fresh)];
   return broken.length ? { ok: false, reasons: broken } : result;
 }
 
@@ -842,12 +1036,50 @@ export function colourwaysEditable(doc: unknown): { ok: true } | { ok: false; re
 
 /**
  * The roles every look links to the colourways: `primary`, `on-primary` and
- * `secondary`, plus `surface` once a colourway has tinted the surface. Empty when the
- * document has no colourway group or no light and dark group.
+ * `secondary`, plus `surface` once a colourway has tinted the surface, then any other
+ * role written the same way (`color.semantic.<role>` holding
+ * `{color.colourway.<mode>.<role>}`): the brand's own words in their declared order,
+ * each followed by its on-colour, then the rest as the document has them. Empty when
+ * the document has no colourway group or no light and dark group.
  */
-export function colourwayRolesOf(doc: unknown): ColourwayRole[] {
+export function colourwayRolesOf(doc: unknown): string[] {
   if (!record(doc) || !colourwayAxis(doc)) return [];
   const mode = modeAxis(readTokenAxes(doc).axes);
   if (!mode) return [];
-  return ([...COLOURWAY_ROLES, 'surface'] as ColourwayRole[]).filter(role => isLifted(doc, role, mode));
+  const fixed: string[] = [...COLOURWAY_ROLES, 'surface'];
+  const linked = new Set<string>();
+  for (const set of setOrder(doc)) {
+    const semantic = groupAt(doc[set], ['color', 'semantic']);
+    if (!semantic) continue;
+    for (const key of Object.keys(semantic)) {
+      if (linked.size >= MAX_LINKED_ROLES) break;
+      if (key.startsWith('$') || !isSafeKey(key) || fixed.includes(key)) continue;
+      const leaf = semantic[key];
+      if (record(leaf) && colourwayLinkOf(leaf.$value)?.role === key) linked.add(key);
+    }
+  }
+  const declared = declaredColourRoleIds(doc).flatMap(id => [id, `on-${id}`]);
+  const ordered = [...new Set([...declared.filter(id => linked.has(id)), ...linked])];
+  return [...fixed, ...ordered].filter(role => isLifted(doc, role, mode));
+}
+
+/** How many colour roles `colourwayRolesOf` reads from a document, so a hostile file stays cheap. */
+const MAX_LINKED_ROLES = 256;
+
+/** The group at these segments, reading own properties only. */
+export function groupAt(root: unknown, segs: readonly string[]): Rec | null {
+  let node: unknown = root;
+  for (const seg of segs) {
+    if (!record(node) || !Object.hasOwn(node, seg)) return null;
+    node = node[seg];
+  }
+  return record(node) ? node : null;
+}
+
+/** The ids of the document's declared colour roles in brand order, read without judging the rest of the record. */
+export function declaredColourRoleIds(doc: unknown): string[] {
+  const vendor = record(doc) && record(doc.$extensions) ? doc.$extensions[TOKEN_EXT] : undefined;
+  const system = record(vendor) ? vendor.brandSystem : undefined;
+  const roles = record(system) && Array.isArray(system.roles) ? system.roles : [];
+  return roles.filter((r): r is Rec => record(r) && r.group === COLOUR_ROLE_GROUP && typeof r.id === 'string').map(r => r.id as string);
 }
