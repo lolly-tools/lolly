@@ -14,6 +14,7 @@ import { endCanvasCost, startCanvasCost } from '../../lib/canvas-feedback.ts';
 import { addressPointer, copyBesidePackParams, copyWorkspaceParams, packableContent, RESULT_CONTEXT_PARAMS, WORKSPACE_PARAMS } from '../../lib/tool-url-state.ts';
 import { encodeAddressModelParam } from '../../lib/url-budget.ts';
 import type { FontStyleSlice } from '../../bridge/text-svg.ts';
+import type { MountedFontPlace } from '../design-mounted-audit.ts';
 import { fontCoversText } from '../../bridge/font-coverage-load.ts';
 import { designTokenInspectorOptions } from '../design-token-bindings.ts';
 import type { AssetRef, Profile } from '@lolly-tools/core/host-v1';
@@ -57,8 +58,8 @@ async function createPageController(tview: ToolViewCtx) {
   });
 }
 
-async function resolveDesignFont(tview: ToolViewCtx, style: FontStyleSlice, text: string): Promise<boolean> {
-  return fontCoversText(style, text, tview.host.text);
+async function resolveDesignFont(tview: ToolViewCtx, style: FontStyleSlice, text: string, place?: MountedFontPlace): Promise<boolean> {
+  return fontCoversText(style, text, tview.host.text, undefined, place);
 }
 
 /**
@@ -1917,7 +1918,7 @@ export async function bakeFraming(tview: ToolViewCtx, key: string): Promise<void
               // Document health asks the SAME registry vector export uses whether a
               // rendered run has real font bytes. Kept lazy: opening Design without
               // its inspector never pulls the font registry into this chunk.
-              resolveFont: (style, text) => resolveDesignFont(tview, style, text),
+              resolveFont: (style, text, place) => resolveDesignFont(tview, style, text, place),
               voices: tview.host.speech?.voices ? () => tview.host.speech!.voices() : undefined,
               ...designTokenInspectorOptions(runtime, tview.host, design.model, tview.inputHistory, design.fields),
               // The panel skips its whole render while closed, and it is built DETACHED - so

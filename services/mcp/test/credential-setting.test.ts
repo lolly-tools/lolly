@@ -151,11 +151,15 @@ test('an inlined logo\'s own credential reads as the file\'s, so "off" takes it 
   for (const kept of ['<title>Certificate</title>', '<dc:title>Kept</dc:title>', '<rect width="10"', '<text>Ana Kovač</text>']) assert.ok(text.includes(kept), kept);
 });
 
-test('a lifetime on an SVG goes where a reader looks: the root\'s metadata, in place of an inlined logo\'s credential', async () => {
-  const out = await finish(await svgWithCredentialedLogo(), 'svg', { c2pa: { on: true, days: 90 }, c2paAsked: true });
+test('a lifetime on an SVG goes where a reader looks: the root\'s metadata, and the inlined logo keeps its own credential', async () => {
+  const before = await svgWithCredentialedLogo();
+  const logoManifest = /<c2pa:manifest[^>]*>[^<]*<\/c2pa:manifest>/.exec(Buffer.from(before).toString())![0];
+  const out = await finish(before, 'svg', { c2pa: { on: true, days: 90 }, c2paAsked: true });
   const text = Buffer.from(out.bytes).toString();
-  assert.equal(text.match(/<c2pa:manifest/g)?.length, 1, 'one credential in the file');
+  assert.equal(text.match(/<c2pa:manifest/g)?.length, 2, 'this server\'s credential and the logo\'s');
   assert.ok(text.indexOf('<c2pa:manifest') < text.indexOf('<rect'), 'ahead of the inlined artwork');
+  assert.ok(text.includes(logoManifest), 'the logo\'s, byte for byte');
+  assert.ok(text.indexOf(logoManifest) > text.indexOf('<svg', 1), 'inside the logo\'s own markup');
   assert.equal(/<metadata>\s*<c2pa:manifest/.test(text), true, text.slice(0, 300));
   assert.deepEqual(out.credential, { asked: 90, holds: 'valid', days: 90, selfSigned: true });
   assert.ok(text.includes('<dc:title>Kept</dc:title>'));
