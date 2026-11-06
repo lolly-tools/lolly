@@ -165,7 +165,11 @@
 
 .docs-content p { margin-bottom: 1.5rem; }
 .docs-content ul, .docs-content ol { margin-bottom: 1rem; padding-left: 1.25rem; }
-.docs-content li { margin-bottom: 1rem; list-style-type: "🍭 "; font-size: 0.875em; }
+.docs-content li { margin-bottom: 1rem; }
+/* Bullets wear the lollipop; numbered steps keep their numbers, and list text reads at
+   the body size (Andy, 2026-11-06). A step list that loses its numbers loses the order
+   it is there to give, and /info has always shown them. */
+.docs-content ul > li { list-style-type: "🍭 "; }
 .docs-content a { color: var(--green); text-decoration: underline; }
 .docs-content a:hover { text-decoration: underline; }
 .docs-content strong { font-weight: 600; }
