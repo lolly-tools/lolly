@@ -3629,8 +3629,8 @@ ${LANDING_CSS}
 .docs-content{padding:2.75rem 3.5rem 6rem;min-width:0}
 /* No band (a page with no h1 at all): the column clears the fixed bar by itself. */
 .docs-content.no-mast{padding-top:calc(var(--site-bar-h) + 2.25rem)}
-/* ── Article masthead (docsMasthead + DOCS_MASTHEAD_SCRIPT) ───────────────────
-   The page's own h1 over the chip field, FULL VIEWPORT WIDTH: the band is a sibling
+/* ── Article masthead (docsMasthead) ──────────────────────────────────────────
+   The section strip and the page's own h1, FULL VIEWPORT WIDTH: the band is a sibling
    of .docs-wrap, so the sidebar rail and the article both begin underneath it. That
    is the landing page's own grammar (its hero spans the window and the content
    starts below), and a band inset to one column would have read as an illustration
@@ -3641,22 +3641,20 @@ ${LANDING_CSS}
    this one up with the column the article is about to start in makes the band feel
    structural instead of pasted on. Logical padding, so an RTL locale mirrors it.
 
-   isolation:isolate keeps the canvas's blend mode inside the band - without it the
-   dark theme's color-dodge would reach the page behind. */
-.docs-masthead{position:relative;isolation:isolate;overflow:hidden;padding:calc(var(--site-bar-h) + 2.25rem) 0 2.25rem;min-height:clamp(14rem,30vh,20rem);display:flex;flex-direction:column;justify-content:flex-end;background:linear-gradient(180deg,var(--pale) 0%,var(--page) 100%)}
-/* The dark plate stays a PLATE - a green a couple of steps up from the page - because
-   color-dodge divides by the backdrop: over near-black (#061816) the chips resolve to
-   near-black too and the field disappears. The gradient's last stop still reaches the
-   page colour, so the band ends where the article begins. */
+   It holds words only (no chip field since 2026-11-06), so it is as tall as its two
+   rows and the article starts right under the title. A banked masthead (MASTHEADS,
+   docs-art.ts) brings its own art and height. */
+.docs-masthead{position:relative;isolation:isolate;overflow:hidden;padding:calc(var(--site-bar-h) + 2.25rem) 0 2.25rem;display:flex;flex-direction:column;justify-content:flex-end;background:linear-gradient(180deg,var(--pale) 0%,var(--page) 100%)}
+/* In dark the band is a plate a couple of green steps up from the page; the
+   gradient's last stop reaches the page colour, so the band ends where the article
+   begins. */
 [data-theme="dark"] .docs-masthead,[data-theme="dark"] .docs-strip-band:not(.docs-strip-band--flow){background:linear-gradient(180deg,#0a4744 0%,#052927 58%,var(--page) 100%)}
 /* Same box as .docs-wrap, then indented past the rail: the h1 starts exactly where
    the article's text will. Below 768px the rail is gone and so is the indent. It
    holds two rows (plan 277 step 3c): the pathways strip, then the title row. */
 .docs-mast-inner{position:relative;z-index:2;max-width:1180px;width:100%;margin:0 auto;padding-inline:calc(220px + 3.5rem) 3.5rem;display:flex;flex-direction:column;gap:1.4rem}
-.docs-mast-canvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:0;opacity:.55}
-/* The chips are decoration under the title; the bar and the pathways strip above it
-   carry words, so the field fades in only below them. The banked art takes the same
-   line. --mast-clear sits on the band: MAST_CLEAR_SCRIPT sets it to the strip's own
+/* Banked art fades in only below the bar and the pathways strip, which carry words.
+   --mast-clear sits on the band: MAST_CLEAR_SCRIPT sets it to the strip's own
    foot, which moves with the band's height and the title's length; the values here
    are the estimate a reader without JavaScript gets. */
 .docs-masthead{--mast-clear:calc(var(--site-bar-h) + 5rem)}
@@ -3666,7 +3664,6 @@ ${LANDING_CSS}
    a normal blend, because dodging on a near-white band blows the chips out to
    invisible white. Blend and opacity live here rather than in the JS: they are how
    the field MEETS the page, and the page's own theme rules already know that. */
-[data-theme="dark"] .docs-mast-canvas{mix-blend-mode:color-dodge;opacity:.6}
 /* Two scrims, both above the canvas and below the h1 (::before/::after are z-index 1,
    the heading is 2). The first is legibility insurance - the heading is currentColor,
    so decoration must never be allowed to eat its contrast; the second melts the band
@@ -4376,7 +4373,7 @@ const NOSCRIPT_NAV = `<noscript><style>.docs-search,.site-fab--search,.site-fab-
 // moves a shot under no-preference.
 const SHOT_MOTION_INIT = `<script>if(document.documentElement.dataset.a11yMotion!=='reduce')document.documentElement.classList.add('shots-motion');</script>`;
 
-// The masthead's decoration (the chip canvas or banked art) stays out of the pathways
+// A banked masthead's art stays out of the pathways
 // strip's row: it may only appear from the strip's foot down. That foot moves with the
 // band's height and the title's length, so it is measured here and kept current as the
 // band resizes; the stylesheet's --mast-clear is the estimate without JavaScript.
@@ -5126,43 +5123,6 @@ const HERO_CANVAS_SCRIPT = `<script>(function(){
   window.__lollyChipField(canvas,{burst:true});
 })();</script>`;
 
-/**
- * The article masthead's instance of the same field.
- *
- * The effect was built for one dark plate and hardcoded to it (deep green chips,
- * bright green labels, color-dodge). Docs pages are read in every theme, so here the
- * palette comes from the page's own tokens and the chips are RE-BAKED when the
- * theme changes - the toggle stamps [data-theme] (light/dark/brand) on <html>, and a
- * reader on "system" gets the same flip from the OS; palette() treats brand as a dark
- * ground. Blend + opacity are CSS's job (.docs-mast-canvas), so
- * the JS only ever decides two colours.
- */
-const DOCS_MASTHEAD_SCRIPT = `<script>(function(){
-  var canvas=document.querySelector('.docs-mast-canvas');
-  if(!canvas)return;
-  function tok(name,fallback){
-    var v=getComputedStyle(document.documentElement).getPropertyValue(name).trim();
-    return v||fallback;
-  }
-  function palette(){
-    var th=document.documentElement.dataset.theme;
-    var dark=th==='dark'||th==='brand';  // brand is a dark ground too
-    // Dark: the landing's own chip fill (Opal's deep plate green) over the dark band,
-    // under color-dodge - the same glow the front door has. Light: a Pandanus chip on a
-    // near-white band, normal blend, so the field reads as watermark rather than
-    // decoration. The light fill reads --border, not --input: the bridge makes --border
-    // a finished hsl() colour, while --input is a bare triple a canvas cannot parse.
-    return dark
-      ? {fill:'#0a4744', label:tok('--green','#50c369')}
-      : {fill:tok('--border','#ace1ad'), label:tok('--green','#033633')};
-  }
-  var field=window.__lollyChipField(canvas,{palette:palette,pause:true,reduceMotion:true,burst:true,burstGuard:true});
-  // The [data-theme] flip (docs theme toggle) and the OS preference both change the answer.
-  new MutationObserver(function(){ field.rebake(); })
-    .observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
-  var mq=window.matchMedia('(prefers-color-scheme:dark)');
-  if(mq.addEventListener) mq.addEventListener('change',function(){ field.rebake(); });
-})();</script>`;
 
 // The way back to the app. The app notes the view a tab leaves it from (sessionStorage
 // lolly:leftApp, shells/web/src/lib/back-nav.ts rememberViewOnLeave): same tab, same
@@ -6325,14 +6285,13 @@ function pageContentsParts(content: string): { rail: string; control: string } {
 }
 
 /**
- * Hoist a page's own h1 into a masthead band with the chip field behind it.
+ * Hoist a page's own h1 into a masthead band, under the pathways strip.
  *
- * Every article page opened with a bare h1 on white - correct, and completely
- * silent about what site you had landed on. The landing page's hero already says it
- * (formats drifting past the name), so the docs get the same greeting rather than a
- * second invented one. plans/105 records why this is the DEFAULT rather than a
- * per-page choice, and why it carries no credential line: it is shell decoration
- * drawn at read time, nothing signed and nothing claimed.
+ * The band used to carry the landing's drifting file-format chips behind the title
+ * (plans/105). Andy removed them from article pages on 2026-11-06: a reader came for
+ * the text, the site bar already says which site this is, and the chips sat behind
+ * the section tabs. The landing hero keeps its field. A page mapped in MASTHEADS
+ * still gets its banked art in the same band.
  *
  * THE H1 MOVES BUT ITS IDENTITY DOES NOT. The element is re-emitted verbatim, id
  * and all, because that id is a published anchor - deep links, the search index's
@@ -6348,10 +6307,12 @@ function docsMasthead(content: string, slug: string, top: { strip: string; editi
   const heading = `${top.strip}<div class="mast-title">${m[0]}${top.edition}</div>`;
   const art = mastheadArt(slug, heading);
   if (art) return { band: art, rest, canvas: false };
+  // The band carries words only: the sections and the title. Its drifting chip field
+  // went on 2026-11-06 (Andy: no chips on article pages; the landing hero keeps its
+  // decoration), so a reader opens every page on the title, not on motion behind it.
   const band = `<div class="docs-masthead">`
-    + `<canvas class="docs-mast-canvas" aria-hidden="true"></canvas>`
     + `<div class="docs-mast-inner">${heading}</div></div>`;
-  return { band, rest, canvas: true };
+  return { band, rest, canvas: false };
 }
 
 /**
@@ -6415,7 +6376,7 @@ const DOCS_JS = [
   CHIP_FIELD_JS,
   FORMATS_DIALOG_SCRIPT, THEME_INTERACT_SCRIPT, SHOT_MOTION_SCRIPT, SHOWCASE_SCRIPT,
   SHOT_CRED_SCRIPT, SCROLL_REVEAL_SCRIPT, LIQUID_GLASS_SCRIPT, HERO_CANVAS_SCRIPT,
-  DOCS_MASTHEAD_SCRIPT, VERIFY_POPOUT_SCRIPT, DOCS_SEARCH_SCRIPT, HAMBURGER_SCRIPT,
+  VERIFY_POPOUT_SCRIPT, DOCS_SEARCH_SCRIPT, HAMBURGER_SCRIPT,
   LANG_PICKER_SCRIPT, ORIGIN_SCRIPT, readingScript(), stripScript(), contentsScript(), agentCopyScript(), MAST_CLEAR_SCRIPT,
 ].map(stripScriptTags).join('\n;\n');
 const fingerprint = (s: string): string =>
