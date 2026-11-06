@@ -31,6 +31,7 @@ import { toolTokenUsage } from '../../lib/theme-relevance.ts';
 import { createThemeToggle } from '../../components/theme-toggle.ts';
 import { createSoundToggle } from '../../components/sound-toggle.ts';
 import { createProfileControl } from '../../components/profile-menu.ts';
+import { addFallbackSlots } from '../../lib/fallback-slots.ts';
 import { mountScopedStyle } from '../../lib/scope-css.ts';
 import { flickDirection, setupMobileSheet } from '../../lib/mobile-sheet.ts';
 import { wireExportPanelFloat } from '../../lib/export-panel-float.ts';
@@ -546,6 +547,9 @@ export async function wireSidebar(tview: ToolViewCtx): Promise<void> {
 [data-canvas-input] { cursor: pointer; }
 [data-canvas-input]:hover { outline: 2px dashed rgba(128,128,128,0.35); outline-offset: 3px; border-radius: 2px; }`; tview.focusHint = focusHint;
   const styleEl = mountScopedStyle(`${tview.tool.styles ?? ''}${focusHint}`, canvasScope); tview.styleEl = styleEl;
+  // A tool that sets its own fonts draws a script they lack in the same fallback font on
+  // the page as in its export (lib/fallback-slots.ts). The CSSOM only: the text stays.
+  addFallbackSlots(styleEl.sheet);
 
   const layout = viewEl.querySelector<HTMLElement>('#tool-layout')!; tview.layout = layout;
   const inputsEl = viewEl.querySelector<PanelEl>('#tool-inputs'); tview.inputsEl = inputsEl;
