@@ -317,7 +317,13 @@ const SAME: Record<string, { inner: string; w?: number; h?: number; draw?: strin
   'page-shape-rounded': { inner: TALL, w: 600, h: 121, opts: { width: W, height: H }, svg: true },
 };
 
+// A line of several inline runs leans on the platform font backend for each run's advance,
+// so its bytes hold on the macOS the goldens were generated on (export-pdf-text.browser.test.ts
+// keeps its own `inline` golden the same way).
+const GENERATED_PLATFORM_ONLY = new Set(['inline-block-unpainted']);
+
 for (const [name, c] of Object.entries(SAME)) {
+  if (GENERATED_PLATFORM_ONLY.has(name) && process.platform !== 'darwin') continue;
   test(`golden: ${name} keeps its PDF bytes${c.svg ? ' and its SVG' : ''}`, { skip: SKIP }, async () => {
     const { pg } = await mount(c.inner, c.w ?? W, c.h ?? H, c.draw ?? '');
     const hash = await contentHash((await pdfOf(pg, c.opts ?? {})).bytes);
