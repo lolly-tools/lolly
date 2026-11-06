@@ -18,7 +18,7 @@ const DEVANAGARI = 'tests/fixtures/text-composition/fonts/notosansdevanagari/Not
 const OUTFIT = 'shells/web/public/fonts/Outfit[wght].ttf';
 
 test('plain left-to-right text takes the old path, untouched', () => {
-  for (const text of ['Plain Latin.', 'Café déjà vu “quotes” € ©', 'Łódź Ñandú', 'Привет Ωμέγα Hello', '漢字 and かな', 'नमस्ते दुनिया।', 'สวัสดี']) {
+  for (const text of ['Plain Latin.', 'Café déjà vu “quotes” € ©', 'Łódź Ñandú', 'Привет Ωμέγα Hello', '漢字 and かな', 'नमस्ते दुनिया।', 'สวัสดี', 'Հայաստան and Latin', 'საქართველო and Latin']) {
     assert.equal(orderedRuns(text), null, text);
     assert.equal(orderedRuns(text, 'ltr'), null, text);
     assert.equal(hasRtlText(text), false, text);

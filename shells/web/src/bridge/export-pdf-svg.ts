@@ -40,6 +40,9 @@ import { drawSvgPathToPdf } from './export-pdf-vector.ts';
 import { resolveVectorFont } from './font-registry.ts';
 import { embedResolvedFont } from './export-font-data.ts';
 import { embedSuseFont, pdfFontEmbed, suseFontName } from './export-pdf-fonts.ts';
+import { TEXT_PICTURE_DPI, liveTextWouldGarble, notePicturedText, textPicture, undrawableTextError } from './export-pdf-text-picture.ts';
+import { hasRtlText } from '@lolly-tools/node-shell/text-bidi';
+import { physicalTextAnchor } from './text-svg.ts';
 import { inlineSvgFromImg } from './export-svg-walker.ts';
 import { PDF_BLEND_MODES, type PdfDoc, type ShadingFill } from './export-pdf-doc.ts';
 import {
@@ -1010,12 +1013,17 @@ async function drawText(el: Element, ctx: Ctx, alpha: number): Promise<void> {
     const a = paint ? clamp01(s.num(styleEl, 'fill-opacity', 1)) * alpha * paint.alpha : 0;
     const vf = _host?.text ? await resolveVectorFont({ fontFamily: familyRaw, fontWeight: String(weight), fontStyle: italic ? 'italic' : 'normal' }, t.trim()) : null;
     const embedUrl = convertPaths ? null : await pdfFontEmbed(vf);
-    if ((convertPaths || (vf && !embedUrl)) && _host?.text && vf) {
+    const rtl = s.get(styleEl, 'direction') === 'rtl';
+    const ordered = rtl || hasRtlText(t);
+    const garbled = liveTextWouldGarble(t, rtl);
+    // `start` and `end` follow the direction, so these are sides of the run from here on.
+    const side = physicalTextAnchor(anchor, rtl ? 'rtl' : 'ltr');
+    if ((convertPaths || (vf && !embedUrl) || garbled) && _host?.text && vf) {
       try {
-        const shaped = await _host.text.toPath({ text: t, fontUrl: vf.url, fontSize: size, variations: vf.variations, fallbackFonts: vf.fallbacks });
+        const shaped = await _host.text.toPath({ text: t, fontUrl: vf.url, fontSize: size, variations: vf.variations, fallbackFonts: vf.fallbacks, ...(ordered ? { direction: rtl ? 'rtl' as const : 'ltr' as const } : {}) });
         if (shaped?.d && !shaped.notdef) {
           const adv = shaped.advanceWidth || 0;
-          const left = anchor === 'middle' ? x - adv / 2 : anchor === 'end' ? x - adv : x;
+          const left = side === 'middle' ? x - adv / 2 : side === 'end' ? x - adv : x;
           const tx = (gx: number): number => left + gx, ty = (gy: number): number => by + gy;
           if (paint && a > 0) {
             withAlpha(ctx, a, () => {
@@ -1046,6 +1054,25 @@ async function drawText(el: Element, ctx: Ctx, alpha: number): Promise<void> {
       if (suseStyle) { pdf.setFont(suseFontName(mono), suseStyle); fontSet = true; }
     }
     if (!fontSet) pdf.setFont('helvetica', weight >= 600 ? (italic ? 'bolditalic' : 'bold') : (italic ? 'italic' : 'normal'));
+    // No face here can set the words as they read, so they go in as a picture.
+    if (garbled || !pdf.canSetText(t)) {
+      const measured = measureWith(cssFont)?.measureText(t);
+      const w = measured?.width ?? size * t.length * 0.6;
+      const ascent = measured?.fontBoundingBoxAscent ?? size, descent = measured?.fontBoundingBoxDescent ?? size * 0.3;
+      if (paint && a > 0) {
+        const fill = 'rgb' in paint ? paint : middleStop(paint, ctx, 'text drawn as a picture');
+        const pic = await textPicture({
+          text: t, direction: rtl ? 'rtl' : 'ltr', box: { w, h: ascent + descent }, scale: (TEXT_PICTURE_DPI / 72) * lengthScale(ctx.ctm),
+          style: { 'font-family': familyRaw, 'font-size': `${size}px`, 'font-weight': String(weight), 'font-style': italic ? 'italic' : 'normal', 'letter-spacing': s.get(styleEl, 'letter-spacing'), color: `rgb(${fill.rgb[0]},${fill.rgb[1]},${fill.rgb[2]})` },
+        });
+        if (!pic) throw undrawableTextError(t);
+        const left = side === 'middle' ? x - w / 2 : side === 'end' ? x - w : x;
+        withAlpha(ctx, a, () => { pdf.addImage(pic.src, 'PNG', left - pic.pad, by - ascent - pic.pad, pic.w + 2 * pic.pad, pic.h + 2 * pic.pad); });
+        noteDrawn(ctx, { x: left - pic.pad, y: by - ascent - pic.pad, w: pic.w + 2 * pic.pad, h: pic.h + 2 * pic.pad });
+        notePicturedText(pdf, t);
+      }
+      return browserLength ?? w;
+    }
     const width = pdf.getTextWidth(t);
     if (paint && a > 0) {
       // Live text keeps its font and takes a gradient through a shading pattern.
@@ -1070,6 +1097,8 @@ async function drawText(el: Element, ctx: Ctx, alpha: number): Promise<void> {
   // A list of positions places each character; only the first is used, for the run.
   let penX = firstLen(el.getAttribute('x'), ctx.vp.w), penY = firstLen(el.getAttribute('y'), ctx.vp.h);
   const runs = textRuns(el, s);
+  // Right-to-left runs follow each other leftwards.
+  const flow = s.get(el, 'direction') === 'rtl' ? -1 : 1;
   if (runs.every(r => r.el === el)) {
     await drawRun(el, runs.map(r => r.text).join(''), penX, penY, anchorOf(el, 'start'), null);
     return;
@@ -1077,7 +1106,7 @@ async function drawText(el: Element, ctx: Ctx, alpha: number): Promise<void> {
   for (const run of runs) {
     if (run.el === el) {
       // A bare text node advances by its own width, not the whole <text>'s.
-      if (run.text) penX += await drawRun(el, run.text, penX, penY, 'start', null);
+      if (run.text) penX += flow * await drawRun(el, run.text, penX, penY, 'start', null);
       continue;
     }
     const ts = run.el;
@@ -1089,7 +1118,7 @@ async function drawText(el: Element, ctx: Ctx, alpha: number): Promise<void> {
     penY += rel(ts.getAttribute('dy'));
     let length: number | null = null;
     try { length = typeof (ts as SVGTextContentElement).getComputedTextLength === 'function' ? (ts as SVGTextContentElement).getComputedTextLength() || null : null; } catch { length = null; }
-    penX += await drawRun(ts, run.text, penX, penY, anchorOf(ts, anchorOf(el, 'start')), length);
+    penX += flow * await drawRun(ts, run.text, penX, penY, anchorOf(ts, anchorOf(el, 'start')), length);
   }
 }
 

@@ -140,7 +140,7 @@ SVG and PDF exports are not screenshots. The exporter reads each element's compu
 | `overflow: hidden`; `clip-path` with `circle()`, `ellipse()`, `inset()` or `polygon()` | Kept as a clip. `clip-path: url()` or `path()` rasterises. |
 | `mask-image`, `mask` | Raster. |
 | `backdrop-filter` | A plain `blur()` is kept in snapshot exports; anything richer rasterises. |
-| Text | Outlined to paths with the real font, including `-webkit-text-stroke` and `paint-order`. A glyph the font lacks (a CJK character in a Latin-only face, say) keeps that whole line as live `<text>`, which then needs the font on the viewer's machine. Right-to-left lines keep the browser's order either way: an outline is shaped in visual order, and a live `<text>` states `direction="rtl"` and sits on the line's right edge. |
+| Text | Outlined to paths with the real font, including `-webkit-text-stroke` and `paint-order`. A glyph the font lacks (a CJK character in a Latin-only face, say) keeps that whole line as live `<text>` in SVG, which then needs the font on the viewer's machine. In PDF that line goes in as a picture from the browser's own text renderer, and the export notice lists the scripts it covered. Right-to-left lines keep the browser's order either way: an outline is shaped in visual order, and a live `<text>` states `direction="rtl"` and sits on the line's right edge. |
 | `background-image` | Gradients become real gradients and a single image an `<image>`; `conic-gradient` rasterises. |
 | `transform` | 2-D transforms are kept. 3-D (`rotateY`, `perspective`) is not. |
 

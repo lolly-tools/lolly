@@ -873,6 +873,24 @@ export class PdfDoc {
     return this;
   }
 
+  /**
+   * Whether text() can draw this string in the active font as it stands. An embedded face
+   * is addressed one glyph per character, so it needs a glyph for each. A base-14 face
+   * takes WinAnsi only, and encodeText below replaces anything else with a question mark.
+   */
+  canSetText(text: string): boolean {
+    const font = this.activeFont;
+    if (font.sfnt) {
+      for (const ch of text) if (!/\s/.test(ch) && !font.sfnt.gidFor(ch.codePointAt(0)!)) return false;
+      return true;
+    }
+    // The encoder on its own: base14() embeds a font object, which a run that goes on to
+    // outline must not leave in the file.
+    const { StandardFontEmbedder, StandardFonts } = this.lib;
+    const named = StandardFonts[font.standard as keyof typeof StandardFonts] ?? StandardFonts.Helvetica;
+    try { StandardFontEmbedder.for(String(named) as Parameters<typeof StandardFontEmbedder.for>[0]).encodeText(text); return true; } catch { return false; }
+  }
+
   private encodeText(text: string, font: FontEntry): string {
     if (font.sfnt) {
       let hex = '';

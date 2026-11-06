@@ -4114,7 +4114,7 @@ var ENGINE_VERSION;
 var init_version = __esm({
   "engine/src/version.ts"() {
     "use strict";
-    ENGINE_VERSION = "1.316.0";
+    ENGINE_VERSION = "1.317.0";
   }
 });
 
@@ -123755,7 +123755,7 @@ function textMeasureSpecOfRow(row, fonts) {
   if (fonts) spec.fonts = fonts;
   return spec;
 }
-var TextMeasureError, TEXT_MEASURE_DEFAULT_FONTS, TEXT_MEASURE_DEFAULTS, TEXT_MEASURE_MAX_UNITS, EPSILON, VALIGNS2, HANGING, num12, clamp4, round24, bolder, faceKey, PAIR_WORD, ASCII_BREAK_AFTER, isPrintableAscii, isBreakableSpace, DICTIONARY_SCRIPT, UNCOVERED_LIST_MAX, trimHanging, specNum, given;
+var TextMeasureError, TEXT_MEASURE_DEFAULT_FONTS, TEXT_MEASURE_DEFAULTS, TEXT_MEASURE_MAX_UNITS, EPSILON, VALIGNS2, HANGING, num12, clamp4, round24, bolder, faceKey, PAIR_WORD, ASCII_BREAK_AFTER, isPrintableAscii, isBreakableSpace, DICTIONARY_SCRIPT, RIGHT_TO_LEFT_SCRIPT, UNCOVERED_LIST_MAX, trimHanging, specNum, given;
 var init_design_text_measure = __esm({
   "engine/src/design-text-measure.ts"() {
     "use strict";
@@ -123793,6 +123793,7 @@ var init_design_text_measure = __esm({
     isPrintableAscii = (c) => c !== void 0 && c > " " && c <= "~";
     isBreakableSpace = (c) => c === " " || c === "	";
     DICTIONARY_SCRIPT = /[\u0E00-\u0EFF\u1000-\u109F\u1780-\u17FF\u19E0-\u19FF\u1A20-\u1AAF\uA9E0-\uA9FF\uAA60-\uAADF]/;
+    RIGHT_TO_LEFT_SCRIPT = /[\u0590-\u08FF\uFB1D-\uFDFF\uFE70-\uFEFC\u{10800}-\u{10FFF}\u{1E800}-\u{1EFFF}]/u;
     UNCOVERED_LIST_MAX = 64;
     trimHanging = (text13, a, z) => {
       while (z > a && HANGING.test(text13[z - 1])) z--;
@@ -125745,7 +125746,7 @@ function designDrawFindings(row, opts = {}) {
   }
   if (opts.semantics !== "preview" && rowStr2(row, "text") && !set("textStory") && !set("textFrame")) {
     if (designFlag(row, "fitText")) found.push("fit-text");
-    if (rowStr2(row, "textDirection") === "rtl") found.push("text-direction");
+    if (rowStr2(row, "textDirection") === "rtl" || RIGHT_TO_LEFT_SCRIPT.test(rowStr2(row, "text"))) found.push("text-direction");
     if (segmentEmojiText(rowStr2(row, "text")).some((span) => span.kind === "emoji")) found.push("text-emoji");
     if (DICTIONARY_SCRIPT.test(rowStr2(row, "text"))) found.push("text-dictionary");
   }
@@ -170231,7 +170232,7 @@ var init_text_bidi = __esm({
     "use strict";
     init_text_unicode();
     RTL_CLASSES = /* @__PURE__ */ new Set(["R", "AL", "RLE", "RLO", "RLI"]);
-    SIMPLE_SCRIPTS = /* @__PURE__ */ new Set(["Latn", "Grek", "Cyrl", "Hani", "Hira", "Kana", "Hang", "Zyyy", "Zinh", "Zzzz"]);
+    SIMPLE_SCRIPTS = /* @__PURE__ */ new Set(["Latn", "Grek", "Cyrl", "Armn", "Geor", "Ethi", "Cher", "Cans", "Copt", "Ogam", "Runr", "Yiii", "Hani", "Hira", "Kana", "Hang", "Bopo", "Zyyy", "Zinh", "Zzzz"]);
   }
 });
 
@@ -178418,6 +178419,10 @@ async function renderViaChromiumShell(toolId, query2, format, dims = {}) {
     }, ["lolly.exportRoute", route]);
     const observeInputs = await observeProductionInputs(page3, toolId, dims.productionInputIds ?? []);
     debug.attach(page3);
+    page3.on("console", (message) => {
+      if (message.text().startsWith(PDF_TEXT_NOTE)) process.stderr.write(`Note: ${sessionExportNote(message.type(), message.text())}
+`);
+    });
     waiting = await waitForExport(page3, format);
     const downloadP = waiting.result;
     debug.step("open the tool page");
@@ -178668,7 +178673,7 @@ async function exportOpenedSession(page3, base, query2, format, dims, debug, lab
   }
 }
 function sessionExportNote(type, text13) {
-  if (type !== "warning" || !text13.startsWith("[warn] pptx: ")) return null;
+  if (type !== "warning" || !(text13.startsWith("[warn] pptx: ") || text13.startsWith(PDF_TEXT_NOTE))) return null;
   return text13.slice("[warn] ".length, "[warn] ".length + 2e3).trimEnd();
 }
 function sessionDims(opts) {
@@ -178829,7 +178834,7 @@ async function designChecksViaSession(bytes2, opts = {}) {
     throw withDebugLog(err instanceof OpenSessionError ? new BrowserError(err.message) : err, "design.check", debug);
   }
 }
-var MIME4, served2, EXPORT_URL_RESERVED2, tierBDebugConfig, DEBUG_MAX_LINES, NO_DEBUG, PAGE_DESIGN_SYSTEM_GLOBAL, DESKTOP_REQUEST_MAX_BYTES, DESKTOP_REQUEST_MARGIN;
+var MIME4, served2, EXPORT_URL_RESERVED2, tierBDebugConfig, DEBUG_MAX_LINES, NO_DEBUG, PAGE_DESIGN_SYSTEM_GLOBAL, PDF_TEXT_NOTE, DESKTOP_REQUEST_MAX_BYTES, DESKTOP_REQUEST_MARGIN;
 var init_webshell_render = __esm({
   "packages/node-shell/src/webshell-render.ts"() {
     "use strict";
@@ -178885,6 +178890,7 @@ var init_webshell_render = __esm({
       write: () => null
     };
     PAGE_DESIGN_SYSTEM_GLOBAL = "__lollyAutomationDesignSystem";
+    PDF_TEXT_NOTE = "[warn] pdf: This PDF draws some text as pictures";
     DESKTOP_REQUEST_MAX_BYTES = 1 << 20;
     DESKTOP_REQUEST_MARGIN = 4 * 1024;
   }

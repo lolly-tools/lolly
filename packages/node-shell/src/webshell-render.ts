@@ -614,6 +614,9 @@ async function renderViaChromiumShell(
     if (route) await page.addInitScript(([key, value]: string[]) => { try { localStorage.setItem(key!, value!); } catch { /* storage blocked */ } }, ['lolly.exportRoute', route]);
     const observeInputs = await observeProductionInputs(page, toolId, dims.productionInputIds ?? []);
     debug.attach(page);
+    page.on('console', (message: ConsoleMessage) => {
+      if (message.text().startsWith(PDF_TEXT_NOTE)) process.stderr.write(`Note: ${sessionExportNote(message.type(), message.text())}\n`);
+    });
     waiting = await waitForExport(page, format);
     const downloadP = waiting.result;
     debug.step('open the tool page');
@@ -1056,9 +1059,12 @@ async function exportOpenedSession(
  * `host.log('warn', 'pptx: …')` prints `[warn] pptx: …`; the note is the `pptx: …` part.
  */
 export function sessionExportNote(type: string, text: string): string | null {
-  if (type !== 'warning' || !text.startsWith('[warn] pptx: ')) return null;
+  if (type !== 'warning' || !(text.startsWith('[warn] pptx: ') || text.startsWith(PDF_TEXT_NOTE))) return null;
   return text.slice('[warn] '.length, '[warn] '.length + 2000).trimEnd();
 }
+
+/** What a PDF tells the person when it drew text as pictures (export-pdf-text-picture.ts). */
+const PDF_TEXT_NOTE = '[warn] pdf: This PDF draws some text as pictures';
 
 /** The RenderDims of a session export: the frame and provenance options laid over `dims`. */
 function sessionDims(opts: ExportDesignSessionOptions): RenderDims {

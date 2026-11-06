@@ -78,7 +78,7 @@ test('the sensor capabilities still validate (screen is additive, not a replacem
 
 // ─── version ─────────────────────────────────────────────────────────────────
 
-test('ENGINE_VERSION is 1.316.0', () => {
+test('ENGINE_VERSION is 1.317.0', () => {
   // A literal pin: the screencap surface shipped at 1.54, and tools declare
   // ^1.54.0 to require it. session-record only checks the stamp equals whatever
   // ENGINE_VERSION happens to be (tautological) - this catches an errant bump.
@@ -589,7 +589,8 @@ test('ENGINE_VERSION is 1.316.0', () => {
   // 1.314.0 carries colour roles to agents and to every paint path. Capture is unchanged.
   // 1.315.0 tests for a real emoji before loading a set. Capture is unchanged.
   // 1.316.0 adds an optional direction to host.text.toPath and orders right-to-left runs. Capture is unchanged.
-  assert.equal(ENGINE_VERSION, '1.316.0');
+  // 1.317.0 sends a Design row with right-to-left letters to the browser's own layout. Capture is unchanged.
+  assert.equal(ENGINE_VERSION, '1.317.0');
 });
 
 // ─── loadTool: a ^1.54.0 tool loads against this engine ───────────────────────
