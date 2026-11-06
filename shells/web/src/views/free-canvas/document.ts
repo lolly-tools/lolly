@@ -17,6 +17,7 @@ import { escape as escapeText } from '../../utils.ts';
 import { t, tRaw } from '../../i18n.ts';
 import { colorFieldHtml, wireColorField } from '../../components/color-field.ts';
 import { SVG, icon } from '../free-canvas-icons.ts';
+import { mountEditorPanel, placePanelBeside, stageFoot } from '../free-canvas-popover.ts';
 import { FC_TILT, boolOf } from './shared.ts';
 import { bindOp, type FcCtx } from './context.ts';
 
@@ -282,6 +283,11 @@ export function openSizeMenu(fc: FcCtx, anchor: HTMLElement): void {
     dispH = toUnitVal(fc, d.h, 'px', fc.sizeUnit);
   const p = document.createElement('div');
   p.className = 'fc-panel fc-size-panel';
+  // The `fc-panel` dialog recipe (askLiftLayers): named, and focusable so focus can
+  // move into it at open.
+  p.tabIndex = -1;
+  p.setAttribute('role', 'dialog');
+  p.setAttribute('aria-label', fi >= 0 ? tRaw('Artboard size') : tRaw('Canvas size'));
   p.innerHTML =
     `<div class="fc-panel-head">${fi >= 0 ? t('Artboard size') : t('Canvas size')}</div>` +
     '<div class="fc-size-presets">' +
@@ -360,12 +366,39 @@ export function openSizeMenu(fc: FcCtx, anchor: HTMLElement): void {
     p.querySelectorAll<HTMLElement>('[data-sz-unit]').forEach((x) => { (x.textContent = to); });
     p.querySelectorAll('.fc-size-preset').forEach((x) => { x.classList.remove('is-current'); });
   });
-  stageEl.appendChild(p);
+  // Escape closes this panel first, never the inspector sheet or anything else behind it,
+  // and hands focus back to its trigger. The inspector rebuilds its
+  // column on most model changes, so its Size door may be a new node by then: it is
+  // found again by the `data-act` the inspector refocuses its own controls by.
+  const opener = (): HTMLElement | null => {
+    if (anchor.isConnected) return anchor;
+    const act = anchor.dataset.act;
+    return act ? document.querySelector<HTMLElement>(`[data-act="${fc.keys.cssEscape(act)}"]`) : null;
+  };
+  p.addEventListener('keydown', (e) => {
+    if (e.key !== 'Escape' || e.metaKey || e.ctrlKey || e.altKey) return;
+    e.preventDefault();
+    e.stopPropagation();
+    closeMorePanel(fc);
+    opener()?.focus();
+  });
+  // Over the stage when its trigger, or the phone layout's sheets, would cover it there
+  // (see mountEditorPanel); the position is worked out against the stage either way, so
+  // a panel opened from the docked desktop inspector opens exactly where it always did.
+  const over = mountEditorPanel(p, anchor, stageEl);
   fc.morePanel = p;
   const ar = anchor.getBoundingClientRect(),
     sr = stageEl.getBoundingClientRect();
-  p.style.left = Math.min(ar.right - sr.left + 8, sr.width - p.offsetWidth - 8) + 'px';
-  p.style.top = Math.max(6, Math.min(ar.top - sr.top, sr.height - p.offsetHeight - 8)) + 'px';
+  const at = placePanelBeside(
+    { right: ar.right - sr.left, top: ar.top - sr.top },
+    { w: p.offsetWidth, h: p.offsetHeight },
+    { w: sr.width },
+    stageFoot(stageEl, sr)
+  );
+  p.style.left = at.left + (over ? sr.left : 0) + 'px';
+  p.style.top = at.top + (over ? sr.top : 0) + 'px';
+  if (at.maxHeight != null) p.style.maxHeight = at.maxHeight + 'px';
+  p.focus({ preventScroll: true });
 }
 export function openMorePanel(fc: FcCtx, anchor: HTMLElement): void {
   const { NO_IMAGE_KINDS, cfg, cv, frameCfg, shadowChoices, shapeChoices, stageEl } = fc;

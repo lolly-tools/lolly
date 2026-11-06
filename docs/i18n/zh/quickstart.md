@@ -22,7 +22,7 @@ lolly.tools 默认打开 **Lolly Demo**，即 Lolly 自己的示例设计系统�
 
 你第一次打开图库时，会有一段简短的欢迎，提供同样的选择：**Make it yours** 打开 Design System Setup，**Bring your design** 打开设计文件选择器，**Explore the community tools** 关闭欢迎页。
 
-![全新安装后 Design System Setup 的 Colours 房间：一个实时色块、一个字段，以及第一个决定的全部内容](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours)
+![全新安装后 Design System Setup 的 Colours 房间：一个实时色块、一个字段，以及第一个决定的全部内容](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-roles-fold%5D%3Esummary%3Bwait%3A500&format=svg&walker=1&localize=1&dark=1&filename=brand-colours)
 
 从这里开始，八个房间可以按任意顺序，带你想走多远就走多远：**Board**、**Colours**、**Type**、**Logos**、**Tokens**、**Files**、**Rules** 和 **Skills**。应用中的每个预览都会随你输入而更新。[Lolly Design System Setup](/info/brand-studio.html) 介绍了每个房间。
 

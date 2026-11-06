@@ -309,7 +309,11 @@ describe('geometric peers share a depth, so grids stay grids', () => {
     // enumerates 59 layers, under the 64-layer cap, on 14 rungs; the swatch wells
     // and cards of the three groups lift as one rung of 19. The lift code did not
     // change.
-    'bs-palette-pane': { rungs: 14, biggest: 19 },
+    // Re-measured 2026-11-06 on the plan 352 R6 recapture: Lolly Demo declares its colour
+    // roles, so the pane gains a Colour roles group of four swatches above the shades and
+    // the recipe folds the roles table first. Fewer of the lower groups fit the frame:
+    // 51 layers on 16 rungs, with a biggest rung of 15. The lift code did not change.
+    'bs-palette-pane': { rungs: 16, biggest: 15 },
     // Re-measured 2026-09-25: the panel-system re-capture (d0f6404b0) redrew the verify
     // cards, so the block now lifts as 8 layers on 5 rungs with a biggest rung of 4.
     'cc-verify-mobile': { rungs: 5, biggest: 4 },     // the card block

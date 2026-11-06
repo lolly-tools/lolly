@@ -108,13 +108,13 @@
 
 आपके रंग चौड़ी स्क्रीन पर **In context** प्रीव्यू के बगल में बैठते हैं, और छोटी स्क्रीन पर उसके ऊपर। प्रीव्यू आपके पैलेट में पोस्टर, चार्ट या इंटरफ़ेस कार्ड दिखाता है। Starter रंग अपने तह समूह में रहते हैं।
 
-![Lolly Demo पर Colours कमरा: तह होने वाले समूहों में पैलेट, हर रंग अपने नाम और हेक्स के साथ, और शीर्ष में पैलेट डाउनलोड](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours)
+![Lolly Demo पर Colours कमरा: तह होने वाले समूहों में पैलेट, हर रंग अपने नाम और हेक्स के साथ, और शीर्ष में पैलेट डाउनलोड](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-roles-fold%5D%3Esummary%3Bwait%3A500&format=svg&walker=1&localize=1&dark=1&filename=brand-colours)
 
 ![एक रंग जोड़ने के बाद Colours कमरा, उसके पैलेट और एक लाइव कंपोज़िशन प्रीव्यू के साथ](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dpick&width=1440&height=840&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-editor-add%5D%3Bwait%3A900&format=svg&walker=1&dark=1&filename=bs-colour-first)
 
 ### भूमिकाएँ: टूल क्या पढ़ते हैं
 
-![The Colour roles table on Lolly Demo after choosing the suggested words Main, Accent, Supporting and Tertiary: the colourway chips, then each role with its light and dark colour, Main read as the lead colour and Accent as the partner colour, Supporting and Tertiary read by name only and marked Copied, and the readings no role fills listed under the table](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=2720&height=2000&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-roles-fold%5D%3Esummary%3Bwait%3A500%3Bclick%3A%5Bdata-crt-start-open%5D%3Bclick%3A%5Bdata-crt-seed%3D%221%22%5D%3Bclick%3A%5Bdata-crt-start-use%5D%3Bwait%3A900%3Bclick%3A.be-palette-heading%3Eh2%3Bwait%3A300&cropSelector=%5Bdata-be-roles-fold%5D&format=svg&walker=1&dark=1&filename=bs-colour-roles)
+![The Colour roles table on Lolly Demo after choosing the suggested words Main, Accent, Supporting and Tertiary: the colourway chips, then each role with its light and dark colour, Main read as the lead colour and Accent as the partner colour, Supporting and Tertiary read by name only and marked Copied, and the readings no role fills listed under the table](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=2720&height=2000&dpi=192&waitMs=1800&cropSelector=%5Bdata-be-roles-fold%5D&format=svg&walker=1&dark=1&filename=bs-colour-roles)
 
 **Roles** बताती हैं कि हर टूल और एक्सपोर्ट में कौन सा रंग कौन सा हिस्सा निभाता है। वे वैकल्पिक हैं (तीन ढीले रंग और कोई भूमिका नहीं, एकदम ठीक सिस्टम है), कोई भी रंग एक ले सकता है और कंट्रास्ट रीडआउट सतह के सामने मापा जाता है, पहले APCA। हर भूमिका पंक्ति पूरी तीव्रता का अपना रंग, खड़ा हुआ starter रंग, या **↳ follows Primary** दिखाती है।
 
@@ -167,7 +167,7 @@ colourway वाला सिस्टम पुनर्निर्माण �
 
 पैलेट आपके रंगों को तह समूहों में सूचीबद्ध करता है, हर एक का अपना **+ Add**। समूह जैसे चाहें बनाएँ और नाम बदलें। भूमिका कभी दूसरी टाइल नहीं बनाती: भूमिका जिस टाइल की ओर इंगित करती है वह इसके बजाय छोटा चिह्न पहनती है (**P**, **S**, **Su**, **T**)। टाइलों के नीचे **Colour chart** वही रंग OKLCH **Wheel** पर दिखाता है (रंग बदलने के लिए बिंदु खींचें, स्वैच जोड़ने के लिए खाली जगह क्लिक करें) और **Gamut** चार्ट, जो दिखाता है कि प्रदर्शन योग्य सीमा कहाँ खत्म होती है। `#/start?area=color&focus=chart` चार्ट सीधे खोलता है।
 
-![पैलेट पेन, हर ग्रुप फ़ोल्ड होने लायक़, डाउनलोड pill उसके निचले किनारे पर पार्क की हुई](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dgenerate%26seed%3D%2523e0452b&width=1440&height=1000&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-add-ramp%3D%22primary%22%5D%3Bwait%3A1200&cropSelector=.be-split-side&walker=1&format=svg&dark=1&filename=bs-palette-pane)
+![पैलेट पेन, हर ग्रुप फ़ोल्ड होने लायक़, डाउनलोड pill उसके निचले किनारे पर पार्क की हुई](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dgenerate%26seed%3D%2523e0452b&width=1440&height=1000&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-roles-fold%5D%3Esummary%3Bwait%3A500%3Bclick%3A%5Bdata-be-add-ramp%3D%22primary%22%5D%3Bwait%3A1200&cropSelector=.be-split-side&walker=1&format=svg&dark=1&filename=bs-palette-pane)
 
 ![OKLCH व्हील - कोण hue है, बाहर की दूरी chroma है और स्लेटी रंग किनारे पर एक lightness रेल पर चलते हैं](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dgenerate%26seed%3D%2523e0452b&width=1440&height=900&dpi=192&waitMs=2400&css=.start-head%2C.be-pal%2C.be-gradients%7Bdisplay%3Anone%7D&drive=click%3A%5Bdata-be-add-ramp%3D%22primary%22%5D%3Bwait%3A1200%3Bclick%3A%5Bdata-be-chart%5D%20summary%3Bwait%3A900&cropSelector=.be-pal-wheel&walker=1&format=svg&dark=1&filename=bs-colour-wheel)
 

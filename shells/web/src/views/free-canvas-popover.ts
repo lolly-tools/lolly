@@ -63,3 +63,58 @@ export function positionEditorPopover(menu: HTMLElement, anchor: HTMLElement, st
   menu.style.left = `${pos.left}px`;
   menu.style.top = `${actions ? Math.max(visibleTop - sr.top + 6, pos.top) : pos.top}px`;
 }
+
+/**
+ * Mount a floating editor PANEL (an `.fc-panel`, where the function above mounts a menu)
+ * so that nothing can paint over it, and report whether it went to the body.
+ *
+ * The stage is `position: fixed`, which makes it a stacking context of its own: no
+ * z-index inside it lifts a panel over a surface the body stacks above the stage. Two
+ * such surfaces can cover the stage. A trigger outside the stage sits in one of them (the
+ * docked column, a floating inspector, the phone's inspector sheet), so a panel appended
+ * to the stage opened behind its own trigger. And in Design's phone layout the inspector
+ * sheet and the navigator lie over the lower half of the stage, whichever control opened
+ * the panel. In both cases the panel goes to the body with the class a menu gets for the
+ * first case, and the caller places it in viewport coordinates.
+ */
+export function mountEditorPanel(panel: HTMLElement, anchor: HTMLElement, stage: HTMLElement): boolean {
+  const over = !stage.contains(anchor) || stage.dataset.designLayout === 'compact';
+  if (over) panel.classList.add('fc-popover--viewport');
+  (over ? stage.ownerDocument.body : stage).appendChild(panel);
+  return over;
+}
+
+/**
+ * Where the room for a floating panel ends, in stage-relative px: the top of Design's
+ * phone action bar while that bar is shown, otherwise the foot of the stage. Without
+ * this limit a panel on the body would cover the bar, and one in the stage slid under the bar.
+ */
+export function stageFoot(stage: HTMLElement, sr: { top: number; height: number }): number {
+  const bar = stage.querySelector<HTMLElement>('.design-compact-actions');
+  const r = bar && !bar.hidden ? bar.getBoundingClientRect() : null;
+  return r && r.height > 0 ? Math.min(sr.height, r.top - sr.top) : sr.height;
+}
+
+/**
+ * Where a panel opened beside its trigger goes, in stage-relative px: to the trigger's
+ * right, kept inside the stage, with its top level with the trigger's and pulled up so
+ * its foot stays above `foot`. A panel taller than the room gets a `maxHeight` and
+ * scrolls instead of running off the bottom. Pure numbers, so it is testable without a
+ * browser.
+ */
+export function placePanelBeside(
+  anchor: { right: number; top: number },
+  pop: { w: number; h: number },
+  stage: { w: number },
+  foot: number,
+  gap = 8,
+  pad = 6
+): { left: number; top: number; maxHeight?: number } {
+  // No measurable stage (display:none, or jsdom with no layout): keep the plain anchored
+  // placement, as placePopover does, rather than clamping against zeroes.
+  if (!(stage.w > 0) || !(foot > 0)) return { left: anchor.right + gap, top: Math.max(pad, anchor.top) };
+  const left = Math.max(pad, Math.min(anchor.right + gap, stage.w - pop.w - gap));
+  const room = foot - pad - gap;
+  if (pop.h <= room) return { left, top: Math.max(pad, Math.min(anchor.top, foot - pop.h - gap)) };
+  return { left, top: pad, maxHeight: Math.max(0, room) };
+}

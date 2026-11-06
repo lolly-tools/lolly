@@ -88,7 +88,9 @@ test('Lolly Demo as shipped: colours counted as Overview counts them, faces and 
     assert.ok(m.$('[data-tk-jump="logos"] .tk-tag'), 'the tile says the marks are the starter’s');
     assert.equal(n('shape'), '2');
     // 93 until plans/329 seeded the motion scale: three durations, three curves, two springs.
-    assert.equal(n('all'), '101');
+    // 101 until Lolly Demo declared its colour roles (plans/352 R6): the colours on Partner
+    // and Paper with their links, and Paper and Ink in each of the six colourways.
+    assert.equal(n('all'), '111');
     for (const id of ['color', 'type', 'logos', 'shape', 'more']) assert.ok(m.$(`[data-tk-sec="${id}"]`), id);
     assert.match(m.$('[data-tk-body="type"] .tk-empty')!.textContent!, /No typeface of your own yet\. Tools use the starter faces below until you choose one\./);
     assert.equal(m.el.querySelectorAll('[data-tk-body="type"] .tk-group .tk-row').length, 4, 'the four faces sit under the Starter head');
@@ -102,7 +104,8 @@ test('Lolly Demo as shipped: colours counted as Overview counts them, faces and 
     assert.ok(rows.some(r => /Horizontal monoSame file as Horizontal primary\{/.test(r)), rows.join(' | '));
     assert.ok(m.$('[data-tk-pairs="light"]'), 'the contrast pairs lead the Colours section');
     assert.equal(m.$<HTMLElement>('[data-tk-example]')!.hidden, false);
-    assert.match(m.$('[data-tk-example]')!.textContent!, /^For example, Primary is Spearmint, #033633\.$/);
+    // The example speaks in the system's own word for the slot (plans/352 R6).
+    assert.match(m.$('[data-tk-example]')!.textContent!, /^For example, Lead is Spearmint, #033633\.$/);
     for (const fold of ['ui', 'inspect']) assert.equal(m.$<HTMLDetailsElement>(`[data-tk-adv="${fold}"]`)!.open, false, `${fold} starts closed`);
   } finally { m.done(); }
 });

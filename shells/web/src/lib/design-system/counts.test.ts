@@ -47,7 +47,8 @@ function oneColourOver(starter: Record<string, unknown>): Record<string, unknown
 // ── The counts themselves ────────────────────────────────────────────────────
 
 test('tokens: every token the document defines, as the Tokens room lists them', () => {
-  assert.equal(tokenCount(DEMO), 101, 'Lolly Demo: the number its Tokens room shows');
+  // 101 until Lolly Demo declared its colour roles (plans/352 R6).
+  assert.equal(tokenCount(DEMO), 111, 'Lolly Demo: the number its Tokens room shows');
   assert.equal(tokenCount(null), 0);
   assert.equal(tokenCount('not a document'), 0);
   assert.equal(tokenCount({ color: { a: { $type: 'color', $value: '#000000' } } }), 1);
