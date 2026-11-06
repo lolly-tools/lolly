@@ -126,7 +126,7 @@ A catalog set sits in the catalog cache, in the `asset-blob` store under `<id>:j
 
 A release the catalog has moved on from still draws for the document that kept it, under its exact pin, and is not offered as a new choice.
 
-Copies made before engine 1.314 stay where they are. Lolly 1.0.9 to 1.1.3 copied every set in force into the uploads as `user/emoji/<digest>`. Nothing removes those on boot, because the record cannot be told apart from a person importing the same file: both write the same id, the same bytes and, for six of the seven sets, the same metadata. They are not hidden either. A device holding one still draws from that copy, and a new save refers to the catalog file instead, so a person can delete the copy once no saved document or retained history refers to the record.
+Copies made before engine 1.315 stay where they are. Lolly 1.0.9 to 1.1.3 copied every set in force into the uploads as `user/emoji/<digest>`. Nothing removes those on boot, because the record cannot be told apart from a person importing the same file: both write the same id, the same bytes and, for six of the seven sets, the same metadata. They are not hidden either. A device holding one still draws from that copy, and a new save refers to the catalog file instead, so a person can delete the copy once no saved document or retained history refers to the record.
 
 ## The pack, and the shared mount that carries it
 

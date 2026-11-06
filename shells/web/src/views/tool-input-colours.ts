@@ -12,6 +12,7 @@ import {
   colorFieldHtml, colourwayLeadSwatches, LEADS_SWATCH_SOURCE, provideSwatchSource, setColorFieldAuto, wireColorField,
 } from '../components/color-field.ts';
 import type { ColorFieldAuto } from '../components/color-field.ts';
+import { colourRoleWord } from '../lib/colour-role-words.ts';
 import { liveThemedHost } from '../lib/document-theme.ts';
 import { asRow } from './tool-types.ts';
 import type { InputModelItem, InputValue } from '../../../../engine/src/inputs.ts';
@@ -25,11 +26,12 @@ import type { WebToolHost } from './tool/shared.ts';
  * offers the shared swatches. Either way it is the same colour field as an
  * ordinary colour input, restricted to swatches when `swatchesOnly` is set.
  */
-export function paletteFieldHtml(id: string, input: Pick<InputModelItem, 'value' | 'palette' | 'swatchesOnly' | 'default' | 'label'>): string {
+export function paletteFieldHtml(id: string, input: Pick<InputModelItem, 'value' | 'palette' | 'swatchesOnly' | 'default' | 'label'>, linked?: unknown): string {
   return colorFieldHtml(id, input.value, {
     swatchesOnly: input.swatchesOnly === true,
     ...(input.palette === LEADS_SWATCH_SOURCE ? { swatchSource: LEADS_SWATCH_SOURCE } : {}),
     ...fieldNaming(input),
+    ...linkedWord(linked),
   });
 }
 
@@ -38,10 +40,18 @@ export function paletteFieldHtml(id: string, input: Pick<InputModelItem, 'value'
  * input's own label ("Ink: Liquorice #09141a"), and an input whose default is empty
  * may be left empty, so its field takes `auto` (ColorFieldAuto): empty reads as
  * automatic instead of as black. The colour the tool draws there arrives after render
- * from paintAutoColours.
+ * from paintAutoColours. `linked` is the input's value before the sidebar flattened it: a
+ * link to a colour role gives the design system's word, and a colourway switch can draw
+ * this field before the swatches move.
  */
-export function colourInputHtml(id: string, input: Pick<InputModelItem, 'value' | 'swatchesOnly' | 'default' | 'label'>): string {
-  return colorFieldHtml(id, input.value, { swatchesOnly: input.swatchesOnly === true, ...fieldNaming(input) });
+export function colourInputHtml(id: string, input: Pick<InputModelItem, 'value' | 'swatchesOnly' | 'default' | 'label'>, linked?: unknown): string {
+  return colorFieldHtml(id, input.value, { swatchesOnly: input.swatchesOnly === true, ...fieldNaming(input), ...linkedWord(linked) });
+}
+
+/** The name for a field whose value links a colour role. Nothing otherwise, and the field reads the colour as it always has. */
+function linkedWord(linked: unknown): { name?: string } {
+  const word = colourRoleWord((linked as { ref?: unknown } | null | undefined)?.ref);
+  return word ? { name: word } : {};
 }
 
 /** A block row's colour field (a block field's default decides, as above). */

@@ -6,10 +6,17 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
-## 1.314.0
+## 1.315.0
 
 - `runEmojiPass` finds out whether a tree would draw anything before it loads a style's packs. The older test matched every character from U+00A9 up, so a curly quote, an accented letter or any text in most scripts loaded a whole set and the pinned tables. It now asks `emojiTextTrigger` (new leaf module `emoji-trigger.ts`), which needs no tables, and then `textHoldsEmoji` (`emoji-segment.ts`), the pass's own test, so a bare warning sign or copyright sign in a template loads no set either. Every entry and qualification alias in the pinned table still answers yes to the trigger, which `tests/emoji-dom.test.ts` checks.
 - No change to the contract: `host.emoji.dependencies` may now return `source: 'library'` refs, which the contract's `AssetRef[]` already allowed. The web host does so for a pack its catalog serves, so opening a tool no longer stores a copy of the pack as a user asset.
+
+## 1.314.0
+
+- A brand page's `AGENTS.md` gains a **Colour roles** section when a design system declares some (plan 352 R3): each word in brand order, its token, its colour in the canonical colourway and what Lolly reads it as, under a line saying the words are data. A system with none writes the file it always wrote. `brand.json` does not change shape.
+- `baselineBrandSkill` lists the same words from the brief, so the generated skill and the design context agree.
+- IDML and dotLottie export read `var(--brand-<id>, fallback)` for any role id, not only the seven slots, with the same lowercase-and-hyphen shape the role rules allow. A value that failed the old pattern used to stop the export.
+- `host.tokens.family()` and `colourwayFamily` do not change: one colour per colourway, in the design system's order. Exported files record nothing new about roles.
 
 ## 1.313.0
 
