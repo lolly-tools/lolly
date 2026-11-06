@@ -319,7 +319,7 @@ A finish is not an ink. Foil, emboss, deboss, spot varnish, soft touch, die cut,
 
 The **Print TIFF** and **EPS (CMYK)** have no named plates, so they print every ink in process with or without the choice.
 
-A link asks for the same file with `_spots=process`, the command line with `--spots=process` and the [MCP server](/info/mcp.html) with `spots: "process"`. Nothing about the choice goes into the file: only the inks change.
+A link asks for the same file with `_spots=process`, the [MCP server](/info/mcp.html) with `spots: "process"` and the terminal app with its **Spot inks** row. Nothing about the choice goes into the file: only the inks change.
 
 ### HDR (bright colours)
 

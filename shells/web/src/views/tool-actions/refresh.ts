@@ -87,7 +87,7 @@ export function refreshSpotsUi(ta: ActionsCtx): void {
   const fmt = formatEl?.value ?? initialFmt;
   const palette = ta.palette;
   const declaresInk = palette?.known === true && palette.value.some((s) => !!s.spot?.name && !s.spot.finish);
-  row.hidden = !(fmt === 'pdf-cmyk' && declaresInk);
+  row.style.display = fmt === 'pdf-cmyk' && declaresInk ? 'flex' : 'none';
 }
 /** The box changes the plates, so the preflight counts and the address follow the box. */
 export function wireSpotsToggle(ta: ActionsCtx): void {

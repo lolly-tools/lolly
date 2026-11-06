@@ -148,7 +148,7 @@ export function buildFormatOptions(ta: ActionsCtx): void {
     : null;
   const spotsRow = spotsTip
     ? `
-        <label class="field-toggle help-tip-host export-cmyk-spots" data-spots-only hidden>
+        <label class="field-toggle help-tip-host export-cmyk-spots" data-spots-only style="display:none">
           <input type="checkbox" class="field-check" data-action="cmyk-spots-process"${exportDefaults.spots ? ' checked' : ''}>
           <span>${escapeText(t('Print spot inks as process'))}</span>
           ${spotsTip.button}${spotsTip.pop}
