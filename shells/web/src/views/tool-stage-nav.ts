@@ -205,6 +205,15 @@ export interface StageNav {
   /** Pan just enough to expose a native caret, preserving the person's zoom. */
   revealRect?(rect: StageRect, viewport: StageRect): void;
   /**
+   * Bring the selection into the visible band when a panel has just covered part of the
+   * stage, or the active artboard (else the whole work) when nothing is selected: no move when it is already in
+   * view, the smallest pan that brings it in when it fits, and a framing of it when it is
+   * larger than the band. A fit already frames the active artboard, so this moves the view
+   * only when the person has zoomed, or when the tool's own fit ignores the bands (a page
+   * strip, as Record's).
+   */
+  revealSelection?(): void;
+  /**
    * Multiply the current zoom about the stage centre - the zoom buttons' verb (the `+`/`-`
    * keys spend the same step about the pointer). A MULTIPLIER (1.25 in, 0.8 out), not an
    * absolute.
@@ -606,6 +615,31 @@ export function setupStageNav(stageEl: HTMLElement, outerEl: HTMLElement, canvas
     onFit?.();
     const r = (compactTouch() ? opts?.activeRect?.() : null) ?? opts?.contentRect?.();
     if (r) fitContent(r);
+  }
+
+  // Pan just enough to bring a client rect into a client viewport, keeping the zoom. A
+  // caret that the soft keyboard would cover, and a selection a panel has just covered.
+  function revealRect(rect: StageRect, viewport: StageRect): void {
+    if (![rect.x, rect.y, rect.w, rect.h, viewport.x, viewport.y, viewport.w, viewport.h].every(Number.isFinite) || viewport.w <= 0 || viewport.h <= 0) return;
+    const dx = rect.x < viewport.x ? viewport.x - rect.x : rect.x + rect.w > viewport.x + viewport.w ? viewport.x + viewport.w - rect.x - rect.w : 0;
+    const dy = rect.y < viewport.y ? viewport.y - rect.y : rect.y + rect.h > viewport.y + viewport.h ? viewport.y + viewport.h - rect.y - rect.h : 0;
+    if (Math.abs(dx) < .5 && Math.abs(dy) < .5) return;
+    captureOrigin(); tx += dx; ty += dy; contentFit = false; apply();
+  }
+
+  // A panel just covered part of the stage (Design's phone panel opening): bring the
+  // selection, else the active artboard, else the whole work, into the band left.
+  function revealSelection(): void {
+    // Last, the canvas itself: a page strip (Record) has no artboards to ask about.
+    const whole = (): StageRect => { const o = canvasEl?.getBoundingClientRect() ?? outerEl.getBoundingClientRect(); return { x: o.left, y: o.top, w: o.width, h: o.height }; };
+    const r = opts?.selectionRect?.() ?? opts?.activeRect?.() ?? opts?.contentRect?.() ?? whole();
+    if (!r || !(r.w > 0) || !(r.h > 0)) return;
+    const sr = stageBox();
+    const pad = 12;
+    const view = { x: sr.left + pad, y: sr.top + pad, w: sr.width - 2 * pad, h: sr.height - 2 * pad };
+    if (!(view.w > 0) || !(view.h > 0)) return;
+    if (r.w > view.w || r.h > view.h) { focusRect(r.x, r.y, r.w, r.h, SEL_MARGIN); return; }
+    revealRect(r, view);
   }
 
   // Zoom to the current selection's AABB. Deliberately the same framing routine the
@@ -1251,6 +1285,7 @@ export function setupStageNav(stageEl: HTMLElement, outerEl: HTMLElement, canvas
   let textFocusView:{scale:number;tx:number;ty:number;contentFit:boolean;contentFloor:number}|undefined;
   const onTextFocus=(event:Event)=>{const active=(event as CustomEvent<{active:boolean}>).detail?.active;if(active){textFocusView??={scale,tx,ty,contentFit,contentFloor};}else if(textFocusView){({scale,tx,ty,contentFit,contentFloor}=textFocusView);textFocusView=undefined;captureOrigin();apply();}};
   stageEl.addEventListener('fc-text-focus',onTextFocus);
+  stageEl.addEventListener('fc-reveal-selection', revealSelection);
   syncHud();
 
   // A layout change under a held burst releases it, so the next event measures afresh.
@@ -1263,6 +1298,7 @@ export function setupStageNav(stageEl: HTMLElement, outerEl: HTMLElement, canvas
   function destroy(): void {
     destroyed = true;
     stageEl.removeEventListener('fc-text-focus',onTextFocus);
+    stageEl.removeEventListener('fc-reveal-selection', revealSelection);
     stageEl.removeEventListener('fc-touch-handoff', onTouchHandoff);
     stageEl.removeEventListener('fc-touch-tap', onTouchTap);
     window.removeEventListener('resize', onLayoutChange);
@@ -1324,13 +1360,8 @@ export function setupStageNav(stageEl: HTMLElement, outerEl: HTMLElement, canvas
       };
     },
     reset, isZoomed, isUserZoomed, sync: syncHud, fit, fitSelection, focusRect,
-    revealRect(rect, viewport) {
-      if (![rect.x, rect.y, rect.w, rect.h, viewport.x, viewport.y, viewport.w, viewport.h].every(Number.isFinite) || viewport.w <= 0 || viewport.h <= 0) return;
-      const dx = rect.x < viewport.x ? viewport.x - rect.x : rect.x + rect.w > viewport.x + viewport.w ? viewport.x + viewport.w - rect.x - rect.w : 0;
-      const dy = rect.y < viewport.y ? viewport.y - rect.y : rect.y + rect.h > viewport.y + viewport.h ? viewport.y + viewport.h - rect.y - rect.h : 0;
-      if (Math.abs(dx) < .5 && Math.abs(dy) < .5) return;
-      captureOrigin(); tx += dx; ty += dy; contentFit = false; apply();
-    },
+    revealRect,
+    revealSelection,
     zoomBy, zoomTo, actual: absScale,
     // Called back once immediately so a fresh readout paints the current view rather than
     // waiting for the first gesture (the bar mounts before anything has been zoomed).

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
  * Technology marks on the docs pages - the `<!--l:key-->` marker (docs/build.ts,
- * docs/logos.ts) - and the "On this page" jump nav that rides on the same build.
+ * docs/logos.ts) - and the page's contents (rail and floating button) that ride on the same build.
  *
  * Checked at BOTH ends, for the reason tests/docs-provenance-pills.test.ts spells
  * out: the source and the artifact fail independently. A marker can be correct in
@@ -221,7 +221,7 @@ test('the built build-guide carries the marks it is the flagship for', { skip: b
     assert.match(body, new RegExp(`data-logo="${key}"`), `build-guide.html lost the ${key} mark`);
   }
   // The mark inside the Kubernetes h2 must not have leaked into the heading's id - 
-  // that id is a published anchor (the jump nav, search results, deep links).
+  // that id is a published anchor (the page's contents, search results, deep links).
   assert.match(body, /<h2 id="use-the-published-images"/);
 });
 
@@ -234,61 +234,49 @@ test('the markdown twin carries no logo markers', { skip: built }, () => {
   assert.match(twin, /k3s/);
 });
 
-// ─── the jump nav ────────────────────────────────────────────────────────────
+// ─── the page's contents (rail + page bar) ───────────────────────────────────
 
-test('a long page gets the jump nav and a short one does not', { skip: built }, () => {
+test('a page with sections gets the contents rail, and every docs page gets the page bar', { skip: built }, () => {
   const long = readFileSync(builtPage('host-api'), 'utf-8');
-  assert.match(long, /id="docJumpBtn"/, 'host-api qualifies on both thresholds but has no jump nav');
-  assert.match(long, /aria-controls="docJumpNav"/);
-  assert.match(long, /aria-expanded="false"/);
-  assert.match(long, /<nav class="doc-jump-nav" id="docJumpNav"[^>]*hidden>/);
-  assert.match(long, /href="#rules-of-the-contract"/, 'the nav does not list the page h2 anchors');
-  assert.match(long, /class="doc-jump-top" href="#top"/, 'no Back to top entry');
-
-  // trust.html: 3 h2s, ~8 KB of rendered body - under both thresholds.
-  const short = readFileSync(builtPage('trust'), 'utf-8');
-  assert.ok(!/id="docJumpBtn"/.test(short), 'a short page grew a jump nav - the threshold slipped');
+  assert.match(long, /<div class="docs-wrap docs-wrap--rail">/, 'host-api has sections but no rail column');
+  assert.match(long, /<div class="docs-onpage"><nav class="docs-toc" aria-label="On this page">/);
+  assert.match(long, /<div class="doc-pagebar" data-doc-contents><button type="button" class="doc-contents-btn doc-pagebar-btn" aria-expanded="false" aria-controls="docContentsPanel">/);
+  assert.match(long, /<div class="doc-contents-panel" id="docContentsPanel" hidden>/);
+  assert.match(long, /href="#rules-of-the-contract" data-contents-target="rules-of-the-contract"/, 'the contents do not list the page h2 anchors');
+  // The bar comes before the band, at the top of the page, not floating at the bottom.
+  assert.ok(long.indexOf('class="doc-pagebar"') < long.indexOf('class="docs-masthead"'), 'the bar is not above the band');
+  assert.ok(!/class="doc-contents"[ >]|doc-jump/.test(long), 'a floating contents control came back');
+  // Where the bar is, the phone menu keeps only the site's own controls.
+  const menu = /<div class="site-sheet">[\s\S]*?<\/details>/.exec(long)?.[0] ?? '';
+  assert.ok(!/site-sheet-sections|docs-compact-nav/.test(menu), 'the menu still repeats the sections and pages the bar holds');
+  // trust.html is short, but it has sections: short pages get their contents too.
+  assert.match(readFileSync(builtPage('trust'), 'utf-8'), /docs-wrap--rail/, 'a short page with sections lost its rail');
 });
 
-test('the jump nav ships on locale pages too', { skip: built }, () => {
+test('the contents ship on locale pages too', { skip: built }, () => {
   const de = builtPage('host-api','html','de');
   if (!existsSync(de)) return; // a checkout with no locale build
   const html = readFileSync(de, 'utf-8');
-  assert.match(html, /id="docJumpBtn"/);
+  assert.match(html, /data-doc-contents/);
   const marks = readFileSync(builtPage('build-kubernetes','html','de'),'utf-8');
   assert.match(marks, /<span class="doc-logo"/, 'the marks do not survive the locale build');
 });
 
-test('the jump nav is exempted from the rules that own every other <nav>', { skip: built }, () => {
-  // The bare `nav{}` selector in the docs CSS IS the site's top bar - fixed, 100%
-  // wide, 3.75rem tall, display:flex - and it lands on ANY <nav> element. Without
-  // the resets the panel lays out as a strip across the bottom of the window; without
-  // the `:not(.doc-jump-nav)` exemptions its links take the top bar's white-on-dark
-  // colour, and below 1100px they are `display:none`d out of existence. Both shipped
-  // once, and neither shows up in markup-only assertions. (The landing page's
-  // quicknav opts out of the same rules the same way.)
+test('the contents rail takes over from the page bar at 1100px', { skip: built }, () => {
   const css = linked(readFileSync(builtPage('build-kubernetes'), 'utf-8'), 'css');
   assert.ok(css.length > 1000, 'the linked stylesheet is missing or empty');
-  const panel = /\.doc-jump-nav\{([^}]*)\}/.exec(css)?.[1] ?? '';
-  for (const reset of ['display:block', 'top:auto', 'width:auto', 'height:auto']) {
-    assert.ok(panel.includes(reset), `.doc-jump-nav does not reset the top bar's ${reset}`);
-  }
-  for (const m of css.matchAll(/(^|})\s*(nav:not\(\.quicknav\)[^{]*a[^{]*)\{/g)) {
-    assert.match(
-      m[2]!, /:not\(\.doc-jump-nav\)/,
-      `a top-bar link rule still claims the jump nav's links: ${m[2]!.trim()}`,
-    );
-  }
+  assert.match(css, /\.docs-onpage\{display:none\}/, 'the rail shows at every width');
+  assert.match(css, /@media\(min-width:1100px\)\{\s*\.doc-pagebar\{display:none\}/, 'the bar stays beside the rail');
 });
 
-test('the jump nav script closes on Escape and returns focus', { skip: built }, () => {
+test('the contents script closes on Escape, returns focus and leaves the move to the browser', { skip: built }, () => {
   const html = readFileSync(builtPage('build-kubernetes'), 'utf-8');
-  // The jump-nav script rides the shared bundle (plan 131 B.1); each script is its own
-  // IIFE joined by `\n;\n`, so pull out the one that owns the docJumpBtn.
-  const script = linked(html, 'js').split('\n;\n').find((seg) => seg.includes("getElementById('docJumpBtn')"));
-  assert.ok(script, 'the jump nav ships without its script');
-  assert.match(script, /Escape/, 'Esc does not close it (house rule)');
-  assert.match(script, /btn\.focus\(\)/, 'Esc does not return focus to the button (house rule)');
-  // No scroll hijacking: the links are plain anchors, the browser does the move.
-  assert.ok(!/scrollIntoView|scrollTo|preventDefault/.test(script), 'the jump nav hijacks navigation');
+  // The contents script rides the shared bundle (plan 131 B.1); each script is its own
+  // IIFE joined by `\n;\n`, so pull out the one that wires the contents.
+  const script = linked(html, 'js').split('\n;\n').find((seg) => seg.includes('LollyDocsContents.enhanceDocsContents'));
+  assert.ok(script, 'the contents ship without their script');
+  assert.match(script, /Escape/, 'Esc does not close the panel (house rule)');
+  assert.match(script, /\.focus\(/, 'Esc does not return focus to the button (house rule)');
+  // On /info no `jump` is passed, so a row is a plain anchor and the browser does the move.
+  assert.ok(!/jump:/.test(script.slice(script.lastIndexOf('LollyDocsContents.enhanceDocsContents'))), 'the /info call hands rows to a jump handler');
 });
