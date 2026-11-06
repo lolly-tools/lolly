@@ -145,6 +145,24 @@ SVG and PDF exports are not screenshots. The exporter reads each element's compu
 
 The `penpot` format keeps this same vector set, as editable Penpot shapes instead of SVG elements. What costs you those shapes is not the *raster* column: the lowering reads the exported SVG, and one `<clipPath>`, `<filter>`, `<pattern>`, `<mask>`, `<use>` or inline `<style>` anywhere in it puts the **whole** render on the board as a single picture instead. On an HTML layout those come from a rounded `overflow: hidden` box whose content reaches a corner, an `object-fit: cover` or circular image crop, a `background-image`, a `clip-path` and a blurred `text-shadow`. `box-shadow` is not one of them: the Penpot render draws shadows as geometry rather than as an SVG filter.
 
+### Motion that stays in the SVG
+
+An HTML template reaches the SVG file as flat vector groups, so its CSS animation does not come along by itself. A tool can ask for one animation to stay on an element by marking the element:
+
+```html
+<span class="word" data-svg-motion="my-rise 400ms cubic-bezier(0.05,0.7,0.1,1) 80ms">Word</span>
+```
+
+The value is the name of an `@keyframes` rule in your `styles.css`, then a duration in milliseconds, an easing and a delay in milliseconds, in that order. Anything else is ignored. The element needs a box of its own, so inline text wants `display: inline-block`. Lengths in the keyframes are best in `em`, which the file resolves against the element's font size.
+
+The attribute plays nothing on the page, because the file and the canvas have different clocks. Three rules keep them apart:
+
+- **The page at rest is the finished piece.** Give an element its animation only while something is playing it. A still export reads the page at rest, so a PNG or a PDF never catches an empty first frame. Declare a frame clock with `stillPose` as set out above, and have the clock arm the animations during a clip and take them away for a still.
+- **The plain SVG export keeps the motion.** Formats derived from the walk, such as Penpot, EMF and DXF, get one finished picture. In an `<img>`, where nothing can seek the animation, the file shows the finished picture too. Opened on its own in a browser, the file plays once and holds.
+- **Say how long the piece lasts.** Put `data-clip-ms` on the stage. The export's Duration field follows the value, and a box in Lolly Design gets a clip that long. Design's timeline then seeks the animation, so the frame on the board is the frame the video export draws.
+
+Quote is a working example.
+
 ### Letting the document bring its own CSS
 
 A tool can also give the person using it a stylesheet - Lolly Design does, as its `customCss`
