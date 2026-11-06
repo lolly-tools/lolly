@@ -6,6 +6,13 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+## 1.312.0
+
+- `leaveOutScopedTokenText` (`token-scope.ts`) takes out of a token document every description the scope hints flag, at any depth, along with a flagged name or label in the vendor extension. A rule, role or guide group keeps its id as its label, so it stays valid. The input is not changed, and an ordinary document comes back as the same object.
+- `coerceTokensDoc`, `assembleTokenSetFiles` and `extractPenpotProject` call it, so a file's flagged text stays out of the stored document on every import route, and `warnings` names where it sat.
+- `designBrief` calls it on what it reads, so a document already on disk behaves the same. Each brief with something left out gains `leftOut`, which lists the place and the hint and never the text. `writeDesignMd` and `buildBrandPage` read the same way, and a brand page lists what it held back.
+- Scope hints stay a line-by-line lint: a description worded another way still arrives, and so do token names and values. Studio edits do not pass through this code, so a person's words stay in their document.
+
 ## 1.311.0
 
 - A design system's publisher can opt in to recording its brand page's address on exports (plan 351 B5). `brand-page-address.ts` holds the rules: `brandPageAddress` accepts a plain `https` address on a named host and nothing else, and `readRecordedBrandPage` and `withRecordedBrandPage` read and write the setting in the tokens document, at `$extensions["com.suse.lolly"].exportRecord.brandPage`. Off means the key is gone.

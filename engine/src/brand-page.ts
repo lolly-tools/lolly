@@ -33,6 +33,7 @@ import { readDesignSystemIdentity, slugifyDesignSystemId } from './design-system
 import { writeDesignMd } from './design-md.ts';
 import { brandSystemOf } from './brand-system.ts';
 import { brandSkillScopeHints } from './brand-skill.ts';
+import { leaveOutScopedTokenText } from './token-scope.ts';
 import { colorToHex, createTokenSet, TOKEN_EXT } from './tokens.ts';
 import { axisOfKind, modeAxis, readTokenAxes } from './token-axes.ts';
 import { ENGINE_VERSION } from './version.ts';
@@ -368,19 +369,20 @@ export async function brandPageDigest(manifest: Omit<BrandPageV1, 'digest'> & { 
 
 /** Builds a brand page's folder. Same input, same bytes. */
 export async function buildBrandPage(input: BrandPageInputV1): Promise<BrandPageBuildV1> {
-  const doc = input.tokens;
+  // The folder goes public and agents read it, so its token files read as the brief does.
+  const { doc, leftOut } = leaveOutScopedTokenText(input.tokens);
   const brief = designBrief(doc, input.catalog ?? null, input.name ? { name: input.name } : {});
   const name = text(input.name ?? brief.name, 200) || 'Design system';
   const identity = readDesignSystemIdentity(doc);
   const idCandidate = slug(input.id ?? identity?.id ?? slugifyDesignSystemId(name));
   const id = (idCandidate.replace(/^-+/, '').slice(0, 48).replace(/-+$/, '')) || 'design-system';
   const raw = isRow(doc) ? doc : {};
-  const stated = text(raw.$description, 2000);
-  // A description that reaches for permissions or code is not what a page leads with.
-  const overview = brandSkillScopeHints(stated).length ? '' : stated;
+  const overview = text(raw.$description, 2000);
   const held: BrandPageHeldV1[] = (input.held ?? []).map(h => ({ item: text(h.item, 300), reason: text(h.reason, 600), kind: h.kind }));
   const hold = (item: string, reason: string, kind: BrandPageHeldKindV1): void => { held.push({ item: text(item, 300), reason: text(reason, 600), kind }); };
-  if (stated && !overview) hold('The description in the token document', 'its text speaks about permissions or running code', 'content');
+  if (leftOut.some(row => !row.path)) hold('The description in the token document', 'its text speaks about permissions or running code', 'content');
+  const inner = leftOut.filter(row => row.path).length;
+  if (inner) hold(`${inner} ${inner === 1 ? 'description or label' : 'descriptions or labels'} inside the token document`, 'the text speaks about permissions or running code', 'content');
 
   const files = new Map<string, BrandPageFileOutV1>();
   let total = 0;
@@ -424,9 +426,12 @@ export async function buildBrandPage(input: BrandPageInputV1): Promise<BrandPage
   // Rules: only text free of the scope hints reaches a page or an agent file.
   const rulesAll = Array.isArray(brief.houseRules) ? brief.houseRules : [];
   const rules: PageFactsV1['rules'] = [];
+  // The brief read a document without the flagged words, so the whole rule is judged on what it stated.
+  const statedRules = new Map((brandSystemOf(input.tokens)?.rules ?? []).map(rule => [rule.id, rule]));
   for (const rule of rulesAll) {
-    const label = text(rule.label, 300);
-    const description = text(rule.description, 600);
+    const stated = statedRules.get(rule.id) ?? rule;
+    const label = text(stated.label, 300);
+    const description = text(stated.description, 600);
     if (brandSkillScopeHints(`${label}\n${description}`).length) { hold(`House rule ${rule.id}`, 'its text speaks about permissions or running code, so it stays out of what agents read', 'content'); continue; }
     rules.push({ id: rule.id, label, requirement: rule.requirement, description });
   }

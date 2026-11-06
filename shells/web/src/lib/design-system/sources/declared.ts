@@ -157,13 +157,8 @@ export async function readBrandPageFolder(input: Readonly<Record<string, Uint8Ar
   const prose = parsed?.ok ? parsed.proposal.prose : '';
   const stated = typeof manifest.name === 'string' && manifest.name.trim() ? manifest.name.trim().slice(0, 120) : null;
   const name = stated && !brandSkillScopeHints(stated).length ? stated : null;
-  // A description becomes the system's own words once applied, and agents read those.
   const doc = { ...(extraction.doc as Record<string, unknown>) };
   const findings = [...extraction.warnings];
-  if (typeof doc.$description === 'string' && brandSkillScopeHints(doc.$description).length) {
-    delete doc.$description;
-    findings.push('The description speaks about permissions or running code, so it was left out.');
-  }
   const usage = manifest.usage && typeof manifest.usage === 'object' ? {
     ...(typeof manifest.usage.statement === 'string' && manifest.usage.statement.trim() ? { statement: manifest.usage.statement.slice(0, 4000) } : {}),
     ...(typeof manifest.usage.contact === 'string' && manifest.usage.contact.trim() ? { contact: manifest.usage.contact.slice(0, 300) } : {}),
