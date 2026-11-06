@@ -84,14 +84,15 @@ function scriptWith(html: string, needle: string): string {
 
 test('every article page opens with the masthead band, and the landing does not', { skip: built }, () => {
   // A long page and a short one: the band is the DEFAULT, not a length threshold
-  // like the jump nav's. If it ever grows one, this fails on trust.html first.
+  // of any kind. If it ever grows one, this fails on trust.html first.
   for (const f of ['build-guide.html', 'trust.html']) {
     const body = bodyOf(page(f));
     assert.match(body, /<div class="docs-masthead">/, `${f} has no masthead band`);
-    assert.match(body, /<canvas class="docs-mast-canvas" aria-hidden="true"><\/canvas>/, `${f}: the canvas is not decorative-only`);
+    // Words only: the chip field left article pages on 2026-11-06 (the landing keeps its own).
+    assert.ok(!/docs-mast-canvas|<canvas/.test(body.slice(body.indexOf('<div class="docs-masthead">'), body.indexOf('<div class="docs-wrap'))), `${f}: the band grew a canvas again`);
     // Full bleed: the band is a sibling of .docs-wrap, so the rail sits under it.
     const bandAt = body.indexOf('<div class="docs-masthead">');
-    const wrapAt = body.indexOf('<div class="docs-wrap">');
+    const wrapAt = body.indexOf('<div class="docs-wrap');
     assert.ok(bandAt >= 0 && wrapAt > bandAt, `${f}: the band is not above .docs-wrap`);
     // Exactly one h1, and it is inside the band: after the pathways strip, in the title
     // row (plan 277 step 3c), so the band opens with the sections and then the title.
@@ -123,7 +124,11 @@ test('a page with no masthead still opens with the pathways strip, once, in its 
     assert.equal(navs.length, 1, `${rel}: expected exactly one pathways strip, found ${navs.length}`);
     const header = /<header class="site-bar[\s\S]*?<\/header>/.exec(body)?.[0] ?? '';
     assert.ok(!header.includes('<nav class="docs-pathways"'), `${rel}: the strip must sit in the page, not in the bar or its menu`);
-    assert.match(header, /<div class="site-sheet-sections" role="group" aria-label="[^"]+">/, `${rel}: the phone menu no longer opens with the sections`);
+    // The phone reaches the sections through the page bar's sheet on a docs page, and
+    // through the menu on the landing and an immersive page, which have no bar.
+    const hasBar = /<div class="doc-pagebar" data-doc-contents>/.test(body);
+    if (hasBar) assert.match(body, /<nav class="doc-sheet-sections" aria-label="[^"]+">/, `${rel}: the page bar's sheet lost the sections`);
+    else assert.match(header, /<div class="site-sheet-sections" role="group" aria-label="[^"]+">/, `${rel}: the phone menu no longer opens with the sections`);
     assert.match(body, /<div class="docs-strip-band[^"]*"><div class="docs-mast-inner"><nav class="docs-pathways"/, `${rel}: the strip is not in its own band`);
   }
 });
@@ -146,7 +151,7 @@ test('the band ships no provenance line - it is shell decoration, not a signed a
   // The whole band, up to the rail and article under it: it holds the strip and the
   // title row with Listen now, so a match that stopped at its first closing pair of
   // divs would inspect only part of the band.
-  const band = /<div class="docs-masthead">[\s\S]*?(?=<div class="docs-wrap">)/.exec(bodyOf(page('build-guide.html')));
+  const band = /<div class="docs-masthead">[\s\S]*?(?=<div class="docs-wrap)/.exec(bodyOf(page('build-guide.html')));
   assert.ok(band, 'no band found');
   assert.ok(!/shot-cred|asset-cred|prov-pill/.test(band[0]), 'the masthead claims a credential it does not have');
 });
@@ -191,7 +196,7 @@ test('the chip list is generated from the formats catalog, not hand-written', { 
   assert.ok(exts.length >= 40, `only ${exts.length} chips - the catalog says ${exportable.length} formats are exportable`);
 });
 
-test('the landing and the masthead draw from the same generated list', { skip: built }, () => {
+test('every page ships the one generated list the landing draws from', { skip: built }, () => {
   assert.deepEqual(shippedExts(page('build-guide.html')), shippedExts(page('index.html')));
   // The ×2 weighting of the headline formats survives the change.
   assert.match(bundleOf(page('index.html')), /extPool=exts\.concat\(\['\.PDF','\.SVG','\.PNG','\.MP4','\.PPTX'\]\)/);
@@ -199,44 +204,12 @@ test('the landing and the masthead draw from the same generated list', { skip: b
 
 // ─── the manners ─────────────────────────────────────────────────────────────
 
-test('the masthead script honours reduced motion, off-screen and hidden tabs', { skip: built }, () => {
-  // The masthead's own call + theme wiring is its bundle segment; the behaviour those
-  // options select lives in the shared __lollyChipField engine (its own segment now,
-  // plan 131 B.1 - it used to be embedded in each caller's inline block).
-  const js = scriptWith(page('build-guide.html'), 'docs-mast-canvas');
+test('the landing hero keeps its plain, unguarded chip field', { skip: built }, () => {
   const engine = bundleOf(page('build-guide.html'));
-  // The instance's own options…
-  assert.match(js, /pause:true/, 'the masthead animates off screen');
-  assert.match(js, /reduceMotion:true/, 'the masthead ignores prefers-reduced-motion');
-  // …and the engine behaviour those options select.
-  assert.match(engine, /prefers-reduced-motion:reduce/);
-  assert.match(engine, /function paintOnce\(\)/, 'there is no static-frame path for reduced motion');
-  assert.match(engine, /IntersectionObserver/);
-  assert.match(engine, /document\.hidden/);
-  // Theme: the palette is read from the page's tokens and re-baked on a flip (masthead wiring).
-  assert.match(js, /MutationObserver/, 'a theme toggle would leave the chips in the old palette');
-  assert.match(js, /prefers-color-scheme:dark/, 'an OS theme change would leave the chips in the old palette');
-  assert.match(js, /getPropertyValue/, 'the docs palette is not derived from the docs tokens');
-});
-
-test('the masthead burst yields to links, buttons and text selection', { skip: built }, () => {
-  const js = scriptWith(page('build-guide.html'), 'docs-mast-canvas');
-  const engine = bundleOf(page('build-guide.html'));
-  assert.match(js, /burst:true/, 'the masthead lost its click burst');
-  assert.match(js, /burstGuard:true/, 'the masthead bursts without the prose-page guards');
-  // The guard behaviour is in the shared engine, selected by burstGuard:true.
-  assert.match(engine, /closest\('a,button,input,select,textarea,label,summary/, 'a control in the band would be hijacked by the burst');
-  assert.match(engine, /isCollapsed/, 'selecting text in the band would fire a burst');
-  assert.match(engine, /if\(still\)return;/, 'a static (reduced-motion) band still bursts when clicked');
-  // The landing keeps the immediate, unguarded version it always had.
   const landing = scriptWith(page('index.html'), "getElementById('heroCanvas')");
   assert.match(engine, /document\.addEventListener\('pointerdown',burstAt\)/, 'the shared field lost its immediate burst path');
-  // The engine SOURCE mentions every option (it implements them), so the landing is
-  // judged on the options it actually passes - that call is the whole difference
-  // between the two instances.
   assert.match(landing, /__lollyChipField\(canvas,\{burst:true\}\)/, 'the landing hero no longer runs the plain, unguarded field');
   assert.ok(!/\{[^{}]*burstGuard:true/.test(landing), 'the landing hero picked up the docs guards');
-  assert.ok(!/\{[^{}]*(pause:true|reduceMotion:true)/.test(landing), 'the landing hero picked up the docs pausing');
 });
 
 // ─── banked art (plans/105 section 6) ───────────────────────────────────────────────
@@ -246,25 +219,22 @@ test('the masthead burst yields to links, buttons and text selection', { skip: b
 // default staying the default - and the credential machinery the art will carry
 // being present and honest before any art exists to carry it.
 
-test('with nothing mapped, every page still gets the default field - not a blank band', { skip: built }, () => {
+test('with nothing mapped, every page gets the plain band - words, no field', { skip: built }, () => {
   for (const f of ['build-guide.html', 'trust.html', 'exporting.html']) {
     const body = bodyOf(page(f));
-    assert.match(body, /<canvas class="docs-mast-canvas"/, `${f} lost the default chip field`);
+    assert.match(body, /<div class="docs-masthead"><div class="docs-mast-inner">/, `${f} lost its plain band`);
+    assert.ok(!/docs-mast-canvas/.test(body), `${f} carries the chip field again`);
     assert.ok(!/docs-masthead--art|docs-mast-art/.test(body),
       `${f} renders banked art - the MASTHEADS table is supposed to be empty (and the art signed)`);
   }
 });
 
-test('a banked masthead would replace the canvas, not join it', { skip: built }, () => {
-  // Two fields behind one h1 is not a design, it is a bug that only shows up on the
-  // one page that has art. The band's builder chooses whether to emit the canvas; the
-  // shared chip script (in the bundle on every page, plan 131 B.1) self-guards on that
-  // canvas, so a page whose band has art paints no second field.
+test('a banked masthead replaces the plain band, not joins it', { skip: built }, () => {
+  // Art plus a second band behind one h1 is not a design, it is a bug that only shows
+  // up on the one page that has art. The band's builder returns the art instead.
   const src = readFileSync(join(REPO, 'docs/build.ts'), 'utf-8');
   assert.match(src, /const art = mastheadArt\(slug, heading\);\s*\n\s*if \(art\) return \{ band: art, rest, canvas: false \};/,
     'docs/build.ts no longer picks banked art INSTEAD of the default band');
-  assert.match(src, /var canvas=document\.querySelector\('\.docs-mast-canvas'\);\s*\n\s*if\(!canvas\)return;/,
-    'the masthead chip script must self-guard on its canvas - it ships on every page in the shared bundle now');
 });
 
 test('the credential line offers Copy signed source, and says what happened', { skip: built }, () => {
@@ -293,9 +263,8 @@ test('no screenshot is offered a clipboard copy of its pixels', { skip: built },
   }
 });
 
-test('the canvas never takes a pointer event, in either instance', { skip: built }, () => {
+test('the landing canvas never takes a pointer event, and the band scrims neither', { skip: built }, () => {
   const css = styleOf(page('build-guide.html'));
-  assert.match(css, /\.docs-mast-canvas\{[^}]*pointer-events:none/);
   assert.match(css, /#heroCanvas\{[^}]*pointer-events:none/);
   // The scrims sit above the canvas and below the heading, and neither eats clicks.
   assert.match(css, /\.docs-masthead::before\{[^}]*pointer-events:none/);

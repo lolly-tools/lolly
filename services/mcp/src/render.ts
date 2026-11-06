@@ -36,6 +36,7 @@ import { buildExportC2paOpts, placedPicturesIn, recordedDesignInFile } from '@lo
 import { withoutSvgCredentials } from '@lolly-tools/node-shell/lolly-file';
 import { needsBrowserTier } from '@lolly-tools/node-shell/browser-tier';
 import { webGpuLaunchArgs } from '@lolly-tools/node-shell/webgpu-launch';
+import { CPU_CANVAS_ARGS } from '@lolly-tools/node-shell/canvas-launch';
 import { observeProductionInputs } from '@lolly-tools/node-shell/production-browser';
 import { waitForExport, type ExportWait } from '@lolly-tools/node-shell/export-wait';
 import { assertExportLocked, exportPasswordRefusal, exposeExportPassword, type ExportLockReading } from '@lolly-tools/node-shell/export-lock';
@@ -810,6 +811,9 @@ export function browserLaunchArgs(env: NodeJS.ProcessEnv = process.env): string[
     // The web shell requires a WebGPU adapter (plan 295). A hosted renderer has no
     // GPU to offer one, so the shared flags name SwiftShader (webgpu-launch.ts).
     ...webGpuLaunchArgs('software'),
+    // Every 2D canvas on the CPU, so the same render gives the same pixels and so the
+    // same bytes (packages/node-shell/src/canvas-launch.ts says why).
+    ...CPU_CANVAS_ARGS,
     '--force-color-profile=srgb',
     '--font-render-hinting=none',
   ];
@@ -1128,9 +1132,9 @@ export async function credentialAndRecord(
     }
     // Told not to stamp, the browser saves a PDF the embedder cannot extend until it has a classic table.
     try { bytes = await (await import('@lolly-tools/node-shell/pdf-classic')).classicPdfForStamp(bytes, o.exportFmt); } catch { /* the stamp below reports it */ }
-    // The new credential goes where a reader looks for it, not over an inlined picture's own.
-    const clean = withoutSvgCredentials(bytes, o.exportFmt);
-    try { bytes = await stampC2pa(clean, o.exportFmt, o.manifest, o.values, o.merged, o.placed, record, out.tier.startsWith('B') ? null : o.drawn ?? null, carried); stamped = true; }
+    // On an SVG the embedder puts this credential in the root's metadata, in place of the
+    // browser's, and an inlined picture keeps its own credential in its own markup.
+    try { bytes = await stampC2pa(bytes, o.exportFmt, o.manifest, o.values, o.merged, o.placed, record, out.tier.startsWith('B') ? null : o.drawn ?? null, carried); stamped = true; }
     catch (e) { o.warnings.push(`Content Credentials not attached - ${(e as Error).message}`); }
   } else if (!o.sampled && o.merged.c2pa?.on) {
     o.warnings.push(o.exportFmt === 'pdf' && o.merged.password

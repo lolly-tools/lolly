@@ -84,6 +84,10 @@ import {
   PROV_SEAL,
   inline as pkgInline,
   mdToHtml as pkgMdToHtml,
+  hasContents,
+  contentsRailHtml,
+  pageBarHtml,
+  type ContentsHeading,
   type DocsRenderContext,
   type CredentialFacts,
 } from '../packages/docs-render/src/index.ts';
@@ -627,9 +631,9 @@ const MASTHEADS: Record<string, string> = {
   'mcp': 'mcp',                             // one port, bidirectional call-and-return (Fable 5)
 };
 
-// The documentation sections, in the order the pathways strip shows them (pathwaysStrip,
-// after its Welcome tab). The inner arrays are the clusters the old top bar divided;
-// the strip reads them flat. Home is the strip's Welcome tab, not an entry here.
+// The documentation sections, in the order the pathways strip shows them
+// (pathwaysStrip). The inner arrays are the clusters the old top bar divided; the strip
+// reads them flat. The docs front door is not a section and has no entry here.
 interface NavLink {
   label: string;
   href: string;
@@ -1675,6 +1679,8 @@ DOC_ICONS['chrome-close'] = appIcon('close');
 DOC_ICONS['chrome-folder'] = appIcon('folder');
 DOC_ICONS['chrome-hash'] = appIcon('hash');
 DOC_ICONS['chrome-external'] = appIcon('externalLink');
+DOC_ICONS['chrome-back'] = appIcon('arrowLeft');
+DOC_ICONS['chrome-settings'] = appIcon('sliders');
 const DOC_ICON_SPRITE = createIconSprite(DOC_ICONS);
 function docIcon(key: string): string {
   const svg = DOC_ICON_SPRITE.icon(key);
@@ -2617,6 +2623,28 @@ function stripScript(): string {
   return `<script>\n${_stripJs}\n(function(){document.querySelectorAll('nav.docs-pathways').forEach(function(s){LollyDocsStrip.enhancePathwaysStrip(s);});})();\n</script>`;
 }
 
+/**
+ * The page's contents (rail and floating button): shells/web/src/lib/docs-contents.ts, the
+ * module the in-app reader imports, bundled once here so both readers mark the section
+ * being read and open and close the panel the same way. No `jump`: on /info every row is
+ * an ordinary #id link and the browser does the move (and the site's reduced-motion-aware
+ * scroll-behavior with it). The reading line sits under the fixed bar.
+ */
+let _contentsJs: string | null = null;
+function contentsScript(): string {
+  if (_contentsJs === null) {
+    const out = buildSync({
+      entryPoints: [resolve(repoRoot, 'shells/web/src/lib/docs-contents.ts')],
+      bundle: true, write: false, format: 'iife', globalName: 'LollyDocsContents',
+      minify: true, platform: 'browser', target: 'es2019', logLevel: 'silent',
+    });
+    _contentsJs = out.outputFiles[0]!.text.trim();
+  }
+  return `<script>\n${_contentsJs}\n(function(){var a=document.querySelector('main.docs-content');if(!a)return;`
+    + `var bar=document.querySelector('.site-bar');`
+    + `LollyDocsContents.enhanceDocsContents({article:a,root:document,readingLine:function(){return (bar?bar.getBoundingClientRect().bottom:0)+Math.round(innerHeight*0.2);}});})();\n</script>`;
+}
+
 /** The enhancer's words for this page, in its language, as one attribute on the article.
  *  Only pages with a copyable block carry it; attributes never reach the page text that
  *  search and the model index read. */
@@ -3209,9 +3237,10 @@ ${INFO_OPAL_TOKENS}
      reading components (docs-components.css) look the same here as in the app. */
   --ui-color-surface-muted:hsl(var(--secondary));
   --ui-color-border-default:hsl(var(--input));
-  /* The app's type scale multiplies by the a11y text setting (parts/a11y.css), which a
-     static page has no control for. Declared at 1 so the app's type tokens resolve here
-     at their normal sizes instead of computing as invalid. */
+  /* The app's type scale multiplies by the a11y text setting (parts/a11y.css). A static
+     page has no switch of its own, so it reads the app's: the pre-paint script copies
+     Large text from the same mirror the app writes (lolly-a11y, THEME_INIT_SCRIPT) to
+     html[data-a11y-text], and the article and the chrome scale with it, as in the app. */
   --a11y-fs:1;
   --green:hsl(var(--primary));
   --dark:hsl(var(--foreground));
@@ -3361,6 +3390,17 @@ section[id]{scroll-margin-top:calc(var(--site-bar-h) + 2.65rem)}
 .site-launch:hover{text-decoration:none}
 .site-launch svg{width:calc(15px * var(--a11y-fs));height:calc(15px * var(--a11y-fs))}
 [dir="rtl"] .site-launch svg{transform:scaleX(-1)}
+/* The way back (ORIGIN_SCRIPT), beside Launch App: the back arrow and the name of the
+   app view this tab came from, cut short with an ellipsis when it is long. Hidden
+   until the script finds one. */
+/* The same pill as the Lolly home button opposite (.site-home): glass, the bar's
+   radius, the inset glow and the drop, so the bar's two pills read as one pair. */
+.site-return{display:inline-flex;align-items:center;gap:var(--sp-3);flex:0 1 auto;min-width:0;box-sizing:border-box;min-height:var(--chrome-h);padding-inline:var(--sp-6);border:1px solid transparent;border-radius:calc(var(--radius) * 1.5);font-size:var(--fs-md);font-weight:600;line-height:1;color:var(--ui-color-text-default);text-decoration:none;white-space:nowrap;box-shadow:inset 0 -.1em 1em 1px hsl(var(--primary) / .22),0 .1em .3em #0002}
+.site-return[hidden]{display:none}
+.site-return:hover{text-decoration:none}
+.site-return svg{flex:none;width:calc(15px * var(--a11y-fs));height:calc(15px * var(--a11y-fs))}
+[dir="rtl"] .site-return svg{transform:scaleX(-1)}
+.site-return-label{display:block;max-width:14em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 
 /* Language menu: the app's language popover (topbar.css .lang-menu, the same
    role tokens), a raised card with the sort tabs and one column of languages.
@@ -3453,6 +3493,10 @@ html[data-a11y-motion="reduce"] .site-menu[open] .site-sheet{animation:none}
   :root{--site-bar-inset:var(--sp-6)}
   .site-bar{gap:var(--sp-4)}
   .site-fab--theme,.site-fab--lang,.site-fab--github,.site-bar>.site-launch,.site-beta{display:none}
+  /* A reader who came from the app keeps the way back in the bar on a phone: one
+     press, not the menu. Launch App waits in the menu. */
+  .site-return{padding-inline:var(--sp-5)}
+  .site-return-label{max-width:8em}
 }
 @media(max-width:22.5em){.site-home img{display:none}.site-home{padding-inline:var(--sp-7)}}
 
@@ -3507,6 +3551,9 @@ ${LANDING_CSS}
 .sidebar-label:first-child{margin-top:0}
 .sidebar-home{display:block;font-size:.8125rem;color:var(--muted)!important;margin-bottom:1rem;padding:0!important}
 .sidebar-home:hover{color:var(--green)!important;background:none!important}
+/* The rail's link to the docs front door reads "<- Docs", the one name the app gives it
+   too (plan 354 D2); the arrow points back toward the inline start in either direction. */
+[dir="rtl"] .docs-sidebar-home-arrow{display:inline-block;transform:scaleX(-1)}
 /* Docs search - in the TOPBAR, not the rail. It sits with the other whole-site
    controls (language, theme, launch) because it acts on the whole site: the rail
    answers "what is there", the box answers "where is the thing I already know I
@@ -3688,8 +3735,8 @@ ${LANDING_CSS}
 .docs-content{padding:2.75rem 3.5rem 6rem;min-width:0}
 /* No band (a page with no h1 at all): the column clears the fixed bar by itself. */
 .docs-content.no-mast{padding-top:calc(var(--site-bar-h) + 2.25rem)}
-/* ── Article masthead (docsMasthead + DOCS_MASTHEAD_SCRIPT) ───────────────────
-   The page's own h1 over the chip field, FULL VIEWPORT WIDTH: the band is a sibling
+/* ── Article masthead (docsMasthead) ──────────────────────────────────────────
+   The section strip and the page's own h1, FULL VIEWPORT WIDTH: the band is a sibling
    of .docs-wrap, so the sidebar rail and the article both begin underneath it. That
    is the landing page's own grammar (its hero spans the window and the content
    starts below), and a band inset to one column would have read as an illustration
@@ -3700,22 +3747,20 @@ ${LANDING_CSS}
    this one up with the column the article is about to start in makes the band feel
    structural instead of pasted on. Logical padding, so an RTL locale mirrors it.
 
-   isolation:isolate keeps the canvas's blend mode inside the band - without it the
-   dark theme's color-dodge would reach the page behind. */
-.docs-masthead{position:relative;isolation:isolate;overflow:hidden;padding:calc(var(--site-bar-h) + 2.25rem) 0 2.25rem;min-height:clamp(14rem,30vh,20rem);display:flex;flex-direction:column;justify-content:flex-end;background:linear-gradient(180deg,var(--pale) 0%,var(--page) 100%)}
-/* The dark plate stays a PLATE - a green a couple of steps up from the page - because
-   color-dodge divides by the backdrop: over near-black (#061816) the chips resolve to
-   near-black too and the field disappears. The gradient's last stop still reaches the
-   page colour, so the band ends where the article begins. */
+   It holds words only (no chip field since 2026-11-06), so it is as tall as its two
+   rows and the article starts right under the title. A banked masthead (MASTHEADS,
+   docs-art.ts) brings its own art and height. */
+.docs-masthead{position:relative;isolation:isolate;overflow:hidden;padding:calc(var(--site-bar-h) + 2.25rem) 0 2.25rem;display:flex;flex-direction:column;justify-content:flex-end;background:linear-gradient(180deg,var(--pale) 0%,var(--page) 100%)}
+/* In dark the band is a plate a couple of green steps up from the page; the
+   gradient's last stop reaches the page colour, so the band ends where the article
+   begins. */
 [data-theme="dark"] .docs-masthead,[data-theme="dark"] .docs-strip-band:not(.docs-strip-band--flow){background:linear-gradient(180deg,#0a4744 0%,#052927 58%,var(--page) 100%)}
 /* Same box as .docs-wrap, then indented past the rail: the h1 starts exactly where
    the article's text will. Below 768px the rail is gone and so is the indent. It
    holds two rows (plan 277 step 3c): the pathways strip, then the title row. */
 .docs-mast-inner{position:relative;z-index:2;max-width:1180px;width:100%;margin:0 auto;padding-inline:calc(220px + 3.5rem) 3.5rem;display:flex;flex-direction:column;gap:1.4rem}
-.docs-mast-canvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:0;opacity:.55}
-/* The chips are decoration under the title; the bar and the pathways strip above it
-   carry words, so the field fades in only below them. The banked art takes the same
-   line. --mast-clear sits on the band: MAST_CLEAR_SCRIPT sets it to the strip's own
+/* Banked art fades in only below the bar and the pathways strip, which carry words.
+   --mast-clear sits on the band: MAST_CLEAR_SCRIPT sets it to the strip's own
    foot, which moves with the band's height and the title's length; the values here
    are the estimate a reader without JavaScript gets. */
 .docs-masthead{--mast-clear:calc(var(--site-bar-h) + 5rem)}
@@ -3725,7 +3770,6 @@ ${LANDING_CSS}
    a normal blend, because dodging on a near-white band blows the chips out to
    invisible white. Blend and opacity live here rather than in the JS: they are how
    the field MEETS the page, and the page's own theme rules already know that. */
-[data-theme="dark"] .docs-mast-canvas{mix-blend-mode:color-dodge;opacity:.6}
 /* Two scrims, both above the canvas and below the h1 (::before/::after are z-index 1,
    the heading is 2). The first is legibility insurance - the heading is currentColor,
    so decoration must never be allowed to eat its contrast; the second melts the band
@@ -3744,7 +3788,7 @@ ${LANDING_CSS}
    is (0,1,1) and gives every page heading a bottom rule and 2rem of padding. Inside a
    band that rule is a second horizontal line under a heading that already sits on
    one, so it has to be out-specified rather than tied with. */
-.docs-masthead h1{margin:0;padding:0;border-bottom:0;color:var(--dark);font-size:clamp(2.25rem,3.4vw,3rem);font-weight:300;line-height:1.15}
+.docs-masthead h1{margin:0;padding:0;border-bottom:0;color:var(--dark);font-size:calc(clamp(2.25rem,3.4vw,3rem) * var(--a11y-fs));font-weight:300;line-height:1.15}
 /* The title row: the page's h1 (the in-app reader's title size and weight) with
    a page's print edition beside it as an app button, on the title's last line
    rather than over the article's first. On a phone the button wraps under the title. */
@@ -4194,39 +4238,49 @@ html[data-a11y-motion="reduce"] .showcase-art [data-sc-i]{opacity:1}
    bytes are exactly what Lolly exported - never re-encode it in a build step.
    Full column width: it is the page's one image and the argument's evidence. */
 .docs-content img[src*="the-flood"]{width:100%;max-width:100%;border-radius:1.2em;box-shadow:0 3px 6px #0002, 0 6px 2em #0001}
-.docs-content h2{font-size:1.75rem;font-weight:350;letter-spacing:normal;text-transform:none;border-top:1px solid var(--border);padding-top:2rem;margin-top:2.5rem;margin-bottom:1rem;color:var(--dark)}
+.docs-content{font-size:calc(1rem * var(--a11y-fs))}
+html[data-a11y-text="large"]{--a11y-fs:1.2}
+.docs-content h2{font-size:calc(1.75rem * var(--a11y-fs));font-weight:350;letter-spacing:normal;text-transform:none;border-top:1px solid var(--border);padding-top:2rem;margin-top:2.5rem;margin-bottom:1rem;color:var(--dark)}
 .docs-content h2:first-of-type{border-top:none;padding-top:0;margin-top:0}
-.docs-content h3{font-size:1.15rem;margin-top:1.75rem;margin-bottom:.5rem;color:var(--dark)}
-.docs-content h4{font-size:1rem;margin-top:1.25rem;margin-bottom:.35rem;color:var(--muted)}
-/* The top bar is fixed, so a heading reached by an #anchor (the jump nav below, a
+.docs-content h3{font-size:calc(1.15rem * var(--a11y-fs));margin-top:1.75rem;margin-bottom:.5rem;color:var(--dark)}
+.docs-content h4{font-size:calc(1rem * var(--a11y-fs));margin-top:1.25rem;margin-bottom:.35rem;color:var(--muted)}
+/* The top bar is fixed, so a heading reached by an #anchor (the page's contents, a
    search result, a shared deep link) would otherwise sit UNDER it. Same idea as
    section[id] on the landing page, with room for the heading's rule. */
 .docs-content h2[id],.docs-content h3[id],.docs-content h4[id]{scroll-margin-top:calc(var(--site-bar-h) + 1.75rem)}
 .docs-content ul,.docs-content ol{margin-bottom:1rem}
-/* ── "On this page" jump nav (long docs pages only - pageJumpNav) ─────────────
-   Bottom-right, deliberately quiet: a 2.25rem disc that reads as page furniture
-   until you want it. Logical inset so the Arabic build puts it in the corner an RTL
-   reader reaches for. Tokens only (--text/--muted/--border/--pale, all redefined by
-   .dark) so dark mode needs no second palette here. */
-.doc-jump{position:fixed;bottom:1rem;inset-inline-end:1rem;z-index:88}
-.doc-jump-btn{display:flex;align-items:center;justify-content:center;width:2.25rem;height:2.25rem;border-radius:999px;border:1px solid var(--border);background:var(--pale);color:var(--muted);cursor:pointer;box-shadow:0 2px 10px #0336331f;transition:color .12s,border-color .12s}
-.doc-jump-btn svg{width:1.1rem;height:1.1rem}
-.doc-jump-btn:hover,.doc-jump-btn[aria-expanded="true"]{color:var(--green);border-color:var(--green)}
-/* The first six declarations are RESETS, not choices. A bare nav element selector
-   used to be the site's top bar (fixed, full-width, flex) and landed on any <nav>
-   on the page; the bar is its own .site-bar now, and the resets stay so no element
-   rule can ever lay this panel out as a strip across the bottom of the window. */
-.doc-jump-nav{position:absolute;display:block;top:auto;width:auto;height:auto;overflow-x:hidden;transition:none;bottom:calc(100% + .5rem);inset-inline-end:0;min-width:14rem;max-width:min(20rem,calc(100vw - 2rem));max-height:min(60vh,26rem);overflow-y:auto;padding:.4rem;background:var(--pale);border:1px solid var(--border);border-radius:10px;box-shadow:0 10px 34px #03363326}
-.doc-jump-nav[hidden]{display:none}
-.doc-jump-title{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);margin:.15rem .5rem .35rem}
-.doc-jump-nav a{display:block;padding:.32rem .5rem;border-radius:6px;font-size:.875rem;line-height:1.35;color:var(--text);text-decoration:none}
-.doc-jump-nav a:hover{background:#50c36918;color:var(--green);text-decoration:none}
-[data-theme="brand"] .doc-jump-nav a:hover{color:#ace1ad}
-.doc-jump-top{margin-top:.25rem;border-top:1px solid var(--border);padding-top:.45rem;color:var(--muted)}
-@media(prefers-reduced-motion:reduce){.doc-jump-btn{transition:none}}
-html[data-a11y-motion="reduce"] .doc-jump-btn{transition:none}
-@media print{.doc-jump{display:none}}
-.docs-content h1{font-size:3rem;color:var(--dark);line-height:1.15;margin-bottom:2rem;padding-bottom:2rem;border-bottom:1px solid var(--border); font-weight:300;}
+/* ── The page's contents: where they sit on /info (their look is docs-chrome.css's) ──
+   From 1100px the rail is a third column beside the article, sticky under the bar,
+   and the wrap and the masthead widen by its width so the article keeps its place
+   under the title. Below 1100px the page bar takes over: sticky under the site bar,
+   its sheet holding the sections, the headings and the pages. It sits before the
+   band, so the band no longer clears the site bar itself; on a phone the band's own
+   strip goes, because the bar's sheet carries the sections. */
+.docs-onpage{display:none}
+.doc-pagebar{top:var(--site-bar-h);margin-top:var(--site-bar-h);z-index:90;padding-inline:max(1rem,calc((100% - 46rem) / 2))}
+@media(max-width:1099px){
+  .doc-pagebar+.docs-masthead{padding-top:1.5rem}
+  .doc-pagebar+.docs-strip-band{padding-top:1.25rem}
+}
+@media(max-width:768px){.doc-pagebar+.docs-masthead{padding-top:1rem;min-height:0}}
+@media(max-width:640px){
+  .doc-pagebar+.docs-masthead .docs-pathways{display:none}
+  .doc-pagebar+.docs-strip-band:not(:has(.docs-edition-bar)){display:none}
+  .doc-pagebar+.docs-strip-band .docs-pathways{display:none}
+  .doc-pagebar+.docs-masthead{padding-bottom:1rem}
+  .doc-pagebar+.docs-masthead .docs-mast-inner{gap:0}
+  .doc-pagebar+.docs-masthead h1{font-size:calc(2.1rem * var(--a11y-fs))}
+  .doc-pagebar~.docs-wrap .docs-content{padding-top:1.25rem}
+}
+@media(min-width:1100px){
+  .doc-pagebar{display:none}
+  .docs-wrap--rail{grid-template-columns:220px minmax(0,1fr) 14rem;max-width:calc(1180px + 14rem)}
+  .docs-wrap--rail .docs-content{padding-inline-end:2rem}
+  .docs-wrap--rail .docs-onpage{display:block;position:sticky;top:var(--site-bar-h);align-self:start;max-height:calc(100vh - var(--site-bar-h));max-height:calc(100dvh - var(--site-bar-h));overflow-y:auto;overscroll-behavior:contain;padding:2.75rem 1.25rem 2rem 0;box-sizing:border-box}
+  .page-has-rail .docs-masthead .docs-mast-inner,.page-has-rail .docs-strip-band .docs-mast-inner{max-width:calc(1180px + 14rem);padding-inline-end:calc(14rem + 2rem)}
+}
+@media print{.doc-pagebar,.docs-onpage{display:none!important}}
+.docs-content h1{font-size:calc(3rem * var(--a11y-fs));color:var(--dark);line-height:1.15;margin-bottom:2rem;padding-bottom:2rem;border-bottom:1px solid var(--border); font-weight:300;}
 
 /* Table */
 .table-wrap{overflow-x:auto;margin-bottom:2rem;box-shadow: 0 0 0 1px hsl(var(--border)), 0 .2rem .4rem #00000018; border-radius: 1.5em;}
@@ -4423,7 +4477,7 @@ const GITHUB_LINK    = `<a class="site-fab site-fab--github" href="https://githu
 // pages never load the app's base.css. The read has its own try, so a damaged copy
 // cannot cost the reader the theme. tests/docs-landing-motion.test.ts runs this script
 // against the copy the app's own writer produces.
-const THEME_INIT_SCRIPT = `<script>(function(){var c=localStorage.getItem('theme'),s=window.matchMedia('(prefers-color-scheme:dark)').matches;var t=(c==='light'||c==='dark'||c==='brand')?c:(s?'dark':'light');var r=document.documentElement;r.dataset.theme=t;r.classList.toggle('dark',t==='dark'||t==='brand');try{var ax=JSON.parse(localStorage.getItem('lolly-a11y')||'null');if(ax&&ax.reduceMotion)r.dataset.a11yMotion='reduce';}catch(e){}})();</script>`;
+const THEME_INIT_SCRIPT = `<script>(function(){var c=localStorage.getItem('theme'),s=window.matchMedia('(prefers-color-scheme:dark)').matches;var t=(c==='light'||c==='dark'||c==='brand')?c:(s?'dark':'light');var r=document.documentElement;r.dataset.theme=t;r.classList.toggle('dark',t==='dark'||t==='brand');try{var ax=JSON.parse(localStorage.getItem('lolly-a11y')||'null');if(ax&&ax.reduceMotion)r.dataset.a11yMotion='reduce';if(ax&&ax.largeText)r.dataset.a11yText='large';}catch(e){}})();</script>`;
 
 // Pre-paint, beside the theme flag and for the same reason: it decides how the
 // first frame is painted. It only ARMS the screenshot motion - SHOT_MOTION_SCRIPT
@@ -4441,7 +4495,7 @@ const NOSCRIPT_NAV = `<noscript><style>.docs-search,.site-fab--search,.site-fab-
 // moves a shot under no-preference.
 const SHOT_MOTION_INIT = `<script>if(document.documentElement.dataset.a11yMotion!=='reduce')document.documentElement.classList.add('shots-motion');</script>`;
 
-// The masthead's decoration (the chip canvas or banked art) stays out of the pathways
+// A banked masthead's art stays out of the pathways
 // strip's row: it may only appear from the strip's foot down. That foot moves with the
 // band's height and the title's length, so it is measured here and kept current as the
 // band resizes; the stylesheet's --mast-clear is the estimate without JavaScript.
@@ -5191,42 +5245,28 @@ const HERO_CANVAS_SCRIPT = `<script>(function(){
   window.__lollyChipField(canvas,{burst:true});
 })();</script>`;
 
-/**
- * The article masthead's instance of the same field.
- *
- * The effect was built for one dark plate and hardcoded to it (deep green chips,
- * bright green labels, color-dodge). Docs pages are read in every theme, so here the
- * palette comes from the page's own tokens and the chips are RE-BAKED when the
- * theme changes - the toggle stamps [data-theme] (light/dark/brand) on <html>, and a
- * reader on "system" gets the same flip from the OS; palette() treats brand as a dark
- * ground. Blend + opacity are CSS's job (.docs-mast-canvas), so
- * the JS only ever decides two colours.
- */
-const DOCS_MASTHEAD_SCRIPT = `<script>(function(){
-  var canvas=document.querySelector('.docs-mast-canvas');
-  if(!canvas)return;
-  function tok(name,fallback){
-    var v=getComputedStyle(document.documentElement).getPropertyValue(name).trim();
-    return v||fallback;
-  }
-  function palette(){
-    var th=document.documentElement.dataset.theme;
-    var dark=th==='dark'||th==='brand';  // brand is a dark ground too
-    // Dark: the landing's own chip fill (Opal's deep plate green) over the dark band,
-    // under color-dodge - the same glow the front door has. Light: a Pandanus chip on a
-    // near-white band, normal blend, so the field reads as watermark rather than
-    // decoration. The light fill reads --border, not --input: the bridge makes --border
-    // a finished hsl() colour, while --input is a bare triple a canvas cannot parse.
-    return dark
-      ? {fill:'#0a4744', label:tok('--green','#50c369')}
-      : {fill:tok('--border','#ace1ad'), label:tok('--green','#033633')};
-  }
-  var field=window.__lollyChipField(canvas,{palette:palette,pause:true,reduceMotion:true,burst:true,burstGuard:true});
-  // The [data-theme] flip (docs theme toggle) and the OS preference both change the answer.
-  new MutationObserver(function(){ field.rebake(); })
-    .observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
-  var mq=window.matchMedia('(prefers-color-scheme:dark)');
-  if(mq.addEventListener) mq.addEventListener('change',function(){ field.rebake(); });
+
+// The way back to the app. The app notes the view a tab leaves it from (sessionStorage
+// lolly:leftApp, shells/web/src/lib/back-nav.ts rememberViewOnLeave): same tab, same
+// origin, read here and never sent anywhere. The served pages carry Referrer-Policy:
+// no-referrer, so that note is the only way this static page can know where the reader
+// was. When it is there, the return pill beside Launch App shows "<- <that view>" and
+// points at its exact address; across /info pages the note stays, so the way back
+// survives any number of hops. It is a plain link: Back stays Back. The address must be
+// a path on this origin outside /info, and the name is set as text.
+const ORIGIN_SCRIPT = `<script>(function(){
+  var raw=null;try{raw=sessionStorage.getItem('lolly:leftApp');}catch(e){}
+  if(!raw)return;
+  var v=null;try{v=JSON.parse(raw);}catch(e){return;}
+  if(!v||typeof v.href!=='string'||typeof v.label!=='string'||!v.label)return;
+  if(!/^\\/(?!\\/)\\S*$/.test(v.href)||/^\\/info(\\/|$)/.test(v.href))return;
+  var name=v.label.slice(0,80);
+  document.querySelectorAll('a.site-return').forEach(function(a){
+    a.setAttribute('href',v.href);
+    var l=a.querySelector('.site-return-label');if(l)l.textContent=name;
+    a.setAttribute('aria-label',(a.getAttribute('data-back-label')||'Back to {view}').replace('{view}',name));
+    a.hidden=false;
+  });
 })();</script>`;
 
 // Links into the app's /verify view open as a POPOUT WINDOW, not a tab - the
@@ -5376,21 +5416,6 @@ menu.addEventListener('focusout',function(e){if(menu.open&&e.relatedTarget&&!men
 menu.addEventListener('click',function(e){if(e.target.closest&&e.target.closest('.site-sheet a[href]'))close(false);});
 })();</script>`;
 
-// The "On this page" jump nav (pageJumpNav, near wrapPage). Deliberately does NOT
-// touch scrolling: the links are ordinary anchors, so the browser's own jump - and
-// the site's own `scroll-behavior` (already reduced-motion-aware in CSS) - does the
-// move. Closing on link click is the only thing the click handler does; the default
-// navigation runs after it. Esc closes and RETURNS FOCUS to the button, so keyboard
-// reading resumes where it left off rather than at the top of the document.
-const DOC_JUMP_SCRIPT = `<script>(function(){
-  var btn=document.getElementById('docJumpBtn'),nav=document.getElementById('docJumpNav');
-  if(!btn||!nav)return;
-  function setOpen(open){nav.hidden=!open;btn.setAttribute('aria-expanded',open?'true':'false');}
-  btn.addEventListener('click',function(e){e.stopPropagation();setOpen(nav.hidden);});
-  nav.addEventListener('click',function(e){if(e.target.closest('a'))setOpen(false);});
-  document.addEventListener('click',function(e){if(!nav.hidden&&!nav.contains(e.target)&&!btn.contains(e.target))setOpen(false);});
-  document.addEventListener('keydown',function(e){if(e.key==='Escape'&&!nav.hidden){setOpen(false);btn.focus();}});
-})();</script>`;
 
 // ── i18n: site chrome (nav/sidebar/footer labels) + per-locale page sources ──
 //
@@ -5713,7 +5738,7 @@ const LANG_PICKER_SCRIPT = `<script>
 </script>`;
 
 /**
- * The pathways strip: Welcome (the landing) and the five documentation sections, as
+ * The pathways strip: the documentation sections, as
  * text tabs (plan 277 step 3c, decision D15). The in-app reader adopts this very
  * element from the fetched page (lib/docs-nav.ts extractPathways), so both readers
  * show one strip rather than two copies built apart. The current section is
@@ -5725,17 +5750,20 @@ const LANG_PICKER_SCRIPT = `<script>
  * not a second navigation landmark of the same name, and not a `nav.docs-pathways`,
  * so the in-app reader always adopts the page's own strip.
  */
-function pathwaysStrip(lang: Lang, activeHref: string, activePathway: Pathway | undefined, isLanding: boolean, inSheet = false): string {
-  const tab = (href: string, label: string, current: '' | 'page' | 'true', extra = ''): string =>
-    `<a class="docs-pathway${extra}${current ? ' active' : ''}" href="${localeHref(lang, hrefToSlug(href))}"${current ? ` aria-current="${current}"` : ''}>${esc(label)}</a>`;
-  const home = tab('/info/index.html', t('Welcome'), isLanding ? 'page' : '', ' docs-pathway-home');
+function pathwaysStrip(lang: Lang, activeHref: string, activePathway: Pathway | undefined, isLanding: boolean, inSheet: boolean | 'links' = false): string {
+  const tab = (href: string, label: string, current: '' | 'page' | 'true'): string =>
+    `<a class="docs-pathway${current ? ' active' : ''}" href="${localeHref(lang, hrefToSlug(href))}"${current ? ` aria-current="${current}"` : ''}>${esc(label)}</a>`;
+  // The sections only. The docs front door is not a section: the bar's Lolly pill goes
+  // there on /info, and the app's bottom bar calls it Docs (Andy, 2026-11-06, plan 354
+  // D2: "Docs" everywhere, and "Welcome" leaves the section tabs).
   const links = NAV.flat().map((n) => {
     const current = isLanding ? '' : n.href === activeHref ? 'page' : NAV_PATHWAY[n.href] === activePathway ? 'true' : '';
     return tab(n.href, t(n.label), current);
   }).join('');
+  if (inSheet === 'links') return links;
   return inSheet
-    ? `<div class="site-sheet-sections" role="group" aria-label="${esc(t('Documentation sections'))}">${home}${links}</div>`
-    : `<nav class="docs-pathways" aria-label="${esc(t('Documentation sections'))}">${home}${links}</nav>`;
+    ? `<div class="site-sheet-sections" role="group" aria-label="${esc(t('Documentation sections'))}">${links}</div>`
+    : `<nav class="docs-pathways" aria-label="${esc(t('Documentation sections'))}">${links}</nav>`;
 }
 
 /** The strip in a slim band of its own, for a page with no masthead: at the top of the
@@ -5780,6 +5808,11 @@ interface SheetParts {
 function buildNav(lang: Lang, slug: string, isLanding: boolean | undefined, sheet: SheetParts) {
   const launchHref = esc(localizeHref(lang, '/'));
   const launch = `<a href="${launchHref}" class="btn btn--primary site-launch">${esc(t('Launch App'))}${docIcon('chrome-arrow')}</a>`;
+  // The way back, beside Launch App rather than in its place (plan 354 D7): hidden until
+  // the origin script (ORIGIN_SCRIPT) finds the app view this tab came from, then it
+  // names that view and points at its exact address, so it reads "<- QR Code".
+  const back = `<a href="${launchHref}" class="btn--glass site-return" data-back-label="${esc(t('Back to {view}'))}" hidden>${docIcon('chrome-back')}<span class="site-return-label"></span></a>`;
+  const settingsRow = `<a class="profile-menu-item" href="${esc(`${localizeHref(lang, '/')}#/settings`)}"><span>${esc(t('Settings'))}</span>${docIcon('chrome-settings')}</a>`;
   // Beta: English only, and deliberately not run through t() - it must not enter the
   // translation corpora, because it is meant to come straight back out again once the
   // docs are no longer a draft.
@@ -5800,10 +5833,10 @@ function buildNav(lang: Lang, slug: string, isLanding: boolean | undefined, shee
   const disclosures = pages || onPage ? `<div class="docs-compact-nav">${pages}${onPage}</div>` : '';
   const menu = `<details class="site-menu"><summary class="site-fab" aria-label="${esc(t('Menu'))}" title="${esc(t('Menu'))}">`
     + `<span class="site-menu-open">${docIcon('chrome-menu')}</span><span class="site-menu-close">${docIcon('chrome-close')}</span></summary>`
-    + `<div class="site-sheet">${sheet.sections}${disclosures}<div class="site-sheet-tools"><hr class="site-sheet-rule">${themeSeg}${langRow}${githubRow}</div>${launch}</div></details>`;
+    + `<div class="site-sheet">${sheet.sections}${disclosures}<div class="site-sheet-tools"><hr class="site-sheet-rule">${themeSeg}${langRow}${settingsRow}${githubRow}</div>${launch}</div></details>`;
   // Search sits first in the cluster of whole-site controls. Docs pages only - there is
   // no index behind the landing page, and a box that returns nothing is worse than no box.
-  return `<header class="site-bar${isLanding ? ' site-bar--over-hero' : ''}">${home}${isLanding ? '' : searchBox(lang)}${langPickerHtml(lang, slug)}${THEME_TOGGLE}${GITHUB_LINK}${launch}${menu}</header>`;
+  return `<header class="site-bar${isLanding ? ' site-bar--over-hero' : ''}">${home}${isLanding ? '' : searchBox(lang)}${langPickerHtml(lang, slug)}${THEME_TOGGLE}${GITHUB_LINK}${back}${launch}${menu}</header>`;
 }
 
 /**
@@ -6245,7 +6278,7 @@ function buildSidebar(lang: Lang, page: Page, activeHref: string) {
     return `<div class="sidebar-label">${esc(t(g.label))}</div>\n    ${links}`;
   }).join('\n    ');
   return `<aside class="docs-sidebar">
-    <a href="${localeHref(lang, 'index')}" class="sidebar-home">${esc(t('← Home'))}</a>
+    <a href="${localeHref(lang, 'index')}" class="sidebar-home"><span class="docs-sidebar-home-arrow" aria-hidden="true">←</span> ${esc(t('Docs'))}</a>
     <div class="sidebar-pathway">${esc(t(sb.title))}</div>
     ${groups}
   </aside>`;
@@ -6332,22 +6365,13 @@ function editionBarHtml(page: Page, lang: Lang): string {
   return chip ? `<div class="docs-edition-bar">${chip}</div>` : '';
 }
 
-// ── "On this page" jump nav ──────────────────────────────────────────────────
-// A long reference page (build-guide runs to nine sections and 60 KB of rendered
-// HTML) gives a reader arriving from search no way back out of the middle of it: the
-// left rail lists PAGES, and the section they want is a scroll away with nothing
-// naming it. So on long pages only, a small fixed control opens the page's own h2
-// list - the ids mdToHtml already stamped, as plain anchors.
-//
-// LONG is measured, not declared per page, so nobody has to remember to turn it on:
-// six sections is where a rail stops being scannable in one glance, and 25 KB of
-// rendered HTML is roughly the same page from the other direction (a page with few
-// but enormous sections still buries its landmarks). Either qualifies.
-const JUMP_MIN_H2 = 6;
-const JUMP_MIN_BYTES = 25_000;
-// A contents mark: three rules, ragged like a list of headings. Not `checklist` from
-// DOC_ICONS - its ticks say "done", and nothing here is done.
-const JUMP_ICON = `<svg viewBox="0 0 24 24" ${DOC_ICON_S}><path d="M4 7h16M4 12h11M4 17h13"/></svg>`;
+// ── The page's contents and the page bar ─────────────────────────────────────────
+// Two forms of one list (packages/docs-render contents.ts): a rail beside the article
+// from 1100px, and below that the page bar ("Create v Export a file"), whose one sheet
+// holds the sections, this page's headings and this section's pages, so every way
+// around is one press away from any point in the page, also on a phone. The headings
+// are plain #id links; the bundled lib/docs-contents.ts marks the section being read
+// and opens and closes the sheet.
 
 /** A page's h2 headings, in order, as the ids mdToHtml stamped and their text. The jump
  *  nav and the phone menu's "On this page" list both read them. */
@@ -6361,33 +6385,46 @@ function pageHeadings(content: string): Array<{ id: string; text: string }> {
   return items;
 }
 
-function pageJumpNav(content: string): string {
-  const items = pageHeadings(content);
-  // The two thresholds are OR'd; `content` is the rendered body this page will ship,
-  // so the measurement is of the real thing rather than of its source.
-  if (items.length < JUMP_MIN_H2 && content.length < JUMP_MIN_BYTES) return '';
-  const label = t('On this page');
-  const links = items
-    .map(it => `<a href="#${esc(it.id)}">${esc(it.text)}</a>`)
-    .join('');
-  // "#top" is the HTML spec's own name for the top of the document when nothing
-  // carries that id - a browser default, so no script is involved in the scroll.
-  const top = `<a class="doc-jump-top" href="#top">${esc(t('Back to top'))}</a>`;
-  return `<div class="doc-jump">`
-    + `<button type="button" class="doc-jump-btn" id="docJumpBtn" aria-expanded="false" aria-controls="docJumpNav" aria-label="${esc(label)}" title="${esc(label)}">${JUMP_ICON}</button>`
-    + `<nav class="doc-jump-nav" id="docJumpNav" aria-label="${esc(label)}" hidden>`
-    + `<p class="doc-jump-title">${esc(label)}</p>${links}${top}</nav></div>`;
+/** A page's sections and subsections, as the rail lists them. */
+function pageContents(content: string): ContentsHeading[] {
+  const items: ContentsHeading[] = [];
+  for (const m of content.matchAll(/<h([23])\s+id="([^"]*)"[^>]*>([\s\S]*?)<\/h\1>/g)) {
+    const id = m[2]!;
+    const text = htmlToText(m[3]!);
+    if (id && text) items.push({ id, text, level: m[1] === '3' ? 3 : 2 });
+  }
+  return items;
+}
+
+/** The rail (two sections or more) and the page bar for one page. The bar's sheet holds
+ *  the sections, this page's headings and this section's pages (`pages`, the same list
+ *  the rail shows, or a generated page's own). A generated page keeps its one column,
+ *  so it gets the bar and no rail. */
+function pageNavParts(lang: Lang, page: Page, activeHref: string, content: string, pages: { title: string; body: string } | null): { rail: string; bar: string } {
+  const headings = pageContents(content);
+  const labels = { title: t('On this page') };
+  const rail = !page.generated && hasContents(headings) ? `<div class="docs-onpage">${contentsRailHtml(headings, labels)}</div>` : '';
+  const hub = NAV.flat().find((n) => NAV_PATHWAY[n.href] === page.pathway);
+  const bar = pageBarHtml({
+    section: hub ? t(hub.label) : t('Docs'),
+    page: t(page.title),
+    headings,
+    labels: { ...labels, sections: t('Documentation sections') },
+    sectionsHtml: pathwaysStrip(lang, activeHref, page.pathway, false, 'links'),
+    pages: pages ? { title: pages.title, html: pages.body } : null,
+    chevron: docIcon('adm-chevron'),
+  });
+  return { rail, bar };
 }
 
 /**
- * Hoist a page's own h1 into a masthead band with the chip field behind it.
+ * Hoist a page's own h1 into a masthead band, under the pathways strip.
  *
- * Every article page opened with a bare h1 on white - correct, and completely
- * silent about what site you had landed on. The landing page's hero already says it
- * (formats drifting past the name), so the docs get the same greeting rather than a
- * second invented one. plans/105 records why this is the DEFAULT rather than a
- * per-page choice, and why it carries no credential line: it is shell decoration
- * drawn at read time, nothing signed and nothing claimed.
+ * The band used to carry the landing's drifting file-format chips behind the title
+ * (plans/105). Andy removed them from article pages on 2026-11-06: a reader came for
+ * the text, the site bar already says which site this is, and the chips sat behind
+ * the section tabs. The landing hero keeps its field. A page mapped in MASTHEADS
+ * still gets its banked art in the same band.
  *
  * THE H1 MOVES BUT ITS IDENTITY DOES NOT. The element is re-emitted verbatim, id
  * and all, because that id is a published anchor - deep links, the search index's
@@ -6403,10 +6440,12 @@ function docsMasthead(content: string, slug: string, top: { strip: string; editi
   const heading = `${top.strip}<div class="mast-title">${m[0]}${top.edition}</div>`;
   const art = mastheadArt(slug, heading);
   if (art) return { band: art, rest, canvas: false };
+  // The band carries words only: the sections and the title. Its drifting chip field
+  // went on 2026-11-06 (Andy: no chips on article pages; the landing hero keeps its
+  // decoration), so a reader opens every page on the title, not on motion behind it.
   const band = `<div class="docs-masthead">`
-    + `<canvas class="docs-mast-canvas" aria-hidden="true"></canvas>`
     + `<div class="docs-mast-inner">${heading}</div></div>`;
-  return { band, rest, canvas: true };
+  return { band, rest, canvas: false };
 }
 
 /**
@@ -6470,8 +6509,8 @@ const DOCS_JS = [
   CHIP_FIELD_JS,
   FORMATS_DIALOG_SCRIPT, THEME_INTERACT_SCRIPT, SHOT_MOTION_SCRIPT, SHOWCASE_SCRIPT,
   SHOT_CRED_SCRIPT, SCROLL_REVEAL_SCRIPT, LIQUID_GLASS_SCRIPT, HERO_CANVAS_SCRIPT,
-  DOCS_MASTHEAD_SCRIPT, VERIFY_POPOUT_SCRIPT, DOCS_SEARCH_SCRIPT, HAMBURGER_SCRIPT,
-  DOC_JUMP_SCRIPT, LANG_PICKER_SCRIPT, readingScript(), stripScript(), agentCopyScript(), MAST_CLEAR_SCRIPT,
+  VERIFY_POPOUT_SCRIPT, DOCS_SEARCH_SCRIPT, HAMBURGER_SCRIPT,
+  LANG_PICKER_SCRIPT, ORIGIN_SCRIPT, readingScript(), stripScript(), contentsScript(), agentCopyScript(), MAST_CLEAR_SCRIPT,
 ].map(stripScriptTags).join('\n;\n');
 const fingerprint = (s: string): string =>
   createHash('sha256').update(s).digest('base64url').slice(0, 16);
@@ -6486,7 +6525,7 @@ const DOCS_JS_TAG = `<script src="/info/${DOCS_JS_FILE}" defer></script>`;
 
 const NAV_ICON_SPRITE = createIconSprite({
   language: LANG_ICON_SVG, sun: THEME_SVG_SUN, moon: THEME_SVG_MOON, brand: THEME_SVG_BRAND,
-  seal: PROV_SEAL, edition: EDITION_ICON, jump: JUMP_ICON,
+  seal: PROV_SEAL, edition: EDITION_ICON,
   ...Object.fromEntries([...GITHUB_LINK.matchAll(/<svg\b[\s\S]*?<\/svg>/g)].map((match, i) => [`nav-${i}`, match[0]])),
   ...Object.fromEntries(Object.entries(SITE_ICONS).map(([key, svg]) => [`site-${key}`, svg])),
   ...Object.fromEntries(Object.entries(FMT_CAT_ICON).map(([key, svg]) => [`format-${key}`, svg])),
@@ -6519,9 +6558,8 @@ function wrapPage(lang: Lang, page: Page, content: string, ogSlugs: Set<string>,
   const edition = editionBarHtml(page, lang);
 
   // Docs pages only: the landing page already carries its own sticky quicknav, and
-  // a second on-page nav in the corner would be two answers to one question. A
-  // generated side-door page has no sidebar to mirror, so it skips the jump nav too.
-  const jump = (isLanding || page.generated || page.immersive) ? '' : pageJumpNav(content);
+  // a second on-page nav would be two answers to one question. A generated side-door
+  // page and an immersive page are built as bands, not sections, so they skip it too.
 
   // The masthead band, and the article body with its h1 lifted out of it. The band
   // opens with the pathways strip and carries the print edition in the title row beside
@@ -6536,10 +6574,18 @@ function wrapPage(lang: Lang, page: Page, content: string, ogSlugs: Set<string>,
   const article = mast ? mast.rest : content;
   const lead = mast ? '' : edition;
   const reading = readingAttr(content);
-  const sheet: SheetParts = {
-    pages: isLanding ? null
-      : page.rail ? { title: page.rail.mobileTitle, body: page.rail.mobile }
-      : sheetPagesHtml(lang, page.pathway ?? 'builders', activeHref),
+  const sectionPages = isLanding ? null
+    : page.rail ? { title: page.rail.mobileTitle, body: page.rail.mobile }
+    : sheetPagesHtml(lang, page.pathway ?? 'builders', activeHref);
+  // The page bar and the rail. The landing and an immersive page are built as bands,
+  // not sections: the landing has its own quicknav, and both keep the phone menu's
+  // sections instead of a bar.
+  const contents = (isLanding || page.immersive) ? { rail: '', bar: '' } : pageNavParts(lang, page, activeHref, article, sectionPages);
+  const wrapClass = contents.rail ? 'docs-wrap docs-wrap--rail' : 'docs-wrap';
+  // Where the bar is, it holds the sections, the pages and the headings, so the phone
+  // menu keeps only the site's own controls (plan 354).
+  const sheet: SheetParts = contents.bar ? { pages: null, headings: [], sections: '' } : {
+    pages: sectionPages,
     headings: (isLanding || page.immersive) ? [] : pageHeadings(article),
     sections: pathwaysStrip(lang, activeHref, page.pathway, !!isLanding, true),
   };
@@ -6557,6 +6603,7 @@ function wrapPage(lang: Lang, page: Page, content: string, ogSlugs: Set<string>,
   const body = isLanding ? `<main class="docs-landing page-${slugClass}"${mainAttrs}>${edition}${content}</main>`
     : page.immersive ? `<main class="docs-landing docs-immersive page-${slugClass}"${mainAttrs}>${pathwaysBand(strip + edition, { wide: true })}${content}</main>`
     : page.generated ? `
+${contents.bar}
 ${pathwaysBand(strip)}
 <div class="docs-wrap">
   ${page.rail?.aside ?? buildSidebar(lang, page, activeHref)}
@@ -6566,13 +6613,15 @@ ${pathwaysBand(strip)}
   </main>
 </div>`
     : `
+${contents.bar}
 ${mast ? mast.band : pathwaysBand(strip)}
-<div class="docs-wrap">
+<div class="${wrapClass}">
   ${page.rail?.aside ?? buildSidebar(lang, page, activeHref)}
   <main class="docs-content${mast ? '' : ' no-mast'} page-${slugClass}"${mainAttrs}${reading}>
     ${lead}
     ${article}
   </main>
+  ${contents.rail}
 </div>`;
 
   const pageTitle  = isLanding ? LANDING_TITLE : `${t(page.title)} - Lolly`;
@@ -6629,12 +6678,11 @@ ${DOCS_INIT_TAG}
 ${DOCS_CSS_LINK}
 ${NOSCRIPT_NAV}
 </head>
-<body class="page-${slugClass}">
+<body class="page-${slugClass}${contents.rail ? ' page-has-rail' : ''}">
 <a class="skip-link" href="#docs-main">${esc(t('Skip to content'))}</a>
 ${buildNav(lang, page.slug, isLanding, sheet)}
 ${body}
 ${FOOTER(lang, page)}
-${jump}
 ${DOCS_JS_TAG}
 </body>
 </html>`);

@@ -741,6 +741,12 @@ const RAW_HTML_ALLOWED: Record<string, number> = {
   // +1 2026-09-26 (plan 277 step 2): the compact navigation's disclosure summary, fixed
   // markup plus two lib/icons glyphs; the section title goes in through textContent.
   // -1 2026-10-08: the Listen button's registry icon went with the docs narration.
+  // 2026-11-06 (docs reader): the donut became the Check this page line (same fixed SVG,
+  // its words set through textContent); the compact disclosures went (-1); the contents
+  // rail and the page bar arrived (+2): both are packages/docs-render contents.ts
+  // output, which escapes every heading text and id, with t() labels and a registry icon.
+  // -1 2026-11-06: the reader's own language button went; the app's top row carries
+  // the language menu now (components/view-topbar.ts).
   'views/docs.ts': 6,
   // #/prepare route scaffold: the shared chrome (backHomeHtml/langFabHtml) plus t() copy,
   // no free text; the panel itself mounts into an empty slot (components/prepare/panel.ts).

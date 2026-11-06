@@ -9,7 +9,7 @@ import { icon } from '../lib/icons.ts';
 import type { ProductionReport } from '../../../../engine/src/production.ts';
 import { metricRing } from '../components/metric-ring.ts';
 import { escape as esc } from '../utils.ts';
-import { t } from '../i18n.ts';
+import { t, docsAppHref } from '../i18n.ts';
 import type { HostV1 } from '@lolly-tools/core/host-v1';
 import { inspectBrowserProduction } from '../bridge/production.ts';
 import {
@@ -37,7 +37,8 @@ export function wireProductionVerify(
   intro.textContent = t('Compare the file with your requirements.');
   panel.append(intro);
   const help = document.createElement('a');
-  help.href = '/info/build/production-checks.html';
+  // The in-app reader, so the docs' back pill returns here (lib/back-nav.ts docsOrigin).
+  help.href = docsAppHref('build/production-checks');
   help.textContent = t('Help');
   help.className = 'valid-production-help';
   panel.append(help);

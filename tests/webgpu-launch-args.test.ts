@@ -74,6 +74,7 @@ const NOT_THE_SHELL: Record<string, string> = {
   'layout-lab/browser-corpus-check.ts': "the layout lab's own page (scripts/layout-lab/server.ts)",
   'lib/presentation-playback.ts': 'a local page that plays one recorded clip',
   'lib/rasterize-svg-browser.ts': 'rasterises SVG through setContent',
+  'probe-canvas-determinism.ts': 'draws a fixed picture on about:blank',
   'probe-presentation-gpu.ts': 'measures capture on about:blank',
   'probe-presentation-soak.ts': 'fulfils its own probe page through context.route',
   'probe-presentation-sync.ts': 'fulfils its own probe page through context.route',

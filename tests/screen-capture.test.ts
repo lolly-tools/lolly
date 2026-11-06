@@ -592,6 +592,7 @@ test('ENGINE_VERSION is 1.321.0', () => {
   // 1.317.0 sends a Design row with right-to-left letters to the browser's own layout. Capture is unchanged.
   // 1.318.0 carries colour roles through other formats and back. Capture is unchanged.
   // 1.319.0 adds an optional fill flag to toPath's fallback fonts, for on-demand fallback fonts. Capture is unchanged.
+  // 1.320.0 puts an SVG's own credential in the root's metadata, past inlined artwork. Capture is unchanged.
   // 1.321.0 keeps the browser credential's record of placed pictures in a server credential. Capture is unchanged.
   assert.equal(ENGINE_VERSION, '1.321.0');
 });
