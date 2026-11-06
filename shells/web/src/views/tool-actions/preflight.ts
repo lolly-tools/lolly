@@ -98,7 +98,7 @@ export async function refreshDesignAudit(ta: ActionsCtx): Promise<void> {
       ta.designAuditRows = structuralRows.length ? structuralRows : [{ id: 'design.checking', tone: 'note', text: tRaw('Checking this design…') }];
       refreshPreflight(ta);
     },
-    resolveFont: (style, text) => fontCoversText(style, text, ta.host.text),
+    resolveFont: (style, text, place) => fontCoversText(style, text, ta.host.text, undefined, place),
   });
   const brandRows = await brandCheckRows({
     boxes: () => runtime.getModel().find(input => input.id === 'boxes')?.value,
