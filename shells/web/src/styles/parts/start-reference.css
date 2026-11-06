@@ -70,3 +70,31 @@
 @media (max-width: 680px) {
   .ds-reference-workspace { grid-template-columns: minmax(0, 1fr); }
 }
+
+/* The words a file came with, in the review before anything applies (plans/352 R4).
+   One markup at every width: a container query puts the reading beside the word, and a
+   narrow card stacks the two. */
+.ds-role-review { display: flex; flex-direction: column; gap: var(--sp-3); min-width: 0; container-type: inline-size; }
+.ds-role-table { display: flex; flex-direction: column; border: 1px solid hsl(var(--border)); border-radius: var(--radius-lg); min-width: 0; }
+.ds-role-row { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--sp-3); padding: var(--sp-4); min-width: 0; }
+.ds-role-row + .ds-role-row { border-top: 1px solid hsl(var(--border)); }
+.ds-role-row.is-off .ds-role-names, .ds-role-row.is-off .ds-role-reading, .ds-role-row.is-off .ds-role-pair { opacity: 0.55; }
+.ds-role-word { display: flex; align-items: flex-start; gap: var(--sp-3); min-width: 0; }
+.ds-role-keep { display: inline-flex; align-items: center; justify-content: center; flex: none; min-width: 44px; min-height: 44px; margin: -4px 0 0 -8px; }
+.ds-role-pair { flex: none; margin-top: 10px; }
+.ds-role-names { display: flex; flex-direction: column; gap: 6px; flex: 1; min-width: 0; }
+.ds-role-names .field-input { width: 100%; min-width: 0; }
+.ds-role-about { font-size: var(--fs-sm); }
+.ds-role-path { font-size: var(--fs-xs); color: hsl(var(--muted-foreground)); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ds-role-reading { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.ds-role-head { font-size: var(--fs-xs); color: hsl(var(--muted-foreground)); }
+.ds-role-reads { width: 100%; min-height: 44px; }
+.ds-role-fixed { font-weight: 600; font-size: var(--fs-sm); }
+.ds-role-reading .lp-help { margin: 0; }
+/* A head row only where the columns sit side by side. It sits off the tree of a stacked card, whose rows each carry the words. */
+.ds-role-headrow { display: none; }
+@container (min-width: 620px) {
+  .ds-role-row { grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); align-items: start; }
+  .ds-role-headrow { display: grid; padding-block: var(--sp-2); font-size: var(--fs-xs); color: hsl(var(--muted-foreground)); }
+  .ds-role-head { display: none; }
+}

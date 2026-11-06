@@ -348,6 +348,12 @@ Choose the design-file source and the next card lists the accepted formats as ic
 
 Lolly reads a brand page from files you supply. It does not fetch another site's address.
 
+### A file with its own colour words
+
+A token file or a `DESIGN.md` can use its own words for its colours, such as main, accent, supporting and tertiary. When Lolly finds such words, the review lists each one before anything applies: the word, its colour in each look, the token it came from and what Lolly would read it as. Lolly suggests those readings from the words alone, against a short list, and uses no model. A word off the list arrives as the brand's own, **By name only**. Rename any word, say what it is for, read it as something else, or untick it to leave it as a named colour.
+
+**Install with these roles** writes them, and **Install without roles** installs the file exactly as it came. A file with no such words shows no new step. A file that states its own roles, such as one Lolly wrote, shows them as written and installs them unchanged, and you can edit them afterwards in the Colours room. The terminal has no review, so `lolly system import` keeps a stated record and leaves other files' words as named colours.
+
 ### Review a reference
 
 A logo, screenshot, website or saved page opens **Try these colours**: an example in the proposed colours, a **Main colour** you can change and a name for a new system. A box spells out what applying does: it **replaces** the active token settings with the generated palette and default styles, **keeps** your fonts and library files and the previous system can be **recovered**. **Apply suggested settings** applies the light and dark palettes, after a checkpoint, and **Restore brand settings** can bring the old settings back. **Change reference** picks another source.

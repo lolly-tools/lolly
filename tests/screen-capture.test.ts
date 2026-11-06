@@ -78,7 +78,7 @@ test('the sensor capabilities still validate (screen is additive, not a replacem
 
 // ─── version ─────────────────────────────────────────────────────────────────
 
-test('ENGINE_VERSION is 1.313.0', () => {
+test('ENGINE_VERSION is 1.314.0', () => {
   // A literal pin: the screencap surface shipped at 1.54, and tools declare
   // ^1.54.0 to require it. session-record only checks the stamp equals whatever
   // ENGINE_VERSION happens to be (tautological) - this catches an errant bump.
@@ -586,7 +586,8 @@ test('ENGINE_VERSION is 1.313.0', () => {
   // 1.311.0 records a brand page's address on exports, when its publisher opts in.
   // 1.312.0 reads a token document's descriptions through the scope hints on import and in the brief; capture is unchanged.
   // 1.313.0 adds colour roles: a design system's colours in its own words. Capture is unchanged.
-  assert.equal(ENGINE_VERSION, '1.313.0');
+  // 1.314.0 carries colour roles through other formats and back. Capture is unchanged.
+  assert.equal(ENGINE_VERSION, '1.314.0');
 });
 
 // ─── loadTool: a ^1.54.0 tool loads against this engine ───────────────────────

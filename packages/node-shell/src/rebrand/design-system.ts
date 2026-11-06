@@ -45,6 +45,7 @@ import { readFileSync } from 'node:fs';
 
 import {
   SHIPPED_DESIGN_SYSTEM_ID,
+  colourRoleThemeAccents,
   createTokenSet,
   logoSetInBrandOrder,
   neutralSlideMaster,
@@ -321,6 +322,7 @@ export async function resolveProfileDesignSystem(
     notes.push(`The ${roots.profile} design system has no logo the slide master can place.`);
   }
 
+  const themeAccents = colourRoleThemeAccents(tokenDoc);
   const input: RebrandDesignSystemInputV1 = {
     id: SHIPPED_DESIGN_SYSTEM_ID,
     name: roots.profile,
@@ -331,6 +333,7 @@ export async function resolveProfileDesignSystem(
     assetHashes,
     neutralMaster: neutral,
     ...(darkColors ? { darkColors: Object.fromEntries(darkColors) } : {}),
+    ...(themeAccents.length ? { themeAccents } : {}),
   };
 
   const system = await resolveRebrandDesignSystem(input);

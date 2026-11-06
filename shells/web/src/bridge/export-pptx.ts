@@ -9,7 +9,7 @@
  * time, never at module init, so resolution order is safe. (To remove the cycle
  * later, lift those shared helpers into a common render-util module.)
  */
-import { buildPptxParts, EMU_PER_PX, imageDimensions, parseGradientAngle, parseGradientStop, splitCssArgs, svgToNativePptx } from "@lolly/engine";
+import { buildPptxParts, colourRoleThemeAccents, EMU_PER_PX, imageDimensions, parseGradientAngle, parseGradientStop, splitCssArgs, svgToNativePptx } from "@lolly/engine";
 import type { PptxSlide, PptxShape, PptxFill, PptxMedia, PptxLayout, PptxAudio } from "../../../../engine/src/pptx.ts";
 import { parseCssColorFull, objectPositionFractions } from "./export-css.ts";
 import { asStr, deckAnim, deckAudioExt, deckBox, deckFill, deckNarrationMark, deckNotes, deckPlaceholder, deckSrcRect, deckSlideTransitions, deckSyncShape, deckTheme, emuOf, firstFontFamily, nameStaticFaces, parseDeckModel, STATIC_FACE_DIR, withBrandFonts, type DeckBox, type DeckColorResolver, type DeckNotes, type DeckNoteSink } from "./pptx-deck.ts";
@@ -856,6 +856,15 @@ async function brandTokenColors(node?: Element): Promise<Array<{ path: string; v
   } catch { return undefined; }
 }
 
+/** The accents' order for a design system that declares colour roles. Nothing otherwise, so the theme stays as it was. */
+async function brandThemeAccents(): Promise<{ themeAccents?: string[] }> {
+  try {
+    const snapshot = await _host?.tokens?.snapshot?.();
+    const themeAccents = colourRoleThemeAccents(snapshot?.document);
+    return themeAccents.length ? { themeAccents } : {};
+  } catch { return {}; }
+}
+
 /**
  * Lower a Design document with slide-master bindings, or null to let the caller keep
  * to the deck-model path. Null is the answer whenever the master cannot be read, so a
@@ -909,6 +918,8 @@ async function renderPptxFromDesign(doc: DesignDocV1, opts: ExportOpts, sourceAu
     faceFonts: withBrandFonts(undefined, cssVars)?.fonts,
     // The theme slots no semantic token fills take the brand's own colours.
     tokenColors: await brandTokenColors(node),
+    // A design system with colour roles gives the theme's accents in its own order.
+    ...await brandThemeAccents(),
   });
 
   // Each note also reaches the person (the export card and an aria-live announce), and
