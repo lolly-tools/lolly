@@ -179010,7 +179010,8 @@ async function renderViaChromiumShell(toolId, query2, format, dims = {}) {
     const observeInputs = await observeProductionInputs(page3, toolId, dims.productionInputIds ?? []);
     debug.attach(page3);
     page3.on("console", (message) => {
-      if (message.text().startsWith(PDF_TEXT_NOTE)) process.stderr.write(`Note: ${sessionExportNote(message.type(), message.text())}
+      const line = sessionExportNote(message.type(), message.text());
+      if (line && (message.text().startsWith(PDF_TEXT_NOTE) || message.text().startsWith(FILL_NOTE))) process.stderr.write(`Note: ${line}
 `);
     });
     waiting = await waitForExport(page3, format);
@@ -179263,6 +179264,7 @@ async function exportOpenedSession(page3, base, query2, format, dims, debug, lab
   }
 }
 function sessionExportNote(type, text13) {
+  if (type === "info" && text13.startsWith(FILL_NOTE)) return text13.slice("[info] ".length, "[info] ".length + 2e3).trimEnd();
   if (type !== "warning" || !(text13.startsWith("[warn] pptx: ") || text13.startsWith(PDF_TEXT_NOTE))) return null;
   return text13.slice("[warn] ".length, "[warn] ".length + 2e3).trimEnd();
 }
@@ -179424,7 +179426,7 @@ async function designChecksViaSession(bytes2, opts = {}) {
     throw withDebugLog(err instanceof OpenSessionError ? new BrowserError(err.message) : err, "design.check", debug);
   }
 }
-var MIME4, served2, EXPORT_URL_RESERVED2, tierBDebugConfig, DEBUG_MAX_LINES, NO_DEBUG, PAGE_DESIGN_SYSTEM_GLOBAL, PDF_TEXT_NOTE, DESKTOP_REQUEST_MAX_BYTES, DESKTOP_REQUEST_MARGIN;
+var MIME4, served2, EXPORT_URL_RESERVED2, tierBDebugConfig, DEBUG_MAX_LINES, NO_DEBUG, PAGE_DESIGN_SYSTEM_GLOBAL, PDF_TEXT_NOTE, FILL_NOTE, DESKTOP_REQUEST_MAX_BYTES, DESKTOP_REQUEST_MARGIN;
 var init_webshell_render = __esm({
   "packages/node-shell/src/webshell-render.ts"() {
     "use strict";
@@ -179481,6 +179483,7 @@ var init_webshell_render = __esm({
     };
     PAGE_DESIGN_SYSTEM_GLOBAL = "__lollyAutomationDesignSystem";
     PDF_TEXT_NOTE = "[warn] pdf: This PDF draws some text as pictures";
+    FILL_NOTE = "[info] fonts: ";
     DESKTOP_REQUEST_MAX_BYTES = 1 << 20;
     DESKTOP_REQUEST_MARGIN = 4 * 1024;
   }
