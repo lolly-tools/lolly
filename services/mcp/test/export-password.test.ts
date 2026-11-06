@@ -2,7 +2,7 @@
 /**
  * `password` on the routes that fail before any browser starts: what lolly_render refuses,
  * what the public GET route says, and that no answer repeats the value.
- * The browser half reads real files back in export-password.browser.test.ts.
+ * The browser half reads real files back in render-lock.browser.test.ts.
  */
 import assert from 'node:assert/strict';
 import { test } from 'node:test';

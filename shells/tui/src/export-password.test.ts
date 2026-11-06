@@ -2,7 +2,7 @@
 /**
  * The TUI's export function and a password: what it refuses before anything renders, with
  * nothing written. The real locked files are read back in
- * tests/export-password-routes.browser.test.ts.
+ * tests/export-lock-routes.browser.test.ts.
  */
 import assert from 'node:assert/strict';
 import { existsSync } from 'node:fs';
