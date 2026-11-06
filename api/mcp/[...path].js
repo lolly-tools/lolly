@@ -170193,7 +170193,7 @@ var init_text_bidi = __esm({
     "use strict";
     init_text_unicode();
     RTL_CLASSES = /* @__PURE__ */ new Set(["R", "AL", "RLE", "RLO", "RLI"]);
-    SIMPLE_SCRIPTS = /* @__PURE__ */ new Set(["Latn", "Grek", "Cyrl", "Hani", "Hira", "Kana", "Hang", "Zyyy", "Zinh", "Zzzz"]);
+    SIMPLE_SCRIPTS = /* @__PURE__ */ new Set(["Latn", "Grek", "Cyrl", "Armn", "Geor", "Ethi", "Cher", "Cans", "Copt", "Ogam", "Runr", "Yiii", "Hani", "Hira", "Kana", "Hang", "Bopo", "Zyyy", "Zinh", "Zzzz"]);
   }
 });
 
