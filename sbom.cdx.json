@@ -1,10 +1,10 @@
 {
   "bomFormat": "CycloneDX",
   "specVersion": "1.5",
-  "serialNumber": "urn:uuid:54d8d99a-50ea-433f-8c0b-a3ca5e2b7cbb",
+  "serialNumber": "urn:uuid:e7f67c8e-79ae-41c2-852a-57f3c586139a",
   "version": 1,
   "metadata": {
-    "timestamp": "2026-11-05T20:23:26.615Z",
+    "timestamp": "2026-11-06T12:27:06.758Z",
     "tools": [
       {
         "vendor": "lolly",
@@ -23105,6 +23105,47 @@
       "properties": [
         {
           "name": "cdx:npm:package:development",
+          "value": "true"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/%40hayderkg/detent@0.1.1",
+      "name": "@hayderkg/detent",
+      "version": "0.1.1",
+      "purl": "pkg:npm/%40hayderkg/detent@0.1.1",
+      "scope": "required",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "379de0c4f337b86bb91815b4497d4f4ae9953b3f2b1c8999eb06a66bad97fe73"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "vcs",
+          "url": "https://github.com/hayderkg/detent"
+        },
+        {
+          "type": "distribution",
+          "url": "https://github.com/hayderkg/detent/tree/2887e4abcc3ddfbdb3f2b76bec6049665e1bbb94/src"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:vendored",
+          "value": "shells/web/src/lib/detent-physics.ts"
+        },
+        {
+          "name": "lolly:local-changes",
           "value": "true"
         }
       ]
