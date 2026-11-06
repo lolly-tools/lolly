@@ -36,6 +36,7 @@ import type { EmojiStyleV1 } from '@lolly-tools/core';
 import type { CanvasSize } from '@lolly-tools/core';
 import type { EmojiSetInfoV1 } from '@lolly-tools/core/emoji-v1';
 import { defaultEmojiStyle } from './emoji-default.ts';
+import { emojiTextTrigger } from './emoji-trigger.ts';
 import { emojiSourceIngredients, emojiWorksAndUses, emojiCreditsText } from './emoji-rights.ts';
 import { sourceIngredientsFor } from './rights-attribution.ts';
 import type { SourceDetailV1 } from './rights-attribution.ts';
@@ -1189,15 +1190,9 @@ export async function createRuntime(
   const emojiListeners = new Set<(state: RuntimeEmojiState) => void>();
   let emojiChain: Promise<unknown> = Promise.resolve();
 
-  /**
-   * Cheapest possible gate, and the reason a plain Latin render pays nothing for
-   * this feature: the pinned Unicode tables are half a megabyte, so they are
-   * loaded on demand, and no character at or above U+00A9 means no emoji of any
-   * kind. U+00A9 (copyright) is the lowest scalar the pass's own pre-check looks
-   * for, so this is a true superset of it and never hides a real emoji. Written
-   * as an escaped range, so this file carries no invisible characters.
-   */
-  const EMOJI_MAYBE = /[\u00A9-\uFFFF]/;
+  // The last text the pass tested, so a repaint of the same words asks nothing twice.
+  let emojiTextChecked: string | null = null;
+  let emojiTextDraws = false;
 
   let emojiAssets: import('@lolly-tools/core/host-v1').AssetRef[] = [];
   let emojiStyleGeneration = 0;
@@ -1309,9 +1304,21 @@ export async function createRuntime(
       notifyEmoji();
     };
     if (track) { emojiNode = root; emojiCensusKnown = false; }
-    if (!EMOJI_MAYBE.test(root.textContent ?? '') && !(root as {querySelector?: (selector:string) => unknown}).querySelector?.('[data-emoji-tool-source]')) {
-      record(nothing);
-      return { present: true, ...nothing };
+    // Asked before the next step, because that one loads the whole set. Plain text pays
+    // nothing: the trigger needs no tables, and a curly quote or an accented letter says
+    // no. Emoji-shaped text then asks the segmenter, the pass's own test, because a bare
+    // warning sign or copyright sign in a template draws nothing and is worth no download.
+    if (!(root as {querySelector?: (selector:string) => unknown}).querySelector?.('[data-emoji-tool-source]')) {
+      const text = root.textContent ?? '';
+      if (text !== emojiTextChecked) {
+        // Recorded after the await: a chunk that fails to load must not read as "no emoji".
+        emojiTextDraws = emojiTextTrigger(text) && (await import('./emoji-segment.ts')).textHoldsEmoji(text);
+        emojiTextChecked = text;
+      }
+      if (!emojiTextDraws) {
+        record(nothing);
+        return { present: true, ...nothing };
+      }
     }
     // One read, held across every await below. setEmojiStyle assigns
     // synchronously and queues its own pass, so a swap landing during the pack

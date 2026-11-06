@@ -497,6 +497,9 @@ export interface LollyBuildInput {
   resolveUser?: (id: string, version?: string) => Promise<BeamAssetRecord | null>;
   /** Resolve a catalog id's bytes for embedding, or null → it travels as a ref. */
   resolveLibrary?: (id: string) => Promise<LollyLibraryAsset | null>;
+  /** Reads the emoji packs a session names, for a caller that sends other catalog files
+   *  by reference. Only the glyphs the document uses travel. Falls back to `resolveLibrary`. */
+  resolveEmojiPack?: (id: string) => Promise<LollyLibraryAsset | null>;
   /** Carry brand-pack / licensed catalog bytes (after the licensed-content confirmation). */
   includeLicensed?: boolean;
   /** Embed the tool's own files, so the `.lolly` opens on a device that lacks it. The

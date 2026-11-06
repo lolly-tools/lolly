@@ -141,6 +141,14 @@ export async function mountEmojiSection(opts: EmojiSectionOpts): Promise<EmojiSe
 
   const { mountEmojiStyleControl, EMOJI_SPECIMEN } = await import('../../components/emoji-style-control.ts');
 
+  // The specimen costs the whole set: a download the first time and a parse each
+  // time. Most tools never show this section, so the drawing waits until it is opened.
+  const isShown = (): boolean => !section.hidden && section.open;
+  let revealSpecimen: (() => void) | null = null;
+  const specimenShown = (): Promise<void> => (isShown() ? Promise.resolve() : new Promise(resolve => { revealSpecimen = resolve; }));
+  const onShown = (): void => { if (isShown()) { revealSpecimen?.(); revealSpecimen = null; } };
+  section.addEventListener('toggle', onShown);
+
   /**
    * The specimen is drawn by the runtime's own DOM pass over a detached element,
    * so the five characters on screen are the same bytes an export would place.
@@ -150,6 +158,8 @@ export async function mountEmojiSection(opts: EmojiSectionOpts): Promise<EmojiSe
    * afterwards because the change has to show.
    */
   const specimen = async (): Promise<string> => {
+    await specimenShown();
+    if (destroyed) return '';
     const scratch = document.createElement('div');
     scratch.textContent = EMOJI_SPECIMEN;
     await runtime.applyEmojiToDom(scratch, { track: false, idScope: 'x' });
@@ -183,6 +193,7 @@ export async function mountEmojiSection(opts: EmojiSectionOpts): Promise<EmojiSe
       prompted = true;
       section.open = true;
     }
+    onShown();
   };
   apply(runtime.emoji);
   const off = runtime.onEmojiChange(apply);
@@ -191,6 +202,7 @@ export async function mountEmojiSection(opts: EmojiSectionOpts): Promise<EmojiSe
     get style() { return style; },
     destroy() {
       destroyed = true;
+      section.removeEventListener('toggle', onShown);
       release();
       off();
       offStyle();
