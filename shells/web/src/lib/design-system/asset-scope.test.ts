@@ -116,7 +116,7 @@ test('the server is said to draw another system only on a scoped catalog with an
   assert.equal(await draws({ profile: { 'catalog-source': SOURCE, [ACTIVE_DESIGN_SYSTEM_KEY]: 'shipped' }, 'asset-meta': META }), null);
   assert.equal(await draws({ profile: { 'catalog-source': SOURCE }, 'asset-meta': META }), null);
   assert.deepEqual(await draws({ profile: { 'catalog-source': SOURCE, [ACTIVE_DESIGN_SYSTEM_KEY]: 'lolly-demo' }, [DESIGN_SYSTEMS_STORE]: { 'lolly-demo': lollyDemo }, 'asset-meta': META }),
-    { active: 'Lolly Demo', own: 'SUSE' });
+    { own: 'SUSE' });
   // A person's own system on that catalog gets the same answer: the server cannot see it either.
   assert.equal((await draws({ profile: { 'catalog-source': SOURCE, [ACTIVE_DESIGN_SYSTEM_KEY]: 'acme' }, [DESIGN_SYSTEMS_STORE]: { acme: { id: 'acme', label: 'Acme', source: { kind: 'local' } } }, 'asset-meta': META }))?.own, 'SUSE');
   // A single-system catalog stays exactly as it was.

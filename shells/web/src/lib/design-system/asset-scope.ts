@@ -23,8 +23,9 @@
  * DOM-free. The active record is read from the same two stores the registry keeps, not
  * through the registry object, because the asset bridge is built before the registry.
  */
+import { SHIPPED_DESIGN_SYSTEM_ID } from '../../../../../engine/src/design-system.ts';
 import {
-  ACTIVE_DESIGN_SYSTEM_KEY, DESIGN_SYSTEMS_STORE, SHIPPED_ACTIVE_FALLBACK, stripTokensSuffix, type DesignSystemRecord,
+  ACTIVE_DESIGN_SYSTEM_KEY, DESIGN_SYSTEMS_STORE, stripTokensSuffix, type DesignSystemRecord,
 } from './registry.ts';
 
 /** One companion that owns rows in this catalog: `companionDesignSystems` with `assets`. */
@@ -83,7 +84,7 @@ export function assetNamespace(id: string): string {
 export function assetInScope(id: string, scope: AssetScope | null): boolean {
   if (!scope) return true;
   const owner = companionOwning(id, scope.companions);
-  if (owner) return owner === scope.active || owner.tokens === scope.active?.tokens;
+  if (owner) return owner.tokens === scope.active?.tokens;
   return !(scope.active && scope.shippedNamespace && id.startsWith(scope.shippedNamespace));
 }
 
@@ -138,7 +139,7 @@ export async function readAssetScope(db: AssetScopeDb): Promise<AssetScope | nul
     let active: CompanionAssets | null = null;
     if (!db.objectStoreNames || db.objectStoreNames.contains(DESIGN_SYSTEMS_STORE)) {
       const activeId = await db.get('profile', ACTIVE_DESIGN_SYSTEM_KEY);
-      if (typeof activeId === 'string' && activeId !== SHIPPED_ACTIVE_FALLBACK) {
+      if (typeof activeId === 'string' && activeId !== SHIPPED_DESIGN_SYSTEM_ID) {
         const record = await db.get(DESIGN_SYSTEMS_STORE, activeId);
         active = await companionOfRecord(db, isRecordLike(record) ? record : null, companions);
       }
@@ -157,18 +158,18 @@ export async function readAssetScope(db: AssetScopeDb): Promise<AssetScope | nul
  * Null when there is nothing to warn about: the catalog declares no scope, or the
  * catalog's own system is active.
  */
-export async function serverDrawsOtherSystem(db: AssetScopeDb): Promise<{ active: string; own: string } | null> {
+export async function serverDrawsOtherSystem(db: AssetScopeDb): Promise<{ own: string } | null> {
   try {
     const scope = await readAssetScope(db);
     if (!scope) return null;
     const activeId = await db.get('profile', ACTIVE_DESIGN_SYSTEM_KEY);
-    if (typeof activeId !== 'string' || activeId === SHIPPED_ACTIVE_FALLBACK) return null;
+    if (typeof activeId !== 'string' || activeId === SHIPPED_DESIGN_SYSTEM_ID) return null;
     const record = await db.get(DESIGN_SYSTEMS_STORE, activeId);
     if (!isRecordLike(record) || record.source?.kind === 'shipped') return null;
     const source = await db.get('profile', 'catalog-source') as { tokensHead?: unknown } | undefined;
     const head = typeof source?.tokensHead === 'string' ? await db.get('asset-meta', source.tokensHead) as { name?: unknown } | undefined : undefined;
     const name = typeof head?.name === 'string' ? stripTokensSuffix(head.name) : '';
-    return { active: record.label, own: name };
+    return { own: name };
   } catch {
     return null;
   }
