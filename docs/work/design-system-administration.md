@@ -112,7 +112,9 @@ changed, and a rollback. Sends, going live, rollbacks and changes to the switche
 [audit trail](audit.md).
 
 **What reaches members.** People get an edit at their next catalogue sync. A web app served by this
-instance checks again on focus and reconnect, as it does for any design-system change. Server renders use the edit at once.
+instance checks again on focus and reconnect, as it does for any design-system change. A tool someone
+has open keeps their work and shows a notice, and the new colours appear the next time a tool opens
+after that sync. Server renders use the edit at once.
 
 **What does not change until the next image.** Previews and social cards are pictures made when the
 release was built, so they keep their old colours until the next image.
@@ -140,7 +142,7 @@ When the tokens differ, the edit's changes apply to the new document:
 - **An edit that can no longer apply is not half applied.** If something it names has gone, such as a
   colour, a colour role or an alias target, Lolly Work serves the new image's own tokens, whole. The console
   lists what has gone, and people who hold `brand.edit` get a message whichever way the switch is set.
-  The revision stays in the history. Send a new edit, or roll back to clear the state.
+  The revision stays in the history. Send a new edit, or choose **Clear this edit**.
 - **A stored edit that cannot be read** serves the mounted tokens, and the console says so. The edit
   comes back when storage can be read.
 
