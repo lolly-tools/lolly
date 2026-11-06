@@ -4114,7 +4114,7 @@ var ENGINE_VERSION;
 var init_version = __esm({
   "engine/src/version.ts"() {
     "use strict";
-    ENGINE_VERSION = "1.315.0";
+    ENGINE_VERSION = "1.317.0";
   }
 });
 
@@ -37147,6 +37147,16 @@ var init_emoji_default = __esm({
   }
 });
 
+// engine/src/emoji-trigger.ts
+var EMOJI_TEXT_TRIGGER, emojiTextTrigger;
+var init_emoji_trigger = __esm({
+  "engine/src/emoji-trigger.ts"() {
+    "use strict";
+    EMOJI_TEXT_TRIGGER = /[\uD800-\uDBFF][\uDC00-\uDFFF]|[\u200D\u20E3\uFE0F\u00A9\u00AE\u203C\u2049\u2122\u2139\u2194-\u21AA\u231A-\u231B\u2328\u23CF-\u23FA\u24C2\u25AA-\u25FE\u2600-\u27BF\u2934-\u2935\u2B00-\u2BFF\u3030\u303D\u3297\u3299]/;
+    emojiTextTrigger = (text13) => EMOJI_TEXT_TRIGGER.test(text13);
+  }
+});
+
 // engine/src/emoji-rights.ts
 function checksumBytes(checksum, what) {
   const hex4 = CHECKSUM.exec(checksum)?.[1];
@@ -40810,6 +40820,14 @@ var init_text_17_0 = __esm({
 });
 
 // engine/src/emoji-segment.ts
+var emoji_segment_exports = {};
+__export(emoji_segment_exports, {
+  EMOJI_TEXT_MAX_UNITS: () => EMOJI_TEXT_MAX_UNITS,
+  emojiGraphemes: () => emojiGraphemes,
+  requiresEmojiBidiLayout: () => requiresEmojiBidiLayout,
+  segmentEmojiText: () => segmentEmojiText,
+  textHoldsEmoji: () => textHoldsEmoji
+});
 function property(point3, table, fallback = "") {
   let low = 0, high = table.length - 1;
   while (low <= high) {
@@ -40862,6 +40880,13 @@ function emojiGraphemes(text13) {
 function requiresEmojiBidiLayout(text13) {
   for (const char of text13) if (property(char.codePointAt(0), text_17_0_default.bidi)) return true;
   return false;
+}
+function textHoldsEmoji(text13) {
+  try {
+    return segmentEmojiText(text13).some((span) => span.kind !== "text");
+  } catch {
+    return true;
+  }
 }
 function segmentEmojiText(text13) {
   const result = [];
@@ -44996,7 +45021,7 @@ function revertEmojiDom(root2) {
   }
   return reverted;
 }
-var ELEMENT_NODE, TEXT_NODE, EMOJI_SPAN_CLASS, EMOJI_UNSET_CLASS, EMOJI_TEXT_CLASS, EMOJI_UNSET_LABEL, EMOJI_PLACEHOLDER_SVG, PLACEHOLDER_STYLE, HIDDEN_TEXT_STYLE, ARTWORK_ATTRIBUTES, SKIP_TAGS, TRIGGER, emojiTextTrigger, isEmojiSpan, isUnsetSpan, meaningKey3, shortSum, SCOPE_PATTERN, CHUNK_UNITS, CHUNK_BACKOFF, JOINER, ZWJ, TRIGGER_ALL;
+var ELEMENT_NODE, TEXT_NODE, EMOJI_SPAN_CLASS, EMOJI_UNSET_CLASS, EMOJI_TEXT_CLASS, EMOJI_UNSET_LABEL, EMOJI_PLACEHOLDER_SVG, PLACEHOLDER_STYLE, HIDDEN_TEXT_STYLE, ARTWORK_ATTRIBUTES, SKIP_TAGS, isEmojiSpan, isUnsetSpan, meaningKey3, shortSum, SCOPE_PATTERN, CHUNK_UNITS, CHUNK_BACKOFF, JOINER, ZWJ, TRIGGER_ALL;
 var init_emoji_dom = __esm({
   "engine/src/emoji-dom.ts"() {
     "use strict";
@@ -45005,6 +45030,7 @@ var init_emoji_dom = __esm({
     init_emoji_pack();
     init_emoji_inline();
     init_emoji_segment();
+    init_emoji_trigger();
     ELEMENT_NODE = 1;
     TEXT_NODE = 3;
     EMOJI_SPAN_CLASS = "lolly-emoji";
@@ -45016,8 +45042,6 @@ var init_emoji_dom = __esm({
     HIDDEN_TEXT_STYLE = "position:absolute;width:1px;height:1px;margin:-1px;padding:0;border:0;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap";
     ARTWORK_ATTRIBUTES = ' aria-hidden="true" focusable="false" style="display:block;width:100%;height:100%"';
     SKIP_TAGS = /* @__PURE__ */ new Set(["SCRIPT", "STYLE", "TEXTAREA", "INPUT", "SELECT", "OPTION", "SVG", "CANVAS", "NOSCRIPT"]);
-    TRIGGER = /[\uD800-\uDBFF][\uDC00-\uDFFF]|[\u200D\u20E3\uFE0F\u00A9\u00AE\u203C\u2049\u2122\u2139\u2194-\u21AA\u231A-\u231B\u2328\u23CF-\u23FA\u24C2\u25AA-\u25FE\u2600-\u27BF\u2934-\u2935\u2B00-\u2BFF\u3030\u303D\u3297\u3299]/;
-    emojiTextTrigger = (text13) => TRIGGER.test(text13);
     isEmojiSpan = (element) => /(?:^|\s)lolly-emoji(?:\s|$)/.test(element.getAttribute("class") ?? "");
     isUnsetSpan = (element) => /(?:^|\s)lolly-emoji--unset(?:\s|$)/.test(element.getAttribute("class") ?? "");
     meaningKey3 = (meaning) => meaning.kind === "unicode" ? meaning.key : meaning.id;
@@ -45027,7 +45051,7 @@ var init_emoji_dom = __esm({
     CHUNK_BACKOFF = 64;
     JOINER = /[\uDC00-\uDFFF]|\u200D|\u20E3|\uFE0E|\uFE0F/;
     ZWJ = "\u200D";
-    TRIGGER_ALL = new RegExp(`(?:${TRIGGER.source})+`, "g");
+    TRIGGER_ALL = new RegExp(`(?:${EMOJI_TEXT_TRIGGER.source})+`, "g");
   }
 });
 
@@ -54567,7 +54591,8 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
   const emojiPacks = /* @__PURE__ */ new Map();
   const emojiListeners = /* @__PURE__ */ new Set();
   let emojiChain = Promise.resolve();
-  const EMOJI_MAYBE = /[\u00A9-\uFFFF]/;
+  let emojiTextChecked = null;
+  let emojiTextDraws = false;
   let emojiAssets = [];
   let emojiStyleGeneration = 0;
   let emojiStyleSettled = 0;
@@ -54675,9 +54700,16 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
       emojiNode = root2;
       emojiCensusKnown = false;
     }
-    if (!EMOJI_MAYBE.test(root2.textContent ?? "") && !root2.querySelector?.("[data-emoji-tool-source]")) {
-      record47(nothing);
-      return { present: true, ...nothing };
+    if (!root2.querySelector?.("[data-emoji-tool-source]")) {
+      const text13 = root2.textContent ?? "";
+      if (text13 !== emojiTextChecked) {
+        emojiTextDraws = emojiTextTrigger(text13) && (await Promise.resolve().then(() => (init_emoji_segment(), emoji_segment_exports))).textHoldsEmoji(text13);
+        emojiTextChecked = text13;
+      }
+      if (!emojiTextDraws) {
+        record47(nothing);
+        return { present: true, ...nothing };
+      }
     }
     const style = emojiStyle;
     if (!style) {
@@ -56095,6 +56127,7 @@ var init_runtime = __esm({
     init_design_export_route();
     init_src();
     init_emoji_default();
+    init_emoji_trigger();
     init_emoji_rights();
     init_rights_attribution();
     init_rights_evaluate();
@@ -105282,6 +105315,12 @@ function baselineBrandSkill(source, opts = {}) {
     out.push("## Colours", "", "| Name | Value | Token |", "| --- | --- | --- |");
     for (const c of colours2.slice(0, 120)) out.push(`| ${cell(c.name ?? "")} | ${cell(c.value)} | \`${cell(c.path)}\` |`);
     if (colours2.length > 120) out.push("", `${colours2.length - 120} more colours are in the design context.`);
+    out.push("");
+  }
+  const colourRoles = rec2(brief2.colourRoles);
+  if (list4(colourRoles.roles).length) {
+    out.push("## Colour roles", "", cell(colourRoles.note), "", "| Name | Token | Lolly reads this as |", "| --- | --- | --- |");
+    for (const role of list4(colourRoles.roles)) out.push(`| ${cell(role.label)} | \`${cell(role.reference)}\` | ${(Array.isArray(role.readAs) ? role.readAs : []).map(cell).join("; ")} |`);
     out.push("");
   }
   const combos = rec2(brief2.combinations);
@@ -174999,7 +175038,7 @@ async function paint(value2, host) {
   let text13 = String(value2 ?? "transparent");
   if (text13 === "transparent" || text13 === "none" || !text13) return null;
   if (text13.startsWith("{")) text13 = colorToHex(await host.tokens?.resolve(text13)) ?? "";
-  const variable = /^var\(--brand-(primary|on-primary|secondary|surface|text|muted|edge)\s*(?:,\s*(.+))?\)$/.exec(text13);
+  const variable = /^var\(--brand-([a-z][a-z-]*)\s*(?:,\s*(.+))?\)$/.exec(text13);
   if (variable) text13 = colorToHex(await host.tokens?.resolve(`{color.semantic.${variable[1]}}`)) ?? variable[2] ?? "";
   const rgba2 = parseColorToSrgb8(text13);
   if (!rgba2) throw new Error(`dotLottie: colour ${String(value2)} could not be resolved to a solid paint.`);
@@ -175185,7 +175224,7 @@ async function exportDesignIdml(opts, host) {
     let s = String(value2 ?? "");
     if (!s || s === "transparent" || s === "none") return "Swatch/None";
     if (s.startsWith("{")) s = colorToHex(await host.tokens?.resolve(s)) ?? "";
-    const variable = /^var\(--brand-(primary|on-primary|secondary|surface|text|muted|edge)\s*(?:,\s*(.+))?\)$/.exec(s);
+    const variable = /^var\(--brand-([a-z][a-z-]*)\s*(?:,\s*(.+))?\)$/.exec(s);
     if (variable) s = colorToHex(await host.tokens?.resolve(`{color.semantic.${variable[1]}}`)) ?? variable[2] ?? "";
     const rgba2 = parseColorToSrgb8(s);
     if (rgba2?.[3] !== 1) throw new Error(`IDML requires a solid opaque paint: ${String(value2)}.`);
@@ -176095,6 +176134,24 @@ async function fontsOf(host) {
   const [mono, display, italic] = await Promise.all([slot("mono"), slot("display"), slot("italic")]);
   return { brand, ...mono ? { mono } : {}, ...display ? { display } : {}, ...italic ? { italic } : {} };
 }
+async function brandColourResolver(host) {
+  if (!host.tokens) return null;
+  try {
+    const colours2 = /* @__PURE__ */ new Map();
+    for (const swatch of await host.tokens.colors()) {
+      colours2.set(tokenColorVar(swatch.ref), swatch.value);
+      const semantic = /^color\.semantic\.([a-z-]+)$/.exec(swatch.path);
+      if (semantic) colours2.set(`--brand-${semantic[1]}`, swatch.value);
+    }
+    for (const [name, value2] of brandLeadVars(await host.tokens.family?.("primary"))) colours2.set(name, value2);
+    return (css2) => {
+      const name = /^var\(\s*(--brand-[a-z0-9-]+)\s*(?:,[\s\S]*)?\)$/i.exec(css2.trim())?.[1];
+      return name ? colours2.get(name) ?? null : null;
+    };
+  } catch {
+    return null;
+  }
+}
 async function designOpsNodeHost(host, ctx, outlined = true) {
   const text13 = host.text;
   if (!text13) return null;
@@ -176118,13 +176175,15 @@ async function designOpsNodeHost(host, ctx, outlined = true) {
     return { bytes: bytes2 };
   };
   const fonts = await fontsOf(host);
+  const resolveColor4 = await brandColourResolver(host);
   return {
     drawing: {
       shaper: createNodeTextShaper({ repoRoot: ctx.repoRoot }),
       ...outlined ? { toPath: (o) => text13.toPath(o) } : {},
       ...outlined ? { strikeMetrics: (url, variations) => nodeStrikeMetrics(url, variations, ctx.repoRoot) } : {},
       picture,
-      ...fonts ? { fonts } : {}
+      ...fonts ? { fonts } : {},
+      ...resolveColor4 ? { resolveColor: resolveColor4 } : {}
     },
     ingredients: () => [...ingredients]
   };
@@ -176134,6 +176193,8 @@ var init_design_ops_host = __esm({
   "packages/node-shell/src/design-ops-host.ts"() {
     "use strict";
     init_src2();
+    init_color_face();
+    init_token_context();
     init_pptx_deck();
     init_text_measure();
     init_text3();
@@ -198429,6 +198490,7 @@ function readProductionReference(value2) {
 
 // services/mcp/src/resources.ts
 init_design_brief();
+init_colour_roles();
 init_design_brief2();
 import { readFile as readFile34 } from "node:fs/promises";
 import { join as join35 } from "node:path";
@@ -198439,9 +198501,9 @@ var RESOURCES = [
   { uri: "lolly://skill", name: "Lolly skill", description: "Shared Lolly workflows and design-system setup. Tool guidance is available through lolly://tool/{id}/skill.", mimeType: "text/markdown" },
   { uri: "lolly://catalog", name: "Tool catalog", description: "The full generated Lolly tool index.", mimeType: "application/json" },
   { uri: "lolly://assets", name: "Brand asset listing", description: "Every catalog asset id with its type, name, tags and formats - the ids lolly://asset/{id} resolves.", mimeType: "application/json" },
-  { uri: "lolly://design-context", name: "Design context", description: "The effective design system with resolved tokens, recorded source observations, coverage and explicit brand rules, plus the brief: approved colour pairings, type per role, logos per surface, icons and their themes, media families, the slide master and machine-checkable house rules. Read-only.", mimeType: "application/json" },
+  { uri: "lolly://design-context", name: "Design context", description: "The effective design system with resolved tokens, recorded source observations, coverage and explicit brand rules, plus the brief: the system's own colour words and what each is bound to, approved colour pairings, type per role, logos per surface, icons and their themes, media families, the slide master and machine-checkable house rules. Read-only.", mimeType: "application/json" },
   { uri: "lolly://design-system/skills", name: "Brand skills", description: "The brand's own guidance per discipline (overall brand, photography, motion, iconography and more) as Agent Skills: the index without bodies, plus the baseline Lolly generates from the design brief. Read the overall brand skill before composing. Skills are guidance for brand intent only; house rules are what Lolly checks.", mimeType: "application/json" },
-  { uri: "lolly://tokens", name: "Brand design tokens", description: "On-brand colour swatches (DTCG) with names and CMYK, from the design system's edit head - never one of its published versions.", mimeType: "application/json" }
+  { uri: "lolly://tokens", name: "Brand design tokens", description: "On-brand colour swatches (DTCG) with names and CMYK, plus the system's own colour words where it declares them, from the design system's edit head - never one of its published versions.", mimeType: "application/json" }
 ];
 var RESOURCE_TEMPLATES = [
   { uriTemplate: "lolly://skill/{path}", name: "Shared skill reference", description: "A Markdown or JSON reference from the overall Lolly skill.", mimeType: "text/markdown" },
@@ -198465,8 +198527,11 @@ async function tokensResource(uri) {
   const tokenPath = contentUrl(tokenUrl);
   if (!tokenPath) throw new Error(`Tokens asset ${tokenAsset2.id}: ${tokenUrl} is not in this profile's catalog.`);
   const doc = JSON.parse(await readFile34(tokenPath, "utf8"));
-  const set = createTokenSet(doc);
-  return { uri, mimeType: "application/json", text: JSON.stringify({ colors: set.colors() }, null, 2) };
+  return { uri, mimeType: "application/json", text: JSON.stringify(tokensListing(doc), null, 2) };
+}
+function tokensListing(doc) {
+  const colourRoles = colourRolesBrief(doc);
+  return { colors: createTokenSet(doc).colors(), ...colourRoles ? { colourRoles } : {} };
 }
 function parseDataUrl(url) {
   const m2 = /^data:([^;,]+)?(;base64)?,(.*)$/s.exec(url);

@@ -2775,9 +2775,9 @@ function controlHtml(
     case 'color-picker':
       // Shared SUSE colour picker (see components/color-field.js).
       // `swatchesOnly` makes it a palette-restricted picker (no hex/native/alpha).
-      return colourInputHtml(id, input);
+      return colourInputHtml(id, input, modelValues[input.id]);
     case 'palette-picker':
-      return paletteFieldHtml(id, input);
+      return paletteFieldHtml(id, input, modelValues[input.id]);
     case 'asset-picker': {
       const v = input.value as AssetRef | null;
       const currentLabel =

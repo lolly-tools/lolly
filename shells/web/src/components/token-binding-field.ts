@@ -7,6 +7,7 @@ import { resolveTokenBinding, type TokenConsumer, type TokenBindingResult } from
 import { escape as esc } from '../utils.ts';
 import { t } from '../i18n.ts';
 import { icon } from '../lib/icons.ts';
+import { colourRoleWord } from '../lib/colour-role-words.ts';
 import type { TokenEntry } from '../../../../engine/src/bridge/host-v1.ts';
 import type { TokenAdapter } from '../../../../engine/src/token-consumer-adapters.ts';
 
@@ -36,7 +37,7 @@ export function mountTokenBindingField(root: HTMLElement, input: InputModelItem,
   const linked = isTokenValue(input.value) ? input.value : null;
   const state = linked ? (input.value as { status?: string }).status ?? 'linked' : 'custom';
   root.classList.add('token-binding-field');
-  const label = options.mixed ? t('Mixed values') : linked ? `${t(state === 'linked' ? 'Linked' : 'Using cached value')}: ${linked.ref}` : t('Custom value');
+  const label = options.mixed ? t('Mixed values') : linked ? `${t(state === 'linked' ? 'Linked' : 'Using cached value')}: ${colourRoleWord(linked.ref) ? `${colourRoleWord(linked.ref)} · ` : ''}${linked.ref}` : t('Custom value');
   const reason = (input.value as { reason?: string } | null)?.reason;
   root.innerHTML = `<span>${esc(label)}${options.readOnly ? ` · ${t('Read-only')}` : ''}</span>${options.readOnly ? '' : `<button type="button" class="btn btn--ghost btn--sm" data-token-choose>${t('Link a token')}</button>${linked ? `<button type="button" class="btn btn--ghost btn--sm" data-token-custom>${t('Make custom')}</button>` : options.restoreRef ? `<button type="button" class="btn btn--ghost btn--sm" data-token-restore>${t('Restore link')}</button>` : ''}`}${linked ? `<button type="button" class="btn btn--ghost btn--sm" data-token-inspect>${t('Inspect source')}</button>` : ''}<label data-token-options hidden>${explicit ? t('Transition tokens') : t('Compatible tokens')}<select class="field-select" ${options.readOnly ? 'disabled' : ''}><option value="">${t('Choose a token')}</option></select></label>${explicit && !options.readOnly ? `<button type="button" class="btn btn--ghost btn--sm" data-token-link disabled hidden>${t('Link token')}</button>` : ''}<span role="status" aria-live="polite" data-token-message>${esc(reason ?? '')}</span>`;
   const message = root.querySelector<HTMLElement>('[data-token-message]')!;
@@ -117,7 +118,7 @@ export function mountTokenBindingField(root: HTMLElement, input: InputModelItem,
           if (disposed || !root.isConnected || options.readOnly) return;
           const entries = set?.query().filter(e => explicit ? e.type === options.candidateType : resolve(e).status === 'linked') ?? [];
           candidates = entries.slice(0, 2000);
-          chooser.innerHTML = `<option value="">${t('Choose a token')}</option>${candidates.map(e => `<option value="${esc(e.path)}">${esc(e.path)}${explicit && resolve(e).status !== 'linked' ? ` · ${t('Incompatible')}` : ''}</option>`).join('')}`;
+          chooser.innerHTML = `<option value="">${t('Choose a token')}</option>${candidates.map(e => `<option value="${esc(e.path)}">${colourRoleWord(`{${e.path}}`) ? `${esc(colourRoleWord(`{${e.path}}`))} · ` : ''}${esc(e.path)}${explicit && resolve(e).status !== 'linked' ? ` · ${t('Incompatible')}` : ''}</option>`).join('')}`;
           root.querySelector<HTMLElement>('[data-token-options]')!.hidden = false;
           applied = false;
           if (linkButton) { linkButton.hidden = false; linkButton.disabled = true; }

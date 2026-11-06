@@ -167,6 +167,8 @@ export interface PageFactsV1 {
   variants: PageVariantV1[];
   /** The named colours, resolved in the canonical variant. */
   named: Array<{ name: string; path: string; value: string }>;
+  /** The design system's own colour words in its own order, with the canonical variant's colour and what Lolly reads each as. Empty when it declares none. */
+  colourRoles: Array<{ label: string; description: string; path: string; value: string; readAs: string[] }>;
   logos: Array<{ id: string; name: string; path: string; surface: 'light' | 'dark' | 'any'; mono: boolean; licence?: string }>;
   heroLogos: { onDark: string | null; onLight: string | null };
   faces: Array<{ family: string; tokens: string[]; files: string[]; licence: string | null; licenceFile: string | null; source: string | null; outline: BrandPageOutlineV1 | null }>;
@@ -597,6 +599,12 @@ export async function buildBrandPage(input: BrandPageInputV1): Promise<BrandPage
     .filter((c, i, all) => all.findIndex(o => o.name === c.name && o.value === c.value) === i)
     .slice(0, 240);
 
+  const canonicalColours = new Map(createTokenSet(doc, { selection: canonical.selection }).colors().map(c => [c.path, c.value]));
+  const colourRoles: PageFactsV1['colourRoles'] = (brief.colourRoles?.roles ?? []).flatMap(role => {
+    const path = role.reference.slice(1, -1);
+    const value = hexOf(canonicalColours.get(path));
+    return value ? [{ label: text(role.label, 80), description: text(role.description, 600), path, value, readAs: role.readAs }] : [];
+  });
   const tokenPaths = createTokenSet(doc, { selection: canonical.selection }).query().map(e => e.path);
   const colourways: BrandPageColourwayV1[] = colourwayRows.map(c => ({ id: c.id, name: c.name, modes: modes.map(m => m.id) }));
   const usage = cleanUsage(withOwnerTerms(input.usage, ownerTerms));
@@ -604,7 +612,7 @@ export async function buildBrandPage(input: BrandPageInputV1): Promise<BrandPage
   const orderedHeld = sortHeld(held);
   const facts: PageFactsV1 = {
     id, name, summary: overview ? firstSentence(overview) : `The ${name} design system.`, overview, usage, origin,
-    colourways, modes: modes.map(m => ({ id: m.id, name: m.name })), variants, named, logos, heroLogos, faces, nameOutline, examples,
+    colourways, modes: modes.map(m => ({ id: m.id, name: m.name })), variants, named, colourRoles, logos, heroLogos, faces, nameOutline, examples,
     rules, skills, checks, held: orderedHeld, tokenPaths, madeWith: input.madeWith !== false,
     masterSize: brief.coverage.type === 'declared' && brief.master?.size ? { width: brief.master.size.width, height: brief.master.size.height } : null,
   };

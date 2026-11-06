@@ -112,6 +112,7 @@ The canvas carries the design system's colour roles as CSS custom properties, so
 | `--brand-edge` | Rules and borders |
 | `--brand-lead-1` to `--brand-lead-<n>` | Every colourway's lead in the artefact's look, canonical first |
 | `--brand-lead-count` | How many lead variables the canvas carries |
+| `--brand-<id>` | A [colour role](/info/brand-studio.html#colour-roles-what-the-colours-are-called) the design system declares, by the role's permanent id, such as `--brand-accent` |
 
 Always give a fallback, as in `var(--brand-secondary, #444)`. A role the design system does not define is left unset, so the fallback is what draws. The brand residue test (`tests/brand-residue.test.ts`) fails a tool template that reads any of these variables with no fallback.
 
@@ -121,7 +122,7 @@ The lead variables exist only when the design system has two or more colourways,
 .stripe + .stripe { background: var(--brand-lead-2, var(--brand-secondary, #444)); }
 ```
 
-The web shell and the CLI paint the same variables, and the lead variables come from one engine function in both, so a template renders the same in each. For a colour input that offers only the colourway leads, see [Colourway leads as swatches](/info/tool-inputs.html#colourway-leads-as-swatches). A tool whose colours are its content can opt out of colourway switching with `tokenAxes` ([Colours that are the content](/info/tool-manifest.html#colours-that-are-the-content)).
+The web shell and the CLI paint the same variables, and the lead variables come from one engine function in both, so a template renders the same in each. A role's variable exists only on a design system that declares that role, so a tool meant for any design system reads the slots above and leaves a role's name to the person choosing a colour. For a colour input that offers only the colourway leads, see [Colourway leads as swatches](/info/tool-inputs.html#colourway-leads-as-swatches). A tool whose colours are its content can opt out of colourway switching with `tokenAxes` ([Colours that are the content](/info/tool-manifest.html#colours-that-are-the-content)).
 
 ### What the vector export keeps
 

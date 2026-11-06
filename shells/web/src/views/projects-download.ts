@@ -110,6 +110,9 @@ export async function downloadOriginals(view: ProjectDownloadView, label: string
     let done = 0, skipped = 0;
     // The design system rides in every .lolly of the batch; read once, not per session.
     const designSystem = await readSenderDesignSystem(host);
+    // Other catalog files stay references in a batch. A document's emoji still travel
+    // as the glyphs it uses, so the file opens offline with its own artwork.
+    const resolveEmojiPack = (await import('./tool-lolly-vehicle.ts')).lollyLibraryResolver(host.assets);
     for (const it of items) {
       if (job.cancelled) return;
       try {
@@ -121,7 +124,7 @@ export async function downloadOriginals(view: ProjectDownloadView, label: string
           if (isBatchSlot(it.ref)) {
             entries[unique(`${it.dir}${slug(name) || 'batch'}.json`)] = new TextEncoder().encode(JSON.stringify(data, null, 2));
           } else {
-            const { blob } = await buildLollyFile({ session: data, toolId: e.toolId, name, thumb: e.thumb, userAssets, creator, appVersion, engineVersion: ENGINE_VERSION, ...(designSystem ? { designSystem } : {}) });
+            const { blob } = await buildLollyFile({ session: data, toolId: e.toolId, name, thumb: e.thumb, userAssets, resolveEmojiPack, creator, appVersion, engineVersion: ENGINE_VERSION, ...(designSystem ? { designSystem } : {}) });
             entries[unique(`${it.dir}${slug(name) || 'session'}.lolly`)] = new Uint8Array(await blob.arrayBuffer());
           }
         } else {

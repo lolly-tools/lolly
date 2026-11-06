@@ -7,7 +7,25 @@ import type { AssetsDb, AssetMetaRecord, TrashedUserAssetRow } from './assets.ts
 import type { CatalogHistoryDb } from './catalog-history.ts';
 import { assetFileMetas } from './asset-file-meta.ts';
 
-export async function pruneAssetCache(db: AssetsDb, currentAssets: AssetMetaRecord[], sessionBlobKeys: Set<string>, keepIds: Set<string>, urls: { evict(key: string): void; evictPrefix(prefix: string): void }, deferredProviders: readonly string[] = []): Promise<{ blobs: number; meta: number }> {
+/** The held list's key in the 'profile' store, beside the offline pins. It describes
+ *  this device's cache, so it stays out of the portable backup as they do. */
+const HELD_CATALOG_ASSETS = 'held-catalog-assets';
+const HELD_CATALOG_MAX = 3;
+
+async function heldCatalogAssets(db: AssetsDb): Promise<string[]> {
+  const held = await db.get('profile', HELD_CATALOG_ASSETS);
+  return Array.isArray(held) ? held.filter((id): id is string => typeof id === 'string') : [];
+}
+
+/** Newest first. A style with more sets than the limit still keeps every one of them. */
+export async function holdCatalogAssets(db: AssetsDb, ids: readonly string[]): Promise<void> {
+  const prior = await heldCatalogAssets(db);
+  const next = [...new Set([...ids, ...prior])].slice(0, Math.max(HELD_CATALOG_MAX, ids.length));
+  if (JSON.stringify(next) !== JSON.stringify(prior)) await db.put('profile', next, HELD_CATALOG_ASSETS);
+}
+
+export async function pruneAssetCache(db: AssetsDb, currentAssets: AssetMetaRecord[], sessionBlobKeys: Set<string>, requestedKeepIds: Set<string>, urls: { evict(key: string): void; evictPrefix(prefix: string): void }, deferredProviders: readonly string[] = []): Promise<{ blobs: number; meta: number }> {
+  const keepIds = new Set([...requestedKeepIds, ...await heldCatalogAssets(db)]);
   if (deferredProviders.length) {
     const providers = new Set(deferredProviders);
     const held = (await db.getAll('asset-meta')).filter(meta => typeof meta.provider === 'string' && providers.has(meta.provider) && (keepIds.has(meta.id) || [...keepIds].some(id => id.startsWith(`${meta.id}?file=`)) || [...sessionBlobKeys].some(key => key.startsWith(`${meta.id}:`) || key.startsWith(`${meta.id}?file=`))));

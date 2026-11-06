@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { pruneAssetCache, syncAssetIndex } from './asset-cache-maintenance.ts';
+import { holdCatalogAssets, pruneAssetCache, syncAssetIndex } from './asset-cache-maintenance.ts';
 import type { AssetsDb, AssetMetaRecord } from './assets.ts';
 const id = 'ext/dam/example', file = 'a'.repeat(24), variant = `${id}?file=${file}`;
 function group(version = '2'): AssetMetaRecord {
@@ -10,14 +10,15 @@ function group(version = '2'): AssetMetaRecord {
     meta: { assetFiles: [{ id: file, name: 'Variation.jpg', format: 'jpg', url }] } };
 }
 function fixture(keys: string[], metas: AssetMetaRecord[] = []) {
-  const blobs = new Set(keys), records = new Map(metas.map(m => [m.id, m]));
-  const db = { get: async (_s: string, key: string) => records.get(key), getAllKeys: async (s: string) => [...(s === 'asset-blob' ? blobs : records.keys())], getAll: async () => [...records.values()],
-    delete: async (_s: string, key: string) => { blobs.delete(key); }, put: async () => {},
+  const blobs = new Set(keys), records = new Map(metas.map(m => [m.id, m])), profile = new Map<string, unknown>();
+  const db = { get: async (s: string, key: string) => s === 'profile' ? profile.get(key) : records.get(key), getAllKeys: async (s: string) => [...(s === 'asset-blob' ? blobs : records.keys())], getAll: async () => [...records.values()],
+    delete: async (_s: string, key: string) => { blobs.delete(key); }, put: async (s: string, value: unknown, key: string) => { if (s === 'profile') profile.set(key, value); },
     transaction: (s: string) => ({ store: { delete: async (key: string) => { if (s === 'asset-blob') blobs.delete(key); else records.delete(key); },
       put: async (value: AssetMetaRecord) => { records.set(value.id, value); } }, done: Promise.resolve() }) } as unknown as AssetsDb;
   const evicted: string[] = [], urls = { evict: (key: string) => { evicted.push(key); }, evictPrefix: (key: string) => { evicted.push(key); } };
-  return { db, blobs, records, evicted, urls };
+  return { db, blobs, records, profile, evicted, urls };
 }
+const pack = (id: string, version = '1'): AssetMetaRecord => ({ id, type: 'data', version, tier: 'on-demand', formats: [{ format: 'json', url: `/catalog/packs/emoji-packs/${id}.json` }] });
 test('saved variation bytes survive pruning while unreferenced bytes and removed metadata leave', async () => {
   const current = `${variant}:jpg:2`, f = fixture([current, `${id}:jpg:2`, 'gone:jpg:1'], [group(), { ...group(), id: 'gone' }]);
   assert.deepEqual(await pruneAssetCache(f.db, [group()], new Set([current]), new Set(), f.urls), { blobs: 2, meta: 1 });
@@ -51,4 +52,38 @@ test('a partial index keeps saved provider files without retaining unselected ca
   await pruneAssetCache(downloaded.db, [], new Set(), new Set([variant]), downloaded.urls, ['dam']);
   assert.equal(downloaded.records.has(id), true, 'an explicit selected-file download retains its group metadata');
   assert.equal(downloaded.blobs.has(saved), true);
+});
+
+test('a held emoji pack survives the prune of files nothing saved refers to', async () => {
+  const current = [pack('set/held'), pack('set/browsed')];
+  const f = fixture(['set/held:json:1', 'set/browsed:json:1'], current);
+  await holdCatalogAssets(f.db, ['set/held']);
+  await pruneAssetCache(f.db, current, new Set(), new Set(), f.urls);
+  assert.deepEqual([...f.blobs], ['set/held:json:1'], 'without this the set is gone at the next catalog sync, and offline draws placeholders');
+});
+
+test('a saved document keeps the exact pack file it names, past a new release', async () => {
+  const f = fixture(['set/a:json:1', 'set/a:json:2'], [pack('set/a', '2')]);
+  await pruneAssetCache(f.db, [pack('set/a', '2')], new Set(['set/a:json:1']), new Set(), f.urls);
+  assert.deepEqual([...f.blobs], ['set/a:json:1'], 'the pinned release stays, and an unreferenced current file leaves');
+});
+
+test('a new release replaces a held pack only once its file has arrived', async () => {
+  const f = fixture(['set/a:json:1'], [pack('set/a', '2')]);
+  await holdCatalogAssets(f.db, ['set/a']);
+  await pruneAssetCache(f.db, [pack('set/a', '2')], new Set(), new Set(), f.urls);
+  assert.ok(f.blobs.has('set/a:json:1'), 'nothing is dropped before its replacement is on the device');
+  f.blobs.add('set/a:json:2');
+  await pruneAssetCache(f.db, [pack('set/a', '2')], new Set(), new Set(), f.urls);
+  assert.deepEqual([...f.blobs], ['set/a:json:2']);
+});
+
+test('the held list stays short, newest first, so trying every set does not keep every set', async () => {
+  const f = fixture([]);
+  for (const id of ['one', 'two', 'three', 'four']) await holdCatalogAssets(f.db, [id]);
+  assert.deepEqual(f.profile.get('held-catalog-assets'), ['four', 'three', 'two']);
+  await holdCatalogAssets(f.db, ['two']);
+  assert.deepEqual(f.profile.get('held-catalog-assets'), ['two', 'four', 'three'], 'using a set moves it to the front');
+  await holdCatalogAssets(f.db, ['a', 'b', 'c', 'd']);
+  assert.deepEqual(f.profile.get('held-catalog-assets'), ['a', 'b', 'c', 'd'], 'a style with many fallbacks still keeps all of them');
 });

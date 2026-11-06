@@ -8,6 +8,8 @@
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { designBrief } from '../../../engine/src/design-brief.ts';
+import { colourRolesBrief, type BriefColourRoles } from '../../../engine/src/colour-roles.ts';
+import type { ColorSwatch } from '@lolly-tools/core/host-v1';
 import { briefCatalogSummary, readProfileBriefCatalog, readProfileTokenDocument } from '@lolly-tools/node-shell/design-brief';
 import { exportProfileBrandSkill, listProfileBrandSkills, profileBrandSkillCoverage, readProfileBrandSkill } from '@lolly-tools/node-shell/brand-skills';
 import { isHostedServer } from './rebrand.ts';
@@ -29,9 +31,9 @@ export const RESOURCES = [
   { uri: 'lolly://skill', name: 'Lolly skill', description: 'Shared Lolly workflows and design-system setup. Tool guidance is available through lolly://tool/{id}/skill.', mimeType: 'text/markdown' },
   { uri: 'lolly://catalog', name: 'Tool catalog', description: 'The full generated Lolly tool index.', mimeType: 'application/json' },
   { uri: 'lolly://assets', name: 'Brand asset listing', description: 'Every catalog asset id with its type, name, tags and formats - the ids lolly://asset/{id} resolves.', mimeType: 'application/json' },
-  { uri: 'lolly://design-context', name: 'Design context', description: 'The effective design system with resolved tokens, recorded source observations, coverage and explicit brand rules, plus the brief: approved colour pairings, type per role, logos per surface, icons and their themes, media families, the slide master and machine-checkable house rules. Read-only.', mimeType: 'application/json' },
+  { uri: 'lolly://design-context', name: 'Design context', description: 'The effective design system with resolved tokens, recorded source observations, coverage and explicit brand rules, plus the brief: the system\'s own colour words and what each is bound to, approved colour pairings, type per role, logos per surface, icons and their themes, media families, the slide master and machine-checkable house rules. Read-only.', mimeType: 'application/json' },
   { uri: 'lolly://design-system/skills', name: 'Brand skills', description: "The brand's own guidance per discipline (overall brand, photography, motion, iconography and more) as Agent Skills: the index without bodies, plus the baseline Lolly generates from the design brief. Read the overall brand skill before composing. Skills are guidance for brand intent only; house rules are what Lolly checks.", mimeType: 'application/json' },
-  { uri: 'lolly://tokens', name: 'Brand design tokens', description: "On-brand colour swatches (DTCG) with names and CMYK, from the design system's edit head - never one of its published versions.", mimeType: 'application/json' },
+  { uri: 'lolly://tokens', name: 'Brand design tokens', description: "On-brand colour swatches (DTCG) with names and CMYK, plus the system's own colour words where it declares them, from the design system's edit head - never one of its published versions.", mimeType: 'application/json' },
 ];
 
 export const RESOURCE_TEMPLATES = [
@@ -76,8 +78,13 @@ async function tokensResource(uri: string): Promise<ResourceContent> {
   const tokenPath = contentUrl(tokenUrl);
   if (!tokenPath) throw new Error(`Tokens asset ${tokenAsset.id}: ${tokenUrl} is not in this profile's catalog.`);
   const doc = JSON.parse(await readFile(tokenPath, 'utf8'));
-  const set = createTokenSet(doc);
-  return { uri, mimeType: 'application/json', text: JSON.stringify({ colors: set.colors() }, null, 2) };
+  return { uri, mimeType: 'application/json', text: JSON.stringify(tokensListing(doc), null, 2) };
+}
+
+/** What lolly://tokens lists: the swatches, and beside them the design system's own colour words, quoted as data, when it declares some. */
+export function tokensListing(doc: unknown): { colors: ColorSwatch[]; colourRoles?: BriefColourRoles } {
+  const colourRoles = colourRolesBrief(doc);
+  return { colors: createTokenSet(doc).colors(), ...(colourRoles ? { colourRoles } : {}) };
 }
 
 function parseDataUrl(url: string): { mime: string; base64: string } | null {

@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MPL-2.0
 /** Node font and picture facts for the same Design drawing pipeline as the web shell. */
 import { extractC2paStore, prepareC2paIngredientFromStore } from '@lolly/engine';
+import { tokenColorVar } from '../../../engine/src/color-face.ts';
+import { brandLeadVars } from '../../../engine/src/token-context.ts';
 import type { HostV1, IngredientCredential } from '@lolly-tools/core/host-v1';
 import type { TextMeasureFontsV1 } from '@lolly-tools/core/text-measure-v1';
 import type { DesignPageSvgHost } from '../../../engine/src/design-page-svg.ts';
@@ -22,6 +24,30 @@ async function fontsOf(host: HostV1): Promise<TextMeasureFontsV1 | undefined> {
   return { brand, ...(mono ? { mono } : {}), ...(display ? { display } : {}), ...(italic ? { italic } : {}) };
 }
 
+
+/**
+ * What a `var(--brand-...)` in a row draws, read from the variables the canvas carries:
+ * every colour token by its `--brand-token-<hex>` name, each semantic colour by
+ * `--brand-<name>`, and the colourway leads. The web shell reads the same variables off
+ * the live canvas, so a page draws one colour on both. A name no token holds answers
+ * null, and the row's own fallback draws, or the page goes to the browser tier without one.
+ */
+async function brandColourResolver(host: HostV1): Promise<((css: string) => string | null) | null> {
+  if (!host.tokens) return null;
+  try {
+    const colours = new Map<string, string>();
+    for (const swatch of await host.tokens.colors()) {
+      colours.set(tokenColorVar(swatch.ref), swatch.value);
+      const semantic = /^color\.semantic\.([a-z-]+)$/.exec(swatch.path);
+      if (semantic) colours.set(`--brand-${semantic[1]}`, swatch.value);
+    }
+    for (const [name, value] of brandLeadVars(await host.tokens.family?.('primary'))) colours.set(name, value);
+    return (css) => {
+      const name = /^var\(\s*(--brand-[a-z0-9-]+)\s*(?:,[\s\S]*)?\)$/i.exec(css.trim())?.[1];
+      return name ? colours.get(name) ?? null : null;
+    };
+  } catch { return null; }
+}
 
 /**
  * A credentialed picture's own manifest travels as a `componentOf` ingredient of the
@@ -52,6 +78,7 @@ export async function designOpsNodeHost(host: HostV1, ctx: { repoRoot: string },
   };
 
   const fonts = await fontsOf(host);
+  const resolveColor = await brandColourResolver(host);
   return {
     drawing: {
       shaper: createNodeTextShaper({ repoRoot: ctx.repoRoot }),
@@ -59,6 +86,7 @@ export async function designOpsNodeHost(host: HostV1, ctx: { repoRoot: string },
       ...(outlined ? { strikeMetrics: (url: string, variations?: string[]) => nodeStrikeMetrics(url, variations, ctx.repoRoot) } : {}),
       picture,
       ...(fonts ? { fonts } : {}),
+      ...(resolveColor ? { resolveColor } : {}),
     },
     ingredients: () => [...ingredients],
   };
