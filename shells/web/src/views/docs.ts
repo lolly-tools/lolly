@@ -44,6 +44,10 @@ import { escape, safeHref } from '../utils.ts';
 import { t, tRaw, currentLang, normalizeLang, docsHref, docsInfoHref, LANG_ICON_SVG, type Lang } from '../i18n.ts';
 import { armViewEnter } from '../view-enter.ts';
 import { backHomeHtml, mountBackPill } from '../components/back-pill.ts';
+import { docsOrigin, type PrevView } from '../lib/back-nav.ts';
+import { enhanceDocsContents } from '../lib/docs-contents.ts';
+import { prefersReducedMotion } from '../lib/a11y-prefs.ts';
+import { contentsRailHtml, pageBarHtml, hasContents, type ContentsHeading } from '../../../../packages/docs-render/src/contents.ts';
 import { createThemeToggle } from '../components/theme-toggle.ts';
 import { attachLangMenu } from '../components/lang-menu.ts';
 import { attachProfileMenu } from '../components/profile-menu.ts';
@@ -62,7 +66,6 @@ import {
   extractSitemap,
   extractContactFooter,
   extractPathways,
-  buildToc,
 } from '../lib/docs-nav.ts';
 // The fetch, stub-follow, fragment lookup, rehost and heading scroll are shared
 // with the specification browser (#/document-model) - see lib/docs-rehost.ts.
@@ -78,10 +81,17 @@ type DocsHost = HostV1;
  *  `inner` seeds the content column; the pathways / sidebar / TOC / sitemap slots
  *  start empty + hidden and are filled from the fetched page once it parses (each a
  *  graceful no-op if that page lacks the landmark). The scaffold is fixed class markup
- *  + component HTML + t() labels only - no free/user text reaches this sink. */
-function shellHtml(inner: string): string {
+ *  + component HTML + t() labels only - no free/user text reaches this sink.
+ *
+ *  `origin` is the app view these docs were opened from (lib/back-nav.ts docsOrigin):
+ *  the back pill shows that view's name and returns there, however many pages were
+ *  read in between.
+ *  The ground is the quiet band the top row sits on once the page has moved, so the
+ *  text never runs under the pills (docs.css .docs-top-ground). */
+function shellHtml(inner: string, origin: PrevView | null): string {
   return `
-    ${backHomeHtml()}
+    ${backHomeHtml(origin ? { href: origin.href, label: origin.label } : {})}
+    <div class="docs-top-ground" aria-hidden="true"></div>
     <div class="docs-topright" data-topright>
       <a href="#/settings" class="docs-top-btn docs-profile-link" aria-label="${escape(t('Open settings'))}" title="${escape(t('Settings'))}">${icon('user')}</a>
     </div>
@@ -122,7 +132,7 @@ export async function mountDocs(
   document.title = tRaw('{name} - Lolly', { name: t('Documentation') });
 
   // Paint the chrome + a pending state immediately, then swap in the body once fetched.
-  viewEl.innerHTML = shellHtml(`<p class="docs-status">${t('Loading…')}</p>`);
+  viewEl.innerHTML = shellHtml(`<p class="docs-status">${t('Loading…')}</p>`, docsOrigin());
   mountBackPill(viewEl);
   mountHomeFab(viewEl);
   // One scope owns everything this mount sets up, and the view's cleanup disposes it at
@@ -355,121 +365,137 @@ export async function mountDocs(
     slot.hidden = false;
   };
   fillSlot('[data-pathways]', pathwaysStrip);
-  // The strip's prepended "Welcome" tab is the landing itself - active only there
-  // (the per-page .active marks ride across from the fetched nav for the rest).
-  if (isLanding) viewEl.querySelector('.docs-pathway-home')?.classList.add('active');
-  // AI-scan donut (Andy, 2026-08-21): the page's own text-signal score at the right
-  // end of the strip, pressing through to the full verify report for this served
-  // page (its C2PA seal + the text-signal panel). extractHtmlText is the SAME
-  // extraction verify runs on an HTML file (raw markup detects as docKind 'code'
-  // and gates every prose tell off), fed the same fetched bytes - so this number
-  // and the report's hero gauge agree.
+  // The fetched page's own language and direction for everything rehosted from it (the
+  // strip, the rails, the article): #/docs/ar/… reads right to left even when the app's
+  // own language does not.
+  const readerEl = viewEl.querySelector<HTMLElement>('[data-reader]');
+  const fetchedDir = doc.documentElement.getAttribute('dir') === 'rtl' ? 'rtl' : 'ltr';
+  readerEl?.setAttribute('dir', fetchedDir);
+  const fetchedLang = doc.documentElement.getAttribute('lang');
+  if (fetchedLang) readerEl?.setAttribute('lang', fetchedLang);
+  // On a phone the strip keeps one line and scrolls, as on /info: fade the edges
+  // with tabs beyond them and bring the current section into view (lib/docs-strip.ts).
   const strip = viewEl.querySelector<HTMLElement>('.docs-pathways');
-  if (strip) {
+  if (strip) scope.add(enhancePathwaysStrip(strip));
+
+  // Check this page (Andy, 2026-08-21; moved 2026-11-06): the page's own text-signal
+  // score, pressing through to the full verify report for this served page (its C2PA
+  // seal and the text-signal panel). It used to sit at the end of the section strip on
+  // every page, an unlabelled number above the article; it now closes the article as a
+  // labelled line. extractHtmlText is the SAME extraction verify runs on an HTML file
+  // (raw markup detects as docKind 'code' and gates every prose tell off), fed the same
+  // fetched bytes, so this number and the report's hero gauge agree.
+  {
     const scan = analyzeTextSignals(extractHtmlText(html), { source: 'digital' });
     const n = Math.max(0, Math.min(100, Math.round(scan.score)));
     const circ = 2 * Math.PI * 26;
-    const donut = document.createElement('a');
-    donut.className = 'docs-tsig-donut';
+    const check = document.createElement('a');
+    check.className = 'docs-page-check';
     // `check=1`: the press IS the ask, so verify resolves the page's same-origin
     // credential reference without a second "Fetch and check" click.
-    donut.setAttribute('href', `#/verify?src=${encodeURIComponent(url)}&check=1`);
-    // The shared [data-tip] tooltip (parts/tooltip.css), same text on aria-label
-    // per its contract - the bubble is presentation only, never read.
-    const label = `${tRaw('Signal score {n} of 100', { n })} · ${t('Open the verify report for this page')}`;
-    donut.setAttribute('aria-label', label);
-    donut.setAttribute('data-tip', label);
-    // Numeric-only interpolation (score + the analyser's closed band union) - no free text.
-    donut.innerHTML =
+    check.setAttribute('href', `#/verify?src=${encodeURIComponent(url)}&check=1`);
+    // Numeric-only interpolation (score + the analyser's closed band union) plus two
+    // t() labels set as text below - no free text reaches innerHTML.
+    check.innerHTML =
       `<svg viewBox="0 0 64 64" data-band="${escape(scan.band)}" aria-hidden="true">`
       + '<circle class="docs-tsig-track" cx="32" cy="32" r="26"/>'
       + `<circle class="docs-tsig-fill" cx="32" cy="32" r="26" stroke-dasharray="${((n / 100) * circ).toFixed(2)} ${circ.toFixed(2)}"/>`
       + `<text class="docs-tsig-num" x="32" y="40">${n}</text>`
-      + '</svg>';
-    strip.appendChild(donut);
-    // On a phone the strip keeps one line and scrolls, as on /info: fade the edges
-    // with tabs beyond them and bring the current section into view (lib/docs-strip.ts).
-    scope.add(enhancePathwaysStrip(strip));
+      + '</svg><span class="docs-page-check-label"></span><span class="docs-page-check-score"></span>';
+    check.querySelector('.docs-page-check-label')!.textContent = t('Check this page');
+    check.querySelector('.docs-page-check-score')!.textContent = tRaw('Signal score {n} of 100', { n });
+    contentEl.append(check);
   }
   fillSlot('[data-sidebar]', extractSidebar(doc));
+  // The rail's first link is the docs front door, which the built page calls Home. In
+  // the app, Home means the gallery, as on the back pill and in the profile menu, so
+  // here the link takes the name the bottom bar gives the front door: Docs (plan 354
+  // D2, one word for one place).
+  const docsHome = viewEl.querySelector<HTMLAnchorElement>('[data-sidebar] .sidebar-home');
+  if (docsHome) {
+    const arrow = document.createElement('span');
+    arrow.className = 'docs-sidebar-home-arrow';
+    arrow.setAttribute('aria-hidden', 'true');
+    arrow.textContent = '←';
+    docsHome.replaceChildren(arrow, ` ${t('Docs')}`);
+  }
   fillSlot('[data-sitemap]', extractSitemap(doc));
   // The founded-by-SUSE badge + "Questions? Contact fitzy@suse.com" line from the built
   // page's footer - the sitemap already rode up in its own slot just above; this brings
   // the rest of that footer with it so the reader isn't missing the site's contact.
   fillSlot('[data-contact]', extractContactFooter(doc));
-  // The landing gets no table of contents: its own sticky quicknav already jumps between
-  // bands (hidden in landing mode), and the bands are sections of a front door rather
-  // than headings of an article. Its pathways + sitemap slots fill as on any page; it
-  // ships no `.docs-sidebar`, so that slot stays hidden on its own.
-  const onTocClick = (e: MouseEvent): void => {
-    const a = (e.target as HTMLElement).closest<HTMLAnchorElement>('a[data-toc-target]');
-    if (!a || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button > 0) return;
-    const id = a.dataset.tocTarget || '';
-    const compactGroup = a.closest<HTMLDetailsElement>('.docs-compact-group');
-    if (!compactGroup) {
-      if (scrollToHeading(node, id, 'smooth')) e.preventDefault();
-      return;
+
+  // ── The page's contents and the page bar (packages/docs-render contents.ts) ──────
+  // The same two forms /info has: the rail beside the article from 1100px, and below
+  // that the page bar ("Create v Export a file"), whose one sheet holds the sections,
+  // this page's headings and this section's pages (docs.css decides which shows). Both
+  // mark the section being read (lib/docs-contents.ts). The landing and an immersive
+  // page are bands rather than sections, and the landing's own quicknav already jumps
+  // between them, so they get neither.
+  const headings: ContentsHeading[] = (isLanding || isImmersive) ? [] : [...node.querySelectorAll<HTMLElement>('h2[id], h3[id]')]
+    .map((h) => ({ id: h.id, text: (h.textContent || '').replace(/\s+/g, ' ').trim(), level: h.tagName === 'H3' ? 3 as const : 2 as const }))
+    .filter((h) => h.text);
+  if (!isLanding && !isImmersive) {
+    const labels = { title: t('On this page') };
+    if (hasContents(headings)) {
+      const tocSlot = viewEl.querySelector<HTMLElement>('[data-toc]');
+      // The builder escapes every heading text and id; the label is a t() string.
+      if (tocSlot) { tocSlot.innerHTML = contentsRailHtml(headings, labels); tocSlot.hidden = false; }
     }
-    // A compact list (phone and tablet) sits above the article, so it folds away BEFORE
-    // the scroll starts: collapsing it mid-scroll pulled the page up under the reader and
-    // left the heading far above the screen. Then the heading takes focus, so keyboard
-    // and screen-reader users arrive where they asked to go.
-    const heading = id ? node.querySelector<HTMLElement>(`#${CSS.escape(id)}`) : null;
-    if (!heading) return;
-    e.preventDefault();
-    compactGroup.open = false;
-    requestAnimationFrame(() => {
-      scrollToHeading(node, id, 'smooth');
+    // The sections and the section's pages are copies of our own build's strip and rail:
+    // their links are already rewritten to #/docs/... and the current ones marked.
+    const stripLinks = [...viewEl.querySelectorAll<HTMLAnchorElement>('[data-pathways] .docs-pathway')];
+    const sectionName = viewEl.querySelector('[data-pathways] .docs-pathway.active')?.textContent?.trim() || t('Docs');
+    const pageTitle = node.querySelector('h1')?.textContent?.replace(/\s+/g, ' ').trim() ?? '';
+    const holder = document.createElement('div');
+    holder.innerHTML = pageBarHtml({
+      section: sectionName,
+      page: pageTitle,
+      headings,
+      labels: { ...labels, sections: t('Documentation sections') },
+      sectionsHtml: '',
+      pages: null,
+      chevron: icon('chevronRight'),
+    });
+    const bar = holder.firstElementChild as HTMLElement | null;
+    if (bar) {
+      bar.querySelector('.doc-sheet-sections')?.append(...stripLinks.map((a) => a.cloneNode(true)));
+      const rail = viewEl.querySelector<HTMLElement>('[data-sidebar] > .docs-sidebar');
+      if (rail) {
+        const copy = rail.cloneNode(true) as HTMLElement;
+        const title = copy.querySelector('.sidebar-pathway')?.textContent?.trim() || t('Documentation');
+        copy.querySelector('.sidebar-pathway')?.remove();
+        copy.querySelector('.sidebar-home')?.remove();
+        const list = document.createElement('div');
+        list.className = 'docs-compact-list';
+        list.append(...Array.from(copy.childNodes));
+        const group = document.createElement('nav');
+        group.className = 'doc-sheet-group';
+        group.setAttribute('aria-label', title);
+        const head = document.createElement('p');
+        head.className = 'doc-contents-title';
+        head.setAttribute('aria-hidden', 'true');
+        head.textContent = title;
+        group.append(head, list);
+        bar.querySelector('.doc-contents-panel')?.append(group);
+      }
+      viewEl.querySelector('[data-reader] > .docs-reader-grid')?.before(bar);
+    }
+    // A row scrolls this view: in the app the address is the route, so a bare #id must
+    // stay out of the address. The heading takes focus, so keyboard and screen-reader users arrive
+    // where they asked to go, and ?h= records the section like any other section link.
+    const jump = (id: string): boolean => {
+      const behavior: ScrollBehavior = prefersReducedMotion() ? 'auto' : 'smooth';
+      if (!id) { window.scrollTo({ top: 0, behavior }); return true; }
+      const heading = node.querySelector<HTMLElement>(`#${CSS.escape(id)}`);
+      if (!heading || !scrollToHeading(node, id, behavior)) return false;
       if (!heading.hasAttribute('tabindex')) heading.setAttribute('tabindex', '-1');
       heading.focus({ preventScroll: true });
-    });
-  };
-  const toc = (isLanding || isImmersive) ? null : buildToc(node);
-  let stopSpy: (() => void) | null = null;
-  if (toc) {
-    const tocSlot = viewEl.querySelector<HTMLElement>('[data-toc]');
-    if (tocSlot) {
-      tocSlot.replaceChildren(toc.el);
-      tocSlot.hidden = false;
-      // TOC links (`#<id>` + data-toc-target) scroll within the reader, never the route.
-      toc.el.addEventListener('click', onTocClick);
-      // Scroll-spy (Andy, 2026-08-17): the sticky rail alone just parks the list - the
-      // TOC should FOLLOW the reading position. The current section is the last heading
-      // above the reading line (120px under the top edge); cheap enough to run on the
-      // scroll event directly, and the listener dies with the view.
-      const links = new Map(
-        toc.headings.map((h) => [h.id, toc.el.querySelector<HTMLAnchorElement>(`a[data-toc-target="${CSS.escape(h.id)}"]`)]),
-      );
-      const spy = (): void => {
-        let current: HTMLElement | null = null;
-        for (const h of toc.headings) {
-          if (h.getBoundingClientRect().top <= 120) current = h;
-          else break;
-        }
-        links.forEach((a, id) => a?.classList.toggle('active', id === (current ?? toc.headings[0])?.id));
-      };
-      // The document is the real scroller (the view grows; see .docs-view in docs.css),
-      // but listen on the view as well so a future height-constrained layout keeps the
-      // spy without anyone remembering this line.
-      viewEl.addEventListener('scroll', spy, { passive: true });
-      window.addEventListener('scroll', spy, { passive: true });
-      stopSpy = () => {
-        viewEl.removeEventListener('scroll', spy);
-        window.removeEventListener('scroll', spy);
-      };
-      spy();
-    }
-  }
-  scope.add(() => stopSpy?.());
-
-  // Phone and tablet: docs.css folds both rails away at 1024px and below, which left the
-  // section's other pages unreachable and put "On this page" after the whole article.
-  // The same two lists, as native disclosures above the article (hidden on wider screens,
-  // where the rails show). Copies of what the slots already hold, so nothing new is fetched.
-  const compact = compactNav(viewEl.querySelector<HTMLElement>('[data-sidebar] > .docs-sidebar'), toc?.el ?? null);
-  if (compact) {
-    compact.addEventListener('click', onTocClick);
-    contentEl.before(compact);
+      updateRouteParams({ h: id });
+      return true;
+    };
+    // The reading line sits a quarter of the way down, under the top row and the bar.
+    scope.add(enhanceDocsContents({ article: node, root: viewEl, jump, readingLine: () => Math.round(window.innerHeight * 0.25) }));
   }
 
   // ── M3: interactive "Try it" embeds (progressive enhancement) ─────────────────
@@ -495,41 +521,27 @@ export async function mountDocs(
   // Scroll to a deep-linked section once the page is in place.
   if (deepLink && scrollToHeading(node, deepLink, 'auto')) viewEl.dataset.deepScrolled = '';
 
-  armViewEnter(viewEl, '.docs-content, .docs-landing');
-}
-
-/** The phone and tablet navigation: the section's pages and this page's headings as two
- *  native disclosures, built from copies of the rail and the table of contents. */
-function compactNav(sidebar: HTMLElement | null, toc: HTMLElement | null): HTMLElement | null {
-  const groups: HTMLDetailsElement[] = [];
-  const group = (title: string, glyph: Parameters<typeof icon>[0], body: HTMLElement): HTMLDetailsElement => {
-    const d = document.createElement('details');
-    d.className = 'doc-details docs-compact-group';
-    // Fixed markup plus registry icons; the title goes in through textContent below.
-    d.innerHTML = `<summary><span class="doc-details-glyph" aria-hidden="true">${icon(glyph)}</span>`
-      + '<span class="doc-details-title"></span>'
-      + `<span class="doc-details-chev" aria-hidden="true">${icon('chevronRight')}</span></summary><div class="doc-details-body"></div>`;
-    d.querySelector('.doc-details-title')!.textContent = title;
-    d.querySelector('.doc-details-body')!.append(body);
-    return d;
+  // ── Reading posture ──────────────────────────────────────────────────────────
+  // Once the page has moved, the top row sits on a quiet ground so the text never runs
+  // under the pills ([data-scrolled], docs.css). On a phone the app's bottom bar steps
+  // away while the reader reads down and comes back on any scroll up and at the end of
+  // the page (html[data-docs-bar="tucked"]; docs.css gates it to phone widths and holds
+  // it still under Reduce motion). Both attributes leave with the view.
+  const root = document.documentElement;
+  root.setAttribute('data-docs-reading', '');
+  scope.add(() => { root.removeAttribute('data-docs-reading'); root.removeAttribute('data-docs-bar'); });
+  let lastY = window.scrollY;
+  const posture = (): void => {
+    const y = window.scrollY;
+    viewEl.toggleAttribute('data-scrolled', y > 4);
+    const atEnd = y + window.innerHeight >= document.documentElement.scrollHeight - 48;
+    if (y < 80 || atEnd) root.removeAttribute('data-docs-bar');
+    else if (y > lastY + 6) root.setAttribute('data-docs-bar', 'tucked');
+    else if (y < lastY - 6) root.removeAttribute('data-docs-bar');
+    lastY = y;
   };
-  if (sidebar) {
-    const list = sidebar.cloneNode(true) as HTMLElement;
-    const heading = list.querySelector('.sidebar-pathway');
-    const title = heading?.textContent?.trim() || t('Documentation');
-    heading?.remove();
-    list.classList.add('docs-compact-list');
-    groups.push(group(title, 'folder', list));
-  }
-  if (toc) {
-    const list = toc.cloneNode(true) as HTMLElement;
-    list.querySelector('.docs-toc-head')?.remove();
-    list.classList.add('docs-compact-list');
-    groups.push(group(t('On this page'), 'hash', list));
-  }
-  if (!groups.length) return null;
-  const nav = document.createElement('div');
-  nav.className = 'docs-compact-nav';
-  nav.append(...groups);
-  return nav;
+  scope.listen(window, 'scroll', posture, { passive: true });
+  posture();
+
+  armViewEnter(viewEl, '.docs-content, .docs-landing');
 }
