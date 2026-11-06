@@ -154,7 +154,13 @@ export function mountCoverflow(
   return {
     refresh, paint, normalize,
     nearest: position => targetAt(nearestIndex(position)),
-    grid: () => ({ origin: targetAt(0), pitch, count: covers.length }),
+    grid: () => ({
+      origin: targetAt(0),
+      // The average spacing, so rounding in one offsetLeft does not drift every row.
+      pitch: covers.length > 1 ? (targetAt(covers.length - 1) - targetAt(0)) / (covers.length - 1) : pitch,
+      count: covers.length,
+      at: targetAt,
+    }),
     target: el => targetAt(covers.findIndex(cover => cover.el === el)),
     first: () => targetAt(clones),
     last: () => targetAt(clones + originals.length - 1),

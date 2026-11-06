@@ -40,22 +40,28 @@ export const COVERFLOW_PHYSICS: Physics = {
   snapDuration: 600,
 };
 
-/** Where the covers rest: cover i at origin + i * pitch, for 0 <= i < count. */
+/** Where the covers rest: cover i at about origin + i * pitch, for 0 <= i < count.
+ *  `at(i)`, when given, is cover i's exact resting position: a cover 66vw wide is a
+ *  fractional pitch, and laid-out offsets round, so the uniform rows drift a pixel or
+ *  more along a long strip. The glide is planned on the rows and ends on `at(i)`. */
 export interface CoverflowGrid {
   origin: number;
   pitch: number;
   count: number;
+  at?: (index: number) => number;
 }
 
 const restDelta = (): number =>
   0.5 / (typeof devicePixelRatio === 'number' && devicePixelRatio > 0 ? devicePixelRatio : 1);
 
 /** Release velocity from the hand's recent movement (Detent's weighted fit over the
- *  last 100 ms). A finger that rested 40 ms before lifting throws nothing, and
- *  event timestamps survive main-thread delivery delays. px/ms in scroll
- *  direction: dragging left moves the strip forward. */
+ *  last 100 ms). Event timestamps survive main-thread delivery delays. px/ms in
+ *  scroll direction: dragging left moves the strip forward. */
 export class CoverflowGesture {
-  private tracker = velocityTracker();
+  // A finger that rested 80 ms before lifting throws nothing: Lolly's rule before
+  // the port, kept because Detent's 40 ms turned a slow swipe on a busy phone into
+  // no throw at all.
+  private tracker = velocityTracker(100, 80);
 
   start(x: number, time: number): void {
     this.tracker.reset();
@@ -124,25 +130,37 @@ export class CoverflowMotion {
     }
     const x = this.position - grid.origin;
     const bounds = { min: 0, max: Math.max(0, grid.count - 1), loop: false, count: grid.count };
+    const restAt = (index: number): number => grid.at?.(index) ?? grid.origin + index * grid.pitch;
     if (reduced) {
-      const index = Math.max(bounds.min, Math.min(bounds.max, Math.round(x / grid.pitch)));
-      this.rest(grid.origin + index * grid.pitch);
+      this.rest(restAt(Math.max(bounds.min, Math.min(bounds.max, Math.round(x / grid.pitch)))));
       return;
     }
     const physics = { ...COVERFLOW_PHYSICS, restDelta: restDelta(), ...(decay ? { decay } : {}) };
     const planned = release(x, v, grid.pitch, bounds, physics);
     const origin = grid.origin;
+    const from = this.position;
+    const row = origin + planned.to;
+    const exact = restAt(planned.index);
+    // Fold the row's rounding error in as the glide progresses, so the motion starts
+    // where the strip is and ends on the cover itself, with no jump at either end.
+    const fix = exact - row;
+    const span = row - from;
     this.run(
       {
-        to: planned.to + origin,
+        to: exact,
         duration: planned.duration,
         at: (t) => {
           const s = planned.at(t);
-          return { ...s, x: s.x + origin };
+          const x = s.x + origin;
+          const k =
+            Math.abs(span) >= 1
+              ? Math.min(1, Math.max(0, (x - from) / span))
+              : Math.min(1, t / Math.max(1, planned.duration));
+          return { ...s, x: x + fix * k };
         },
       },
       now,
-      origin + planned.index * grid.pitch
+      exact
     );
   }
 

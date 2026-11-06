@@ -271,8 +271,10 @@ export function mountCoverFlow(root: ParentNode): void {
   /** Every cover's resting position, clones included: the release planner's rows. */
   const grid = (): CoverflowGrid => ({
     origin: centerOf(0),
-    pitch: geom.length > 1 ? centerOf(1) - centerOf(0) : (geom[0]?.w ?? 0),
+    // The average spacing, so rounding in one offsetLeft does not drift every row.
+    pitch: geom.length > 1 ? (centerOf(geom.length - 1) - centerOf(0)) / (geom.length - 1) : (geom[0]?.w ?? 0),
     count: geom.length,
+    at: centerOf,
   });
 
   /** Snapshot the layout geometry once per (re)layout so the hot loop is write-only. */
