@@ -105,6 +105,9 @@ that includes these changes.
 An opened project's `s` updates its saved slot; `S` makes a copy. Leaving changed
 inputs/export settings asks you to save or discard. If another app changed the record,
 reopen that record or use Save as. Export passwords stay out of saved/share queries.
+The Export panel's **Password** locks a `pdf` or a `zip`, and the file is read back before
+it is written. Any other format, or a `pdf` with bleed or print marks, reports why in the
+status line and writes no file.
 Loaded binary file inputs cannot be saved as JSON projects here; use the original
 file path with the CLI or export the transformed result. This avoids expanding bytes
 into a broken JSON representation.

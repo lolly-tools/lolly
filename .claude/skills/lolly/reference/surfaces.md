@@ -145,6 +145,9 @@ return an error. Codec availability depends on the browser tier.
 `link` (default true). `c2pa: "off"` means no credential on any format. Left out, a
 browser-free render has none and a browser-tier render keeps the web shell's. When
 you pass it, the result says what the file holds, read back from the file.
+`password` locks a `pdf` or `zip` with a weak deterrent (40-bit RC4 or ZipCrypto),
+and the result says it was read back. Any other format, a `pdf` with `bleed` or
+`marks`, or a non-ASCII `pdf` password fails the call with no file.
 
 **Design documents** are edited through `layerOperations` and `layerPatches`,
 accepted by `lolly_compile`, `lolly_inspect`, `lolly_measure`, `lolly_validate`,

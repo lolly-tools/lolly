@@ -806,7 +806,7 @@ export function ToolView({ toolId, query, values, fromLink = false, session, bri
       case 'durable': return DURABLE_FMTS.includes(fmt)
         ? (durableOn ? 'on · in-pixel mark' : 'off')
         : (durableOn ? 'on (raster formats only)' : 'raster only');
-      case 'password': return password ? '•'.repeat(Math.min(8, password.length)) + ' · pdf lock' : (fmt === 'pdf' ? 'none' : 'pdf only');
+      case 'password': return password ? '•'.repeat(Math.min(8, password.length)) + ((fmt === 'pdf' || fmt === 'zip') ? ' · locks this file' : ' · this format cannot lock') : ((fmt === 'pdf' || fmt === 'zip') ? 'none' : 'pdf or zip only');
       default: return '';
     }
   }
@@ -1012,8 +1012,9 @@ export function ToolView({ toolId, query, values, fromLink = false, session, bri
       // Durable credential: only meaningful for raster formats the mark can ride in;
       // routes the export via the Tier-B web shell, whose durableEmbedCanvas embeds it.
       durable: durableOn && DURABLE_FMTS.includes(fmt) ? true : undefined,
-      // Standard PDF open-password (basic lock) - pdf only; threads to the web-shell tier.
-      password: fmt === 'pdf' && password ? password : undefined,
+      // Standard open-password (PDF or ZIP). It always travels, so a format that cannot
+      // carry it is refused by exportToFile rather than written unlocked.
+      password: password || undefined,
       // Print-prep carried from a share link (no TUI rows yet) - honoured on the Tier-B tier.
       ...linkPrint,
     };

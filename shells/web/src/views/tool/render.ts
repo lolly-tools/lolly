@@ -12,6 +12,8 @@ import { wireSyntaxRequests } from '../../lib/syntax-preview.ts';
  */
 import { normalizeTableValue } from '@lolly/engine';
 import { t } from '../../i18n.ts';
+import { noticeDialog } from '../../components/confirm-dialog.ts';
+import { LinkPasswordRefused } from '../../lib/export-password.ts';
 import { cacheCanvasTranslations, patchCanvasTranslations } from '../canvas-translation.ts';
 import { projectCanvasLayoutBoxes } from '../canvas-layout-projection.ts';
 import { contentPatchPlan } from '../canvas-content-plan.ts';
@@ -460,7 +462,10 @@ export function paint(tview: ToolViewCtx): void {
 
   if (tview.pendingAutoExport) {
     tview.pendingAutoExport = false;
-    tview.exporting.linkExport().catch((err) => tview.host.log?.('warn', `Auto-export did not start: ${String(err)}`));
+    tview.exporting.linkExport().catch((err) => {
+      tview.host.log?.('warn', `Auto-export did not start: ${String(err)}`);
+      if (err instanceof LinkPasswordRefused) void noticeDialog({ title: t('This file was not written'), message: err.message });
+    });
   }
 
   if (tview.pendingAutoCopy) {
