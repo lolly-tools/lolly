@@ -30,6 +30,7 @@ import { readFileSync } from 'node:fs';
 import { JSDOM } from 'jsdom';
 import type { Box } from './free-canvas-math.ts';
 import { clampRailPos, initFreeCanvas, placePopover } from './free-canvas.ts';
+import { placePanelBeside } from './free-canvas-popover.ts';
 
 // ── jsdom bootstrap (same shape as free-canvas-tools.test.ts) ─────────────────
 const dom = new JSDOM('<!DOCTYPE html><body></body>');
@@ -260,6 +261,27 @@ test('placePopover keeps the anchored placement when the stage cannot be measure
   // clamping against zeroes would slam every menu into the corner.
   const pos = placePopover({ left: 10, right: 54, top: 40 }, { w: 0, h: 0 }, { w: 0, h: 0 });
   assert.deepEqual(pos, { left: 62, top: 40 });
+});
+
+test('placePanelBeside keeps the size panel where it always opened while it fits', () => {
+  // The old inline maths: left = min(right + 8, stage w - panel w - 8), top =
+  // max(6, min(anchor top, stage h - panel h - 8)). A desktop panel must not move.
+  assert.deepEqual(placePanelBeside({ right: 300, top: 120 }, { w: 262, h: 430 }, { w: 1100 }, 900), { left: 308, top: 120 });
+  assert.deepEqual(placePanelBeside({ right: 1090, top: 700 }, { w: 262, h: 430 }, { w: 1100 }, 900), { left: 830, top: 462 });
+});
+
+test('placePanelBeside stops the panel above a raised foot and scrolls a panel taller than the room', () => {
+  // A phone: the bottom bar's top at 784 is the foot, so a 550-tall panel opened from
+  // the sheet at 624 is pulled up to 226 and ends at 776.
+  assert.deepEqual(placePanelBeside({ right: 378, top: 624 }, { w: 350, h: 550 }, { w: 390 }, 784), { left: 32, top: 226 });
+  // A shorter phone with large text: 660 does not fit in 508 - 14, so it scrolls.
+  assert.deepEqual(placePanelBeside({ right: 300, top: 400 }, { w: 300, h: 660 }, { w: 320 }, 508), { left: 12, top: 6, maxHeight: 494 });
+  // Never off the left edge, whatever the panel's width.
+  assert.equal(placePanelBeside({ right: 300, top: 0 }, { w: 330, h: 100 }, { w: 320 }, 500).left, 6);
+});
+
+test('placePanelBeside writes no cap when the stage cannot be measured', () => {
+  assert.deepEqual(placePanelBeside({ right: 54, top: 40 }, { w: 0, h: 0 }, { w: 0 }, 0), { left: 62, top: 40 });
 });
 
 // ══ the Lolly menu ════════════════════════════════════════════════════════════
