@@ -1,0 +1,52 @@
+{
+  "heading": "Choose the format last.",
+  "line": "Make it once, in your brand. Send it as a deck, a document, a web graphic, a video or a press-ready PDF. Bring decks, PDFs and design files back in and keep editing.",
+  "label": "One garden day poster, five files Lolly made from it",
+  "outputs": [
+    {
+      "id": "slide",
+      "kind": "Deck",
+      "format": "PPTX",
+      "alt": "The garden day slide: Lolly's PowerPoint file, opened in LibreOffice Impress",
+      "drawn": "Lolly Design's PowerPoint file, drawn by LibreOffice Impress"
+    },
+    {
+      "id": "page",
+      "kind": "Document",
+      "format": "DOCX",
+      "alt": "The garden day page from Lolly Doc Studio: a DOCX file, opened in LibreOffice Writer",
+      "drawn": "Lolly Doc Studio's DOCX file, drawn by LibreOffice Writer"
+    },
+    {
+      "id": "svg",
+      "kind": "Web graphic",
+      "format": "SVG",
+      "alt": "The garden day design as an SVG, drawn by the browser",
+      "drawn": "Lolly Design's SVG, drawn by your browser"
+    },
+    {
+      "id": "video",
+      "kind": "Video",
+      "format": "MP4",
+      "alt": "A frame from the garden day MP4, taken from the video by FFmpeg",
+      "drawn": "A frame of Lolly Design's MP4, taken by FFmpeg"
+    },
+    {
+      "id": "print",
+      "kind": "Print",
+      "format": "CMYK PDF",
+      "alt": "The garden day Print PDF, separated by Ghostscript into cyan, magenta, yellow and black plates",
+      "drawn": "Lolly Design's Print PDF, separated by Ghostscript into cyan, magenta, yellow and black plates"
+    }
+  ],
+  "outLabel": "Out",
+  "out": ["PPTX", "DOCX", "SVG", "MP4", "Print PDF"],
+  "inLabel": "In",
+  "in": ["PPTX", "PDF", "IDML", "Affinity", "SVG", "CSV"],
+  "more": {
+    "label": "Every format, in and out",
+    "slug": "formats"
+  },
+  "caption": "One Lolly Demo design, five files. Each picture is what another program drew from the file Lolly made, not a mock-up. Lolly Design does not write DOCX, so the document is a page about the same day from Lolly Doc Studio. LibreOffice had Lolly Demo's open fonts installed, and the DOCX sets no typeface, so Writer uses its own. The Print PDF also carries a named spot ink for each brand colour it uses, which Ghostscript folded into the four process plates shown.",
+  "download": "Download"
+}
