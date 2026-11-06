@@ -82,7 +82,7 @@ test('a long section rail shows a handful of rows until a reader opens a group',
 // Plan 354 aimed at eight tab stops or fewer before the rail. Row 1 alone is eight in the
 // app (skip, back, four tabs, wide, avatar) and the six sections follow, so the budget
 // protects what the count stood for (Andy's call through the coordinator, 2026-11-06):
-// Skip to content is the first stop and lands on the article in one press, and the
+// Skip to content is the first stop and moves focus to the article in one press, and the
 // sections stay one row of six.
 test('the skip link is the first stop and lands on the article, past the bar and the rail', { skip: built }, () => {
   const html = readFileSync(join(BUILT, 'build/build-guide.html'), 'utf-8');

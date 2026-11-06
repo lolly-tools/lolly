@@ -392,7 +392,7 @@ export async function mountDocs(
     contentEl.append(check);
   }
   fillSlot('[data-sidebar]', extractSidebar(doc));
-  // The rail scrolls itself (docs.css), so its current page is brought into view in it.
+  // The rail scrolls on its own (docs.css), so its current page is brought into view there.
   const sideSlot = viewEl.querySelector<HTMLElement>('[data-sidebar]');
   if (sideSlot && !sideSlot.hidden) requestAnimationFrame(() => revealCurrentPage(sideSlot));
   fillSlot('[data-sitemap]', extractSitemap(doc));
