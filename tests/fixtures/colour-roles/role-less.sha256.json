@@ -1,0 +1,23 @@
+{
+  "Lolly Demo": {
+    "designMd": "38eb38d96ba6a2cb971197e66b7456b548e9978276c69e8eb13eec5a75dc91e9",
+    "penpot": "11b3c8dda9030de44ec828e81c790e8923a7769b28445f973518e9b232185471",
+    "page": "740b0b56223709a6836d20d3dc6febf925d4395c2e11ed99bffad131e3711bf7",
+    "manifest": "3ab64591ed2d107a2fa78e1c7d09695c7b1b606ff9119b46d593835def4fa04b"
+  },
+  "Lolly Start": {
+    "designMd": "7b483347d507f94d137b6150fe8b7c4f21bb743aa70c576c086ec3e328dfe929",
+    "penpot": "b3b30ec3d29e6a4fad45f6aeafd5e68f1f23f832768ecdf696c166bf989245b8",
+    "page": "258c1d3e43a4d6e332f84f21ed76823eb1583a8c8d76d3402bca5689218bbdb9",
+    "manifest": "bf695b4f977416f46f2a27249750db3699ba22a77cfe4855da2943e7b517f37f"
+  },
+  "a derived system": {
+    "designMd": "26227e8052de13ae64d6e43e14df011493787250516c5f7a7a3d6698da0ffb60",
+    "penpot": "485e450667e1bf2c52472a6bd91f893989afda7949eced33da836a6d9631e1b0",
+    "page": "f423d3bbac5a3416c98d6bb24a3ff9e90ad529381a9c97dd4b0f53549898149b",
+    "manifest": "5bddecb00f45af64cac0a6ccb3289b939460976841436dd8716557c2b1ce706f"
+  },
+  "a DESIGN.md with no block": "7bb568199592a6f5867a3e7f72eaf903e3eea132fe93c9daba6c06ccd07653ea",
+  "$comment": "What a document with no declared colour roles writes, hashed from the engine before plans/352 R4 (0781c9dcd). A change that moves one on purpose updates this file in the same commit and says why.",
+  "designMdInput": "---\nversion: \"alpha\"\nname: Heritage\ndescription: Architectural minimalism.\ncolors:\n  primary: \"#1A1C1E\"\n  on-primary: \"#ffffff\"\n  tertiary: \"#B8422E\"\n  surface: oklch(98% 0.01 90)\n  accent: \"{colors.tertiary}\"\ntypography:\n  headline-lg:\n    fontFamily: Public Sans\n    fontSize: 3rem\n    fontWeight: 700\n    lineHeight: 1.1\n  body-md:\n    fontFamily: Source Serif\n    fontSize: 16px\nrounded:\n  sm: 4px\nspacing:\n  sm: 8px\ncomponents:\n  button:\n    backgroundColor: \"{colors.primary}\"\n---\n# Heritage\n\n## Overview\nArchitectural Minimalism.\n\n## Colors\n- **Primary (#1A1C1E):** Deep ink for headlines.\n"
+}

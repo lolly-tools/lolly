@@ -644,16 +644,16 @@ html[data-layout="split"] .start--studio .ds-main > .ds-live {
   /* A phone's file picker cannot choose a folder. The zipped folder works there. */
   .start-import-folder { display: none; }
 }
+/* A section of the sheet, not a card: its content lines up with the sheet's own edges. It
+   takes focus from script when it appears, so it draws no ring. The controls inside draw theirs. */
 .start-import-result {
   display: flex;
   flex-direction: column;
   gap: 8px;
   align-self: stretch;
-  padding: 12px 14px;
-  border: 1px solid hsl(var(--border));
-  border-radius: var(--radius);
-  background: hsl(var(--background));
+  min-width: 0;
 }
+.start-import-result:focus, .start-import-result:focus-visible { outline: none; }
 .start-import-name { margin: 0; font-size: var(--fs-md); font-weight: 700; overflow-wrap: anywhere; }
 .start-import-source {
   margin-left: 8px;

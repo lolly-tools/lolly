@@ -742,6 +742,8 @@ export { renameColourway, reorderColourways, setCanonicalColourway, removeColour
 export { COLOUR_ROLE_GROUP, COLOUR_SLOTS, BINDABLE_COLOUR_SLOTS, DEFAULT_COLOUR_VOCABULARY, COLOUR_SLOT_READS, COLOUR_ROLE_BY_NAME, COLOUR_ROLE_ID, MAX_COLOUR_ROLES, MAX_ROLE_LABEL, MAX_ROLE_DESCRIPTION, WEAK_LC } from './colour-roles.ts';
 export { colourRoleIdRefusal, isUsableColourRoleId, colourRoleIdFromLabel, readColourRoles, colourRolesEditable, colourRoleTable, colourPairContrast, danglingColourAliases, newlyDangling, colourRolesBrief } from './colour-roles.ts';
 export { addColourRole, setColourRoles, bindRole, unbindRole, renameColourRole, describeColourRole, reorderColourRoles, removeColourRole, setRoleValue, setRoleSameAsLight, refreshDerivedOnColours, carryColourRoles } from './colour-roles.ts';
+export { adoptColourRoles, colourRoleThemeAccents, withColourwayKindRestored } from './colour-role-portable.ts';
+export type { AdoptColourRolesOptions, AdoptedColourRole } from './colour-role-portable.ts';
 export type { ColourRoleEntry, ColourRolesReading, ColourPairContrast, RoleOnColour, ColourRoleCell, ColourRoleTableRow, ColourRoleTable, DanglingAlias, ColourRoleRefusal, ColourRoleUse, ColourRoleEdit, AddColourRoleOptions, SetRoleValueOptions, ColourRoleSpec, ColourRoleCarry, BriefColourRoles } from './colour-roles.ts';
 export type { DuplicateColourwayOptions } from './colourway.ts';
 // plans/319 A4: a tool's manifest `tokenAxes` opt-out, which pins an ignored kind of
@@ -1181,7 +1183,7 @@ export type { ArchetypeHintsOptsV1 } from './rebrand-plan.ts';
 // Plan 274 milestone 3: the design-system resolver every renovation surface
 // shares, the review model the queue and the footer render, and the pure plan
 // edits the view, the CLI and the MCP tool apply.
-export { resolveRebrandDesignSystem, swatchesFromColors, themeSlotsFromColors, neutralSlideMaster, colorTokenHash, THEME_SLOTS, THEME_SLOT_TOKENS, THEME_SLOT_ALIASES, FALLBACK_BRAND_FACE } from './rebrand-design-system.ts';
+export { resolveRebrandDesignSystem, swatchesFromColors, themeSlotsFromColors, themeSlotTokensFor, neutralSlideMaster, colorTokenHash, THEME_SLOTS, THEME_SLOT_TOKENS, THEME_SLOT_ALIASES, FALLBACK_BRAND_FACE } from './rebrand-design-system.ts';
 export type { RebrandDesignSystemInputV1, RebrandDesignSystemV1, ThemeSlotV1, ThemeSlotAliasV1 } from './rebrand-design-system.ts';
 export { reviewQueue, objectStates, slideStates, planSummary, pendingSuggestionIds, reviewMessage, effectiveAction, effectiveReplacement, effectiveSlideOrder, reviewFidelity, isCorrected, REVIEW_MESSAGES, REVIEW_NOUNS, REVIEW_FIDELITIES, QUEUE_SECTIONS } from './rebrand-review.ts';
 export type { ReviewMessageV1, ReviewMessageCodeV1, ReviewNounKeyV1, ReviewFidelityV1, QueueSectionV1, QueueItemV1, ObjectStateV1, SlideStateV1, PlanSummaryV1 } from './rebrand-review.ts';

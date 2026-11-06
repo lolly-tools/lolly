@@ -3612,11 +3612,11 @@ function canonicalJson(value2) {
   if (Array.isArray(value2)) {
     return "[" + value2.map((v) => canonicalJson(v)).join(",") + "]";
   }
-  const record47 = value2;
+  const record48 = value2;
   const parts = [];
-  for (const key2 of Object.keys(record47).sort()) {
-    if (record47[key2] === void 0) continue;
-    parts.push(JSON.stringify(key2) + ":" + canonicalJson(record47[key2]));
+  for (const key2 of Object.keys(record48).sort()) {
+    if (record48[key2] === void 0) continue;
+    parts.push(JSON.stringify(key2) + ":" + canonicalJson(record48[key2]));
   }
   return "{" + parts.join(",") + "}";
 }
@@ -4114,7 +4114,7 @@ var ENGINE_VERSION;
 var init_version = __esm({
   "engine/src/version.ts"() {
     "use strict";
-    ENGINE_VERSION = "1.317.0";
+    ENGINE_VERSION = "1.318.0";
   }
 });
 
@@ -12525,9 +12525,9 @@ function parseDesignExportRouteChoice(value2) {
   const v = typeof value2 === "string" ? value2.trim().toLowerCase() : "";
   return v === "auto" || v === "ops" || v === "legacy" ? v : null;
 }
-function designExportRouteFields(record47) {
-  if (!record47?.route || !record47.renderer) return {};
-  return { route: record47.route, renderer: String(record47.renderer).slice(0, 200) };
+function designExportRouteFields(record48) {
+  if (!record48?.route || !record48.renderer) return {};
+  return { route: record48.route, renderer: String(record48.renderer).slice(0, 200) };
 }
 var DESIGN_STILL_RASTER_FORMATS, DESIGN_GPU_FORMATS, designOperationsRenderer;
 var init_design_export_route = __esm({
@@ -35955,24 +35955,24 @@ async function readEmojiPack(bytes2, expected) {
   return { ok: true, pack };
 }
 function inspectEmojiPack(pack) {
-  const record47 = admitted.get(pack);
-  return record47 ? clone(record47.manifest) : null;
+  const record48 = admitted.get(pack);
+  return record48 ? clone(record48.manifest) : null;
 }
 function emojiPackNotices(pack) {
   return clone(admitted.get(pack)?.manifest.notices ?? []);
 }
 function describeEmojiPack(pack) {
-  const record47 = admitted.get(pack);
-  return record47 ? { id: record47.manifest.id, version: record47.manifest.version, family: record47.manifest.family, style: record47.manifest.style } : null;
+  const record48 = admitted.get(pack);
+  return record48 ? { id: record48.manifest.id, version: record48.manifest.version, family: record48.manifest.family, style: record48.manifest.style } : null;
 }
 function matchesEmojiPack(pack, pin) {
-  const record47 = admitted.get(pack);
-  return !!record47 && emojiPackPinKey(record47.pin) === emojiPackPinKey(pin);
+  const record48 = admitted.get(pack);
+  return !!record48 && emojiPackPinKey(record48.pin) === emojiPackPinKey(pin);
 }
 function findEmojiGlyph(pack, meaning) {
-  const record47 = admitted.get(pack);
-  const glyph = record47?.glyphs.get(meaningKey(meaning));
-  return record47 && glyph ? clone({ glyph, metrics: glyph.metrics ?? record47.manifest.metrics }) : null;
+  const record48 = admitted.get(pack);
+  const glyph = record48?.glyphs.get(meaningKey(meaning));
+  return record48 && glyph ? clone({ glyph, metrics: glyph.metrics ?? record48.manifest.metrics }) : null;
 }
 async function verifyEmojiArtwork(pack, meaning, bytes2) {
   if (!admitted.has(pack)) return failure("invalid-pack", "Emoji pack has not been validated.");
@@ -36313,20 +36313,20 @@ async function prepareEmojiSvg(pack, meaning, bytes2, parseXml) {
   const entry2 = findEmojiGlyph(pack, meaning);
   try {
     const source = new TextDecoder("utf-8", { fatal: true }).decode(verified.bytes);
-    const record47 = normalize(source, entry2.glyph.viewBox, parseXml);
-    if (matchesEmojiPack(pack, FLUENT_HIGH_CONTRAST)) record47.textInk = FLUENT_HIGH_CONTRAST_INK;
-    const checksum = `sha256:${await sha256Hex(new TextEncoder().encode(serialize(record47.tree, "emoji")))}`;
+    const record48 = normalize(source, entry2.glyph.viewBox, parseXml);
+    if (matchesEmojiPack(pack, FLUENT_HIGH_CONTRAST)) record48.textInk = FLUENT_HIGH_CONTRAST_INK;
+    const checksum = `sha256:${await sha256Hex(new TextEncoder().encode(serialize(record48.tree, "emoji")))}`;
     const svg = Object.freeze({ checksum, sourceChecksum: entry2.glyph.asset.checksum, normalizer: EMOJI_SVG_VERSION });
-    prepared.set(svg, record47);
+    prepared.set(svg, record48);
     return { ok: true, svg };
   } catch (error2) {
     return { ok: false, message: error2 instanceof Error ? error2.message : "SVG admission failed." };
   }
 }
 function emojiSvgMarkup(svg, prefix = "emoji") {
-  const record47 = prepared.get(svg);
-  if (!record47 || !idPattern2.test(prefix)) throw new Error("Invalid prepared SVG or placement prefix.");
-  return serialize(record47.tree, prefix);
+  const record48 = prepared.get(svg);
+  if (!record48 || !idPattern2.test(prefix)) throw new Error("Invalid prepared SVG or placement prefix.");
+  return serialize(record48.tree, prefix);
 }
 function recolor(node, map) {
   const attributes2 = { ...node.attributes };
@@ -36340,10 +36340,10 @@ function recolor(node, map) {
   return { tag: node.tag, attributes: attributes2, children: node.children.map((child2) => recolor(child2, map)) };
 }
 async function recolorPreparedEmojiSvg(svg, map, change) {
-  const record47 = prepared.get(svg);
-  if (!record47) throw new Error("SVG has not been admitted.");
-  const tree = recolor(record47.tree, map);
-  const changes = [.../* @__PURE__ */ new Set([...record47.changes, change])];
+  const record48 = prepared.get(svg);
+  if (!record48) throw new Error("SVG has not been admitted.");
+  const tree = recolor(record48.tree, map);
+  const changes = [.../* @__PURE__ */ new Set([...record48.changes, change])];
   const checksum = `sha256:${await sha256Hex(new TextEncoder().encode(serialize(tree, "emoji")))}`;
   const treated = Object.freeze({ checksum, sourceChecksum: svg.sourceChecksum, normalizer: EMOJI_TREATED_SVG_VERSION });
   prepared.set(treated, { tree, changes });
@@ -36369,21 +36369,21 @@ function inkTree(node, counted, textInk2 = []) {
   return { tag: node.tag, attributes: attributes2, children: node.children.map((child2) => inkTree(child2, counted, textInk2)) };
 }
 async function inkPreparedEmojiSvg(svg) {
-  const record47 = prepared.get(svg);
-  if (!record47) throw new Error("SVG has not been admitted.");
-  if (!singleInk(record47.tree, record47.textInk)) return svg;
+  const record48 = prepared.get(svg);
+  if (!record48) throw new Error("SVG has not been admitted.");
+  if (!singleInk(record48.tree, record48.textInk)) return svg;
   const counted = { value: 0 };
-  const tree = inkTree(record47.tree, counted, record47.textInk);
+  const tree = inkTree(record48.tree, counted, record48.textInk);
   if (!counted.value) return svg;
-  const changes = [.../* @__PURE__ */ new Set([...record47.changes, EMOJI_SINGLE_INK_CHANGE])];
+  const changes = [.../* @__PURE__ */ new Set([...record48.changes, EMOJI_SINGLE_INK_CHANGE])];
   const checksum = `sha256:${await sha256Hex(new TextEncoder().encode(serialize(tree, "emoji")))}`;
   const inked = Object.freeze({ checksum, sourceChecksum: svg.sourceChecksum, normalizer: EMOJI_INK_SVG_VERSION });
   prepared.set(inked, { tree, changes });
   return inked;
 }
 function visitPreparedEmojiPaints(svg, visit) {
-  const record47 = prepared.get(svg);
-  if (!record47) throw new Error("SVG has not been admitted.");
+  const record48 = prepared.get(svg);
+  if (!record48) throw new Error("SVG has not been admitted.");
   const walk4 = (node) => {
     for (const name of paintNames) {
       const value2 = node.attributes[name];
@@ -36392,12 +36392,12 @@ function visitPreparedEmojiPaints(svg, visit) {
     }
     for (const child2 of node.children) walk4(child2);
   };
-  walk4(record47.tree);
+  walk4(record48.tree);
 }
 function emojiSvgChanges(svg) {
-  const record47 = prepared.get(svg);
-  if (!record47) throw new Error("SVG has not been admitted.");
-  return [...record47.changes];
+  const record48 = prepared.get(svg);
+  if (!record48) throw new Error("SVG has not been admitted.");
+  return [...record48.changes];
 }
 var EMOJI_SVG_VERSION, EMOJI_TREATED_SVG_VERSION, EMOJI_INK_SVG_VERSION, prepared, FLUENT_HIGH_CONTRAST, FLUENT_HIGH_CONTRAST_INK, namespace, idPattern2, tags, xlinkNamespace, shapes, referenceOnly, presentation, inert, units, nonnegative, choices, referenceTargets, localId, paintNames, hexPaint, EMOJI_SINGLE_INK_CHANGE, BLACK_PAINT, WHITE_PAINT;
 var init_emoji_svg = __esm({
@@ -38385,12 +38385,12 @@ function withoutUndefined(value2) {
 function checkAttributionReadback(expected, report4, outputHash, fingerprint2) {
   const valid2 = report4.found && report4.state === "valid";
   const activeLabel = report4.claim?.manifestLabel ?? "";
-  const ingredients = (report4.ingredients ?? []).filter((record47) => Boolean(activeLabel) && record47.manifest === activeLabel);
+  const ingredients = (report4.ingredients ?? []).filter((record48) => Boolean(activeLabel) && record48.manifest === activeLabel);
   const observed = [];
   const missing = [];
   const licenceGaps = [];
   for (const notice of expected.required) {
-    const found = valid2 ? ingredients.find((record47) => matches(notice, record47)) : void 0;
+    const found = valid2 ? ingredients.find((record48) => matches(notice, record48)) : void 0;
     if (!found) {
       missing.push(notice);
       continue;
@@ -38449,10 +38449,10 @@ function checkAttributionReadback(expected, report4, outputHash, fingerprint2) {
   if (outputHash) receipt.outputHash = outputHash;
   return receipt;
 }
-function matches(notice, record47) {
-  const url = ingredientSourceUrl(record47);
+function matches(notice, record48) {
+  const url = ingredientSourceUrl(record48);
   if (notice.sourceUrl && url) return notice.sourceUrl === url;
-  const instance = record47.instanceId?.split("@")[0];
+  const instance = record48.instanceId?.split("@")[0];
   return Boolean(instance && instance === notice.work);
 }
 var CHECKSUM2, byString2, EXTENSION_FORMATS, ROLE_RELATIONSHIP, ingredientSourceUrl;
@@ -38480,7 +38480,7 @@ var init_rights_attribution = __esm({
       woff2: "font/woff2"
     }));
     ROLE_RELATIONSHIP = /* @__PURE__ */ new Map([["incorporated", "componentOf"]]);
-    ingredientSourceUrl = (record47) => record47.rights?.sourceUrl || record47.data?.url;
+    ingredientSourceUrl = (record48) => record48.rights?.sourceUrl || record48.data?.url;
   }
 });
 
@@ -39012,14 +39012,14 @@ function brandPageHost(value2) {
 function readRecordedBrandPage(doc) {
   if (!isRec2(doc) || !isRec2(doc.$extensions)) return null;
   const vendor = doc.$extensions[TOKEN_EXT];
-  const record47 = isRec2(vendor) ? vendor.exportRecord : null;
-  return isRec2(record47) ? brandPageAddress(record47.brandPage) : null;
+  const record48 = isRec2(vendor) ? vendor.exportRecord : null;
+  return isRec2(record48) ? brandPageAddress(record48.brandPage) : null;
 }
 function carriesRecordedBrandPage(doc) {
   if (!isRec2(doc) || !isRec2(doc.$extensions)) return false;
   const vendor = doc.$extensions[TOKEN_EXT];
-  const record47 = isRec2(vendor) ? vendor.exportRecord : null;
-  return isRec2(record47) && "brandPage" in record47;
+  const record48 = isRec2(vendor) ? vendor.exportRecord : null;
+  return isRec2(record48) && "brandPage" in record48;
 }
 function withoutRecordedBrandPage(doc) {
   return carriesRecordedBrandPage(doc) ? withRecordedBrandPage(doc, null) : doc;
@@ -39037,9 +39037,9 @@ function withRecordedBrandPage(doc, address) {
   const vendor = ext && isRec2(ext[TOKEN_EXT]) ? ext[TOKEN_EXT] : null;
   if (address === null) {
     if (!ext || !vendor) return next2;
-    const record47 = isRec2(vendor.exportRecord) ? vendor.exportRecord : null;
-    if (record47) delete record47.brandPage;
-    if (record47 && Object.keys(record47).length === 0) delete vendor.exportRecord;
+    const record48 = isRec2(vendor.exportRecord) ? vendor.exportRecord : null;
+    if (record48) delete record48.brandPage;
+    if (record48 && Object.keys(record48).length === 0) delete vendor.exportRecord;
     if (Object.keys(vendor).length === 0) delete ext[TOKEN_EXT];
     if (Object.keys(ext).length === 0) delete next2.$extensions;
     return next2;
@@ -39439,9 +39439,9 @@ async function buildExportMeta(host, manifest, profile2, inputs, opts) {
   const tool = clean2(manifest?.name) || clean2(manifest?.id);
   const toolId = clean2(manifest?.id);
   const toolVersion = clean2(manifest?.version);
-  const record47 = opts?.snapshot ? designRecordOf(opts.snapshot, manifest) : {};
+  const record48 = opts?.snapshot ? designRecordOf(opts.snapshot, manifest) : {};
   const brandSkills = brandSkillRecords(opts?.brandSkills);
-  const description = ["Made with https://lolly.tools", tool && `: ${toolCredit({ tool, ...record47 })}`, author && `by ${author}`].filter(Boolean).join(" ");
+  const description = ["Made with https://lolly.tools", tool && `: ${toolCredit({ tool, ...record48 })}`, author && `by ${author}`].filter(Boolean).join(" ");
   const meta = {
     software: "Lolly",
     // The tool's own page in the canonical share form (/t/<id>, engine/src/tool-url.ts)
@@ -39455,7 +39455,7 @@ async function buildExportMeta(host, manifest, profile2, inputs, opts) {
     contact,
     // '' if none
     description,
-    ...record47,
+    ...record48,
     // Beside the design-system record, never in the description: the description
     // is the one-line credit, and the skills are a record of guidance.
     ...brandSkills.length ? { brandSkills } : {}
@@ -39529,8 +39529,8 @@ function designRecordFrom(meta) {
     ...meta.brandPage ? { brandPage: meta.brandPage } : {}
   };
 }
-function isEmptyDesignRecord(record47) {
-  return !record47 || !record47.designSystem && !record47.designVersion && !record47.themes?.length && !record47.brandSkills?.length && !record47.brandPage;
+function isEmptyDesignRecord(record48) {
+  return !record48 || !record48.designSystem && !record48.designVersion && !record48.themes?.length && !record48.brandSkills?.length && !record48.brandPage;
 }
 function recordedColourway(meta) {
   return meta?.themes?.find((t) => t.kind === "colourway");
@@ -39541,14 +39541,14 @@ function toolCredit(meta) {
   const colourway = recordedColourway(meta);
   return colourway ? `${tool} (${colourway.name} colourway)` : tool;
 }
-function designRecordWords(record47, opts = {}) {
-  if (!record47) return "";
+function designRecordWords(record48, opts = {}) {
+  if (!record48) return "";
   const parts = [];
-  if (record47.designSystem) parts.push(record47.designSystem.label);
-  if (record47.designVersion) parts.push(`Version ${record47.designVersion}`);
-  for (const t of record47.themes ?? []) parts.push(`${themeChoiceLabel(t)}: ${t.name}`);
-  const guided = opts.skills === false ? "" : guidedByWords(record47.brandSkills);
-  if (record47.brandPage && opts.page !== false) parts.push(`Brand page: ${record47.brandPage}`);
+  if (record48.designSystem) parts.push(record48.designSystem.label);
+  if (record48.designVersion) parts.push(`Version ${record48.designVersion}`);
+  for (const t of record48.themes ?? []) parts.push(`${themeChoiceLabel(t)}: ${t.name}`);
+  const guided = opts.skills === false ? "" : guidedByWords(record48.brandSkills);
+  if (record48.brandPage && opts.page !== false) parts.push(`Brand page: ${record48.brandPage}`);
   if (guided) parts.push(`Guided by: ${guided}`);
   return parts.join(" \xB7 ");
 }
@@ -42900,15 +42900,15 @@ async function prepareEmojiText(text13, style, packs, io, options2 = {}) {
       continue;
     }
     const value2 = resolution2.value;
-    const record47 = await artworkFor(value2, treatment, packs, io, cache5);
-    if ("reason" in record47) {
-      segments.push({ kind: "unresolved", text: span.text, label: value2.glyph.label, reason: record47.reason });
+    const record48 = await artworkFor(value2, treatment, packs, io, cache5);
+    if ("reason" in record48) {
+      segments.push({ kind: "unresolved", text: span.text, label: value2.glyph.label, reason: record48.reason });
       continue;
     }
     const key2 = cacheKey(value2.pack, value2.meaning, treatment);
     let source = used.get(key2);
     if (!source) {
-      source = { ...structuredClone(record47.base), occurrences: [] };
+      source = { ...structuredClone(record48.base), occurrences: [] };
       used.set(key2, source);
       census.push(source);
     }
@@ -42916,10 +42916,10 @@ async function prepareEmojiText(text13, style, packs, io, options2 = {}) {
     segments.push({
       kind: "emoji",
       text: span.text,
-      key: record47.key,
-      label: record47.label,
-      markup: emojiSvgMarkup(record47.svg, `${prefix}-${placement2++}`),
-      metrics: record47.metrics,
+      key: record48.key,
+      label: record48.label,
+      markup: emojiSvgMarkup(record48.svg, `${prefix}-${placement2++}`),
+      metrics: record48.metrics,
       source
     });
   }
@@ -42947,7 +42947,7 @@ async function artworkFor(value2, treatment, packs, io, cache5) {
   } catch {
     return { reason: "unsupported-metrics" };
   }
-  const record47 = {
+  const record48 = {
     svg,
     metrics,
     label: value2.glyph.label,
@@ -42968,8 +42968,8 @@ async function artworkFor(value2, treatment, packs, io, cache5) {
       changes: emojiSvgChanges(svg)
     }
   };
-  cache5.set(key2, record47);
-  return record47;
+  cache5.set(key2, record48);
+  return record48;
 }
 var em, meaningKey2, cacheKey;
 var init_emoji_inline = __esm({
@@ -45061,8 +45061,8 @@ __export(layout_preflight_exports, {
   checkDesignLayoutReceipt: () => checkDesignLayoutReceipt
 });
 function checkDesignLayoutReceipt(receipt, values, node) {
-  const record47 = receipt;
-  if (JSON.stringify(record47.values) !== JSON.stringify(
+  const record48 = receipt;
+  if (JSON.stringify(record48.values) !== JSON.stringify(
     Object.keys(values).sort().map((id3) => [id3, values[id3]])
   )) {
     throw new Error(
@@ -45072,7 +45072,7 @@ function checkDesignLayoutReceipt(receipt, values, node) {
   const root2 = node;
   const nodes = root2?.querySelectorAll ? Array.from(root2.querySelectorAll("[data-layout-receipt]")) : [];
   if (root2?.matches?.("[data-layout-receipt]")) nodes.push(root2);
-  if (!nodes.length || nodes.some((n7) => n7.getAttribute("data-layout-receipt") !== record47.stamp)) {
+  if (!nodes.length || nodes.some((n7) => n7.getAttribute("data-layout-receipt") !== record48.stamp)) {
     throw new Error(
       "Layout is still changing. Wait for the current layout to appear, then export again."
     );
@@ -45091,15 +45091,15 @@ __export(text_preflight_exports, {
 });
 function checkDesignTextReceipt(receipt, values, node) {
   if (!receipt) return;
-  const record47 = receipt;
-  if (record47.issues.length) throw new Error(`Text export needs attention: ${record47.issues.join(" ")}`);
-  if (JSON.stringify(record47.values) !== JSON.stringify(Object.keys(values).sort().map((id3) => [id3, values[id3]]))) {
+  const record48 = receipt;
+  if (record48.issues.length) throw new Error(`Text export needs attention: ${record48.issues.join(" ")}`);
+  if (JSON.stringify(record48.values) !== JSON.stringify(Object.keys(values).sort().map((id3) => [id3, values[id3]]))) {
     throw new Error("Text layout is still changing. Wait for the current text to appear, then export again.");
   }
   const root2 = node;
   const nodes = root2?.querySelectorAll ? Array.from(root2.querySelectorAll("[data-text-frame]")) : [];
   if (root2?.matches?.("[data-text-frame]")) nodes.push(root2);
-  for (const frame of record47.frames) {
+  for (const frame of record48.frames) {
     const copies = nodes.filter((node2) => node2.getAttribute("data-text-frame") === frame.id);
     if (!copies.length || copies.some((node2) => node2.getAttribute("data-text-layout") !== frame.stamp)) {
       throw new Error("Text layout is still changing. Wait for the current text to appear, then export again.");
@@ -52441,16 +52441,16 @@ function collectIngredientRecords(store) {
         } else if (RIGHTS_LABEL.test(ab.label)) {
           try {
             const map = decodeCbor(contentOf(store, ab));
-            if (map instanceof Map) for (const [label5, record47] of rightsEntries(map)) rights.set(label5, record47);
+            if (map instanceof Map) for (const [label5, record48] of rightsEntries(map)) rights.set(label5, record48);
           } catch {
           }
         }
       }
     }
-    for (const record47 of records) {
-      const bound = rights.get(record47.label);
-      if (bound) record47.rights = bound;
-      out.push(record47);
+    for (const record48 of records) {
+      const bound = rights.get(record48.label);
+      if (bound) record48.rights = bound;
+      out.push(record48);
     }
   }
   return out;
@@ -52483,37 +52483,37 @@ function readParentManifest(store, active) {
 }
 function ingredientRecord(manifest, label5, map) {
   const active = map.get("activeManifest") ?? map.get("c2pa_manifest");
-  const record47 = { manifest, label: label5, credentialed: active instanceof Map };
+  const record48 = { manifest, label: label5, credentialed: active instanceof Map };
   const activeUrl = active instanceof Map ? asText(active.get("url")) : void 0;
-  if (activeUrl) record47.activeManifest = activeUrl;
+  if (activeUrl) record48.activeManifest = activeUrl;
   const relationship = asText(map.get("relationship"));
-  if (relationship) record47.relationship = relationship;
+  if (relationship) record48.relationship = relationship;
   const title = asText(map.get("dc:title"));
-  if (title) record47.title = title;
+  if (title) record48.title = title;
   const format = asText(map.get("dc:format"));
-  if (format) record47.format = format;
+  if (format) record48.format = format;
   const instanceId = asText(map.get("instanceID"));
-  if (instanceId) record47.instanceId = instanceId;
+  if (instanceId) record48.instanceId = instanceId;
   const description = asText(map.get("description"));
-  if (description) record47.description = description;
+  if (description) record48.description = description;
   const informationalUri = asText(map.get("informationalURI"));
-  if (informationalUri) record47.informationalUri = informationalUri;
+  if (informationalUri) record48.informationalUri = informationalUri;
   const digitalSourceType = asText(map.get("digitalSourceType"));
-  if (digitalSourceType) record47.digitalSourceType = digitalSourceType;
+  if (digitalSourceType) record48.digitalSourceType = digitalSourceType;
   const data = map.get("data");
   const dataUrl2 = data instanceof Map ? asText(data.get("url")) : void 0;
   if (data instanceof Map && dataUrl2) {
-    record47.data = { url: dataUrl2 };
+    record48.data = { url: dataUrl2 };
     const alg = asText(data.get("alg"));
-    if (alg) record47.data.alg = alg;
+    if (alg) record48.data.alg = alg;
     const hash = data.get("hash");
-    if (hash instanceof Uint8Array) record47.data.hash = bytesToHex(hash);
+    if (hash instanceof Uint8Array) record48.data.hash = bytesToHex(hash);
     const dataFormat = asText(data.get("dc:format"));
-    if (dataFormat) record47.data.format = dataFormat;
+    if (dataFormat) record48.data.format = dataFormat;
     const size = data.get("size");
-    if (typeof size === "number" && Number.isInteger(size) && size >= 0) record47.data.size = size;
+    if (typeof size === "number" && Number.isInteger(size) && size >= 0) record48.data.size = size;
   }
-  return record47;
+  return record48;
 }
 function rightsEntries(map) {
   const sources = map.get("sources");
@@ -52525,7 +52525,7 @@ function rightsEntries(map) {
     const url = ingredient instanceof Map ? asText(ingredient.get("url")) : void 0;
     if (!url?.startsWith("self#jumbf=c2pa.assertions/")) continue;
     const modifications = source.get("modifications");
-    const record47 = {
+    const record48 = {
       creator: asText(source.get("creator")) ?? "",
       license: asText(source.get("license")) ?? "",
       licenseUrl: asText(source.get("licenseUrl")) ?? "",
@@ -52535,10 +52535,10 @@ function rightsEntries(map) {
       sourceHash: asText(source.get("sourceHash")) ?? ""
     };
     const revision = asText(source.get("revision"));
-    if (revision) record47.revision = revision;
+    if (revision) record48.revision = revision;
     const usedHash = asText(source.get("usedHash"));
-    if (usedHash) record47.usedHash = usedHash;
-    out.push([url.slice("self#jumbf=c2pa.assertions/".length), record47]);
+    if (usedHash) record48.usedHash = usedHash;
+    out.push([url.slice("self#jumbf=c2pa.assertions/".length), record48]);
   }
   return out;
 }
@@ -53046,8 +53046,8 @@ async function verifyC2pa(bytes2, { trustAnchors, externalManifest, enrollmentTr
   let factAssertions = parts.assertions;
   const approvalAssertion = parts.assertions.find((a) => a.label === LOLLY_APPROVAL_ASSERTION);
   if (approvalAssertion) {
-    const record47 = readApprovalRecord(approvalAssertion.content);
-    if (record47) report4.approval = record47;
+    const record48 = readApprovalRecord(approvalAssertion.content);
+    if (record48) report4.approval = record48;
     const parent = readParentManifest(extracted.manifest, parts);
     if (parent && bytesToHex(await sha256(parent.payload)) === bytesToHex(parent.recordedHash)) {
       factAssertions = parent.parts.assertions;
@@ -53389,8 +53389,8 @@ function readIntentRecord(content2) {
   if (!(map instanceof Map) || map.get("version") !== 1) return null;
   const { version: _version, ...fields2 } = Object.fromEntries(map);
   try {
-    const record47 = checkedIntentRecord(fields2);
-    return record47.prompt !== void 0 ? { ...record47, promptNote: INTENT_PROMPT_NOTE } : record47;
+    const record48 = checkedIntentRecord(fields2);
+    return record48.prompt !== void 0 ? { ...record48, promptNote: INTENT_PROMPT_NOTE } : record48;
   } catch {
     return null;
   }
@@ -54679,7 +54679,7 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
     }
     const track = opts2.track !== false;
     const nothing = { replaced: 0, unresolved: 0, census: [] };
-    const record47 = (result2) => {
+    const record48 = (result2) => {
       const geometrySources = root2.querySelectorAll?.("[data-emoji-tool-source]");
       const combined = [...result2.census, ...portable, ...toolEmoji?.censusFor(Array.from(geometrySources ?? []).filter((element) => !element.closest?.("[data-export-hide]")).map((element) => element.getAttribute("data-emoji-tool-source") ?? "")) ?? []];
       const distinct = /* @__PURE__ */ new Map();
@@ -54707,7 +54707,7 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
         emojiTextChecked = text13;
       }
       if (!emojiTextDraws) {
-        record47(nothing);
+        record48(nothing);
         return { present: true, ...nothing };
       }
     }
@@ -54715,7 +54715,7 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
     if (!style) {
       await loadEmojiSets();
       if (!emojiSets2?.length) {
-        record47(nothing);
+        record48(nothing);
         return { present: true, ...nothing };
       }
     }
@@ -54748,7 +54748,7 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
       if (prior) prior.occurrences.push(...source.occurrences);
       else result.census.push(source);
     }
-    record47(result);
+    record48(result);
     if (!emojiSets2 && (style || result.replaced || result.unresolved)) void loadEmojiSets();
     return { present: true, ...result };
   }
@@ -54898,10 +54898,10 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
       const snapshot = await recordSnapshot();
       if (!snapshot) return null;
       const on3 = await buildExportMeta(host, tool.manifest, profile2, model2, { snapshot });
-      const record47 = designRecordFrom(on3);
-      if (isEmptyDesignRecord(record47)) return null;
+      const record48 = designRecordFrom(on3);
+      if (isEmptyDesignRecord(record48)) return null;
       const off = await buildExportMeta(host, tool.manifest, profile2, model2);
-      return { record: record47, description: on3.description, plainDescription: off.description };
+      return { record: record48, description: on3.description, plainDescription: off.description };
     },
     get lastExportMeta() {
       return lastExportMeta ? structuredClone(lastExportMeta) : null;
@@ -59126,13 +59126,13 @@ function readXmp(text13, out) {
   if (creator && !out.fields.some((f) => f.label === "Creator")) out.fields.push({ label: "Creator", value: creator, group: "authorship", sensitive: true });
   const rights = grab(/<dc:rights>[\s\S]*?<rdf:li[^>]*>([\s\S]*?)<\/rdf:li>/i) || grab(/<dc:rights>([\s\S]*?)<\/dc:rights>/i);
   if (rights && !out.fields.some((f) => f.label === "Rights")) out.fields.push({ label: "Rights", value: rights, group: "authorship" });
-  const record47 = readDesignRecordXml(text13);
-  if (record47 && !out.fields.some((f) => f.source?.startsWith("XMP lolly:"))) {
-    if (record47.designSystem) out.fields.push({ label: "Design system", value: clip2(record47.designSystem.label), group: "software", source: "XMP lolly:DesignSystemLabel" });
-    if (record47.designVersion) out.fields.push({ label: "Design version", value: clip2(record47.designVersion), group: "software", source: "XMP lolly:DesignVersion" });
-    for (const t of record47.themes ?? []) out.fields.push({ label: themeChoiceLabel(t), value: clip2(t.name), group: "software", source: "XMP lolly:Themes" });
-    for (const s of record47.brandSkills ?? []) out.fields.push({ label: "Guided by", value: clip2(brandSkillLabel(s)), group: "software", source: "XMP lolly:BrandSkills" });
-    if (record47.brandPage) out.fields.push({ label: "Brand page", value: clip2(record47.brandPage), group: "software", source: "XMP lolly:BrandPage" });
+  const record48 = readDesignRecordXml(text13);
+  if (record48 && !out.fields.some((f) => f.source?.startsWith("XMP lolly:"))) {
+    if (record48.designSystem) out.fields.push({ label: "Design system", value: clip2(record48.designSystem.label), group: "software", source: "XMP lolly:DesignSystemLabel" });
+    if (record48.designVersion) out.fields.push({ label: "Design version", value: clip2(record48.designVersion), group: "software", source: "XMP lolly:DesignVersion" });
+    for (const t of record48.themes ?? []) out.fields.push({ label: themeChoiceLabel(t), value: clip2(t.name), group: "software", source: "XMP lolly:Themes" });
+    for (const s of record48.brandSkills ?? []) out.fields.push({ label: "Guided by", value: clip2(brandSkillLabel(s)), group: "software", source: "XMP lolly:BrandSkills" });
+    if (record48.brandPage) out.fields.push({ label: "Brand page", value: clip2(record48.brandPage), group: "software", source: "XMP lolly:BrandPage" });
   }
   const subject = /<dc:subject>([\s\S]*?)<\/dc:subject>/i.exec(text13)?.[1];
   if (subject && !out.fields.some((f) => f.label === "Keywords")) {
@@ -60752,8 +60752,8 @@ function tokenValuesFromModel(model2) {
 function semanticJson(value2) {
   if (value2 === null || typeof value2 !== "object") return JSON.stringify(value2) ?? "null";
   if (Array.isArray(value2)) return `[${value2.map(semanticJson).join(",")}]`;
-  const record47 = value2;
-  return `{${Object.keys(record47).sort().filter((key2) => record47[key2] !== void 0).map((key2) => `${JSON.stringify(key2)}:${semanticJson(record47[key2])}`).join(",")}}`;
+  const record48 = value2;
+  return `{${Object.keys(record48).sort().filter((key2) => record48[key2] !== void 0).map((key2) => `${JSON.stringify(key2)}:${semanticJson(record48[key2])}`).join(",")}}`;
 }
 function diffRecords(a, b) {
   const ak = new Set(Object.keys(a));
@@ -72880,11 +72880,11 @@ function svgMetaBlock(meta) {
   if (rights) lines.push(`<dc:rights>${xmlEsc2(rights)}</dc:rights>`);
   lines.push(`<dc:publisher>${xmlEsc2(meta.software)}</dc:publisher>`);
   lines.push(`<dc:source>${xmlEsc2(meta.source)}</dc:source>`);
-  const record47 = designRecordXml(meta);
-  if (record47.length) {
+  const record48 = designRecordXml(meta);
+  if (record48.length) {
     const rdf = lines.findIndex((l) => l.startsWith("<rdf:RDF "));
     lines[rdf] = lines[rdf].replace(/>$/, ` xmlns:lolly="${LOLLY_XMP_NS}">`);
-    lines.push(...record47);
+    lines.push(...record48);
   }
   lines.push("</rdf:Description>", "</rdf:RDF>", "</metadata>");
   return lines.join("\n");
@@ -73208,8 +73208,8 @@ function carryIntoWebp(bytes2, tiff, xmp) {
 function buildExportXmp(meta) {
   if (!meta) return null;
   const rights = [meta.copyright].filter(Boolean).join(" \xB7 ");
-  const record47 = designRecordXml(meta);
-  if (!meta.author && !rights && !meta.license && !meta.software && !record47.length) return null;
+  const record48 = designRecordXml(meta);
+  if (!meta.author && !rights && !meta.license && !meta.software && !record48.length) return null;
   const li = (s) => `<rdf:li>${xmlEsc2(s)}</rdf:li>`;
   const parts = [];
   if (meta.software) parts.push(`<xmp:CreatorTool>${xmlEsc2(meta.software)}</xmp:CreatorTool>`);
@@ -73220,8 +73220,8 @@ function buildExportXmp(meta) {
     parts.push(`<photoshop:Credit>${xmlEsc2(meta.author)}</photoshop:Credit>`);
     parts.push(`<plus:Licensor><rdf:Seq><rdf:li rdf:parseType="Resource"><plus:LicensorName>${xmlEsc2(meta.author)}</plus:LicensorName></rdf:li></rdf:Seq></plus:Licensor>`);
   }
-  parts.push(...record47);
-  return '<x:xmpmeta xmlns:x="adobe:ns:meta/"><rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"><rdf:Description rdf:about="" xmlns:xmp="http://ns.adobe.com/xap/1.0/" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:xmpRights="http://ns.adobe.com/xap/1.0/rights/" xmlns:photoshop="http://ns.adobe.com/photoshop/1.0/" xmlns:plus="http://ns.useplus.org/ldf/xmp/1.0/"' + (record47.length ? ` xmlns:lolly="${LOLLY_XMP_NS}"` : "") + ">" + parts.join("") + "</rdf:Description></rdf:RDF></x:xmpmeta>";
+  parts.push(...record48);
+  return '<x:xmpmeta xmlns:x="adobe:ns:meta/"><rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"><rdf:Description rdf:about="" xmlns:xmp="http://ns.adobe.com/xap/1.0/" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:xmpRights="http://ns.adobe.com/xap/1.0/rights/" xmlns:photoshop="http://ns.adobe.com/photoshop/1.0/" xmlns:plus="http://ns.useplus.org/ldf/xmp/1.0/"' + (record48.length ? ` xmlns:lolly="${LOLLY_XMP_NS}"` : "") + ">" + parts.join("") + "</rdf:Description></rdf:RDF></x:xmpmeta>";
 }
 function insertPngXmp(png, meta) {
   try {
@@ -83398,8 +83398,8 @@ function rondoSongIngredient(args) {
     digitalSourceType: rondoDigitalSourceType(facts2)
   };
 }
-function isRondoSongIngredient(record47) {
-  return record47.informationalUri === RONDOCODE_URL && /^sha256:[0-9a-f]{64}$/.test(record47.instanceId ?? "") && (record47.description ?? "").startsWith("A rondocode song");
+function isRondoSongIngredient(record48) {
+  return record48.informationalUri === RONDOCODE_URL && /^sha256:[0-9a-f]{64}$/.test(record48.instanceId ?? "") && (record48.description ?? "").startsWith("A rondocode song");
 }
 function uniqueRondoIngredients(ingredients) {
   const seen = /* @__PURE__ */ new Set();
@@ -85147,9 +85147,9 @@ function rowAt(rows2, id3, path) {
     throw new Error(`${path}: layer "${id3}" ${matches3.length ? "is duplicated" : "does not exist"}.`);
   return matches3[0];
 }
-function anchorOf(record47, path) {
-  const before = record47.beforeId;
-  const after = record47.afterId;
+function anchorOf(record48, path) {
+  const before = record48.beforeId;
+  const after = record48.afterId;
   if (before !== void 0 && (typeof before !== "string" || !before.trim()))
     throw new Error(`${path}/beforeId: a stable layer id is required.`);
   if (after !== void 0 && (typeof after !== "string" || !after.trim()))
@@ -85158,9 +85158,9 @@ function anchorOf(record47, path) {
     throw new Error(`${path}: provide exactly one of beforeId or afterId.`);
   return before !== void 0 ? { side: "before", id: before } : { side: "after", id: after };
 }
-function optionalAnchorOf(record47, path) {
-  if (record47.beforeId === void 0 && record47.afterId === void 0) return null;
-  return anchorOf(record47, path);
+function optionalAnchorOf(record48, path) {
+  if (record48.beforeId === void 0 && record48.afterId === void 0) return null;
+  return anchorOf(record48, path);
 }
 function assertNewDesignId(rows2, value2, path) {
   if (typeof value2 !== "string" || !value2.trim())
@@ -85235,28 +85235,28 @@ function reorderDesignRow(rows2, id3, anchor, path, pages) {
   }
   rows2.splice(anchorNow + (anchor.side === "after" ? 1 : 0), 0, ...moving);
 }
-function reparentLayerRows(rows2, record47, path, options2) {
-  const target2 = rowAt(rows2, record47.id, `${path}/id`);
+function reparentLayerRows(rows2, record48, path, options2) {
+  const target2 = rowAt(rows2, record48.id, `${path}/id`);
   if (target2.row.kind === "frame")
     throw new Error(`${path}/id: artboards cannot be reparented.`);
   const graph = hierarchyOf(rows2, options2.pages);
-  const explicit = record47.parentId !== void 0;
-  if (explicit && record47.artboardId !== void 0) throw new Error(`${path}: choose parentId or artboardId.`);
-  const parentId = explicit ? record47.parentId : record47.artboardId;
+  const explicit = record48.parentId !== void 0;
+  if (explicit && record48.artboardId !== void 0) throw new Error(`${path}: choose parentId or artboardId.`);
+  const parentId = explicit ? record48.parentId : record48.artboardId;
   if (parentId !== null && (typeof parentId !== "string" || !parentId.trim())) throw new Error(`${path}/${explicit ? "parentId" : "artboardId"}: expected a stable parent id or null for the pasteboard.`);
   const destination = typeof parentId === "string" ? rowAt(rows2, parentId, `${path}/${explicit ? "parentId" : "artboardId"}`).row : null;
   if (destination && (!explicit && destination.kind !== "frame" || explicit && destination.kind !== "frame" && destination.kind !== "group" && destination.layout !== "flex" && destination.layout !== "grid")) throw new Error(`${path}/${explicit ? "parentId" : "artboardId"}: layer "${String(parentId)}" is not an ${explicit ? "owning container" : "artboard"}.`);
   const scope2 = designHierarchyDescendants(graph, /* @__PURE__ */ new Set([String(target2.row.id)]));
   if (scope2.has(String(parentId))) throw new Error(`${path}/parentId: a layer cannot be moved into its own subtree.`);
-  const pageId = record47.pageId === void 0 ? destination ? graph.pageById.get(String(destination.id)) : graph.pageById.get(String(target2.row.id)) : record47.pageId;
+  const pageId = record48.pageId === void 0 ? destination ? graph.pageById.get(String(destination.id)) : graph.pageById.get(String(target2.row.id)) : record48.pageId;
   if (typeof pageId !== "string" || !graph.pages.some((page3) => page3.id === pageId)) throw new Error(`${path}/pageId: choose an existing page.`);
-  if (options2.pages || rows2.some((row) => isRow(row) && row.pageId) || record47.pageId !== void 0) {
+  if (options2.pages || rows2.some((row) => isRow(row) && row.pageId) || record48.pageId !== void 0) {
     for (const row of rows2) if (isRow(row) && scope2.has(String(row.id))) row.pageId = pageId;
   }
   target2.row.group = destination?.kind === "group" ? parentId : "";
   target2.row.layoutOwner = destination && (destination.layout === "flex" || destination.layout === "grid") ? parentId : "";
   target2.row.frame = destination?.kind === "frame" && !target2.row.layoutOwner ? parentId : "";
-  const anchor = optionalAnchorOf(record47, path);
+  const anchor = optionalAnchorOf(record48, path);
   if (anchor) {
     reorderDesignRow(rows2, String(target2.row.id), anchor, path, options2.pages);
   } else {
@@ -85279,17 +85279,17 @@ function applyLayerOperations(sourceRows, value2, fieldDefault = (_id, fallback)
     const operation = value2[index2];
     if (!operation || typeof operation !== "object" || Array.isArray(operation))
       throw new Error(`${path}: operation must be an object.`);
-    const record47 = operation;
-    const op = record47.op;
+    const record48 = operation;
+    const op = record48.op;
     if (op !== "add" && op !== "duplicate" && op !== "remove" && op !== "reparent" && op !== "reorder")
       throw new Error(`${path}/op: expected add, duplicate, remove, reparent or reorder.`);
     const allowed = new Set(
       op === "add" ? ["op", "layer", "beforeId", "afterId"] : op === "duplicate" ? ["op", "id", "newId", "childIds", "beforeId", "afterId"] : op === "remove" ? ["op", "id", "cascade"] : op === "reparent" ? ["op", "id", "artboardId", "parentId", "pageId", "beforeId", "afterId"] : ["op", "id", "beforeId", "afterId"]
     );
-    const extra = Object.keys(record47).find((key2) => !allowed.has(key2));
+    const extra = Object.keys(record48).find((key2) => !allowed.has(key2));
     if (extra) throw new Error(`${path}/${extra}: unknown ${op} field.`);
     if (op === "add") {
-      const valueLayer = record47.layer;
+      const valueLayer = record48.layer;
       if (!valueLayer || typeof valueLayer !== "object" || Array.isArray(valueLayer))
         throw new Error(`${path}/layer: a layer object is required.`);
       const supplied = valueLayer;
@@ -85305,10 +85305,10 @@ function applyLayerOperations(sourceRows, value2, fieldDefault = (_id, fallback)
         h: fieldDefault("h", 200),
         ...supplied
       };
-      const hasAnchor = record47.beforeId !== void 0 || record47.afterId !== void 0;
+      const hasAnchor = record48.beforeId !== void 0 || record48.afterId !== void 0;
       if (!hasAnchor) rows2.push(layer);
       else {
-        const anchor = anchorOf(record47, path);
+        const anchor = anchorOf(record48, path);
         const relative2 = rowAt(rows2, anchor.id, `${path}/${anchor.side}Id`);
         if (!sameReorderDomain(layer, relative2.row, hierarchyOf([...rows2, layer], options2.pages)))
           throw new Error(`${path}: an added layer and its anchor must be siblings or two artboards.`);
@@ -85318,9 +85318,9 @@ function applyLayerOperations(sourceRows, value2, fieldDefault = (_id, fallback)
       continue;
     }
     if (op === "duplicate") {
-      const source = rowAt(rows2, record47.id, `${path}/id`);
-      const newId = assertNewDesignId(rows2, record47.newId, `${path}/newId`);
-      const anchor = optionalAnchorOf(record47, path) ?? {
+      const source = rowAt(rows2, record48.id, `${path}/id`);
+      const newId = assertNewDesignId(rows2, record48.newId, `${path}/newId`);
+      const anchor = optionalAnchorOf(record48, path) ?? {
         side: "after",
         id: String(source.row.id)
       };
@@ -85328,7 +85328,7 @@ function applyLayerOperations(sourceRows, value2, fieldDefault = (_id, fallback)
       const children2 = subtreeRows(rows2, String(source.row.id), options2.pages);
       const isContainer = isFrame2 || source.row.kind === "group" || source.row.layout === "flex" || source.row.layout === "grid";
       if ([source.row, ...children2].some((row) => row.textStory || row.layout === "grid")) throw new Error(`${path}: duplicating linked stories or grids requires copying their document metadata. Use the canvas duplicate action.`);
-      const childIdsValue = record47.childIds;
+      const childIdsValue = record48.childIds;
       if (!isContainer && childIdsValue !== void 0)
         throw new Error(`${path}/childIds: only a container duplicate may supply child ids.`);
       if (childIdsValue !== void 0 && (!childIdsValue || typeof childIdsValue !== "object" || Array.isArray(childIdsValue)))
@@ -85367,9 +85367,9 @@ function applyLayerOperations(sourceRows, value2, fieldDefault = (_id, fallback)
       continue;
     }
     if (op === "remove") {
-      const target2 = rowAt(rows2, record47.id, `${path}/id`);
+      const target2 = rowAt(rows2, record48.id, `${path}/id`);
       const children2 = subtreeRows(rows2, String(target2.row.id), options2.pages);
-      if (children2.length && record47.cascade !== true)
+      if (children2.length && record48.cascade !== true)
         throw new Error(`${path}/cascade: artboard "${String(target2.row.id)}" has ${children2.length} child layer${children2.length === 1 ? "" : "s"}; pass cascade:true to remove them.`);
       const removeIds = /* @__PURE__ */ new Set([target2.row.id, ...children2.map((row) => row.id)]);
       for (let rowIndex2 = rows2.length - 1; rowIndex2 >= 0; rowIndex2--) {
@@ -85379,12 +85379,12 @@ function applyLayerOperations(sourceRows, value2, fieldDefault = (_id, fallback)
       continue;
     }
     if (op === "reparent") {
-      reparentLayerRows(rows2, record47, path, options2);
+      reparentLayerRows(rows2, record48, path, options2);
       continue;
     }
-    const id3 = record47.id;
+    const id3 = record48.id;
     if (typeof id3 !== "string" || !id3.trim()) throw new Error(`${path}/id: a stable layer id is required.`);
-    reorderDesignRow(rows2, id3, anchorOf(record47, path), path, options2.pages);
+    reorderDesignRow(rows2, id3, anchorOf(record48, path), path, options2.pages);
   }
   if (rows2.some((row) => isRow(row) && (row.kind === "group" || row.pageId))) {
     const finding3 = hierarchyOf(rows2, options2.pages).findings[0];
@@ -85399,12 +85399,12 @@ function applyLayerPatches(sourceRows, value2, options2 = {}) {
     const patch = value2[index2];
     if (!patch || typeof patch !== "object" || Array.isArray(patch))
       throw new Error(`/layerPatches/${index2}: patch must be an object.`);
-    const record47 = patch;
-    const extra = Object.keys(record47).find((key2) => key2 !== "id" && key2 !== "set");
+    const record48 = patch;
+    const extra = Object.keys(record48).find((key2) => key2 !== "id" && key2 !== "set");
     if (extra) throw new Error(`/layerPatches/${index2}/${extra}: unknown patch field.`);
-    const id3 = record47.id;
+    const id3 = record48.id;
     if (typeof id3 !== "string" || !id3) throw new Error(`/layerPatches/${index2}/id: a stable layer id is required.`);
-    const set = record47.set;
+    const set = record48.set;
     if (!set || typeof set !== "object" || Array.isArray(set)) throw new Error(`/layerPatches/${index2}/set: fields must be an object.`);
     if (Object.hasOwn(set, "id")) throw new Error(`/layerPatches/${index2}/set/id: a stable layer id cannot be changed.`);
     const match = rowAt(rows2, id3, `/layerPatches/${index2}/id`);
@@ -95304,7 +95304,7 @@ async function recordApprovalInCredential(reviewed, format, opts) {
   if (!APPROVAL_RECORD_FORMATS.includes(fmt6) || sniffFormat(reviewed) !== (fmt6 === "jpg" ? "jpeg" : fmt6)) return { status: "not-recorded", reason: "no-route" };
   const ingredient = prepareC2paIngredient(reviewed);
   if (!ingredient) return { status: "not-recorded", reason: "no-credential" };
-  const record47 = { approvalId: opts.approvalId, decidedAt: opts.decidedAt, reviewedSha256: `sha256:${await sha256Hex3(reviewed)}` };
+  const record48 = { approvalId: opts.approvalId, decidedAt: opts.decidedAt, reviewedSha256: `sha256:${await sha256Hex3(reviewed)}` };
   let bytes2;
   try {
     bytes2 = await embedC2pa(reviewed, fmt6, {
@@ -95315,18 +95315,18 @@ async function recordApprovalInCredential(reviewed, format, opts) {
       authorship: "delivered",
       actions: [{ action: "c2pa.published" }],
       ingredients: [{ ...ingredient, relationship: "parentOf" }],
-      approval: record47
+      approval: record48
     });
   } catch (error2) {
     return { status: "not-recorded", reason: "write-failed", detail: error2.message };
   }
   const readback = await verifyC2pa(bytes2);
   const read = readback.approval;
-  if (readback.state !== "valid" || !read || read.approvalId !== record47.approvalId || read.decidedAt !== record47.decidedAt || read.reviewedSha256 !== record47.reviewedSha256) {
+  if (readback.state !== "valid" || !read || read.approvalId !== record48.approvalId || read.decidedAt !== record48.decidedAt || read.reviewedSha256 !== record48.reviewedSha256) {
     return { status: "not-recorded", reason: "readback-failed", detail: readback.reason ?? readback.checks.filter((c) => !c.ok).map((c) => c.code).join(", ") };
   }
   if (!artworkUnchanged(reviewed, bytes2, fmt6)) return { status: "not-recorded", reason: "artwork-changed" };
-  return { status: "recorded", bytes: bytes2, sha256: await sha256Hex3(bytes2), record: record47 };
+  return { status: "recorded", bytes: bytes2, sha256: await sha256Hex3(bytes2), record: record48 };
 }
 var APPROVAL_RECORD_FORMATS, hex3, sameBytes, normalise4;
 var init_c2pa_approval = __esm({
@@ -95399,22 +95399,22 @@ function creditFor(source) {
   pieces.push(changes.length ? `changes: ${changes.join(", ")}` : "unchanged");
   return `${pieces.join(", ")}.`;
 }
-function sourceFrom(record47) {
-  const rights = record47.rights;
+function sourceFrom(record48) {
+  const rights = record48.rights;
   const partial = {
-    title: record47.title,
+    title: record48.title,
     creator: rights?.creator,
     licence: rights?.license,
     licenceUrl: rights?.licenseUrl,
-    sourceUrl: rights?.sourceUrl ?? record47.data?.url,
+    sourceUrl: rights?.sourceUrl ?? record48.data?.url,
     modifications: rights?.modifications ? [...rights.modifications] : [],
     // A credentialed ingredient carries its own signed manifest, so the source
     // spoke for itself. A source ingredient was described by this exporter, and
     // saying so is the difference between a record and a signature.
-    assertedBy: record47.credentialed ? "source" : "exporter",
+    assertedBy: record48.credentialed ? "source" : "exporter",
     carried: {
       ingredient: true,
-      credentialed: record47.credentialed,
+      credentialed: record48.credentialed,
       // Nothing in a credential says whether a readable credit travels beside
       // the file, so this stays unknown rather than being assumed either way.
       readableCredit: "unknown"
@@ -95465,16 +95465,16 @@ function summaryFor2(report4, recorded2, credentialed) {
 function evaluateReuse(report4, context, options2 = {}) {
   const works = [];
   const uses = [];
-  for (const [index2, record47] of (report4.ingredients ?? []).entries()) {
-    const rights = record47.rights;
-    const id3 = record47.instanceId ?? rights?.sourceUrl ?? record47.data?.url ?? `ingredient-${index2 + 1}`;
+  for (const [index2, record48] of (report4.ingredients ?? []).entries()) {
+    const rights = record48.rights;
+    const id3 = record48.instanceId ?? rights?.sourceUrl ?? record48.data?.url ?? `ingredient-${index2 + 1}`;
     const work = {
       id: id3,
       creators: rights?.creator ? [{ name: rights.creator, role: "creator" }] : [],
-      rights: rights?.license ? [{ declaration: rights.license, url: rights.licenseUrl, assertedBy: record47.credentialed ? "source" : "exporter", evidence: "native-metadata", status: "parsed" }] : [{ declaration: "", assertedBy: "exporter", evidence: "native-metadata", status: "missing" }]
+      rights: rights?.license ? [{ declaration: rights.license, url: rights.licenseUrl, assertedBy: record48.credentialed ? "source" : "exporter", evidence: "native-metadata", status: "parsed" }] : [{ declaration: "", assertedBy: "exporter", evidence: "native-metadata", status: "missing" }]
     };
-    if (record47.title) work.title = record47.title;
-    const sourceUrl = rights?.sourceUrl ?? record47.data?.url;
+    if (record48.title) work.title = record48.title;
+    const sourceUrl = rights?.sourceUrl ?? record48.data?.url;
     if (sourceUrl) work.sourceUrl = sourceUrl;
     if (rights?.revision) work.revision = rights.revision;
     if (rights?.sourceHash) work.sourceHash = rights.sourceHash;
@@ -99800,24 +99800,24 @@ var init_data_import = __esm({
 
 // engine/src/file-data.ts
 function readDataOptions(raw) {
-  const record47 = raw;
+  const record48 = raw;
   const out = {};
   for (const [key2, allowed] of Object.entries(KNOWN_OPTIONS)) {
-    const value2 = record47[key2];
+    const value2 = record48[key2];
     if (value2 === void 0) continue;
     if (typeof value2 !== "string" || !allowed.includes(value2)) {
       throw new Error(`Unknown ${key2} choice. Use one of: ${allowed.join(", ")}.`);
     }
     out[key2] = value2;
   }
-  const sheet = record47.sheet;
+  const sheet = record48.sheet;
   if (sheet !== void 0) {
     const index2 = typeof sheet === "number" && Number.isSafeInteger(sheet) && sheet >= 0;
     const name = typeof sheet === "string" && sheet.length > 0 && sheet.length <= 255;
     if (!index2 && !name) throw new Error("Choose a worksheet by its position (0 for the first) or its exact name.");
     out.sheet = sheet;
   }
-  const all = record47.allSheets;
+  const all = record48.allSheets;
   if (all !== void 0) {
     if (typeof all !== "boolean") throw new Error("The all-worksheets choice must be true or false.");
     if (all && out.sheet !== void 0) throw new Error("Choose one worksheet or all worksheets, not both.");
@@ -101450,8 +101450,8 @@ function designSceneAssetIds(query2, manifest) {
     if (!Array.isArray(rows2)) continue;
     for (const row of rows2) {
       if (!row || typeof row !== "object" || Array.isArray(row)) continue;
-      const record47 = row;
-      for (const field2 of assetFields) add3(idOf2(record47[field2.id]));
+      const record48 = row;
+      for (const field2 of assetFields) add3(idOf2(record48[field2.id]));
     }
   }
   return out;
@@ -106284,8 +106284,8 @@ function setColourRoles(doc, specs, opts = {}) {
   for (const role of declared) {
     if (wanted.has(role.id)) continue;
     const removed = removeColourRole(current, role.id, { release: opts.release });
-    const refused2 = apply4(removed);
-    if (refused2) return refused2;
+    const refused3 = apply4(removed);
+    if (refused3) return refused3;
     if (removed.ok && removed.released) released.push(...removed.released);
   }
   const order = [];
@@ -106303,29 +106303,29 @@ function setColourRoles(doc, specs, opts = {}) {
         ...opts.lift ? { lift: opts.lift } : {},
         ...opts.systemLabel ? { systemLabel: opts.systemLabel } : {}
       });
-      const refused2 = apply4(added);
-      if (refused2) return refused2;
+      const refused3 = apply4(added);
+      if (refused3) return refused3;
       if (added.ok && added.id) order.push(added.id);
       continue;
     }
     order.push(known3);
     const was = declared.find((role) => role.id === known3);
     if (cleanText(spec.label) !== was.label) {
-      const refused2 = apply4(renameColourRole(current, known3, spec.label));
-      if (refused2) return refused2;
+      const refused3 = apply4(renameColourRole(current, known3, spec.label));
+      if (refused3) return refused3;
     }
     if (spec.description !== void 0 && cleanText(spec.description) !== (was.description ?? "")) {
-      const refused2 = apply4(describeColourRole(current, known3, spec.description));
-      if (refused2) return refused2;
+      const refused3 = apply4(describeColourRole(current, known3, spec.description));
+      if (refused3) return refused3;
     }
     if (spec.fills !== void 0 && !was.slots.includes(spec.fills)) {
-      const refused2 = apply4(bindRole(current, spec.fills, known3));
-      if (refused2) return refused2;
+      const refused3 = apply4(bindRole(current, spec.fills, known3));
+      if (refused3) return refused3;
     }
   }
   const ordered = reorderColourRoles(current, order);
-  const refused = apply4(ordered);
-  if (refused) return refused;
+  const refused2 = apply4(ordered);
+  if (refused2) return refused2;
   return { ok: true, doc: current, changed: JSON.stringify(doc) !== JSON.stringify(current), ...released.length ? { released } : {} };
 }
 function carryColourRoles(from, to) {
@@ -106535,6 +106535,254 @@ var init_colour_roles = __esm({
         if (!Object.keys(leaf.$extensions).length) delete leaf.$extensions;
       }
     };
+  }
+});
+
+// engine/src/colour-role-portable.ts
+function colourRoleThemeAccents(doc) {
+  if (!declaredColourRoleIds(doc).length) return [];
+  const reading = readColourRoles(doc);
+  const declared = reading.roles.filter((role) => role.declared);
+  if (!declared.length) return [];
+  const accents = declared.filter((role) => !SLOTS_ON_THE_SURFACE.includes(role.id) && !role.slots.some((slot) => SLOTS_ON_THE_SURFACE.includes(slot))).map((role) => role.path);
+  for (const slot of ["primary", "secondary"]) {
+    const path = `color.semantic.${slot}`;
+    if (!reading.slots.find((s) => s.slot === slot)?.roleId && !accents.includes(path)) accents.push(path);
+  }
+  return accents;
+}
+function roleWordsText(words4, own4) {
+  const label5 = String(words4.label).replace(/["\n\r]+/g, " ").trim().slice(0, MAX_ROLE_LABEL);
+  const about = typeof words4.description === "string" ? words4.description.replace(/\s*[\n\r]+\s*/g, " ").trim() : "";
+  const first = `Colour role ${words4.position} of ${words4.total} "${label5}"${about ? `. ${about}` : ""}`;
+  return own4 ? `${first}
+${own4}` : first;
+}
+function readRoleWords(text13) {
+  if (typeof text13 !== "string") return null;
+  const hit = ROLE_WORDS.exec(text13.trim().slice(0, 8192));
+  if (!hit) return null;
+  const label5 = hit[3].trim();
+  if (!label5) return null;
+  const description = hit[4]?.trim();
+  const own4 = hit[5]?.trim();
+  return { position: Number(hit[1]), label: label5, ...description ? { description } : {}, ...own4 ? { own: own4 } : {} };
+}
+function restoreColourRoleWords(doc) {
+  const sets = tokenSetNames(doc);
+  const carrying = /* @__PURE__ */ new Map();
+  for (const set of sets ?? [""]) {
+    const semantic = groupAt(set ? doc[set] : doc, ["color", "semantic"]);
+    if (!semantic) continue;
+    for (const key2 of Object.keys(semantic)) {
+      const leaf = semantic[key2];
+      const said = record17(leaf) ? readRoleWords(leaf.$description) : null;
+      if (said && !carrying.has(key2) && carrying.size < MAX_COLOUR_ROLES) carrying.set(key2, said);
+    }
+  }
+  if (!carrying.size) return { doc, warnings: [] };
+  const clean2 = structuredClone(doc);
+  for (const set of sets ?? [""]) {
+    const semantic = groupAt(set ? clean2[set] : clean2, ["color", "semantic"]);
+    if (!semantic) continue;
+    for (const key2 of Object.keys(semantic)) {
+      const leaf = semantic[key2];
+      const said = record17(leaf) ? readRoleWords(leaf.$description) : null;
+      if (!said) continue;
+      if (said.own) leaf.$description = said.own;
+      else delete leaf.$description;
+    }
+  }
+  if (declaredColourRoleIds(clean2).length) return { doc: clean2, warnings: [] };
+  const reading = readColourRoles(withColourwayKindRestored(clean2));
+  const specs = [...carrying].filter(([id3]) => !colourRoleIdRefusal(id3)).sort(([a, wordsA], [b, wordsB]) => wordsA.position - wordsB.position || (a < b ? -1 : a > b ? 1 : 0)).map(([id3, said]) => {
+    const fills = reading.roles.find((role) => role.id === id3)?.slots[0];
+    return { id: id3, label: said.label, ...said.description ? { description: said.description } : {}, ...fills && fills !== id3 ? { fills } : {} };
+  });
+  const adopted = adoptColourRoles(clean2, specs);
+  if (!adopted.ok) return { doc: clean2, warnings: [`The colour roles this file names could not be restored, so their words were left out: ${adopted.reasons[0] ?? adopted.code}`] };
+  return { doc: adopted.doc, warnings: [] };
+}
+function withColourwayKindRestored(doc) {
+  if (!record17(doc)) return doc;
+  const { axes } = readTokenAxes(doc);
+  if (axisOfKind(axes, "colourway")) return doc;
+  const group = axes.find((axis) => axis.group === COLOURWAY_GROUP && axis.kind === null);
+  if (!group) return doc;
+  const next2 = structuredClone(doc);
+  let first = true;
+  for (const entry2 of themeEntries(next2)) {
+    if (groupOf(entry2) !== COLOURWAY_GROUP) continue;
+    if (!record17(entry2.$extensions)) entry2.$extensions = {};
+    const ext = entry2.$extensions;
+    if (!record17(ext[TOKEN_EXT])) ext[TOKEN_EXT] = {};
+    ext[TOKEN_EXT].axis = { kind: "colourway", ...first ? { canonical: true } : {} };
+    first = false;
+  }
+  return next2;
+}
+function withLooks(doc) {
+  const themes = Array.isArray(doc.$themes) ? doc.$themes : [];
+  if (themes.length) return modeAxis(readTokenAxes(doc).axes) ? structuredClone(doc) : null;
+  const layered = tokenSetNames(doc);
+  const next2 = {};
+  const putOwn2 = (key2, value2) => {
+    Object.defineProperty(next2, key2, { value: value2, enumerable: true, writable: true, configurable: true });
+  };
+  const clone5 = structuredClone(doc);
+  let sets;
+  if (layered) {
+    sets = [...layered];
+    for (const key2 of Object.keys(clone5)) putOwn2(key2, clone5[key2]);
+  } else {
+    const base = {};
+    for (const key2 of Object.keys(clone5)) {
+      if (key2 === "$description" || key2 === "$extensions" || key2 === "$schema" || key2 === "$metadata" || key2 === "$themes") putOwn2(key2, clone5[key2]);
+      else Object.defineProperty(base, key2, { value: clone5[key2], enumerable: true, writable: true, configurable: true });
+    }
+    putOwn2("base", base);
+    sets = ["base"];
+  }
+  const taken = new Set(sets);
+  const light = uniqueSetName(taken, "light");
+  taken.add(light);
+  const dark = uniqueSetName(taken, "dark");
+  putOwn2(light, {});
+  putOwn2(dark, {});
+  const metadata2 = record17(next2.$metadata) ? next2.$metadata : {};
+  const active = Array.isArray(metadata2.activeSets) ? { activeSets: [...metadata2.activeSets, light] } : {};
+  putOwn2("$metadata", { ...metadata2, ...active, tokenSetOrder: [...sets, light, dark] });
+  const selected = (own4) => Object.fromEntries([...sets, own4].map((set) => [set, "enabled"]));
+  putOwn2("$themes", [
+    { id: "light", name: "light", selectedTokenSets: selected(light) },
+    { id: "dark", name: "dark", selectedTokenSets: selected(dark) }
+  ]);
+  return next2;
+}
+function ownSet(doc, mode3, option) {
+  const entries = themeEntries(doc).filter((t) => groupOf(t) === mode3.group);
+  const mine = enabledSets(entries.find((t) => optionIdOf(t) === option) ?? {});
+  const others = entries.filter((t) => optionIdOf(t) !== option).flatMap(enabledSets);
+  return setOrder(doc).filter((set) => mine.includes(set) && !others.includes(set)).at(-1) ?? null;
+}
+function fillSlot(doc, mode3, slot, value2) {
+  const path = `color.semantic.${slot}`;
+  for (const look3 of mode3.options) {
+    if (createTokenSet(doc, { selection: { [mode3.group]: look3.id } }).has(path)) continue;
+    const own4 = ownSet(doc, mode3, look3.id);
+    if (!own4 || !isSafeKey(own4)) return [`The ${look3.name} theme has no token set of its own to hold ${slot}.`];
+    const written = value2(look3.id);
+    if (written === null) continue;
+    if (!record17(doc[own4])) doc[own4] = {};
+    setNodeAt(doc[own4], path, { $value: written, $type: "color" });
+  }
+  return [];
+}
+function adoptColourRoles(doc, specs, opts = {}) {
+  if (!record17(doc)) return refused("foreign-encoding", "This is not a design system.");
+  if (!specs.length) return { ok: true, doc: structuredClone(doc), changed: false };
+  const restored = withColourwayKindRestored(doc);
+  const next2 = withLooks(restored);
+  if (!next2) return refused("no-colourways", "The themes in this file are not light and dark, so colour roles cannot be added yet.");
+  const mode3 = modeAxis(readTokenAxes(next2).axes);
+  if (!mode3) return refused("no-colourways", "The themes in this file are not light and dark, so colour roles cannot be added yet.");
+  const sourceOf2 = (spec) => spec.from ?? `color.semantic.${spec.id}`;
+  const filling = (slot) => specs.find((spec) => spec.fills === slot || spec.id === slot);
+  const anySource = (slot) => {
+    const role = filling(slot);
+    return role ? sourceOf2(role) : opts.slots?.[slot];
+  };
+  const leadSource = anySource("primary") ?? sourceOf2(specs[0]);
+  const reasons = [
+    ...fillSlot(next2, mode3, "primary", () => `{${leadSource}}`),
+    ...fillSlot(next2, mode3, "secondary", () => `{${anySource("secondary") ?? leadSource}}`)
+  ];
+  for (const slot of SLOTS_ON_THE_SURFACE) {
+    const source = anySource(slot);
+    if (source) reasons.push(...fillSlot(next2, mode3, slot, () => `{${source}}`));
+  }
+  reasons.push(...fillSlot(next2, mode3, "on-primary", (look3) => {
+    const hex4 = colorToHex(createTokenSet(next2, { selection: { [mode3.group]: look3 } }).resolve("color.semantic.primary"));
+    return typeof hex4 === "string" ? deriveOnColour(hex4) : null;
+  }));
+  if (reasons.length) return refused("foreign-encoding", ...reasons);
+  let current = next2;
+  for (const spec of specs) {
+    const added = addColourRole(current, {
+      id: spec.id,
+      label: spec.label,
+      ...spec.description ? { description: spec.description } : {},
+      ...spec.from ? { value: `{${spec.from}}` } : {},
+      ...opts.lift ? { lift: opts.lift } : {},
+      ...opts.systemLabel ? { systemLabel: opts.systemLabel } : {}
+    });
+    if (!added.ok) return added;
+    current = added.doc;
+  }
+  const lifted = liftStatedOnColours(current, specs);
+  if (lifted.length) return refused("foreign-encoding", ...lifted);
+  for (const spec of specs) {
+    if (!spec.fills || spec.fills === spec.id) continue;
+    const bound = bindRole(current, spec.fills, spec.id);
+    if (!bound.ok) return bound;
+    current = bound.doc;
+  }
+  return { ok: true, doc: markDerivedOnColours(current), changed: true };
+}
+function liftStatedOnColours(doc, specs) {
+  const axis = colourwayAxis(doc);
+  const mode3 = modeAxis(readTokenAxes(doc).axes);
+  if (!axis || !mode3) return [];
+  const reasons = [];
+  for (const spec of specs) {
+    const onId = `on-${spec.id}`;
+    if (spec.id === "primary" || isLifted(doc, onId, mode3)) continue;
+    if (!mode3.options.every((look3) => createTokenSet(doc, { selection: { [mode3.group]: look3.id } }).has(`color.semantic.${onId}`))) continue;
+    reasons.push(...liftRole(doc, onId, mode3, axis));
+  }
+  return reasons;
+}
+function markDerivedOnColours(doc) {
+  const axis = colourwayAxis(doc);
+  const mode3 = modeAxis(readTokenAxes(doc).axes);
+  if (!axis || !mode3) return doc;
+  const next2 = structuredClone(doc);
+  for (const role of readColourRoles(next2).roles.filter((r5) => r5.declared)) {
+    if (role.id === "primary") continue;
+    const onId = `on-${role.id}`;
+    for (const option of axis.options) {
+      const set = colourwaySetOf(next2, axis, option.id);
+      if (!set) continue;
+      for (const look3 of mode3.options) {
+        const node = nodeAt(next2[set], colourwayPath(look3.id, onId));
+        if (!node || colourRoleMarkOf(node)) continue;
+        const link = colourwayLinkOf(node.$value);
+        const target2 = link && link.role === onId ? nodeAt(next2[set], colourwayPath(link.mode, onId))?.$value : node.$value;
+        if (isDerivedOnColourValue(target2)) setColourRoleMark(node, { derived: true });
+      }
+    }
+  }
+  return next2;
+}
+var record17, SLOTS_ON_THE_SURFACE, ROLE_WORDS, uniqueSetName, refused, MAX_BLOCK_CHARS;
+var init_colour_role_portable = __esm({
+  "engine/src/colour-role-portable.ts"() {
+    "use strict";
+    init_brand_derive();
+    init_colour_roles();
+    init_colourway();
+    init_token_ext();
+    init_token_axes();
+    init_tokens2();
+    record17 = (v) => !!v && typeof v === "object" && !Array.isArray(v);
+    SLOTS_ON_THE_SURFACE = ["surface", "text", "muted", "edge"];
+    ROLE_WORDS = /^Colour role (\d{1,2}) of (\d{1,2}) "([^"\n]{1,120})"(?:\. ([^\n]*))?(?:\n([\s\S]*))?$/;
+    uniqueSetName = (taken, name) => {
+      if (!taken.has(name)) return name;
+      for (let i = 2; ; i += 1) if (!taken.has(`${name} ${i}`)) return `${name} ${i}`;
+    };
+    refused = (code, ...reasons) => ({ ok: false, code, reasons });
+    MAX_BLOCK_CHARS = 256 * 1024;
   }
 });
 
@@ -109554,7 +109802,8 @@ function coerceTokensDoc(json) {
   if (issue2) return { doc: null, warnings: [issue2], source: studio ? "tokens-studio" : "dtcg" };
   const older = { n: 0 };
   const { doc, leftOut } = leaveOutScopedTokenText(fromOlderTokenFormat(json, older));
-  return { doc, warnings: [...olderFormatWarning(older.n), ...scopedTokenTextWarnings(leftOut)], source: studio ? "tokens-studio" : "dtcg" };
+  const restored = restoreColourRoleWords(doc);
+  return { doc: restored.doc, warnings: [...olderFormatWarning(older.n), ...scopedTokenTextWarnings(leftOut), ...restored.warnings], source: studio ? "tokens-studio" : "dtcg" };
 }
 function assembleTokenSetFiles(files) {
   const warnings2 = [];
@@ -109626,7 +109875,9 @@ function assembleTokenSetFiles(files) {
   }
   const scoped = leaveOutScopedTokenText(doc);
   warnings2.push(...scopedTokenTextWarnings(scoped.leftOut));
-  return { doc: scoped.doc, warnings: warnings2, source: "token-set-files" };
+  const restored = restoreColourRoleWords(scoped.doc);
+  warnings2.push(...restored.warnings);
+  return { doc: restored.doc, warnings: warnings2, source: "token-set-files" };
 }
 function parseEntry(entries, path, warnings2, budget3) {
   const raw = entries[path];
@@ -109747,7 +109998,9 @@ function extractPenpotProject(entries) {
   }
   const scoped = leaveOutScopedTokenText(doc);
   warnings2.push(...scopedTokenTextWarnings(scoped.leftOut));
-  return { doc: scoped.doc, warnings: warnings2, source: "penpot-project" };
+  const restored = restoreColourRoleWords(scoped.doc);
+  warnings2.push(...restored.warnings);
+  return { doc: restored.doc, warnings: warnings2, source: "penpot-project" };
 }
 function pv(o, camel) {
   if (!isRecord3(o)) return void 0;
@@ -109938,6 +110191,7 @@ var init_brand_import = __esm({
     init_tokens2();
     init_design_map();
     init_token_scope();
+    init_colour_role_portable();
     isRecord3 = (v) => typeof v === "object" && v !== null && !Array.isArray(v);
     BRAND_IMPORT_MAX_PART_BYTES = 16 * 1024 * 1024;
     BRAND_IMPORT_MAX_PART_CHARS = 16 * 1024 * 1024;
@@ -110853,7 +111107,7 @@ function importPenpotLayouts(boxes2, sourceIds, shapes2, options2 = {}) {
       }
       if (shape.layoutItemAbsolute === true) row.layoutAbsolute = true;
       if (shape.layoutItemAlignSelf) row.layoutSelf = shape.layoutItemAlignSelf;
-      const margin = record17(shape.layoutItemMargin);
+      const margin = record18(shape.layoutItemMargin);
       SIDES.forEach((side2, i) => {
         row[`layoutMargin${side2}`] = num11(margin[`m${shape.layoutItemMarginType === "multiple" ? i + 1 : i % 2 + 1}`]);
       });
@@ -110862,7 +111116,7 @@ function importPenpotLayouts(boxes2, sourceIds, shapes2, options2 = {}) {
       row.layout = shape.layout;
       row.layoutDirection = shape.layout === "grid" ? shape.layoutGridDir || "row" : shape.layoutFlexDir || "row";
       row.layoutWrap = shape.layoutWrapType === "wrap";
-      const padding = record17(shape.layoutPadding), gap = record17(shape.layoutGap);
+      const padding = record18(shape.layoutPadding), gap = record18(shape.layoutGap);
       SIDES.forEach((side2, i) => {
         row[`layoutPad${side2}`] = num11(padding[`p${shape.layoutPaddingType === "simple" ? i % 2 + 1 : i + 1}`]);
       });
@@ -110895,10 +111149,10 @@ function importPenpotLayouts(boxes2, sourceIds, shapes2, options2 = {}) {
   for (const sourceId of sourceIds) {
     const shape = shapes2[sourceId];
     if (shape?.layout !== "grid") continue;
-    const cells = Object.values(record17(shape.layoutGridCells));
+    const cells = Object.values(record18(shape.layoutGridCells));
     const assigned = /* @__PURE__ */ new Set();
     for (const raw of cells) {
-      const cell2 = record17(raw), children2 = Array.isArray(cell2.shapes) ? cell2.shapes : [];
+      const cell2 = record18(raw), children2 = Array.isArray(cell2.shapes) ? cell2.shapes : [];
       if (!children2.length) {
         if (cell2.areaName || cell2.position === "manual" || cell2.position === "area") add3(sourceId, "penpot.layout.empty-cell", "Empty named or manually placed grid cells cannot be represented in this document.");
         continue;
@@ -110981,7 +111235,7 @@ function exportPenpotLayout(row, children2, tracks) {
   props.layoutGridCells = cells;
   return props;
 }
-var ROOT, SIDES, sizing, ppSizing, num11, record17;
+var ROOT, SIDES, sizing, ppSizing, num11, record18;
 var init_penpot_layout = __esm({
   "engine/src/penpot-layout.ts"() {
     "use strict";
@@ -110992,7 +111246,7 @@ var init_penpot_layout = __esm({
     sizing = (value2) => value2 === "auto" ? "hug" : value2 === "fill" ? "fill" : "fixed";
     ppSizing = (value2) => value2 === "hug" ? "auto" : value2 === "fill" ? "fill" : "fix";
     num11 = (value2, fallback = 0) => value2 == null || value2 === "" ? fallback : Number(value2);
-    record17 = (value2) => value2 && typeof value2 === "object" && !Array.isArray(value2) ? value2 : {};
+    record18 = (value2) => value2 && typeof value2 === "object" && !Array.isArray(value2) ? value2 : {};
   }
 });
 
@@ -114594,10 +114848,19 @@ var init_deck_census = __esm({
 });
 
 // engine/src/rebrand-design-system.ts
-function themeSlotsFromColors(colors) {
+function themeSlotTokensFor(accents) {
+  if (!accents?.length) return THEME_SLOT_TOKENS;
+  const out = { dk1: THEME_SLOT_TOKENS.dk1, lt1: THEME_SLOT_TOKENS.lt1, dk2: THEME_SLOT_TOKENS.dk2 };
+  ACCENT_SLOTS2.forEach((slot, i) => {
+    if (accents[i]) out[slot] = accents[i];
+  });
+  return Object.freeze(out);
+}
+function themeSlotsFromColors(colors, accents) {
   const out = {};
+  const table = themeSlotTokensFor(accents);
   for (const slot of [...THEME_SLOTS2].sort(compareCodeUnits)) {
-    const tokenPath = THEME_SLOT_TOKENS[slot];
+    const tokenPath = table[slot];
     if (tokenPath === void 0) continue;
     const hex4 = colors[tokenPath];
     if (typeof hex4 !== "string" || hex4.length === 0) continue;
@@ -114645,14 +114908,14 @@ function swatchesFromColors(colors) {
     return [swatch];
   });
 }
-function withoutRoleTokens(record47) {
-  return Object.fromEntries(Object.entries(record47 ?? {}).filter(([path]) => !path.startsWith("color.role.") && !path.startsWith("color.chrome.")));
+function withoutRoleTokens(record48) {
+  return Object.fromEntries(Object.entries(record48 ?? {}).filter(([path]) => !path.startsWith("color.role.") && !path.startsWith("color.chrome.")));
 }
-function sortedRecord(record47) {
+function sortedRecord(record48) {
   const out = {};
-  if (!record47) return out;
-  for (const key2 of Object.keys(record47).sort(compareCodeUnits)) {
-    const value2 = record47[key2];
+  if (!record48) return out;
+  for (const key2 of Object.keys(record48).sort(compareCodeUnits)) {
+    const value2 = record48[key2];
     if (typeof value2 === "string") out[key2] = value2;
   }
   return out;
@@ -114695,14 +114958,14 @@ async function resolveRebrandDesignSystem(raw) {
   if (input.fonts?.mono !== void 0) faces.mono = input.fonts.mono;
   if (input.fonts?.serif !== void 0) faces.serif = input.fonts.serif;
   if (input.fonts?.available !== void 0) faces.availableFamilies = [...input.fonts.available];
-  const slots = themeSlotsFromColors(colors);
+  const slots = themeSlotsFromColors(colors, input.themeAccents);
   const firstPass2 = {
     snapshot,
     swatches: swatchesFromColors(colors),
     fonts: faces,
     master: input.master,
     slots: structuredClone(slots),
-    themeSource: { colors: { ...colors }, ...input.darkColors ? { darkColors: sortedRecord(input.darkColors) } : {} }
+    themeSource: { colors: { ...colors }, ...input.darkColors ? { darkColors: sortedRecord(input.darkColors) } : {}, ...input.themeAccents?.length ? { themeAccents: [...input.themeAccents] } : {} }
   };
   const tokens3 = new Map(Object.entries(colors));
   const compile2 = {
@@ -114715,7 +114978,8 @@ async function resolveRebrandDesignSystem(raw) {
   const source = {
     colors,
     master: input.master,
-    ...input.darkColors ? { darkColors: sortedRecord(input.darkColors) } : {}
+    ...input.darkColors ? { darkColors: sortedRecord(input.darkColors) } : {},
+    ...input.themeAccents?.length ? { themeAccents: [...input.themeAccents] } : {}
   };
   for (const shape of [result, firstPass2, compile2]) THEME_SOURCES.set(shape, { source });
   return result;
@@ -114734,10 +114998,10 @@ function themeKey(theme, look3) {
   const lookColors = look3 && theme.id === "look" && look3.id === theme.lookId ? sortedRecord(look3.colors) : null;
   return JSON.stringify([theme.id, theme.mode ?? null, theme.remap.map((row) => [row.from, row.to]), theme.lookId ?? null, theme.flipDark === true, lookColors]);
 }
-function hexRecord(record47) {
+function hexRecord(record48) {
   const out = {};
-  for (const key2 of Object.keys(record47).sort(compareCodeUnits)) {
-    const value2 = record47[key2];
+  for (const key2 of Object.keys(record48).sort(compareCodeUnits)) {
+    const value2 = record48[key2];
     if (typeof value2 === "string" && /^#?[0-9a-fA-F]{3,8}$/.test(value2.trim())) out[key2] = value2;
   }
   return out;
@@ -115107,7 +115371,7 @@ function isCompileShape(value2) {
   return "tokens" in value2 && typeof value2.tokens === "function" && "snapshot" in value2;
 }
 function carryOf(source) {
-  return { colors: sortedRecord(source.colors), ...source.darkColors ? { darkColors: sortedRecord(source.darkColors) } : {} };
+  return { colors: sortedRecord(source.colors), ...source.darkColors ? { darkColors: sortedRecord(source.darkColors) } : {}, ...source.themeAccents?.length ? { themeAccents: [...source.themeAccents] } : {} };
 }
 function readCarry(system) {
   if (!("themeSource" in system)) return void 0;
@@ -115117,7 +115381,8 @@ function readCarry(system) {
   if (colors === null || typeof colors !== "object") return void 0;
   const dark = "darkColors" in carried ? carried.darkColors : void 0;
   const asRecord = (value2) => Object.fromEntries(Object.entries(value2).filter((entry2) => typeof entry2[1] === "string"));
-  return { colors: asRecord(colors), ...dark !== null && typeof dark === "object" ? { darkColors: asRecord(dark) } : {} };
+  const accents = "themeAccents" in carried && Array.isArray(carried.themeAccents) ? carried.themeAccents.filter((path) => typeof path === "string") : [];
+  return { colors: asRecord(colors), ...dark !== null && typeof dark === "object" ? { darkColors: asRecord(dark) } : {}, ...accents.length ? { themeAccents: accents } : {} };
 }
 function sourceOfFirstPass(system) {
   const carried = readCarry(system);
@@ -115141,7 +115406,7 @@ function themeFirstPass(system, themed, theme, source) {
     master: shapeMaster(system.master, themed, theme, source),
     themeSource: carryOf(source)
   };
-  if (system.slots) out.slots = themeSlotsFromColors(themed.colors);
+  if (system.slots) out.slots = themeSlotsFromColors(themed.colors, source.themeAccents);
   return out;
 }
 function themeCompile(system, themed, theme) {
@@ -115170,7 +115435,7 @@ function systemForPlan(system, plan, opts = {}) {
       ...system,
       input: { ...system.input, master: shapeMaster(system.input.master, themed, theme, source) },
       snapshot: { ...system.snapshot, theme: structuredClone(theme) },
-      slots: themeSlotsFromColors(themed.colors),
+      slots: themeSlotsFromColors(themed.colors, source.themeAccents),
       firstPass: remember(themeFirstPass(system.firstPass, themed, theme, source)),
       compile: remember(themeCompile(system.compile, themed, theme))
     });
@@ -115190,7 +115455,7 @@ function masterForPlan(master, plan, opts = {}) {
 function neutralSlideMaster() {
   return structuredClone(NEUTRAL_MASTER);
 }
-var FALLBACK_BRAND_FACE, THEME_SLOTS2, THEME_SLOT_TOKENS, THEME_SLOT_ALIASES, THEME_SLOT_ALIAS_NAMES, GROUND_WORDS, INK_WORDS, THEME_SOURCES, THEME_SLOT_ORDER, PRIMARY_PATH, semanticPath, LARGE_ROLES, LARGE_FURNITURE_PX, NON_TEXT_CONTRAST, MERGED_CONTRAST, furnitureCentre, NEUTRAL_MASTER;
+var FALLBACK_BRAND_FACE, THEME_SLOTS2, THEME_SLOT_TOKENS, ACCENT_SLOTS2, THEME_SLOT_ALIASES, THEME_SLOT_ALIAS_NAMES, GROUND_WORDS, INK_WORDS, THEME_SOURCES, THEME_SLOT_ORDER, PRIMARY_PATH, semanticPath, LARGE_ROLES, LARGE_FURNITURE_PX, NON_TEXT_CONTRAST, MERGED_CONTRAST, furnitureCentre, NEUTRAL_MASTER;
 var init_rebrand_design_system = __esm({
   "engine/src/rebrand-design-system.ts"() {
     "use strict";
@@ -115220,6 +115485,7 @@ var init_rebrand_design_system = __esm({
       accent2: "color.semantic.secondary",
       accent3: "color.semantic.accent"
     });
+    ACCENT_SLOTS2 = ["accent1", "accent2", "accent3", "accent4", "accent5", "accent6"];
     THEME_SLOT_ALIASES = Object.freeze({
       bg1: "lt1",
       tx1: "dk1",
@@ -116140,7 +116406,7 @@ function carryForward(previous2, source, census) {
   const usedMemory = /* @__PURE__ */ new Set();
   const claimed = /* @__PURE__ */ new Set();
   const recorded2 = /* @__PURE__ */ new Set();
-  const record47 = (objectId, row, carriedBy) => {
+  const record48 = (objectId, row, carriedBy) => {
     if (recorded2.has(objectId)) return;
     recorded2.add(objectId);
     const entry2 = {
@@ -116197,7 +116463,7 @@ function carryForward(previous2, source, census) {
         usedMemory.add(found.index);
         carried.add(same.object.id);
         claimed.add(same.object.id);
-        record47(same.object.id, object4, "exact");
+        record48(same.object.id, object4, "exact");
         out.push({ ...found.memory, carriedBy: "exact" });
         continue;
       }
@@ -116206,7 +116472,7 @@ function carryForward(previous2, source, census) {
         usedMemory.add(moved.index);
         carried.add(same.object.id);
         claimed.add(same.object.id);
-        record47(same.object.id, object4, "exact");
+        record48(same.object.id, object4, "exact");
         out.push({ ...moved.memory, fingerprint: same.object.fingerprint, carriedBy: "exact" });
         continue;
       }
@@ -116220,7 +116486,7 @@ function carryForward(previous2, source, census) {
           usedMemory.add(byMemory.index);
           carried.add(only.object.id);
           claimed.add(only.object.id);
-          record47(only.object.id, object4, "fingerprint");
+          record48(only.object.id, object4, "fingerprint");
           out.push({ ...byMemory.memory, carriedBy: "fingerprint" });
           continue;
         }
@@ -116232,7 +116498,7 @@ function carryForward(previous2, source, census) {
         for (const id3 of members2) {
           carried.add(id3);
           claimed.add(id3);
-          record47(id3, object4, "group");
+          record48(id3, object4, "group");
         }
         out.push({ ...byMemory.memory, carriedBy: "group" });
         continue;
@@ -116248,7 +116514,7 @@ function carryForward(previous2, source, census) {
       for (const id3 of members) {
         carried.add(id3);
         claimed.add(id3);
-        record47(id3, object4, "group");
+        record48(id3, object4, "group");
       }
       continue;
     }
@@ -117031,7 +117297,7 @@ function solveThemeColors(plan, theme, ctx) {
     uses: ctx.census.colors.uses,
     contrastPairs: ctx.census.colors.contrastPairs,
     swatches: swatchesFromColors(themed.colors),
-    slots: themeSlotsFromColors(themed.colors),
+    slots: themeSlotsFromColors(themed.colors, ctx.system.themeAccents),
     ...locked.length > 0 ? { locked } : {},
     ...rasters.length > 0 ? { rasterObjectIds: rasters } : {},
     ...ctx.minSeparation === void 0 ? {} : { minSeparation: ctx.minSeparation },
@@ -118092,23 +118358,23 @@ function nodeCount(contours) {
 function svgItemsOf(svgText, parseXml, opts = {}) {
   const maxItems = Math.max(0, Math.min(VECTOR_ITEMS_MAX, opts.maxItems ?? VECTOR_ITEMS_MAX));
   const maxChars = Math.max(0, Math.min(VECTOR_ITEMS_MAX_CHARS, opts.maxChars ?? VECTOR_ITEMS_MAX_CHARS));
-  const refused = (reason2, count4, viewBox2 = { x: 0, y: 0, w: 0, h: 0 }) => ({
+  const refused2 = (reason2, count4, viewBox2 = { x: 0, y: 0, w: 0, h: 0 }) => ({
     version: 1,
     viewBox: viewBox2,
     items: [],
     omitted: [{ reason: reason2, count: Math.max(1, count4) }]
   });
-  if (typeof svgText !== "string" || svgText.length === 0) return refused("unsupported-element", 1);
-  if (svgText.length > SVG_CUSTGEOM_MAX_CHARS) return refused("cap-reached", 1);
+  if (typeof svgText !== "string" || svgText.length === 0) return refused2("unsupported-element", 1);
+  if (svgText.length > SVG_CUSTGEOM_MAX_CHARS) return refused2("cap-reached", 1);
   let doc;
   try {
     doc = parseXml(svgText);
   } catch {
-    return refused("unsupported-element", 1);
+    return refused2("unsupported-element", 1);
   }
   const root2 = doc?.documentElement;
   if (!root2 || localOf(root2) !== "svg" || doc.getElementsByTagName("parsererror").length > 0) {
-    return refused("unsupported-element", 1);
+    return refused2("unsupported-element", 1);
   }
   const view = (root2.getAttribute("viewBox") ?? "").trim().split(/[\s,]+/).map(Number);
   const baseFont = 16;
@@ -118118,7 +118384,7 @@ function svgItemsOf(svgText, parseXml, opts = {}) {
   const byId = /* @__PURE__ */ new Map();
   let tags3 = 0;
   const all = doc.getElementsByTagName("*");
-  if (all.length > SVG_CUSTGEOM_MAX_TAGS) return refused("cap-reached", all.length, viewBox);
+  if (all.length > SVG_CUSTGEOM_MAX_TAGS) return refused2("cap-reached", all.length, viewBox);
   for (let i = 0; i < all.length; i++) {
     const el = all[i];
     const id3 = el?.getAttribute("id");
@@ -118132,7 +118398,7 @@ function svgItemsOf(svgText, parseXml, opts = {}) {
   let chars = 0;
   let seen = 0;
   const sheet = sheetOf(doc);
-  if (sheet.unsupported) return refused("unsupported-paint", 1, viewBox);
+  if (sheet.unsupported) return refused2("unsupported-paint", 1, viewBox);
   let steps = 0;
   const matchChain = (el, rule, index2) => {
     if (++steps > MAX_MATCH_STEPS) throw new CapReached();
@@ -118468,13 +118734,13 @@ function svgItemsOf(svgText, parseXml, opts = {}) {
       try {
         initial.m = vectorMatrix(rootTransform.trim());
       } catch {
-        return refused("unsupported-element", 1, viewBox);
+        return refused2("unsupported-element", 1, viewBox);
       }
     }
     const state = inherit(root2, initial, styleOf(root2));
     for (const child2 of kids(root2)) walk4(child2, state, 1, 0, /* @__PURE__ */ new Set());
   } catch (err) {
-    if (err instanceof CapReached) return refused("cap-reached", Math.max(seen, items2.length + 1), viewBox ?? { x: 0, y: 0, w: 0, h: 0 });
+    if (err instanceof CapReached) return refused2("cap-reached", Math.max(seen, items2.length + 1), viewBox ?? { x: 0, y: 0, w: 0, h: 0 });
     throw err;
   }
   if (!viewBox) {
@@ -126831,12 +127097,20 @@ function buildPenpotEntries(doc, opts = {}) {
   });
   return { entries, fileId, pageIds, shapeCount, mediaCount: media.size, warnings: warnings2 };
 }
+function penpotRoleWords(doc) {
+  if (!declaredColourRoleIds(doc).length) return null;
+  const { doc: clean2 } = leaveOutScopedTokenText(doc);
+  const roles = readColourRoles(clean2).roles.filter((role) => role.declared);
+  if (!roles.length) return null;
+  return new Map(roles.map((role, index2) => [role.id, { label: role.label, ...role.description ? { description: role.description } : {}, position: index2 + 1, total: roles.length }]));
+}
 function penpotTokensJson(doc, selection) {
   if (!isRec7(doc)) return null;
   const isTokenLeaf = (v) => isRec7(v) && ("$value" in v || "value" in v);
   const sets = /* @__PURE__ */ Object.create(null);
   const reserved = /* @__PURE__ */ new Set(["$themes", "$metadata", "$description", "$extensions", "$type", "$schema"]);
-  const convert = (node, inherited4) => {
+  const words4 = penpotRoleWords(doc);
+  const convert = (node, inherited4, at) => {
     const out2 = /* @__PURE__ */ Object.create(null);
     let kept2 = 0;
     for (const [k, v] of Object.entries(node)) {
@@ -126847,12 +127121,14 @@ function penpotTokensJson(doc, selection) {
         if (typeof mapped !== "string") continue;
         const leaf = { $value: "$value" in v ? v.$value : v.value, $type: mapped };
         const desc = v.$description ?? v.description;
-        if (typeof desc === "string" && desc) leaf.$description = desc;
+        const role = at === "color.semantic" ? words4?.get(k) : void 0;
+        if (role) leaf.$description = roleWordsText(role, typeof desc === "string" && desc && !brandSkillScopeHints(desc).length ? desc : void 0);
+        else if (typeof desc === "string" && desc) leaf.$description = desc;
         out2[k] = leaf;
         kept2++;
       } else if (isRec7(v)) {
         const groupType = typeof v.$type === "string" ? v.$type : inherited4;
-        const sub = convert(v, groupType);
+        const sub = convert(v, groupType, at ? `${at}.${k}` : k);
         if (sub) {
           out2[k] = sub;
           kept2++;
@@ -126865,11 +127141,11 @@ function penpotTokensJson(doc, selection) {
   if (hasSets) {
     for (const [name, v] of Object.entries(doc)) {
       if (reserved.has(name) || !isRec7(v)) continue;
-      const set = convert(v, typeof v.$type === "string" ? v.$type : null);
+      const set = convert(v, typeof v.$type === "string" ? v.$type : null, "");
       if (set) sets[name] = set;
     }
   } else {
-    const set = convert(doc, typeof doc.$type === "string" ? doc.$type : null);
+    const set = convert(doc, typeof doc.$type === "string" ? doc.$type : null, "");
     if (set) sets.global = set;
   }
   const setNames = Object.keys(sets);
@@ -128349,6 +128625,11 @@ var init_penpot_file = __esm({
     init_penpot_bindings();
     init_clamp();
     init_token_axes();
+    init_colourway();
+    init_colour_roles();
+    init_colour_role_portable();
+    init_token_scope();
+    init_brand_skill();
     init_design_draw();
     init_design_draw_penpot();
     init_design_stroke();
@@ -129525,8 +129806,8 @@ var init_fs_token = __esm({
 function sessionVersionStamp() {
   return { formatVersion: SESSION_FORMAT_VERSION, engineVersion: ENGINE_VERSION };
 }
-function sessionRightsDecisions(record47) {
-  const raw = record47?.rightsDecisions;
+function sessionRightsDecisions(record48) {
+  const raw = record48?.rightsDecisions;
   if (!Array.isArray(raw)) return null;
   const out = /* @__PURE__ */ new Map();
   for (const entry2 of raw.slice(0, 200)) {
@@ -129543,22 +129824,22 @@ function sessionRightsDecisions(record47) {
   }
   return out.size ? [...out.values()] : null;
 }
-function sessionEmojiStamp(record47) {
-  const stamp3 = record47?.emoji;
+function sessionEmojiStamp(record48) {
+  const stamp3 = record48?.emoji;
   if (!stamp3 || typeof stamp3 !== "object") return null;
   const { emoji, emojifx, emojistyle } = stamp3;
   if (typeof emoji !== "string" || !emoji.trim()) return null;
   return { emoji: emoji.trim(), emojifx: typeof emojifx === "string" ? emojifx.trim() : "", ...typeof emojistyle === "string" ? { emojistyle } : {} };
 }
-function migrateSessionRecord(record47, log) {
-  if (!record47 || typeof record47 !== "object") return null;
-  const data = record47.data;
+function migrateSessionRecord(record48, log) {
+  if (!record48 || typeof record48 !== "object") return null;
+  const data = record48.data;
   if (data == null || typeof data !== "object") return null;
-  const raw = record47.formatVersion;
+  const raw = record48.formatVersion;
   const fromVersion = typeof raw === "number" && Number.isFinite(raw) ? raw : 0;
   if (fromVersion > SESSION_READER_VERSION) {
     log?.("warn", "saved session was written by a newer version of the app - reading it as-is", {
-      slot: record47.slot,
+      slot: record48.slot,
       recordFormatVersion: fromVersion,
       readerFormatVersion: SESSION_READER_VERSION
     });
@@ -131201,7 +131482,7 @@ function compareStructure(before, after, options2, budget3) {
     const { a, b, left, right } = queue2.pop();
     if (a === b && (a === null || typeof a !== "object")) continue;
     const arrays = Array.isArray(a) && Array.isArray(b);
-    if (arrays || record18(a) && record18(b)) {
+    if (arrays || record19(a) && record19(b)) {
       if (seenA.has(a) || seenB.has(b)) {
         budget3.limit("Repeated or cyclic object references were not compared.");
         continue;
@@ -131226,7 +131507,7 @@ function compareStructure(before, after, options2, budget3) {
           const map = /* @__PURE__ */ new Map();
           for (let i = 0; i < items2.length; i++) {
             const item2 = items2[i];
-            if (!record18(item2) || typeof item2.id !== "string" || map.has(item2.id)) return null;
+            if (!record19(item2) || typeof item2.id !== "string" || map.has(item2.id)) return null;
             map.set(item2.id, i);
           }
           return map;
@@ -131258,7 +131539,7 @@ function compareStructure(before, after, options2, budget3) {
         else queue2.push({ a: ar[key2], b: br[key2], left: lp, right: rp });
       }
     } else {
-      if ([a, b].some((v) => typeof v === "function" || typeof v === "symbol" || v && typeof v === "object" && !Array.isArray(v) && !record18(v))) {
+      if ([a, b].some((v) => typeof v === "function" || typeof v === "symbol" || v && typeof v === "object" && !Array.isArray(v) && !record19(v))) {
         budget3.limit("Only plain structured data is supported.");
         continue;
       }
@@ -131266,12 +131547,12 @@ function compareStructure(before, after, options2, budget3) {
     }
   }
 }
-var record18;
+var record19;
 var init_compare_structure = __esm({
   "engine/src/compare-structure.ts"() {
     "use strict";
     init_compare_budget();
-    record18 = (value2) => !!value2 && typeof value2 === "object" && (Object.getPrototypeOf(value2) === Object.prototype || Object.getPrototypeOf(value2) === null);
+    record19 = (value2) => !!value2 && typeof value2 === "object" && (Object.getPrototypeOf(value2) === Object.prototype || Object.getPrototypeOf(value2) === null);
   }
 });
 
@@ -133254,11 +133535,11 @@ function learningLinkAllowed(href) {
 }
 function validLearningRichText(value2) {
   let count4 = 0, size = 0;
-  const record47 = (v) => !!v && typeof v === "object" && !Array.isArray(v);
+  const record48 = (v) => !!v && typeof v === "object" && !Array.isArray(v);
   const keys2 = (v, allowed) => Object.keys(v).every((k) => allowed.includes(k));
   const blocks = ["paragraph", "heading", "bulletList", "orderedList", "blockquote"];
   const visit = (v, parent, depth) => {
-    if (!record47(v) || ++count4 > 1e4 || depth > 12 || !keys2(v, ["type", "attrs", "content", "marks", "text"]))
+    if (!record48(v) || ++count4 > 1e4 || depth > 12 || !keys2(v, ["type", "attrs", "content", "marks", "text"]))
       return false;
     const type = String(v.type);
     const allowed = parent === "" ? ["doc"] : ["paragraph", "heading"].includes(parent) ? ["text", "hardBreak"] : ["bulletList", "orderedList"].includes(parent) ? ["listItem"] : blocks;
@@ -133270,7 +133551,7 @@ function validLearningRichText(value2) {
       if (size > 1e5) return false;
     }
     if (v.attrs !== void 0) {
-      if (!record47(v.attrs)) return false;
+      if (!record48(v.attrs)) return false;
       if (type === "heading") {
         if (!keys2(v.attrs, ["level"]) || v.attrs.level !== 2 && v.attrs.level !== 3) return false;
       } else if (type === "orderedList") {
@@ -133283,16 +133564,16 @@ function validLearningRichText(value2) {
         return false;
       const seen = /* @__PURE__ */ new Set();
       for (const mark of v.marks) {
-        if (!record47(mark) || !keys2(mark, ["type", "attrs"]) || !["bold", "italic", "underline", "code", "link"].includes(String(mark.type)) || seen.has(mark.type))
+        if (!record48(mark) || !keys2(mark, ["type", "attrs"]) || !["bold", "italic", "underline", "code", "link"].includes(String(mark.type)) || seen.has(mark.type))
           return false;
         seen.add(mark.type);
         if (mark.type === "link") {
-          if (!record47(mark.attrs) || !keys2(mark.attrs, ["href", "target", "rel", "class"]) || typeof mark.attrs.href !== "string" || !learningLinkAllowed(mark.attrs.href))
+          if (!record48(mark.attrs) || !keys2(mark.attrs, ["href", "target", "rel", "class"]) || typeof mark.attrs.href !== "string" || !learningLinkAllowed(mark.attrs.href))
             return false;
           for (const k of ["target", "rel", "class"])
             if (mark.attrs[k] !== void 0 && mark.attrs[k] !== null && typeof mark.attrs[k] !== "string")
               return false;
-        } else if (mark.attrs !== void 0 && (!record47(mark.attrs) || Object.keys(mark.attrs).length))
+        } else if (mark.attrs !== void 0 && (!record48(mark.attrs) || Object.keys(mark.attrs).length))
           return false;
       }
     }
@@ -133332,7 +133613,7 @@ var init_authoring = __esm({
 });
 
 // engine/src/learning/module.ts
-function record19(v) {
+function record20(v) {
   return !!v && typeof v === "object" && !Array.isArray(v);
 }
 function text8(v, max = LEARNING_LIMITS.text) {
@@ -133360,7 +133641,7 @@ function parseLearningModule(value2) {
   const bad = () => {
     throw new Error("This learning module is invalid or uses an unsupported version.");
   };
-  if (!record19(value2) || ![1, 2].includes(Number(value2.schemaVersion)) || typeof value2.schemaVersion !== "number" || !id2(value2.id) || !Number.isSafeInteger(value2.revision) || Number(value2.revision) < 1)
+  if (!record20(value2) || ![1, 2].includes(Number(value2.schemaVersion)) || typeof value2.schemaVersion !== "number" || !id2(value2.id) || !Number.isSafeInteger(value2.revision) || Number(value2.revision) < 1)
     return bad();
   if (!keys(
     value2,
@@ -133380,17 +133661,17 @@ function parseLearningModule(value2) {
   };
   const sections = /* @__PURE__ */ new Set();
   for (const section of value2.sections) {
-    if (!record19(section) || !unique3(section.id) || !text8(section.title, 500) || !keys(section, "id title"))
+    if (!record20(section) || !unique3(section.id) || !text8(section.title, 500) || !keys(section, "id title"))
       return bad();
     sections.add(String(section.id));
   }
   let blocks = 0;
   for (const lesson of value2.lessons) {
-    if (!record19(lesson) || !unique3(lesson.id) || !text8(lesson.title, 500) || typeof lesson.required !== "boolean" || !Array.isArray(lesson.blocks) || !keys(lesson, "id title required sectionId blocks"))
+    if (!record20(lesson) || !unique3(lesson.id) || !text8(lesson.title, 500) || typeof lesson.required !== "boolean" || !Array.isArray(lesson.blocks) || !keys(lesson, "id title required sectionId blocks"))
       return bad();
     if (lesson.sectionId !== void 0 && !sections.has(String(lesson.sectionId))) return bad();
     for (const block of lesson.blocks) {
-      if (++blocks > LEARNING_LIMITS.blocks || !record19(block) || !unique3(block.id) || !kinds.has(String(block.kind)) || !keys(block, "id kind text richText quiz description decorative transcript captions source"))
+      if (++blocks > LEARNING_LIMITS.blocks || !record20(block) || !unique3(block.id) || !kinds.has(String(block.kind)) || !keys(block, "id kind text richText quiz description decorative transcript captions source"))
         return bad();
       if (value2.schemaVersion === 1 && (block.richText !== void 0 || block.quiz !== void 0 || block.kind === "quiz"))
         return bad();
@@ -133405,12 +133686,12 @@ function parseLearningModule(value2) {
       if (block.decorative !== void 0 && typeof block.decorative !== "boolean") return bad();
       if (block.source !== void 0) {
         const s = block.source;
-        if (!record19(s) || !["asset", "session"].includes(String(s.kind)) || !keys(s, "kind asset slot toolId toolVersion values capturedAt pageIds motion"))
+        if (!record20(s) || !["asset", "session"].includes(String(s.kind)) || !keys(s, "kind asset slot toolId toolVersion values capturedAt pageIds motion"))
           return bad();
-        if (s.kind === "session" && (s.slot !== void 0 && !text8(s.slot, 500) || !id2(s.toolId) || !record19(s.values)))
+        if (s.kind === "session" && (s.slot !== void 0 && !text8(s.slot, 500) || !id2(s.toolId) || !record20(s.values)))
           return bad();
         if (s.kind === "asset") {
-          if (!record19(s.asset) || !text8(s.asset.id, 2e3) || !text8(s.asset.format, 40) || typeof s.asset.url !== "string" || !assetTypes.has(String(s.asset.type)) || !["library", "user", "remote"].includes(String(s.asset.source)))
+          if (!record20(s.asset) || !text8(s.asset.id, 2e3) || !text8(s.asset.format, 40) || typeof s.asset.url !== "string" || !assetTypes.has(String(s.asset.type)) || !["library", "user", "remote"].includes(String(s.asset.source)))
             return bad();
         }
         if (s.toolVersion !== void 0 && !text8(s.toolVersion, 100)) return bad();
@@ -134078,7 +134359,7 @@ function onInput(ctx){return sourceRun('onInput',ctx);}
 });
 
 // engine/src/studio3d-camera-path.ts
-function record20(value2) {
+function record21(value2) {
   return value2 && typeof value2 === "object" && !Array.isArray(value2) ? value2 : {};
 }
 function studioRestPose(scene) {
@@ -134215,7 +134496,7 @@ function studioCameraPreset(kind, view, amount = 1) {
   }
 }
 function studioCameraKeyFromView(values) {
-  const camera = record20(values.camera), target2 = record20(values.target);
+  const camera = record21(values.camera), target2 = record21(values.target);
   return {
     azimuth: num13(camera.azimuth, 25),
     elevation: num13(camera.elevation, 14),
@@ -134251,7 +134532,7 @@ function studioCameraFromKey(values, which) {
   const wanted = typeof which === "string" ? which.trim().toLowerCase() : "";
   const key2 = typeof which === "number" ? rows2[which] : wanted ? rows2.find((row) => studioCameraKeyName(row).toLowerCase() === wanted) : void 0;
   if (!key2) throw new Error("That camera key does not exist.");
-  const target2 = record20(values.target);
+  const target2 = record21(values.target);
   return [
     {
       id: "camera",
@@ -134283,7 +134564,7 @@ var init_studio3d_camera_path = __esm({
 });
 
 // engine/src/studio3d-arrangement.ts
-function record21(value2) {
+function record22(value2) {
   return value2 && typeof value2 === "object" && !Array.isArray(value2) ? value2 : {};
 }
 function studioArrangementRows(values) {
@@ -134291,7 +134572,7 @@ function studioArrangementRows(values) {
     throw new Error("Add at least one object to the arrangement.");
   if (values.objects.length > STUDIO_ARRANGEMENT_LIMIT)
     throw new Error(`Use up to ${STUDIO_ARRANGEMENT_LIMIT} objects in one arrangement.`);
-  return values.objects.map(record21);
+  return values.objects.map(record22);
 }
 function studioObjectId(row, index2, taken) {
   const authored = String(row.id ?? "").trim().toLowerCase().replace(/[^a-z0-9._-]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 40);
@@ -134382,7 +134663,7 @@ var init_studio3d_arrangement = __esm({
 });
 
 // engine/src/studio3d-collection.ts
-function record22(value2) {
+function record23(value2) {
   return value2 && typeof value2 === "object" && !Array.isArray(value2) ? value2 : {};
 }
 function number6(value2, fallback, min, max) {
@@ -134394,7 +134675,7 @@ function items(values) {
     throw new Error("Add at least one item to the collection.");
   if (values.subjects.length > STUDIO_COLLECTION_LIMIT)
     throw new Error(`Use up to ${STUDIO_COLLECTION_LIMIT} items in one collection.`);
-  return values.subjects.map(record22);
+  return values.subjects.map(record23);
 }
 function subjectIds(rows2) {
   const taken = /* @__PURE__ */ new Set();
@@ -134418,7 +134699,7 @@ function itemValues2(values, item2) {
   const kind = item2.kind === "model" ? "model" : item2.kind === "primitive" ? "primitive" : item2.kind === "text" ? "text" : "artwork";
   const scale = number6(item2.scale, 1, 0.5, 2);
   const offsetX = number6(item2.offsetX, 0, -5, 5), offsetY = number6(item2.offsetY, 0, -5, 5);
-  const transform2 = record22(values.transform), position = record22(values.position);
+  const transform2 = record23(values.transform), position = record23(values.position);
   const corrections = {};
   if (scale !== 1)
     corrections.transform = { ...transform2, scale: number6(transform2.scale, 1, 0.1, 5) * scale };
@@ -134428,7 +134709,7 @@ function itemValues2(values, item2) {
       y: number6(position.y, 0.1, -5, 5) + offsetY,
       z: number6(position.z, 0, -5, 5)
     };
-  const camera = record22(values.camera);
+  const camera = record23(values.camera);
   const framing = { ...camera };
   if (enabled2(item2.ownFraming))
     for (const key2 of ["azimuth", "elevation", "fov", "zoom", "panX", "panY", "panZ"]) {
@@ -134505,7 +134786,7 @@ function studioFocusEdit(values, distance4) {
   });
 }
 function studioCollectionSize(values) {
-  const size = record22(values.collectionSize);
+  const size = record23(values.collectionSize);
   const edge = (value2) => {
     const n7 = Number(value2);
     return Math.max(64, Math.min(4096, Number.isFinite(n7) && n7 > 0 ? Math.round(n7) : 1024));
@@ -134752,7 +135033,7 @@ var init_studio3d_motion = __esm({
 });
 
 // engine/src/studio3d.ts
-function record23(value2) {
+function record24(value2) {
   return value2 && typeof value2 === "object" && !Array.isArray(value2) ? value2 : {};
 }
 function number7(value2, fallback, min, max) {
@@ -134771,15 +135052,15 @@ function enabled3(value2, fallback = false) {
   return fallback;
 }
 function vector(value2, keys2, defaults2, limit3) {
-  const v = record23(value2);
+  const v = record24(value2);
   return keys2.map((key2, i) => number7(v[key2], defaults2[i], -limit3, limit3));
 }
 function asset(value2) {
-  const v = record23(value2);
+  const v = record24(value2);
   return {
     id: String(v.id || ""),
     url: typeof v.url === "string" ? v.url : "",
-    name: String(v.name || v.filename || record23(v.meta).name || v.url || ""),
+    name: String(v.name || v.filename || record24(v.meta).name || v.url || ""),
     format: String(v.format || "").toLowerCase()
   };
 }
@@ -134898,9 +135179,9 @@ function arrangementObjects(v) {
   });
 }
 function buildStudioScene(input) {
-  const wrapper = record23(input);
+  const wrapper = record24(input);
   if (wrapper.version !== 1) throw new Error("This studio recipe version is not supported.");
-  const v = studioActiveValues(record23(wrapper.values));
+  const v = studioActiveValues(record24(wrapper.values));
   const arrangement = v.source === "arrangement";
   const objects = arrangement ? arrangementObjects(v) : [];
   if (arrangement && !objects.some((object4) => object4.visible && !object4.pending))
@@ -134922,7 +135203,7 @@ function buildStudioScene(input) {
     ["soft", "dramatic", "electric", "warm", "custom"],
     "dramatic"
   );
-  const drama = number7(v.drama, 0.7, 0, 1), light = record23(v.lightLevels);
+  const drama = number7(v.drama, 0.7, 0, 1), light = record24(v.lightLevels);
   const intensity = number7(light.key, 2.5, 0, 20), fill2 = number7(light.fill, 0.7, 0, 20), rim = number7(light.rim, 3, 0, 20);
   const softness = number7(v.softness, 1.5, 0, 5);
   const placed2 = (role) => vector(v[`${role}Position`], ["x", "y", "z"], STUDIO_PRESET_LIGHT_POSITIONS[role], 30);
@@ -134970,7 +135251,7 @@ function buildStudioScene(input) {
       throw new Error("Add at least one light to the custom studio.");
     if (v.lights.length > 8) throw new Error("A studio supports up to eight lights.");
     lights = v.lights.map((row, i) => {
-      const l = record23(row);
+      const l = record24(row);
       const kind2 = choice2(l.kind, ["directional", "point", "spot", "area"], "directional");
       return {
         id: `light-${i + 1}`,
@@ -134983,7 +135264,7 @@ function buildStudioScene(input) {
       };
     });
   }
-  const camera = record23(v.camera), shape = record23(v.shape), transform2 = record23(v.transform), target2 = record23(v.target);
+  const camera = record24(v.camera), shape = record24(v.shape), transform2 = record24(v.transform), target2 = record24(v.target);
   const backdrop = asset(v.backdropImage);
   const background = color2(v.background, secondary);
   const environmentKind = choice2(
@@ -135001,7 +135282,7 @@ function buildStudioScene(input) {
   if (rows2.length > 32) throw new Error("A studio supports up to 32 material overrides.");
   const seen = /* @__PURE__ */ new Set();
   const overrides = rows2.map((row, i) => {
-    const m2 = record23(row), slot = String(m2.slot || i + 1).trim();
+    const m2 = record24(row), slot = String(m2.slot || i + 1).trim();
     if (seen.has(slot)) throw new Error(`Material slot ${slot} has more than one override.`);
     seen.add(slot);
     const finish3 = typeof m2.finish === "string" && FINISHES.includes(m2.finish) ? m2.finish : void 0;
@@ -135146,7 +135427,7 @@ function cameraKeys(v) {
   if (rows2.length > STUDIO_CAMERA_KEY_LIMIT)
     throw new Error(`A camera path holds up to ${STUDIO_CAMERA_KEY_LIMIT} keys.`);
   return rows2.map((row, i) => {
-    const k = record23(row);
+    const k = record24(row);
     const name = String(k.name || "").trim().slice(0, STUDIO_CAMERA_KEY_NAME_LIMIT);
     return {
       ...name ? { name } : {},
@@ -135220,7 +135501,7 @@ function studioKeyField(key2) {
   const dot = key2.indexOf(".");
   return dot < 0 ? null : key2.slice(dot + 1);
 }
-function record24(value2) {
+function record25(value2) {
   return value2 && typeof value2 === "object" && !Array.isArray(value2) ? value2 : {};
 }
 function clone4(value2) {
@@ -135235,9 +135516,9 @@ function studioLookOf(values) {
       if (values[id3] !== void 0) look3[id3] = clone4(values[id3]);
       continue;
     }
-    const from = record24(values[id3]);
+    const from = record25(values[id3]);
     if (from[field2] === void 0) continue;
-    const into = record24(look3[id3]);
+    const into = record25(look3[id3]);
     into[field2] = clone4(from[field2]);
     look3[id3] = into;
   }
@@ -135254,9 +135535,9 @@ function studioApplyLook(values, look3, overrides = []) {
       if (look3[id3] !== void 0) next2[id3] = clone4(look3[id3]);
       continue;
     }
-    const from = record24(look3[id3]);
+    const from = record25(look3[id3]);
     if (from[field2] === void 0) continue;
-    next2[id3] = { ...record24(next2[id3]), [field2]: clone4(from[field2]) };
+    next2[id3] = { ...record25(next2[id3]), [field2]: clone4(from[field2]) };
   }
   return next2;
 }
@@ -135439,7 +135720,7 @@ function summarizeBrandStyles(mode3, rows2, sampled = 0, truncated = false) {
   const entries = Array.isArray(rows2) ? rows2 : [];
   const values = /* @__PURE__ */ new Map();
   for (const row of entries.slice(0, 2400)) {
-    if (!record25(row) || typeof row.property !== "string" || !properties.has(row.property) || typeof row.value !== "string") continue;
+    if (!record26(row) || typeof row.property !== "string" || !properties.has(row.property) || typeof row.value !== "string") continue;
     const value2 = row.value.trim().replace(/\s+/g, " ");
     if (!value2 || value2.length > 160 || /[<>{};\\]|url\s*\(|var\s*\(/i.test(value2)) continue;
     const property4 = row.property;
@@ -135462,13 +135743,13 @@ function summarizeBrandStyles(mode3, rows2, sampled = 0, truncated = false) {
   };
 }
 function readBrandStyleEvidence(value2) {
-  if (!record25(value2) || value2.version !== 1 || value2.mode !== "computed" && value2.mode !== "declared") return null;
+  if (!record26(value2) || value2.version !== 1 || value2.mode !== "computed" && value2.mode !== "declared") return null;
   const evidence = summarizeBrandStyles(value2.mode, value2.values, typeof value2.sampled === "number" ? value2.sampled : 0, value2.truncated === true);
   const viewport = value2.viewport;
-  if (record25(viewport) && typeof viewport.width === "number" && typeof viewport.height === "number" && Number.isFinite(viewport.width) && Number.isFinite(viewport.height) && viewport.width > 0 && viewport.width < 1e5 && viewport.height > 0 && viewport.height < 1e5 && (viewport.scheme === "light" || viewport.scheme === "dark")) evidence.viewport = { width: viewport.width, height: viewport.height, scheme: viewport.scheme };
+  if (record26(viewport) && typeof viewport.width === "number" && typeof viewport.height === "number" && Number.isFinite(viewport.width) && Number.isFinite(viewport.height) && viewport.width > 0 && viewport.width < 1e5 && viewport.height > 0 && viewport.height < 1e5 && (viewport.scheme === "light" || viewport.scheme === "dark")) evidence.viewport = { width: viewport.width, height: viewport.height, scheme: viewport.scheme };
   return evidence;
 }
-var BRAND_STYLE_PROPERTIES, properties, record25;
+var BRAND_STYLE_PROPERTIES, properties, record26;
 var init_brand_evidence = __esm({
   "engine/src/brand-evidence.ts"() {
     "use strict";
@@ -135486,17 +135767,17 @@ var init_brand_evidence = __esm({
       "border-top-left-radius"
     ];
     properties = new Set(BRAND_STYLE_PROPERTIES);
-    record25 = (v) => !!v && typeof v === "object" && !Array.isArray(v);
+    record26 = (v) => !!v && typeof v === "object" && !Array.isArray(v);
   }
 });
 
 // engine/src/brand-context.ts
 function brandContext(doc, opts = {}) {
   const tokens3 = createTokenSet(doc, { theme: opts.theme });
-  const raw = record26(doc) ? doc : {};
-  const extensions3 = record26(raw.$extensions) ? raw.$extensions : {};
-  const vendor = record26(extensions3[TOKEN_EXT]) ? extensions3[TOKEN_EXT] : {};
-  const reference3 = record26(vendor.reference) ? vendor.reference : {};
+  const raw = record27(doc) ? doc : {};
+  const extensions3 = record27(raw.$extensions) ? raw.$extensions : {};
+  const vendor = record27(extensions3[TOKEN_EXT]) ? extensions3[TOKEN_EXT] : {};
+  const reference3 = record27(vendor.reference) ? vendor.reference : {};
   const entries = tokens3.query();
   const colors = tokens3.colors().map((c) => ({ path: c.path, value: c.value, name: c.name }));
   const fonts = entries.filter((e) => e.type === "fontFamily").flatMap((e) => {
@@ -135537,19 +135818,19 @@ function brandContext(doc, opts = {}) {
   };
 }
 function contextTokens(value2) {
-  if (!record26(value2)) return value2;
+  if (!record27(value2)) return value2;
   if (value2.format === "lolly-design-context") return value2.version === 1 ? value2.tokens : null;
   if (value2.format === "lolly-reference") return value2.version === 1 ? value2.proposedTokens : null;
   return value2;
 }
-var record26, text9;
+var record27, text9;
 var init_brand_context = __esm({
   "engine/src/brand-context.ts"() {
     "use strict";
     init_tokens2();
     init_design_system();
     init_brand_evidence();
-    record26 = (v) => !!v && typeof v === "object" && !Array.isArray(v);
+    record27 = (v) => !!v && typeof v === "object" && !Array.isArray(v);
     text9 = (v, limit3 = 180) => typeof v === "string" && v.trim() ? v.trim().slice(0, limit3) : void 0;
   }
 });
@@ -135569,7 +135850,7 @@ function checkBrandDesign(boxes2, doc, opts = {}) {
   const catalogAssets2 = new Set(Array.isArray(opts.assets) ? opts.assets.filter((id3) => typeof id3 === "string") : []);
   let uploads = 0;
   const nearest3 = /* @__PURE__ */ new Map();
-  const rows2 = Array.isArray(boxes2) ? boxes2.filter(record27) : [];
+  const rows2 = Array.isArray(boxes2) ? boxes2.filter(record28) : [];
   if (!Array.isArray(boxes2)) findings.push({ id: "brand.document", kind: "coverage", status: "unknown", label: "No readable composition." });
   const counts = /* @__PURE__ */ new Map();
   for (const row of rows2) if (typeof row.id === "string") counts.set(row.id, (counts.get(row.id) ?? 0) + 1);
@@ -135594,7 +135875,7 @@ function checkBrandDesign(boxes2, doc, opts = {}) {
       if (field2 === "fg" && !row.text) continue;
       const raw = valueText2(row[field2]);
       if (!raw || raw === "transparent" || raw === "none") continue;
-      const path = aliasPath(raw) ?? (record27(row[field2]) ? valueText2(row[field2]).replace(/^\{|\}$/g, "") : null);
+      const path = aliasPath(raw) ?? (record28(row[field2]) ? valueText2(row[field2]).replace(/^\{|\}$/g, "") : null);
       if (path) {
         if (!tokens3.has(path) || tokens3.get(path)?.type !== "color" || !parseColor(String(tokens3.resolve(path)))) add3(field2, "reference", "unknown", raw);
         else checked2.colors++;
@@ -135642,8 +135923,8 @@ function checkBrandDesign(boxes2, doc, opts = {}) {
         if (!allowedFonts.has(family(resolved2))) add3("font", "font", "review", font, context.fonts[0]?.value, tokens3.has("font.brand") ? "sans" : void 0);
       }
     }
-    const image = valueText2(row.image) || (record27(row.image) && typeof row.image.id === "string" ? row.image.id : "");
-    const upload = image.startsWith("user/") || record27(row.image) && row.image.source === "user";
+    const image = valueText2(row.image) || (record28(row.image) && typeof row.image.id === "string" ? row.image.id : "");
+    const upload = image.startsWith("user/") || record28(row.image) && row.image.source === "user";
     if (image && upload) {
       uploads++;
       const look3 = parseTreatedAssetId(image).treatment;
@@ -135674,13 +135955,13 @@ function checkBrandDesign(boxes2, doc, opts = {}) {
 }
 function applyBrandFix(boxes2, fix) {
   if (!Array.isArray(boxes2) || !["bg", "fg", "stroke", "font"].includes(fix.field)) return null;
-  const matches3 = boxes2.filter((row) => record27(row) && row.id === fix.layerId);
+  const matches3 = boxes2.filter((row) => record28(row) && row.id === fix.layerId);
   if (matches3.length !== 1) return null;
   const target2 = matches3[0];
   if (target2.locked === true || target2.locked === "true" || JSON.stringify(target2[fix.field]) !== JSON.stringify(fix.before)) return null;
   return boxes2.map((row) => row === target2 ? { ...row, [fix.field]: fix.after } : row);
 }
-var record27, valueText2, family;
+var record28, valueText2, family;
 var init_brand_check = __esm({
   "engine/src/brand-check.ts"() {
     "use strict";
@@ -135690,8 +135971,8 @@ var init_brand_check = __esm({
     init_brand_context();
     init_photo_treatment();
     init_icon_theme();
-    record27 = (v) => !!v && typeof v === "object" && !Array.isArray(v);
-    valueText2 = (v) => typeof v === "string" ? v : record27(v) && typeof v.ref === "string" ? v.ref : "";
+    record28 = (v) => !!v && typeof v === "object" && !Array.isArray(v);
+    valueText2 = (v) => typeof v === "string" ? v : record28(v) && typeof v.ref === "string" ? v.ref : "";
     family = (v) => v.split(",")[0].replace(/["']/g, "").trim().toLowerCase();
   }
 });
@@ -135727,7 +136008,7 @@ function covers(over, row) {
   return iw * ih / area2 >= 0.9;
 }
 function paintOf2(layout2, row) {
-  if (row.kind === "image" || valueText3(row.image) || record28(row.image) && typeof row.image.id === "string") return { kind: "image" };
+  if (row.kind === "image" || valueText3(row.image) || record29(row.image) && typeof row.image.id === "string") return { kind: "image" };
   if (typeof row.grad === "string" && row.grad.trim()) return null;
   const raw = valueText3(row.bg);
   if (!raw || raw === "transparent" || raw === "none") return "clear";
@@ -135809,7 +136090,7 @@ function combinationPolicy(doc, theme, selection) {
   const groups = /* @__PURE__ */ new Set();
   for (const entry2 of tokens3.query({ type: "color" })) {
     const vendor = entry2.extensions?.[TOKEN_EXT];
-    const combos = record28(vendor) && record28(vendor.combinations) ? vendor.combinations : null;
+    const combos = record29(vendor) && record29(vendor.combinations) ? vendor.combinations : null;
     if (!combos || typeof entry2.value !== "string") continue;
     const hex4 = hex8(entry2.value);
     if (!hex4) continue;
@@ -135834,9 +136115,9 @@ function hiddenTest(rows2) {
 }
 function catalogAssetNames(catalog) {
   const names = /* @__PURE__ */ new Map();
-  const assets = record28(catalog) && Array.isArray(catalog.assets) ? catalog.assets : [];
+  const assets = record29(catalog) && Array.isArray(catalog.assets) ? catalog.assets : [];
   for (const asset2 of assets) {
-    if (!record28(asset2) || typeof asset2.id !== "string" || typeof asset2.name !== "string") continue;
+    if (!record29(asset2) || typeof asset2.id !== "string" || typeof asset2.name !== "string") continue;
     const name = asset2.name.trim();
     if (name && !names.has(asset2.id)) names.set(asset2.id, name);
   }
@@ -135846,7 +136127,7 @@ function checkDesignHouseRules(boxes2, rules, doc, opts = {}) {
   const findings = [];
   const unknown2 = [];
   let checked2 = 0;
-  const rows2 = Array.isArray(boxes2) ? boxes2.filter(record28) : [];
+  const rows2 = Array.isArray(boxes2) ? boxes2.filter(record29) : [];
   const layout2 = {
     rows: rows2,
     hidden: hiddenTest(rows2),
@@ -135863,17 +136144,17 @@ function checkDesignHouseRules(boxes2, rules, doc, opts = {}) {
     else if (size === top.size) top.count++;
   }
   let pairings = null;
-  const catalogLogos = record28(opts.catalog) && record28(opts.catalog.logos) ? opts.catalog.logos : {};
+  const catalogLogos = record29(opts.catalog) && record29(opts.catalog.logos) ? opts.catalog.logos : {};
   const layers = rows2.slice(0, 5e3).map((row, index2) => ({ row, index: index2 })).filter(({ row }) => !layout2.hidden(row) && typeof row.id === "string" && row.id);
   const texts = layers.filter(({ row }) => textOf7(row).trim() && row.kind !== "image");
   for (const rule of Array.isArray(rules) ? rules : []) {
-    if (!record28(rule) || typeof rule.id !== "string") continue;
+    if (!record29(rule) || typeof rule.id !== "string") continue;
     if (rule.scope?.tools && !rule.scope.tools.includes("design")) continue;
     if (!DESIGN_HOUSE_RULE_KINDS.includes(rule.kind)) {
       unknown2.push(rule.id);
       continue;
     }
-    const p = record28(rule.parameters) ? rule.parameters : {};
+    const p = record29(rule.parameters) ? rule.parameters : {};
     const requirement = rule.requirement === "required" ? "required" : "advisory";
     const add3 = (row, field2, value2, expected, detail) => {
       const artboardId = artboardOf(row);
@@ -136063,7 +136344,7 @@ function checkDesignHouseRules(boxes2, rules, doc, opts = {}) {
         return name ? `\u201C${name}\u201D` : id3;
       };
       for (const { row, index: index2 } of layers) {
-        const raw = valueText3(row.image) || (record28(row.image) && typeof row.image.id === "string" ? row.image.id : "");
+        const raw = valueText3(row.image) || (record29(row.image) && typeof row.image.id === "string" ? row.image.id : "");
         const resolved2 = aliasPath(raw) ? layout2.tokens.resolve(aliasPath(raw)) : raw;
         if (typeof resolved2 !== "string") continue;
         let id3 = stripAssetModifiers(resolved2);
@@ -136074,7 +136355,7 @@ function checkDesignHouseRules(boxes2, rules, doc, opts = {}) {
           table ??= buildSurfaceVariantTable({
             tokens: layout2.tokens,
             rules: [rule],
-            ...record28(opts.catalog) ? { iconThemes: opts.catalog.iconThemes } : {},
+            ...record29(opts.catalog) ? { iconThemes: opts.catalog.iconThemes } : {},
             logos: catalogLogos
           });
           const pick = pickSurfaceVariant(resolved2, kind, table);
@@ -136093,7 +136374,7 @@ function checkDesignHouseRules(boxes2, rules, doc, opts = {}) {
 function designHouseRules(rules) {
   return (rules ?? []).filter((r5) => DESIGN_HOUSE_RULE_KINDS.includes(r5.kind));
 }
-var DESIGN_HOUSE_RULE_KINDS, record28, strings2, num14, valueText3, isHidden, textOf7, HEADLINE_ROLES, HEADLINE_SCALE2, HEADLINE_MIN_PX, ROUNDED_SHAPES, DESIGN_DEFAULT_WEIGHT, DESIGN_DEFAULT_ALIGN, matches2, NUMERIC_TEXT, artboardOf, label2, list2, orList;
+var DESIGN_HOUSE_RULE_KINDS, record29, strings2, num14, valueText3, isHidden, textOf7, HEADLINE_ROLES, HEADLINE_SCALE2, HEADLINE_MIN_PX, ROUNDED_SHAPES, DESIGN_DEFAULT_WEIGHT, DESIGN_DEFAULT_ALIGN, matches2, NUMERIC_TEXT, artboardOf, label2, list2, orList;
 var init_design_house_rules = __esm({
   "engine/src/design-house-rules.ts"() {
     "use strict";
@@ -136114,13 +136395,13 @@ var init_design_house_rules = __esm({
       "dash-reserved",
       "logo-surface"
     ];
-    record28 = (v) => !!v && typeof v === "object" && !Array.isArray(v);
+    record29 = (v) => !!v && typeof v === "object" && !Array.isArray(v);
     strings2 = (v) => Array.isArray(v) ? v.filter((s) => typeof s === "string" && s.length > 0) : [];
     num14 = (v, fallback) => {
       const n7 = typeof v === "number" ? v : typeof v === "string" && v.trim() ? Number(v) : NaN;
       return Number.isFinite(n7) ? n7 : fallback;
     };
-    valueText3 = (v) => typeof v === "string" ? v : record28(v) && typeof v.ref === "string" ? v.ref : "";
+    valueText3 = (v) => typeof v === "string" ? v : record29(v) && typeof v.ref === "string" ? v.ref : "";
     isHidden = (row) => row.hidden === true || row.hidden === "true";
     textOf7 = (row) => typeof row.text === "string" ? row.text : "";
     HEADLINE_ROLES = ["title"];
@@ -136198,7 +136479,7 @@ function combinationSection(doc, theme, themes) {
   const declared = [];
   for (const entry2 of tokens3.query({ type: "color" })) {
     const vendor = entry2.extensions?.[TOKEN_EXT];
-    const combos = record29(vendor) && record29(vendor.combinations) ? vendor.combinations : null;
+    const combos = record30(vendor) && record30(vendor.combinations) ? vendor.combinations : null;
     const bg = byPath.get(entry2.path);
     if (!combos || !bg) continue;
     const group = entry2.path.split(".").slice(0, -1).join(".");
@@ -136352,7 +136633,7 @@ function logoSection(catalog, assets, tokenLogos, rules) {
 }
 function iconSection(doc, catalog, assets, themes) {
   const icons = assets.filter((a) => tagsOf(a).includes("icon")).map((a) => ({ id: a.id, ...a.name ? { name: a.name } : {}, themable: tagsOf(a).includes("themable") }));
-  const declared = parseIconThemesDoc(record29(catalog.iconThemes) ? catalog.iconThemes : null);
+  const declared = parseIconThemesDoc(record30(catalog.iconThemes) ? catalog.iconThemes : null);
   let from = declared.length ? "declared" : "unavailable";
   let list4 = declared;
   if (!list4.length) {
@@ -136401,7 +136682,7 @@ function mediaSection(doc, catalog, assets) {
     if (a.license && !f.licenses.includes(a.license)) f.licenses.push(a.license);
     families.set(family2, f);
   }
-  const declared = parsePhotoTreatmentsDoc(record29(catalog.photoTreatments) ? catalog.photoTreatments : null);
+  const declared = parsePhotoTreatmentsDoc(record30(catalog.photoTreatments) ? catalog.photoTreatments : null);
   let from = declared.length ? "declared" : "unavailable";
   let treatments = declared;
   if (!treatments.length) {
@@ -136426,7 +136707,7 @@ function designBrief(source, catalog, opts = {}) {
   const { doc, leftOut } = leaveOutScopedTokenText(source);
   const context = brandContext(doc, opts);
   const facts2 = catalog ?? {};
-  const assets = (Array.isArray(facts2.assets) ? facts2.assets : []).filter((a) => record29(a) && typeof a.id === "string" && a.deprecated !== true);
+  const assets = (Array.isArray(facts2.assets) ? facts2.assets : []).filter((a) => record30(a) && typeof a.id === "string" && a.deprecated !== true);
   const tokens3 = createTokenSet(doc, { theme: opts.theme });
   const resolve8 = (path) => {
     const v = tokens3.resolve(path);
@@ -136480,15 +136761,15 @@ function designBrief(source, catalog, opts = {}) {
 }
 function brandCheckCatalog(catalog) {
   if (!catalog) return {};
-  const themes = parseIconThemesDoc(record29(catalog.iconThemes) ? catalog.iconThemes : null).map((t) => t.id);
-  const treatments = parsePhotoTreatmentsDoc(record29(catalog.photoTreatments) ? catalog.photoTreatments : null).map((t) => t.id);
+  const themes = parseIconThemesDoc(record30(catalog.iconThemes) ? catalog.iconThemes : null).map((t) => t.id);
+  const treatments = parsePhotoTreatmentsDoc(record30(catalog.photoTreatments) ? catalog.photoTreatments : null).map((t) => t.id);
   return {
-    assets: (Array.isArray(catalog.assets) ? catalog.assets : []).filter((a) => record29(a) && typeof a.id === "string").map((a) => a.id),
+    assets: (Array.isArray(catalog.assets) ? catalog.assets : []).filter((a) => record30(a) && typeof a.id === "string").map((a) => a.id),
     ...themes.length ? { iconThemes: themes } : {},
     ...treatments.length ? { treatments } : {}
   };
 }
-var record29, tagsOf, hexOf6, round25, MEDIA_TYPES2;
+var record30, tagsOf, hexOf6, round25, MEDIA_TYPES2;
 var init_design_brief = __esm({
   "engine/src/design-brief.ts"() {
     "use strict";
@@ -136509,7 +136790,7 @@ var init_design_brief = __esm({
     init_brand_skill();
     init_colour_roles();
     init_token_scope();
-    record29 = (v) => !!v && typeof v === "object" && !Array.isArray(v);
+    record30 = (v) => !!v && typeof v === "object" && !Array.isArray(v);
     tagsOf = (a) => Array.isArray(a.tags) ? a.tags.filter((t) => typeof t === "string") : [];
     hexOf6 = (value2) => {
       const rgba2 = typeof value2 === "string" ? parseColorToSrgb8(value2) : null;
@@ -136541,10 +136822,10 @@ function storiesOf(input) {
     }
   }
   if (doc === void 0 || doc === null) return /* @__PURE__ */ new Map();
-  if (!record30(doc) || !Array.isArray(doc.stories)) return null;
+  if (!record31(doc) || !Array.isArray(doc.stories)) return null;
   const out = /* @__PURE__ */ new Map();
   for (const story of doc.stories) {
-    if (!record30(story) || typeof story.source !== "string" || !Array.isArray(story.frameIds)) continue;
+    if (!record31(story) || typeof story.source !== "string" || !Array.isArray(story.frameIds)) continue;
     const first = story.frameIds.find((id3) => typeof id3 === "string");
     if (first && !out.has(first)) out.set(first, story.source.replace(/\uFFFC/g, ""));
   }
@@ -136569,7 +136850,7 @@ function hiddenTest2(rows2) {
   };
 }
 function designVisibleText(boxes2, opts = {}) {
-  const rows2 = (Array.isArray(boxes2) ? boxes2 : []).slice(0, ROW_LIMIT).map((row, index2) => ({ row, index: index2 })).filter((r5) => record30(r5.row));
+  const rows2 = (Array.isArray(boxes2) ? boxes2 : []).slice(0, ROW_LIMIT).map((row, index2) => ({ row, index: index2 })).filter((r5) => record31(r5.row));
   const hidden4 = hiddenTest2(rows2.map((r5) => r5.row));
   const frames = rows2.filter((r5) => r5.row.kind === "frame" && str7(r5.row.id)).sort((a, b) => num15(a.row.order, a.index) - num15(b.row.order, b.index) || num15(a.row.x, 0) - num15(b.row.x, 0) || str7(a.row.id).localeCompare(str7(b.row.id)));
   const frameIds = new Set(frames.map((f) => str7(f.row.id)));
@@ -136664,7 +136945,7 @@ function designWritingScore(boxes2, opts = {}) {
 }
 function rulesForDesign(rules) {
   const list4 = Array.isArray(rules) ? rules : [];
-  return list4.filter((r5) => record30(r5) && !BRAND_RULE_KINDS.includes(String(r5.kind)));
+  return list4.filter((r5) => record31(r5) && !BRAND_RULE_KINDS.includes(String(r5.kind)));
 }
 function houseRuleSentence(h) {
   if (h.state === "no-design-system") return "No design system was given, so no house rules were checked.";
@@ -136696,7 +136977,7 @@ function creationFeedback(boxes2, rules, doc, opts = {}) {
   const stated = rules === void 0 ? brandSystemOf(doc)?.rules ?? [] : rules;
   const designRules = rulesForDesign(stated);
   let houseRules;
-  if (rules === void 0 && !record30(doc)) houseRules = { state: "no-design-system", checked: 0, findings: [], unknown: [] };
+  if (rules === void 0 && !record31(doc)) houseRules = { state: "no-design-system", checked: 0, findings: [], unknown: [] };
   else if (!designRules.length) houseRules = { state: "no-rules", checked: 0, findings: [], unknown: [] };
   else {
     const result = checkDesignHouseRules(boxes2, designRules, doc, {
@@ -136751,7 +137032,7 @@ function creationFeedbackDelta(before, after, touched) {
   parts.push("Guidance to act on, not a gate.");
   return { summary: parts.join(" "), writing, findings, resolved: resolved2, phrases };
 }
-var CREATION_FEEDBACK_FORMAT, CREATION_FEEDBACK_VERSION, CREATION_FEEDBACK_TEXT_LIMIT, DEFAULT_PHRASES, FINDING_LIMIT, PHRASE_MAX, HIDDEN_ID_LIMIT, ROW_LIMIT, JOIN, NOT_TEXT, record30, str7, truthy2, num15, plural2, selfHidden, byStrength, quote, layerList, findingKey;
+var CREATION_FEEDBACK_FORMAT, CREATION_FEEDBACK_VERSION, CREATION_FEEDBACK_TEXT_LIMIT, DEFAULT_PHRASES, FINDING_LIMIT, PHRASE_MAX, HIDDEN_ID_LIMIT, ROW_LIMIT, JOIN, NOT_TEXT, record31, str7, truthy2, num15, plural2, selfHidden, byStrength, quote, layerList, findingKey;
 var init_creation_feedback = __esm({
   "engine/src/creation-feedback.ts"() {
     "use strict";
@@ -136770,7 +137051,7 @@ var init_creation_feedback = __esm({
     ROW_LIMIT = 5e3;
     JOIN = "\n\n";
     NOT_TEXT = /* @__PURE__ */ new Set(["frame", "group", "image", "audio", "camera", "3d", "web"]);
-    record30 = (v) => !!v && typeof v === "object" && !Array.isArray(v);
+    record31 = (v) => !!v && typeof v === "object" && !Array.isArray(v);
     str7 = (v) => typeof v === "string" ? v : "";
     truthy2 = (v) => v === true || v === "true" || v === 1 || v === "1";
     num15 = (v, fallback) => {
@@ -136824,10 +137105,10 @@ function storyText(input) {
     }
   }
   if (doc === void 0 || doc === null) return /* @__PURE__ */ new Map();
-  if (!record31(doc) || !Array.isArray(doc.stories)) return null;
+  if (!record32(doc) || !Array.isArray(doc.stories)) return null;
   const out = /* @__PURE__ */ new Map();
   for (const story of doc.stories) {
-    if (!record31(story) || typeof story.source !== "string" || !Array.isArray(story.frameIds)) continue;
+    if (!record32(story) || typeof story.source !== "string" || !Array.isArray(story.frameIds)) continue;
     const first = story.frameIds.find((id3) => typeof id3 === "string");
     if (first) out.set(first, story.source.replace(/￼/g, ""));
   }
@@ -136835,7 +137116,7 @@ function storyText(input) {
 }
 function paintOf3(value2, resolve8) {
   let raw = str8(value2).trim();
-  if (!raw && record31(value2) && typeof value2.ref === "string") raw = value2.ref;
+  if (!raw && record32(value2) && typeof value2.ref === "string") raw = value2.ref;
   if (!raw || raw.length > MAX_PAINT_LENGTH) return null;
   if (/^\{[^{}]+\}$/.test(raw)) {
     const resolved2 = resolve8?.(raw);
@@ -136930,7 +137211,7 @@ function accentOf(panel, strip, stripRadius) {
 function designForensicPages(boxes2, opts = {}) {
   const refs = /* @__PURE__ */ new WeakMap();
   const coverage = [];
-  const rows2 = Array.isArray(boxes2) ? boxes2.filter(record31) : [];
+  const rows2 = Array.isArray(boxes2) ? boxes2.filter(record32) : [];
   if (!Array.isArray(boxes2)) {
     coverage.push({
       collector: "pages",
@@ -137117,7 +137398,7 @@ function designForensicPages(boxes2, opts = {}) {
   }
   return { pages, artboardIds, refs, coverage };
 }
-var DESIGN_TEXT_DEFAULTS, GLYPH_WIDTH, LINE_CONFIDENCE, TEXT_ONLY_CONFIDENCE, EDGE_TOLERANCE, STRIP_SHARE, PAGE_LIMIT, LINE_LIMIT, SHAPE_LIMIT, TEXT_LIMIT, NOT_DRAWN, record31, clamp7, str8, truthy3, MAX_PAINT_LENGTH, saturated, union2;
+var DESIGN_TEXT_DEFAULTS, GLYPH_WIDTH, LINE_CONFIDENCE, TEXT_ONLY_CONFIDENCE, EDGE_TOLERANCE, STRIP_SHARE, PAGE_LIMIT, LINE_LIMIT, SHAPE_LIMIT, TEXT_LIMIT, NOT_DRAWN, record32, clamp7, str8, truthy3, MAX_PAINT_LENGTH, saturated, union2;
 var init_design = __esm({
   "engine/src/forensic/design.ts"() {
     "use strict";
@@ -137141,7 +137422,7 @@ var init_design = __esm({
     SHAPE_LIMIT = 1e3;
     TEXT_LIMIT = 65536;
     NOT_DRAWN = /* @__PURE__ */ new Set(["frame", "audio", "camera", "3d", "web"]);
-    record31 = (v) => !!v && typeof v === "object" && !Array.isArray(v);
+    record32 = (v) => !!v && typeof v === "object" && !Array.isArray(v);
     clamp7 = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
     str8 = (v) => typeof v === "string" ? v : "";
     truthy3 = (v) => v === true || v === "true" || v === 1 || v === "1";
@@ -137748,10 +138029,10 @@ function designLayerLookup(boxes2) {
   if (!Array.isArray(boxes2)) return out;
   const frames = /* @__PURE__ */ new Map();
   for (const row of boxes2)
-    if (record32(row) && row.kind === "frame" && typeof row.id === "string" && !frames.has(row.id))
+    if (record33(row) && row.kind === "frame" && typeof row.id === "string" && !frames.has(row.id))
       frames.set(row.id, { x: finite4(row.x), y: finite4(row.y) });
   boxes2.forEach((row, index2) => {
-    if (!record32(row) || typeof row.id !== "string" || !row.id || out.has(row.id)) return;
+    if (!record33(row) || typeof row.id !== "string" || !row.id || out.has(row.id)) return;
     const frameId = row.kind === "frame" ? row.id : typeof row.frame === "string" ? row.frame : "";
     const origin = frames.get(frameId);
     out.set(row.id, {
@@ -137987,13 +138268,13 @@ async function verifyDesignDocument(boxes2, opts = {}) {
     coverage: report4.coverage
   };
 }
-var record32, finite4, placeOf, BRAND_FIELD_WORDS, WRITING_SCORE_CODE;
+var record33, finite4, placeOf, BRAND_FIELD_WORDS, WRITING_SCORE_CODE;
 var init_design_check = __esm({
   "engine/src/design-check.ts"() {
     "use strict";
     init_design();
     init_report();
-    record32 = (v) => !!v && typeof v === "object" && !Array.isArray(v);
+    record33 = (v) => !!v && typeof v === "object" && !Array.isArray(v);
     finite4 = (v, fallback = 0) => {
       const n7 = typeof v === "string" && v.trim() !== "" ? Number(v) : v;
       return typeof n7 === "number" && Number.isFinite(n7) ? n7 : fallback;
@@ -138072,9 +138353,9 @@ function storiesOf2(input) {
       return out;
     }
   }
-  if (!record33(doc) || !Array.isArray(doc.stories)) return out;
+  if (!record34(doc) || !Array.isArray(doc.stories)) return out;
   for (const story of doc.stories)
-    if (record33(story) && typeof story.source === "string" && Array.isArray(story.frameIds)) {
+    if (record34(story) && typeof story.source === "string" && Array.isArray(story.frameIds)) {
       const first = story.frameIds.find((id3) => typeof id3 === "string");
       if (first) out.set(first, story.source.replace(/￼/g, ""));
     }
@@ -138133,7 +138414,7 @@ function makeArtboard(id3, name, lines, notes) {
   };
 }
 function resultArtboards(boxes2, textDocument2) {
-  const rows2 = Array.isArray(boxes2) ? boxes2.filter(record33) : [];
+  const rows2 = Array.isArray(boxes2) ? boxes2.filter(record34) : [];
   const stories = storiesOf2(textDocument2);
   const indexed = rows2.map((row, index2) => ({ row, index: index2 }));
   const frames = indexed.filter((r5) => r5.row.kind === "frame" && str9(r5.row.id)).sort(
@@ -138380,7 +138661,7 @@ function matchElsewhere(s, boards, own4, work) {
   return { state: "missing" };
 }
 function parseFidelityEdits(value2) {
-  const list4 = Array.isArray(value2) ? value2 : record33(value2) && Array.isArray(value2.edits) ? value2.edits : null;
+  const list4 = Array.isArray(value2) ? value2 : record34(value2) && Array.isArray(value2.edits) ? value2.edits : null;
   if (!list4)
     return { edits: [], problems: ['Edits are a JSON array of { "source", "result", "reason" }, or an object with that array under "edits".'] };
   const problems = [];
@@ -138388,7 +138669,7 @@ function parseFidelityEdits(value2) {
   const edits = [];
   list4.slice(0, FIDELITY_MAX_EDITS).forEach((item2, i) => {
     const where = `Edit ${i + 1}`;
-    if (!record33(item2)) {
+    if (!record34(item2)) {
       problems.push(`${where} is not an object.`);
       return;
     }
@@ -138669,9 +138950,9 @@ function checkFidelity(inventory2, boxes2, opts = {}) {
   };
 }
 function boardIndex(boxes2, id3) {
-  return Array.isArray(boxes2) ? boxes2.findIndex((row) => record33(row) && row.kind === "frame" && row.id === id3) : -1;
+  return Array.isArray(boxes2) ? boxes2.findIndex((row) => record34(row) && row.kind === "frame" && row.id === id3) : -1;
 }
-var FIDELITY_IGNORED_CLASSES, FIDELITY_IGNORED_ROLES, FIDELITY_EDIT_SIMILARITY, FIDELITY_MAX_SOURCE_STRINGS, FIDELITY_MAX_RESULT_LINES, MAX_RESULT_CHARS, MAX_MATCH_WORK, FIDELITY_MAX_EDITS, MAX_EDIT_TEXT, record33, str9, truthy4, finite5, wordsIn, wordsOf2, meaningful, containsPhrase, wordsPresent, SEQUENCE_GAP_LINES, sameWords, slideRef, boardRef;
+var FIDELITY_IGNORED_CLASSES, FIDELITY_IGNORED_ROLES, FIDELITY_EDIT_SIMILARITY, FIDELITY_MAX_SOURCE_STRINGS, FIDELITY_MAX_RESULT_LINES, MAX_RESULT_CHARS, MAX_MATCH_WORK, FIDELITY_MAX_EDITS, MAX_EDIT_TEXT, record34, str9, truthy4, finite5, wordsIn, wordsOf2, meaningful, containsPhrase, wordsPresent, SEQUENCE_GAP_LINES, sameWords, slideRef, boardRef;
 var init_check_fidelity = __esm({
   "engine/src/check-fidelity.ts"() {
     "use strict";
@@ -138694,7 +138975,7 @@ var init_check_fidelity = __esm({
     MAX_MATCH_WORK = 2e7;
     FIDELITY_MAX_EDITS = 2e3;
     MAX_EDIT_TEXT = 4e3;
-    record33 = (v) => !!v && typeof v === "object" && !Array.isArray(v);
+    record34 = (v) => !!v && typeof v === "object" && !Array.isArray(v);
     str9 = (v) => typeof v === "string" ? v : "";
     truthy4 = (v) => v === true || v === "true" || v === 1 || v === "1";
     finite5 = (v, fallback = 0) => {
@@ -142549,7 +142830,7 @@ function firstPassSource(system) {
   const known3 = themeSourceOf(system);
   if (known3) return known3;
   const carried = system.themeSource;
-  if (carried) return { colors: carried.colors, ...carried.darkColors ? { darkColors: carried.darkColors } : {}, master: system.master };
+  if (carried) return { colors: carried.colors, ...carried.darkColors ? { darkColors: carried.darkColors } : {}, ...carried.themeAccents?.length ? { themeAccents: carried.themeAccents } : {}, master: system.master };
   const colors = {};
   for (const swatch of system.swatches) colors[swatch.path] = swatch.hex;
   return { colors, master: system.master };
@@ -143374,7 +143655,7 @@ function themesAt(value2, pointer2) {
 }
 function furnitureAt(value2, pointer2) {
   if (value2 === void 0) return { omit: [] };
-  if (!record34(value2)) throw new Error(`${pointer2}: expected { omit, footer, logo }.`);
+  if (!record35(value2)) throw new Error(`${pointer2}: expected { omit, footer, logo }.`);
   checkKeys(value2, FURNITURE_KEYS, pointer2, "furniture");
   const omit = value2.omit === void 0 ? [] : value2.omit;
   if (!Array.isArray(omit) || omit.some((o) => typeof o !== "string" || !o)) throw new Error(`${pointer2}/omit: expected a list of furniture ids or kinds.`);
@@ -143387,7 +143668,7 @@ function underPhotoShare(list4, size) {
   if (!Array.isArray(list4)) return 0;
   let best = 0;
   for (const row of list4) {
-    if (!record34(row) || row.kind !== "image" && (row.kind !== void 0 || typeof row.image !== "string")) continue;
+    if (!record35(row) || row.kind !== "image" && (row.kind !== void 0 || typeof row.image !== "string")) continue;
     const [x, y, w, h] = ["x", "y", "w", "h"].map((k) => Number(row[k]));
     if (![x, y, w, h].every((n7) => Number.isFinite(n7)) || !(w > 0) || !(h > 0)) continue;
     const across = Math.max(0, Math.min(size.width, x + w) - Math.max(0, x));
@@ -143398,7 +143679,7 @@ function underPhotoShare(list4, size) {
 }
 function sizeOf(spec) {
   if (spec.size === void 0) return { width: DEFAULT_WIDTH, height: DEFAULT_HEIGHT };
-  if (!record34(spec.size)) throw new Error("/size: expected { width, height } in px.");
+  if (!record35(spec.size)) throw new Error("/size: expected { width, height } in px.");
   checkKeys(spec.size, /* @__PURE__ */ new Set(["width", "height"]), "/size", "size");
   const width = Math.round(numberAt2(spec.size.width, "/size/width"));
   const height = Math.round(numberAt2(spec.size.height, "/size/height"));
@@ -143550,12 +143831,12 @@ function hex6(value2) {
   return m2?.[1] ? `#${m2[1].toLowerCase()}` : null;
 }
 function boldBreaksRules(brief2, role) {
-  const rules = record34(brief2) && Array.isArray(brief2.houseRules) ? brief2.houseRules : [];
+  const rules = record35(brief2) && Array.isArray(brief2.houseRules) ? brief2.houseRules : [];
   for (const rule of rules) {
-    if (!record34(rule) || rule.kind !== "text-weight") continue;
-    const scope2 = record34(rule.scope) && Array.isArray(rule.scope.tools) ? rule.scope.tools : null;
+    if (!record35(rule) || rule.kind !== "text-weight") continue;
+    const scope2 = record35(rule.scope) && Array.isArray(rule.scope.tools) ? rule.scope.tools : null;
     if (scope2 && !scope2.includes("design")) continue;
-    const p = record34(rule.parameters) ? rule.parameters : {};
+    const p = record35(rule.parameters) ? rule.parameters : {};
     const allowed = strings3(p.weights).map(String);
     if (!allowed.length || allowed.includes("700")) continue;
     if (strings3(p.exemptRoles).includes(role)) continue;
@@ -143567,16 +143848,16 @@ function boldBreaksRules(brief2, role) {
   return null;
 }
 function accentInk(brief2, ground, ink) {
-  if (!record34(brief2)) return null;
+  if (!record35(brief2)) return null;
   const dark = bgIsDark(ground);
-  const themes = Array.isArray(brief2.themes) ? brief2.themes.filter(record34) : [];
+  const themes = Array.isArray(brief2.themes) ? brief2.themes.filter(record35) : [];
   const theme = themes.find((t) => t.name === (dark ? "dark" : "light")) ?? themes.find((t) => typeof t.name === "string" && /dark/i.test(t.name) === dark) ?? themes[0];
-  const semantic = theme && record34(theme.semantic) ? theme.semantic : {};
-  const combos = record34(brief2.combinations) ? brief2.combinations : {};
-  const pairs2 = Array.isArray(combos.pairs) ? combos.pairs.filter(record34) : [];
+  const semantic = theme && record35(theme.semantic) ? theme.semantic : {};
+  const combos = record35(brief2.combinations) ? brief2.combinations : {};
+  const pairs2 = Array.isArray(combos.pairs) ? combos.pairs.filter(record35) : [];
   const declared = combos.from === "declared";
-  const pair = declared ? pairs2.find((one) => record34(one.background) && hex6(one.background.value) === ground) : void 0;
-  const pairInks = pair && Array.isArray(pair.text) ? pair.text.filter(record34).map((t) => hex6(t.value)).filter((h) => !!h) : [];
+  const pair = declared ? pairs2.find((one) => record35(one.background) && hex6(one.background.value) === ground) : void 0;
+  const pairInks = pair && Array.isArray(pair.text) ? pair.text.filter(record35).map((t) => hex6(t.value)).filter((h) => !!h) : [];
   const chroma = (hex4) => hexToOklch(hex4)?.c ?? 0;
   const candidates2 = [
     ...["accent", "secondary", "primary"].map((slot) => hex6(semantic[slot])),
@@ -143671,11 +143952,11 @@ function designTextOfInventory(paragraphs2, rowWeight, emphasis = { mode: "bold"
 }
 function composeDesignSlides(spec, ctx) {
   const raw = spec;
-  if (!record34(raw)) throw new Error("/: a compose spec is an object with a slides array.");
+  if (!record35(raw)) throw new Error("/: a compose spec is an object with a slides array.");
   checkKeys(raw, SPEC_KEYS, "", "spec");
   if (!Array.isArray(raw.slides) || raw.slides.length === 0) throw new Error("/slides: a compose spec needs at least one slide.");
   if (raw.slides.length > MAX_SLIDES2) throw new Error(`/slides: ${raw.slides.length} slides is more than the cap of ${MAX_SLIDES2}.`);
-  if (!ctx || !record34(ctx.master) || !Array.isArray(ctx.master.archetypes)) throw new Error("/: no slide master to compose from.");
+  if (!ctx || !record35(ctx.master) || !Array.isArray(ctx.master.archetypes)) throw new Error("/: no slide master to compose from.");
   if (!["flag", "catalog", "neutral"].includes(ctx.masterOrigin)) throw new Error(`/: unknown master origin "${String(ctx.masterOrigin)}".`);
   const size = sizeOf(raw);
   const theme = groundAt(raw.theme, "/theme") ?? "light";
@@ -143693,7 +143974,7 @@ function composeDesignSlides(spec, ctx) {
   const styles = {};
   for (const [id3, style] of Object.entries(ctx.styles ?? {})) styles[id3] = assertTextStyle(style, `(styles)/${seg4(id3)}`);
   if (raw.$styles !== void 0) {
-    if (!record34(raw.$styles)) throw new Error("/$styles: expected an object of named text styles.");
+    if (!record35(raw.$styles)) throw new Error("/$styles: expected an object of named text styles.");
     for (const [id3, style] of Object.entries(raw.$styles)) styles[id3] = assertTextStyle(style, `/$styles/${seg4(id3)}`);
   }
   const tokenSet = ctx.tokens ?? null;
@@ -143704,14 +143985,14 @@ function composeDesignSlides(spec, ctx) {
   const follow2 = followsTheme && tokenSet ? themeFollowOf(tokenSet, themeNames ?? [], ctx.themeTokens, ctx.resolveToken) : null;
   const inventory2 = ctx.inventory ?? null;
   const brief2 = ctx.brief ?? null;
-  const briefThemes = record34(brief2) && Array.isArray(brief2.themes) ? new Set(brief2.themes.filter(record34).map((t) => t.name).filter((n7) => typeof n7 === "string")) : /* @__PURE__ */ new Set();
+  const briefThemes = record35(brief2) && Array.isArray(brief2.themes) ? new Set(brief2.themes.filter(record35).map((t) => t.name).filter((n7) => typeof n7 === "string")) : /* @__PURE__ */ new Set();
   const briefTheme = (ground) => briefThemes.has(ground) ? ground : void 0;
   const tables = /* @__PURE__ */ new Map();
   const styleTable = (ground) => {
     const key2 = briefTheme(ground) ?? "";
     const hit = tables.get(key2);
     if (hit) return hit;
-    const base = textStylesFromBrief(record34(brief2) ? brief2 : null, { width: size.width, height: size.height, theme: briefTheme(ground) });
+    const base = textStylesFromBrief(record35(brief2) ? brief2 : null, { width: size.width, height: size.height, theme: briefTheme(ground) });
     const table = { ...base };
     for (const [id3, style] of Object.entries(styles)) table[id3] = base[id3] && style.basedOn === void 0 ? { ...base[id3], ...style } : style;
     tables.set(key2, table);
@@ -143752,7 +144033,7 @@ function composeDesignSlides(spec, ctx) {
   };
   raw.slides.forEach((slideValue, index2) => {
     const p = `/slides/${index2}`;
-    if (!record34(slideValue)) throw new Error(`${p}: expected a slide object with an archetype.`);
+    if (!record35(slideValue)) throw new Error(`${p}: expected a slide object with an archetype.`);
     const slide = slideValue;
     checkKeys(slide, SLIDE_KEYS, p, "slide");
     if (typeof slide.archetype !== "string" || !slide.archetype) throw new Error(`${p}/archetype: an archetype id is required.`);
@@ -143847,7 +144128,7 @@ function composeDesignSlides(spec, ctx) {
     const keysOf = () => [...slotRows2.keys()].join(", ");
     const assigned = /* @__PURE__ */ new Map();
     if (slide.slots !== void 0) {
-      if (!record34(slide.slots)) throw new Error(`${p}/slots: expected slot content by slot key.`);
+      if (!record35(slide.slots)) throw new Error(`${p}/slots: expected slot content by slot key.`);
       for (const [key2, value2] of Object.entries(slide.slots)) {
         const at = `${p}/slots/${seg4(key2)}`;
         const parsed = slotKeyOf(key2);
@@ -143867,7 +144148,7 @@ function composeDesignSlides(spec, ctx) {
       }
       slide.cells.forEach((cell2, k) => {
         const cp = `${p}/cells/${k}`;
-        if (!record34(cell2)) throw new Error(`${cp}: expected a cell keyed by role.`);
+        if (!record35(cell2)) throw new Error(`${cp}: expected a cell keyed by role.`);
         const rows2 = cells[k].layerIds.map((id3) => seeded.layers.find((l) => l.id === id3)).filter((l) => !!l);
         for (const [key2, value2] of Object.entries(cell2)) {
           const at = `${cp}/${seg4(key2)}`;
@@ -143938,7 +144219,7 @@ function composeDesignSlides(spec, ctx) {
         row.lineHeight = lineHeightFor(String(row.role ?? "body"));
       }
       const given2 = assigned.get(row);
-      if (given2 && record34(given2.value) && given2.value.$table !== void 0) {
+      if (given2 && record35(given2.value) && given2.value.$table !== void 0) {
         slotTables.push(slotTableRow(row, given2.value, given2.pointer, origin, archetype, frameId));
         filled2.push(key2);
         continue;
@@ -143958,7 +144239,7 @@ function composeDesignSlides(spec, ctx) {
         literals,
         ...follow2 ? { themeAccent: (slot) => themeAccentFor(follow2, slot, frame, seeded.layers) } : {}
       };
-      if (!given2 || !fillSlot(row, given2.value, given2.pointer, fx)) {
+      if (!given2 || !fillSlot2(row, given2.value, given2.pointer, fx)) {
         dropped.push(key2);
         continue;
       }
@@ -144023,7 +144304,7 @@ function composeDesignSlides(spec, ctx) {
         const id3 = row.id;
         const auto = new RegExp(`^${frameId.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\.${key2}-(\\d+)$`).exec(id3);
         const n7 = auto ? Number(auto[1]) - 1 : -1;
-        const k = n7 >= 0 && record34(given2[n7]) && given2[n7].id === void 0 ? n7 : given2.findIndex((g2) => record34(g2) && g2.id === row.id);
+        const k = n7 >= 0 && record35(given2[n7]) && given2[n7].id === void 0 ? n7 : given2.findIndex((g2) => record35(g2) && g2.id === row.id);
         const pointer2 = k >= 0 ? `${p}/${key2}/${k}` : `${p}/${key2}`;
         const taker = takenBy.get(id3);
         if (taker) throw new Error(`${pointer2}: layer "${id3}" is already the id of ${taker.what} (${taker.pointer}); give this row another id.`);
@@ -144112,9 +144393,9 @@ function luminanceOf(hex4) {
 }
 function photoLegalMarks(brief2, logos, picked) {
   const own4 = [picked, logos.monoOnDark, logos.onDark, logos.onLight, logos.monoOnLight].filter((v) => typeof v === "string" && !!v);
-  const rules = record34(brief2) && record34(brief2.logos) && Array.isArray(brief2.logos.rules) ? brief2.logos.rules.filter(record34) : [];
+  const rules = record35(brief2) && record35(brief2.logos) && Array.isArray(brief2.logos.rules) ? brief2.logos.rules.filter(record35) : [];
   const listed = rules.flatMap((r5) => {
-    const params2 = record34(r5.parameters) ? r5.parameters : {};
+    const params2 = record35(r5.parameters) ? r5.parameters : {};
     return strings3(params2.photo).length ? strings3(params2.photo) : strings3(params2.dark);
   });
   if (!listed.length) return [...new Set(own4)];
@@ -144185,7 +144466,7 @@ function groundUnder2(row, frame, layers) {
   }
   return ground;
 }
-function fillSlot(row, value2, pointer2, fx) {
+function fillSlot2(row, value2, pointer2, fx) {
   const image = row.kind === "image";
   if (value2 === null || value2 === "") return false;
   if (typeof value2 === "string") {
@@ -144196,7 +144477,7 @@ function fillSlot(row, value2, pointer2, fx) {
     }
     return true;
   }
-  if (!record34(value2)) throw new Error(`${pointer2}: expected ${image ? "a picture reference" : "Design text"}, null, or an object with ${image ? "image" : "text"} or from.`);
+  if (!record35(value2)) throw new Error(`${pointer2}: expected ${image ? "a picture reference" : "Design text"}, null, or an object with ${image ? "image" : "text"} or from.`);
   for (const key2 of Object.keys(value2)) {
     if (RESERVED2.has(key2)) throw new Error(`${pointer2}/${seg4(key2)}: "${key2}" belongs to the master binding and cannot be set on a slot.`);
     if (key2.startsWith("$") && key2 !== "$style") throw new Error(`${pointer2}/${seg4(key2)}: unknown key; a slot takes $style and Design row fields.`);
@@ -144224,7 +144505,7 @@ function fillSlot(row, value2, pointer2, fx) {
   let italic = false;
   if (value2.$style !== void 0) {
     const ref2 = value2.$style;
-    if (typeof ref2 !== "string" && !record34(ref2)) throw new Error(`${pointer2}/$style: expected a text style id or a style object.`);
+    if (typeof ref2 !== "string" && !record35(ref2)) throw new Error(`${pointer2}/$style: expected a text style id or a style object.`);
     const style = resolveTextStyle(ref2, fx.table(), `${pointer2}/$style`);
     for (const key2 of STYLE_ROW_FIELDS2) if (style[key2] !== void 0) row[key2] = style[key2];
     if (typeof row.weight === "number") row.weight = String(row.weight);
@@ -144450,7 +144731,7 @@ function slotTableRow(row, value2, pointer2, origin, archetype, frameId) {
     if (key2 !== "$table") throw new Error(`${pointer2}/${seg4(key2)}: a table slot given a $table takes nothing else; style its rows in the $table's templates.`);
   }
   const macro = value2.$table;
-  if (!record34(macro)) throw new Error(`${pointer2}/$table: expected a $table object (pitch, columns, rows).`);
+  if (!record35(macro)) throw new Error(`${pointer2}/$table: expected a $table object (pitch, columns, rows).`);
   const at = (k) => (k === "x" ? Number(row.x) - origin.x : Number(row.y) - origin.y) + (macro[k] === void 0 ? 0 : numberAt2(macro[k], `${pointer2}/$table/${k}`));
   return { row: { id: row.id, $in: frameId, $table: { ...macro, x: at("x"), y: at("y") } }, pointer: pointer2 };
 }
@@ -144459,7 +144740,7 @@ function lowerExtras(list4, key2, p, frameId, opts) {
   if (!Array.isArray(list4)) throw new Error(`${p}/${key2}: expected a list of Design rows.`);
   const rows2 = list4.map((row, k) => {
     const at = `${p}/${key2}/${k}`;
-    if (!record34(row)) throw new Error(`${at}: expected a Design row.`);
+    if (!record35(row)) throw new Error(`${at}: expected a Design row.`);
     if (row.kind === "frame" || row.$artboard !== void 0) throw new Error(`${at}: a slide's ${key2} rows sit on the slide; an artboard belongs in the slides list.`);
     if (row.$in !== void 0 && row.$in !== frameId) throw new Error(`${at}/$in: ${key2} rows belong to this slide ("${frameId}"); leave $in out.`);
     for (const reserved of ["master", "archetype", "furniture", "order"]) {
@@ -144735,7 +145016,7 @@ function composeArchetypeCatalog(master) {
     return entry2;
   });
 }
-var DEFAULT_WIDTH, DEFAULT_HEIGHT, DEFAULT_GAP, MAX_SLIDES2, MAX_SIDE, PER_ROW, SPEC_KEYS, SLIDE_KEYS, FURNITURE_KEYS, RESERVED2, CONTENT_KEYS, EMPHASIS_MODES, CASE_MODES, HEADLINE_SLOT_ROLES, HEADLINE_RULE_ROLES, PHOTO_COVER, ACCENT_CONTRAST, FURNITURE_KINDS2, COUNTER, REWORDED, STYLE_ROW_FIELDS2, record34, seg4, plural3, strings3, luminanceContrast, LARGE_TEXT_ROLES, NOTES_EMPTY_LINE, COMPOSE_COLOUR_FIELDS, SURFACE_TOKENS, INK_TOKENS, ACCENT_TOKENS, THEME_INK_CONTRAST, varies;
+var DEFAULT_WIDTH, DEFAULT_HEIGHT, DEFAULT_GAP, MAX_SLIDES2, MAX_SIDE, PER_ROW, SPEC_KEYS, SLIDE_KEYS, FURNITURE_KEYS, RESERVED2, CONTENT_KEYS, EMPHASIS_MODES, CASE_MODES, HEADLINE_SLOT_ROLES, HEADLINE_RULE_ROLES, PHOTO_COVER, ACCENT_CONTRAST, FURNITURE_KINDS2, COUNTER, REWORDED, STYLE_ROW_FIELDS2, record35, seg4, plural3, strings3, luminanceContrast, LARGE_TEXT_ROLES, NOTES_EMPTY_LINE, COMPOSE_COLOUR_FIELDS, SURFACE_TOKENS, INK_TOKENS, ACCENT_TOKENS, THEME_INK_CONTRAST, varies;
 var init_design_compose = __esm({
   "engine/src/design-compose.ts"() {
     "use strict";
@@ -144776,7 +145057,7 @@ var init_design_compose = __esm({
     COUNTER = /^\s*0?\d{1,2}[.)]?\s*$/;
     REWORDED = "Reworded in the composed slides.";
     STYLE_ROW_FIELDS2 = ["fontSize", "weight", "lineHeight", "tracking", "font", "align", "valign", "pad", "fg"];
-    record34 = (v) => !!v && typeof v === "object" && !Array.isArray(v);
+    record35 = (v) => !!v && typeof v === "object" && !Array.isArray(v);
     seg4 = (key2) => String(key2).replace(/~/g, "~0").replace(/\//g, "~1");
     plural3 = (n7, one, many = `${one}s`) => `${n7} ${n7 === 1 ? one : many}`;
     strings3 = (v) => Array.isArray(v) ? v.filter((x) => typeof x === "string" && x.length > 0) : [];
@@ -148926,10 +149207,10 @@ async function proposeProductionPatch(inputs, report4, plan) {
   }
   return null;
 }
-async function verifyProductionAcceptance(record47, report4, bytes2, contract2) {
-  if (record47.authority.kind !== "local-person") throw new Error("Governed decisions require the Work authority adapter.");
-  const expected = await acceptProduction(report4, bytes2, contract2, record47.authority, record47.exceptions);
-  if (productionJson(expected) !== productionJson(record47)) throw new Error("Acceptance is stale.");
+async function verifyProductionAcceptance(record48, report4, bytes2, contract2) {
+  if (record48.authority.kind !== "local-person") throw new Error("Governed decisions require the Work authority adapter.");
+  const expected = await acceptProduction(report4, bytes2, contract2, record48.authority, record48.exceptions);
+  if (productionJson(expected) !== productionJson(record48)) throw new Error("Acceptance is stale.");
 }
 var init_repair = __esm({
   "engine/src/production/repair.ts"() {
@@ -149027,11 +149308,11 @@ var init_production = __esm({
 
 // engine/src/token-recipes.ts
 function readTokenRecipes(doc) {
-  const ext = record35(doc) && record35(doc.$extensions) ? doc.$extensions[TOKEN_EXT] : null;
-  return record35(ext) && Array.isArray(ext.recipes) ? ext.recipes.slice(0, 64).filter((r5) => record35(r5) && r5.version === 1 && ["spacing", "type", "color"].includes(String(r5.kind)) && typeof r5.id === "string" && typeof r5.prefix === "string" && Array.isArray(r5.paths) && record35(r5.outputs)).map((r5) => structuredClone(r5)) : [];
+  const ext = record36(doc) && record36(doc.$extensions) ? doc.$extensions[TOKEN_EXT] : null;
+  return record36(ext) && Array.isArray(ext.recipes) ? ext.recipes.slice(0, 64).filter((r5) => record36(r5) && r5.version === 1 && ["spacing", "type", "color"].includes(String(r5.kind)) && typeof r5.id === "string" && typeof r5.prefix === "string" && Array.isArray(r5.paths) && record36(r5.outputs)).map((r5) => structuredClone(r5)) : [];
 }
 function generateTokenRecipe(source, recipe, options2 = {}) {
-  if (!record35(source)) throw new Error("A token document is required.");
+  if (!record36(source)) throw new Error("A token document is required.");
   if (recipe.version !== 1 || !["spacing", "type", "color"].includes(recipe.kind)) throw new Error("Unknown recipe or recipe version.");
   if (!recipe.id || recipe.id.length > 128 || !Number.isInteger(recipe.count) || recipe.count < 2 || recipe.count > 32) throw new Error("Recipes need an id and between 2 and 32 steps.");
   if (!Number.isFinite(recipe.base) || recipe.base <= 0 || recipe.base > 1e4 || !Number.isFinite(recipe.ratio) || recipe.ratio < 1 || recipe.ratio > 4) throw new Error("Choose a positive base up to 10000 and a ratio from 1 to 4.");
@@ -149039,9 +149320,9 @@ function generateTokenRecipe(source, recipe, options2 = {}) {
   const sets = tokenSetNames(source);
   if (sets && (!recipe.set || !sets.includes(recipe.set))) throw new Error("Choose an existing source set for generated tokens.");
   const doc = structuredClone(source);
-  const ext = record35(doc.$extensions) ? doc.$extensions : {};
-  const vendor = record35(ext[TOKEN_EXT]) ? ext[TOKEN_EXT] : {};
-  const recipes = Array.isArray(vendor.recipes) ? vendor.recipes.filter(record35) : [];
+  const ext = record36(doc.$extensions) ? doc.$extensions : {};
+  const vendor = record36(ext[TOKEN_EXT]) ? ext[TOKEN_EXT] : {};
+  const recipes = Array.isArray(vendor.recipes) ? vendor.recipes.filter(record36) : [];
   if (recipes.length >= 64 && !recipes.some((r5) => r5.id === recipe.id)) throw new Error("This document already has 64 recipes.");
   const previous2 = recipes.find((r5) => r5.id === recipe.id);
   if (previous2 && (previous2.prefix !== recipe.prefix || previous2.set !== recipe.set || previous2.kind !== recipe.kind)) throw new Error("Keep the recipe path, set and kind stable when regenerating.");
@@ -149049,14 +149330,14 @@ function generateTokenRecipe(source, recipe, options2 = {}) {
   let root2 = sets ? doc[recipe.set] : doc;
   for (const part of prefix) {
     if (root2[part] === void 0) root2[part] = {};
-    if (!record35(root2[part]) || "$value" in root2[part]) throw new Error("The recipe path collides with an existing token.");
+    if (!record36(root2[part]) || "$value" in root2[part]) throw new Error("The recipe path collides with an existing token.");
     root2 = root2[part];
   }
   const seed = recipe.kind === "color" ? hexToOklch(recipe.seed ?? "") : null;
   if (recipe.kind === "color" && (!/^#[0-9a-f]{6}$/i.test(recipe.seed ?? "") || !seed)) throw new Error("Choose a six-digit hex colour for the ramp.");
   const paths = [];
   const outputs = {};
-  const overrides = { ...record35(previous2?.overrides) ? previous2.overrides : {}, ...recipe.overrides };
+  const overrides = { ...record36(previous2?.overrides) ? previous2.overrides : {}, ...recipe.overrides };
   const clear = new Set(options2.clearOverrides ?? []);
   if (clear.size > 32 || [...clear].some((path) => !Array.isArray(previous2?.paths) || !previous2.paths.includes(path))) throw new Error("Only existing recipe outputs can restore their generated value.");
   for (const path of clear) delete overrides[path];
@@ -149066,8 +149347,8 @@ function generateTokenRecipe(source, recipe, options2 = {}) {
     const step = Math.round((recipe.kind === "spacing" ? recipe.base * i : recipe.base * recipe.ratio ** i) * 1e4) / 1e4;
     if (step > 1e6) throw new Error("The generated scale exceeds the supported size.");
     const value2 = recipe.kind === "color" ? oklchToHex(mixOklch(i < (recipe.count - 1) / 2 ? { l: 1, c: 0, h: seed.h } : seed, i < (recipe.count - 1) / 2 ? seed : { l: 0, c: 0, h: seed.h }, i < (recipe.count - 1) / 2 ? i / ((recipe.count - 1) / 2) : (i - (recipe.count - 1) / 2) / ((recipe.count - 1) / 2))) : { value: step, unit: "px" };
-    const current = record35(root2[key2]) ? root2[key2] : null;
-    if (!clear.has(path) && current && record35(previous2?.outputs) && canonicalJson(current.$value) !== canonicalJson(previous2.outputs[path])) overrides[path] = current.$value;
+    const current = record36(root2[key2]) ? root2[key2] : null;
+    if (!clear.has(path) && current && record36(previous2?.outputs) && canonicalJson(current.$value) !== canonicalJson(previous2.outputs[path])) overrides[path] = current.$value;
     outputs[path] = value2;
     root2[key2] = { ...current ?? {}, $type: recipe.kind === "color" ? "color" : "dimension", $value: Object.hasOwn(overrides, path) ? overrides[path] : value2 };
     paths.push(path);
@@ -149075,16 +149356,16 @@ function generateTokenRecipe(source, recipe, options2 = {}) {
   if (Array.isArray(previous2?.paths)) {
     for (const path of previous2.paths) if (typeof path === "string" && !paths.includes(path)) {
       const key2 = path.split(".").at(-1), current = root2[key2];
-      if (!clear.has(path) && record35(current) && record35(previous2.outputs) && canonicalJson(current.$value) !== canonicalJson(previous2.outputs[path])) overrides[path] = current.$value;
+      if (!clear.has(path) && record36(current) && record36(previous2.outputs) && canonicalJson(current.$value) !== canonicalJson(previous2.outputs[path])) overrides[path] = current.$value;
       if (!Object.hasOwn(overrides, path)) delete root2[key2];
     }
   }
   const retained = Array.isArray(previous2?.paths) ? previous2.paths.filter((path) => typeof path === "string" && !paths.includes(path) && Object.hasOwn(overrides, path)) : [];
-  for (const path of retained) if (record35(previous2?.outputs)) outputs[path] = previous2.outputs[path];
+  for (const path of retained) if (record36(previous2?.outputs)) outputs[path] = previous2.outputs[path];
   doc.$extensions = { ...ext, [TOKEN_EXT]: { ...vendor, recipes: [...recipes.filter((r5) => r5.id !== recipe.id), { ...structuredClone(recipe), paths: [...paths, ...retained], outputs, overrides }] } };
   return doc;
 }
-var record35, safePath;
+var record36, safePath;
 var init_token_recipes = __esm({
   "engine/src/token-recipes.ts"() {
     "use strict";
@@ -149092,7 +149373,7 @@ var init_token_recipes = __esm({
     init_token_ext();
     init_token_selection();
     init_canonical_json();
-    record35 = (v) => !!v && typeof v === "object" && !Array.isArray(v);
+    record36 = (v) => !!v && typeof v === "object" && !Array.isArray(v);
     safePath = (path) => {
       const parts = path.split(".");
       if (!parts.length || parts.length > 16 || parts.some((p) => !/^[a-zA-Z0-9_-]+$/.test(p) || ["__proto__", "constructor", "prototype"].includes(p))) throw new Error("Use a dotted token path with letters, numbers, hyphens or underscores.");
@@ -149103,7 +149384,7 @@ var init_token_recipes = __esm({
 
 // engine/src/token-merge.ts
 function mergeTokenDocuments(base, local2, incoming) {
-  if (![base, local2, incoming].every(record36)) throw new Error("Base, local and incoming token documents must be objects.");
+  if (![base, local2, incoming].every(record37)) throw new Error("Base, local and incoming token documents must be objects.");
   for (const source of [base, local2, incoming]) {
     let inspected = 0;
     const stack = [{ value: source, depth: 0 }];
@@ -149119,9 +149400,9 @@ function mergeTokenDocuments(base, local2, incoming) {
     if (++nodes > 2e4 || depth > 48) throw new Error("The source merge exceeded its scan limit.");
     if (equal(l, n7) || equal(b, n7)) return structuredClone(l);
     if (equal(b, l)) return structuredClone(n7);
-    if (record36(l) && record36(n7) && (!b || record36(b)) && !("$value" in l) && !("$value" in n7)) {
-      return Object.fromEntries([.../* @__PURE__ */ new Set([...Object.keys(record36(b) ? b : {}), ...Object.keys(l), ...Object.keys(n7)])].flatMap((k) => {
-        const value2 = merge(record36(b) ? b[k] : void 0, l[k], n7[k], `${location4}/${k.replaceAll("~", "~0").replaceAll("/", "~1")}`, depth + 1);
+    if (record37(l) && record37(n7) && (!b || record37(b)) && !("$value" in l) && !("$value" in n7)) {
+      return Object.fromEntries([.../* @__PURE__ */ new Set([...Object.keys(record37(b) ? b : {}), ...Object.keys(l), ...Object.keys(n7)])].flatMap((k) => {
+        const value2 = merge(record37(b) ? b[k] : void 0, l[k], n7[k], `${location4}/${k.replaceAll("~", "~0").replaceAll("/", "~1")}`, depth + 1);
         return value2 === void 0 ? [] : [[k, value2]];
       }));
     }
@@ -149130,13 +149411,13 @@ function mergeTokenDocuments(base, local2, incoming) {
   }
   return { document: merge(base, local2, incoming, "", 0), conflicts };
 }
-var record36, equal;
+var record37, equal;
 var init_token_merge = __esm({
   "engine/src/token-merge.ts"() {
     "use strict";
-    record36 = (v) => !!v && typeof v === "object" && !Array.isArray(v);
+    record37 = (v) => !!v && typeof v === "object" && !Array.isArray(v);
     equal = (a, b) => {
-      if (record36(a) && record36(b)) return Object.keys(a).length === Object.keys(b).length && Object.keys(a).every((k) => Object.hasOwn(b, k) && equal(a[k], b[k]));
+      if (record37(a) && record37(b)) return Object.keys(a).length === Object.keys(b).length && Object.keys(a).every((k) => Object.hasOwn(b, k) && equal(a[k], b[k]));
       return JSON.stringify(a) === JSON.stringify(b);
     };
   }
@@ -149663,28 +149944,28 @@ function supportedValue(type, value2) {
   if (type === "dimension" || type === "duration") {
     const units2 = type === "duration" ? ["ms", "s"] : ["px", "rem", "em", "%", "vh", "vw", "mm", "cm", "in", "pt", "pc"];
     const match = typeof value2 === "string" ? /^([+-]?(?:\d+(?:\.\d*)?|\.\d+))([a-z%]+)$/.exec(value2.trim()) : null;
-    const number11 = match ? Number(match[1]) : record37(value2) ? value2.value : null;
-    const unit2 = match ? match[2] : record37(value2) ? value2.unit : null;
+    const number11 = match ? Number(match[1]) : record38(value2) ? value2.value : null;
+    const unit2 = match ? match[2] : record38(value2) ? value2.unit : null;
     return finite9(number11) && typeof unit2 === "string" && units2.includes(unit2) && (type !== "duration" || number11 >= 0);
   }
   if (type === "cubicBezier") return Array.isArray(value2) && value2.length === 4 && value2.every(finite9) && value2[0] >= 0 && value2[0] <= 1 && value2[2] >= 0 && value2[2] <= 1;
   if (type === "gradient") return Array.isArray(value2) && value2.length >= 2 && value2.length <= 32 && value2.every((v) => supportedValue("gradientStop", v));
   if (type === "shadow" && Array.isArray(value2)) return !!value2.length && value2.length <= 32 && value2.every((v) => supportedValue("shadow", v));
-  if (type === "strokeStyle") return typeof value2 === "string" && ["solid", "dashed", "dotted", "double", "groove", "ridge", "outset", "inset"].includes(value2) || record37(value2) && Array.isArray(value2.dashArray) && value2.dashArray.every((v) => supportedValue("dimension", v)) && ["butt", "round", "square"].includes(String(value2.lineCap));
+  if (type === "strokeStyle") return typeof value2 === "string" && ["solid", "dashed", "dotted", "double", "groove", "ridge", "outset", "inset"].includes(value2) || record38(value2) && Array.isArray(value2.dashArray) && value2.dashArray.every((v) => supportedValue("dimension", v)) && ["butt", "round", "square"].includes(String(value2.lineCap));
   const fields2 = TOKEN_COMPOSITE_FIELDS[type];
-  if (!fields2 || !record37(value2) || !Object.entries(fields2).every(([key2, expected]) => supportedValue(expected, value2[key2]))) return false;
+  if (!fields2 || !record38(value2) || !Object.entries(fields2).every(([key2, expected]) => supportedValue(expected, value2[key2]))) return false;
   if (type === "gradientStop" && typeof value2.position === "number") return value2.position >= 0 && value2.position <= 1;
   if (type === "shadow" && "inset" in value2) return typeof value2.inset === "boolean";
   return true;
 }
 function withTokenSourceValue(doc, location4, value2) {
-  if (!record37(doc)) throw new Error("A token document is required.");
+  if (!record38(doc)) throw new Error("A token document is required.");
   const keys2 = location4.split("/").slice(1).map((k) => k.replaceAll("~1", "/").replaceAll("~0", "~"));
   if (!location4.startsWith("/") || !keys2.length || keys2.length > 48 || keys2.some((k) => ["__proto__", "prototype", "constructor"].includes(k))) throw new Error("The token source location is invalid.");
   const copy = structuredClone(doc);
   let node = copy, type = copy.$type;
   for (const key2 of keys2) {
-    if (!record37(node[key2])) throw new Error("The token source was removed. Inspect the current document again.");
+    if (!record38(node[key2])) throw new Error("The token source was removed. Inspect the current document again.");
     node = node[key2];
     type = node.$type ?? type;
   }
@@ -149701,13 +149982,13 @@ function withTokenSourceValue(doc, location4, value2) {
   node.$value = structuredClone(value2);
   return copy;
 }
-var record37;
+var record38;
 var init_token_edit = __esm({
   "engine/src/token-edit.ts"() {
     "use strict";
     init_tokens2();
     init_token_composite();
-    record37 = (v) => !!v && typeof v === "object" && !Array.isArray(v);
+    record38 = (v) => !!v && typeof v === "object" && !Array.isArray(v);
   }
 });
 
@@ -153547,6 +153828,7 @@ __export(src_exports, {
   addGreenBias: () => addGreenBias,
   adler32: () => adler32,
   admitBrandSkill: () => admitBrandSkill,
+  adoptColourRoles: () => adoptColourRoles,
   aesZipEncryptEntry: () => aesZipEncryptEntry,
   aliasPath: () => aliasPath,
   analysePcm: () => analysePcm,
@@ -153742,6 +154024,7 @@ __export(src_exports, {
   colourRoleIdRefusal: () => colourRoleIdRefusal,
   colourRoleMarkOf: () => colourRoleMarkOf,
   colourRoleTable: () => colourRoleTable,
+  colourRoleThemeAccents: () => colourRoleThemeAccents,
   colourRolesBrief: () => colourRolesBrief,
   colourRolesEditable: () => colourRolesEditable,
   colourwayAxis: () => colourwayAxis,
@@ -154961,6 +155244,7 @@ __export(src_exports, {
   textStyleResolver: () => textStyleResolver,
   textStylesFromBrief: () => textStylesFromBrief,
   themePreview: () => themePreview,
+  themeSlotTokensFor: () => themeSlotTokensFor,
   themeSlotsFromColors: () => themeSlotsFromColors,
   themeSourceOf: () => themeSourceOf,
   themeSurfaceColours: () => themeSurfaceColours,
@@ -155058,6 +155342,7 @@ __export(src_exports, {
   withAutoMatchEntries: () => withAutoMatchEntries,
   withBlockTokenBinding: () => withBlockTokenBinding,
   withColourway: () => withColourway,
+  withColourwayKindRestored: () => withColourwayKindRestored,
   withDesignSystemIdentity: () => withDesignSystemIdentity,
   withGifComment: () => withGifComment,
   withOddParity: () => withOddParity,
@@ -155285,6 +155570,7 @@ var init_src2 = __esm({
     init_colour_roles();
     init_colour_roles();
     init_colour_roles();
+    init_colour_role_portable();
     init_tool_token_axes();
     init_brand_derive();
     init_brand_derive();
@@ -157397,7 +157683,7 @@ async function designFramesToPptx(opts) {
     w: Math.max(1, Math.round(first ? num18(first, "w", opts.size?.w ?? 1280) : opts.size?.w ?? 1280)),
     h: Math.max(1, Math.round(first ? num18(first, "h", opts.size?.h ?? 720) : opts.size?.h ?? 720))
   };
-  const palette = new Palette(opts.tokens, opts.cssVars);
+  const palette = new Palette(opts.tokens, opts.cssVars, opts.themeAccents);
   const ctx = {
     palette,
     fonts: opts.fonts,
@@ -157538,7 +157824,7 @@ function framesOfDesignDoc(doc) {
   }
   return frames;
 }
-var SCHEME_SLOTS, THEME_SLOT_TOKENS2, MAX_SLIDES3, MAX_LAYERS_PER_SLIDE, MAX_PICTURE_BYTES, num18, str10, bool2, emu2, TOKEN_PATH_RE, ROLE_PH_TYPE, SLD_NUM_IDX, Palette, SLOT_FILL_GROUPS, ALIGN, ANCHOR, INDENTED_LINE, Notes, addMedia, EXT_OF_MIME, BLEND_MODES2, MOTION_FIELDS, SHADOW_TARGETS, DEFAULT_TEXT_WEIGHT, DEFAULT_TEXT_HEX, DEFAULT_LINE_HEIGHT, LINE_ENDS_OF_HEADS, FOLDS_OPACITY, TURNS, MIRRORS, hidden2, MAX_FALLBACK_PX, FALLBACK_SCALE;
+var SCHEME_SLOTS, MAX_SLIDES3, MAX_LAYERS_PER_SLIDE, MAX_PICTURE_BYTES, num18, str10, bool2, emu2, TOKEN_PATH_RE, ROLE_PH_TYPE, SLD_NUM_IDX, Palette, SLOT_FILL_GROUPS, ALIGN, ANCHOR, INDENTED_LINE, Notes, addMedia, EXT_OF_MIME, BLEND_MODES2, MOTION_FIELDS, SHADOW_TARGETS, DEFAULT_TEXT_WEIGHT, DEFAULT_TEXT_HEX, DEFAULT_LINE_HEIGHT, LINE_ENDS_OF_HEADS, FOLDS_OPACITY, TURNS, MIRRORS, hidden2, MAX_FALLBACK_PX, FALLBACK_SCALE;
 var init_design_pptx = __esm({
   "packages/node-shell/src/design-pptx.ts"() {
     "use strict";
@@ -157568,7 +157854,6 @@ var init_design_pptx = __esm({
       "accent5",
       "accent6"
     ];
-    THEME_SLOT_TOKENS2 = THEME_SLOT_TOKENS;
     MAX_SLIDES3 = 500;
     MAX_LAYERS_PER_SLIDE = 1200;
     MAX_PICTURE_BYTES = 32 * 1024 * 1024;
@@ -157619,11 +157904,12 @@ var init_design_pptx = __esm({
       byPath = /* @__PURE__ */ new Map();
       tokens;
       cssVars;
-      constructor(tokens3, cssVars) {
+      constructor(tokens3, cssVars, accents) {
         this.tokens = tokens3;
         this.cssVars = cssVars;
+        const table = themeSlotTokensFor(accents);
         for (const slot of SCHEME_SLOTS) {
-          const path = THEME_SLOT_TOKENS2[slot];
+          const path = table[slot];
           if (!path) continue;
           const raw = tokens3?.(path);
           const hit = raw ? deckColor(raw, cssVars) : null;
@@ -161865,8 +162151,8 @@ function diagWarnings(slideId, painted, decoded) {
       message: `${slideId} ran past the interpreter's work budget (${budgets.join(", ")}), so content after that point is missing.`
     });
   }
-  const refused = [...new Set([...painted, ...decoded].filter((m2) => RESOURCES_REFUSED.test(m2)))];
-  if (refused.length) {
+  const refused2 = [...new Set([...painted, ...decoded].filter((m2) => RESOURCES_REFUSED.test(m2)))];
+  if (refused2.length) {
     out.push({
       code: "nodes-truncated",
       message: `Part of the resources of ${slideId} was not read (a resource dictionary that refers back to itself, or more than ${PDF_READ_RESOURCE_BUDGET} of them), so fonts, pictures or forms named there may be missing.`
@@ -165286,6 +165572,7 @@ async function compiledDeckToPptx(input) {
     resolveAsset,
     ...input.rasterizeSvg ? { rasterizeSvg: input.rasterizeSvg } : {},
     ...input.system.compile.fonts ? { fonts: input.system.compile.fonts } : {},
+    ...input.system.input.themeAccents?.length ? { themeAccents: input.system.input.themeAccents } : {},
     shipsFace: input.shipsFace ?? ((file) => catalogStaticFace(file))
   });
   const parts = buildPptxParts(result.slides, {
@@ -165555,6 +165842,7 @@ async function resolveProfileDesignSystem(opts = {}) {
   if (!logos.onLight && !logos.onDark) {
     notes.push(`The ${roots2.profile} design system has no logo the slide master can place.`);
   }
+  const themeAccents = colourRoleThemeAccents(tokenDoc);
   const input = {
     id: SHIPPED_DESIGN_SYSTEM_ID,
     name: roots2.profile,
@@ -165564,7 +165852,8 @@ async function resolveProfileDesignSystem(opts = {}) {
     fonts: { ...faces },
     assetHashes,
     neutralMaster: neutral,
-    ...darkColors ? { darkColors: Object.fromEntries(darkColors) } : {}
+    ...darkColors ? { darkColors: Object.fromEntries(darkColors) } : {},
+    ...themeAccents.length ? { themeAccents } : {}
   };
   const system = await resolveRebrandDesignSystem(input);
   return { profile: roots2.profile, input, system, neutralMaster: neutral, assets: used, notes };
@@ -168193,10 +168482,10 @@ function unusedKeyNote(unused, refs) {
 }
 function designInputShape(value2) {
   if (Array.isArray(value2)) return "design";
-  if (!record38(value2)) return "other";
-  if (typeof value2.toolId === "string" && value2.hydrated !== void 0 || record38(value2.document) && typeof value2.document.toolId === "string") return "compiled";
+  if (!record39(value2)) return "other";
+  if (typeof value2.toolId === "string" && value2.hydrated !== void 0 || record39(value2.document) && typeof value2.document.toolId === "string") return "compiled";
   if (Array.isArray(value2.boxes)) return "design";
-  if (record38(value2.values) && Array.isArray(value2.values.boxes)) return "design";
+  if (record39(value2.values) && Array.isArray(value2.values.boxes)) return "design";
   return "other";
 }
 async function designToolVersion() {
@@ -168302,7 +168591,7 @@ async function folderIndex(dir) {
 }
 function imageId(value2) {
   if (typeof value2 === "string") return value2;
-  if (record38(value2) && typeof value2.id === "string") return value2.id;
+  if (record39(value2) && typeof value2.id === "string") return value2.id;
   return "";
 }
 function classify2(id3, keys2) {
@@ -168624,7 +168913,7 @@ function verifyReadback(bytes2, want) {
   }
   return { ok: true, layers: want.rows, media: carried, label: want.label, filename: want.filename };
 }
-var record38, sha256Hex5, plural5, MEDIA_REF_RE, HASH_KEY_RE, listOf, DesignPackageError, DESIGN_PACKAGE_HINTS, IMAGE_MIME, layerIdOf;
+var record39, sha256Hex5, plural5, MEDIA_REF_RE, HASH_KEY_RE, listOf, DesignPackageError, DESIGN_PACKAGE_HINTS, IMAGE_MIME, layerIdOf;
 var init_design_lolly = __esm({
   "packages/node-shell/src/design-lolly.ts"() {
     "use strict";
@@ -168636,7 +168925,7 @@ var init_design_lolly = __esm({
     init_format_sniff2();
     init_lolly_file();
     init_pipeline();
-    record38 = (v) => !!v && typeof v === "object" && !Array.isArray(v);
+    record39 = (v) => !!v && typeof v === "object" && !Array.isArray(v);
     sha256Hex5 = (bytes2) => createHash8("sha256").update(bytes2).digest("hex");
     plural5 = (n7, one, many = `${one}s`) => `${n7} ${n7 === 1 ? one : many}`;
     MEDIA_REF_RE = /^user\/media\/([0-9a-f]{64})$/;
@@ -171630,12 +171919,12 @@ async function nodeCanvas() {
 function hostedDecodeLimits() {
   return { maxPixels: HOSTED_DECODE_MAX_PIXELS, budgetPixels: HOSTED_DECODE_BUDGET_PIXELS, used: 0, refusals: [], refused: [] };
 }
-function refuse3(limits, pic, record47, message) {
+function refuse3(limits, pic, record48, message) {
   limits.refusals?.push(message);
   if (limits.refused) {
     const key2 = createHash11("sha256").update(pic.bytes).digest("hex");
-    const seen = limits.refused.find((r5) => r5.key === key2 && r5.limit === record47.limit);
-    if (!seen) limits.refused.push({ ...record47, key: key2, ...pic.source ? { source: pic.source } : {} });
+    const seen = limits.refused.find((r5) => r5.key === key2 && r5.limit === record48.limit);
+    if (!seen) limits.refused.push({ ...record48, key: key2, ...pic.source ? { source: pic.source } : {} });
     else if (!seen.source && pic.source) seen.source = pic.source;
   }
   throw new ImagePixelLimitError(message);
@@ -171661,22 +171950,22 @@ function whichPictures(group, label5) {
   return ` (${list4})`;
 }
 function decodeRefusalWarnings(limits) {
-  const refused = limits?.refused ?? [];
+  const refused2 = limits?.refused ?? [];
   const out = [];
   const size = (r5) => `${r5.width} x ${r5.height}`;
   const count4 = (n7) => n7 === 1 ? "A picture was" : `${n7} pictures were`;
-  const over = refused.filter((r5) => r5.limit === "picture");
+  const over = refused2.filter((r5) => r5.limit === "picture");
   if (over.length === 1) {
     const r5 = over[0];
     out.push(`A ${size(r5)} picture${r5.source ? ` (${r5.source})` : ""} was not decoded: this server decodes pictures of up to ${pixels(limits?.maxPixels ?? 0)} pixels.`);
   } else if (over.length > 1) {
     out.push(`${over.length} pictures were not decoded: this server decodes pictures of up to ${pixels(limits?.maxPixels ?? 0)} pixels, and these are larger${whichPictures(over, (r5) => r5.source ? `${r5.source} at ${size(r5)}` : size(r5))}.`);
   }
-  const budget3 = refused.filter((r5) => r5.limit === "budget");
+  const budget3 = refused2.filter((r5) => r5.limit === "budget");
   if (budget3.length) {
     out.push(`${count4(budget3.length)} not decoded: ${budget3.length === 1 ? "it" : "each"} would have taken this render past the ${pixels(limits?.budgetPixels ?? 0)} pixels it may decode${whichPictures(budget3, (r5) => r5.source)}.`);
   }
-  const unknown2 = refused.filter((r5) => r5.limit === "unknown-size");
+  const unknown2 = refused2.filter((r5) => r5.limit === "unknown-size");
   if (unknown2.length) {
     out.push(`${count4(unknown2.length)} not decoded: this server decodes only pictures whose size it can read first${whichPictures(unknown2, (r5) => r5.source)}.`);
   }
@@ -173717,19 +174006,19 @@ function createOffsetFitWorkspace(api) {
         const result = new DataView(api.memory.buffer);
         const pieces = [];
         for (let i = 0; i < length2; i++) {
-          const record47 = Array.from(
+          const record48 = Array.from(
             { length: 14 },
             (_, j) => result.getFloat64(output + i * 112 + j * 8, true)
           );
-          if (record47.some((v) => !Number.isFinite(v)) || ![0, 1].includes(record47[8]) || ![0, 1].includes(record47[11]))
+          if (record48.some((v) => !Number.isFinite(v)) || ![0, 1].includes(record48[8]) || ![0, 1].includes(record48[11]))
             throw new GeometryKernelError(
               "internal",
               "The fitting kernel returned invalid controls or source directions."
             );
           pieces.push({
-            curve: record47.slice(0, 8),
-            dirStart: record47[8] ? { x: record47[9], y: record47[10] } : null,
-            dirEnd: record47[11] ? { x: record47[12], y: record47[13] } : null
+            curve: record48.slice(0, 8),
+            dirStart: record48[8] ? { x: record48[9], y: record48[10] } : null,
+            dirEnd: record48[11] ? { x: record48[12], y: record48[13] } : null
           });
         }
         return pieces;
@@ -174008,9 +174297,9 @@ function firstFamily(value2) {
 }
 function measureFontsFromBrief(brief2) {
   const fonts = { ...TEXT_MEASURE_DEFAULT_FONTS };
-  const families = record39(brief2) && record39(brief2.type) && Array.isArray(brief2.type.families) ? brief2.type.families : [];
+  const families = record40(brief2) && record40(brief2.type) && Array.isArray(brief2.type.families) ? brief2.type.families : [];
   for (const entry2 of families) {
-    if (!record39(entry2) || typeof entry2.path !== "string") continue;
+    if (!record40(entry2) || typeof entry2.path !== "string") continue;
     const family2 = firstFamily(entry2.value);
     if (!family2) continue;
     const slot = entry2.path.replace(/^font\./, "");
@@ -174117,7 +174406,7 @@ function countMeasurableTextLayers(rows2, layerIds) {
   if (!Array.isArray(rows2)) return { layers, units: units2 };
   for (let index2 = 0; index2 < rows2.length; index2++) {
     const row = rows2[index2];
-    if (!record39(row) || !isPlainText(row)) continue;
+    if (!record40(row) || !isPlainText(row)) continue;
     const layerId = typeof row.id === "string" ? row.id : String(index2);
     if (want ? !want.has(layerId) : boolVal(row.hidden, false)) continue;
     layers++;
@@ -174131,7 +174420,7 @@ async function measureDesignRowsReport(rows2, opts = {}) {
   const want = opts.layerIds?.length ? new Set(opts.layerIds) : null;
   if (want) {
     for (const id3 of want) {
-      const row = rows2.find((r5) => record39(r5) && r5.id === id3);
+      const row = rows2.find((r5) => record40(r5) && r5.id === id3);
       if (!row) throw new TextMeasureError("input.invalid", `No layer "${id3}" in this document.`);
       if (row.kind !== "text") throw new TextMeasureError("input.invalid", `Layer "${id3}" is a ${String(row.kind ?? "box")} layer, not text.`);
       if (row.textStory) throw new TextMeasureError("input.invalid", `Layer "${id3}" is a text story, which the engine composes; measure it through its text document.`);
@@ -174144,7 +174433,7 @@ async function measureDesignRowsReport(rows2, opts = {}) {
   let overBudget2 = false;
   for (let index2 = 0; index2 < rows2.length; index2++) {
     const row = rows2[index2];
-    if (!record39(row) || row.kind !== "text") continue;
+    if (!record40(row) || row.kind !== "text") continue;
     opts.signal?.throwIfAborted();
     const layerId = typeof row.id === "string" ? row.id : String(index2);
     if (want && !want.has(layerId)) continue;
@@ -174184,7 +174473,7 @@ function clearTextMeasureCaches() {
   variableCache.clear();
   metricsCache.clear();
 }
-var normFamily2, record39, variableCache, metricsCache, isPlainText;
+var normFamily2, record40, variableCache, metricsCache, isPlainText;
 var init_text_measure = __esm({
   "packages/node-shell/src/text-measure.ts"() {
     "use strict";
@@ -174193,7 +174482,7 @@ var init_text_measure = __esm({
     init_repo_root();
     init_text3();
     normFamily2 = (s) => s.toLowerCase().replace(/[\s_-]+/g, "");
-    record39 = (v) => !!v && typeof v === "object" && !Array.isArray(v);
+    record40 = (v) => !!v && typeof v === "object" && !Array.isArray(v);
     variableCache = /* @__PURE__ */ new Map();
     metricsCache = /* @__PURE__ */ new Map();
     isPlainText = (row) => row.kind === "text" && !row.textStory;
@@ -174607,7 +174896,7 @@ var init_export_route = __esm({
     init_design_export_route();
     init_design_draw();
     nodeOperationsRoute = () => ({ route: "operations", renderer: designOperationsRenderer(DESIGN_DRAW_VERSION) });
-    nodeRouteEnvironment = (record47) => designExportRouteFields(record47);
+    nodeRouteEnvironment = (record48) => designExportRouteFields(record48);
   }
 });
 
@@ -179489,7 +179778,7 @@ function checkInputKind(name) {
   return null;
 }
 function savedTokenSelection(value2) {
-  if (!record40(value2)) return void 0;
+  if (!record41(value2)) return void 0;
   const entries = Object.entries(value2);
   if (!entries.length || entries.length > 64 || !entries.every(([, v]) => typeof v === "string")) return void 0;
   return Object.fromEntries(entries);
@@ -179513,8 +179802,8 @@ function designFromJson(bytes2) {
     throw new CheckInputError("input.unreadable", "This JSON could not be parsed.");
   }
   if (Array.isArray(raw)) return { boxes: raw, values: { boxes: raw }, media: /* @__PURE__ */ new Map() };
-  const top = record40(raw) ? raw : {};
-  const values = record40(top.values) ? top.values : top;
+  const top = record41(raw) ? raw : {};
+  const values = record41(top.values) ? top.values : top;
   if (!Array.isArray(values.boxes))
     throw new CheckInputError("input.unsupported", "Supply a Design document: a boxes array, an object with boxes, or Design input values.");
   for (const key2 of ["$styles", "$theme"]) if (values[key2] === void 0 && top[key2] !== void 0) values[key2] = top[key2];
@@ -179604,7 +179893,7 @@ function lowerDesignAuthoring(doc, ds, opts) {
 function authoringInvalid(invalid4, boxes2) {
   const index2 = /^\/boxes\/(\d+)(?:\/|$)/.exec(invalid4.path);
   const row = index2 && Array.isArray(boxes2) ? boxes2[Number(index2[1])] : void 0;
-  const layerId = record40(row) && typeof row.id === "string" && row.id ? row.id : void 0;
+  const layerId = record41(row) && typeof row.id === "string" && row.id ? row.id : void 0;
   return {
     code: "design.authoring.invalid",
     family: "structure",
@@ -179631,9 +179920,9 @@ function assetIdsOf(boxes2) {
   const out = [];
   if (!Array.isArray(boxes2)) return out;
   for (const row of boxes2) {
-    if (!record40(row) || row.hidden === true || row.hidden === "true") continue;
+    if (!record41(row) || row.hidden === true || row.hidden === "true") continue;
     for (const value2 of Object.values(row)) {
-      const id3 = typeof value2 === "string" ? value2 : record40(value2) && typeof value2.id === "string" ? value2.id : "";
+      const id3 = typeof value2 === "string" ? value2 : record41(value2) && typeof value2.id === "string" ? value2.id : "";
       if (id3.startsWith("user/") || id3.startsWith("data:")) out.push(id3.startsWith("data:") ? "data:" : id3);
     }
   }
@@ -179675,9 +179964,9 @@ function colourResolver(doc, theme) {
   };
 }
 function unwrapContentInventory(raw) {
-  if (!record40(raw) || raw.version === "lolly/content-inventory-v1") return raw;
-  if (raw.command === "read" && record40(raw.result)) return raw.result;
-  if (record40(raw.inventory) && (raw.inventoryDelivery !== void 0 || raw.counts !== void 0)) return raw.inventory;
+  if (!record41(raw) || raw.version === "lolly/content-inventory-v1") return raw;
+  if (raw.command === "read" && record41(raw.result)) return raw.result;
+  if (record41(raw.inventory) && (raw.inventoryDelivery !== void 0 || raw.counts !== void 0)) return raw.inventory;
   return raw;
 }
 function contentInventoryProblems(value2) {
@@ -179687,10 +179976,10 @@ function contentInventoryProblems(value2) {
     return ok3;
   };
   const isStr = (v) => typeof v === "string";
-  if (!need(record40(value2), "/", "must be an object")) return out;
+  if (!need(record41(value2), "/", "must be an object")) return out;
   const inv = value2;
   need(inv.version === "lolly/content-inventory-v1", "/version", 'must be "lolly/content-inventory-v1"');
-  if (need(record40(inv.source), "/source", "must be an object")) {
+  if (need(record41(inv.source), "/source", "must be an object")) {
     const src = inv.source;
     need(isStr(src.name), "/source/name", "must be a string");
     for (const key2 of ["width", "height", "slides"]) need(typeof src[key2] === "number", `/source/${key2}`, "must be a number");
@@ -179699,34 +179988,34 @@ function contentInventoryProblems(value2) {
   if (need(Array.isArray(inv.slides), "/slides", "must be an array"))
     inv.slides.forEach((item2, i) => {
       const at = `/slides/${i}`;
-      if (!need(record40(item2), at, "must be an object")) return;
+      if (!need(record41(item2), at, "must be an object")) return;
       const slide = item2;
       need(Number.isInteger(slide.number), `${at}/number`, "must be an integer");
       if (need(Array.isArray(slide.text), `${at}/text`, "must be an array"))
         slide.text.forEach((entry2, j) => {
           const t = `${at}/text/${j}`;
-          if (!need(record40(entry2), t, "must be an object")) return;
+          if (!need(record41(entry2), t, "must be an object")) return;
           const frame = entry2;
           for (const key2 of ["objectId", "role", "class", "plain"]) need(isStr(frame[key2]), `${t}/${key2}`, "must be a string");
           if (frame.readingIndex !== void 0) need(Number.isInteger(frame.readingIndex), `${t}/readingIndex`, "must be an integer");
           const box4 = frame.box;
-          if (need(record40(box4), `${t}/box`, "must be an object"))
+          if (need(record41(box4), `${t}/box`, "must be an object"))
             for (const key2 of ["x", "y", "width", "height"]) need(typeof box4[key2] === "number", `${t}/box/${key2}`, "must be a number");
         });
       if (need(Array.isArray(slide.tables), `${at}/tables`, "must be an array"))
         slide.tables.forEach((table, j) => {
           need(
-            record40(table) && isStr(table.objectId) && Array.isArray(table.rows) && table.rows.every((r5) => Array.isArray(r5) && r5.every(isStr)),
+            record41(table) && isStr(table.objectId) && Array.isArray(table.rows) && table.rows.every((r5) => Array.isArray(r5) && r5.every(isStr)),
             `${at}/tables/${j}`,
             "must have an objectId and rows of strings"
           );
         });
       const notes = slide.notes;
-      if (notes !== null && need(record40(notes), `${at}/notes`, "must be null or an object")) {
+      if (notes !== null && need(record41(notes), `${at}/notes`, "must be null or an object")) {
         const n7 = notes;
         need(isStr(n7.text), `${at}/notes/text`, "must be a string");
         need(
-          Array.isArray(n7.paragraphs) && n7.paragraphs.every((p) => record40(p) && Array.isArray(p.lines) && p.lines.every(isStr)),
+          Array.isArray(n7.paragraphs) && n7.paragraphs.every((p) => record41(p) && Array.isArray(p.lines) && p.lines.every(isStr)),
           `${at}/notes/paragraphs`,
           "must be paragraphs of string lines"
         );
@@ -179859,12 +180148,12 @@ async function renderFamily(input, opts, lookup4, layers, name, ds) {
   }
   if (answer.kind === "no-hook") return tierMissing(answer.reason);
   const value2 = answer.value;
-  if (!record40(value2) || value2.format !== "lolly-design-check-page" || value2.version !== 1 || !record40(value2.mounted) || !Array.isArray(value2.mounted.findings))
+  if (!record41(value2) || value2.format !== "lolly-design-check-page" || value2.version !== 1 || !record41(value2.mounted) || !Array.isArray(value2.mounted.findings))
     return tierMissing("The web shell did not open this document in the Design editor.");
   const mounted = value2.mounted;
   const missing = uncarriedPictures(input.boxes, lookup4, new Set(input.media.keys()));
-  const findings = mounted.findings.filter(record40).map((f) => checkFindingFromMounted(overMissingPicture(f, missing, lookup4), lookup4));
-  const checked2 = record40(mounted.checked) ? mounted.checked : {};
+  const findings = mounted.findings.filter(record41).map((f) => checkFindingFromMounted(overMissingPicture(f, missing, lookup4), lookup4));
+  const checked2 = record41(mounted.checked) ? mounted.checked : {};
   const notes = [
     `Checked ${plural8(Number(checked2.overflow) || 0, "text layer")} for clipping, ${Number(checked2.contrast) || 0} for contrast and ${Number(checked2.fonts) || 0} for font coverage.`
   ];
@@ -179942,13 +180231,13 @@ async function catalogPictureReader(profile2) {
   let byId;
   try {
     roots2 = contentRoots2(profile2 ? { profile: profile2 } : {});
-    byId = new Map(readAssetIndex2(roots2).assets.filter(record40).map((a) => [String(a.id), a]));
+    byId = new Map(readAssetIndex2(roots2).assets.filter(record41).map((a) => [String(a.id), a]));
   } catch {
     return () => null;
   }
   return (id3) => {
     const formats = byId.get(id3)?.formats;
-    const file = Array.isArray(formats) ? formats.find((f) => record40(f) && typeof f.url === "string" && RASTER_FORMATS2.has(String(f.format).toLowerCase())) : void 0;
+    const file = Array.isArray(formats) ? formats.find((f) => record41(f) && typeof f.url === "string" && RASTER_FORMATS2.has(String(f.format).toLowerCase())) : void 0;
     const path = file ? contentUrlFile2(String(file.url), roots2) : null;
     if (!path) return null;
     try {
@@ -179981,8 +180270,8 @@ async function imageResolutionFindings(input, opts, lookup4) {
   let measured = 0;
   let unread = 0;
   for (const [index2, row] of input.boxes.entries()) {
-    if (!record40(row) || typeof row.id !== "string" || row.hidden === true || row.hidden === "true") continue;
-    const raw = typeof row.image === "string" ? row.image : record40(row.image) && typeof row.image.id === "string" ? row.image.id : "";
+    if (!record41(row) || typeof row.id !== "string" || row.hidden === true || row.hidden === "true") continue;
+    const raw = typeof row.image === "string" ? row.image : record41(row.image) && typeof row.image.id === "string" ? row.image.id : "";
     if (!raw || /^[a-z][a-z0-9+.-]*:/i.test(raw) || raw.startsWith("{") || raw.startsWith("/")) continue;
     const ref2 = stripAssetModifiers(raw);
     const w = finite8(row.w);
@@ -179997,7 +180286,7 @@ async function imageResolutionFindings(input, opts, lookup4) {
     const fit = row.fit === "cover" || row.fit === "fill" || row.fit === "none" || row.fit === "scale-down" ? row.fit : "contain";
     const sx = w / size.w;
     const sy = h / size.h;
-    const framing = record40(row.imageFraming) ? row.imageFraming : null;
+    const framing = record41(row.imageFraming) ? row.imageFraming : null;
     const zoom = framing ? Math.max(1, finite8(framing.zoom, 100)) / 100 : 1;
     const fitted = fit === "none" ? 1 : fit === "scale-down" ? Math.min(1, sx, sy) : fit === "contain" ? Math.min(sx, sy) : Math.max(sx, sy);
     const scale = fitted * zoom;
@@ -180035,8 +180324,8 @@ function uncarriedPictures(boxes2, lookup4, carried = /* @__PURE__ */ new Set())
   if (!Array.isArray(boxes2)) return [];
   const out = [];
   for (const row of boxes2) {
-    if (!record40(row) || typeof row.id !== "string" || row.hidden === true || row.hidden === "true") continue;
-    const ref2 = typeof row.image === "string" ? row.image : record40(row.image) && typeof row.image.id === "string" ? row.image.id : "";
+    if (!record41(row) || typeof row.id !== "string" || row.hidden === true || row.hidden === "true") continue;
+    const ref2 = typeof row.image === "string" ? row.image : record41(row.image) && typeof row.image.id === "string" ? row.image.id : "";
     if (!ref2.startsWith("user/") || carried.has(stripAssetModifiers(ref2))) continue;
     const place2 = lookup4.get(row.id);
     if (place2) out.push(place2);
@@ -180114,7 +180403,7 @@ function undecodable(report4) {
 function boxesInTheme(boxes2, doc, theme) {
   if (!Array.isArray(boxes2)) return boxes2;
   const rows2 = boxes2;
-  const linked = rows2.some((row) => record40(row) && typeof row.tokenLinks === "string" && row.tokenLinks.length > 2);
+  const linked = rows2.some((row) => record41(row) && typeof row.tokenLinks === "string" && row.tokenLinks.length > 2);
   if (!linked && !hasDesignColourRefs(rows2, LINKED_COLOUR_FIELDS.map((f) => f.id))) return boxes2;
   let set;
   try {
@@ -180128,7 +180417,7 @@ function tokenLinkFindings(boxes2, lookup4, theme) {
   if (!Array.isArray(boxes2)) return [];
   const out = [];
   boxes2.forEach((row, index2) => {
-    if (!record40(row)) return;
+    if (!record41(row)) return;
     const bad = [];
     for (const [field2, link] of Object.entries(readBlockTokenBindings(row.tokenLinks))) {
       if (!link.custom && (link.status === "unresolved" || link.status === "incompatible")) bad.push(`${field2} ${link.ref}`);
@@ -180453,7 +180742,7 @@ async function checkFile(bytes2, name, asked = {}) {
     ...designSystem2 !== void 0 ? { designSystem: designSystem2 } : {}
   };
 }
-var EXIT2, FAMILIES, CHECK_MAX_INPUT_BYTES, SURFACE_WORDS, CheckInputError, record40, plural8, finite8, sha2562, zero, familyState, tierMissing, TEXT_MEASURE_CHECK_MAX_UNITS, IMAGE_MAX_UPSCALE, IMAGE_RESOLUTION_MAX_PICTURES, RASTER_FORMATS2, INFORM_ONLY_CODES, isFailed, LAYOUT_COLLECTORS, LINKED_COLOUR_FIELDS, DESIGN_CANVAS_BACKGROUND;
+var EXIT2, FAMILIES, CHECK_MAX_INPUT_BYTES, SURFACE_WORDS, CheckInputError, record41, plural8, finite8, sha2562, zero, familyState, tierMissing, TEXT_MEASURE_CHECK_MAX_UNITS, IMAGE_MAX_UPSCALE, IMAGE_RESOLUTION_MAX_PICTURES, RASTER_FORMATS2, INFORM_ONLY_CODES, isFailed, LAYOUT_COLLECTORS, LINKED_COLOUR_FIELDS, DESIGN_CANVAS_BACKGROUND;
 var init_check = __esm({
   "packages/node-shell/src/check.ts"() {
     "use strict";
@@ -180484,7 +180773,7 @@ var init_check = __esm({
         this.code = code;
       }
     };
-    record40 = (v) => !!v && typeof v === "object" && !Array.isArray(v);
+    record41 = (v) => !!v && typeof v === "object" && !Array.isArray(v);
     plural8 = (n7, one, many = `${one}s`) => `${n7} ${n7 === 1 ? one : many}`;
     finite8 = (v, fallback = 0) => {
       const n7 = typeof v === "string" && v.trim() !== "" ? Number(v) : v;
@@ -180503,7 +180792,7 @@ var init_check = __esm({
     IMAGE_RESOLUTION_MAX_PICTURES = 500;
     RASTER_FORMATS2 = /* @__PURE__ */ new Set(["png", "jpg", "jpeg", "webp", "gif"]);
     INFORM_ONLY_CODES = /* @__PURE__ */ new Set([WRITING_SCORE_CODE]);
-    isFailed = (v) => record40(v) && typeof v.failed === "string" && Object.keys(v).length === 1;
+    isFailed = (v) => record41(v) && typeof v.failed === "string" && Object.keys(v).length === 1;
     LAYOUT_COLLECTORS = /* @__PURE__ */ new Set(["pixel-layout", "source-layout"]);
     LINKED_COLOUR_FIELDS = ["bg", "fg", "stroke", "shadowColor"].map((id3) => ({ id: id3, type: "color" }));
     DESIGN_CANVAS_BACKGROUND = "{color.semantic.surface}";
@@ -180579,7 +180868,7 @@ function rowSvg(row, bytesOf4, slideIndex, n7, opts) {
   const turn2 = Number.isFinite(rot) && rot % 360 !== 0 ? ` transform="rotate(${rot} ${box4.x + box4.w / 2} ${box4.y + box4.h / 2})"` : "";
   const group = (inner) => opacity < 1 || turn2 ? `<g${opacity < 1 ? ` opacity="${opacity}"` : ""}${turn2}>${inner}</g>` : inner;
   if (row.kind === "image" || row.kind === void 0 && typeof row.image === "string") {
-    const key2 = typeof row.image === "string" ? row.image : record43(row.image) && typeof row.image.id === "string" ? row.image.id : "";
+    const key2 = typeof row.image === "string" ? row.image : record44(row.image) && typeof row.image.id === "string" ? row.image.id : "";
     if (!key2) return { svg: "", picture: null };
     if (parseTreatedAssetId(key2).treatment) return { refused: `its picture ${key2} carries a photo look, which this measurement does not bake` };
     const bytes2 = bytesOf4(key2);
@@ -180657,22 +180946,22 @@ async function markInks(id3) {
   }
 }
 async function measureComposePhotos(spec, size, bytesOf4, marks, opts = {}) {
-  const slides = record43(spec) && Array.isArray(spec.slides) ? spec.slides : [];
+  const slides = record44(spec) && Array.isArray(spec.slides) ? spec.slides : [];
   const measured = /* @__PURE__ */ new Map();
   const { rasterizeSvgToRgba: rasterizeSvgToRgba2 } = await Promise.resolve().then(() => (init_raster3(), raster_exports));
   for (let index2 = 0; index2 < slides.length; index2 += 1) {
     const slide = slides[index2];
-    if (!record43(slide) || !Array.isArray(slide.under)) continue;
-    const deckFurniture = record43(spec) && record43(spec.furniture) ? spec.furniture : {};
-    const furniture = record43(slide.furniture) ? slide.furniture : {};
+    if (!record44(slide) || !Array.isArray(slide.under)) continue;
+    const deckFurniture = record44(spec) && record44(spec.furniture) ? spec.furniture : {};
+    const furniture = record44(slide.furniture) ? slide.furniture : {};
     const logoMode = furniture.logo ?? deckFurniture.logo ?? "auto";
     const omitted = [deckFurniture.omit, furniture.omit].some((list4) => Array.isArray(list4) && list4.includes("logo"));
     const tell = logoMode === "auto" && !omitted;
     let covered = false;
-    let refused = null;
+    let refused2 = null;
     const parts = [];
     for (const [n7, row] of slide.under.entries()) {
-      if (!record43(row)) continue;
+      if (!record44(row)) continue;
       const drawn = rowSvg(row, bytesOf4, index2, n7, opts);
       const box4 = boxOf5(row);
       const isPicture = row.kind === "image" || row.kind === void 0 && row.image !== void 0;
@@ -180682,14 +180971,14 @@ async function measureComposePhotos(spec, size, bytesOf4, marks, opts = {}) {
         if (across * down / (size.width * size.height) >= PHOTO_COVER2) covered = true;
       }
       if ("refused" in drawn) {
-        refused ??= { reason: `under row ${n7 + 1}${typeof row.id === "string" ? ` (${row.id})` : ""}: ${drawn.refused}`, quiet: drawn.quiet === true };
+        refused2 ??= { reason: `under row ${n7 + 1}${typeof row.id === "string" ? ` (${row.id})` : ""}: ${drawn.refused}`, quiet: drawn.quiet === true };
         continue;
       }
       if (drawn.svg) parts.push(drawn.svg);
     }
     if (!covered) continue;
-    if (refused) {
-      if (!refused.quiet && tell) opts.onUnmeasured?.(index2, refused.reason);
+    if (refused2) {
+      if (!refused2.quiet && tell) opts.onUnmeasured?.(index2, refused2.reason);
       continue;
     }
     const width = Math.max(1, Math.round(size.width * SCALE));
@@ -180718,12 +181007,12 @@ async function measureComposePhotos(spec, size, bytesOf4, marks, opts = {}) {
     inks
   };
 }
-var record43, PHOTO_COVER2, SCALE, ALIGN2, esc5, isRef3, hiddenRow;
+var record44, PHOTO_COVER2, SCALE, ALIGN2, esc5, isRef3, hiddenRow;
 var init_compose_photo_surface = __esm({
   "packages/node-shell/src/compose-photo-surface.ts"() {
     "use strict";
     init_src2();
-    record43 = (v) => !!v && typeof v === "object" && !Array.isArray(v);
+    record44 = (v) => !!v && typeof v === "object" && !Array.isArray(v);
     PHOTO_COVER2 = 0.9;
     SCALE = 0.25;
     ALIGN2 = {
@@ -180790,7 +181079,7 @@ async function designSystemOf(opts) {
   return { doc: profile2.doc, origin: "profile", ...profile2.label ? { name: profile2.label } : {} };
 }
 function masterFromFile(value2, path) {
-  const candidate = record44(value2) && Array.isArray(value2.masters) ? value2.masters[0] : value2;
+  const candidate = record45(value2) && Array.isArray(value2.masters) ? value2.masters[0] : value2;
   if (!isUsableMaster(candidate))
     throw new DesignComposeError("master.unreadable", `${path} holds no slide master this build can use: a masters.json ({version: 1, masters: [...]}) or one master with id, size, archetypes, furniture, typeScale and logo.`);
   return candidate;
@@ -180923,7 +181212,7 @@ function assetsOf2(rows2, read) {
   const needed = [];
   const seen = /* @__PURE__ */ new Set();
   for (const row of rows2) {
-    if (!record44(row) || !("image" in row)) continue;
+    if (!record45(row) || !("image" in row)) continue;
     const key2 = parseTreatedAssetId(imageId2(row.image)).baseId;
     if (!key2 || seen.has(key2)) continue;
     seen.add(key2);
@@ -180949,9 +181238,9 @@ function pictureBytes(key2, read, given2) {
 }
 function logoMarks(logos, brief2) {
   const out = Object.values(logos).filter((v) => typeof v === "string" && !!v);
-  const rules = record44(brief2) && record44(brief2.logos) && Array.isArray(brief2.logos.rules) ? brief2.logos.rules : [];
+  const rules = record45(brief2) && record45(brief2.logos) && Array.isArray(brief2.logos.rules) ? brief2.logos.rules : [];
   for (const rule of rules) {
-    const params2 = record44(rule) && record44(rule.parameters) ? rule.parameters : {};
+    const params2 = record45(rule) && record45(rule.parameters) ? rule.parameters : {};
     for (const key2 of ["photo", "dark", "light"]) if (Array.isArray(params2[key2])) out.push(...params2[key2].filter((v) => typeof v === "string"));
   }
   return [...new Set(out)];
@@ -181041,7 +181330,7 @@ async function fitDocument(rows2, report4, master, brief2, mode3, maxUnits) {
 }
 function specOf(raw, opts) {
   const spec = Array.isArray(raw) ? { slides: raw } : raw;
-  if (!record44(spec) || !Array.isArray(spec.slides))
+  if (!record45(spec) || !Array.isArray(spec.slides))
     throw new DesignComposeError("spec.invalid", 'A compose spec is an object with a slides array (or the slides array itself): {"slides": [{"archetype": "title", "slots": {"title": "..."}}]}.');
   if (!spec.slides.length) throw new DesignComposeError("spec.invalid", "/slides: name at least one slide.");
   const out = { ...spec };
@@ -181070,7 +181359,7 @@ async function composeDesign(spec, opts = {}) {
     ...resolved2.logos ? { logos: resolved2.logos } : {},
     inventory: read.inventory,
     brief: resolved2.brief,
-    ...record44(composeSpec.$styles) ? { styles: composeSpec.$styles } : {}
+    ...record45(composeSpec.$styles) ? { styles: composeSpec.$styles } : {}
   };
   const unmeasuredPhotos = [];
   const logos = resolved2.logos;
@@ -181137,7 +181426,7 @@ async function composeArchetypeListing(opts = {}) {
 async function listComposeArchetypes(opts = {}) {
   return (await composeArchetypeListing(opts)).archetypes;
 }
-var DesignComposeError, COMPOSE_DEFAULT_SIZE, COMPOSE_MAX_SIDE, record44, imageId2, clips;
+var DesignComposeError, COMPOSE_DEFAULT_SIZE, COMPOSE_MAX_SIDE, record45, imageId2, clips;
 var init_design_compose2 = __esm({
   "packages/node-shell/src/design-compose.ts"() {
     "use strict";
@@ -181160,8 +181449,8 @@ var init_design_compose2 = __esm({
     };
     COMPOSE_DEFAULT_SIZE = Object.freeze({ width: 1920, height: 1080 });
     COMPOSE_MAX_SIDE = 16384;
-    record44 = (v) => !!v && typeof v === "object" && !Array.isArray(v);
-    imageId2 = (value2) => typeof value2 === "string" ? value2 : record44(value2) && typeof value2.id === "string" ? value2.id : "";
+    record45 = (v) => !!v && typeof v === "object" && !Array.isArray(v);
+    imageId2 = (value2) => typeof value2 === "string" ? value2 : record45(value2) && typeof value2.id === "string" ? value2.id : "";
     clips = (m2) => m2.overflow?.clipped === true;
   }
 });
@@ -181382,27 +181671,27 @@ function readAssetRightsRecord(value2) {
   if (!value2 || typeof value2 !== "object" || Array.isArray(value2)) return null;
   const works = value2.works;
   if (Array.isArray(works)) return works.length ? readAssetRightsRecord(works[0]) : null;
-  const record47 = value2;
-  if (typeof record47.id !== "string") return null;
-  const creators = Array.isArray(record47.creators) ? record47.creators.filter((party) => !!party && typeof party === "object" && typeof party.name === "string").slice(0, 32) : [];
-  const rights = Array.isArray(record47.rights) ? record47.rights.filter((evidence) => !!evidence && typeof evidence === "object" && typeof evidence.declaration === "string").slice(0, 16) : [];
+  const record48 = value2;
+  if (typeof record48.id !== "string") return null;
+  const creators = Array.isArray(record48.creators) ? record48.creators.filter((party) => !!party && typeof party === "object" && typeof party.name === "string").slice(0, 32) : [];
+  const rights = Array.isArray(record48.rights) ? record48.rights.filter((evidence) => !!evidence && typeof evidence === "object" && typeof evidence.declaration === "string").slice(0, 16) : [];
   return {
-    id: record47.id,
-    ...typeof record47.title === "string" ? { title: record47.title } : {},
+    id: record48.id,
+    ...typeof record48.title === "string" ? { title: record48.title } : {},
     creators,
-    ...typeof record47.sourceUrl === "string" ? { sourceUrl: record47.sourceUrl } : {},
+    ...typeof record48.sourceUrl === "string" ? { sourceUrl: record48.sourceUrl } : {},
     // The two fields a derived file needs to bind the source's exact bytes,
     // kept only in the shape the credential writer accepts.
-    ...typeof record47.revision === "string" && record47.revision.length <= 256 ? { revision: record47.revision } : {},
-    ...typeof record47.sourceHash === "string" && SOURCE_HASH.test(record47.sourceHash) ? { sourceHash: record47.sourceHash } : {},
+    ...typeof record48.revision === "string" && record48.revision.length <= 256 ? { revision: record48.revision } : {},
+    ...typeof record48.sourceHash === "string" && SOURCE_HASH.test(record48.sourceHash) ? { sourceHash: record48.sourceHash } : {},
     rights
   };
 }
 function assetLicenceDeclaration(meta) {
   const legacy = typeof meta?.license === "string" ? meta.license.trim() : "";
   if (legacy) return legacy;
-  const record47 = readAssetRightsRecord(meta?.rights);
-  const found = record47?.rights.find((evidence) => evidence.status !== "missing" && evidence.status !== "not-applicable" && evidence.declaration.trim());
+  const record48 = readAssetRightsRecord(meta?.rights);
+  const found = record48?.rights.find((evidence) => evidence.status !== "missing" && evidence.status !== "not-applicable" && evidence.declaration.trim());
   return found?.declaration.trim() ?? "";
 }
 function assetRightsNotices(value2) {
@@ -186852,7 +187141,7 @@ async function writeSessionRecord(stateDir2, write) {
   const prior = await readSessionRecord(stateDir2, write.slot);
   if (write.expectedUpdatedAt !== void 0 && (prior?.updatedAt ?? null) !== write.expectedUpdatedAt) throw new SessionConflictError();
   const now2 = new Date(Math.max(Date.now(), Date.parse(prior?.updatedAt ?? "") + 1 || 0)).toISOString();
-  const record47 = {
+  const record48 = {
     slot: write.slot,
     toolId: write.toolId ?? write.data.__toolId,
     toolVersion: write.toolVersion ?? write.data.__toolVersion,
@@ -186868,7 +187157,7 @@ async function writeSessionRecord(stateDir2, write) {
   const path = sessionFilePath(stateDir2, write.slot);
   const temp = `${path}.${randomUUID2()}.tmp`;
   try {
-    await writeFile2(temp, JSON.stringify(record47, null, 2), { mode: 384, flag: "wx" });
+    await writeFile2(temp, JSON.stringify(record48, null, 2), { mode: 384, flag: "wx" });
     if (write.expectedUpdatedAt !== void 0) {
       const latest = await readSessionRecord(stateDir2, write.slot);
       if ((latest?.updatedAt ?? null) !== write.expectedUpdatedAt) throw new SessionConflictError();
@@ -186877,7 +187166,7 @@ async function writeSessionRecord(stateDir2, write) {
   } finally {
     await rm2(temp, { force: true });
   }
-  return record47;
+  return record48;
 }
 async function deleteSessionRecord(stateDir2, slot) {
   try {
@@ -188877,13 +189166,13 @@ function credentialText(readback) {
   if (days !== asked) return `Content Credentials: in this file, but the certificate runs ${days} days, not the ${asked} asked for.`;
   return `Content Credentials: in this file, ${selfSigned ? "self-signed, " : ""}valid for ${days} days.`;
 }
-function designRecordText(record47) {
-  const words4 = designRecordWords(record47, { skills: false, page: false });
-  const guided = guidedByWords(record47?.brandSkills);
+function designRecordText(record48) {
+  const words4 = designRecordWords(record48, { skills: false, page: false });
+  const guided = guidedByWords(record48?.brandSkills);
   const said = [
     words4 && `Recorded the design system: ${words4}.`,
     guided && `Recorded as guided by: ${guided}.`,
-    record47?.brandPage && `Recorded the brand page address: ${record47.brandPage}.`
+    record48?.brandPage && `Recorded the brand page address: ${record48.brandPage}.`
   ].filter(Boolean);
   return said.length ? `${said.join(" ")} Pass madeWith: false to leave the record out.` : "";
 }
@@ -189107,8 +189396,8 @@ async function renderTierA(toolId, values, fmt6, opts, profile2, emoji, producti
     let blob;
     const drawn = { pictures: [], route: null };
     try {
-      blob = await runtime.export(canvas, fmt6, { ...sized, ingredientSink: drawn.pictures, onExportRoute: (record47) => {
-        drawn.route = record47;
+      blob = await runtime.export(canvas, fmt6, { ...sized, ingredientSink: drawn.pictures, onExportRoute: (record48) => {
+        drawn.route = record48;
       } });
     } catch (e) {
       if (e instanceof DeepSourceError) throw new RenderError(e.message);
@@ -189386,7 +189675,7 @@ async function credentialAndRecord(out, o) {
   let bytes2 = out.bytes;
   const inFile = out.tier.startsWith("B") ? await recordedDesignInFile(out.bytes, o.exportFmt) : o.recorded;
   const skills = out.tier.startsWith("B") && o.merged.madeWith !== false ? o.merged.brandSkills ?? [] : [];
-  const record47 = skills.length ? { ...inFile ?? {}, brandSkills: skills } : inFile;
+  const record48 = skills.length ? { ...inFile ?? {}, brandSkills: skills } : inFile;
   let stamped = false;
   if (!o.sampled && o.merged.c2pa?.on && C2PA_FORMATS.includes(o.exportFmt) && !(o.exportFmt === "pdf" && o.merged.password)) {
     try {
@@ -189395,7 +189684,7 @@ async function credentialAndRecord(out, o) {
     }
     const clean2 = withoutSvgCredentials(bytes2, o.exportFmt);
     try {
-      bytes2 = await stampC2pa(clean2, o.exportFmt, o.manifest, o.values, o.merged, o.placed, record47, out.tier.startsWith("B") ? null : o.drawn ?? null);
+      bytes2 = await stampC2pa(clean2, o.exportFmt, o.manifest, o.values, o.merged, o.placed, record48, out.tier.startsWith("B") ? null : o.drawn ?? null);
       stamped = true;
     } catch (e) {
       o.warnings.push(`Content Credentials not attached - ${e.message}`);
@@ -194174,7 +194463,7 @@ function checkToolDef(p) {
     outputSchema: CHECK_OUTPUT_SCHEMA
   };
 }
-var record41 = (v) => !!v && typeof v === "object" && !Array.isArray(v);
+var record42 = (v) => !!v && typeof v === "object" && !Array.isArray(v);
 var DESIGN_ARGS = ["toolId", "inputs", "templateId", "presetId", "motionTiming", "layerOperations", "layerPatches"];
 var KNOWN_ARGS = /* @__PURE__ */ new Set(["file", "document", "source", "inventory", "edits", "strict", "theme", "themes", "browser", "pageCap", ...DESIGN_ARGS]);
 var MIME_EXT3 = {
@@ -194284,10 +194573,10 @@ async function inputOf(args, resolveDesign, ctx) {
     return { bytes: new TextEncoder().encode(JSON.stringify({ values: resolved2.values })), name: "design.json", manifest: resolved2.manifest };
   }
   const document2 = args.document;
-  if (!record41(document2)) throw new ToolCodeError("request.invalid", "document must be a compiled Design document (an object), as lolly_compile returns it.");
+  if (!record42(document2)) throw new ToolCodeError("request.invalid", "document must be a compiled Design document (an object), as lolly_compile returns it.");
   if (document2.toolId !== void 0 && document2.toolId !== "design")
     throw new ToolCodeError("input.unsupported", `This document was compiled by ${JSON.stringify(document2.toolId)}; lolly_check reads Design documents.`);
-  const values = record41(document2.values) ? document2.values : document2;
+  const values = record42(document2.values) ? document2.values : document2;
   return { bytes: new TextEncoder().encode(JSON.stringify({ values })), name: "document.json" };
 }
 async function sourceOf(args, ctx) {
@@ -194869,7 +195158,7 @@ var MEASURE_TEXT_TOOL_DEF = {
   inputSchema: { type: "object", properties: ARGS, additionalProperties: false },
   outputSchema: MEASURE_TEXT_OUTPUT_SCHEMA
 };
-var record42 = (v) => !!v && typeof v === "object" && !Array.isArray(v);
+var record43 = (v) => !!v && typeof v === "object" && !Array.isArray(v);
 function numberArg(args, key2, opts = {}) {
   const raw = args[key2];
   if (raw === void 0 || raw === null) return void 0;
@@ -194947,8 +195236,8 @@ async function boxSpec(args, brief2) {
   return { spec, ...sized ? { note: sized } : {} };
 }
 function documentRows(doc) {
-  const top = record42(doc) ? doc : {};
-  const values = record42(top.values) ? top.values : top;
+  const top = record43(doc) ? doc : {};
+  const values = record43(top.values) ? top.values : top;
   const boxes2 = Array.isArray(doc) ? doc : values.boxes;
   if (!Array.isArray(boxes2)) throw new ToolCodeError("request.invalid", "document must be a Design document: a boxes array, {boxes}, or Design input values.");
   if (boxes2.length > MEASURE_TEXT_MAX_LAYERS * 4)
@@ -196118,7 +196407,7 @@ var COMPOSE_TOOL_DEF = {
   inputSchema: { type: "object", properties: ARGS2, additionalProperties: false },
   outputSchema: COMPOSE_OUTPUT_SCHEMA
 };
-var record45 = (v) => !!v && typeof v === "object" && !Array.isArray(v);
+var record46 = (v) => !!v && typeof v === "object" && !Array.isArray(v);
 var NODE_CODE = {
   "spec.invalid": "spec.invalid",
   "inventory.invalid": "inventory.invalid",
@@ -196133,7 +196422,7 @@ function asComposeError2(err) {
 }
 function sizeArg(value2, parse2) {
   if (value2 === void 0 || value2 === null) return void 0;
-  const parsed = typeof value2 === "string" ? parse2(value2) : record45(value2) ? parse2(`${String(value2.width)}x${String(value2.height)}`) : null;
+  const parsed = typeof value2 === "string" ? parse2(value2) : record46(value2) ? parse2(`${String(value2.width)}x${String(value2.height)}`) : null;
   if (!parsed) throw new ToolCodeError("request.invalid", 'size is the artboard size in px: "1920x1080" or {width, height}.');
   return parsed;
 }
@@ -196155,7 +196444,7 @@ async function callCompose(args, env = process.env, limits = structuredLimitsFor
     const max = maxSlides(ctx);
     const sources = {};
     if (args.inventory !== void 0) {
-      if (!record45(args.inventory)) throw new ToolCodeError("inventory.invalid", "inventory is the content inventory lolly_read returns, as an object.");
+      if (!record46(args.inventory)) throw new ToolCodeError("inventory.invalid", "inventory is the content inventory lolly_read returns, as an object.");
       sources.inventory = args.inventory;
       const slides2 = args.inventory.slides ?? args.inventory.inventory?.slides;
       if (Array.isArray(slides2) && slides2.length > max) throw new ToolCodeError("request.invalid", `The inventory has ${slides2.length} slides; this server composes up to ${max} in one call.`);
@@ -196183,7 +196472,7 @@ async function callCompose(args, env = process.env, limits = structuredLimitsFor
       const sentence2 = `Suggested ${plural7(suggested.spec.slides.length, "slide")} on ${suggested.master.id} (${suggested.master.origin}); edit the spec, then call lolly_compose with it.`;
       return success2(sentence2, structured2, [], ctx, "output.too-large", "pass fewer slides.");
     }
-    if (!record45(args.spec) && !Array.isArray(args.spec)) throw new ToolCodeError("spec.invalid", "spec is required: {slides: [{archetype, slots}]}. Call with mode list for the archetypes.");
+    if (!record46(args.spec) && !Array.isArray(args.spec)) throw new ToolCodeError("spec.invalid", "spec is required: {slides: [{archetype, slots}]}. Call with mode list for the archetypes.");
     const slides = Array.isArray(args.spec) ? args.spec : args.spec.slides;
     if (Array.isArray(slides) && slides.length > max) throw new ToolCodeError("request.invalid", `The spec has ${slides.length} slides; this server composes up to ${max} in one call.`);
     if (args.theme !== void 0 && args.theme !== "light" && args.theme !== "dark") throw new ToolCodeError("request.invalid", "theme must be light or dark.");
@@ -197057,7 +197346,7 @@ function packageToolDef(p) {
     outputSchema: PACKAGE_OUTPUT_SCHEMA
   };
 }
-var record46 = (v) => !!v && typeof v === "object" && !Array.isArray(v);
+var record47 = (v) => !!v && typeof v === "object" && !Array.isArray(v);
 var DESIGN_ARGS2 = ["toolId", "inputs", "templateId", "presetId", "motionTiming", "layerOperations", "layerPatches"];
 var KNOWN_ARGS2 = /* @__PURE__ */ new Set(["document", "assets", "source", "label", "theme", "allowMissingMedia", ...DESIGN_ARGS2]);
 var MCP_HINTS = {
@@ -197089,7 +197378,7 @@ function assetsOf3(args, ctx) {
   if (args.assets === void 0) return [];
   if (!Array.isArray(args.assets)) throw new ToolCodeError("request.invalid", "assets is a list of {key, base64, name?}.");
   return args.assets.map((value2, i) => {
-    if (!record46(value2) || typeof value2.key !== "string" || !value2.key) throw new ToolCodeError("asset.invalid", `assets[${i}] needs a key: the image value the rows name the picture by.`);
+    if (!record47(value2) || typeof value2.key !== "string" || !value2.key) throw new ToolCodeError("asset.invalid", `assets[${i}] needs a key: the image value the rows name the picture by.`);
     const file = readFileArg2(value2, {
       max: maxFileBytes(ctx),
       what: `assets[${i}] (${value2.key})`,
@@ -200048,18 +200337,18 @@ async function renderGet(path, query2, opts) {
   }
   const slot = openSlot(etag);
   const limiter = opts.rateLimiter ?? localRateLimiter;
-  let refused = null;
+  let refused2 = null;
   try {
     const perIp = await limiter.consume("render", opts.ip || "unknown", budget(env.LOLLY_RENDER_GET_RPM, DEFAULT_RPM), RL_WINDOW_MS);
-    if (!perIp.ok) refused = errorResponse(429, "Too many renders from this address - slow down.", { "retry-after": String(perIp.retryAfter) });
+    if (!perIp.ok) refused2 = errorResponse(429, "Too many renders from this address - slow down.", { "retry-after": String(perIp.retryAfter) });
     else {
       const total = await limiter.consume("render-all", "all", budget(env.LOLLY_RENDER_GET_GLOBAL_RPM, DEFAULT_GLOBAL_RPM), RL_WINDOW_MS);
-      if (!total.ok) refused = errorResponse(429, "The public render endpoint is busy - try again shortly.", { "retry-after": String(total.retryAfter) });
+      if (!total.ok) refused2 = errorResponse(429, "The public render endpoint is busy - try again shortly.", { "retry-after": String(total.retryAfter) });
       else if (opts.budget) {
         const state = await opts.budget.check();
         if (!state.ok) {
           const r5 = budgetRefusal(state);
-          refused = { status: r5.status, headers: { ...r5.headers, ...NO_STORE }, body: JSON.stringify(r5.json) };
+          refused2 = { status: r5.status, headers: { ...r5.headers, ...NO_STORE }, body: JSON.stringify(r5.json) };
         }
       }
     }
@@ -200069,12 +200358,12 @@ async function renderGet(path, query2, opts) {
       slot.reject(e);
       throw e;
     }
-    refused = errorResponse(503, "Render admission is temporarily unavailable.", { "retry-after": "5" });
+    refused2 = errorResponse(503, "Render admission is temporarily unavailable.", { "retry-after": "5" });
   }
-  if (refused) {
+  if (refused2) {
     closeSlot(etag, slot);
     slot.reject(new AdmissionRefused());
-    return refused;
+    return refused2;
   }
   let rendered;
   try {

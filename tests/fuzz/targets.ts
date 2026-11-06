@@ -2677,7 +2677,9 @@ export const designMdTarget: FuzzTarget = {
     const { writeDesignMd } = await import('../../engine/src/design-md.ts');
     const { deriveBrandTokens } = await import('../../engine/src/brand-derive.ts');
     const written = writeDesignMd({ doc: deriveBrandTokens({ primary: '#7c3aed', name: 'Seed' }), name: 'Seed' });
-    return [new TextEncoder().encode(written), new TextEncoder().encode(DESIGN_MD_FENCED)];
+    // A file with a colour role block, so the mutations reach the block's reader and the rebuild.
+    const roles = writeDesignMd({ doc: JSON.parse(readFileSync(new URL('../fixtures/colour-roles/wefthouse.tokens.json', import.meta.url), 'utf8')), name: 'Seed', selection: { colourway: 'madder', '': 'dark' } });
+    return [new TextEncoder().encode(written), new TextEncoder().encode(DESIGN_MD_FENCED), new TextEncoder().encode(roles)];
   },
   async invoke(bytes) {
     const { parseDesignMd } = await import('../../engine/src/design-md.ts');

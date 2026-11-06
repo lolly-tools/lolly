@@ -497,6 +497,8 @@ export interface DesignPptxRequest {
    * default faces.
    */
   brandFont?: (slot: 'brand' | 'display' | 'mono') => unknown;
+  /** The token each theme accent reads, for a design system that declares colour roles. */
+  themeAccents?: readonly string[];
   meta?: { title?: string; description?: string; source?: string; contact?: string; author?: string; sourceAuthor?: string } | null;
   now?: string;
   /**
@@ -597,6 +599,7 @@ export async function renderDesignPptx(req: DesignPptxRequest): Promise<Uint8Arr
     // The design system's colour tokens the canvas carries (`--brand-token-*`), for the
     // theme slots no semantic token fills, so PowerPoint offers brand colours only.
     tokenColors: tokenColorsFromStyle((req.canvas as HTMLElement).style ?? { length: 0, item: () => '', getPropertyValue: () => '' }),
+    ...(req.themeAccents?.length ? { themeAccents: req.themeAccents } : {}),
     // The document-level transition is an input, not a row, and the tool has already
     // resolved it per slide in its own deck model. Read it back so a deck that sets
     // the transition once still leaves each slide the way it was authored to.

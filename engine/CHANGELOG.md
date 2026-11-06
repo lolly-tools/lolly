@@ -6,6 +6,15 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+## 1.318.0
+
+- Colour roles through other formats and back (new module `colour-role-portable.ts`, plan 352). `adoptColourRoles` brings a file's colours in as roles, in words someone confirmed, through the same edits the studio uses. `withColourwayKindRestored` gives a group called `colourway` its kind back after a format that dropped the kind.
+- `writeDesignMd`, for a system that declares roles, gives each role a bullet in the Colors section and adds a **Colour roles** subsection with a table of both looks and a fenced `json` block. `parseDesignMd` reads the block back into roles, bindings, both looks and which on-colours Lolly worked out, field by field. A block that fails costs the roles and nothing else, and a finding says so. The YAML tokens gain nothing, so a reader that does not know the block is unaffected.
+- `penpotTokensJson` writes a declared role's name, description and place in the brand's order into the description of its `color.semantic.<id>` token, keeping any description the token already had. `coerceTokensDoc`, `assembleTokenSetFiles` and `extractPenpotProject` take those words back out through `restoreColourRoleWords`, restore the record, and leave each token with what it said for itself. A file with none of those words comes back as the same object.
+- `themeSlotTokensFor` and `colourRoleThemeAccents`: a PowerPoint theme's accents follow the brand's order when roles are declared. `themeSlotsFromColors` takes the order as an optional second argument, `RebrandDesignSystemInputV1.themeAccents` carries the order, and `THEME_SLOT_TOKENS` itself is unchanged. The order is not part of the token hash.
+- `buildBrandPage`: `brand.json` gains an optional `colourRoles` list (id, label, description, token, fills). The page, its Markdown twin and `AGENTS.md` show the brand's words per colourway and mode, and `checks.json` measures a pair per role in place of the fixed lead and partner pairs. A page with no roles writes every file as before: `brand.json` changes only in the engine version it names and the digest over that.
+- A document with no declared roles keeps its bytes on every one of these routes. Exported files record nothing new about roles beyond the tokens a `.penpot` archive already carries. The export record stays design system, version and theme choice.
+
 ## 1.317.0
 
 - `designDrawFindings` reports `text-direction` for any row holding right-to-left letters, as it did for a row marked right to left. The canvas orders those letters by bidi from its own direction and the measure does not, so the page goes to the walker, which reads the browser, or on the CLI to the browser tier. A row with no right-to-left letters is unaffected.

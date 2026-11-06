@@ -163,6 +163,22 @@ CMYK survives Lolly-to-Lolly round trips through `$extensions`, and Penpot ignor
 
 **Out.** A [brand page](/info/brand-page.html) holds one `DESIGN.md` per colourway and mode, because the format has no theme or mode of its own. Named colours sit in a table in the body, since the format's linter treats a token no component uses as a mistake.
 
+A design system that declares [colour roles](/info/colourways.html) adds its own words: each role's name, what it is for and what Lolly reads it as, in the format's own bullet form under **Colors**. A subsection, **Colour roles**, adds a table of both looks and a fenced `json` block holding the same facts. The tokens above the block stay complete, so a reader that does not know the block loses nothing it asked for. When Lolly reads the file back, the block is what restores the roles.
+
+## Colour roles in other formats
+
+A design system can name its colours in its own words, with a role per word. Each format below has a different amount of room for those words. A design system with no declared roles writes exactly the bytes it wrote before, on every route.
+
+| Format | What comes back from a round trip | What does not, and why |
+|---|---|---|
+| **DTCG and Tokens Studio JSON** | Everything: roles, names, descriptions, brand order, what each role fills, and every value in every colourway and look. | Nothing. The record travels in the file's `$extensions`. |
+| **`DESIGN.md`** | Role names, descriptions, brand order and what each role fills. Both looks of the file's colourway, which values follow another look, and which on-colours Lolly worked out. | Other colourways, because the format holds one per file: a brand page keeps one file for each. A link to a named colour comes back as its value, and the named colours themselves stay in the prose, since a token no component uses counts as a mistake to the format's linter. A role that is not a colour, a binding to one tool's own field, a house rule's structure and the mark on a copied value have no place in the block. |
+| **Penpot (`.penpot`)** | Names, values, links, sets and themes. Each role's name, description and place in the brand's order sit in the description of its `color.semantic.<id>` token, and any description the token already had stays on the lines after. Lolly takes the role's words back out on import, on every route, and what each role fills comes back from the links. | A role that is not a colour, a binding to one tool's own field, house rules, the mark on a copied value and CMYK anchors, because Penpot's token keeps a value, a type and a description and nothing else. A colourway group's kind comes back from its name, `colourway`, so a group renamed in Penpot stays a plain theme group. |
+| **Penpot's Tokens panel** | Names, values, links, sets and themes, when you import Lolly's JSON there. | The role record sits at the top of the JSON, and Penpot's panel has no place for that record. Use a `.penpot` file to carry a role's words. |
+| **PowerPoint (`.pptx`)** | The brand's order: the theme's six accents read the roles in that order, for the colourway the deck is drawn in. | Names and descriptions, because a theme has slots and no words. A role that fills the background, text, quiet text or hairlines takes that slot instead of an accent, and a seventh role has no accent to fill. |
+
+The words are someone's text in every format. A name or description that speaks about permissions or running code stays out, and everything else is drawn as plain text.
+
 ## Theme the app itself
 
 Your design system describes your brand. It can also dress Lolly's own interface, in two ways: `lolly.ui.*` roles that hold one value in every theme, and a `color.chrome` group that sets the app's surfaces separately for light and dark.
