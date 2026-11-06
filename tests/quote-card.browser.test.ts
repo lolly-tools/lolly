@@ -177,7 +177,7 @@ describe('Quote in the web shell', { skip }, () => {
     const whole = SKETCH.replace('https://', '');
     for (const [width, height] of [[1600, 1200], [1080, 1080], [1080, 1920], [600, 800], [420, 420]] as const) {
       for (const values of [ada, arabic]) {
-        const got = await measure({ ...values, layout: 'citation', ground: 'paper', link: SKETCH }, width, height);
+        const got = await measure({ ...values, layout: 'citation', ground: 'paper', url: SKETCH }, width, height);
         assert.equal(got.lines.join(''), whole, `${width}x${height}: every character, in order`);
         assert.equal(got.overflow, false, `${width}x${height}: the link stays inside its line`);
         got.lines.slice(0, -1).forEach((line, i) => {
@@ -186,9 +186,9 @@ describe('Quote in the web shell', { skip }, () => {
         });
       }
     }
-    const end = await measure({ ...arabic, layout: 'citation', ground: 'paper', link: SKETCH }, 1600, 1200);
+    const end = await measure({ ...arabic, layout: 'citation', ground: 'paper', url: SKETCH }, 1600, 1200);
     assert.ok(Math.abs(end.linkRight - end.refRight) < 2, `an Arabic card's link ends on the edge of its reference, ${end.linkRight} and ${end.refRight}`);
-    const start = await measure({ ...ada, layout: 'citation', ground: 'paper', link: SKETCH }, 1600, 1200);
+    const start = await measure({ ...ada, layout: 'citation', ground: 'paper', url: SKETCH }, 1600, 1200);
     assert.ok(Math.abs(start.linkLeft - start.refLeft) < 2, `a Latin card's link starts on the edge of its reference, ${start.linkLeft} and ${start.refLeft}`);
   });
 

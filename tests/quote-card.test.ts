@@ -92,22 +92,29 @@ test('an old link draws the markup it always drew', async () => {
   assert.equal(manifest.engineVersion, '^1.0.0', 'nothing here raises the engine floor');
 });
 
-test('every input travels in a link and none takes a reserved name', () => {
+test('every input travels in a link and none takes a reserved name', async () => {
   const manifest = tool.manifest;
-  for (const input of manifest.inputs) assert.ok(!RESERVED.has(input.id), `${input.id} is not reserved`);
-  const state = parseUrlState('quote=Q&phrase=P&source=S&publication=J&date=1843&link=https%3A%2F%2Fexample.com&motion=word&layout=citation', manifest);
+  // The CLI reads some flags itself, and `--link` is one: an input with that id could never be set there.
+  const cli = await readFile(new URL('../shells/cli/src/run.ts', import.meta.url), 'utf8');
+  const flags = /CLI_FLAGS = new Set\(\[([\s\S]*?)\]\)/.exec(cli)![1]!;
+  assert.match(flags, /'link'/, 'this check still reads the list');
+  for (const input of manifest.inputs) {
+    assert.ok(!RESERVED.has(input.id), `${input.id} is not reserved`);
+    assert.ok(!flags.includes(`'${input.id}'`), `${input.id} is not a flag the CLI keeps for itself`);
+  }
+  const state = parseUrlState('quote=Q&phrase=P&source=S&publication=J&date=1843&url=https%3A%2F%2Fexample.com&motion=word&layout=citation', manifest);
   assert.equal(state.values.phrase, 'P');
   assert.equal(state.values.source, 'S');
   assert.equal(state.values.publication, 'J');
   assert.equal(state.values.date, '1843');
-  assert.equal(state.values.link, 'https://example.com');
+  assert.equal(state.values.url, 'https://example.com');
   assert.equal(state.values.motion, 'word');
 });
 
 test('nothing the person typed reaches the page unescaped', async () => {
   const evil = '<img src=x onerror=alert(1)>"&';
   for (const layout of ['type', 'citation', 'marker']) {
-    const html = normal(await hydrate({ quote: `Before ${evil} after`, phrase: evil, name: evil, role: evil, source: evil, publication: evil, date: evil, link: `https://x.test/${evil}`, layout, motion: 'word' }));
+    const html = normal(await hydrate({ quote: `Before ${evil} after`, phrase: evil, name: evil, role: evil, source: evil, publication: evil, date: evil, url: `https://x.test/${evil}`, layout, motion: 'word' }));
     assert.doesNotMatch(html, /<img src=x/, layout);
     assert.match(html, /&lt;img/, layout);
   }
@@ -120,26 +127,26 @@ const linkLine = async (values: Record<string, InputValue>): Promise<{ cls: stri
 };
 
 test('a link offers its path parts first, then the punctuation inside a part, and keeps every character', async () => {
-  const { parts } = await linkLine({ link: 'https://www.example.org/wiki/Scientific_Memoirs/3/Sketch_of_the-Engine?a=1&b=2#end/' });
+  const { parts } = await linkLine({ url: 'https://www.example.org/wiki/Scientific_Memoirs/3/Sketch_of_the-Engine?a=1&b=2#end/' });
   assert.deepEqual(parts.map((part) => part.replace(/<wbr>/g, '')), ['example.org/', 'wiki/', 'Scientific_Memoirs/', '3/', 'Sketch_of_the-Engine', '?a=1', '&amp;b=2', '#end']);
   assert.equal(parts[2], 'Scientific<wbr>_Memoirs/');
   assert.equal(parts[4], 'Sketch<wbr>_of<wbr>_the<wbr>-Engine');
   assert.equal(parts[5], '?a<wbr>=1');
-  assert.deepEqual((await linkLine({ link: 'https://example.com/' })).parts, ['example<wbr>.com']);
-  const evil = await linkLine({ link: 'https://x.org/<img src=y onerror=z>' });
+  assert.deepEqual((await linkLine({ url: 'https://example.com/' })).parts, ['example<wbr>.com']);
+  const evil = await linkLine({ url: 'https://x.org/<img src=y onerror=z>' });
   assert.doesNotMatch(evil.parts.join(''), /<img/);
   assert.match(evil.parts.join('').replace(/<wbr>/g, ''), /&lt;img src=y onerror=z&gt;/);
 });
 
 test('in Arabic the reference takes its own comma, the work stays upright and the link keeps to the same edge', async () => {
-  const arabic = { quote: 'أفضل الأدوات تختفي', name: 'مايا', role: 'رئيسة', source: 'كتاب', publication: 'مجلة', date: '2024', link: 'https://example.org/a' };
+  const arabic = { quote: 'أفضل الأدوات تختفي', name: 'مايا', role: 'رئيسة', source: 'كتاب', publication: 'مجلة', date: '2024', url: 'https://example.org/a' };
   const html = normal(await hydrate({ ...arabic, layout: 'citation' }));
   const ref = /<p class="qc-ref"[^>]*>([\s\S]*?)<\/p>/.exec(html)![1]!;
   assert.equal(ref, 'مايا\u060C رئيسة. <cite class="qc-cite-upright">كتاب</cite>. مجلة\u060C 2024.');
   assert.equal((await linkLine({ ...arabic })).cls, 'qc-link qc-link-end');
   assert.equal((await linkLine({ ...arabic, layout: 'beside' })).cls, 'qc-link qc-link-end', 'a person reads the card from the same side in any layout');
   assert.equal((await linkLine({ ...arabic, layout: 'centred' })).cls, 'qc-link', 'centred stays centred');
-  assert.equal((await linkLine({ link: 'https://example.org/a' })).cls, 'qc-link');
+  assert.equal((await linkLine({ url: 'https://example.org/a' })).cls, 'qc-link');
   const latin = normal(await hydrate({ quote: 'Q', layout: 'citation', name: 'Ada', role: 'Editor', source: 'A Work', publication: 'Nature', date: '1843' }));
   assert.match(latin, /Ada, Editor\. <cite>A Work<\/cite>\. Nature, 1843\./, 'Latin keeps its comma and its italic');
   const asked = normal(await hydrate({ quote: 'Q', layout: 'citation', name: 'مايا', role: '', source: 'لماذا؟' }));

@@ -209,7 +209,7 @@ function sourceLines(v) {
   const work = clean(v.source);
   const pub = clean(v.publication);
   const date = clean(v.date);
-  const link = clean(v.link);
+  const link = clean(v.url);
   // Arabic and Hebrew have no italic of their own, and a face slanted by machine reads as a mistake.
   const cite = work ? (RTL_RE.test(work) ? '<cite class="qc-cite-upright">' : '<cite>') + esc(work) + '</cite>' : '';
   const comma = commaFor(name + role + work + pub);

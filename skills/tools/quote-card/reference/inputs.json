@@ -118,7 +118,7 @@
     "placeholder": "1843"
   },
   {
-    "id": "link",
+    "id": "url",
     "label": "Link",
     "type": "url",
     "default": "",

@@ -29,7 +29,7 @@ Required host APIs: none. Device capabilities: none.
 | source | text |  |
 | publication | text |  |
 | date | text |  |
-| link | url |  |
+| url | url |  |
 | motion | select |  |
 
 Read [the full input definitions](reference/inputs.json) for choices, defaults, limits, nested fields and conditional controls. These definitions come from this tool version.

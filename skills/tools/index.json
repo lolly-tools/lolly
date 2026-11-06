@@ -1209,12 +1209,12 @@
       ],
       "files": {
         "SKILL.md": {
-          "sha256": "e7b9bb537dc68b0800cca43a8fbf986e7a175aa749e4d2a74cda1379a7908ff3",
-          "bytes": 1860
+          "sha256": "722ec5fcfd25153bf0da3da5778a5cabed195792575d8f89abc1bc1cb04a623f",
+          "bytes": 1859
         },
         "reference/inputs.json": {
-          "sha256": "af32df2636a91b1935b0593a8970f03cb71d131cce59e50483ce845ea26fca13",
-          "bytes": 3126
+          "sha256": "9d1b7f876ff7e028a84fa0d12bf28126a6c9424a80a9f1fad305730b5e4d4558",
+          "bytes": 3125
         }
       },
       "path": "quote-card/SKILL.md"
