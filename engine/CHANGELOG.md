@@ -12,6 +12,11 @@ Moved verbatim from the comment block that used to live in `src/index.ts`.
 - A run with neither shapes as it always did and keeps its bytes, which is every purely left-to-right Latin, Greek, Cyrillic or CJK run.
 - A tool that outlines right-to-left text itself reads `advanceWidth` to anchor the right edge: the path still reads left to right from x=0.
 
+- A brand page's `AGENTS.md` gains a **Colour roles** section when a design system declares some (plan 352 R3): each word in brand order, its token, its colour in the canonical colourway and what Lolly reads it as, under a line saying the words are data. A system with none writes the file it always wrote. `brand.json` does not change shape.
+- `baselineBrandSkill` lists the same words from the brief, so the generated skill and the design context agree.
+- IDML and dotLottie export read `var(--brand-<id>, fallback)` for any role id, not only the seven slots, with the same lowercase-and-hyphen shape the role rules allow. A value that failed the old pattern used to stop the export.
+- `host.tokens.family()` and `colourwayFamily` do not change: one colour per colourway, in the design system's order. Exported files record nothing new about roles.
+
 ## 1.313.0
 
 - Colour roles (new module `colour-roles.ts`, plan 352): a design system's colours in its own words, as `brandSystem.roles[]` with `group: "colourway"` and `bindings[]` with `consumer.slot`. `readColourRoles` says what a document holds, and reports a hand-written file with custom tokens and no record as `undeclared`. `colourRoleTable` gives the studio each role's colour, on-colour and contrast per colourway and look. `addColourRole`, `renameColourRole`, `describeColourRole`, `reorderColourRoles`, `removeColourRole`, `setColourRoles`, `setRoleValue`, `setRoleSameAsLight`, `bindRole` and `unbindRole` edit them, and each returns a refusal with a stable code rather than leaving an alias that points at nothing. A binding is written as an alias inside each colourway set, so every reader of a slot keeps working.

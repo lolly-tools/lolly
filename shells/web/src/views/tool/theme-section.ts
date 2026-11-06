@@ -28,7 +28,7 @@ import type { HostV1 } from '@lolly-tools/core/host-v1';
 import type { ColorSwatchOption } from '../../components/color-field.ts';
 import type { DocumentThemeController, DocumentThemeGroup } from '../../lib/document-theme.ts';
 import type { ThemeChoices } from '../../components/theme-choices.ts';
-import { swatchFace } from '../../../../../engine/src/color-face.ts';
+import { colourFieldOptions } from '../../lib/colour-role-swatches.ts';
 import { sourceTokenUsage, toolTokenUsage, type ToolSources } from '../../lib/theme-relevance.ts';
 
 export interface ThemeSectionOpts {
@@ -164,6 +164,6 @@ export async function refreshThemeSwatches(host: HostV1, scope: HTMLElement | nu
 }): Promise<void> {
   const swatches = await host.tokens?.colors?.();
   if (!swatches?.length) return;
-  colorField.setSwatches(swatches.map((s) => ({ value: s.value, wide: swatchFace(s, 'display-p3'), label: s.name, group: s.group, ref: s.ref })));
+  colorField.setSwatches(await colourFieldOptions(host, swatches, { wide: true }));
   if (scope) colorField.refreshSwatches(scope);
 }

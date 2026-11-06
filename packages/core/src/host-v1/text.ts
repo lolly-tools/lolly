@@ -102,7 +102,7 @@ export interface TextToPathOpts {
    * path always reads left to right from x=0, so a caller anchoring a right-to-left line
    * places it `advanceWidth` left of the line's right edge. Omitted, a run holding
    * right-to-left characters takes its direction from its first strong character.
-   * Optional/additive (v1.314).
+   * Optional/additive (v1.315).
    */
   direction?: 'ltr' | 'rtl';
 }
