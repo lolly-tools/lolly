@@ -1,5 +1,9 @@
 # Formats Lolly can open and make
 
+**Choose the format last.** Make it once, in your brand. Send it as a deck, a document, a web graphic, a video or a press-ready PDF. Bring decks, PDFs and design files back in and keep editing.
+
+<!-- the format-last figure renders here -->
+
 Before you start, check that Lolly can open your file and make the one you need. The table groups formats by what each one is: formats Lolly only reads sit at the left, formats it only writes sit at the right, and formats it does both ways sit once in the middle. Tap a format for what it is and what Lolly keeps, such as transparency, colour profiles, layers and credentials.
 
 A few are not in the table yet: SRT and VTT captions, which Captions, Audiogram and Lolly Record export, and TTML and SCC captions, which Captions exports; STL and 3MF models, which Lolly 3D Studio opens; and Premiere XML + media, which Lolly Design exports.

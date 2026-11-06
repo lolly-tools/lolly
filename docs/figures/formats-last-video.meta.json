@@ -1,0 +1,16 @@
+{
+  "generator": {
+    "name": "FFmpeg",
+    "version": "9.0.2"
+  },
+  "model": {
+    "name": "Claude Opus 5.5",
+    "identifier": "claude-opus-5-5",
+    "vendor": "Anthropic"
+  },
+  "oversight": "prompt_guided",
+  "source": "compositeWithTrainedAlgorithmicMedia",
+  "author": {
+    "name": "Andy Fitzsimon"
+  }
+}

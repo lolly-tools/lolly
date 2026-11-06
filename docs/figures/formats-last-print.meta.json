@@ -1,0 +1,16 @@
+{
+  "generator": {
+    "name": "Ghostscript",
+    "version": "10.08.0"
+  },
+  "model": {
+    "name": "Claude Opus 5.5",
+    "identifier": "claude-opus-5-5",
+    "vendor": "Anthropic"
+  },
+  "oversight": "prompt_guided",
+  "source": "compositeWithTrainedAlgorithmicMedia",
+  "author": {
+    "name": "Andy Fitzsimon"
+  }
+}
