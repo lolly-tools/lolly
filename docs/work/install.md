@@ -283,9 +283,10 @@ LW_CONFIG=./instance.json pnpm run check:setup
 
 The pack inspector uses Lolly Work's bundled engine and source resolver. It loads every
 advertised tool, checks required files and local catalog assets, and lists the
-formats the server can make apart from other declared formats. It never runs hooks
-or fetches remote assets. An optional second argument selects a source ID. With
-`LW_CONFIG` set, the command also applies that deployment's worker and
+formats the server can make apart from other declared formats. It also reports a
+catalog file claimed by two asset IDs, which a production server refuses at startup.
+It never runs hooks or fetches remote assets. An optional second argument selects a
+source ID. With `LW_CONFIG` set, the command also applies that deployment's worker and
 server-rendering requirements.
 
 Lolly Work's `engine-pin.json` records the exact bundled engine and core source. Use the
