@@ -12,11 +12,26 @@ import { notePageFill } from '../bridge/fallback-font-source.ts';
 import { lazyModule } from './lazy-module.ts';
 
 const load = lazyModule(() => import('../bridge/page-fallback-fonts.ts'));
+/** One emoji character, or a joiner, selector or modifier that builds one. */
+const EMOJI_PART = /^[\p{Extended_Pictographic}\p{Emoji_Component}]$/u;
+
 /**
- * Text that needs no fallback font: ASCII, and emoji with the joiners, selectors and
- * modifiers that build them, which the emoji pass draws as pictures.
+ * Is this text ASCII and emoji only, needing no fallback font for any character? Emoji, with
+ * the joiners, selectors and modifiers that build them, are drawn as pictures by the
+ * emoji pass. A loop, not one pattern over the whole text: a canvas's text holds its
+ * style and script text too, and a pattern with astral emoji ranges ran V8's regular
+ * expression stack out on a long one, as an alternation of the overlapping sets
+ * backtracked over digits. ASCII is skipped by its code, the rest tested one at a time.
  */
-const PLAIN = /^(?:\p{ASCII}|\p{Extended_Pictographic}|\p{Emoji_Component})*$/u;
+export function isPlainText(text: string): boolean {
+  for (let i = 0; i < text.length; i++) {
+    if (text.charCodeAt(i) < 0x80) continue;
+    const cp = text.codePointAt(i)!;
+    if (cp > 0xffff) i++;
+    if (!EMOJI_PART.test(String.fromCodePoint(cp))) return false;
+  }
+  return true;
+}
 let codeLoaded = false;
 
 interface Watch { scope: string; running: Promise<void> | null; again: boolean; active: boolean }
@@ -27,7 +42,7 @@ export function notePagePainted(root: Element | null | undefined, scope: string)
   if (!root) return;
   let watch = watches.get(root);
   // The common case: nothing outside ASCII and emoji, and no fallback font in use to take away.
-  if (!watch?.active && PLAIN.test(root.textContent ?? '')) return;
+  if (!watch?.active && isPlainText(root.textContent ?? '')) return;
   // Offline, this code may never have reached the device, and a failed chunk load would
   // read as a stale app. The page keeps the fonts it has; an export still fills on its own.
   if (!codeLoaded && typeof navigator !== 'undefined' && navigator.onLine === false) return;
