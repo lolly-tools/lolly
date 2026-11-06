@@ -650,6 +650,7 @@ test('R9: lib/icons.ts glyph bodies are well-formed (balanced quotes and tags)',
 const RAW_HTML_SINK = /\.(?:inner|outer)HTML\s*\+?=(?!=)(?!\s*['"]\s*['"]\s*[;,)])|\binsertAdjacentHTML\s*\(/;
 
 const RAW_HTML_ALLOWED: Record<string, number> = {
+  'lib/design-system/rooms/colour-roles.ts': 3,   // 2026-11-06: the Colour roles room; every label goes through esc() in colour-roles-html.ts
   'views/read-extract.ts': 5, // Read and extract: static shell markup plus escapeHtml()-wrapped counts and messages, and renderExtractHtml output
   // The split layout's Swap sides button: one fixed registry icon, nothing interpolated.
   'lib/split-panes.ts': 1,

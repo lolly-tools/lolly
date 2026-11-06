@@ -29,8 +29,8 @@
  * builder over a model, and `mountRolesStrip` is the only part that touches the
  * DOM. That split is what lets the readouts be unit-tested headless.
  *
- * Contrast is reported APCA-first, WCAG second (house rule): the Lc and its band
- * are the readout, the 2.1 ratio rides the tooltip.
+ * Contrast is measured APCA-first, WCAG second (house rule), and the readout says
+ * in plain words whether text reads: both figures ride the tooltip.
  *
  * LEADS (plans/319 A2). Every read and write takes an editing context, `{ lead,
  * mode }` (leads.ts), where it used to take a theme string; a bare string still
@@ -44,7 +44,7 @@
  * set, so clearing one is refused; a lead is removed whole or not at all.
  */
 
-import { colorToHex, colourPairContrast, colourRoleMarkOf, contrastRatio, createTokenSet, deriveOnColour, isDerivedOnColourValue, onColourFloor, tokenSetNames, TOKEN_EXT, WEAK_LC as ENGINE_WEAK_LC } from '@lolly/engine';
+import { colorToHex, colourPairContrast, colourRoleMarkOf, contrastRatio, createTokenSet, deriveOnColour, isDerivedOnColourValue, onColourFloor, readColourRoles, tokenSetNames, TOKEN_EXT, WEAK_LC as ENGINE_WEAK_LC } from '@lolly/engine';
 import type { ColourPairContrast } from '@lolly/engine';
 import { escape } from '../../utils.ts';
 import { t, tRaw } from '../../i18n.ts';
@@ -92,9 +92,46 @@ export const ASSIGNABLE_ROLES: readonly RoleId[] =
  *  list above and the module header. */
 const isRoleId = (v: unknown): v is RoleId => ASSIGNABLE_ROLES.includes(v as RoleId);
 
-/** The role's name as the strip shows it. Called per render, never cached at
+/**
+ * What a design system calls each slot (plans/352). Empty on a system that declares no
+ * colour roles, which keeps today's words. On one that does, a filled slot goes by the
+ * role's own word and a slot nothing fills goes by the table's language, so the brand's
+ * "secondary" and Lolly's slot are never the same word. A lookup, never a plain object:
+ * these words come from a token file.
+ */
+export type RoleWords = ReadonlyMap<RoleId, string>;
+
+const NO_WORDS: RoleWords = new Map();
+
+export function roleWords(doc: unknown): RoleWords {
+  const reading = readColourRoles(doc);
+  if (reading.state !== 'declared') return NO_WORDS;
+  const words = new Map<RoleId, string>();
+  for (const held of reading.slots) {
+    const id = held.slot as RoleId;
+    const role = held.roleId ? reading.roles.find(r => r.id === held.roleId) : null;
+    words.set(id, role?.declared ? role.label : UNFILLED_WORD[id]!());
+  }
+  words.set('on-primary', tRaw('On {role}', { role: words.get('primary') ?? t('Lead colour') }));
+  return words;
+}
+
+/** A slot nothing fills, on a system that speaks its own words. The Colour roles table says the same. */
+const UNFILLED_WORD: Partial<Record<RoleId, () => string>> = {
+  primary: () => t('Lead colour'),
+  secondary: () => t('Partner colour'),
+  surface: () => t('Background'),
+  text: () => t('Text'),
+  muted: () => t('Quiet text'),
+  edge: () => t('Hairlines'),
+};
+
+/** The role's name as the strip shows it: the system's own word when it has one
+ *  (`words`, from {@link roleWords}), else today's. Called per render, never cached at
  *  module scope, so a language switch repaints correctly. */
-export function roleLabel(id: RoleId): string {
+export function roleLabel(id: RoleId, words: RoleWords = NO_WORDS): string {
+  const own = words.get(id);
+  if (own) return own;
   switch (id) {
     case 'primary': return t('Primary');
     case 'secondary': return t('Secondary');
@@ -615,6 +652,9 @@ export interface RoleRow {
    *  Secondary pointed at the same swatch as Primary reads "↳ follows Primary".
    *  Empty for every row that is not doing that. */
   follows: string;
+  /** What a write to this row goes to, when that is not `id`: `role:<id>` for one of
+   *  the design system's own colour roles, which may fill no slot at all. */
+  target?: string;
   /** The picker's current selection: a swatch key, or '' for Not set. */
   selected: string;
   contrast: RoleContrast | null;
@@ -667,7 +707,7 @@ export function rampStepName(name: string, key: string): string {
  * no idea what a beat is.
  */
 /**
- * The Lc is always reported; the WARNING is not.
+ * The pair is always measured; the WARNING is not.
  *
  * `edge` is a hairline - a rule, a border, the quietest thing in the system -
  * and it is SUPPOSED to sit far under the floor {@link WEAK_LC} names, which is
@@ -685,6 +725,7 @@ export function buildRolesModel(
   ids: readonly RoleId[] = ROLE_IDS,
 ): RolesModel {
   const readouts = roleReadouts(doc, ctx, resolve);
+  const words = roleWords(doc);
   const options = swatches.filter(s => !s.key.startsWith('color.semantic.'));
   const byKey = new Map(options.map(s => [s.key, s]));
   const primaryRef = readouts.primary.ref ?? '';
@@ -697,10 +738,10 @@ export function buildRolesModel(
     // A slot resolving to the SAME swatch the primary sits on is not a second
     // decision - it is the first one, showing through. Naming the colour twice
     // reads as two choices; the arrow says what actually happened.
-    const follows = id !== 'primary' && !!r.ref && r.ref === primaryRef ? roleLabel('primary') : '';
+    const follows = id !== 'primary' && !!r.ref && r.ref === primaryRef ? roleLabel('primary', words) : '';
     return {
       id,
-      label: roleLabel(id),
+      label: roleLabel(id, words),
       hex: r.hex,
       value: follows
         ? tRaw('↳ follows {role}', { role: follows })
@@ -722,27 +763,29 @@ export function buildRolesModel(
   return { rows, options };
 }
 
-/** `Lc 78` - one decimal would suggest a precision APCA does not claim at this
- *  size, and the sign matters (it is the polarity), so it is kept. */
-const fmtLc = (lc: number): string => `${lc < 0 ? '-' : ''}${Math.round(Math.abs(lc))}`;
+/** The size of the contrast, as a whole number. The sign only says which way round the
+ *  pair runs (light on dark or dark on light), which is no use to a person reading this. */
+const contrastSize = (lc: number): number => Math.round(Math.abs(lc));
 
-/** The readout's three rendered parts, so the string builder and the in-place
- *  patch below cannot drift apart on wording or on the weak-pairing class. */
-function apcaParts(c: RoleContrast): { weak: boolean; title: string; text: string } {
-  return {
-    weak: c.weak,
-    title: tRaw('APCA Lc {lc} ({band}). WCAG {wcag} to 1.', {
-      lc: fmtLc(c.lc),
-      band: c.label,
-      wcag: Number.isFinite(c.wcag) ? c.wcag.toFixed(2) : '-',
-    }),
-    text: tRaw('Lc {lc}', { lc: fmtLc(c.lc) }),
-  };
+/**
+ * The readout in plain words: what a person wants to know is whether text reads, in this
+ * look. The figures go in the tooltip for whoever wants them, with no minus sign.
+ *
+ * "As text" is on purpose. A colour can be fine for a shape and weak as a ground for text,
+ * and a word that said only "weak" would read as a fault in a colour the brand chose. A
+ * hairline is never drawn behind text, so it says that instead.
+ */
+export function apcaParts(c: RoleContrast, hairline = false): { weak: boolean; title: string; text: string } {
+  const size = contrastSize(c.lc);
+  const figures = tRaw('Contrast {lc} (APCA), {wcag} to 1 (WCAG).', { lc: size, wcag: Number.isFinite(c.wcag) ? c.wcag.toFixed(2) : '-' });
+  if (hairline) return { weak: false, title: figures, text: t('Not for text') };
+  if (size < WEAK_LC) return { weak: c.weak, title: `${figures} ${t('The colour can still work for shapes and large areas.')}`, text: t('Hard to read as text') };
+  return { weak: c.weak, title: `${figures} ${c.label}.`, text: size < 75 ? t('Large text only') : t('Text reads well') };
 }
 
-function apcaHtml(c: RoleContrast | null): string {
+function apcaHtml(c: RoleContrast | null, hairline = false): string {
   if (!c) return '';
-  const p = apcaParts(c);
+  const p = apcaParts(c, hairline);
   return `<span class="be-role-apca${p.weak ? ' is-weak' : ''}" title="${escape(p.title)}">${escape(p.text)}</span>`;
 }
 
@@ -756,8 +799,8 @@ function apcaHtml(c: RoleContrast | null): string {
  *
  * `placeholder` is what the empty option says. A row whose slot is filled by a
  * starter colour (or by the primary showing through) reads "Choose…", because
- * nothing has been chosen for it; a row with a real choice behind it keeps "Not
- * set", which is what selecting the empty option would DO.
+ * nothing has been chosen for it, and so does one holding a literal the list has no
+ * entry for. An empty row keeps "Not set".
  */
 function optionsHtml(options: RoleSwatchOption[], selected: string, placeholder: string, required = false): string {
   const opt = (s: RoleSwatchOption): string =>
@@ -788,8 +831,8 @@ export function rolesStripHtml(model: RolesModel): string {
       <span class="be-role-meta">
         <span class="be-role-name">${escape(row.label)}</span>
         <span class="be-role-val" title="${escape(row.value)}">${escape(row.value)}</span>
+        ${apcaHtml(row.contrast, row.id === 'edge')}
       </span>
-      ${apcaHtml(row.contrast)}
       ${row.derived
         // No picker: the derive owns this slot, and a control that wrote it
         // would be offering to break the pair it exists to keep.
@@ -809,7 +852,8 @@ function roleStandInClass(row: RoleRow): string {
 
 /** What the picker's empty option says on this row - see optionsHtml. */
 function rolePlaceholder(row: RoleRow): string {
-  return row.starter || row.follows ? t('Choose…') : t('Not set');
+  // A slot holding a colour of its own is set, whatever the picker can name.
+  return row.starter || row.follows || row.set ? t('Choose…') : t('Not set');
 }
 
 /** Live getters, the same ctx shape `mountPrintLock` and the rooms use - the
@@ -888,15 +932,15 @@ function patchStrip(mount: HTMLElement, model: RolesModel): boolean {
     if (val) { val.textContent = row.value; val.title = row.value; }
     // The readout appears and disappears with the pairing, so it is created and
     // removed rather than only rewritten. It holds no state and nothing in it
-    // is focusable, so replacing it costs the interaction nothing. It goes
-    // before the picker, or before the derived row's read-only tail.
+    // is focusable, so replacing it costs the interaction nothing. It closes the
+    // row's words, under the value.
     let apca = el.querySelector<HTMLElement>('.be-role-apca');
     if (!row.contrast) { apca?.remove(); }
     else {
-      const p = apcaParts(row.contrast);
+      const p = apcaParts(row.contrast, row.id === 'edge');
       if (!apca) {
         apca = el.ownerDocument.createElement('span');
-        (sel ?? el.querySelector<HTMLElement>('.be-role-derived'))?.before(apca);
+        el.querySelector<HTMLElement>('.be-role-meta')?.append(apca);
       }
       apca.className = `be-role-apca${p.weak ? ' is-weak' : ''}`;
       apca.title = p.title;

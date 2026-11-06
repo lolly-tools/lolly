@@ -98,13 +98,13 @@ A rule is applied when each piece is made, and the piece stores the colourway it
 <a id="in-design-system-setup"></a>
 ### In Lolly Design System Setup
 
-The **Colours** room makes and edits colourways. Open **Colour roles**: the **Colourways** row at its head shows one chip per colourway in its lead colour, with **Default** on the canonical one.
+The **Colours** room makes and edits colourways. Open **Colour roles**: the **Colourways** row at its head shows one chip per colourway in its lead colour, with **Default** on the canonical one. The table under the row shows each [colour role](/info/brand-studio.html#colour-roles-what-the-colours-are-called) for the chosen colourway, with light and dark side by side.
 
 1. Press **+ Add** and choose one of the palette's colours. The new colourway takes that colour as its lead, and Lolly works out the colour that sits on the lead and the partner, for light and for dark: the same values a whole design system derived from that colour would use. The surface, the text and the ramps stay the design system's own. On a design system with one lead colour, the first **+ Add** makes the current lead the canonical colourway, named after its colour, and nothing it draws changes.
-2. Choose a chip to edit that colourway. The roles strip, the palette and the previews below then read and write that colourway, and the **Light** and **Dark** switch beside the row chooses which look you edit.
+2. Choose a chip to edit that colourway. The table, the strip, the palette and the previews then read and write that colourway. The **Light** and **Dark** switch beside **In context** chooses which look the preview and palette show.
 3. With a colourway chosen, type a new name in the name field, or press **Duplicate**, **Make default** or **Remove**. The canonical colourway cannot be removed.
 
-Each edit goes through the room's undo and saving, and Lolly refuses an edit that would change how any other colourway or look draws. A managed design system shows the row with no editing controls. When a token file encodes its colourways in a way the studio cannot edit, the row gives the reason, and choosing a colourway in a tool still works.
+Each edit goes through the room's undo and saving, and Lolly refuses an edit that would change how any other colourway or look draws. A managed design system opens read-only: its page shows the colourways as a chooser and the colour roles for the chosen one, with no editing controls. When a token file encodes its colourways in a way the studio cannot edit, the row gives the reason, and choosing a colourway in a tool still works.
 
 Three things are not in the room yet and are written in the token file: the order of the colourways, a date window on a colourway and a rotation rule for the group.
 

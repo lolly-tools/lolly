@@ -316,16 +316,16 @@ export function docsAppHref(slug: string): string {
   return `#/docs/${slug}`;
 }
 
-/** Substitute `{name}` slots; `esc` decides whether a param is HTML-escaped. */
+/** Substitute `{name}` slots; `esc` decides whether a param is HTML-escaped. One pass over
+ *  the template with a function replacer, so a value stays inert: a person's text holding
+ *  `{other}` or `$&` comes through as typed. */
 function fill(template: string, params: Record<string, string | number> | undefined, esc: boolean): string {
-  let out = template;
-  if (params) {
-    for (const [key, value] of Object.entries(params)) {
-      const v = String(value);
-      out = out.replaceAll(`{${key}}`, esc ? escape(v) : v);
-    }
-  }
-  return out;
+  if (!params) return template;
+  return template.replace(/\{([^{}]+)\}/g, (whole, key: string) => {
+    if (!Object.hasOwn(params, key)) return whole;
+    const v = String(params[key]);
+    return esc ? escape(v) : v;
+  });
 }
 
 /** The BCP 47 tag of the catalog t() is answering from, for plural rules. */

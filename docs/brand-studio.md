@@ -114,17 +114,53 @@ Your colours sit beside an **In context** preview on a wide screen, and above it
 
 ![The Colours room after adding one colour, with its palette and a live composition preview](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dpick&width=1440&height=840&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-editor-add%5D%3Bwait%3A900&format=svg&walker=1&dark=1&filename=bs-colour-first)
 
+### Colour roles: what the colours are called
+
+The design system says what its colours are called and what each is for, and Lolly reads that. **Colour roles** sits at the head of the Colours room. On a wide screen **In context** shares the view, so a change shows on the poster, chart and interface card as you make the change.
+
+The table has four columns, and on a phone each row becomes a card that keeps light and dark side by side:
+
+| Column | What it holds |
+|---|---|
+| **Role** | The design system's own word, which you can edit in place, and a line saying what the colour is for |
+| **Light** and **Dark** | The colour in that look for the chosen colourway, with its name or value, and its contrast |
+| **Lolly reads this as** | What a tool does with the role, in Lolly's own words |
+
+**How Lolly reads a role.** Each reading takes one role, so choosing a reading another role holds moves that reading here. Lolly never reads meaning from a word.
+
+| Reading | What follows from it |
+|---|---|
+| **Lead colour** | Big shapes, buttons, the colour a tool leads with |
+| **Partner colour** | The second colour a tool reaches for |
+| **Background** | Sits behind everything else |
+| **Text** | Headings and body text |
+| **Quiet text** | Captions and small print |
+| **Hairlines** | Rules, borders and dividers |
+| **By name only** | No tool picks the role by itself. It is offered in every colour field and in Design, where a pick stays linked, so it follows the colourway |
+
+A reading no role fills stays as the design system defines it, and the room lists those under the table. A role that shares a reading's own id, such as a role called Primary, is that reading and cannot be moved.
+
+**Values.** Press a value to choose a colour for that role, in that look, in the chosen colourway. **Same as light** makes the dark value follow the light one until you choose a colour of its own. The **Aa** chip shows the text Lolly picks to sit on the colour, and the line under the value says how that text reads, per look: **Text reads well**, **Large text only** or **Hard to read as text**. That is about text on the colour and says nothing against the colour itself, which can still work for shapes and large areas. A role read by name only shows the same words without the warning colour, because no tool puts text on it by itself. The figures behind the words, APCA first and WCAG second, are in the tooltip and in the picker. **Own text colour** marks a value whose file states the text colour, which stays. **Copied** marks a value that came from another colourway or from the partner colour and that nobody has chosen yet; **Keep this colour** in the picker settles the value.
+
+**Starting points.** A design system with no roles of its own shows today's words: Primary, Secondary, Surface and Text. Nothing is written until you change one. **+ Add a role** offers **Primary, Secondary** or **Main, Accent, Supporting, Tertiary** as suggestions, or any words you type, with the reading each would get. The first two words become the lead colour and the partner colour. Tools keep drawing the same colours, and on a system with one lead colour the first colourway is named after that colour.
+
+**Renaming, reordering, removing.** A rename changes only the word, so everything that uses the role keeps working. Drag a role by its handle, or press Space on the handle, use the arrow keys and press Space to drop. **Remove** says what still uses the role. When tools read it, **Remove and keep those colours** leaves each reading with the colour it draws now. A house rule, a guide group, a tool field or another token that uses the role holds it until that use changes. A saved Design document can also use a role by name, and Lolly cannot see that from the token file: a document that does reports the colour as unresolved.
+
+**A hand-written file.** Colours a token file holds that no role declares are listed under **In this file, with no role yet**, each with a field for a word and **Make a role**. They keep working by name either way. A token with digits in its name cannot be a role, so it stays in the file and keeps working by its path. A record in the file that does not validate shows the table with no controls and says why.
+
+**The rest of the room speaks the same words.** The chips, the swatch's **Use as** row and the palette's **Colour roles** group all use the design system's words, and a colour role's tile opens its value. Exported files record nothing new about roles: the colours in a render change because the tokens changed.
+
 ### Roles: what tools read
 
-The four roles a person decides first, **Primary**, **Secondary**, **Surface** and **Text**, lead the room as chips, each showing the colour that plays the role and its name. Press a chip to choose its colour from the palette's own swatches. The full strip is in **Colour roles**, under the preview.
+With **Colour roles** shut, the first decisions lead the room as chips, each showing the colour that plays the role and its name. On a system with no words of its own these are **Primary**, **Secondary**, **Surface** and **Text**. Press a chip to choose its colour from the palette's own swatches. **Every colour a tool reads**, at the foot of **Colour roles**, has the full strip.
 
-**Roles** say which colour plays each part in every tool and export. They are optional (three loose colours and no roles is a perfectly good system), any colour can take one and the contrast readout is measured against the surface, APCA first. Each role row shows an own colour at full strength, a starter colour standing in, or **↳ follows Primary**.
+**Roles** say which colour plays each part in every tool and export. They are optional (three loose colours and no roles is a perfectly good system), any colour can take one and the readout says how text reads, measured against the surface, APCA first. Each role row shows an own colour at full strength, a starter colour standing in, or **↳ follows Primary**.
 
-Once the palette has shades, the strip shows all seven roles a tool can read: Primary, Secondary, Surface, Text, Muted, Edge and On primary. On primary is derived from the primary, reads **Derived** and has no picker.
+The strip shows all seven roles a tool can read: Primary, Secondary, Surface, Text, Muted, Edge and On primary, in the design system's own words where it has them. On primary is derived from the primary, reads **Derived** and has no picker. The **Light** and **Dark** switch beside it, and the one beside **In context**, choose which look the strip, the palette and the preview show.
 
 The app's own accent follows the design system by default. That is the **Interface follows the design system** setting in **Settings → Appearance**; turning the setting off leaves the app's chrome neutral, while tools, canvases and exports follow the design system either way.
 
-**Colourways.** A design system can hold several lead colours, each chosen per piece. The **Colourways** row at the head of **Colour roles** shows one chip per colourway, with **Default** on the canonical one. **+ Add** starts a new colourway from one of the palette's colours. Choose a chip, and the roles strip, the palette and the previews edit that colourway, in the look the **Light** and **Dark** switch chooses; the chosen colourway can be renamed, duplicated, made the default or removed. On a system with colourways, every colourway needs its own primary and secondary, and its own surface when the colourways tint the background, so those roles stay set in the swatch editor. [Add colourways to a design system](/info/colourways.html#add-colourways-to-a-design-system) has the steps and the token format, and [Lolly Demo in use](/info/lolly-demo-in-use.html#colourways-on-real-work) shows colourways on real work.
+**Colourways.** A design system can hold several lead colours, each chosen per piece. The **Colourways** row at the head of **Colour roles** shows one chip per colourway, with **Default** on the canonical one. **+ Add** starts a new colourway from one of the palette's colours. Choose a chip, and the table, the strip, the palette and the previews show that colourway; the chosen colourway can be renamed, duplicated, made the default or removed. On a system with colourways, every colourway needs its own primary and secondary, and its own surface when the colourways tint the background, so those roles stay set in the swatch editor. [Add colourways to a design system](/info/colourways.html#add-colourways-to-a-design-system) has the steps and the token format, and [Lolly Demo in use](/info/lolly-demo-in-use.html#colourways-on-real-work) shows colourways on real work.
 
 ### Find more colours
 
@@ -178,7 +214,7 @@ Click a swatch to open its editor:
 - **Rename** the swatch.
 - **Set the colour** on OKLCH sliders, or in **Hex**, **HSL**, **RGB** or **CMYK**. The value field reads and writes in the active space. CMYK here sets the screen colour by conversion; to pin exact inks, use **Print substitutes**.
 - **Stored as** chooses how the swatch is saved: **LCH** (the default, perceptual and wide-gamut), Hex, RGB or HSL.
-- **Use as** gives the swatch a role directly. Press a highlighted role again to clear the role.
+- **Use as** gives the swatch a role directly, in the design system's own words where it has them. Press a highlighted role again to clear the role.
 - **Print substitutes** (folded): lock **CMYK** from **Auto** to exact ink values, or set a **Spot colour** with a **Name** (such as `PANTONE 186 C`), an optional **Book** and a **Finish** for foil, emboss, deboss, spot varnish, soft touch or a die cut, crease or perforation. A press uses these locks when you export a CMYK PDF or TIFF; see [Colour profiles](/info/exporting.html#colour-profiles).
 - **In other spaces** (folded): a value per colour space, derived or authored by you, and an authored one wins at export.
 
@@ -380,7 +416,7 @@ Open **Settings → Preferences → Design systems** to switch, add or remove sy
 
 **Where a system comes from.** The system a deployment's catalogue supplies reads **Came with this app**, or **From this instance** in an app connected to one. Expand **Catalogue source** to see who supplies it, its tokens asset and namespace and its known version or checksum; if a refresh fails, cached material is labelled.
 
-**Managed systems are read-only.** A system reads **Managed by this instance** (or **Managed by this app** in the desktop app with no instance) when its catalogue locks the system. You can use and download it, and opening it here shows a read-only note with **Make an editable copy** and **Switch**. Your own local systems stay editable, even when the managed one came first. A build with one fixed brand opens Lolly Design System Setup on *This brand is set*, with the brand's tokens and usage rules to read.
+**Managed systems are read-only.** A system reads **Managed by this instance** (or **Managed by this app** in the desktop app with no instance) when its catalogue locks the system. You can use and download it, and opening it here shows a read-only note with **Make an editable copy** and **Switch**, then its colour roles and tokens with no editing controls. Your own local systems stay editable, even when the managed one came first. A build with one fixed brand opens Lolly Design System Setup on *This brand is set*, with the brand's tokens and usage rules to read.
 
 **Every other supplied system is yours** to hide, edit and reset, including Lolly Demo and Lolly Starter on lolly.tools. Editing one keeps its name and marks the row **Edited here**, and **Reset to original** in its menu discards the changes made on this device. The blank starter is the exception: a first change there starts a design system of your own, so Lolly asks once what to call the new system. [Lolly Demo in use](/info/lolly-demo-in-use.html#switch-to-your-own) shows what your own system replaces.
 
