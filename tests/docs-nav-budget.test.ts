@@ -79,10 +79,23 @@ test('a long section rail shows a handful of rows until a reader opens a group',
   assert.match(rail, /<details class="sidebar-group" open><summary class="sidebar-label">[\s\S]*?class="active"/, 'the current page is not in an open group');
 });
 
+// Plan 354 aimed at eight tab stops or fewer before the rail. Row 1 alone is eight in the
+// app (skip, back, four tabs, wide, avatar) and the six sections follow, so the budget
+// protects what the count stood for (Andy's call through the coordinator, 2026-11-06):
+// Skip to content is the first stop and lands on the article in one press, and the
+// sections stay one row of six.
 test('the skip link is the first stop and lands on the article, past the bar and the rail', { skip: built }, () => {
   const html = readFileSync(join(BUILT, 'build/build-guide.html'), 'utf-8');
   const body = html.slice(html.indexOf('<body'));
   const first = /<(a|button|input|summary)\b[^>]*>/.exec(body.slice(body.indexOf('>') + 1))?.[0] ?? '';
   assert.match(first, /class="skip-link" href="#docs-main"/, 'the skip link is not the first stop');
   assert.match(body, /<main class="docs-content[^"]*"[^>]* id="docs-main"|<main class="docs-content[^"]*" id="docs-main"/, 'the skip link target is not the article');
+});
+
+test('the sections row holds the sections and nothing else, so it stays one row', { skip: built }, () => {
+  const html = readFileSync(join(BUILT, 'build/build-guide.html'), 'utf-8');
+  const strip = /<nav class="docs-pathways"[^>]*>([\s\S]*?)<\/nav>/.exec(html)?.[1] ?? '';
+  const tabs = strip.match(/<a class="docs-pathway/g) ?? [];
+  assert.equal(tabs.length, REGISTRY.sections.length, 'the strip carries something besides the sections');
+  assert.ok(tabs.length <= 6, `${tabs.length} tabs no longer fit one row at desktop width`);
 });
