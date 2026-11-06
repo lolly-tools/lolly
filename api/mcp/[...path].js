@@ -176019,14 +176019,19 @@ async function fontsOf(host) {
   const [mono, display, italic] = await Promise.all([slot("mono"), slot("display"), slot("italic")]);
   return { brand, ...mono ? { mono } : {}, ...display ? { display } : {}, ...italic ? { italic } : {} };
 }
-async function colourRoleResolver(host) {
+async function brandColourResolver(host) {
+  if (!host.tokens) return null;
   try {
-    const document2 = (await host.tokens?.snapshot?.())?.document;
-    if (!document2 || !readColourRoles(document2).roles.some((role) => role.declared)) return null;
-    const set = await host.tokens.get();
+    const colours2 = /* @__PURE__ */ new Map();
+    for (const swatch of await host.tokens.colors()) {
+      colours2.set(tokenColorVar(swatch.ref), swatch.value);
+      const semantic = /^color\.semantic\.([a-z-]+)$/.exec(swatch.path);
+      if (semantic) colours2.set(`--brand-${semantic[1]}`, swatch.value);
+    }
+    for (const [name, value2] of brandLeadVars(await host.tokens.family?.("primary"))) colours2.set(name, value2);
     return (css2) => {
-      const name = /^var\(\s*--brand-([a-z][a-z-]*)\s*(?:,[\s\S]*)?\)$/.exec(css2.trim())?.[1];
-      return name ? colorToHex(set.resolve(`{color.semantic.${name}}`)) ?? null : null;
+      const name = /^var\(\s*(--brand-[a-z0-9-]+)\s*(?:,[\s\S]*)?\)$/i.exec(css2.trim())?.[1];
+      return name ? colours2.get(name) ?? null : null;
     };
   } catch {
     return null;
@@ -176055,7 +176060,7 @@ async function designOpsNodeHost(host, ctx, outlined = true) {
     return { bytes: bytes2 };
   };
   const fonts = await fontsOf(host);
-  const resolveColor4 = await colourRoleResolver(host);
+  const resolveColor4 = await brandColourResolver(host);
   return {
     drawing: {
       shaper: createNodeTextShaper({ repoRoot: ctx.repoRoot }),
@@ -176073,6 +176078,8 @@ var init_design_ops_host = __esm({
   "packages/node-shell/src/design-ops-host.ts"() {
     "use strict";
     init_src2();
+    init_color_face();
+    init_token_context();
     init_pptx_deck();
     init_text_measure();
     init_text3();
