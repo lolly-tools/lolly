@@ -6,6 +6,13 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+## 1.321.0
+
+- `writeDocx` takes an optional `page` (width, height and margins in twips) and writes it as the section's `w:pgSz` and `w:pgMar`, marking a landscape page as such and holding every value to Word's range. New `snapDocxPage` turns a measured size into the standard paper size it stands for (A4 is 11906 x 16838 twips, US Letter 12240 x 15840), so a page laid out in whole pixels reads as A4, not a custom size. Picture widths and table columns follow the page's text width.
+- `writeDocx` takes optional `styles`: the body face and text colour go into the document defaults, the heading face and colour into Heading 1 to 6. A face is named in `ascii`, `hAnsi`, `eastAsia` and `cs`, and only a plain family name or a six-digit colour is written. Runs carry no font or colour of their own.
+- `DocxMedia.fallback`: for an SVG picture, PNG bytes of the same artwork. The picture is written the way Word writes one, the PNG as the blip and the SVG through the `asvg:svgBlip` extension, so a reader with no SVG support shows the PNG.
+- A document with no `page`, no `styles` and no `fallback` is byte-identical to before. New exports: `snapDocxPage`, and the types `DocxPage` and `DocxStyles`. The web shell's Word export (`shells/web/src/bridge/export-docx.ts`) fills all three from the rendered page. The PNG is drawn from the SVG's own bytes, so the file gains no new information, and a .docx still has no Content Credentials container.
+
 ## 1.319.0
 
 - `host.text.toPath`: a `fallbackFonts` entry may carry `fill: true`, a face that draws only what every face before it cannot, the way a browser falls back to a later family in a `font-family` list. With one in the chain, the run is split by grapheme cluster and each cluster goes to the first face that maps all of it, so an earlier face keeps every character it can draw; a space goes to the first face that maps it, as in Chrome. A chain with no `fill` face splits exactly as before, so every existing outline keeps its bytes.

@@ -17,7 +17,7 @@ import { wantsDeepExport, hdrTune } from './export-deep-choice.ts';
  */
 
 import { assertPdfCameOutLocked, assertStandardPasswordFits, standardPdfEncryption } from './export-password-lock.ts';
-import { LOSSLESS_STRENGTH, C2PA_FORMATS, embedWavInfo, writeDocx, writeOdt, hdrBoostToPQ, pqBt2020IccProfile, iccProfileBytes, HDR_PQ_CICP, packTiff, CSS_DPI, encodeBmp, cmykCondition, toPixels, parseDimension, toCssLength, gzip, emitEmf, emitWmf, emitEps, emitDxf, toPoints, exportActionSteps, embedC2pa, ENGINE_VERSION, separationLattice, buildExportMeta, SCREEN_SOURCE_TYPE, CAPTURE_SOURCE_TYPE, extractC2paStore, roundedRectPath, splitCssArgs, insetCorners, uniformRadius, parseCssMatrix, isNonAffineTransform, parseClipShape, parseBoxShadow, gaussianShadowBands, parseTextShadow, videoProvenanceTags, embedMp4Meta, embedWebmMeta, hdrViewTransform, fromU8Srgb, pqToI420P10, pqEncodeFrame, packApng, packWebpAnim } from '@lolly/engine';
+import { LOSSLESS_STRENGTH, C2PA_FORMATS, embedWavInfo, writeOdt, hdrBoostToPQ, pqBt2020IccProfile, iccProfileBytes, HDR_PQ_CICP, packTiff, CSS_DPI, encodeBmp, cmykCondition, toPixels, parseDimension, toCssLength, gzip, emitEmf, emitWmf, emitEps, emitDxf, toPoints, exportActionSteps, embedC2pa, ENGINE_VERSION, separationLattice, buildExportMeta, SCREEN_SOURCE_TYPE, CAPTURE_SOURCE_TYPE, extractC2paStore, roundedRectPath, splitCssArgs, insetCorners, uniformRadius, parseCssMatrix, isNonAffineTransform, parseClipShape, parseBoxShadow, gaussianShadowBands, parseTextShadow, videoProvenanceTags, embedMp4Meta, embedWebmMeta, hdrViewTransform, fromU8Srgb, pqToI420P10, pqEncodeFrame, packApng, packWebpAnim } from '@lolly/engine';
 import type { Mat2D, SeparateRgb } from '@lolly/engine';
 import { letterSpacingPx, featureSettingsToHb, canVectoriseText, textBaselineY } from './text-svg.ts';
 import { resolveExportFont, extendsChain, withFallbackFonts } from './font-fill.ts';
@@ -54,8 +54,8 @@ import type { C2paActionInput } from '../../../../engine/src/c2pa.ts';
 import type { PrintGeometry } from '../../../../engine/src/print-marks.ts';
 import type { CornerRadii, CornerPair } from '../../../../engine/src/css-box.ts';
 import { n2, parseCssColorFull, resolveRadii, objectPositionFractions, parseCssLen } from './export-css.ts';
-import { renderPptx, sourceAuthorOf } from './export-pptx.ts';
-import { domToRichDoc, domToDocBlocks } from './doc-blocks.ts';
+import { renderPptx } from './export-pptx.ts';
+import { domToDocBlocks } from './doc-blocks.ts';
 import { insertWebpMeta, insertAvifExif, iccWanted, insertPngPhys, insertPngMeta, insertPngIcc, patchJpegDpi, insertJpegExif, insertJpegXmp, insertJpegIcc, setAvifCicp, injectSvgMeta, inflateBytes, deflateBytes, withGifComment } from './export-image-meta.ts';
 import { pureRotationDeg, buildCmykPaletteMap, applyTextTransform, drawSvgPathToPdf, withPdfRotation, withPdfMatrix, pdfApplyClip, withPdfAlpha, pdfFillCssBackground, clipOuterShadowsOfTranslucentBox, pdfRoundedRect, pdfGradientSpec, fillPdfShading, withPdfRoundedClip, sampleGradientMidpoint, borderDashArray, withPdfClipRect, assignSpotResourceNames, substitutePdfRgb, hasRewritableColour, convertShadingsToCmyk, OVERPRINT_GS_DEFS, paletteHitKey } from './export-pdf-vector.ts';
 import { paintDesignGroupPage } from './export-group-compositing.ts';
@@ -662,28 +662,11 @@ async function renderFormatDispatch(node: Element, format: string, opts: ExportO
     // export, so they stay off the main export chunk.
     case 'penpot':
       return await (await import('./export-penpot.ts')).renderPenpot(node, opts);
-    case 'docx': {
-      // Editable Word document - headings, styled runs, links, lists, tables and
-      // pictures read off the rendered node, NOT a rasterised page. The office MIME
-      // (not application/zip) keeps the .docx extension in extFor. Still lossy vs PDF
-      // by design (see doc-blocks.ts for what the model cannot carry).
-      const { blocks, title, media } = await domToRichDoc(node);
-      // Core props (plans/144 Wave 2 G3): same fields the pptx path passes; the
-      // document's own derived title wins over the tool name. An imported
-      // source's author (data-source-author on the stage) rides along so the
-      // core-props writer can carry both authors when they differ.
-      const m = opts.meta;
-      const srcAuthor = sourceAuthorOf(node);
-      return new Blob([writeDocx({
-        title, blocks, media,
-        meta: m || srcAuthor
-          ? { description: m?.description, source: m?.source, contact: m?.contact, author: m?.author, sourceAuthor: srcAuthor }
-          : null,
-        now: new Date().toISOString(),
-      }) as BlobPart], {
-        type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-      });
-    }
+    case 'docx':
+      // Editable Word document (export-docx.ts): the words read off the rendered node,
+      // plus the page size, the document's faces and text colours as styles, and a
+      // print PNG beside each SVG picture.
+      return await (await import('./export-docx.ts')).renderDocx(node, opts);
     case 'odt': {
       const { blocks, title } = domToDocBlocks(node);
       return new Blob([writeOdt({ title, blocks }) as BlobPart], {
