@@ -94,6 +94,33 @@ The page says which logos are owner-published, and your terms appear under "Usin
 
 This reads what your catalog states. Lolly does not check that you own a mark, and your words grant nobody anything Lolly can confirm. Write this record only for your own marks: a partner's logo needs its own licence on record, or your stated choice with `--include`. [The Lolly Demo page](https://lolly.tools/brand/lolly-demo/) publishes Lolly's marks this way.
 
+## Lead back from your files
+
+Your exports can name your page, so a file someone finds later leads back to the source. This is off until you turn it on, per design system. It records one thing, the page's address, in the [design-system record](/info/exporting.html#the-design-system-record). Nothing else in the file changes.
+
+**In the app.** **On exports**, in the same sheet, has a switch: *Record the page address in exports*. For a folder you host yourself, type the address under *Where it will live*, then turn the switch on once the page is live there. For an instance that serves pages, the switch opens after you publish, and it uses the address the instance gives back. Turn the switch off and later exports hold no address.
+
+**In a terminal.** Add `--record-address` to `lolly system publish --origin=<address>`, and `--no-record-address` removes the setting. Both change the active terminal design system.
+
+**For a managed design system.** A managed design system is read-only on people's devices, so its manager sets this in the source tokens, at `$extensions["com.suse.lolly"].exportRecord.brandPage`. Everyone using that system then records the address, and each person's card shows the address and can leave it out. A content profile's tokens work the same way.
+
+**The setting does not travel.** A record in a signed file reads as the signer's own. If the setting moved with the design system, importing someone's pack would write their address into your signed exports, and a hostile pack could point everyone's files at a page of its choosing. So the setting stays with the design system it was turned on for:
+
+- A `.lolly` pack, a Lolly file that carries a design system, a tokens file imported or given for one run, **Try these colours**, a restored backup, and a copy or fork of a design system all arrive with the setting off, with the same bytes as a source that never held the setting. This holds for a pack made from a managed system too.
+- Importing over a design system that has the setting on turns the setting off, because the material was replaced.
+- Exported packs and tokens files leave the setting out.
+- Editing your own design system keeps your setting.
+
+To record your own page on a copy or an import, turn the switch on and type your address. Lolly does not offer the publisher's address as a starting value.
+
+**The addresses Lolly refuses.** A record travels with a file, long after anyone can explain what a private address meant, so only a plain `https` address on a named host can be recorded. Lolly refuses `http` and every other scheme, a user name or password, a query or fragment, an IP address, `localhost`, a host with no dot such as `https://brand/`, whitespace and hidden format characters, and anything over 512 characters. An instance served from an IP address or a single-label host cannot be recorded, even when its page is live.
+
+**What people see.** Each export's **Design system** card shows the address before anything is written, and unticking the card leaves the address out of that export, with the rest of the record. `_madewith=0`, `--no-madewith` and `madeWith: false` do the same. The command line and the MCP server say when the address is recorded.
+
+**What a reader sees.** [Lolly Verify](/info/what-verify-checks.html#brand-page) shows your host and says the signer recorded this address. It does not say the page is yours, because a signer can record any address and a page can be forged. Tell people which address is really yours somewhere they already trust.
+
+The setting stays out of the published folder, so turning it on or off does not change the page's files.
+
 ## Your words on use
 
 Lolly writes no licence or legal claim for you. A usage statement and a contact are your own words:

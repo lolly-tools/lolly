@@ -78,7 +78,7 @@ test('the sensor capabilities still validate (screen is additive, not a replacem
 
 // ─── version ─────────────────────────────────────────────────────────────────
 
-test('ENGINE_VERSION is 1.310.0', () => {
+test('ENGINE_VERSION is 1.311.0', () => {
   // A literal pin: the screencap surface shipped at 1.54, and tools declare
   // ^1.54.0 to require it. session-record only checks the stamp equals whatever
   // ENGINE_VERSION happens to be (tautological) - this catches an errant bump.
@@ -583,8 +583,8 @@ test('ENGINE_VERSION is 1.310.0', () => {
   // 1.307.0 adds the Bannerbear V5 template mapper; capture is unchanged.
   // 1.308.0 adds brand pages: buildBrandPage, DESIGN.md in and out, and the redistribution rule moved into the engine.
   // 1.309.0 adds a brand page's logo list, the licence text beside a font and the off switch for its footer link.
-  // 1.310.0 moves brandPageOutlines into the engine and widens the brand skill scope hints.
-  assert.equal(ENGINE_VERSION, '1.310.0');
+  // 1.311.0 records a brand page's address on exports, when its publisher opts in.
+  assert.equal(ENGINE_VERSION, '1.311.0');
 });
 
 // ─── loadTool: a ^1.54.0 tool loads against this engine ───────────────────────

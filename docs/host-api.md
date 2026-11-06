@@ -157,6 +157,8 @@ The host owns the renderer, so tools do not bundle their own. `render` turns the
 ::: details The design-system record in `meta`
 When the runtime assembles `meta` with the record on, it reads `host.tokens.snapshot()` through the document's own theme choice and records the snapshot's `system`, its `version` unless that is the working head, and every theme choice except the light or dark one. A manifest that ignores an axis kind through `tokenAxes` records no choice of that kind. When a colourway is recorded, `description` gives the colourway beside the tool (`"Made with https://lolly.tools : Chart (Beach colourway)"`); a description bound with `bindToMeta` is left as written.
 
+When its publisher opted in, the snapshot's optional `brandPage` adds that address to the record, read from the working head.
+
 A shell writes the record as flat `designSystem`, `designSystemLabel`, `designVersion` and `themes` keys of the `tools.lolly.export` credential assertion (`designRecordEnvironment`), as `lolly:` XMP or SVG properties (`designRecordXml`) and as PDF keywords (`pdfKeywords`). `runtime.madeWithPreview()` returns the record and both descriptions without exporting, for a shell to show before anything is written, and `runtime.lastExportMeta` is the metadata the last export embedded, for a shell that stamps the credential afterwards. [Exporting](/info/exporting.html#the-design-system-record) describes what a person sees. An export whose `brandSkills` were handed over also records them, as a `brandSkills` JSON key in the assertion, a `lolly:BrandSkills` property and one `Guided by: <name> <revision>` PDF keyword per skill; the description is unchanged.
 :::
 

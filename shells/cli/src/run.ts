@@ -17,6 +17,7 @@ import { xlsxFormatter } from '@lolly-tools/node-shell/xlsx-numfmt-node';
 import { xlsxRecalc } from '@lolly-tools/node-shell/gridcraft-calc-node';
 import { checkPdfAccessibility } from '@lolly-tools/node-shell/pdf-a11y-node';
 import { isFileTransform } from '@lolly-tools/node-shell/transform-tool';
+import { withoutRecordedBrandPage } from '../../../engine/src/brand-page-address.ts';
 import { assertMotionRequest, assertSampleRequest, sampleOutputFormat, buildExportMeta, designRecordWords, readFileDesignRecord, loadTool, createRuntime, canvasSizeOf, annotateTemplate, parseUrlState, serializeUrlState, serializeHdr, expandQuery, frameFilterApplies, embedC2pa, extractC2paStore, C2PA_FORMATS, c2paDefaultOn, imprintDefaultOn, isImprintFormat, IMPRINT_FORMATS, normalizeLang, parseDataRows, parseTableText, hasEncryptedState, unpackEncrypted, ENC_PARAM, RESERVED, parseRateCard, isRateCardError, validateRateCard, sfntKind, storeZip, readXlsx, listXlsxSheets, rowsToCsv } from '@lolly/engine';
 import { createHash } from 'node:crypto';
 import type { Lang } from '@lolly/engine';
@@ -403,7 +404,8 @@ async function designSystemForRun(
     if (!file || file === '1' || file === 'true') throw usageError('--file needs a path: write --file=<tokens.json>.', 'MISSING_FLAG_VALUE');
     if (share) throw usageError('--share prints a link, and a link cannot carry the --file design system. Drop --file, or render a file.', 'CONFLICTING_FLAGS');
     const { importSystemTokens } = await import('./system.ts');
-    const { doc } = await importSystemTokens(file);
+    // A document given for one run is not the person's opt-in to any address it holds (plan 351 B5).
+    const doc = withoutRecordedBrandPage((await importSystemTokens(file)).doc);
     return { runDesignSystem: doc, pageDesignSystem: doc };
   }
   if (toolId !== 'design') return { runDesignSystem: null, pageDesignSystem: null };

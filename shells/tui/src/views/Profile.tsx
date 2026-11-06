@@ -14,7 +14,7 @@ import { homedir } from 'node:os';
 import { verifyC2pa, resolveVerdict } from '@lolly/engine';
 import { getProfile, setProfile, backupData, listSessions } from '../store.ts';
 import { loadTrustAnchors, describeAnchors } from '../trust-anchors.ts';
-import { cleanControlChars, verdictHeadline, verdictFacts, verdictChecks, verdictApproval, verdictIntent, verdictSources } from '@lolly-tools/node-shell/verdict-report';
+import { cleanControlChars, verdictHeadline, verdictFacts, verdictChecks, verdictApproval, verdictBrandPage, verdictIntent, verdictSources } from '@lolly-tools/node-shell/verdict-report';
 import { exportSessions } from '../batch-export.ts';
 import { loadFavourites, loadHidden } from '../lib/asset-favourites.ts';
 import { loadToolFavourites } from '../lib/tool-favourites.ts';
@@ -191,6 +191,13 @@ export function Profile({ bridge, onNav, onQuit }: { bridge: TuiBridge; onNav: (
           push('  Intent', 'dim');
           for (const [k, val] of intent.facts) push(`    ${k.padEnd(11)} ${val}`, 'fg');
           if (intent.prompt) { push(`    ${intent.promptNote}`, 'dim'); push(`    ${'Prompt'.padEnd(11)} ${intent.prompt}`, 'fg'); }
+        }
+        // The address the signer recorded, as data: never a link and never a claim about the page.
+        const page = verdictBrandPage(report);
+        if (page) {
+          push('  Brand page', 'dim');
+          for (const [k, val] of page.facts) push(`    ${k.padEnd(11)} ${val}`, 'fg');
+          push(`    ${page.note}`, 'dim');
         }
         // What the file records about the creative work inside it, kept apart from
         // the verdict (plan 253, section 9.2) and worded by the same shared renderer

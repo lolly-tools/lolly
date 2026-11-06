@@ -65,6 +65,7 @@ import { deriveIconThemesDoc, derivePhotoTreatmentsDoc } from '../engine/src/bra
 // model, never by hand: a pack's published versions have to mean the same thing
 // here as they do in the shell that exported them.
 import { readVersionIndex, versionAssetId, withVersionIndex } from '../engine/src/design-version.ts';
+import { withoutRecordedBrandPage } from '../engine/src/brand-page-address.ts';
 import type { VersionIndex } from '../engine/src/design-version.ts';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
@@ -479,7 +480,7 @@ function emitPack(
   }
 
   // The extracted document verbatim - this file IS the brand.
-  const brandBytes = Buffer.from(JSON.stringify(doc, null, 2) + '\n');
+  const brandBytes = Buffer.from(JSON.stringify(withoutRecordedBrandPage(doc), null, 2) + '\n');
   writeFileSync(join(tokensDir, 'brand.json'), brandBytes);
 
   // Same SRI form as scripts/checksum-assets.ts, so build:catalog is a no-op on it.

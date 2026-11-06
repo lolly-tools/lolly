@@ -15,6 +15,10 @@ import assert from 'node:assert/strict';
 import { createTokensAPI, installUserTokens, USER_TOKENS_ID } from './tokens.ts';
 import { createAssetsAPI } from './assets.ts';
 import { createDesignSystem } from '../lib/design-system/manage.ts';
+import { writeBrandPageSetting } from '../lib/design-system/brand-page-record.ts';
+import { madeWithWords } from '../lib/made-with.ts';
+import { carriesRecordedBrandPage, readRecordedBrandPage, withRecordedBrandPage } from '../../../../engine/src/brand-page-address.ts';
+import { designRecordOf } from '../../../../engine/src/metadata.ts';
 import {
   ACTIVE_DESIGN_SYSTEM_KEY, DESIGN_SYSTEMS_STORE, createDesignSystemRegistry,
   type DesignSystemRecord, type DesignSystemRegistry, type RegistryDb,
@@ -309,4 +313,99 @@ test('a radius edit leaves the active one of two design systems named as it was'
   assert.match(JSON.stringify(await r.tokens.raw()), /0\.5rem/, 'the edit reached the active system');
   assert.equal((await r.registry.get(second.id))?.label, 'Client B');
   assert.equal((await r.registry.get('default'))?.label, 'Acme', 'the other system is untouched too');
+});
+
+// ── A recorded brand page address does not travel (plan 351 B5) ─────────────────
+
+const PAGE = 'https://acme.example/brand/acme/';
+const OTHER_PAGE = 'https://evil.example/brand/';
+const hostOf = (r: Rig) => r.host as unknown as Parameters<typeof createDesignSystem>[0];
+const installHost = (r: Rig) => r.host as unknown as Parameters<typeof installUserTokens>[0];
+const settingHost = (r: Rig) => r.host as unknown as Parameters<typeof writeBrandPageSetting>[0];
+const headText = async (r: Rig, id: string) => (await (await r.assets._getBlob(id))!.text());
+
+/** What the export panel's card would write for the active system right now. */
+async function cardWords(r: Rig): Promise<string> {
+  r.tokens.bust();
+  return madeWithWords(designRecordOf(await r.tokens.snapshot()));
+}
+
+async function activeSystem(r: Rig, label: string, doc: unknown) {
+  const rec = await createDesignSystem(hostOf(r), { label, seedDoc: doc as Record<string, unknown> });
+  await r.registry.setActive(rec.id);
+  r.tokens.bust();
+  return rec;
+}
+
+test('brand page: the publisher\'s own switch records the address, and only the record holds it', async () => {
+  const r = await rig();
+  await activeSystem(r, 'Acme', DOC);
+  assert.doesNotMatch(await cardWords(r), /Brand page/);
+  await writeBrandPageSetting(settingHost(r), PAGE, 'Acme');
+  const snapshot = await r.tokens.snapshot();
+  assert.equal(snapshot.brandPage, PAGE);
+  assert.equal(carriesRecordedBrandPage(snapshot.document), false, 'a file that carries the document does not carry the setting');
+  assert.match(await cardWords(r), /Brand page: https:\/\/acme\.example\/brand\/acme\/$/);
+  await writeBrandPageSetting(settingHost(r), null, 'Acme');
+  assert.doesNotMatch(await cardWords(r), /Brand page/);
+});
+
+test('brand page: a design system created from a document that carries the key has no address', async () => {
+  const plain = await rig();
+  const planted = await rig();
+  const clean = await activeSystem(plain, 'Acme', DOC);
+  const carried = await activeSystem(planted, 'Acme', withRecordedBrandPage(DOC, OTHER_PAGE));
+  assert.equal(await headText(planted, carried.headId), await headText(plain, clean.headId), 'the same bytes as a document without the key');
+  assert.equal((await planted.tokens.snapshot()).brandPage, undefined);
+  assert.doesNotMatch(await cardWords(planted), /Brand page/);
+});
+
+test('brand page: a fork of a system that records an address has none, with the bytes of a fork of one that never did', async () => {
+  const plain = await rig();
+  const own = await rig();
+  const a = await activeSystem(plain, 'Acme', DOC);
+  const b = await activeSystem(own, 'Acme', DOC);
+  await writeBrandPageSetting(settingHost(own), PAGE, 'Acme');
+  const forkA = await createDesignSystem(hostOf(plain), { label: 'Copy', seedFrom: a.id });
+  const forkB = await createDesignSystem(hostOf(own), { label: 'Copy', seedFrom: b.id });
+  assert.equal(await headText(own, forkB.headId), await headText(plain, forkA.headId));
+  await own.registry.setActive(forkB.id);
+  assert.doesNotMatch(await cardWords(own), /Brand page/);
+  assert.equal((await own.tokens.snapshot()).brandPage, undefined);
+});
+
+test('brand page: an edit of this head keeps its own setting, whatever the incoming document holds', async () => {
+  const r = await rig();
+  await activeSystem(r, 'Acme', DOC);
+  await writeBrandPageSetting(settingHost(r), PAGE, 'Acme');
+  await installUserTokens(installHost(r), DOC2);
+  assert.equal(readRecordedBrandPage(await r.tokens.raw()), PAGE, 'a document read before the switch does not turn it off');
+  await installUserTokens(installHost(r), withRecordedBrandPage(DOC2, OTHER_PAGE));
+  assert.equal(readRecordedBrandPage(await r.tokens.raw()), PAGE, 'nor can an edit change the address');
+  await writeBrandPageSetting(settingHost(r), null, 'Acme');
+  await installUserTokens(installHost(r), withRecordedBrandPage(DOC2, PAGE));
+  assert.equal(readRecordedBrandPage(await r.tokens.raw()), null, 'a document read before the switch went off does not turn it back on');
+});
+
+test('brand page: material replaced from elsewhere clears the setting', async () => {
+  const r = await rig();
+  await activeSystem(r, 'Acme', DOC);
+  await writeBrandPageSetting(settingHost(r), PAGE, 'Acme');
+  await installUserTokens(installHost(r), withRecordedBrandPage(DOC2, PAGE), { brandPage: 'replaced' });
+  assert.equal(readRecordedBrandPage(await r.tokens.raw()), null);
+});
+
+test('brand page: a shipped or managed catalog keeps the address its manager set, and a person\'s first edit does not inherit the address', async () => {
+  for (const brandLock of [true, false]) {
+    const r = await rig({ brandLock });
+    await r.db.put('asset-blob', blobOf(withRecordedBrandPage(CATALOG_DOC, PAGE)), 'lolly/tokens/brand:json:1.0.0');
+    r.tokens.bust({ lock: true });
+    assert.equal((await r.tokens.snapshot()).brandPage, PAGE);
+    assert.match(await cardWords(r), /Brand page: /);
+    if (brandLock) continue;
+    await installUserTokens(installHost(r), await r.tokens.raw() as object, { labelIfNew: 'Mine' });
+    r.tokens.bust({ lock: true });
+    assert.equal((await r.tokens.snapshot()).brandPage, undefined, 'a first edit is the person\'s own copy');
+    assert.doesNotMatch(await cardWords(r), /Brand page/);
+  }
 });

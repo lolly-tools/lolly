@@ -28,6 +28,7 @@ import { canonicalJson } from './canonical-json.ts';
 import { bytesToHex, sha256 } from './bytes.ts';
 import { designBrief, type DesignBriefCatalogV1, type DesignBriefV1 } from './design-brief.ts';
 import { checkDesignHouseRules } from './design-house-rules.ts';
+import { withRecordedBrandPage } from './brand-page-address.ts';
 import { readDesignSystemIdentity, slugifyDesignSystemId } from './design-system.ts';
 import { writeDesignMd } from './design-md.ts';
 import { brandSystemOf } from './brand-system.ts';
@@ -268,7 +269,9 @@ export function brandPageSvgProblem(svg: string): string | null {
 /** The token document that goes public. Source evidence and people's names stay out. */
 function publishableTokens(doc: unknown, held: BrandPageHeldV1[]): unknown {
   if (!isRow(doc)) return doc;
-  const out = JSON.parse(JSON.stringify(doc)) as Row;
+  // A setting about this publisher's own exports, not a fact about the brand. Left out,
+  // so turning the setting on or off leaves the folder's bytes as they were.
+  const out = withRecordedBrandPage(doc, null) as Row;
   const extensions = isRow(out.$extensions) ? out.$extensions : null;
   const vendor = extensions && isRow(extensions[TOKEN_EXT]) ? extensions[TOKEN_EXT] as Row : null;
   if (!vendor) return out;

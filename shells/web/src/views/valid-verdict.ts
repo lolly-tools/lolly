@@ -94,6 +94,10 @@ export interface VerifyReport {
   approval?: { approvalId: string; decidedAt: string; reviewedSha256: string };
   /** What the piece was asked to do (`tools.lolly.intent`). Read only from a credential that verifies. */
   intent?: { purpose: string; surface: string; tool: string; language?: string; occasion?: string; audience?: string; region?: string; promptFingerprint?: string; prompt?: string };
+  /** The brand page address the signer recorded. Read only from a credential that verifies. */
+  brandPage?: string;
+  /** Why a recorded address was left out, when one was. */
+  brandPageDropped?: 'credential' | 'address';
   author?: { name: string; email?: string; url?: string };
   rights?: string;
   signer?: Signer;

@@ -58,7 +58,7 @@ import { verifyC2pa, resolveVerdict, defaultTrustAnchors, c2paTrustAnchors, LOLL
 import type { DeepScanResult } from '@lolly-tools/node-shell/webshell-render';
 import type { Inspection } from '@lolly-tools/node-shell/inspect';
 import { verdictSlug } from '@lolly-tools/node-shell/verdict-slugs';
-import { cleanControlChars, verdictHeadline, verdictFacts, verdictChecks, verdictApproval, verdictIntent, verdictSources } from '@lolly-tools/node-shell/verdict-report';
+import { cleanControlChars, verdictHeadline, verdictFacts, verdictChecks, verdictApproval, verdictBrandPage, verdictIntent, verdictSources } from '@lolly-tools/node-shell/verdict-report';
 import { expandHome, splitAnchorList, describeAnchorSet } from '@lolly-tools/node-shell/trust-anchors';
 import { EXIT, usageError } from './exit-codes.ts';
 import { useColor } from './output.ts';
@@ -317,6 +317,13 @@ export async function validateFile(
         process.stdout.write(paint(DIM, `    ${intent.promptNote}\n`));
         process.stdout.write(`    ${paint(DIM, 'Prompt'.padEnd(11))} ${intent.prompt}\n`);
       }
+    }
+    // The address the signer recorded, as data: never a link and never a claim about the page.
+    const page = verdictBrandPage(report);
+    if (page) {
+      process.stdout.write(`  ${paint(DIM, 'Brand page')}\n`);
+      for (const [k, val] of page.facts) process.stdout.write(`    ${paint(DIM, k.padEnd(11))} ${val}\n`);
+      process.stdout.write(paint(DIM, `    ${page.note}\n`));
     }
     // What the file records about the creative work inside it. A separate
     // question from whether the credential verifies, so it gets its own block in

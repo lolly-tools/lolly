@@ -22,10 +22,10 @@ import { t, tRaw } from '../i18n.ts';
 /**
  * The record as one line: "Acme · Version 2026-10 · Colourway: Persimmon", ending
  * in "Guided by: acme-brand 1.0" when the record names brand skills. Empty for an
- * empty record. `skills: false` leaves the brand skills out, for Verify, which
- * lists them as a fact of their own.
+ * empty record. `skills: false` and `page: false` leave the brand skills and the
+ * brand page address out, for Verify, which lists them as facts of their own.
  */
-export function madeWithWords(record: DesignRecord | null | undefined, opts: { skills?: boolean } = {}): string {
+export function madeWithWords(record: DesignRecord | null | undefined, opts: { skills?: boolean; page?: boolean } = {}): string {
   if (!record) return '';
   const parts: string[] = [];
   if (record.designSystem) parts.push(record.designSystem.label);
@@ -35,6 +35,7 @@ export function madeWithWords(record: DesignRecord | null | undefined, opts: { s
       ? tRaw('Colourway: {name}', { name: choice.name })
       : tRaw('{group}: {name}', { group: choice.group || t('Theme'), name: choice.name }));
   }
+  if (record.brandPage && opts.page !== false) parts.push(tRaw('Brand page: {address}', { address: record.brandPage }));
   const guided = opts.skills === false ? '' : guidedByWords(record.brandSkills);
   if (guided) parts.push(tRaw('Guided by: {skills}', { skills: guided }));
   return parts.join(' · ');
@@ -96,7 +97,7 @@ export function recreateWithRecord(
 
 /** Verify's "Design system" fact for a credential's export assertion, or null when it records none. */
 export function madeWithFact(environment: Readonly<Record<string, unknown>> | null | undefined): string | null {
-  return madeWithWords(readDesignRecord(environment ?? null), { skills: false }) || null;
+  return madeWithWords(readDesignRecord(environment ?? null), { skills: false, page: false }) || null;
 }
 
 /**

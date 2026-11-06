@@ -29,6 +29,7 @@ import { bytesToHex, sha256 } from './bytes.ts';
 // The leaf, not tokens.ts: this module is reached from bridge/assets.ts at first paint,
 // and the tokens module would bring its colour cluster along for one string (token-ext.ts).
 import { TOKEN_EXT } from './token-ext.ts';
+import { withoutRecordedBrandPage } from './brand-page-address.ts';
 import { brandResourceAssetIds, mapBrandResourceIds } from './brand-resources.ts';
 
 type Rec = Record<string, unknown>;
@@ -219,7 +220,8 @@ export function withVersionIndex(doc: unknown, index: VersionIndex): unknown {
  * head's own (live) ledger back when a version becomes the head again.
  */
 export function stripVersionIndex(doc: unknown): unknown {
-  return withVersionIndex(doc, { versions: [], active: null });
+  // The brand page setting is the head's too: it belongs to the brand and never to one version.
+  return withoutRecordedBrandPage(withVersionIndex(doc, { versions: [], active: null }));
 }
 
 /**

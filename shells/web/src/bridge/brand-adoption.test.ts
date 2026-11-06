@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 import { test } from 'node:test';
+import { carriesRecordedBrandPage, readRecordedBrandPage, withRecordedBrandPage } from '../../../../engine/src/brand-page-address.ts';
 import assert from 'node:assert/strict';
 import { createBrandAdoptionAPI, type AdoptionDb } from './brand-adoption.ts';
 import type { DesignSystemRecord } from '../lib/design-system/registry.ts';
@@ -280,4 +281,32 @@ test('published versions retain their bytes, frozen files and existing local led
   const next = await prepareTokenAdoption(host, await r.api.capture(), { next: true });
   assert.deepEqual(readVersionIndex(next.doc), ledger, 'a token-only import must keep published history');
   await assert.rejects(prepareTokenAdoption(host, await r.api.capture(), withVersionIndex({}, { versions: [{ ...entry, slug: 'missing' }], active: null })), /without their files/);
+});
+
+// A recorded brand page address does not arrive with someone else's material (plan 351 B5).
+test('brand page: adoption clears a foreign address, keeps this head\'s own on an edit, and keeps a manager\'s', async () => {
+  const PAGE = 'https://acme.example/brand/';
+  const headOf = async (r: ReturnType<typeof database>) => JSON.parse(await (r.stores.get('user-assets')!.get(r.record.headId).blob as Blob).text());
+  const r = database();
+  await r.api.commit(await r.api.prepare(await r.api.capture(), { doc: withRecordedBrandPage({ imported: true }, 'https://evil.example/'), brandPage: 'replaced' }));
+  assert.equal(carriesRecordedBrandPage(await headOf(r)), false, 'an import');
+  await r.api.commit(await r.api.prepare(await r.api.capture(), { doc: withRecordedBrandPage({ ruleEdited: true }, 'https://evil.example/') }));
+  assert.equal(carriesRecordedBrandPage(await headOf(r)), false, 'an edit cannot add an address the head does not hold');
+  await r.api.commit(await r.api.prepare(await r.api.capture(), { doc: withRecordedBrandPage({ synced: true }, PAGE), brandPage: 'manager' }));
+  assert.equal(readRecordedBrandPage(await headOf(r)), PAGE, 'a manager\'s source');
+  await r.api.commit(await r.api.prepare(await r.api.capture(), { doc: { ruleEdited: 2 } }));
+  assert.equal(readRecordedBrandPage(await headOf(r)), PAGE, 'an edit keeps the head\'s own');
+  await r.api.commit(await r.api.prepare(await r.api.capture(), { doc: { replaced: true }, brandPage: 'replaced' }));
+  assert.equal(carriesRecordedBrandPage(await headOf(r)), false, 'replaced material clears the head\'s own');
+});
+
+test('brand page: Try these colours and a pack, which both come through this path, clear an address', async () => {
+  const r = database();
+  const host = { brandAdoption: r.api, assets: { _getBlob: async () => null, get: async () => { throw new Error('no such file'); } } };
+  const prepared = await prepareTokenAdoption(host, await r.api.capture(), withRecordedBrandPage({ tried: true }, 'https://evil.example/'), []);
+  await r.api.commit(prepared.candidate);
+  assert.equal(carriesRecordedBrandPage(JSON.parse(await (r.stores.get('user-assets')!.get(r.record.headId).blob as Blob).text())), false);
+  const managed = await prepareTokenAdoption(host, await r.api.capture(), withRecordedBrandPage({ synced: true }, 'https://acme.example/'), [], { brandPage: 'manager' });
+  await r.api.commit(managed.candidate);
+  assert.equal(readRecordedBrandPage(JSON.parse(await (r.stores.get('user-assets')!.get(r.record.headId).blob as Blob).text())), 'https://acme.example/');
 });

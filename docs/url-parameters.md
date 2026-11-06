@@ -112,7 +112,7 @@ For the print formats, a named condition such as `fogra51` is written into the P
 | `imprint` | web + CLI (on by default) | The Lolly Imprint, a pixel watermark on raster art Lolly rendered. `imprint=0` or `imprint=off` turns it off. [Exporting](/info/exporting.html#provenance-watermark) |
 | `durable` | web (off by default) | A Durable Content Credential: a TrustMark-format watermark that survives a metadata strip. `durable=1` turns it on. |
 | `meta` | web + CLI (on by default) | The plain generator field (`Lolly lolly.tools`) in formats that have one. `meta=off` (or `meta=0`) leaves it out. |
-| `_madewith` | web + CLI (`--no-madewith`) + MCP (`madeWith: false`) | The design-system record: which design system, version and colourway drew the file. On by default; `_madewith=0` leaves it out. [Exporting](/info/exporting.html#the-design-system-record) |
+| `_madewith` | web + CLI (`--no-madewith`) + MCP (`madeWith: false`) | The design-system record: which design system, version and colourway drew the file, plus the brand page address when its publisher opted in. On by default; `_madewith=0` leaves it out. [Exporting](/info/exporting.html#the-design-system-record) |
 | `licence` | web + CLI (`--licence=`) | The licence you declare for your own export, written into the file's licence metadata. |
 
 ::: details More on c2pa

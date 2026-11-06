@@ -329,7 +329,7 @@ async function collectReasons(
   // side without a record is "could not tell", which is not a reason. The brand
   // skills an agent declared (plan 323) are not part of the design system, so the
   // comparison leaves them out.
-  const drawn = designRecordWords(recorded, { skills: false }), here = designRecordWords(rebuiltRecord, { skills: false });
+  const drawn = designRecordWords(recorded, { skills: false, page: false }), here = designRecordWords(rebuiltRecord, { skills: false, page: false });
   if (drawn && here && drawn !== here) {
     reasons.push({ code: 'design-system', detail: `the artifact was drawn with ${drawn}; this rebuild drew with ${here}` });
   }

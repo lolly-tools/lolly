@@ -76,6 +76,7 @@ import { DEFAULT_DESIGN_SYSTEM_ID, SHIPPED_DESIGN_SYSTEM_ID, designSystemHeadId,
 // The exclusion read lives in its own leaf module (not lib/brand-doc.ts, whose
 // engine-barrel import would drag studio code into this bridge's boot graph).
 import { getExcludedSwatches } from '../lib/brand-exclusions.ts';
+import { readRecordedBrandPage, settleBrandPageWrite, withoutRecordedBrandPage, type BrandPageWrite } from '../../../../engine/src/brand-page-address.ts';
 
 /** The catalog-asset slice discovery needs: an id to read the cached blob by,
  *  the file URL to fall back to, and the `brandLock` flag (tokens assets only).
@@ -291,6 +292,11 @@ export async function installUserTokens(
      * leaves the user unable to free the storage the refusal is about.
      */
     skipQuota?: boolean;
+    /**
+     * How this write treats a brand page address (plan 351 B5, settleBrandPageWrite).
+     * Absent, this head's own setting stands, so a new head from a copy or a fork has none.
+     */
+    brandPage?: BrandPageWrite;
   } = {},
 ): Promise<void> {
   if (typeof doc !== 'object' || doc === null || Array.isArray(doc)) {
@@ -300,11 +306,12 @@ export async function installUserTokens(
   const headId = target.headId;
 
   if (!opts.versionSlug) {
+    const settled = settleBrandPageWrite(doc, opts.brandPage ? null : await readJsonBlob(await host.assets._getBlob?.(headId).catch(() => null) ?? null), opts.brandPage);
     await host.assets._uploadUserAsset({
       id: headId,
       type: 'tokens',
       format: 'json',
-      blob: new Blob([JSON.stringify(doc)], { type: 'application/json' }),
+      blob: new Blob([JSON.stringify(settled)], { type: 'application/json' }),
       version: '1.0.0',
       meta: { name: await headName(host, headId, opts.label ?? target.label) },
     }, { skipQuota: opts.skipQuota });
@@ -445,7 +452,8 @@ export async function readUserDesignSystem(
   const record = await host.designSystems?.active().catch(() => null) ?? null;
   if (record && record.source.kind === 'shipped') return null;
   const headId = record?.headId || USER_TOKENS_ID;
-  const doc = await readJsonBlob(await host.assets._getBlob(headId).catch(() => null));
+  // A share file does not hand on the setting behind a recorded brand page address (plan 351 B5).
+  const doc = withoutRecordedBrandPage(await readJsonBlob(await host.assets._getBlob(headId).catch(() => null)));
   if (!doc || typeof doc !== 'object') return null;
   const name = record?.label || (await host.assets._getUserRecord?.(headId).catch(() => null))?.meta?.name;
   // The identity a share file carries (plans/186 section 3.8): the id, and for a
@@ -909,9 +917,13 @@ export function createTokensAPI(host: TokensHost): WebTokensAPI {
       const version = ladder(headDoc);
       const pins = readVersionIndex(headDoc).versions.find(v => v.slug === version)?.assets ?? [];
       const { restorePinnedFontFamilies } = await import('../../../../engine/src/token-font-pins.ts');
-      const document = await restorePinnedFontFamilies(renderDocument, pins);
+      // A file that carries the document never carries the setting: only the record does, under its switch.
+      const document = withoutRecordedBrandPage(await restorePinnedFontFamilies(renderDocument, pins));
       const choices = (await import('../../../../engine/src/token-selection.ts')).resolveTokenSelection(document).choices;
-      return { document: document ?? null, ...(pins.some(p => p.font) ? { renderDocument } : {}), system, version, selection: { ...readActiveSelection(document), ...(Object.keys(choices).length ? { choices } : {}) } };
+      // The publisher's opt-in belongs to the brand, so it is read from the head and a
+      // pinned version records it too (plan 351 B5). No opt-in, no key.
+      const brandPage = readRecordedBrandPage(headDoc);
+      return { document: document ?? null, ...(pins.some(p => p.font) ? { renderDocument: withoutRecordedBrandPage(renderDocument) } : {}), system, version, selection: { ...readActiveSelection(document), ...(Object.keys(choices).length ? { choices } : {}) }, ...(brandPage ? { brandPage } : {}) };
     },
     async activeRecord() {
       return host.designSystems ? (await host.designSystems.active().catch(() => null)) : null;
