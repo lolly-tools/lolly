@@ -48,7 +48,10 @@
       "wait": 0,
       "duration": 6
     },
-    "followsCanvasSize": true
+    "followsCanvasSize": true,
+    "sectionIcons": {
+      "Source": "link"
+    }
   },
   "isolate": true,
   "inputs": [
