@@ -85,7 +85,7 @@
 }
 
 @layer views {
-  .design-rules-active :is(.design-compact-actions, .design-topbar, .tl-panel, .fc-insp, .fc-nav, .fc-toolbar-dock, .fc-overlay) { display: none !important; }
+  .design-rules-active :is(.design-compact-actions, .design-topbar, .tl-panel, .fc-insp, .fc-nav, .fc-toolbar-dock, .fc-overlay, .design-phone-panel, .tool-layout.is-editor > .sheet-grip) { display: none !important; }
   .dr-toolbar:not(.is-design-mode) { top: 0; left: 0; right: 0; translate: none; min-height: 56px; box-sizing: border-box; border-radius: 0; justify-content: center; border-bottom: 1px solid var(--ui-color-border-default); }
   .dr-panel { top: 56px; right: 0; bottom: 0; border-radius: 0; border-inline-start: 1px solid var(--ui-color-border-default); }
   .dr-toolbar.is-design-mode { bottom: calc(var(--design-actions-h, 0px) + 8px); }

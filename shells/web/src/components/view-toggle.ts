@@ -82,9 +82,20 @@ const LABELS: Record<ViewToggleKey, string> = {
   catalog: 'Assets',
 };
 
-/** The tabs currently on offer - Utilities drops out with its feature flag. */
+/** Whether the loaded catalogue offers no utility at all. Unknown (no index
+ *  yet) reads as "not empty", so the tab never flickers away on a cold start.
+ *  An organisation that gives a group no utilities (a partner programme in
+ *  Lolly Work, for one) would otherwise leave an empty tab that leads to a
+ *  "no tools available" page. */
+export function catalogHasNoUtilities(index: { tools?: Array<{ category?: string }> } | undefined): boolean {
+  return Array.isArray(index?.tools) && !index.tools.some(tool => tool?.category === 'utility');
+}
+
+/** The tabs currently on offer - Utilities drops out with its feature flag,
+ *  and when the catalogue holds no utility. */
 function activeKeys(): ViewToggleKey[] {
-  return KEYS.filter(k => k !== 'utilities' || flagEnabledSync(UTILITIES_FLAG_ID));
+  const index = (globalThis as { __toolIndex?: { tools?: Array<{ category?: string }> } }).__toolIndex;
+  return KEYS.filter(k => k !== 'utilities' || (flagEnabledSync(UTILITIES_FLAG_ID) && !catalogHasNoUtilities(index)));
 }
 
 export function viewToggle(active: ViewToggleKey): string {

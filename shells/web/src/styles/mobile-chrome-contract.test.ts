@@ -320,12 +320,13 @@ test('both draggable bottom sheets clamp their dvh height against the keyboard',
       const sites = rules(read(file)).filter((r) => r.selector.includes(gate))
         .flatMap((r) => decls(r.body).filter(([p]) => p === token).map(([, value]) => ({ value, line: r.line, selector: r.selector })));
       assert.ok(sites.length > 0, `${file}: no ${gate} rule declares ${token} - the ${state} height of ${what} has moved, so this clamp can no longer be verified`);
-      // The clamp may live in a token the height refers to (--sheet-room), so a
-      // var() is resolved one level against that token's own declarations.
+      // The clamp may live in a token the height refers to (--sheet-half, which refers
+      // to --sheet-room), so each var() is resolved against that token's own
+      // declarations, a few levels deep.
       const clamp = /calc\([^)]*100dvh[^)]*var\(\s*--vv-bottom/;
       const declared = (name: string) => rules(read(file)).flatMap((r) => decls(r.body).filter(([p]) => p === name).map(([, v]) => v));
-      const clamped = (value: string) => clamp.test(value)
-        || [...value.matchAll(/var\(\s*(--[\w-]+)/g)].some((m) => m[1] !== undefined && m[1] !== token && declared(m[1]).some((v) => clamp.test(v)));
+      const clamped = (value: string, depth = 3): boolean => clamp.test(value)
+        || (depth > 0 && [...value.matchAll(/var\(\s*(--[\w-]+)/g)].some((m) => m[1] !== undefined && m[1] !== token && declared(m[1]).some((v) => clamped(v, depth - 1))));
       for (const s of sites) {
         // dvh does NOT shrink for the soft keyboard, so a bare 90dvh sheet keeps its
         // lowest controls (and its own drag grip) underneath it with no way to reach them.

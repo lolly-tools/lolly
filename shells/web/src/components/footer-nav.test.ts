@@ -32,7 +32,7 @@ test('first-run window: the bar is marked while the privacy notice is unacknowle
   const html = footerNav({ searchHtml: '' });
   assert.match(html, /<footer class="gallery-footer" data-first-run>/);
   // All four names are in the markup for the CSS to reveal.
-  for (const name of ['Open', 'Settings', 'Verify', 'What?']) {
+  for (const name of ['Open', 'Settings', 'Verify', 'Docs']) {
     assert.ok(html.includes(`<span class="gallery-nav-label">${name}</span>`), `missing label: ${name}`);
   }
 });

@@ -77,8 +77,8 @@ test('the artboard size picker opens above the phone inspector sheet and its cho
         assert.equal(await page.locator('.tool-stage').getAttribute('data-design-layout'), 'compact', 'phone layout');
 
         // From the inspector sheet: Inspect, then the Document section's Size door.
-        await page.getByRole('button', { name: 'Inspect', exact: true }).tap();
-        await page.waitForSelector('.fc-insp.is-compact-sheet');
+        await page.getByRole('button', { name: 'Inspect', exact: true }).last().tap();
+        await page.waitForSelector('.design-phone-panel[data-snap="half"][data-tab="inspect"]');
         const door = page.locator('.fc-insp [data-act="documentsize"]');
         await door.tap();
         await page.waitForSelector('.fc-size-panel');
@@ -103,7 +103,7 @@ test('the artboard size picker opens above the phone inspector sheet and its cho
         // Escape closes the picker, not the sheet, and focus goes back to the Size door.
         await page.keyboard.press('Escape');
         await page.waitForSelector('.fc-size-panel', { state: 'detached' });
-        assert.equal(await page.locator('.fc-insp.is-compact-sheet').count(), 1, `the sheet stays open (${label})`);
+        assert.equal(await page.locator('.design-phone-panel[data-snap="half"]').count(), 1, `the panel stays open (${label})`);
         assert.equal(await page.evaluate(() => document.activeElement?.getAttribute('data-act')), 'documentsize',
           `focus is back on the Size door (${label})`);
 

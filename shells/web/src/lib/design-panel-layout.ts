@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /** Shared canvas-space policy for Design panels and compact actions. */
-import { currentLayout, isSplitLayout } from './layout-posture.ts';
+import { PHONE_MAX_WIDTH, currentLayout, isSplitLayout } from './layout-posture.ts';
 
 /**
  * Compact Design: the bottom action bar and the inspector as a sheet. Never in two
@@ -13,6 +13,23 @@ export function compactDesignViewport(): boolean {
   const height = window.visualViewport?.height ?? window.innerHeight;
   const touch = !!window.matchMedia?.('(any-pointer: coarse)').matches;
   return width <= 640 || (touch && (width <= 900 || height <= 500));
+}
+
+/**
+ * Design's phone panel: the inspector and the layers list as the two tabs of the tool
+ * view's drop-down panel (views/design-phone-panel.ts). The phone layout only, read the
+ * way every tool's drop-down panel reads it (phoneLayoutQuery: the width at once, two
+ * panes once settled), so a landscape phone or a small tablet keeps the compact bottom
+ * sheets, two panes keep the control pane, and a window narrowed to a phone gets the
+ * panel in the same frame rather than a bottom sheet first.
+ */
+export function phoneDesignPanel(): boolean {
+  try {
+    const narrow = typeof window.matchMedia === 'function'
+      ? window.matchMedia(`(max-width: ${PHONE_MAX_WIDTH}px)`).matches
+      : window.innerWidth <= PHONE_MAX_WIDTH;
+    return narrow && !isSplitLayout();
+  } catch { return false; }
 }
 
 /** The touch screens where Design's tool rail is a horizontal palette at the foot of
@@ -51,7 +68,9 @@ export function stageBottomReserve(style: CSSStyleDeclaration): number {
 export function stageSideReserve(style: CSSStyleDeclaration, edge: 'top' | 'left' | 'right'): number {
   const px = (name: string): number => Math.max(0, parseFloat(style.getPropertyValue(name)) || 0);
   if (style.getPropertyValue('--rules-workspace') === '1') return px(`--rules-${edge}`);
-  return Math.max(px(`--stage-reserve-${edge}`), edge === 'top' ? px('--stage-rulers-bottom') : edge === 'left' ? px('--stage-rulers-right') : 0);
+  // The top band also clears Design's phone panel, which hangs from the top
+  // (`--design-panel-reserve-top`, written by views/design-panels.ts).
+  return Math.max(px(`--stage-reserve-${edge}`), edge === 'top' ? Math.max(px('--stage-rulers-bottom'), px('--design-panel-reserve-top')) : edge === 'left' ? px('--stage-rulers-right') : 0);
 }
 
 export function panelStageHeight(stage: HTMLElement): number {
