@@ -89,7 +89,7 @@ export interface TextToPathOpts {
    * way a browser falls back to a later family in a `font-family` list: with one
    * in the chain, the run is split by grapheme cluster and each cluster goes to
    * the first face that maps all of it, so an earlier face keeps every character
-   * it can draw. A chain with no `fill` face splits as it always did. (v1.318)
+   * it can draw. A chain with no `fill` face splits as it always did. (v1.319)
    */
   fallbackFonts?: Array<{ fontUrl: string; variations?: string[]; fill?: boolean }>;
   /**
