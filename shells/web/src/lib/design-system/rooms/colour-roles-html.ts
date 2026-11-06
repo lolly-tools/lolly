@@ -12,7 +12,7 @@
  * and Hebrew read correctly, and never used as a key. Every control carries
  * `data-crt-focus`, which is what lets focus come back after a repaint.
  */
-import { t, tn, tRaw } from '../../../i18n.ts';
+import { t, tRaw } from '../../../i18n.ts';
 import { escape as esc } from '../../../utils.ts';
 import { icon } from '../../icons.ts';
 import { BINDABLE_COLOUR_SLOTS, MAX_ROLE_DESCRIPTION, MAX_ROLE_LABEL, STARTING_POINTS, byNameLine, byNameWord, parseRoleWords, readingOption, sameAsWords, slotLine, slotWord, suggestedReadings } from '../colour-roles-model.ts';
@@ -173,7 +173,7 @@ function handWrittenHtml(model: ColourRolesModel, ui: RoomUi): string {
 
 function issuesHtml(model: ColourRolesModel): string {
   if (!model.issues.length) return '';
-  return `<details class="lp-details crt-issues"><summary><span>${esc(tn('1 thing to check in this file', '{n} things to check in this file', { n: model.issues.length }))}</span><i class="lp-caret" aria-hidden="true"></i></summary>
+  return `<details class="lp-details crt-issues"><summary><span>${esc(model.issues.length === 1 ? t('1 thing to check in this file') : tRaw('{n} things to check in this file', { n: model.issues.length }))}</span><i class="lp-caret" aria-hidden="true"></i></summary>
     <ul class="crt-removal-uses">${model.issues.map(line => `<li>${esc(line)}</li>`).join('')}</ul></details>`;
 }
 
