@@ -283,3 +283,47 @@ html[data-a11y-motion="reduce"] :is(.docs-content, .docs-compact-nav) .doc-detai
   .docs-content .doc-code { background: none; box-shadow: none; outline: 1px solid #888; outline-offset: -1px; }
   .docs-content .doc-code pre { white-space: pre-wrap; overflow: visible; }
 }
+
+/* ── Where the page sits, and where reading goes next (plan 354 D3) ─────────
+   Generated from the manifest by docs/build.ts (pageWayfinding), both readers:
+   the section label over the title, and Previous and Next after the article.
+   The label is the house eyebrow; the pager is two quiet cards at the reading
+   measure, the next one aligned to the inline end. */
+.docs-eyebrow {
+  margin: 0;
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  letter-spacing: var(--ui-type-tracking-label);
+  text-transform: uppercase;
+  color: var(--ui-color-text-muted);
+}
+.docs-content > .docs-eyebrow { margin-bottom: var(--sp-4); }
+:is([dir="rtl"], :lang(hi), :lang(bn)) .docs-eyebrow { letter-spacing: normal; text-transform: none; }
+.docs-content .docs-pager {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: var(--sp-6);
+  max-width: 68ch;
+  margin: var(--sp-8) 0 0;
+}
+.docs-content .docs-pager-link {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  min-height: var(--ui-size-target);
+  padding: var(--sp-5) var(--sp-6);
+  border-radius: var(--ui-radius-card);
+  box-shadow: var(--ui-edge-faint);
+  color: var(--ui-color-text-default);
+  text-decoration: none;
+}
+.docs-content a.docs-pager-link:hover { background: var(--ui-color-surface-muted); text-decoration: none; }
+.docs-content a.docs-pager-link:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 2px; }
+.docs-content .docs-pager-empty { box-shadow: none; }
+.docs-content .docs-pager-next { text-align: end; }
+.docs-content .docs-pager-dir { font-size: var(--fs-sm); color: var(--ui-color-text-muted); }
+.docs-content .docs-pager-title { font-weight: 600; line-height: 1.3; }
+@media (max-width: 480px) {
+  .docs-content .docs-pager { grid-template-columns: minmax(0, 1fr); }
+  .docs-content .docs-pager-empty { display: none; }
+}
