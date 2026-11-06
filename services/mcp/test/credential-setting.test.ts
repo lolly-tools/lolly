@@ -19,7 +19,7 @@ import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { PDFDocument } from 'pdf-lib';
-import { embedC2pa, verifyC2pa } from '../../../engine/src/index.ts';
+import { embedC2pa, gzip, verifyC2pa } from '../../../engine/src/index.ts';
 import { buildExportC2paOpts } from '../../../packages/node-shell/src/c2pa-opts.ts';
 import { credentialAndRecord, credentialText, exportUrl, render } from '../src/render.ts';
 import type { CredentialReadback, RenderOpts } from '../src/render.ts';
@@ -268,4 +268,12 @@ test('tools/list says what c2pa does on each route', async () => {
   assert.match(description, /"off": none, on every format/);
   assert.match(description, /browser-tier render .* keeps the one the web shell stamps/);
   assert.match(description, /read back from the file/);
+});
+
+test('"off" on a gzipped SVG holds too, because a verifier reads through the wrapper', async () => {
+  const zipped = gzip(await svgWithCredentialedLogo());
+  assert.equal((await verifyC2pa(zipped)).state, 'invalid');
+  const out = await finish(zipped, 'svgz', { c2pa: { on: false, days: null }, c2paAsked: true }, 'B', []);
+  assert.equal((await verifyC2pa(out.bytes)).state, 'none');
+  assert.deepEqual(out.credential, { asked: 'off', holds: 'none', days: null, selfSigned: false });
 });

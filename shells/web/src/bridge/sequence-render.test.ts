@@ -545,7 +545,7 @@ test('contract: renderFormat folds the sink into the stamp after the render retu
   // The whole reason the gather can sit at the top of the renderer and still reach
   // the credential: `opts` is the same object, and the fold happens after dispatch.
   const exp = strip(read('./export.ts'));
-  const dispatchAt = exp.indexOf('const blob = await renderFormatDispatch(node, format, opts);');
+  const dispatchAt = exp.indexOf('await renderFormatDispatch(node, format, opts)');
   const foldAt = exp.indexOf('foldIngredientSinks(opts);');
   assert.ok(dispatchAt > 0 && foldAt > dispatchAt, 'the sinks are folded after the render, not before');
   assert.match(exp, /if \(opts\.c2pa\) opts\._ingredientSink \?\?= \[\];/, 'and created before it, under c2pa only');
