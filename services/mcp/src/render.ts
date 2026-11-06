@@ -35,6 +35,7 @@ import { buildExportC2paOpts, recordedDesignInFile } from '@lolly-tools/node-she
 import { withoutSvgCredentials } from '@lolly-tools/node-shell/lolly-file';
 import { needsBrowserTier } from '@lolly-tools/node-shell/browser-tier';
 import { webGpuLaunchArgs } from '@lolly-tools/node-shell/webgpu-launch';
+import { CPU_CANVAS_ARGS } from '@lolly-tools/node-shell/canvas-launch';
 import { observeProductionInputs } from '@lolly-tools/node-shell/production-browser';
 import { waitForExport, type ExportWait } from '@lolly-tools/node-shell/export-wait';
 import { assertExportLocked, exportPasswordRefusal, exposeExportPassword, type ExportLockReading } from '@lolly-tools/node-shell/export-lock';
@@ -809,6 +810,9 @@ export function browserLaunchArgs(env: NodeJS.ProcessEnv = process.env): string[
     // The web shell requires a WebGPU adapter (plan 295). A hosted renderer has no
     // GPU to offer one, so the shared flags name SwiftShader (webgpu-launch.ts).
     ...webGpuLaunchArgs('software'),
+    // Every 2D canvas on the CPU, so the same render gives the same pixels and so the
+    // same bytes (packages/node-shell/src/canvas-launch.ts says why).
+    ...CPU_CANVAS_ARGS,
     '--force-color-profile=srgb',
     '--font-render-hinting=none',
   ];

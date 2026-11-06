@@ -39,6 +39,7 @@ import { imprintCanvas, blobToDataUrl, _host, exportDims, makeRoundedFill, MAX_R
 import type { ImprintState, ExportOpts, Rgba } from './export-shared.ts';
 import { buildLinearGradientEl, buildRadialGradientEl, conicFanEl } from './export-gradients.ts';
 import { portableSvgPaint, compactSvgPaths } from './svg-portable.ts';
+import { shapesDisagree } from './export-page-fit.ts';
 
 // Imprint a LOLLY-RENDERED raster that's about to be baked into a container (a
 // PDF page, a PPTX slide, an SVG <image>). Two extra gates over the standalone
@@ -780,7 +781,7 @@ async function renderHtmlSvg(node: Element, opts: ExportOpts, textContext: Inlin
   const vbW = toCssPx(d.w);
   const vbH = toCssPx(d.h);
   const scaleX  = vbW / nodeW;
-  const scaleY  = vbH / nodeH;
+  const scaleY  = shapesDisagree(nodeW, nodeH, vbW, vbH) ? scaleX : vbH / nodeH; // a root not the page's shape fits as the PNG (export-page-fit.ts)
 
   const svgEl = document.createElementNS(NS, 'svg');
   svgEl.setAttribute('xmlns',   NS);

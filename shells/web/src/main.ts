@@ -81,7 +81,7 @@ import { announce } from './a11y.ts';
 import { beginViewFade } from './view-fade.ts';
 import { beginViewLoading, type ViewLoading } from './components/view-loading.ts';
 import { installDropHold, viewFailed, viewLoading, viewReady, type DropNote } from './lib/drop-early.ts';
-import { noteLeavingHref, takeLeavingHref, recordLeave, noteMountedView } from './lib/back-nav.ts';
+import { noteLeavingHref, takeLeavingHref, recordLeave, noteMountedView, rememberViewOnLeave } from './lib/back-nav.ts';
 import { startWebGpuCheck, webGpuChecked } from './lib/webgpu/device.ts';
 import { STARTUP_PENDING_ATTRIBUTE } from './lib/startup-motion.ts';
 
@@ -1199,6 +1199,21 @@ async function boot(): Promise<void> {
   const scriptedExport = new URLSearchParams('params' in bootRoute ? bootRoute.params ?? '' : '').has('export');
   installToolByteVerification();
   installVerifiedPreviews();
+  // The view this tab leaves the app from, for the static docs' way back (lib/back-nav.ts).
+  rememberViewOnLeave();
+  // "Skip to content" (index.html) is a #view fragment link, and in this app the hash is
+  // the route: followed as a link it opened Home. It moves focus instead, to the content
+  // a view marks with data-skip-target (the docs article), else to the view itself.
+  document.addEventListener('click', (e) => {
+    const link = (e.target as Element | null)?.closest?.('a.skip-link');
+    if (!link) return;
+    e.preventDefault();
+    const view = document.getElementById('view');
+    const target = view?.querySelector<HTMLElement>('[data-skip-target]') ?? view;
+    if (!target) return;
+    if (!target.hasAttribute('tabindex')) target.setAttribute('tabindex', '-1');
+    target.focus();
+  });
   // WebGPU is a hard requirement (plan 295), checked alongside boot rather than before
   // it: a cold software adapter can take seconds, and the gallery must not wait for one
   // to paint. navigate() holds every route that can run a tool until the check passes;

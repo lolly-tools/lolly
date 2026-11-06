@@ -22,6 +22,7 @@ import {
 import type { StudioKind, StudioToken, GradientStop } from './token-studio.ts';
 import { walkSwatches, isRec, type BrandSwatch } from './brand-doc.ts';
 import { colorIdentity, isNeutralRampKey, isRoleKey } from './design-system/ownership.ts';
+import { colourRoleCopies } from './design-system/colour-role-copies.ts';
 import { leadTokenSet } from './design-system/leads.ts';
 import { roleAssignments, roleReadouts, rampStepName, type RoleContrast } from './design-system/roles.ts';
 import { rolePathName, swatchTile } from './swatches.ts';
@@ -248,7 +249,11 @@ const roleRowName = (s: BrandSwatch): string => rolePathName(s.key);
 const isUiKey = isUiTokenKey;
 
 interface ColourRow { key: string; name: string; hex: string; value: string; starter: boolean; title: string }
-interface ColourGroup { id: string; label: string; ramp: boolean; neutral: boolean; note: boolean; rows: ColourRow[] }
+interface ColourGroup {
+  id: string; label: string; ramp: boolean; neutral: boolean; note: boolean; rows: ColourRow[];
+  /** The design system's colour roles, once each in its own words and order (plans/352). */
+  roles?: true;
+}
 interface ContrastPair { label: 'text' | 'primary' | 'muted'; fg: string; bg: string; contrast: RoleContrast }
 interface NamedRow { key: string; name: string; value: string; raw: unknown; starter: boolean }
 interface LogoRow extends NamedRow {
@@ -325,6 +330,25 @@ export function tokensRoomModel(
       })),
     };
   });
+
+  // A system with colour roles lists each role once, in its own words and order, ahead of
+  // the rest. A role's own token leaves the theme's roles group, and so does a slot a role
+  // of another name fills, because both are that role. Its values in each colourway are
+  // edited in the Colour roles table and are not listed here (colour-role-copies.ts).
+  const copies = colourRoleCopies(doc);
+  if (copies) {
+    const rows = copies.roles.flatMap((role): ColourRow[] => {
+      const s = swatches.find(x => x.key === role.path);
+      let hex = s?.hex ?? '';
+      if (!hex) { try { hex = colorToHex(resolve(role.path)) ?? ''; } catch { hex = ''; } }
+      if (!hex.startsWith('#')) return [];
+      return [{ key: role.path, name: role.label, hex, value: hex, starter: s ? isStarter(s) : false, title: role.description ?? '' }];
+    });
+    const shown = new Set([...rows.map(r => r.key), ...copies.secondNames.keys()]);
+    for (const g of groups) if (!g.ramp) g.rows = g.rows.filter(r => !shown.has(r.key));
+    for (let i = groups.length - 1; i >= 0; i -= 1) if (!groups[i]!.rows.length) groups.splice(i, 1);
+    if (rows.length) groups.unshift({ id: 'colour-roles', label: t('Colour roles'), ramp: false, neutral: false, note: false, rows, roles: true });
+  }
 
   const studio = listStudioTokens(doc);
   const gradients = studio.filter(tok => tok.kind === 'gradient').map(tok => ({
@@ -653,6 +677,7 @@ export function mountTokensPanel(mount: HTMLElement, ctx: StudioTabCtx): StudioP
     const open = openGroups.has(g.id);
     return `<div class="tk-group${open ? ' is-open' : ''}" data-tk-group="${escape(g.id)}">
       <div class="tk-group-head"><span class="tk-group-name">${escape(g.label)}</span><span class="tk-group-n">${g.rows.length}</span>${allStarter ? starterTag() : ''}</div>
+      ${g.roles ? `<p class="tk-group-note">${t('Each role holds a colour for every colourway and look. Change them in the Colour roles table in Colours.')}</p>` : ''}
       <ul class="tk-colors" role="list">${g.rows.map(r => `<li class="tk-color"${r.title ? ` title="${escape(r.title)}"` : ''}><span class="tk-chip" style="--sw:${escape(r.hex || 'transparent')}" aria-hidden="true"></span><span class="tk-color-main"><span class="tk-color-line"><span class="tk-color-name">${escape(r.name)}</span>${r.starter && !allStarter ? starterTag() : ''}<code class="tk-color-value">${escape(r.value)}</code></span>${refBtn(`{${r.key}}`)}</span></li>`).join('')}</ul>
       ${g.rows.length > GROUP_PEEK ? `<button type="button" class="be-btn be-btn--sm tk-group-more" data-tk-more="${g.rows.length}" aria-expanded="${open}">${open ? t('Show fewer') : t('Show all {n}', { n: g.rows.length })}</button>` : ''}
     </div>`;

@@ -38,6 +38,7 @@
     "./brand-page-read": "./src/brand-page-read.ts",
     "./token-report": "./src/token-report.ts",
     "./browsers": "./src/browsers.ts",
+    "./canvas-launch": "./src/canvas-launch.ts",
     "./transform-tool": "./src/transform-tool.ts",
     "./raster-child": "./src/raster-child.ts",
     "./look": "./src/look.ts",
