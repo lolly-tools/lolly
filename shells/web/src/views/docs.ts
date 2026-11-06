@@ -302,6 +302,8 @@ export async function mountDocs(
   // is shown and released with the view. The writer confirms only a real clipboard write.
   scope.add(enhanceDocsReading(node, { writeText: docsClipboardWriter(host), labels: docsCopyLabels(), copyIcon: icon('clipboard') }));
 
+  // The app's "Skip to content" moves focus here, past the top row, the sections and the rail.
+  node.setAttribute('data-skip-target', '');
   contentEl.replaceChildren(node);
 
   // Scrolling a heading into view within #view is lib/docs-rehost.ts's
