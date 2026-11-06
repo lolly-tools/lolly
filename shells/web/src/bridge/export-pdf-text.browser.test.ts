@@ -300,6 +300,20 @@ test('Latin in a stack with no font file stays live text in the base font', { sk
   assert.deepEqual(r.notices, []);
 });
 
+test('with "Convert paths" off, Latin in an embeddable face stays selectable live text', { skip: SKIP }, async () => {
+  const r = await exportPdf(line('Plain Latin words.', 'font-family:Devanagari;font-size:24px;margin:8px'), { convertPaths: false });
+  assert.match(r.text, /Plain Latin words\./);
+  assert.equal(r.images, 0);
+  assert.deepEqual(r.notices, []);
+  assert.ok(r.agreement > 0.93, `agreement ${r.agreement}`);
+});
+
+test('an embedded face with no glyph for a character means a picture, not a box', { skip: SKIP }, async () => {
+  const r = await exportPdf(line('Plain Ω words.', 'font-family:Devanagari;font-size:24px;margin:8px'), { convertPaths: false });
+  assert.equal(r.images, 1);
+  assert.equal(r.notices.length, 1);
+});
+
 test('quotes and dashes in the base font\'s encoding stay live text', { skip: SKIP }, async () => {
   const r = await exportPdf(line('“Quoted” — €5, café.', `font-family:'No Such Family',serif;font-size:24px;margin:8px`));
   assert.match(r.text, /Quoted/);
@@ -348,6 +362,9 @@ const LTR: Record<string, [string, Record<string, unknown>]> = {
   'inline': ['<div style="font-family:Outfit;font-size:22px;width:300px;margin:8px;letter-spacing:.5px;text-decoration:underline">Plain words with a <b>bold</b> run, wrapped over two lines of the box.</div>', {}],
   'paths-off': [line('Plain Latin words, and a comma.'), { convertPaths: false }],
   'latin-ext': [line('Łódź, Ñandú, Šibenik.'), {}],
+  // Live text in an embedded face: this face holds Latin and sits at its default weight,
+  // so with "Convert paths" off the words stay selectable.
+  'embedded-live': [line('Plain Latin words.', 'font-family:Devanagari;font-size:24px;margin:8px'), { convertPaths: false }],
   'shadow': [line('Shadowed', 'font-family:Outfit;font-size:24px;margin:8px;text-shadow:2px 2px 0 #888'), {}],
   'gradient': [line('Gradient', 'font-family:Outfit;font-size:30px;margin:8px;background:linear-gradient(90deg,#f00,#00f);-webkit-background-clip:text;background-clip:text;color:transparent'), {}],
   'pseudo': ['<style>.p{position:relative;height:60px;font-family:Outfit;font-size:24px}.p::before{content:"Marker";position:absolute;left:12px;top:12px}</style><div class="p"></div>', {}],
