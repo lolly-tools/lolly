@@ -23,7 +23,9 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { JSDOM } from 'jsdom';
-import { colorToHex, createTokenSet, danglingColourAliases, deriveBrandTokens, deriveOnColour, readColourRoles } from '@lolly/engine';
+import { colorToHex, colourRolesEditable, createTokenSet, danglingColourAliases, deriveBrandTokens, deriveOnColour, readColourRoles, readRecordedBrandPage, withRecordedBrandPage } from '@lolly/engine';
+import { readBrandSystem } from '../../../../engine/src/brand-system.ts';
+import { readEmojiStyle } from '../../../../engine/src/emoji-style.ts';
 import type { HostV1 } from '@lolly-tools/core/host-v1';
 import { addSwatch, walkSwatches } from './brand-doc.ts';
 import { readRoles } from './design-system/roles.ts';
@@ -346,6 +348,82 @@ test('Rebuild palette on a single-lead system hands the fresh derive back untouc
   const carried = carryLeads(single, fresh);
   assert.ok(carried.ok && carried.canonical === null && carried.kept.length === 0);
   assert.equal(JSON.stringify(carried.ok ? carried.doc : null), before, 'the fresh derive is handed back untouched');
+});
+
+test('Rebuild palette keeps the root record of a system with no colour roles: house rules, share cards, the emoji choice, the published versions, and any other vendor', async () => {
+  const single = deriveBrandTokens({ primary: '#0c322c', name: 'Test' }) as Rec;
+  const style = { schemaVersion: 1, primary: { id: 'community/emoji/twemoji/color', pin: { version: '17.0.3' }, checksum: `sha256:${'a'.repeat(64)}` }, fallbacks: [], metricsPolicy: 'inline-em-v1', treatment: { mode: 'original', strengthBps: 0 } };
+  assert.equal(readEmojiStyle({ $extensions: { 'com.suse.lolly': { emoji: style } } }).status, 'selected', 'the fixture is a choice the reader accepts');
+  const brandSystem = {
+    schemaVersion: 1, id: 'plain', label: 'Plain',
+    roles: [{ id: 'typeface', label: 'Typeface', group: 'Type', resources: [{ type: 'token', path: 'font.family.body' }] }],
+    bindings: [],
+    rules: [{ id: 'headline-case', label: 'Headlines stay in sentence case', kind: 'text-case', roleIds: [], parameters: { case: 'sentence' }, requirement: 'advisory', origin: { kind: 'manual', author: 'Plain' }, review: { state: 'draft' } }],
+  };
+  const rootRecord = {
+    'com.suse.lolly': { brandSystem, shareCards: 'opal', emoji: style, emojiAssets: [{ id: 'community/emoji/twemoji/color' }], versions: { list: [], active: null }, designSystem: { id: 'plain', label: 'Plain' }, reference: { method: 'upload', label: 'guide.pdf' } },
+    'org.example.other-tool': { kept: true },
+  };
+  const first = { ...structuredClone(single), $extensions: rootRecord } as Rec;
+  assert.equal(readColourRoles(first).state, 'default', 'no colour roles, so the engine carries none of this by itself');
+
+  const h = harness(structuredClone(single), first);
+  const { root, $, click, settle, tiles, host } = h;
+  let editor: Awaited<ReturnType<typeof import('./brand-editor.ts')['mountBrandEditor']>> | undefined;
+  try {
+    const { mountBrandEditor } = await import('./brand-editor.ts');
+    editor = await mountBrandEditor(root, host); await settle(() => tiles() > 0);
+    const primaryBefore = createTokenSet(first, { theme: 'light' }).resolve('color.semantic.primary');
+    // The rebuild's own input, so its colours visibly change.
+    editor.setGeneratePrimary?.('#b5179e');
+    click('[data-be-replace-palette]');
+    assert.ok($('[data-be-review]').textContent, 'the review card is up');
+    const before = JSON.stringify(h.state.installed);
+    click('[data-be-review-go]');
+    await settle(() => JSON.stringify(h.state.installed) !== before);
+    const after = h.state.installed;
+
+    assert.notEqual(createTokenSet(after, { theme: 'light' }).resolve('color.semantic.primary'), primaryBefore, 'the colours still change, as a rebuild does');
+    assert.deepEqual(after.$extensions, rootRecord, 'the whole root record comes across unchanged');
+    assert.deepEqual(readBrandSystem(((after.$extensions as Rec)['com.suse.lolly'] as Rec).brandSystem)?.rules.map(r => r.id), ['headline-case'], 'the rule still reads');
+    assert.equal(readEmojiStyle(after).status, 'selected', 'the emoji choice still reads');
+    assert.deepEqual(danglingColourAliases(after), [], 'no alias is left pointing at nothing');
+    assert.equal(readColourRoles(after).record, 'readable');
+    assert.deepEqual(readColourRoles(after).issues, []);
+    assert.equal(colourRolesEditable(after).ok, true, 'and the document can still be edited');
+
+    click('[data-be-review-undo]');
+    await settle(() => JSON.stringify(h.state.installed) === before);
+    assert.deepEqual(h.state.installed.$extensions, rootRecord);
+  } finally {
+    editor?.teardown();
+    h.restore();
+  }
+});
+
+test("Rebuild palette leaves the brand page address to the head's own setting", async () => {
+  const single = deriveBrandTokens({ primary: '#0c322c', name: 'Test' }) as Rec;
+  const page = 'https://brand.example/plain';
+  const h = harness(structuredClone(single), withRecordedBrandPage(single, page) as Rec);
+  const { root, click, settle, tiles, host } = h;
+  // The real save reads the head it is about to replace, which is what the setting is settled against.
+  const assets = host.assets as unknown as { _getBlob(id: string): Promise<Blob | null> };
+  const starterBlob = assets._getBlob;
+  assets._getBlob = async id => (id === 'user/tokens/brand' ? new Blob([JSON.stringify(h.state.installed)]) : starterBlob(id));
+  let editor: Awaited<ReturnType<typeof import('./brand-editor.ts')['mountBrandEditor']>> | undefined;
+  try {
+    const { mountBrandEditor } = await import('./brand-editor.ts');
+    editor = await mountBrandEditor(root, host); await settle(() => tiles() > 0);
+    editor.setGeneratePrimary?.('#b5179e');
+    click('[data-be-replace-palette]');
+    const before = JSON.stringify(h.state.installed);
+    click('[data-be-review-go]');
+    await settle(() => JSON.stringify(h.state.installed) !== before);
+    assert.equal(readRecordedBrandPage(h.state.installed), page);
+  } finally {
+    editor?.teardown();
+    h.restore();
+  }
 });
 
 test('Rebuild palette, the whole path through the room: colour roles, bindings and rules survive, and undo restores them', async () => {
