@@ -17,6 +17,7 @@
  */
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import { JSDOM } from 'jsdom';
 import { deriveBrandTokens, createTokenSet, colorToHex } from '@lolly/engine';
 
@@ -28,8 +29,9 @@ globalThis.document = dom.window.document;
 
 const {
   ROLE_IDS, ROLE_IDS_ALL, ASSIGNABLE_ROLES, roleLabel, readRoles, roleAssignments, assignRole, clearRole,
-  roleContrast, roleReadouts, buildRolesModel, rampStepName, rolesStripHtml, mountRolesStrip, WEAK_LC,
+  roleContrast, roleReadouts, buildRolesModel, rampStepName, rolesStripHtml, mountRolesStrip, WEAK_LC, setRoleValue,
 } = await import('./roles.ts');
+const { addLead, leadSelection } = await import('./leads.ts');
 type RoleId = import('./roles.ts').RoleId;
 
 type Rec = Record<string, unknown>;
@@ -247,10 +249,10 @@ test('a `base` group with no $metadata is FLAT - the engine decides, not the nam
   assert.equal(colorToHex(createTokenSet(flat).resolve('color.semantic.primary')), '#123456');
 });
 
-test('assignRole: only the named role moves', () => {
+test('assignRole: only the named role moves, and a derived on-primary follows it', () => {
   const doc = derived();
   const before = JSON.stringify(semanticAt(doc, 'light'));
-  const others = (['on-primary', 'muted', 'edge', 'secondary', 'surface', 'text'] as const)
+  const others = (['muted', 'edge', 'secondary', 'surface', 'text'] as const)
     .map(k => [k, JSON.stringify(semanticAt(doc, 'light')[k])] as const);
   assignRole(doc, 'primary', 'color.ramp.secondary.3');
   assert.notEqual(JSON.stringify(semanticAt(doc, 'light')), before, 'primary should have changed');
@@ -258,6 +260,105 @@ test('assignRole: only the named role moves', () => {
     assert.equal(JSON.stringify(semanticAt(doc, 'light')[k]), json,
       `${k} must be left alone - this module does not re-derive the contrast-enforced set`);
   }
+});
+
+// ── On primary follows a primary it can no longer sit on (plans/352) ─────────
+
+/** A colour swatch to assign, in the document's own `color.custom` group. */
+function withSwatch(doc: Rec, name: string, value: string): string {
+  const base = (doc.base ?? doc) as Rec;
+  const color = base.color as Rec;
+  color.custom = { ...((color.custom as Rec | undefined) ?? {}), [name]: { $value: value } };
+  return `color.custom.${name}`;
+}
+const inkOn = (doc: Rec, mode: string): string => colorToHex(createTokenSet(doc, { theme: mode }).resolve('color.semantic.on-primary')) as string;
+
+test('assignRole primary: a derived on-primary that no longer reads is re-picked by the derive\'s rule, per mode', () => {
+  const doc = derived();
+  assert.equal(inkOn(doc, 'light'), '#000000', 'the derive put black on its mid-ramp primary');
+  assert.equal(assignRole(doc, 'primary', withSwatch(doc, 'deep', '#102030')), true);
+  for (const mode of ['light', 'dark']) {
+    assert.equal(inkOn(doc, mode), '#ffffff', `${mode}: white on a deep primary`);
+    const measured = roleReadouts(doc, mode, resolverFor(doc)).primary.contrast;
+    assert.ok(measured && !measured.weak, `${mode}: the pair reads`);
+  }
+  assert.equal((semanticAt(doc, 'light')['on-primary'] as Rec).$value, 'oklch(100% 0 0)', 'stored in the derive\'s own notation');
+  // On to a pale primary, and it moves again: nothing is stuck.
+  assignRole(doc, 'primary', withSwatch(doc, 'pale', '#ffe08a'));
+  assert.equal(inkOn(doc, 'light'), '#000000');
+});
+
+test('assignRole primary: one mode at a time when the strip names one', () => {
+  const doc = derived();
+  const darkBefore = JSON.stringify(semanticAt(doc, 'dark')['on-primary']);
+  assignRole(doc, 'primary', withSwatch(doc, 'deep', '#102030'), 'light');
+  assert.equal(inkOn(doc, 'light'), '#ffffff');
+  assert.equal(JSON.stringify(semanticAt(doc, 'dark')['on-primary']), darkBefore);
+});
+
+test('assignRole primary: an on-primary that still reads stays exactly as it was', () => {
+  const doc = derived();
+  const before = JSON.stringify(semanticAt(doc, 'light')['on-primary']);
+  assignRole(doc, 'primary', withSwatch(doc, 'pale', '#ffe08a'), 'light');
+  assert.equal(JSON.stringify(semanticAt(doc, 'light')['on-primary']), before);
+  // The starter's ramp link is a derived shape too, and stays when it still reads.
+  const start = JSON.parse(readFileSync(new URL('../../../../../brands/lolly-start/catalog/assets/lolly/tokens/brand.json', import.meta.url), 'utf8')) as Rec;
+  const was = JSON.stringify(semanticAt(start, 'light')['on-primary']);
+  assignRole(start, 'primary', withSwatch(start, 'deep', '#102030'), 'light');
+  assert.equal(JSON.stringify(semanticAt(start, 'light')['on-primary']), was);
+  assignRole(start, 'primary', withSwatch(start, 'pale', '#ffe08a'), 'light');
+  assert.notEqual(JSON.stringify(semanticAt(start, 'light')['on-primary']), was, 'and is re-picked when it no longer does');
+  assert.equal(inkOn(start, 'light'), '#000000');
+});
+
+test('assignRole primary: a stated on-primary stays, however badly it reads, and the readout reports it', () => {
+  for (const stated of ['#ffffff', '{color.custom.linen}']) {
+    const doc = derived();
+    withSwatch(doc, 'linen', '#fff8e7');
+    (semanticAt(doc, 'light')['on-primary'] as Rec).$value = stated;
+    const pale = withSwatch(doc, 'pale', '#ffe08a');
+    // withSwatch rebuilds the group, so the linen goes back in beside the pale.
+    (((doc.base as Rec).color as Rec).custom as Rec).linen = { $value: '#fff8e7' };
+    assignRole(doc, 'primary', pale, 'light');
+    assert.equal((semanticAt(doc, 'light')['on-primary'] as Rec).$value, stated);
+    assert.equal(roleReadouts(doc, 'light', resolverFor(doc)).primary.contrast?.weak, true);
+  }
+});
+
+test('assignRole primary on a lead: only that lead\'s derived on-primary moves', () => {
+  const lifted = addLead(derived(), { colour: '#0e7490', name: 'Waterhole', canonical: { name: 'Pine' } });
+  assert.ok(lifted.ok);
+  const doc = lifted.doc;
+  const others = JSON.stringify(doc['colourway/pine']);
+  const ctx = { lead: 'waterhole', mode: 'light' };
+  const set = createTokenSet(doc, leadSelection(doc, ctx));
+  assert.equal(colorToHex(set.resolve('color.semantic.on-primary')), '#ffffff', 'Waterhole\'s own ink at the start');
+  assert.equal(assignRole(doc, 'primary', withSwatch(doc, 'pale', '#ffe08a'), ctx), true);
+  assert.equal(colorToHex(createTokenSet(doc, leadSelection(doc, ctx)).resolve('color.semantic.on-primary')), '#000000');
+  assert.equal(JSON.stringify(doc['colourway/pine']), others, 'the canonical lead does not move');
+});
+
+// ── A slot bound to one of the brand's colour roles (plans/352) ──────────────
+
+test('assignRole on a bound slot writes the role\'s colour and keeps the binding', () => {
+  const doc = JSON.parse(readFileSync(new URL('../../../../../tests/fixtures/colour-roles/wefthouse.tokens.json', import.meta.url), 'utf8')) as Rec;
+  const cw = (name: string): Rec => ((doc[name] as Rec).color as Rec).colourway as Rec;
+  const before = { madder: JSON.stringify(doc['colourway/madder']), weld: JSON.stringify(doc['colourway/weld']) };
+  const pale = withSwatch(doc, 'pale', '#ffe08a');
+  assert.equal(assignRole(doc, 'primary', pale, { lead: 'indigo', mode: 'light' }), true);
+  const light = cw('colourway/indigo').light as Record<string, Rec>;
+  assert.equal(light.primary!.$value, '{color.colourway.light.main}', 'the alias stays');
+  assert.equal(light.main!.$value, `{${pale}}`, 'the colour went to the role');
+  assert.equal(light['on-primary']!.$value, '{color.colourway.light.on-main}', 'the on-colour alias stays');
+  assert.equal(light['on-main']!.$value, 'oklch(0% 0 0)', 'the role\'s derived on-colour was re-picked');
+  assert.equal(JSON.stringify(doc['colourway/madder']), before.madder);
+  assert.equal(JSON.stringify(doc['colourway/weld']), before.weld);
+  const role = readRoles(doc, { lead: 'indigo', mode: 'light' }, resolverFor(doc)).primary;
+  assert.equal(role.ref, pale, 'and the strip reads it back through the binding');
+  // setRoleValue goes the same way.
+  assert.equal(setRoleValue(doc, 'secondary', '#123456', { lead: 'indigo', mode: 'light' }), true);
+  assert.equal(light.secondary!.$value, '{color.colourway.light.accent}');
+  assert.equal(light.accent!.$value, '#123456');
 });
 
 test('assignRole: keeps a description and the print lock already on the slot', () => {
@@ -733,8 +834,7 @@ test('sanity: the derived fixture really is the multi-set engine shape', () => {
 // set. Every read must follow the link to the lead being edited, and every write
 // must land on the lead and never on the link.
 
-const { addLead, leadTokenSet } = await import('./leads.ts');
-const { setRoleValue } = await import('./roles.ts');
+const { leadTokenSet } = await import('./leads.ts');
 
 /** The derived fixture, lifted as Pine, with Persimmon and Waterhole added. */
 function threeLeads(): Rec {

@@ -3,6 +3,8 @@ import { extractSite } from '../../shells/web/src/lib/design-system/extract-site
 import { rondoFromFile, rondoFromShareLink, rondoSourceBytes } from '../../engine/src/rondo-source.ts';
 import { parseStaged } from '../../packages/rondo/src/staged.ts';
 import { readBrandStyleEvidence, summarizeBrandStyles } from '../../engine/src/brand-evidence.ts';
+import { addColourRole, bindRole, colourRoleTable, colourRolesBrief, readColourRoles, removeColourRole, setRoleValue, unbindRole } from '../../engine/src/colour-roles.ts';
+import { addColourway, colourwayRolesOf } from '../../engine/src/colourway.ts';
 import { contextTokens } from '../../engine/src/brand-context.ts';
 import { createTokenSet } from '../../engine/src/tokens.ts';
 /**
@@ -559,11 +561,27 @@ export const brandReferenceTarget: FuzzTarget = {
   },
 };
 
+/** A small design system in the colour-role model: two looks, two colourways, a role with a binding. */
+const COLOUR_ROLE_SEED = JSON.stringify({
+  $metadata: { tokenSetOrder: ['light', 'dark', 'colourway/a', 'colourway/b'] },
+  $themes: [
+    { id: 'light', name: 'light', selectedTokenSets: { light: 'enabled' } },
+    { id: 'dark', name: 'dark', selectedTokenSets: { dark: 'enabled' } },
+    { id: 'a', name: 'A', group: 'colourway', selectedTokenSets: { 'colourway/a': 'enabled' }, $extensions: { 'com.suse.lolly': { axis: { kind: 'colourway', canonical: true } } } },
+    { id: 'b', name: 'B', group: 'colourway', selectedTokenSets: { 'colourway/b': 'enabled' }, $extensions: { 'com.suse.lolly': { axis: { kind: 'colourway' } } } },
+  ],
+  light: { color: { $type: 'color', semantic: { primary: { $value: '{color.colourway.light.primary}' }, 'on-primary': { $value: '{color.colourway.light.on-primary}' }, secondary: { $value: '{color.colourway.light.secondary}' }, main: { $value: '{color.colourway.light.main}' } } } },
+  dark: { color: { $type: 'color', semantic: { primary: { $value: '{color.colourway.dark.primary}' }, 'on-primary': { $value: '{color.colourway.dark.on-primary}' }, secondary: { $value: '{color.colourway.dark.secondary}' }, main: { $value: '{color.colourway.dark.main}' } } } },
+  'colourway/a': { color: { $type: 'color', colourway: { light: { main: { $value: '#102030' }, primary: { $value: '{color.colourway.light.main}' }, 'on-primary': { $value: '#ffffff' }, secondary: { $value: '#334455' } }, dark: { main: { $value: '{color.colourway.light.main}' }, primary: { $value: '{color.colourway.dark.main}' }, 'on-primary': { $value: '#ffffff' }, secondary: { $value: '#556677' } } } } },
+  'colourway/b': { color: { $type: 'color', colourway: { light: { main: { $value: '#203040' }, primary: { $value: '{color.colourway.light.main}' }, 'on-primary': { $value: '#ffffff' }, secondary: { $value: '#445566' } }, dark: { main: { $value: '#a0b0c0' }, primary: { $value: '{color.colourway.dark.main}' }, 'on-primary': { $value: '#000000' }, secondary: { $value: '#667788' } } } } },
+  $extensions: { 'com.suse.lolly': { brandSystem: { schemaVersion: 1, id: 'fuzz', label: 'Fuzz', roles: [{ id: 'main', label: 'Main', group: 'colourway', resources: [{ type: 'token', path: 'color.semantic.main' }] }], bindings: [{ id: 'lead', roleId: 'main', consumer: { slot: 'primary' } }], rules: [] } } },
+});
+
 export const brandImportTarget: FuzzTarget = {
   name: 'brand-import',
   async seeds() {
     const enc = new TextEncoder();
-    return [BRAND_TOKEN_SEED, BRAND_MANIFEST_SEED, BRAND_PAGE_SEED].map((seed) => enc.encode(seed));
+    return [BRAND_TOKEN_SEED, BRAND_MANIFEST_SEED, BRAND_PAGE_SEED, COLOUR_ROLE_SEED].map((seed) => enc.encode(seed));
   },
   async invoke(bytes) {
     const enc = new TextEncoder();
@@ -585,6 +603,21 @@ export const brandImportTarget: FuzzTarget = {
     catch { return; } // JSON.parse is the transport decoder, not the target.
     coerceTokensDoc(parsed);
     assembleTokenSetFiles({ 'mutated.json': parsed });
+
+    // A token file's colour roles: the reader and every edit take the same untrusted document.
+    readColourRoles(parsed);
+    colourRoleTable(parsed);
+    colourRolesBrief(parsed);
+    addColourRole(parsed, { label: 'Fuzz', value: '#123456' });
+    bindRole(parsed, 'primary', 'main');
+    unbindRole(parsed, 'primary');
+    removeColourRole(parsed, 'main', { release: true });
+    setRoleValue(parsed, { roleId: 'main', mode: 'light', value: '#123456' });
+    addColourway(parsed, { id: 'fuzz', name: 'Fuzz', values: {
+      light: { primary: '#111111', 'on-primary': '#ffffff', secondary: '#222222' },
+      dark: { primary: '#333333', 'on-primary': '#000000', secondary: '#444444' },
+    } });
+    colourwayRolesOf(parsed);
   },
 };
 

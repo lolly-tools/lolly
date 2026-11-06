@@ -28,12 +28,12 @@
  * and checks, before and after, that nothing an existing choice draws has moved.
  */
 import {
-  COLOURWAY_GROUP, COLOURWAY_ID, COLOURWAY_ROLES, addColourway, canonicalFirst, colorToHex, colourwayAxis, colourwayPath,
-  colourwayRolesOf, colourwaySetName, colourwaysEditable, createTokenSet, deriveColourwaySlots, duplicateColourway,
-  isAlias, liftToColourways, modeAxis, readTokenAxes, removeColourway, renameColourway,
+  COLOURWAY_GROUP, COLOURWAY_ID, addColourway, canonicalFirst, carryColourRoles, colorToHex, colourwayAxis, colourwayLeaves,
+  colourwayLinkOf, colourwayPath, colourwayRolesOf, colourwaySetName, colourwaysEditable, createTokenSet, deriveColourwaySlots,
+  duplicateColourway, isAlias, liftToColourways, modeAxis, newlyDangling, readTokenAxes, removeColourway, renameColourway,
   reorderColourways, setCanonicalColourway, TOKEN_EXT,
 } from '@lolly/engine';
-import type { BrandDeriveOptions, ColourwayEdit, ColourwayRole, ColourwayValues, TokenAxis } from '@lolly/engine';
+import type { BrandDeriveOptions, ColourwayEdit, ColourwayValues, TokenAxis } from '@lolly/engine';
 import type { TokenResolveOptions, TokenSet } from '@lolly-tools/core/host-v1';
 import { nameColor } from '../color-namer.ts';
 
@@ -153,6 +153,10 @@ export function isColourwayLink(value: unknown, role: string): boolean {
  * the slot is not that link, or when the lead has no single set of its own (a
  * file that encodes colourways its own way). A caller that gets null for a
  * value `isColourwayLink` accepts must treat the slot as read-only.
+ *
+ * A slot bound to one of the brand's colour roles holds an alias to that role in
+ * the lead's set (plans/352). The answer is then the role's path: that is where the
+ * colour lives, and writing over the alias would cut the binding.
  */
 export function leadSlotPath(doc: unknown, slotValue: unknown, role: string, lead?: string | null): string[] | null {
   if (!isColourwayLink(slotValue, role)) return null;
@@ -161,7 +165,13 @@ export function leadSlotPath(doc: unknown, slotValue: unknown, role: string, lea
   const set = leadSetOf(doc, axis, resolveLead(doc, lead)!);
   if (!set) return null;
   const mode = LINK.exec((slotValue as string).trim())![1]!;
-  return [set, 'color', 'colourway', mode, role];
+  let at = role;
+  for (let hop = 0; hop < 8; hop++) {
+    const link = colourwayLinkOf(leafAt(doc, [set, 'color', 'colourway', mode, at])?.$value);
+    if (!link || link.mode !== mode || link.role === at) break;
+    at = link.role;
+  }
+  return [set, 'color', 'colourway', mode, at];
 }
 
 /**
@@ -172,7 +182,7 @@ export function leadSlotPath(doc: unknown, slotValue: unknown, role: string, lea
  */
 export function leadRolePath(doc: unknown, role: string, ctx: EditContextInput): string[] | null {
   const axis = colourwayAxis(doc);
-  if (!axis || !colourwayRolesOf(doc).includes(role as ColourwayRole)) return null;
+  if (!axis || !colourwayRolesOf(doc).includes(role)) return null;
   const { mode, lead } = editContextOf(ctx);
   const set = leadSetOf(doc, axis, resolveLead(doc, lead)!);
   return set ? [set, ...colourwayPath(mode, role).split('.')] : null;
@@ -386,12 +396,14 @@ export type LeadCarry =
     kept: Array<{ id: string; name: string }>;
     /** Colours of kept leads that followed a rebuilt shade and were pinned to the colour they had. */
     pinned: number;
+    /** Colour role values of the canonical lead, or a look's own tokens, pinned the same way. */
+    rolesPinned: number;
   }
   | { ok: false; reasons: string[] };
 
 /**
  * Carry every lead from the document a Rebuild palette replaces into the freshly
- * derived one (plans/319 A2).
+ * derived one (plans/319 A2), and every colour role with them (plans/352).
  *
  * The rebuild re-derives the CANONICAL lead, exactly as it re-derives the primary
  * of a design system with one lead: the fresh document is lifted with the
@@ -405,10 +417,18 @@ export type LeadCarry =
  * `{color.ramp.primary.5}`, say) is pinned to the colour it had, so the other
  * leads look exactly as they did. Refused, with reasons, on a document whose
  * colourways Lolly cannot edit; the caller keeps the old document then.
+ *
+ * A document with no colour roles and no custom colour tokens carries nothing more.
+ * With them, `carryColourRoles` brings the record, the links and the roles' values
+ * across, a slot bound to a role stays bound, and no alias is left pointing at nothing.
  */
 export function carryLeads(from: unknown, to: unknown): LeadCarry {
   const axis = colourwayAxis(from);
-  if (!axis || !isRec(from) || !isRec(to)) return { ok: true, doc: to as Rec, canonical: null, kept: [], pinned: 0 };
+  if (!axis || !isRec(from) || !isRec(to)) {
+    if (!isRec(from) || !isRec(to)) return { ok: true, doc: to as Rec, canonical: null, kept: [], pinned: 0, rolesPinned: 0 };
+    const single = carryColourRoles(from, to);
+    return single.ok ? { ok: true, doc: single.doc, canonical: null, kept: [], pinned: 0, rolesPinned: single.pinned } : single;
+  }
   const editableFrom = colourwaysEditable(from);
   if (!editableFrom.ok) return editableFrom;
   const fromMode = modeAxis(readTokenAxes(from).axes)!;
@@ -426,7 +446,7 @@ export function carryLeads(from: unknown, to: unknown): LeadCarry {
   const liftId = canonicalLiftId(from, to, axis, canonical);
   const lifted = liftToColourways(to, { id: liftId, surface: roles.includes('surface') });
   if (!lifted.ok) return lifted;
-  const next = lifted.doc;
+  let next = lifted.doc;
   const liftedEntry = themeEntries(next).find(t => groupOf(t) === COLOURWAY_GROUP && optionIdOf(t) === liftId);
   const canonicalSet = liftedEntry ? enabledSets(liftedEntry)[0]! : '';
 
@@ -492,24 +512,35 @@ export function carryLeads(from: unknown, to: unknown): LeadCarry {
     childRec(childRec(childRec(next, '$extensions'), TOKEN_EXT), 'themeAxes')[axis.group] = structuredClone(fromRoot[axis.group]);
   }
 
-  // A kept lead that followed a rebuilt shade keeps the colour it had.
+  // The colour roles come across before the pins, so a kept lead's links can reach them.
+  const carriedRoles = carryColourRoles(from, next);
+  if (!carriedRoles.ok) return carriedRoles;
+  next = carriedRoles.doc;
   let pinned = 0;
-  const pinRoles: readonly string[] = roles.length ? roles : COLOURWAY_ROLES;
+
+  // A kept lead that followed a rebuilt shade keeps the colour it had. A link inside the
+  // lead's set is left alone: it reads a role, and the role is what gets pinned.
   for (const lead of kept) {
     for (const mode of toMode.options) {
       const was = createTokenSet(from, { selection: { [fromMode.group]: mode.id, [axis.group]: lead.id } });
       const now = createTokenSet(next, { selection: { [toMode.group]: mode.id, [axis.group]: lead.id } });
-      for (const role of pinRoles) {
-        const before = was.resolve(`color.semantic.${role}`);
-        if (typeof before !== 'string' || isAlias(before) || now.resolve(`color.semantic.${role}`) === before) continue;
-        const leaf = leafAt(next, [lead.set, ...colourwayPath(mode.id, role).split('.')]);
-        if (!leaf) continue;
+      for (const role of colourwayLeaves(next[lead.set], mode.id)) {
+        const path = colourwayPath(mode.id, role);
+        const before = was.resolve(path);
+        if (typeof before !== 'string' || isAlias(before) || now.resolve(path) === before) continue;
+        const leaf = leafAt(next, [lead.set, ...path.split('.')]);
+        if (!leaf || colourwayLinkOf(leaf.$value)) continue;
         leaf.$value = before;
         pinned++;
       }
     }
   }
-  return { ok: true, doc: next, canonical: { id: canonical.id, name: canonical.name }, kept: kept.map(({ id, name }) => ({ id, name })), pinned };
+  // The promise for colour roles, checked rather than assumed. Without roles this is the old path.
+  if (carriedRoles.kept.length) {
+    const dangling = newlyDangling(to, next);
+    if (dangling.length) return { ok: false, reasons: [`The rebuilt palette would leave ${[...new Set(dangling.map(d => d.path))].slice(0, 3).join(', ')} pointing at nothing, so it cannot keep this design system's colour roles.`] };
+  }
+  return { ok: true, doc: next, canonical: { id: canonical.id, name: canonical.name }, kept: kept.map(({ id, name }) => ({ id, name })), pinned, rolesPinned: carriedRoles.pinned };
 }
 
 /**
