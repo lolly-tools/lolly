@@ -114,6 +114,8 @@ Tus colores se sitúan junto a una vista previa **In context** en una pantalla a
 
 ### Roles: lo que leen las herramientas
 
+![The Colour roles table on Lolly Demo after choosing the suggested words Main, Accent, Supporting and Tertiary: the colourway chips, then each role with its light and dark colour, Main read as the lead colour and Accent as the partner colour, Supporting and Tertiary read by name only and marked Copied, and the readings no role fills listed under the table](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=2720&height=2000&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-roles-fold%5D%3Esummary%3Bwait%3A500%3Bclick%3A%5Bdata-crt-start-open%5D%3Bclick%3A%5Bdata-crt-seed%3D%221%22%5D%3Bclick%3A%5Bdata-crt-start-use%5D%3Bwait%3A900%3Bclick%3A.be-palette-heading%3Eh2%3Bwait%3A300&cropSelector=%5Bdata-be-roles-fold%5D&format=svg&walker=1&dark=1&filename=bs-colour-roles)
+
 Los **Roles** dicen qué color desempeña cada papel en cada herramienta y exportación. Son opcionales (tres colores sueltos y ningún rol es un sistema perfectamente bueno), cualquier color puede tomar uno y la lectura de contraste se mide frente a la superficie, primero con APCA. Cada fila de rol muestra un color propio a plena intensidad, un color de inicio que lo sustituye, o **↳ follows Primary**.
 
 Cuando la paleta tiene tonos, la tira muestra los siete roles que puede leer una herramienta: Primary, Secondary, Surface, Text, Muted, Edge y On primary. On primary se deriva del primario, se lee **Derived** y no tiene selector.

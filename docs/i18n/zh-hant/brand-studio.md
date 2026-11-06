@@ -114,6 +114,8 @@
 
 ### 角色：工具讀取什麼
 
+![The Colour roles table on Lolly Demo after choosing the suggested words Main, Accent, Supporting and Tertiary: the colourway chips, then each role with its light and dark colour, Main read as the lead colour and Accent as the partner colour, Supporting and Tertiary read by name only and marked Copied, and the readings no role fills listed under the table](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=2720&height=2000&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-roles-fold%5D%3Esummary%3Bwait%3A500%3Bclick%3A%5Bdata-crt-start-open%5D%3Bclick%3A%5Bdata-crt-seed%3D%221%22%5D%3Bclick%3A%5Bdata-crt-start-use%5D%3Bwait%3A900%3Bclick%3A.be-palette-heading%3Eh2%3Bwait%3A300&cropSelector=%5Bdata-be-roles-fold%5D&format=svg&walker=1&dark=1&filename=bs-colour-roles)
+
 **Roles** 說明哪個色彩在每個工具與匯出中扮演哪個部分。它們是選用的（三個零散的色彩而沒有角色，是完全合格的系統），任何色彩都可以承擔一個，而對比讀數是對照表面測量的，以 APCA 為先。每個角色列顯示完整強度的自有色彩、頂替的起始色彩，或 **↳ follows Primary**。
 
 一旦調色盤有了色階，色帶會顯示工具可讀取的全部七個角色：Primary、Secondary、Surface、Text、Muted、Edge 與 On primary。On primary 由主色衍生，顯示為 **Derived**，沒有選擇器。

@@ -114,6 +114,8 @@ Màu của bạn nằm cạnh bản xem trước **In context** trên màn hình
 
 ### Vai trò: công cụ đọc gì
 
+![The Colour roles table on Lolly Demo after choosing the suggested words Main, Accent, Supporting and Tertiary: the colourway chips, then each role with its light and dark colour, Main read as the lead colour and Accent as the partner colour, Supporting and Tertiary read by name only and marked Copied, and the readings no role fills listed under the table](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=2720&height=2000&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-roles-fold%5D%3Esummary%3Bwait%3A500%3Bclick%3A%5Bdata-crt-start-open%5D%3Bclick%3A%5Bdata-crt-seed%3D%221%22%5D%3Bclick%3A%5Bdata-crt-start-use%5D%3Bwait%3A900%3Bclick%3A.be-palette-heading%3Eh2%3Bwait%3A300&cropSelector=%5Bdata-be-roles-fold%5D&format=svg&walker=1&dark=1&filename=bs-colour-roles)
+
 **Roles** cho biết màu nào đóng vai nào trong mọi công cụ và bản xuất. Chúng là tùy chọn (ba màu rời và không vai trò là một hệ thống hoàn toàn tốt), màu nào cũng có thể nhận một vai trò và số đo tương phản được tính so với bề mặt, APCA trước. Mỗi hàng vai trò hiện một màu của bạn ở độ đậm đầy đủ, một màu starter thế chỗ, hoặc **↳ follows Primary**.
 
 Khi bảng màu có sắc độ, dải hiện cả bảy vai trò mà một công cụ có thể đọc: Primary, Secondary, Surface, Text, Muted, Edge và On primary. On primary được suy ra từ primary, đọc **Derived** và không có bộ chọn.

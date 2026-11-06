@@ -114,6 +114,8 @@ Lolly Demo처럼 앱과 함께 오고 편집할 수 있는 디자인 시스템�
 
 ### 역할: 도구가 읽는 것
 
+![The Colour roles table on Lolly Demo after choosing the suggested words Main, Accent, Supporting and Tertiary: the colourway chips, then each role with its light and dark colour, Main read as the lead colour and Accent as the partner colour, Supporting and Tertiary read by name only and marked Copied, and the readings no role fills listed under the table](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=2720&height=2000&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-roles-fold%5D%3Esummary%3Bwait%3A500%3Bclick%3A%5Bdata-crt-start-open%5D%3Bclick%3A%5Bdata-crt-seed%3D%221%22%5D%3Bclick%3A%5Bdata-crt-start-use%5D%3Bwait%3A900%3Bclick%3A.be-palette-heading%3Eh2%3Bwait%3A300&cropSelector=%5Bdata-be-roles-fold%5D&format=svg&walker=1&dark=1&filename=bs-colour-roles)
+
 **역할**은 모든 도구와 내보내기에서 어떤 색상이 어떤 부분을 맡을지 알려줘요. 선택 사항이에요(역할 없이 느슨한 색상 세 개도 충분히 좋은 시스템이에요). 어떤 색상이든 역할을 맡을 수 있고, 대비 수치는 표면을 기준으로 측정하며 APCA를 먼저 써요. 각 역할 행은 완전한 강도의 자체 색상, 대신 서 있는 스타터 색상, 또는 **↳ follows Primary**를 보여줘요.
 
 팔레트에 음영이 생기면 띠가 도구가 읽을 수 있는 일곱 가지 역할을 모두 보여줘요. Primary, Secondary, Surface, Text, Muted, Edge, On primary예요. On primary는 기본 색상에서 파생되며 **Derived**로 표시되고 선택기가 없어요.
