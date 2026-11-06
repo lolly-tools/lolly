@@ -59,12 +59,12 @@
  *   - `dpi` - raster resolution for physical units (default 300; px → 96)
  *   - `profile` - colour profile: raster ICC ('srgb'/'none') or, for pdf-cmyk,
  *                  the press condition ('fogra39', 'swop', 'gracol', …)
- *   - `password` - open-password for the STANDARD (40-bit RC4) `pdf` lock only (a
- *                  basic lock, not strong encryption). Intentionally clear-text in
- *                  the URL - it exists so links can pre-set a password for quick,
- *                  short-lived transactional use; do not use it for confidential
- *                  material. The Strong (AES-256) tier is deliberately NOT a URL
- *                  param: its password is typed at export/open and never serialized.
+ *   - `password` - open-password for the STANDARD (40-bit RC4) `pdf` or ZipCrypto
+ *                  `zip` lock only (a basic lock, not strong encryption). INBOUND
+ *                  only: a link can bring one, and the web shell then takes it out
+ *                  of the address. No Lolly surface writes it into a URL. Do not use
+ *                  it for confidential material. The Strong (AES-256) tier is NOT a
+ *                  URL param: its password is typed at export/open, never serialized.
  *   - `bleed` - bleed amount (dimension string, e.g. `3mm`) for the print
  *                  formats (`pdf`/`pdf-cmyk`/`cmyk-tiff`); ignored otherwise.
  *   - `marks` - print marks for the print formats: a CSV of `crop`, `reg`,

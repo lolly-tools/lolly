@@ -152,11 +152,10 @@ export function buildFormatOptions(ta: ActionsCtx): void {
   // Revealed only when "PDF" is chosen - the print-PDF path (pdf-cmyk) re-saves
   // through pdf-lib, which can't write encrypted PDFs.
   //
-  // URL-expressible by design: a `?password=` link can pre-set it for quick,
-  // short-lived transactional use (event materials etc). That's clear-text in the
-  // URL - an accepted trade-off for a basic lock, not for confidential material.
-  // It is NOT persisted to the library at rest (see performSave); URL is the only
-  // way it round-trips. The initial value below comes from the URL only.
+  // A `?password=` link can still pre-set it, but only ever inbound: setup reads the value
+  // and takes it out of the address. Nothing here writes it to an address, a copied link or
+  // the library (see collectExportParams, performSave). The initial value below comes from
+  // that link only.
   // Collapsed by default - a click-to-expand disclosure (mirrors the Print marks
   // card) so the field + caveat only surface when wanted, keeping the panel tight.
   // Pre-opened when a value arrives (e.g. ?password=) so it's visible. Collapse is
@@ -182,7 +181,7 @@ export function buildFormatOptions(ta: ActionsCtx): void {
             <option value="standard">Weak: Simple Password</option>
             <option value="strong">Strong: Encrypted AES-256</option>
           </select>
-          <p class="pdfpass-hint" data-pdfpass-hint${exportDefaults.password ? '' : ' hidden'}>The password travels in share links, so treat this as a deterrent, not protection for confidential files.</p>
+          <p class="pdfpass-hint" data-pdfpass-hint${exportDefaults.password ? '' : ' hidden'}>A deterrent, not protection for confidential files. The password stays out of links.</p>
         </div>
       </div>`
       : ''; ta.pdfPassRow = pdfPassRow;

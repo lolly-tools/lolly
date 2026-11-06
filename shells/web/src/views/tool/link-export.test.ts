@@ -67,3 +67,31 @@ test('the settle tells the tool its size and waits on the runtime and the paint 
   assert.match(body, /shown: \(\) => tview\.lastPainted,/);
   assert.match(body, /quiet: \(\) => waitForQuiescence\(tview\.contentEl\),/);
 });
+
+test('a link export uses the password from either place, and refuses before any work', () => {
+  const body = functionBody(read('views/tool/exporting.ts'), 'linkExport');
+  assert.match(body, /const password = tview\.urlPassword \|\| tview\.automationPassword \|\| undefined;/, 'the one-time binding reaches the export, not only the panel defaults');
+  assert.match(body, /if \(password\) expOpts\.password = password;/);
+  const refused = body.indexOf('linkPasswordRefusal(fmt');
+  const missing = body.indexOf('did not arrive');
+  const quiet = body.indexOf('waitForQuiescence(tview.contentEl)');
+  assert.ok(refused >= 0 && missing >= 0 && refused < quiet && missing < quiet, 'the refusal comes first');
+  assert.match(body, /if \(password \|\| automationPasswordExpected\(\)\)/, 'a binding with no password in it writes no file');
+  assert.doesNotMatch(body, /\$\{password\}/, 'no message repeats it');
+});
+
+test('a refused link tells the person, not only the log', () => {
+  const render = read('views/tool/render.ts');
+  assert.match(render, /Auto-export did not start: \$\{String\(err\)\}/, 'the Node drivers read this line to stop waiting');
+  assert.match(render, /err instanceof LinkPasswordRefused\) void noticeDialog/);
+});
+
+test('setup takes the password out of every address it could be rebuilt from', () => {
+  const setup = read('views/tool/setup.ts');
+  const at = setup.indexOf('tview.urlPassword = urlPassword;');
+  const block = setup.slice(at, setup.indexOf('tview.urlBleed = urlBleed;', at));
+  assert.match(block, /tview\.urlParams = withoutLinkPassword\(query\);/);
+  assert.match(block, /tview\.launchQuery = addressAfterLinkPassword\(query\);/);
+  assert.match(block, /if \(!tview\.encLinkQuery\) \{/, 'a ciphertext link shows no password and stays');
+  assert.match(block, /replaceRouteUrl\(/);
+});

@@ -642,8 +642,8 @@ export function wireUpCopyUrl(
 /** The internal assets-bridge methods the `.lolly` builder needs, described by shape -
  *  they are web-only (not on the public HostV1.AssetsAPI), the same reason
  *  data-transfer.ts declares its own `BackupHost`. */
-// Reads the export-panel controls (format, dimensions, colour profile, password, print
-// marks, the provenance toggles) into the share-link's export parts. Extracted from
+// Reads the export-panel controls (format, dimensions, colour profile, print marks,
+// the provenance toggles) into the share-link's export parts. Extracted from
 // buildShareParams so ONE DOM read feeds both the copied link AND the URL-budget gauge
 // (costUrlState's exportParts) - the two can never drift. Returns already-formed
 // `key=value` (and bare-flag) strings; byte-identical to the block it replaced. The
@@ -696,17 +696,8 @@ export function collectExportParams(exportScope: HTMLElement | null): string[] {
   if (isCmykFmt(fmtEl?.value) && prof && prof !== DEFAULT_CMYK_CONDITION) {
     parts.push(`profile=${encodeURIComponent(prof)}`);
   }
-  // Open-password - standard-tier lock only (PDF or ZIP), only when set. Clear-text by
-  // design so a shared link can carry the lock; never used for confidential files.
-  const pdfPass = exportScope?.querySelector<HTMLInputElement>(
-    '[data-action="pdf-password"]'
-  )?.value;
-  const pdfStrong =
-    exportScope?.querySelector<HTMLSelectElement>('[data-action="pdf-lock-tier"]')?.value ===
-    'strong';
-  if ((fmtEl?.value === 'pdf' || fmtEl?.value === 'zip') && pdfPass && !pdfStrong) {
-    parts.push(`password=${encodeURIComponent(pdfPass)}`);
-  }
+  // The export password is never read here. This list becomes the address bar and the
+  // copied link, and an address reaches browser history, server logs and whoever it is sent to.
   // Print marks & bleed - print formats (pdf / pdf-cmyk / cmyk-tiff) only, and only
   // when the card is on.
   if (isPrintFmt(fmtEl?.value) && printEnabled(exportScope)) {

@@ -21,12 +21,13 @@ import { existsSync, writeFileSync } from 'node:fs';
 import { join, resolve, extname, normalize } from 'node:path';
 import { getBrowser, BrowserError } from './browsers.ts';
 import {
-  desktopInstalled, launchRenderServer, readRenderServer, renderThroughRungs,
+  DesktopRendererError, desktopInstalled, launchRenderServer, readRenderServer, renderThroughRungs,
   rendererPreference, renderViaRenderServer, type RendererDrivers,
 } from './desktop-renderer.ts';
 import { repoRoot } from './repo-root.ts';
 import { catalogFile, readAssetIndex, toolFile } from './content-roots.ts';
 import { waitForExport, type ExportWait } from './export-wait.ts';
+import { exposeExportPassword } from './export-lock.ts';
 import { waitForShellStartup } from './shell-startup.ts';
 import type { ConsoleMessage, Page } from 'playwright-core';
 import { OpenSessionError, checksInOpenedPage, openRouteRefusal, openSessionInPage, packageDesignSession, sessionExportQuery, shortenUrls } from './open-session.ts';
@@ -151,7 +152,8 @@ export function exportUrl(base: string, toolId: string, query: string, fmt: stri
   if (dims.width && dims.width > 0) p.set('width', String(dims.width));
   if (dims.height && dims.height > 0) p.set('height', String(dims.height));
   if (unit !== 'px') { p.set('unit', unit); p.set('dpi', String(dims.dpi || 300)); }
-  if (dims.password) p.set('password', dims.password);   // standard PDF open-password
+  // The export password is never written here: an address reaches logs, command lines and
+  // error messages. renderViaChromiumShell hands it over on a one-time browser binding.
   // Print prep + provenance controls the web auto-export already honours (tool.ts reads
   // ?bleed/?marks/?imprint/?profile/?c2pa via parseUrlState). Threading them here is the
   // whole of the P3 fix: the geometry/watermark/press-intent lives in the web shell; the
@@ -341,7 +343,7 @@ export interface RenderDims extends ProductionBrowserOptions {
   /** Effective UI/content language forwarded to the browser runtime. */
   lang?: string;
   width?: number; height?: number; unit?: string; dpi?: number;
-  /** Standard PDF open-password (basic RC4 lock). */
+  /** Standard open-password for a `pdf` or `zip` (export-lock.ts). Never travels in the export URL. */
   password?: string;
   /** Bleed amount as a dimension string (e.g. "3mm") for the print formats. */
   bleed?: string;
@@ -596,7 +598,9 @@ async function renderViaChromiumShell(
   const browser = await getBrowser();
   const ctx = await browser.newContext({ serviceWorkers: 'block', acceptDownloads: true });
   let waiting: ExportWait | undefined;
+  let clearPassword = (): void => {};
   try {
+    clearPassword = await exposeExportPassword(ctx, dims.password);
     const page = await ctx.newPage();
     // The internal export route override travels to the page, which routes Design stills itself (plan 326).
     const route = forwardedExportRoute();
@@ -625,6 +629,7 @@ async function renderViaChromiumShell(
     throw withDebugLog(err, `${toolId}.${format}`, debug);
   } finally {
     waiting?.dispose();
+    clearPassword();
     await ctx.close();
   }
 }
@@ -650,6 +655,15 @@ export async function renderViaWebShell(
   toolId: string, query: string, format: string, dims: RenderDims = {},
 ): Promise<{ bytes: Uint8Array; mime: string }> {
   const preference = rendererPreference();
+  // A desktop rung takes the whole job as one address and starts its renderer with that
+  // address on a command line, which any user on the machine can read. The rung has no
+  // private way to take a secret, so a locked file goes to Chromium only.
+  if (dims.password) {
+    if (preference === 'desktop') {
+      throw new DesktopRendererError('LOLLY_RENDERER=desktop cannot lock a file: the desktop renderer has no private way to take a password. Nothing was written. Use LOLLY_RENDERER=chromium or auto.');
+    }
+    return renderViaChromiumShell(toolId, query, format, dims);
+  }
   // The URL is a transport envelope for the desktop rungs. The app extracts its tool
   // id and query, then loads its OWN embedded origin in the off-screen WebView, so
   // the host part is never fetched.

@@ -25,7 +25,7 @@ import type { ExportBrandSkill } from '@lolly-tools/core/host-v1';
 import type { ContentBlock, ToolCallResult } from './protocol.ts';
 import { listTools, loadToolCached, loadIndex, listToolTemplates, loadTemplateSeed } from './catalog.ts';
 import { toolInputSchema, fileInputId } from './schema.ts';
-import { render, transform, isTextFormat, normFormat, emojiSets, emojiSetName, resolveEmojiSetName, maxRasterPixelsFor, previewPng, designRecordText, credentialText } from './render.ts';
+import { lockText, render, transform, isTextFormat, normFormat, emojiSets, emojiSetName, resolveEmojiSetName, maxRasterPixelsFor, previewPng, designRecordText, credentialText } from './render.ts';
 import { withHost } from './host.ts';
 import { audioRunText, rondoCapsFor, songCredentialText } from './audio-runs.ts';
 import type { RenderOpts } from './render.ts';
@@ -438,7 +438,11 @@ export const TOOL_DEFS: McpToolDef[] = [
             + 'Left out, a browser-free render has none and a browser-tier render (PDF, or a tool laid out in HTML) keeps the one the web shell stamps. '
             + 'When you pass it, the result says what the file holds, read back from the file.',
         },
-        password: { type: 'string', description: 'Open-password for standard PDF export (never logged).' },
+        password: {
+          type: 'string',
+          description: 'Open password for a "pdf" or "zip" (40-bit RC4 on a PDF, ZipCrypto on a ZIP: a deterrent, not protection for confidential files). '
+            + 'Never logged and never put in a URL. The file is read back and the result says so. Any other format, a PDF with bleed or marks, or a non-ASCII PDF password fails the call with no file.',
+        },
         link: { type: 'boolean', description: 'Also return the editable lolly.tools link (default true).' },
         ...RENDER_INTENT_ARGS,
       },
@@ -907,6 +911,19 @@ function verifyText(name: string, report: VerifyReport, headline: string): strin
   return lines.join('\n');
 }
 
+/** The `password` argument. Anything but a string fails the call: it must not become a file with no lock. */
+function renderPassword(args: Record<string, unknown>): string | undefined {
+  // `lolly_render` takes no query, and an unknown argument is otherwise ignored. A password
+  // in one is a request that must not come back as a file with no lock.
+  if (typeof args.query === 'string' && new URLSearchParams(args.query.replace(/^[^?]*\?/, '')).has('password')) {
+    throw new Error('Pass the password in the password argument, not in a query. Nothing was written.');
+  }
+  const value = args.password;
+  if (value === undefined || value === null) return undefined;
+  if (typeof value !== 'string') throw new Error('password must be a string.');
+  return value;
+}
+
 function c2paSetting(v: unknown): RenderOpts['c2pa'] {
   if (v === undefined || v === null) return null;
   const s = String(v).toLowerCase();
@@ -1109,7 +1126,7 @@ export async function callTool(name: string, args: Record<string, unknown>, hold
           colorProfile: args.colorProfile as string | undefined,
           transparentBg: args.transparentBg as boolean | undefined,
           convertPaths: args.convertPaths as boolean | undefined,
-          password: args.password as string | undefined,
+          password: renderPassword(args),
           c2pa: c2paSetting(args.c2pa),
           ...(args.c2pa !== undefined && args.c2pa !== null ? { c2paAsked: true } : {}),
           maxRasterPixels: maxRasterPixelsFor(process.env, isHostedServer()),
@@ -1163,6 +1180,8 @@ export async function callTool(name: string, args: Record<string, unknown>, hold
           intentRecordText(!intended ? null : intended.optedOut ? { state: 'not-recorded', reason: 'opted-out' } : result.intentRecord ?? { state: 'not-recorded', reason: 'not-confirmed' }, result.credentialFromIntent === true),
           // What an explicit `c2pa` asked for and what the delivered file holds.
           credentialText(result.credential),
+          // The password lock, read back from the delivered file.
+          lockText(result.lock),
         ].filter(Boolean).join('\n');
 
         const content: ContentBlock[] = [{ type: 'text', text: header }];

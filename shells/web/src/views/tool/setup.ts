@@ -33,6 +33,8 @@ import { installDocumentSurface } from '../../lib/document-surface.ts';
 import { prepareToolDesignSystemContext } from '../tool-design-system-context.ts';
 import { fpsTick, startFrameFps, stopFrameFps } from '../../lib/frame-fps.ts';
 import { takeAutomationExportPassword } from '../../lib/automation-export-secret.ts';
+import { addressAfterLinkPassword, withoutLinkPassword } from '../../lib/export-password.ts';
+import { replaceRouteUrl } from '../../lib/url-state.ts';
 import { inferDesignIntent } from '../design-workspace.ts';
 import { createHistory, historyTokenLinks } from '../tool-history.ts';
 import { mountBackPill } from '../../components/back-pill.ts';
@@ -199,6 +201,20 @@ export async function guardNetworkAndSeed(tview: ToolViewCtx): Promise<void> {
   tview.urlDpi = urlDpi;
   tview.urlProfile = urlProfile;
   tview.urlPassword = urlPassword;
+  // A link may still bring a password, but it stops being an address here: it was read
+  // above, and from now on it lives only in the export settings of this page. Leaving it
+  // in the bar would write it to history and, since the bar is a path route, send it to
+  // the host on a reload. A ciphertext `zx` link shows nothing and stays as it is.
+  if (urlPassword) {
+    const query = tview.urlParams ?? '';
+    tview.urlParams = withoutLinkPassword(query);
+    tview.launchQuery = addressAfterLinkPassword(query);
+    if (!tview.encLinkQuery) {
+      const address = addressAfterLinkPassword(query);
+      const base = tview.toolId === 'design' ? '/design' : `/t/${tview.toolId}`;
+      replaceRouteUrl(address ? `${base}?${address}` : base);
+    }
+  }
   tview.urlBleed = urlBleed;
   tview.urlMarks = urlMarks;
   tview.urlC2pa = urlC2pa;

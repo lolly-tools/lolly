@@ -39,7 +39,7 @@ import { documentLeavePrompt } from '../lib/document-scope.ts';
 const UNSAVED_KEY = 'lollyUnsaved';
 /** Link params that act once on open, so Back must not replay them. `slot` goes too:
  *  an entry that keeps a creation says so with its own `?slot=`. */
-const ONE_SHOT_PARAMS = ['slot', 'export', 'copy', 'share'];
+const ONE_SHOT_PARAMS = ['slot', 'export', 'copy', 'share', 'password'];
 
 /** A local document: not a live collaboration, not a shared or guest mount. */
 export function localDocument(opts: { collab: unknown; ephemeral: unknown }): boolean {

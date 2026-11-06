@@ -16,6 +16,7 @@ import { assertFormatBytes } from '@lolly-tools/node-shell/format-sniff';
 import { NODE_FORMATS, needsFloatScene, pxDims, eligibleForResvgPng, rasterizeTierAPng, canCarryPrintPrep, printPrepRefusal, svgExportSize } from '@lolly-tools/node-shell/raster';
 import { buildExportC2paOpts } from '@lolly-tools/node-shell/c2pa-opts';
 import { assertRenderOk } from '@lolly-tools/node-shell/render-integrity';
+import { assertExportLocked, exportPasswordRefusal } from '@lolly-tools/node-shell/export-lock';
 import type { RenderDims } from '@lolly-tools/node-shell/webshell-render';
 import { toolFetchFile } from './catalog.ts';
 import { getProfile } from './store.ts';
@@ -266,6 +267,12 @@ export async function exportToFile(
     throw new Error(printPrepRefusal(fmt));
   }
   const transform = isTransform(manifest);
+  // A password this file cannot carry is refused before anything renders. A utility and a
+  // capture write their own bytes, so those are read back in write() below instead.
+  if (dims.password && !transform) {
+    const refusal = exportPasswordRefusal(fmt, { password: dims.password, bleed: dims.bleed, marks: dims.marks });
+    if (refusal) throw new Error(refusal);
+  }
   // The canvas size is the export's own (engine 1.293), so a tool that lays itself out
   // for the canvas draws this file at this shape. A no-op when the view already set that size.
   await setCanvasSizeFrom(runtime, dims);
@@ -307,6 +314,8 @@ export async function exportToFile(
     }
     if (dims.c2paDays && !transform && C2PA_FORMATS.includes(fmt) && !extractC2paStore(out)) throw new Error('The requested Content Credentials are missing from the output. No file was written.');
     if (!transform) assertFormatBytes(fmt, out);
+    // Every route ends here, so this is the last word: the file holds the lock or nothing is written.
+    if (dims.password) await assertExportLocked(out, fmt, dims.password);
     const buf = Buffer.from(out);
     await writeFile(outPath, buf);
     return buf.length;
@@ -317,7 +326,7 @@ export async function exportToFile(
   if (transform) {
     // exportFile returns one result or a batch (a `multiple` file input). The CLI/TUI
     // path is single-file (one --file arg → one --output), so take the first result.
-    const res = await runtime.exportFile();
+    const res = await runtime.exportFile(dims.password ? { password: dims.password } : {});
     const first = Array.isArray(res) ? res[0] : res;
     if (!first?.bytes) throw new Error('exportFile produced no bytes');
     return write(first.bytes as Uint8Array);
