@@ -2,7 +2,7 @@
 /**
  * Lolly Chart's opt-in colour roles (plans/352 follow-up): the **Design system - colour
  * roles first** palette, and the engine read it stands on, `host.tokens.inspect()`'s
- * `colourRoles` (engine 1.320).
+ * `colourRoles` (engine 1.322).
  *
  * Three promises are pinned. With the palette left alone a chart renders exactly as it
  * did before the engine carried the roles, on a system with roles and on one without.
@@ -43,7 +43,7 @@ const window = new JSDOM('<!doctype html><html><body></body></html>').window;
 const cli = (doc: Rec, tokenSelection?: Record<string, string>): Promise<HostV1> =>
   createCliBridge({ dom: window as never, profile: {}, tokensDocument: doc, ...(tokenSelection ? { tokenSelection } : {}) } as never) as Promise<HostV1>;
 
-/** The same host as one from before engine 1.320: its inspection carries no colour roles. */
+/** The same host as one from before engine 1.322: its inspection carries no colour roles. */
 function withoutRoles(host: HostV1): HostV1 {
   const tokens = host.tokens as NonNullable<HostV1['tokens']>;
   return { ...host, tokens: { ...tokens, inspect: async (o?: TokenResolveOptions) => { const { colourRoles: _roles, ...rest } = await tokens.inspect!(o); return rest; } } } as HostV1;

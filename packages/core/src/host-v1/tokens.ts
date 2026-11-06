@@ -126,7 +126,7 @@ export interface TokenInspection {
   /** Counts cover token references and declared roles in this document only. */
   scope: 'token-document';
   /**
-   * The document's colour roles as the engine reads them (v1.320, plans/352): the
+   * The document's colour roles as the engine reads them (v1.322, plans/352): the
    * declared roles in the design system's own order and words, then any undeclared
    * ones, and the slot each fills. Structure only, so the read options do not change
    * it; read a role's colour with `resolve('{' + role.path + '}')`. `state` is

@@ -136,7 +136,7 @@ import {
 } from '../lib/motion-model.ts';
 import type { AppearIntent, AppearMode } from '../lib/motion-model.ts';
 import { auditCurrentDesign } from './design-mounted-audit.ts';
-import type { MountedDesignAudit, MountedFontStyle } from './design-mounted-audit.ts';
+import type { MountedDesignAudit, MountedFontResolver } from './design-mounted-audit.ts';
 import { mountedDesignFindingMessage } from './design-audit-copy.ts';
 import { mountDesignTokenBindings } from './design-token-bindings.ts';
 import type { BlockFieldSpec } from '../../../../engine/src/inputs.ts';
@@ -306,7 +306,7 @@ export interface DesignInspectorOpts {
   fonts?: InspectorFonts;
   /** Resolve a rendered run through the vector-export font registry. This is
    * async because user/discovered webfonts may need their bytes checked. */
-  resolveFont?: (style: MountedFontStyle, text: string) => Promise<boolean>;
+  resolveFont?: MountedFontResolver;
   /** The manifest's `boxes` field declarations - the source of every select's options. */
   fields?: unknown[];
   tokens?: { host: HostV1; metadataField: string; commit?: (rows: Box[], label: string) => void | Promise<void> };
