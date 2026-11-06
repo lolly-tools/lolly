@@ -1,7 +1,7 @@
 {
   "community/timezone/src/renderer.ts": 1,
   "docs/agents-pages.ts": 2,
-  "docs/build.ts": 39,
+  "docs/build.ts": 38,
   "docs/page-seal.ts": 4,
   "docs/shot-anatomy.ts": 3,
   "docs/shot-provenance.ts": 1,
@@ -1522,7 +1522,7 @@
   "tests/docs-art-sign.test.ts": 5,
   "tests/docs-claims.test.ts": 9,
   "tests/docs-figures.test.ts": 3,
-  "tests/docs-logos.test.ts": 4,
+  "tests/docs-logos.test.ts": 3,
   "tests/docs-masthead.test.ts": 5,
   "tests/docs-page-seal.test.ts": 3,
   "tests/docs-provenance-pills.test.ts": 1,

@@ -164,7 +164,7 @@ export function docsOrigin(): PrevView | null {
 
 let leaveMemoryInstalled = false;
 /** Note the view this page shows when the tab leaves the app for another page (the
- *  static docs, most often), so /info can offer the way back to it. Called once at
+ *  static docs, most often), so /info can offer the way back to that view. Called once at
  *  boot; a note left by an earlier visit is cleared then, since this page is the app. */
 export function rememberViewOnLeave(): void {
   if (leaveMemoryInstalled || typeof window === 'undefined') return;

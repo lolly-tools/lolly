@@ -13,7 +13,7 @@
  *     button; so does choosing a row. A press outside, or focus moving out, closes it
  *     without taking focus anywhere. Escape is only taken while the panel is open.
  *   - in the app only, hands a row's click to `jump`, which scrolls the reader's own
- *     view: there the address is the route, so a bare `#id` must not reach it.
+ *     view: there the address is the route, so a bare `#id` must stay out of the address.
  *
  * Every link is a real `#id` link, so on /info a row works with no script at all, and a
  * modified click (new tab, copy link) is always left to the browser.
