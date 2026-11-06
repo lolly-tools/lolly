@@ -687,7 +687,7 @@ export function catalogFile(rel: string, r?: ContentRoots): string {
   return join(roots.catalogRoot, ...segs);
 }
 
-/** Whether a companion's `assets` list names this id: exactly, or as a family prefix. */
+/** Whether a companion's `assets` list holds this id: exactly, or as a family prefix. */
 export function companionAssetNamed(assets: readonly string[], id: string): boolean {
   return assets.some((name) => (name.endsWith('/') || name.endsWith('-') ? id.startsWith(name) : id === name));
 }

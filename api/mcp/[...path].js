@@ -155507,6 +155507,8 @@ __export(content_roots_exports, {
   allAssetRoots: () => allAssetRoots,
   assetIndexFiles: () => assetIndexFiles,
   catalogFile: () => catalogFile,
+  companionAssetNamed: () => companionAssetNamed,
+  companionFiles: () => companionFiles,
   contentRoots: () => contentRoots,
   contentUrlFile: () => contentUrlFile,
   contentUrlFileExact: () => contentUrlFileExact,
@@ -155514,6 +155516,7 @@ __export(content_roots_exports, {
   listToolFiles: () => listToolFiles,
   materializeInto: () => materializeInto,
   readAssetIndex: () => readAssetIndex,
+  readBrandAssetIndex: () => readBrandAssetIndex,
   readToolManifest: () => readToolManifest,
   readToolManifestText: () => readToolManifestText,
   readToolText: () => readToolText,
@@ -155540,7 +155543,7 @@ function loadProfiles(root2) {
   return JSON.parse(readFileSync(path, "utf8"));
 }
 function declaredRoots(p) {
-  return [...p.tools, p.catalog];
+  return [...p.tools, p.catalog, ...(p.companions ?? []).map((c) => c.catalog)];
 }
 function isComplete(root2, p) {
   return declaredRoots(p).every((r5) => existsSync2(join2(root2, r5)));
@@ -155650,7 +155653,11 @@ function contentRoots(opts) {
     catalogRoot: join2(root2, profile2.catalog),
     assetRoots: sharedRoots(root2, profile2.assets ?? [], name),
     exclude: new Set(profile2.exclude ?? []),
-    ...typeof profile2.label === "string" && profile2.label ? { label: profile2.label } : {}
+    ...typeof profile2.label === "string" && profile2.label ? { label: profile2.label } : {},
+    ...profile2.companions?.length ? {
+      companions: profile2.companions.map((c) => ({ label: c.label, tokens: c.tokens, catalogDir: join2(root2, c.catalog), assets: [...c.assets] })),
+      ...profile2.brandTokens ? { brandTokens: profile2.brandTokens } : {}
+    } : {}
   };
   rootOf.set(resolved2, root2);
   cache4.set(key2, resolved2);
@@ -155890,11 +155897,67 @@ function catalogFile(rel, r5) {
     const shared = roots2.assetRoots.find((a) => a.name === segs[1]);
     if (shared) return join2(shared.dir, ...segs.slice(2));
   }
+  if (roots2.companions?.length) {
+    const mounted = companionFiles(roots2).get(segs.join("/"));
+    if (mounted) return mounted;
+  }
   return join2(roots2.catalogRoot, ...segs);
+}
+function companionAssetNamed(assets, id3) {
+  return assets.some((name) => name.endsWith("/") || name.endsWith("-") ? id3.startsWith(name) : id3 === name);
+}
+function rowCatalogPaths(value2, out) {
+  if (typeof value2 === "string") {
+    if (value2.startsWith("/catalog/")) out.add(contained(value2.slice("/catalog/".length)).join("/"));
+  } else if (Array.isArray(value2)) {
+    for (const item2 of value2) rowCatalogPaths(item2, out);
+  } else if (value2 && typeof value2 === "object") {
+    for (const item2 of Object.values(value2)) rowCatalogPaths(item2, out);
+  }
+}
+function companionRows(companion, brandIds) {
+  const path = join2(companion.catalogDir, "assets", "index.json");
+  const index2 = JSON.parse(readFileSync(path, "utf8"));
+  return (index2.assets ?? []).filter((row) => companionAssetNamed(companion.assets, row.id) && !brandIds.has(row.id)).map((row) => ({ ...row, tier: "on-demand" }));
+}
+function brandAssetIds(roots2) {
+  const index2 = JSON.parse(readFileSync(join2(roots2.catalogRoot, "assets", "index.json"), "utf8"));
+  return new Set((index2.assets ?? []).map((a) => a.id));
+}
+function companionFiles(roots2) {
+  const companions = roots2.companions ?? [];
+  if (!companions.length) return /* @__PURE__ */ new Map();
+  const stamp3 = [roots2.catalogRoot, ...companions.map((c) => c.catalogDir)].map((dir) => statSync(join2(dir, "assets", "index.json")).mtimeMs).join("|");
+  const memo2 = companionFileMemo.get(roots2);
+  if (memo2?.stamp === stamp3) return memo2.files;
+  const brandIds = brandAssetIds(roots2);
+  const files = /* @__PURE__ */ new Map();
+  for (const companion of companions) {
+    const paths = /* @__PURE__ */ new Set();
+    rowCatalogPaths(companionRows(companion, brandIds), paths);
+    for (const rel of paths) {
+      const from = join2(companion.catalogDir, ...rel.split("/"));
+      const prior = files.get(rel);
+      if (prior && prior !== from && !sameFile(prior, from)) {
+        throw new Error(`content-roots: companions claim different files for catalog path "${rel}" (${prior} and ${from})`);
+      }
+      const brand = join2(roots2.catalogRoot, ...rel.split("/"));
+      if (existsSync2(brand) && !sameFile(brand, from)) {
+        throw new Error(`content-roots: companion file "${from}" would replace "${brand}" at catalog path "${rel}", and one url cannot serve both`);
+      }
+      files.set(rel, from);
+    }
+  }
+  companionFileMemo.set(roots2, { stamp: stamp3, files });
+  return files;
+}
+function sameFile(a, b) {
+  return readFileSync(a).equals(readFileSync(b));
 }
 function assetIndexFiles(r5) {
   const roots2 = r5 ?? contentRoots();
   const out = [catalogFile("assets/index.json", roots2)];
+  for (const companion of roots2.companions ?? []) out.push(join2(companion.catalogDir, "assets", "index.json"));
   for (const shared of roots2.assetRoots) {
     const path = join2(shared.dir, "index.json");
     if (existsSync2(path)) out.push(path);
@@ -155904,7 +155967,7 @@ function assetIndexFiles(r5) {
 function readAssetIndex(r5) {
   const roots2 = r5 ?? contentRoots();
   const brandPath = catalogFile("assets/index.json", roots2);
-  const index2 = JSON.parse(readFileSync(brandPath, "utf8"));
+  const index2 = readBrandAssetIndex(roots2);
   const assets = Array.isArray(index2.assets) ? [...index2.assets] : [];
   const from = new Map(assets.map((a) => [a.id, brandPath]));
   for (const shared of roots2.assetRoots) {
@@ -155923,6 +155986,30 @@ function readAssetIndex(r5) {
     }
   }
   return { ...index2, assets };
+}
+function readBrandAssetIndex(r5) {
+  const roots2 = r5 ?? contentRoots();
+  const index2 = JSON.parse(readFileSync(join2(roots2.catalogRoot, "assets", "index.json"), "utf8"));
+  const companions = roots2.companions ?? [];
+  if (!companions.length) return index2;
+  const assets = Array.isArray(index2.assets) ? [...index2.assets] : [];
+  const brandIds = new Set(assets.map((a) => a.id));
+  const offered = [];
+  for (const companion of companions) {
+    for (const row of companionRows(companion, brandIds)) {
+      if (assets.some((a) => a.id === row.id)) {
+        throw new Error(`content-roots: two companions of profile "${roots2.profile}" mount asset id "${row.id}"`);
+      }
+      assets.push(row);
+    }
+    offered.push({ tokens: companion.tokens, label: companion.label, assets: [...companion.assets] });
+  }
+  return {
+    ...index2,
+    ...roots2.brandTokens ? { brandTokens: roots2.brandTokens } : {},
+    companionDesignSystems: offered,
+    assets
+  };
 }
 function contentUrlFile(url, r5) {
   const segs = url.split("?")[0].split("#")[0].split("/").filter(Boolean);
@@ -155984,7 +156071,12 @@ function materializeInto(dest, r5) {
   for (const shared of roots2.assetRoots) {
     copyTree(shared.dir, join2(catalogOut, PACKS_DIR, shared.name));
   }
-  if (roots2.assetRoots.length && existsSync2(catalogFile("assets/index.json", roots2))) {
+  for (const [rel, from] of companionFiles(roots2)) {
+    const to = join2(catalogOut, ...rel.split("/"));
+    mkdirSync(dirname2(to), { recursive: true });
+    copyTree(from, to);
+  }
+  if ((roots2.assetRoots.length || roots2.companions?.length) && existsSync2(catalogFile("assets/index.json", roots2))) {
     const merged = join2(catalogOut, "assets", "index.json");
     mkdirSync(join2(merged, ".."), { recursive: true });
     writeFileSync(merged, JSON.stringify(readAssetIndex(roots2), null, 2) + "\n");
@@ -156008,7 +156100,7 @@ function materializeInto(dest, r5) {
     }
   }
 }
-var BASE_PACK, BASE_PACK_DATA_DIRS, PHYSICAL_TOOL_DIRECTORY, MATERIALIZED, PACKS_DIR, cache4, plans, rootOf;
+var BASE_PACK, BASE_PACK_DATA_DIRS, PHYSICAL_TOOL_DIRECTORY, MATERIALIZED, PACKS_DIR, cache4, plans, rootOf, companionFileMemo;
 var init_content_roots = __esm({
   "packages/node-shell/src/content-roots.ts"() {
     "use strict";
@@ -156021,6 +156113,7 @@ var init_content_roots = __esm({
     cache4 = /* @__PURE__ */ new Map();
     plans = /* @__PURE__ */ new WeakMap();
     rootOf = /* @__PURE__ */ new WeakMap();
+    companionFileMemo = /* @__PURE__ */ new WeakMap();
   }
 });
 

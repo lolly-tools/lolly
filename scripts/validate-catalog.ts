@@ -1075,7 +1075,7 @@ const RASTER_PREVIEW_CHANGES: Record<string, { drop: Record<string, string>; add
 
 /** The raster list for the active profile: the shared entries with that pack's changes. */
 // Read by catalog, not by profile name: a profile that only adds a companion serves its
-// brand's previews, so the brand's written reasons are the ones that hold for it.
+// brand's previews, so the brand's written reasons hold for this profile too.
 const PREVIEW_PROFILE = ((): string => {
   const name = contentRoots().profile;
   const profiles = (readJson('profiles.json') as { profiles?: Record<string, { catalog?: string }> }).profiles ?? {};

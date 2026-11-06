@@ -34,6 +34,26 @@ copies, sessions or uploads.
 Lolly Work has no colourway setting of its own. It serves the selected source's tokens as they are,
 and server renders and their evidence do not record a colourway.
 
+### Offer a second design system
+
+A source's catalog can carry a second design system for members to try, so they can switch to it in
+**Settings → Design systems** without a second deployment. The selected source stays the default on a
+fresh browser and keeps its lock. The choice is per browser and is not stored on the server, and
+members who never choose it see no difference. No setting here turns this on: it comes from the
+content profile the pack was built with, described in
+[Configuration](https://lolly.tools/info/manage/profiles-and-brands.html#offer-a-second-design-system-on-an-instance).
+
+Everything a member's browser draws follows the system they chose, and so does what the file records.
+What the server draws does not. A server render reads the selected source's tokens and cannot see a
+system held in a browser, so while another system is active the Share panel's **Rendered link** row
+says which system this instance draws in and offers no link until the member switches back. The
+Automation API, durable renders and the render route are not tied to a browser, so they always draw
+the selected source and record nothing about any other system.
+
+To stop offering one, build the pack again with the source's plain profile. A browser that already
+has the second system keeps its copy until the person removes it, and pictures only it named stop
+loading.
+
 A missing active source is shown as unavailable. Lolly Work serves an empty catalog for it and keeps
 these controls reachable, so an owner or admin can select an installed replacement. No unrelated
 source is substituted automatically.

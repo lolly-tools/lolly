@@ -7,7 +7,7 @@
  * namespace so the two do not mix: every `host.assets.query` reads through this, and
  * that one choke point keeps the Assets view, the picker, search, brand pages and any
  * tool hook that lists assets agreeing. `host.assets.get` stays global, because a saved
- * session names its asset by id and must keep drawing whichever system is active.
+ * session finds its asset by id and must keep drawing whichever system is active.
  *
  * The index states what each companion owns (`companionDesignSystems[].assets`). Three
  * kinds of row follow from that:
@@ -16,12 +16,12 @@
  *   - anything else (a sample both use, an emoji set, an instance's shared asset) is
  *     shared and always listed.
  *
- * A catalog that names no owned assets has no scope at all and nothing is filtered, so a
+ * A catalog with no owned assets has no scope at all and nothing is filtered, so a
  * single-system instance and lolly.tools (whose one companion is the bundled starter,
  * which brings no rows) read exactly as they did.
  *
  * DOM-free. The active record is read from the same two stores the registry keeps, not
- * through the registry object, because the asset bridge is built before it.
+ * through the registry object, because the asset bridge is built before the registry.
  */
 import {
   ACTIVE_DESIGN_SYSTEM_KEY, DESIGN_SYSTEMS_STORE, SHIPPED_ACTIVE_FALLBACK, stripTokensSuffix, type DesignSystemRecord,
@@ -62,7 +62,7 @@ export function readCompanionAssets(value: unknown): CompanionAssets[] {
   return out;
 }
 
-/** Whether an `assets` list names this id: exactly, or as a family prefix. The same
+/** Whether an `assets` list holds this id: exactly, or as a family prefix. The same
  *  reading as `companionAssetNamed` in content-roots.ts, which decided what was copied. */
 function named(assets: readonly string[], id: string): boolean {
   return assets.some(name => (name.endsWith('/') || name.endsWith('-') ? id.startsWith(name) : id === name));

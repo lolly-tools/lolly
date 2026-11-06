@@ -28,7 +28,7 @@
 
 import { instanceFetch, instancePath } from '../lib/instance.ts';
 import { openDB } from '../bridge/db.ts';
-import { serverDrawsOtherSystem, type AssetScopeDb } from '../lib/design-system/asset-scope.ts';
+import { serverDrawsOtherSystem } from '../lib/design-system/asset-scope.ts';
 import { governedParamKeys } from '../lib/input-policy.ts';
 import { getTool } from '../bridge/tool-loader.ts';
 import type { ShareSectionContext } from '../lib/share-sections.ts';
@@ -113,7 +113,7 @@ export function renderedMintBody(target: MintTarget, open: boolean): MintBody {
 }
 
 /** The refusal a person reads in place of "Get link" while another design system is
- *  active: what the instance draws with, and what to do about it. Pure. */
+ *  active: what the instance draws with, and how to make a link. Pure. */
 export function renderedLinkHeldText(own: string): string {
   return own
     ? tRaw('This instance draws rendered links in {name}. Switch to {name} to make one.', { name: own })
@@ -328,7 +328,7 @@ export function buildInstanceShareSection(ctx: ShareSectionContext, config: OrgC
 /** What the section needs to know about the design system in use, read once per open. */
 export async function renderedLinkHold(): Promise<{ own: string } | null> {
   try {
-    return await serverDrawsOtherSystem(await openDB() as unknown as AssetScopeDb);
+    return await serverDrawsOtherSystem(await openDB());
   } catch {
     return null;
   }

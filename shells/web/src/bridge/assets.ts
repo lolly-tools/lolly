@@ -801,7 +801,7 @@ export function createAssetsAPI(db: AssetsDb, opts: AssetsApiOptions = {}) {
     async query(filter: AssetQuery = {}, listing: { metadataOnly?: boolean; everySystem?: boolean } = {}): Promise<AssetRef[]> {
       const all = await db.getAll('asset-meta');
       // A catalog holding two design systems lists the active one's rows and the shared
-      // ones (asset-scope.ts). `get` stays global: a saved session names its asset by id.
+      // ones (asset-scope.ts). `get` stays global: a saved session finds its asset by id.
       const scope = listing.everySystem ? null : await readAssetScope(db);
       const filtered = all.filter(m => matchesFilter(m, filter) && assetInScope(m.id, scope));
       // Don't pre-resolve blob URLs: that forces every cached blob into
