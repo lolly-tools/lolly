@@ -101,7 +101,7 @@
 .tool-view.is-chrome-hidden .tool-stage {
   --stage-reserve-top: 0px !important; --stage-reserve-left: 0px !important;
   --stage-reserve-right: 0px !important; --stage-reserve-bottom: 0px !important;
-  --ldock-rail-w: 0px !important;
+  --ldock-rail-w: 0px !important; --design-panel-reserve-top: 0px !important;
 }
 html:has(.tool-view.is-chrome-hidden) {
   --dock-w: 0px !important; --ldock-w: 0px !important;

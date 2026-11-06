@@ -73,7 +73,7 @@ const tailSection = siteSections[siteSections.length - 1]!;
 // formats.json / formats-catalog.json / import.json are absent BY DESIGN: plan
 // 117 block 9 moved those bands off the landing onto their own pages, so they
 // are tier-2 sources and the landing register no longer applies to them.
-const LANDING_JSON = ['downloads.json', 'hero-chrome.json', 'covers.json', 'whatwhy.json', 'persona.json', 'work.json', 'behind.json'];
+const LANDING_JSON = ['downloads.json', 'hero-chrome.json', 'format-last.json', 'covers.json', 'whatwhy.json', 'persona.json', 'work.json', 'behind.json'];
 const LANDING_SITE_MD: string[] = [];
 const MOVED_OFF_LANDING = ['formats.json', 'formats-catalog.json', 'import.json'];
 
@@ -85,9 +85,16 @@ const MOVED_OFF_LANDING = ['formats.json', 'formats-catalog.json', 'import.json'
  * string under it is excused from THAT rule and no other.
  */
 const CLAIMS_ALLOW: Record<string, Array<[file: string, path: string]>> = {
-  // The hero cycle needs no exception: since plan 341 its words are short claims
-  // ("is yours", "is private" ...) with no offline phrase in them, and the privacy
-  // receipt stands in for the offline claim above the fold.
+  // The hero cycle's words are short claims ("is sovereign", "is yours", "is private"
+  // ...) with no offline phrase in them; the privacy receipt stands in for the offline
+  // claim above the fold. One word is excused from the banned-word list: the first.
+  // Plan 341 retired "is sovereign" (2026-11-01) and Andy asked for it back
+  // (2026-11-06): "lolly is indeed about content sovereignty". It links the page
+  // that defines the term (content-sovereignty.md: control over how your content is
+  // created, governed, stored and moved), so the one esoteric word on the door
+  // arrives with its definition one click away (the entry's slug is that page's own,
+  // so the whole entry is excused). Nowhere else on the landing.
+  'hero-cycle': [['hero-chrome.json', 'cycle.0']],
   // The Why column IS the offline claim - its one home on the door.
   'offline-statement': [['whatwhy.json', 'why.statement']],
   // FINAL copy, pinned identical in three homes, that happens to contain the phrase.
@@ -203,12 +210,13 @@ function offend(text: string): string[] {
 
 /**
  * The hero cycle's first word: what a reduced-motion reader, a screenshot and a
- * share preview see, so it carries the page's main claim. Plan 341 (Andy,
- * 2026-11-01): "is yours", the kitchen-table form of content sovereignty, replaced
- * "is sovereign" (a sovereign rules; the person is sovereign over their content,
- * Lolly is not sovereign over anything). The long forms live on the receipt pages.
+ * share preview see, so it carries the page's main claim. Plan 341 (2026-11-01)
+ * put "is yours", the kitchen-table form of content sovereignty, in place of "is
+ * sovereign"; Andy asked for the sovereignty message back (2026-11-06), so "is
+ * sovereign" leads again, linking the content sovereignty page, and "is yours"
+ * comes second. The long forms live on the receipt pages.
  */
-const CYCLE_H1 = 'is yours';
+const CYCLE_H1 = 'is sovereign';
 
 test('say offline once: the hero stays clear of the claim and the Why column states it', () => {
   // plans/177: the hero is "Lolly is <cycling word>" + a tagline and a one-liner
@@ -224,7 +232,9 @@ test('say offline once: the hero stays clear of the claim and the Why column sta
   // Andy's 2026-09-02 short form: single words. The privacy receipt is the
   // cycle's stand-in for the offline claim (the Why column states it in full).
   assert.ok(hero.cycle.some((c) => c.slug === 'privacy'), 'the hero cycle must carry the privacy receipt');
-  assert.equal(words[0], CYCLE_H1, 'the hero cycle must lead with "is yours", the page\'s main claim');
+  assert.equal(words[0], CYCLE_H1, `the hero cycle must lead with "${CYCLE_H1}", the page's main claim`);
+  assert.equal(hero.cycle[0]!.slug, 'content-sovereignty', 'the first word links the page that defines content sovereignty');
+  assert.ok(words.includes('is yours'), 'the cycle keeps "is yours", the plain form of the first word');
   for (const w of words) assert.deepEqual(offend(w), [], `hero cycle word states the offline claim: ${w}`);
   for (const c of hero.cycle) assert.match(buildTs, new RegExp(`slug: '${c.slug}'`), `cycle word "${c.word}" links a page that is not registered: ${c.slug}`);
 
@@ -359,9 +369,9 @@ test('the sceptic paragraph is byte-identical in all three homes', () => {
 
 /**
  * The rulebook list (plan 117 section 1), minus the two entries no regex can judge (see
- * the header). Each entry is [label, regex]. "sovereignty" was allowed in the hero
- * H1 until plan 341 retired "is sovereign" (Andy, 2026-11-01); it is now banned on
- * the landing like the rest, and the long form lives on content-sovereignty.md.
+ * the header). Each entry is [label, regex]. "sovereignty" stays banned on the
+ * landing, with one named exception (CLAIMS_ALLOW 'hero-cycle'): the hero's first
+ * word, "is sovereign", which links content-sovereignty.md, where the long form lives.
  */
 const BANNED_WORDS: Array<[string, RegExp]> = [
   ['deterministic', /\bdeterminis(tic|m)\b/i],
@@ -385,13 +395,13 @@ test('banned words stay off the landing', () => {
   // The hero, and the copy the landing composes in build.ts (its t() literals -
   // code identifiers and comments are not copy).
   assert.deepEqual(banned(heroSection), [], 'the hero subtitle carries a banned word');
-  // No exceptions since plan 341: the behind-block line that closed on "creative
-  // sovereignty" is gone, and the hero cycle no longer opens on "is sovereign".
+  // One exception, named in CLAIMS_ALLOW: the hero cycle's first word, "is sovereign"
+  // (Andy, 2026-11-06), which links the page that defines the term.
   for (const copy of tLiterals(landingRegion())) {
     assert.deepEqual(banned(copy), [], `landing copy carries a banned word: ${copy}`);
   }
   for (const name of LANDING_JSON) {
-    for (const [path, s] of jsonStringsWithPaths(siteJson(name))) {
+    for (const [path, s] of jsonStringsExcept(name, 'hero-cycle')) {
       assert.deepEqual(banned(s), [], `docs/site/${name} ${path} carries a banned word: ${s}`);
     }
   }
@@ -400,7 +410,7 @@ test('banned words stay off the landing', () => {
   }
 });
 
-test('the H1 opens on "Lolly is yours" and never calls Lolly an AI', () => {
+test('the H1 opens on "Lolly is sovereign" and never calls Lolly an AI', () => {
   // The H1 is "Lolly is <cycling word>"; the first word is what stands under
   // reduced motion and what the page opens on - FINAL copy (plan 341).
   const hero = siteJson('hero-chrome.json') as { lead: string; cycle: Array<{ word: string }> };

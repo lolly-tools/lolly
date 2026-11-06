@@ -14,9 +14,17 @@
  * catalog cache and held through prunes, so the script draws offline from then on. It is
  * never stored as an upload. Nothing here runs for ASCII text, and nothing downloads for
  * text the design system covers.
+ *
+ * Chinese, Japanese and Korean draw the same Han characters differently, so a run takes
+ * them from one of those fonts, chosen by the run's `lang`, then its script, then a
+ * stated default (fallback-fonts.ts `hanForms`). The run's element gives the `lang`; the
+ * document an export draws (`withFallbackFonts`) gives the script context.
  */
 import { parseFontFamilies } from '@lolly-tools/node-shell/font-faces';
-import { choosePacks, fallbackPacksFrom, fillNotice, packVariations, uncoveredClusters, type FallbackFontPack, type FillUse } from '@lolly-tools/node-shell/fallback-fonts';
+import {
+  choosePacks, fallbackPacksFrom, fillNotice, hanEvidence, hanForms, packVariations, runLang, uncoveredClusters,
+  type FallbackFontPack, type FillUse, type HanContext, type HanEvidence, type HanForm,
+} from '@lolly-tools/node-shell/fallback-fonts';
 import { brandRoleStack, genericFontRole, resolveFamilyChain, resolveVectorFont, type VectorFont } from './font-registry.ts';
 import { PAGE_FALLBACK_FAMILY, catalogSynced, fallbackFontSource, markFillChain, openFillLog, pageFillSettled } from './fallback-font-source.ts';
 import { _exportNotice } from './export-notice.ts';
@@ -112,18 +120,39 @@ function laterFamilies(stack: string, resolved: string | undefined): string[] {
 
 type Entry = NonNullable<VectorFont['fallbacks']>[number];
 
-/** The font a run about to be outlined is drawn with, fallback fonts included. */
-export async function resolveExportFont(style: FontStyleSlice, text: string): Promise<VectorFont | null> {
+/** The documents being exported now, each read once for what its text says about its language. */
+const exporting: Array<{ root: Element; evidence?: HanEvidence }> = [];
+
+/** What the document holding `at` shows (kana, Hangul, Traditional-only characters). */
+function documentEvidence(at: Element | null | undefined, packs: readonly FallbackFontPack[]): HanEvidence | null {
+  let doc = at ? [...exporting].reverse().find((d) => d.root.contains(at)) : undefined;
+  // A walker that draws from a copy of the tree has no live ancestor; the export's own
+  // document is the one it is drawing.
+  doc ??= exporting[exporting.length - 1];
+  if (!doc) return null;
+  doc.evidence ??= hanEvidence(doc.root.textContent ?? '', packs);
+  return doc.evidence;
+}
+
+/** How a run chooses between the Chinese, Japanese and Korean fonts: a context, or the answer. */
+type HanChoice = HanContext | readonly HanForm[] | ((packs: readonly FallbackFontPack[]) => HanContext);
+
+/**
+ * The font a run about to be outlined is drawn with, fallback fonts included. `at` is
+ * the run's element, which says its language and the document it belongs to.
+ */
+export async function resolveExportFont(style: FontStyleSlice, text: string, at?: Element | null): Promise<VectorFont | null> {
   const base = await resolveVectorFont(style, text);
   if (!base || ASCII.test(text)) return base;
-  try { return await withFill(base, style, text); }
+  const han: HanChoice = (packs) => ({ lang: runLang(at), text, document: documentEvidence(at, packs) });
+  try { return await withFill(base, style, text, han); }
   catch { return base; }
 }
 
 /** What a run needs beyond its first family: later families of its stack, then packs. */
 interface FillPlan { added: Entry[]; packs: FallbackFontPack[]; italic: boolean; weight: number }
 
-async function fillPlan(base: VectorFont, style: FontStyleSlice, text: string): Promise<FillPlan | null> {
+async function fillPlan(base: VectorFont, style: FontStyleSlice, text: string, han?: HanChoice): Promise<FillPlan | null> {
   const urls = [base.url, ...(base.fallbacks ?? []).map((f) => f.fontUrl)];
   const sets = await charactersOf(urls);
   let found = uncoveredClusters(text, sets);
@@ -146,12 +175,17 @@ async function fillPlan(base: VectorFont, style: FontStyleSlice, text: string): 
 
   const italic = style.fontStyle === 'italic' || style.fontStyle === 'oblique';
   const weight = parseInt(style.fontWeight ?? '', 10) || 400;
-  const packs = found.length ? choosePacks(found, await fallbackPacks(), italic).packs : [];
+  let packs: FallbackFontPack[] = [];
+  if (found.length) {
+    const all = await fallbackPacks();
+    const forms = Array.isArray(han) ? han as readonly HanForm[] : hanForms(typeof han === 'function' ? han(all) : han as HanContext | undefined, all);
+    packs = choosePacks(found, all, italic, forms).packs;
+  }
   return { added, packs, italic, weight };
 }
 
-async function withFill(base: VectorFont, style: FontStyleSlice, text: string): Promise<VectorFont> {
-  const plan = await fillPlan(base, style, text);
+async function withFill(base: VectorFont, style: FontStyleSlice, text: string, han?: HanChoice): Promise<VectorFont> {
+  const plan = await fillPlan(base, style, text, han);
   if (!plan) return base;
   const { added } = plan;
   const uses: FillUse[] = [];
@@ -172,13 +206,14 @@ async function withFill(base: VectorFont, style: FontStyleSlice, text: string): 
  * live page registers so it shows the same faces. Empty for a run the design system's
  * fonts draw whole, and for one no font of its stack resolves at all (an export keeps
  * that run as live text or a picture, so the page should not draw it differently).
+ * `han` is the Chinese, Japanese or Korean choice the export would make for this text.
  */
-export async function packsForText(style: FontStyleSlice, text: string): Promise<FallbackFontPack[]> {
+export async function packsForText(style: FontStyleSlice, text: string, han?: readonly HanForm[]): Promise<FallbackFontPack[]> {
   if (ASCII.test(text)) return [];
   try {
     const base = await resolveVectorFont(style, text);
     if (!base) return [];
-    return (await fillPlan(base, style, text))?.packs ?? [];
+    return (await fillPlan(base, style, text, han))?.packs ?? [];
   } catch { return []; }
 }
 
@@ -191,10 +226,12 @@ export function extendsChain(vf: VectorFont | null | undefined): boolean {
  * One export's render, in step with the fallback fonts: it waits (bounded) for the live
  * page to put its fallback fonts in place, so the export lays text out in the faces the
  * page shows, and afterwards puts one note on the export card for the fonts that drew
- * some of the text.
+ * some of the text. `root` is the document being drawn, read for its language.
  */
-export async function withFallbackFonts<T>(render: () => Promise<T>): Promise<T> {
+export async function withFallbackFonts<T>(render: () => Promise<T>, root?: Element | null): Promise<T> {
   const close = openFillLog();
+  const doc = root ? { root } : null;
+  if (doc) exporting.push(doc);
   try {
     await pageFillSettled();
     const out = await render();
@@ -203,6 +240,7 @@ export async function withFallbackFonts<T>(render: () => Promise<T>): Promise<T>
     return out;
   } finally {
     close();
+    if (doc) exporting.splice(exporting.indexOf(doc), 1);
   }
 }
 

@@ -1011,7 +1011,7 @@ async function drawText(el: Element, ctx: Ctx, alpha: number): Promise<void> {
     // A gradient on a run spans the whole <text>, so its box is the <text>'s.
     const paint = paintFor(styleEl, 'fill', null, ctx, el);
     const a = paint ? clamp01(s.num(styleEl, 'fill-opacity', 1)) * alpha * paint.alpha : 0;
-    const vf = _host?.text ? await resolveExportFont({ fontFamily: familyRaw, fontWeight: String(weight), fontStyle: italic ? 'italic' : 'normal' }, t.trim()) : null;
+    const vf = _host?.text ? await resolveExportFont({ fontFamily: familyRaw, fontWeight: String(weight), fontStyle: italic ? 'italic' : 'normal' }, t.trim(), styleEl) : null;
     const embedUrl = convertPaths ? null : await pdfFontEmbed(vf);
     const rtl = s.get(styleEl, 'direction') === 'rtl';
     const ordered = rtl || hasRtlText(t);

@@ -50,11 +50,11 @@ export async function outlineSvgTextRuns(liveSvg: Element, clone: Element, outli
 
   // Shape one run in `cs`'s font. Null when the face can't be resolved, shaping
   // fails, or a glyph is missing - the caller then keeps the run as <text>.
-  const shapeRun = async (raw: string, cs: CSSStyleDeclaration): Promise<{ d: string; adv: number } | null> => {
+  const shapeRun = async (raw: string, cs: CSSStyleDeclaration, at: Element): Promise<{ d: string; adv: number } | null> => {
     const fontSizePx = parseFloat(cs.fontSize) || 16;
     const styleSlice = { fontFamily: cs.fontFamily, fontWeight: cs.fontWeight, fontStyle: cs.fontStyle };
     let vf: VectorFont | null = null;
-    try { vf = await resolveExportFont(styleSlice, raw); } catch { vf = null; }
+    try { vf = await resolveExportFont(styleSlice, raw, at); } catch { vf = null; }
     if (!vf?.url || !textApi) return null;
     const letterSpacing = letterSpacingPx(cs.letterSpacing);
     const features = featureSettingsToHb(cs.fontFeatureSettings);
@@ -133,7 +133,7 @@ export async function outlineSvgTextRuns(liveSvg: Element, clone: Element, outli
     const anchor = live.getAttribute('text-anchor') || cs.textAnchor || 'start';
 
     if (simple) {
-      const shaped = await shapeRun(raw, cs);
+      const shaped = await shapeRun(raw, cs, live);
       if (!shaped) { bakeFamily(); continue; }
       // `x` (+ dx) with text-anchor and the shaped advance width give the left edge.
       const x = num(live.getAttribute('x')) + rel(live.getAttribute('dx'), fontSizePx);
@@ -163,7 +163,7 @@ export async function outlineSvgTextRuns(liveSvg: Element, clone: Element, outli
       penX += rel(span.getAttribute('dx'), em);
       penY += rel(span.getAttribute('dy'), em);
       if (!text) continue;
-      const shaped = await shapeRun(text, scs);
+      const shaped = await shapeRun(text, scs, span);
       if (!shaped) { failed = true; break; }
       let adv = shaped.adv;
       if (adv <= 0) { try { adv = (span as SVGTextContentElement).getComputedTextLength(); } catch { adv = 0; } }

@@ -58,7 +58,7 @@ export async function pdfPseudoContent(pdf: PdfDoc, el: Element, rootRect: { lef
     }
     if (!ds.text.trim()) continue;
     const fontSizePx = parseFloat(ds.ps.fontSize) || 16;
-    const vf = _host?.text ? await resolveExportFont(ds.ps, ds.text) : null;
+    const vf = _host?.text ? await resolveExportFont(ds.ps, ds.text, el) : null;
     const fontUrl = vf?.url ?? null;
     const embedUrl = convertPaths ? null : await pdfFontEmbed(vf);
     const hasResolvedFont = Boolean(vf);
