@@ -1,6 +1,14 @@
 // SPDX-License-Identifier: MPL-2.0
-/** The web host's pinned emoji packs: one catalog bundle asset in, exact manifest and artwork bytes out. */
-import type { EmojiAPI } from '@lolly-tools/core/host-v1';
+/**
+ * The web host's pinned emoji packs: one catalog bundle asset in, exact manifest and
+ * artwork bytes out.
+ *
+ * Two kinds of pack live here and they are stored differently. A pack the catalog
+ * serves is catalog material: its file sits in the catalog cache, it is shared by
+ * every document and it never enters a person's uploads. A pack a person imported, or
+ * a document brought with it, is theirs and lives in their uploads.
+ */
+import type { AssetRef, EmojiAPI } from '@lolly-tools/core/host-v1';
 import { EMOJI_BUNDLE_MAX_BYTES } from '@lolly-tools/core/emoji-v1';
 import type { EmojiGlyphV1, EmojiPackBundleV1, EmojiPackPinV1, EmojiSetInfoV1 } from '@lolly-tools/core/emoji-v1';
 import { storeEmojiBundle, userEmojiRefs, type EmojiStorage, writeOnce } from './emoji-storage.ts';
@@ -49,13 +57,42 @@ interface Entry {
   assetId: string;
   meta: EmojiEntryMeta;
   bytes?: number;
+  /** The catalog serves this one, as opposed to a pack a person holds. */
+  catalog: boolean;
+  /** The catalog file's own version, the last part of its cache key. */
+  version: string;
 }
 
-export function createEmojiAPI(assets: EmojiAssets): EmojiAPI {
+/** A pack the catalog serves, named without touching its bytes. It is a dependency
+ *  like any other library ref: the retention walk keeps exactly this version. */
+function catalogPackRef(id: string, version: string): AssetRef {
+  return { source: 'library', id, type: 'data', format: 'json', version, pin: { version, format: 'json' } } as AssetRef;
+}
+
+export interface EmojiAPIOptions {
+  /** When a pack may be brought onto the device. A test runs this at once. */
+  whenIdle?(run: () => void): void;
+  /** Loads the code offline drawing needs. A test counts the calls instead. */
+  warmCode?(): unknown;
+}
+
+/** After the tool has painted and the page has gone quiet. */
+function afterFirstPaint(run: () => void): void {
+  setTimeout(() => {
+    if (typeof requestIdleCallback === 'function') requestIdleCallback(run, { timeout: 5000 });
+    else run();
+  }, 1500);
+}
+
+export function createEmojiAPI(assets: EmojiAssets, options: EmojiAPIOptions = {}): EmojiAPI {
   // Parsed bundles, keyed by pin. A refusal caches as null so a bad pack is not
   // re-fetched on every glyph of a paragraph.
   const bundles = new Map<string, Promise<EmojiPackBundleV1 | null>>();
   let listing = "";
+  let holding: string[] = [];
+  let holdQueued = false;
+  let codeWarmed = false;
+  const held = new Set<string>();
 
   async function entries(): Promise<Entry[]> {
     const refs = [...await userEmojiRefs(assets), ...await assets.query({ tags: [EMOJI_PACK_TAG] })];
@@ -65,7 +102,8 @@ export function createEmojiAPI(assets: EmojiAssets): EmojiAPI {
       if (!meta) continue;
       const size = (ref.meta as { size?: unknown } | undefined)?.size;
       if (found.some(entry => entry.assetId === ref.id)) continue;
-      found.push({ assetId: ref.id, meta, bytes: typeof size === 'number' ? size : undefined });
+      found.push({ assetId: ref.id, meta, bytes: typeof size === 'number' ? size : undefined,
+        catalog: ref.source === 'library', version: ref.version ?? meta.version });
     }
     return found;
   }
@@ -79,22 +117,76 @@ export function createEmojiAPI(assets: EmojiAssets): EmojiAPI {
       entry.meta.id === pin.id && entry.meta.version === pin.pin.version && entry.meta.checksum === pin.checksum) ?? null;
   }
 
-  async function fetchBundle(pin: EmojiPackPinV1, from?: Entry): Promise<EmojiPackBundleV1 | null> {
-    const entry = from ?? await entryFor(pin);
-    if (!entry) return null;
+  /**
+   * Bytes the device still holds for a release the catalog has moved on from. The
+   * retention walk keeps the file a saved document names, so its exact artwork
+   * still draws. Only a set the catalog lists qualifies, and only at another
+   * version, which is what stops a link from reading or fetching any other file.
+   */
+  async function readHeldRelease(pin: EmojiPackPinV1): Promise<Uint8Array | null> {
+    if (!pin?.id || !pin.pin?.version || !pin.checksum || !assets._getBlob) return null;
+    const current = (await entries()).find(entry => entry.catalog && entry.assetId === pin.id);
+    if (!current || current.version === pin.pin.version) return null;
+    const blob = await assets._getBlob(pin.id, { format: 'json', version: pin.pin.version });
+    return blob ? new Uint8Array(await blob.arrayBuffer()) : null;
+  }
+
+  async function readEntry(entry: Entry): Promise<Uint8Array | null> {
+    // Straight from the catalog cache. The route below records a placed file's
+    // read and writes a second row for it, and a pack is not a placed file.
+    if (entry.catalog && assets._getBlob) {
+      const blob = await assets._getBlob(entry.assetId, { format: 'json', fetchIfMissing: true });
+      return blob ? new Uint8Array(await blob.arrayBuffer()) : null;
+    }
     // `bytes` is optional on the contract, so a host without a byte reader simply
     // has no packs. That is never a reason to reach for anything else.
     if (!assets.bytes) return null;
+    return assets.bytes(await assets.get(entry.assetId, { format: 'json' }));
+  }
+
+  /**
+   * Get ready to draw with no network, away from the tool opening: the code the pass
+   * needs, then the catalog packs in force, once each. A pack is stored and nothing
+   * parses it until a glyph needs drawing. Save-Data skips the packs and keeps the code,
+   * which is small and is also what draws the placeholder.
+   */
+  function holdOnDevice(ids: string[]): void {
+    if (ids.length) void assets._holdCatalogAssets?.(ids)?.catch(() => {});
+    if (!assets._getBlob) return;
+    holding = ids;
+    if (holdQueued) return;
+    holdQueued = true;
+    (options.whenIdle ?? afterFirstPaint)(() => {
+      holdQueued = false;
+      if (globalThis.navigator?.onLine === false) return;
+      if (!codeWarmed) {
+        codeWarmed = true;
+        void (options.warmCode ? options.warmCode() : import('./offline-code.ts').then(code => code.warmOfflineCode()));
+      }
+      const connection = (globalThis.navigator as { connection?: { saveData?: boolean } } | undefined)?.connection;
+      if (connection?.saveData) return;
+      void (async () => {
+        for (const id of holding) {
+          if (held.has(id)) continue;
+          held.add(id);
+          try { await assets._getBlob!(id, { format: 'json', fetchIfMissing: true }); }
+          catch { held.delete(id); }
+        }
+      })();
+    });
+  }
+
+  async function fetchBundle(pin: EmojiPackPinV1, from?: Entry): Promise<EmojiPackBundleV1 | null> {
+    const entry = from ?? await entryFor(pin);
     // Refused BEFORE the download, because that is the only moment the ceiling
-    // means anything: `bytes()` materialises the whole file, then the decode and
+    // means anything: reading the file materialises all of it, then the decode and
     // the parse each copy it again.
-    if (entry.bytes !== undefined && entry.bytes > BUNDLE_MAX_BYTES) return null;
+    if (entry?.bytes !== undefined && entry.bytes > BUNDLE_MAX_BYTES) return null;
     // The catalog checksum is checked by the asset bridge as it fetches an on-demand
     // file. What is checked below is the thing the pin actually promises: that the
     // manifest text inside the bundle hashes to it.
-    const ref = await assets.get(entry.assetId, { format: 'json' });
-    const bytes = await assets.bytes(ref);
-    if (!bytes.byteLength || bytes.byteLength > BUNDLE_MAX_BYTES) return null;
+    const bytes = entry ? await readEntry(entry) : await readHeldRelease(pin);
+    if (!bytes?.byteLength || bytes.byteLength > BUNDLE_MAX_BYTES) return null;
     let parsed: unknown;
     try { parsed = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes)); }
     catch { return null; }
@@ -147,9 +239,23 @@ export function createEmojiAPI(assets: EmojiAssets): EmojiAPI {
     },
     async dependencies(pins) {
       await api.sets();
-      const refs = [];
+      const refs: AssetRef[] = [];
+      const shipped: string[] = [];
       for (const pin of pins) {
         const matching = (await entries()).filter(entry => entry.meta.id === pin.id && entry.meta.version === pin.pin.version && entry.meta.checksum === pin.checksum);
+        // A pack the catalog serves stays catalog material. Naming it reads no bytes,
+        // so opening a tool downloads nothing for this and writes nothing a person
+        // has to own. A person's own copy of the same pin is left exactly as it is.
+        const catalog = matching.find(entry => entry.catalog);
+        if (catalog) {
+          refs.push(catalogPackRef(catalog.assetId, catalog.version));
+          shipped.push(catalog.assetId);
+          continue;
+        }
+        if (!matching.length) {
+          if (await bundleFor(pin)) refs.push(catalogPackRef(pin.id, pin.pin.version));
+          continue;
+        }
         const available = (await Promise.all(matching.map(entry => bundleFor(pin, entry))))
           .filter((bundle): bundle is EmojiPackBundleV1 => bundle !== null)
           .sort((a, b) => Object.keys(b.artwork).length - Object.keys(a.artwork).length);
@@ -160,6 +266,7 @@ export function createEmojiAPI(assets: EmojiAssets): EmojiAPI {
         const info = (await api.sets()).find(set => pinKey(set.pin) === pinKey(pin));
         if (info) refs.push(await storeEmojiBundle(assets, bundle, info));
       }
+      holdOnDevice(shipped);
       return refs;
     },
     async sets(): Promise<EmojiSetInfoV1[]> {

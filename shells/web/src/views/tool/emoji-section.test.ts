@@ -218,8 +218,26 @@ test('the specimen is drawn through the runtime, and the canvas is redrawn after
   select.value = SET_KEY;
   select.dispatchEvent(new dom.window.Event('change', { bubbles: true }));
   await new Promise((r) => setTimeout(r, 0));
+  assert.equal(runtime.walked.length, 0, 'nothing is drawn while the section is closed, because drawing loads the whole set');
+  const section = root.querySelector<HTMLDetailsElement>('#emoji-section')!;
+  section.open = true;
+  section.dispatchEvent(new dom.window.Event('toggle'));
+  await new Promise((r) => setTimeout(r, 0));
   assert.equal(root.querySelector('[data-emoji-specimen]')!.innerHTML, '<span class="lolly-emoji">artwork</span>');
   assert.equal(runtime.walked.at(-1), canvas, 'the canvas is the last tree walked, so the next change redraws it');
+  mounted.destroy();
+});
+
+test('a hidden section never loads a set for its specimen', async () => {
+  // The state every tool opens in: the shipped default in force and no emoji drawn.
+  const style = defaultEmojiStyle([{ pin: DEFAULT_EMOJI_PIN }]);
+  const root = sidebar();
+  const runtime = fakeRuntime(true, { replaced: 0, unresolved: 0, style });
+  const mounted = await mountEmojiSection({ root, host: fakeHost(), runtime, onStyle: () => {} });
+  await new Promise((r) => setTimeout(r, 0));
+  assert.equal(root.querySelector<HTMLDetailsElement>('#emoji-section')!.hidden, true);
+  assert.ok(root.querySelector('[data-emoji-specimen]'), 'the control is there, ready to fill when someone opens it');
+  assert.deepEqual(runtime.walked, [], 'a tool with no emoji asks the runtime to draw nothing');
   mounted.destroy();
 });
 

@@ -1235,7 +1235,7 @@ export function colorFieldHtml(id: string, value: unknown, { float = false, swat
       <span class="color-trigger-name">${escape(name)}</span>
       <span class="${previewClass}" ${previewBg} aria-hidden="true">${auto ? autoMarkHtml() : ''}</span>
     </button>`}
-    <div class="color-popover" role="group" aria-label="Colour options"${inline ? '' : ' hidden'}>
+    <div class="color-popover" data-tip-boundary role="group" aria-label="Colour options"${inline ? '' : ' hidden'}>
       ${autoOption}
       ${inline && !palette
         // Inline has no always-open palette (the brand editor's own tiles ARE the

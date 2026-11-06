@@ -6,11 +6,16 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
-## 1.315.0
+## 1.316.0
 
 - `host.text.toPath` gains an optional `direction` (`ltr` or `rtl`), the direction of the paragraph a run sits in. A run that holds right-to-left characters, or a complex script beside another script, now goes through the Unicode bidi analysis and is shaped one direction and script at a time, in visual order. Latin inside Arabic used to come out reversed, digits too, and Arabic after a Latin word lost its joining. With no `direction`, such a run reads from its first strong character.
 - A run with neither shapes as it always did and keeps its bytes, which is every purely left-to-right Latin, Greek, Cyrillic or CJK run.
 - A tool that outlines right-to-left text itself reads `advanceWidth` to anchor the right edge: the path still reads left to right from x=0.
+
+## 1.315.0
+
+- `runEmojiPass` finds out whether a tree would draw anything before it loads a style's packs. The older test matched every character from U+00A9 up, so a curly quote, an accented letter or any text in most scripts loaded a whole set and the pinned tables. It now asks `emojiTextTrigger` (new leaf module `emoji-trigger.ts`), which needs no tables, and then `textHoldsEmoji` (`emoji-segment.ts`), the pass's own test, so a bare warning sign or copyright sign in a template loads no set either. Every entry and qualification alias in the pinned table still answers yes to the trigger, which `tests/emoji-dom.test.ts` checks.
+- No change to the contract: `host.emoji.dependencies` may now return `source: 'library'` refs, which the contract's `AssetRef[]` already allowed. The web host does so for a pack its catalog serves, so opening a tool no longer stores a copy of the pack as a user asset.
 
 ## 1.314.0
 
