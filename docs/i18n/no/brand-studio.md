@@ -114,6 +114,8 @@ Fargene dine ligger ved siden av en **In context**-forhåndsvisning på en bred 
 
 ### Roller: det verktøy leser
 
+![The Colour roles table on Lolly Demo after choosing the suggested words Main, Accent, Supporting and Tertiary: the colourway chips, then each role with its light and dark colour, Main read as the lead colour and Accent as the partner colour, Supporting and Tertiary read by name only and marked Copied, and the readings no role fills listed under the table](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=2720&height=2000&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-roles-fold%5D%3Esummary%3Bwait%3A500%3Bclick%3A%5Bdata-crt-start-open%5D%3Bclick%3A%5Bdata-crt-seed%3D%221%22%5D%3Bclick%3A%5Bdata-crt-start-use%5D%3Bwait%3A900%3Bclick%3A.be-palette-heading%3Eh2%3Bwait%3A300&cropSelector=%5Bdata-be-roles-fold%5D&format=svg&walker=1&dark=1&filename=bs-colour-roles)
+
 **Roles** sier hvilken farge som spiller hver del i hvert verktøy og hver eksport. De er valgfrie (tre løse farger og ingen roller er et helt utmerket system), enhver farge kan ta en, og kontrastavlesningen måles mot flaten, APCA først. Hver rolle-rad viser en egen farge i full styrke, en starterfarge som står inne, eller **↳ follows Primary**.
 
 Når paletten har nyanser, viser stripen alle de sju rollene et verktøy kan lese: Primary, Secondary, Surface, Text, Muted, Edge og On primary. On primary utledes fra primærfargen, leses **Derived** og har ingen velger.

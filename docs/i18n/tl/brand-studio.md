@@ -114,6 +114,8 @@ Ang mga kulay mo ay nasa tabi ng **In context** preview sa malapad na screen, at
 
 ### Mga role: ang binabasa ng mga tool
 
+![The Colour roles table on Lolly Demo after choosing the suggested words Main, Accent, Supporting and Tertiary: the colourway chips, then each role with its light and dark colour, Main read as the lead colour and Accent as the partner colour, Supporting and Tertiary read by name only and marked Copied, and the readings no role fills listed under the table](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=2720&height=2000&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-roles-fold%5D%3Esummary%3Bwait%3A500%3Bclick%3A%5Bdata-crt-start-open%5D%3Bclick%3A%5Bdata-crt-seed%3D%221%22%5D%3Bclick%3A%5Bdata-crt-start-use%5D%3Bwait%3A900%3Bclick%3A.be-palette-heading%3Eh2%3Bwait%3A300&cropSelector=%5Bdata-be-roles-fold%5D&format=svg&walker=1&dark=1&filename=bs-colour-roles)
+
 Sinasabi ng mga **Role** kung aling kulay ang gumaganap ng bawat bahagi sa bawat tool at export. Opsyonal ang mga ito (ang tatlong maluwag na kulay na walang role ay ganap na mahusay na system), puwedeng kumuha ng isa ang anumang kulay at ang contrast readout ay sinusukat laban sa surface, APCA muna. Ang bawat role row ay nagpapakita ng sariling kulay nang buong lakas, starter na kulay na pumapalit, o **↳ follows Primary**.
 
 Kapag may mga shade na ang palette, ipinapakita ng strip ang lahat ng pitong role na mababasa ng tool: Primary, Secondary, Surface, Text, Muted, Edge at On primary. Ang On primary ay hinango mula sa primary, nagsasabing **Derived** at walang picker.

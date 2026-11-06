@@ -99,7 +99,9 @@ Styles are scoped automatically. Write top-level selectors for your own classes.
 
 ### Design system colours in templates and styles
 
-The canvas carries the design system's colour roles as CSS custom properties, so a template or `styles.css` can use them with no hook. They hold the colours of the artefact's own choices: its look (light or dark) and its colourway.
+The canvas carries the design system's colours as CSS custom properties, so a template or `styles.css` can use them with no hook. They hold the colours of the artefact's own choices: its look (light or dark) and its colourway. Choose another colourway or look and every variable below takes that choice's colour as the tool redraws.
+
+These seven are the ones a tool written for any design system reads:
 
 | Variable | Holds |
 | --- | --- |
@@ -110,11 +112,28 @@ The canvas carries the design system's colour roles as CSS custom properties, so
 | `--brand-text` | Body text |
 | `--brand-muted` | Quieter text |
 | `--brand-edge` | Rules and borders |
+
+The rest depend on what the design system holds:
+
+| Variable | Holds |
+| --- | --- |
 | `--brand-lead-1` to `--brand-lead-<n>` | Every colourway's lead in the artefact's look, canonical first |
 | `--brand-lead-count` | How many lead variables the canvas carries |
 | `--brand-<id>` | A [colour role](/info/brand-studio.html#colour-roles-what-the-colours-are-called) the design system declares, by the role's permanent id, such as `--brand-accent` |
+| `--brand-on-<id>` | The colour that sits on that role, worked out by Lolly unless the token file states one |
+| `--brand-token-<hex>` | Any colour token, by its path |
 
 Always give a fallback, as in `var(--brand-secondary, #444)`. A role the design system does not define is left unset, so the fallback is what draws. The brand residue test (`tests/brand-residue.test.ts`) fails a tool template that reads any of these variables with no fallback.
+
+::: details Which token paints which variable
+Both shells paint the variables from the same token reads, in the artefact's look and colourway:
+
+- Every colour token at `color.semantic.<name>`, where the name is lowercase letters and hyphens, paints `--brand-<name>`. That covers the seven slots, each declared colour role and its `on-<id>` colour, and a `color.semantic` colour written by hand and never declared as a role. A name with a digit or a capital letter paints no `--brand-<name>`.
+- Every colour token, whatever its path, also paints `--brand-token-` followed by the hex of the path's UTF-8 bytes, so `color.semantic.accent` paints `--brand-token-636f6c6f722e73656d616e7469632e616363656e74`. The name cannot collide with any other variable. Lolly Design writes a linked colour in this form, with the colour it had as the fallback; a tool rarely needs one.
+- The lead variables come from `host.tokens.family()`, and exist only on a design system with two or more colourways.
+
+A colour role's id is permanent, and renaming the role changes only its words: `--brand-<id>` keeps the same name. Ids that would clash with a variable Lolly paints for itself cannot be role ids: `on-` and `token-` names, `lead-count`, `warn` and `warn-ink`. A slot a role fills keeps its own variable, so on a design system whose role Main fills the lead colour, `--brand-primary` and `--brand-main` hold the same colour.
+:::
 
 The lead variables exist only when the design system has two or more colourways, and a canvas carries at most 16 of them; with one colourway there are none, and the canvas carries exactly the variables it always did. A second stripe that follows the second lead, and the partner colour when there is no family:
 
@@ -122,7 +141,9 @@ The lead variables exist only when the design system has two or more colourways,
 .stripe + .stripe { background: var(--brand-lead-2, var(--brand-secondary, #444)); }
 ```
 
-The web shell and the CLI paint the same variables, and the lead variables come from one engine function in both, so a template renders the same in each. A role's variable exists only on a design system that declares that role, so a tool meant for any design system reads the slots above and leaves a role's name to the person choosing a colour. For a colour input that offers only the colourway leads, see [Colourway leads as swatches](/info/tool-inputs.html#colourway-leads-as-swatches). A tool whose colours are its content can opt out of colourway switching with `tokenAxes` ([Colours that are the content](/info/tool-manifest.html#colours-that-are-the-content)).
+The web shell and the CLI paint the same variables, and the lead variables come from one engine function in both, so a template renders the same in each. A Lolly Design page the CLI draws with no browser reads them too: a colour written as `var(--brand-primary, #1e293b)` draws the design system's colour, as in the app, and the fallback draws only when no token answers to that name. A variable with no fallback that no token answers sends the page to the browser tier ([Render with the CLI](/info/cli-rendering.html#a-lolly-design-deck-with-no-browser)). Until 2026-11-06 that route drew the fallback on every design system, so a CLI SVG, SVGZ or outlined PDF of a Design template came out in the template's own colours while the app drew the design system's.
+
+A role's variable exists only on a design system that declares that role, so a tool meant for any design system reads the slots above and leaves a role's name to the person choosing a colour. For a colour input that offers only the colourway leads, see [Colourway leads as swatches](/info/tool-inputs.html#colourway-leads-as-swatches). A tool whose colours are its content can opt out of colourway switching with `tokenAxes` ([Colours that are the content](/info/tool-manifest.html#colours-that-are-the-content)).
 
 ### What the vector export keeps
 

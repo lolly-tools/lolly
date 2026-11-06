@@ -114,6 +114,8 @@ Lolly Demoのように、アプリに付属していて編集できるデザイ�
 
 ### 役割: ツールが読むもの
 
+![The Colour roles table on Lolly Demo after choosing the suggested words Main, Accent, Supporting and Tertiary: the colourway chips, then each role with its light and dark colour, Main read as the lead colour and Accent as the partner colour, Supporting and Tertiary read by name only and marked Copied, and the readings no role fills listed under the table](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=2720&height=2000&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-roles-fold%5D%3Esummary%3Bwait%3A500%3Bclick%3A%5Bdata-crt-start-open%5D%3Bclick%3A%5Bdata-crt-seed%3D%221%22%5D%3Bclick%3A%5Bdata-crt-start-use%5D%3Bwait%3A900%3Bclick%3A.be-palette-heading%3Eh2%3Bwait%3A300&cropSelector=%5Bdata-be-roles-fold%5D&format=svg&walker=1&dark=1&filename=bs-colour-roles)
+
 **Roles**は、すべてのツールと書き出しで、どの色がどの役割を担うかを示します。任意であり(3つのばらばらの色で役割がなくても、まったく問題のないシステムです)、どの色にも役割を与えられ、コントラストの表示はサーフェスに対して測定され、APCAが先に表示されます。各役割の行には、通常の強さで表示されるご自身の色、代わりに使われているスターターの色、または**↳ follows Primary**が表示されます。
 
 パレットにシェードができると、ストリップには、ツールが読める7つの役割がすべて表示されます。Primary、Secondary、Surface、Text、Muted、Edge、On primaryです。On primaryはプライマリから導かれ、**Derived**と表示され、ピッカーはありません。

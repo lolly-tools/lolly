@@ -114,6 +114,8 @@
 
 ### Ролі: що читають інструменти
 
+![The Colour roles table on Lolly Demo after choosing the suggested words Main, Accent, Supporting and Tertiary: the colourway chips, then each role with its light and dark colour, Main read as the lead colour and Accent as the partner colour, Supporting and Tertiary read by name only and marked Copied, and the readings no role fills listed under the table](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=2720&height=2000&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-roles-fold%5D%3Esummary%3Bwait%3A500%3Bclick%3A%5Bdata-crt-start-open%5D%3Bclick%3A%5Bdata-crt-seed%3D%221%22%5D%3Bclick%3A%5Bdata-crt-start-use%5D%3Bwait%3A900%3Bclick%3A.be-palette-heading%3Eh2%3Bwait%3A300&cropSelector=%5Bdata-be-roles-fold%5D&format=svg&walker=1&dark=1&filename=bs-colour-roles)
+
 **Ролі** кажуть, який колір грає яку частину в кожному інструменті та експорті. Вони необов'язкові (три вільні кольори без ролей є цілком хорошою системою), будь-який колір може взяти одну, а показник контрасту вимірюється проти поверхні, спершу APCA. Кожен рядок ролі показує власний колір повної сили, стартовий колір на заміну або **↳ успадковує Основний**.
 
 Щойно палітра має відтінки, смуга показує всі сім ролей, які може читати інструмент: Primary, Secondary, Surface, Text, Muted, Edge та On primary. On primary виводиться з основного, читається **Похідний** і не має вибірника.
