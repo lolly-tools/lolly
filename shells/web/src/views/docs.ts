@@ -41,16 +41,14 @@ import '../styles/parts/docs-chrome.css';
 import '../styles/parts/docs.css';
 import '../styles/parts/docs-components.css';
 import { escape, safeHref } from '../utils.ts';
-import { t, tRaw, currentLang, normalizeLang, docsHref, docsInfoHref, LANG_ICON_SVG, type Lang } from '../i18n.ts';
+import { t, tRaw, currentLang, normalizeLang, docsHref, docsInfoHref, type Lang } from '../i18n.ts';
 import { armViewEnter } from '../view-enter.ts';
 import { backHomeHtml, mountBackPill } from '../components/back-pill.ts';
 import { docsOrigin, type PrevView } from '../lib/back-nav.ts';
 import { enhanceDocsContents } from '../lib/docs-contents.ts';
 import { prefersReducedMotion } from '../lib/a11y-prefs.ts';
 import { contentsRailHtml, pageBarHtml, hasContents, type ContentsHeading } from '../../../../packages/docs-render/src/contents.ts';
-import { createThemeToggle } from '../components/theme-toggle.ts';
-import { attachLangMenu } from '../components/lang-menu.ts';
-import { attachProfileMenu } from '../components/profile-menu.ts';
+import { viewTopbarHtml, mountViewTopbar } from '../components/view-topbar.ts';
 import { mountHomeFab } from '../components/home-fab.ts';
 import { hydrateDocsTryIt } from '../lib/docs-tryit.ts';
 import { icon } from '../lib/icons.ts';
@@ -86,15 +84,16 @@ type DocsHost = HostV1;
  *  `origin` is the app view these docs were opened from (lib/back-nav.ts docsOrigin):
  *  the back pill shows that view's name and returns there, however many pages were
  *  read in between.
+ *  The top row is the app's own (plan 354): the four tabs, so Tools is one press away,
+ *  and the avatar menu with theme, language, Home and Settings. None of the tabs is
+ *  current, because reading the docs is none of them.
  *  The ground is the quiet band the top row sits on once the page has moved, so the
  *  text never runs under the pills (docs.css .docs-top-ground). */
-function shellHtml(inner: string, origin: PrevView | null): string {
+function shellHtml(inner: string, origin: PrevView | null, firstname?: string): string {
   return `
     ${backHomeHtml(origin ? { href: origin.href, label: origin.label } : {})}
     <div class="docs-top-ground" aria-hidden="true"></div>
-    <div class="docs-topright" data-topright>
-      <a href="#/settings" class="docs-top-btn docs-profile-link" aria-label="${escape(t('Open settings'))}" title="${escape(t('Settings'))}">${icon('user')}</a>
-    </div>
+    ${viewTopbarHtml({ active: null, profile: { firstname } })}
     <div class="docs-reader" data-reader>
       <div class="docs-pathways-slot" data-pathways hidden></div>
       <div class="docs-reader-grid">
@@ -132,37 +131,20 @@ export async function mountDocs(
   document.title = tRaw('{name} - Lolly', { name: t('Documentation') });
 
   // Paint the chrome + a pending state immediately, then swap in the body once fetched.
-  viewEl.innerHTML = shellHtml(`<p class="docs-status">${t('Loading…')}</p>`, docsOrigin());
+  // The profile is a quick local read, taken first so the avatar pill opens with its
+  // name, as in the gallery.
+  const origin = docsOrigin();
+  const profile = await host.profile.get().catch(() => null);
+  viewEl.innerHTML = shellHtml(`<p class="docs-status">${t('Loading…')}</p>`, origin, profile?.firstname);
   mountBackPill(viewEl);
   mountHomeFab(viewEl);
+  mountViewTopbar(viewEl, host, { headshotId: profile?.headshot?.id });
   // One scope owns everything this mount sets up, and the view's cleanup disposes it at
   // once, even while the fetch is still in flight. #view persists across routes, so a
   // mount that loses that race checks scope.disposed after each await and stops before
   // it can write into the next view.
   const scope = createScope();
   (viewEl as HTMLElement & { _cleanup?: () => void })._cleanup = () => scope.dispose();
-  // On mobile the profile pill becomes the consolidated menu (theme / Home /
-  // Language / settings) - the same stable anchor the gallery topbar has - and
-  // the standalone language button + home FAB hide (docs.css / overrides.css).
-  // Desktop is untouched: the pill stays a plain link to #/settings.
-  const detachProfileMenu = attachProfileMenu(viewEl.querySelector<HTMLElement>('.docs-profile-link'), host);
-  scope.add(detachProfileMenu);
-  viewEl.querySelector('[data-topright]')?.prepend(createThemeToggle(host, { className: 'docs-top-btn' }));
-  // Language switcher, styled as a docs top pill (not the bare .lang-fab icon) so it
-  // matches the theme/home/wide cluster it sits in. attachLangMenu takes the element
-  // directly, so the trigger needs no .lang-fab class - just the popover ARIA hooks.
-  // --lang: hidden at phone widths (docs.css) - Language lives in the profile menu there.
-  const langBtn = document.createElement('button');
-  langBtn.type = 'button';
-  langBtn.className = 'docs-top-btn docs-top-btn--lang';
-  langBtn.setAttribute('aria-label', t('Language'));
-  langBtn.title = t('Language');
-  langBtn.setAttribute('aria-haspopup', 'menu');
-  langBtn.setAttribute('aria-expanded', 'false');
-  langBtn.innerHTML = LANG_ICON_SVG;
-  viewEl.querySelector('[data-topright]')?.prepend(langBtn);
-  const detachLangMenu = attachLangMenu(langBtn, host);
-  scope.add(detachLangMenu);
   if (isLanding) {
     // Both before the fetch, so the loading state already sits in the landing's own
     // single-column shell and the band CSS is parsed by the time the fragment lands.
@@ -178,10 +160,11 @@ export async function mountDocs(
     const readerEl = viewEl.querySelector<HTMLElement>('[data-reader]');
     const wideBtn = document.createElement('button');
     wideBtn.type = 'button';
-    // --wide: hidden at phone widths (docs.css) - the reader is already full-bleed
-    // there, so the toggle is a dead control that only crowds the chrome row.
-    wideBtn.className = 'docs-top-btn docs-top-btn--wide';
+    // In the top row's cluster, in its own button shape (the gallery's view-options
+    // button). Hidden at phone widths (docs.css): the reader is already full-bleed there.
+    wideBtn.className = 'filter-fab docs-wide-fab';
     wideBtn.setAttribute('aria-label', t('Use the full window width'));
+    wideBtn.title = t('Use the full window width');
     wideBtn.innerHTML = icon('full-width');
     const applyWide = (on: boolean): void => {
       readerEl?.classList.toggle('docs-reader--wide', on);
@@ -193,7 +176,7 @@ export async function mountDocs(
       applyWide(on);
       try { localStorage.setItem(WIDE_KEY, on ? '1' : '0'); } catch { /* private mode */ }
     });
-    viewEl.querySelector('[data-topright]')?.prepend(wideBtn);
+    viewEl.querySelector('.gallery-topright')?.prepend(wideBtn);
   }
 
   const contentEl = viewEl.querySelector<HTMLElement>('[data-content]')!;
@@ -319,6 +302,8 @@ export async function mountDocs(
   // is shown and released with the view. The writer confirms only a real clipboard write.
   scope.add(enhanceDocsReading(node, { writeText: docsClipboardWriter(host), labels: docsCopyLabels(), copyIcon: icon('clipboard') }));
 
+  // The app's "Skip to content" moves focus here, past the top row, the sections and the rail.
+  node.setAttribute('data-skip-target', '');
   contentEl.replaceChildren(node);
 
   // Scrolling a heading into view within #view is lib/docs-rehost.ts's
