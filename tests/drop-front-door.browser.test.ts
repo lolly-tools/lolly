@@ -1,8 +1,9 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * The gallery's front door in a real browser: a file dropped before the drop router
- * has loaded is still routed, and a dialog choice that navigates is not undone by the
- * dialog's own Back.
+ * The front door in a real browser: a file dropped on the gallery before the drop router
+ * has loaded is still routed, a file dropped on Projects while it is still reading the
+ * library is too (on the view, and on the Loading card that covers it after a
+ * navigation), and a dialog choice that navigates is not undone by the dialog's own Back.
  *
  * LOLLY_IMPORT_TEST_URL=http://127.0.0.1:5173 node --import ./tests/browser-gpu.ts --test tests/drop-front-door.browser.test.ts
  */
@@ -16,6 +17,9 @@ const origin = process.env.LOLLY_IMPORT_TEST_URL;
 const skip = origin ? false : 'set LOLLY_IMPORT_TEST_URL to a local Vite shell';
 /** The drop router's module: the source file on a dev shell, its chunk in a build. */
 const DROP_ROUTER = /\/drop-router(?:\.ts|-[\w-]+\.js)(?:\?|$)/;
+/** A module Projects loads while it reads the library, before it first paints (its recent exports). */
+const PROJECTS_READ = /\/export-history(?:\.ts|-[\w-]+\.js)(?:\?|$)/;
+const CHOOSER = 'What should Lolly do with this file?';
 
 async function open(): Promise<{ context: BrowserContext; page: Page; close: () => Promise<void> }> {
   const browser = await chromium.launch({ headless: true, channel: process.env.LOLLY_BROWSER_CHANNEL });
@@ -25,6 +29,68 @@ async function open(): Promise<{ context: BrowserContext; page: Page; close: () 
   });
   return { context, page: await context.newPage(), close: async () => { await context.close(); await browser.close(); } };
 }
+
+/** Drop a text file on whatever is under the middle of the window, as a person would. True when the page takes the drop. */
+async function dropAtCentre(page: Page): Promise<{ taken: boolean; onCard: boolean }> {
+  return page.evaluate(() => {
+    const target = document.elementFromPoint(innerWidth / 2, innerHeight / 2)!;
+    const transfer = new DataTransfer();
+    transfer.items.add(new File(['Agenda\nWelcome\n'], 'notes.txt', { type: 'text/plain' }));
+    target.dispatchEvent(new DragEvent('dragover', { bubbles: true, cancelable: true, dataTransfer: transfer }));
+    // A drop nothing cancels is the browser's to handle: it opens the file and leaves Lolly.
+    const taken = !target.dispatchEvent(new DragEvent('drop', { bubbles: true, cancelable: true, dataTransfer: transfer }));
+    return { taken, onCard: !!target.closest('dialog.view-loading') };
+  });
+}
+
+/** Hold Projects' library read until the returned release is called; `asked` settles once Projects is waiting for that module. */
+async function holdProjectsRead(page: Page): Promise<{ asked: Promise<void>; release: () => void }> {
+  let release!: () => void, reached!: () => void;
+  const held = new Promise<void>(resolve => { release = resolve; });
+  const asked = new Promise<void>(resolve => { reached = resolve; });
+  await page.route(PROJECTS_READ, async route => { reached(); await held; await route.continue(); });
+  return { asked, release };
+}
+
+test('a file dropped on Projects while it is still loading is routed once it has loaded', { skip, timeout: 120_000 }, async () => {
+  assert.ok(['localhost', '127.0.0.1', '[::1]'].includes(new URL(origin!).hostname));
+  const { context, page, close } = await open();
+  const diagnose = journeyDiagnostics(context, 'drop-front-door-projects');
+  try {
+    // A first visit straight to Projects: the boot screen stays in the view until Projects
+    // has read the library, which here waits on a module that is held, as on a slow connection.
+    const { asked, release } = await holdProjectsRead(page);
+    await page.goto(`${origin}/#/p`, { waitUntil: 'domcontentloaded' });
+    await asked;
+    assert.equal(await page.locator('#view[data-drop-ready]').count(), 0, 'the router has not attached yet');
+    const { taken } = await dropAtCentre(page);
+    assert.equal(taken, true, 'the page takes the drop instead of the browser');
+    release();
+    await page.locator('#view[data-drop-ready]').waitFor({ state: 'attached', timeout: 30_000 });
+    await page.getByRole('dialog', { name: CHOOSER, exact: true }).waitFor({ timeout: 30_000 });
+  } catch (error) { await diagnose(error); throw error; } finally { await close(); }
+});
+
+test('a file dropped on the Loading card on the way to Projects is routed there', { skip, timeout: 120_000 }, async () => {
+  assert.ok(['localhost', '127.0.0.1', '[::1]'].includes(new URL(origin!).hostname));
+  const { context, page, close } = await open();
+  const diagnose = journeyDiagnostics(context, 'drop-front-door-projects-card');
+  try {
+    await page.goto(origin!, { waitUntil: 'domcontentloaded' });
+    await page.locator('#view[data-drop-ready] .gallery').waitFor({ state: 'attached', timeout: 60_000 });
+    const { asked, release } = await holdProjectsRead(page);
+    await page.evaluate(() => { location.hash = '#/p'; }); // as the Projects link does
+    await asked;
+    // A slow mount puts the Loading card over the page, so the drop reaches the card.
+    await page.locator('dialog.view-loading[open]').waitFor({ timeout: 30_000 });
+    const { taken, onCard } = await dropAtCentre(page);
+    assert.equal(onCard, true, 'the drop reaches the Loading card');
+    assert.equal(taken, true, 'the page takes the drop instead of the browser');
+    release();
+    await page.locator('#view[data-drop-ready] .projects').waitFor({ state: 'attached', timeout: 30_000 });
+    await page.getByRole('dialog', { name: CHOOSER, exact: true }).waitFor({ timeout: 30_000 });
+  } catch (error) { await diagnose(error); throw error; } finally { await close(); }
+});
 
 test('a file dropped on the gallery before the drop router has loaded is still routed', { skip, timeout: 120_000 }, async () => {
   assert.ok(['localhost', '127.0.0.1', '[::1]'].includes(new URL(origin!).hostname));
@@ -53,7 +119,7 @@ test('a file dropped on the gallery before the drop router has loaded is still r
     assert.equal(asked, true, 'the gallery had asked for the router');
     release();
     await page.locator('#view[data-drop-ready]').waitFor({ state: 'attached', timeout: 30_000 });
-    await page.getByRole('dialog', { name: 'What should Lolly do with this file?', exact: true }).waitFor({ timeout: 30_000 });
+    await page.getByRole('dialog', { name: CHOOSER, exact: true }).waitFor({ timeout: 30_000 });
   } catch (error) { await diagnose(error); throw error; } finally { await close(); }
 });
 
