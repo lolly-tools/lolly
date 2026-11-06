@@ -102,6 +102,10 @@ test('the real bundle carries no fence, pill, comment or version token outside c
       if (line.trim().startsWith(':::')) leaks.push(`${path}:${i + 1} fence`);
       if (/%(?:entity|sig|act|file|detail)\{/.test(line)) leaks.push(`${path}:${i + 1} pill`);
       if (line.includes('<!--')) leaks.push(`${path}:${i + 1} comment`);
+      // A line that opens with a tag prints as text. The usual cause is prose wrapped
+      // inside a code span, which leaves a placeholder such as <id> at the line's start.
+      // Work's console test holds the same rule, but only runs at a re-pin.
+      if (/^\s*<[a-z!/]/i.test(line) && !/^\s*<a id="[a-z0-9][a-z0-9-]*"><\/a>\s*$/.test(line)) leaks.push(`${path}:${i + 1} raw HTML`);
     });
   }
   assert.deepEqual(leaks, [], 'the console would show these as literal text');

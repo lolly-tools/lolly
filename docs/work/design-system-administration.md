@@ -284,8 +284,8 @@ Each publish makes a new numbered revision that never changes, and one revision 
 folder with the digest of the current revision changes nothing. `brandPages.keepRevisions` sets how many revisions keep
 their files. Older ones stay in the history with their digests.
 
-An unpublished page answers `410`, and publishing a new revision brings the address back. `lw brand-pages unpublish
-<id> --remove-files` also removes the stored files of every revision that is not waiting for a decision.
+An unpublished page answers `410`, and publishing a new revision brings the address back.
+`lw brand-pages unpublish <id> --remove-files` also removes the stored files of every revision that is not waiting for a decision.
 
 ### Find the pages on an instance
 
