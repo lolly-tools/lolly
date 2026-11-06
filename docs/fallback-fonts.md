@@ -75,6 +75,10 @@ An EPS or WMF has no live text to fall back on, so the run goes in as a 300 dpi 
 
 A DXF goes to cutting machines and CAD software, which need outlines, so a run no font can draw stops a DXF export. The message quotes the run and gives its script, so you can add a font with those letters or export SVG or PDF. Before, these formats drew an empty box for each such letter.
 
+## The check before you export
+
+Lolly Design's **Before you export** card, and the `render` checks of `lolly check`, report text that no font can draw. They count the fallback fonts the way an export does, from the same lists of the characters each font has, so text a fallback font draws is not reported. A script with no fallback font, such as Tamil, and a Chinese, Japanese or Korean character outside the national sets are still reported, because the export draws them as a picture or as live text, and a DXF export stops at them. The check reads those lists from the catalog and downloads no font.
+
 ## Licences and credits
 
 Every fallback font is under the SIL Open Font License 1.1, and each catalog entry records that licence with a hash of the licence text, so the rights rules in [Creative rights and credits](/info/creative-rights.html) read the licence like any other font's. The licence texts sit beside the fonts. The Noto Sans files declare no Reserved Font Name. The Chinese, Japanese and Korean fonts are Adobe's, and reserve the name Source; the cut files keep their Noto names, which do not use that name.
