@@ -3,7 +3,7 @@
  * The persistent bottom search bar - a shell-level SINGLETON (plans/99 M1).
  *
  * One footer (the shared footerNav chrome: [Pro?] [Dashboard] <search> [Verify]
- * [What?]) mounted ONCE at boot as a sibling after #view, shown on browse routes
+ * [Docs]) mounted ONCE at boot as a sibling after #view, shown on browse routes
  * (RouteSpec.footer === 'search' in main.ts's ROUTES) and hidden on editing
  * routes. Views no longer render or wire their own footer: a view CLAIMS the bar
  * on mount - placeholder, initial value, an optional live-filter tap - and

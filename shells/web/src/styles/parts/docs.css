@@ -90,29 +90,26 @@
   padding: 0 1rem;
 }
 
-/* Top-right chrome cluster (wide / theme / profile). It sits on the same top-row
- * geometry as the back pill opposite it (tokens.css --chrome-top, --chrome-inset),
- * and its round buttons are --chrome-h tall (docs-chrome.css .docs-top-btn), so the
- * two ends of the row are level at every width (plan 277 step 3c; they used to be a
- * 42px pill at 8px beside 38px buttons at 12px). */
-.docs-topright {
-  position: fixed;
-  top: calc(var(--chrome-top) + var(--vv-top, 0px));
-  right: calc(var(--chrome-inset) + var(--safe-right) + var(--vv-right, 0px));
-  z-index: 30;
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-}
-/* The full-width toggle is meaningless on a phone (the reader is already full-bleed)
-   and its slot collides with the back-pill island at large Dynamic Type sizes. */
+/* The top row is the app's own (views/docs.ts, components/view-topbar.ts): the back
+ * pill on the left, the four tabs in the middle with none current, the avatar menu on
+ * the right with the wide-reading toggle beside it. The full-width toggle means nothing
+ * on a phone, where the reader is already full-bleed. On a phone the app's bar is one
+ * flex row; here it hugs the right, level with the back pill opposite, and the pill's
+ * label gives way with an ellipsis so the three never collide. */
 @media (max-width: 640px) {
-  .docs-top-btn--wide { display: none; }
+  .docs-wide-fab { display: none; }
+  .docs-view .gallery-topbar {
+    justify-content: flex-end;
+    top: calc(var(--chrome-top) + var(--vv-top, 0px));
+    left: auto;
+  }
+  .docs-view .chrome-topleft .back-pill-label {
+    max-width: 6.5em;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
 }
-/* Language lives in the profile menu (profile-menu.ts Language row) at every
-   width now (2026-08-26) - the menu opens on desktop too, so the docs top-bar's
-   own language pill is redundant. Was ≤640px-only. */
-.docs-top-btn--lang { display: none; }
 
 /* A pending / failed state - the reader renders chrome first, then swaps this out. */
 .docs-status {
@@ -160,12 +157,16 @@
 /* A landed heading clears the fixed top row (its offset plus its height), so its
  * focus ring is not drawn under the back pill or the round buttons. */
 .docs-content h2[id], .docs-content h3[id], .docs-content h4[id] {
-  scroll-margin-top: calc(var(--chrome-top) + var(--chrome-h) + 0.75rem);
+  scroll-margin-top: calc(var(--chrome-top) * 2 + var(--chrome-h) + 4.25rem);
 }
 
 .docs-content p { margin-bottom: 1.5rem; }
 .docs-content ul, .docs-content ol { margin-bottom: 1rem; padding-left: 1.25rem; }
-.docs-content li { margin-bottom: 1rem; list-style-type: "🍭 "; font-size: 0.875em; }
+.docs-content li { margin-bottom: 1rem; }
+/* Bullets wear the lollipop; numbered steps keep their numbers, and list text reads at
+   the body size (Andy, 2026-11-06). A step list that loses its numbers loses the order
+   it is there to give, and /info has always shown them. */
+.docs-content ul > li { list-style-type: "🍭 "; }
 .docs-content a { color: var(--green); text-decoration: underline; }
 .docs-content a:hover { text-decoration: underline; }
 .docs-content strong { font-weight: 600; }
@@ -464,7 +465,9 @@
 .docs-reader {
   /* Clearance for the FIXED chrome row (back-pill island left, home/theme cluster
      right): --chrome-top carries --safe-top on notched phones and --chrome-h scales
-     with Dynamic Type / largeText, so a static top padding under-clears on device. */
+     with Dynamic Type / largeText, so a static top padding under-clears on device.
+     The rails stick under the top row and the sticky sections row (about 3.4rem
+     tall): the row's own clearance plus that row. */
   --docs-chrome-clear: calc(var(--chrome-top, 0.75rem) + var(--chrome-h, 2.6rem) + 1.5rem);
   max-width: 84rem; margin: 0 auto; padding: var(--docs-chrome-clear) 1.5rem 3rem; box-sizing: border-box;
 }
@@ -472,7 +475,6 @@
 /* SAFETY FIRST: never let a rehosted/chrome icon size itself to the page (the
    blown-up palette bug). Scoped to CHROME + NAV only - never .docs-content, whose
    shots/figures are meant to be full width. */
-.docs-topright .docs-top-btn svg,
 .docs-back-pill svg { width: 20px; height: 20px; }
 .docs-pathways svg, .docs-pathways img,
 .docs-sidebar-slot svg, .docs-sidebar-slot img,
@@ -482,34 +484,58 @@
 /* The section pathways strip, adopted from the built page (lib/docs-nav.ts
    extractPathways). Its tabs are docs-chrome.css's, shared with /info; here it sits
    in its slot over a divider. */
-.docs-pathways-slot .docs-pathways { padding: 0 0 1rem; border-bottom: 1px solid hsl(var(--border)); margin-bottom: 1.75rem; margin-top: 4em; }
+/* Row 2: the sections, sticky under the app's top row once the page moves, on the same
+   quiet ground, so the way to another section stays one press away (plan 354). */
+.docs-pathways-slot {
+  position: sticky;
+  top: calc(var(--chrome-top) * 2 + var(--chrome-h) + var(--vv-top, 0px));
+  z-index: 45;
+  margin: 0 -1.5rem 1.75rem;
+  padding: 0.6rem 1.5rem 0;
+  background: color-mix(in srgb, var(--ui-color-surface-canvas) 92%, transparent);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+}
+.docs-pathways-slot .docs-pathways { padding: 0 0 0.75rem; border-bottom: 1px solid hsl(var(--border)); }
 
-/* AI-scan donut at the strip's right end: the page's text-signal score (the same
-   read #/verify runs on this served page), pressing through to the full report.
-   Colour follows the band (valid.css's gauge hues); the number inside carries the
-   value, so colour is never the only carrier. */
-.docs-tsig-donut { margin-inline-start: auto; align-self: center; display: inline-flex; padding: .2rem 0; }
-/* The donut hugs the strip's right edge, so the shared tooltip's centred bubble
-   (parts/tooltip.css) would hang past the viewport - anchor bubble and arrow to
-   the host's right edge instead, statically (no slide, the fade still runs). */
-.docs-pathways .docs-tsig-donut[data-tip]::after { left: auto; right: 0; transform: none; }
-.docs-pathways .docs-tsig-donut[data-tip]::before { left: auto; right: 8px; transform: none; }
-.docs-pathways .docs-tsig-donut svg { width: calc(26px * var(--a11y-fs)); height: calc(26px * var(--a11y-fs)); max-width: none; max-height: none; }
-.docs-tsig-donut circle { fill: none; stroke-width: 7; }
+/* Check this page (views/docs.ts): the page's text-signal score as a labelled line at
+   the end of the article, pressing through to the full verify report for this served
+   page. Colour follows the band (valid.css's gauge hues); the number inside carries the
+   value and the words name it, so colour is never the only carrier. */
+.docs-page-check {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-2) var(--sp-5);
+  margin: var(--sp-8) 0 0;
+  padding: var(--sp-3) var(--sp-7) var(--sp-3) var(--sp-4);
+  border: 1px solid var(--ui-color-border-default);
+  border-radius: var(--radius-pill);
+  color: var(--ui-color-text-default);
+  font-size: var(--fs-md);
+  line-height: 1.35;
+  text-decoration: none;
+}
+.docs-page-check:hover { background: var(--ui-color-surface-muted); text-decoration: none; }
+.docs-page-check:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 2px; }
+.docs-page-check svg { flex: none; width: calc(26px * var(--a11y-fs, 1)); height: calc(26px * var(--a11y-fs, 1)); }
+.docs-page-check-label { font-weight: 600; }
+.docs-page-check-score { color: var(--ui-color-text-muted); }
+.docs-page-check circle { fill: none; stroke-width: 7; }
 .docs-tsig-track { stroke: hsl(var(--muted-foreground) / 0.25); }
 .docs-tsig-fill { stroke-linecap: round; transform: rotate(-90deg); transform-origin: 50% 50%; }
 .docs-tsig-num { font-size: 22px; font-weight: 700; text-anchor: middle; fill: hsl(var(--muted-foreground)); }
-.docs-tsig-donut:hover .docs-tsig-num { fill: hsl(var(--foreground)); }
-.docs-tsig-donut svg[data-band="none"] .docs-tsig-fill { stroke: hsl(var(--muted-foreground) / 0.6); }
-.docs-tsig-donut svg[data-band="weak"] .docs-tsig-fill { stroke: hsl(45 90% 42%); }
-.docs-tsig-donut svg[data-band="notable"] .docs-tsig-fill { stroke: hsl(30 90% 45%); }
-.docs-tsig-donut svg[data-band="strong"] .docs-tsig-fill { stroke: hsl(0 82% 50%); }
-:root[data-theme="dark"] .docs-tsig-donut svg[data-band="weak"] .docs-tsig-fill,
-:root:not([data-theme="light"]) .docs-tsig-donut svg[data-band="weak"] .docs-tsig-fill { stroke: hsl(45 90% 55%); }
-:root[data-theme="dark"] .docs-tsig-donut svg[data-band="notable"] .docs-tsig-fill,
-:root:not([data-theme="light"]) .docs-tsig-donut svg[data-band="notable"] .docs-tsig-fill { stroke: hsl(30 90% 55%); }
-:root[data-theme="dark"] .docs-tsig-donut svg[data-band="strong"] .docs-tsig-fill,
-:root:not([data-theme="light"]) .docs-tsig-donut svg[data-band="strong"] .docs-tsig-fill { stroke: hsl(0 82% 60%); }
+.docs-page-check:hover .docs-tsig-num { fill: hsl(var(--foreground)); }
+.docs-page-check svg[data-band="none"] .docs-tsig-fill { stroke: hsl(var(--muted-foreground) / 0.6); }
+.docs-page-check svg[data-band="weak"] .docs-tsig-fill { stroke: hsl(45 90% 42%); }
+.docs-page-check svg[data-band="notable"] .docs-tsig-fill { stroke: hsl(30 90% 45%); }
+.docs-page-check svg[data-band="strong"] .docs-tsig-fill { stroke: hsl(0 82% 50%); }
+:root[data-theme="dark"] .docs-page-check svg[data-band="weak"] .docs-tsig-fill,
+:root:not([data-theme="light"]) .docs-page-check svg[data-band="weak"] .docs-tsig-fill { stroke: hsl(45 90% 55%); }
+:root[data-theme="dark"] .docs-page-check svg[data-band="notable"] .docs-tsig-fill,
+:root:not([data-theme="light"]) .docs-page-check svg[data-band="notable"] .docs-tsig-fill { stroke: hsl(30 90% 55%); }
+:root[data-theme="dark"] .docs-page-check svg[data-band="strong"] .docs-tsig-fill,
+:root:not([data-theme="light"]) .docs-page-check svg[data-band="strong"] .docs-tsig-fill { stroke: hsl(0 82% 60%); }
 
 /* three-column grid: sidebar | content | on-page TOC */
 .docs-reader-grid { display: grid; grid-template-columns: 14rem minmax(0, 1fr) 13rem; gap: 2.75rem; align-items: start; }
@@ -517,7 +543,7 @@
 
 /* docs sidebar rail (extracted .docs-sidebar) */
 .sidebar-pathway,.sidebar-label{margin-top:2em; margin-bottom: .5rem; font-weight:500;}
-.docs-sidebar-slot { position: sticky; top: var(--docs-chrome-clear, 4.75rem); align-self: start; max-height: calc(100vh - var(--docs-chrome-clear, 4.75rem) - 1.75rem); overflow-y: auto; font-size: calc(.9rem * var(--a11y-fs, 1)); }
+.docs-sidebar-slot { position: sticky; top: calc(var(--docs-chrome-clear, 4.75rem) + var(--chrome-top, 0.75rem) + 2.9rem); align-self: start; max-height: calc(100vh - var(--docs-chrome-clear, 4.75rem) - var(--chrome-top, 0.75rem) - 7.4rem); overflow-y: auto; font-size: calc(.9rem * var(--a11y-fs, 1)); }
 .docs-sidebar-slot :is(ul, ol) { list-style: none; margin: 0; padding: 0; }
 .docs-sidebar-slot a { display: flex; align-items: center; gap: .55rem; color: hsl(var(--muted-foreground)); text-decoration: none; padding: .32rem .55rem; border-radius: 7px; line-height: 1.35; }
 .docs-sidebar-slot a:hover { background: hsl(var(--muted)); color: hsl(var(--foreground)); }
@@ -525,14 +551,8 @@
 .docs-sidebar-slot :is(.docs-sidebar-group, h2, h3, .sidebar-head) { font: 700 calc(.68rem * var(--a11y-fs, 1))/1 var(--font-mono, ui-monospace, monospace); letter-spacing: .1em; text-transform: uppercase; color: hsl(var(--muted-foreground)); margin: 1.1rem 0 .4rem .55rem; }
 
 /* on-page table of contents (derived from stamped heading ids) */
-.docs-toc-slot { position: sticky; top: var(--docs-chrome-clear, 4.75rem); align-self: start; max-height: calc(100vh - var(--docs-chrome-clear, 4.75rem) - 1.75rem); overflow-y: auto; }
-.docs-toc-head { font: 700 calc(.68rem * var(--a11y-fs, 1))/1 var(--font-mono, ui-monospace, monospace); letter-spacing: .1em; text-transform: uppercase; color: hsl(var(--muted-foreground)); margin-bottom: .65rem; }
-.docs-toc-list { list-style: none; margin: 0; padding: 0; border-left: 1px solid hsl(var(--border)); }
-.docs-toc-link { display: block; color: hsl(var(--muted-foreground)); text-decoration: none; padding: .28rem .85rem; font-size: calc(.85rem * var(--a11y-fs, 1)); line-height: 1.35; border-left: 2px solid transparent; margin-left: -1px; }
-.docs-toc-link.is-h3 { padding-left: 1.7rem; font-size: calc(.82rem * var(--a11y-fs, 1)); }
-/* Scroll-spy state: the section under the reading line. */
-.docs-toc-link.active { color: hsl(var(--primary)); border-left-color: hsl(var(--primary)); font-weight: 600; }
-.docs-toc-link:hover { color: hsl(var(--foreground)); border-left-color: hsl(var(--muted-foreground) / .5); }
+.docs-toc-slot { position: sticky; top: calc(var(--docs-chrome-clear, 4.75rem) + var(--chrome-top, 0.75rem) + 2.9rem); align-self: start; max-height: calc(100vh - var(--docs-chrome-clear, 4.75rem) - var(--chrome-top, 0.75rem) - 7.4rem); overflow-y: auto; }
+/* The rail's rows and the section being read are docs-chrome.css's, shared with /info. */
 
 /* footer sitemap (extracted .footer-sitemap) */
 .docs-sitemap-slot { margin-top: 3.5rem; padding-top: 2rem; border-top: 1px solid hsl(var(--border)); font-size: calc(.88rem * var(--a11y-fs, 1)); color: hsl(var(--muted-foreground)); }
@@ -557,28 +577,89 @@
 .docs-contact-slot .founded-badge img { display: block; width: 15em; max-width: 100%; height: auto; }
 .docs-contact-slot .docs-license { margin: .5rem 0 0; font-size: calc(.6875rem * var(--a11y-fs, 1)); font-weight: 300; line-height: 1.6; }
 
-/* responsive: fold the rails away on narrow screens (content + TOC-in-flow) */
+/* responsive: the pages rail folds away at 1024px and below, the contents rail below
+   1100px (plan 354: "On this page" from 1100px on both surfaces). Below 1100px the
+   page bar carries both lists in its sheet. */
+@media (max-width: 1099px) {
+  .docs-reader-grid { grid-template-columns: 14rem minmax(0, 1fr); }
+  .docs-toc-slot { display: none; }
+}
 @media (max-width: 1024px) {
   .docs-reader-grid { grid-template-columns: minmax(0, 1fr); }
   .docs-sidebar-slot { display: none; }
-  .docs-toc-slot { position: static; max-height: none; margin-bottom: 1.5rem; }
-  /* The compact disclosures above the article carry "On this page" here, so the copy
-     that used to follow the whole article goes. */
-  .docs-reader-grid:has(.docs-compact-nav) .docs-toc-slot { display: none; }
 }
 
-/* Phone and tablet navigation (views/docs.ts compactNav): the rail and the contents as
-   two disclosures above the article. The disclosure itself is the shared reading
-   component (docs-components.css) and its lists are docs-chrome.css's, the same rows
-   /info's phone menu holds; only their place is styled here. */
-.docs-compact-nav { display: none; }
-@media (max-width: 1024px) {
-  /* One column here, so the grid's column gap would open a 44px row gap under the
-     disclosures; the article's own top padding is enough. */
-  .docs-reader-grid:has(.docs-compact-nav) { row-gap: .75rem; }
-  .docs-compact-nav { display: grid; gap: 8px; margin: 0; }
-  .docs-compact-nav .doc-details { margin: 0; }
+/* The page bar (packages/docs-render contents.ts; its look and sheet are
+   docs-chrome.css's, shared with /info): sticky under the app's top row below 1100px,
+   above the bottom bar so an open sheet is never under it. The headings it jumps to
+   clear the row and the bar. */
+.docs-reader > .doc-pagebar {
+  top: calc(var(--chrome-top) * 2 + var(--chrome-h) + 3.4rem + var(--vv-top, 0px));
+  z-index: 51;
+  margin-bottom: 0.5rem;
 }
+@media (min-width: 1100px) {
+  .docs-reader > .doc-pagebar { display: none; }
+}
+@media (max-width: 1099px) {
+  .docs-content h2[id], .docs-content h3[id], .docs-content h4[id] {
+    scroll-margin-top: calc(var(--chrome-top) * 2 + var(--chrome-h) + 8rem);
+  }
+}
+/* On a phone the bar's sheet carries the sections, so the strip goes and the page
+   opens on the bar, the title and the first paragraph. */
+@media (max-width: 640px) {
+  .docs-reader:has(> .doc-pagebar) { padding-top: calc(var(--chrome-top) + var(--chrome-h) + 0.5rem); }
+  .docs-reader:has(> .doc-pagebar) > .docs-pathways-slot { display: none; }
+  .docs-reader > .doc-pagebar { top: calc(var(--chrome-top) + var(--chrome-h) + 0.5rem + var(--vv-top, 0px)); }
+  .docs-content h2[id], .docs-content h3[id], .docs-content h4[id] {
+    scroll-margin-top: calc(var(--chrome-top) + var(--chrome-h) + 4.5rem);
+  }
+  .docs-reader:has(> .doc-pagebar) .docs-content { padding-top: 1rem; }
+  .docs-reader:has(> .doc-pagebar) .docs-content h1 {
+    font-size: calc(2.1rem * var(--a11y-fs, 1));
+    margin-bottom: 1rem;
+    padding-bottom: 1rem;
+  }
+}
+
+/* The ground under the top row (views/docs.ts sets [data-scrolled] once the page has
+   moved): the canvas at most of its strength, blurred, with one hairline, so the text
+   passes under it rather than under the pills. Absent at the top of the page, where
+   the row sits on the page itself. */
+.docs-top-ground {
+  position: fixed;
+  inset-inline: 0;
+  top: 0;
+  z-index: 29;
+  height: calc(var(--chrome-top) * 2 + var(--chrome-h) + var(--vv-top, 0px));
+  background: color-mix(in srgb, var(--ui-color-surface-canvas) 88%, transparent);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--ui-color-border-default);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--ui-motion-feedback);
+}
+.docs-view[data-scrolled] > .docs-top-ground { opacity: 1; }
+
+/* On a phone the app's bottom bar steps away while the reader reads down
+   (html[data-docs-bar="tucked"], views/docs.ts) and returns on a scroll up, at the end
+   of the page, and whenever focus is inside it. */
+@media (max-width: 640px) {
+  html[data-docs-reading] .gallery-footer { transition: transform var(--ui-motion-overlay) var(--ui-motion-standard); }
+  html[data-docs-bar="tucked"] .gallery-footer:not(:focus-within) { transform: translateY(calc(100% + 1rem)); }
+}
+@media (prefers-reduced-motion: reduce) {
+  html[data-docs-reading] .gallery-footer,
+  .docs-top-ground { transition: none; }
+}
+html[data-a11y-motion="reduce"][data-docs-reading] .gallery-footer,
+html[data-a11y-motion="reduce"] .docs-top-ground { transition: none; }
+
+/* The rail's link to the docs front door, called Docs in the app (views/docs.ts):
+   its arrow points back toward the inline start in either direction. */
+[dir="rtl"] .docs-sidebar-home-arrow { display: inline-block; transform: scaleX(-1); }
 
 /* ── Landing mode: #/docs/index (plans/123) ───────────────────────────────────
    The front door rehosted through the reader (views/docs.ts + lib/docs-landing.ts).
@@ -604,10 +685,10 @@
 .docs-reader--landing .docs-reader-grid { grid-template-columns: minmax(0, 1fr); gap: 0; }
 .docs-reader--landing [data-sidebar],
 .docs-reader--landing [data-toc] { display: none; }
-/* Full-bleed pulls the pathways bar under the reader's FIXED chrome (back pill left,
-   home/theme cluster right), so in landing mode the bar keeps clear of both; on narrow
-   screens it drops below the pill instead, where there is no room beside it. */
-.docs-reader--landing .docs-pathways-slot { padding-inline: 8.5rem 8rem; }
+/* Full-bleed puts the sections row right under the app's top row in landing mode, at
+   the page's own inset (the top row holds the back pill, the tabs and the avatar, so
+   the row can no longer sit beside them). */
+.docs-reader--landing .docs-pathways-slot { margin: var(--docs-chrome-clear) 0 0; padding-inline: 1.5rem; }
 @media (max-width: 700px) {
   .docs-reader--landing .docs-pathways-slot { padding-inline: 1rem; margin-top: var(--docs-chrome-clear); }
 }
