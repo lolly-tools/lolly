@@ -194,8 +194,9 @@ html[data-a11y-text="large"] .crt-look { display: inline; }
   color: var(--ui-color-text-muted);
 }
 .crt-meta > .be-role-apca { font-size: var(--ui-type-field); }
+.crt-caption { grid-column: auto; }
 .crt-dot { color: var(--ui-color-text-muted); }
-.crt-derived { cursor: help; }
+.crt-stated { cursor: help; }
 .crt-copied { margin-inline-start: auto; padding: 0 var(--sp-2); text-transform: none; letter-spacing: normal; cursor: help; }
 
 /* ── How Lolly reads it ────────────────────────────────────────────────────── */
@@ -296,7 +297,9 @@ html[data-a11y-text="large"] .crt-look { display: inline; }
 .crt-pick-copied .lp-status-copy { flex: 1 1 auto; align-items: flex-start; }
 .crt-pick-same { justify-self: start; }
 .crt-pick-same[aria-pressed="true"] { background: var(--ui-color-selection-surface); }
-.crt-pick-on { display: flex; align-items: center; gap: var(--sp-2); margin: 0; font-size: var(--ui-type-help); color: var(--ui-color-text-muted); }
+.crt-pick-on { display: flex; align-items: flex-start; gap: var(--sp-2); margin: 0; font-size: var(--ui-type-help); color: var(--ui-color-text-muted); }
+.crt-pick-on .be-role-apca { font-size: inherit; font-weight: var(--ui-type-weight-label); color: var(--ui-color-text-default); }
+.crt-pick-on .be-role-apca.is-weak { color: var(--ui-color-status-danger); }
 .crt-pick-field { min-width: 0; }
 
 /* Under a coarse pointer every control grows to the touch target. */

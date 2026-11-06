@@ -9,7 +9,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { addColourRole, deriveBrandTokens, readColourRoles, setColourRoles, setRoleSameAsLight } from '@lolly/engine';
+import { addColourRole, bindRole, deriveBrandTokens, readColourRoles, setColourRoles, setRoleSameAsLight } from '@lolly/engine';
 import {
   colourRolesModel, explainRemoval, parseRoleWords, readingOption, refusalText, sameAsWords, slotLine, slotWord,
   specsForShippedRename, specsForWords, STARTING_POINTS, suggestedReadings,
@@ -43,14 +43,17 @@ test('"Lolly reads this as" never uses a bare Primary or Secondary', () => {
   assert.equal(slotWord('secondary'), 'Partner colour');
 });
 
-test('each cell: value, contrast, and what sits on the colour, derived or stated', () => {
+test('each cell: value, and in plain words whether text reads, with a mark only where the file states the text colour', () => {
   const m = colourRolesModel(wefthouse());
   const [light, dark] = m.rows[0]!.cells;
   assert.equal(light!.hex, '#1b2a6b');
   assert.equal(light!.text, '#1b2a6b');
   assert.equal(dark!.hex, '#8fa2ff');
-  assert.equal(light!.onWord, 'Derived', 'a derived on-colour is labelled as derived');
-  assert.ok(light!.contrast && typeof light!.contrast.lc === 'number');
+  assert.equal(light!.onWord, '', 'what Lolly picks is the ordinary case, explained once in the caption');
+  assert.equal(light!.onOrigin, 'derived');
+  assert.equal(light!.reading?.text, 'Text reads well');
+  assert.match(light!.reading!.title, /^Contrast \d+ \(APCA\), [\d.]+ to 1 \(WCAG\)\./, 'the figures are in the tooltip');
+  assert.doesNotMatch(light!.reading!.title, /-\d/, 'with no minus sign: the sign only says which way round the pair runs');
   // Dark follows light on Supporting in the fixture.
   const supporting = m.rows[2]!.cells[1]!;
   assert.equal(supporting.sameAs, 'Light');
@@ -58,7 +61,27 @@ test('each cell: value, contrast, and what sits on the colour, derived or stated
   // Madder's Accent states its own on-colour, and that stays.
   const madder = colourRolesModel(wefthouse(), { colourway: 'madder' });
   assert.equal(madder.colourway?.name, 'Madder');
-  assert.equal(madder.rows[1]!.cells[0]!.onWord, 'Stated');
+  assert.equal(madder.rows[1]!.cells[0]!.onWord, 'Own text colour');
+  assert.equal(madder.rows[1]!.cells[0]!.onOrigin, 'stated');
+});
+
+test('weak as text is said as that, and is only a warning on a colour tools lean on', () => {
+  // Lolly Demo's Secondary in light: a colour the brand chose, fine as a shape, weak under text.
+  const secondary = colourRolesModel(demo()).rows[1]!.cells[0]!;
+  assert.equal(secondary.reading?.text, 'Hard to read as text');
+  assert.equal(secondary.reading?.weak, true, 'a tool can put text on the partner colour, so this one is flagged');
+  assert.match(secondary.reading!.title, /can still work for shapes/);
+  // A role read by name only: no tool puts text on it, so the same pair is not a fault.
+  const supporting = colourRolesModel(wefthouse()).rows[2]!.cells[0]!;
+  assert.equal(supporting.reading?.text, 'Hard to read as text');
+  assert.equal(supporting.reading?.weak, false);
+  // A hairline is not drawn behind text at all.
+  const edge = colourRolesModel(demo()).unfilled.find(u => u.slot === 'edge');
+  assert.ok(edge, 'hairlines are listed');
+  const bound = bindRole(wefthouse(), 'edge', 'tertiary');
+  assert.ok(bound.ok, bound.ok ? '' : bound.reasons.join(' '));
+  assert.equal(colourRolesModel(bound.doc).rows[3]!.cells[0]!.reading?.text, 'Not for text');
+  assert.equal(colourRolesModel(bound.doc).rows[3]!.cells[0]!.reading?.weak, false);
 });
 
 test('a value copied rather than chosen says where it came from', () => {

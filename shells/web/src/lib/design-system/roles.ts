@@ -29,8 +29,8 @@
  * builder over a model, and `mountRolesStrip` is the only part that touches the
  * DOM. That split is what lets the readouts be unit-tested headless.
  *
- * Contrast is reported APCA-first, WCAG second (house rule): the Lc and its band
- * are the readout, the 2.1 ratio rides the tooltip.
+ * Contrast is measured APCA-first, WCAG second (house rule), and the readout says
+ * in plain words whether text reads: both figures ride the tooltip.
  *
  * LEADS (plans/319 A2). Every read and write takes an editing context, `{ lead,
  * mode }` (leads.ts), where it used to take a theme string; a bare string still
@@ -707,7 +707,7 @@ export function rampStepName(name: string, key: string): string {
  * no idea what a beat is.
  */
 /**
- * The Lc is always reported; the WARNING is not.
+ * The pair is always measured; the WARNING is not.
  *
  * `edge` is a hairline - a rule, a border, the quietest thing in the system -
  * and it is SUPPOSED to sit far under the floor {@link WEAK_LC} names, which is
@@ -763,27 +763,29 @@ export function buildRolesModel(
   return { rows, options };
 }
 
-/** `Lc 78` - one decimal would suggest a precision APCA does not claim at this
- *  size, and the sign matters (it is the polarity), so it is kept. */
-const fmtLc = (lc: number): string => `${lc < 0 ? '-' : ''}${Math.round(Math.abs(lc))}`;
+/** The size of the contrast, as a whole number. The sign only says which way round the
+ *  pair runs (light on dark or dark on light), which is no use to a person reading this. */
+const contrastSize = (lc: number): number => Math.round(Math.abs(lc));
 
-/** The readout's three rendered parts, so the string builder and the in-place
- *  patch below cannot drift apart on wording or on the weak-pairing class. */
-export function apcaParts(c: RoleContrast): { weak: boolean; title: string; text: string } {
-  return {
-    weak: c.weak,
-    title: tRaw('APCA Lc {lc} ({band}). WCAG {wcag} to 1.', {
-      lc: fmtLc(c.lc),
-      band: c.label,
-      wcag: Number.isFinite(c.wcag) ? c.wcag.toFixed(2) : '-',
-    }),
-    text: tRaw('Lc {lc}', { lc: fmtLc(c.lc) }),
-  };
+/**
+ * The readout in plain words: what a person wants to know is whether text reads, in this
+ * look. The figures go in the tooltip for whoever wants them, with no minus sign.
+ *
+ * "As text" is on purpose. A colour can be fine for a shape and weak as a ground for text,
+ * and a word that said only "weak" would read as a fault in a colour the brand chose. A
+ * hairline is never drawn behind text, so it says that instead.
+ */
+export function apcaParts(c: RoleContrast, hairline = false): { weak: boolean; title: string; text: string } {
+  const size = contrastSize(c.lc);
+  const figures = tRaw('Contrast {lc} (APCA), {wcag} to 1 (WCAG).', { lc: size, wcag: Number.isFinite(c.wcag) ? c.wcag.toFixed(2) : '-' });
+  if (hairline) return { weak: false, title: figures, text: t('Not for text') };
+  if (size < WEAK_LC) return { weak: c.weak, title: `${figures} ${t('The colour can still work for shapes and large areas.')}`, text: t('Hard to read as text') };
+  return { weak: c.weak, title: `${figures} ${c.label}.`, text: size < 75 ? t('Large text only') : t('Text reads well') };
 }
 
-function apcaHtml(c: RoleContrast | null): string {
+function apcaHtml(c: RoleContrast | null, hairline = false): string {
   if (!c) return '';
-  const p = apcaParts(c);
+  const p = apcaParts(c, hairline);
   return `<span class="be-role-apca${p.weak ? ' is-weak' : ''}" title="${escape(p.title)}">${escape(p.text)}</span>`;
 }
 
@@ -829,8 +831,8 @@ export function rolesStripHtml(model: RolesModel): string {
       <span class="be-role-meta">
         <span class="be-role-name">${escape(row.label)}</span>
         <span class="be-role-val" title="${escape(row.value)}">${escape(row.value)}</span>
+        ${apcaHtml(row.contrast, row.id === 'edge')}
       </span>
-      ${apcaHtml(row.contrast)}
       ${row.derived
         // No picker: the derive owns this slot, and a control that wrote it
         // would be offering to break the pair it exists to keep.
@@ -930,15 +932,15 @@ function patchStrip(mount: HTMLElement, model: RolesModel): boolean {
     if (val) { val.textContent = row.value; val.title = row.value; }
     // The readout appears and disappears with the pairing, so it is created and
     // removed rather than only rewritten. It holds no state and nothing in it
-    // is focusable, so replacing it costs the interaction nothing. It goes
-    // before the picker, or before the derived row's read-only tail.
+    // is focusable, so replacing it costs the interaction nothing. It closes the
+    // row's words, under the value.
     let apca = el.querySelector<HTMLElement>('.be-role-apca');
     if (!row.contrast) { apca?.remove(); }
     else {
-      const p = apcaParts(row.contrast);
+      const p = apcaParts(row.contrast, row.id === 'edge');
       if (!apca) {
         apca = el.ownerDocument.createElement('span');
-        (sel ?? el.querySelector<HTMLElement>('.be-role-derived'))?.before(apca);
+        el.querySelector<HTMLElement>('.be-role-meta')?.append(apca);
       }
       apca.className = `be-role-apca${p.weak ? ' is-weak' : ''}`;
       apca.title = p.title;

@@ -38,14 +38,11 @@ export const emptyUi = (): RoomUi => ({ starting: null, adding: false, removing:
 const noticeHtml = (ui: RoomUi, key: string): string =>
   (ui.notice?.key === key ? `<p class="lp-help crt-notice" role="alert">${esc(ui.notice.text)}</p>` : '');
 
-/** The Lc and whether the colour on top is derived or stated. */
+/** Whether text reads on this colour, and a mark where someone stated their own text colour. */
 function metaHtml(cell: RoleValueCell): string {
   const bits: string[] = [];
-  if (cell.contrast) {
-    const p = apcaParts(cell.contrast);
-    bits.push(`<span class="be-role-apca${p.weak ? ' is-weak' : ''}" title="${esc(p.title)}">${esc(p.text)}</span>`);
-  }
-  if (cell.onWord) bits.push(`<span class="crt-derived" title="${esc(cell.onTitle)}">${esc(cell.onWord)}</span>`);
+  if (cell.reading) bits.push(`<span class="be-role-apca${cell.reading.weak ? ' is-weak' : ''}" title="${esc(cell.reading.title)}">${esc(cell.reading.text)}</span>`);
+  if (cell.onWord) bits.push(`<span class="crt-stated" title="${esc(cell.onTitle)}">${esc(cell.onWord)}</span>`);
   const copied = cell.copied ? `<span class="lp-sec-flag crt-copied" title="${esc(cell.copied)}">${esc(t('Copied'))}</span>` : '';
   return bits.length || copied ? `<span class="crt-meta">${bits.join('<span class="crt-dot" aria-hidden="true">·</span>')}${copied}</span>` : '';
 }
@@ -221,7 +218,11 @@ function addHtml(model: ColourRolesModel, ui: RoomUi): string {
 export function roomHtml(model: ColourRolesModel, ui: RoomUi): string {
   const refusal = model.refusal ? `<div class="lp-status" role="status" data-status="danger"><div class="lp-status-copy"><span>${esc(model.refusal)}</span></div></div>` : '';
   const heads = model.modes.map(m => `<span role="columnheader" class="lp-label">${esc(m.name)}</span>`).join('');
+  // Explained once, so no cell repeats the sentence.
+  const ink = model.rows.some(row => row.cells.some(cell => cell.onOrigin === 'surface'));
+  const caption = `${t('Aa shows the text Lolly picks to sit on each colour.')}${ink ? ` ${t('A colour used as text shows on the background instead.')}` : ''}`;
   return `${refusal}
+    <p class="lp-help crt-caption">${esc(caption)}</p>
     <div class="crt-table" role="table" aria-label="${esc(t('Colour roles'))}" style="--crt-looks:${model.modes.length}">
       <div class="crt-head" role="row">
         <span role="columnheader" class="lp-label">${esc(t('Role'))}</span>${heads}<span role="columnheader" class="lp-label">${esc(t('Lolly reads this as'))}</span>
@@ -253,8 +254,11 @@ export interface ValuePicker {
 
 /** The picker for one value: its state, the palette, and the colour on top. */
 export function valuePickerHtml(p: ValuePicker): string {
-  const on = p.cell.onWord
-    ? `<p class="crt-pick-on" title="${esc(p.cell.onTitle)}"><i class="crt-chip" style="--crt-bg:${esc(p.cell.chipBg)};--crt-fg:${esc(p.cell.chipFg)}" aria-hidden="true">Aa</i><span>${esc(p.cell.onWord === t('Derived') ? t('The colour on top is derived from this one.') : t('The colour on top is stated in the file.'))}</span></p>`
+  // A tooltip is out of reach on a phone, so the panel spells out what the cell only hints at.
+  const says = p.cell.onOrigin === 'stated' ? t('The file states the text colour on this one.')
+    : p.cell.onOrigin === 'derived' ? t('Lolly picks the text colour on this one and keeps it current.') : '';
+  const on = p.cell.reading
+    ? `<p class="crt-pick-on"><i class="crt-chip" style="--crt-bg:${esc(p.cell.chipBg)};--crt-fg:${esc(p.cell.chipFg)}" aria-hidden="true">Aa</i><span><span class="be-role-apca${p.cell.reading.weak ? ' is-weak' : ''}">${esc(p.cell.reading.text)}.</span> ${esc(says)} ${esc(p.cell.reading.title)}</span></p>`
     : '';
   const copied = p.cell.copied
     ? `<div class="lp-status crt-pick-copied"><div class="lp-status-copy"><span>${esc(p.cell.copied)}</span><button type="button" class="be-btn be-btn--sm" data-crt-keep>${esc(t('Keep this colour'))}</button></div></div>`

@@ -211,6 +211,56 @@ test('the room: add, rename, bind, Same as light, switch colourway, In context r
   } finally { await context.close(); await browser.close(); }
 });
 
+/**
+ * The table says a role read by name only is "offered in colour fields and Design", so
+ * this holds that true: the role is in a tool's colour field and in Design's picker, and
+ * a pick stays linked, so it follows the colourway. Plans/352 R3 gives these swatches the
+ * system's own word in place of the "Semantic" group name this looks them up by.
+ */
+test('a role read by name only really is offered: in a tool colour field and in Design, linked to the colourway', options, async () => {
+  const browser = await chromium.launch({ headless: true, channel: process.env.LOLLY_BROWSER_CHANNEL });
+  const context = await browser.newContext({ viewport: { width: 1360, height: 900 }, reducedMotion: 'reduce', serviceWorkers: 'block' });
+  try {
+    await prepare(context);
+    const page = await context.newPage();
+    await open(page);
+    await install(page, fixture);
+    const swatch = page.locator('[aria-label="Semantic · Supporting"], [title="Semantic · Supporting"]').first();
+    const room = async (hash: string): Promise<void> => {
+      await page.goto(`${origin}/${hash}`, { waitUntil: 'load' });
+      await page.reload({ waitUntil: 'networkidle' }); await shellSettled(page);
+      await page.locator('dialog.view-loading[open]').waitFor({ state: 'hidden', timeout: 60_000 }).catch(() => {});
+    };
+
+    // A tool: the pick is the token, by path, and the canvas variable follows the colourway.
+    await room('#/tool/qr-code?url=https%3A%2F%2Flolly.tools');
+    const field = page.locator('.color-trigger').nth(1);
+    await field.scrollIntoViewIfNeeded();
+    await field.click();
+    await swatch.waitFor({ state: 'attached' });
+    await swatch.click();
+    await page.keyboard.press('Escape');
+    await page.waitForFunction(() => decodeURIComponent(location.href).includes('{color.semantic.supporting}'));
+    const canvasRole = (): Promise<string> => page.evaluate(() => getComputedStyle(document.querySelector('#tool-canvas')!).getPropertyValue('--brand-supporting').trim().toLowerCase());
+    assert.equal(await canvasRole(), '#6c7a89');
+    await page.locator('#theme-section [aria-label*="Madder"], #theme-section [title*="Madder"]').first().click();
+    await page.waitForFunction(() => getComputedStyle(document.querySelector('#tool-canvas')!).getPropertyValue('--brand-supporting').trim().toLowerCase() === '#7d6b5d');
+
+    // Design: the artboard takes the role and follows the colourway too.
+    await room('#/tool/design');
+    await page.keyboard.press('Escape');
+    await page.locator('.color-trigger').first().click();
+    await swatch.waitFor({ state: 'attached' });
+    await swatch.click();
+    await page.keyboard.press('Escape');
+    const fill = (): Promise<boolean> => page.evaluate((want) => [...document.querySelectorAll<HTMLElement>('#tool-canvas *')].some(el => getComputedStyle(el).backgroundColor === want), 'rgb(108, 122, 137)');
+    await page.waitForFunction((want) => [...document.querySelectorAll<HTMLElement>('#tool-canvas *')].some(el => getComputedStyle(el).backgroundColor === want), 'rgb(108, 122, 137)');
+    assert.equal(await fill(), true, 'the artboard draws Supporting in Indigo');
+    await page.getByRole('button', { name: 'Madder', exact: true }).click();
+    await page.waitForFunction((want) => [...document.querySelectorAll<HTMLElement>('#tool-canvas *')].some(el => getComputedStyle(el).backgroundColor === want), 'rgb(125, 107, 93)');
+  } finally { await context.close(); await browser.close(); }
+});
+
 test('phone: both looks side by side, no sideways scroll, long and non-Latin labels hold, and a full target on every control', options, async () => {
   const browser = await chromium.launch({ headless: true, channel: process.env.LOLLY_BROWSER_CHANNEL });
   const context = await browser.newContext({ viewport: { width: 390, height: 844 }, hasTouch: true, reducedMotion: 'reduce', serviceWorkers: 'block' });

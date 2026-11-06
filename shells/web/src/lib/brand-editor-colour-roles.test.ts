@@ -112,7 +112,10 @@ test('a declared system opens with its table, its own words, and the chips stepp
     assert.equal(h.$<HTMLSelectElement>('[data-crt-reads="main"]').selectedOptions[0]!.textContent, 'Lead colour');
     assert.equal(h.$<HTMLSelectElement>('[data-crt-reads="tertiary"]').selectedOptions[0]!.textContent, 'By name only');
     assert.match(h.$('[data-crt-row="supporting"]').textContent ?? '', /Same as light/);
-    assert.match(h.$('[data-crt-row="main"]').textContent ?? '', /Derived/);
+    const main = h.$('[data-crt-row="main"]').textContent ?? '';
+    assert.match(main, /Text reads well/);
+    assert.doesNotMatch(main, /Derived|Lc\s/, 'no jargon in a cell');
+    assert.match(h.$('.crt-caption').textContent ?? '', /Aa shows the text Lolly picks to sit on each colour/);
     assert.equal(h.root.querySelector('[data-be-role-table] [role="table"]') !== null, true, 'a table in the accessibility tree');
     // The room speaks the system's words everywhere it speaks today.
     const chips = [...h.root.querySelectorAll('.be-rolechip-role')].map(c => c.firstChild?.textContent);

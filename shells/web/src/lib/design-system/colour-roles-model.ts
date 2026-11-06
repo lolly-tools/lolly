@@ -24,7 +24,7 @@ import type { ColourRoleV1, ColourSlotV1 } from '@lolly-tools/core/brand-system-
 import { t, tRaw } from '../../i18n.ts';
 import { walkSwatches } from '../brand-doc.ts';
 import { leadTokenSet } from './leads.ts';
-import { roleContrast, roleReadouts } from './roles.ts';
+import { apcaParts, roleContrast, roleReadouts } from './roles.ts';
 import type { RoleContrast, RoleId } from './roles.ts';
 
 export { MAX_ROLE_DESCRIPTION, MAX_ROLE_LABEL };
@@ -85,10 +85,14 @@ export interface RoleValueCell {
   /** The sample chip: the role's colour with its on-colour, or a surface with the role's colour as ink. */
   chipBg: string;
   chipFg: string;
-  /** How the table describes the colour on top. '' when this colour is drawn on the surface instead. */
+  /** A mark for an on-colour someone stated. Empty otherwise: the table's caption covers the rest. */
   onWord: string;
   /** The longer sentence behind `onWord`. */
   onTitle: string;
+  /** Where the on-colour came from, or `surface` for a colour drawn on the background. */
+  onOrigin: 'derived' | 'stated' | 'surface' | 'none';
+  /** The pair in plain words, per look: does text read? Null when either colour is missing. */
+  reading: { text: string; title: string; weak: boolean } | null;
   contrast: RoleContrast | null;
 }
 
@@ -175,18 +179,21 @@ const prettyPath = (path: string): string => {
   return leaf.replace(/[-_]+/g, ' ').replace(/^\w/, c => c.toUpperCase());
 };
 
-const onWords = (origin: ColourRoleCell['onColour']['origin']): { word: string; title: string } => {
-  switch (origin) {
-    case 'derived': return { word: t('Derived'), title: t('Lolly works out the colour that sits on this one and keeps it current.') };
-    case 'stated': return { word: t('Stated'), title: t('The file states the colour that sits on this one, and that colour stays.') };
-    case 'computed': return { word: t('Derived'), title: t('Lolly works this out from the colour. It is stored once this role is edited.') };
-    case 'none': return { word: '', title: '' };
-  }
-};
+/** Only an on-colour someone stated gets a mark. Everything Lolly picks is the table's ordinary case. */
+const onWords = (origin: ColourRoleCell['onColour']['origin']): { word: string; title: string } =>
+  (origin === 'stated' ? { word: t('Own text colour'), title: t('The file states the colour that sits on this one, and that colour stays.') } : { word: '', title: '' });
 
-/** The Lc is always shown. A hairline is meant to sit far under the text floor, so it is never painted as a warning. */
-const quiet = (contrast: RoleContrast | null, slots: readonly string[]): RoleContrast | null =>
-  contrast && slots.includes('edge') ? { ...contrast, weak: false } : contrast;
+/**
+ * The pair in plain words. Danger is for a colour tools lean on: a hairline is meant to
+ * sit far under the text floor, and a role read by name only is not placed under text by
+ * any tool, so being weak as a ground for text is no fault in either.
+ */
+function readingOf(contrast: RoleContrast | null, slots: readonly string[]): RoleValueCell['reading'] {
+  if (!contrast) return null;
+  const quiet = slots.includes('edge') || !slots.length;
+  const parts = apcaParts(quiet ? { ...contrast, weak: false } : contrast, slots.includes('edge'));
+  return { text: parts.text, title: parts.title, weak: parts.weak };
+}
 
 export interface ColourRolesModelOptions {
   /** The colourway to read, null for the canonical one. */
@@ -238,7 +245,9 @@ export function colourRolesModel(doc: unknown, opts: ColourRolesModelOptions = {
       chipFg: cell.against === 'surface' ? cell.hex : cell.onColour.hex,
       onWord: word,
       onTitle: title,
-      contrast: quiet(cell.contrast, row.role.slots),
+      onOrigin: cell.against === 'surface' ? 'surface' : cell.onColour.origin === 'stated' ? 'stated' : cell.onColour.origin === 'none' ? 'none' : 'derived',
+      reading: readingOf(cell.contrast, row.role.slots),
+      contrast: cell.contrast,
     };
   };
 
@@ -253,6 +262,7 @@ export function colourRolesModel(doc: unknown, opts: ColourRolesModelOptions = {
     const r = slotReadouts.get(mode.id)?.[slot as RoleId];
     const hex = r?.hex ?? '';
     const ink = slot === 'text' || slot === 'muted' || slot === 'edge';
+    const contrast = r?.contrast ?? (ink && hex ? roleContrast(hex, surfaceOf(mode.id)) : null);
     return {
       mode: mode.id, modeName: modeNames.get(mode.id) ?? mode.id, hex,
       text: r?.ref ? (swatchNames.get(r.ref) ?? prettyPath(r.ref)) : hex,
@@ -261,7 +271,9 @@ export function colourRolesModel(doc: unknown, opts: ColourRolesModelOptions = {
       chipBg: ink ? surfaceOf(mode.id) : hex || 'transparent',
       chipFg: ink ? hex : r?.against ?? '',
       onWord: '', onTitle: '',
-      contrast: quiet(r?.contrast ?? (ink && hex ? roleContrast(hex, surfaceOf(mode.id)) : null), [slot]),
+      onOrigin: ink ? 'surface' : 'derived',
+      reading: readingOf(contrast, [slot]),
+      contrast,
     };
   };
 

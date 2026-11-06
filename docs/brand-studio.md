@@ -136,11 +136,11 @@ The table has four columns, and on a phone each row becomes a card that keeps li
 | **Text** | Headings and body text |
 | **Quiet text** | Captions and small print |
 | **Hairlines** | Rules, borders and dividers |
-| **By name only** | No tool picks the role by itself. It is offered in colour fields and Design |
+| **By name only** | No tool picks the role by itself. It is offered in every colour field and in Design, where a pick stays linked, so it follows the colourway |
 
 A reading no role fills stays as the design system defines it, and the room lists those under the table. A role that shares a reading's own id, such as a role called Primary, is that reading and cannot be moved.
 
-**Values.** Press a value to choose a colour for that role, in that look, in the chosen colourway. **Same as light** makes the dark value follow the light one until you choose a colour of its own. The **Aa** chip shows the colour with the colour that sits on top. **Derived** means Lolly works out the colour on top and keeps that current, and **Stated** means the file gives the colour on top. **Copied** marks a value that came from another colourway or from the partner colour and that nobody has chosen yet; **Keep this colour** in the picker settles the value.
+**Values.** Press a value to choose a colour for that role, in that look, in the chosen colourway. **Same as light** makes the dark value follow the light one until you choose a colour of its own. The **Aa** chip shows the text Lolly picks to sit on the colour, and the line under the value says how that text reads, per look: **Text reads well**, **Large text only** or **Hard to read as text**. That is about text on the colour and says nothing against the colour itself, which can still work for shapes and large areas. A role read by name only shows the same words without the warning colour, because no tool puts text on it by itself. The figures behind the words, APCA first and WCAG second, are in the tooltip and in the picker. **Own text colour** marks a value whose file states the text colour, which stays. **Copied** marks a value that came from another colourway or from the partner colour and that nobody has chosen yet; **Keep this colour** in the picker settles the value.
 
 **Starting points.** A design system with no roles of its own shows today's words: Primary, Secondary, Surface and Text. Nothing is written until you change one. **+ Add a role** offers **Primary, Secondary** or **Main, Accent, Supporting, Tertiary** as suggestions, or any words you type, with the reading each would get. The first two words become the lead colour and the partner colour. Tools keep drawing the same colours, and on a system with one lead colour the first colourway is named after that colour.
 
@@ -154,7 +154,7 @@ A reading no role fills stays as the design system defines it, and the room list
 
 With **Colour roles** shut, the first decisions lead the room as chips, each showing the colour that plays the role and its name. On a system with no words of its own these are **Primary**, **Secondary**, **Surface** and **Text**. Press a chip to choose its colour from the palette's own swatches. **Every colour a tool reads**, at the foot of **Colour roles**, has the full strip.
 
-**Roles** say which colour plays each part in every tool and export. They are optional (three loose colours and no roles is a perfectly good system), any colour can take one and the contrast readout is measured against the surface, APCA first. Each role row shows an own colour at full strength, a starter colour standing in, or **↳ follows Primary**.
+**Roles** say which colour plays each part in every tool and export. They are optional (three loose colours and no roles is a perfectly good system), any colour can take one and the readout says how text reads, measured against the surface, APCA first. Each role row shows an own colour at full strength, a starter colour standing in, or **↳ follows Primary**.
 
 The strip shows all seven roles a tool can read: Primary, Secondary, Surface, Text, Muted, Edge and On primary, in the design system's own words where it has them. On primary is derived from the primary, reads **Derived** and has no picker. The **Light** and **Dark** switch beside it, and the one beside **In context**, choose which look the strip, the palette and the preview show.
 

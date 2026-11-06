@@ -990,7 +990,7 @@ button.be-lead:hover { background: hsl(var(--muted) / .7); }
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 .be-role-val { font-family: var(--font-mono); font-size: var(--fs-2xs); color: hsl(var(--foreground)); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.be-role-apca { font-family: var(--font-mono); font-size: var(--fs-xs); font-variant-numeric: tabular-nums; color: hsl(var(--muted-foreground)); }
+.be-role-apca { font-size: var(--fs-2xs); color: hsl(var(--muted-foreground)); overflow-wrap: anywhere; }
 .be-role-apca.is-weak { color: hsl(var(--destructive-text)); }
 /* The picker is the assignment control: native, so it is keyboard- and
    phone-native. .field-select supplies the base look; this only bounds it.
