@@ -266,6 +266,12 @@ const FIXTURES: Record<string, string> = {
 const FORMATS: Format[] = ['svg', 'emf', 'eps', 'dxf'];
 /** EPS and DXF have no live text, so those two have nothing to say about a run no font covers. */
 const LIVE_TEXT_ONLY = new Set(['ltr-arabic-phrase']);
+/**
+ * Inline runs lean on the platform font backend for each run's advance, so these bytes hold
+ * on the macOS the file was generated on. A single run, as in the other fixtures, holds on
+ * Linux too. A Linux set could join these when a runner generates one (see the header).
+ */
+const GENERATED_PLATFORM_ONLY = new Set(['ltr-inline']);
 
 /** Format-specific structural markers: proof the golden is non-trivial output
  *  of the RIGHT container, not an empty or error string. */
@@ -298,7 +304,8 @@ function assertStructure(format: Format, out: string, fixture: string): void {
 for (const [fixture, inner] of Object.entries(FIXTURES)) {
   for (const format of FORMATS) {
     if (LIVE_TEXT_ONLY.has(fixture) && (format === 'eps' || format === 'dxf')) continue;
-    test(`golden: ${fixture} renders byte-exact ${format}`, { skip: SKIP }, async () => {
+    const skip = SKIP || (GENERATED_PLATFORM_ONLY.has(fixture) && process.platform !== 'darwin' ? 'generated on macOS; another font backend moves inline runs' : false);
+    test(`golden: ${fixture} renders byte-exact ${format}`, { skip }, async () => {
       const [a, b] = await renderTwice(inner, format);
       // Determinism FIRST: a golden over unstable bytes is worse than no golden.
       assert.ok(a === b,
