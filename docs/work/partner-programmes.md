@@ -29,7 +29,9 @@ you out.
 
 In the console, open **Partner programmes**, type a name such as "Resellers, EMEA" and press
 **Create programme**. The id comes from the name and never changes, so the group stays the same
-when you rename the programme later.
+when you rename the programme later. On the programme's page, **Owning team** names the group
+inside your organisation that runs the programme; when a partnership ends, its people's projects
+go to that team.
 
 Managing programmes needs `programme.manage`, which admins have and which can be granted to a
 group, for example a partner team:
@@ -80,10 +82,18 @@ bo@partner.example
 signing in and to be added, already in with nothing to do, or not possible, with the reason (an
 address that is not one, a company the programme does not have, an end date that has passed, a
 line listed twice). **Add** then does it in one step and shows a result for each line. Adding the
-same list again changes nothing. People who already sign in are added at once. Everyone else gets
-an invitation carrying the programme's and company's groups, open until their end date or for at
-most 366 days. Lolly Work sends no email, so send the invite messages from **People** →
-**Invitations**, or send one message telling everyone to sign in.
+same list again changes nothing. People who already sign in are added at once, and a company the
+line gives them is set too. Everyone else gets an invitation carrying the programme's and
+company's groups, open until their end date or for at most 366 days.
+
+Lolly Work sends no email, so the result offers one message for everyone the list invited: where
+to sign in, the sign-ins on offer, the end date and your `instance.inviteNote`, with a copy
+button. Send it once by email or chat. Each person's own invite link stays in **People** →
+**Invitations** for anyone you would rather invite one by one.
+
+The programme's **People** list shows everyone in it: who signs in, and who is invited and has not
+signed in yet, with their company and end date. End dates read as the day in UTC, for example
+"Ends 30 Jun 2027 (UTC)".
 
 People also join a programme through its group:
 
@@ -133,8 +143,11 @@ programme, a company or a list of addresses, first shows what ending it does: th
 projects each owns, the links each made and the invitations still open. Choose what happens to
 their projects:
 
-- **Move their projects to me, read-only** (the default): you become the owner and the projects
-  are archived, so the work stays and nobody edits it further.
+- **Move their projects to the owning team, read-only** (the default when the programme has an
+  owning team): the person who made the programme becomes the owner (you, when that account
+  cannot hold work), the team gets them as viewers and the projects are archived, so the work
+  stays and nobody edits it further.
+- **Move their projects to me, read-only** (the default when there is no owning team).
 - **Move their projects to me, editable.**
 - **Leave their projects where they are.**
 
@@ -151,13 +164,14 @@ group. Its people keep the `partner` group.
 ```
 GET    /api/v1/programmes                         # programme.manage: every programme, with its tools, collections and people
 GET    /api/v1/programmes/:id
-PUT    /api/v1/programmes/:id                     # { name, description?, tools?, collections? }: create or replace
+PUT    /api/v1/programmes/:id                     # { name, description?, team?, tools?, collections? }: create or replace
 DELETE /api/v1/programmes/:id
 PUT    /api/v1/programmes/:id/companies/:company  # { name }
 DELETE /api/v1/programmes/:id/companies/:company
 GET    /api/v1/programmes/:id/people              # people, companies and open invitations
 POST   /api/v1/programmes/:id/people              # { text } or { rows }: a preview; add "apply": true to do it
 POST   /api/v1/programmes/exit                    # { programme | company | emails, projects?, transferTo? }: a preview; "apply": true does it
+                                                  # projects: team-readonly, me-readonly, me or keep
 POST   /api/v1/programmes/sweep                   # end the memberships whose end date has passed
 ```
 
