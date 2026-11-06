@@ -91,10 +91,13 @@
 .ds-role-reads { width: 100%; min-height: 44px; }
 .ds-role-fixed { font-weight: 600; font-size: var(--fs-sm); }
 .ds-role-reading .lp-help { margin: 0; }
-/* A head row only where the columns sit side by side. It sits off the tree of a stacked card, whose rows each carry the words. */
+/* A head row only where the columns sit side by side. A stacked card's rows each carry the words,
+   and its first row is the table's top edge, so that row draws no line of its own. */
 .ds-role-headrow { display: none; }
+.ds-role-headrow + .ds-role-row { border-top: 0; }
 @container (min-width: 620px) {
   .ds-role-row { grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); align-items: start; }
   .ds-role-headrow { display: grid; padding-block: var(--sp-2); font-size: var(--fs-xs); color: hsl(var(--muted-foreground)); }
+  .ds-role-headrow + .ds-role-row { border-top: 1px solid hsl(var(--border)); }
   .ds-role-head { display: none; }
 }

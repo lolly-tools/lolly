@@ -50,6 +50,21 @@ const give = (page: Page, name: string, body: string | Buffer, mimeType = 'appli
   page.locator('.start-import-file').first().setInputFiles({ name, mimeType, buffer: Buffer.from(body) });
 const installed = (page: Page): Promise<unknown> => page.waitForFunction(() => document.querySelector('.start-import-result')?.hasAttribute('hidden') || !document.querySelector('.start-import-result')?.isConnected, undefined, { timeout: 60_000 });
 
+/** The result is a section of the sheet: focused by script, with no ring, no border and no fill of its own. */
+const assertNoExtraFrame = async (page: Page): Promise<void> => {
+  const style = await page.locator('.start-import-result').evaluate((el) => {
+    const css = getComputedStyle(el);
+    const sheet = el.closest('.start-import-modal')!.getBoundingClientRect();
+    return { focused: el === document.activeElement, outline: css.outlineStyle, border: css.borderTopWidth, padding: css.paddingLeft, fill: css.backgroundColor, inset: el.getBoundingClientRect().left - sheet.left, headInset: el.closest('.start-import-modal')!.querySelector('.modal-title')!.getBoundingClientRect().left - sheet.left };
+  });
+  assert.equal(style.focused, true, 'the result takes focus when it appears');
+  assert.equal(style.outline, 'none');
+  assert.equal(style.border, '0px');
+  assert.equal(style.padding, '0px');
+  assert.equal(style.fill, 'rgba(0, 0, 0, 0)');
+  assert.equal(style.inset, style.headInset, 'its content lines up with the sheet\'s title');
+};
+
 test('a file\'s words: shown first, editable, and stored as the person left them', options, async () => {
   const browser = await launch();
   try {
@@ -58,6 +73,7 @@ test('a file\'s words: shown first, editable, and stored as the person left them
     await give(page, 'wefthouse.json', JSON.stringify(WORDS));
     const review = page.locator('[data-colour-role-review]');
     await review.waitFor();
+    await assertNoExtraFrame(page);
     assert.deepEqual(await page.locator('[data-role-label]').evaluateAll(els => els.map(el => (el as HTMLInputElement).value)), ['Main', 'Accent', 'Supporting', 'Tertiary', 'Beacon', 'Paper', 'Ink']);
     assert.equal(await page.locator('[data-role-reads="main"]').inputValue(), 'primary');
     assert.equal(await page.locator('[data-role-reads="accent"]').inputValue(), 'secondary');
@@ -123,6 +139,7 @@ test('a file that states its roles shows them as written and installs them uncha
     await give(page, 'wefthouse.tokens.json', wefthouse);
     const roster = page.locator('[data-colour-roles-declared]');
     await roster.waitFor();
+    await assertNoExtraFrame(page);
     const text = await roster.innerText();
     assert.match(text, /Main/);
     assert.match(text, /The cloth's ground colour/);
