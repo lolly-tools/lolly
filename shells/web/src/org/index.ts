@@ -209,6 +209,8 @@ export interface OrgConfig {
   approvals?: { exportReview?: { maxFileBytes: number; partBytes: number; match?: boolean; recordInCredentials?: boolean } };
   /** Present when this instance serves brand pages and this caller may publish one. */
   brandPages?: BrandPagesCapability;
+  /** Present only for someone who may send this instance an edit (`can['brand.edit']`). */
+  brandEdits?: BrandEditsCapability;
   /** Fixed organisation-owned outbound targets already filtered for this
    *  caller. Provider options and credentials never enter the shell. */
   destinations?: OrgDeliveryDestination[];
@@ -360,6 +362,7 @@ export { orgAgentInvitesEnabled } from './document-agent-config.ts';
 import { setAgentInviteAvailability } from './document-agent-config.ts';
 import { setConnectedInstance } from '../lib/brand-page-hosting.ts';
 import { connectedInstanceFrom, type BrandPagesCapability } from './brand-page-publish.ts';
+import type { BrandEditsCapability } from './brand-edit-send.ts';
 import { homeHref, setHomeDestination } from '../lib/home-destination.ts';
 
 /** Control-plane governance for one feature flag, or null when this control plane

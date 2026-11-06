@@ -110,7 +110,7 @@ function unreachableMessage(base: string, e: unknown): string {
 
 /** The tokens asset of a catalog index plus the logo assets its document names. */
 interface CatalogCore {
-  tokens: { id: string; name?: string; brandLock?: boolean; checksum?: string; url: string; version?: string };
+  tokens: { id: string; name?: string; brandLock?: boolean; checksum?: string; bytes?: string; url: string; version?: string };
   assets: Array<{ id: string; type: string; version?: string; formats: Array<{ format: string; url: string; checksum?: string }> }>;
 }
 
@@ -126,7 +126,7 @@ async function readCatalogCore(base: string): Promise<CatalogCore> {
   const fmt = head.formats.find(f => f.format === 'json') ?? head.formats[0];
   if (!fmt) throw new Error(`${base}'s tokens asset has no file.`);
   return {
-    tokens: { id: head.id, name: head.name, brandLock: head.brandLock, checksum: head.checksum ?? fmt.checksum, url: fmt.url, version: head.version },
+    tokens: { id: head.id, name: head.name, brandLock: head.brandLock, checksum: head.checksum ?? fmt.checksum, bytes: fmt.checksum, url: fmt.url, version: head.version },
     assets,
   };
 }
@@ -152,7 +152,13 @@ async function synthesiseFromCatalog(host: HostedHost, base: string, record: Des
   const core = await readCatalogCore(base);
   const docResp = await instanceFetch(core.tokens.url.startsWith('http') ? core.tokens.url : `${base}${core.tokens.url}`, { cache: 'no-cache' });
   if (!docResp.ok) throw new Error(`Could not read ${base}'s design tokens (${docResp.status}).`);
-  const doc = await docResp.json();
+  const bytes = new Uint8Array(await docResp.arrayBuffer());
+  // The index states what the document should be, so a document that does not match it
+  // is refused rather than kept. The index itself is unsigned on this route, which is
+  // why the record never reads as verified after it (syncInto).
+  const expected = core.tokens.bytes;
+  if (expected && await sriOf(bytes) !== expected) throw new Error(`${base}'s design tokens do not match its catalog.`);
+  const doc = JSON.parse(new TextDecoder().decode(bytes));
   const byId = new Map(core.assets.map(a => [a.id, a]));
   const rekeyed = new Map<string, string>();
   let slot = 0;
@@ -181,6 +187,11 @@ async function synthesiseFromCatalog(host: HostedHost, base: string, record: Des
   const local = withDesignSystemIdentity(rewriteAssetLeaves(doc, id => rekeyed.get(id) ?? id), { id: record.id, label: record.label });
   await installUserTokens(host as unknown as Parameters<typeof installUserTokens>[0], local, { system: record.id, label: record.label, brandPage: 'manager' });
   return core.tokens.checksum ?? null;
+}
+
+async function sriOf(bytes: Uint8Array): Promise<string> {
+  const digest = new Uint8Array(await crypto.subtle.digest('SHA-256', bytes as BufferSource));
+  return `sha256-${btoa(String.fromCharCode(...digest))}`;
 }
 
 /** Download the pack, import it into the record's namespace. Returns its ETag. */
@@ -243,6 +254,8 @@ async function syncInto(host: HostedHost, record: DesignSystemRecord, manifest: 
     checksum = checksum ?? r.etag?.replace(/^W\//, '').replace(/^"|"$/g, '') ?? null;
   } else {
     checksum = (await synthesiseFromCatalog(host, base, record)) ?? checksum;
+    // Nothing signed this material, whatever a pack said earlier.
+    signature = 'unsigned';
   }
   return {
     ...record,

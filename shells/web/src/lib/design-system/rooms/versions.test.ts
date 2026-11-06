@@ -111,6 +111,16 @@ test('the brand page and agent rows show only when their sheets can open', () =>
   assert.match(versionsHtml({ ...model(), share: { brandPage: true, connectAgent: false } }), /data-ds-v-brand-page/);
 });
 
+test('the instance row shows only for a copy that can go back to its instance', () => {
+  assert.doesNotMatch(versionsHtml({ ...model(), share: { brandPage: false, connectAgent: false } }), /data-ds-v-instance-edit/);
+  assert.doesNotMatch(versionsHtml({ ...model(), share: { brandPage: true, connectAgent: true, instanceHost: null } }), /data-ds-v-instance-edit/);
+  const html = versionsHtml({ ...model(), share: { brandPage: false, connectAgent: false, instanceHost: 'work.example.com' } });
+  assert.match(html, /data-ds-v-instance-edit/);
+  assert.match(html, /Send to work\.example\.com/);
+  assert.match(html, /Colours, colour roles and the brand page address go there\. Everything else stays on this device\./);
+  assert.match(versionsHtml({ ...model(), share: { brandPage: false, connectAgent: false, instanceHost: '<b>x' } }), /&lt;b&gt;x/, 'a host is text');
+});
+
 test('the resting state is a line, not an empty panel', () => {
   assert.match(versionsHtml(null), /ds-v-loading/);
 });

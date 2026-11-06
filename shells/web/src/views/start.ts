@@ -58,6 +58,7 @@ import { attachLangMenu, langFabHtml } from '../components/lang-menu.ts';
 import { t } from '../i18n.ts';
 import type { BrandTabKey } from '../lib/brand-editor.ts';
 import { activeDesignSystemRecord } from '../lib/design-system/active.ts';
+import { mountManagerActions } from '../lib/design-system/manager-actions.ts';
 import { hasPendingLogoFiles } from '../lib/design-system/pending-files.ts';
 import { SITE_MAX_URL_CHARS, detectSiteTransport } from '../lib/design-system/sources/website.ts';
 import { isStartArea, resolveStartRoute } from '../lib/design-system/start-route.ts';
@@ -199,6 +200,7 @@ export async function mountStart(viewEl: HTMLElement, host: StartHost, params = 
           <p class="start-eyebrow">${t('Design system')}</p>
           <h1 class="start-title">${escapeText(active.label)}</h1>
           <p class="start-sub">${t('This design system is read-only: its colours, type and logos are kept current from where it came. Make an editable copy to change them, or switch to another design system.')}</p>
+          <p class="start-sub start-manager" data-ds-manager hidden></p>
           <p class="start-sub">
             <button type="button" class="be-btn" data-ds-fork>${t('Make an editable copy')}</button>
             <a class="be-btn" href="#/profile?focus=design-systems-section">${t('Switch')}</a>
@@ -213,21 +215,21 @@ export async function mountStart(viewEl: HTMLElement, host: StartHost, params = 
     const workspace = mountTokenWorkspace(viewEl.querySelector<HTMLElement>('[data-token-readonly]')!, { read: () => tokenDoc, host, label: t('Design system'), context: 'Editable head', consumers: webTokenConsumerSources(host) });
     const usage = mountUsageRoom(viewEl.querySelector<HTMLElement>('[data-usage-readonly]')!, { host: host, readonly: true });
     const skills = mountSkillsRoom(viewEl.querySelector<HTMLElement>('[data-skills-readonly]')!, { host, readonly: true });
-    (viewEl as HTMLElement & { _cleanup?: () => void })._cleanup = () => { usage.teardown(); skills.teardown(); workspace.teardown(); };
+    // Someone the instance says can change this system gets the way in here, because
+    // a read-only system never reaches the rooms below.
+    const managerSlot = viewEl.querySelector<HTMLElement>('[data-ds-manager]')!;
+    const stopManager = mountManagerActions(managerSlot, {
+      edit: () => { void start.brand.editForInstance((message) => { managerSlot.append(' ', message); }); },
+      publish: () => { void import('../lib/design-system/brand-page-sheet.ts').then(m => m.openBrandPageSheet(host)); },
+    });
+    (viewEl as HTMLElement & { _cleanup?: () => void })._cleanup = () => { stopManager(); usage.teardown(); skills.teardown(); workspace.teardown(); };
     viewEl.querySelector('[data-ds-fork]')?.addEventListener('click', async () => {
       const [{ createDesignSystem }, { switchDesignSystem }] = await Promise.all([
         import('../lib/design-system/manage.ts'),
         import('../lib/design-system/switch.ts'),
       ]);
-      const copy = await createDesignSystem(
-        host as unknown as Parameters<typeof createDesignSystem>[0],
-        { label: `${active.label} copy`, seedFrom: active.id }
-      );
-      await switchDesignSystem(
-        host as unknown as Parameters<typeof switchDesignSystem>[0],
-        copy.id,
-        { route: 'start' }
-      );
+      const copy = await createDesignSystem(host, { label: `${active.label} copy`, seedFrom: active.id });
+      await switchDesignSystem(host, copy.id, { route: 'start' });
     });
     return;
   }
@@ -439,7 +441,9 @@ export async function mountStart(viewEl: HTMLElement, host: StartHost, params = 
 
   start.exporting.wireFontsExport();
 
+  start.instanceEdit = active?.instanceEdit ? active : null;
   start.brand.wireRecoveryAndVersions();
+  start.brand.wireInstanceEditLine();
 
   start.unsubTray = null as StartCtx['unsubTray'];
   /** Unsubscribe from the palette seam that re-asks the Colours beat (plan 182
