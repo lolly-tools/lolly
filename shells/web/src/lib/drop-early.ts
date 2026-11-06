@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Keep a file dropped on a view before the drop router has loaded.
+ * Keep a file dropped on a view before the drop router has attached.
  *
- * The gallery and Projects load lib/drop-router.ts after they paint, so the router
- * stays off the first-load path. Until it arrives, nothing on the page takes a file
+ * The gallery loads lib/drop-router.ts after it paints, so the router stays off the
+ * first-load path. Until it arrives, nothing on the page takes a file
  * drag, so a file dropped in that time gets the browser's default: the tab opens the
  * file and leaves Lolly, or the drop does nothing. On a first visit that gap was
  * 0.2 to 0.6 s on a desktop, 2.4 s on a phone-class CPU over Fast 3G and 8.7 s over
@@ -12,6 +12,13 @@
  * keeps the files, and hands them to the router when the router attaches
  * (`takeEarlyDrops` in attachDropRouter), which then routes them as if they had been
  * dropped then.
+ *
+ * Projects attaches the router when it first paints, which is after it has read the
+ * whole library: on a first visit that read waits for a module too. Until then the
+ * view shows the boot screen, or after a navigation the route's Loading card covers
+ * the page, so a file dropped then reaches the card, not the view. The card carries
+ * DROP_STAND_IN (components/view-loading.ts), and a drop on it is held for the view in
+ * the same way (views/projects-drop.ts projectsDropDoor).
  *
  * Only file drags are taken, by the same rule the router uses. A newer drop replaces
  * the files kept from an older one, and a navigation away drops them: the person has
@@ -27,6 +34,10 @@ export function isFileDrag(e: DragEvent): boolean {
   const types = e.dataTransfer?.types;
   return !!types?.includes('Files') && !types.some(type => /^(?:text\/lolly-|application\/x-lolly-)/.test(type));
 }
+
+/** Marks an element that stands in for a view still loading, such as the route's
+ *  Loading card. A held drop on it is kept for the view, as if dropped on the view. */
+export const DROP_STAND_IN = 'data-drop-stand-in';
 
 interface Holder { files: File[] | null; stop: () => void }
 const HOLDERS = new WeakMap<HTMLElement, Holder>();
@@ -48,17 +59,22 @@ export function holdEarlyDrops(root: HTMLElement): void {
   const leave = (): void => { holder.files = null; holder.stop(); };
   previous?.stop();
   HOLDERS.set(root, holder);
-  root.addEventListener('dragover', (e) => {
+  const over = (e: DragEvent): void => {
     if (!isFileDrag(e)) return;
     e.preventDefault(); // without it the drop never fires and the browser opens the file
     if (e.dataTransfer) e.dataTransfer.dropEffect = 'copy';
-  }, { signal: ac.signal });
-  root.addEventListener('drop', (e) => {
+  };
+  const drop = (e: DragEvent): void => {
     if (!isFileDrag(e)) return;
     e.preventDefault();
     const files = [...(e.dataTransfer?.files ?? [])];
     if (files.length) holder.files = files;
-  }, { signal: ac.signal });
+  };
+  root.addEventListener('dragover', over, { signal: ac.signal });
+  root.addEventListener('drop', drop, { signal: ac.signal });
+  const onStandIn = (e: Event): boolean => e.target instanceof Element && !!e.target.closest(`[${DROP_STAND_IN}]`);
+  document.addEventListener('dragover', (e) => { if (onStandIn(e)) over(e); }, { signal: ac.signal });
+  document.addEventListener('drop', (e) => { if (onStandIn(e)) drop(e); }, { signal: ac.signal });
   for (const ev of NAV_EVENTS) window.addEventListener(ev, leave);
 }
 

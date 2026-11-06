@@ -91,7 +91,7 @@ import { chooseAddSeed, templateBulkRows, templatePickerSource, templateSessionS
 import type { TemplateActionHost } from '../lib/template-actions.ts';
 import { getSessionSource } from '../lib/session-source.ts';
 import { openRequestedTeamProject, openTeamProjects, createSharedProjectsView, type TeamProjectsDoor } from './projects-team.ts';
-import { projectsDropHooks } from './projects-drop.ts';
+import { projectsDropDoor } from './projects-drop.ts';
 import { onTeamMoveClick, teamMoveButtonHtml, wireLocalTeamDrops, type LocalProjectItem, type TeamTransferDeps } from './projects-team-transfer.ts';
 import { applyTileStates, approvalInfoRows, readSessionApprovals } from './projects-tile-state.ts';
 import type { HostV1, Profile, AssetRef } from '@lolly-tools/core/host-v1';
@@ -1239,20 +1239,11 @@ export async function mountProjects(
     attachDrops();
   }
 
-  // OS drops land here too (plans/133 WP-6): the shared chooser ingests them, and
-  // whatever the library routes stored is filed into the folder on screen. Bound to
-  // the persistent viewEl; the router tears itself down on every hashchange, which
-  // the in-place ?tools= / ?q= exits also fire WITHOUT a remount - so this is
-  // (re)attached from wire(), and attachDropRouter replaces any live attachment.
-  const dropRouter = import('../lib/drop-router.ts');
-  function attachDrops(): void {
-    void dropRouter.then((m) => {
-      if (!mounted) return;
-      const picker = host as unknown as PickerHost, refresh = async () => { if (mounted) { await reload(); render(); } }, addToFolder = (id: string, ref: string) => store.addItem(id, { type: 'image', ref }).catch(() => {});
-      m.attachDropRouter(viewEl, picker, { ...projectsDropHooks({ host: picker, folderTarget: currentFolderTarget, addToFolder, refresh, mounted: () => mounted }),
-        onStored: (ids) => { const target = currentFolderTarget(); void (async () => { if (target) for (const id of ids) await addToFolder(target, id); await refresh(); })(); } });
-    });
-  }
+  // OS drops land here too (plans/133 WP-6, projects-drop.ts): held from this point while the
+  // library loads, then routed and filed into the folder on screen. wire() attaches the router
+  // after every render, because the in-place ?tools= / ?q= exits tear it down without a remount.
+  const attachDrops = projectsDropDoor(viewEl, { host: host as unknown as PickerHost, folderTarget: () => currentFolderTarget(), mounted: () => mounted,
+    addToFolder: (id, ref) => store.addItem(id, { type: 'image', ref }).catch(() => {}), refresh: async () => { if (mounted) { await reload(); render(); } } });
 
   // (Right-click + long-press → context menu is wired once per mount by the shared
   // wireTileContextMenu above - bound to the persistent viewEl, so it survives the
