@@ -16,17 +16,29 @@ import { mountCssEditor } from '../../lib/css-code-editor.ts';
 import { escape as escapeText } from '../../utils.ts';
 import { t, tRaw } from '../../i18n.ts';
 import { SVG, icon } from '../free-canvas-icons.ts';
+import { mountEditorPanel, placeEditorPanel, stageFoot } from '../free-canvas-popover.ts';
 import { boolOf } from './shared.ts';
 import { bindOp, type FcCtx } from './context.ts';
 
-// Clamp a floating panel below-and-left of its anchor, inside the stage.
+// Clamp a floating panel below-and-left of its anchor, inside the stage and above the
+// phone layout's bottom bar (stageFoot is the stage's own foot on a wider window).
 export function positionPanelBelow(fc: FcCtx, p: HTMLElement, anchor: HTMLElement): void {
   const { stageEl } = fc;
   const ar = anchor.getBoundingClientRect(),
     sr = stageEl.getBoundingClientRect();
-  p.style.left = Math.max(6, Math.min(ar.left - sr.left, sr.width - p.offsetWidth - 8)) + 'px';
-  p.style.top =
-    Math.max(6, Math.min(ar.bottom - sr.top + 8, sr.height - p.offsetHeight - 8)) + 'px';
+  const foot = stageFoot(stageEl, sr);
+  const top = Math.max(6, Math.min(ar.bottom - sr.top + 8, foot - p.offsetHeight - 8));
+  // On the body, over a phone's sheets, the panel ends above the bar, and one that is
+  // taller than the room, or grows once it is open (rows that fill in later), scrolls
+  // instead of running off the screen.
+  if (p.classList.contains('fc-popover--viewport') && foot > 0) {
+    p.style.maxHeight = `${Math.max(0, foot - top - 8)}px`;
+    p.style.overflowY = 'auto';
+  }
+  placeEditorPanel(p, stageEl, {
+    left: Math.max(6, Math.min(ar.left - sr.left, sr.width - p.offsetWidth - 8)),
+    top,
+  });
 }
 // ── Dimensions panel: manual X / Y / W / H / rotation for ONE box ─────────────
 // Opened from the object bar's transform readout (single selection only - editing
@@ -94,15 +106,15 @@ export function openDimsPanel(fc: FcCtx, anchor: HTMLElement): void {
       });
     }
   }
-  stageEl.appendChild(p);
+  mountEditorPanel(p, anchor, stageEl);
   fc.morePanel = p;
   positionPanelBelow(fc, p, anchor);
   // Anchor the readout drops BELOW the bar (readout sits at the bar's right end).
   const ar = anchor.getBoundingClientRect(),
     sr = stageEl.getBoundingClientRect();
-  p.style.left =
-    Math.max(6, Math.min(ar.right - sr.left - p.offsetWidth, sr.width - p.offsetWidth - 8)) +
-    'px';
+  placeEditorPanel(p, stageEl, {
+    left: Math.max(6, Math.min(ar.right - sr.left - p.offsetWidth, sr.width - p.offsetWidth - 8)),
+  });
 }
 // ── Document info panel: rename the session/file + at-a-glance details ─────────
 // Custom CSS editor panel (plan 112 M4): a highlighted, auto-completing editor bound to
@@ -120,9 +132,9 @@ export function openCssPanel(fc: FcCtx, anchor: HTMLElement): void {
     `<div class="fc-css-hint">${t('Applies to the editor, exports, and presentation. Target .lolly-box, a frame with [data-frame-id], or a present state like .pr-active.')}</div>` +
     '<div class="fc-css-mount"></div>';
   p.addEventListener('pointerdown', (e) => e.stopPropagation());
-  stageEl.appendChild(p);
+  const over = mountEditorPanel(p, anchor, stageEl);
   fc.morePanel = p;
-  positionPanelBelow(fc, p, anchor);
+  if (!over) positionPanelBelow(fc, p, anchor);
   mountCssEditor(p.querySelector<HTMLElement>('.fc-css-mount')!, {
     value: current,
     ariaLabel: t('Custom CSS'),
@@ -132,6 +144,9 @@ export function openCssPanel(fc: FcCtx, anchor: HTMLElement): void {
       runtime.setInput('customCss', v);
     },
   });
+  // Over a phone's sheets the panel is placed once the editor is in it, so the room it
+  // is fitted to is measured against its real height.
+  if (over) positionPanelBelow(fc, p, anchor);
 }
 // Per-frame present `state` panel (plan 112 M4): a one-field editor for a selected
 // frame's state tokens. Commits on change (blur), not per keystroke - state has no live
@@ -147,7 +162,7 @@ export function openFrameStatePanel(fc: FcCtx, anchor: HTMLElement, frameIdx: nu
     `<div class="fc-css-hint">${t('Space-separated tokens for present mode. Stamped as data-frame-state on the frame - target them in Custom CSS, e.g. [data-frame-state~="dark"] .lolly-box { … }. Also lifted onto the presenter root while this slide is active.')}</div>` +
     `<input type="text" class="fc-fstate-input field-input" value="${fc.keys.escapeHtml(cur)}" placeholder="dark title-slide" spellcheck="false" autocomplete="off" autocapitalize="off">`;
   p.addEventListener('pointerdown', (e) => e.stopPropagation());
-  stageEl.appendChild(p);
+  mountEditorPanel(p, anchor, stageEl);
   fc.morePanel = p;
   positionPanelBelow(fc, p, anchor);
   const input = p.querySelector<HTMLInputElement>('.fc-fstate-input');
@@ -172,7 +187,7 @@ export function openBoxClassPanel(fc: FcCtx, anchor: HTMLElement, boxIdx: number
     `<div class="fc-css-hint">${t('Space-separated class names for this box (a–z, 0–9, -, _). Target them in Custom CSS, e.g. .callout { outline: 2px solid red }, on the canvas, in exports and while presenting. Names beginning lolly- pr- seq- fc- belong to the app and are dropped.')}</div>` +
     `<input type="text" class="fc-fstate-input field-input" value="${fc.keys.escapeHtml(cur)}" placeholder="callout hero" spellcheck="false" autocomplete="off" autocapitalize="off">`;
   p.addEventListener('pointerdown', (e) => e.stopPropagation());
-  stageEl.appendChild(p);
+  mountEditorPanel(p, anchor, stageEl);
   fc.morePanel = p;
   positionPanelBelow(fc, p, anchor);
   const input = p.querySelector<HTMLInputElement>('.fc-fstate-input');
@@ -196,7 +211,7 @@ export function openSpeakerNotesPanel(fc: FcCtx, anchor: HTMLElement, frameIdx: 
     `<div class="fc-css-hint">${t('Shown only in the speaker view (press S while presenting) while this slide is active. Never rendered on the slide itself.')}</div>` +
     `<textarea class="fc-notes-input field-input" rows="5" spellcheck="true" placeholder="${fc.keys.escapeHtml(t('What to say on this slide…'))}">${fc.keys.escapeHtml(cur)}</textarea>`;
   p.addEventListener('pointerdown', (e) => e.stopPropagation());
-  stageEl.appendChild(p);
+  mountEditorPanel(p, anchor, stageEl);
   fc.morePanel = p;
   positionPanelBelow(fc, p, anchor);
   const input = p.querySelector<HTMLTextAreaElement>('.fc-notes-input');
@@ -224,7 +239,7 @@ export function openMorphMatchPanel(fc: FcCtx, anchor: HTMLElement, boxIdx: numb
     `<div class="fc-css-hint">${t('Give this box and its partner on another slide the same tag; the morph slide transition then moves between them. Boxes with identical text or the same image already match on their own - the tag overrides that.')}</div>` +
     `<input type="text" class="fc-fstate-input field-input" value="${fc.keys.escapeHtml(cur)}" placeholder="hero" spellcheck="false" autocomplete="off" autocapitalize="off">`;
   p.addEventListener('pointerdown', (e) => e.stopPropagation());
-  stageEl.appendChild(p);
+  mountEditorPanel(p, anchor, stageEl);
   fc.morePanel = p;
   positionPanelBelow(fc, p, anchor);
   const input = p.querySelector<HTMLInputElement>('.fc-fstate-input');
@@ -283,7 +298,7 @@ export function openInfoPanel(fc: FcCtx, anchor: HTMLElement): void {
   p.addEventListener('pointerdown', (e) => e.stopPropagation());
   const fn = p.querySelector<HTMLInputElement>('[data-info="filename"]');
   fn?.addEventListener('input', () => info?.setFilename?.(fn!.value));
-  stageEl.appendChild(p);
+  mountEditorPanel(p, anchor, stageEl);
   fc.morePanel = p;
   positionPanelBelow(fc, p, anchor);
   // Last-edited resolves async (reads the saved session's timestamp).
@@ -609,13 +624,9 @@ export function openTextPanel(fc: FcCtx, anchor: HTMLElement): void {
     }); }
   );
   wireSegs(p, (field, v) => setField(fc, field, v));
-  stageEl.appendChild(p);
+  mountEditorPanel(p, anchor, stageEl);
   fc.morePanel = p;
-  const ar = anchor.getBoundingClientRect();
-  const sr = stageEl.getBoundingClientRect();
-  p.style.left = Math.max(6, Math.min(ar.left - sr.left, sr.width - p.offsetWidth - 8)) + 'px';
-  p.style.top =
-    Math.max(6, Math.min(ar.bottom - sr.top + 8, sr.height - p.offsetHeight - 8)) + 'px';
+  positionPanelBelow(fc, p, anchor);
 }
 export function fieldPanelsOps(fc: FcCtx) {
   return {

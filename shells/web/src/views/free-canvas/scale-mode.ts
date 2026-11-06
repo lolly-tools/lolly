@@ -20,6 +20,7 @@ import { announce } from '../../a11y.ts';
 import { t } from '../../i18n.ts';
 import { SVG, icon } from '../free-canvas-icons.ts';
 import { showSlotTool } from './shared.ts';
+import { mountEditorPanel } from '../free-canvas-popover.ts';
 import { bindOp, type FcCtx } from './context.ts';
 
 /**
@@ -305,7 +306,7 @@ export function openScalePanel(fc: FcCtx, opener: HTMLElement): void {
     }
   });
   p.addEventListener('pointerdown', (e) => e.stopPropagation());
-  fc.stageEl.appendChild(p);
+  mountEditorPanel(p, opener, fc.stageEl);
   fc.morePanel = p;
   fc.fieldPanels.positionPanelBelow(p, opener);
   field.focus();

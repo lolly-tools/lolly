@@ -60,6 +60,7 @@ import {
 } from '../../lib/rebrand/design-system.ts';
 import { buildLayoutChooser, layoutTiles } from '../../lib/slide-structures-ui.ts';
 import { archetypeThumbSvg } from './archetype-thumb.ts';
+import { mountEditorPanel, placeEditorPanel } from '../free-canvas-popover.ts';
 import { bindOp, type FcCtx } from './context.ts';
 
 /**
@@ -695,8 +696,10 @@ function placeChooser(fc: FcCtx, panel: HTMLElement, at: AnchorPoint): void {
   const dock = pxProp(stageEl, '--design-actions-h') + pxProp(stageEl, '--design-viewport-inset');
   const bar = pxProp(stageEl, '--stage-reserve-top');
   const room = Math.max(0, sr.height - dock);
-  panel.style.left = `${Math.max(6, Math.min(at.left - sr.left, sr.width - panel.offsetWidth - 8))}px`;
-  panel.style.top = `${Math.max(bar + 6, Math.min(at.bottom - sr.top + 8, room - panel.offsetHeight - 8))}px`;
+  placeEditorPanel(panel, stageEl, {
+    left: Math.max(6, Math.min(at.left - sr.left, sr.width - panel.offsetWidth - 8)),
+    top: Math.max(bar + 6, Math.min(at.bottom - sr.top + 8, room - panel.offsetHeight - 8)),
+  });
 }
 
 /** Close the panel, then do the thing the tile stands for. */
@@ -757,7 +760,7 @@ export function openArchetypePanel(
   const body = el('div', 'fc-arch-body');
   panel.append(body);
   panel.addEventListener('pointerdown', (e) => e.stopPropagation());
-  stageEl.appendChild(panel);
+  mountEditorPanel(panel, null, stageEl);
   fc.morePanel = panel;
   placeChooser(fc, panel, at);
 

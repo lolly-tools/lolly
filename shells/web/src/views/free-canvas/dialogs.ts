@@ -20,6 +20,7 @@ import { CHOREO_SHOWCASES, reflectChoreographChoice } from '../choreograph-optio
 import { wireChoreographPreview } from '../choreograph-preview.ts';
 import { HEAD_CHOICES, ROUTE_CHOICES, dashRowOn } from './shared.ts';
 import type { ConfirmAsk, ImportMode, NumberAsk, SvgLayerPlan, SvgSourceBox } from './shared.ts';
+import { mountEditorPanel, placeAtPoint, placeEditorPanel } from '../free-canvas-popover.ts';
 import { bindOp, type FcCtx } from './context.ts';
 import { offerMotionDurations } from '../motion-durations.ts';
 import { ensureMotionTokens } from '../../lib/motion-tokens.ts';
@@ -240,12 +241,14 @@ export function openStrokePanel(fc: FcCtx, anchor: HTMLElement): void {
   p.querySelectorAll<HTMLSelectElement>('select[data-sp-route]').forEach((sel) =>
     { sel.addEventListener('change', () => fc.fieldPanels.setField(cfg.routeField, sel.value)); }
   );
-  stageEl.appendChild(p);
+  mountEditorPanel(p, anchor, stageEl);
   fc.morePanel = p;
   const ar = anchor.getBoundingClientRect();
   const sr = stageEl.getBoundingClientRect();
-  p.style.left = Math.min(ar.left - sr.left, Math.max(0, sr.width - p.offsetWidth - 8)) + 'px';
-  p.style.top = ar.bottom - sr.top + 8 + 'px';
+  placeEditorPanel(p, stageEl, {
+    left: Math.min(ar.left - sr.left, Math.max(0, sr.width - p.offsetWidth - 8)),
+    top: ar.bottom - sr.top + 8,
+  });
 }
 export function askNumber(fc: FcCtx, ask: NumberAsk): void {
   const { stageEl } = fc;
@@ -283,13 +286,9 @@ export function askNumber(fc: FcCtx, ask: NumberAsk): void {
     e.stopPropagation();
     go();
   });
-  stageEl.appendChild(p);
+  mountEditorPanel(p, null, stageEl);
   fc.morePanel = p;
-  const sr = stageEl.getBoundingClientRect();
-  p.style.left =
-    Math.max(6, Math.min(ask.at.x - sr.left, Math.max(6, sr.width - p.offsetWidth - 6))) + 'px';
-  p.style.top =
-    Math.max(6, Math.min(ask.at.y - sr.top, Math.max(6, sr.height - p.offsetHeight - 6))) + 'px';
+  placeAtPoint(p, stageEl, ask.at.x, ask.at.y);
   inp.focus();
   inp.select();
 }
@@ -334,14 +333,11 @@ export function askConfirm(fc: FcCtx, ask: ConfirmAsk): void {
     fc.document.closeMorePanel();
     settle(false);
   });
-  stageEl.appendChild(p);
-  observer.observe(stageEl, { childList: true });
+  mountEditorPanel(p, null, stageEl);
+  // Whichever parent took it: over a phone's sheets that is the body, not the stage.
+  observer.observe(p.parentElement!, { childList: true });
   fc.morePanel = p;
-  const sr = stageEl.getBoundingClientRect();
-  p.style.left =
-    Math.max(6, Math.min(ask.at.x - sr.left, Math.max(6, sr.width - p.offsetWidth - 6))) + 'px';
-  p.style.top =
-    Math.max(6, Math.min(ask.at.y - sr.top, Math.max(6, sr.height - p.offsetHeight - 6))) + 'px';
+  placeAtPoint(p, stageEl, ask.at.x, ask.at.y);
   p.querySelector<HTMLButtonElement>('[data-confirm-yes]')!.focus();
 }
 /**
@@ -407,12 +403,14 @@ export function askImportPages(fc: FcCtx, pages: number | null): Promise<ImportM
         );
       });
     });
-    stageEl.appendChild(p);
-    observer.observe(stageEl, { childList: true });
+    mountEditorPanel(p, null, stageEl);
+    observer.observe(p.parentElement!, { childList: true });
     fc.morePanel = p;
     const sr = stageEl.getBoundingClientRect();
-    p.style.left = Math.max(6, Math.round((sr.width - p.offsetWidth) / 2)) + 'px';
-    p.style.top = Math.max(6, Math.round((sr.height - p.offsetHeight) / 2)) + 'px';
+    placeEditorPanel(p, stageEl, {
+      left: Math.max(6, Math.round((sr.width - p.offsetWidth) / 2)),
+      top: Math.max(6, Math.round((sr.height - p.offsetHeight) / 2)),
+    });
     (p.querySelector<HTMLButtonElement>('.btn--primary') ?? p).focus();
   });
 }
@@ -544,15 +542,9 @@ export function askLiftLayers(fc: FcCtx): void {
   // a live region that was already in the tree.
   const msgEl = p.querySelector<HTMLElement>('[data-lift-msg]')!;
   const bodyEl = p.querySelector<HTMLElement>('[data-lift-body]')!;
-  stageEl.appendChild(p);
+  mountEditorPanel(p, null, stageEl);
   fc.morePanel = p;
-  const sr = stageEl.getBoundingClientRect();
-  p.style.left =
-    Math.max(6, Math.min(fc.lastMenuAt.x - sr.left, Math.max(6, sr.width - p.offsetWidth - 6))) +
-    'px';
-  p.style.top =
-    Math.max(6, Math.min(fc.lastMenuAt.y - sr.top, Math.max(6, sr.height - p.offsetHeight - 6))) +
-    'px';
+  placeAtPoint(p, stageEl, fc.lastMenuAt.x, fc.lastMenuAt.y);
   // At OPEN, synchronously, on the gesture that asked for it - so the dialog's name
   // and its reading sentence are what gets read, and every later focus move is a move
   // WITHIN a surface the user is already in rather than a jump out of one they left.
@@ -936,15 +928,9 @@ export function askChoreograph(fc: FcCtx): void {
     `<button type="button" class="btn btn--sm" data-choreo-no>${escapeText(t('Cancel'))}</button>` +
     `<button type="button" class="btn btn--primary btn--sm" data-choreo-yes>${escapeText(t('Choreograph'))}</button>` +
     '</div>';
-  stageEl.appendChild(p);
+  mountEditorPanel(p, null, stageEl);
   fc.morePanel = p;
-  const sr = stageEl.getBoundingClientRect();
-  p.style.left =
-    Math.max(6, Math.min(fc.lastMenuAt.x - sr.left, Math.max(6, sr.width - p.offsetWidth - 6))) +
-    'px';
-  p.style.top =
-    Math.max(6, Math.min(fc.lastMenuAt.y - sr.top, Math.max(6, sr.height - p.offsetHeight - 6))) +
-    'px';
+  placeAtPoint(p, stageEl, fc.lastMenuAt.x, fc.lastMenuAt.y);
   // At OPEN, synchronously, on the gesture that asked for it - askLiftLayers' rule, and
   // the reason the dialog's own name is what a screen reader is given first.
   p.focus();
