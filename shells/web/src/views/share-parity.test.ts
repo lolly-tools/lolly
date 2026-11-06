@@ -159,3 +159,10 @@ test('color-palette retains a long custom contrast list in content links', { ski
   assert.ok(query);
   assert.equal(parseUrlState(query, paletteManifest).values.lcTargets, long);
 });
+
+test('the export password is never read into the address or a copied link', () => {
+  const body = fnBody('collectExportParams');
+  assert.doesNotMatch(body, /password=|pdf-password/, 'this list becomes the address bar and the share link');
+  assert.doesNotMatch(fnBody('writeAddress'), /password=|\.password\b|pdf-password/);
+  assert.doesNotMatch(fnBody('buildShareParams'), /password=|\.password\b|pdf-password/);
+});

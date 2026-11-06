@@ -166753,6 +166753,192 @@ var init_export_wait = __esm({
   }
 });
 
+// packages/node-shell/src/export-lock.ts
+import { createHash as createHash6 } from "node:crypto";
+function standardPdfPasswordIsTypable(password) {
+  return /^[\x20-\x7e]+$/.test(password);
+}
+function exportPasswordRefusal(format, o = {}) {
+  const fmt6 = String(format).toLowerCase();
+  if (fmt6 === "pdf-cmyk") {
+    return 'A password cannot lock a "pdf-cmyk" export on this route, so nothing was written. Ask for "pdf", or use the Strong lock in the web export panel, which covers Print PDFs.';
+  }
+  if (!LOCKABLE_FORMATS.has(fmt6)) {
+    return `A "${fmt6}" file cannot carry a password, so nothing was written. Ask for "pdf" or "zip", or leave the password out.`;
+  }
+  if (fmt6 === "pdf" && (o.bleed || o.marks)) {
+    return 'A password cannot be combined with bleed or print marks on a "pdf" here, so nothing was written. Leave one out, or use the Strong lock in the web export panel.';
+  }
+  if (fmt6 === "pdf" && o.password && !standardPdfPasswordIsTypable(o.password)) {
+    return "A standard PDF password can use only plain ASCII letters, digits and punctuation, so nothing was written. Other characters give a file that readers cannot open. Choose an ASCII password, or use the Strong lock in the web export panel.";
+  }
+  return null;
+}
+function md5(...parts) {
+  const hash = createHash6("md5");
+  for (const part of parts) hash.update(part);
+  return new Uint8Array(hash.digest());
+}
+function rc4(key2, data) {
+  const s = new Uint8Array(256);
+  for (let i = 0; i < 256; i++) s[i] = i;
+  for (let i = 0, j = 0; i < 256; i++) {
+    j = j + s[i] + key2[i % key2.length] & 255;
+    const t = s[i];
+    s[i] = s[j];
+    s[j] = t;
+  }
+  const out = new Uint8Array(data.length);
+  for (let n7 = 0, i = 0, j = 0; n7 < data.length; n7++) {
+    i = i + 1 & 255;
+    j = j + s[i] & 255;
+    const t = s[i];
+    s[i] = s[j];
+    s[j] = t;
+    out[n7] = data[n7] ^ s[s[i] + s[j] & 255];
+  }
+  return out;
+}
+function revision2Opens(password, o, u, p, id3) {
+  const padded = new Uint8Array(32);
+  const bytes2 = Buffer.from(password, "latin1").subarray(0, 32);
+  padded.set(bytes2);
+  padded.set(PDF_PAD.subarray(0, 32 - bytes2.length), bytes2.length);
+  const permissions = new Uint8Array(4);
+  new DataView(permissions.buffer).setInt32(0, p, true);
+  return sameBytes2(rc4(md5(padded, o.subarray(0, 32), permissions, id3).subarray(0, 5), PDF_PAD), u.subarray(0, 32));
+}
+async function revision6Opens(password, u) {
+  const hash = await hashR6(preparePassword(password), u.subarray(32, 40));
+  return sameBytes2(hash, u.subarray(0, 32));
+}
+async function readPdfLock(bytes2, password) {
+  const { PDFDocument: PDFDocument5, PDFDict: PDFDict8, PDFName: PDFName8, PDFNumber: PDFNumber5, PDFArray: PDFArray9, PDFHexString: PDFHexString3, PDFString: PDFString3 } = await import("pdf-lib");
+  const doc = await PDFDocument5.load(bytes2, { ignoreEncryption: true, updateMetadata: false, throwOnInvalidObject: false });
+  const dict = doc.context.lookup(doc.context.trailerInfo.Encrypt);
+  if (!(dict instanceof PDFDict8)) return { locked: false, opens: false, scheme: null };
+  const number11 = (key2) => {
+    const value2 = dict.lookup(PDFName8.of(key2));
+    return value2 instanceof PDFNumber5 ? value2.asNumber() : null;
+  };
+  const text13 = (key2) => {
+    const value2 = dict.lookup(PDFName8.of(key2));
+    return value2 instanceof PDFHexString3 || value2 instanceof PDFString3 ? value2.asBytes() : null;
+  };
+  const revision = number11("R");
+  const u = text13("U");
+  const o = text13("O");
+  const p = number11("P");
+  const ids2 = doc.context.lookup(doc.context.trailerInfo.ID);
+  const first = ids2 instanceof PDFArray9 ? ids2.lookup(0) : null;
+  const id3 = first instanceof PDFHexString3 || first instanceof PDFString3 ? first.asBytes() : new Uint8Array(0);
+  if (revision === 2 && u && o && p !== null) {
+    try {
+      return { locked: true, opens: revision2Opens(password, o, u, p, id3), scheme: "40-bit RC4" };
+    } catch {
+      return { locked: true, opens: null, scheme: "40-bit RC4" };
+    }
+  }
+  if (revision === 6 && u) return { locked: true, opens: await revision6Opens(password, u), scheme: "AES-256" };
+  return { locked: true, opens: null, scheme: revision === null ? "an unknown handler" : `revision ${revision}` };
+}
+function zipEveryEntryEncrypted(bytes2) {
+  const view = new DataView(bytes2.buffer, bytes2.byteOffset, bytes2.byteLength);
+  let end = -1;
+  for (let i = bytes2.length - 22; i >= Math.max(0, bytes2.length - 22 - 65535); i--) {
+    if (view.getUint32(i, true) === 101010256) {
+      end = i;
+      break;
+    }
+  }
+  if (end < 0) return false;
+  const count4 = view.getUint16(end + 10, true);
+  if (count4 === 0) return false;
+  let at = view.getUint32(end + 16, true);
+  for (let n7 = 0; n7 < count4; n7++) {
+    if (at + 46 > bytes2.length || view.getUint32(at, true) !== 33639248) return false;
+    if ((view.getUint16(at + 8, true) & 1) === 0) return false;
+    at += 46 + view.getUint16(at + 28, true) + view.getUint16(at + 30, true) + view.getUint16(at + 32, true);
+  }
+  return true;
+}
+async function readExportLock(bytes2, password) {
+  const head2 = Buffer.from(bytes2.subarray(0, 1024)).toString("latin1");
+  if (head2.includes("%PDF-")) return readPdfLock(bytes2, password);
+  if (head2.startsWith("PK")) {
+    return { locked: zipEveryEntryEncrypted(bytes2), opens: null, scheme: "ZIP encryption" };
+  }
+  return { locked: false, opens: false, scheme: null };
+}
+async function assertExportLocked(bytes2, format, password) {
+  let reading;
+  try {
+    reading = await readExportLock(bytes2, password);
+  } catch {
+    throw new Error(`The "${format}" could not be read back to confirm its password, so it was not delivered.`);
+  }
+  if (!reading.locked) throw new Error(`The "${format}" came back without its password, so it was not delivered.`);
+  if (reading.opens === false) throw new Error(`The "${format}" came back locked with a different password, so it was not delivered.`);
+  return reading;
+}
+async function exposeExportPassword(context, password) {
+  let held = password || void 0;
+  if (!held) return () => {
+  };
+  await context.exposeBinding("__lollyTakeExportSecret", (_source, kind) => {
+    if (kind !== "pdf-password") return null;
+    const value2 = held ?? null;
+    held = void 0;
+    return value2;
+  });
+  return () => {
+    held = void 0;
+  };
+}
+var LOCKABLE_FORMATS, PDF_PAD, sameBytes2;
+var init_export_lock = __esm({
+  "packages/node-shell/src/export-lock.ts"() {
+    "use strict";
+    init_src2();
+    LOCKABLE_FORMATS = /* @__PURE__ */ new Set(["pdf", "zip"]);
+    PDF_PAD = Uint8Array.from([
+      40,
+      191,
+      78,
+      94,
+      78,
+      117,
+      138,
+      65,
+      100,
+      0,
+      78,
+      86,
+      255,
+      250,
+      1,
+      8,
+      46,
+      46,
+      0,
+      182,
+      208,
+      104,
+      62,
+      128,
+      47,
+      12,
+      169,
+      254,
+      100,
+      83,
+      105,
+      122
+    ]);
+    sameBytes2 = (a, b) => a.length === b.length && a.every((v, i) => v === b[i]);
+  }
+});
+
 // packages/node-shell/src/asset-bytes.ts
 import { readFile as readFile4 } from "node:fs/promises";
 import { fileURLToPath as fileURLToPath3 } from "node:url";
@@ -167540,7 +167726,7 @@ __export(content_inventory_exports, {
   mediaFileName: () => mediaFileName,
   readContentInventory: () => readContentInventory
 });
-import { createHash as createHash6 } from "node:crypto";
+import { createHash as createHash7 } from "node:crypto";
 import { readFile as readFile6, stat as stat2 } from "node:fs/promises";
 import { join as join9 } from "node:path";
 async function inventoryXmlParser() {
@@ -167559,9 +167745,9 @@ function mediaFileName(sha2563, mime2) {
   return `${sha2563}.${MIME_EXT2[mime2.toLowerCase()] ?? "bin"}`;
 }
 function sha256Hex4(bytes2) {
-  return createHash6("sha256").update(bytes2).digest("hex");
+  return createHash7("sha256").update(bytes2).digest("hex");
 }
-function sameBytes2(a, b) {
+function sameBytes3(a, b) {
   if (a.length !== b.length) return false;
   for (let i = 0; i < a.length; i++) if (a[i] !== b[i]) return false;
   return true;
@@ -167734,7 +167920,7 @@ async function readContentInventory(input) {
       seen.add(item2.path);
       const there = await existing(item2.path, input.mediaDir);
       if (there === null) toWrite.push(item2);
-      else if (sameBytes2(there, item2.bytes)) reused.push(item2.path);
+      else if (sameBytes3(there, item2.bytes)) reused.push(item2.path);
       else if (input.force) toWrite.push(item2);
       else conflicts.push(item2.path);
     }
@@ -167827,7 +168013,7 @@ __export(design_lolly_exports, {
   packageTime: () => packageTime,
   stampZipTimes: () => stampZipTimes
 });
-import { createHash as createHash7 } from "node:crypto";
+import { createHash as createHash8 } from "node:crypto";
 import { readdir as readdir2, readFile as readFile7 } from "node:fs/promises";
 import { join as join10 } from "node:path";
 function mediaHashPrefixOfKey(key2) {
@@ -168307,7 +168493,7 @@ var init_design_lolly = __esm({
     init_lolly_file();
     init_pipeline();
     record38 = (v) => !!v && typeof v === "object" && !Array.isArray(v);
-    sha256Hex5 = (bytes2) => createHash7("sha256").update(bytes2).digest("hex");
+    sha256Hex5 = (bytes2) => createHash8("sha256").update(bytes2).digest("hex");
     plural5 = (n7, one, many = `${one}s`) => `${n7} ${n7 === 1 ? one : many}`;
     MEDIA_REF_RE = /^user\/media\/([0-9a-f]{64})$/;
     HASH_KEY_RE = /^[a-z][a-z0-9+.-]*:([0-9a-f]{8,64})$/i;
@@ -171262,7 +171448,7 @@ __export(canvas_exports, {
   pictureName: () => pictureName,
   sniffImageMime: () => sniffImageMime
 });
-import { createHash as createHash10 } from "node:crypto";
+import { createHash as createHash11 } from "node:crypto";
 import { createRequire as createRequire3 } from "node:module";
 function registerCatalogFonts(mod) {
   if (fontsRegistered) return;
@@ -171303,7 +171489,7 @@ function hostedDecodeLimits() {
 function refuse3(limits, pic, record47, message) {
   limits.refusals?.push(message);
   if (limits.refused) {
-    const key2 = createHash10("sha256").update(pic.bytes).digest("hex");
+    const key2 = createHash11("sha256").update(pic.bytes).digest("hex");
     const seen = limits.refused.find((r5) => r5.key === key2 && r5.limit === record47.limit);
     if (!seen) limits.refused.push({ ...record47, key: key2, ...pic.source ? { source: pic.source } : {} });
     else if (!seen.source && pic.source) seen.source = pic.source;
@@ -176626,7 +176812,7 @@ async function resolveSigningIdentity(input = {}) {
   const derivedSpki = new Uint8Array(
     createPublicKey(keyObject).export({ format: "der", type: "spki" })
   );
-  if (!sameBytes3(derivedSpki, leaf.spki)) {
+  if (!sameBytes4(derivedSpki, leaf.spki)) {
     throw new SigningIdentityError(
       `The signing key at ${keySource} does not match the leaf certificate in ${certSource}: the key's public half is not the certificate's subject public key. They are from different enrolments. Re-export the pair together, and make sure the chain file has the LEAF certificate first.`,
       "SIGN_KEY_CERT_MISMATCH"
@@ -176682,7 +176868,7 @@ async function resolveSigningIdentity(input = {}) {
 function describe3(c) {
   return c.subject.commonName || c.subject.organization || "an unnamed certificate";
 }
-function sameBytes3(a, b) {
+function sameBytes4(a, b) {
   if (a.length !== b.length) return false;
   for (let i = 0; i < a.length; i++) if (a[i] !== b[i]) return false;
   return true;
@@ -177811,7 +177997,6 @@ function exportUrl2(base, toolId, query2, fmt6, dims) {
     p.set("unit", unit2);
     p.set("dpi", String(dims.dpi || 300));
   }
-  if (dims.password) p.set("password", dims.password);
   if (dims.bleed) p.set("bleed", dims.bleed);
   if (dims.marks) p.set("marks", dims.marks);
   if (dims.imprint === false) p.set("imprint", "0");
@@ -178052,7 +178237,10 @@ async function renderViaChromiumShell(toolId, query2, format, dims = {}) {
   const browser = await getBrowser();
   const ctx = await browser.newContext({ serviceWorkers: "block", acceptDownloads: true });
   let waiting;
+  let clearPassword = () => {
+  };
   try {
+    clearPassword = await exposeExportPassword(ctx, dims.password);
     const page3 = await ctx.newPage();
     const route = forwardedExportRoute();
     if (route) await page3.addInitScript(([key2, value2]) => {
@@ -178086,11 +178274,18 @@ async function renderViaChromiumShell(toolId, query2, format, dims = {}) {
     throw withDebugLog(err, `${toolId}.${format}`, debug);
   } finally {
     waiting?.dispose();
+    clearPassword();
     await ctx.close();
   }
 }
 async function renderViaWebShell(toolId, query2, format, dims = {}) {
   const preference = rendererPreference();
+  if (dims.password) {
+    if (preference === "desktop") {
+      throw new DesktopRendererError("LOLLY_RENDERER=desktop cannot lock a file: the desktop renderer has no private way to take a password. Nothing was written. Use LOLLY_RENDERER=chromium or auto.");
+    }
+    return renderViaChromiumShell(toolId, query2, format, dims);
+  }
   const toolUrl = exportUrl2("https://lolly.tools", toolId, query2, format, dims);
   const { result } = await renderThroughRungs(preference, {
     runningServer: () => readRenderServer(),
@@ -178479,6 +178674,7 @@ var init_webshell_render = __esm({
     init_repo_root();
     init_content_roots();
     init_export_wait();
+    init_export_lock();
     init_shell_startup();
     init_open_session();
     init_open_session();
@@ -179105,7 +179301,7 @@ var init_forensic2 = __esm({
 });
 
 // packages/node-shell/src/check.ts
-import { createHash as createHash11 } from "node:crypto";
+import { createHash as createHash12 } from "node:crypto";
 function fidelityNote(compared) {
   const excepted = compared.fidelity.excepted?.length ?? 0;
   return (excepted ? ` ${excepted === 1 ? "1 string is recorded as a deliberate edit" : `${excepted} strings are recorded as deliberate edits`} (excepted, not passed).` : "") + (compared.complete ? "" : " The comparison stopped at one of its limits, so the family is partial (see fidelity.coverage.partial).");
@@ -180121,7 +180317,7 @@ var init_check = __esm({
       const n7 = typeof v === "string" && v.trim() !== "" ? Number(v) : v;
       return typeof n7 === "number" && Number.isFinite(n7) ? n7 : fallback;
     };
-    sha2562 = (bytes2) => createHash11("sha256").update(bytes2).digest("hex");
+    sha2562 = (bytes2) => createHash12("sha256").update(bytes2).digest("hex");
     zero = () => ({ error: 0, warn: 0, info: 0 });
     familyState = (state, reason2) => ({
       state,
@@ -181777,6 +181973,7 @@ function needsBrowserTier(err) {
 init_webgpu_launch();
 init_production_browser();
 init_export_wait();
+init_export_lock();
 init_open_session();
 import { readFile as readFile28, stat as stat5 } from "node:fs/promises";
 import { existsSync as existsSync16 } from "node:fs";
@@ -182040,7 +182237,7 @@ import { zipSync as zipSync2 } from "fflate";
 init_src2();
 init_repo_root();
 import { readFile as readFile8 } from "node:fs/promises";
-import { createHash as createHash8 } from "node:crypto";
+import { createHash as createHash9 } from "node:crypto";
 import { join as join12 } from "node:path";
 
 // packages/node-shell/src/press-separation.ts
@@ -182064,7 +182261,7 @@ function bundledPressSeparation() {
     if (error2.code !== "ENOENT") throw error2;
     return readFile8(join12(repoRoot(), "packages/node-shell/icc", BUNDLED_PRESS_PROFILE.file));
   }).then((bytes2) => {
-    if (createHash8("sha256").update(bytes2).digest("hex") !== BUNDLED_PRESS_PROFILE.sha256) return null;
+    if (createHash9("sha256").update(bytes2).digest("hex") !== BUNDLED_PRESS_PROFILE.sha256) return null;
     const profile2 = parseIccProfile(new Uint8Array(bytes2));
     return profile2 ? iccSeparation(profile2) : null;
   }).catch(() => null);
@@ -182978,7 +183175,7 @@ function loadAudioDspKernel() {
 import { Worker as Worker3 } from "node:worker_threads";
 import { existsSync as existsSync8 } from "node:fs";
 import { fileURLToPath as fileURLToPath6 } from "node:url";
-import { createHash as createHash9 } from "node:crypto";
+import { createHash as createHash10 } from "node:crypto";
 
 // packages/rondo/src/limits.ts
 var RONDO_LIMITS = Object.freeze({
@@ -183228,7 +183425,7 @@ function runWorker2(job, caps, timeoutMs, limitText) {
   });
 }
 var secondsText = (ms) => ms < 1e4 ? (ms / 1e3).toFixed(1) : String(Math.round(ms / 1e3));
-var digestOf = (song) => createHash9("sha256").update(`${song.lang}\0${song.code}`).digest("hex");
+var digestOf = (song) => createHash10("sha256").update(`${song.lang}\0${song.code}`).digest("hex");
 var copyOf2 = (k) => ({
   ...k,
   channels: [k.channels[0].slice(), k.channels[1].slice()],
@@ -183246,7 +183443,7 @@ async function renderRondoSong(song, opts = {}) {
     throw new RondoAudioError(`This host renders songs up to ${maxSeconds} s long; ${seconds3} s was asked for.`, "rondo.limits.seconds");
   }
   const key2 = `${digestOf(song)}|${seconds3 ?? "natural"}|${maxSeconds}`;
-  const sourceDigest = createHash9("sha256").update(rondoSourceBytes(song)).digest("hex");
+  const sourceDigest = createHash10("sha256").update(rondoSourceBytes(song)).digest("hex");
   const report4 = (k, cached2) => ({
     sampleRate: k.sampleRate,
     channels: k.channels,
@@ -188486,6 +188683,12 @@ async function readBackCredential(bytes2, setting, deliveredFormat) {
     return { asked, holds: "unread", days: null, selfSigned: false };
   }
 }
+function lockText(lock) {
+  if (!lock) return "";
+  const how = lock.opens ? "opens with the password you gave, read back from the file" : "is encrypted, read back from the file";
+  const weak = lock.scheme === "40-bit RC4" ? " That is a deterrent, not protection for confidential files." : "";
+  return `Password: this file ${how} (${lock.scheme}).${weak}`;
+}
 function credentialText(readback) {
   if (!readback) return "";
   const { asked, holds: holds3, days, selfSigned } = readback;
@@ -188928,20 +189131,6 @@ function exportUrl(base, toolId, query2, fmt6, o) {
   const tmpl = process.env.LOLLY_TOOL_URL_TEMPLATE || `${base}/#/tool/{id}?{query}`;
   return tmpl.replace("{id}", encodeURIComponent(toolId)).replace("{query}", q);
 }
-async function exposeExportPassword(context, password) {
-  let held = password || void 0;
-  if (!held) return () => {
-  };
-  await context.exposeBinding("__lollyTakeExportSecret", (_source, kind) => {
-    if (kind !== "pdf-password") return null;
-    const value2 = held ?? null;
-    held = void 0;
-    return value2;
-  });
-  return () => {
-    held = void 0;
-  };
-}
 async function renderTierB(toolId, query2, fmt6, o) {
   return withBrowserJob(async () => {
     const base = await webShellBase();
@@ -188962,7 +189151,7 @@ async function renderTierB(toolId, query2, fmt6, o) {
       await ctx.addInitScript(() => {
         Object.defineProperty(globalThis, "__LOLLY_AI_DISABLED__", { value: true, writable: false, configurable: false });
       });
-      clearPassword = await exposeExportPassword(ctx, fmt6 === "pdf" ? o.password : void 0);
+      clearPassword = await exposeExportPassword(ctx, o.password);
       const page3 = await ctx.newPage();
       const inputIds = o.production === void 0 ? [] : parseProductionSpec(o.production).requirements.filter((r5) => r5.kind === "input").map((r5) => r5.location);
       const observeInputs = await observeProductionInputs(page3, toolId, inputIds);
@@ -189105,7 +189294,7 @@ async function render(toolId, query2, o = {}) {
     if (error2 instanceof Error) Object.assign(error2, { attempts: run3.attempts.map((a) => a.report) });
     throw error2;
   }
-  return { bytes: last.bytes, mime: last.mime, format: last.format, tier: last.tier, warnings: last.warnings, ...last.rights ? { rights: last.rights } : {}, ...last.audio ? { audio: last.audio } : {}, ...last.audioFailures ? { audioFailures: last.audioFailures } : {}, ...last.songs ? { songs: last.songs } : {}, ...last.designRecord ? { designRecord: last.designRecord } : {}, ...last.intentRecord ? { intentRecord: last.intentRecord } : {}, ...last.credential ? { credential: last.credential } : {}, production: last.report, productionAttempts: run3.attempts.map((a) => a.report) };
+  return { bytes: last.bytes, mime: last.mime, format: last.format, tier: last.tier, warnings: last.warnings, ...last.rights ? { rights: last.rights } : {}, ...last.audio ? { audio: last.audio } : {}, ...last.audioFailures ? { audioFailures: last.audioFailures } : {}, ...last.songs ? { songs: last.songs } : {}, ...last.designRecord ? { designRecord: last.designRecord } : {}, ...last.intentRecord ? { intentRecord: last.intentRecord } : {}, ...last.credential ? { credential: last.credential } : {}, ...last.lock ? { lock: last.lock } : {}, production: last.report, productionAttempts: run3.attempts.map((a) => a.report) };
 }
 async function renderCandidate(toolId, query2, o = {}) {
   const { value: value2, runs: runs2, failures } = await withAudioScope(o.rondo, () => renderCandidateBytes(toolId, query2, o));
@@ -189158,8 +189347,9 @@ async function renderCandidateBytes(toolId, query2, o = {}) {
   const canvasSize = canvasSizeOf(merged.width, merged.height, merged.unit || "px");
   const emoji = { emoji: st.emoji, emojifx: st.emojiFx, emojistyle: st.emojiStyle };
   const warnings2 = [];
-  if (merged.password && exportFmt === "pdf-cmyk") {
-    warnings2.push('Password is not applied for pdf-cmyk - the returned PDF is not protected. Use format "pdf" for an open-password.');
+  if (merged.password) {
+    const refusal3 = exportPasswordRefusal(exportFmt, { password: merged.password, bleed: st.bleed, marks: st.marks });
+    if (refusal3) throw new RenderError(refusal3);
   }
   const productionContract = o.production === void 0 ? void 0 : parseProductionSpec(o.production);
   let out;
@@ -189229,6 +189419,14 @@ async function renderCandidateBytes(toolId, query2, o = {}) {
     }
   }
   let bytes2 = out.bytes;
+  let lock = null;
+  if (merged.password) {
+    try {
+      lock = await assertExportLocked(out.bytes, deliveredFormat, merged.password);
+    } catch (error2) {
+      throw new RenderError(error2.message);
+    }
+  }
   if (out.tier.startsWith("B") && !evaluation && carriesEmojiParams(q)) {
     try {
       const census = await emojiCensus(toolId, values, exportFmt, profile2, emoji, st.tokenSelection, canvasSize);
@@ -189273,7 +189471,8 @@ async function renderCandidateBytes(toolId, query2, o = {}) {
     ...designRecord ? { designRecord } : {},
     ...finished.intentRecord ? { intentRecord: finished.intentRecord } : {},
     ...credentialFromIntent ? { credentialFromIntent } : {},
-    ...finished.credential ? { credential: finished.credential } : {}
+    ...finished.credential ? { credential: finished.credential } : {},
+    ...lock ? { lock } : {}
   };
 }
 async function rightsResult(evaluation, bytes2) {
@@ -194642,7 +194841,7 @@ init_design_brief2();
 
 // packages/node-shell/src/token-report.ts
 init_src2();
-import { createHash as createHash12 } from "node:crypto";
+import { createHash as createHash13 } from "node:crypto";
 var TOKEN_REPORT_LIMITS = Object.freeze({
   /** Rows a token list returns when the caller gives no limit. */
   listDefault: 50,
@@ -194667,7 +194866,7 @@ var TokenReportError = class extends Error {
 };
 var clampWhole = (value2, fallback, min, max) => typeof value2 === "number" && Number.isFinite(value2) ? Math.min(max, Math.max(min, Math.trunc(value2))) : fallback;
 function tokenRevision(doc) {
-  return `sha256:${createHash12("sha256").update(canonicalJson(doc ?? null)).digest("hex")}`;
+  return `sha256:${createHash13("sha256").update(canonicalJson(doc ?? null)).digest("hex")}`;
 }
 function storedTokenChoices(doc) {
   return resolveTokenSelection(doc, {}).choices;
@@ -196281,7 +196480,7 @@ init_src2();
 init_src();
 init_file_v1();
 init_design_lolly();
-import { createHash as createHash13 } from "node:crypto";
+import { createHash as createHash14 } from "node:crypto";
 
 // schemas/design-package-v1.schema.json
 var design_package_v1_schema_default = {
@@ -196786,7 +196985,7 @@ async function callPackage(args, resolveDesign, env = process.env, limits = stru
       } catch (err) {
         throw new ToolCodeError("input.unsupported", `The compiled document could not be packaged: ${err instanceof Error ? err.message : String(err)}`);
       }
-      const sha2563 = createHash13("sha256").update(packed2.bytes).digest("hex");
+      const sha2563 = createHash14("sha256").update(packed2.bytes).digest("hex");
       const name2 = "document.lolly";
       const structured = { legacy: true, manifest: packed2.manifest, bytes: packed2.bytes.byteLength, sha256: sha2563 };
       const block2 = { type: "resource", resource: { uri: resourceUri2("package", sha2563, name2), mimeType: LOLLY_MIME2, blob: Buffer.from(packed2.bytes).toString("base64") } };
@@ -196851,7 +197050,7 @@ function isFileTransform(manifest) {
 // services/mcp/src/result-files.ts
 init_file_v1();
 init_delivery_v1();
-import { createHash as createHash14, createHmac, randomUUID as randomUUID3 } from "node:crypto";
+import { createHash as createHash15, createHmac, randomUUID as randomUUID3 } from "node:crypto";
 import { mkdtemp as mkdtemp4, readFile as readFile33, writeFile as writeFile7, unlink, rm as rm6 } from "node:fs/promises";
 import { tmpdir as tmpdir5 } from "node:os";
 import { join as join34 } from "node:path";
@@ -196863,7 +197062,7 @@ var ENTRY_LIMIT = 200;
 var PATH_PATTERN = /^\/api\/mcp\/files\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 function bearerPrincipal(header) {
   const bearer = /^Bearer\s+(.+)$/i.exec(header ?? "")?.[1]?.trim();
-  return bearer ? createHash14("sha256").update(bearer).digest("hex") : null;
+  return bearer ? createHash15("sha256").update(bearer).digest("hex") : null;
 }
 function privateFileScopeEnabled(env) {
   return env.LOLLY_MCP_PRIVATE_FILES === "1" && !!env.LOLLY_MCP_TOKEN?.trim() && !env.VERCEL && (env.LOLLY_MCP_REPLICAS === void 0 || env.LOLLY_MCP_REPLICAS === "1");
@@ -196925,7 +197124,7 @@ var ResultFiles = class {
       this.directory ??= mkdtemp4(join34(tmpdir5(), "lolly-mcp-results-"));
       file = join34(await this.directory, id3);
       await writeFile7(file, bytes2, { flag: "wx", mode: 384 });
-      const digest2 = createHash14("sha256").update(bytes2).digest("hex");
+      const digest2 = createHash15("sha256").update(bytes2).digest("hex");
       const dt = await signDeliveryToken({ v: 1, kid: "mcp1", exp: expires, cls: "person-private" }, path, { canonicalHost: base.host, subject: owner3 }, await this.key(base.host, secret));
       const filename = safeFileName(name);
       this.entries.set(id3, { owner: owner3, path, file, expires, size: bytes2.byteLength, sha256: digest2, mime: /^[\w.+-]+\/[\w.+-]+(?:;[\x20-\x7e]*)?$/.test(mime2) ? mime2 : "application/octet-stream", name: filename });
@@ -196954,7 +197153,7 @@ var ResultFiles = class {
     const status = await verifyDeliveryToken(token2, path, { canonicalHost: host, cls: "person-private", pattern: PATH_PATTERN, subject: owner3, maxSkewSec: 0 }, /* @__PURE__ */ new Map([["mcp1", await this.key(host, secret)]]), Math.floor(this.now() / 1e3));
     if (status !== "ok") return null;
     const bytes2 = await readFile33(entry2.file);
-    if (bytes2.byteLength !== entry2.size || createHash14("sha256").update(bytes2).digest("hex") !== entry2.sha256) throw new Error("Private result integrity check failed.");
+    if (bytes2.byteLength !== entry2.size || createHash15("sha256").update(bytes2).digest("hex") !== entry2.sha256) throw new Error("Private result integrity check failed.");
     if (entry2.expires <= Math.floor(this.now() / 1e3)) return null;
     return { bytes: bytes2, mime: entry2.mime, name: entry2.name, etag: `"${entry2.sha256}"` };
   }
@@ -197301,7 +197500,10 @@ var TOOL_DEFS = [
           enum: ["off", "7", "30", "90", "365"],
           description: 'Content Credentials for this file. "off": none, on every format. A number: this server stamps one with that certificate lifetime in days. Left out, a browser-free render has none and a browser-tier render (PDF, or a tool laid out in HTML) keeps the one the web shell stamps. When you pass it, the result says what the file holds, read back from the file.'
         },
-        password: { type: "string", description: "Open-password for standard PDF export (never logged)." },
+        password: {
+          type: "string",
+          description: 'Open password for a "pdf" or "zip" (40-bit RC4 on a PDF, ZipCrypto on a ZIP: a deterrent, not protection for confidential files). Never logged and never put in a URL. The file is read back and the result says so. Any other format, a PDF with bleed or marks, or a non-ASCII PDF password fails the call with no file.'
+        },
         link: { type: "boolean", description: "Also return the editable lolly.tools link (default true)." },
         ...RENDER_INTENT_ARGS
       },
@@ -197652,6 +197854,15 @@ function verifyText(name, report4, headline) {
   }
   return lines.join("\n");
 }
+function renderPassword(args) {
+  if (typeof args.query === "string" && new URLSearchParams(args.query.replace(/^[^?]*\?/, "")).has("password")) {
+    throw new Error("Pass the password in the password argument, not in a query. Nothing was written.");
+  }
+  const value2 = args.password;
+  if (value2 === void 0 || value2 === null) return void 0;
+  if (typeof value2 !== "string") throw new Error("password must be a string.");
+  return value2;
+}
 function c2paSetting(v) {
   if (v === void 0 || v === null) return null;
   const s = String(v).toLowerCase();
@@ -197840,7 +198051,7 @@ ${links.renderUrl ?? "(unavailable)"}${check2}`);
           colorProfile: args.colorProfile,
           transparentBg: args.transparentBg,
           convertPaths: args.convertPaths,
-          password: args.password,
+          password: renderPassword(args),
           c2pa: c2paSetting(args.c2pa),
           ...args.c2pa !== void 0 && args.c2pa !== null ? { c2paAsked: true } : {},
           maxRasterPixels: maxRasterPixelsFor(process.env, isHostedServer()),
@@ -197882,7 +198093,9 @@ Rights: ${result.rights.status}` + result.rights.issues.map((issue2) => `
           // back from the delivered file. It says plainly when the prompt is in the file.
           intentRecordText(!intended ? null : intended.optedOut ? { state: "not-recorded", reason: "opted-out" } : result.intentRecord ?? { state: "not-recorded", reason: "not-confirmed" }, result.credentialFromIntent === true),
           // What an explicit `c2pa` asked for and what the delivered file holds.
-          credentialText(result.credential)
+          credentialText(result.credential),
+          // The password lock, read back from the delivered file.
+          lockText(result.lock)
         ].filter(Boolean).join("\n");
         const content2 = [{ type: "text", text: header }];
         if (holdResult && result.bytes.byteLength > RESULT_LINK_THRESHOLD) {
@@ -198271,7 +198484,7 @@ init_file_operation_v1();
 init_file_v1();
 import { open as open2 } from "node:fs/promises";
 import { basename as basename4 } from "node:path";
-import { createHash as createHash15 } from "node:crypto";
+import { createHash as createHash16 } from "node:crypto";
 
 // packages/core/src/image-operation-v1.ts
 var DEFAULT_IMAGE_OPTIONS = { maxEdge: 0, quality: 0.92, background: "#ffffff" };
@@ -198415,7 +198628,7 @@ async function describeOperationFile(file, signal) {
   const format = detected === "jpg" ? "jpeg" : detected ?? file.name.split(".").pop()?.toLowerCase() ?? "unknown";
   const jxl = isJxl(bytes2) ? (await runJxl({ operation: "probe", bytes: bytes2 }, signal)).info : void 0;
   const dimensions = jxl ? { w: jxl.width, h: jxl.height } : imageDimensions(bytes2, file.type);
-  return { name: file.name, format, formatSource: detected ? "detected" : "declared", mime: mime[format] ?? (file.type || "application/octet-stream"), size: file.size, sha256: createHash15("sha256").update(bytes2).digest("hex"), ...dimensions ? { width: dimensions.w, height: dimensions.h } : {} };
+  return { name: file.name, format, formatSource: detected ? "detected" : "declared", mime: mime[format] ?? (file.type || "application/octet-stream"), size: file.size, sha256: createHash16("sha256").update(bytes2).digest("hex"), ...dimensions ? { width: dimensions.w, height: dimensions.h } : {} };
 }
 async function runNodeFileOperation(file, request3, signal, execution = "device") {
   return executeFileOperationV1(file, request3, {
@@ -199021,10 +199234,10 @@ async function dispatch(req, context = {}) {
 
 // services/mcp/src/render-get.ts
 init_src2();
-import { createHash as createHash17 } from "node:crypto";
+import { createHash as createHash18 } from "node:crypto";
 
 // services/mcp/src/rate-limit.ts
-import { createHash as createHash16 } from "node:crypto";
+import { createHash as createHash17 } from "node:crypto";
 var RateLimitUnavailableError = class extends Error {
   code = "rate-limit-unavailable";
   constructor(message = "Durable rate limiter is unavailable") {
@@ -199157,7 +199370,7 @@ function createRateLimiter(env, namespace3 = "mcp", onWrite) {
   return new MemoryRateLimiter();
 }
 function digestKey(namespace3, scope2, subject) {
-  return createHash16("sha256").update(namespace3).update("\0").update(scope2).update("\0").update(subject).digest("hex");
+  return createHash17("sha256").update(namespace3).update("\0").update(scope2).update("\0").update(subject).digest("hex");
 }
 function normalizeRestUrl(raw) {
   let url;
@@ -199589,6 +199802,7 @@ async function renderGet(path, query2, opts) {
     return errorResponse(400, "Invalid packed render query.");
   }
   const params2 = new URLSearchParams(expanded);
+  if (params2.has("password")) return errorResponse(400, "This route cannot lock a file, so nothing was rendered. Take the password out of the address, and use lolly_render, the CLI or the export panel for a locked PDF or ZIP.");
   const dimErr = dimensionError(params2, pngRequested);
   if (dimErr) return errorResponse(400, dimErr);
   const themes = params2.get("_themes");
@@ -199626,10 +199840,10 @@ async function renderGet(path, query2, opts) {
   for (const key2 of dropped) params2.delete(key2);
   const sorted = new URLSearchParams(params2);
   sorted.sort();
-  const etag = `"${createHash17("sha256").update(`${ENGINE_VERSION}|${index2.version}|${index2.generatedAt}|${match.toolId}.${fmt6}?${sorted.toString()}`).digest("hex").slice(0, 32)}"`;
+  const etag = `"${createHash18("sha256").update(`${ENGINE_VERSION}|${index2.version}|${index2.generatedAt}|${match.toolId}.${fmt6}?${sorted.toString()}`).digest("hex").slice(0, 32)}"`;
   const cacheHeaders = {
     ...deliveryHeaders("public-bounded", { tokenBearing: true }),
-    "cache-tag": renderTags([tag("x", "public-bounded"), tag("t", match.toolId), tag("e", ENGINE_VERSION.toLowerCase()), tag("c", createHash17("sha256").update(`${index2.version}|${index2.generatedAt}`).digest("hex").slice(0, 12))], "comma"),
+    "cache-tag": renderTags([tag("x", "public-bounded"), tag("t", match.toolId), tag("e", ENGINE_VERSION.toLowerCase()), tag("c", createHash18("sha256").update(`${index2.version}|${index2.generatedAt}`).digest("hex").slice(0, 12))], "comma"),
     vary: "Accept-Encoding",
     etag,
     "x-robots-tag": "noindex"
@@ -199718,7 +199932,7 @@ function renderFailure(e) {
 }
 
 // services/mcp/src/image-proxy.ts
-import { createHash as createHash18 } from "node:crypto";
+import { createHash as createHash19 } from "node:crypto";
 init_delivery_v1();
 var PATH_RE2 = /\/fetch-image$/;
 function matchImageProxyPath(path) {
@@ -199826,13 +200040,13 @@ async function proxyImage(reqUrl, opts) {
     if (name === "TimeoutError" || name === "AbortError") return errorResponse2(504, "That address took too long to answer.");
     return errorResponse2(502, `Couldn't fetch that URL: ${e.message}`);
   }
-  const etag = `"${createHash18("sha256").update(bytes2).digest("hex")}"`;
+  const etag = `"${createHash19("sha256").update(bytes2).digest("hex")}"`;
   const headers = {
     "content-type": rawType,
     ...deliveryHeaders(privateResponse ? "person-private" : "public-bounded", { boundedAgeSec: cacheAge, tokenBearing: true }),
     etag,
     vary: "Accept-Encoding",
-    ...!privateResponse ? { "cache-tag": renderTags([tag("x", "public-bounded"), tag("u", createHash18("sha256").update(parsed.toString()).digest("hex").slice(0, 12))], "comma") } : {},
+    ...!privateResponse ? { "cache-tag": renderTags([tag("x", "public-bounded"), tag("u", createHash19("sha256").update(parsed.toString()).digest("hex").slice(0, 12))], "comma") } : {},
     "content-security-policy": "sandbox",
     "x-content-type-options": "nosniff",
     "content-disposition": "inline",
@@ -200113,7 +200327,7 @@ function errorPage(message) {
 }
 
 // services/mcp/src/gateway.ts
-import { createHash as createHash19 } from "node:crypto";
+import { createHash as createHash20 } from "node:crypto";
 
 // services/mcp/src/admission-namespace.ts
 function admissionNamespace(env) {
@@ -200481,7 +200695,7 @@ function createGateway(env = process.env, options2 = {}) {
         return;
       }
       const auth = String(req.headers["authorization"] || "anonymous");
-      const principal = open3 ? `ip:${clientIp(req, env)}` : createHash19("sha256").update(auth).digest("hex");
+      const principal = open3 ? `ip:${clientIp(req, env)}` : createHash20("sha256").update(auth).digest("hex");
       const refusal3 = await limited2(limiter, "mcp", principal, positiveInt(env.LOLLY_MCP_RPM, open3 ? 60 : 120));
       if (refusal3) return send(res, refusal3);
       const spent = await overBudget(budget3);

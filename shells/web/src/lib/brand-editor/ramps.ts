@@ -7,9 +7,10 @@
  * a value (an event listener), goes through `bedit.<module>.<fn>`. Extracted verbatim
  * from mountBrandEditor() by scripts/split-closure.ts.
  */
-import { colorToHex } from '@lolly/engine';
+import { colorToHex, colourRoleTable } from '@lolly/engine';
 import { leadTokenSet } from '../design-system/leads.ts';
 import { paletteHtml } from '../design-system/palette-view.ts';
+import type { RoleTile } from '../design-system/palette-view.ts';
 import { paletteOrder } from '../design-system/palette-order.ts';
 import { paletteGroups } from '../design-system/palette-groups.ts';
 import { RAMP_IDS, getExcludedSwatches, getSwatchPrintOverride, primaryAnchorPath, walkSwatches } from '../brand-doc.ts';
@@ -17,7 +18,7 @@ import type { BrandSwatch, PrintLock } from '../brand-doc.ts';
 import { t } from '../../i18n.ts';
 import { segHtml } from '../seg.ts';
 import { colourBeat } from '../design-system/beats.ts';
-import { ROLE_IDS, readRoles, roleLabel } from '../design-system/roles.ts';
+import { roleTargets } from '../design-system/role-targets.ts';
 import { RAMP_LABEL, starterId } from './shared.ts';
 import type { CurveMarks } from './shared.ts';
 import { bindOp, type BrandEditorCtx } from './context.ts';
@@ -77,12 +78,19 @@ export const roleGlyphsNow = (bedit: BrandEditorCtx): Map<string, string> => {
     const set = leadTokenSet(bedit.doc, bedit.state.editContext());
     resolve = (key: string) => set.resolve(key);
   } catch { /* unresolvable doc - no marks rather than wrong ones */ }
-  const held = readRoles(bedit.doc, bedit.state.editContext(), resolve);
-  for (const role of ROLE_IDS) {
-    const ref = held[role]?.ref;
-    if (ref && !out.has(ref)) out.set(ref, roleLabel(role));
+  for (const target of roleTargets(bedit.doc, bedit.state.editContext(), resolve)) {
+    if (target.ref && !out.has(target.ref)) out.set(target.ref, target.label);
   }
   return out;
+};
+/** The design system's own colour roles as palette tiles, in this colourway and look. */
+export const roleTilesNow = (bedit: BrandEditorCtx): RoleTile[] => {
+  const { lead, mode } = bedit.state.editContext();
+  const table = colourRoleTable(bedit.doc, lead);
+  return table.rows.filter(row => row.role.declared).map(row => ({
+    roleId: row.role.id, label: row.role.label, mode,
+    hex: row.cells.find(c => c.mode === mode)?.hex ?? '',
+  }));
 };
 export const repaintPalette = (bedit: BrandEditorCtx): void => {
   const { palMount, paletteHooks } = bedit;
@@ -112,7 +120,7 @@ export const repaintPalette = (bedit: BrandEditorCtx): void => {
     );
     const closed = foldOf(false), opened = foldOf(true);
     palMount.innerHTML = paletteHtml(bedit.swatches, bedit.starterSwatches, {
-      roles: roleGlyphsNow(bedit), starterGroup: bedit.revealedStarterGroup,
+      roles: roleGlyphsNow(bedit), roleTiles: roleTilesNow(bedit), starterGroup: bedit.revealedStarterGroup,
       groups: paletteGroups(bedit.doc), order: paletteOrder(bedit.doc), hidden: excluded.size,
     });
     if (closed.size || opened.size) {

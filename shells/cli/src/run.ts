@@ -38,6 +38,7 @@ import type { SigningIdentity } from '@lolly-tools/node-shell/signing-identity';
 import { catalogFile, readAssetIndex, readToolManifest, readToolText } from '@lolly-tools/node-shell/content-roots';
 // Fail loud: never write a degenerate file + exit 0 when the render silently failed.
 import { assertRenderOk } from '@lolly-tools/node-shell/render-integrity';
+import { assertExportLocked, exportPasswordRefusal } from '@lolly-tools/node-shell/export-lock';
 // Fail loud, part two: refuse bytes that are demonstrably not the requested container
 // (headless Chromium has no AV1 encoder, so an --export=avif used to write PNG).
 import { assertFormatBytes, sniffFormat, formatAllows } from '@lolly-tools/node-shell/format-sniff';
@@ -516,6 +517,9 @@ async function runToolCliCandidate({ toolId, inputValues, params, repeated = {},
     // `--link-password` is the unambiguous form and always wins.
     const explicit = params['link-password'];
     rawQuery = await decryptLinkQuery(rawQuery, explicit ?? params.password, explicit === undefined);
+    if (explicit === undefined && params.password) {
+      note('Note: --password opened the encrypted link, so it does not lock the exported file. To lock the file too, pass --link-password for the link and --password for the file.');
+    }
   }
   // Expand a packed `z=…` param back into a plain query - the CLI is URL mode under a
   // different transport, so a packed share link must run identically here
@@ -930,6 +934,13 @@ async function runToolCliCandidate({ toolId, inputValues, params, repeated = {},
     // Copy the VIEW (not `.buffer`): the browser tier hands back a Uint8Array whose
     // backing buffer may be larger than the file, and `.buffer` would write the slack.
     let buf = Buffer.from(bytes);
+    // A utility decides for itself what it does with a password, and most do nothing, so
+    // the bytes answer. `compress-pdf --password=x` used to exit 0 with an unlocked PDF.
+    if (password) {
+      await assertExportLocked(bytes, tool.manifest.id, password).catch(() => {
+        throw refused(`"${tool.manifest.id}" did not lock this file, so nothing was written. Leave --password out, or use the utility's own lock option if it has one.`, 'PASSWORD_NOT_APPLIED');
+      });
+    }
     // WITHOUT --output, a transform streams to stdout like every other path in this
     // shell (contract section 11: the CLI guide, now docs/cli-files.md, always said
     // so; the code instead wrote `<name>-clean.svg` into the working directory and
@@ -1435,6 +1446,10 @@ async function runToolCliCandidate({ toolId, inputValues, params, repeated = {},
     if ((bleed || marksRaw) && !canCarryPrintPrep(targetFormat)) {
       throw unavailableHere(printPrepRefusal(targetFormat), 'PRINT_PREP_UNAVAILABLE');
     }
+    // A password this file cannot carry is the same class of failure with a worse ending:
+    // an unlocked file somebody then sends on, believing the lock is there.
+    const passwordRefusal = password ? exportPasswordRefusal(targetFormat, { password, bleed, marks: marksRaw }) : null;
+    if (passwordRefusal) throw refused(passwordRefusal, 'PASSWORD_UNAVAILABLE');
 
     // AN HDR STILL AND A DURABLE CREDENTIAL CANNOT BOTH BE PRODUCED HERE, and the
     // silent answer would be worse than either. `--hdr=1` now routes png/jpg through
@@ -1558,7 +1573,7 @@ async function runToolCliCandidate({ toolId, inputValues, params, repeated = {},
       // rather than failed, which is a large part of why a Tier-B failure reads as
       // "the browser tier is broken". Both closes no-op when nothing was started.
       if (REAL_RENDER_FAILURES.has((e as Error)?.name)) { await teardownTierB(); throw e; }
-      if (sampled || motionBlur || sequenceRange || !htmlFallback || finalFormat === 'html') { await teardownTierB(); throw exportFailure(targetFormat, e as Error, domFreeError); }
+      if (sampled || motionBlur || sequenceRange || password || !htmlFallback || finalFormat === 'html') { await teardownTierB(); throw exportFailure(targetFormat, e as Error, domFreeError); }
       const blob = await runtime.export(canvas, 'html', {});
       buf = Buffer.from(await blob.arrayBuffer());
       assertRenderOk({ hookErrors: runtime.hookErrors, format: 'html', bytes: buf });
@@ -1699,6 +1714,14 @@ async function runToolCliCandidate({ toolId, inputValues, params, repeated = {},
   // Reported from the FINISHED bytes, after the stamp above, so "credits
   // included" is a reading of the file and not a claim about the intention.
   await reportRights(runtime, buf, finalFormat, rights, wantC2pa && C2PA_FORMATS.includes(finalFormat));
+
+  // Last, before any of it reaches a report or a file: the bytes hold the lock, or the
+  // run fails with nothing written. A capture tool and a browser-tier render both end here.
+  if (password) {
+    await assertExportLocked(new Uint8Array(buf), finalFormat, password).catch((error: Error) => {
+      throw refused(error.message, 'PASSWORD_NOT_APPLIED');
+    });
+  }
 
   // The export report (plan 203 rank 12): each property this run asked for beside the
   // value read back from these finished bytes, after the last byte operation above.
