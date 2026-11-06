@@ -103,6 +103,15 @@ export interface DesignSystemRecord {
   importedFonts?: string[];
   /** Last observed catalogue metadata; never inferred from a newly selected connection. */
   catalog?: { origin?: string; version?: string; checksum?: string; available: boolean };
+  /** An editing copy of what an instance serves, ready to send back to that instance. */
+  instanceEdit?: {
+    /** The instance base this copy belongs to, '' when the web app is served by that instance. */
+    instance: string;
+    host: string;
+    sourceId: string;
+    /** The sha256 of the document this copy last matched on the instance. */
+    servedDigest: string;
+  };
   createdAt: number;
   lastUsedAt: number;
 }

@@ -31,8 +31,9 @@ A member's local edit in Lolly stays on their device. Opening the editor does no
 anything to the server, and removing a local copy does not remove mounted files, other members'
 copies, sessions or uploads.
 
-Lolly Work has no colourway setting of its own. It serves the selected source's tokens as they are,
-and server renders and their evidence do not record a colourway.
+Lolly Work has no colourway setting of its own. It serves the selected source's tokens, with any
+[edit on this instance](#edit-this-instance-from-the-studio) on top, and server renders and their
+evidence do not record a colourway.
 
 ### Offer a second design system
 
@@ -105,13 +106,110 @@ lw brand preview stop-download download > download-review.json
 lw brand apply download-review.json
 ```
 
+## Edit this instance from the studio
+
+Someone with `brand.edit` can change this instance's colours, colour roles and brand page address
+in Lolly and send the result. Lolly Work serves it with no pack rebuild, no redeploy and no terminal.
+Admins and owners hold `brand.edit`, and so does the `brand-manager` role
+([Roles and grants](permissions.md#roles)).
+
+1. Open the design system in Lolly. A managed system stays read-only, and this person also sees
+   **Edit for** this instance. Anyone else sees the system as before.
+2. Lolly opens an editing copy in the ordinary studio. One line says what reaches the instance.
+3. Change what you need, then choose **Send to** this instance, in the line or in **Versions**.
+4. Lolly shows what changes before anything is sent.
+
+**What an edit can change.** Colours, colourways, colour roles and their bindings, and the brand
+page address. A document that changes anything else is refused, and the answer says what changed.
+Type, logos, tools and anything else still go through the source: edit the mounted source, build
+and validate the catalogue, build the signed release and pack, redeploy every replica, upload a new
+signed connect pack, review rule mappings again and republish the brand page. Changes in the copy
+that an edit cannot carry stay on your device, and the sheet says so.
+
+Each send is an immutable revision with a digest, who sent the revision and when. **This Deploy →
+Design system** shows whether the instance is serving an edit, the history, what each revision
+changed, and a rollback. Sends, going live, rollbacks and changes to the switches below are in the
+[audit trail](audit.md).
+
+**What reaches members.** People get an edit at their next catalogue sync. A web app served by this
+instance checks again on focus and reconnect, as it does for any design-system change. A tool someone
+has open keeps their work and shows a notice, and the new colours appear the next time a tool opens
+after that sync. Server renders use the edit at once.
+
+**What does not change until the next image.** Previews and social cards are pictures made when the
+release was built, so they keep their old colours until the next image.
+
+### The two switches
+
+Both start off, and both need `policy.edit`. Neither is required: how you review your work, and who
+does it, stays yours.
+
+- **Edits need approval before they go live.** An edit waits for the chain you pick, in the
+  [approvals inbox](approvals.md). A reviewer sees what changed, and a decision applies to that exact digest.
+  A person must make the request, so a service token gets `403 HUMAN_APPROVAL_REQUIRED`. With this off,
+  an edit goes live when it is sent.
+- **After a new image, ask someone to look at this instance's edits.** The edit stays live meanwhile.
+  People who hold `brand.edit` get a message and can keep the edit or roll it back. With this off, the
+  console shows a quiet note and nobody is asked.
+
+### After a new image
+
+An edit records the tokens the image held when the edit was made. A new image with the same tokens changes nothing.
+When the tokens differ, the edit's changes apply to the new document:
+
+- **The edit stays on top.** The new image's other changes come through, and the console shows a quiet
+  note. If the image and the edit changed the same thing, the note lists that, and the edit wins.
+- **An edit that can no longer apply is not half applied.** If something it changes has gone, such as a
+  colour, a colour role or an alias target, Lolly Work serves the new image's own tokens, whole. The console
+  lists what has gone, and people who hold `brand.edit` get a message whichever way the switch is set.
+  The revision stays in the history. Send a new edit, or choose **Clear this edit**.
+- **A stored edit that cannot be read** serves the image's own colours, and the console says so. The edit
+  comes back when storage can be read.
+
+### Rolling back
+
+**Roll back this edit** drops the edit, and the image's own colours are served again exactly as
+they were. No approval is needed. **Go back to this** on an earlier revision sends what that revision
+changed again, on today's image, as a new revision, so a chain still decides. The catalogue's signed
+sequence only ever rises, so clients accept a rollback.
+
+### What apps get
+
+| App | Instance | With an edit live |
+|---|---|---|
+| The web app this instance serves | any | Verified with this instance's key. Refreshes on focus and reconnect. |
+| A desktop or mobile app built with this instance's key | any | Verified the same way. |
+| A store desktop or mobile app connected by address | signing with its own key | Refuses this instance's catalogue, with or without an edit, because the app keeps its built-in key. See [Operations](operations.md). Pairing an app with a server, which is planned, is the later fix. |
+| An app holding this design system as a hosted record | open, or signed in | Gets the edit at its next check, at most daily, or from **Check for updates**. |
+| An app holding this design system as a hosted record | gated, not signed in | Stays on the old colours and shows that an update is waiting. |
+
+A hosted record reads the catalogue over this route only when no connect pack is offered. Nothing signs
+that route, so Lolly compares the tokens with the catalogue's checksum and the record no longer reads as verified.
+
+### Edits and the connect download
+
+A connect pack holds a copy of the tokens, so the pack you uploaded no longer matches once an edit is
+live. Offering that pack would put the old colours back on every device that imports the pack.
+
+- **A pack this instance's key signed** carries the edit in a derived copy: the token document changes,
+  Lolly Work signs the result with the same key and every other part keeps its bytes. The pack you uploaded is
+  kept. A derived copy is made only when an edit goes live, never for one awaiting approval, and a
+  rollback brings your pack back.
+- **Any other pack, or an instance with no signing key,** is not offered while an edit is live: new apps
+  cannot download a pack until the edit is rolled back or a new pack is uploaded. The studio shows that line
+  before a send, and the console shows it afterwards. Rollback is a button in the console. **Fleet** can upload a pack, but
+  building one from the edited document needs the pack builder.
+
+Lolly Work never re-signs a pack its own key did not sign, because that would make an app accept a pack it refuses today.
+
 ## Downloads for connected apps
 
 Build instance packs with Lolly's `scripts/build-instance-pack.ts`. Lolly Work checks the instance
 address and the opaque tokens document against the selected source, and keeps the uploaded
 archive bytes exactly as they are: signed bytes are never rewritten. Verifying the signature is
 the importing client's job, and Lolly Work's `signed` flag only reports that `pack.sig` is present.
-Unsigned uploads are allowed only in development mode.
+Unsigned uploads are allowed only in development mode. Under a live edit, a pack may hold either the
+image's own tokens or the edited ones ([Edits and the connect download](#edits-and-the-connect-download)).
 
 - Changing the default withdraws a download bound to another source or source revision. Upload a
   matching pack before offering downloads again.
@@ -150,7 +248,8 @@ are refused.
 
 Mappings belong to one source. They bind the mounted source and tool manifest digests, and commit
 with an audit event through the brand-state compare-and-swap; they never rewrite the guide or the
-tool manifest. A source or mapped manifest change needs a new review. Unchanged earlier packs
+tool manifest. A source or mapped manifest change needs a new review. An edit on this instance does
+not, because an edit cannot change the rules or the tools. Unchanged earlier packs
 without a guide keep their previous behaviour, and future guide versions are kept with unknown
 required coverage.
 
@@ -191,7 +290,8 @@ the source.
 `profiles.json`, or the older `brands/<name>/catalog` layout. The canonical Lolly resolver handles
 content profiles, shared asset roots and tool overlays. Lolly Work creates private temporary views and
 never rewrites the mounted catalog or its `.lolly-profile` marker. Mounted files do not change for
-the lifetime of the process: validate and redeploy all replicas after changing their contents.
+the lifetime of the process: validate and redeploy all replicas after changing their contents. An edit
+lives in PostgreSQL and the blob store, not in the mounted files, so it reaches every replica at once.
 
 The durable decision is separate from the deployment's boot default. Migration
 `0037_brand_state.sql` stores the active source, retired sources, download suppression, a

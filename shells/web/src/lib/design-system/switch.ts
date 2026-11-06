@@ -79,8 +79,10 @@ export interface SwitchOptions {
 /** The instance a record wants as the base: hosted, or carried by an instance
  *  pack loaded from a file. Ordinary local/file systems want none. */
 export function instanceOf(record: DesignSystemRecord): string {
+  // An editing copy keeps its instance: leaving a hosted system for one must not
+  // disconnect the instance it is going to be sent to.
   return record.source.kind === 'hosted' ? record.source.instance
-    : record.source.kind === 'file' ? record.source.instance ?? '' : '';
+    : record.source.kind === 'file' ? record.source.instance ?? '' : record.instanceEdit?.instance ?? '';
 }
 
 export async function switchDesignSystem(host: SwitchHost, id: string, opts: SwitchOptions = {}): Promise<SwitchResult> {
