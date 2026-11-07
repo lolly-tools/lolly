@@ -51,3 +51,21 @@ test('eps-cmyk keeps its bytes with --spots=process, since EPS has no named plat
     rmSync(dir, { recursive: true, force: true });
   }
 });
+
+test('lolly preflight counts the plates the file will have: no spot plate with --spots=process', async () => {
+  const counts = async (extra: string[]): Promise<Record<string, number>> => {
+    const { stdout } = await run(process.execPath, [entry, 'preflight', 'qr-code', '--url=https://lolly.tools', '--export=pdf-cmyk', '--json', ...extra], { env });
+    const report = JSON.parse(stdout).result as { counts: { kind: string; value: number }[] };
+    return Object.fromEntries(report.counts.filter((c) => c.kind.endsWith('Plates')).map((c) => [c.kind, c.value]));
+  };
+  const off = await counts([]);
+  assert.equal(off.processPlates, 4);
+  assert.ok((off.spotPlates ?? 0) > 0, 'Lolly Demo declares spot inks, so the default counts spot plates');
+  for (const flag of ['--spots=process', '--_spots=process']) {
+    assert.deepEqual(await counts([flag]), { processPlates: 4 }, flag);
+  }
+  await assert.rejects(
+    run(process.execPath, [entry, 'preflight', 'qr-code', '--url=https://lolly.tools', '--export=pdf-cmyk', '--spots=keep'], { env }),
+    (error: { code?: number; stderr?: string }) => error.code === 2 && /spots/.test(error.stderr ?? ''),
+  );
+});
