@@ -6,7 +6,7 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
-## 1.333.0
+## 1.336.0
 
 - Guest-mark checks (Lolly Work plan 82, M8). New module `partner-kit-check.ts`, in the barrel: `checkGuestMarks(boxes, kit, measure)` measures a Design document's partner marks, the image layers whose asset is one of the kit's logos by id, against the kit's rules. Minimum size: the mark's drawn height in export pixels and, on a document in a physical unit, in millimetres (`units.ts` at the document's unit and dpi; a contained logo is measured where it is drawn when its aspect is known). Clear space: any visible layer overlapping the mark inflated by the kit's mark-height value, except a layer that holds the whole mark, which is its background; two kit marks check each other. Treatment: a mark recoloured by a photo treatment or an icon theme is one colour, else full colour, and a mark whose nearest holding layer beneath is a picture sits on a photo. Reversed use is reported as not measured.
 - `BrandFinding.kind` gains `mark`, with the optional `rule`, `message`, `expected`, `company` and `related` fields. A `mark` finding is always `status: 'review'` and carries no fix: sizing a mark is the person's call, and nothing blocks an export, a render or a save. In a check report its code is `brand.mark.<rule>` (`checkFindingFromBrand`), a warning.
@@ -14,11 +14,28 @@ Moved verbatim from the comment block that used to live in `src/index.ts`.
 - `checkBrandDesign` takes an optional `guest: { colours, assets }` (`BrandCheckGuestOpts`): a layer painted in a kit colour, opaque or as a scrim, or drawing a kit logo, counts as compared and is never flagged against the lead brand. `lolly check --kit` passes the kit's colours and logo ids. Without the option every finding is unchanged.
 - No other module changes behaviour. An older app shows no row for a `mark` finding rather than a wrong one.
 
-## 1.332.0
+## 1.335.0
 
 - Partner kits (Lolly Work plan 82, M8; plan 334 M2a). `partner-kit-v1` is a partner company's logos pinned by asset version, up to 12 colours in closed roles (`primary`, `secondary`, `accent`, `text`, `surface`) and optional placement rules: clear space in mark-height units, a minimum size in px, mm or both, and the treatments the partner allows (`colour`, `mono`, `reverse`, `on-photo`). A kit carries no fonts, no themes and no token document, so it is never a design system, and its JSON is 64 KB at most. The types, the closed lists and every bound live in the SDK (`@lolly-tools/core/partner-kit-v1`, SDK 1.7.0), with `schemas/partner-kit-v1.schema.json` mirrored into `packages/core/schema/`.
 - New module `partner-kit.ts`, in the barrel: `checkPartnerKit(json)` reads a kit from its text or a value and says why it refused one (`kit.json`, `kit.too-large`, `kit.schema`, `kit.logo-duplicate`); `readPartnerKit(json)` returns the kit or null; `partnerKitLogoIds(kit)` lists the logo asset ids. `partnerKitColoursFromTokens(doc)` proposes the light look's primary, secondary and accent from a DTCG document, and `partnerKitColoursFromInks(colours)` proposes colours from an SVG logo's inks (`extractSvgColors`). Neither proposes a rule.
 - Additive only. No module that exists changes behaviour, and nothing reads a kit yet.
+
+## 1.334.0
+
+- The design-system record gains the partner a piece was made for (Lolly Work plans/82 M3, approved by Andy on 2026-11-07). `ExportMeta.partner` (SDK, optional, new `ExportPartner`) holds the partner company (id, name, details revision) and programme (id, name). The runtime takes it from the host through `runtime.setPartner()` and gives it back through `runtime.partner()`, so a second runtime that exports the same document (the web shell's multi-page Design export) records the same partner. An export records it under the record's one switch: the card's "Design system" box, `_madewith` and `--no-madewith` leave it out with the rest.
+- Written exactly as approved. The credential's `environment` gets `partnerCompany`, `partnerCompanyLabel`, `partnerProfileRevision`, `partnerProgramme` and `partnerProgrammeLabel`. XMP and SVG metadata get the matching `lolly:Partner*` properties. The PDF keywords get one `Partner: <company>` entry. The description does not change. Nothing about the person, a contact's email or phone, an address or a currency is ever written.
+- `partnerRecord` shape-checks a partner on the way in and on the way back (ids as Lolly Work writes them, labels up to 200 characters, the revision a positive whole number) and drops a part that does not hold. `readDesignRecord` and `readDesignRecordXml` read the partner back. `designRecordWords` adds "Partner: Northwind IT (Resellers, EMEA)", and `partnerFactWords` gives Verify's "Northwind IT, Resellers, EMEA programme, details revision 3". All three are exported from the barrel with `partnerWords`.
+- `madeWithPreview` now answers for a host with a partner and no design system. With no partner set, every writer keeps its bytes.
+
+## 1.333.0
+
+- `url-mode.ts`: a reserved link parameter in the `_` namespace, `_text`, read into `UrlState.text` by `parseTextSetting` (new, exported with its type `TextSetting`). Only `outline` (any case, trimmed) does anything: an EMF export draws its text as outlines, the export panel's Outline fonts box, and a run no font can outline goes in as a picture. Absent, or any other value, keeps live EMF text records. Added to `RESERVED`. The CLI's browser tier sends it for `--export=emf --text=outline`.
+- `emfLiveTextRecords(bytes)` (new, `emf.ts`, not on the barrel): how many `EMR_EXTTEXTOUTW` records an EMF holds, walking the records by their own sizes; 0 for outlined or pictured text and for bytes that are not an EMF. The CLI reads it to warn only when a browser tier that predates `_text` wrote live text.
+- No other module changes, and no file's bytes change without `_text=outline`.
+
+## 1.332.0
+
+- `preflight.ts`: the CMYK TIFF (`cmyk-tiff`) and EPS (CMYK) (`eps-cmyk`) write the four process plates and nothing else, since a spot ink goes in as its process build and a finish as its black mask (`buildCmykPaletteMap`). For those two formats `plates.spot-ceiling`, `plates.finish-ceiling` and `plates.no-spots-declared` are no longer emitted, so no `spotPlates` or `finishPlates` count is taken, with spot inks as process or not. `plates.process` says where the inks went ("This format has no named plates, so the 3 spot inks print as process and add no plates.") and lists them in its evidence. A finish keeps its `print.finish-flattened-into-process` error. `pdf-cmyk` is unchanged in every finding and count.
 
 ## 1.331.0
 

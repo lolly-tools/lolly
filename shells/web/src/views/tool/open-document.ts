@@ -21,6 +21,7 @@ import { resolveBackTarget } from '../../components/back-pill.ts';
 import { takeOpenIntent } from '../../lib/open-intent.ts';
 import { onTextLayoutDone, textLayoutsDone } from '../../lib/text-layout-progress.ts';
 import { dismissJob, startJob } from '../../lib/jobs.ts';
+import { holdViewInput } from '../../lib/view-input.ts';
 import { navigateTo } from '../../nav.ts';
 import { t } from '../../i18n.ts';
 import type { ToolViewCtx } from './context.ts';
@@ -77,10 +78,15 @@ export function begin(tview: ToolViewCtx, slot: string | null): void {
   const tracker = trackLayouts(tview);
   trackers.set(tview, tracker);
   let handedOff = false;
+  // The card is modal, so the editor under it takes no input until the card goes. The
+  // router waits for this before it announces the tool and moves focus into it
+  // (lib/view-input.ts): true when the open finished, false when it stopped.
+  let inputReady!: (usable: boolean) => void;
+  holdViewInput(tview.viewEl, new Promise<boolean>((resolve) => { inputReady = resolve; }));
   const card = openProgress({
     name: intent?.name, thumb: intent?.thumb,
     // However the open ends, the counting ends with it, unless finish() handed it on.
-    onClose: () => { offCard(); if (!handedOff) tracker.stop(); },
+    onClose: () => { offCard(); if (!handedOff) tracker.stop(); inputReady(card.stop() === null); },
   });
   const offCard = tracker.listen(() => { if (tracker.total) card.progress(tracker.done, tracker.total); });
   handOff.set(card, () => { handedOff = true; });

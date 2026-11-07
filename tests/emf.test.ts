@@ -9,7 +9,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { emitEmf } from '../engine/src/emf.ts';
+import { emfLiveTextRecords, emitEmf } from '../engine/src/emf.ts';
 import type { VectorIr } from '../engine/src/emf.ts';
 
 const ENHMETA_SIGNATURE = 0x464D4520;
@@ -401,4 +401,16 @@ test('a file with no stencil writes no 1-bit DIB', () => {
   const blits = records.filter((r) => r.iType === EMR_STRETCHDIBITS);
   assert.deepEqual(blits.map((r) => dv.getUint16(r.off! + 94, true)), [32]);
   assert.equal(parseEmf(emitEmf(IR)).records.some((r) => r.iType === EMR_STRETCHDIBITS), false);
+});
+
+test('emfLiveTextRecords counts the live text runs, and nothing in outlines or other bytes', () => {
+  assert.equal(emfLiveTextRecords(emitEmf(TEXT_IR, { width: 400, height: 200 })), 1);
+  const two = { ...TEXT_IR, prims: [...TEXT_IR.prims, { ...TEXT_IR.prims[1]!, text: 'Again' }] } as VectorIr;
+  assert.equal(emfLiveTextRecords(emitEmf(two, { width: 400, height: 200 })), 2);
+  assert.equal(emfLiveTextRecords(emitEmf(IR, { width: 600, height: 600 })), 0, 'paths only');
+  assert.equal(emfLiveTextRecords(new Uint8Array(0)), 0);
+  assert.equal(emfLiveTextRecords(new TextEncoder().encode('%!PS-Adobe-3.0 EPSF-3.0')), 0, 'not an EMF');
+  // A record whose size runs past the end stops the walk before the end of the bytes.
+  const cut = emitEmf(TEXT_IR, { width: 400, height: 200 }).slice(0, 120);
+  assert.equal(emfLiveTextRecords(cut), 0);
 });

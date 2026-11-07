@@ -17,6 +17,7 @@
  */
 import type { DesignRecord, MadeWithPreview } from '../../../../engine/src/metadata.ts';
 import { guidedByWords, readDesignRecord, themesSelection } from '../../../../engine/src/metadata.ts';
+import type { ExportPartner } from '@lolly-tools/core/host-v1';
 import { t, tRaw } from '../i18n.ts';
 
 /**
@@ -25,7 +26,7 @@ import { t, tRaw } from '../i18n.ts';
  * empty record. `skills: false` and `page: false` leave the brand skills and the
  * brand page address out, for Verify, which lists them as facts of their own.
  */
-export function madeWithWords(record: DesignRecord | null | undefined, opts: { skills?: boolean; page?: boolean } = {}): string {
+export function madeWithWords(record: DesignRecord | null | undefined, opts: { skills?: boolean; page?: boolean; partner?: boolean } = {}): string {
   if (!record) return '';
   const parts: string[] = [];
   if (record.designSystem) parts.push(record.designSystem.label);
@@ -36,9 +37,37 @@ export function madeWithWords(record: DesignRecord | null | undefined, opts: { s
       : tRaw('{group}: {name}', { group: choice.group || t('Theme'), name: choice.name }));
   }
   if (record.brandPage && opts.page !== false) parts.push(tRaw('Brand page: {address}', { address: record.brandPage }));
+  const partner = opts.partner === false ? '' : partnerWords(record.partner);
+  if (partner) parts.push(partner);
   const guided = opts.skills === false ? '' : guidedByWords(record.brandSkills);
   if (guided) parts.push(tRaw('Guided by: {skills}', { skills: guided }));
   return parts.join(' · ');
+}
+
+/**
+ * The partner in the record line (Lolly Work plans/82 M3): "Partner: Northwind IT
+ * (Resellers, EMEA)", "Partner: Northwind IT" without a programme, "Partner
+ * programme: Resellers, EMEA" without a company. Empty without a partner.
+ */
+export function partnerWords(partner: ExportPartner | null | undefined): string {
+  const company = partner?.company?.label;
+  const programme = partner?.programme?.label;
+  if (company) return programme ? tRaw('Partner: {company} ({programme})', { company, programme }) : tRaw('Partner: {company}', { company });
+  return programme ? tRaw('Partner programme: {programme}', { programme }) : '';
+}
+
+/**
+ * Verify's "Partner" fact for a credential's export assertion: "Northwind IT,
+ * Resellers, EMEA programme, details revision 3", or null without a partner.
+ */
+export function partnerFact(environment: Readonly<Record<string, unknown>> | null | undefined): string | null {
+  const partner = readDesignRecord(environment ?? null)?.partner;
+  if (!partner) return null;
+  const parts: string[] = [];
+  if (partner.company) parts.push(partner.company.label);
+  if (partner.programme) parts.push(tRaw('{programme} programme', { programme: partner.programme.label }));
+  if (partner.company) parts.push(tRaw('details revision {revision}', { revision: partner.company.revision }));
+  return parts.join(', ') || null;
 }
 
 /** The slice of a design-system summary the Recreate rule compares. */
@@ -97,7 +126,7 @@ export function recreateWithRecord(
 
 /** Verify's "Design system" fact for a credential's export assertion, or null when it records none. */
 export function madeWithFact(environment: Readonly<Record<string, unknown>> | null | undefined): string | null {
-  return madeWithWords(readDesignRecord(environment ?? null), { skills: false, page: false }) || null;
+  return madeWithWords(readDesignRecord(environment ?? null), { skills: false, page: false, partner: false }) || null;
 }
 
 /**
