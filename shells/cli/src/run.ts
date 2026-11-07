@@ -18,9 +18,9 @@ import { xlsxRecalc } from '@lolly-tools/node-shell/gridcraft-calc-node';
 import { checkPdfAccessibility } from '@lolly-tools/node-shell/pdf-a11y-node';
 import { isFileTransform } from '@lolly-tools/node-shell/transform-tool';
 import { withoutRecordedBrandPage } from '../../../engine/src/brand-page-address.ts';
-import { colourRoleThemeAccents, assertMotionRequest, assertSampleRequest, sampleOutputFormat, buildExportMeta, designRecordWords, readFileDesignRecord, loadTool, createRuntime, canvasSizeOf, annotateTemplate, parseUrlState, parseSpots, serializeUrlState, serializeHdr, expandQuery, frameFilterApplies, embedC2pa, extractC2paStore, C2PA_FORMATS, c2paDefaultOn, imprintDefaultOn, isImprintFormat, IMPRINT_FORMATS, normalizeLang, parseDataRows, parseTableText, hasEncryptedState, unpackEncrypted, ENC_PARAM, RESERVED, parseRateCard, isRateCardError, validateRateCard, sfntKind, storeZip, readXlsx, listXlsxSheets, rowsToCsv } from '@lolly/engine';
+import { colourRoleThemeAccents, assertMotionRequest, assertSampleRequest, sampleOutputFormat, buildExportMeta, designRecordWords, readFileDesignRecord, loadTool, createRuntime, canvasSizeOf, annotateTemplate, parseUrlState, parseSpots, serializeUrlState, serializeHdr, expandQuery, frameFilterApplies, embedC2pa, extractC2paStore, pdfWithoutCredential, C2PA_FORMATS, c2paDefaultOn, imprintDefaultOn, isImprintFormat, IMPRINT_FORMATS, normalizeLang, parseDataRows, parseTableText, hasEncryptedState, unpackEncrypted, ENC_PARAM, RESERVED, parseRateCard, isRateCardError, validateRateCard, sfntKind, storeZip, readXlsx, listXlsxSheets, rowsToCsv } from '@lolly/engine';
 import { createHash } from 'node:crypto';
-import type { Lang } from '@lolly/engine';
+import type { Lang, PlacedPictures } from '@lolly/engine';
 import { RONDO_ASSET_FORMAT, RondoSourceError, isRondoFileName, rondoFromFile, rondoSourceBytes } from '@lolly/engine';
 import { prerenderSongInputs } from '@lolly-tools/node-shell/audio';
 import type { InputValue } from '../../../engine/src/inputs.ts';
@@ -31,7 +31,7 @@ import type { Runtime } from '../../../engine/src/runtime.ts';
 // scoped Chromium).
 import { NODE_FORMATS, DEEP_FORMATS, needsFloatScene, nodePathFormat, pxDims, matchedExportFormat, canCarryPrintPrep, printPrepRefusal } from '@lolly-tools/node-shell/raster';
 import { wantsNativeHdrStill } from './raster.ts';
-import { buildExportC2paOpts, recordedDesignInFile } from '@lolly-tools/node-shell/c2pa-opts';
+import { buildExportC2paOpts, placedPicturesIn, recordedDesignInFile } from '@lolly-tools/node-shell/c2pa-opts';
 // The enrolled signing identity (key + x5chain) - type only here; the module itself is
 // imported lazily in the render path so a run without --sign-key never loads it.
 import type { SigningIdentity } from '@lolly-tools/node-shell/signing-identity';
@@ -1207,6 +1207,7 @@ async function runToolCliCandidate({ toolId, inputValues, params, repeated = {},
   let buf: Buffer;
   let usedBrowser = false;                // a pooled browser was launched → tear it down before exit
   let webShellExport = false;             // the Tier-B web shell produced the bytes → it owns c2pa
+  let replacesBrowserCredential = false;  // the web shell stamped, and this shell's identity or intent credential takes its place
   // The Node tier asked for an Imprint and the frame was below the watermark's
   // detection floor. Reported, never silently dropped - but as a note, not a warning,
   // unless the caller explicitly asked for the mark (see the provenance block above).
@@ -1370,6 +1371,8 @@ async function runToolCliCandidate({ toolId, inputValues, params, repeated = {},
     exportOpts.ingredientSink = opsIngredients;
     exportOpts.onExportRoute = (record) => { routed.record = record; };
 
+    // Where this shell's identity or intent credential takes the place of one the web shell writes first.
+    const stampsOverBrowser = C2PA_FORMATS.includes(targetFormat) && !sampled && !/tiff$/i.test(targetFormat);
     const dims = {
       productionInputIds: productionContract?.requirements.filter(r => r.kind === 'input').map(r => r.location),
       onProductionInputs: (inputs: Record<string, string> | undefined) => { browserProductionInputs = inputs; },
@@ -1392,16 +1395,21 @@ async function runToolCliCandidate({ toolId, inputValues, params, repeated = {},
       // a double-stamp. Always forwarded now that the default is on: leaving the param
       // off would let the web shell apply its OWN default and make the CLI's
       // --c2pa=off a suggestion rather than an instruction.
-      // WITH AN ENROLLED IDENTITY the browser tier must NOT stamp. It signs with its
-      // own ephemeral on-device key (the key is a CryptoKey in this process; there is
-      // no way to hand it to a browser over a URL, and there should not be). So the
-      // credential is suppressed there and applied in Node below, over the finished
+      // WITH AN ENROLLED IDENTITY the browser tier cannot sign: the key is a CryptoKey in
+      // this process, there is no way to hand it to a browser over a URL, and there
+      // should not be. So the credential is applied in Node below, over the finished
       // bytes, with the identity - the same last-byte-operation rule, one tier later.
       // The visible trade: the manifest's environment assertion is then the CLI's
       // (surface: 'cli'), not the web shell's. docs/cli-signing.md says so.
       // An intent record is the same case: it has no way to reach the browser over a URL,
       // so the credential that carries it is applied in Node below.
-      c2pa: wantC2pa && !identity && !intentRecord, c2paDays: c2pa?.days ?? undefined,
+      // The browser stamps first all the same, with its own ephemeral key: its credential
+      // is the record of the pictures placed in the file, AI-made ones included, and the
+      // stamp below reads that record into its own credential, which then takes that
+      // one's place. Only where that stamp happens: a format this shell can stamp, and
+      // not a sample set. A TIFF keeps a replaced credential as a second one, so there
+      // the browser writes none.
+      c2pa: wantC2pa && (!(identity || intentRecord) || stampsOverBrowser), c2paDays: c2pa?.days ?? undefined,
       keepInlinedC2pa: !optedOutC2pa,
       // The deck state address, forwarded so the BROWSER tier applies the same one-slide
       // filter the web shell applies to `?s=`. Carried whenever it was given: a format the
@@ -1443,6 +1451,8 @@ async function runToolCliCandidate({ toolId, inputValues, params, repeated = {},
       // process wrote. Without it an `--hdr=1` export off the browser tier would carry
       // no Content Credential at all, silently.
       webShellExport = res.usedBrowser && !identity && !intentRecord && !res.nodeEncoded;
+      // The browser stamped a credential this shell is about to replace (see `c2pa` above).
+      replacesBrowserCredential = res.usedBrowser && !!(identity || intentRecord) && !res.nodeEncoded && wantC2pa && stampsOverBrowser;
       // Same third case: an HDR still marks its own pixels here, on either tier, so its
       // floor skip must be reported even when the browser supplied the source frame.
       if ((!res.usedBrowser || res.nodeEncoded) && wantImprint && res.imprinted === false) imprintFloorSkip = true;
@@ -1604,6 +1614,7 @@ async function runToolCliCandidate({ toolId, inputValues, params, repeated = {},
       assertRenderOk({ hookErrors: runtime.hookErrors, format: 'html', bytes: buf });
       finalFormat = 'html';
       webShellExport = false;
+      replacesBrowserCredential = false;
       usedBrowser = false;
       // Retarget --output to a .html name so the file's extension matches its content.
       if (outputPath) outputPath = outputPath.replace(/\.[^./\\]+$/, '') + '.html';
@@ -1680,7 +1691,8 @@ async function runToolCliCandidate({ toolId, inputValues, params, repeated = {},
   // A tool that signed its own file (the Rondocode utility signs each song render
   // with what the song is and how it ran) keeps that credential: stamping over it
   // would replace a specific record with a generic one.
-  const toolSigned = C2PA_FORMATS.includes(finalFormat) && extractC2paStore(new Uint8Array(buf)) !== null;
+  // A credential the web shell wrote for this shell to replace is not a tool's own.
+  const toolSigned = !replacesBrowserCredential && C2PA_FORMATS.includes(finalFormat) && extractC2paStore(new Uint8Array(buf)) !== null;
   if (wantC2pa && !webShellExport && !toolSigned && C2PA_FORMATS.includes(finalFormat)) {
     // Only the paths that produced their OWN bytes here (DOM-free svg, Tier-A resvg PNG,
     // url-shot capture) stamp in Node. The Tier-B browser tier already stamped via the
@@ -1694,7 +1706,16 @@ async function runToolCliCandidate({ toolId, inputValues, params, repeated = {},
         // buildExportC2paOpts also attaches the profile author under `useDetails`).
         // Told not to stamp, the browser tier saves a PDF with a cross-reference stream,
         // which the embedder cannot extend, so an intent record needs the classic table.
-        const finished = intentRecord ? await (await import('@lolly-tools/node-shell/pdf-classic')).classicPdfForStamp(new Uint8Array(buf), finalFormat) : new Uint8Array(buf);
+        // The web shell's credential, which this one replaces, is the record of the pictures
+        // placed in the file: read it first. A PDF holds one credential, so the web shell's
+        // update comes off before this one goes on.
+        let source: Uint8Array = new Uint8Array(buf);
+        let carried: PlacedPictures | null = null;
+        if (replacesBrowserCredential) {
+          carried = await placedPicturesIn(source);
+          if (/^pdf/.test(finalFormat)) source = pdfWithoutCredential(source) ?? source;
+        }
+        const finished = intentRecord ? await (await import('@lolly-tools/node-shell/pdf-classic')).classicPdfForStamp(source, finalFormat) : source;
         const stamped = await embedC2pa(finished, finalFormat, buildExportC2paOpts({
           surface: 'cli', manifest: tool.manifest, model: runtime.getModel(),
           format: finalFormat, dims: { width, height, unit, dpi }, days: c2pa?.days, profile,
@@ -1707,7 +1728,9 @@ async function runToolCliCandidate({ toolId, inputValues, params, repeated = {},
           // carrying the set's own licence and creator. host.export.render ignores
           // opts.ingredients on this shell (the CLI stamps here, as the last byte
           // operation), so the runtime's record has to be handed over explicitly.
-          ingredients: [...runtime.emojiIngredients(), ...opsIngredients],
+          ingredients: [...runtime.emojiIngredients(), ...opsIngredients, ...(carried?.ingredients ?? [])],
+          // The AI facts the web shell's credential stated about those pictures.
+          carried,
           // Which renderer drew a Design page here (plan 326); none for the other paths.
           route: routed.record ?? null,
           // What this file was asked to do, for a render that started from an intent.

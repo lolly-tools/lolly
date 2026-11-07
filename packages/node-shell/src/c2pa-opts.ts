@@ -13,9 +13,9 @@
  * reads the file as trusted.
  */
 import { createHash } from 'node:crypto';
-import { summarizeInputs, CREDENTIAL_READABLE_TYPES, matchesShowIf, ENGINE_VERSION, collectAiIngredientDeclarations, exportActionSteps, designRecordEnvironment, designRecordFrom, extractC2paStore, readDesignRecord, readFileDesignRecord, verifyC2pa } from '@lolly/engine';
+import { summarizeInputs, CREDENTIAL_READABLE_TYPES, matchesShowIf, ENGINE_VERSION, collectAiIngredientDeclarations, exportActionSteps, designRecordEnvironment, designRecordFrom, extractC2paStore, placedPicturesOf, readDesignRecord, readFileDesignRecord, verifyC2pa } from '@lolly/engine';
 import { modelToValues, flattenValue } from '../../../engine/src/inputs.ts';
-import type { embedC2pa, C2paIntentRecord, C2paSigner, DesignRecord } from '@lolly/engine';
+import type { embedC2pa, C2paIntentRecord, C2paSigner, DesignRecord, PlacedPictures } from '@lolly/engine';
 import type { ExportMeta, Profile } from '@lolly-tools/core/host-v1';
 import { designExportRouteFields, type DesignExportRouteRecord } from '../../../engine/src/design-export-route.ts';
 
@@ -90,6 +90,13 @@ export interface BuildExportC2paOpts {
    * W4b). Absent for every other export, so their credentials are unchanged.
    */
   intent?: C2paIntentRecord | null;
+  /**
+   * The AI facts a credential this one replaces recorded about the pictures placed in
+   * the file (`placedPicturesIn`): pieces declared AI-made, and the model that enlarged
+   * one. Added to what the model's own census finds, so the steps and the AI
+   * disclosure are the ones that credential had. Absent, nothing changes.
+   */
+  carried?: Pick<PlacedPictures, 'aiIngredients' | 'aiUpscale'> | null;
 }
 
 /** Build the embedC2pa options for a shell export, INCLUDING author from the profile. */
@@ -121,6 +128,10 @@ export function buildExportC2paOpts(o: BuildExportC2paOpts): ExportC2paOpts {
   // caller `actions`/`aiDisclosure` always win; with no declarations the
   // output stays byte-identical.
   const aiIngredients = collectAiIngredientDeclarations(model);
+  for (const piece of o.carried?.aiIngredients ?? []) {
+    if (!aiIngredients.some((have) => have.name === piece.name && have.kind === piece.kind)) aiIngredients.push(piece);
+  }
+  const aiUpscale = o.carried?.aiUpscale;
   return {
     title: name,
     claimGenerator: 'Lolly lolly.tools',
@@ -148,12 +159,29 @@ export function buildExportC2paOpts(o: BuildExportC2paOpts): ExportC2paOpts {
     ...(o.ingredients?.length ? { ingredients: o.ingredients } : {}),
     ...(o.actions?.length
       ? { actions: o.actions }
-      : aiIngredients.length ? { actions: exportActionSteps(format, { aiIngredients }) } : {}),
+      : aiIngredients.length || aiUpscale ? { actions: exportActionSteps(format, { aiIngredients, ...(aiUpscale ? { aiUpscale } : {}) }) } : {}),
     ...(o.aiDisclosure
       ? { aiDisclosure: o.aiDisclosure }
       : aiIngredients.length ? { aiDisclosure: {} } : {}),
     ...(o.specVersion ? { specVersion: o.specVersion } : {}),
   };
+}
+
+/**
+ * What the Content Credential in `bytes` recorded about the pictures placed in the file,
+ * for a shell about to write its own credential in place of that one (the MCP server over
+ * its browser tier). Read only from a credential that verifies, so a broken or foreign
+ * one carries nothing forward. Empty when there is none. Never throws.
+ */
+export async function placedPicturesIn(bytes: Uint8Array): Promise<PlacedPictures> {
+  const none: PlacedPictures = { ingredients: [], aiIngredients: [] };
+  try {
+    const found = extractC2paStore(bytes);
+    if (!found || (await verifyC2pa(bytes)).state !== 'valid') return none;
+    return placedPicturesOf(found.store);
+  } catch {
+    return none;
+  }
 }
 
 /**

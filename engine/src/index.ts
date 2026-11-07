@@ -574,6 +574,11 @@ export { APPROVAL_RECORD_FORMATS, artworkUnchanged, recordApprovalInCredential }
 export type { ApprovalNotRecordedReason, ApprovalRecordOutcome, RecordApprovalOptions } from './c2pa-approval.ts';
 export { verifyC2pa, extractC2paFromPdf, prepareC2paIngredient, prepareC2paIngredientFromStore, collectIngredients, collectIngredientRecords, extractC2paStore, parseCertificate, signedBy } from './c2pa-verify.ts';
 export type { C2paReport, C2paCheck, ParsedCertificate, C2paIngredientRecord } from './c2pa-verify.ts';
+// A shell that writes its credential in place of one the browser wrote keeps what that
+// credential recorded about the pictures placed in the file, and cuts a PDF's update off first.
+export { placedPicturesOf } from './c2pa-extract.ts';
+export type { PlacedPictures } from './c2pa-extract.ts';
+export { pdfWithoutCredential } from './c2pa-containers.ts';
 export type { Signer as C2paSigner } from './c2pa.ts';
 export { C2PA_CHECK, isExpiredOnly, resolveVerdict, defaultTrustAnchors } from './c2pa-verdict.ts';
 export type { C2paVerdict, C2paVerdictInput, C2paVerdictState } from './c2pa-verdict.ts';
