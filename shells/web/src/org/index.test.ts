@@ -736,6 +736,7 @@ test('a partner company: bound inputs it locks are filled and not offered, the l
     },
   });
   await initOrg();
+  assert.equal(workspaceCompany()?.name, 'Northwind IT', 'known from the start, before any tool mounts');
   applyOrgToolPolicies();
   assert.equal(workspaceCompany()?.name, 'Northwind IT');
   assert.deepEqual(workspaceCompany()?.logos, { light: 'inst/nw-light', dark: 'inst/nw-dark' });
