@@ -35,6 +35,17 @@ test('the shelf fits a phone at 390 and 360 with large text, Use reachable on ev
       ]));
     ` }, bundle: true, write: false, platform: 'browser', format: 'iife', loader: { '.css': 'empty' },
     define: { 'import.meta.env': '{}' }, logLevel: 'silent',
+    // The card markup is what this page tests. The company card's lazy read of the
+    // workspace's configuration (org/index.ts) and the shelf's lazy New version hand-off
+    // (tool-template-notices.ts) reach the export bridge, which only the app's own
+    // bundler can build, so this static page stands in for both.
+    plugins: [{
+      name: 'stub-lazy-edges',
+      setup(b) {
+        b.onResolve({ filter: /(^|\/)(org\/index|tool-template-notices)\.ts$/ }, (args) => ({ path: args.path, namespace: 'stub' }));
+        b.onLoad({ filter: /.*/, namespace: 'stub' }, () => ({ contents: 'export const orgPartner = () => null; export const requestNewVersion = () => {};', loader: 'js' }));
+      },
+    }],
   });
   const css = ['styles/tokens.css', 'styles/parts/base.css', 'styles/parts/buttons.css', 'styles/parts/components.css',
     'styles/parts/gallery.css', 'styles/parts/company-card.css', 'styles/parts/a11y.css']
