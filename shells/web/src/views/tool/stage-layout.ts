@@ -27,6 +27,8 @@ import { applyBrandVars } from '../../brand-vars.ts';
 import { createDocumentThemeController, syncThemesRoute, themedHost } from '../../lib/document-theme.ts';
 import { refreshSwatches, setSwatches } from '../../components/color-field.ts';
 import { mountThemeSection, refreshThemeSwatches, trackToolTokenUsage } from './theme-section.ts';
+import { partnerKitOffer } from '../../lib/partner-kit-state.ts';
+import { readPartnerKitAttachment } from '../../../../../engine/src/url-mode.ts';
 import { toolTokenUsage } from '../../lib/theme-relevance.ts';
 import { createThemeToggle } from '../../components/theme-toggle.ts';
 import { createSoundToggle } from '../../components/sound-toggle.ts';
@@ -638,9 +640,26 @@ export function wireFilmstrip(tview: ToolViewCtx): void {
   const stopUsage = trackToolTokenUsage(documentTheme, tview.tool, runtime);
   // A workspace template that keeps its colourway and mode offers neither, with no
   // note: what cannot change is simply not offered (lib/workspace-templates.ts).
-  const themeSection = tview.templateFixedTheme ? { destroy: () => {} } : mountThemeSection({ root: viewEl, controller: documentTheme,
-    after: (tview.tool.manifest.render as { themeChoicesAfter?: string } | undefined)?.themeChoicesAfter });
+  let kitLineVisible = (): boolean => false;
+  const themeSection: { refresh?(): void; destroy(): void } = tview.templateFixedTheme ? { destroy: () => {} } : mountThemeSection({ root: viewEl, controller: documentTheme,
+    after: (tview.tool.manifest.render as { themeChoicesAfter?: string } | undefined)?.themeChoicesAfter,
+    extraVisible: () => kitLineVisible() });
   tview.mountLifecycle.add('document theme', () => { stopUsage(); themeSection.destroy(); documentTheme.dispose(); });
+  // The partner kit this piece carries as a guest (plans/82 M8): its line heads the Design
+  // system section for a programme member only. The line and the kit reader load only when
+  // the piece opened with a kit or the person's company has one (views/tool/partner-kit-line.ts).
+  const openingKit = readPartnerKitAttachment(tview.initialValues.__partnerKit);
+  if (openingKit || partnerKitOffer()) {
+    void import('./partner-kit-line.ts').then(({ mountPartnerKitLine }) => {
+      if (!viewEl.isConnected) return;
+      const line = mountPartnerKitLine({ root: viewEl, host: tview.host, runtime, attachment: openingKit,
+        markDirty: () => { tview.session.markUserDirty(); tview.session.syncUrl(); },
+        refreshSection: () => themeSection.refresh?.() });
+      kitLineVisible = () => line.visible();
+      themeSection.refresh?.();
+      tview.mountLifecycle.add('partner kit', () => line.destroy());
+    });
+  }
   // Always present in the template (both layouts render #tool-stage), so treat it
   // as non-null - mirrors mountTool's unguarded uses (ro.observe, fitCanvas, …).
   const stageEl = viewEl.querySelector<HTMLElement>('#tool-stage')!; tview.stageEl = stageEl;

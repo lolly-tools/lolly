@@ -1,0 +1,127 @@
+// SPDX-License-Identifier: MPL-2.0
+/**
+ * The partner kit a piece carries as a guest (Lolly Work plan 82, M8).
+ *
+ * A partner company's kit is a catalog asset of its own type (`partner-kit`, never
+ * `tokens`, so the tokens bridge never takes it for the design system and the chrome
+ * never moves). Lolly Work serves it to that company's people only, and org-config tells
+ * a member which kit is theirs (`partner.company.kit`: the asset id, the live revision
+ * and the company's name). This module is the one place the app reads it:
+ *
+ * - which kit a piece opens with: a link's `_kit`, else a saved document's
+ *   `__partnerKit`, else, for new work only, the person's company's kit;
+ * - the kit's JSON at the attached revision, through `host.assets` and the asset's
+ *   version route, read with the engine's own reader and kept per `id@revision`;
+ * - the colours it offers under "Partner" in every colour field, the logos the asset
+ *   picker offers first, and what the Design checks measure the marks against.
+ *
+ * A kit colour picked from the swatches is a literal, as every stored choice is, so a
+ * reopened piece keeps the colour it was made with. Nothing here edits a kit: the brand
+ * team makes and changes it in the Work console.
+ */
+import type { HostV1 } from '@lolly-tools/core/host-v1';
+import type { PartnerKitAttachmentV1, PartnerKitV1 } from '@lolly-tools/core/partner-kit-v1';
+import { checkPartnerKit } from '../../../../engine/src/partner-kit.ts';
+import { readPartnerKitAttachment } from '../../../../engine/src/url-mode.ts';
+import { setGuestSwatches, type ColorSwatchOption } from '../components/color-field.ts';
+import { t } from '../i18n.ts';
+import { dropPieceState, getPieceState, notifyPieceKit, partnerKitOffer, setPieceState } from './partner-kit-state.ts';
+
+export { brandGuestFor, currentPiece, measureOf, onPieceKitChange, partnerCheckFor, partnerKitParam, partnerMarkIds, pieceKit, pieceKitData, setCurrentPiece } from './partner-kit-state.ts';
+
+/**
+ * The attachment a piece opens with, and the values to create it from. A link's `_kit`
+ * wins, then what a saved document holds; new work by a member whose company has a kit
+ * starts with that kit at its live revision, stored as `__partnerKit` like any other
+ * choice made at creation. Anything else opens with no kit, so a document made before
+ * the kit existed keeps having none until the person attaches one.
+ */
+export function openingKit<V extends Record<string, unknown>>(values: V, link: PartnerKitAttachmentV1 | null | undefined, newWork: boolean): { values: V; attachment: PartnerKitAttachmentV1 | null } {
+  const fromLink = readPartnerKitAttachment(link);
+  const saved = readPartnerKitAttachment(values.__partnerKit);
+  const offer = partnerKitOffer();
+  const own = newWork && offer ? { id: offer.id, revision: offer.revision } : null;
+  const attachment = fromLink ?? saved ?? own;
+  if (!attachment) return { values, attachment: null };
+  return { values: { ...values, __partnerKit: attachment }, attachment };
+}
+
+const cache = new Map<string, Promise<PartnerKitV1 | null>>();
+
+/** Where an asset's bytes for one version are served: Lolly Work's `?v=N` on the asset's own URL. */
+function versionUrl(url: string, revision: number): string {
+  try {
+    const u = new URL(url, globalThis.location?.href ?? 'http://localhost/');
+    u.searchParams.set('v', String(revision));
+    return u.toString();
+  } catch {
+    return url;
+  }
+}
+
+/**
+ * The kit at an attached revision, or null when this person is not served it, the bytes
+ * do not read as `partner-kit-v1`, or the asset is not a kit. Kept per `id@revision`, so
+ * a piece and its colour fields read it once.
+ */
+export function loadPartnerKit(host: Pick<HostV1, 'assets'>, attachment: PartnerKitAttachmentV1, fetchImpl: typeof fetch = fetch): Promise<PartnerKitV1 | null> {
+  const key = `${attachment.id}@${attachment.revision}`;
+  const known = cache.get(key);
+  if (known) return known;
+  const read = (async (): Promise<PartnerKitV1 | null> => {
+    try {
+      const ref = await host.assets.get(attachment.id);
+      if (!ref?.url || (ref.type as string) !== 'partner-kit') return null;
+      const res = await fetchImpl(versionUrl(ref.url, attachment.revision), { credentials: 'include' });
+      if (!res.ok) return null;
+      const result = checkPartnerKit(await res.text());
+      return result.ok ? result.kit : null;
+    } catch {
+      return null;
+    }
+  })();
+  cache.set(key, read);
+  void read.then((kit) => { if (!kit) cache.delete(key); });
+  return read;
+}
+
+/** The kit's colours as swatches under "Partner", each a plain colour, never a token link. */
+export function partnerSwatches(kit: Pick<PartnerKitV1, 'colours'> | null): ColorSwatchOption[] {
+  return (kit?.colours ?? []).map((c) => ({ value: c.value, label: c.name, group: t('Partner'), ref: null }));
+}
+
+/**
+ * Attach a kit to a mounted piece. The kit is read first: a kit this person is not served
+ * leaves the piece with none and a warning, as a link naming a design system the device
+ * does not hold falls back with one. The colour fields offer the kit's colours while the
+ * piece is mounted.
+ */
+export async function attachPieceKit(host: Pick<HostV1, 'assets' | 'log'>, runtime: object, attachment: PartnerKitAttachmentV1 | null, deps: { load?: typeof loadPartnerKit } = {}): Promise<PartnerKitV1 | null> {
+  const att = readPartnerKitAttachment(attachment);
+  if (!att) return null;
+  setPieceState(runtime, { attachment: att, kit: null });
+  const kit = await (deps.load ?? loadPartnerKit)(host, att);
+  if (getPieceState(runtime)?.attachment !== att) return null; // detached or replaced while it read
+  if (!kit) {
+    dropPieceState(runtime);
+    try { host.log?.('warn', `The partner kit ${att.id} at revision ${att.revision} is not available here, so this piece opens without the kit.`); } catch { /* logging is best effort */ }
+    notifyPieceKit();
+    return null;
+  }
+  setPieceState(runtime, { attachment: att, kit });
+  setGuestSwatches(partnerSwatches(kit));
+  notifyPieceKit();
+  return kit;
+}
+
+/** Take the kit off a piece: the piece keeps the colours it already uses, as literals. */
+export function detachPieceKit(runtime: object): void {
+  if (!dropPieceState(runtime)) return;
+  setGuestSwatches(null);
+  notifyPieceKit();
+}
+
+/** Forget a piece when its view unmounts, so the next tool's colour fields offer no partner colours. */
+export function releasePieceKit(runtime: object): void {
+  if (dropPieceState(runtime)) setGuestSwatches(null);
+}

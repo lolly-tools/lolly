@@ -1,6 +1,9 @@
 // SPDX-License-Identifier: MPL-2.0
 /** Brand findings share the export check panel and the tool's normal undo path. */
 import { applyBrandFix, checkBrandDesign, type BrandCheckCatalogOpts, type BrandFinding } from '../../../../engine/src/brand-check.ts';
+import { checkGuestMarks, type GuestMarkMeasure } from '../../../../engine/src/partner-kit-check.ts';
+import { partnerKitLogoIds } from '../../../../engine/src/partner-kit.ts';
+import type { PartnerKitTreatmentV1, PartnerKitV1 } from '@lolly-tools/core/partner-kit-v1';
 import { brandCheckCatalog } from '../../../../engine/src/design-brief.ts';
 import type { AssetQuery, AssetRef, TokensSnapshot } from '@lolly-tools/core/host-v1';
 import { t, tRaw } from '../i18n.ts';
@@ -16,6 +19,34 @@ function findingText(f: BrandFinding): string {
   if (f.kind === 'asset') return tRaw('“{name}”: this image is outside the design system’s declared asset IDs. It may be intentional.', { name: f.label });
   return tRaw('“{name}”: {field} {value} is outside this design system. Suggested: {suggestion}.', { name: f.label, field, value: f.value ?? '', suggestion: f.suggestion ?? '' });
 }
+/** A treatment in a sentence a person reads. */
+function treatmentWord(value: string): string {
+  const words: Record<PartnerKitTreatmentV1, string> = { colour: t('full colour'), mono: t('one colour'), reverse: t('reversed'), 'on-photo': t('on a photo') };
+  return words[value as PartnerKitTreatmentV1] ?? value;
+}
+
+/** The treatments a kit allows, as "A, B or C". */
+function allowedWords(expected: string | undefined): string {
+  const words = (expected ?? '').split(',').map((w) => w.trim()).filter(Boolean).map(treatmentWord);
+  return words.length > 1 ? tRaw('{list} or {last}', { list: words.slice(0, -1).join(', '), last: words[words.length - 1]! }) : (words[0] ?? '');
+}
+
+/** A partner mark finding (`checkGuestMarks`, plans/82 M8) in the reader's language. */
+export function markFindingText(f: BrandFinding): string {
+  const company = f.company ?? '';
+  if (f.rule === 'min-size') return tRaw('{company}’s mark is {value} high; the kit asks for at least {expected}.', { company, value: f.value ?? '', expected: f.expected ?? '' });
+  if (f.rule === 'clear-space') {
+    const others = Math.max(0, (f.related?.length ?? 1) - 1);
+    if (!others) return tRaw('“{name}” sits inside {company}’s clear space.', { name: f.value ?? '', company });
+    return others === 1
+      ? tRaw('“{name}” and 1 other layer sit inside {company}’s clear space.', { name: f.value ?? '', company })
+      : tRaw('“{name}” and {count} other layers sit inside {company}’s clear space.', { name: f.value ?? '', count: others, company });
+  }
+  if (f.rule === 'treatment' && f.value === 'on-photo') return tRaw('{company}’s mark sits on a photo; the kit allows {allowed}.', { company, allowed: allowedWords(f.expected) });
+  if (f.rule === 'treatment') return tRaw('{company}’s mark is drawn in {treatment}; the kit allows {allowed}.', { company, treatment: treatmentWord(f.value ?? ''), allowed: allowedWords(f.expected) });
+  return f.message ?? '';
+}
+
 /** What the brand check compared. Each count is its own singular or plural phrase,
  *  written as two whole t() literals so the translation extractor sees both forms. */
 export function coverageText(checked: { colors: number; fonts: number; assets: number }): string {
@@ -67,16 +98,24 @@ export async function brandCheckRows(options: {
   theme?: string;
   /** Catalog facts (asset ids, icon themes, photo treatments), as `hostBrandCatalog` reads them. */
   catalog?: () => Promise<BrandCheckCatalogOpts>;
+  /** The partner kit the piece carries (plans/82 M8): its marks are measured, and its colours and logos are the guest's own. */
+  partner?: () => { kit: PartnerKitV1; measure: GuestMarkMeasure } | null;
 }): Promise<PreflightRow[]> {
+  let partner: { kit: PartnerKitV1; measure: GuestMarkMeasure } | null = null;
+  try { partner = options.partner?.() ?? null; } catch { partner = null; }
+  const guest = partner ? { guest: { colours: partner.kit.colours.map((c) => c.value), assets: partnerKitLogoIds(partner.kit) } } : {};
+  const markRows: PreflightRow[] = partner
+    ? checkGuestMarks(options.boxes(), partner.kit, partner.measure).findings.slice(0, 60).map((f) => ({ id: f.id, tone: 'note' as const, text: markFindingText(f) }))
+    : [];
   let snapshot: TokensSnapshot | undefined;
   try { snapshot = await options.snapshot(); } catch { snapshot = undefined; }
   const doc = snapshot?.document;
-  if (!doc) return [{ id: 'brand.unavailable', tone: 'gap', text: t('The design system could not be read. Brand values have not been checked.') }];
+  if (!doc) return [...markRows, { id: 'brand.unavailable', tone: 'gap', text: t('The design system could not be read. Brand values have not been checked.') }];
   const catalogFacts = async (): Promise<BrandCheckCatalogOpts> => {
     try { return (await options.catalog?.()) ?? {}; } catch { return {}; }
   };
   const catalog = await catalogFacts();
-  const report = checkBrandDesign(options.boxes(), doc, { theme: snapshot?.selection.theme ?? options.theme, ...catalog });
+  const report = checkBrandDesign(options.boxes(), doc, { theme: snapshot?.selection.theme ?? options.theme, ...catalog, ...guest });
   const rows: PreflightRow[] = report.findings.slice(0, 60).map(f => ({
     id: f.id, tone: f.status === 'unknown' ? 'gap' : 'note', text: findingText(f),
     ...(f.fix ? { action: {
@@ -84,7 +123,7 @@ export async function brandCheckRows(options: {
       run: async () => {
         const snapshot = await options.snapshot();
         const boxes = options.boxes();
-        const current = checkBrandDesign(boxes, snapshot?.document, { theme: snapshot?.selection.theme ?? options.theme, ...(await catalogFacts()) });
+        const current = checkBrandDesign(boxes, snapshot?.document, { theme: snapshot?.selection.theme ?? options.theme, ...(await catalogFacts()), ...guest });
         const stillOffered = current.findings.some(item => JSON.stringify(item.fix) === JSON.stringify(f.fix));
         const next = stillOffered ? applyBrandFix(boxes, f.fix!) : null;
         if (!next) throw new Error(t('This item changed. Close and reopen the checks to review it again.'));
@@ -92,6 +131,7 @@ export async function brandCheckRows(options: {
       },
     } } : {}),
   }));
+  rows.unshift(...markRows);
   if (snapshot?.system?.label) rows.unshift({ id: 'brand.system', tone: 'note', text: tRaw('Design system: {name}', { name: snapshot.system.label }) });
   rows.push({ id: 'brand.coverage', tone: 'gap', text: coverageText(report.checked) });
   if (report.coverage.truncated || report.findings.length > 60) rows.push({ id: 'brand.limit', tone: 'gap', text: t('Some items are not shown. Review the rest after these items.') });

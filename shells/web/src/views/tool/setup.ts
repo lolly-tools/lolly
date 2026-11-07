@@ -61,6 +61,7 @@ import { entryHoldsUnsavedEdits, localDocument } from '../tool-leave.ts';
 import { asRow } from '../tool-types.ts';
 import { openToolSession } from '../tool-session-open.ts';
 import { carriedEmojiPins } from '../tool-session-snapshot.ts';
+import { partnerKitOffer } from '../../lib/partner-kit-state.ts';
 import { _sliderDragging, fileToRef, fmtBytes, makeBlocksDropper, syncInputs } from '../tool-inputs.ts';
 import { cappedFileRef, fileInputCap } from '../../lib/file-input-ref.ts';
 import { notifyToolInputMount, guardDocumentEdits, getInputPolicy, policyValuesFor, toolStartValues } from '../../lib/input-policy.ts';
@@ -788,6 +789,13 @@ export async function templatePick(tview: ToolViewCtx): Promise<void> {
   if (newWork) {
     const start = toolStartValues(toolId);
     if (Object.keys(start).length) tview.initialValues = { ...start as Record<string, InputValue>, ...tview.initialValues };
+  }
+  // The partner kit this piece carries as a guest (plans/82 M8): a link's `_kit`, else a
+  // saved document's, else, for new work only, the person's company's at its live
+  // revision. Stored as `__partnerKit`, as `__tokenSelection` is, so the session keeps the kit.
+  if (tview.openedSession.url.partnerKit || tview.initialValues.__partnerKit || (newWork && partnerKitOffer())) {
+    const { openingKit } = await import('../../lib/partner-kit.ts');
+    tview.initialValues = openingKit(tview.initialValues as Record<string, unknown>, tview.openedSession.url.partnerKit, newWork).values as Record<string, InputValue>;
   }
 
   // The document's emoji style (link, saved session or brand, preference) goes in at

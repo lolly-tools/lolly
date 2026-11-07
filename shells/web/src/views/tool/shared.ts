@@ -29,6 +29,7 @@ import type { EmojiParamPair } from '../../lib/emoji-prefs.ts';
 import { isCmykFmt, isPrintFmt, printEnabled, readBleed, readMarks, spotsAsProcessChecked } from '../tool-actions.ts';
 import { isIframeMode } from '../../lib/iframe-mode.ts';
 import { agentGuidanceHost, agentInvitationHost } from '../../lib/agent-invitation-host.ts';
+import { partnerKitParam } from '../../lib/partner-kit-state.ts';
 
 // ── The chosen emoji set, for every writer of this tool's URL ────────────────
 //
@@ -796,6 +797,9 @@ export function buildShareParams(
   const parts: string[] = [];
   const selectionPart = tokenSelectionParam(runtime.tokenSelection);
   if (selectionPart) parts.push(selectionPart);
+  // The partner kit the piece carries travels with it (`_kit`, plans/82 M8).
+  const kitPart = partnerKitParam(runtime);
+  if (kitPart) parts.push(kitPart);
   // What a URL can't carry, recorded as we drop it, so the Share dialog can tell the
   // user what won't travel instead of dropping it silently (the "link has no content"
   // bug). Each `continue`-with-a-drop below records here.

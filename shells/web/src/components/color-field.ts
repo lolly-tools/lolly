@@ -149,6 +149,16 @@ export interface ColorFieldAuto {
 let SWATCHES: ColorSwatchOption[] = PALETTE.map(s => ({ value: s.hex, label: s.label, group: s.group ?? null, ref: null }));
 
 /** Replace the picker's swatches (e.g. with tokens). Ignored if empty/invalid. */
+/**
+ * A guest's colours, offered after the brand's under a heading of their own (a partner
+ * kit, plans/82 M8: "Partner"). Each is a plain colour. Null or empty takes them away.
+ * Only the shared list gains them; a field with a named source of its own keeps that.
+ */
+let GUEST_SWATCHES: ColorSwatchOption[] = [];
+export function setGuestSwatches(list: readonly ColorSwatchOption[] | null | undefined): void {
+  GUEST_SWATCHES = Array.isArray(list) ? list.filter((s) => s && typeof s.value === 'string' && s.value) : [];
+}
+
 export function setSwatches(list: ColorSwatchOption[]): void {
   if (!Array.isArray(list) || !list.length) return;
   SWATCHES = list;
@@ -1306,25 +1316,32 @@ function swatchButtonsHtml(id: string, source?: string | null): string {
         ${roles.map(s => roleSwatchHtml(eid, s)).join('')}
       </div>${plain.length ? `<span class="color-swatch-head color-swatch-head--rest">${escape(t('Other colours'))}</span>` : ''}`
     : '';
-  return heads + plain.map(s => {
-    const isTrans = s.value === 'transparent';
-    const refAttr = s.ref ? ` data-swatch-ref="${escape(s.ref)}"` : '';
-    const name = s.label || s.value;
-    const aria = s.group && s.label ? `${s.group} · ${s.label}` : name;
-    // Each swatch carries the value it is painted with (--swatch-c); the floating
-    // hover tooltip paints itself in that same value and measures its label ink
-    // against it (see showSwatchTip). Transparent has no colour of its own, so its
-    // tooltip is a neutral chip. No native `title`: the graphical tip takes its place.
-    // safeCssColor: this is a CSS context, so attribute-escaping alone isn't
-    // enough - an unvalidated token value could smuggle extra declarations.
-    const val = safeCssColor(s.wide ?? s.value);
-    const tip = isTrans ? `--swatch-c:${NEUTRAL_CHIP}` : `--swatch-c:${escape(val || NEUTRAL_CHIP)};background:${escape(val)}`;
-    return `<button type="button"
-      class="color-swatch${isTrans ? ' color-swatch--transparent' : ''}"
-      data-swatch-for="${eid}" data-swatch-value="${escape(s.wide ?? s.value)}"${refAttr}
-      data-name="${escape(name)}" style="${tip}"
-      aria-label="${escape(aria)}"></button>`;
-  }).join('');
+  const own = source ? SWATCH_SOURCES.get(source) : undefined;
+  const guests = !own?.length && GUEST_SWATCHES.length
+    ? `<span class="color-swatch-head color-swatch-head--rest">${escape(GUEST_SWATCHES[0]?.group || t('Partner'))}</span>${GUEST_SWATCHES.map(s => plainSwatchHtml(eid, s)).join('')}`
+    : '';
+  return heads + plain.map(s => plainSwatchHtml(eid, s)).join('') + guests;
+}
+
+/** One swatch button that is not a colour role: a brand colour, or a guest's. */
+function plainSwatchHtml(eid: string, s: ColorSwatchOption): string {
+  const isTrans = s.value === 'transparent';
+  const refAttr = s.ref ? ` data-swatch-ref="${escape(s.ref)}"` : '';
+  const name = s.label || s.value;
+  const aria = s.group && s.label ? `${s.group} · ${s.label}` : name;
+  // Each swatch carries the value it is painted with (--swatch-c); the floating
+  // hover tooltip paints itself in that same value and measures its label ink
+  // against it (see showSwatchTip). Transparent has no colour of its own, so its
+  // tooltip is a neutral chip. No native `title`: the graphical tip takes its place.
+  // safeCssColor: this is a CSS context, so attribute-escaping alone isn't
+  // enough - an unvalidated token value could smuggle extra declarations.
+  const val = safeCssColor(s.wide ?? s.value);
+  const tip = isTrans ? `--swatch-c:${NEUTRAL_CHIP}` : `--swatch-c:${escape(val || NEUTRAL_CHIP)};background:${escape(val)}`;
+  return `<button type="button"
+    class="color-swatch${isTrans ? ' color-swatch--transparent' : ''}"
+    data-swatch-for="${eid}" data-swatch-value="${escape(s.wide ?? s.value)}"${refAttr}
+    data-name="${escape(name)}" style="${tip}"
+    aria-label="${escape(aria)}"></button>`;
 }
 
 // ── Swatch name tooltip (a single shared, floating chip) ─────────────────────────

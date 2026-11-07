@@ -15,7 +15,7 @@ import { JSDOM } from 'jsdom';
 import {
   lchTrackGradients, LCH_MAX, colorFieldHtml, wireColorField, setSwatches, runBoundaries,
   swatchName, resolveColorVar, colorVarLabel, setSwatchSource, provideSwatchSource, LEADS_SWATCH_SOURCE, colourwayLeadSwatches,
-  setColorFieldAuto,
+  setColorFieldAuto, setGuestSwatches,
 } from './color-field.ts';
 import type { ColorChangeDetail, ColorFieldValue, WireColorFieldOpts } from './color-field.ts';
 import { colorSpaces } from './color-spaces.ts';
@@ -1502,3 +1502,27 @@ test('an unsafe automatic colour is not painted', () => {
   assert.equal(preview(field).style.background, '');
   assert.ok(preview(field).classList.contains('color-trigger-preview--unknown'));
 });
+
+test('a partner kit\'s colours follow the brand\'s under their own heading, as plain colours, and go when the kit does', () => {
+  setSwatches([{ value: '#30ba78', label: 'Jungle', group: 'Brand', ref: null }, { value: '#ffffff', label: 'White', group: 'Brand', ref: null }]);
+  setGuestSwatches([{ value: '#1d4ed8', label: 'Northwind blue', group: 'Partner', ref: null }]);
+  try {
+    const field = mount('#123456', { float: true });
+    assert.deepEqual(openSwatches(field.field), ['#30ba78', '#ffffff', '#1d4ed8'], 'brand first, then the partner');
+    const heads = [...field.field.querySelectorAll('.color-swatch-head')].map((h) => h.textContent);
+    assert.deepEqual(heads, ['Partner']);
+    const swatch = field.field.querySelector<HTMLElement>('[data-swatch-value="#1d4ed8"]')!;
+    assert.equal(swatch.getAttribute('aria-label'), 'Partner · Northwind blue');
+    assert.equal(swatch.hasAttribute('data-swatch-ref'), false, 'a kit colour is a literal, never a token link');
+    swatch.dispatchEvent(new dom.window.MouseEvent('click', { bubbles: true }));
+    assert.equal(field.seen.at(-1)!.value, '#1d4ed8');
+    // A field with a source of its own keeps that list alone.
+    setSwatchSource(LEADS_SWATCH_SOURCE, LEADS_A);
+    assert.deepEqual(openSwatches(mount('#123456', { float: true, swatchSource: LEADS_SWATCH_SOURCE }).field), ['#033633', '#c2410c', '#0e7490']);
+  } finally {
+    setSwatchSource(LEADS_SWATCH_SOURCE, null);
+    setGuestSwatches(null);
+  }
+  assert.deepEqual(openSwatches(mount('#123456', { float: true }).field), ['#30ba78', '#ffffff'], 'detached: the brand alone again');
+});
+

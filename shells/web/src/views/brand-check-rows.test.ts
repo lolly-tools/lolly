@@ -64,3 +64,45 @@ test('the coverage line reads correctly for one and for many', async () => {
   const rows = await rowsFor('example/logo/primary', HOST);
   assert.match(rows.find((r) => r.id === 'brand.coverage')?.text ?? '', /^Compared \d+ colour values?, \d+ font choices? and 1 asset ID\./);
 });
+
+// Partner kits (plans/82 M8): the marks are measured against the kit, and the kit's own
+// colours and logos are the partner's, never off-brand.
+const KIT = {
+  schemaVersion: 1 as const, id: 'northwind-it', label: 'Northwind IT',
+  logos: { light: { id: 'inst/nw-light', version: 2 } },
+  colours: [{ role: 'primary' as const, name: 'Northwind blue', value: '#1d4ed8' }],
+  rules: { minSize: { px: 96 }, clearSpace: { value: 0.5, unit: 'mark-height' as const }, treatments: ['colour' as const] },
+};
+
+test('a partner mark below the kit\'s minimum size and a crowded clear space are rows, and kit colours are not', async () => {
+  const boxes = [
+    { id: 'logo', name: 'Northwind logo', kind: 'image', image: 'inst/nw-light', x: 40, y: 40, w: 200, h: 48 },
+    { id: 'heading', name: 'Heading', kind: 'text', text: 'Join us', fg: '#1d4ed8', font: 'sans', x: 40, y: 96, w: 600, h: 60 },
+  ];
+  const rows = await brandCheckRows({ boxes: () => boxes, snapshot, write: () => undefined, partner: () => ({ kit: KIT, measure: {} }) });
+  const texts = rows.map((r) => r.text);
+  assert.ok(texts.includes('Northwind IT’s mark is 48 px high; the kit asks for at least 96 px.'), texts.join('\n'));
+  assert.ok(texts.includes('“Heading” sits inside Northwind IT’s clear space.'));
+  assert.ok(!rows.some((r) => r.id.startsWith('brand.color.heading')), 'Northwind blue is the partner\'s, not off-brand');
+  assert.ok(!rows.some((r) => r.id.startsWith('brand.asset.logo')), 'the partner logo is a known asset');
+  // Without a kit the same piece reads as before.
+  const plain = await brandCheckRows({ boxes: () => boxes, snapshot, write: () => undefined });
+  assert.ok(plain.some((r) => r.id.startsWith('brand.color.heading')));
+  assert.ok(!plain.some((r) => r.id.startsWith('brand.mark.')));
+});
+
+test('the mark rows show even when the design system cannot be read', async () => {
+  const rows = await brandCheckRows({
+    boxes: () => [{ id: 'logo', kind: 'image', image: 'inst/nw-light', x: 0, y: 0, w: 100, h: 20 }],
+    snapshot: async () => undefined, write: () => undefined, partner: () => ({ kit: KIT, measure: {} }),
+  });
+  assert.deepEqual(rows.map((r) => r.id), ['brand.mark.logo.min-size.px', 'brand.unavailable']);
+});
+
+test('the treatment sentences name what the kit allows, with no comma before the last', async () => {
+  const { markFindingText } = await import('./brand-check-rows.ts');
+  const base = { id: 'x', kind: 'mark' as const, status: 'review' as const, label: 'L', company: 'Northwind IT', rule: 'treatment' as const };
+  assert.equal(markFindingText({ ...base, value: 'mono', expected: 'colour, on-photo' }), 'Northwind IT’s mark is drawn in one colour; the kit allows full colour or on a photo.');
+  assert.equal(markFindingText({ ...base, value: 'on-photo', expected: 'colour, mono, reverse' }), 'Northwind IT’s mark sits on a photo; the kit allows full colour, one colour or reversed.');
+  assert.equal(markFindingText({ ...base, rule: 'clear-space', value: 'Title', related: ['a', 'b', 'c'] }), '“Title” and 2 other layers sit inside Northwind IT’s clear space.');
+});

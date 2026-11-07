@@ -44,6 +44,7 @@ import type { AiPolicy } from '../lib/ai-policy.ts';
 import type { FieldPolicy } from '../lib/field-policy.ts';
 import { setToolInputPolicies, clearInputPolicies, setInputPolicyFailClosed, onToolInputMount, setToolStartValues, clearToolStartValues } from '../lib/input-policy.ts';
 import { companyLogo, setWorkspaceCompany, type WorkspaceCompany } from '../lib/workspace-templates.ts';
+import { readPartnerKitOffer, setPartnerKitOffer } from '../lib/partner-kit-state.ts';
 import type { InputPolicy } from '../lib/input-policy.ts';
 import { registerShareSection } from '../lib/share-sections.ts';
 import { registerProfileSection } from '../lib/profile-sections.ts';
@@ -167,6 +168,8 @@ export interface PartnerSpec {
     logos?: { light?: string; dark?: string; mark?: string };
     website?: string; contact?: { name?: string; email?: string; phone?: string };
     address?: string; currency?: string; taxNote?: string;
+    /** The company's partner kit (plans/82 M8): its asset id, live revision and the company's name. */
+    kit?: { id: string; revision: number; label: string };
   };
   programme?: { id: string; name: string };
 }
@@ -816,6 +819,7 @@ export function applyOrgToolPolicies(): void {
   clearToolStartValues();
   const company = partnerCompany(orgConfigState);
   setWorkspaceCompany(company);
+  setPartnerKitOffer(readPartnerKitOffer(orgConfigState?.partner?.company?.kit));
   const tools = orgConfigState?.tools;
   if (!tools) return;
   const instanceName = orgConfigState!.instance?.name || '';
@@ -1182,6 +1186,7 @@ export async function initOrgWithAuth(auth: AuthConfig): Promise<OrgState | null
       // The person's partner company, for the home's company card and the tools that
       // take its details: known from the start, not only once a tool mounts.
       setWorkspaceCompany(partnerCompany(orgConfigState));
+      setPartnerKitOffer(readPartnerKitOffer(orgConfigState?.partner?.company?.kit));
       applySitePolicy(orgConfigState, failClosed);
       // Route the instance's injectables (plans/19): tool descriptors into the
       // gallery registry (pure data, beside the apply* group); chrome descriptors
