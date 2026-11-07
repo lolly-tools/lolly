@@ -59,3 +59,58 @@ test('the welcome can acknowledge on the notice\'s behalf', () => {
   ackPrivacyNotice();
   assert.ok(privacyNoticeAcknowledged());
 });
+
+// ── With a workspace connected (plans/82 M2) ────────────────────────────────────
+const { registerSessionSource, _clearSessionSourceForTests } = await import('../lib/session-source.ts');
+const { showWorkspaceLine, WORKSPACE_PRIVACY_HREF } = await import('./privacy-notice.ts');
+const connect = (label: string) => registerSessionSource({ label } as never);
+const win = dom.window as unknown as { __TAURI_INTERNALS__?: { invoke: () => void } };
+const PLAIN = 'Your designs and files stay on this device - no tracking, no analytics.';
+
+test('with no workspace the notice is word for word as it was, link included', () => {
+  _clearSessionSourceForTests();
+  localStorage.clear();
+  const html = privacyNoticeMarkup();
+  assert.ok(html.includes(PLAIN));
+  assert.ok(html.includes('href="#/docs/trust/privacy"'));
+  assert.ok(!html.includes('keeps what you save'));
+});
+
+test('with a workspace the notice says what the workspace keeps, and links to that section', () => {
+  _clearSessionSourceForTests();
+  localStorage.clear();
+  connect('SUSE Content Automation');
+  const html = privacyNoticeMarkup();
+  assert.ok(html.includes('SUSE Content Automation keeps what you save to its projects or share through it, and a log of your sign-ins and what you do there. Everything else stays in this browser. Lolly itself has no tracking or analytics.'));
+  assert.ok(html.includes(`href="${WORKSPACE_PRIVACY_HREF}"`));
+  assert.equal(WORKSPACE_PRIVACY_HREF, '#/docs/trust/privacy?h=organisation-services-with-lolly-work');
+  assert.ok(!html.includes(PLAIN));
+  win.__TAURI_INTERNALS__ = { invoke() {} };
+  try { assert.ok(privacyNoticeMarkup().includes('Everything else stays on this device.'), 'the apps say "on this device"'); }
+  finally { delete win.__TAURI_INTERNALS__; }
+  _clearSessionSourceForTests();
+});
+
+test('a workspace name is text, never markup', () => {
+  _clearSessionSourceForTests();
+  localStorage.clear();
+  connect('<img src=x onerror=alert(1)>');
+  const html = privacyNoticeMarkup();
+  assert.ok(!html.includes('<img'));
+  assert.ok(html.includes('&lt;img'));
+  _clearSessionSourceForTests();
+});
+
+test('a workspace that connects after the first paint swaps the line once', () => {
+  _clearSessionSourceForTests();
+  const view = mount();
+  const notice = view.querySelector<HTMLElement>('.privacy-notice')!;
+  assert.equal(notice.querySelector('.privacy-notice-line')!.textContent, PLAIN);
+  showWorkspaceLine(notice);
+  assert.equal(notice.querySelector('.privacy-notice-line')!.textContent, PLAIN, 'nothing connected yet');
+  connect('SUSE Content Automation');
+  showWorkspaceLine(notice);
+  assert.match(notice.querySelector('.privacy-notice-line')!.textContent!, /^SUSE Content Automation keeps what you save/);
+  assert.equal(notice.querySelector('.privacy-notice-link')!.getAttribute('href'), WORKSPACE_PRIVACY_HREF);
+  _clearSessionSourceForTests();
+});

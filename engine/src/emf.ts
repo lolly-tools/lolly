@@ -10,7 +10,9 @@
  * per run: plain runs ride live, and anything GDI text can't express (tracking,
  * OpenType features, strokes, skew) is outlined to paths upstream exactly as
  * before (plans/63-emf-support.md). A file with no text prims is byte-identical
- * to the pre-1.128 writer.
+ * to the pre-1.128 writer. A `stencil` prim (words no font can draw, as a
+ * picture) becomes a mask and paint pair of 1-bit DIB blits, as in WMF; a file
+ * with no stencil prims writes none.
  *
  * This is the format authority, the same way units.js owns dimension math and
  * color.js owns colour math. It imports only units.js. No Handlebars, no ajv,
@@ -104,9 +106,9 @@ export interface VectorTextPrim {
  * Words no font can draw, as a picture of their shape painted in one ink: one bit per
  * source pixel, 1 where the words are, so whatever lies under the words shows through
  * everywhere else. The IR producer makes one from a picture of the run by the host's own
- * text renderer, only for a format that asks for it (EPS, WMF). EPS paints it with
- * `imagemask`, WMF with a mask and paint pair of DIB blits. Writers that do not draw one
- * (EMF, DXF) never receive one.
+ * text renderer, only for a format that asks for it (EPS, WMF, EMF). EPS paints it with
+ * `imagemask`, WMF and EMF with a mask and paint pair of DIB blits. DXF, which does not
+ * draw one, never receives one.
  */
 export interface VectorStencilPrim {
   type: 'stencil';
@@ -189,6 +191,8 @@ const TA_BASELINE = 24;
 const DEFAULT_CHARSET = 1;             // let the renderer pick the codepage
 
 const SRCCOPY = 0x00CC0020;            // dwRop: source overwrites destination
+const SRCPAINT = 0x00EE0086;           // dwRop: source OR destination
+const SRCAND = 0x008800C6;             // dwRop: source AND destination
 const DIB_RGB_COLORS = 0;
 
 // Polygon-fill modes
@@ -456,6 +460,69 @@ function recStretchDibits(prim: VectorImagePrim): Uint8Array {
   return new Uint8Array(buf);
 }
 
+// ─── Stencil prim → a mask and paint pair of DIB blits ──────────────────────────
+// The same pair as the WMF writer (wmf.ts). The words are drawn the way GDI draws a
+// sprite: a 1-bit mask ORed in (white where the words are, black elsewhere, so only
+// those pixels go white), then a 1-bit picture ANDed in (the ink where the words are,
+// white elsewhere, so only those pixels take the ink). What lies under the words keeps
+// its colour everywhere else. A reader that ignores raster operations draws the second
+// blit as it is: the words in their ink on a white box, not a black one.
+
+/** EMR_STRETCHDIBITS with a 1-bit, bottom-up DIB whose two colours are `zero` and `one`. */
+function recStretchDib1(prim: VectorStencilPrim, rows: Uint8Array, zero: Rgb, one: Rgb, rop: number): Uint8Array {
+  const pxW = Math.max(1, Math.round(prim.pxW));
+  const pxH = Math.max(1, Math.round(prim.pxH));
+  const stride = Math.ceil(pxW / 32) * 4;      // DIB rows are padded to 32 bits
+  const bitsLen = stride * pxH;
+  const size = 128 + bitsLen;                  // 8 header + 72 fixed body + 40 BMIH + 8 colour table + bits
+  const buf = new ArrayBuffer(size);
+  const dv = new DataView(buf);
+  dv.setUint32(0, EMR_STRETCHDIBITS, true);
+  dv.setUint32(4, size, true);
+  setRect(dv, 8, { left: clampInt(prim.x), top: clampInt(prim.y), right: clampInt(prim.x + prim.w), bottom: clampInt(prim.y + prim.h) });
+  dv.setInt32(24, clampInt(prim.x), true);    // xDest
+  dv.setInt32(28, clampInt(prim.y), true);    // yDest
+  dv.setInt32(32, 0, true);                   // xSrc
+  dv.setInt32(36, 0, true);                   // ySrc
+  dv.setInt32(40, pxW, true);                 // cxSrc
+  dv.setInt32(44, pxH, true);                 // cySrc
+  dv.setUint32(48, 80, true);                 // offBmiSrc  (→ BITMAPINFOHEADER)
+  dv.setUint32(52, 48, true);                 // cbBmiSrc   (header + two colours)
+  dv.setUint32(56, 128, true);                // offBitsSrc (→ rows)
+  dv.setUint32(60, bitsLen, true);            // cbBitsSrc
+  dv.setUint32(64, DIB_RGB_COLORS, true);     // iUsageSrc
+  dv.setUint32(68, rop >>> 0, true);          // dwRop
+  dv.setInt32(72, clampInt(prim.w), true);    // cxDest
+  dv.setInt32(76, clampInt(prim.h), true);    // cyDest
+  // BITMAPINFOHEADER @ 80
+  dv.setUint32(80, 40, true);                 // biSize
+  dv.setInt32(84, pxW, true);                 // biWidth
+  dv.setInt32(88, pxH, true);                 // biHeight positive = bottom-up rows
+  dv.setUint16(92, 1, true);                  // biPlanes
+  dv.setUint16(94, 1, true);                  // biBitCount
+  dv.setUint32(96, 0, true);                  // biCompression = BI_RGB
+  dv.setUint32(100, bitsLen, true);           // biSizeImage
+  dv.setUint32(112, 2, true);                 // biClrUsed
+  // Colour table @ 120: RGBQUAD is blue, green, red, reserved.
+  const out = new Uint8Array(buf);
+  out.set([zero.b & 0xff, zero.g & 0xff, zero.r & 0xff, 0, one.b & 0xff, one.g & 0xff, one.r & 0xff, 0], 120);
+  const rowBytes = Math.ceil(pxW / 8);
+  for (let y = 0; y < pxH; y++) out.set(rows.subarray(y * rowBytes, (y + 1) * rowBytes), 128 + (pxH - 1 - y) * stride);
+  return out;
+}
+
+function emitStencilPrim(prim: VectorStencilPrim, out: Uint8Array[]): void {
+  const pxW = Math.max(1, Math.round(prim.pxW));
+  const pxH = Math.max(1, Math.round(prim.pxH));
+  const ink = new Uint8Array(Math.ceil(pxW / 8) * pxH);
+  ink.set(prim.bits.subarray(0, ink.length));
+  const black = { r: 0, g: 0, b: 0 }, white = { r: 255, g: 255, b: 255 };
+  // Mask: a 1 bit (the words) reads as white, so OR whitens those pixels and keeps the rest.
+  out.push(recStretchDib1(prim, ink, black, white, SRCPAINT));
+  // Paint: a 1 bit reads as the ink, a 0 bit as white, so AND inks only the whitened pixels.
+  out.push(recStretchDib1(prim, ink, white, prim.fill, SRCAND));
+}
+
 // ─── Text prim → records ──────────────────────────────────────────────────────
 
 const recSetBkMode = (mode: number): Uint8Array =>
@@ -610,6 +677,7 @@ export function emitEmf(ir: VectorIr, opts: VectorEmitOpts = {}): Uint8Array {
   for (const prim of ir.prims || []) {
     if (prim?.type === 'path') emitPathPrim(prim, body);
     else if (prim?.type === 'image') body.push(recStretchDibits(prim));
+    else if (prim?.type === 'stencil') emitStencilPrim(prim, body);
     else if (prim?.type === 'text') emitTextPrim(prim, body, h.Wpx, h.Hpx, exScale, eyScale);
   }
   body.push(recEof());
