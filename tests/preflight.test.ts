@@ -526,6 +526,58 @@ test('spot and finish ceilings count distinct ink names, separately', () => {
   assert.equal(has(r, 'plates.no-spots-declared'), false);
 });
 
+// "Print spot inks as process" (`_spots=process`): the file carries the four process
+// plates and the finish plates, and no spot plate for a rate card to price.
+const INKS_AND_FOIL = [
+  swatch('Red', 'PANTONE 186 C'),
+  swatch('Red tint', 'PANTONE 186 C'),
+  swatch('Blue', 'PANTONE 300 C'),
+  swatch('Gold', 'Gold', 'foil'),
+];
+const plateCounts = (r: ReturnType<typeof preflight>) =>
+  Object.fromEntries(r.counts.filter(c => /Plates$/.test(c.kind)).map(c => [c.kind, c.value]));
+
+test('spot inks as process: inks only counts the four process plates and no spot plate', () => {
+  const r = preflight(job({
+    settings: { format: 'pdf-cmyk', spotsAsProcess: true },
+    palette: { known: true, value: [swatch('Red', 'PANTONE 186 C'), swatch('Blue', 'PANTONE 300 C')] },
+  }));
+  assert.deepEqual(plateCounts(r), { processPlates: 4 });
+  assert.equal(has(r, 'plates.spot-ceiling'), false);
+  assert.equal(has(r, 'plates.no-spots-declared'), false, 'the brand does declare inks');
+  const f = one(r, 'plates.process');
+  assert.match(f.message, /^4 process plates\. The 2 spot inks print as process and add no plates\. /);
+  assert.equal(f.evidence?.spotsAsProcess, 'PANTONE 186 C, PANTONE 300 C');
+});
+
+test('spot inks as process: a foil finish keeps its own plate beside the four process plates', () => {
+  const r = preflight(job({ settings: { format: 'pdf-cmyk', spotsAsProcess: true }, palette: { known: true, value: INKS_AND_FOIL } }));
+  assert.deepEqual(plateCounts(r), { processPlates: 4, finishPlates: 1 });
+  assert.equal(one(r, 'plates.finish-ceiling').message, 'Up to 1 finish plate: Gold.');
+  assert.equal(has(r, 'plates.spot-ceiling'), false);
+});
+
+test('spot inks as process: one ink reads in the singular', () => {
+  const r = preflight(job({ settings: { format: 'pdf-cmyk', spotsAsProcess: true }, palette: { known: true, value: [swatch('Red', 'PANTONE 186 C')] } }));
+  assert.match(one(r, 'plates.process').message, /^4 process plates\. The spot ink prints as process and adds no plate\. /);
+});
+
+test('spot inks as process off: the spot ceiling and the process sentence are as before', () => {
+  for (const settings of [{ format: 'pdf-cmyk' }, { format: 'pdf-cmyk', spotsAsProcess: false }]) {
+    const r = preflight(job({ settings, palette: { known: true, value: INKS_AND_FOIL } }));
+    assert.deepEqual(plateCounts(r), { processPlates: 4, spotPlates: 2, finishPlates: 1 });
+    assert.equal(one(r, 'plates.spot-ceiling').message, 'Up to 2 spot plates.');
+    assert.equal(one(r, 'plates.process').message, '4 process plates. Whether all four carry ink cannot be known before the file is written.');
+    assert.deepEqual(one(r, 'plates.process').evidence, { format: 'pdf-cmyk' });
+  }
+});
+
+test('spot inks as process with no inks declared changes nothing', () => {
+  const r = preflight(job({ settings: { format: 'pdf-cmyk', spotsAsProcess: true }, palette: { known: true, value: [swatch('Gold', 'Gold', 'foil')] } }));
+  assert.deepEqual(plateCounts(r), { processPlates: 4, finishPlates: 1 });
+  assert.equal(one(r, 'plates.process').message, '4 process plates. Whether all four carry ink cannot be known before the file is written.');
+});
+
 test('a brand with no spots says so, and does not report the number zero', () => {
   const r = preflight(job({
     settings: { format: 'pdf-cmyk' },

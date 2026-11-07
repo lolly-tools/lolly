@@ -196,7 +196,7 @@ If your brand declares a spot ink that is really a **finish** (a foil, an emboss
 LOLLY_PROFILE=lolly-demo lolly run design --boxes-data=slides.json --export=pdf-cmyk --spots=process --output=four-colour.pdf
 ```
 
-A finish is not an ink, so it keeps its own plate with `--spots=process`. Printing a finish in process would put its black mask on the page. The CMYK TIFF and `eps-cmyk` print every ink in process already, so the flag does not change them. It is off by default, the same choice as `_spots=process` in a link and **Print spot inks as process** in the app, and the file records nothing about the choice. Any value other than `process` is refused with exit `2`.
+A finish is not an ink, so it keeps its own plate with `--spots=process`. Printing a finish in process would put its black mask on the page. The CMYK TIFF and `eps-cmyk` print every ink in process already, so the flag does not change them. It is off by default, the same choice as `_spots=process` in a link and **Print spot inks as process** in the app, and the file records nothing about the choice. Any value other than `process` is refused with exit `2`. `lolly preflight` takes the flag too, and then counts the four process plates and any finish plates, with no spot plates, because the file will have none.
 
 <a id="check-a-design-document-in-ci-lolly-check"></a>
 ## Check a Lolly Design document in CI (lolly check)
