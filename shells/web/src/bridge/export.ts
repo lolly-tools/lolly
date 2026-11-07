@@ -33,7 +33,7 @@ import { suspendNodeRasters, drainNodeRasters } from '../lib/clip-thumbs.ts';
 import { subtreePaintsNothing } from './export-pdf-leaf.ts';
 import { canvasPicture, imageDims, imageForPdf } from './export-pdf-picture.ts';
 import { pageFitRegion } from './export-page-fit.ts';
-import { liveOrigin, type Origin } from './export-origin.ts';
+import { keepRootFrame, liveOrigin, type Origin } from './export-origin.ts';
 import { videoMimeCandidates, AUDIO_FRAME_HEADROOM, videoBitrate, videoFramePlan, bppForQuality, codecAdjustedBitrate, LIVE_BITS_PER_PIXEL } from './video-mime.ts';
 import { bedDuckEnvelope, scheduleGainEvents } from './audio-envelope.ts';
 import type { ExportAudioMixIn } from './audio-envelope.ts';
@@ -2627,7 +2627,7 @@ async function drawHtmlVectors(pdf: any, node: Element, ox: number, oy: number, 
       // animation outranks the inline style, and the re-entry that follows recurses
       // per attempt (plans/104 section 9 P3.1; bridge/transform-neutralise.ts). `null` = the
       // transform survived, so fall through to the AABB path with its rect as-is.
-      const restore = neutraliseTransform(el, neutralise, warnTransform);
+      const restore = keepRootFrame(rootRect, el, () => neutraliseTransform(el, neutralise, warnTransform));
       if (restore) {
         try {
           const unrot = el.getBoundingClientRect();     // reading forces the reflow
@@ -2645,7 +2645,7 @@ async function drawHtmlVectors(pdf: any, node: Element, ox: number, oy: number, 
     const mtx = pureRotationDeg(style.transform) === 0 ? parseCssMatrix(style.transform) : null;
     if (mtx && pdfDrawsThroughMatrix(el, node, style, mtx)) {
       // Same guarded neutralise as the rotation branch above.
-      const restore = neutraliseTransform(el, neutralise, warnTransform);
+      const restore = keepRootFrame(rootRect, el, () => neutraliseTransform(el, neutralise, warnTransform));
       if (restore) {
         try {
           const unrot = el.getBoundingClientRect();

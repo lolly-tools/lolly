@@ -17,6 +17,13 @@
  * known point. Each file must be the same as the one the walker writes when nothing
  * moves. Before the fix the boxes read after the move were written 170 px to the left.
  *
+ * The same root is also exported scaled and rotated. A walker takes a transformed root's
+ * own transform off while it walks the subtree, and the origin must stay on the corner
+ * the page shows: the first version of the fix followed the untransformed box, and a
+ * centred `scale(0.5)` came out drawn from the middle of the page (review of #789). A
+ * blue marker in the root's corner is found in each file and must sit where the page
+ * shows the marker, measured from the root's own box, still and moving alike.
+ *
  * Real Chromium and real HarfBuzz shaping, self-skipping by name where Playwright's
  * Chromium is not installed (`pnpm exec playwright install chromium`).
  */
@@ -70,10 +77,26 @@ async function bundle(): Promise<string> {
                  window.fetch = (...a) => { if (String(a[0]).includes('/mark.svg')) move(); return nativeFetch(...a); };
                  createExportAPI({ text, log: () => {} });
                  const bytes = async (blob) => { const b = new Uint8Array(await blob.arrayBuffer()); let s = ''; for (const c of b) s += String.fromCharCode(c); return btoa(s); };
-                 window.__render = async (format, moving) => {
+                 // Where the blue marker is in an SVG file drawn at 400 x 200, in px.
+                 const svgMarker = async (blob) => {
+                   const img = new Image(); img.src = URL.createObjectURL(blob); await img.decode();
+                   const c = document.createElement('canvas'); c.width = 400; c.height = 200;
+                   const g = c.getContext('2d'); g.drawImage(img, 0, 0, 400, 200);
+                   const d = g.getImageData(0, 0, 400, 200).data; let x0 = 1e9, y0 = 1e9, x1 = -1, y1 = -1;
+                   for (let i = 0; i < d.length; i += 4) if (d[i + 3] > 128 && d[i] < 60 && Math.abs(d[i + 1] - 160) < 40 && d[i + 2] > 200) {
+                     const x = (i / 4) % 400, y = Math.floor(i / 4 / 400);
+                     x0 = Math.min(x0, x); y0 = Math.min(y0, y); x1 = Math.max(x1, x + 1); y1 = Math.max(y1, y + 1);
+                   }
+                   return x1 < 0 ? null : { x0, y0, x1, y1 };
+                 };
+                 window.__render = async (format, moving, transform = '') => {
                    const shell = document.getElementById('shell');
                    const root = document.getElementById('root');
                    shell.style.paddingInlineEnd = '0px';
+                   root.style.transform = transform;
+                   // The marker's box from the root's box, both as the page shows them.
+                   const r = root.getBoundingClientRect(), m = document.getElementById('marker').getBoundingClientRect();
+                   const shown = { x0: m.left - r.left, y0: m.top - r.top, x1: m.right - r.left, y1: m.bottom - r.top, w: r.width };
                    const before = root.getBoundingClientRect().left;
                    armed = moving;
                    const opts = { width: 400, height: 200, convertPaths: true };
@@ -82,7 +105,9 @@ async function bundle(): Promise<string> {
                      : await renderPptx(root, opts);
                    armed = false;
                    const after = root.getBoundingClientRect().left;
-                   return { file: await bytes(blob), movedBy: before - after };
+                   const marker = format === 'svg' ? await svgMarker(blob) : null;
+                   root.style.transform = '';
+                   return { file: await bytes(blob), movedBy: before - after, shown, marker };
                  };`,
       resolveDir: HERE,
       loader: 'ts',
@@ -112,6 +137,7 @@ const MARK = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><rect 
 // before reaching the boxes under the picture.
 const MARKUP = `<div id="shell" style="display:flex;justify-content:center;box-sizing:border-box;width:1200px;padding-top:40px">
   <div id="root" style="position:relative;flex:none;width:400px;height:200px;background:#fff">
+    <div id="marker" style="position:absolute;left:0;top:0;width:40px;height:20px;background:#00a0ff"></div>
     <img src="/mark.svg" alt="" style="position:absolute;left:372px;top:8px;width:20px;height:20px">
     <div style="position:absolute;left:20px;top:16px;width:340px;height:40px;font:400 12px/1.2 Outfit;color:#000">Small black text at nine points</div>
     <div style="position:absolute;left:20px;top:56px;width:360px;height:70px;font:800 48px/1.1 Outfit;color:#000">Void 48</div>
@@ -119,9 +145,12 @@ const MARKUP = `<div id="shell" style="display:flex;justify-content:center;box-s
   </div>
 </div>`;
 
-interface Rendered { file: Buffer; movedBy: number }
+interface Box { x0: number; y0: number; x1: number; y1: number }
+interface Rendered { file: Buffer; movedBy: number; shown: Box & { w: number }; marker: Box | null }
+type Pair = { still: Rendered; moving: Rendered };
+const TRANSFORMS = ['scale(0.5)', 'rotate(30deg)'] as const;
 
-async function renderAll(): Promise<Record<'pdf' | 'svg' | 'pptx', { still: Rendered; moving: Rendered }>> {
+async function renderAll(): Promise<{ plain: Record<'pdf' | 'svg' | 'pptx', Pair>; transformed: Record<string, Pair> }> {
   const { chromium } = browser as { chromium: any };
   const b = await chromium.launch({ args: ['--force-color-profile=srgb', '--font-render-hinting=none'] });
   try {
@@ -138,17 +167,23 @@ async function renderAll(): Promise<Record<'pdf' | 'svg' | 'pptx', { still: Rend
     await page.evaluate(() => document.fonts.ready);
     await page.addScriptTag({ type: 'module', content: `${await bundle()}\nwindow.__ready = true;` });
     await page.waitForFunction(() => (window as any).__ready === true);
-    const run = async (format: string, moving: boolean): Promise<Rendered> => {
-      const out = await page.evaluate(({ format, moving }: { format: string; moving: boolean }) => (window as any).__render(format, moving), { format, moving });
-      return { file: Buffer.from(out.file, 'base64'), movedBy: out.movedBy };
+    const run = async (format: string, moving: boolean, transform = ''): Promise<Rendered> => {
+      const out = await page.evaluate(({ format, moving, transform }: { format: string; moving: boolean; transform: string }) => (window as any).__render(format, moving, transform), { format, moving, transform });
+      return { ...out, file: Buffer.from(out.file, 'base64') };
     };
-    const result = {} as Record<'pdf' | 'svg' | 'pptx', { still: Rendered; moving: Rendered }>;
+    const plain = {} as Record<'pdf' | 'svg' | 'pptx', Pair>;
     for (const format of ['pdf', 'svg', 'pptx'] as const) {
       // A still run first, so fonts, the shaper and the picture are warm for both.
       await run(format, false);
-      result[format] = { still: await run(format, false), moving: await run(format, true) };
+      plain[format] = { still: await run(format, false), moving: await run(format, true) };
     }
-    return result;
+    // PowerPoint takes no transform off a root (a rotated one becomes a picture), so the
+    // transformed cases are the two walkers that do.
+    const transformed: Record<string, Pair> = {};
+    for (const transform of TRANSFORMS) for (const format of ['pdf', 'svg'] as const) {
+      transformed[`${format} ${transform}`] = { still: await run(format, false, transform), moving: await run(format, true, transform) };
+    }
+    return { plain, transformed };
   } finally { await b.close(); }
 }
 
@@ -163,6 +198,69 @@ async function pdfContent(bytes: Buffer): Promise<string> {
   }).join('\n');
 }
 
+/**
+ * The box of every point filled in the marker's blue on a PDF's first page, in page points
+ * from the top left. The writer opens the page with a top-left, y-down basis
+ * (`1 0 0 -1 0 H cm`); every later `cm` (a rotation, an SVG's viewBox) is applied, and a
+ * rectangle contributes all four corners so a rotated one gives its true bounds.
+ */
+function pdfMarker(content: string): Box | null {
+  type M = [number, number, number, number, number, number];
+  const mul = (m: M, n: M): M => [m[0] * n[0] + m[2] * n[1], m[1] * n[0] + m[3] * n[1], m[0] * n[2] + m[2] * n[3], m[1] * n[2] + m[3] * n[3], m[0] * n[4] + m[2] * n[5] + m[4], m[1] * n[4] + m[3] * n[5] + m[5]];
+  const stack: { rgb: number[]; m: M }[] = [];
+  let rgb = [0, 0, 0];
+  let m: M = [1, 0, 0, 1, 0, 0];
+  let first = true;
+  let nums: number[] = [];
+  let points: number[] = [];
+  const box: Box = { x0: Infinity, y0: Infinity, x1: -Infinity, y1: -Infinity };
+  const at = (x: number, y: number): void => { points.push(m[0] * x + m[2] * y + m[4], m[1] * x + m[3] * y + m[5]); };
+  const blue = (c: number[]): boolean => c.length === 3 && c[0]! < 0.05 && Math.abs(c[1]! - 0.63) < 0.03 && c[2]! > 0.95;
+  for (const token of content.split(/\s+/)) {
+    if (!token) continue;
+    if (/^[-+]?(?:\d+\.?\d*|\.\d+)$/.test(token)) { nums.push(Number(token)); continue; }
+    switch (token) {
+      case 'rg': rgb = nums.slice(-3); break;
+      case 'g': rgb = [nums.at(-1)!, nums.at(-1)!, nums.at(-1)!]; break;
+      case 'q': stack.push({ rgb, m }); break;
+      case 'Q': ({ rgb, m } = stack.pop() ?? { rgb, m }); break;
+      case 'cm': if (first) first = false; else m = mul(m, nums.slice(-6) as M); break;
+      case 'm': case 'l': case 'c': case 'v': case 'y':
+        for (let i = 0; i + 1 < nums.length; i += 2) at(nums[i]!, nums[i + 1]!);
+        break;
+      case 're': {
+        const [x, y, w, h] = nums.slice(-4) as [number, number, number, number];
+        at(x, y); at(x + w, y); at(x, y + h); at(x + w, y + h);
+        break;
+      }
+      case 'f': case 'f*': case 'F': case 'B': case 'B*': case 'b': case 'b*':
+        if (blue(rgb)) for (let i = 0; i + 1 < points.length; i += 2) {
+          box.x0 = Math.min(box.x0, points[i]!); box.x1 = Math.max(box.x1, points[i]!);
+          box.y0 = Math.min(box.y0, points[i + 1]!); box.y1 = Math.max(box.y1, points[i + 1]!);
+        }
+        points = [];
+        break;
+      case 'n': case 'S': case 's': case 'W': case 'W*': points = []; break;
+      default: break;
+    }
+    nums = [];
+  }
+  return Number.isFinite(box.x0) ? box : null;
+}
+
+/** Where the page shows the marker, scaled to a file `wide` units across the root's width. */
+function expectedMarker(r: Rendered, wide: number): Box {
+  const k = wide / r.shown.w;
+  return { x0: r.shown.x0 * k, y0: r.shown.y0 * k, x1: r.shown.x1 * k, y1: r.shown.y1 * k };
+}
+
+function assertNear(found: Box | null, want: Box, tolerance: number, what: string): void {
+  assert.ok(found, `${what}: no marker found`);
+  for (const k of ['x0', 'y0', 'x1', 'y1'] as const) {
+    assert.ok(Math.abs(found[k] - want[k]) <= tolerance, `${what}: marker ${k} is ${found[k].toFixed(2)}, the page shows ${want[k].toFixed(2)} (found ${JSON.stringify(found)})`);
+  }
+}
+
 /** The slide XML of a PowerPoint file, which is where the shapes and their offsets are. */
 function pptxSlides(bytes: Buffer): string {
   const files = unzipSync(new Uint8Array(bytes));
@@ -174,12 +272,24 @@ const rendered = SKIP ? null : await renderAll();
 
 for (const format of ['pdf', 'svg', 'pptx'] as const) {
   test(`the ${format.toUpperCase()} export draws every box in its place when the page moves the root during the walk`, { skip: SKIP, timeout: 180_000 }, async () => {
-    const { still, moving } = rendered![format];
+    const { still, moving } = rendered!.plain[format];
     // Premise: the root stood still for one run and moved 170 px left in the other.
     assert.equal(still.movedBy, 0, 'the still run must not move the root');
     assert.equal(moving.movedBy, 170, 'the moving run must move the root 170 px left during the walk');
     if (format === 'pdf') assert.equal(await pdfContent(moving.file), await pdfContent(still.file));
     else if (format === 'svg') assert.equal(moving.file.toString('utf8'), still.file.toString('utf8'));
     else assert.equal(pptxSlides(moving.file), pptxSlides(still.file));
+  });
+}
+
+for (const transform of TRANSFORMS) for (const format of ['pdf', 'svg'] as const) {
+  test(`the ${format.toUpperCase()} export draws a root with ${transform} where the page shows it, still and moving`, { skip: SKIP, timeout: 180_000 }, async () => {
+    const { still, moving } = rendered!.transformed[`${format} ${transform}`]!;
+    assert.equal(moving.movedBy, 170, 'the moving run must move the root 170 px left during the walk');
+    // 400 px is the file's width in px for SVG, 300 pt for PDF; the marker is found to within a pixel.
+    for (const [run, label] of [[still, 'still'], [moving, 'moving']] as const) {
+      const found = format === 'svg' ? run.marker : pdfMarker(await pdfContent(run.file));
+      assertNear(found, expectedMarker(run, format === 'svg' ? 400 : 300), format === 'svg' ? 1.5 : 1.2, `${format} ${transform} ${label}`);
+    }
   });
 }
