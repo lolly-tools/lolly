@@ -142,6 +142,8 @@ De tabel heeft vier kolommen, en op een telefoon wordt elke rij een kaart die li
 
 Een lezing die geen rol invult, blijft zoals het design system haar definieert, en de kamer somt die onder de tabel op. Een rol met hetzelfde id als een lezing, zoals een rol die Primary heet, is die lezing en kan niet worden verplaatst.
 
+**In een grafiek.** Het palet **Design system - colour roles first** van Lolly Chart geeft de reeksen eerst de kleurrollen van het design system in zijn eigen volgorde, daarna de rest van zijn palet. Een rol die als Background, Text, Quiet text of Hairlines wordt gelezen, blijft weg, omdat de grafiek zijn ondergrond en zijn woorden in die kleuren tekent. Er verandert niets totdat je dat palet kiest, en een design system zonder kleurrollen tekent het palet als **Design system - ordered**.
+
 **Waarden.** Druk op een waarde om voor die rol, in die look, in de gekozen colourway een kleur te kiezen. **Same as light** laat de donkere waarde de lichte volgen totdat je een eigen kleur kiest. De chip **Aa** toont de tekst die Lolly kiest om op de kleur te staan, en de regel onder de waarde zegt per look hoe die tekst leest: **Text reads well**, **Large text only** of **Hard to read as text**. Dat gaat over tekst op de kleur en zegt niets tegen de kleur zelf, die nog steeds kan werken voor vormen en grote vlakken. Een rol die alleen op naam wordt gelezen, toont dezelfde woorden zonder de waarschuwingskleur, omdat geen enkele tool uit zichzelf tekst erop zet. De cijfers achter de woorden, APCA eerst en WCAG daarna, staan in de tooltip en in de kiezer. **Own text colour** markeert een waarde waarvan het bestand de tekstkleur vastlegt, die blijft staan. **Copied** markeert een waarde die uit een andere colourway of uit de partnerkleur komt en die nog niemand heeft gekozen; **Keep this colour** in de kiezer legt de waarde vast.
 
 **Beginpunten.** Een design system zonder eigen rollen toont de woorden van nu: Primary, Secondary, Surface en Text. Er wordt niets geschreven totdat je er een wijzigt. **+ Add a role** biedt **Primary, Secondary** of **Main, Accent, Supporting, Tertiary** als suggesties, of woorden die je zelf typt, met de lezing die elk zou krijgen. De eerste twee woorden worden de hoofdkleur en de partnerkleur. Tools blijven dezelfde kleuren tekenen, en op een systeem met één hoofdkleur is de eerste colourway naar die kleur genoemd.
@@ -305,7 +307,7 @@ Zet de bestanden die je merk bewaart erin, behalve logo's: **vector**-, **image*
 
 **Rules** zet de keuzes van je merk aan het werk: wat mensen kunnen wijzigen, wat vast blijft en wat Lolly kan controleren.
 
-![Rules op Lolly Demo: vier huisregels, elk gemarkeerd als Checked in Lolly Design en Required of Advisory, daarna Try your design system in use met zijn voorbeelden klaar om te renderen](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dusage&width=1440&height=1200&dpi=192&waitMs=2400&cropSelector=%23start-panel-usage&format=svg&walker=1&dark=1&filename=bs-usage-rules)
+![Rules op Lolly Demo: vier huisregels, elk gemarkeerd als Checked in Design en Required of Advisory, daarna Try your design system in use met zijn voorbeelden klaar om te renderen](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dusage&width=1440&height=1200&dpi=192&waitMs=2400&cropSelector=%23start-panel-usage&format=svg&walker=1&dark=1&filename=bs-usage-rules)
 
 **Brand rules** somt je regels op. **Add rule** (of **Add your first rule**) opent een kort formulier:
 
@@ -316,7 +318,7 @@ Zet de bestanden die je merk bewaart erin, behalve logo's: **vector**-, **image*
 
 Goedkeuring legt je eigen beslissing vast op dit apparaat. Goedgekeurde vereiste regels beperken de herbruikbare poster, en controles dekken alleen de PNG-voorbeelden; ze wijzigen geen enkele andere tool.
 
-Regels die een design system in zijn tokenbestand meebrengt, zoals goedgekeurde kleurparen, tekstgewicht en uitlijning of een logo per oppervlak, staan hier als **Checked in Lolly Design**. Lolly Design controleert ze laag voor laag in de kaart **Before you export** van het exportpaneel, en `lolly check` doet hetzelfde voor een opgeslagen Lolly Design-document ([Before you export](/info/design.html#before-you-export)). Een regel waarvoor deze build geen controle heeft, blijft zoals aangeleverd bewaard en wordt gemarkeerd als **Unchecked**.
+Regels die een design system in zijn tokenbestand meebrengt, zoals goedgekeurde kleurparen, tekstgewicht en uitlijning of een logo per oppervlak, staan hier als **Checked in Design**. Lolly Design controleert ze laag voor laag in de kaart **Before you export** van het exportpaneel, en `lolly check` doet hetzelfde voor een opgeslagen Lolly Design-document ([Before you export](/info/design.html#before-you-export)). Een regel waarvoor deze build geen controle heeft, blijft zoals aangeleverd bewaard en wordt gemarkeerd als **Unchecked**.
 
 Lolly Demo brengt vier goedgekeurde huisregels mee. Koppen staan nooit in hoofdletters: die regel is verplicht, dus `lolly check` meldt een kop in hoofdletters als fout. De andere drie zijn adviserend. Lopende tekst is links uitgelijnd. Primaire merktekens staan op lichte oppervlakken en omgekeerde op donkere. Gestippelde lijnen betekenen: zet hier neer.
 

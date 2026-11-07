@@ -658,6 +658,12 @@ const INGREDIENT_MIME: Record<string, string> = {
   avif: 'image/avif',
 };
 
+/** The format key whose `dc:format` an ingredient assertion wrote, for carrying it again. */
+export function ingredientFormatOfMime(mime: unknown): string | undefined {
+  if (typeof mime !== 'string') return undefined;
+  return Object.keys(INGREDIENT_MIME).find((key) => INGREDIENT_MIME[key] === mime);
+}
+
 // Joins a list of human-readable fragments as "a, b and c" (Oxford-comma-free,
 // matching British house style elsewhere in this file's descriptions).
 function joinList(items: string[]): string {
@@ -798,14 +804,58 @@ export function exportActionSteps(format: string, flags: {
   // The model that enlarged the image, named - so an inspected asset discloses not
   // just THAT it was AI-upscaled but with what. Kept as its own step after the other
   // edits, before the render/encode close.
-  if (upscaled) steps.push({ action: 'c2pa.edited', description: `AI-upscaled with ${upscaled.model} ${upscaled.version}` });
+  if (upscaled) steps.push({ action: 'c2pa.edited', description: aiUpscaleDescription(upscaled) });
   // Each AI-declared ingredient named with its declared grade, so the record
   // says not just THAT AI media was placed but which piece and how fully.
-  if (aiPlaced) steps.push({ action: 'c2pa.placed', description: `Placed AI-declared ingredient${aiPlaced.length === 1 ? '' : 's'}: ${joinList(aiPlaced.map(i => `${i.name} (${i.kind === 'full' ? 'AI-generated' : 'AI-assisted'})`))}` });
+  if (aiPlaced) steps.push({ action: 'c2pa.placed', description: aiPlacedDescription(aiPlaced) });
   if (RASTER_OUTPUTS.has(f)) steps.push({ action: 'c2pa.converted', description: `Rendered to ${f.toUpperCase()}` });
   else if (VIDEO_OUTPUTS.has(f)) steps.push({ action: 'c2pa.converted', description: `Encoded to ${f.toUpperCase()}` });
   else if (f === 'pdf' || f === 'pdf-cmyk') steps.push({ action: 'c2pa.converted', description: 'Rendered to PDF' });
   return steps;
+}
+
+// The two AI steps exportActionSteps writes, as text. One writer for each, so the
+// reader below can check a reading by writing it again.
+const AI_GRADE = { full: 'AI-generated', partial: 'AI-assisted' } as const;
+function aiPlacedDescription(list: AiIngredientDeclaration[]): string {
+  return `Placed AI-declared ingredient${list.length === 1 ? '' : 's'}: ${joinList(list.map(i => `${i.name} (${AI_GRADE[i.kind]})`))}`;
+}
+function aiUpscaleDescription(up: { model: string; version: string }): string {
+  return `AI-upscaled with ${up.model} ${up.version}`;
+}
+
+/**
+ * The AI facts {@link exportActionSteps} wrote into a step list, read back: the
+ * ingredients its `c2pa.placed` step declares AI-made and the model its upscale step
+ * names. A shell that replaces a credential with its own passes them to
+ * exportActionSteps again, which writes the same steps. A reading counts only when
+ * writing it again gives the very description it came from, so a step another writer
+ * made, or a name the list form cannot hold, is left out rather than guessed.
+ */
+export function aiFactsFromSteps(steps: ReadonlyArray<{ action?: unknown; description?: unknown; parameters?: unknown }>): {
+  aiIngredients: AiIngredientDeclaration[];
+  aiUpscale?: { model: string; version: string };
+} {
+  const aiIngredients: AiIngredientDeclaration[] = [];
+  let aiUpscale: { model: string; version: string } | undefined;
+  for (const step of steps) {
+    const text = typeof step.description === 'string' ? step.description : '';
+    if (step.action === 'c2pa.placed' && step.parameters === undefined) {
+      const head = /^Placed AI-declared ingredients?: /.exec(text);
+      if (!head) continue;
+      const read: AiIngredientDeclaration[] = [];
+      const item = /(.+?) \((AI-generated|AI-assisted)\)(?:, | and |$)/gy;
+      item.lastIndex = head[0].length;
+      for (let m = item.exec(text); m; m = item.lastIndex < text.length ? item.exec(text) : null) {
+        read.push({ name: m[1]!, kind: m[2] === 'AI-generated' ? 'full' : 'partial' });
+      }
+      if (read.length && aiPlacedDescription(read) === text) aiIngredients.push(...read);
+    } else if (step.action === 'c2pa.edited' && !aiUpscale) {
+      const m = /^AI-upscaled with (.+) (\S+)$/.exec(text);
+      if (m && aiUpscaleDescription({ model: m[1]!, version: m[2]! }) === text) aiUpscale = { model: m[1]!, version: m[2]! };
+    }
+  }
+  return { aiIngredients, ...(aiUpscale ? { aiUpscale } : {}) };
 }
 
 // The created step's description for a captured essence - camera, mic, or both.

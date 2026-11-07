@@ -147,7 +147,7 @@ Some formats hand your work to another application as editable content rather th
 
 ### PowerPoint (PPTX)
 
-Lolly Design, Lolly Markdown Slides, Booklet, Lolly Doc Studio, Lolly Chart, Diagrams, Flow Lolly Chart and Agenda export a PowerPoint deck, one slide per page. Each page is taken apart into native objects, so a colleague can edit the deck and take assets out of it:
+Lolly Design, Lolly Markdown Slides, Booklet, Lolly Doc Studio, Lolly Chart, Diagrams, Flow Chart and Agenda export a PowerPoint deck, one slide per page. Each page is taken apart into native objects, so a colleague can edit the deck and take assets out of it:
 
 - <!--i:font--> **Text** becomes editable PowerPoint text boxes with the layout's font size, colour, weight, italics and alignment.
 - <!--i:pentool--> **Vectors** such as logos and icons are embedded as SVG pictures; they stay crisp, and PowerPoint can *Convert to Shape* on them.

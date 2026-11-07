@@ -50,7 +50,7 @@ A promise is something a company can change on a Tuesday. An architecture is som
 - <!--i:download--> **Exports are ordinary files.** PNG, SVG, PDF and the rest open in software that has nothing to do with us, keep working if this project disappears and sit behind no export tier. See [Export a file](/info/exporting.html) and [Data transfer](/info/data-transfer.html).
 - <!--i:seal--> **Provenance travels with the work.** What you make carries [Content Credentials](/info/content-credentials-identity.html) by default, in every format that can hold one, and anyone can check them. Try it on something you made: [Verify It Yourself](/info/verify-yourself.html).
 - <!--i:globe--> **There is no consent wall.** No trackers, no analytics, no ad profile and no account needed to use the tools. Lolly asks only before a network action you start, such as fetching a font or a model. [Security & Verification](/info/security.html) covers how to confirm that.
-- <!--i:people--> **Accessibility ships now.** Motion, contrast, text size and preview intensity are settings in the product, not accommodations you request. See [Inclusive Lolly Design](/info/inclusive-design.html).
+- <!--i:people--> **Accessibility ships now.** Motion, contrast, text size and preview intensity are settings in the product, not accommodations you request. See [Inclusive Design](/info/inclusive-design.html).
 
 ## What this is not
 

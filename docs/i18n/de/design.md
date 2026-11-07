@@ -206,7 +206,7 @@ Wählen Sie einen Clip, und der Inspector bietet dieselben Bearbeitungen als Zah
 
 ## Vor dem Export
 
-Design prüft Ihr Dokument, bevor Sie die Datei senden. Die Karte **Before you export** im Abschnitt **Document** des Inspektors und erneut im Export-Panel liest die gespeicherte Ebenenstruktur und prüft dann die beruhigte Arbeitsfläche auf abgeschnittenen Text und Kontrast bei Vollfarben. Sie fragt dieselbe Schriftregistrierung, die auch die SVG- und PDF-Umrisse nutzen, ob jeder Textlauf Schrift-Bytes hat, die sich einbetten lassen. Bild- und Verlaufshintergründe werden als visuelle Prüfungen aufgelistet, statt ihnen eine erfundene Kontrastzahl zu geben.
+Design prüft Ihr Dokument, bevor Sie die Datei senden. Die Karte **Before you export** im Abschnitt **Document** des Inspektors und erneut im Export-Panel liest die gespeicherte Ebenenstruktur und prüft dann die beruhigte Arbeitsfläche auf abgeschnittenen Text und Kontrast bei Vollfarben. Sie fragt dieselbe Schriftregistrierung, die auch die SVG- und PDF-Umrisse nutzen, ob jeder Textlauf Schrift-Bytes hat, die sich einbetten lassen. Text, den eine [Ersatzschrift](/info/fallback-fonts.html) im Export zeichnet, gilt als abgedeckt. Ein Schriftsystem ohne Ersatzschrift oder ein chinesisches, japanisches oder koreanisches Zeichen außerhalb der Zeichensätze, die diese Schriften enthalten, wird weiterhin gemeldet. Bild- und Verlaufshintergründe werden als visuelle Prüfungen aufgelistet, statt ihnen eine erfundene Kontrastzahl zu geben.
 
 ### Eine Komposition gegen das Designsystem prüfen
 

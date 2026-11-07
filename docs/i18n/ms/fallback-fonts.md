@@ -59,7 +59,9 @@ Baris perintah, apl terminal dan pelayan MCP membaca fail yang sama daripada cak
 
 ## Pada halaman dan dalam eksport
 
-Halaman menggunakan fon sandaran yang sama dengan eksport. Tanpa ini, pelayar melukis huruf sedemikian dalam fon sistem manakala eksport menggunakan Noto, dan baris yang mengandunginya berubah lebar antara kedua-duanya. Lolly menambah fon sandaran pada hujung senarai fon sistem reka bentuk pada kanvas itu sahaja, selepas fon sistem reka bentuk sendiri dan sebelum sebarang fon sistem. Kanvas yang diliputi sistem reka bentuk mengekalkan senarai fonnya seperti sebelum ini.
+Halaman menggunakan fon sandaran yang sama dengan eksport. Tanpa ini, pelayar melukis huruf sedemikian dalam fon sistem manakala eksport menggunakan Noto, dan baris yang mengandunginya berubah lebar antara kedua-duanya. Lolly menambah fon sandaran pada hujung senarai fon sistem reka bentuk pada kanvas itu sahaja, selepas fon sistem reka bentuk sendiri dan sebelum sebarang fon sistem. Alat yang menetapkan senarai fonnya sendiri, dalam gayanya atau pada elemennya, mendapat fon sandaran di tempat yang sama: selepas fon yang diberikan senarai itu dan sebelum sebarang fon sistem. Kanvas yang diliputi sistem reka bentuk mengekalkan senarai fonnya seperti sebelum ini.
+
+Halaman membiarkan senarai fon begitu sahaja apabila ia bermula dengan fon sistem, seperti `system-ui` atau Helvetica, kerana eksport melukis teks itu dengan fon sistem reka bentuk dan halaman tidak.
 
 Dalam PDF perkataan menjadi kontur yang dilukis dengan fon sandaran, apa pun tetapan teks yang anda pilih, kerana teks PDF langsung tidak boleh membawa skrip yang tiada pada fon terbenam. Dalam SVG, EMF, EPS, DXF dan WMF ia menjadi kontur apabila teks ditukar kepada kontur; dengan teks dikekalkan langsung, fon pembaca sendiri melukisnya, seperti sebelum ini. Apabila fon sandaran melukis sebahagian eksport, panel eksport menunjukkan nota seperti:
 
@@ -70,6 +72,10 @@ Baris perintah mencetak ayat yang sama sebagai nota.
 ## Apa yang kekal sebagai gambar
 
 Aksara di luar keempat-empat set kebangsaan tidak mempunyai fon sandaran. Aksara jarang seperti 𠮷, aksara yang ditambah untuk Hong Kong oleh set tambahannya, dan skrip tanpa fon sandaran, seperti Tamil, Ethiopia atau Syriac, semuanya dilayan dengan cara yang sama. Dalam PDF baris yang mengandungi salah satunya dimasukkan sebagai gambar 300 dpi, dan panel eksport menyenaraikan skrip itu. Dalam SVG larian itu kekal sebagai teks langsung, yang dilukis oleh fon pembaca sendiri.
+
+## Semakan sebelum anda mengeksport
+
+Kad **Before you export** Lolly Design, dan semakan `render` bagi `lolly check`, melaporkan teks yang tiada fon boleh melukisnya. Ia mengira fon sandaran seperti yang dilakukan eksport, daripada senarai aksara yang sama bagi setiap fon, jadi teks yang dilukis oleh fon sandaran tidak dilaporkan. Skrip tanpa fon sandaran, seperti Tamil, dan aksara Cina, Jepun atau Korea di luar set kebangsaan tetap dilaporkan, kerana eksport melukisnya sebagai gambar atau sebagai teks langsung. Semakan membaca senarai itu daripada katalog dan tidak memuat turun sebarang fon.
 
 ## Lesen dan kredit
 

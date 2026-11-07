@@ -206,7 +206,7 @@ As **Transitions** são predefinições: Fade, Pop, Grow, Rise, Drop, os quatro 
 
 ## Antes de exportar
 
-O Design confere o seu documento antes de você enviar o arquivo. O cartão **Before you export**, na seção **Document** do Inspector e de novo no painel de exportação, lê a estrutura de camadas salva e depois examina o canvas assentado em busca de texto cortado e contraste de cor chapada. Ele pergunta ao mesmo registro de fontes que o contorno de SVG e PDF usa se cada trecho de texto tem bytes de fonte que podem ser incorporados. Fundos de imagem e de gradiente são listados como verificações visuais, em vez de receberem uma nota de contraste inventada.
+O Design confere o seu documento antes de você enviar o arquivo. O cartão **Before you export**, na seção **Document** do Inspector e de novo no painel de exportação, lê a estrutura de camadas salva e depois examina o canvas assentado em busca de texto cortado e contraste de cor chapada. Ele pergunta ao mesmo registro de fontes que o contorno de SVG e PDF usa se cada trecho de texto tem bytes de fonte que podem ser incorporados. O texto que uma [fonte de reserva](/info/fallback-fonts.html) desenha na exportação conta como coberto. Uma escrita sem fonte de reserva, ou um caractere chinês, japonês ou coreano fora dos conjuntos que essas fontes contêm, continua sendo apontado. Fundos de imagem e de gradiente são listados como verificações visuais, em vez de receberem uma nota de contraste inventada.
 
 ### Confira uma composição com o sistema de design
 

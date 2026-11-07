@@ -245,7 +245,7 @@ history now has 66 files.
   Hub annotations, a Rancher `questions.yaml`, a licence, an icon and a README. The
   default image tags follow appVersion 1.1.2. `values-official-release.yaml` is
   generated from `deploy/marketplaces/release.json` and still pins the qualified
-  1.1.1 images. Lolly Chart publication through `publish-helm.yml` is a separate,
+  1.1.1 images. Chart publication through `publish-helm.yml` is a separate,
   reviewed step and has not run yet.
 - **Neutral VM and Dokploy package.** `deploy/marketplaces` and `deploy/dokploy` pin
   a qualified release cohort, still Lolly Work 1.1.1. In a browser, the neutral 1.1.1 shell

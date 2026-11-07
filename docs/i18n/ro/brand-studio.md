@@ -142,6 +142,8 @@ Tabelul are patru coloane, iar pe telefon fiecare rând devine un card care țin
 
 O citire pe care niciun rol nu o umple rămâne așa cum o definește sistemul de design, iar camera le listează sub tabel. Un rol care are același id cu o citire, precum un rol numit Primary, este acea citire și nu poate fi mutat.
 
+**Într-o diagramă.** Paleta **Design system - colour roles first** din Lolly Chart dă seriilor mai întâi rolurile de culoare ale sistemului de design, în ordinea lui proprie, apoi restul paletei sale. Un rol citit ca Background, Text, Quiet text sau Hairlines este lăsat deoparte, pentru că diagrama își desenează fundalul și cuvintele în acele culori. Nimic nu se schimbă până nu alegi paleta aceea, iar un sistem de design fără roluri de culoare desenează paleta ca **Design system - ordered**.
+
 **Valori.** Apasă o valoare ca să alegi o culoare pentru acel rol, în acel aspect, în colourway-ul ales. **Same as light** face ca valoarea întunecată să o urmeze pe cea luminoasă până alegi o culoare proprie. Chip-ul **Aa** arată textul pe care Lolly îl alege ca să stea pe culoare, iar linia de sub valoare spune cum se citește acel text, pe aspect: **Text reads well**, **Large text only** sau **Hard to read as text**. Asta privește textul pe culoare și nu spune nimic împotriva culorii în sine, care poate funcționa în continuare pentru forme și suprafețe mari. Un rol citit doar după nume arată aceleași cuvinte fără culoarea de avertizare, pentru că niciun instrument nu pune text pe el singur. Cifrele din spatele cuvintelor, APCA mai întâi și WCAG al doilea, sunt în tooltip și în selector. **Own text colour** marchează o valoare al cărei fișier declară culoarea textului, care rămâne. **Copied** marchează o valoare venită din alt colourway sau din culoarea partenerului și pe care nimeni nu a ales-o încă; **Keep this colour** din selector fixează valoarea.
 
 **Puncte de pornire.** Un sistem de design fără roluri proprii arată cuvintele de azi: Primary, Secondary, Surface și Text. Nimic nu se scrie până nu schimbi unul. **+ Add a role** oferă **Primary, Secondary** sau **Main, Accent, Supporting, Tertiary** ca sugestii, sau orice cuvinte tastezi, cu citirea pe care ar primi-o fiecare. Primele două cuvinte devin culoarea principală și culoarea partenerului. Instrumentele desenează în continuare aceleași culori, iar pe un sistem cu o singură culoare principală primul colourway poartă numele acelei culori.
@@ -305,7 +307,7 @@ Plasează fișierele pe care le păstrează brandul tău, în afară de logouri:
 
 **Rules** pune alegerile brandului tău la treabă: ce pot schimba oamenii, ce rămâne fix și ce poate verifica Lolly.
 
-![Rules pe Lolly Demo: patru reguli de casă, fiecare marcată Checked in Lolly Design și Required sau Advisory, apoi Try your design system in use cu exemplele lui gata de randat](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dusage&width=1440&height=1200&dpi=192&waitMs=2400&cropSelector=%23start-panel-usage&format=svg&walker=1&dark=1&filename=bs-usage-rules)
+![Rules pe Lolly Demo: patru reguli de casă, fiecare marcată Checked in Design și Required sau Advisory, apoi Try your design system in use cu exemplele lui gata de randat](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dusage&width=1440&height=1200&dpi=192&waitMs=2400&cropSelector=%23start-panel-usage&format=svg&walker=1&dark=1&filename=bs-usage-rules)
 
 **Brand rules** listează regulile tale. **Add rule** (sau **Add your first rule**) deschide un scurt formular:
 
@@ -316,7 +318,7 @@ Plasează fișierele pe care le păstrează brandul tău, în afară de logouri:
 
 Aprobarea înregistrează propria ta decizie pe acest dispozitiv. Regulile obligatorii aprobate constrâng afișul reutilizabil, iar verificările acoperă doar PNG-urile exemplu; nu schimbă niciun alt instrument.
 
-Regulile pe care un sistem de design le aduce în fișierul său de tokenuri, precum perechile de culori aprobate, greutatea și alinierea textului sau un logo pe suprafață, sunt listate aici ca **Checked in Lolly Design**. Lolly Design le verifică strat cu strat în cardul **Before you export** din panoul de export, iar `lolly check` face la fel pentru un document Lolly Design salvat ([Înainte să exporți](/info/design.html#before-you-export)). O regulă pentru care această versiune nu are verificator este păstrată așa cum a fost furnizată și marcată **Unchecked**.
+Regulile pe care un sistem de design le aduce în fișierul său de tokenuri, precum perechile de culori aprobate, greutatea și alinierea textului sau un logo pe suprafață, sunt listate aici ca **Checked in Design**. Lolly Design le verifică strat cu strat în cardul **Before you export** din panoul de export, iar `lolly check` face la fel pentru un document Lolly Design salvat ([Înainte să exporți](/info/design.html#before-you-export)). O regulă pentru care această versiune nu are verificator este păstrată așa cum a fost furnizată și marcată **Unchecked**.
 
 Lolly Demo vine cu patru reguli de casă aprobate. Titlurile nu se scriu niciodată cu majuscule: această regulă este obligatorie, deci `lolly check` raportează ca eroare un titlu scris cu majuscule. Celelalte trei sunt consultative. Textul de corp este aliniat la stânga. Mărcile primare stau pe suprafețe deschise, iar cele inversate pe suprafețe închise. Liniile punctate înseamnă plasează aici.
 

@@ -26,7 +26,7 @@ En una [collab de trabajo](/info/collaborate.html#work-collabs-with-lolly-work-o
 
 1. Pulsa **Inicio** en la esquina superior izquierda de la herramienta.
 2. Abre la pestaña **Proyectos** en la parte superior de la pantalla de inicio (el icono de carpeta en un móvil).
-3. Mira en la primera pantalla. Ahí está el trabajo que Lolly guardó en **Mi biblioteca**, y cada proyecto es una carpeta. Para buscar en todas las carpetas a la vez, escribe en **Buscar en todos los proyectos…** al pie de la pantalla.
+3. Mira en la primera pantalla. Ahí está todo lo que guardaste en **Mi biblioteca**, y cada proyecto es una carpeta. Para buscar en todas las carpetas a la vez, escribe en **Buscar en todos los proyectos…** al pie de la pantalla.
 
 Un elemento se nombra según el nombre de archivo que escribiste en el panel de exportación, o según su herramienta, como **QR Code**, si no escribiste ninguno. Abre el elemento y todos los ajustes están de vuelta, listos para cambiar y exportar de nuevo. Para conservar así el trabajo nuevo, consulta [Saving & continuing](/info/using.html#saving-continuing).
 

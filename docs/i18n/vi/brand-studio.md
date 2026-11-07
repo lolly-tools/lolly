@@ -142,6 +142,8 @@ Bảng có bốn cột, và trên điện thoại mỗi hàng thành một thẻ
 
 Một cách đọc mà không vai trò nào đảm nhiệm vẫn giữ như hệ thống thiết kế định nghĩa, và phòng liệt kê chúng dưới bảng. Một vai trò có cùng id với cách đọc, như vai trò tên Primary, chính là cách đọc đó và không thể di chuyển.
 
+**Trong biểu đồ.** Bảng màu **Design system - colour roles first** của Lolly Chart đưa cho các chuỗi dữ liệu các vai trò màu của hệ thống thiết kế theo thứ tự riêng của nó, rồi đến phần còn lại của bảng màu. Vai trò được đọc là nền, văn bản, văn bản phụ hoặc đường kẻ sẽ bị bỏ qua, vì biểu đồ vẽ nền và chữ của nó bằng các màu đó. Không có gì thay đổi cho đến khi bạn chọn bảng màu này, và một hệ thống thiết kế không có vai trò màu sẽ vẽ bảng màu như **Design system - ordered**.
+
 **Giá trị.** Nhấn một giá trị để chọn màu cho vai trò đó, ở giao diện đó, trong colourway đã chọn. **Same as light** làm giá trị tối theo giá trị sáng cho đến khi bạn chọn màu riêng. Chip **Aa** cho thấy chữ mà Lolly chọn để đặt trên màu, và dòng dưới giá trị nói chữ đó đọc ra sao, theo từng giao diện: **Text reads well**, **Large text only** hoặc **Hard to read as text**. Điều đó nói về chữ đặt trên màu và không nói gì chống lại chính màu, màu vẫn có thể dùng tốt cho hình và vùng lớn. Một vai trò chỉ đọc theo tên hiện cùng các từ nhưng không có màu cảnh báo, vì không công cụ nào tự đặt chữ lên nó. Các con số đằng sau các từ, APCA trước và WCAG sau, nằm trong chú giải và trong bộ chọn. **Own text colour** đánh dấu một giá trị mà tệp của nó nêu màu chữ, và màu đó được giữ. **Copied** đánh dấu một giá trị đến từ colourway khác hoặc từ màu đối tác mà chưa ai chọn; **Keep this colour** trong bộ chọn chốt giá trị.
 
 **Điểm xuất phát.** Một hệ thống thiết kế chưa có vai trò riêng hiện các từ hiện nay: Primary, Secondary, Surface và Text. Không có gì được ghi cho đến khi bạn đổi một cái. **+ Add a role** đưa ra **Primary, Secondary** hoặc **Main, Accent, Supporting, Tertiary** làm gợi ý, hoặc bất kỳ từ nào bạn gõ, kèm cách đọc mà mỗi từ sẽ nhận. Hai từ đầu thành màu chủ đạo và màu đối tác. Các công cụ vẫn vẽ cùng các màu, và trên hệ thống có một màu chủ đạo, colourway đầu tiên được đặt tên theo màu đó.
@@ -305,7 +307,7 @@ Thả các tệp mà thương hiệu của bạn giữ, ngoài logo: tệp **vec
 
 **Rules** đưa các lựa chọn của thương hiệu vào làm việc: người dùng được đổi gì, gì cố định và Lolly kiểm tra được gì.
 
-![Rules trên Lolly Demo: bốn quy tắc nội bộ, mỗi quy tắc được đánh dấu Checked in Lolly Design và Required hoặc Advisory, rồi Try your design system in use với các ví dụ sẵn sàng kết xuất](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dusage&width=1440&height=1200&dpi=192&waitMs=2400&cropSelector=%23start-panel-usage&format=svg&walker=1&dark=1&filename=bs-usage-rules)
+![Rules trên Lolly Demo: bốn quy tắc nội bộ, mỗi quy tắc được đánh dấu Checked in Design và Required hoặc Advisory, rồi Try your design system in use với các ví dụ sẵn sàng kết xuất](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dusage&width=1440&height=1200&dpi=192&waitMs=2400&cropSelector=%23start-panel-usage&format=svg&walker=1&dark=1&filename=bs-usage-rules)
 
 **Brand rules** liệt kê các quy tắc của bạn. **Add rule** (hoặc **Add your first rule**) mở một biểu mẫu ngắn:
 
@@ -316,7 +318,7 @@ Thả các tệp mà thương hiệu của bạn giữ, ngoài logo: tệp **vec
 
 Phê duyệt ghi lại quyết định của riêng bạn trên thiết bị này. Các quy tắc bắt buộc đã duyệt ràng buộc áp phích dùng lại được, và các kiểm tra chỉ bao gồm các PNG ví dụ; chúng không đổi công cụ nào khác.
 
-Các quy tắc mà một hệ thống thiết kế mang theo trong tệp token của nó, như cặp màu đã duyệt, độ đậm và căn lề của chữ hay một logo cho mỗi bề mặt, được liệt kê ở đây là **Checked in Lolly Design**. Lolly Design kiểm tra chúng theo từng lớp trong thẻ **Before you export** của bảng xuất, và `lolly check` làm tương tự cho một tài liệu Lolly Design đã lưu ([Before you export](/info/design.html#before-you-export)). Một quy tắc mà bản dựng này không có bộ kiểm tra được giữ nguyên như được cung cấp và đánh dấu **Unchecked**.
+Các quy tắc mà một hệ thống thiết kế mang theo trong tệp token của nó, như cặp màu đã duyệt, độ đậm và căn lề của chữ hay một logo cho mỗi bề mặt, được liệt kê ở đây là **Checked in Design**. Lolly Design kiểm tra chúng theo từng lớp trong thẻ **Before you export** của bảng xuất, và `lolly check` làm tương tự cho một tài liệu Lolly Design đã lưu ([Before you export](/info/design.html#before-you-export)). Một quy tắc mà bản dựng này không có bộ kiểm tra được giữ nguyên như được cung cấp và đánh dấu **Unchecked**.
 
 Lolly Demo mang theo bốn quy tắc nội bộ đã duyệt. Tiêu đề không bao giờ viết hoa toàn bộ: quy tắc đó là bắt buộc, nên `lolly check` báo một tiêu đề viết hoa toàn bộ là lỗi. Ba quy tắc còn lại chỉ mang tính khuyến nghị. Văn bản chính căn trái. Dấu hiệu chính đặt trên nền sáng và dấu hiệu đảo màu trên nền tối. Đường nét đứt nghĩa là thả vào đây.
 

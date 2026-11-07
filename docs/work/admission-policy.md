@@ -38,7 +38,7 @@ volumes from your images. With the chart's defaults, each of them:
 
 Some chart values change that list:
 
-| Lolly Chart value | What changes |
+| Chart value | What changes |
 |---|---|
 | `renderWorker.seccompProfile: { type: Localhost, localhostProfile: lolly/chromium.json }` | The worker uses the [reviewed Chromium seccomp profile](https://github.com/lolly-tools/lolly-work/blob/main/deploy/seccomp/README.md) installed on the node |
 | `renderWorker.appArmorProfile: { type: Localhost, localhostProfile: lolly-chromium }` | On AppArmor nodes, the worker uses the [reviewed AppArmor profile](https://github.com/lolly-tools/lolly-work/blob/main/deploy/apparmor/README.md) |

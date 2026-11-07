@@ -4114,7 +4114,7 @@ var ENGINE_VERSION;
 var init_version = __esm({
   "engine/src/version.ts"() {
     "use strict";
-    ENGINE_VERSION = "1.325.0";
+    ENGINE_VERSION = "1.326.0";
   }
 });
 
@@ -47697,6 +47697,29 @@ ${xrefOff}
   }
   return out;
 }
+function pdfWithoutCredential(pdf) {
+  try {
+    const bin = bytesToBin(pdf);
+    const sxAt = bin.lastIndexOf("startxref");
+    const sx = sxAt < 0 ? null : /^startxref\s+(\d+)\s+%%EOF\s*$/.exec(bin.slice(sxAt));
+    if (!sx) return null;
+    const xrefAt = +sx[1];
+    const sec = parseXrefSection(bin, xrefAt);
+    const used = sec.entries.filter((e) => e.type === "n");
+    if (sec.prev === null || used.length !== 3) return null;
+    const start = Math.min(...used.map((e) => e.offset));
+    if (!(start > 0 && start < xrefAt)) return null;
+    const update = bin.slice(start, xrefAt);
+    if (!/\/Type\s*\/Catalog\b/.test(update) || !/\/AFRelationship\s*\/C2PA_Manifest\b/.test(update) || !/\/Subtype\s*\/application#2Fc2pa\b/.test(update)) return null;
+    const before = bin.slice(0, start);
+    const priorAt = before.lastIndexOf("startxref");
+    const prior = priorAt < 0 ? null : /^startxref\s+(\d+)\s+%%EOF\s*$/.exec(before.slice(priorAt));
+    if (!prior || +prior[1] !== sec.prev) return null;
+    return pdf.slice(0, start);
+  } catch {
+    return null;
+  }
+}
 function u32be(n7) {
   return Uint8Array.of(n7 >>> 24 & 255, n7 >>> 16 & 255, n7 >>> 8 & 255, n7 & 255);
 }
@@ -48700,6 +48723,7 @@ __export(c2pa_exports, {
   LOLLY_RIGHTS_ASSERTION: () => LOLLY_RIGHTS_ASSERTION,
   METADATA_ASSERTION: () => METADATA_ASSERTION,
   SCREEN_SOURCE_TYPE: () => SCREEN_SOURCE_TYPE,
+  aiFactsFromSteps: () => aiFactsFromSteps,
   attachC2paStore: () => attachC2paStore,
   buildC2paManifest: () => buildC2paManifest,
   buildExternalC2paStore: () => buildExternalC2paStore,
@@ -48710,6 +48734,7 @@ __export(c2pa_exports, {
   encodeCbor: () => encodeCbor,
   exportActionSteps: () => exportActionSteps,
   generateSigner: () => generateSigner,
+  ingredientFormatOfMime: () => ingredientFormatOfMime,
   urnUuid: () => urnUuid
 });
 function ingredientRelationship(ing) {
@@ -48939,6 +48964,10 @@ function urnUuid() {
   const h = bytesToHex(b);
   return `urn:uuid:${h.slice(0, 8)}-${h.slice(8, 12)}-${h.slice(12, 16)}-${h.slice(16, 20)}-${h.slice(20)}`;
 }
+function ingredientFormatOfMime(mime2) {
+  if (typeof mime2 !== "string") return void 0;
+  return Object.keys(INGREDIENT_MIME).find((key2) => INGREDIENT_MIME[key2] === mime2);
+}
 function joinList(items2) {
   if (items2.length <= 1) return items2[0] ?? "";
   if (items2.length === 2) return `${items2[0]} and ${items2[1]}`;
@@ -48985,12 +49014,40 @@ function exportActionSteps(format, flags = {}) {
   if (flags.imprint) steps.push({ action: "c2pa.edited", description: "Embedded a durable Lolly pixel watermark" });
   if (flags.audio) steps.push({ action: "c2pa.edited", description: "Added an audio track" });
   if (flags.textAdded) steps.push({ action: "c2pa.edited", description: flags.textSample ? `Added text - \u201C${flags.textSample}\u201D` : "Added text" });
-  if (upscaled) steps.push({ action: "c2pa.edited", description: `AI-upscaled with ${upscaled.model} ${upscaled.version}` });
-  if (aiPlaced) steps.push({ action: "c2pa.placed", description: `Placed AI-declared ingredient${aiPlaced.length === 1 ? "" : "s"}: ${joinList(aiPlaced.map((i) => `${i.name} (${i.kind === "full" ? "AI-generated" : "AI-assisted"})`))}` });
+  if (upscaled) steps.push({ action: "c2pa.edited", description: aiUpscaleDescription(upscaled) });
+  if (aiPlaced) steps.push({ action: "c2pa.placed", description: aiPlacedDescription(aiPlaced) });
   if (RASTER_OUTPUTS.has(f)) steps.push({ action: "c2pa.converted", description: `Rendered to ${f.toUpperCase()}` });
   else if (VIDEO_OUTPUTS.has(f)) steps.push({ action: "c2pa.converted", description: `Encoded to ${f.toUpperCase()}` });
   else if (f === "pdf" || f === "pdf-cmyk") steps.push({ action: "c2pa.converted", description: "Rendered to PDF" });
   return steps;
+}
+function aiPlacedDescription(list4) {
+  return `Placed AI-declared ingredient${list4.length === 1 ? "" : "s"}: ${joinList(list4.map((i) => `${i.name} (${AI_GRADE[i.kind]})`))}`;
+}
+function aiUpscaleDescription(up) {
+  return `AI-upscaled with ${up.model} ${up.version}`;
+}
+function aiFactsFromSteps(steps) {
+  const aiIngredients = [];
+  let aiUpscale;
+  for (const step of steps) {
+    const text13 = typeof step.description === "string" ? step.description : "";
+    if (step.action === "c2pa.placed" && step.parameters === void 0) {
+      const head2 = /^Placed AI-declared ingredients?: /.exec(text13);
+      if (!head2) continue;
+      const read = [];
+      const item2 = /(.+?) \((AI-generated|AI-assisted)\)(?:, | and |$)/gy;
+      item2.lastIndex = head2[0].length;
+      for (let m2 = item2.exec(text13); m2; m2 = item2.lastIndex < text13.length ? item2.exec(text13) : null) {
+        read.push({ name: m2[1], kind: m2[2] === "AI-generated" ? "full" : "partial" });
+      }
+      if (read.length && aiPlacedDescription(read) === text13) aiIngredients.push(...read);
+    } else if (step.action === "c2pa.edited" && !aiUpscale) {
+      const m2 = /^AI-upscaled with (.+) (\S+)$/.exec(text13);
+      if (m2 && aiUpscaleDescription({ model: m2[1], version: m2[2] }) === text13) aiUpscale = { model: m2[1], version: m2[2] };
+    }
+  }
+  return { aiIngredients, ...aiUpscale ? { aiUpscale } : {} };
 }
 function captureDescription(cap) {
   if (cap.screen) return cap.microphone ? "Captured from the screen with microphone narration" : "Captured from the screen";
@@ -49246,7 +49303,7 @@ async function buildExternalC2paStore(bytes2, opts = {}) {
     assetHash: { exclusions: [], name: hashName || "whole document", hash: await sha256(bytes2) }
   });
 }
-var isSourceIngredient, HTTP_URL_MAX, boundedText, SHA256_TEXT, INTENT_RECORD_KEYS, INTENT_WORD, INTENT_SURFACE_ID, INTENT_TOOL_ID, INTENT_LANGUAGE, INTENT_RULES, APPROVAL_ID, ISO_INSTANT, te5, subtle4, CborTag, JUMBF_UUID_SUFFIX, boxUuid, UUID_C2PA_STORE, UUID_MANIFEST, UUID_ASSERTION_STORE, UUID_CLAIM, UUID_SIGNATURE, UUID_CBOR_CONTENT, UUID_JSON_CONTENT, COSE_HEADER_ALG, COSE_HEADER_X5CHAIN, isoSeconds, DIGITAL_SOURCE_TYPE, CAPTURE_SOURCE_TYPE, SCREEN_SOURCE_TYPE, GENERATED_SOURCE_TYPE, COMPOSITE_SOURCE_TYPE, ALGORITHMIC_SOURCE_TYPE, RASTER_OUTPUTS, VIDEO_OUTPUTS, INGREDIENT_MIME, LOLLY_EXPORT_ASSERTION, LOLLY_RIGHTS_ASSERTION, LOLLY_INTENT_ASSERTION, INTENT_PROMPT_NOTE, LOLLY_APPROVAL_ASSERTION, BMFF_HASH_LABEL, CREATIVE_WORK_ASSERTION, METADATA_ASSERTION, DC_CONTEXT, AI_DISCLOSURE_ASSERTION, AI_MODEL_TYPE_GENERIC, AI_MODEL_TYPES, NAMESPACED_LABEL_RE, HUMAN_OVERSIGHT_LEVELS, SCIENTIFIC_DOMAIN_RE, SEMVER_RE, C2PA_SPEC_VERSION;
+var isSourceIngredient, HTTP_URL_MAX, boundedText, SHA256_TEXT, INTENT_RECORD_KEYS, INTENT_WORD, INTENT_SURFACE_ID, INTENT_TOOL_ID, INTENT_LANGUAGE, INTENT_RULES, APPROVAL_ID, ISO_INSTANT, te5, subtle4, CborTag, JUMBF_UUID_SUFFIX, boxUuid, UUID_C2PA_STORE, UUID_MANIFEST, UUID_ASSERTION_STORE, UUID_CLAIM, UUID_SIGNATURE, UUID_CBOR_CONTENT, UUID_JSON_CONTENT, COSE_HEADER_ALG, COSE_HEADER_X5CHAIN, isoSeconds, DIGITAL_SOURCE_TYPE, CAPTURE_SOURCE_TYPE, SCREEN_SOURCE_TYPE, GENERATED_SOURCE_TYPE, COMPOSITE_SOURCE_TYPE, ALGORITHMIC_SOURCE_TYPE, RASTER_OUTPUTS, VIDEO_OUTPUTS, INGREDIENT_MIME, AI_GRADE, LOLLY_EXPORT_ASSERTION, LOLLY_RIGHTS_ASSERTION, LOLLY_INTENT_ASSERTION, INTENT_PROMPT_NOTE, LOLLY_APPROVAL_ASSERTION, BMFF_HASH_LABEL, CREATIVE_WORK_ASSERTION, METADATA_ASSERTION, DC_CONTEXT, AI_DISCLOSURE_ASSERTION, AI_MODEL_TYPE_GENERIC, AI_MODEL_TYPES, NAMESPACED_LABEL_RE, HUMAN_OVERSIGHT_LEVELS, SCIENTIFIC_DOMAIN_RE, SEMVER_RE, C2PA_SPEC_VERSION;
 var init_c2pa2 = __esm({
   "engine/src/c2pa.ts"() {
     "use strict";
@@ -49321,6 +49378,7 @@ var init_c2pa2 = __esm({
       ogg: "audio/ogg",
       avif: "image/avif"
     };
+    AI_GRADE = { full: "AI-generated", partial: "AI-assisted" };
     LOLLY_EXPORT_ASSERTION = "tools.lolly.export";
     LOLLY_RIGHTS_ASSERTION = "tools.lolly.rights";
     LOLLY_INTENT_ASSERTION = "tools.lolly.intent";
@@ -52536,6 +52594,86 @@ function collectIngredientRecords(store) {
     }
   }
   return out;
+}
+function placedPicturesOf(store) {
+  const none = { ingredients: [], aiIngredients: [] };
+  let root2;
+  let active;
+  try {
+    root2 = parseSuperbox(store, walkBoxes2(store, 0, store.length)[0]);
+    if (root2.label !== "c2pa" || !root2.children.length) return none;
+    active = parseC2paStore(store);
+  } catch {
+    return none;
+  }
+  const manifests = [];
+  for (const box4 of root2.children.slice(0, -1)) {
+    let label5 = "";
+    try {
+      label5 = parseSuperbox(store, box4).label;
+    } catch {
+    }
+    manifests.push({ label: label5, bytes: store.slice(box4.start, box4.end) });
+  }
+  const decode = (content2) => {
+    try {
+      const v = decodeCbor(content2);
+      return v instanceof Map ? v : null;
+    } catch {
+      return null;
+    }
+  };
+  const steps = [];
+  for (const a of active.assertions) {
+    if (a.label !== "c2pa.actions" && a.label !== "c2pa.actions.v2") continue;
+    const list4 = decode(a.content)?.get("actions");
+    if (Array.isArray(list4)) {
+      for (const step of list4) {
+        if (step instanceof Map) steps.push({ action: step.get("action"), description: step.get("description"), parameters: step.get("parameters"), digitalSourceType: step.get("digitalSourceType") });
+      }
+    }
+  }
+  const sourceTypeOf = (assertionLabel) => {
+    const url = `self#jumbf=c2pa.assertions/${assertionLabel}`;
+    for (const step of steps) {
+      const refs = step.parameters instanceof Map ? step.parameters.get("ingredients") : void 0;
+      if (Array.isArray(refs) && refs.some((r5) => r5 instanceof Map && r5.get("url") === url)) {
+        return typeof step.digitalSourceType === "string" ? step.digitalSourceType : void 0;
+      }
+    }
+    return void 0;
+  };
+  const ingredients = [];
+  let at = 0;
+  for (const a of active.assertions) {
+    if (!INGREDIENT_LABEL.test(a.label)) continue;
+    const map = decode(a.content);
+    const ref2 = map?.get("activeManifest") ?? map?.get("c2pa_manifest");
+    const url = ref2 instanceof Map ? ref2.get("url") : void 0;
+    if (!map || typeof url !== "string" || !url.startsWith("self#jumbf=/c2pa/")) continue;
+    const activeLabel = url.slice("self#jumbf=/c2pa/".length);
+    const end = manifests.findIndex((m2, i) => i >= at && m2.label === activeLabel);
+    if (end < 0) continue;
+    const manifestBoxes = manifests.slice(at, end + 1).map((m2) => m2.bytes);
+    at = end + 1;
+    let title;
+    try {
+      const claim = decodeCbor(parseC2paStore(store, activeLabel).claimBytes);
+      if (claim instanceof Map && typeof claim.get("dc:title") === "string") title = claim.get("dc:title");
+    } catch {
+    }
+    const relationship = map.get("relationship");
+    const digitalSourceType = sourceTypeOf(a.label);
+    ingredients.push({
+      manifestBoxes,
+      activeLabel,
+      ...title !== void 0 ? { title } : {},
+      format: ingredientFormatOfMime(map.get("dc:format")) ?? "",
+      ...typeof relationship === "string" ? { relationship } : {},
+      ...digitalSourceType ? { digitalSourceType } : {}
+    });
+  }
+  return { ingredients, ...aiFactsFromSteps(steps) };
 }
 function readParentManifest(store, active) {
   for (const assertion of active.assertions) {
@@ -155079,6 +155217,7 @@ __export(src_exports, {
   pdfNodeElementKind: () => pdfNodeElementKind,
   pdfNodeExtent: () => pdfNodeExtent,
   pdfNodesToSvg: () => pdfNodesToSvg,
+  pdfWithoutCredential: () => pdfWithoutCredential,
   pdfWordBreak: () => pdfWordBreak,
   pdfxOutputIntentSpec: () => pdfxOutputIntentSpec,
   pdfxProfileEligibility: () => pdfxProfileEligibility,
@@ -155118,6 +155257,7 @@ __export(src_exports, {
   pinIgnoredTokenAxes: () => pinIgnoredTokenAxes,
   pinnedFontAliases: () => pinnedFontAliases,
   placeTextStory: () => placeTextStory,
+  placedPicturesOf: () => placedPicturesOf,
   plainOfDesignText: () => plainOfDesignText,
   planIconSet: () => planIconSet,
   planRepair: () => planRepair,
@@ -155780,6 +155920,8 @@ var init_src2 = __esm({
     init_c2pa2();
     init_c2pa_approval();
     init_c2pa_verify();
+    init_c2pa_extract();
+    init_c2pa_containers();
     init_c2pa_verdict();
     init_c2pa_trust();
     init_provenance_defaults();
@@ -183122,6 +183264,10 @@ function buildExportC2paOpts(o) {
   const unit2 = dims.unit || "px";
   const sizeLine = typeof dims.width === "number" && dims.width > 0 && typeof dims.height === "number" && dims.height > 0 ? unit2 !== "px" ? `${dims.width} \xD7 ${dims.height} ${unit2} @ ${dims.dpi || 300} DPI` : `${dims.width} \xD7 ${dims.height} px` : void 0;
   const aiIngredients = collectAiIngredientDeclarations(model2);
+  for (const piece of o.carried?.aiIngredients ?? []) {
+    if (!aiIngredients.some((have) => have.name === piece.name && have.kind === piece.kind)) aiIngredients.push(piece);
+  }
+  const aiUpscale = o.carried?.aiUpscale;
   return {
     title: name,
     claimGenerator: "Lolly lolly.tools",
@@ -183144,10 +183290,20 @@ function buildExportC2paOpts(o) {
     dates: o.signer && o.signerValidity ? { notBefore: o.signerValidity.notBefore, notAfter: o.signerValidity.notAfter } : { notBefore: new Date(Date.now() - 6e4), notAfter: new Date(Date.now() + days * 864e5) },
     // Carry a genAI source forward so the record stays accurate (default drops both).
     ...o.ingredients?.length ? { ingredients: o.ingredients } : {},
-    ...o.actions?.length ? { actions: o.actions } : aiIngredients.length ? { actions: exportActionSteps(format, { aiIngredients }) } : {},
+    ...o.actions?.length ? { actions: o.actions } : aiIngredients.length || aiUpscale ? { actions: exportActionSteps(format, { aiIngredients, ...aiUpscale ? { aiUpscale } : {} }) } : {},
     ...o.aiDisclosure ? { aiDisclosure: o.aiDisclosure } : aiIngredients.length ? { aiDisclosure: {} } : {},
     ...o.specVersion ? { specVersion: o.specVersion } : {}
   };
+}
+async function placedPicturesIn(bytes2) {
+  const none = { ingredients: [], aiIngredients: [] };
+  try {
+    const found = extractC2paStore(bytes2);
+    if (!found || (await verifyC2pa(bytes2)).state !== "valid") return none;
+    return placedPicturesOf(found.store);
+  } catch {
+    return none;
+  }
 }
 async function recordedDesignInFile(bytes2, format, meta) {
   const own4 = readFileDesignRecord(bytes2);
@@ -190414,8 +190570,12 @@ function exportUrl(base, toolId, query2, fmt6, o) {
   if (o.hdr) p.set("hdr", serializeHdr(o.hdr));
   if (o.depth && o.depth !== "auto") p.set("depth", String(o.depth));
   if (Number(p.get("cuts")) > 1 || p.has("sampletimes")) p.set("c2pa", o.c2pa?.on ? String(o.c2pa.days ?? 1) : "off");
-  else if (o.c2pa?.on === false || o.c2pa?.on && /^pdf/.test(fmt6)) p.set("c2pa", "off");
-  if (o.intent) p.set("c2pa", "off");
+  else if (o.c2pa?.on === false) p.set("c2pa", "off");
+  else if ((o.c2pa?.on || o.intent) && C2PA_FORMATS.includes(fmt6) && !/tiff$/.test(fmt6)) p.set("c2pa", "1");
+  else if (o.intent || o.c2pa?.on && /tiff$/.test(fmt6)) {
+    p.set("c2pa", "off");
+    p.set("_keepinlinedc2pa", "1");
+  }
   p.set("export", "1");
   const q = p.toString();
   const tmpl = process.env.LOLLY_TOOL_URL_TEMPLATE || `${base}/#/tool/{id}?{query}`;
@@ -190480,7 +190640,7 @@ async function designSessionOf(query2) {
   const values = parseUrlState(await expandQuery(query2), tool.manifest).values;
   return packageDesignSession(values, { label: "Design" });
 }
-async function stampC2pa(bytes2, fmt6, manifest, values, o, ingredients = [], meta = null, drawn2 = null) {
+async function stampC2pa(bytes2, fmt6, manifest, values, o, ingredients = [], meta = null, drawn2 = null, carried = null) {
   const opts = buildExportC2paOpts({
     surface: "mcp",
     manifest,
@@ -190493,9 +190653,12 @@ async function stampC2pa(bytes2, fmt6, manifest, values, o, ingredients = [], me
     // One componentOf source ingredient per distinct glyph this render placed,
     // carrying the pack's own licence, creator and the exact bytes it came from.
     // Without it an MCP export that drew CC BY artwork records no licence for it.
-    ...ingredients.length || drawn2?.pictures.length ? { ingredients: [...ingredients, ...drawn2?.pictures ?? []] } : {},
+    // The browser's own record of the pictures placed in the file, credentialed ones with
+    // their manifests, goes in too: this credential takes the place of that one.
+    ...ingredients.length || drawn2?.pictures.length || carried?.ingredients.length ? { ingredients: [...ingredients, ...drawn2?.pictures ?? [], ...carried?.ingredients ?? []] } : {},
     route: drawn2?.route ?? null,
-    intent: o.intent ?? null
+    intent: o.intent ?? null,
+    carried
   });
   return embedC2pa(bytes2, fmt6, opts);
 }
@@ -190506,12 +190669,17 @@ async function credentialAndRecord(out, o) {
   const record48 = skills.length ? { ...inFile ?? {}, brandSkills: skills } : inFile;
   let stamped = false;
   if (!o.sampled && o.merged.c2pa?.on && C2PA_FORMATS.includes(o.exportFmt) && !(o.exportFmt === "pdf" && o.merged.password)) {
+    let carried = null;
+    if (out.tier.startsWith("B")) {
+      carried = await placedPicturesIn(bytes2);
+      if (/^pdf/.test(o.exportFmt)) bytes2 = pdfWithoutCredential(bytes2) ?? bytes2;
+    }
     try {
       bytes2 = await (await Promise.resolve().then(() => (init_pdf_classic(), pdf_classic_exports))).classicPdfForStamp(bytes2, o.exportFmt);
     } catch {
     }
     try {
-      bytes2 = await stampC2pa(bytes2, o.exportFmt, o.manifest, o.values, o.merged, o.placed, record48, out.tier.startsWith("B") ? null : o.drawn ?? null);
+      bytes2 = await stampC2pa(bytes2, o.exportFmt, o.manifest, o.values, o.merged, o.placed, record48, out.tier.startsWith("B") ? null : o.drawn ?? null, carried);
       stamped = true;
     } catch (e) {
       o.warnings.push(`Content Credentials not attached - ${e.message}`);
