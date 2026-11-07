@@ -45,7 +45,17 @@ export interface BrandCheckCatalogOpts {
   treatments?: readonly string[];
 }
 
-export function checkBrandDesign(boxes: unknown, doc: unknown, opts: { theme?: string } & BrandCheckCatalogOpts = {}) {
+/**
+ * A partner kit attached as a guest (plans/82 M8): its colours and its logos' asset ids.
+ * A layer painted in a kit colour, or drawing a kit logo, is the partner's on purpose, so
+ * the brand check counts it as compared and never flags it against the lead brand. The
+ * kit's own rules are `checkGuestMarks`' (partner-kit-check.ts).
+ */
+export interface BrandCheckGuestOpts {
+  guest?: { colours?: readonly string[]; assets?: readonly string[] };
+}
+
+export function checkBrandDesign(boxes: unknown, doc: unknown, opts: { theme?: string } & BrandCheckCatalogOpts & BrandCheckGuestOpts = {}) {
   const context = brandContext(doc, opts);
   const tokens = createTokenSet(doc, opts);
   const findings: BrandFinding[] = [];
@@ -57,6 +67,8 @@ export function checkBrandDesign(boxes: unknown, doc: unknown, opts: { theme?: s
   const allowedFonts = new Set(context.fonts.map(f => family(f.value)));
   const allowedAssets = new Set(context.assets.map(a => a.id));
   const catalogAssets = new Set(Array.isArray(opts.assets) ? opts.assets.filter(id => typeof id === 'string') : []);
+  const guestColours = new Set((Array.isArray(opts.guest?.colours) ? opts.guest.colours : []).map(c => { const p = parseColor(String(c)); return p && p.alpha > 0 ? colorToHexString({ ...p, alpha: 1 }).toLowerCase() : ''; }).filter(Boolean));
+  const guestAssets = new Set((Array.isArray(opts.guest?.assets) ? opts.guest.assets : []).filter(id => typeof id === 'string'));
   let uploads = 0;
   const nearest = new Map<string, { path: string; value: string; distance: number }>();
   const rows = Array.isArray(boxes) ? boxes.filter(record) : [];
@@ -84,6 +96,8 @@ export function checkBrandDesign(boxes: unknown, doc: unknown, opts: { theme?: s
       }
       const parsed = parseColor(raw);
       if (parsed?.alpha === 0) continue;
+      // A partner kit colour, opaque or as a scrim, is the guest's own and is not judged.
+      if (parsed && guestColours.size && guestColours.has(colorToHexString({ ...parsed, alpha: 1 }).toLowerCase())) { checked.colors++; continue; }
       // A palette colour with an alpha channel (`#13294bcc`, a scrim over a photo) is that
       // palette colour (plan 291 M3b). Any other translucent colour cannot be compared:
       // what it looks like depends on what it is drawn over.
@@ -129,6 +143,7 @@ export function checkBrandDesign(boxes: unknown, doc: unknown, opts: { theme?: s
       const look = parseTreatedAssetId(image).treatment;
       if (look && Array.isArray(opts.treatments) && !opts.treatments.includes(look)) add('image', 'reference', 'unknown', image);
     }
+    else if (image && guestAssets.has(stripAssetModifiers(image))) checked.assets++;
     else if (image) {
       const assetId = aliasPath(image) ? tokens.resolve(image) : image;
       if ((!allowedAssets.size && !catalogAssets.size) || typeof assetId !== 'string') add('image', 'asset', 'unknown', image);

@@ -136492,6 +136492,11 @@ function checkBrandDesign(boxes2, doc, opts = {}) {
   const allowedFonts = new Set(context.fonts.map((f) => family(f.value)));
   const allowedAssets = new Set(context.assets.map((a) => a.id));
   const catalogAssets2 = new Set(Array.isArray(opts.assets) ? opts.assets.filter((id3) => typeof id3 === "string") : []);
+  const guestColours = new Set((Array.isArray(opts.guest?.colours) ? opts.guest.colours : []).map((c) => {
+    const p = parseColor(String(c));
+    return p && p.alpha > 0 ? colorToHexString({ ...p, alpha: 1 }).toLowerCase() : "";
+  }).filter(Boolean));
+  const guestAssets = new Set((Array.isArray(opts.guest?.assets) ? opts.guest.assets : []).filter((id3) => typeof id3 === "string"));
   let uploads = 0;
   const nearest3 = /* @__PURE__ */ new Map();
   const rows2 = Array.isArray(boxes2) ? boxes2.filter(record28) : [];
@@ -136527,6 +136532,10 @@ function checkBrandDesign(boxes2, doc, opts = {}) {
       }
       const parsed = parseColor(raw);
       if (parsed?.alpha === 0) continue;
+      if (parsed && guestColours.size && guestColours.has(colorToHexString({ ...parsed, alpha: 1 }).toLowerCase())) {
+        checked2.colors++;
+        continue;
+      }
       if (parsed && parsed.alpha < 1 && palette.length) {
         const base = colorToHexString({ ...parsed, alpha: 1 });
         if (palette.some((color6) => deltaEOk(base, color6.value) < 1e-6)) {
@@ -136573,7 +136582,8 @@ function checkBrandDesign(boxes2, doc, opts = {}) {
       uploads++;
       const look3 = parseTreatedAssetId(image).treatment;
       if (look3 && Array.isArray(opts.treatments) && !opts.treatments.includes(look3)) add3("image", "reference", "unknown", image);
-    } else if (image) {
+    } else if (image && guestAssets.has(stripAssetModifiers(image))) checked2.assets++;
+    else if (image) {
       const assetId2 = aliasPath(image) ? tokens3.resolve(image) : image;
       if (!allowedAssets.size && !catalogAssets2.size || typeof assetId2 !== "string") add3("image", "asset", "unknown", image);
       else {
@@ -182264,7 +182274,12 @@ async function checkFile(bytes2, name, asked = {}) {
       for (const theme of checkThemes) {
         const boxes2 = inTheme(theme);
         const brand = await guarded(opts.signal, async () => {
-          const result = checkBrandDesign(boxes2, ds.doc, { ...theme ? { theme } : {}, ...brandCheckCatalog(opts.catalog ?? null) });
+          const result = checkBrandDesign(boxes2, ds.doc, {
+            ...theme ? { theme } : {},
+            ...brandCheckCatalog(opts.catalog ?? null),
+            // The partner kit's colours and logos are the guest's own, not off-brand values.
+            ...opts.partnerKit ? { guest: { colours: opts.partnerKit.colours.map((c) => c.value), assets: partnerKitLogoIds(opts.partnerKit) } } : {}
+          });
           const rules = checkDesignHouseRules(boxes2, brandSystemOf(ds.doc)?.rules ?? [], ds.doc, {
             ...theme ? { theme } : {},
             ...opts.catalog ? { catalog: opts.catalog } : {},

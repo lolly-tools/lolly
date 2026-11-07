@@ -230,3 +230,20 @@ test('guest marks: a print document is measured at the unit and dpi it was saved
   const report = await checkFile(bytes, 'flyer.json', { designSystem: null, partnerKit: SIZE, browser: 'off' });
   assert.deepEqual(report.findings.filter((f) => f.family === 'brand').map((f) => f.message), ["Northwind IT's mark is 12.7 mm high; the kit asks for at least 20 mm."]);
 });
+
+test('guest marks: with a kit attached, the brand check counts the kit colours and logos as compared, never off-brand', async () => {
+  const { checkBrandDesign } = await import('../engine/src/brand-check.ts');
+  const doc = { color: { $type: 'color', semantic: { primary: { $value: '#0c322c' }, surface: { $value: '#ffffff' } } } };
+  const boxes = [
+    markBox(),
+    { id: 'heading', kind: 'text', name: 'Heading', text: 'Hello', fg: '#1D4ED8', x: 0, y: 200, w: 400, h: 60 },
+    { id: 'scrim', kind: 'box', bg: '#1d4ed880', x: 0, y: 300, w: 400, h: 60 },
+    { id: 'stray', kind: 'box', bg: '#ff00ff', x: 0, y: 400, w: 40, h: 40 },
+  ];
+  const without = checkBrandDesign(boxes, doc);
+  assert.ok(without.findings.some((f) => f.layerId === 'heading' && f.kind === 'color'), 'without the kit, the partner blue reads as off-brand');
+  assert.ok(without.findings.some((f) => f.layerId === 'logo'), 'and the partner logo as an unknown asset');
+  const guest = checkBrandDesign(boxes, doc, { guest: { colours: ['#1d4ed8'], assets: [LOGO, MARK] } });
+  assert.deepEqual(guest.findings.filter((f) => f.kind === 'color' || f.kind === 'asset').map((f) => f.layerId), ['stray'], 'only the colour that is neither brand nor kit is flagged');
+  assert.equal(guest.checked.assets, 1);
+});

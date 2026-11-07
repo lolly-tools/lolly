@@ -13,7 +13,7 @@ const EXPECTED: readonly string[] = [
   // Additive partner kits (plans/82 M8): the kit reader and its two colour proposers.
   'PartnerKitReadResult', 'checkPartnerKit', 'partnerKitColoursFromInks', 'partnerKitColoursFromTokens', 'partnerKitLogoIds', 'readPartnerKit',
   // Additive guest-mark checks (plans/82 M8): partner marks against their kit's rules.
-  'GuestMarkMeasure', 'GuestMarkReport', 'checkGuestMarks',
+  'GuestMarkMeasure', 'GuestMarkReport', 'checkGuestMarks', 'BrandCheckGuestOpts',
   // Additive colour roles (plans/352): a design system's colours in its own words.
   'AddColourRoleOptions', 'BINDABLE_COLOUR_SLOTS', 'BriefColourRoles', 'COLOUR_ROLE_BY_NAME', 'COLOUR_ROLE_GROUP', 'COLOUR_ROLE_ID',
   'COLOUR_SLOTS', 'COLOUR_SLOT_READS', 'ColourPairContrast', 'ColourRoleCarry', 'ColourRoleCell', 'ColourRoleEdit', 'ColourRoleEntry',
