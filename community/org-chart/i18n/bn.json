@@ -65,8 +65,6 @@
   "inputs.boxes.fields.weight.options.700": "বোল্ড",
   "inputs.boxes.fields.weight.options.800": "এক্সট্রাবোল্ড",
   "inputs.boxes.fields.font.label": "ফন্ট",
-  "inputs.boxes.fields.font.options.SUSE": "SUSE Sans",
-  "inputs.boxes.fields.font.options.SUSE Mono": "SUSE Mono",
   "inputs.boxes.fields.lineHeight.label": "লাইনের উচ্চতা",
   "inputs.boxes.fields.tracking.label": "কার্নিং",
   "inputs.boxes.fields.ligatures.label": "লিগেচার",

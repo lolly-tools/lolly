@@ -65,8 +65,6 @@
   "inputs.boxes.fields.weight.options.700": "Aldin",
   "inputs.boxes.fields.weight.options.800": "Extra-aldin",
   "inputs.boxes.fields.font.label": "Font",
-  "inputs.boxes.fields.font.options.SUSE": "SUSE Sans",
-  "inputs.boxes.fields.font.options.SUSE Mono": "SUSE Mono",
   "inputs.boxes.fields.lineHeight.label": "Înălțime linie",
   "inputs.boxes.fields.tracking.label": "Spațiere caractere",
   "inputs.boxes.fields.ligatures.label": "Ligaturi",

@@ -141,7 +141,7 @@
 .url-shot .placeholder {
   text-align: center;
   color: var(--brand-primary, #30ba78);
-  font-family: SUSE, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-family: var(--font-brand, 'SUSE', ui-sans-serif, system-ui, sans-serif);
   padding: 2rem;
 }
 .url-shot .placeholder .badge {

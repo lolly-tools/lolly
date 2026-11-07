@@ -65,8 +65,6 @@
   "inputs.boxes.fields.weight.options.700": "Bold",
   "inputs.boxes.fields.weight.options.800": "Extrabold",
   "inputs.boxes.fields.font.label": "Font",
-  "inputs.boxes.fields.font.options.SUSE": "SUSE Sans",
-  "inputs.boxes.fields.font.options.SUSE Mono": "SUSE Mono",
   "inputs.boxes.fields.lineHeight.label": "Taas ng Linya",
   "inputs.boxes.fields.tracking.label": "Kerning",
   "inputs.boxes.fields.ligatures.label": "Ligatures",

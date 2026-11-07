@@ -35,7 +35,7 @@
 }
 
 .booth-msg {
-  font-family: 'SUSE', system-ui, -apple-system, sans-serif;
+  font-family: var(--font-brand, 'SUSE', ui-sans-serif, system-ui, sans-serif);
   font-size: 14px;
   color: #9aa0a6;
   padding: 16px;

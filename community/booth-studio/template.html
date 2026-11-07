@@ -169,7 +169,23 @@
     screen: 'Screen', floor: 'Floor decal',
   };
 
+  // Empty panels are labelled in the design system's text face. The label is
+  // drawn into a texture, where a CSS variable cannot reach, so the face is read
+  // off the canvas (a list the canvas cannot parse keeps the default) and loaded
+  // before the first panel is drawn.
+  var LABEL_FONT = "'SUSE', ui-sans-serif, system-ui, sans-serif";
+  try {
+    var brandFace = getComputedStyle(canvas).getPropertyValue('--font-brand').trim();
+    var probe = document.createElement('canvas').getContext('2d');
+    if (brandFace && probe) { probe.font = '600 24px ' + brandFace; if (probe.font !== '10px sans-serif') LABEL_FONT = brandFace; }
+  } catch (e) {}
+  var labelFontReady = (document.fonts && document.fonts.load)
+    ? Promise.race([document.fonts.load('600 24px ' + LABEL_FONT).catch(function () {}), new Promise(function (r) { setTimeout(r, 1500); })])
+    : Promise.resolve();
+
   loadThree().then(function (THREE) {
+    return labelFontReady.then(function () { return THREE; });
+  }).then(function (THREE) {
     if (!alive()) return;
     if (!THREE || !THREE.WebGLRenderer) { message('3D library failed to load.'); fireReady(); return; }
     try { start(THREE); }
@@ -288,7 +304,7 @@
     // panel was left empty. The click affordance lives in the hover highlight.
     var label = (ROLE_LABEL[p.role] || p.role).toUpperCase();
     var size = Math.max(10, Math.min(s.w, s.h) * 0.055);
-    ctx.font = '600 ' + size + 'px SUSE, system-ui, -apple-system, Segoe UI, sans-serif';
+    ctx.font = '600 ' + size + 'px ' + LABEL_FONT;
     ctx.fillStyle = 'rgba(255,255,255,0.3)';
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
     ctx.letterSpacing = (size * 0.14) + 'px';

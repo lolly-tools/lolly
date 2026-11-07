@@ -1,12 +1,12 @@
 {
   "version": "1",
-  "generatedAt": "2026-11-07T00:54:34.244Z",
+  "generatedAt": "2026-11-07T14:52:22.879Z",
   "tools": [
     {
       "id": "3d",
       "name": "3D",
       "description": "Load a 3D model into a lit scene, orbit and pose the camera, and render a still or a turntable animation.",
-      "version": "1.3.2",
+      "version": "1.3.3",
       "status": "official",
       "category": "designer",
       "tags": [
@@ -587,7 +587,7 @@
       "id": "annotate",
       "name": "Annotate",
       "description": "Mark up your own screenshot on your device - arrows, boxes, numbered steps, callouts, highlighter and a spotlight dim.",
-      "version": "1.0.2",
+      "version": "1.1.0",
       "status": "community",
       "category": "utility",
       "privacy": "on-device",
@@ -1637,7 +1637,7 @@
       "id": "booth-studio",
       "name": "Booth",
       "description": "Dress a 3D event booth with sponsor artwork. Click any panel to drop an image on it, pick a booth design, and render a still or a turntable for a sponsor pitch.",
-      "version": "0.3.3",
+      "version": "0.4.0",
       "status": "experimental",
       "category": "event",
       "tags": [
@@ -4066,7 +4066,7 @@
       "id": "darkroom",
       "name": "Darkroom",
       "description": "Grade photos and video with film looks, Adobe XMP presets, .cube LUTs and your design system colours. Reuse a look through LUT export or Grade a video. Opens Photoshop and GIMP layers for positioning, blending and image export.",
-      "version": "2.5.2",
+      "version": "2.5.3",
       "status": "community",
       "category": "designer",
       "tags": [
@@ -5601,7 +5601,7 @@
       "id": "doc-studio",
       "name": "Doc Studio",
       "description": "Write a multi-page document on the canvas - rich text, headings, tables and inserted Lolly renders that flow onto pages and export as a PDF.",
-      "version": "1.2.2",
+      "version": "1.3.0",
       "status": "official",
       "category": "designer",
       "tags": [
@@ -5756,7 +5756,7 @@
       "id": "filter",
       "name": "Filter",
       "description": "One tool for photo effects: pick halftone, scanline, posterize, voronoi, dither or ASCII art (vector) or duotone, pixel-stretch, misprint or glitch (raster). Design system overlays, live camera and exports to as many formats as each effect supports.",
-      "version": "1.5.4",
+      "version": "1.6.0",
       "status": "official",
       "category": "designer",
       "tags": [
@@ -6067,7 +6067,7 @@
       "id": "finish-preview",
       "name": "Finishes",
       "description": "Preview foil, spot UV, emboss and soft-touch finishes on your artwork - then export the printer-ready spot plate. The on-screen sheen is presentation only; the plate is the real deliverable your print house needs.",
-      "version": "1.1.2",
+      "version": "1.2.0",
       "status": "official",
       "category": "designer",
       "tags": [
@@ -6295,7 +6295,7 @@
       "id": "flythrough",
       "name": "Flythrough",
       "description": "Fly a real 3D camera through a screenshot. The picture lifts into layers at real depth; big shapes extrude into solid objects; a timeline of poses animates the whole move - depth, opacity, perspective, extrusion, tilt, rotate, scale and the camera flight - then loops it home. Add, drag and reorder poses. Export as video.",
-      "version": "0.2.5",
+      "version": "0.2.6",
       "status": "official",
       "category": "designer",
       "tags": [
@@ -6588,7 +6588,7 @@
       "id": "frame",
       "name": "Frame",
       "description": "Drop in a screenshot and get it framed, padded and shadowed on a design system backdrop.",
-      "version": "1.1.3",
+      "version": "1.2.0",
       "status": "community",
       "category": "everyone",
       "tags": [
@@ -8743,7 +8743,7 @@
       "id": "org-chart",
       "name": "Flow Chart",
       "description": "Build flow charts on an open canvas - drag cards, connect them, and the lines route and stick to the boxes.",
-      "version": "1.1.2",
+      "version": "1.2.0",
       "status": "community",
       "category": "everyone",
       "tags": [
@@ -9500,7 +9500,7 @@
       "id": "print-sheet",
       "name": "Print Sheet",
       "description": "Lay one design - or a whole pile of them - out n-up on A4, Letter or A3, across as many pages as it takes, with crop marks in the margin.",
-      "version": "2.0.3",
+      "version": "2.1.0",
       "status": "community",
       "category": "everyone",
       "tags": [
@@ -9761,7 +9761,7 @@
       "id": "prompt-card",
       "name": "Prompt Card",
       "description": "Typeset a long prompt into one compact, legible image for a multimodal model - image input is often cheaper than the same words as text tokens.",
-      "version": "1.0.1",
+      "version": "1.1.0",
       "status": "official",
       "category": "utility",
       "privacy": "on-device",
@@ -9937,7 +9937,7 @@
       "id": "qr-code",
       "name": "QR Code",
       "description": "Scannable codes of every kind: QR, Micro QR, Data Matrix, Aztec and PDF417 for links, contacts, Wi-Fi, events, locations and text - plus retail and logistics barcodes from EAN-13 and Code 128 to ITF-14, GS1-128, GS1 DataBar and MaxiCode.",
-      "version": "2.7.1",
+      "version": "2.8.0",
       "status": "official",
       "category": "everyone",
       "tags": [
@@ -10427,7 +10427,7 @@
       "id": "record",
       "name": "Record",
       "description": "Design your own top and tail cards, then record a clip and Lolly wraps them around it automatically.",
-      "version": "1.4.5",
+      "version": "1.5.0",
       "status": "official",
       "category": "everyone",
       "capabilities": [
@@ -10591,7 +10591,7 @@
       "id": "redact",
       "name": "Redact",
       "description": "Black out sensitive content by rebuilding the file, then verify the output before it downloads, all on your device.",
-      "version": "1.7.0",
+      "version": "1.8.0",
       "status": "official",
       "category": "utility",
       "privacy": "on-device",
@@ -10884,7 +10884,7 @@
       "id": "sandbox",
       "name": "Sandbox",
       "description": "Paste HTML, CSS, JS - or a JSX/TypeScript component - and watch it run in a private, offline sandbox. Perfect for previewing code from an AI assistant.",
-      "version": "1.7.1",
+      "version": "1.8.0",
       "status": "official",
       "category": "utility",
       "tags": [
@@ -13619,7 +13619,7 @@
       "id": "url-shot",
       "name": "URL Screenshot",
       "description": "Any web page, at any scroll depth, with custom CSS.",
-      "version": "0.2.4",
+      "version": "0.2.5",
       "status": "official",
       "category": "utility",
       "capabilities": [
