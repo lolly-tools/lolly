@@ -6,6 +6,12 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+## 1.331.0
+
+- `url-mode.ts`: a reserved link parameter in the `_` namespace, `_text`, read into `UrlState.text` by `parseTextSetting` (new, exported with its type `TextSetting`). Only `outline` (any case, trimmed) does anything: an EMF export draws its text as outlines, the export panel's Outline fonts box, and a run no font can outline goes in as a picture. Absent, or any other value, keeps live EMF text records. Added to `RESERVED`. The CLI's browser tier sends it for `--export=emf --text=outline`.
+- `emfLiveTextRecords(bytes)` (new, `emf.ts`, not on the barrel): how many `EMR_EXTTEXTOUTW` records an EMF holds, walking the records by their own sizes; 0 for outlined or pictured text and for bytes that are not an EMF. The CLI reads it to warn only when a browser tier that predates `_text` wrote live text.
+- No other module changes, and no file's bytes change without `_text=outline`.
+
 ## 1.329.0
 
 - A picture placed on a page is a component of the export, not its parent. `runtime.export` marks every credentialed asset it gathers from the input model (uploads and library assets, top-level or in a `blocks` field) as `relationship: 'componentOf'`, so the embedder records each one with a `c2pa.placed` step, after the head step, carrying the picture's AI source type. C2PA 2.2 section 18.15.3 says `parentOf` means the export is a rendition of that one asset, and a manifest may hold one `parentOf` ingredient. Before this, a page with two placed credentialed pictures made the web shell's stamp refuse the whole credential (`manifest.multipleParents`), so the file left with no Content Credential at all.

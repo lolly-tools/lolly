@@ -4114,7 +4114,7 @@ var ENGINE_VERSION;
 var init_version = __esm({
   "engine/src/version.ts"() {
     "use strict";
-    ENGINE_VERSION = "1.329.0";
+    ENGINE_VERSION = "1.331.0";
   }
 });
 
@@ -58072,6 +58072,9 @@ function hasVideoParams(v) {
 function parseSpots(raw) {
   return typeof raw === "string" && raw.trim().toLowerCase() === "process" ? "process" : null;
 }
+function parseTextSetting(raw) {
+  return typeof raw === "string" && raw.trim().toLowerCase() === "outline" ? "outline" : null;
+}
 function parseMarks(raw) {
   if (raw == null) return null;
   const set = new Set(String(raw).split(",").map((s) => s.trim().toLowerCase()).filter(Boolean));
@@ -58255,7 +58258,9 @@ function parseUrlState(searchParams, manifest) {
     // opt-out reads as false; absent stays null.
     madeWith: parseMeta(params2.get("_madewith")),
     // How the CMYK formats print spot inks (see header). Opt-in: only `process` counts.
-    spots: parseSpots(params2.get("_spots"))
+    spots: parseSpots(params2.get("_spots")),
+    // How an EMF export writes text (see header). Opt-in: only `outline` counts.
+    text: parseTextSetting(params2.get("_text"))
   };
 }
 function serializeUrlState(model2, opts = {}) {
@@ -58491,7 +58496,7 @@ var init_url_mode = __esm({
       av1: "av1",
       av01: "av1"
     });
-    RESERVED = /* @__PURE__ */ new Set(["format", "export", "copy", "slot", "output", "filename", "_v", "width", "height", "w", "h", "unit", "dpi", "profile", "password", "bleed", "marks", "c2pa", "imprint", "durable", "meta", "hdr", "depth", "cuts", "sampletimes", "motionblur", "seqrange", "lang", "designv", "ds", "full", "iframe", "options", "nostage", "template", "preset", "present", "s", "kiosk", "z", "zx", "fps", "seconds", "wait", "codec", "vq", "emoji", "emojifx", "emojistyle", "licence", "_themes", "_madewith", "_spots"]);
+    RESERVED = /* @__PURE__ */ new Set(["format", "export", "copy", "slot", "output", "filename", "_v", "width", "height", "w", "h", "unit", "dpi", "profile", "password", "bleed", "marks", "c2pa", "imprint", "durable", "meta", "hdr", "depth", "cuts", "sampletimes", "motionblur", "seqrange", "lang", "designv", "ds", "full", "iframe", "options", "nostage", "template", "preset", "present", "s", "kiosk", "z", "zx", "fps", "seconds", "wait", "codec", "vq", "emoji", "emojifx", "emojistyle", "licence", "_themes", "_madewith", "_spots", "_text"]);
     CUTS_MAX = 64;
     HEX_COLOR = /^#[0-9a-fA-F]{3,8}$/;
   }
@@ -155236,6 +155241,7 @@ __export(src_exports, {
   parseTextDocument: () => parseTextDocument,
   parseTextFrame: () => parseTextFrame,
   parseTextLogs: () => parseTextLogs,
+  parseTextSetting: () => parseTextSetting,
   parseTextShadow: () => parseTextShadow,
   parseThemedAssetId: () => parseThemedAssetId,
   parseToUnicode: () => parseToUnicode,
@@ -179405,6 +179411,7 @@ function exportUrl2(base, toolId, query2, fmt6, dims) {
   if (dims.madeWith === false) p.set("_madewith", "0");
   if (dims.pressProfile) p.set("profile", dims.pressProfile);
   if (dims.spotsAsProcess) p.set("_spots", "process");
+  if (dims.textOutline) p.set("_text", "outline");
   if (dims.slide) p.set("s", dims.slide);
   if (dims.hdrParam) p.set("hdr", dims.hdrParam);
   if (dims.depth && dims.depth !== "auto") p.set("depth", String(dims.depth));
@@ -180115,7 +180122,7 @@ var init_webshell_render = __esm({
       ".wmf": "application/x-msmetafile"
     };
     served2 = null;
-    EXPORT_URL_RESERVED2 = ["_keepinlinedc2pa", "format", "export", "copy", "width", "w", "height", "h", "unit", "dpi", "password", "bleed", "marks", "imprint", "durable", "profile", "c2pa", "preview", "options", "fps", "seconds", "wait", "codec", "vq", "hdr", "depth", "cuts", "sampletimes", "motionblur", "seqrange", "_spots"];
+    EXPORT_URL_RESERVED2 = ["_keepinlinedc2pa", "format", "export", "copy", "width", "w", "height", "h", "unit", "dpi", "password", "bleed", "marks", "imprint", "durable", "profile", "c2pa", "preview", "options", "fps", "seconds", "wait", "codec", "vq", "hdr", "depth", "cuts", "sampletimes", "motionblur", "seqrange", "_spots", "_text"];
     tierBDebugConfig = { enabled: false, outPath: null };
     DEBUG_MAX_LINES = 500;
     NO_DEBUG = {
