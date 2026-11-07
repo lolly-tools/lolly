@@ -79,10 +79,13 @@ test('a partner mark below the kit\'s minimum size and a crowded clear space are
     { id: 'logo', name: 'Northwind logo', kind: 'image', image: 'inst/nw-light', x: 40, y: 40, w: 200, h: 48 },
     { id: 'heading', name: 'Heading', kind: 'text', text: 'Join us', fg: '#1d4ed8', font: 'sans', x: 40, y: 96, w: 600, h: 60 },
   ];
-  const rows = await brandCheckRows({ boxes: () => boxes, snapshot, write: () => undefined, partner: () => ({ kit: KIT, measure: {} }) });
+  // The app reads the logo's proportions from the host, so the mark is placed exactly.
+  const rows = await brandCheckRows({ boxes: () => boxes, snapshot, write: () => undefined, partner: () => ({ kit: KIT, measure: { logoAspect: () => 200 / 48 } }) });
   const texts = rows.map((r) => r.text);
   assert.ok(texts.includes('Northwind IT’s mark is 48 px high; the kit asks for at least 96 px.'), texts.join('\n'));
   assert.ok(texts.includes('“Heading” sits inside Northwind IT’s clear space.'));
+  // What the kit states and the check cannot measure is a row of its own.
+  assert.match(rows.find((r) => r.id === 'brand.mark.not-measured')?.text ?? '', /^Not measured for Northwind IT’s kit: reversed use/);
   assert.ok(!rows.some((r) => r.id.startsWith('brand.color.heading')), 'Northwind blue is the partner\'s, not off-brand');
   assert.ok(!rows.some((r) => r.id.startsWith('brand.asset.logo')), 'the partner logo is a known asset');
   // Without a kit the same piece reads as before.
@@ -96,7 +99,9 @@ test('the mark rows show even when the design system cannot be read', async () =
     boxes: () => [{ id: 'logo', kind: 'image', image: 'inst/nw-light', x: 0, y: 0, w: 100, h: 20 }],
     snapshot: async () => undefined, write: () => undefined, partner: () => ({ kit: KIT, measure: {} }),
   });
-  assert.deepEqual(rows.map((r) => r.id), ['brand.mark.logo.min-size.px', 'brand.unavailable']);
+  assert.deepEqual(rows.map((r) => r.id), ['brand.mark.logo.min-size.px', 'brand.mark.not-measured', 'brand.unavailable']);
+  // Without the logo's proportions a contained mark is at most its box's height, and the row says so.
+  assert.equal(rows[0]!.text, 'Northwind IT’s mark is at most 20 px high; the kit asks for at least 96 px.');
 });
 
 test('the treatment sentences name what the kit allows, with no comma before the last', async () => {

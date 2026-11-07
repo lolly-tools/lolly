@@ -136,6 +136,8 @@ test('the checks get the logos\' proportions and the catalog\'s colour modifiers
   assert.ok(input);
   assert.equal(input!.measure.logoAspect?.('inst/nw-light'), 4);
   assert.equal(input!.measure.logoAspect?.('inst/nw-mark'), null, 'a logo the host cannot read has no proportions, and the check lists it as not measured');
+  assert.deepEqual(input!.measure.logoSize?.('inst/nw-light'), { width: 400, height: 100 }, 'a fit drawn at the logo\'s own size reads the size');
+  assert.equal(input!.measure.logoSize?.('inst/nw-mark'), null);
   assert.equal(input!.measure.recolour?.({ theme: 'ink' }), 'mono');
   assert.equal(input!.measure.recolour?.({ theme: 'pair' }), 'other');
   assert.equal(input!.measure.recolour?.({ treatment: 'grey' }), 'mono');

@@ -147,16 +147,18 @@ export async function partnerCheckInput(runtime: { getModel(): ReadonlyArray<{ i
     safe(async () => (await host.assets._photoTreatments?.()) ?? [], [] as unknown[]),
     Promise.all(partnerKitLogoIds(base.kit).map((id) => safe<readonly [string, unknown]>(async () => [id, await host.assets.get(id)], [id, null]))),
   ]);
-  const aspects = new Map<string, number>();
+  // Each logo's own size, which gives its proportions too: a fit Design draws at the logo's own size needs the size.
+  const sizes = new Map<string, { width: number; height: number }>();
   for (const [id, ref] of refs) {
     const w = Number((ref as { width?: unknown } | null)?.width), h = Number((ref as { height?: unknown } | null)?.height);
-    if (Number.isFinite(w) && Number.isFinite(h) && w > 0 && h > 0) aspects.set(id, w / h);
+    if (Number.isFinite(w) && Number.isFinite(h) && w > 0 && h > 0) sizes.set(id, { width: w, height: h });
   }
   return {
     kit: base.kit,
     measure: {
       ...base.measure,
-      logoAspect: (id) => aspects.get(id) ?? null,
+      logoAspect: (id) => { const size = sizes.get(id); return size ? size.width / size.height : null; },
+      logoSize: (id) => sizes.get(id) ?? null,
       recolour: guestRecolourFrom({ iconThemes: { themes }, photoTreatments: { treatments } }),
     },
   };

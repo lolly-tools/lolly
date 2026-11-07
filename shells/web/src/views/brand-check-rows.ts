@@ -34,7 +34,13 @@ function allowedWords(expected: string | undefined): string {
 /** A partner mark finding (`checkGuestMarks`, plans/82 M8) in the reader's language. */
 export function markFindingText(f: BrandFinding): string {
   const company = f.company ?? '';
-  if (f.rule === 'min-size') return tRaw('{company}’s mark is {value} high; the kit asks for at least {expected}.', { company, value: f.value ?? '', expected: f.expected ?? '' });
+  if (f.rule === 'min-size') {
+    // A logo placed only roughly (its proportions unknown) is at most this high.
+    const words = { company, value: f.value ?? '', expected: f.expected ?? '' };
+    return / is at most /.test(f.message ?? '')
+      ? tRaw('{company}’s mark is at most {value} high; the kit asks for at least {expected}.', words)
+      : tRaw('{company}’s mark is {value} high; the kit asks for at least {expected}.', words);
+  }
   if (f.rule === 'clear-space') {
     const others = Math.max(0, (f.related?.length ?? 1) - 1);
     if (!others) return tRaw('“{name}” sits inside {company}’s clear space.', { name: f.value ?? '', company });
@@ -105,9 +111,12 @@ export async function brandCheckRows(options: {
   let partner: { kit: PartnerKitV1; measure: GuestMarkMeasure } | null = null;
   try { partner = (await options.partner?.()) ?? null; } catch { partner = null; }
   const guest = partner ? { guest: { colours: partner.kit.colours.map((c) => c.value), assets: partnerKitLogoIds(partner.kit) } } : {};
-  const markRows: PreflightRow[] = partner
-    ? checkGuestMarks(options.boxes(), partner.kit, partner.measure).findings.slice(0, 60).map((f) => ({ id: f.id, tone: 'note' as const, text: markFindingText(f) }))
-    : [];
+  const marks = partner ? checkGuestMarks(options.boxes(), partner.kit, partner.measure) : null;
+  const markRows: PreflightRow[] = marks ? marks.findings.slice(0, 60).map((f) => ({ id: f.id, tone: 'note' as const, text: markFindingText(f) })) : [];
+  // What the kit states and the check could not measure is said, never passed in silence.
+  if (partner && marks?.notMeasured.length) {
+    markRows.push({ id: 'brand.mark.not-measured', tone: 'gap', text: tRaw('Not measured for {company}’s kit: {what}.', { company: partner.kit.label, what: marks.notMeasured.join('; ') }) });
+  }
   let snapshot: TokensSnapshot | undefined;
   try { snapshot = await options.snapshot(); } catch { snapshot = undefined; }
   const doc = snapshot?.document;
