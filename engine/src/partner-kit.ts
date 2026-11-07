@@ -179,7 +179,7 @@ export function partnerKitColoursFromTokens(doc: unknown): PartnerKitColourV1[] 
   for (const [role, paths] of TOKEN_SLOT_PATHS) {
     for (const path of paths) {
       const entry = tokens.get(path);
-      if (!entry || entry.type !== 'color') continue;
+      if (entry?.type !== 'color') continue;
       let swatch: ReturnType<typeof toSwatch>;
       try {
         swatch = toSwatch(entry);
