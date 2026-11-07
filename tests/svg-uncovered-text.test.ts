@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
  * A run no font can draw, in the vector walk every shell shares (packages/node-shell/src/svg-ir.ts).
- * Shaping it outlines `.notdef` boxes, so EPS and WMF draw it as a picture painted through
+ * Shaping it outlines `.notdef` boxes, so EPS, WMF and EMF draw it as a picture painted through
  * its own shape (a stencil prim), and DXF, which goes to cutting machines and CAD, stops
  * with a message that quotes the run. Real HarfBuzz and real faces under jsdom.
  */
@@ -58,9 +58,9 @@ test('DXF keeps every run a font covers', async () => {
   assert.deepEqual(ir.prims.map((p) => p.type), ['path']);
 });
 
-test('EPS and WMF draw a run no font covers as a stencil in its ink, placed by its anchor', async () => {
+test('EPS, WMF and EMF with outlined text draw a run no font covers as a stencil in its ink, placed by its anchor', async () => {
   const seen: string[] = [];
-  for (const label of ['EPS', 'WMF']) {
+  for (const label of ['EPS', 'WMF', 'EMF']) {
     const svg = svgOf(`<text x="100" y="40" text-anchor="end" fill="#123456" font-family="Outfit" font-size="20">${TAMIL}</text><text x="10" y="80" font-family="Outfit" font-size="20">Plain</text>`);
     const ir = await svgDomToIr(svg, { host, resolveFont, label, uncoveredText: 'picture', pictureText: fakePicture, onPicturedText: (t) => seen.push(t) });
     assert.deepEqual(ir.prims.map((p) => p.type), ['stencil', 'path'], label);
@@ -73,7 +73,17 @@ test('EPS and WMF draw a run no font covers as a stencil in its ink, placed by i
     // Covered pixels become set bits: the left ten of each twenty-pixel row.
     assert.deepEqual([...prim.bits.slice(0, 3)], [0xff, 0xc0, 0x00]);
   }
-  assert.deepEqual(seen, [TAMIL, TAMIL]);
+  assert.deepEqual(seen, [TAMIL, TAMIL, TAMIL]);
+});
+
+test('EMF with live text keeps a plain run no font covers live, and pictures one GDI text cannot carry', async () => {
+  const live = { host, resolveFont, label: 'EMF', textMode: 'live' as const, uncoveredText: 'picture' as const, pictureText: fakePicture };
+  // A plain run stays a text record, which the reader's fonts draw, right to left included.
+  const plain = await svgDomToIr(svgOf(`<text x="10" y="40" font-family="Outfit" font-size="20">${TAMIL}</text><text x="10" y="80" direction="rtl" font-family="Outfit" font-size="20">${SYRIAC}</text>`), live);
+  assert.deepEqual(plain.prims.map((p) => p.type), ['text', 'text']);
+  // Tracking has no GDI text form, so the run is outlined, and with no font for it, pictured.
+  const tracked = await svgDomToIr(svgOf(`<text x="10" y="40" letter-spacing="4" font-family="Outfit" font-size="20">${TAMIL}</text>`), live);
+  assert.deepEqual(tracked.prims.map((p) => p.type), ['stencil']);
 });
 
 test('the picture request carries the run, its direction and a 300 dpi scale', async () => {
@@ -90,11 +100,13 @@ test('the picture request carries the run, its direction and a 300 dpi scale', a
   assert.ok(Math.abs(r.scale - (300 / 96) * 2) < 1e-9);
 });
 
-test('with no text renderer, EPS and WMF ask for the browser tier instead of writing boxes', async () => {
-  await assert.rejects(
-    svgDomToIr(svgOf(`<text x="10" y="40" font-family="Outfit" font-size="20">${TAMIL}</text>`), { host, resolveFont, label: 'WMF', uncoveredText: 'picture' }),
-    (err: Error) => { assert.equal(needsBrowserTier(err), true); assert.match(err.message, /^WMF export stopped at the text/); return true; },
-  );
+test('with no text renderer, EPS, WMF and EMF ask for the browser tier instead of writing boxes', async () => {
+  for (const label of ['WMF', 'EMF']) {
+    await assert.rejects(
+      svgDomToIr(svgOf(`<text x="10" y="40" font-family="Outfit" font-size="20">${TAMIL}</text>`), { host, resolveFont, label, uncoveredText: 'picture' }),
+      (err: Error) => { assert.equal(needsBrowserTier(err), true); assert.match(err.message, new RegExp(`^${label} export stopped at the text`)); return true; },
+    );
+  }
 });
 
 test('turned text cannot become an upright picture, so the export says so', async () => {
