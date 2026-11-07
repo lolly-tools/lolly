@@ -8,7 +8,7 @@
  * returned as data by describe_tool. See plans/77-mcp-server.md section 3.
  */
 
-import { compileMotionCues, buildInputModel, serializeUrlState, parseUrlState, expandQuery, buildEmbedUrl, ENGINE_VERSION, verifyC2pa, resolveVerdict, defaultTrustAnchors, extractFileMetadata, HDR_DEFAULTS, compileDocument, inspectDocument, diffDocuments, measureDocument, validateDocument } from '@lolly/engine';
+import { compileMotionCues, buildInputModel, serializeUrlState, parseUrlState, parseSpots, expandQuery, buildEmbedUrl, ENGINE_VERSION, verifyC2pa, resolveVerdict, defaultTrustAnchors, extractFileMetadata, HDR_DEFAULTS, compileDocument, inspectDocument, diffDocuments, measureDocument, validateDocument } from '@lolly/engine';
 import type { C2paVerdict } from '@lolly/engine';
 import { applyAuthoredLayerOperations, applyAuthoredLayerPatches, designBrief, expandDesignAuthoringDocument, hasDesignAuthoring, type DesignAuthoringNote, type DesignAuthoringOptions } from '@lolly/engine';
 import { readProfileBriefCatalog, readProfileTokenDocument } from '@lolly-tools/node-shell/design-brief';
@@ -213,6 +213,13 @@ const EXPORT_ARGS = {
     description: "The design-system record: the design system, its published version and its colourway, plus its brand page address when its publisher opted in, written into the file's metadata and Content Credential, "
       + 'with the colourway beside the tool in the description. ON by default - pass false to leave it out (the `_madewith=0` link param).',
   },
+  spots: {
+    type: 'string',
+    enum: ['process'],
+    description: "How the CMYK formats print the design system's spot inks. Leave it out to keep each spot ink on its own named plate (the default). "
+      + "'process' prints each spot ink with the four process inks, using the CMYK build the design system gives it, so a pdf-cmyk has only the C, M, Y and K plates. "
+      + 'Finishes (foil, emboss, spot varnish, die lines) keep their own plates. The `_spots=process` link param. Nothing about the choice is written into the file.',
+  },
 };
 
 /**
@@ -308,6 +315,8 @@ function exportSettings(args: Record<string, unknown>): MotionExportSettings & {
   durable?: boolean;
   /** RenderOpts' own shape, so a render's options build its link unchanged. */
   madeWith?: boolean | null;
+  /** Spot inks as process for the CMYK formats (the `_spots` param). */
+  spots?: 'process' | null;
 } {
   const rawDepth = args.depth == null ? null : String(args.depth);
   const depth = rawDepth === '8' ? 8 : rawDepth === '16' ? 16
@@ -340,6 +349,8 @@ function exportSettings(args: Record<string, unknown>): MotionExportSettings & {
     ...(args.durable === true ? { durable: true } : {}),
     // The design-system record is default-on too, so only the opt-out travels.
     ...(args.madeWith === false ? { madeWith: false } : {}),
+    // Opt-in: only `process` asks; anything else keeps the spot plates.
+    ...(parseSpots(typeof args.spots === 'string' ? args.spots : null) ? { spots: 'process' as const } : {}),
   };
 }
 
@@ -781,6 +792,9 @@ function buildLinks(manifest: ToolManifest, inputs: Record<string, unknown>, o: 
     imprint: o.imprint,
     durable: o.durable,
     ...(o.madeWith === false ? { madeWith: false } : {}),
+    // Spot inks as process rides the link like the press setup above, and the browser
+    // tier reads it from this same query.
+    spots: o.spots ?? null,
     // The set and its treatment travel too: a link whose emoji did not would
     // draw placeholders for whoever opens it, and the browser tier reads its
     // artwork from this same query.

@@ -18,7 +18,7 @@ import { xlsxRecalc } from '@lolly-tools/node-shell/gridcraft-calc-node';
 import { checkPdfAccessibility } from '@lolly-tools/node-shell/pdf-a11y-node';
 import { isFileTransform } from '@lolly-tools/node-shell/transform-tool';
 import { withoutRecordedBrandPage } from '../../../engine/src/brand-page-address.ts';
-import { colourRoleThemeAccents, assertMotionRequest, assertSampleRequest, sampleOutputFormat, buildExportMeta, designRecordWords, readFileDesignRecord, loadTool, createRuntime, canvasSizeOf, annotateTemplate, parseUrlState, serializeUrlState, serializeHdr, expandQuery, frameFilterApplies, embedC2pa, extractC2paStore, C2PA_FORMATS, c2paDefaultOn, imprintDefaultOn, isImprintFormat, IMPRINT_FORMATS, normalizeLang, parseDataRows, parseTableText, hasEncryptedState, unpackEncrypted, ENC_PARAM, RESERVED, parseRateCard, isRateCardError, validateRateCard, sfntKind, storeZip, readXlsx, listXlsxSheets, rowsToCsv } from '@lolly/engine';
+import { colourRoleThemeAccents, assertMotionRequest, assertSampleRequest, sampleOutputFormat, buildExportMeta, designRecordWords, readFileDesignRecord, loadTool, createRuntime, canvasSizeOf, annotateTemplate, parseUrlState, parseSpots, serializeUrlState, serializeHdr, expandQuery, frameFilterApplies, embedC2pa, extractC2paStore, C2PA_FORMATS, c2paDefaultOn, imprintDefaultOn, isImprintFormat, IMPRINT_FORMATS, normalizeLang, parseDataRows, parseTableText, hasEncryptedState, unpackEncrypted, ENC_PARAM, RESERVED, parseRateCard, isRateCardError, validateRateCard, sfntKind, storeZip, readXlsx, listXlsxSheets, rowsToCsv } from '@lolly/engine';
 import { createHash } from 'node:crypto';
 import type { Lang } from '@lolly/engine';
 import { RONDO_ASSET_FORMAT, RondoSourceError, isRondoFileName, rondoFromFile, rondoSourceBytes } from '@lolly/engine';
@@ -584,6 +584,13 @@ async function runToolCliCandidate({ toolId, inputValues, params, repeated = {},
   // is its frozen alias and reads straight off url-mode's reserved `profile` param, so
   // a shared print link and a hand-typed flag mean the same thing (contract B1).
   const pressProfile = params['press-profile'] || pressProfileParam || null;
+  // Spot inks as process (engine 1.324). `--spots=process` is the CLI spelling of a link's
+  // `_spots=process`, and either one asks. Any other value of the flag is a usage error,
+  // because a typo must never come back looking like a four-colour file.
+  if (params.spots !== undefined && parseSpots(String(params.spots)) === null) {
+    throw usageError(`--spots takes one value: --spots=process prints every spot ink in process. "${params.spots}" is not that value.`, 'BAD_FLAG_VALUE');
+  }
+  const spotsAsProcess = parseSpots(params.spots === undefined ? null : String(params.spots)) === 'process' || parsedUrl.spots === 'process';
 
   // --output=- means stdout, explicitly (contract B10). Normalised here so every
   // downstream branch sees "no path" and streams, exactly as an omitted --output does.
@@ -830,7 +837,7 @@ async function runToolCliCandidate({ toolId, inputValues, params, repeated = {},
     const omitted = includePersonal ? [] : personalShareFields(runtime.getModel());
     if (omitted.length) note(`Share link omits personal fields: ${omitted.map(field => field.id).join(', ')}. Review them before using --include-personal.`);
     const serialize = includePersonal ? serializeUrlState : shareUrlState;
-    const q = serialize(runtime.getModel(), { format: format ?? paramFormat, width, height, unit, dpi, bleed, marks: new URLSearchParams(rawQuery).get('marks'), profile: pressProfileParam, c2pa: c2pa?.on, c2paDays: c2pa?.days, imprint: imprint ?? undefined, durable: durable ?? undefined, cuts, sampleTimes, motionBlur, sequenceRange, ...video, vq: video.quality, tokenSelection: runtime.tokenSelection, ...(madeWithOff ? { madeWith: false } : {}) });
+    const q = serialize(runtime.getModel(), { format: format ?? paramFormat, width, height, unit, dpi, bleed, marks: new URLSearchParams(rawQuery).get('marks'), profile: pressProfileParam, c2pa: c2pa?.on, c2paDays: c2pa?.days, imprint: imprint ?? undefined, durable: durable ?? undefined, cuts, sampleTimes, motionBlur, sequenceRange, ...video, vq: video.quality, tokenSelection: runtime.tokenSelection, ...(madeWithOff ? { madeWith: false } : {}), ...(spotsAsProcess ? { spots: 'process' as const } : {}) });
     const sharedParams = new URLSearchParams(q);
     if (filename) sharedParams.set('filename', filename);
     const sharedQuery = sharedParams.toString();
@@ -1262,6 +1269,8 @@ async function runToolCliCandidate({ toolId, inputValues, params, repeated = {},
     // EPS (CMYK) separates through the press condition's profile (the bundled FOGRA39
     // one by default), so the condition a print link names reaches the Node tier too.
     if (targetFormat === 'eps-cmyk' && pressProfile) exportOpts.colorProfile = pressProfile;
+    // EPS has no named plates, so its bytes do not move; passed so the choice means one thing everywhere.
+    if (targetFormat === 'eps-cmyk' && spotsAsProcess) exportOpts.spotsAsProcess = true;
 
     // ── the `s=` still-export filter (plan 112 section 10) ────────────────────────────
     // `--s=2 --export=png` renders ONE slide of a framed document, exactly as
@@ -1376,6 +1385,8 @@ async function runToolCliCandidate({ toolId, inputValues, params, repeated = {},
       imprint: wantImprint,
       ...(wantDurable ? { durable: true } : {}),
       ...(pressProfile ? { pressProfile } : {}),
+      // Opt-in, so only the request travels to the browser tier (`_spots=process`).
+      ...(spotsAsProcess ? { spotsAsProcess: true } : {}),
       // Forward the RESOLVED c2pa setting so the browser tier stamps it (single
       // authority); the Node post-stamp below is skipped when the browser ran, avoiding
       // a double-stamp. Always forwarded now that the default is on: leaving the param
@@ -1963,6 +1974,9 @@ export const CLI_FLAGS = new Set([
   // `--no-madewith`: leave the design-system record out (plans/319), the CLI spelling
   // of `_madewith=0`. Read where the runtime is created.
   'no-madewith',
+  // `--spots=process`: print every spot ink in process (engine 1.324), the CLI spelling of
+  // `_spots=process`. Read beside the press profile above.
+  'spots',
   // The enrolled signing identity (contract section 1.3). Both take a PATH - never key
   // material, which would be visible in `ps` to every user on the machine.
   'sign-key', 'sign-cert',

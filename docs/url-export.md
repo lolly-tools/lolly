@@ -183,6 +183,7 @@ Without `present`, `s` is a still filter: `?s=2&format=png&export` downloads sli
 - **`marks=crop,reg,bleed,bars`** draws crop marks, registration targets, bleed marks and a colour bar in the margin. Mark length, gap and stroke weight follow print standards.
 - **`prov`** (PDF only) adds a small provenance credit in the proof margin, outside the trim.
 - **`profile=fogra51`** sets the CMYK press condition. The Print PDF declares it in its output intent; the Print TIFF records it in `ImageDescription` and keeps its pixels untagged DeviceCMYK, so the file is never mislabelled.
+- **`_spots=process`** prints every spot ink of the design system with the four process inks, so a Print PDF has only the cyan, magenta, yellow and black plates. Finishes such as foil keep their own plates. [Spot inks as process](/info/exporting.html#spot-inks-as-process) explains the choice.
 
 Print finishing and an open `password` cannot be combined, because the finishing step cannot write an encrypted PDF. A `password` is ignored when marks or bleed are on, and `cmyk-tiff` has no password at all.
 

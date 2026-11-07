@@ -17,7 +17,7 @@ import { marksToCsv } from '../lib/print-marks-csv.ts';
 import { documentWords, mountActionHistory } from './tool-revision-history.ts';
 import type { ActionsApi, ActionsExperience, ExportDefaults, ExportUnscaled, PanelEl, ToolRuntime, WebToolHost } from './tool.ts';
 import { c2paDefaultOn } from '../lib/c2pa-policy.ts';
-import { extFor, isCmykFmt, isPrintFmt, printEnabled, readBleed, readMarks } from './tool-actions/shared.ts';
+import { extFor, isCmykFmt, isPrintFmt, printEnabled, readBleed, readMarks, spotsAsProcessChecked } from './tool-actions/shared.ts';
 import type { ActionsCtx } from './tool-actions/context.ts';
 import { savingOps } from './tool-actions/saving.ts';
 import { formatRulesOps } from './tool-actions/format-rules.ts';
@@ -276,6 +276,8 @@ function renderActions(
 
   ta.wiring.wirePrint();
 
+  ta.refresh.wireSpotsToggle();
+
   ta.wiring.wireC2pa();
   // Whether the dimension fields still hold their manifest-derived defaults.
   // Seeded true only when a URL param or a restored session supplied the size;
@@ -448,4 +450,5 @@ export {
   readBleed,
   readMarks,
   renderActions,
+  spotsAsProcessChecked,
 };

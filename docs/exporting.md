@@ -309,6 +309,18 @@ Load a CMYK profile of your own and choose its **Embed** row in the Colour profi
 Three things withhold the claim while keeping the output intent: RGB artwork the CMYK pass could not convert, the `prov` proof-margin credit text (drawn in a standard font that is not embedded) and a **Strong** password, since PDF/X-4 forbids encryption. Every PDF also carries PDF/X-4 metadata: page boxes, XMP, a document ID and an sRGB output intent with its profile.
 :::
 
+### Spot inks as process
+
+A design system can give a colour a spot ink, such as a Pantone or HLC colour. The **Print PDF** then prints that colour on a plate of its own, so the printer runs the job with that ink. Lolly Demo gives every colour except Sugar a spot ink, so a Print PDF made in Lolly Demo prints most colours on spot plates.
+
+When you need a plain four-colour file, tick **Print spot inks as process** in the export panel's Profile card. Each spot ink then prints with cyan, magenta, yellow and black, using the CMYK build the design system gives that colour. A colour with no build of its own takes the press profile's conversion, the same as every other colour in the artwork. The file then has the four process plates and nothing more. The choice is off by default. The panel shows the box for **Print PDF** only, and only when the design system gives a colour a spot ink.
+
+A finish is not an ink. Foil, emboss, deboss, spot varnish, soft touch, die cut, crease and perforation keep their own named plates with the box ticked, because a finish printed in process would put its black mask on the page.
+
+The **Print TIFF** and **EPS (CMYK)** have no named plates, so they print every ink in process with or without the choice.
+
+A link asks for the same file with `_spots=process`, the command line with `--spots=process`, the [MCP server](/info/mcp.html) with `spots: "process"` and the terminal app with its **Spot inks** row. Nothing about the choice goes into the file: only the inks change.
+
 ### HDR (bright colours)
 
 This is the export panel's **HDR** card, which brightens ordinary artwork for HDR screens. Keeping HDR originals through editing is a different feature: [Wide colour and HDR editing](/info/hdr-editing.html).

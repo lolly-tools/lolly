@@ -358,9 +358,11 @@ export async function exportToFile(
     const qual = (v: number | undefined): string | number | undefined =>
       (typeof v === 'number' && v > 0 ? (u !== 'px' ? `${v}${u}` : v) : undefined);
     const drawn: DrawnHere = { pictures: [], route: null };
-    const opts: { width?: string | number; height?: string | number; dpi?: number; ingredientSink: IngredientCredential[]; onExportRoute: (record: DesignExportRouteRecord) => void } = {
+    const opts: { width?: string | number; height?: string | number; dpi?: number; spotsAsProcess?: boolean; ingredientSink: IngredientCredential[]; onExportRoute: (record: DesignExportRouteRecord) => void } = {
       width: qual(dims.width), height: qual(dims.height), ingredientSink: drawn.pictures, onExportRoute: (record) => { drawn.route = record; },
     };
+    // eps-cmyk: the choice means one thing in every CMYK sink (EPS has no named plates, so its bytes do not move).
+    if (dims.spotsAsProcess) opts.spotsAsProcess = true;
     if (u !== 'px' && dims.dpi) opts.dpi = dims.dpi;
     const query = currentQuery(runtime);
     try {

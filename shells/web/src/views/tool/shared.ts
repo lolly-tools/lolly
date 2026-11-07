@@ -26,7 +26,7 @@ import type { ToolManifest, ToolRenderSpec } from '../../../../../engine/src/loa
 import type { Runtime } from '../../../../../engine/src/runtime.js';
 import { isTextEditingTarget } from '../../lib/typing-target.ts';
 import type { EmojiParamPair } from '../../lib/emoji-prefs.ts';
-import { isCmykFmt, isPrintFmt, printEnabled, readBleed, readMarks } from '../tool-actions.ts';
+import { isCmykFmt, isPrintFmt, printEnabled, readBleed, readMarks, spotsAsProcessChecked } from '../tool-actions.ts';
 import { isIframeMode } from '../../lib/iframe-mode.ts';
 import { agentGuidanceHost, agentInvitationHost } from '../../lib/agent-invitation-host.ts';
 
@@ -169,6 +169,10 @@ export interface ExportDefaults {
   unit?: string;
   dpi?: number;
   profile?: string;
+  /** Spot inks as process from ?_spots=process (engine 1.324): ticks the Colour profile
+   *  card's "Print spot inks as process" box. Opt-in, so only a link that asks sets it;
+   *  never restored from a saved session. */
+  spots?: boolean;
   password?: string;
   bleed?: string;
   marks?: PrintMarks | null;
@@ -306,6 +310,8 @@ export interface RunExportOpts {
   embedMeta?: boolean;
   thumbnail?: boolean;
   colorProfile?: string;
+  /** Print every declared spot ink as its process build (pdf-cmyk); finishes keep their plates. */
+  spotsAsProcess?: boolean;
   palette?: unknown;
   fullPage?: boolean;
   password?: string;
@@ -698,6 +704,9 @@ export function collectExportParams(exportScope: HTMLElement | null): string[] {
   if (isCmykFmt(fmtEl?.value) && prof && prof !== DEFAULT_CMYK_CONDITION) {
     parts.push(`profile=${encodeURIComponent(prof)}`);
   }
+  // Spot inks as process rides with the press profile: CMYK formats only, and only
+  // when ticked, since off (the default) writes nothing.
+  if (isCmykFmt(fmtEl?.value) && spotsAsProcessChecked(exportScope)) parts.push('_spots=process');
   // The export password is never read here. This list becomes the address bar and the
   // copied link, and an address reaches browser history, server logs and whoever it is sent to.
   // Print marks & bleed - print formats (pdf / pdf-cmyk / cmyk-tiff) only, and only

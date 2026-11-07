@@ -1137,7 +1137,9 @@ async function renderCmykTiff(node: Element, opts: ExportOpts): Promise<Blob> {
   const lib = await getDomToImage();
   const d = exportDims(node, opts);
   const separation = await printSeparation(opts.colorProfile, _host as never, pdfxLog);
-  const paletteMap = buildCmykPaletteMap(opts.palette ?? [], separation.sep.separate);
+  // Spots as process changes no pixel here: this raster already paints every ink as
+  // its process build. Passed so the choice means one thing in every CMYK sink.
+  const paletteMap = buildCmykPaletteMap(opts.palette ?? [], separation.sep.separate, { spotsAsProcess: opts.spotsAsProcess === true });
   // Print finishing geometry - same engine source of truth as the PDF path. Still
   // pass no palette here: the verification bar's brand pairing is rebuilt from the
   // PDF path's `usedKeys` (an exact-substitution audit trail this per-pixel pass
@@ -1630,7 +1632,7 @@ async function renderEps(node: Element, opts: ExportOpts = {}, cmyk = false): Pr
     width: opts.width, height: opts.height, unit: opts.unit, dpi: opts.dpi, cmyk,
     meta: opts.meta as { title?: string } | undefined,
     attribution: opts.metadata !== false,
-    ...(cmyk && separate ? { cmykPalette: buildCmykPaletteMap(opts.palette ?? [], separate), separate } : {}),
+    ...(cmyk && separate ? { cmykPalette: buildCmykPaletteMap(opts.palette ?? [], separate, { spotsAsProcess: opts.spotsAsProcess === true }), separate } : {}),
     ...(geo ? { geometry: geo, markSpace: cmyk ? 'cmyk' as const : 'rgb' as const } : {}),
   });
   notify();
@@ -3458,7 +3460,10 @@ async function renderCmykPdf(node: Element, opts: ExportOpts): Promise<Blob> {
   }
   const separation = await printSeparation(opts.colorProfile, _host as never, pdfxLog);
   const separate = separation.sep.separate;
-  const paletteMap = buildCmykPaletteMap(opts.palette ?? [], separate);
+  // Spots as process (opt-in, `_spots=process`): every declared ink becomes the process
+  // build its /Separation would have named as the alternate, so no ink plate is written.
+  // A finish keeps its spot hit, and so its own overprinting plate.
+  const paletteMap = buildCmykPaletteMap(opts.palette ?? [], separate, { spotsAsProcess: opts.spotsAsProcess === true });
   const spotResourceNames = assignSpotResourceNames(paletteMap);
   const usedKeys = new Set<string>();   // brand palette keys actually hit during substitution
   const usedSpots = new Set<string>();  // spot names actually referenced by a content stream
