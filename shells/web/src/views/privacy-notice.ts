@@ -26,7 +26,10 @@
  * same strictly-necessary preference storage. See docs/privacy.md.
  */
 
-import { docsAppHref, t } from '../i18n.ts';
+import { docsAppHref, t, tRaw } from '../i18n.ts';
+import { getSessionSource } from '../lib/session-source.ts';
+import { escapeHtml } from '../lib/util/escape.ts';
+import { isTauriShell } from '../lib/instance-choice.ts';
 
 const ACK_KEY = 'lolly-privacy-ack';
 
@@ -44,16 +47,49 @@ export function ackPrivacyNotice(): void {
   try { localStorage.setItem(ACK_KEY, '1'); } catch { /* storage blocked - just won't persist */ }
 }
 
+/**
+ * With a workspace connected, the notice says what that workspace keeps, because the
+ * plain line ("stay on this device") is no longer the whole story: what the person
+ * saves to its projects or shares through it (comments, uploads, links, approval
+ * requests, collabs) goes there, and the workspace audits sign-ins and the actions
+ * taken there. The app itself sends no usage events (no call to the workspace's
+ * telemetry route), so "no tracking or analytics" still holds for Lolly itself. With no
+ * workspace, every word of the notice is unchanged.
+ */
+export function workspacePrivacyLine(workspace: string): string {
+  return isTauriShell()
+    ? tRaw('{workspace} keeps what you save to its projects or share through it, and a log of your sign-ins and what you do there. Everything else stays on this device. Lolly itself has no tracking or analytics.', { workspace })
+    : tRaw('{workspace} keeps what you save to its projects or share through it, and a log of your sign-ins and what you do there. Everything else stays in this browser. Lolly itself has no tracking or analytics.', { workspace });
+}
+
+/** Where "What we store" goes with a workspace connected: the privacy page's section on
+ *  organisation services, which lists what such a workspace holds. */
+export const WORKSPACE_PRIVACY_HREF = `${docsAppHref('trust/privacy')}?h=organisation-services-with-lolly-work`;
+
+/** The connected workspace's name, or undefined when there is none. */
+export function connectedWorkspace(): string | undefined {
+  return getSessionSource()?.label || undefined;
+}
+
+/** The notice's sentence and link for the state the app is in now. */
+function noticeCopy(): { text: string; href: string } {
+  const workspace = connectedWorkspace();
+  return workspace
+    ? { text: workspacePrivacyLine(workspace), href: WORKSPACE_PRIVACY_HREF }
+    : { text: t('Your designs and files stay on this device - no tracking, no analytics.'), href: docsAppHref('trust/privacy') };
+}
+
 /** Markup for the notice, or '' when already acknowledged. Anywhere in the
  *  gallery will do - it is fixed-positioned and pins itself above the footer
  *  bar (the gallery renders it in its one first-run banner slot). */
 export function privacyNoticeMarkup(): string {
   if (privacyNoticeAcknowledged()) return '';
+  const copy = noticeCopy();
   return `
     <aside class="privacy-notice" role="note" aria-label="${t('Privacy')}">
       <p class="privacy-notice-text">
-        ${t('Your designs and files stay on this device - no tracking, no analytics.')}
-        <a href="${docsAppHref('trust/privacy')}" class="privacy-notice-link">${t('What we store')}</a>
+        <span class="privacy-notice-line">${escapeHtml(copy.text)}</span>
+        <a href="${copy.href}" class="privacy-notice-link">${t('What we store')}</a>
       </p>
       <button type="button" class="privacy-notice-dismiss btn">${t('Got it')}</button>
     </aside>
@@ -105,4 +141,23 @@ export function mountPrivacyNotice(viewEl: HTMLElement): void {
     notice.remove();
     viewEl.classList.remove('has-privacy-notice');
   });
+
+  // A workspace can connect after the gallery's first paint. Read again shortly and
+  // swap the line once one is known; with none, the plain line stays as it is.
+  if (!connectedWorkspace()) {
+    for (const ms of NOTICE_RECHECK_MS) setTimeout(() => showWorkspaceLine(notice), ms);
+  }
+}
+
+/** How long after mount the notice looks again for a workspace that connected late. */
+const NOTICE_RECHECK_MS = [1500, 5000, 12000];
+
+/** Swap a mounted notice to the connected wording, once. Exported for tests. */
+export function showWorkspaceLine(notice: HTMLElement): void {
+  const workspace = connectedWorkspace();
+  if (!workspace || !notice.isConnected || notice.dataset.workspace) return;
+  notice.dataset.workspace = workspace;
+  const line = notice.querySelector<HTMLElement>('.privacy-notice-line');
+  if (line) line.textContent = workspacePrivacyLine(workspace);
+  notice.querySelector<HTMLAnchorElement>('.privacy-notice-link')?.setAttribute('href', WORKSPACE_PRIVACY_HREF);
 }
