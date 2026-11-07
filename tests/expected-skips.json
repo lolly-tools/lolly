@@ -521,6 +521,13 @@
       "owner": "tests"
     },
     {
+      "file": "tests/chart-colour-roles.test.ts",
+      "fullName": "SUSE leads with Primary accent, Supporting accent and Warm accent",
+      "reason": "brands/suse is not mounted on this machine",
+      "capability": "brand:suse",
+      "owner": "tests"
+    },
+    {
       "file": "tests/check-file.test.ts",
       "fullName": "the delivered Sleepwalking decks check with no error finding, and list their wording edits against the source",
       "reason": "the delivered Sleepwalking deck fixture is not on this machine (set LOLLY_CHECK_SLEEPWALKING)",
