@@ -71,7 +71,7 @@ source's last sync found, with how many files each holds.
 Nothing is chosen at first, and **All of it** comes last, so pressing the button without looking
 never gives the whole source away. When the folder you choose holds other folders, the line
 above the button lists them, for example "This includes Internal (2) and Internal/Roadmaps (1)",
-so you see what goes with it before you give it.
+so you can check what comes with your choice before you press the button.
 
 The folder decides everywhere a partner meets those files: the catalog, the files themselves,
 links they make and search. A file outside the folder answers as if it did not exist for them.
