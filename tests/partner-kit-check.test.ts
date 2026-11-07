@@ -6,7 +6,8 @@
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { checkGuestMarks, guestRecolourFrom, guestUnmeasuredText } from '../engine/src/partner-kit-check.ts';
+import { checkGuestMarks, guestRecolourFrom, guestUnmeasuredText, GUEST_MARK_FIELDS, MAX_WORK } from '../engine/src/partner-kit-check.ts';
+import { readFileSync } from 'node:fs';
 import { checkFindingFromBrand } from '../engine/src/design-check.ts';
 import { checkFile } from '../packages/node-shell/src/check.ts';
 import type { PartnerKitV1 } from '../packages/core/src/partner-kit-v1.ts';
@@ -99,7 +100,7 @@ test('guest marks: several neighbours are counted in one finding, and two kit ma
   const several = checkGuestMarks([
     markBox({ h: 50 }),
     { id: 'a', kind: 'text', name: 'Title', text: 'T', x: 90, y: 90, w: 20, h: 20 },
-    { id: 'b', kind: 'box', x: 280, y: 140, w: 40, h: 40 },
+    { id: 'b', kind: 'box', bg: '#eeeeee', x: 280, y: 140, w: 40, h: 40 },
   ], SPACE);
   assert.equal(several.findings[0]!.message, "“Title” and 1 other layer sit inside Northwind IT's clear space.");
   const pair = checkGuestMarks([
@@ -152,10 +153,13 @@ test('guest marks: a mark turned on its side keeps its own height for size and c
   assert.equal(checkGuestMarks([markBox({ rot: 90, h: 96 })], SIZE).findings.length, 0);
 });
 
-test('guest marks: a rotated neighbour is measured by its bounding box', () => {
-  // 100 by 10 at (210, 185) rotated 90 degrees is upright, 10 by 100, so it reaches up to y 140.
-  const rotated = checkGuestMarks([markBox({ h: 50 }), { id: 'bar', kind: 'box', x: 210, y: 185, w: 100, h: 10, rot: 90 }], SPACE);
-  assert.deepEqual(rotated.findings.map((f) => f.related), [['bar']]);
+test('guest marks: a turned neighbour whose bounds reach the clear space leaves the clear space not measured', () => {
+  // 100 by 10 at (210, 185) turned 90 degrees is upright, 10 by 100, so its bounds reach up to y 140.
+  const rotated = checkGuestMarks([markBox({ h: 50 }), { id: 'bar', kind: 'box', bg: '#000000', x: 210, y: 185, w: 100, h: 10, rot: 90 }], SPACE);
+  assert.deepEqual(rotated.findings, []);
+  assert.deepEqual(rotated.unmeasured, [{ code: 'clear-space-unmodelled', count: 1 }]);
+  // Far from the mark, a turned layer changes nothing.
+  assert.deepEqual(checkGuestMarks([markBox({ h: 50 }), { id: 'bar', kind: 'box', bg: '#000000', x: 600, y: 500, w: 100, h: 10, rot: 90 }], SPACE).unmeasured, []);
 });
 
 test('guest marks: a recoloured mark is judged by the catalog\'s own colours, and unmeasured without them', () => {
@@ -220,7 +224,7 @@ test('guest marks: a kit with no rules measures nothing, and junk input is handl
   const none = checkGuestMarks([markBox()], kit(undefined));
   assert.deepEqual({ findings: none.findings, rules: none.checked.rules, marks: none.checked.marks }, { findings: [], rules: [], marks: 1 });
   assert.deepEqual(checkGuestMarks(null, SIZE).findings, []);
-  assert.deepEqual(checkGuestMarks([null, 4, 'x', markBox({ w: 0 })], SIZE).findings, []);
+  assert.deepEqual(checkGuestMarks([null, 4, 'x'], SIZE).findings, []);
 });
 
 test('guest marks: in a check report a mark finding is a brand review with a code per rule', () => {
@@ -358,11 +362,12 @@ test('guest marks: paint order follows the layer tree, so a group\'s member pain
 
 test('guest marks: only a group\'s opacity reaches its members; a layout container\'s is its own', () => {
   const report = checkGuestMarks([
-    { id: 'row', kind: 'box', opacity: 0, x: 0, y: 0, w: 800, h: 200 },
+    { id: 'row', kind: 'box', opacity: 0, layout: 'flex', x: 0, y: 0, w: 800, h: 200 },
     markBox({ layoutOwner: 'row' }),
   ], SIZE);
-  assert.equal(report.checked.marks, 1);
-  assert.deepEqual(report.findings.map((f) => f.value), ['48 px']);
+  assert.equal(report.checked.marks, 1, 'the mark is drawn though its container is not');
+  // The layout places the mark, so its size is not measured from the stored box.
+  assert.deepEqual(report.unmeasured, [{ code: 'mm-in-pixels' }, { code: 'size-unmodelled', count: 1 }]);
 });
 
 test('guest marks: a transparent fill paints nothing, and a translucent one leaves the ground not measured', () => {
@@ -457,10 +462,10 @@ test('guest marks: what a mark sits on is read for each stretch of time', () => 
   assert.deepEqual(checkGuestMarks([photo, panel, mark], colourOnly).findings.map((f) => f.value), ['on-photo'], 'after the first second the mark sits on the photo');
   // A timed layer set aside is not played, so it hides nothing.
   assert.deepEqual(checkGuestMarks([photo, { ...panel, dur: 10, ignored: true }, mark], colourOnly).findings.map((f) => f.value), ['on-photo']);
-  // A layer that moves over time is measured where it was placed, and the report says so.
+  // A layer beneath that moves over time could be anywhere, so the ground is not measured.
   const moving = checkGuestMarks([photo, { ...panel, dur: 10, kf: 't0_x0*t1000_x-900' }, mark], colourOnly);
   assert.deepEqual(moving.findings, []);
-  assert.ok(moving.notMeasured.some((n) => /one partner mark while the piece plays/.test(n)), JSON.stringify(moving.notMeasured));
+  assert.ok(moving.unmeasured.some((u) => u.code === 'ground-unmodelled'), JSON.stringify(moving.unmeasured));
 });
 
 test('guest marks: a catalog id declared twice is read as the renderer reads it, the first one', () => {
@@ -508,4 +513,107 @@ test('guest marks: each thing not measured is a stable code with its counts, and
   const many = checkGuestMarks(Array.from({ length: 203 }, (_, n) => markBox({ id: `logo-${n}`, x: n * 300 })), kit({ minSize: { px: 96 } }));
   assert.deepEqual(many.unmeasured, [{ code: 'findings-limit', count: 3, limit: 200 }]);
   assert.equal(many.notMeasured[0], '3 more findings past the first 200, which are not listed');
+});
+
+// Fourth review pass (plans/82 M8, L-M8-2): the check claims a result only from layers made
+// of what it models, and its work is capped. Each test fails on the pass-three checker.
+
+const CLEAR = kit({ clearSpace: { value: 0.5, unit: 'mark-height' } });
+const PHOTO = { id: 'photo', kind: 'image', image: 'user/photo', fit: 'fill', x: 0, y: 0, w: 800, h: 600 };
+const codes = (r: { unmeasured: Array<{ code: string }> }): string[] => r.unmeasured.map((u) => u.code);
+
+test('guest marks: the work is capped, and marks past the cap are counted, not checked in a loop that never ends', () => {
+  const panels = Array.from({ length: 2500 }, (_, n) => ({ id: `p${n}`, kind: 'box', bg: '#ffffff', x: 0, y: 0, w: 800, h: 600, start: 0, dur: n + 1 }));
+  const marks = Array.from({ length: 2500 }, (_, n) => markBox({ id: `logo-${n}` }));
+  const began = Date.now();
+  const report = checkGuestMarks([...panels, ...marks], kit({ treatments: ['colour'] }));
+  assert.ok(Date.now() - began < 5000, `took ${Date.now() - began} ms`);
+  const limited = report.unmeasured.find((u) => u.code === 'work-limit');
+  assert.ok(limited && limited.count! > 0 && limited.count! <= 2500, JSON.stringify(report.unmeasured));
+  assert.ok(MAX_WORK <= 200_000);
+  // The second shape from the review: staggered starts.
+  const staggered = Array.from({ length: 2000 }, (_, n) => ({ id: `q${n}`, kind: 'box', bg: '#ffffff', x: 0, y: 0, w: 800, h: 600, start: n / 10, dur: 3600 }));
+  const t2 = Date.now();
+  const second = checkGuestMarks([...staggered, ...Array.from({ length: 2000 }, (_, n) => markBox({ id: `m-${n}` }))], kit({ treatments: ['colour'] }));
+  assert.ok(Date.now() - t2 < 5000);
+  assert.ok(codes(second).includes('work-limit'));
+});
+
+test('guest marks: a mark placed by a layout is not measured from its stored box', () => {
+  const report = checkGuestMarks([
+    { id: 'root', kind: 'box', x: 0, y: 0, w: 400, h: 48, layout: 'flex', layoutDirection: 'column' },
+    markBox({ h: 120, layoutOwner: 'root', layoutH: 'fill' }),
+  ], kit({ minSize: { px: 96 } }));
+  assert.deepEqual(report.findings, []);
+  assert.deepEqual(codes(report), ['size-unmodelled']);
+});
+
+test('guest marks: a group listed after its members paints at its stack slot, as Design paints it', () => {
+  const report = checkGuestMarks([{ ...PHOTO, group: 'g' }, markBox(), { id: 'g', kind: 'group', x: 0, y: 0, w: 800, h: 600 }], kit({ treatments: ['colour'] }));
+  assert.deepEqual(report.findings.map((f) => f.value), ['on-photo']);
+});
+
+test('guest marks: an ellipse or circle beneath holds the mark only where its outline does', () => {
+  for (const shape of ['ellipse', 'circle']) {
+    const corner = checkGuestMarks([PHOTO, { id: 'panel', kind: 'box', shape, bg: '#ffffff', x: 0, y: 0, w: 100, h: 100 }, markBox({ x: 0, y: 0, w: 10, h: 10 })], kit({ treatments: ['colour'] }));
+    assert.ok(corner.findings.length || codes(corner).includes('ground'), `${shape}: the corner of the box is not the shape`);
+    const inside = checkGuestMarks([PHOTO, { id: 'panel', kind: 'box', shape, bg: '#ffffff', x: 0, y: 0, w: 100, h: 100 }, markBox({ x: 40, y: 40, w: 20, h: 20 })], kit({ treatments: ['colour'] }));
+    assert.deepEqual([inside.findings, codes(inside)], [[], ['reverse']], `${shape}: inside the outline the panel is the ground`);
+  }
+});
+
+test('guest marks: a layer that moves is followed nowhere, wherever it starts', () => {
+  const far = checkGuestMarks([markBox({ start: 0, dur: 2 }), { id: 'bar', kind: 'box', bg: '#000000', x: 1000, y: 100, w: 20, h: 20, start: 0, dur: 2, kf: 't0_x0*t1000_x-900' }], CLEAR);
+  assert.deepEqual([far.findings, codes(far)], [[], ['clear-space-unmodelled']]);
+  const caption = checkGuestMarks([markBox(), { id: 'caption', kind: 'text', text: 'Hello', x: 1000, y: 100, w: 100, h: 20, start: 0, dur: 2, kf: 't0_x0*t1000_x-900' }], CLEAR);
+  assert.deepEqual(codes(caption), ['clear-space-unmodelled']);
+});
+
+test('guest marks: a mark with a hold effect is not measured at its stored size', () => {
+  const report = checkGuestMarks([markBox({ h: 96, start: 0, dur: 2, hold: 'pulse', holdRate: 1 })], kit({ minSize: { px: 96 } }));
+  assert.deepEqual([report.findings, codes(report)], [[], ['size-unmodelled']]);
+});
+
+test('guest marks: a mirrored mark is placed where the mirror draws it', () => {
+  const caption = { id: 'caption', kind: 'text', text: 'Caption', x: 100, y: 210, w: 100, h: 10 };
+  const flipped = checkGuestMarks([markBox({ h: 100, fit: 'contain', imgpos: 'left top', flipV: true }), caption], CLEAR, { logoAspect: () => 4 });
+  assert.deepEqual(flipped.findings.map((f) => f.related), [['caption']], 'drawn at y 150 to 200, so the caption at 210 is inside 25 px');
+  assert.deepEqual(checkGuestMarks([markBox({ h: 100, fit: 'contain', imgpos: 'left top' }), caption], CLEAR, { logoAspect: () => 4 }).findings, []);
+});
+
+test('guest marks: a stroke drawn outside or centred reaches past its box, so a near one leaves the clear space not measured', () => {
+  const left = checkGuestMarks([markBox(), { id: 'bar', kind: 'box', x: 0, y: 160, w: 50, h: 10, stroke: '#000000', strokeW: 40, strokeAlign: 'outside' }], CLEAR);
+  assert.deepEqual([left.findings, codes(left)], [[], ['clear-space-unmodelled']]);
+  const below = checkGuestMarks([markBox(), { id: 'bar', kind: 'box', x: 100, y: 180, w: 200, h: 10, stroke: '#ff0000', strokeW: 20, strokeAlign: 'center' }], CLEAR);
+  assert.deepEqual([below.findings, codes(below)], [[], ['clear-space-unmodelled']]);
+});
+
+test('guest marks: a box of no width is drawn one pixel wide, as Design draws it', () => {
+  const report = checkGuestMarks([markBox({ w: 0, h: 50 })], kit({ minSize: { px: 96 } }));
+  assert.equal(report.checked.marks, 1);
+  assert.deepEqual(report.findings.map((f) => f.value), ['50 px']);
+});
+
+test('guest marks: a layer that paints nothing is not a neighbour', () => {
+  const report = checkGuestMarks([markBox(), { id: 'empty', kind: 'box', bg: 'transparent', x: 100, y: 160, w: 100, h: 20 }], CLEAR);
+  assert.deepEqual([report.findings, codes(report)], [[], []]);
+});
+
+test('guest marks: every Design field is one the check knows, and a field it does not know is followed nowhere', () => {
+  const manifest = JSON.parse(readFileSync(new URL('../community/design/tool.json', import.meta.url), 'utf8'));
+  const fields: string[] = manifest.inputs.find((i: { id: string }) => i.id === 'boxes').fields.map((f: { id: string }) => f.id);
+  assert.deepEqual(fields.filter((f) => !GUEST_MARK_FIELDS.has(f)), [], 'a new Design field needs a place in GUEST_MARK_FIELDS');
+  const unknownOnMark = checkGuestMarks([markBox({ wobble: 'yes' })], kit({ minSize: { px: 96 } }));
+  assert.deepEqual(codes(unknownOnMark), ['size-unmodelled']);
+  const unknownNear = checkGuestMarks([markBox(), { id: 'odd', kind: 'box', bg: '#000000', x: 900, y: 900, w: 10, h: 10, wobble: 1 }], CLEAR);
+  assert.deepEqual(codes(unknownNear), ['clear-space-unmodelled']);
+  // A field set to nothing, and the runtime's own private fields, change nothing.
+  assert.deepEqual(codes(checkGuestMarks([markBox({ wobble: '', __seen: true })], kit({ minSize: { px: 96 } }))), []);
+});
+
+test('guest marks: a blend on the mark or beneath the mark leaves the colours or the ground not measured', () => {
+  const blendedMark = checkGuestMarks([markBox({ blend: 'multiply' })], kit({ treatments: ['mono'] }));
+  assert.deepEqual([blendedMark.findings, codes(blendedMark)], [[], ['reverse', 'treatment-unmodelled']]);
+  const blendedPanel = checkGuestMarks([PHOTO, { id: 'panel', kind: 'box', bg: '#ffffff', blend: 'multiply', x: 0, y: 0, w: 800, h: 600 }, markBox()], kit({ treatments: ['colour'] }));
+  assert.deepEqual([blendedPanel.findings, codes(blendedPanel)], [[], ['reverse', 'ground-unmodelled']]);
 });
