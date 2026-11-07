@@ -65,6 +65,8 @@ export function mountTemplateNotices(opts: {
   runtime: NoticeRuntime;
   /** Keep the document's origin current after an update, for its next save. */
   updated(origin: TemplateOrigin): void;
+  /** Report the update to the document's history, as any edit is. */
+  changed?(): void;
   open(href: string): void;
   fetchValues?: (tpl: WorkspaceTemplate) => Promise<Record<string, unknown> | null>;
 }): () => void {
@@ -101,6 +103,7 @@ export function mountTemplateNotices(opts: {
       if (!values) return;
       const declared = opts.runtime.getModel().map((input) => input.id);
       await opts.runtime.applyPatch(newVersionPatch(values, declared, editable));
+      opts.changed?.();
       await opts.runtime.resolveRefs();
       setTemplateInputs(opts.toolId, editable);
       opts.updated({ ref: origin.ref, version: now.version, editable });

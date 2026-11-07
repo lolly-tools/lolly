@@ -35,6 +35,9 @@ interface Site {
 }
 
 const SITES: readonly Site[] = [
+  { file: 'views/tool-template-notices.ts', line: 'await opts.runtime.applyPatch(newVersionPatch(values, declared, editable));', kind: 'tracked',
+    why: '"Use new version" on a saved copy brings in what a workspace template fixes, as one edit the person chose',
+    proof: { file: 'views/tool-template-notices.ts', pattern: /applyPatch\(newVersionPatch\(values, declared, editable\)\);\s*opts\.changed\?\.\(\);/ } },
   { file: 'views/free-canvas/select.ts', line: 'void runtime.applyPatch(values).catch(fc.layout.failure);', kind: 'tracked',
     why: 'a canvas without a transaction port commits layout tracks and layers as one user edit',
     proof: { file: 'views/free-canvas/select.ts', pattern: /fc\.history\?\.changed\?\.\(\);\s*void runtime\.applyPatch\(values\)\.catch\(fc\.layout\.failure\)/ } },

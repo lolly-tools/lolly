@@ -1069,6 +1069,7 @@ export function mountActions(tview: ToolViewCtx): void {
       if (tview.templateOrigin) mountLifecycle.add('template notices', notices.watchTemplateNotices({
         host: tview.host, toolId, origin: tview.templateOrigin, now: tview.templateNow, runtime,
         updated: (origin) => { tview.templateOrigin = origin; },
+        changed: () => tview.revisionChanged(),
         open: (href) => { location.hash = href; },
       }));
       if (tview.tool.manifest.designTool && typeof templateId === 'string') mountLifecycle.add('rules tool notice', notices.mountRulesToolNotice({

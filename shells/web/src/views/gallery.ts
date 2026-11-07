@@ -487,9 +487,6 @@ async function fillPublishedShelf(viewEl: HTMLElement, host: GalleryHost, tools:
     const items = publishedItems(templates, tools);
     if (!items.length || !mount.isConnected) return;
     mount.innerHTML = publishedShelfHtml(items, getSessionSource()?.label);
-    for (const card of mount.querySelectorAll<HTMLElement>('.published-card-media')) {
-      if (!card.querySelector('.published-card-icon')) card.innerHTML = `<span class="published-card-icon">${icon('document', { size: 22 })}</span>`;
-    }
     // Previews: the template's own values, or a rules tool's defaults, drawn the way the
     // Start chooser draws its tiles. A preview that cannot be drawn keeps the icon.
     const { coverFormats, renderFeaturedVariant } = await import('../lib/featured-render.ts');

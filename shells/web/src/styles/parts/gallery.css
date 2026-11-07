@@ -1580,7 +1580,7 @@ a.gtile-name:focus-visible::after {
 .published-shelf { margin: var(--sp-7) var(--sp-7) 0; }
 .published-shelf-title {
   margin: 0 0 var(--sp-5);
-  font-size: calc(15px * var(--a11y-fs));
+  font-size: var(--fs-lg);
   font-weight: 700;
   color: hsl(var(--foreground));
 }
@@ -1619,16 +1619,10 @@ a.gtile-name:focus-visible::after {
 .published-card-icon { display: inline-flex; color: hsl(var(--muted-foreground)); }
 .published-card-icon svg { width: calc(22px * var(--a11y-fs)); height: calc(22px * var(--a11y-fs)); }
 .published-card-text { display: grid; gap: 2px; min-width: 0; }
-.published-card-name { font-size: calc(14px * var(--a11y-fs)); font-weight: 650; overflow: hidden; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; }
+.published-card-name { font-size: var(--fs-lg); font-weight: 650; overflow: hidden; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; }
 .published-card-sub { font-size: var(--fs-sm); color: hsl(var(--muted-foreground)); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.published-card-use {
-  padding: var(--sp-3) var(--sp-6);
-  border-radius: var(--radius-pill);
-  background: hsl(var(--primary));
-  color: hsl(var(--primary-foreground));
-  font-size: calc(13px * var(--a11y-fs));
-  font-weight: 650;
-}
+/* The card is the link; Use is the button's look on it, so it reads as clickable. */
+.published-card-use { pointer-events: none; }
 html[data-a11y-previews="hidden"] .published-card-thumb { display: none; }
 html[data-a11y-previews="hidden"] .published-card-media .published-card-icon { display: inline-flex; }
 .gallery:not(.has-featured) .published-shelf { margin-top: 6.4rem; }

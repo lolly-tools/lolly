@@ -13,8 +13,9 @@
  * A retired one is never offered. On a plain build there is nothing to show and the
  * shelf is absent, so the gallery renders exactly as before.
  */
-import { escape } from '../utils.ts';
+import { escape as escapeHtml } from '../utils.ts';
 import { t, tRaw } from '../i18n.ts';
+import { icon } from '../lib/icons.ts';
 import type { WorkspaceTemplate } from '../lib/workspace-templates.ts';
 
 export interface PublishedItem {
@@ -80,17 +81,17 @@ export function publishedShelfHtml(items: readonly PublishedItem[], workspace: s
   if (!items.length) return '';
   const title = workspace ? tRaw('From {name}', { name: workspace }) : t('From your workspace');
   return `
-      <section class="published-shelf" aria-label="${escape(title)}">
-        <h2 class="published-shelf-title">${escape(title)}</h2>
+      <section class="published-shelf" aria-label="${escapeHtml(title)}">
+        <h2 class="published-shelf-title">${escapeHtml(title)}</h2>
         <div class="published-shelf-row">
           ${items.map((item) => `
-          <a class="published-card" href="${escape(item.href)}" data-published-key="${escape(item.key)}">
-            <span class="published-card-media" aria-hidden="true"${mediaShape(item)}>${item.icon ? `<span class="published-card-icon">${item.icon}</span>` : ''}</span>
+          <a class="published-card" href="${escapeHtml(item.href)}" data-published-key="${escapeHtml(item.key)}">
+            <span class="published-card-media" aria-hidden="true"${mediaShape(item)}><span class="published-card-icon">${item.icon ?? icon('document', { size: 22 })}</span></span>
             <span class="published-card-text">
-              <span class="published-card-name">${escape(item.name)}</span>
-              <span class="published-card-sub">${escape([item.toolName, item.version].filter(Boolean).join(' · '))}</span>
+              <span class="published-card-name">${escapeHtml(item.name)}</span>
+              <span class="published-card-sub">${escapeHtml([item.toolName, item.version].filter(Boolean).join(' · '))}</span>
             </span>
-            <span class="published-card-use">${escape(t('Use'))}</span>
+            <span class="btn btn--primary btn--sm published-card-use">${escapeHtml(t('Use'))}</span>
           </a>`).join('')}
         </div>
       </section>`;
