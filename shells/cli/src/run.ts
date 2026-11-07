@@ -1362,6 +1362,8 @@ async function runToolCliCandidate({ toolId, inputValues, params, repeated = {},
     exportOpts.ingredientSink = opsIngredients;
     exportOpts.onExportRoute = (record) => { routed.record = record; };
 
+    // Where this shell's identity or intent credential takes the place of one the web shell writes first.
+    const stampsOverBrowser = C2PA_FORMATS.includes(targetFormat) && !sampled && !/tiff$/i.test(targetFormat);
     const dims = {
       productionInputIds: productionContract?.requirements.filter(r => r.kind === 'input').map(r => r.location),
       onProductionInputs: (inputs: Record<string, string> | undefined) => { browserProductionInputs = inputs; },
@@ -1393,9 +1395,10 @@ async function runToolCliCandidate({ toolId, inputValues, params, repeated = {},
       // The browser stamps first all the same, with its own ephemeral key: its credential
       // is the record of the pictures placed in the file, AI-made ones included, and the
       // stamp below reads that record into its own credential, which then takes that
-      // one's place. A TIFF keeps a replaced credential as a second one, so there the
-      // browser writes none.
-      c2pa: wantC2pa && (!(identity || intentRecord) || !/tiff$/i.test(targetFormat)), c2paDays: c2pa?.days ?? undefined,
+      // one's place. Only where that stamp happens: a format this shell can stamp, and
+      // not a sample set. A TIFF keeps a replaced credential as a second one, so there
+      // the browser writes none.
+      c2pa: wantC2pa && (!(identity || intentRecord) || stampsOverBrowser), c2paDays: c2pa?.days ?? undefined,
       keepInlinedC2pa: !optedOutC2pa,
       // The deck state address, forwarded so the BROWSER tier applies the same one-slide
       // filter the web shell applies to `?s=`. Carried whenever it was given: a format the
@@ -1438,7 +1441,7 @@ async function runToolCliCandidate({ toolId, inputValues, params, repeated = {},
       // no Content Credential at all, silently.
       webShellExport = res.usedBrowser && !identity && !intentRecord && !res.nodeEncoded;
       // The browser stamped a credential this shell is about to replace (see `c2pa` above).
-      replacesBrowserCredential = res.usedBrowser && !!(identity || intentRecord) && !res.nodeEncoded && wantC2pa && !/tiff$/i.test(targetFormat);
+      replacesBrowserCredential = res.usedBrowser && !!(identity || intentRecord) && !res.nodeEncoded && wantC2pa && stampsOverBrowser;
       // Same third case: an HDR still marks its own pixels here, on either tier, so its
       // floor skip must be reported even when the browser supplied the source frame.
       if ((!res.usedBrowser || res.nodeEncoded) && wantImprint && res.imprinted === false) imprintFloorSkip = true;

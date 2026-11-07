@@ -190291,11 +190291,10 @@ function exportUrl(base, toolId, query2, fmt6, o) {
   if (o.depth && o.depth !== "auto") p.set("depth", String(o.depth));
   if (Number(p.get("cuts")) > 1 || p.has("sampletimes")) p.set("c2pa", o.c2pa?.on ? String(o.c2pa.days ?? 1) : "off");
   else if (o.c2pa?.on === false) p.set("c2pa", "off");
-  else if (o.c2pa?.on || o.intent) {
-    if (/tiff$/.test(fmt6)) {
-      p.set("c2pa", "off");
-      p.set("_keepinlinedc2pa", "1");
-    } else p.set("c2pa", "1");
+  else if ((o.c2pa?.on || o.intent) && C2PA_FORMATS.includes(fmt6) && !/tiff$/.test(fmt6)) p.set("c2pa", "1");
+  else if (o.intent || o.c2pa?.on && /tiff$/.test(fmt6)) {
+    p.set("c2pa", "off");
+    p.set("_keepinlinedc2pa", "1");
   }
   p.set("export", "1");
   const q = p.toString();

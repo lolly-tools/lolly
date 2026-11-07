@@ -67,6 +67,8 @@ test('"off" reaches the browser on every format, and with a lifetime the browser
   for (const fmt of ['pdf', 'pdf-cmyk', 'png', 'svg', 'jpg', 'webp', 'mp4']) assert.equal(URL_OF(fmt, { c2pa: { on: true, days: 90 } }).get('c2pa'), '1', fmt);
   // A TIFF keeps a replaced credential as a second one, so there the browser writes none, and an
   // `off` that is not the caller's leaves inlined artwork alone.
+  // A format this server cannot stamp keeps the web shell's own default, as it always did.
+  assert.equal(URL_OF('pptx', { c2pa: { on: true, days: 90 } }).get('c2pa'), null);
   for (const fmt of ['tiff', 'cmyk-tiff']) {
     const p = URL_OF(fmt, { c2pa: { on: true, days: 90 } });
     assert.equal(p.get('c2pa'), 'off', fmt);

@@ -958,12 +958,11 @@ export function exportUrl(base: string, toolId: string, query: string, fmt: stri
   // This server stamps the file, for a lifetime or for an intent record. The browser stamps
   // first all the same: its credential is where the pictures placed in the file are recorded,
   // AI-made ones included, and credentialAndRecord carries them into this server's credential,
-  // which then takes its place. A TIFF keeps a replaced credential as a second one, so there
+  // which then takes its place. Only on a format this server stamps: a TIFF keeps a replaced
+  // credential as a second one, so there, as for an intent on a format with no credential,
   // the browser writes none, and the inlined artwork it holds is not its to strip.
-  else if (o.c2pa?.on || o.intent) {
-    if (/tiff$/.test(fmt)) { p.set('c2pa', 'off'); p.set('_keepinlinedc2pa', '1'); }
-    else p.set('c2pa', '1');
-  }
+  else if ((o.c2pa?.on || o.intent) && C2PA_FORMATS.includes(fmt as ExportFormat) && !/tiff$/.test(fmt)) p.set('c2pa', '1');
+  else if (o.intent || (o.c2pa?.on && /tiff$/.test(fmt))) { p.set('c2pa', 'off'); p.set('_keepinlinedc2pa', '1'); }
   p.set('export', '1'); // presence flag → immediate download on load
   const q = p.toString();
   const tmpl = process.env.LOLLY_TOOL_URL_TEMPLATE || `${base}/#/tool/{id}?{query}`;

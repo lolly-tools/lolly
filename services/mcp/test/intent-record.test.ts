@@ -147,6 +147,9 @@ test('a file that carries an intent: the browser stamps first for this server to
   // The browser's credential is the record of the pictures placed in the file, read before this server's credential replaces the browser's.
   assert.equal(urlFor({ intent, c2pa: { on: true, days: null } }).get('c2pa'), '1');
   assert.equal(urlFor({ intent, c2pa: { on: false, days: null } }).get('c2pa'), 'off');
+  // A format this server cannot stamp gets no credential from the browser either, as before.
+  const pptx = new URLSearchParams(exportUrl('http://shell.test', 'certificate', 'firstname=Sam', 'pptx', { intent, c2pa: { on: true, days: null } }).split('?')[1]);
+  assert.equal(pptx.get('c2pa'), 'off');
   assert.equal(urlFor({ c2pa: null }).get('c2pa'), null, 'a render with no intent keeps the export as it was');
 });
 
