@@ -29,6 +29,7 @@ const { begin, race, abandon, finish, stopped } = await import('./open-document.
 const { noteOpenIntent } = await import('../../lib/open-intent.ts');
 const { MountLifecycle } = await import('../../lib/mount-lifecycle.ts');
 const { OPEN_PROGRESS_DELAY_MS } = await import('../../components/open-progress.ts');
+const { takeViewInput } = await import('../../lib/view-input.ts');
 type Ctx = Parameters<typeof begin>[0];
 
 const sleep = (ms: number): Promise<void> => new Promise((r) => setTimeout(r, ms));
@@ -208,5 +209,58 @@ test('finished layouts show as "Laying out text: n of total" for a composed-text
     c.tview.openCard?.close();
     noteTextLayoutDone();
     assert.equal(card(), null, 'a closed card stops listening');
+  } finally { c.dispose(); }
+});
+
+// The router announces the tool and moves focus into it when the view takes input
+// (lib/view-input.ts, main.ts navigate()). The card is modal, so that is when it goes.
+test('a slot open tells the router the editor takes input only once the card is down', async () => {
+  let settle!: () => void;
+  const c = context(new Promise<void>((r) => { settle = r; }));
+  try {
+    begin(c.tview, 's1');
+    const usable = takeViewInput(c.viewEl);
+    assert.ok(usable, 'the open hands the router a promise');
+    let answer: boolean | undefined;
+    void usable!.then((ready) => { answer = ready; });
+    const done = finish(c.tview);
+    await sleep(OPEN_PROGRESS_DELAY_MS + 30);
+    assert.ok(card()?.open, 'the card is up over the built editor');
+    assert.equal(answer, undefined, 'and the router is not told the editor takes input');
+    settle();
+    await done;
+    await sleep(0);
+    assert.equal(card(), null);
+    assert.equal(answer, true, 'the card is down, so the editor takes input');
+    assert.equal(takeViewInput(c.viewEl), null, 'the router takes the promise once');
+  } finally { c.dispose(); }
+});
+
+test('an open that stops tells the router nothing is ready, so no "loaded" is announced', async () => {
+  const cancelled = context();
+  try {
+    begin(cancelled.tview, 's1');
+    const usable = takeViewInput(cancelled.viewEl)!;
+    await pressCancel();
+    abandon(cancelled.tview);
+    assert.equal(await usable, false, 'Cancel');
+  } finally {
+    history.replaceState(null, '', '/#/tool/design?slot=s1');
+    cancelled.dispose();
+  }
+  const left = context();
+  try {
+    begin(left.tview, 's1');
+    const usable = takeViewInput(left.viewEl)!;
+    await left.viewEl._beforeLeave!();
+    assert.equal(await usable, false, 'a navigation away');
+  } finally { left.dispose(); }
+});
+
+test('a mount with no card takes input when it returns', () => {
+  const c = context();
+  try {
+    begin(c.tview, null);
+    assert.equal(takeViewInput(c.viewEl), null);
   } finally { c.dispose(); }
 });
