@@ -9,7 +9,7 @@ import assert from 'node:assert/strict';
 
 import type { AssetRef } from '@lolly-tools/core/host-v1';
 import {
-  fetchWorkspaceValues, isWorkspaceTemplateRef, listWorkspaceTemplates, readTemplateOrigin, startableFor,
+  fetchWorkspaceValues, isTemplatesOnlyTool, isWorkspaceTemplateRef, listWorkspaceTemplates, readTemplateOrigin, startableFor,
   workspaceTemplateOf, workspaceVariants, type WorkspaceTemplate,
 } from './workspace-templates.ts';
 import { formatTemplateRef, parseTemplateRef, resolveTemplateSeed } from './template-ref.ts';
@@ -101,4 +101,18 @@ test('the template layer offers only what the template leaves open, hidden with 
 test('a new version keeps what the person may change and brings in the rest', async () => {
   const { newVersionPatch } = await import('../views/tool-template-notices.ts');
   assert.deepEqual(newVersionPatch({ heading: 'SP1', data: 'theirs?', __label: 'x', stray: 1 }, ['heading', 'data', 'cta'], ['data']), { heading: 'SP1' });
+});
+
+test('a tool the workspace set to templates only says so in its index entry, and nothing else does', () => {
+  assert.equal(isTemplatesOnlyTool({ id: 'pricing-table', listed: false, templatesOnly: true }), true);
+  for (const entry of [undefined, null, { id: 'pricing-table' }, { id: 'pricing-table', listed: false }, { templatesOnly: 'yes' }]) {
+    assert.equal(isTemplatesOnlyTool(entry), false, JSON.stringify(entry));
+  }
+});
+
+test('the home shelf keeps a template whose tool is unlisted for templates only', async () => {
+  const { publishedItems } = await import('../views/published-shelf.ts');
+  const tpl = workspaceTemplateOf(sheet)!;
+  const items = publishedItems([tpl], [{ id: 'pricing-table', name: 'Pricing', listed: false, templatesOnly: true } as never]);
+  assert.deepEqual(items.map((i) => i.key), ['inst/abc123'], 'out of the gallery, still on the shelf');
 });

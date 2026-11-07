@@ -212,6 +212,9 @@ interface ChooserOpts {
    * scratch" means what it says.
    */
   blankSeed?: () => Record<string, InputValue>;
+  /** No "Blank canvas" tile: the workspace set this tool to templates only, so its
+   *  published templates are the only starting points (lib/workspace-templates.ts). */
+  noBlank?: boolean;
   /**
    * Management (plans/226 WP-3). `hiddenDefaults` is the brand's
    * defaultHiddenTemplateRefs(); the chooser reads the person's hidden set and
@@ -443,7 +446,7 @@ export function openTemplateChooser(opts: ChooserOpts): Promise<Record<string, I
 
     const gridHtml = (): string => {
       const showing = activeFilter === HIDDEN_FILTER ? entries.filter(isHidden) : entries.filter(v => !isHidden(v));
-      const blank = activeFilter === HIDDEN_FILTER ? '' : blankTileHtml();
+      const blank = activeFilter === HIDDEN_FILTER || opts.noBlank ? '' : blankTileHtml();
       return `<div class="tmpl-chooser-grid">${blank}${showing.map(tileHtml).join('')}</div>`;
     };
 

@@ -475,7 +475,9 @@ function galleryEmptyHtml(loadFailed: boolean): string {
       `;
 }
 
-/** Fill the workspace's shelf, then draw each card's preview when the page is idle. */
+/** Fill the workspace's shelf, then draw each card's preview when the page is idle. It
+ *  takes the whole index, unlisted tools included: a tool the workspace set to templates
+ *  only is unlisted, and its templates belong on the shelf all the more. */
 async function fillPublishedShelf(viewEl: HTMLElement, host: GalleryHost, tools: readonly GalleryTool[]): Promise<void> {
   try {
     const mount = viewEl.querySelector<HTMLElement>('.published-mount');
@@ -908,7 +910,7 @@ export async function mountGallery(viewEl: HTMLElement, host: GalleryHost, opts:
   // What the connected workspace published for this person (views/published-shelf.ts):
   // filled once the catalog answers, so it never holds the grid back. Nothing published
   // (every plain build) leaves the mount empty and the gallery as it was.
-  if (!opts.only) void fillPublishedShelf(viewEl, host, index.tools);
+  if (!opts.only) void fillPublishedShelf(viewEl, host, rawIndex.tools);
 
   // Hidden until the ladder reveals it (see revealFirstRunBanner) - and hidden
   // from the accessibility tree with it, so a screen reader isn't told about a
