@@ -142,6 +142,8 @@
 
 沒有角色填入的讀法，會維持設計系統所定義的樣子，房間會在表格下方列出這些讀法。與某個讀法的 id 相同的角色，例如名為 Primary 的角色，就是那個讀法，無法移動。
 
+**在圖表中。** Lolly Chart 的 **Design system - colour roles first** 調色盤，會先依設計系統自己的順序把它的色彩角色交給各資料系列，再給出其餘調色盤色彩。被讀作背景、文字、弱化文字或細線的角色會被略去，因為圖表用這些色彩繪製底色與文字。在你選擇該調色盤之前不會有任何變化，沒有色彩角色的設計系統會依 **Design system - ordered** 繪製調色盤。
+
 **值。** 按一個值，即可為該角色在該外觀、所選配色方案中選擇色彩。**Same as light** 會讓深色值跟隨淺色值，直到你選擇自己的色彩。**Aa** 色塊顯示 Lolly 挑選來放在該色彩上的文字，值下方的那一行依外觀說明這些文字讀起來如何：**Text reads well**、**Large text only** 或 **Hard to read as text**。這說的是色彩上的文字，並不是對色彩本身的負面評價，它仍然可以用於形狀與大面積區域。僅依名稱讀取的角色顯示相同的文字，但沒有警示色，因為沒有工具會自行把文字放在它上面。這些文字背後的數字，APCA 在前、WCAG 在後，位於提示與選擇器中。**Own text colour** 標示檔案本身已載明文字色彩的值，該文字色彩會保留。**Copied** 標示來自另一個配色方案或搭配色、且尚無人選擇的值；選擇器中的 **Keep this colour** 會確定該值。
 
 **起點。** 沒有自己角色的設計系統，會顯示現行的用語：Primary、Secondary、Surface 與 Text。在你更改其中一個之前，不會寫入任何內容。**+ Add a role** 提供 **Primary, Secondary** 或 **Main, Accent, Supporting, Tertiary** 作為建議，也可以用你輸入的任何用語，並顯示各自會得到的讀法。前兩個用語會成為主導色與搭配色。工具繪製的色彩不變，而在只有一個主導色的系統上，第一種配色方案會以該色彩命名。
@@ -305,7 +307,7 @@ Token 是設計系統背後的具名值：色彩、字型、標誌、圓角與�
 
 **Rules** 讓你的品牌選擇發揮作用：人們可以更改什麼、什麼保持固定，以及 Lolly 能檢查什麼。
 
-![Lolly Demo 上的 Rules：四條內部規則，各自標示 Checked in Lolly Design 以及 Required 或 Advisory，接著是 Try your design system in use 與已準備好渲染的範例](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dusage&width=1440&height=1200&dpi=192&waitMs=2400&cropSelector=%23start-panel-usage&format=svg&walker=1&dark=1&filename=bs-usage-rules)
+![Lolly Demo 上的 Rules：四條內部規則，各自標示 Checked in Design 以及 Required 或 Advisory，接著是 Try your design system in use 與已準備好渲染的範例](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dusage&width=1440&height=1200&dpi=192&waitMs=2400&cropSelector=%23start-panel-usage&format=svg&walker=1&dark=1&filename=bs-usage-rules)
 
 **Brand rules** 列出你的規則。**Add rule**（或 **Add your first rule**）開啟一個簡短的表單：
 
@@ -316,7 +318,7 @@ Token 是設計系統背後的具名值：色彩、字型、標誌、圓角與�
 
 核准記錄的是你在這部裝置上自己的決定。已核准的必要規則會約束可重複使用的海報，而檢查只涵蓋範例 PNG；它們不會更改任何其他工具。
 
-設計系統在其 token 檔案中帶來的規則，例如核准的色彩搭配、文字粗細與對齊，或每個表面使用的標誌，會在這裡列為 **Checked in Lolly Design**。Lolly Design 會在匯出面板的 **Before you export** 卡片中逐圖層檢查它們，而 `lolly check` 對已儲存的 Lolly Design 文件做同樣的事（[匯出之前](/info/design.html#before-you-export)）。這個建置版本沒有檢查器的規則，會依提供的內容保留，並標示為 **Unchecked**。
+設計系統在其 token 檔案中帶來的規則，例如核准的色彩搭配、文字粗細與對齊，或每個表面使用的標誌，會在這裡列為 **Checked in Design**。Lolly Design 會在匯出面板的 **Before you export** 卡片中逐圖層檢查它們，而 `lolly check` 對已儲存的 Lolly Design 文件做同樣的事（[匯出之前](/info/design.html#before-you-export)）。這個建置版本沒有檢查器的規則，會依提供的內容保留，並標示為 **Unchecked**。
 
 Lolly Demo 帶有四條核准的內部規則。標題絕不使用全大寫：這條規則是必要的，所以 `lolly check` 會把全大寫的標題回報為錯誤。其他三條是建議性的。內文靠左對齊。主要標記放在淺色表面，反白標記放在深色表面。虛線代表放置在此。
 

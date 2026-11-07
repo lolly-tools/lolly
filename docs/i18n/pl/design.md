@@ -206,7 +206,7 @@ Zaznacz klip, a inspektor daje te same edycje jako liczby: **Length**, **Trim in
 
 ## Przed eksportem
 
-Design sprawdza dokument, zanim wyślesz plik. Karta **Before you export** w sekcji **Document** Inspectora i ponownie w panelu eksportu czyta zapisaną strukturę warstw, a potem patrzy na ustabilizowaną kanwę pod kątem przyciętego tekstu i kontrastu płaskich kolorów. Pyta ten sam rejestr czcionek, którego używa konturowanie SVG i PDF, czy każdy fragment tekstu ma bajty czcionki, które można osadzić. Tła obrazowe i gradientowe są wymieniane jako kontrole wizualne, a nie dostają zmyślonej oceny kontrastu.
+Design sprawdza dokument, zanim wyślesz plik. Karta **Before you export** w sekcji **Document** Inspectora i ponownie w panelu eksportu czyta zapisaną strukturę warstw, a potem patrzy na ustabilizowaną kanwę pod kątem przyciętego tekstu i kontrastu płaskich kolorów. Pyta ten sam rejestr czcionek, którego używa konturowanie SVG i PDF, czy każdy fragment tekstu ma bajty czcionki, które można osadzić. Tekst, który w eksporcie rysuje [czcionka zastępcza](/info/fallback-fonts.html), liczy się jako pokryty. Pismo bez czcionki zastępczej oraz znak chiński, japoński lub koreański spoza zestawów, które te czcionki zawierają, nadal są zgłaszane. Tła obrazowe i gradientowe są wymieniane jako kontrole wizualne, a nie dostają zmyślonej oceny kontrastu.
 
 ### Sprawdź kompozycję względem systemu projektowego
 

@@ -106,7 +106,7 @@ The **engine** loads tools and drives rendering. Each **shell** supplies the pla
 | [`engine/`](engine/) | Rendering, inputs, templates and export logic |
 | [`shells/`](shells/) | Web, desktop, mobile, command-line and terminal apps |
 | [`community/`](community/) | Tools that work with different design systems |
-| [`brands/`](brands/) | Lolly Design systems, assets and brand-specific tools |
+| [`brands/`](brands/) | Design systems, assets and brand-specific tools |
 | [`packages/`](packages/) | The tool-author SDK and shared components |
 | [`schemas/`](schemas/) | Contracts for tool manifests and assets |
 | [`services/`](services/) | Optional MCP, certificate and Penpot services, and the server code they share |
@@ -159,7 +159,7 @@ The Lolly Start (blank brand) catalog ships **68 tools** today - 66 listed in th
 | Lolly Doc Studio | Write a multi-page document on the canvas - rich text, headings, tables and inserted Lolly renders that flow onto pages and export as a PDF. |
 | Filter | One tool for photo effects: pick halftone, scanline, posterize, voronoi, dither or ASCII art (vector) or duotone, pixel-stretch, misprint or glitch (raster). Design system overlays, live camera and exports to as many formats as each effect supports. |
 | Finishes | Preview foil, spot UV, emboss and soft-touch finishes on your artwork - then export the printer-ready spot plate. The on-screen sheen is presentation only; the plate is the real deliverable your print house needs. |
-| Flow Lolly Chart | Build flow charts on an open canvas - drag cards, connect them, and the lines route and stick to the boxes. |
+| Flow Chart | Build flow charts on an open canvas - drag cards, connect them, and the lines route and stick to the boxes. |
 | Lolly Flythrough | Fly a real 3D camera through a screenshot. The picture lifts into layers at real depth; big shapes extrude into solid objects; a timeline of poses animates the whole move - depth, opacity, perspective, extrusion, tilt, rotate, scale and the camera flight - then loops it home. Add, drag and reorder poses. Export as video. |
 | Frame | Drop in a screenshot and get it framed, padded and shadowed on a design system backdrop. |
 | Gradient | Five ways to build a gradient from the design system swatches: soft radial Blend, a real Coons-patch mesh as crisp SVG (Subdivide) or a smooth raster (Mesh), freeform Warp points and the animated Flow waves. Drag everything right on the canvas; export stills or join-free video loops. |

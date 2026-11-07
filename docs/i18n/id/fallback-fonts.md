@@ -59,7 +59,9 @@ Baris perintah, aplikasi terminal, dan server MCP membaca file yang sama dari di
 
 ## Di halaman dan di ekspor
 
-Halaman memakai font cadangan yang sama dengan ekspor. Tanpa ini, browser menggambar huruf semacam itu dengan font sistem sementara ekspor memakai Noto, dan baris yang memuatnya berubah lebar antara keduanya. Lolly menambahkan font cadangan di akhir daftar font design system pada kanvas itu saja, setelah font design system sendiri dan sebelum font sistem mana pun. Kanvas yang dicakup design system mempertahankan daftar fontnya persis seperti sebelumnya.
+Halaman memakai font cadangan yang sama dengan ekspor. Tanpa ini, browser menggambar huruf semacam itu dengan font sistem sementara ekspor memakai Noto, dan baris yang memuatnya berubah lebar antara keduanya. Lolly menambahkan font cadangan di akhir daftar font design system pada kanvas itu saja, setelah font design system sendiri dan sebelum font sistem mana pun. Alat yang menetapkan daftar fontnya sendiri, di gayanya atau pada elemennya, mendapat font cadangan di tempat yang sama: setelah font yang diberikan daftar itu dan sebelum font sistem mana pun. Kanvas yang dicakup design system mempertahankan daftar fontnya persis seperti sebelumnya.
+
+Halaman membiarkan daftar font apa adanya bila diawali font sistem, seperti `system-ui` atau Helvetica, karena ekspor menggambar teks itu dengan font design system sedangkan halaman tidak.
 
 Di PDF, kata-kata menjadi kontur yang digambar dengan font cadangan, apa pun pengaturan teks yang Anda pilih, karena teks PDF hidup tidak dapat membawa aksara yang tidak dimiliki font tersemat. Di SVG, EMF, EPS, DXF, dan WMF, kata-kata menjadi kontur setiap kali teks diubah menjadi kontur; dengan teks tetap hidup, font milik pembaca yang menggambarnya, seperti sebelumnya. Ketika font cadangan menggambar sebagian ekspor, panel ekspor menampilkan catatan seperti:
 
@@ -70,6 +72,10 @@ Baris perintah mencetak kalimat yang sama sebagai catatan.
 ## Yang tetap menjadi gambar
 
 Karakter di luar keempat set nasional tidak punya font cadangan. Karakter langka seperti 𠮷, karakter yang ditambahkan untuk Hong Kong oleh set tambahannya, dan aksara tanpa font cadangan, seperti Tamil, Etiopia, atau Suryani, semuanya diperlakukan dengan cara yang sama. Di PDF, baris yang memuatnya masuk sebagai gambar 300 dpi, dan panel ekspor mencantumkan aksaranya. Di SVG, run tetap menjadi teks hidup, yang digambar oleh font milik pembaca.
+
+## Pemeriksaan sebelum ekspor
+
+Kartu **Before you export** milik Lolly Design, dan pemeriksaan `render` pada `lolly check`, melaporkan teks yang tidak dapat digambar font mana pun. Keduanya menghitung font cadangan seperti yang dilakukan ekspor, dari daftar karakter yang sama yang dimiliki setiap font, sehingga teks yang digambar font cadangan tidak dilaporkan. Aksara tanpa font cadangan, seperti Tamil, dan karakter Tionghoa, Jepang, atau Korea di luar set nasional tetap dilaporkan, karena ekspor menggambarnya sebagai gambar atau sebagai teks hidup. Pemeriksaan ini membaca daftar itu dari katalog dan tidak mengunduh font apa pun.
 
 ## Lisensi dan kredit
 

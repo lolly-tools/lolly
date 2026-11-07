@@ -142,6 +142,8 @@ Lolly Demoのように、アプリに付属していて編集できるデザイ�
 
 どのロールも担っていない読み取りは、デザインシステムが定義したままで、ルームは表の下にそれらを一覧します。Primaryというロールのように、読み取り自身のIDと同じIDを持つロールは、その読み取りそのものであり、移動できません。
 
+**チャートでは。** Lolly Chartの**Design system - colour roles first**パレットは、デザインシステムのカラーロールをその順序のままデータ系列に割り当て、そのあとにパレットの残りを使います。背景、テキスト、控えめなテキスト、ヘアラインとして読み取られるロールは除外されます。チャートはそれらの色で下地と文字を描くためです。そのパレットを選ぶまでは何も変わらず、カラーロールのないデザインシステムは、パレットを**Design system - ordered**として描きます。
+
 **値。** 値を押すと、そのロールの、その見た目での、選んだカラーウェイの色を選べます。**Same as light**は、ダークの値が独自の色を選ぶまでライトの値に追従するようにします。**Aa**チップは、その色の上にLollyが選ぶテキストを示し、値の下の1行は、そのテキストの読みやすさを見た目ごとに示します: **Text reads well**、**Large text only**、**Hard to read as text**。これは色の上のテキストについての話で、色自体への評価ではありません。図形や広い面には、その色を使えます。名前のみで読まれるロールは、警告色なしで同じ言葉を表示します。ツールが自分からその上にテキストを置くことはないためです。言葉の根拠となる数値は、APCAが先、WCAGが後で、ツールチップとピッカーにあります。**Own text colour**は、ファイルがテキストの色を定めている値を示し、その色が維持されます。**Copied**は、別のカラーウェイまたはパートナーカラーから来て、まだ誰も選んでいない値を示し、ピッカーの**Keep this colour**で値が確定します。
 
 **出発点。** 独自のロールがないデザインシステムには、現在の言葉であるPrimary、Secondary、Surface、Textが表示されます。変更するまで何も書き込まれません。**+ Add a role**は、**Primary、Secondary**または**Main、Accent、Supporting、Tertiary**を候補として、または入力した任意の言葉を、それぞれが得る読み取りとともに提示します。最初の2語がメインカラーとパートナーカラーになります。ツールは同じ色で描画し続け、メインカラーが1つのシステムでは、最初のカラーウェイはその色にちなんで名付けられます。
@@ -305,7 +307,7 @@ On primaryはPrimaryから導かれ、**Derived**と表示され、ピッカー�
 
 **Rules**は、ブランドの選択を実際に働かせます: 人が変更できること、固定されたままのこと、Lollyが確認できること。
 
-![Lolly DemoのRules: 4つのハウスルール。それぞれにChecked in Lolly DesignとRequiredまたはAdvisoryの印があり、続いて例をレンダリングできる状態のTry your design system in use](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dusage&width=1440&height=1200&dpi=192&waitMs=2400&cropSelector=%23start-panel-usage&format=svg&walker=1&dark=1&filename=bs-usage-rules)
+![Lolly DemoのRules: 4つのハウスルール。それぞれにChecked in DesignとRequiredまたはAdvisoryの印があり、続いて例をレンダリングできる状態のTry your design system in use](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dusage&width=1440&height=1200&dpi=192&waitMs=2400&cropSelector=%23start-panel-usage&format=svg&walker=1&dark=1&filename=bs-usage-rules)
 
 **Brand rules**は、ルールを一覧にします。**Add rule**(または**Add your first rule**)で短いフォームが開きます。
 
@@ -316,7 +318,7 @@ On primaryはPrimaryから導かれ、**Derived**と表示され、ピッカー�
 
 承認は、このデバイス上でのご自身の判断を記録します。承認済みの必須ルールは再利用可能なポスターを制約し、チェックの対象は例のPNGのみです。他のツールには影響しません。
 
-デザインシステムがトークンファイルとともに持ち込むルール(承認済みの色の組み合わせ、テキストの太さと配置、サーフェスごとのロゴなど)は、ここに**Checked in Lolly Design**として一覧されます。Lolly Designは、書き出しパネルの**Before you export**カードでレイヤーごとにそれらを確認し、`lolly check`は保存済みのLolly Design書類に対して同じことを行います([書き出す前に](/info/design.html#before-you-export))。このビルドに確認機能のないルールは、渡されたまま保持され、**Unchecked**と表示されます。
+デザインシステムがトークンファイルとともに持ち込むルール(承認済みの色の組み合わせ、テキストの太さと配置、サーフェスごとのロゴなど)は、ここに**Checked in Design**として一覧されます。Lolly Designは、書き出しパネルの**Before you export**カードでレイヤーごとにそれらを確認し、`lolly check`は保存済みのLolly Design書類に対して同じことを行います([書き出す前に](/info/design.html#before-you-export))。このビルドに確認機能のないルールは、渡されたまま保持され、**Unchecked**と表示されます。
 
 Lolly Demoには、承認済みの4つのハウスルールがあります。見出しを大文字で組むことはありません。このルールは必須で、`lolly check`は大文字の見出しをエラーとして報告します。ほかの3つは助言です。本文は左揃えです。プライマリのマークは明るいサーフェスに、反転のマークは暗いサーフェスに置きます。破線は「ここにドロップ」を意味します。
 

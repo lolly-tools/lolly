@@ -59,7 +59,9 @@ La riga di comando, l'app da terminale e il server MCP leggono gli stessi file d
 
 ## Sulla pagina e nell'esportazione
 
-La pagina usa lo stesso font di riserva dell'esportazione. Senza questo, un browser disegna tali lettere con un font di sistema mentre l'esportazione usa Noto, e una riga che le contiene cambia larghezza tra le due. Lolly aggiunge il font di riserva in fondo all'elenco dei font del design system su quella tela soltanto, dopo i font propri del design system e prima di qualsiasi font di sistema. Una tela che il design system copre mantiene il suo elenco di font esattamente com'era.
+La pagina usa lo stesso font di riserva dell'esportazione. Senza questo, un browser disegna tali lettere con un font di sistema mentre l'esportazione usa Noto, e una riga che le contiene cambia larghezza tra le due. Lolly aggiunge il font di riserva in fondo all'elenco dei font del design system su quella tela soltanto, dopo i font propri del design system e prima di qualsiasi font di sistema. Uno strumento che imposta il proprio elenco di font, nei suoi stili o sui suoi elementi, riceve il font di riserva nello stesso punto: dopo i font che l'elenco indica e prima di qualsiasi font di sistema. Una tela che il design system copre mantiene il suo elenco di font esattamente com'era.
+
+La pagina lascia invariato un elenco di font quando inizia con un font di sistema, come `system-ui` o Helvetica, perché l'esportazione disegna quel testo con i font del design system e la pagina no.
 
 In un PDF le parole diventano contorni disegnati con il font di riserva, qualunque impostazione del testo tu scelga, perché il testo PDF vivo non può contenere una scrittura che il font incorporato non ha. In SVG, EMF, EPS, DXF e WMF diventano contorni ogni volta che il testo viene convertito in contorni; con il testo mantenuto vivo, le disegnano i font di chi legge, come prima. Quando un font di riserva ha disegnato una parte di un'esportazione, il pannello di esportazione mostra una nota come questa:
 
@@ -70,6 +72,10 @@ La riga di comando stampa la stessa frase come nota.
 ## Cosa resta un'immagine
 
 Un carattere fuori dai quattro set nazionali non ha un font di riserva. Caratteri rari come 𠮷, i caratteri aggiunti per Hong Kong dal suo set supplementare e le scritture senza font di riserva, come tamil, etiope o siriaco, sono tutti trattati allo stesso modo. In un PDF la riga che ne contiene uno entra come immagine a 300 dpi, e il pannello di esportazione elenca le scritture. In un SVG la porzione resta testo vivo, che disegnano i font di chi legge.
+
+## Il controllo prima di esportare
+
+La scheda **Before you export** di Lolly Design e i controlli `render` di `lolly check` segnalano il testo che nessun font sa disegnare. Contano i font di riserva come fa un'esportazione, dalle stesse liste dei caratteri che ogni font possiede, quindi il testo che un font di riserva disegna non viene segnalato. Una scrittura senza font di riserva, come il tamil, e un carattere cinese, giapponese o coreano fuori dai set nazionali vengono comunque segnalati, perché l'esportazione li disegna come immagine o come testo vivo. Il controllo legge quelle liste dal catalogo e non scarica alcun font.
 
 ## Licenze e crediti
 

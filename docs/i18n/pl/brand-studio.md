@@ -142,6 +142,8 @@ Tabela ma cztery kolumny, a na telefonie każdy wiersz staje się kartą, która
 
 Odczyt, którego żadna rola nie wypełnia, zostaje taki, jak definiuje go system projektowy, a pokój wymienia je pod tabelą. Rola, która ma id odczytu, na przykład rola o nazwie Primary, jest tym odczytem i nie można jej przenieść.
 
+**W wykresie.** Paleta **Design system - colour roles first** w Lolly Chart daje seriom role kolorów systemu projektowego w jego własnej kolejności, a potem resztę jego palety. Rola odczytywana jako Tło, Tekst, Tekst drugorzędny lub Cienkie linie jest pomijana, ponieważ wykres rysuje swoje tło i swoje słowa właśnie tymi kolorami. Nic się nie zmienia, dopóki nie wybierzesz tej palety, a system projektowy bez ról kolorów rysuje paletę jako **Design system - ordered**.
+
 **Wartości.** Naciśnij wartość, aby wybrać kolor dla tej roli, w tym wyglądzie, w wybranym colourway. **Tak samo jak jasny** sprawia, że ciemna wartość podąża za jasną, dopóki nie wybierzesz własnego koloru. Znacznik **Aa** pokazuje tekst, który Lolly dobiera do koloru, a linia pod wartością mówi, jak ten tekst się czyta, dla każdego wyglądu: **Tekst jest czytelny**, **Tylko duży tekst** lub **Trudny do odczytania jako tekst**. Dotyczy to tekstu na kolorze i nic nie mówi przeciw samemu kolorowi, który nadal może sprawdzać się w kształtach i dużych polach. Rola odczytywana tylko po nazwie pokazuje te same słowa bez koloru ostrzeżenia, bo żadne narzędzie samo nie kładzie na niej tekstu. Liczby za słowami, najpierw APCA, potem WCAG, są w podpowiedzi i w selektorze. **Własny kolor tekstu** oznacza wartość, której plik podaje kolor tekstu, który zostaje. **Skopiowano** oznacza wartość, która pochodzi z innego colourway lub z koloru partnera i której nikt jeszcze nie wybrał; **Zachowaj ten kolor** w selektorze rozstrzyga wartość.
 
 **Punkty startowe.** System projektowy bez własnych ról pokazuje dzisiejsze słowa: Primary, Secondary, Surface i Text. Nic nie jest zapisywane, dopóki jednego nie zmienisz. **+ Dodaj rolę** oferuje jako sugestie **Primary, Secondary** albo **Main, Accent, Supporting, Tertiary** lub dowolne słowa, które wpiszesz, z odczytem, jaki każde by dostało. Pierwsze dwa słowa stają się kolorem wiodącym i kolorem partnera. Narzędzia rysują nadal te same kolory, a w systemie z jednym kolorem wiodącym pierwszy colourway nosi nazwę od tego koloru.
@@ -305,7 +307,7 @@ Upuść pliki, które przechowuje Twoja marka, poza logo: pliki **vector**, **im
 
 **Rules** wprzęga wybory Twojej marki do pracy: co ludzie mogą zmienić, co zostaje stałe i co Lolly może sprawdzić.
 
-![Rules w Lolly Demo: cztery reguły marki, każda oznaczona Checked in Lolly Design oraz Required lub Advisory, potem Try your design system in use z gotowymi do wyrenderowania przykładami](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dusage&width=1440&height=1200&dpi=192&waitMs=2400&cropSelector=%23start-panel-usage&format=svg&walker=1&dark=1&filename=bs-usage-rules)
+![Rules w Lolly Demo: cztery reguły marki, każda oznaczona Checked in Design oraz Required lub Advisory, potem Try your design system in use z gotowymi do wyrenderowania przykładami](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dusage&width=1440&height=1200&dpi=192&waitMs=2400&cropSelector=%23start-panel-usage&format=svg&walker=1&dark=1&filename=bs-usage-rules)
 
 **Brand rules** wymienia Twoje reguły. **Add rule** (lub **Add your first rule**) otwiera krótki formularz:
 
@@ -316,7 +318,7 @@ Upuść pliki, które przechowuje Twoja marka, poza logo: pliki **vector**, **im
 
 Zatwierdzenie zapisuje Twoją własną decyzję na tym urządzeniu. Zatwierdzone reguły wymagane ograniczają plakat wielokrotnego użytku, a kontrole obejmują tylko przykładowe PNG; nie zmieniają żadnego innego narzędzia.
 
-Reguły, które system projektowy niesie ze sobą w pliku tokenów, takie jak zatwierdzone pary kolorów, grubość i wyrównanie tekstu albo logo dla każdej powierzchni, są tu wymienione jako **Checked in Lolly Design**. Lolly Design sprawdza je warstwa po warstwie na karcie **Przed eksportem** w panelu eksportu, a `lolly check` robi to samo dla zapisanego dokumentu Lolly Design ([Before you export](/info/design.html#before-you-export)). Reguła, do której ta kompilacja nie ma sprawdzania, jest zachowana tak, jak ją dostarczono, i oznaczona jako **Niesprawdzone**.
+Reguły, które system projektowy niesie ze sobą w pliku tokenów, takie jak zatwierdzone pary kolorów, grubość i wyrównanie tekstu albo logo dla każdej powierzchni, są tu wymienione jako **Checked in Design**. Lolly Design sprawdza je warstwa po warstwie na karcie **Przed eksportem** w panelu eksportu, a `lolly check` robi to samo dla zapisanego dokumentu Lolly Design ([Before you export](/info/design.html#before-you-export)). Reguła, do której ta kompilacja nie ma sprawdzania, jest zachowana tak, jak ją dostarczono, i oznaczona jako **Niesprawdzone**.
 
 Lolly Demo przynosi cztery zatwierdzone reguły marki. Nagłówki nigdy nie są składane wersalikami: ta reguła jest wymagana, więc `lolly check` zgłasza nagłówek z wersalików jako błąd. Pozostałe trzy są doradcze. Tekst podstawowy jest wyrównany do lewej. Znaki podstawowe leżą na jasnych powierzchniach, a odwrócone na ciemnych. Linie przerywane oznaczają: upuść tutaj.
 

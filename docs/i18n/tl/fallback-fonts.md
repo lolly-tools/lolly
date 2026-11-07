@@ -59,7 +59,9 @@ Binabasa ng command line, ng terminal app at ng MCP server ang parehong mga file
 
 ## Sa page at sa export
 
-Ang page ay gumagamit ng parehong fallback font gaya ng export. Kung wala ito, gumuguhit ang browser ng gayong mga letra gamit ang system font habang Noto ang gamit ng export, at nagbabago ang lapad ng linyang may ganoong letra sa pagitan ng dalawa. Idinaragdag ng Lolly ang fallback font sa dulo ng listahan ng font ng design system sa canvas na iyon lang, pagkatapos ng sariling mga font ng design system at bago ang anumang system font. Ang canvas na sakop ng design system ay nananatili ang listahan ng font nito gaya ng dati.
+Ang page ay gumagamit ng parehong fallback font gaya ng export. Kung wala ito, gumuguhit ang browser ng gayong mga letra gamit ang system font habang Noto ang gamit ng export, at nagbabago ang lapad ng linyang may ganoong letra sa pagitan ng dalawa. Idinaragdag ng Lolly ang fallback font sa dulo ng listahan ng font ng design system sa canvas na iyon lang, pagkatapos ng sariling mga font ng design system at bago ang anumang system font. Ang tool na nagtatakda ng sarili nitong listahan ng font, sa mga style o sa mga element nito, ay nakakakuha ng fallback font sa parehong lugar: pagkatapos ng mga font na ibinibigay ng listahan at bago ang anumang system font. Ang canvas na sakop ng design system ay nananatili ang listahan ng font nito gaya ng dati.
+
+Hindi ginagalaw ng page ang listahan ng font kapag nagsisimula ito sa system font, tulad ng `system-ui` o Helvetica, dahil iginuguhit ng export ang text na iyon gamit ang mga font ng design system at hindi ng page.
 
 Sa PDF, nagiging mga outline na iginuhit gamit ang fallback font ang mga salita, anuman ang piliin mong text setting, dahil hindi kayang dalhin ng live PDF text ang script na wala sa naka-embed na font. Sa SVG, EMF, EPS, DXF at WMF, nagiging mga outline ang mga ito kapag kino-convert ang text sa mga outline; kapag live ang text, ang sariling mga font ng mambabasa ang gumuguhit sa mga ito, gaya ng dati. Kapag may bahagi ng export na iginuhit ng fallback font, nagpapakita ang export panel ng tala tulad ng:
 
@@ -70,6 +72,10 @@ Ini-print ng command line ang parehong pangungusap bilang tala.
 ## Ang nananatiling larawan
 
 Ang karakter na labas sa apat na pambansang set ay walang fallback font. Ang mga bihirang karakter tulad ng 𠮷, ang mga karakter na idinagdag para sa Hong Kong ng supplementary set nito, at ang mga script na walang fallback font, tulad ng Tamil, Ethiopic o Syriac, ay pare-parehong tinatrato. Sa PDF, ang linyang may isa sa mga ito ay napupunta bilang 300 dpi na larawan, at inililista ng export panel ang mga script. Sa SVG, nananatiling live text ang run, na iginuguhit ng sariling mga font ng mambabasa.
+
+## Ang check bago ka mag-export
+
+Ang **Before you export** card ng Lolly Design, at ang mga `render` check ng `lolly check`, ay nag-uulat ng text na walang font na kayang iguhit. Binibilang nila ang mga fallback font gaya ng ginagawa ng export, mula sa parehong listahan ng mga karakter ng bawat font, kaya hindi iniuulat ang text na iginuguhit ng fallback font. Iniuulat pa rin ang script na walang fallback font, tulad ng Tamil, at ang karakter na Chinese, Japanese o Korean na wala sa mga pambansang set, dahil iginuguhit ito ng export bilang larawan o bilang live text. Binabasa ng check ang mga listahang iyon mula sa catalog at walang dina-download na font.
 
 ## Mga lisensya at credit
 

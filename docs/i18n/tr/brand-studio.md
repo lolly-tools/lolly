@@ -142,6 +142,8 @@ Tablonun dört sütunu vardır ve telefonda her satır, açık ve koyu değeri y
 
 Hiçbir rolün doldurmadığı bir okuma tasarım sisteminin tanımladığı gibi kalır ve oda bunları tablonun altında listeler. Bir okumanın kendi kimliğini paylaşan bir rol, örneğin Primary adlı bir rol, o okumadır ve taşınamaz.
 
+**Grafikte.** Lolly Chart'ın **Design system - colour roles first** paleti, serilere tasarım sisteminin renk rollerini kendi sırasıyla, ardından paletin geri kalanını verir. Arka plan, metin, sessiz metin veya ince çizgiler olarak okunan bir rol dışarıda bırakılır, çünkü grafik zeminini ve yazılarını bu renklerle çizer. Sen bu paleti seçene kadar hiçbir şey değişmez ve renk rolü olmayan bir tasarım sistemi paleti **Design system - ordered** olarak çizer.
+
 **Değerler.** O rol için, o görünümde, seçili colourway'de bir renk seçmek için bir değere bas. **Same as light**, kendi rengini seçene kadar koyu değerin açık değeri izlemesini sağlar. **Aa** çipi Lolly'nin o rengin üstüne koymak için seçtiği metni gösterir ve değerin altındaki satır bu metnin görünüm başına nasıl okunduğunu söyler: **Text reads well**, **Large text only** veya **Hard to read as text**. Bu, renk üzerindeki metinle ilgilidir ve rengin kendisi aleyhine bir şey söylemez; renk yine şekiller ve büyük alanlar için işe yarayabilir. Yalnızca adıyla okunan bir rol aynı sözcükleri uyarı rengi olmadan gösterir, çünkü hiçbir araç üstüne kendiliğinden metin koymaz. Sözcüklerin arkasındaki rakamlar, önce APCA sonra WCAG, ipucunda ve seçicide durur. **Own text colour**, dosyası metin rengini belirten ve bu yüzden kalan bir değeri işaretler. **Copied**, başka bir colourway'den veya ortak renkten gelen ve kimsenin henüz seçmediği bir değeri işaretler; seçicideki **Keep this colour** değeri sabitler.
 
 **Başlangıç noktaları.** Kendi rolü olmayan bir tasarım sistemi bugünün sözcüklerini gösterir: Primary, Secondary, Surface ve Text. Sen birini değiştirene kadar hiçbir şey yazılmaz. **+ Add a role**, öneri olarak **Primary, Secondary** veya **Main, Accent, Supporting, Tertiary** sunar, ayrıca yazdığın her sözcüğü, her birinin alacağı okumayla birlikte. İlk iki sözcük ana renk ve ortak renk olur. Araçlar aynı renkleri çizmeye devam eder ve tek ana renkli bir sistemde ilk colourway o rengin adını alır.
@@ -305,7 +307,7 @@ Markanın tuttuğu dosyaları, logolar dışında bırak: **vector**, **image**,
 
 **Rules**, markanın seçimlerini işe koşar: insanların neyi değiştirebileceği, neyin sabit kaldığı ve Lolly'nin neyi denetleyebileceği.
 
-![Lolly Demo üzerinde Rules: her biri Checked in Lolly Design ve Required ya da Advisory olarak işaretlenmiş dört marka kuralı, ardından örnekleri render edilmeye hazır Try your design system in use](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dusage&width=1440&height=1200&dpi=192&waitMs=2400&cropSelector=%23start-panel-usage&format=svg&walker=1&dark=1&filename=bs-usage-rules)
+![Lolly Demo üzerinde Rules: her biri Checked in Design ve Required ya da Advisory olarak işaretlenmiş dört marka kuralı, ardından örnekleri render edilmeye hazır Try your design system in use](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dusage&width=1440&height=1200&dpi=192&waitMs=2400&cropSelector=%23start-panel-usage&format=svg&walker=1&dark=1&filename=bs-usage-rules)
 
 **Brand rules** kurallarını listeler. **Add rule** (veya **Add your first rule**) kısa bir form açar:
 
@@ -316,7 +318,7 @@ Markanın tuttuğu dosyaları, logolar dışında bırak: **vector**, **image**,
 
 Onay, bu cihazdaki kendi kararını kaydeder. Onaylı zorunlu kurallar yeniden kullanılabilir posteri kısıtlar ve denetimler yalnızca örnek PNG'leri kapsar; başka hiçbir aracı değiştirmezler.
 
-Bir tasarım sisteminin token dosyasında getirdiği kurallar, örneğin onaylı renk eşleşmeleri, metin ağırlığı ve hizası ya da yüzey başına bir logo, burada **Checked in Lolly Design** olarak listelenir. Lolly Design bunları dışa aktarma panelinin **Before you export** kartında katman katman denetler ve `lolly check` kaydedilmiş bir Lolly Design belgesi için aynısını yapar ([Before you export](/info/design.html#before-you-export)). Bu derlemenin denetleyicisi olmayan bir kural, verildiği gibi tutulur ve **Unchecked** olarak işaretlenir.
+Bir tasarım sisteminin token dosyasında getirdiği kurallar, örneğin onaylı renk eşleşmeleri, metin ağırlığı ve hizası ya da yüzey başına bir logo, burada **Checked in Design** olarak listelenir. Lolly Design bunları dışa aktarma panelinin **Before you export** kartında katman katman denetler ve `lolly check` kaydedilmiş bir Lolly Design belgesi için aynısını yapar ([Before you export](/info/design.html#before-you-export)). Bu derlemenin denetleyicisi olmayan bir kural, verildiği gibi tutulur ve **Unchecked** olarak işaretlenir.
 
 Lolly Demo dört onaylı marka kuralıyla gelir. Başlıklar asla büyük harfle yazılmaz: bu kural zorunludur, bu yüzden `lolly check` büyük harfli bir başlığı hata olarak bildirir. Diğer üçü tavsiye niteliğindedir. Gövde metni sola hizalıdır. Birincil işaretler açık yüzeylere, ters işaretler koyu yüzeylere konur. Kesikli çizgiler buraya bırak demektir.
 

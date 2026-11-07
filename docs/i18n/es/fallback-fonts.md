@@ -59,7 +59,9 @@ La línea de comandos, la aplicación de terminal y el servidor MCP leen los mis
 
 ## En la página y en la exportación
 
-La página usa la misma tipografía de respaldo que la exportación. Sin esto, un navegador dibuja esas letras con una tipografía del sistema mientras la exportación usa Noto, y una línea que las contiene cambia de ancho entre ambas. Lolly añade la tipografía de respaldo al final de la lista de tipografías del design system solo en ese lienzo, después de las tipografías propias del design system y antes de cualquier tipografía del sistema. Un lienzo que el design system cubre mantiene su lista de tipografías exactamente como antes.
+La página usa la misma tipografía de respaldo que la exportación. Sin esto, un navegador dibuja esas letras con una tipografía del sistema mientras la exportación usa Noto, y una línea que las contiene cambia de ancho entre ambas. Lolly añade la tipografía de respaldo al final de la lista de tipografías del design system solo en ese lienzo, después de las tipografías propias del design system y antes de cualquier tipografía del sistema. Una herramienta que define su propia lista de tipografías, en sus estilos o en sus elementos, recibe la tipografía de respaldo en el mismo lugar: después de las tipografías que da la lista y antes de cualquier tipografía del sistema. Un lienzo que el design system cubre mantiene su lista de tipografías exactamente como antes.
+
+La página deja en paz una lista de tipografías cuando empieza con una tipografía del sistema, como `system-ui` o Helvetica, porque la exportación dibuja ese texto con las tipografías del design system y la página no.
 
 En un PDF las palabras se convierten en contornos dibujados con la tipografía de respaldo, elijas el ajuste de texto que elijas, porque el texto vivo del PDF no puede llevar una escritura que la tipografía incrustada no tiene. En SVG, EMF, EPS, DXF y WMF se convierten en contornos siempre que el texto se convierte en contornos; con el texto vivo, las tipografías del propio lector las dibujan, como antes. Cuando una tipografía de respaldo dibujó parte de una exportación, el panel de exportación muestra una nota como esta:
 
@@ -70,6 +72,10 @@ La línea de comandos imprime la misma frase como nota.
 ## Lo que sigue siendo una imagen
 
 Un carácter fuera de los cuatro conjuntos nacionales no tiene tipografía de respaldo. Los caracteres raros como 𠮷, los caracteres añadidos para Hong Kong por su conjunto suplementario y las escrituras sin tipografía de respaldo, como el tamil, el etíope o el siríaco, se tratan todos igual. En un PDF la línea que contiene uno entra como una imagen de 300 dpi, y el panel de exportación enumera las escrituras. En un SVG el tramo sigue siendo texto vivo, que dibujan las tipografías del propio lector.
+
+## La comprobación antes de exportar
+
+La tarjeta **Before you export** de Design, y las comprobaciones `render` de `lolly check`, indican el texto que ninguna tipografía puede dibujar. Cuentan las tipografías de respaldo igual que una exportación, a partir de las mismas listas de los caracteres que tiene cada tipografía, así que el texto que dibuja una tipografía de respaldo no se indica. Una escritura sin tipografía de respaldo, como el tamil, y un carácter chino, japonés o coreano fuera de los conjuntos nacionales se siguen indicando, porque la exportación los dibuja como una imagen o como texto vivo. La comprobación lee esas listas del catálogo y no descarga ninguna tipografía.
 
 ## Licencias y créditos
 

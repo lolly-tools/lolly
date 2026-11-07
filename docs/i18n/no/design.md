@@ -206,7 +206,7 @@ Velg et klipp, så gir inspektøren de samme redigeringene som tall: **Length**,
 
 ## Før du eksporterer
 
-Design sjekker dokumentet ditt før du sender filen. Kortet **Before you export**, i delen **Document** i Inspector og igjen i eksportpanelet, leser den lagrede lagstrukturen og ser deretter på det ferdige lerretet etter avklippet tekst og kontrast mellom flate farger. Det spør det samme skriftregisteret som SVG- og PDF-konturgjøringen bruker, om hver tekstkjøring har skriftbytes som kan bygges inn. Bilde- og gradientbakgrunner listes som visuelle kontroller i stedet for å få en oppdiktet kontrastscore.
+Design sjekker dokumentet ditt før du sender filen. Kortet **Before you export**, i delen **Document** i Inspector og igjen i eksportpanelet, leser den lagrede lagstrukturen og ser deretter på det ferdige lerretet etter avklippet tekst og kontrast mellom flate farger. Det spør det samme skriftregisteret som SVG- og PDF-konturgjøringen bruker, om hver tekstkjøring har skriftbytes som kan bygges inn. Tekst som en [reserveskrift](/info/fallback-fonts.html) tegner i eksporten, regnes som dekket. Et skriftsystem uten reserveskrift, eller et kinesisk, japansk eller koreansk tegn utenfor tegnsettene disse skriftene har, blir fortsatt rapportert. Bilde- og gradientbakgrunner listes som visuelle kontroller i stedet for å få en oppdiktet kontrastscore.
 
 ### Sjekk en komposisjon mot designsystemet
 

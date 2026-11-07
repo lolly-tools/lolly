@@ -59,7 +59,9 @@ Wiersz poleceń, aplikacja terminalowa i serwer MCP czytają te same pliki z dys
 
 ## Na stronie i w eksporcie
 
-Strona używa tej samej czcionki zastępczej co eksport. Bez tego przeglądarka rysuje takie litery czcionką systemową, a eksport używa Noto, i wiersz, który je zawiera, zmienia szerokość między jednym a drugim. Lolly dodaje czcionkę zastępczą na koniec listy czcionek systemu projektowego tylko na tej kanwie, po własnych czcionkach systemu projektowego i przed każdą czcionką systemową. Kanwa, którą system projektowy pokrywa, zachowuje swoją listę czcionek dokładnie jak wcześniej.
+Strona używa tej samej czcionki zastępczej co eksport. Bez tego przeglądarka rysuje takie litery czcionką systemową, a eksport używa Noto, i wiersz, który je zawiera, zmienia szerokość między jednym a drugim. Lolly dodaje czcionkę zastępczą na koniec listy czcionek systemu projektowego tylko na tej kanwie, po własnych czcionkach systemu projektowego i przed każdą czcionką systemową. Narzędzie, które ustawia własną listę czcionek, w swoich stylach lub na swoich elementach, dostaje czcionkę zastępczą w tym samym miejscu: po czcionkach, które podaje lista, i przed każdą czcionką systemową. Kanwa, którą system projektowy pokrywa, zachowuje swoją listę czcionek dokładnie jak wcześniej.
+
+Strona zostawia listę czcionek bez zmian, gdy zaczyna się od czcionki systemowej, takiej jak `system-ui` lub Helvetica, ponieważ eksport rysuje taki tekst czcionkami systemu projektowego, a strona nie.
 
 W PDF słowa stają się konturami rysowanymi czcionką zastępczą, niezależnie od wybranego ustawienia tekstu, ponieważ żywy tekst PDF nie może nieść pisma, którego osadzona czcionka nie ma. W SVG, EMF, EPS, DXF i WMF stają się konturami zawsze, gdy tekst jest zamieniany na kontury; przy tekście pozostawionym jako żywy rysują je własne czcionki czytelnika, jak dotąd. Gdy czcionka zastępcza narysowała część eksportu, panel eksportu pokazuje uwagę taką jak:
 
@@ -70,6 +72,10 @@ Wiersz poleceń wypisuje to samo zdanie jako uwagę.
 ## Co zostaje obrazem
 
 Znak spoza czterech narodowych zestawów nie ma czcionki zastępczej. Rzadkie znaki, takie jak 𠮷, znaki dodane dla Hongkongu przez jego zestaw uzupełniający i pisma bez czcionki zastępczej, takie jak tamilskie, etiopskie lub syryjskie, są traktowane tak samo. W PDF wiersz, który zawiera taki znak, trafia jako obraz 300 dpi, a panel eksportu wymienia pisma. W SVG przebieg zostaje żywym tekstem, który rysują własne czcionki czytelnika.
+
+## Kontrola przed eksportem
+
+Karta **Before you export** w Lolly Design oraz kontrole `render` polecenia `lolly check` zgłaszają tekst, którego żadna czcionka nie narysuje. Czcionki zastępcze liczą tak jak eksport, z tych samych list znaków każdej czcionki, więc tekst rysowany przez czcionkę zastępczą nie jest zgłaszany. Pismo bez czcionki zastępczej, takie jak tamilskie, oraz znak chiński, japoński lub koreański spoza zestawów narodowych nadal są zgłaszane, ponieważ eksport rysuje je jako obraz albo jako żywy tekst. Kontrola czyta te listy z katalogu i nie pobiera żadnej czcionki.
 
 ## Licencje i uznania autorstwa
 

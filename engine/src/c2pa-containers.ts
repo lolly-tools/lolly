@@ -397,6 +397,44 @@ export async function embedC2paInPdf(pdfBytes: Uint8Array, { title, claimGenerat
   return out;
 }
 
+/**
+ * A PDF with its Content Credential update taken off: the bytes before the
+ * incremental update {@link embedC2paInPdf} appends, when that update is the last
+ * thing in the file and is exactly such an update (a new Catalog, a /Filespec with
+ * /AFRelationship /C2PA_Manifest and the manifest stream, over a table whose /Prev
+ * points at the earlier one). A shell that writes its own credential in place of one
+ * another renderer wrote starts from these bytes, so the file holds one credential and
+ * no dead copy of the other. Embedding into the result lays the update out at the same
+ * offset the cut one had.
+ *
+ * Null when the last update is anything else, or the file has no earlier revision:
+ * those bytes are not this function's to cut. Never throws.
+ */
+export function pdfWithoutCredential(pdf: Uint8Array): Uint8Array | null {
+  try {
+    const bin = bytesToBin(pdf);
+    const sxAt = bin.lastIndexOf('startxref');
+    const sx = sxAt < 0 ? null : /^startxref\s+(\d+)\s+%%EOF\s*$/.exec(bin.slice(sxAt));
+    if (!sx) return null;
+    const xrefAt = +sx[1]!;
+    const sec = parseXrefSection(bin, xrefAt);
+    const used = sec.entries.filter((e) => e.type === 'n');
+    if (sec.prev === null || used.length !== 3) return null;
+    const start = Math.min(...used.map((e) => e.offset));
+    if (!(start > 0 && start < xrefAt)) return null;
+    const update = bin.slice(start, xrefAt);
+    if (!/\/Type\s*\/Catalog\b/.test(update) || !/\/AFRelationship\s*\/C2PA_Manifest\b/.test(update)
+      || !/\/Subtype\s*\/application#2Fc2pa\b/.test(update)) return null;
+    const before = bin.slice(0, start);
+    const priorAt = before.lastIndexOf('startxref');
+    const prior = priorAt < 0 ? null : /^startxref\s+(\d+)\s+%%EOF\s*$/.exec(before.slice(priorAt));
+    if (!prior || +prior[1]! !== sec.prev) return null;
+    return pdf.slice(0, start);
+  } catch {
+    return null;
+  }
+}
+
 // ─── container embedders (png/jpeg/gif/svg/tiff/webp) ────────────────────────
 //
 // Each placer is a pure function place(container, manifest) → { out, exclusions }

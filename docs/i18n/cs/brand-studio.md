@@ -142,6 +142,8 @@ Tabulka má čtyři sloupce a na telefonu se každý řádek změní na kartu, k
 
 Čtení, které žádná role nenaplňuje, zůstává tak, jak ho definuje designový systém, a místnost je uvádí pod tabulkou. Role, která sdílí id s některým čtením, například role jménem Primary, je to čtení a nedá se přesunout.
 
+**V grafu.** Paleta **Design system - colour roles first** v Lolly Chart dává řadám barevné role designového systému v jeho vlastním pořadí a pak zbytek jeho palety. Role čtená jako Background, Text, Quiet text nebo Hairlines se vynechá, protože graf kreslí svůj podklad a svá slova právě těmito barvami. Nic se nezmění, dokud tu paletu nevybereš, a designový systém bez barevných rolí kreslí paletu jako **Design system - ordered**.
+
 **Hodnoty.** Stiskni hodnotu, abys vybral/a barvu pro danou roli, v daném vzhledu, ve zvoleném colourway. **Same as light** nechá tmavou hodnotu sledovat světlou, dokud nevybereš vlastní barvu. Čip **Aa** ukazuje text, který Lolly vybere pro barvu, a řádek pod hodnotou říká, jak se ten text čte, pro každý vzhled: **Text reads well**, **Large text only** nebo **Hard to read as text**. To se týká textu na barvě a nic neříká proti barvě samotné, která může dál fungovat pro tvary a velké plochy. Role čtená jen podle jména ukazuje stejná slova bez varovné barvy, protože na ni žádný nástroj sám text nedává. Čísla za slovy, nejprve APCA a pak WCAG, jsou v nápovědě a ve výběru. **Own text colour** označuje hodnotu, jejíž soubor uvádí barvu textu, která zůstává. **Copied** označuje hodnotu, která pochází z jiného colourway nebo z partnerské barvy a kterou ještě nikdo nevybral; **Keep this colour** ve výběru hodnotu potvrdí.
 
 **Výchozí body.** Designový systém bez vlastních rolí ukazuje dnešní slova: Primary, Secondary, Surface a Text. Nic se nezapíše, dokud jedno nezměníš. **+ Add a role** nabízí jako návrhy **Primary, Secondary** nebo **Main, Accent, Supporting, Tertiary**, případně jakákoli slova, která napíšeš, s čtením, které by každé dostalo. První dvě slova se stanou hlavní barvou a partnerskou barvou. Nástroje kreslí dál stejné barvy a v systému s jednou hlavní barvou se první colourway jmenuje po této barvě.
@@ -305,7 +307,7 @@ Vlož soubory, které tvá značka uchovává, kromě log: soubory **vector**, *
 
 **Rules** uvádějí volby tvé značky do práce: co lidé mohou měnit, co zůstává pevné a co Lolly umí zkontrolovat.
 
-![Rules v Lolly Demo: čtyři interní pravidla, každé označené Checked in Lolly Design a Required nebo Advisory, pak Try your design system in use s příklady připravenými k vykreslení](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dusage&width=1440&height=1200&dpi=192&waitMs=2400&cropSelector=%23start-panel-usage&format=svg&walker=1&dark=1&filename=bs-usage-rules)
+![Rules v Lolly Demo: čtyři interní pravidla, každé označené Checked in Design a Required nebo Advisory, pak Try your design system in use s příklady připravenými k vykreslení](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dusage&width=1440&height=1200&dpi=192&waitMs=2400&cropSelector=%23start-panel-usage&format=svg&walker=1&dark=1&filename=bs-usage-rules)
 
 **Brand rules** vypisuje tvá pravidla. **Add rule** (nebo **Add your first rule**) otevře krátký formulář:
 
@@ -316,7 +318,7 @@ Vlož soubory, které tvá značka uchovává, kromě log: soubory **vector**, *
 
 Schválení zaznamenává tvé vlastní rozhodnutí na tomto zařízení. Schválená povinná pravidla omezují opakovaně použitelný plakát a kontroly pokrývají jen příklady PNG; nemění žádný jiný nástroj.
 
-Pravidla, která designový systém přináší ve svém souboru tokenů, například schválené dvojice barev, tloušťka a zarovnání textu nebo logo pro každou plochu, jsou zde uvedena jako **Checked in Lolly Design**. Lolly Design je kontroluje vrstvu po vrstvě na kartě **Before you export** v panelu exportu a `lolly check` totéž dělá pro uložený dokument Lolly Design ([Před exportem](/info/design.html#before-you-export)). Pravidlo, pro které toto sestavení nemá kontrolu, se ponechá, jak bylo dodáno, a označí **Unchecked**.
+Pravidla, která designový systém přináší ve svém souboru tokenů, například schválené dvojice barev, tloušťka a zarovnání textu nebo logo pro každou plochu, jsou zde uvedena jako **Checked in Design**. Lolly Design je kontroluje vrstvu po vrstvě na kartě **Before you export** v panelu exportu a `lolly check` totéž dělá pro uložený dokument Lolly Design ([Před exportem](/info/design.html#before-you-export)). Pravidlo, pro které toto sestavení nemá kontrolu, se ponechá, jak bylo dodáno, a označí **Unchecked**.
 
 Lolly Demo přináší čtyři schválená interní pravidla. Nadpisy se nikdy nesází velkými písmeny: toto pravidlo je povinné, takže `lolly check` ohlásí nadpis velkými písmeny jako chybu. Další tři jsou doporučující. Běžný text je zarovnaný doleva. Primární značky leží na světlých plochách a obrácené na tmavých. Přerušované čáry znamenají „upusť sem“.
 

@@ -59,7 +59,9 @@ La ligne de commande, l'application de terminal et le serveur MCP lisent les mê
 
 ## Sur la page et dans l'export
 
-La page utilise la même police de repli que l'export. Sans cela, un navigateur dessine ces lettres dans une police système alors que l'export utilise Noto, et une ligne qui en contient change de largeur entre les deux. Lolly ajoute la police de repli à la fin de la liste de polices du design system sur ce canevas seulement, après les propres polices du design system et avant toute police système. Un canevas que le design system couvre garde sa liste de polices exactement comme avant.
+La page utilise la même police de repli que l'export. Sans cela, un navigateur dessine ces lettres dans une police système alors que l'export utilise Noto, et une ligne qui en contient change de largeur entre les deux. Lolly ajoute la police de repli à la fin de la liste de polices du design system sur ce canevas seulement, après les propres polices du design system et avant toute police système. Un outil qui définit sa propre liste de polices, dans ses styles ou sur ses éléments, reçoit la police de repli au même endroit : après les polices que la liste donne et avant toute police système. Un canevas que le design system couvre garde sa liste de polices exactement comme avant.
+
+La page laisse une liste de polices telle quelle quand elle commence par une police système, comme `system-ui` ou Helvetica, car l'export dessine ce texte avec les polices du design system et la page non.
 
 Dans un PDF, les mots deviennent des tracés dessinés avec la police de repli, quel que soit le réglage de texte choisi, car le texte PDF actif ne peut pas porter une écriture que la police incorporée n'a pas. En SVG, EMF, EPS, DXF et WMF, ils deviennent des tracés chaque fois que le texte est converti en tracés ; avec le texte laissé actif, ce sont les polices du lecteur qui les dessinent, comme avant. Quand une police de repli a dessiné une partie d'un export, le panneau d'export affiche une note comme :
 
@@ -70,6 +72,10 @@ La ligne de commande affiche la même phrase sous forme de note.
 ## Ce qui reste une image
 
 Un caractère hors des quatre jeux nationaux n'a pas de police de repli. Les caractères rares comme 𠮷, les caractères ajoutés pour Hong Kong par son jeu supplémentaire, et les écritures sans police de repli, comme le tamoul, l'éthiopien ou le syriaque, sont tous traités de la même façon. Dans un PDF, la ligne qui en contient un entre comme une image à 300 dpi, et le panneau d'export liste les écritures. Dans un SVG, le passage reste du texte actif, que les polices du lecteur dessinent.
+
+## La vérification avant d'exporter
+
+La carte **Before you export** de Lolly Design et les vérifications `render` de `lolly check` signalent le texte qu'aucune police ne sait dessiner. Elles comptent les polices de repli comme le fait un export, d'après les mêmes listes des caractères que chaque police possède, donc le texte qu'une police de repli dessine n'est pas signalé. Une écriture sans police de repli, comme le tamoul, et un caractère chinois, japonais ou coréen hors des jeux nationaux sont toujours signalés, car l'export les dessine comme une image ou comme du texte actif. La vérification lit ces listes dans le catalogue et ne télécharge aucune police.
 
 ## Licences et crédits
 
