@@ -65,8 +65,6 @@
   "inputs.boxes.fields.weight.options.700": "Fet",
   "inputs.boxes.fields.weight.options.800": "Ekstrafet",
   "inputs.boxes.fields.font.label": "Skrifttype",
-  "inputs.boxes.fields.font.options.SUSE": "SUSE Sans",
-  "inputs.boxes.fields.font.options.SUSE Mono": "SUSE Mono",
   "inputs.boxes.fields.lineHeight.label": "Linjehøyde",
   "inputs.boxes.fields.tracking.label": "Kerning",
   "inputs.boxes.fields.ligatures.label": "Ligaturer",

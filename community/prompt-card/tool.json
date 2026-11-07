@@ -2,7 +2,7 @@
   "id": "prompt-card",
   "name": "Prompt Card",
   "description": "Typeset a long prompt into one compact, legible image for a multimodal model - image input is often cheaper than the same words as text tokens.",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "engineVersion": "^1.0.0",
   "status": "official",
   "category": "utility",
