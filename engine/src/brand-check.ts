@@ -143,17 +143,18 @@ export function checkBrandDesign(boxes: unknown, doc: unknown, opts: { theme?: s
       const look = parseTreatedAssetId(image).treatment;
       if (look && Array.isArray(opts.treatments) && !opts.treatments.includes(look)) add('image', 'reference', 'unknown', image);
     }
-    else if (image && guestAssets.has(stripAssetModifiers(image))) checked.assets++;
     else if (image) {
       const assetId = aliasPath(image) ? tokens.resolve(image) : image;
-      if ((!allowedAssets.size && !catalogAssets.size) || typeof assetId !== 'string') add('image', 'asset', 'unknown', image);
+      // A partner kit's logo is a known asset; its theme or treatment is still checked.
+      const guest = typeof assetId === 'string' && guestAssets.has(stripAssetModifiers(assetId));
+      if ((!allowedAssets.size && !catalogAssets.size && !guest) || typeof assetId !== 'string') add('image', 'asset', 'unknown', image);
       else {
         checked.assets++;
         const base = stripAssetModifiers(assetId);
         const theme = parseThemedAssetId(assetId).theme;
         const treatment = parseTreatedAssetId(assetId).treatment;
         const exact = allowedAssets.has(assetId);
-        if (!exact && !allowedAssets.has(base) && !catalogAssets.has(base)) add('image', 'asset', 'review', image);
+        if (!exact && !allowedAssets.has(base) && !catalogAssets.has(base) && !guest) add('image', 'asset', 'review', image);
         // `?theme=auto` (plan 291 W4) is the surface-aware form, known by construction:
         // the variant comes from the surface, and the logo house rule judges the pick.
         else if (!exact && theme && theme !== AUTO_ASSET_THEME && Array.isArray(opts.iconThemes) && !opts.iconThemes.includes(theme)) add('image', 'reference', 'unknown', image);

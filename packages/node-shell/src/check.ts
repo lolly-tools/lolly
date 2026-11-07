@@ -51,6 +51,7 @@ import {
   checkDesignHouseRules,
   checkFidelity,
   checkGuestMarks,
+  guestRecolourFrom,
   partnerKitLogoIds,
   checkFindingFromBrand,
   checkFindingFromDesign,
@@ -1194,10 +1195,17 @@ function themeNamesOf(doc: unknown): string[] {
  * measured. The document's own unit and dpi turn its CSS pixels into export pixels and
  * millimetres, as Design's export does.
  */
-function partnerKitFindings(doc: DesignInput, partnerKit: PartnerKitV1, lookup: ReturnType<typeof designLayerLookup>): { findings: CheckFindingV1[]; note: string } {
+function partnerKitFindings(doc: DesignInput, partnerKit: PartnerKitV1, lookup: ReturnType<typeof designLayerLookup>, catalog: DesignBriefCatalogV1 | null | undefined): { findings: CheckFindingV1[]; note: string } {
   const unit = typeof doc.values.documentUnit === 'string' ? doc.values.documentUnit : 'px';
-  const dpi = Number(doc.values.documentDpi);
-  const report = checkGuestMarks(doc.boxes, partnerKit, { unit, ...(Number.isFinite(dpi) && dpi > 0 ? { dpi } : {}) });
+  // A finite number, or a string of one: anything else in the file is read as absent.
+  const rawDpi = doc.values.documentDpi;
+  const dpi = typeof rawDpi === 'number' ? rawDpi : typeof rawDpi === 'string' && rawDpi.trim() !== '' ? Number(rawDpi) : Number.NaN;
+  const report = checkGuestMarks(doc.boxes, partnerKit, {
+    unit,
+    ...(Number.isFinite(dpi) && dpi > 0 ? { dpi } : {}),
+    // A recoloured mark is judged by the catalog's own theme and treatment colours.
+    recolour: guestRecolourFrom(catalog ?? null),
+  });
   const rules = report.checked.rules.map((r) => ({ 'min-size': 'minimum size', 'clear-space': 'clear space', treatment: 'treatments' })[r]);
   const ruleText = rules.length ? ` against its ${rules.length > 1 ? `${rules.slice(0, -1).join(', ')} and ${rules[rules.length - 1]}` : rules[0]}` : ', which states no rules';
   const notes = [`Partner kit ${partnerKit.label}: measured ${plural(report.checked.marks, 'partner mark')}${ruleText}.`];
@@ -1283,8 +1291,13 @@ export async function checkFile(bytes: Uint8Array, name: string, asked: CheckFil
 
     designSystem = ds ? { origin: ds.origin, ...(ds.profile ? { profile: ds.profile } : {}), ...(ds.tokensAsset ? { tokensAsset: ds.tokensAsset } : {}) } : null;
     // Partner marks against the kit's rules (plans/82 M8): geometry, so once for every theme.
-    const kit = opts.partnerKit ? partnerKitFindings(doc, opts.partnerKit, lookup) : null;
-    if (!ds && kit) {
+    // Inside the family's guard, like every other check: a crash is said, not thrown.
+    const kitRun = opts.partnerKit ? await guarded(opts.signal, async () => partnerKitFindings(doc, opts.partnerKit!, lookup, opts.catalog)) : null;
+    const kitFailed = kitRun && isFailed(kitRun) ? kitRun.failed : null;
+    const kit = kitRun && !isFailed(kitRun) ? kitRun : null;
+    if (kitFailed) {
+      families.brand = familyState('failed', `The partner kit could not be checked: ${kitFailed}`);
+    } else if (!ds && kit) {
       take('brand', familyState('ran', `${words.noDesignSystem} Only the partner kit was checked. ${kit.note}`), kit.findings);
     } else if (!ds) {
       families.brand = familyState('unavailable', `${words.noDesignSystem}${opts.theme ? ` The theme "${opts.theme}" was not checked against one.` : ''}`);

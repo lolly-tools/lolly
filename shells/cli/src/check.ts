@@ -31,12 +31,13 @@
  * Findings are never `warn()` calls, so the global `--strict` does not promote them a
  * second time.
  */
-import { readFile } from 'node:fs/promises';
+import { open, readFile } from 'node:fs/promises';
 import { basename, resolve } from 'node:path';
 import type { CheckFindingV1, CheckReportV1 } from '@lolly-tools/core';
 import { CheckInputError, checkFile, parseFidelityEdits, type CheckFileOptionsV1 } from '@lolly-tools/node-shell/check';
 import { cleanControlChars } from '@lolly-tools/node-shell/verdict-report';
 import { checkPartnerKit } from '@lolly/engine';
+import { PARTNER_KIT_MAX_BYTES } from '@lolly-tools/core/partner-kit-v1';
 import { CliError, EXIT, usageError } from './exit-codes.ts';
 import { emitResult } from './envelope.ts';
 import { writeOut } from './output.ts';
@@ -147,7 +148,37 @@ async function readEdits(path: string, source: string | undefined): Promise<NonN
  * refuses the run, with the reader's reason, rather than checking against part of the kit.
  */
 async function readKit(path: string): Promise<NonNullable<CheckFileOptionsV1['partnerKit']>> {
-  const { bytes } = await readInput(path);
+  // Read at most one byte past the kit bound (three more for a byte order mark), so a
+  // padded or huge file is refused before it is copied or decoded.
+  const limit = PARTNER_KIT_MAX_BYTES + 3;
+  let bytes: Uint8Array;
+  if (path === '-') {
+    const chunks: Buffer[] = [];
+    let total = 0;
+    for await (const chunk of process.stdin) {
+      const buf = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk as string);
+      total += buf.length;
+      if (total > limit) throw usageError(`The partner kit on standard input is larger than ${PARTNER_KIT_MAX_BYTES.toLocaleString('en')} bytes.`, 'BAD_FLAG_VALUE');
+      chunks.push(buf);
+    }
+    bytes = new Uint8Array(Buffer.concat(chunks));
+  } else {
+    let handle: Awaited<ReturnType<typeof open>>;
+    try {
+      handle = await open(resolve(process.cwd(), path), 'r');
+    } catch (err) {
+      if ((err as NodeJS.ErrnoException).code === 'ENOENT') throw usageError(`No file at ${path}.`, 'FILE_NOT_FOUND');
+      throw err;
+    }
+    try {
+      const buffer = Buffer.alloc(limit + 1);
+      const { bytesRead } = await handle.read(buffer, 0, limit + 1, 0);
+      if (bytesRead > limit) throw usageError(`${path} is larger than ${PARTNER_KIT_MAX_BYTES.toLocaleString('en')} bytes, the most a partner kit may take.`, 'BAD_FLAG_VALUE');
+      bytes = new Uint8Array(buffer.subarray(0, bytesRead));
+    } finally {
+      await handle.close();
+    }
+  }
   // A kit saved by an editor that writes a byte order mark reads the same as one without.
   const result = checkPartnerKit(new TextDecoder().decode(bytes).replace(/^\uFEFF/, ''));
   if (!result.ok) throw usageError(`${path} is not a partner kit: ${result.issues[0]?.message ?? 'it could not be read.'}`, 'BAD_FLAG_VALUE');

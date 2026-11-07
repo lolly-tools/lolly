@@ -605,6 +605,8 @@ const PARTNER_KIT_ID = new RegExp(PARTNER_KIT_ASSET_ID_PATTERN);
  */
 export function readPartnerKitAttachment(value: unknown): PartnerKitAttachmentV1 | null {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return null;
+  // Own fields only: an inherited `id` or `revision` is not the record's.
+  if (!Object.hasOwn(value, 'id') || !Object.hasOwn(value, 'revision')) return null;
   const { id, revision } = value as Record<string, unknown>;
   if (typeof id !== 'string' || id.length > PARTNER_KIT_MAX_ASSET_ID || !PARTNER_KIT_ID.test(id)) return null;
   if (typeof revision !== 'number' || !Number.isInteger(revision) || revision < 1 || revision > PARTNER_KIT_MAX_LOGO_VERSION) return null;
