@@ -53,6 +53,7 @@ Some rules hold for every table:
 | `unit` | web + CLI | The unit for `width` and `height`: `px` (the default), `mm`, `cm`, `in`, `pt` or `pc`. |
 | `dpi` | web + CLI | Raster resolution for physical units (default `300`). Ignored for `px` and for vector formats. |
 | `password` | web + CLI | An open password for `pdf` and `zip`, standard tier only, read when a link opens. It deters casual opening and does not protect confidential material. Lolly never writes it into a link. [Exporting](/info/exporting.html#password-protection) |
+| `_text` | web + CLI (`--text=outline`) | How an `emf` export writes text. Off by default, so text stays live and the reader's fonts draw it. `_text=outline` draws each line as vector outlines, the same as ticking **Outline fonts** in the export panel, and a line that no font here can draw goes in as a picture. The CLI sends it to the browser when `lolly <tool> --export=emf --text=outline` needs the browser. |
 
 ::: details Size on a document with several artboards
 On a Lolly Design document with more than one artboard, the artboards are the size truth. `width` and `height` describe the active artboard: the selected one for still formats, the one under the playhead for animated ones. In the app the export panel mirrors that artboard as it changes, and editing the fields resizes that artboard.
