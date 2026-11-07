@@ -1179,6 +1179,9 @@ export async function initOrgWithAuth(auth: AuthConfig): Promise<OrgState | null
       // more restrictive state rather than falling open.
       applyExportPolicy(orgConfigState, failClosed);
       applyInputFailClosed(failClosed);
+      // The person's partner company, for the home's company card and the tools that
+      // take its details: known from the start, not only once a tool mounts.
+      setWorkspaceCompany(partnerCompany(orgConfigState));
       applySitePolicy(orgConfigState, failClosed);
       // Route the instance's injectables (plans/19): tool descriptors into the
       // gallery registry (pure data, beside the apply* group); chrome descriptors
