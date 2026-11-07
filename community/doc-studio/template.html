@@ -8,7 +8,7 @@
     box-sizing: border-box; width: 100%; height: 100%;
     overflow-y: auto; overflow-x: hidden;
     background: transparent; padding: 0 0 22px;
-    font-family: var(--doc-font, "SUSE", system-ui, sans-serif);
+    font-family: var(--doc-font, var(--font-brand, 'SUSE', ui-sans-serif, system-ui, sans-serif));
     color: var(--ink); -webkit-font-smoothing: antialiased;
   }
   .doc-page {
@@ -46,7 +46,7 @@
   .doc-body em { font-style: italic; }
   .doc-body u { text-decoration: underline; }
   .doc-body s { text-decoration: line-through; }
-  .doc-code { font-family: "SUSE Mono", ui-monospace, monospace; font-size: .92em; background: var(--head-bg); padding: .05em .3em; border-radius: 3px; }
+  .doc-code { font-family: var(--font-mono, 'SUSE Mono', ui-monospace, monospace); font-size: .92em; background: var(--head-bg); padding: .05em .3em; border-radius: 3px; }
 
   /* Blocks. */
   .doc-p { font-size: var(--body-size); line-height: var(--line-h); color: var(--ink); margin: 0 0 .5em; overflow-wrap: break-word; }
@@ -68,7 +68,8 @@
   .doc-li-p { margin: 0; }
 
   .doc-quote { margin: .5em 0; padding-left: .9em; border-left: 3px solid var(--accent); color: var(--muted); }
-  .doc-pre { font-family: "SUSE Mono", ui-monospace, monospace; font-size: calc(var(--body-size) * .9); background: var(--head-bg); padding: .7em .9em; border-radius: 6px; overflow-x: auto; margin: .5em 0; }
+  .doc-pre { font-family: var(--font-mono, 'SUSE Mono', ui-monospace, monospace); font-size: calc(var(--body-size) * .9); background: var(--head-bg); padding: .7em .9em; border-radius: 6px; overflow-x: auto; margin: .5em 0; }
+  .doc-pre code { font-family: inherit; }
   .doc-hr { border: none; border-top: 1px solid var(--table-line); margin: 1em 0; }
   .doc-fig { margin: .5em 0; }
   .doc-fig img { max-width: 100%; height: auto; display: block; border-radius: 4px; }

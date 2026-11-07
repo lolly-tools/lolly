@@ -167,11 +167,14 @@ function weightOf(b) {
   if (String(b.font) === 'SUSE Mono' && w > 800) w = 800;
   return String(w);
 }
-var FONTS = {
-  'SUSE Mono': "'SUSE Mono', ui-monospace, SFMono-Regular, monospace",
-  'SUSE': "'SUSE', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif",
-};
-function fontFamily(v) { return FONTS[String(v)] || FONTS.SUSE; }
+// A card's font is a ROLE, not a face: the stored values 'SUSE' and 'SUSE Mono'
+// (kept, because saved charts and links carry them) and the `suse`/`mono` markup
+// tokens name the design system's text and mono faces, which brand-vars sets on
+// the canvas as --font-brand and --font-mono. The same map as Record's.
+var SANS = "var(--font-brand, 'SUSE', ui-sans-serif, system-ui, sans-serif)";
+var MONO = "var(--font-mono, 'SUSE Mono', ui-monospace, monospace)";
+var FONTS = { 'mono': MONO, 'sans': SANS, 'SUSE Mono': MONO, 'SUSE': SANS };
+function fontFamily(v) { return FONTS[String(v)] || SANS; }
 var FITS = { cover: 1, contain: 1, fill: 1, none: 1, 'scale-down': 1 };
 var OBJPOS = {
   center: 1, 'center top': 1, 'center bottom': 1, 'left center': 1, 'right center': 1,
