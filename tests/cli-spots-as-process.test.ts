@@ -45,8 +45,10 @@ test('eps-cmyk keeps its bytes with --spots=process, since EPS has no named plat
     const off = readFileSync(out('off.eps')), on = readFileSync(out('on.eps'));
     assert.ok(off.length > 0);
     assert.ok(off.equals(on), 'the same EPS bytes with and without the flag');
-    // Lolly Demo's Liquorice is a spot ink; EPS writes it as its declared build either way.
-    assert.match(off.toString('latin1'), /0\.89 0\.48 0\.32 1 setcmykcolor/);
+    // Lolly Demo's Liquorice is a spot ink; EPS writes it as its declared build, 100% K, either
+    // way. The press conversion of #09141a would be a four-ink build, so K alone is the token's.
+    assert.match(off.toString('latin1'), /\n0 0 0 1 setcmykcolor\n/);
+    assert.doesNotMatch(off.toString('latin1'), /0\.89 0\.48 0\.32 1 setcmykcolor/);
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }

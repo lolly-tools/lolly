@@ -21,8 +21,8 @@
   ],
   "modules": {
     "shells/web/src/bridge/export-svg-walker.ts": {
-      "lines": 1870,
-      "largestFunctionLines": 1633,
+      "lines": 1859,
+      "largestFunctionLines": 1621,
       "importFanIn": 4,
       "importFanOut": 19,
       "typeEscapes": 17

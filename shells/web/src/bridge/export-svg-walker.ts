@@ -7,7 +7,10 @@
  * file never imports export.ts.
  */
 import { bakeNestedSvgPaint } from './export-svg-bake.ts';
-import { canCarryWatermark, parseDropShadowFilter, splitCssArgs, parseConicGradient, toCssPx, toCssLength, parseClipShape, parseCssMatrix, isAxisAlignedMat, matToSvg, matAboutPivot, isNonAffineTransform, CSS_DPI, parseBoxShadow, roundedRectPath, insetCorners, gaussianShadowRings, uniformRadius, extractC2paStore, prepareC2paIngredientFromStore } from '@lolly/engine';
+import { inlinePicture, isPaintSkipped } from './export-picture-credentials.ts';
+// export.ts reads the shared picture rule through the walker it already imports.
+export { inlinePicture, isPaintSkipped, recordDrawnPictures } from './export-picture-credentials.ts';
+import { canCarryWatermark, parseDropShadowFilter, splitCssArgs, parseConicGradient, toCssPx, toCssLength, parseClipShape, parseCssMatrix, isAxisAlignedMat, matToSvg, matAboutPivot, isNonAffineTransform, CSS_DPI, parseBoxShadow, roundedRectPath, insetCorners, gaussianShadowRings, uniformRadius } from '@lolly/engine';
 import type { Mat2D } from '@lolly/engine';
 import { textStrokeAttrs, canVectoriseText, textBaselineY, applyTextTransform } from './text-svg.ts';
 import { hasRtlText } from '@lolly-tools/node-shell/text-bidi';
@@ -1971,25 +1974,13 @@ async function renderHtmlSvg(node: Element, opts: ExportOpts, textContext: Inlin
           // being inconsistent with it rather than a deliberate exemption.
           // Falls back to the raw src on failure (cross-origin without CORS, 404),
           // which is exactly the old behaviour - never worse than before.
-          const dataUrl0 = src.startsWith('data:') ? src
-            : await blobToDataUrl(src).catch(() => src);
           // Preserve an embedded bitmap's provenance BEFORE downscaleRasterForBox's
           // canvas re-encode strips it (canvas.toDataURL emits a metadata-free PNG):
-          // read the source's Content Credentials and carry them forward as a
-          // componentOf ingredient on the EXPORT's own manifest, so a genAI origin (or
-          // any credential) stays on the record even though the embedded pixels can no
-          // longer hold it. Verify walks ingredient manifests, so the flag surfaces.
-          // Only credentialed bitmaps add one; gated on _ingredientSink (c2pa only).
-          if (opts._ingredientSink && dataUrl0.startsWith('data:')) {
-            try {
-              const b = Uint8Array.from(atob(dataUrl0.slice(dataUrl0.indexOf(',') + 1)), (c) => c.charCodeAt(0));
-              const store = extractC2paStore(b);
-              const ing = store && prepareC2paIngredientFromStore(store.store, store.format);
-              if (ing && !opts._ingredientSink.some((p) => p.activeLabel === ing.activeLabel)) {
-                opts._ingredientSink.push({ ...ing, relationship: 'componentOf' });
-              }
-            } catch { /* not a decodable/credentialed bitmap */ }
-          }
+          // its Content Credentials ride the EXPORT's own manifest as a componentOf
+          // ingredient, so a genAI origin (or any credential) stays on the record even
+          // though the embedded pixels can no longer hold it. The PDF walker and the
+          // raster routes record the same way (export-picture-credentials.ts).
+          const dataUrl0 = await inlinePicture(src, opts._ingredientSink);
           // CSS filter() (e.g. grayscale/contrast presets) is baked into the bitmap
           // via the browser so the vector image matches screen/PNG instead of
           // exporting full-colour. No-op + graceful fallback when filter is none.
@@ -2486,30 +2477,6 @@ function establishesAbsContainingBlock(cs: CSSStyleDeclaration): boolean {
   const cv = s.contentVisibility;
   if (cv === 'auto' || cv === 'hidden') return true;
   return false;
-}
-
-/**
- * Does the browser skip painting this element even though its computed style says it
- * is visible? Two cases, both of which lay out normally and both of which the walker
- * would otherwise draw:
- *
- *   - a subtree inside a CLOSED <details> (excluding its own <summary>, which paints)
- *   - `content-visibility: hidden`, whose subtree is laid out but never painted
- *
- * checkVisibility() knows about both, but its `checkOpacity`/`checkVisibilityCSS`
- * options overlap gates the walk already applies more precisely (an opacity-0 element
- * is dropped a line above, and the walker's own opacity handling is richer), so the
- * DOM answer is used only as a cross-check on the two cases above.
- */
-export function isPaintSkipped(el: Element, style: CSSStyleDeclaration): boolean {
-  if (style.contentVisibility === 'hidden') return true;
-  const details = el.closest('details:not([open])');
-  // closest() matches the element itself: the <details> box is painted (it is the
-  // card), only its non-summary CONTENTS are skipped.
-  if (!details || details === el) return false;
-  // The summary is the part a closed <details> DOES paint - as is anything inside it.
-  const summary = details.querySelector(':scope > summary');
-  return !(summary?.contains(el));
 }
 
 // Resolve a CSS generated-content pseudo-element (::before/::after) into a drawable

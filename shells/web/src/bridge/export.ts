@@ -79,11 +79,11 @@ import { isOwnProfile, resolveEmbeddedProfile } from '../lib/press-profile-embed
 import { printSeparation } from '../lib/cmyk-separation.ts';
 import { rgbaToCmyk } from './export-cmyk-raster.ts';
 import type { EmbedResolution } from '../lib/press-profile-embed.ts';
-import { _host, dropInlinedCredentials, canvasToBlob, imprintCanvas, exportDims, getDomToImage, swapBlobUrls, thumbnailClone, fontMetricsPx, blobToDataUrl, MAX_RASTER_PX, makeRoundedFill, setExportHost, foldIngredientSinks } from './export-shared.ts';
+import { _host, dropInlinedCredentials, canvasToBlob, imprintCanvas, exportDims, getDomToImage, swapBlobUrls, thumbnailClone, fontMetricsPx, MAX_RASTER_PX, makeRoundedFill, setExportHost, foldIngredientSinks } from './export-shared.ts';
 import { beginFrameClock, renderFrameAt, endFrameClock, withStillHold, posedFrame } from './frame-clock.ts';
 import { isTopTailStage, isRecordStage } from './export-shared.ts';
 import type { WebHost, ExportOpts, ExportDims, ImprintState, Rgba } from './export-shared.ts';
-import { renderSvgFromHtml, stripCommentNodes, inlineBlobUrlsInEl, inlineSvgFromImg, imprintEmbedCanvas, isPaintSkipped, rotationPivot, rasterizePosedNodeToDataUrl, effectSpillCss, detectUnsupportedCss, rasterizeNodeToDataUrl, firstCssUrl, cssUrlToHref, bakeImageFilter, mergeDeco, decoFlags, pdfInlineNonText, type Deco } from './export-svg-walker.ts';
+import { renderSvgFromHtml, stripCommentNodes, inlineBlobUrlsInEl, inlineSvgFromImg, imprintEmbedCanvas, isPaintSkipped, inlinePicture, recordDrawnPictures, rotationPivot, rasterizePosedNodeToDataUrl, effectSpillCss, detectUnsupportedCss, rasterizeNodeToDataUrl, firstCssUrl, cssUrlToHref, bakeImageFilter, mergeDeco, decoFlags, pdfInlineNonText, type Deco } from './export-svg-walker.ts';
 import { designOpsSvg, renderDesignOpsPdf } from './export-design-ops.ts';
 import { finishPng, durableEmbedCanvas } from './export-raster-finish.ts';
 import { rasterStyle, coverRasterStyle } from './export-raster-style.ts';
@@ -371,6 +371,9 @@ async function renderPreparedFormat(node: Element, format: string, opts: ExportO
   // Sources with no credential of their own that only the render meets (a rondocode
   // song the sequence mix played). A caller's own filled list is kept.
   if (opts.c2pa) opts._sourceIngredientSink ??= [];
+  // A still raster paints the page's pictures into new pixels with no walk to read
+  // them on the way, so they are recorded here, by the walkers' own rule.
+  await recordDrawnPictures(node, format, opts._ingredientSink);
   const blob = await dropInlinedCredentials(await renderFormatDispatch(node, format, opts), format, opts);
   await assertPdfCameOutLocked(blob, format, opts);
   const key = format === 'webm' || format === 'mp4'
@@ -1711,7 +1714,7 @@ async function renderArtworkPdf(node: Element, opts: ExportOpts, geo: PrintGeome
   if (svgRoot) {
     await drawSvgVectorsInRegion(pdf, svgRoot, art.x, art.y, art.w, art.h, new Set(), opts._imprintSink, opts.convertPaths !== false);
   } else {
-    await drawHtmlVectors(pdf, node, art.x, art.y, art.w, art.h, opts.convertPaths !== false, opts.onProgress, opts.rasterFallback !== false, opts._imprintSink, opts.signal);
+    await drawHtmlVectors(pdf, node, art.x, art.y, art.w, art.h, opts.convertPaths !== false, opts.onProgress, opts.rasterFallback !== false, opts._imprintSink, opts.signal, opts._ingredientSink);
   }
 
   logPdfWarnings(pdf);
@@ -1886,7 +1889,7 @@ async function stampC2pa(blob: Blob, format: string, opts: ExportOpts, dimension
       audio: !!opts.audio?.url,
       // Honest origin: the runtime flags a sensor capture (live camera / mic take).
       ...(opts.c2paCapture ? { capture: opts.c2paCapture } : {}),
-      // The runtime only sets c2paTextAdded when text sits over an opened asset,
+      // The runtime only sets c2paTextAdded when text sits over a placed asset,
       // so passing it through here keeps the "text is a real edit" gate intact.
       ...(opts.c2paTextAdded ? { textAdded: true, textSample: opts.c2paTextAdded.sample } : {}),
       // The runtime sets c2paAiUpscale when the render's essence is an on-device
@@ -2227,7 +2230,7 @@ async function renderMultiPagePdf(pageEls: Element[], opts: ExportOpts, prepare?
     const svgRoot = el.tagName?.toLowerCase() === 'svg' ? el
       : isSvgRooted(el) ? el.querySelector('svg') : null;
     if (svgRoot) await drawSvgVectorsInRegion(pdf, svgRoot, art.x, art.y, art.w, art.h, new Set(), opts._imprintSink, opts.convertPaths !== false);
-    else await drawHtmlVectors(pdf, el, art.x, art.y, art.w, art.h, convert, opts.onProgress, opts.rasterFallback !== false, opts._imprintSink, opts.signal);
+    else await drawHtmlVectors(pdf, el, art.x, art.y, art.w, art.h, convert, opts.onProgress, opts.rasterFallback !== false, opts._imprintSink, opts.signal, opts._ingredientSink);
   }
   logPdfWarnings(pdf);
   const blob = await pdf.output('blob') as Blob;
@@ -2563,7 +2566,7 @@ const RASTER_DPI = 200;
 // here, because it emits drawing operators straight into a content stream rather
 // than building a re-parentable node tree, so the same fix is a different (and
 // larger) piece of work. Nothing regresses - PDF keeps the order it always had.
-async function drawHtmlVectors(pdf: any, node: Element, ox: number, oy: number, regionW: number, regionH: number, convertPaths = true, onProgress?: (done: number, total: number) => void, rasterFallback = true, imprint?: ImprintState, signal?: AbortSignal): Promise<void> {
+async function drawHtmlVectors(pdf: any, node: Element, ox: number, oy: number, regionW: number, regionH: number, convertPaths = true, onProgress?: (done: number, total: number) => void, rasterFallback = true, imprint?: ImprintState, signal?: AbortSignal, pictures?: IngredientCredential[]): Promise<void> {
   if (await paintDesignGroupPage(pdf, node, { x: ox, y: oy, w: regionW, h: regionH }, { rasterFallback, dpi: RASTER_DPI, maxPixels: MAX_RASTER_PX }, (root, w, h) => rasterizeNodeToDataUrl(root, w, h, undefined, imprint))) return;
   const rect0 = node.getBoundingClientRect();
   const scaleX = regionW / rect0.width;
@@ -3097,9 +3100,9 @@ async function drawHtmlVectors(pdf: any, node: Element, ox: number, oy: number, 
           // and inlines http (cssUrlToHref, :1651), so this was the `<img>` branch
           // being inconsistent with it rather than a deliberate exemption.
           // Falls back to the raw src on failure (cross-origin without CORS, 404),
-          // which is exactly the old behaviour - never worse than before.
-          const dataUrl0 = src.startsWith('data:') ? src
-            : await blobToDataUrl(src).catch(() => src);
+          // which is exactly the old behaviour - never worse than before. Records the
+          // picture's credential first, as the SVG walker does (export-picture-credentials.ts).
+          const dataUrl0 = await inlinePicture(src, pictures);
           // Bake any CSS filter() into the bitmap (browser canvas) so PDF matches
           // screen/PNG; no-op + graceful fallback when filter is none.
           const dataUrl = await bakeImageFilter(el, dataUrl0, style.filter);
