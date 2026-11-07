@@ -106,7 +106,7 @@ export function mountTemplateNotices(opts: {
       opts.changed?.();
       await opts.runtime.resolveRefs();
       setTemplateInputs(opts.toolId, editable);
-      opts.updated({ ref: origin.ref, version: now.version, editable });
+      opts.updated({ ref: origin.ref, version: now.version, editable, ...(now.fixedTheme ? { fixedTheme: true } : {}) });
       off();
     } } : { label: t('Open new version'), run: startAgain },
   });

@@ -1630,6 +1630,10 @@ html[data-a11y-previews="hidden"] .published-card-media .published-card-icon { d
   .published-shelf-row { grid-template-columns: 1fr; }
   .gallery:not(.has-featured) .published-shelf { margin-top: calc(4.4rem + var(--safe-top)); }
 }
+/* The shelf already cleared the topbar, so what follows it sits one step below
+   it instead of clearing the bar a second time. */
+.gallery:not(.has-featured) .published-mount:has(.published-shelf) ~ .yours-shelf { margin-top: var(--sp-7); }
+.gallery:not(.has-featured) .published-mount:has(.published-shelf) ~ .tool-masonry { padding-top: var(--sp-7); }
 
 /* ── "Yours" shelf - the resident's own tools above the grid (plans/170 WP-2).
    Favourites + recents as quiet icon-and-name chips; renders only once three

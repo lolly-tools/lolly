@@ -67,7 +67,7 @@ export interface ResolvedTemplate {
   values: Record<string, InputValue>;
   /** A workspace template's version and the inputs people may change, so the document
    *  it starts can keep where it came from and offer only what the template allows. */
-  workspace?: { version: number; editable?: string[] };
+  workspace?: { version: number; editable?: string[]; fixedTheme?: boolean };
 }
 
 export interface ResolveTemplateOpts {
@@ -97,7 +97,7 @@ export async function resolveTemplateSeed(
     if (!tpl || tpl.retired || (opts.toolId && tpl.toolId !== opts.toolId)) return null;
     const values = await (opts.fetchWorkspace ?? fetchWorkspaceValues)(tpl);
     if (!values) return null;
-    return { ref: parsed, toolId: tpl.toolId, name: tpl.name, values, workspace: { version: tpl.version, ...(tpl.editable ? { editable: tpl.editable } : {}) } };
+    return { ref: parsed, toolId: tpl.toolId, name: tpl.name, values, workspace: { version: tpl.version, ...(tpl.editable ? { editable: tpl.editable } : {}), ...(tpl.fixedTheme ? { fixedTheme: true } : {}) } };
   }
   if (parsed.kind === 'user') {
     let tpl: Awaited<ReturnType<ReturnType<typeof createUserTemplateStore>['get']>> = null;

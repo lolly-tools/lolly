@@ -143,6 +143,8 @@ export interface ToolViewCtx {
   templateOrigin: import('../../lib/workspace-templates.ts').TemplateOrigin | null;
   /** That template as the workspace serves it now: null when it has left the catalog. */
   templateNow: import('../../lib/workspace-templates.ts').WorkspaceTemplate | null;
+  /** The template keeps its colourway and mode, so the Design system section is not offered. */
+  templateFixedTheme: boolean;
   /** A workspace template picked in the Start chooser: it opens as a fresh document. */
   pickedWorkspaceRef: string | null;
   fileIntoFolder: string | null;

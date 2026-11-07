@@ -59,6 +59,10 @@ test('values are read from the template\'s JSON, and a template for another tool
   assert.equal(await fetchWorkspaceValues(tpl, (async () => new Response('', { status: 404 })) as unknown as typeof fetch), null);
   const tiles = await workspaceVariants([tpl], 'From SUSE', ok({ toolId: 'pricing-table', values: { heading: 'SLES' } }));
   assert.deepEqual(tiles, [{ id: 'inst/abc123', name: 'Partner price sheet', category: 'From SUSE', values: { heading: 'SLES' }, ref: 'inst/abc123', own: false, published: true }]);
+  const lined = await workspaceVariants([tpl], 'From SUSE', ok({ toolId: 'pricing-table', values: {} }), (t) => `From SUSE · Version ${t.version}`);
+  assert.equal(lined[0]?.description, 'From SUSE · Version 3', 'a tile with no description of its own says where it is from');
+  assert.equal(workspaceTemplateOf(ref('inst/kept01', { toolId: 'pricing-table', fixedTheme: true }))?.fixedTheme, true);
+  assert.deepEqual(readTemplateOrigin({ ref: 'inst/kept01', version: 1, fixedTheme: true }), { ref: 'inst/kept01', version: 1, fixedTheme: true });
 });
 
 test('the template ref names a workspace template by its catalog id and resolves it with its rules', async () => {

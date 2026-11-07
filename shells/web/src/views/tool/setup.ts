@@ -385,6 +385,7 @@ async function applyTemplateOrigin(tview: ToolViewCtx): Promise<void> {
   if (!origin) return;
   const { getWorkspaceTemplate } = await import('../../lib/workspace-templates.ts');
   tview.templateNow = await getWorkspaceTemplate(tview.host as never, origin.ref);
+  tview.templateFixedTheme = !!(tview.templateNow ? tview.templateNow.fixedTheme : origin.fixedTheme);
   const editable = tview.templateNow ? tview.templateNow.editable : origin.editable;
   if (!editable) return;
   const { setTemplateInputs, clearTemplateInputs } = await import('../../lib/input-policy.ts');
@@ -405,6 +406,7 @@ export async function templatePick(tview: ToolViewCtx): Promise<void> {
   tview.templatePickClose = null;
   tview.pickedWorkspaceRef = null;
   tview.templateNow = null;
+  tview.templateFixedTheme = false;
   // A document made from a workspace template keeps where it came from (`__template`),
   // and reopens offering only what that template leaves open.
   tview.templateOrigin = null;
@@ -413,9 +415,9 @@ export async function templatePick(tview: ToolViewCtx): Promise<void> {
     tview.templateOrigin = readTemplateOrigin(tview.initialValues.__template);
   }
   /** Note the workspace template a seed came from, for the saved record. */
-  const noteOrigin = (found: { ref: { kind: string; id: string }; workspace?: { version: number; editable?: string[] } } | null): void => {
+  const noteOrigin = (found: { ref: { kind: string; id: string }; workspace?: { version: number; editable?: string[]; fixedTheme?: boolean } } | null): void => {
     if (found?.ref.kind !== 'workspace' || !found.workspace) return;
-    tview.templateOrigin = { ref: found.ref.id, version: found.workspace.version, ...(found.workspace.editable ? { editable: found.workspace.editable } : {}) };
+    tview.templateOrigin = { ref: found.ref.id, version: found.workspace.version, ...(found.workspace.editable ? { editable: found.workspace.editable } : {}), ...(found.workspace.fixedTheme ? { fixedTheme: true } : {}) };
   };
   // ONE way to apply a starting point before the runtime is born - the `?template=`
   // launcher and the "Start with" ladder below both go through it, so the two can never
@@ -605,7 +607,8 @@ export async function templatePick(tview: ToolViewCtx): Promise<void> {
           const { listWorkspaceTemplates, startableFor, workspaceVariants } = await import('../../lib/workspace-templates.ts');
           const published = startableFor(await listWorkspaceTemplates(tview.host as never), toolId);
           const label = getSessionSource()?.label;
-          if (published.length) templates.unshift(...await workspaceVariants(published, label ? tRaw('From {name}', { name: label }) : t('From your workspace')));
+          const from = label ? tRaw('From {name}', { name: label }) : t('From your workspace');
+          if (published.length) templates.unshift(...await workspaceVariants(published, from, undefined, (tpl) => `${from} · ${tRaw('Version {n}', { n: tpl.version })}`));
         } catch {
           /* workspace templates are best-effort, like the person's own */
         }

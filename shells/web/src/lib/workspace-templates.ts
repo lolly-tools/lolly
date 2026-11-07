@@ -28,6 +28,8 @@ export interface WorkspaceTemplate {
   version: number;
   /** Inputs people may change; absent means every input. */
   editable?: string[];
+  /** True when people keep the colourway and mode the template was made in. */
+  fixedTheme?: boolean;
   retired?: boolean;
   replacedBy?: string;
   /** Where its JSON is served. */
@@ -62,6 +64,7 @@ export function workspaceTemplateOf(ref: AssetRef | null | undefined): Workspace
     toolId: meta.toolId,
     version: typeof meta.version === 'number' && meta.version > 0 ? meta.version : 1,
     ...(editable ? { editable } : {}),
+    ...(meta.fixedTheme === true ? { fixedTheme: true } : {}),
     ...(meta.retired === true ? { retired: true } : {}),
     ...(typeof meta.replacedBy === 'string' ? { replacedBy: meta.replacedBy } : {}),
     url: ref.url,
@@ -113,14 +116,17 @@ export async function fetchWorkspaceValues(template: WorkspaceTemplate, fetchImp
 /**
  * The chooser's tiles for a tool's workspace templates, values read up front (they are
  * small, and a live tile preview needs them), under one category label. A template whose
- * values cannot be read is left out rather than offered as a blank start.
+ * values cannot be read is left out rather than offered as a blank start. A template
+ * with no description of its own takes `fallbackDescription`'s line.
  */
-export async function workspaceVariants(list: readonly WorkspaceTemplate[], category: string, fetchImpl?: typeof fetch): Promise<TemplateVariant[]> {
+export async function workspaceVariants(list: readonly WorkspaceTemplate[], category: string, fetchImpl?: typeof fetch, fallbackDescription?: (tpl: WorkspaceTemplate) => string): Promise<TemplateVariant[]> {
   const out: TemplateVariant[] = [];
   for (const tpl of list) {
     const values = await fetchWorkspaceValues(tpl, fetchImpl);
     if (!values) continue;
-    out.push({ id: tpl.id, name: tpl.name, ...(tpl.description ? { description: tpl.description } : {}), category, values, ref: tpl.id, own: false, published: true });
+    // Every tile carries a second line: its own description, or where it is from.
+    const description = tpl.description ?? fallbackDescription?.(tpl);
+    out.push({ id: tpl.id, name: tpl.name, ...(description ? { description } : {}), category, values, ref: tpl.id, own: false, published: true });
   }
   return out;
 }
@@ -132,6 +138,8 @@ export interface TemplateOrigin {
   /** The rules it was started under, kept so a document whose template has left the
    *  catalog still offers only what it offered. */
   editable?: string[];
+  /** Kept for the same reason: the template kept its colourway and mode. */
+  fixedTheme?: boolean;
 }
 
 /** Read a saved document's origin back; null for anything else. */
@@ -140,5 +148,5 @@ export function readTemplateOrigin(raw: unknown): TemplateOrigin | null {
   const o = raw as Record<string, unknown>;
   if (!isWorkspaceTemplateRef(o.ref) || typeof o.version !== 'number') return null;
   const editable = Array.isArray(o.editable) ? o.editable.filter((id): id is string => typeof id === 'string') : undefined;
-  return { ref: o.ref, version: o.version, ...(editable ? { editable } : {}) };
+  return { ref: o.ref, version: o.version, ...(editable ? { editable } : {}), ...(o.fixedTheme === true ? { fixedTheme: true } : {}) };
 }
