@@ -12,7 +12,7 @@
 
 首頁頂端有四個分頁：**Tools**、**Utilities**、**Assets** 與 **Projects**。Tools 是你用來製作的工具，Utilities 是處理轉換、檢查或清理檔案等工作的工作台，Assets 是你的資料庫，Projects 則保存你儲存的內容。
 
-底部的列包含 **Open**、**Settings**、搜尋欄位、**Verify** 與 **What?**。它顯示於 Tools、Utilities、Assets、Projects、Settings 以及你在應用程式中閱讀的指南，並在工具開啟後讓位。[搜尋](/info/search.html)從該欄位涵蓋你的工具、已儲存的作品、素材與設定。[Ask Lolly](/info/ask.html) 以這些指南中相符的章節回答你輸入的問題。
+底部的列包含 **Open**、**Settings**、搜尋欄位、通往 Lolly Verify 的 **Verify** 捷徑與 **What?**。它顯示於 Tools、Utilities、Assets、Projects、Settings 以及你在應用程式中閱讀的指南，並在工具開啟後讓位。[Lolly Search](/info/search.html) 從該欄位涵蓋你的工具、已儲存的作品、素材與設定。[Ask Lolly](/info/ask.html) 以這些指南中相符的章節回答你輸入的問題。
 
 點擊卡片即可在該工具中開始新的作品。已儲存的作品則改從 **Projects** 重新開啟。
 
@@ -22,7 +22,7 @@
 
 ![某個工具的分割檢視畫面——左側是控制項堆疊,右側是即時繪製的分組長條圖](/t/url-shot?url=%2F%23%2Ftool%2Fchart%3Fct%3Dbar%26t%3DExample%2520data%26st%3DSample%2520values%252C%2520not%2520a%2520real%2520dataset%26d%3DMonth%252CSeries%2520A%252CSeries%2520B%252CSeries%2520C%250AJan%252C12%252C9%252C5%250AFeb%252C18%252C14%252C7%250AMar%252C24%252C17%252C11%250AApr%252C29%252C23%252C15%26lg%3D1&width=1440&height=900&dpi=192&waitMs=2500&walker=1&format=svg&dark=1&filename=vt-tool-split-view)
 
-**Design** 是例外。它以自由畫布的形式開啟，上面的方塊可拖曳、調整大小並輸入文字，並有自己的頂端列、時間軸與簡報控制項。[Design：自由畫布](/info/design.html)是它的指南。
+**Lolly Design** 是例外。它以自由畫布的形式開啟，上面的方塊可拖曳、調整大小並輸入文字，並有自己的頂端列、時間軸與簡報控制項。[Lolly Design：自由畫布](/info/design.html)是它的指南。
 
 ## 更改工具讓你更改的部分
 
@@ -36,7 +36,7 @@
 
 **設計系統選項。** 當你的設計系統提供多種配色方案、淺色與深色外觀或其他主題選項時，控制項下方的 **Design system** 區段會保存它們。選項只有在改變這個工具時才會出現，因此檔案工具完全不會顯示該區段。每種配色方案是一個用自己色彩呈現的圓點，淺色與深色是兩個按鈕，其他選項則是清單。
 
-這個選擇屬於這件作品。它隨連結與儲存的工作階段一起傳遞，每個連結到設計系統的色彩都會跟著它變化，而應用程式自己的色彩維持不變。Design 在 Inspector 的 **Canvas** 分頁顯示相同的選項。色彩本身就是內容的工具可以停留在標準配色方案上，這時就不會提供配色方案圓點。[實際使用 Lolly Demo](/info/lolly-demo-in-use.html#colourways-on-real-work)展示了在真實工作上的配色方案。
+這個選擇屬於這件作品。它隨連結與儲存的工作階段一起傳遞，每個連結到設計系統的色彩都會跟著它變化，而應用程式自己的色彩維持不變。Lolly Design 在 Inspector 的 **Canvas** 分頁顯示相同的選項。色彩本身就是內容的工具可以停留在標準配色方案上，這時就不會提供配色方案圓點。[實際使用 Lolly Demo](/info/lolly-demo-in-use.html#colourways-on-real-work)展示了在真實工作上的配色方案。
 
 ### 縮放與平移預覽
 
@@ -47,7 +47,7 @@
 - **觸控：** 雙指縮放、拖曳平移、點兩下符合大小。
 - **縮放 HUD：** 在角落按住 Lolly 漩渦圖示，即可展開 `−`、**Fit** 與 `+`。輕點漩渦圖示仍會開啟你的個人資料選單。
 
-在 Design 中，**Fit all** 包括畫板和獨立圖層。手動縮小可以低於 20%，直到整個頁面佔據檢視的一半。最低限制取一般 Fit 比例的 5% 與絕對縮放比例 2% 中較小的值。
+在 Lolly Design 中，**Fit all** 包括畫板和獨立圖層。手動縮小可以低於 20%，直到整個頁面佔據檢視的一半。最低限制取一般 Fit 比例的 5% 與絕對縮放比例 2% 中較小的值。
 
 輸出尺寸一有變動，檢視總會回到乾淨的符合大小狀態。
 
@@ -55,7 +55,7 @@
 
 ### 復原與取消復原
 
-**Cmd/Ctrl-Z** 往回一步，**Cmd/Ctrl-Shift-Z**（或 **Cmd/Ctrl-Y**）往前一步。同一組操作也以 **Undo** 與 **Redo** 按鈕的形式放在控制項上方（在 Design 中位於頂端列），沒有可復原的內容時各自會變灰。訊息會說明每次復原還原了哪個輸入，並在訊息中附有 **Redo** 按鈕。
+**Cmd/Ctrl-Z** 往回一步，**Cmd/Ctrl-Shift-Z**（或 **Cmd/Ctrl-Y**）往前一步。同一組操作也以 **Undo** 與 **Redo** 按鈕的形式放在控制項上方（在 Lolly Design 中位於頂端列），沒有可復原的內容時各自會變灰。訊息會說明每次復原還原了哪個輸入，並在訊息中附有 **Redo** 按鈕。
 
 - **一次拖曳算一步。** 半秒內對同一個控制項的重複變更會合併，因此把滑桿拉過整個範圍只算一次復原。
 - **保留最近 100 步。** 復原之後的新編輯會清除往前的堆疊。
@@ -72,7 +72,7 @@
 
 若要保存你的作品，請按下 **Save**，也就是渲染膠囊上 **Export** 旁的勾號。新作品會進入 **My library**，你先前儲存的作品則就地更新，並且不會下載任何內容。匯出面板中也有相同的 **Save** 按鈕。
 
-若要選擇存放位置，請按下匯出面板中 **Download** 旁的 **Save as**。在 **Save to a project** 下，讓 **My library** 保持選取，或選擇一個專案（**＋ New project…** 可建立一個），然後按下 **Save**；**Save as a template** 會把設計保存為[範本](/info/templates.html)，作為新文件的起點。在 Design 中，**Save as** 位於 Lolly 選單；在手機上，請按下 **•••**，然後 **File menu**，再按 **Save as**。
+若要選擇存放位置，請按下匯出面板中 **Download** 旁的 **Save as**。在 **Save to a project** 下，讓 **My library** 保持選取，或選擇一個專案（**＋ New project…** 可建立一個），然後按下 **Save**；**Save as a template** 會把設計保存為[範本](/info/templates.html)，作為新文件的起點。在 Lolly Design 中，**Save as** 位於 Lolly 選單；在手機上，請按下 **•••**，然後 **File menu**，再按 **Save as**。
 
 ![分成兩半的渲染膠囊：Export，帶有開啟匯出面板的向上箭頭；以及 Save，帶有就地儲存的勾號](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools&width=1440&height=900&dpi=192&waitMs=2500&css=%23tool-inputs%7Bdisplay%3Anone%7D&cropSelector=.render-pill&walker=1&format=svg&dark=1&filename=use-render-pill)
 
@@ -162,7 +162,7 @@
 
 `.lolly` 是一般的 zip。把它改名為 `.zip` 就能看裡面：你自己的圖片在 `assets/uploads/` 下，目錄圖稿在 `assets/catalog/` 下，`manifest.json` 列出每個檔案，而 README 說明這個檔案是什麼。
 
-macOS、Windows、Linux、iOS 與 Android 都註冊了這種格式，桌面檔案管理員將它顯示為 Lolly 文件，GNOME Files 則可以顯示已儲存工作階段自己的縮圖。從 Design System Setup 開啟時，若共用設計帶有設計系統動作，會推薦該動作，但絕不隱藏 **Open shared design**。
+macOS、Windows、Linux、iOS 與 Android 都註冊了這種格式，桌面檔案管理員將它顯示為 Lolly 文件，GNOME Files 則可以顯示已儲存工作階段自己的縮圖。從 Lolly Design System Setup 開啟時，若共用設計帶有設計系統動作，會推薦該動作，但絕不隱藏 **Open shared design**。
 
 從 iOS 或 Android 上的另一個應用程式交給 Lolly 的文件上限為 48 MB，因為交接會將其位元組複製過應用程式邊界，應用程式也會說明這一點。Lolly 內的 **Open** 沒有這項上限，因此較大的套件請使用它。
 
@@ -173,7 +173,7 @@ macOS、Windows、Linux、iOS 與 Android 都註冊了這種格式，桌面檔�
 
 ## 素材 - 你的資料庫
 
-**Assets**（`#/a`）彙集了你的工具可以取用的一切：品牌標誌、圖片、音訊與動態，依種類分組，連同你自己的檔案。你的上傳內容儲存在你的裝置上。使用 Lolly Work 的組織也可以在自己的存取規則下提供共用目錄；請見[在你的組織使用 Lolly](/info/organisation.html)。
+**Lolly Assets**（`#/a`）彙集了你的工具可以取用的一切：品牌標誌、圖片、音訊與動態，依種類分組，連同你自己的檔案。你的上傳內容儲存在你的裝置上。使用 Lolly Work 的組織也可以在自己的存取規則下提供共用目錄；請見[在你的組織使用 Lolly](/info/organisation.html)。
 
 ![素材 - 品牌的色票與字體，以及你自己上傳的檔案](/t/url-shot?url=%2F%23%2Fa%3Fsection%3Dswatches%2Cfonts&width=1440&height=900&dpi=96&waitMs=2400&css=.plat-swatch-grid~%2A%7Bdisplay%3Anone%7D&walker=1&format=svg&localize=1&dark=1&filename=assets)
 
@@ -267,12 +267,25 @@ storage-seeding hook.
 
 ![手機寬度螢幕上的工具：控制項是頂端的面板，生成的色盤填滿下方預覽，算圖膠囊浮在底部中央](/t/url-shot?url=%2F%23%2Ftool%2Fcolor-palette%3Fseed%3Df97316%26harmony%3Dadjacent-3%26steps%3D9&width=430&height=900&dpi=192&waitMs=2200&walker=1&format=svg&dark=1&filename=vt-phone-palette)
 
+## 可摺疊裝置與 iPhone Duo
+
+在可摺疊裝置、iPhone Duo 或近乎正方形的觸控螢幕上，Lolly 會把工具分成兩個窗格排列，就像書的兩頁：
+
+- **一側是控制項，另一側是畫布。** 控制項會放在你繪圖那隻手的另一邊。請在 **Settings → Accessibility** 選擇 **Dominant hand**，或在控制項頂端按下 **Swap sides**。在由右至左的語言中，兩側會鏡像對調。
+- **分隔線就是鉸鏈。** 當裝置回報其摺疊位置時，兩個窗格會在摺疊處相接，因此沒有任何控制項或作品落在摺痕上。在連續的螢幕上，可以把分隔線拖到寬度的三分之一、一半或三分之二處。Lolly 會在這部裝置上記住你對每個檢視的選擇。
+- **放在桌面上時。** 半開、摺疊線橫過螢幕時，畫布佔上半部，控制項位於摺疊線下方。簡報時，投影片在上方，你的備忘稿、下一張投影片以及 **Back** 與 **Next** 在下方。在 Sequence 中，預覽在上方，時間軸在下方。
+- **Lolly Design、Brand Studio 與 Assets。** 在 Lolly Design 中，Inspector、圖層與匯出面板是畫布旁的分頁，而工具沿著畫布的外側邊緣排列，位於你繪圖的那隻手之下。當工具多到放不下時，這一欄可以捲動，並以帶箭頭的淡出效果指出其餘工具在哪個方向。放在桌面上時，工具改為沿著畫布底部排列。Brand Studio 把 Board 放在一側，把你開啟的房間放在另一側。在 Assets 中，素材的詳細資料會在資料庫旁開啟，因此下一次點選會在同一個位置顯示下一個素材。
+- **摺痕上不放任何東西。** 在已回報摺疊位置的裝置上，對話框會在放有控制項的那一頁開啟，首頁底部的搜尋框及其結果也是如此。平面螢幕則讓它們保持在中間。
+- **摺疊不會遺失任何內容。** 摺疊、展開或旋轉裝置，都會保留你的文件、選取範圍、縮放比例，以及你正在輸入的欄位，游標也留在你離開時的位置。
+
+可摺疊裝置的外側螢幕維持上述的手機版面，分割螢幕中占一半的 Lolly 視窗也一樣。
+
 ## 設定、聲音與舒適度
 
 首頁底部的 **Settings** 包含你的詳細資料、設計系統、無障礙、儲存空間與離線下載。[Lolly Settings](/info/dashboard.html) 對應每個分頁。
 
 - **你的詳細資料與大頭照**會填入任何設計為使用它們的工具，例如電子郵件簽名檔或名牌。[個人資料](/info/profile.html)涵蓋它們。
-- **無障礙**有四個舒適度開關：**Reduce motion**、**Hide colourful previews**、**High contrast** 與 **Large text**。它們改變的是你作品周圍的應用程式，絕不改變工具畫布或匯出內容。
+- **無障礙**有四個舒適度開關：**Reduce motion**、**Hide colourful previews**、**High contrast** 與 **Large text**。它們改變的是你作品周圍的應用程式，絕不改變工具畫布或匯出內容。在它們旁邊，**Dominant hand** 可選擇在兩個窗格中控制項放在哪一側。
 - **Sound** 會為你的操作播放柔和的輔助音效，**Neurospicy Mode** 則播放平靜的專注曲目。兩者在你於 **Settings → Accessibility** 或個人資料選單開啟之前都是關閉的。
 - **Available offline** 會在你失去連線之前，下載應用程式的其餘部分、你的工具、目錄與指南。Lolly 是可以安裝的網頁應用程式：使用瀏覽器的安裝按鈕，或在手機上選擇*加入主畫面*，就能得到在你重新上線時自行更新的全螢幕應用程式。
 - **Storage** 顯示 Lolly 在這部裝置上保存了什麼。[如果你清除瀏覽器資料](/info/find-your-work.html#if-you-clear-your-browser-data)說明清除會移除什麼，[隱私政策](/info/privacy.html)則列出應用程式擷取或傳送的一切。
@@ -283,10 +296,10 @@ storage-seeding hook.
 
 ## 接下來往哪裡走
 
-- **[Design：自由畫布](/info/design.html)**：畫布、圖形、時間軸，以及簡報一份投影片。
-- **[Batch 與 Multi-edit](/info/batch.html)**：同一份設計的許多版本，或一起編輯數個已儲存的設計。
+- **[Lolly Design：自由畫布](/info/design.html)**：畫布、圖形、時間軸，以及簡報一份投影片。
+- **[Batch 與 Lolly Multi-edit](/info/batch.html)**：同一份設計的許多版本，或一起編輯數個已儲存的設計。
 - **[匯出檔案](/info/exporting.html)**：選擇格式、大小、列印單位、透明度與影片。
-- **[匯入設計](/info/design-import.html)**：將 Figma、Penpot、Illustrator 或 InDesign 檔案帶入 Design 並繼續編輯。
+- **[匯入設計](/info/design-import.html)**：將 Figma、Penpot、Illustrator 或 InDesign 檔案帶入 Lolly Design 並繼續編輯。
 - **[範本](/info/templates.html)**：工具已儲存的起點。
-- **[廣色域與 HDR](/info/hdr-editing.html)**：在 Design 與 Darkroom 中保留圖片原有的精度。
+- **[廣色域與 HDR](/info/hdr-editing.html)**：在 Lolly Design 與 Lolly Darkroom 中保留圖片原有的精度。
 - **[尋找並復原你的作品](/info/find-your-work.html)**：一切在哪裡，以及如何移到另一部裝置。

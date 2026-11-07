@@ -1,4 +1,4 @@
-# Settings
+# Inställningar
 
 Settings är där du ändrar hur Lolly fungerar för dig: dina uppgifter, designsystemet du använder, tillgänglighet, vad som lagras på den här enheten och vad som är redo offline. Öppna det med **Settings** i fältet längst ner på startskärmen, eller från din avatarmeny. Det öppnas på **Preferences**, med fyra flikar till bredvid.
 
@@ -64,7 +64,7 @@ Under mätaren:
 - **Remove automatic checkpoints older than 30 days** frigör utrymme i History och behåller sparade och namngivna versioner.
 - **Clear all my data** tar bort allt Lolly behåller i den här webbläsaren, efter att du skrivit ett ord för att bekräfta. [Om du rensar webbläsardata](/info/find-your-work.html#if-you-clear-your-browser-data) listar vad som försvinner.
 
-### Available offline
+### Tillgänglig offline
 
 Lolly cachar skärmar när du besöker dem, vilket bara täcker platser du redan varit på. **Available offline** är för resan du ser komma: ladda ner de delar du behöver och titta på ett förloppsfält, så fortsätter allt du tog med fungera utan anslutning.
 
@@ -86,13 +86,13 @@ Nedladdningar återupptas där de slutade om du avbryter eller förlorar anslutn
 - **Leave** tar bort instansens designsystem, verktyg och katalog, och ditt eget arbete blir kvar. Se [Använd Lolly i din organisation](/info/organisation.html#leaving).
 - När du är inloggad på en organisation avslutar **Sign out** den här sessionen och **Sign out everywhere** avslutar dina sessioner på varje enhet, den här inkluderad.
 
-## This device
+## Den här enheten
 
 - <!--i:monitor--> **This Machine** - skärm, indata, grafik, minne, kodekar, lagringsbackend med mera, avläst live från den här sessionen. Inget lagras och inget skickas. Den öppnas av sig själv på en bred skärm, där fliken läggs ut i två kolumner.
 - <!--i:neurobeat--> **Sound** - gränssnittsljuden och Neurospicy-fokusloopar, det enda reglaget på den här fliken som skriver något.
 - <!--i:database--> **Storage** - en skrivskyddad vy av mätaren i [Preferences](#storage), där du rensar eller bär dina data.
 
-## Design system
+## Designsystem
 
 Det aktiva designsystemet, uppställt för läsning. När den här webbläsaren håller två eller fler designsystem listar ett band av små omslag högst upp dem: välj ett för att göra det aktivt, och **Undo** i notisen som följer sätter tillbaka det föregående.
 

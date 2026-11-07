@@ -36,7 +36,7 @@ Las tarjetas de tema son vistas previas en vivo y se aplican en el momento en qu
 
 ![Tres tarjetas de tema, cada una mostrando su propio tipo y color, con la activa marcada](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dappearance-section&width=1440&height=1400&dpi=192&waitMs=1600&walker=1&format=svg&cropSelector=.profile-card--appearance&dark=1&filename=pd-theme-picker)
 
-### Accessibility
+### Accesibilidad
 
 **Settings → Preferences → Accessibility** contiene cuatro ajustes de comodidad para la aplicación que rodea tu trabajo. Cada uno está desactivado hasta que lo activas, y ninguno llega al interior del lienzo de una herramienta ni de una exportación, así que una aplicación más tranquila nunca mueve un píxel del archivo que entregas.
 
@@ -51,7 +51,7 @@ La misma tarjeta contiene **Sound**, una capa suave de sonidos de apoyo para lo 
 
 La interfaz se puede navegar con el teclado, los controles personalizados llevan etiquetas para lectores de pantalla y la vista previa en vivo de cada herramienta se expone como una imagen con etiqueta que describe lo que muestra.
 
-### Storage
+### Almacenamiento
 
 El medidor de almacenamiento contabiliza cada byte que guarda esta instalación, categoría por categoría, frente a lo que informa el navegador.
 
@@ -64,7 +64,7 @@ Bajo el medidor:
 - **Remove automatic checkpoints older than 30 days** libera espacio de History y conserva las versiones guardadas y con nombre.
 - **Clear all my data** elimina todo lo que Lolly guarda en este navegador, tras escribir una palabra para confirmar. [If you clear your browser data](/info/find-your-work.html#if-you-clear-your-browser-data) enumera lo que desaparece.
 
-### Available offline
+### Disponible sin conexión
 
 Lolly guarda en caché las pantallas a medida que las visitas, lo que solo cubre donde ya has estado. **Available offline** es para el viaje que ves venir: descarga las partes que necesitarás y mira una sola barra de progreso, y todo lo que te llevaste sigue funcionando sin conexión.
 
@@ -86,13 +86,13 @@ Las descargas se reanudan donde se detuvieron si cancelas o pierdes la conexión
 - **Leave** elimina el design system, las herramientas y el catálogo de la instancia, y tu propio trabajo se queda. Consulta [Use Lolly at your organisation](/info/organisation.html#leaving).
 - Cuando has iniciado sesión en una organización, **Sign out** cierra esta sesión y **Sign out everywhere** cierra tus sesiones en todos los dispositivos, incluido este.
 
-## This device
+## Este dispositivo
 
 - <!--i:monitor--> **This Machine** - pantalla, entrada, gráficos, memoria, códecs, backend de almacenamiento y más, leídos en vivo de esta sesión. No se almacena nada y no se envía nada. Se abre solo en una pantalla ancha, donde la pestaña se dispone en dos columnas.
 - <!--i:neurobeat--> **Sound** - los sonidos de la interfaz y los bucles de concentración de Neurospicy, el único interruptor de esta pestaña que escribe algo.
 - <!--i:database--> **Storage** - una vista de solo lectura del medidor de [Preferences](#storage), que es donde borras o trasladas tus datos.
 
-## Design system
+## Sistema de diseño
 
 El design system activo, expuesto para leer. Cuando este navegador guarda dos o más design systems, una tira de pequeñas portadas arriba los enumera: elige uno para activarlo, y **Undo** en el aviso que sigue vuelve a poner el anterior.
 

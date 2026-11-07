@@ -14,6 +14,8 @@ Bắt đầu với [Use Lolly at your organisation](/info/organisation.html) đ�
 
 ## Kết nối tài nguyên và xem xét công việc
 
+- [Use Lolly with your existing DAM](/info/use-with-dam.html) giải thích quyền nguồn gốc và sản xuất kết nối. [The SUSE Brandfolder account](/info/suse-brandfolder.html) ghi lại trải nghiệm triển khai, và [Plan a DAM transition](/info/dam-transition.html) đề cập một bước chuyển tùy chọn về sau.
+
 - [Design-system administration](/info/work-design-system-administration.html) đề cập kiểm kê nguồn, thay đổi đã xem xét và hoàn nguyên.
 - [Catalog and content](/info/work-catalog.html) đề cập tài nguyên chung và quy tắc hiển thị. [Provider guides](/info/work-provider-guides.html) đưa ra yêu cầu thiết lập và xác minh của từng nền tảng nguồn.
 - [Approvals](/info/work-approvals.html) đề cập chuỗi xem xét và phân tách nhiệm vụ. [Rendering and sharing](/info/work-sharing.html) đề cập liên kết và đầu ra máy chủ.

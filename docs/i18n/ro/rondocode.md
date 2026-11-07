@@ -1,4 +1,6 @@
-# Melodii Rondocode
+# Melodii Lolly Rondocode
+
+<a id="rondocode-songs"></a>
 
 O melodie rondocode este muzică scrisă ca cod: sintetizatoare, tipare și un mix, redate pe măsură ce tastezi. Lolly poate reda o melodie sub un video, iar utilitarul **Rondocode** te lasă să scrii una și s-o exporți ca audio. Ambele înregistrează melodia în Content Credentials ale fișierului, deci muzica spune de unde vine.
 
@@ -12,7 +14,7 @@ Din terminal, `lolly mix` ia o melodie ca întreaga coloană sonoră; vezi [Rand
 
 ## Scrie și exportă o melodie
 
-Deschide **Rondocode** din **Utilities** ca să scrii o melodie în editorul live rondocode și s-o auzi pe măsură ce tastezi. Exportă-o ca **WAV**, **MP3**, **M4A**, **Opus** sau **FLAC**, ca ZIP de stems, ca **MIDI** sau ca înregistrare a ceea ce se redă. Din terminal, `lolly rondocode --export=mid` scrie același fișier MIDI. **Export length** setează câte secunde durează un export audio. Fișierul melodiei în sine (`.rondo.json`) este codul tău așa cum a fost scris și nu poartă nimic adăugat.
+Deschide instrumentul **Rondocode** din **Utilities** ca să scrii o melodie în editorul live rondocode și s-o auzi pe măsură ce tastezi. Exportă-o ca **WAV**, **MP3**, **M4A**, **Opus** sau **FLAC**, ca ZIP de stems, ca **MIDI** sau ca înregistrare a ceea ce se redă. Din terminal, `lolly rondocode --export=mid` scrie același fișier MIDI. **Export length** setează câte secunde durează un export audio. Fișierul melodiei în sine (`.rondo.json`) este codul tău așa cum a fost scris și nu poartă nimic adăugat.
 
 O melodie poate cânta versurile cu `sing()`. Cântatul este făcut pe dispozitivul tău de modele de voce descărcate, iar un fișier care conține cântat sintetizat declară mereu cântatul ca generat de AI (vezi [Funcții AI](/info/ai-features.html)).
 
@@ -24,11 +26,11 @@ Un export video sau audio care redă o melodie rondocode înregistrează fiecare
 - SHA-256 al fișierului ei `.rondo.json`;
 - cum a fost randată: în sandbox-ul Lolly, clasa de execuție `vm`, cu versiunea și seed-ul randerului și orice parte pe care randarea nu a putut-o reda.
 
-Muzica calculată din codul unei melodii este marcată ca media algoritmică, deci Verify nu o semnalează ca AI. Înainte să exporți, o linie sub **Download** listează melodiile pe care credențiala le va înregistra; după export, aceeași linie raportează ce a găsit o citire a fișierului livrat. Debifează **C2PA Credentials** ca să omiți înregistrarea. O imagine statică nu înregistrează nicio melodie, pentru că nu are sunet. `lolly mix` și [serverul MCP](/info/mcp.html) scriu aceeași înregistrare.
+Muzica calculată din codul unei melodii este marcată ca media algoritmică, deci Lolly Verify nu o semnalează ca AI. Înainte să exporți, o linie sub **Download** listează melodiile pe care credențiala le va înregistra; după export, aceeași linie raportează ce a găsit o citire a fișierului livrat. Debifează **C2PA Credentials** ca să omiți înregistrarea. O imagine statică nu înregistrează nicio melodie, pentru că nu are sunet. `lolly mix` și [serverul MCP](/info/mcp.html) scriu aceeași înregistrare.
 
 ## Fișiere de la utilitarul Rondocode
 
-Cele mai multe utilitare pe dispozitiv nu scriu credențială, pentru că transformă un fișier pe care îl deții deja. Rondocode face audio nou, deci fiecare fișier audio pe care îl scrie poartă Content Credentials care înregistrează melodia ca sursă: numele ei, SHA-256 al fișierului `.rondo.json` și unde a rulat codul. Asta acoperă WAV, MP3, M4A, Opus, FLAC, fiecare stem dintr-un ZIP de stems și o înregistrare a ceea ce se redă.
+Cele mai multe utilitare pe dispozitiv nu scriu credențială, pentru că transformă un fișier pe care îl deții deja. Lolly Rondocode face audio nou, deci fiecare fișier audio pe care îl scrie poartă Content Credentials care înregistrează melodia ca sursă: numele ei, SHA-256 al fișierului `.rondo.json` și unde a rulat codul. Asta acoperă WAV, MP3, M4A, Opus, FLAC, fiecare stem dintr-un ZIP de stems și o înregistrare a ceea ce se redă.
 
 - Randările editorului însuși rulează în cadrul lui privat (clasa de execuție `frame`) și înregistrează versiunea editorului.
 - O randare făcută de CLI sau de un link de partajare rulează în clasa `vm` și înregistrează versiunea și seed-ul randerului.

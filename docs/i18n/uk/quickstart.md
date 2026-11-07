@@ -22,7 +22,7 @@ lolly.tools відкривається в **Lolly Demo**, власній зра�
 
 Коли ви вперше відкриваєте галерею, коротке привітання пропонує ті самі варіанти: **Зробіть це своїм** відкриває Design System Setup, **Принесіть свій дизайн** відкриває вибір файлу для дизайну, а **Огляньте інструменти спільноти** закриває привітання.
 
-![Кімната «Кольори» в Design System Setup у свіжому встановленні: одна жива фішка, одне поле і все перше рішення](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&system=new-design-system&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&dark=1&filename=bs-colours-new-system)
+![Кімната «Кольори» в Lolly Design System Setup на новій дизайн-системі: одна жива фішка, одне поле і все перше рішення](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&system=new-design-system&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&dark=1&filename=bs-colours-new-system)
 
 Далі вісім кімнат ведуть вас так далеко, як вам потрібно, у будь-якому порядку: **Дошка**, **Кольори**, **Тип**, **Логотипи**, **Tokens**, **Файли**, **Правила** та **Навички**. Кожен попередній перегляд у застосунку оновлюється, поки ви друкуєте. [Lolly Design System Setup](/info/brand-studio.html) описує кожну кімнату.
 

@@ -40,7 +40,7 @@ Nama bersama sebuah tim, kotak masuk grup seperti `events@…`, departemen, dan 
 Manajer acara tiga hari dalam setahun menginginkan kotak masuk acara dan sub-brand acara pada tanda pengenal dan papan petunjuk, lalu kembali ke identitas biasanya. Simpan peran itu sebagai file profil tersimpan, muat untuk acara, dan simpan kembali sesudahnya.
 :::
 
-![The headshot control, empty until you upload a photo that then stays on this device](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-side&walker=1&dark=1&filename=pd-profile-headshot&css=.profile-details-main%7Bdisplay%3Anone%7D)
+![Kontrol foto profil, kosong sampai Anda mengunggah foto yang kemudian tetap berada di perangkat ini](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-side&walker=1&dark=1&filename=pd-profile-headshot&css=.profile-details-main%7Bdisplay%3Anone%7D)
 
 ::: details Profil di organisasi yang memakai Lolly Work
 Saat Anda login ke [Lolly organisasi](/info/organisation.html), Lolly Work dapat menyediakan field profil terverifikasi dari penyedia identitasnya dan menetapkan field atau preferensi di bawah kebijakan organisasi. Field terkelola diberi label di aplikasi.
@@ -90,7 +90,7 @@ Profil mengubah dari siapa sebuah file; design system mengubah tampilan file; ca
 
 Kata ini memiliki tiga arti lain di Lolly. **Content profile** adalah pengaturan build yang memilih alat dan katalog apa yang dikirim sebuah deployment; [Glossary](/info/glossary.html) mendefinisikan istilahnya. Parameter tautan `profile` memilih profil warna untuk ekspor, seperti kondisi cetak CMYK; lihat [Reserved URL parameters](/info/url-parameters.html#print). **Verified identity** adalah sertifikat penandatanganan opsional yang mengikat email Anda ke ekspor bertanda tangan, terpisah dari detail ini, meskipun **Use my details to create** mengatur apakah salah satunya disematkan; lihat [Content Credentials](/info/content-credentials-identity.html).
 
-![The Verified identity card, phone-width: the certificate lifetime picker and the enrolment step beneath it - the identity profile, separate from your personal details](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Didentity-section&width=430&height=1600&dpi=192&waitMs=2400&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone%7D&format=svg&walker=1&cropSelector=%23identity-section&dark=1&filename=pv-identity-enrol)
+![Kartu Verified identity pada lebar ponsel: pemilih masa berlaku sertifikat dan langkah pendaftaran di bawahnya - profil identitas, terpisah dari detail pribadi Anda](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Didentity-section&width=430&height=1600&dpi=192&waitMs=2400&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone%7D&format=svg&walker=1&cropSelector=%23identity-section&dark=1&filename=pv-identity-enrol)
 
 ## Privasi
 

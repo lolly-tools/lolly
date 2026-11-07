@@ -14,6 +14,8 @@ Začni stránkou [Používej Lolly ve své organizaci](/info/organisation.html),
 
 ## Připoj assety a revidujte práci
 
+- [Používej Lolly se svým stávajícím DAM](/info/use-with-dam.html) vysvětluje autoritu zdroje a propojenou produkci. [Účet SUSE Brandfolder](/info/suse-brandfolder.html) zaznamenává zkušenost s přijetím a [Naplánuj přechod DAM](/info/dam-transition.html) pokrývá volitelný pozdější přechod.
+
 - [Správa designového systému](/info/work-design-system-administration.html) pokrývá inventář zdrojů, revidované změny a vrácení.
 - [Katalog a obsah](/info/work-catalog.html) pokrývá sdílené assety a pravidla vystavení. [Průvodci poskytovateli](/info/work-provider-guides.html) uvádějí požadavky na nastavení a ověření každé zdrojové platformy.
 - [Schvalování](/info/work-approvals.html) pokrývá řetězce revizí a oddělení povinností. [Vykreslování a sdílení](/info/work-sharing.html) pokrývá odkazy a serverový výstup.

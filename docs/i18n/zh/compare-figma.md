@@ -16,7 +16,7 @@ _最后核查：2026 年 9 月 28 日。_
 
 Lolly 把设计变成[带规则的可复用工具](/info/create-a-tool.html)。该工具在浏览器或 CLI 中运行，其输入项来自链接、脚本或批量网格，所以一个模板既服务于编辑一个文件的人，也服务于制作大量文件的团队。
 
-![Design 的开放画布，工具栏的 Lolly 菜单中有 Import a design](/info/shots/design.svg)
+![Lolly Design 的开放画布，工具栏的 Lolly 菜单中有 Import a design](/info/shots/design.svg)
 
 [私密协作](/info/collaborate.html)把两台设备直接配对，在共享网络上无需账号，也无需互联网。独立使用的 Lolly 可离线渲染。Content Credentials 对受支持的导出默认开启，你可以关闭。
 

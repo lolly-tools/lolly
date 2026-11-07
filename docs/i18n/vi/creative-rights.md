@@ -22,7 +22,7 @@ Chọn một bộ không bao giờ bị chặn, và điều khiển bộ hiện 
 
 ## Bạn thấy gì, và nên làm gì
 
-Cùng các dòng chữ này xuất hiện trong bảng xuất, Verify, dòng lệnh và kết quả máy đọc được, xấp xỉ theo thứ tự bạn sẽ gặp chúng thường xuyên đến đâu.
+Cùng các dòng chữ này xuất hiện trong bảng xuất, Lolly Verify, dòng lệnh và kết quả máy đọc được, xấp xỉ theo thứ tự bạn sẽ gặp chúng thường xuyên đến đâu.
 
 | Bạn thấy | Nghĩa là gì |
 |---|---|
@@ -51,12 +51,14 @@ Lolly không bao giờ nói "copyright verified", "legally safe", "fully cleared
 
 - **Trong danh mục.** Trang của một tác phẩm hiện nguồn và người tạo, tên giấy phép chuẩn với nhãn gốc được giữ bên dưới, một lời ghi công sao chép được nơi có ghi và một dòng nói việc dùng nó đòi gì. Một ô nêu yêu cầu; nó không bao giờ khẳng định một bản xuất đã hoàn tất.
 - **Trong bảng xuất.** Thẻ Source credits xuất hiện bên trong Content protection khi một bản kết xuất dùng tác phẩm đã ghi, cạnh Licence bạn chọn cho bản xuất của chính bạn. Nó hiện trạng thái, văn bản ghi công sau Details, nút Copy credit và một thẻ nội dòng khi cần quyết định. Một quyết định không bao giờ là hộp thoại chặn: một lần tải xuống còn việc chưa làm vẫn tiếp tục.
-- **Trong tệp.** Một bản xuất đặt tác phẩm đã ghi sẽ ghi một thành phần nguồn Content Credentials cho mỗi tác phẩm riêng biệt, gắn với byte gốc tại địa chỉ công khai của chúng, và mang người tạo, giấy phép cùng liên kết của nó, nguồn, bản sửa đổi và các thay đổi. Lolly ký những gì nó quan sát. Nó không bao giờ ký một khẳng định thay mặt nghệ sĩ gốc, và Verify nói rõ điều nào đã xảy ra.
+- **Trong tệp.** Một bản xuất đặt tác phẩm đã ghi sẽ ghi một thành phần nguồn Content Credentials cho mỗi tác phẩm riêng biệt, gắn với byte gốc tại địa chỉ công khai của chúng, và mang người tạo, giấy phép cùng liên kết của nó, nguồn, bản sửa đổi và các thay đổi. Lolly ký những gì nó quan sát. Nó không bao giờ ký một khẳng định thay mặt nghệ sĩ gốc, và Lolly Verify nói rõ điều nào đã xảy ra.
 - **Trong một gói.** Một lần tải không chứa được credential, như hoạt ảnh `.lottie`, mang phần ghi công dưới dạng `CREDITS.txt` và `credits.json` bên trong gói. Chúng được đọc lại sau khi ghi, và không credential có chữ ký nào được khẳng định cho chúng.
 - **Sau khi ghi.** Các byte đã giao được đọc lại trước khi bất cứ gì nói phần ghi công đã có. Một credential không xác minh được không tính là phần ghi công đã giao.
-- **Trong tệp `.lolly` chỉnh sửa được.** Byte chỉ đi cùng khi một giấy phép đã xem xét ghi quyền chuyển tiếp nguồn. `CREDITS.txt` của gói liệt kê những gì đã đi, theo giấy phép nào và những gì bị giữ lại kèm lý do. Giấy phép chưa ghi bị giữ lại. Bạn vẫn có thể cố ý đưa nội dung bị giữ lại vào, và tệp ghi công ghi rằng đó là lựa chọn của bạn.
-- **Trong Verify.** Bảng Sources liệt kê mọi nguồn mà tệp ghi, với bản tóm tắt được tính, phần ghi công, nút Copy credit, liên kết Open source chỉ mở khi bạn yêu cầu và các giới hạn đã nêu về những gì được kiểm tra. Câu hỏi Check for this use chỉ xuất hiện khi bạn chọn một cách dùng, và không gì được tải để trả lời câu hỏi đó.
+- **Trong tệp `.lolly` chỉnh sửa được.** Byte chỉ đi cùng khi một giấy phép đã xem xét ghi quyền chuyển tiếp nguồn, hoặc khi hàng đó mang điều khoản riêng của chủ sở hữu. `CREDITS.txt` của gói liệt kê những gì đã đi, theo giấy phép nào và những gì bị giữ lại kèm lý do. Giấy phép chưa ghi bị giữ lại. Bạn vẫn có thể cố ý đưa nội dung bị giữ lại vào, và tệp ghi công ghi rằng đó là lựa chọn của bạn.
+- **Trong Lolly Verify.** Bảng Sources liệt kê mọi nguồn mà tệp ghi, với bản tóm tắt được tính, phần ghi công, nút Copy credit, liên kết Open source chỉ mở khi bạn yêu cầu và các giới hạn đã nêu về những gì được kiểm tra. Câu hỏi Check for this use chỉ xuất hiện khi bạn chọn một cách dùng, và không gì được tải để trả lời câu hỏi đó.
 - **Khi bạn gỡ siêu dữ liệu.** Việc lột cho bạn biết tệp không còn mang bao nhiêu phần ghi công nguồn, đưa văn bản ghi công và đề nghị một tệp sạch với phần ghi công trong một tệp riêng. Byte đã lột không bao giờ được đóng dấu lại.
+
+**Dấu hiệu riêng của chủ sở hữu.** Một chủ sở hữu hiếm khi đặt logo dưới giấy phép mở. Một hàng có bản ghi quyền nói `own-work`, kèm chủ sở hữu và các điều khoản, có thể đi trong tệp `.lolly` và trên một [trang thương hiệu](/info/brand-page.html#publish-your-own-marks). Nó đi dưới dạng "Owner-published, not an open licence", với các điều khoản bên cạnh tệp. Điều này đọc những gì một danh mục nêu. Lolly không kiểm tra ai sở hữu một dấu hiệu. Một bản ghi không có chủ sở hữu, điều khoản trống hoặc không có khai báo vẫn bị giữ lại, và dấu hiệu của người khác không có bản ghi như vậy cũng thế.
 
 ::: details Các giấy phép Lolly đã xem xét
 Phiên bản quy tắc `rights-rules-2026-11-05.1`. Mỗi quy tắc được đọc từ chính văn bản pháp lý của giấy phép, và phần nó lấy từ đó được trích dẫn ở đây và cạnh quy tắc trong `engine/src/rights-profiles.ts`. Phiên bản và cổng được giữ như đã ghi: một khai báo CC BY 3.0 giữ phiên bản riêng của nó thay vì bị báo là 4.0 vì bộ chọn của ứng dụng ưa 4.0.
@@ -69,6 +71,7 @@ Phiên bản quy tắc `rights-rules-2026-11-05.1`. Mỗi quy tắc được đ�
 | CC-PDDC | Không gì. Điều được ghi là chính lời khẳng định và ai đưa ra, vì chứng nhận là lời của một bên chứ không phải bằng chứng. | Các đoạn [tuyên bố và chứng nhận](https://creativecommons.org/licenses/publicdomain/) |
 | Apache License 2.0 | Các thông báo từ nguồn và văn bản ghi công của tệp NOTICE đi cùng một tác phẩm được phân phối. Việc dùng lúc chạy không đòi gì. Giấy phép đòi văn bản thông báo mà tác phẩm không mang thì được báo là chỗ trống. | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0), mục 4, điều kiện 1 đến 4 |
 | MIT | Dòng bản quyền và thông báo cấp phép đi cùng bản sao và các phần đáng kể. Việc dùng lúc chạy và tham chiếu không đòi gì. | [MIT](https://opensource.org/license/mit), điều kiện thông báo cấp phép |
+| ISC | Giống MIT, bằng lời ngắn hơn: dòng bản quyền và thông báo cấp phép đi cùng các bản sao. Việc dùng lúc chạy và tham chiếu không đòi gì. | [ISC](https://opensource.org/license/isc-license-txt), điều kiện thông báo cấp phép |
 | SIL OFL 1.1 | Kết xuất văn bản bằng phông chữ không đòi gì ở văn bản. Chuyển tiếp tệp phông chữ mang theo giấy phép, thông báo bản quyền và quy tắc tên được bảo lưu. | [OFL 1.1](https://openfontlicense.org/open-font-license-official-text/), điều kiện 2, 3 và 5; [OFL FAQ](https://openfontlicense.org/ofl-faq/) về tài liệu |
 
 **Đã ghi, chưa diễn giải.** CC BY-NC, CC BY-ND và các tổ hợp NC-SA và NC-ND được nhận ra, điều kiện của chúng được liệt kê và không quy tắc nào ở đây đọc chúng. Chúng báo `licence.unknown` với một dòng nêu các điều kiện. Ngữ cảnh thương mại không thể đọc từ giá hay tài khoản, và mỗi văn bản tổ hợp cần được xem xét riêng trước khi một quy tắc đọc văn bản đó.
@@ -119,7 +122,7 @@ Năm module engine, tất cả đều thuần: không mạng, không đồng h�
 | `engine/src/rights-evaluate.ts` | Phân loại, vấn đề, kế hoạch ghi công và dấu vân tay. Tất định: cùng dữ kiện theo thứ tự khác cho cùng câu trả lời. |
 | `engine/src/rights-attribution.ts` | Phần ghi công đọc được, các tệp đi kèm, các thành phần nguồn và biên nhận đo sau khi ghi. |
 | `engine/src/rights-companion.ts` | Việc đọc lại phần ghi công của gói (`CREDITS.txt` và `credits.json` bên trong bản tải xuống dạng ZIP), xác nhận phần ghi công mà không khẳng định có credential có chữ ký. |
-| `engine/src/rights-report.ts` | Một credential đã xác minh được đọc lại thành ba câu hỏi mà Verify đặt ra. |
+| `engine/src/rights-report.ts` | Một credential đã xác minh được đọc lại thành ba câu hỏi mà Lolly Verify đặt ra. |
 
 Các tệp kỳ vọng trong `tests/fixtures/rights/` được viết từ văn bản giấy phép thay vì từ đầu ra của bộ đánh giá, và README của chúng trích dẫn mục đằng sau mỗi kỳ vọng.
 :::

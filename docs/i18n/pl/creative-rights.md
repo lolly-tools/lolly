@@ -22,7 +22,7 @@ Wybór zestawu nigdy nie jest blokowany, a kontrolka zestawu pokazuje licencję 
 
 ## Co widzisz i co robić
 
-Te same słowa pojawiają się w panelu eksportu, Verify, wierszu poleceń i wyniku maszynowym, mniej więcej w kolejności tego, jak często się z nimi spotkasz.
+Te same słowa pojawiają się w panelu eksportu, Lolly Verify, wierszu poleceń i wyniku maszynowym, mniej więcej w kolejności tego, jak często się z nimi spotkasz.
 
 | Co widzisz | Co to znaczy |
 |---|---|
@@ -51,12 +51,14 @@ Lolly nigdy nie mówi "copyright verified", "legally safe", "fully cleared" ani 
 
 - **W katalogu.** Karta dzieła pokazuje jego źródło i twórcę, kanoniczną nazwę licencji z zachowaną pod spodem oryginalną etykietą, kopiowalne uznanie autorstwa, tam gdzie je zapisano, i jedną linię mówiącą, czego wymaga użycie. Kafel podaje wymaganie; nigdy nie twierdzi, że eksport został ukończony.
 - **W panelu eksportu.** Karta Source credits pojawia się wewnątrz Content protection, gdy renderowanie używa zapisanego dzieła, obok Licence, którą wybierasz dla własnego eksportu. Pokazuje stan, tekst uznania pod Details, przycisk Copy credit i wbudowaną kartę, gdy należy podjąć decyzję. Decyzja nigdy nie jest blokującym oknem: pobranie z pozostawioną akcją nadal przebiega.
-- **W pliku.** Eksport, który umieścił zapisane dzieło, zapisuje jeden składnik źródłowy Content Credentials na każde odrębne dzieło, powiązany z oryginalnymi bajtami pod ich publicznym adresem i niosący twórcę, licencję i jej link, źródło, rewizję i zmiany. Lolly podpisuje to, co zaobserwowało. Nigdy nie podpisuje deklaracji w imieniu artysty z poziomu źródła, a Verify mówi, które z dwóch się stało.
+- **W pliku.** Eksport, który umieścił zapisane dzieło, zapisuje jeden składnik źródłowy Content Credentials na każde odrębne dzieło, powiązany z oryginalnymi bajtami pod ich publicznym adresem i niosący twórcę, licencję i jej link, źródło, rewizję i zmiany. Lolly podpisuje to, co zaobserwowało. Nigdy nie podpisuje deklaracji w imieniu artysty z poziomu źródła, a Lolly Verify mówi, które z dwóch się stało.
 - **W pakiecie.** Pobranie, które nie może zawierać poświadczenia, takie jak animacja `.lottie`, niesie uznania jako `CREDITS.txt` i `credits.json` wewnątrz pakietu. Są odczytywane po zapisaniu i nie jest dla nich deklarowane żadne podpisane poświadczenie.
 - **Po zapisaniu.** Dostarczone bajty są odczytywane z powrotem, zanim cokolwiek powie, że uznania są dołączone. Poświadczenie, które się nie zweryfikowało, nie liczy się jako dostarczone uznanie.
-- **W edytowalnym pliku `.lolly`.** Bajty podróżują tylko wtedy, gdy sprawdzona licencja zapisuje pozwolenie na przekazanie źródła dalej. `CREDITS.txt` paczki wymienia, co podróżowało, na jakiej licencji i co wstrzymano, z powodem. Niezapisana licencja jest wstrzymywana. Nadal możesz świadomie dołączyć wstrzymaną treść, a plik uznań zapisuje, że był to Twój wybór.
-- **W Verify.** Panel Sources wymienia każde źródło, które zapisuje plik, z wyliczonym podsumowaniem, uznaniem, przyciskiem Copy credit, linkiem Open source, który otwiera się tylko na Twoją prośbę, i zadeklarowanymi granicami tego, co sprawdzono. Pytanie Check for this use pojawia się tylko wtedy, gdy wybierzesz użycie, i nic nie jest pobierane, aby na nie odpowiedzieć.
+- **W edytowalnym pliku `.lolly`.** Bajty podróżują tylko wtedy, gdy sprawdzona licencja zapisuje pozwolenie na przekazanie źródła dalej albo wiersz niesie własne warunki właściciela. `CREDITS.txt` paczki wymienia, co podróżowało, na jakiej licencji i co wstrzymano, z powodem. Niezapisana licencja jest wstrzymywana. Nadal możesz świadomie dołączyć wstrzymaną treść, a plik uznań zapisuje, że był to Twój wybór.
+- **W Lolly Verify.** Panel Sources wymienia każde źródło, które zapisuje plik, z wyliczonym podsumowaniem, uznaniem, przyciskiem Copy credit, linkiem Open source, który otwiera się tylko na Twoją prośbę, i zadeklarowanymi granicami tego, co sprawdzono. Pytanie Check for this use pojawia się tylko wtedy, gdy wybierzesz użycie, i nic nie jest pobierane, aby na nie odpowiedzieć.
 - **Gdy usuwasz metadane.** Usuwanie mówi, ile uznań źródeł plik już nie niesie, oferuje tekst uznania i oferuje czysty plik z uznaniami w osobnym pliku. Usunięte bajty nigdy nie są ponownie stemplowane.
+
+**Własne znaki właściciela.** Właściciel rzadko umieszcza logo na otwartej licencji. Wiersz, którego zapis praw mówi `own-work`, z właścicielem i warunkami, może podróżować w pliku `.lolly` i na [stronie marki](/info/brand-page.html#publish-your-own-marks). Podróżuje jako "Owner-published, not an open licence", z warunkami obok pliku. To odczytuje to, co katalog deklaruje. Lolly nie sprawdza, kto jest właścicielem znaku. Zapis bez właściciela, z pustymi warunkami lub bez deklaracji pozostaje wstrzymany, tak samo jak cudzy znak bez takiego zapisu.
 
 ::: details Licencje, które Lolly sprawdziło
 Wersja reguł `rights-rules-2026-11-05.1`. Każda reguła została odczytana z samego tekstu prawnego licencji, a sekcja, z której pochodzi, jest tu przywołana i obok reguły w `engine/src/rights-profiles.ts`. Wersja i port są zachowywane tak, jak zapisano: deklaracja CC BY 3.0 zachowuje swoją wersję, zamiast być zgłaszana jako 4.0 dlatego, że selektor aplikacji woli 4.0.
@@ -69,6 +71,7 @@ Wersja reguł `rights-rules-2026-11-05.1`. Każda reguła została odczytana z s
 | CC-PDDC | Nic. Zapisywane jest samo twierdzenie i kto je wygłosił, ponieważ certyfikacja jest oświadczeniem jednej strony, a nie dowodem. | Akapity [oświadczenia i certyfikacji](https://creativecommons.org/licenses/publicdomain/) |
 | Apache License 2.0 | Informacje ze źródła i tekst przypisania z pliku NOTICE podróżują z rozpowszechnianym dziełem. Użycie w czasie wykonania niczego nie wymaga. Licencja, która wymaga tekstu informacji, i dzieło, które go nie niesie, są zgłaszane jako luka. | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0), sekcja 4, warunki 1 do 4 |
 | MIT | Linia praw autorskich i informacja o pozwoleniu podróżują z kopiami i istotnymi częściami. Użycia w czasie wykonania i referencyjne niczego nie wymagają. | [MIT](https://opensource.org/license/mit), warunek informacji o pozwoleniu |
+| ISC | To samo co MIT, krótszymi słowami: linia praw autorskich i informacja o pozwoleniu podróżują z kopiami. Użycia w czasie wykonania i referencyjne niczego nie wymagają. | [ISC](https://opensource.org/license/isc-license-txt), warunek informacji o pozwoleniu |
 | SIL OFL 1.1 | Renderowanie tekstu czcionką niczego nie wymaga od tekstu. Przekazanie pliku czcionki dalej niesie licencję, informację o prawach autorskich i regułę zastrzeżonej nazwy. | [OFL 1.1](https://openfontlicense.org/open-font-license-official-text/), warunki 2, 3 i 5; [OFL FAQ](https://openfontlicense.org/ofl-faq/) o dokumentach |
 
 **Zapisane, nieinterpretowane.** CC BY-NC, CC BY-ND oraz kombinacje NC-SA i NC-ND są rozpoznawane, ich warunki wymieniane i żadna reguła tutaj ich nie czyta. Zgłaszają `licence.unknown` z linią nazywającą warunki. Kontekstu komercyjnego nie da się odczytać z ceny ani konta, a każdy połączony tekst wymaga własnego przeglądu, zanim reguła go przeczyta.
@@ -119,7 +122,7 @@ Pięć modułów silnika, wszystkie czyste: bez sieci, zegara i systemu plików.
 | `engine/src/rights-evaluate.ts` | Klasyfikację, problemy, plan przypisania i odcisk. Deterministyczny: te same fakty w innej kolejności dają tę samą odpowiedź. |
 | `engine/src/rights-attribution.ts` | Czytelne uznania, pliki towarzyszące, składniki źródłowe i potwierdzenie zmierzone po zapisaniu. |
 | `engine/src/rights-companion.ts` | Odczyt uznań pakietu (`CREDITS.txt` i `credits.json` wewnątrz pobrania opartego na ZIP), który potwierdza uznania bez deklarowania podpisanego poświadczenia. |
-| `engine/src/rights-report.ts` | Zweryfikowane poświadczenie odczytane z powrotem jako trzy pytania, które zadaje Verify. |
+| `engine/src/rights-report.ts` | Zweryfikowane poświadczenie odczytane z powrotem jako trzy pytania, które zadaje Lolly Verify. |
 
 Pliki oczekiwań w `tests/fixtures/rights/` zostały napisane z tekstów licencji, a nie z wyniku ewaluatora, a ich README przywołuje sekcję za każdym oczekiwaniem.
 :::

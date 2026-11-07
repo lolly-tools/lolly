@@ -1,8 +1,10 @@
-# Batch och Multi-edit
+# Lolly Batch och Lolly Multi-edit
+
+<a id="batch-and-multi-edit"></a>
 
 Två jobb dyker upp när du ofta gör samma sorts fil. Ibland behöver du många versioner av en design: ett kort på ett dussin språk, eller varje storlek av en banner. Ibland har du flera olika sparade designer och vill att en ändring ska nå alla, till exempel ett nytt datum eller en ny rubrik.
 
-**Batch** gör det första jobbet och **Multi-edit** det andra. Båda körs på din enhet och exporterar genom samma renderingsväg som verktygen själva.
+**Lolly Batch** gör det första jobbet och **Lolly Multi-edit** det andra. Båda körs på din enhet och exporterar genom samma renderingsväg som verktygen själva.
 
 ::: cols
 ## Batch
@@ -10,9 +12,10 @@ Två jobb dyker upp när du ofta gör samma sorts fil. Ibland behöver du många
 - En mall, många rader. Varje rad är en uppsättning indata och gör en fil.
 - Fyll raderna genom att skriva, klistra in från ett kalkylblad eller importera en CSV.
 - Ingen gräns för rader; 50 visas per sida.
-- Öppnas från **Batch** i rubriken för Projects (`#/batch`).
+- Öppnas från **Lolly Batch** i rubriken för Projects (`#/batch`).
 
-## Multi-edit
+<a id="multi-edit"></a>
+## Lolly Multi-edit
 
 - Två till åtta olika sparade designer, sida vid sida som levande kort.
 - Ett sidofält redigerar indata som de delar, sedan varje korts egna.
@@ -22,7 +25,7 @@ Två jobb dyker upp när du ofta gör samma sorts fil. Ibland behöver du många
 
 ## Gör många versioner av en design
 
-Öppna **Projects** och tryck på **Batch** i dess rubrik. Rutnätet börjar med en rad: välj en mall i den och duplicera sedan raden eller klistra in data från ditt kalkylblad. Om Batch öppnats inifrån en mapp tar det dig tillbaka till den mappen.
+Öppna vyn **Projects** och tryck på **Batch** i dess rubrik. Rutnätet börjar med en rad: välj en mall i den och duplicera sedan raden eller klistra in data från ditt kalkylblad. Om Batch öppnats inifrån en mapp tar det dig tillbaka till den mappen.
 
 ![Batch på ett nytt rutnät: filnamnet och radverktygen längs toppen, och den första radens mallista öppen på de verktyg du kan välja](/t/url-shot?url=%2F%23%2Fbatch&width=1440&height=900&dpi=192&waitMs=3500&walker=1&format=svg&dark=1&filename=use-batch-toolbar)
 
@@ -46,9 +49,13 @@ Varje rad behåller sina egna temaval: ljust eller mörkt, och en färgvariant n
 
 En CSV bär valen i en kolumn `_themes` efter storlekskolumnerna, med samma JSON som länkparametern `_themes`, till exempel `{"":"dark","colourway":"beach"}`. En tom cell, eller `{}`, betyder designsystemets standardvärden. Kolumnen skrivs bara när någon rad har val, så en batch utan några exporterar samma CSV som förut. Vid import listas en cell som inte är giltiga temaval som ett problem och dess rad renderas med standardvärdena. Rutnätet har ännu ingen kontroll för att ändra en rads val, så sätt dem i CSV:n eller i den sparade sessionen.
 
+### Ett språk för varje rad
+
+Ett verktyg som skriver ut sin egen text, som Certificate, kan ta en kolumn `language` med en kort språkkod som `de`, `ja` eller `ar`. Varje rad skriver då ut sin text och sitt datum på det språket, och arabiska och urdu läggs ut från höger till vänster. En tom cell följer appens språk. Ett språk vars översättning Lolly ännu inte har skrivs ut på engelska, datumet inkluderat, så att ett certifikat aldrig blir halvöversatt.
+
 ### Batch, eller Render folder
 
-Batch gör många varianter av en mall. För att rendera om sessioner du redan sparat markerar du dem i Projects och använder **Render selection**, eller **Render folder** för en hel mapp; [Hitta och återställ ditt arbete](/info/find-your-work.html#find-something-you-saved) beskriver båda.
+Lolly Batch gör många varianter av en mall. För att rendera om sessioner du redan sparat markerar du dem i Projects och använder **Render selection**, eller **Render folder** för en hel mapp; [Hitta och återställ ditt arbete](/info/find-your-work.html#find-something-you-saved) beskriver båda.
 
 ## Redigera flera sparade designer tillsammans
 
@@ -69,7 +76,7 @@ Varje kort ritas i sin egen sessions temaval, inklusive ett verktyg placerat inu
 - **Högst åtta.** Varje kort monterar sin egen levande körmiljö, och åtta är antalet som förblir responsivt. En länk som ber om fler, eller om en session som inte längre finns, säger det i stället för att halvladda.
 - **Länken är lokal.** Den namnger dina egna sparade platser, så den öppnar den uppsättningen igen på den här enheten. Den är inte en delningslänk.
 - **För något större** väljer du **Edit as sheet** i samma urvalsfält. Det öppnar hela urvalet som rader i batchrutnätet (`#/batch?s=…`), utan storleksgräns och utan regeln om samma verktyg. Mappar förblir utanför båda: öppna en mapp i rutnätet med **Sessions → Folders…**, eller rendera en med **Render folder** i Projects.
-- **Sökningen når inte Multi-edit.** Det är den enda vy som sökfältet inte känner till.
+- **Sökningen når inte Lolly Multi-edit.** Det är den enda vy som sökfältet inte känner till.
 
 ## Vart du ska gå härnäst
 

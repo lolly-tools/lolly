@@ -726,7 +726,7 @@ const GROUND_SLOTS = ['surface', 'text', 'muted', 'edge'];
 
 // The design system's colour roles (plans/352) for the 'roles' palette: each declared
 // role's colour in this colourway and look, in the design system's own order. The
-// roles come from host.tokens.inspect() (engine 1.322); an older host has none, and
+// roles come from host.tokens.inspect() (engine 1.323); an older host has none, and
 // the palette then draws as Design system - ordered.
 async function brandRoles(toHex) {
   try {

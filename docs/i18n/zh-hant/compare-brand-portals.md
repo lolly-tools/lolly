@@ -1,8 +1,16 @@
 # Lolly 與品牌門戶
 
-_最後核查：2026 年 9 月 28 日。_
+_定位更新：2026 年 10 月 31 日。供應商能力範例核查：2026 年 9 月 28 日。_
 
 如果你的組織把核准的素材放在 Bynder、Frontify、Marq 或 Brandfolder，本頁將它與 Lolly 加 Lolly Work 比較：人們如何找到品牌素材，以及如何用它們製作新檔案。
+
+## 保留你現有的入口網站
+
+現有的 DAM 可以繼續作為記錄的來源。Lolly Work 的目錄連接器讓其資料庫中選定的部分在 Lolly 中可用，人們在那裡依組織的規則製作新檔案。存取由 DAM 所支援的來源限制與 Lolly Work 的公開規則管轄；最終輸出的審閱則是另一項獨立的決定。
+
+[將 Lolly 與你現有的 DAM 搭配使用](/info/use-with-dam.html)說明了各方的責任與限制。[SUSE 的 Brandfolder 經驗](/info/suse-brandfolder.html)記錄了一次成功的整合，它在規劃中的遷移之前支援了管理員的變更管理。讓來源保持連接，仍是受支援的選擇。
+
+Lolly 的宗旨是[內容主權](/info/content-sovereignty.html)，包括對製作的掌控與選擇系統的自由。它自己的資料庫與核准，支援選擇自行運作這些能力的組織。[給 DAM 供應商與實作夥伴的 Lolly](/info/dam-partners.html) 說明了連接起來的工作流程如何為現有的記錄系統增加價值。
 
 ## 成熟的入口網站做得更好的地方
 
@@ -26,11 +34,12 @@ _最後核查：2026 年 9 月 28 日。_
 | 授權與署名 | Lolly 記錄檔案所用每個來源的授權，並準備它所欠的署名；[創作權利與署名](/info/creative-rights.html)說明它記錄什麼，以及署名寫在哪裡。它不會釐清權利。 |
 | 報告 | 素材使用與下載計數、工具與匯出活動、儀表板與稽核軌跡。使用歸屬遵循部署的遙測政策；預設的歸屬設定需要同意。 |
 | 發布 | 會到期、可撤銷的連結、共用集合、訪客存取，以及交付到已設定的組織目的地。 |
+| 公開的品牌頁面 | Lolly 會從 Lolly Design System Setup 或命令列寫出靜態的[品牌頁面](/info/brand-page.html)：給人看的標誌、色彩、字型、規則與範例，以及給代理程式用的 token、`DESIGN.md` 與技能。你自己代管該資料夾，或由管理員在 Lolly Work 中開啟[品牌頁面代管](/info/work-design-system-administration.html#host-a-brand-page)，此功能預設為關閉。 |
 
 [目錄與內容](/info/work-catalog.html)、[核准](/info/work-approvals.html)與[政策與治理](/info/work-governance.html)說明了這些功能及其設定。
 
-## 保留你現有的入口網站
+## 評估合併的工作流程
 
-現有的 DAM 可以繼續作為事實來源。Lolly Work 的目錄連接器讓它核准的素材在 Lolly 中可用，人們在那裡依組織的規則製作新檔案。這是整合的選擇；當組織想自己運行時，Lolly 自己的資料庫與核准就在那裡。[什麼在哪裡執行](/info/compare.html#what-runs-where)列出每項比較共有的限制。
+使用[活動卡片製作流程](/info/dam-production.html)，以你自己的資料庫測試來源存取、允許的編輯、輸出審閱與交付。[什麼在哪裡執行](/info/compare.html#what-runs-where)列出每項比較共有的限制。來源連接本身並不會建立與供應商的夥伴關係，也不代表每個租戶都具備資格。
 
 能力比較請見 [Lolly 與其他方案比較](/info/positioning.html)。廠商名稱用於標示被比較的產品；Lolly 與它們沒有關聯。

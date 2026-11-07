@@ -72,7 +72,7 @@ La misma herramienta al ancho de un teléfono no necesita un segundo diseño: lo
 
 ![Un audiograma en una pantalla de 430 px de ancho: la hoja de controles arriba, la ilustración cuadrada terminada debajo y la píldora flotante de exportación](/t/url-shot?url=%2F%23%2Ftool%2Faudiogram%3Faudio%3Dlolly%2Floops%2Ffireplace-loop%26title%3DField%2520notes%26subtitle%3DEpisode%252012%26style%3Dwave&width=430&height=900&dpi=192&waitMs=3200&css=%23ag-wave%7Bdisplay%3Anone!important%7D.ag-ph%7Bdisplay%3Ablock!important%7D&walker=1&format=svg&rasterDpi=110&dark=1&filename=ov2-phone-audiogram)
 
-La aplicación web incluye además **Batch** (`#/batch`, `shells/web/src/pro/`), una cuadrícula al estilo de una hoja de cálculo que renderiza muchas filas a la vez con una o varias herramientas; [Batch and Multi-edit](/info/batch.html#make-many-versions-of-one-design) cubre Batch. **Settings → Capabilities** recoge todo lo que la plataforma declara poder hacer.
+La aplicación web incluye además **Batch** (`#/batch`, `shells/web/src/pro/`), una cuadrícula al estilo de una hoja de cálculo que renderiza muchas filas a la vez con una o varias herramientas; [Batch and Lolly Multi-edit](/info/batch.html#make-many-versions-of-one-design) cubre Batch. **Settings → Capabilities** recoge todo lo que la plataforma declara poder hacer.
 
 ![Batch en una instalación nueva: una fila vacía a la espera de una herramienta, con la superficie de hoja de cálculo y su botón Render en su sitio antes de que llegue ningún dato](/t/url-shot?url=%2F%23%2Fbatch&width=1440&height=900&dpi=192&waitMs=3500&walker=1&format=svg&dark=1&filename=ov2-batch-grid)
 
@@ -141,7 +141,7 @@ Una entrada declara un `type`: `text`, `longtext`, `number`, `boolean`, `color`,
 
 - **`asset`**, con `filter` y `allowUpload`, es el puente al sistema de recursos. `allowUpload: false` limita un espacio a los recursos de la biblioteca, y las subidas de usuarios comparten la forma `AssetRef` de la biblioteca.
 - **`blocks`** es un grupo de campos repetible que se edita en un panel lateral, usado por Meeting Planner, Wayfinding, Diagrams y otras. Hacer clic en un bloque renderizado enfoca su fila.
-- **`file`** guarda en memoria el propio archivo del usuario para utilidades en el dispositivo como Strip Hidden Data y Compress, y **`vector`** agrupa un conjunto fijo de números en un solo control.
+- **`file`** guarda en memoria el propio archivo del usuario para utilidades en el dispositivo como Lolly Strip Hidden Data y Compress, y **`vector`** agrupa un conjunto fijo de números en un solo control.
 
 ### 9. Las plantillas no tienen lógica
 
@@ -149,7 +149,7 @@ Las plantillas son Handlebars, elegido para que puedan escribirlas quienes no so
 
 ### 10. Las herramientas componen herramientas
 
-Una herramienta puede incrustar el renderizado de otra sin importaciones entre herramientas; el motor resuelve la composición. Un manifiesto puede declarar `composes: [{ id, tool, inputs }]` y colocar la hija con `{{asset <id>}}`, y una URL de incrustación portátil (`https://lolly.tools/tool/<id>.svg?…`) renderiza la hija en local, que es como Design coloca un código QR o un gráfico en vivo. Una hija SVG sigue siendo vectorial dentro de un padre SVG o PDF. Las hijas son intermedios, nunca llevan marca de agua ni sello, y un shell que no puede renderizar una deja el espacio vacío mientras el padre se renderiza igualmente. [Composition and brand overlays](/info/tool-composition.html) tiene los detalles.
+Una herramienta puede incrustar el renderizado de otra sin importaciones entre herramientas; el motor resuelve la composición. Un manifiesto puede declarar `composes: [{ id, tool, inputs }]` y colocar la hija con `{{asset <id>}}`, y una URL de incrustación portátil (`https://lolly.tools/tool/<id>.svg?…`) renderiza la hija en local, que es como Lolly Design coloca un código QR o un gráfico en vivo. Una hija SVG sigue siendo vectorial dentro de un padre SVG o PDF. Las hijas son intermedios, nunca llevan marca de agua ni sello, y un shell que no puede renderizar una deja el espacio vacío mientras el padre se renderiza igualmente. [Composition and brand overlays](/info/tool-composition.html) tiene los detalles.
 
 ## Lo que decidimos no hacer
 

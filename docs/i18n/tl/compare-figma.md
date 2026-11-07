@@ -16,7 +16,7 @@ Parehong hinahayaan kang mag-ayos ng type, hugis at larawan sa canvas at makipag
 
 Ginagawang [magagamit muling tool na may mga patakaran](/info/create-a-tool.html) ng Lolly ang design. Tumatakbo ang tool sa browser o CLI at kumukuha ng mga input mula sa link, script o batch grid, kaya iisang template ang naglilingkod sa taong nag-e-edit ng isang file at sa team na gumagawa ng marami.
 
-![Ang bukas na canvas ng Design, na may Import a design sa Lolly menu ng toolbar](/info/shots/design.svg)
+![Ang bukas na canvas ng Lolly Design, na may Import a design sa Lolly menu ng toolbar](/info/shots/design.svg)
 
 Ang [pribadong collab](/info/collaborate.html) ay direktang nagpapares ng dalawang device, walang account at hindi kailangan ng internet sa shared na network. Nagre-render offline ang standalone na Lolly. Naka-on bilang default ang Content Credentials para sa mga sinusuportahang export, at puwede mo itong i-off.
 

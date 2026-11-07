@@ -1,8 +1,16 @@
 # Lolly dan portal merek
 
-_Terakhir diperiksa: 28 September 2026._
+_Posisi diperbarui: 31 Oktober 2026. Contoh kemampuan vendor diperiksa: 28 September 2026._
 
 Jika organisasi Anda menyimpan aset yang disetujuinya di Bynder, Frontify, Marq, atau Brandfolder, halaman ini membandingkannya dengan Lolly ditambah Lolly Work: bagaimana orang menemukan aset brand, dan bagaimana mereka membuat file baru darinya.
+
+## Mempertahankan portal Anda yang ada
+
+DAM yang ada dapat tetap menjadi sumber rujukan utama. Konektor katalog Lolly Work membuat bagian terpilih dari pustakanya tersedia di Lolly, tempat orang membuat file baru di bawah aturan organisasi. Batasan sumber yang didukung DAM dan aturan paparan Lolly Work mengatur akses; peninjauan keluaran akhir adalah keputusan terpisah.
+
+[Use Lolly with your existing DAM](/info/use-with-dam.html) menjelaskan tanggung jawab dan batasnya. [SUSE's Brandfolder experience](/info/suse-brandfolder.html) mencatat integrasi yang berhasil dan mendukung manajemen perubahan administrator sebelum migrasi yang direncanakan. Tetap menghubungkan sumbernya adalah pilihan yang didukung.
+
+Tujuan Lolly adalah [content sovereignty](/info/content-sovereignty.html), termasuk kendali atas produksi dan kebebasan memilih sistem. Pustaka dan persetujuannya sendiri mendukung organisasi yang memilih menjalankan kemampuan itu sendiri. [Lolly for DAM vendors and implementation partners](/info/dam-partners.html) menjelaskan bagaimana alur kerja terhubung dapat menambah nilai pada sistem rujukan yang ada.
 
 ## Apa yang dilakukan portal mapan lebih baik
 
@@ -26,11 +34,12 @@ Keduanya mencakup aset yang disetujui, templat terkunci, kontrol akses, tinjauan
 | Lisensi dan kredit | Lolly mencatat lisensi setiap sumber yang dipakai file dan menyiapkan kredit yang terutang; [Creative rights and credits](/info/creative-rights.html) menjelaskan apa yang dicatat dan di mana kredit ditulis. Ia tidak menyelesaikan hak. |
 | Pelaporan | Hitungan pemakaian dan unduhan aset, aktivitas alat dan ekspor, dasbor, dan jejak audit. Atribusi penggunaan mengikuti kebijakan telemetri deployment; pengaturan atribusi default memerlukan persetujuan. |
 | Distribusi | Tautan yang kedaluwarsa dan dapat dicabut, koleksi bersama, akses tamu, dan pengiriman ke tujuan organisasi yang dikonfigurasi. |
+| Brand page publik | Lolly menulis [brand page](/info/brand-page.html) statis, dari Lolly Design System Setup atau baris perintah: logo, warna, jenis huruf, aturan, dan contoh untuk manusia, dengan token, `DESIGN.md`, dan skill untuk agen. Anda menghosting foldernya, atau administrator mengaktifkan [hosting brand page](/info/work-design-system-administration.html#host-a-brand-page) di Lolly Work, yang nonaktif secara default. |
 
 [Catalog and content](/info/work-catalog.html), [Approvals](/info/work-approvals.html), dan [Policy and governance](/info/work-governance.html) menjelaskan fitur-fitur ini dan konfigurasinya.
 
-## Mempertahankan portal Anda yang ada
+## Menilai alur kerja gabungan
 
-DAM yang ada dapat tetap menjadi sumber kebenaran. Konektor katalog Lolly Work membuat aset yang disetujuinya tersedia di Lolly, tempat orang membuat file baru di bawah aturan organisasi. Itu pilihan integrasi; pustaka dan persetujuan Lolly sendiri tersedia bila organisasi ingin menjalankannya sendiri. [What runs where](/info/compare.html#what-runs-where) mencantumkan batas yang dibagi setiap perbandingan.
+Gunakan [urutan produksi kartu acara](/info/dam-production.html) untuk menguji akses sumber, penyuntingan yang diizinkan, peninjauan keluaran, dan pengiriman dengan pustaka Anda sendiri. [What runs where](/info/compare.html#what-runs-where) mencantumkan batas yang dibagi setiap perbandingan. Koneksi sumber tidak dengan sendirinya menetapkan kemitraan vendor atau kualifikasi untuk setiap tenant.
 
 Lihat [How Lolly compares](/info/positioning.html) untuk perbandingan kapabilitas. Nama vendor mengidentifikasi produk yang dibandingkan; Lolly tidak berafiliasi dengan mereka.

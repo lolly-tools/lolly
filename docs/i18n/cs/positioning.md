@@ -2,9 +2,13 @@
 
 Lolly jsou dvě části jednoho open-source projektu. **Lolly** je engine, aplikace a nástroje pro tvorbu, úpravy, převody a export na tvém zařízení, bez účtu. **Lolly Work** je organizační server, provozovaný na tvé vlastní infrastruktuře, pro přihlášení, sdílené projekty, schvalování a serverové vykreslování. Obojí je MPL-2.0. Tato stránka porovnává dvojici s ostatními způsoby, jak lidé navrhují, řídí a vytvářejí soubory.
 
+Základní myšlenkou je [suverenita obsahu](/info/content-sovereignty.html): kontrola nad tím, jak se obsah vytváří, spravuje, ukládá a přesouvá mezi zvolenými systémy. Kreativní aplikace mohou dodat návrhy, DAM může zůstat zdrojem záznamů a Lolly může z povolených vstupů a schválených assetů vytvářet nové soubory. [Používej Lolly se stávajícím DAM](/info/use-with-dam.html) popisuje tuto kombinaci.
+
 ## Dnešní nástroje
 
 Každý kruh hodnotí, jak úplně třída produktů schopnost poskytuje, přičemž každá třída je hodnocena podle svého nejlepšího zástupce. Sloupec Lolly pokrývá Lolly a Lolly Work společně a každý řádek říká, která část co poskytuje. Otevři název řádku pro zdůvodnění jeho skóre. Sloupce jsou seřazeny podle řádku Overall completeness nahoře: průměr hodnocených řádků, s vyloučením řádku výdajů.
+
+Skóre vychází z toho, že Lolly dává přednost kontrole bez účtu a bez požadavku na cloud. Je to srovnání podle těchto kritérií, ne neutrální pořadí úplnosti produktů ani skóre pro podnikové nákupy. Při hodnocení konkrétního pracovního postupu čti meze schopností, nasazení a důkazů zvlášť.
 
 ::: figure positioning-comparison
 Srovnání schopností: výzkum konkurence a skóre z srpna 2026; pokrytí Lolly + Lolly Work revidováno 28. září 2026. Hodnocení: 0 chybí, 25 úroveň obejití, 50 skutečné, ale omezené nebo částečné, 75 silné s výhradami, 100 hlavní kompetence.
@@ -43,9 +47,11 @@ Skóre 75 u Content Credentials Lolly pokrývá podepisování na zařízení a 
 
 Importované návrhy a sdílené designové tokeny umožňují týmu kombinovat Lolly se specializovanými aplikacemi, zatímco Lolly Work řídí sdílené assety, revizi a doručení.
 
-Celá sada snímků ukazuje strop: v **Markdown Slides** je sada deklarována jako data, rozvržena živě a exportována jako nativní upravitelný soubor PowerPoint.
+Pro týmy s kurátorovaným DAM začni tím, že tu knihovnu a její správce necháš na místě. [Zkušenost SUSE s Brandfolderem](/info/suse-brandfolder.html) zaznamenává, jak integrace podpořila přijetí a řízení změny schvalování. Dodavatelé DAM a implementační partneři mohou stejné uspořádání vyhodnotit přes [partnerský pracovní postup](/info/dam-partners.html).
 
-![Markdown Slides v rozděleném zobrazení: snímky sady vypsané jako bloky vlevo, rozvržená sada vykreslená vpravo](/t/url-shot?url=%2F%23%2Ftool%2Fdeck-studio&width=1440&height=900&dpi=192&waitMs=2600&walker=1&format=svg&dark=1&filename=ov2-deck-studio-output)
+Celá sada snímků ukazuje strop: v **Lolly Markdown Slides** je sada deklarována jako data, rozvržena živě a exportována jako nativní upravitelný soubor PowerPoint.
+
+![Lolly Markdown Slides v rozděleném zobrazení: snímky sady vypsané jako bloky vlevo, rozvržená sada vykreslená vpravo](/t/url-shot?url=%2F%23%2Ftool%2Fdeck-studio&width=1440&height=900&dpi=192&waitMs=2600&walker=1&format=svg&dark=1&filename=ov2-deck-studio-output)
 
 ## Pravidla žijí v nástroji
 

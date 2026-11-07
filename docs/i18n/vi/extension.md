@@ -10,26 +10,29 @@ Bạn phê duyệt mọi yêu cầu, và ứng dụng máy tính làm cùng các
 
 ## Trước khi cài
 
-Cho đến khi cài tiện ích, **URL Screenshot** vẫn mở, nên bạn có thể soạn một ảnh chụp. Một ghi chú ở đầu các điều khiển của công cụ cho biết thiếu gì.
+Cho đến khi cài tiện ích, **Lolly URL Screenshot** vẫn mở, nên bạn có thể soạn một ảnh chụp. Một ghi chú ở đầu các điều khiển của công cụ cho biết thiếu gì.
 
 ![Ghi chú của công cụ URL Screenshot đề nghị cài tiện ích mở rộng, hiển thị khi chụp ra tệp không có host để chạy](/t/url-shot?url=%2F%23%2Ftool%2Furl-shot&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&cropSelector=%23capture-hint-notice&dark=1&filename=exp-url-shot-notice)
 
 Mọi điều khiển đều hoạt động trong khi bạn chờ: URL đích, độ sâu cuộn, độ trễ ổn định, lề cắt và nhuộm lại màu. Chỉ riêng việc chụp cần tiện ích.
 
-![Các điều khiển của URL Screenshot với URL đích, độ sâu cuộn, độ trễ ổn định và phần lề cắt, tất cả đều dùng được trước khi có tiện ích mở rộng](/t/url-shot?url=%2F%23%2Ftool%2Furl-shot%3Furl%3Dhttps%3A%2F%2Flolly.tools%26scrollDepth%3D0.3%26waitMs%3D1200&width=1440&height=2200&dpi=192&waitMs=2400&format=svg&css=%23tool-canvas%7Bdisplay%3Anone%7D&cropSelector=%23tool-inputs&walker=1&dark=1&filename=fq-url-shot-controls)
+![Các điều khiển của Lolly URL Screenshot với URL đích, độ sâu cuộn, độ trễ ổn định và phần lề cắt, tất cả đều dùng được trước khi có tiện ích mở rộng](/t/url-shot?url=%2F%23%2Ftool%2Furl-shot%3Furl%3Dhttps%3A%2F%2Flolly.tools%26scrollDepth%3D0.3%26waitMs%3D1200&width=1440&height=2200&dpi=192&waitMs=2400&format=svg&css=%23tool-canvas%7Bdisplay%3Anone%7D&cropSelector=%23tool-inputs&walker=1&dark=1&filename=fq-url-shot-controls)
 
 ## Cài đặt
 
 **Từ Chrome Web Store:** sắp có. Khi tiện ích được xuất bản, bạn cài bằng một cú nhấp.
 
-**Tự nạp (cho nhà phát triển).** Tiện ích nằm trong kho mã tại `shells/chrome-extension/`. Thư mục đó là bản dựng chính thức, chỉ hoạt động với Lolly tại `https://lolly.tools`.
+**Tự nạp (cho nhà phát triển).** Mã nguồn của tiện ích nằm trong kho mã tại `shells/chrome-extension/`. Bước đóng gói dựng gói chính thức từ thư mục đó, chỉ hoạt động với Lolly tại `https://lolly.tools`.
 
-1. Mở `chrome://extensions`.
-2. Bật **Developer mode** (trên bên phải).
-3. Nhấp **Load unpacked** và chọn thư mục `shells/chrome-extension/`.
-4. Tải lại thẻ Lolly. Việc phát hiện xảy ra khi trang tải, nên lời nhắc "Get the extension" biến mất. **URL Screenshot** (dưới Utilities) khi đó có thể lưu ảnh chụp thành tệp và có sẵn trong chế độ Batch.
+1. Chạy `pnpm run pack:chrome-extension`. Lệnh này dựng gói vào `dist/chrome-extension/`.
+2. Mở `chrome://extensions`.
+3. Bật **Developer mode** (trên bên phải).
+4. Nhấp **Load unpacked** và chọn thư mục `dist/chrome-extension/`.
+5. Tải lại thẻ Lolly. Việc phát hiện xảy ra khi trang tải, nên lời nhắc "Get the extension" biến mất. **Lolly URL Screenshot** (dưới Utilities) khi đó có thể lưu ảnh chụp thành tệp và có sẵn trong chế độ Lolly Batch.
 
 Với máy chủ phát triển cục bộ, hãy chạy `pnpm run pack:chrome-extension:dev` và tải `dist/chrome-extension-dev` thay thế. Gói đó cũng chấp nhận `http://localhost:5173` và có chữ **Development** trong tên.
+
+Nạp chính thư mục `shells/chrome-extension/` cũng được, cho ảnh chụp PNG. Thư mục đó không có bước duyệt trang (bước đóng gói dựng nó vào), nên một SVG từ đó chứa một ảnh chụp chứ không phải các hình.
 
 ## Điều gì xảy ra khi Lolly yêu cầu
 
@@ -40,15 +43,20 @@ Với máy chủ phát triển cục bộ, hãy chạy `pnpm run pack:chrome-ext
 3. **Chrome hỏi một lần cho mỗi trang.** Lần đầu bạn phê duyệt yêu cầu cho một trang, Chrome cũng hỏi tiện ích có được truy cập trang đó không. Chrome giữ quyền truy cập đó khi bạn cho phép, nhưng mọi yêu cầu sau vẫn cần **Approve once** riêng.
 4. **Trang được đọc trong thẻ nền.** Tiện ích mở trang đích trong thẻ nền, chụp nó qua DevTools Protocol (cùng `Page.captureScreenshot` mà ứng dụng máy tính dùng), đóng thẻ và đưa kết quả về thẻ Lolly đã yêu cầu.
 
+Với **SVG**, tiện ích duyệt trang thay vì chụp ảnh màn hình. Một đoạn script đóng gói cùng tiện ích đọc bố cục của trang trong thẻ nền đó và biến trang thành các hình và văn bản đã chuyển thành đường bao, nên tệp luôn sắc nét ở mọi kích cỡ và mọi phần đều chỉnh sửa được. Ảnh trên trang đi sang đúng là ảnh, còn những gì trang vẽ bằng canvas, video hoặc một hiệu ứng mà SVG không có dạng biểu diễn thì được sao chép từ ảnh chụp màn hình của cùng khoảnh khắc. Lolly đối chiếu kết quả với ảnh chụp đó, và khi hai bên khác nhau quá nhiều thì SVG chứa ảnh chụp thay vào.
+
+Để chuyển văn bản thành đường bao theo kiểu chữ riêng của trang, tiện ích đưa cho Lolly các tệp phông mà trang đã tải. Chrome không giữ byte của phông ở nơi tiện ích đọc được, nên tiện ích hỏi trang từng phông một lần nữa. Trình duyệt của bạn thường trả lời từ bộ nhớ đệm, và chính sách bảo mật của chính trang vẫn áp dụng cho yêu cầu đó.
+
 Một lần phê duyệt bao gồm một yêu cầu và hết hạn sau 30 giây. Mỗi lúc chỉ một yêu cầu có thể chờ hoặc chạy, và một yêu cầu đã duyệt dừng sau 55 giây. Nếu trang Lolly đóng hoặc đổi, hoặc trang đích chuyển sang site khác, yêu cầu bị hủy.
 
-Việc chụp chạy trong trình duyệt của bạn, trên mạng của bạn, nên `localhost` và các site nội bộ hoạt động. Trang tải bằng phiên trình duyệt của bạn, nên một trang bạn đã đăng nhập có thể hiện thông tin riêng tư trong kết quả. Ảnh chụp không được tải lên: lưu lượng mạng duy nhất là trình duyệt của chính bạn tải trang bạn yêu cầu.
+Việc chụp chạy trong trình duyệt của bạn, trên mạng của bạn, nên `localhost` và các site nội bộ hoạt động. Trang tải bằng phiên trình duyệt của bạn, nên một trang bạn đã đăng nhập có thể hiện thông tin riêng tư trong kết quả. Ảnh chụp không được tải lên: lưu lượng mạng duy nhất là trình duyệt của chính bạn tải trang bạn yêu cầu, cộng thêm, với SVG, các tệp phông của trang đó lần thứ hai.
 
 Trong khi chụp, bạn có thể thoáng thấy biểu ngữ *"…started debugging this browser"* trên thẻ tạm thời. Đó là DevTools Protocol đang làm việc, và biểu ngữ biến mất khi ảnh chụp xong.
 
-## Đọc một site cho Design System Setup
+<a id="reading-a-site-for-design-system-setup"></a>
+## Đọc một site cho Lolly Design System Setup
 
-Nguồn **Website** trong Design System Setup bắt đầu một hệ thống thiết kế từ một site bạn đã có. Trong trình duyệt Chromium, tiện ích đọc trang. Trong ứng dụng máy tính, ứng dụng tự tải trang. Trong trình duyệt không có tiện ích, ô Website không được đưa ra.
+Nguồn **Website** trong Lolly Design System Setup bắt đầu một hệ thống thiết kế từ một site bạn đã có. Trong trình duyệt Chromium, tiện ích đọc trang. Trong ứng dụng máy tính, ứng dụng tự tải trang. Trong trình duyệt không có tiện ích, ô Website không được đưa ra.
 
 - **Một địa chỉ, một trang.** Sau khi bạn phê duyệt, tiện ích mở trang trong cùng loại thẻ nền, đọc markup đã kết xuất, văn bản bảng định kiểu và một số ảnh biểu tượng và logo, rồi đóng thẻ. Nó không theo liên kết hay thu thập dữ liệu.
 - **Bảng định kiểu lưu trữ ở nơi khác** (CDN hoặc dịch vụ phông chữ) cũng được tải, vì màu và kiểu chữ của trang nằm trong đó. Yêu cầu khác nguồn gốc đi không kèm cookie của bạn; yêu cầu cùng nguồn gốc dùng chúng, như chính trang sẽ làm.
@@ -59,11 +67,11 @@ Dán một địa chỉ chỉ điền vào ô. Không có gì được đọc ch
 
 ## Quyền truy cập
 
-`manifest.json` của tiện ích khai báo bốn quyền, cộng quyền truy cập trang mà nó xin từng trang một. Nó đặt `minimum_chrome_version: 111`, và phiên bản hiện tại là 0.4.0.
+`manifest.json` của tiện ích khai báo bốn quyền, cộng quyền truy cập trang mà nó xin từng trang một. Nó đặt `minimum_chrome_version: 111`, và phiên bản hiện tại là 0.5.0.
 
 | Quyền | Dùng để làm gì | Khi nào được cấp |
 |---|---|---|
-| `debugger` | Điều khiển thẻ nền qua DevTools Protocol, nơi chụp ảnh. | Khi cài đặt |
+| `debugger` | Điều khiển thẻ nền qua DevTools Protocol, nơi chụp ảnh và, với SVG, chạy việc duyệt trang. | Khi cài đặt |
 | `tabs` | Mở thẻ nền tạm thời và đóng nó sau đó, và kiểm tra rằng cả trang Lolly lẫn trang đích đều chưa di chuyển kể từ khi bạn phê duyệt. | Khi cài đặt |
 | `scripting` | Chạy trình đọc một trang bên trong site bạn đã nêu, cho nguồn Website. | Khi cài đặt |
 | `storage` | Ghi id của một thẻ nó đã mở, chỉ trong bộ nhớ phiên, để thẻ vẫn đóng nếu trình duyệt tạm dừng tiện ích giữa lúc đọc. Xóa ở lần khởi động tiếp theo; không có gì về bạn được lưu. | Khi cài đặt |

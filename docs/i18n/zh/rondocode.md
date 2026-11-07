@@ -1,4 +1,6 @@
-# Rondocode 歌曲
+# Lolly Rondocode 歌曲
+
+<a id="rondocode-songs"></a>
 
 rondocode 歌曲是写成代码的音乐：合成器、节奏型和混音，边输入边播放。Lolly 可以在视频下播放歌曲，**Rondocode** 实用工具则让你写一首歌并把它导出为音频。两者都会在文件的 Content Credentials 中记录这首歌曲，所以音乐会说明它的来源。
 
@@ -12,7 +14,7 @@ rondocode 歌曲是写成代码的音乐：合成器、节奏型和混音，边�
 
 ## 写作并导出歌曲
 
-从 **Utilities** 打开 **Rondocode**，在 rondocode 的实时编辑器中写一首歌，边输入边听。把它导出为 **WAV**、**MP3**、**M4A**、**Opus** 或 **FLAC**，导出为分轨 ZIP、**MIDI**，或正在播放内容的录音。在终端中，`lolly rondocode --export=mid` 会写出同样的 MIDI 文件。**Export length** 设置音频导出持续多少秒。歌曲文件本身（`.rondo.json`）是你编写的代码，不附加任何内容。
+从 **Utilities** 打开 **Rondocode** 工具，在 rondocode 的实时编辑器中写一首歌，边输入边听。把它导出为 **WAV**、**MP3**、**M4A**、**Opus** 或 **FLAC**，导出为分轨 ZIP、**MIDI**，或正在播放内容的录音。在终端中，`lolly rondocode --export=mid` 会写出同样的 MIDI 文件。**Export length** 设置音频导出持续多少秒。歌曲文件本身（`.rondo.json`）是你编写的代码，不附加任何内容。
 
 歌曲可以用 `sing()` 唱出它的歌词。歌声由下载的声音模型在你的设备上生成，包含合成歌声的文件总会将歌声声明为 AI 生成（参见 [AI 功能](/info/ai-features.html)）。
 
@@ -24,11 +26,11 @@ rondocode 歌曲是写成代码的音乐：合成器、节奏型和混音，边�
 - 其 `.rondo.json` 文件的 SHA-256；
 - 渲染方式：在 Lolly 的沙盒中，`vm` 执行类别，带有渲染器的版本和种子，以及渲染无法播放的任何部分。
 
-由歌曲代码计算出的音乐被标记为算法生成的媒体，所以 Verify 不会将其标记为 AI。导出之前，**Download** 下方的一行会列出凭据将记录的歌曲；导出之后，同一行会报告对交付文件的读取发现了什么。取消勾选 **C2PA Credentials** 即可不记录该内容。静态图像不记录任何歌曲，因为它不携带声音。`lolly mix` 和 [MCP 服务器](/info/mcp.html)写入同样的记录。
+由歌曲代码计算出的音乐被标记为算法生成的媒体，所以 Lolly Verify 不会将其标记为 AI。导出之前，**Download** 下方的一行会列出凭据将记录的歌曲；导出之后，同一行会报告对交付文件的读取发现了什么。取消勾选 **C2PA Credentials** 即可不记录该内容。静态图像不记录任何歌曲，因为它不携带声音。`lolly mix` 和 [MCP 服务器](/info/mcp.html)写入同样的记录。
 
 ## 来自 Rondocode 实用工具的文件
 
-大多数设备端实用工具不写入凭据，因为它们转换的是你已拥有的文件。Rondocode 制作新音频，所以它写出的每个音频文件都带有 Content Credentials，把歌曲记录为其来源：它的名称、其 `.rondo.json` 文件的 SHA-256，以及其代码在哪里运行。这涵盖 WAV、MP3、M4A、Opus、FLAC、分轨 ZIP 中的每个分轨，以及正在播放内容的录音。
+大多数设备端实用工具不写入凭据，因为它们转换的是你已拥有的文件。Lolly Rondocode 制作新音频，所以它写出的每个音频文件都带有 Content Credentials，把歌曲记录为其来源：它的名称、其 `.rondo.json` 文件的 SHA-256，以及其代码在哪里运行。这涵盖 WAV、MP3、M4A、Opus、FLAC、分轨 ZIP 中的每个分轨，以及正在播放内容的录音。
 
 - 编辑器自己的渲染在其私有框架中运行（`frame` 执行类别），并记录编辑器的版本。
 - 由 CLI 或分享链接进行的渲染在 `vm` 类别中运行，并记录渲染器的版本和种子。

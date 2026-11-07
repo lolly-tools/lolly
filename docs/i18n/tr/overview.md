@@ -72,7 +72,7 @@ Aynı araç telefon genişliğinde ikinci bir düzen gerektirmez: denetimler üs
 
 ![430 piksel genişliğinde bir ekranda bir audiogram: üstte denetim sayfası, altta bitmiş kare çalışma ve yüzen dışa aktarma hapı](/t/url-shot?url=%2F%23%2Ftool%2Faudiogram%3Faudio%3Dlolly%2Floops%2Ffireplace-loop%26title%3DField%2520notes%26subtitle%3DEpisode%252012%26style%3Dwave&width=430&height=900&dpi=192&waitMs=3200&css=%23ag-wave%7Bdisplay%3Anone!important%7D.ag-ph%7Bdisplay%3Ablock!important%7D&walker=1&format=svg&rasterDpi=110&dark=1&filename=ov2-phone-audiogram)
 
-Web uygulaması ayrıca **Batch** ile (`#/batch`, `shells/web/src/pro/`) gelir; bir veya birçok araç boyunca aynı anda birçok satırı render eden elektronik tablo tarzı bir ızgara; Batch'i [Batch and Multi-edit](/info/batch.html#make-many-versions-of-one-design) kapsar. **Settings → Capabilities**, platformun yapabildiğini bildirdiği her şeyi haritalar.
+Web uygulaması ayrıca **Batch** ile (`#/batch`, `shells/web/src/pro/`) gelir; bir veya birçok araç boyunca aynı anda birçok satırı render eden elektronik tablo tarzı bir ızgara; Batch'i [Batch and Lolly Multi-edit](/info/batch.html#make-many-versions-of-one-design) kapsar. **Settings → Capabilities**, platformun yapabildiğini bildirdiği her şeyi haritalar.
 
 ![Yeni kurulumda Batch: bir araç bekleyen tek boş satır; veri gelmeden önce elektronik tablo yüzeyi ve Render düğmesi yerinde](/t/url-shot?url=%2F%23%2Fbatch&width=1440&height=900&dpi=192&waitMs=3500&walker=1&format=svg&dark=1&filename=ov2-batch-grid)
 
@@ -141,7 +141,7 @@ Bir girdi bir `type` bildirir: `text`, `longtext`, `number`, `boolean`, `color`,
 
 - **`asset`**, `filter` ve `allowUpload` ile, varlık sistemine açılan köprüdür. `allowUpload: false` bir yuvayı kitaplık varlıklarıyla sınırlar ve kullanıcı yüklemeleri kitaplığın `AssetRef` biçimini paylaşır.
 - **`blocks`**, bir yan panelde düzenlenen, Meeting Planner, Wayfinding, Diagrams ve diğerleri tarafından kullanılan yinelenen bir alan grubudur. Render edilmiş bir bloğa tıklamak satırına odaklanır.
-- **`file`**, Strip Hidden Data ve Compress gibi cihaz üzerindeki yardımcı araçlar için kullanıcının kendi dosyasını bellekte tutar ve **`vector`** sabit bir sayı kümesini tek bir denetimde gruplar.
+- **`file`**, Lolly Strip Hidden Data ve Compress gibi cihaz üzerindeki yardımcı araçlar için kullanıcının kendi dosyasını bellekte tutar ve **`vector`** sabit bir sayı kümesini tek bir denetimde gruplar.
 
 ### 9. Şablonlar mantıksızdır
 
@@ -149,7 +149,7 @@ Bir girdi bir `type` bildirir: `text`, `longtext`, `number`, `boolean`, `color`,
 
 ### 10. Araçlar araçları bileştirir
 
-Bir araç, araçtan araca içe aktarma olmadan başka bir aracın render'ını gömebilir; kompozisyonu motor çözer. Bir bildirim `composes: [{ id, tool, inputs }]` bildirebilir ve çocuğu `{{asset <id>}}` ile yerleştirebilir; taşınabilir bir gömme URL'si (`https://lolly.tools/tool/<id>.svg?…`) çocuğu yerelde render eder; Design'ın canlı bir QR kodu veya grafik yerleştirme biçimi budur. Bir SVG çocuğu, bir SVG veya PDF ebeveyninde vektör kalır. Çocuklar ara ürünlerdir, asla filigranlanmaz veya damgalanmaz ve birini render edemeyen bir kabuk, ebeveyn yine render edilirken yuvayı boş bırakır. [Composition and brand overlays](/info/tool-composition.html) ayrıntıları içerir.
+Bir araç, araçtan araca içe aktarma olmadan başka bir aracın render'ını gömebilir; kompozisyonu motor çözer. Bir bildirim `composes: [{ id, tool, inputs }]` bildirebilir ve çocuğu `{{asset <id>}}` ile yerleştirebilir; taşınabilir bir gömme URL'si (`https://lolly.tools/tool/<id>.svg?…`) çocuğu yerelde render eder; Lolly Design'ın canlı bir QR kodu veya grafik yerleştirme biçimi budur. Bir SVG çocuğu, bir SVG veya PDF ebeveyninde vektör kalır. Çocuklar ara ürünlerdir, asla filigranlanmaz veya damgalanmaz ve birini render edemeyen bir kabuk, ebeveyn yine render edilirken yuvayı boş bırakır. [Composition and brand overlays](/info/tool-composition.html) ayrıntıları içerir.
 
 ## Yapmamayı seçtiklerimiz
 

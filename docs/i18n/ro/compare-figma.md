@@ -16,7 +16,7 @@ Ambele te lasă să aranjezi text, forme și imagini pe un canvas și să lucrez
 
 Lolly transformă un design într-un [instrument reutilizabil cu reguli](/info/create-a-tool.html). Instrumentul rulează în browser sau în CLI și își ia intrările dintr-un link, un script sau o grilă batch, deci un singur șablon servește o persoană care editează un fișier și o echipă care face multe.
 
-![Canvasul deschis Design, cu Import a design în meniul Lolly din bara de unelte](/info/shots/design.svg)
+![Canvasul deschis Lolly Design, cu Import a design în meniul Lolly din bara de unelte](/info/shots/design.svg)
 
 Un [collab privat](/info/collaborate.html) împerechează direct două dispozitive, fără cont și fără internet necesar într-o rețea comună. Lolly de sine stătător randează offline. Content Credentials sunt active implicit pentru exporturile acceptate și le poți opri.
 

@@ -11,7 +11,7 @@ _Terakhir diperiksa: 28 September 2026._
 - [Lolly dan Figma](/info/compare-figma.html) - desain, kolaborasi langsung, dan produksi aset yang dapat dipakai ulang.
 - [Lolly dan Penpot](/info/compare-penpot.html) - desain sumber terbuka, token bersama, dan pekerjaan organisasi.
 - [Lolly dan portal brand](/info/compare-brand-portals.html) - pustaka yang disetujui, templat terkunci, identitas, tinjauan, dan pelaporan.
-- [Lolly dan API rendering](/info/compare-render-apis.html) - pembuatan otomatis di perangkat Anda, di CI, atau di server Lolly Work.
+- [Lolly dan API rendering](/info/compare-render-apis.html) - pembuatan otomatis di perangkat Anda, di CI, atau di server Anda sendiri, dan [cara berpindah](/info/work-move-from-render-api.html) dari Bannerbear atau Placid.
 - [Lolly dan konverter file online](/info/compare-converters.html) - konversi format di perangkat Anda sendiri.
 
 Untuk tampilan per kemampuan, lihat [Perbandingan Lolly](/info/positioning.html). Setiap perbandingan diberi tanggal; klaim yang tidak lagi sesuai dengan salah satu produk perlu dikoreksi.

@@ -72,7 +72,7 @@ A mesma ferramenta na largura de um celular não precisa de um segundo layout: o
 
 ![Um audiograma em uma tela de 430px de largura: a folha de controles acima, a arte quadrada final abaixo e a pílula de exportação flutuante](/t/url-shot?url=%2F%23%2Ftool%2Faudiogram%3Faudio%3Dlolly%2Floops%2Ffireplace-loop%26title%3DField%2520notes%26subtitle%3DEpisode%252012%26style%3Dwave&width=430&height=900&dpi=192&waitMs=3200&css=%23ag-wave%7Bdisplay%3Anone!important%7D.ag-ph%7Bdisplay%3Ablock!important%7D&walker=1&format=svg&rasterDpi=110&dark=1&filename=ov2-phone-audiogram)
 
-O app web também traz o **Batch** (`#/batch`, `shells/web/src/pro/`), uma grade no estilo de planilha que renderiza muitas linhas de uma vez em uma ou várias ferramentas; [Batch and Multi-edit](/info/batch.html#make-many-versions-of-one-design) trata do Batch. **Settings → Capabilities** mapeia tudo o que a plataforma declara que pode fazer.
+O app web também traz o **Batch** (`#/batch`, `shells/web/src/pro/`), uma grade no estilo de planilha que renderiza muitas linhas de uma vez em uma ou várias ferramentas; [Batch and Lolly Multi-edit](/info/batch.html#make-many-versions-of-one-design) trata do Batch. **Settings → Capabilities** mapeia tudo o que a plataforma declara que pode fazer.
 
 ![O Batch em uma instalação nova: uma linha vazia esperando uma ferramenta, com a superfície de planilha e o botão Render no lugar antes de qualquer dado chegar](/t/url-shot?url=%2F%23%2Fbatch&width=1440&height=900&dpi=192&waitMs=3500&walker=1&format=svg&dark=1&filename=ov2-batch-grid)
 
@@ -141,7 +141,7 @@ Uma entrada declara um `type`: `text`, `longtext`, `number`, `boolean`, `color`,
 
 - **`asset`**, com `filter` e `allowUpload`, é a ponte para o sistema de recursos. `allowUpload: false` limita um slot a recursos da biblioteca, e os envios do usuário compartilham o formato `AssetRef` da biblioteca.
 - **`blocks`** é um grupo de campos repetido editado em um painel lateral, usado pelo Meeting Planner, Wayfinding, Diagrams e outros. Clicar em um bloco renderizado dá foco à linha dele.
-- **`file`** guarda o arquivo do próprio usuário na memória para utilitários no dispositivo, como Strip Hidden Data e Compress, e **`vector`** agrupa um conjunto fixo de números em um único controle.
+- **`file`** guarda o arquivo do próprio usuário na memória para utilitários no dispositivo, como Lolly Strip Hidden Data e Compress, e **`vector`** agrupa um conjunto fixo de números em um único controle.
 
 ### 9. Os templates não têm lógica
 
@@ -149,7 +149,7 @@ Os templates são Handlebars, escolhido para que pessoas sem formação em progr
 
 ### 10. Ferramentas compõem ferramentas
 
-Uma ferramenta pode incorporar a renderização de outra sem importações entre ferramentas; o motor resolve a composição. Um manifesto pode declarar `composes: [{ id, tool, inputs }]` e posicionar a filha com `{{asset <id>}}`, e uma URL de incorporação portátil (`https://lolly.tools/tool/<id>.svg?…`) renderiza a filha localmente, que é como o Design posiciona um QR code ou gráfico ao vivo. Uma filha em SVG continua vetorial em um pai SVG ou PDF. As filhas são intermediárias, nunca recebem marca d'água nem carimbo, e um shell que não consegue renderizar uma deixa o slot vazio enquanto o pai ainda renderiza. [Composition and brand overlays](/info/tool-composition.html) traz os detalhes.
+Uma ferramenta pode incorporar a renderização de outra sem importações entre ferramentas; o motor resolve a composição. Um manifesto pode declarar `composes: [{ id, tool, inputs }]` e posicionar a filha com `{{asset <id>}}`, e uma URL de incorporação portátil (`https://lolly.tools/tool/<id>.svg?…`) renderiza a filha localmente, que é como o Lolly Design posiciona um QR code ou gráfico ao vivo. Uma filha em SVG continua vetorial em um pai SVG ou PDF. As filhas são intermediárias, nunca recebem marca d'água nem carimbo, e um shell que não consegue renderizar uma deixa o slot vazio enquanto o pai ainda renderiza. [Composition and brand overlays](/info/tool-composition.html) traz os detalhes.
 
 ## O que escolhemos não fazer
 

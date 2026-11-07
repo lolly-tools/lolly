@@ -86,7 +86,7 @@ Les téléchargements reprennent là où ils se sont arrêtés si tu annules ou 
 - **Leave** supprime le design system, les outils et le catalogue de l'instance, et ton propre travail reste. Voir [Use Lolly at your organisation](/info/organisation.html#leaving).
 - Quand tu es connecté à une organisation, **Sign out** met fin à cette session et **Sign out everywhere** met fin à tes sessions sur chaque appareil, y compris celui-ci.
 
-## This device
+## Cet appareil
 
 - <!--i:monitor--> **This Machine** - écran, entrée, graphisme, mémoire, codecs, backend de stockage et plus, lus en direct depuis cette session. Rien n'est stocké et rien n'est envoyé. Il s'ouvre tout seul sur un grand écran, où l'onglet se dispose sur deux colonnes.
 - <!--i:neurobeat--> **Sound** - les sons de l'interface et les boucles de concentration Neurospicy, le seul interrupteur de cet onglet qui écrit quelque chose.
@@ -123,7 +123,7 @@ D'abord le build : combien d'outils sont chargés, combien de formats d'export e
 
 Puis ton propre côté : **Your activity** compte ce que tu as créé sur cet appareil, et **Recent creations** et **Latest exports** sont des piles que tu peux balayer, chacune n'apparaissant qu'une fois qu'il y a quelque chose à montrer. Les deux ouvrent un élément tel qu'il était. Ces compteurs restent sur l'appareil ; une instance Lolly Work facultative tient ses propres [télémétrie d'organisation et enregistrements d'audit](/info/privacy.html#organisation-services-with-lolly-work).
 
-## Deep links
+## Liens profonds
 
 Chaque onglet et chaque section de Settings a son propre lien, que tu peux mettre en favori ou coller. [Lolly Search](/info/search.html) dirige ses résultats **Settings** vers le même registre dont Settings se sert pour s'afficher, donc une section ne peut pas être renommée sous un résultat de recherche.
 

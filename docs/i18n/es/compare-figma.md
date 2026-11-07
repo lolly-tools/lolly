@@ -16,7 +16,7 @@ Ambos permiten disponer tipografía, formas e imágenes en un lienzo y trabajar 
 
 Lolly convierte un diseño en una [herramienta reutilizable con reglas](/info/create-a-tool.html). La herramienta se ejecuta en el navegador o en la CLI y toma sus entradas de un enlace, un script o una cuadrícula de lotes, de modo que una plantilla sirve tanto a una persona que edita un archivo como a un equipo que crea muchos.
 
-![El lienzo abierto de Design, con Import a design en el menú de Lolly de la barra de herramientas](/info/shots/design.svg)
+![El lienzo abierto de Lolly Design, con Import a design en el menú de Lolly de la barra de herramientas](/info/shots/design.svg)
 
 Una [collab privada](/info/collaborate.html) empareja dos dispositivos directamente, sin cuenta y sin internet en una red compartida. Lolly independiente renderiza sin conexión. Las Content Credentials están activadas por defecto en las exportaciones admitidas, y puedes desactivarlas.
 

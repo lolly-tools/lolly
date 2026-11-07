@@ -14,7 +14,7 @@ Jika pasukan anda mereka bentuk dalam Penpot, Lolly berfungsi bersama Penpot: ke
 
 ## Bagaimana Lolly melakukan tugas yang bertindih
 
-Kanvas Design Lolly membuat aset boleh sunting dan boleh menukar reka letak menjadi [alat dengan peraturan](/info/create-a-tool.html). Alat yang sama merender dalam pelayar, apl desktop atau CLI dan membuat varian daripada data. Lolly kendiri merender dan menandatangani pada peranti, tanpa akaun atau pelayan. [Collab peribadi](/info/collaborate.html) memasangkan dua peranti secara terus.
+Kanvas Lolly Design milik Lolly membuat aset boleh sunting dan boleh menukar reka letak menjadi [alat dengan peraturan](/info/create-a-tool.html). Alat yang sama merender dalam pelayar, apl desktop atau CLI dan membuat varian daripada data. Lolly kendiri merender dan menandatangani pada peranti, tanpa akaun atau pelayan. [Collab peribadi](/info/collaborate.html) memasangkan dua peranti secara terus.
 
 ## Dengan organisasi
 

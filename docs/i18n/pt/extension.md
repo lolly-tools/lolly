@@ -10,26 +10,29 @@ Você aprova cada solicitação, e o app desktop faz os mesmos trabalhos sem a e
 
 ## Antes de instalar
 
-Enquanto a extensão não estiver instalada, o **URL Screenshot** ainda abre, para que você monte uma captura. Uma nota no topo dos controles da ferramenta diz o que está faltando.
+Enquanto a extensão não estiver instalada, o **Lolly URL Screenshot** ainda abre, para que você monte uma captura. Uma nota no topo dos controles da ferramenta diz o que está faltando.
 
 ![A nota do URL Screenshot oferecendo a extensão, mostrada quando a captura para arquivo não tem host para rodar](/t/url-shot?url=%2F%23%2Ftool%2Furl-shot&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&cropSelector=%23capture-hint-notice&dark=1&filename=exp-url-shot-notice)
 
 Todos os controles funcionam enquanto você espera: a URL de destino, a profundidade de rolagem, o atraso de estabilização, as margens de corte e a recoloração. Apenas a captura em si precisa da extensão.
 
-![Os controles do URL Screenshot com uma URL de destino, profundidade de rolagem, atraso de acomodação e margens de corte, todos utilizáveis antes de a extensão existir](/t/url-shot?url=%2F%23%2Ftool%2Furl-shot%3Furl%3Dhttps%3A%2F%2Flolly.tools%26scrollDepth%3D0.3%26waitMs%3D1200&width=1440&height=2200&dpi=192&waitMs=2400&format=svg&css=%23tool-canvas%7Bdisplay%3Anone%7D&cropSelector=%23tool-inputs&walker=1&dark=1&filename=fq-url-shot-controls)
+![Os controles do Lolly URL Screenshot com uma URL de destino, profundidade de rolagem, atraso de acomodação e margens de corte, todos utilizáveis antes de a extensão existir](/t/url-shot?url=%2F%23%2Ftool%2Furl-shot%3Furl%3Dhttps%3A%2F%2Flolly.tools%26scrollDepth%3D0.3%26waitMs%3D1200&width=1440&height=2200&dpi=192&waitMs=2400&format=svg&css=%23tool-canvas%7Bdisplay%3Anone%7D&cropSelector=%23tool-inputs&walker=1&dark=1&filename=fq-url-shot-controls)
 
 ## Instalar
 
 **Pela Chrome Web Store:** em breve. Quando a extensão for publicada, você a instala com um clique.
 
-**Carregue você mesmo (desenvolvedores).** A extensão fica no repositório em `shells/chrome-extension/`. Essa pasta é a compilação de produção, que funciona apenas com o Lolly em `https://lolly.tools`.
+**Carregue você mesmo (desenvolvedores).** O código-fonte da extensão fica no repositório em `shells/chrome-extension/`. A etapa de empacotamento gera o pacote de produção a partir dessa pasta, que funciona apenas com o Lolly em `https://lolly.tools`.
 
-1. Abra `chrome://extensions`.
-2. Ative **Developer mode** (canto superior direito).
-3. Clique em **Load unpacked** e escolha a pasta `shells/chrome-extension/`.
-4. Recarregue a aba do Lolly. A detecção acontece quando a página carrega, então o aviso "Get the extension" desaparece. O **URL Screenshot** (em Utilities) pode então salvar capturas em arquivo e fica disponível no modo Batch.
+1. Execute `pnpm run pack:chrome-extension`. Ele gera o pacote em `dist/chrome-extension/`.
+2. Abra `chrome://extensions`.
+3. Ative **Developer mode** (canto superior direito).
+4. Clique em **Load unpacked** e escolha a pasta `dist/chrome-extension/`.
+5. Recarregue a aba do Lolly. A detecção acontece quando a página carrega, então o aviso "Get the extension" desaparece. O **Lolly URL Screenshot** (em Utilities) pode então salvar capturas em arquivo e fica disponível no modo Lolly Batch.
 
 Para um servidor de desenvolvimento local, execute `pnpm run pack:chrome-extension:dev` e carregue `dist/chrome-extension-dev` no lugar. Esse pacote também aceita `http://localhost:5173` e tem **Development** no nome.
+
+Carregar a própria pasta `shells/chrome-extension/` também funciona, para capturas em PNG. Essa pasta não tem a leitura da página (a etapa de empacotamento a incorpora), então um SVG gerado por ela contém uma captura de tela em vez de formas.
 
 ## O que acontece quando o Lolly pede
 
@@ -40,15 +43,20 @@ Para um servidor de desenvolvimento local, execute `pnpm run pack:chrome-extensi
 3. **O Chrome pergunta uma vez por site.** Na primeira vez que você aprova uma solicitação para um site, o Chrome também pergunta se a extensão pode acessar esse site. O Chrome mantém esse acesso depois que você permite, mas cada solicitação seguinte ainda precisa do próprio **Approve once**.
 4. **A página é lida em uma aba em segundo plano.** A extensão abre a página de destino em uma aba em segundo plano, a captura pelo DevTools Protocol (o mesmo `Page.captureScreenshot` que o app desktop usa), fecha a aba e devolve o resultado à aba do Lolly que pediu.
 
+Para um **SVG**, a extensão percorre a página em vez de tirar uma foto da tela. Um script empacotado com a extensão lê o layout da página nessa aba em segundo plano e transforma a página em formas e texto em contornos, então o arquivo continua nítido em qualquer tamanho e cada parte continua editável. As imagens da página entram como as imagens que são, e o que a página desenha com um canvas, um vídeo ou um efeito para o qual o SVG não tem forma é copiado de uma captura de tela do mesmo instante. O Lolly confere o resultado com essa captura de tela e, quando os dois diferem demais, o SVG contém a captura de tela.
+
+Para converter o texto em contornos na fonte da própria página, a extensão entrega ao Lolly os arquivos de fonte que a página carregou. O Chrome não guarda os bytes de uma fonte onde uma extensão possa lê-los, então a extensão pede cada fonte de novo à página. O seu navegador costuma responder a partir do cache, e a política de segurança da própria página continua valendo para esse pedido.
+
 Uma aprovação cobre uma solicitação e expira em 30 segundos. Apenas uma solicitação pode esperar ou rodar por vez, e uma solicitação aprovada é interrompida após 55 segundos. Se a página do Lolly fechar ou mudar, ou se a página de destino for para outro site, a solicitação é cancelada.
 
-A captura roda no seu navegador, na sua rede, então `localhost` e sites internos funcionam. A página carrega com a sessão do seu navegador, então uma página em que você está logado pode mostrar informações privadas no resultado. A captura não é enviada: o único tráfego de rede é o seu próprio navegador carregando a página que você pediu.
+A captura roda no seu navegador, na sua rede, então `localhost` e sites internos funcionam. A página carrega com a sessão do seu navegador, então uma página em que você está logado pode mostrar informações privadas no resultado. A captura não é enviada: o único tráfego de rede é o seu próprio navegador carregando a página que você pediu e, para um SVG, os arquivos de fonte dessa página uma segunda vez.
 
 Enquanto uma captura roda, você pode ver brevemente um aviso *"…started debugging this browser"* na aba temporária. É o DevTools Protocol trabalhando, e o aviso some quando a captura termina.
 
-## Ler um site para o Design System Setup
+<a id="reading-a-site-for-design-system-setup"></a>
+## Ler um site para o Lolly Design System Setup
 
-A origem **Website** no Design System Setup inicia um sistema de design a partir de um site que você já tem. Em um navegador Chromium, a extensão lê a página. No app desktop, o app busca a página por conta própria. Em um navegador sem a extensão, o bloco Website não é oferecido.
+A origem **Website** no Lolly Design System Setup inicia um sistema de design a partir de um site que você já tem. Em um navegador Chromium, a extensão lê a página. No app desktop, o app busca a página por conta própria. Em um navegador sem a extensão, o bloco Website não é oferecido.
 
 - **Um endereço, uma página.** Depois que você aprova, a extensão abre a página no mesmo tipo de aba em segundo plano, lê a marcação renderizada, o texto das folhas de estilo e algumas imagens de ícone e logotipo, e fecha a aba. Ela não segue links nem rastreia.
 - **As folhas de estilo hospedadas em outro lugar** (uma CDN ou um serviço de fontes) também são buscadas, porque as cores e a tipografia da página estão nelas. As requisições entre origens vão sem os seus cookies; as de mesma origem os usam, como a própria página faria.
@@ -59,11 +67,11 @@ Colar um endereço apenas preenche o campo. Nada é lido até você iniciar a le
 
 ## Permissões
 
-O `manifest.json` da extensão declara quatro permissões, além do acesso a sites que ela pede um site por vez. Ele define `minimum_chrome_version: 111`, e a versão atual é a 0.4.0.
+O `manifest.json` da extensão declara quatro permissões, além do acesso a sites que ela pede um site por vez. Ele define `minimum_chrome_version: 111`, e a versão atual é a 0.5.0.
 
 | Permissão | Para que serve | Quando é concedida |
 |---|---|---|
-| `debugger` | Conduz a aba em segundo plano pelo DevTools Protocol, que tira a captura de tela. | Na instalação |
+| `debugger` | Conduz a aba em segundo plano pelo DevTools Protocol, que tira a captura de tela e, para um SVG, executa a leitura da página. | Na instalação |
 | `tabs` | Abre a aba temporária em segundo plano e a fecha depois, e confere que nem a página do Lolly nem a página de destino mudaram desde que você aprovou. | Na instalação |
 | `scripting` | Executa o leitor de uma página dentro do site que você indicou, para a origem Website. | Na instalação |
 | `storage` | Anota o id de uma aba que abriu, apenas no armazenamento de sessão, para que a aba ainda feche se o navegador suspender a extensão no meio da leitura. Limpo na próxima inicialização; nada sobre você é armazenado. | Na instalação |

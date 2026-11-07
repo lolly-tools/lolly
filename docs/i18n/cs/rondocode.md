@@ -1,4 +1,6 @@
-# Písně Rondocode
+# Písně Lolly Rondocode
+
+<a id="rondocode-songs"></a>
 
 Píseň rondocode je hudba psaná jako kód: syntezátory, vzory a mix, přehrávané při psaní. Lolly umí přehrát píseň pod videem a utilita **Rondocode** umožňuje jednu napsat a exportovat jako zvuk. Obojí zaznamenává píseň v Content Credentials souboru, takže hudba říká, odkud pochází.
 
@@ -12,7 +14,7 @@ Z terminálu bere `lolly mix` píseň jako celou zvukovou stopu; viz [Vykreslov�
 
 ## Napiš a exportuj píseň
 
-Otevři **Rondocode** z **Utilities**, abys napsal píseň v živém editoru rondocode a slyšel ji při psaní. Exportuj ji jako **WAV**, **MP3**, **M4A**, **Opus** nebo **FLAC**, jako ZIP stop, jako **MIDI** nebo jako nahrávku toho, co hraje. Z terminálu zapíše `lolly rondocode --export=mid` stejný soubor MIDI. **Export length** nastavuje, kolik sekund zvukový export trvá. Samotný soubor písně (`.rondo.json`) je tvůj kód tak, jak je psán, a nenese nic přidaného.
+Otevři nástroj **Rondocode** z **Utilities**, abys napsal píseň v živém editoru rondocode a slyšel ji při psaní. Exportuj ji jako **WAV**, **MP3**, **M4A**, **Opus** nebo **FLAC**, jako ZIP stop, jako **MIDI** nebo jako nahrávku toho, co hraje. Z terminálu zapíše `lolly rondocode --export=mid` stejný soubor MIDI. **Export length** nastavuje, kolik sekund zvukový export trvá. Samotný soubor písně (`.rondo.json`) je tvůj kód tak, jak je psán, a nenese nic přidaného.
 
 Píseň může zpívat svůj text pomocí `sing()`. Zpěv vytvářejí na tvém zařízení stažené hlasové modely a soubor, který drží syntetizovaný zpěv, vždy deklaruje zpěv jako generovaný AI (viz [Funkce AI](/info/ai-features.html)).
 
@@ -24,11 +26,11 @@ Video nebo audio export, který hraje píseň rondocode, zaznamenává každou p
 - SHA-256 jejího souboru `.rondo.json`;
 - jak byla vykreslena: v sandboxu Lolly, třída provádění `vm`, s verzí a seedem vykreslovače a jakoukoli částí, kterou vykreslení nedokázalo přehrát.
 
-Hudba vypočítaná z kódu písně je označena jako algoritmické médium, takže ji Verify neoznačí jako AI. Před exportem řádek pod **Download** vypisuje písně, které credential zaznamená; po exportu stejný řádek hlásí, co nalezlo čtení doručeného souboru. Zruš zaškrtnutí **C2PA Credentials**, aby se záznam vynechal. Statický obrázek žádnou píseň nezaznamenává, protože nenese žádný zvuk. `lolly mix` a [server MCP](/info/mcp.html) zapisují stejný záznam.
+Hudba vypočítaná z kódu písně je označena jako algoritmické médium, takže ji Lolly Verify neoznačí jako AI. Před exportem řádek pod **Download** vypisuje písně, které credential zaznamená; po exportu stejný řádek hlásí, co nalezlo čtení doručeného souboru. Zruš zaškrtnutí **C2PA Credentials**, aby se záznam vynechal. Statický obrázek žádnou píseň nezaznamenává, protože nenese žádný zvuk. `lolly mix` a [server MCP](/info/mcp.html) zapisují stejný záznam.
 
 ## Soubory z utility Rondocode
 
-Většina utilit na zařízení nezapisuje žádný credential, protože transformují soubor, který už vlastníš. Rondocode vytváří nový zvuk, takže každý zvukový soubor, který zapíše, nese Content Credentials zaznamenávající píseň jako zdroj: její jméno, SHA-256 jejího souboru `.rondo.json` a kde její kód běžel. To pokrývá WAV, MP3, M4A, Opus, FLAC, každou stopu ve ZIP stop a nahrávku toho, co hraje.
+Většina utilit na zařízení nezapisuje žádný credential, protože transformují soubor, který už vlastníš. Lolly Rondocode vytváří nový zvuk, takže každý zvukový soubor, který zapíše, nese Content Credentials zaznamenávající píseň jako zdroj: její jméno, SHA-256 jejího souboru `.rondo.json` a kde její kód běžel. To pokrývá WAV, MP3, M4A, Opus, FLAC, každou stopu ve ZIP stop a nahrávku toho, co hraje.
 
 - Vlastní vykreslení editoru běží v jeho soukromém rámu (třída provádění `frame`) a zaznamenávají verzi editoru.
 - Vykreslení z CLI nebo sdíleného odkazu běží ve třídě `vm` a zaznamenává verzi vykreslovače a seed.

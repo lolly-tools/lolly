@@ -2,6 +2,8 @@
 
 你的組織可以運行自己的 Lolly：同一個應用程式，搭配它所選擇的工具與設計系統。本頁說明如何連到它、登入，以及登入後有什麼不同。
 
+如果你正在規劃組織的設定，[在既有的 DAM 上使用 Lolly](/info/use-with-dam.html) 說明已核准的資料庫如何維持原狀，同時人們開始在 Lolly 中製作內容。[內容主權](/info/content-sovereignty.html)則說明對創作、治理、儲存與可攜性的更廣泛控制。
+
 ::: note 你需要向組織取得的東西
 它的 Lolly 網址，或是你的組織製作的 `.lolly` 設定檔。lolly.tools 本身不會連線到任何組織。
 :::
@@ -10,13 +12,13 @@
 
 開啟你的組織給你的位址。如果頁面要求登入，請按下 **Sign in**，並依它開啟的登入頁面操作。之後它就像任何 Lolly 一樣運作，搭配你組織的工具與設計系統。
 
-你也可以從 lolly.tools 開始：開啟 **Settings**，在 **Lolly instance** 卡片上按下 **Open a workspace**，輸入位址後按下 **Open this instance**。瀏覽器會前往你組織自己的位址，因為瀏覽器無法從 lolly.tools 載入另一個 Lolly 的工具。
+你也可以從 lolly.tools 開始：開啟 **Settings** 檢視，在 **Lolly instance** 卡片上按下 **Open a workspace**，輸入位址後按下 **Open this instance**。瀏覽器會前往你組織自己的位址，因為瀏覽器無法從 lolly.tools 載入另一個 Lolly 的工具。
 
 ![Settings 中的 Lolly instance 卡片，在此開啟你組織的工作區，或更改應用程式取得工具的來源](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dinstance-section&width=1440&height=1400&dpi=192&waitMs=2000&format=svg&cropSelector=%23instance-section&walker=1&dark=1&filename=org-instance-card)
 
 ## 在桌面版或行動版應用程式中
 
-應用程式一開始使用其內建的工具。若要連線，請開啟 **Settings**，在 **Lolly instance** 卡片上按下 **Change**。該面板會問 **Where should Lolly get its tools?**
+應用程式一開始使用其內建的工具。若要連線，請開啟 **Settings** 檢視，在 **Lolly instance** 卡片上按下 **Change**。該面板會問 **Where should Lolly get its tools?**
 
 1. 選擇**連線至 Lolly 執行個體**。
 2. 輸入你的組織的網址，然後按**檢查並連線**。

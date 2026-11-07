@@ -39,7 +39,7 @@ lolly.tools åpner i [Lolly Demo](/info/lolly-demo.html), Lollys eget eksempel p
 
 ## Kan jeg bruke min egen merkevare?
 
-Ja. **Design System Setup** (`#/start`) bygger et designsystem fra én farge, en designtokens-fil eller et ferdig design, og hvert verktøy tegner deretter med designsystemet ditt. [Start](/info/quickstart.html#put-your-brand-in) går gjennom de tre rutene.
+Ja. **Lolly Design System Setup** (`#/start`) bygger et designsystem fra én farge, en designtokens-fil eller et ferdig design, og hvert verktøy tegner deretter med designsystemet ditt. [Start](/info/quickstart.html#put-your-brand-in) går gjennom de tre rutene.
 
 Et designsystem som organisasjonen eller bygget ditt leverer, er administrert: det viser en lås og forblir skrivebeskyttet, og du kan lage en redigerbar kopi for å endre det.
 
@@ -80,9 +80,9 @@ Nettappen tegner med WebGPU, en grafikkfunksjon i dagens nettlesere, og den sjek
 
 ## Kan Lolly redigere og rendre Figma-, Penpot-, Illustrator- eller InDesign-filene mine?
 
-Ja. Åpne **Design** og klikk **Import a design**: den godtar en innebygd Figma **.fig** (Save local copy), en Penpot **.penpot**-eksport, en Illustrator **.ai** eller **.pdf**, en InDesign **.idml** (File → Export → InDesign Markup) eller **en hvilken som helst SVG**. Du trenger ingen konto, ingen plugin og ingen lisens på designapp.
+Ja. Åpne verktøyet **Design** og klikk **Import a design**: den godtar en innebygd Figma **.fig** (Save local copy), en Penpot **.penpot**-eksport, en Illustrator **.ai** eller **.pdf**, en InDesign **.idml** (File → Export → InDesign Markup) eller **en hvilken som helst SVG**. Du trenger ingen konto, ingen plugin og ingen lisens på designapp.
 
-![Designs åpne canvas - Importer et design ligger i verktøylinjens Lolly-meny](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D17ZTfS8MwEMf_mryO5NZ288GHrdqJv1CUvWdtOgppMtJMNv96yaV1iRNEQRBZoblwab53l0-uq915bXgrCOSDpf3LzgANnQ4eI0rrPJn7Gh9cd0sE8lIryxtFIFfatFx6L4F0Mi-11GbUiZYr25QjK3bW-S8I5MnUbRXKCkMgb5uqki6JFFU7rjoXYsSgT8GaLebKZSeGAPkUYypMHp80DeugYYR4J_U7X4XRkY8dFHuTYEJ-jDWM3qoqsEHo4Y20-xJi-SPVaOfRUuAL1hiZXNrG4gH6M85Z5lTAk8x8DdlnPL8gecVfBIEU6F5v0bbCor3VUu4JpOPCKTCWsPI9rBS107d6QyCfRET_Ac6wX36X6UpX-49Ip1mAlMEPkM6QX20aoSpECLTmpadcazPQ9hPlWxboRndWmFEIG1s4Yp3E3Ts-0f4GbcruWHLzlC0frmfpfbGk82LxmD0vUndSTcvXAoknWBKCz5LDSIdiRHV0D2Tfq1BIvdY42Zim5WZ_-n3_mRvwBg&width=1360&height=850&dpi=192&waitMs=3000&format=svg&walker=1&chrome=1&localize=1&dark=1&filename=design)
+![Lolly Designs åpne lerret - Import a design ligger i Lolly-menyen på verktøylinjen](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D17ZTfS8MwEMf_mryO5NZ288GHrdqJv1CUvWdtOgppMtJMNv96yaV1iRNEQRBZoblwab53l0-uq915bXgrCOSDpf3LzgANnQ4eI0rrPJn7Gh9cd0sE8lIryxtFIFfatFx6L4F0Mi-11GbUiZYr25QjK3bW-S8I5MnUbRXKCkMgb5uqki6JFFU7rjoXYsSgT8GaLebKZSeGAPkUYypMHp80DeugYYR4J_U7X4XRkY8dFHuTYEJ-jDWM3qoqsEHo4Y20-xJi-SPVaOfRUuAL1hiZXNrG4gH6M85Z5lTAk8x8DdlnPL8gecVfBIEU6F5v0bbCor3VUu4JpOPCKTCWsPI9rBS107d6QyCfRET_Ac6wX36X6UpX-49Ip1mAlMEPkM6QX20aoSpECLTmpadcazPQ9hPlWxboRndWmFEIG1s4Yp3E3Ts-0f4GbcruWHLzlC0frmfpfbGk82LxmD0vUndSTcvXAoknWBKCz5LDSIdiRHV0D2Tfq1BIvdY42Zim5WZ_-n3_mRvwBg&width=1360&height=850&dpi=192&waitMs=3000&format=svg&walker=1&chrome=1&localize=1&dark=1&filename=design)
 
 Lag kommer inn som redigerbare bokser: tekst kan fortsatt skrives på nytt, former forblir former og bilder blir med i ditt eget bibliotek. Lagre den, så kan **Share with rules** gjøre layouten om til et verktøy alle med Lolly kan fylle ut på nytt. Se [Import a design](/info/design-import.html).
 
@@ -100,7 +100,7 @@ Feature flags slår deler av Lolly på eller av. I frittstående bruk velger du 
 
 En utility gjør én rask jobb på en fil du allerede har, som å komprimere en PDF, konvertere et bilde eller fjerne skjulte data, og mange av dem kjører på enheten din uten at noe lastes opp. De finnes for at jobbene folk vanligvis gir til et tilfeldig nettsted, blir i Lolly. Å komprimere en kontrakt, konvertere feriebilder med posisjonen fortsatt inni eller lime inn et token i en nettbasert formaterer burde ikke bety å gi filen til et nettsted med ukjent oppbevaring, jurisdiksjon og forretningsmodell. [Lolly Utilities](/info/utilities.html) lister dem, og [The trade we never agreed to](/info/status-quo.html) forteller historien bak dem.
 
-![Utilities-visningen: Strip Hidden Data, Compress PDF, Convert Image og de andre jobbene på enheten, alle på ett sted](/t/url-shot?url=%2F%23%2Fu&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone!important%7D&tolerance=0.03&format=svg&walker=1&dark=1&filename=use-utilities&try=1)
+![Utilities-visningen: Lolly Strip Hidden Data, Compress PDF, Convert Image og de andre jobbene på enheten, alle på ett sted](/t/url-shot?url=%2F%23%2Fu&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone!important%7D&tolerance=0.03&format=svg&walker=1&dark=1&filename=use-utilities&try=1)
 
 ## Kan organisasjonen vår bruke SSO, delte prosjekter og godkjenninger?
 
@@ -110,7 +110,7 @@ Ja, med **Lolly Work**, organisasjonsserveren fra det samme åpen kildekode-pros
 
 ## Hvilke hindringer kan jeg møte når jeg tar i bruk Lolly?
 
-Mest endringer på produksjonssiden, ikke i teknologien. Et team som vil ha et styrt sett med verktøy, trenger noen som forfatter designsystemet og de første malene, selv om hvem som helst kan begynne å lage sine egne verktøy i Design første dag, uten git. Og eksisterende prosesser fortsetter å fungere selv når resultatet er utenfor merkevaren, så å konvertere ett synlig resultat godt, før og etter side om side, gjør saken raskere enn en plan.
+Mest endringer på produksjonssiden, ikke i teknologien. Et team som vil ha et styrt sett med verktøy, trenger noen som forfatter designsystemet og de første malene, selv om hvem som helst kan begynne å lage sine egne verktøy i Lolly Design første dag, uten git. Og eksisterende prosesser fortsetter å fungere selv når resultatet er utenfor merkevaren, så å konvertere ett synlig resultat godt, før og etter side om side, gjør saken raskere enn en plan.
 
 [Adoption & Governance](/info/adoption-governance.html) dekker onboarding etter rolle, hvordan man måler en pilot og hvordan en styringsprosess kan se ut.
 
@@ -144,3 +144,11 @@ De ligger i et eget, privat repositorium. En offentlig klone henter ikke SUSE-me
 ## Hvilken smak har den Lolly-logoen?
 
 Noen sier lime, andre sier mint og av og til eple. Lolly står for det søte, du bestemmer smaken!
+
+## Hva mener Lolly med innholdssuverenitet?
+
+Kontroll over hvordan innholdet ditt lages, styres, lagres og flyttes mellom systemene du velger. Lolly støtter lokal produksjon, redigerbart arbeid og portable verktøy; Lolly Work legger til organisasjonsstyrte delte tjenester. Kildelisenser, tilgjengelige avhengigheter og dataflytene i arbeidsflyten spiller fortsatt en rolle. [What is content sovereignty?](/info/content-sovereignty.html) forklarer hver kontroll og grensene for den.
+
+## Kan vi beholde den eksisterende DAM-en vår?
+
+Ja. En støttet DAM kan forbli kilden til sannhet mens Lolly Work kobler utvalgte ressurser til Lolly-verktøy. Tilgang til kilden, tillatte endringer, bruksrettigheter og godkjenning av det ferdige resultatet er separate beslutninger. [Use Lolly with your existing DAM](/info/use-with-dam.html) forklarer opplegget, og [SUSE's Brandfolder experience](/info/suse-brandfolder.html) dokumenterer vellykket bruk under innføringen.

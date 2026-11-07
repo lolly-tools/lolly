@@ -2,9 +2,13 @@
 
 O Lolly são duas partes de um mesmo projeto de código aberto. O **Lolly** é o motor, os apps e as ferramentas para criar, editar, converter e exportar no seu dispositivo, sem conta. O **Lolly Work** é o servidor de organização, executado na sua própria infraestrutura, para login, projetos compartilhados, aprovações e renderização no servidor. Ambos são MPL-2.0. Esta página compara o par com as outras formas pelas quais as pessoas projetam, governam e produzem arquivos.
 
+A ideia que organiza tudo é a [soberania de conteúdo](/info/content-sovereignty.html): controle sobre como o conteúdo é criado, governado, armazenado e movido entre sistemas escolhidos. Os aplicativos criativos podem fornecer os designs, um DAM pode continuar sendo a fonte de registro, e o Lolly pode transformar entradas permitidas e recursos aprovados em novos arquivos. [Use Lolly with your existing DAM](/info/use-with-dam.html) descreve essa combinação.
+
 ## As ferramentas de hoje
 
 Cada anel pontua quão completamente uma classe de produto entrega uma capacidade, com cada classe avaliada pelo seu melhor representante. A coluna do Lolly cobre o Lolly e o Lolly Work juntos, e cada linha diz qual parte fornece o quê. Abra o nome de uma linha para ver o raciocínio por trás da sua pontuação. As colunas são ordenadas pela linha Overall completeness no topo: a média das linhas pontuadas, com a linha de gasto excluída.
+
+As pontuações usam a preferência do Lolly por controle sem conta nem exigência de nuvem. São uma comparação sob esses critérios, não um ranking neutro de completude de produto nem uma pontuação de compras corporativas. Leia separadamente os limites de capacidade, de implantação e de evidências ao avaliar um fluxo de trabalho específico.
 
 ::: figure positioning-comparison
 Comparação de capacidades: pesquisa e pontuações de concorrentes de agosto de 2026; cobertura do Lolly + Lolly Work revisada em 28 de setembro de 2026. Pontuação: 0 ausente, 25 nível de solução alternativa, 50 real mas restrito ou parcial, 75 forte com ressalvas, 100 competência central.
@@ -43,9 +47,11 @@ A colaboração ao vivo do Lolly inclui collabs privados diretos entre dois disp
 
 Designs importados e design tokens compartilhados permitem que uma equipe combine o Lolly com aplicativos especializados, enquanto o Lolly Work governa recursos compartilhados, revisão e entrega.
 
-Um deck de slides inteiro mostra o teto: no **Markdown Slides**, um deck é declarado como dados, diagramado ao vivo e exportado como um arquivo nativo e editável do PowerPoint.
+Para equipes com um DAM curado, comece mantendo essa biblioteca e seus administradores no lugar. [SUSE's Brandfolder experience](/info/suse-brandfolder.html) registra como a integração apoiou a adoção e a gestão de mudanças de aprovação. Fornecedores de DAM e parceiros de implementação podem avaliar o mesmo arranjo por meio do [fluxo de trabalho para parceiros](/info/dam-partners.html).
 
-![O Markdown Slides na visão dividida: os slides do deck listados como blocos à esquerda, o deck diagramado sendo renderizado à direita](/t/url-shot?url=%2F%23%2Ftool%2Fdeck-studio&width=1440&height=900&dpi=192&waitMs=2600&walker=1&format=svg&dark=1&filename=ov2-deck-studio-output)
+Um deck de slides inteiro mostra o teto: no **Lolly Markdown Slides**, um deck é declarado como dados, diagramado ao vivo e exportado como um arquivo nativo e editável do PowerPoint.
+
+![O Lolly Markdown Slides na visão dividida: os slides do deck listados como blocos à esquerda, o deck diagramado sendo renderizado à direita](/t/url-shot?url=%2F%23%2Ftool%2Fdeck-studio&width=1440&height=900&dpi=192&waitMs=2600&walker=1&format=svg&dark=1&filename=ov2-deck-studio-output)
 
 ## As regras vivem na ferramenta
 

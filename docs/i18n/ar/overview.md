@@ -72,7 +72,7 @@ shells/tui/         src/main.tsx (the full-screen app), src/bridge.ts
 
 ![مقطع صوتي مصوّر (audiogram) على شاشة بعرض 430px: ورقة عناصر التحكم فوق، والعمل المربع المنجز تحت، وحبة التصدير العائمة](/t/url-shot?url=%2F%23%2Ftool%2Faudiogram%3Faudio%3Dlolly%2Floops%2Ffireplace-loop%26title%3DField%2520notes%26subtitle%3DEpisode%252012%26style%3Dwave&width=430&height=900&dpi=192&waitMs=3200&css=%23ag-wave%7Bdisplay%3Anone!important%7D.ag-ph%7Bdisplay%3Ablock!important%7D&walker=1&format=svg&rasterDpi=110&dark=1&filename=ov2-phone-audiogram)
 
-يأتي تطبيق الويب أيضاً مع **Batch** (`#/batch`، `shells/web/src/pro/`)، وهو شبكة بأسلوب جدول بيانات تعرض صفوفاً كثيرة دفعة واحدة عبر أداة واحدة أو أدوات كثيرة؛ ويغطي [Batch وMulti-edit](/info/batch.html#make-many-versions-of-one-design) Batch. ويرسم **Settings → Capabilities** خريطة كل ما تعلن المنصة أنها تستطيع فعله.
+يأتي تطبيق الويب أيضا مع **Batch** (`#/batch`، `shells/web/src/pro/`)، وهو شبكة بأسلوب جدول بيانات تعرض صفوفا كثيرة دفعة واحدة عبر أداة واحدة أو أدوات كثيرة؛ ويغطي [Batch وLolly Multi-edit](/info/batch.html#make-many-versions-of-one-design) Batch. ويرسم **Settings → Capabilities** خريطة كل ما تعلن المنصة أنها تستطيع فعله.
 
 ![Batch على تثبيت جديد: صف فارغ واحد ينتظر أداة، مع سطح جدول البيانات وزر Render في مكانه قبل وصول أي بيانات](/t/url-shot?url=%2F%23%2Fbatch&width=1440&height=900&dpi=192&waitMs=3500&walker=1&format=svg&dark=1&filename=ov2-batch-grid)
 
@@ -140,8 +140,8 @@ https://lolly.tools/t/qr-code?url=https://example.com&ecl=H
 يعلن المدخل `type`: `text` أو `longtext` أو `number` أو `boolean` أو `color` أو `select` أو `asset` أو `date` أو `time` أو `datetime-local` أو `url` أو `blocks` أو `vector` أو `table` أو `file`. يعرض المضيف عنصر تحكم لكل نوع، فلا تكتب الأدوات شيفرة عناصر تحكم، ويمكن لأي مدخل أن يحمل `bindToProfile`. ثلاثة منها الأثقل وزناً:
 
 - **`asset`**، مع `filter` و`allowUpload`، هو الجسر إلى نظام الأصول. يقصر `allowUpload: false` الخانة على أصول المكتبة، وتتشارك الملفات التي يرفعها المستخدم شكل `AssetRef` مع المكتبة.
-- **`blocks`** مجموعة حقول متكررة تُحرَّر في لوحة جانبية، تستخدمها Meeting Planner وWayfinding وDiagrams وغيرها. النقر على كتلة معروضة يركّز صفها.
-- يحتفظ **`file`** بملف المستخدم نفسه في الذاكرة للأدوات المساعدة على الجهاز مثل Strip Hidden Data وCompress، ويجمع **`vector`** مجموعة ثابتة من الأرقام في عنصر تحكم واحد.
+- **`blocks`** مجموعة حقول متكررة تحرر في لوحة جانبية، تستخدمها Meeting Planner وWayfinding وDiagrams وغيرها. النقر على كتلة معروضة يركز صفها.
+- يحتفظ **`file`** بملف المستخدم نفسه في الذاكرة للأدوات المساعدة على الجهاز مثل Lolly Strip Hidden Data وCompress، ويجمع **`vector`** مجموعة ثابتة من الأرقام في عنصر تحكم واحد.
 
 ### 9. القوالب بلا منطق
 
@@ -149,7 +149,7 @@ https://lolly.tools/t/qr-code?url=https://example.com&ecl=H
 
 ### 10. الأدوات تركّب أدوات
 
-يمكن لأداة أن تضمّن عرض أداة أخرى دون استيراد من أداة إلى أخرى؛ يحل المحرك التركيب. ويمكن لبيان أن يعلن `composes: [{ id, tool, inputs }]` ويضع الابن بـ `{{asset <id>}}`، ويعرض عنوان تضمين قابل للنقل (`https://lolly.tools/tool/<id>.svg?…`) الابن محلياً، وهكذا يضع Design رمز QR حياً أو مخططاً. يبقى الابن SVG متجهاً في أب SVG أو PDF. الأبناء وسطاء، لا يُوضع عليهم علامة مائية ولا ختم، والواجهة التي لا تستطيع عرض واحد تترك الخانة فارغة بينما يُعرض الأب. يحتوي [التركيب وتراكبات العلامة](/info/tool-composition.html) التفاصيل.
+يمكن لأداة أن تضمن عرض أداة أخرى دون استيراد من أداة إلى أخرى؛ يحل المحرك التركيب. ويمكن لبيان أن يعلن `composes: [{ id, tool, inputs }]` ويضع الابن بـ `{{asset <id>}}`، ويعرض عنوان تضمين قابل للنقل (`https://lolly.tools/tool/<id>.svg?…`) الابن محليا، وهكذا يضع Lolly Design رمز QR حيا أو مخططا. يبقى الابن SVG متجها في أب SVG أو PDF. الأبناء وسطاء، لا يوضع عليهم علامة مائية ولا ختم، والواجهة التي لا تستطيع عرض واحد تترك الخانة فارغة بينما يعرض الأب. يحتوي [التركيب وتراكبات العلامة](/info/tool-composition.html) التفاصيل.
 
 ## ما اخترنا ألا نفعله
 

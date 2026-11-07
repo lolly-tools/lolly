@@ -16,7 +16,7 @@ Cả hai đều cho phép sắp xếp chữ, hình khối và ảnh trên canvas
 
 Lolly biến một thiết kế thành [công cụ có quy tắc dùng lại được](/info/create-a-tool.html). Công cụ chạy trong trình duyệt hoặc CLI và lấy đầu vào từ liên kết, tập lệnh hoặc lưới batch, nên một mẫu phục vụ cả người chỉnh một tệp lẫn một đội tạo nhiều tệp.
 
-![Canvas mở của Design, với Import a design trong menu Lolly của thanh công cụ](/info/shots/design.svg)
+![Canvas mở của Lolly Design, với Import a design trong menu Lolly của thanh công cụ](/info/shots/design.svg)
 
 Một [collab riêng tư](/info/collaborate.html) ghép hai thiết bị trực tiếp, không cần tài khoản và không cần internet trên mạng chung. Lolly độc lập kết xuất ngoại tuyến. Content Credentials bật theo mặc định cho các bản xuất được hỗ trợ, và bạn có thể tắt.
 

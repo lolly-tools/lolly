@@ -1,4 +1,4 @@
-# Settings
+# Setări
 
 Settings este locul unde schimbi cum funcționează Lolly pentru tine: detaliile tale, sistemul de design pe care îl folosești, accesibilitatea, ce este stocat pe acest dispozitiv și ce este pregătit offline. Deschide-l cu **Settings** din bara de la baza ecranului principal sau din meniul avatarului. Se deschide pe **Preferences**, cu alte patru file alături.
 
@@ -36,7 +36,7 @@ Cardurile de temă sunt previzualizări live și se aplică în clipa în care a
 
 ![Trei carduri de temă, fiecare previzualizând propriul tip și propria culoare, cu cel activ marcat](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dappearance-section&width=1440&height=1400&dpi=192&waitMs=1600&walker=1&format=svg&cropSelector=.profile-card--appearance&dark=1&filename=pd-theme-picker)
 
-### Accessibility
+### Accesibilitate
 
 **Settings → Preferences → Accessibility** conține patru setări de confort pentru aplicația din jurul muncii tale. Fiecare este oprită până o pornești, iar niciuna nu ajunge în interiorul canvasului unui instrument sau al unui export, deci o aplicație mai calmă nu mută niciodată un pixel din fișierul pe care îl livrezi.
 
@@ -51,7 +51,7 @@ Același card conține **Sound**, un strat blând de sunete de asistență pentr
 
 Interfața poate fi navigată de la tastatură, controalele personalizate poartă etichete pentru cititoare de ecran, iar previzualizarea live a fiecărui instrument este expusă ca o singură imagine etichetată care descrie ce arată.
 
-### Storage
+### Stocare
 
 Indicatorul de stocare contabilizează fiecare octet pe care îl ține această instalare, categorie cu categorie, față de ce raportează browserul.
 
@@ -64,7 +64,7 @@ Sub indicator:
 - **Remove automatic checkpoints older than 30 days** eliberează spațiu din History și păstrează versiunile salvate și cele cu nume.
 - **Clear all my data** elimină tot ce păstrează Lolly în acest browser, după ce tastezi un cuvânt de confirmare. [Dacă ștergi datele browserului](/info/find-your-work.html#if-you-clear-your-browser-data) listează ce dispare.
 
-### Available offline
+### Disponibil offline
 
 Lolly pune în cache ecranele pe măsură ce le vizitezi, ceea ce acoperă doar locurile unde ai fost deja. **Available offline** este pentru drumul pe care îl vezi venind: descarcă părțile de care vei avea nevoie și urmărește o bară de progres, iar tot ce ai luat continuă să funcționeze fără conexiune.
 
@@ -86,13 +86,13 @@ Descărcările reiau de unde au rămas dacă anulezi sau pierzi conexiunea și s
 - **Leave** elimină sistemul de design, instrumentele și catalogul instanței, iar munca ta rămâne. Vezi [Folosește Lolly în organizația ta](/info/organisation.html#leaving).
 - Când ești autentificat într-o organizație, **Sign out** încheie această sesiune, iar **Sign out everywhere** încheie sesiunile tale pe fiecare dispozitiv, inclusiv acesta.
 
-## This device
+## Acest dispozitiv
 
 - <!--i:monitor--> **This Machine** - ecran, intrare, grafică, memorie, codecuri, backend de stocare și altele, citite live din această sesiune. Nimic nu este stocat și nimic nu este trimis. Se deschide singur pe un ecran lat, unde fila se așază pe două coloane.
 - <!--i:neurobeat--> **Sound** - sunetele interfeței și buclele de concentrare Neurospicy, singurul comutator din această filă care scrie ceva.
 - <!--i:database--> **Storage** - o vedere doar pentru citire a indicatorului din [Preferences](#storage), unde îți ștergi sau îți transporți datele.
 
-## Design system
+## Sistem de design
 
 Sistemul de design activ, așezat pentru citire. Când acest browser conține două sau mai multe sisteme de design, o bandă de coperte mici sus le listează: alege una ca s-o activezi, iar **Undo** din notificarea care urmează o pune înapoi pe cea anterioară.
 

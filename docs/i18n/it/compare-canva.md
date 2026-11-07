@@ -14,9 +14,9 @@ Entrambi permettono di partire da un template e produrre una grafica finita senz
 
 ## Come Lolly svolge il compito in comune
 
-Uno strumento Lolly codifica le modifiche che le persone possono fare, e lo stesso strumento gira nel browser, nell'app desktop o nella CLI. Un layout creato sulla tela di Design può diventare uno [strumento con regole](/info/create-a-tool.html), e uno strumento può creare molti file da una tabella di valori.
+Uno strumento Lolly codifica le modifiche che le persone possono fare, e lo stesso strumento gira nel browser, nell'app desktop o nella CLI. Un layout creato sulla tela di Lolly Design può diventare uno [strumento con regole](/info/create-a-tool.html), e uno strumento può creare molti file da una tabella di valori.
 
-![La tela libera di Design, dove i colori, i caratteri e le risorse offerti sono quelli del design system](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&dark=1&filename=aud-open-canvas)
+![La tela libera di Lolly Design, dove i colori, i caratteri e le risorse offerti sono quelli del design system](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&dark=1&filename=aud-open-canvas)
 
 Lolly standalone continua a creare ed esportare sul dispositivo, senza account, e funziona offline una volta salvate le sue risorse. Due persone possono modificare dal vivo in una [collab privata](/info/collaborate.html), da dispositivo a dispositivo. Le Content Credentials sono attive per impostazione predefinita per le esportazioni supportate, e puoi disattivarle.
 

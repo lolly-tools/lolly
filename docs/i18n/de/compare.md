@@ -11,14 +11,14 @@ _Zuletzt geprüft: 28. September 2026._
 - [Lolly und Figma](/info/compare-figma.html) - Design, Live-Zusammenarbeit und wiederverwendbare Asset-Produktion.
 - [Lolly und Penpot](/info/compare-penpot.html) - Open-Source-Design, gemeinsame Tokens und Organisationsarbeit.
 - [Lolly und Marken-Portale](/info/compare-brand-portals.html) - freigegebene Bibliotheken, gesperrte Vorlagen, Identität, Prüfung und Berichte.
-- [Lolly und Rendering-APIs](/info/compare-render-apis.html) - automatisierte Erzeugung auf Ihrem Gerät, in der CI oder auf einem Lolly-Lolly Work-Server.
+- [Lolly und Rendering-APIs](/info/compare-render-apis.html) - automatisierte Erzeugung auf Ihrem Gerät, in der CI oder auf Ihrem eigenen Server, und [wie Sie umziehen](/info/work-move-from-render-api.html) von Bannerbear oder Placid.
 - [Lolly und Online-Dateikonverter](/info/compare-converters.html) - Formatumwandlung auf Ihrem eigenen Gerät.
 
 Eine Übersicht nach Funktionen finden Sie unter [So schneidet Lolly im Vergleich ab](/info/positioning.html). Jeder Vergleich ist datiert; eine Aussage, die für eines der beiden Produkte nicht mehr zutrifft, muss korrigiert werden.
 
 ## Was wo läuft
 
-Jeder Vergleich betrifft zwei Teile eines Open-Source-Projekts. **Lolly** ist die Engine, sind die Apps und Tools. **Lolly Work** ist der Organisationsserver, gepflegt im [lolly-work-Repository](https://github.com/lolly-tools/lolly-work). Beide stehen unter MPL-2.0, und eine Organisation entscheidet, welche Lolly-Lolly Work-Dienste sie einschaltet.
+Jeder Vergleich betrifft zwei Teile eines Open-Source-Projekts. **Lolly** ist die Engine, sind die Apps und Tools. **Lolly Work** ist der Organisationsserver, gepflegt im [lolly-work-Repository](https://github.com/lolly-tools/lolly-work). Beide stehen unter MPL-2.0, und eine Organisation entscheidet, welche Lolly-Work-Dienste sie einschaltet.
 
 ::: cols
 ## Auf Ihrem Gerät: Lolly

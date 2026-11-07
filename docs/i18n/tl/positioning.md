@@ -2,9 +2,13 @@
 
 Ang Lolly ay dalawang bahagi ng iisang open-source na proyekto. Ang **Lolly** ay ang engine, mga app at tool para sa paggawa, pag-edit, pag-convert at pag-export sa device mo, nang walang account. Ang **Lolly Work** ay ang organisation server, pinapatakbo sa sarili mong infrastructure, para sa sign-in, shared project, approval at server rendering. Parehong MPL-2.0. Inihahambing ng pahinang ito ang pares sa ibang paraan ng pagdidisenyo, pamamahala at paggawa ng mga file ng mga tao.
 
+Ang nag-oorganisang ideya ay ang [content sovereignty](/info/content-sovereignty.html): kontrol sa kung paano nililikha, pinamamahalaan, iniimbak at inililipat ang content sa mga piniling system. Maaaring magbigay ng mga design ang mga creative application, maaaring manatiling source of record ang DAM, at maaaring gawing bagong file ng Lolly ang mga pinahihintulutang input at aprubadong asset. Inilalarawan ng [Gamitin ang Lolly kasama ang umiiral mong DAM](/info/use-with-dam.html) ang kombinasyong iyon.
+
 ## Mga tool ngayon
 
 Ang bawat singsing ay nagmamarka kung gaano kakumpleto ang paghahatid ng uri ng produkto sa isang kakayahan, na ang bawat uri ay minamarkahan sa pinakamahusay nitong kinatawan. Sinasaklaw ng Lolly column ang Lolly at Lolly Work nang magkasama, at sinasabi ng bawat row kung aling bahagi ang nagbibigay ng ano. Buksan ang pangalan ng row para sa katwiran ng marka nito. Inaayos ang mga column ayon sa Overall completeness row sa itaas: ang mean ng mga minarkahang row, na hindi kasama ang spend row.
+
+Ginagamit ng mga score ang kagustuhan ng Lolly para sa kontrol nang walang account o cloud requirement. Paghahambing ang mga ito sa ilalim ng mga pamantayang iyon, hindi neutral na ranking ng pagkakumpleto ng produkto o enterprise procurement score. Basahin nang hiwalay ang mga limitasyon sa capability, deployment at ebidensya kapag sinusuri ang isang partikular na workflow.
 
 ::: figure positioning-comparison
 Paghahambing ng kakayahan: pananaliksik sa mga kakumpitensya at marka mula Agosto 2026; ang saklaw ng Lolly + Lolly Work ay nire-review noong 28 Setyembre 2026. Pagmamarka: 0 wala, 25 workaround-grade, 50 totoo pero may gate o bahagya, 75 malakas na may caveat, 100 pangunahing husay.
@@ -43,9 +47,11 @@ Ang live collaboration ng Lolly ay kasama ang direktang two-device na pribadong 
 
 Ang mga na-import na design at shared na design token ay hinahayaang pagsamahin ng team ang Lolly sa mga espesyalistang application, habang pinamamahalaan ng Lolly Work ang mga shared asset, review at delivery.
 
-Ipinapakita ng isang buong slide deck ang kisame: sa **Markdown Slides**, idinedeklara ang deck bilang data, inilalatag nang live at ine-export bilang native at mae-edit na PowerPoint file.
+Para sa mga team na may curated na DAM, magsimula sa pag-iwan sa library na iyon at sa mga administrator nito sa kinalalagyan nila. Itinatala ng [karanasan ng SUSE sa Brandfolder](/info/suse-brandfolder.html) kung paano sinuportahan ng integrasyon ang adoption at change management sa pag-apruba. Maaaring suriin ng mga DAM vendor at implementation partner ang parehong kaayusan sa pamamagitan ng [partner workflow](/info/dam-partners.html).
 
-![Markdown Slides sa split view: ang mga slide ng deck na nakalista bilang block sa kaliwa, ang inilatag na deck na nire-render sa kanan](/t/url-shot?url=%2F%23%2Ftool%2Fdeck-studio&width=1440&height=900&dpi=192&waitMs=2600&walker=1&format=svg&dark=1&filename=ov2-deck-studio-output)
+Ipinapakita ng isang buong slide deck ang kisame: sa **Lolly Markdown Slides**, idinedeklara ang deck bilang data, inilalatag nang live at ine-export bilang native at mae-edit na PowerPoint file.
+
+![Lolly Markdown Slides sa split view: ang mga slide ng deck na nakalista bilang block sa kaliwa, ang inilatag na deck na nire-render sa kanan](/t/url-shot?url=%2F%23%2Ftool%2Fdeck-studio&width=1440&height=900&dpi=192&waitMs=2600&walker=1&format=svg&dark=1&filename=ov2-deck-studio-output)
 
 ## Nasa tool ang mga patakaran
 

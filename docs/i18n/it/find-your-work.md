@@ -26,7 +26,7 @@ In una [collab di lavoro](/info/collaborate.html#work-collabs-with-lolly-work-op
 
 1. Premi **Home** in alto a sinistra nello strumento.
 2. Apri la scheda **Progetti** in cima alla schermata iniziale (l'icona cartella su un telefono).
-3. Guarda nella prima schermata. Il lavoro salvato in **La mia libreria** è lì, e ogni progetto è una cartella. Per cercare in tutte le cartelle insieme, digita in **Cerca in tutti i progetti…** in fondo alla schermata.
+3. Guarda nella prima schermata. Il lavoro che hai salvato in **La mia libreria** è lì, e ogni progetto è una cartella. Per cercare in tutte le cartelle insieme, digita in **Cerca in tutti i progetti…** in fondo alla schermata.
 
 Un elemento prende il nome dal nome file che hai digitato nel pannello di esportazione, o dal suo strumento, come **QR Code**, se non ne hai digitato nessuno. Apri l'elemento e ogni impostazione è tornata, pronta per essere modificata ed esportata di nuovo. Per conservare così il lavoro nuovo, vedi [Saving & continuing](/info/using.html#saving-continuing).
 
@@ -37,7 +37,7 @@ Un elemento prende il nome dal nome file che hai digitato nel pannello di esport
 :::
 
 ::: details Lavorare con Progetti
-Puoi anche aprire **Progetti** da **Impostazioni → Spazio di archiviazione → Sessioni salvate → Organizza nei Progetti**. Funziona come un gestore di file:
+Puoi anche aprire la vista **Progetti** da **Impostazioni → Spazio di archiviazione → Sessioni salvate → Organizza nei Progetti**. Funziona come un gestore di file:
 
 ![Progetti prima che si salvi qualcosa: i riquadri Nuova cartella, Nuovo asset e Modelli, l'orologio di History in alto a destra e la barra Cerca in tutti i progetti in fondo](/t/url-shot?url=%2F%23%2Fp&width=1440&height=900&dpi=192&waitMs=1200&walker=1&format=svg&localize=1&dark=1&filename=projects)
 <!--
@@ -101,17 +101,17 @@ Negli strumenti che salvano mentre lavori, la Cronologia conserva una copia dell
 :::
 
 ::: details Quali strumenti salvano mentre lavori
-Nell'app web, ogni strumento che crea un documento salva mentre lavori: Design, Chart, QR Code, Text, Sandbox e il resto. Questi strumenti non lo fanno:
+Nell'app web, ogni strumento che crea un documento salva mentre lavori: Lolly Design, Lolly Chart, QR Code, Text, Lolly Sandbox e il resto. Questi strumenti non lo fanno:
 
 - strumenti che lavorano su un file che porti tu, come Redact, Sign o Convert Image, perché Lolly non conserva mai una copia di quel file;
-- strumenti che registrano dalla tua camera, dal microfono o dallo schermo, come Record, Screen Capture e Voice Recorder;
+- strumenti che registrano dalla tua camera, dal microfono o dallo schermo, come Record, Lolly Screen Capture e Lolly Voice Recorder;
 - uno strumento senza nulla da modificare, come Countdown.
 
 Negli altri strumenti, la tua prima modifica archivia il lavoro in **Projects** come se avessi salvato, e le modifiche successive vengono conservate mentre lavori una volta che lo strumento ha finito di disegnare. Una creazione non salvata è ancora in Projects dopo che chiudi la scheda, e si riapre con le sue modifiche contrassegnate come non salvate.
 
 **Leave anyway** scarta comunque quelle modifiche, e History conserva una copia delle modifiche scartate per 30 giorni. Riaprire lo strumento dalla schermata iniziale avvia una nuova creazione; apri quella precedente da Projects.
 
-3D e Darkroom salvano mentre lavori, ma non conservano un file che carichi al loro interno, come un modello 3D o una LUT. History e **Save** conservano il nome, il tipo e la dimensione del file, non il file. Quando riapri il lavoro, una nota dice quale file era, e lo strumento funziona senza di esso finché non lo carichi di nuovo. Conserva i tuoi file originali.
+3D e Lolly Darkroom salvano mentre lavori, ma non conservano un file che carichi al loro interno, come un modello 3D o una LUT. Cronologia e **Salva** conservano il nome, il tipo e la dimensione del file, non il file. Quando riapri il lavoro, una nota dice quale file era, e lo strumento funziona senza di esso finché non lo carichi di nuovo. Conserva i tuoi file originali.
 
 Con la [Sincronizzazione](/info/sync.html) attiva, una creazione archiviata in questo modo arriva sui tuoi altri dispositivi come qualsiasi altra cosa in Progetti. Le sue versioni restano sul dispositivo su cui sono state fatte.
 
@@ -147,14 +147,14 @@ Su iPhone, iPad e Android, un file nuovo sostituisce uno precedente con lo stess
 
 Per aprire una versione precedente:
 
-1. Premi **Cronologia**, il pulsante a forma di orologio accanto a **Annulla** e **Ripeti**. In Design, **Cronologia** è nella barra superiore; su un telefono, premi **•••** e poi **Cronologia**. Negli strumenti senza **Annulla**, come Text e Sandbox, **Cronologia** è accanto a **Home** in alto a sinistra.
+1. Premi **Cronologia**, il pulsante a forma di orologio accanto a **Annulla** e **Ripeti**. In Lolly Design, **Cronologia** è nella barra superiore; su un telefono, premi **•••** e poi **Cronologia**. Negli strumenti senza **Annulla**, come Text e Lolly Sandbox, **Cronologia** è accanto a **Home** in alto a sinistra.
 2. Trova la versione dalla sua data e ora. Le righe **Punto di controllo automatico** vengono prese mentre lavori; le righe **Versione salvata** sono i momenti in cui hai salvato.
 3. Premi **Apri come copia**. La versione si apre come una nuova creazione, e quella che avevi aperta resta com'era. La copia è in **Progetti**, con "(copy)" dopo il suo nome.
 
 Per conservare una versione con un nome, premi **Name version**, digita un nome e premi **Keep milestone**. Le versioni con nome sono elencate nella pagina **History**, sotto **Milestones**.
 
-::: details Il pannello History e la pagina History
-Il pannello **History** elenca anche righe **Recovered work**, e **Protected drafts** conserva le tue ultime modifiche tra un checkpoint e l'altro, con **Open draft as a copy**. **Compare** e **Check assets** ti aiutano a scegliere prima di aprire una copia. Passa da **This creation** a **All history on this device** per vedere ogni creazione.
+::: details Il pannello Cronologia e la pagina Cronologia
+Il pannello **Cronologia** elenca anche righe **Lavoro recuperato**, e **Bozze protette** conserva le tue ultime modifiche tra un checkpoint e l'altro, con **Apri bozza come copia**. **Lolly Compare** e **Verifica risorse** ti aiutano a scegliere prima di aprire una copia. Passa da **Questa creazione** a **Tutta la cronologia di questo dispositivo** per vedere ogni creazione.
 
 I checkpoint automatici si diradano con il tempo: uno al minuto per l'ultima ora, uno all'ora per l'ultimo giorno, uno al giorno per 30 giorni, poi uno alla settimana. Le versioni salvate e le versioni con nome vengono conservate tutte. Eliminare una creazione sposta anche le sue versioni nel **Cestino**, ed **Elimina per sempre** le rimuove.
 

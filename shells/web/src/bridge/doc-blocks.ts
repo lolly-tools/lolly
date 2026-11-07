@@ -24,14 +24,16 @@
  *     paragraph of every cell run together.
  *
  * ── WHAT DOCX STILL DROPS ────────────────────────────────────────────────────
- * Colour, font, alignment and letter-spacing (not in the block model at all);
+ * Per-run colour and font, alignment and letter-spacing (not in the block model at
+ * all; the document's own faces and text colour travel as styles, see export-docx.ts);
  * horizontal rules; an image nested inside a paragraph (pictures are block-level
  * here); a nested list of the opposite kind, which folds into its parent's
  * `ordered` flag because one `list` block carries one flag. An image is carried only
  * when its bytes can be read: a `data:` URL is decoded, a `blob:`/same-origin URL is
  * fetched, and anything cross-origin (or over the byte budget) is skipped, so the
- * document keeps its text rather than failing. An SVG image travels as an SVG part -
- * LibreOffice draws it, older Word builds may not.
+ * document keeps its text rather than failing. An SVG image travels as an SVG part,
+ * with a PNG of the same artwork next to the SVG when the browser can draw one
+ * (export-docx.ts), so a reader with no SVG support still shows the picture.
  */
 
 import type { DocBlock, DocInline, DocListItem, DocTableCell, DocxMedia } from '@lolly/engine';

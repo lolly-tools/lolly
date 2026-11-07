@@ -12,7 +12,7 @@ Màn hình chính: bốn thẻ dọc phía trên và thanh ở chân. Khi một 
 
 Bốn thẻ chạy dọc phía trên màn hình chính: **Tools**, **Utilities**, **Assets** và **Projects**. Tools là thứ bạn dùng để tạo, Utilities là bàn làm việc cho các việc như chuyển đổi, kiểm tra hay dọn một tệp, Assets là thư viện của bạn và Projects giữ những gì bạn đã lưu.
 
-Thanh ở chân có **Open**, **Settings**, một ô tìm kiếm, **Verify** và **What?**. Nó hiện trên Tools, Utilities, Assets, Projects, Settings và các hướng dẫn bạn đọc trong ứng dụng, và nhường chỗ khi một công cụ được mở. [Lolly Search](/info/search.html) tới được công cụ, công việc đã lưu, tài nguyên và cài đặt của bạn từ ô đó. [Ask Lolly](/info/ask.html) trả lời một câu hỏi gõ vào bằng phần khớp trong các hướng dẫn này.
+Thanh ở chân có **Open**, **Settings**, một ô tìm kiếm, lối tắt **Verify** tới Lolly Verify và **What?**. Nó hiện trên Tools, Utilities, Assets, Projects, Settings và các hướng dẫn bạn đọc trong ứng dụng, và nhường chỗ khi một công cụ được mở. [Lolly Search](/info/search.html) tới được công cụ, công việc đã lưu, tài nguyên và cài đặt của bạn từ ô đó. [Ask Lolly](/info/ask.html) trả lời một câu hỏi gõ vào bằng phần khớp trong các hướng dẫn này.
 
 Nhấp một thẻ để bắt đầu việc mới trong công cụ đó. Công việc đã lưu mở lại từ **Projects**.
 
@@ -22,7 +22,7 @@ Mỗi công cụ là một khung chia đôi: **điều khiển** ở một bên 
 
 ![Chế độ xem chia đôi của một công cụ - ngăn xếp điều khiển ở bên trái, và biểu đồ cột nhóm trực tiếp mà nó vẽ ở bên phải](/t/url-shot?url=%2F%23%2Ftool%2Fchart%3Fct%3Dbar%26t%3DExample%2520data%26st%3DSample%2520values%252C%2520not%2520a%2520real%2520dataset%26d%3DMonth%252CSeries%2520A%252CSeries%2520B%252CSeries%2520C%250AJan%252C12%252C9%252C5%250AFeb%252C18%252C14%252C7%250AMar%252C24%252C17%252C11%250AApr%252C29%252C23%252C15%26lg%3D1&width=1440&height=900&dpi=192&waitMs=2500&walker=1&format=svg&dark=1&filename=vt-tool-split-view)
 
-**Design** là ngoại lệ. Nó mở ra như một canvas tự do gồm các hộp bạn kéo, đổi kích thước và gõ vào, với thanh trên, dòng thời gian và điều khiển trình chiếu riêng. [Design: the free canvas](/info/design.html) là hướng dẫn của nó.
+**Lolly Design** là ngoại lệ. Nó mở ra như một canvas tự do gồm các hộp bạn kéo, đổi kích thước và gõ vào, với thanh trên, dòng thời gian và điều khiển trình chiếu riêng. [Lolly Design: the free canvas](/info/design.html) là hướng dẫn của nó.
 
 ## Đổi những gì công cụ cho phép đổi
 
@@ -36,7 +36,7 @@ Một công cụ chỉ hiện những đầu vào được định để thay đ
 
 **Lựa chọn của hệ thống thiết kế.** Khi hệ thống thiết kế của bạn có nhiều hơn một colourway, một giao diện sáng và tối hoặc lựa chọn chủ đề khác, một phần **Design system** dưới các điều khiển chứa chúng. Một lựa chọn chỉ xuất hiện khi nó đổi công cụ này, nên một tiện ích tệp không hiện phần nào. Mỗi colourway là một chấm với màu của nó, sáng và tối là hai nút và mọi lựa chọn khác là một danh sách.
 
-Lựa chọn thuộc về tác phẩm này. Nó đi cùng trong liên kết và phiên đã lưu, mọi màu liên kết với hệ thống thiết kế đều theo nó và màu của chính ứng dụng giữ nguyên. Design hiện cùng các lựa chọn trong thẻ **Canvas** của Inspector. Một công cụ mà màu sắc là nội dung của nó có thể ở lại colourway chuẩn, và khi đó không có chấm colourway. [Lolly Demo in use](/info/lolly-demo-in-use.html#colourways-on-real-work) cho thấy colourway trên công việc thật.
+Lựa chọn thuộc về tác phẩm này. Nó đi cùng trong liên kết và phiên đã lưu, mọi màu liên kết với hệ thống thiết kế đều theo nó và màu của chính ứng dụng giữ nguyên. Lolly Design hiện cùng các lựa chọn trong thẻ **Canvas** của Inspector. Một công cụ mà màu sắc là nội dung của nó có thể ở lại colourway chuẩn, và khi đó không có chấm colourway. [Lolly Demo in use](/info/lolly-demo-in-use.html#colourways-on-real-work) cho thấy colourway trên công việc thật.
 
 ### Thu phóng và kéo bản xem trước
 
@@ -47,7 +47,7 @@ Bản xem trước luôn hiển thị chính xác thứ sẽ được xuất ra.
 - **Cảm ứng:** chụm để thu phóng, kéo để di chuyển và chạm đúp để vừa khung.
 - **HUD thu phóng:** nhấn giữ vòng xoáy Lolly ở góc để bung `−`, **Fit** và `+`. Chạm ngắn vào vòng xoáy vẫn mở menu hồ sơ của bạn.
 
-Trong Design, **Fit all** bao gồm các artboard và lớp rời. Bạn có thể thu nhỏ thủ công dưới 20% cho đến khi toàn bộ trang chiếm nửa khung nhìn. Giới hạn dưới là giá trị nhỏ hơn giữa 5% tỷ lệ Fit thông thường và mức thu phóng tuyệt đối 2%.
+Trong Lolly Design, **Fit all** bao gồm các artboard và lớp rời. Bạn có thể thu nhỏ thủ công dưới 20% cho đến khi toàn bộ trang chiếm nửa khung nhìn. Giới hạn dưới là giá trị nhỏ hơn giữa 5% tỷ lệ Fit thông thường và mức thu phóng tuyệt đối 2%.
 
 Đổi kích thước đầu ra luôn đưa khung nhìn về vừa khít gọn gàng.
 
@@ -55,7 +55,7 @@ Trong Design, **Fit all** bao gồm các artboard và lớp rời. Bạn có th�
 
 ### Hoàn tác và làm lại
 
-**Cmd/Ctrl-Z** lùi một bước và **Cmd/Ctrl-Shift-Z** (hoặc **Cmd/Ctrl-Y**) tiến một bước. Cặp này cũng có dạng nút **Undo** và **Redo** phía trên các điều khiển (trong Design chúng nằm ở thanh trên), và mỗi nút mờ đi khi không còn gì để hoàn tác. Một thông báo cho biết mỗi lần hoàn tác đã khôi phục đầu vào nào, với nút **Redo** trong thông báo.
+**Cmd/Ctrl-Z** lùi một bước và **Cmd/Ctrl-Shift-Z** (hoặc **Cmd/Ctrl-Y**) tiến một bước. Cặp này cũng có dạng nút **Undo** và **Redo** phía trên các điều khiển (trong Lolly Design chúng nằm ở thanh trên), và mỗi nút mờ đi khi không còn gì để hoàn tác. Một thông báo cho biết mỗi lần hoàn tác đã khôi phục đầu vào nào, với nút **Redo** trong thông báo.
 
 - **Một lần kéo là một bước.** Các thay đổi lặp lại trên một điều khiển trong nửa giây được gộp, nên kéo thanh trượt hết dải chỉ là một lần hoàn tác.
 - **100 bước gần nhất được giữ.** Một chỉnh sửa mới sau khi hoàn tác xóa ngăn xếp phía trước.
@@ -72,7 +72,7 @@ Các hiệu ứng của công cụ **Filter** (Halftone, Scanline, Posterize, Vo
 
 Để giữ công việc, nhấn **Save**, dấu tích bên cạnh **Export** trên viên thuốc kết xuất. Công việc mới vào **My library**, công việc đã lưu trước đó được cập nhật tại chỗ và không có gì được tải xuống. Bảng xuất có cùng nút **Save**.
 
-Để chọn nơi lưu, nhấn **Save as**, bên cạnh **Download** trong bảng xuất. Dưới **Save to a project**, để **My library** được chọn hoặc chọn một dự án (**＋ New project…** tạo mới), rồi nhấn **Save**; **Save as a template** giữ thiết kế như một [mẫu](/info/templates.html), điểm khởi đầu cho tài liệu mới. Trong Design, **Save as** nằm ở menu Lolly; trên điện thoại, nhấn **•••**, rồi **File menu**, rồi **Save as**.
+Để chọn nơi lưu, nhấn **Save as**, bên cạnh **Download** trong bảng xuất. Dưới **Save to a project**, để **My library** được chọn hoặc chọn một dự án (**＋ New project…** tạo mới), rồi nhấn **Save**; **Save as a template** giữ thiết kế như một [mẫu](/info/templates.html), điểm khởi đầu cho tài liệu mới. Trong Lolly Design, **Save as** nằm ở menu Lolly; trên điện thoại, nhấn **•••**, rồi **File menu**, rồi **Save as**.
 
 ![Viên thuốc kết xuất hai nửa: Export, với mũi tên lên mở bảng xuất, và Save, với dấu tích lưu tại chỗ](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools&width=1440&height=900&dpi=192&waitMs=2500&css=%23tool-inputs%7Bdisplay%3Anone%7D&cropSelector=.render-pill&walker=1&format=svg&dark=1&filename=use-render-pill)
 
@@ -162,7 +162,7 @@ Một bản sao lưu toàn thiết bị không phải `.lolly`. Nó vẫn là `L
 
 Một `.lolly` là một tệp zip bình thường. Đổi tên thành `.zip` để nhìn bên trong: ảnh của riêng bạn nằm dưới `assets/uploads/`, tác phẩm danh mục dưới `assets/catalog/`, `manifest.json` liệt kê mọi tệp, và một README cho biết tệp là gì.
 
-macOS, Windows, Linux, iOS và Android đều đăng ký định dạng này, trình quản lý tệp trên máy tính hiện nó như tài liệu Lolly và GNOME Files có thể hiện hình thu nhỏ riêng của một phiên đã lưu. Mở từ Design System Setup sẽ gợi ý hành động hệ thống thiết kế khi một thiết kế chung mang theo, nhưng không bao giờ ẩn **Open shared design**.
+macOS, Windows, Linux, iOS và Android đều đăng ký định dạng này, trình quản lý tệp trên máy tính hiện nó như tài liệu Lolly và GNOME Files có thể hiện hình thu nhỏ riêng của một phiên đã lưu. Mở từ Lolly Design System Setup sẽ gợi ý hành động hệ thống thiết kế khi một thiết kế chung mang theo, nhưng không bao giờ ẩn **Open shared design**.
 
 Một tài liệu được chuyển từ ứng dụng khác trên iOS hoặc Android bị giới hạn 48 MB, vì việc bàn giao sao chép các byte của nó qua ranh giới ứng dụng, và ứng dụng nói rõ điều này. **Open** bên trong Lolly không có giới hạn đó, nên hãy dùng nó cho gói lớn hơn.
 
@@ -173,7 +173,7 @@ Cả liên kết lẫn tệp đều trao một ảnh chụp tại thời điểm
 
 ## Tài sản - thư viện của bạn
 
-**Assets** (`#/a`) gom mọi thứ mà công cụ của bạn có thể dùng: logo thương hiệu, ảnh, âm thanh và chuyển động, nhóm theo loại, cùng các tệp của riêng bạn. Tệp bạn tải lên được lưu trên thiết bị. Một tổ chức dùng Lolly Work cũng có thể cung cấp danh mục chung theo quy tắc truy cập riêng; xem [Use Lolly at your organisation](/info/organisation.html).
+**Lolly Assets** (`#/a`) gom mọi thứ mà công cụ của bạn có thể dùng: logo thương hiệu, ảnh, âm thanh và chuyển động, nhóm theo loại, cùng các tệp của riêng bạn. Tệp bạn tải lên được lưu trên thiết bị. Một tổ chức dùng Lolly Work cũng có thể cung cấp danh mục chung theo quy tắc truy cập riêng; xem [Use Lolly at your organisation](/info/organisation.html).
 
 ![Tài sản, cùng các mẫu màu và font của thương hiệu và các file bạn tự tải lên](/t/url-shot?url=%2F%23%2Fa%3Fsection%3Dswatches%2Cfonts&width=1440&height=900&dpi=96&waitMs=2400&css=.plat-swatch-grid~%2A%7Bdisplay%3Anone%7D&walker=1&format=svg&localize=1&dark=1&filename=assets)
 
@@ -267,12 +267,25 @@ Trên màn hình hẹp, bố cục thành một cột:
 
 ![Một công cụ trên màn hình rộng bằng điện thoại - điều khiển là một tấm trượt phía trên, bảng màu vừa tạo lấp đầy bản xem trước bên dưới và nút render nổi ở chính giữa phía dưới](/t/url-shot?url=%2F%23%2Ftool%2Fcolor-palette%3Fseed%3Df97316%26harmony%3Dadjacent-3%26steps%3D9&width=430&height=900&dpi=192&waitMs=2200&walker=1&format=svg&dark=1&filename=vt-phone-palette)
 
+## Thiết bị gập và iPhone Duo
+
+Trên thiết bị gập, iPhone Duo hoặc màn hình cảm ứng gần vuông, Lolly bố trí một công cụ thành hai ngăn, như hai trang của một cuốn sách:
+
+- **Điều khiển một bên, canvas một bên.** Các điều khiển nằm xa tay bạn dùng để vẽ. Chọn **Dominant hand** trong **Settings → Accessibility**, hoặc nhấn **Swap sides** ở đầu các điều khiển. Trong ngôn ngữ viết từ phải sang trái, hai bên được lật gương.
+- **Bản lề là đường chia.** Khi thiết bị báo vị trí gập, hai ngăn gặp nhau tại nếp gập, nên không điều khiển hay tác phẩm nào nằm trên nếp gập. Trên màn hình liền, kéo đường chia tới một phần ba, một nửa hoặc hai phần ba chiều rộng. Lolly nhớ lựa chọn của bạn cho từng chế độ xem trên thiết bị này.
+- **Đặt trên bàn.** Khi mở một nửa với nếp gập nằm ngang màn hình, canvas chiếm nửa trên và các điều khiển nằm dưới nếp gập. Khi bạn trình chiếu, trang chiếu ở trên, với ghi chú của bạn, trang chiếu kế tiếp cùng **Back** và **Next** ở dưới. Trong Sequence, bản xem trước ở trên và dòng thời gian ở dưới.
+- **Lolly Design, Brand Studio và Assets.** Trong Lolly Design, bảng thuộc tính, các lớp và bảng xuất là các thẻ bên cạnh canvas, còn các công cụ xếp dọc theo mép ngoài của canvas, dưới tay vẽ của bạn. Khi có nhiều công cụ hơn chỗ chứa, cột cuộn được và một vùng mờ dần có mũi tên cho biết phần còn lại nằm về phía nào. Khi đặt trên bàn, các công cụ chạy dọc chân canvas. Brand Studio giữ Board ở một bên và phòng bạn mở ở bên kia. Trong Assets, chi tiết của một tài nguyên mở bên cạnh thư viện, nên lần chạm kế tiếp hiện tài nguyên kế tiếp ở cùng chỗ.
+- **Không có gì trên nếp gập.** Khi thiết bị báo có nếp gập, một hộp thoại mở trên trang chứa các điều khiển, và ô tìm kiếm ở chân màn hình chính cùng kết quả của nó cũng vậy. Màn hình phẳng giữ chúng ở giữa.
+- **Gập lại không mất gì.** Gập, mở hoặc xoay thiết bị vẫn giữ tài liệu, vùng chọn, mức thu phóng và trường bạn đang gõ, với con trỏ ở nơi bạn để lại.
+
+Màn hình ngoài của thiết bị gập giữ bố cục điện thoại ở trên, và một cửa sổ Lolly ở một nửa màn hình chia đôi cũng vậy.
+
 ## Cài đặt, âm thanh và sự thoải mái
 
 **Settings**, ở chân màn hình chính, chứa thông tin của bạn, các hệ thống thiết kế, trợ năng, lưu trữ và tải xuống ngoại tuyến. [Lolly Settings](/info/dashboard.html) vẽ ra từng thẻ.
 
 - **Thông tin và ảnh chân dung của bạn** điền vào mọi công cụ được xây để dùng chúng, như chữ ký email hoặc thẻ tên. [Profiles](/info/profile.html) đề cập chúng.
-- **Accessibility** có bốn công tắc thoải mái: **Reduce motion**, **Hide colourful previews**, **High contrast** và **Large text**. Chúng đổi ứng dụng xung quanh công việc của bạn, không bao giờ đổi canvas công cụ hay bản xuất.
+- **Accessibility** có bốn công tắc thoải mái: **Reduce motion**, **Hide colourful previews**, **High contrast** và **Large text**. Chúng đổi ứng dụng xung quanh công việc của bạn, không bao giờ đổi canvas công cụ hay bản xuất. Bên cạnh đó, **Dominant hand** chọn bên nào các điều khiển chiếm khi dùng hai ngăn.
 - **Sound** phát âm thanh hỗ trợ nhẹ nhàng cho những gì bạn làm, và **Neurospicy Mode** phát một bản nhạc tập trung êm dịu. Cả hai tắt cho đến khi bạn bật, trong **Settings → Accessibility** hoặc menu hồ sơ.
 - **Available offline** tải phần còn lại của ứng dụng, các công cụ, danh mục và hướng dẫn trước khi bạn mất kết nối. Lolly là ứng dụng web có thể cài: dùng nút cài của trình duyệt, hoặc *Add to Home Screen* trên điện thoại, để có ứng dụng toàn màn hình tự cập nhật khi bạn trực tuyến trở lại.
 - **Storage** cho biết Lolly giữ gì trên thiết bị này. [If you clear your browser data](/info/find-your-work.html#if-you-clear-your-browser-data) giải thích việc xóa gỡ bỏ những gì, và [Privacy Policy](/info/privacy.html) liệt kê mọi thứ ứng dụng tải hoặc gửi.
@@ -283,10 +296,10 @@ Một bảng trống hoặc thông báo "failed to fetch" ngay sau khi cập nh�
 
 ## Đi tiếp từ đâu
 
-- **[Design: the free canvas](/info/design.html)**: canvas, hình khối, dòng thời gian và trình chiếu một bộ trang.
-- **[Batch and Multi-edit](/info/batch.html)**: nhiều phiên bản của một thiết kế, hoặc nhiều thiết kế đã lưu được chỉnh sửa cùng nhau.
+- **[Lolly Design: the free canvas](/info/design.html)**: canvas, hình khối, dòng thời gian và trình chiếu một bộ trang.
+- **[Batch and Lolly Multi-edit](/info/batch.html)**: nhiều phiên bản của một thiết kế, hoặc nhiều thiết kế đã lưu được chỉnh sửa cùng nhau.
 - **[Export a file](/info/exporting.html)**: chọn định dạng, kích thước, đơn vị in, độ trong suốt và video.
-- **[Import a design](/info/design-import.html)**: đưa tệp Figma, Penpot, Illustrator hoặc InDesign vào Design và tiếp tục chỉnh sửa.
+- **[Import a design](/info/design-import.html)**: đưa tệp Figma, Penpot, Illustrator hoặc InDesign vào Lolly Design và tiếp tục chỉnh sửa.
 - **[Templates](/info/templates.html)**: điểm khởi đầu đã lưu cho một công cụ.
-- **[Wide Colour and HDR](/info/hdr-editing.html)**: giữ độ chính xác ảnh gốc trong Design và Darkroom.
+- **[Wide Colour and HDR](/info/hdr-editing.html)**: giữ độ chính xác ảnh gốc trong Lolly Design và Lolly Darkroom.
 - **[Find and recover your work](/info/find-your-work.html)**: mọi thứ ở đâu, và cách chuyển sang thiết bị khác.

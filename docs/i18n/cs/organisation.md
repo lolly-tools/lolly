@@ -2,6 +2,8 @@
 
 Tvá organizace může provozovat vlastní Lolly: stejnou aplikaci s nástroji a designovými systémy, které si vybrala. Tato stránka ukazuje, jak se k ní dostat, přihlásit se a co se po tom změní.
 
+Pokud plánuješ nastavení organizace, [Používej Lolly se stávajícím DAM](/info/use-with-dam.html) vysvětluje, jak může schválená knihovna zůstat na místě, zatímco lidé začnou v Lolly tvořit obsah. [Suverenita obsahu](/info/content-sovereignty.html) popisuje širší kontrolu nad tvorbou, správou, úložištěm a přenositelností.
+
 ::: note Co potřebuješ od své organizace
 Webovou adresu její Lolly, nebo instalační soubor `.lolly`, který tvoje organizace vytvořila. Samotné lolly.tools se s organizací nepropojuje.
 :::
@@ -10,13 +12,13 @@ Webovou adresu její Lolly, nebo instalační soubor `.lolly`, který tvoje orga
 
 Otevři adresu, kterou ti organizace dala. Pokud stránka požádá o přihlášení, stiskni **Sign in** a postupuj podle přihlašovací stránky, kterou otevře. Poté funguje jako každá Lolly, s nástroji a designovými systémy tvé organizace.
 
-Můžeš také začít z lolly.tools: otevři **Settings** a na kartě **Lolly instance** stiskni **Open a workspace**, zadej adresu a stiskni **Open this instance**. Prohlížeč přejde na vlastní adresu tvé organizace, protože prohlížeč nemůže z lolly.tools načíst nástroje jiné Lolly.
+Můžeš také začít z lolly.tools: otevři zobrazení **Settings** a na kartě **Lolly instance** stiskni **Open a workspace**, zadej adresu a stiskni **Open this instance**. Prohlížeč přejde na vlastní adresu tvé organizace, protože prohlížeč nemůže z lolly.tools načíst nástroje jiné Lolly.
 
 ![Karta Lolly instance v Settings, kde otevřeš pracovní prostor své organizace nebo změníš, odkud aplikace bere nástroje](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dinstance-section&width=1440&height=1400&dpi=192&waitMs=2000&format=svg&cropSelector=%23instance-section&walker=1&dark=1&filename=org-instance-card)
 
 ## V desktopové nebo mobilní aplikaci
 
-Aplikace začíná s přibalenými nástroji. K připojení otevři **Settings** a na kartě **Lolly instance** stiskni **Change**. List se zeptá **Where should Lolly get its tools?**
+Aplikace začíná s přibalenými nástroji. K připojení otevři zobrazení **Settings** a na kartě **Lolly instance** stiskni **Change**. List se zeptá **Where should Lolly get its tools?**
 
 1. Zvol **Připojit se k instanci Lolly**.
 2. Zadej webovou adresu své organizace a stiskni **Zkontrolovat a připojit**.

@@ -2,6 +2,8 @@
 
 組織は、独自のLollyを運用できます。同じアプリに、組織が選んだツールとデザインシステムを載せたものです。このページでは、そこへの接続方法、サインイン、接続後に何が変わるかを説明します。
 
+組織のセットアップを計画している場合、[既存のDAMとLollyを併用する](/info/use-with-dam.html)では、承認済みのライブラリをそのままにして、人々がLollyでコンテンツの制作を始められる方法を説明しています。[コンテンツ主権](/info/content-sovereignty.html)では、制作、ガバナンス、保存、可搬性にわたる、より広い管理について説明しています。
+
 ::: note 組織から必要なもの
 組織のLollyのWebアドレス、または組織が作成した`.lolly`セットアップファイルです。lolly.tools単体は組織に接続しません。
 :::
@@ -10,13 +12,13 @@
 
 組織から案内されたアドレスを開きます。ページにサインインを求められたら、**Sign in**を押し、開いたサインインページの指示に従ってください。その後は通常のLollyと同じように動作し、組織のツールとデザインシステムが使えます。
 
-lolly.toolsから始めることもできます。**Settings**を開き、**Lolly instance**カードの**Open a workspace**を押して、アドレスを入力し、**Open this instance**を押します。ブラウザは組織自身のアドレスに移動します。ブラウザは、lolly.toolsから別のLollyのツールを読み込めないためです。
+lolly.toolsから始めることもできます。**Settings**ビューを開き、**Lolly instance**カードの**Open a workspace**を押して、アドレスを入力し、**Open this instance**を押します。ブラウザは組織自身のアドレスに移動します。ブラウザは、lolly.toolsから別のLollyのツールを読み込めないためです。
 
 ![Settingsのカード「Lolly instance」: 組織のワークスペースを開いたり、アプリがツールを取得する場所を変更したりする](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dinstance-section&width=1440&height=1400&dpi=192&waitMs=2000&format=svg&cropSelector=%23instance-section&walker=1&dark=1&filename=org-instance-card)
 
 ## デスクトップ・モバイルアプリで
 
-アプリは、同梱のツールで起動します。接続するには、**Settings**を開き、**Lolly instance**カードで**Change**を押します。シートに**Where should Lolly get its tools?**と表示されます。
+アプリは、同梱のツールで起動します。接続するには、**Settings**ビューを開き、**Lolly instance**カードで**Change**を押します。シートに**Where should Lolly get its tools?**と表示されます。
 
 1. **Lollyインスタンスに接続**を選びます。
 2. 組織のWebアドレスを入力し、**確認して接続**を押します。
@@ -61,10 +63,10 @@ lolly.toolsから始めることもできます。**Settings**を開き、**Loll
 
 ## Lolly Workが加えるもの
 
-組織のサーバーでは、同じオープンソースプロジェクトの組織向けソフトウェアである**Lolly Lolly Work**が動作しています。ご自身だけでアプリを使う場合は、ワークアカウントもLolly Workも必要ありません。
+組織のサーバーでは、同じオープンソースプロジェクトの組織向けソフトウェアである**Lolly Work**が動作しています。ご自身だけでアプリを使う場合は、ワークアカウントもLolly Workも必要ありません。
 
 ::: details Lolly Workが追加できること
-組織は、Lollyと並べて[Lolly Lolly Work](https://github.com/lolly-tools/lolly-work)をホストし、有効にする機能を選びます。
+組織は、Lollyと並べて[Lolly Work](https://github.com/lolly-tools/lolly-work)をホストし、有効にする機能を選びます。
 
 - **サインインとアクセス。** 組織のシングルサインオン、グループに基づく権限、管理対象のプロフィール項目。管理者はSCIMでアカウントのプロビジョニングと無効化ができます。
 - **共有作業。** チームプロジェクト、共有セッション、[ワークコラボ](/info/collaborate.html#work-collabs-with-lolly-work-optional)。組織のサーバー経由でライブ編集を行います。

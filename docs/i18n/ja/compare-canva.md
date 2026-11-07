@@ -14,9 +14,9 @@ Canvaは、大規模なテンプレートとストックのライブラリ、ア
 
 ## 重なる作業をLollyがどう行うか
 
-Lollyのツールは、人が行ってよい変更を符号化し、同じツールがブラウザ、デスクトップアプリ、CLIで動作します。Designキャンバスで作ったレイアウトは[ルール付きのツール](/info/create-a-tool.html)にでき、1つのツールが、値の表から多くのファイルを作れます。
+Lollyのツールは、人が行ってよい変更を符号化し、同じツールがブラウザ、デスクトップアプリ、CLIで動作します。Lolly Designキャンバスで作ったレイアウトは[ルール付きのツール](/info/create-a-tool.html)にでき、1つのツールが、値の表から多くのファイルを作れます。
 
-![Designの自由なキャンバス: 提供される色、書体、アセットは、デザインシステム自身のもの](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&dark=1&filename=aud-open-canvas)
+![Lolly Designの自由なキャンバス: 提供される色、書体、アセットは、デザインシステム自身のもの](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&dark=1&filename=aud-open-canvas)
 
 単独のLollyは、作成と書き出しをアカウントなしでデバイス上に保ち、アセットを保存すればオフラインでも動作します。2人が[プライベートコラボ](/info/collaborate.html)で、デバイス間でライブ編集できます。Content Credentialsは対応する書き出しで既定でオンですが、オフにもできます。
 

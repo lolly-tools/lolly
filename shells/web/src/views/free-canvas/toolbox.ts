@@ -324,7 +324,8 @@ export function buildToolbar(fc: FcCtx): void {
         });
     }
     const askAgent = actions?.askAgent && (actions.askAgentShown?.() ?? true) ? actions.askAgent : undefined;
-    if (info || actions?.newFromTemplate || actions?.bulk || actions?.agent || askAgent) {
+    const guide = actions?.guide && (actions.guideShown?.() ?? true) ? actions.guide : undefined;
+    if (info || guide || actions?.newFromTemplate || actions?.bulk || actions?.agent || askAgent) {
       if (items.length) items.push({ sep: true });
       if (info)
         items.push({
@@ -332,6 +333,15 @@ export function buildToolbar(fc: FcCtx): void {
           icon: icon(SVG.info),
           key: 'info',
           run: () => fc.fieldPanels.openInfoPanel(anchorEl()),
+        });
+      // The docs pages about this tool (plan 354 D6): the same dialog the help button
+      // opens in the sidebar layouts, which Design does not have.
+      if (guide)
+        items.push({
+          label: t('Read the guide'),
+          icon: icon(SVG.help),
+          key: 'guide',
+          run: () => guide(),
         });
       // Back to the Start chooser (plans/142 WP-1) - the "start a document from
       // something" group. The pick applies through the tool's own

@@ -14,7 +14,7 @@ Os [design tokens do Penpot](https://help.penpot.app/user-guide/design-systems/d
 
 ## Como o Lolly faz o trabalho em comum
 
-O canvas Design do Lolly cria recursos editáveis e pode transformar um layout em uma [ferramenta com regras](/info/create-a-tool.html). A mesma ferramenta renderiza no navegador, no app desktop ou na CLI e gera variantes a partir de dados. O Lolly autônomo renderiza e assina no dispositivo, sem conta nem servidor. Um [collab privado](/info/collaborate.html) liga dois dispositivos diretamente.
+O canvas do Lolly Design cria recursos editáveis e pode transformar um layout em uma [ferramenta com regras](/info/create-a-tool.html). A mesma ferramenta renderiza no navegador, no app desktop ou na CLI e gera variantes a partir de dados. O Lolly autônomo renderiza e assina no dispositivo, sem conta nem servidor. Um [collab privado](/info/collaborate.html) liga dois dispositivos diretamente.
 
 ## Com uma organização
 

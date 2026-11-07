@@ -101,17 +101,17 @@ Lolly는 도구 안에서 **홈**이나 뒤로 가기 버튼을 눌렀을 때만
 :::
 
 ::: details 작업하는 동안 저장되는 도구는 어떤 것들인가요
-웹 앱에서는 문서를 만드는 모든 도구가 작업하는 동안 저장돼요: Design, Chart, QR Code, Text, Sandbox 등이에요. 다음 도구는 그렇지 않아요:
+웹 앱에서는 문서를 만드는 모든 도구가 작업하는 동안 저장돼요: Lolly Design, Lolly Chart, QR Code, Text, Lolly Sandbox 등이에요. 다음 도구는 그렇지 않아요:
 
 - Redact, Sign, Convert Image처럼 가져온 파일로 작업하는 도구. Lolly는 그 파일의 사본을 절대 보관하지 않기 때문이에요.
-- Record, Screen Capture, Voice Recorder처럼 카메라, 마이크, 화면에서 녹화하는 도구.
+- Record, Lolly Screen Capture, Lolly Voice Recorder처럼 카메라, 마이크, 화면에서 녹화하는 도구.
 - Countdown처럼 바꿀 것이 없는 도구.
 
 다른 도구에서는 첫 변경이 저장한 것처럼 작업을 **Projects**에 보관하고, 이후 변경은 도구가 그리기를 마치면 작업하는 대로 유지돼요. 저장하지 않은 작품도 탭을 닫은 뒤 Projects에 남아 있고, 변경 사항이 저장되지 않음으로 표시된 채 다시 열려요.
 
 **Leave anyway**는 여전히 이 변경을 버리며, History가 버려진 편집의 사본을 30일간 보관해요. 홈 화면에서 도구를 다시 열면 새 작품이 시작되며, 이전 것은 Projects에서 여세요.
 
-3D와 Darkroom은 작업하는 대로 저장되지만, 3D 모델이나 LUT처럼 불러온 파일은 보관하지 않아요. History와 **Save**는 파일 자체가 아니라 이름, 유형, 크기를 보관해요. 작업을 다시 열면 안내가 어떤 파일이었는지 알려주고, 다시 불러오기 전까지 도구는 그 파일 없이 작동해요. 원본 파일을 보관하세요.
+3D와 Lolly Darkroom은 작업하는 대로 저장되지만, 3D 모델이나 LUT처럼 불러온 파일은 보관하지 않아요. History와 **Save**는 파일 자체가 아니라 이름, 유형, 크기를 보관해요. 작업을 다시 열면 안내가 어떤 파일이었는지 알려주고, 다시 불러오기 전까지 도구는 그 파일 없이 작동해요. 원본 파일을 보관하세요.
 
 [동기화](/info/sync.html)가 켜져 있으면 이렇게 기록된 창작물도 프로젝트의 다른 항목과 마찬가지로 다른 기기로 전달돼요. 다만 버전은 만들어진 기기에 그대로 남아요.
 
@@ -147,14 +147,14 @@ iPhone, iPad, Android에서는 새 파일이 같은 이름의 이전 파일을 �
 
 이전 버전을 열려면:
 
-1. **실행 취소**와 **다시 실행** 옆의 시계 버튼인 **History**를 누르세요. Design에서는 **History**가 상단 바에 있어요; 휴대폰에서는 **•••**를 누른 다음 **History**를 누르세요. **실행 취소**가 없는 도구(Text, Sandbox 등)에서는 **History**가 왼쪽 위 **Home** 옆에 있어요.
+1. **실행 취소**와 **다시 실행** 옆의 시계 버튼인 **History**를 누르세요. Lolly Design에서는 **History**가 상단 바에 있어요; 휴대폰에서는 **•••**를 누른 다음 **History**를 누르세요. **실행 취소**가 없는 도구(Text, Lolly Sandbox 등)에서는 **History**가 왼쪽 위 **Home** 옆에 있어요.
 2. 날짜와 시간으로 버전을 찾으세요. **Automatic checkpoint** 행은 작업하는 동안 자동으로 찍힌 것이고, **Saved version** 행은 저장한 시각이에요.
 3. **Open as a copy**를 누르세요. 그 버전이 새 창작물로 열리고, 열려 있던 원래 작업은 그대로 남아요. 사본은 **프로젝트**에 있으며 이름 뒤에 "(copy)"가 붙어요.
 
 이름을 붙여 버전을 남기려면 **Name version**을 누르고 이름을 입력한 다음 **Keep milestone**을 누르세요. 이름을 붙인 버전은 **History** 페이지의 **Milestones** 아래에 나열돼요.
 
 ::: details History 패널과 History 페이지
-**History** 패널에는 **Recovered work** 행도 나열되고, **Protected drafts**는 체크포인트 사이의 최신 편집 내용을 보관하며 **Open draft as a copy**가 있어요. **Compare**와 **Check assets**는 사본을 열기 전에 선택하는 데 도움을 줘요. **This creation**을 **All history on this device**로 전환하면 모든 창작물을 볼 수 있어요.
+**History** 패널에는 **Recovered work** 행도 나열되고, **Protected drafts**는 체크포인트 사이의 최신 편집 내용을 보관하며 **Open draft as a copy**가 있어요. **Lolly Compare**와 **Check assets**는 사본을 열기 전에 선택하는 데 도움을 줘요. **This creation**을 **All history on this device**로 전환하면 모든 창작물을 볼 수 있어요.
 
 자동 체크포인트는 오래될수록 줄어들어요: 최근 1시간은 1분마다, 최근 하루는 1시간마다, 최근 30일은 하루마다, 그 이후는 일주일마다예요. 저장된 버전과 이름 붙인 버전은 모두 보관돼요. 창작물을 삭제하면 그 버전들도 **휴지통**으로 이동하고, **완전 삭제**를 하면 함께 제거돼요.
 

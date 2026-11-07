@@ -39,7 +39,7 @@ lolly.tools mở trong [Lolly Demo](/info/lolly-demo.html), hệ thống thiết
 
 ## Tôi có dùng được thương hiệu của riêng mình không?
 
-Có. **Design System Setup** (`#/start`) dựng một hệ thống thiết kế từ một màu, một tệp design token hoặc một thiết kế hoàn chỉnh, và mọi công cụ sau đó đều vẽ bằng hệ thống thiết kế của bạn. [Start](/info/quickstart.html#put-your-brand-in) đi qua ba lộ trình.
+Có. **Lolly Design System Setup** (`#/start`) dựng một hệ thống thiết kế từ một màu, một tệp design token hoặc một thiết kế hoàn chỉnh, và mọi công cụ sau đó đều vẽ bằng hệ thống thiết kế của bạn. [Start](/info/quickstart.html#put-your-brand-in) đi qua ba lộ trình.
 
 Một hệ thống thiết kế do tổ chức hoặc bản dựng của bạn cung cấp là được quản lý: nó hiện một khóa và chỉ đọc, và bạn có thể tạo một bản sao chỉnh sửa được để thay đổi.
 
@@ -80,9 +80,9 @@ Ai cũng có thể dựng và phát bản sao ứng dụng của riêng mình, v
 
 ## Lolly có sửa và render được tệp Figma, Penpot, Illustrator hay InDesign của tôi không?
 
-Có. Mở **Design** và nhấp **Import a design**: nó nhận **.fig** Figma gốc (Save local copy), bản xuất **.penpot** của Penpot, **.ai** hoặc **.pdf** của Illustrator, **.idml** của InDesign (File → Export → InDesign Markup) hoặc **bất kỳ SVG nào**. Bạn không cần tài khoản, không cần plugin và không cần giấy phép ứng dụng thiết kế.
+Có. Mở công cụ **Design** và nhấp **Import a design**: nó nhận **.fig** Figma gốc (Save local copy), bản xuất **.penpot** của Penpot, **.ai** hoặc **.pdf** của Illustrator, **.idml** của InDesign (File → Export → InDesign Markup) hoặc **bất kỳ SVG nào**. Bạn không cần tài khoản, không cần plugin và không cần giấy phép ứng dụng thiết kế.
 
-![Canvas mở của Design - Import a design nằm trong menu Lolly của thanh công cụ](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D17ZTfS8MwEMf_mryO5NZ288GHrdqJv1CUvWdtOgppMtJMNv96yaV1iRNEQRBZoblwab53l0-uq915bXgrCOSDpf3LzgANnQ4eI0rrPJn7Gh9cd0sE8lIryxtFIFfatFx6L4F0Mi-11GbUiZYr25QjK3bW-S8I5MnUbRXKCkMgb5uqki6JFFU7rjoXYsSgT8GaLebKZSeGAPkUYypMHp80DeugYYR4J_U7X4XRkY8dFHuTYEJ-jDWM3qoqsEHo4Y20-xJi-SPVaOfRUuAL1hiZXNrG4gH6M85Z5lTAk8x8DdlnPL8gecVfBIEU6F5v0bbCor3VUu4JpOPCKTCWsPI9rBS107d6QyCfRET_Ac6wX36X6UpX-49Ip1mAlMEPkM6QX20aoSpECLTmpadcazPQ9hPlWxboRndWmFEIG1s4Yp3E3Ts-0f4GbcruWHLzlC0frmfpfbGk82LxmD0vUndSTcvXAoknWBKCz5LDSIdiRHV0D2Tfq1BIvdY42Zim5WZ_-n3_mRvwBg&width=1360&height=850&dpi=192&waitMs=3000&format=svg&walker=1&chrome=1&localize=1&dark=1&filename=design)
+![Canvas mở của Lolly Design - Import a design nằm trong menu Lolly của thanh công cụ](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D17ZTfS8MwEMf_mryO5NZ288GHrdqJv1CUvWdtOgppMtJMNv96yaV1iRNEQRBZoblwab53l0-uq915bXgrCOSDpf3LzgANnQ4eI0rrPJn7Gh9cd0sE8lIryxtFIFfatFx6L4F0Mi-11GbUiZYr25QjK3bW-S8I5MnUbRXKCkMgb5uqki6JFFU7rjoXYsSgT8GaLebKZSeGAPkUYypMHp80DeugYYR4J_U7X4XRkY8dFHuTYEJ-jDWM3qoqsEHo4Y20-xJi-SPVaOfRUuAL1hiZXNrG4gH6M85Z5lTAk8x8DdlnPL8gecVfBIEU6F5v0bbCor3VUu4JpOPCKTCWsPI9rBS107d6QyCfRET_Ac6wX36X6UpX-49Ip1mAlMEPkM6QX20aoSpECLTmpadcazPQ9hPlWxboRndWmFEIG1s4Yp3E3Ts-0f4GbcruWHLzlC0frmfpfbGk82LxmD0vUndSTcvXAoknWBKCz5LDSIdiRHV0D2Tfq1BIvdY42Zim5WZ_-n3_mRvwBg&width=1360&height=850&dpi=192&waitMs=3000&format=svg&walker=1&chrome=1&localize=1&dark=1&filename=design)
 
 Các lớp đến dưới dạng hộp chỉnh sửa được: văn bản vẫn gõ lại được, hình khối vẫn là hình khối và ảnh vào thư viện của bạn. Lưu nó, và **Share with rules** có thể biến bố cục thành công cụ mà ai có Lolly cũng điền lại được. Xem [Import a design](/info/design-import.html).
 
@@ -100,7 +100,7 @@ Feature flag bật hoặc tắt các phần của Lolly. Khi dùng độc lập,
 
 Một tiện ích làm một việc nhanh trên tệp bạn đã có, như nén PDF, chuyển đổi ảnh hoặc xóa dữ liệu ẩn, và nhiều tiện ích chạy trên thiết bị của bạn mà không tải gì lên. Chúng có để những việc mọi người thường giao cho một trang web ngẫu nhiên ở lại bên trong Lolly. Nén một hợp đồng, chuyển ảnh kỳ nghỉ còn nguyên vị trí hoặc dán một token vào trình định dạng trực tuyến không nên có nghĩa là trao tệp cho một trang với thời hạn lưu giữ, khu vực pháp lý và mô hình kinh doanh không rõ. [Lolly Utilities](/info/utilities.html) liệt kê chúng, và [The trade we never agreed to](/info/status-quo.html) kể câu chuyện đằng sau.
 
-![Màn hình Utilities: Strip Hidden Data, Compress PDF, Convert Image và các việc chạy trên thiết bị khác, tất cả ở một nơi](/t/url-shot?url=%2F%23%2Fu&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone!important%7D&tolerance=0.03&format=svg&walker=1&dark=1&filename=use-utilities&try=1)
+![Màn hình Utilities: Lolly Strip Hidden Data, Compress PDF, Convert Image và các việc chạy trên thiết bị khác, tất cả ở một nơi](/t/url-shot?url=%2F%23%2Fu&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone!important%7D&tolerance=0.03&format=svg&walker=1&dark=1&filename=use-utilities&try=1)
 
 ## Tổ chức của chúng tôi có dùng được SSO, dự án chung và phê duyệt không?
 
@@ -110,7 +110,7 @@ Có, với **Lolly Work**, máy chủ tổ chức của cùng dự án mã ngu�
 
 ## Khi áp dụng Lolly, tôi có thể gặp những trở ngại nào?
 
-Phần lớn thay đổi nằm ở phía sản xuất hơn là công nghệ. Một đội muốn có bộ công cụ được quản trị cần ai đó soạn hệ thống thiết kế và các mẫu đầu tiên, dù ai cũng có thể bắt đầu làm công cụ của riêng mình trong Design ngay ngày đầu, không cần git. Và các quy trình hiện có vẫn tiếp tục chạy dù đầu ra của chúng lệch thương hiệu, nên chuyển đổi tốt một đầu ra nhìn thấy được, trước và sau đặt cạnh nhau, thuyết phục nhanh hơn một kế hoạch.
+Phần lớn thay đổi nằm ở phía sản xuất hơn là công nghệ. Một đội muốn có bộ công cụ được quản trị cần ai đó soạn hệ thống thiết kế và các mẫu đầu tiên, dù ai cũng có thể bắt đầu làm công cụ của riêng mình trong Lolly Design ngay ngày đầu, không cần git. Và các quy trình hiện có vẫn tiếp tục chạy dù đầu ra của chúng lệch thương hiệu, nên chuyển đổi tốt một đầu ra nhìn thấy được, trước và sau đặt cạnh nhau, thuyết phục nhanh hơn một kế hoạch.
 
 [Adoption & Governance](/info/adoption-governance.html) đề cập việc giới thiệu theo vai trò, cách đo một thử nghiệm và một quy trình quản trị có thể trông ra sao.
 
@@ -144,3 +144,11 @@ Chúng nằm trong một kho riêng tư, tách biệt. Một bản clone công k
 ## Logo Lolly kia là vị gì?
 
 Người thì bảo vị chanh, người thì bảo vị bạc hà, đôi khi lại là táo, Lolly mang đến vị ngọt, còn hương vị là do bạn tạo nên!
+
+## Lolly hiểu chủ quyền nội dung là gì?
+
+Quyền kiểm soát cách nội dung của bạn được tạo, quản trị, lưu trữ và di chuyển giữa các hệ thống bạn chọn. Lolly hỗ trợ sản xuất cục bộ, công việc chỉnh sửa được và công cụ di động; Lolly Work bổ sung các dịch vụ chung do tổ chức kiểm soát. Giấy phép nguồn, các phụ thuộc có sẵn và luồng dữ liệu của quy trình vẫn quan trọng. [What is content sovereignty?](/info/content-sovereignty.html) giải thích từng quyền kiểm soát và giới hạn của nó.
+
+## Chúng tôi có thể giữ DAM hiện có không?
+
+Có. Một DAM được hỗ trợ có thể vẫn là nguồn chân lý trong khi Lolly Work kết nối các tài nguyên đã chọn với các công cụ Lolly. Quyền truy cập nguồn, các chỉnh sửa được phép, quyền sử dụng và việc phê duyệt đầu ra hoàn chỉnh là những quyết định riêng. [Use Lolly with your existing DAM](/info/use-with-dam.html) giải thích cách sắp xếp, và [SUSE's Brandfolder experience](/info/suse-brandfolder.html) ghi lại việc sử dụng thành công trong quá trình áp dụng.

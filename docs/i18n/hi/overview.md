@@ -72,7 +72,7 @@ shells/tui/         src/main.tsx (the full-screen app), src/bridge.ts
 
 ![430px चौड़ी स्क्रीन पर ऑडियोग्राम: ऊपर नियंत्रण शीट, नीचे तैयार वर्गाकार आर्टवर्क और तैरती एक्सपोर्ट पिल](/t/url-shot?url=%2F%23%2Ftool%2Faudiogram%3Faudio%3Dlolly%2Floops%2Ffireplace-loop%26title%3DField%2520notes%26subtitle%3DEpisode%252012%26style%3Dwave&width=430&height=900&dpi=192&waitMs=3200&css=%23ag-wave%7Bdisplay%3Anone!important%7D.ag-ph%7Bdisplay%3Ablock!important%7D&walker=1&format=svg&rasterDpi=110&dark=1&filename=ov2-phone-audiogram)
 
-वेब ऐप **Batch** (`#/batch`, `shells/web/src/pro/`) भी देता है, स्प्रेडशीट-शैली ग्रिड जो एक या कई टूल में एक साथ कई पंक्तियाँ रेंडर करता है; [Batch and Multi-edit](/info/batch.html#make-many-versions-of-one-design) Batch को कवर करता है। **Settings → Capabilities** वह सब दिखाता है जो प्लेटफ़ॉर्म घोषित करता है कि कर सकता है।
+वेब ऐप **Batch** (`#/batch`, `shells/web/src/pro/`) भी देता है, स्प्रेडशीट-शैली ग्रिड जो एक या कई टूल में एक साथ कई पंक्तियाँ रेंडर करता है; [Batch and Lolly Multi-edit](/info/batch.html#make-many-versions-of-one-design) Batch को कवर करता है। **Settings → Capabilities** वह सब दिखाता है जो प्लेटफ़ॉर्म घोषित करता है कि कर सकता है।
 
 ![नई इंस्टॉल पर Batch: टूल की प्रतीक्षा में एक खाली पंक्ति, डेटा आने से पहले स्प्रेडशीट सतह और उसका Render बटन अपनी जगह](/t/url-shot?url=%2F%23%2Fbatch&width=1440&height=900&dpi=192&waitMs=3500&walker=1&format=svg&dark=1&filename=ov2-batch-grid)
 
@@ -141,7 +141,7 @@ CLI अपने आर्गुमेंट से वही URL स्थि�
 
 - **`asset`**, `filter` और `allowUpload` के साथ, एसेट सिस्टम का पुल है। `allowUpload: false` स्लॉट को लाइब्रेरी एसेट तक सीमित करता है, और उपयोगकर्ता अपलोड लाइब्रेरी का `AssetRef` आकार साझा करते हैं।
 - **`blocks`** साइड पैनल में संपादित होने वाला दोहराया जाने वाला फ़ील्ड समूह है, जिसे Meeting Planner, Wayfinding, Diagrams और अन्य उपयोग करते हैं। रेंडर किए ब्लॉक पर क्लिक उसकी पंक्ति पर फ़ोकस करता है।
-- **`file`** Strip Hidden Data और Compress जैसी डिवाइस पर चलने वाली यूटिलिटी के लिए उपयोगकर्ता की अपनी फ़ाइल मेमोरी में रखता है, और **`vector`** संख्याओं के निश्चित सेट को एक नियंत्रण में समूहित करता है।
+- **`file`** Lolly Strip Hidden Data और Compress जैसी डिवाइस पर चलने वाली यूटिलिटी के लिए उपयोगकर्ता की अपनी फ़ाइल मेमोरी में रखता है, और **`vector`** संख्याओं के निश्चित सेट को एक नियंत्रण में समूहित करता है।
 
 ### 9. टेम्पलेट तर्क-रहित हैं
 
@@ -149,7 +149,7 @@ CLI अपने आर्गुमेंट से वही URL स्थि�
 
 ### 10. टूल्स, टूल्स को कंपोज़ करते हैं
 
-टूल बिना टूल-से-टूल इम्पोर्ट के दूसरे टूल का रेंडर एम्बेड कर सकता है; इंजन रचना हल करता है। मैनिफ़ेस्ट `composes: [{ id, tool, inputs }]` घोषित कर सकता है और `{{asset <id>}}` से चाइल्ड रखता है, और पोर्टेबल एम्बेड URL (`https://lolly.tools/tool/<id>.svg?…`) चाइल्ड को स्थानीय रूप से रेंडर करता है, इसी तरह Design लाइव QR कोड या चार्ट रखता है। SVG चाइल्ड SVG या PDF पैरेंट में वेक्टर रहता है। चाइल्ड मध्यवर्ती हैं, कभी वॉटरमार्क या स्टैम्प नहीं होते, और जो शेल एक को रेंडर नहीं कर सकता वह स्लॉट खाली छोड़ता है जबकि पैरेंट फिर भी रेंडर होता है। [Composition and brand overlays](/info/tool-composition.html) में ब्योरा है।
+टूल बिना टूल-से-टूल इम्पोर्ट के दूसरे टूल का रेंडर एम्बेड कर सकता है; इंजन रचना हल करता है। मैनिफ़ेस्ट `composes: [{ id, tool, inputs }]` घोषित कर सकता है और `{{asset <id>}}` से चाइल्ड रखता है, और पोर्टेबल एम्बेड URL (`https://lolly.tools/tool/<id>.svg?…`) चाइल्ड को स्थानीय रूप से रेंडर करता है, इसी तरह Lolly Design लाइव QR कोड या चार्ट रखता है। SVG चाइल्ड SVG या PDF पैरेंट में वेक्टर रहता है। चाइल्ड मध्यवर्ती हैं, कभी वॉटरमार्क या स्टैम्प नहीं होते, और जो शेल एक को रेंडर नहीं कर सकता वह स्लॉट खाली छोड़ता है जबकि पैरेंट फिर भी रेंडर होता है। [Composition and brand overlays](/info/tool-composition.html) में ब्योरा है।
 
 ## जो हमने न करना चुना
 

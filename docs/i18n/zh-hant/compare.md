@@ -11,7 +11,7 @@ _最後核查：2026 年 9 月 28 日。_
 - [Lolly 與 Figma](/info/compare-figma.html) - 設計、即時協作與可重複使用的素材製作。
 - [Lolly 與 Penpot](/info/compare-penpot.html) - 開源設計、共用 token 與組織工作。
 - [Lolly 與品牌入口網站](/info/compare-brand-portals.html) - 核准的資料庫、鎖定的範本、身分、審閱與報告。
-- [Lolly 與渲染 API](/info/compare-render-apis.html) - 在你的裝置上、CI 中或 Lolly Work 伺服器上的自動化生成。
+- [Lolly 與渲染 API](/info/compare-render-apis.html) - 在你的裝置上、CI 中或你自己的伺服器上的自動化生成，以及如何從 Bannerbear 或 Placid [遷移](/info/work-move-from-render-api.html)。
 - [Lolly 與線上檔案轉換器](/info/compare-converters.html) - 在你自己的裝置上轉換格式。
 
 如需逐項能力對比，請參閱[Lolly 如何對比](/info/positioning.html)。每項對比均標註日期；若某項說法已不再符合任一產品的現狀，則需要更正。

@@ -2,9 +2,13 @@
 
 Lolly bestaat uit twee delen van één open-sourceproject. **Lolly** is de engine, apps en tools om op je apparaat te maken, bewerken, omzetten en exporteren, zonder account. **Lolly Work** is de organisatieserver, op je eigen infrastructuur gedraaid, voor aanmelden, gedeelde projecten, goedkeuringen en serverrendering. Beide zijn MPL-2.0. Deze pagina vergelijkt het paar met de andere manieren waarop mensen bestanden ontwerpen, besturen en produceren.
 
+Het ordenende idee is [inhoudssoevereiniteit](/info/content-sovereignty.html): controle over hoe inhoud wordt gemaakt, beheerd, opgeslagen en verplaatst tussen gekozen systemen. Creatieve applicaties kunnen ontwerpen leveren, een DAM kan de bron van waarheid blijven en Lolly kan toegestane input en goedgekeurde assets omzetten in nieuwe bestanden. [Gebruik Lolly met je bestaande DAM](/info/use-with-dam.html) beschrijft die combinatie.
+
 ## De tools van vandaag
 
 Elke ring scoort hoe volledig een productklasse een capability levert, waarbij elke klasse op zijn beste vertegenwoordiger wordt gescoord. De kolom Lolly dekt Lolly en Lolly Work samen, en elke rij zegt welk deel wat levert. Open een rijnaam voor de redenering achter zijn score. Kolommen zijn gesorteerd op de rij Overall completeness bovenaan: het gemiddelde van de gescoorde rijen, met de uitgavenrij uitgesloten.
+
+De scores gebruiken de voorkeur van Lolly voor controle zonder account of cloudvereiste. Ze zijn een vergelijking onder die criteria, geen neutrale rangschikking van productvolledigheid of een inkoopscore voor ondernemingen. Lees de grenzen van mogelijkheden, implementatie en bewijs apart wanneer je een specifieke workflow beoordeelt.
 
 ::: figure positioning-comparison
 Capabilityvergelijking: concurrentieonderzoek en scores van augustus 2026; dekking van Lolly + Lolly Work beoordeeld op 28 september 2026. Scoring: 0 afwezig, 25 noodoplossing, 50 echt maar afgeschermd of gedeeltelijk, 75 sterk met kanttekeningen, 100 kerncompetentie.
@@ -43,9 +47,11 @@ De live samenwerking van Lolly omvat directe privécollabs tussen twee apparaten
 
 Geïmporteerde ontwerpen en gedeelde designtokens laten een team Lolly combineren met gespecialiseerde applicaties, terwijl Lolly Work gedeelde assets, review en bezorging beheert.
 
-Een heel diadeck toont het plafond: in **Markdown Slides** wordt een deck als gegevens gedeclareerd, live opgemaakt en geëxporteerd als een native, bewerkbaar PowerPoint-bestand.
+Voor teams met een samengestelde DAM begin je door die bibliotheek en haar beheerders op hun plek te laten. [De Brandfolder-ervaring van SUSE](/info/suse-brandfolder.html) legt vast hoe integratie de adoptie en het wijzigingsbeheer van goedkeuringen ondersteunde. DAM-leveranciers en implementatiepartners kunnen dezelfde opzet beoordelen via [de partnerworkflow](/info/dam-partners.html).
 
-![Markdown Slides in de gesplitste weergave: de dia's van het deck als blokken links opgesomd, het opgemaakte deck rechts gerenderd](/t/url-shot?url=%2F%23%2Ftool%2Fdeck-studio&width=1440&height=900&dpi=192&waitMs=2600&walker=1&format=svg&dark=1&filename=ov2-deck-studio-output)
+Een heel diadeck toont het plafond: in **Lolly Markdown Slides** wordt een deck als gegevens gedeclareerd, live opgemaakt en geëxporteerd als een native, bewerkbaar PowerPoint-bestand.
+
+![Lolly Markdown Slides in de gesplitste weergave: de dia's van het deck als blokken links opgesomd, het opgemaakte deck rechts gerenderd](/t/url-shot?url=%2F%23%2Ftool%2Fdeck-studio&width=1440&height=900&dpi=192&waitMs=2600&walker=1&format=svg&dark=1&filename=ov2-deck-studio-output)
 
 ## De regels zitten in de tool
 

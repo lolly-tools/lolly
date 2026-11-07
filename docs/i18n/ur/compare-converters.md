@@ -12,7 +12,7 @@ _آخری جانچ: 28 ستمبر 2026۔_
 
 براؤزر پر مبنی کنورٹر پروسیسنگ کے لیے فائل اپ لوڈ کر سکتا ہے یا مقامی طور پر تبدیل کر سکتا ہے۔ Lolly کی تبدیلی کی یوٹیلیٹیز فائل مقامی طور پر پروسیس کرتی ہیں، بغیر اکاؤنٹ، اشتہارات یا ٹریکرز، اور Lolly واٹر مارک یا Content Credentials شامل نہیں کرتیں۔ جب تبدیلی کو چاہییں ایسیٹس محفوظ ہو جائیں تو وہ آف لائن کام کرتی ہیں۔ فائل کا سائز ڈیوائس کی میموری اور خاص فارمیٹ ریڈر سے محدود ہے۔
 
-![Utilities منظر: Strip Hidden Data، Compress PDF، Convert Image اور دوسرے آن ڈیوائس کام ایک جگہ](/t/url-shot?url=%2F%23%2Fu&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%2C.brand-tips%7Bdisplay%3Anone!important%7D&tolerance=0.03&waitSelector=.utilities-view%5Bdata-shots-settled%5D&format=svg&walker=1&dark=1&filename=aud-utilities)
+![Utilities منظر: Lolly Strip Hidden Data، Compress PDF، Convert Image اور دوسرے آن ڈیوائس کام ایک جگہ](/t/url-shot?url=%2F%23%2Fu&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%2C.brand-tips%7Bdisplay%3Anone!important%7D&tolerance=0.03&waitSelector=.utilities-view%5Bdata-shots-settled%5D&format=svg&walker=1&dark=1&filename=aud-utilities)
 
 [ہر فارمیٹ جو Lolly کھول اور بنا سکتا ہے](/info/formats.html) معاون تبدیلیاں اور ان کی حدیں درج کرتا ہے، بشمول HEIC سے JPG، PNG سے SVG اور PDF سے تصاویر۔
 

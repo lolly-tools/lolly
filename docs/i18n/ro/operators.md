@@ -14,6 +14,8 @@ Lolly rulează pe dispozitivul fiecărei persoane. Când o echipă are nevoie de
 
 ## Conectează resurse și revizuiește munca
 
+- [Folosește Lolly cu DAM-ul tău existent](/info/use-with-dam.html) explică autoritatea sursei și producția conectată. [Contul SUSE Brandfolder](/info/suse-brandfolder.html) consemnează experiența de adopție, iar [Planifică o tranziție DAM](/info/dam-transition.html) acoperă o mutare ulterioară opțională.
+
 - [Administrarea sistemului de design](/info/work-design-system-administration.html) acoperă inventarul surselor, schimbările revizuite și revenirea.
 - [Catalog și conținut](/info/work-catalog.html) acoperă resursele comune și regulile de expunere. [Ghiduri de furnizori](/info/work-provider-guides.html) dă configurarea și cerințele de verificare ale fiecărei platforme sursă.
 - [Aprobări](/info/work-approvals.html) acoperă lanțurile de revizuire și separarea atribuțiilor. [Randare și partajare](/info/work-sharing.html) acoperă linkurile și ieșirea de server.

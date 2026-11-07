@@ -1,8 +1,10 @@
-# Batch și Multi-edit
+# Lolly Batch și Lolly Multi-edit
+
+<a id="batch-and-multi-edit"></a>
 
 Apar două sarcini când faci des același fel de fișier. Uneori ai nevoie de multe versiuni ale unui design: un card în o duzină de limbi sau fiecare dimensiune a unui banner. Alteori ai mai multe designuri salvate diferite și vrei ca o singură schimbare să le ajungă pe toate, precum o dată nouă sau un titlu nou.
 
-**Batch** face prima sarcină, iar **Multi-edit** o face pe a doua. Ambele rulează pe dispozitivul tău și exportă prin aceeași cale de randare ca instrumentele însele.
+**Lolly Batch** face prima sarcină, iar **Lolly Multi-edit** o face pe a doua. Ambele rulează pe dispozitivul tău și exportă prin aceeași cale de randare ca instrumentele însele.
 
 ::: cols
 ## Batch
@@ -10,9 +12,10 @@ Apar două sarcini când faci des același fel de fișier. Uneori ai nevoie de m
 - Un șablon, multe rânduri. Fiecare rând este un set de intrări și face un fișier.
 - Completează rândurile tastând, lipind dintr-o foaie de calcul sau importând un CSV.
 - Fără limită de rânduri; se afișează 50 pe pagină.
-- Se deschide din **Batch** în antetul Projects (`#/batch`).
+- Se deschide din **Lolly Batch** în antetul Projects (`#/batch`).
 
-## Multi-edit
+<a id="multi-edit"></a>
+## Lolly Multi-edit
 
 - Două până la opt designuri salvate diferite, unul lângă altul, ca niște carduri live.
 - O singură bară laterală editează intrările pe care le au în comun, apoi pe cele proprii ale fiecărui card.
@@ -22,7 +25,7 @@ Apar două sarcini când faci des același fel de fișier. Uneori ai nevoie de m
 
 ## Fă multe versiuni ale unui design
 
-Deschide **Projects** și apasă **Batch** în antetul lui. Grila pornește cu un rând: alege în el un șablon, apoi duplică rândul sau lipește date din foaia ta de calcul. Deschis din interiorul unui dosar, Batch te readuce în acel dosar.
+Deschide vederea **Projects** și apasă **Batch** în antetul lui. Grila pornește cu un rând: alege în el un șablon, apoi duplică rândul sau lipește date din foaia ta de calcul. Deschis din interiorul unui dosar, Batch te readuce în acel dosar.
 
 ![Batch pe o grilă nouă: numele fișierului și uneltele de rând sus, iar lista de șabloane a primului rând deschisă pe instrumentele pe care le poți alege](/t/url-shot?url=%2F%23%2Fbatch&width=1440&height=900&dpi=192&waitMs=3500&walker=1&format=svg&dark=1&filename=use-batch-toolbar)
 
@@ -46,9 +49,13 @@ Fiecare rând își păstrează propriile alegeri de temă: deschis sau închis 
 
 Un CSV poartă alegerile într-o coloană `_themes` după coloanele de dimensiune, cu același JSON ca parametrul de link `_themes`, de exemplu `{"":"dark","colourway":"beach"}`. O celulă goală sau `{}` înseamnă valorile implicite ale sistemului de design. Coloana este scrisă doar când vreun rând are alegeri, deci un batch fără ele exportă același CSV ca înainte. La import, o celulă care nu conține alegeri de temă valide este listată ca problemă, iar rândul ei randează în valorile implicite. Grila nu are încă un control pentru schimbarea alegerilor unui rând, deci setează-le în CSV sau în sesiunea salvată.
 
+### Câte o limbă pentru fiecare rând
+
+Un instrument care își tipărește propriile cuvinte, precum Certificate, poate primi o coloană `language` cu un cod scurt de limbă, precum `de`, `ja` sau `ar`. Fiecare rând își tipărește apoi cuvintele și data în acea limbă, iar rândurile în arabă și urdu sunt așezate de la dreapta la stânga. O celulă goală urmează limba aplicației. O limbă a cărei traducere Lolly nu o deține încă se tipărește în engleză, data inclusă, deci un certificat nu este niciodată tradus pe jumătate.
+
 ### Batch sau Render folder
 
-Batch face multe variante ale unui șablon. Ca să randezi din nou sesiuni deja salvate, selectează-le în Projects și folosește **Render selection**, sau **Render folder** pentru un dosar întreg; [Găsește și recuperează-ți munca](/info/find-your-work.html#find-something-you-saved) le acoperă pe amândouă.
+Lolly Batch face multe variante ale unui șablon. Ca să randezi din nou sesiuni deja salvate, selectează-le în Projects și folosește **Render selection**, sau **Render folder** pentru un dosar întreg; [Găsește și recuperează-ți munca](/info/find-your-work.html#find-something-you-saved) le acoperă pe amândouă.
 
 ## Editează mai multe designuri salvate împreună
 
@@ -69,7 +76,7 @@ Fiecare card desenează în alegerile de temă ale propriei sesiuni, inclusiv un
 - **Maximum opt.** Fiecare card montează propriul runtime live, iar opt este numărul care rămâne receptiv. Un link care cere mai multe sau o sesiune care nu mai există spune asta în loc să se încarce pe jumătate.
 - **Linkul este local.** Numește sloturile tale salvate, deci redeschide acel set pe acest dispozitiv. Nu este un link de partajare.
 - **Pentru ceva mai mare,** alege **Edit as sheet** în aceeași bară de selecție. Deschide întreaga selecție ca rânduri în grila batch (`#/batch?s=…`), fără limită de dimensiune și fără regula aceluiași instrument. Dosarele rămân în afara ambelor: deschide un dosar în grilă cu **Sessions → Folders…** sau randează unul cu **Render folder** în Projects.
-- **Căutarea nu ajunge în Multi-edit.** Este singura vedere despre care bara de căutare nu știe.
+- **Căutarea nu ajunge în Lolly Multi-edit.** Este singura vedere despre care bara de căutare nu știe.
 
 ## Ce urmează
 

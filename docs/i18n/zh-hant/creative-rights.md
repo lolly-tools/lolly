@@ -22,7 +22,7 @@
 
 ## 你看到什麼，以及該做什麼
 
-相同的文字出現在匯出面板、Verify、命令列與機器結果中，大致依你遇到的頻率排序。
+相同的文字出現在匯出面板、Lolly Verify、命令列與機器結果中，大致依你遇到的頻率排序。
 
 | 你看到的 | 它的意思 |
 |---|---|
@@ -51,12 +51,14 @@ Lolly 絕不說「copyright verified」、「legally safe」、「fully cleared�
 
 - **在目錄中。** 作品的資料頁顯示其來源與創作者、標準的授權名稱（下方保留原始標籤）、有記錄時可複製的署名，以及說明使用它需要什麼的一行。圖塊陳述要求；它絕不宣稱匯出已完成。
 - **在匯出面板中。** 一旦渲染使用了已記錄的作品，Source credits 卡片就會出現在 Content protection 內，位於你為自己的匯出選擇的 Licence 旁邊。它顯示狀態、位於 Details 後面的署名文字、Copy credit 按鈕，以及需要做決定時的行內卡片。決定絕不是阻擋式的對話框：還有待辦動作的下載仍會繼續。
-- **在檔案中。** 放置了已記錄作品的匯出，為每件不同的作品寫入一個 Content Credentials 來源素材成分，綁定到其公開位址上的原始位元組，並帶有創作者、授權及其連結、來源、修訂版與更動。Lolly 簽署的是它所觀察到的內容。它絕不代表上游藝術家簽署聲明，而 Verify 會說明發生的是這兩者中的哪一種。
+- **在檔案中。** 放置了已記錄作品的匯出，為每件不同的作品寫入一個 Content Credentials 來源素材成分，綁定到其公開位址上的原始位元組，並帶有創作者、授權及其連結、來源、修訂版與更動。Lolly 簽署的是它所觀察到的內容。它絕不代表上游藝術家簽署聲明，而 Lolly Verify 會說明發生的是這兩者中的哪一種。
 - **在套件中。** 無法容納憑證的下載（例如 `.lottie` 動畫）會將署名以 `CREDITS.txt` 與 `credits.json` 放在套件內。它們在寫入後被讀回，並且不宣稱它們有已簽署的憑證。
 - **寫入之後。** 交付的位元組會在任何東西說署名已包含在內之前被讀回。未通過驗證的憑證不算作已交付的署名。
-- **在可編輯的 `.lolly` 檔案中。** 只有在已審閱的授權記錄了傳遞來源的許可時，位元組才會傳遞。套件的 `CREDITS.txt` 列出傳遞了什麼、依何種授權，以及什麼被保留與其原因。未記錄的授權會被保留。你仍可刻意納入被保留的內容，而署名檔案會記錄這是你的選擇。
-- **在 Verify 中。** Sources 面板列出檔案記錄的每個來源，附有計算出的摘要、署名、Copy credit 按鈕、只在你要求時才開啟的 Open source 連結，以及所檢查內容的明示限制。只有在你挑選使用方式時才會出現 Check for this use 問題，且回答這個問題不會擷取任何東西。
+- **在可編輯的 `.lolly` 檔案中。** 只有在已審閱的授權記錄了傳遞來源的許可，或該列帶有其擁有者自己的條款時，位元組才會傳遞。套件的 `CREDITS.txt` 列出傳遞了什麼、依何種授權，以及什麼被保留與其原因。未記錄的授權會被保留。你仍可刻意納入被保留的內容，而署名檔案會記錄這是你的選擇。
+- **在 Lolly Verify 中。** Sources 面板列出檔案記錄的每個來源，附有計算出的摘要、署名、Copy credit 按鈕、只在你要求時才開啟的 Open source 連結，以及所檢查內容的明示限制。只有在你挑選使用方式時才會出現 Check for this use 問題，且回答這個問題不會擷取任何東西。
 - **當你移除中繼資料時。** 移除會告訴你檔案不再攜帶多少來源署名，提供署名文字，並提供將署名放在另一個檔案中的乾淨檔案。被移除的位元組絕不會被重新蓋印。
+
+**擁有者自己的標誌。** 擁有者很少把標誌放在開放授權之下。權利記錄寫著 `own-work`、並附有擁有者與條款的一列，可以放進 `.lolly` 檔案，也可以放在[品牌頁面](/info/brand-page.html#publish-your-own-marks)上。它會以「Owner-published, not an open licence」的形式傳遞，條款就放在檔案旁邊。這讀取的是目錄所陳述的內容。Lolly 不會檢查誰擁有某個標誌。沒有擁有者、條款空白或沒有宣告的記錄會被保留，沒有這類記錄的他人標誌也一樣。
 
 ::: details Lolly 已審閱的授權
 規則版本 `rights-rules-2026-11-05.1`。每條規則都是從授權自己的法律文本讀出的，其來源章節在這裡以及 `engine/src/rights-profiles.ts` 中規則旁邊都有引註。版本與移植版依記錄保留：CC BY 3.0 的宣告保留它自己的版本，而不會因為應用程式的選擇器偏好 4.0 就被回報為 4.0。
@@ -69,6 +71,7 @@ Lolly 絕不說「copyright verified」、「legally safe」、「fully cleared�
 | CC-PDDC | 沒有任何要求。記錄的是斷言本身與誰做的，因為認證是單方的陳述而非證明。 | [宣告與認證](https://creativecommons.org/licenses/publicdomain/)各段 |
 | Apache License 2.0 | 來源的聲明，以及 NOTICE 檔案的署名文字，隨散布的作品一起傳遞。執行階段使用沒有要求。要求聲明文字、而作品卻沒有帶的授權，會被回報為缺口。 | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0)，第 4 節，條件 1 至 4 |
 | MIT | 著作權行與許可聲明隨副本與重要部分一起傳遞。執行階段與參考使用沒有要求。 | [MIT](https://opensource.org/license/mit)，許可聲明條件 |
+| ISC | 與 MIT 相同，只是用字更簡短：著作權行與許可聲明隨副本一起傳遞。執行階段與參考使用沒有要求。 | [ISC](https://opensource.org/license/isc-license-txt)，許可聲明條件 |
 | SIL OFL 1.1 | 以該字型渲染文字，對文字沒有任何要求。傳遞字型檔案則需附上授權、著作權聲明與保留名稱規則。 | [OFL 1.1](https://openfontlicense.org/open-font-license-official-text/)，條件 2、3 與 5；關於文件的 [OFL FAQ](https://openfontlicense.org/ofl-faq/) |
 
 **已記錄，未詮釋。** CC BY-NC、CC BY-ND 以及 NC-SA 和 NC-ND 組合已被辨識，其條件已列出，但這裡沒有任何規則讀取它們。它們回報 `licence.unknown`，並附上指名條件的一行。商業情境無法從價格或帳號判讀，而每個組合文本都需要自己的審閱，規則才會讀取該文本。
@@ -119,7 +122,7 @@ Rights: actions-required
 | `engine/src/rights-evaluate.ts` | 分類、問題、署名計畫與指紋。具決定性：相同的事實以不同順序給出相同的答案。 |
 | `engine/src/rights-attribution.ts` | 可讀的署名、隨附檔案、來源素材成分，以及寫入後測量的回條。 |
 | `engine/src/rights-companion.ts` | 套件署名的讀回（ZIP 型下載內的 `CREDITS.txt` 與 `credits.json`），確認署名而不宣稱有已簽署的憑證。 |
-| `engine/src/rights-report.ts` | 將已驗證的憑證讀回成 Verify 提出的三個問題。 |
+| `engine/src/rights-report.ts` | 將已驗證的憑證讀回成 Lolly Verify 提出的三個問題。 |
 
 `tests/fixtures/rights/` 中的預期檔案是依據授權文本而非評估器的輸出撰寫的，其 README 引註了每項預期背後的章節。
 :::

@@ -72,7 +72,7 @@ Dasselbe Tool in Smartphone-Breite braucht kein zweites Layout: Die Steuerelemen
 
 ![Ein Audiogramm auf einem 430 px breiten Bildschirm: oben das Blatt mit den Steuerelementen, darunter die fertige quadratische Grafik und die schwebende Export-Pille](/t/url-shot?url=%2F%23%2Ftool%2Faudiogram%3Faudio%3Dlolly%2Floops%2Ffireplace-loop%26title%3DField%2520notes%26subtitle%3DEpisode%252012%26style%3Dwave&width=430&height=900&dpi=192&waitMs=3200&css=%23ag-wave%7Bdisplay%3Anone!important%7D.ag-ph%7Bdisplay%3Ablock!important%7D&walker=1&format=svg&rasterDpi=110&dark=1&filename=ov2-phone-audiogram)
 
-Die Web-App liefert auch **Batch** (`#/batch`, `shells/web/src/pro/`), ein tabellenartiges Raster, das viele Zeilen auf einmal über ein oder viele Tools rendert; [Batch und Multi-edit](/info/batch.html#make-many-versions-of-one-design) behandelt Batch. **Settings → Capabilities** bildet alles ab, was die Plattform zu können erklärt.
+Die Web-App liefert auch **Batch** (`#/batch`, `shells/web/src/pro/`), ein tabellenartiges Raster, das viele Zeilen auf einmal über ein oder viele Tools rendert; [Batch und Lolly Multi-edit](/info/batch.html#make-many-versions-of-one-design) behandelt Batch. **Settings → Capabilities** bildet alles ab, was die Plattform zu können erklärt.
 
 ![Batch bei einer frischen Installation: eine leere Zeile, die auf ein Tool wartet, mit der Tabellenoberfläche und ihrer Schaltfläche Render an Ort und Stelle, bevor Daten eintreffen](/t/url-shot?url=%2F%23%2Fbatch&width=1440&height=900&dpi=192&waitMs=3500&walker=1&format=svg&dark=1&filename=ov2-batch-grid)
 
@@ -141,7 +141,7 @@ Eine Eingabe deklariert einen `type`: `text`, `longtext`, `number`, `boolean`, `
 
 - **`asset`**, mit `filter` und `allowUpload`, ist die Brücke zum Asset-System. `allowUpload: false` beschränkt einen Slot auf Bibliotheks-Assets, und Uploads von Nutzern teilen die `AssetRef`-Form der Bibliothek.
 - **`blocks`** ist eine wiederholte Feldgruppe, in einem Seitenpanel bearbeitet, genutzt von Meeting Planner, Wayfinding, Diagrams und anderen. Ein Klick auf einen gerenderten Block fokussiert seine Zeile.
-- **`file`** hält die eigene Datei der Nutzerin oder des Nutzers im Arbeitsspeicher für Utilities auf dem Gerät wie Strip Hidden Data und Compress, und **`vector`** fasst eine feste Menge von Zahlen zu einem Steuerelement zusammen.
+- **`file`** hält die eigene Datei der Nutzerin oder des Nutzers im Arbeitsspeicher für Utilities auf dem Gerät wie Lolly Strip Hidden Data und Compress, und **`vector`** fasst eine feste Menge von Zahlen zu einem Steuerelement zusammen.
 
 ### 9. Vorlagen sind logikfrei
 
@@ -149,7 +149,7 @@ Vorlagen sind Handlebars, gewählt, damit Nicht-Entwickler sie schreiben können
 
 ### 10. Tools setzen sich aus Tools zusammen
 
-Ein Tool kann das Rendering eines anderen Tools einbetten, ohne Importe von Tool zu Tool; die Engine löst die Komposition auf. Ein Manifest kann `composes: [{ id, tool, inputs }]` deklarieren und das Kind mit `{{asset <id>}}` platzieren, und eine portable Einbett-URL (`https://lolly.tools/tool/<id>.svg?…`) rendert das Kind lokal, womit Design einen Live-QR-Code oder ein Diagramm platziert. Ein SVG-Kind bleibt in einem SVG- oder PDF-Elternteil ein Vektor. Kinder sind Zwischenergebnisse, nie mit Wasserzeichen oder Stempel versehen, und eine Shell, die keines rendern kann, lässt den Slot leer, während der Elternteil weiter rendert. [Komposition und Marken-Overlays](/info/tool-composition.html) hat die Einzelheiten.
+Ein Tool kann das Rendering eines anderen Tools einbetten, ohne Importe von Tool zu Tool; die Engine löst die Komposition auf. Ein Manifest kann `composes: [{ id, tool, inputs }]` deklarieren und das Kind mit `{{asset <id>}}` platzieren, und eine portable Einbett-URL (`https://lolly.tools/tool/<id>.svg?…`) rendert das Kind lokal, womit Lolly Design einen Live-QR-Code oder ein Diagramm platziert. Ein SVG-Kind bleibt in einem SVG- oder PDF-Elternteil ein Vektor. Kinder sind Zwischenergebnisse, nie mit Wasserzeichen oder Stempel versehen, und eine Shell, die keines rendern kann, lässt den Slot leer, während der Elternteil weiter rendert. [Komposition und Marken-Overlays](/info/tool-composition.html) hat die Einzelheiten.
 
 ## Was wir bewusst nicht tun
 

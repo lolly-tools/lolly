@@ -12,7 +12,7 @@ L'écran d'accueil : quatre onglets en haut et la barre en bas. Un outil, une fo
 
 Quatre onglets courent en haut de l'écran d'accueil : **Tools**, **Utilities**, **Assets** et **Projects**. Tools, c'est ce avec quoi tu crées ; Utilities, ce sont des établis pour des tâches comme convertir, vérifier ou nettoyer un fichier ; Assets est ta bibliothèque et Projects contient ce que tu as enregistré.
 
-La barre en bas contient **Open**, **Settings**, un champ de recherche, **Verify** et **What?**. Elle s'affiche sur Tools, Utilities, Assets, Projects, Settings et les guides que tu lis dans l'application, et s'efface dès qu'un outil est ouvert. [Lolly Search](/info/search.html) atteint tes outils, ton travail enregistré, tes ressources et tes réglages depuis ce champ. [Ask Lolly](/info/ask.html) répond à une question saisie avec la section correspondante de ces guides.
+La barre en bas contient **Open**, **Settings**, un champ de recherche, un raccourci **Verify** vers Lolly Verify et **What?**. Elle s'affiche sur Tools, Utilities, Assets, Projects, Settings et les guides que tu lis dans l'application, et s'efface dès qu'un outil est ouvert. [Lolly Search](/info/search.html) atteint tes outils, ton travail enregistré, tes ressources et tes réglages depuis ce champ. [Ask Lolly](/info/ask.html) répond à une question saisie avec la section correspondante de ces guides.
 
 Clique sur une carte pour commencer quelque chose de nouveau dans cet outil. Le travail enregistré se rouvre plutôt depuis **Projects**.
 
@@ -22,7 +22,7 @@ Chaque outil est une vue partagée : les **contrôles** d'un côté et un **aper
 
 ![La vue divisée d'un outil - la pile de contrôles à gauche, et le graphique en barres groupées en direct qu'elle dessine à droite](/t/url-shot?url=%2F%23%2Ftool%2Fchart%3Fct%3Dbar%26t%3DExample%2520data%26st%3DSample%2520values%252C%2520not%2520a%2520real%2520dataset%26d%3DMonth%252CSeries%2520A%252CSeries%2520B%252CSeries%2520C%250AJan%252C12%252C9%252C5%250AFeb%252C18%252C14%252C7%250AMar%252C24%252C17%252C11%250AApr%252C29%252C23%252C15%26lg%3D1&width=1440&height=900&dpi=192&waitMs=2500&walker=1&format=svg&dark=1&filename=vt-tool-split-view)
 
-**Design** est l'exception. Il s'ouvre comme un canevas libre de blocs que tu fais glisser, redimensionnes et dans lesquels tu tapes du texte, avec sa propre barre du haut, sa timeline et ses contrôles de deck. [Design: the free canvas](/info/design.html) en est le guide.
+**Lolly Design** est l'exception. Il s'ouvre comme un canevas libre de blocs que tu fais glisser, redimensionnes et dans lesquels tu tapes du texte, avec sa propre barre du haut, sa timeline et ses contrôles de deck. [Lolly Design: the free canvas](/info/design.html) en est le guide.
 
 ## Change ce que l'outil te laisse changer
 
@@ -36,7 +36,7 @@ Un outil n'affiche que les entrées censées varier. Son auteur a déjà fixé l
 
 **Choix du design system.** Quand ton design system propose plus d'un colourway, un aspect clair et un aspect sombre ou un autre choix de thème, une section **Design system** sous les contrôles les contient. Un choix n'apparaît que s'il modifie cet outil, donc un utilitaire de fichiers n'affiche aucune section. Chaque colourway est un point dans ses propres couleurs, clair et sombre sont deux boutons et tout autre choix est une liste.
 
-Le choix appartient à cette pièce. Il voyage dans le lien et dans la session enregistrée, chaque couleur liée au design system le suit et les couleurs propres de l'application ne changent pas. Design montre les mêmes choix dans l'onglet **Canvas** de l'Inspector. Un outil dont les couleurs sont son contenu peut rester sur le colourway canonique, et n'affiche alors aucun point de colourway. [Lolly Demo in use](/info/lolly-demo-in-use.html#colourways-on-real-work) montre les colourways sur du vrai travail.
+Le choix appartient à cette pièce. Il voyage dans le lien et dans la session enregistrée, chaque couleur liée au design system le suit et les couleurs propres de l'application ne changent pas. Lolly Design montre les mêmes choix dans l'onglet **Canvas** de l'Inspector. Un outil dont les couleurs sont son contenu peut rester sur le colourway canonique, et n'affiche alors aucun point de colourway. [Lolly Demo in use](/info/lolly-demo-in-use.html#colourways-on-real-work) montre les colourways sur du vrai travail.
 
 ### Zoomer et déplacer l'aperçu
 
@@ -47,7 +47,7 @@ L'aperçu montre toujours exactement ce qui sera exporté.
 - **Tactile :** pince pour zoomer, fais glisser pour déplacer et touche deux fois pour ajuster.
 - **HUD de zoom :** appuie longuement sur le tourbillon Lolly dans le coin pour déplier `−`, **Fit** et `+`. Un court appui sur le tourbillon ouvre toujours le menu de ton profil.
 
-Dans Design, **Fit all** inclut les plans de travail et les calques libres. Tu peux dézoomer manuellement sous 20 % jusqu'à ce que la page entière occupe la moitié de la vue. La limite basse est la plus petite des deux valeurs : 5 % de l'échelle Fit normale et 2 % de zoom absolu.
+Dans Lolly Design, **Fit all** inclut les plans de travail et les calques libres. Tu peux dézoomer manuellement sous 20 % jusqu'à ce que la page entière occupe la moitié de la vue. La limite basse est la plus petite des deux valeurs : 5 % de l'échelle Fit normale et 2 % de zoom absolu.
 
 Un changement de taille de sortie ramène toujours la vue à un ajustement propre.
 
@@ -55,7 +55,7 @@ Un changement de taille de sortie ramène toujours la vue à un ajustement propr
 
 ### Annuler et rétablir
 
-**Cmd/Ctrl-Z** revient en arrière et **Cmd/Ctrl-Shift-Z** (ou **Cmd/Ctrl-Y**) avance. La même paire figure sous forme de boutons **Undo** et **Redo** au-dessus des contrôles (dans Design, ils sont dans la barre du haut), et chacun se grise quand il n'y a plus rien à annuler. Un message indique quelle entrée chaque annulation a restaurée, avec un bouton **Redo** dans le message.
+**Cmd/Ctrl-Z** revient en arrière et **Cmd/Ctrl-Shift-Z** (ou **Cmd/Ctrl-Y**) avance. La même paire figure sous forme de boutons **Undo** et **Redo** au-dessus des contrôles (dans Lolly Design, ils sont dans la barre du haut), et chacun se grise quand il n'y a plus rien à annuler. Un message indique quelle entrée chaque annulation a restaurée, avec un bouton **Redo** dans le message.
 
 - **Un glissement est une seule étape.** Les changements répétés d'un contrôle en une demi-seconde fusionnent, donc faire glisser un curseur sur toute sa plage est une seule annulation.
 - **Les 100 dernières étapes sont conservées.** Une nouvelle modification après une annulation vide la pile de rétablissement.
@@ -72,7 +72,7 @@ Les effets de l'outil **Filter** (Halftone, Scanline, Posterize, Voronoi, Duoton
 
 Pour conserver ton travail, appuie sur **Save**, la coche à côté de **Export** sur la pastille de rendu. Un nouveau travail va dans **My library**, un travail enregistré auparavant est mis à jour là où il est et rien ne se télécharge. Le panneau d'export a le même bouton **Save**.
 
-Pour choisir où il va, appuie sur **Save as**, à côté de **Download** dans le panneau d'export. Sous **Save to a project**, laisse **My library** sélectionné ou choisis un projet (**＋ New project…** en crée un), puis appuie sur **Save** ; **Save as a template** conserve le design comme [modèle](/info/templates.html), un point de départ pour de nouveaux documents. Dans Design, **Save as** est dans le menu Lolly ; sur un téléphone, appuie sur **•••**, puis **File menu**, puis **Save as**.
+Pour choisir où il va, appuie sur **Save as**, à côté de **Download** dans le panneau d'export. Sous **Save to a project**, laisse **My library** sélectionné ou choisis un projet (**＋ New project…** en crée un), puis appuie sur **Save** ; **Save as a template** conserve le design comme [modèle](/info/templates.html), un point de départ pour de nouveaux documents. Dans Lolly Design, **Save as** est dans le menu Lolly ; sur un téléphone, appuie sur **•••**, puis **File menu**, puis **Save as**.
 
 ![La pastille de rendu en deux moitiés : Export, avec une flèche vers le haut qui ouvre le panneau d'export, et Save, avec une coche qui enregistre sur place](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools&width=1440&height=900&dpi=192&waitMs=2500&css=%23tool-inputs%7Bdisplay%3Anone%7D&cropSelector=.render-pill&walker=1&format=svg&dark=1&filename=use-render-pill)
 
@@ -162,7 +162,7 @@ Une sauvegarde complète de l'appareil n'est pas un `.lolly`. Elle reste un `Lol
 
 Un `.lolly` est un zip ordinaire. Renomme-le en `.zip` pour regarder dedans : tes propres images sont sous `assets/uploads/`, l'art du catalogue sous `assets/catalog/`, `manifest.json` liste chaque fichier, et un README dit ce qu'est le fichier.
 
-macOS, Windows, Linux, iOS et Android enregistrent tous le format, les gestionnaires de fichiers de bureau l'affichent comme un document Lolly et GNOME Files peut montrer la vignette propre d'une session enregistrée. Ouvrir depuis Design System Setup recommande l'action de design system quand un design partagé en porte un, mais ne masque jamais **Open shared design**.
+macOS, Windows, Linux, iOS et Android enregistrent tous le format, les gestionnaires de fichiers de bureau l'affichent comme un document Lolly et GNOME Files peut montrer la vignette propre d'une session enregistrée. Ouvrir depuis Lolly Design System Setup recommande l'action de design system quand un design partagé en porte un, mais ne masque jamais **Open shared design**.
 
 Un document transmis depuis une autre application sur iOS ou Android est plafonné à 48 MB, car le transfert copie ses octets à travers la frontière de l'application, et l'application le dit. **Open** dans Lolly n'a pas ce plafond, donc utilise-le pour un bundle plus gros.
 
@@ -173,7 +173,7 @@ Un lien et un fichier remettent tous deux un instantané. Pour l'édition en dir
 
 ## Éléments - ta bibliothèque
 
-**Assets** (`#/a`) rassemble tout ce que tes outils peuvent utiliser : logos de marque, images, audio et animation, groupés par type, avec tes propres fichiers. Tes envois sont stockés sur ton appareil. Une organisation qui utilise Lolly Work peut aussi fournir un catalogue partagé selon ses propres règles d'accès ; voir [Use Lolly at your organisation](/info/organisation.html).
+**Lolly Assets** (`#/a`) rassemble tout ce que tes outils peuvent utiliser : logos de marque, images, audio et animation, groupés par type, avec tes propres fichiers. Tes envois sont stockés sur ton appareil. Une organisation qui utilise Lolly Work peut aussi fournir un catalogue partagé selon ses propres règles d'accès ; voir [Use Lolly at your organisation](/info/organisation.html).
 
 ![Éléments, avec les échantillons et les polices de la marque, ainsi que tes propres imports](/t/url-shot?url=%2F%23%2Fa%3Fsection%3Dswatches%2Cfonts&width=1440&height=900&dpi=96&waitMs=2400&css=.plat-swatch-grid~%2A%7Bdisplay%3Anone%7D&walker=1&format=svg&localize=1&dark=1&filename=assets)
 
@@ -267,12 +267,25 @@ Sur un écran étroit, la mise en page passe sur une seule colonne :
 
 ![Un outil sur un écran de largeur téléphone - les contrôles en feuille en haut, la palette générée qui remplit l'aperçu en dessous et la pastille de rendu flottant en bas au centre](/t/url-shot?url=%2F%23%2Ftool%2Fcolor-palette%3Fseed%3Df97316%26harmony%3Dadjacent-3%26steps%3D9&width=430&height=900&dpi=192&waitMs=2200&walker=1&format=svg&dark=1&filename=vt-phone-palette)
 
+## Appareils pliables et iPhone Duo
+
+Sur un appareil pliable, un iPhone Duo ou un écran tactile presque carré, Lolly dispose un outil en deux volets, comme les pages d'un livre :
+
+- **Les contrôles d'un côté, le canevas de l'autre.** Les contrôles se placent du côté opposé à la main avec laquelle tu dessines. Choisis **Dominant hand** dans **Settings → Accessibility**, ou appuie sur **Swap sides** en haut des contrôles. Dans une langue qui s'écrit de droite à gauche, les côtés s'inversent.
+- **La séparation est la charnière.** Quand l'appareil signale son pli, les volets se rejoignent au pli, donc aucun contrôle ni aucune image ne se trouve sur la zone de pliure. Sur un écran continu, fais glisser la séparation à un tiers, à la moitié ou aux deux tiers de la largeur. Lolly retient ton choix pour chaque vue sur cet appareil.
+- **Posé sur la table.** À moitié ouvert, avec le pli en travers de l'écran, le canevas prend la moitié haute et les contrôles se placent sous le pli. Quand tu présentes, la diapositive est en haut, avec tes notes, la diapositive suivante et **Back** et **Next** en dessous. Dans Sequence, l'aperçu est en haut et la timeline en dessous.
+- **Lolly Design, Brand Studio et Assets.** Dans Lolly Design, l'inspecteur, les calques et le panneau d'export sont des onglets à côté du canevas, et les outils se rangent le long du bord extérieur du canevas, sous ta main de dessin. Quand il y a plus d'outils que la place n'en offre, la colonne défile et un fondu avec une flèche indique de quel côté se trouve le reste. Posé sur la table, les outils courent plutôt le long du pied du canevas. Brand Studio garde le Board d'un côté et la pièce que tu ouvres de l'autre. Dans Assets, les détails d'une ressource s'ouvrent à côté de la bibliothèque, donc le toucher suivant montre la ressource suivante au même endroit.
+- **Rien sur la pliure.** Sur un pli signalé, une boîte de dialogue s'ouvre sur la page qui contient les contrôles, comme le champ de recherche au pied de l'écran d'accueil et ses résultats. Un écran plat les garde au milieu.
+- **Plier ne fait rien perdre.** Plier, déplier ou tourner l'appareil conserve ton document, ta sélection, le zoom et le champ dans lequel tu écrivais, avec son curseur là où tu l'avais laissé.
+
+L'écran extérieur d'un appareil pliable garde la disposition téléphone décrite plus haut, tout comme une fenêtre Lolly dans une moitié d'écran partagé.
+
 ## Réglages, son et confort
 
 **Settings**, au pied de l'écran d'accueil, contient tes informations, tes design systems, l'accessibilité, le stockage et les téléchargements hors ligne. [Lolly Settings](/info/dashboard.html) cartographie chaque onglet.
 
 - **Tes informations et ta photo** remplissent tout outil conçu pour les utiliser, comme une signature d'e-mail ou un badge. [Profiles](/info/profile.html) les couvre.
-- **Accessibility** a quatre interrupteurs de confort : **Reduce motion**, **Hide colourful previews**, **High contrast** et **Large text**. Ils changent l'application autour de ton travail, jamais le canevas d'un outil ni un export.
+- **Accessibility** a quatre interrupteurs de confort : **Reduce motion**, **Hide colourful previews**, **High contrast** et **Large text**. Ils changent l'application autour de ton travail, jamais le canevas d'un outil ni un export. À côté, **Dominant hand** choisit de quel côté se placent les contrôles en mode deux volets.
 - **Sound** joue de doux sons d'assistance pour ce que tu fais, et **Neurospicy Mode** joue une piste calme de concentration. Les deux sont désactivés tant que tu ne les actives pas, dans **Settings → Accessibility** ou le menu du profil.
 - **Available offline** télécharge le reste de l'application, tes outils, le catalogue et les guides avant que tu perdes la connexion. Lolly est une application web que tu peux installer : utilise le bouton d'installation de ton navigateur, ou *Add to Home Screen* sur un téléphone, pour une application plein écran qui se met à jour toute seule quand tu es de nouveau en ligne.
 - **Storage** montre ce que Lolly conserve sur cet appareil. [If you clear your browser data](/info/find-your-work.html#if-you-clear-your-browser-data) explique ce que l'effacement supprime, et la [Privacy Policy](/info/privacy.html) liste tout ce que l'application récupère ou envoie.
@@ -283,10 +296,10 @@ Un panneau vide ou un message « failed to fetch » juste après une mise à jou
 
 ## Où aller ensuite
 
-- **[Design: the free canvas](/info/design.html)** : le canevas, les formes, la timeline et la présentation d'un deck.
-- **[Batch and Multi-edit](/info/batch.html)** : plusieurs versions d'un même design, ou plusieurs designs enregistrés modifiés ensemble.
+- **[Lolly Design: the free canvas](/info/design.html)** : le canevas, les formes, la timeline et la présentation d'un deck.
+- **[Batch and Lolly Multi-edit](/info/batch.html)** : plusieurs versions d'un même design, ou plusieurs designs enregistrés modifiés ensemble.
 - **[Export a file](/info/exporting.html)** : choisir un format, une taille, des unités d'impression, la transparence et la vidéo.
-- **[Import a design](/info/design-import.html)** : apporter un fichier Figma, Penpot, Illustrator ou InDesign dans Design et continuer à le modifier.
+- **[Import a design](/info/design-import.html)** : apporter un fichier Figma, Penpot, Illustrator ou InDesign dans Lolly Design et continuer à le modifier.
 - **[Templates](/info/templates.html)** : des points de départ enregistrés pour un outil.
-- **[Wide Colour and HDR](/info/hdr-editing.html)** : conserver la précision d'origine des images dans Design et Darkroom.
+- **[Wide Colour and HDR](/info/hdr-editing.html)** : conserver la précision d'origine des images dans Lolly Design et Lolly Darkroom.
 - **[Find and recover your work](/info/find-your-work.html)** : où se trouve chaque chose, et comment la déplacer vers un autre appareil.

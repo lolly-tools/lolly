@@ -2,9 +2,13 @@
 
 Lolly là hai phần của một dự án mã nguồn mở. **Lolly** là engine, ứng dụng và công cụ để tạo, chỉnh sửa, chuyển đổi và xuất ngay trên thiết bị của bạn, không cần tài khoản. **Lolly Work** là máy chủ tổ chức, chạy trên hạ tầng của chính bạn, cho đăng nhập, dự án chung, phê duyệt và kết xuất trên máy chủ. Cả hai đều theo MPL-2.0. Trang này so sánh cặp đôi đó với những cách khác mà mọi người thiết kế, quản trị và sản xuất tệp.
 
+Ý tưởng tổ chức là [chủ quyền nội dung](/info/content-sovereignty.html): kiểm soát cách nội dung được tạo, quản trị, lưu trữ và chuyển giữa các hệ thống được chọn. Các ứng dụng sáng tạo có thể cung cấp thiết kế, một DAM có thể vẫn là nguồn ghi chép, và Lolly có thể biến các đầu vào được phép và tài nguyên đã duyệt thành tệp mới. [Use Lolly with your existing DAM](/info/use-with-dam.html) mô tả sự kết hợp đó.
+
 ## Các công cụ hiện nay
 
 Mỗi vòng cho điểm mức độ đầy đủ mà một loại sản phẩm đáp ứng một khả năng, với mỗi loại được chấm theo đại diện tốt nhất của nó. Cột Lolly bao gồm Lolly và Lolly Work cùng nhau, và mỗi hàng nói phần nào cung cấp gì. Mở tên một hàng để xem lý lẽ đằng sau điểm của nó. Các cột được sắp theo hàng Overall completeness ở trên cùng: trung bình của các hàng được chấm, trừ hàng chi tiêu.
+
+Các điểm số dùng ưu tiên của Lolly về kiểm soát mà không cần tài khoản hay đám mây. Đó là một phép so sánh theo các tiêu chí này, không phải bảng xếp hạng trung lập về mức hoàn thiện của sản phẩm hay điểm mua sắm doanh nghiệp. Hãy đọc riêng các giới hạn về năng lực, triển khai và bằng chứng khi đánh giá một quy trình cụ thể.
 
 ::: figure positioning-comparison
 So sánh khả năng: nghiên cứu đối thủ và điểm số từ tháng 8 năm 2026; phạm vi Lolly + Lolly Work được xem xét ngày 28 tháng 9 năm 2026. Chấm điểm: 0 không có, 25 mức tạm bợ, 50 có thật nhưng bị giới hạn hoặc chưa đầy đủ, 75 mạnh nhưng có lưu ý, 100 là năng lực cốt lõi.
@@ -43,9 +47,11 @@ Cộng tác trực tiếp của Lolly gồm collab riêng tư giữa hai thiết
 
 Thiết kế đã nhập và design token dùng chung cho phép một đội kết hợp Lolly với các ứng dụng chuyên dụng, trong khi Lolly Work quản trị tài nguyên chung, xem xét và bàn giao.
 
-Cả một bộ trình chiếu cho thấy giới hạn trên: trong **Markdown Slides** một bộ trang được khai báo dưới dạng dữ liệu, dàn trang trực tiếp và xuất thành tệp PowerPoint gốc, chỉnh sửa được.
+Với các nhóm có một DAM được tuyển chọn, hãy bắt đầu bằng việc giữ nguyên thư viện đó và những người quản trị nó. [SUSE's Brandfolder experience](/info/suse-brandfolder.html) ghi lại việc tích hợp đã hỗ trợ thế nào cho việc áp dụng và quản lý thay đổi phê duyệt. Các nhà cung cấp DAM và đối tác triển khai có thể đánh giá cùng cách sắp xếp này qua [quy trình dành cho đối tác](/info/dam-partners.html).
 
-![Markdown Slides ở chế độ chia đôi: các trang chiếu của bộ trang được liệt kê thành khối bên trái, bộ trang đã dàn đang kết xuất bên phải](/t/url-shot?url=%2F%23%2Ftool%2Fdeck-studio&width=1440&height=900&dpi=192&waitMs=2600&walker=1&format=svg&dark=1&filename=ov2-deck-studio-output)
+Cả một bộ trình chiếu cho thấy giới hạn trên: trong **Lolly Markdown Slides** một bộ trang được khai báo dưới dạng dữ liệu, dàn trang trực tiếp và xuất thành tệp PowerPoint gốc, chỉnh sửa được.
+
+![Lolly Markdown Slides ở chế độ chia đôi: các trang chiếu của bộ trang được liệt kê thành khối bên trái, bộ trang đã dàn đang kết xuất bên phải](/t/url-shot?url=%2F%23%2Ftool%2Fdeck-studio&width=1440&height=900&dpi=192&waitMs=2600&walker=1&format=svg&dark=1&filename=ov2-deck-studio-output)
 
 ## Quy tắc nằm trong công cụ
 

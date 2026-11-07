@@ -12,7 +12,7 @@ _최종 확인일: 2026년 9월 28일._
 
 브라우저 기반 변환기는 처리를 위해 파일을 업로드할 수도, 로컬에서 변환할 수도 있어요. Lolly의 변환 유틸리티는 계정, 광고, 트래커 없이 파일을 로컬에서 처리하며 Lolly 워터마크나 Content Credentials를 추가하지 않아요. 변환에 필요한 에셋이 저장되면 오프라인에서도 작동해요. 파일 크기는 기기의 메모리와 해당 형식 리더로 제한돼요.
 
-![Utilities 보기: Strip Hidden Data, Compress PDF, Convert Image 등 기기에서 하는 작업이 한곳에 있어요](/t/url-shot?url=%2F%23%2Fu&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%2C.brand-tips%7Bdisplay%3Anone!important%7D&tolerance=0.03&waitSelector=.utilities-view%5Bdata-shots-settled%5D&format=svg&walker=1&dark=1&filename=aud-utilities)
+![Utilities 보기: Lolly Strip Hidden Data, Compress PDF, Convert Image 등 기기에서 하는 작업이 한곳에 있어요](/t/url-shot?url=%2F%23%2Fu&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%2C.brand-tips%7Bdisplay%3Anone!important%7D&tolerance=0.03&waitSelector=.utilities-view%5Bdata-shots-settled%5D&format=svg&walker=1&dark=1&filename=aud-utilities)
 
 [Lolly가 열고 만들 수 있는 모든 형식](/info/formats.html)이 HEIC to JPG, PNG to SVG, PDF to images를 포함한 지원 변환과 그 한계를 나열해요.
 

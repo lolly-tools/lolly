@@ -39,7 +39,7 @@ lolly.toolsは、Lolly自身のサンプルのデザインシステムである[
 
 ## 自分のブランドを使えますか?
 
-はい。**Design System Setup**(`#/start`)は、1色、デザイントークンファイル、完成したデザインのいずれかからデザインシステムを作り、その後はすべてのツールがそのデザインシステムで描画します。3つのルートは[はじめに](/info/quickstart.html#put-your-brand-in)で順に説明しています。
+はい。**Lolly Design System Setup**(`#/start`)は、1色、デザイントークンファイル、完成したデザインのいずれかからデザインシステムを作り、その後はすべてのツールがそのデザインシステムで描画します。3つのルートは[はじめに](/info/quickstart.html#put-your-brand-in)で順に説明しています。
 
 組織やビルドが提供するデザインシステムは管理対象で、ロックが表示されて読み取り専用のままです。変更するには、編集可能なコピーを作成できます。
 
@@ -80,9 +80,9 @@ Webアプリは、現在のブラウザが備えるグラフィックス機能�
 
 ## Lolly は Figma、Penpot、Illustrator、InDesign のファイルを編集してレンダリングできますか？
 
-はい。**Design**を開いて**Import a design**をクリックしてください。ネイティブのFigma **.fig**(Save local copy)、Penpotの**.penpot**エクスポート、Illustratorの**.ai**または**.pdf**、InDesignの**.idml**(File → Export → InDesign Markup)、**任意のSVG**を受け付けます。アカウントもプラグインもデザインアプリのライセンスも不要です。
+はい。**Design**ツールを開いて**Import a design**をクリックしてください。ネイティブのFigma **.fig**(Save local copy)、Penpotの**.penpot**エクスポート、Illustratorの**.ai**または**.pdf**、InDesignの**.idml**(File → Export → InDesign Markup)、**任意のSVG**を受け付けます。アカウントもプラグインもデザインアプリのライセンスも不要です。
 
-![Design's open canvas - Import a design sits in the toolbar's Lolly menu](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D17ZTfS8MwEMf_mryO5NZ288GHrdqJv1CUvWdtOgppMtJMNv96yaV1iRNEQRBZoblwab53l0-uq915bXgrCOSDpf3LzgANnQ4eI0rrPJn7Gh9cd0sE8lIryxtFIFfatFx6L4F0Mi-11GbUiZYr25QjK3bW-S8I5MnUbRXKCkMgb5uqki6JFFU7rjoXYsSgT8GaLebKZSeGAPkUYypMHp80DeugYYR4J_U7X4XRkY8dFHuTYEJ-jDWM3qoqsEHo4Y20-xJi-SPVaOfRUuAL1hiZXNrG4gH6M85Z5lTAk8x8DdlnPL8gecVfBIEU6F5v0bbCor3VUu4JpOPCKTCWsPI9rBS107d6QyCfRET_Ac6wX36X6UpX-49Ip1mAlMEPkM6QX20aoSpECLTmpadcazPQ9hPlWxboRndWmFEIG1s4Yp3E3Ts-0f4GbcruWHLzlC0frmfpfbGk82LxmD0vUndSTcvXAoknWBKCz5LDSIdiRHV0D2Tfq1BIvdY42Zim5WZ_-n3_mRvwBg&width=1360&height=850&dpi=192&waitMs=3000&format=svg&walker=1&chrome=1&localize=1&dark=1&filename=design)
+![Lolly Designのオープンキャンバス: Import a designはツールバーのLollyメニューにあります](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D17ZTfS8MwEMf_mryO5NZ288GHrdqJv1CUvWdtOgppMtJMNv96yaV1iRNEQRBZoblwab53l0-uq915bXgrCOSDpf3LzgANnQ4eI0rrPJn7Gh9cd0sE8lIryxtFIFfatFx6L4F0Mi-11GbUiZYr25QjK3bW-S8I5MnUbRXKCkMgb5uqki6JFFU7rjoXYsSgT8GaLebKZSeGAPkUYypMHp80DeugYYR4J_U7X4XRkY8dFHuTYEJ-jDWM3qoqsEHo4Y20-xJi-SPVaOfRUuAL1hiZXNrG4gH6M85Z5lTAk8x8DdlnPL8gecVfBIEU6F5v0bbCor3VUu4JpOPCKTCWsPI9rBS107d6QyCfRET_Ac6wX36X6UpX-49Ip1mAlMEPkM6QX20aoSpECLTmpadcazPQ9hPlWxboRndWmFEIG1s4Yp3E3Ts-0f4GbcruWHLzlC0frmfpfbGk82LxmD0vUndSTcvXAoknWBKCz5LDSIdiRHV0D2Tfq1BIvdY42Zim5WZ_-n3_mRvwBg&width=1360&height=850&dpi=192&waitMs=3000&format=svg&walker=1&chrome=1&localize=1&dark=1&filename=design)
 
 レイヤーは編集可能なボックスとして届きます。テキストは再入力でき、図形は図形のまま、画像はご自身のライブラリに入ります。保存してから**Share with rules**を使うと、そのレイアウトを、Lollyを持つ誰でも入力し直せるツールに変えられます。[デザインを取り込む](/info/design-import.html)をご覧ください。
 
@@ -98,19 +98,19 @@ Webアプリは、現在のブラウザが備えるグラフィックス機能�
 
 ## ユーティリティはツールとどう違うのですか？
 
-ユーティリティは、すでにお持ちのファイルに対して、PDFの圧縮、写真の変換、非表示データの削除といった手早い作業を1つ行います。その多くは何もアップロードせずにお使いのデバイス上で動作します。人が普通は無作為なウェブサイトに任せる作業が、Lollyの中にとどまるように存在しています。契約書の圧縮、位置情報が残ったままの旅行写真の変換、オンラインの整形ツールへのトークンの貼り付けのために、保持、管轄、事業モデルが不明なサイトにファイルを渡すべきではありません。ユーティリティは[ユーティリティ](/info/utilities.html)に一覧があり、その背景にある話は[私たちが同意した覚えのない取引](/info/status-quo.html)に書かれています。
+ユーティリティは、すでにお持ちのファイルに対して、PDFの圧縮、写真の変換、非表示データの削除といった手早い作業を1つ行います。その多くは何もアップロードせずにお使いのデバイス上で動作します。人が普通は無作為なウェブサイトに任せる作業が、Lollyの中にとどまるように存在しています。契約書の圧縮、位置情報が残ったままの旅行写真の変換、オンラインの整形ツールへのトークンの貼り付けのために、保持、管轄、事業モデルが不明なサイトにファイルを渡すべきではありません。ユーティリティは[Lolly Utilities](/info/utilities.html)に一覧があり、その背景にある話は[私たちが同意した覚えのない取引](/info/status-quo.html)に書かれています。
 
-![Utilitiesビュー: Strip Hidden Data、Compress PDF、Convert Image、その他のデバイス上の作業が1か所に並ぶ](/t/url-shot?url=%2F%23%2Fu&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone!important%7D&tolerance=0.03&format=svg&walker=1&dark=1&filename=use-utilities&try=1)
+![Utilitiesビュー: Lolly Strip Hidden Data、Compress PDF、Convert Image、その他のデバイス上の作業が1か所に並ぶ](/t/url-shot?url=%2F%23%2Fu&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone!important%7D&tolerance=0.03&format=svg&walker=1&dark=1&filename=use-utilities&try=1)
 
 ## 組織でSSO、共有プロジェクト、承認を使えますか?
 
-はい、同じオープンソースプロジェクトの組織向けサーバーである**Lolly Lolly Work**を使います。これは別に動作し、IDプロバイダーによるシングルサインオン、SCIMによるプロビジョニング、グループ権限、共有プロジェクトとアセット、ライブのワークコラボ、承認、監査記録を加えます。日常的に使うアプリは、単独でも引き続き動作します。
+はい、同じオープンソースプロジェクトの組織向けサーバーである**Lolly Work**を使います。これは別に動作し、IDプロバイダーによるシングルサインオン、SCIMによるプロビジョニング、グループ権限、共有プロジェクトとアセット、ライブのワークコラボ、承認、監査記録を加えます。日常的に使うアプリは、単独でも引き続き動作します。
 
 サインインと共有作業の見つけ方は[組織でLollyを使う](/info/organisation.html)で、設定方法は[デプロイ](/info/deployment.html#organisation-services-with-lolly-work)で扱っています。共有コンテンツと組織の記録は、そのインスタンスのプライバシーポリシーと保持ポリシーに従います。
 
 ## Lolly を導入する際に、どのようなハードルが想定されますか？
 
-変わるのは、多くの場合、技術ではなく制作する側のあり方です。管理されたツール群を求めるチームには、デザインシステムと最初のテンプレートを作成する担当者が必要ですが、誰でも初日から、gitなしでDesignで自分のツールを作り始められます。そして既存のプロセスは、その出力がブランドから外れていても動き続けるため、目に見える成果物を1つ、前後を並べてうまく変換するほうが、計画書よりも早く説得できます。
+変わるのは、多くの場合、技術ではなく制作する側のあり方です。管理されたツール群を求めるチームには、デザインシステムと最初のテンプレートを作成する担当者が必要ですが、誰でも初日から、gitなしでLolly Designで自分のツールを作り始められます。そして既存のプロセスは、その出力がブランドから外れていても動き続けるため、目に見える成果物を1つ、前後を並べてうまく変換するほうが、計画書よりも早く説得できます。
 
 役割別のオンボーディング、パイロットの測り方、ガバナンスのプロセスの例は[導入とガバナンス](/info/adoption-governance.html)で扱っています。
 
@@ -144,3 +144,11 @@ Lollyの依存関係に高または重大のアドバイザリがあると、CI�
 ## あの Lolly のロゴは何味ですか？
 
 ライムだという人もいれば、ミントだという人も、ときにはアップルだという人もいます。Lolly は甘さを届けます。味を決めるのはあなたです！
+
+## Lollyにおけるコンテンツ主権とは何ですか?
+
+コンテンツの作成、管理、保管、移動を、ご自身が選んだシステムの間で自分たちで制御できることです。Lollyはローカルでの制作、編集可能な作業、持ち運べるツールを支え、Lolly Workは組織が管理する共有サービスを加えます。ソースのライセンス、利用可能な依存関係、ワークフローのデータの流れも引き続き重要です。[コンテンツ主権とは?](/info/content-sovereignty.html)で、各コントロールとその限界を説明しています。
+
+## 既存のDAMを使い続けられますか?
+
+はい。対応するDAMを記録の原本としたまま、Lolly Workが選択したアセットをLollyのツールに接続できます。ソースへのアクセス、許可される編集、使用権、完成した出力の承認は、それぞれ別の判断です。[既存のDAMでLollyを使う](/info/use-with-dam.html)でこの構成を説明し、[SUSEのBrandfolder体験](/info/suse-brandfolder.html)に、導入時にうまく使えた記録があります。

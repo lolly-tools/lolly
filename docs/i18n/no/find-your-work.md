@@ -26,7 +26,7 @@ I en [work collab](/info/collaborate.html#work-collabs-with-lolly-work-optional)
 
 1. Trykk på **Hjem** øverst til venstre i verktøyet.
 2. Åpne fanen **Prosjekter** øverst på hjemskjermen (mappeikonet på en telefon).
-3. Se på den første skjermen. Arbeid lagret i **Biblioteket mitt** ligger der, og hvert prosjekt er en mappe. For å søke i alle mapper samtidig, skriv i **Søk i alle prosjekter…** nederst på skjermen.
+3. Se på den første skjermen. Arbeid du lagret i **Biblioteket mitt** ligger der, og hvert prosjekt er en mappe. For å søke i alle mapper samtidig, skriv i **Søk i alle prosjekter…** nederst på skjermen.
 
 Et element får navn etter filnavnet du skrev i eksportpanelet, eller etter verktøyet, som **QR Code**, hvis du ikke skrev noe. Åpne elementet, så er hver innstilling tilbake, klar til å endres og eksporteres på nytt. For å beholde nytt arbeid på denne måten, se [Saving & continuing](/info/using.html#saving-continuing).
 
@@ -37,7 +37,7 @@ Et element får navn etter filnavnet du skrev i eksportpanelet, eller etter verk
 :::
 
 ::: details Jobbe med Prosjekter
-Du kan også åpne **Prosjekter** fra **Innstillinger → Lagring → Lagrede økter → Organiser i prosjekter**. Det fungerer som en filbehandler:
+Du kan også åpne **Prosjekter**-visningen fra **Innstillinger → Lagring → Lagrede økter → Organiser i prosjekter**. Det fungerer som en filbehandler:
 
 ![Prosjekter før noe er lagret: flisene Ny mappe, Ny ressurs og Maler, History-klokken øverst til høyre og feltet Søk i alle prosjekter nederst](/t/url-shot?url=%2F%23%2Fp&width=1440&height=900&dpi=192&waitMs=1200&walker=1&format=svg&localize=1&dark=1&filename=projects)
 <!--
@@ -101,17 +101,17 @@ I verktøy som lagrer mens du jobber, holder Historikk på en kopi av de forkast
 :::
 
 ::: details Hvilke verktøy som lagrer mens du jobber
-I nettappen lagrer hvert verktøy som lager et dokument, mens du jobber: Design, Chart, QR Code, Text, Sandbox og resten. Disse verktøyene gjør det ikke:
+I nettappen lagrer hvert verktøy som lager et dokument, mens du jobber: Lolly Design, Lolly Chart, QR Code, Text, Lolly Sandbox og resten. Disse verktøyene gjør det ikke:
 
 - verktøy som arbeider på en fil du tar med, som Redact, Sign eller Convert Image, fordi Lolly aldri beholder en kopi av den filen;
-- verktøy som tar opp fra kameraet, mikrofonen eller skjermen din, som Record, Screen Capture og Voice Recorder;
+- verktøy som tar opp fra kameraet, mikrofonen eller skjermen din, som Record, Lolly Screen Capture og Lolly Voice Recorder;
 - et verktøy uten noe å endre, som Countdown.
 
 I de andre verktøyene arkiverer den første endringen din arbeidet i **Projects** som om du hadde lagret, og senere endringer beholdes mens du arbeider når verktøyet er ferdig med å tegne. En ulagret skapelse ligger fortsatt i Projects etter at du lukker fanen, og åpnes igjen med endringene markert som ulagret.
 
 **Leave anyway** forkaster likevel disse endringene, og History beholder en kopi av de forkastede redigeringene i 30 dager. Å åpne verktøyet igjen fra startskjermen starter en ny skapelse; åpne den tidligere fra Projects.
 
-3D og Darkroom lagrer mens du arbeider, men de beholder ikke en fil du laster inn i dem, som en 3D-modell eller en LUT. History og **Save** beholder filens navn, type og størrelse, ikke filen. Når du åpner arbeidet igjen, sier en merknad hvilken fil det var, og verktøyet fungerer uten den til du laster den inn igjen. Behold originalfilene dine.
+3D og Lolly Darkroom lagrer mens du arbeider, men de beholder ikke en fil du laster inn i dem, som en 3D-modell eller en LUT. History og **Save** beholder filens navn, type og størrelse, ikke filen. Når du åpner arbeidet igjen, sier en merknad hvilken fil det var, og verktøyet fungerer uten den til du laster den inn igjen. Behold originalfilene dine.
 
 Med [Synk](/info/sync.html) på går en kreasjon som er arkivert på denne måten, til dine andre enheter som alt annet i Prosjekter. Versjonene dens blir på enheten der de ble laget.
 
@@ -147,14 +147,14 @@ På iPhone, iPad og Android erstatter en ny fil en tidligere med samme navn.
 
 For å åpne en tidligere versjon:
 
-1. Trykk **Historikk**, klokkeknappen ved siden av **Angre** og **Gjør om**. I Design ligger **Historikk** i den øverste linjen; på en telefon, trykk **•••** og deretter **Historikk**. I verktøy uten **Angre**, som Text og Sandbox, ligger **Historikk** ved siden av **Hjem** øverst til venstre.
+1. Trykk **Historikk**, klokkeknappen ved siden av **Angre** og **Gjør om**. I Lolly Design ligger **Historikk** i den øverste linjen; på en telefon, trykk **•••** og deretter **Historikk**. I verktøy uten **Angre**, som Text og Lolly Sandbox, ligger **Historikk** ved siden av **Hjem** øverst til venstre.
 2. Finn versjonen etter dato og klokkeslett. **Automatisk kontrollpunkt**-rader tas mens du jobber; **Lagret versjon**-rader er tidspunktene du lagret.
 3. Trykk **Åpne som en kopi**. Versjonen åpnes som en ny kreasjon, og den du hadde åpen, blir værende som den var. Kopien ligger i **Prosjekter**, med "(copy)" etter navnet sitt.
 
 For å beholde en versjon med navn, trykk **Name version**, skriv et navn og trykk **Keep milestone**. Navngitte versjoner listes på siden **History**, under **Milestones**.
 
 ::: details History-panelet og History-siden
-Panelet **History** lister også opp rader med **Recovered work**, og **Protected drafts** holder de siste endringene dine mellom sjekkpunkter, med **Open draft as a copy**. **Compare** og **Check assets** hjelper deg å velge før du åpner en kopi. Bytt **This creation** til **All history on this device** for å se hver kreasjon.
+Panelet **History** lister også opp rader med **Recovered work**, og **Protected drafts** holder de siste endringene dine mellom sjekkpunkter, med **Open draft as a copy**. **Lolly Compare** og **Check assets** hjelper deg å velge før du åpner en kopi. Bytt **This creation** til **All history on this device** for å se hver kreasjon.
 
 Automatiske kontrollpunkter tynnes ut med alderen: ett i minuttet den siste timen, ett i timen det siste døgnet, ett om dagen i 30 dager, deretter ett i uken. Lagrede versjoner og navngitte versjoner beholdes alle. Å slette en kreasjon flytter også versjonene dens til **Papirkurv**, og **Slett for godt** fjerner dem.
 

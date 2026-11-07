@@ -1,5 +1,7 @@
 # Design: het vrije canvas
 
+<a id="design-the-free-canvas"></a>
+
 Design is de tool voor lay-outs die geen sjabloon dekt: een poster vanaf nul, een deck met dia's, een bewegend stuk met soundtrack. In plaats van een formulier met bediening krijg je een canvas met vakken die je sleept, vergroot of verkleint, draait en waarin je typt. Het exporteert via hetzelfde renderpad als elke andere tool, dus wat je op het canvas ziet is het bestand dat je krijgt.
 
 Deze pagina loopt het canvas door van het eerste vak tot een afgerond deck: het venster, vakken vormgeven, eigen vormen tekenen, 3D-scènes en andere tools plaatsen, tijd toevoegen, het resultaat controleren en het afgeronde deck presenteren. [Lolly gebruiken](/info/using.html) behandelt wat Design met elke tool deelt, zoals opslaan en delen.
@@ -27,7 +29,7 @@ Het canvas werkt als de werktafel van een ontwerper rond het tekenbord:
 
 De **Navigator** somt elk tekenbord op (met kop **Artboards**, of **Slides** in een deck) als een inklapbare groep van zijn **Layers**. Selecteer de naam van een tekenbord om erheen te springen, klap het uit om lagen te selecteren of te herordenen en gebruik de pijltjestoetsen om door de lijst te gaan; Left brengt je terug naar de kop van het tekenbord. **Pages** groepeert tekenborden in benoemde pagina's, en een pagina kiezen verandert alleen welke tekenborden de editor toont.
 
-De **Inspector** zet de tekst- of afbeeldingsbediening van het geselecteerde object eerst. Optiechips dekken de snelle keuzes, en **Advanced** bevat de opmaakdetails. Op een telefoon opent de Inspector als paneel vanuit **More actions**; Escape of Back sluit het paneel en behoudt je selectie.
+De **Inspector** zet de tekst- of afbeeldingsbediening van het geselecteerde object eerst. Optiechips dekken de snelle keuzes, en **Advanced** bevat de opmaakdetails. Op een telefoon delen de Inspector en de lijst met lagen één paneel dat omlaag schuift vanonder de bovenbalk, hetzelfde paneel waarin elke andere tool zijn bediening houdt. **Inspect** en **Layer/Page** in de balk onderaan openen het paneel op hun tabblad. Sleep de handgreep aan de onderrand, of tik erop, om het paneel te wisselen tussen een strook met de twee tabbladen, het halve scherm en bijna het hele scherm. Op de helft toont het canvas onder het paneel je selectie. Escape klapt het paneel terug naar de strook en behoudt je selectie.
 
 ![Het gedeelte Document van de Inspector: de tabbladen Selection en Canvas, dan Dimensions en Style & look](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3Dfeature-tour&width=1440&height=900&dpi=192&waitMs=3500&cropSelector=.fc-insp&walker=1&format=svg&dark=1&filename=design-narration)
 
@@ -241,6 +243,8 @@ De pijl naast **Present** opent **Present from this slide**, **Speaker view**, *
 | **Escape** | Eén laag eraf: overzicht naar deck, deck naar editor |
 
 Een kleine bedieningsbalk verschijnt wanneer je de aanwijzer beweegt en verdwijnt weer wanneer je stopt. Als de browser de pop-up van de spreker blokkeert, opent de sprekersweergave als paneel over het deck. Notities horen bij elk tekenbord en verschijnen nooit op de dia.
+
+Op een touchscreen veeg je naar links voor de volgende stap of dia en naar rechts om terug te gaan. Een overgang **Slide** of **Fade** volgt je vinger en wordt afgerond zodra je loslaat; een overgang **Cut**, **Morph** of **Fly between artboards** wordt in zijn geheel afgespeeld zodra je loslaat, en een korte, trage veeg verandert niets. Webpaginavakken, videobediening, vakken die scrollen en geselecteerde tekst houden hun eigen gebaren, dus een veeg begint nooit op een ervan, en verticaal scrollen en knijpzoomen werken zoals gewoonlijk. Bij verminderde beweging wisselt de dia nog steeds, zonder je vinger te volgen.
 
 - **Onthulstappen.** Klik met rechts op een vak en kies **Reveal at step 1**, **2** of **3** in plaats van **Always visible**, en het vak wacht totdat je naar zijn stap doorgaat. Vakken met hetzelfde nummer verschijnen samen.
 - **Kiosk.** Geef een tekenbord een **Length** en het deck blijft daar zo lang staan en gaat dan door achter een dunne voortgangsbalk. Voeg `kiosk` toe aan de link en het deck begint aan het eind opnieuw, voor signage.

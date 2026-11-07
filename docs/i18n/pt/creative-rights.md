@@ -22,7 +22,7 @@ Escolher um conjunto nunca é bloqueado, e o controle do conjunto mostra a licen
 
 ## O que você vê e o que fazer
 
-As mesmas palavras aparecem no painel de exportação, no Verify, na linha de comando e no resultado de máquina, aproximadamente na ordem de frequência com que você as encontrará.
+As mesmas palavras aparecem no painel de exportação, no Lolly Verify, na linha de comando e no resultado de máquina, aproximadamente na ordem de frequência com que você as encontrará.
 
 | O que você vê | O que significa |
 |---|---|
@@ -51,12 +51,14 @@ O Lolly nunca diz "copyright verified", "legally safe", "fully cleared" nem "rig
 
 - **No catálogo.** A ficha de uma obra mostra a origem e o criador, o nome canônico da licença com o rótulo original mantido embaixo, um crédito copiável onde houver um registrado e uma linha dizendo o que usá-la pede. Um bloco declara a exigência; nunca afirma que uma exportação foi concluída.
 - **No painel de exportação.** Um cartão Source credits aparece dentro de Content protection quando uma renderização usa uma obra registrada, ao lado da Licence que você escolhe para a sua própria exportação. Ele mostra o estado, o texto do crédito atrás de Details, um botão Copy credit e um cartão embutido quando uma decisão é devida. Uma decisão nunca é uma caixa de diálogo bloqueante: um download com uma ação pendente segue em frente.
-- **No arquivo.** Uma exportação que incluiu uma obra registrada grava um ingrediente de origem das Content Credentials por obra distinta, vinculado aos bytes originais no endereço público deles, e que carrega o criador, a licença e seu link, a origem, a revisão e as alterações. O Lolly assina o que observou. Nunca assina uma declaração em nome do artista original, e o Verify diz qual das duas coisas aconteceu.
+- **No arquivo.** Uma exportação que incluiu uma obra registrada grava um ingrediente de origem das Content Credentials por obra distinta, vinculado aos bytes originais no endereço público deles, e que carrega o criador, a licença e seu link, a origem, a revisão e as alterações. O Lolly assina o que observou. Nunca assina uma declaração em nome do artista original, e o Lolly Verify diz qual das duas coisas aconteceu.
 - **Em um pacote.** Um download que não pode conter uma credencial, como uma animação `.lottie`, leva os créditos como `CREDITS.txt` e `credits.json` dentro do pacote. Eles são lidos de volta depois de gravados, e nenhuma credencial assinada é afirmada para eles.
 - **Depois de gravar.** Os bytes entregues são lidos de volta antes que qualquer coisa diga que os créditos estão incluídos. Uma credencial que não foi verificada não conta como crédito entregue.
-- **Em um arquivo `.lolly` editável.** Os bytes só viajam quando uma licença revisada registra permissão para repassar a origem. O `CREDITS.txt` do pacote lista o que viajou, sob qual licença e o que foi retido, com o motivo. Uma licença não registrada é retida. Você ainda pode incluir deliberadamente o conteúdo retido, e o arquivo de créditos registra que foi uma escolha sua.
-- **No Verify.** Um painel Sources lista todas as origens que um arquivo registra, com um resumo calculado, o crédito, um botão Copy credit, um link Open source que só abre quando você pede e os limites declarados do que foi inspecionado. Uma pergunta Check for this use só aparece quando você escolhe um uso, e nada é buscado para respondê-la.
+- **Em um arquivo `.lolly` editável.** Os bytes só viajam quando uma licença revisada registra permissão para repassar a origem, ou quando a linha traz os termos do próprio dono. O `CREDITS.txt` do pacote lista o que viajou, sob qual licença e o que foi retido, com o motivo. Uma licença não registrada é retida. Você ainda pode incluir deliberadamente o conteúdo retido, e o arquivo de créditos registra que foi uma escolha sua.
+- **No Lolly Verify.** Um painel Sources lista todas as origens que um arquivo registra, com um resumo calculado, o crédito, um botão Copy credit, um link Open source que só abre quando você pede e os limites declarados do que foi inspecionado. Uma pergunta Check for this use só aparece quando você escolhe um uso, e nada é buscado para respondê-la.
 - **Quando você remove metadados.** A remoção informa quantos créditos de origem o arquivo deixou de carregar, oferece o texto do crédito e oferece um arquivo limpo com os créditos em um arquivo separado. Os bytes removidos nunca são recarimbados.
+
+**As marcas do próprio dono.** Um dono raramente coloca um logotipo sob uma licença aberta. Uma linha cujo registro de direitos diz `own-work`, com o dono e os termos, pode viajar em um arquivo `.lolly` e em uma [brand page](/info/brand-page.html#publish-your-own-marks). Ela viaja como "Owner-published, not an open licence", com os termos ao lado do arquivo. Isso lê o que um catálogo declara. O Lolly não verifica quem é dono de uma marca. Um registro sem dono, com termos em branco ou sem declaração continua retido, e o mesmo vale para a marca de outra pessoa sem esse registro.
 
 ::: details As licenças que o Lolly revisou
 Versão das regras `rights-rules-2026-11-05.1`. Cada regra foi lida do próprio texto legal da licença, e a seção de onde veio é citada aqui e ao lado da regra em `engine/src/rights-profiles.ts`. Uma versão e uma jurisdição são mantidas como registradas: uma declaração CC BY 3.0 mantém a própria versão em vez de ser informada como 4.0 porque o seletor do app prefere a 4.0.
@@ -69,6 +71,7 @@ Versão das regras `rights-rules-2026-11-05.1`. Cada regra foi lida do próprio 
 | CC-PDDC | Nada. O que fica registrado é a própria asserção e quem a fez, porque uma certificação é a declaração de uma parte e não uma prova. | Os parágrafos da [dedicação e certificação](https://creativecommons.org/licenses/publicdomain/) |
 | Apache License 2.0 | Os avisos da origem e o texto de atribuição do arquivo NOTICE viajam com uma obra distribuída. Um uso em tempo de execução não pede nada. Uma licença que pede um texto de aviso e uma obra que não carrega nenhum é informada como lacuna. | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0), seção 4, condições 1 a 4 |
 | MIT | A linha de direitos autorais e o aviso de permissão viajam com cópias e partes substanciais. Usos em tempo de execução e de referência não pedem nada. | [MIT](https://opensource.org/license/mit), a condição do aviso de permissão |
+| ISC | O mesmo que a MIT, em palavras mais curtas: a linha de direitos autorais e o aviso de permissão viajam com as cópias. Usos em tempo de execução e de referência não pedem nada. | [ISC](https://opensource.org/license/isc-license-txt), a condição do aviso de permissão |
 | SIL OFL 1.1 | Renderizar texto com a fonte não pede nada do texto. Repassar o arquivo da fonte leva a licença, o aviso de direitos autorais e a regra de nome reservado. | [OFL 1.1](https://openfontlicense.org/open-font-license-official-text/), condições 2, 3 e 5; o [OFL FAQ](https://openfontlicense.org/ofl-faq/) sobre documentos |
 
 **Registrado, não interpretado.** CC BY-NC, CC BY-ND e as combinações NC-SA e NC-ND são reconhecidas, suas condições são listadas e nenhuma regra aqui as lê. Elas informam `licence.unknown` com uma linha que nomeia as condições. Um contexto comercial não pode ser lido a partir de um preço ou de uma conta, e cada texto combinado precisa da própria revisão antes que uma regra leia esse texto.
@@ -119,7 +122,7 @@ Cinco módulos do motor, todos puros: sem rede, sem relógio, sem sistema de arq
 | `engine/src/rights-evaluate.ts` | Classificação, problemas, o plano de atribuição e a impressão digital. Determinístico: os mesmos fatos em outra ordem dão a mesma resposta. |
 | `engine/src/rights-attribution.ts` | Créditos legíveis, os arquivos complementares, os ingredientes de origem e o recibo medido depois da gravação. |
 | `engine/src/rights-companion.ts` | A leitura de volta dos créditos do pacote (`CREDITS.txt` e `credits.json` dentro de um download baseado em ZIP), que confirma os créditos sem afirmar uma credencial assinada. |
-| `engine/src/rights-report.ts` | Uma credencial verificada lida de volta como as três perguntas que o Verify faz. |
+| `engine/src/rights-report.ts` | Uma credencial verificada lida de volta como as três perguntas que o Lolly Verify faz. |
 
 Os arquivos de expectativas em `tests/fixtures/rights/` foram escritos a partir dos textos das licenças e não da saída do avaliador, e o README deles cita a seção por trás de cada expectativa.
 :::

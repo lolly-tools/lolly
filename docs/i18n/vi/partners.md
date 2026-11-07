@@ -8,6 +8,7 @@ Hai thuật ngữ có nghĩa như nhau ở mọi nơi trong trang này. **Thươ
 
 - **Một hệ thống thiết kế vẽ mỗi sản phẩm.** Màu sắc, kiểu chữ và quy tắc nội bộ của thương hiệu chủ đạo được áp dụng. Biểu trưng của đối tác được đưa vào như hình ảnh: một ảnh từ Assets, hoặc một biểu trưng tùy chỉnh được lưu trong hệ thống thiết kế.
 - **Một thương hiệu đi kèm dưới dạng tệp.** Tệp hệ thống thiết kế (`.lolly`) chứa token, phông chữ và logo. Một công cụ dùng lại được, tạo bằng **Share with rules**, chứa một bố cục hoàn chỉnh cùng các đầu vào bạn cho phép. Kỹ năng thương hiệu đi kèm dưới dạng các tệp riêng.
+- **Một thương hiệu cũng có thể có địa chỉ.** Một [trang thương hiệu](/info/brand-page.html) công bố logo, màu sắc, kiểu chữ và quy tắc cho đối tác đọc, kèm token và kỹ năng cho các công cụ của họ.
 - **Lolly chỉ kiểm tra quy tắc của thương hiệu chủ đạo.** Lolly không biết quy tắc của đối tác, chẳng hạn khoảng trống bao quanh hay kích thước tối thiểu, nên hãy tự đối chiếu với hướng dẫn riêng của đối tác.
 
 ## Chia sẻ thương hiệu của bạn với đối tác
@@ -17,8 +18,9 @@ Hai thuật ngữ có nghĩa như nhau ở mọi nơi trong trang này. **Thươ
 | Gửi | Cách làm | Đối tác nhận được | Phù hợp với |
 | --- | --- | --- | --- |
 | Tệp hệ thống thiết kế | **Export** trên thanh ở đầu [Lolly Design System Setup](/info/brand-studio.html#move-a-brand-between-devices) | Token, phông chữ, logo và tùy chọn giao diện của bạn, dưới dạng một hệ thống thiết kế họ có thể chuyển sang dùng | Đối tác làm nhiều sản phẩm trong thương hiệu của bạn |
-| Một công cụ dùng lại được | Trong Design, **Share with rules** ([Share a design with rules](/info/create-a-tool.html)) | Một bố cục hoàn chỉnh cùng các đầu vào bạn cho phép, chẳng hạn tên và logo của họ. Tệp mang theo màu, phông chữ và hình ảnh đã được chốt, nên hệ thống thiết kế riêng của họ không thể đổi kiểu cho phần hình cố định | Tờ rơi, huy hiệu hoặc banner đồng thương hiệu mà mỗi đối tác tự điền |
+| Một công cụ dùng lại được | Trong Lolly Design, **Share with rules** ([Share a design with rules](/info/create-a-tool.html)) | Một bố cục hoàn chỉnh cùng các đầu vào bạn cho phép, chẳng hạn tên và logo của họ. Tệp mang theo màu, phông chữ và hình ảnh đã được chốt, nên hệ thống thiết kế riêng của họ không thể đổi kiểu cho phần hình cố định | Tờ rơi, huy hiệu hoặc banner đồng thương hiệu mà mỗi đối tác tự điền |
 | Kỹ năng thương hiệu | Phòng **Skills**: **Download skill (.zip)** hoặc **Copy as one file** | Các tiêu chuẩn bằng văn bản của bạn, dành cho nhân sự và agent của họ | Một trong hai cách trên, khi agent làm một phần việc |
+| Một trang thương hiệu | **Publish a brand page** trong Lolly Design System Setup, hoặc `lolly system publish`, ghi ra một thư mục bạn lưu trữ ([Brand pages](/info/brand-page.html)) | Logo, màu sắc, kiểu chữ và quy tắc hiện hành của bạn tại một địa chỉ, kèm token và kỹ năng cho các công cụ của họ. Logo và tệp phông chữ xuất hiện khi quyền cho phép, và trang liệt kê những gì nó đã giữ lại | Chia sẻ với những người bạn không gửi tệp cho |
 | Token | **Tokens (.json)** trong menu **More** của studio | Tài liệu design token thuần túy, không có phông chữ hay logo | Công cụ thiết kế hoặc quy trình build riêng của đối tác |
 
 ![Design System Setup trên Lolly Demo, mở ở phòng Skills: Export trên thanh, menu More mở ra tại Tokens (.json), và Download skill (.zip) cùng Copy as one file nằm cạnh kỹ năng đã chọn](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dskills&width=1200&height=900&dpi=192&waitMs=1800&waitSelector=.skills-reader-actions&drive=click%3A%5Bdata-ds-more%5D%3Bwait%3A500&format=svg&walker=1&dark=1&filename=partners-send)
@@ -108,6 +110,8 @@ Xuất tường dưới dạng PNG, SVG, PDF hoặc PDF CMYK để in. Đặt k�
 
 Trong terminal, `lolly run logo-wall logos/*.png --output=wall.svg` dựng tường từ một thư mục ảnh, và một tệp CSV có các cột `logo` và `tier` dựng tường nhiều hạng. SVG và PNG không cần trình duyệt ([A sponsor wall with tiers](/info/cli-rendering.html#a-sponsor-wall-with-tiers)).
 
+Khi một nhà tài trợ công bố một [trang thương hiệu](/info/brand-page.html), `lolly run logo-wall --logos-from=<address or folder>` lấy logo hiện hành của họ cho bề mặt và in ra những gì trang của họ nói về cách dùng. Lặp lại cờ cho mỗi nhà tài trợ.
+
 Tường logo không biết quy tắc của bất kỳ nhà tài trợ nào. Tier và Presence đặt kích thước tương đối giữa các logo, không phải kích thước tối thiểu của nhà tài trợ, và không có gì kiểm tra khoảng trống giữa các logo kề nhau. Hãy đối chiếu bức tường hoàn chỉnh với hướng dẫn của từng nhà tài trợ ở kích thước nó sẽ được in hoặc trình chiếu.
 
 ## Những việc Lolly chưa làm được
@@ -115,15 +119,18 @@ Tường logo không biết quy tắc của bất kỳ nhà tài trợ nào. Tie
 - Một sản phẩm được vẽ trong một hệ thống thiết kế. Màu sắc, kiểu chữ và quy tắc của đối tác không phải là một hệ thống thiết kế bên trong sản phẩm, và biểu trưng của đối tác là một hình ảnh.
 - Quy tắc của đối tác không được lưu giữ hay kiểm tra: khoảng trống bao quanh, kích thước tối thiểu và các cách xử lý được phép như một màu hoặc đảo màu. Lolly chỉ kiểm tra quy tắc nội bộ của thương hiệu chủ đạo.
 - Chưa có bộ công cụ cho đối tác: một gói nhẹ chứa logo, màu sắc và quy tắc của đối tác để dùng trong tác phẩm của thương hiệu khác.
-- Lolly không tạo lockup từ hai biểu trưng cho kiểu sắp xếp “với”, “hợp tác cùng” hoặc “bởi”. Hãy thêm lockup hoàn chỉnh làm biểu trưng tùy chỉnh.
+- Lolly không tạo lockup từ hai biểu trưng cho kiểu sắp xếp "với", "hợp tác cùng" hoặc "bởi". Hãy thêm lockup hoàn chỉnh làm biểu trưng tùy chỉnh.
 - Chỉ một hệ thống thiết kế được dùng cho toàn thiết bị, nên không thể mở hai thương hiệu cạnh nhau.
 - Tệp hệ thống thiết kế là bản sao của thương hiệu như lúc xuất, và không có gì cập nhật bản sao đó. Tệp hệ thống thiết kế xuất từ ứng dụng không mang kỹ năng thương hiệu, nên hãy gửi chúng thành các tệp riêng.
 - Một bản xuất ghi lại hệ thống thiết kế và bảng phối màu của thương hiệu chủ đạo, không ghi thương hiệu của đối tác.
+- Một logo lấy từ trang thương hiệu là một hình ảnh trong hàng của nó, và hàng không nhớ trang. Không có gì cho thấy ai đã công bố một trang, nên hãy tự kiểm tra địa chỉ.
+- Ứng dụng web được lưu trữ không tải được trang của thương hiệu khác, vì Content Security Policy của nó chỉ cho phép các máy chủ có tên. Hãy lấy logo trong terminal, hoặc lưu tệp và thêm tệp trong **Assets**.
 
 ## Đi tiếp từ đâu
 
-- **[Kiến trúc thương hiệu](/info/brand-architectures.html)**: đồng thương hiệu, white label và các cách sắp xếp khác, kèm việc cần làm trong Lolly cho từng cách.
+- **[Brand architectures](/info/brand-architectures.html)**: đồng thương hiệu, white label và các cách sắp xếp khác, kèm việc cần làm trong Lolly cho từng cách.
 - **[Share a design with rules](/info/create-a-tool.html)**: công cụ dùng lại được với bố cục cố định và các đầu vào do bạn chọn.
-- **[Kỹ năng thương hiệu](/info/brand-skills.html)**: kỹ năng được viết, đọc và giao cho agent thế nào.
+- **[Brand skills](/info/brand-skills.html)**: kỹ năng được viết, đọc và giao cho agent thế nào.
 - **[Lolly Design System Setup](/info/brand-studio.html)**: logo, biểu trưng tùy chỉnh, và chuyển hệ thống thiết kế giữa các thiết bị.
+- **[Brand pages](/info/brand-page.html)**: công bố thương hiệu của bạn tại một địa chỉ, và lấy logo của đối tác từ địa chỉ của họ.
 - **[Creative rights and credits](/info/creative-rights.html)**: Lolly ghi lại điều gì về các tác phẩm mà nó vẽ.

@@ -14,9 +14,9 @@ Cả hai đều cho phép bắt đầu từ một mẫu và tạo ra hình ảnh
 
 ## Lolly làm phần việc chồng lấn thế nào
 
-Một công cụ Lolly mã hóa những thay đổi mà mọi người được phép thực hiện, và cùng công cụ đó chạy trong trình duyệt, ứng dụng máy tính hoặc CLI. Một bố cục làm trên canvas Design có thể trở thành [công cụ có quy tắc](/info/create-a-tool.html), và một công cụ có thể tạo nhiều tệp từ bảng giá trị.
+Một công cụ Lolly mã hóa những thay đổi mà mọi người được phép thực hiện, và cùng công cụ đó chạy trong trình duyệt, ứng dụng máy tính hoặc CLI. Một bố cục làm trên canvas Lolly Design có thể trở thành [công cụ có quy tắc](/info/create-a-tool.html), và một công cụ có thể tạo nhiều tệp từ bảng giá trị.
 
-![Canvas tự do của Design, nơi màu sắc, kiểu chữ và tài nguyên được đưa ra là của chính hệ thống thiết kế](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&dark=1&filename=aud-open-canvas)
+![Canvas tự do của Lolly Design, nơi màu sắc, kiểu chữ và tài nguyên được đưa ra là của chính hệ thống thiết kế](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&dark=1&filename=aud-open-canvas)
 
 Lolly độc lập giữ việc tạo và xuất trên thiết bị, không cần tài khoản, và hoạt động ngoại tuyến khi tài nguyên đã được lưu. Hai người có thể chỉnh sửa trực tiếp trong một [collab riêng tư](/info/collaborate.html), từ thiết bị này sang thiết bị kia. Content Credentials bật theo mặc định cho các bản xuất được hỗ trợ, và bạn có thể tắt.
 

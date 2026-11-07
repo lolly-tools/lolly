@@ -662,8 +662,8 @@ export {
   EPUB_READ_MAX_OUTPUT_CHARS,
 } from './epub-read.ts';
 export { writeOdt } from './odt.ts';
-export { writeDocx } from './docx.ts';
-export type { DocxDoc, DocxBlock, DocxMedia } from './docx.ts';
+export { writeDocx, snapDocxPage } from './docx.ts';
+export type { DocxDoc, DocxBlock, DocxMedia, DocxPage, DocxStyles } from './docx.ts';
 export {
   decomposeMatrix, boxGeomFromBBox, mapWeight, mapFontFamily, mapAlign,
   safeColor, nodeToBox, finalizeBoxes, parsePenpotContent, collectPenpotFontUsage, penpotShapeToNode, penpotGradientToSpec,

@@ -12,7 +12,7 @@ Některé převodní weby zvládají formáty, které Lolly ne, a nepotřebují 
 
 Převodník v prohlížeči může soubor ke zpracování nahrát, nebo převádět lokálně. Převodní utility Lolly zpracovávají soubor lokálně, bez účtu, reklam a trackerů, a nepřidávají žádný vodoznak Lolly ani Content Credentials. Jakmile jsou uloženy assety, které převod potřebuje, fungují offline. Velikost souboru je omezena pamětí zařízení a konkrétní čtečkou formátu.
 
-![Zobrazení Utilities: Strip Hidden Data, Compress PDF, Convert Image a další úlohy na zařízení na jednom místě](/t/url-shot?url=%2F%23%2Fu&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%2C.brand-tips%7Bdisplay%3Anone!important%7D&tolerance=0.03&waitSelector=.utilities-view%5Bdata-shots-settled%5D&format=svg&walker=1&dark=1&filename=aud-utilities)
+![Zobrazení Utilities: Lolly Strip Hidden Data, Compress PDF, Convert Image a další úlohy na zařízení na jednom místě](/t/url-shot?url=%2F%23%2Fu&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%2C.brand-tips%7Bdisplay%3Anone!important%7D&tolerance=0.03&waitSelector=.utilities-view%5Bdata-shots-settled%5D&format=svg&walker=1&dark=1&filename=aud-utilities)
 
 [Každý formát, který Lolly umí otevřít a vytvořit](/info/formats.html) vypisuje podporované převody a jejich limity, včetně HEIC na JPG, PNG na SVG a PDF na obrázky.
 

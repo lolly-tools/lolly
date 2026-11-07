@@ -72,7 +72,7 @@ shells/tui/         src/main.tsx (the full-screen app), src/bridge.ts
 
 ![430px 寬螢幕上的音訊可視化：上方是控制項面板，下方是完成的方形作品，以及浮動的匯出膠囊](/t/url-shot?url=%2F%23%2Ftool%2Faudiogram%3Faudio%3Dlolly%2Floops%2Ffireplace-loop%26title%3DField%2520notes%26subtitle%3DEpisode%252012%26style%3Dwave&width=430&height=900&dpi=192&waitMs=3200&css=%23ag-wave%7Bdisplay%3Anone!important%7D.ag-ph%7Bdisplay%3Ablock!important%7D&walker=1&format=svg&rasterDpi=110&dark=1&filename=ov2-phone-audiogram)
 
-網頁應用程式也附有 **Batch**（`#/batch`、`shells/web/src/pro/`），這是試算表風格的格線，可跨一個或多個工具一次渲染許多列；[Batch 與 Multi-edit](/info/batch.html#make-many-versions-of-one-design)涵蓋 Batch。**Settings → Capabilities** 對應平台宣告它能做的一切。
+網頁應用程式也附有 **Batch**（`#/batch`、`shells/web/src/pro/`），這是試算表風格的格線，可跨一個或多個工具一次渲染許多列；[Batch 與 Lolly Multi-edit](/info/batch.html#make-many-versions-of-one-design)涵蓋 Batch。**Settings → Capabilities** 對應平台宣告它能做的一切。
 
 ![全新安裝上的 Batch：一個空列等待工具，在任何資料進來之前，試算表介面與其 Render 按鈕已就位](/t/url-shot?url=%2F%23%2Fbatch&width=1440&height=900&dpi=192&waitMs=3500&walker=1&format=svg&dark=1&filename=ov2-batch-grid)
 
@@ -141,7 +141,7 @@ CLI 從它的引數建立相同的 URL 狀態並執行相同的管線，所以 C
 
 - **`asset`**，搭配 `filter` 與 `allowUpload`，是通往素材系統的橋樑。`allowUpload: false` 會把欄位限制為資料庫素材，而使用者上傳的內容與資料庫共用 `AssetRef` 形狀。
 - **`blocks`** 是在側邊面板中編輯的重複欄位群組，被 Meeting Planner、Wayfinding、Diagrams 等使用。點擊已渲染的區塊會聚焦其列。
-- **`file`** 在記憶體中保存使用者自己的檔案，供 Strip Hidden Data 與 Compress 等裝置端 Utility 使用，而 **`vector`** 將一組固定的數字歸成一個控制項。
+- **`file`** 在記憶體中保存使用者自己的檔案，供 Lolly Strip Hidden Data 與 Compress 等裝置端 Utility 使用，而 **`vector`** 將一組固定的數字歸成一個控制項。
 
 ### 9. 範本不含邏輯
 
@@ -149,7 +149,7 @@ CLI 從它的引數建立相同的 URL 狀態並執行相同的管線，所以 C
 
 ### 10. 工具組合工具
 
-工具可以嵌入另一個工具的渲染結果，而不需要工具之間的匯入；組合由引擎解析。manifest 可以宣告 `composes: [{ id, tool, inputs }]` 並以 `{{asset <id>}}` 放置子項，而可攜的嵌入 URL（`https://lolly.tools/tool/<id>.svg?…`）會在本機渲染子項，Design 就是這樣放置即時的 QR 碼或圖表。SVG 子項在 SVG 或 PDF 父項中仍保持向量。子項是中間產物，絕不加浮水印或蓋印，而無法渲染子項的外殼會讓欄位保持空白，同時父項仍會渲染。[組合與品牌覆疊](/info/tool-composition.html)有詳細說明。
+工具可以嵌入另一個工具的渲染結果，而不需要工具之間的匯入；組合由引擎解析。manifest 可以宣告 `composes: [{ id, tool, inputs }]` 並以 `{{asset <id>}}` 放置子項，而可攜的嵌入 URL（`https://lolly.tools/tool/<id>.svg?…`）會在本機渲染子項，Lolly Design 就是這樣放置即時的 QR 碼或圖表。SVG 子項在 SVG 或 PDF 父項中仍保持向量。子項是中間產物，絕不加浮水印或蓋印，而無法渲染子項的外殼會讓欄位保持空白，同時父項仍會渲染。[組合與品牌覆疊](/info/tool-composition.html)有詳細說明。
 
 ## 我們選擇不做的事
 

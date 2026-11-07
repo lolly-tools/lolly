@@ -14,7 +14,7 @@ Les [design tokens de Penpot](https://help.penpot.app/user-guide/design-systems/
 
 ## Comment Lolly fait la tâche commune
 
-Le canevas Design de Lolly crée des ressources modifiables et peut transformer une mise en page en [outil avec des règles](/info/create-a-tool.html). Le même outil se rend dans le navigateur, l'application de bureau ou la CLI et produit des variantes à partir de données. Lolly autonome fait le rendu et signe sur l'appareil, sans compte ni serveur. Une [collab privée](/info/collaborate.html) relie directement deux appareils.
+Le canevas Lolly Design de Lolly crée des ressources modifiables et peut transformer une mise en page en [outil avec des règles](/info/create-a-tool.html). Le même outil se rend dans le navigateur, l'application de bureau ou la CLI et produit des variantes à partir de données. Lolly autonome fait le rendu et signe sur l'appareil, sans compte ni serveur. Une [collab privée](/info/collaborate.html) relie directement deux appareils.
 
 ## Avec une organisation
 
