@@ -7,6 +7,7 @@ import { chromium, type Browser, type Page } from 'playwright';
 import type { ViteDevServer } from 'vite';
 import { webGpuLaunchArgs } from '../packages/node-shell/src/webgpu-launch.ts';
 import { createTokenSet } from '../engine/src/tokens.ts';
+import { buildLollyFile } from '../shells/web/src/lib/lolly-pack.ts';
 
 let browser: Browser;
 let server: ViteDevServer | undefined;
@@ -186,6 +187,75 @@ test('phone tool controls clear the sheet grip and the Design top bar', { timeou
     await page.locator('.design-topbar').waitFor({ state: 'visible' });
     const zoomIn = page.locator('.stage-nav [data-nav="in"]');
     if (await zoomIn.isVisible()) assert.ok(await reachable(page, '.stage-nav [data-nav="in"]'));
+  } finally { await context.close(); }
+});
+
+/** A one-field rules tool, the shape a workspace publishes: the sheet opens with the inputs. */
+async function rulesToolBytes(): Promise<number[]> {
+  const inputs = [{ id: 'price', label: 'Your price', type: 'text', default: '$1,200', maxLength: 40 }];
+  const manifest = { id: 'locked-preview-fixture', name: 'Partner data sheet', description: 'Set your price, then download.', version: '1.0.0', engineVersion: '^1.199.0', status: 'community', inputs,
+    render: { width: 1200, height: 800, formats: ['png', 'svg'] },
+    designTool: { schemaVersion: 1, presentation: 'sidebar', inputs: inputs.map(input => ({ input, targets: [] })), choices: [], variants: [{ id: 'sheet', label: 'Sheet', width: 1200, height: 800 }], defaultVariant: 'sheet', formats: ['png', 'svg'] },
+  };
+  const template = '<svg class="lolly-locked-design" xmlns="http://www.w3.org/2000/svg" width="1200" height="800"><rect width="1200" height="800" fill="#e8f1ee"/><text x="80" y="420" font-size="96">{{price}}</text></svg>';
+  const files = Object.fromEntries(Object.entries({ 'tool.json': JSON.stringify(manifest), 'template.html': template }).map(([path, text]) => [path, new TextEncoder().encode(text)]));
+  const pack = await buildLollyFile({ kind: 'tool', session: null, toolId: manifest.id, userAssets: [], tool: { id: manifest.id, version: manifest.version, trust: 'custom', files } });
+  return [...new Uint8Array(await pack.blob.arrayBuffer())];
+}
+
+// The locked tool's Preview used to stand alone on a row under the title, where on a
+// phone it read as the next step and cost a row of the screen. It now sits at the right
+// end of the title row, where other tools keep the collapse toggle.
+test('a locked tool keeps Preview in the title row and the result in view at 1440, 390 and 360', { timeout: 120_000 }, async () => {
+  const context = await browser.newContext({ viewport: { width: 1440, height: 900 }, hasTouch: true, serviceWorkers: 'block', reducedMotion: 'reduce' });
+  try {
+    const page = await context.newPage();
+    const errors: string[] = [];
+    page.on('pageerror', error => errors.push(error.message));
+    await page.goto(`${origin}/`, { waitUntil: 'domcontentloaded' });
+    const bytes = await rulesToolBytes();
+    await page.evaluate(async bytes => {
+      const router = '/src/lib/drop-router.ts', bridge = '/src/bridge/index.ts';
+      const { openLollyFile } = await import(router); const { createBridge } = await import(bridge);
+      void openLollyFile(new File([new Uint8Array(bytes)], 'sheet.lolly'), await createBridge());
+    }, bytes);
+    await page.getByRole('button', { name: 'Trust & install', exact: true }).click();
+    await page.locator('.lolly-locked-design').waitFor();
+    for (const [width, height] of [[1440, 900], [390, 844], [360, 780]] as const) {
+      await page.setViewportSize({ width, height });
+      await page.waitForFunction(() => document.querySelector('#view')?.classList.contains('locked-inputs-open'));
+      await page.waitForTimeout(400);
+      const layout = await page.evaluate(() => {
+        const box = (selector: string) => { const r = document.querySelector(selector)?.getBoundingClientRect(); return r ? { top: r.top, bottom: r.bottom, left: r.left, right: r.right } : null; };
+        return {
+          inRow: !!document.querySelector('.sidebar-header-row > .locked-inputs-done'),
+          rows: document.querySelectorAll('.sidebar-header > .locked-inputs-done').length,
+          done: box('.locked-inputs-done'), title: box('.sidebar-title'), row: box('.sidebar-header-row'),
+          sidebar: box('#tool-sidebar'), canvas: box('#tool-canvas'), bar: box('.locked-actions'),
+          overflow: document.documentElement.scrollWidth > innerWidth + 1, vw: innerWidth, vh: innerHeight,
+        };
+      });
+      const where = JSON.stringify({ width, layout });
+      assert.ok(layout.inRow && layout.rows === 0, where);
+      assert.ok(layout.done && layout.title && layout.row, where);
+      // Same row as the title, at its right end and inside the sidebar.
+      assert.ok(layout.done.top < layout.title.bottom && layout.done.bottom > layout.title.top, where);
+      assert.ok(layout.done.left >= layout.title.right - 1 && layout.done.right <= layout.sidebar!.right + 1, where);
+      assert.ok(layout.done.bottom - layout.done.top >= 44, where);
+      assert.equal(layout.overflow, false, where);
+      assert.ok(await reachable(page, '.locked-inputs-done'), `${width} Preview is under ${await hitAt(page, '.locked-inputs-done')}`);
+      assert.ok(layout.bar && layout.bar.bottom <= layout.vh + 1 && layout.bar.top >= 0, where);
+      // On a phone the sheet sits over the top of the screen; the result starts under it
+      // and above the locked bar, so its top edge is in view at rest.
+      if (width < 640) assert.ok(layout.canvas && layout.canvas.top >= layout.sidebar!.bottom - 1 && layout.canvas.top < layout.bar.top, where);
+      await page.locator('.locked-inputs-done').click();
+      await page.waitForFunction(() => !document.querySelector('#view')?.classList.contains('locked-inputs-open'));
+      assert.equal(await page.locator('#tool-sidebar').isVisible(), false);
+      assert.ok(await page.locator('.locked-edit-inputs').evaluate(el => el === document.activeElement));
+      assert.ok(await reachable(page, '.locked-edit-inputs'));
+      await page.locator('.locked-edit-inputs').click();
+    }
+    assert.deepEqual(errors, []);
   } finally { await context.close(); }
 });
 

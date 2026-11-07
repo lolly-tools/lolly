@@ -1840,6 +1840,9 @@ const RAW_HTML_ALLOWED: Record<string, number> = {
   // helpTip escapes its translated text; action buttons are appended as DOM nodes.
   'lib/collab-share-private.ts': 1,
   'lib/rules-entrypoints.ts': 1,
+  // The locked tool's Preview button takes its eye glyph from the fixed icon
+  // registry. Nothing is interpolated; the label is a text node.
+  'views/locked-tool.ts': 1,
 };
 
 test('R10: raw-HTML sinks are a pinned inventory, not a growing one', () => {
