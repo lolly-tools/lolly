@@ -39,7 +39,8 @@ export function isWorkspaceTemplateRef(ref: unknown): ref is `inst/${string}` {
   return typeof ref === 'string' && /^inst\/[A-Za-z0-9_-]{1,64}$/.test(ref);
 }
 
-interface MetadataHost {
+/** The slice of the host this module reads: the catalog, metadata first. */
+export interface MetadataHost {
   assets: {
     query(filter: Record<string, unknown>): Promise<AssetRef[]>;
     get(id: string): Promise<AssetRef>;

@@ -21,7 +21,7 @@
 import type { InputValue } from '../../../../engine/src/inputs.ts';
 import { fetchTemplateSeed, parseTemplates, templateValuesById, type TemplateVariant } from './template-source.ts';
 import { createUserTemplateStore, type UserTemplate, type UserTemplateHost } from './user-templates.ts';
-import { fetchWorkspaceValues, getWorkspaceTemplate, isWorkspaceTemplateRef, type WorkspaceTemplate } from './workspace-templates.ts';
+import { fetchWorkspaceValues, getWorkspaceTemplate, isWorkspaceTemplateRef, type MetadataHost, type WorkspaceTemplate } from './workspace-templates.ts';
 
 export type TemplateRef = string;
 
@@ -92,7 +92,8 @@ export async function resolveTemplateSeed(
   if (parsed.kind === 'workspace') {
     // Published by the connected workspace: read through the catalog, so a retired,
     // revoked or unpublished one resolves null and the tool opens as it would anyway.
-    const tpl = await getWorkspaceTemplate(host as unknown as Parameters<typeof getWorkspaceTemplate>[0], parsed.id);
+    if (!('assets' in host) || !host.assets) return null;
+    const tpl = await getWorkspaceTemplate(host as MetadataHost, parsed.id);
     if (!tpl || tpl.retired || (opts.toolId && tpl.toolId !== opts.toolId)) return null;
     const values = await (opts.fetchWorkspace ?? fetchWorkspaceValues)(tpl);
     if (!values) return null;
