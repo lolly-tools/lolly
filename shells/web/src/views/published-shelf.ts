@@ -13,7 +13,7 @@
  * A retired one is never offered. On a plain build there is nothing to show and the
  * shelf is absent, so the gallery renders exactly as before.
  */
-import { escape as escapeHtml } from '../utils.ts';
+import { escape as escapeHtml, safeHref } from '../utils.ts';
 import { t, tRaw } from '../i18n.ts';
 import { icon } from '../lib/icons.ts';
 import type { WorkspaceTemplate } from '../lib/workspace-templates.ts';
@@ -76,6 +76,20 @@ function mediaShape(item: PublishedItem): string {
   return ` style="aspect-ratio: ${ratio.toFixed(3)}"`;
 }
 
+/** One card: the whole card is the link, so it reads as clickable everywhere. */
+function cardHtml(item: PublishedItem): string {
+  if (!safeHref(item.href)) return '';
+  // nosemgrep: lolly-href-escape-is-not-scheme-validation - safeHref()-gated in the guard above
+  return `<a class="published-card" href="${escapeHtml(item.href)}" data-published-key="${escapeHtml(item.key)}">
+            <span class="published-card-media" aria-hidden="true"${mediaShape(item)}><span class="published-card-icon">${item.icon ?? icon('document', { size: 22 })}</span></span>
+            <span class="published-card-text">
+              <span class="published-card-name">${escapeHtml(item.name)}</span>
+              <span class="published-card-sub">${escapeHtml([item.toolName, item.version].filter(Boolean).join(' · '))}</span>
+            </span>
+            <span class="btn btn--primary btn--sm published-card-use">${escapeHtml(t('Use'))}</span>
+          </a>`;
+}
+
 /** The shelf's markup, or '' when there is nothing published (shelf absent). */
 export function publishedShelfHtml(items: readonly PublishedItem[], workspace: string | undefined): string {
   if (!items.length) return '';
@@ -84,15 +98,7 @@ export function publishedShelfHtml(items: readonly PublishedItem[], workspace: s
       <section class="published-shelf" aria-label="${escapeHtml(title)}">
         <h2 class="published-shelf-title">${escapeHtml(title)}</h2>
         <div class="published-shelf-row">
-          ${items.map((item) => `
-          <a class="published-card" href="${escapeHtml(item.href)}" data-published-key="${escapeHtml(item.key)}">
-            <span class="published-card-media" aria-hidden="true"${mediaShape(item)}><span class="published-card-icon">${item.icon ?? icon('document', { size: 22 })}</span></span>
-            <span class="published-card-text">
-              <span class="published-card-name">${escapeHtml(item.name)}</span>
-              <span class="published-card-sub">${escapeHtml([item.toolName, item.version].filter(Boolean).join(' · '))}</span>
-            </span>
-            <span class="btn btn--primary btn--sm published-card-use">${escapeHtml(t('Use'))}</span>
-          </a>`).join('')}
+          ${items.map(cardHtml).join('')}
         </div>
       </section>`;
 }
