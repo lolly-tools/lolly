@@ -100,7 +100,7 @@ import type { MoneyContext, SerializedCost, SerializedWorkingRow } from '@lolly-
 import { matchedExportFormat } from '@lolly-tools/node-shell/raster';
 import { cleanControlChars } from '@lolly-tools/node-shell/verdict-report';
 import {
-  decryptLinkQuery, explicitInputValues, formatFromOutput, loadToolOrThrow,
+  decryptLinkQuery, designSystemForRun, explicitInputValues, formatFromOutput, loadToolOrThrow,
   quietVirtualConsole, readProfile, readToolFile, resolveJpegSynonym, shadowedInputs,
   unknownFlags,
 } from './run.ts';
@@ -248,6 +248,12 @@ async function run(rest: string[], flags: Record<string, string>): Promise<numbe
     toolId = ref.toolId;
   }
   for (const f of OWN_FLAGS) delete params[f];
+  // `--file=<tokens.json>`: the design system a Design export separates with, read the way
+  // `lolly run design --file` reads it (designSystemForRun), so the plates and ink this
+  // reports come from that system's palette. Off the RAW `flags`, like `--rate-card`: a
+  // file on this computer is the person's own choice, and a pasted link cannot pick one.
+  const fileFlag = flags.file;
+  delete params.file;
 
   // jsdom: `createRuntime` runs the tool's `onInit`, which may touch `document`.
   // Nothing is rendered into it - this is the same setup the `--share` path uses.
@@ -261,7 +267,11 @@ async function run(rest: string[], flags: Record<string, string>): Promise<numbe
 
   const tool = await loadToolOrThrow(toolId, readToolFile, { lang: normalizeLang(params.lang) ?? undefined });
   const profile = await readProfile(params['user-profile']);
-  const host = await createCliBridge({ dom, profile, networkAllowlist: tool.manifest.network?.allowlist });
+  const { runDesignSystem } = await designSystemForRun(tool.manifest.id, fileFlag, undefined);
+  const host = await createCliBridge({
+    dom, profile, networkAllowlist: tool.manifest.network?.allowlist,
+    ...(runDesignSystem ? { tokensDocument: runDesignSystem } : {}),
+  });
 
   // Collector-side caveats. They go BOTH to stderr (so an interactive reader sees
   // them beside the report) and into the artifact as `info` findings, because

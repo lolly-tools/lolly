@@ -601,6 +601,7 @@ test('ENGINE_VERSION is 1.330.0', () => {
   // 1.326.0 adds a stencil prim to the vector IR, for EPS and WMF text no font can draw. Capture is unchanged.
   // 1.327.0 has preflight count no spot plate when spot inks print as process. Capture is unchanged.
   // 1.328.0 draws the stencil prim in EMF too. Capture is unchanged.
+  // 1.329.0 records placed pictures as components of an export, not its parent. Capture is unchanged.
   // 1.330.0 has preflight count only the process plates for the CMYK TIFF and EPS. Capture is unchanged.
   assert.equal(ENGINE_VERSION, '1.330.0');
 });
