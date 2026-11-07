@@ -99,6 +99,23 @@ test('hdr rides the link as a presence flag, and junk dials fall back to the def
   assert.equal(q.get('hdr'), '1');
 });
 
+test('spots as process is opt-in: only process asks, and it rides the link as _spots', async () => {
+  const res = (await dispatch({ jsonrpc: '2.0', id: nextId++, method: 'tools/list' })) as JsonRpcResponse;
+  const tools = (res.result as { tools: { name: string; inputSchema: { properties: Record<string, { enum?: string[] }> } }[] }).tools;
+  for (const name of ['lolly_render', 'lolly_build_url']) {
+    const spots = tools.find(t => t.name === name)!.inputSchema.properties.spots;
+    assert.deepEqual(spots?.enum, ['process'], `${name} declares spots: "process"`);
+  }
+  const on = linkQuery(await callTool('lolly_build_url', {
+    toolId: 'qr-code', inputs: { url: 'https://lolly.tools' }, format: 'pdf-cmyk', spots: 'process',
+  }));
+  assert.equal(on.get('_spots'), 'process');
+  const plain = linkQuery(await callTool('lolly_build_url', {
+    toolId: 'qr-code', inputs: { url: 'https://lolly.tools' }, format: 'pdf-cmyk',
+  }));
+  assert.equal(plain.get('_spots'), null, 'the default writes nothing');
+});
+
 test('a depth of auto is not a request, and never dirties the link', async () => {
   const q = linkQuery(await callTool('lolly_build_url', {
     toolId: 'qr-code', inputs: { url: 'https://lolly.tools' }, depth: 'auto',

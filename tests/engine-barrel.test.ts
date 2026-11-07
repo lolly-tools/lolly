@@ -21,7 +21,7 @@ const EXPECTED: readonly string[] = [
   'onColourFloor', 'readColourRoles', 'refreshDerivedOnColours', 'removeColourRole', 'renameColourRole', 'reorderColourRoles',
   'setColourRoles', 'setRoleSameAsLight', 'setRoleValue', 'unbindRole',
   'AdoptColourRolesOptions', 'AdoptedColourRole', 'adoptColourRoles', 'colourRoleThemeAccents', 'withColourwayKindRestored',
-  // Additive 1.324: a server credential keeps the pictures the browser's credential recorded.
+  // Additive 1.325: a server credential keeps the pictures the browser's credential recorded.
   'PlacedPictures', 'pdfWithoutCredential', 'placedPicturesOf',
   // Additive 1.304 approval record in Content Credentials.
   'APPROVAL_RECORD_FORMATS', 'ApprovalNotRecordedReason', 'ApprovalRecordOutcome', 'C2paApprovalRecord',
@@ -39,6 +39,9 @@ const EXPECTED: readonly string[] = [
   'DXF_LIMITS', 'DXF_MAX_BOXES', 'DxfDesignResult', 'DxfImport', 'DxfImportOptions', 'DxfRaw', 'DxfReader',
   'DxfReport', 'DxfStroke', 'DxfText', 'DxfUnits',
   'aciToHex', 'dxfReportLines', 'dxfToDesign', 'dxfUnits', 'flattenDxf', 'importDxf', 'looksLikeDxf',
+  // Additive 1.324 spots as process: the CMYK palette's opt-in to print every spot ink in process,
+  // and the `_spots` URL param that asks for the choice.
+  'CmykPaletteOptions', 'SpotsSetting', 'parseSpots',
   // Additive 1.297 press separation: RGB to CMYK through a press profile, and its raster lattice.
   'CmykSeparation', 'DEVICE_SEPARATION', 'NEUTRAL_EPSILON', 'SeparateRgb', 'iccSeparation', 'separationLattice',
   // Additive 1.293 canvas size: the one conversion every shell hands a tool's hooks and template.

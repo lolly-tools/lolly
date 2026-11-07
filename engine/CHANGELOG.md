@@ -6,13 +6,19 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
-## 1.324.0
+## 1.325.0
 
 - `placedPicturesOf(store)` (new, `c2pa-extract.ts`): the record of placed pictures in a Content Credential, read back for a shell that writes its own credential in place of that one. It gives each credentialed ingredient the active manifest names, with its title, format, relationship, AI source type and the manifests it brought, verbatim, plus the AI facts the steps state (the pieces declared AI-made, and the model that enlarged one). Source ingredients (emoji, songs) are not read: they have their own census.
 - `aiFactsFromSteps` (`c2pa.ts`) reads the two AI steps `exportActionSteps` writes, and counts a reading only when writing it again gives the same words. `exportActionSteps` writes those steps through the same two helpers, with the same text as before.
 - `pdfWithoutCredential(pdf)` (new, `c2pa-containers.ts`): the bytes before the credential update `embedC2paInPdf` appends, when that update is the last thing in the file. Null for anything else.
 - The MCP server uses all three for a lifetime (`c2pa: "7"` to `"365"`) and for an intent on the browser tier, and the CLI does the same for a signing identity (`--sign-key`) or an intent. The browser now stamps first on those routes, a PDF included, and the server reads the browser credential's record of the placed pictures, AI-made ones included, before its own credential takes that one's place. A PDF's browser update comes off first, so the file holds one credential. A TIFF keeps a replaced credential as a second one, so there the browser writes none, as it already did for an intent.
 - Nothing is added that the browser credential did not hold. A render with no `c2pa` and no intent is unchanged, and so is every browser-free render.
+
+## 1.324.0
+
+- Spots as process, an opt-in export choice for the CMYK formats. `ExportOpts.spotsAsProcess` (host-v1, optional) and `buildCmykPaletteMap(palette, separate, { spotsAsProcess })` (new `CmykPaletteOptions`) write every declared spot ink as its process alternate: the swatch's own CMYK lock, or the press conversion of its colour, which is the value the ink's /Separation already named as its alternate. A Print PDF then has the four process plates and nothing more. A declared finish (foil, emboss, deboss, spot varnish, soft touch, die cut, crease, perforation) is not an ink and keeps its own named plate, because converting it would print its black mask.
+- New reserved URL param `_spots`, read by `parseUrlState` into `spots` and written by `serializeUrlState` from `spots`; `parseSpots` is exported. Only `_spots=process` turns the choice on: absence and every other value keep the spot plates. Minted in the `_` namespace, so no tool input can collide with it.
+- Off by default. With the option absent, `buildCmykPaletteMap` returns the same map as before and every CMYK file keeps its bytes. The Print TIFF and EPS (CMYK) already write each ink as its process build, since they have no named plates, so the choice changes only the Print PDF today. Nothing is recorded about the choice: no metadata, no content credential entry and no export card line.
 
 ## 1.323.0
 

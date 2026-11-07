@@ -124,6 +124,10 @@ export interface RenderOpts {
   rondo?: RondoCaps;
   /** The design-system record (the `_madewith` param, plans/319): false leaves it out. */
   madeWith?: boolean | null;
+  /** Spot inks as process for the CMYK formats (the `_spots` param, engine 1.324). The
+   *  browser tier reads it from the query; the browser-free eps-cmyk gets it as an export
+   *  option. Absent keeps the spot plates. */
+  spots?: 'process' | null;
   /**
    * The brand skills the agent declared it read and followed for this piece (plan
    * 323), already resolved against the profile. Recorded beside the design-system
@@ -357,6 +361,8 @@ function exportOpts(o: RenderOpts): ExportOpts & { password?: string } {
   // enforce that). Dropping it here made the same URL render differently on MCP
   // than on the CLI - depth=float silently came back as 16-bit HALF.
   if (o.depth && o.depth !== 'auto') opts.depth = o.depth;
+  // `_spots=process` prints each spot ink in process; off writes nothing (engine 1.324).
+  if (o.spots === 'process') opts.spotsAsProcess = true;
   // `_madewith=0` leaves the design-system record out of the file (plans/319).
   if (o.madeWith === false) opts.madeWith = false;
   // The brand skills the agent declared (plan 323) ride the same switch.
@@ -1258,6 +1264,7 @@ async function renderCandidateBytes(toolId: string, query: string, o: RenderOpts
     hdr: o.hdr ?? st.hdr ?? null,
     depth: o.depth ?? st.depth ?? undefined,
     madeWith: o.madeWith ?? st.madeWith ?? null,
+    spots: o.spots ?? st.spots ?? null,
   };
   const profile = o.profile ?? {};
   // The canvas size every browser-free render mounts with (engine 1.293): the request's

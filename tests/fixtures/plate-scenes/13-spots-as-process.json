@@ -1,0 +1,140 @@
+{
+  "id": "13-spots-as-process",
+  "title": "Spot inks printed as process",
+  "covers": "The same page as 06 exported with --spots=process: each Lolly Demo spot ink prints as the CMYK build its token declares, the PDF names no spot colour space and the separation writes the four process plates and nothing more. The process K bar is unchanged.",
+  "profile": "lolly-demo",
+  "args": [
+    "--spots=process"
+  ],
+  "page": {
+    "width": 400,
+    "height": 200
+  },
+  "boxes": [
+    {
+      "id": "page",
+      "kind": "frame",
+      "x": 0,
+      "y": 0,
+      "w": 400,
+      "h": 200,
+      "bg": "#ffffff"
+    },
+    {
+      "id": "s1",
+      "kind": "box",
+      "frame": "page",
+      "x": 20,
+      "y": 20,
+      "w": 160,
+      "h": 110,
+      "bg": "#008657"
+    },
+    {
+      "id": "s2",
+      "kind": "box",
+      "frame": "page",
+      "x": 220,
+      "y": 20,
+      "w": 160,
+      "h": 110,
+      "bg": "#fac044"
+    },
+    {
+      "id": "bar",
+      "kind": "box",
+      "frame": "page",
+      "x": 20,
+      "y": 150,
+      "w": 360,
+      "h": 30,
+      "bg": "#4d4d4d"
+    }
+  ],
+  "structure": {
+    "noDeviceRgbOps": true,
+    "noSeparations": true
+  },
+  "passes": [
+    {
+      "name": "spots as process",
+      "plates": [
+        "C",
+        "M",
+        "Y",
+        "K"
+      ],
+      "inked": [
+        "C",
+        "M",
+        "Y",
+        "K"
+      ],
+      "regions": [
+        {
+          "name": "paper stays blank",
+          "rect": [
+            0,
+            0,
+            6,
+            6
+          ],
+          "expect": {
+            "C": 0,
+            "M": 0,
+            "Y": 0,
+            "K": 0
+          }
+        },
+        {
+          "name": "Bunyapine 88/25/82/5",
+          "rect": [
+            30,
+            30,
+            140,
+            90
+          ],
+          "expect": {
+            "C": 88,
+            "M": 25,
+            "Y": 82,
+            "K": 5
+          }
+        },
+        {
+          "name": "Honey 1/28/82/0",
+          "rect": [
+            230,
+            30,
+            140,
+            90
+          ],
+          "expect": {
+            "C": 1,
+            "M": 28,
+            "Y": 82,
+            "K": 0
+          }
+        },
+        {
+          "name": "process K bar",
+          "rect": [
+            30,
+            155,
+            340,
+            20
+          ],
+          "expect": {
+            "C": 0,
+            "M": 0,
+            "Y": 0,
+            "K": {
+              "value": 69.8,
+              "tol": 3
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

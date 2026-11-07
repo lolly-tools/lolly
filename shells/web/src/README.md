@@ -9,17 +9,17 @@ Roughly 874,000 lines of TypeScript, tests included, and 66,000 lines of CSS.
 
 | Directory | Source | Tests | CSS |
 |---|---|---|---|
-| `views/` | 605 files, 223,756 lines | 325 files, 101,721 lines | 12 files, 1,686 lines |
-| `lib/` | 930 files, 192,263 lines | 574 files, 110,945 lines | 13 files, 1,856 lines |
-| `bridge/` | 266 files, 59,145 lines | 152 files, 31,873 lines | none |
-| `components/` | 136 files, 31,746 lines | 67 files, 16,800 lines | 24 files, 1,641 lines |
+| `views/` | 605 files, 223,800 lines | 325 files, 101,722 lines | 12 files, 1,686 lines |
+| `lib/` | 931 files, 192,329 lines | 575 files, 111,009 lines | 13 files, 1,856 lines |
+| `bridge/` | 268 files, 59,333 lines | 152 files, 31,873 lines | none |
+| `components/` | 136 files, 31,784 lines | 67 files, 16,864 lines | 24 files, 1,641 lines |
 | `org/` | 87 files, 21,595 lines | 60 files, 17,750 lines | none |
 | `collab/` | 20 files, 13,570 lines | 22 files, 14,247 lines | none |
 | `pro/` | 32 files, 9,428 lines | 16 files, 2,305 lines | 3 files, 1,256 lines |
 | `catalog/` | 12 files, 2,118 lines | 10 files, 1,256 lines | none |
 | `capture/` | 6 files, 798 lines | none | none |
 | `ext/` | 2 files, 136 lines | 1 file, 86 lines | none |
-| `styles/` | none | 12 files, 2,184 lines | 145 files, 59,573 lines |
+| `styles/` | none | 12 files, 2,184 lines | 145 files, 59,604 lines |
 
 Plus 53 `.ts`/`.js` files at the top level of `src/`, 19,884 lines all told, of which 27 are tests and 3 are ambient declarations. `main.ts` is 2,442 of that.
 <!-- web-src-dirs:end -->
@@ -59,7 +59,7 @@ Do not be ambushed by these. The largest source files, by line count:
 <!-- web-src-largest:start -->
 | Lines | File | Direct test coverage |
 |---|---|---|
-| 6,068 | `bridge/export.ts` | yes, but mostly gated. `export-audio-bed.test.ts` imports `bedStartOffset` and `connectMusic` directly and always runs; the SVG and PDF emission is covered by ten `chromiumOrSkip()` suites (`export-m3`, `export-paint-order`, `export-stroke-paint`, `export-shadow-fidelity`, `export-pdf-shadow-fidelity`, `export-emf-eps-shadow`, `export-atomic-inline`, `export-backdrop-blur`, `export-form-controls`, `export-text-emission`) that esbuild-bundle the real `renderSvgFromHtml` and drive it in Chromium, and which **self-skip** when no Chromium is installed. `export-text-emission` is the newest and covers the `<path>`-vs-`<text>` decision layer specifically; unlike the SUSE-gated golden suite it is brand-independent, so it runs on `lolly-start` too. |
+| 6,051 | `bridge/export.ts` | yes, but mostly gated. `export-audio-bed.test.ts` imports `bedStartOffset` and `connectMusic` directly and always runs; the SVG and PDF emission is covered by ten `chromiumOrSkip()` suites (`export-m3`, `export-paint-order`, `export-stroke-paint`, `export-shadow-fidelity`, `export-pdf-shadow-fidelity`, `export-emf-eps-shadow`, `export-atomic-inline`, `export-backdrop-blur`, `export-form-controls`, `export-text-emission`) that esbuild-bundle the real `renderSvgFromHtml` and drive it in Chromium, and which **self-skip** when no Chromium is installed. `export-text-emission` is the newest and covers the `<path>`-vs-`<text>` decision layer specifically; unlike the SUSE-gated golden suite it is brand-independent, so it runs on `lolly-start` too. |
 | 3,904 | `views/valid.ts` | `valid-verdict.test.ts` only |
 | 3,794 | `views/tool-inputs.ts` | none |
 | 3,780 | `views/picker.ts` | partial - the format and embeddability rules are extracted to `picker-formats.ts` and covered by `picker-formats.test.ts`, plus `picker-initial-tab.test.ts`; the 3,000-line panel body is not. |

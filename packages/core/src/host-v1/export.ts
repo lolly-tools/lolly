@@ -265,6 +265,18 @@ export interface ExportOpts {
   colorProfile?: 'srgb' | 'none' | string;
 
   /**
+   * Print every declared spot ink as its process CMYK alternate in the CMYK
+   * formats (pdf-cmyk, cmyk-tiff, eps-cmyk): the build the swatch already
+   * declares, or the press conversion of its colour. A Print PDF then carries
+   * only the four process plates. A declared finish (foil, emboss, spot varnish,
+   * die cut, …) is not an ink and keeps its own plate. Optional/additive (v1.324):
+   * unset or false keeps the named spot plates, so existing output is unchanged.
+   * The `_spots=process` URL param turns this on. Recorded nowhere: the inks the file
+   * carries are the only trace.
+   */
+  spotsAsProcess?: boolean;
+
+  /**
    * Hint: this export is a low-fidelity thumbnail/preview, not the deliverable.
    * Hooks may take a cheap path - e.g. an expensive-capture tool can reuse the
    * last render already on the canvas instead of re-running the capture.

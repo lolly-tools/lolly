@@ -347,6 +347,9 @@ Export options:
   --bleed=3mm --marks=crop,reg,bars        print prep (routes through the full render tier)
   --press-profile=fogra39  CMYK press condition for pdf-cmyk / cmyk-tiff. \`--profile=\`
                            is its alias, matching URL mode's reserved \`profile\` param.
+  --spots=process          print every spot ink with the four process inks in a CMYK
+                           export (finishes keep their plates). Off by default; the
+                           same choice as \`_spots=process\` in a link.
   --jobs=<1..8>           isolated production batch workers
   --journal=<file>        production batch receipts; --resume reuses verified outputs
   --dry-run               plan a batch without writing files

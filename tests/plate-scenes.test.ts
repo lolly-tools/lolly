@@ -6,7 +6,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { fileURLToPath } from 'node:url';
-import { boundsFor, loadScenes, maxTotalInk, readPlateTiff, regionStats, sceneProblems, type Scene, type Separate } from './helpers/plate-scene.ts';
+import { boundsFor, loadScenes, maxTotalInk, plateSetFailures, platesWritten, readPlateTiff, regionStats, sceneProblems, structureFailures, type Scene, type Separate } from './helpers/plate-scene.ts';
 
 const dir = fileURLToPath(new URL('./fixtures/plate-scenes', import.meta.url));
 
@@ -27,9 +27,9 @@ function tiff(width: number, height: number, pixels: number[]): Uint8Array {
 
 test('every plate scene file is valid, and the set covers the planned cases', () => {
   const scenes = loadScenes(dir);
-  assert.ok(scenes.length >= 8 && scenes.length <= 12, `${scenes.length} scenes`);
+  assert.ok(scenes.length >= 8 && scenes.length <= 14, `${scenes.length} scenes`);
   const text = JSON.stringify(scenes);
-  for (const needle of ['spot', 'GSfo', 'fogra39', 'tol', 'knockout', 'reverse']) assert.ok(text.toLowerCase().includes(needle.toLowerCase()), `no scene mentions ${needle}`);
+  for (const needle of ['spot', 'GSfo', 'fogra39', 'tol', 'knockout', 'reverse', '--spots=process', 'finish']) assert.ok(text.toLowerCase().includes(needle.toLowerCase()), `no scene mentions ${needle}`);
   assert.equal(new Set(scenes.map(s => s.id)).size, scenes.length);
 });
 
@@ -43,6 +43,50 @@ test('a scene with a bad region, a missing reason or a repeated pass is reported
   assert.match(problems, /rect leaves the page/);
   assert.match(problems, /knownFailing needs a reason/);
   assert.match(problems, /repeated/);
+});
+
+test('spots as process has an on scene, an off scene and a finish scene, each pinning the plate set', () => {
+  const byId = new Map(loadScenes(dir).map(s => [s.id, s]));
+  const off = byId.get('06-spot-plates')!, on = byId.get('13-spots-as-process')!, finish = byId.get('14-finish-keeps-plate')!;
+  assert.equal(off.args, undefined, 'the off scene renders with the default');
+  assert.ok((off.structure?.separations ?? []).length >= 2, 'the off scene keeps its spot plates');
+  assert.ok(on.args?.includes('--spots=process'));
+  assert.deepEqual(on.boxes, off.boxes, 'on and off draw the same page');
+  assert.deepEqual([...on.passes[0]!.plates!].sort(), ['C', 'K', 'M', 'Y']);
+  assert.equal(on.structure?.noSeparations, true);
+  assert.ok(finish.args?.includes('--spots=process'));
+  assert.ok(finish.passes[0]!.plates!.includes('Fixture Foil'), 'the finish keeps its plate');
+  assert.ok(!finish.passes[0]!.plates!.includes('Fixture Tide'), 'the ink does not');
+});
+
+test('scene args are flags, and cannot take over the runner\'s own', () => {
+  const base: Scene = JSON.parse(JSON.stringify(loadScenes(dir)[0]!));
+  base.args = ['--export=pdf', 'spots=process', '--output=/tmp/x.pdf'];
+  const problems = sceneProblems(base, `${base.id}.json`).join('\n');
+  assert.match(problems, /args must be a list of --flag/);
+  assert.match(problems, /runner's own flags: export, output/);
+});
+
+test('the plate set reads tiffsep file names and fails both ways', () => {
+  const files = ['p1.tif', 'p1(Cyan).tif', 'p1(Magenta).tif', 'p1(Yellow).tif', 'p1(Black).tif', 'p1(H160_L050_C045).tif', 'notes.txt'];
+  const written = platesWritten(files, 'p1');
+  assert.deepEqual(written, ['C', 'H160_L050_C045', 'K', 'M', 'Y']);
+  const ink = (p: string): number => (p === 'Y' ? 0 : 40);
+  assert.deepEqual(plateSetFailures(written, { plates: ['C', 'M', 'Y', 'K', 'H160_L050_C045'] }, ink), []);
+  const extra = plateSetFailures(written, { plates: ['C', 'M', 'Y', 'K'] }, ink).join('\n');
+  assert.match(extra, /unexpected H160_L050_C045/);
+  const missing = plateSetFailures(['C', 'K', 'M', 'Y'], { plates: ['C', 'M', 'Y', 'K', 'Spot'] }, ink).join('\n');
+  assert.match(missing, /missing Spot/);
+  const blank = plateSetFailures(written, { inked: ['C', 'Y', 'Gone'] }, ink).join('\n');
+  assert.match(blank, /plate Y carries no ink anywhere/);
+  assert.match(blank, /plate Gone carries no ink: the separation did not write it/);
+  assert.doesNotMatch(blank, /plate C/);
+});
+
+test('noSeparations fails while the PDF still names a spot colour space', () => {
+  const facts = { pageSizePt: [300, 150] as [number, number], deviceRgbOps: 0, separations: ['H160_L050_C045'], overprint: {} };
+  assert.match(structureFailures(facts, { noSeparations: true }).join('\n'), /still names spot colour spaces: H160_L050_C045/);
+  assert.deepEqual(structureFailures({ ...facts, separations: [] }, { noSeparations: true }), []);
 });
 
 test('the plate reader returns ink where 255 is paper and 0 is full ink', () => {
