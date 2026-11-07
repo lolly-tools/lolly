@@ -79,12 +79,11 @@ import { isOwnProfile, resolveEmbeddedProfile } from '../lib/press-profile-embed
 import { printSeparation } from '../lib/cmyk-separation.ts';
 import { rgbaToCmyk } from './export-cmyk-raster.ts';
 import type { EmbedResolution } from '../lib/press-profile-embed.ts';
-import { inlinePicture, isPaintSkipped, recordDrawnPictures } from './export-picture-credentials.ts';
 import { _host, dropInlinedCredentials, canvasToBlob, imprintCanvas, exportDims, getDomToImage, swapBlobUrls, thumbnailClone, fontMetricsPx, MAX_RASTER_PX, makeRoundedFill, setExportHost, foldIngredientSinks } from './export-shared.ts';
 import { beginFrameClock, renderFrameAt, endFrameClock, withStillHold, posedFrame } from './frame-clock.ts';
 import { isTopTailStage, isRecordStage } from './export-shared.ts';
 import type { WebHost, ExportOpts, ExportDims, ImprintState, Rgba } from './export-shared.ts';
-import { renderSvgFromHtml, stripCommentNodes, inlineBlobUrlsInEl, inlineSvgFromImg, imprintEmbedCanvas, rotationPivot, rasterizePosedNodeToDataUrl, effectSpillCss, detectUnsupportedCss, rasterizeNodeToDataUrl, firstCssUrl, cssUrlToHref, bakeImageFilter, visualLines, mergeDeco, decoFlags, pdfInlineNonText, type Deco } from './export-svg-walker.ts';
+import { renderSvgFromHtml, stripCommentNodes, inlineBlobUrlsInEl, inlineSvgFromImg, imprintEmbedCanvas, isPaintSkipped, inlinePicture, recordDrawnPictures, rotationPivot, rasterizePosedNodeToDataUrl, effectSpillCss, detectUnsupportedCss, rasterizeNodeToDataUrl, firstCssUrl, cssUrlToHref, bakeImageFilter, visualLines, mergeDeco, decoFlags, pdfInlineNonText, type Deco } from './export-svg-walker.ts';
 import { designOpsSvg, renderDesignOpsPdf } from './export-design-ops.ts';
 import { finishPng, durableEmbedCanvas } from './export-raster-finish.ts';
 import { rasterStyle, coverRasterStyle } from './export-raster-style.ts';
@@ -368,9 +367,10 @@ async function renderPreparedFormat(node: Element, format: string, opts: ExportO
   // Collect componentOf ingredients from walker-inlined bitmaps ONLY when we will
   // stamp - a preview/thumbnail render never pays to decode + C2PA-scan embedded
   // images. Populated by the SVG/PDF walker (before its canvas re-encode), read below.
-  // Beside that sink, sources with no credential of their own that only the render meets (a
-  // rondocode song the sequence mix played). A caller's own filled list is kept.
-  if (opts.c2pa) { opts._ingredientSink ??= []; opts._sourceIngredientSink ??= []; }
+  if (opts.c2pa) opts._ingredientSink ??= [];
+  // Sources with no credential of their own that only the render meets (a rondocode
+  // song the sequence mix played). A caller's own filled list is kept.
+  if (opts.c2pa) opts._sourceIngredientSink ??= [];
   // A still raster paints the page's pictures into new pixels with no walk to read
   // them on the way, so they are recorded here, by the walkers' own rule.
   await recordDrawnPictures(node, format, opts._ingredientSink);
