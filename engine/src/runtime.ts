@@ -2302,6 +2302,16 @@ export async function createRuntime(
       // ingest) and library/catalog assets (the host may extract one from the
       // asset's own bytes - v1.31). A credential we can't read is skipped,
       // never fatal to the export.
+      //
+      // Each placed picture is a COMPONENT of the composition (C2PA 2.2 section
+      // 18.15.3: `componentOf`, "the current asset is composed of multiple parts,
+      // this ingredient being one of them"), recorded as a `c2pa.placed` step.
+      // It is never the export's parent: `parentOf` says the export is a
+      // rendition of that one asset, and a manifest may hold one parentOf
+      // ingredient at most, so two credentialed pictures on one page used to
+      // make the embedder refuse the whole credential (manifest.multipleParents).
+      // The SVG and PDF walkers record the same picture as componentOf when
+      // they inline its bytes, so both routes now name it the same way.
       let ingredients: (IngredientCredential | SourceIngredient)[] | undefined;
       if (!isOnDevice && meta !== undefined && host.assets?.credential) {
         const ids = new Set<string>();
@@ -2327,7 +2337,7 @@ export async function createRuntime(
             // Lazy: the C2PA read side (c2pa-verify → c2pa-extract → containers)
             // is ~7K lines that only an export with placed credentials needs.
             const ing = cred?.store ? (await import('./c2pa-verify.ts')).prepareC2paIngredientFromStore(cred.store, cred.format) : null;
-            if (ing) prepared.push(ing);
+            if (ing) prepared.push({ ...ing, relationship: 'componentOf' });
           } catch { /* unreadable credential - skip, don't fail the export */ }
         }
         if (prepared.length) ingredients = prepared;
@@ -2371,7 +2381,7 @@ export async function createRuntime(
             ...(recordedMic ? { microphone: true as const } : {}),
           }
         : undefined;
-      // Text-added provenance: honest ONLY when rendered text sits over an OPENED
+      // Text-added provenance: honest ONLY when rendered text sits over a placed
       // asset (an ingredient is present) - a genuine edit on someone else's image.
       // Profile fields and inactive controls do not contribute a text edit step.
       let c2paTextAdded: { sample?: string } | undefined;
