@@ -39,6 +39,16 @@ async function reachable(page: Page, selector: string): Promise<boolean> {
   });
 }
 
+/** The element a tap at the centre of `selector` would reach, for a failure message. */
+async function hitAt(page: Page, selector: string): Promise<string> {
+  return page.locator(selector).evaluate(element => {
+    const rect = element.getBoundingClientRect();
+    const hit = document.elementFromPoint(rect.x + rect.width / 2, rect.y + rect.height / 2);
+    const name = (el: Element): string => `${el.tagName.toLowerCase()}${el.id ? `#${el.id}` : ''}${typeof el.className === 'string' && el.className.trim() ? `.${el.className.trim().split(/\s+/).join('.')}` : ''}`;
+    return hit ? name(hit) : `nothing (centre ${Math.round(rect.x + rect.width / 2)},${Math.round(rect.y + rect.height / 2)} in ${innerWidth}x${innerHeight})`;
+  });
+}
+
 for (const width of [1440, 390]) {
   for (const appearance of ['light', 'dark', 'brand']) {
     test(`Component specimens retain their production context at ${width}px in ${appearance}`, { timeout: 120_000 }, async () => {
@@ -239,8 +249,47 @@ test('capture controls remain reachable beside editor panels without opening a d
         await page.setViewportSize({ width, height: 900 });
         await page.waitForTimeout(400);
         const controls = tool === 'record' ? ['.canvas-record-btn', '.canvas-record-mic', '.crh-btn'] : ['.canvas-screen-btn:not([hidden])', '.canvas-screen-rec'];
-        for (const control of controls) assert.ok(await reachable(page, control), `${tool} ${width} ${control}`);
+        for (const control of controls) {
+          if (!await reachable(page, control)) assert.fail(`${tool} ${width} ${control} is under ${await hitAt(page, control)}`);
+        }
       }
+    }
+  } finally { await context.close(); }
+});
+
+// The phone layout's export sheet covers the whole screen above everything. Closed, it
+// used to fade out from the desktop look whenever the window crossed 640px, so for that
+// fade the scrim showed over the screen and took every tap: under load the fade outlasted
+// the wait above and the Record button read as covered.
+test('a change to the phone layout leaves the closed export sheet out of sight and out of the way', { timeout: 120_000 }, async () => {
+  const context = await browser.newContext({ viewport: { width: 1440, height: 900 }, serviceWorkers: 'block', reducedMotion: 'reduce' });
+  try {
+    const page = await context.newPage();
+    // An ordinary tool, its export closed, and Design's record tool, whose export sits
+    // docked beside the inspector on a desk.
+    for (const route of ['tool/qr-code?url=https%3A%2F%2Fexample.com', 'tool/record?qa=1']) {
+      await page.setViewportSize({ width: 1440, height: 900 });
+      await open(page, route);
+      await page.waitForTimeout(400);
+      await page.setViewportSize({ width: 390, height: 900 });
+      // The frame that applies the new width: media query listeners run before
+      // animation frame callbacks, so the shell has answered the change by now.
+      await page.waitForFunction(() => innerWidth === 390);
+      await page.evaluate(() => new Promise<void>(resolve => requestAnimationFrame(() => resolve())));
+      const sheet = await page.evaluate(() => {
+        const overlay = document.querySelector<HTMLElement>('.export-overlay')!;
+        const popup = overlay.querySelector<HTMLElement>('.export-popup')!;
+        const style = getComputedStyle(overlay);
+        const covered = [[0.5, 0.5], [0.5, 0.9], [0.1, 0.2]].filter(([x, y]) => !!document.elementFromPoint(innerWidth * x!, innerHeight * y!)?.closest('.export-overlay'));
+        return {
+          open: document.querySelector('.tool-layout')!.classList.contains('export-open'),
+          visibility: style.visibility,
+          pointerEvents: style.pointerEvents,
+          moving: [...overlay.getAnimations(), ...popup.getAnimations()].map(a => (a as CSSTransition).transitionProperty ?? a.constructor.name),
+          covered,
+        };
+      });
+      assert.deepEqual(sheet, { open: false, visibility: 'hidden', pointerEvents: 'none', moving: [], covered: [] }, route);
     }
   } finally { await context.close(); }
 });

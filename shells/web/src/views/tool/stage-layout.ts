@@ -1292,9 +1292,19 @@ export async function wireCanvas(tview: ToolViewCtx): Promise<void> {
     placeActions();
     // ?options share-links land with the export panel already open (no focus grab).
     if (showExportPanel) openExport({ focus: false });
+    // A change of layout restyles the sheet from one look to the other, and its fade
+    // and slide are for opening and closing. Played on a layout change, they showed the
+    // closed sheet's scrim over the whole screen for a moment: a window narrowed past
+    // 640px, a phone turned upright. The sheet takes its new look at once instead.
+    const settleSheet = (): void => {
+      for (const el of [exportOverlay, exportPopup]) {
+        for (const anim of el.getAnimations?.() ?? []) if ('transitionProperty' in anim) anim.finish();
+      }
+    };
     const onBreakpoint = (): void => {
       placeActions();
       applyModality();
+      settleSheet();
     };
     mqMobile.addEventListener('change', onBreakpoint);
     tview.exportTeardown = () => {
