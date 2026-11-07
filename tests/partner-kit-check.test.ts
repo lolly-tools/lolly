@@ -115,6 +115,38 @@ test('guest marks: hidden layers, layers on screen at another time and pages are
   assert.deepEqual(report.findings, []);
 });
 
+test('guest marks: what Design does not draw is not measured, and other artboards and pages are not neighbours', () => {
+  // A mark on a hidden artboard is not measured; a hidden group's members are not neighbours.
+  const hiddenBoard = checkGuestMarks([
+    { id: 'board', kind: 'frame', hidden: true, x: 0, y: 0, w: 800, h: 600 },
+    markBox({ frame: 'board' }),
+  ], SIZE);
+  assert.equal(hiddenBoard.checked.marks, 0);
+  assert.deepEqual(hiddenBoard.findings, []);
+  const hiddenGroup = checkGuestMarks([
+    markBox({ h: 50 }),
+    { id: 'g', kind: 'group', hidden: true, x: 90, y: 150, w: 200, h: 40 },
+    { id: 'caption', kind: 'text', text: 'Caption', group: 'g', x: 100, y: 160, w: 100, h: 20 },
+  ], SPACE);
+  assert.deepEqual(hiddenGroup.findings, []);
+  // Two artboards whose coordinates overlap still hold separate pages.
+  const boards = checkGuestMarks([
+    { id: 'a', kind: 'frame', x: 0, y: 0, w: 800, h: 600 },
+    { id: 'b', kind: 'frame', x: 0, y: 0, w: 800, h: 600 },
+    markBox({ h: 50, frame: 'a' }),
+    { id: 'other', kind: 'text', text: 'On B', frame: 'b', x: 100, y: 160, w: 100, h: 20 },
+    { id: 'same', kind: 'text', text: 'On A', frame: 'a', x: 100, y: 160, w: 100, h: 20 },
+  ], SPACE);
+  assert.deepEqual(boards.findings.map((f) => f.related), [['same']]);
+});
+
+test('guest marks: a mark turned on its side keeps its own height for size and clear space', () => {
+  // 200 by 48 turned 90 degrees has a 48 by 200 bounding box, and is still 48 high.
+  const turned = checkGuestMarks([markBox({ rot: 90 })], SIZE);
+  assert.deepEqual(turned.findings.map((f) => f.value), ['48 px']);
+  assert.equal(checkGuestMarks([markBox({ rot: 90, h: 96 })], SIZE).findings.length, 0);
+});
+
 test('guest marks: a rotated neighbour is measured by its bounding box', () => {
   // 100 by 10 at (210, 185) rotated 90 degrees is upright, 10 by 100, so it reaches up to y 140.
   const rotated = checkGuestMarks([markBox({ h: 50 }), { id: 'bar', kind: 'box', x: 210, y: 185, w: 100, h: 10, rot: 90 }], SPACE);

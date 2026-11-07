@@ -241,3 +241,30 @@ test('partner kit: the ink proposer drops white and translucent inks, collapses 
   assert.ok(readPartnerKit({ schemaVersion: 1, id: 'many', label: 'Many', logos: {}, colours: proposal }), 'twelve proposed colours still make a kit');
   assert.deepEqual(partnerKitColoursFromInks(undefined as unknown as string[]), []);
 });
+
+test('partner kit: a Tokens Studio file is read in its Light theme whatever its case, even saved with Dark active', () => {
+  const doc = {
+    $themes: [{ name: 'Light', selectedTokenSets: { light: 'enabled' } }, { name: 'Dark', selectedTokenSets: { dark: 'enabled' } }],
+    $metadata: { tokenSetOrder: ['light', 'dark'], activeThemes: ['Dark'] },
+    light: { color: { semantic: { primary: { $type: 'color', $value: '#1d4ed8' } } } },
+    dark: { color: { semantic: { primary: { $type: 'color', $value: '#93c5fd' } } } },
+  };
+  assert.deepEqual(partnerKitColoursFromTokens(doc).map((c) => c.value), ['#1d4ed8']);
+  // A theme whose id is the light one, with another display name, is read too.
+  const byId = { ...doc, $themes: [{ id: 'light', name: 'Day', selectedTokenSets: { light: 'enabled' } }, { id: 'dark', name: 'Night', selectedTokenSets: { dark: 'enabled' } }], $metadata: { ...doc.$metadata, activeThemes: ['dark'] } };
+  assert.deepEqual(partnerKitColoursFromTokens(byId).map((c) => c.value), ['#1d4ed8']);
+  // With no light theme at all, the document is read in the theme it is set to.
+  const noLight = { ...doc, $themes: [{ name: 'Dark', selectedTokenSets: { dark: 'enabled' } }] };
+  assert.deepEqual(partnerKitColoursFromTokens(noLight).map((c) => c.value), ['#93c5fd']);
+});
+
+test('partner kit: named CSS colours in a logo are inks, as extractSvgColors keeps them', () => {
+  const inks = extractSvgColors('<svg xmlns="http://www.w3.org/2000/svg"><rect fill="red"/><text fill="black">Acme</text><circle fill="White"/></svg>');
+  assert.deepEqual(inks, ['red', 'black', 'White']);
+  assert.deepEqual(partnerKitColoursFromInks(inks), [
+    { role: 'primary', name: 'Primary', value: '#ff0000' },
+    { role: 'text', name: 'Text', value: '#000000' },
+  ], 'red and black are proposed and white is left out');
+  assert.deepEqual(partnerKitColoursFromInks(['rebeccapurple', 'oklch(0.6 0.2 30)', 'transparent', 'currentColor']).map((c) => c.role), ['primary', 'secondary']);
+});
+

@@ -97637,6 +97637,186 @@ var init_rights_report = __esm({
   }
 });
 
+// engine/src/asset-rights.ts
+function readAssetRightsRecord(value2) {
+  if (!value2 || typeof value2 !== "object" || Array.isArray(value2)) return null;
+  const works = value2.works;
+  if (Array.isArray(works)) return works.length ? readAssetRightsRecord(works[0]) : null;
+  const record49 = value2;
+  if (typeof record49.id !== "string") return null;
+  const creators = Array.isArray(record49.creators) ? record49.creators.filter((party) => !!party && typeof party === "object" && typeof party.name === "string").slice(0, 32) : [];
+  const rights = Array.isArray(record49.rights) ? record49.rights.filter((evidence) => !!evidence && typeof evidence === "object" && typeof evidence.declaration === "string").slice(0, 16) : [];
+  return {
+    id: record49.id,
+    ...typeof record49.title === "string" ? { title: record49.title } : {},
+    creators,
+    ...typeof record49.sourceUrl === "string" ? { sourceUrl: record49.sourceUrl } : {},
+    // The two fields a derived file needs to bind the source's exact bytes,
+    // kept only in the shape the credential writer accepts.
+    ...typeof record49.revision === "string" && record49.revision.length <= 256 ? { revision: record49.revision } : {},
+    ...typeof record49.sourceHash === "string" && SOURCE_HASH.test(record49.sourceHash) ? { sourceHash: record49.sourceHash } : {},
+    rights
+  };
+}
+function assetLicenceDeclaration(meta) {
+  const legacy = typeof meta?.license === "string" ? meta.license.trim() : "";
+  if (legacy) return legacy;
+  const record49 = readAssetRightsRecord(meta?.rights);
+  const found = record49?.rights.find((evidence) => evidence.status !== "missing" && evidence.status !== "not-applicable" && evidence.declaration.trim());
+  return found?.declaration.trim() ?? "";
+}
+function assetRightsNotices(value2) {
+  const out = [];
+  for (const evidence of evidenceArrayOf(value2)) {
+    const notices = evidence.notices;
+    if (!Array.isArray(notices)) continue;
+    for (const notice of notices.slice(0, 8)) if (typeof notice === "string" && notice.trim()) out.push(notice.trim());
+  }
+  return out;
+}
+function evidenceArrayOf(value2) {
+  if (!value2 || typeof value2 !== "object" || Array.isArray(value2)) return [];
+  const works = value2.works;
+  if (Array.isArray(works)) return works.slice(0, 64).flatMap((work) => evidenceArrayOf(work));
+  const rights = value2.rights;
+  return Array.isArray(rights) ? rights.slice(0, 16) : [];
+}
+function ownerPublished(value2) {
+  if (!value2 || typeof value2 !== "object" || Array.isArray(value2)) return null;
+  const works = value2.works;
+  const work = Array.isArray(works) ? works[0] : value2;
+  if (!work || typeof work !== "object" || Array.isArray(work)) return null;
+  const { creators, rights, grants } = work;
+  if (!Array.isArray(creators) || !Array.isArray(rights) || !Array.isArray(grants)) return null;
+  const declared = rights.slice(0, 16).some((row) => {
+    const evidence = row;
+    return !!evidence && typeof evidence.declaration === "string" && !!evidence.declaration.trim() && evidence.status !== "missing" && evidence.status !== "not-applicable";
+  });
+  const owner3 = creators.slice(0, 64).find((party) => {
+    const row = party;
+    return !!row && row.role === "owner" && typeof row.name === "string" && !!row.name.trim();
+  });
+  const grant = grants.slice(0, 16).find((row) => {
+    const entry2 = row;
+    return !!entry2 && entry2.kind === "own-work" && entry2.asserted === true && typeof entry2.scope === "string" && !!entry2.scope.trim();
+  });
+  if (!declared || !owner3 || !grant) return null;
+  return { holder: owner3.name.trim().slice(0, OWNER_HOLDER_MAX), terms: grant.scope.trim().slice(0, OWNER_TERMS_MAX) };
+}
+function claimsOwnWork(value2) {
+  const works = value2 && typeof value2 === "object" ? value2.works : null;
+  const work = Array.isArray(works) ? works[0] : value2;
+  const grants = work && typeof work === "object" ? work.grants : null;
+  return Array.isArray(grants) && grants.slice(0, 16).some((grant) => !!grant && grant.kind === "own-work");
+}
+function redistribution(meta) {
+  const declared = assetLicenceDeclaration(meta);
+  const normalised = declared ? normaliseLicence(declared) : null;
+  const profile2 = normalised?.id ? licenceProfile(normalised.id) : null;
+  const licence = profile2?.name ?? normalised?.id ?? "";
+  const notices = assetRightsNotices(meta.rights);
+  if (meta.brandLock === true) {
+    return { travels: false, kind: "policy", reason: "this brand pack is authoritative on this device", licence, notices };
+  }
+  if (!profile2?.reviewed) {
+    const owner3 = ownerPublished(meta.rights);
+    if (owner3) {
+      return { travels: true, kind: "licence", reason: "", licence: OWNER_PUBLISHED, notices: notices.includes(owner3.terms) ? notices : [...notices, owner3.terms], owner: owner3 };
+    }
+    if (claimsOwnWork(meta.rights)) {
+      return { travels: false, kind: "unknown", reason: "the own-work record is missing its owner, its terms or its licence declaration", licence, notices };
+    }
+  }
+  if (!declared) return { travels: false, kind: "unknown", reason: "licence not recorded", licence, notices };
+  if (!profile2?.reviewed) {
+    return {
+      travels: false,
+      kind: "unknown",
+      reason: normalised?.id ? `${normalised.id} is recorded and not yet interpreted` : `${declared} was not recognised`,
+      licence,
+      notices
+    };
+  }
+  if (profile2.redistributeSource !== "permitted-with-notices") {
+    return { travels: false, kind: "licence", reason: `${profile2.name} does not record permission to pass on the source file`, licence, notices };
+  }
+  return { travels: true, kind: "licence", reason: "", licence, notices };
+}
+function packCreditsText(carried, heldBack) {
+  if (!carried.length && !heldBack.length) return "";
+  const lines = ["Credits for the catalog works in this file.", ""];
+  if (carried.length) {
+    lines.push(`Travelled with this file (${carried.length}):`, "");
+    for (const entry2 of carried) {
+      lines.push(`- ${entry2.label} (${entry2.id})`);
+      lines.push(`  file:    ${entry2.path}`);
+      lines.push(`  licence: ${entry2.licence || "not recorded"}`);
+      if (entry2.credit) lines.push(`  credit:  ${entry2.credit}`);
+      if (entry2.includedByChoice) lines.push("  included by the sender, who chose to carry bytes held back by default");
+      for (const notice of entry2.notices ?? []) lines.push(`  notice:  ${notice}`);
+      lines.push("");
+    }
+  }
+  if (heldBack.length) {
+    lines.push(`Held back (${heldBack.length}) - referenced, but the bytes are not in this file:`, "");
+    for (const entry2 of heldBack) {
+      lines.push(`- ${entry2.label} (${entry2.id})`);
+      lines.push(`  licence: ${entry2.licence || "not recorded"}`);
+      lines.push(`  held by: ${HOLD_KIND[entry2.kind ?? "unknown"]}`);
+      lines.push(`  reason:  ${entry2.reason}`);
+      lines.push("");
+    }
+    lines.push("Open the file on a device that already has these works, or ask the sender.", "");
+  }
+  lines.push("Keep this file with the design when you pass it on.");
+  return lines.join("\n");
+}
+var SOURCE_HASH, OWNER_PUBLISHED, OWNER_HOLDER_MAX, OWNER_TERMS_MAX, HOLD_KIND;
+var init_asset_rights = __esm({
+  "engine/src/asset-rights.ts"() {
+    "use strict";
+    init_rights_profiles();
+    SOURCE_HASH = /^sha256:[0-9a-f]{64}$/;
+    OWNER_PUBLISHED = "Owner-published, not an open licence";
+    OWNER_HOLDER_MAX = 256;
+    OWNER_TERMS_MAX = 1024;
+    HOLD_KIND = {
+      policy: "deployment policy",
+      licence: "licence condition",
+      unknown: "nothing recorded about passing these bytes on"
+    };
+  }
+});
+
+// engine/src/rights-companion.ts
+async function checkCompanionReadback(bytes2, plan, fingerprint2) {
+  const expected = attributionCompanion(plan).files;
+  const entries = readZip(bytes2);
+  const checks = expected.map((file) => {
+    const found = entries.filter((entry2) => entry2.name === file.name);
+    return { name: file.name, ok: found.length === 1 && new TextDecoder().decode(found[0].bytes) === file.text };
+  });
+  const ok3 = checks.every((check2) => check2.ok);
+  return {
+    fingerprint: fingerprint2,
+    outputHash: `sha256:${await sha256Hex(bytes2)}`,
+    state: ok3 ? "readback-confirmed" : "written",
+    expected: plan.required.map((notice) => notice.work),
+    observed: ok3 ? plan.required.map((notice) => notice.work) : [],
+    checks,
+    credits: attributionCredits(plan),
+    remaining: ok3 ? [] : [{ code: "attribution.delivery-missing", summary: "The package credits could not be read back as written.", rule: "companion-readback-v1", remedies: [{ kind: "copy-credit", label: "Copy the credit and add it where the file is shared" }] }]
+  };
+}
+var init_rights_companion = __esm({
+  "engine/src/rights-companion.ts"() {
+    "use strict";
+    init_rights_attribution();
+    init_bytes();
+    init_zip();
+  }
+});
+
 // engine/src/seal.ts
 function base64ToBytes2(input) {
   let s = input.replace(/\s+/g, "");
@@ -136773,14 +136953,12 @@ function partnerKitLogoIds(kit) {
   return ids2;
 }
 function opaqueHex(value2) {
-  const hex4 = typeof value2 === "string" && value2.startsWith("#") ? value2 : colorToHex(value2);
-  if (typeof hex4 !== "string") return null;
-  const h = hex4.trim().toLowerCase();
-  if (/^#[0-9a-f]{6}$/.test(h)) return h;
-  if (/^#[0-9a-f]{6}ff$/.test(h)) return h.slice(0, 7);
-  if (/^#[0-9a-f]{3}$/.test(h)) return `#${h[1]}${h[1]}${h[2]}${h[2]}${h[3]}${h[3]}`;
-  if (/^#[0-9a-f]{3}f$/.test(h)) return `#${h[1]}${h[1]}${h[2]}${h[2]}${h[3]}${h[3]}`;
-  return null;
+  const text13 = typeof value2 === "string" ? value2 : colorToHex(value2);
+  if (typeof text13 !== "string" || !text13.trim()) return null;
+  const parsed = parseColor(text13.trim());
+  if (!parsed || parsed.alpha < 1) return null;
+  const hex4 = colorToHexString({ ...parsed, alpha: 1 }).toLowerCase();
+  return /^#[0-9a-f]{6}$/.test(hex4) ? hex4 : null;
 }
 function leafWords(path) {
   const leaf = (path.split(".").pop() ?? "").replace(/[-_]+/g, " ").trim();
@@ -136799,10 +136977,16 @@ function namedElsewhere(tokens3, value2) {
   }
   return null;
 }
+function lightThemeName(doc) {
+  const themes = createTokenSet(doc).themes();
+  const light = themes.find((t) => t.name.trim().toLowerCase() === "light") ?? themes.find((t) => (t.id ?? "").trim().toLowerCase() === "light");
+  return light ? light.name || light.id : void 0;
+}
 function partnerKitColoursFromTokens(doc) {
   let tokens3;
   try {
-    tokens3 = createTokenSet(doc, { theme: "light" });
+    const light = lightThemeName(doc);
+    tokens3 = createTokenSet(doc, light ? { theme: light } : {});
   } catch {
     return [];
   }
@@ -136875,6 +137059,7 @@ var init_partner_kit = __esm({
     init_partner_kit_v1_schema();
     init_partner_kit_v1();
     init_tokens2();
+    init_css_color();
     init_brand_derive();
     utf8Length = (text13) => new TextEncoder().encode(text13).length;
     ROLE_WORD = {
@@ -136944,16 +137129,24 @@ function checkGuestMarks(boxes2, kit, measure3 = {}) {
   if (rules.treatments?.length) notMeasured.push("reversed use: the logo for dark surfaces is the reverse, so a reversed mark is not measured");
   if (rules.minSize?.mm !== void 0 && !physical) notMeasured.push("the minimum size in millimetres: the document is measured in pixels");
   const rows2 = Array.isArray(boxes2) ? boxes2.filter(record29) : [];
+  let hierarchy = null;
+  try {
+    hierarchy = designHierarchyIndex(rows2.slice(0, MAX_ROWS3));
+  } catch {
+    hierarchy = null;
+  }
   const layers = [];
   rows2.slice(0, MAX_ROWS3).forEach((row, index2) => {
-    if (hidden2(row)) return;
     const id3 = typeof row.id === "string" ? row.id : "";
+    if (hidden2(row) || id3 && hierarchy?.flags.get(id3)?.hidden === true) return;
     const kind = typeof row.kind === "string" && row.kind ? row.kind : "box";
     const rect = boundsOf2(row);
     if (!(rect.w > 0) || !(rect.h > 0)) return;
     const start = num14(row.start, 0);
     const dur = num14(row.dur, 0);
-    layers.push({ row, id: id3, index: index2, z: num14(row.z, index2), rect, label: layerLabel(row, id3), kind, image: imageId(row.image), start, end: dur > 0 ? start + dur : Number.POSITIVE_INFINITY });
+    const frame = typeof row.frame === "string" ? row.frame : "";
+    const page3 = id3 && hierarchy?.pageById.get(id3) || (typeof row.pageId === "string" ? row.pageId : "");
+    layers.push({ row, id: id3, index: index2, z: num14(row.z, index2), rect, label: layerLabel(row, id3), kind, image: imageId(row.image), start, end: dur > 0 ? start + dur : Number.POSITIVE_INFINITY, frame, page: page3 });
   });
   if (rows2.length > MAX_ROWS3) notMeasured.push(`layers past the first ${MAX_ROWS3.toLocaleString("en")}`);
   const marks = layers.filter((l) => !NOT_ON_PAGE.has(l.kind) && l.image && logos.has(stripAssetModifiers(l.image)));
@@ -136975,22 +137168,25 @@ function checkGuestMarks(boxes2, kit, measure3 = {}) {
   };
   const beneath = (a, b) => a.z < b.z || a.z === b.z && a.index < b.index;
   for (const mark of marks) {
-    const drawn2 = drawnRect(mark.row, mark.rect, measure3.logoAspect?.(stripAssetModifiers(mark.image)));
+    const aspect2 = measure3.logoAspect?.(stripAssetModifiers(mark.image));
+    const drawn2 = drawnRect(mark.row, mark.rect, aspect2);
+    const unturned = { x: num14(mark.row.x), y: num14(mark.row.y), w: Math.max(0, num14(mark.row.w)), h: Math.max(0, num14(mark.row.h)) };
+    const height = drawnRect({ ...mark.row, rot: 0 }, unturned, aspect2).h;
     if (rules.minSize) {
       const min = rules.minSize;
-      const px3 = exportPx(drawn2.h);
+      const px3 = exportPx(height);
       if (min.px !== void 0 && px3 + 0.5 < min.px) {
         add3(mark, "min-size", "px", `${company}'s mark is ${pxText(px3)} px high; the kit asks for at least ${pxText(min.px)} px.`, { value: `${pxText(px3)} px`, expected: `${pxText(min.px)} px` });
       }
-      const mm = millimetres(drawn2.h);
+      const mm = millimetres(height);
       if (physical && min.mm !== void 0 && mm + 0.05 < min.mm) {
         add3(mark, "min-size", "mm", `${company}'s mark is ${mmText(mm)} mm high; the kit asks for at least ${mmText(min.mm)} mm.`, { value: `${mmText(mm)} mm`, expected: `${mmText(min.mm)} mm` });
       }
     }
     if (rules.clearSpace) {
-      const pad = rules.clearSpace.value * drawn2.h;
+      const pad = rules.clearSpace.value * height;
       const band = { x: drawn2.x - pad, y: drawn2.y - pad, w: drawn2.w + pad * 2, h: drawn2.h + pad * 2 };
-      const inside2 = layers.filter((l) => l !== mark && !NOT_ON_PAGE.has(l.kind) && l.kind !== "group" && together(l, mark) && overlaps2(l.rect, band) && !holds2(l.rect, drawn2));
+      const inside2 = layers.filter((l) => l !== mark && !NOT_ON_PAGE.has(l.kind) && l.kind !== "group" && together(l, mark) && samePlace2(l, mark) && overlaps2(l.rect, band) && !holds2(l.rect, drawn2));
       if (inside2.length) {
         const first = inside2[0];
         const message = inside2.length === 1 ? `\u201C${first.label}\u201D sits inside ${company}'s clear space.` : `\u201C${first.label}\u201D and ${inside2.length - 1} other ${inside2.length === 2 ? "layer sit" : "layers sit"} inside ${company}'s clear space.`;
@@ -137005,7 +137201,7 @@ function checkGuestMarks(boxes2, kit, measure3 = {}) {
       if (!allowed.includes(drawnAs)) {
         add3(mark, "treatment", drawnAs, `${company}'s mark is drawn in ${TREATMENT_WORDS[drawnAs]}; the kit allows ${orList(rest2)}.`, { value: drawnAs, expected: allowed.join(", ") });
       }
-      const ground = layers.filter((l) => l !== mark && !NOT_ON_PAGE.has(l.kind) && l.kind !== "group" && beneath(l, mark) && together(l, mark) && holds2(l.rect, drawn2)).sort((a, b) => b.z - a.z || b.index - a.index)[0];
+      const ground = layers.filter((l) => l !== mark && !NOT_ON_PAGE.has(l.kind) && l.kind !== "group" && beneath(l, mark) && together(l, mark) && samePlace2(l, mark) && holds2(l.rect, drawn2)).sort((a, b) => b.z - a.z || b.index - a.index)[0];
       const groundAsset = ground?.image && !logos.has(stripAssetModifiers(ground.image)) ? stripAssetModifiers(ground.image) : "";
       const onPicture = !!groundAsset && measure3.pictureKind?.(groundAsset) !== "vector";
       if (onPicture && !allowed.includes("on-photo")) {
@@ -137015,7 +137211,7 @@ function checkGuestMarks(boxes2, kit, measure3 = {}) {
   }
   return { findings, checked: { marks: marks.length, rules: checkedRules }, notMeasured };
 }
-var MAX_ROWS3, MAX_FINDINGS, NOT_ON_PAGE, TREATMENT_WORDS, record29, num14, imageId, hidden2, pxText, mmText, EPS4, overlaps2, holds2, together;
+var MAX_ROWS3, MAX_FINDINGS, NOT_ON_PAGE, TREATMENT_WORDS, record29, num14, imageId, hidden2, pxText, mmText, EPS4, overlaps2, holds2, together, samePlace2;
 var init_partner_kit_check = __esm({
   "engine/src/partner-kit-check.ts"() {
     "use strict";
@@ -137023,6 +137219,7 @@ var init_partner_kit_check = __esm({
     init_icon_theme();
     init_partner_kit();
     init_units();
+    init_design_hierarchy();
     MAX_ROWS3 = 5e3;
     MAX_FINDINGS = 200;
     NOT_ON_PAGE = /* @__PURE__ */ new Set(["frame", "audio", "camera"]);
@@ -137040,6 +137237,7 @@ var init_partner_kit_check = __esm({
     overlaps2 = (a, b) => a.x < b.x + b.w - EPS4 && b.x < a.x + a.w - EPS4 && a.y < b.y + b.h - EPS4 && b.y < a.y + a.h - EPS4;
     holds2 = (outer, inner) => inner.x >= outer.x - EPS4 && inner.y >= outer.y - EPS4 && inner.x + inner.w <= outer.x + outer.w + EPS4 && inner.y + inner.h <= outer.y + outer.h + EPS4;
     together = (a, b) => a.start < b.end && b.start < a.end;
+    samePlace2 = (a, b) => !(a.frame && b.frame && a.frame !== b.frame) && !(a.page && b.page && a.page !== b.page);
   }
 });
 
@@ -154649,6 +154847,7 @@ __export(src_exports, {
   NOTATION_SPACES: () => NOTATION_SPACES,
   NO_GAMUT_SOURCE: () => NO_GAMUT_SOURCE,
   OUTPUT_LICENCE_CHOICES: () => OUTPUT_LICENCE_CHOICES,
+  OWNER_PUBLISHED: () => OWNER_PUBLISHED,
   P3_SOURCE: () => P3_SOURCE,
   PACK_PARAM: () => PACK_PARAM,
   PAGED_FORMATS: () => PAGED_FORMATS,
@@ -154951,6 +155150,8 @@ __export(src_exports, {
   assertZzfxmBudgets: () => assertZzfxmBudgets,
   assetDependency: () => assetDependency,
   assetIdForUrl: () => assetIdForUrl,
+  assetLicenceDeclaration: () => assetLicenceDeclaration,
+  assetRightsNotices: () => assetRightsNotices,
   assetVersionPin: () => assetVersionPin,
   assignColors: () => assignColors,
   assignColorsByGround: () => assignColorsByGround,
@@ -155042,6 +155243,7 @@ __export(src_exports, {
   chartToolOffer: () => chartToolOffer,
   checkAttributionReadback: () => checkAttributionReadback,
   checkBrandDesign: () => checkBrandDesign,
+  checkCompanionReadback: () => checkCompanionReadback,
   checkDesignHouseRules: () => checkDesignHouseRules,
   checkFidelity: () => checkFidelity,
   checkFindingFromBrand: () => checkFindingFromBrand,
@@ -155758,10 +155960,12 @@ __export(src_exports, {
   originOfText: () => originOfText,
   outputLicenceId: () => outputLicenceId,
   outputLicenceNotice: () => outputLicenceNotice,
+  ownerPublished: () => ownerPublished,
   packApng: () => packApng,
   packBitsDecode: () => packBitsDecode,
   packBitsEncode: () => packBitsEncode,
   packCpio: () => packCpio,
+  packCreditsText: () => packCreditsText,
   packEncrypted: () => packEncrypted,
   packF16: () => packF16,
   packNchwSigned: () => packNchwSigned,
@@ -155975,6 +156179,7 @@ __export(src_exports, {
   quadratureMoments: () => quadratureMoments,
   rampOklab: () => rampOklab,
   rasterAsSvg: () => rasterAsSvg,
+  readAssetRightsRecord: () => readAssetRightsRecord,
   readBlockRunBindings: () => readBlockRunBindings,
   readBlockTokenBindings: () => readBlockTokenBindings,
   readBrandStyleEvidence: () => readBrandStyleEvidence,
@@ -156025,6 +156230,7 @@ __export(src_exports, {
   rebrandPptxParts: () => rebrandPptxParts,
   reconcileBlockTokenBindings: () => reconcileBlockTokenBindings,
   recordApprovalInCredential: () => recordApprovalInCredential,
+  redistribution: () => redistribution,
   refineMatte: () => refineMatte,
   refitAuthoredFrame: () => refitAuthoredFrame,
   reframeSvg: () => reframeSvg,
@@ -156600,6 +156806,8 @@ var init_src2 = __esm({
     init_rights_evaluate();
     init_rights_attribution();
     init_rights_report();
+    init_asset_rights();
+    init_rights_companion();
     init_seal();
     init_x509();
     init_apng();
@@ -176747,35 +176955,6 @@ var init_lottie_edit = __esm({
   }
 });
 
-// engine/src/rights-companion.ts
-async function checkCompanionReadback(bytes2, plan, fingerprint2) {
-  const expected = attributionCompanion(plan).files;
-  const entries = readZip(bytes2);
-  const checks = expected.map((file) => {
-    const found = entries.filter((entry2) => entry2.name === file.name);
-    return { name: file.name, ok: found.length === 1 && new TextDecoder().decode(found[0].bytes) === file.text };
-  });
-  const ok3 = checks.every((check2) => check2.ok);
-  return {
-    fingerprint: fingerprint2,
-    outputHash: `sha256:${await sha256Hex(bytes2)}`,
-    state: ok3 ? "readback-confirmed" : "written",
-    expected: plan.required.map((notice) => notice.work),
-    observed: ok3 ? plan.required.map((notice) => notice.work) : [],
-    checks,
-    credits: attributionCredits(plan),
-    remaining: ok3 ? [] : [{ code: "attribution.delivery-missing", summary: "The package credits could not be read back as written.", rule: "companion-readback-v1", remedies: [{ kind: "copy-credit", label: "Copy the credit and add it where the file is shared" }] }]
-  };
-}
-var init_rights_companion = __esm({
-  "engine/src/rights-companion.ts"() {
-    "use strict";
-    init_rights_attribution();
-    init_bytes();
-    init_zip();
-  }
-});
-
 // engine/src/sequence-marks.ts
 function parseSequenceMarks(wire) {
   const result = { markers: [] };
@@ -183242,124 +183421,12 @@ init_design_brief2();
 
 // packages/node-shell/src/brand-skills.ts
 init_src2();
-import { readFileSync as readFileSync5 } from "node:fs";
-
-// engine/src/asset-rights.ts
-init_rights_profiles();
-var SOURCE_HASH = /^sha256:[0-9a-f]{64}$/;
-function readAssetRightsRecord(value2) {
-  if (!value2 || typeof value2 !== "object" || Array.isArray(value2)) return null;
-  const works = value2.works;
-  if (Array.isArray(works)) return works.length ? readAssetRightsRecord(works[0]) : null;
-  const record49 = value2;
-  if (typeof record49.id !== "string") return null;
-  const creators = Array.isArray(record49.creators) ? record49.creators.filter((party) => !!party && typeof party === "object" && typeof party.name === "string").slice(0, 32) : [];
-  const rights = Array.isArray(record49.rights) ? record49.rights.filter((evidence) => !!evidence && typeof evidence === "object" && typeof evidence.declaration === "string").slice(0, 16) : [];
-  return {
-    id: record49.id,
-    ...typeof record49.title === "string" ? { title: record49.title } : {},
-    creators,
-    ...typeof record49.sourceUrl === "string" ? { sourceUrl: record49.sourceUrl } : {},
-    // The two fields a derived file needs to bind the source's exact bytes,
-    // kept only in the shape the credential writer accepts.
-    ...typeof record49.revision === "string" && record49.revision.length <= 256 ? { revision: record49.revision } : {},
-    ...typeof record49.sourceHash === "string" && SOURCE_HASH.test(record49.sourceHash) ? { sourceHash: record49.sourceHash } : {},
-    rights
-  };
-}
-function assetLicenceDeclaration(meta) {
-  const legacy = typeof meta?.license === "string" ? meta.license.trim() : "";
-  if (legacy) return legacy;
-  const record49 = readAssetRightsRecord(meta?.rights);
-  const found = record49?.rights.find((evidence) => evidence.status !== "missing" && evidence.status !== "not-applicable" && evidence.declaration.trim());
-  return found?.declaration.trim() ?? "";
-}
-function assetRightsNotices(value2) {
-  const out = [];
-  for (const evidence of evidenceArrayOf(value2)) {
-    const notices = evidence.notices;
-    if (!Array.isArray(notices)) continue;
-    for (const notice of notices.slice(0, 8)) if (typeof notice === "string" && notice.trim()) out.push(notice.trim());
-  }
-  return out;
-}
-function evidenceArrayOf(value2) {
-  if (!value2 || typeof value2 !== "object" || Array.isArray(value2)) return [];
-  const works = value2.works;
-  if (Array.isArray(works)) return works.slice(0, 64).flatMap((work) => evidenceArrayOf(work));
-  const rights = value2.rights;
-  return Array.isArray(rights) ? rights.slice(0, 16) : [];
-}
-var OWNER_PUBLISHED = "Owner-published, not an open licence";
-var OWNER_HOLDER_MAX = 256;
-var OWNER_TERMS_MAX = 1024;
-function ownerPublished(value2) {
-  if (!value2 || typeof value2 !== "object" || Array.isArray(value2)) return null;
-  const works = value2.works;
-  const work = Array.isArray(works) ? works[0] : value2;
-  if (!work || typeof work !== "object" || Array.isArray(work)) return null;
-  const { creators, rights, grants } = work;
-  if (!Array.isArray(creators) || !Array.isArray(rights) || !Array.isArray(grants)) return null;
-  const declared = rights.slice(0, 16).some((row) => {
-    const evidence = row;
-    return !!evidence && typeof evidence.declaration === "string" && !!evidence.declaration.trim() && evidence.status !== "missing" && evidence.status !== "not-applicable";
-  });
-  const owner3 = creators.slice(0, 64).find((party) => {
-    const row = party;
-    return !!row && row.role === "owner" && typeof row.name === "string" && !!row.name.trim();
-  });
-  const grant = grants.slice(0, 16).find((row) => {
-    const entry2 = row;
-    return !!entry2 && entry2.kind === "own-work" && entry2.asserted === true && typeof entry2.scope === "string" && !!entry2.scope.trim();
-  });
-  if (!declared || !owner3 || !grant) return null;
-  return { holder: owner3.name.trim().slice(0, OWNER_HOLDER_MAX), terms: grant.scope.trim().slice(0, OWNER_TERMS_MAX) };
-}
-function claimsOwnWork(value2) {
-  const works = value2 && typeof value2 === "object" ? value2.works : null;
-  const work = Array.isArray(works) ? works[0] : value2;
-  const grants = work && typeof work === "object" ? work.grants : null;
-  return Array.isArray(grants) && grants.slice(0, 16).some((grant) => !!grant && grant.kind === "own-work");
-}
-function redistribution(meta) {
-  const declared = assetLicenceDeclaration(meta);
-  const normalised = declared ? normaliseLicence(declared) : null;
-  const profile2 = normalised?.id ? licenceProfile(normalised.id) : null;
-  const licence = profile2?.name ?? normalised?.id ?? "";
-  const notices = assetRightsNotices(meta.rights);
-  if (meta.brandLock === true) {
-    return { travels: false, kind: "policy", reason: "this brand pack is authoritative on this device", licence, notices };
-  }
-  if (!profile2?.reviewed) {
-    const owner3 = ownerPublished(meta.rights);
-    if (owner3) {
-      return { travels: true, kind: "licence", reason: "", licence: OWNER_PUBLISHED, notices: notices.includes(owner3.terms) ? notices : [...notices, owner3.terms], owner: owner3 };
-    }
-    if (claimsOwnWork(meta.rights)) {
-      return { travels: false, kind: "unknown", reason: "the own-work record is missing its owner, its terms or its licence declaration", licence, notices };
-    }
-  }
-  if (!declared) return { travels: false, kind: "unknown", reason: "licence not recorded", licence, notices };
-  if (!profile2?.reviewed) {
-    return {
-      travels: false,
-      kind: "unknown",
-      reason: normalised?.id ? `${normalised.id} is recorded and not yet interpreted` : `${declared} was not recognised`,
-      licence,
-      notices
-    };
-  }
-  if (profile2.redistributeSource !== "permitted-with-notices") {
-    return { travels: false, kind: "licence", reason: `${profile2.name} does not record permission to pass on the source file`, licence, notices };
-  }
-  return { travels: true, kind: "licence", reason: "", licence, notices };
-}
-
-// packages/node-shell/src/brand-skills.ts
+init_asset_rights();
 init_brand_skill_v1();
 init_content_roots();
 init_design_brief2();
 init_design_system2();
+import { readFileSync as readFileSync5 } from "node:fs";
 function rootsFor2(opts) {
   try {
     return contentRoots({

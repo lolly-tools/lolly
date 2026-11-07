@@ -6,6 +6,7 @@ import { t } from '../../i18n.ts';
 import { icon } from '../../lib/icons.ts';
 import { catalogSubmitter } from '../../lib/catalog-submit.ts';
 import { escape as escapeText } from '../../utils.ts';
+import { workspaceTemplateOf, type WorkspaceTemplate } from '../../lib/workspace-templates.ts';
 import { bindOp, type DetailsCtx } from './details-context.ts';
 import { CHEVRON_RIGHT, CROP_ICON, DOWNLOAD_ICON, EYE_ICON, EYE_OFF_ICON, PENCIL_ICON, REPLACE_ICON, SHARE_ICON, STAR_ICON, TAG_ICON, TRASH_ICON, emojiPackMeta, startableTemplate } from './shared.ts';
 
@@ -18,9 +19,17 @@ interface EditAction {
   menu?: boolean;
 }
 
+/** The route Use opens for a workspace template, which is also what Copy link copies:
+ *  a colleague in the same workspace opens the tool with the template's rules. */
+export function templateUseHash(tpl: Pick<WorkspaceTemplate, 'toolId' | 'id'>): string {
+  return `#/tool/${encodeURIComponent(tpl.toolId)}?template=${encodeURIComponent(tpl.id)}`;
+}
+
 export function editingHtml(dt: DetailsCtx): string {
   const { cat, ref } = dt;
   if (cat.preview && ref.source === 'remote') return '';
+  // A workspace template is a set of values, not a file to edit or convert.
+  if (workspaceTemplateOf(ref)) return '';
   const actions: EditAction[] = [
     { act: 'open-with', label: t('Open with'), glyph: icon('box'), available: true, disabled: !cat.actions.choices([ref]).length, menu: true },
     { act: 'convert', label: t('Convert…'), glyph: REPLACE_ICON, available: true, disabled: !cat.actions.canConvert([ref]) },
@@ -62,6 +71,18 @@ export function sidebarHtml(dt: DetailsCtx): string {
   const shared = !!cat.preview && ref.source === 'remote';
   const button = (act: string, label: string, glyph = '', cls = '', attrs = ''): string =>
     `<button type="button" class="btn ${cls}" data-act="${act}" ${attrs}>${glyph}<span>${escapeText(label)}</span></button>`;
+  const favourite = (): string => button('fav', fav ? t('Favourited') : t('Favourite'), STAR_ICON, `cat-act-fav${fav ? ' is-fav' : ''}`, `data-sfx="twinkle" aria-pressed="${fav}"`);
+  // A workspace template keeps Use, Favourite and Copy link, which copies the Use route.
+  // Its JSON holds the brand team's fixed values and leads nowhere in a person's files,
+  // so there is no Download and no file action. Copy link is marked for the inspector's
+  // primary row, beside Use.
+  if (workspaceTemplateOf(ref)) {
+    const use = startableTemplate(ref);
+    return `<div class="cat-details-actions">
+    ${button('share', t('Copy link'), SHARE_ICON, 'cat-act-share', 'data-inspector-primary')}
+    ${shared ? '' : `<div class="cat-act-row">${favourite()}${use ? button('use-template', t('Use'), icon('arrowRight'), 'btn--primary cat-act-use-template') : ''}</div>`}
+  </div>`;
+  }
   const sharing = [
     button('download', configurable ? t('Download…') : t('Download'), DOWNLOAD_ICON, 'cat-act-download'),
     dt.isTextAsset && !shared ? button('dl-as', t('Download as'), DOWNLOAD_ICON, 'cat-act-dl-as', 'aria-haspopup="menu" aria-expanded="false"') : '',
@@ -80,7 +101,7 @@ export function sidebarHtml(dt: DetailsCtx): string {
       ${isUser ? button('delete', t('Move to Trash'), TRASH_ICON, 'cat-act-danger') : hidden ? button('unhide', t('Unhide'), EYE_ICON) : button('hide', t('Hide'), EYE_OFF_ICON, 'cat-act-danger')}
     </div></details>`;
   return `<div class="cat-details-actions">
-    ${shared ? '' : `<div class="cat-act-row">${button('fav', fav ? t('Favourited') : t('Favourite'), STAR_ICON, `cat-act-fav${fav ? ' is-fav' : ''}`, `data-sfx="twinkle" aria-pressed="${fav}"`)}
+    ${shared ? '' : `<div class="cat-act-row">${favourite()}
       ${emojiPackMeta(ref) ? button('use-emoji-set', t('Use this set'), icon('smile'), 'cat-act-use-emoji', 'aria-pressed="false"') : ''}
       ${startableTemplate(ref) ? button('use-template', t('Use'), icon('arrowRight'), 'btn--primary cat-act-use-template') : ''}</div>`}
     <details class="cat-action-group" open><summary>${t('Share & export')}</summary><div class="cat-act-row">${sharing}</div></details>
@@ -146,5 +167,6 @@ export function controlsOps(dt: DetailsCtx) {
     sidebarHtml: bindOp(dt, sidebarHtml),
     handleEditingClick: bindOp(dt, handleEditingClick),
     wireControls: bindOp(dt, wireControls),
+    templateUseHash,
   };
 }

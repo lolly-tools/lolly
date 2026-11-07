@@ -28,6 +28,7 @@ import {
   type PartnerKitV1,
 } from '@lolly-tools/core/partner-kit-v1';
 import { colorToHex, createTokenSet, toSwatch } from './tokens.ts';
+import { colorToHexString, parseColor } from './css-color.ts';
 import { hexToOklch } from './brand-derive.ts';
 
 let validator: ValidateFunction<PartnerKitV1> | undefined;
@@ -111,16 +112,19 @@ export function partnerKitLogoIds(kit: Pick<PartnerKitV1, 'logos'>): string[] {
   return ids;
 }
 
-/** `#rrggbb` in lower case for an opaque colour, else null (translucent or unreadable). */
+/**
+ * `#rrggbb` in lower case for an opaque colour, else null (translucent or unreadable).
+ * A token value object goes through `colorToHex`; a CSS colour, named ones included
+ * (`red`, `black`, which `colorToHex` and `extractSvgColors` keep as names), goes through
+ * the CSS colour parser.
+ */
 function opaqueHex(value: unknown): string | null {
-  const hex = typeof value === 'string' && value.startsWith('#') ? value : colorToHex(value);
-  if (typeof hex !== 'string') return null;
-  const h = hex.trim().toLowerCase();
-  if (/^#[0-9a-f]{6}$/.test(h)) return h;
-  if (/^#[0-9a-f]{6}ff$/.test(h)) return h.slice(0, 7);
-  if (/^#[0-9a-f]{3}$/.test(h)) return `#${h[1]}${h[1]}${h[2]}${h[2]}${h[3]}${h[3]}`;
-  if (/^#[0-9a-f]{3}f$/.test(h)) return `#${h[1]}${h[1]}${h[2]}${h[2]}${h[3]}${h[3]}`;
-  return null;
+  const text = typeof value === 'string' ? value : colorToHex(value);
+  if (typeof text !== 'string' || !text.trim()) return null;
+  const parsed = parseColor(text.trim());
+  if (!parsed || parsed.alpha < 1) return null;
+  const hex = colorToHexString({ ...parsed, alpha: 1 }).toLowerCase();
+  return /^#[0-9a-f]{6}$/.test(hex) ? hex : null;
 }
 
 const ROLE_WORD: Record<PartnerKitColourRoleV1, string> = {
@@ -160,6 +164,18 @@ function namedElsewhere(tokens: ReturnType<typeof createTokenSet>, value: string
 }
 
 /**
+ * The document's own name for its light look, matched without regard to case, so a
+ * Tokens Studio file whose themes are `Light` and `Dark` is read in `Light` even when the
+ * file was saved with `Dark` active. Undefined when no theme is called light, which reads
+ * the document in the theme it is set to.
+ */
+function lightThemeName(doc: unknown): string | undefined {
+  const themes = createTokenSet(doc).themes();
+  const light = themes.find(t => t.name.trim().toLowerCase() === 'light') ?? themes.find(t => (t.id ?? '').trim().toLowerCase() === 'light');
+  return light ? (light.name || light.id) : undefined;
+}
+
+/**
  * Propose kit colours from a DTCG token document (one a reader such as `coerceTokensDoc`,
  * `assembleTokenSetFiles` or `extractPenpotProject` has already produced): the primary,
  * secondary and accent colours of the light look, read from `color.semantic.<role>`, then
@@ -170,7 +186,8 @@ function namedElsewhere(tokens: ReturnType<typeof createTokenSet>, value: string
 export function partnerKitColoursFromTokens(doc: unknown): PartnerKitColourV1[] {
   let tokens: ReturnType<typeof createTokenSet>;
   try {
-    tokens = createTokenSet(doc, { theme: 'light' });
+    const light = lightThemeName(doc);
+    tokens = createTokenSet(doc, light ? { theme: light } : {});
   } catch {
     return [];
   }
