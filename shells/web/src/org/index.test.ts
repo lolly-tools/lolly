@@ -60,7 +60,8 @@ const { initOrg, orgConfig, orgSession, orgAdminHref, orgMemberSignedIn, orgProf
 const { hasInstanceSession, setInstanceSession } = await import('../lib/instance.ts');
 const { flagHidden, isFlagOn, flagEnabled, hydrateFeatureFlags, NEUROSPICY_FLAG, JELLY_FLAG, STRIP_UPLOAD_META_FLAG } = await import('../feature-flags.ts');
 const { getFieldPolicy, _clearFieldPoliciesForTests } = await import('../lib/field-policy.ts');
-const { getInputPolicy, notifyToolInputMount, _clearInputPoliciesForTests } = await import('../lib/input-policy.ts');
+const { getInputPolicy, notifyToolInputMount, policyValuesFor, toolStartValues, _clearInputPoliciesForTests } = await import('../lib/input-policy.ts');
+const { workspaceCompany, setWorkspaceCompany } = await import('../lib/workspace-templates.ts');
 const ORG_CONFIG_KEY = 'lolly:org-config:same-origin';
 const { getExportPolicy, exportAffordance, _clearExportPolicyForTests } = await import('../lib/export-policy.ts');
 const { aiAllowed } = await import('../lib/ai-policy.ts');
@@ -705,6 +706,58 @@ test('applyOrgToolPolicies maps the per-tool contract onto the input-policy regi
   // stays installed, so a surface hosting several tools reads them all.
   applyOrgToolPolicies();
   assert.equal(getInputPolicy('event-badge', 'logo')?.mode, 'locked', 'still installed after another mount');
+});
+
+test('a partner company: bound inputs it locks are filled and not offered, the logo follows the mode, and new work starts from its values', async () => {
+  reset();
+  setWorkspaceCompany(null);
+  controlPlane({
+    mode: 'open',
+    session: 'member',
+    orgConfig: {
+      instance: { name: 'SUSE' },
+      inboxUnread: 0,
+      partner: {
+        company: { id: 'northwind-it', name: 'Northwind IT', revision: 4, logos: { light: 'inst/nw-light', dark: 'inst/nw-dark' },
+          contact: { name: 'Rita Ortiz', email: 'rita@northwind.example' } },
+        programme: { id: 'resellers-emea', name: 'Resellers, EMEA' },
+      },
+      tools: {
+        'partner-data-sheet': {
+          inputs: [
+            { id: 'logo', access: { level: 'locked', value: 'inst/nw-light' } },
+            { id: 'details', access: { level: 'locked', value: 'Rita Ortiz, rita@northwind.example' } },
+          ],
+          bindings: { logo: 'logo', details: 'contact' },
+          defaults: { logo: 'inst/nw-light', details: 'Rita Ortiz, rita@northwind.example', bg: '#ffffff' },
+        },
+        'event-badge': { inputs: [{ id: 'logo', access: { level: 'locked', value: 'acme/logo' } }] },
+      },
+    },
+  });
+  await initOrg();
+  assert.equal(workspaceCompany()?.name, 'Northwind IT', 'known from the start, before any tool mounts');
+  applyOrgToolPolicies();
+  assert.equal(workspaceCompany()?.name, 'Northwind IT');
+  assert.deepEqual(workspaceCompany()?.logos, { light: 'inst/nw-light', dark: 'inst/nw-dark' });
+  assert.deepEqual(getInputPolicy('partner-data-sheet', 'details'), { mode: 'hidden', value: 'Rita Ortiz, rita@northwind.example' },
+    'filled and not a control, with no note naming anyone');
+  assert.deepEqual(getInputPolicy('partner-data-sheet', 'logo'), { mode: 'hidden', value: 'inst/nw-light', byMode: { light: 'inst/nw-light', dark: 'inst/nw-dark' } });
+  assert.equal(getInputPolicy('partner-data-sheet', 'price'), undefined, 'the price stays open');
+  assert.equal(getInputPolicy('event-badge', 'logo')?.mode, 'locked', 'an unbound lock is as before');
+  const model = [{ id: 'logo', value: null }, { id: 'details', value: 'Ask your reseller' }, { id: 'price', value: '€ 1' }];
+  assert.deepEqual(policyValuesFor('partner-data-sheet', model), { logo: 'inst/nw-light', details: 'Rita Ortiz, rita@northwind.example' });
+  assert.deepEqual(policyValuesFor('partner-data-sheet', model, 'dark').logo, 'inst/nw-dark');
+  assert.deepEqual(toolStartValues('partner-data-sheet'), { logo: 'inst/nw-light', details: 'Rita Ortiz, rita@northwind.example', bg: '#ffffff' });
+  assert.deepEqual(toolStartValues('event-badge'), {});
+});
+
+test('no partner block: no company, and nothing starts from one', async () => {
+  reset();
+  controlPlane({ mode: 'open', session: 'member', orgConfig: { instance: { name: 'SUSE' }, inboxUnread: 0, tools: {} } });
+  await initOrg();
+  applyOrgToolPolicies();
+  assert.equal(workspaceCompany(), null);
 });
 
 test('applyOrgToolPolicies carries the policy attribution through to the registry', async () => {
