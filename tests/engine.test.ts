@@ -160,6 +160,17 @@ test('url-mode: _spots=process is an opt-in export choice, never an input', () =
   assert.equal(serializeUrlState([], { spots: 'keep' }), '');
 });
 
+test('url-mode: _text=outline is an opt-in EMF text choice, never an input', () => {
+  const on = parseUrlState('heading=Hi&_text=outline', SAMPLE_MANIFEST);
+  assert.equal(on.text, 'outline');
+  assert.equal((on.values as Record<string, unknown>)._text, undefined);
+  assert.equal(parseUrlState('heading=Hi&_text= Outline ', SAMPLE_MANIFEST).text, 'outline');
+  // Absent, empty or anything else keeps the live EMF text records.
+  for (const q of ['heading=Hi', 'heading=Hi&_text=', 'heading=Hi&_text=1', 'heading=Hi&_text=live']) {
+    assert.equal(parseUrlState(q, SAMPLE_MANIFEST).text, null, q);
+  }
+});
+
 test('url-mode: RESERVED set matches the documented reserved-param list', () => {
   // Mirrors the header doc-comment in engine/src/url-mode.js AND the table in
   // docs/url-parameters.md. The docs aren't programmatically importable, so this inline
@@ -175,6 +186,8 @@ test('url-mode: RESERVED set matches the documented reserved-param list', () => 
     '_madewith',
     // Print declared spot inks as their process builds in the CMYK formats: `_spots=process`.
     '_spots',
+    // Draw EMF text as vector outlines: `_text=outline`.
+    '_text',
   ];
   assert.deepEqual([...RESERVED].sort(), [...documented].sort());
 

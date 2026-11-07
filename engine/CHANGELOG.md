@@ -6,6 +6,12 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+## 1.333.0
+
+- `url-mode.ts`: a reserved link parameter in the `_` namespace, `_text`, read into `UrlState.text` by `parseTextSetting` (new, exported with its type `TextSetting`). Only `outline` (any case, trimmed) does anything: an EMF export draws its text as outlines, the export panel's Outline fonts box, and a run no font can outline goes in as a picture. Absent, or any other value, keeps live EMF text records. Added to `RESERVED`. The CLI's browser tier sends it for `--export=emf --text=outline`.
+- `emfLiveTextRecords(bytes)` (new, `emf.ts`, not on the barrel): how many `EMR_EXTTEXTOUTW` records an EMF holds, walking the records by their own sizes; 0 for outlined or pictured text and for bytes that are not an EMF. The CLI reads it to warn only when a browser tier that predates `_text` wrote live text.
+- No other module changes, and no file's bytes change without `_text=outline`.
+
 ## 1.332.0
 
 - `preflight.ts`: the CMYK TIFF (`cmyk-tiff`) and EPS (CMYK) (`eps-cmyk`) write the four process plates and nothing else, since a spot ink goes in as its process build and a finish as its black mask (`buildCmykPaletteMap`). For those two formats `plates.spot-ceiling`, `plates.finish-ceiling` and `plates.no-spots-declared` are no longer emitted, so no `spotPlates` or `finishPlates` count is taken, with spot inks as process or not. `plates.process` says where the inks went ("This format has no named plates, so the 3 spot inks print as process and add no plates.") and lists them in its evidence. A finish keeps its `print.finish-flattened-into-process` error. `pdf-cmyk` is unchanged in every finding and count.
