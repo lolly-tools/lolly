@@ -319,7 +319,7 @@ A finish is not an ink. Foil, emboss, deboss, spot varnish, soft touch, die cut,
 
 The **Before you export** card and `lolly preflight` count the plates the file will have. With the box ticked they count the four process plates and any finish plates, and say that the spot inks print as process and add no plates. With the box clear they count up to one spot plate for each spot ink the design system gives, as before. A rate card prices those counts, so it does not price spot plates that the file will not have.
 
-The **Print TIFF** and **EPS (CMYK)** have no named plates, so they print every ink in process with or without the choice.
+The **Print TIFF** and **EPS (CMYK)** have no named plates, so they print every ink in process with or without the choice. For those two formats the card and `lolly preflight` count the four process plates and never a spot or finish plate. A finish goes into them as its black mask on the black plate, and the card reports that as an error.
 
 A link asks for the same file with `_spots=process`, the command line with `--spots=process`, the [MCP server](/info/mcp.html) with `spots: "process"` and the terminal app with its **Spot inks** row. Nothing about the choice goes into the file: only the inks change.
 
