@@ -84,6 +84,7 @@ import { installDropHold, viewFailed, viewLoading, viewReady, type DropNote } fr
 import { noteLeavingHref, takeLeavingHref, recordLeave, noteMountedView, rememberViewOnLeave } from './lib/back-nav.ts';
 import { startWebGpuCheck, webGpuChecked } from './lib/webgpu/device.ts';
 import { STARTUP_PENDING_ATTRIBUTE } from './lib/startup-motion.ts';
+import { takeViewInput } from './lib/view-input.ts';
 
 // The collab + nearby wiring, installed once the critical load is done rather than at
 // module scope. All five are REGISTRATIONS - a Share-dialog row, the opener that row
@@ -531,6 +532,9 @@ async function navigate(host: WebHost, opts: { force?: boolean } = {}): Promise<
   try { view._cleanup?.(); } catch (e) { console.error('[nav] outgoing view cleanup threw:', e); }
   delete view._cleanup;
   delete view._beforeLeave;
+  // A promise the outgoing view never handed over (its mount was superseded) must not
+  // hold back the announcement of the next view.
+  takeViewInput(view);
 
   // The Projects "+ New tool" / resume flow arms one-shot sessionStorage markers
   // (lolly:fileInto, lolly:returnTo) that the tool view READS on mount (it can't
@@ -985,6 +989,18 @@ async function navigate(host: WebHost, opts: { force?: boolean } = {}): Promise<
   // out over it. A no-op when there was no fade (same-view refresh, reduced motion).
   fade?.commit();
 
+  // Say "loaded" when the view takes input. A tool view that opens a saved document keeps
+  // its modal "Opening…" card up until the runtime settles (lib/view-input.ts), so the
+  // announcement and the focus move wait for that card. Announced before the card went,
+  // a person or a script typed into a page the card still blocked, and the keystrokes
+  // were lost. Not awaited, so a caller that awaits navigate() is not held behind the card.
+  const usable = takeViewInput(view);
+  if (!usable) arriveAt(route, view);
+  else void usable.then((ready) => { if (ready && navigation === navigationSeq) arriveAt(route, view); });
+}
+
+/** Tell assistive tech the view has changed and move focus into the view. */
+function arriveAt(route: Route, view: HTMLElement): void {
   announceRoute(route);
   const af = document.activeElement;
   // A framed tool (`?iframe`) never takes focus on its own: the page around it owns the

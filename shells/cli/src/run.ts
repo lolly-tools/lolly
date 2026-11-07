@@ -18,6 +18,7 @@ import { xlsxRecalc } from '@lolly-tools/node-shell/gridcraft-calc-node';
 import { checkPdfAccessibility } from '@lolly-tools/node-shell/pdf-a11y-node';
 import { isFileTransform } from '@lolly-tools/node-shell/transform-tool';
 import { withoutRecordedBrandPage } from '../../../engine/src/brand-page-address.ts';
+import { emfLiveTextRecords } from '../../../engine/src/emf.ts';
 import { colourRoleThemeAccents, assertMotionRequest, assertSampleRequest, sampleOutputFormat, buildExportMeta, designRecordWords, readFileDesignRecord, loadTool, createRuntime, canvasSizeOf, annotateTemplate, parseUrlState, parseSpots, serializeUrlState, serializeHdr, expandQuery, frameFilterApplies, embedC2pa, extractC2paStore, pdfWithoutCredential, C2PA_FORMATS, c2paDefaultOn, imprintDefaultOn, isImprintFormat, IMPRINT_FORMATS, normalizeLang, parseDataRows, parseTableText, hasEncryptedState, unpackEncrypted, ENC_PARAM, RESERVED, parseRateCard, isRateCardError, validateRateCard, sfntKind, storeZip, readXlsx, listXlsxSheets, rowsToCsv } from '@lolly/engine';
 import { createHash } from 'node:crypto';
 import type { Lang, PlacedPictures } from '@lolly/engine';
@@ -397,9 +398,10 @@ let stdinReplay: { bytes: Buffer; used: boolean } | null = null;
  * browser tier's page is given the same one. With no `--file`, an active terminal system is what this runtime
  * resolves in, so the page is given that one; with neither, the page keeps its content
  * profile's system, which is this runtime's too. `--file` belongs to Design alone, and a
- * share link cannot carry a design system.
+ * share link cannot carry a design system. `lolly preflight` reads `--file` through this
+ * too, so the palette it counts is the one the export separates with.
  */
-async function designSystemForRun(
+export async function designSystemForRun(
   toolId: string, file: string | undefined, share: boolean | undefined,
 ): Promise<{ runDesignSystem: Record<string, unknown> | null; pageDesignSystem: Record<string, unknown> | null }> {
   if (file !== undefined) {
@@ -1353,6 +1355,8 @@ async function runToolCliCandidate({ toolId, inputValues, params, repeated = {},
     // refusal (exit 4), because a strict pipeline asked for "outlined or nothing".
     // emf INVERTS the default (live GDI text records since engine 1.128), so BOTH
     // values must be forwarded - `--text=outline` is emf's opt-out, not a no-op.
+    // A link's `_text=outline` asks for the same EMF outlines, so it reads as the flag.
+    if (text === undefined && parsedUrl.text === 'outline' && targetFormat.toLowerCase() === 'emf') text = 'outline';
     if (text) {
       exportOpts.text = text;
       if (targetFormat === 'pdf' && tool.manifest.id === 'design') exportOpts.convertPaths = text === 'outline';
@@ -1390,6 +1394,10 @@ async function runToolCliCandidate({ toolId, inputValues, params, repeated = {},
       ...(pressProfile ? { pressProfile } : {}),
       // Opt-in, so only the request travels to the browser tier (`_spots=process`).
       ...(spotsAsProcess ? { spotsAsProcess: true } : {}),
+      // EMF keeps live text by default on both tiers, so `--text=outline` is a request the
+      // browser tier must be told (`_text=outline`); a run no font can outline is the one
+      // the Node tier hands it, and the web shell pictures that run as it does in the panel.
+      ...(text === 'outline' && targetFormat.toLowerCase() === 'emf' ? { textOutline: true } : {}),
       // Forward the RESOLVED c2pa setting so the browser tier stamps it (single
       // authority); the Node post-stamp below is skipped when the browser ran, avoiding
       // a double-stamp. Always forwarded now that the default is on: leaving the param
@@ -1625,20 +1633,20 @@ async function runToolCliCandidate({ toolId, inputValues, params, repeated = {},
 
     // `--text=live` on the BROWSER tier is a no-op, and used to be a silent one: the flag
     // is applied by this shell's own DOM-free exporter, and the browser tier is driven
-    // through a URL, where there is no reserved param for it (see RESERVED in
+    // through a URL, where there is no reserved param for `live` (see RESERVED in
     // engine/src/url-mode.ts). A run that escalated therefore came back outlined while
     // the caller had asked for editable <text>, byte-identical to a run without the flag.
-    // Report it rather than let the flag look honoured. The browser tier follows the
-    // WEB defaults and `--text` does not travel to it: svg comes back outlined
-    // (so an explicit `live` did not apply), and emf comes back LIVE since engine
-    // 1.128 (so an explicit `outline` did not apply). Warn on exactly the
-    // combination whose flag the produced file contradicts.
-    if (webShellExport && text && (
-      (text === 'live' && targetFormat.toLowerCase() !== 'emf') ||
-      (text === 'outline' && targetFormat.toLowerCase() === 'emf'))) {
+    // Report it rather than let the flag look honoured: svg comes back outlined, the web
+    // default. EMF `--text=outline` does travel, as `_text=outline`, so it is reported
+    // only when the file still holds live text records, which is what a web shell or
+    // desktop app that predates the param writes.
+    const emfOutlineIgnored = text === 'outline' && targetFormat.toLowerCase() === 'emf' && emfLiveTextRecords(buf) > 0;
+    if (webShellExport && text && ((text === 'live' && targetFormat.toLowerCase() !== 'emf') || emfOutlineIgnored)) {
       warn('TEXT_LIVE_IGNORED',
         `--text=${text} did not apply: "${targetFormat}" for this tool was produced by the browser render tier, ` +
-        `which follows the web default (${targetFormat.toLowerCase() === 'emf' ? 'live text records' : 'outlined text'}). ` +
+        (emfOutlineIgnored
+          ? 'which wrote live text records, so it does not read the outline request (_text=outline). Update the web shell or desktop app it uses. '
+          : 'which follows the web default (outlined text). ') +
         'The file is the same as one exported without the flag.');
     }
 

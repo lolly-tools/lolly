@@ -166,6 +166,8 @@ export function resolveExportFormat(tview: ToolViewCtx): void {
       // Spot inks as process from ?_spots=process. Link-only, like `password`: a saved
       // session does not record it, so only a link that asks ticks the box.
       spots: tview.openedSession.url.spots === 'process' || undefined,
+      // EMF text as outlines from ?_text=outline: ticks the Outline fonts box. Link-only too.
+      emfOutline: tview.openedSession.url.text === 'outline' || undefined,
       // Never restored from saved state. Browser automation supplies its one-time
       // value over a Playwright binding, so it does not enter URL/history/logs.
       password: urlPassword || automationPassword || undefined,
@@ -328,6 +330,10 @@ export async function linkExport(tview: ToolViewCtx): Promise<void> {
     // Set only on request, so a link without it exports exactly as before.
     if (tview.openedSession.url.spots === 'process') expOpts.spotsAsProcess = true;
   }
+  // ?_text=outline: an EMF draws its text as outlines, as the Outline fonts box does, and a
+  // run no font can outline goes in as a picture. The CLI's browser tier sends it for
+  // `--text=outline`; without it an EMF keeps its live text records.
+  if (fmt === 'emf' && tview.openedSession.url.text === 'outline') expOpts.text = 'outline';
   // HTML: honour ?nostage so a deep link auto-exports the full-page document
   // (no fixed-size canvas frame) - mirrors the panel's "Full page" toggle.
   if (fmt === 'html' && urlNostage) expOpts.fullPage = true;

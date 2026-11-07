@@ -222,3 +222,79 @@ export function redistribution(meta: Record<string, unknown>): Redistribution {
   }
   return { travels: true, kind: 'licence', reason: '', licence, notices };
 }
+
+// The `.lolly` credits text, moved down from the web shell so a Lolly Work ZIP and a
+// `.lolly` pack print one text from one function.
+
+/** One catalog work whose bytes travelled inside the pack. */
+export interface PackCreditEntry {
+  label: string;
+  id: string;
+  path: string;
+  licence?: string;
+  credit?: string;
+  notices?: string[];
+  /** True when the sender chose to include bytes that were held back by default. */
+  includedByChoice?: true;
+}
+
+/** One catalog work whose bytes did NOT travel, and the reason. */
+export interface PackHoldEntry {
+  label: string;
+  id: string;
+  reason: string;
+  /**
+   * Whether a deployment rule or a licence condition held the bytes back.
+   * Printed as its own line, because a catalog lock read as a licence condition
+   * would misrepresent a brand policy as an extra copyright term on open
+   * material (plan 253 section 11).
+   */
+  kind?: 'policy' | 'licence' | 'unknown';
+  licence?: string;
+}
+
+/** How each kind of hold reads in a credits file. */
+const HOLD_KIND: Record<'policy' | 'licence' | 'unknown', string> = {
+  policy: 'deployment policy',
+  licence: 'licence condition',
+  unknown: 'nothing recorded about passing these bytes on',
+};
+
+/**
+ * The pack's readable credits: every catalog work whose bytes travelled, with its
+ * licence, credit and any notice the licence asks to travel, then every work that
+ * was held back with the reason it was.
+ *
+ * It is a record, not a clearance. It says what this file carries and what it does
+ * not; it does not say a use is permitted, and a work with no licence recorded
+ * reads exactly that way. Returns '' when no catalog work was involved at all.
+ */
+export function packCreditsText(carried: readonly PackCreditEntry[], heldBack: readonly PackHoldEntry[]): string {
+  if (!carried.length && !heldBack.length) return '';
+  const lines: string[] = ['Credits for the catalog works in this file.', ''];
+  if (carried.length) {
+    lines.push(`Travelled with this file (${carried.length}):`, '');
+    for (const entry of carried) {
+      lines.push(`- ${entry.label} (${entry.id})`);
+      lines.push(`  file:    ${entry.path}`);
+      lines.push(`  licence: ${entry.licence || 'not recorded'}`);
+      if (entry.credit) lines.push(`  credit:  ${entry.credit}`);
+      if (entry.includedByChoice) lines.push('  included by the sender, who chose to carry bytes held back by default');
+      for (const notice of entry.notices ?? []) lines.push(`  notice:  ${notice}`);
+      lines.push('');
+    }
+  }
+  if (heldBack.length) {
+    lines.push(`Held back (${heldBack.length}) - referenced, but the bytes are not in this file:`, '');
+    for (const entry of heldBack) {
+      lines.push(`- ${entry.label} (${entry.id})`);
+      lines.push(`  licence: ${entry.licence || 'not recorded'}`);
+      lines.push(`  held by: ${HOLD_KIND[entry.kind ?? 'unknown']}`);
+      lines.push(`  reason:  ${entry.reason}`);
+      lines.push('');
+    }
+    lines.push('Open the file on a device that already has these works, or ask the sender.', '');
+  }
+  lines.push('Keep this file with the design when you pass it on.');
+  return lines.join('\n');
+}

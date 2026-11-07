@@ -457,7 +457,7 @@
   "shells/web/src/bridge/export-scale.ts": 1,
   "shells/web/src/bridge/export-shared.ts": 5,
   "shells/web/src/bridge/export-stroke-paint.test.ts": 1,
-  "shells/web/src/bridge/export-svg-walker.ts": 23,
+  "shells/web/src/bridge/export-svg-walker.ts": 22,
   "shells/web/src/bridge/export-text-emission.test.ts": 2,
   "shells/web/src/bridge/export.ts": 35,
   "shells/web/src/bridge/font-registry.ts": 8,
