@@ -25,7 +25,7 @@ import { runDesignChecks } from '../design-checks.ts';
 import { applyPreflight, isPreflightEnabled, preflightView } from '../export-preflight.ts';
 import { exportCheckFindings, exportCheckLines } from '../export-check.ts';
 import type { PreflightRow } from '../export-preflight.ts';
-import { fmtLabel, isC2paFmt, isCmykFmt, panelSize, printEnabled } from './shared.ts';
+import { fmtLabel, isC2paFmt, isCmykFmt, panelSize, printEnabled, spotsAsProcessChecked } from './shared.ts';
 import { bindOp, type ActionsCtx } from './context.ts';
 import { DOCUMENT_THEME_EVENT } from '../../lib/document-theme.ts';
 
@@ -256,6 +256,9 @@ export function preflightJob(ta: ActionsCtx, format?: string): { job: PreflightJ
       ),
       durable: el!.querySelector<HTMLInputElement>('[data-action="durable"]')?.checked ?? false,
       hdr: el!.querySelector<HTMLInputElement>('[data-action="hdr"]')?.checked ?? false,
+      // The export reads the box whether or not it is on screen (runExport), so the
+      // plate count does too: the inks it folds into process add no plate.
+      ...(spotsAsProcessChecked(el) ? { spotsAsProcess: true } : {}),
     },
     palette: ta.palette,
     stage: stageFacts(ta),

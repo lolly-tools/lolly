@@ -22,6 +22,8 @@ type Rec = Record<string, unknown>;
 const load = (path: string): Rec => JSON.parse(readFileSync(new URL(path, import.meta.url), 'utf8'));
 const SHIPPED = load('../brands/lolly-demo/catalog/assets/lolly/tokens/demo.json');
 const SINGLE_LEAD = load('./fixtures/colourway/lolly-demo-single-lead.json');
+/** Void's CMYK build since 2026-11-07: black on the K plate only, so small black text stays sharp on press. */
+const VOID_BUILD = [0, 0, 0, 100];
 
 const LOOKS = ['light', 'dark'] as const;
 type Look = (typeof LOOKS)[number];
@@ -73,8 +75,16 @@ test('every colourway role links to a named Opal colour, never a bare value', ()
 });
 
 test('the canonical colourway resolves every token exactly as the single-lead pack did', () => {
-  // The logo slots are the one deliberate change since the single-lead copy: the
-  // horizontal slots hold the wordmark now (tests/lolly-demo-wordmark.test.ts).
+  // Two deliberate changes since the single-lead copy: the horizontal logo slots hold
+  // the wordmark now (tests/lolly-demo-wordmark.test.ts), and Void's CMYK build is
+  // 100% K (VOID_BUILD), asserted on its own below.
+  const voidBuild = (ext: unknown): unknown => (ext as { 'com.suse.lolly'?: { cmyk?: unknown } } | undefined)?.['com.suse.lolly']?.cmyk;
+  const withoutBuild = (ext: unknown): unknown => {
+    const lolly = (ext as { 'com.suse.lolly'?: Record<string, unknown> } | undefined)?.['com.suse.lolly'];
+    if (!lolly) return ext ?? null;
+    const { cmyk: _cmyk, ...rest } = lolly;
+    return { ...(ext as Record<string, unknown>), 'com.suse.lolly': rest };
+  };
   for (const look of LOOKS) {
     const before = createTokenSet(SINGLE_LEAD, { selection: { '': look } }).query().filter(e => !e.path.startsWith('asset.logo.'));
     const selections: Record<string, string>[] = [{ '': look }, { '': look, colourway: 'spearmint' }];
@@ -83,6 +93,11 @@ test('the canonical colourway resolves every token exactly as the single-lead pa
       for (const e of before) {
         const now = after.get(e.path);
         assert.ok(now, `${e.path} still resolves under ${JSON.stringify(selection)}`);
+        if (e.path === 'color.brand.void') {
+          assert.deepEqual(voidBuild(now.extensions), VOID_BUILD, `Void prints on K alone under ${JSON.stringify(selection)}`);
+          assert.deepEqual([now.type, now.value, now.description ?? null, withoutBuild(now.extensions)], [e.type, e.value, e.description ?? null, withoutBuild(e.extensions)], `${e.path} under ${JSON.stringify(selection)}`);
+          continue;
+        }
         assert.deepEqual([now.type, now.value, now.description ?? null, now.extensions ?? null], [e.type, e.value, e.description ?? null, e.extensions ?? null], `${e.path} under ${JSON.stringify(selection)}`);
       }
     }
