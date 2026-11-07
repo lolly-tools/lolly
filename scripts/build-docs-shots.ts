@@ -11,7 +11,9 @@
  * Content and recipe travel together in the .md - no side manifest. The query is
  * url-shot's own input vocabulary (url, waitMs, css, scrollDepth, zoom, crop*) plus
  * the reserved params width/height/dpi/format/filename and the pipeline-only
- * `tolerance`. This script scans docs/*.md, renders each recipe through the exact
+ * `tolerance`. A pipeline-only `system=<name>` installs a fixture design system from
+ * scripts/data/shot-systems.json before the route loads (installShotSystem). This
+ * script scans docs/*.md, renders each recipe through the exact
  * primitive url-shot's CLI export uses (packages/node-shell/src/url-capture.ts →
  * the scoped Chromium), and commits baselines at docs/shots/<filename>.<format>;
  * docs/build.ts rewrites each recipe src to /info/shots/<filename>.<format>. The
@@ -97,6 +99,7 @@ import {
   type RawImage, type ShotDef, type ShotVerdict,
 } from './lib/shot-compare.ts';
 import { optimizeShotSvg, svgFidelityGate } from './lib/svgo-shots.ts';
+import { SHOT_SYSTEMS_FILE, readShotSystems, shotSystem } from './lib/shot-systems.ts';
 import { catalogFile, contentRoots } from '@lolly-tools/node-shell/content-roots';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
@@ -184,6 +187,33 @@ const driveOptsFor = (shot: ShotDef): DriveOpts => ({
   onClickFallback: (selector, why) =>
     console.log(`    ⇢ ${shot.slug}: "${selector}" refused a real click (${why}) - dispatched in-page instead`),
 });
+
+/**
+ * Install the recipe's fixture design system (`system=<name>`, scripts/lib/shot-systems.ts)
+ * before its route loads. The shell's loopback hook `__lollyInstallBrand` writes the
+ * document through the studio's own chokepoint (installUserTokens) and makes it active,
+ * so the route then boots wearing it, exactly as it would for a person whose system that
+ * is. The context is the capture's own, so nothing outlives the shot. Runs in all three
+ * page paths - crop measure, vector walk, raster - or the frame would be measured on one
+ * system and photographed on another.
+ */
+async function installShotSystem(
+  page: { goto(url: string, o?: { waitUntil?: 'load'; timeout?: number }): Promise<unknown>; waitForFunction(fn: string, arg?: unknown, o?: { timeout?: number }): Promise<unknown>; evaluate<R, A>(fn: (arg: A) => R | Promise<R>, arg: A): Promise<R> },
+  baseUrl: string,
+  shot: ShotDef,
+): Promise<void> {
+  if (!shot.system) return;
+  const { doc, label } = shotSystem(ROOT, shot.system);
+  // Any route boots the shell and registers the hook; the profile view is a light one.
+  await page.goto(`${baseUrl}/#/profile`, { waitUntil: 'load', timeout: 45_000 });
+  await page.waitForFunction("typeof window.__lollyInstallBrand === 'function'", undefined, { timeout: ROUTE_READY_TIMEOUT_MS });
+  await page.evaluate(async ({ d, l }: { d: Record<string, unknown>; l: string }) => {
+    await (window as unknown as { __lollyInstallBrand: (doc: unknown, label: string) => Promise<void> }).__lollyInstallBrand(d, l);
+  }, { d: doc, l: label });
+  // A fresh document, so the shot's route boots on the installed system rather than
+  // routing inside the page that did the install.
+  await page.goto('about:blank');
+}
 
 interface Opts {
   accept: boolean;
@@ -434,6 +464,12 @@ function scanDocs(): Array<ShotDef & { file: string }> {
       } else if (!prior) {
         byName.set(r.slug, { ...r, file: f });
       }
+    }
+  }
+  const systems = readShotSystems(ROOT);
+  for (const r of byName.values()) {
+    if (r.system && !Object.hasOwn(systems, r.system)) {
+      problems.push(`${r.file}: recipe "${r.slug}" names system=${r.system}, which is not in ${SHOT_SYSTEMS_FILE}`);
     }
   }
   if (problems.length) throw new Error(`Bad screenshot recipes:\n  - ${problems.join('\n  - ')}`);
@@ -768,6 +804,7 @@ async function resolveSelectorCrop(baseUrl: string, shot: ShotDef): Promise<Part
   try {
     await ctx.addInitScript({ content: captureInit(shot.theme) });
     const page = await ctx.newPage();
+    await installShotSystem(page, baseUrl, shot);
     await page.goto(baseUrl + shot.route, { waitUntil: 'load', timeout: 45_000 });
     await page.evaluate(() => (document.fonts?.ready ?? Promise.resolve()).then(() => undefined)).catch(() => {});
     await waitForRouteMounted(page);
@@ -827,7 +864,10 @@ async function captureOneRaster(sharp: Sharp, baseUrl: string, shot: ShotDef): P
   let bytes: Uint8Array;
   try {
     ({ bytes } = await captureUrl(
-      { ...params, url: baseUrl + shot.route, initScript: captureInit(shot.theme), contextPrefs: captureContext(shot.theme), readyFunction: ROUTE_READY_PROBE },
+      {
+        ...params, url: baseUrl + shot.route, initScript: captureInit(shot.theme), contextPrefs: captureContext(shot.theme), readyFunction: ROUTE_READY_PROBE,
+        ...(shot.system ? { beforeLoad: (page) => installShotSystem(page, baseUrl, shot) } : {}),
+      },
       shot.format, dims,
     ));
     // The Lolly Imprint goes in BEFORE the compare: embedWatermark is a fixed,
@@ -935,6 +975,7 @@ async function captureVector(baseUrl: string, shot: ShotDef): Promise<VectorCapt
   try {
     await ctx.addInitScript({ content: captureInit(shot.theme) });
     const page = await ctx.newPage();
+    await installShotSystem(page, baseUrl, shot);
     await page.goto(baseUrl + shot.route, { waitUntil: 'load', timeout: 45_000 });
     await page.evaluate(() => (document.fonts?.ready ?? Promise.resolve()).then(() => undefined)).catch(() => {});
     await waitForRouteMounted(page);

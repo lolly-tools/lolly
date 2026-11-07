@@ -21,7 +21,7 @@ const EXPECTED: readonly string[] = [
   'onColourFloor', 'readColourRoles', 'refreshDerivedOnColours', 'removeColourRole', 'renameColourRole', 'reorderColourRoles',
   'setColourRoles', 'setRoleSameAsLight', 'setRoleValue', 'unbindRole',
   'AdoptColourRolesOptions', 'AdoptedColourRole', 'adoptColourRoles', 'colourRoleThemeAccents', 'withColourwayKindRestored',
-  // Additive 1.321: a server credential keeps the pictures the browser's credential recorded.
+  // Additive 1.322: a server credential keeps the pictures the browser's credential recorded.
   'PlacedPictures', 'pdfWithoutCredential', 'placedPicturesOf',
   // Additive 1.304 approval record in Content Credentials.
   'APPROVAL_RECORD_FORMATS', 'ApprovalNotRecordedReason', 'ApprovalRecordOutcome', 'C2paApprovalRecord',

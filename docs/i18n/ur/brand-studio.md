@@ -82,7 +82,7 @@
 
 جس گروپ میں ابھی نشان نہ ہوں وہ ایک لائن میں تہہ ہوتا ہے؛ اس کے سلاٹس دیکھنے کے لیے کھولیں۔ PNG، SVG، JPEG یا WebP شامل کرنے کے لیے سلاٹ پر کلک کریں، یا نشان بدلنے کے لیے بھرے سلاٹ پر کلک کریں۔ سب کچھ اس ڈیوائس پر رہتا ہے۔
 
-![لوگو سلاٹس جن میں Horizontal اور Vertical کھلے ہیں: ہر treatment اپنا سلاٹ ہے، اور ہر سلاٹ اختیاری ہے](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dlogos&width=1440&height=1600&dpi=192&waitMs=1600&drive=click%3A.be-logo-identity%3Edetails%3Anth-of-type%281%29%3Esummary%3Bclick%3A.be-logo-identity%3Edetails%3Anth-of-type%282%29%3Esummary%3Bwait%3A600&cropSelector=.be-logo-grid&format=svg&walker=1&dark=1&filename=bs-logo-slots)
+![لوگو سلاٹس جن میں Horizontal اور Vertical کھلے ہیں: ہر treatment اپنا سلاٹ ہے، اور ہر سلاٹ اختیاری ہے](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dlogos&system=new-design-system&width=1440&height=1600&dpi=192&waitMs=1600&drive=click%3A.be-logo-identity%3Edetails.be-logo-group--fold%3Anot%28.be-logo-group--custom%29%3Esummary%3Bwait%3A600&cropSelector=.be-logo-grid&format=svg&walker=1&dark=1&filename=bs-logo-slots)
 
 - **Custom marks** وہ نشان ہیں جنہیں آپ کا برانڈ اپنے نام سے پکارتا ہے، مثلاً آئیکن، crest یا favicon۔
 - **مزید identities۔** ذیلی برانڈ، پروڈکٹ یا ایونٹ کا اپنا مکمل سیٹ ہو سکتا ہے: **+ Add another logo** اور سیٹ کو نام دیں۔ آپ کا مرکزی سیٹ "Your logo" ہے۔ [Brand architectures](/info/brand-architectures.html) دکھاتا ہے کہ لوگو identity کب درست بلاک ہے۔
@@ -114,7 +114,7 @@
 
 ### رول: ٹولز کیا پڑھتے ہیں
 
-![The Colour roles table on Lolly Demo after choosing the suggested words Main, Accent, Supporting and Tertiary: the colourway chips, then each role with its light and dark colour, Main read as the lead colour and Accent as the partner colour, Supporting and Tertiary read by name only and marked Copied, and the readings no role fills listed under the table](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=2720&height=2000&dpi=192&waitMs=1800&cropSelector=%5Bdata-be-roles-fold%5D&format=svg&walker=1&dark=1&filename=bs-colour-roles)
+![The Colour roles table on Lolly Demo after choosing the suggested words Main, Accent, Supporting and Tertiary: the colourway chips, then each role with its light and dark colour, Main read as the lead colour and Accent as the partner colour, Supporting and Tertiary read by name only and marked Copied, and the readings no role fills listed under the table](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&system=wefthouse&width=2720&height=2000&dpi=192&waitMs=1800&cropSelector=%5Bdata-be-roles-fold%5D&format=svg&walker=1&dark=1&filename=bs-colour-roles)
 
 **Roles** بتاتے ہیں کہ ہر ٹول اور ایکسپورٹ میں کون سا رنگ کون سا کردار ادا کرتا ہے۔ وہ اختیاری ہیں (تین ڈھیلے رنگ اور کوئی رول نہیں بالکل اچھا سسٹم ہے)، کوئی بھی رنگ ایک لے سکتا ہے اور کنٹراسٹ ریڈ آؤٹ سطح کے مقابل ناپا جاتا ہے، پہلے APCA۔ ہر رول کی قطار پوری قوت پر اپنا رنگ، کھڑا ہوا starter رنگ، یا **↳ follows Primary** دکھاتی ہے۔
 
@@ -206,7 +206,7 @@
 
 جب اپنا کوئی فیس نہ ہو تو روم ایک کارڈ ہے: **Primary**، آج جو فیس اسے پیش کر رہا ہے اس میں پڑھنے کے سائز پر، **Starter** ٹیگ، **Choose for Primary** بٹن اور *"Nothing installs until you choose one."* لائن کے ساتھ۔ Headings، code اور italic primary کی پیروی کرتے ہیں جب تک آپ انہیں نہ چنیں؛ **Choose them separately** ان کے کارڈز دکھاتا ہے۔
 
-![Type روم ابھی تک کوئی فیس منتخب نہ ہونے کی صورت میں - reading سائز پر ایک کارڈ، اس پر ایک Starter ٹیگ، اور ایک بھرا ہوا Choose for Primary](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&dark=1&filename=brand-type)
+![Type روم ابھی تک کوئی فیس منتخب نہ ہونے کی صورت میں - reading سائز پر ایک کارڈ، اس پر ایک Starter ٹیگ، اور ایک بھرا ہوا Choose for Primary](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&system=new-design-system&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&dark=1&filename=brand-type)
 
 ایک فیس چنیں اور روم چار رول کارڈز، Fonts فہرست اور لائیو specimen میں کھلتا ہے:
 
@@ -217,7 +217,7 @@
 
 کارڈ صرف وہاں رنگت والا ہوتا ہے جہاں آپ نے وہ فیس انسٹال کیا، اور اس کا بٹن بتاتا ہے کہ وہ کس رول کے لیے ہے: آپ کے اپنے فیس پر **Change Headings** اور باقی ہر جگہ **Choose for Headings**۔ نمونے کی لائن کٹنے کے بجائے لپٹ جاتی ہے۔ کارڈ پر کچھ بھی کمٹ نہیں کرتا: بٹن اس رول کا compare stage کھولتا ہے۔
 
-![چاروں رول کارڈز ظاہر - ہر ایک اُس فیس میں سیٹ جو اس کی خدمت کرتی ہے، جہاں کسی نے فیس نہیں چنی وہاں Starter ٹیگ اور Italic Primary کی پیروی کرتا ہوا](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&width=1440&height=1000&dpi=192&waitMs=2600&drive=click%3A%5Bdata-be-typemore-toggle%5D%3Bwait%3A600&cropSelector=.be-typecard-grid&walker=1&format=svg&dark=1&filename=bs-type-specimen)
+![چاروں رول کارڈز ظاہر - ہر ایک اُس فیس میں سیٹ جو اس کی خدمت کرتی ہے، جہاں کسی نے فیس نہیں چنی وہاں Starter ٹیگ اور Italic Primary کی پیروی کرتا ہوا](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&system=new-design-system&width=1440&height=1000&dpi=192&waitMs=2600&drive=click%3A%5Bdata-be-typemore-toggle%5D%3Bwait%3A600&cropSelector=.be-typecard-grid&walker=1&format=svg&dark=1&filename=bs-type-specimen)
 
 ### کمپیئر اسٹیج
 

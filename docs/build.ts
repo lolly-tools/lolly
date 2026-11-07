@@ -2611,6 +2611,24 @@ function stripScript(): string {
  * an ordinary #id link and the browser does the move (and the site's reduced-motion-aware
  * scroll-behavior with it). The reading line sits under the fixed bar.
  */
+/**
+ * The docs search ranking (plan 354 D4): shells/web/src/lib/search/docs-rank.ts, the module
+ * the app's spotlight ranks docs with, bundled once here so both searches read the one
+ * index the same way and put a page ahead of its sections. DOCS_SEARCH_SCRIPT calls the bundle.
+ */
+let _rankJs: string | null = null;
+function docsRankScript(): string {
+  if (_rankJs === null) {
+    const out = buildSync({
+      entryPoints: [resolve(repoRoot, 'shells/web/src/lib/search/docs-rank.ts')],
+      bundle: true, write: false, format: 'iife', globalName: 'LollyDocsRank',
+      minify: true, platform: 'browser', target: 'es2019', logLevel: 'silent',
+    });
+    _rankJs = out.outputFiles[0]!.text.trim();
+  }
+  return `<script>\n${_rankJs}\n</script>`;
+}
+
 let _contentsJs: string | null = null;
 function contentsScript(): string {
   if (_contentsJs === null) {
@@ -3787,6 +3805,9 @@ html[data-a11y-motion="reduce"] .sidebar-chev{transition:none}
    a page's print edition beside it as an app button, on the title's last line
    rather than over the article's first. On a phone the button wraps under the title. */
 .mast-title{display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:1rem 2rem}
+/* The section label over the title (pageWayfinding): tucked to the title, a row of
+   the band's own. */
+.docs-mast-inner .docs-eyebrow{margin-bottom:-.9rem}
 .mast-title h1{flex:1 1 18rem;min-width:0}
 .mast-title .docs-edition-bar{margin:0 0 .35rem}
 /* The pathways strip at the top of the band (docs-chrome.css, which also makes it
@@ -5281,34 +5302,16 @@ var out=document.getElementById('docs-search-results');
 var base=wrap.getAttribute('data-search-base')||'/info';
 var records=null,pending=null,active=-1,timer;
 
-// Fold case and diacritics, so "recuperer" finds "récupérer" and the reverse.
-// NFD splits an accented letter into base + combining mark and the range strip
-// removes the mark; scripts that neither case-fold nor decompose pass through
-// unchanged, which is the correct no-op rather than a wrong transform.
-function norm(s){return String(s).toLowerCase().normalize('NFD').replace(/[\\u0300-\\u036f]/g,'');}
-
+// Folding and ranking are LollyDocsRank (docsRankScript, the app's own docs-rank.ts):
+// case and diacritics fold, every term must match (adding a word narrows), and a page
+// matched in its title leads its sections.
 function load(){
   if(records)return Promise.resolve(records);
   if(!pending)pending=fetch(base+'/search-index.json')
     .then(function(r){return r.ok?r.json():[];})
-    .then(function(j){records=j.map(function(r){r._=norm(r.h+' '+r.t+' '+r.x);return r;});return records;})
+    .then(function(j){records=LollyDocsRank.prepareRecords(j);return records;})
     .catch(function(){records=[];return records;});
   return pending;
-}
-
-// Every term must appear somewhere in the record - an AND, so adding a word
-// narrows rather than widens. Where it matched decides the rank: a heading beats
-// a page title beats body prose.
-function score(r,terms){
-  var h=norm(r.h),t=norm(r.t),s=0;
-  for(var i=0;i<terms.length;i++){
-    var q=terms[i];
-    if(r._.indexOf(q)<0)return 0;
-    if(h.indexOf(q)===0)s+=8;else if(h.indexOf(q)>=0)s+=5;
-    else if(t.indexOf(q)>=0)s+=3;else s+=1;
-  }
-  if(!r.h)s+=1;
-  return s;
 }
 
 function close(){out.hidden=true;out.textContent='';active=-1;input.setAttribute('aria-expanded','false');input.removeAttribute('aria-activedescendant');}
@@ -5366,11 +5369,8 @@ function run(){
   if(!q){close();return;}
   load().then(function(rs){
     if(input.value.trim()!==q)return;   // a later keystroke already won
-    var terms=norm(q).split(/\\s+/).filter(Boolean);
-    var hits=[];
-    for(var i=0;i<rs.length;i++){var s=score(rs[i],terms);if(s>0)hits.push({r:rs[i],s:s});}
-    hits.sort(function(a,b){return b.s-a.s;});
-    render(hits.slice(0,12).map(function(x){return x.r;}));
+    var hits=LollyDocsRank.rankDocs(rs,LollyDocsRank.tokenize(q));
+    render(hits.slice(0,12).map(function(x){return x.rec;}));
   });
 }
 
@@ -6260,6 +6260,39 @@ function repeatsPathwayTitle(groupLabel: string, pathwayTitle: string): boolean 
   return bare(groupLabel) === bare(pathwayTitle);
 }
 
+/**
+ * The page's section and the next step for reading (plan 354 D3): the section label
+ * over the title ("Create · Collaborate and export") and Previous and Next at the
+ * article's end, both generated from the manifest's rail order and never written into
+ * page text. The search index and the Markdown twins read the page before this chrome
+ * is added, so neither carries the label or the pager. A page outside its section's
+ * own rail (a borrowed or loose page) gets neither.
+ */
+function pageWayfinding(lang: Lang, page: Page): { eyebrow: string; pager: string } {
+  const pathway = page.pathway;
+  if (!pathway) return { eyebrow: '', pager: '' };
+  const sb = SIDEBARS[pathway];
+  const own = sb.groups.filter((g) => g.label !== 'Also in other sections');
+  const hub = PATHWAY_HUB[pathway];
+  // Reading order: the hub, then every row of the section's own groups.
+  const order: Array<{ slug: string; label: string }> = [{ slug: hub, label: sb.title }];
+  for (const g of own) for (const it of g.items) if (it.slug !== hub) order.push(it);
+  const at = order.findIndex((it) => it.slug === page.slug);
+  if (at < 0) return { eyebrow: '', pager: '' };
+  const group = own.find((g) => g.items.some((it) => it.slug === page.slug));
+  const groupLabel = group && page.slug !== hub && !repeatsPathwayTitle(group.label, sb.title) ? group.label : '';
+  const eyebrow = `<p class="docs-eyebrow"><span>${esc(t(sb.title))}</span>${groupLabel ? `<span aria-hidden="true"> · </span><span>${esc(t(groupLabel))}</span>` : ''}</p>`;
+  const link = (it: { slug: string; label: string } | undefined, dir: 'prev' | 'next'): string => it
+    ? `<a class="docs-pager-link docs-pager-${dir}" href="${localeHref(lang, it.slug)}" rel="${dir}"><span class="docs-pager-dir">${esc(t(dir === 'prev' ? 'Previous' : 'Next'))}</span><span class="docs-pager-title">${esc(t(it.label))}</span></a>`
+    : '<span class="docs-pager-link docs-pager-empty" aria-hidden="true"></span>';
+  const prev = order[at - 1];
+  const next = order[at + 1];
+  const pager = prev || next
+    ? `<nav class="docs-pager" aria-label="${esc(t('Previous and next pages'))}">${link(prev, 'prev')}${link(next, 'next')}</nav>`
+    : '';
+  return { eyebrow, pager };
+}
+
 function buildSidebar(lang: Lang, page: Page, activeHref: string) {
   const pathway: Pathway = page.pathway ?? 'builders';
   const sb = SIDEBARS[pathway];
@@ -6438,13 +6471,13 @@ function pageNavParts(lang: Lang, page: Page, activeHref: string, content: strin
  * page record, and anything a reader has bookmarked. Rebuilding the heading from
  * page.title instead would have quietly renamed every one of them.
  */
-function docsMasthead(content: string, slug: string, top: { strip: string; edition: string }): { band: string; rest: string; canvas: boolean } | null {
+function docsMasthead(content: string, slug: string, top: { strip: string; edition: string; eyebrow?: string }): { band: string; rest: string; canvas: boolean } | null {
   const m = /<h1(\s[^>]*)?>([\s\S]*?)<\/h1>/.exec(content);
   if (!m) return null; // a page with no h1 keeps its plain top
   const rest = content.slice(0, m.index) + content.slice(m.index + m[0].length);
   // The band's two rows (plan 277 step 3c, decisions D15 and D16): the pathways strip,
   // then the title row, where the h1 keeps its element and id and a print edition sits beside the heading.
-  const heading = `${top.strip}<div class="mast-title">${m[0]}${top.edition}</div>`;
+  const heading = `${top.strip}${top.eyebrow ?? ''}<div class="mast-title">${m[0]}${top.edition}</div>`;
   const art = mastheadArt(slug, heading);
   if (art) return { band: art, rest, canvas: false };
   // The band carries words only: the sections and the title. Its drifting chip field
@@ -6516,7 +6549,7 @@ const DOCS_JS = [
   CHIP_FIELD_JS,
   FORMATS_DIALOG_SCRIPT, THEME_INTERACT_SCRIPT, SHOT_MOTION_SCRIPT, SHOWCASE_SCRIPT,
   SHOT_CRED_SCRIPT, SCROLL_REVEAL_SCRIPT, LIQUID_GLASS_SCRIPT, HERO_CANVAS_SCRIPT,
-  VERIFY_POPOUT_SCRIPT, DOCS_SEARCH_SCRIPT, HAMBURGER_SCRIPT,
+  VERIFY_POPOUT_SCRIPT, docsRankScript(), DOCS_SEARCH_SCRIPT, HAMBURGER_SCRIPT,
   LANG_PICKER_SCRIPT, ORIGIN_SCRIPT, readingScript(), stripScript(), contentsScript(), agentCopyScript(), MAST_CLEAR_SCRIPT,
 ].map(stripScriptTags).join('\n;\n');
 const fingerprint = (s: string): string =>
@@ -6577,7 +6610,8 @@ function wrapPage(lang: Lang, page: Page, content: string, ogSlugs: Set<string>,
   // (buildLandingContent). The print edition stays at the top of such a page's <main>,
   // or beside the strip on an immersive page, whose own bands begin at once.
   const strip = pathwaysStrip(lang, activeHref, page.pathway, !!isLanding);
-  const mast = (isLanding || page.generated || page.immersive) ? null : docsMasthead(content, page.slug, { strip, edition });
+  const nav = (isLanding || page.generated || page.immersive) ? { eyebrow: '', pager: '' } : pageWayfinding(lang, page);
+  const mast = (isLanding || page.generated || page.immersive) ? null : docsMasthead(content, page.slug, { strip, edition, eyebrow: nav.eyebrow });
   const article = mast ? mast.rest : content;
   const lead = mast ? '' : edition;
   const reading = readingAttr(content);
@@ -6627,6 +6661,7 @@ ${mast ? mast.band : pathwaysBand(strip)}
   <main class="docs-content${mast ? '' : ' no-mast'} page-${slugClass}"${mainAttrs}${reading}>
     ${lead}
     ${article}
+    ${nav.pager}
   </main>
   ${contents.rail}
 </div>`;

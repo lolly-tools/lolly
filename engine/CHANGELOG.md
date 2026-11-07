@@ -6,13 +6,18 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
-## 1.321.0
+## 1.322.0
 
 - `placedPicturesOf(store)` (new, `c2pa-extract.ts`): the record of placed pictures in a Content Credential, read back for a shell that writes its own credential in place of that one. It gives each credentialed ingredient the active manifest names, with its title, format, relationship, AI source type and the manifests it brought, verbatim, plus the AI facts the steps state (the pieces declared AI-made, and the model that enlarged one). Source ingredients (emoji, songs) are not read: they have their own census.
 - `aiFactsFromSteps` (`c2pa.ts`) reads the two AI steps `exportActionSteps` writes, and counts a reading only when writing it again gives the same words. `exportActionSteps` writes those steps through the same two helpers, with the same text as before.
 - `pdfWithoutCredential(pdf)` (new, `c2pa-containers.ts`): the bytes before the credential update `embedC2paInPdf` appends, when that update is the last thing in the file. Null for anything else.
 - The MCP server uses all three for a lifetime (`c2pa: "7"` to `"365"`) and for an intent on the browser tier, and the CLI does the same for a signing identity (`--sign-key`) or an intent. The browser now stamps first on those routes, a PDF included, and the server reads the browser credential's record of the placed pictures, AI-made ones included, before its own credential takes that one's place. A PDF's browser update comes off first, so the file holds one credential. A TIFF keeps a replaced credential as a second one, so there the browser writes none, as it already did for an intent.
 - Nothing is added that the browser credential did not hold. A render with no `c2pa` and no intent is unchanged, and so is every browser-free render.
+
+## 1.321.0
+
+- `buildPptxParts`: a run, a table cell or a layout placeholder style with a face now writes the face in all three of DrawingML's slots, `latin`, `ea` and `cs`, where it wrote `latin` and `cs`. The theme's font scheme already carries the face in all three, so PowerPoint resolves the same face it inherited before. LibreOffice does not follow the theme for a text box, so there a run now carries the face for East Asian text as well. A run with no face writes nothing, as before.
+- No API change. The Design deck model now gives every run a face (the brand, headings or mono face the canvas draws the slot in, resolved by the shell against the exported node), and the master-bound lowering in `packages/node-shell/src/design-pptx.ts` writes a circle or an ellipse as the ellipse preset and a pill as a full rounded rectangle, where it wrote a plain rectangle. Exported files gain no new data.
 
 ## 1.320.0
 

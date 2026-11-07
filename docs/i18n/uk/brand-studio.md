@@ -82,7 +82,7 @@
 
 Група без знаків складається в один рядок; відкрийте її, щоб побачити її слоти. Клацніть слот, щоб додати PNG, SVG, JPEG або WebP, або клацніть заповнений слот, щоб замінити знак. Усе залишається на цьому пристрої.
 
-![Слоти логотипа з відкритими Horizontal і Vertical: кожен варіант є власним слотом, і кожен слот необов'язковий](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dlogos&width=1440&height=1600&dpi=192&waitMs=1600&drive=click%3A.be-logo-identity%3Edetails%3Anth-of-type%281%29%3Esummary%3Bclick%3A.be-logo-identity%3Edetails%3Anth-of-type%282%29%3Esummary%3Bwait%3A600&cropSelector=.be-logo-grid&format=svg&walker=1&dark=1&filename=bs-logo-slots)
+![Слоти логотипа з відкритими Horizontal і Vertical: кожен варіант є власним слотом, і кожен слот необов'язковий](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dlogos&system=new-design-system&width=1440&height=1600&dpi=192&waitMs=1600&drive=click%3A.be-logo-identity%3Edetails.be-logo-group--fold%3Anot%28.be-logo-group--custom%29%3Esummary%3Bwait%3A600&cropSelector=.be-logo-grid&format=svg&walker=1&dark=1&filename=bs-logo-slots)
 
 - **Власні знаки** це знаки, які ваш бренд називає власною назвою, наприклад значок, герб чи фавікон.
 - **Більше ідентичностей.** Підбренд, продукт чи захід можуть мати власний повний набір: **+ Додати ще один логотип** і дайте набору назву. Ваш основний набір називається «Your logo». [Brand architectures](/info/brand-architectures.html) показує, коли ідентичність логотипа є правильним блоком.
@@ -114,7 +114,7 @@
 
 ### Ролі: що читають інструменти
 
-![The Colour roles table on Lolly Demo after choosing the suggested words Main, Accent, Supporting and Tertiary: the colourway chips, then each role with its light and dark colour, Main read as the lead colour and Accent as the partner colour, Supporting and Tertiary read by name only and marked Copied, and the readings no role fills listed under the table](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=2720&height=2000&dpi=192&waitMs=1800&cropSelector=%5Bdata-be-roles-fold%5D&format=svg&walker=1&dark=1&filename=bs-colour-roles)
+![The Colour roles table on Lolly Demo after choosing the suggested words Main, Accent, Supporting and Tertiary: the colourway chips, then each role with its light and dark colour, Main read as the lead colour and Accent as the partner colour, Supporting and Tertiary read by name only and marked Copied, and the readings no role fills listed under the table](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&system=wefthouse&width=2720&height=2000&dpi=192&waitMs=1800&cropSelector=%5Bdata-be-roles-fold%5D&format=svg&walker=1&dark=1&filename=bs-colour-roles)
 
 **Ролі** кажуть, який колір грає яку частину в кожному інструменті та експорті. Вони необов'язкові (три вільні кольори без ролей є цілком хорошою системою), будь-який колір може взяти одну, а показник контрасту вимірюється проти поверхні, спершу APCA. Кожен рядок ролі показує власний колір повної сили, стартовий колір на заміну або **↳ успадковує Основний**.
 
@@ -206,7 +206,7 @@
 
 Без власного шрифту кімната складається з однієї картки: **Основний**, набраний розміром для читання шрифтом, що обслуговує сьогодні, з позначкою **Starter**, кнопкою **Choose for Primary** і рядком *"Nothing installs until you choose one."* Заголовки, код і курсив слідують за основним, доки ви не виберете їх; **Обрати окремо** показує їхні картки.
 
-![Кімната Шрифти, коли ще не обрано жодного накреслення - одна картка розміром для читання, мітка Стартовий на ній і одна заповнена Choose for Primary](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&dark=1&filename=brand-type)
+![Кімната Шрифти, коли ще не обрано жодного накреслення - одна картка розміром для читання, мітка Стартовий на ній і одна заповнена Choose for Primary](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&system=new-design-system&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&dark=1&filename=brand-type)
 
 Виберіть один шрифт, і кімната розгортається на чотири картки ролей, список Шрифтів і живий зразок:
 
@@ -217,7 +217,7 @@
 
 Картка тонується лише там, де ви встановили цей шрифт, Її кнопка називає роль: **Change Headings** на вашому власному шрифті та **Choose for Headings** скрізь інакше. Рядок зразка переноситься, а не обрізається. Ніщо на картці нічого не фіксує: кнопка відкриває сцену порівняння для цієї ролі.
 
-![Чотири рольові картки розкрито - кожна набрана накресленням, яке її обслуговує, з міткою Стартовий там, де ніхто нічого не обрав, і Italic, що успадковує основний](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&width=1440&height=1000&dpi=192&waitMs=2600&drive=click%3A%5Bdata-be-typemore-toggle%5D%3Bwait%3A600&cropSelector=.be-typecard-grid&walker=1&format=svg&dark=1&filename=bs-type-specimen)
+![Чотири рольові картки розкрито - кожна набрана накресленням, яке її обслуговує, з міткою Стартовий там, де ніхто нічого не обрав, і Italic, що успадковує основний](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&system=new-design-system&width=1440&height=1000&dpi=192&waitMs=2600&drive=click%3A%5Bdata-be-typemore-toggle%5D%3Bwait%3A600&cropSelector=.be-typecard-grid&walker=1&format=svg&dark=1&filename=bs-type-specimen)
 
 ### Сцена порівняння
 

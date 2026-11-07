@@ -22,7 +22,7 @@ Välj den väg som passar det du har:
 
 Första gången du öppnar galleriet erbjuder en kort välkomstdialog samma val: **Make it yours** öppnar Design System Setup, **Bring your design** öppnar en filväljare för en design och **Explore the community tools** stänger välkomstdialogen.
 
-![Rummet Colours i Design System Setup på en ny installation: ett levande färgchip, ett fält och hela det första beslutet](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-roles-fold%5D%3Esummary%3Bwait%3A500&format=svg&walker=1&localize=1&dark=1&filename=brand-colours)
+![Rummet Colours i Design System Setup på en ny installation: ett levande färgchip, ett fält och hela det första beslutet](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&system=new-design-system&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&dark=1&filename=bs-colours-new-system)
 
 Därifrån tar åtta rum dig så långt du vill, i valfri ordning: **Board**, **Colours**, **Type**, **Logos**, **Tokens**, **Files**, **Rules** och **Skills**. Varje förhandsvisning i appen uppdateras medan du skriver. [Lolly Design System Setup](/info/brand-studio.html) går igenom varje rum.
 
