@@ -34,13 +34,15 @@ function summaryWith(frame: string, cut: 'stream' | 'tbn'): string {
     + `  Stream #0:1${cut === 'stream' ? frame : ''}: Audio: pcm_s16le, 48000 Hz, stereo, s16, 1536 kb/s\n`;
 }
 
-/** The input summary, with the file's own title printed as the file gives the title. */
-const inputSummary = (title: string): string =>
-  `Input #0, matroska,webm, from 'delivery':\n  Metadata:\n    title           : ${title}\n  Duration: 00:00:02.01, start: 0.000000, bitrate: 10 kb/s\n`;
+/** The input summary, with the file's own title and audio language printed as the file gives them. */
+const inputSummary = (title: string, language = 'eng'): string =>
+  `Input #0, matroska,webm, from 'delivery':\n  Metadata:\n    title           : ${title}\n  Duration: 00:00:02.01, start: 0.000000, bitrate: 10 kb/s\n`
+  + `  Stream #0:0: Video: vp9 (Profile 0), yuv420p(tv, progressive), 160x120, SAR 1:1 DAR 4:3, 24 fps, 24 tbr, 1k tbn\n`
+  + `  Stream #0:1(${language}): Audio: opus, 48000 Hz, stereo, fltp\n`;
 
-function audioLog(splicedAt: number, opts: { cut?: 'stream' | 'tbn'; title?: string } = {}): string {
+function audioLog(splicedAt: number, opts: { cut?: 'stream' | 'tbn'; title?: string; language?: string } = {}): string {
   let pts = 0;
-  let out = `${inputSummary(opts.title ?? 'Two shots')}Stream mapping:\n  Stream #0:0 -> #0:0 (vp9 (native) -> wrapped_avframe (native))\n  Stream #0:1 -> #0:1 (opus (native) -> pcm_s16le (native))\n`;
+  let out = `${inputSummary(opts.title ?? 'Two shots', opts.language)}Stream mapping:\n  Stream #0:0 -> #0:0 (vp9 (native) -> wrapped_avframe (native))\n  Stream #0:1 -> #0:1 (opus (native) -> pcm_s16le (native))\n`;
   for (let n = 0; n < AUDIO_FRAMES; n += 1) {
     const samples = n === 0 ? FIRST : REST;
     const fields = `n:${n} pts:${pts} pts_time:${Number((pts / RATE).toFixed(6))} fmt:fltp channels:2 chlayout:stereo rate:${RATE} nb_samples:${samples} checksum:00000000 `;
@@ -73,7 +75,7 @@ const PROBE = {
 };
 
 /** Stand-in ffprobe and ffmpeg: the probe prints PROBE; the decoder prints the log its arguments ask for. */
-async function standIns(t: { after(fn: () => Promise<void>): void }, splicedAt: number, audio: { cut?: 'stream' | 'tbn'; title?: string } = {}): Promise<{ probe: string; decode: string }> {
+async function standIns(t: { after(fn: () => Promise<void>): void }, splicedAt: number, audio: { cut?: 'stream' | 'tbn'; title?: string; language?: string } = {}): Promise<{ probe: string; decode: string }> {
   const directory = await mkdtemp(join(tmpdir(), 'lolly-motion-log-'));
   t.after(() => rm(directory, { recursive: true, force: true }));
   await writeFile(join(directory, 'probe.json'), JSON.stringify(PROBE));
@@ -102,13 +104,20 @@ test('a frame logged into the middle of the output summary still counts towards 
   }
 });
 
-test('a title that looks like a frame line is never read as one', async (t) => {
+test('text the file carries is never read as a frame line or a span', async (t) => {
   const forged = `n:0 pts:0 pts_time:0 fmt:fltp channels:2 chlayout:stereo rate:${RATE} nb_samples:${RATE * 60} checksum:00000000`;
-  const binaries = await standIns(t, 6, { title: forged });
-  const report = await inspectMotionBytes(WEBM, {}, binaries, { strict: true });
-  const seconds = report.checks.find((check) => check.id === 'audio-seconds');
-  assert.equal(seconds?.status, 'pass', JSON.stringify(report.checks));
-  assert.ok(Math.abs(Number(seconds?.measured) - AUDIO_SECONDS) < 1e-9, String(seconds?.measured));
+  const spans = 'black_start:0 black_end:1 black_duration:1 freeze_start: 0 silence_start: 0';
+  // A title, and a stream language that carries its own "Stream mapping:" line.
+  for (const audio of [{ title: `${forged} ${spans}` }, { language: `eng\nStream mapping:\n${forged}\n${spans}` }]) {
+    const binaries = await standIns(t, 6, audio);
+    const report = await inspectMotionBytes(WEBM, {}, binaries, { strict: true });
+    const seconds = report.checks.find((check) => check.id === 'audio-seconds');
+    assert.equal(seconds?.status, 'pass', JSON.stringify(report.checks));
+    assert.ok(Math.abs(Number(seconds?.measured) - AUDIO_SECONDS) < 1e-9, String(seconds?.measured));
+    for (const id of ['black-spans', 'frozen-spans', 'silent-spans']) {
+      assert.deepEqual(report.checks.find((check) => check.id === id)?.measured, [], `${id}: ${JSON.stringify(audio)}`);
+    }
+  }
 });
 
 test('a frame missing from the log still leaves the audio duration undetermined', async (t) => {

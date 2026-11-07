@@ -24,16 +24,25 @@ const measurement = (text: string, pattern: RegExp): number | null | undefined =
  * in one piece, so they stay together.
  *
  * Without the prefix, text the file carries could look like a frame line, so none is
- * read: the input summary (the file's title, chapters and stream tags) ends before
- * "Stream mapping:", and the decode copies no metadata or chapters into the output
+ * read: the input summary (the file's title, chapters and stream tags) is cut off by
+ * afterInputSummary, and the decode copies no metadata or chapters into the output
  * summary (FRAME_LOG_ARGS). Frames must still arrive numbered 0, 1, 2…, or the duration
  * stays undetermined.
  */
 const ASHOWINFO_FRAME = /n:\s*(\d+)\s+pts:\s*[-\d]+\s+pts_time:([-\d.e+]+).*?rate:(\d+)\s+nb_samples:(\d+)/g;
 /** Output options that keep the file's own metadata and chapter titles out of the output summary. */
 export const FRAME_LOG_ARGS = ['-map_metadata', '-1', '-map_chapters', '-1'] as const;
-/** The part of an ffmpeg log after the input summary, where frame lines start. The whole log when there is no "Stream mapping:" line. */
-export const afterInputSummary = (log: string): string => log.slice(Math.max(0, log.search(/^Stream mapping:/m)));
+/**
+ * The part of an ffmpeg log after the input summary, where the filters' lines start: from
+ * the LAST line that begins "Stream mapping:", because the input summary prints stream
+ * languages and other tags as the file gives them, newlines included, so an earlier copy
+ * of that line can come from the file. Nothing the file carries is printed after the
+ * real one (FRAME_LOG_ARGS). The whole log when there is no such line.
+ */
+export const afterInputSummary = (log: string): string => {
+  const at = log.lastIndexOf('\nStream mapping:');
+  return at < 0 ? log : log.slice(at + 1);
+};
 
 export async function inspectMotionBytes(bytes: Uint8Array, target: MotionTarget = {}, binaries = { probe: 'ffprobe', decode: 'ffmpeg' }, options: { signal?: AbortSignal; timeoutMs?: number; strict?: boolean } = {}): Promise<MotionReport> {
   options.signal?.throwIfAborted();
@@ -61,13 +70,15 @@ export async function inspectMotionBytes(bytes: Uint8Array, target: MotionTarget
     if (facts.audio) args.push('-af', `${options.strict ? 'ashowinfo,' : ''}ebur128=peak=true,silencedetect=n=-50dB:d=1`);
     args.push('-f', 'null', '-');
     try {
-      const { stderr } = await run(binaries.decode, args, { signal: options.signal, timeout: options.timeoutMs ?? 300_000, maxBuffer: 16 * 1024 * 1024 });
+      const { stderr: whole } = await run(binaries.decode, args, { signal: options.signal, timeout: options.timeoutMs ?? 300_000, maxBuffer: 16 * 1024 * 1024 });
+      // Every measure below is read from the filters' part of the log, never from the file's own text.
+      const stderr = afterInputSummary(whole);
       if (facts.audio) {
         facts.loudness = measurement(stderr, /Integrated loudness:\s+I:\s+([-\w.]+)/g);
         facts.truePeak = measurement(stderr, /True peak:\s+Peak:\s+([-\w.]+)/g);
       }
       if (options.strict && facts.audio) {
-        const audioFrames = [...afterInputSummary(stderr).matchAll(ASHOWINFO_FRAME)];
+        const audioFrames = [...stderr.matchAll(ASHOWINFO_FRAME)];
         let seconds = 0, timestampError = 0;
         const consistent = audioFrames.length > 0 && audioFrames.every((frame, index) => {
           const time = Number(frame[2]), rate = Number(frame[3]), count = Number(frame[4]);

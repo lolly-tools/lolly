@@ -179054,13 +179054,14 @@ async function inspectMotionBytes(bytes2, target2 = {}, binaries = { probe: "ffp
     if (facts2.audio) args.push("-af", `${options2.strict ? "ashowinfo," : ""}ebur128=peak=true,silencedetect=n=-50dB:d=1`);
     args.push("-f", "null", "-");
     try {
-      const { stderr } = await run(binaries.decode, args, { signal: options2.signal, timeout: options2.timeoutMs ?? 3e5, maxBuffer: 16 * 1024 * 1024 });
+      const { stderr: whole } = await run(binaries.decode, args, { signal: options2.signal, timeout: options2.timeoutMs ?? 3e5, maxBuffer: 16 * 1024 * 1024 });
+      const stderr = afterInputSummary(whole);
       if (facts2.audio) {
         facts2.loudness = measurement(stderr, /Integrated loudness:\s+I:\s+([-\w.]+)/g);
         facts2.truePeak = measurement(stderr, /True peak:\s+Peak:\s+([-\w.]+)/g);
       }
       if (options2.strict && facts2.audio) {
-        const audioFrames = [...afterInputSummary(stderr).matchAll(ASHOWINFO_FRAME)];
+        const audioFrames = [...stderr.matchAll(ASHOWINFO_FRAME)];
         let seconds3 = 0, timestampError = 0;
         const consistent = audioFrames.length > 0 && audioFrames.every((frame, index2) => {
           const time2 = Number(frame[2]), rate3 = Number(frame[3]), count4 = Number(frame[4]);
@@ -179110,7 +179111,10 @@ var init_motion_inspect = __esm({
     };
     ASHOWINFO_FRAME = /n:\s*(\d+)\s+pts:\s*[-\d]+\s+pts_time:([-\d.e+]+).*?rate:(\d+)\s+nb_samples:(\d+)/g;
     FRAME_LOG_ARGS = ["-map_metadata", "-1", "-map_chapters", "-1"];
-    afterInputSummary = (log) => log.slice(Math.max(0, log.search(/^Stream mapping:/m)));
+    afterInputSummary = (log) => {
+      const at = log.lastIndexOf("\nStream mapping:");
+      return at < 0 ? log : log.slice(at + 1);
+    };
   }
 });
 
