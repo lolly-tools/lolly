@@ -86,7 +86,7 @@ to the settings or the credential cancels the earlier activation check.
 | Connection was declined or expired | Start again in the same signed-in browser and finish within ten minutes. |
 | Connection was not completed | Check the consent audience and test users, the enabled Drive API, read-only offline permission and access to the folder. |
 | Settings changed during consent or activation | Review the source, save it disabled and repeat consent or the original-file test. |
-| Preview or full sync finds no files | Put ordinary files directly in the folder and check group and type exposure. Native Google documents and subfolders are skipped. |
+| Preview or full sync finds no files | Put ordinary files directly in the folder, or turn on `recursive`, and check group and type exposure. Native Google documents are skipped, and so are subfolders unless `recursive` is on. |
 | A working Testing grant stops after seven days | Finish the production consent setup and reconnect. |
 
 ## Credential shape
@@ -114,6 +114,11 @@ lw providers auth acme-gdrive
 ```
 
 - `options.folderId` (required) is the folder's id from its Drive URL.
+- `options.recursive` (optional, default `false`) reads the folders inside it too, breadth first,
+  so a partner programme can be given one subfolder
+  ([Provider folders](../partner-programmes.md#provider-folders)). `options.maxDepth` (default 4,
+  at most 10) and `options.maxFolders` (default 500, at most 5,000) limit how far it reads; a
+  sync that stops at `maxFolders` says so.
 
 ## Verify
 ```bash
