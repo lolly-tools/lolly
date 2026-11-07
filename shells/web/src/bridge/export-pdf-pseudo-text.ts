@@ -17,20 +17,24 @@ import { _host, fontMetricsPx } from './export-shared.ts';
 import { pseudoDescriptor } from './export-svg-walker.ts';
 import { resolveExportFont, extendsChain } from './font-fill.ts';
 import { canVectoriseText, textBaselineY } from './text-svg.ts';
+import { originNow, type Origin } from './export-origin.ts';
 
 type Rgb = [number, number, number];
 
 // What a pictured run shows through its letters when its box has `background-clip: text`:
 // the box's own background, placed so a line of the box sees its part of that background.
-export function clipOfRun(el: Element | null, r: DOMRect, toLayout: number): NonNullable<Parameters<typeof textPicture>[0]['clip']> | undefined {
+// `run` is the line's offset from the export root, read earlier; the box is read now, so
+// it is measured from the root as it is now (export-origin.ts).
+export function clipOfRun(el: Element | null, run: { left: number; top: number }, origin: Origin, toLayout: number): NonNullable<Parameters<typeof textPicture>[0]['clip']> | undefined {
   for (let cur = el; cur; cur = cur.parentElement) {
     const s = getComputedStyle(cur);
     if (!clipsBackgroundToText(s)) continue;
     const b = cur.getBoundingClientRect();
+    const at = originNow(origin);
     return {
       image: s.backgroundImage,
       size: s.backgroundSize === 'auto' || !s.backgroundSize ? `${b.width * toLayout}px ${b.height * toLayout}px` : s.backgroundSize,
-      position: `${(b.left - r.left) * toLayout}px ${(b.top - r.top) * toLayout}px`,
+      position: `${(b.left - at.left - run.left) * toLayout}px ${(b.top - at.top - run.top) * toLayout}px`,
       repeat: s.backgroundRepeat,
     };
   }
@@ -38,12 +42,15 @@ export function clipOfRun(el: Element | null, r: DOMRect, toLayout: number): Non
 }
 
 // Emit any ::before/::after markers of `el` into the PDF (mirrors svgPseudoContent).
-export async function pdfPseudoContent(pdf: PdfDoc, el: Element, rootRect: { left: number; top: number }, scaleX: number, scaleY: number, cssToPt: number, registeredFonts: Set<unknown>, convertPaths: boolean, rasterFallback = true): Promise<void> {
+export async function pdfPseudoContent(pdf: PdfDoc, el: Element, rootRect: Origin, scaleX: number, scaleY: number, cssToPt: number, registeredFonts: Set<unknown>, convertPaths: boolean, rasterFallback = true): Promise<void> {
   for (const name of ['::before', '::after']) {
     const ds = pseudoDescriptor(el, name);
     if (!ds) continue;
-    const x = (ds.x - rootRect.left) * scaleX;
-    const y = (ds.y - rootRect.top)  * scaleY;
+    // The marker's box is read with pseudoDescriptor, so the origin is read now as well
+    // and kept for the awaits below.
+    const at = originNow(rootRect);
+    const x = (ds.x - at.left) * scaleX;
+    const y = (ds.y - at.top)  * scaleY;
     if (ds.bg && ds.w > 0.5 && ds.h > 0.5) {
       const w = ds.w * scaleX, h = ds.h * scaleY;
       const radii: CornerRadii = {
@@ -68,7 +75,7 @@ export async function pdfPseudoContent(pdf: PdfDoc, el: Element, rootRect: { lef
     // is now also centred), not riding the top of its box.
     const lineHPx = parseFloat(ds.ps.lineHeight) || fontSizePx * 1.2;
     const { ascent: pAsc, descent: pDesc } = fontMetricsPx(ds.ps, fontSizePx);
-    const baselinePt = textBaselineY(ds.y - rootRect.top, lineHPx, pAsc, pDesc) * scaleY;
+    const baselinePt = textBaselineY(ds.y - at.top, lineHPx, pAsc, pDesc) * scaleY;
     let drawn = false;
     const rtl = ds.ps.direction === 'rtl';
     const ordered = rtl || hasRtlText(ds.text);

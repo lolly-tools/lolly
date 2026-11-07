@@ -6,9 +6,15 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
-## 1.330.0
+## 1.331.0
 
 - `preflight.ts`: the CMYK TIFF (`cmyk-tiff`) and EPS (CMYK) (`eps-cmyk`) write the four process plates and nothing else, since a spot ink goes in as its process build and a finish as its black mask (`buildCmykPaletteMap`). For those two formats `plates.spot-ceiling`, `plates.finish-ceiling` and `plates.no-spots-declared` are no longer emitted, so no `spotPlates` or `finishPlates` count is taken, with spot inks as process or not. `plates.process` says where the inks went ("This format has no named plates, so the 3 spot inks print as process and add no plates.") and lists them in its evidence. A finish keeps its `print.finish-flattened-into-process` error. `pdf-cmyk` is unchanged in every finding and count.
+
+## 1.330.0
+
+- The barrel exports the asset rights reader from `asset-rights.ts`: `redistribution`, `ownerPublished`, `OWNER_PUBLISHED`, `assetLicenceDeclaration`, `assetRightsNotices` and `readAssetRightsRecord`, with their types, and `checkCompanionReadback` from `rights-companion.ts`. A Lolly Work server can now ask the same question the `.lolly` builder asks ("may these bytes be passed on?") and get the same answer and reason, and read a package's credits back.
+- `packCreditsText`, with `PackCreditEntry` and `PackHoldEntry`, moves into `asset-rights.ts` from the web shell's `lib/lolly-pack.ts`, unchanged, so a `.lolly` pack and a Work collection ZIP print one text. The shell imports it back; every `.lolly` keeps its bytes.
+- No behaviour changes: nothing is added to any rule, and no output changes.
 
 ## 1.329.0
 
