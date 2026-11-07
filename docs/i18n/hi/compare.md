@@ -6,13 +6,13 @@ _अंतिम जाँच: 28 सितंबर 2026।_
 
 ## उत्पाद के अनुसार तुलना
 
-- [Lolly और Canva](/info/compare-canva.html): टेम्पलेट, रोज़ का डिज़ाइन और साझा ब्रांड उत्पादन।
-- [Lolly और Adobe](/info/compare-adobe.html): संपादन, रूपांतरण, पेशेवर आउटपुट और Content Credentials।
-- [Lolly और Figma](/info/compare-figma.html): डिज़ाइन, लाइव सहयोग और दोबारा उपयोग होने वाला एसेट उत्पादन।
-- [Lolly और Penpot](/info/compare-penpot.html): ओपन-सोर्स डिज़ाइन, साझा टोकन और संगठन का काम।
-- [Lolly और ब्रांड पोर्टल](/info/compare-brand-portals.html): स्वीकृत लाइब्रेरी, लॉक टेम्पलेट, पहचान, समीक्षा और रिपोर्टिंग।
-- [Lolly और रेंडरिंग API](/info/compare-render-apis.html): आपके डिवाइस पर, CI में या Lolly Work सर्वर पर स्वचालित निर्माण।
-- [Lolly और ऑनलाइन फ़ाइल कन्वर्टर](/info/compare-converters.html): आपके अपने डिवाइस पर फ़ॉर्मेट रूपांतरण।
+- [Lolly और Canva](/info/compare-canva.html) - टेम्पलेट, रोज़ का डिज़ाइन और साझा ब्रांड उत्पादन।
+- [Lolly और Adobe](/info/compare-adobe.html) - संपादन, रूपांतरण, पेशेवर आउटपुट और Content Credentials।
+- [Lolly और Figma](/info/compare-figma.html) - डिज़ाइन, लाइव सहयोग और दोबारा उपयोग होने वाला एसेट उत्पादन।
+- [Lolly और Penpot](/info/compare-penpot.html) - ओपन-सोर्स डिज़ाइन, साझा टोकन और संगठन का काम।
+- [Lolly और ब्रांड पोर्टल](/info/compare-brand-portals.html) - स्वीकृत लाइब्रेरी, लॉक टेम्पलेट, पहचान, समीक्षा और रिपोर्टिंग।
+- [Lolly और रेंडरिंग API](/info/compare-render-apis.html) - आपके डिवाइस पर, CI में या आपके अपने सर्वर पर स्वचालित निर्माण, और Bannerbear या Placid से [कैसे आएँ](/info/work-move-from-render-api.html)।
+- [Lolly और ऑनलाइन फ़ाइल कन्वर्टर](/info/compare-converters.html) - आपके अपने डिवाइस पर फ़ॉर्मेट रूपांतरण।
 
 क्षमता-दर-क्षमता तुलना के लिए [Lolly की तुलना कैसे होती है](/info/positioning.html) देखें। हर तुलना पर तारीख दी गई है; जो दावा अब किसी भी प्रोडक्ट से मेल नहीं खाता, उसे सुधारना ज़रूरी है।
 

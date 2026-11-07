@@ -12,7 +12,7 @@ Skrin utama: empat tab di bahagian atas dan bar di bahagian bawah. Alat, apabila
 
 Empat tab terletak di sepanjang bahagian atas skrin utama: **Tools**, **Utilities**, **Assets** dan **Projects**. Tools ialah apa yang anda gunakan untuk membuat, Utilities ialah meja kerja untuk tugas seperti menukar, menyemak atau membersihkan fail, Assets ialah pustaka anda dan Projects menyimpan apa yang anda simpan.
 
-Bar di bahagian bawah mengandungi **Open**, **Settings**, medan carian, **Verify** dan **What?**. Ia muncul pada Tools, Utilities, Assets, Projects, Settings dan panduan yang anda baca dalam apl, dan beralih ke tepi apabila alat dibuka. [Lolly Search](/info/search.html) mencapai alat, kerja tersimpan, aset dan tetapan anda daripada medan itu. [Ask Lolly](/info/ask.html) menjawab soalan yang ditaip dengan bahagian panduan ini yang sepadan.
+Bar di bahagian bawah mengandungi **Open**, **Settings**, medan carian, pintasan ke Lolly Verify dan **What?**. Ia muncul pada Tools, Utilities, Assets, Projects, Settings dan panduan yang anda baca dalam apl, dan beralih ke tepi apabila alat dibuka. [Lolly Search](/info/search.html) mencapai alat, kerja tersimpan, aset dan tetapan anda daripada medan itu. [Ask Lolly](/info/ask.html) menjawab soalan yang ditaip dengan bahagian panduan ini yang sepadan.
 
 Klik kad untuk memulakan sesuatu yang baharu dalam alat itu. Kerja tersimpan dibuka semula daripada **Projects**.
 
@@ -22,7 +22,7 @@ Setiap alat ialah paparan terbahagi: **kawalan** di satu sisi dan **pratonton** 
 
 ![Paparan pisah sesuatu alat - tindanan kawalan di sebelah kiri, dan carta bar berkumpulan langsung yang dilukiskannya di sebelah kanan](/t/url-shot?url=%2F%23%2Ftool%2Fchart%3Fct%3Dbar%26t%3DExample%2520data%26st%3DSample%2520values%252C%2520not%2520a%2520real%2520dataset%26d%3DMonth%252CSeries%2520A%252CSeries%2520B%252CSeries%2520C%250AJan%252C12%252C9%252C5%250AFeb%252C18%252C14%252C7%250AMar%252C24%252C17%252C11%250AApr%252C29%252C23%252C15%26lg%3D1&width=1440&height=900&dpi=192&waitMs=2500&walker=1&format=svg&dark=1&filename=vt-tool-split-view)
 
-**Design** ialah pengecualian. Ia dibuka sebagai kanvas bebas berisi kotak yang anda seret, ubah saiz dan taip ke dalamnya, dengan bar atas, garis masa dan kawalan dek sendiri. [Design: the free canvas](/info/design.html) ialah panduannya.
+**Lolly Design** ialah pengecualian. Ia dibuka sebagai kanvas bebas berisi kotak yang anda seret, ubah saiz dan taip ke dalamnya, dengan bar atas, garis masa dan kawalan dek sendiri. [Lolly Design: the free canvas](/info/design.html) ialah panduannya.
 
 ## Ubah apa yang dibenarkan alat
 
@@ -36,7 +36,7 @@ Alat hanya menunjukkan input yang bertujuan untuk berubah. Pengarangnya telah me
 
 **Pilihan sistem reka bentuk.** Apabila sistem reka bentuk anda menawarkan lebih daripada satu colourway, rupa cerah dan gelap atau pilihan tema lain, bahagian **Design system** di bawah kawalan menyimpannya. Pilihan hanya muncul apabila ia mengubah alat ini, jadi utiliti fail tidak menunjukkan bahagian langsung. Setiap colourway ialah titik dalam warnanya sendiri, cerah dan gelap ialah dua butang dan sebarang pilihan lain ialah senarai.
 
-Pilihan itu milik karya ini. Ia dibawa dalam pautan dan sesi tersimpan, setiap warna yang dipautkan kepada sistem reka bentuk mengikutinya dan warna apl sendiri kekal seperti sedia ada. Design menunjukkan pilihan yang sama dalam tab **Canvas** Inspector. Alat yang warnanya ialah kandungannya boleh kekal pada colourway kanonik, dan kemudian tidak menawarkan titik colourway. [Lolly Demo in use](/info/lolly-demo-in-use.html#colourways-on-real-work) menunjukkan colourway pada kerja sebenar.
+Pilihan itu milik karya ini. Ia dibawa dalam pautan dan sesi tersimpan, setiap warna yang dipautkan kepada sistem reka bentuk mengikutinya dan warna apl sendiri kekal seperti sedia ada. Lolly Design menunjukkan pilihan yang sama dalam tab **Canvas** Inspector. Alat yang warnanya ialah kandungannya boleh kekal pada colourway kanonik, dan kemudian tidak menawarkan titik colourway. [Lolly Demo in use](/info/lolly-demo-in-use.html#colourways-on-real-work) menunjukkan colourway pada kerja sebenar.
 
 ### Zum dan alih pratonton
 
@@ -47,7 +47,7 @@ Pratonton sentiasa menunjukkan tepat apa yang akan dieksport.
 - **Sentuh:** cubit untuk zum, seret untuk alih dan ketik dua kali untuk muat.
 - **HUD zum:** tekan dan tahan pusaran Lolly di sudut untuk membuka `−`, **Fit** dan `+`. Ketikan pendek pada pusaran masih membuka menu profil anda.
 
-Dalam Design, **Fit all** merangkumi artboard dan lapisan bebas. Zum keluar secara manual boleh turun di bawah 20% sehingga seluruh halaman memenuhi separuh paparan. Had bawah mutlak ialah nilai yang lebih rendah antara 5% skala Fit biasa dan zum mutlak 2%.
+Dalam Lolly Design, **Fit all** merangkumi artboard dan lapisan bebas. Zum keluar secara manual boleh turun di bawah 20% sehingga seluruh halaman memenuhi separuh paparan. Had bawah mutlak ialah nilai yang lebih rendah antara 5% skala Fit biasa dan zum mutlak 2%.
 
 Perubahan saiz output sentiasa mengembalikan paparan kepada muat yang bersih.
 
@@ -55,7 +55,7 @@ Perubahan saiz output sentiasa mengembalikan paparan kepada muat yang bersih.
 
 ### Buat asal dan buat semula
 
-**Cmd/Ctrl-Z** berundur dan **Cmd/Ctrl-Shift-Z** (atau **Cmd/Ctrl-Y**) maju semula. Pasangan yang sama terdapat sebagai butang **Undo** dan **Redo** di atas kawalan (dalam Design ia berada dalam bar atas), dan setiap satu menjadi kelabu apabila tiada apa-apa lagi untuk diundur. Mesej menyatakan input mana yang dipulihkan oleh setiap undur, dengan butang **Redo** dalam mesej.
+**Cmd/Ctrl-Z** berundur dan **Cmd/Ctrl-Shift-Z** (atau **Cmd/Ctrl-Y**) maju semula. Pasangan yang sama terdapat sebagai butang **Undo** dan **Redo** di atas kawalan (dalam Lolly Design ia berada dalam bar atas), dan setiap satu menjadi kelabu apabila tiada apa-apa lagi untuk diundur. Mesej menyatakan input mana yang dipulihkan oleh setiap undur, dengan butang **Redo** dalam mesej.
 
 - **Satu seretan ialah satu langkah.** Perubahan berulang pada satu kawalan dalam setengah saat digabungkan, jadi menarik gelangsar merentasi julatnya ialah satu undur.
 - **100 langkah terakhir disimpan.** Suntingan baharu selepas undur mengosongkan tindanan ke hadapan.
@@ -72,7 +72,7 @@ Kesan alat **Filter** (Halftone, Scanline, Posterize, Voronoi, Duotone, Stretch,
 
 Untuk menyimpan kerja anda, tekan **Save**, tanda semak di sebelah **Export** pada pil render. Kerja baharu pergi ke **My library**, kerja yang anda simpan sebelum ini dikemas kini di tempatnya dan tiada apa-apa dimuat turun. Panel eksport mempunyai butang **Save** yang sama.
 
-Untuk memilih ke mana ia pergi, tekan **Save as**, di sebelah **Download** dalam panel eksport. Di bawah **Save to a project**, biarkan **My library** dipilih atau pilih projek (**＋ New project…** membuat satu), kemudian tekan **Save**; **Save as a template** menyimpan reka bentuk sebagai [templat](/info/templates.html), titik mula untuk dokumen baharu. Dalam Design, **Save as** ada dalam menu Lolly; pada telefon, tekan **•••**, kemudian **File menu**, kemudian **Save as**.
+Untuk memilih ke mana ia pergi, tekan **Save as**, di sebelah **Download** dalam panel eksport. Di bawah **Save to a project**, biarkan **My library** dipilih atau pilih projek (**＋ New project…** membuat satu), kemudian tekan **Save**; **Save as a template** menyimpan reka bentuk sebagai [templat](/info/templates.html), titik mula untuk dokumen baharu. Dalam Lolly Design, **Save as** ada dalam menu Lolly; pada telefon, tekan **•••**, kemudian **File menu**, kemudian **Save as**.
 
 ![Pil render dua separuh: Export, dengan anak panah ke atas yang membuka panel eksport, dan Save, dengan tanda semak yang menyimpan di tempat](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools&width=1440&height=900&dpi=192&waitMs=2500&css=%23tool-inputs%7Bdisplay%3Anone%7D&cropSelector=.render-pill&walker=1&format=svg&dark=1&filename=use-render-pill)
 
@@ -162,7 +162,7 @@ Sandaran peranti penuh bukan `.lolly`. Ia kekal `LollyTools-….zip` (format `lo
 
 `.lolly` ialah zip biasa. Namakan semula `.zip` untuk melihat ke dalam: imej anda sendiri berada di bawah `assets/uploads/`, seni katalog di bawah `assets/catalog/`, `manifest.json` menyenaraikan setiap fail, dan README menyatakan apa fail itu.
 
-macOS, Windows, Linux, iOS dan Android semuanya mendaftarkan format ini, pengurus fail desktop menunjukkannya sebagai dokumen Lolly dan GNOME Files boleh menunjukkan lakaran kecil sesi tersimpan itu sendiri. Membuka daripada Design System Setup mencadangkan tindakan sistem reka bentuk apabila reka bentuk dikongsi membawa satu, tetapi tidak pernah menyembunyikan **Open shared design**.
+macOS, Windows, Linux, iOS dan Android semuanya mendaftarkan format ini, pengurus fail desktop menunjukkannya sebagai dokumen Lolly dan GNOME Files boleh menunjukkan lakaran kecil sesi tersimpan itu sendiri. Membuka daripada Lolly Design System Setup mencadangkan tindakan sistem reka bentuk apabila reka bentuk dikongsi membawa satu, tetapi tidak pernah menyembunyikan **Open shared design**.
 
 Dokumen yang diserahkan daripada apl lain pada iOS atau Android dihadkan kepada 48 MB, kerana penyerahan menyalin baitnya merentasi sempadan apl, dan apl menyatakannya. **Open** dalam Lolly tidak mempunyai had sedemikian, jadi gunakannya untuk bundle yang lebih besar.
 
@@ -173,7 +173,7 @@ Pautan dan fail kedua-duanya menyerahkan syot kilat. Untuk penyuntingan langsung
 
 ## Aset - pustaka anda
 
-**Assets** (`#/a`) menghimpunkan segala yang boleh digunakan alat anda: logo jenama, imej, audio dan gerakan, dikumpulkan mengikut jenis, bersama fail anda sendiri. Muat naik anda disimpan pada peranti anda. Organisasi yang menggunakan Lolly Work juga boleh membekalkan katalog dikongsi di bawah peraturan aksesnya sendiri; lihat [Use Lolly at your organisation](/info/organisation.html).
+**Lolly Assets** (`#/a`) menghimpunkan segala yang boleh digunakan alat anda: logo jenama, imej, audio dan gerakan, dikumpulkan mengikut jenis, bersama fail anda sendiri. Muat naik anda disimpan pada peranti anda. Organisasi yang menggunakan Lolly Work juga boleh membekalkan katalog dikongsi di bawah peraturan aksesnya sendiri; lihat [Use Lolly at your organisation](/info/organisation.html).
 
 ![Aset - aset jenama, swatch dan fon, serta muat naik anda sendiri](/t/url-shot?url=%2F%23%2Fa%3Fsection%3Dswatches%2Cfonts&width=1440&height=900&dpi=96&waitMs=2400&css=.plat-swatch-grid~%2A%7Bdisplay%3Anone%7D&walker=1&format=svg&localize=1&dark=1&filename=assets)
 
@@ -267,12 +267,25 @@ Pada skrin sempit, reka letak menjadi satu lajur:
 
 ![Sesuatu alat pada skrin selebar telefon - kawalan sebagai helaian di atas, palet terjana mengisi pratonton di bawah dan pil render terapung di tengah bawah](/t/url-shot?url=%2F%23%2Ftool%2Fcolor-palette%3Fseed%3Df97316%26harmony%3Dadjacent-3%26steps%3D9&width=430&height=900&dpi=192&waitMs=2200&walker=1&format=svg&dark=1&filename=vt-phone-palette)
 
+## Peranti boleh lipat dan iPhone Duo
+
+Pada peranti boleh lipat, iPhone Duo atau skrin sentuh yang hampir segi empat sama, Lolly menyusun alat dalam dua anak tetingkap, seperti halaman buku:
+
+- **Kawalan di satu sisi, kanvas di sisi lain.** Kawalan berada jauh daripada tangan yang anda gunakan untuk melukis. Pilih **Dominant hand** dalam **Settings → Accessibility**, atau tekan **Swap sides** di bahagian atas kawalan. Dalam bahasa kanan ke kiri, sisi itu dicerminkan.
+- **Pembahagi ialah engsel.** Apabila peranti melaporkan lipatannya, anak tetingkap bertemu pada lipatan, jadi tiada kawalan dan tiada karya seni terletak pada lipatan. Pada skrin selanjar, seret pembahagi ke satu pertiga, separuh atau dua pertiga lebar. Lolly mengingati pilihan anda bagi setiap paparan pada peranti ini.
+- **Di atas meja.** Apabila separuh terbuka dengan lipatan melintangi skrin, kanvas menggunakan separuh atas dan kawalan berada di bawah lipatan. Apabila anda membentang, slaid berada di atas, dengan nota anda, slaid seterusnya serta **Back** dan **Next** di bawah. Dalam Sequence, pratonton berada di atas dan garis masa di bawah.
+- **Lolly Design, Brand Studio dan Assets.** Dalam Lolly Design, inspektor, lapisan dan panel eksport ialah tab di sebelah kanvas, dan alat berderet di sepanjang tepi luar kanvas, di bawah tangan melukis anda. Apabila alat lebih banyak daripada yang muat, lajur boleh digulung dan pudaran dengan anak panah menunjukkan arah selebihnya. Di atas meja, alat berderet di sepanjang kaki kanvas. Brand Studio mengekalkan Board di satu sisi dan bilik yang anda buka di sisi lain. Dalam Assets, butiran aset dibuka di sebelah pustaka, jadi ketukan seterusnya menunjukkan aset seterusnya di tempat yang sama.
+- **Tiada apa-apa pada lipatan.** Pada lipatan yang dilaporkan, dialog dibuka pada halaman yang memegang kawalan, begitu juga kotak carian di kaki skrin utama dan hasilnya. Skrin rata mengekalkannya di tengah.
+- **Melipat tidak menghilangkan apa-apa.** Melipat, membuka lipatan atau memutar peranti mengekalkan dokumen anda, pilihan anda, zum dan medan yang sedang anda taip, dengan kursor di tempat anda meninggalkannya.
+
+Skrin luar peranti boleh lipat mengekalkan reka letak telefon di atas, begitu juga tetingkap Lolly dalam salah satu separuh skrin terbahagi.
+
 ## Settings, bunyi dan keselesaan
 
 **Settings**, di kaki skrin utama, menyimpan butiran anda, sistem reka bentuk anda, kebolehcapaian, storan dan muat turun luar talian. [Lolly Settings](/info/dashboard.html) memetakan setiap tab.
 
 - **Butiran dan gambar kepala anda** mengisi mana-mana alat yang dibina untuk menggunakannya, seperti tandatangan e-mel atau lencana. [Profiles](/info/profile.html) meliputinya.
-- **Kebolehcapaian** mempunyai empat suis keselesaan: **Reduce motion**, **Hide colourful previews**, **High contrast** dan **Large text**. Ia mengubah apl di sekeliling kerja anda, tidak pernah kanvas alat atau eksport.
+- **Kebolehcapaian** mempunyai empat suis keselesaan: **Reduce motion**, **Hide colourful previews**, **High contrast** dan **Large text**. Ia mengubah apl di sekeliling kerja anda, tidak pernah kanvas alat atau eksport. Di sebelahnya, **Dominant hand** memilih sisi yang diambil kawalan dalam dua anak tetingkap.
 - **Sound** memainkan bunyi bantuan lembut untuk apa yang anda lakukan, dan **Neurospicy Mode** memainkan trek fokus yang tenang. Kedua-duanya mati sehingga anda menghidupkannya, dalam **Settings → Accessibility** atau menu profil.
 - **Available offline** memuat turun selebihnya apl, alat anda, katalog dan panduan sebelum anda kehilangan sambungan. Lolly ialah apl web yang boleh anda pasang: gunakan butang pasang pelayar anda, atau *Add to Home Screen* pada telefon, untuk apl skrin penuh yang mengemas kini sendiri apabila anda kembali dalam talian.
 - **Storage** menunjukkan apa yang disimpan Lolly pada peranti ini. [If you clear your browser data](/info/find-your-work.html#if-you-clear-your-browser-data) menerangkan apa yang dibuang oleh pengosongan, dan [Privacy Policy](/info/privacy.html) menyenaraikan segala yang diambil atau dihantar oleh apl.
@@ -283,10 +296,10 @@ Panel kosong atau mesej "failed to fetch" sejurus selepas kemas kini biasanya hi
 
 ## Ke mana seterusnya
 
-- **[Design: the free canvas](/info/design.html)**: kanvas, bentuk, garis masa dan membentang dek.
-- **[Batch and Multi-edit](/info/batch.html)**: banyak versi satu reka bentuk, atau beberapa reka bentuk tersimpan disunting bersama.
+- **[Lolly Design: the free canvas](/info/design.html)**: kanvas, bentuk, garis masa dan membentang dek.
+- **[Batch and Lolly Multi-edit](/info/batch.html)**: banyak versi satu reka bentuk, atau beberapa reka bentuk tersimpan disunting bersama.
 - **[Export a file](/info/exporting.html)**: memilih format, saiz, unit cetakan, ketelusan dan video.
-- **[Import a design](/info/design-import.html)**: bawa fail Figma, Penpot, Illustrator atau InDesign ke dalam Design dan teruskan menyunting.
+- **[Import a design](/info/design-import.html)**: bawa fail Figma, Penpot, Illustrator atau InDesign ke dalam Lolly Design dan teruskan menyunting.
 - **[Templates](/info/templates.html)**: titik mula tersimpan untuk alat.
-- **[Wide Colour and HDR](/info/hdr-editing.html)**: kekalkan ketepatan imej asal dalam Design dan Darkroom.
+- **[Wide Colour and HDR](/info/hdr-editing.html)**: kekalkan ketepatan imej asal dalam Lolly Design dan Lolly Darkroom.
 - **[Find and recover your work](/info/find-your-work.html)**: di mana segala-galanya berada, dan cara memindahkannya ke peranti lain.

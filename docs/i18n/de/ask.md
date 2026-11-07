@@ -2,7 +2,7 @@
 
 Tippen Sie eine Frage, und Ask Lolly antwortet mit dem Abschnitt dieser Anleitungen, der sie behandelt, Wort für Wort, mit der Angabe der Seite, aus der er stammt, und einem Link **Open in docs** direkt zu diesem Abschnitt. Nichts wird erzeugt: Die Antwort wird auf Ihrem Gerät abgerufen, zitiert und zugeordnet.
 
-Unter dem zitierten Abschnitt stehen die Stellen in der App, die zur selben Frage passen: ein Tool, ein Utility, ein gespeichertes Projekt, ein Katalog-Asset, eine Einstellung oder eine Seite der App. Jede Zeile navigiert nur. Nichts in einer Antwort ändert eine Einstellung, öffnet eine Datei oder handelt für Sie, dieselbe Regel, der auch die [Suche](/info/search.html) folgt.
+Unter dem zitierten Abschnitt stehen die Stellen in der App, die zur selben Frage passen: ein Tool, ein Utility, ein gespeichertes Projekt, ein Katalog-Asset, eine Einstellung oder eine Seite der App. Jede Zeile navigiert nur. Nichts in einer Antwort ändert eine Einstellung, öffnet eine Datei oder handelt für Sie, dieselbe Regel, der auch die [Lolly Search](/info/search.html) folgt.
 
 ## Eine Frage stellen
 
@@ -60,4 +60,4 @@ Ihre Frage verlässt das Gerät nie. Der Abgleich läuft lokal gegen namentlich 
 
 ---
 
-**Siehe auch:** [Suche](/info/search.html) für die Leiste, die Fragen übergibt. [Lolly nutzen](/info/using.html) für den Rest der App. [Einstellungen](/info/dashboard.html#available-offline), um die Dokumentation zuerst offline zu holen.
+**Siehe auch:** [Lolly Search](/info/search.html) für die Leiste, die Fragen übergibt. [Lolly nutzen](/info/using.html) für den Rest der App. [Lolly Settings](/info/dashboard.html#available-offline), um die Dokumentation zuerst offline zu holen.

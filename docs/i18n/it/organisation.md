@@ -2,6 +2,8 @@
 
 La tua organizzazione può gestire il proprio Lolly: la stessa app, con gli strumenti e i design system che ha scelto. Questa pagina mostra come raggiungerlo, accedere e cosa cambia una volta fatto.
 
+Se stai pianificando la configurazione dell'organizzazione, [Use Lolly with your existing DAM](/info/use-with-dam.html) spiega come una libreria approvata possa restare dov'è mentre le persone iniziano a produrre contenuti in Lolly. [Content sovereignty](/info/content-sovereignty.html) descrive il controllo più ampio su creazione, governance, archiviazione e portabilità.
+
 ::: note Cosa ti serve dalla tua organizzazione
 L'indirizzo web del suo Lolly, oppure un file di configurazione `.lolly` creato dalla tua organizzazione. lolly.tools da solo non si connette a nessuna organizzazione.
 :::
@@ -10,13 +12,13 @@ L'indirizzo web del suo Lolly, oppure un file di configurazione `.lolly` creato 
 
 Apri l'indirizzo che ti ha dato la tua organizzazione. Se la pagina ti chiede di accedere, premi **Sign in** e segui la pagina di accesso che si apre. Dopo funziona come qualsiasi Lolly, con gli strumenti e i design system della tua organizzazione.
 
-Puoi anche partire da lolly.tools: apri **Settings**, nella scheda **Lolly instance** premi **Open a workspace**, inserisci l'indirizzo e premi **Open this instance**. Il browser va all'indirizzo della tua organizzazione, perché un browser non può caricare da lolly.tools gli strumenti di un altro Lolly.
+Puoi anche partire da lolly.tools: apri la vista **Settings**, nella scheda **Lolly instance** premi **Open a workspace**, inserisci l'indirizzo e premi **Open this instance**. Il browser va all'indirizzo della tua organizzazione, perché un browser non può caricare da lolly.tools gli strumenti di un altro Lolly.
 
 ![La scheda Lolly instance nelle Impostazioni, dove apri l'area di lavoro della tua organizzazione o cambi da dove l'app prende i suoi strumenti](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dinstance-section&width=1440&height=1400&dpi=192&waitMs=2000&format=svg&cropSelector=%23instance-section&walker=1&dark=1&filename=org-instance-card)
 
 ## Nell'app desktop o mobile
 
-L'app parte con i suoi strumenti inclusi. Per collegarti, apri **Settings** e premi **Change** nella scheda **Lolly instance**. Il foglio chiede **Where should Lolly get its tools?**
+L'app parte con i suoi strumenti inclusi. Per collegarti, apri la vista **Settings** e premi **Change** nella scheda **Lolly instance**. Il foglio chiede **Where should Lolly get its tools?**
 
 1. Scegli **Connettiti a un'istanza di Lolly**.
 2. Inserisci l'indirizzo web della tua organizzazione e premi **Verifica e connetti**.

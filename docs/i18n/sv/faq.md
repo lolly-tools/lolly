@@ -39,7 +39,7 @@ lolly.tools öppnas i [Lolly Demo](/info/lolly-demo.html), Lollys eget exempel p
 
 ## Kan jag använda mitt eget varumärke?
 
-Ja. **Design System Setup** (`#/start`) bygger ett designsystem från en färg, en designtokenfil eller en färdig design, och varje verktyg ritar sedan med ditt designsystem. [Kom igång](/info/quickstart.html#put-your-brand-in) går igenom de tre vägarna.
+Ja. **Lolly Design System Setup** (`#/start`) bygger ett designsystem från en färg, en designtokenfil eller en färdig design, och varje verktyg ritar sedan med ditt designsystem. [Kom igång](/info/quickstart.html#put-your-brand-in) går igenom de tre vägarna.
 
 Ett designsystem som din organisation eller ditt bygge tillhandahåller är hanterat: det visar ett lås och förblir skrivskyddat, och du kan göra en redigerbar kopia för att ändra.
 
@@ -80,9 +80,9 @@ Webbappen ritar med WebGPU, en grafikfunktion i aktuella webbläsare, och den ko
 
 ## Kan Lolly redigera och rendera mina filer från Figma, Penpot, Illustrator eller InDesign?
 
-Ja. Öppna **Design** och klicka på **Import a design**: den tar en inbyggd Figma-**.fig** (Save local copy), en Penpot-**.penpot**-export, en Illustrator-**.ai** eller **.pdf**, en InDesign-**.idml** (File → Export → InDesign Markup) eller **valfri SVG**. Du behöver inget konto, inget plugin och ingen licens för något designprogram.
+Ja. Öppna verktyget **Design** och klicka på **Import a design**: den tar en inbyggd Figma-**.fig** (Save local copy), en Penpot-**.penpot**-export, en Illustrator-**.ai** eller **.pdf**, en InDesign-**.idml** (File → Export → InDesign Markup) eller **valfri SVG**. Du behöver inget konto, inget plugin och ingen licens för något designprogram.
 
-![Designs öppna arbetsyta - Importera en design ligger i verktygslistens Lolly-meny](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D17ZTfS8MwEMf_mryO5NZ288GHrdqJv1CUvWdtOgppMtJMNv96yaV1iRNEQRBZoblwab53l0-uq915bXgrCOSDpf3LzgANnQ4eI0rrPJn7Gh9cd0sE8lIryxtFIFfatFx6L4F0Mi-11GbUiZYr25QjK3bW-S8I5MnUbRXKCkMgb5uqki6JFFU7rjoXYsSgT8GaLebKZSeGAPkUYypMHp80DeugYYR4J_U7X4XRkY8dFHuTYEJ-jDWM3qoqsEHo4Y20-xJi-SPVaOfRUuAL1hiZXNrG4gH6M85Z5lTAk8x8DdlnPL8gecVfBIEU6F5v0bbCor3VUu4JpOPCKTCWsPI9rBS107d6QyCfRET_Ac6wX36X6UpX-49Ip1mAlMEPkM6QX20aoSpECLTmpadcazPQ9hPlWxboRndWmFEIG1s4Yp3E3Ts-0f4GbcruWHLzlC0frmfpfbGk82LxmD0vUndSTcvXAoknWBKCz5LDSIdiRHV0D2Tfq1BIvdY42Zim5WZ_-n3_mRvwBg&width=1360&height=850&dpi=192&waitMs=3000&format=svg&walker=1&chrome=1&localize=1&dark=1&filename=design)
+![Lolly Designs öppna arbetsyta - Importera en design ligger i verktygslistens Lolly-meny](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D17ZTfS8MwEMf_mryO5NZ288GHrdqJv1CUvWdtOgppMtJMNv96yaV1iRNEQRBZoblwab53l0-uq915bXgrCOSDpf3LzgANnQ4eI0rrPJn7Gh9cd0sE8lIryxtFIFfatFx6L4F0Mi-11GbUiZYr25QjK3bW-S8I5MnUbRXKCkMgb5uqki6JFFU7rjoXYsSgT8GaLebKZSeGAPkUYypMHp80DeugYYR4J_U7X4XRkY8dFHuTYEJ-jDWM3qoqsEHo4Y20-xJi-SPVaOfRUuAL1hiZXNrG4gH6M85Z5lTAk8x8DdlnPL8gecVfBIEU6F5v0bbCor3VUu4JpOPCKTCWsPI9rBS107d6QyCfRET_Ac6wX36X6UpX-49Ip1mAlMEPkM6QX20aoSpECLTmpadcazPQ9hPlWxboRndWmFEIG1s4Yp3E3Ts-0f4GbcruWHLzlC0frmfpfbGk82LxmD0vUndSTcvXAoknWBKCz5LDSIdiRHV0D2Tfq1BIvdY42Zim5WZ_-n3_mRvwBg&width=1360&height=850&dpi=192&waitMs=3000&format=svg&walker=1&chrome=1&localize=1&dark=1&filename=design)
 
 Lager kommer in som redigerbara rutor: text förblir omskrivbar, former förblir former och bilder går med i ditt eget bibliotek. Spara den, så kan **Share with rules** göra layouten till ett verktyg som vem som helst med Lolly kan fylla i på nytt. Se [Importera en design](/info/design-import.html).
 
@@ -98,9 +98,9 @@ Feature flags slår på eller av delar av Lolly. Vid fristående användning vä
 
 ## Vad skiljer hjälpverktyg från verktyg?
 
-Ett hjälpverktyg gör ett snabbt jobb på en fil du redan har, som att komprimera en PDF, konvertera ett foto eller ta bort dolda data, och många av dem körs på din enhet utan att något laddas upp. De finns så att jobben som folk brukar lämna till en slumpmässig webbplats stannar inom Lolly. Att komprimera ett kontrakt, konvertera semesterbilder med platsen kvar eller klistra in en token i en onlineformaterare ska inte betyda att man ger filen till en webbplats med okänd lagring, jurisdiktion och affärsmodell. [Verktyg för filer](/info/utilities.html) listar dem, och [The trade we never agreed to](/info/status-quo.html) berättar historien bakom dem.
+Ett hjälpverktyg gör ett snabbt jobb på en fil du redan har, som att komprimera en PDF, konvertera ett foto eller ta bort dolda data, och många av dem körs på din enhet utan att något laddas upp. De finns så att jobben som folk brukar lämna till en slumpmässig webbplats stannar inom Lolly. Att komprimera ett kontrakt, konvertera semesterbilder med platsen kvar eller klistra in en token i en onlineformaterare ska inte betyda att man ger filen till en webbplats med okänd lagring, jurisdiktion och affärsmodell. [Lolly Utilities](/info/utilities.html) listar dem, och [The trade we never agreed to](/info/status-quo.html) berättar historien bakom dem.
 
-![Vyn Utilities: Strip Hidden Data, Compress PDF, Convert Image och de andra jobben på enheten, alla på ett ställe](/t/url-shot?url=%2F%23%2Fu&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone!important%7D&tolerance=0.03&format=svg&walker=1&dark=1&filename=use-utilities&try=1)
+![Vyn Utilities: Lolly Strip Hidden Data, Compress PDF, Convert Image och de andra jobben på enheten, alla på ett ställe](/t/url-shot?url=%2F%23%2Fu&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone!important%7D&tolerance=0.03&format=svg&walker=1&dark=1&filename=use-utilities&try=1)
 
 ## Kan vår organisation använda SSO, delade projekt och godkännanden?
 
@@ -110,7 +110,7 @@ Ja, med **Lolly Work**, organisationsservern i samma projekt med öppen källkod
 
 ## Vilka hinder kan jag vänta mig när jag börjar använda Lolly?
 
-Mest förändring på producentsidan snarare än teknik. Ett team som vill ha en styrd uppsättning verktyg behöver någon som skapar dess designsystem och de första mallarna, även om vem som helst kan börja göra egna verktyg i Design den första dagen, utan git. Och befintliga processer fortsätter fungera även när deras utdata bryter mot varumärket, så att omvandla en synlig utdata väl, före och efter sida vid sida, driver ärendet snabbare än en plan.
+Mest förändring på producentsidan snarare än teknik. Ett team som vill ha en styrd uppsättning verktyg behöver någon som skapar dess designsystem och de första mallarna, även om vem som helst kan börja göra egna verktyg i Lolly Design den första dagen, utan git. Och befintliga processer fortsätter fungera även när deras utdata bryter mot varumärket, så att omvandla en synlig utdata väl, före och efter sida vid sida, driver ärendet snabbare än en plan.
 
 [Adoption & Governance](/info/adoption-governance.html) beskriver introduktion per roll, hur man mäter en pilot och hur en styrningsprocess kan se ut.
 
@@ -144,3 +144,11 @@ De finns i ett separat, privat arkiv. En publik klon hämtar inte SUSE:s varumä
 ## Vilken smak är det på Lolly-logotypen?
 
 Vissa säger lime, andra säger mint och ibland äpple, Lolly står för sötman, du gör smaken!
+
+## Vad menar Lolly med innehållssuveränitet?
+
+Kontroll över hur ditt innehåll skapas, styrs, lagras och flyttas mellan de system du väljer. Lolly stöder lokal produktion, redigerbart arbete och portabla verktyg; Lolly Work lägger till organisationskontrollerade delade tjänster. Källicenser, tillgängliga beroenden och arbetsflödets dataflöden spelar fortfarande roll. [Vad är innehållssuveränitet?](/info/content-sovereignty.html) förklarar varje kontroll och dess gränser.
+
+## Kan vi behålla vår befintliga DAM?
+
+Ja. En DAM som stöds kan förbli källan till sanning medan Lolly Work kopplar utvalda tillgångar till Lolly-verktyg. Åtkomst till källan, tillåtna ändringar, användningsrättigheter och godkännande av det färdiga resultatet är separata beslut. [Använd Lolly med din befintliga DAM](/info/use-with-dam.html) förklarar upplägget, och [SUSE:s Brandfolder-erfarenhet](/info/suse-brandfolder.html) dokumenterar lyckad användning under införandet.

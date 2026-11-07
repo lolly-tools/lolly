@@ -26,7 +26,7 @@ En una [collab de trabajo](/info/collaborate.html#work-collabs-with-lolly-work-o
 
 1. Pulsa **Inicio** en la esquina superior izquierda de la herramienta.
 2. Abre la pestaña **Proyectos** en la parte superior de la pantalla de inicio (el icono de carpeta en un móvil).
-3. Mira en la primera pantalla. Ahí está el trabajo guardado en **Mi biblioteca**, y cada proyecto es una carpeta. Para buscar en todas las carpetas a la vez, escribe en **Buscar en todos los proyectos…** al pie de la pantalla.
+3. Mira en la primera pantalla. Ahí está el trabajo que Lolly guardó en **Mi biblioteca**, y cada proyecto es una carpeta. Para buscar en todas las carpetas a la vez, escribe en **Buscar en todos los proyectos…** al pie de la pantalla.
 
 Un elemento se nombra según el nombre de archivo que escribiste en el panel de exportación, o según su herramienta, como **QR Code**, si no escribiste ninguno. Abre el elemento y todos los ajustes están de vuelta, listos para cambiar y exportar de nuevo. Para conservar así el trabajo nuevo, consulta [Saving & continuing](/info/using.html#saving-continuing).
 
@@ -37,7 +37,7 @@ Un elemento se nombra según el nombre de archivo que escribiste en el panel de 
 :::
 
 ::: details Trabajar con Proyectos
-También puedes abrir **Proyectos** desde **Ajustes → Almacenamiento → Sesiones guardadas → Organiza en Proyectos**. Funciona como un gestor de archivos:
+También puedes abrir la vista **Proyectos** desde **Ajustes → Almacenamiento → Sesiones guardadas → Organiza en Proyectos**. Funciona como un gestor de archivos:
 
 ![Proyectos antes de guardar nada: los mosaicos Nueva carpeta, Nuevo recurso y Plantillas, el reloj de History arriba a la derecha y la barra Buscar en todos los proyectos al pie](/t/url-shot?url=%2F%23%2Fp&width=1440&height=900&dpi=192&waitMs=1200&walker=1&format=svg&localize=1&dark=1&filename=projects)
 <!--
@@ -101,17 +101,17 @@ En las herramientas que guardan mientras trabajas, el Historial conserva una cop
 :::
 
 ::: details Qué herramientas guardan mientras trabajas
-En la app web, toda herramienta que crea un documento guarda mientras trabajas: Design, Chart, QR Code, Text, Sandbox y el resto. Estas herramientas no lo hacen:
+En la app web, toda herramienta que crea un documento guarda mientras trabajas: Lolly Design, Lolly Chart, QR Code, Text, Lolly Sandbox y el resto. Estas herramientas no lo hacen:
 
 - las herramientas que trabajan sobre un archivo que aportas, como Redact, Sign o Convert Image, porque Lolly nunca conserva una copia de ese archivo;
-- las herramientas que graban desde tu cámara, micrófono o pantalla, como Record, Screen Capture y Voice Recorder;
+- las herramientas que graban desde tu cámara, micrófono o pantalla, como Record, Lolly Screen Capture y Lolly Voice Recorder;
 - una herramienta sin nada que cambiar, como Countdown.
 
 En las demás herramientas, tu primer cambio archiva el trabajo en **Projects** como si hubieras guardado, y los cambios posteriores se conservan mientras trabajas una vez que la herramienta ha terminado de dibujar. Una creación sin guardar sigue en Projects tras cerrar la pestaña, y se reabre con sus cambios marcados como sin guardar.
 
 **Leave anyway** sigue descartando esos cambios, y History conserva una copia de las ediciones descartadas durante 30 días. Volver a abrir la herramienta desde la pantalla de inicio empieza una creación nueva; abre la anterior desde Projects.
 
-3D y Darkroom guardan mientras trabajas, pero no conservan un archivo que cargas en ellos, como un modelo 3D o una LUT. History y **Save** conservan el nombre, el tipo y el tamaño del archivo, no el archivo. Cuando vuelves a abrir el trabajo, una nota indica qué archivo era, y la herramienta funciona sin él hasta que lo cargues de nuevo. Conserva tus archivos originales.
+3D y Lolly Darkroom guardan mientras trabajas, pero no conservan un archivo que cargas en ellos, como un modelo 3D o una LUT. History y **Save** conservan el nombre, el tipo y el tamaño del archivo, no el archivo. Cuando vuelves a abrir el trabajo, una nota indica qué archivo era, y la herramienta funciona sin él hasta que lo cargues de nuevo. Conserva tus archivos originales.
 
 Con [Sincronización](/info/sync.html) activada, una creación archivada así llega a tus otros dispositivos como cualquier otra cosa en Proyectos. Sus versiones permanecen en el dispositivo donde se hicieron.
 
@@ -147,14 +147,14 @@ En iPhone, iPad y Android, un archivo nuevo reemplaza a uno anterior con el mism
 
 Para abrir una versión anterior:
 
-1. Pulsa **Historial**, el botón de reloj junto a **Deshacer** y **Rehacer**. En Design, **Historial** está en la barra superior; en un móvil, pulsa **•••** y luego **Historial**. En las herramientas sin **Deshacer**, como Text y Sandbox, **Historial** está junto a **Inicio** arriba a la izquierda.
+1. Pulsa **Historial**, el botón de reloj junto a **Deshacer** y **Rehacer**. En Lolly Design, **Historial** está en la barra superior; en un móvil, pulsa **•••** y luego **Historial**. En las herramientas sin **Deshacer**, como Text y Lolly Sandbox, **Historial** está junto a **Inicio** arriba a la izquierda.
 2. Encuentra la versión por su fecha y hora. Las filas **Punto de control automático** se toman mientras trabajas; las filas **Versión guardada** son los momentos en que guardaste.
 3. Pulsa **Abrir como copia**. La versión se abre como una nueva creación, y la que tenías abierta se queda como estaba. La copia está en **Proyectos**, con "(copy)" después de su nombre.
 
 Para conservar una versión con nombre, pulsa **Name version**, escribe un nombre y pulsa **Keep milestone**. Las versiones con nombre aparecen en la página **History**, bajo **Milestones**.
 
 ::: details El panel de History y la página de History
-El panel de **History** también lista filas de **Recovered work**, y **Protected drafts** guarda tus últimos cambios entre puntos de control, con **Open draft as a copy**. **Compare** y **Check assets** te ayudan a elegir antes de abrir una copia. Cambia **This creation** a **All history on this device** para ver todas las creaciones.
+El panel de **History** también lista filas de **Recovered work**, y **Protected drafts** guarda tus últimos cambios entre puntos de control, con **Open draft as a copy**. **Lolly Compare** y **Check assets** te ayudan a elegir antes de abrir una copia. Cambia **This creation** a **All history on this device** para ver todas las creaciones.
 
 Los puntos de control automáticos se van reduciendo con el tiempo: uno por minuto durante la última hora, uno por hora durante el último día, uno al día durante 30 días, y luego uno a la semana. Las versiones guardadas y las versiones con nombre se conservan todas. Eliminar una creación mueve también sus versiones a la **Papelera**, y **Eliminar para siempre** las elimina.
 

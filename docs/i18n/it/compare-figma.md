@@ -16,7 +16,7 @@ Entrambi permettono di disporre tipografia, forme e immagini su una tela e di la
 
 Lolly trasforma un design in uno [strumento riutilizzabile con regole](/info/create-a-tool.html). Lo strumento gira nel browser o nella CLI e prende i suoi input da un link, uno script o una griglia batch, quindi un template serve sia chi modifica un file sia un team che ne crea molti.
 
-![La tela aperta di Design, con Import a design nel menu Lolly della barra degli strumenti](/info/shots/design.svg)
+![La tela aperta di Lolly Design, con Import a design nel menu Lolly della barra degli strumenti](/info/shots/design.svg)
 
 Una [collab privata](/info/collaborate.html) mette in coppia due dispositivi direttamente, senza account e senza bisogno di internet su una rete condivisa. Lolly standalone esegue il rendering offline. Le Content Credentials sono attive per impostazione predefinita per le esportazioni supportate, e puoi disattivarle.
 

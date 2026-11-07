@@ -1,6 +1,6 @@
 # 隱私權政策
 
-*最後更新：2026 年 10 月 23 日*
+*最後更新：2026 年 11 月 3 日*
 
 **在 Lolly 中製作內容，一切都在你的裝置上進行。** 開啟工具、輸入、預覽、匯出與檢查檔案，全都在你手機、電腦或瀏覽器上的應用程式內執行。你不需要帳號，應用程式也不會為此設定任何 Cookie。
 
@@ -44,21 +44,22 @@ Lolly 的網頁、桌面與行動應用程式會在裝置上執行整個渲染�
 
 ### 在你裝置上執行的工具程式
 
-有些工具，例如 **Strip Hidden Data**、**Compress**，以及其他帶有 **Runs on your device** 標章的工具，會處理你提供的檔案。檔案會被讀入記憶體，在裝置上轉換，再以下載的方式提供給你。它絕不會被上傳，因為路徑中沒有伺服器。這些工具程式可離線運作，其輸出不帶我們的浮水印或中繼資料。
+有些工具，例如 **Lolly Strip Hidden Data**、**Compress**，以及其他帶有 **Runs on your device** 標章的工具，會處理你提供的檔案。檔案會被讀入記憶體，在裝置上轉換，再以下載的方式提供給你。它絕不會被上傳，因為路徑中沒有伺服器。這些工具程式可離線運作，其輸出不帶我們的浮水印或中繼資料。
 
-**Rondocode** 是唯一的例外，因為它是根據你的歌曲製作新的音訊，而不是轉換你的檔案。它寫出的每個音訊檔都帶有 Content Credentials，記錄該首歌曲並聲明任何由 AI 生成的歌聲。匯出面板會在你匯出前說明這一點，[Rondocode 歌曲](/info/rondocode.html#files-from-the-rondocode-utility)則確切列出記錄了哪些內容。
+**Lolly Rondocode** 是唯一的例外，因為它是根據你的歌曲製作新的音訊，而不是轉換你的檔案。它寫出的每個音訊檔都帶有 Content Credentials，記錄該首歌曲並聲明任何由 AI 生成的歌聲。匯出面板會在你匯出前說明這一點，[Lolly Rondocode 歌曲](/info/rondocode.html#files-from-the-rondocode-utility)則確切列出記錄了哪些內容。
 
 ![這些工具帶有的標章：Runs on your device - nothing is uploaded](/t/url-shot?url=%2F%23%2Ftool%2Ftext-helper&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&cropSelector=%5Bdata-privacy%5D&dark=1&filename=pv-ondevice-badge)
 
-**Prepare for sharing** 與 **Compare** 在裝置的記憶體中運作，不會傳送任何內容到伺服器，而且在你儲存結果之前，Prepare 不會在歷史記錄、連結、備份或同步中加入任何內容。
+**Prepare for sharing** 與 **Lolly Compare** 在裝置的記憶體中運作，不會傳送任何內容到伺服器，而且在你儲存結果之前，Prepare 不會在歷史記錄、連結、備份或同步中加入任何內容。
 
-::: details Prepare for sharing 與 Compare 如何處理你的檔案
+<a id="how-prepare-for-sharing-and-compare-handle-your-files"></a>
+::: details Prepare for sharing 與 Lolly Compare 如何處理你的檔案
 **Prepare for sharing** 將工作用輸入、私人發現與取代對照表保存在記憶體中，不會將它們加入歷史記錄、連結、備份或同步。檢查與取代都不會將檔案內容傳送到伺服器，也不會在線上檢查任何憑證。你可以選擇複製、下載、傳送，或將結果儲存到你的資料庫；已儲存的結果之後會遵循你資料庫的備份與同步設定。配方檔案不含較早的內容與逐字對照，摘要報告則包含計數、範圍 ID 與檔案雜湊。只有在以 `--review-file` 要求時，CLI 才會儲存一個含原始值的私人審閱檔。離開準備檢視會釋放其工作狀態，但這並不承諾從瀏覽器或作業系統記憶體中進行鑑識等級的清除。
 
-已準備的副本與完成的檔案操作共用 Compare 控制項。已移除的值預設為摺疊，除非你選擇納入，否則比較報告不會包含來源名稱、路徑與值。檔案歷史記錄儲存的是副本，因此重新載入後要比較，就得再次選取原始檔案，並依其記錄的 SHA-256 比對。選取檔案不會儲存或上傳它。
+已準備的副本與完成的檔案操作共用 Lolly Compare 控制項。已移除的值預設為摺疊，除非你選擇納入，否則比較報告不會包含來源名稱、路徑與值。檔案歷史記錄儲存的是副本，因此重新載入後要比較，就得再次選取原始檔案，並依其記錄的 SHA-256 比對。選取檔案不會儲存或上傳它。
 :::
 
-Strip Hidden Data 與 Prepare for sharing 也會在裝置上檢查 DOCX、PPTX 與 XLSX 檔案。受支援的 DOCX 檔案可以在新的副本中移除選定的屬性；其他 Office 內容僅供檢查，私人預覽則保留在揭示控制項之後。
+Lolly Strip Hidden Data 與 Prepare for sharing 也會在裝置上檢查 DOCX、PPTX 與 XLSX 檔案。受支援的 DOCX 檔案可以在新的副本中移除選定的屬性；其他 Office 內容僅供檢查，私人預覽則保留在揭示控制項之後。
 
 ::: details Office 檢查會讀取與移除什麼
 | Office 格式 | 檢查的套件內容 | 支援的移除項目 |
@@ -75,7 +76,7 @@ Strip Hidden Data 與 Prepare for sharing 也會在裝置上檢查 DOCX、PPTX �
 
 **哪些維持僅供檢查。** 延伸的數位簽章資料會阻止清理。已簽署、啟用巨集、已加密、格式錯誤、已改名或巢狀的 Office 套件維持僅供檢查。含有其他依賴屬性的 Word 欄位（例如 DOCPROPERTY 或 AUTHOR）或 XML 繫結內容控制項的檔案也一樣，因為移除屬性可能在 Word 更新這些繫結時改變文件，而快取的欄位文字無法顯示下一次渲染會是相同的外觀。含有不尋常副檔名的 XML 部分、無法安全檢查的 Word XML 關聯目標、宣告錯誤的頁首或頁尾部分，以及宣告為 XML 但副檔名為 `.svg` 的 SVG 部分，在這個首個清理版本中同樣維持僅供檢查。
 
-**清理如何檢查自己的工作。** 屬性部分、其宣告、無關的套件成員、XML 註解與 ZIP 註解都會保留。清理會套用普查限制，並在寫入前檢查每個成員的完整性，然後再次檢查產生的屬性。Compare 會以摺疊的值顯示受支援的屬性差異；它不比較可見文字或渲染外觀。值使用最多 2048 個字元的預覽，因此超出預覽的差異可能不會顯示，部分審閱也無法確定兩個檔案相同。CLI 的 `prepare --strip-hidden-data` 會移除受支援的 DOCX 屬性，私人審閱信封則可以挑選個別屬性。若清理防護失敗，會保留檔案並回報操作失敗。
+**清理如何檢查自己的工作。** 屬性部分、其宣告、無關的套件成員、XML 註解與 ZIP 註解都會保留。清理會套用普查限制，並在寫入前檢查每個成員的完整性，然後再次檢查產生的屬性。Lolly Compare 會以摺疊的值顯示受支援的屬性差異；它不比較可見文字或渲染外觀。值使用最多 2048 個字元的預覽，因此超出預覽的差異可能不會顯示，部分審閱也無法確定兩個檔案相同。CLI 的 `prepare --strip-hidden-data` 會移除受支援的 DOCX 屬性，私人審閱信封則可以挑選個別屬性。若清理防護失敗，會保留檔案並回報操作失敗。
 :::
 
 ## 應用程式與網路通訊的完整清單
@@ -85,8 +86,8 @@ Strip Hidden Data 與 Prepare for sharing 也會在裝置上檢查 DOCX、PPTX �
 ::: details 取得到你裝置上的內容
 - <!--i:download--> **工具目錄。** 不含個人資料：向應用程式自己的網址請求 Lolly 自有的公開工具與素材索引，於啟動時發出，之後會離線快取。若被封鎖，應用程式會以快取的工具運作，並停止探索新工具。
 - <!--i:sparkle--> **表情符號組。** 你選擇的組合會在你第一次使用該組時，從應用程式自己的網址下載。不會傳送任何個人資料。Lottie 動畫在裝置上讀取，不會連絡任何對象。
-- <!--i:document--> **Google Fonts。** 所選字型家族名稱與你的 IP 位址會傳到 Google 的字型伺服器（樣式表為 `fonts.googleapis.com`，字型檔為 `fonts.gstatic.com`）。只有在你於 Design System Setup 加入 Google Font，且在明確說明此事的對話框中表示同意後，才會發生。每個字型家族只擷取一次，之後保存在裝置上並離線使用。若被封鎖，選擇器會安全失效；請改為上傳字型檔。
-- <!--i:cpu--> **裝置端 AI 模型。** 不含個人資料：下載模型檔，之後保存在裝置上。網頁版本預設使用應用程式自己的網址；建置版本可指定其他模型主機，例如封裝應用程式使用 Lolly 的發行主機 `lolli.li`。該主機會收到請求與你的 IP 位址，沒有帳號，也沒有模型輸入。只有在你使用需要模型的功能（Verify 的深度掃描、圖片放大、語音及類似功能），或選擇下載模型供離線使用時才會發生。若被封鎖，該功能會等待，其他一切照常運作。
+- <!--i:document--> **Google Fonts。** 所選字型家族名稱與你的 IP 位址會傳到 Google 的字型伺服器（樣式表為 `fonts.googleapis.com`，字型檔為 `fonts.gstatic.com`）。只有在你於 Lolly Design System Setup 加入 Google Font，且在明確說明此事的對話框中表示同意後，才會發生。每個字型家族只擷取一次，之後保存在裝置上並離線使用。若被封鎖，選擇器會安全失效；請改為上傳字型檔。
+- <!--i:cpu--> **裝置端 AI 模型。** 不含個人資料：下載模型檔，之後保存在裝置上。網頁版本預設使用應用程式自己的網址；建置版本可指定其他模型主機，例如封裝應用程式使用 Lolly 的發行主機 `lolli.li`。該主機會收到請求與你的 IP 位址，沒有帳號，也沒有模型輸入。只有在你使用需要模型的功能（Lolly Verify 的深度掃描、圖片放大、語音及類似功能），或選擇下載模型供離線使用時才會發生。若被封鎖，該功能會等待，其他一切照常運作。
 - <!--i:sliders--> **ICC 印刷描述檔。** 不含個人資料：向 ICC 的公開登錄處（`registry.color.org`、`www.color.org`）請求標準印刷條件描述檔，只在你於印刷描述檔管理員中點選 ICC 預設時發生，每個描述檔一次。若被封鎖，預設會失敗；請提供你自己的 `.icc` 描述檔。
 - <!--i:globe--> **網路電台。** 不含個人資料：向電台請求播放清單與音訊串流（`api.somafm.com` 與它指向的串流伺服器 `*.somafm.com`），只在你於音效播放器中播放選用電台時發生。若被封鎖，電台會失敗，其他所有音效功能仍正常運作。
 :::
@@ -98,16 +99,16 @@ Strip Hidden Data 與 Prepare for sharing 也會在裝置上檢查 DOCX、PPTX �
 ::: details 你傳送的檔案
 下列每一項都只傳送你選擇的那一個檔案，時機是你按下其 Send 按鈕時，並且在你於該服務自己的視窗中完成登入之後。Bluesky 應用程式密碼、Discord webhook 位址、Nextcloud 應用程式密碼與 S3 金鑰只儲存在這部裝置上，絕不放進備份，**Disconnect** 會將它們清除。
 
-- <!--i:upload--> **Google Drive。** 任何格式的檔案都會傳到 Google 的 Drive API（`www.googleapis.com`）。Lolly 的存取權限僅限於它自己建立的檔案（`drive.file` 範圍），因此永遠無法讀取你 Drive 中的其餘內容。在網頁應用程式中，登入權杖僅在該工作階段中保存在記憶體裡，絕不儲存；在其他應用程式中，只有勾選 **Stay connected** 時，才會把更新權杖儲存在這部裝置上。此按鈕只存在於營運者設定了 Google 用戶端 ID 的建置版本。若被封鎖，按鈕不會出現；請下載檔案後自行上傳。
-- <!--i:upload--> **Dropbox。** 檔案會傳到 Dropbox 的 API（登入與中繼資料用 `api.dropboxapi.com`，檔案用 `content.dropboxapi.com`）。存取權限僅限應用程式資料夾，因此 Lolly 只看得到 `Apps/` 與其中屬於它自己的資料夾，其他都看不到。它顯示的 **Open** 連結是短效的私人連結，不會建立任何公開分享。只有勾選 **Stay connected** 時才會儲存更新權杖。此按鈕只存在於營運者設定了 Dropbox 用戶端 ID 的版本。
-- <!--i:upload--> **OneDrive。** 檔案會傳到 Microsoft 的身分與 Graph 服務（登入用 `login.microsoftonline.com`，上傳用 `graph.microsoft.com`）；大型檔案會分段上傳到 `api.onedrive.com` 或營運者設定的儲存來源。存取權限僅限 `Apps/` 底下 Lolly 自己的資料夾，加上用於帳號標籤的你的顯示名稱。只有勾選 **Stay connected** 時才會儲存更新權杖。此按鈕只存在於營運者設定了 Microsoft 用戶端 ID 的版本。
+- <!--i:upload--> **Google Drive。** 任何格式的檔案都會傳到 Google 的 Drive API（`www.googleapis.com`）。Lolly 的存取權限僅限於它自己建立的檔案（`drive.file` 範圍），因此永遠無法讀取你 Drive 中的其餘內容。在網頁應用程式中，登入權杖僅在該工作階段中保存在記憶體裡，絕不儲存；在其他應用程式中，只有勾選 **Stay connected** 時，才會把更新權杖儲存在這部裝置上。此按鈕只存在於營運者設定了 Google 用戶端 ID 的建置版本。若被封鎖，按鈕不會出現；請下載檔案後自行上傳。**分享連結。** 如果你按下 **Create a share link**，會再對 `www.googleapis.com` 發出第二次呼叫，為該檔案加入一項權限（任何擁有連結的人、你的 Workspace 網域，或你輸入的位址，若是後者 Google 會寄電子郵件給他們），並讀取其連結。**Stop sharing** 會刪除該權限。不需要其他任何東西：`drive.file` 範圍已涵蓋 Lolly 建立的檔案。
+- <!--i:upload--> **Dropbox。** 檔案會傳到 Dropbox 的 API（登入與中繼資料用 `api.dropboxapi.com`，檔案用 `content.dropboxapi.com`）。存取權限僅限應用程式資料夾，因此 Lolly 只看得到 `Apps/` 與其中屬於它自己的資料夾，其他都看不到。它顯示的 **Open** 連結是短效的私人連結，不會建立任何公開分享。只有勾選 **Stay connected** 時才會儲存更新權杖。此按鈕只存在於營運者設定了 Dropbox 用戶端 ID 的版本。**分享連結。** 只有在你第一次按下 **Create a share link** 時，Dropbox 才會要求你再核准一項權限 `sharing.write`。Lolly 接著會呼叫 `api.dropboxapi.com` 來建立連結（`sharing/create_shared_link_with_settings`），並在 **Stop sharing** 時呼叫它來撤銷該連結。傳送檔案絕不會要求這項權限。
+- <!--i:upload--> **OneDrive。** 檔案會傳到 Microsoft 的身分與 Graph 服務（登入用 `login.microsoftonline.com`，上傳用 `graph.microsoft.com`）；大型檔案會分段上傳到 `api.onedrive.com` 或營運者設定的儲存來源。存取權限僅限 `Apps/` 底下 Lolly 自己的資料夾，加上用於帳號標籤的你的顯示名稱。只有勾選 **Stay connected** 時才會儲存更新權杖。此按鈕只存在於營運者設定了 Microsoft 用戶端 ID 的版本。**分享連結。** **Create a share link** 會以你已授予的存取權限呼叫 `graph.microsoft.com`（對該檔案執行 `createLink`）。若 Microsoft 拒絕，Lolly 不會要求更廣的存取權限：它會帶你前往該檔案在 OneDrive 中自己的頁面，使用那裡的 Share 按鈕。**Stop sharing** 會刪除該連結的權限。
 - <!--i:upload--> **LinkedIn**，**僅限桌面應用程式**。檔案連同以其名稱作為貼文文字，會傳到 LinkedIn（在你自己的瀏覽器中登入用 `www.linkedin.com`，上傳與發文用 `api.linkedin.com`），作為你個人動態上的公開貼文。Lolly 可以以你的身分發文，並讀取你的姓名作為帳號標籤，僅此而已。只有勾選 **Stay connected** 時才會保留登入狀態，而 LinkedIn 的權杖有效期為 60 天，無法靜默更新，因此會自行失效。這些主機不在網頁應用程式的連線政策中。此按鈕只存在於設定了 LinkedIn 應用程式的建置版本。
 - <!--i:upload--> **Penpot。** 你貼入應用程式的 Penpot 個人存取權杖，以及設計的 `.penpot` 封存檔，會透過應用程式自己網址上的小型轉遞端點（`/api/penpot`）傳到 Penpot 的 API（`design.penpot.app`），因為 Penpot 的 API 不會直接回應瀏覽器。轉遞端點只負責轉送，不會留存；桌面應用程式則直接與 Penpot 通訊。只有在你於 Design 工具中按下 **Send to Penpot** 並確認專案時才會發生。若被封鎖，傳送會安全失效；請匯出 `.penpot` 檔案後自行匯入。
 - <!--i:upload--> **Bluesky。** 圖片、作為貼文文字與替代文字的圖片名稱，以及你的帳號代號與應用程式密碼（在 Bluesky → Settings → App passwords 下建立，絕不是你的帳號密碼），會傳到你指定的 Bluesky 伺服器，除非你選擇其他伺服器，否則為 `bsky.social`。你要先在 **Settings → Connected services** 連接帳號。
 - <!--i:upload--> **Discord。** 檔案會以附件形式傳到你貼上的頻道 webhook 位址（位於 discord.com）。任何持有 webhook 位址的人都能向該頻道發文，這就是它只留在裝置上的原因。
 - <!--i:upload--> **Mastodon。** 檔案連同以其名稱作為貼文文字，會在你於該伺服器自己的視窗中登入後，傳到你指定的 Mastodon 或相容伺服器。連接時會在該伺服器上為這部裝置註冊一個小型應用程式，而只有勾選 **Stay connected** 時才會保留登入狀態。
-- <!--i:upload--> **Nextcloud 或 WebDAV。** 檔案會以一次經過驗證的上傳送到你自己的伺服器，使用你輸入的伺服器位址、使用者名稱與應用程式密碼（Nextcloud → Settings → Security → Devices & sessions；絕不是你的帳號密碼）。
-- <!--i:upload--> **S3 相容儲存空間。** 檔案會傳到你自己的儲存貯體（AWS S3、MinIO、R2、B2、Garage 或任何 SigV4 端點），並在裝置上以你輸入的金鑰對簽署。
+- <!--i:upload--> **Nextcloud 或 WebDAV。** 檔案會以一次經過驗證的上傳送到你自己的伺服器，使用你輸入的伺服器位址、使用者名稱與應用程式密碼（Nextcloud → Settings → Security → Devices & sessions；絕不是你的帳號密碼）。**分享連結。** **Create a share link** 會以相同的應用程式密碼，對你自己伺服器的分享服務（`/ocs/v2.php/apps/files_sharing/api/v1/shares`）發出一次呼叫，建立一個公開的唯讀連結，密碼與到期日由你決定。**Stop sharing** 會刪除該分享。
+- <!--i:upload--> **S3 相容儲存空間。** 檔案會傳到你自己的儲存貯體（AWS S3、MinIO、R2、B2、Garage 或任何 SigV4 端點），並在裝置上以你輸入的金鑰對簽署。**分享連結。** 連結是在你的裝置上，依你儲存的金鑰產生的預先簽署位址，因此產生它時不會傳送任何內容。它最長有效七天，無法提前關閉。
 
 **你自選的主機需要營運者核准。** Bluesky、Discord、Mastodon、Nextcloud 與 S3 主機不在 Lolly 的固定清單中，因為是由你選擇。在營運者核准該確切 HTTPS 主機之前，應用程式不會向它傳送任何內容：在網頁上，核准寫在部署的 Content Security Policy 中；在桌面應用程式中，則是在建置應用程式時核准。自訂儲存空間與 SharePoint 上傳主機也適用同樣規則。在網頁上，伺服器還必須允許來自該應用程式的瀏覽器呼叫（CORS），而重新導向會安全失效，因此請使用不會重新導向的位址。桌面應用程式會對照已核准清單檢查每一次重新導向。
 
@@ -122,20 +123,21 @@ Strip Hidden Data 與 Prepare for sharing 也會在裝置上檢查 DOCX、PPTX �
 
 ::: details 其他網站的網頁、擷取內容與圖片
 - <!--i:monitor--> **你要求工具擷取的網址。** URL 螢幕截圖工具會請求你輸入的確切位址，且只在你開始擷取時才發出。由於位址是你在當下選擇的，它不在連線政策中，營運者無法依主機允許或封鎖它；若要移除，請移除該工具。
-- <!--i:globe--> **Design 方塊中的網頁。** 該頁面會連同你的 IP 位址，向它所屬的網站請求，頁面本身所請求的內容也一併包含。在瀏覽器支援的情況下，框架不會傳送 Cookie，也不會傳送應用程式自身來源以外的位址，因此你的文件與其連結絕不會隨請求一同傳出。在網頁應用程式上，只有這些播放器可以嵌入框架：`www.youtube-nocookie.com`、`player.vimeo.com`、`www.loom.com`、`www.google.com`（地圖）與 `www.figma.com`，以及位於 `wikipedia.org` 與 `*.wikipedia.org`、`commons.wikimedia.org`、`upload.wikimedia.org`、`www.wikidata.org`、`www.mediawiki.org` 和 `www.openstreetmap.org` 的參考頁面。**Allow pages from any site**（位於 **Settings → Trusted sites** 之下）會讓 Lolly 在你的裝置上以可嵌入任何 `https:` 頁面的政策重新載入，而關於信任與詢問的相同規則仍然適用。頁面只有在屬於你的信任網站（包括可移除的預設參考網站）時才會載入，或在你於檢查器中核准該方塊之後才會載入；別人傳給你的簡報在那之前會對每個頁面顯示一張圖片。在你簡報之前，清單會為每個網站提供 **Just this time** 與 **Always trust**，簡報期間則不會詢問任何事。若被封鎖，方塊會顯示其圖片，並附上在新分頁開啟頁面的連結。方塊中的 Lolly 工具與 Sandbox 示範在應用程式自己的網址上執行，不會連絡任何對象。
-- <!--i:sliders--> **更改你展示的頁面。** 網頁方塊的 **Use page** 動作讓你可以在頁面內拒絕 Cookie 或關閉橫幅。對於可存取的 Lolly 頁面，**Hide cookie banners** 會隱藏已知的覆蓋層（包括 OneTrust），而不會接受 Cookie 或改變網站的同意選擇。**Page CSS** 會改變該方塊的即時頁面與呈現；匯出仍使用所選的海報。這些規則無法匯入資源或字型，而瀏覽器會阻止 Lolly 更改其他網站的 CSS。Sandbox 預覽在 **Edit in Sandbox** 之下有自己的 CSS 編輯器。
-- <!--i:code--> **Sandbox 示範的網頁資源。** 示範程式碼所連結的每個樣式表、指令碼、字型或圖片，都會連同你的 IP 位址、不帶 Cookie，向代管它的網站請求；已擷取的樣式表所指名的檔案（例如 Google Fonts 的字型檔）則算作獨立的網站。只有在你按下 **Fetch & inline** 之後，或對於屬於你的信任網站的網站，才會發生；檔案旁的 **Always trust** 會將其網站加入該清單。若被封鎖，示範會在沒有這些檔案的情況下執行，Sandbox 會列出它無法擷取的每個檔案與原因。
+- <!--i:globe--> **Lolly Design 方塊中的網頁。** 該頁面會連同你的 IP 位址，向它所屬的網站請求，頁面本身所請求的內容也一併包含。在瀏覽器支援的情況下，框架不會傳送 Cookie，也不會傳送應用程式自身來源以外的位址，因此你的文件與其連結絕不會隨請求一同傳出。在網頁應用程式上，只有這些播放器可以嵌入框架：`www.youtube-nocookie.com`、`player.vimeo.com`、`www.loom.com`、`www.google.com`（地圖）與 `www.figma.com`，以及位於 `wikipedia.org` 與 `*.wikipedia.org`、`commons.wikimedia.org`、`upload.wikimedia.org`、`www.wikidata.org`、`www.mediawiki.org` 和 `www.openstreetmap.org` 的參考頁面。**Allow pages from any site**（位於 **Settings → Trusted sites** 之下）會讓 Lolly 在你的裝置上以可嵌入任何 `https:` 頁面的政策重新載入，而關於信任與詢問的相同規則仍然適用。頁面只有在屬於你的信任網站（包括可移除的預設參考網站）時才會載入，或在你於檢查器中核准該方塊之後才會載入；別人傳給你的簡報在那之前會對每個頁面顯示一張圖片。在你簡報之前，清單會為每個網站提供 **Just this time** 與 **Always trust**，簡報期間則不會詢問任何事。若被封鎖，方塊會顯示其圖片，並附上在新分頁開啟頁面的連結。方塊中的 Lolly 工具與 Lolly Sandbox 示範在應用程式自己的網址上執行，不會連絡任何對象。
+- <!--i:sliders--> **更改你展示的頁面。** 網頁方塊的 **Use page** 動作讓你可以在頁面內拒絕 Cookie 或關閉橫幅。對於可存取的 Lolly 頁面，**Hide cookie banners** 會隱藏已知的覆蓋層（包括 OneTrust），而不會接受 Cookie 或改變網站的同意選擇。**Page CSS** 會改變該方塊的即時頁面與呈現；匯出仍使用所選的海報。這些規則無法匯入資源或字型，而瀏覽器會阻止 Lolly 更改其他網站的 CSS。Lolly Sandbox 預覽在 **Edit in Sandbox** 之下有自己的 CSS 編輯器。
+- <!--i:code--> **Lolly Sandbox 示範的網頁資源。** 示範程式碼所連結的每個樣式表、指令碼、字型或圖片，都會連同你的 IP 位址、不帶 Cookie，向代管它的網站請求；已擷取的樣式表所指名的檔案（例如 Google Fonts 的字型檔）則算作獨立的網站。只有在你按下 **Fetch & inline** 之後，或對於屬於你的信任網站的網站，才會發生；檔案旁的 **Always trust** 會將其網站加入該清單。若被封鎖，示範會在沒有這些檔案的情況下執行，Lolly Sandbox 會列出它無法擷取的每個檔案與原因。
 - <!--i:download--> **從 URL 新增圖片。** 素材選擇器或 Assets 中的 **Add from URL** 會請求你貼上的確切圖片位址。網頁應用程式自己的政策阻止瀏覽器直接擷取其他網站，因此應用程式自己網址上的小型轉遞端點（`/api/fetch-image`）會擷取圖片並只回傳位元組；它不儲存任何內容、會忘記位址，並拒絕任何不是公開圖片位址的請求。桌面應用程式則直接擷取該位址。你貼上的 Lolly 連結完全不會被擷取：它在裝置上渲染。若營運者關閉轉遞端點（`LOLLY_DISABLE_IMAGE_PROXY=1`），在網頁應用程式中只能新增 Lolly 連結、`data:` 圖片與同源圖片，桌面應用程式則不受影響。
-- <!--i:palette--> **來自網站的設計系統。** Design System Setup 可以讀取你指定網站的一個頁面，經由[瀏覽器擴充功能](#the-browser-extension)或桌面應用程式自己的擷取，絕不經過 Lolly 伺服器。在你按下之前不會擷取任何內容，頁面上的連結也不會被跟隨。
+- <!--i:palette--> **來自網站的設計系統。** Lolly Design System Setup 可以讀取你指定網站的一個頁面，經由[瀏覽器擴充功能](#the-browser-extension)或桌面應用程式自己的擷取，絕不經過 Lolly 伺服器。在你按下之前不會擷取任何內容，頁面上的連結也不會被跟隨。
 :::
 
 ::: details 與他人及代理協作
 - <!--i:link--> **私人協作。** 兩部裝置直接連線，中間沒有伺服器。邀請與回覆帶有每部裝置在其自身網路上可見的位址，而這個建置版本不設定任何外部位址探索伺服器，因此只應把它們交給與你一起工作的那個人。請參閱[一起協作](/info/collaborate.html)。
 - <!--i:monitor--> **Nearby**，在桌面應用程式中。當你處於可見狀態時（在你發起協作邀請時為十分鐘，若你開啟該設定則是只要應用程式在執行），應用程式會在區域網路上公布一個隨機名稱、你選擇的顯示名稱與裝置種類。它不會公布任何電子郵件地址、帳號或長期識別碼。
 - <!--i:link--> **邀請代理。** 受邀文件的狀態、代理要求的預覽、代理的身分及其編輯，會經由設定好的即時中繼站（lolly.tools 上為 `lolly.ing`）傳給你邀請的代理。已安裝的託管外掛程式也會透過 lolly.tools 連接器，將呼叫轉送到邀請所選擇的中繼站；連接器在兩次呼叫之間不會保留任何邀請或文件。中繼站將邀請與待處理的請求保存在記憶體中，直到你中斷連線或它們過期為止：未使用的邀請為十分鐘，已加入的邀請在沒有活動三十分鐘後過期。你的代理提供者依其自身政策處理其收到的資料。只有在你於 Share 中建立邀請，並把其說明交給你的代理之後才會發生；讀取權限允許檢視，編輯權限還允許變更。Pause 會停止變更，Disconnect 或撤銷邀請則會終止存取。若被封鎖，代理便無法加入或繼續，而你仍可繼續編輯。
-- <!--i:cpu--> **Allow AI control**，在桌面應用程式中。在這部電腦上執行的代理，可以透過一條留在電腦上的連線讀取並編輯開啟中的 Design 文件。在你開啟之前它是關閉的。Lolly 不會為此傳送任何內容到伺服器；代理的提供者依其自身政策處理代理所讀到的內容。[威脅模型與信任邊界](/info/threat-model.html)列出這類代理能做與不能做的事。
+- <!--i:cpu--> **Allow AI control**，在桌面應用程式中。在這部電腦上執行的代理，可以透過一條留在電腦上的連線讀取並編輯開啟中的 Lolly Design 文件。在你開啟之前它是關閉的。Lolly 不會為此傳送任何內容到伺服器；代理的提供者依其自身政策處理代理所讀到的內容。[威脅模型與信任邊界](/info/threat-model.html)列出這類代理能做與不能做的事。
+- <!--i:cpu--> **Ask an agent**，在桌面應用程式中。在 Lolly Design 中開啟 **Ask an agent** 時，應用程式會在這部電腦上尋找四個代理命令列工具（Claude Code、Codex、Gemini CLI 和 GitHub Copilot CLI）、七個應用程式（Claude、ChatGPT、Codex、Cursor、Visual Studio Code、LM Studio 和 Ollama），以及 `127.0.0.1` 上的 Ollama 與 LM Studio 伺服器。它會執行每個工具的版本與說明指令（以及 Codex 的功能清單），從應用程式套件讀取應用程式名稱與版本，並詢問那兩個本機伺服器各自擁有哪些模型。它不會讀取任何登入或憑證檔案，結果只留在應用程式的記憶體中，也不會傳送到任何地方。當你詢問代理時，你的請求與開啟中的文件（不含已上傳的圖片）會傳到該代理的提供者（Claude Code 為 Anthropic，Codex 為 OpenAI），使用該工具所登入的帳號，並由你在該提供者的方案支付。路徑中沒有任何 Lolly 伺服器。在對每個代理發出第一次請求之前，面板會顯示這些內容並詢問一次，你的回答會保存在這部裝置的 `localStorage`。代理在沒有任何工具、空的暫存資料夾中執行，只帶有找到自己登入所需的環境變數，因此環境中設定的 API 金鑰不會被帶入。在受管理的實例上，組織的政策可以關閉這項功能，之後應用程式既不尋找代理，也不啟動代理。
 - <!--i:server--> **遠端實例。** 當你把應用程式指向另一個 Lolly 部署時，它會透過相同的目錄同步，收到該實例回傳的任何內容，並在對它的請求上附帶一個版本標籤（應用程式種類與引擎版本，與使用者代理所帶的資訊相同），讓其營運者能看出正在使用哪些 Lolly 版本。在受管理的實例上，當你登入時，該標籤還會帶有這部裝置的安裝 ID，讓營運者的裝置清單能區分各個安裝；離開時會刪除該 ID，之後重新連線的裝置會出示一個新的。主機是由你選擇，所以它不在連線政策中。若被封鎖，切換會失敗，你的本機實例不受影響。
-- <!--i:people--> **你所屬組織的 Lolly Work 實例。** 登入身分與裝置資訊、政策請求、你使用的共用工作階段、協作編輯、上傳、核准提交與交付檔案，以及在有設定時允許的使用事件標籤，會傳到你所屬組織的實例，登入則經由其身分提供者。政策更新與已啟用的遙測可能在使用期間執行；共用工作、協作、審閱與交付則在這些工作流程中傳送內容。若被封鎖，這些組織功能便無法完成，而你的個人作品維持獨立。請參閱[Lolly Lolly Work 的組織服務](#organisation-services-with-lolly-work)。
+- <!--i:people--> **你所屬組織的 Lolly Work 實例。** 登入身分與裝置資訊、政策請求、你使用的共用工作階段、協作編輯、上傳、核准提交與交付檔案，以及在有設定時允許的使用事件標籤，會傳到你所屬組織的實例，登入則經由其身分提供者。政策更新與已啟用的遙測可能在使用期間執行；共用工作、協作、審閱與交付則在這些工作流程中傳送內容。若被封鎖，這些組織功能便無法完成，而你的個人作品維持獨立。請參閱[Lolly Work 的組織服務](#organisation-services-with-lolly-work)。
 :::
 
 ### 每個固定主機，整理在一張表
@@ -146,23 +148,23 @@ Strip Hidden Data 與 Prepare for sharing 也會在裝置上檢查 DOCX、PPTX �
 |---|---|---|
 | 封裝應用程式中的裝置端模型與發行檔案 | 對公開檔案的請求，連同你的 IP 位址 | `lolli.li` |
 | Google Fonts | 字型家族名稱與你的 IP 位址 | `fonts.googleapis.com`、`fonts.gstatic.com` |
-| 傳送至 Google Drive 與同步 | 你選擇的檔案或備份 | `www.googleapis.com` |
-| 傳送至 Dropbox 與同步 | 你選擇的檔案或備份 | `api.dropboxapi.com`、`content.dropboxapi.com` |
-| 傳送至 OneDrive 與同步 | 你選擇的檔案或備份，以及用於帳號標籤的顯示名稱 | `login.microsoftonline.com`、`graph.microsoft.com`、`api.onedrive.com` |
+| 傳送至 Google Drive 與同步 | 你選擇的檔案或備份，以及你要求分享連結時的分享權限 | `www.googleapis.com` |
+| 傳送至 Dropbox 與同步 | 你選擇的檔案或備份，以及你要求分享連結時的連結設定 | `api.dropboxapi.com`、`content.dropboxapi.com` |
+| 傳送至 OneDrive 與同步 | 你選擇的檔案或備份、用於帳號標籤的顯示名稱，以及你要求分享連結時的連結請求 | `login.microsoftonline.com`、`graph.microsoft.com`、`api.onedrive.com` |
 | Meeting Planner 的城市查詢 | 每個城市名稱 | `geocoding-api.open-meteo.com` |
 | ICC 印刷描述檔 | 對公開描述檔的請求 | `registry.color.org`、`www.color.org` |
 | 網路電台 | 播放清單請求與音訊串流 | `api.somafm.com`、`*.somafm.com` |
 | 邀請代理，以及 lolly.ing 工作區 | 受邀文件的狀態、預覽與編輯，以及你發出的工作區請求 | `lolly.ing` |
-| Design 網頁方塊中的播放器 | 對頁面的請求，連同你的 IP 位址 | `www.youtube-nocookie.com`、`player.vimeo.com`、`www.loom.com`、`www.google.com`、`www.figma.com` |
-| Design 網頁方塊中的參考頁面 | 對頁面的請求，連同你的 IP 位址 | `wikipedia.org`、`*.wikipedia.org`、`commons.wikimedia.org`、`upload.wikimedia.org`、`www.wikidata.org`、`www.mediawiki.org`、`www.openstreetmap.org` |
+| Lolly Design 網頁方塊中的播放器 | 對頁面的請求，連同你的 IP 位址 | `www.youtube-nocookie.com`、`player.vimeo.com`、`www.loom.com`、`www.google.com`、`www.figma.com` |
+| Lolly Design 網頁方塊中的參考頁面 | 對頁面的請求，連同你的 IP 位址 | `wikipedia.org`、`*.wikipedia.org`、`commons.wikimedia.org`、`upload.wikimedia.org`、`www.wikidata.org`、`www.mediawiki.org`、`www.openstreetmap.org` |
 | 傳送到 LinkedIn，僅限桌面應用程式 | 檔案，以其名稱作為公開貼文 | `www.linkedin.com`、`api.linkedin.com` |
 
 桌面應用程式自己的清單還包含 Google 用於 Drive 登入的權杖端點。任何其他主機，例如你指定的 Mastodon 或 Nextcloud 伺服器，都需要營運者核准，如 Files you send 之下所述。你在使用當下才選擇的主機，例如你擷取的 URL 或你指定的遠端實例，不會出現在任何清單中。
 
 
-**SEAL 簽章不會發出任何請求。** Verify 可以檢查 SEAL 簽章，這是一種簽署金鑰可以發布在 DNS 中的機制。瀏覽器無法發出 DNS 查詢，因此網頁查詢必須經過第三方 DNS-over-HTTPS 解析器，而該解析器會看到被檢查的網域與你的 IP 位址。Lolly 過去使用 Cloudflare 的解析器；現在已不再使用，也沒有任何東西取代 Cloudflare。目前沒有任何 Lolly 應用程式查詢 SEAL 金鑰：桌面與行動應用程式執行相同的 Verify 檢視，而命令列的 `lolly validate` 不檢查 SEAL。SEAL 記錄內嵌金鑰的檔案會離線檢查，Verify 會判定簽章內部一致，但不確認網域。金鑰只存在於 DNS 的檔案會顯示 **SEAL signature did not verify**，原因為「no key resolver and no inline key」。
+**SEAL 簽章不會發出任何請求。** Lolly Verify 可以檢查 SEAL 簽章，這是一種簽署金鑰可以發布在 DNS 中的機制。瀏覽器無法發出 DNS 查詢，因此網頁查詢必須經過第三方 DNS-over-HTTPS 解析器，而該解析器會看到被檢查的網域與你的 IP 位址。Lolly 過去使用 Cloudflare 的解析器；現在已不再使用，也沒有任何東西取代 Cloudflare。目前沒有任何 Lolly 應用程式查詢 SEAL 金鑰：桌面與行動應用程式執行相同的 Verify 檢視，而命令列的 `lolly validate` 不檢查 SEAL。SEAL 記錄內嵌金鑰的檔案會離線檢查，Lolly Verify 會判定簽章內部一致，但不確認網域。金鑰只存在於 DNS 的檔案會顯示 **SEAL signature did not verify**，原因為「no key resolver and no inline key」。
 
-![Verify 畫面：只有一個放置目標，沒有其他東西。檔案就在原處接受檢查，不上傳也不需要帳號](/t/url-shot?url=%2F%23%2Fverify&width=1440&height=900&dpi=192&waitMs=1400&walker=1&format=svg&cropSelector=.valid-layout&dark=1&filename=cc-verify-drop)
+![Lolly Verify 畫面：只有一個放置目標，沒有其他東西。檔案就在原處接受檢查，不上傳也不需要帳號](/t/url-shot?url=%2F%23%2Fverify&width=1440&height=900&dpi=192&waitMs=1400&walker=1&format=svg&cropSelector=.valid-layout&dark=1&filename=cc-verify-drop)
 
 你可以自行驗證本頁的這項以及其他每一項說法：[自行驗證](/info/verify-yourself.html)提供了指令與預期的輸出。
 
@@ -190,7 +192,7 @@ Strip Hidden Data 與 Prepare for sharing 也會在裝置上檢查 DOCX、PPTX �
 AI 代理可以透過 Model Context Protocol，經由營運者運行的端點連到 Lolly。lolly.tools 運行了一個，任何人也都能運行自己的，包括完全離線的。
 
 - <!--i:cpu--> **代理傳送的檔案。** 接受檔案的工具（`lolly_transform`、`lolly_verify`、`lolly_redact`、`lolly_read`、`lolly_check`、`lolly_package`、`lolly_compose`、`lolly_rebrand`，以及圖片工具 `lolly_look`、`lolly_sample_color` 和 `lolly_trace_edges`）會在記憶體中處理，並在同一次呼叫中回傳結果。檔案絕不會寫入磁碟，請求完成後也不會保留。`lolly_inspect` 同樣接受檔案，其影片與印刷製作檢查會寫入暫時的工作副本，並在呼叫返回時刪除。其他每個工具都只使用呼叫中的參數：文字、數字、顏色、URL、目錄素材 ID，或呼叫者提供的文件。
-- <!--i:cpu--> **Rebrand 說明簡報的去向。** `lolly_rebrand` 的第一階段 `capabilities` 會在你傳送任何內容之前，用文字說明你的位元組會去哪裡：在自行託管的本機伺服器上，簡報絕不會離開那台機器；在託管伺服器上，呼叫 `lolly_rebrand` 會把簡報傳到那裡，大小與投影片數量上限由該階段給出。
+- <!--i:cpu--> **Lolly Rebrand 說明簡報的去向。** `lolly_rebrand` 的第一階段 `capabilities` 會在你傳送任何內容之前，用文字說明你的位元組會去哪裡：在自行託管的本機伺服器上，簡報絕不會離開那台機器；在託管伺服器上，呼叫 `lolly_rebrand` 會把簡報傳到那裡，大小與投影片數量上限由該階段給出。
 - <!--i:lock--> **開放端點。** 在 lolly.tools 上，`lolly.tools/api/mcp` 對任何人開放，不需權杖。呼叫受到每個位址的限制，以及每日額度的限制。位址會在濫用控制儲存區中成為假名化摘要，與下方的登入端點相同，而額度只計算 CPU 時間與傳送的位元組，不含位址。受限端點的 bearer 權杖絕不會寫入記錄或渲染 URL。
 - <!--i:link--> **大型結果的下載連結。** lolly.tools 會以內嵌方式回傳結果，絕不發出這些連結。營運者可以為自己經過驗證的閘道開啟它們，其中結果最多保留五分鐘，且只有呼叫者自己的 bearer 權杖能擷取；請見 [MCP Server](/info/mcp.html#private-download-links-for-large-results)。位於 `mcp.lolly.tools` 規劃中的受限端點，將接受營運者發給受信任用戶端的 bearer 權杖，或接受 OAuth 2.1 搭配以共用密鑰檢查的短效簽章權杖；其啟用尚待進行，並列於[交付主機與處理者](#delivery-hosts-and-processors)之下。
 
@@ -198,9 +200,15 @@ AI 代理可以透過 Model Context Protocol，經由營運者運行的端點連
 
 Lolly 可以將 **Content Credential** 封入你的匯出內容，讓任何人都能離線檢查檔案自離開 Lolly 後未被更動。這部分**預設開啟且完全在本機執行**：簽署金鑰在你的裝置上產生，簽署也離線進行。沒有註冊時，該金鑰是拋棄式的，每次匯出都新產生一組金鑰對，用完即丟。一旦你註冊，金鑰就會持續存在，並以**不可匯出**的方式產生，因此連 Lolly 自己的程式碼都無法讀取它，只能要求它簽署。無論哪種情況，它都絕不會離開你的裝置。
 
-[匯出](/info/exporting.html#content-credentials-c2pa)列出憑證記錄的內容：工具、時間、粗略的匯出介面、你的姓名（僅在你開啟 *Use my details* 時）、匯出所放置的具名作品，以及影片或音訊匯出所播放的每首 Rondocode 歌曲（其名稱、其來源的雜湊，以及 Lolly 的沙箱如何渲染該歌曲）。匯出面板會在你匯出前列出這些歌曲。
+[匯出](/info/exporting.html#content-credentials-c2pa)列出憑證記錄的內容：工具、時間、粗略的匯出介面、你的姓名（僅在你開啟 *Use my details* 時）、匯出所放置的具名作品，以及影片或音訊匯出所播放的每首 Lolly Rondocode 歌曲（其名稱、其來源的雜湊，以及 Lolly 的沙箱如何渲染該歌曲）。匯出面板會在你匯出前列出這些歌曲。
 
 憑證與檔案的中繼資料也會記錄繪製該匯出內容的[設計系統與配色方案](/info/exporting.html#the-design-system-record)：設計系統的 ID 與名稱、其已發布版本，以及配色方案。設計系統的名稱是其擁有者輸入的文字，可能是客戶的名稱，因此匯出面板的 **Design system** 卡片會在你匯出前顯示確切的文字。取消勾選該卡片，或傳入 `_madewith=0` 或 `--no-madewith`，即可省略它們。
+
+設計系統的發布者也可以選擇，把其[品牌頁面](/info/brand-page.html#lead-back-from-your-files)的位址記錄在同一份記錄中。位址是唯一的新增內容。這項設定在發布者開啟之前是關閉的，不會隨套件或副本一起傳遞，而同一張卡片會顯示該位址，也可以把它省略。讀回檔案時絕不會載入該位址：Lolly Verify 只顯示主機，是否開啟該頁面由你決定。
+
+透過組織的 Lolly Work 核准的檔案，也可以帶有簽署的核准記錄：核准 ID、決定日期與所審閱檔案的摘要，不含姓名、電子郵件、群組、意見或鏈名稱。要求審閱的人會看到一個已勾選的核取方塊，並可以取消勾選，組織也可以關閉記錄。
+
+由[意圖](/info/visual-intent.html#what-goes-in-the-file)製作的檔案，也會記錄它被要求做什麼：目的、介面、工具、語言，以及請求的摘要。場合、對象、地區與任何提示詞只以指紋形式記錄。只有當執行該次渲染的人或代理提出要求時，提示詞本身的文字才會寫入，而且執行時會說明這一點，因為檔案送達的任何人都能讀到。這份記錄可以省略，其他匯出都不帶這份記錄。
 
 在這之上唯一的*選用*步驟是註冊已驗證身分，讓你的匯出顯示「Verified - signed by \<your email\>」，而不是指向一把匿名金鑰。**如果你跳過註冊，憑證服務不會從你這裡收到任何註冊資料。**
 
@@ -232,7 +240,7 @@ Lolly 可以將 **Content Credential** 封入你的匯出內容，讓任何人�
 |---|---|
 | 登入與佈建 | 身分提供者宣告、帳號與群組成員資格、登入工作階段與裝置資訊。OIDC 處理登入；管理員可透過 SCIM 佈建與停用帳號 |
 | 共用目錄與專案 | 上傳的素材、中繼資料與版本；共用專案與工作階段；從設定的資料庫提供者擷取的內容 |
-| 工作協作 | 經由實例傳送的共用工作階段狀態、即時編輯與參與者在線狀態；儲存的狀態依其儲存政策保存 |
+| Lolly Work 協作 | 經由實例傳送的共用工作階段狀態、即時編輯與參與者在線狀態；儲存的狀態依其儲存政策保存 |
 | 受管理的分享連結 | 連結目標與存取設定，例如到期時間與選用的密碼保護；請求經由實例解析，且可以撤銷 |
 | 審閱與交付 | 提交的內容、核准決定、所選目的地、暫存檔案與交付回條 |
 | 伺服器渲染與批次 | 提交的工具輸入、渲染請求、狀態與保留的輸出檔案。這些工作在伺服器上執行，而不是在你的裝置上 |
@@ -350,6 +358,10 @@ Lolly 可以將 **Content Credential** 封入你的匯出內容，讓任何人�
 **2026 年 10 月 22 日：** 更正了對既有行為的描述。瀏覽器擴充功能一節現在涵蓋每個請求的核准視窗、一次只針對一個網站要求的網站存取，以及讀取網站時對樣式表與圖示的擷取。同時更正：Send to Google Drive 與 Meeting Planner 兩列、SEAL 說明（沒有任何 Lolly 應用程式在 DNS 中查詢 SEAL 金鑰）、組織服務的預設使用遙測等級、MCP 圖片工具，以及公開服務的應用程式記錄。軟體本身沒有改變。
 
 **2026 年 10 月 23 日：** 依每個請求由什麼觸發來重新編排本政策，並說明了先前未涵蓋的既有行為：帶有本機網路位址的私人協作邀請、桌面應用程式中的 Nearby、Allow AI control、從網站讀取設計系統、表情符號組、Meeting Planner 對城市查詢的裝置端快取、垃圾桶，以及 Settings → Storage 列出的其他記錄。更正了兩項陳述：Bluesky 與 Discord 並非僅限桌面，且人員為傳送而選擇的每個主機，在網頁與桌面應用程式中都需要營運者核准；IP 位址的限流摘要是假名化而非匿名。軟體本身沒有改變。
+
+**2026 年 11 月 3 日：** 新增傳送之後的分享連結。當你按下 Create a share link 時，Lolly 會額外對你傳送檔案所用的提供者（Google Drive、Dropbox、OneDrive 或你自己的 Nextcloud）發出一次呼叫，而 Stop sharing 會再發出一次呼叫來關閉該連結。S3 分享連結是在你的裝置上產生，不會傳送任何內容。沒有涉及任何新的主機，Lolly 也不會在伺服器上保留任何連結或權杖的副本。
+
+**2026 年 11 月 3 日：** 新增桌面應用程式中的 **Ask an agent**：面板開啟時，應用程式會在電腦上尋找什麼，以及你詢問時，哪些內容會傳到代理的提供者，使用的是你在該提供者的自有帳號。
 
 ## 負責單位與聯絡方式
 

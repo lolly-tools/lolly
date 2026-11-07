@@ -22,7 +22,7 @@ Choisis la voie qui correspond à ce que tu as :
 
 La première fois que tu ouvres la galerie, un court message d'accueil propose les mêmes choix : **Make it yours** ouvre Design System Setup, **Bring your design** ouvre un sélecteur de fichier pour un design et **Explore the community tools** ferme l'accueil.
 
-![La pièce Colours de Design System Setup sur une installation neuve : une pastille en direct, un champ et toute la première décision](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&system=new-design-system&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&dark=1&filename=bs-colours-new-system)
+![La pièce Colours de Lolly Design System Setup sur un nouveau design system : une pastille vivante, un champ et toute la première décision](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&system=new-design-system&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&dark=1&filename=bs-colours-new-system)
 
 À partir de là, huit pièces te mènent aussi loin que tu veux, dans l'ordre que tu veux : **Board**, **Colours**, **Type**, **Logos**, **Tokens**, **Files**, **Rules** et **Skills**. Chaque aperçu de l'application se met à jour pendant que tu saisis. [Lolly Design System Setup](/info/brand-studio.html) couvre chaque pièce.
 

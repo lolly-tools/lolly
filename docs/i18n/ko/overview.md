@@ -72,7 +72,7 @@ shells/tui/         src/main.tsx (the full-screen app), src/bridge.ts
 
 ![430px 너비 화면의 오디오그램: 위쪽에 컨트롤 시트, 아래에 완성된 정사각형 아트워크, 떠 있는 내보내기 알약](/t/url-shot?url=%2F%23%2Ftool%2Faudiogram%3Faudio%3Dlolly%2Floops%2Ffireplace-loop%26title%3DField%2520notes%26subtitle%3DEpisode%252012%26style%3Dwave&width=430&height=900&dpi=192&waitMs=3200&css=%23ag-wave%7Bdisplay%3Anone!important%7D.ag-ph%7Bdisplay%3Ablock!important%7D&walker=1&format=svg&rasterDpi=110&dark=1&filename=ov2-phone-audiogram)
 
-웹 앱에는 **Batch**(`#/batch`, `shells/web/src/pro/`)도 포함돼요. 하나 또는 여러 도구에 걸쳐 많은 행을 한꺼번에 렌더링하는 스프레드시트식 그리드이며, [Batch와 Multi-edit](/info/batch.html#make-many-versions-of-one-design)이 Batch를 다뤄요. **Settings → Capabilities**는 플랫폼이 할 수 있다고 선언하는 모든 것을 정리해요.
+웹 앱에는 **Batch**(`#/batch`, `shells/web/src/pro/`)도 포함돼요. 하나 또는 여러 도구에 걸쳐 많은 행을 한꺼번에 렌더링하는 스프레드시트식 그리드이며, [Batch와 Lolly Multi-edit](/info/batch.html#make-many-versions-of-one-design)이 Batch를 다뤄요. **Settings → Capabilities**는 플랫폼이 할 수 있다고 선언하는 모든 것을 정리해요.
 
 ![새로 설치한 상태의 Batch: 도구를 기다리는 빈 행 하나와, 데이터가 들어오기 전부터 갖춰진 스프레드시트 화면 및 Render 버튼](/t/url-shot?url=%2F%23%2Fbatch&width=1440&height=900&dpi=192&waitMs=3500&walker=1&format=svg&dark=1&filename=ov2-batch-grid)
 
@@ -141,7 +141,7 @@ CLI는 인수에서 같은 URL 상태를 만들고 같은 파이프라인을 실
 
 - **`asset`**은 `filter`와 `allowUpload`와 함께 에셋 시스템으로 가는 브리지예요. `allowUpload: false`는 슬롯을 라이브러리 에셋으로 제한하며, 사용자 업로드는 라이브러리와 같은 `AssetRef` 형태를 공유해요.
 - **`blocks`**는 사이드 패널에서 편집하는 반복 필드 그룹으로 Meeting Planner, Wayfinding, Diagrams 등이 사용해요. 렌더링된 블록을 클릭하면 해당 행에 포커스가 가요.
-- **`file`**은 Strip Hidden Data, Compress 같은 온디바이스 유틸리티를 위해 사용자의 파일을 메모리에 보관하고, **`vector`**는 고정된 숫자 집합을 하나의 컨트롤로 묶어요.
+- **`file`**은 Lolly Strip Hidden Data, Compress 같은 온디바이스 유틸리티를 위해 사용자의 파일을 메모리에 보관하고, **`vector`**는 고정된 숫자 집합을 하나의 컨트롤로 묶어요.
 
 ### 9. 템플릿은 로직이 없어요
 
@@ -149,7 +149,7 @@ CLI는 인수에서 같은 URL 상태를 만들고 같은 파이프라인을 실
 
 ### 10. 도구가 도구를 합성합니다
 
-도구는 도구 간 import 없이 다른 도구의 렌더링을 임베드할 수 있어요. 엔진이 구성을 해석해요. 매니페스트가 `composes: [{ id, tool, inputs }]`를 선언하고 `{{asset <id>}}`로 자식을 배치할 수 있으며, 이식 가능한 임베드 URL(`https://lolly.tools/tool/<id>.svg?…`)이 자식을 로컬에서 렌더링해요. Design이 실시간 QR 코드나 차트를 배치하는 방식이에요. SVG 자식은 SVG 또는 PDF 부모 안에서 벡터로 유지돼요. 자식은 중간 산출물이므로 워터마크나 스탬프가 찍히지 않고, 자식을 렌더링할 수 없는 셸은 슬롯을 비워 두지만 부모는 여전히 렌더링돼요. [구성과 브랜드 오버레이](/info/tool-composition.html)에 자세한 내용이 있어요.
+도구는 도구 간 import 없이 다른 도구의 렌더링을 임베드할 수 있어요. 엔진이 구성을 해석해요. 매니페스트가 `composes: [{ id, tool, inputs }]`를 선언하고 `{{asset <id>}}`로 자식을 배치할 수 있으며, 이식 가능한 임베드 URL(`https://lolly.tools/tool/<id>.svg?…`)이 자식을 로컬에서 렌더링해요. Lolly Design이 실시간 QR 코드나 차트를 배치하는 방식이에요. SVG 자식은 SVG 또는 PDF 부모 안에서 벡터로 유지돼요. 자식은 중간 산출물이므로 워터마크나 스탬프가 찍히지 않고, 자식을 렌더링할 수 없는 셸은 슬롯을 비워 두지만 부모는 여전히 렌더링돼요. [구성과 브랜드 오버레이](/info/tool-composition.html)에 자세한 내용이 있어요.
 
 ## 하지 않기로 한 것
 

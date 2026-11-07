@@ -72,7 +72,7 @@ shells/tui/         src/main.tsx (the full-screen app), src/bridge.ts
 
 ![430px چوڑی اسکرین پر آڈیوگرام: اوپر کنٹرولز شیٹ، نیچے مکمل چوکور آرٹ ورک اور تیرتا ایکسپورٹ pill](/t/url-shot?url=%2F%23%2Ftool%2Faudiogram%3Faudio%3Dlolly%2Floops%2Ffireplace-loop%26title%3DField%2520notes%26subtitle%3DEpisode%252012%26style%3Dwave&width=430&height=900&dpi=192&waitMs=3200&css=%23ag-wave%7Bdisplay%3Anone!important%7D.ag-ph%7Bdisplay%3Ablock!important%7D&walker=1&format=svg&rasterDpi=110&dark=1&filename=ov2-phone-audiogram)
 
-ویب ایپ **Batch** (`#/batch`، `shells/web/src/pro/`) بھی ساتھ لاتی ہے، اسپریڈ شیٹ طرز کا گرڈ جو ایک یا کئی ٹولز میں بہت سی قطاریں ایک ساتھ رینڈر کرتا ہے؛ [Batch اور Multi-edit](/info/batch.html#make-many-versions-of-one-design) Batch کا احاطہ کرتا ہے۔ **Settings → Capabilities** وہ سب دکھاتا ہے جو پلیٹ فارم اپنے کرنے کے قابل بتاتا ہے۔
+ویب ایپ **Batch** (`#/batch`، `shells/web/src/pro/`) بھی ساتھ لاتی ہے، اسپریڈ شیٹ طرز کا گرڈ جو ایک یا کئی ٹولز میں بہت سی قطاریں ایک ساتھ رینڈر کرتا ہے؛ [Batch اور Lolly Multi-edit](/info/batch.html#make-many-versions-of-one-design) Batch کا احاطہ کرتا ہے۔ **Settings → Capabilities** وہ سب دکھاتا ہے جو پلیٹ فارم اپنے کرنے کے قابل بتاتا ہے۔
 
 ![نئی انسٹالیشن پر Batch: ٹول کا انتظار کرتی ایک خالی قطار، ڈیٹا آنے سے پہلے اسپریڈ شیٹ سطح اور اس کا Render بٹن اپنی جگہ پر](/t/url-shot?url=%2F%23%2Fbatch&width=1440&height=900&dpi=192&waitMs=3500&walker=1&format=svg&dark=1&filename=ov2-batch-grid)
 
@@ -141,7 +141,7 @@ CLI اپنے آرگومنٹس سے وہی URL حالت بناتا ہے اور و
 
 - **`asset`**، `filter` اور `allowUpload` کے ساتھ، ایسیٹ سسٹم کا برج ہے۔ `allowUpload: false` سلاٹ کو لائبریری ایسیٹس تک محدود کرتا ہے، اور صارف اپ لوڈز لائبریری کی `AssetRef` شکل بانٹتے ہیں۔
 - **`blocks`** سائیڈ پینل میں ایڈٹ ہونے والا دہرایا جانے والا فیلڈ گروپ ہے، جو Meeting Planner، Wayfinding، Diagrams اور دوسروں میں استعمال ہوتا ہے۔ رینڈر کیے بلاک پر کلک اس کی قطار پر فوکس کرتا ہے۔
-- **`file`** صارف کی اپنی فائل آن ڈیوائس یوٹیلیٹیز، مثلاً Strip Hidden Data اور Compress، کے لیے میموری میں رکھتا ہے، اور **`vector`** اعداد کے مقررہ سیٹ کو ایک کنٹرول میں گروپ کرتا ہے۔
+- **`file`** صارف کی اپنی فائل آن ڈیوائس یوٹیلیٹیز، مثلاً Lolly Strip Hidden Data اور Compress، کے لیے میموری میں رکھتا ہے، اور **`vector`** اعداد کے مقررہ سیٹ کو ایک کنٹرول میں گروپ کرتا ہے۔
 
 ### 9. ٹیمپلیٹس logic-less ہیں
 
@@ -149,7 +149,7 @@ CLI اپنے آرگومنٹس سے وہی URL حالت بناتا ہے اور و
 
 ### 10۔ ٹولز ٹولز کو compose کرتے ہیں
 
-ٹول دوسرے ٹول کا رینڈر بغیر ٹول سے ٹول imports کے ایمبیڈ کر سکتا ہے؛ انجن composition حل کرتا ہے۔ مینی فیسٹ `composes: [{ id, tool, inputs }]` اعلان کر سکتا ہے اور child کو `{{asset <id>}}` سے رکھ سکتا ہے، اور پورٹیبل ایمبیڈ URL (`https://lolly.tools/tool/<id>.svg?…`) child کو مقامی طور پر رینڈر کرتا ہے، یوں Design لائیو QR کوڈ یا چارٹ رکھتا ہے۔ SVG child SVG یا PDF parent میں ویکٹر رہتا ہے۔ Children درمیانی نتائج ہیں، کبھی واٹر مارک یا اسٹیمپ نہیں ہوتے، اور جو شیل ایک رینڈر نہ کر سکے وہ سلاٹ خالی چھوڑتا ہے جبکہ parent پھر بھی رینڈر ہوتا ہے۔ [Composition and brand overlays](/info/tool-composition.html) میں تفصیلات ہیں۔
+ٹول دوسرے ٹول کا رینڈر بغیر ٹول سے ٹول imports کے ایمبیڈ کر سکتا ہے؛ انجن composition حل کرتا ہے۔ مینی فیسٹ `composes: [{ id, tool, inputs }]` اعلان کر سکتا ہے اور child کو `{{asset <id>}}` سے رکھ سکتا ہے، اور پورٹیبل ایمبیڈ URL (`https://lolly.tools/tool/<id>.svg?…`) child کو مقامی طور پر رینڈر کرتا ہے، یوں Lolly Design لائیو QR کوڈ یا چارٹ رکھتا ہے۔ SVG child SVG یا PDF parent میں ویکٹر رہتا ہے۔ Children درمیانی نتائج ہیں، کبھی واٹر مارک یا اسٹیمپ نہیں ہوتے، اور جو شیل ایک رینڈر نہ کر سکے وہ سلاٹ خالی چھوڑتا ہے جبکہ parent پھر بھی رینڈر ہوتا ہے۔ [Composition and brand overlays](/info/tool-composition.html) میں تفصیلات ہیں۔
 
 ## جو ہم نے نہ کرنے کا انتخاب کیا
 

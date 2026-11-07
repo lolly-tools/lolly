@@ -14,9 +14,9 @@ Kedua-duanya membenarkan seseorang bermula daripada templat dan menghasilkan gra
 
 ## Bagaimana Lolly melakukan tugas yang bertindih
 
-Alat Lolly mengekod perubahan yang boleh dibuat orang, dan alat yang sama berjalan dalam pelayar, apl desktop atau CLI. Reka letak yang dibuat pada kanvas Design boleh menjadi [alat dengan peraturan](/info/create-a-tool.html), dan satu alat boleh membuat banyak fail daripada jadual nilai.
+Alat Lolly mengekod perubahan yang boleh dibuat orang, dan alat yang sama berjalan dalam pelayar, apl desktop atau CLI. Reka letak yang dibuat pada kanvas Lolly Design boleh menjadi [alat dengan peraturan](/info/create-a-tool.html), dan satu alat boleh membuat banyak fail daripada jadual nilai.
 
-![Kanvas bebas Design, di mana warna, muka dan aset yang ditawarkan ialah milik sistem reka bentuk sendiri](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&dark=1&filename=aud-open-canvas)
+![Kanvas bebas Lolly Design, di mana warna, muka dan aset yang ditawarkan ialah milik sistem reka bentuk sendiri](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&dark=1&filename=aud-open-canvas)
 
 Lolly kendiri mengekalkan membuat dan mengeksport pada peranti, tanpa akaun, dan berfungsi luar talian setelah asetnya disimpan. Dua orang boleh menyunting secara langsung dalam [collab peribadi](/info/collaborate.html), peranti ke peranti. Content Credentials hidup secara lalai untuk eksport yang disokong, dan anda boleh mematikannya.
 

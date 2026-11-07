@@ -14,6 +14,8 @@ Lolly ہر شخص کی ڈیوائس پر چلتا ہے۔ جب ٹیم کو سائ
 
 ## ایسیٹس جوڑیں اور کام کا ریویو کریں
 
+- [Use Lolly with your existing DAM](/info/use-with-dam.html) ماخذ کے اختیار اور مربوط پروڈکشن کی وضاحت کرتا ہے۔ [The SUSE Brandfolder account](/info/suse-brandfolder.html) اپنانے کا تجربہ درج کرتا ہے، اور [Plan a DAM transition](/info/dam-transition.html) بعد کی اختیاری منتقلی کا احاطہ کرتا ہے۔
+
 - [Design-system administration](/info/work-design-system-administration.html) ماخذ کی فہرست، ریویو شدہ تبدیلیوں اور رول بیک کا احاطہ کرتا ہے۔
 - [Catalog and content](/info/work-catalog.html) مشترکہ ایسیٹس اور ظاہر ہونے کے اصولوں کا احاطہ کرتا ہے۔ [Provider guides](/info/work-provider-guides.html) ہر ماخذ پلیٹ فارم کا سیٹ اپ اور تصدیق کی ضروریات دیتا ہے۔
 - [Approvals](/info/work-approvals.html) ریویو زنجیروں اور فرائض کی علیحدگی کا احاطہ کرتا ہے۔ [Rendering and sharing](/info/work-sharing.html) لنکس اور سرور آؤٹ پٹ کا احاطہ کرتا ہے۔

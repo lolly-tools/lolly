@@ -39,7 +39,7 @@ lolly.tools는 Lolly 자체의 샘플 디자인 시스템인 [Lolly Demo](/info/
 
 ## 내 브랜드를 쓸 수 있나요?
 
-네. **Design System Setup**(`#/start`)이 색상 하나, 디자인 토큰 파일 또는 완성된 디자인으로 디자인 시스템을 만들고, 이후 모든 도구가 사용자의 디자인 시스템으로 그려요. [시작하기](/info/quickstart.html#put-your-brand-in)가 세 가지 경로를 안내해요.
+네. **Lolly Design System Setup**(`#/start`)이 색상 하나, 디자인 토큰 파일 또는 완성된 디자인으로 디자인 시스템을 만들고, 이후 모든 도구가 사용자의 디자인 시스템으로 그려요. [시작하기](/info/quickstart.html#put-your-brand-in)가 세 가지 경로를 안내해요.
 
 조직이나 빌드가 제공하는 디자인 시스템은 관리형이에요. 잠금이 표시되고 읽기 전용으로 유지되며, 편집 가능한 사본을 만들어 바꿀 수 있어요.
 
@@ -80,9 +80,9 @@ lolly.tools는 Lolly 자체의 샘플 디자인 시스템인 [Lolly Demo](/info/
 
 ## Lolly에서 Figma, Penpot, Illustrator, InDesign 파일을 편집하고 렌더링할 수 있나요?
 
-네. **Design**을 열고 **Import a design**을 클릭하세요. 네이티브 Figma **.fig**(Save local copy), Penpot **.penpot** 내보내기, Illustrator **.ai** 또는 **.pdf**, InDesign **.idml**(File → Export → InDesign Markup), **모든 SVG**를 받아요. 계정도, 플러그인도, 디자인 앱 라이선스도 필요 없어요.
+네. **Design** 도구를 열고 **Import a design**을 클릭하세요. 네이티브 Figma **.fig**(Save local copy), Penpot **.penpot** 내보내기, Illustrator **.ai** 또는 **.pdf**, InDesign **.idml**(File → Export → InDesign Markup), **모든 SVG**를 받아요. 계정도, 플러그인도, 디자인 앱 라이선스도 필요 없어요.
 
-![Design의 열린 캔버스 - Import a design이 툴바의 Lolly 메뉴 안에 있어요](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D17ZTfS8MwEMf_mryO5NZ288GHrdqJv1CUvWdtOgppMtJMNv96yaV1iRNEQRBZoblwab53l0-uq915bXgrCOSDpf3LzgANnQ4eI0rrPJn7Gh9cd0sE8lIryxtFIFfatFx6L4F0Mi-11GbUiZYr25QjK3bW-S8I5MnUbRXKCkMgb5uqki6JFFU7rjoXYsSgT8GaLebKZSeGAPkUYypMHp80DeugYYR4J_U7X4XRkY8dFHuTYEJ-jDWM3qoqsEHo4Y20-xJi-SPVaOfRUuAL1hiZXNrG4gH6M85Z5lTAk8x8DdlnPL8gecVfBIEU6F5v0bbCor3VUu4JpOPCKTCWsPI9rBS107d6QyCfRET_Ac6wX36X6UpX-49Ip1mAlMEPkM6QX20aoSpECLTmpadcazPQ9hPlWxboRndWmFEIG1s4Yp3E3Ts-0f4GbcruWHLzlC0frmfpfbGk82LxmD0vUndSTcvXAoknWBKCz5LDSIdiRHV0D2Tfq1BIvdY42Zim5WZ_-n3_mRvwBg&width=1360&height=850&dpi=192&waitMs=3000&format=svg&walker=1&chrome=1&localize=1&dark=1&filename=design)
+![Lolly Design의 열린 캔버스 - Import a design이 툴바의 Lolly 메뉴 안에 있어요](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D17ZTfS8MwEMf_mryO5NZ288GHrdqJv1CUvWdtOgppMtJMNv96yaV1iRNEQRBZoblwab53l0-uq915bXgrCOSDpf3LzgANnQ4eI0rrPJn7Gh9cd0sE8lIryxtFIFfatFx6L4F0Mi-11GbUiZYr25QjK3bW-S8I5MnUbRXKCkMgb5uqki6JFFU7rjoXYsSgT8GaLebKZSeGAPkUYypMHp80DeugYYR4J_U7X4XRkY8dFHuTYEJ-jDWM3qoqsEHo4Y20-xJi-SPVaOfRUuAL1hiZXNrG4gH6M85Z5lTAk8x8DdlnPL8gecVfBIEU6F5v0bbCor3VUu4JpOPCKTCWsPI9rBS107d6QyCfRET_Ac6wX36X6UpX-49Ip1mAlMEPkM6QX20aoSpECLTmpadcazPQ9hPlWxboRndWmFEIG1s4Yp3E3Ts-0f4GbcruWHLzlC0frmfpfbGk82LxmD0vUndSTcvXAoknWBKCz5LDSIdiRHV0D2Tfq1BIvdY42Zim5WZ_-n3_mRvwBg&width=1360&height=850&dpi=192&waitMs=3000&format=svg&walker=1&chrome=1&localize=1&dark=1&filename=design)
 
 레이어는 편집 가능한 박스로 들어와요. 텍스트는 다시 입력할 수 있고, 도형은 도형으로 남고, 이미지는 사용자의 라이브러리에 합류해요. 저장하면 **Share with rules**가 레이아웃을 Lolly가 있는 누구나 다시 채울 수 있는 도구로 바꿔요. [디자인 가져오기](/info/design-import.html)를 참고하세요.
 
@@ -98,9 +98,9 @@ Feature flags는 Lolly의 일부를 켜고 꺼요. 독립 실행형 사용에서
 
 ## 유틸리티는 도구와 무엇이 다른가요?
 
-유틸리티는 PDF 압축, 사진 변환, 숨겨진 데이터 제거처럼 이미 가진 파일에 대해 빠른 작업 하나를 하며, 대부분 아무것도 업로드하지 않고 기기에서 실행돼요. 사람들이 보통 아무 웹사이트에 맡기는 작업이 Lolly 안에 머물도록 존재해요. 계약서를 압축하거나, 위치 정보가 그대로 남은 휴가 사진을 변환하거나, 토큰을 온라인 포매터에 붙여넣는 일이 보관 기간, 관할권, 사업 모델을 알 수 없는 사이트에 파일을 주는 일이 되어서는 안 돼요. [유틸리티](/info/utilities.html)가 이들을 나열하고, [The trade we never agreed to](/info/status-quo.html)가 그 뒤의 이야기를 들려줘요.
+유틸리티는 PDF 압축, 사진 변환, 숨겨진 데이터 제거처럼 이미 가진 파일에 대해 빠른 작업 하나를 하며, 대부분 아무것도 업로드하지 않고 기기에서 실행돼요. 사람들이 보통 아무 웹사이트에 맡기는 작업이 Lolly 안에 머물도록 존재해요. 계약서를 압축하거나, 위치 정보가 그대로 남은 휴가 사진을 변환하거나, 토큰을 온라인 포매터에 붙여넣는 일이 보관 기간, 관할권, 사업 모델을 알 수 없는 사이트에 파일을 주는 일이 되어서는 안 돼요. [Lolly Utilities](/info/utilities.html)가 이들을 나열하고, [The trade we never agreed to](/info/status-quo.html)가 그 뒤의 이야기를 들려줘요.
 
-![Utilities 보기: Strip Hidden Data, Compress PDF, Convert Image 등 기기에서 하는 작업이 한곳에 있어요](/t/url-shot?url=%2F%23%2Fu&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone!important%7D&tolerance=0.03&format=svg&walker=1&dark=1&filename=use-utilities&try=1)
+![Utilities 보기: Lolly Strip Hidden Data, Compress PDF, Convert Image 등 기기에서 하는 작업이 한곳에 있어요](/t/url-shot?url=%2F%23%2Fu&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone!important%7D&tolerance=0.03&format=svg&walker=1&dark=1&filename=use-utilities&try=1)
 
 ## 조직에서 SSO, 공유 프로젝트, 승인을 사용할 수 있나요?
 
@@ -110,7 +110,7 @@ Feature flags는 Lolly의 일부를 켜고 꺼요. 독립 실행형 사용에서
 
 ## Lolly를 도입할 때 어떤 장애물을 예상해야 하나요?
 
-대부분 기술보다 제작하는 쪽의 변화예요. 관리되는 도구 세트를 원하는 팀은 디자인 시스템과 첫 템플릿을 작성할 사람이 필요하지만, 누구나 첫날부터 git 없이 Design에서 자기 도구를 만들기 시작할 수 있어요. 또 기존 프로세스는 결과물이 브랜드에 맞지 않아도 계속 작동하므로, 눈에 보이는 결과물 하나를 전후 비교로 잘 바꿔 보여주는 것이 계획서보다 설득이 빨라요.
+대부분 기술보다 제작하는 쪽의 변화예요. 관리되는 도구 세트를 원하는 팀은 디자인 시스템과 첫 템플릿을 작성할 사람이 필요하지만, 누구나 첫날부터 git 없이 Lolly Design에서 자기 도구를 만들기 시작할 수 있어요. 또 기존 프로세스는 결과물이 브랜드에 맞지 않아도 계속 작동하므로, 눈에 보이는 결과물 하나를 전후 비교로 잘 바꿔 보여주는 것이 계획서보다 설득이 빨라요.
 
 [도입 및 거버넌스](/info/adoption-governance.html)가 역할별 온보딩, 파일럿 측정 방법, 거버넌스 프로세스의 모습을 다뤄요.
 
@@ -144,3 +144,11 @@ Lolly 종속성의 높음 또는 치명적 권고는 CI를 차단해요. 아직 
 ## 그 Lolly 로고는 무슨 맛인가요?
 
 누구는 라임이라 하고, 누구는 민트, 가끔은 사과라고도 해요. Lolly는 달콤함을 가져다주고, 맛은 여러분이 만들어 내는 거예요!
+
+## Lolly에서 콘텐츠 주권이란 무엇을 뜻하나요?
+
+선택한 시스템 전반에서 콘텐츠를 만들고, 관리하고, 저장하고, 옮기는 방식을 직접 통제하는 것이에요. Lolly는 로컬 제작, 편집 가능한 작업, 이식 가능한 도구를 지원하고, Lolly Work는 조직이 통제하는 공유 서비스를 더해요. 소스 라이선스, 사용하는 의존성, 워크플로의 데이터 흐름은 여전히 중요해요. [콘텐츠 주권이란?](/info/content-sovereignty.html)이 각 통제 수단과 그 한계를 설명해요.
+
+## 기존 DAM을 계속 쓸 수 있나요?
+
+네. 지원되는 DAM은 기록 원본으로 남을 수 있고, Lolly Work는 선택한 애셋을 Lolly 도구에 연결해요. 소스 접근, 허용되는 편집, 사용 권리, 완성된 결과물의 승인은 서로 별개의 결정이에요. [기존 DAM과 Lolly 함께 쓰기](/info/use-with-dam.html)가 구성 방식을 설명하고, [SUSE의 Brandfolder 경험](/info/suse-brandfolder.html)이 도입 과정의 성공적인 사용 사례를 기록해요.

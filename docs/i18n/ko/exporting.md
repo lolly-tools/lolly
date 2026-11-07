@@ -57,6 +57,8 @@ QR Code 링크를 담은 Design 이미지 박스처럼 디자인이 다른 도�
 
 디자인 시스템의 서체로 짠 워드마크는 모든 글자가 윤곽선 경로인 SVG로 내보내져, 파일 하나가 명함 크기에서도 건물 래핑 크기에서도 선명해요.
 
+다른 언어의 텍스트는 가지고 있는 글꼴을 따라요. 디자인 시스템의 글꼴 중 하나에 그 글자가 있으면 SVG와 PDF는 그 글자를 윤곽선으로 그려요. 글자 모양을 잡고 읽는 순서대로 배치하며, 오른쪽에서 왼쪽으로 쓰는 줄도 포함해요. 어느 글꼴에도 없으면 Lolly는 그 글자를 [대체 글꼴](/info/fallback-fonts.html)로 그리고, 내보내기 카드가 어떤 글꼴로 그렸는지 알려줘요. 어떤 대체 글꼴도 다루지 못하는 텍스트는 SVG에서 라이브 텍스트로 남아 보는 쪽의 글꼴로 그려지고, PDF에서는 그림이 돼요. PDF에는 달리 기댈 곳이 없기 때문이에요. 이런 글자는 페이지에서와 똑같아 보이지만 선택하거나 검색할 수 없고, 내보내기 카드가 어떤 문자가 그렇게 됐는지 알려줘요. 그 글자가 있는 글꼴을 추가하면 벡터 텍스트로 유지할 수 있어요.
+
 ![Aurora라고 읽히는 가는 선의 넓은 자간 워드마크로, 표의 SVG 행이 다루는 순수한 벡터 아트워크의 예](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DAurora%26weight%3D200%26tracking%3D16%26size%3D200%26full&width=1440&height=900&dpi=192&waitMs=2200&cropSelector=%23tool-canvas&walker=1&format=svg&filename=vt-wordmark-vector)
 
 ::: details 모든 형식과 용도
@@ -227,7 +229,7 @@ Street Map이 가장 분명한 경우예요. 디자인 전체가 이미 선이�
 
 **Print PDF**는 이름 붙은 인쇄 조건(기본값 **Coated FOGRA39**)에 맞춰 CMYK를 써요. 측정된 잉크 값이 있는 브랜드 견본은 그 값을 그대로 유지해요. 다른 색상은 인쇄 프로필을 거쳐 변환돼요. 기본값은 Lolly 자체의 Coated FOGRA39 프로필이고, **Embed** 행을 선택하면 직접 준비한 프로필이에요. 회색과 검정은 검정 판에만 남아서 작은 글자도 정합이 틀어지지 않아요. FOGRA51, SWOP, GRACoL은 표준 장치 변환을 써요. **Print TIFF**는 RIP용 DeviceCMYK 픽셀을 쓰고 같은 인쇄 조건을 TIFF 메타데이터에 기록해요. Colour profile 컨트롤이 둘 다 제어하며 [색상 프로필](#colour-profiles)에 자세한 내용이 있어요.
 
-**Print marks & bleed**는 인쇄 형식에 자체 카드가 있어요. 밀리미터 단위의 도련과 Crop, Registration, Bleed, Colour bars, Stamp 세부 항목이에요.
+**Print marks & bleed**는 인쇄 형식에 자체 카드가 있어요. 밀리미터 단위의 도련과 Crop, Registration, Bleed, Colour bars, Stamp details예요. Stamp details는 날짜, 도구, 사용자의 이름을 여백에 인쇄해요. 여백 글꼴에 없는 글자로 된 이름이나 도구 이름은, 예를 들어 아랍어, 중국어, 키릴 문자, 이모지라면 같은 회색의 그림으로 그려지고, 내보내기 카드가 그런 문자를 나열해요.
 
 일부 도구는 **여러 페이지 PDF**를 만들어요. *Booklet* 도구처럼 표지, 필요한 만큼 페이지로 흘러가는 콘텐츠, 뒷면이에요. 각 페이지는 A4, US Letter, A5의 진짜 세로 PDF 페이지이고, 어떤 블록이든 새 페이지로 강제할 수 있어요. 이들은 재단선이나 도련 표시가 없는 RGB 문서이며, 그런 표시는 한 페이지짜리 Print PDF에 속해요. Design PDF는 **Notes handout**도 될 수 있어요. 각 슬라이드마다 발표자 노트가 아래에 붙은 세로 페이지예요.
 
@@ -355,15 +357,19 @@ Lolly에는 CMYK 프로필이 하나 포함되어 있어요. Fogra의 FOGRA39 �
 
 **에이전트를 안내한 브랜드 스킬.** 에이전트가 작품을 만들면서 읽고 따른 [브랜드 스킬](/info/brand-skills.html)을 명시하면 기록에 각 스킬이 개정본과 함께 나열돼요. 예: *Guided by: acme-brand 1.0*. 이 문구는 스킬이 작업을 안내했다는 뜻이며 검사가 아니에요. Lolly는 작품을 스킬에 대해 테스트하지 않아요. 에이전트 자신의 진술만 목록을 추가하며, 현재는 [MCP 서버](/info/mcp.html)의 `lolly_render`의 `brandSkills` 인수를 뜻하므로 앱이나 공유 링크에서 만든 작품에는 없어요. Content Credential은 이 목록을 각 스킬의 ID, 이름, 개정본, SHA-256 해시가 담긴 JSON 값 하나인 `brandSkills`로 담아요. XMP 패킷과 SVG 메타데이터는 같은 값을 `lolly:BrandSkills`로 담고, 기록에서 쓴 PDF는 스킬당 키워드 하나를 얻으며 설명은 그대로예요. 내부 스킬은 텍스트가 아니라 ID, 이름, 개정본, 해시로 기록돼요. 같은 스위치가 목록을 기록의 나머지와 함께 뺄 수 있어요. **Design system** 카드, `_madewith=0`, `--no-madewith`, `madeWith: false`예요. MCP 서버가 브라우저에서 파일을 그릴 때(PDF, JPEG, 브라우저 없는 경로로는 쓸 수 없는 다른 형식) 파일 자체의 메타데이터에는 목록이 없고 Content Credential만 담을 수 있어요. 기록을 유지하려면 `c2pa`를 전달하세요. 자격 증명이 없으면 렌더링이 브랜드 스킬이 기록되지 않았다고 경고해요.
 
-**기록 다시 읽기.** [Verify](/verify)는 파일의 자격 증명 세부 정보에서 기록을 **Design system**으로, 브랜드 스킬을 **Guided by**로 나열해요. *Recreate with these settings*는 기록된 버전과 컬러웨이로 도구를 다시 열어요. 링크는 이 기기에 같은 ID와 이름의 디자인 시스템이 있으면 기록된 디자인 시스템으로 열리고, 없으면 활성 디자인 시스템으로 열려요.
+**브랜드 페이지는 게시자가 선택한 경우에만.** 디자인 시스템의 게시자는 [브랜드 페이지](/info/brand-page.html#lead-back-from-your-files)의 주소를 내보낸 파일에 기록하도록 선택할 수 있어요. 이 설정은 디자인 시스템마다 따로 있고 누군가 켤 때까지 꺼져 있어요. 켜면 카드가 같은 줄에 주소를 더해요. 예를 들면 *Records: Acme · Colourway: Beach · Brand page: https://acme.example/brand/acme/*예요. 카드를 선택 해제하면 주소도 나머지와 함께 빠져요. 기록에는 주소만 담기고 페이지에 관한 다른 것은 담기지 않아요. 파일의 다른 부분은 바뀌지 않으며, 주소가 없는 디자인 시스템은 전과 똑같은 파일을 써요.
+
+**주소는 팩과 함께 이동하지 않아요.** 서명된 파일의 기록은 서명자 본인의 것으로 읽히므로, 주소를 고르지 않은 사람에게 주소가 저절로 켜져서는 안 되고, 팩이 다른 사람의 파일을 자기가 고른 페이지로 향하게 해서도 안 돼요. `.lolly` 팩, 디자인 시스템의 사본이나 포크, **Try these colours**, 복원한 백업, 한 번 실행용으로 준 토큰 파일은 모두 이 설정이 꺼진 채로 도착해요. 직접 입력한 주소로 직접 켤 수 있어요. 관리되는 디자인 시스템은 유일한 예외로, 관리자가 소스 토큰에 설정한 주소를 유지해요. 자세한 내용은 [파일에서 되돌아오는 길 만들기](/info/brand-page.html#lead-back-from-your-files)를 참고하세요.
+
+**기록 다시 읽기.** [Lolly Verify](/verify)는 파일의 자격 증명 세부 정보에서 기록을 **Design system**으로, 브랜드 스킬을 **Guided by**로 나열해요. 브랜드 페이지는 따로 나타나며 [서명자가 기록한 주소](/info/what-verify-checks.html#brand-page)로 보여요. *Recreate with these settings*는 기록된 버전과 컬러웨이로 도구를 다시 열어요. 링크는 이 기기에 같은 ID와 이름의 디자인 시스템이 있으면 기록된 디자인 시스템으로 열리고, 없으면 활성 디자인 시스템으로 열려요.
 
 ::: details 어디에 무엇이 쓰이는지, 어떤 실행이 기록을 빼는지
 | 위치 | 쓰이는 것 |
 |---|---|
-| Content Credential | `tools.lolly.export` 어서션의 `designSystem`(ID), `designSystemLabel`, `designVersion`, `themes`로, 각각 일반 텍스트 값이며 `themes`는 선택의 JSON 목록이에요 |
-| PNG, JPEG, WebP, JXL | 파일의 XMP 패킷에서 네임스페이스 `https://lolly.tools/ns/export/1.0/`의 `lolly:` 속성으로 쓰인 같은 네 개의 값 |
+| Content Credential | `tools.lolly.export` 어서션의 `designSystem`(ID), `designSystemLabel`, `designVersion`, `themes`로, 각각 일반 텍스트 값이며 `themes`는 선택의 JSON 목록이에요. 게시자가 선택한 경우 `brandPage` |
+| PNG, JPEG, WebP, JXL | 파일의 XMP 패킷에서 네임스페이스 `https://lolly.tools/ns/export/1.0/`의 `lolly:` 속성으로 쓰인 같은 값. 게시자가 선택한 경우 `lolly:BrandPage` |
 | SVG | `<metadata>` 블록 안의 같은 `lolly:` 속성 |
-| PDF | *Design system: Acme*, *Colourway: Beach* 같은 키워드 |
+| PDF | *Design system: Acme*, *Colourway: Beach* 같은 키워드와, 게시자가 선택한 경우 *Brand page: https://acme.example/brand/acme/* |
 | 설명 필드가 있는 모든 형식 | 도구 옆에 컬러웨이가 있는 설명 |
 
 카드는 기록할 것이 있고 형식이 기록을 담을 수 있을 때만 나타나요. CSV, JSON, 캘린더 파일, 기타 텍스트 또는 데이터 형식은 메타데이터를 담지 않고, EPS, EMF, DXF, BMP에는 기록용 필드가 없어요. HTML, Markdown, CSS는 기록을 Content Credential에만 담으므로 이들에는 카드에 설명 줄이 없고 **C2PA Credentials**가 꺼져 있으면 숨겨져요. 디자인 시스템이 제공하지 않는 필드는 파일에서 빠져요.
@@ -379,12 +385,14 @@ Lolly에는 CMYK 프로필이 하나 포함되어 있어요. Fogra의 FOGRA39 �
 
 ![C2PA Credentials 카드: 선택된 상태이며 체크박스 옆에 자격 증명 유효 기간이 있어요](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26format%3Dpng%26c2pa%3D30%26options&width=1440&height=900&dpi=192&waitMs=2000&format=svg&cropSelector=.export-c2pa%5Bdata-c2pa-only%5D&walker=1&dark=1&filename=exp-c2pa-card)
 
-- **기본으로 켜져 있어요.** **C2PA Credentials** 카드는 거의 모든 도구에서 미리 선택돼 있어요. 내보내기 한 번에 대해 선택 해제하거나 링크에 `c2pa=off`를 전달하세요. 도구는 매니페스트에서 제외를 선택할 수 있어요.
+- **기본으로 켜져 있어요.** **C2PA Credentials** 카드는 거의 모든 도구에서 미리 선택돼 있어요. 내보내기 한 번에 대해 선택 해제하거나 링크에 `c2pa=off`를 전달하세요. 어느 쪽이든 파일에는 자격 증명이 담기지 않으며, 카탈로그 로고처럼 자격 증명이 있는 아트워크를 인라인으로 담은 SVG는 그 아트워크의 자격 증명도 잃어요. 빠지는 것은 자격 증명뿐이에요. Lolly Imprint와 파일의 다른 메타데이터는 그대로 남아요. 도구는 매니페스트에서 제외를 선택할 수 있어요.
 - **형식.** PDF(RGB와 Print), PNG와 APNG, JPG, GIF, SVG와 SVGZ, TIFF(RGB와 Print), WebP(정지와 애니메이션), AVIF, MP4, WebM, 오디오 컨테이너 MP3, WAV, M4A, OGG/Opus, FLAC, HTML, Markdown, CSS예요. ZIP은 지원되는 각 멤버에 스탬프를 찍으며 Animated SVG가 이렇게 얻어요. MP4, AVIF, M4A는 표준 BMFF 바인딩을, MP3는 ID3v2 매핑을 사용하므로 `c2patool` 등의 리더가 검증해요. WebM과 OGG/Opus는 아직 표준 매핑이 없어서 Lolly가 매니페스트를 Matroska 첨부와 OpusTags 필드로 담으며 Lolly 자체 검증기가 확인해요. SVGZ는 압축된 SVG이고 C2PA 사양에는 압축 형식이 정의되어 있지 않으므로, 자격 증명은 SVG를 압축하기 전에 SVG 안에 기록돼요. Lolly의 검증기는 파일을 그대로 읽고, `c2patool`은 파일 압축을 푼(`gunzip`) 뒤 같은 자격 증명을 읽어요. ICO, EPS, EMF, DXF, BMP, PPTX, Office 형식, 기타 텍스트 및 데이터 형식에는 C2PA 컨테이너가 없어요.
-- **기록하는 것.** 파일을 만든 도구와 앱, 서명 시간, 내보낸 셸, 이미지, SVG, PDF로 내보낸 Design 페이지라면 그것을 그린 렌더러(`tools.lolly.export` 어설션의 `route`: GPU 페이지 렌더러는 `gpu`, 벡터로 쓴 그리기 연산은 `operations`, 브라우저 자체 렌더러는 `compatibility`)와 그 렌더러의 버전(`renderer`: GPU 레시피인 `design-draw-v`와 그 버전, 또는 `dom-to-image`와 `dom-walker`이며 브라우저 자체의 버전은 기록하지 않아요), **Design system** 카드가 선택된 동안 [디자인 시스템과 컬러웨이](#the-design-system-record), 활성 설정이에요. 메뉴 선택, 숫자, 스위치, 색상은 있는 그대로, 입력한 것(제목, 이름, 메모, 링크, 날짜)은 지문으로만 담겨서 그 글자는 파일에 들어가지 않아요. 프로필에 연결된 필드, 비활성 컨트롤, 브라우저 버전, 운영 체제 세부 정보는 제외돼요. 이름과 이메일은 Settings → Preferences → Your details에서 **Use my details to create**가 켜져 있을 때만 작성자로 나타나요. 내보내기가 배치하는 소스는 구성 요소로 담겨요. 이모지 같은 [출처가 표기되는 작품](#source-credits)과, 동영상이나 오디오 내보내기의 [Rondocode 노래](/info/rondocode.html#songs-in-the-credential)예요.
+- **기록하는 것.** 파일을 만든 도구와 앱, 서명 시간, 내보낸 셸, 이미지, SVG, PDF로 내보낸 Lolly Design 페이지라면 그것을 그린 렌더러(`tools.lolly.export` 어설션의 `route`: GPU 페이지 렌더러는 `gpu`, 벡터로 쓴 그리기 연산은 `operations`, 브라우저 자체 렌더러는 `compatibility`)와 그 렌더러의 버전(`renderer`: GPU 레시피인 `design-draw-v`와 그 버전, 또는 `dom-to-image`와 `dom-walker`이며 브라우저 자체의 버전은 기록하지 않아요), **Design system** 카드가 선택된 동안 [디자인 시스템과 컬러웨이](#the-design-system-record), 활성 설정이에요. 메뉴 선택, 숫자, 스위치, 색상은 있는 그대로, 입력한 것(제목, 이름, 메모, 링크, 날짜)은 지문으로만 담겨서 그 글자는 파일에 들어가지 않아요. 프로필에 연결된 필드, 비활성 컨트롤, 브라우저 버전, 운영 체제 세부 정보는 제외돼요. 이름과 이메일은 Settings → Preferences → Your details에서 **Use my details to create**가 켜져 있을 때만 작성자로 나타나요. 내보내기가 배치하는 소스는 구성 요소로 담겨요. 이모지 같은 [출처가 표기되는 작품](#source-credits)과, 동영상이나 오디오 내보내기의 [Lolly Rondocode 노래](/info/rondocode.html#songs-in-the-credential)예요.
+- **승인이 기록된 경우의 승인.** [Lolly Work](/info/work-approvals.html#review-an-exported-file)를 통해 승인된 파일은 이 자격 증명 위에 두 번째로 서명된 기록을 담을 수 있어요. 승인 ID, 결정 날짜, 검토한 파일의 다이제스트예요. 이름, 이메일, 그룹, 댓글, 체인 이름은 담기지 않아요. 요청 대화상자에서 기본으로 선택돼 있고, 요청 한 건에 대해 선택 해제하거나 인스턴스 전체에서 끌 수 있어요. 서명자가 결정을 밝혔다는 것을 기록할 뿐, 작업이 어떤 기준을 충족한다고 말하지는 않아요.
+- **무엇을 하라고 요청받았는지, [의도](/info/visual-intent.html#what-goes-in-the-file)로 만든 파일의 경우.** 목적, 표면, 도구, 언어, 규칙과 어휘의 버전, 의도 다이제스트예요. 행사, 대상, 지역, 프롬프트는 지문으로만 담기며, 그 렌더를 실행하는 사람이나 에이전트가 프롬프트의 문구를 기록해 달라고 요청한 경우는 예외예요. 의도에서 시작한 렌더만 이것을 담고, 실행이 무엇을 기록했는지 알려주며, 뺄 수도 있어요.
 - **받는 사람이 보는 것.** Adobe 앱, `c2patool`, contentcredentials.org/verify 같은 C2PA 도구가 매니페스트를 읽고 주장을 보여줘요. Lolly는 신뢰 목록의 인증서가 아니라 기기에서 만든 키로 서명하므로 뷰어는 *unverified* 자격 증명으로 보고해요. 구조와 변조 증거는 실제이고, 서명자는 보증되지 않아요. 이를 바꾸려면 Settings → Preferences → Content Credentials에서 **검증된 신원**을 등록하세요. [Content Credentials 신원](/info/content-credentials-identity.html)을 참고하세요.
-- **파일 확인.** 아무 파일이나 [Verify](/verify)에 놓거나 `lolly validate <file>`을 실행하면, Lolly가 파일을 만들었는지와 이후 변경되었는지가 먼저 나오는 기기 내 보고서를 받아요. Verify는 자격 증명 너머도 살펴봐요. [Verify가 확인하는 것](/info/what-verify-checks.html)을 참고하세요.
-- **개인정보.** 서명 키는 내보내기를 위해 만들어지고 기기를 떠나지 않으며, 주장에는 출처 메타데이터가 이미 담고 있는 것만 들어가요. 사용자 자신의 파일을 변환하는 개인정보 유틸리티는 자격 증명을 추가하지 않고, *Strip Hidden Data*는 C2PA 매니페스트를 다른 메타데이터처럼 제거해요. Rondocode 유틸리티는 새 오디오를 만들므로 쓰는 것에 서명해요([Rondocode 노래](/info/rondocode.html#files-from-the-rondocode-utility)).
+- **파일 확인.** 아무 파일이나 [Lolly Verify](/verify)에 놓거나 `lolly validate <file>`을 실행하면, Lolly가 파일을 만들었는지와 이후 변경되었는지가 먼저 나오는 기기 내 보고서를 받아요. Lolly Verify는 자격 증명 너머도 살펴봐요. [Lolly Verify가 확인하는 것](/info/what-verify-checks.html)을 참고하세요.
+- **개인정보.** 서명 키는 내보내기를 위해 만들어지고 기기를 떠나지 않으며, 주장에는 출처 메타데이터가 이미 담고 있는 것만 들어가요. 사용자 자신의 파일을 변환하는 개인정보 유틸리티는 자격 증명을 추가하지 않고, *Lolly Strip Hidden Data*는 C2PA 매니페스트를 다른 메타데이터처럼 제거해요. Rondocode 유틸리티는 새 오디오를 만들므로 쓰는 것에 서명해요([Lolly Rondocode 노래](/info/rondocode.html#files-from-the-rondocode-utility)).
 - **상호작용.** 비밀번호로 보호된 PDF는 어느 단계에서도 Content Credentials를 담을 수 없어요. 자격 증명은 DPI, EXIF, 색상 프로필, PDF/X 메타데이터, 인쇄 표시 뒤의 완성된 바이트 위에 마지막으로 추가돼요.
 
 ### 출처 크레딧
@@ -399,10 +407,12 @@ Lolly에는 CMYK 프로필이 하나 포함되어 있어요. Fogra의 FOGRA39 �
 
 **PDF 열기 비밀번호**는 비밀번호를 입력하면 두 단계가 있어요.
 
-- **Weak**: 40비트 RC4로, 보호가 아니라 억제 수단이에요. 비밀번호가 공유 링크에 평문으로 실려 갈 수 있어요. RGB `pdf` 전용이에요.
-- **Strong**: AES-256(PDF 2.0). 내보낼 때 입력하며 링크에 절대 넣지 않아요. Print PDF와 배치 ZIP 안의 각 PDF에도 적용돼요. Strong으로 잠근 Print PDF는 CMYK, 표시, 출력 의도는 유지하지만 PDF/X-4 주장은 버려요.
+- **Weak**: 40비트 RC4로, 보호가 아니라 억제 수단이에요. 인쇄 표시나 도련이 없는 RGB `pdf`와 일반 ASCII 비밀번호에만 해당해요. 다른 문자가 들어간 비밀번호는 Strong으로 넘어가요. 이 단계에서는 그렇게 잠근 파일을 리더가 열 수 없기 때문이에요. 처음 32자만 계산돼요.
+- **Strong**: AES-256(PDF 2.0). Print PDF와 배치 ZIP 안의 각 PDF에도 적용돼요. Strong으로 잠근 Print PDF는 CMYK, 표시, 출력 의도는 유지하지만 PDF/X-4 주장은 버려요.
 
-**잠긴 ZIP**은 ZIP 내보내기, Projects의 폴더 다운로드 또는 배치를 다루며, 하나의 비밀번호와 두 단계가 있어요. **Weak**(ZipCrypto, 억제 수단이며 `?password=` 링크에 실려 갈 수 있음) 또는 **Strong**(AES-256, 내보낼 때 입력하며 링크에는 절대 없음)이에요. 비밀번호는 모든 멤버를 보호하며, 안의 모든 PDF도 자체적으로 AES-256으로 잠기므로 ZIP을 푼 뒤에도 잠긴 채예요. 프롬프트는 다운로드가 시작될 때 나타나며 비밀번호를 비워 두면 잠금이 없어요.
+**잠긴 ZIP**은 ZIP 내보내기, Projects의 폴더 다운로드 또는 배치를 다루며, 하나의 비밀번호와 두 단계가 있어요. **Weak**(ZipCrypto, 억제 수단) 또는 **Strong**(AES-256)이에요. 비밀번호는 모든 멤버를 보호하며, 안의 모든 PDF도 자체적으로 AES-256으로 잠기므로 ZIP을 푼 뒤에도 잠긴 채예요. 프롬프트는 다운로드가 시작될 때 나타나며 비밀번호를 비워 두면 잠금이 없어요.
+
+**입력한 비밀번호는 두 단계 모두에서 링크에 들어가지 않아요.** 주소 표시줄과 복사한 링크에는 비밀번호가 절대 담기지 않아요. 파일이 `?password=` 링크로 도착하면 Lolly는 값을 읽고 곧바로 주소에서 지워요. 파일이 담을 수 없는 잠금을 요청하는 링크는 파일을 쓰지 않고 이유를 알려줘요. [`password`](/info/url-parameters.html)를 참고하세요.
 
 **비밀번호로 보호된 공유 링크**는 열리기 전에 받는 사람에게 비밀번호를 요구해요. 링크 상태 전체가 비밀번호에서 파생된 키(PBKDF2)로 AES-256으로 암호화되므로 암호문만 이동하고 복호화는 받는 사람의 브라우저에서 이루어져요. 링크를 제공하는 서버는 비밀번호도 디자인도 보지 못해요. **Share** 대화상자에서 켜세요. 암호화된 링크는 Lolly에서만 열리며 임베드된 이미지로는 절대 열리지 않아요. [URL 모드](/info/url-mode.html)를 참고하세요.
 

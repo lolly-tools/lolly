@@ -8,7 +8,7 @@ Ten a mano la dirección web que el código debe abrir, que empiece por `https:/
 
 ## Crea el código
 
-1. Abre [Código QR](/#/tool/qr-code?url=https%3A%2F%2Fexample.com). Los controles están junto a la vista previa, o encima de ella en un móvil; lo que muestra la vista previa es lo que será el archivo.
+1. Abre [Lolly QR Code](/#/tool/qr-code?url=https%3A%2F%2Fexample.com). Los controles están junto a la vista previa, o encima de ella en un móvil; lo que muestra la vista previa es lo que será el archivo.
 2. En **URL**, sustituye toda la dirección de ejemplo por la tuya. La vista previa cambia mientras escribes.
 3. Para que coincida con tus propios colores, ajusta **Color de los módulos** y **Fondo**. Mantén un contraste fuerte entre ambos, o los móviles tendrán problemas para leer el código.
 4. **Zona de silencio**, bajo **Modules**, empieza en 4. Mantenla en 4 o más: ese margen liso es lo que busca la cámara de un móvil.
@@ -32,14 +32,14 @@ Elige **SVG** o **PDF** para que el código se mantenga nítido en cualquier tam
 El archivo que descargaste está terminado. Para cambiar el código más adelante, guarda también tu trabajo:
 
 1. Pulsa **Guardar como** y luego **Guardar**. Con el panel de exportación abierto, **Guardar como** está en el panel; con él cerrado, es la marca de verificación junto a **Exportar**. El código va a **Mi biblioteca**, y un mensaje de **Guardado** ofrece **Abrir Proyectos**.
-2. La próxima vez, pulsa **Inicio** y abre **Proyectos** (el icono de carpeta en un móvil). Tu código está ahí, con el nombre **Código QR**. Ábrelo, cambia lo que quieras y vuelve a exportar.
+2. La próxima vez, pulsa **Inicio** y abre la vista **Projects** (el icono de carpeta en un móvil). Tu código está ahí, con el nombre **Código QR**. Ábrelo, cambia lo que quieras y vuelve a exportar.
 
 El trabajo guardado permanece en este dispositivo, en el navegador o la app que usaste, a menos que actives [Sincronización](/info/sync.html). [Encuentra y recupera tu trabajo](/info/find-your-work.html) cubre las carpetas, las versiones anteriores y cómo pasar tu trabajo a otro dispositivo.
 
 ## Otros primeros proyectos
 
-- [Audiograma](/#/tool/audiogram) convierte una nota de voz en un vídeo: una forma de onda en movimiento, tus palabras en la portada, tus colores. Suelta la grabación en **Audio**, añade un **Título** y luego exporta **MP4**.
-- [Filtro](/#/tool/filter) trata una foto para un póster: puntos de trama impresos, dos colores planos o unos pocos bloques de tono. Elige la foto en **Imagen**, elige un **Efecto** y luego exporta **PNG**, o **SVG** en un efecto con la etiqueta *vector*.
+- [Lolly Audiogram](/#/tool/audiogram) convierte una nota de voz en un vídeo: una forma de onda en movimiento, tus palabras en la portada, tus colores. Suelta la grabación en **Audio**, añade un **Título** y luego exporta **MP4**.
+- [Lolly Filter](/#/tool/filter) trata una foto para un póster: puntos de trama impresos, dos colores planos o unos pocos bloques de tono. Elige la foto en **Imagen**, elige un **Efecto** y luego exporta **PNG**, o **SVG** en un efecto con la etiqueta *vector*.
 
 ## A continuación
 

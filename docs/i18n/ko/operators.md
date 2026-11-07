@@ -14,6 +14,8 @@ Lolly는 각자의 기기에서 실행돼요. 팀에 로그인, 공유 프로젝
 
 ## 에셋 연결과 작업 검토
 
+- [기존 DAM과 Lolly 함께 쓰기](/info/use-with-dam.html)는 소스 권한과 연결된 제작을 설명해요. [SUSE Brandfolder 계정](/info/suse-brandfolder.html)은 도입 경험을 기록하고, [DAM 전환 계획하기](/info/dam-transition.html)는 선택 사항인 이후의 이전을 다뤄요.
+
 - [디자인 시스템 관리](/info/work-design-system-administration.html)는 소스 목록, 검토된 변경, 롤백을 다뤄요.
 - [카탈로그와 콘텐츠](/info/work-catalog.html)는 공유 에셋과 노출 규칙을 다뤄요. [공급자 가이드](/info/work-provider-guides.html)는 각 소스 플랫폼의 설정 및 검증 요구 사항을 알려줘요.
 - [승인](/info/work-approvals.html)은 검토 체인과 업무 분리를 다뤄요. [렌더링과 공유](/info/work-sharing.html)는 링크와 서버 출력을 다뤄요.

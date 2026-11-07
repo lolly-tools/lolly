@@ -14,7 +14,7 @@ Ekibin Penpot'ta tasarım yapıyorsa Lolly, Penpot'un yanında çalışır: ikis
 
 ## Lolly örtüşen işi nasıl yapar
 
-Lolly'nin Design tuvali düzenlenebilir varlıklar yapar ve bir düzeni [kurallı bir araca](/info/create-a-tool.html) dönüştürebilir. Aynı araç tarayıcıda, masaüstü uygulamasında veya CLI'de render edilir ve veriden varyantlar yapar. Bağımsız Lolly hesap veya sunucu olmadan cihazda render eder ve imzalar. Bir [özel collab](/info/collaborate.html) iki cihazı doğrudan eşler.
+Lolly'nin Lolly Design tuvali düzenlenebilir varlıklar yapar ve bir düzeni [kurallı bir araca](/info/create-a-tool.html) dönüştürebilir. Aynı araç tarayıcıda, masaüstü uygulamasında veya CLI'de render edilir ve veriden varyantlar yapar. Bağımsız Lolly hesap veya sunucu olmadan cihazda render eder ve imzalar. Bir [özel collab](/info/collaborate.html) iki cihazı doğrudan eşler.
 
 ## Bir kuruluşla
 

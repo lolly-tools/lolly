@@ -210,7 +210,7 @@ Itinatala ng mga batch manifest ang bawat napiling source bago ang pagproseso, k
 Tinatanggap pa rin ng mga mas lumang reader ang v2 envelope (`minReader: 1`) at nire-restore ang mga bahaging kilala nila, binibilang ang mga hindi sinusuportahang history part bilang nilaktawan. Ang buong history recovery ay nangangailangan ng shell na may `fileHistory` adapter, isang tahi sa loob ng shell sa halip na bagong tool-facing na `HostV1` capability. Ang tunay na two-device restore ay sakop ng lokal na Chromium gate; ang recovery sa mga naka-install na desktop, iOS at Android app ay hiwalay pang tatanggapin.
 :::
 
-## Reference
+## Sanggunian
 
 - Module: `shells/web/src/data-transfer.ts` (`exportBackup`, `importBackup`, `BACKUP_FORMAT`, `BACKUP_FORMAT_VERSION`, `BACKUP_READER_VERSION`; internal ang `backupFilename()` namer).
 - Contract test: `tests/data-transfer.test.ts`, na sumasaklaw sa round trip, merge, integrity, forward compatibility at ang reader gate.

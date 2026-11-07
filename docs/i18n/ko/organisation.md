@@ -2,6 +2,8 @@
 
 조직은 자체 Lolly를 운영할 수 있어요. 조직이 선택한 도구와 디자인 시스템을 갖춘 같은 앱이에요. 이 페이지는 접속 방법, 로그인, 로그인한 뒤 달라지는 점을 보여줘요.
 
+조직의 설정을 계획하고 있다면, [기존 DAM과 함께 Lolly 사용하기](/info/use-with-dam.html)에서 승인된 라이브러리를 그대로 두면서 사람들이 Lolly에서 콘텐츠를 만들기 시작하는 방법을 설명해요. [콘텐츠 주권](/info/content-sovereignty.html)은 제작, 거버넌스, 저장, 이식성 전반에 대한 더 넓은 통제를 설명해요.
+
 ::: note 조직에서 받아야 할 것
 조직의 Lolly 웹 주소, 또는 조직이 만든 `.lolly` 설정 파일이에요. lolly.tools 자체는 조직에 연결되지 않아요.
 :::
@@ -10,13 +12,13 @@
 
 조직이 알려준 주소를 열어요. 페이지에서 로그인하라고 하면 **Sign in**을 누르고 열리는 로그인 페이지를 따라가세요. 그 후에는 조직의 도구와 디자인 시스템을 갖춘 평범한 Lolly처럼 동작해요.
 
-lolly.tools에서 시작할 수도 있어요. **Settings**를 열고 **Lolly instance** 카드에서 **Open a workspace**를 누른 뒤 주소를 입력하고 **Open this instance**를 누르세요. 브라우저는 lolly.tools에서 다른 Lolly의 도구를 불러올 수 없으므로 조직 자체 주소로 이동해요.
+lolly.tools에서 시작할 수도 있어요. **Settings** 보기를 열고 **Lolly instance** 카드에서 **Open a workspace**를 누른 뒤 주소를 입력하고 **Open this instance**를 누르세요. 브라우저는 lolly.tools에서 다른 Lolly의 도구를 불러올 수 없으므로 조직 자체 주소로 이동해요.
 
 ![Settings의 Lolly instance 카드: 여기서 조직의 워크스페이스를 열거나 앱이 도구를 가져오는 위치를 바꿔요](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dinstance-section&width=1440&height=1400&dpi=192&waitMs=2000&format=svg&cropSelector=%23instance-section&walker=1&dark=1&filename=org-instance-card)
 
 ## 데스크톱 또는 모바일 앱에서
 
-앱은 번들된 도구로 시작해요. 연결하려면 **Settings**를 열고 **Lolly instance** 카드에서 **Change**를 누르세요. 시트가 **Where should Lolly get its tools?**라고 물어요.
+앱은 번들된 도구로 시작해요. 연결하려면 **Settings** 보기를 열고 **Lolly instance** 카드에서 **Change**를 누르세요. 시트가 **Where should Lolly get its tools?**라고 물어요.
 
 1. **Lolly 인스턴스에 연결**을 고르세요.
 2. 조직의 웹 주소를 입력하고 **확인하고 연결하기**를 누르세요.

@@ -2,9 +2,13 @@
 
 Lolly înseamnă două părți ale unui singur proiect open source. **Lolly** este motorul, aplicațiile și instrumentele pentru a crea, edita, converti și exporta pe dispozitivul tău, fără cont. **Lolly Work** este serverul organizației, rulat pe infrastructura ta, pentru autentificare, proiecte comune, aprobări și randare pe server. Ambele sunt MPL-2.0. Această pagină compară perechea cu celelalte moduri în care oamenii proiectează, guvernează și produc fișiere.
 
+Ideea organizatoare este [suveranitatea conținutului](/info/content-sovereignty.html): controlul asupra modului în care conținutul este creat, guvernat, stocat și mutat între sisteme alese. Aplicațiile creative pot furniza designuri, un DAM poate rămâne sursa de referință, iar Lolly poate transforma intrările permise și resursele aprobate în fișiere noi. [Folosește Lolly cu DAM-ul tău existent](/info/use-with-dam.html) descrie această combinație.
+
 ## Uneltele de azi
 
 Fiecare inel notează cât de complet livrează o clasă de produse o capabilitate, fiecare clasă fiind notată pe cel mai bun reprezentant al ei. Coloana Lolly acoperă Lolly și Lolly Work împreună, iar fiecare rând spune ce parte oferă ce. Deschide numele unui rând pentru raționamentul din spatele notei. Coloanele sunt sortate după rândul Overall completeness de sus: media rândurilor notate, cu rândul de cheltuială exclus.
+
+Notele folosesc preferința Lolly pentru control fără cont și fără cerință de cloud. Sunt o comparație după aceste criterii, nu un clasament neutru al completitudinii produselor sau o notă de achiziție enterprise. Citește separat limitele de capabilitate, de instalare și de dovezi când evaluezi un flux de lucru anume.
 
 ::: figure positioning-comparison
 Comparație de capabilități: cercetarea competitorilor și notele din august 2026; acoperirea Lolly + Lolly Work revizuită la 28 septembrie 2026. Notare: 0 absent, 25 soluție improvizată, 50 real dar limitat sau parțial, 75 puternic cu rezerve, 100 competență de bază.
@@ -43,9 +47,11 @@ Colaborarea live a Lolly include collab-uri private directe între două dispozi
 
 Designurile importate și design tokens partajate lasă o echipă să combine Lolly cu aplicații specializate, în timp ce Lolly Work guvernează resursele comune, revizuirea și livrarea.
 
-Un deck întreg arată plafonul: în **Markdown Slides** un deck este declarat ca date, așezat live și exportat ca fișier PowerPoint nativ, editabil.
+Pentru echipele cu un DAM îngrijit, începe prin a păstra acea bibliotecă și administratorii ei la locul lor. [Experiența SUSE cu Brandfolder](/info/suse-brandfolder.html) înregistrează cum a susținut integrarea adopția și gestionarea schimbării aprobărilor. Furnizorii de DAM și partenerii de implementare pot evalua aceeași aranjare prin [fluxul de lucru pentru parteneri](/info/dam-partners.html).
 
-![Markdown Slides în vederea împărțită: diapozitivele deck-ului listate ca blocuri în stânga, deck-ul așezat randat în dreapta](/t/url-shot?url=%2F%23%2Ftool%2Fdeck-studio&width=1440&height=900&dpi=192&waitMs=2600&walker=1&format=svg&dark=1&filename=ov2-deck-studio-output)
+Un deck întreg arată plafonul: în **Lolly Markdown Slides** un deck este declarat ca date, așezat live și exportat ca fișier PowerPoint nativ, editabil.
+
+![Lolly Markdown Slides în vederea împărțită: diapozitivele deck-ului listate ca blocuri în stânga, deck-ul așezat randat în dreapta](/t/url-shot?url=%2F%23%2Ftool%2Fdeck-studio&width=1440&height=900&dpi=192&waitMs=2600&walker=1&format=svg&dark=1&filename=ov2-deck-studio-output)
 
 ## Regulile trăiesc în instrument
 

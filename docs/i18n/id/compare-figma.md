@@ -16,7 +16,7 @@ Keduanya memungkinkan Anda menata huruf, bentuk, dan gambar di kanvas dan bekerj
 
 Lolly mengubah desain menjadi [alat dengan aturan yang dapat dipakai ulang](/info/create-a-tool.html). Alat berjalan di browser atau CLI dan mengambil inputnya dari tautan, skrip, atau grid batch, jadi satu templat melayani orang yang menyunting satu file dan tim yang membuat banyak file.
 
-![Kanvas terbuka Design, dengan Import a design di menu Lolly bilah alat](/info/shots/design.svg)
+![Kanvas terbuka Lolly Design, dengan Import a design di menu Lolly bilah alat](/info/shots/design.svg)
 
 [Collab privat](/info/collaborate.html) memasangkan dua perangkat secara langsung, tanpa akun dan tanpa internet pada jaringan bersama. Lolly mandiri merender offline. Content Credentials aktif secara default untuk ekspor yang didukung, dan Anda dapat mematikannya.
 

@@ -1,5 +1,7 @@
 # Design: el lienzo libre
 
+<a id="design-the-free-canvas"></a>
+
 Design es la herramienta para diseños que ninguna plantilla cubre: un póster desde cero, un deck de diapositivas, una pieza de movimiento con banda sonora. En lugar de un formulario de controles, tienes un lienzo de cuadros que arrastras, redimensionas, giras y en los que escribes. Se exporta por el mismo camino de renderizado que cualquier otra herramienta, así que lo que ves en el lienzo es el archivo que obtienes.
 
 Esta página recorre el lienzo desde el primer cuadro hasta un deck terminado: la ventana, dar forma a los cuadros, dibujar tus propias formas, colocar escenas 3D y otras herramientas, añadir tiempo, comprobar el resultado y presentar el deck terminado. [Using Lolly](/info/using.html) cubre lo que Design comparte con todas las herramientas, como guardar y compartir.
@@ -27,7 +29,7 @@ El lienzo funciona como la mesa de trabajo de un diseñador alrededor de la mesa
 
 El **Navigator** enumera cada mesa de arte (con el encabezado **Artboards**, o **Slides** en un deck) como un grupo plegable de sus **Layers**. Selecciona el nombre de una mesa de arte para ir allí, despliégala para seleccionar o reordenar sus capas y usa las teclas de flecha para moverte por la lista; Izquierda vuelve al encabezado de la mesa de arte. **Pages** agrupa mesas de arte en páginas con nombre, y elegir una página solo cambia qué mesas de arte muestra el editor.
 
-El **Inspector** pone primero los controles de texto o de imagen del objeto seleccionado. Los chips de opciones cubren las opciones rápidas, y **Advanced** contiene el detalle del estilo. En un teléfono el Inspector se abre como una hoja desde **More actions**; Escape o Atrás cierra la hoja y conserva tu selección.
+El **Inspector** pone primero los controles de texto o de imagen del objeto seleccionado. Los chips de opciones cubren las opciones rápidas, y **Advanced** contiene el detalle del estilo. En un teléfono el Inspector y la lista de capas comparten un único panel que se despliega bajo la barra superior, el mismo panel en el que cualquier otra herramienta guarda sus controles. **Inspect** y **Layer/Page** en la barra inferior abren el panel en su pestaña. Arrastra el asa de su borde inferior, o toca el asa, para pasar el panel entre una franja con las dos pestañas, la mitad de la pantalla y casi toda la pantalla. A media pantalla, el lienzo bajo el panel muestra tu selección. Escape pliega el panel de nuevo a la franja y conserva tu selección.
 
 ![La sección Document del Inspector: las pestañas Selection y Canvas, y luego Dimensions y Style & look](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3Dfeature-tour&width=1440&height=900&dpi=192&waitMs=3500&cropSelector=.fc-insp&walker=1&format=svg&dark=1&filename=design-narration)
 
@@ -241,6 +243,8 @@ La flecha junto a **Present** abre **Present from this slide**, **Speaker view**
 | **Escape** | Quita una capa: de la vista general al deck, del deck al editor |
 
 Una pequeña barra de control aparece cuando mueves el puntero y se oculta de nuevo cuando paras. Si el navegador bloquea la ventana emergente del orador, la vista del orador se abre como un panel sobre el deck. Las notas pertenecen a cada mesa de arte y nunca aparecen en la diapositiva.
+
+En una pantalla táctil, desliza hacia la izquierda para el paso o la diapositiva siguiente y hacia la derecha para volver. Una transición **Slide** o **Fade** sigue tu dedo y termina cuando lo sueltas; una transición **Cut**, **Morph** o **Fly between artboards** se reproduce entera cuando lo sueltas, y un deslizamiento corto y lento no cambia nada. Los cuadros de página web, los controles de vídeo, los cuadros que se desplazan y el texto seleccionado conservan sus propios gestos, así que un deslizamiento nunca empieza en ninguno de ellos, y el desplazamiento vertical y el zoom con pellizco funcionan como siempre. Con movimiento reducido la diapositiva cambia igualmente, sin seguir tu dedo.
 
 - **Pasos de revelado.** Haz clic derecho en un cuadro y elige **Reveal at step 1**, **2** o **3** en lugar de **Always visible**, y el cuadro espera hasta que avanzas a su paso. Los cuadros que comparten un número llegan juntos.
 - **Quiosco.** Da a una mesa de arte una **Length** y el deck se detiene ahí ese tiempo, y luego avanza tras una fina barra de progreso. Añade `kiosk` al enlace y el deck vuelve al principio al llegar al final, para cartelería digital.

@@ -39,7 +39,7 @@ lolly.tools terbuka di [Lolly Demo](/info/lolly-demo.html), design system contoh
 
 ## Bisakah saya memakai brand saya sendiri?
 
-Bisa. **Design System Setup** (`#/start`) membangun design system dari satu warna, file token desain, atau desain jadi, dan setiap alat kemudian menggambar dengan design system Anda. [Start](/info/quickstart.html#put-your-brand-in) menelusuri ketiga jalurnya.
+Bisa. **Lolly Design System Setup** (`#/start`) membangun design system dari satu warna, file token desain, atau desain jadi, dan setiap alat kemudian menggambar dengan design system Anda. [Start](/info/quickstart.html#put-your-brand-in) menelusuri ketiga jalurnya.
 
 Design system yang disediakan organisasi atau build Anda bersifat managed: menampilkan kunci dan tetap hanya-baca, dan Anda dapat membuat salinan yang dapat disunting untuk mengubahnya.
 
@@ -80,9 +80,9 @@ Aplikasi web menggambar dengan WebGPU, fitur grafis browser terkini, dan memerik
 
 ## Bisakah Lolly mengedit dan merender file Figma, Penpot, Illustrator atau InDesign saya?
 
-Bisa. Buka **Design** dan klik **Import a design**: ia menerima **.fig** Figma asli (Save local copy), ekspor **.penpot** Penpot, **.ai** atau **.pdf** Illustrator, **.idml** InDesign (File → Export → InDesign Markup), atau **SVG apa pun**. Anda tidak memerlukan akun, plugin, atau lisensi aplikasi desain.
+Bisa. Buka alat **Design** dan klik **Import a design**: ia menerima **.fig** Figma asli (Save local copy), ekspor **.penpot** Penpot, **.ai** atau **.pdf** Illustrator, **.idml** InDesign (File → Export → InDesign Markup), atau **SVG apa pun**. Anda tidak memerlukan akun, plugin, atau lisensi aplikasi desain.
 
-![Kanvas terbuka Design - Impor desain berada di menu Lolly pada rel](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D17ZTfS8MwEMf_mryO5NZ288GHrdqJv1CUvWdtOgppMtJMNv96yaV1iRNEQRBZoblwab53l0-uq915bXgrCOSDpf3LzgANnQ4eI0rrPJn7Gh9cd0sE8lIryxtFIFfatFx6L4F0Mi-11GbUiZYr25QjK3bW-S8I5MnUbRXKCkMgb5uqki6JFFU7rjoXYsSgT8GaLebKZSeGAPkUYypMHp80DeugYYR4J_U7X4XRkY8dFHuTYEJ-jDWM3qoqsEHo4Y20-xJi-SPVaOfRUuAL1hiZXNrG4gH6M85Z5lTAk8x8DdlnPL8gecVfBIEU6F5v0bbCor3VUu4JpOPCKTCWsPI9rBS107d6QyCfRET_Ac6wX36X6UpX-49Ip1mAlMEPkM6QX20aoSpECLTmpadcazPQ9hPlWxboRndWmFEIG1s4Yp3E3Ts-0f4GbcruWHLzlC0frmfpfbGk82LxmD0vUndSTcvXAoknWBKCz5LDSIdiRHV0D2Tfq1BIvdY42Zim5WZ_-n3_mRvwBg&width=1360&height=850&dpi=192&waitMs=3000&format=svg&walker=1&chrome=1&localize=1&dark=1&filename=design)
+![Kanvas terbuka Lolly Design - Impor desain berada di menu Lolly pada rel](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D17ZTfS8MwEMf_mryO5NZ288GHrdqJv1CUvWdtOgppMtJMNv96yaV1iRNEQRBZoblwab53l0-uq915bXgrCOSDpf3LzgANnQ4eI0rrPJn7Gh9cd0sE8lIryxtFIFfatFx6L4F0Mi-11GbUiZYr25QjK3bW-S8I5MnUbRXKCkMgb5uqki6JFFU7rjoXYsSgT8GaLebKZSeGAPkUYypMHp80DeugYYR4J_U7X4XRkY8dFHuTYEJ-jDWM3qoqsEHo4Y20-xJi-SPVaOfRUuAL1hiZXNrG4gH6M85Z5lTAk8x8DdlnPL8gecVfBIEU6F5v0bbCor3VUu4JpOPCKTCWsPI9rBS107d6QyCfRET_Ac6wX36X6UpX-49Ip1mAlMEPkM6QX20aoSpECLTmpadcazPQ9hPlWxboRndWmFEIG1s4Yp3E3Ts-0f4GbcruWHLzlC0frmfpfbGk82LxmD0vUndSTcvXAoknWBKCz5LDSIdiRHV0D2Tfq1BIvdY42Zim5WZ_-n3_mRvwBg&width=1360&height=850&dpi=192&waitMs=3000&format=svg&walker=1&chrome=1&localize=1&dark=1&filename=design)
 
 Layer tiba sebagai kotak yang dapat disunting: teks tetap dapat diketik ulang, bentuk tetap bentuk, dan gambar bergabung ke pustaka Anda sendiri. Simpan, dan **Share with rules** dapat mengubah tata letak menjadi alat yang dapat diisi ulang siapa pun yang memiliki Lolly. Lihat [Import a design](/info/design-import.html).
 
@@ -100,7 +100,7 @@ Feature flag menyalakan atau mematikan bagian Lolly. Pada penggunaan mandiri, An
 
 Utilitas mengerjakan satu tugas cepat pada file yang sudah Anda miliki, seperti mengompres PDF, mengonversi foto, atau menghapus data tersembunyi, dan banyak di antaranya berjalan di perangkat Anda tanpa unggahan. Utilitas ada agar pekerjaan yang biasanya diserahkan orang ke situs acak tetap berada di dalam Lolly. Mengompres kontrak, mengonversi foto liburan yang masih menyimpan lokasinya, atau menempel token ke formatter online seharusnya tidak berarti menyerahkan file ke situs dengan retensi, yurisdiksi, dan model bisnis yang tidak diketahui. [Lolly Utilities](/info/utilities.html) mencantumkannya, dan [The trade we never agreed to](/info/status-quo.html) menceritakan kisah di baliknya.
 
-![Tampilan Utilities: Strip Hidden Data, Compress PDF, Convert Image, dan pekerjaan di perangkat lainnya, semuanya di satu tempat](/t/url-shot?url=%2F%23%2Fu&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone!important%7D&tolerance=0.03&format=svg&walker=1&dark=1&filename=use-utilities&try=1)
+![Tampilan Utilities: Lolly Strip Hidden Data, Compress PDF, Convert Image, dan pekerjaan di perangkat lainnya, semuanya di satu tempat](/t/url-shot?url=%2F%23%2Fu&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone!important%7D&tolerance=0.03&format=svg&walker=1&dark=1&filename=use-utilities&try=1)
 
 ## Bisakah organisasi kami memakai SSO, proyek bersama, dan persetujuan?
 
@@ -110,7 +110,7 @@ Bisa, dengan **Lolly Work**, server organisasi dari proyek sumber terbuka yang s
 
 ## Hambatan apa yang mungkin muncul saat mengadopsi Lolly?
 
-Sebagian besar perubahan ada di sisi produksi, bukan teknologi. Tim yang menginginkan seperangkat alat yang diatur membutuhkan seseorang untuk menyusun design system dan templat pertamanya, meskipun siapa pun dapat mulai membuat alatnya sendiri di Design sejak hari pertama, tanpa git. Dan proses yang ada tetap berjalan meskipun keluarannya menyimpang dari brand, jadi mengonversi satu keluaran yang terlihat dengan baik, sebelum dan sesudah berdampingan, membuktikan lebih cepat daripada rencana.
+Sebagian besar perubahan ada di sisi produksi, bukan teknologi. Tim yang menginginkan seperangkat alat yang diatur membutuhkan seseorang untuk menyusun design system dan templat pertamanya, meskipun siapa pun dapat mulai membuat alatnya sendiri di Lolly Design sejak hari pertama, tanpa git. Dan proses yang ada tetap berjalan meskipun keluarannya menyimpang dari brand, jadi mengonversi satu keluaran yang terlihat dengan baik, sebelum dan sesudah berdampingan, membuktikan lebih cepat daripada rencana.
 
 [Adoption & Governance](/info/adoption-governance.html) membahas orientasi menurut peran, cara mengukur pilot, dan seperti apa proses tata kelola.
 
@@ -144,3 +144,11 @@ Semuanya berada di repositori terpisah yang privat. Klon publik tidak mengambil 
 ## Rasa apa logo Lolly itu?
 
 Ada yang bilang Jeruk Nipis, ada yang bilang Mint dan kadang Apel, Lolly membawa manisnya, Anda yang mewujudkan rasanya!
+
+## Apa arti kedaulatan konten bagi Lolly?
+
+Kendali atas bagaimana konten Anda dibuat, diatur, disimpan, dan dipindahkan di berbagai sistem yang Anda pilih. Lolly mendukung produksi lokal, karya yang dapat disunting, dan alat yang portabel; Lolly Work menambahkan layanan bersama yang dikendalikan organisasi. Lisensi sumber, dependensi yang tersedia, dan aliran data dalam alur kerja tetap penting. [What is content sovereignty?](/info/content-sovereignty.html) menjelaskan setiap kendali beserta batasannya.
+
+## Bisakah kami mempertahankan DAM yang ada?
+
+Bisa. DAM yang didukung dapat tetap menjadi sumber catatan utama sementara Lolly Work menghubungkan aset terpilih ke alat Lolly. Akses sumber, suntingan yang diizinkan, hak penggunaan, dan persetujuan keluaran akhir adalah keputusan yang terpisah. [Use Lolly with your existing DAM](/info/use-with-dam.html) menjelaskan pengaturannya, dan [SUSE's Brandfolder experience](/info/suse-brandfolder.html) mencatat penggunaan yang berhasil selama adopsi.

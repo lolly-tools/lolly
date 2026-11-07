@@ -22,7 +22,7 @@ Att välja en uppsättning blockeras aldrig, och uppsättningskontrollen visar l
 
 ## Vad du ser, och vad du ska göra
 
-Samma ord visas i exportpanelen, Verify, kommandoraden och maskinresultatet, ungefär i ordning efter hur ofta du möter dem.
+Samma ord visas i exportpanelen, Lolly Verify, kommandoraden och maskinresultatet, ungefär i ordning efter hur ofta du möter dem.
 
 | Vad du ser | Vad det betyder |
 |---|---|
@@ -51,12 +51,14 @@ Lolly säger aldrig "copyright verified", "legally safe", "fully cleared" eller 
 
 - **I katalogen.** Ett verks blad visar dess källa och upphovsperson, det kanoniska licensnamnet med originaletiketten bevarad under, en kopierbar kredit där en är registrerad och en rad som säger vad användningen kräver. En ruta anger kravet; den påstår aldrig att en export slutförts.
 - **I exportpanelen.** Ett kort Source credits visas inne i Content protection när en rendering använder registrerat verk, bredvid den Licence du väljer för din egen export. Det visar tillståndet, kredittexten bakom Details, en knapp Copy credit och ett inbäddat kort när ett beslut återstår. Ett beslut är aldrig en blockerande dialog: en nedladdning med en åtgärd kvar fortsätter ändå.
-- **I filen.** En export som placerade registrerat verk skriver en Content Credentials-källingrediens per skilt verk, bunden till originalbyten på deras publika adress, och bärande upphovspersonen, licensen och dess länk, källan, revisionen och ändringarna. Lolly signerar det det observerade. Det signerar aldrig ett påstående å den ursprunglige konstnärens vägnar, och Verify säger vilket av de två som hände.
+- **I filen.** En export som placerade registrerat verk skriver en Content Credentials-källingrediens per skilt verk, bunden till originalbyten på deras publika adress, och bärande upphovspersonen, licensen och dess länk, källan, revisionen och ändringarna. Lolly signerar det det observerade. Det signerar aldrig ett påstående å den ursprunglige konstnärens vägnar, och Lolly Verify säger vilket av de två som hände.
 - **I ett paket.** En nedladdning som inte kan hålla en credential, som en `.lottie`-animation, bär krediterna som `CREDITS.txt` och `credits.json` inuti paketet. De läses tillbaka efter skrivning, och ingen signerad credential påstås för dem.
 - **Efter skrivning.** De levererade byten läses tillbaka innan något säger att krediter ingår. En credential som inte verifierades räknas inte som en levererad kredit.
-- **I en redigerbar `.lolly`-fil.** Byte färdas bara när en granskad licens registrerar tillstånd att föra källan vidare. Paketets `CREDITS.txt` listar vad som färdades, under vilken licens och vad som hölls tillbaka med skälet. En oregistrerad licens hålls tillbaka. Du kan ändå ta med tillbakahållet innehåll avsiktligt, och kreditfilen registrerar att det var ditt val.
-- **I Verify.** En panel Sources listar varje källa en fil registrerar, med en beräknad sammanfattning, krediten, en knapp Copy credit, en länk Open source som bara öppnas när du ber om det och de angivna gränserna för vad som granskades. En fråga Check for this use visas bara när du väljer en användning, och inget hämtas för att besvara frågan.
+- **I en redigerbar `.lolly`-fil.** Byte färdas bara när en granskad licens registrerar tillstånd att föra källan vidare, eller när raden bär ägarens egna villkor. Paketets `CREDITS.txt` listar vad som färdades, under vilken licens och vad som hölls tillbaka med skälet. En oregistrerad licens hålls tillbaka. Du kan ändå ta med tillbakahållet innehåll avsiktligt, och kreditfilen registrerar att det var ditt val.
+- **I Lolly Verify.** En panel Sources listar varje källa en fil registrerar, med en beräknad sammanfattning, krediten, en knapp Copy credit, en länk Open source som bara öppnas när du ber om det och de angivna gränserna för vad som granskades. En fråga Check for this use visas bara när du väljer en användning, och inget hämtas för att besvara frågan.
 - **När du tar bort metadata.** Rensning talar om hur många källkrediter filen inte längre bär, erbjuder kredittexten och erbjuder en ren fil med krediterna i en separat fil. Rensade byte stämplas aldrig om.
+
+**En ägares egna märken.** En ägare lägger sällan en logotyp under en öppen licens. En rad vars rättighetspost säger `own-work`, med ägaren och villkoren, kan färdas i en `.lolly`-fil och på en [varumärkessida](/info/brand-page.html#publish-your-own-marks). Den färdas som "Owner-published, not an open licence", med villkoren bredvid filen. Det här läser vad en katalog anger. Lolly kontrollerar inte vem som äger ett märke. En post utan ägare, med tomma villkor eller utan deklaration förblir tillbakahållen, och det gäller också någon annans märke utan en sådan post.
 
 ::: details Licenserna Lolly har granskat
 Regelversion `rights-rules-2026-11-05.1`. Varje regel lästes ur licensens egen rättstext, och avsnittet den kom från anges här och bredvid regeln i `engine/src/rights-profiles.ts`. En version och en port behålls som registrerade: en CC BY 3.0-deklaration behåller sin egen version i stället för att rapporteras som 4.0 för att appens väljare föredrar 4.0.
@@ -69,6 +71,7 @@ Regelversion `rights-rules-2026-11-05.1`. Varje regel lästes ur licensens egen 
 | CC-PDDC | Ingenting. Det som registreras är själva påståendet och vem som gjorde det, eftersom en certifiering är en parts uttalande snarare än bevis. | Styckena i [dedikationen och certifieringen](https://creativecommons.org/licenses/publicdomain/) |
 | Apache License 2.0 | Meddelandena från källan och NOTICE-filens attribueringstext färdas med ett distribuerat verk. En körningsanvändning kräver ingenting. En licens som ber om en meddelandetext och ett verk som saknar en rapporteras som en lucka. | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0), avsnitt 4, villkor 1 till 4 |
 | MIT | Upphovsrättsraden och tillståndsmeddelandet färdas med kopior och väsentliga delar. Körnings- och referensanvändning kräver ingenting. | [MIT](https://opensource.org/license/mit), villkoret om tillståndsmeddelandet |
+| ISC | Samma som MIT, med färre ord: upphovsrättsraden och tillståndsmeddelandet färdas med kopior. Körnings- och referensanvändning kräver ingenting. | [ISC](https://opensource.org/license/isc-license-txt), villkoret om tillståndsmeddelandet |
 | SIL OFL 1.1 | Att rendera text med typsnittet kräver ingenting av texten. Att föra typsnittsfilen vidare bär licensen, upphovsrättsmeddelandet och regeln om reserverade namn. | [OFL 1.1](https://openfontlicense.org/open-font-license-official-text/), villkor 2, 3 och 5; [OFL FAQ](https://openfontlicense.org/ofl-faq/) om dokument |
 
 **Registrerat, inte tolkat.** CC BY-NC, CC BY-ND och kombinationerna NC-SA och NC-ND känns igen, deras villkor listas och ingen regel här läser dem. De rapporterar `licence.unknown` med en rad som namnger villkoren. Ett kommersiellt sammanhang kan inte avläsas ur ett pris eller ett konto, och varje kombinerad text behöver sin egen granskning innan en regel läser den texten.
@@ -119,7 +122,7 @@ Fem motormoduler, alla rena: inget nätverk, ingen klocka, inget filsystem. Rege
 | `engine/src/rights-evaluate.ts` | Klassificering, problem, attribueringsplanen och fingeravtrycket. Deterministisk: samma fakta i annan ordning ger samma svar. |
 | `engine/src/rights-attribution.ts` | Läsbara krediter, följefilerna, källingredienserna och kvittot uppmätt efter skrivning. |
 | `engine/src/rights-companion.ts` | Tillbakaläsningen av paketkrediter (`CREDITS.txt` och `credits.json` inuti en ZIP-baserad nedladdning), som bekräftar krediterna utan att påstå en signerad credential. |
-| `engine/src/rights-report.ts` | En verifierad credential tillbakaläst som de tre frågorna Verify ställer. |
+| `engine/src/rights-report.ts` | En verifierad credential tillbakaläst som de tre frågorna Lolly Verify ställer. |
 
 Förväntningsfilerna i `tests/fixtures/rights/` skrevs utifrån licenstexterna snarare än utvärderarens utdata, och deras README anger avsnittet bakom varje förväntning.
 :::

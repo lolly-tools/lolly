@@ -26,7 +26,7 @@ Trong một [work collab](/info/collaborate.html#work-collabs-with-lolly-work-op
 
 1. Nhấn **Trang chủ** ở góc trên bên trái của công cụ.
 2. Mở tab **Dự án** ở đầu màn hình chính (biểu tượng thư mục trên điện thoại).
-3. Xem ở màn hình đầu tiên. Công việc đã lưu vào **Thư viện của tôi** nằm ở đó, và mỗi dự án là một thư mục. Để tìm trong mọi thư mục cùng lúc, hãy gõ vào ô **Tìm trong mọi dự án…** ở chân màn hình.
+3. Xem ở màn hình đầu tiên. Công việc Lolly Work đã lưu vào **Thư viện của tôi** nằm ở đó, và mỗi dự án là một thư mục. Để tìm trong mọi thư mục cùng lúc, hãy gõ vào ô **Tìm trong mọi dự án…** ở chân màn hình.
 
 Một mục được đặt tên theo tên tệp bạn gõ trong bảng xuất, hoặc theo công cụ của nó, như **QR Code**, nếu bạn không gõ. Mở mục đó và mọi cài đặt trở lại, sẵn sàng để đổi và xuất lại. Để giữ công việc mới theo cách này, xem [Saving & continuing](/info/using.html#saving-continuing).
 
@@ -37,7 +37,7 @@ Một mục được đặt tên theo tên tệp bạn gõ trong bảng xuất, 
 :::
 
 ::: details Làm việc với Dự án
-Bạn cũng có thể mở **Dự án** từ **Cài đặt → Bộ nhớ → Phiên đã lưu → Sắp xếp trong Dự án**. Nó hoạt động như một trình quản lý tệp:
+Bạn cũng có thể mở chế độ xem **Dự án** từ **Cài đặt → Bộ nhớ → Phiên đã lưu → Sắp xếp trong Dự án**. Nó hoạt động như một trình quản lý tệp:
 
 ![Dự án trước khi có gì được lưu: các ô New folder, New asset và Templates, đồng hồ History ở góc trên bên phải và thanh Search all projects ở chân trang](/t/url-shot?url=%2F%23%2Fp&width=1440&height=900&dpi=192&waitMs=1200&walker=1&format=svg&localize=1&dark=1&filename=projects)
 <!--
@@ -101,17 +101,17 @@ Khi không có khôi phục tự động, một ghi chú bên cạnh các điề
 :::
 
 ::: details Công cụ nào tự lưu khi bạn làm việc
-Trong ứng dụng web, mọi công cụ tạo ra một tài liệu đều tự lưu khi bạn làm việc: Design, Chart, QR Code, Text, Sandbox và những công cụ khác. Các công cụ sau đây thì không:
+Trong ứng dụng web, mọi công cụ tạo ra một tài liệu đều tự lưu khi bạn làm việc: Lolly Design, Lolly Chart, QR Code, Text, Lolly Sandbox và những công cụ khác. Các công cụ sau đây thì không:
 
 - các công cụ làm việc trên tệp bạn mang vào, như Redact, Sign hoặc Convert Image, vì Lolly không bao giờ giữ bản sao của tệp đó;
-- các công cụ ghi từ camera, micro hoặc màn hình của bạn, như Record, Screen Capture và Voice Recorder;
+- các công cụ ghi từ camera, micro hoặc màn hình của bạn, như Record, Lolly Screen Capture và Lolly Voice Recorder;
 - một công cụ không có gì để đổi, như Countdown.
 
 Trong các công cụ khác, thay đổi đầu tiên của bạn lưu công việc vào **Projects** như thể bạn đã lưu, và các thay đổi sau được giữ khi bạn làm việc khi công cụ vẽ xong. Một sản phẩm chưa lưu vẫn nằm trong Projects sau khi bạn đóng thẻ, và mở lại với các thay đổi được đánh dấu là chưa lưu.
 
 **Leave anyway** vẫn bỏ các thay đổi đó, và History giữ một bản sao các chỉnh sửa bị bỏ trong 30 ngày. Mở lại công cụ từ màn hình chính bắt đầu một sản phẩm mới; hãy mở cái trước từ Projects.
 
-3D và Darkroom lưu khi bạn làm việc, nhưng chúng không giữ tệp bạn nạp vào, như mô hình 3D hay LUT. History và **Save** giữ tên, loại và kích thước của tệp, không giữ tệp. Khi bạn mở lại công việc, một ghi chú cho biết đó là tệp nào, và công cụ chạy không có nó cho đến khi bạn nạp lại. Hãy giữ các tệp gốc của bạn.
+3D và Lolly Darkroom lưu khi bạn làm việc, nhưng chúng không giữ tệp bạn nạp vào, như mô hình 3D hay LUT. History và **Save** giữ tên, loại và kích thước của tệp, không giữ tệp. Khi bạn mở lại công việc, một ghi chú cho biết đó là tệp nào, và công cụ chạy không có nó cho đến khi bạn nạp lại. Hãy giữ các tệp gốc của bạn.
 
 Khi bật [Sync](/info/sync.html), một tác phẩm được lưu theo cách này cũng chuyển sang các thiết bị khác của bạn như mọi thứ khác trong Dự án. Các phiên bản của nó vẫn ở lại trên thiết bị nơi chúng được tạo ra.
 
@@ -147,14 +147,14 @@ Trên iPhone, iPad và Android, một tệp mới thay thế tệp trước đó
 
 Để mở một phiên bản trước đó:
 
-1. Nhấn **History**, nút đồng hồ bên cạnh **Hoàn tác** và **Làm lại**. Trong Design, **History** nằm ở thanh trên cùng; trên điện thoại, nhấn **•••** rồi **History**. Ở các công cụ không có **Hoàn tác**, như Text và Sandbox, **History** nằm bên cạnh **Trang chủ** ở góc trên bên trái.
+1. Nhấn **History**, nút đồng hồ bên cạnh **Hoàn tác** và **Làm lại**. Trong Lolly Design, **History** nằm ở thanh trên cùng; trên điện thoại, nhấn **•••** rồi **History**. Ở các công cụ không có **Hoàn tác**, như Text và Lolly Sandbox, **History** nằm bên cạnh **Trang chủ** ở góc trên bên trái.
 2. Tìm phiên bản theo ngày và giờ của nó. Các hàng **Automatic checkpoint** được chụp khi bạn làm việc; các hàng **Saved version** là các thời điểm bạn đã lưu.
 3. Nhấn **Open as a copy**. Phiên bản đó mở ra như một tác phẩm mới, còn cái bạn đang mở vẫn giữ nguyên như cũ. Bản sao nằm trong **Dự án**, với "(copy)" sau tên của nó.
 
 Để giữ một phiên bản theo tên, hãy nhấn **Name version**, gõ một tên rồi nhấn **Keep milestone**. Các phiên bản có tên được liệt kê trên trang **History**, dưới **Milestones**.
 
 ::: details Bảng History và trang History
-Bảng **History** cũng liệt kê các hàng **Recovered work**, và **Protected drafts** giữ các chỉnh sửa mới nhất của bạn giữa các checkpoint, với **Open draft as a copy**. **Compare** và **Check assets** giúp bạn chọn trước khi mở một bản sao. Chuyển **This creation** sang **All history on this device** để xem mọi tác phẩm.
+Bảng **History** cũng liệt kê các hàng **Recovered work**, và **Protected drafts** giữ các chỉnh sửa mới nhất của bạn giữa các checkpoint, với **Open draft as a copy**. **Lolly Compare** và **Check assets** giúp bạn chọn trước khi mở một bản sao. Chuyển **This creation** sang **All history on this device** để xem mọi tác phẩm.
 
 Các Automatic checkpoint thưa dần theo thời gian: một lần mỗi phút trong giờ gần nhất, một lần mỗi giờ trong ngày gần nhất, một lần mỗi ngày trong 30 ngày, rồi một lần mỗi tuần. Mọi Saved version và các phiên bản có đặt tên đều được giữ lại. Xóa một tác phẩm cũng chuyển các phiên bản của nó vào **Thùng rác**, và **Xóa vĩnh viễn** sẽ xóa hẳn chúng.
 

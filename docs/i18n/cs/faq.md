@@ -39,7 +39,7 @@ lolly.tools se otevře v [Lolly Demo](/info/lolly-demo.html), vlastním ukázkov
 
 ## Mohu použít vlastní značku?
 
-Ano. **Design System Setup** (`#/start`) sestaví designový systém z jedné barvy, souboru designových tokenů nebo hotového návrhu a každý nástroj pak kreslí s tvým designovým systémem. [Začni](/info/quickstart.html#put-your-brand-in) provádí třemi cestami.
+Ano. **Lolly Design System Setup** (`#/start`) sestaví designový systém z jedné barvy, souboru designových tokenů nebo hotového návrhu a každý nástroj pak kreslí s tvým designovým systémem. [Začni](/info/quickstart.html#put-your-brand-in) provádí třemi cestami.
 
 Designový systém, který dodává tvá organizace nebo sestavení, je spravovaný: ukazuje zámek a zůstává jen pro čtení a pro změny si můžeš vytvořit upravitelnou kopii.
 
@@ -80,9 +80,9 @@ Webová aplikace kreslí přes WebGPU, grafickou funkci současných prohlíže�
 
 ## Umí Lolly upravovat a renderovat moje soubory z Figmy, Penpotu, Illustratoru nebo InDesignu?
 
-Ano. Otevři **Design** a klikni na **Import a design**: přijme nativní Figma **.fig** (Save local copy), export Penpot **.penpot**, Illustrator **.ai** nebo **.pdf**, InDesign **.idml** (File → Export → InDesign Markup) nebo **jakékoli SVG**. Nepotřebuješ žádný účet, plugin ani licenci designové aplikace.
+Ano. Otevři nástroj **Design** a klikni na **Import a design**: přijme nativní Figma **.fig** (Save local copy), export Penpot **.penpot**, Illustrator **.ai** nebo **.pdf**, InDesign **.idml** (File → Export → InDesign Markup) nebo **jakékoli SVG**. Nepotřebuješ žádný účet, plugin ani licenci designové aplikace.
 
-![Otevřené plátno Design - Import designu je v nabídce Lolly na liště nástrojů](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D17ZTfS8MwEMf_mryO5NZ288GHrdqJv1CUvWdtOgppMtJMNv96yaV1iRNEQRBZoblwab53l0-uq915bXgrCOSDpf3LzgANnQ4eI0rrPJn7Gh9cd0sE8lIryxtFIFfatFx6L4F0Mi-11GbUiZYr25QjK3bW-S8I5MnUbRXKCkMgb5uqki6JFFU7rjoXYsSgT8GaLebKZSeGAPkUYypMHp80DeugYYR4J_U7X4XRkY8dFHuTYEJ-jDWM3qoqsEHo4Y20-xJi-SPVaOfRUuAL1hiZXNrG4gH6M85Z5lTAk8x8DdlnPL8gecVfBIEU6F5v0bbCor3VUu4JpOPCKTCWsPI9rBS107d6QyCfRET_Ac6wX36X6UpX-49Ip1mAlMEPkM6QX20aoSpECLTmpadcazPQ9hPlWxboRndWmFEIG1s4Yp3E3Ts-0f4GbcruWHLzlC0frmfpfbGk82LxmD0vUndSTcvXAoknWBKCz5LDSIdiRHV0D2Tfq1BIvdY42Zim5WZ_-n3_mRvwBg&width=1360&height=850&dpi=192&waitMs=3000&format=svg&walker=1&chrome=1&localize=1&dark=1&filename=design)
+![Otevřené plátno Lolly Design - Import designu je v nabídce Lolly na liště nástrojů](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D17ZTfS8MwEMf_mryO5NZ288GHrdqJv1CUvWdtOgppMtJMNv96yaV1iRNEQRBZoblwab53l0-uq915bXgrCOSDpf3LzgANnQ4eI0rrPJn7Gh9cd0sE8lIryxtFIFfatFx6L4F0Mi-11GbUiZYr25QjK3bW-S8I5MnUbRXKCkMgb5uqki6JFFU7rjoXYsSgT8GaLebKZSeGAPkUYypMHp80DeugYYR4J_U7X4XRkY8dFHuTYEJ-jDWM3qoqsEHo4Y20-xJi-SPVaOfRUuAL1hiZXNrG4gH6M85Z5lTAk8x8DdlnPL8gecVfBIEU6F5v0bbCor3VUu4JpOPCKTCWsPI9rBS107d6QyCfRET_Ac6wX36X6UpX-49Ip1mAlMEPkM6QX20aoSpECLTmpadcazPQ9hPlWxboRndWmFEIG1s4Yp3E3Ts-0f4GbcruWHLzlC0frmfpfbGk82LxmD0vUndSTcvXAoknWBKCz5LDSIdiRHV0D2Tfq1BIvdY42Zim5WZ_-n3_mRvwBg&width=1360&height=850&dpi=192&waitMs=3000&format=svg&walker=1&chrome=1&localize=1&dark=1&filename=design)
 
 Vrstvy přicházejí jako upravitelná pole: text zůstane přepisovatelný, tvary zůstanou tvary a obrázky se připojí k tvé vlastní knihovně. Ulož to a **Share with rules** může z rozvržení udělat nástroj, který může kdokoli s Lolly znovu vyplnit. Viz [Import návrhu](/info/design-import.html).
 
@@ -98,9 +98,9 @@ Příznaky funkcí zapínají nebo vypínají části Lolly. V samostatném pou�
 
 ## Čím se utility liší od nástrojů?
 
-Utilita udělá jednu rychlou věc se souborem, který už máš, například zkomprimuje PDF, převede fotku nebo odstraní skrytá data, a mnohé běží na tvém zařízení, aniž se cokoli nahrává. Existují proto, aby úlohy, které lidé obvykle předávají náhodnému webu, zůstaly v Lolly. Komprese smlouvy, převod dovolenkových fotek s polohou stále uvnitř nebo vložení tokenu do online formátovače by neměly znamenat předat soubor webu s neznámým uchováváním, jurisdikcí a obchodním modelem. [Utility](/info/utilities.html) je vypisují a [Obchod, na kterém jsme se nikdy nedohodli](/info/status-quo.html) vypráví příběh za nimi.
+Utilita udělá jednu rychlou věc se souborem, který už máš, například zkomprimuje PDF, převede fotku nebo odstraní skrytá data, a mnohé běží na tvém zařízení, aniž se cokoli nahrává. Existují proto, aby úlohy, které lidé obvykle předávají náhodnému webu, zůstaly v Lolly. Komprese smlouvy, převod dovolenkových fotek s polohou stále uvnitř nebo vložení tokenu do online formátovače by neměly znamenat předat soubor webu s neznámým uchováváním, jurisdikcí a obchodním modelem. [Lolly Utilities](/info/utilities.html) je vypisují a [Obchod, na kterém jsme se nikdy nedohodli](/info/status-quo.html) vypráví příběh za nimi.
 
-![Zobrazení Utilities: Strip Hidden Data, Compress PDF, Convert Image a další úlohy na zařízení, vše na jednom místě](/t/url-shot?url=%2F%23%2Fu&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone!important%7D&tolerance=0.03&format=svg&walker=1&dark=1&filename=use-utilities&try=1)
+![Zobrazení Utilities: Lolly Strip Hidden Data, Compress PDF, Convert Image a další úlohy na zařízení, vše na jednom místě](/t/url-shot?url=%2F%23%2Fu&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone!important%7D&tolerance=0.03&format=svg&walker=1&dark=1&filename=use-utilities&try=1)
 
 ## Může naše organizace používat SSO, sdílené projekty a schvalování?
 
@@ -110,7 +110,7 @@ Ano, s **Lolly Work**, organizačním serverem téhož open-source projektu. Bě
 
 ## Jaké překážky mě při zavádění Lolly čekají?
 
-Většinou se mění spíš strana tvorby než technologie. Tým, který chce řízenou sadu nástrojů, potřebuje někoho, kdo vytvoří jeho designový systém a první šablony, ačkoli kdokoli může začít vytvářet vlastní nástroje v Design hned první den, bez gitu. A stávající postupy fungují dál, i když je jejich výstup mimo značku, takže dobré převedení jednoho viditelného výstupu, před a po vedle sebe, uspěje rychleji než plán.
+Většinou se mění spíš strana tvorby než technologie. Tým, který chce řízenou sadu nástrojů, potřebuje někoho, kdo vytvoří jeho designový systém a první šablony, ačkoli kdokoli může začít vytvářet vlastní nástroje v Lolly Design hned první den, bez gitu. A stávající postupy fungují dál, i když je jejich výstup mimo značku, takže dobré převedení jednoho viditelného výstupu, před a po vedle sebe, uspěje rychleji než plán.
 
 [Adoption & Governance](/info/adoption-governance.html) pokrývá zavádění podle rolí, jak měřit pilot a jak může vypadat proces řízení.
 
@@ -144,3 +144,11 @@ Tento seznam nezahrnuje modely začleněné (vendored) do Lolly.
 ## Jakou příchuť má to logo Lolly?
 
 Někdo říká limetka, jiný máta a občas jablko - Lolly přináší sladkost, příchuť si uděláš ty!
+
+## Co Lolly rozumí suverenitou obsahu?
+
+Kontrola nad tím, jak se tvůj obsah vytváří, řídí, ukládá a přesouvá napříč systémy, které si zvolíš. Lolly podporuje místní produkci, upravitelnou práci a přenositelné nástroje; Lolly Work přidává sdílené služby řízené organizací. Licence zdrojů, dostupné závislosti a datové toky pracovního postupu přesto záleží. [Co je suverenita obsahu?](/info/content-sovereignty.html) vysvětluje každou kontrolu a její meze.
+
+## Můžeme si ponechat stávající DAM?
+
+Ano. Podporovaný DAM může zůstat zdrojem pravdy, zatímco Lolly Work propojuje vybrané assety s nástroji Lolly. Přístup ke zdroji, povolené úpravy, práva k použití a schválení hotového výstupu jsou samostatná rozhodnutí. [Používej Lolly se stávajícím DAM](/info/use-with-dam.html) vysvětluje uspořádání a [Zkušenost SUSE s Brandfolderem](/info/suse-brandfolder.html) zaznamenává úspěšné použití během zavádění.

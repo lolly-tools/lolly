@@ -39,7 +39,7 @@ lolly.tools খোলে [Lolly Demo](/info/lolly-demo.html)-তে, Lolly-র �
 
 ## আমি কি আমার নিজের ব্র্যান্ড ব্যবহার করতে পারি?
 
-হ্যাঁ। **Design System Setup** (`#/start`) একটি রঙ, ডিজাইন টোকেন ফাইল বা সম্পন্ন ডিজাইন থেকে একটি ডিজাইন সিস্টেম বানায়, তারপর প্রতিটি টুল আপনার ডিজাইন সিস্টেম দিয়ে আঁকে। তিনটি পথ [Start](/info/quickstart.html#put-your-brand-in)-এ আছে।
+হ্যাঁ। **Lolly Design System Setup** (`#/start`) একটি রঙ, ডিজাইন টোকেন ফাইল বা সম্পন্ন ডিজাইন থেকে একটি ডিজাইন সিস্টেম বানায়, তারপর প্রতিটি টুল আপনার ডিজাইন সিস্টেম দিয়ে আঁকে। তিনটি পথ [Start](/info/quickstart.html#put-your-brand-in)-এ আছে।
 
 আপনার প্রতিষ্ঠান বা বিল্ডের দেওয়া ডিজাইন সিস্টেম managed: তাতে একটি তালা দেখা যায় এবং তা কেবল-পঠনযোগ্য থাকে, আর বদলাতে আপনি সম্পাদনাযোগ্য কপি বানাতে পারেন।
 
@@ -80,9 +80,9 @@ lolly.tools খোলে [Lolly Demo](/info/lolly-demo.html)-তে, Lolly-র �
 
 ## Lolly কি আমার Figma, Penpot, Illustrator বা InDesign ফাইল এডিট ও রেন্ডার করতে পারে?
 
-হ্যাঁ। **Design** খুলে **Import a design** ক্লিক করুন: এটি নেটিভ Figma **.fig** (Save local copy), Penpot **.penpot** এক্সপোর্ট, Illustrator **.ai** বা **.pdf**, InDesign **.idml** (File → Export → InDesign Markup) বা **যেকোনো SVG** নেয়। কোনো অ্যাকাউন্ট, প্লাগইন বা ডিজাইন অ্যাপের লাইসেন্স লাগে না।
+হ্যাঁ। **Design** টুল খুলে **Import a design** ক্লিক করুন: এটি নেটিভ Figma **.fig** (Save local copy), Penpot **.penpot** এক্সপোর্ট, Illustrator **.ai** বা **.pdf**, InDesign **.idml** (File → Export → InDesign Markup) বা **যেকোনো SVG** নেয়। কোনো অ্যাকাউন্ট, প্লাগইন বা ডিজাইন অ্যাপের লাইসেন্স লাগে না।
 
-![Design's open canvas - Import a design sits in the toolbar's Lolly menu](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D17ZTfS8MwEMf_mryO5NZ288GHrdqJv1CUvWdtOgppMtJMNv96yaV1iRNEQRBZoblwab53l0-uq915bXgrCOSDpf3LzgANnQ4eI0rrPJn7Gh9cd0sE8lIryxtFIFfatFx6L4F0Mi-11GbUiZYr25QjK3bW-S8I5MnUbRXKCkMgb5uqki6JFFU7rjoXYsSgT8GaLebKZSeGAPkUYypMHp80DeugYYR4J_U7X4XRkY8dFHuTYEJ-jDWM3qoqsEHo4Y20-xJi-SPVaOfRUuAL1hiZXNrG4gH6M85Z5lTAk8x8DdlnPL8gecVfBIEU6F5v0bbCor3VUu4JpOPCKTCWsPI9rBS107d6QyCfRET_Ac6wX36X6UpX-49Ip1mAlMEPkM6QX20aoSpECLTmpadcazPQ9hPlWxboRndWmFEIG1s4Yp3E3Ts-0f4GbcruWHLzlC0frmfpfbGk82LxmD0vUndSTcvXAoknWBKCz5LDSIdiRHV0D2Tfq1BIvdY42Zim5WZ_-n3_mRvwBg&width=1360&height=850&dpi=192&waitMs=3000&format=svg&walker=1&chrome=1&localize=1&dark=1&filename=design)
+![Lolly Design-এর খোলা ক্যানভাস - Import a design টুলবারের Lolly মেনুতে আছে](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D17ZTfS8MwEMf_mryO5NZ288GHrdqJv1CUvWdtOgppMtJMNv96yaV1iRNEQRBZoblwab53l0-uq915bXgrCOSDpf3LzgANnQ4eI0rrPJn7Gh9cd0sE8lIryxtFIFfatFx6L4F0Mi-11GbUiZYr25QjK3bW-S8I5MnUbRXKCkMgb5uqki6JFFU7rjoXYsSgT8GaLebKZSeGAPkUYypMHp80DeugYYR4J_U7X4XRkY8dFHuTYEJ-jDWM3qoqsEHo4Y20-xJi-SPVaOfRUuAL1hiZXNrG4gH6M85Z5lTAk8x8DdlnPL8gecVfBIEU6F5v0bbCor3VUu4JpOPCKTCWsPI9rBS107d6QyCfRET_Ac6wX36X6UpX-49Ip1mAlMEPkM6QX20aoSpECLTmpadcazPQ9hPlWxboRndWmFEIG1s4Yp3E3Ts-0f4GbcruWHLzlC0frmfpfbGk82LxmD0vUndSTcvXAoknWBKCz5LDSIdiRHV0D2Tfq1BIvdY42Zim5WZ_-n3_mRvwBg&width=1360&height=850&dpi=192&waitMs=3000&format=svg&walker=1&chrome=1&localize=1&dark=1&filename=design)
 
 লেয়ার সম্পাদনাযোগ্য বক্স হিসেবে আসে: টেক্সট আবার টাইপ করা যায়, আকৃতি আকৃতিই থাকে এবং ছবি আপনার নিজের লাইব্রেরিতে যোগ হয়। সংরক্ষণ করুন, আর **Share with rules** লেআউটটিকে এমন টুল বানাতে পারে যা Lolly থাকা যে কেউ আবার ভরতে পারে। দেখুন [Import a design](/info/design-import.html)।
 
@@ -100,7 +100,7 @@ lolly.tools খোলে [Lolly Demo](/info/lolly-demo.html)-তে, Lolly-র �
 
 একটি ইউটিলিটি আপনার আগে থেকে থাকা ফাইলে একটি দ্রুত কাজ করে, যেমন PDF সংকুচিত করা, ছবি রূপান্তর করা বা লুকানো ডেটা সরানো, এবং এদের অনেকগুলো আপনার ডিভাইসে চলে, কিছু আপলোড না করে। এগুলো আছে যাতে মানুষ সাধারণত যে কাজ যেকোনো ওয়েবসাইটের হাতে দেয় তা Lolly-র ভেতরে থাকে। একটি চুক্তি সংকুচিত করা, লোকেশন ভেতরে থাকা ছুটির ছবি রূপান্তর করা বা অনলাইন ফর্ম্যাটারে টোকেন পেস্ট করার মানে অজানা সংরক্ষণ, এখতিয়ার ও ব্যবসায়িক মডেলের সাইটকে ফাইল দেওয়া হওয়া উচিত নয়। [Lolly Utilities](/info/utilities.html) সেগুলো তালিকাভুক্ত করে, আর [The trade we never agreed to](/info/status-quo.html) তাদের পেছনের গল্প বলে।
 
-![Utilities ভিউ: Strip Hidden Data, Compress PDF, Convert Image এবং ডিভাইসে চলা অন্য কাজ, সব এক জায়গায়](/t/url-shot?url=%2F%23%2Fu&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone!important%7D&tolerance=0.03&format=svg&walker=1&dark=1&filename=use-utilities&try=1)
+![Utilities ভিউ: Lolly Strip Hidden Data, Compress PDF, Convert Image এবং ডিভাইসে চলা অন্য কাজ, সব এক জায়গায়](/t/url-shot?url=%2F%23%2Fu&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone!important%7D&tolerance=0.03&format=svg&walker=1&dark=1&filename=use-utilities&try=1)
 
 ## আমাদের প্রতিষ্ঠান কি SSO, শেয়ার্ড প্রজেক্ট ও অনুমোদন ব্যবহার করতে পারে?
 
@@ -110,7 +110,7 @@ lolly.tools খোলে [Lolly Demo](/info/lolly-demo.html)-তে, Lolly-র �
 
 ## Lolly গ্রহণ করতে গেলে কী কী বাধা আসতে পারে?
 
-বেশিরভাগ পরিবর্তন প্রযুক্তির চেয়ে উৎপাদনের দিকে। যে দল নিয়ন্ত্রিত টুলের সেট চায় তার ডিজাইন সিস্টেম ও প্রথম টেমপ্লেট লেখার কাউকে দরকার, যদিও যে কেউ প্রথম দিন থেকেই Design-এ নিজের টুল বানানো শুরু করতে পারে, git ছাড়াই। আর বিদ্যমান প্রক্রিয়া তাদের আউটপুট ব্র্যান্ডবহির্ভূত হলেও চলতে থাকে, তাই একটি দৃশ্যমান আউটপুট ভালোভাবে রূপান্তর করা, আগে ও পরে পাশাপাশি, পরিকল্পনার চেয়ে দ্রুত যুক্তি দাঁড় করায়।
+বেশিরভাগ পরিবর্তন প্রযুক্তির চেয়ে উৎপাদনের দিকে। যে দল নিয়ন্ত্রিত টুলের সেট চায় তার ডিজাইন সিস্টেম ও প্রথম টেমপ্লেট লেখার কাউকে দরকার, যদিও যে কেউ প্রথম দিন থেকেই Lolly Design-এ নিজের টুল বানানো শুরু করতে পারে, git ছাড়াই। আর বিদ্যমান প্রক্রিয়া তাদের আউটপুট ব্র্যান্ডবহির্ভূত হলেও চলতে থাকে, তাই একটি দৃশ্যমান আউটপুট ভালোভাবে রূপান্তর করা, আগে ও পরে পাশাপাশি, পরিকল্পনার চেয়ে দ্রুত যুক্তি দাঁড় করায়।
 
 [Adoption & Governance](/info/adoption-governance.html) ভূমিকা অনুযায়ী অনবোর্ডিং, পাইলট কীভাবে মাপবেন এবং গভর্ন্যান্স প্রক্রিয়া কেমন দেখতে পারে তা ধরে।
 
@@ -144,3 +144,11 @@ Lolly-র নির্ভরতায় উচ্চ বা গুরুতর 
 ## Lolly লোগোটা কোন স্বাদের?
 
 কেউ বলেন লেবু, কেউ বলেন পুদিনা, আবার কখনও আপেল; Lolly মিষ্টিটুকু এনে দেয়, স্বাদটা আপনি নিজে তৈরি করেন!
+
+## কনটেন্ট সার্বভৌমত্ব বলতে Lolly কী বোঝায়?
+
+আপনার কনটেন্ট যে সিস্টেম আপনি বেছে নেন তাতে কীভাবে তৈরি, নিয়ন্ত্রিত, সংরক্ষিত ও সরানো হয় তার ওপর নিয়ন্ত্রণ। Lolly স্থানীয় উৎপাদন, সম্পাদনাযোগ্য কাজ ও বহনযোগ্য টুল সমর্থন করে; Lolly Work প্রতিষ্ঠান-নিয়ন্ত্রিত শেয়ার্ড সার্ভিস যোগ করে। সোর্স লাইসেন্স, উপলব্ধ ডিপেন্ডেন্সি এবং ওয়ার্কফ্লোর ডেটা প্রবাহও তবু গুরুত্বপূর্ণ। [What is content sovereignty?](/info/content-sovereignty.html) প্রতিটি নিয়ন্ত্রণ ও তার সীমা ব্যাখ্যা করে।
+
+## আমরা কি আমাদের বিদ্যমান DAM রাখতে পারি?
+
+হ্যাঁ। Lolly Work নির্বাচিত অ্যাসেট Lolly টুলের সঙ্গে যুক্ত করলেও একটি সমর্থিত DAM রেকর্ডের উৎস থাকতে পারে। সোর্স অ্যাক্সেস, অনুমোদিত সম্পাদনা, ব্যবহারের অধিকার এবং তৈরি আউটপুটের অনুমোদন আলাদা সিদ্ধান্ত। [Use Lolly with your existing DAM](/info/use-with-dam.html) ব্যবস্থাটি ব্যাখ্যা করে, আর [SUSE's Brandfolder experience](/info/suse-brandfolder.html) গ্রহণের সময় সফল ব্যবহার নথিভুক্ত করে।

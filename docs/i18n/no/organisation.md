@@ -2,6 +2,8 @@
 
 Organisasjonen din kan kjøre sin egen Lolly: den samme appen, med verktøyene og designsystemene den har valgt. Denne siden viser hvordan du kommer dit, logger på og hva som endres når du gjør det.
 
+Hvis du planlegger oppsettet for organisasjonen, forklarer [Use Lolly with your existing DAM](/info/use-with-dam.html) hvordan et godkjent bibliotek kan bli stående der det er mens folk begynner å produsere innhold i Lolly. [Content sovereignty](/info/content-sovereignty.html) beskriver den bredere kontrollen over opprettelse, styring, lagring og portabilitet.
+
 ::: note Hva du trenger fra organisasjonen din
 Nettadressen til Lollyen deres, eller en `.lolly`-oppsettfil organisasjonen din har laget. lolly.tools alene kobler ikke til noen organisasjon.
 :::
@@ -10,13 +12,13 @@ Nettadressen til Lollyen deres, eller en `.lolly`-oppsettfil organisasjonen din 
 
 Åpne adressen organisasjonen din ga deg. Hvis siden ber deg logge på, trykk **Sign in** og følg påloggingssiden den åpner. Etter det fungerer det som enhver Lolly, med organisasjonens verktøy og designsystemer.
 
-Du kan også starte fra lolly.tools: åpne **Settings**, og på kortet **Lolly instance** trykker du **Open a workspace**, skriver inn adressen og trykker **Open this instance**. Nettleseren går til organisasjonens egen adresse, fordi en nettleser ikke kan laste en annen Lollys verktøy fra lolly.tools.
+Du kan også starte fra lolly.tools: åpne visningen **Settings**, og på kortet **Lolly instance** trykker du **Open a workspace**, skriver inn adressen og trykker **Open this instance**. Nettleseren går til organisasjonens egen adresse, fordi en nettleser ikke kan laste en annen Lollys verktøy fra lolly.tools.
 
 ![Kortet Lolly instance i Settings, der du åpner organisasjonens arbeidsområde eller endrer hvor appen henter verktøyene sine](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dinstance-section&width=1440&height=1400&dpi=192&waitMs=2000&format=svg&cropSelector=%23instance-section&walker=1&dark=1&filename=org-instance-card)
 
 ## I skrivebords- eller mobilappen
 
-Appen starter med de medfølgende verktøyene sine. For å koble til åpner du **Settings** og trykker **Change** på kortet **Lolly instance**. Arket spør **Where should Lolly get its tools?**
+Appen starter med de medfølgende verktøyene sine. For å koble til åpner du visningen **Settings** og trykker **Change** på kortet **Lolly instance**. Arket spør **Where should Lolly get its tools?**
 
 1. Velg **Koble til en Lolly-instans**.
 2. Skriv inn organisasjonens nettadresse og trykk på **Sjekk og koble til**.

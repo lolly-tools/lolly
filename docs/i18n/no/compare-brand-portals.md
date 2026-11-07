@@ -1,8 +1,16 @@
 # Lolly og merkevareportaler
 
-_Sist kontrollert: 28. september 2026._
+_Posisjonering oppdatert: 31. oktober 2026. Eksempel på leverandørfunksjon kontrollert: 28. september 2026._
 
 Hvis organisasjonen din har sine godkjente ressurser i Bynder, Frontify, Marq eller Brandfolder, sammenligner denne siden det med Lolly pluss Lolly Work: hvordan folk finner merkevareressurser, og hvordan de lager nye filer av dem.
+
+## Å beholde den eksisterende portalen
+
+En eksisterende DAM kan forbli kilden som gjelder. Lolly Works katalogkoblinger gjør en valgt del av biblioteket tilgjengelig i Lolly, der folk lager nye filer under organisasjonens regler. DAM-ens støttede kildebegrensninger og Lolly Works eksponeringsregler styrer tilgangen; gjennomgang av sluttresultatet er en egen beslutning.
+
+[Use Lolly with your existing DAM](/info/use-with-dam.html) forklarer ansvar og grenser. [SUSE's Brandfolder experience](/info/suse-brandfolder.html) registrerer en vellykket integrasjon som støttet administratorenes endringsledelse før en planlagt migrering. Å holde kilden tilkoblet er fortsatt et støttet valg.
+
+Lollys formål er [innholdssuverenitet](/info/content-sovereignty.html), blant annet kontroll over produksjonen og frihet til å velge systemer. Lollys eget bibliotek og egne godkjenninger støtter organisasjoner som velger å drive disse funksjonene selv. [Lolly for DAM vendors and implementation partners](/info/dam-partners.html) beskriver hvordan den tilkoblede arbeidsflyten kan tilføre verdi til et eksisterende system som gjelder som kilde.
 
 ## Hva en etablert portal gjør bedre
 
@@ -26,11 +34,12 @@ Begge dekker godkjente ressurser, låste maler, tilgangskontroll, gjennomgang og
 | Lisenser og kreditter | Lolly registrerer lisensen til hver kilde en fil bruker og forbereder kredittene den skylder; [Creative rights and credits](/info/creative-rights.html) forklarer hva den registrerer og hvor kreditter skrives. Den avklarer ikke rettigheter. |
 | Rapportering | Antall ressursbruk og nedlastinger, verktøy- og eksportaktivitet, dashbord og et revisjonsspor. Bruksattribusjon følger installasjonens telemetripolicy; standard attribusjonsinnstilling krever samtykke. |
 | Distribusjon | Utløpende, tilbakekallbare lenker, delte samlinger, gjestetilgang og levering til konfigurerte organisasjonsdestinasjoner. |
+| En offentlig merkevareside | Lolly skriver en statisk [brand page](/info/brand-page.html), fra Lolly Design System Setup eller kommandolinjen: logoer, farger, skrift, regler og eksempler for mennesker, med tokener, `DESIGN.md` og skills for agenter. Du hoster mappen, eller en administrator slår på [brand page hosting](/info/work-design-system-administration.html#host-a-brand-page) i Lolly Work, som er av som standard. |
 
 [Catalog and content](/info/work-catalog.html), [Approvals](/info/work-approvals.html) og [Policy and governance](/info/work-governance.html) beskriver disse funksjonene og konfigurasjonen deres.
 
-## Å beholde den eksisterende portalen
+## Evaluer den kombinerte arbeidsflyten
 
-En eksisterende DAM kan forbli sannhetskilden. Lolly Works katalogkoblinger gjør de godkjente ressursene tilgjengelige i Lolly, der folk lager nye filer under organisasjonens regler. Det er et integrasjonsvalg; Lollys eget bibliotek og egne godkjenninger er der når organisasjonen vil kjøre dem selv. [What runs where](/info/compare.html#what-runs-where) lister grensene hver sammenligning deler.
+Bruk [the event-card production sequence](/info/dam-production.html) for å teste kildetilgang, tillatte redigeringer, gjennomgang av resultatet og levering med ditt eget bibliotek. [What runs where](/info/compare.html#what-runs-where) lister grensene hver sammenligning deler. En kildetilkobling etablerer ikke i seg selv et leverandørpartnerskap eller kvalifisering for hver tenant.
 
 Se [How Lolly compares](/info/positioning.html) for kapabilitetssammenligningen. Leverandørnavn identifiserer produktene som sammenlignes; Lolly er ikke tilknyttet dem.

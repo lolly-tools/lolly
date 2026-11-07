@@ -2,6 +2,8 @@
 
 आपका संगठन अपना Lolly चला सकता है: वही ऐप, उन टूल और design system के साथ जो उसने चुने। यह पेज बताता है कि उस तक कैसे पहुँचें, साइन इन कैसे करें और ऐसा करने पर क्या बदलता है।
 
+यदि आप संगठन का सेटअप तैयार कर रहे हैं, तो [Use Lolly with your existing DAM](/info/use-with-dam.html) समझाता है कि अनुमोदित लाइब्रेरी अपनी जगह कैसे बनी रह सकती है जबकि लोग Lolly में सामग्री बनाना शुरू करते हैं। [Content sovereignty](/info/content-sovereignty.html) निर्माण, गवर्नेंस, स्टोरेज और पोर्टेबिलिटी पर व्यापक नियंत्रण का वर्णन करता है।
+
 ::: note आपको अपने संगठन से क्या चाहिए
 इसके Lolly का वेब पता, या आपके संगठन द्वारा बनाई गई एक `.lolly` सेटअप फ़ाइल। अकेला lolly.tools किसी संगठन से कनेक्ट नहीं होता।
 :::
@@ -10,13 +12,13 @@
 
 अपने संगठन का दिया पता खोलें। अगर पेज साइन इन करने को कहे, तो **Sign in** दबाएँ और खुलने वाले साइन-इन पेज का पालन करें। उसके बाद वह किसी भी Lolly की तरह काम करता है, आपके संगठन के टूल और design system के साथ।
 
-आप lolly.tools से भी शुरू कर सकते हैं: **Settings** खोलें, **Lolly instance** कार्ड पर **Open a workspace** दबाएँ, पता डालें और **Open this instance** दबाएँ। ब्राउज़र आपके संगठन के अपने पते पर जाता है, क्योंकि ब्राउज़र lolly.tools से किसी दूसरे Lolly के टूल लोड नहीं कर सकता।
+आप lolly.tools से भी शुरू कर सकते हैं: **Settings** व्यू खोलें, **Lolly instance** कार्ड पर **Open a workspace** दबाएँ, पता डालें और **Open this instance** दबाएँ। ब्राउज़र आपके संगठन के अपने पते पर जाता है, क्योंकि ब्राउज़र lolly.tools से किसी दूसरे Lolly के टूल लोड नहीं कर सकता।
 
 ![Settings में Lolly instance कार्ड, जहाँ आप अपने संगठन का वर्कस्पेस खोलते हैं या बदलते हैं कि ऐप अपने टूल कहाँ से लेता है](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dinstance-section&width=1440&height=1400&dpi=192&waitMs=2000&format=svg&cropSelector=%23instance-section&walker=1&dark=1&filename=org-instance-card)
 
 ## डेस्कटॉप या मोबाइल ऐप में
 
-ऐप अपने साथ आए टूल से शुरू होता है। जुड़ने के लिए **Settings** खोलें और **Lolly instance** कार्ड पर **Change** दबाएँ। शीट पूछती है **Where should Lolly get its tools?**
+ऐप अपने साथ आए टूल से शुरू होता है। जुड़ने के लिए **Settings** व्यू खोलें और **Lolly instance** कार्ड पर **Change** दबाएँ। शीट पूछती है **Where should Lolly get its tools?**
 
 1. **किसी Lolly instance से कनेक्ट करें** चुनें।
 2. अपने संगठन का वेब पता डालें और **जाँचें और कनेक्ट करें** दबाएँ।

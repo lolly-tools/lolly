@@ -1,8 +1,16 @@
 # Lolly e i portali di brand
 
-_Ultima verifica: 28 settembre 2026._
+_Posizionamento aggiornato: 31 ottobre 2026. Esempio di funzionalità di un fornitore verificato: 28 settembre 2026._
 
 Se la tua organizzazione conserva le risorse approvate in Bynder, Frontify, Marq o Brandfolder, questa pagina confronta ciò con Lolly più Lolly Work: come le persone trovano le risorse del brand e come ne ricavano nuovi file.
+
+## Tenere il tuo portale esistente
+
+Un DAM esistente può restare la fonte di riferimento. I connettori di catalogo di Lolly Work rendono disponibile in Lolly una parte selezionata della sua libreria, dove le persone creano nuovi file secondo le regole dell'organizzazione. I vincoli di origine supportati dal DAM e le regole di esposizione di Lolly Work governano l'accesso; la revisione dell'output finale è una decisione separata.
+
+[Use Lolly with your existing DAM](/info/use-with-dam.html) spiega responsabilità e limiti. [SUSE's Brandfolder experience](/info/suse-brandfolder.html) registra un'integrazione riuscita che ha sostenuto la gestione del cambiamento per gli amministratori prima di una migrazione pianificata. Mantenere la fonte collegata resta una scelta supportata.
+
+Lo scopo di Lolly è la [sovranità sui contenuti](/info/content-sovereignty.html), incluso il controllo sulla produzione e la libertà di scegliere i sistemi. La sua libreria e le sue approvazioni sostengono le organizzazioni che scelgono di gestire da sé queste funzionalità. [Lolly for DAM vendors and implementation partners](/info/dam-partners.html) descrive come il flusso collegato possa aggiungere valore a un sistema di riferimento esistente.
 
 ## Cosa fa meglio un portale consolidato
 
@@ -26,11 +34,12 @@ Entrambi coprono risorse approvate, template bloccati, controllo degli accessi, 
 | Licenze e crediti | Lolly registra la licenza di ogni fonte che un file usa e prepara i crediti dovuti; [Creative rights and credits](/info/creative-rights.html) spiega cosa registra e dove vengono scritti i crediti. Non libera i diritti. |
 | Reportistica | Conteggi di uso e download delle risorse, attività di strumenti ed esportazioni, dashboard e un audit trail. L'attribuzione dell'uso segue la policy di telemetria dell'installazione; l'impostazione di attribuzione predefinita richiede il consenso. |
 | Distribuzione | Link con scadenza e revocabili, raccolte condivise, accesso per ospiti e consegna a destinazioni configurate dell'organizzazione. |
+| Una pagina del brand pubblica | Lolly scrive una [pagina del brand](/info/brand-page.html) statica, da Lolly Design System Setup o dalla riga di comando: loghi, colori, tipografia, regole ed esempi per le persone, con token, `DESIGN.md` e skill per gli agenti. La cartella la ospiti tu, oppure un amministratore attiva l'[hosting della pagina del brand](/info/work-design-system-administration.html#host-a-brand-page) in Lolly Work, disattivato per impostazione predefinita. |
 
 [Catalog and content](/info/work-catalog.html), [Approvals](/info/work-approvals.html) e [Policy and governance](/info/work-governance.html) descrivono queste funzioni e la loro configurazione.
 
-## Tenere il tuo portale esistente
+## Valutare il flusso combinato
 
-Un DAM esistente può restare la fonte di verità. I connettori di catalogo di Lolly Work rendono le sue risorse approvate disponibili in Lolly, dove le persone creano nuovi file secondo le regole dell'organizzazione. È una scelta di integrazione; la libreria e le approvazioni proprie di Lolly ci sono quando l'organizzazione vuole gestirle da sé. [What runs where](/info/compare.html#what-runs-where) elenca i limiti che ogni confronto condivide.
+Usa [la sequenza di produzione della scheda evento](/info/dam-production.html) per verificare con la tua libreria l'accesso alle fonti, le modifiche consentite, la revisione dell'output e la consegna. [What runs where](/info/compare.html#what-runs-where) elenca i limiti che ogni confronto condivide. Un collegamento a una fonte non stabilisce di per sé una partnership con il fornitore né una qualifica per ogni tenant.
 
 Vedi [How Lolly compares](/info/positioning.html) per il confronto delle capacità. I nomi dei fornitori identificano i prodotti confrontati; Lolly non è affiliata ad essi.

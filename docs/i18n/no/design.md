@@ -1,5 +1,7 @@
 # Design: det frie lerretet
 
+<a id="design-the-free-canvas"></a>
+
 Design er verktøyet for layouter ingen mal dekker: en plakat fra grunnen av, en presentasjon med lysbilder, et bevegelsesstykke med lydspor. I stedet for et skjema med kontroller får du et lerret med bokser du drar, endrer størrelse på, roterer og skriver i. Det eksporterer gjennom den samme gjengivelsesveien som alle andre verktøy, så det du ser på lerretet, er filen du får.
 
 Denne siden går gjennom lerretet fra den første boksen til en ferdig presentasjon: vinduet, å forme bokser, å tegne egne former, å plassere 3D-scener og andre verktøy, å legge til tid, å sjekke resultatet og å presentere den ferdige presentasjonen. [Using Lolly](/info/using.html) dekker det Design deler med alle verktøy, som å lagre og dele.
@@ -27,7 +29,7 @@ Lerretet fungerer som en designers arbeidsflate rundt tegnebrettet:
 
 **Navigator** lister hvert tegnebrett (med overskriften **Artboards**, eller **Slides** i en presentasjon) som en sammenfoldbar gruppe av sine **Layers**. Velg navnet på et tegnebrett for å hoppe dit, utvid det for å velge eller omorganisere lagene og bruk piltastene for å bevege deg gjennom listen; Venstre går tilbake til tegnebrettets overskrift. **Pages** grupperer tegnebrett i navngitte sider, og å velge en side endrer bare hvilke tegnebrett redigeringsprogrammet viser.
 
-**Inspector** setter tekst- eller bildekontrollene til det valgte objektet først. Alternativbrikker dekker de raske valgene, og **Advanced** holder stildetaljene. På en telefon åpnes Inspector som et ark fra **More actions**; Escape eller Back lukker arket og beholder utvalget ditt.
+**Inspector** setter tekst- eller bildekontrollene til det valgte objektet først. Alternativbrikker dekker de raske valgene, og **Advanced** holder stildetaljene. På en telefon deler Inspector og lagoversikten ett panel som slippes ned fra under toppmenyen, det samme panelet alle andre verktøy har kontrollene sine i. **Inspect** og **Layer/Page** i linjen nederst åpner panelet på sin fane. Dra i håndtaket på nedre kant, eller trykk på håndtaket, for å flytte panelet mellom en stripe med de to fanene, halve skjermen og nesten hele skjermen. På halv høyde viser lerretet under panelet utvalget ditt. Escape folder panelet tilbake til stripen og beholder utvalget ditt.
 
 ![Dokumentdelen i Inspector: fanene Selection og Canvas, deretter Dimensions og Style & look](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3Dfeature-tour&width=1440&height=900&dpi=192&waitMs=3500&cropSelector=.fc-insp&walker=1&format=svg&dark=1&filename=design-narration)
 
@@ -241,6 +243,8 @@ Pilen ved siden av **Present** åpner **Present from this slide**, **Speaker vie
 | **Escape** | Skreller av ett lag: oversikt til presentasjon, presentasjon til redigeringsprogram |
 
 En liten kontrolllinje toner inn når du beveger pekeren og skjules igjen når du stopper. Hvis nettleseren blokkerer popup-vinduet for taleren, åpnes speaker view som et panel over presentasjonen. Notater tilhører hvert tegnebrett og vises aldri på lysbildet.
+
+På en berøringsskjerm sveiper du til venstre for neste trinn eller lysbilde og til høyre for å gå tilbake. En overgang av typen **Slide** eller **Fade** følger fingeren din og fullføres når du slipper; en overgang av typen **Cut**, **Morph** eller **Fly between artboards** spilles av i sin helhet når du slipper, og en kort, langsom sveip endrer ingenting. Nettsideboksene, videokontrollene, bokser som ruller og valgt tekst beholder sine egne bevegelser, så en sveip starter aldri på en av dem, og vertikal rulling og klypezoom fungerer som vanlig. Med redusert bevegelse skifter lysbildet fortsatt, uten å følge fingeren din.
 
 - **Avsløringstrinn.** Høyreklikk en boks og velg **Reveal at step 1**, **2** eller **3** i stedet for **Always visible**, så venter boksen til du går videre til trinnet. Bokser med samme nummer kommer sammen.
 - **Kiosk.** Gi et tegnebrett en **Length**, så blir presentasjonen stående så lenge, og går deretter videre bak en tynn fremdriftslinje. Legg `kiosk` til i lenken, så starter presentasjonen om igjen ved slutten, for skilting.

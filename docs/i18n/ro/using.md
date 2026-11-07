@@ -12,7 +12,7 @@ Ecranul principal: patru file sus și bara de la bază. Un instrument, odată de
 
 Patru file merg sus pe ecranul principal: **Tools**, **Utilities**, **Assets** și **Projects**. Tools sunt ce folosești ca să creezi, Utilities sunt bancuri de lucru pentru sarcini precum convertirea, verificarea sau curățarea unui fișier, Assets este biblioteca ta, iar Projects păstrează ce ai salvat.
 
-Bara de la bază conține **Open**, **Settings**, un câmp de căutare, **Verify** și **What?**. Apare în Tools, Utilities, Assets, Projects, Settings și ghidurile pe care le citești în aplicație și face loc când un instrument este deschis. [Căutarea](/info/search.html) ajunge din acel câmp la instrumentele, munca salvată, resursele și setările tale. [Ask Lolly](/info/ask.html) răspunde la o întrebare tastată cu secțiunea potrivită din aceste ghiduri.
+Bara de la bază conține **Open**, **Settings**, un câmp de căutare, o scurtătură **Verify** către Lolly Verify, și **What?**. Apare în Tools, Utilities, Assets, Projects, Settings și ghidurile pe care le citești în aplicație și face loc când un instrument este deschis. [Lolly Search](/info/search.html) ajunge din acel câmp la instrumentele, munca salvată, resursele și setările tale. [Ask Lolly](/info/ask.html) răspunde la o întrebare tastată cu secțiunea potrivită din aceste ghiduri.
 
 Fă clic pe un card ca să începi ceva nou în acel instrument. Munca salvată se redeschide în schimb din **Projects**.
 
@@ -22,7 +22,7 @@ Fiecare instrument este o vedere împărțită: **controale** pe o parte și o *
 
 ![Vizualizarea împărțită a unui instrument - stiva de comenzi în stânga și graficul cu bare grupate randat live pe care îl desenează în dreapta](/t/url-shot?url=%2F%23%2Ftool%2Fchart%3Fct%3Dbar%26t%3DExample%2520data%26st%3DSample%2520values%252C%2520not%2520a%2520real%2520dataset%26d%3DMonth%252CSeries%2520A%252CSeries%2520B%252CSeries%2520C%250AJan%252C12%252C9%252C5%250AFeb%252C18%252C14%252C7%250AMar%252C24%252C17%252C11%250AApr%252C29%252C23%252C15%26lg%3D1&width=1440&height=900&dpi=192&waitMs=2500&walker=1&format=svg&dark=1&filename=vt-tool-split-view)
 
-**Design** este excepția. Se deschide ca un canvas liber de casete pe care le tragi, redimensionezi și în care scrii, cu propria bară de sus, cronologie și controale de deck. [Design: canvasul liber](/info/design.html) este ghidul lui.
+**Lolly Design** este excepția. Se deschide ca un canvas liber de casete pe care le tragi, redimensionezi și în care scrii, cu propria bară de sus, cronologie și controale de deck. [Lolly Design: canvasul liber](/info/design.html) este ghidul lui.
 
 ## Schimbă ce îți permite instrumentul să schimbi
 
@@ -36,7 +36,7 @@ Un instrument arată doar intrările menite să varieze. Autorul lui a fixat dej
 
 **Alegeri ale sistemului de design.** Când sistemul tău de design oferă mai mult de un colourway, un aspect deschis și unul închis sau altă alegere de temă, o secțiune **Design system** sub controale le conține. O alegere apare doar când schimbă acest instrument, deci un utilitar de fișiere nu arată nicio secțiune. Fiecare colourway este un punct în propriile culori, deschis și închis sunt două butoane, iar orice altă alegere este o listă.
 
-Alegerea aparține acestei piese. Călătorește în link și în sesiunea salvată, fiecare culoare legată de sistemul de design o urmează, iar culorile proprii ale aplicației rămân neschimbate. Design arată aceleași alegeri în fila **Canvas** a Inspectorului. Un instrument ale cărui culori sunt conținutul lui poate rămâne pe colourway-ul canonic și atunci nu oferă puncte de colourway. [Lolly Demo în uz](/info/lolly-demo-in-use.html#colourways-on-real-work) arată colourway-uri pe muncă reală.
+Alegerea aparține acestei piese. Călătorește în link și în sesiunea salvată, fiecare culoare legată de sistemul de design o urmează, iar culorile proprii ale aplicației rămân neschimbate. Lolly Design arată aceleași alegeri în fila **Canvas** a Inspectorului. Un instrument ale cărui culori sunt conținutul lui poate rămâne pe colourway-ul canonic și atunci nu oferă puncte de colourway. [Lolly Demo în uz](/info/lolly-demo-in-use.html#colourways-on-real-work) arată colourway-uri pe muncă reală.
 
 ### Mărește și deplasează previzualizarea
 
@@ -47,7 +47,7 @@ Previzualizarea arată mereu exact ce se va exporta.
 - **Atingere:** ciupește pentru zoom, trage pentru deplasare și atinge de două ori pentru a încadra.
 - **Zoom HUD:** apasă lung pe spirala Lolly din colț ca să desfaci `−`, **Fit** și `+`. O atingere scurtă pe spirală deschide în continuare meniul profilului tău.
 
-În Design, **Fit all** include planșele și straturile libere. Poți micșora manual sub 20% până când întreaga pagină ocupă jumătate din zona vizibilă. Limita inferioară este valoarea mai mică dintre 5% din scara Fit obișnuită și 2% zoom absolut.
+În Lolly Design, **Fit all** include planșele și straturile libere. Poți micșora manual sub 20% până când întreaga pagină ocupă jumătate din zona vizibilă. Limita inferioară este valoarea mai mică dintre 5% din scara Fit obișnuită și 2% zoom absolut.
 
 O schimbare a dimensiunii de ieșire readuce mereu vederea la o încadrare curată.
 
@@ -55,7 +55,7 @@ O schimbare a dimensiunii de ieșire readuce mereu vederea la o încadrare curat
 
 ### Anulare și refacere
 
-**Cmd/Ctrl-Z** face un pas înapoi, iar **Cmd/Ctrl-Shift-Z** (sau **Cmd/Ctrl-Y**) face un pas înainte. Aceeași pereche apare ca butoane **Undo** și **Redo** deasupra controalelor (în Design sunt în bara de sus), iar fiecare devine gri când nu mai e nimic de dat înapoi. Un mesaj spune ce intrare a restaurat fiecare undo, cu un buton **Redo** în mesaj.
+**Cmd/Ctrl-Z** face un pas înapoi, iar **Cmd/Ctrl-Shift-Z** (sau **Cmd/Ctrl-Y**) face un pas înainte. Aceeași pereche apare ca butoane **Undo** și **Redo** deasupra controalelor (în Lolly Design sunt în bara de sus), iar fiecare devine gri când nu mai e nimic de dat înapoi. Un mesaj spune ce intrare a restaurat fiecare undo, cu un buton **Redo** în mesaj.
 
 - **O tragere este un pas.** Schimbările repetate ale unui control în jumătate de secundă se contopesc, deci tragerea unui glisor pe tot parcursul lui este un singur undo.
 - **Ultimii 100 de pași sunt păstrați.** O editare nouă după un undo șterge stiva de înainte.
@@ -72,7 +72,7 @@ Efectele instrumentului **Filter** (Halftone, Scanline, Posterize, Voronoi, Duot
 
 Ca să-ți păstrezi munca, apasă **Save**, bifa de lângă **Export** de pe pastila de randare. Munca nouă merge în **My library**, munca salvată înainte este actualizată acolo unde se află și nu se descarcă nimic. Panoul de export are același buton **Save**.
 
-Ca să alegi unde merge, apasă **Save as**, lângă **Download** în panoul de export. Sub **Save to a project**, lasă selectat **My library** sau alege un proiect (**＋ New project…** face unul), apoi apasă **Save**; **Save as a template** păstrează designul ca [șablon](/info/templates.html), un punct de pornire pentru documente noi. În Design, **Save as** este în meniul Lolly; pe telefon, apasă **•••**, apoi **File menu**, apoi **Save as**.
+Ca să alegi unde merge, apasă **Save as**, lângă **Download** în panoul de export. Sub **Save to a project**, lasă selectat **My library** sau alege un proiect (**＋ New project…** face unul), apoi apasă **Save**; **Save as a template** păstrează designul ca [șablon](/info/templates.html), un punct de pornire pentru documente noi. În Lolly Design, **Save as** este în meniul Lolly; pe telefon, apasă **•••**, apoi **File menu**, apoi **Save as**.
 
 ![Pastila de randare în două jumătăți: Export, cu o săgeată în sus care deschide panoul de export, și Save, cu o bifă care salvează pe loc](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools&width=1440&height=900&dpi=192&waitMs=2500&css=%23tool-inputs%7Bdisplay%3Anone%7D&cropSelector=.render-pill&walker=1&format=svg&dark=1&filename=use-render-pill)
 
@@ -162,7 +162,7 @@ O copie de siguranță completă a dispozitivului nu este un `.lolly`. Rămâne 
 
 Un `.lolly` este un zip obișnuit. Redenumește-l `.zip` ca să te uiți înăuntru: imaginile tale sunt sub `assets/uploads/`, arta din catalog sub `assets/catalog/`, `manifest.json` listează fiecare fișier, iar un README spune ce este fișierul.
 
-macOS, Windows, Linux, iOS și Android înregistrează toate formatul, managerele de fișiere desktop îl arată ca document Lolly, iar GNOME Files poate arăta miniatura proprie a unei sesiuni salvate. Deschiderea din Design System Setup recomandă acțiunea de sistem de design când un design partajat poartă unul, dar nu ascunde niciodată **Open shared design**.
+macOS, Windows, Linux, iOS și Android înregistrează toate formatul, managerele de fișiere desktop îl arată ca document Lolly, iar GNOME Files poate arăta miniatura proprie a unei sesiuni salvate. Deschiderea din Lolly Design System Setup recomandă acțiunea de sistem de design când un design partajat poartă unul, dar nu ascunde niciodată **Open shared design**.
 
 Un document predat din altă aplicație pe iOS sau Android este plafonat la 48 MB, pentru că predarea copiază octeții peste granița aplicației, iar aplicația spune asta. **Open** din interiorul Lolly nu are un astfel de plafon, deci folosește-l pentru un bundle mai mare.
 
@@ -173,7 +173,7 @@ Atât un link, cât și un fișier predau o instantanee. Pentru editare live, [L
 
 ## Resurse - biblioteca ta
 
-**Assets** (`#/a`) adună tot ce pot folosi instrumentele tale: logouri de brand, imagini, audio și mișcare, grupate pe tip, împreună cu propriile fișiere. Încărcările tale sunt stocate pe dispozitivul tău. O organizație care folosește Lolly Work poate furniza și un catalog comun sub propriile reguli de acces; vezi [Folosește Lolly în organizația ta](/info/organisation.html).
+**Lolly Assets** (`#/a`) adună tot ce pot folosi instrumentele tale: logouri de brand, imagini, audio și mișcare, grupate pe tip, împreună cu propriile fișiere. Încărcările tale sunt stocate pe dispozitivul tău. O organizație care folosește Lolly Work poate furniza și un catalog comun sub propriile reguli de acces; vezi [Folosește Lolly în organizația ta](/info/organisation.html).
 
 ![Resurse, cu mostrele și fonturile brandului și propriile tale încărcări](/t/url-shot?url=%2F%23%2Fa%3Fsection%3Dswatches%2Cfonts&width=1440&height=900&dpi=96&waitMs=2400&css=.plat-swatch-grid~%2A%7Bdisplay%3Anone%7D&walker=1&format=svg&localize=1&dark=1&filename=assets)
 
@@ -267,12 +267,25 @@ Pe un ecran îngust, layoutul devine o singură coloană:
 
 ![Un instrument pe un ecran de lățimea unui telefon - comenzile ca foaie sus, paleta generată umplând previzualizarea de dedesubt și pastila de randare plutind jos, în centru](/t/url-shot?url=%2F%23%2Ftool%2Fcolor-palette%3Fseed%3Df97316%26harmony%3Dadjacent-3%26steps%3D9&width=430&height=900&dpi=192&waitMs=2200&walker=1&format=svg&dark=1&filename=vt-phone-palette)
 
+## Dispozitive pliabile și iPhone Duo
+
+Pe un dispozitiv pliabil, un iPhone Duo sau un ecran tactil aproape pătrat, Lolly așază un instrument în două panouri, ca paginile unei cărți:
+
+- **Controalele pe o parte, canvasul pe cealaltă.** Controalele stau departe de mâna cu care desenezi. Alege **Dominant hand** în **Settings → Accessibility** sau apasă **Swap sides** în partea de sus a controalelor. Într-o limbă scrisă de la dreapta la stânga, părțile se oglindesc.
+- **Separatorul este balamaua.** Când dispozitivul raportează pliul, panourile se întâlnesc la pliu, deci niciun control și nicio lucrare nu stă pe cută. Pe un ecran continuu, trage separatorul la o treime, la jumătate sau la două treimi din lățime. Lolly îți ține minte alegerea pentru fiecare vedere pe acest dispozitiv.
+- **Pe masă.** Pe jumătate deschis, cu pliul peste ecran, canvasul ocupă jumătatea de sus, iar controalele stau sub pliu. Când prezinți, diapozitivul este sus, cu notele tale, diapozitivul următor și **Back** și **Next** dedesubt. În Sequence, previzualizarea este sus, iar cronologia dedesubt.
+- **Lolly Design, Brand Studio și Assets.** În Lolly Design, inspectorul, straturile și panoul de export sunt file lângă canvas, iar instrumentele stau pe marginea exterioară a canvasului, sub mâna cu care desenezi. Când sunt mai multe instrumente decât încap, coloana derulează, iar un estompat cu o săgeată arată în ce parte sunt restul. Pe masă, instrumentele merg în schimb de-a lungul bazei canvasului. Brand Studio ține Board-ul pe o parte și camera pe care o deschizi pe cealaltă. În Assets, detaliile unui asset se deschid lângă bibliotecă, deci următoarea atingere arată următorul asset în același loc.
+- **Nimic pe cută.** Pe un pliu raportat, un dialog se deschide pe pagina care ține controalele, la fel și caseta de căutare de la baza ecranului principal și rezultatele ei. Un ecran plat le ține la mijloc.
+- **Pliatul nu pierde nimic.** Pliatul, desfacerea sau rotirea dispozitivului păstrează documentul, selecția, zoomul și câmpul în care tastai, cu cursorul unde l-ai lăsat.
+
+Ecranul exterior al unui dispozitiv pliabil păstrează aspectul de telefon de mai sus, la fel și o fereastră Lolly într-una dintre jumătățile unui ecran împărțit.
+
 ## Setări, sunet și confort
 
 **Settings**, la baza ecranului principal, conține detaliile tale, sistemele de design, accesibilitatea, stocarea și descărcările offline. [Lolly Settings](/info/dashboard.html) cartografiază fiecare filă.
 
 - **Detaliile și fotografia ta** completează orice instrument făcut să le folosească, precum o semnătură de email sau un ecuson. [Profiluri](/info/profile.html) le acoperă.
-- **Accessibility** are patru comutatoare de confort: **Reduce motion**, **Hide colourful previews**, **High contrast** și **Large text**. Ele schimbă aplicația din jurul muncii tale, niciodată canvasul unui instrument sau un export.
+- **Accessibility** are patru comutatoare de confort: **Reduce motion**, **Hide colourful previews**, **High contrast** și **Large text**. Ele schimbă aplicația din jurul muncii tale, niciodată canvasul unui instrument sau un export. Alături, **Dominant hand** alege de ce parte stau controalele în două panouri.
 - **Sound** redă sunete blânde de asistență pentru ce faci, iar **Neurospicy Mode** redă o piesă calmă de concentrare. Ambele sunt oprite până le pornești, în **Settings → Accessibility** sau în meniul profilului.
 - **Available offline** descarcă restul aplicației, instrumentele, catalogul și ghidurile înainte să pierzi conexiunea. Lolly este o aplicație web pe care o poți instala: folosește butonul de instalare al browserului sau *Add to Home Screen* pe telefon, pentru o aplicație pe tot ecranul care se actualizează singură când ești din nou online.
 - **Storage** arată ce păstrează Lolly pe acest dispozitiv. [Dacă ștergi datele browserului](/info/find-your-work.html#if-you-clear-your-browser-data) explică ce elimină ștergerea, iar [Politica de confidențialitate](/info/privacy.html) listează tot ce preia sau trimite aplicația.
@@ -283,10 +296,10 @@ Un panou gol sau un mesaj „failed to fetch” imediat după o actualizare se r
 
 ## Ce urmează
 
-- **[Design: canvasul liber](/info/design.html)**: canvasul, formele, cronologia și prezentarea unui deck.
-- **[Batch și Multi-edit](/info/batch.html)**: multe versiuni ale unui design sau mai multe designuri salvate editate împreună.
+- **[Lolly Design: canvasul liber](/info/design.html)**: canvasul, formele, cronologia și prezentarea unui deck.
+- **[Batch și Lolly Multi-edit](/info/batch.html)**: multe versiuni ale unui design sau mai multe designuri salvate editate împreună.
 - **[Exportă un fișier](/info/exporting.html)**: alegerea unui format, dimensiune, unități de tipar, transparență și video.
-- **[Importă un design](/info/design-import.html)**: adu un fișier Figma, Penpot, Illustrator sau InDesign în Design și continuă să editezi.
+- **[Importă un design](/info/design-import.html)**: adu un fișier Figma, Penpot, Illustrator sau InDesign în Lolly Design și continuă să editezi.
 - **[Șabloane](/info/templates.html)**: puncte de pornire salvate pentru un instrument.
-- **[Culoare largă și HDR](/info/hdr-editing.html)**: păstrează precizia originală a imaginii în Design și Darkroom.
+- **[Culoare largă și HDR](/info/hdr-editing.html)**: păstrează precizia originală a imaginii în Lolly Design și Lolly Darkroom.
 - **[Găsește și recuperează-ți munca](/info/find-your-work.html)**: unde este totul și cum îl muți pe alt dispozitiv.

@@ -1,8 +1,16 @@
 # Lolly dan portal jenama
 
-_Disemak kali terakhir: 28 September 2026._
+_Kedudukan dikemas kini: 31 Oktober 2026. Contoh keupayaan vendor disemak: 28 September 2026._
 
 Jika organisasi anda menyimpan aset yang diluluskan dalam Bynder, Frontify, Marq atau Brandfolder, halaman ini membandingkannya dengan Lolly ditambah Lolly Work: bagaimana orang mencari aset jenama, dan bagaimana mereka membuat fail baharu daripadanya.
+
+## Mengekalkan portal sedia ada anda
+
+DAM sedia ada boleh kekal sebagai rekod sumber. Penyambung katalog Lolly Work menjadikan sebahagian terpilih pustakanya tersedia dalam Lolly, di mana orang membuat fail baharu di bawah peraturan organisasi. Kekangan sumber yang disokong DAM dan peraturan pendedahan Lolly Work mengawal akses; semakan output akhir ialah keputusan yang berasingan.
+
+[Use Lolly with your existing DAM](/info/use-with-dam.html) menerangkan tanggungjawab dan had. [SUSE's Brandfolder experience](/info/suse-brandfolder.html) merekodkan integrasi berjaya yang menyokong pengurusan perubahan pentadbir sebelum penghijrahan yang dirancang. Mengekalkan sumber bersambung kekal sebagai pilihan yang disokong.
+
+Tujuan Lolly ialah [kedaulatan kandungan](/info/content-sovereignty.html), termasuk kawalan ke atas pengeluaran dan kebebasan memilih sistem. Pustaka dan kelulusannya sendiri menyokong organisasi yang memilih untuk menjalankan keupayaan itu sendiri. [Lolly for DAM vendors and implementation partners](/info/dam-partners.html) menerangkan bagaimana aliran kerja bersambung boleh menambah nilai kepada sistem rekod sedia ada.
 
 ## Apa yang portal mantap lakukan dengan lebih baik
 
@@ -26,11 +34,12 @@ Kedua-duanya meliputi aset diluluskan, templat terkunci, kawalan akses, semakan 
 | Lesen dan kredit | Lolly merekodkan lesen setiap sumber yang digunakan fail dan menyediakan kredit yang terhutang; [Creative rights and credits](/info/creative-rights.html) menerangkan apa yang direkodkan dan di mana kredit ditulis. Ia tidak membersihkan hak. |
 | Pelaporan | Kiraan penggunaan dan muat turun aset, aktiviti alat dan eksport, papan pemuka dan jejak audit. Atribusi penggunaan mengikut dasar telemetri penempatan; tetapan atribusi lalai memerlukan persetujuan. |
 | Pengedaran | Pautan yang tamat tempoh dan boleh dibatalkan, koleksi dikongsi, akses tetamu dan penghantaran ke destinasi organisasi yang dikonfigurasi. |
+| Halaman jenama awam | Lolly menulis [halaman jenama](/info/brand-page.html) statik, daripada Lolly Design System Setup atau baris perintah: logo, warna, tipografi, peraturan dan contoh untuk manusia, dengan token, `DESIGN.md` dan kemahiran untuk ejen. Anda menghos folder itu, atau pentadbir menghidupkan [pengehosan halaman jenama](/info/work-design-system-administration.html#host-a-brand-page) dalam Lolly Work, yang dimatikan secara lalai. |
 
 [Catalog and content](/info/work-catalog.html), [Approvals](/info/work-approvals.html) dan [Policy and governance](/info/work-governance.html) menerangkan ciri ini dan konfigurasinya.
 
-## Mengekalkan portal sedia ada anda
+## Nilai aliran kerja gabungan
 
-DAM sedia ada boleh kekal sebagai sumber kebenaran. Penyambung katalog Lolly Work menjadikan aset yang diluluskannya tersedia dalam Lolly, di mana orang membuat fail baharu di bawah peraturan organisasi. Itu pilihan integrasi; pustaka dan kelulusan Lolly sendiri ada apabila organisasi mahu menjalankannya sendiri. [What runs where](/info/compare.html#what-runs-where) menyenaraikan had yang dikongsi setiap perbandingan.
+Gunakan [urutan pengeluaran kad acara](/info/dam-production.html) untuk menguji akses sumber, suntingan yang dibenarkan, semakan output dan penghantaran dengan pustaka anda sendiri. [What runs where](/info/compare.html#what-runs-where) menyenaraikan had yang dikongsi setiap perbandingan. Sambungan sumber tidak dengan sendirinya mewujudkan perkongsian vendor atau kelayakan untuk setiap penyewa.
 
 Lihat [How Lolly compares](/info/positioning.html) untuk perbandingan keupayaan. Nama vendor mengenal pasti produk yang dibandingkan; Lolly tidak bergabung dengan mereka.

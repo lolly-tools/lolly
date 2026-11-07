@@ -22,7 +22,7 @@
 
 في أول مرة تفتح فيها المعرض، يقدّم ترحيب قصير الخيارات نفسها: يفتح **Make it yours** الأداة Design System Setup، ويفتح **Bring your design** منتقي ملفات لتصميم، ويغلق **Explore the community tools** الترحيب.
 
-![غرفة Colours في Design System Setup على تثبيت جديد: شريحة حية واحدة وحقل واحد والقرار الأول كاملاً](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&system=new-design-system&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&dark=1&filename=bs-colours-new-system)
+![غرفة Colours في Lolly Design System Setup على نظام تصميم جديد: شريحة حية واحدة وحقل واحد والقرار الأول كاملا](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&system=new-design-system&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&dark=1&filename=bs-colours-new-system)
 
 ومن هناك، تأخذه ثماني غرف إلى أي مدى تريد، بأي ترتيب: **Board** و**Colours** و**Type** و**Logos** و**Tokens** و**Files** و**Rules** و**Skills**. تتحدث كل معاينة في التطبيق أثناء الكتابة. يغطي [Lolly Design System Setup](/info/brand-studio.html) كل غرفة.
 
@@ -84,5 +84,5 @@ pnpm run ingest:brand ./my-tokens.json --name acme --label "Acme" --activate
 - <!--i:people--> **[أنشئ](/info/creators.html)**: الصنع والتحريك والتسجيل والمشاركة والتصدير.
 - <!--i:code--> **[أتمت](/info/builders.html)**: أنظمة التصميم وتأليف الأدوات وسطر الأوامر والروابط والوكلاء.
 - <!--i:usercheck--> **[أدِر](/info/operators.html)**: تشغيل Lolly لفريق مع Lolly Work.
-- <!--i:server--> **[انشر](/info/operate.html)**: استضافة Lolly وLolly Lolly Work.
+- <!--i:server--> **[انشر](/info/operate.html)**: استضافة Lolly وLolly Work.
 - <!--i:shieldcheck--> **[ثقة](/info/trust.html)**: الخصوصية والأمان والتحقق من ملف بنفسك.

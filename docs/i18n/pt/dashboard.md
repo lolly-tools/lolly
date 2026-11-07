@@ -92,7 +92,7 @@ Os downloads continuam de onde pararam se você cancelar ou perder a conexão, e
 - <!--i:neurobeat--> **Sound** - os sons da interface e os loops de foco do Neurospicy, a única chave desta aba que grava alguma coisa.
 - <!--i:database--> **Storage** - uma visão somente leitura do medidor em [Preferences](#storage), que é onde você limpa ou leva os seus dados.
 
-## Design system
+## Sistema de design
 
 O sistema de design ativo, apresentado para leitura. Quando este navegador guarda dois ou mais sistemas de design, uma faixa de pequenas capas no topo os lista: escolha uma para torná-la ativa, e **Undo** no aviso que se segue devolve a anterior.
 

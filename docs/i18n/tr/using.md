@@ -12,7 +12,7 @@ Ana ekran: üstte dört sekme ve altta çubuk. Açılan bir araç, denetimlerini
 
 Ana ekranın üstünde dört sekme yer alır: **Tools**, **Utilities**, **Assets** ve **Projects**. Tools ile üretirsin, Utilities bir dosyayı dönüştürmek, denetlemek veya temizlemek gibi işler için tezgâhlardır, Assets kitaplığındır ve Projects kaydettiklerini tutar.
 
-Alttaki çubuk **Open**, **Settings**, bir arama alanı, **Verify** ve **What?** içerir. Tools, Utilities, Assets, Projects, Settings ve uygulamada okuduğun kılavuzlarda görünür, bir araç açılınca kenara çekilir. [Lolly Search](/info/search.html), araçlarına, kayıtlı işlerine, varlıklarına ve ayarlarına o alandan ulaşır. [Ask Lolly](/info/ask.html), yazılı bir soruyu bu kılavuzların eşleşen bölümüyle yanıtlar.
+Alttaki çubuk **Open**, **Settings**, bir arama alanı, Lolly Verify'a giden bir **Verify** kısayolu ve **What?** içerir. Tools, Utilities, Assets, Projects, Settings ve uygulamada okuduğun kılavuzlarda görünür, bir araç açılınca kenara çekilir. [Lolly Search](/info/search.html), araçlarına, kayıtlı işlerine, varlıklarına ve ayarlarına o alandan ulaşır. [Ask Lolly](/info/ask.html), yazılı bir soruyu bu kılavuzların eşleşen bölümüyle yanıtlar.
 
 O araçta yeni bir şey başlatmak için bir karta tıkla. Kayıtlı işler bunun yerine **Projects** içinden yeniden açılır.
 
@@ -22,7 +22,7 @@ Her araç bölünmüş bir görünümdür: bir yanda **denetimler**, diğer yand
 
 ![Bir aracın bölünmüş görünümü - solda kontrol yığını, sağda çizdiği canlı gruplu çubuk grafik](/t/url-shot?url=%2F%23%2Ftool%2Fchart%3Fct%3Dbar%26t%3DExample%2520data%26st%3DSample%2520values%252C%2520not%2520a%2520real%2520dataset%26d%3DMonth%252CSeries%2520A%252CSeries%2520B%252CSeries%2520C%250AJan%252C12%252C9%252C5%250AFeb%252C18%252C14%252C7%250AMar%252C24%252C17%252C11%250AApr%252C29%252C23%252C15%26lg%3D1&width=1440&height=900&dpi=192&waitMs=2500&walker=1&format=svg&dark=1&filename=vt-tool-split-view)
 
-**Design** istisnadır. Sürüklediğin, yeniden boyutlandırdığın ve içine yazdığın kutulardan oluşan serbest bir tuval olarak açılır; kendi üst çubuğu, zaman çizelgesi ve sunum denetimleri vardır. [Design: the free canvas](/info/design.html) onun kılavuzudur.
+**Lolly Design** istisnadır. Sürüklediğin, yeniden boyutlandırdığın ve içine yazdığın kutulardan oluşan serbest bir tuval olarak açılır; kendi üst çubuğu, zaman çizelgesi ve sunum denetimleri vardır. [Lolly Design: the free canvas](/info/design.html) onun kılavuzudur.
 
 ## Aracın değiştirmene izin verdiğini değiştir
 
@@ -36,7 +36,7 @@ Denetimlerin üstündeki **Clear changes**, her girdiyi varsayılanına döndür
 
 **Tasarım sistemi seçimleri.** Tasarım sistemin birden fazla colourway, açık ve koyu bir görünüm veya başka bir tema seçeneği sunduğunda, denetimlerin altındaki bir **Design system** bölümü bunları tutar. Bir seçenek yalnızca bu aracı değiştirdiğinde görünür; bu yüzden bir dosya yardımcı aracı hiç bölüm göstermez. Her colourway kendi renklerinde bir noktadır, açık ve koyu iki düğmedir ve diğer her seçenek bir listedir.
 
-Seçim bu parçaya aittir. Bağlantıda ve kayıtlı oturumda taşınır, tasarım sistemine bağlı her renk onu izler ve uygulamanın kendi renkleri olduğu gibi kalır. Design aynı seçimleri Inspector'ın **Canvas** sekmesinde gösterir. Renkleri içeriği olan bir araç kurallı colourway üzerinde kalabilir ve o zaman colourway noktası sunmaz. [Lolly Demo in use](/info/lolly-demo-in-use.html#colourways-on-real-work) gerçek işlerde colourway'leri gösterir.
+Seçim bu parçaya aittir. Bağlantıda ve kayıtlı oturumda taşınır, tasarım sistemine bağlı her renk onu izler ve uygulamanın kendi renkleri olduğu gibi kalır. Lolly Design aynı seçimleri Inspector'ın **Canvas** sekmesinde gösterir. Renkleri içeriği olan bir araç kurallı colourway üzerinde kalabilir ve o zaman colourway noktası sunmaz. [Lolly Demo in use](/info/lolly-demo-in-use.html#colourways-on-real-work) gerçek işlerde colourway'leri gösterir.
 
 ### Önizlemeyi yakınlaştır ve kaydır
 
@@ -47,7 +47,7 @@ Seçim bu parçaya aittir. Bağlantıda ve kayıtlı oturumda taşınır, tasar�
 - **Dokunma:** yakınlaştırmak için sıkıştır, kaydırmak için sürükle ve sığdırmak için çift dokun.
 - **Yakınlaştırma HUD'u:** `−`, **Fit** ve `+` düğmelerini açmak için köşedeki Lolly girdabına basılı tut. Girdaba kısa dokunuş yine profil menünü açar.
 
-Design'da **Fit all**, çalışma alanlarını ve serbest katmanları kapsar. Sayfanın tamamı görünümün yarısını doldurana kadar yakınlaştırma oranını elle yüzde 20'nin altına indirebilirsin. Kesin alt sınır, normal Fit ölçeğinin yüzde 5'i ile yüzde 2 mutlak yakınlaştırma arasındaki düşük değerdir.
+Lolly Design'da **Fit all**, çalışma alanlarını ve serbest katmanları kapsar. Sayfanın tamamı görünümün yarısını doldurana kadar yakınlaştırma oranını elle yüzde 20'nin altına indirebilirsin. Kesin alt sınır, normal Fit ölçeğinin yüzde 5'i ile yüzde 2 mutlak yakınlaştırma arasındaki düşük değerdir.
 
 Çıktı boyutunun değişmesi görünümü her zaman temiz bir sığdırmaya geri alır.
 
@@ -55,7 +55,7 @@ Design'da **Fit all**, çalışma alanlarını ve serbest katmanları kapsar. Sa
 
 ### Geri alma ve yineleme
 
-**Cmd/Ctrl-Z** geri alır ve **Cmd/Ctrl-Shift-Z** (veya **Cmd/Ctrl-Y**) yineler. Aynı çift, denetimlerin üstünde **Undo** ve **Redo** düğmeleri olarak da durur (Design'da üst çubuktadırlar) ve geri alınacak bir şey kalmadığında her biri soluklaşır. Bir mesaj her geri almanın hangi girdiyi geri yüklediğini söyler; mesajda bir **Redo** düğmesi vardır.
+**Cmd/Ctrl-Z** geri alır ve **Cmd/Ctrl-Shift-Z** (veya **Cmd/Ctrl-Y**) yineler. Aynı çift, denetimlerin üstünde **Undo** ve **Redo** düğmeleri olarak da durur (Lolly Design'da üst çubuktadırlar) ve geri alınacak bir şey kalmadığında her biri soluklaşır. Bir mesaj her geri almanın hangi girdiyi geri yüklediğini söyler; mesajda bir **Redo** düğmesi vardır.
 
 - **Bir sürükleme tek adımdır.** Bir denetimde yarım saniye içindeki tekrarlanan değişiklikler birleşir; bu yüzden bir sürgüyü aralığı boyunca çekmek tek bir geri almadır.
 - **Son 100 adım tutulur.** Bir geri almadan sonraki yeni düzenleme ileri yığınını temizler.
@@ -72,7 +72,7 @@ Canlı bir [işbirliğinde](/info/collaborate.html) geçmişin sana ait kalır: 
 
 İşini saklamak için render hapındaki **Export** yanındaki tik olan **Save** düğmesine bas. Yeni iş **My library** içine gider, daha önce kaydettiğin iş olduğu yerde güncellenir ve hiçbir şey indirilmez. Dışa aktarma panelinde aynı **Save** düğmesi vardır.
 
-Nereye gideceğini seçmek için dışa aktarma panelinde **Download** yanındaki **Save as** düğmesine bas. **Save to a project** altında **My library** seçili kalsın ya da bir proje seç (**＋ New project…** bir tane yapar), sonra **Save** düğmesine bas; **Save as a template** tasarımı yeni belgeler için bir başlangıç noktası olan bir [şablon](/info/templates.html) olarak saklar. Design'da **Save as** Lolly menüsündedir; bir telefonda **•••**, sonra **File menu**, sonra **Save as** düğmesine bas.
+Nereye gideceğini seçmek için dışa aktarma panelinde **Download** yanındaki **Save as** düğmesine bas. **Save to a project** altında **My library** seçili kalsın ya da bir proje seç (**＋ New project…** bir tane yapar), sonra **Save** düğmesine bas; **Save as a template** tasarımı yeni belgeler için bir başlangıç noktası olan bir [şablon](/info/templates.html) olarak saklar. Lolly Design'da **Save as** Lolly menüsündedir; bir telefonda **•••**, sonra **File menu**, sonra **Save as** düğmesine bas.
 
 ![İki yarımlı render hapı: yukarı oklu, dışa aktarma panelini açan Export ve tikli, yerinde kaydeden Save](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools&width=1440&height=900&dpi=192&waitMs=2500&css=%23tool-inputs%7Bdisplay%3Anone%7D&cropSelector=.render-pill&walker=1&format=svg&dark=1&filename=use-render-pill)
 
@@ -162,7 +162,7 @@ Tam bir cihaz yedeği bir `.lolly` değildir. Bir `LollyTools-….zip` (biçim `
 
 Bir `.lolly` sıradan bir zip'tir. İçine bakmak için adını `.zip` yap: kendi görsellerin `assets/uploads/` altında, katalog çalışmaları `assets/catalog/` altında, `manifest.json` her dosyayı listeler ve bir README dosyanın ne olduğunu söyler.
 
-macOS, Windows, Linux, iOS ve Android'in hepsi biçimi kaydeder, masaüstü dosya yöneticileri onu bir Lolly belgesi olarak gösterir ve GNOME Files bir kayıtlı oturumun kendi küçük resmini gösterebilir. Design System Setup'tan açmak, paylaşılan bir tasarım bir tane taşıdığında tasarım sistemi eylemini önerir ama **Open shared design** düğmesini asla gizlemez.
+macOS, Windows, Linux, iOS ve Android'in hepsi biçimi kaydeder, masaüstü dosya yöneticileri onu bir Lolly belgesi olarak gösterir ve GNOME Files bir kayıtlı oturumun kendi küçük resmini gösterebilir. Lolly Design System Setup'tan açmak, paylaşılan bir tasarım bir tane taşıdığında tasarım sistemi eylemini önerir ama **Open shared design** düğmesini asla gizlemez.
 
 iOS veya Android'de başka bir uygulamadan verilen bir belge 48 MB ile sınırlıdır, çünkü devir baytlarını uygulama sınırı boyunca kopyalar ve uygulama bunu söyler. Lolly içindeki **Open** böyle bir sınır taşımaz; daha büyük bir paket için onu kullan.
 
@@ -173,7 +173,7 @@ Bir bağlantı ve bir dosya, ikisi de bir anlık görüntü teslim eder. Canlı 
 
 ## Varlıklar - kütüphanen
 
-**Assets** (`#/a`), araçlarının kullanabileceği her şeyi toplar: marka logoları, görseller, ses ve hareket; türe göre gruplanmış, kendi dosyalarınla birlikte. Yüklemelerin cihazında saklanır. Lolly Work kullanan bir kuruluş, kendi erişim kuralları altında paylaşılan bir katalog da sağlayabilir; bkz. [Use Lolly at your organisation](/info/organisation.html).
+**Lolly Assets** (`#/a`), araçlarının kullanabileceği her şeyi toplar: marka logoları, görseller, ses ve hareket; türe göre gruplanmış, kendi dosyalarınla birlikte. Yüklemelerin cihazında saklanır. Lolly Work kullanan bir kuruluş, kendi erişim kuralları altında paylaşılan bir katalog da sağlayabilir; bkz. [Use Lolly at your organisation](/info/organisation.html).
 
 ![Varlıklar, markanın renk örnekleri ve yazı tipleriyle ve kendi yüklemelerinle](/t/url-shot?url=%2F%23%2Fa%3Fsection%3Dswatches%2Cfonts&width=1440&height=900&dpi=96&waitMs=2400&css=.plat-swatch-grid~%2A%7Bdisplay%3Anone%7D&walker=1&format=svg&localize=1&dark=1&filename=assets)
 
@@ -267,12 +267,25 @@ Dar bir ekranda düzen tek sütun olur:
 
 ![Telefon genişliğinde bir ekranda bir araç - üstte panel hâlinde kontroller, altta önizlemeyi dolduran üretilmiş palet ve alt ortada yüzen oluşturma düğmesi](/t/url-shot?url=%2F%23%2Ftool%2Fcolor-palette%3Fseed%3Df97316%26harmony%3Dadjacent-3%26steps%3D9&width=430&height=900&dpi=192&waitMs=2200&walker=1&format=svg&dark=1&filename=vt-phone-palette)
 
+## Katlanabilir cihazlar ve iPhone Duo
+
+Katlanabilir bir cihazda, bir iPhone Duo'da veya kareye yakın bir dokunmatik ekranda Lolly, bir aracı bir kitabın sayfaları gibi iki bölmede yerleştirir:
+
+- **Bir yanda denetimler, öbür yanda tuval.** Denetimler, çizim yaptığın elden uzak durur. **Settings → Accessibility** altında **Dominant hand** seçeneğini seç ya da denetimlerin üstündeki **Swap sides** düğmesine bas. Sağdan sola yazılan bir dilde taraflar yansıtılır.
+- **Ayırıcı menteşedir.** Cihaz kıvrımını bildirdiğinde bölmeler kıvrımda buluşur; böylece kıvrım çizgisinde hiçbir denetim ve hiçbir çizim bulunmaz. Kesintisiz bir ekranda ayırıcıyı genişliğin üçte birine, yarısına veya üçte ikisine sürükle. Lolly her görünüm için seçimini bu cihazda hatırlar.
+- **Masanın üstünde.** Kıvrım ekran boyunca uzanacak şekilde yarı açıkken tuval üst yarıyı alır, denetimler kıvrımın altında durur. Sunum yaptığında slayt üsttedir; notların, sonraki slayt ve **Back** ile **Next** altta yer alır. Sequence'ta önizleme üstte, zaman çizelgesi altta durur.
+- **Lolly Design, Brand Studio ve Assets.** Lolly Design'da inspector, katmanlar ve dışa aktarma paneli tuvalin yanında sekmelerdir ve araçlar, çizim elinin altında, tuvalin dış kenarı boyunca dizilir. Sığandan fazla araç olduğunda sütun kayar ve bir oklu solma, geri kalanların hangi yönde olduğunu gösterir. Masanın üstünde araçlar bunun yerine tuvalin alt kenarı boyunca uzanır. Brand Studio, Board'u bir yanda, açtığın odayı öbür yanda tutar. Assets'te bir varlığın ayrıntıları kitaplığın yanında açılır; böylece sonraki dokunuş sonraki varlığı aynı yerde gösterir.
+- **Kıvrımda hiçbir şey yok.** Bildirilen bir kıvrımda iletişim kutusu, denetimleri tutan sayfada açılır; ana ekranın altındaki arama kutusu ve sonuçları da öyle. Düz bir ekran bunları ortada tutar.
+- **Katlamak hiçbir şey kaybettirmez.** Cihazı katlamak, açmak veya döndürmek belgeni, seçimini, yakınlaştırmayı ve yazmakta olduğun alanı, imleciyle birlikte bıraktığın yerde korur.
+
+Katlanabilir bir cihazın dış ekranı yukarıdaki telefon yerleşimini korur; bölünmüş ekranın bir yarısındaki Lolly penceresi de öyle.
+
 ## Ayarlar, ses ve rahatlık
 
 Ana ekranın altındaki **Settings**, ayrıntılarını, tasarım sistemlerini, erişilebilirliği, depolamayı ve çevrimdışı indirmeleri tutar. [Lolly Settings](/info/dashboard.html) her sekmeyi haritalar.
 
 - **Ayrıntıların ve profil fotoğrafın**, bir e-posta imzası veya rozet gibi bunları kullanmak için yapılmış her aracı doldurur. [Profiles](/info/profile.html) bunları kapsar.
-- **Accessibility** dört rahatlık anahtarına sahiptir: **Reduce motion**, **Hide colourful previews**, **High contrast** ve **Large text**. Çalışmanın etrafındaki uygulamayı değiştirirler, asla bir araç tuvalini veya bir dışa aktarmayı değil.
+- **Accessibility** dört rahatlık anahtarına sahiptir: **Reduce motion**, **Hide colourful previews**, **High contrast** ve **Large text**. Çalışmanın etrafındaki uygulamayı değiştirirler, asla bir araç tuvalini veya bir dışa aktarmayı değil. Yanlarında **Dominant hand**, iki bölmede denetimlerin hangi tarafı alacağını seçer.
 - **Sound**, yaptıklarına karşılık yumuşak yardımcı sesler çalar ve **Neurospicy Mode** sakin bir odak parçası çalar. İkisi de **Settings → Accessibility** veya profil menüsünde açana kadar kapalıdır.
 - **Available offline**, bağlantıyı kaybetmeden önce uygulamanın geri kalanını, araçlarını, kataloğu ve kılavuzları indirir. Lolly kurabileceğin bir web uygulamasıdır: tarayıcının kur düğmesini ya da telefonda *Add to Home Screen* seçeneğini kullan; yeniden çevrimiçi olduğunda kendini güncelleyen tam ekran bir uygulama elde edersin.
 - **Storage**, Lolly'nin bu cihazda neleri tuttuğunu gösterir. [If you clear your browser data](/info/find-your-work.html#if-you-clear-your-browser-data) temizlemenin neleri kaldırdığını açıklar ve [Privacy Policy](/info/privacy.html) uygulamanın getirdiği veya gönderdiği her şeyi listeler.
@@ -283,10 +296,10 @@ Bir güncellemeden hemen sonra boş bir panel veya "failed to fetch" mesajı gen
 
 ## Bundan sonra nereye
 
-- **[Design: the free canvas](/info/design.html)**: tuval, şekiller, zaman çizelgesi ve bir sunumu sunma.
-- **[Batch and Multi-edit](/info/batch.html)**: bir tasarımın birçok sürümü ya da birlikte düzenlenen birkaç kayıtlı tasarım.
+- **[Lolly Design: the free canvas](/info/design.html)**: tuval, şekiller, zaman çizelgesi ve bir sunumu sunma.
+- **[Batch and Lolly Multi-edit](/info/batch.html)**: bir tasarımın birçok sürümü ya da birlikte düzenlenen birkaç kayıtlı tasarım.
 - **[Export a file](/info/exporting.html)**: biçim, boyut, baskı birimleri, saydamlık ve video seçimi.
-- **[Import a design](/info/design-import.html)**: bir Figma, Penpot, Illustrator veya InDesign dosyasını Design'a getir ve düzenlemeye devam et.
+- **[Import a design](/info/design-import.html)**: bir Figma, Penpot, Illustrator veya InDesign dosyasını Lolly Design'a getir ve düzenlemeye devam et.
 - **[Templates](/info/templates.html)**: bir araç için kayıtlı başlangıç noktaları.
-- **[Wide Colour and HDR](/info/hdr-editing.html)**: Design ve Darkroom'da özgün görsel hassasiyetini koru.
+- **[Wide Colour and HDR](/info/hdr-editing.html)**: Lolly Design ve Lolly Darkroom'da özgün görsel hassasiyetini koru.
 - **[Find and recover your work](/info/find-your-work.html)**: her şeyin nerede olduğu ve başka bir cihaza nasıl taşınacağı.

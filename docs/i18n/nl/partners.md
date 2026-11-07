@@ -8,6 +8,7 @@ Twee woorden betekenen overal op deze pagina hetzelfde. Het **leidende merk** is
 
 - **Eén design system tekent elk stuk.** De kleuren, het lettertype en de huisregels van het leidende merk gelden. Het merkteken van de partner komt erin als artwork: een afbeelding uit Assets, of een aangepast merkteken dat in een design system is bewaard.
 - **Een merk reist als bestand.** Een design-systembestand (`.lolly`) bevat tokens, lettertypen en logo's. Een herbruikbare tool die met **Share with rules** is gemaakt, bevat één afgewerkte lay-out met de invoer die je toestaat. Merkvaardigheden reizen als aparte bestanden.
+- **Een merk kan ook een adres hebben.** Een [merkpagina](/info/brand-page.html) publiceert logo's, kleuren, lettertypen en regels om door een partner te laten lezen, met tokens en vaardigheden voor hun tools.
 - **Lolly controleert alleen de regels van het leidende merk.** Lolly kent de regels van de partner niet, zoals vrije ruimte of minimale grootte, dus controleer die aan de hand van de eigen richtlijnen van de partner.
 
 ## Deel je merk met een partner
@@ -17,8 +18,9 @@ Twee woorden betekenen overal op deze pagina hetzelfde. Het **leidende merk** is
 | Sturen | Hoe | De partner krijgt | Geschikt voor |
 | --- | --- | --- | --- |
 | Een design-systembestand | **Export** in de balk bovenaan [Lolly Design System Setup](/info/brand-studio.html#move-a-brand-between-devices) | Je tokens, lettertypen, logo's en themavoorkeur, als een design system waar de partner naar kan overschakelen | Een partner die veel stukken in jouw merk maakt |
-| Een herbruikbare tool | In Design, **Share with rules** ([Share a design with rules](/info/create-a-tool.html)) | Eén afgewerkte lay-out met de invoer die je toestaat, zoals hun naam en hun logo. Het bestand bevat de vastgelegde kleuren, lettertypen en afbeeldingen, dus hun eigen design system kan het vaste artwork niet herstijlen | Een flyer, badge of banner van twee merken die elke partner invult |
+| Een herbruikbare tool | In Lolly Design, **Share with rules** ([Share a design with rules](/info/create-a-tool.html)) | Eén afgewerkte lay-out met de invoer die je toestaat, zoals hun naam en hun logo. Het bestand bevat de vastgelegde kleuren, lettertypen en afbeeldingen, dus hun eigen design system kan het vaste artwork niet herstijlen | Een flyer, badge of banner van twee merken die elke partner invult |
 | Merkvaardigheden | De **Skills**-ruimte: **Download skill (.zip)** of **Copy as one file** | Je vastgelegde standaarden, voor hun mensen en hun agents | Een van de bovenstaande, als een agent een deel van het werk doet |
+| Een merkpagina | **Publish a brand page** in Lolly Design System Setup, of `lolly system publish`, schrijft een map die je host ([Merkpagina's](/info/brand-page.html)) | Je huidige logo's, kleuren, lettertypen en regels op één adres, met tokens en vaardigheden voor hun tools. Logo's en lettertypebestanden verschijnen wanneer hun rechten het toestaan, en de pagina somt op wat ze achterhield | Delen met mensen naar wie je geen bestanden stuurt |
 | Tokens | **Tokens (.json)** in het menu **More** van de studio | Het kale designtokens-document, zonder lettertypen of logo's | De eigen designtools of build van een partner |
 
 ![Design System Setup op Lolly Demo, geopend bij de Skills-ruimte: Export in de balk, het menu More open op Tokens (.json), en Download skill (.zip) en Copy as one file naast de gekozen vaardigheid](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dskills&width=1200&height=900&dpi=192&waitMs=1800&waitSelector=.skills-reader-actions&drive=click%3A%5Bdata-ds-more%5D%3Bwait%3A500&format=svg&walker=1&dark=1&filename=partners-send)
@@ -108,6 +110,8 @@ Exporteer de wand als PNG, SVG, PDF of een CMYK-pdf voor drukwerk. Stel in het e
 
 In een terminal bouwt `lolly run logo-wall logos/*.png --output=wall.svg` de wand uit een map met afbeeldingen, en een CSV met de kolommen `logo` en `tier` bouwt een wand met niveaus. SVG en PNG hebben geen browser nodig ([Een sponsorwand met niveaus](/info/cli-rendering.html#a-sponsor-wall-with-tiers)).
 
+Wanneer een sponsor een [merkpagina](/info/brand-page.html) publiceert, haalt `lolly run logo-wall --logos-from=<address or folder>` hun huidige logo voor het oppervlak op en drukt af wat hun pagina over gebruik zegt. Herhaal de vlag voor elke sponsor.
+
 Logo Wall kent de regels van geen enkele sponsor. Tiers en Presence stellen groottes in ten opzichte van elkaar, niet de minimale grootte van een sponsor, en niets controleert de vrije ruimte tussen buurlogo's. Controleer de afgewerkte wand aan de hand van de richtlijnen van elke sponsor, op de grootte waarop hij wordt afgedrukt of getoond.
 
 ## Wat Lolly nog niet doet
@@ -119,6 +123,8 @@ Logo Wall kent de regels van geen enkele sponsor. Tiers en Presence stellen groo
 - Er is één design system actief voor het hele apparaat, dus twee merken kunnen niet naast elkaar open zijn.
 - Een design-systembestand is een kopie van het merk zoals het is geëxporteerd, en niets werkt die kopie bij. Een design-systembestand dat uit de app is geëxporteerd, bevat geen merkvaardigheden, dus stuur die als aparte bestanden.
 - Een export legt het design system en de kleurvariant van het leidende merk vast, niet het merk van de partner.
+- Een logo van een merkpagina is een afbeelding in zijn rij, en de rij onthoudt de pagina niet. Niets toont wie een pagina heeft gepubliceerd, dus controleer het adres zelf.
+- De gehoste webapp kan de pagina van een ander merk niet ophalen, omdat zijn Content Security Policy alleen genoemde hosts toestaat. Haal het logo op in een terminal, of sla het bestand op en voeg het bestand toe in **Assets**.
 
 ## Waar je hierna heen kunt
 
@@ -126,4 +132,5 @@ Logo Wall kent de regels van geen enkele sponsor. Tiers en Presence stellen groo
 - **[Share a design with rules](/info/create-a-tool.html)**: herbruikbare tools met een vaste lay-out en de invoer die je kiest.
 - **[Merkvaardigheden](/info/brand-skills.html)**: hoe vaardigheden worden geschreven, gelezen en aan een agent gegeven.
 - **[Lolly Design System Setup](/info/brand-studio.html)**: logo's, aangepaste merktekens en een design system verplaatsen tussen apparaten.
+- **[Merkpagina's](/info/brand-page.html)**: publiceer je merk op één adres, en haal het logo van een partner van hun pagina.
 - **[Creatieve rechten en vermeldingen](/info/creative-rights.html)**: wat Lolly vastlegt over de werken die het tekent.

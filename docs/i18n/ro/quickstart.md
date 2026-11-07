@@ -22,7 +22,7 @@ Alege traseul potrivit cu ce ai:
 
 Prima dată când deschizi galeria, o scurtă bun venit oferă aceleași alegeri: **Make it yours** deschide Design System Setup, **Bring your design** deschide un selector de fișiere pentru un design, iar **Explore the community tools** închide mesajul de bun venit.
 
-![Camera Colours din Design System Setup la o instalare nouă: un chip live, un câmp și toată prima decizie](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&system=new-design-system&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&dark=1&filename=bs-colours-new-system)
+![Camera Colours din Lolly Design System Setup pe un sistem de design nou: un chip live, un câmp și întreaga primă decizie](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&system=new-design-system&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&dark=1&filename=bs-colours-new-system)
 
 De acolo, opt camere o duc cât de departe vrei, în orice ordine: **Board**, **Colours**, **Type**, **Logos**, **Tokens**, **Files**, **Rules** și **Skills**. Fiecare previzualizare din aplicație se actualizează pe măsură ce tastezi. [Lolly Design System Setup](/info/brand-studio.html) acoperă fiecare cameră.
 

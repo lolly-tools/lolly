@@ -40,7 +40,7 @@
 1년에 사흘만 일하는 행사 매니저는 배지와 사이니지에 행사 받은편지함과 행사 서브 브랜드를 원하고, 그다음에는 평소의 신원으로 돌아가요. 그 역할을 저장된 프로필 파일로 보관하고, 행사 때 불러오고, 끝나면 치워 두세요.
 :::
 
-![The headshot control, empty until you upload a photo that then stays on this device](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-side&walker=1&dark=1&filename=pd-profile-headshot&css=.profile-details-main%7Bdisplay%3Anone%7D)
+![프로필 사진 컨트롤: 사진을 올리기 전에는 비어 있고, 올린 사진은 이 기기에 머물러요](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-side&walker=1&dark=1&filename=pd-profile-headshot&css=.profile-details-main%7Bdisplay%3Anone%7D)
 
 ::: details Lolly Work를 쓰는 조직의 프로필
 [조직의 Lolly](/info/organisation.html)에 로그인하면 Lolly Work가 신원 공급자로부터 검증된 프로필 필드를 제공하고 조직 정책에 따라 필드나 환경설정을 고정할 수 있어요. 관리되는 필드는 앱에 표시돼요.
@@ -90,7 +90,7 @@ Settings에서 서로 가까이 있어 헷갈리기 쉬운 세 가지가 있어�
 
 이 단어는 Lolly에서 다른 의미가 세 가지 더 있어요. **콘텐츠 프로필**은 배포가 어떤 도구와 카탈로그를 포함하는지 고르는 빌드 설정이며, [용어집](/info/glossary.html)이 이 용어를 정의해요. `profile` 링크 매개변수는 CMYK 인쇄 조건 같은 내보내기의 색상 프로필을 골라요. [예약된 URL 매개변수](/info/url-parameters.html#print)를 참고하세요. **검증된 신원**은 이메일을 서명된 내보내기에 연결하는 선택적 서명 인증서로 이 세부 정보와 별개이지만, 둘 중 어느 것을 임베드할지는 **Use my details to create**가 정해요. [Content Credentials](/info/content-credentials-identity.html)를 참고하세요.
 
-![The Verified identity card, phone-width: the certificate lifetime picker and the enrolment step beneath it - the identity profile, separate from your personal details](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Didentity-section&width=430&height=1600&dpi=192&waitMs=2400&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone%7D&format=svg&walker=1&cropSelector=%23identity-section&dark=1&filename=pv-identity-enrol)
+![휴대폰 너비의 Verified identity 카드: 인증서 유효 기간 선택기와 그 아래의 등록 단계 - 개인 정보와는 별개인 신원 프로필](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Didentity-section&width=430&height=1600&dpi=192&waitMs=2400&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone%7D&format=svg&walker=1&cropSelector=%23identity-section&dark=1&filename=pv-identity-enrol)
 
 ## 프라이버시
 

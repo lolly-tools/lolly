@@ -72,7 +72,7 @@ Cùng công cụ đó ở chiều rộng điện thoại không cần bố cục
 
 ![Một audiogram trên màn hình rộng 430px: tấm điều khiển ở trên, tác phẩm vuông hoàn chỉnh ở dưới và viên thuốc xuất nổi](/t/url-shot?url=%2F%23%2Ftool%2Faudiogram%3Faudio%3Dlolly%2Floops%2Ffireplace-loop%26title%3DField%2520notes%26subtitle%3DEpisode%252012%26style%3Dwave&width=430&height=900&dpi=192&waitMs=3200&css=%23ag-wave%7Bdisplay%3Anone!important%7D.ag-ph%7Bdisplay%3Ablock!important%7D&walker=1&format=svg&rasterDpi=110&dark=1&filename=ov2-phone-audiogram)
 
-Ứng dụng web cũng có **Batch** (`#/batch`, `shells/web/src/pro/`), một lưới kiểu bảng tính kết xuất nhiều hàng cùng lúc qua một hoặc nhiều công cụ; [Batch and Multi-edit](/info/batch.html#make-many-versions-of-one-design) đề cập Batch. **Settings → Capabilities** vẽ ra mọi thứ nền tảng khai báo là làm được.
+Ứng dụng web cũng có **Batch** (`#/batch`, `shells/web/src/pro/`), một lưới kiểu bảng tính kết xuất nhiều hàng cùng lúc qua một hoặc nhiều công cụ; [Batch và Lolly Multi-edit](/info/batch.html#make-many-versions-of-one-design) đề cập Batch. **Settings → Capabilities** vẽ ra mọi thứ nền tảng khai báo là làm được.
 
 ![Batch trên bản cài mới: một hàng trống chờ một công cụ, với bề mặt bảng tính và nút Render đã sẵn trước khi có dữ liệu](/t/url-shot?url=%2F%23%2Fbatch&width=1440&height=900&dpi=192&waitMs=3500&walker=1&format=svg&dark=1&filename=ov2-batch-grid)
 
@@ -141,7 +141,7 @@ Một đầu vào khai báo một `type`: `text`, `longtext`, `number`, `boolean
 
 - **`asset`**, với `filter` và `allowUpload`, là cầu tới hệ thống tài nguyên. `allowUpload: false` giới hạn một ô vào tài nguyên thư viện, và tệp người dùng tải lên dùng chung dạng `AssetRef` của thư viện.
 - **`blocks`** là nhóm trường lặp được chỉnh trong bảng bên, dùng bởi Meeting Planner, Wayfinding, Diagrams và những công cụ khác. Nhấp một khối đã kết xuất sẽ đưa tiêu điểm vào hàng của nó.
-- **`file`** giữ tệp của chính người dùng trong bộ nhớ cho các tiện ích trên thiết bị như Strip Hidden Data và Compress, và **`vector`** gom một bộ số cố định thành một điều khiển.
+- **`file`** giữ tệp của chính người dùng trong bộ nhớ cho các tiện ích trên thiết bị như Lolly Strip Hidden Data và Compress, và **`vector`** gom một bộ số cố định thành một điều khiển.
 
 ### 9. Mẫu không có logic
 
@@ -149,7 +149,7 @@ Mẫu là Handlebars, được chọn để người không phải lập trình 
 
 ### 10. Công cụ ghép công cụ
 
-Một công cụ có thể nhúng bản kết xuất của công cụ khác mà không có import giữa các công cụ; engine phân giải việc ghép. Một manifest có thể khai báo `composes: [{ id, tool, inputs }]` và đặt công cụ con bằng `{{asset <id>}}`, và một URL nhúng khả chuyển (`https://lolly.tools/tool/<id>.svg?…`) kết xuất công cụ con cục bộ, đó là cách Design đặt mã QR hay biểu đồ trực tiếp. Công cụ con SVG vẫn là vector trong cha SVG hoặc PDF. Công cụ con là sản phẩm trung gian, không bao giờ bị đóng hình mờ hay đóng dấu, và shell không kết xuất được một công cụ con sẽ để ô trống trong khi cha vẫn kết xuất. [Composition and brand overlays](/info/tool-composition.html) có chi tiết.
+Một công cụ có thể nhúng bản kết xuất của công cụ khác mà không có import giữa các công cụ; engine phân giải việc ghép. Một manifest có thể khai báo `composes: [{ id, tool, inputs }]` và đặt công cụ con bằng `{{asset <id>}}`, và một URL nhúng khả chuyển (`https://lolly.tools/tool/<id>.svg?…`) kết xuất công cụ con cục bộ, đó là cách Lolly Design đặt mã QR hay biểu đồ trực tiếp. Công cụ con SVG vẫn là vector trong cha SVG hoặc PDF. Công cụ con là sản phẩm trung gian, không bao giờ bị đóng hình mờ hay đóng dấu, và shell không kết xuất được một công cụ con sẽ để ô trống trong khi cha vẫn kết xuất. [Composition and brand overlays](/info/tool-composition.html) có chi tiết.
 
 ## Những gì chúng tôi chọn không làm
 

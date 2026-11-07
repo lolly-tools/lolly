@@ -14,6 +14,8 @@ Lolly 在每个人的设备上运行。当团队需要登录、共享项目、�
 
 ## 连接素材并审阅作品
 
+- [在现有 DAM 中使用 Lolly](/info/use-with-dam.html)解释了来源权威和互联制作。[SUSE Brandfolder 账号](/info/suse-brandfolder.html)记录了采用经验，[规划 DAM 过渡](/info/dam-transition.html)介绍了之后可选的迁移。
+
 - [设计系统管理](/info/work-design-system-administration.html)介绍了来源清单、经审阅的更改和回滚。
 - [目录与内容](/info/work-catalog.html)介绍了共享素材和公开规则。[提供方指南](/info/work-provider-guides.html)给出了每个来源平台的设置和验证要求。
 - [审批](/info/work-approvals.html)介绍了审阅链和职责分离。[渲染与分享](/info/work-sharing.html)介绍了链接和服务器输出。

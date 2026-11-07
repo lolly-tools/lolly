@@ -11,7 +11,7 @@ _Ostatnio sprawdzono: 28 września 2026._
 - [Lolly and Figma](/info/compare-figma.html) - projekt, współpraca na żywo i produkcja zasobów wielokrotnego użytku.
 - [Lolly and Penpot](/info/compare-penpot.html) - projekt open source, wspólne tokeny i praca organizacji.
 - [Lolly and brand portals](/info/compare-brand-portals.html) - zatwierdzone biblioteki, zablokowane szablony, tożsamość, przegląd i raportowanie.
-- [Lolly and rendering APIs](/info/compare-render-apis.html) - zautomatyzowane generowanie na Twoim urządzeniu, w CI lub na serwerze Lolly Work.
+- [Lolly and rendering APIs](/info/compare-render-apis.html) - zautomatyzowane generowanie na Twoim urządzeniu, w CI lub na własnym serwerze, oraz [jak przejść](/info/work-move-from-render-api.html) z Bannerbear lub Placid.
 - [Lolly and online file converters](/info/compare-converters.html) - konwersja formatów na Twoim własnym urządzeniu.
 
 Porównanie funkcja po funkcji znajdziesz w [Jak Lolly wypada w porównaniu](/info/positioning.html). Każde porównanie jest datowane; twierdzenie, które przestało zgadzać się z którymkolwiek z produktów, wymaga poprawki.

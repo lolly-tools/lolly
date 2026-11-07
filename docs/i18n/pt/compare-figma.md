@@ -16,7 +16,7 @@ Ambos permitem organizar tipografia, formas e imagens em um canvas e trabalhar c
 
 O Lolly transforma um design em uma [ferramenta reutilizável com regras](/info/create-a-tool.html). A ferramenta roda no navegador ou na CLI e recebe suas entradas de um link, um script ou uma grade de lote, então um template serve tanto a uma pessoa que edita um arquivo quanto a uma equipe que faz muitos.
 
-![O canvas aberto do Design, com Import a design no menu Lolly da barra de ferramentas](/info/shots/design.svg)
+![O canvas aberto do Lolly Design, com Import a design no menu Lolly da barra de ferramentas](/info/shots/design.svg)
 
 Um [collab privado](/info/collaborate.html) liga dois dispositivos diretamente, sem conta e sem precisar de internet em uma rede compartilhada. O Lolly autônomo renderiza offline. As Content Credentials vêm ativadas por padrão nas exportações compatíveis, e você pode desativá-las.
 

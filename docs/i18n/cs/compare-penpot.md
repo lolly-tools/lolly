@@ -14,7 +14,7 @@ Pokud tvůj tým navrhuje v Penpotu, Lolly funguje vedle Penpotu: oba jsou open 
 
 ## Jak Lolly dělá překrývající se úlohu
 
-Plátno Design v Lolly vytváří upravitelné assety a může změnit rozvržení na [nástroj s pravidly](/info/create-a-tool.html). Tentýž nástroj se vykresluje v prohlížeči, v desktopové aplikaci nebo v CLI a vytváří varianty z dat. Samostatná Lolly vykresluje a podepisuje na zařízení, bez účtu a bez serveru. [Soukromá kolaborace](/info/collaborate.html) spojí dvě zařízení přímo.
+Plátno Lolly Design vytváří upravitelné assety a může změnit rozvržení na [nástroj s pravidly](/info/create-a-tool.html). Tentýž nástroj se vykresluje v prohlížeči, v desktopové aplikaci nebo v CLI a vytváří varianty z dat. Samostatná Lolly vykresluje a podepisuje na zařízení, bez účtu a bez serveru. [Soukromá kolaborace](/info/collaborate.html) spojí dvě zařízení přímo.
 
 ## S organizací
 

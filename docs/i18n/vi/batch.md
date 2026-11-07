@@ -1,8 +1,10 @@
-# Batch và Multi-edit
+# Lolly Batch và Lolly Multi-edit
+
+<a id="batch-and-multi-edit"></a>
 
 Hai việc xuất hiện khi bạn thường xuyên làm cùng loại tệp. Đôi khi bạn cần nhiều phiên bản của một thiết kế: một tấm thẻ bằng hàng chục ngôn ngữ, hoặc mọi kích thước của một biểu ngữ. Đôi khi bạn có nhiều thiết kế đã lưu khác nhau và muốn một thay đổi tới được tất cả, như ngày mới hay tiêu đề mới.
 
-**Batch** làm việc đầu và **Multi-edit** làm việc sau. Cả hai chạy trên thiết bị của bạn và xuất qua cùng đường kết xuất như chính các công cụ.
+**Lolly Batch** làm việc đầu và **Lolly Multi-edit** làm việc sau. Cả hai chạy trên thiết bị của bạn và xuất qua cùng đường kết xuất như chính các công cụ.
 
 ::: cols
 ## Batch
@@ -10,9 +12,10 @@ Hai việc xuất hiện khi bạn thường xuyên làm cùng loại tệp. Đ�
 - Một mẫu, nhiều hàng. Mỗi hàng là một bộ đầu vào và tạo một tệp.
 - Điền các hàng bằng cách gõ, dán từ bảng tính hoặc nhập CSV.
 - Không giới hạn số hàng; mỗi trang hiện 50.
-- Mở từ **Batch** ở tiêu đề Projects (`#/batch`).
+- Mở từ **Lolly Batch** ở tiêu đề Projects (`#/batch`).
 
-## Multi-edit
+<a id="multi-edit"></a>
+## Lolly Multi-edit
 
 - Hai đến tám thiết kế đã lưu khác nhau, cạnh nhau dưới dạng thẻ trực tiếp.
 - Một thanh bên chỉnh các đầu vào chúng dùng chung, rồi đến đầu vào riêng của từng thẻ.
@@ -22,7 +25,7 @@ Hai việc xuất hiện khi bạn thường xuyên làm cùng loại tệp. Đ�
 
 ## Tạo nhiều phiên bản của một thiết kế
 
-Mở **Projects** và nhấn **Batch** ở tiêu đề. Lưới bắt đầu với một hàng: chọn một mẫu trong đó, rồi nhân đôi hàng hoặc dán dữ liệu từ bảng tính. Mở từ bên trong một thư mục, Batch đưa bạn về thư mục đó.
+Mở trang **Projects** và nhấn **Batch** ở tiêu đề. Lưới bắt đầu với một hàng: chọn một mẫu trong đó, rồi nhân đôi hàng hoặc dán dữ liệu từ bảng tính. Mở từ bên trong một thư mục, Batch đưa bạn về thư mục đó.
 
 ![Batch trên lưới mới: tên tệp và các công cụ hàng ở trên cùng, và danh sách mẫu của hàng đầu tiên mở trên các công cụ bạn có thể chọn](/t/url-shot?url=%2F%23%2Fbatch&width=1440&height=900&dpi=192&waitMs=3500&walker=1&format=svg&dark=1&filename=use-batch-toolbar)
 
@@ -46,9 +49,13 @@ Mỗi hàng giữ lựa chọn chủ đề riêng: sáng hoặc tối, và một
 
 CSV mang các lựa chọn trong cột `_themes` sau các cột kích thước, chứa cùng JSON như tham số liên kết `_themes`, ví dụ `{"":"dark","colourway":"beach"}`. Ô trống, hoặc `{}`, nghĩa là mặc định của hệ thống thiết kế. Cột chỉ được ghi khi có hàng nào đó có lựa chọn, nên batch không có lựa chọn nào xuất cùng CSV như trước. Khi nhập, ô không phải lựa chọn chủ đề hợp lệ được liệt kê là một vấn đề và hàng của nó kết xuất theo mặc định. Lưới chưa có điều khiển để đổi lựa chọn của một hàng, nên hãy đặt chúng trong CSV hoặc phiên đã lưu.
 
+### Một ngôn ngữ cho mỗi hàng
+
+Một công cụ tự in lời lẽ của riêng nó, như Certificate, có thể nhận cột `language` với mã ngôn ngữ ngắn như `de`, `ja` hoặc `ar`. Khi đó mỗi hàng in lời lẽ và ngày của nó bằng ngôn ngữ đó, và các hàng tiếng Ả Rập và tiếng Urdu được bố trí từ phải sang trái. Ô để trống thì theo ngôn ngữ của ứng dụng. Ngôn ngữ mà Lolly chưa có bản dịch sẽ in bằng tiếng Anh, kể cả ngày, nên chứng nhận không bao giờ bị dịch dở dang.
+
 ### Batch, hoặc Render folder
 
-Batch tạo nhiều biến thể của một mẫu. Để kết xuất lại các phiên bạn đã lưu, chọn chúng trong Projects và dùng **Render selection**, hoặc **Render folder** cho cả thư mục; [Find and recover your work](/info/find-your-work.html#find-something-you-saved) đề cập cả hai.
+Lolly Batch tạo nhiều biến thể của một mẫu. Để kết xuất lại các phiên bạn đã lưu, chọn chúng trong Projects và dùng **Render selection**, hoặc **Render folder** cho cả thư mục; [Find and recover your work](/info/find-your-work.html#find-something-you-saved) đề cập cả hai.
 
 ## Chỉnh sửa nhiều thiết kế đã lưu cùng nhau
 
@@ -69,7 +76,7 @@ Mỗi thẻ vẽ theo lựa chọn chủ đề của phiên riêng nó, kể c�
 - **Tối đa tám.** Mỗi thẻ gắn runtime trực tiếp của riêng nó, và tám là con số còn giữ được độ phản hồi. Liên kết đòi nhiều hơn, hoặc một phiên không còn tồn tại, sẽ nói rõ thay vì tải dở.
 - **Liên kết là cục bộ.** Nó gọi tên các ô đã lưu của chính bạn, nên mở lại bộ đó trên thiết bị này. Nó không phải liên kết chia sẻ.
 - **Với lớn hơn,** chọn **Edit as sheet** trong cùng thanh chọn. Nó mở cả vùng chọn thành các hàng trong lưới batch (`#/batch?s=…`), không giới hạn kích thước và không quy tắc cùng công cụ. Thư mục nằm ngoài cả hai: mở một thư mục trong lưới bằng **Sessions → Folders…**, hoặc kết xuất bằng **Render folder** trong Projects.
-- **Tìm kiếm không tới Multi-edit.** Đây là chế độ xem duy nhất mà thanh tìm kiếm không biết.
+- **Tìm kiếm không tới Lolly Multi-edit.** Đây là chế độ xem duy nhất mà thanh tìm kiếm không biết.
 
 ## Đi tiếp từ đâu
 

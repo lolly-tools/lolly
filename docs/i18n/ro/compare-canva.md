@@ -14,9 +14,9 @@ Ambele te lasă să pornești de la un șablon și să produci o grafică termin
 
 ## Cum face Lolly sarcina comună
 
-Un instrument Lolly codifică schimbările pe care le pot face oamenii, iar același instrument rulează în browser, în aplicația desktop sau în CLI. Un layout făcut pe canvasul Design poate deveni un [instrument cu reguli](/info/create-a-tool.html), iar un instrument poate face multe fișiere dintr-un tabel de valori.
+Un instrument Lolly codifică schimbările pe care le pot face oamenii, iar același instrument rulează în browser, în aplicația desktop sau în CLI. Un layout făcut pe canvasul Lolly Design poate deveni un [instrument cu reguli](/info/create-a-tool.html), iar un instrument poate face multe fișiere dintr-un tabel de valori.
 
-![Canvasul liber Design, unde culorile, fonturile și resursele oferite sunt ale sistemului de design](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&dark=1&filename=aud-open-canvas)
+![Canvasul liber Lolly Design, unde culorile, fonturile și resursele oferite sunt ale sistemului de design](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&dark=1&filename=aud-open-canvas)
 
 Lolly de sine stătător păstrează crearea și exportul pe dispozitiv, fără cont, și funcționează offline după ce resursele sunt salvate. Două persoane pot edita live într-un [collab privat](/info/collaborate.html), de la dispozitiv la dispozitiv. Content Credentials sunt active implicit pentru exporturile acceptate și le poți opri.
 

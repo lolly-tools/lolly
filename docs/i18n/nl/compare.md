@@ -11,7 +11,7 @@ _Laatst gecontroleerd: 28 september 2026._
 - [Lolly en Figma](/info/compare-figma.html) - ontwerp, live samenwerking en herbruikbare assetproductie.
 - [Lolly en Penpot](/info/compare-penpot.html) - open-sourceontwerp, gedeelde tokens en organisatiewerk.
 - [Lolly en merkportalen](/info/compare-brand-portals.html) - goedgekeurde bibliotheken, vergrendelde sjablonen, identiteit, review en rapportage.
-- [Lolly en render-API's](/info/compare-render-apis.html) - geautomatiseerde generatie op je apparaat, in CI of op een Lolly Work-server.
+- [Lolly en render-API's](/info/compare-render-apis.html) - geautomatiseerde generatie op je apparaat, in CI of op je eigen server, en [hoe je overstapt](/info/work-move-from-render-api.html) van Bannerbear of Placid.
 - [Lolly en online bestandsconverters](/info/compare-converters.html) - formaatconversie op je eigen apparaat.
 
 Voor de weergave per mogelijkheid, zie [Hoe Lolly zich verhoudt](/info/positioning.html). Elke vergelijking is gedateerd; een bewering die voor geen van beide producten meer klopt, moet worden gecorrigeerd.

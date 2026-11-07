@@ -1,5 +1,7 @@
 # Design: o canvas livre
 
+<a id="design-the-free-canvas"></a>
+
 O Design é a ferramenta para layouts que nenhum template cobre: um pôster do zero, um deck de slides, uma peça em movimento com trilha sonora. Em vez de um formulário de controles, você tem um canvas de caixas que arrasta, redimensiona, gira e preenche com texto. Ele exporta pelo mesmo caminho de renderização de todas as outras ferramentas, então o que você vê no canvas é o arquivo que recebe.
 
 Esta página percorre o canvas da primeira caixa até um deck pronto: a janela, como dar forma às caixas, desenhar suas próprias formas, posicionar cenas 3D e outras ferramentas, adicionar tempo, conferir o resultado e apresentar o deck finalizado. [Using Lolly](/info/using.html) cobre o que o Design compartilha com todas as ferramentas, como salvar e compartilhar.
@@ -27,7 +29,7 @@ O canvas funciona como a mesa de trabalho de um designer ao redor da prancheta:
 
 O **Navigator** lista todas as pranchetas (com o título **Artboards**, ou **Slides** em um deck) como um grupo retrátil das suas **Layers**. Selecione o nome de uma prancheta para ir até ela, expanda-a para selecionar ou reordenar as camadas e use as setas para percorrer a lista; a seta para a esquerda volta ao título da prancheta. **Pages** agrupa as pranchetas em páginas nomeadas, e escolher uma página apenas muda quais pranchetas o editor mostra.
 
-O **Inspector** coloca primeiro os controles de texto ou imagem do objeto selecionado. Chips de opções cobrem as escolhas rápidas, e **Advanced** guarda o detalhe de estilo. No celular, o Inspector abre como uma folha a partir de **More actions**; Escape ou Back fecha a folha e mantém sua seleção.
+O **Inspector** coloca primeiro os controles de texto ou imagem do objeto selecionado. Chips de opções cobrem as escolhas rápidas, e **Advanced** guarda o detalhe de estilo. No celular, o Inspector e a lista de camadas dividem um único painel que desce de baixo da barra superior, o mesmo painel em que toda outra ferramenta guarda os seus controles. **Inspect** e **Layer/Page** na barra de baixo abrem o painel na aba correspondente. Arraste a alça da borda inferior dele, ou toque na alça, para alternar o painel entre uma faixa com as duas abas, metade da tela e quase toda a tela. Na metade, o canvas abaixo do painel mostra a sua seleção. Escape recolhe o painel de volta à faixa e mantém sua seleção.
 
 ![A seção Document do Inspector: as abas Selection e Canvas, depois Dimensions e Style & look](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3Dfeature-tour&width=1440&height=900&dpi=192&waitMs=3500&cropSelector=.fc-insp&walker=1&format=svg&dark=1&filename=design-narration)
 
@@ -241,6 +243,8 @@ A seta ao lado de **Present** abre **Present from this slide**, **Speaker view**
 | **Escape** | Remove uma camada: da visão geral para o deck, do deck para o editor |
 
 Uma pequena barra de controle surge quando você move o ponteiro e se esconde de novo quando você para. Se o navegador bloquear a janela pop-up do apresentador, a visão do apresentador abre como um painel sobre o deck. As notas pertencem a cada prancheta e nunca aparecem no slide.
+
+Em uma tela sensível ao toque, deslize para a esquerda para ir ao próximo passo ou slide e para a direita para voltar. Uma transição **Slide** ou **Fade** acompanha o seu dedo e termina quando você solta; uma transição **Cut**, **Morph** ou **Fly between artboards** é executada por inteiro depois que você solta, e um deslize curto e lento não muda nada. Caixas de página web, controles de vídeo, caixas que rolam e texto selecionado mantêm os próprios gestos, então um deslize nunca começa em um deles, e a rolagem vertical e o zoom por pinça funcionam como de costume. Com movimento reduzido, o slide ainda muda, sem acompanhar o seu dedo.
 
 - **Reveal steps.** Clique com o botão direito em uma caixa e escolha **Reveal at step 1**, **2** ou **3** em vez de **Always visible**, e a caixa espera até você avançar para o passo dela. Caixas que compartilham um número chegam juntas.
 - **Kiosk.** Dê um **Length** a uma prancheta e o deck fica nela por esse tempo e depois avança, atrás de uma fina barra de progresso. Adicione `kiosk` ao link e o deck volta ao início no final, para sinalização.

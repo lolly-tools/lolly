@@ -1,8 +1,10 @@
-# Batch und Multi-edit
+# Lolly Batch und Lolly Multi-edit
+
+<a id="batch-and-multi-edit"></a>
 
 Zwei Aufgaben tauchen auf, sobald Sie oft dieselbe Art von Datei erstellen. Manchmal brauchen Sie viele Versionen eines Designs: eine Karte in einem Dutzend Sprachen oder jede Größe eines Banners. Manchmal haben Sie mehrere verschiedene gespeicherte Designs und wollen, dass eine Änderung alle erreicht, etwa ein neues Datum oder eine neue Überschrift.
 
-**Batch** erledigt die erste Aufgabe und **Multi-edit** die zweite. Beide laufen auf Ihrem Gerät und exportieren über denselben Render-Pfad wie die Tools selbst.
+**Lolly Batch** erledigt die erste Aufgabe und **Lolly Multi-edit** die zweite. Beide laufen auf Ihrem Gerät und exportieren über denselben Render-Pfad wie die Tools selbst.
 
 ::: cols
 ## Batch
@@ -10,9 +12,10 @@ Zwei Aufgaben tauchen auf, sobald Sie oft dieselbe Art von Datei erstellen. Manc
 - Eine Vorlage, viele Zeilen. Jede Zeile ist ein Satz Eingaben und erzeugt eine Datei.
 - Füllen Sie die Zeilen durch Tippen, Einfügen aus einer Tabelle oder den Import einer CSV.
 - Keine Grenze für Zeilen; 50 werden pro Seite angezeigt.
-- Öffnet sich über **Batch** in der Kopfzeile von Projects (`#/batch`).
+- Öffnet sich über **Lolly Batch** in der Kopfzeile von Projects (`#/batch`).
 
-## Multi-edit
+<a id="multi-edit"></a>
+## Lolly Multi-edit
 
 - Zwei bis acht verschiedene gespeicherte Designs, nebeneinander als Live-Karten.
 - Eine Seitenleiste bearbeitet die Eingaben, die sie teilen, dann die eigenen jeder Karte.
@@ -22,7 +25,7 @@ Zwei Aufgaben tauchen auf, sobald Sie oft dieselbe Art von Datei erstellen. Manc
 
 ## Viele Versionen eines Designs erstellen
 
-Öffnen Sie **Projects** und drücken Sie in der Kopfzeile **Batch**. Das Raster beginnt mit einer Zeile: Wählen Sie darin eine Vorlage und duplizieren Sie dann die Zeile oder fügen Sie Daten aus Ihrer Tabelle ein. Wird Batch aus einem Ordner heraus geöffnet, bringt es Sie zu diesem Ordner zurück.
+Öffnen Sie die Ansicht **Projects** und drücken Sie in der Kopfzeile **Batch**. Das Raster beginnt mit einer Zeile: Wählen Sie darin eine Vorlage und duplizieren Sie dann die Zeile oder fügen Sie Daten aus Ihrer Tabelle ein. Wird Batch aus einem Ordner heraus geöffnet, bringt es Sie zu diesem Ordner zurück.
 
 ![Batch auf einem neuen Raster: oben der Dateiname und die Zeilenwerkzeuge, und die Vorlagenliste der ersten Zeile ist offen und zeigt die Tools, die Sie wählen können](/t/url-shot?url=%2F%23%2Fbatch&width=1440&height=900&dpi=192&waitMs=3500&walker=1&format=svg&dark=1&filename=use-batch-toolbar)
 
@@ -46,9 +49,13 @@ Jede Zeile behält ihre eigenen Design-Entscheidungen: hell oder dunkel und eine
 
 Eine CSV trägt die Entscheidungen in einer Spalte `_themes` nach den Größenspalten, die dasselbe JSON enthält wie der Link-Parameter `_themes`, zum Beispiel `{"":"dark","colourway":"beach"}`. Eine leere Zelle oder `{}` bedeutet die Standardwerte des Designsystems. Die Spalte wird nur geschrieben, wenn irgendeine Zeile Entscheidungen hat, sodass ein Batch ohne solche dieselbe CSV exportiert wie zuvor. Beim Import wird eine Zelle, die keine gültigen Design-Entscheidungen enthält, als Problem aufgelistet, und ihre Zeile rendert mit den Standardwerten. Das Raster hat noch kein Steuerelement, um die Entscheidungen einer Zeile zu ändern; legen Sie sie also in der CSV oder in der gespeicherten Sitzung fest.
 
+### Eine Sprache für jede Zeile
+
+Ein Tool, das seinen eigenen Wortlaut druckt, etwa Certificate, kann eine Spalte `language` mit einem kurzen Sprachcode wie `de`, `ja` oder `ar` annehmen. Jede Zeile druckt dann ihren Wortlaut und ihr Datum in dieser Sprache, und arabische und Urdu-Zeilen werden von rechts nach links gesetzt. Eine leere Zelle folgt der Sprache der App. Eine Sprache, deren Übersetzung Lolly noch nicht hat, wird auf Englisch gedruckt, Datum eingeschlossen, damit ein Zertifikat nie halb übersetzt ist.
+
 ### Batch oder Render folder
 
-Batch erzeugt viele Varianten einer Vorlage. Um Sitzungen neu zu rendern, die Sie schon gespeichert haben, wählen Sie sie in Projects aus und nutzen **Render selection**, oder **Render folder** für einen ganzen Ordner; [Ihre Arbeit finden und wiederherstellen](/info/find-your-work.html#find-something-you-saved) behandelt beides.
+Lolly Batch erzeugt viele Varianten einer Vorlage. Um Sitzungen neu zu rendern, die Sie schon gespeichert haben, wählen Sie sie in Projects aus und nutzen **Render selection**, oder **Render folder** für einen ganzen Ordner; [Ihre Arbeit finden und wiederherstellen](/info/find-your-work.html#find-something-you-saved) behandelt beides.
 
 ## Mehrere gespeicherte Designs gemeinsam bearbeiten
 
@@ -69,7 +76,7 @@ Jede Karte zeichnet mit den Design-Entscheidungen ihrer eigenen Sitzung, einschl
 - **Höchstens acht.** Jede Karte startet ihre eigene Live-Laufzeit, und acht ist die Zahl, bei der alles reaktionsfähig bleibt. Ein Link, der mehr verlangt oder eine Sitzung, die es nicht mehr gibt, sagt das, statt halb zu laden.
 - **Der Link ist lokal.** Er nennt Ihre eigenen gespeicherten Slots und öffnet daher diesen Satz auf diesem Gerät wieder. Er ist kein Share-Link.
 - **Für alles Größere** wählen Sie in derselben Auswahlleiste **Edit as sheet**. Das öffnet die ganze Auswahl als Zeilen im Batch-Raster (`#/batch?s=…`), ohne Größengrenze und ohne Regel, dass es dasselbe Tool sein muss. Ordner bleiben bei beidem außen vor: Öffnen Sie einen Ordner im Raster mit **Sessions → Folders…** oder rendern Sie einen mit **Render folder** in Projects.
-- **Die Suche erreicht Multi-edit nicht.** Es ist die eine Ansicht, die die Suchleiste nicht kennt.
+- **Die Suche erreicht Lolly Multi-edit nicht.** Es ist die eine Ansicht, die die Suchleiste nicht kennt.
 
 ## Wie es weitergeht
 

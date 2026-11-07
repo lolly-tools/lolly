@@ -8,6 +8,7 @@ Dua perkataan membawa maksud yang sama di seluruh halaman ini. **Jenama utama** 
 
 - **Satu sistem reka bentuk melukis setiap hasil kerja.** Warna, taip dan peraturan dalaman jenama utama digunakan. Tanda rakan kongsi dimasukkan sebagai karya seni: gambar daripada Assets, atau tanda tersuai yang disimpan dalam sistem reka bentuk.
 - **Jenama bergerak sebagai fail.** Fail sistem reka bentuk (`.lolly`) membawa token, fon dan logo. Alat boleh guna semula yang dibuat dengan **Share with rules** membawa satu reka letak siap dengan input yang anda benarkan. Kemahiran jenama bergerak sebagai fail tersendiri.
+- **Jenama juga boleh mempunyai alamat.** [Halaman jenama](/info/brand-page.html) menerbitkan logo, warna, jenis huruf dan peraturan untuk dibaca rakan kongsi, dengan token dan kemahiran untuk alat mereka.
 - **Lolly hanya menyemak peraturan jenama utama.** Ia tidak mengetahui peraturan rakan kongsi, seperti ruang kosong atau saiz minimum, jadi semaklah perkara itu berdasarkan garis panduan rakan kongsi sendiri.
 
 ## Kongsi jenama anda dengan rakan kongsi
@@ -17,8 +18,9 @@ Dua perkataan membawa maksud yang sama di seluruh halaman ini. **Jenama utama** 
 | Hantar | Cara | Rakan kongsi mendapat | Sesuai untuk |
 | --- | --- | --- | --- |
 | Fail sistem reka bentuk | **Export** dalam bar di bahagian atas [Lolly Design System Setup](/info/brand-studio.html#move-a-brand-between-devices) | Token, fon, logo dan pilihan tema anda, sebagai sistem reka bentuk yang boleh mereka tukar kepadanya | Rakan kongsi yang menghasilkan banyak hasil kerja dalam jenama anda |
-| Alat boleh guna semula | Dalam Design, **Share with rules** ([Share a design with rules](/info/create-a-tool.html)) | Satu reka letak siap dengan input yang anda benarkan, seperti nama dan logo mereka. Fail membawa warna, fon dan imej yang telah ditetapkan, jadi sistem reka bentuk mereka sendiri tidak dapat menggayakan semula karya seni yang tetap | Risalah, lencana atau sepanduk jenama bersama yang diisi oleh setiap rakan kongsi |
+| Alat boleh guna semula | Dalam Lolly Design, **Share with rules** ([Share a design with rules](/info/create-a-tool.html)) | Satu reka letak siap dengan input yang anda benarkan, seperti nama dan logo mereka. Fail membawa warna, fon dan imej yang telah ditetapkan, jadi sistem reka bentuk mereka sendiri tidak dapat menggayakan semula karya seni yang tetap | Risalah, lencana atau sepanduk jenama bersama yang diisi oleh setiap rakan kongsi |
 | Kemahiran jenama | Bilik **Skills**: **Download skill (.zip)** atau **Copy as one file** | Piawaian bertulis anda, untuk orang dan ejen mereka | Mana-mana di atas, apabila ejen melakukan sebahagian kerja |
+| Halaman jenama | **Publish a brand page** dalam Lolly Design System Setup, atau `lolly system publish`, menulis folder yang anda hoskan ([Halaman jenama](/info/brand-page.html)) | Logo, warna, jenis huruf dan peraturan terkini anda pada satu alamat, dengan token dan kemahiran untuk alat mereka. Logo dan fail fon muncul apabila hak mereka membenarkan, dan halaman menyenaraikan apa yang ditahan | Berkongsi dengan orang yang tidak anda hantarkan fail |
 | Token | **Tokens (.json)** dalam menu **More** studio | Dokumen token reka bentuk biasa, tanpa fon atau logo | Alat reka bentuk atau binaan rakan kongsi sendiri |
 
 ![Design System Setup pada Lolly Demo, dibuka pada bilik Skills: Export dalam bar, menu More terbuka pada Tokens (.json), serta Download skill (.zip) dan Copy as one file di sebelah kemahiran yang dipilih](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dskills&width=1200&height=900&dpi=192&waitMs=1800&waitSelector=.skills-reader-actions&drive=click%3A%5Bdata-ds-more%5D%3Bwait%3A500&format=svg&walker=1&dark=1&filename=partners-send)
@@ -108,6 +110,8 @@ Eksport dinding itu sebagai PNG, SVG, PDF atau PDF CMYK untuk cetakan. Tetapkan 
 
 Dalam terminal, `lolly run logo-wall logos/*.png --output=wall.svg` membina dinding daripada folder gambar, dan CSV dengan lajur `logo` dan `tier` membina dinding berperingkat. SVG dan PNG tidak memerlukan pelayar ([Dinding penaja dengan peringkat](/info/cli-rendering.html#a-sponsor-wall-with-tiers)).
 
+Apabila penaja menerbitkan [halaman jenama](/info/brand-page.html), `lolly run logo-wall --logos-from=<address or folder>` mengambil logo terkini mereka untuk permukaan itu dan mencetak apa yang dinyatakan halaman mereka tentang penggunaan. Ulangi bendera itu bagi setiap penaja.
+
 Logo Wall tidak mengetahui peraturan mana-mana penaja. Tier dan Presence menetapkan saiz relatif antara satu sama lain, bukan saiz minimum penaja, dan tiada apa yang menyemak ruang kosong antara logo yang berjiran. Semak dinding yang siap berdasarkan garis panduan setiap penaja pada saiz ia akan dicetak atau ditunjukkan.
 
 ## Perkara yang Lolly belum lakukan
@@ -119,6 +123,8 @@ Logo Wall tidak mengetahui peraturan mana-mana penaja. Tier dan Presence menetap
 - Satu sistem reka bentuk aktif untuk seluruh peranti, jadi dua jenama tidak boleh dibuka bersebelahan.
 - Fail sistem reka bentuk ialah salinan jenama seperti ketika ia dieksport, dan tiada apa-apa yang mengemas kini salinan itu. Fail sistem reka bentuk yang dieksport daripada apl tidak membawa kemahiran jenama, jadi hantar kemahiran itu sebagai fail tersendiri.
 - Sesuatu eksport merekodkan sistem reka bentuk dan skema warna jenama utama, bukan jenama rakan kongsi.
+- Logo yang diambil daripada halaman jenama ialah gambar dalam barisnya, dan baris itu tidak mengingati halaman. Tiada apa-apa menunjukkan siapa yang menerbitkan halaman, jadi semak alamat itu sendiri.
+- Apl web terhos tidak dapat mengambil halaman jenama lain, kerana Content Security Policy-nya hanya membenarkan hos yang dinamakan. Ambil logo dalam terminal, atau simpan fail dan tambahkan fail itu dalam **Assets**.
 
 ## Ke mana seterusnya
 
@@ -126,4 +132,5 @@ Logo Wall tidak mengetahui peraturan mana-mana penaja. Tier dan Presence menetap
 - **[Share a design with rules](/info/create-a-tool.html)**: alat boleh guna semula dengan reka letak tetap dan input yang anda pilih.
 - **[Kemahiran jenama](/info/brand-skills.html)**: cara kemahiran ditulis, dibaca dan diserahkan kepada ejen.
 - **[Lolly Design System Setup](/info/brand-studio.html)**: logo, tanda tersuai, dan memindahkan sistem reka bentuk antara peranti.
+- **[Halaman jenama](/info/brand-page.html)**: terbitkan jenama anda pada satu alamat, dan ambil logo rakan kongsi daripada alamat mereka.
 - **[Hak kreatif dan kredit](/info/creative-rights.html)**: apa yang Lolly rekodkan tentang karya yang dilukisnya.

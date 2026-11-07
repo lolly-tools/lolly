@@ -16,7 +16,7 @@ Tasarımcıların Figma'da çalışıyorsa bu sayfa Lolly'nin onun yanında nas�
 
 Lolly bir tasarımı [kurallı, yeniden kullanılabilir bir araca](/info/create-a-tool.html) dönüştürür. Araç tarayıcıda veya CLI'de çalışır ve girdilerini bir bağlantıdan, bir betikten veya bir toplu iş ızgarasından alır; böylece tek bir şablon, tek bir dosyayı düzenleyen bir kişiye ve çok sayıda dosya yapan bir ekibe hizmet eder.
 
-![Design'ın açık tuvali; araç çubuğunun Lolly menüsünde Import a design ile](/info/shots/design.svg)
+![Lolly Design'ın açık tuvali; araç çubuğunun Lolly menüsünde Import a design ile](/info/shots/design.svg)
 
 Bir [özel collab](/info/collaborate.html) iki cihazı doğrudan eşler; ortak bir ağda hesap ve internet gerekmez. Bağımsız Lolly çevrimdışı render eder. Content Credentials desteklenen dışa aktarmalarda varsayılan olarak açıktır ve kapatabilirsin.
 

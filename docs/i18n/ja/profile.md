@@ -40,7 +40,7 @@
 年に3日だけイベントマネージャーを務める人は、バッジやサインにイベントの受信箱とイベントのサブブランドを使い、その後は普段の自分に戻したいものです。その役割を保存したプロフィールファイルとして持ち、イベントのときに読み込み、終わったら脇に置いておきます。
 :::
 
-![The headshot control, empty until you upload a photo that then stays on this device](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-side&walker=1&dark=1&filename=pd-profile-headshot&css=.profile-details-main%7Bdisplay%3Anone%7D)
+![ヘッドショットのコントロール。写真をアップロードするまでは空で、アップロードした写真はこのデバイスに残る](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-side&walker=1&dark=1&filename=pd-profile-headshot&css=.profile-details-main%7Bdisplay%3Anone%7D)
 
 ::: details Lolly Workを使う組織でのプロフィール
 [組織のLolly](/info/organisation.html)にサインインすると、Lolly Workは、IDプロバイダーから確認済みのプロフィール項目を提供し、組織のポリシーに基づいて項目や設定を固定できます。管理対象の項目には、アプリ内でその旨が表示されます。
@@ -90,7 +90,7 @@ Settingsには互いに近い3つの項目があり、混同しやすいもの�
 
 Lollyでは、この言葉にほかにも3つの意味があります。**コンテンツプロファイル**は、配備がどのツールとカタログを含むかを選ぶビルド設定で、その用語は[用語集](/info/glossary.html)で定義しています。`profile`リンクパラメーターは、CMYKの印刷条件など、書き出し用のカラープロファイルを選びます。[予約済みURLパラメーター](/info/url-parameters.html#print)をご覧ください。**認証済みID**は、お客様のメールアドレスを署名付き書き出しに結び付ける、任意の署名用証明書で、これらの詳細とは別のものですが、どちらが埋め込まれるかは**Use my details to create**が制御します。[Content Credentials](/info/content-credentials-identity.html)をご覧ください。
 
-![The Verified identity card, phone-width: the certificate lifetime picker and the enrolment step beneath it - the identity profile, separate from your personal details](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Didentity-section&width=430&height=1600&dpi=192&waitMs=2400&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone%7D&format=svg&walker=1&cropSelector=%23identity-section&dark=1&filename=pv-identity-enrol)
+![Verified identityカード(スマートフォン幅): 証明書の有効期間ピッカーと、その下の登録手順。個人の詳細とは別のIDプロファイル](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Didentity-section&width=430&height=1600&dpi=192&waitMs=2400&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone%7D&format=svg&walker=1&cropSelector=%23identity-section&dark=1&filename=pv-identity-enrol)
 
 ## プライバシー
 
