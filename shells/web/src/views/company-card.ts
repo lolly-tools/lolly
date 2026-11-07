@@ -63,7 +63,7 @@ export interface AccessEnds { at: string; programme: string }
 /** Read the workspace's `partner.accessEndsAt` and `partner.accessEndsThrough`, or
  *  null when either is missing, the date is not a date or it has passed. */
 export function accessEndsOf(
-  partner: { accessEndsAt?: unknown; accessEndsThrough?: { name?: unknown } | null } | null | undefined, now = Date.now(),
+  partner: { accessEndsAt?: unknown; accessEndsThrough?: { id?: unknown; name?: unknown } | null } | null | undefined, now = Date.now(),
 ): AccessEnds | null {
   const at = typeof partner?.accessEndsAt === 'string' ? Date.parse(partner.accessEndsAt) : NaN;
   const name = partner?.accessEndsThrough?.name;
