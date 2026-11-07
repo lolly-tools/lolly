@@ -41,6 +41,7 @@ import { fetchWithin, jsonBody } from '../lib/instance-json.ts';
 export { safeFetch, jsonBody } from '../lib/instance-json.ts';
 import type { AuthConfig, OrgState } from './index.ts';
 import { beginAiProbe, finishAiProbe, knownManagedAi } from './ai-policy.ts';
+import { settleWorkspaceCompany } from '../lib/workspace-templates.ts';
 
 /** Short budget for the org seam's small control-plane calls (the device sign-in
  *  start uses four times this). The boot probe has its own, longer budget below. */
@@ -168,6 +169,18 @@ export function rememberAbsent(): void {
  */
 export async function initOrgProbeFirst(): Promise<OrgState | null> {
   beginAiProbe();
+  let state: OrgState | null = null;
+  try {
+    state = await probeAndInit();
+    return state;
+  } finally {
+    // Every outcome is in, so the person's company is known (or there is none):
+    // the first-visit welcome waits for this rather than guess (plans/82 M3).
+    settleWorkspaceCompany(!!state && !state.gate);
+  }
+}
+
+async function probeAndInit(): Promise<OrgState | null> {
   try {
     if (!knownManagedAi() && isRecentlyAbsent()) { finishAiProbe(false); return null; }
     const { auth, absent } = await probeInstance();

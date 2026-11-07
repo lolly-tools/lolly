@@ -136,6 +136,50 @@ export function workspacePartner(): ExportPartner | null {
   return out.company || out.programme ? out : null;
 }
 
+/** The longest a first visit waits to learn the person's company. */
+export const WORKSPACE_COMPANY_WAIT_MS = 3000;
+
+let companyKnown = false;
+let governed = false;
+let companyWaiters: Array<() => void> = [];
+
+/**
+ * Boot has asked the instance who this person is (org/probe.ts), so the company,
+ * if they have one, is set. Called once every outcome is in: no instance, a
+ * sign-in gate or a member. `member` says a workspace now governs this session.
+ */
+export function settleWorkspaceCompany(member = false): void {
+  governed = member;
+  companyKnown = true;
+  const ready = companyWaiters;
+  companyWaiters = [];
+  for (const resolve of ready) resolve();
+}
+
+/** Resolves once boot knows the person's company, or after `ms`, whichever is first. */
+export function workspaceCompanySettled(ms = WORKSPACE_COMPANY_WAIT_MS): Promise<void> {
+  if (companyKnown) return Promise.resolve();
+  return new Promise((resolve) => {
+    const timer = setTimeout(done, ms);
+    function done(): void { clearTimeout(timer); companyWaiters = companyWaiters.filter((w) => w !== done); resolve(); }
+    companyWaiters.push(done);
+  });
+}
+
+/** True once boot has signed this person in to a workspace. */
+export function workspaceGoverned(): boolean {
+  return governed;
+}
+
+/** Forget what boot learned, for tests. */
+export function _resetWorkspaceCompanyForTests(): void {
+  company = null;
+  programme = null;
+  companyKnown = false;
+  governed = false;
+  companyWaiters = [];
+}
+
 export type CompanyMode = 'light' | 'dark';
 
 /** The mode a document draws in, from its theme choices (`{ "": "dark" }`). */
