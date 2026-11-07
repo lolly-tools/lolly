@@ -116,8 +116,13 @@ joining the programme. There are two kinds:
 **Who gets it** can be the whole programme, one of its companies, or several programmes.
 
 When people in the programme can also open the template's tool on its own, the row says so. They
-could then make the same piece outside the template's rules. To keep them inside the rules, publish
-a Share with rules file instead.
+could then make the same piece outside the template's rules. To keep them inside, turn on the switch under
+the row, for example **Partners use Pricing only through its published templates**. It is off by
+default and set per programme and per tool. When it is on, the tool leaves their gallery and search, its
+**Start** chooser offers only the templates published to them, with no blank canvas, and a server
+render must name one of those templates. Copies they saved before keep opening. If any of a
+person's programmes turns it on, the tool is templates only for that person, and Preview says which
+programme turned the switch on.
 
 ### New versions and retiring
 
@@ -142,7 +147,9 @@ input the template fixes, and asks to change the colourway or mode (`ds`, `_them
 template keeps its own. A tool built from a Share with rules file refuses anything the designer
 did not open the same way, and a value outside the designer's choices with `422 INPUT_NOT_ALLOWED`.
 A template's rules can make a tool's own input rules stricter, never looser. A retired template
-answers `410 TEMPLATE_RETIRED` with the replacement.
+answers `410 TEMPLATE_RETIRED` with the replacement. When the tool is templates only for the
+caller, a render that gives no template answers `422 TEMPLATE_REQUIRED` with the templates they
+may use.
 
 ## Companies
 
@@ -353,10 +360,11 @@ DELETE /api/v1/programmes/:id/folders?provider=&path=&company=
 GET    /api/v1/programmes/:id/templates           # its templates, and the catalog templates to publish from
 POST   /api/v1/programmes/:id/templates           # { from, groups, editable? }: publish a catalog template
 POST   /api/v1/programmes/:id/templates/rules-file?groups=   # the .lolly as the body
-PUT    /api/v1/programmes/:id/templates/:asset    # { groups?, editable? }
+PUT    /api/v1/programmes/:id/templates/:asset    # { groups?, editable?, fixedTheme? }
 POST   /api/v1/programmes/:id/templates/:asset/versions      # { from }, or a newer .lolly as the body
 POST   /api/v1/programmes/:id/templates/:asset/retire        # { replacedBy? }
 POST   /api/v1/programmes/:id/templates/:asset/restore
+PUT    /api/v1/programmes/:id/templates-only/:tool         # { on }
 ```
 
 A `PUT` that leaves out `tools` or `collections` keeps what the programme had. Each change is
@@ -369,7 +377,8 @@ never the address, and `via: "domain"` with the domain for someone who joined th
 companies as `programme.company.create`, `.edit` and `.delete`. Domains are audited as
 `programme.domain.add`, `.rule`, `.assert`, `.proof`, `.verify`, `.pause`, `.move-staff` and
 `.remove`. Provider folders are audited as `programme.folder.add`, `.edit`, `.remove` and `.end`.
-Templates are audited as `programme.template.publish`, `.update`, `.version`, `.retire` and `.restore`.
+Templates are audited as `programme.template.publish`, `.update`, `.version`, `.retire` and `.restore`,
+and the templates-only switch as `programme.template.only`.
 
 The same steps from the command line:
 

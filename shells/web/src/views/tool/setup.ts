@@ -73,6 +73,7 @@ import { clearShareDeepLink, shareDeepLink } from '../export-share.ts';
 import { setSessionEmojiStamp } from '../../bridge/state.ts';
 import type { PanelEl, ToolRuntime } from './shared.ts';
 import { bindOp, type ToolViewCtx } from './context.ts';
+import { isTemplatesOnlyTool, isWorkspaceTemplateRef } from '../../lib/workspace-templates.ts';
 import { navigateTo } from '../../nav.ts';
 import { endCanvasCost, startCanvasCost } from '../../lib/canvas-feedback.ts';
 
@@ -393,6 +394,35 @@ async function applyTemplateOrigin(tview: ToolViewCtx): Promise<void> {
   tview.mountLifecycle.add('template inputs', () => clearTemplateInputs(tview.toolId));
 }
 
+/**
+ * The Start chooser for a tool the workspace set to templates only: its published
+ * templates, with no blank canvas and no others. Resolves `{}` when there is nothing to
+ * start from or the person closes it; the pick handler then sends them home.
+ */
+async function publishedOnlyPick(tview: ToolViewCtx): Promise<Record<string, InputValue>> {
+  const { openTemplateChooser } = await import('../template-chooser.ts');
+  const { listWorkspaceTemplates, startableFor, workspaceVariants } = await import('../../lib/workspace-templates.ts');
+  if (tview.templatePickTornDown) return {};
+  const published = startableFor(await listWorkspaceTemplates(tview.host as never), tview.toolId);
+  const label = getSessionSource()?.label;
+  const from = label ? tRaw('From {name}', { name: label }) : t('From your workspace');
+  const templates = await workspaceVariants(published, from, undefined, (tpl) => `${from} · ${tRaw('Version {n}', { n: tpl.version })}`);
+  if (tview.templatePickTornDown) return {};
+  return openTemplateChooser({
+    toolName: tview.tool.manifest.name,
+    toolId: tview.toolId,
+    templates,
+    host: tview.host,
+    formats: tview.tool.manifest.render?.formats,
+    galleryArt: tview.tool.manifest.galleryArt,
+    noBlank: true,
+    // Nothing published to this person for this tool yet: one plain line, and closing goes home.
+    emptyText: tRaw('No {tool} templates have been published to you yet.', { tool: tview.tool.manifest.name }),
+    onPick: ({ templateId }) => { if (templateId?.startsWith('inst/')) tview.pickedWorkspaceRef = templateId; },
+    onOpen: (close) => { if (tview.templatePickTornDown) close(); else tview.templatePickClose = close; },
+  });
+}
+
 /** The "New from template" on-ramp. */
 export async function templatePick(tview: ToolViewCtx): Promise<void> {
   const { hasTemplates, presetParam, reachedViaLink, slot, templateMeta, templateParam, templateSeededIds, toolId, urlDesignSystem, values } = tview;
@@ -407,6 +437,11 @@ export async function templatePick(tview: ToolViewCtx): Promise<void> {
   tview.pickedWorkspaceRef = null;
   tview.templateNow = null;
   tview.templateFixedTheme = false;
+  // Templates only (lib/workspace-templates.ts): the workspace keeps this person inside
+  // the templates it published for this tool. A saved copy still opens as it is; a
+  // fresh open offers only those templates, with no blank canvas and no others.
+  const onlyPublished = isTemplatesOnlyTool(tview.indexEntry);
+  tview.templatesOnly = onlyPublished;
   // A document made from a workspace template keeps where it came from (`__template`),
   // and reopens offering only what that template leaves open.
   tview.templateOrigin = null;
@@ -437,7 +472,7 @@ export async function templatePick(tview: ToolViewCtx): Promise<void> {
   // direct link, a share, or an OFFSCREEN export remount (the blank-PDF/MP4 bug:
   // scene and export renders re-parse the URL in a context with no index and no
   // inline manifest fallback) would silently drop the seed and render empty.
-  if (templateParam && !slot && !tview.seededDirect && Object.keys(values).length === 0) {
+  if (templateParam && !slot && !tview.seededDirect && Object.keys(values).length === 0 && (!onlyPublished || isWorkspaceTemplateRef(templateParam))) {
     // `?template=` names a REF now (plans/226): a bare `<tid>` is this tool's shipped
     // template, exactly as every existing link has it, and `user:<id>` is one the person
     // saved - the Projects tiles and the Templates collection link that way.
@@ -473,6 +508,10 @@ export async function templatePick(tview: ToolViewCtx): Promise<void> {
   } else if (captureNeutralPinned()) {
     // A pinned docs capture honours an explicit template but skips personal
     // defaults and the chooser, which would need someone to dismiss it.
+  } else if (onlyPublished && !slot && !tview.seededDirect && pendingLiveCollab()?.toolId !== toolId) {
+    // Templates only: the workspace's published templates are the only way in, links and
+    // the "Start with" setting included. Not awaited, like the chooser below.
+    tview.templatePick = publishedOnlyPick(tview).catch(() => ({} as Record<string, InputValue>));
   } else if (
     !slot &&
     pendingLiveCollab()?.toolId !== toolId &&
@@ -641,6 +680,10 @@ export async function templatePick(tview: ToolViewCtx): Promise<void> {
       });
     }
   }
+
+  // Templates only, and a link named a template that is gone: there is no plain start
+  // to offer, so the pick handler below sends the person home.
+  if (onlyPublished && !slot && !tview.seededDirect && !tview.templateOrigin && !tview.templatePick) tview.templatePick = Promise.resolve({});
 
   await applyTemplateOrigin(tview);
 
@@ -907,6 +950,9 @@ export function stableRowIds(tview: ToolViewCtx): void {
           location.hash = `#/tool/${encodeURIComponent(tview.toolId)}?template=${encodeURIComponent(tview.pickedWorkspaceRef)}`;
           return;
         }
+        // Templates only, and the chooser closed with no pick: there is no blank start
+        // to fall back to, so the person goes back home, where the templates are.
+        if (tview.templatesOnly) { location.hash = '#/'; return; }
         const seed: Record<string, InputValue> = {};
         for (const [k, v] of Object.entries(chosen ?? {})) if (k !== '__tokenLinks' && !(k in tview.initialValues)) seed[k] = v;
         if (!Object.keys(seed).length) return; // Blank canvas / Escape / close

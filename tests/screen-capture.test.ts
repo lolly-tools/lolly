@@ -599,6 +599,7 @@ test('ENGINE_VERSION is 1.328.0', () => {
   // 1.324.0 adds the opt-in spotsAsProcess export choice for the CMYK formats. Capture is unchanged.
   // 1.325.0 keeps the browser credential's record of placed pictures in a server credential. Capture is unchanged.
   // 1.326.0 adds a stencil prim to the vector IR, for EPS and WMF text no font can draw. Capture is unchanged.
+  // 1.327.0 has preflight count no spot plate when spot inks print as process. Capture is unchanged.
   // 1.328.0 draws the stencil prim in EMF too. Capture is unchanged.
   assert.equal(ENGINE_VERSION, '1.328.0');
 });
