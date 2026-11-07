@@ -155,6 +155,13 @@ export function openCompanyEditSheet(view: CompanyView, onChanged?: (next: Compa
   const max = (field: string): string => (view.limits?.fields[field] ? ` maxlength="${view.limits.fields[field]}"` : '');
   const input = (name: string, label: string, value: string | undefined, attrs = ''): string =>
     `<label class="company-edit-field"><span>${escapeHtml(label)}</span><input class="field-input" name="${name}" value="${escapeHtml(value ?? '')}"${attrs}></label>`;
+  // A button opens the file chooser and the chosen file's name shows beside it, in
+  // place of the browser's own unstyled control.
+  const logoPick = (name: 'light' | 'dark', label: string): string =>
+    `<div class="company-edit-field"><span>${escapeHtml(label)}</span><span class="company-edit-file">`
+    + `<button type="button" class="btn btn--sm" data-pick="${name}" aria-label="${escapeHtml(tRaw('Choose a file: {label}', { label }))}">${escapeHtml(t('Choose a file'))}</button>`
+    + `<span class="company-edit-file-name" data-file-name="${name}"></span>`
+    + `<input type="file" name="${name}" accept=".svg,.png,image/svg+xml,image/png" hidden></span></div>`;
   const kb = (n: number): string => (n >= 1024 * 1024 ? `${Math.round(n / (1024 * 1024))} MB` : `${Math.round(n / 1024)} KB`);
   const logoHint = view.limits
     ? tRaw('SVG up to {svg}, or PNG up to {png} and at least {px} pixels on its long side.', { svg: kb(view.limits.logo.svgMaxBytes), png: kb(view.limits.logo.pngMaxBytes), px: view.limits.logo.pngMinLongSide })
@@ -170,8 +177,8 @@ export function openCompanyEditSheet(view: CompanyView, onChanged?: (next: Compa
         <label class="company-edit-field"><span>${escapeHtml(t('Address'))}</span><textarea class="field-input" name="address" rows="3"${max('address')}>${escapeHtml(p.address ?? '')}</textarea></label>
         ${input('currency', t('Currency'), p.currency, ' maxlength="3"')}
         ${input('taxNote', t('Tax note'), p.taxNote, max('taxNote'))}
-        <label class="company-edit-field"><span>${escapeHtml(t('Logo for light backgrounds'))}</span><input type="file" name="light" accept=".svg,.png,image/svg+xml,image/png"></label>
-        <label class="company-edit-field"><span>${escapeHtml(t('Logo for dark backgrounds'))}</span><input type="file" name="dark" accept=".svg,.png,image/svg+xml,image/png"></label>
+        ${logoPick('light', t('Logo for light backgrounds'))}
+        ${logoPick('dark', t('Logo for dark backgrounds'))}
         <p class="company-edit-hint">${escapeHtml(logoHint)}</p>
       </form>
       <div class="company-edit-status" role="status"></div>
@@ -190,7 +197,15 @@ export function openCompanyEditSheet(view: CompanyView, onChanged?: (next: Compa
     if (!res.ok) throw new Error(((out?.error as { message?: string } | undefined)?.message) ?? res.statusText);
     return out ?? {};
   };
+  form.addEventListener('change', (event) => {
+    const input = event.target as HTMLInputElement;
+    if (input.type !== 'file') return;
+    const name = el.querySelector<HTMLElement>(`[data-file-name="${input.name}"]`);
+    if (name) name.textContent = input.files?.[0]?.name ?? '';
+  });
   el.addEventListener('click', async (event) => {
+    const pick = (event.target as HTMLElement).closest<HTMLElement>('[data-pick]')?.dataset.pick;
+    if (pick) { form.querySelector<HTMLInputElement>(`input[type="file"][name="${pick}"]`)?.click(); return; }
     const act = (event.target as HTMLElement).closest<HTMLElement>('[data-act]')?.dataset.act;
     if (act === 'cancel') { modal.close(); return; }
     if (act !== 'save') return;

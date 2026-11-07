@@ -21,5 +21,7 @@
   .company-sheet-none { color: hsl(var(--muted-foreground)); }
   .company-edit-form { display: grid; gap: var(--sp-4); margin: 0 0 var(--sp-4); }
   .company-edit-field { display: grid; gap: 4px; font-size: var(--fs-sm); }
+  .company-edit-file { display: flex; align-items: center; gap: var(--sp-3); min-width: 0; }
+  .company-edit-file-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: hsl(var(--muted-foreground)); }
   .company-edit-hint, .company-edit-status p { margin: 0; font-size: var(--fs-sm); color: hsl(var(--muted-foreground)); }
 }
