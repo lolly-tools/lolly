@@ -137,17 +137,17 @@ export function templateValuesFromSnapshot(
   manifest: { inputs?: ReadonlyArray<{ id: string; type?: string }> },
 ): Record<string, unknown> {
   const fileInputs = new Set((manifest.inputs ?? []).filter((i) => i.type === 'file').map((i) => i.id));
-  const out: Record<string, unknown> = {};
+  // Built with no prototype and filled with data properties, so a key is only ever a value:
+  // an input called `constructor` or `prototype` keeps its value, and nothing a
+  // template drops (such as `__partnerKit`) can come back through a prototype. `__proto__`
+  // itself is never a value a template carries.
+  const out = Object.create(null) as Record<string, unknown>;
   for (const [key, value] of Object.entries(snapshot)) {
-    // A prototype key is never a value: copying `__proto__` would set the template's
-    // prototype, and a dropped key such as `__partnerKit` could come back through that prototype.
-    if (UNSAFE_KEYS.has(key) || TEMPLATE_DROPPED_KEYS.has(key) || fileInputs.has(key) || value === undefined) continue;
-    out[key] = value;
+    if (key === '__proto__' || TEMPLATE_DROPPED_KEYS.has(key) || fileInputs.has(key) || value === undefined) continue;
+    Object.defineProperty(out, key, { value, enumerable: true, writable: true, configurable: true });
   }
   return out;
 }
-
-const UNSAFE_KEYS: ReadonlySet<string> = new Set(['__proto__', 'constructor', 'prototype']);
 
 /** The per-document keys a template never carries (see templateValuesFromSnapshot). */
 export const TEMPLATE_DROPPED_KEYS: ReadonlySet<string> = new Set([

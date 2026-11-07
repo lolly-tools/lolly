@@ -1193,24 +1193,54 @@ function themeNamesOf(doc: unknown): string[] {
  * The partner kit's findings for a document and the sentence the brand family's reason
  * gains: which kit, how many marks were measured, and what the kit states that was not
  * measured. The document's own unit and dpi turn its CSS pixels into export pixels and
- * millimetres, as Design's export does.
+ * millimetres, as Design's export does. The kit is checked in every theme: what a mark
+ * sits on can change with the theme's colours. A finding or a note that every theme
+ * shares is given once; one that only some themes have says which theme.
  */
-function partnerKitFindings(doc: DesignInput, partnerKit: PartnerKitV1, lookup: ReturnType<typeof designLayerLookup>, catalog: DesignBriefCatalogV1 | null | undefined): { findings: CheckFindingV1[]; note: string } {
+function partnerKitFindings(
+  doc: DesignInput,
+  partnerKit: PartnerKitV1,
+  lookup: ReturnType<typeof designLayerLookup>,
+  catalog: DesignBriefCatalogV1 | null | undefined,
+  themes: ReadonlyArray<{ theme: string | undefined; boxes: unknown; resolveColor?: ((value: string) => string | null) | undefined }>,
+): { findings: CheckFindingV1[]; note: string } {
   const unit = typeof doc.values.documentUnit === 'string' ? doc.values.documentUnit : 'px';
   // A finite number, or a string of one: anything else in the file is read as absent.
   const rawDpi = doc.values.documentDpi;
   const dpi = typeof rawDpi === 'number' ? rawDpi : typeof rawDpi === 'string' && rawDpi.trim() !== '' ? Number(rawDpi) : Number.NaN;
-  const report = checkGuestMarks(doc.boxes, partnerKit, {
-    unit,
-    ...(Number.isFinite(dpi) && dpi > 0 ? { dpi } : {}),
-    // A recoloured mark is judged by the catalog's own theme and treatment colours.
-    recolour: guestRecolourFrom(catalog ?? null),
-  });
-  const rules = report.checked.rules.map((r) => ({ 'min-size': 'minimum size', 'clear-space': 'clear space', treatment: 'treatments' })[r]);
+  // A recoloured mark is judged by the catalog's own theme and treatment colours.
+  const recolour = guestRecolourFrom(catalog ?? null);
+  const runs = themes.map(({ theme, boxes, resolveColor }) => ({
+    theme,
+    report: checkGuestMarks(boxes, partnerKit, {
+      unit,
+      ...(Number.isFinite(dpi) && dpi > 0 ? { dpi } : {}),
+      recolour,
+      ...(resolveColor ? { resolveColor } : {}),
+    }),
+  }));
+  const first = runs[0]!.report;
+  const several = runs.length > 1;
+  const inEvery = (has: (report: typeof first) => boolean): boolean => runs.every((run) => has(run.report));
+  const findings: CheckFindingV1[] = [];
+  const notMeasured: string[] = [];
+  for (const [n, run] of runs.entries()) {
+    for (const f of run.report.findings) {
+      const shared = inEvery((r) => r.findings.some((g) => g.id === f.id));
+      if (!shared) findings.push(...inThemeFindings([checkFindingFromBrand(f, lookup)], several ? run.theme : undefined));
+      else if (n === 0) findings.push(checkFindingFromBrand(f, lookup));
+    }
+    for (const note of run.report.notMeasured) {
+      const shared = inEvery((r) => r.notMeasured.includes(note));
+      if (!shared) notMeasured.push(several && run.theme ? `in the ${run.theme} theme, ${note}` : note);
+      else if (n === 0) notMeasured.push(note);
+    }
+  }
+  const rules = first.checked.rules.map((r) => ({ 'min-size': 'minimum size', 'clear-space': 'clear space', treatment: 'treatments' })[r]);
   const ruleText = rules.length ? ` against its ${rules.length > 1 ? `${rules.slice(0, -1).join(', ')} and ${rules[rules.length - 1]}` : rules[0]}` : ', which states no rules';
-  const notes = [`Partner kit ${partnerKit.label}: measured ${plural(report.checked.marks, 'partner mark')}${ruleText}.`];
-  if (report.notMeasured.length) notes.push(`Not measured: ${report.notMeasured.join('; ')}.`);
-  return { findings: report.findings.map((f) => checkFindingFromBrand(f, lookup)), note: notes.join(' ') };
+  const notes = [`Partner kit ${partnerKit.label}: measured ${plural(first.checked.marks, 'partner mark')}${ruleText}.`];
+  if (notMeasured.length) notes.push(`Not measured: ${notMeasured.join('; ')}.`);
+  return { findings, note: notes.join(' ') };
 }
 
 /**
@@ -1290,9 +1320,13 @@ export async function checkFile(bytes: Uint8Array, name: string, asked: CheckFil
     }
 
     designSystem = ds ? { origin: ds.origin, ...(ds.profile ? { profile: ds.profile } : {}), ...(ds.tokensAsset ? { tokensAsset: ds.tokensAsset } : {}) } : null;
-    // Partner marks against the kit's rules (plans/82 M8): geometry, so once for every theme.
-    // Inside the family's guard, like every other check: a crash is said, not thrown.
-    const kitRun = opts.partnerKit ? await guarded(opts.signal, async () => partnerKitFindings(doc, opts.partnerKit!, lookup, opts.catalog)) : null;
+    // Partner marks against the kit's rules (plans/82 M8), in every theme checked, since a
+    // linked fill beneath a mark paints each theme's colour. Inside the family's guard, like
+    // every other check: a crash is said, not thrown.
+    const kitRun = opts.partnerKit
+      ? await guarded(opts.signal, async () => partnerKitFindings(doc, opts.partnerKit!, lookup, opts.catalog,
+        checkThemes.map((theme) => ({ theme, boxes: inTheme(theme), resolveColor: colourResolver(ds?.doc, theme) }))))
+      : null;
     const kitFailed = kitRun && isFailed(kitRun) ? kitRun.failed : null;
     const kit = kitRun && !isFailed(kitRun) ? kitRun : null;
     if (kitFailed) {
