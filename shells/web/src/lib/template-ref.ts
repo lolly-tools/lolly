@@ -5,6 +5,7 @@
  *
  *   "<toolId>:<tid>"   a SHIPPED template - tools/<toolId>/templates/<tid>.json
  *   "user:<id>"        a template the person saved (lib/user-templates.ts)
+ *   "inst/<id>"        a template the connected workspace published (lib/workspace-templates.ts)
  *
  * A bare "<tid>" is accepted where the tool is already known (the `?template=` launcher has
  * always taken one), so every existing deep link keeps working unchanged. No tool id is
@@ -20,19 +21,23 @@
 import type { InputValue } from '../../../../engine/src/inputs.ts';
 import { fetchTemplateSeed, parseTemplates, templateValuesById, type TemplateVariant } from './template-source.ts';
 import { createUserTemplateStore, type UserTemplate, type UserTemplateHost } from './user-templates.ts';
+import { fetchWorkspaceValues, getWorkspaceTemplate, isWorkspaceTemplateRef, type WorkspaceTemplate } from './workspace-templates.ts';
 
 export type TemplateRef = string;
 
 export type ParsedTemplateRef =
   | { kind: 'shipped'; toolId: string; id: string }
-  | { kind: 'user'; id: string };
+  | { kind: 'user'; id: string }
+  /** A template the connected workspace published: its catalog id, `inst/<id>`
+   *  (lib/workspace-templates.ts). Never a shipped ref, which has no slash. */
+  | { kind: 'workspace'; id: string };
 
 const USER_PREFIX = 'user:';
 
 export function userTemplateRef(id: string): TemplateRef { return USER_PREFIX + id; }
 export function shippedTemplateRef(toolId: string, tid: string): TemplateRef { return `${toolId}:${tid}`; }
 export function formatTemplateRef(ref: ParsedTemplateRef): TemplateRef {
-  return ref.kind === 'user' ? userTemplateRef(ref.id) : shippedTemplateRef(ref.toolId, ref.id);
+  return ref.kind === 'user' ? userTemplateRef(ref.id) : ref.kind === 'workspace' ? ref.id : shippedTemplateRef(ref.toolId, ref.id);
 }
 export function isUserTemplateRef(ref: unknown): boolean {
   return typeof ref === 'string' && ref.startsWith(USER_PREFIX) && ref.length > USER_PREFIX.length;
@@ -43,6 +48,7 @@ export function parseTemplateRef(ref: unknown, opts: { toolId?: string } = {}): 
   if (typeof ref !== 'string') return null;
   const s = ref.trim();
   if (!s) return null;
+  if (isWorkspaceTemplateRef(s)) return { kind: 'workspace', id: s };
   if (s.startsWith(USER_PREFIX)) {
     const id = s.slice(USER_PREFIX.length).trim();
     return id ? { kind: 'user', id } : null;
@@ -59,6 +65,9 @@ export interface ResolvedTemplate {
   /** The template's display name when known (a user record, or the index metadata). */
   name?: string;
   values: Record<string, InputValue>;
+  /** A workspace template's version and the inputs people may change, so the document
+   *  it starts can keep where it came from and offer only what the template allows. */
+  workspace?: { version: number; editable?: string[] };
 }
 
 export interface ResolveTemplateOpts {
@@ -69,6 +78,8 @@ export interface ResolveTemplateOpts {
   presetId?: string | null;
   /** The shipped-file reader; defaults to fetchTemplateSeed (tests inject one). */
   fetchShipped?: (toolId: string, tid: string, presetId?: string | null) => Promise<Record<string, InputValue> | null>;
+  /** The workspace-template reader; defaults to fetchWorkspaceValues (tests inject one). */
+  fetchWorkspace?: (tpl: WorkspaceTemplate) => Promise<Record<string, InputValue> | null>;
 }
 
 export async function resolveTemplateSeed(
@@ -78,6 +89,15 @@ export async function resolveTemplateSeed(
 ): Promise<ResolvedTemplate | null> {
   const parsed = parseTemplateRef(ref, opts);
   if (!parsed) return null;
+  if (parsed.kind === 'workspace') {
+    // Published by the connected workspace: read through the catalog, so a retired,
+    // revoked or unpublished one resolves null and the tool opens as it would anyway.
+    const tpl = await getWorkspaceTemplate(host as unknown as Parameters<typeof getWorkspaceTemplate>[0], parsed.id);
+    if (!tpl || tpl.retired || (opts.toolId && tpl.toolId !== opts.toolId)) return null;
+    const values = await (opts.fetchWorkspace ?? fetchWorkspaceValues)(tpl);
+    if (!values) return null;
+    return { ref: parsed, toolId: tpl.toolId, name: tpl.name, values, workspace: { version: tpl.version, ...(tpl.editable ? { editable: tpl.editable } : {}) } };
+  }
   if (parsed.kind === 'user') {
     let tpl: Awaited<ReturnType<ReturnType<typeof createUserTemplateStore>['get']>> = null;
     try { tpl = await createUserTemplateStore(host).get(parsed.id); } catch { return null; }

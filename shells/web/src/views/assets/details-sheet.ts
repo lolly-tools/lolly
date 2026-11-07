@@ -54,7 +54,7 @@ import { licenceLabel, ownerPublished, readAssetRightsRecord, type AssetRightsMe
 import { lollyBadge } from '../../lib/lolly-badge.ts';
 import { projectRefSubject } from '../../org/project-catalog-submit.ts';
 import { openCatalogSubmit, uploadSubject } from '../../lib/catalog-submit.ts';
-import { CHEVRON_LEFT, CHEVRON_RIGHT, PAUSE_ICON, PLAY_ICON, SHIELD_ICON, attachZoom, catalogAddedText, emojiPackMeta, emojiPackPin, isCanonicalGlyphKey, isThemable, isVector, isVerifiableAsset, setCropModeActive, svgTextToDataUrl } from './shared.ts';
+import { CHEVRON_LEFT, CHEVRON_RIGHT, PAUSE_ICON, PLAY_ICON, SHIELD_ICON, attachZoom, catalogAddedText, emojiPackMeta, emojiPackPin, startableTemplate, isCanonicalGlyphKey, isThemable, isVector, isVerifiableAsset, setCropModeActive, svgTextToDataUrl } from './shared.ts';
 import type { EmojiPackAbsence, EmojiPackTileMeta } from './shared.ts';
 import type { EmojiPrefsHost } from '../../lib/emoji-prefs.ts';
 import { audioCardArt, wireAudioViz } from './details-shared.ts';
@@ -847,6 +847,15 @@ export function wireSheetEvents(dt: DetailsCtx): void {
       if (!saved) { announce(t('That set could not be saved. Your emoji preference is unchanged.')); return; }
       markUsingEmojiSet(dlg);
       announce(tRaw('{set} is now the set your new work starts from.', { set: pack.label }));
+      return;
+    }
+    // A workspace template opens its tool from it, through `?template=`, so the
+    // template's rules hold from the first frame.
+    if (act === 'use-template') {
+      const tpl = startableTemplate(ref);
+      if (!tpl) return;
+      cat.sections.closeDetails();
+      location.hash = `#/tool/${encodeURIComponent(tpl.toolId)}?template=${encodeURIComponent(tpl.id)}`;
       return;
     }
     if (act === 'open-with') { cat.actions.openWith([ref], dlg.querySelector<HTMLElement>('[data-act="open-with"]') ?? undefined); return; }
