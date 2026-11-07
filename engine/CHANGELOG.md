@@ -6,6 +6,11 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+## 1.331.0
+
+- The intent vocabulary gains one role, `partnerMark` (accepts `asset`): the partner's mark in a co-branded piece, the guest's logo and never the lead brand's. `INTENT_VOCABULARY_VERSION` moves from 1 to 2, as it does for any new role, so a resolution and an intent record made from now on state `vocabularyVersion: 2`. The SDK (`@lolly-tools/core` 1.6.0) carries the role in `INTENT_ROLES`, `schemas/canonical-inputs.json` lists it, and the request, sidecar and resolution schemas (and their copies in the SDK) accept it. `resolveIntent` needs no change: it reads `INTENT_ROLES`. No community tool maps the role yet and no tool gains an input; a published template or a brand pack's co-brand tool declares it in its own `intents.json` (Lolly Work plan 82 M7).
+- `writeDesignMd` and its input type `DesignMdWriteInputV1` are exported from the barrel, so a server with no published brand page writes the same DESIGN.md a brand page holds, with the engine's own writer. Nothing about the writer changes.
+
 ## 1.330.0
 
 - The barrel exports the asset rights reader from `asset-rights.ts`: `redistribution`, `ownerPublished`, `OWNER_PUBLISHED`, `assetLicenceDeclaration`, `assetRightsNotices` and `readAssetRightsRecord`, with their types, and `checkCompanionReadback` from `rights-companion.ts`. A Lolly Work server can now ask the same question the `.lolly` builder asks ("may these bytes be passed on?") and get the same answer and reason, and read a package's credits back.
