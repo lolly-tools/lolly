@@ -1107,7 +1107,7 @@ function svgWithBars(svgText, shapes, mark, scale) {
         const art = mark.labelArtwork, ah = Math.max(0, Math.min(lay.size * 1.3, s.y1 - s.y0 - 2, (s.x1 - s.x0 - 2) * art.height / art.width)), aw = ah * art.width / art.height;
         parts.push(`<image x="${num2(lay.cx-aw/2)}" y="${num2(lay.cy-ah/2)}" width="${num2(aw)}" height="${num2(ah)}" href="data:image/svg+xml,${encodeURIComponent(art.svg)}"/>`);
       } else parts.push(
-        `<text x="${num2(lay.cx)}" y="${num2(lay.cy)}" fill="${labelInk}" font-family="sans-serif"`
+        `<text x="${num2(lay.cx)}" y="${num2(lay.cy)}" fill="${labelInk}" font-family="${xmlEscape((mark && mark.font) || 'SUSE, sans-serif')}"`
         + ` font-size="${num2(lay.size)}" font-weight="600" text-anchor="middle"`
         + ` dominant-baseline="central">${xmlEscape(label)}</text>`
       );
@@ -1712,15 +1712,53 @@ function stampTextFor(typed, profileName) {
 // the budgets. The PDF branch of patch() then spends up to PAGES_BUDGET_MS on
 // top, and the whole pass has to fit the runtime's 2000ms onInput box - an
 // overrun DISCARDS the patch, so the drop would simply look dead.
+// === lolly:shared brandFonts - generated from community/_shared/brand-fonts.js; edit there and run npm run sync:shared ===
+// The design system's text face (font.brand) and mono face (font.mono) as
+// font-family lists, for an SVG attribute, an inline style or a canvas font.
+// A tool never names a face of its own. A headless SVG has no stylesheet, so
+// the CLI, the TUI and the MCP server read the attribute to outline the text,
+// and the page draws the same family. A design system that declares no such
+// face gets the shell's own default, SUSE or SUSE Mono, as --font-brand and
+// --font-mono do. Family names pass the shell's brand-vars.ts rule; a name
+// with a space or a digit is quoted.
+var BF_FAMILY = /^[A-Za-z0-9][A-Za-z0-9 _-]{0,63}$/;
+var BF_GENERIC = /^(serif|sans-serif|monospace|cursive|fantasy|system-ui|ui-(sans-serif|serif|monospace|rounded)|emoji|math|fangsong)$/i;
+function bfFamilyList(value, fallback, generic) {
+  var names = [];
+  var list = Array.isArray(value) ? value : (typeof value === 'string' && value.charAt(0) !== '{' ? value.split(',') : []);
+  for (var i = 0; i < list.length; i++) {
+    var n = String(list[i]).trim().replace(/^['"]+|['"]+$/g, '').trim();
+    if (!BF_FAMILY.test(n) || BF_GENERIC.test(n)) continue;
+    var dup = false;
+    for (var j = 0; j < names.length; j++) if (names[j].toLowerCase() === n.toLowerCase()) dup = true;
+    if (!dup) names.push(n);
+  }
+  if (!names.length) names.push(fallback);
+  return names.map(function (f) { return /^[A-Za-z_-][A-Za-z0-9_-]*$/.test(f) ? f : "'" + f + "'"; }).join(', ') + ', ' + generic;
+}
+async function brandFonts(host) {
+  var out = { brand: bfFamilyList(null, 'SUSE', 'sans-serif'), mono: bfFamilyList(null, 'SUSE Mono', 'monospace') };
+  if (!host || !host.tokens || !host.tokens.resolve) return out;
+  try { out.brand = bfFamilyList(await host.tokens.resolve('{font.brand}'), 'SUSE', 'sans-serif'); } catch (e) { /* the shell's default face stands */ }
+  try { out.mono = bfFamilyList(await host.tokens.resolve('{font.mono}'), 'SUSE Mono', 'monospace'); } catch (e) { /* the shell's default face stands */ }
+  return out;
+}
+// === /lolly:shared brandFonts ===
+
 async function resolveMark(host, inputs, wait) {
   const style = markStyleOf(inputs.style);
-  const [ink, prof] = await Promise.all([
+  const [ink, prof, fonts] = await Promise.all([
     resolveInk(host, style, wait),
     resolveProfile(host, wait),
+    brandFonts(host),
   ]);
   return {
     style,
     ink,
+    // The stamp is set in the design system's text face: the whole list for a
+    // canvas or an SVG, and its first family where one face is asked for.
+    font: fonts.brand,
+    family: fonts.brand.split(',')[0].trim().replace(/^'|'$/g, ''),
     radius: markRadiusFor(style),
     label: style === 'stamped' ? stampTextFor(inputs.stampLabel, prof.name) : '',
     labelInk: inkContrast(ink),
@@ -2829,6 +2867,11 @@ async function drawRedacted(img, W, H, rects, grayscale, mark) {
   const labelInk = normaliseInk(mark && mark.labelInk) || '#ffffff';
   const label = mark && mark.label ? String(mark.label) : '';
   const radius = mark ? mark.radius : 0;
+  const labelFont = (mark && mark.font) || 'SUSE, sans-serif';
+  // A canvas draws only a face the page has loaded, so ask for it first.
+  if (label && typeof document !== 'undefined' && document.fonts && document.fonts.load) {
+    try { await document.fonts.load('600 16px ' + labelFont, label); } catch (e) { /* the canvas falls back */ }
+  }
   ctx.globalAlpha = 1;
   for (const r of rects) {
     const s = paintedShape(r, radius, W, H);
@@ -2838,7 +2881,7 @@ async function drawRedacted(img, W, H, rects, grayscale, mark) {
       ctx.fillStyle = labelInk;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      ctx.font = `600 ${lay.size}px SUSE, system-ui, sans-serif`;
+      ctx.font = `600 ${lay.size}px ${labelFont}`;
       if (labelArt) {
         const ah = Math.max(0, Math.min(lay.size * 1.3, s.y1 - s.y0 - 2, (s.x1 - s.x0 - 2) * labelArt.height / labelArt.width)), aw = ah * labelArt.width / labelArt.height;
         ctx.drawImage(labelArt,lay.cx-aw/2,lay.cy-ah/2,aw,ah);
@@ -3027,7 +3070,7 @@ async function exportFile({ model, host }) {
   // were slow, or the export would not match the preview the user approved.
   const mark = await resolveMark(host, inputs, true);
   if (mark.label && host.emoji && host.emoji.renderText && /[\u200d\u20e3\u2190-\u2bff\u3030\u303d\u3297\u3299\ud800-\udfff\ufe0f]/.test(mark.label)) {
-    mark.labelArtwork = await host.emoji.renderText({text:mark.label,fontFamily:'SUSE',fontSize:64,fontWeight:600,fill:mark.labelInk});
+    mark.labelArtwork = await host.emoji.renderText({text:mark.label,fontFamily:mark.family,fontSize:64,fontWeight:600,fill:mark.labelInk});
     if (host.codec && host.codec.decode && host.codec.preview) {
       mark.labelImage = await host.codec.preview(await host.codec.decode(new TextEncoder().encode(mark.labelArtwork.svg)));
     }

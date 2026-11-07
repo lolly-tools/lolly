@@ -1,8 +1,8 @@
 {
   "version": 1,
   "toolId": "3d",
-  "toolVersion": "1.3.2",
-  "toolVersionRange": "1.3.2",
+  "toolVersion": "1.3.3",
+  "toolVersionRange": "1.3.3",
   "skillRevision": "1",
   "origin": "generated",
   "references": [
@@ -10,7 +10,7 @@
   ],
   "files": {
     "SKILL.md": {
-      "sha256": "8cf918cb6c342aa3104169efa5cdcc7862c2a74b9ba70c686efe5ccaa56e73d1",
+      "sha256": "da01e97e8cebcf2bfe7ae16fc1d675b0f8e29224f8e3cf7afa243b47289a1be8",
       "bytes": 2063
     },
     "reference/inputs.json": {

@@ -53,11 +53,11 @@
     "options": [
       {
         "value": "SUSE",
-        "label": "SUSE"
+        "label": "Brand Sans"
       },
       {
         "value": "SUSE Mono",
-        "label": "SUSE Mono"
+        "label": "Brand Mono"
       }
     ]
   },

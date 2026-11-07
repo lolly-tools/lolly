@@ -109,12 +109,49 @@ function svgOpen(W, H, extra) {
     + 'preserveAspectRatio="xMidYMid meet"' + (extra || '') + '>';
 }
 
+// === lolly:shared brandFonts - generated from community/_shared/brand-fonts.js; edit there and run npm run sync:shared ===
+// The design system's text face (font.brand) and mono face (font.mono) as
+// font-family lists, for an SVG attribute, an inline style or a canvas font.
+// A tool never names a face of its own. A headless SVG has no stylesheet, so
+// the CLI, the TUI and the MCP server read the attribute to outline the text,
+// and the page draws the same family. A design system that declares no such
+// face gets the shell's own default, SUSE or SUSE Mono, as --font-brand and
+// --font-mono do. Family names pass the shell's brand-vars.ts rule; a name
+// with a space or a digit is quoted.
+var BF_FAMILY = /^[A-Za-z0-9][A-Za-z0-9 _-]{0,63}$/;
+var BF_GENERIC = /^(serif|sans-serif|monospace|cursive|fantasy|system-ui|ui-(sans-serif|serif|monospace|rounded)|emoji|math|fangsong)$/i;
+function bfFamilyList(value, fallback, generic) {
+  var names = [];
+  var list = Array.isArray(value) ? value : (typeof value === 'string' && value.charAt(0) !== '{' ? value.split(',') : []);
+  for (var i = 0; i < list.length; i++) {
+    var n = String(list[i]).trim().replace(/^['"]+|['"]+$/g, '').trim();
+    if (!BF_FAMILY.test(n) || BF_GENERIC.test(n)) continue;
+    var dup = false;
+    for (var j = 0; j < names.length; j++) if (names[j].toLowerCase() === n.toLowerCase()) dup = true;
+    if (!dup) names.push(n);
+  }
+  if (!names.length) names.push(fallback);
+  return names.map(function (f) { return /^[A-Za-z_-][A-Za-z0-9_-]*$/.test(f) ? f : "'" + f + "'"; }).join(', ') + ', ' + generic;
+}
+async function brandFonts(host) {
+  var out = { brand: bfFamilyList(null, 'SUSE', 'sans-serif'), mono: bfFamilyList(null, 'SUSE Mono', 'monospace') };
+  if (!host || !host.tokens || !host.tokens.resolve) return out;
+  try { out.brand = bfFamilyList(await host.tokens.resolve('{font.brand}'), 'SUSE', 'sans-serif'); } catch (e) { /* the shell's default face stands */ }
+  try { out.mono = bfFamilyList(await host.tokens.resolve('{font.mono}'), 'SUSE Mono', 'monospace'); } catch (e) { /* the shell's default face stands */ }
+  return out;
+}
+// === /lolly:shared brandFonts ===
+
+// The design system's text face, for the words this tool writes: the plate
+// annotation and the notes shown in place of a preview. compute() sets it.
+var _fpFont = 'SUSE, sans-serif';
+
 function placeholder(message, W, H) {
   W = W || VIEW; H = H || VIEW;
   return svgOpen(W, H)
     + '<rect width="' + W + '" height="' + H + '" fill="#f4f4f5"/>'
     + '<text x="' + (W / 2) + '" y="' + (H / 2) + '" text-anchor="middle" '
-    + 'dominant-baseline="middle" font-family="sans-serif" font-size="34" '
+    + 'dominant-baseline="middle" font-family="' + _fpFont + '" font-size="34" '
     + 'fill="#9ca3af">' + esc(message) + '</text>'
     + '</svg>';
 }
@@ -427,7 +464,7 @@ function buildSvg(args) {
     // label. Solid #000000, no knockout, in a documented strippable group: never
     // paint white over plate geometry.
     pl += '<g id="fp-plate-annotation">'
-      + '<text x="24" y="' + (H - 20) + '" font-family="SUSE, system-ui, sans-serif" font-size="22" fill="#000000">'
+      + '<text x="24" y="' + (H - 20) + '" font-family="' + _fpFont + '" font-size="22" fill="#000000">'
       + esc(label + ' · prints as spot plate - overprint') + '</text></g>';
     pl += '</svg>';
     return pl;
@@ -595,6 +632,7 @@ function prefersReducedMotion() {
 
 async function compute(model) {
   var inputs = inputsFrom(model);
+  _fpFont = (await brandFonts(host)).brand;
   var plate = Boolean(inputs.plateView);
   var bg = color(inputs.bgColor, '#ffffff');
   // Export-margin fill for beforeExport: the plate is always on white.
@@ -636,6 +674,7 @@ async function compute(model) {
     finish: inputs.finish, strength: inputs.strength, animate: animate,
     angle: inputs.angle, maskSource: maskSource, maskColor: maskColorHex,
     threshold: inputs.threshold, softness: inputs.softness, fit: inputs.fit,
+    font: _fpFont,
   };
   var memoKey = JSON.stringify(params);
   if (memoKey === _memoKey) return _memoResult;

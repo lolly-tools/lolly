@@ -5,7 +5,7 @@ description: "Operate the Lolly Frame tool (frame) using its declared inputs and
 
 # Frame
 
-Tool ID: `frame`. Tool version: `1.1.3`. Engine range: `^1.0.0`.
+Tool ID: `frame`. Tool version: `1.2.0`. Engine range: `^1.0.0`.
 
 Drop in a screenshot and get it framed, padded and shadowed on a design system backdrop.
 
