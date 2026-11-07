@@ -260,3 +260,129 @@ test('an unsaved edit the stored document has moved on from waits for the person
     assert.deepEqual(await journalSlots(page), []);
   } finally { await context.close(); await browser.close(); }
 });
+
+/**
+ * Hold every hash the journal works out from now on (lib/design-system/edit-journal.ts
+ * `docHash`): the slowest a device could be. After a save is written, the journal moves
+ * its base to what was written only once that hash is done, so an edit made in the
+ * meantime is journalled against the base from before the save.
+ */
+const holdJournalHashes = (page: import('playwright').Page): Promise<void> => page.evaluate(() => {
+  const subtle = crypto.subtle as SubtleCrypto & { digest: SubtleCrypto['digest'] };
+  const real = subtle.digest.bind(subtle);
+  subtle.digest = (...args: Parameters<SubtleCrypto['digest']>) => (new Error().stack ?? '').includes('/edit-journal.ts')
+    ? new Promise<ArrayBuffer>(() => {})
+    : real(...args);
+});
+
+/** Hold the studio's save queue (the same module instance the app uses): the next save waits for good. */
+const holdSaves = (page: import('playwright').Page): Promise<void> => page.evaluate(async () => {
+  const path = '/src/lib/design-system/logo-ownership.ts';
+  const queue = await import(path);
+  void queue.withLogoHeadLock(() => new Promise(() => {}));
+});
+
+/** Wait until a journal entry holds `want` as the leading order of the shades it names. */
+const journalHolds = (page: import('playwright').Page, want: string[]): Promise<boolean> => pollPage(page, async (keys: string[]) => {
+  const path = '/src/bridge/index.ts';
+  const bridge = await (await import(path)).createBridge();
+  for (const row of await bridge.state.list() as Array<{ slot: string }>) {
+    if (!row.slot.startsWith('__dsjournal__:')) continue;
+    const entry = await bridge.state.load(row.slot) as { doc?: { $extensions?: Record<string, { paletteOrder?: unknown }> } } | null;
+    const order = Object.values(entry?.doc?.$extensions ?? {}).map(value => value.paletteOrder).find(Array.isArray) as string[] | undefined;
+    if (order && JSON.stringify(order.filter(key => keys.includes(key))) === JSON.stringify(keys)) return true;
+  }
+  return false;
+}, want, { message: `a journal entry holding ${want.join(', ')}` });
+
+/** The stored head's order of the shades `want` names, read from its record, not from a cache. */
+const storedOrder = (page: import('playwright').Page, want: string[]): Promise<string[]> => page.evaluate(async (keys: string[]) => {
+  const path = '/src/bridge/index.ts';
+  const bridge = await (await import(path)).createBridge();
+  const record = await bridge.assets._getUserRecord(await bridge.tokens.headId()) as { blob?: Blob } | null;
+  const doc = JSON.parse(await record?.blob?.text() ?? '{}') as { $extensions?: Record<string, { paletteOrder?: unknown }> };
+  const order = Object.values(doc.$extensions ?? {}).map(value => value.paletteOrder).find(Array.isArray) as string[] | undefined;
+  return (order ?? []).filter(key => keys.includes(key));
+}, want);
+
+test('an edit made just after a save is written, before its hash is worked out, reopens without a question', {
+  skip: origin ? false : 'set LOLLY_IMPORT_TEST_URL to a local Vite shell', timeout: 180_000,
+}, async () => {
+  const { browser, context, page } = await studioContext();
+  try {
+    const errors: string[] = [];
+    page.on('pageerror', e => errors.push(e.message));
+    const { group, status, keys, handles } = await openPalette(page);
+    const before = await keys();
+    assert.ok(before.length > 2);
+    await holdJournalHashes(page);
+    // The first move saves. The save writes, and then the journal waits on the hash.
+    await handles.first().press('Space'); await handles.first().press('ArrowRight'); await handles.first().press('Space');
+    const first = [before[1]!, before[0]!, ...before.slice(2)];
+    await status.filter({ hasText: /^Saved$/ }).waitFor();
+    // The second move comes in that gap, and its save never finishes.
+    await holdSaves(page);
+    await handles.nth(1).press('Space'); await handles.nth(1).press('ArrowRight'); await handles.nth(1).press('Space');
+    const second = [first[0]!, first[2]!, first[1]!, ...first.slice(3)];
+    assert.deepEqual(await keys(), second);
+    await journalHolds(page, second.slice(0, 3) as string[]);
+    assert.equal(await status.textContent(), 'Saving…', 'the second save is still waiting when the page goes');
+    assert.deepEqual(await storedOrder(page, first.slice(0, 3) as string[]), first.slice(0, 3), 'the first move is stored, the second is not');
+    await page.reload({ waitUntil: 'networkidle' }); await shellSettled(page);
+    await group.waitFor();
+    assert.deepEqual(await keys(), second, 'the studio opens on the edit made after the save');
+    assert.equal(await page.locator('[data-be-journal]').count(), 0, 'no other tab saved, so nothing to ask');
+    await status.filter({ hasText: /^Saved$/ }).waitFor();
+    await journalGone(page);
+    await page.reload({ waitUntil: 'networkidle' }); await shellSettled(page);
+    await group.waitFor();
+    assert.deepEqual(await keys(), second, 'stored for good, not only replayed');
+    assert.equal(await page.locator('[data-be-journal]').count(), 0);
+    assert.deepEqual(errors, []);
+  } finally { await context.close(); await browser.close(); }
+});
+
+test('an unsaved edit in a tab that closed after another tab saved still asks', {
+  skip: origin ? false : 'set LOLLY_IMPORT_TEST_URL to a local Vite shell', timeout: 180_000,
+}, async () => {
+  const { browser, context, page } = await studioContext();
+  try {
+    const { keys, handles } = await openPalette(page);
+    const start = await keys();
+    // Tab A: a move whose save never finishes, so the edit stays in A's journal entry.
+    await holdSaves(page);
+    await handles.first().press('Space'); await handles.first().press('ArrowRight'); await handles.first().press('Space');
+    const fromA = [start[1]!, start[0]!, ...start.slice(2)];
+    await journalHolds(page, fromA.slice(0, 2) as string[]);
+
+    // Tab B, open at the same time: a different move, saved.
+    const other = await context.newPage();
+    await other.goto(`${origin}/#/start?area=color&focus=generate&seed=%23e0452b`, { waitUntil: 'networkidle' }); await shellSettled(other);
+    const groupB = other.locator('[data-be-group="Primary shades"]');
+    await groupB.waitFor();
+    const statusB = other.locator('.be-palette [data-be-save-state]');
+    const keysB = () => groupB.locator('[data-reorder-row]').evaluateAll(cards => cards.map(card => (card as HTMLElement).dataset.reorderRow));
+    assert.deepEqual(await keysB(), start, "B opens on the stored order: A's entry belongs to A while A is open");
+    assert.equal(await other.locator('[data-be-journal]').count(), 0);
+    const handlesB = groupB.locator('[data-reorder-handle]');
+    await groupB.locator('[data-be-pal-all]').click();
+    await handlesB.first().waitFor({ state: 'visible' });
+    await handlesB.nth(1).press('Space'); await handlesB.nth(1).press('ArrowRight'); await handlesB.nth(1).press('Space');
+    const fromB = [start[0]!, start[2]!, start[1]!, ...start.slice(3)];
+    assert.deepEqual(await keysB(), fromB);
+    await statusB.filter({ hasText: /^Saved$/ }).waitFor();
+    assert.deepEqual(await storedOrder(other, fromB.slice(0, 3) as string[]), fromB.slice(0, 3), "B's move is stored");
+
+    // A closes with its edit unsaved. B's next load finds a write by another tab.
+    await page.close();
+    await other.reload({ waitUntil: 'networkidle' }); await shellSettled(other);
+    await groupB.waitFor();
+    const card = other.locator('[data-be-journal]');
+    await card.waitFor();
+    assert.deepEqual(await keysB(), fromB, "never written over B's save before a choice");
+    assert.match((await card.locator('.be-journal-body').textContent()) ?? '', /saved again since then, in another tab or by a sync\.$/);
+    await card.getByRole('button', { name: 'Restore your unsaved changes' }).click();
+    await card.waitFor({ state: 'detached' });
+    assert.deepEqual(await keysB(), fromA, "restoring puts A's edit back");
+  } finally { await context.close(); await browser.close(); }
+});

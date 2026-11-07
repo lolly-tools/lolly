@@ -17,6 +17,17 @@
  *   the two, and both stay until they do;
  * - an entry whose document is already what is stored is dropped quietly.
  *
+ * The base alone cannot tell this page's own late edit from a write by someone else.
+ * After a save is written, the base moves to what was written only once its hash is
+ * worked out, so an edit made in that moment is journalled against the base from before the
+ * save. So each page load also has a writer id, and every edit a number in that page's
+ * order (`WriterStamp`). The stored document's record carries the stamp of the edit it
+ * holds, and each entry the stamp of its newest edit. When the two name the same
+ * writer, nobody else saved since: an entry newer than the stored save is replayed,
+ * and an older one is dropped, because the save already holds it and what came after.
+ * A different writer, or no stamp on either side (anything saved before writer ids, an
+ * import, a sync), falls back to the base as above.
+ *
  * Entries live in `host.state` under a hidden slot per design system and tab
  * (`__dsjournal__:<system>:<tab>`), so two systems or two tabs never share one. They are
  * hidden from every session list and never travel by sync or in a backup: they belong to
@@ -36,6 +47,15 @@ export const JOURNAL_LOCK_PREFIX = 'lolly-ds-journal:';
 
 type Doc = Record<string, unknown>;
 
+/**
+ * Which page load made an edit, and where it comes in that page's order. `writer` is
+ * made once per page load; `seq` counts that page's edits from 1.
+ */
+export interface WriterStamp {
+  writer: string;
+  seq: number;
+}
+
 export interface JournalEntry {
   v: 1;
   /** The design system the save writes to. */
@@ -48,6 +68,9 @@ export interface JournalEntry {
   at: number;
   /** The newest edited document. */
   doc: Doc;
+  /** The stamp of the newest edit (`WriterStamp`). Absent on entries from before writer ids. */
+  writer?: string;
+  seq?: number;
 }
 
 /** The slice of `host.state` the journal uses. HostV1's StateAPI has this shape. */
@@ -95,12 +118,29 @@ export async function docHash(doc: unknown): Promise<string> {
   return `sha256:${Array.from(bytes, b => b.toString(16).padStart(2, '0')).join('')}`;
 }
 
+let pageWriter: string | null = null;
+let pageSeq = 0;
+
+/** The stamp for this page's next edit: the page load's writer id and the next number. */
+export function nextWriterStamp(): WriterStamp {
+  pageWriter ??= globalThis.crypto?.randomUUID?.() ?? `w${Math.random().toString(36).slice(2)}${Date.now().toString(36)}`;
+  return { writer: pageWriter, seq: ++pageSeq };
+}
+
+/** A stamp read back from storage, or null when the value is not one. */
+export function parseWriterStamp(value: unknown): WriterStamp | null {
+  if (!isDoc(value)) return null;
+  const { writer, seq } = value;
+  return typeof writer === 'string' && writer !== '' && Number.isSafeInteger(seq) && (seq as number) > 0 ? { writer, seq: seq as number } : null;
+}
+
 /** One stored entry, or null when the slot holds something else. */
 export function parseEntry(data: unknown): JournalEntry | null {
   if (!isDoc(data) || data.v !== 1) return null;
   const { system, tab, base, at, doc } = data;
   if (typeof system !== 'string' || typeof tab !== 'string' || typeof base !== 'string' || typeof at !== 'number' || !isDoc(doc)) return null;
-  return { v: 1, system, tab, base, at, doc };
+  // A stamp that does not read as one counts as no stamp: the entry is judged by its base.
+  return { v: 1, system, tab, base, at, doc, ...parseWriterStamp(data) };
 }
 
 /** Every entry on this device, newest first; `system` narrows them to one design system. */
@@ -149,6 +189,9 @@ export interface RecoveryInput {
   ownTabs: ReadonlySet<string>;
   /** A locked or managed system, which nothing is recovered into. */
   locked: boolean;
+  /** The stamp on the stored document's record: the page load that wrote it and the
+   *  edit it holds. Null when the stored document carries none. */
+  storedStamp?: WriterStamp | null;
   /** What a save of `doc` over `stored` writes (the logo groups come from the stored
    *  head). Defaults to the document unchanged. */
   effective?: (doc: Doc, stored: unknown) => unknown;
@@ -156,8 +199,9 @@ export interface RecoveryInput {
 
 /**
  * Decide, for one design system's entries, what a load does: replay the newest entry
- * whose base is the stored document, offer the rest as choices, and drop (from `store`)
- * any whose document is already the stored one.
+ * that was made on top of the stored document (its base matches, or its own page wrote
+ * that document before the edit), offer the rest as choices, and drop (from `store`) any
+ * whose document is already the stored one or older than its own page's stored save.
  */
 export async function planRecovery(
   store: JournalStore,
@@ -176,6 +220,16 @@ export async function planRecovery(
     if (storedJson !== null && stableJson(effective(entry.doc, input.storedDoc)) === storedJson) {
       await store.delete(item.slot).catch(() => {});
       continue;
+    }
+    // The page that made this edit also wrote the stored document, so no other tab and
+    // no sync saved since, whatever the base says.
+    const stamp = input.storedStamp;
+    if (stamp && entry.writer === stamp.writer && entry.seq !== undefined) {
+      if (entry.seq <= stamp.seq) {
+        await store.delete(item.slot).catch(() => {});
+        continue;
+      }
+      if (!plan.replay) { plan.replay = item; continue; }
     }
     if (!plan.replay && entry.base === storedHash) plan.replay = item;
     else plan.choices.push(item);
@@ -219,8 +273,10 @@ export interface EditJournal {
   /**
    * The newest unsaved document, written at once. The journal keeps the reference and
    * copies the document only when it writes, so an edit pays no copy of its own.
+   * `stamp` is the edit's place in this page's order; the save of the same edit puts it
+   * on the stored document.
    */
-  record(doc: Doc): void;
+  record(doc: Doc, stamp?: WriterStamp): void;
   /** The newest edit is saved: drop this tab's entry. */
   clear(): void;
   /** Write again if the newest edit is not in the journal yet (the page is hiding). */
@@ -255,6 +311,7 @@ export function startEditJournal(store: JournalStore, opts: EditJournalOptions):
   // The newest unsaved document (a live reference), and how many edits have been
   // recorded and written: equal counts mean the journal holds the newest edit.
   let latest: Doc | null = null;
+  let latestStamp: WriterStamp | null = null;
   let recorded = 0;
   let written = 0;
   let pending: 'write' | 'clear' | null = null;
@@ -271,7 +328,10 @@ export function startEditJournal(store: JournalStore, opts: EditJournalOptions):
           if (op === 'clear') { await store.delete(slot); continue; }
           if (!latest) continue;
           const seq = recorded;
-          const entry: JournalEntry = { v: 1, system: opts.system, tab: opts.tab, base, at: now(), doc: structuredClone(latest) };
+          const entry: JournalEntry = {
+            v: 1, system: opts.system, tab: opts.tab, base, at: now(), doc: structuredClone(latest),
+            ...(latestStamp ? { writer: latestStamp.writer, seq: latestStamp.seq } : {}),
+          };
           await store.save(slot, entry);
           written = seq;
         } catch { /* best-effort: the save itself is still on its way */ }
@@ -300,13 +360,15 @@ export function startEditJournal(store: JournalStore, opts: EditJournalOptions):
       // A newer edit is still unsaved: keep its entry, now against the new base.
       if (latest) queue('write');
     },
-    record(doc) {
+    record(doc, stamp) {
       latest = doc;
+      latestStamp = stamp ?? null;
       recorded++;
       queue('write');
     },
     clear() {
       latest = null;
+      latestStamp = null;
       written = recorded;
       queue('clear');
     },
