@@ -6,6 +6,11 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+## 1.326.0
+
+- The vector IR gains a `stencil` prim (`VectorStencilPrim` in `emf.ts`): words as one bit per pixel, painted in one ink, so whatever lies under them shows through. `emitEps` paints it with `imagemask` in the ink (RGB or the CMYK mapping), and `emitWmf` with a pair of 1-bit `META_STRETCHDIB` blits, OR then AND, which leaves the page under the words as it was. `emitDxf` counts one as a dropped picture. `emitEmf` draws none.
+- No other module changes. The vector walk (`packages/node-shell/src/svg-ir.ts`) makes a stencil from a picture of a run no font can draw, for EPS and WMF, as a PDF draws such a run as a picture, and DXF stops with a message that names the run instead of outlining boxes. A file with no such run keeps its bytes.
+
 ## 1.325.0
 
 - `placedPicturesOf(store)` (new, `c2pa-extract.ts`): the record of placed pictures in a Content Credential, read back for a shell that writes its own credential in place of that one. It gives each credentialed ingredient the active manifest names, with its title, format, relationship, AI source type and the manifests it brought, verbatim, plus the AI facts the steps state (the pieces declared AI-made, and the model that enlarged one). Source ingredients (emoji, songs) are not read: they have their own census.

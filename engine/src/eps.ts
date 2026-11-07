@@ -18,7 +18,7 @@
  */
 import { parseDimension, toPoints, CSS_DPI } from './units.ts';
 import { rgbToCmyk, type Cmyk } from './color.ts';
-import type { Rgb, VectorIr, VectorPathPrim, VectorImagePrim, VectorEmitOpts } from './emf.ts';
+import type { Rgb, VectorIr, VectorPathPrim, VectorImagePrim, VectorStencilPrim, VectorEmitOpts } from './emf.ts';
 import type { PrintGeometry } from './print-marks.ts';
 
 /** A brand ink lookup keyed by a quantised RGB triple (see rgbPaletteKey). CMYK
@@ -88,6 +88,30 @@ function emitImagePrim(prim: VectorImagePrim, out: string[]): void {
   let line = '';
   for (let i = 0; i < need; i++) {
     line += HEX[i < rgb.length ? rgb[i]! : 0];
+    if (line.length >= 64) { out.push(line); line = ''; }
+  }
+  if (line) out.push(line);
+  out.push('>');            // ASCIIHexDecode EOD
+  out.push('grestore');
+}
+
+/**
+ * Words painted through their own shape in one ink (`imagemask`), so the page under them
+ * shows through: no box of background colour around a run that went in as a picture.
+ * A 1 bit paints the ink.
+ */
+function emitStencilPrim(prim: VectorStencilPrim, cmyk: boolean, out: string[], palette?: EpsCmykPalette, separate?: (r: number, g: number, b: number) => Cmyk): void {
+  const pxW = Math.max(1, Math.round(prim.pxW));
+  const pxH = Math.max(1, Math.round(prim.pxH));
+  const need = Math.ceil(pxW / 8) * pxH;
+  out.push('gsave');
+  out.push(colorOp(prim.fill, cmyk, palette, separate));
+  out.push(n(prim.x) + ' ' + n(prim.y) + ' translate');
+  out.push(n(prim.w) + ' ' + n(prim.h) + ' scale');
+  out.push('<< /ImageType 1 /Width ' + pxW + ' /Height ' + pxH + ' /BitsPerComponent 1 /Decode [1 0] /ImageMatrix [' + pxW + ' 0 0 ' + pxH + ' 0 0] /DataSource currentfile /ASCIIHexDecode filter >> imagemask');
+  let line = '';
+  for (let i = 0; i < need; i++) {
+    line += HEX[i < prim.bits.length ? prim.bits[i]! : 0];
     if (line.length >= 64) { out.push(line); line = ''; }
   }
   if (line) out.push(line);
@@ -166,6 +190,7 @@ export function emitEps(ir: VectorIr, opts: EpsEmitOpts = {}): string {
     for (const prim of ir.prims || []) {
       if (prim && prim.type === 'path') emitPathPrim(prim, cmyk, L, opts.cmykPalette, opts.separate);
       else if (prim && prim.type === 'image') emitImagePrim(prim, L);
+      else if (prim && prim.type === 'stencil') emitStencilPrim(prim, cmyk, L, opts.cmykPalette, opts.separate);
     }
     L.push('grestore');
     emitMarksPs(geo, opts.markSpace ?? (cmyk ? 'cmyk' : 'rgb'), L);
@@ -175,6 +200,7 @@ export function emitEps(ir: VectorIr, opts: EpsEmitOpts = {}): string {
     for (const prim of ir.prims || []) {
       if (prim && prim.type === 'path') emitPathPrim(prim, cmyk, L, opts.cmykPalette, opts.separate);
       else if (prim && prim.type === 'image') emitImagePrim(prim, L);
+      else if (prim && prim.type === 'stencil') emitStencilPrim(prim, cmyk, L, opts.cmykPalette, opts.separate);
     }
   }
   L.push('grestore');

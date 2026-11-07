@@ -136,7 +136,8 @@ export function emitDxf(ir: VectorIr, opts: VectorEmitOpts = {}): { text: string
   let droppedImages = 0;
   for (const prim of ir.prims || []) {
     if (!prim) continue;
-    if (prim.type === 'image') { droppedImages++; continue; }
+    // A stencil is a picture too; the IR producer refuses DXF before one is made.
+    if (prim.type === 'image' || prim.type === 'stencil') { droppedImages++; continue; }
     if (prim.type !== 'path' || !prim.subpaths?.length) continue;
     const paint = prim.fill ?? prim.stroke;
     const aci = paint ? nearestAci(paint) : 7;

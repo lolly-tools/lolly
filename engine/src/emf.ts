@@ -100,7 +100,24 @@ export interface VectorTextPrim {
   rotation?: number;
 }
 
-export type VectorPrim = VectorPathPrim | VectorImagePrim | VectorTextPrim;
+/**
+ * Words no font can draw, as a picture of their shape painted in one ink: one bit per
+ * source pixel, 1 where the words are, so whatever lies under the words shows through
+ * everywhere else. The IR producer makes one from a picture of the run by the host's own
+ * text renderer, only for a format that asks for it (EPS, WMF). EPS paints it with
+ * `imagemask`, WMF with a mask and paint pair of DIB blits. Writers that do not draw one
+ * (EMF, DXF) never receive one.
+ */
+export interface VectorStencilPrim {
+  type: 'stencil';
+  x: number; y: number; w: number; h: number;   // destination rect, device px, top-left origin
+  pxW: number; pxH: number;                      // source bitmap dimensions
+  /** ceil(pxW / 8) bytes per row, rows top-first, most significant bit first; 1 = ink. */
+  bits: Uint8Array;
+  fill: Rgb;
+}
+
+export type VectorPrim = VectorPathPrim | VectorImagePrim | VectorTextPrim | VectorStencilPrim;
 
 /** Normalized vector IR (see shells/web/src/bridge/svg-ir.js). */
 export interface VectorIr {

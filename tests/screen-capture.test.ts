@@ -78,7 +78,7 @@ test('the sensor capabilities still validate (screen is additive, not a replacem
 
 // ─── version ─────────────────────────────────────────────────────────────────
 
-test('ENGINE_VERSION is 1.325.0', () => {
+test('ENGINE_VERSION is 1.326.0', () => {
   // A literal pin: the screencap surface shipped at 1.54, and tools declare
   // ^1.54.0 to require it. session-record only checks the stamp equals whatever
   // ENGINE_VERSION happens to be (tautological) - this catches an errant bump.
@@ -598,7 +598,8 @@ test('ENGINE_VERSION is 1.325.0', () => {
   // 1.323.0 carries the colour roles on a token inspection. Capture is unchanged.
   // 1.324.0 adds the opt-in spotsAsProcess export choice for the CMYK formats. Capture is unchanged.
   // 1.325.0 keeps the browser credential's record of placed pictures in a server credential. Capture is unchanged.
-  assert.equal(ENGINE_VERSION, '1.325.0');
+  // 1.326.0 adds a stencil prim to the vector IR, for EPS and WMF text no font can draw. Capture is unchanged.
+  assert.equal(ENGINE_VERSION, '1.326.0');
 });
 
 // ─── loadTool: a ^1.54.0 tool loads against this engine ───────────────────────

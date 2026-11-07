@@ -73,9 +73,13 @@ The command line prints the same sentence as a note.
 
 A character outside the four national sets has no fallback font. Rare characters such as 𠮷, the characters added for Hong Kong by its supplementary set, and scripts without a fallback font, such as Tamil, Ethiopic or Syriac, are all treated the same way. In a PDF the line that holds one goes in as a 300 dpi picture, and the export panel lists the scripts. In an SVG the run stays live text, which the reader's own fonts draw.
 
+An EPS or WMF has no live text to fall back on, so the run goes in as a 300 dpi picture too. The picture paints the text's colour only where the letters are, so the background under the words shows through. The export panel lists the scripts, as it does for a PDF. A picture is drawn upright only, so a turned or slanted run stops the export with a message that quotes the run. In a WMF the picture is a mask and paint pair of bitmap operations, which Microsoft Office and LibreOffice draw as intended; an app that ignores them, such as Inkscape, shows the words on a white box.
+
+A DXF goes to cutting machines and CAD software, which need outlines, so a run no font can draw stops a DXF export. The message quotes the run and gives its script, so you can add a font with those letters or export SVG or PDF. Before, these formats drew an empty box for each such letter.
+
 ## The check before you export
 
-Lolly Design's **Before you export** card, and the `render` checks of `lolly check`, report text that no font can draw. They count the fallback fonts the way an export does, from the same lists of the characters each font has, so text a fallback font draws is not reported. A script with no fallback font, such as Tamil, and a Chinese, Japanese or Korean character outside the national sets are still reported, because the export draws them as a picture or as live text. The check reads those lists from the catalog and downloads no font.
+Lolly Design's **Before you export** card, and the `render` checks of `lolly check`, report text that no font can draw. They count the fallback fonts the way an export does, from the same lists of the characters each font has, so text a fallback font draws is not reported. A script with no fallback font, such as Tamil, and a Chinese, Japanese or Korean character outside the national sets are still reported, because the export draws them as a picture or as live text, and a DXF export stops at them. The check reads those lists from the catalog and downloads no font.
 
 ## Licences and credits
 
