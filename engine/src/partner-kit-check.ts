@@ -19,7 +19,9 @@
  *   does not list is pointed out. `reverse` is in the vocabulary and is not measured: the
  *   logo for dark surfaces is the reverse by construction.
  *
- * Whatever the check cannot measure is listed in `notMeasured`, never passed in silence.
+ * Whatever the check cannot measure is listed, never passed in silence: in `unmeasured` as a
+ * stable code with its counts, for an app to say in the reader's language, and in
+ * `notMeasured` as the same entries in English, for the CLI and Work's server.
  * Findings are reviews and never refusals: nothing here blocks an export, a render or a
  * save, and no finding carries an automatic fix, because sizing a mark is the person's
  * call. Geometry follows the Design renderer: a mark's picture is placed by the draw
@@ -107,13 +109,56 @@ export function guestRecolourFrom(catalog: { iconThemes?: unknown; photoTreatmen
   };
 }
 
+/**
+ * Why part of a kit was not measured. `reverse`: reversed use, never measured.
+ * `mm-in-pixels`: a minimum in millimetres on a document measured in pixels. `layer-tree`:
+ * the layer tree could not be read. `layer-limit`: layers past the first `limit`.
+ * `not-drawn`: marks Design draws no picture for. `size`, `clear-space`, `ground`: a mark's
+ * drawn height, clear space, or whether it sits on a photo, left open by what is not known.
+ * `treatment`: a recolouring the catalog does not describe. `surface`: a mark that takes
+ * its colours from the surface beneath. `motion`: a mark measured where it was placed,
+ * because it or a layer near it moves over time. `findings-limit`: findings past `limit`.
+ */
+export type GuestMarkUnmeasuredCode =
+  | 'reverse' | 'mm-in-pixels' | 'layer-tree' | 'layer-limit' | 'not-drawn' | 'size'
+  | 'clear-space' | 'ground' | 'treatment' | 'surface' | 'motion' | 'findings-limit';
+
+export interface GuestMarkUnmeasured {
+  code: GuestMarkUnmeasuredCode;
+  /** How many marks (or, for `findings-limit`, findings) the entry is about. */
+  count?: number;
+  /** The cap, for `layer-limit` and `findings-limit`. */
+  limit?: number;
+}
+
 export interface GuestMarkReport {
   /** `kind: 'mark'`, `status: 'review'`, one per mark and rule. */
   findings: BrandFinding[];
   /** Marks measured, and the kit rules they were measured against. */
   checked: { marks: number; rules: Array<'min-size' | 'clear-space' | 'treatment'> };
-  /** What the kit states and this check does not measure, in words. */
+  /** What the kit states and this check does not measure, as codes with their counts. */
+  unmeasured: GuestMarkUnmeasured[];
+  /** The same entries in English, in the same order. */
   notMeasured: string[];
+}
+
+/** One `unmeasured` entry in English, the sentence `notMeasured` carries. */
+export function guestUnmeasuredText(entry: GuestMarkUnmeasured): string {
+  const n = entry.count ?? 1;
+  switch (entry.code) {
+    case 'reverse': return 'reversed use: the logo for dark surfaces is the reverse, so a reversed mark is not measured';
+    case 'mm-in-pixels': return 'the minimum size in millimetres: the document is measured in pixels';
+    case 'layer-tree': return 'artboards, groups and paint order: the document\'s layer tree could not be read, so each layer is placed by its own fields and its place in the list';
+    case 'layer-limit': return `layers past the first ${(entry.limit ?? MAX_ROWS).toLocaleString('en')}`;
+    case 'not-drawn': return `${marksText(n)}: Design draws no picture for the layer as written, so its size, clear space and ground were not measured`;
+    case 'size': return `the drawn height of ${marksText(n)}: the logo's proportions or size were not given, so a mark in a box at least the minimum may still draw smaller`;
+    case 'clear-space': return `the clear space of ${marksText(n)}: the logo's proportions or size were not given, and a layer lies where the clear space may reach`;
+    case 'ground': return `whether ${marksText(n, 'one partner mark sits', 'partner marks sit')} on a photo: what lies beneath is translucent, covers only part of the mark or depends on the logo's proportions`;
+    case 'treatment': return `the treatment of ${marksText(n, 'one recoloured mark', 'recoloured marks')}: the catalog does not say what colours its theme or treatment gives`;
+    case 'surface': return `the colours of ${marksText(n)} set to follow the surface: the variant is chosen from what is drawn beneath when the page is drawn`;
+    case 'motion': return `${marksText(n)} while the piece plays: the mark or a layer near it moves, fades or builds over time, and each layer was measured where it was placed`;
+    case 'findings-limit': return `${n === 1 ? 'one more finding' : `${n} more findings`} past the first ${entry.limit ?? MAX_FINDINGS}, which are not listed`;
+  }
 }
 
 type Row = Record<string, unknown>;
@@ -334,14 +379,14 @@ function groundOutcomes(list: GroundLayer[]): Set<Ground> {
 }
 
 /** The layers Design draws, with their place, paint, paint order and time. */
-function drawnLayers(capped: Row[], measure: GuestMarkMeasure, notMeasured: string[]): Layer[] {
+function drawnLayers(capped: Row[], measure: GuestMarkMeasure, unmeasured: GuestMarkUnmeasured[]): Layer[] {
   // A layer's own flag, and a hidden artboard, group or layout container takes its members
   // with it, from the hierarchy Design paints.
   let hierarchy: ReturnType<typeof designHierarchyIndex> | null = null;
   try {
     hierarchy = designHierarchyIndex(capped);
   } catch {
-    notMeasured.push('artboards, groups and paint order: the document\'s layer tree could not be read, so each layer is placed by its own fields and its place in the list');
+    unmeasured.push({ code: 'layer-tree' });
   }
   const ancestorsOf = (id: string): Row[] => {
     const out: Row[] = [];
@@ -421,13 +466,13 @@ export function checkGuestMarks(boxes: unknown, kit: Pick<PartnerKitV1, 'label' 
   if (rules.minSize && (rules.minSize.px !== undefined || rules.minSize.mm !== undefined)) checkedRules.push('min-size');
   if (rules.clearSpace) checkedRules.push('clear-space');
   if (rules.treatments?.length) checkedRules.push('treatment');
-  const notMeasured: string[] = [];
-  if (rules.treatments?.length) notMeasured.push('reversed use: the logo for dark surfaces is the reverse, so a reversed mark is not measured');
-  if (rules.minSize?.mm !== undefined && !physical) notMeasured.push('the minimum size in millimetres: the document is measured in pixels');
+  const said: GuestMarkUnmeasured[] = [];
+  if (rules.treatments?.length) said.push({ code: 'reverse' });
+  if (rules.minSize?.mm !== undefined && !physical) said.push({ code: 'mm-in-pixels' });
 
   const rows = Array.isArray(boxes) ? boxes.filter(record) : [];
-  const layers = drawnLayers(rows.slice(0, MAX_ROWS), measure, notMeasured);
-  if (rows.length > MAX_ROWS) notMeasured.push(`layers past the first ${MAX_ROWS.toLocaleString('en')}`);
+  const layers = drawnLayers(rows.slice(0, MAX_ROWS), measure, said);
+  if (rows.length > MAX_ROWS) said.push({ code: 'layer-limit', limit: MAX_ROWS });
 
   const isMark = (l: Layer): boolean => l.kind !== 'frame' && !NOT_ON_PAGE.has(l.kind) && !!l.image && logos.has(stripAssetModifiers(l.image));
   const marks = layers.filter(isMark);
@@ -544,13 +589,11 @@ export function checkGuestMarks(boxes: unknown, kit: Pick<PartnerKitV1, 'label' 
     return { doubt, moving: under.some((l) => l.moving) };
   }
 
-  if (unmeasured.placed) notMeasured.push(`${marksText(unmeasured.placed)}: Design draws no picture for the layer as written, so its size, clear space and ground were not measured`);
-  if (unmeasured.size) notMeasured.push(`the drawn height of ${marksText(unmeasured.size)}: the logo's proportions or size were not given, so a mark in a box at least the minimum may still draw smaller`);
-  if (unmeasured.space) notMeasured.push(`the clear space of ${marksText(unmeasured.space)}: the logo's proportions or size were not given, and a layer lies where the clear space may reach`);
-  if (unmeasured.ground) notMeasured.push(`whether ${marksText(unmeasured.ground, 'one partner mark sits', 'partner marks sit')} on a photo: what lies beneath is translucent, covers only part of the mark or depends on the logo's proportions`);
-  if (unmeasured.treatment) notMeasured.push(`the treatment of ${marksText(unmeasured.treatment, 'one recoloured mark', 'recoloured marks')}: the catalog does not say what colours its theme or treatment gives`);
-  if (unmeasured.auto) notMeasured.push(`the colours of ${marksText(unmeasured.auto)} set to follow the surface: the variant is chosen from what is drawn beneath when the page is drawn`);
-  if (unmeasured.motion) notMeasured.push(`${marksText(unmeasured.motion)} while the piece plays: the mark or a layer near it moves, fades or builds over time, and each layer was measured where it was placed`);
-  if (dropped) notMeasured.push(`${dropped === 1 ? 'one more finding' : `${dropped} more findings`} past the first ${MAX_FINDINGS}, which are not listed`);
-  return { findings, checked: { marks: marks.length, rules: checkedRules }, notMeasured };
+  const counted: Array<[GuestMarkUnmeasuredCode, number]> = [
+    ['not-drawn', unmeasured.placed], ['size', unmeasured.size], ['clear-space', unmeasured.space], ['ground', unmeasured.ground],
+    ['treatment', unmeasured.treatment], ['surface', unmeasured.auto], ['motion', unmeasured.motion],
+  ];
+  for (const [code, count] of counted) if (count) said.push({ code, count });
+  if (dropped) said.push({ code: 'findings-limit', count: dropped, limit: MAX_FINDINGS });
+  return { findings, checked: { marks: marks.length, rules: checkedRules }, unmeasured: said, notMeasured: said.map(guestUnmeasuredText) };
 }
