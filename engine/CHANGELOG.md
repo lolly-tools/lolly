@@ -6,13 +6,19 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
-## 1.323.0
+## 1.324.0
 
 - `placedPicturesOf(store)` (new, `c2pa-extract.ts`): the record of placed pictures in a Content Credential, read back for a shell that writes its own credential in place of that one. It gives each credentialed ingredient the active manifest names, with its title, format, relationship, AI source type and the manifests it brought, verbatim, plus the AI facts the steps state (the pieces declared AI-made, and the model that enlarged one). Source ingredients (emoji, songs) are not read: they have their own census.
 - `aiFactsFromSteps` (`c2pa.ts`) reads the two AI steps `exportActionSteps` writes, and counts a reading only when writing it again gives the same words. `exportActionSteps` writes those steps through the same two helpers, with the same text as before.
 - `pdfWithoutCredential(pdf)` (new, `c2pa-containers.ts`): the bytes before the credential update `embedC2paInPdf` appends, when that update is the last thing in the file. Null for anything else.
 - The MCP server uses all three for a lifetime (`c2pa: "7"` to `"365"`) and for an intent on the browser tier, and the CLI does the same for a signing identity (`--sign-key`) or an intent. The browser now stamps first on those routes, a PDF included, and the server reads the browser credential's record of the placed pictures, AI-made ones included, before its own credential takes that one's place. A PDF's browser update comes off first, so the file holds one credential. A TIFF keeps a replaced credential as a second one, so there the browser writes none, as it already did for an intent.
 - Nothing is added that the browser credential did not hold. A render with no `c2pa` and no intent is unchanged, and so is every browser-free render.
+
+## 1.323.0
+
+- `host.tokens.inspect()` answers with `colourRoles`, the document's colour roles as `readColourRoles` reads them: the declared roles in the design system's own order and words, then any undeclared ones, with the slots each fills. Every shell gets it, the isolated hook worker too, because they all inspect through `inspectTokenDocument`. A tool reads a role's colour with `resolve('{' + role.path + '}')`, so it follows the piece's colourway and look.
+- Additive and optional: a tool feature-detects the field, and an older host leaves it out. `diffTokenDocuments` compares values only and does not read the roles.
+- Lolly Chart's **Colour roles first** palette is the first reader. Nothing new goes into an exported file.
 
 ## 1.322.0
 
