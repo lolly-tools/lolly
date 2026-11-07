@@ -258,7 +258,8 @@ test('--kit measures partner marks as brand reviews against the profile\'s desig
     rules: { minSize: { px: 96 }, clearSpace: { value: 0.5, unit: 'mark-height' } },
   };
   const doc = [
-    { id: 'logo', kind: 'image', name: 'Northwind logo', image: 'inst/nw-light', x: 40, y: 40, w: 200, h: 48 },
+    // Drawn to fill its box: the CLI has no logo proportions, so a contained logo is placed only roughly.
+    { id: 'logo', kind: 'image', name: 'Northwind logo', image: 'inst/nw-light', fit: 'fill', x: 40, y: 40, w: 200, h: 48 },
     { id: 'heading', kind: 'text', name: 'Heading', text: 'Join the webinar', x: 40, y: 96, w: 600, h: 60 },
   ];
   const kitPath = join(dir, 'kit.json');
@@ -280,6 +281,14 @@ test('--kit measures partner marks as brand reviews against the profile\'s desig
   }
   const human = lolly(['check', docPath, `--kit=${kitPath}`, '--browser=off'], state);
   assert.match(human.stdout, /brand\.mark\.min-size {2}\[logo\] {2}Northwind IT's mark is 48 px high/);
+  // Contained, as Design places a logo by default: under the minimum whatever its proportions,
+  // and the clear space, which the heading may or may not reach, is said to be not measured.
+  await writeFile(docPath, JSON.stringify([{ ...doc[0], fit: 'contain' }, doc[1]]));
+  const contained = lolly(['check', docPath, `--kit=${kitPath}`, '--browser=off', '--json'], state);
+  assert.deepEqual(contained.json.result.findings.filter((f: { code: string }) => f.code.startsWith('brand.mark.')).map((f: { message: string }) => f.message),
+    ["Northwind IT's mark is at most 48 px high; the kit asks for at least 96 px."]);
+  assert.match(contained.json.result.families.brand.reason, /Not measured: .*the clear space of one partner mark/);
+  await writeFile(docPath, JSON.stringify(doc));
   const bad = join(dir, 'bad-kit.json');
   await writeFile(bad, JSON.stringify({ ...kit, fonts: ['Northwind Sans'] }));
   const refused = lolly(['check', docPath, `--kit=${bad}`, '--browser=off', '--json'], state);
@@ -297,3 +306,23 @@ test('--kit measures partner marks as brand reviews against the profile\'s desig
   const bare = lolly(['check', docPath, '--kit', '--browser=off'], state);
   assert.equal(bare.status, 2);
 }));
+
+test('--kit reads a file to its end through short reads, and still refuses one past the bound', async () => {
+  const { readKit } = await import('../shells/cli/src/check.ts');
+  const kit = JSON.stringify({ schemaVersion: 1, id: 'acme', label: 'Acme', logos: {}, colours: [] });
+  // A handle that hands back at most 7 bytes a read, as a slow pipe or network disk may.
+  const fakeOpen = (content: string) => (async () => {
+    const bytes = Buffer.from(content);
+    return {
+      read: async (buf: Buffer, offset: number, length: number, position: number) => {
+        const n = Math.max(0, Math.min(7, length, bytes.length - position));
+        bytes.copy(buf, offset, position, position + n);
+        return { bytesRead: n, buffer: buf };
+      },
+      close: async () => {},
+    };
+  }) as never;
+  const read = await readKit('acme.json', fakeOpen(kit));
+  assert.equal(read.id, 'acme', 'a kit split across many short reads is read whole');
+  await assert.rejects(readKit('padded.json', fakeOpen(kit + ' '.repeat(100_000))), /larger than 65,536 bytes/);
+});
