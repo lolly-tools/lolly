@@ -142,6 +142,8 @@ Die Tabelle hat vier Spalten, und auf einem Smartphone wird jede Zeile zu einer 
 
 Eine Lesart, die keine Rolle belegt, bleibt, wie das Designsystem sie festlegt, und der Raum listet sie unter der Tabelle auf. Eine Rolle mit der ID einer Lesart, etwa eine Rolle namens Primary, ist diese Lesart und lässt sich nicht verschieben.
 
+**In einem Diagramm.** Die Palette **Design system - colour roles first** von Lolly Chart gibt den Datenreihen zuerst die Farbrollen des Designsystems in dessen eigener Reihenfolge, danach den Rest seiner Palette. Eine Rolle, die als Background, Text, Quiet text oder Hairlines gelesen wird, bleibt ausgelassen, weil das Diagramm seinen Grund und seine Schrift in diesen Farben zeichnet. Nichts ändert sich, bis Sie diese Palette wählen, und ein Designsystem ohne Farbrollen zeichnet die Palette wie **Design system - ordered**.
+
 **Werte.** Drücken Sie einen Wert, um für diese Rolle, in diesem Look, in der gewählten Farbvariante eine Farbe zu wählen. **Same as light** lässt den dunklen Wert dem hellen folgen, bis Sie eine eigene Farbe wählen. Der Chip **Aa** zeigt den Text, den Lolly für diese Farbe wählt, und die Zeile unter dem Wert sagt je Look, wie dieser Text sich liest: **Text reads well**, **Large text only** oder **Hard to read as text**. Das betrifft Text auf der Farbe und sagt nichts gegen die Farbe selbst, die für Formen und große Flächen weiter taugen kann. Eine Rolle, die nur über den Namen gelesen wird, zeigt dieselben Worte ohne Warnfarbe, weil kein Tool von selbst Text darauf setzt. Die Zahlen hinter den Worten, APCA zuerst und WCAG danach, stehen im Tooltip und in der Auswahl. **Own text colour** kennzeichnet einen Wert, dessen Datei die Textfarbe festlegt, die bleibt. **Copied** kennzeichnet einen Wert, der aus einer anderen Farbvariante oder von der Partnerfarbe stammt und den noch niemand gewählt hat; **Keep this colour** in der Auswahl besiegelt den Wert.
 
 **Ausgangspunkte.** Ein Designsystem ohne eigene Rollen zeigt die heutigen Worte: Primary, Secondary, Surface und Text. Nichts wird geschrieben, bis Sie eines ändern. **+ Add a role** bietet **Primary, Secondary** oder **Main, Accent, Supporting, Tertiary** als Vorschläge an oder beliebige Worte, die Sie tippen, mit der Lesart, die jedes bekäme. Die ersten beiden Worte werden zur Leitfarbe und zur Partnerfarbe. Tools zeichnen weiter dieselben Farben, und in einem System mit einer Leitfarbe ist die erste Farbvariante nach dieser Farbe benannt.
@@ -305,7 +307,7 @@ Legen Sie die Dateien ab, die Ihre Marke außer Logos behält: **vector**-, **im
 
 **Rules** setzt die Entscheidungen Ihrer Marke in Kraft: was Menschen ändern dürfen, was fest bleibt und was Lolly prüfen kann.
 
-![Rules bei Lolly Demo: vier Hausregeln, jede als Checked in Lolly Design und als Required oder Advisory markiert, dann Try your design system in use mit seinen zum Rendern bereiten Beispielen](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dusage&width=1440&height=1200&dpi=192&waitMs=2400&cropSelector=%23start-panel-usage&format=svg&walker=1&dark=1&filename=bs-usage-rules)
+![Rules bei Lolly Demo: vier Hausregeln, jede als Checked in Design und als Required oder Advisory markiert, dann Try your design system in use mit seinen zum Rendern bereiten Beispielen](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dusage&width=1440&height=1200&dpi=192&waitMs=2400&cropSelector=%23start-panel-usage&format=svg&walker=1&dark=1&filename=bs-usage-rules)
 
 **Brand rules** listet Ihre Regeln. **Add rule** (oder **Add your first rule**) öffnet ein kurzes Formular:
 
@@ -316,7 +318,7 @@ Legen Sie die Dateien ab, die Ihre Marke außer Logos behält: **vector**-, **im
 
 Die Freigabe hält Ihre eigene Entscheidung auf diesem Gerät fest. Freigegebene Pflichtregeln beschränken das wiederverwendbare Poster, und Prüfungen betreffen nur die Beispiel-PNGs; sie ändern kein anderes Tool.
 
-Regeln, die ein Designsystem in seiner Token-Datei mitbringt, etwa freigegebene Farbpaarungen, Schriftstärke und Ausrichtung oder ein Logo je Fläche, stehen hier als **Checked in Lolly Design**. Lolly Design prüft sie Ebene für Ebene in der Karte **Before you export** des Export-Panels, und `lolly check` tut dasselbe für ein gespeichertes Lolly-Design-Dokument ([Vor dem Export](/info/design.html#before-you-export)). Eine Regel, für die dieser Build keine Prüfung hat, bleibt wie geliefert erhalten und ist als **Unchecked** markiert.
+Regeln, die ein Designsystem in seiner Token-Datei mitbringt, etwa freigegebene Farbpaarungen, Schriftstärke und Ausrichtung oder ein Logo je Fläche, stehen hier als **Checked in Design**. Lolly Design prüft sie Ebene für Ebene in der Karte **Before you export** des Export-Panels, und `lolly check` tut dasselbe für ein gespeichertes Lolly-Design-Dokument ([Vor dem Export](/info/design.html#before-you-export)). Eine Regel, für die dieser Build keine Prüfung hat, bleibt wie geliefert erhalten und ist als **Unchecked** markiert.
 
 Lolly Demo bringt vier freigegebene Hausregeln mit. Überschriften werden nie in Großbuchstaben gesetzt: Diese Regel ist verpflichtend, daher meldet `lolly check` eine Überschrift in Großbuchstaben als Fehler. Die anderen drei sind beratend. Fließtext ist linksbündig. Primäre Zeichen stehen auf hellen Flächen und umgekehrte auf dunklen. Gestrichelte Linien bedeuten: hier ablegen.
 

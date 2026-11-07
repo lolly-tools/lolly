@@ -59,7 +59,9 @@ Die Kommandozeile, die Terminal-App und der MCP-Server lesen dieselben Dateien v
 
 ## Auf der Seite und im Export
 
-Die Seite nutzt dieselbe Ersatzschrift wie der Export. Ohne das zeichnet ein Browser solche Buchstaben in einer Systemschrift, während der Export Noto verwendet, und eine Zeile, die sie enthält, ändert zwischen beiden ihre Breite. Lolly hängt die Ersatzschrift nur auf dieser Arbeitsfläche ans Ende der Schriftenliste des Designsystems an, nach den eigenen Schriften des Designsystems und vor jeder Systemschrift. Eine Arbeitsfläche, die das Designsystem abdeckt, behält ihre Schriftenliste genau wie zuvor.
+Die Seite nutzt dieselbe Ersatzschrift wie der Export. Ohne das zeichnet ein Browser solche Buchstaben in einer Systemschrift, während der Export Noto verwendet, und eine Zeile, die sie enthält, ändert zwischen beiden ihre Breite. Lolly hängt die Ersatzschrift nur auf dieser Arbeitsfläche ans Ende der Schriftenliste des Designsystems an, nach den eigenen Schriften des Designsystems und vor jeder Systemschrift. Ein Tool, das eine eigene Schriftenliste setzt, in seinen Stilen oder an seinen Elementen, bekommt die Ersatzschrift an derselben Stelle: nach den Schriften, die die Liste nennt, und vor jeder Systemschrift. Eine Arbeitsfläche, die das Designsystem abdeckt, behält ihre Schriftenliste genau wie zuvor.
+
+Die Seite lässt eine Schriftenliste unverändert, wenn sie mit einer Systemschrift beginnt, etwa `system-ui` oder Helvetica, weil der Export diesen Text mit den Schriften des Designsystems zeichnet und die Seite nicht.
 
 In einem PDF werden die Wörter zu Umrissen, die mit der Ersatzschrift gezeichnet sind, welche Texteinstellung Sie auch wählen, denn Live-Text im PDF kann kein Schriftsystem tragen, das der eingebettete Font nicht hat. In SVG, EMF, EPS, DXF und WMF werden sie zu Umrissen, wann immer Text in Umrisse umgewandelt wird; bleibt der Text live, zeichnen die eigenen Schriften der Leserin oder des Lesers ihn wie bisher. Hat eine Ersatzschrift einen Teil eines Exports gezeichnet, zeigt das Export-Panel einen Hinweis wie diesen:
 
@@ -70,6 +72,10 @@ Die Kommandozeile gibt denselben Satz als Hinweis aus.
 ## Was ein Bild bleibt
 
 Für ein Zeichen außerhalb der vier nationalen Zeichensätze gibt es keine Ersatzschrift. Seltene Zeichen wie 𠮷, die für Hongkong ergänzten Zeichen des Supplementary Character Set und Schriftsysteme ohne Ersatzschrift, etwa Tamil, Äthiopisch oder Syrisch, werden alle gleich behandelt. In einem PDF kommt die Zeile, die eines enthält, als Bild mit 300 dpi hinein, und das Export-Panel listet die Schriftsysteme auf. In einem SVG bleibt der Textabschnitt Live-Text, den die eigenen Schriften der Leserin oder des Lesers zeichnen.
+
+## Die Prüfung vor dem Export
+
+Die Karte **Before you export** von Lolly Design und die `render`-Prüfungen von `lolly check` melden Text, den keine Schrift zeichnen kann. Sie zählen die Ersatzschriften so wie ein Export, anhand derselben Listen der Zeichen, die jede Schrift hat, daher wird Text, den eine Ersatzschrift zeichnet, nicht gemeldet. Ein Schriftsystem ohne Ersatzschrift, etwa Tamil, und ein chinesisches, japanisches oder koreanisches Zeichen außerhalb der nationalen Zeichensätze werden weiterhin gemeldet, weil der Export sie als Bild oder als Live-Text zeichnet. Die Prüfung liest diese Listen aus dem Katalog und lädt keine Schrift herunter.
 
 ## Lizenzen und Credits
 

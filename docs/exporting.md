@@ -57,7 +57,7 @@ Six destinations and the formats that suit each one.
 
 A wordmark set in your design system's face exports as SVG with every letter as an outlined path, so one file stays crisp at business-card size and at building-wrap size.
 
-Text in another language follows the fonts you have. When a font in your design system has the letters, SVG and PDF draw them as outlines, shaped and in reading order, including right-to-left lines. When none does, Lolly draws those letters with a [fallback font](/info/fallback-fonts.html), and the export card says which font drew them. Text that no fallback font covers stays live text in an SVG, which the viewer's own fonts draw, and becomes pictures in a PDF, because a PDF has nothing else to fall back on. Those words look as they do on the page but cannot be selected or searched, and the export card tells you which scripts went that way. Add a font with those letters to keep them as vector text.
+Text in another language follows the fonts you have. When a font in your design system has the letters, SVG and PDF draw them as outlines, shaped and in reading order, including right-to-left lines. When none does, Lolly draws those letters with a [fallback font](/info/fallback-fonts.html), and the export card says which font drew them. Text that no fallback font covers stays live text in an SVG, which the viewer's own fonts draw, and becomes pictures in a PDF, EPS or WMF, because those formats have nothing else to fall back on. A DXF export stops at such text and quotes it, because a cutter needs outlines. Those words look as they do on the page but cannot be selected or searched, and the export card tells you which scripts went that way. Add a font with those letters to keep them as vector text.
 
 ![A hairline wide-tracked wordmark reading Aurora, the kind of pure vector artwork the SVG row of the table is about](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DAurora%26weight%3D200%26tracking%3D16%26size%3D200%26full&width=1440&height=900&dpi=192&waitMs=2200&cropSelector=%23tool-canvas&walker=1&format=svg&filename=vt-wordmark-vector)
 
@@ -147,7 +147,7 @@ Some formats hand your work to another application as editable content rather th
 
 ### PowerPoint (PPTX)
 
-Lolly Design, Lolly Markdown Slides, Booklet, Lolly Doc Studio, Lolly Chart, Diagrams, Flow Lolly Chart and Agenda export a PowerPoint deck, one slide per page. Each page is taken apart into native objects, so a colleague can edit the deck and take assets out of it:
+Lolly Design, Lolly Markdown Slides, Booklet, Lolly Doc Studio, Lolly Chart, Diagrams, Flow Chart and Agenda export a PowerPoint deck, one slide per page. Each page is taken apart into native objects, so a colleague can edit the deck and take assets out of it:
 
 - <!--i:font--> **Text** becomes editable PowerPoint text boxes with the layout's font size, colour, weight, italics and alignment.
 - <!--i:pentool--> **Vectors** such as logos and icons are embedded as SVG pictures; they stay crisp, and PowerPoint can *Convert to Shape* on them.
@@ -215,7 +215,7 @@ SCC output has not been checked against a real broadcast tool or hardware decode
 
 ### DXF (cut files)
 
-Lolly Asset Export, Diagrams, Growth, Lolly Logo Wall, QR Code, Street Map, Wayfinding and Wordmark export **DXF**, the AutoCAD R12 interchange format that laser cutters, vinyl plotters and CNC software read. Geometry is written as outline paths in millimetres, text is outlined and colour maps to the nearest AutoCAD Color Index, which usually drives the cutter's operation. DXF is line art only: a photographic or filtered region has no cut path and is dropped, with a warning. Use SVG or PDF to keep raster content.
+Lolly Asset Export, Diagrams, Growth, Lolly Logo Wall, QR Code, Street Map, Wayfinding and Wordmark export **DXF**, the AutoCAD R12 interchange format that laser cutters, vinyl plotters and CNC software read. Geometry is written as outline paths in millimetres, text is outlined and colour maps to the nearest AutoCAD Color Index, which usually drives the cutter's operation. DXF is line art only: a photographic or filtered region has no cut path and is dropped, with a warning. Use SVG or PDF to keep raster content. Text in letters no font here has, with no [fallback font](/info/fallback-fonts.html) either, stops the export with a message that quotes the text, because a cutter cannot follow a box or a picture.
 
 Street Map is the clearest case. The whole design is already strokes, so every road and canal becomes a cut path.
 
@@ -308,6 +308,18 @@ Load a CMYK profile of your own and choose its **Embed** row in the Colour profi
 
 Three things withhold the claim while keeping the output intent: RGB artwork the CMYK pass could not convert, the `prov` proof-margin credit text (drawn in a standard font that is not embedded) and a **Strong** password, since PDF/X-4 forbids encryption. Every PDF also carries PDF/X-4 metadata: page boxes, XMP, a document ID and an sRGB output intent with its profile.
 :::
+
+### Spot inks as process
+
+A design system can give a colour a spot ink, such as a Pantone or HLC colour. The **Print PDF** then prints that colour on a plate of its own, so the printer runs the job with that ink. Lolly Demo gives every colour except Sugar a spot ink, so a Print PDF made in Lolly Demo prints most colours on spot plates.
+
+When you need a plain four-colour file, tick **Print spot inks as process** in the export panel's Profile card. Each spot ink then prints with cyan, magenta, yellow and black, using the CMYK build the design system gives that colour. A colour with no build of its own takes the press profile's conversion, the same as every other colour in the artwork. The file then has the four process plates and nothing more. The choice is off by default. The panel shows the box for **Print PDF** only, and only when the design system gives a colour a spot ink.
+
+A finish is not an ink. Foil, emboss, deboss, spot varnish, soft touch, die cut, crease and perforation keep their own named plates with the box ticked, because a finish printed in process would put its black mask on the page.
+
+The **Print TIFF** and **EPS (CMYK)** have no named plates, so they print every ink in process with or without the choice.
+
+A link asks for the same file with `_spots=process`, the command line with `--spots=process`, the [MCP server](/info/mcp.html) with `spots: "process"` and the terminal app with its **Spot inks** row. Nothing about the choice goes into the file: only the inks change.
 
 ### HDR (bright colours)
 

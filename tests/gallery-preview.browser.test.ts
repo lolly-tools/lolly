@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { chromium } from 'playwright';
 import { shellSettled } from './helpers/shell-settled.ts';
+import { pollPage } from './helpers/page-poll.ts';
 
 const origin = process.env.LOLLY_GALLERY_TEST_URL;
 test('welcome opens the native import picker before loading import handlers', {
@@ -123,10 +124,10 @@ test('the welcome leaves a complete gallery behind it and holds housekeeping unt
     closedAt = Date.now();
     await page.locator('.welcome-dialog [data-choice="explore"]').click();
     await dialog.waitFor({ state: 'detached' });
-    await page.waitForFunction(async (id) => {
+    await pollPage(page, async (id) => {
       const { openDB } = await import('/src/bridge/db.ts' as string);
       return !await (await openDB()).get('asset-meta', id);
-    }, staleId, { timeout: 60_000, polling: 250 });
+    }, staleId, { timeout: 60_000, interval: 250, message: 'the stale-asset prune' });
     // The request log, not Resource Timing: a dev shell's module requests fill that buffer.
     for (const deadline = Date.now() + 90_000; !housekeeping.some(entry => prefetchOnly.test(entry.url));) {
       assert.ok(Date.now() < deadline, `the core prefetch never started after the welcome closed (${JSON.stringify(housekeeping)})`);

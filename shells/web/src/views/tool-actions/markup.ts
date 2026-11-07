@@ -137,13 +137,30 @@ export function buildFormatOptions(ta: ActionsCtx): void {
         "Names the CMYK press standard your printer targets: the Print PDF's output intent, the Print TIFF's metadata (the pixels stay untagged DeviceCMYK). An Embed row carries a profile from this device inside the PDF, which is what PDF/X-4 conformance needs; the file then claims it unless something else in the export can't (RGB artwork, the credit-text stamp, a strong password)."
       )
     : null; ta.cmykTip = cmykTip;
+  // Spot inks as process (engine 1.324, opt-in, off by default). Only the Print PDF
+  // writes named spot plates, so the row shows for pdf-cmyk alone, and only once
+  // the design system is known to declare a spot ink (refresh.ts refreshSpotsUi).
+  // A `_spots=process` link ticks the box. Finishes keep their plates either way.
+  const spotsTip = formats.includes('pdf-cmyk')
+    ? helpTip(
+        t('Prints each spot ink with the four process inks, using the CMYK build the design system gives that colour, so the Print PDF has only the cyan, magenta, yellow and black plates. Finishes such as foil, emboss and spot varnish keep their own plates.')
+      )
+    : null;
+  const spotsRow = spotsTip
+    ? `
+        <label class="field-toggle help-tip-host export-cmyk-spots" data-spots-only style="display:none">
+          <input type="checkbox" class="field-check" data-action="cmyk-spots-process"${exportDefaults.spots ? ' checked' : ''}>
+          <span>${escapeText(t('Print spot inks as process'))}</span>
+          ${spotsTip.button}${spotsTip.pop}
+        </label>`
+    : '';
   const cmykRow = hasCmyk
     ? `
       <div class="section-card export-cmyk" data-cmyk-only style="display:${isCmykFmt(initialFmt) ? 'flex' : 'none'}">
         <span class="cmyk-head help-tip-host">${ICON_DROP}<span>Profile</span>${cmykTip!.button}${cmykTip!.pop}</span>
         <select class="field-select" data-action="cmyk-profile" aria-label="CMYK press profile">
           ${cmykOptions}
-        </select>
+        </select>${spotsRow}
       </div>`
     : ''; ta.cmykRow = cmykRow;
 

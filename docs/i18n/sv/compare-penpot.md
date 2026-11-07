@@ -14,7 +14,7 @@ Om ditt team designar i Penpot arbetar Lolly vid sidan av Penpot: båda har öpp
 
 ## Hur Lolly gör det överlappande jobbet
 
-Lollys Lolly Design-yta gör redigerbara tillgångar och kan göra en layout till ett [verktyg med regler](/info/create-a-tool.html). Samma verktyg renderas i webbläsaren, datorappen eller CLI och gör varianter av data. Fristående Lolly renderar och signerar på enheten, utan konto och utan server. En [privat collab](/info/collaborate.html) parar ihop två enheter direkt.
+Lolly Design-ytan gör redigerbara tillgångar och kan göra en layout till ett [verktyg med regler](/info/create-a-tool.html). Samma verktyg renderas i webbläsaren, datorappen eller CLI och gör varianter av data. Fristående Lolly renderar och signerar på enheten, utan konto och utan server. En [privat collab](/info/collaborate.html) parar ihop två enheter direkt.
 
 ## Med en organisation
 

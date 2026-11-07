@@ -36,6 +36,7 @@ import type {
   VectorIr,
   VectorEmitOpts,
   VectorPathPrim,
+  VectorStencilPrim,
 } from './emf.ts';
 import type { PathSegment } from './svg-path.ts';
 
@@ -50,6 +51,12 @@ const META_SELECTOBJECT       = 0x012d;
 const META_DELETEOBJECT       = 0x01f0;
 const META_CREATEPENINDIRECT  = 0x02fa;
 const META_CREATEBRUSHINDIRECT = 0x02fc;
+const META_STRETCHDIB         = 0x0f43;
+
+// Ternary raster operations for the mask and paint pair (MS-WMF section 2.1.1.31).
+const SRCAND   = 0x008800c6;  // destination AND source
+const SRCPAINT = 0x00ee0086;  // destination OR source
+const DIB_RGB_COLORS = 0;
 
 // Polygon-fill modes (same 1/2 meaning as GDI): ALTERNATE = SVG evenodd.
 const ALTERNATE = 1;
@@ -225,6 +232,57 @@ function emitPathPrim(prim: VectorPathPrim, out: Uint8Array[], tol: number): voi
   out.push(recDeleteObject(OBJ_BRUSH));
 }
 
+// ─── Stencil prim → a mask and paint pair of DIB blits ──────────────────────────
+// WMF has no transparency, so words that went in as a picture are drawn the way GDI
+// draws a sprite: a 1-bit mask ANDed in (black where the words are, white elsewhere,
+// so only those pixels go black), then a 1-bit picture ORed in (the ink where the words
+// are, black elsewhere, so only those pixels take the ink). What lies under the words
+// keeps its colour everywhere else.
+
+/** META_STRETCHDIB with a 1-bit, bottom-up DIB whose two colours are `zero` and `one`. */
+function recStretchDib1(prim: VectorStencilPrim, rows: Uint8Array, zero: Rgb, one: Rgb, rop: number): Uint8Array {
+  const pxW = Math.max(1, Math.round(prim.pxW));
+  const pxH = Math.max(1, Math.round(prim.pxH));
+  const stride = Math.ceil(pxW / 32) * 4;      // DIB rows are padded to 32 bits
+  const dib = new Uint8Array(40 + 8 + stride * pxH);
+  const dv = new DataView(dib.buffer);
+  dv.setUint32(0, 40, true);                   // biSize
+  dv.setInt32(4, pxW, true);                   // biWidth
+  dv.setInt32(8, pxH, true);                   // biHeight positive = bottom-up rows
+  dv.setUint16(12, 1, true);                   // biPlanes
+  dv.setUint16(14, 1, true);                   // biBitCount
+  dv.setUint32(16, 0, true);                   // biCompression = BI_RGB
+  dv.setUint32(20, stride * pxH, true);        // biSizeImage
+  dv.setUint32(32, 2, true);                   // biClrUsed
+  // Colour table: RGBQUAD is blue, green, red, reserved.
+  dib.set([zero.b & 0xff, zero.g & 0xff, zero.r & 0xff, 0, one.b & 0xff, one.g & 0xff, one.r & 0xff, 0], 40);
+  const rowBytes = Math.ceil(pxW / 8);
+  for (let y = 0; y < pxH; y++) dib.set(rows.subarray(y * rowBytes, (y + 1) * rowBytes), 48 + (pxH - 1 - y) * stride);
+  const head = rec(META_STRETCHDIB, [
+    rop & 0xffff, (rop >>> 16) & 0xffff, DIB_RGB_COLORS,
+    clampI16(pxH), clampI16(pxW), 0, 0,
+    clampI16(prim.h), clampI16(prim.w), clampI16(prim.y), clampI16(prim.x),
+  ]);
+  const out = new Uint8Array(head.length + dib.length);
+  out.set(head, 0);
+  out.set(dib, head.length);
+  new DataView(out.buffer).setUint32(0, out.length / 2, true); // RecordSize in WORDs, DIB included
+  return out;
+}
+
+function emitStencilPrim(prim: VectorStencilPrim, out: Uint8Array[]): void {
+  const pxW = Math.max(1, Math.round(prim.pxW));
+  const pxH = Math.max(1, Math.round(prim.pxH));
+  const rowBytes = Math.ceil(pxW / 8);
+  const ink = new Uint8Array(rowBytes * pxH);
+  ink.set(prim.bits.subarray(0, ink.length));
+  const black = { r: 0, g: 0, b: 0 }, white = { r: 255, g: 255, b: 255 };
+  // Mask: a 1 bit (the words) reads as white, so OR whitens those pixels and keeps the rest.
+  out.push(recStretchDib1(prim, ink, black, white, SRCPAINT));
+  // Paint: a 1 bit reads as the ink, a 0 bit as white, so AND inks only the whitened pixels.
+  out.push(recStretchDib1(prim, ink, white, prim.fill, SRCAND));
+}
+
 // ─── Placeable + metafile header ────────────────────────────────────────────────
 
 interface HeaderMath {
@@ -298,6 +356,7 @@ export function emitWmf(ir: VectorIr, opts: VectorEmitOpts = {}): Uint8Array {
   let hasPath = false;
   for (const prim of ir.prims || []) {
     if (prim?.type === 'path') { emitPathPrim(prim, body, tol); hasPath = true; }
+    else if (prim?.type === 'stencil') emitStencilPrim(prim, body);
     // `image` (raster escape-hatch) prims are dropped: WMF's DIB blits are out of
     // scope for this first cut. The IR producer already vectorises everything it
     // can, so this only loses the last-resort rasterised node.

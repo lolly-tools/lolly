@@ -61,3 +61,13 @@ test('the design-system record travels to the browser tier only as the opt-out (
   // A query that already says `_madewith=0` (the CLI's raster path writes the param) keeps the param.
   assert.equal(params(exportUrl(BASE, 'chart', 'title=Hi&_madewith=0', 'png', {})).get('_madewith'), '0');
 });
+
+test('spot inks as process travel to the browser tier only as the request', () => {
+  const on = params(exportUrl(BASE, 'design', 'title=Hi', 'pdf-cmyk', { pressProfile: 'fogra39', spotsAsProcess: true }));
+  assert.equal(on.get('_spots'), 'process');
+  assert.equal(on.get('profile'), 'fogra39');
+  assert.equal(params(exportUrl(BASE, 'design', 'title=Hi', 'pdf-cmyk', { spotsAsProcess: false })).has('_spots'), false);
+  assert.equal(params(exportUrl(BASE, 'design', 'title=Hi', 'pdf-cmyk', {})).has('_spots'), false);
+  // A stray value in the tool query cannot turn it on behind the caller's back.
+  assert.equal(params(exportUrl(BASE, 'design', '_spots=process&title=Hi', 'pdf-cmyk', {})).has('_spots'), false);
+});

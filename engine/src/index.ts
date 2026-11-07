@@ -62,7 +62,7 @@ export {
 export type { CssBlendMode, RasterLayer, LayeredRasterDoc, InflateFn } from './raster-layers.ts';
 export { buildInputModel, summarizeInputs, CREDENTIAL_READABLE_TYPES, normalizeTableValue, deriveExportFilename, matchesShowIf, tokenRestoreRefsOf, DEFAULT_FILE_MAX_BYTES } from './inputs.ts';
 export type { TableValue, TableColumnEditor, ShowIf, InputWriteOptions } from './inputs.ts';
-export { parseUrlState, serializeUrlState, serializeHdr, encodeBlocksCompact, encodeTableCompact, decodeTableCompact, RESERVED, HDR_DEFAULTS, VIDEO_CODEC_STRINGS, parseVideoParams, hasVideoParams } from './url-mode.ts';
+export { parseUrlState, serializeUrlState, serializeHdr, encodeBlocksCompact, encodeTableCompact, decodeTableCompact, RESERVED, HDR_DEFAULTS, VIDEO_CODEC_STRINGS, parseVideoParams, hasVideoParams, parseSpots } from './url-mode.ts';
 // The `s=` state address + the still-export frame filter both shells apply (plan 112).
 export { parseFrameAddress, selectFramePage, frameFilterApplies } from './frame-address.ts';
 export {
@@ -74,7 +74,7 @@ export type {
   PresentInteractDepth, PresentInteractOptions, PresentInteractContext, PresentInteractStop, PresentInteractAutoSample,
 } from './present-interact.ts';
 export { looksLikeTable, parseTableText, toTsv, toMarkdown, toHtmlTable } from './table-text.ts';
-export type { HdrSettings, DepthSetting, VideoUrlSettings, VideoQuality } from './url-mode.ts';
+export type { HdrSettings, DepthSetting, SpotsSetting, VideoUrlSettings, VideoQuality } from './url-mode.ts';
 export { LANGS, LANG_META, normalizeLang, flagEmoji, sortedLangs } from './lang.ts';
 export type { Lang, LangSort } from './lang.ts';
 export { packQuery, unpackToken, expandQuery, hasPackedState, isPackAvailable, PACK_PARAM } from './url-pack.ts';
@@ -144,7 +144,7 @@ export {
 export {
   FINISH_MASK_CMYK, buildCmykPaletteMap, cmykKey, paletteHasFinish,
 } from './cmyk-palette.ts';
-export type { BrandPaletteEntry, PaletteHit, PaletteSpotHit } from './cmyk-palette.ts';
+export type { BrandPaletteEntry, CmykPaletteOptions, PaletteHit, PaletteSpotHit } from './cmyk-palette.ts';
 export { iccSeparation, separationLattice, DEVICE_SEPARATION, NEUTRAL_EPSILON } from './cmyk-separation.ts';
 export type { CmykSeparation, SeparateRgb } from './cmyk-separation.ts';
 export {
@@ -574,6 +574,11 @@ export { APPROVAL_RECORD_FORMATS, artworkUnchanged, recordApprovalInCredential }
 export type { ApprovalNotRecordedReason, ApprovalRecordOutcome, RecordApprovalOptions } from './c2pa-approval.ts';
 export { verifyC2pa, extractC2paFromPdf, prepareC2paIngredient, prepareC2paIngredientFromStore, collectIngredients, collectIngredientRecords, extractC2paStore, parseCertificate, signedBy } from './c2pa-verify.ts';
 export type { C2paReport, C2paCheck, ParsedCertificate, C2paIngredientRecord } from './c2pa-verify.ts';
+// A shell that writes its credential in place of one the browser wrote keeps what that
+// credential recorded about the pictures placed in the file, and cuts a PDF's update off first.
+export { placedPicturesOf } from './c2pa-extract.ts';
+export type { PlacedPictures } from './c2pa-extract.ts';
+export { pdfWithoutCredential } from './c2pa-containers.ts';
 export type { Signer as C2paSigner } from './c2pa.ts';
 export { C2PA_CHECK, isExpiredOnly, resolveVerdict, defaultTrustAnchors } from './c2pa-verdict.ts';
 export type { C2paVerdict, C2paVerdictInput, C2paVerdictState } from './c2pa-verdict.ts';

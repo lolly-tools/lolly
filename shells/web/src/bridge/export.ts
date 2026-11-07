@@ -24,6 +24,7 @@ import { resolveExportFont, extendsChain, withFallbackFonts } from './font-fill.
 import { bakeWebKitBoxShadows } from './webkit-shadow-bake.ts';
 import { newNeutraliseGuard, neutraliseTransform, pdfDrawsThroughMatrix } from './transform-neutralise.ts';
 import { svgDomToIr } from './svg-ir.ts';
+import { isSvgRooted, outlinedVectorIr, vectorSvgRoot } from './export-vector-ir.ts';
 import { placeBackground } from './bg-layout.ts';
 import { unscopeStyleEls } from '../lib/scope-css.ts';
 import { tRaw } from '../i18n.ts';
@@ -1136,7 +1137,9 @@ async function renderCmykTiff(node: Element, opts: ExportOpts): Promise<Blob> {
   const lib = await getDomToImage();
   const d = exportDims(node, opts);
   const separation = await printSeparation(opts.colorProfile, _host as never, pdfxLog);
-  const paletteMap = buildCmykPaletteMap(opts.palette ?? [], separation.sep.separate);
+  // Spots as process changes no pixel here: this raster already paints every ink as
+  // its process build. Passed so the choice means one thing in every CMYK sink.
+  const paletteMap = buildCmykPaletteMap(opts.palette ?? [], separation.sep.separate, { spotsAsProcess: opts.spotsAsProcess === true });
   // Print finishing geometry - same engine source of truth as the PDF path. Still
   // pass no palette here: the verification bar's brand pairing is rebuilt from the
   // PDF path's `usedKeys` (an exact-substitution audit trail this per-pixel pass
@@ -1578,15 +1581,9 @@ async function renderEmf(node: Element, opts: ExportOpts = {}): Promise<Blob> {
   // Live text records are the default (editable in Office / Google Drawings);
   // opts.text === 'outline' (the "Outline fonts" chip) forces text-as-paths.
   const outline = opts.text === 'outline';
-  let svgEl: Element | null = node.tagName?.toLowerCase() === 'svg' ? node : isSvgRooted(node) ? node.querySelector('svg') : null;
-  if (!svgEl) {
-    // HTML layout: synthesise the complete canvas SVG, including embedded artwork,
-    // or with positioned <text> runs that the live walk below keeps as records.
-    const svgBlob = await renderSvgFromHtml(node, { ...opts, convertPaths: outline, noBoxShadow: true });
-    const xml = await svgBlob.text();
-    svgEl = new DOMParser().parseFromString(xml, 'image/svg+xml').documentElement;
-  }
-  const ir = await svgDomToIr(svgEl, {
+  // An HTML layout becomes the complete canvas SVG, embedded artwork included, with
+  // positioned <text> runs that the live walk below keeps as records.
+  const ir = await svgDomToIr(await vectorSvgRoot(node, opts, outline), {
     host: _host,
     getComputedStyle: (el: Element) => window.getComputedStyle(el),
     background: opts.background,
@@ -1604,19 +1601,9 @@ async function renderEmf(node: Element, opts: ExportOpts = {}): Promise<Blob> {
 // vector paste for legacy Office / clip-art pipelines. `attribution` is accepted for
 // call-site symmetry but is inert: WMF has no comment record to carry a source URL.
 async function renderWmf(node: Element, opts: ExportOpts = {}): Promise<Blob> {
-  let svgEl: Element | null = node.tagName?.toLowerCase() === 'svg' ? node : isSvgRooted(node) ? node.querySelector('svg') : null;
-  if (!svgEl) {
-    const svgBlob = await renderSvgFromHtml(node, { ...opts, convertPaths: true, noBoxShadow: true });
-    const xml = await svgBlob.text();
-    svgEl = new DOMParser().parseFromString(xml, 'image/svg+xml').documentElement;
-  }
-  const ir = await svgDomToIr(svgEl, {
-    host: _host,
-    getComputedStyle: (el: Element) => window.getComputedStyle(el),
-    background: opts.background,
-    label: 'WMF',
-  });
+  const { ir, notify } = await outlinedVectorIr(node, opts, 'WMF');
   const bytes = emitWmf(ir, { width: opts.width, height: opts.height, unit: opts.unit, dpi: opts.dpi, attribution: opts.metadata !== false });
+  notify();
   // Same legacy metafile type as EMF (see renderEmf) - Google Drive's Drawings
   // import matches application/x-msmetafile for WMF too.
   return new Blob([bytes as BlobPart], { type: 'application/x-msmetafile' });
@@ -1636,18 +1623,7 @@ async function renderWmf(node: Element, opts: ExportOpts = {}): Promise<Blob> {
 // flattened to solids upstream and text is outlined upstream, so the emitter
 // ships no fonts.
 async function renderEps(node: Element, opts: ExportOpts = {}, cmyk = false): Promise<Blob> {
-  let svgEl: Element | null = node.tagName?.toLowerCase() === 'svg' ? node : isSvgRooted(node) ? node.querySelector('svg') : null;
-  if (!svgEl) {
-    const svgBlob = await renderSvgFromHtml(node, { ...opts, convertPaths: true, noBoxShadow: true });
-    const xml = await svgBlob.text();
-    svgEl = new DOMParser().parseFromString(xml, 'image/svg+xml').documentElement;
-  }
-  const ir = await svgDomToIr(svgEl, {
-    host: _host,
-    getComputedStyle: (el: Element) => window.getComputedStyle(el),
-    background: opts.background,
-    label: 'EPS',
-  });
+  const { ir, notify } = await outlinedVectorIr(node, opts, 'EPS');
   // Print geometry (bleed + marks + colour bar), when requested - same source as the
   // PDF path. Null when neither is set, so a plain EPS export is byte-identical.
   const separate = cmyk ? (await printSeparation(opts.colorProfile, _host as never, pdfxLog)).sep.separate : undefined;
@@ -1656,9 +1632,10 @@ async function renderEps(node: Element, opts: ExportOpts = {}, cmyk = false): Pr
     width: opts.width, height: opts.height, unit: opts.unit, dpi: opts.dpi, cmyk,
     meta: opts.meta as { title?: string } | undefined,
     attribution: opts.metadata !== false,
-    ...(cmyk && separate ? { cmykPalette: buildCmykPaletteMap(opts.palette ?? [], separate), separate } : {}),
+    ...(cmyk && separate ? { cmykPalette: buildCmykPaletteMap(opts.palette ?? [], separate, { spotsAsProcess: opts.spotsAsProcess === true }), separate } : {}),
     ...(geo ? { geometry: geo, markSpace: cmyk ? 'cmyk' as const : 'rgb' as const } : {}),
   });
+  notify();
   return new Blob([text], { type: 'application/postscript' });
 }
 
@@ -1670,18 +1647,8 @@ async function renderEps(node: Element, opts: ExportOpts = {}, cmyk = false): Pr
 // has no raster form, so any escape-hatch image prim is dropped - we surface that as
 // a log warning rather than silently losing the effect.
 async function renderDxf(node: Element, opts: ExportOpts = {}): Promise<Blob> {
-  let svgEl: Element | null = node.tagName?.toLowerCase() === 'svg' ? node : isSvgRooted(node) ? node.querySelector('svg') : null;
-  if (!svgEl) {
-    const svgBlob = await renderSvgFromHtml(node, { ...opts, convertPaths: true, noBoxShadow: true });
-    const xml = await svgBlob.text();
-    svgEl = new DOMParser().parseFromString(xml, 'image/svg+xml').documentElement;
-  }
-  const ir = await svgDomToIr(svgEl, {
-    host: _host,
-    getComputedStyle: (el: Element) => window.getComputedStyle(el),
-    background: opts.background,
-    label: 'DXF',
-  });
+  // Cutting machines and CAD need outlines: a run no font can draw stops the export.
+  const { ir } = await outlinedVectorIr(node, opts, 'DXF');
   const { text, droppedImages } = emitDxf(ir, { width: opts.width, height: opts.height, unit: opts.unit, dpi: opts.dpi, attribution: opts.metadata !== false });
   if (droppedImages > 0) {
     _host?.log?.('warn', `dxf: dropped ${droppedImages} rasterised region${droppedImages > 1 ? 's' : ''} (DXF is line-art only - use SVG/PDF to keep photographic or filtered content).`);
@@ -1696,16 +1663,6 @@ async function renderDxf(node: Element, opts: ExportOpts = {}): Promise<Blob> {
 //
 // Tools whose canvas IS an SVG element (lockup, qr-code) use the fast-path
 // clone in renderSvg above. This path handles all HTML-DOM tools.
-
-function isSvgRooted(node: Element): boolean {
-  if (node.tagName?.toLowerCase() === 'svg') return true;
-  for (const child of node.children) {
-    const t = child.tagName.toLowerCase();
-    if (t === 'style' || t === 'script') continue;
-    return t === 'svg';
-  }
-  return false;
-}
 
 // The whole-export geometry (the node's own box). One marks-building path only - 
 // see engine/src/print-marks.ts for the geometry, the single source of truth.
@@ -3503,7 +3460,10 @@ async function renderCmykPdf(node: Element, opts: ExportOpts): Promise<Blob> {
   }
   const separation = await printSeparation(opts.colorProfile, _host as never, pdfxLog);
   const separate = separation.sep.separate;
-  const paletteMap = buildCmykPaletteMap(opts.palette ?? [], separate);
+  // Spots as process (opt-in, `_spots=process`): every declared ink becomes the process
+  // build its /Separation would have named as the alternate, so no ink plate is written.
+  // A finish keeps its spot hit, and so its own overprinting plate.
+  const paletteMap = buildCmykPaletteMap(opts.palette ?? [], separate, { spotsAsProcess: opts.spotsAsProcess === true });
   const spotResourceNames = assignSpotResourceNames(paletteMap);
   const usedKeys = new Set<string>();   // brand palette keys actually hit during substitution
   const usedSpots = new Set<string>();  // spot names actually referenced by a content stream

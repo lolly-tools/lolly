@@ -147,7 +147,7 @@ The server's own prompts walk an agent through the same order:
 - <!--i:seal--> **Prove it, when asked.** `lolly_verify` shows that a file the agent holds is an untouched Lolly export.
 :::
 
-Every input and export control is a URL parameter, defined by [URL mode](/info/url-mode.html) and [Reserved URL parameters](/info/url-parameters.html). The MCP `query` argument, a share link, the CLI's `--flag=value` pairs and the hot-link render URL are one contract under four transports, so an agent that has learnt the table has learnt all four. The reserved parameters an agent reaches for most are `format`, `width`, `height`, `unit` and `dpi`, `profile`, `password`, `bleed` and `marks`, the provenance switches (`c2pa`, `imprint`, `durable`, `meta`), `_madewith` (the [design-system record](/info/exporting.html#the-design-system-record), on unless `_madewith=0`), `hdr` and `depth`, `cuts`, `s`, `lang`, `emoji` and `emojifx`, plus `fps`, `seconds`, `wait`, `codec` and `vq` for the motion formats.
+Every input and export control is a URL parameter, defined by [URL mode](/info/url-mode.html) and [Reserved URL parameters](/info/url-parameters.html). The MCP `query` argument, a share link, the CLI's `--flag=value` pairs and the hot-link render URL are one contract under four transports, so an agent that has learnt the table has learnt all four. The reserved parameters an agent reaches for most are `format`, `width`, `height`, `unit` and `dpi`, `profile`, `_spots`, `password`, `bleed` and `marks`, the provenance switches (`c2pa`, `imprint`, `durable`, `meta`), `_madewith` (the [design-system record](/info/exporting.html#the-design-system-record), on unless `_madewith=0`), `hdr` and `depth`, `cuts`, `s`, `lang`, `emoji` and `emojifx`, plus `fps`, `seconds`, `wait`, `codec` and `vq` for the motion formats.
 
 Formats are per tool: you can only ask for one the tool declares, and `lolly_describe_tool` lists them. The call is the same whether you ask a QR tool for `svg` or an animated tool for `mp4`; the server decides how to produce the file. [Every format Lolly can open and make](/info/formats.html) lists them all. To ask whether Lolly reads or writes a format, call `lolly_list_tools` with a format filter, or fetch [`/info/capabilities.json`](/info/capabilities.json). There is also a page for every format at `/info/formats/<token>/` and one for each common conversion at `/info/convert/<in>-to-<out>/`.
 
@@ -353,7 +353,7 @@ For what no archetype holds (a slide's `under` and `over` rows) and for slides w
 |---|---|---|
 | Nothing | No credential. | The web shell's own credential, valid for 30 days, unless the tool opts out. |
 | `c2pa: "off"` | No credential. | No credential. The server tells the web shell to write none. |
-| `c2pa: "7"`, `"30"`, `"90"` or `"365"` | This server's credential, with that certificate lifetime. | This server's credential, with that certificate lifetime, in place of the web shell's. On a PDF the web shell writes none, because a PDF holds one. |
+| `c2pa: "7"`, `"30"`, `"90"` or `"365"` | This server's credential, with that certificate lifetime. | This server's credential, with that certificate lifetime, in place of the web shell's. The web shell stamps first, and the server reads what its credential recorded before taking the web shell's credential out. On a TIFF the web shell writes none, because a TIFF keeps a replaced credential as a second one. |
 
 This server's credentials are self-signed. Passing `intent` with no `c2pa` adds one for 30 days, as the `lolly_render` notes above say. A sample set (`cuts` or `sampleTimes`) is the exception: the web shell stamps it with the lifetime you pass, this server adds none, and with no `c2pa` it holds none.
 
@@ -361,7 +361,7 @@ This server's credentials are self-signed. Passing `intent` with no `c2pa` adds 
 
 **`c2pa: "off"` removes the credential and nothing else.** An SVG that inlines artwork with its own credential, such as a catalog logo, loses that artwork's credential too, because a verifier reads it as the file's own. The Lolly Imprint stays until you pass `imprint: false`, the design-system record stays until you pass `madeWith: false`, and the rest of the file's metadata stays as well.
 
-**On the browser tier, a credential from this server records less than the web shell's on one point.** It carries the emoji and songs in the render, but not the credentials of pictures the web shell placed on the page. Only the web shell's own credential, the one a render with no `c2pa` keeps, records those.
+**On the browser tier, a credential from this server keeps the record of the pictures on the page.** The web shell's credential records each placed picture that carries a credential of its own, with that credential, and each picture declared AI-made. This server reads that record before its own credential takes the place of the web shell's, and writes the same ingredients and the same AI steps into its own, with the emoji and songs in the render. It adds nothing that the web shell's credential did not hold. A TIFF is the exception: the web shell writes no credential there, so there is no record to carry.
 
 The [hot-link render URL](#hot-link-render-urls) ignores `c2pa`: Content Credentials are always off there.
 

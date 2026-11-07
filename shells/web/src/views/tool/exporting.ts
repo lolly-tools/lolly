@@ -163,6 +163,9 @@ export function resolveExportFormat(tview: ToolViewCtx): void {
         urlUnit || (tview.initialValues.__export_unit as string | undefined) || sizeDims?.unit || 'px',
       dpi: urlDpi || Number(tview.initialValues.__export_dpi) || 300,
       profile: urlProfile || (tview.initialValues.__export_profile as string | undefined) || undefined,
+      // Spot inks as process from ?_spots=process. Link-only, like `password`: a saved
+      // session does not record it, so only a link that asks ticks the box.
+      spots: tview.openedSession.url.spots === 'process' || undefined,
       // Never restored from saved state. Browser automation supplies its one-time
       // value over a Playwright binding, so it does not enter URL/history/logs.
       password: urlPassword || automationPassword || undefined,
@@ -321,6 +324,9 @@ export async function linkExport(tview: ToolViewCtx): Promise<void> {
   if (isCmykFmt(fmt)) {
     expOpts.colorProfile = urlProfile || DEFAULT_CMYK_CONDITION;
     if (fmt === 'pdf-cmyk') expOpts.palette = palette;
+    // ?_spots=process: every spot ink prints in process, finishes keep their plates.
+    // Set only on request, so a link without it exports exactly as before.
+    if (tview.openedSession.url.spots === 'process') expOpts.spotsAsProcess = true;
   }
   // HTML: honour ?nostage so a deep link auto-exports the full-page document
   // (no fixed-size canvas frame) - mirrors the panel's "Full page" toggle.

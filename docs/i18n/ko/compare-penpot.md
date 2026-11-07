@@ -14,7 +14,7 @@ _최종 확인일: 2026년 9월 28일._
 
 ## Lolly가 겹치는 작업을 하는 방법
 
-Lolly의 Lolly Design 캔버스는 편집 가능한 에셋을 만들고 레이아웃을 [규칙이 있는 도구](/info/create-a-tool.html)로 바꿀 수 있어요. 같은 도구가 브라우저, 데스크톱 앱, CLI에서 렌더링하고 데이터로 변형을 만들어요. 독립 실행형 Lolly는 계정이나 서버 없이 기기에서 렌더링하고 서명해요. [비공개 collab](/info/collaborate.html)은 두 기기를 직접 연결해요.
+Lolly Design 캔버스는 편집 가능한 에셋을 만들고 레이아웃을 [규칙이 있는 도구](/info/create-a-tool.html)로 바꿀 수 있어요. 같은 도구가 브라우저, 데스크톱 앱, CLI에서 렌더링하고 데이터로 변형을 만들어요. 독립 실행형 Lolly는 계정이나 서버 없이 기기에서 렌더링하고 서명해요. [비공개 collab](/info/collaborate.html)은 두 기기를 직접 연결해요.
 
 ## 조직과 함께
 

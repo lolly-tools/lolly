@@ -121,7 +121,7 @@ Choose **Share .lolly**, name the tool, add instructions for recipients and choo
 
 Approved image credits travel with the package. For a held source, the share dialog shows the asset and asks you to confirm that you have permission to include it; otherwise, replace that source before sharing. The file carries the resolved design-system values and dependencies, so another person's active brand cannot restyle the fixed artwork.
 
-After download, **Save Lolly Design master** opens the usual save flow; a failed or cancelled save leaves the master open to retry. **Try downloaded file** runs the actual package in a separate preview while the master stays open.
+After download, **Save Design master** opens the usual save flow; a failed or cancelled save leaves the master open to retry. **Try downloaded file** runs the actual package in a separate preview while the master stays open.
 
 Sharing changed content creates a new version, and an unchanged download reuses the version. Recipients choose when to install a new one. Saved outputs pin their installed revision, and resharing an older saved output carries that revision's tool files. Reusing a version number for different contents is refused. Keep the original `.lolly` if you may need to restore a revision after removing the tool from the device.
 

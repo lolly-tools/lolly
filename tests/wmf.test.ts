@@ -270,3 +270,49 @@ test('ImageMagick cross-check (skipped unless a WMF delegate is present)', (t) =
   const id = execSync(`${magick} identify ${JSON.stringify(pngPath)}`).toString();
   assert.match(id, /PNG/);
 });
+
+// ─── Stencil prims: words no font could draw, as a picture painted through their shape ─
+
+const META_STRETCHDIB = 0x0f43;
+const SRCPAINT = 0x00ee0086;
+const SRCAND = 0x008800c6;
+
+/** A 10 x 2 stencil: the first row inked on its left half, the second row empty. */
+function stencilIr(): VectorIr {
+  const bits = new Uint8Array([0b11111000, 0b00000000, 0, 0]);
+  return {
+    width: 100,
+    height: 50,
+    prims: [{ type: 'stencil', x: 10, y: 20, w: 40, h: 8, pxW: 10, pxH: 2, bits, fill: { r: 0x12, g: 0x34, b: 0x56 } }],
+  };
+}
+
+test('a stencil is a mask and paint pair of 1-bit DIB blits, so the page under the words shows through', () => {
+  const { records, malformed, meta, endOff } = parseWmf(emitWmf(stencilIr()));
+  assert.equal(malformed, false);
+  const blits = records.filter((r) => r.func === META_STRETCHDIB);
+  assert.equal(blits.length, 2);
+  const rop = (r: WmfRecord): number => (r.params[0]! | (r.params[1]! << 16)) >>> 0;
+  // OR first: the words go white and nothing else changes. AND second: the white takes the ink.
+  assert.deepEqual(blits.map(rop), [SRCPAINT, SRCAND]);
+  for (const blit of blits) {
+    // ColorUsage, SrcHeight, SrcWidth, YSrc, XSrc, DestHeight, DestWidth, yDst, xDst.
+    assert.deepEqual(blit.params.slice(2, 11), [0, 2, 10, 0, 0, 8, 40, 20, 10]);
+    const dib = blit.params.slice(11);
+    assert.equal(dib[0], 40, 'a BITMAPINFOHEADER');
+    assert.equal(dib[7], 1, 'one bit per pixel');
+  }
+  // Colour table words follow the 20-word header: [blue, green][red, 0] per entry.
+  const table = (r: WmfRecord): number[] => r.params.slice(11 + 20, 11 + 24);
+  assert.deepEqual(table(blits[0]!), [0x0000, 0x0000, 0xffff, 0x00ff], 'mask: 0 black, 1 white');
+  assert.deepEqual(table(blits[1]!), [0xffff, 0x00ff, 0x3456, 0x0012], 'paint: 0 white, 1 the ink');
+  // Rows are bottom-up and padded to 32 bits: the empty row first, then the inked one.
+  const rows = (r: WmfRecord): number[] => r.params.slice(11 + 24, 11 + 28);
+  assert.deepEqual(rows(blits[0]!), [0, 0, 0x00f8, 0]);
+  assert.equal(meta.size * 2 + 22, endOff, 'mtSize counts the DIBs');
+  assert.equal(meta.maxRecord, Math.max(...records.map((r) => r.size)));
+});
+
+test('a file with no stencil writes no DIB', () => {
+  assert.equal(parseWmf(emitWmf(IR)).records.some((r) => r.func === META_STRETCHDIB), false);
+});

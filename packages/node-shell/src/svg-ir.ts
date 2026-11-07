@@ -35,9 +35,10 @@ import { parseSvgPath, parseColorToSrgb8 } from '@lolly/engine';
 import type { HostV1, TextPathResult } from '@lolly-tools/core/host-v1';
 import type { PathSegment } from '../../../engine/src/svg-path.ts';
 import type { VectorTextPrim, VectorPrim, Rgb } from '../../../engine/src/emf.ts';
+import { NEEDS_BROWSER } from './browser-tier.ts';
 import { gaussianShadowRings } from '../../../engine/src/css-box.ts';
 import { canVectoriseText, featureSettingsToHb, letterSpacingPx, physicalTextAnchor } from './text-svg.ts';
-import { hasRtlText } from './text-bidi.ts';
+import { hasRtlText, scriptsOf } from './text-bidi.ts';
 import type { FontStyleSlice } from './text-svg.ts';
 
 const SKIP = new Set(['defs', 'clippath', 'lineargradient', 'radialgradient',
@@ -233,6 +234,38 @@ export interface SvgIrFont {
   fallbacks?: Array<{ fontUrl: string; variations?: string[]; fill?: boolean }>;
 }
 
+/** A run no font can draw, as the walk asks the host for a picture of the run. Lengths
+ *  are in the run's own user units, the units of its `font-size`. */
+export interface TextPictureRequest {
+  text: string;
+  fontFamily: string;
+  fontWeight: string;
+  fontStyle: string;
+  fontSize: number;
+  letterSpacing?: string;
+  direction: 'ltr' | 'rtl';
+  lang?: string | null;
+  /** Picture pixels per user unit. */
+  scale: number;
+}
+
+/**
+ * The host's picture of a run: how much each pixel is covered by the words, and where the
+ * picture sits, in user units from the start of the run's advance on its baseline.
+ */
+export interface TextPictureResult {
+  /** pxW x pxH coverage values, 0 to 255, rows top-first. */
+  alpha: Uint8Array;
+  pxW: number;
+  pxH: number;
+  left: number;
+  top: number;
+  width: number;
+  height: number;
+  /** The run's advance, which `text-anchor` places. */
+  advance: number;
+}
+
 /** Context the caller provides to resolve host services + environment. */
 export interface SvgIrContext {
   host?: HostV1 | null;
@@ -259,6 +292,43 @@ export interface SvgIrContext {
    *  that href can be anything a caller typed). The web shell passes its page's
    *  own fetch, which the browser and the page's CSP already bound. */
   readImage?: (href: string) => Promise<Blob | null>;
+  /**
+   * A run that no font here can draw outlines with `.notdef` boxes. 'picture' draws it as
+   * a stencil prim from `pictureText` (EPS, WMF), as a PDF draws it as a picture; with no
+   * `pictureText` the export stops with the NEEDS_BROWSER code, so a Node shell can hand
+   * it to its browser tier. 'refuse' stops the export with a message that quotes the run
+   * (DXF, which goes to cutting machines and CAD). Left out, the run outlines as before.
+   */
+  uncoveredText?: 'picture' | 'refuse';
+  /** A picture of a run by the host's own text renderer, for `uncoveredText: 'picture'`. */
+  pictureText?: (run: TextPictureRequest) => Promise<TextPictureResult | null>;
+  /** Called with the text of each run drawn as a picture, for the export notice. */
+  onPicturedText?: (text: string) => void;
+}
+
+const scriptLabels = typeof Intl !== 'undefined' && 'DisplayNames' in Intl ? new Intl.DisplayNames(['en'], { type: 'script' }) : null;
+
+/** The scripts a run's missing letters are likely in, in words: Latin beside another script is rarely the gap. */
+function scriptWords(text: string): string {
+  const codes = scriptsOf(text);
+  const list = codes.length > 1 ? codes.filter((c) => c !== 'Latn') : codes;
+  const names = list.map((c) => { try { return scriptLabels?.of(c) ?? c; } catch { return c; } });
+  return names.length ? ` (${names.join(', ')})` : '';
+}
+
+/** A run quoted in a message: the first 40 characters. */
+const quoteRun = (text: string): string => `"${[...text].length > 40 ? `${[...text].slice(0, 40).join('')}...` : text}"`;
+
+/** Coverage values to one bit per pixel, rows padded to whole bytes, most significant bit first. */
+function stencilBits(alpha: Uint8Array, pxW: number, pxH: number): Uint8Array {
+  const rowBytes = Math.ceil(pxW / 8);
+  const bits = new Uint8Array(rowBytes * pxH);
+  for (let y = 0; y < pxH; y++) {
+    for (let x = 0; x < pxW; x++) {
+      if ((alpha[y * pxW + x] ?? 0) >= 128) bits[y * rowBytes + (x >> 3)]! |= 0x80 >> (x & 7);
+    }
+  }
+  return bits;
 }
 
 /** Normalized vector IR consumed by engine/src/emf.js and engine/src/eps.js. */
@@ -677,6 +747,7 @@ export async function svgDomToIr(svgEl: Element, ctx: SvgIrContext = {}): Promis
     let rgb = opacity >= 0.01 ? parseColor(fillStr) : null;
     if (!rgb) return;
     rgb = flatten(rgb, opacity, bg);
+    const ink = rgb;
 
     // Resolve font: attributes first, then computed style (chart-creator sets
     // font-family via a <style> block, not an attribute).
@@ -705,6 +776,45 @@ export async function svgDomToIr(svgEl: Element, ctx: SvgIrContext = {}): Promis
     };
     if (!ordered && keepLive()) return;
 
+    // A run that no font here can draw: a picture of its words, painted only where the
+    // letters are, or a stop that quotes the run. Never the boxes of missing glyphs.
+    const uncovered = async (): Promise<void> => {
+      const which = `${LABEL} export stopped at the text ${quoteRun(raw)}: no font here has its letters${scriptWords(raw)}.`;
+      if (ctx.uncoveredText === 'refuse') {
+        throw new Error(`${which} ${LABEL} goes to cutting machines and CAD, which need outlines, so the text is not drawn as boxes or as a picture. `
+          + 'Add a font with those letters, or export SVG or PDF.');
+      }
+      const { et } = m;
+      const sx = Math.hypot(et.a, et.b), sy = Math.hypot(et.c, et.d);
+      // A picture sits in the format's own axes, so it can stand in only for upright text.
+      if (!(sx > 0 && sy > 0) || Math.abs(et.b) / sx > 0.001 || Math.abs(et.c) / sy > 0.001 || et.a < 0 || et.d < 0) {
+        throw new Error(`${which} Its picture cannot be turned or slanted in ${LABEL}. Add a font with those letters, or export SVG or PDF.`);
+      }
+      if (!ctx.pictureText) {
+        throw Object.assign(new Error(`${which} This app has no text renderer to draw them as a picture. Add a font with those letters, or export SVG or PDF.`), { code: NEEDS_BROWSER });
+      }
+      const pic = await ctx.pictureText({
+        text: raw, fontFamily: family, fontWeight: weight, fontStyle: italic ? 'italic' : 'normal', fontSize,
+        ...(letterSpacingCss ? { letterSpacing: letterSpacingCss } : {}),
+        direction: rtl ? 'rtl' : 'ltr',
+        lang: el.closest?.('[lang]')?.getAttribute('lang') ?? null,
+        // 300 picture pixels to the inch of the device px this walk writes.
+        scale: (300 / 96) * Math.max(sx * regX, sy * regY),
+      });
+      if (!pic || !(pic.pxW > 0) || !(pic.pxH > 0)) throw new Error(`${which} The text renderer could not draw them as a picture. Export SVG or PDF.`);
+      const x = len(prop(el, style, 'x'), vbW);
+      const y = len(prop(el, style, 'y'), vbH);
+      const anchor = physicalTextAnchor(prop(el, style, 'text-anchor', null) ?? cs?.textAnchor, direction);
+      const start = anchor === 'middle' ? x - pic.advance / 2 : anchor === 'end' ? x - pic.advance : x;
+      const a = m.mapPt(start + pic.left, y + pic.top);
+      const b = m.mapPt(start + pic.left + pic.width, y + pic.top + pic.height);
+      prims.push({
+        type: 'stencil', x: Math.min(a.x, b.x), y: Math.min(a.y, b.y), w: Math.abs(b.x - a.x), h: Math.abs(b.y - a.y),
+        pxW: pic.pxW, pxH: pic.pxH, bits: stencilBits(pic.alpha, pic.pxW, pic.pxH), fill: rgbObj(ink),
+      });
+      ctx.onPicturedText?.(raw);
+    };
+
     const fontStyleObj = { fontFamily: family, fontWeight: weight, fontStyle: italic ? 'italic' : 'normal',
       letterSpacing: letterSpacingCss };
     // The brand statics, the user's own Google fonts, or the platform face - this
@@ -732,6 +842,7 @@ export async function svgDomToIr(svgEl: Element, ctx: SvgIrContext = {}): Promis
       throw new Error(`EMF export: text shaping failed for "${raw.slice(0, 24)}" - ${(e as Error).message}`);
     }
     if (ordered && result?.notdef && keepLive()) return;
+    if (result?.notdef && ctx.uncoveredText) { await uncovered(); return; }
     if (!result?.d) return;            // whitespace-only / no glyphs
 
     const x = len(prop(el, style, 'x'), vbW);

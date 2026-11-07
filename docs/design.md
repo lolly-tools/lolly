@@ -226,7 +226,7 @@ The print checks (bleed, resolution, ink coverage and plate counts) join the sam
 
 ## Presenting
 
-A Lolly Design document made of artboards is already a deck. Press **Present** in the top bar and each artboard becomes a full-screen slide, in the order the artboards sit on the canvas. The button reads **Preview** until the document's **Lolly Design outcome** is **Slides**. The deck runs on a copy of the rendered artboards, so leaving puts you back exactly where you were.
+A Lolly Design document made of artboards is already a deck. Press **Present** in the top bar and each artboard becomes a full-screen slide, in the order the artboards sit on the canvas. The button reads **Preview** until the document's **Design outcome** is **Slides**. The deck runs on a copy of the rendered artboards, so leaving puts you back exactly where you were.
 
 The arrow beside **Present** opens **Present from this slide**, **Speaker view**, **Present with camera**, **Narrate**, **Auto-advance slides**, **Loop the deck (kiosk)** and **Export slides as video**.
 

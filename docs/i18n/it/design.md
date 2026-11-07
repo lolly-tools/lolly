@@ -206,7 +206,7 @@ Le **transizioni** sono preset: Fade, Pop, Grow, Rise, Drop, i quattro Slide, Zo
 
 ## Prima di esportare
 
-Design controlla il tuo documento prima che tu invii il file. La scheda **Before you export**, nella sezione **Document** dell'Inspector e di nuovo nel pannello di esportazione, legge la struttura dei livelli salvata, poi esamina la tela assestata per cercare testo tagliato e contrasto di colore piatto. Chiede allo stesso registro dei font usato dal tracciamento in contorni di SVG e PDF se ogni porzione di testo dispone di byte del font che si possono incorporare. Gli sfondi di immagine e gradiente sono elencati come controlli visivi invece di ricevere un punteggio di contrasto inventato.
+Design controlla il tuo documento prima che tu invii il file. La scheda **Before you export**, nella sezione **Document** dell'Inspector e di nuovo nel pannello di esportazione, legge la struttura dei livelli salvata, poi esamina la tela assestata per cercare testo tagliato e contrasto di colore piatto. Chiede allo stesso registro dei font usato dal tracciamento in contorni di SVG e PDF se ogni porzione di testo dispone di byte del font che si possono incorporare. Il testo che un [font di riserva](/info/fallback-fonts.html) disegna nell'esportazione conta come coperto. Una scrittura senza font di riserva, o un carattere cinese, giapponese o coreano fuori dai set che quei font contengono, viene comunque segnalato. Gli sfondi di immagine e gradiente sono elencati come controlli visivi invece di ricevere un punteggio di contrasto inventato.
 
 ### Controllare una composizione rispetto al design system
 

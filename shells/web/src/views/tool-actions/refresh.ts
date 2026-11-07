@@ -71,7 +71,32 @@ export function refreshPrintUi(ta: ActionsCtx): void {
     );
     videoOptions.hidden = empty;
   }
+  refreshSpotsUi(ta);
   refreshNotesHandoutUi(ta);
+}
+/**
+ * "Print spot inks as process" (engine 1.324): shown for the Print PDF, the one
+ * format that writes named spot plates, and only once the design system is known
+ * to declare a spot ink. A palette of finishes alone has nothing to convert, and an
+ * unresolved palette is not evidence of an ink. Called again when the palette arrives.
+ */
+export function refreshSpotsUi(ta: ActionsCtx): void {
+  const { el, formatEl, initialFmt } = ta;
+  const row = el?.querySelector<HTMLElement>('[data-spots-only]');
+  if (!row) return;
+  const fmt = formatEl?.value ?? initialFmt;
+  const palette = ta.palette;
+  const declaresInk = palette?.known === true && palette.value.some((s) => !!s.spot?.name && !s.spot.finish);
+  row.style.display = fmt === 'pdf-cmyk' && declaresInk ? 'flex' : 'none';
+}
+/** The box changes the plates, so the preflight counts and the address follow the box. */
+export function wireSpotsToggle(ta: ActionsCtx): void {
+  const { el, onUrlSync } = ta;
+  el?.querySelector<HTMLInputElement>('[data-action="cmyk-spots-process"]')?.addEventListener('change', () => {
+    ta.preflight.refreshPreflight();
+    onUrlSync?.('spots');
+  });
+  refreshSpotsUi(ta);
 }
 /** Design-only layout switch: a handout needs artboards and the multi-page RGB PDF path. */
 export function refreshNotesHandoutUi(ta: ActionsCtx): void {
@@ -164,6 +189,8 @@ export function refreshOps(ta: ActionsCtx) {
     refreshNotesHandoutUi: bindOp(ta, refreshNotesHandoutUi),
     refreshLockTier: bindOp(ta, refreshLockTier),
     refreshC2paUi: bindOp(ta, refreshC2paUi),
+    refreshSpotsUi: bindOp(ta, refreshSpotsUi),
+    wireSpotsToggle: bindOp(ta, wireSpotsToggle),
     dimUnit: bindOp(ta, dimUnit),
   };
 }

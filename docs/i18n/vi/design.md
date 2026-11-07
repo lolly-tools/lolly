@@ -206,7 +206,7 @@ Chọn một clip và trình kiểm tra cho các chỉnh sửa tương tự dư�
 
 ## Trước khi xuất
 
-Design kiểm tra tài liệu của bạn trước khi bạn gửi tệp. Thẻ **Before you export**, trong phần **Document** của Inspector và lần nữa trong bảng xuất, đọc cấu trúc lớp đã lưu, rồi xem canvas đã ổn định để tìm chữ bị cắt và độ tương phản màu phẳng. Nó hỏi cùng sổ đăng ký phông chữ mà việc chuyển SVG và PDF thành đường viền dùng, xem mỗi đoạn chữ có byte phông chữ để nhúng được không. Nền ảnh và nền chuyển sắc được liệt kê như kiểm tra bằng mắt thay vì cho một điểm tương phản bịa ra.
+Design kiểm tra tài liệu của bạn trước khi bạn gửi tệp. Thẻ **Before you export**, trong phần **Document** của Inspector và lần nữa trong bảng xuất, đọc cấu trúc lớp đã lưu, rồi xem canvas đã ổn định để tìm chữ bị cắt và độ tương phản màu phẳng. Nó hỏi cùng sổ đăng ký phông chữ mà việc chuyển SVG và PDF thành đường viền dùng, xem mỗi đoạn chữ có byte phông chữ để nhúng được không. Chữ mà một [phông dự phòng](/info/fallback-fonts.html) vẽ trong bản xuất được tính là đã có phông. Một hệ chữ không có phông dự phòng, hoặc một ký tự Trung, Nhật hay Hàn nằm ngoài các bộ ký tự mà những phông đó có, vẫn được báo cáo. Nền ảnh và nền chuyển sắc được liệt kê như kiểm tra bằng mắt thay vì cho một điểm tương phản bịa ra.
 
 ### Kiểm tra một bố cục với hệ thống thiết kế
 

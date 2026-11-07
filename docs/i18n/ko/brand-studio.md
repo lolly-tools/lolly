@@ -142,6 +142,8 @@ Lolly Demo처럼 앱과 함께 오고 편집할 수 있는 디자인 시스템�
 
 어떤 역할도 채우지 않는 읽는 방식은 디자인 시스템이 정의한 그대로 남고, 룸이 표 아래에 그 목록을 보여줘요. Primary라는 역할처럼 읽는 방식과 같은 id를 가진 역할은 그 읽는 방식 자체이며 옮길 수 없어요.
 
+**차트에서.** Lolly Chart의 **Design system - colour roles first** 팔레트는 디자인 시스템의 색상 역할을 그 순서대로 시리즈에 주고, 그다음에 팔레트의 나머지를 써요. 배경, 텍스트, 보조 텍스트, 헤어라인으로 읽히는 역할은 빠져요. 차트가 바탕과 글자를 그 색상으로 그리기 때문이에요. 그 팔레트를 고르기 전에는 아무것도 바뀌지 않고, 색상 역할이 없는 디자인 시스템은 팔레트를 **Design system - ordered**로 그려요.
+
 **값.** 값을 눌러 그 역할의, 그 모습의, 선택한 컬러웨이의 색상을 고르세요. **라이트와 같음**은 직접 색상을 고를 때까지 다크 값이 라이트 값을 따르게 해요. **Aa** 칩은 Lolly가 그 색상 위에 놓을 텍스트를 보여주고, 값 아래 줄은 그 텍스트가 모습별로 어떻게 읽히는지 알려줘요: **텍스트가 잘 읽혀요**, **큰 텍스트만** 또는 **텍스트로 읽기 어려워요**. 이는 색상 위의 텍스트에 대한 것이며 색상 자체를 나쁘게 말하는 것이 아니에요. 그 색상은 도형과 넓은 면에는 여전히 쓸 수 있어요. 이름으로만 읽히는 역할은 도구가 그 위에 텍스트를 스스로 놓지 않으므로 경고 색 없이 같은 문구를 보여줘요. 문구 뒤의 수치는 APCA가 먼저, WCAG가 그다음이며, 툴팁과 선택기에 있어요. **자체 텍스트 색상**은 파일이 텍스트 색상을 명시한 값을 표시하며, 그 값은 유지돼요. **복사했어요**는 다른 컬러웨이나 파트너 색상에서 온 값으로 아직 아무도 고르지 않은 값을 표시하며, 선택기의 **이 색상 유지**가 값을 확정해요.
 
 **시작점.** 자체 역할이 없는 디자인 시스템은 지금의 단어를 보여줘요: Primary, Secondary, Surface, Text. 하나를 바꾸기 전에는 아무것도 기록되지 않아요. **+ 역할 추가**는 **Primary, Secondary** 또는 **Main, Accent, Supporting, Tertiary**를 제안으로 보여주고, 직접 입력한 단어도 받으며, 각각이 얻을 읽는 방식을 함께 보여줘요. 처음 두 단어가 대표 색상과 파트너 색상이 돼요. 도구는 같은 색상으로 계속 그리고, 대표 색상이 하나인 시스템에서는 첫 컬러웨이가 그 색상의 이름을 따라요.
@@ -305,7 +307,7 @@ On primary는 primary에서 파생되며 **파생됨**으로 표시되고 선택
 
 **Rules**는 브랜드의 선택을 실제로 작동하게 해요. 사람들이 바꿀 수 있는 것, 고정된 것, Lolly가 확인할 수 있는 것을 정해요.
 
-![Lolly Demo의 Rules: 하우스 규칙 네 개, 각각 Checked in Lolly Design과 Required 또는 Advisory로 표시되고, 그다음 렌더할 예시가 준비된 Try your design system in use](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dusage&width=1440&height=1200&dpi=192&waitMs=2400&cropSelector=%23start-panel-usage&format=svg&walker=1&dark=1&filename=bs-usage-rules)
+![Lolly Demo의 Rules: 하우스 규칙 네 개, 각각 Checked in Design과 Required 또는 Advisory로 표시되고, 그다음 렌더할 예시가 준비된 Try your design system in use](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dusage&width=1440&height=1200&dpi=192&waitMs=2400&cropSelector=%23start-panel-usage&format=svg&walker=1&dark=1&filename=bs-usage-rules)
 
 **Brand rules**는 규칙을 나열해요. **Add rule**(또는 **Add your first rule**)이 짧은 양식을 열어요.
 
@@ -316,7 +318,7 @@ On primary는 primary에서 파생되며 **파생됨**으로 표시되고 선택
 
 승인은 이 기기에 사용자 자신의 결정을 기록해요. 승인된 필수 규칙은 재사용 가능한 포스터를 제약하며, 검사는 예시 PNG에만 적용되고 다른 도구는 바꾸지 않아요.
 
-디자인 시스템이 토큰 파일에 담아 오는 규칙, 예를 들어 승인된 색상 조합, 텍스트 굵기와 정렬, 표면별 로고는 여기에 **Checked in Lolly Design**으로 나열돼요. Lolly Design은 내보내기 패널의 **Before you export** 카드에서 레이어별로 이를 검사하고, `lolly check`는 저장된 Lolly Design 문서에 같은 검사를 해요([Before you export](/info/design.html#before-you-export)). 이 빌드에 검사기가 없는 규칙은 받은 그대로 보관되고 **Unchecked**로 표시돼요.
+디자인 시스템이 토큰 파일에 담아 오는 규칙, 예를 들어 승인된 색상 조합, 텍스트 굵기와 정렬, 표면별 로고는 여기에 **Checked in Design**으로 나열돼요. Lolly Design은 내보내기 패널의 **Before you export** 카드에서 레이어별로 이를 검사하고, `lolly check`는 저장된 Lolly Design 문서에 같은 검사를 해요([Before you export](/info/design.html#before-you-export)). 이 빌드에 검사기가 없는 규칙은 받은 그대로 보관되고 **Unchecked**로 표시돼요.
 
 Lolly Demo에는 승인된 하우스 규칙 네 개가 있어요. 헤드라인은 절대 대문자로 쓰지 않아요. 이 규칙은 필수이므로 `lolly check`가 대문자 헤드라인을 오류로 보고해요. 나머지 세 개는 권고예요. 본문 텍스트는 왼쪽 정렬이에요. 기본 마크는 밝은 표면에, 반전 마크는 어두운 표면에 놓아요. 점선은 여기에 놓으라는 뜻이에요.
 

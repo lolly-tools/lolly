@@ -507,6 +507,7 @@ export function seedPreflightFacts(ta: ActionsCtx): void {
         })),
       };
       ta.preflight.refreshPreflight();
+      ta.refresh.refreshSpotsUi(); // the spots row shows only for a palette that declares an ink
     } catch {
       /* stays as it was - never a fabricated empty palette */
     }

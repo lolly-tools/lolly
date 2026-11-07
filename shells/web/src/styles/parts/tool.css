@@ -4239,6 +4239,10 @@ html[data-a11y-text="large"] .input-section--dense .input-section-body {
 
   /* Export popup - a bottom sheet holding the (moved) actions panel. Hidden until
      Render is tapped; dismiss via the scrim or the ✕. */
+  /* Closed, the sheet takes no tap, even while it fades out. The fade keeps it
+     visible for its length, and this box covers the whole screen above everything:
+     a window narrowed past 640px, or a phone turned upright, faded it out from the
+     desktop look, and for that moment every control under it was out of reach. */
   .export-overlay {
     display: block;
     position: fixed;
@@ -4246,9 +4250,10 @@ html[data-a11y-text="large"] .input-section--dense .input-section-body {
     z-index: var(--z-max);
     opacity: 0;
     visibility: hidden;
+    pointer-events: none;
     transition: opacity var(--ui-motion-overlay) var(--ui-motion-standard), visibility var(--ui-motion-overlay) var(--ui-motion-standard);
   }
-  .tool-layout.export-open .export-overlay { opacity: 1; visibility: visible; }
+  .tool-layout.export-open .export-overlay { opacity: 1; visibility: visible; pointer-events: auto; }
   /* A deliberate black scrim, not a themed one: every dialog backdrop in the shell
      dims towards black in all three themes (parts/dialogs.css), and taking the ink
      token here would veil the preview in white on the dark theme. Same pixels as

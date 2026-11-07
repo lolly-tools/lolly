@@ -19,8 +19,9 @@ import {
   parseDimension, toPixels, canvasSizeOf, PENPOT_MIME,
   attributionCredits, checkAttributionReadback, verifyC2pa, describeIgnoredTokenChoice,
   ignoresTokenAxes, pinIgnoredTokenAxes, resolveTokenSelection, designRecordWords, guidedByWords, readDesignRecord, confirmIntentRecord,
+  pdfWithoutCredential,
 } from '@lolly/engine';
-import type { C2paIntentRecord, IntentRecordOutcome, C2paSourceIngredient, IgnoredTokenChoice, ToolTokenAxes, DesignRecord, CanvasSize } from '@lolly/engine';
+import type { C2paIntentRecord, IntentRecordOutcome, C2paSourceIngredient, IgnoredTokenChoice, ToolTokenAxes, DesignRecord, CanvasSize, PlacedPictures } from '@lolly/engine';
 import type { RightsEvaluationV1 } from '@lolly-tools/core/rights-v1';
 import type { EmojiSetInfoV1 } from '@lolly-tools/core/emoji-v1';
 import type { ExportBrandSkill, ExportFormat, ExportMeta, ExportOpts, Profile, InputFile, HostV1, IngredientCredential } from '@lolly-tools/core/host-v1';
@@ -31,7 +32,7 @@ import type { ToolManifest } from '../../../engine/src/loader.ts';
 // Vercel MCP bundle, where a bare workspace specifier would dangle (see bridge.ts).
 import { assertRenderOk, RenderIntegrityError } from '@lolly-tools/node-shell/render-integrity';
 import { isDeepFormat, DeepSourceError, needsFloatScene, drawnRootSvg } from '@lolly-tools/node-shell/raster';
-import { buildExportC2paOpts, recordedDesignInFile } from '@lolly-tools/node-shell/c2pa-opts';
+import { buildExportC2paOpts, placedPicturesIn, recordedDesignInFile } from '@lolly-tools/node-shell/c2pa-opts';
 import { withoutSvgCredentials } from '@lolly-tools/node-shell/lolly-file';
 import { needsBrowserTier } from '@lolly-tools/node-shell/browser-tier';
 import { webGpuLaunchArgs } from '@lolly-tools/node-shell/webgpu-launch';
@@ -123,6 +124,10 @@ export interface RenderOpts {
   rondo?: RondoCaps;
   /** The design-system record (the `_madewith` param, plans/319): false leaves it out. */
   madeWith?: boolean | null;
+  /** Spot inks as process for the CMYK formats (the `_spots` param, engine 1.324). The
+   *  browser tier reads it from the query; the browser-free eps-cmyk gets it as an export
+   *  option. Absent keeps the spot plates. */
+  spots?: 'process' | null;
   /**
    * The brand skills the agent declared it read and followed for this piece (plan
    * 323), already resolved against the profile. Recorded beside the design-system
@@ -356,6 +361,8 @@ function exportOpts(o: RenderOpts): ExportOpts & { password?: string } {
   // enforce that). Dropping it here made the same URL render differently on MCP
   // than on the CLI - depth=float silently came back as 16-bit HALF.
   if (o.depth && o.depth !== 'auto') opts.depth = o.depth;
+  // `_spots=process` prints each spot ink in process; off writes nothing (engine 1.324).
+  if (o.spots === 'process') opts.spotsAsProcess = true;
   // `_madewith=0` leaves the design-system record out of the file (plans/319).
   if (o.madeWith === false) opts.madeWith = false;
   // The brand skills the agent declared (plan 323) ride the same switch.
@@ -952,10 +959,16 @@ export function exportUrl(base: string, toolId: string, query: string, fmt: stri
   // A sample set is stamped by the browser alone, so it takes the setting as given.
   if (Number(p.get('cuts')) > 1 || p.has('sampletimes')) p.set('c2pa', o.c2pa?.on ? String(o.c2pa.days ?? 1) : 'off');
   // With no setting and no intent the web shell keeps its own default and nothing here is written.
-  // `off` has to reach the browser, which otherwise stamps. A PDF holds one credential, so when
-  // this server is to stamp one, or an intent record is to go in it, the browser writes none.
-  else if (o.c2pa?.on === false || (o.c2pa?.on && /^pdf/.test(fmt))) p.set('c2pa', 'off');
-  if (o.intent) p.set('c2pa', 'off');
+  // `off` has to reach the browser, which otherwise stamps.
+  else if (o.c2pa?.on === false) p.set('c2pa', 'off');
+  // This server stamps the file, for a lifetime or for an intent record. The browser stamps
+  // first all the same: its credential is where the pictures placed in the file are recorded,
+  // AI-made ones included, and credentialAndRecord carries them into this server's credential,
+  // which then takes its place. Only on a format this server stamps: a TIFF keeps a replaced
+  // credential as a second one, so there, as for an intent on a format with no credential,
+  // the browser writes none, and the inlined artwork it holds is not its to strip.
+  else if ((o.c2pa?.on || o.intent) && C2PA_FORMATS.includes(fmt as ExportFormat) && !/tiff$/.test(fmt)) p.set('c2pa', '1');
+  else if (o.intent || (o.c2pa?.on && /tiff$/.test(fmt))) { p.set('c2pa', 'off'); p.set('_keepinlinedc2pa', '1'); }
   p.set('export', '1'); // presence flag → immediate download on load
   const q = p.toString();
   const tmpl = process.env.LOLLY_TOOL_URL_TEMPLATE || `${base}/#/tool/{id}?{query}`;
@@ -1053,6 +1066,8 @@ export async function stampC2pa(
   meta: Pick<ExportMeta, 'designSystem' | 'designVersion' | 'themes' | 'brandSkills' | 'brandPage'> | null = null,
   /** What a browser-free render drew from the operations: its credentialed pictures and its route (plan 326). */
   drawn: DrawnHere | null = null,
+  /** What the browser's credential, which this one replaces, recorded about the pictures placed in the file. */
+  carried: PlacedPictures | null = null,
 ): Promise<Uint8Array> {
   // The shared node-shell payload (dimensions, inputs digest, date, author gate),
   // so an MCP-made asset inspects as richly as a CLI/TUI/browser-made one.
@@ -1068,9 +1083,13 @@ export async function stampC2pa(
     // One componentOf source ingredient per distinct glyph this render placed,
     // carrying the pack's own licence, creator and the exact bytes it came from.
     // Without it an MCP export that drew CC BY artwork records no licence for it.
-    ...(ingredients.length || drawn?.pictures.length ? { ingredients: [...ingredients, ...(drawn?.pictures ?? [])] } : {}),
+    // The browser's own record of the pictures placed in the file, credentialed ones with
+    // their manifests, goes in too: this credential takes the place of that one.
+    ...(ingredients.length || drawn?.pictures.length || carried?.ingredients.length
+      ? { ingredients: [...ingredients, ...(drawn?.pictures ?? []), ...(carried?.ingredients ?? [])] } : {}),
     route: drawn?.route ?? null,
     intent: o.intent ?? null,
+    carried,
   });
   return embedC2pa(bytes, fmt as ExportFormat, opts);
 }
@@ -1108,11 +1127,19 @@ export async function credentialAndRecord(
   const record: Recorded | null = skills.length ? { ...(inFile ?? {}), brandSkills: skills } : inFile;
   let stamped = false;
   if (!o.sampled && o.merged.c2pa?.on && C2PA_FORMATS.includes(o.exportFmt as ExportFormat) && !(o.exportFmt === 'pdf' && o.merged.password)) {
+    // The browser stamped first (exportUrl), and its credential is the record of the pictures
+    // placed in the file, so that record is read before this stamp replaces the credential.
+    // A PDF holds one credential, so the browser's update comes off first.
+    let carried: PlacedPictures | null = null;
+    if (out.tier.startsWith('B')) {
+      carried = await placedPicturesIn(bytes);
+      if (/^pdf/.test(o.exportFmt)) bytes = pdfWithoutCredential(bytes) ?? bytes;
+    }
     // Told not to stamp, the browser saves a PDF the embedder cannot extend until it has a classic table.
     try { bytes = await (await import('@lolly-tools/node-shell/pdf-classic')).classicPdfForStamp(bytes, o.exportFmt); } catch { /* the stamp below reports it */ }
     // On an SVG the embedder puts this credential in the root's metadata, in place of the
     // browser's, and an inlined picture keeps its own credential in its own markup.
-    try { bytes = await stampC2pa(bytes, o.exportFmt, o.manifest, o.values, o.merged, o.placed, record, out.tier.startsWith('B') ? null : o.drawn ?? null); stamped = true; }
+    try { bytes = await stampC2pa(bytes, o.exportFmt, o.manifest, o.values, o.merged, o.placed, record, out.tier.startsWith('B') ? null : o.drawn ?? null, carried); stamped = true; }
     catch (e) { o.warnings.push(`Content Credentials not attached - ${(e as Error).message}`); }
   } else if (!o.sampled && o.merged.c2pa?.on) {
     o.warnings.push(o.exportFmt === 'pdf' && o.merged.password
@@ -1237,6 +1264,7 @@ async function renderCandidateBytes(toolId: string, query: string, o: RenderOpts
     hdr: o.hdr ?? st.hdr ?? null,
     depth: o.depth ?? st.depth ?? undefined,
     madeWith: o.madeWith ?? st.madeWith ?? null,
+    spots: o.spots ?? st.spots ?? null,
   };
   const profile = o.profile ?? {};
   // The canvas size every browser-free render mounts with (engine 1.293): the request's

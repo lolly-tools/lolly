@@ -6,6 +6,7 @@ import { fileURLToPath } from 'node:url';
 import { unzipSync } from 'fflate';
 import { chromium } from 'playwright';
 import { studioAlphaReport } from './helpers/studio3d-alpha.ts';
+import { pollPage } from './helpers/page-poll.ts';
 
 const origin = process.env.STUDIO_SHELL_URL;
 const collectionPath =
@@ -468,10 +469,10 @@ test('3D Studio imports, reopens a portable model and exports through editor and
         !document.querySelector('[data-studio-item-label]')?.textContent?.includes('own framing')
     );
     step('studio: collection shared edits, named PNG set and framing reset passed');
-    await page.waitForFunction(async () => {
+    await pollPage(page, async () => {
       const path = '/src/lib/batch-job.ts';
       return !(await import(path)).isBatchRunActive();
-    });
+    }, undefined, { message: 'the batch run to finish' });
     const collectionPack = await page.evaluate(
       async ({ values, collectionPath }) => {
         const bridgePath = '/src/bridge/index.ts',

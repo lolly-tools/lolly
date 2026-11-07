@@ -4114,7 +4114,7 @@ var ENGINE_VERSION;
 var init_version = __esm({
   "engine/src/version.ts"() {
     "use strict";
-    ENGINE_VERSION = "1.323.0";
+    ENGINE_VERSION = "1.326.0";
   }
 });
 
@@ -47697,6 +47697,29 @@ ${xrefOff}
   }
   return out;
 }
+function pdfWithoutCredential(pdf) {
+  try {
+    const bin = bytesToBin(pdf);
+    const sxAt = bin.lastIndexOf("startxref");
+    const sx = sxAt < 0 ? null : /^startxref\s+(\d+)\s+%%EOF\s*$/.exec(bin.slice(sxAt));
+    if (!sx) return null;
+    const xrefAt = +sx[1];
+    const sec = parseXrefSection(bin, xrefAt);
+    const used = sec.entries.filter((e) => e.type === "n");
+    if (sec.prev === null || used.length !== 3) return null;
+    const start = Math.min(...used.map((e) => e.offset));
+    if (!(start > 0 && start < xrefAt)) return null;
+    const update = bin.slice(start, xrefAt);
+    if (!/\/Type\s*\/Catalog\b/.test(update) || !/\/AFRelationship\s*\/C2PA_Manifest\b/.test(update) || !/\/Subtype\s*\/application#2Fc2pa\b/.test(update)) return null;
+    const before = bin.slice(0, start);
+    const priorAt = before.lastIndexOf("startxref");
+    const prior = priorAt < 0 ? null : /^startxref\s+(\d+)\s+%%EOF\s*$/.exec(before.slice(priorAt));
+    if (!prior || +prior[1] !== sec.prev) return null;
+    return pdf.slice(0, start);
+  } catch {
+    return null;
+  }
+}
 function u32be(n7) {
   return Uint8Array.of(n7 >>> 24 & 255, n7 >>> 16 & 255, n7 >>> 8 & 255, n7 & 255);
 }
@@ -48700,6 +48723,7 @@ __export(c2pa_exports, {
   LOLLY_RIGHTS_ASSERTION: () => LOLLY_RIGHTS_ASSERTION,
   METADATA_ASSERTION: () => METADATA_ASSERTION,
   SCREEN_SOURCE_TYPE: () => SCREEN_SOURCE_TYPE,
+  aiFactsFromSteps: () => aiFactsFromSteps,
   attachC2paStore: () => attachC2paStore,
   buildC2paManifest: () => buildC2paManifest,
   buildExternalC2paStore: () => buildExternalC2paStore,
@@ -48710,6 +48734,7 @@ __export(c2pa_exports, {
   encodeCbor: () => encodeCbor,
   exportActionSteps: () => exportActionSteps,
   generateSigner: () => generateSigner,
+  ingredientFormatOfMime: () => ingredientFormatOfMime,
   urnUuid: () => urnUuid
 });
 function ingredientRelationship(ing) {
@@ -48939,6 +48964,10 @@ function urnUuid() {
   const h = bytesToHex(b);
   return `urn:uuid:${h.slice(0, 8)}-${h.slice(8, 12)}-${h.slice(12, 16)}-${h.slice(16, 20)}-${h.slice(20)}`;
 }
+function ingredientFormatOfMime(mime2) {
+  if (typeof mime2 !== "string") return void 0;
+  return Object.keys(INGREDIENT_MIME).find((key2) => INGREDIENT_MIME[key2] === mime2);
+}
 function joinList(items2) {
   if (items2.length <= 1) return items2[0] ?? "";
   if (items2.length === 2) return `${items2[0]} and ${items2[1]}`;
@@ -48985,12 +49014,40 @@ function exportActionSteps(format, flags = {}) {
   if (flags.imprint) steps.push({ action: "c2pa.edited", description: "Embedded a durable Lolly pixel watermark" });
   if (flags.audio) steps.push({ action: "c2pa.edited", description: "Added an audio track" });
   if (flags.textAdded) steps.push({ action: "c2pa.edited", description: flags.textSample ? `Added text - \u201C${flags.textSample}\u201D` : "Added text" });
-  if (upscaled) steps.push({ action: "c2pa.edited", description: `AI-upscaled with ${upscaled.model} ${upscaled.version}` });
-  if (aiPlaced) steps.push({ action: "c2pa.placed", description: `Placed AI-declared ingredient${aiPlaced.length === 1 ? "" : "s"}: ${joinList(aiPlaced.map((i) => `${i.name} (${i.kind === "full" ? "AI-generated" : "AI-assisted"})`))}` });
+  if (upscaled) steps.push({ action: "c2pa.edited", description: aiUpscaleDescription(upscaled) });
+  if (aiPlaced) steps.push({ action: "c2pa.placed", description: aiPlacedDescription(aiPlaced) });
   if (RASTER_OUTPUTS.has(f)) steps.push({ action: "c2pa.converted", description: `Rendered to ${f.toUpperCase()}` });
   else if (VIDEO_OUTPUTS.has(f)) steps.push({ action: "c2pa.converted", description: `Encoded to ${f.toUpperCase()}` });
   else if (f === "pdf" || f === "pdf-cmyk") steps.push({ action: "c2pa.converted", description: "Rendered to PDF" });
   return steps;
+}
+function aiPlacedDescription(list4) {
+  return `Placed AI-declared ingredient${list4.length === 1 ? "" : "s"}: ${joinList(list4.map((i) => `${i.name} (${AI_GRADE[i.kind]})`))}`;
+}
+function aiUpscaleDescription(up) {
+  return `AI-upscaled with ${up.model} ${up.version}`;
+}
+function aiFactsFromSteps(steps) {
+  const aiIngredients = [];
+  let aiUpscale;
+  for (const step of steps) {
+    const text13 = typeof step.description === "string" ? step.description : "";
+    if (step.action === "c2pa.placed" && step.parameters === void 0) {
+      const head2 = /^Placed AI-declared ingredients?: /.exec(text13);
+      if (!head2) continue;
+      const read = [];
+      const item2 = /(.+?) \((AI-generated|AI-assisted)\)(?:, | and |$)/gy;
+      item2.lastIndex = head2[0].length;
+      for (let m2 = item2.exec(text13); m2; m2 = item2.lastIndex < text13.length ? item2.exec(text13) : null) {
+        read.push({ name: m2[1], kind: m2[2] === "AI-generated" ? "full" : "partial" });
+      }
+      if (read.length && aiPlacedDescription(read) === text13) aiIngredients.push(...read);
+    } else if (step.action === "c2pa.edited" && !aiUpscale) {
+      const m2 = /^AI-upscaled with (.+) (\S+)$/.exec(text13);
+      if (m2 && aiUpscaleDescription({ model: m2[1], version: m2[2] }) === text13) aiUpscale = { model: m2[1], version: m2[2] };
+    }
+  }
+  return { aiIngredients, ...aiUpscale ? { aiUpscale } : {} };
 }
 function captureDescription(cap) {
   if (cap.screen) return cap.microphone ? "Captured from the screen with microphone narration" : "Captured from the screen";
@@ -49246,7 +49303,7 @@ async function buildExternalC2paStore(bytes2, opts = {}) {
     assetHash: { exclusions: [], name: hashName || "whole document", hash: await sha256(bytes2) }
   });
 }
-var isSourceIngredient, HTTP_URL_MAX, boundedText, SHA256_TEXT, INTENT_RECORD_KEYS, INTENT_WORD, INTENT_SURFACE_ID, INTENT_TOOL_ID, INTENT_LANGUAGE, INTENT_RULES, APPROVAL_ID, ISO_INSTANT, te5, subtle4, CborTag, JUMBF_UUID_SUFFIX, boxUuid, UUID_C2PA_STORE, UUID_MANIFEST, UUID_ASSERTION_STORE, UUID_CLAIM, UUID_SIGNATURE, UUID_CBOR_CONTENT, UUID_JSON_CONTENT, COSE_HEADER_ALG, COSE_HEADER_X5CHAIN, isoSeconds, DIGITAL_SOURCE_TYPE, CAPTURE_SOURCE_TYPE, SCREEN_SOURCE_TYPE, GENERATED_SOURCE_TYPE, COMPOSITE_SOURCE_TYPE, ALGORITHMIC_SOURCE_TYPE, RASTER_OUTPUTS, VIDEO_OUTPUTS, INGREDIENT_MIME, LOLLY_EXPORT_ASSERTION, LOLLY_RIGHTS_ASSERTION, LOLLY_INTENT_ASSERTION, INTENT_PROMPT_NOTE, LOLLY_APPROVAL_ASSERTION, BMFF_HASH_LABEL, CREATIVE_WORK_ASSERTION, METADATA_ASSERTION, DC_CONTEXT, AI_DISCLOSURE_ASSERTION, AI_MODEL_TYPE_GENERIC, AI_MODEL_TYPES, NAMESPACED_LABEL_RE, HUMAN_OVERSIGHT_LEVELS, SCIENTIFIC_DOMAIN_RE, SEMVER_RE, C2PA_SPEC_VERSION;
+var isSourceIngredient, HTTP_URL_MAX, boundedText, SHA256_TEXT, INTENT_RECORD_KEYS, INTENT_WORD, INTENT_SURFACE_ID, INTENT_TOOL_ID, INTENT_LANGUAGE, INTENT_RULES, APPROVAL_ID, ISO_INSTANT, te5, subtle4, CborTag, JUMBF_UUID_SUFFIX, boxUuid, UUID_C2PA_STORE, UUID_MANIFEST, UUID_ASSERTION_STORE, UUID_CLAIM, UUID_SIGNATURE, UUID_CBOR_CONTENT, UUID_JSON_CONTENT, COSE_HEADER_ALG, COSE_HEADER_X5CHAIN, isoSeconds, DIGITAL_SOURCE_TYPE, CAPTURE_SOURCE_TYPE, SCREEN_SOURCE_TYPE, GENERATED_SOURCE_TYPE, COMPOSITE_SOURCE_TYPE, ALGORITHMIC_SOURCE_TYPE, RASTER_OUTPUTS, VIDEO_OUTPUTS, INGREDIENT_MIME, AI_GRADE, LOLLY_EXPORT_ASSERTION, LOLLY_RIGHTS_ASSERTION, LOLLY_INTENT_ASSERTION, INTENT_PROMPT_NOTE, LOLLY_APPROVAL_ASSERTION, BMFF_HASH_LABEL, CREATIVE_WORK_ASSERTION, METADATA_ASSERTION, DC_CONTEXT, AI_DISCLOSURE_ASSERTION, AI_MODEL_TYPE_GENERIC, AI_MODEL_TYPES, NAMESPACED_LABEL_RE, HUMAN_OVERSIGHT_LEVELS, SCIENTIFIC_DOMAIN_RE, SEMVER_RE, C2PA_SPEC_VERSION;
 var init_c2pa2 = __esm({
   "engine/src/c2pa.ts"() {
     "use strict";
@@ -49321,6 +49378,7 @@ var init_c2pa2 = __esm({
       ogg: "audio/ogg",
       avif: "image/avif"
     };
+    AI_GRADE = { full: "AI-generated", partial: "AI-assisted" };
     LOLLY_EXPORT_ASSERTION = "tools.lolly.export";
     LOLLY_RIGHTS_ASSERTION = "tools.lolly.rights";
     LOLLY_INTENT_ASSERTION = "tools.lolly.intent";
@@ -52536,6 +52594,86 @@ function collectIngredientRecords(store) {
     }
   }
   return out;
+}
+function placedPicturesOf(store) {
+  const none = { ingredients: [], aiIngredients: [] };
+  let root2;
+  let active;
+  try {
+    root2 = parseSuperbox(store, walkBoxes2(store, 0, store.length)[0]);
+    if (root2.label !== "c2pa" || !root2.children.length) return none;
+    active = parseC2paStore(store);
+  } catch {
+    return none;
+  }
+  const manifests = [];
+  for (const box4 of root2.children.slice(0, -1)) {
+    let label5 = "";
+    try {
+      label5 = parseSuperbox(store, box4).label;
+    } catch {
+    }
+    manifests.push({ label: label5, bytes: store.slice(box4.start, box4.end) });
+  }
+  const decode = (content2) => {
+    try {
+      const v = decodeCbor(content2);
+      return v instanceof Map ? v : null;
+    } catch {
+      return null;
+    }
+  };
+  const steps = [];
+  for (const a of active.assertions) {
+    if (a.label !== "c2pa.actions" && a.label !== "c2pa.actions.v2") continue;
+    const list4 = decode(a.content)?.get("actions");
+    if (Array.isArray(list4)) {
+      for (const step of list4) {
+        if (step instanceof Map) steps.push({ action: step.get("action"), description: step.get("description"), parameters: step.get("parameters"), digitalSourceType: step.get("digitalSourceType") });
+      }
+    }
+  }
+  const sourceTypeOf = (assertionLabel) => {
+    const url = `self#jumbf=c2pa.assertions/${assertionLabel}`;
+    for (const step of steps) {
+      const refs = step.parameters instanceof Map ? step.parameters.get("ingredients") : void 0;
+      if (Array.isArray(refs) && refs.some((r5) => r5 instanceof Map && r5.get("url") === url)) {
+        return typeof step.digitalSourceType === "string" ? step.digitalSourceType : void 0;
+      }
+    }
+    return void 0;
+  };
+  const ingredients = [];
+  let at = 0;
+  for (const a of active.assertions) {
+    if (!INGREDIENT_LABEL.test(a.label)) continue;
+    const map = decode(a.content);
+    const ref2 = map?.get("activeManifest") ?? map?.get("c2pa_manifest");
+    const url = ref2 instanceof Map ? ref2.get("url") : void 0;
+    if (!map || typeof url !== "string" || !url.startsWith("self#jumbf=/c2pa/")) continue;
+    const activeLabel = url.slice("self#jumbf=/c2pa/".length);
+    const end = manifests.findIndex((m2, i) => i >= at && m2.label === activeLabel);
+    if (end < 0) continue;
+    const manifestBoxes = manifests.slice(at, end + 1).map((m2) => m2.bytes);
+    at = end + 1;
+    let title;
+    try {
+      const claim = decodeCbor(parseC2paStore(store, activeLabel).claimBytes);
+      if (claim instanceof Map && typeof claim.get("dc:title") === "string") title = claim.get("dc:title");
+    } catch {
+    }
+    const relationship = map.get("relationship");
+    const digitalSourceType = sourceTypeOf(a.label);
+    ingredients.push({
+      manifestBoxes,
+      activeLabel,
+      ...title !== void 0 ? { title } : {},
+      format: ingredientFormatOfMime(map.get("dc:format")) ?? "",
+      ...typeof relationship === "string" ? { relationship } : {},
+      ...digitalSourceType ? { digitalSourceType } : {}
+    });
+  }
+  return { ingredients, ...aiFactsFromSteps(steps) };
 }
 function readParentManifest(store, active) {
   for (const assertion of active.assertions) {
@@ -57926,6 +58064,9 @@ function parseVideoParams(params2) {
 function hasVideoParams(v) {
   return !!v && (v.fps != null || v.seconds != null || v.wait != null || v.codec != null || v.quality != null);
 }
+function parseSpots(raw) {
+  return typeof raw === "string" && raw.trim().toLowerCase() === "process" ? "process" : null;
+}
 function parseMarks(raw) {
   if (raw == null) return null;
   const set = new Set(String(raw).split(",").map((s) => s.trim().toLowerCase()).filter(Boolean));
@@ -58107,7 +58248,9 @@ function parseUrlState(searchParams, manifest) {
     licence: params2.get("licence") || null,
     // The design-system record (see header). Default-on, so only an explicit
     // opt-out reads as false; absent stays null.
-    madeWith: parseMeta(params2.get("_madewith"))
+    madeWith: parseMeta(params2.get("_madewith")),
+    // How the CMYK formats print spot inks (see header). Opt-in: only `process` counts.
+    spots: parseSpots(params2.get("_spots"))
   };
 }
 function serializeUrlState(model2, opts = {}) {
@@ -58162,6 +58305,7 @@ function serializeUrlState(model2, opts = {}) {
   if (opts.imprint === false) params2.set("imprint", "0");
   if (opts.metadata === false) params2.set("meta", "off");
   if (opts.madeWith === false) params2.set("_madewith", "0");
+  if (parseSpots(opts.spots ?? null)) params2.set("_spots", "process");
   if (opts.durable) params2.set("durable", "1");
   if (opts.hdr) params2.set("hdr", "1");
   if (opts.fps != null && numberIn(String(opts.fps), 1, 120, true) != null) params2.set("fps", String(Math.round(Number(opts.fps))));
@@ -58342,7 +58486,7 @@ var init_url_mode = __esm({
       av1: "av1",
       av01: "av1"
     });
-    RESERVED = /* @__PURE__ */ new Set(["format", "export", "copy", "slot", "output", "filename", "_v", "width", "height", "w", "h", "unit", "dpi", "profile", "password", "bleed", "marks", "c2pa", "imprint", "durable", "meta", "hdr", "depth", "cuts", "sampletimes", "motionblur", "seqrange", "lang", "designv", "ds", "full", "iframe", "options", "nostage", "template", "preset", "present", "s", "kiosk", "z", "zx", "fps", "seconds", "wait", "codec", "vq", "emoji", "emojifx", "emojistyle", "licence", "_themes", "_madewith"]);
+    RESERVED = /* @__PURE__ */ new Set(["format", "export", "copy", "slot", "output", "filename", "_v", "width", "height", "w", "h", "unit", "dpi", "profile", "password", "bleed", "marks", "c2pa", "imprint", "durable", "meta", "hdr", "depth", "cuts", "sampletimes", "motionblur", "seqrange", "lang", "designv", "ds", "full", "iframe", "options", "nostage", "template", "preset", "present", "s", "kiosk", "z", "zx", "fps", "seconds", "wait", "codec", "vq", "emoji", "emojifx", "emojistyle", "licence", "_themes", "_madewith", "_spots"]);
     CUTS_MAX = 64;
     HEX_COLOR = /^#[0-9a-fA-F]{3,8}$/;
   }
@@ -76547,7 +76691,7 @@ var init_contentseal = __esm({
 function cmykKey(r5, g2, b) {
   return `${Math.round(r5 * 100)},${Math.round(g2 * 100)},${Math.round(b * 100)}`;
 }
-function buildCmykPaletteMap(palette, separate = rgbToCmyk) {
+function buildCmykPaletteMap(palette, separate = rgbToCmyk, options2 = {}) {
   const map = /* @__PURE__ */ new Map();
   for (const { hex: hex4, cmyk, spot } of palette ?? []) {
     if (!hex4 || !cmyk && !spot) continue;
@@ -76558,7 +76702,8 @@ function buildCmykPaletteMap(palette, separate = rgbToCmyk) {
     const b = parseInt(h.slice(4, 6), 16) / 255;
     const frac = cmyk && cmyk.length === 4 ? cmyk.map((v) => v / 100) : separate(r5, g2, b);
     const build2 = spot?.finish ? FINISH_MASK_CMYK : frac;
-    map.set(cmykKey(r5, g2, b), spot ? { cmyk: build2, spot: { name: spot.name, cmyk: build2, ...spot.finish ? { finish: spot.finish } : {} } } : { cmyk: frac });
+    const asProcess = options2.spotsAsProcess === true && !!spot && !spot.finish;
+    map.set(cmykKey(r5, g2, b), spot && !asProcess ? { cmyk: build2, spot: { name: spot.name, cmyk: build2, ...spot.finish ? { finish: spot.finish } : {} } } : { cmyk: frac });
   }
   return map;
 }
@@ -88687,6 +88832,27 @@ function emitImagePrim(prim, out) {
   out.push(">");
   out.push("grestore");
 }
+function emitStencilPrim(prim, cmyk, out, palette, separate) {
+  const pxW = Math.max(1, Math.round(prim.pxW));
+  const pxH = Math.max(1, Math.round(prim.pxH));
+  const need = Math.ceil(pxW / 8) * pxH;
+  out.push("gsave");
+  out.push(colorOp(prim.fill, cmyk, palette, separate));
+  out.push(n2(prim.x) + " " + n2(prim.y) + " translate");
+  out.push(n2(prim.w) + " " + n2(prim.h) + " scale");
+  out.push("<< /ImageType 1 /Width " + pxW + " /Height " + pxH + " /BitsPerComponent 1 /Decode [1 0] /ImageMatrix [" + pxW + " 0 0 " + pxH + " 0 0] /DataSource currentfile /ASCIIHexDecode filter >> imagemask");
+  let line = "";
+  for (let i = 0; i < need; i++) {
+    line += HEX2[i < prim.bits.length ? prim.bits[i] : 0];
+    if (line.length >= 64) {
+      out.push(line);
+      line = "";
+    }
+  }
+  if (line) out.push(line);
+  out.push(">");
+  out.push("grestore");
+}
 function emitPathPrim2(prim, cmyk, out, palette, separate) {
   const { subpaths, fill: fill2, stroke, fillRule } = prim;
   if (!subpaths || !subpaths.length) return;
@@ -88745,6 +88911,7 @@ function emitEps(ir, opts = {}) {
     for (const prim of ir.prims || []) {
       if (prim && prim.type === "path") emitPathPrim2(prim, cmyk, L, opts.cmykPalette, opts.separate);
       else if (prim && prim.type === "image") emitImagePrim(prim, L);
+      else if (prim && prim.type === "stencil") emitStencilPrim(prim, cmyk, L, opts.cmykPalette, opts.separate);
     }
     L.push("grestore");
     emitMarksPs(geo, opts.markSpace ?? (cmyk ? "cmyk" : "rgb"), L);
@@ -88754,6 +88921,7 @@ function emitEps(ir, opts = {}) {
     for (const prim of ir.prims || []) {
       if (prim && prim.type === "path") emitPathPrim2(prim, cmyk, L, opts.cmykPalette, opts.separate);
       else if (prim && prim.type === "image") emitImagePrim(prim, L);
+      else if (prim && prim.type === "stencil") emitStencilPrim(prim, cmyk, L, opts.cmykPalette, opts.separate);
     }
   }
   L.push("grestore");
@@ -88877,7 +89045,7 @@ function emitDxf(ir, opts = {}) {
   let droppedImages = 0;
   for (const prim of ir.prims || []) {
     if (!prim) continue;
-    if (prim.type === "image") {
+    if (prim.type === "image" || prim.type === "stencil") {
       droppedImages++;
       continue;
     }
@@ -91370,6 +91538,52 @@ function emitPathPrim3(prim, out, tol) {
   out.push(recDeleteObject2(OBJ_PEN));
   out.push(recDeleteObject2(OBJ_BRUSH));
 }
+function recStretchDib1(prim, rows2, zero2, one, rop) {
+  const pxW = Math.max(1, Math.round(prim.pxW));
+  const pxH = Math.max(1, Math.round(prim.pxH));
+  const stride = Math.ceil(pxW / 32) * 4;
+  const dib = new Uint8Array(40 + 8 + stride * pxH);
+  const dv = new DataView(dib.buffer);
+  dv.setUint32(0, 40, true);
+  dv.setInt32(4, pxW, true);
+  dv.setInt32(8, pxH, true);
+  dv.setUint16(12, 1, true);
+  dv.setUint16(14, 1, true);
+  dv.setUint32(16, 0, true);
+  dv.setUint32(20, stride * pxH, true);
+  dv.setUint32(32, 2, true);
+  dib.set([zero2.b & 255, zero2.g & 255, zero2.r & 255, 0, one.b & 255, one.g & 255, one.r & 255, 0], 40);
+  const rowBytes = Math.ceil(pxW / 8);
+  for (let y = 0; y < pxH; y++) dib.set(rows2.subarray(y * rowBytes, (y + 1) * rowBytes), 48 + (pxH - 1 - y) * stride);
+  const head2 = rec(META_STRETCHDIB, [
+    rop & 65535,
+    rop >>> 16 & 65535,
+    DIB_RGB_COLORS2,
+    clampI16(pxH),
+    clampI16(pxW),
+    0,
+    0,
+    clampI16(prim.h),
+    clampI16(prim.w),
+    clampI16(prim.y),
+    clampI16(prim.x)
+  ]);
+  const out = new Uint8Array(head2.length + dib.length);
+  out.set(head2, 0);
+  out.set(dib, head2.length);
+  new DataView(out.buffer).setUint32(0, out.length / 2, true);
+  return out;
+}
+function emitStencilPrim2(prim, out) {
+  const pxW = Math.max(1, Math.round(prim.pxW));
+  const pxH = Math.max(1, Math.round(prim.pxH));
+  const rowBytes = Math.ceil(pxW / 8);
+  const ink = new Uint8Array(rowBytes * pxH);
+  ink.set(prim.bits.subarray(0, ink.length));
+  const black = { r: 0, g: 0, b: 0 }, white = { r: 255, g: 255, b: 255 };
+  out.push(recStretchDib1(prim, ink, black, white, SRCPAINT));
+  out.push(recStretchDib1(prim, ink, white, prim.fill, SRCAND));
+}
 function headerMath2(ir, opts) {
   const Wpx = Math.max(1, Math.round(ir.width));
   const Hpx = Math.max(1, Math.round(ir.height));
@@ -91417,7 +91631,8 @@ function emitWmf(ir, opts = {}) {
     if (prim?.type === "path") {
       emitPathPrim3(prim, body, tol);
       hasPath = true;
-    } else if (prim?.type === "text") {
+    } else if (prim?.type === "stencil") emitStencilPrim2(prim, body);
+    else if (prim?.type === "text") {
       throw new Error(`WMF cannot carry live text (run "${prim.text.slice(0, 24)}") - build the IR with textMode 'outline'`);
     }
   }
@@ -91445,7 +91660,7 @@ function emitWmf(ir, opts = {}) {
   }
   return out;
 }
-var META_EOF, META_SETPOLYFILLMODE, META_SETWINDOWORG, META_SETWINDOWEXT, META_POLYGON, META_POLYLINE, META_SELECTOBJECT, META_DELETEOBJECT, META_CREATEPENINDIRECT, META_CREATEBRUSHINDIRECT, ALTERNATE2, WINDING2, PS_SOLID, PS_NULL, BS_SOLID2, BS_HOLLOW, PLACEABLE_KEY, METAFILE_MEMORY, MHDR_WORDS, MHDR_VERSION, INT16_MIN, INT16_MAX, clampI16, MAX_POLY_POINTS, colorWords, recSetWindowOrg, recSetWindowExt, recSetPolyFillMode2, recCreatePen, recCreateBrush2, recSelectObject2, recDeleteObject2, recEof2, mid2, OBJ_BRUSH, OBJ_PEN, STOCK_NULL_BRUSH, STOCK_NULL_PEN;
+var META_EOF, META_SETPOLYFILLMODE, META_SETWINDOWORG, META_SETWINDOWEXT, META_POLYGON, META_POLYLINE, META_SELECTOBJECT, META_DELETEOBJECT, META_CREATEPENINDIRECT, META_CREATEBRUSHINDIRECT, META_STRETCHDIB, SRCAND, SRCPAINT, DIB_RGB_COLORS2, ALTERNATE2, WINDING2, PS_SOLID, PS_NULL, BS_SOLID2, BS_HOLLOW, PLACEABLE_KEY, METAFILE_MEMORY, MHDR_WORDS, MHDR_VERSION, INT16_MIN, INT16_MAX, clampI16, MAX_POLY_POINTS, colorWords, recSetWindowOrg, recSetWindowExt, recSetPolyFillMode2, recCreatePen, recCreateBrush2, recSelectObject2, recDeleteObject2, recEof2, mid2, OBJ_BRUSH, OBJ_PEN, STOCK_NULL_BRUSH, STOCK_NULL_PEN;
 var init_wmf = __esm({
   "engine/src/wmf.ts"() {
     "use strict";
@@ -91460,6 +91675,10 @@ var init_wmf = __esm({
     META_DELETEOBJECT = 496;
     META_CREATEPENINDIRECT = 762;
     META_CREATEBRUSHINDIRECT = 764;
+    META_STRETCHDIB = 3907;
+    SRCAND = 8913094;
+    SRCPAINT = 15597702;
+    DIB_RGB_COLORS2 = 0;
     ALTERNATE2 = 1;
     WINDING2 = 2;
     PS_SOLID = 0;
@@ -154954,6 +155173,7 @@ __export(src_exports, {
   parseScriptMarks: () => parseScriptMarks,
   parseSealRecord: () => parseSealRecord,
   parseSealRecords: () => parseSealRecords,
+  parseSpots: () => parseSpots,
   parseSvgPath: () => parseSvgPath,
   parseSvgPathArgs: () => parseSvgPathArgs,
   parseTableText: () => parseTableText,
@@ -154997,6 +155217,7 @@ __export(src_exports, {
   pdfNodeElementKind: () => pdfNodeElementKind,
   pdfNodeExtent: () => pdfNodeExtent,
   pdfNodesToSvg: () => pdfNodesToSvg,
+  pdfWithoutCredential: () => pdfWithoutCredential,
   pdfWordBreak: () => pdfWordBreak,
   pdfxOutputIntentSpec: () => pdfxOutputIntentSpec,
   pdfxProfileEligibility: () => pdfxProfileEligibility,
@@ -155036,6 +155257,7 @@ __export(src_exports, {
   pinIgnoredTokenAxes: () => pinIgnoredTokenAxes,
   pinnedFontAliases: () => pinnedFontAliases,
   placeTextStory: () => placeTextStory,
+  placedPicturesOf: () => placedPicturesOf,
   plainOfDesignText: () => plainOfDesignText,
   planIconSet: () => planIconSet,
   planRepair: () => planRepair,
@@ -155698,6 +155920,8 @@ var init_src2 = __esm({
     init_c2pa2();
     init_c2pa_approval();
     init_c2pa_verify();
+    init_c2pa_extract();
+    init_c2pa_containers();
     init_c2pa_verdict();
     init_c2pa_trust();
     init_provenance_defaults();
@@ -170677,6 +170901,14 @@ function firstStrongDirection(text13) {
   }
   return "ltr";
 }
+function scriptsOf(text13) {
+  const out = /* @__PURE__ */ new Set();
+  for (const char of text13) {
+    const script = textScript(char.codePointAt(0));
+    if (script !== "Zyyy" && script !== "Zinh" && script !== "Zzzz") out.add(script);
+  }
+  return [...out];
+}
 function mixesComplexScript(text13) {
   if (isAscii(text13)) return false;
   const scripts = textScriptRuns(text13).map((run3) => run3.script).filter((script) => script !== "Zyyy" && script !== "Zinh" && script !== "Zzzz");
@@ -179116,6 +179348,7 @@ function exportUrl2(base, toolId, query2, fmt6, dims) {
   if (dims.durable) p.set("durable", "1");
   if (dims.madeWith === false) p.set("_madewith", "0");
   if (dims.pressProfile) p.set("profile", dims.pressProfile);
+  if (dims.spotsAsProcess) p.set("_spots", "process");
   if (dims.slide) p.set("s", dims.slide);
   if (dims.hdrParam) p.set("hdr", dims.hdrParam);
   if (dims.depth && dims.depth !== "auto") p.set("depth", String(dims.depth));
@@ -179367,7 +179600,7 @@ async function renderViaChromiumShell(toolId, query2, format, dims = {}) {
     debug.attach(page3);
     page3.on("console", (message) => {
       const line = sessionExportNote(message.type(), message.text());
-      if (line && (message.text().startsWith(PDF_TEXT_NOTE) || message.text().startsWith(FILL_NOTE))) process.stderr.write(`Note: ${line}
+      if (line && (PICTURE_NOTES.some((note2) => message.text().startsWith(note2)) || message.text().startsWith(FILL_NOTE))) process.stderr.write(`Note: ${line}
 `);
     });
     waiting = await waitForExport(page3, format);
@@ -179621,7 +179854,7 @@ async function exportOpenedSession(page3, base, query2, format, dims, debug, lab
 }
 function sessionExportNote(type, text13) {
   if (type === "info" && text13.startsWith(FILL_NOTE)) return text13.slice("[info] ".length, "[info] ".length + 2e3).trimEnd();
-  if (type !== "warning" || !(text13.startsWith("[warn] pptx: ") || text13.startsWith(PDF_TEXT_NOTE))) return null;
+  if (type !== "warning" || !(text13.startsWith("[warn] pptx: ") || PICTURE_NOTES.some((note2) => text13.startsWith(note2)))) return null;
   return text13.slice("[warn] ".length, "[warn] ".length + 2e3).trimEnd();
 }
 function sessionDims(opts) {
@@ -179782,7 +180015,7 @@ async function designChecksViaSession(bytes2, opts = {}) {
     throw withDebugLog(err instanceof OpenSessionError ? new BrowserError(err.message) : err, "design.check", debug);
   }
 }
-var MIME4, served2, EXPORT_URL_RESERVED2, tierBDebugConfig, DEBUG_MAX_LINES, NO_DEBUG, PAGE_DESIGN_SYSTEM_GLOBAL, PDF_TEXT_NOTE, FILL_NOTE, DESKTOP_REQUEST_MAX_BYTES, DESKTOP_REQUEST_MARGIN;
+var MIME4, served2, EXPORT_URL_RESERVED2, tierBDebugConfig, DEBUG_MAX_LINES, NO_DEBUG, PAGE_DESIGN_SYSTEM_GLOBAL, PICTURE_NOTES, FILL_NOTE, DESKTOP_REQUEST_MAX_BYTES, DESKTOP_REQUEST_MARGIN;
 var init_webshell_render = __esm({
   "packages/node-shell/src/webshell-render.ts"() {
     "use strict";
@@ -179826,7 +180059,7 @@ var init_webshell_render = __esm({
       ".wmf": "application/x-msmetafile"
     };
     served2 = null;
-    EXPORT_URL_RESERVED2 = ["_keepinlinedc2pa", "format", "export", "copy", "width", "w", "height", "h", "unit", "dpi", "password", "bleed", "marks", "imprint", "durable", "profile", "c2pa", "preview", "options", "fps", "seconds", "wait", "codec", "vq", "hdr", "depth", "cuts", "sampletimes", "motionblur", "seqrange"];
+    EXPORT_URL_RESERVED2 = ["_keepinlinedc2pa", "format", "export", "copy", "width", "w", "height", "h", "unit", "dpi", "password", "bleed", "marks", "imprint", "durable", "profile", "c2pa", "preview", "options", "fps", "seconds", "wait", "codec", "vq", "hdr", "depth", "cuts", "sampletimes", "motionblur", "seqrange", "_spots"];
     tierBDebugConfig = { enabled: false, outPath: null };
     DEBUG_MAX_LINES = 500;
     NO_DEBUG = {
@@ -179838,7 +180071,7 @@ var init_webshell_render = __esm({
       write: () => null
     };
     PAGE_DESIGN_SYSTEM_GLOBAL = "__lollyAutomationDesignSystem";
-    PDF_TEXT_NOTE = "[warn] pdf: This PDF draws some text as pictures";
+    PICTURE_NOTES = ["pdf", "eps", "wmf"].map((f) => `[warn] ${f}: This ${f.toUpperCase()} draws some text as pictures`);
     FILL_NOTE = "[info] fonts: ";
     DESKTOP_REQUEST_MAX_BYTES = 1 << 20;
     DESKTOP_REQUEST_MARGIN = 4 * 1024;
@@ -183031,6 +183264,10 @@ function buildExportC2paOpts(o) {
   const unit2 = dims.unit || "px";
   const sizeLine = typeof dims.width === "number" && dims.width > 0 && typeof dims.height === "number" && dims.height > 0 ? unit2 !== "px" ? `${dims.width} \xD7 ${dims.height} ${unit2} @ ${dims.dpi || 300} DPI` : `${dims.width} \xD7 ${dims.height} px` : void 0;
   const aiIngredients = collectAiIngredientDeclarations(model2);
+  for (const piece of o.carried?.aiIngredients ?? []) {
+    if (!aiIngredients.some((have) => have.name === piece.name && have.kind === piece.kind)) aiIngredients.push(piece);
+  }
+  const aiUpscale = o.carried?.aiUpscale;
   return {
     title: name,
     claimGenerator: "Lolly lolly.tools",
@@ -183053,10 +183290,20 @@ function buildExportC2paOpts(o) {
     dates: o.signer && o.signerValidity ? { notBefore: o.signerValidity.notBefore, notAfter: o.signerValidity.notAfter } : { notBefore: new Date(Date.now() - 6e4), notAfter: new Date(Date.now() + days * 864e5) },
     // Carry a genAI source forward so the record stays accurate (default drops both).
     ...o.ingredients?.length ? { ingredients: o.ingredients } : {},
-    ...o.actions?.length ? { actions: o.actions } : aiIngredients.length ? { actions: exportActionSteps(format, { aiIngredients }) } : {},
+    ...o.actions?.length ? { actions: o.actions } : aiIngredients.length || aiUpscale ? { actions: exportActionSteps(format, { aiIngredients, ...aiUpscale ? { aiUpscale } : {} }) } : {},
     ...o.aiDisclosure ? { aiDisclosure: o.aiDisclosure } : aiIngredients.length ? { aiDisclosure: {} } : {},
     ...o.specVersion ? { specVersion: o.specVersion } : {}
   };
+}
+async function placedPicturesIn(bytes2) {
+  const none = { ingredients: [], aiIngredients: [] };
+  try {
+    const found = extractC2paStore(bytes2);
+    if (!found || (await verifyC2pa(bytes2)).state !== "valid") return none;
+    return placedPicturesOf(found.store);
+  } catch {
+    return none;
+  }
 }
 async function recordedDesignInFile(bytes2, format, meta) {
   const own4 = readFileDesignRecord(bytes2);
@@ -183554,6 +183801,30 @@ function applyElementTransform(el, t) {
   const transform2 = el.getAttribute?.("transform") || "";
   return transform2 ? matMul7(t, parseTransformList(transform2)) : t;
 }
+var scriptLabels = typeof Intl !== "undefined" && "DisplayNames" in Intl ? new Intl.DisplayNames(["en"], { type: "script" }) : null;
+function scriptWords(text13) {
+  const codes = scriptsOf(text13);
+  const list4 = codes.length > 1 ? codes.filter((c) => c !== "Latn") : codes;
+  const names = list4.map((c) => {
+    try {
+      return scriptLabels?.of(c) ?? c;
+    } catch {
+      return c;
+    }
+  });
+  return names.length ? ` (${names.join(", ")})` : "";
+}
+var quoteRun = (text13) => `"${[...text13].length > 40 ? `${[...text13].slice(0, 40).join("")}...` : text13}"`;
+function stencilBits(alpha, pxW, pxH) {
+  const rowBytes = Math.ceil(pxW / 8);
+  const bits = new Uint8Array(rowBytes * pxH);
+  for (let y = 0; y < pxH; y++) {
+    for (let x = 0; x < pxW; x++) {
+      if ((alpha[y * pxW + x] ?? 0) >= 128) bits[y * rowBytes + (x >> 3)] |= 128 >> (x & 7);
+    }
+  }
+  return bits;
+}
 async function readInlineImage(href) {
   let url;
   try {
@@ -183896,6 +184167,7 @@ async function svgDomToIr(svgEl, ctx = {}) {
     let rgb3 = opacity >= 0.01 ? parseColor2(fillStr) : null;
     if (!rgb3) return;
     rgb3 = flatten3(rgb3, opacity, bg);
+    const ink = rgb3;
     const cs = getComputedStyle2 ? safeComputed(getComputedStyle2, el) : null;
     const family2 = prop2(el, style, "font-family", null) ?? cs?.fontFamily ?? "";
     const weight = String(prop2(el, style, "font-weight", null) ?? cs?.fontWeight ?? "400");
@@ -183912,6 +184184,51 @@ async function svgDomToIr(svgEl, ctx = {}) {
       return Boolean(live2);
     };
     if (!ordered && keepLive()) return;
+    const uncovered = async () => {
+      const which = `${LABEL2} export stopped at the text ${quoteRun(raw)}: no font here has its letters${scriptWords(raw)}.`;
+      if (ctx.uncoveredText === "refuse") {
+        throw new Error(`${which} ${LABEL2} goes to cutting machines and CAD, which need outlines, so the text is not drawn as boxes or as a picture. Add a font with those letters, or export SVG or PDF.`);
+      }
+      const { et } = m2;
+      const sx = Math.hypot(et.a, et.b), sy = Math.hypot(et.c, et.d);
+      if (!(sx > 0 && sy > 0) || Math.abs(et.b) / sx > 1e-3 || Math.abs(et.c) / sy > 1e-3 || et.a < 0 || et.d < 0) {
+        throw new Error(`${which} Its picture cannot be turned or slanted in ${LABEL2}. Add a font with those letters, or export SVG or PDF.`);
+      }
+      if (!ctx.pictureText) {
+        throw Object.assign(new Error(`${which} This app has no text renderer to draw them as a picture. Add a font with those letters, or export SVG or PDF.`), { code: NEEDS_BROWSER });
+      }
+      const pic = await ctx.pictureText({
+        text: raw,
+        fontFamily: family2,
+        fontWeight: weight,
+        fontStyle: italic ? "italic" : "normal",
+        fontSize,
+        ...letterSpacingCss ? { letterSpacing: letterSpacingCss } : {},
+        direction: rtl ? "rtl" : "ltr",
+        lang: el.closest?.("[lang]")?.getAttribute("lang") ?? null,
+        // 300 picture pixels to the inch of the device px this walk writes.
+        scale: 300 / 96 * Math.max(sx * regX, sy * regY)
+      });
+      if (!pic || !(pic.pxW > 0) || !(pic.pxH > 0)) throw new Error(`${which} The text renderer could not draw them as a picture. Export SVG or PDF.`);
+      const x2 = len(prop2(el, style, "x"), vbW);
+      const y2 = len(prop2(el, style, "y"), vbH);
+      const anchor2 = physicalTextAnchor(prop2(el, style, "text-anchor", null) ?? cs?.textAnchor, direction2);
+      const start = anchor2 === "middle" ? x2 - pic.advance / 2 : anchor2 === "end" ? x2 - pic.advance : x2;
+      const a = m2.mapPt(start + pic.left, y2 + pic.top);
+      const b = m2.mapPt(start + pic.left + pic.width, y2 + pic.top + pic.height);
+      prims.push({
+        type: "stencil",
+        x: Math.min(a.x, b.x),
+        y: Math.min(a.y, b.y),
+        w: Math.abs(b.x - a.x),
+        h: Math.abs(b.y - a.y),
+        pxW: pic.pxW,
+        pxH: pic.pxH,
+        bits: stencilBits(pic.alpha, pic.pxW, pic.pxH),
+        fill: rgbObj(ink)
+      });
+      ctx.onPicturedText?.(raw);
+    };
     const fontStyleObj = {
       fontFamily: family2,
       fontWeight: weight,
@@ -183936,6 +184253,10 @@ async function svgDomToIr(svgEl, ctx = {}) {
       throw new Error(`EMF export: text shaping failed for "${raw.slice(0, 24)}" - ${e.message}`);
     }
     if (ordered && result?.notdef && keepLive()) return;
+    if (result?.notdef && ctx.uncoveredText) {
+      await uncovered();
+      return;
+    }
     if (!result?.d) return;
     const x = len(prop2(el, style, "x"), vbW);
     const y = len(prop2(el, style, "y"), vbH);
@@ -188928,7 +189249,7 @@ async function createCliBridge({ profile: profile2 = {}, dom, catalogAssets: cat
       if (format === "eps" || format === "eps-cmyk") {
         const svg = rootSvgOf(node);
         if (!svg) throw new Error("EPS export requires an <svg> in the template (HTML-layout tools need a browser engine - use the desktop app)");
-        const ir = await svgDomToIr(svg, { host, resolveFont: cliResolveFont(host, collectFill), background: opts.background, label: "EPS" });
+        const ir = await svgDomToIr(svg, { host, resolveFont: cliResolveFont(host, collectFill), background: opts.background, label: "EPS", uncoveredText: "picture" });
         reportFill();
         const separate = format === "eps-cmyk" ? (await pressSeparationFor(opts.colorProfile)).separate : void 0;
         const text13 = emitEps(ir, {
@@ -188937,7 +189258,7 @@ async function createCliBridge({ profile: profile2 = {}, dom, catalogAssets: cat
           unit: opts.unit,
           dpi: opts.dpi,
           cmyk: format === "eps-cmyk",
-          ...separate ? { cmykPalette: await brandCmykPalette(host, separate), separate } : {},
+          ...separate ? { cmykPalette: await brandCmykPalette(host, separate, { spotsAsProcess: opts.spotsAsProcess === true }), separate } : {},
           meta: opts.meta
         });
         return new Blob([text13], { type: "application/postscript" });
@@ -188945,7 +189266,7 @@ async function createCliBridge({ profile: profile2 = {}, dom, catalogAssets: cat
       if (format === "dxf") {
         const svg = rootSvgOf(node);
         if (!svg) throw new Error("DXF export requires an <svg> in the template (HTML-layout tools need a browser engine - use the desktop app)");
-        const ir = await svgDomToIr(svg, { host, resolveFont: cliResolveFont(host, collectFill), background: opts.background, label: "DXF" });
+        const ir = await svgDomToIr(svg, { host, resolveFont: cliResolveFont(host, collectFill), background: opts.background, label: "DXF", uncoveredText: "refuse" });
         reportFill();
         const { text: text13 } = emitDxf(ir, { width: opts.width, height: opts.height, unit: opts.unit, dpi: opts.dpi });
         return new Blob([text13], { type: "image/vnd.dxf" });
@@ -188953,7 +189274,7 @@ async function createCliBridge({ profile: profile2 = {}, dom, catalogAssets: cat
       if (format === "wmf") {
         const svg = rootSvgOf(node);
         if (!svg) throw new Error("WMF export requires an <svg> in the template (HTML-layout tools need a browser engine - use the desktop app)");
-        const ir = await svgDomToIr(svg, { host, resolveFont: cliResolveFont(host, collectFill), background: opts.background, label: "WMF" });
+        const ir = await svgDomToIr(svg, { host, resolveFont: cliResolveFont(host, collectFill), background: opts.background, label: "WMF", uncoveredText: "picture" });
         reportFill();
         const bytes2 = emitWmf(ir, { width: opts.width, height: opts.height, unit: opts.unit, dpi: opts.dpi });
         return new Blob([bytes2], { type: "application/x-msmetafile" });
@@ -189333,7 +189654,7 @@ function mimeFor(format) {
       return "application/octet-stream";
   }
 }
-async function brandCmykPalette(host, separate) {
+async function brandCmykPalette(host, separate, options2 = {}) {
   try {
     const colors = await host.tokens?.colors?.();
     if (!Array.isArray(colors) || colors.length === 0) return /* @__PURE__ */ new Map();
@@ -189342,7 +189663,7 @@ async function brandCmykPalette(host, separate) {
       ...Array.isArray(c.cmyk) ? { cmyk: c.cmyk } : {},
       label: c.name,
       spot: c.spot ?? null
-    })), separate);
+    })), separate, options2);
   } catch {
     return /* @__PURE__ */ new Map();
   }
@@ -189929,6 +190250,7 @@ function exportOpts(o) {
   if (o.colorProfile) opts.colorProfile = o.colorProfile;
   if (o.password) opts.password = o.password;
   if (o.depth && o.depth !== "auto") opts.depth = o.depth;
+  if (o.spots === "process") opts.spotsAsProcess = true;
   if (o.madeWith === false) opts.madeWith = false;
   else if (o.brandSkills?.length) opts.brandSkills = o.brandSkills;
   if (o.hdr) opts.hdr = { targets: [], peakNits: o.hdr.peakNits, reach: o.hdr.reach, lift: o.hdr.lift, richness: o.hdr.richness };
@@ -190248,8 +190570,12 @@ function exportUrl(base, toolId, query2, fmt6, o) {
   if (o.hdr) p.set("hdr", serializeHdr(o.hdr));
   if (o.depth && o.depth !== "auto") p.set("depth", String(o.depth));
   if (Number(p.get("cuts")) > 1 || p.has("sampletimes")) p.set("c2pa", o.c2pa?.on ? String(o.c2pa.days ?? 1) : "off");
-  else if (o.c2pa?.on === false || o.c2pa?.on && /^pdf/.test(fmt6)) p.set("c2pa", "off");
-  if (o.intent) p.set("c2pa", "off");
+  else if (o.c2pa?.on === false) p.set("c2pa", "off");
+  else if ((o.c2pa?.on || o.intent) && C2PA_FORMATS.includes(fmt6) && !/tiff$/.test(fmt6)) p.set("c2pa", "1");
+  else if (o.intent || o.c2pa?.on && /tiff$/.test(fmt6)) {
+    p.set("c2pa", "off");
+    p.set("_keepinlinedc2pa", "1");
+  }
   p.set("export", "1");
   const q = p.toString();
   const tmpl = process.env.LOLLY_TOOL_URL_TEMPLATE || `${base}/#/tool/{id}?{query}`;
@@ -190314,7 +190640,7 @@ async function designSessionOf(query2) {
   const values = parseUrlState(await expandQuery(query2), tool.manifest).values;
   return packageDesignSession(values, { label: "Design" });
 }
-async function stampC2pa(bytes2, fmt6, manifest, values, o, ingredients = [], meta = null, drawn2 = null) {
+async function stampC2pa(bytes2, fmt6, manifest, values, o, ingredients = [], meta = null, drawn2 = null, carried = null) {
   const opts = buildExportC2paOpts({
     surface: "mcp",
     manifest,
@@ -190327,9 +190653,12 @@ async function stampC2pa(bytes2, fmt6, manifest, values, o, ingredients = [], me
     // One componentOf source ingredient per distinct glyph this render placed,
     // carrying the pack's own licence, creator and the exact bytes it came from.
     // Without it an MCP export that drew CC BY artwork records no licence for it.
-    ...ingredients.length || drawn2?.pictures.length ? { ingredients: [...ingredients, ...drawn2?.pictures ?? []] } : {},
+    // The browser's own record of the pictures placed in the file, credentialed ones with
+    // their manifests, goes in too: this credential takes the place of that one.
+    ...ingredients.length || drawn2?.pictures.length || carried?.ingredients.length ? { ingredients: [...ingredients, ...drawn2?.pictures ?? [], ...carried?.ingredients ?? []] } : {},
     route: drawn2?.route ?? null,
-    intent: o.intent ?? null
+    intent: o.intent ?? null,
+    carried
   });
   return embedC2pa(bytes2, fmt6, opts);
 }
@@ -190340,12 +190669,17 @@ async function credentialAndRecord(out, o) {
   const record48 = skills.length ? { ...inFile ?? {}, brandSkills: skills } : inFile;
   let stamped = false;
   if (!o.sampled && o.merged.c2pa?.on && C2PA_FORMATS.includes(o.exportFmt) && !(o.exportFmt === "pdf" && o.merged.password)) {
+    let carried = null;
+    if (out.tier.startsWith("B")) {
+      carried = await placedPicturesIn(bytes2);
+      if (/^pdf/.test(o.exportFmt)) bytes2 = pdfWithoutCredential(bytes2) ?? bytes2;
+    }
     try {
       bytes2 = await (await Promise.resolve().then(() => (init_pdf_classic(), pdf_classic_exports))).classicPdfForStamp(bytes2, o.exportFmt);
     } catch {
     }
     try {
-      bytes2 = await stampC2pa(bytes2, o.exportFmt, o.manifest, o.values, o.merged, o.placed, record48, out.tier.startsWith("B") ? null : o.drawn ?? null);
+      bytes2 = await stampC2pa(bytes2, o.exportFmt, o.manifest, o.values, o.merged, o.placed, record48, out.tier.startsWith("B") ? null : o.drawn ?? null, carried);
       stamped = true;
     } catch (e) {
       o.warnings.push(`Content Credentials not attached - ${e.message}`);
@@ -190459,7 +190793,8 @@ async function renderCandidateBytes(toolId, query2, o = {}) {
     // The `hdr=` request, the CLI/MCP's only float pixel source (see exportOpts).
     hdr: o.hdr ?? st.hdr ?? null,
     depth: o.depth ?? st.depth ?? void 0,
-    madeWith: o.madeWith ?? st.madeWith ?? null
+    madeWith: o.madeWith ?? st.madeWith ?? null,
+    spots: o.spots ?? st.spots ?? null
   };
   const profile2 = o.profile ?? {};
   const canvasSize = canvasSizeOf(merged.width, merged.height, merged.unit || "px");
@@ -198443,6 +198778,11 @@ var EXPORT_ARGS = {
   madeWith: {
     type: "boolean",
     description: "The design-system record: the design system, its published version and its colourway, plus its brand page address when its publisher opted in, written into the file's metadata and Content Credential, with the colourway beside the tool in the description. ON by default - pass false to leave it out (the `_madewith=0` link param)."
+  },
+  spots: {
+    type: "string",
+    enum: ["process"],
+    description: "How the CMYK formats print the design system's spot inks. Leave it out to keep each spot ink on its own named plate (the default). 'process' prints each spot ink with the four process inks, using the CMYK build the design system gives it, so a pdf-cmyk has only the C, M, Y and K plates. Finishes (foil, emboss, spot varnish, die lines) keep their own plates. The `_spots=process` link param. Nothing about the choice is written into the file."
   }
 };
 var EMOJI_ARGS = {
@@ -198522,7 +198862,9 @@ function exportSettings(args) {
     ...args.imprint === false ? { imprint: false } : {},
     ...args.durable === true ? { durable: true } : {},
     // The design-system record is default-on too, so only the opt-out travels.
-    ...args.madeWith === false ? { madeWith: false } : {}
+    ...args.madeWith === false ? { madeWith: false } : {},
+    // Opt-in: only `process` asks; anything else keeps the spot plates.
+    ...parseSpots(typeof args.spots === "string" ? args.spots : null) ? { spots: "process" } : {}
   };
 }
 var TOOL_DEFS = [
@@ -198891,6 +199233,9 @@ function buildLinks(manifest, inputs, o) {
     imprint: o.imprint,
     durable: o.durable,
     ...o.madeWith === false ? { madeWith: false } : {},
+    // Spot inks as process rides the link like the press setup above, and the browser
+    // tier reads it from this same query.
+    spots: o.spots ?? null,
     // The set and its treatment travel too: a link whose emoji did not would
     // draw placeholders for whoever opens it, and the browser tier reads its
     // artwork from this same query.

@@ -138,7 +138,7 @@ function serveDist(): Promise<Served> {
 
 // Reserved params we set ourselves on the export URL. Cleared from the inbound query
 // first so the export dims/format/password win over anything the saved session encoded.
-const EXPORT_URL_RESERVED = ['_keepinlinedc2pa', 'format', 'export', 'copy', 'width', 'w', 'height', 'h', 'unit', 'dpi', 'password', 'bleed', 'marks', 'imprint', 'durable', 'profile', 'c2pa', 'preview', 'options', 'fps', 'seconds', 'wait', 'codec', 'vq', 'hdr', 'depth', 'cuts', 'sampletimes', 'motionblur', 'seqrange'];
+const EXPORT_URL_RESERVED = ['_keepinlinedc2pa', 'format', 'export', 'copy', 'width', 'w', 'height', 'h', 'unit', 'dpi', 'password', 'bleed', 'marks', 'imprint', 'durable', 'profile', 'c2pa', 'preview', 'options', 'fps', 'seconds', 'wait', 'codec', 'vq', 'hdr', 'depth', 'cuts', 'sampletimes', 'motionblur', 'seqrange', '_spots'];
 
 export function exportUrl(base: string, toolId: string, query: string, fmt: string, dims: RenderDims): string {
   const p = new URLSearchParams(query);
@@ -170,6 +170,8 @@ export function exportUrl(base: string, toolId: string, query: string, fmt: stri
   // travels (plans/319): --no-madewith reaches the browser tier as `_madewith=0`.
   if (dims.madeWith === false) p.set('_madewith', '0');
   if (dims.pressProfile) p.set('profile', dims.pressProfile);    // URL 'profile' = CMYK press condition
+  // Spot inks as process for the CMYK formats: opt-in, so only the request travels.
+  if (dims.spotsAsProcess) p.set('_spots', 'process');
   // Content Credentials: forward the setting so the web shell is the single c2pa authority
   // for the browser tier (the Node post-stamp is skipped when this path ran; see run.ts /
   // engine-render.ts, which avoids the pre-existing double-stamp).
@@ -373,6 +375,9 @@ export interface RenderDims extends ProductionBrowserOptions {
   /** CMYK press condition (e.g. "fogra39") for pdf-cmyk / cmyk-tiff. Named distinctly
    *  from the CLI's --profile (the user-profile FILE) to avoid the url-mode collision. */
   pressProfile?: string;
+  /** Print every declared spot ink as its process build in the CMYK formats, forwarded
+   *  as `_spots=process`. Absent or false writes nothing, so the spot plates stay. */
+  spotsAsProcess?: boolean;
   /** Content Credentials: true/off/undefined. undefined ⇒ the web shell's tool default. */
   c2pa?: boolean | null;
   /** The design-system record (plans/319). `false` = the explicit opt-out, forwarded as
@@ -616,7 +621,7 @@ async function renderViaChromiumShell(
     debug.attach(page);
     page.on('console', (message: ConsoleMessage) => {
       const line = sessionExportNote(message.type(), message.text());
-      if (line && (message.text().startsWith(PDF_TEXT_NOTE) || message.text().startsWith(FILL_NOTE))) process.stderr.write(`Note: ${line}\n`);
+      if (line && (PICTURE_NOTES.some((note) => message.text().startsWith(note)) || message.text().startsWith(FILL_NOTE))) process.stderr.write(`Note: ${line}\n`);
     });
     waiting = await waitForExport(page, format);
     const downloadP = waiting.result;
@@ -1061,12 +1066,12 @@ async function exportOpenedSession(
  */
 export function sessionExportNote(type: string, text: string): string | null {
   if (type === 'info' && text.startsWith(FILL_NOTE)) return text.slice('[info] '.length, '[info] '.length + 2000).trimEnd();
-  if (type !== 'warning' || !(text.startsWith('[warn] pptx: ') || text.startsWith(PDF_TEXT_NOTE))) return null;
+  if (type !== 'warning' || !(text.startsWith('[warn] pptx: ') || PICTURE_NOTES.some((note) => text.startsWith(note)))) return null;
   return text.slice('[warn] '.length, '[warn] '.length + 2000).trimEnd();
 }
 
-/** What a PDF tells the person when it drew text as pictures (export-pdf-text-picture.ts). */
-const PDF_TEXT_NOTE = '[warn] pdf: This PDF draws some text as pictures';
+/** What a PDF, EPS or WMF tells the person when it drew text as pictures (export-pdf-text-picture.ts). */
+const PICTURE_NOTES = ['pdf', 'eps', 'wmf'].map((f) => `[warn] ${f}: This ${f.toUpperCase()} draws some text as pictures`);
 
 /** What an export tells the person when fallback fonts drew some of its text (font-fill.ts). */
 const FILL_NOTE = '[info] fonts: ';

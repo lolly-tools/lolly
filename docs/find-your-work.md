@@ -26,7 +26,7 @@ In a [work collab](/info/collaborate.html#work-collabs-with-lolly-work-optional)
 
 1. Press **Home** at the top left of the tool.
 2. Open the **Projects** tab at the top of the home screen (the folder icon on a phone).
-3. Look on the first screen. Lolly Work saved to **My library** is there, and each project is a folder. To search every folder at once, type in **Search all projects…** at the foot of the screen.
+3. Look on the first screen. Everything you saved to **My library** is there, and each project is a folder. To search every folder at once, type in **Search all projects…** at the foot of the screen.
 
 An item is named after the file name you typed in the export panel, or after its tool, such as **QR Code**, if you typed none. Open the item and every setting is back, ready to change and export again. To keep new work this way, see [Saving & continuing](/info/using.html#saving-continuing).
 

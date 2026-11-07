@@ -2579,7 +2579,7 @@
         "manage/offboarding"
       ],
       "contentLicense": "MPL-2.0",
-      "description": "Choose a DAM offboarding path: self-host Lolly Work, Nextcloud or Git, or export to a hosted drive. Lolly Compare transfer steps, originals, links and recovery.",
+      "description": "Choose a DAM offboarding path: self-host Lolly Work, Nextcloud or Git, or export to a hosted drive. Compare transfer steps, originals, links and recovery.",
       "work": {
         "slug": "offboarding",
         "path": "offboarding.md",

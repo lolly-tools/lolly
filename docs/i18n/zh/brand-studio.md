@@ -142,6 +142,8 @@
 
 没有角色填充的读法保持设计系统的定义，房间会在表下列出这些读法。与某种读法自己的 id 相同的角色，例如叫作 Primary 的角色，就是那种读法，不能移动。
 
+**在图表中。** Lolly Chart 的 **Design system - colour roles first** 调色板，会先按设计系统自己的顺序把它的颜色角色交给各数据系列，再给出其余调色板颜色。被读作背景、文字、弱化文字或细线的角色会被略去，因为图表用这些颜色绘制底色和文字。在你选择该调色板之前不会有任何变化，没有颜色角色的设计系统会按 **Design system - ordered** 绘制调色板。
+
 **值。** 按一个值，即可为该角色在该外观下、所选配色方案中选择一种颜色。**Same as light** 会让深色值跟随浅色值，直到你选择了自己的颜色。**Aa** 芯片显示 Lolly 选来放在该颜色上的文字，值下方的一行文字按外观说明该文字读起来如何：**Text reads well**、**Large text only** 或 **Hard to read as text**。这说的是该颜色上的文字，并不是对颜色本身的否定，它仍然可以用于形状和大面积区域。仅按名称读取的角色显示同样的文字，但不带警告色，因为没有工具会自行在它上面放文字。这些文字背后的数值，APCA 在先、WCAG 在后，显示在提示和选择器中。**Own text colour** 标记其文件指明了文字颜色的值，该颜色会保留。**Copied** 标记来自另一种配色方案或合作伙伴颜色、且尚无人选择的值；在选择器中按 **Keep this colour** 即可确定该值。
 
 **起点。** 没有自己角色的设计系统会显示现在的用语：Primary、Secondary、Surface 和 Text。在你更改其中之一之前，不会写入任何内容。**+ Add a role** 提供 **Primary、Secondary** 或 **Main、Accent、Supporting、Tertiary** 作为建议，也可以是你输入的任何词语，并显示每个词会得到的读法。前两个词成为主导色和合作伙伴颜色。工具继续绘制同样的颜色，在只有一个主导色的系统上，第一种配色方案以该颜色命名。
@@ -305,7 +307,7 @@ On primary 由主色派生，显示为 **Derived**，没有选择器。它旁边
 
 **Rules** 让你品牌的选择发挥作用：人们可以更改什么、什么保持固定，以及 Lolly 可以检查什么。
 
-![Lolly Demo 上的 Rules：四条内部规范，各自标有 Checked in Lolly Design 以及 Required 或 Advisory，然后是 Try your design system in use，其示例已准备好渲染](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dusage&width=1440&height=1200&dpi=192&waitMs=2400&cropSelector=%23start-panel-usage&format=svg&walker=1&dark=1&filename=bs-usage-rules)
+![Lolly Demo 上的 Rules：四条内部规范，各自标有 Checked in Design 以及 Required 或 Advisory，然后是 Try your design system in use，其示例已准备好渲染](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dusage&width=1440&height=1200&dpi=192&waitMs=2400&cropSelector=%23start-panel-usage&format=svg&walker=1&dark=1&filename=bs-usage-rules)
 
 **Brand rules** 列出你的规则。**Add rule**（或 **Add your first rule**）会打开一个简短的表单：
 
@@ -316,7 +318,7 @@ On primary 由主色派生，显示为 **Derived**，没有选择器。它旁边
 
 批准记录的是你在这台设备上自己的决定。已批准的必需规则会约束可复用的海报，检查只涵盖示例 PNG；它们不会改变任何其他工具。
 
-设计系统在其令牌文件中自带的规则，例如认可的配色组合、文字字重和对齐，或每个界面使用的徽标，在这里列为 **Checked in Lolly Design**。Lolly Design 会在导出面板的 **Before you export** 卡片中逐图层检查它们，`lolly check` 对已保存的 Lolly Design 文档做同样的事（[导出之前](/info/design.html#before-you-export)）。此版本没有检查器的规则会按提供的原样保留，并标记为 **Unchecked**。
+设计系统在其令牌文件中自带的规则，例如认可的配色组合、文字字重和对齐，或每个界面使用的徽标，在这里列为 **Checked in Design**。Lolly Design 会在导出面板的 **Before you export** 卡片中逐图层检查它们，`lolly check` 对已保存的 Lolly Design 文档做同样的事（[导出之前](/info/design.html#before-you-export)）。此版本没有检查器的规则会按提供的原样保留，并标记为 **Unchecked**。
 
 Lolly Demo 自带四条已批准的内部规范。标题绝不使用大写：这条规则是必需的，所以 `lolly check` 会把大写的标题报告为错误。其余三条是建议性的。正文左对齐。主标志放在浅色表面上，反白标志放在深色表面上。虚线表示放在这里。
 

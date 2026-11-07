@@ -142,6 +142,8 @@ Tabellen har fyra kolumner, och på en telefon blir varje rad ett kort som håll
 
 En avläsning som ingen roll fyller förblir som designsystemet definierar den, och rummet listar dem under tabellen. En roll som delar id med en avläsning, som en roll som heter Primary, är den avläsningen och kan inte flyttas.
 
+**I ett diagram.** Paletten **Design system - colour roles first** i Lolly Chart ger serierna först designsystemets färgroller i dess egen ordning, sedan resten av dess palett. En roll som läses som bakgrund, text, dämpad text eller hårfina linjer lämnas utanför, eftersom diagrammet ritar sin botten och sina ord i de färgerna. Inget ändras förrän du väljer den paletten, och ett designsystem utan färgroller ritar paletten som **Design system - ordered**.
+
 **Värden.** Tryck på ett värde för att välja en färg för den rollen, i det utseendet, i den valda färgvarianten. **Samma som ljust** gör att det mörka värdet följer det ljusa tills du väljer en egen färg. Chipet **Aa** visar den text Lolly väljer att placera på färgen, och raden under värdet säger hur den texten läses, per utseende: **Texten är lätt att läsa**, **Bara stor text** eller **Svår att läsa som text**. Det gäller text på färgen och säger inget emot själva färgen, som fortfarande kan fungera för former och stora ytor. En roll som läses bara vid namn visar samma ord utan varningsfärgen, eftersom inget verktyg placerar text på den av sig självt. Siffrorna bakom orden, APCA först och WCAG sedan, finns i verktygstipset och i väljaren. **Egen textfärg** märker ett värde vars fil anger textfärgen, som då behålls. **Kopierad** märker ett värde som kommer från en annan färgvariant eller från partnerfärgen och som ingen har valt ännu; **Behåll den här färgen** i väljaren avgör värdet.
 
 **Startpunkter.** Ett designsystem utan egna roller visar dagens ord: Primary, Secondary, Surface och Text. Ingenting skrivs förrän du ändrar något. **+ Lägg till en roll** erbjuder **Primary, Secondary** eller **Main, Accent, Supporting, Tertiary** som förslag, eller vilka ord du skriver, med den avläsning var och en skulle få. De två första orden blir huvudfärgen och partnerfärgen. Verktygen ritar fortfarande med samma färger, och på ett system med en huvudfärg får den första färgvarianten sitt namn efter den färgen.
@@ -305,7 +307,7 @@ Släpp filerna som ditt varumärke behåller, förutom logotyper: **vector**-, *
 
 **Rules** sätter ditt varumärkes val i arbete: vad folk kan ändra, vad som förblir fast och vad Lolly kan kontrollera.
 
-![Rules på Lolly Demo: fyra husregler, var och en märkt Checked in Lolly Design och Obligatoriskt eller Rådgivande, sedan Try your design system in use med sina exempel redo att renderas](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dusage&width=1440&height=1200&dpi=192&waitMs=2400&cropSelector=%23start-panel-usage&format=svg&walker=1&dark=1&filename=bs-usage-rules)
+![Rules på Lolly Demo: fyra husregler, var och en märkt Checked in Design och Obligatoriskt eller Rådgivande, sedan Try your design system in use med sina exempel redo att renderas](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dusage&width=1440&height=1200&dpi=192&waitMs=2400&cropSelector=%23start-panel-usage&format=svg&walker=1&dark=1&filename=bs-usage-rules)
 
 **Brand rules** listar dina regler. **Add rule** (eller **Add your first rule**) öppnar ett kort formulär:
 
@@ -316,7 +318,7 @@ Släpp filerna som ditt varumärke behåller, förutom logotyper: **vector**-, *
 
 Godkännande registrerar ditt eget beslut på den här enheten. Godkända obligatoriska regler begränsar den återanvändbara affischen, och kontroller täcker bara exempel-PNG:erna; de ändrar inget annat verktyg.
 
-Regler som ett designsystem har med sig i sin tokenfil, som godkända färgpar, textvikt och justering eller en logotyp per yta, listas här som **Checked in Lolly Design**. Lolly Design kontrollerar dem lager för lager i exportpanelens kort **Innan du exporterar**, och `lolly check` gör detsamma för ett sparat Lolly Design-dokument ([Before you export](/info/design.html#before-you-export)). En regel som det här bygget saknar kontroll för behålls som den levererades och märks **Inte kontrollerad**.
+Regler som ett designsystem har med sig i sin tokenfil, som godkända färgpar, textvikt och justering eller en logotyp per yta, listas här som **Checked in Design**. Lolly Design kontrollerar dem lager för lager i exportpanelens kort **Innan du exporterar**, och `lolly check` gör detsamma för ett sparat Lolly Design-dokument ([Before you export](/info/design.html#before-you-export)). En regel som det här bygget saknar kontroll för behålls som den levererades och märks **Inte kontrollerad**.
 
 Lolly Demo har med sig fyra godkända husregler. Rubriker sätts aldrig med versaler: den regeln är obligatorisk, så `lolly check` rapporterar en rubrik med versaler som ett fel. De andra tre är rådgivande. Brödtext är vänsterjusterad. Primärmärken ligger på ljusa ytor och omvända märken på mörka. Streckade linjer betyder släpp här.
 

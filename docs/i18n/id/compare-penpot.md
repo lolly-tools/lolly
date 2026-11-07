@@ -14,7 +14,7 @@ Jika tim Anda mendesain di Penpot, Lolly bekerja berdampingan dengan Penpot: ked
 
 ## Bagaimana Lolly mengerjakan pekerjaan yang tumpang tindih
 
-Kanvas Lolly Design milik Lolly membuat aset yang dapat disunting dan dapat mengubah tata letak menjadi [alat dengan aturan](/info/create-a-tool.html). Alat yang sama merender di browser, aplikasi desktop, atau CLI dan membuat varian dari data. Lolly mandiri merender dan menandatangani di perangkat, tanpa akun atau server. [Collab privat](/info/collaborate.html) memasangkan dua perangkat secara langsung.
+Kanvas Lolly Design membuat aset yang dapat disunting dan dapat mengubah tata letak menjadi [alat dengan aturan](/info/create-a-tool.html). Alat yang sama merender di browser, aplikasi desktop, atau CLI dan membuat varian dari data. Lolly mandiri merender dan menandatangani di perangkat, tanpa akun atau server. [Collab privat](/info/collaborate.html) memasangkan dua perangkat secara langsung.
 
 ## Dengan organisasi
 

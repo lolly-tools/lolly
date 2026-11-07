@@ -142,6 +142,8 @@ La tabla tiene cuatro columnas, y en un teléfono cada fila se convierte en una 
 
 Una lectura que ningún rol ocupa se queda como la define el design system, y la sala las lista bajo la tabla. Un rol que comparte el id de una lectura, como un rol llamado Primary, es esa lectura y no se puede trasladar.
 
+**En un gráfico.** La paleta **Design system - colour roles first** de Lolly Chart da a las series los roles de color del design system en su propio orden, y después el resto de su paleta. Un rol que se lee como fondo, texto, texto discreto o filetes se deja fuera, porque el gráfico dibuja su fondo y sus palabras con esos colores. Nada cambia hasta que eliges esa paleta, y un design system sin roles de color dibuja la paleta como **Design system - ordered**.
+
 **Valores.** Pulsa un valor para elegir un color para ese rol, en ese aspecto, en la colourway elegida. **Same as light** hace que el valor oscuro siga al claro hasta que elijas un color propio. El chip **Aa** muestra el texto que Lolly elige para ir sobre el color, y la línea bajo el valor dice cómo se lee ese texto, por aspecto: **Text reads well**, **Large text only** o **Hard to read as text**. Eso trata del texto sobre el color y no dice nada contra el color en sí, que aún puede servir para formas y áreas grandes. Un rol leído solo por nombre muestra las mismas palabras sin el color de aviso, porque ninguna herramienta pone texto sobre él por sí sola. Las cifras detrás de las palabras, primero APCA y después WCAG, están en la información emergente y en el selector. **Own text colour** marca un valor cuyo archivo indica el color del texto, que se mantiene. **Copied** marca un valor que vino de otra colourway o del color del socio y que nadie ha elegido aún; **Keep this colour** en el selector fija el valor.
 
 **Puntos de partida.** Un design system sin roles propios muestra las palabras de hoy: Primary, Secondary, Surface y Text. No se escribe nada hasta que cambias uno. **+ Add a role** ofrece **Primary, Secondary** o **Main, Accent, Supporting, Tertiary** como sugerencias, o las palabras que escribas, con la lectura que recibiría cada una. Las dos primeras palabras pasan a ser el color principal y el color del socio. Las herramientas siguen dibujando los mismos colores, y en un sistema con un solo color principal la primera colourway lleva el nombre de ese color.
@@ -305,7 +307,7 @@ Suelta los archivos que guarda tu marca, aparte de los logotipos: archivos **vec
 
 **Rules** pone a trabajar las decisiones de tu marca: qué pueden cambiar las personas, qué queda fijo y qué puede comprobar Lolly.
 
-![Rules en Lolly Demo: cuatro normas internas, cada una marcada Checked in Lolly Design y Required o Advisory, y luego Try your design system in use con sus ejemplos listos para renderizar](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dusage&width=1440&height=1200&dpi=192&waitMs=2400&cropSelector=%23start-panel-usage&format=svg&walker=1&dark=1&filename=bs-usage-rules)
+![Rules en Lolly Demo: cuatro normas internas, cada una marcada Checked in Design y Required o Advisory, y luego Try your design system in use con sus ejemplos listos para renderizar](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dusage&width=1440&height=1200&dpi=192&waitMs=2400&cropSelector=%23start-panel-usage&format=svg&walker=1&dark=1&filename=bs-usage-rules)
 
 **Brand rules** enumera tus reglas. **Add rule** (o **Add your first rule**) abre un formulario breve:
 
@@ -316,7 +318,7 @@ Suelta los archivos que guarda tu marca, aparte de los logotipos: archivos **vec
 
 La aprobación registra tu propia decisión en este dispositivo. Las reglas obligatorias aprobadas limitan el póster reutilizable, y las comprobaciones cubren solo los PNG de ejemplo; no cambian ninguna otra herramienta.
 
-Las normas que un design system trae en su archivo de tokens, como emparejamientos de colores aprobados, peso y alineación del texto o un logotipo por superficie, se listan aquí como **Checked in Lolly Design**. Lolly Design las comprueba capa por capa en la tarjeta **Before you export** del panel de exportación, y `lolly check` hace lo mismo con un documento de Lolly Design guardado ([Before you export](/info/design.html#before-you-export)). Una norma para la que esta compilación no tiene comprobador se conserva tal como se suministró y se marca como **Unchecked**.
+Las normas que un design system trae en su archivo de tokens, como emparejamientos de colores aprobados, peso y alineación del texto o un logotipo por superficie, se listan aquí como **Checked in Design**. Lolly Design las comprueba capa por capa en la tarjeta **Before you export** del panel de exportación, y `lolly check` hace lo mismo con un documento de Lolly Design guardado ([Before you export](/info/design.html#before-you-export)). Una norma para la que esta compilación no tiene comprobador se conserva tal como se suministró y se marca como **Unchecked**.
 
 Lolly Demo trae cuatro normas internas aprobadas. Los titulares nunca se componen en mayúsculas: esa norma es obligatoria, así que `lolly check` informa de un titular en mayúsculas como un error. Las otras tres son orientativas. El texto del cuerpo se alinea a la izquierda. Las marcas primarias van sobre superficies claras y las marcas invertidas sobre las oscuras. Las líneas discontinuas significan suelta aquí.
 

@@ -21,7 +21,7 @@ import { fetchPublicBytes, MAX_PUBLIC_ASSET_BYTES, PUBLIC_IMAGE_TYPES } from '@l
 // exactly the split the web shell's lib/zip.ts sits on.
 import { zipSync } from 'fflate';
 import { buildCmykPaletteMap, parseDimension, toCssLength, toCssPx, toPixels, canvasSizeOf, loadTool, createRuntime, emitEmf, emitEps, emitDxf, emitWmf, gzip, svgToPenpotDoc, imageToPenpotDoc, buildPenpotEntries, markToolComponents, imageDimensions, penpotUuid, PENPOT_MIME, parseToolUrl, buildEmbedUrl, parseUrlState, expandQuery, RESERVED, assertComposeStack, parseThemedAssetId, applyIconTheme, parseIconThemesDoc, parseTreatedAssetId, parsePhotoTreatmentsDoc, wrapRasterWithTreatment, inspectTokenDocument, tokenSelectionKey, createTokenSet, colorToHex, isAlias, makeColorApi, makeGeomApi, makeConnectorsApi, isZzfxmRef, parseZzfxmRef, formatZzfxmRef, embedC2pa, C2PA_FORMATS, exportActionSteps, ENGINE_VERSION, collectIngredients, applyPinnedAssets, DESIGN_VERSION_LATEST, pickHeadAssetId, readVersionIndex, resolveDesignVersion, versionAssetId, readDesignSystemIdentity, readRecordedBrandPage, withoutRecordedBrandPage, SHIPPED_DESIGN_SYSTEM_ID, injectSvgMeta } from '@lolly/engine';
-import type { SeparateRgb } from '@lolly/engine';
+import type { CmykPaletteOptions, SeparateRgb } from '@lolly/engine';
 import { pressSeparationFor } from '@lolly-tools/node-shell/press-separation-node';
 import { isRasterPhotoLook, parseLutText, photoLookCacheKey, photoLookThemeKey, resolvePhotoLook, type GradeLut, type PhotoTreatment } from '@lolly/engine';
 import type {
@@ -1409,13 +1409,15 @@ async function noteDesignOps(opts: object, ingredients: readonly import('@lolly-
         // FINISH_MASK_CMYK here exactly as it does in the browser.
         const svg = rootSvgOf(node);
         if (!svg) throw new Error('EPS export requires an <svg> in the template (HTML-layout tools need a browser engine - use the desktop app)');
-        const ir = await svgDomToIr(svg, { host, resolveFont: cliResolveFont(host, collectFill), background: opts.background, label: 'EPS' });
+        // A run no font can draw goes in as a picture, which needs a text renderer: the
+        // walk stops with NEEDS_BROWSER and the browser tier draws the file.
+        const ir = await svgDomToIr(svg, { host, resolveFont: cliResolveFont(host, collectFill), background: opts.background, label: 'EPS', uncoveredText: 'picture' });
         reportFill();
         const separate = format === 'eps-cmyk' ? (await pressSeparationFor(opts.colorProfile)).separate : undefined;
         const text = emitEps(ir, {
           width: opts.width, height: opts.height, unit: opts.unit, dpi: opts.dpi,
           cmyk: format === 'eps-cmyk',
-          ...(separate ? { cmykPalette: await brandCmykPalette(host, separate), separate } : {}),
+          ...(separate ? { cmykPalette: await brandCmykPalette(host, separate, { spotsAsProcess: opts.spotsAsProcess === true }), separate } : {}),
           meta: opts.meta as { title?: string } | undefined,
         });
         return new Blob([text], { type: 'application/postscript' });
@@ -1426,7 +1428,7 @@ async function noteDesignOps(opts: object, ingredients: readonly import('@lolly-
         // what is fundamentally text). Text is outlined upstream (host.text present).
         const svg = rootSvgOf(node);
         if (!svg) throw new Error('DXF export requires an <svg> in the template (HTML-layout tools need a browser engine - use the desktop app)');
-        const ir = await svgDomToIr(svg, { host, resolveFont: cliResolveFont(host, collectFill), background: opts.background, label: 'DXF' });
+        const ir = await svgDomToIr(svg, { host, resolveFont: cliResolveFont(host, collectFill), background: opts.background, label: 'DXF', uncoveredText: 'refuse' });
         reportFill();
         const { text } = emitDxf(ir, { width: opts.width, height: opts.height, unit: opts.unit, dpi: opts.dpi });
         return new Blob([text], { type: 'image/vnd.dxf' });
@@ -1439,7 +1441,7 @@ async function noteDesignOps(opts: object, ingredients: readonly import('@lolly-
         // no comment record to carry a source URL.
         const svg = rootSvgOf(node);
         if (!svg) throw new Error('WMF export requires an <svg> in the template (HTML-layout tools need a browser engine - use the desktop app)');
-        const ir = await svgDomToIr(svg, { host, resolveFont: cliResolveFont(host, collectFill), background: opts.background, label: 'WMF' });
+        const ir = await svgDomToIr(svg, { host, resolveFont: cliResolveFont(host, collectFill), background: opts.background, label: 'WMF', uncoveredText: 'picture' });
         reportFill();
         const bytes = emitWmf(ir, { width: opts.width, height: opts.height, unit: opts.unit, dpi: opts.dpi });
         // Same legacy metafile type as EMF above - Drive's Drawings import
@@ -1910,16 +1912,19 @@ function mimeFor(format: string): string {
  * `host.tokens.colors()` yields an empty map, which is byte-identical to the
  * previous behaviour (every colour falls through to the generic conversion).
  */
-async function brandCmykPalette(host: HostV1, separate?: SeparateRgb): Promise<Map<string, { cmyk: [number, number, number, number] }>> {
+async function brandCmykPalette(host: HostV1, separate?: SeparateRgb, options: CmykPaletteOptions = {}): Promise<Map<string, { cmyk: [number, number, number, number] }>> {
   try {
     const colors = await host.tokens?.colors?.();
     if (!Array.isArray(colors) || colors.length === 0) return new Map();
+    // `options.spotsAsProcess` (engine 1.324) leaves EPS bytes as they were: EPS has no
+    // named plates, so an ink was already its process build here. Passed through so
+    // the choice means one thing in every CMYK sink.
     return buildCmykPaletteMap(colors.map(c => ({
       hex: c.value,
       ...(Array.isArray(c.cmyk) ? { cmyk: c.cmyk } : {}),
       label: c.name,
       spot: c.spot ?? null,
-    })), separate);
+    })), separate, options);
   } catch {
     return new Map();
   }

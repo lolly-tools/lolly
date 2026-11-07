@@ -26,13 +26,13 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { spawn, spawnSync } from 'node:child_process';
-import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync, existsSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync, existsSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { basename, dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { pressSeparationFor } from '../packages/node-shell/src/press-separation-node.ts';
 import {
-  boundsFor, loadScenes, maxTotalInk, pdfFacts, plateFile, readPlateTiff, regionStats, structureFailures,
+  boundsFor, loadScenes, maxTotalInk, pdfFacts, plateFile, plateSetFailures, platesWritten, readPlateTiff, regionStats, structureFailures,
   type PlateImage, type Scene, type ScenePass,
 } from '../tests/helpers/plate-scene.ts';
 
@@ -88,7 +88,8 @@ function renderOnce(scene: Scene, attempt: number): Promise<string> {
     const rows = join(dir, 'rows.json'), out = join(dir, 'scene.pdf');
     writeFileSync(rows, JSON.stringify(scene.boxes));
     const args = [CLI, 'run', 'design', `--boxes-data=${rows}`, `--width=${scene.page.width}`, `--height=${scene.page.height}`,
-      '--export=pdf-cmyk', '--no-provenance', `--output=${out}`, ...(scene.pressProfile ? [`--press-profile=${scene.pressProfile}`] : [])];
+      '--export=pdf-cmyk', '--no-provenance', `--output=${out}`, ...(scene.pressProfile ? [`--press-profile=${scene.pressProfile}`] : []),
+      ...(scene.args ?? [])];
     const env = { ...process.env, LOLLY_PROFILE: scene.profile, LOLLY_STATE_DIR: join(dir, `state-${attempt}`), NO_COLOR: '1' };
     const child = spawn(process.execPath, args, { cwd: root, env, stdio: ['ignore', 'ignore', 'pipe'] });
     let err = '';
@@ -133,6 +134,13 @@ async function samplePass(scene: Scene, pass: ScenePass, pdf: string): Promise<{
   const failures: string[] = [], rows: Row[] = [];
   const first = plate('K')!;
   assert.deepEqual([first.width, first.height], [scene.page.width, scene.page.height], 'plate size matches the page at 96 dpi');
+  if (pass.plates || pass.inked) {
+    const written = platesWritten(readdirSync(dirname(base)), basename(base));
+    const maxInk = (name: string): number => regionStats(plate(name), [0, 0, scene.page.width, scene.page.height], scene.page).max;
+    const plateFailures = plateSetFailures(written, pass, maxInk);
+    rows.push({ region: 'whole page', plate: written.join(','), stat: 'plates', expected: (pass.plates ?? pass.inked ?? []).join(','), got: written.length, ok: plateFailures.length === 0 });
+    for (const f of plateFailures) failures.push(`${pass.name} / ${f}`);
+  }
   for (const region of pass.regions) {
     for (const b of boundsFor(region, pass.tol, sep.separate as never)) {
       const s = regionStats(plate(b.plate), region.rect, scene.page)[b.stat];

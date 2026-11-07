@@ -133,8 +133,11 @@ export function notePicturedText(pdf: object, text: string): void {
 
 const scriptNames = new Intl.DisplayNames(['en'], { type: 'script' });
 
-/** What this document has to tell the person about its pictured text, once, or null. */
-export function takePicturedTextNotice(pdf: object): string | null {
+/**
+ * What this document has to tell the person about its pictured text, once, or null.
+ * `format` is the kind of file: a PDF embeds fonts, and an EPS or WMF outlines them.
+ */
+export function takePicturedTextNotice(pdf: object, format: 'PDF' | 'EPS' | 'WMF' = 'PDF'): string | null {
   const scripts = pictured.get(pdf);
   if (!scripts) return null;
   pictured.delete(pdf);
@@ -142,6 +145,10 @@ export function takePicturedTextNotice(pdf: object): string | null {
   if (scripts.size > 1) scripts.delete('Latn');
   const names = [...scripts].map((code) => { try { return scriptNames.of(code) ?? code; } catch { return code; } });
   const which = names.length ? ` (${names.join(', ')})` : '';
+  if (format !== 'PDF') {
+    return `This ${format} draws some text as pictures, because no font it can outline has those letters${which}. `
+      + 'The words look as they do on the page, as a picture instead of outlines. Add a font with those letters to keep them as vector text.';
+  }
   return `This PDF draws some text as pictures, because no font it can embed has those letters${which}. `
     + 'The words look as they do on the page but cannot be selected or searched. Add a font with those letters to keep them as vector text.';
 }

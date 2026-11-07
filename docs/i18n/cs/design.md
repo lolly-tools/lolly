@@ -206,7 +206,7 @@ Vyber klip a inspektor dává stejné úpravy jako čísla: **Length**, **Trim i
 
 ## Před exportem
 
-Design kontroluje dokument, než soubor odešleš. Karta **Before you export** v sekci **Document** Inspectoru a znovu v panelu exportu čte uloženou strukturu vrstev, pak se podívá na usazené plátno kvůli oříznutému textu a kontrastu plných barev. Ptá se stejného registru písem, který používá obrysování SVG a PDF, zda má každý textový úsek bajty písma, které lze vložit. Pozadí z obrázků a přechodů jsou uvedena jako vizuální kontroly, ne s vymyšleným skóre kontrastu.
+Design kontroluje dokument, než soubor odešleš. Karta **Before you export** v sekci **Document** Inspectoru a znovu v panelu exportu čte uloženou strukturu vrstev, pak se podívá na usazené plátno kvůli oříznutému textu a kontrastu plných barev. Ptá se stejného registru písem, který používá obrysování SVG a PDF, zda má každý textový úsek bajty písma, které lze vložit. Text, který v exportu kreslí [záložní písmo](/info/fallback-fonts.html), se počítá jako pokrytý. Znaková sada bez záložního písma a čínský, japonský nebo korejský znak mimo sady, které tato písma obsahují, se stále hlásí. Pozadí z obrázků a přechodů jsou uvedena jako vizuální kontroly, ne s vymyšleným skóre kontrastu.
 
 ### Zkontroluj kompozici proti designovému systému
 
