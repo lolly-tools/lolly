@@ -31,6 +31,7 @@ import { parseThemedAssetId, parseTreatedAssetId, stripAssetModifiers } from './
 import { AUTO_ASSET_THEME } from './icon-theme.ts';
 import { partnerKitLogoIds } from './partner-kit.ts';
 import { CSS_DPI, isUnit } from './units.ts';
+import { designHierarchyIndex } from './design-hierarchy.ts';
 
 /** How the document's CSS pixels become export pixels and millimetres. */
 export interface GuestMarkMeasure {
@@ -57,7 +58,7 @@ export interface GuestMarkReport {
 
 type Row = Record<string, unknown>;
 interface Rect { x: number; y: number; w: number; h: number }
-interface Layer { row: Row; id: string; index: number; z: number; rect: Rect; label: string; kind: string; image: string; start: number; end: number }
+interface Layer { row: Row; id: string; index: number; z: number; rect: Rect; label: string; kind: string; image: string; start: number; end: number; frame: string; page: string }
 
 const MAX_ROWS = 5000;
 const MAX_FINDINGS = 200;
@@ -112,6 +113,8 @@ const holds = (outer: Rect, inner: Rect): boolean =>
   inner.x >= outer.x - EPS && inner.y >= outer.y - EPS && inner.x + inner.w <= outer.x + outer.w + EPS && inner.y + inner.h <= outer.y + outer.h + EPS;
 /** Two timed layers that are never on screen together are not neighbours. */
 const together = (a: Layer, b: Layer): boolean => a.start < b.end && b.start < a.end;
+/** Layers on two artboards, or on two pages, never share a page, whatever their coordinates. */
+const samePlace = (a: Layer, b: Layer): boolean => !(a.frame && b.frame && a.frame !== b.frame) && !(a.page && b.page && a.page !== b.page);
 
 function layerLabel(row: Row, id: string): string {
   const name = typeof row.name === 'string' ? row.name.trim() : '';
@@ -147,16 +150,26 @@ export function checkGuestMarks(boxes: unknown, kit: Pick<PartnerKitV1, 'label' 
   if (rules.minSize?.mm !== undefined && !physical) notMeasured.push('the minimum size in millimetres: the document is measured in pixels');
 
   const rows = Array.isArray(boxes) ? boxes.filter(record) : [];
+  // What Design does not draw is not measured: a layer's own flag, and a hidden artboard,
+  // group or layout container takes its members with it, from the hierarchy Design paints.
+  let hierarchy: ReturnType<typeof designHierarchyIndex> | null = null;
+  try {
+    hierarchy = designHierarchyIndex(rows.slice(0, MAX_ROWS));
+  } catch {
+    hierarchy = null;
+  }
   const layers: Layer[] = [];
   rows.slice(0, MAX_ROWS).forEach((row, index) => {
-    if (hidden(row)) return;
     const id = typeof row.id === 'string' ? row.id : '';
+    if (hidden(row) || (id && hierarchy?.flags.get(id)?.hidden === true)) return;
     const kind = typeof row.kind === 'string' && row.kind ? row.kind : 'box';
     const rect = boundsOf(row);
     if (!(rect.w > 0) || !(rect.h > 0)) return;
     const start = num(row.start, 0);
     const dur = num(row.dur, 0);
-    layers.push({ row, id, index, z: num(row.z, index), rect, label: layerLabel(row, id), kind, image: imageId(row.image), start, end: dur > 0 ? start + dur : Number.POSITIVE_INFINITY });
+    const frame = typeof row.frame === 'string' ? row.frame : '';
+    const page = (id && hierarchy?.pageById.get(id)) || (typeof row.pageId === 'string' ? row.pageId : '');
+    layers.push({ row, id, index, z: num(row.z, index), rect, label: layerLabel(row, id), kind, image: imageId(row.image), start, end: dur > 0 ? start + dur : Number.POSITIVE_INFINITY, frame, page });
   });
   if (rows.length > MAX_ROWS) notMeasured.push(`layers past the first ${MAX_ROWS.toLocaleString('en')}`);
 
@@ -173,22 +186,27 @@ export function checkGuestMarks(boxes: unknown, kit: Pick<PartnerKitV1, 'label' 
   const beneath = (a: Layer, b: Layer): boolean => a.z < b.z || (a.z === b.z && a.index < b.index);
 
   for (const mark of marks) {
-    const drawn = drawnRect(mark.row, mark.rect, measure.logoAspect?.(stripAssetModifiers(mark.image)));
+    const aspect = measure.logoAspect?.(stripAssetModifiers(mark.image));
+    const drawn = drawnRect(mark.row, mark.rect, aspect);
+    // The mark's own height, which rotation does not change: a mark turned on its side is
+    // as tall as it was, though its bounding box is not.
+    const unturned: Rect = { x: num(mark.row.x), y: num(mark.row.y), w: Math.max(0, num(mark.row.w)), h: Math.max(0, num(mark.row.h)) };
+    const height = drawnRect({ ...mark.row, rot: 0 }, unturned, aspect).h;
     if (rules.minSize) {
       const min = rules.minSize;
-      const px = exportPx(drawn.h);
+      const px = exportPx(height);
       if (min.px !== undefined && px + 0.5 < min.px) {
         add(mark, 'min-size', 'px', `${company}'s mark is ${pxText(px)} px high; the kit asks for at least ${pxText(min.px)} px.`, { value: `${pxText(px)} px`, expected: `${pxText(min.px)} px` });
       }
-      const mm = millimetres(drawn.h);
+      const mm = millimetres(height);
       if (physical && min.mm !== undefined && mm + 0.05 < min.mm) {
         add(mark, 'min-size', 'mm', `${company}'s mark is ${mmText(mm)} mm high; the kit asks for at least ${mmText(min.mm)} mm.`, { value: `${mmText(mm)} mm`, expected: `${mmText(min.mm)} mm` });
       }
     }
     if (rules.clearSpace) {
-      const pad = rules.clearSpace.value * drawn.h;
+      const pad = rules.clearSpace.value * height;
       const band: Rect = { x: drawn.x - pad, y: drawn.y - pad, w: drawn.w + pad * 2, h: drawn.h + pad * 2 };
-      const inside = layers.filter(l => l !== mark && !NOT_ON_PAGE.has(l.kind) && l.kind !== 'group' && together(l, mark) && overlaps(l.rect, band) && !holds(l.rect, drawn));
+      const inside = layers.filter(l => l !== mark && !NOT_ON_PAGE.has(l.kind) && l.kind !== 'group' && together(l, mark) && samePlace(l, mark) && overlaps(l.rect, band) && !holds(l.rect, drawn));
       if (inside.length) {
         const first = inside[0]!;
         const message = inside.length === 1
@@ -207,7 +225,7 @@ export function checkGuestMarks(boxes: unknown, kit: Pick<PartnerKitV1, 'label' 
       }
       // The nearest layer beneath that holds the whole mark is what the mark sits on.
       const ground = layers
-        .filter(l => l !== mark && !NOT_ON_PAGE.has(l.kind) && l.kind !== 'group' && beneath(l, mark) && together(l, mark) && holds(l.rect, drawn))
+        .filter(l => l !== mark && !NOT_ON_PAGE.has(l.kind) && l.kind !== 'group' && beneath(l, mark) && together(l, mark) && samePlace(l, mark) && holds(l.rect, drawn))
         .sort((a, b) => (b.z - a.z) || (b.index - a.index))[0];
       const groundAsset = ground?.image && !logos.has(stripAssetModifiers(ground.image)) ? stripAssetModifiers(ground.image) : '';
       const onPicture = !!groundAsset && measure.pictureKind?.(groundAsset) !== 'vector';

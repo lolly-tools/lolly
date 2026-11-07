@@ -137101,16 +137101,24 @@ function checkGuestMarks(boxes2, kit, measure3 = {}) {
   if (rules.treatments?.length) notMeasured.push("reversed use: the logo for dark surfaces is the reverse, so a reversed mark is not measured");
   if (rules.minSize?.mm !== void 0 && !physical) notMeasured.push("the minimum size in millimetres: the document is measured in pixels");
   const rows2 = Array.isArray(boxes2) ? boxes2.filter(record29) : [];
+  let hierarchy = null;
+  try {
+    hierarchy = designHierarchyIndex(rows2.slice(0, MAX_ROWS3));
+  } catch {
+    hierarchy = null;
+  }
   const layers = [];
   rows2.slice(0, MAX_ROWS3).forEach((row, index2) => {
-    if (hidden2(row)) return;
     const id3 = typeof row.id === "string" ? row.id : "";
+    if (hidden2(row) || id3 && hierarchy?.flags.get(id3)?.hidden === true) return;
     const kind = typeof row.kind === "string" && row.kind ? row.kind : "box";
     const rect = boundsOf2(row);
     if (!(rect.w > 0) || !(rect.h > 0)) return;
     const start = num14(row.start, 0);
     const dur = num14(row.dur, 0);
-    layers.push({ row, id: id3, index: index2, z: num14(row.z, index2), rect, label: layerLabel(row, id3), kind, image: imageId(row.image), start, end: dur > 0 ? start + dur : Number.POSITIVE_INFINITY });
+    const frame = typeof row.frame === "string" ? row.frame : "";
+    const page3 = id3 && hierarchy?.pageById.get(id3) || (typeof row.pageId === "string" ? row.pageId : "");
+    layers.push({ row, id: id3, index: index2, z: num14(row.z, index2), rect, label: layerLabel(row, id3), kind, image: imageId(row.image), start, end: dur > 0 ? start + dur : Number.POSITIVE_INFINITY, frame, page: page3 });
   });
   if (rows2.length > MAX_ROWS3) notMeasured.push(`layers past the first ${MAX_ROWS3.toLocaleString("en")}`);
   const marks = layers.filter((l) => !NOT_ON_PAGE.has(l.kind) && l.image && logos.has(stripAssetModifiers(l.image)));
@@ -137132,22 +137140,25 @@ function checkGuestMarks(boxes2, kit, measure3 = {}) {
   };
   const beneath = (a, b) => a.z < b.z || a.z === b.z && a.index < b.index;
   for (const mark of marks) {
-    const drawn2 = drawnRect(mark.row, mark.rect, measure3.logoAspect?.(stripAssetModifiers(mark.image)));
+    const aspect2 = measure3.logoAspect?.(stripAssetModifiers(mark.image));
+    const drawn2 = drawnRect(mark.row, mark.rect, aspect2);
+    const unturned = { x: num14(mark.row.x), y: num14(mark.row.y), w: Math.max(0, num14(mark.row.w)), h: Math.max(0, num14(mark.row.h)) };
+    const height = drawnRect({ ...mark.row, rot: 0 }, unturned, aspect2).h;
     if (rules.minSize) {
       const min = rules.minSize;
-      const px3 = exportPx(drawn2.h);
+      const px3 = exportPx(height);
       if (min.px !== void 0 && px3 + 0.5 < min.px) {
         add3(mark, "min-size", "px", `${company}'s mark is ${pxText(px3)} px high; the kit asks for at least ${pxText(min.px)} px.`, { value: `${pxText(px3)} px`, expected: `${pxText(min.px)} px` });
       }
-      const mm = millimetres(drawn2.h);
+      const mm = millimetres(height);
       if (physical && min.mm !== void 0 && mm + 0.05 < min.mm) {
         add3(mark, "min-size", "mm", `${company}'s mark is ${mmText(mm)} mm high; the kit asks for at least ${mmText(min.mm)} mm.`, { value: `${mmText(mm)} mm`, expected: `${mmText(min.mm)} mm` });
       }
     }
     if (rules.clearSpace) {
-      const pad = rules.clearSpace.value * drawn2.h;
+      const pad = rules.clearSpace.value * height;
       const band = { x: drawn2.x - pad, y: drawn2.y - pad, w: drawn2.w + pad * 2, h: drawn2.h + pad * 2 };
-      const inside2 = layers.filter((l) => l !== mark && !NOT_ON_PAGE.has(l.kind) && l.kind !== "group" && together(l, mark) && overlaps2(l.rect, band) && !holds2(l.rect, drawn2));
+      const inside2 = layers.filter((l) => l !== mark && !NOT_ON_PAGE.has(l.kind) && l.kind !== "group" && together(l, mark) && samePlace2(l, mark) && overlaps2(l.rect, band) && !holds2(l.rect, drawn2));
       if (inside2.length) {
         const first = inside2[0];
         const message = inside2.length === 1 ? `\u201C${first.label}\u201D sits inside ${company}'s clear space.` : `\u201C${first.label}\u201D and ${inside2.length - 1} other ${inside2.length === 2 ? "layer sit" : "layers sit"} inside ${company}'s clear space.`;
@@ -137162,7 +137173,7 @@ function checkGuestMarks(boxes2, kit, measure3 = {}) {
       if (!allowed.includes(drawnAs)) {
         add3(mark, "treatment", drawnAs, `${company}'s mark is drawn in ${TREATMENT_WORDS[drawnAs]}; the kit allows ${orList(rest2)}.`, { value: drawnAs, expected: allowed.join(", ") });
       }
-      const ground = layers.filter((l) => l !== mark && !NOT_ON_PAGE.has(l.kind) && l.kind !== "group" && beneath(l, mark) && together(l, mark) && holds2(l.rect, drawn2)).sort((a, b) => b.z - a.z || b.index - a.index)[0];
+      const ground = layers.filter((l) => l !== mark && !NOT_ON_PAGE.has(l.kind) && l.kind !== "group" && beneath(l, mark) && together(l, mark) && samePlace2(l, mark) && holds2(l.rect, drawn2)).sort((a, b) => b.z - a.z || b.index - a.index)[0];
       const groundAsset = ground?.image && !logos.has(stripAssetModifiers(ground.image)) ? stripAssetModifiers(ground.image) : "";
       const onPicture = !!groundAsset && measure3.pictureKind?.(groundAsset) !== "vector";
       if (onPicture && !allowed.includes("on-photo")) {
@@ -137172,7 +137183,7 @@ function checkGuestMarks(boxes2, kit, measure3 = {}) {
   }
   return { findings, checked: { marks: marks.length, rules: checkedRules }, notMeasured };
 }
-var MAX_ROWS3, MAX_FINDINGS, NOT_ON_PAGE, TREATMENT_WORDS, record29, num14, imageId, hidden2, pxText, mmText, EPS4, overlaps2, holds2, together;
+var MAX_ROWS3, MAX_FINDINGS, NOT_ON_PAGE, TREATMENT_WORDS, record29, num14, imageId, hidden2, pxText, mmText, EPS4, overlaps2, holds2, together, samePlace2;
 var init_partner_kit_check = __esm({
   "engine/src/partner-kit-check.ts"() {
     "use strict";
@@ -137180,6 +137191,7 @@ var init_partner_kit_check = __esm({
     init_icon_theme();
     init_partner_kit();
     init_units();
+    init_design_hierarchy();
     MAX_ROWS3 = 5e3;
     MAX_FINDINGS = 200;
     NOT_ON_PAGE = /* @__PURE__ */ new Set(["frame", "audio", "camera"]);
@@ -137197,6 +137209,7 @@ var init_partner_kit_check = __esm({
     overlaps2 = (a, b) => a.x < b.x + b.w - EPS4 && b.x < a.x + a.w - EPS4 && a.y < b.y + b.h - EPS4 && b.y < a.y + a.h - EPS4;
     holds2 = (outer, inner) => inner.x >= outer.x - EPS4 && inner.y >= outer.y - EPS4 && inner.x + inner.w <= outer.x + outer.w + EPS4 && inner.y + inner.h <= outer.y + outer.h + EPS4;
     together = (a, b) => a.start < b.end && b.start < a.end;
+    samePlace2 = (a, b) => !(a.frame && b.frame && a.frame !== b.frame) && !(a.page && b.page && a.page !== b.page);
   }
 });
 
