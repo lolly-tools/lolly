@@ -489,8 +489,19 @@ async function fillPublishedShelf(viewEl: HTMLElement, host: GalleryHost, tools:
     ]);
     const templates = await listWorkspaceTemplates(host as never);
     const items = publishedItems(templates, tools);
-    if (!items.length || !mount.isConnected) return;
-    mount.innerHTML = publishedShelfHtml(items, getSessionSource()?.label);
+    // The person's company card leads the shelf (plans/82 M3, views/company-card.ts),
+    // asked for only when the workspace says which company the person is in.
+    const { workspaceCompany } = await import('../lib/workspace-templates.ts');
+    const companyCard = workspaceCompany() ? await import('./company-card.ts') : null;
+    const company = companyCard ? await companyCard.loadCompanyView() : null;
+    if ((!items.length && !company) || !mount.isConnected) return;
+    mount.innerHTML = publishedShelfHtml(items, getSessionSource()?.label, company && companyCard ? companyCard.companyCardHtml(company) : '');
+    const card = mount.querySelector<HTMLElement>('[data-company-card]');
+    if (card && company && companyCard) {
+      let view = company;
+      void companyCard.drawCardLogo(card, view, host as never);
+      card.addEventListener('click', () => companyCard.openCompanySheet(view, host as never, (next) => { view = next; void companyCard.drawCardLogo(card, next, host as never); }));
+    }
     // Previews: the template's own values, or a rules tool's defaults, drawn the way the
     // Start chooser draws its tiles. A preview that cannot be drawn keeps the icon.
     const { coverFormats, renderFeaturedVariant } = await import('../lib/featured-render.ts');
