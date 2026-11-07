@@ -21,11 +21,18 @@ const EXPECTED: readonly string[] = [
   'onColourFloor', 'readColourRoles', 'refreshDerivedOnColours', 'removeColourRole', 'renameColourRole', 'reorderColourRoles',
   'setColourRoles', 'setRoleSameAsLight', 'setRoleValue', 'unbindRole',
   'AdoptColourRolesOptions', 'AdoptedColourRole', 'adoptColourRoles', 'colourRoleThemeAccents', 'withColourwayKindRestored',
+  // Additive 1.330: the asset rights reader, the `.lolly` credits text and the package credits
+  // readback, for a Lolly Work server that gates what partners receive.
+  'AssetRightsMeta', 'OWNER_PUBLISHED', 'OwnerPublishedV1', 'PackCreditEntry', 'PackHoldEntry', 'Redistribution',
+  'assetLicenceDeclaration', 'assetRightsNotices', 'checkCompanionReadback', 'ownerPublished', 'packCreditsText',
+  'readAssetRightsRecord', 'redistribution',
   // Additive 1.325: a server credential keeps the pictures the browser's credential recorded.
   'PlacedPictures', 'pdfWithoutCredential', 'placedPicturesOf',
   // Additive 1.304 approval record in Content Credentials.
   'APPROVAL_RECORD_FORMATS', 'ApprovalNotRecordedReason', 'ApprovalRecordOutcome', 'C2paApprovalRecord',
   'RecordApprovalOptions', 'artworkUnchanged', 'recordApprovalInCredential',
+  // Additive 1.331: DESIGN.md written by the engine for a server with no published brand page.
+  'DesignMdWriteInputV1', 'writeDesignMd',
   // Additive 1.305 visual intent: what a piece has to do, resolved to a tool for each surface.
   'INTENT_RULES_VERSION', 'IntentInvalidError', 'IntentToolSource', 'ParseToolIntentsResult', 'ParseVisualIntentResult', 'ParsedVisualIntent', 'ToolIntentIssue',
   'checkToolIntents', 'loadIntentTools', 'parseToolIntents', 'parseVisualIntent', 'resolveIntent',
