@@ -14,6 +14,27 @@ const measurement = (text: string, pattern: RegExp): number | null | undefined =
   if (raw === undefined) return undefined;
   const n = Number(raw); return Number.isFinite(n) ? n : null;
 };
+/**
+ * One `ashowinfo` frame line, found by its own fields and not by the `[Parsed_ashowinfo_0 @ …]`
+ * prefix. ffmpeg runs the audio filters on their own thread, and the muxer thread writes
+ * its "Output #0" summary in pieces while they run. A frame line logged between two of
+ * those pieces is printed with no prefix, straight after whatever piece came before (even
+ * `24 tbn`, hence no boundary before `n:`), so a pattern that needs the prefix misses that
+ * frame and the whole duration reads as undetermined. Each frame's own fields are written
+ * in one piece, so they stay together.
+ *
+ * Without the prefix, text the file carries could look like a frame line, so none is
+ * read: the input summary (the file's title, chapters and stream tags) ends before
+ * "Stream mapping:", and the decode copies no metadata or chapters into the output
+ * summary (FRAME_LOG_ARGS). Frames must still arrive numbered 0, 1, 2…, or the duration
+ * stays undetermined.
+ */
+const ASHOWINFO_FRAME = /n:\s*(\d+)\s+pts:\s*[-\d]+\s+pts_time:([-\d.e+]+).*?rate:(\d+)\s+nb_samples:(\d+)/g;
+/** Output options that keep the file's own metadata and chapter titles out of the output summary. */
+export const FRAME_LOG_ARGS = ['-map_metadata', '-1', '-map_chapters', '-1'] as const;
+/** The part of an ffmpeg log after the input summary, where frame lines start. The whole log when there is no "Stream mapping:" line. */
+export const afterInputSummary = (log: string): string => log.slice(Math.max(0, log.search(/^Stream mapping:/m)));
+
 export async function inspectMotionBytes(bytes: Uint8Array, target: MotionTarget = {}, binaries = { probe: 'ffprobe', decode: 'ffmpeg' }, options: { signal?: AbortSignal; timeoutMs?: number; strict?: boolean } = {}): Promise<MotionReport> {
   options.signal?.throwIfAborted();
   if (!bytes.length || bytes.length > 256 * 1024 * 1024) throw new Error('Motion inspection accepts 1 byte to 256 MiB.');
@@ -35,7 +56,7 @@ export async function inspectMotionBytes(bytes: Uint8Array, target: MotionTarget
       return motionReport(facts, target, [{ id: 'container', status: 'not-run', reason: `ffprobe unavailable or could not read this file: ${(error as Error).message}` }]);
     }
     if (!facts.seconds || facts.seconds > 3600) return motionReport(facts, target, [{ id: 'decoded-analysis', status: 'not-run', reason: 'Decoding requires a known duration of at most one hour.' }]);
-    const args = ['-hide_banner', '-nostdin', ...(options.strict ? ['-xerror', '-err_detect', 'explode', '-abort_on', 'empty_output_stream'] : []), '-protocol_whitelist', 'file,pipe', '-i', path];
+    const args = ['-hide_banner', '-nostdin', '-nostats', ...(options.strict ? ['-xerror', '-err_detect', 'explode', '-abort_on', 'empty_output_stream'] : []), '-protocol_whitelist', 'file,pipe', '-i', path, ...FRAME_LOG_ARGS];
     if (facts.width) args.push('-vf', 'blackdetect=d=0.5:pix_th=0.03,freezedetect=n=-50dB:d=1');
     if (facts.audio) args.push('-af', `${options.strict ? 'ashowinfo,' : ''}ebur128=peak=true,silencedetect=n=-50dB:d=1`);
     args.push('-f', 'null', '-');
@@ -46,7 +67,7 @@ export async function inspectMotionBytes(bytes: Uint8Array, target: MotionTarget
         facts.truePeak = measurement(stderr, /True peak:\s+Peak:\s+([-\w.]+)/g);
       }
       if (options.strict && facts.audio) {
-        const audioFrames = [...stderr.matchAll(/\[Parsed_ashowinfo_[^\]]+\]\s+n:\s*(\d+)\s+pts:\s*[-\d]+\s+pts_time:([-\d.e+]+).*?rate:(\d+)\s+nb_samples:(\d+)/g)];
+        const audioFrames = [...afterInputSummary(stderr).matchAll(ASHOWINFO_FRAME)];
         let seconds = 0, timestampError = 0;
         const consistent = audioFrames.length > 0 && audioFrames.every((frame, index) => {
           const time = Number(frame[2]), rate = Number(frame[3]), count = Number(frame[4]);
