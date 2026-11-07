@@ -145,6 +145,9 @@ export interface ToolViewCtx {
   templateNow: import('../../lib/workspace-templates.ts').WorkspaceTemplate | null;
   /** The template keeps its colourway and mode, so the Design system section is not offered. */
   templateFixedTheme: boolean;
+  /** The workspace set this tool to templates only for this person (the index entry's
+   *  `templatesOnly`): a fresh open offers only its published templates. */
+  templatesOnly: boolean;
   /** A workspace template picked in the Start chooser: it opens as a fresh document. */
   pickedWorkspaceRef: string | null;
   fileIntoFolder: string | null;

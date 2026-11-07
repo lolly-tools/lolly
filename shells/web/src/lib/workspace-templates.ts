@@ -84,6 +84,15 @@ export async function listWorkspaceTemplates(host: MetadataHost): Promise<Worksp
   }
 }
 
+/**
+ * Whether the workspace set this tool to templates only for this person: its index
+ * entry says `templatesOnly`. The tool is then unlisted (out of the gallery and
+ * search), and a fresh open offers only the templates published to them.
+ */
+export function isTemplatesOnlyTool(entry: unknown): boolean {
+  return !!entry && typeof entry === 'object' && (entry as { templatesOnly?: unknown }).templatesOnly === true;
+}
+
 /** The templates a person may start a tool from: this tool's, not retired. */
 export function startableFor(list: readonly WorkspaceTemplate[], toolId: string): WorkspaceTemplate[] {
   return list.filter((t) => t.toolId === toolId && !t.retired);
