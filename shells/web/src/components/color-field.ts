@@ -150,13 +150,18 @@ let SWATCHES: ColorSwatchOption[] = PALETTE.map(s => ({ value: s.hex, label: s.l
 
 /** Replace the picker's swatches (e.g. with tokens). Ignored if empty/invalid. */
 /**
- * A guest's colours, offered after the brand's under a heading of their own (a partner
- * kit, plans/82 M8: "Partner"). Each is a plain colour. Null or empty takes them away.
- * Only the shared list gains them; a field with a named source of its own keeps that.
+ * A guest's colours (a partner kit, plans/82 M8), each group under a heading of its own:
+ * the company's name, since a design system may call one of its own roles "Partner".
+ * `spoken` is what a screen reader hears for the group, and each swatch's `group` should
+ * carry the same words. Each is a plain colour. Null or empty takes them away. Only the
+ * shared list gains them; a field with a named source of its own keeps that.
  */
-let GUEST_SWATCHES: ColorSwatchOption[] = [];
-export function setGuestSwatches(list: readonly ColorSwatchOption[] | null | undefined): void {
-  GUEST_SWATCHES = Array.isArray(list) ? list.filter((s) => s && typeof s.value === 'string' && s.value) : [];
+export interface GuestSwatchGroup { heading: string; spoken: string; swatches: ColorSwatchOption[] }
+let GUEST_GROUPS: GuestSwatchGroup[] = [];
+export function setGuestSwatches(groups: readonly GuestSwatchGroup[] | null | undefined): void {
+  GUEST_GROUPS = Array.isArray(groups)
+    ? groups.map((g) => ({ ...g, swatches: (g.swatches ?? []).filter((s: ColorSwatchOption) => s && typeof s.value === 'string' && s.value) })).filter((g) => g.swatches.length && g.heading)
+    : [];
 }
 
 export function setSwatches(list: ColorSwatchOption[]): void {
@@ -1320,9 +1325,8 @@ function swatchButtonsHtml(id: string, source?: string | null): string {
   const own = source ? SWATCH_SOURCES.get(source) : undefined;
   // A guest's colours (a partner kit) follow the brand's roles, ahead of a long list of
   // other colours, under a heading of their own; with no roles they follow the palette.
-  const guests = !own?.length && GUEST_SWATCHES.length
-    ? `<span class="color-swatch-head color-swatch-head--rest">${escape(GUEST_SWATCHES[0]?.group || t('Partner'))}</span>${GUEST_SWATCHES.map(s => plainSwatchHtml(eid, s)).join('')}`
-    : '';
+  const guests = own?.length ? '' : GUEST_GROUPS.map(g =>
+    `<span class="color-swatch-head color-swatch-head--rest" aria-label="${escape(g.spoken)}">${escape(g.heading)}</span>${g.swatches.map(s => plainSwatchHtml(eid, s)).join('')}`).join('');
   const brand = plain.map(s => plainSwatchHtml(eid, s)).join('');
   return roles.length ? rolesHtml + guests + restHead + brand : brand + guests;
 }

@@ -108,10 +108,15 @@ test('a kit this person is not served leaves the piece with none and a warning',
   assert.match(warnings[0] ?? '', /not available here/);
 });
 
-test('the Partner swatches are plain colours under their own heading', () => {
-  assert.deepEqual(partnerSwatches(KIT as never), [
-    { value: '#1d4ed8', label: 'Northwind blue', group: 'Partner', ref: null },
-    { value: '#f59e0b', label: 'Signal', group: 'Partner', ref: null },
-  ]);
-  assert.deepEqual(partnerSwatches(null), []);
+test('the kit\'s swatches are plain colours headed by the company, never by a second "Partner"', () => {
+  const spoken = 'Northwind IT’s colours (partner kit)';
+  assert.deepEqual(partnerSwatches(KIT as never), {
+    heading: 'Northwind IT', spoken,
+    swatches: [
+      { value: '#1d4ed8', label: 'Northwind blue', group: spoken, ref: null },
+      { value: '#f59e0b', label: 'Signal', group: spoken, ref: null },
+    ],
+  });
+  assert.equal(partnerSwatches(null), null);
+  assert.equal(partnerSwatches({ ...KIT, colours: [] } as never), null);
 });

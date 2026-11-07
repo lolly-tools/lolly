@@ -23,8 +23,8 @@ import type { HostV1 } from '@lolly-tools/core/host-v1';
 import type { PartnerKitAttachmentV1, PartnerKitV1 } from '@lolly-tools/core/partner-kit-v1';
 import { checkPartnerKit } from '../../../../engine/src/partner-kit.ts';
 import { readPartnerKitAttachment } from '../../../../engine/src/url-mode.ts';
-import { setGuestSwatches, type ColorSwatchOption } from '../components/color-field.ts';
-import { t } from '../i18n.ts';
+import { setGuestSwatches, type GuestSwatchGroup } from '../components/color-field.ts';
+import { tRaw } from '../i18n.ts';
 import { instanceFetch, instancePath } from './instance.ts';
 import { dropPieceState, getPieceState, notifyPieceKit, partnerKitOffer, setPieceState } from './partner-kit-state.ts';
 
@@ -82,9 +82,11 @@ export function loadPartnerKit(host: Pick<HostV1, 'assets'>, attachment: Partner
   return read;
 }
 
-/** The kit's colours as swatches under "Partner", each a plain colour, never a token link. */
-export function partnerSwatches(kit: Pick<PartnerKitV1, 'colours'> | null): ColorSwatchOption[] {
-  return (kit?.colours ?? []).map((c) => ({ value: c.value, label: c.name, group: t('Partner'), ref: null }));
+/** The kit's colours as a swatch group headed by the company's name, each a plain colour, never a token link. */
+export function partnerSwatches(kit: Pick<PartnerKitV1, 'colours' | 'label'> | null): GuestSwatchGroup | null {
+  if (!kit?.colours?.length) return null;
+  const spoken = tRaw('{company}’s colours (partner kit)', { company: kit.label });
+  return { heading: kit.label, spoken, swatches: kit.colours.map((c) => ({ value: c.value, label: c.name, group: spoken, ref: null })) };
 }
 
 /**
@@ -106,7 +108,8 @@ export async function attachPieceKit(host: Pick<HostV1, 'assets' | 'log'>, runti
     return null;
   }
   setPieceState(runtime, { attachment: att, kit });
-  setGuestSwatches(partnerSwatches(kit));
+  const group = partnerSwatches(kit);
+  setGuestSwatches(group ? [group] : null);
   notifyPieceKit();
   return kit;
 }

@@ -1505,14 +1505,16 @@ test('an unsafe automatic colour is not painted', () => {
 
 test('a partner kit\'s colours follow the brand\'s under their own heading, as plain colours, and go when the kit does', () => {
   setSwatches([{ value: '#30ba78', label: 'Jungle', group: 'Brand', ref: null }, { value: '#ffffff', label: 'White', group: 'Brand', ref: null }]);
-  setGuestSwatches([{ value: '#1d4ed8', label: 'Northwind blue', group: 'Partner', ref: null }]);
+  const SPOKEN = 'Northwind IT’s colours (partner kit)';
+  setGuestSwatches([{ heading: 'Northwind IT', spoken: SPOKEN, swatches: [{ value: '#1d4ed8', label: 'Northwind blue', group: SPOKEN, ref: null }] }]);
   try {
     const field = mount('#123456', { float: true });
     assert.deepEqual(openSwatches(field.field), ['#30ba78', '#ffffff', '#1d4ed8'], 'brand first, then the partner');
-    const heads = [...field.field.querySelectorAll('.color-swatch-head')].map((h) => h.textContent);
-    assert.deepEqual(heads, ['Partner']);
+    const heads = [...field.field.querySelectorAll<HTMLElement>('.color-swatch-head')];
+    assert.deepEqual(heads.map((h) => h.textContent), ['Northwind IT'], 'headed by the company, never a second "Partner"');
+    assert.equal(heads[0]!.getAttribute('aria-label'), SPOKEN);
     const swatch = field.field.querySelector<HTMLElement>('[data-swatch-value="#1d4ed8"]')!;
-    assert.equal(swatch.getAttribute('aria-label'), 'Partner · Northwind blue');
+    assert.equal(swatch.getAttribute('aria-label'), `${SPOKEN} · Northwind blue`);
     assert.equal(swatch.hasAttribute('data-swatch-ref'), false, 'a kit colour is a literal, never a token link');
     swatch.dispatchEvent(new dom.window.MouseEvent('click', { bubbles: true }));
     assert.equal(field.seen.at(-1)!.value, '#1d4ed8');
@@ -1526,19 +1528,22 @@ test('a partner kit\'s colours follow the brand\'s under their own heading, as p
   assert.deepEqual(openSwatches(mount('#123456', { float: true }).field), ['#30ba78', '#ffffff'], 'detached: the brand alone again');
 });
 
-test('with colour roles, the partner\'s colours sit after the roles and before the other colours', () => {
+test('with colour roles, each partner kit\'s colours sit after the roles, under its own heading, before the other colours', () => {
   setSwatches([
     { value: '#0c322c', label: 'Lead', group: 'Brand', ref: '{color.semantic.primary}', role: { id: 'primary' } },
     { value: '#30ba78', label: 'Jungle', group: 'Brand', ref: null },
   ]);
-  setGuestSwatches([{ value: '#1d4ed8', label: 'Northwind blue', group: 'Partner', ref: null }]);
+  setGuestSwatches([
+    { heading: 'Northwind IT', spoken: 'Northwind IT’s colours (partner kit)', swatches: [{ value: '#1d4ed8', label: 'Northwind blue', group: 'Northwind IT’s colours (partner kit)', ref: null }] },
+    { heading: 'Contoso', spoken: 'Contoso’s colours (partner kit)', swatches: [{ value: '#d97706', label: 'Amber', group: 'Contoso’s colours (partner kit)', ref: null }] },
+  ]);
   try {
     const field = mount('#123456', { float: true });
     const trigger = field.field.querySelector<HTMLElement>('.color-trigger');
     trigger?.dispatchEvent(new dom.window.MouseEvent('click', { bubbles: true }));
     const order = [...field.field.querySelectorAll<HTMLElement>('.color-swatch-head, [data-swatch-value]')]
       .map((el) => el.classList.contains('color-swatch-head') ? `head:${el.textContent}` : el.dataset.swatchValue);
-    assert.deepEqual(order.filter((x) => x !== '#0c322c'), ['head:Colour roles', 'head:Partner', '#1d4ed8', 'head:Other colours', '#30ba78']);
+    assert.deepEqual(order.filter((x) => x !== '#0c322c'), ['head:Colour roles', 'head:Northwind IT', '#1d4ed8', 'head:Contoso', '#d97706', 'head:Other colours', '#30ba78'], 'each kit under its own heading');
   } finally {
     setGuestSwatches(null);
   }
