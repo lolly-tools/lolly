@@ -749,6 +749,9 @@
   color: hsl(var(--muted-foreground));
 }
 .partner-kit-line[hidden] { display: none; }
+/* In the sidebar section the line sits above the section's body: one row, and the
+   body below keeps its own top gutter, so the line needs none of its own below. */
+.input-section-body.partner-kit-line { flex-direction: row; padding-bottom: 0; margin: 0; }
 .partner-kit-line-text { color: hsl(var(--foreground)); overflow-wrap: anywhere; }
 .partner-kit-line .tool-notice-link { margin-left: 0; }
 .fullscreen-toggle-float {

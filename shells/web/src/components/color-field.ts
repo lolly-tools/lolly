@@ -1310,17 +1310,21 @@ function swatchButtonsHtml(id: string, source?: string | null): string {
   const list = swatchesFor(source);
   const roles = list.filter(s => s.role);
   const plain = roles.length ? list.filter(s => !s.role) : list;
-  const heads = roles.length
+  const rolesHtml = roles.length
     ? `<div class="color-role-swatches" role="group" aria-label="${escape(t('Colour roles'))}">
         <span class="color-swatch-head" aria-hidden="true">${escape(t('Colour roles'))}</span>
         ${roles.map(s => roleSwatchHtml(eid, s)).join('')}
-      </div>${plain.length ? `<span class="color-swatch-head color-swatch-head--rest">${escape(t('Other colours'))}</span>` : ''}`
+      </div>`
     : '';
+  const restHead = roles.length && plain.length ? `<span class="color-swatch-head color-swatch-head--rest">${escape(t('Other colours'))}</span>` : '';
   const own = source ? SWATCH_SOURCES.get(source) : undefined;
+  // A guest's colours (a partner kit) follow the brand's roles, ahead of a long list of
+  // other colours, under a heading of their own; with no roles they follow the palette.
   const guests = !own?.length && GUEST_SWATCHES.length
     ? `<span class="color-swatch-head color-swatch-head--rest">${escape(GUEST_SWATCHES[0]?.group || t('Partner'))}</span>${GUEST_SWATCHES.map(s => plainSwatchHtml(eid, s)).join('')}`
     : '';
-  return heads + plain.map(s => plainSwatchHtml(eid, s)).join('') + guests;
+  const brand = plain.map(s => plainSwatchHtml(eid, s)).join('');
+  return roles.length ? rolesHtml + guests + restHead + brand : brand + guests;
 }
 
 /** One swatch button that is not a colour role: a brand colour, or a guest's. */

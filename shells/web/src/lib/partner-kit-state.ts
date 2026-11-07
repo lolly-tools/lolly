@@ -121,3 +121,31 @@ export function measureOf(model: ReadonlyArray<{ id: string; value?: unknown }>)
   const dpi = Number(model.find((i) => i.id === 'documentDpi')?.value);
   return { ...(typeof unit === 'string' ? { unit } : {}), ...(Number.isFinite(dpi) && dpi > 0 ? { dpi } : {}) };
 }
+
+/** What a surface shows for a piece: its kit and revision, or the company's kit to attach, or nothing. */
+export type PartnerKitStatus = { kind: 'attached'; label: string; revision: number } | { kind: 'offer'; label: string } | null;
+
+export function partnerKitStatus(runtime: object | null | undefined): PartnerKitStatus {
+  const kit = pieceKitData(runtime);
+  const attached = pieceKit(runtime);
+  if (kit && attached) return { kind: 'attached', label: kit.label, revision: attached.revision };
+  if (!attached && runtime && offer) return { kind: 'offer', label: offer.label };
+  return null;
+}
+
+/** Attach and Detach for a mounted piece, registered by its view so another surface (Design's inspector) can offer them. */
+export interface PieceKitActions { attach(): Promise<unknown>; detach(): void }
+const actions = new WeakMap<object, PieceKitActions>();
+export function setPieceKitActions(runtime: object, next: PieceKitActions | null): void {
+  if (next) actions.set(runtime, next);
+  else actions.delete(runtime);
+}
+
+/** Run Attach or Detach on the piece being edited. Resolves once the change is in place. */
+export async function runPieceKitAction(act: 'attach' | 'detach'): Promise<void> {
+  const own = current ? actions.get(current) : undefined;
+  if (!own) return;
+  if (act === 'detach') own.detach();
+  else await own.attach();
+}
+

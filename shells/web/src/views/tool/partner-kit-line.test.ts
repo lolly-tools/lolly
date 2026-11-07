@@ -104,3 +104,27 @@ test('the Design system section stays shown for the line when the design system 
   assert.equal(el.hidden, false, 'a controller update does not hide the line');
   section.destroy();
 });
+
+test('Design\'s Document section draws the same line, and its Detach runs the piece\'s own action', async () => {
+  const { partnerKitRowHtml, wireDocumentContext } = await import('../design-document-context.ts');
+  const root = document.createElement('div');
+  const runtime = {};
+  let dirty = 0;
+  // Design has no sidebar section: the piece still attaches, and the inspector shows the line.
+  const line = mountPartnerKitLine({ root, host, runtime, attachment: { id: 'inst/k1', revision: 2 }, markDirty: () => { dirty++; }, attach });
+  await flush();
+  assert.equal(line.visible(), false, 'no sidebar section to draw in');
+  assert.deepEqual(pieceKit(runtime), { id: 'inst/k1', revision: 2 });
+  const column = document.createElement('div');
+  column.innerHTML = partnerKitRowHtml();
+  assert.match(column.textContent ?? '', /Partner kit: Northwind IT · revision 2/);
+  let repainted = 0;
+  wireDocumentContext(column, { groups: () => [] } as never, () => { repainted++; });
+  column.querySelector<HTMLButtonElement>('[data-partner-kit="detach"]')!.click();
+  await flush();
+  assert.equal(pieceKit(runtime), null);
+  assert.equal(dirty, 1);
+  assert.equal(repainted, 1);
+  assert.equal(partnerKitRowHtml(), '', 'with no kit and no offer the row is gone');
+  line.destroy();
+});

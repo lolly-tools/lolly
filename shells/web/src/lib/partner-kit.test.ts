@@ -39,7 +39,7 @@ function fakeHost(type = 'partner-kit') {
 
 function fakeFetch(body: unknown, ok = true) {
   const urls: string[] = [];
-  const impl = (async (url: string) => { urls.push(url); return { ok, text: async () => (typeof body === 'string' ? body : JSON.stringify(body)) }; }) as unknown as typeof fetch;
+  const impl = (async (url: string) => { urls.push(url); return { ok, text: async () => (typeof body === 'string' ? body : JSON.stringify(body)) }; }) as unknown as (path: string) => Promise<Response>;
   return { urls, impl };
 }
 
@@ -70,7 +70,7 @@ test('the kit is read at the attached revision, from a partner-kit asset only, a
   const net = fakeFetch(KIT);
   const kit = await loadPartnerKit(host, { id: 'inst/rev-test', revision: 2 }, net.impl);
   assert.equal(kit?.label, 'Northwind IT');
-  assert.equal(new URL(net.urls[0]!).searchParams.get('v'), '2', 'the version route reads the exact revision');
+  assert.equal(net.urls[0], '/catalog/inst/rev-test/json?v=2', 'Work\'s version route reads the exact revision');
   await loadPartnerKit(host, { id: 'inst/rev-test', revision: 2 }, net.impl);
   assert.equal(net.urls.length, 1, 'read once per id@revision');
   await loadPartnerKit(host, { id: 'inst/rev-test', revision: 3 }, net.impl);

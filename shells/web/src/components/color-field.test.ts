@@ -1526,3 +1526,21 @@ test('a partner kit\'s colours follow the brand\'s under their own heading, as p
   assert.deepEqual(openSwatches(mount('#123456', { float: true }).field), ['#30ba78', '#ffffff'], 'detached: the brand alone again');
 });
 
+test('with colour roles, the partner\'s colours sit after the roles and before the other colours', () => {
+  setSwatches([
+    { value: '#0c322c', label: 'Lead', group: 'Brand', ref: '{color.semantic.primary}', role: { id: 'primary' } },
+    { value: '#30ba78', label: 'Jungle', group: 'Brand', ref: null },
+  ]);
+  setGuestSwatches([{ value: '#1d4ed8', label: 'Northwind blue', group: 'Partner', ref: null }]);
+  try {
+    const field = mount('#123456', { float: true });
+    const trigger = field.field.querySelector<HTMLElement>('.color-trigger');
+    trigger?.dispatchEvent(new dom.window.MouseEvent('click', { bubbles: true }));
+    const order = [...field.field.querySelectorAll<HTMLElement>('.color-swatch-head, [data-swatch-value]')]
+      .map((el) => el.classList.contains('color-swatch-head') ? `head:${el.textContent}` : el.dataset.swatchValue);
+    assert.deepEqual(order.filter((x) => x !== '#0c322c'), ['head:Colour roles', 'head:Partner', '#1d4ed8', 'head:Other colours', '#30ba78']);
+  } finally {
+    setGuestSwatches(null);
+  }
+});
+

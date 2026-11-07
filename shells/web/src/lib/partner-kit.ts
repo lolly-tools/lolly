@@ -25,6 +25,7 @@ import { checkPartnerKit } from '../../../../engine/src/partner-kit.ts';
 import { readPartnerKitAttachment } from '../../../../engine/src/url-mode.ts';
 import { setGuestSwatches, type ColorSwatchOption } from '../components/color-field.ts';
 import { t } from '../i18n.ts';
+import { instanceFetch, instancePath } from './instance.ts';
 import { dropPieceState, getPieceState, notifyPieceKit, partnerKitOffer, setPieceState } from './partner-kit-state.ts';
 
 export { brandGuestFor, currentPiece, measureOf, onPieceKitChange, partnerCheckFor, partnerKitParam, partnerMarkIds, pieceKit, pieceKitData, setCurrentPiece } from './partner-kit-state.ts';
@@ -48,31 +49,27 @@ export function openingKit<V extends Record<string, unknown>>(values: V, link: P
 
 const cache = new Map<string, Promise<PartnerKitV1 | null>>();
 
-/** Where an asset's bytes for one version are served: Lolly Work's `?v=N` on the asset's own URL. */
-function versionUrl(url: string, revision: number): string {
-  try {
-    const u = new URL(url, globalThis.location?.href ?? 'http://localhost/');
-    u.searchParams.set('v', String(revision));
-    return u.toString();
-  } catch {
-    return url;
-  }
+/** Where Lolly Work serves one version of an instance asset's JSON: its catalog route with `?v=N`. */
+export function kitVersionPath(attachment: PartnerKitAttachmentV1): string {
+  return `/catalog/${attachment.id}/json?v=${attachment.revision}`;
 }
 
 /**
  * The kit at an attached revision, or null when this person is not served it, the bytes
- * do not read as `partner-kit-v1`, or the asset is not a kit. Kept per `id@revision`, so
- * a piece and its colour fields read it once.
+ * do not read as `partner-kit-v1`, or the asset is not a kit. The feed says whether the
+ * asset is a kit served to this person; the bytes come from Work's version route, so a
+ * piece made at revision 1 reads revision 1 after the kit moved on. Kept per
+ * `id@revision`, so a piece and the colour fields beside the piece read the kit once.
  */
-export function loadPartnerKit(host: Pick<HostV1, 'assets'>, attachment: PartnerKitAttachmentV1, fetchImpl: typeof fetch = fetch): Promise<PartnerKitV1 | null> {
+export function loadPartnerKit(host: Pick<HostV1, 'assets'>, attachment: PartnerKitAttachmentV1, fetchImpl: (path: string) => Promise<Response> = (path) => instanceFetch(instancePath(path), { credentials: 'include' })): Promise<PartnerKitV1 | null> {
   const key = `${attachment.id}@${attachment.revision}`;
   const known = cache.get(key);
   if (known) return known;
   const read = (async (): Promise<PartnerKitV1 | null> => {
     try {
       const ref = await host.assets.get(attachment.id);
-      if (!ref?.url || (ref.type as string) !== 'partner-kit') return null;
-      const res = await fetchImpl(versionUrl(ref.url, attachment.revision), { credentials: 'include' });
+      if ((ref?.type as string | undefined) !== 'partner-kit') return null;
+      const res = await fetchImpl(kitVersionPath(attachment));
       if (!res.ok) return null;
       const result = checkPartnerKit(await res.text());
       return result.ok ? result.kit : null;
