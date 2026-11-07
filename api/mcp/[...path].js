@@ -55179,6 +55179,7 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
     setPartner(next2) {
       partnerFacts = partnerRecord(next2) ?? null;
     },
+    partner: () => partnerFacts ? structuredClone(partnerFacts) : null,
     async madeWithPreview() {
       if (tool.manifest.privacy === "on-device") return null;
       const snapshot = await recordSnapshot();

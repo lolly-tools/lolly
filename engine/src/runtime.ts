@@ -471,6 +471,9 @@ export interface Runtime {
    * and `madeWithPreview` shows them. Shape-checked; a malformed part is dropped.
    */
   setPartner(partner: ExportPartner | null): void;
+  /** The partner set by `setPartner`, as recorded (a copy), or null. A second
+   *  runtime that exports the same document copies it from here. */
+  partner(): ExportPartner | null;
   /**
    * What an export would write about its design system right now: the record and
    * the description with the record on and off, so the export panel can show the
@@ -1534,6 +1537,7 @@ export async function createRuntime(
     setMadeWith(on) { madeWithOn = on !== false; },
     madeWith: () => madeWithOn,
     setPartner(next) { partnerFacts = partnerRecord(next) ?? null; },
+    partner: () => (partnerFacts ? structuredClone(partnerFacts) : null),
     async madeWithPreview() {
       if (tool.manifest.privacy === 'on-device') return null;
       const snapshot = await recordSnapshot();

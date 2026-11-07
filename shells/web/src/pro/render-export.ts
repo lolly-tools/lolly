@@ -589,6 +589,9 @@ export async function mountDocumentExport(tool: LoadedTool, host: HostV1, source
   // The export panel's Design system card (plans/319) is the source runtime's switch:
   // an unticked card must leave the record out of the document export too.
   runtime.setMadeWith(source.madeWith());
+  // And the partner it records (Lolly Work plans/82 M3), so the files hold what the
+  // card said.
+  runtime.setPartner(source.partner());
   let ownedStage: ExportStage | undefined;
   try {
     const { stage, canvas } = await mountToolCanvas(tool.styles, runtime.getHydrated(), {

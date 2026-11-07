@@ -140,8 +140,10 @@ test('set by the host, shown before the export, and the card\'s one switch takes
   runtime.setMadeWith(false);
   await runtime.export(canvas(), 'png', {});
   assert.equal('partner' in (renders[1]!.meta as Rec), false, 'unticking leaves the partner out together with the design system');
+  assert.deepEqual(runtime.partner(), PARTNER, 'a second runtime exporting the same document copies it from here');
   runtime.setMadeWith(true);
   runtime.setPartner(null);
+  assert.equal(runtime.partner(), null);
   await runtime.export(canvas(), 'png', {});
   assert.equal('partner' in (renders[2]!.meta as Rec), false);
 });
