@@ -206,7 +206,7 @@ Bir klip seç; denetleyici aynı düzenlemeleri sayı olarak verir: **Length**, 
 
 ## Dışa aktarmadan önce
 
-Design, dosyayı göndermeden önce belgeni denetler. Inspector'ın **Document** bölümündeki ve yine dışa aktarma panelindeki **Before you export** kartı kayıtlı katman yapısını okur, sonra yerleşmiş tuvale kesilmiş metin ve düz renk kontrastı için bakar. Her metin parçasının gömülebilecek yazı tipi baytlarına sahip olup olmadığını, SVG ve PDF dış çizgilemesinin kullandığı aynı yazı tipi kayıt defterine sorar. Görsel ve gradyan arka planlar uydurulmuş bir kontrast puanı verilmek yerine görsel denetimler olarak listelenir.
+Design, dosyayı göndermeden önce belgeni denetler. Inspector'ın **Document** bölümündeki ve yine dışa aktarma panelindeki **Before you export** kartı kayıtlı katman yapısını okur, sonra yerleşmiş tuvale kesilmiş metin ve düz renk kontrastı için bakar. Her metin parçasının gömülebilecek yazı tipi baytlarına sahip olup olmadığını, SVG ve PDF dış çizgilemesinin kullandığı aynı yazı tipi kayıt defterine sorar. Dışa aktarmada bir [yedek yazı tipi](/info/fallback-fonts.html) tarafından çizilen metin kapsanmış sayılır. Yedek yazı tipi olmayan bir yazı sistemi veya bu yazı tiplerinin içerdiği kümelerin dışında kalan bir Çince, Japonca ya da Korece karakter yine de bildirilir. Görsel ve gradyan arka planlar uydurulmuş bir kontrast puanı verilmek yerine görsel denetimler olarak listelenir.
 
 ### Bir kompozisyonu tasarım sistemine göre denetle
 

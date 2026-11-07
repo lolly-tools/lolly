@@ -206,7 +206,7 @@ Las **transiciones** son preajustes: Fade, Pop, Grow, Rise, Drop, los cuatro Sli
 
 ## Antes de exportar
 
-Design comprueba tu documento antes de que envíes el archivo. La tarjeta **Before you export**, en la sección **Document** del Inspector y de nuevo en el panel de exportación, lee la estructura de capas guardada y luego examina el lienzo asentado en busca de texto recortado y contraste de colores planos. Pregunta al mismo registro de fuentes que usa el contorneado de SVG y PDF si cada tramo de texto tiene bytes de fuente que se puedan incrustar. Los fondos de imagen y de degradado se enumeran como comprobaciones visuales en lugar de recibir una puntuación de contraste inventada.
+Design comprueba tu documento antes de que envíes el archivo. La tarjeta **Before you export**, en la sección **Document** del Inspector y de nuevo en el panel de exportación, lee la estructura de capas guardada y luego examina el lienzo asentado en busca de texto recortado y contraste de colores planos. Pregunta al mismo registro de fuentes que usa el contorneado de SVG y PDF si cada tramo de texto tiene bytes de fuente que se puedan incrustar. El texto que dibuja una [tipografía de respaldo](/info/fallback-fonts.html) en la exportación cuenta como cubierto. Una escritura sin tipografía de respaldo, o un carácter chino, japonés o coreano fuera de los conjuntos que esas tipografías contienen, se sigue indicando. Los fondos de imagen y de degradado se enumeran como comprobaciones visuales en lugar de recibir una puntuación de contraste inventada.
 
 ### Comprobar una composición con el design system
 

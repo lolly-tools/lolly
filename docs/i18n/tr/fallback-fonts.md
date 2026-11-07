@@ -59,7 +59,9 @@ Komut satırı, terminal uygulaması ve MCP sunucusu aynı dosyaları diskten ok
 
 ## Sayfada ve dışa aktarmada
 
-Sayfa, dışa aktarmayla aynı yedek yazı tipini kullanır. Bu olmasaydı bir tarayıcı bu harfleri bir sistem yazı tipiyle çizerdi, dışa aktarma ise Noto kullanırdı ve bunları içeren bir satırın genişliği ikisi arasında değişirdi. Lolly yedek yazı tipini yalnızca o tuvalde, tasarım sisteminin yazı tipi listesinin sonuna, tasarım sisteminin kendi yazı tiplerinden sonra ve herhangi bir sistem yazı tipinden önce ekler. Tasarım sisteminin kapsadığı bir tuval yazı tipi listesini tamamen eskisi gibi korur.
+Sayfa, dışa aktarmayla aynı yedek yazı tipini kullanır. Bu olmasaydı bir tarayıcı bu harfleri bir sistem yazı tipiyle çizerdi, dışa aktarma ise Noto kullanırdı ve bunları içeren bir satırın genişliği ikisi arasında değişirdi. Lolly yedek yazı tipini yalnızca o tuvalde, tasarım sisteminin yazı tipi listesinin sonuna, tasarım sisteminin kendi yazı tiplerinden sonra ve herhangi bir sistem yazı tipinden önce ekler. Kendi yazı tipi listesini stillerinde veya öğelerinde belirleyen bir araç yedek yazı tipini aynı yere alır: listenin verdiği yazı tiplerinden sonra ve herhangi bir sistem yazı tipinden önce. Tasarım sisteminin kapsadığı bir tuval yazı tipi listesini tamamen eskisi gibi korur.
+
+Sayfa, bir yazı tipi listesi `system-ui` veya Helvetica gibi bir sistem yazı tipiyle başlıyorsa listeye dokunmaz, çünkü dışa aktarma o metni tasarım sisteminin yazı tipleriyle çizer, sayfa ise çizmez.
 
 Bir PDF'te, hangi metin ayarını seçersen seç sözcükler yedek yazı tipiyle çizilmiş anahatlara dönüşür; çünkü canlı PDF metni, gömülü yazı tipinde olmayan bir yazı sistemini taşıyamaz. SVG, EMF, EPS, DXF ve WMF'te metin anahatlara dönüştürüldüğünde anahatlara dönüşürler; metin canlı bırakıldığında onları eskisi gibi okuyucunun kendi yazı tipleri çizer. Bir yedek yazı tipi bir dışa aktarmanın bir kısmını çizdiğinde dışa aktarma paneli şuna benzer bir not gösterir:
 
@@ -70,6 +72,10 @@ Komut satırı aynı cümleyi bir not olarak yazdırır.
 ## Görsel olarak kalanlar
 
 Dört ulusal kümenin dışındaki bir karakter için yedek yazı tipi yoktur. 𠮷 gibi nadir karakterler, Hong Kong için eklenen ek kümedeki karakterler ve Tamil, Etiyopya veya Süryani gibi yedek yazı tipi olmayan yazı sistemleri aynı şekilde ele alınır. Bir PDF'te birini içeren satır 300 dpi'lık bir görsel olarak girer ve dışa aktarma paneli yazı sistemlerini listeler. Bir SVG'de metin parçası canlı metin olarak kalır ve onu okuyucunun kendi yazı tipleri çizer.
+
+## Dışa aktarmadan önceki denetim
+
+Lolly Design'ın **Before you export** kartı ve `lolly check` komutunun `render` denetimleri, hiçbir yazı tipinin çizemediği metni bildirir. Yedek yazı tiplerini bir dışa aktarmanın saydığı gibi sayarlar, her yazı tipinin sahip olduğu karakterlerin aynı listelerinden; bu yüzden bir yedek yazı tipinin çizdiği metin bildirilmez. Tamil gibi yedek yazı tipi olmayan bir yazı sistemi ile ulusal kümelerin dışındaki bir Çince, Japonca veya Korece karakter yine de bildirilir, çünkü dışa aktarma bunları görsel olarak veya canlı metin olarak çizer. Denetim bu listeleri katalogdan okur ve hiçbir yazı tipi indirmez.
 
 ## Lisanslar ve atıflar
 

@@ -59,7 +59,9 @@ A linha de comando, o app de terminal e o servidor MCP leem os mesmos arquivos d
 
 ## Na página e na exportação
 
-A página usa a mesma fonte de reserva que a exportação. Sem isso, um navegador desenha essas letras em uma fonte do sistema enquanto a exportação usa a Noto, e uma linha que as contém muda de largura entre as duas. O Lolly acrescenta a fonte de reserva ao fim da lista de fontes do sistema de design apenas nesse canvas, depois das fontes do próprio sistema de design e antes de qualquer fonte do sistema. Um canvas que o sistema de design cobre mantém a sua lista de fontes exatamente como antes.
+A página usa a mesma fonte de reserva que a exportação. Sem isso, um navegador desenha essas letras em uma fonte do sistema enquanto a exportação usa a Noto, e uma linha que as contém muda de largura entre as duas. O Lolly acrescenta a fonte de reserva ao fim da lista de fontes do sistema de design apenas nesse canvas, depois das fontes do próprio sistema de design e antes de qualquer fonte do sistema. Uma ferramenta que define a sua própria lista de fontes, nos estilos ou nos elementos, recebe a fonte de reserva no mesmo lugar: depois das fontes que a lista dá e antes de qualquer fonte do sistema. Um canvas que o sistema de design cobre mantém a sua lista de fontes exatamente como antes.
+
+A página deixa uma lista de fontes em paz quando ela começa com uma fonte do sistema, como `system-ui` ou Helvetica, porque a exportação desenha esse texto com as fontes do sistema de design e a página não.
 
 Em um PDF, as palavras viram contornos desenhados com a fonte de reserva, qualquer que seja a opção de texto escolhida, porque o texto ativo de um PDF não pode carregar uma escrita que a fonte incorporada não tem. Em SVG, EMF, EPS, DXF e WMF elas viram contornos sempre que o texto é convertido em contornos; com o texto mantido ativo, as fontes do próprio leitor as desenham, como antes. Quando uma fonte de reserva desenhou parte de uma exportação, o painel de exportação mostra uma nota como:
 
@@ -70,6 +72,10 @@ A linha de comando imprime a mesma frase como nota.
 ## O que continua sendo imagem
 
 Um caractere fora dos quatro conjuntos nacionais não tem fonte de reserva. Caracteres raros como 𠮷, os caracteres acrescentados para Hong Kong pelo seu conjunto suplementar e escritas sem fonte de reserva, como o tâmil, o etíope ou o siríaco, recebem todos o mesmo tratamento. Em um PDF, a linha que contém um deles entra como uma imagem de 300 dpi, e o painel de exportação lista as escritas. Em um SVG, o trecho continua sendo texto ativo, que as fontes do próprio leitor desenham.
+
+## A verificação antes de exportar
+
+O cartão **Before you export** do Design, e as verificações `render` do `lolly check`, apontam texto que nenhuma fonte consegue desenhar. Elas contam as fontes de reserva como uma exportação conta, a partir das mesmas listas dos caracteres que cada fonte tem, então o texto que uma fonte de reserva desenha não é apontado. Uma escrita sem fonte de reserva, como o tâmil, e um caractere chinês, japonês ou coreano fora dos conjuntos nacionais continuam sendo apontados, porque a exportação os desenha como uma imagem ou como texto ativo. A verificação lê essas listas do catálogo e não baixa nenhuma fonte.
 
 ## Licenças e créditos
 

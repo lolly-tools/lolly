@@ -59,7 +59,9 @@ Kommandolinjen, terminalappen og MCP-serveren leser de samme filene fra disk, s�
 
 ## På siden og i eksporten
 
-Siden bruker den samme reserveskriften som eksporten. Uten dette tegner en nettleser slike bokstaver i en systemskrift mens eksporten bruker Noto, og en linje som har dem, endrer bredde mellom de to. Lolly legger reserveskriften til på slutten av designsystemets skriftliste, bare på det lerretet, etter designsystemets egne skrifter og før en eventuell systemskrift. Et lerret designsystemet dekker, beholder skriftlisten helt som før.
+Siden bruker den samme reserveskriften som eksporten. Uten dette tegner en nettleser slike bokstaver i en systemskrift mens eksporten bruker Noto, og en linje som har dem, endrer bredde mellom de to. Lolly legger reserveskriften til på slutten av designsystemets skriftliste, bare på det lerretet, etter designsystemets egne skrifter og før en eventuell systemskrift. Et verktøy som setter sin egen skriftliste, i stilene sine eller på elementene sine, får reserveskriften på samme sted: etter skriftene listen oppgir og før en eventuell systemskrift. Et lerret designsystemet dekker, beholder skriftlisten helt som før.
+
+Siden lar en skriftliste være i fred når den starter med en systemskrift, for eksempel `system-ui` eller Helvetica, fordi eksporten tegner den teksten med designsystemets skrifter og siden ikke gjør det.
 
 I en PDF blir ordene konturer tegnet med reserveskriften, uansett hvilken tekstinnstilling du velger, fordi levende PDF-tekst ikke kan bære et skriftsystem den innebygde skriften mangler. I SVG, EMF, EPS, DXF og WMF blir de konturer hver gang tekst konverteres til konturer; med levende tekst tegnes de av leserens egne skrifter, som før. Når en reserveskrift har tegnet en del av en eksport, viser eksportpanelet en merknad som:
 
@@ -70,6 +72,10 @@ Kommandolinjen skriver ut den samme setningen som en merknad.
 ## Det som forblir et bilde
 
 Et tegn utenfor de fire nasjonale tegnsettene har ingen reserveskrift. Sjeldne tegn som 𠮷, tegnene som Hong Kong la til med sitt tilleggssett, og skriftsystemer uten reserveskrift, for eksempel tamil, etiopisk eller syrisk, behandles alle på samme måte. I en PDF legges linjen som har ett, inn som et bilde på 300 dpi, og eksportpanelet lister skriftsystemene. I en SVG forblir kjøringen levende tekst, som leserens egne skrifter tegner.
+
+## Sjekken før du eksporterer
+
+Lolly Designs kort **Before you export**, og `render`-sjekkene i `lolly check`, rapporterer tekst som ingen skrift kan tegne. De teller reserveskriftene på samme måte som en eksport, ut fra de samme listene over tegnene hver skrift har, så tekst en reserveskrift tegner, rapporteres ikke. Et skriftsystem uten reserveskrift, for eksempel tamil, og et kinesisk, japansk eller koreansk tegn utenfor de nasjonale tegnsettene rapporteres fortsatt, fordi eksporten tegner dem som et bilde eller som levende tekst. Sjekken leser listene fra katalogen og laster ikke ned noen skrift.
 
 ## Lisenser og kreditter
 

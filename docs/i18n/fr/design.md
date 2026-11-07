@@ -206,7 +206,7 @@ Les **transitions** sont des préréglages : Fade, Pop, Grow, Rise, Drop, les qu
 
 ## Avant d'exporter
 
-Design vérifie ton document avant que tu envoies le fichier. La carte **Before you export**, dans la section **Document** de l'Inspector et de nouveau dans le panneau d'export, lit la structure de calques enregistrée, puis examine le canevas stabilisé pour repérer le texte rogné et le contraste des aplats. Elle interroge le même registre de polices que le détourage SVG et PDF pour savoir si chaque passage de texte dispose d'octets de police qui peuvent être incorporés. Les fonds d'image et de dégradé sont listés comme vérifications visuelles plutôt que de recevoir un score de contraste inventé.
+Design vérifie ton document avant que tu envoies le fichier. La carte **Before you export**, dans la section **Document** de l'Inspector et de nouveau dans le panneau d'export, lit la structure de calques enregistrée, puis examine le canevas stabilisé pour repérer le texte rogné et le contraste des aplats. Elle interroge le même registre de polices que le détourage SVG et PDF pour savoir si chaque passage de texte dispose d'octets de police qui peuvent être incorporés. Le texte qu'une [police de repli](/info/fallback-fonts.html) dessine dans l'export compte comme couvert. Une écriture sans police de repli, ou un caractère chinois, japonais ou coréen hors des jeux que ces polices contiennent, est toujours signalé. Les fonds d'image et de dégradé sont listés comme vérifications visuelles plutôt que de recevoir un score de contraste inventé.
 
 ### Vérifier une composition par rapport au design system
 

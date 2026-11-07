@@ -59,7 +59,9 @@ Příkazový řádek, terminálová aplikace a server MCP čtou stejné soubory 
 
 ## Na stránce a v exportu
 
-Stránka používá stejné záložní písmo jako export. Bez toho by prohlížeč takové znaky kreslil systémovým písmem, zatímco export použije Noto, a řádek, který je obsahuje, by mezi oběma měnil šířku. Lolly přidá záložní písmo na konec seznamu písem designového systému jen na tom plátně, za vlastní písma designového systému a před jakékoli systémové písmo. Plátno, které designový systém pokrývá, si seznam písem ponechá přesně jako dřív.
+Stránka používá stejné záložní písmo jako export. Bez toho by prohlížeč takové znaky kreslil systémovým písmem, zatímco export použije Noto, a řádek, který je obsahuje, by mezi oběma měnil šířku. Lolly přidá záložní písmo na konec seznamu písem designového systému jen na tom plátně, za vlastní písma designového systému a před jakékoli systémové písmo. Nástroj, který nastavuje vlastní seznam písem, ve svých stylech nebo na svých prvcích, dostane záložní písmo na stejné místo: za písma, která seznam uvádí, a před jakékoli systémové písmo. Plátno, které designový systém pokrývá, si seznam písem ponechá přesně jako dřív.
+
+Stránka ponechá seznam písem beze změny, když začíná systémovým písmem, například `system-ui` nebo Helvetica, protože export takový text kreslí písmy designového systému a stránka ne.
 
 V PDF se slova stanou obrysy nakreslenými záložním písmem, ať zvolíš jakékoli nastavení textu, protože živý text v PDF nemůže nést znaky, které vložené písmo nemá. V SVG, EMF, EPS, DXF a WMF se stanou obrysy vždy, když se text převádí na obrysy; s textem ponechaným živým je kreslí vlastní písma čtenáře, jako dřív. Když záložní písmo nakreslilo část exportu, panel exportu ukáže poznámku, například:
 
@@ -70,6 +72,10 @@ Příkazový řádek vypíše stejnou větu jako poznámku.
 ## Co zůstává obrázkem
 
 Znak mimo čtyři národní sady nemá žádné záložní písmo. Vzácné znaky jako 𠮷, znaky přidané pro Hongkong jeho doplňkovou sadou a znakové sady bez záložního písma, například tamilština, etiopština nebo syrština, se řeší všechny stejně. V PDF se řádek, který takový znak obsahuje, vloží jako obrázek v 300 dpi a panel exportu vypíše tyto znakové sady. V SVG zůstane úsek živým textem, který kreslí vlastní písma čtenáře.
+
+## Kontrola před exportem
+
+Karta **Before you export** v Lolly Design a kontroly `render` v `lolly check` hlásí text, který žádné písmo nenakreslí. Záložní písma počítají tak, jak je počítá export, ze stejných seznamů znaků každého písma, takže text, který kreslí záložní písmo, se nehlásí. Znaková sada bez záložního písma, například tamilština, a čínský, japonský nebo korejský znak mimo národní sady se stále hlásí, protože je export kreslí jako obrázek nebo jako živý text. Kontrola čte tyto seznamy z katalogu a nestahuje žádné písmo.
 
 ## Licence a uvedení autorů
 

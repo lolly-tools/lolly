@@ -206,7 +206,7 @@ Pilih klip dan inspector memberikan suntingan yang sama sebagai nombor: **Length
 
 ## Sebelum anda mengeksport
 
-Design menyemak dokumen anda sebelum anda menghantar fail. Kad **Before you export**, dalam bahagian **Document** Inspector dan sekali lagi dalam panel eksport, membaca struktur lapisan tersimpan, kemudian melihat kanvas yang mantap untuk teks yang terpotong dan kontras warna rata. Ia bertanya pendaftar fon yang sama yang digunakan oleh garis luar SVG dan PDF sama ada setiap larian teks mempunyai bait fon yang boleh dibenamkan. Latar imej dan kecerunan disenaraikan sebagai semakan visual dan bukan diberi skor kontras rekaan.
+Design menyemak dokumen anda sebelum anda menghantar fail. Kad **Before you export**, dalam bahagian **Document** Inspector dan sekali lagi dalam panel eksport, membaca struktur lapisan tersimpan, kemudian melihat kanvas yang mantap untuk teks yang terpotong dan kontras warna rata. Ia bertanya pendaftar fon yang sama yang digunakan oleh garis luar SVG dan PDF sama ada setiap larian teks mempunyai bait fon yang boleh dibenamkan. Teks yang dilukis oleh [fon sandaran](/info/fallback-fonts.html) dalam eksport dikira sebagai diliputi. Skrip tanpa fon sandaran, atau aksara Cina, Jepun atau Korea di luar set yang dipegang oleh fon itu, tetap dilaporkan. Latar imej dan kecerunan disenaraikan sebagai semakan visual dan bukan diberi skor kontras rekaan.
 
 ### Semak gubahan terhadap sistem reka bentuk
 

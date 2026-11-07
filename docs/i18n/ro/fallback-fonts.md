@@ -59,7 +59,9 @@ Linia de comandă, aplicația de terminal și serverul MCP citesc aceleași fiș
 
 ## Pe pagină și în export
 
-Pagina folosește același font de rezervă ca exportul. Fără aceasta, un browser desenează astfel de litere într-un font de sistem, în timp ce exportul folosește Noto, iar o linie care le conține își schimbă lățimea între cele două. Lolly adaugă fontul de rezervă la sfârșitul listei de fonturi a sistemului de design doar pe acel canvas, după fonturile proprii ale sistemului de design și înaintea oricărui font de sistem. Un canvas pe care îl acoperă sistemul de design își păstrează lista de fonturi exact ca înainte.
+Pagina folosește același font de rezervă ca exportul. Fără aceasta, un browser desenează astfel de litere într-un font de sistem, în timp ce exportul folosește Noto, iar o linie care le conține își schimbă lățimea între cele două. Lolly adaugă fontul de rezervă la sfârșitul listei de fonturi a sistemului de design doar pe acel canvas, după fonturile proprii ale sistemului de design și înaintea oricărui font de sistem. Un instrument care își setează propria listă de fonturi, în stilurile sau pe elementele sale, primește fontul de rezervă în același loc: după fonturile pe care le dă lista și înaintea oricărui font de sistem. Un canvas pe care îl acoperă sistemul de design își păstrează lista de fonturi exact ca înainte.
+
+Pagina lasă în pace o listă de fonturi când aceasta începe cu un font de sistem, precum `system-ui` sau Helvetica, pentru că exportul desenează acel text cu fonturile sistemului de design, iar pagina nu.
 
 Într-un PDF cuvintele devin contururi desenate cu fontul de rezervă, indiferent ce setare de text alegi, pentru că textul PDF live nu poate purta o scriere pe care fontul încorporat nu o are. În SVG, EMF, EPS, DXF și WMF devin contururi ori de câte ori textul este convertit în contururi; cu textul păstrat live, fonturile proprii ale cititorului le desenează, ca înainte. Când un font de rezervă a desenat o parte dintr-un export, panoul de export arată o notă precum:
 
@@ -70,6 +72,10 @@ Linia de comandă tipărește aceeași propoziție ca notă.
 ## Ce rămâne o imagine
 
 Un caracter din afara celor patru seturi naționale nu are font de rezervă. Caracterele rare precum 𠮷, caracterele adăugate pentru Hong Kong prin setul său suplimentar și scrierile fără font de rezervă, precum tamila, etiopiana sau siriaca, sunt toate tratate la fel. Într-un PDF linia care conține unul intră ca imagine de 300 dpi, iar panoul de export listează scrierile. Într-un SVG secvența rămâne text live, pe care îl desenează fonturile proprii ale cititorului.
+
+## Verificarea înainte de export
+
+Cardul **Before you export** din Lolly Design și verificările `render` din `lolly check` raportează textul pe care niciun font nu îl poate desena. Ele numără fonturile de rezervă așa cum o face un export, din aceleași liste de caractere pe care le are fiecare font, deci textul desenat de un font de rezervă nu este raportat. O scriere fără font de rezervă, precum tamila, și un caracter chinezesc, japonez sau coreean din afara seturilor naționale sunt raportate în continuare, pentru că exportul le desenează ca imagine sau ca text live. Verificarea citește acele liste din catalog și nu descarcă niciun font.
 
 ## Licențe și credite
 

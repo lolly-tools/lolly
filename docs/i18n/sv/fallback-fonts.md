@@ -59,7 +59,9 @@ Kommandoraden, terminalappen och MCP-servern läser samma filer från disk, så 
 
 ## På sidan och i exporten
 
-Sidan använder samma reservtypsnitt som exporten. Utan det ritar en webbläsare sådana tecken i ett systemtypsnitt medan exporten använder Noto, och en rad som innehåller dem byter bredd mellan de två. Lolly lägger till reservtypsnittet sist i designsystemets typsnittslista, på den ytan enbart, efter designsystemets egna typsnitt och före alla systemtypsnitt. En yta som designsystemet täcker behåller sin typsnittslista exakt som förut.
+Sidan använder samma reservtypsnitt som exporten. Utan det ritar en webbläsare sådana tecken i ett systemtypsnitt medan exporten använder Noto, och en rad som innehåller dem byter bredd mellan de två. Lolly lägger till reservtypsnittet sist i designsystemets typsnittslista, på den ytan enbart, efter designsystemets egna typsnitt och före alla systemtypsnitt. Ett verktyg som anger en egen typsnittslista, i sina stilar eller på sina element, får reservtypsnittet på samma plats: efter de typsnitt listan anger och före alla systemtypsnitt. En yta som designsystemet täcker behåller sin typsnittslista exakt som förut.
+
+Sidan lämnar en typsnittslista orörd när den börjar med ett systemtypsnitt, som `system-ui` eller Helvetica, eftersom exporten ritar den texten med designsystemets typsnitt och sidan gör det inte.
 
 I en PDF blir orden konturer ritade med reservtypsnittet, vilken textinställning du än väljer, eftersom levande PDF-text inte kan bära ett skriftsystem som det inbäddade typsnittet saknar. I SVG, EMF, EPS, DXF och WMF blir de konturer närhelst text omvandlas till konturer; med text som hålls levande ritar läsarens egna typsnitt dem, som förut. När ett reservtypsnitt ritat en del av en export visar exportpanelen en notis som:
 
@@ -70,6 +72,10 @@ Kommandoraden skriver ut samma mening som en notis.
 ## Vad som förblir en bild
 
 Ett tecken utanför de fyra nationella uppsättningarna har inget reservtypsnitt. Sällsynta tecken som 𠮷, tecknen som Hongkong lagt till med sin kompletterande uppsättning, och skriftsystem utan reservtypsnitt, som tamil, etiopiska eller syriska, behandlas alla på samma sätt. I en PDF läggs raden som innehåller ett in som en bild på 300 dpi, och exportpanelen listar skriftsystemen. I en SVG förblir sekvensen levande text, som läsarens egna typsnitt ritar.
+
+## Kontrollen före export
+
+Lolly Designs kort **Before you export**, och `render`-kontrollerna i `lolly check`, rapporterar text som inget typsnitt kan rita. De räknar reservtypsnitten på samma sätt som en export, utifrån samma listor över tecknen varje typsnitt har, så text som ett reservtypsnitt ritar rapporteras inte. Ett skriftsystem utan reservtypsnitt, som tamil, och ett kinesiskt, japanskt eller koreanskt tecken utanför de nationella uppsättningarna rapporteras fortfarande, eftersom exporten ritar dem som en bild eller som levande text. Kontrollen läser listorna från katalogen och laddar inte ner något typsnitt.
 
 ## Licenser och krediter
 
