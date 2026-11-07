@@ -37,7 +37,7 @@ const EXPECTED: readonly string[] = [
   'DXF_LIMITS', 'DXF_MAX_BOXES', 'DxfDesignResult', 'DxfImport', 'DxfImportOptions', 'DxfRaw', 'DxfReader',
   'DxfReport', 'DxfStroke', 'DxfText', 'DxfUnits',
   'aciToHex', 'dxfReportLines', 'dxfToDesign', 'dxfUnits', 'flattenDxf', 'importDxf', 'looksLikeDxf',
-  // Additive 1.322 spots as process: the CMYK palette's opt-in to print every spot ink in process,
+  // Additive 1.323 spots as process: the CMYK palette's opt-in to print every spot ink in process,
   // and the `_spots` URL param that asks for the choice.
   'CmykPaletteOptions', 'SpotsSetting', 'parseSpots',
   // Additive 1.297 press separation: RGB to CMYK through a press profile, and its raster lattice.
@@ -603,6 +603,8 @@ const EXPECTED: readonly string[] = [
   'DocxBlock',
   'DocxDoc',
   'DocxMedia',
+  'DocxPage',
+  'DocxStyles',
   'DocxParts',
   'DropShadow',
   'EMU_PER_INCH',
@@ -1267,6 +1269,7 @@ const EXPECTED: readonly string[] = [
   'wcagLevel',
   'woffToSfnt',
   'writeDocx',
+  'snapDocxPage',
   'writeEpub',
   'writeFace',
   'writeOdt',

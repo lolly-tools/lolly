@@ -1,4 +1,6 @@
-# Bài hát Rondocode
+# Bài hát Lolly Rondocode
+
+<a id="rondocode-songs"></a>
 
 Một bài hát rondocode là âm nhạc viết bằng mã: bộ tổng hợp, mẫu và bản phối, phát khi bạn gõ. Lolly có thể phát một bài hát dưới video, và tiện ích **Rondocode** cho phép bạn viết một bài và xuất thành âm thanh. Cả hai ghi bài hát vào Content Credentials của tệp, để âm nhạc nói được nó đến từ đâu.
 
@@ -12,7 +14,7 @@ Từ terminal, `lolly mix` nhận một bài hát làm toàn bộ nhạc nền; 
 
 ## Viết và xuất một bài hát
 
-Mở **Rondocode** từ **Utilities** để viết bài hát trong trình soạn thảo trực tiếp của rondocode và nghe khi bạn gõ. Xuất nó dưới dạng **WAV**, **MP3**, **M4A**, **Opus** hoặc **FLAC**, một ZIP các stem, **MIDI**, hoặc bản ghi những gì đang phát. Từ terminal, `lolly rondocode --export=mid` ghi cùng tệp MIDI đó. **Export length** đặt số giây mà một bản xuất âm thanh kéo dài. Chính tệp bài hát (`.rondo.json`) là mã của bạn như đã viết và không mang thêm gì.
+Mở công cụ **Rondocode** từ **Utilities** để viết bài hát trong trình soạn thảo trực tiếp của rondocode và nghe khi bạn gõ. Xuất nó dưới dạng **WAV**, **MP3**, **M4A**, **Opus** hoặc **FLAC**, một ZIP các stem, **MIDI**, hoặc bản ghi những gì đang phát. Từ terminal, `lolly rondocode --export=mid` ghi cùng tệp MIDI đó. **Export length** đặt số giây mà một bản xuất âm thanh kéo dài. Chính tệp bài hát (`.rondo.json`) là mã của bạn như đã viết và không mang thêm gì.
 
 Một bài hát có thể hát lời của nó bằng `sing()`. Giọng hát được tạo trên thiết bị của bạn bằng các mô hình giọng đã tải, và tệp chứa giọng hát tổng hợp luôn khai báo giọng hát đó là do AI tạo (xem [AI features](/info/ai-features.html)).
 
@@ -24,11 +26,11 @@ Một bản xuất video hoặc âm thanh phát bài hát rondocode ghi từng b
 - SHA-256 của tệp `.rondo.json` của nó;
 - cách nó được kết xuất: trong sandbox của Lolly, lớp thực thi `vm`, kèm phiên bản và seed của bộ kết xuất, và mọi phần mà bản kết xuất không phát được.
 
-Âm nhạc được tính từ mã của bài hát được đánh dấu là phương tiện thuật toán, nên Verify không đánh dấu nó là AI. Trước khi xuất, một dòng dưới **Download** liệt kê các bài hát mà credential sẽ ghi; sau khi xuất, cùng dòng báo cáo điều mà việc đọc tệp đã giao tìm thấy. Bỏ chọn **C2PA Credentials** để bỏ bản ghi. Ảnh tĩnh không ghi bài hát nào, vì nó không có âm thanh. `lolly mix` và [máy chủ MCP](/info/mcp.html) ghi cùng bản ghi.
+Âm nhạc được tính từ mã của bài hát được đánh dấu là phương tiện thuật toán, nên Lolly Verify không đánh dấu nó là AI. Trước khi xuất, một dòng dưới **Download** liệt kê các bài hát mà credential sẽ ghi; sau khi xuất, cùng dòng báo cáo điều mà việc đọc tệp đã giao tìm thấy. Bỏ chọn **C2PA Credentials** để bỏ bản ghi. Ảnh tĩnh không ghi bài hát nào, vì nó không có âm thanh. `lolly mix` và [máy chủ MCP](/info/mcp.html) ghi cùng bản ghi.
 
 ## Tệp từ tiện ích Rondocode
 
-Hầu hết tiện ích trên thiết bị không ghi credential, vì chúng biến đổi một tệp bạn đã sở hữu. Rondocode tạo âm thanh mới, nên mọi tệp âm thanh nó ghi đều mang Content Credentials ghi bài hát làm nguồn: tên của nó, SHA-256 của tệp `.rondo.json` và nơi mã của nó chạy. Điều đó bao gồm WAV, MP3, M4A, Opus, FLAC, từng stem trong ZIP stem và bản ghi những gì đang phát.
+Hầu hết tiện ích trên thiết bị không ghi credential, vì chúng biến đổi một tệp bạn đã sở hữu. Lolly Rondocode tạo âm thanh mới, nên mọi tệp âm thanh nó ghi đều mang Content Credentials ghi bài hát làm nguồn: tên của nó, SHA-256 của tệp `.rondo.json` và nơi mã của nó chạy. Điều đó bao gồm WAV, MP3, M4A, Opus, FLAC, từng stem trong ZIP stem và bản ghi những gì đang phát.
 
 - Các bản kết xuất của chính trình soạn thảo chạy trong khung riêng của nó (lớp thực thi `frame`) và ghi phiên bản của trình soạn thảo.
 - Một bản kết xuất tạo bằng CLI hoặc liên kết chia sẻ chạy trong lớp `vm` và ghi phiên bản và seed của bộ kết xuất.

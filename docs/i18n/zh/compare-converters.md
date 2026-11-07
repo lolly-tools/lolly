@@ -12,7 +12,7 @@ _最后核查：2026 年 9 月 28 日。_
 
 基于浏览器的转换器可能会上传文件进行处理，也可能在本地转换。Lolly 的转换实用工具在本地处理文件，没有账号、广告或跟踪器，也不添加 Lolly 水印或 Content Credentials。一旦转换所需的素材保存好，它们就可以离线工作。文件大小受设备内存和特定格式读取器的限制。
 
-![Utilities 视图：Strip Hidden Data、Compress PDF、Convert Image 以及其他设备端工作，全部集中在一处](/t/url-shot?url=%2F%23%2Fu&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%2C.brand-tips%7Bdisplay%3Anone!important%7D&tolerance=0.03&waitSelector=.utilities-view%5Bdata-shots-settled%5D&format=svg&walker=1&dark=1&filename=aud-utilities)
+![Utilities 视图：Lolly Strip Hidden Data、Compress PDF、Convert Image 以及其他设备端工作，全部集中在一处](/t/url-shot?url=%2F%23%2Fu&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%2C.brand-tips%7Bdisplay%3Anone!important%7D&tolerance=0.03&waitSelector=.utilities-view%5Bdata-shots-settled%5D&format=svg&walker=1&dark=1&filename=aud-utilities)
 
 [Lolly 可以打开和制作的所有格式](/info/formats.html)列出了受支持的转换及其限制，包括 HEIC 转 JPG、PNG 转 SVG 和 PDF 转图片。
 

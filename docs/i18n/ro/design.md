@@ -1,5 +1,7 @@
 # Design: canvasul liber
 
+<a id="design-the-free-canvas"></a>
+
 Design este instrumentul pentru layouturi pe care niciun șablon nu le acoperă: un afiș de la zero, un deck de diapozitive, o piesă de mișcare cu coloană sonoră. În loc de un formular cu controale, primești un canvas de casete pe care le tragi, redimensionezi, rotești și în care scrii. Exportă prin aceeași cale de randare ca orice alt instrument, deci ce vezi pe canvas este fișierul pe care îl primești.
 
 Această pagină parcurge canvasul de la prima casetă până la un deck terminat: fereastra, modelarea casetelor, desenarea propriilor forme, plasarea scenelor 3D și a altor instrumente, adăugarea timpului, verificarea rezultatului și prezentarea deck-ului terminat. [Folosirea Lolly](/info/using.html) acoperă ce are Design în comun cu fiecare instrument, precum salvarea și partajarea.
@@ -27,7 +29,7 @@ Canvasul funcționează ca o masă de lucru a designerului în jurul planșei:
 
 **Navigator** listează fiecare planșă (sub titlul **Artboards** sau **Slides** într-un deck) ca un grup pliabil al **Layers**-urilor ei. Selectează numele unei planșe ca să sari acolo, extinde-o ca să selectezi sau să reordonezi straturile ei și folosește tastele săgeți ca să te miști prin listă; Stânga revine la titlul planșei. **Pages** grupează planșele în pagini cu nume, iar alegerea unei pagini schimbă doar ce planșe arată editorul.
 
-**Inspector** pune primele controalele de text sau imagine ale obiectului selectat. Chip-urile de opțiuni acoperă alegerile rapide, iar **Advanced** conține detaliile de stil. Pe telefon, Inspectorul se deschide ca o foaie din **More actions**; Escape sau Back închide foaia și îți păstrează selecția.
+**Inspector** pune primele controalele de text sau imagine ale obiectului selectat. Chip-urile de opțiuni acoperă alegerile rapide, iar **Advanced** conține detaliile de stil. Pe telefon, Inspectorul și lista de straturi împart un singur panou care coboară de sub bara de sus, același panou în care își ține controalele orice alt instrument. **Inspect** și **Layer/Page** din bara de jos deschid panoul pe fila lor. Trage mânerul de pe marginea de jos, sau atinge mânerul, ca să muți panoul între o bandă cu cele două file, jumătate din ecran și aproape tot ecranul. La jumătate, canvasul de sub panou arată selecția ta. Escape strânge panoul înapoi la bandă și îți păstrează selecția.
 
 ![Secțiunea Document din Inspector: filele Selection și Canvas, apoi Dimensions și Style & look](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3Dfeature-tour&width=1440&height=900&dpi=192&waitMs=3500&cropSelector=.fc-insp&walker=1&format=svg&dark=1&filename=design-narration)
 
@@ -241,6 +243,8 @@ Săgeata de lângă **Present** deschide **Present from this slide**, **Speaker 
 | **Escape** | Dezlipește un strat: din overview la deck, din deck la editor |
 
 O mică bară de control apare treptat când miști cursorul și se ascunde din nou când te oprești. Dacă browserul blochează fereastra pop-up pentru speaker, speaker view se deschide ca un panou peste deck. Notele aparțin fiecărei planșe și nu apar niciodată pe diapozitiv.
+
+Pe un ecran tactil, glisează la stânga pentru pasul sau diapozitivul următor și la dreapta ca să te întorci. O tranziție **Slide** sau **Fade** urmează degetul și se termină când îl ridici; o tranziție **Cut**, **Morph** sau **Fly between artboards** rulează integral după ce îl ridici, iar o glisare scurtă și lentă nu schimbă nimic. Casetele de pagină web, controalele video, casetele care derulează și textul selectat își păstrează propriile gesturi, deci o glisare nu începe niciodată pe una dintre ele, iar derularea verticală și zoomul prin ciupire funcționează ca de obicei. Cu mișcare redusă, diapozitivul tot se schimbă, fără să urmeze degetul.
 
 - **Pași de dezvăluire.** Fă clic dreapta pe o casetă și alege **Reveal at step 1**, **2** sau **3** în loc de **Always visible**, iar caseta așteaptă până avansezi la pasul ei. Casetele cu același număr sosesc împreună.
 - **Kiosk.** Dă unei planșe o **Length** și deck-ul stă acolo atât timp, apoi avansează în spatele unei bare subțiri de progres. Adaugă `kiosk` la link și deck-ul reia de la capăt, pentru semnalistică.

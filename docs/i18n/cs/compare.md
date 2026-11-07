@@ -11,7 +11,7 @@ _Naposledy ověřeno: 28. září 2026._
 - [Lolly a Figma](/info/compare-figma.html) - návrh, živá spolupráce a opakovaná výroba assetů.
 - [Lolly a Penpot](/info/compare-penpot.html) - open-source návrh, sdílené tokeny a práce organizace.
 - [Lolly a portály značek](/info/compare-brand-portals.html) - schválené knihovny, zamčené šablony, identita, revize a reporty.
-- [Lolly a vykreslovací API](/info/compare-render-apis.html) - automatizovaná generace na tvém zařízení, v CI nebo na serveru Lolly Work.
+- [Lolly a vykreslovací API](/info/compare-render-apis.html) - automatizovaná generace na tvém zařízení, v CI nebo na tvém vlastním serveru, a [jak přejít](/info/work-move-from-render-api.html) z Bannerbear nebo Placid.
 - [Lolly a online převodníky souborů](/info/compare-converters.html) - převod formátů na tvém vlastním zařízení.
 
 Srovnání po jednotlivých schopnostech najdeš v [Jak si Lolly stojí v porovnání](/info/positioning.html). Každé srovnání je datované; tvrzení, které už neodpovídá jednomu z produktů, je třeba opravit.

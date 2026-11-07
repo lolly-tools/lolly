@@ -23,6 +23,11 @@ export interface DocsPage {
   aliases: string[];
   /** An old path that now opens at one section of this page: alias to the section's id. */
   aliasAnchors?: Record<string, string>;
+  /** The tools this page guides (plan 354 D6): a tool id, or a tool id and one of this
+   *  page's English heading ids (`qr-code#size-and-print-units`). The tool's help button
+   *  lists them as "Read the guide" rows; build:info writes them per locale to
+   *  tool-guides.json. */
+  tools?: string[];
   secondarySections?: string[];
   description?: string;
   headingId?: string;
@@ -50,6 +55,8 @@ export interface DocsRegistry {
 export const DOCS_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const ID = /^[a-z0-9][a-z0-9-]*$/;
 const PATH = /^[a-z0-9-]+(?:\/[a-z0-9-]+)*$/;
+/** A tool guide entry: a tool id, optionally with one heading id of the page. */
+export const TOOL_GUIDE = /^[a-z0-9][a-z0-9-]*(?:#[a-z0-9][a-z0-9-]*)?$/;
 
 export function validateRegistry(registry: DocsRegistry, root = DOCS_ROOT): void {
   if (registry.version !== 1 || registry.sectionSubtitles !== false || registry.canonical !== 'https://lolly.tools/info') {
@@ -79,6 +86,11 @@ export function validateRegistry(registry: DocsRegistry, root = DOCS_ROOT): void
       if (!page.aliases.includes(alias) || !ID.test(anchor)) throw new Error(`Section anchor for an unknown old path, or an invalid id: ${alias}`);
     }
     for (const section of page.secondarySections ?? []) if (!sections.has(section)) throw new Error(`Unknown cross-listed section: ${section}`);
+    const guided = new Set<string>();
+    for (const entry of page.tools ?? []) {
+      if (!TOOL_GUIDE.test(entry) || guided.has(entry)) throw new Error(`Invalid or repeated tool guide entry on ${page.slug}: ${entry}`);
+      guided.add(entry);
+    }
     if (page.work) {
       if (!ID.test(page.work.slug) || workSlugs.has(page.work.slug) || !/^(?:[a-z0-9-]+\/)?[A-Za-z0-9][A-Za-z0-9._-]*\.md$/.test(page.work.path)) throw new Error(`Invalid legacy Work page: ${page.slug}`);
       if (page.contentLicense !== 'MPL-2.0') throw new Error(`Imported Work page lost its original licence: ${page.slug}`);

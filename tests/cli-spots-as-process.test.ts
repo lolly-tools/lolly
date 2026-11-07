@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * `--spots=process` on the command line (engine 1.322): the CLI spelling of a link's
+ * `--spots=process` on the command line (engine 1.323): the CLI spelling of a link's
  * `_spots=process`. Browser-free: the share link, the refusals and the EPS sink. The plate
  * evidence for the Print PDF is plate scenes 13 and 14 (scripts/plate-oracle.test.ts).
  */

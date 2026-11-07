@@ -16,7 +16,7 @@ Les deux permettent d'organiser texte, formes et images sur un canevas et de tra
 
 Lolly transforme un design en [outil réutilisable avec des règles](/info/create-a-tool.html). L'outil s'exécute dans le navigateur ou la CLI et prend ses entrées d'un lien, d'un script ou d'une grille de lot, de sorte qu'un seul modèle sert une personne qui modifie un fichier comme une équipe qui en crée beaucoup.
 
-![Le canevas ouvert de Design, avec Import a design dans le menu Lolly de la barre d'outils](/info/shots/design.svg)
+![Le canevas ouvert de Lolly Design, avec Import a design dans le menu Lolly de la barre d'outils](/info/shots/design.svg)
 
 Une [collab privée](/info/collaborate.html) relie directement deux appareils, sans compte et sans Internet sur un réseau partagé. Lolly autonome fait le rendu hors ligne. Les Content Credentials sont activés par défaut pour les exports pris en charge, et tu peux les désactiver.
 

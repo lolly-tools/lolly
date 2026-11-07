@@ -12,7 +12,7 @@ Lollyが扱わない形式を扱う変換サイトもあり、事前の設定も
 
 ブラウザベースの変換サービスは、処理のためにファイルをアップロードする場合も、ローカルで変換する場合もあります。Lollyの変換ユーティリティは、アカウント、広告、トラッカーなしでファイルをローカルで処理し、Lollyの透かしもContent Credentialsも追加しません。変換に必要なアセットを保存すれば、オフラインでも動作します。ファイルサイズは、デバイスのメモリと個々の形式のリーダーによって制限されます。
 
-![Utilitiesビュー: Strip Hidden Data、Compress PDF、Convert Image、その他のデバイス上の作業が1か所に並ぶ](/t/url-shot?url=%2F%23%2Fu&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%2C.brand-tips%7Bdisplay%3Anone!important%7D&tolerance=0.03&waitSelector=.utilities-view%5Bdata-shots-settled%5D&format=svg&walker=1&dark=1&filename=aud-utilities)
+![Utilitiesビュー: Lolly Strip Hidden Data、Compress PDF、Convert Image、その他のデバイス上の作業が1か所に並ぶ](/t/url-shot?url=%2F%23%2Fu&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%2C.brand-tips%7Bdisplay%3Anone!important%7D&tolerance=0.03&waitSelector=.utilities-view%5Bdata-shots-settled%5D&format=svg&walker=1&dark=1&filename=aud-utilities)
 
 [Lollyが開ける形式と作れる形式のすべて](/info/formats.html)には、HEICからJPG、PNGからSVG、PDFから画像を含む、対応する変換とその制限が一覧になっています。
 

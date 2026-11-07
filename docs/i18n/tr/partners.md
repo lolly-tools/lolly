@@ -6,8 +6,9 @@ Bir etkinlik afişindeki sponsor logosu, üreticinin adı altındaki bir bayi te
 
 ## Lolly bugün iki markayı nasıl ele alır
 
-- **Her parçayı tek bir tasarım sistemi çizer.** Ana markanın renkleri, yazı tipleri ve kuralları geçerlidir. Ortağın işareti grafik olarak girer: Assets'teki bir görsel ya da bir tasarım sisteminde tutulan özel bir işaret.
+- **Her parçayı tek bir tasarım sistemi çizer.** Ana markanın renkleri, yazı tipleri ve marka kuralları geçerlidir. Ortağın işareti grafik olarak girer: Assets'teki bir görsel ya da bir tasarım sisteminde tutulan özel bir işaret.
 - **Bir marka dosya olarak taşınır.** Bir tasarım sistemi dosyası (`.lolly`) token'ları, yazı tiplerini ve logoları taşır. **Share with rules** ile yapılan yeniden kullanılabilir bir araç, izin verdiğin girdilerle birlikte bitmiş tek bir düzeni taşır. Marka becerileri kendi dosyalarıyla taşınır.
+- **Bir markanın bir adresi de olabilir.** Bir [brand page](/info/brand-page.html), bir ortağın okuması için logoları, renkleri, yazı tipini ve kuralları yayımlar; ortağın araçları için token'lar ve becerilerle.
 - **Lolly yalnızca ana markanın kurallarını denetler.** Ortağın kurallarını, örneğin boşluk payını ya da en küçük boyutu bilmez; bunları ortağın kendi yönergelerine göre sen denetle.
 
 ## Markanı bir ortakla paylaş
@@ -17,8 +18,9 @@ Bir etkinlik afişindeki sponsor logosu, üreticinin adı altındaki bir bayi te
 | Gönder | Nasıl | Ortağın aldığı | Uygun olduğu durum |
 | --- | --- | --- | --- |
 | Bir tasarım sistemi dosyası | [Lolly Design System Setup](/info/brand-studio.html#move-a-brand-between-devices) üstündeki çubukta **Export** | Token'ların, yazı tiplerin, logoların ve tema tercihin; geçebilecekleri bir tasarım sistemi olarak | Markanda çok sayıda parça yapan bir ortak |
-| Yeniden kullanılabilir bir araç | Design'da **Share with rules** ([Kurallarla bir tasarım paylaş](/info/create-a-tool.html)) | İzin verdiğin girdilerle bitmiş tek bir düzen; örneğin adları ve logoları. Dosya çözülmüş renkleri, yazı tiplerini ve görselleri taşır, bu yüzden kendi tasarım sistemleri sabit grafiğin stilini değiştiremez | Her ortağın doldurduğu ortak markalı bir broşür, rozet ya da afiş |
+| Yeniden kullanılabilir bir araç | Lolly Design'da **Share with rules** ([Kurallarla bir tasarım paylaş](/info/create-a-tool.html)) | İzin verdiğin girdilerle bitmiş tek bir düzen; örneğin adları ve logoları. Dosya çözülmüş renkleri, yazı tiplerini ve görselleri taşır, bu yüzden kendi tasarım sistemleri sabit grafiğin stilini değiştiremez | Her ortağın doldurduğu ortak markalı bir broşür, rozet ya da afiş |
 | Marka becerileri | **Skills** odası: **Download skill (.zip)** ya da **Copy as one file** | Yazılı standartların, onların ekibi ve ajanları için | İşin bir kısmını bir ajan yapıyorsa yukarıdakilerden biri |
+| Bir marka sayfası | Lolly Design System Setup'ta **Publish a brand page** ya da `lolly system publish`, senin barındırdığın bir klasör yazar ([Brand pages](/info/brand-page.html)) | Güncel logoların, renklerin, yazı tipin ve kuralların tek bir adreste, ortağın araçları için token'lar ve becerilerle. Logolar ve yazı tipi dosyaları hakları izin verdiğinde görünür ve sayfa dışarıda bıraktıklarını listeler | Dosya göndermediğin kişilerle paylaşım |
 | Tokens | Stüdyonun **More** menüsünde **Tokens (.json)** | Yazı tipi ya da logo içermeyen sade tasarım token'ları belgesi | Bir ortağın kendi tasarım araçları ya da derlemesi |
 
 ![Lolly Demo'da Design System Setup, Skills odasında açık: çubukta Export, Tokens (.json) üzerinde açık More menüsü ve seçili becerinin yanında Download skill (.zip) ile Copy as one file](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dskills&width=1200&height=900&dpi=192&waitMs=1800&waitSelector=.skills-reader-actions&drive=click%3A%5Bdata-ds-more%5D%3Bwait%3A500&format=svg&walker=1&dark=1&filename=partners-send)
@@ -108,17 +110,21 @@ Duvarı baskı için PNG, SVG, PDF ya da CMYK PDF olarak dışa aktar. Dışa ak
 
 Bir terminalde `lolly run logo-wall logos/*.png --output=wall.svg` duvarı bir görsel klasöründen oluşturur ve `logo` ile `tier` sütunlu bir CSV kademeli bir duvar oluşturur. SVG ve PNG için tarayıcı gerekmez ([Kademeli bir sponsor duvarı](/info/cli-rendering.html#a-sponsor-wall-with-tiers)).
 
+Bir sponsor bir [brand page](/info/brand-page.html) yayımladığında, `lolly run logo-wall --logos-from=<address or folder>` yüzey için güncel logosunu alır ve sayfasının kullanım hakkında söylediklerini basar. Bayrağı her sponsor için yinele.
+
 Logo Wall hiçbir sponsorun kurallarını bilmez. Tiers ve Presence boyutları birbirine göre ayarlar, bir sponsorun en küçük boyutuna göre değil; komşu logolar arasındaki boşluk payını da hiçbir şey denetlemez. Bitmiş duvarı, basılacağı ya da gösterileceği boyutta her sponsorun yönergelerine göre denetle.
 
 ## Lolly'nin henüz yapmadıkları
 
 - Bir parça tek bir tasarım sisteminde çizilir. Ortağın renkleri, yazı tipleri ve kuralları parçanın içinde bir tasarım sistemi değildir ve ortağın işareti bir görseldir.
-- Ortak kuralları tutulmaz ya da denetlenmez: boşluk payı, en küçük boyut ve tek renk ya da ters renk gibi izin verilen uygulamalar. Lolly yalnızca ana markanın kurallarını denetler.
+- Ortak kuralları tutulmaz ya da denetlenmez: boşluk payı, en küçük boyut ve tek renk ya da ters renk gibi izin verilen uygulamalar. Lolly yalnızca ana markanın marka kurallarını denetler.
 - Henüz ortak kiti yok: bir ortağın logolarını, renklerini ve kurallarını başka bir markanın çalışmasında kullanmak için tutacak hafif bir paket.
 - Lolly, "ile", "iş birliğiyle" ya da "tarafından" düzeni için iki işaretten lockup üretmez. Bitmiş bir lockup'ı custom mark olarak ekle.
 - Tüm cihaz için tek bir tasarım sistemi etkindir, bu yüzden iki marka yan yana açık olamaz.
 - Bir tasarım sistemi dosyası, markanın dışa aktarıldığı andaki bir kopyasıdır ve hiçbir şey kopyayı güncellemez. Uygulamadan dışa aktarılan bir tasarım sistemi dosyası marka becerilerini taşımaz, bu yüzden onları kendi dosyalarıyla gönder.
 - Bir dışa aktarma ana markanın tasarım sistemini ve renk varyantını kaydeder, ortağın markasını değil.
+- Bir marka sayfasından alınan logo, satırında bir görseldir ve satır sayfayı hatırlamaz. Hiçbir şey bir sayfayı kimin yayımladığını göstermez, bu yüzden adresi kendin denetle.
+- Barındırılan web uygulaması başka bir markanın sayfasını getiremez, çünkü Content Security Policy yalnızca adı verilmiş ana makinelere izin verir. Logoyu bir terminalde al ya da dosyayı kaydet ve dosyayı **Assets** içinde ekle.
 
 ## Bundan sonra nereye
 
@@ -126,4 +132,5 @@ Logo Wall hiçbir sponsorun kurallarını bilmez. Tiers ve Presence boyutları b
 - **[Kurallarla bir tasarım paylaş](/info/create-a-tool.html)**: sabit düzenli ve seçtiğin girdili yeniden kullanılabilir araçlar.
 - **[Marka becerileri](/info/brand-skills.html)**: becerilerin nasıl yazıldığı, okunduğu ve bir ajana verildiği.
 - **[Lolly Design System Setup](/info/brand-studio.html)**: logolar, custom mark'lar ve bir tasarım sistemini cihazlar arasında taşıma.
+- **[Marka sayfaları](/info/brand-page.html)**: markanı tek bir adreste yayımla ve bir ortağın logosunu onun sayfasından al.
 - **[Yaratıcı haklar ve atıflar](/info/creative-rights.html)**: Lolly'nin çizdiği eserler hakkında neleri kaydettiği.

@@ -72,7 +72,7 @@ Același instrument la lățime de telefon nu are nevoie de un al doilea layout:
 
 ![O audiogramă pe un ecran de 430px lățime: foaia de controale deasupra, grafica pătrată terminată dedesubt și pastila plutitoare de export](/t/url-shot?url=%2F%23%2Ftool%2Faudiogram%3Faudio%3Dlolly%2Floops%2Ffireplace-loop%26title%3DField%2520notes%26subtitle%3DEpisode%252012%26style%3Dwave&width=430&height=900&dpi=192&waitMs=3200&css=%23ag-wave%7Bdisplay%3Anone!important%7D.ag-ph%7Bdisplay%3Ablock!important%7D&walker=1&format=svg&rasterDpi=110&dark=1&filename=ov2-phone-audiogram)
 
-Aplicația web livrează și **Batch** (`#/batch`, `shells/web/src/pro/`), o grilă de tip foaie de calcul care randează multe rânduri deodată pe unul sau mai multe instrumente; [Batch și Multi-edit](/info/batch.html#make-many-versions-of-one-design) acoperă Batch. **Settings → Capabilities** cartografiază tot ce declară platforma că poate face.
+Aplicația web livrează și **Batch** (`#/batch`, `shells/web/src/pro/`), o grilă de tip foaie de calcul care randează multe rânduri deodată pe unul sau mai multe instrumente; [Batch și Lolly Multi-edit](/info/batch.html#make-many-versions-of-one-design) acoperă Batch. **Settings → Capabilities** cartografiază tot ce declară platforma că poate face.
 
 ![Batch la o instalare nouă: un rând gol care așteaptă un instrument, cu suprafața de tip foaie de calcul și butonul Render la locul lor înainte să sosească date](/t/url-shot?url=%2F%23%2Fbatch&width=1440&height=900&dpi=192&waitMs=3500&walker=1&format=svg&dark=1&filename=ov2-batch-grid)
 
@@ -141,7 +141,7 @@ O intrare declară un `type`: `text`, `longtext`, `number`, `boolean`, `color`, 
 
 - **`asset`**, cu `filter` și `allowUpload`, este puntea către sistemul de resurse. `allowUpload: false` limitează un slot la resursele bibliotecii, iar încărcările utilizatorilor au aceeași formă `AssetRef` ca biblioteca.
 - **`blocks`** este un grup repetitiv de câmpuri editat într-un panou lateral, folosit de Meeting Planner, Wayfinding, Diagrams și altele. Un clic pe un bloc randat dă focus rândului lui.
-- **`file`** ține fișierul propriu al utilizatorului în memorie pentru utilitare pe dispozitiv precum Strip Hidden Data și Compress, iar **`vector`** grupează un set fix de numere într-un singur control.
+- **`file`** ține fișierul propriu al utilizatorului în memorie pentru utilitare pe dispozitiv precum Lolly Strip Hidden Data și Compress, iar **`vector`** grupează un set fix de numere într-un singur control.
 
 ### 9. Șabloanele sunt fără logică
 
@@ -149,7 +149,7 @@ O intrare declară un `type`: `text`, `longtext`, `number`, `boolean`, `color`, 
 
 ### 10. Uneltele compun unelte
 
-Un instrument poate încorpora randarea altui instrument fără importuri între instrumente; motorul rezolvă compoziția. Un manifest poate declara `composes: [{ id, tool, inputs }]` și plasa copilul cu `{{asset <id>}}`, iar un URL portabil de încorporare (`https://lolly.tools/tool/<id>.svg?…`) randează copilul local, așa plasează Design un cod QR sau o diagramă live. Un copil SVG rămâne vector într-un părinte SVG sau PDF. Copiii sunt intermediari, niciodată filigranați sau ștampilați, iar un shell care nu poate randa unul lasă slotul gol în timp ce părintele randează în continuare. [Compoziție și suprapuneri de brand](/info/tool-composition.html) are detaliile.
+Un instrument poate încorpora randarea altui instrument fără importuri între instrumente; motorul rezolvă compoziția. Un manifest poate declara `composes: [{ id, tool, inputs }]` și plasa copilul cu `{{asset <id>}}`, iar un URL portabil de încorporare (`https://lolly.tools/tool/<id>.svg?…`) randează copilul local, așa plasează Lolly Design un cod QR sau o diagramă live. Un copil SVG rămâne vector într-un părinte SVG sau PDF. Copiii sunt intermediari, niciodată filigranați sau ștampilați, iar un shell care nu poate randa unul lasă slotul gol în timp ce părintele randează în continuare. [Compoziție și suprapuneri de brand](/info/tool-composition.html) are detaliile.
 
 ## Ce am ales să nu facem
 

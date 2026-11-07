@@ -729,6 +729,33 @@ html[data-a11y-motion="reduce"] .view-loading-mark .lolly-mark__spin-3 { animati
   color: hsl(var(--muted-foreground));
 }
 .tool-guide-actions { display: flex; justify-content: flex-end; }
+/* "Read the guide" (plan 354 D6): the docs pages and sections mapped to the tool, under
+   the steps or on their own. Each row is a link: the section's name, then its page. */
+.tool-guide-docs { display: flex; flex-direction: column; gap: var(--sp-2); }
+.tool-guide-docs-title {
+  margin: 0;
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  color: hsl(var(--muted-foreground));
+}
+.tool-guide-docs-list { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: var(--sp-1); }
+.tool-guide-doc {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--sp-3);
+  min-height: var(--ui-size-target);
+  padding: var(--sp-2) var(--sp-3);
+  border-radius: var(--radius);
+  color: hsl(var(--foreground));
+  text-decoration: none;
+  transition: background var(--dur-1);
+}
+.tool-guide-doc:hover { background: hsl(var(--accent)); }
+.tool-guide-doc:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 1px; }
+.tool-guide-doc-icon { flex: none; width: calc(16px * var(--a11y-fs)); height: calc(16px * var(--a11y-fs)); margin-top: 2px; color: hsl(var(--muted-foreground)); }
+.tool-guide-doc-text { display: flex; flex-direction: column; min-width: 0; }
+.tool-guide-doc-title { font-size: var(--fs-md); font-weight: 600; line-height: 1.4; }
+.tool-guide-doc-page { font-size: var(--fs-sm); line-height: 1.4; color: hsl(var(--muted-foreground)); }
 
 /* Device picker (plans/162) - a mountModal adapter: camera / mic radio lists. */
 .devpick-body { display: flex; flex-direction: column; gap: 14px; margin: 8px 0 4px; }

@@ -1,5 +1,7 @@
 # Design: die freie Arbeitsfläche
 
+<a id="design-the-free-canvas"></a>
+
 Design ist das Tool für Layouts, die keine Vorlage abdeckt: ein Poster von Grund auf, ein Deck aus Folien, ein Bewegungsstück mit Soundtrack. Statt eines Formulars aus Steuerelementen erhalten Sie eine Arbeitsfläche aus Boxen, die Sie ziehen, in der Größe ändern, drehen und in die Sie tippen. Es exportiert über denselben Render-Pfad wie jedes andere Tool, sodass die Datei, die Sie erhalten, dem entspricht, was Sie auf der Arbeitsfläche sehen.
 
 Diese Seite führt über die Arbeitsfläche von der ersten Box bis zu einem fertigen Deck: das Fenster, Boxen formen, eigene Formen zeichnen, 3D-Szenen und andere Tools platzieren, Zeit hinzufügen, das Ergebnis prüfen und das fertige Deck präsentieren. [Lolly nutzen](/info/using.html) behandelt, was Design mit jedem Tool teilt, etwa Speichern und Teilen.
@@ -27,7 +29,7 @@ Die Arbeitsfläche funktioniert wie der Montagetisch eines Designers rund um das
 
 Der **Navigator** listet jedes Artboard (überschrieben mit **Artboards**, in einem Deck **Slides**) als einklappbare Gruppe seiner **Layers** auf. Wählen Sie den Namen eines Artboards, um dorthin zu springen, klappen Sie es auf, um seine Ebenen auszuwählen oder neu zu ordnen, und gehen Sie mit den Pfeiltasten durch die Liste; Links kehrt zur Artboard-Überschrift zurück. **Pages** gruppiert Artboards in benannte Seiten, und die Wahl einer Seite ändert nur, welche Artboards der Editor zeigt.
 
-Der **Inspector** stellt die Text- oder Bildsteuerung des gewählten Objekts nach vorn. Options-Chips decken die schnellen Entscheidungen ab, und **Advanced** enthält die Details der Gestaltung. Auf einem Smartphone öffnet sich der Inspector als Blatt aus **More actions**; Escape oder Zurück schließt das Blatt und behält Ihre Auswahl.
+Der **Inspector** stellt die Text- oder Bildsteuerung des gewählten Objekts nach vorn. Options-Chips decken die schnellen Entscheidungen ab, und **Advanced** enthält die Details der Gestaltung. Auf einem Smartphone teilen sich der Inspector und die Ebenenliste ein Panel, das unter der oberen Leiste herunterfährt, dasselbe Panel, in dem jedes andere Tool seine Steuerelemente hat. **Inspect** und **Layer/Page** in der unteren Leiste öffnen das Panel auf ihrem Tab. Ziehen Sie den Griff am unteren Rand oder tippen Sie darauf, um das Panel zwischen einem Streifen mit den beiden Tabs, dem halben Bildschirm und fast dem ganzen Bildschirm zu wechseln. Bei halber Höhe zeigt die Arbeitsfläche unter dem Panel Ihre Auswahl. Escape klappt das Panel zurück auf den Streifen und behält Ihre Auswahl.
 
 ![Der Abschnitt Document des Inspektors: die Tabs Selection und Canvas, dann Dimensions und Style & look](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3Dfeature-tour&width=1440&height=900&dpi=192&waitMs=3500&cropSelector=.fc-insp&walker=1&format=svg&dark=1&filename=design-narration)
 
@@ -241,6 +243,8 @@ Der Pfeil neben **Present** öffnet **Present from this slide**, **Speaker view*
 | **Escape** | Eine Ebene abschälen: Übersicht zum Deck, Deck zum Editor |
 
 Eine kleine Steuerleiste blendet sich ein, wenn Sie den Zeiger bewegen, und verschwindet wieder, wenn Sie aufhören. Blockiert der Browser das Pop-up der Referentenansicht, öffnet sich die Referentenansicht als Panel über dem Deck. Notizen gehören zu jedem Artboard und erscheinen nie auf der Folie.
+
+Auf einem Touchscreen wischen Sie nach links für den nächsten Schritt oder die nächste Folie und nach rechts, um zurückzugehen. Ein Übergang **Slide** oder **Fade** folgt Ihrem Finger und endet, wenn Sie loslassen; ein Übergang **Cut**, **Morph** oder **Fly between artboards** läuft nach dem Loslassen vollständig ab, und ein kurzes, langsames Wischen ändert nichts. Webseiten-Boxen, Videosteuerungen, scrollende Boxen und ausgewählter Text behalten ihre eigenen Gesten, sodass ein Wischen nie auf einer davon beginnt, und vertikales Scrollen und Pinch-Zoom funktionieren wie gewohnt. Bei reduzierter Bewegung wechselt die Folie trotzdem, ohne Ihrem Finger zu folgen.
 
 - **Aufdeck-Schritte.** Klicken Sie mit der rechten Maustaste auf eine Box und wählen Sie **Reveal at step 1**, **2** oder **3** statt **Always visible**, und die Box wartet, bis Sie auf ihren Schritt vorrücken. Boxen mit derselben Nummer erscheinen gemeinsam.
 - **Kiosk.** Geben Sie einem Artboard eine **Length**, und das Deck hält so lange dort an und rückt dann hinter einem schmalen Fortschrittsbalken vor. Fügen Sie `kiosk` zum Link hinzu, und das Deck beginnt am Ende von vorn, für Beschilderung.

@@ -14,6 +14,8 @@ Lolly работи на устройството на всеки човек. К�
 
 ## Свържи ресурси и прегледай работа
 
+- [Use Lolly with your existing DAM](/info/use-with-dam.html) обяснява авторитета на източника и свързаното производство. [The SUSE Brandfolder account](/info/suse-brandfolder.html) записва опита от внедряването, а [Plan a DAM transition](/info/dam-transition.html) обхваща по избор по-късен преход.
+
 - [Design-system administration](/info/work-design-system-administration.html) обхваща описа на източниците, прегледаните промени и връщането назад.
 - [Catalog and content](/info/work-catalog.html) обхваща споделените ресурси и правилата за излагане. [Provider guides](/info/work-provider-guides.html) дава изискванията за настройка и проверка на всяка платформа източник.
 - [Approvals](/info/work-approvals.html) обхваща веригите за преглед и разделянето на задълженията. [Rendering and sharing](/info/work-sharing.html) обхваща връзките и сървърния изход.

@@ -10,26 +10,29 @@ Tu approuves chaque requête, et l'application de bureau fait les mêmes tâches
 
 ## Avant d'installer
 
-Tant que l'extension n'est pas installée, **URL Screenshot** s'ouvre quand même, donc tu peux composer une capture. Une note en haut des contrôles de l'outil dit ce qui manque.
+Tant que l'extension n'est pas installée, **Lolly URL Screenshot** s'ouvre quand même, donc tu peux composer une capture. Une note en haut des contrôles de l'outil dit ce qui manque.
 
 ![La note de l'outil URL Screenshot proposant l'extension, affichée quand la capture vers fichier n'a pas d'hôte pour s'exécuter](/t/url-shot?url=%2F%23%2Ftool%2Furl-shot&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&cropSelector=%23capture-hint-notice&dark=1&filename=exp-url-shot-notice)
 
 Chaque contrôle fonctionne en attendant : l'URL cible, la profondeur de défilement, le délai de stabilisation, les marges de rognage et la recoloration. Seule la capture elle-même a besoin de l'extension.
 
-![Les contrôles de URL Screenshot avec une URL cible, une profondeur de défilement, un délai de stabilisation et des marges de recadrage, tous utilisables avant même que l'extension existe](/t/url-shot?url=%2F%23%2Ftool%2Furl-shot%3Furl%3Dhttps%3A%2F%2Flolly.tools%26scrollDepth%3D0.3%26waitMs%3D1200&width=1440&height=2200&dpi=192&waitMs=2400&format=svg&css=%23tool-canvas%7Bdisplay%3Anone%7D&cropSelector=%23tool-inputs&walker=1&dark=1&filename=fq-url-shot-controls)
+![Les contrôles de Lolly URL Screenshot avec une URL cible, une profondeur de défilement, un délai de stabilisation et des marges de recadrage, tous utilisables avant même que l'extension existe](/t/url-shot?url=%2F%23%2Ftool%2Furl-shot%3Furl%3Dhttps%3A%2F%2Flolly.tools%26scrollDepth%3D0.3%26waitMs%3D1200&width=1440&height=2200&dpi=192&waitMs=2400&format=svg&css=%23tool-canvas%7Bdisplay%3Anone%7D&cropSelector=%23tool-inputs&walker=1&dark=1&filename=fq-url-shot-controls)
 
 ## Installation
 
 **Depuis le Chrome Web Store :** bientôt disponible. Une fois l'extension publiée, tu l'installes en un clic.
 
-**Charge-la toi-même (développeurs).** L'extension se trouve dans le dépôt à `shells/chrome-extension/`. Ce dossier est le build de production, qui ne fonctionne qu'avec Lolly sur `https://lolly.tools`.
+**Charge-la toi-même (développeurs).** Le code source de l'extension se trouve dans le dépôt à `shells/chrome-extension/`. L'étape de packaging construit le paquet de production à partir de ce dossier, qui ne fonctionne qu'avec Lolly sur `https://lolly.tools`.
 
-1. Ouvre `chrome://extensions`.
-2. Active **Developer mode** (en haut à droite).
-3. Clique sur **Load unpacked** et choisis le dossier `shells/chrome-extension/`.
-4. Recharge l'onglet Lolly. La détection a lieu au chargement de la page, donc l'invite « Get the extension » disparaît. **URL Screenshot** (sous Utilities) peut alors enregistrer des captures dans un fichier et devient disponible en mode Batch.
+1. Lance `pnpm run pack:chrome-extension`. Il construit le paquet dans `dist/chrome-extension/`.
+2. Ouvre `chrome://extensions`.
+3. Active **Developer mode** (en haut à droite).
+4. Clique sur **Load unpacked** et choisis le dossier `dist/chrome-extension/`.
+5. Recharge l'onglet Lolly. La détection a lieu au chargement de la page, donc l'invite « Get the extension » disparaît. **Lolly URL Screenshot** (sous Utilities) peut alors enregistrer des captures dans un fichier et devient disponible en mode Lolly Batch.
 
 Pour un serveur de développement local, lance `pnpm run pack:chrome-extension:dev` et charge `dist/chrome-extension-dev` à la place. Ce paquet accepte aussi `http://localhost:5173` et porte **Development** dans son nom.
+
+Charger directement le dossier `shells/chrome-extension/` fonctionne aussi, pour les captures PNG. Ce dossier n'a pas de parcours de page (l'étape de packaging en intègre un), donc un SVG qui en vient contient une capture d'écran plutôt que des formes.
 
 ## Ce qui se passe quand Lolly demande
 
@@ -40,15 +43,20 @@ Pour un serveur de développement local, lance `pnpm run pack:chrome-extension:d
 3. **Chrome demande une fois par site.** La première fois que tu approuves une requête pour un site, Chrome demande aussi si l'extension peut accéder à ce site. Chrome conserve cet accès une fois que tu l'autorises, mais chaque requête suivante exige quand même son propre **Approve once**.
 4. **La page est lue dans un onglet d'arrière-plan.** L'extension ouvre la page cible dans un onglet d'arrière-plan, la capture via le DevTools Protocol (le même `Page.captureScreenshot` que celui de l'application de bureau), ferme l'onglet et remet le résultat à l'onglet Lolly qui l'a demandé.
 
+Pour un **SVG**, l'extension parcourt la page au lieu de prendre une photo de l'écran. Un script livré avec l'extension lit la mise en page dans cet onglet d'arrière-plan et transforme la page en formes et en texte détouré, donc le fichier reste net à toute taille et chaque élément reste modifiable. Les images de la page arrivent telles qu'elles sont, et ce que la page dessine avec un canvas, une vidéo ou un effet pour lequel SVG n'a pas de forme est copié depuis une capture du même instant. Lolly compare le résultat à cette capture, et quand les deux diffèrent trop, le SVG contient la capture à la place.
+
+Pour détourer le texte dans la police propre de la page, l'extension remet à Lolly les fichiers de police que la page a chargés. Chrome ne garde pas les octets d'une police à un endroit où une extension peut les lire, donc l'extension demande à la page chaque police de nouveau. Ton navigateur répond en général depuis son cache, et la politique de sécurité propre de la page s'applique toujours à cette requête.
+
 Une approbation couvre une requête et expire au bout de 30 secondes. Une seule requête peut attendre ou s'exécuter à la fois, et une requête approuvée s'arrête au bout de 55 secondes. Si la page Lolly se ferme ou change, ou si la page cible passe sur un autre site, la requête est annulée.
 
-La capture s'exécute dans ton navigateur, sur ton réseau, donc `localhost` et les sites internes fonctionnent. La page se charge avec ta session de navigateur, donc une page où tu es connecté peut afficher des informations privées dans le résultat. La capture n'est pas envoyée : le seul trafic réseau est ton propre navigateur qui charge la page demandée.
+La capture s'exécute dans ton navigateur, sur ton réseau, donc `localhost` et les sites internes fonctionnent. La page se charge avec ta session de navigateur, donc une page où tu es connecté peut afficher des informations privées dans le résultat. La capture n'est pas envoyée : le seul trafic réseau est ton propre navigateur qui charge la page demandée, plus, pour un SVG, les fichiers de police de cette page une seconde fois.
 
 Pendant qu'une capture s'exécute, tu peux voir brièvement une bannière *"…started debugging this browser"* sur l'onglet temporaire. C'est le DevTools Protocol à l'œuvre, et la bannière disparaît quand la capture est terminée.
 
-## Lire un site pour Design System Setup
+<a id="reading-a-site-for-design-system-setup"></a>
+## Lire un site pour Lolly Design System Setup
 
-La source **Website** dans Design System Setup démarre un design system à partir d'un site que tu as déjà. Dans un navigateur Chromium, l'extension lit la page. Dans l'application de bureau, l'application récupère elle-même la page. Dans un navigateur sans extension, la tuile Website n'est pas proposée.
+La source **Website** dans Lolly Design System Setup démarre un design system à partir d'un site que tu as déjà. Dans un navigateur Chromium, l'extension lit la page. Dans l'application de bureau, l'application récupère elle-même la page. Dans un navigateur sans extension, la tuile Website n'est pas proposée.
 
 - **Une adresse, une page.** Après ton approbation, l'extension ouvre la page dans le même type d'onglet d'arrière-plan, lit le balisage rendu, le texte des feuilles de style et une poignée d'images d'icônes et de logos, puis ferme l'onglet. Elle ne suit pas les liens et n'explore pas.
 - **Les feuilles de style hébergées ailleurs** (un CDN ou un service de polices) sont aussi récupérées, car les couleurs et la typographie de la page s'y trouvent. Les requêtes inter-origines partent sans tes cookies ; les requêtes de même origine les utilisent, comme la page elle-même le ferait.
@@ -59,11 +67,11 @@ Coller une adresse ne fait que remplir le champ. Rien n'est lu tant que tu ne la
 
 ## Permissions
 
-Le `manifest.json` de l'extension déclare quatre permissions, plus un accès aux sites qu'elle demande un site à la fois. Il définit `minimum_chrome_version: 111`, et la version actuelle est 0.4.0.
+Le `manifest.json` de l'extension déclare quatre permissions, plus un accès aux sites qu'elle demande un site à la fois. Il définit `minimum_chrome_version: 111`, et la version actuelle est 0.5.0.
 
 | Permission | À quoi elle sert | Quand elle est accordée |
 |---|---|---|
-| `debugger` | Pilote l'onglet d'arrière-plan via le DevTools Protocol, qui prend la capture. | À l'installation |
+| `debugger` | Pilote l'onglet d'arrière-plan via le DevTools Protocol, qui prend la capture et, pour un SVG, exécute le parcours de la page. | À l'installation |
 | `tabs` | Ouvre l'onglet d'arrière-plan temporaire et le ferme ensuite, et vérifie que ni la page Lolly ni la page cible n'ont bougé depuis ton approbation. | À l'installation |
 | `scripting` | Exécute le lecteur d'une page dans le site que tu as nommé, pour la source Website. | À l'installation |
 | `storage` | Note l'identifiant d'un onglet qu'elle a ouvert, dans le stockage de session uniquement, pour que l'onglet se ferme quand même si le navigateur suspend l'extension en pleine lecture. Effacé au démarrage suivant ; rien sur toi n'est stocké. | À l'installation |

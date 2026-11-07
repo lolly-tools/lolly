@@ -11,7 +11,7 @@ _Son kontrol: 28 Eylül 2026._
 - [Lolly ve Figma](/info/compare-figma.html) - tasarım, canlı iş birliği ve yeniden kullanılabilir varlık üretimi.
 - [Lolly ve Penpot](/info/compare-penpot.html) - açık kaynaklı tasarım, paylaşılan token'lar ve kuruluş işi.
 - [Lolly ve marka portalları](/info/compare-brand-portals.html) - onaylı kitaplıklar, kilitli şablonlar, kimlik, inceleme ve raporlama.
-- [Lolly ve render API'leri](/info/compare-render-apis.html) - cihazında, CI'da veya bir Lolly Work sunucusunda otomatik üretim.
+- [Lolly ve render API'leri](/info/compare-render-apis.html) - cihazında, CI'da veya kendi sunucunda otomatik üretim ve Bannerbear veya Placid'den [nasıl geçilir](/info/work-move-from-render-api.html).
 - [Lolly ve çevrimiçi dosya dönüştürücüleri](/info/compare-converters.html) - kendi cihazında biçim dönüştürme.
 
 Özellik özellik karşılaştırma için [Lolly nasıl karşılaştırılır](/info/positioning.html) sayfasına bakın. Her karşılaştırma tarihlidir; artık iki üründen birine uymayan bir ifadenin düzeltilmesi gerekir.

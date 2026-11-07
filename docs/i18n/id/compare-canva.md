@@ -14,9 +14,9 @@ Keduanya memungkinkan seseorang memulai dari templat dan menghasilkan grafik jad
 
 ## Bagaimana Lolly mengerjakan pekerjaan yang tumpang tindih
 
-Alat Lolly mengodekan perubahan yang boleh dilakukan orang, dan alat yang sama berjalan di browser, aplikasi desktop, atau CLI. Tata letak yang dibuat di kanvas Design dapat menjadi [alat dengan aturan](/info/create-a-tool.html), dan satu alat dapat membuat banyak file dari tabel nilai.
+Alat Lolly mengodekan perubahan yang boleh dilakukan orang, dan alat yang sama berjalan di browser, aplikasi desktop, atau CLI. Tata letak yang dibuat di kanvas Lolly Design dapat menjadi [alat dengan aturan](/info/create-a-tool.html), dan satu alat dapat membuat banyak file dari tabel nilai.
 
-![Kanvas bebas Design, tempat warna, huruf, dan aset yang ditawarkan adalah milik design system sendiri](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&dark=1&filename=aud-open-canvas)
+![Kanvas bebas Lolly Design, tempat warna, huruf, dan aset yang ditawarkan adalah milik design system sendiri](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&dark=1&filename=aud-open-canvas)
 
 Lolly mandiri menjaga pembuatan dan ekspor di perangkat, tanpa akun, dan berfungsi offline setelah asetnya disimpan. Dua orang dapat menyunting secara langsung dalam [collab privat](/info/collaborate.html), dari perangkat ke perangkat. Content Credentials aktif secara default untuk ekspor yang didukung, dan Anda dapat mematikannya.
 

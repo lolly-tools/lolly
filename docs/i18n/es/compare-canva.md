@@ -14,9 +14,9 @@ Ambos permiten partir de una plantilla y producir un gráfico terminado sin ser 
 
 ## Cómo hace Lolly el trabajo que se solapa
 
-Una herramienta de Lolly codifica los cambios que puede hacer la gente, y la misma herramienta se ejecuta en el navegador, la aplicación de escritorio o la CLI. Un diseño hecho en el lienzo de Design puede convertirse en una [herramienta con reglas](/info/create-a-tool.html), y una herramienta puede crear muchos archivos a partir de una tabla de valores.
+Una herramienta de Lolly codifica los cambios que puede hacer la gente, y la misma herramienta se ejecuta en el navegador, la aplicación de escritorio o la CLI. Un diseño hecho en el lienzo de Lolly Design puede convertirse en una [herramienta con reglas](/info/create-a-tool.html), y una herramienta puede crear muchos archivos a partir de una tabla de valores.
 
-![El lienzo libre de Design, donde los colores, tipografías y recursos que se ofrecen son los del propio design system](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&dark=1&filename=aud-open-canvas)
+![El lienzo libre de Lolly Design, donde los colores, tipografías y recursos que se ofrecen son los del propio design system](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&dark=1&filename=aud-open-canvas)
 
 Lolly independiente sigue creando y exportando en el dispositivo, sin cuenta, y funciona sin conexión una vez guardados sus recursos. Dos personas pueden editar en vivo en una [collab privada](/info/collaborate.html), de dispositivo a dispositivo. Las Content Credentials están activadas por defecto en las exportaciones admitidas, y puedes desactivarlas.
 

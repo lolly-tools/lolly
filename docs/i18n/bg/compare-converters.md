@@ -12,7 +12,7 @@ _Последна проверка: 28 септември 2026 г._
 
 Конвертор в браузъра може да качи файл за обработка или да конвертира локално. Помощните програми за конвертиране на Lolly обработват файла локално, без акаунт, реклами или тракери, и не добавят воден знак на Lolly или Content Credentials. Щом ресурсите, от които конвертирането се нуждае, са запазени, те работят офлайн. Размерът на файла е ограничен от паметта на устройството и от конкретния четец на формата.
 
-![Изгледът Utilities: Strip Hidden Data, Compress PDF, Convert Image и другите задачи на устройството на едно място](/t/url-shot?url=%2F%23%2Fu&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%2C.brand-tips%7Bdisplay%3Anone!important%7D&tolerance=0.03&waitSelector=.utilities-view%5Bdata-shots-settled%5D&format=svg&walker=1&dark=1&filename=aud-utilities)
+![Изгледът Utilities: Lolly Strip Hidden Data, Compress PDF, Convert Image и другите задачи на устройството на едно място](/t/url-shot?url=%2F%23%2Fu&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%2C.brand-tips%7Bdisplay%3Anone!important%7D&tolerance=0.03&waitSelector=.utilities-view%5Bdata-shots-settled%5D&format=svg&walker=1&dark=1&filename=aud-utilities)
 
 [Every format Lolly can open and make](/info/formats.html) изброява поддържаните конвертирания и ограниченията им, включително HEIC към JPG, PNG към SVG и PDF към изображения.
 

@@ -1,8 +1,10 @@
-# Batch et Multi-edit
+# Lolly Batch et Lolly Multi-edit
+
+<a id="batch-and-multi-edit"></a>
 
 Deux besoins apparaissent quand tu crées souvent le même type de fichier. Parfois il te faut beaucoup de versions d'un même design : une carte en une dizaine de langues, ou chaque taille d'une bannière. Parfois tu as plusieurs designs enregistrés différents et tu veux qu'une seule modification les atteigne tous, comme une nouvelle date ou un nouveau titre.
 
-**Batch** s'occupe du premier besoin et **Multi-edit** du second. Les deux tournent sur ton appareil et exportent par le même chemin de rendu que les outils eux-mêmes.
+**Lolly Batch** s'occupe du premier besoin et **Lolly Multi-edit** du second. Les deux tournent sur ton appareil et exportent par le même chemin de rendu que les outils eux-mêmes.
 
 ::: cols
 ## Batch
@@ -10,9 +12,10 @@ Deux besoins apparaissent quand tu crées souvent le même type de fichier. Parf
 - Un modèle, beaucoup de lignes. Chaque ligne est un jeu d'entrées et produit un fichier.
 - Remplis les lignes en tapant, en collant depuis un tableur ou en important un CSV.
 - Pas de limite de lignes ; 50 s'affichent par page.
-- S'ouvre depuis **Batch** dans l'en-tête de Projects (`#/batch`).
+- S'ouvre depuis **Lolly Batch** dans l'en-tête de Projects (`#/batch`).
 
-## Multi-edit
+<a id="multi-edit"></a>
+## Lolly Multi-edit
 
 - De deux à huit designs enregistrés différents, côte à côte sous forme de cartes en direct.
 - Une seule barre latérale modifie les entrées qu'ils partagent, puis celles de chaque carte.
@@ -22,7 +25,7 @@ Deux besoins apparaissent quand tu crées souvent le même type de fichier. Parf
 
 ## Crée beaucoup de versions d'un design
 
-Ouvre **Projects** et appuie sur **Batch** dans son en-tête. La grille démarre avec une ligne : choisis-y un modèle, puis duplique la ligne ou colle des données depuis ton tableur. Ouvert depuis l'intérieur d'un dossier, Batch te ramène à ce dossier.
+Ouvre la vue **Projects** et appuie sur **Batch** dans son en-tête. La grille démarre avec une ligne : choisis-y un modèle, puis duplique la ligne ou colle des données depuis ton tableur. Ouvert depuis l'intérieur d'un dossier, Batch te ramène à ce dossier.
 
 ![Batch sur une grille neuve : le nom de fichier et les outils de ligne en haut, et la liste de modèles de la première ligne ouverte sur les outils que tu peux choisir](/t/url-shot?url=%2F%23%2Fbatch&width=1440&height=900&dpi=192&waitMs=3500&walker=1&format=svg&dark=1&filename=use-batch-toolbar)
 
@@ -46,9 +49,13 @@ Chaque ligne garde ses propres choix de thème : clair ou sombre, et un colourwa
 
 Un CSV porte les choix dans une colonne `_themes` après les colonnes de taille, avec le même JSON que le paramètre de lien `_themes`, par exemple `{"":"dark","colourway":"beach"}`. Une cellule vide, ou `{}`, signifie les valeurs par défaut du design system. La colonne n'est écrite que si certaines lignes ont des choix, donc un lot sans choix exporte le même CSV qu'avant. À l'import, une cellule qui ne contient pas des choix de thème valides est listée comme problème et sa ligne se rend avec les valeurs par défaut. La grille n'a pas encore de contrôle pour modifier les choix d'une ligne ; définis-les donc dans le CSV ou dans la session enregistrée.
 
+### Une langue pour chaque ligne
+
+Un outil qui imprime ses propres textes, comme Certificate, peut recevoir une colonne `language` avec un code de langue court comme `de`, `ja` ou `ar`. Chaque ligne imprime alors ses textes et sa date dans cette langue, et les lignes en arabe et en ourdou sont disposées de droite à gauche. Une cellule vide suit la langue de l'application. Une langue dont Lolly n'a pas encore la traduction s'imprime en anglais, date comprise, pour qu'un certificat ne soit jamais à moitié traduit.
+
 ### Batch, ou Render folder
 
-Batch produit de nombreuses variantes d'un seul modèle. Pour refaire le rendu de sessions que tu as déjà enregistrées, sélectionne-les dans Projects et utilise **Render selection**, ou **Render folder** pour un dossier entier ; [Find and recover your work](/info/find-your-work.html#find-something-you-saved) couvre les deux.
+Lolly Batch produit de nombreuses variantes d'un seul modèle. Pour refaire le rendu de sessions que tu as déjà enregistrées, sélectionne-les dans Projects et utilise **Render selection**, ou **Render folder** pour un dossier entier ; [Find and recover your work](/info/find-your-work.html#find-something-you-saved) couvre les deux.
 
 ## Modifier plusieurs designs enregistrés ensemble
 
@@ -69,7 +76,7 @@ Chaque carte se dessine avec les choix de thème de sa propre session, y compris
 - **Huit au maximum.** Chaque carte monte son propre runtime en direct, et huit est le nombre qui reste réactif. Un lien qui en demande plus, ou une session qui n'existe plus, le dit au lieu de se charger à moitié.
 - **Le lien est local.** Il nomme tes propres emplacements enregistrés, donc il rouvre cet ensemble sur cet appareil. Ce n'est pas un lien de partage.
 - **Pour plus grand,** choisis **Edit as sheet** dans la même barre de sélection. Elle ouvre toute la sélection sous forme de lignes dans la grille de Batch (`#/batch?s=…`), sans limite de taille ni règle de même outil. Les dossiers restent en dehors des deux : ouvre un dossier dans la grille avec **Sessions → Folders…**, ou fais-en le rendu avec **Render folder** dans Projects.
-- **La recherche n'atteint pas Multi-edit.** C'est la seule vue que la barre de recherche ne connaît pas.
+- **La recherche n'atteint pas Lolly Multi-edit.** C'est la seule vue que la barre de recherche ne connaît pas.
 
 ## Où aller ensuite
 

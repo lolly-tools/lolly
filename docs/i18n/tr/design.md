@@ -1,5 +1,7 @@
 # Design: serbest tuval
 
+<a id="design-the-free-canvas"></a>
+
 Design, hiçbir şablonun kapsamadığı düzenler için araçtır: sıfırdan bir poster, bir slayt sunumu, ses kaydı olan bir hareket parçası. Bir denetim formu yerine sürüklediğin, yeniden boyutlandırdığın, döndürdüğün ve içine yazdığın kutulardan oluşan bir tuval elde edersin. Diğer her araçla aynı render yolundan dışa aktarır; yani tuvalde gördüğün, aldığın dosyadır.
 
 Bu sayfa tuvali ilk kutudan bitmiş bir sunuma kadar gezdirir: pencere, kutuları şekillendirme, kendi şekillerini çizme, 3D sahneleri ve diğer araçları yerleştirme, zaman ekleme, sonucu denetleme ve bitmiş sunumu sunma. [Using Lolly](/info/using.html), Design'ın her araçla paylaştıklarını, örneğin kaydetme ve paylaşmayı kapsar.
@@ -27,7 +29,7 @@ Tuval, çalışma alanının etrafında bir tasarımcının masası gibi çalı�
 
 **Navigator**, her çalışma alanını (**Artboards** başlığı altında ya da bir sunumda **Slides**) **Layers** katmanlarının katlanan bir grubu olarak listeler. Oraya atlamak için bir çalışma alanının adını seç, katmanlarını seçmek veya yeniden sıralamak için genişlet ve listede gezinmek için ok tuşlarını kullan; Sol, çalışma alanı başlığına döner. **Pages**, çalışma alanlarını adlandırılmış sayfalar halinde gruplar ve bir sayfa seçmek yalnızca düzenleyicinin hangi çalışma alanlarını göstereceğini değiştirir.
 
-**Inspector**, seçili nesnenin metin veya görsel denetimlerini ilk sıraya koyar. Seçenek çipleri hızlı seçimleri kapsar ve **Advanced** stil ayrıntısını tutar. Bir telefonda Inspector, **More actions** içinden bir sayfa olarak açılır; Escape veya Back sayfayı kapatır ve seçimini korur.
+**Inspector**, seçili nesnenin metin veya görsel denetimlerini ilk sıraya koyar. Seçenek çipleri hızlı seçimleri kapsar ve **Advanced** stil ayrıntısını tutar. Bir telefonda Inspector ve katmanlar listesi, üst çubuğun altından aşağı açılan tek bir paneli paylaşır; bu, her aracın denetimlerini tuttuğu panelin aynısıdır. Alttaki çubukta **Inspect** ve **Layer/Page** paneli kendi sekmesinde açar. Panelin alt kenarındaki tutamacı sürükle ya da tutamağa dokun; panel, iki sekmeli bir şerit, ekranın yarısı ve ekranın neredeyse tamamı arasında geçiş yapar. Yarıdayken panelin altındaki tuval seçimini gösterir. Escape paneli şeride geri katlar ve seçimini korur.
 
 ![Inspector'ın Document bölümü: Selection ve Canvas sekmeleri, ardından Dimensions ve Style & look](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3Dfeature-tour&width=1440&height=900&dpi=192&waitMs=3500&cropSelector=.fc-insp&walker=1&format=svg&dark=1&filename=design-narration)
 
@@ -241,6 +243,8 @@ Baskı denetimleri (taşma payı, çözünürlük, mürekkep kapsama ve plaka sa
 | **Escape** | Bir katman soy: genel bakıştan sunuma, sunumdan düzenleyiciye |
 
 İşaretçiyi hareket ettirdiğinde küçük bir denetim çubuğu belirir ve durdurduğunda yeniden gizlenir. Tarayıcı konuşmacı açılır penceresini engellerse konuşmacı görünümü sunumun üzerinde bir panel olarak açılır. Notlar her çalışma alanına aittir ve slaytta asla görünmez.
+
+Dokunmatik ekranda sonraki adım veya slayt için sola, geri dönmek için sağa kaydır. **Slide** veya **Fade** geçişi parmağını izler ve bıraktığında tamamlanır; **Cut**, **Morph** veya **Fly between artboards** geçişi bıraktığında bütünüyle oynar ve kısa, yavaş bir kaydırma hiçbir şeyi değiştirmez. Web sayfası kutuları, video denetimleri, kayan kutular ve seçili metin kendi hareketlerini korur; bu yüzden kaydırma hiçbirinin üzerinde başlamaz ve dikey kaydırma ile çimdikleyerek yakınlaştırma her zamanki gibi çalışır. Azaltılmış harekette slayt yine değişir, ama parmağını izlemez.
 
 - **Reveal steps.** Bir kutuya sağ tıkla ve **Always visible** yerine **Reveal at step 1**, **2** veya **3** seç; kutu sen kendi adımına ilerleyene kadar bekler. Aynı numarayı paylaşan kutular birlikte gelir.
 - **Kiosk.** Bir çalışma alanına **Length** ver; sunum orada o süre kadar bekler, sonra ince bir ilerleme çubuğunun ardında ilerler. Bağlantıya `kiosk` ekle; sunum, tabela için sonunda başa sarar.

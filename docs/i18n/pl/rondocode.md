@@ -1,4 +1,6 @@
-# Piosenki Rondocode
+# Piosenki Lolly Rondocode
+
+<a id="rondocode-songs"></a>
 
 Piosenka rondocode to muzyka napisana jako kod: syntezatory, wzorce i miks, odtwarzane w trakcie pisania. Lolly może odtworzyć piosenkę pod wideo, a utility **Rondocode** pozwala napisać ją i wyeksportować jako audio. Oba zapisują piosenkę w Content Credentials pliku, więc muzyka mówi, skąd pochodzi.
 
@@ -12,7 +14,7 @@ Z terminala `lolly mix` przyjmuje piosenkę jako całą ścieżkę dźwiękową;
 
 ## Napisz i wyeksportuj piosenkę
 
-Otwórz **Rondocode** z **Utilities**, aby napisać piosenkę w żywym edytorze rondocode i słyszeć ją w trakcie pisania. Wyeksportuj ją jako **WAV**, **MP3**, **M4A**, **Opus** lub **FLAC**, jako ZIP ze ścieżkami, jako **MIDI** albo jako nagranie tego, co gra. Z terminala `lolly rondocode --export=mid` zapisuje ten sam plik MIDI. **Export length** ustawia, ile sekund trwa eksport audio. Sam plik piosenki (`.rondo.json`) to Twój kod tak, jak go napisałeś, i nie niesie niczego dodanego.
+Otwórz narzędzie **Rondocode** z **Utilities**, aby napisać piosenkę w żywym edytorze rondocode i słyszeć ją w trakcie pisania. Wyeksportuj ją jako **WAV**, **MP3**, **M4A**, **Opus** lub **FLAC**, jako ZIP ze ścieżkami, jako **MIDI** albo jako nagranie tego, co gra. Z terminala `lolly rondocode --export=mid` zapisuje ten sam plik MIDI. **Export length** ustawia, ile sekund trwa eksport audio. Sam plik piosenki (`.rondo.json`) to Twój kod tak, jak go napisałeś, i nie niesie niczego dodanego.
 
 Piosenka może śpiewać swoje słowa przez `sing()`. Śpiew powstaje na Twoim urządzeniu przez pobrane modele głosu, a plik zawierający syntetyczny śpiew zawsze deklaruje ten śpiew jako wygenerowany przez AI (zobacz [AI features](/info/ai-features.html)).
 
@@ -24,11 +26,11 @@ Eksport wideo lub audio, który odtwarza piosenkę rondocode, zapisuje każdą p
 - SHA-256 jej pliku `.rondo.json`;
 - jak została wyrenderowana: w piaskownicy Lolly, klasa wykonania `vm`, z wersją i ziarnem renderera oraz każdą częścią, której render nie potrafił odtworzyć.
 
-Muzyka obliczona z kodu piosenki jest oznaczona jako medium algorytmiczne, więc Verify nie oznacza jej jako AI. Przed eksportem linia pod **Download** wymienia piosenki, które zapisze poświadczenie; po eksporcie ta sama linia zgłasza, co znalazł odczyt dostarczonego pliku. Odznacz **C2PA Credentials**, aby pominąć zapis. Obraz nieruchomy nie zapisuje piosenki, ponieważ nie niesie dźwięku. `lolly mix` i [serwer MCP](/info/mcp.html) zapisują ten sam zapis.
+Muzyka obliczona z kodu piosenki jest oznaczona jako medium algorytmiczne, więc Lolly Verify nie oznacza jej jako AI. Przed eksportem linia pod **Download** wymienia piosenki, które zapisze poświadczenie; po eksporcie ta sama linia zgłasza, co znalazł odczyt dostarczonego pliku. Odznacz **C2PA Credentials**, aby pominąć zapis. Obraz nieruchomy nie zapisuje piosenki, ponieważ nie niesie dźwięku. `lolly mix` i [serwer MCP](/info/mcp.html) zapisują ten sam zapis.
 
 ## Pliki z utility Rondocode
 
-Większość utility na urządzeniu nie zapisuje poświadczenia, ponieważ przekształcają plik, który już posiadasz. Rondocode tworzy nowe audio, więc każdy zapisany przez niego plik audio niesie Content Credentials, które zapisują piosenkę jako źródło: jej nazwę, SHA-256 jej pliku `.rondo.json` i miejsce, w którym działał jej kod. Obejmuje to WAV, MP3, M4A, Opus, FLAC, każdą ścieżkę w ZIP ze ścieżkami i nagranie tego, co gra.
+Większość utility na urządzeniu nie zapisuje poświadczenia, ponieważ przekształcają plik, który już posiadasz. Lolly Rondocode tworzy nowe audio, więc każdy zapisany przez niego plik audio niesie Content Credentials, które zapisują piosenkę jako źródło: jej nazwę, SHA-256 jej pliku `.rondo.json` i miejsce, w którym działał jej kod. Obejmuje to WAV, MP3, M4A, Opus, FLAC, każdą ścieżkę w ZIP ze ścieżkami i nagranie tego, co gra.
 
 - Własne rendery edytora działają w jego prywatnej ramce (klasa wykonania `frame`) i zapisują wersję edytora.
 - Render wykonany przez CLI lub link udostępniania działa w klasie `vm` i zapisuje wersję renderera i ziarno.

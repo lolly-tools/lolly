@@ -14,9 +14,9 @@ Canva बड़ी टेम्पलेट और स्टॉक लाइब�
 
 ## Lolly ओवरलैप वाला काम कैसे करता है
 
-Lolly टूल उन बदलावों को एन्कोड करता है जो लोग कर सकते हैं, और वही टूल ब्राउज़र, डेस्कटॉप ऐप या CLI में चलता है। Design कैनवास पर बना लेआउट [नियमों वाला टूल](/info/create-a-tool.html) बन सकता है, और एक टूल मानों की तालिका से कई फ़ाइलें बना सकता है।
+Lolly टूल उन बदलावों को एन्कोड करता है जो लोग कर सकते हैं, और वही टूल ब्राउज़र, डेस्कटॉप ऐप या CLI में चलता है। Lolly Design कैनवास पर बना लेआउट [नियमों वाला टूल](/info/create-a-tool.html) बन सकता है, और एक टूल मानों की तालिका से कई फ़ाइलें बना सकता है।
 
-![Design का मुक्त कैनवास, जहाँ दिए गए रंग, फ़ेस और एसेट design system के अपने हैं](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&dark=1&filename=aud-open-canvas)
+![Lolly Design का मुक्त कैनवास, जहाँ दिए गए रंग, फ़ेस और एसेट design system के अपने हैं](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&dark=1&filename=aud-open-canvas)
 
 स्टैंडअलोन Lolly बनाना और एक्सपोर्ट करना डिवाइस पर रखता है, बिना खाते के, और एसेट सहेजे जाने के बाद ऑफ़लाइन काम करता है। दो लोग [निजी collab](/info/collaborate.html) में डिवाइस से डिवाइस लाइव संपादित कर सकते हैं। समर्थित एक्सपोर्ट के लिए Content Credentials डिफ़ॉल्ट रूप से चालू हैं, और आप उन्हें बंद कर सकते हैं।
 

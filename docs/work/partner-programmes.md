@@ -65,7 +65,10 @@ A programme can hold companies: the partner organisations in it, such as one res
 distributor. Add one under **Companies** on the programme's page. Each company has a group,
 `company-<id>`, shown by its name in the console, so an input rule, a collection or a grant can
 point at one company the way it points at a whole programme. A person can be added to a company when they
-are added to the programme.
+are added to the programme. A collection, an instance asset or a connected provider shared with a
+company's group reaches that company's people and nobody else's. A company's input rule overrides
+its programme's rule, which is how one company gets an exception
+([Input rules for partners](#input-rules-for-partners)).
 
 ## Add people
 
@@ -183,10 +186,29 @@ same code the app does, so what you see is what they get.
 
 ## A person in two programmes
 
-Someone in two programmes gets the tools and assets of both. Where both programmes have an input
-rule for the same input, the stricter rule wins: hidden, then locked, then a restricted choice,
-then editable. Two restricted choices keep only the values both allow. This matches grants, where
-a deny wins over an allow. Rules for your own groups keep the order you wrote them in.
+Someone in two programmes gets the tools and assets of both.
+
+## Input rules for partners
+
+For someone in a programme, the order you wrote a tool's input rules in never decides. Three rules
+apply instead:
+
+- **A company's rule overrides its programme's rule.** The company is the more specific scope. If
+  Resellers locks the price and Northwind IT, a company in Resellers, has a rule that leaves the
+  price editable, Northwind's people can edit the price and every other reseller cannot, whichever
+  rule comes first.
+- **Across programmes, the stricter result wins**: hidden, then locked, then a restricted choice,
+  then editable. Two restricted choices keep only the values both allow. This matches grants, where
+  a deny wins over an allow. Someone in two programmes, each with a company, gets each programme
+  worked out with its company first, then the stricter of the two.
+- **A programme or company rule beats a rule for everyone** (`*`) or for one of your own groups.
+
+Rules for your own people keep the order you wrote them in. When two partner rules are equally
+strict, the one written first counts.
+
+**Preview** shows, for each input, which rule decided and why, for example "Decided by the rule
+for Northwind IT, a company in Resellers, which overrides the rule for Resellers". Only admins see
+this. A partner sees the input locked, limited or editable, with no line about the rule.
 
 ## When someone leaves
 

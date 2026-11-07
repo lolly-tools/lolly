@@ -14,9 +14,9 @@ Obojí umožňuje někomu začít od šablony a vytvořit hotovou grafiku, aniž
 
 ## Jak Lolly dělá překrývající se úlohu
 
-Nástroj Lolly kóduje změny, které lidé smějí dělat, a tentýž nástroj běží v prohlížeči, v desktopové aplikaci nebo v CLI. Rozvržení vytvořené na plátně Design se může stát [nástrojem s pravidly](/info/create-a-tool.html) a jeden nástroj může vytvořit mnoho souborů z tabulky hodnot.
+Nástroj Lolly kóduje změny, které lidé smějí dělat, a tentýž nástroj běží v prohlížeči, v desktopové aplikaci nebo v CLI. Rozvržení vytvořené na plátně Lolly Design se může stát [nástrojem s pravidly](/info/create-a-tool.html) a jeden nástroj může vytvořit mnoho souborů z tabulky hodnot.
 
-![Volné plátno Design, kde jsou nabízené barvy, písma a assety vlastní designovému systému](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&dark=1&filename=aud-open-canvas)
+![Volné plátno Lolly Design, kde jsou nabízené barvy, písma a assety vlastní designovému systému](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&dark=1&filename=aud-open-canvas)
 
 Samostatná Lolly drží tvorbu a export na zařízení, bez účtu, a funguje offline, jakmile jsou její assety uloženy. Dva lidé mohou upravovat živě v [soukromé kolaboraci](/info/collaborate.html), zařízení se zařízením. Content Credentials jsou u podporovaných exportů ve výchozím stavu zapnuté a můžeš je vypnout.
 

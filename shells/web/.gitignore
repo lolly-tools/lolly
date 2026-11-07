@@ -75,6 +75,9 @@ public/info/editions/
 public/info/spec/**/index.json
 public/info/search-index.json
 public/info/*/search-index.json
+# The tool to docs list (plan 354 D6), derived from docs/manifest.json each build.
+public/info/tool-guides.json
+public/info/*/tool-guides.json
 public/info/audio-index.json
 public/info/docs-player*
 public/info/manifest.json

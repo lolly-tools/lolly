@@ -72,7 +72,7 @@ shells/tui/         src/main.tsx (the full-screen app), src/bridge.ts
 
 ![430px-চওড়া পর্দায় একটি অডিওগ্রাম: ওপরে কন্ট্রোল শিট, নিচে সম্পন্ন চৌকো শিল্পকর্ম এবং ভাসমান এক্সপোর্ট পিল](/t/url-shot?url=%2F%23%2Ftool%2Faudiogram%3Faudio%3Dlolly%2Floops%2Ffireplace-loop%26title%3DField%2520notes%26subtitle%3DEpisode%252012%26style%3Dwave&width=430&height=900&dpi=192&waitMs=3200&css=%23ag-wave%7Bdisplay%3Anone!important%7D.ag-ph%7Bdisplay%3Ablock!important%7D&walker=1&format=svg&rasterDpi=110&dark=1&filename=ov2-phone-audiogram)
 
-ওয়েব অ্যাপে **Batch**ও আছে (`#/batch`, `shells/web/src/pro/`), একটি স্প্রেডশিট-ধাঁচের গ্রিড যা এক বা অনেক টুল জুড়ে একসঙ্গে অনেক সারি রেন্ডার করে; Batch [Batch and Multi-edit](/info/batch.html#make-many-versions-of-one-design)-এ আছে। **Settings → Capabilities** প্ল্যাটফর্ম যা যা করতে পারে বলে ঘোষণা করে তার মানচিত্র দেয়।
+ওয়েব অ্যাপে **Batch**ও আছে (`#/batch`, `shells/web/src/pro/`), একটি স্প্রেডশিট-ধাঁচের গ্রিড যা এক বা অনেক টুল জুড়ে একসঙ্গে অনেক সারি রেন্ডার করে; Batch [Batch ও Lolly Multi-edit](/info/batch.html#make-many-versions-of-one-design)-এ আছে। **Settings → Capabilities** প্ল্যাটফর্ম যা যা করতে পারে বলে ঘোষণা করে তার মানচিত্র দেয়।
 
 ![নতুন ইনস্টলে Batch: একটি ফাঁকা সারি টুলের অপেক্ষায়, স্প্রেডশিট সারফেস ও তার Render বোতাম কোনো ডেটা আসার আগেই জায়গায়](/t/url-shot?url=%2F%23%2Fbatch&width=1440&height=900&dpi=192&waitMs=3500&walker=1&format=svg&dark=1&filename=ov2-batch-grid)
 
@@ -141,7 +141,7 @@ CLI তার আর্গুমেন্ট থেকে একই URL অব�
 
 - **`asset`**, `filter` ও `allowUpload` সহ, অ্যাসেট সিস্টেমের সেতু। `allowUpload: false` একটি স্লটকে লাইব্রেরি অ্যাসেটে সীমিত করে, এবং ব্যবহারকারীর আপলোড লাইব্রেরির `AssetRef` আকার ভাগ করে।
 - **`blocks`** একটি পুনরাবৃত্ত ফিল্ড গ্রুপ যা পাশের প্যানেলে সম্পাদিত হয়, Meeting Planner, Wayfinding, Diagrams ও অন্যরা ব্যবহার করে। রেন্ডার করা ব্লকে ক্লিক করলে তার সারি ফোকাস পায়।
-- **`file`** Strip Hidden Data ও Compress-এর মতো ডিভাইসে চলা ইউটিলিটির জন্য ব্যবহারকারীর নিজের ফাইল মেমরিতে ধরে, এবং **`vector`** সংখ্যার একটি নির্দিষ্ট সেটকে একটি কন্ট্রোলে গ্রুপ করে।
+- **`file`** Lolly Strip Hidden Data ও Compress-এর মতো ডিভাইসে চলা ইউটিলিটির জন্য ব্যবহারকারীর নিজের ফাইল মেমরিতে ধরে, এবং **`vector`** সংখ্যার একটি নির্দিষ্ট সেটকে একটি কন্ট্রোলে গ্রুপ করে।
 
 ### 9. টেমপ্লেট যুক্তিহীন
 
@@ -149,7 +149,7 @@ CLI তার আর্গুমেন্ট থেকে একই URL অব�
 
 ### ১০. টুল টুল কম্পোজ করে
 
-একটি টুল টুল-থেকে-টুল ইমপোর্ট ছাড়াই অন্য টুলের রেন্ডার এমবেড করতে পারে; ইঞ্জিন কম্পোজিশন সমাধান করে। একটি ম্যানিফেস্ট `composes: [{ id, tool, inputs }]` ঘোষণা করতে এবং `{{asset <id>}}` দিয়ে সন্তানকে বসাতে পারে, আর একটি বহনযোগ্য এমবেড URL (`https://lolly.tools/tool/<id>.svg?…`) সন্তানকে স্থানীয়ভাবে রেন্ডার করে, যেভাবে Design একটি লাইভ QR কোড বা চার্ট বসায়। একটি SVG সন্তান SVG বা PDF অভিভাবকে ভেক্টর থাকে। সন্তানরা মধ্যবর্তী, কখনও ওয়াটারমার্ক বা স্ট্যাম্প করা হয় না, এবং যে শেল একটি রেন্ডার করতে পারে না তা স্লট ফাঁকা রাখে আর অভিভাবক তবু রেন্ডার হয়। বিস্তারিত [Composition and brand overlays](/info/tool-composition.html)-এ।
+একটি টুল অন্য টুলের রেন্ডার এম্বেড করতে পারে, টুল থেকে টুলে কোনো ইমপোর্ট ছাড়াই; কম্পোজিশন ইঞ্জিন মিটিয়ে নেয়। ম্যানিফেস্ট `composes: [{ id, tool, inputs }]` ঘোষণা করতে পারে এবং `{{asset <id>}}` দিয়ে চাইল্ড বসাতে পারে, আর একটি বহনযোগ্য এম্বেড URL (`https://lolly.tools/tool/<id>.svg?…`) চাইল্ডকে লোকালি রেন্ডার করে, এভাবেই Lolly Design একটি লাইভ QR কোড বা চার্ট বসায়। SVG বা PDF প্যারেন্টে SVG চাইল্ড ভেক্টরই থাকে। চাইল্ড হলো মধ্যবর্তী ফল, কখনও ওয়াটারমার্ক বা স্ট্যাম্প পায় না, আর যে শেল তা রেন্ডার করতে পারে না সেখানে স্লট ফাঁকা থাকে, প্যারেন্ট তবু রেন্ডার হয়। [কম্পোজিশন ও ব্র্যান্ড ওভারলে](/info/tool-composition.html)-এ বিস্তারিত আছে।
 
 ## আমরা যা না করা বেছে নিয়েছি
 

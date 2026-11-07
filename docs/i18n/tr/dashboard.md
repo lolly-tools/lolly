@@ -1,4 +1,4 @@
-# Settings
+# Ayarlar
 
 Settings, Lolly'nin senin için nasıl çalışacağını değiştirdiğin yerdir: ayrıntıların, kullandığın tasarım sistemi, erişilebilirlik, bu cihazda nelerin saklandığı ve nelerin çevrimdışı hazır olduğu. Ana ekranın altındaki çubukta **Settings** ile ya da avatar menüsünden aç. **Preferences** sekmesinde açılır; yanında dört sekme daha vardır.
 
@@ -36,7 +36,7 @@ Tema kartları canlı önizlemelerdir ve birini seçtiğin anda yalnızca bu cih
 
 ![Her biri kendi tipografisini ve rengini önizleyen üç tema kartı, etkin olan işaretlenmiş](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dappearance-section&width=1440&height=1400&dpi=192&waitMs=1600&walker=1&format=svg&cropSelector=.profile-card--appearance&dark=1&filename=pd-theme-picker)
 
-### Accessibility
+### Erişilebilirlik
 
 **Settings → Preferences → Accessibility**, çalışmanın etrafındaki uygulama için dört rahatlık ayarı tutar. Her biri sen açana kadar kapalıdır ve hiçbiri bir araç tuvalinin veya bir dışa aktarmanın içine ulaşmaz; bu yüzden daha sakin bir uygulama, gönderdiğin dosyanın tek pikselini oynatmaz.
 
@@ -51,7 +51,7 @@ Aynı kart, yaptıklarına karşılık yumuşak yardımcı seslerden oluşan bir
 
 Arayüz klavyeyle gezilebilir, özel denetimler ekran okuyucular için etiket taşır ve her aracın canlı önizlemesi, ne gösterdiğini tanımlayan tek bir etiketli görsel olarak sunulur.
 
-### Storage
+### Depolama
 
 Depolama göstergesi, bu kurulumun tuttuğu her baytı kategori kategori, tarayıcının bildirdiğine göre hesaplar.
 
@@ -64,7 +64,7 @@ Göstergenin altında:
 - **Remove automatic checkpoints older than 30 days** History alanını boşaltır ve kayıtlı ile adlandırılmış sürümleri korur.
 - **Clear all my data**, onaylamak için bir sözcük yazdıktan sonra Lolly'nin bu tarayıcıda tuttuğu her şeyi kaldırır. [If you clear your browser data](/info/find-your-work.html#if-you-clear-your-browser-data) nelerin gittiğini listeler.
 
-### Available offline
+### Çevrimdışı kullanılabilir
 
 Lolly, ziyaret ettikçe ekranları önbelleğe alır; bu yalnızca zaten gittiğin yerleri kapsar. **Available offline**, geldiğini gördüğün yolculuk içindir: ihtiyacın olan parçaları indir ve tek bir ilerleme çubuğunu izle; aldığın her şey bağlantı olmadan çalışmaya devam eder.
 
@@ -92,7 +92,7 @@ En üstteki **Download everything** uygulamayı, seçtiğin katalog kapsamını,
 - <!--i:neurobeat--> **Sound** - arayüz sesleri ve Neurospicy odak döngüleri; bu sekmede bir şey yazan tek anahtar.
 - <!--i:database--> **Storage** - [Preferences](#storage) içindeki göstergenin salt okunur görünümü; verini temizlediğin veya taşıdığın yer orasıdır.
 
-## Design system
+## Tasarım sistemi
 
 Etkin tasarım sistemi, okunacak biçimde sunulur. Bu tarayıcı iki veya daha fazla tasarım sistemi tuttuğunda en üstteki küçük kapaklardan oluşan bir şerit onları listeler: birini etkin yapmak için seç ve ardından gelen bildirimdeki **Undo** öncekini geri getirir.
 

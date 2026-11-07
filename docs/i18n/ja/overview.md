@@ -72,7 +72,7 @@ shells/tui/         src/main.tsx (the full-screen app), src/bridge.ts
 
 ![幅430pxの画面のオーディオグラム: 上にコントロールのシート、下に完成した正方形のアートワーク、そしてフローティングの書き出しピル](/t/url-shot?url=%2F%23%2Ftool%2Faudiogram%3Faudio%3Dlolly%2Floops%2Ffireplace-loop%26title%3DField%2520notes%26subtitle%3DEpisode%252012%26style%3Dwave&width=430&height=900&dpi=192&waitMs=3200&css=%23ag-wave%7Bdisplay%3Anone!important%7D.ag-ph%7Bdisplay%3Ablock!important%7D&walker=1&format=svg&rasterDpi=110&dark=1&filename=ov2-phone-audiogram)
 
-Webアプリには、**Batch**(`#/batch`、`shells/web/src/pro/`)も同梱されています。1つまたは複数のツールにわたって多数の行を一度にレンダリングする、スプレッドシート形式のグリッドで、Batchについては[BatchとMulti-edit](/info/batch.html#make-many-versions-of-one-design)で扱っています。**Settings → Capabilities**には、プラットフォームができると宣言しているすべてのことの地図があります。
+Webアプリには、**Batch**(`#/batch`、`shells/web/src/pro/`)も同梱されています。1つまたは複数のツールにわたって多数の行を一度にレンダリングする、スプレッドシート形式のグリッドで、Batchについては[BatchとLolly Multi-edit](/info/batch.html#make-many-versions-of-one-design)で扱っています。**Settings → Capabilities**には、プラットフォームができると宣言しているすべてのことの地図があります。
 
 ![新規インストール時のBatch: ツールを待つ空の行が1つあり、データが届く前にスプレッドシート画面とRenderボタンが用意されている](/t/url-shot?url=%2F%23%2Fbatch&width=1440&height=900&dpi=192&waitMs=3500&walker=1&format=svg&dark=1&filename=ov2-batch-grid)
 
@@ -141,7 +141,7 @@ WebアプリはIndexedDB、Tauriはファイルシステム、CLIはメモリを
 
 - **`asset`**は、`filter`と`allowUpload`を持ち、アセットシステムへの橋渡しです。`allowUpload: false`はスロットをライブラリのアセットに限定し、ユーザーのアップロードはライブラリの`AssetRef`と同じ形を共有します。
 - **`blocks`**は、サイドパネルで編集する繰り返しのフィールドグループで、Meeting Planner、Wayfinding、Diagramsなどで使われます。描画されたブロックをクリックすると、その行にフォーカスが移ります。
-- **`file`**は、Strip Hidden DataやCompressなどのデバイス上のユーティリティのために、ユーザー自身のファイルをメモリに保持します。**`vector`**は、固定個数の数値を1つのコントロールにまとめます。
+- **`file`**は、Lolly Strip Hidden DataやCompressなどのデバイス上のユーティリティのために、ユーザー自身のファイルをメモリに保持します。**`vector`**は、固定個数の数値を1つのコントロールにまとめます。
 
 ### 9. テンプレートにロジックはない
 
@@ -149,7 +149,7 @@ WebアプリはIndexedDB、Tauriはファイルシステム、CLIはメモリを
 
 ### 10. ツールはツールを合成する
 
-ツールは、ツール同士のインポートなしに、他のツールのレンダリングを埋め込めます。合成はエンジンが解決します。マニフェストは`composes: [{ id, tool, inputs }]`を宣言して子を`{{asset <id>}}`で配置でき、ポータブルな埋め込みURL(`https://lolly.tools/tool/<id>.svg?…`)が子をローカルでレンダリングします。DesignがライブのQRコードやグラフを配置するのは、この仕組みです。SVGの子は、SVGまたはPDFの親の中でもベクターのままです。子は中間生成物であり、透かしも署名も付かず、子をレンダリングできないシェルはそのスロットを空にしますが、親は引き続きレンダリングされます。詳細は[合成とブランドオーバーレイ](/info/tool-composition.html)にあります。
+ツールは、ツール同士のインポートなしに、他のツールのレンダリングを埋め込めます。合成はエンジンが解決します。マニフェストは`composes: [{ id, tool, inputs }]`を宣言して子を`{{asset <id>}}`で配置でき、ポータブルな埋め込みURL(`https://lolly.tools/tool/<id>.svg?…`)が子をローカルでレンダリングします。Lolly DesignがライブのQRコードやグラフを配置するのは、この仕組みです。SVGの子は、SVGまたはPDFの親の中でもベクターのままです。子は中間生成物であり、透かしも署名も付かず、子をレンダリングできないシェルはそのスロットを空にしますが、親は引き続きレンダリングされます。詳細は[合成とブランドオーバーレイ](/info/tool-composition.html)にあります。
 
 ## あえてやらないこと
 

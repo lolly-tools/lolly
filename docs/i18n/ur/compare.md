@@ -11,7 +11,7 @@ _آخری جانچ: 28 ستمبر 2026۔_
 - [Lolly اور Figma](/info/compare-figma.html) - ڈیزائن، لائیو collaboration اور دوبارہ قابل استعمال ایسیٹ پروڈکشن۔
 - [Lolly اور Penpot](/info/compare-penpot.html) - اوپن سورس ڈیزائن، مشترکہ ٹوکنز اور تنظیمی کام۔
 - [Lolly اور برانڈ پورٹلز](/info/compare-brand-portals.html) - منظور شدہ لائبریریاں، مقفل ٹیمپلیٹس، شناخت، ریویو اور رپورٹنگ۔
-- [Lolly اور rendering APIs](/info/compare-render-apis.html) - آپ کی ڈیوائس پر، CI میں یا Lolly Work سرور پر خودکار generation۔
+- [Lolly اور rendering APIs](/info/compare-render-apis.html) - آپ کی ڈیوائس پر، CI میں یا اپنے سرور پر خودکار generation، اور Bannerbear یا Placid سے [منتقل ہونے کا طریقہ](/info/work-move-from-render-api.html)۔
 - [Lolly اور آن لائن فائل کنورٹرز](/info/compare-converters.html) - آپ کی اپنی ڈیوائس پر فارمیٹ کی تبدیلی۔
 
 صلاحیت بہ صلاحیت موازنے کے لیے [Lolly کا موازنہ کیسے ہوتا ہے](/info/positioning.html) دیکھیں۔ ہر موازنے پر تاریخ درج ہے؛ جو دعویٰ کسی بھی پروڈکٹ سے مطابقت نہ رکھے اسے درست کرنا ضروری ہے۔

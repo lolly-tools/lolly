@@ -1,4 +1,4 @@
-# Settings
+# Instellingen
 
 In Settings wijzig je hoe Lolly voor jou werkt: je gegevens, het design system dat je gebruikt, toegankelijkheid, wat op dit apparaat is opgeslagen en wat offline klaarstaat. Open het met **Settings** in de balk onderaan het startscherm, of via je avatarmenu. Het opent op **Preferences**, met vier andere tabbladen ernaast.
 
@@ -64,7 +64,7 @@ Onder de meter:
 - **Remove automatic checkpoints older than 30 days** maakt ruimte in History vrij en behoudt opgeslagen en benoemde versies.
 - **Clear all my data** verwijdert alles wat Lolly in deze browser bewaart, nadat je een woord typt om te bevestigen. [Als je je browsergegevens wist](/info/find-your-work.html#if-you-clear-your-browser-data) noemt wat er verdwijnt.
 
-### Available offline
+### Offline beschikbaar
 
 Lolly zet schermen in de cache terwijl je ze bezoekt, wat alleen dekt waar je al geweest bent. **Available offline** is voor de reis die je ziet aankomen: download de onderdelen die je nodig hebt en kijk naar één voortgangsbalk, en alles wat je meenam blijft zonder verbinding werken.
 
@@ -86,7 +86,7 @@ Downloads hervatten waar ze stopten als je annuleert of de verbinding verliest, 
 - **Leave** verwijdert het design system, de tools en de catalogus van de instantie, en je eigen werk blijft. Zie [Lolly gebruiken bij je organisatie](/info/organisation.html#leaving).
 - Wanneer je bent aangemeld bij een organisatie beëindigt **Sign out** deze sessie en beëindigt **Sign out everywhere** je sessies op elk apparaat, dit apparaat inbegrepen.
 
-## This device
+## Dit apparaat
 
 - <!--i:monitor--> **This Machine** - scherm, invoer, graphics, geheugen, codecs, opslagbackend en meer, live uitgelezen uit deze sessie. Er wordt niets opgeslagen en niets verstuurd. Het opent vanzelf op een breed scherm, waar het tabblad zich in twee kolommen uitlegt.
 - <!--i:neurobeat--> **Sound** - de interfacegeluiden en de Neurospicy-focusloops, de enige schakelaar op dit tabblad die iets schrijft.

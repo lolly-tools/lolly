@@ -2,6 +2,8 @@
 
 Je organisatie kan een eigen Lolly draaien: dezelfde app, met de tools en design systems die zij koos. Deze pagina laat zien hoe je erbij komt, hoe je aanmeldt en wat er verandert zodra je dat doet.
 
+Als je de opzet van de organisatie plant, legt [Use Lolly with your existing DAM](/info/use-with-dam.html) uit hoe een goedgekeurde bibliotheek op zijn plek kan blijven terwijl mensen in Lolly inhoud gaan produceren. [Content sovereignty](/info/content-sovereignty.html) beschrijft de bredere controle over creatie, governance, opslag en overdraagbaarheid.
+
 ::: note Wat je van je organisatie nodig hebt
 Het webadres van de Lolly van je organisatie, of een `.lolly`-instelbestand dat je organisatie heeft gemaakt. lolly.tools zelf maakt geen verbinding met een organisatie.
 :::
@@ -10,13 +12,13 @@ Het webadres van de Lolly van je organisatie, of een `.lolly`-instelbestand dat 
 
 Open het adres dat je organisatie je gaf. Als de pagina vraagt om aan te melden, druk dan op **Sign in** en volg de aanmeldpagina die opent. Daarna werkt het als elke Lolly, met de tools en design systems van je organisatie.
 
-Je kunt ook beginnen vanaf lolly.tools: open **Settings**, druk op de kaart **Lolly instance** op **Open a workspace**, voer het adres in en druk op **Open this instance**. De browser gaat naar het eigen adres van je organisatie, omdat een browser de tools van een andere Lolly niet vanaf lolly.tools kan laden.
+Je kunt ook beginnen vanaf lolly.tools: open de weergave **Settings**, druk op de kaart **Lolly instance** op **Open a workspace**, voer het adres in en druk op **Open this instance**. De browser gaat naar het eigen adres van je organisatie, omdat een browser de tools van een andere Lolly niet vanaf lolly.tools kan laden.
 
 ![De kaart Lolly instance in Settings, waar je de werkruimte van je organisatie opent of wijzigt waar de app zijn tools vandaan haalt](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dinstance-section&width=1440&height=1400&dpi=192&waitMs=2000&format=svg&cropSelector=%23instance-section&walker=1&dark=1&filename=org-instance-card)
 
 ## In de desktop- of mobiele app
 
-De app start met de meegeleverde tools. Om te verbinden open je **Settings** en druk je op de kaart **Lolly instance** op **Change**. Het venster vraagt **Where should Lolly get its tools?**
+De app start met de meegeleverde tools. Om te verbinden open je de weergave **Settings** en druk je op de kaart **Lolly instance** op **Change**. Het venster vraagt **Where should Lolly get its tools?**
 
 1. Kies **Verbinden met een Lolly-instantie**.
 2. Voer het webadres van je organisatie in en druk op **Controleren en verbinden**.

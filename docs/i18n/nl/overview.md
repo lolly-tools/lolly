@@ -72,7 +72,7 @@ Dezelfde tool op telefoonbreedte heeft geen tweede lay-out nodig: de bediening w
 
 ![Een audiogram op een scherm van 430 px breed: het bedieningspaneel erboven, het afgeronde vierkante artwork eronder en de zwevende exportpil](/t/url-shot?url=%2F%23%2Ftool%2Faudiogram%3Faudio%3Dlolly%2Floops%2Ffireplace-loop%26title%3DField%2520notes%26subtitle%3DEpisode%252012%26style%3Dwave&width=430&height=900&dpi=192&waitMs=3200&css=%23ag-wave%7Bdisplay%3Anone!important%7D.ag-ph%7Bdisplay%3Ablock!important%7D&walker=1&format=svg&rasterDpi=110&dark=1&filename=ov2-phone-audiogram)
 
-De webapp levert ook **Batch** (`#/batch`, `shells/web/src/pro/`), een raster in spreadsheetstijl dat veel rijen tegelijk rendert over één of meerdere tools; [Batch en Multi-edit](/info/batch.html#make-many-versions-of-one-design) behandelt Batch. **Settings → Capabilities** brengt in kaart wat het platform zegt te kunnen.
+De webapp levert ook **Batch** (`#/batch`, `shells/web/src/pro/`), een raster in spreadsheetstijl dat veel rijen tegelijk rendert over één of meerdere tools; [Batch en Lolly Multi-edit](/info/batch.html#make-many-versions-of-one-design) behandelt Batch. **Settings → Capabilities** brengt in kaart wat het platform zegt te kunnen.
 
 ![Batch bij een verse installatie: één lege rij die op een tool wacht, met het spreadsheetoppervlak en de knop Render op zijn plek voordat er gegevens komen](/t/url-shot?url=%2F%23%2Fbatch&width=1440&height=900&dpi=192&waitMs=3500&walker=1&format=svg&dark=1&filename=ov2-batch-grid)
 
@@ -141,7 +141,7 @@ Een input declareert een `type`: `text`, `longtext`, `number`, `boolean`, `color
 
 - **`asset`**, met `filter` en `allowUpload`, is de brug naar het assetsysteem. `allowUpload: false` beperkt een slot tot bibliotheekassets, en uploads van gebruikers delen de `AssetRef`-vorm van de bibliotheek.
 - **`blocks`** is een herhalende veldgroep die in een zijpaneel wordt bewerkt, gebruikt door Meeting Planner, Wayfinding, Diagrams en andere. Klikken op een gerenderd blok geeft de rij focus.
-- **`file`** houdt het eigen bestand van de gebruiker in het geheugen voor hulpprogramma's op het apparaat zoals Strip Hidden Data en Compress, en **`vector`** groepeert een vaste set getallen in één besturingselement.
+- **`file`** houdt het eigen bestand van de gebruiker in het geheugen voor hulpprogramma's op het apparaat zoals Lolly Strip Hidden Data en Compress, en **`vector`** groepeert een vaste set getallen in één besturingselement.
 
 ### 9. Sjablonen zijn logicavrij
 
@@ -149,7 +149,7 @@ Sjablonen zijn Handlebars, gekozen zodat niet-ontwikkelaars ze kunnen schrijven:
 
 ### 10. Tools stellen tools samen
 
-Een tool kan de render van een andere tool insluiten zonder import tussen tools; de engine lost de compositie op. Een manifest kan `composes: [{ id, tool, inputs }]` declareren en het kind plaatsen met `{{asset <id>}}`, en een draagbare embed-URL (`https://lolly.tools/tool/<id>.svg?…`) rendert het kind lokaal, zo plaatst Design een live QR-code of grafiek. Een SVG-kind blijft vector in een SVG- of PDF-ouder. Kinderen zijn tussenproducten, nooit van een watermerk of stempel voorzien, en een shell die er een niet kan renderen laat het slot leeg terwijl de ouder nog steeds rendert. [Composition and brand overlays](/info/tool-composition.html) bevat de details.
+Een tool kan de render van een andere tool insluiten zonder import tussen tools; de engine lost de compositie op. Een manifest kan `composes: [{ id, tool, inputs }]` declareren en het kind plaatsen met `{{asset <id>}}`, en een draagbare embed-URL (`https://lolly.tools/tool/<id>.svg?…`) rendert het kind lokaal, zo plaatst Lolly Design een live QR-code of grafiek. Een SVG-kind blijft vector in een SVG- of PDF-ouder. Kinderen zijn tussenproducten, nooit van een watermerk of stempel voorzien, en een shell die er een niet kan renderen laat het slot leeg terwijl de ouder nog steeds rendert. [Composition and brand overlays](/info/tool-composition.html) bevat de details.
 
 ## Wat we bewust niet doen
 

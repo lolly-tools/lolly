@@ -86,13 +86,13 @@ Các lượt tải tiếp tục từ chỗ dừng nếu bạn hủy hoặc mất
 - **Leave** gỡ hệ thống thiết kế, công cụ và danh mục của phiên bản, còn công việc của riêng bạn ở lại. Xem [Use Lolly at your organisation](/info/organisation.html#leaving).
 - Khi bạn đã đăng nhập vào một tổ chức, **Sign out** kết thúc phiên này và **Sign out everywhere** kết thúc các phiên của bạn trên mọi thiết bị, kể cả thiết bị này.
 
-## This device
+## Thiết bị này
 
 - <!--i:monitor--> **This Machine** - màn hình, đầu vào, đồ họa, bộ nhớ, codec, nền lưu trữ và hơn nữa, đọc trực tiếp từ phiên này. Không có gì được lưu và không có gì được gửi. Nó tự mở trên màn hình rộng, nơi thẻ bố trí hai cột.
 - <!--i:neurobeat--> **Sound** - âm thanh giao diện và các vòng lặp tập trung Neurospicy, công tắc duy nhất trên thẻ này có ghi gì đó.
 - <!--i:database--> **Storage** - chế độ xem chỉ đọc của đồng hồ trong [Preferences](#storage), là nơi bạn xóa hoặc mang dữ liệu của mình.
 
-## Design system
+## Hệ thống thiết kế
 
 Hệ thống thiết kế đang dùng, trình bày để đọc. Khi trình duyệt này giữ hai hệ thống thiết kế trở lên, một dải bìa nhỏ ở trên cùng liệt kê chúng: chọn một cái để đặt làm đang dùng, và **Undo** trong thông báo tiếp theo đưa cái trước trở lại.
 

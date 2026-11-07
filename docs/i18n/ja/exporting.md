@@ -39,7 +39,7 @@ Lolly Workは、承認ステップ、配信の受領記録、監査記録とと�
 - <!--i:folder--> **Save**は、現在のデザインをワンクリックでProjectsに保持し、ファイルはダウンロードしません。**Download**の横の**Save as**は、保存先を尋ねます([保存と続き](/info/using.html#saving-continuing)をご覧ください)。
 - <!--i:link--> **Share**は共有ダイアログを開きます。デザインを再現するリンク、訪問時のトグル(全画面、書き出しパネル、開いたときのダウンロードまたはコピー)、状態全体をコンパクトなトークンにまとめる任意の**Shortest link**があります([URLモード](/info/url-mode.html)をご覧ください)。
 
-![The export panel - format, size and the Copy / Download / Save / Share actions](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26options&width=1440&height=900&dpi=192&waitMs=2000&format=svg&walker=1&dark=1&filename=export-panel)
+![エクスポートパネル。形式、サイズ、Copy / Download / Save / Shareの各アクション](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26options&width=1440&height=900&dpi=192&waitMs=2000&format=svg&walker=1&dark=1&filename=export-panel)
 
 デザインが別のツールのレンダリング、たとえばQR CodeのリンクをもつDesignの画像ボックスを埋め込んでいる場合、入れ子になったレンダリングは親の書き出しに描き込まれます。SVGとPDFでは真のベクターのままで、PNG、JPG、WebPではくっきりとラスタライズされます。埋め込まれたレンダリングには透かしも独自の来歴も付かず、付くのは完成したファイルだけです。HTML、Markdown、TXTの書き出しには、合成されたレンダリングを含められません。
 
@@ -47,7 +47,7 @@ Lolly Workは、承認ステップ、配信の受領記録、監査記録とと�
 
 ファイル名とフォーマットメニューは、**ダウンロード**の下に1つの`name.format`のペアとして並んでいます。
 
-![The filename field fused to the format picker, so the export reads as one name.format pair](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26options&width=1440&height=900&dpi=192&waitMs=2000&format=svg&cropSelector=.filename-extension&walker=1&dark=1&filename=exp-format-picker)
+![形式ピッカーと一体になったファイル名欄。書き出しが「名前.形式」の1組として読める](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26options&width=1440&height=900&dpi=192&waitMs=2000&format=svg&cropSelector=.filename-extension&walker=1&dark=1&filename=exp-format-picker)
 
 ファイルの行き先から始めてください。各カードには、その行き先に合う形式が一覧になっており、ツールは、作れるものだけを表示します。
 
@@ -56,6 +56,8 @@ Lolly Workは、承認ステップ、配信の受領記録、監査記録とと�
 :::
 
 デザインシステムの書体で組んだワードマークは、すべての文字がアウトライン化されたパスとして、SVGで書き出されるため、1つのファイルが名刺サイズでもビルのラッピングサイズでもくっきりしたままです。
+
+他の言語のテキストは、お持ちのフォントに従います。デザインシステムのフォントにその文字がある場合、SVGとPDFは、右から左へ書く行を含め、字形を整え、読み順どおりにアウトラインとして描きます。ない場合、Lollyはその文字を[フォールバックフォント](/info/fallback-fonts.html)で描き、書き出しカードにどのフォントで描いたかが表示されます。どのフォールバックフォントにもない文字のテキストは、SVGではライブテキストのままで、閲覧する側のフォントで描かれ、PDFでは画像になります。PDFにはほかに頼れるものがないためです。そうした文字はページ上と同じ見た目ですが、選択も検索もできず、書き出しカードにはその対象になった文字体系が表示されます。その文字を持つフォントを追加すると、ベクターのテキストとして残せます。
 
 ![Auroraと読める、極細で字間の広いワードマーク。表のSVGの行が扱う純粋なベクターアートワークの一例](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DAurora%26weight%3D200%26tracking%3D16%26size%3D200%26full&width=1440&height=900&dpi=192&waitMs=2200&cropSelector=%23tool-canvas&walker=1&format=svg&filename=vt-wordmark-vector)
 
@@ -105,7 +107,7 @@ Lolly Workは、承認ステップ、配信の受領記録、監査記録とと�
 
 より高解像度のラスターには、より大きな幅と高さを入力するか、物理単位を選んでDPIを上げます(ピクセル = サイズ × DPI)。幅`210`、高さ`297`、単位`mm`でA4ページになります。
 
-![The dimensions row set to 210 by 297 mm, with the DPI field revealed because the unit is physical](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26w%3D210%26h%3D297%26unit%3Dmm%26format%3Dpdf%26options&width=1440&height=900&dpi=192&waitMs=2000&format=svg&cropSelector=.export-dims&walker=1&dark=1&filename=exp-export-dims)
+![寸法の行を210×297 mmに設定した状態。単位が物理単位のため、DPI欄が表示されている](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26w%3D210%26h%3D297%26unit%3Dmm%26format%3Dpdf%26options&width=1440&height=900&dpi=192&waitMs=2000&format=svg&cropSelector=.export-dims&walker=1&dark=1&filename=exp-export-dims)
 
 ## タイムド・コンポジションからの静止画
 
@@ -227,7 +229,7 @@ Street Mapは最も分かりやすい例です。デザイン全体がすでに�
 
 **Print PDF**は、指定された印刷条件(既定は**Coated FOGRA39**)に基づいてCMYKを書き出します。測定されたインク値を持つブランドのスウォッチは、その値を保ちます。それ以外の色は印刷プロファイルを通して変換されます。既定ではLolly独自のCoated FOGRA39プロファイル、**Embed**行を選んだ場合はご自身のプロファイルです。グレーと黒は黒版だけに残るため、小さな文字でも見当ずれが起きません。FOGRA51、SWOP、GRACoLは標準的なデバイス変換を使います。**Print TIFF**は、RIP向けのDeviceCMYKピクセルを書き出し、同じ印刷条件をTIFFのメタデータに記録します。どちらも、Colour profileコントロールが制御します。詳細は[カラープロファイル](#colour-profiles)をご覧ください。
 
-**Print marks & bleed**は、印刷形式に専用のカードがあります。ミリメートル単位の裁ち落としと、Crop、Registration、Bleed、Colour bars、Stamp detailsです。
+**Print marks & bleed**は、印刷形式に専用のカードがあります。ミリメートル単位の裁ち落としと、Crop、Registration、Bleed、Colour bars、Stamp detailsです。Stamp detailsは、日付、ツール、お名前を余白に印刷します。名前やツール名に、余白のフォントにない文字(アラビア文字、中国語、キリル文字、絵文字など)が含まれる場合は、同じグレーの画像として描かれ、書き出しカードにその文字体系が一覧されます。
 
 *Booklet*ツールのように、**複数ページのPDF**を作るツールもあります。表紙、必要なだけのページに流れるコンテンツ、裏表紙で構成され、各ページはA4、USレター、A5の縦向きの本物のPDFページで、どのブロックでも強制的に新しいページに送れます。これらはトンボや裁ち落としのないRGBドキュメントで、トンボや裁ち落としは、単一ページのPrint PDFのものです。DesignのPDFは、各スライドの下にスピーカーノートを置いた縦向きのページである**Notes handout**にもできます。
 
@@ -355,15 +357,19 @@ LollyにはCMYKプロファイルが1つ付属しています。FograのFOGRA39�
 
 **エージェントを導いたブランドスキル。** エージェントが作品を作り、読んで従った[ブランドスキル](/info/brand-skills.html)を指定した場合、記録には各スキルがリビジョン付きで、*Guided by: acme-brand 1.0*のように一覧されます。この言葉は、そのスキルが作業を導いたことを意味します。確認ではありません。Lollyは作品をスキルに照らして検証しません。一覧を加えるのはエージェント自身の申告だけで、現時点では[MCPサーバー](/info/mcp.html)の`lolly_render`の`brandSkills`引数を指すため、アプリや共有リンクで作った作品には付きません。Content Credentialは、一覧を各スキルのID、名前、リビジョン、SHA-256ハッシュを持つ1つのJSON値として`brandSkills`に保持します。XMPパケットとSVGのメタデータは、同じ値を`lolly:BrandSkills`として保持し、記録から書かれたPDFにはスキルごとに1つのキーワードが加わり、説明は変わりません。社内スキルは、そのテキストではなく、ID、名前、リビジョン、ハッシュで記録されます。同じスイッチが、記録の他の部分とともに一覧を省きます。**Design system**カード、`_madewith=0`、`--no-madewith`、`madeWith: false`です。MCPサーバーがブラウザでファイルを描画する場合(PDF、JPEG、ブラウザなしの経路では書けないその他の形式)、ファイル自身のメタデータには一覧が入らず、Content Credentialだけが保持できます。記録を残すには`c2pa`を渡してください。クレデンシャルがない場合、レンダリングはブランドスキルが記録されなかったと警告します。
 
-**記録を読み戻す。** [Verify](/verify)は、ファイルのクレデンシャルの詳細にその記録を**Design system**として、ブランドスキルを**Guided by**として一覧表示します。*Recreate with these settings*は、記録されたバージョンとカラーウェイでツールを開き直します。このデバイスに同じIDと名前のデザインシステムがある場合、リンクは記録されたデザインシステムで開き、ない場合は現在有効なデザインシステムで開きます。
+**ブランドページ(公開元がオプトインした場合)。** デザインシステムの公開元は、[ブランドページ](/info/brand-page.html#lead-back-from-your-files)のアドレスを書き出しに記録するよう選べます。この設定はデザインシステムごとで、誰かがオンにするまではオフです。オンにすると、カードは同じ行にアドレスを加えます。たとえば*Records: Acme · Colourway: Beach · Brand page: https://acme.example/brand/acme/*のようになり、カードのチェックを外すと、アドレスもほかの記録と一緒に消えます。記録に含まれるのはアドレスだけで、ページに関するほかの情報はありません。ファイルのそれ以外の部分は変わらず、アドレスのないデザインシステムは、従来どおりのファイルを書き出します。
+
+**アドレスはパックと一緒には渡りません。** 署名されたファイルの記録は、署名者自身のものとして読まれます。そのため、選んでいない人のためにアドレスが勝手にオンになってはならず、パックが他の人のファイルを、パック側が選んだページに向かわせることもできてはなりません。`.lolly`パック、デザインシステムのコピーやフォーク、**Try these colours**、復元したバックアップ、1回の実行のために渡されたトークンファイルは、いずれもこの設定がオフの状態で届きます。ご自身で、入力したアドレスを使ってオンにできます。管理されたデザインシステムだけが例外で、管理者がソーストークンに設定したアドレスを保ちます。詳しくは[ファイルからブランドページへ導く](/info/brand-page.html#lead-back-from-your-files)をご覧ください。
+
+**記録を読み戻す。** [Lolly Verify](/verify)は、ファイルのクレデンシャルの詳細にその記録を**Design system**として、ブランドスキルを**Guided by**として一覧表示します。ブランドページは、[署名者によるアドレスの記録](/info/what-verify-checks.html#brand-page)として別に表示されます。*Recreate with these settings*は、記録されたバージョンとカラーウェイでツールを開き直します。このデバイスに同じIDと名前のデザインシステムがある場合、リンクは記録されたデザインシステムで開き、ない場合は現在有効なデザインシステムで開きます。
 
 ::: details 何がどこに書き込まれるか、どの実行で記録が省かれるか
 | 場所 | 書き込まれるもの |
 |---|---|
-| Content Credential | `tools.lolly.export`アサーション内の`designSystem`(ID)、`designSystemLabel`、`designVersion`、`themes`。いずれも通常のテキスト値で、`themes`は選択のJSONリスト |
-| PNG、JPEG、WebP、JXL | ファイルのXMPパケットの`lolly:`プロパティとしての同じ4つの値(名前空間`https://lolly.tools/ns/export/1.0/`) |
+| Content Credential | `tools.lolly.export`アサーション内の`designSystem`(ID)、`designSystemLabel`、`designVersion`、`themes`。いずれも通常のテキスト値で、`themes`は選択のJSONリスト。公開元がオプトインした場合は`brandPage` |
+| PNG、JPEG、WebP、JXL | ファイルのXMPパケットの`lolly:`プロパティとしての同じ値(名前空間`https://lolly.tools/ns/export/1.0/`)。公開元がオプトインした場合は`lolly:BrandPage` |
 | SVG | `<metadata>`ブロック内の同じ`lolly:`プロパティ |
-| PDF | *Design system: Acme*や*Colourway: Beach*のようなキーワード |
+| PDF | *Design system: Acme*、*Colourway: Beach*、公開元がオプトインした場合は*Brand page: https://acme.example/brand/acme/*のようなキーワード |
 | 説明欄を持つすべての形式 | ツールの横にカラーウェイが付いた説明 |
 
 このカードが表示されるのは、記録するものがあり、形式が記録を保持できる場合だけです。CSV、JSON、カレンダーファイル、その他のテキストやデータ形式にはメタデータがなく、EPS、EMF、DXF、BMPには記録用のフィールドがありません。HTML、Markdown、CSSは、記録をContent Credentialにのみ保持するため、それらではカードに説明の行が表示されず、**C2PA Credentials**がオフの間は非表示になります。デザインシステムが与えないフィールドは、ファイルには入りません。
@@ -379,12 +385,14 @@ LollyにはCMYKプロファイルが1つ付属しています。FograのFOGRA39�
 
 ![チェックが入ったC2PA Credentialsカード。チェックボックスの横にクレデンシャルの有効期間](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26format%3Dpng%26c2pa%3D30%26options&width=1440&height=900&dpi=192&waitMs=2000&format=svg&cropSelector=.export-c2pa%5Bdata-c2pa-only%5D&walker=1&dark=1&filename=exp-c2pa-card)
 
-- **既定でオン。** **C2PA Credentials**カードは、ほぼすべてのツールで最初から選択されています。1回の書き出しでチェックを外すか、リンクで`c2pa=off`を渡します。ツールはマニフェストでオプトアウトできます。
+- **既定でオン。** **C2PA Credentials**カードは、ほぼすべてのツールで最初から選択されています。1回の書き出しでチェックを外すか、リンクで`c2pa=off`を渡します。どちらの場合も、ファイルにクレデンシャルは入らず、カタログのロゴのようにクレデンシャル付きの作品をインラインで含むSVGは、その作品のクレデンシャルも失います。外れるのはクレデンシャルだけで、Lolly Imprintとファイルのほかのメタデータは残ります。ツールはマニフェストでオプトアウトできます。
 - **形式。** PDF(RGBとPrint)、PNGとAPNG、JPG、GIF、SVGとSVGZ、TIFF(RGBとPrint)、WebP(静止画とアニメーション)、AVIF、MP4、WebM、音声コンテナのMP3、WAV、M4A、OGG/Opus、FLAC、HTML、Markdown、CSSです。ZIPは対応する各メンバーに署名し、Animated SVGが付与される仕組みもそれです。MP4、AVIF、M4Aは標準のBMFFバインディングを、MP3はそのID3v2マッピングを使うため、`c2patool`などのリーダーで検証できます。WebMとOGG/Opusにはまだ標準のマッピングがないため、LollyはマニフェストをMatroskaの添付ファイルとOpusTagsフィールドで運び、Lolly自身の検証機構が確認します。SVGZは圧縮されたSVGで、C2PA仕様には圧縮形式の定義がないため、クレデンシャルは圧縮の前にSVGへ書き込まれます。Lolly自身の検証機構はファイルをそのまま読み、`c2patool`は、ファイルを展開(`gunzip`)すれば同じクレデンシャルを読めます。ICO、EPS、EMF、DXF、BMP、PPTX、Office形式、その他のテキストやデータ形式には、C2PAのコンテナがありません。
-- **記録するもの。** ファイルを作ったツールとアプリ、署名時刻、書き出したシェル、画像、SVG、PDFとして書き出したDesignページでは、それを描いたレンダラー(`tools.lolly.export`アサーションの`route`。`gpu`はGPUのページレンダラー、`operations`はベクターとして書かれた描画操作、`compatibility`はブラウザ自身のレンダラー)とそのレンダラーのバージョン(`renderer`。GPUレシピ、`design-draw-v`とそのバージョン、または`dom-to-image`と`dom-walker`で、ブラウザ自身のバージョンは記録されません)、**Design system**カードにチェックが入っている間は[デザインシステムとカラーウェイ](#the-design-system-record)、そして有効な設定です。メニューの選択、数値、スイッチ、色はそのまま、入力されたもの(タイトル、名前、メモ、リンク、日付)はフィンガープリントとしてのみ記録されるため、言葉そのものはファイルに入りません。プロフィールにバインドされたフィールド、無効なコントロール、ブラウザのバージョン、オペレーティングシステムの詳細は含まれません。お名前とメールアドレスが作者として現れるのは、Settings → Preferences → Your detailsで**Use my details to create**がオンのときだけです。書き出しが配置するソースは、素材として運ばれます。絵文字などの[出典のある作品](#source-credits)と、動画または音声の書き出しにある[Rondocodeの曲](/info/rondocode.html#songs-in-the-credential)です。
+- **記録するもの。** ファイルを作ったツールとアプリ、署名時刻、書き出したシェル、画像、SVG、PDFとして書き出したLolly Designページでは、それを描いたレンダラー(`tools.lolly.export`アサーションの`route`。`gpu`はGPUのページレンダラー、`operations`はベクターとして書かれた描画操作、`compatibility`はブラウザ自身のレンダラー)とそのレンダラーのバージョン(`renderer`。GPUレシピ、`design-draw-v`とそのバージョン、または`dom-to-image`と`dom-walker`で、ブラウザ自身のバージョンは記録されません)、**Design system**カードにチェックが入っている間は[デザインシステムとカラーウェイ](#the-design-system-record)、そして有効な設定です。メニューの選択、数値、スイッチ、色はそのまま、入力されたもの(タイトル、名前、メモ、リンク、日付)はフィンガープリントとしてのみ記録されるため、言葉そのものはファイルに入りません。プロフィールにバインドされたフィールド、無効なコントロール、ブラウザのバージョン、オペレーティングシステムの詳細は含まれません。お名前とメールアドレスが作者として現れるのは、Settings → Preferences → Your detailsで**Use my details to create**がオンのときだけです。書き出しが配置するソースは、素材として運ばれます。絵文字などの[出典のある作品](#source-credits)と、動画または音声の書き出しにある[Lolly Rondocodeの曲](/info/rondocode.html#songs-in-the-credential)です。
+- **承認(記録されている場合)。** [Lolly Work](/info/work-approvals.html#review-an-exported-file)で承認されたファイルは、このクレデンシャルの上に、署名付きの2つ目の記録を持てます。承認ID、判断の日付、レビューしたファイルのダイジェストです。名前、メールアドレス、グループ、コメント、チェーン名は含まれません。依頼ダイアログでは既定でチェックが入っており、1件の依頼ごとに外すことも、インスタンス全体でオフにすることもできます。署名者が判断を表明したことを記録するもので、その作品が何らかの基準を満たすとは言いません。
+- **何をするよう求められたか([インテント](/info/visual-intent.html#what-goes-in-the-file)から作られたファイルの場合)。** 目的、サーフェス、ツール、言語、ルールと語彙のバージョン、インテントのダイジェストです。機会、対象、地域、プロンプトはフィンガープリントのみで、そのレンダリングを実行する人またはエージェントがプロンプトの文言の記録を求めた場合は別です。これを持つのはインテントから始まったレンダリングだけで、実行は何を記録したかを示し、省くこともできます。
 - **受け取る人に見えるもの。** Adobeアプリ、`c2patool`、contentcredentials.org/verifyなどのC2PAツールは、マニフェストを読み取り、主張を表示します。Lollyは、信頼リストの証明書ではなく、お使いのデバイスで作られた鍵で署名するため、ビューアーは*未検証*のクレデンシャルと報告します。構造と改ざんの証拠は本物ですが、署名者は保証されていません。これを変えるには、Settings → Preferences → Content Credentialsで**認証済みID**を登録します。[Content Credentialsのアイデンティティ](/info/content-credentials-identity.html)をご覧ください。
-- **ファイルを確認する。** 任意のファイルを[Verify](/verify)にドロップするか、`lolly validate <file>`を実行すると、Lollyがファイルを作ったか、その後変更されたかを先頭に置いた、デバイス上のレポートが得られます。Verifyはクレデンシャルの外も調べます。[Verifyが確認すること](/info/what-verify-checks.html)をご覧ください。
-- **プライバシー。** 署名鍵は書き出しのために作られ、デバイスの外へ出ることはなく、主張が保持するのは、来歴メタデータがすでに運んでいるものだけです。ご自身のファイルを変換するプライバシーユーティリティは、クレデンシャルを追加せず、*Strip Hidden Data*は、他のメタデータと同じようにC2PAマニフェストを削除します。Rondocodeユーティリティは新しい音声を作るため、書き出すものに署名します([Rondocodeの曲](/info/rondocode.html#files-from-the-rondocode-utility))。
+- **ファイルを確認する。** 任意のファイルを[Lolly Verify](/verify)にドロップするか、`lolly validate <file>`を実行すると、Lollyがファイルを作ったか、その後変更されたかを先頭に置いた、デバイス上のレポートが得られます。Lolly Verifyはクレデンシャルの外も調べます。[Lolly Verifyが確認すること](/info/what-verify-checks.html)をご覧ください。
+- **プライバシー。** 署名鍵は書き出しのために作られ、デバイスの外へ出ることはなく、主張が保持するのは、来歴メタデータがすでに運んでいるものだけです。ご自身のファイルを変換するプライバシーユーティリティは、クレデンシャルを追加せず、*Lolly Strip Hidden Data*は、他のメタデータと同じようにC2PAマニフェストを削除します。Rondocodeユーティリティは新しい音声を作るため、書き出すものに署名します([Lolly Rondocodeの曲](/info/rondocode.html#files-from-the-rondocode-utility))。
 - **相互作用。** パスワード保護されたPDFは、どちらの階層でもContent Credentialsを運べません。クレデンシャルは、DPI、EXIF、カラープロファイル、PDF/Xのメタデータ、印刷マークの後に、完成したバイト列の上に最後に追加されます。
 
 ### ソースクレジット
@@ -399,10 +407,12 @@ LollyにはCMYKプロファイルが1つ付属しています。FograのFOGRA39�
 
 **PDFの開くためのパスワード**は、パスワードを入力すると2つの階層があります。
 
-- **Weak**: 40ビットのRC4で、保護ではなく抑止力にすぎません。そのパスワードは、共有リンクに平文で含められます。RGBの`pdf`のみです。
-- **Strong**: AES-256(PDF 2.0)。書き出し時に入力し、リンクには入れられません。Print PDFと、バッチZIP内の各PDFにも適用されます。Strongでロックされたprint PDFは、CMYK、トンボ、出力インテントを保ちますが、PDF/X-4の主張は外れます。
+- **Weak**: 40ビットのRC4で、保護ではなく抑止力にすぎません。RGBの`pdf`で、印刷マークや裁ち落としがなく、パスワードがASCII文字のみの場合に限ります。ほかの文字を含むパスワードはStrongに移ります。この階層でその方法でロックしたファイルは、リーダーが開けないためです。数えられるのは最初の32文字だけです。
+- **Strong**: AES-256(PDF 2.0)。Print PDFと、バッチZIP内の各PDFにも適用されます。Strongでロックされたprint PDFは、CMYK、トンボ、出力インテントを保ちますが、PDF/X-4の主張は外れます。
 
-**ロックされたZIP**は、ZIPの書き出し、Projectsからのフォルダのダウンロード、バッチを対象とし、2つの階層の1つのパスワードを使います。**Weak**(ZipCrypto。抑止力で、`?password=`リンクに含められる)または**Strong**(AES-256。書き出し時に入力し、リンクには入れられない)です。パスワードはすべてのメンバーを保護し、中のPDFも独自にAES-256でロックされるため、ZIPを展開した後もロックされたままです。プロンプトはダウンロードの開始時に表示され、空のパスワードはロックなしを意味します。
+**ロックされたZIP**は、ZIPの書き出し、Projectsからのフォルダのダウンロード、バッチを対象とし、2つの階層の1つのパスワードを使います。**Weak**(ZipCrypto。抑止力)または**Strong**(AES-256)です。パスワードはすべてのメンバーを保護し、中のPDFも独自にAES-256でロックされるため、ZIPを展開した後もロックされたままです。プロンプトはダウンロードの開始時に表示され、空のパスワードはロックなしを意味します。
+
+**入力したパスワードは、どちらの階層でもリンクに入りません。** アドレスバーにも、コピーしたリンクにも、パスワードは含まれません。ファイルが`?password=`リンクで届いた場合、Lollyはその値を読み取り、すぐにアドレスから取り除きます。ファイルが保持できないロックを求めるリンクは、ファイルを書き出さず、その理由を伝えます。[`password`](/info/url-parameters.html)をご覧ください。
 
 **パスワードで保護された共有リンク**は、開く前に受け取る人にパスワードを求めます。リンクの状態全体が、パスワードから導かれた鍵(PBKDF2)でAES-256により暗号化されるため、運ばれるのは暗号文だけで、復号は受け取る人のブラウザで行われます。リンクを配信するサーバーは、パスワードもデザインも見ることがありません。**Share**ダイアログでオンにします。暗号化されたリンクはLollyでのみ開き、埋め込み画像としては開きません。[URLモード](/info/url-mode.html)をご覧ください。
 

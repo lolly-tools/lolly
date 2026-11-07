@@ -1,4 +1,4 @@
-# Settings
+# 設定
 
 Settingsは、Lollyの動作を自分向けに変える場所です。詳細、使用するデザインシステム、アクセシビリティ、このデバイスに保存されているもの、オフラインで利用できるもの。ホーム画面下部のバーの**Settings**、またはアバターメニューから開きます。**Preferences**で開き、その横にさらに4つのタブがあります。
 
@@ -34,7 +34,7 @@ Preferencesは、横に**設定レール**が並ぶ1本の長いページで、�
 
 テーマカードはライブプレビューで、選んだ瞬間に、このデバイスにだけ適用されます。
 
-![Three theme cards, each previewing its own type and colour, with the active one flagged](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dappearance-section&width=1440&height=1400&dpi=192&waitMs=1600&walker=1&format=svg&cropSelector=.profile-card--appearance&dark=1&filename=pd-theme-picker)
+![3つのテーマカード。それぞれが独自の書体と色をプレビューし、有効なものに印が付く](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dappearance-section&width=1440&height=1400&dpi=192&waitMs=1600&walker=1&format=svg&cropSelector=.profile-card--appearance&dark=1&filename=pd-theme-picker)
 
 ### アクセシビリティ
 
@@ -86,13 +86,13 @@ Lollyは、訪れた画面をキャッシュしますが、それは訪れた場
 - **Leave**は、インスタンスのデザインシステム、ツール、カタログを削除しますが、ご自身の作品は残ります。[組織でLollyを使う](/info/organisation.html#leaving)をご覧ください。
 - 組織にサインインしている場合、**Sign out**はこのセッションを終了し、**Sign out everywhere**は、このデバイスを含む、すべてのデバイスでのセッションを終了します。
 
-## This device
+## この端末
 
 - <!--i:monitor--> **This Machine** - 画面、入力、グラフィックス、メモリ、コーデック、ストレージバックエンドなどを、このセッションからライブで読み取ります。何も保存されず、何も送信されません。広い画面では、タブが2列に配置され、自動的に開きます。
 - <!--i:neurobeat--> **Sound** - インターフェースのサウンドとNeurospicyの集中用ループ。このタブで何かを書き込む唯一のスイッチです。
 - <!--i:database--> **Storage** - [Preferences](#storage)のメーターの読み取り専用ビューです。データを消去したり持ち出したりするのはそちらです。
 
-## Design system
+## デザインシステム
 
 現在のデザインシステムを、読みやすく整理したものです。このブラウザに2つ以上のデザインシステムがある場合、上部の小さな表紙のストリップにそれらが一覧になります。1つ選ぶとそれが有効になり、その後に表示される通知の**Undo**で前のものに戻せます。
 

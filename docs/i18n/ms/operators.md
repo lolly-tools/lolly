@@ -14,6 +14,8 @@ Mulakan dengan [Use Lolly at your organisation](/info/organisation.html) untuk m
 
 ## Sambung aset dan semak kerja
 
+- [Use Lolly with your existing DAM](/info/use-with-dam.html) menerangkan kuasa sumber dan pengeluaran bersambung. [The SUSE Brandfolder account](/info/suse-brandfolder.html) merekodkan pengalaman penerimaan, dan [Plan a DAM transition](/info/dam-transition.html) meliputi peralihan pilihan yang kemudian.
+
 - [Design-system administration](/info/work-design-system-administration.html) meliputi inventori sumber, perubahan disemak dan rollback.
 - [Catalog and content](/info/work-catalog.html) meliputi aset dikongsi dan peraturan pendedahan. [Provider guides](/info/work-provider-guides.html) memberikan keperluan persediaan dan pengesahan setiap platform sumber.
 - [Approvals](/info/work-approvals.html) meliputi rantaian semakan dan pengasingan tugas. [Rendering and sharing](/info/work-sharing.html) meliputi pautan dan output pelayan.

@@ -12,7 +12,7 @@ Beberapa situs konverter menangani format yang tidak dapat ditangani Lolly, dan 
 
 Konverter berbasis browser mungkin mengunggah file untuk diproses atau mengonversi secara lokal. Utilitas konversi Lolly memproses file secara lokal, tanpa akun, iklan, atau pelacak, dan tidak menambahkan watermark Lolly atau Content Credentials. Setelah aset yang dibutuhkan konversi disimpan, utilitas itu berfungsi offline. Ukuran file dibatasi oleh memori perangkat dan pembaca format tertentu.
 
-![Tampilan Utilities: Strip Hidden Data, Compress PDF, Convert Image, dan pekerjaan di perangkat lainnya di satu tempat](/t/url-shot?url=%2F%23%2Fu&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%2C.brand-tips%7Bdisplay%3Anone!important%7D&tolerance=0.03&waitSelector=.utilities-view%5Bdata-shots-settled%5D&format=svg&walker=1&dark=1&filename=aud-utilities)
+![Tampilan Utilities: Lolly Strip Hidden Data, Compress PDF, Convert Image, dan pekerjaan di perangkat lainnya di satu tempat](/t/url-shot?url=%2F%23%2Fu&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%2C.brand-tips%7Bdisplay%3Anone!important%7D&tolerance=0.03&waitSelector=.utilities-view%5Bdata-shots-settled%5D&format=svg&walker=1&dark=1&filename=aud-utilities)
 
 [Every format Lolly can open and make](/info/formats.html) mencantumkan konversi yang didukung dan batasnya, termasuk HEIC ke JPG, PNG ke SVG, dan PDF ke gambar.
 

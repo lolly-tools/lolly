@@ -1,8 +1,10 @@
-# Batch ve Multi-edit
+# Lolly Batch ve Lolly Multi-edit
+
+<a id="batch-and-multi-edit"></a>
 
 Aynı tür dosyayı sık yaptığında iki iş ortaya çıkar. Bazen bir tasarımın birçok sürümüne ihtiyacın olur: düzinelerce dilde bir kart ya da bir afişin her boyutu. Bazen birkaç farklı kayıtlı tasarımın olur ve tek bir değişikliğin hepsine ulaşmasını istersin; yeni bir tarih veya yeni bir başlık gibi.
 
-**Batch** ilk işi, **Multi-edit** ikinci işi yapar. İkisi de cihazında çalışır ve araçların kendisiyle aynı render yolundan dışa aktarır.
+**Lolly Batch** ilk işi, **Lolly Multi-edit** ikinci işi yapar. İkisi de cihazında çalışır ve araçların kendisiyle aynı render yolundan dışa aktarır.
 
 ::: cols
 ## Batch
@@ -10,9 +12,10 @@ Aynı tür dosyayı sık yaptığında iki iş ortaya çıkar. Bazen bir tasarı
 - Bir şablon, çok satır. Her satır bir girdi kümesidir ve bir dosya yapar.
 - Satırları yazarak, bir elektronik tablodan yapıştırarak veya bir CSV içe aktararak doldur.
 - Satır sınırı yok; sayfa başına 50 gösterilir.
-- Projects başlığındaki **Batch** üzerinden açılır (`#/batch`).
+- Projects başlığındaki **Lolly Batch** üzerinden açılır (`#/batch`).
 
-## Multi-edit
+<a id="multi-edit"></a>
+## Lolly Multi-edit
 
 - İki ila sekiz farklı kayıtlı tasarım, canlı kartlar olarak yan yana.
 - Tek bir kenar çubuğu paylaştıkları girdileri, sonra her kartın kendi girdilerini düzenler.
@@ -22,7 +25,7 @@ Aynı tür dosyayı sık yaptığında iki iş ortaya çıkar. Bazen bir tasarı
 
 ## Bir tasarımın birçok sürümünü yap
 
-**Projects** sayfasını aç ve başlığındaki **Batch** düğmesine bas. Izgara tek bir satırla başlar: onda bir şablon seç, sonra satırı çoğalt veya elektronik tablondan veri yapıştır. Bir klasörün içinden açıldığında Batch seni o klasöre geri döndürür.
+**Projects** görünümünü aç ve başlığındaki **Batch** düğmesine bas. Izgara tek bir satırla başlar: onda bir şablon seç, sonra satırı çoğalt veya elektronik tablondan veri yapıştır. Bir klasörün içinden açıldığında Batch seni o klasöre geri döndürür.
 
 ![Yeni bir ızgarada Batch: üstte dosya adı ve satır araçları, seçebileceğin araçlar üzerinde açık duran ilk satırın şablon listesi](/t/url-shot?url=%2F%23%2Fbatch&width=1440&height=900&dpi=192&waitMs=3500&walker=1&format=svg&dark=1&filename=use-batch-toolbar)
 
@@ -46,9 +49,13 @@ Her satır kendi tema seçimlerini korur: açık veya koyu ve tasarım sistemind
 
 Bir CSV seçimleri boyut sütunlarından sonra bir `_themes` sütununda taşır; bu, `_themes` bağlantı parametresiyle aynı JSON'u tutar, örneğin `{"":"dark","colourway":"beach"}`. Boş bir hücre veya `{}` tasarım sisteminin varsayılanları anlamına gelir. Sütun yalnızca bir satırın seçimleri olduğunda yazılır; bu yüzden hiçbiri olmayan bir toplu iş öncekiyle aynı CSV'yi dışa aktarır. İçe aktarırken geçerli tema seçimi olmayan bir hücre sorun olarak listelenir ve satırı varsayılanlarla render edilir. Izgarada bir satırın seçimlerini değiştirecek bir denetim henüz yok; bu yüzden onları CSV'de veya kayıtlı oturumda ayarla.
 
+### Her satır için bir dil
+
+Certificate gibi kendi metnini basan bir araç, `de`, `ja` veya `ar` gibi kısa bir dil koduyla bir `language` sütunu alabilir. O zaman her satır metnini ve tarihini o dilde basar; Arapça ve Urduca satırlar sağdan sola yerleştirilir. Boş bir hücre uygulamanın dilini izler. Lolly'nin henüz çevirisini tutmadığı bir dil, tarih dahil İngilizce basılır; böylece bir sertifika asla yarım çevrilmiş olmaz.
+
 ### Batch veya Render folder
 
-Batch, bir şablonun birçok varyantını yapar. Zaten kaydettiğin oturumları yeniden render etmek için onları Projects içinde seç ve **Render selection** ya da bütün bir klasör için **Render folder** kullan; ikisini de [Find and recover your work](/info/find-your-work.html#find-something-you-saved) kapsar.
+Lolly Batch, bir şablonun birçok varyantını yapar. Zaten kaydettiğin oturumları yeniden render etmek için onları Projects içinde seç ve **Render selection** ya da bütün bir klasör için **Render folder** kullan; ikisini de [Find and recover your work](/info/find-your-work.html#find-something-you-saved) kapsar.
 
 ## Birkaç kayıtlı tasarımı birlikte düzenle
 
@@ -69,7 +76,7 @@ Her kart, tasarımın içine yerleştirilmiş bir araç dahil kendi oturumunun t
 - **En fazla sekiz.** Her kart kendi canlı çalışma zamanını bağlar ve sekiz, yanıt verir kalan sayıdır. Daha fazlasını veya artık var olmayan bir oturumu isteyen bir bağlantı, yarım yüklenmek yerine bunu söyler.
 - **Bağlantı yereldir.** Kendi kayıtlı yuvalarının adını verir; bu yüzden o kümeyi bu cihazda yeniden açar. Bir paylaşım bağlantısı değildir.
 - **Daha büyük her şey için** aynı seçim çubuğunda **Edit as sheet** seç. Tüm seçimi, boyut sınırı ve aynı araç kuralı olmadan toplu iş ızgarasında satırlar olarak açar (`#/batch?s=…`). Klasörler ikisinin de dışında kalır: bir klasörü ızgarada **Sessions → Folders…** ile aç ya da Projects içinde **Render folder** ile render et.
-- **Arama Multi-edit'e ulaşmaz.** Arama çubuğunun bilmediği tek görünümdür.
+- **Arama Lolly Multi-edit'e ulaşmaz.** Arama çubuğunun bilmediği tek görünümdür.
 
 ## Bundan sonra nereye
 

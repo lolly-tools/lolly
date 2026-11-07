@@ -26,7 +26,7 @@ Em um [collab de trabalho](/info/collaborate.html#work-collabs-with-lolly-work-o
 
 1. Pressione **Home**, no canto superior esquerdo da ferramenta.
 2. Abra a aba **Projetos** no topo da tela inicial (o ícone de pasta no celular).
-3. Olhe na primeira tela. O trabalho salvo em **Minha biblioteca** está lá, e cada projeto é uma pasta. Para buscar em todas as pastas de uma vez, digite em **Buscar em todos os projetos…**, no rodapé da tela.
+3. Olhe na primeira tela. O que o Lolly Work salvou em **Minha biblioteca** está lá, e cada projeto é uma pasta. Para buscar em todas as pastas de uma vez, digite em **Buscar em todos os projetos…**, no rodapé da tela.
 
 Um item recebe o nome do arquivo que você digitou no painel de exportação ou o da ferramenta, como **QR Code**, se você não digitou nenhum. Abra o item e todas as configurações voltam, prontas para mudar e exportar de novo. Para manter o trabalho novo assim, veja [Saving & continuing](/info/using.html#saving-continuing).
 
@@ -37,7 +37,7 @@ Um item recebe o nome do arquivo que você digitou no painel de exportação ou 
 :::
 
 ::: details Trabalhando com Projetos
-Você também pode abrir **Projetos** em **Configurações → Armazenamento → Sessões salvas → Organizar em Projetos**. Funciona como um gerenciador de arquivos:
+Você também pode abrir a visão **Projetos** em **Configurações → Armazenamento → Sessões salvas → Organizar em Projetos**. Funciona como um gerenciador de arquivos:
 
 ![Projetos antes de qualquer coisa ser salva: os blocos Nova pasta, Novo recurso e Modelos, o relógio de History no canto superior direito e a barra Buscar em todos os projetos no rodapé](/t/url-shot?url=%2F%23%2Fp&width=1440&height=900&dpi=192&waitMs=1200&walker=1&format=svg&localize=1&dark=1&filename=projects)
 <!--
@@ -101,17 +101,17 @@ Nas ferramentas que salvam enquanto você trabalha, o Histórico guarda uma cóp
 :::
 
 ::: details Quais ferramentas salvam enquanto você trabalha
-No app web, toda ferramenta que produz um documento salva enquanto você trabalha: Design, Chart, QR Code, Text, Sandbox e as demais. Estas ferramentas não:
+No app web, toda ferramenta que produz um documento salva enquanto você trabalha: Lolly Design, Lolly Chart, QR Code, Text, Lolly Sandbox e as demais. Estas ferramentas não:
 
 - ferramentas que trabalham com um arquivo que você traz, como Redact, Sign ou Convert Image, porque o Lolly nunca guarda uma cópia desse arquivo;
-- ferramentas que gravam a partir da sua câmera, microfone ou tela, como Record, Screen Capture e Voice Recorder;
+- ferramentas que gravam a partir da sua câmera, microfone ou tela, como Record, Lolly Screen Capture e Lolly Voice Recorder;
 - uma ferramenta sem nada a alterar, como o Countdown.
 
 Nas outras ferramentas, sua primeira alteração arquiva o trabalho em **Projects** como se você tivesse salvo, e as alterações seguintes são mantidas enquanto você trabalha, depois que a ferramenta termina de desenhar. Uma criação não salva continua em Projects depois que você fecha a aba e reabre com as alterações marcadas como não salvas.
 
 **Leave anyway** ainda descarta essas alterações, e o History guarda uma cópia das edições descartadas por 30 dias. Abrir a ferramenta de novo pela tela inicial começa uma nova criação; abra a anterior em Projects.
 
-O 3D e o Darkroom salvam enquanto você trabalha, mas não guardam um arquivo que você carrega neles, como um modelo 3D ou uma LUT. O History e o **Save** guardam o nome, o tipo e o tamanho do arquivo, não o arquivo. Quando você abre o trabalho de novo, uma nota diz qual arquivo era, e a ferramenta funciona sem ele até você carregá-lo outra vez. Guarde seus arquivos originais.
+O 3D e o Lolly Darkroom salvam enquanto você trabalha, mas não guardam um arquivo que você carrega neles, como um modelo 3D ou uma LUT. O History e o **Save** guardam o nome, o tipo e o tamanho do arquivo, não o arquivo. Quando você abre o trabalho de novo, uma nota diz qual arquivo era, e a ferramenta funciona sem ele até você carregá-lo outra vez. Guarde seus arquivos originais.
 
 Com a [Sincronização](/info/sync.html) ativada, uma criação arquivada dessa forma vai para seus outros dispositivos como qualquer outra coisa em Projetos. Suas versões ficam no dispositivo onde foram feitas.
 
@@ -147,14 +147,14 @@ No iPhone, iPad e Android, um arquivo novo substitui um anterior com o mesmo nom
 
 Para abrir uma versão anterior:
 
-1. Pressione **Histórico**, o botão de relógio ao lado de **Undo** e **Redo**. No Design, **Histórico** fica na barra superior; no celular, toque em **•••** e depois em **Histórico**. Em ferramentas sem **Undo**, como Text e Sandbox, **Histórico** fica ao lado de **Home** no canto superior esquerdo.
+1. Pressione **Histórico**, o botão de relógio ao lado de **Undo** e **Redo**. No Lolly Design, **Histórico** fica na barra superior; no celular, toque em **•••** e depois em **Histórico**. Em ferramentas sem **Undo**, como Text e Lolly Sandbox, **Histórico** fica ao lado de **Home** no canto superior esquerdo.
 2. Encontre a versão pela data e hora. Linhas de **Automatic checkpoint** são tiradas enquanto você trabalha; linhas de **Saved version** são os momentos em que você salvou.
 3. Pressione **Open as a copy**. A versão abre como uma nova criação, e a que você tinha aberta continua como estava. A cópia fica em **Projetos**, com "(copy)" depois do nome.
 
 Para manter uma versão com nome, pressione **Name version**, digite um nome e pressione **Keep milestone**. Versões nomeadas são listadas na página **History**, em **Milestones**.
 
 ::: details O painel History e a página History
-O painel **History** também lista linhas de **Recovered work**, e **Protected drafts** guarda suas últimas edições entre checkpoints, com **Open draft as a copy**. **Compare** e **Check assets** ajudam você a escolher antes de abrir uma cópia. Alterne **This creation** para **All history on this device** para ver cada criação.
+O painel **History** também lista linhas de **Recovered work**, e **Protected drafts** guarda suas últimas edições entre checkpoints, com **Open draft as a copy**. O **Lolly Compare** e **Check assets** ajudam você a escolher antes de abrir uma cópia. Alterne **This creation** para **All history on this device** para ver cada criação.
 
 Checkpoints automáticos se tornam mais espaçados com o tempo: um por minuto na última hora, um por hora no último dia, um por dia durante 30 dias, depois um por semana. Versões salvas e versões nomeadas são todas mantidas. Excluir uma criação move suas versões para a **Lixeira** também, e **Delete forever** as remove.
 

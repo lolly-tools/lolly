@@ -121,7 +121,7 @@ Dieser Tab ist geschriebene Dokumentation dessen, was Lolly kann, im Einklang mi
 
 Zuerst der Build: wie viele Tools geladen sind, wie viele Exportformate es gibt, auf wie vielen Oberflächen die Plattform läuft und wie viele Marken-Assets der Katalog trägt, mit einem Panel **Catalogue**, das aufschlüsselt, was dieser Build ausliefert.
 
-Dann Ihre eigene Seite: **Your activity** zählt, was Sie auf diesem Gerät erstellt haben, und **Recent creations** und **Latest exports** sind Stapel, durch die Sie wischen können und die jeweils erscheinen, sobald es etwas zu zeigen gibt. Beide öffnen ein Element, wie es war. Diese Zähler bleiben auf dem Gerät; eine optionale Lolly-Lolly Work-Instanz führt ihre eigenen [Organisations-Telemetrie- und Audit-Aufzeichnungen](/info/privacy.html#organisation-services-with-lolly-work).
+Dann Ihre eigene Seite: **Your activity** zählt, was Sie auf diesem Gerät erstellt haben, und **Recent creations** und **Latest exports** sind Stapel, durch die Sie wischen können und die jeweils erscheinen, sobald es etwas zu zeigen gibt. Beide öffnen ein Element, wie es war. Diese Zähler bleiben auf dem Gerät; eine optionale Lolly-Work-Instanz führt ihre eigenen [Organisations-Telemetrie- und Audit-Aufzeichnungen](/info/privacy.html#organisation-services-with-lolly-work).
 
 ## Deep Links
 

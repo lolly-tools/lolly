@@ -39,7 +39,7 @@ lolly.tools 在 [Lolly Demo](/info/lolly-demo.html) 中開啟，這是 Lolly 自
 
 ## 我可以使用自己的品牌嗎？
 
-可以。**Design System Setup**（`#/start`）可由一種顏色、一個設計 token 檔案或一份完成的設計建立設計系統，之後每個工具都以你的設計系統繪製。[開始](/info/quickstart.html#put-your-brand-in)帶你走過這三條路線。
+可以。**Lolly Design System Setup**（`#/start`）可由一種顏色、一個設計 token 檔案或一份完成的設計建立設計系統，之後每個工具都以你的設計系統繪製。[開始](/info/quickstart.html#put-your-brand-in)帶你走過這三條路線。
 
 由你的組織或你的建置版本提供的設計系統是受管理的：它會顯示鎖頭並保持唯讀，你可以建立可編輯的副本來更改。
 
@@ -80,9 +80,9 @@ lolly.tools 在 [Lolly Demo](/info/lolly-demo.html) 中開啟，這是 Lolly 自
 
 ## Lolly 能編輯並算圖我的 Figma、Penpot、Illustrator 或 InDesign 檔案嗎？
 
-可以。開啟 **Design** 並點擊 **Import a design**：它接受原生的 Figma **.fig**（Save local copy）、Penpot **.penpot** 匯出、Illustrator **.ai** 或 **.pdf**、InDesign **.idml**（File → Export → InDesign Markup）或**任何 SVG**。你不需要帳號、外掛程式或設計應用程式的授權。
+可以。開啟 **Design** 工具並點擊 **Import a design**：它接受原生的 Figma **.fig**（Save local copy）、Penpot **.penpot** 匯出、Illustrator **.ai** 或 **.pdf**、InDesign **.idml**（File → Export → InDesign Markup）或**任何 SVG**。你不需要帳號、外掛程式或設計應用程式的授權。
 
-![Design 的開放畫布 - 匯入設計位於工具列的 Lolly 選單中](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D17ZTfS8MwEMf_mryO5NZ288GHrdqJv1CUvWdtOgppMtJMNv96yaV1iRNEQRBZoblwab53l0-uq915bXgrCOSDpf3LzgANnQ4eI0rrPJn7Gh9cd0sE8lIryxtFIFfatFx6L4F0Mi-11GbUiZYr25QjK3bW-S8I5MnUbRXKCkMgb5uqki6JFFU7rjoXYsSgT8GaLebKZSeGAPkUYypMHp80DeugYYR4J_U7X4XRkY8dFHuTYEJ-jDWM3qoqsEHo4Y20-xJi-SPVaOfRUuAL1hiZXNrG4gH6M85Z5lTAk8x8DdlnPL8gecVfBIEU6F5v0bbCor3VUu4JpOPCKTCWsPI9rBS107d6QyCfRET_Ac6wX36X6UpX-49Ip1mAlMEPkM6QX20aoSpECLTmpadcazPQ9hPlWxboRndWmFEIG1s4Yp3E3Ts-0f4GbcruWHLzlC0frmfpfbGk82LxmD0vUndSTcvXAoknWBKCz5LDSIdiRHV0D2Tfq1BIvdY42Zim5WZ_-n3_mRvwBg&width=1360&height=850&dpi=192&waitMs=3000&format=svg&walker=1&chrome=1&localize=1&dark=1&filename=design)
+![Lolly Design 的開放畫布 - 匯入設計位於工具列的 Lolly 選單中](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D17ZTfS8MwEMf_mryO5NZ288GHrdqJv1CUvWdtOgppMtJMNv96yaV1iRNEQRBZoblwab53l0-uq915bXgrCOSDpf3LzgANnQ4eI0rrPJn7Gh9cd0sE8lIryxtFIFfatFx6L4F0Mi-11GbUiZYr25QjK3bW-S8I5MnUbRXKCkMgb5uqki6JFFU7rjoXYsSgT8GaLebKZSeGAPkUYypMHp80DeugYYR4J_U7X4XRkY8dFHuTYEJ-jDWM3qoqsEHo4Y20-xJi-SPVaOfRUuAL1hiZXNrG4gH6M85Z5lTAk8x8DdlnPL8gecVfBIEU6F5v0bbCor3VUu4JpOPCKTCWsPI9rBS107d6QyCfRET_Ac6wX36X6UpX-49Ip1mAlMEPkM6QX20aoSpECLTmpadcazPQ9hPlWxboRndWmFEIG1s4Yp3E3Ts-0f4GbcruWHLzlC0frmfpfbGk82LxmD0vUndSTcvXAoknWBKCz5LDSIdiRHV0D2Tfq1BIvdY42Zim5WZ_-n3_mRvwBg&width=1360&height=850&dpi=192&waitMs=3000&format=svg&walker=1&chrome=1&localize=1&dark=1&filename=design)
 
 圖層會以可編輯的方塊進來：文字仍可重新輸入，圖形仍是圖形，圖片會加入你自己的資料庫。儲存後，**Share with rules** 可以把版面變成任何有 Lolly 的人都能重新填寫的工具。請見[匯入設計](/info/design-import.html)。
 
@@ -100,7 +100,7 @@ lolly.tools 在 [Lolly Demo](/info/lolly-demo.html) 中開啟，這是 Lolly 自
 
 Utility 對你已有的檔案做一件快速的工作，例如壓縮 PDF、轉換照片或移除隱藏資料，其中許多在你的裝置上執行，不會上傳任何內容。它們的存在，是為了讓人們通常交給隨便某個網站的工作留在 Lolly 之內。壓縮合約、轉換仍帶有位置資訊的度假照片，或把權杖貼進線上格式化工具，都不該意味著把檔案交給一個保留期限、司法管轄與商業模式都不明的網站。[Lolly Utilities](/info/utilities.html) 列出它們，[我們從未同意的交易](/info/status-quo.html)則講述它們背後的故事。
 
-![Utilities 檢視：Strip Hidden Data、Compress PDF、Convert Image 與其他裝置端工作，全都集中在一處](/t/url-shot?url=%2F%23%2Fu&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone!important%7D&tolerance=0.03&format=svg&walker=1&dark=1&filename=use-utilities&try=1)
+![Utilities 檢視：Lolly Strip Hidden Data、Compress PDF、Convert Image 與其他裝置端工作，全都集中在一處](/t/url-shot?url=%2F%23%2Fu&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone!important%7D&tolerance=0.03&format=svg&walker=1&dark=1&filename=use-utilities&try=1)
 
 ## 我們的組織可以使用 SSO、共用專案與核准嗎？
 
@@ -110,7 +110,7 @@ Utility 對你已有的檔案做一件快速的工作，例如壓縮 PDF、轉�
 
 ## 導入 Lolly 可能會遇到哪些阻礙？
 
-大多是生產端的改變，而非技術。想要一組受管轄工具的團隊，需要有人撰寫其設計系統與第一批範本，不過任何人從第一天起就可以在 Design 中開始製作自己的工具，不需要 git。而現有的流程即使輸出不符合品牌也仍會繼續運作，所以把一項看得見的輸出轉換好，並排呈現前後對照，比一份計畫更快說服人。
+大多是生產端的改變，而非技術。想要一組受管轄工具的團隊，需要有人撰寫其設計系統與第一批範本，不過任何人從第一天起就可以在 Lolly Design 中開始製作自己的工具，不需要 git。而現有的流程即使輸出不符合品牌也仍會繼續運作，所以把一項看得見的輸出轉換好，並排呈現前後對照，比一份計畫更快說服人。
 
 [採用與治理](/info/adoption-governance.html)涵蓋依角色的上手、如何衡量試行，以及治理流程可以是什麼樣子。
 
@@ -144,3 +144,11 @@ Lolly 相依套件中的高嚴重度或嚴重等級公告會阻擋 CI。尚無�
 ## 那個 Lolly 標誌是什麼口味的？
 
 有人說是萊姆，有人說是薄荷，有時候還有人說是蘋果；Lolly 負責帶來甜味，口味由你來決定！
+
+## Lolly 所說的內容主權是什麼？
+
+控制你的內容如何在你選擇的系統之間被創作、治理、儲存與移動。Lolly 支援本機製作、可編輯的作品與可攜的工具；Lolly Work 則加入由組織控制的共用服務。來源授權、可用的相依套件，以及工作流程的資料流向仍然重要。[什麼是內容主權？](/info/content-sovereignty.html)說明每一項控制及其限制。
+
+## 我們可以保留現有的 DAM 嗎？
+
+可以。受支援的 DAM 可以維持為來源記錄，同時 Lolly Work 把選定的素材連接到 Lolly 工具。來源存取、允許的編輯、使用權利，以及成品的核准，是各自獨立的決定。[在既有的 DAM 上使用 Lolly](/info/use-with-dam.html) 說明這種安排，[SUSE 的 Brandfolder 經驗](/info/suse-brandfolder.html)則記錄了採用期間的成功使用。

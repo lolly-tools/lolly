@@ -11,14 +11,14 @@ _آخر تحقق: 28 سبتمبر 2026._
 - [Lolly وFigma](/info/compare-figma.html) - التصميم والتعاون الحي وإنتاج الأصول القابل لإعادة الاستخدام.
 - [Lolly وPenpot](/info/compare-penpot.html) - التصميم مفتوح المصدر والرموز المشتركة وعمل المؤسسات.
 - [Lolly وبوابات العلامات](/info/compare-brand-portals.html) - المكتبات المعتمدة والقوالب المقفلة والهوية والمراجعة والتقارير.
-- [Lolly وواجهات العرض البرمجية](/info/compare-render-apis.html) - التوليد الآلي على جهازك، أو في CI أو على خادم Lolly Work.
-- [Lolly ومحوّلات الملفات على الإنترنت](/info/compare-converters.html) - تحويل الصيغ على جهازك.
+- [Lolly وواجهات العرض البرمجية](/info/compare-render-apis.html) - التوليد الآلي على جهازك، أو في CI أو على خادمك، و[كيف تنتقل](/info/work-move-from-render-api.html) من Bannerbear أو Placid.
+- [Lolly ومحولات الملفات على الإنترنت](/info/compare-converters.html) - تحويل الصيغ على جهازك.
 
 للاطلاع على المقارنة قدرةً بقدرة، راجع [كيف تقارن Lolly](/info/positioning.html). كل مقارنة مؤرخة؛ وأي ادعاء لم يعد يطابق أيًّا من المنتجين يجب تصحيحه.
 
 ## ما يعمل أين
 
-تغطي كل مقارنة جزأين من مشروع واحد مفتوح المصدر. **Lolly** هو المحرك والتطبيقات والأدوات. و**Lolly Lolly Work** هو خادم المؤسسة، المحفوظ في [مستودع lolly-work](https://github.com/lolly-tools/lolly-work). كلاهما MPL-2.0، وتقرر المؤسسة أي خدمات Lolly Work تفعّلها.
+تغطي كل مقارنة جزأين من مشروع واحد مفتوح المصدر. **Lolly** هو المحرك والتطبيقات والأدوات. و**Lolly Work** هو خادم المؤسسة، المحفوظ في [مستودع lolly-work](https://github.com/lolly-tools/lolly-work). كلاهما MPL-2.0، وتقرر المؤسسة أي خدمات Lolly Work تفعّلها.
 
 ::: cols
 ## على جهازك: Lolly

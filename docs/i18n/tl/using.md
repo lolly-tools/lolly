@@ -12,7 +12,7 @@ Ang home screen: apat na tab sa itaas at ang bar sa ibaba. Ang tool, kapag bukas
 
 Apat na tab ang nasa itaas ng home screen: **Tools**, **Utilities**, **Assets** at **Projects**. Ang Tools ay ang ginagamit mo sa paggawa, ang Utilities ay mga workbench para sa mga gawain tulad ng pag-convert, pag-check o paglilinis ng file, ang Assets ang library mo at hawak ng Projects ang mga na-save mo.
 
-Hawak ng bar sa ibaba ang **Open**, **Settings**, search field, **Verify** at **What?**. Lumalabas ito sa Tools, Utilities, Assets, Projects, Settings at sa mga gabay na binabasa mo sa app, at tumatabi kapag bukas na ang tool. Naaabot ng [Lolly Search](/info/search.html) ang mga tool, naka-save na gawa, asset at setting mo mula sa field na iyon. Sinasagot ng [Ask Lolly](/info/ask.html) ang tinype na tanong gamit ang katugmang seksyon ng mga gabay na ito.
+Hawak ng bar sa ibaba ang **Open**, **Settings**, search field, **Verify** shortcut papunta sa Lolly Verify at **What?**. Lumalabas ito sa Tools, Utilities, Assets, Projects, Settings at sa mga gabay na binabasa mo sa app, at tumatabi kapag bukas na ang tool. Naaabot ng [Lolly Search](/info/search.html) ang mga tool, naka-save na gawa, asset at setting mo mula sa field na iyon. Sinasagot ng [Ask Lolly](/info/ask.html) ang tinype na tanong gamit ang katugmang seksyon ng mga gabay na ito.
 
 Mag-click ng card para magsimula ng bago sa tool na iyon. Ang naka-save na gawa ay muling bumubukas mula sa **Projects**.
 
@@ -22,7 +22,7 @@ Ang bawat tool ay split view: ang mga **kontrol** sa isang panig at ang live na 
 
 ![Split view ng isang tool - ang control stack sa kaliwa, at ang live na grouped bar chart na iginuhit nito sa kanan](/t/url-shot?url=%2F%23%2Ftool%2Fchart%3Fct%3Dbar%26t%3DExample%2520data%26st%3DSample%2520values%252C%2520not%2520a%2520real%2520dataset%26d%3DMonth%252CSeries%2520A%252CSeries%2520B%252CSeries%2520C%250AJan%252C12%252C9%252C5%250AFeb%252C18%252C14%252C7%250AMar%252C24%252C17%252C11%250AApr%252C29%252C23%252C15%26lg%3D1&width=1440&height=900&dpi=192&waitMs=2500&walker=1&format=svg&dark=1&filename=vt-tool-split-view)
 
-Ang **Design** ang pagbubukod. Bumubukas ito bilang malayang canvas ng mga kahon na dina-drag, nire-resize at tina-typan mo, na may sariling top bar, timeline at deck control. Ang [Design: ang malayang canvas](/info/design.html) ang gabay nito.
+Ang **Lolly Design** ang pagbubukod. Bumubukas ito bilang malayang canvas ng mga kahon na dina-drag, nire-resize at tina-typan mo, na may sariling top bar, timeline at deck control. Ang [Lolly Design: ang malayang canvas](/info/design.html) ang gabay nito.
 
 ## Baguhin ang pinapayagan ng tool
 
@@ -36,7 +36,7 @@ Ibinabalik ng **Clear changes**, sa itaas ng mga kontrol, ang bawat input sa def
 
 **Mga pagpipilian sa design system.** Kapag nag-aalok ang design system mo ng higit sa isang colourway, light at dark na itsura o ibang theme choice, hawak ang mga ito ng seksyong **Design system** sa ilalim ng mga kontrol. Lumalabas lang ang pagpipilian kapag binabago nito ang tool na ito, kaya ang file utility ay walang ipinapakitang seksyon. Ang bawat colourway ay tuldok sa sarili nitong mga kulay, ang light at dark ay dalawang button at ang anumang ibang pagpipilian ay listahan.
 
-Ang pagpipilian ay para sa piraso na ito. Sumasama ito sa link at naka-save na session, sinusunod ito ng bawat kulay na naka-link sa design system at nananatili ang sariling mga kulay ng app. Ipinapakita ng Design ang parehong mga pagpipilian sa **Canvas** tab ng Inspector. Ang tool na ang mga kulay ay ang mismong nilalaman nito ay puwedeng manatili sa canonical na colourway, at wala nang iniaalok na colourway dot. Ipinapakita ng [Lolly Demo in use](/info/lolly-demo-in-use.html#colourways-on-real-work) ang mga colourway sa totoong gawa.
+Ang pagpipilian ay para sa piraso na ito. Sumasama ito sa link at naka-save na session, sinusunod ito ng bawat kulay na naka-link sa design system at nananatili ang sariling mga kulay ng app. Ipinapakita ng Lolly Design ang parehong mga pagpipilian sa **Canvas** tab ng Inspector. Ang tool na ang mga kulay ay ang mismong nilalaman nito ay puwedeng manatili sa canonical na colourway, at wala nang iniaalok na colourway dot. Ipinapakita ng [Lolly Demo in use](/info/lolly-demo-in-use.html#colourways-on-real-work) ang mga colourway sa totoong gawa.
 
 ### I-zoom at i-pan ang preview
 
@@ -47,7 +47,7 @@ Laging ipinapakita ng preview ang eksaktong ie-export.
 - **Touch:** mag-pinch para mag-zoom, mag-drag para mag-pan at mag-double-tap para kumasya.
 - **Zoom HUD:** pindutin nang matagal ang Lolly swirl sa sulok para buksan ang `−`, **Fit** at `+`. Ang maikling tap sa swirl ay nagbubukas pa rin ng profile menu mo.
 
-Sa Design, kasama sa **Fit all** ang mga artboard at malalayang layer. Puwede kang mag-zoom out nang mano-mano nang mas mababa sa 20% hanggang mapuno ng buong page ang kalahati ng view. Ang huling hangganan ay ang mas mababa sa 5% ng karaniwang Fit scale at 2% absolute zoom.
+Sa Lolly Design, kasama sa **Fit all** ang mga artboard at malalayang layer. Puwede kang mag-zoom out nang mano-mano nang mas mababa sa 20% hanggang mapuno ng buong page ang kalahati ng view. Ang huling hangganan ay ang mas mababa sa 5% ng karaniwang Fit scale at 2% absolute zoom.
 
 Ang pagbabago ng laki ng output ay laging nagbabalik sa view sa malinis na fit.
 
@@ -55,7 +55,7 @@ Ang pagbabago ng laki ng output ay laging nagbabalik sa view sa malinis na fit.
 
 ### Undo at redo
 
-Ang **Cmd/Ctrl-Z** ay umaatras at ang **Cmd/Ctrl-Shift-Z** (o **Cmd/Ctrl-Y**) ay sumusulong. Ang parehong pares ay nasa bilang mga button na **Undo** at **Redo** sa itaas ng mga kontrol (sa Design ay nasa top bar), at nagiging abo ang bawat isa kapag wala nang babawiin. Sinasabi ng mensahe kung aling input ang ibinalik ng bawat undo, na may **Redo** button sa mensahe.
+Ang **Cmd/Ctrl-Z** ay umaatras at ang **Cmd/Ctrl-Shift-Z** (o **Cmd/Ctrl-Y**) ay sumusulong. Ang parehong pares ay nasa bilang mga button na **Undo** at **Redo** sa itaas ng mga kontrol (sa Lolly Design ay nasa top bar), at nagiging abo ang bawat isa kapag wala nang babawiin. Sinasabi ng mensahe kung aling input ang ibinalik ng bawat undo, na may **Redo** button sa mensahe.
 
 - **Isang hakbang ang isang drag.** Nagsasama ang paulit-ulit na pagbabago sa isang kontrol sa loob ng kalahating segundo, kaya iisang undo ang paghila ng slider sa buong saklaw nito.
 - **Iniingatan ang huling 100 hakbang.** Ang bagong edit pagkatapos ng undo ay nililinis ang forward stack.
@@ -72,7 +72,7 @@ Ang mga epekto ng **Filter** tool (Halftone, Scanline, Posterize, Voronoi, Duoto
 
 Para itago ang gawa mo, pindutin ang **Save**, ang tsek sa tabi ng **Export** sa render pill. Ang bagong gawa ay napupunta sa **My library**, ang gawang na-save mo na dati ay ina-update kung nasaan ito at walang dina-download. May parehong **Save** button ang export panel.
 
-Para piliin kung saan ito mapupunta, pindutin ang **Save as**, sa tabi ng **Download** sa export panel. Sa ilalim ng **Save to a project**, iwanang napili ang **My library** o pumili ng project (gumagawa ng isa ang **＋ New project…**), saka pindutin ang **Save**; ang **Save as a template** ay nag-iingat ng design bilang [template](/info/templates.html), panimulang punto para sa mga bagong dokumento. Sa Design, ang **Save as** ay nasa Lolly menu; sa phone, pindutin ang **•••**, saka **File menu**, saka **Save as**.
+Para piliin kung saan ito mapupunta, pindutin ang **Save as**, sa tabi ng **Download** sa export panel. Sa ilalim ng **Save to a project**, iwanang napili ang **My library** o pumili ng project (gumagawa ng isa ang **＋ New project…**), saka pindutin ang **Save**; ang **Save as a template** ay nag-iingat ng design bilang [template](/info/templates.html), panimulang punto para sa mga bagong dokumento. Sa Lolly Design, ang **Save as** ay nasa Lolly menu; sa phone, pindutin ang **•••**, saka **File menu**, saka **Save as**.
 
 ![Ang dalawang-kalahating render pill: Export, na may pataas na arrow na nagbubukas ng export panel, at Save, na may tsek na nagsi-save sa mismong lugar](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools&width=1440&height=900&dpi=192&waitMs=2500&css=%23tool-inputs%7Bdisplay%3Anone%7D&cropSelector=.render-pill&walker=1&format=svg&dark=1&filename=use-render-pill)
 
@@ -162,7 +162,7 @@ Ang buong device backup ay hindi `.lolly`. Nananatili itong `LollyTools-….zip`
 
 Ang `.lolly` ay karaniwang zip. Palitan ang pangalan nito ng `.zip` para tingnan ang loob: ang sarili mong mga larawan ay nasa ilalim ng `assets/uploads/`, ang catalogue art sa ilalim ng `assets/catalog/`, inililista ng `manifest.json` ang bawat file, at sinasabi ng README kung ano ang file.
 
-Nirerehistro ng macOS, Windows, Linux, iOS at Android ang format, ipinapakita ito ng mga desktop file manager bilang Lolly document at maipapakita ng GNOME Files ang sariling thumbnail ng naka-save na session. Ang pagbubukas mula sa Design System Setup ay nagrerekomenda ng design-system action kapag may dala ang shared design, pero hindi kailanman itinatago ang **Open shared design**.
+Nirerehistro ng macOS, Windows, Linux, iOS at Android ang format, ipinapakita ito ng mga desktop file manager bilang Lolly document at maipapakita ng GNOME Files ang sariling thumbnail ng naka-save na session. Ang pagbubukas mula sa Lolly Design System Setup ay nagrerekomenda ng design-system action kapag may dala ang shared design, pero hindi kailanman itinatago ang **Open shared design**.
 
 Ang dokumentong ipinasa mula sa ibang app sa iOS o Android ay may limitasyong 48 MB, dahil kinokopya ng hand-off ang mga byte nito sa hangganan ng app, at sinasabi ito ng app. Walang ganoong limitasyon ang **Open** sa loob ng Lolly, kaya gamitin ito para sa mas malaking bundle.
 
@@ -173,7 +173,7 @@ Parehong nagpapasa ng snapshot ang link at file. Para sa live na pag-edit, sinas
 
 ## Mga asset - ang library mo
 
-Tinitipon ng **Assets** (`#/a`) ang lahat ng magagamit ng mga tool mo: brand logo, larawan, audio at motion, nakagrupo ayon sa uri, kasama ang sarili mong mga file. Naka-store sa device mo ang mga upload mo. Ang organisasyong gumagamit ng Lolly Work ay puwede ring magbigay ng shared catalogue sa ilalim ng sarili nitong access rule; tingnan ang [Gamitin ang Lolly sa organisasyon mo](/info/organisation.html).
+Tinitipon ng **Lolly Assets** (`#/a`) ang lahat ng magagamit ng mga tool mo: brand logo, larawan, audio at motion, nakagrupo ayon sa uri, kasama ang sarili mong mga file. Naka-store sa device mo ang mga upload mo. Ang organisasyong gumagamit ng Lolly Work ay puwede ring magbigay ng shared catalogue sa ilalim ng sarili nitong access rule; tingnan ang [Gamitin ang Lolly sa organisasyon mo](/info/organisation.html).
 
 ![Mga asset, kasama ang mga swatch at font ng brand at ang sarili mong mga upload](/t/url-shot?url=%2F%23%2Fa%3Fsection%3Dswatches%2Cfonts&width=1440&height=900&dpi=96&waitMs=2400&css=.plat-swatch-grid~%2A%7Bdisplay%3Anone%7D&walker=1&format=svg&localize=1&dark=1&filename=assets)
 
@@ -267,12 +267,25 @@ Sa makitid na screen, nagiging isang column ang layout:
 
 ![Isang tool sa screen na kasinlapad ng telepono - mga control bilang sheet sa itaas, ang binuong palette na pumupuno sa preview sa ibaba at ang render pill na lumulutang sa ibaba-gitna](/t/url-shot?url=%2F%23%2Ftool%2Fcolor-palette%3Fseed%3Df97316%26harmony%3Dadjacent-3%26steps%3D9&width=430&height=900&dpi=192&waitMs=2200&walker=1&format=svg&dark=1&filename=vt-phone-palette)
 
+## Mga foldable at iPhone Duo
+
+Sa foldable, iPhone Duo o halos parisukat na touch screen, inilalatag ng Lolly ang isang tool sa dalawang pane, tulad ng mga pahina ng libro:
+
+- **Mga kontrol sa isang gilid, ang canvas sa kabila.** Nasa gilid na malayo sa kamay mong pangguhit ang mga kontrol. Piliin ang **Dominant hand** sa **Settings → Accessibility**, o pindutin ang **Swap sides** sa itaas ng mga kontrol. Sa wikang right-to-left, nagsasalamin ang mga gilid.
+- **Ang divider ang bisagra.** Kapag iniulat ng device ang tupi nito, nagtatagpo ang mga pane sa tupi, kaya walang kontrol o artwork na nasa tiklop. Sa tuloy-tuloy na screen, i-drag ang divider sa isang katlo, kalahati o dalawang katlo ng lapad. Naaalala ng Lolly ang pinili mo para sa bawat view sa device na ito.
+- **Sa ibabaw ng mesa.** Kapag kalahating nakabukas na ang tupi ay nasa kabila ng screen, kinukuha ng canvas ang itaas na kalahati at nasa ibaba ng tupi ang mga kontrol. Kapag nagpe-present ka, nasa itaas ang slide, at nasa ibaba ang mga tala mo, ang susunod na slide at ang **Back** at **Next**. Sa Sequence, nasa itaas ang preview at nasa ibaba ang timeline.
+- **Lolly Design, Brand Studio at Assets.** Sa Lolly Design, mga tab sa tabi ng canvas ang inspector, ang mga layer at ang export panel, at nakahanay ang mga tool sa labas na gilid ng canvas, sa ilalim ng kamay mong pangguhit. Kapag mas marami ang tool kaysa sa kasya, nag-i-scroll ang column at may fade na may arrow na nagpapakita kung saang direksyon ang iba. Sa ibabaw ng mesa, sa paanan ng canvas na nakahanay ang mga tool. Pinananatili ng Brand Studio ang Board sa isang gilid at ang room na binubuksan mo sa kabila. Sa Assets, bumubukas sa tabi ng library ang mga detalye ng asset, kaya ang susunod na tap ay nagpapakita ng susunod na asset sa parehong lugar.
+- **Walang nasa tiklop.** Sa iniulat na tupi, bumubukas ang dialog sa pahinang may hawak ng mga kontrol, at gayon din ang search box sa paanan ng home screen at ang mga resulta nito. Sa patag na screen, nasa gitna ang mga ito.
+- **Walang nawawala kapag nagtupi.** Ang pagtupi, pagbukas o pag-ikot ng device ay nagpapanatili ng dokumento mo, ng seleksyon mo, ng zoom at ng field na tina-typan mo, na nasa dating lugar ang cursor.
+
+Pinananatili ng panlabas na screen ng foldable ang layout ng phone sa itaas, gayon din ang Lolly window sa isang kalahati ng split screen.
+
 ## Settings, tunog at ginhawa
 
 Hawak ng **Settings**, sa paanan ng home screen, ang mga detalye mo, mga design system mo, accessibility, storage at offline download. Inilalarawan ng [Lolly Settings](/info/dashboard.html) ang bawat tab.
 
 - Ang **mga detalye at headshot mo** ay pumupuno sa anumang tool na ginawang gumamit sa kanila, tulad ng email signature o badge. Sinasaklaw ng [Mga profile](/info/profile.html) ang mga ito.
-- Ang **Accessibility** ay may apat na comfort switch: **Reduce motion**, **Hide colourful previews**, **High contrast** at **Large text**. Binabago nila ang app sa paligid ng gawa mo, hindi kailanman ang tool canvas o export.
+- Ang **Accessibility** ay may apat na comfort switch: **Reduce motion**, **Hide colourful previews**, **High contrast** at **Large text**. Binabago nila ang app sa paligid ng gawa mo, hindi kailanman ang tool canvas o export. Katabi nila, pinipili ng **Dominant hand** kung aling gilid ang kukunin ng mga kontrol kapag dalawa ang pane.
 - Ang **Sound** ay nagpapatugtog ng mahihinahong assistive na tunog para sa ginagawa mo, at ang **Neurospicy Mode** ay nagpapatugtog ng kalmadong focus track. Parehong naka-off hanggang i-on mo, sa **Settings → Accessibility** o sa profile menu.
 - Dina-download ng **Available offline** ang natitirang bahagi ng app, mga tool mo, ang catalogue at ang mga gabay bago ka mawalan ng koneksyon. Ang Lolly ay web app na puwede mong i-install: gamitin ang install button ng browser mo, o *Add to Home Screen* sa phone, para sa full-screen na app na nag-a-update mismo kapag online ka ulit.
 - Ipinapakita ng **Storage** kung ano ang iniingatan ng Lolly sa device na ito. Ipinapaliwanag ng [Kung i-clear mo ang browser data mo](/info/find-your-work.html#if-you-clear-your-browser-data) kung ano ang inaalis ng pag-clear, at inililista ng [Privacy Policy](/info/privacy.html) ang lahat ng kinukuha o ipinapadala ng app.
@@ -283,10 +296,10 @@ Ang blangkong panel o mensaheng "failed to fetch" pagkatapos lang ng update ay k
 
 ## Saan susunod
 
-- **[Design: ang malayang canvas](/info/design.html)**: ang canvas, mga hugis, ang timeline at pagpe-present ng deck.
-- **[Batch at Multi-edit](/info/batch.html)**: maraming bersyon ng isang design, o ilang naka-save na design na sabay na ine-edit.
+- **[Lolly Design: ang malayang canvas](/info/design.html)**: ang canvas, mga hugis, ang timeline at pagpe-present ng deck.
+- **[Batch at Lolly Multi-edit](/info/batch.html)**: maraming bersyon ng isang design, o ilang naka-save na design na sabay na ine-edit.
 - **[Mag-export ng file](/info/exporting.html)**: pagpili ng format, laki, print unit, transparency at video.
-- **[Import a design](/info/design-import.html)**: dalhin ang Figma, Penpot, Illustrator o InDesign file sa Design at ituloy ang pag-edit.
+- **[Import a design](/info/design-import.html)**: dalhin ang Figma, Penpot, Illustrator o InDesign file sa Lolly Design at ituloy ang pag-edit.
 - **[Mga template](/info/templates.html)**: naka-save na panimulang punto para sa tool.
-- **[Wide Colour at HDR](/info/hdr-editing.html)**: panatilihin ang orihinal na precision ng larawan sa Design at Darkroom.
+- **[Wide Colour at HDR](/info/hdr-editing.html)**: panatilihin ang orihinal na precision ng larawan sa Lolly Design at Lolly Darkroom.
 - **[Hanapin at bawiin ang gawa mo](/info/find-your-work.html)**: kung nasaan ang lahat, at kung paano ilipat ito sa ibang device.

@@ -1,8 +1,10 @@
-# Batch a Multi-edit
+# Lolly Batch a Lolly Multi-edit
+
+<a id="batch-and-multi-edit"></a>
 
 Jakmile často vytváříš stejný druh souboru, objeví se dvě úlohy. Někdy potřebuješ mnoho verzí jednoho návrhu: kartu ve dvanácti jazycích nebo každou velikost banneru. Jindy máš několik různých uložených návrhů a chceš, aby se jedna změna dostala ke všem, třeba nové datum nebo nový nadpis.
 
-**Batch** dělá první úlohu a **Multi-edit** druhou. Obojí běží na tvém zařízení a exportuje stejnou vykreslovací cestou jako samotné nástroje.
+**Lolly Batch** dělá první úlohu a **Lolly Multi-edit** druhou. Obojí běží na tvém zařízení a exportuje stejnou vykreslovací cestou jako samotné nástroje.
 
 ::: cols
 ## Batch
@@ -10,9 +12,10 @@ Jakmile často vytváříš stejný druh souboru, objeví se dvě úlohy. Někdy
 - Jedna šablona, mnoho řádků. Každý řádek je jedna sada vstupů a vytvoří jeden soubor.
 - Řádky vyplníš psaním, vložením z tabulky nebo importem CSV.
 - Žádný limit řádků; 50 se zobrazí na stránce.
-- Otevírá se z **Batch** v záhlaví Projects (`#/batch`).
+- Otevírá se z **Lolly Batch** v záhlaví Projects (`#/batch`).
 
-## Multi-edit
+<a id="multi-edit"></a>
+## Lolly Multi-edit
 
 - Dva až osm různých uložených návrhů vedle sebe jako živé karty.
 - Jeden postranní panel upravuje vstupy, které sdílejí, pak vstupy každé karty zvlášť.
@@ -22,7 +25,7 @@ Jakmile často vytváříš stejný druh souboru, objeví se dvě úlohy. Někdy
 
 ## Vytvoř mnoho verzí jednoho návrhu
 
-Otevři **Projects** a stiskni **Batch** v jeho záhlaví. Mřížka začíná jedním řádkem: vyber v něm šablonu, pak řádek zduplikuj nebo vlož data z tabulky. Otevřený zevnitř složky tě Batch vrátí do té složky.
+Otevři zobrazení **Projects** a stiskni **Batch** v jeho záhlaví. Mřížka začíná jedním řádkem: vyber v něm šablonu, pak řádek zduplikuj nebo vlož data z tabulky. Otevřený zevnitř složky tě Batch vrátí do té složky.
 
 ![Batch na nové mřížce: název souboru a nástroje řádků nahoře a seznam šablon prvního řádku otevřený na nástrojích, které můžeš vybrat](/t/url-shot?url=%2F%23%2Fbatch&width=1440&height=900&dpi=192&waitMs=3500&walker=1&format=svg&dark=1&filename=use-batch-toolbar)
 
@@ -46,9 +49,13 @@ Každý řádek si drží vlastní volby motivu: světlý nebo tmavý a colourwa
 
 CSV nese volby ve sloupci `_themes` za sloupci velikosti, s tímtéž JSON jako parametr odkazu `_themes`, například `{"":"dark","colourway":"beach"}`. Prázdná buňka nebo `{}` znamená výchozí hodnoty designového systému. Sloupec se zapíše, jen když nějaký řádek má volby, takže dávka bez nich exportuje stejné CSV jako dřív. Při importu je buňka, která není platnou volbou motivu, uvedena jako problém a její řádek se vykreslí ve výchozích hodnotách. Mřížka zatím nemá ovládací prvek pro změnu voleb řádku, nastav je tedy v CSV nebo v uložené relaci.
 
+### Jazyk pro každý řádek
+
+Nástroj, který tiskne vlastní text, například Certificate, může brát sloupec `language` s krátkým kódem jazyka, například `de`, `ja` nebo `ar`. Každý řádek pak vytiskne svůj text a datum v tomto jazyce a řádky v arabštině a urdštině se rozloží zprava doleva. Prázdná buňka sleduje jazyk aplikace. Jazyk, jehož překlad Lolly zatím nemá, se tiskne anglicky, včetně data, takže certifikát není nikdy napůl přeložený.
+
 ### Batch, nebo Render folder
 
-Batch dělá mnoho variant jedné šablony. Chceš-li znovu vykreslit relace, které už máš uložené, vyber je v Projects a použij **Render selection**, nebo **Render folder** pro celou složku; obojí pokrývá [Najdi a obnov svou práci](/info/find-your-work.html#find-something-you-saved).
+Lolly Batch dělá mnoho variant jedné šablony. Chceš-li znovu vykreslit relace, které už máš uložené, vyber je v Projects a použij **Render selection**, nebo **Render folder** pro celou složku; obojí pokrývá [Najdi a obnov svou práci](/info/find-your-work.html#find-something-you-saved).
 
 ## Uprav několik uložených návrhů společně
 
@@ -69,7 +76,7 @@ Každá karta se kreslí ve volbách motivu vlastní relace, včetně nástroje 
 - **Nejvýše osm.** Každá karta připojuje vlastní živý runtime a osm je číslo, při kterém zůstává odezva. Odkaz žádající víc nebo relaci, která už neexistuje, to řekne, místo aby se načetl napůl.
 - **Odkaz je místní.** Jmenuje tvé vlastní uložené sloty, takže tu sadu znovu otevře na tomto zařízení. Není to sdílený odkaz.
 - **Pro cokoli většího** zvol **Edit as sheet** na stejné liště výběru. Otevře celý výběr jako řádky v mřížce dávky (`#/batch?s=…`), bez limitu velikosti a bez pravidla stejného nástroje. Složky zůstávají mimo obojí: otevři složku v mřížce přes **Sessions → Folders…** nebo ji vykresli pomocí **Render folder** v Projects.
-- **Hledání nedosáhne na Multi-edit.** Je to jediné zobrazení, o kterém vyhledávací lišta neví.
+- **Hledání nedosáhne na Lolly Multi-edit.** Je to jediné zobrazení, o kterém vyhledávací lišta neví.
 
 ## Kam dál
 

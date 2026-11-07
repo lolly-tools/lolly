@@ -11,7 +11,7 @@ _Huling sinuri: 28 Setyembre 2026._
 - [Lolly at Figma](/info/compare-figma.html) - disenyo, live na collaboration at magagamit muling asset production.
 - [Lolly at Penpot](/info/compare-penpot.html) - open-source na disenyo, shared token at gawa ng organisasyon.
 - [Lolly at mga brand portal](/info/compare-brand-portals.html) - aprubadong library, naka-lock na template, identity, review at pag-uulat.
-- [Lolly at mga rendering API](/info/compare-render-apis.html) - automated na paggawa sa device mo, sa CI o sa Lolly Work server.
+- [Lolly at mga rendering API](/info/compare-render-apis.html) - automated na paggawa sa device mo, sa CI o sa sarili mong server, at [kung paano lumipat](/info/work-move-from-render-api.html) mula sa Bannerbear o Placid.
 - [Lolly at mga online file converter](/info/compare-converters.html) - format conversion sa sarili mong device.
 
 Para sa paghahambing kada capability, tingnan ang [Paano nakikipagkumpitensya ang Lolly](/info/positioning.html). May petsa ang bawat paghahambing; ang pahayag na hindi na tumutugma sa alinman sa dalawang produkto ay kailangang itama.

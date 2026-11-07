@@ -22,7 +22,7 @@ Kies de route die past bij wat je hebt:
 
 De eerste keer dat je de galerij opent, biedt een korte welkomstboodschap dezelfde keuzes: **Make it yours** opent Design System Setup, **Bring your design** opent een bestandskiezer voor een ontwerp en **Explore the community tools** sluit de welkomstboodschap.
 
-![De kamer Colours van Design System Setup bij een verse installatie: één live chip, één veld en de hele eerste beslissing](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&system=new-design-system&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&dark=1&filename=bs-colours-new-system)
+![De kamer Colours van Lolly Design System Setup op een nieuw design system: één levende chip, één veld en de hele eerste beslissing](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&system=new-design-system&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&dark=1&filename=bs-colours-new-system)
 
 Vanaf daar brengen acht kamers het zo ver als je wilt, in elke volgorde: **Board**, **Colours**, **Type**, **Logos**, **Tokens**, **Files**, **Rules** en **Skills**. Elk voorbeeld in de app wordt bijgewerkt terwijl je typt. [Lolly Design System Setup](/info/brand-studio.html) behandelt elke kamer.
 

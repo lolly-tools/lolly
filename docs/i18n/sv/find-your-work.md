@@ -26,7 +26,7 @@ I en [arbetscollab](/info/collaborate.html#work-collabs-with-lolly-work-optional
 
 1. Tryck på **Hem** längst upp till vänster i verktyget.
 2. Öppna fliken **Projekt** högst upp på startskärmen (mappikonen på en telefon).
-3. Titta på den första skärmen. Arbete sparat i **Mitt bibliotek** finns där, och varje projekt är en mapp. För att söka i alla mappar samtidigt, skriv i **Sök i alla projekt…** längst ner på skärmen.
+3. Titta på den första skärmen. Arbete du sparat i **Mitt bibliotek** finns där, och varje projekt är en mapp. För att söka i alla mappar samtidigt, skriv i **Sök i alla projekt…** längst ner på skärmen.
 
 Ett objekt får namn efter filnamnet du skrev i exportpanelen, eller efter sitt verktyg, som **QR Code**, om du inte skrev något. Öppna objektet så är varje inställning tillbaka, redo att ändras och exporteras igen. För att behålla nytt arbete på det här sättet, se [Spara och fortsätta](/info/using.html#saving-continuing).
 
@@ -37,7 +37,7 @@ Ett objekt får namn efter filnamnet du skrev i exportpanelen, eller efter sitt 
 :::
 
 ::: details Arbeta med Projekt
-Du kan också öppna **Projekt** från **Inställningar → Lagring → Sparade sessioner → Organisera i projekt**. Det fungerar som en filhanterare:
+Du kan också öppna vyn **Projekt** från **Inställningar → Lagring → Sparade sessioner → Organisera i projekt**. Det fungerar som en filhanterare:
 
 ![Projekt innan något är sparat: rutorna Ny mapp, Ny resurs och Mallar, klockan History uppe till höger och fältet Sök i alla projekt längst ner](/t/url-shot?url=%2F%23%2Fp&width=1440&height=900&dpi=192&waitMs=1200&walker=1&format=svg&localize=1&dark=1&filename=projects)
 <!--
@@ -101,17 +101,17 @@ I verktyg som sparar medan du arbetar håller Historik kvar en kopia av de kasta
 :::
 
 ::: details Vilka verktyg som sparar medan du arbetar
-I webbappen sparar varje verktyg som skapar ett dokument medan du arbetar: Design, Chart, QR Code, Text, Sandbox och resten. De här verktygen gör det inte:
+I webbappen sparar varje verktyg som skapar ett dokument medan du arbetar: Lolly Design, Lolly Chart, QR Code, Text, Lolly Sandbox och resten. De här verktygen gör det inte:
 
 - verktyg som arbetar på en fil du tar med, som Redact, Sign eller Convert Image, eftersom Lolly aldrig behåller en kopia av den filen;
-- verktyg som spelar in från din kamera, mikrofon eller skärm, som Record, Screen Capture och Voice Recorder;
+- verktyg som spelar in från din kamera, mikrofon eller skärm, som Record, Lolly Screen Capture och Lolly Voice Recorder;
 - ett verktyg utan något att ändra, som Countdown.
 
 I de andra verktygen arkiverar din första ändring arbetet i **Projects** som om du hade sparat, och senare ändringar behålls medan du arbetar när verktyget ritat klart. En osparad skapelse finns kvar i Projects efter att du stängt fliken, och öppnas igen med sina ändringar markerade som osparade.
 
 **Leave anyway** kastar fortfarande de ändringarna, och History behåller en kopia av de kastade redigeringarna i 30 dagar. Att öppna verktyget igen från startskärmen startar en ny skapelse; öppna den tidigare från Projects.
 
-3D och Darkroom sparar medan du arbetar, men de behåller inte en fil du läser in i dem, som en 3D-modell eller en LUT. History och **Save** behåller filens namn, typ och storlek, inte filen. När du öppnar arbetet igen säger en notis vilken fil det var, och verktyget fungerar utan den tills du läser in den igen. Behåll dina originalfiler.
+3D och Lolly Darkroom sparar medan du arbetar, men de behåller inte en fil du läser in i dem, som en 3D-modell eller en LUT. Historik och **Spara** behåller filens namn, typ och storlek, inte filen. När du öppnar arbetet igen säger en notis vilken fil det var, och verktyget fungerar utan den tills du läser in den igen. Behåll dina originalfiler.
 
 Med [Synk](/info/sync.html) på går en skapelse som arkiverats på det här sättet till dina andra enheter som allt annat i Projekt. Dess versioner stannar på enheten där de gjordes.
 
@@ -147,14 +147,14 @@ På iPhone, iPad och Android ersätter en ny fil en tidigare med samma namn.
 
 För att öppna en tidigare version:
 
-1. Tryck på **Historik**, klockknappen bredvid **Ångra** och **Gör om**. I Design finns **Historik** i det övre fältet; på en telefon, tryck på **•••** och sedan **Historik**. I verktyg utan **Ångra**, som Text och Sandbox, finns **Historik** bredvid **Hem** längst upp till vänster.
+1. Tryck på **Historik**, klockknappen bredvid **Ångra** och **Gör om**. I Lolly Design finns **Historik** i det övre fältet; på en telefon, tryck på **•••** och sedan **Historik**. I verktyg utan **Ångra**, som Text och Lolly Sandbox, finns **Historik** bredvid **Hem** längst upp till vänster.
 2. Hitta versionen efter datum och tid. Raderna **Automatisk kontrollpunkt** tas medan du arbetar; raderna **Sparad version** är de tillfällen du sparade.
 3. Tryck på **Öppna som en kopia**. Versionen öppnas som en ny skapelse, och den du hade öppen förblir som den var. Kopian finns i **Projekt**, med "(copy)" efter sitt namn.
 
 För att behålla en version med ett namn, tryck på **Name version**, skriv ett namn och tryck på **Keep milestone**. Namngivna versioner listas på sidan **History**, under **Milestones**.
 
-::: details History-panelen och History-sidan
-Panelen **History** listar också rader med **Recovered work**, och **Protected drafts** håller dina senaste ändringar mellan checkpoints, med **Open draft as a copy**. **Compare** och **Check assets** hjälper dig att välja innan du öppnar en kopia. Växla **This creation** till **All history on this device** för att se varje skapelse.
+::: details Historik-panelen och Historik-sidan
+Panelen **Historik** listar också rader med **Återställt arbete**, och **Skyddade utkast** håller dina senaste ändringar mellan kontrollpunkter, med **Öppna utkast som en kopia**. **Lolly Compare** och **Kontrollera tillgångar** hjälper dig att välja innan du öppnar en kopia. Växla **Den här skapelsen** till **All historik på den här enheten** för att se varje skapelse.
 
 Automatiska kontrollpunkter glesas ut med åldern: en i minuten den senaste timmen, en i timmen det senaste dygnet, en om dagen i 30 dagar, sedan en i veckan. Sparade versioner och namngivna versioner behålls alla. Att radera en skapelse flyttar även dess versioner till **Papperskorgen**, och **Ta bort permanent** tar bort dem.
 

@@ -72,7 +72,7 @@ Lo stesso strumento alla larghezza di un telefono non richiede un secondo layout
 
 ![Un audiogramma su uno schermo largo 430px: il pannello dei controlli sopra, l'opera quadrata finita sotto e la pillola di esportazione fluttuante](/t/url-shot?url=%2F%23%2Ftool%2Faudiogram%3Faudio%3Dlolly%2Floops%2Ffireplace-loop%26title%3DField%2520notes%26subtitle%3DEpisode%252012%26style%3Dwave&width=430&height=900&dpi=192&waitMs=3200&css=%23ag-wave%7Bdisplay%3Anone!important%7D.ag-ph%7Bdisplay%3Ablock!important%7D&walker=1&format=svg&rasterDpi=110&dark=1&filename=ov2-phone-audiogram)
 
-L'app web include anche **Batch** (`#/batch`, `shells/web/src/pro/`), una griglia in stile foglio di calcolo che esegue il rendering di molte righe insieme su uno o più strumenti; [Batch e Multi-edit](/info/batch.html#make-many-versions-of-one-design) tratta Batch. **Settings → Capabilities** mappa tutto ciò che la piattaforma dichiara di saper fare.
+L'app web include anche **Batch** (`#/batch`, `shells/web/src/pro/`), una griglia in stile foglio di calcolo che esegue il rendering di molte righe insieme su uno o più strumenti; [Batch e Lolly Multi-edit](/info/batch.html#make-many-versions-of-one-design) tratta Batch. **Impostazioni → Funzionalità** mappa tutto ciò che la piattaforma dichiara di saper fare.
 
 ![Batch su un'installazione nuova: una riga vuota in attesa di uno strumento, con la superficie da foglio di calcolo e il suo pulsante Render al loro posto prima che arrivi qualsiasi dato](/t/url-shot?url=%2F%23%2Fbatch&width=1440&height=900&dpi=192&waitMs=3500&walker=1&format=svg&dark=1&filename=ov2-batch-grid)
 
@@ -141,7 +141,7 @@ Un input dichiara un `type`: `text`, `longtext`, `number`, `boolean`, `color`, `
 
 - **`asset`**, con `filter` e `allowUpload`, è il ponte verso il sistema delle risorse. `allowUpload: false` limita uno slot alle risorse della libreria, e i caricamenti degli utenti condividono la forma `AssetRef` della libreria.
 - **`blocks`** è un gruppo di campi ripetuto modificato in un pannello laterale, usato da Meeting Planner, Wayfinding, Diagrams e altri. Fare clic su un blocco disegnato porta il focus sulla sua riga.
-- **`file`** tiene in memoria il file dell'utente per utility sul dispositivo come Strip Hidden Data e Compress, e **`vector`** raggruppa un insieme fisso di numeri in un unico controllo.
+- **`file`** tiene in memoria il file dell'utente per utility sul dispositivo come Lolly Strip Hidden Data e Compress, e **`vector`** raggruppa un insieme fisso di numeri in un unico controllo.
 
 ### 9. I template sono privi di logica
 
@@ -149,7 +149,7 @@ I template sono Handlebars, scelto perché i non sviluppatori possano scriverli:
 
 ### 10. I tool compongono tool
 
-Uno strumento può incorporare il rendering di un altro strumento senza import tra strumenti; l'engine risolve la composizione. Un manifest può dichiarare `composes: [{ id, tool, inputs }]` e posizionare il figlio con `{{asset <id>}}`, e un URL di incorporamento portabile (`https://lolly.tools/tool/<id>.svg?…`) renderizza il figlio in locale, ed è così che Design inserisce un codice QR o un grafico live. Un figlio SVG resta vettoriale in un genitore SVG o PDF. I figli sono intermedi, mai con filigrana né marcati, e una shell che non può renderizzarne uno lascia lo slot vuoto mentre il genitore viene comunque renderizzato. [Composition and brand overlays](/info/tool-composition.html) ha i dettagli.
+Uno strumento può incorporare il rendering di un altro strumento senza import tra strumenti; l'engine risolve la composizione. Un manifest può dichiarare `composes: [{ id, tool, inputs }]` e posizionare il figlio con `{{asset <id>}}`, e un URL di incorporamento portabile (`https://lolly.tools/tool/<id>.svg?…`) renderizza il figlio in locale, ed è così che Lolly Design inserisce un codice QR o un grafico live. Un figlio SVG resta vettoriale in un genitore SVG o PDF. I figli sono intermedi, mai con filigrana né marcati, e una shell che non può renderizzarne uno lascia lo slot vuoto mentre il genitore viene comunque renderizzato. [Composition and brand overlays](/info/tool-composition.html) ha i dettagli.
 
 ## Cosa abbiamo scelto di non fare
 

@@ -16,7 +16,7 @@ Kedua-duanya membolehkan anda menyusun taip, bentuk dan imej pada kanvas dan bek
 
 Lolly menukar reka bentuk menjadi [alat boleh guna semula dengan peraturan](/info/create-a-tool.html). Alat berjalan dalam pelayar atau CLI dan mengambil inputnya daripada pautan, skrip atau grid kelompok, jadi satu templat melayani orang yang menyunting satu fail dan pasukan yang membuat banyak.
 
-![Kanvas terbuka Design, dengan Import a design dalam menu Lolly bar alat](/info/shots/design.svg)
+![Kanvas terbuka Lolly Design, dengan Import a design dalam menu Lolly bar alat](/info/shots/design.svg)
 
 [Collab peribadi](/info/collaborate.html) memasangkan dua peranti secara terus, tanpa akaun dan tanpa internet pada rangkaian dikongsi. Lolly kendiri merender luar talian. Content Credentials hidup secara lalai untuk eksport yang disokong, dan anda boleh mematikannya.
 

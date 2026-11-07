@@ -1,5 +1,7 @@
 # Design: ang malayang canvas
 
+<a id="design-the-free-canvas"></a>
+
 Ang Design ang tool para sa mga layout na hindi sakop ng template: poster mula sa simula, deck ng mga slide, motion piece na may soundtrack. Sa halip na form ng mga kontrol, may canvas ka ng mga kahon na dina-drag, nire-resize, ini-rotate at tina-typan mo. Nag-e-export ito sa parehong render path ng bawat ibang tool, kaya ang nakikita mo sa canvas ay ang file na makukuha mo.
 
 Dinadaanan ng pahinang ito ang canvas mula sa unang kahon hanggang sa tapos na deck: ang window, paghubog ng mga kahon, pagguhit ng sarili mong mga hugis, paglalagay ng 3D scene at ibang tool, pagdaragdag ng oras, pag-check ng resulta at pagpe-present ng tapos na deck. Sinasaklaw ng [Paggamit ng Lolly](/info/using.html) ang pinagsasaluhan ng Design at bawat tool, tulad ng pag-save at pagbabahagi.
@@ -27,7 +29,7 @@ Gumagana ang canvas tulad ng pasteboard ng designer sa paligid ng artboard:
 
 Inililista ng **Navigator** ang bawat artboard (may heading na **Artboards**, o **Slides** sa deck) bilang nakatiklop na grupo ng mga **Layers** nito. Piliin ang pangalan ng artboard para pumunta roon, palawakin ito para pumili o mag-reorder ng mga layer at gamitin ang mga arrow key para lumipat sa listahan; ang Left ay bumabalik sa heading ng artboard. Ang **Pages** ay nagpapangkat ng mga artboard sa mga pinangalanang page, at ang pagpili ng page ay nagbabago lang kung aling mga artboard ang ipinapakita ng editor.
 
-Inilalagay ng **Inspector** sa unahan ang mga kontrol ng text o larawan ng napiling bagay. Sinasaklaw ng mga option chip ang mabilis na pagpili, at hawak ng **Advanced** ang detalye ng styling. Sa phone, bumubukas ang Inspector bilang sheet mula sa **More actions**; isinasara ng Escape o Back ang sheet at pinapanatili ang seleksyon mo.
+Inilalagay ng **Inspector** sa unahan ang mga kontrol ng text o larawan ng napiling bagay. Sinasaklaw ng mga option chip ang mabilis na pagpili, at hawak ng **Advanced** ang detalye ng styling. Sa phone, nagbabahagi ang Inspector at ang listahan ng mga layer ng isang panel na bumababa mula sa ilalim ng top bar, ang parehong panel na pinaglalagyan ng mga kontrol ng bawat ibang tool. Binubuksan ng **Inspect** at **Layer/Page** sa bar sa ibaba ang panel sa tab nito. I-drag ang handle sa ibabang gilid nito, o i-tap ang handle, para ilipat ang panel sa pagitan ng strip na may dalawang tab, kalahati ng screen at halos buong screen. Kapag nasa kalahati, ipinapakita ng canvas sa ibaba ng panel ang seleksyon mo. Ibinabalik ng Escape ang panel sa strip at pinapanatili ang seleksyon mo.
 
 ![Ang Document section ng Inspector: ang mga tab na Selection at Canvas, saka ang Dimensions at Style & look](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3Dfeature-tour&width=1440&height=900&dpi=192&waitMs=3500&cropSelector=.fc-insp&walker=1&format=svg&dark=1&filename=design-narration)
 
@@ -241,6 +243,8 @@ Binubuksan ng arrow sa tabi ng **Present** ang **Present from this slide**, **Sp
 | **Escape** | Tanggalin ang isang patong: overview papunta sa deck, deck papunta sa editor |
 
 Lumalabas ang maliit na control bar kapag ginalaw mo ang pointer at nagtatago muli kapag huminto ka. Kung hinarang ng browser ang speaker pop-up, bumubukas ang speaker view bilang panel sa ibabaw ng deck. Ang mga note ay pag-aari ng bawat artboard at hindi kailanman lumalabas sa slide.
+
+Sa touch screen, mag-swipe pakaliwa para sa susunod na hakbang o slide at pakanan para bumalik. Sinusundan ng daliri mo ang transition na **Slide** o **Fade** at natatapos kapag binitawan mo; ang transition na **Cut**, **Morph** o **Fly between artboards** ay tumatakbo nang buo kapag binitawan mo, at walang binabago ang maikli at mabagal na swipe. Pinananatili ng mga web page box, video control, box na nag-i-scroll at napiling text ang sarili nilang mga galaw, kaya hindi kailanman nagsisimula sa isa sa mga ito ang swipe, at gumagana gaya ng dati ang vertical scrolling at pinch zoom. Sa reduced motion, nagbabago pa rin ang slide, nang hindi sinusundan ang daliri mo.
 
 - **Mga reveal step.** I-right-click ang kahon at piliin ang **Reveal at step 1**, **2** o **3** sa halip na **Always visible**, at maghihintay ang kahon hanggang umabante ka sa hakbang nito. Sabay na dumarating ang mga kahong may parehong numero.
 - **Kiosk.** Bigyan ang artboard ng **Length** at mananatili ang deck doon nang ganoon katagal, saka aabante sa likod ng manipis na progress bar. Idagdag ang `kiosk` sa link at bumabalot ang deck sa dulo, para sa signage.

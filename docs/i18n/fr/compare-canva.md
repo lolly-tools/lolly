@@ -14,9 +14,9 @@ Les deux permettent de partir d'un modèle et de produire un graphisme terminé 
 
 ## Comment Lolly fait la tâche commune
 
-Un outil Lolly encode les changements que les gens peuvent faire, et le même outil s'exécute dans le navigateur, l'application de bureau ou la CLI. Une mise en page créée sur le canevas Design peut devenir un [outil avec des règles](/info/create-a-tool.html), et un outil peut produire beaucoup de fichiers à partir d'un tableau de valeurs.
+Un outil Lolly encode les changements que les gens peuvent faire, et le même outil s'exécute dans le navigateur, l'application de bureau ou la CLI. Une mise en page créée sur le canevas Lolly Design peut devenir un [outil avec des règles](/info/create-a-tool.html), et un outil peut produire beaucoup de fichiers à partir d'un tableau de valeurs.
 
-![Le canevas libre de Design, où les couleurs, polices et ressources proposées sont celles du design system](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&dark=1&filename=aud-open-canvas)
+![Le canevas libre de Lolly Design, où les couleurs, polices et ressources proposées sont celles du design system](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&dark=1&filename=aud-open-canvas)
 
 Lolly autonome continue de créer et d'exporter sur l'appareil, sans compte, et fonctionne hors ligne une fois ses ressources enregistrées. Deux personnes peuvent modifier en direct dans une [collab privée](/info/collaborate.html), d'appareil à appareil. Les Content Credentials sont activés par défaut pour les exports pris en charge, et tu peux les désactiver.
 

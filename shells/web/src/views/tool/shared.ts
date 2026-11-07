@@ -169,7 +169,7 @@ export interface ExportDefaults {
   unit?: string;
   dpi?: number;
   profile?: string;
-  /** Spot inks as process from ?_spots=process (engine 1.322): ticks the Colour profile
+  /** Spot inks as process from ?_spots=process (engine 1.323): ticks the Colour profile
    *  card's "Print spot inks as process" box. Opt-in, so only a link that asks sets it;
    *  never restored from a saved session. */
   spots?: boolean;

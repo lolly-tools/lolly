@@ -2,6 +2,8 @@
 
 Twoja organizacja może prowadzić własne Lolly: tę samą aplikację z narzędziami i systemami projektowymi, które wybrała. Ta strona pokazuje, jak do niej dotrzeć, jak się zalogować i co się zmienia po zalogowaniu.
 
+Jeśli planujesz konfigurację organizacji, [Use Lolly with your existing DAM](/info/use-with-dam.html) wyjaśnia, jak zatwierdzona biblioteka może pozostać na miejscu, podczas gdy ludzie zaczynają tworzyć treści w Lolly. [Content sovereignty](/info/content-sovereignty.html) opisuje szerszą kontrolę nad tworzeniem, nadzorem, przechowywaniem i przenoszeniem.
+
 ::: note Czego potrzebujesz od swojej organizacji
 Adresu internetowego jej Lolly albo pliku instalacyjnego `.lolly`, który przygotowała twoja organizacja. Samo lolly.tools nie łączy się z żadną organizacją.
 :::
@@ -10,13 +12,13 @@ Adresu internetowego jej Lolly albo pliku instalacyjnego `.lolly`, który przygo
 
 Otwórz adres podany przez organizację. Jeśli strona prosi o zalogowanie, naciśnij **Sign in** i postępuj według otwartej strony logowania. Potem działa jak każde Lolly, z narzędziami i systemami projektowymi Twojej organizacji.
 
-Możesz też zacząć od lolly.tools: otwórz **Settings**, na karcie **Lolly instance** naciśnij **Open a workspace**, wpisz adres i naciśnij **Open this instance**. Przeglądarka przechodzi na własny adres Twojej organizacji, ponieważ przeglądarka nie może załadować narzędzi innego Lolly z lolly.tools.
+Możesz też zacząć od lolly.tools: otwórz widok **Settings**, na karcie **Lolly instance** naciśnij **Open a workspace**, wpisz adres i naciśnij **Open this instance**. Przeglądarka przechodzi na własny adres Twojej organizacji, ponieważ przeglądarka nie może załadować narzędzi innego Lolly z lolly.tools.
 
 ![Karta Lolly instance w Settings, na której otwierasz przestrzeń roboczą organizacji lub zmieniasz źródło narzędzi aplikacji](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dinstance-section&width=1440&height=1400&dpi=192&waitMs=2000&format=svg&cropSelector=%23instance-section&walker=1&dark=1&filename=org-instance-card)
 
 ## W aplikacji desktopowej lub mobilnej
 
-Aplikacja startuje z wbudowanymi narzędziami. Aby się połączyć, otwórz **Settings** i naciśnij **Change** na karcie **Lolly instance**. Arkusz pyta **Where should Lolly get its tools?**
+Aplikacja startuje z wbudowanymi narzędziami. Aby się połączyć, otwórz widok **Settings** i naciśnij **Change** na karcie **Lolly instance**. Arkusz pyta **Where should Lolly get its tools?**
 
 1. Wybierz **Połącz się z instancją Lolly**.
 2. Wpisz adres internetowy swojej organizacji i naciśnij **Sprawdź i połącz**.

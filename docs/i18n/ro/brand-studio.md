@@ -1,6 +1,8 @@
-# Design System Setup
+# Lolly Design System Setup
 
-Logoul, culorile și fonturile tale aparțin unui singur loc, ca fiecare instrument, pagină și export să deseneze cu ele. Acel loc este **Design System Setup**, la `#/start`.
+<a id="design-system-setup"></a>
+
+Logo-ul, culorile și fonturile tale aparțin unui singur loc, ca fiecare instrument, pagină și export să deseneze cu ele. Acel loc este **Lolly Design System Setup**, la `#/start`.
 
 Începe cu ce ai. Plasează un logo și Lolly îi citește culorile. Alege un font sau plasează fișierul de font licențiat de compania ta. Fiecare schimbare apare imediat în toată aplicația. Logoul, fonturile și tokenurile tale rămân pe acest dispozitiv. Alegerea unui Google Font este singurul pas care iese afară: Lolly întreabă mai întâi, apoi preia familia o dată.
 
@@ -94,9 +96,9 @@ Camera crește odată cu sistemul de design: o primă vizită este o singură de
 
 ### Prima culoare
 
-Un sistem fără culori proprii se deschide pe un chip mare și un câmp, cu o linie care spune că rolurile, nuanțele și setările de tipar sosesc pe măsură ce sistemul crește.
+Un sistem fără culori proprii arată neutrele starter-ului, deschise în propriul grup, iar în partea de sus a camerei un câmp punctat de lipire și plasare: un chip mare și un câmp. Plasează o imagine sau o listă de culori oriunde pe câmp, iar Lolly citește culorile din ce ai plasat.
 
-- **Chip-ul este selectorul.** Apasă **Pick a colour** și se deschide cardul OKLCH al studioului, completat cu ce conține câmpul: un nume, roata, cele patru cadrane, alfa și **Stored as**, cu **Cancel** și **Add colour** jos. Nimic nu ajunge în sistem până nu apeși **Add colour**.
+- **Chip-ul este selectorul.** Apasă **Pick a colour** și se deschide cardul OKLCH al studioului, completat cu ce conține câmpul: mai întâi numele și hex-ul culorii, apoi spațiile de culoare, roata, cele patru cadrane și alfa sub **Fine-tune**, cu **Cancel** și **Add colour** jos. Nimic nu ajunge în sistem până nu apeși **Add colour**.
 - **Câmpul acceptă orice notație**: `#e0452b`, `rgb(224 69 43)`, `oklch(58% .19 32)` sau un nume de culoare. Lipește o listă și devine un rând de chip-uri de adăugat pe rând sau cu **Add all**.
 - **Încă două căi de intrare.** **Pick a colour from the screen** folosește pipeta unde browserul are una, iar **Take colours from an image** citește o captură de ecran sau o fotografie de pe acest dispozitiv.
 - **Add nu este niciodată dezactivat.** Cu câmpul gol, deschide selectorul; un text pe care nu îl poate citi primește sub câmp o linie care spune asta.
@@ -106,23 +108,65 @@ Prima ta culoare devine **primara**, iar un chip o confirmă, precum *„Primary
 
 ### Pe măsură ce paleta crește
 
-Culorile tale stau lângă o previzualizare **In context** pe un ecran lat și deasupra ei pe unul mai mic. Previzualizarea arată un afiș, o diagramă sau un card de interfață în paleta ta. Culorile starter rămân în propriul grup pliabil.
+Culorile tale stau lângă o previzualizare **In context** pe un ecran lat și deasupra ei pe unul mai mic. Previzualizarea arată un afiș, o diagramă sau un card de interfață în paleta ta. Culorile starter rămân în propriul grup pliabil, care se pliază odată ce sistemul are culori proprii, iar câmpul de lipire și plasare devine un singur rând compact. Exportul se află în **Export** din bară și în camera Tokens, așa că antetul camerei nu are unul.
 
 ![Camera Colours pe Lolly Demo: paleta în grupuri pliabile, fiecare culoare cu numele și hex-ul ei, și descărcarea paletei în antet](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-roles-fold%5D%3Esummary%3Bwait%3A500&format=svg&walker=1&localize=1&dark=1&filename=brand-colours)
 
-![Camera Colours după adăugarea unei culori, cu paleta ei și o previzualizare live a compoziției](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dpick&width=1440&height=840&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-editor-add%5D%3Bwait%3A900&format=svg&walker=1&dark=1&filename=bs-colour-first)
+![Camera Colours pe Lolly Demo după adăugarea unei culori: tabelul Colour roles, apoi chip-ul noii culori cu Use as Lead? și Fine-tune, lângă o previzualizare live a compoziției](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dpick&width=1440&height=840&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-editor-add%5D%3Bwait%3A900&format=svg&walker=1&dark=1&filename=bs-colour-first)
 
-### Roluri: ce citesc instrumentele
+### Colour roles: cum se numesc culorile
 
-![The Colour roles table on Lolly Demo after choosing the suggested words Main, Accent, Supporting and Tertiary: the colourway chips, then each role with its light and dark colour, Main read as the lead colour and Accent as the partner colour, Supporting and Tertiary read by name only and marked Copied, and the readings no role fills listed under the table](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&system=wefthouse&width=2720&height=2000&dpi=192&waitMs=1800&cropSelector=%5Bdata-be-roles-fold%5D&format=svg&walker=1&dark=1&filename=bs-colour-roles)
+Sistemul de design spune cum se numesc culorile lui și la ce folosește fiecare, iar Lolly citește asta. **Colour roles** se află la începutul camerei Colours. Pe un ecran lat **In context** împarte vederea, așa că o schimbare apare pe afiș, diagramă și cardul de interfață pe măsură ce o faci.
 
-**Roles** spun ce culoare joacă fiecare parte în fiecare instrument și export. Sunt opționale (trei culori libere și niciun rol este un sistem perfect bun), orice culoare poate primi unul, iar citirea contrastului este măsurată față de suprafață, mai întâi APCA. Fiecare rând de rol arată o culoare proprie la intensitate deplină, o culoare starter care ține locul sau **↳ follows Primary**.
+![Tabelul Colour roles pe Wefthouse, un brand textil inventat, în cuvintele lui: chip-urile de colourway Indigo, Madder și Weld, apoi Main, Accent, Supporting și Tertiary, fiecare cu culoarea lui luminoasă și întunecată, citite ca culoarea principală, culoarea partenerului și doar după nume, iar Background, Text, Quiet text și Hairlines sunt listate sub tabel ca citiri pe care niciun rol nu le umple](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&system=wefthouse&width=2720&height=2000&dpi=192&waitMs=1800&cropSelector=%5Bdata-be-roles-fold%5D&format=svg&walker=1&dark=1&filename=bs-colour-roles)
 
-Odată ce paleta are nuanțe, banda arată toate cele șapte roluri pe care le poate citi un instrument: Primary, Secondary, Surface, Text, Muted, Edge și On primary. On primary este derivat din primară, scrie **Derived** și nu are selector.
+Tabelul are patru coloane, iar pe telefon fiecare rând devine un card care ține aspectul luminos și pe cel întunecat unul lângă altul:
+
+| Coloană | Ce conține |
+|---|---|
+| **Role** | Cuvântul propriu al sistemului de design, pe care îl poți edita pe loc, și o linie care spune la ce folosește culoarea |
+| **Light** și **Dark** | Culoarea în acel aspect pentru colourway-ul ales, cu numele sau valoarea ei și contrastul |
+| **Lolly reads this as** | Ce face un instrument cu rolul, în cuvintele proprii ale Lolly |
+
+**Cum citește Lolly un rol.** Fiecare citire ia un singur rol, deci alegerea unei citiri pe care o deține alt rol mută acea citire aici. Lolly nu deduce niciodată sensul dintr-un cuvânt.
+
+| Citire | Ce urmează din ea |
+|---|---|
+| **Lead colour** | Forme mari, butoane, culoarea cu care pornește un instrument |
+| **Partner colour** | A doua culoare la care ajunge un instrument |
+| **Background** | Stă în spatele tuturor celorlalte |
+| **Text** | Titluri și text de corp |
+| **Quiet text** | Legende și text mărunt |
+| **Hairlines** | Linii, borduri și separatoare |
+| **By name only** | Niciun instrument nu alege rolul singur. Este oferit în fiecare câmp de culoare și în Design, unde o alegere rămâne legată, deci urmează colourway-ul |
+
+O citire pe care niciun rol nu o umple rămâne așa cum o definește sistemul de design, iar camera le listează sub tabel. Un rol care are același id cu o citire, precum un rol numit Primary, este acea citire și nu poate fi mutat.
+
+**Valori.** Apasă o valoare ca să alegi o culoare pentru acel rol, în acel aspect, în colourway-ul ales. **Same as light** face ca valoarea întunecată să o urmeze pe cea luminoasă până alegi o culoare proprie. Chip-ul **Aa** arată textul pe care Lolly îl alege ca să stea pe culoare, iar linia de sub valoare spune cum se citește acel text, pe aspect: **Text reads well**, **Large text only** sau **Hard to read as text**. Asta privește textul pe culoare și nu spune nimic împotriva culorii în sine, care poate funcționa în continuare pentru forme și suprafețe mari. Un rol citit doar după nume arată aceleași cuvinte fără culoarea de avertizare, pentru că niciun instrument nu pune text pe el singur. Cifrele din spatele cuvintelor, APCA mai întâi și WCAG al doilea, sunt în tooltip și în selector. **Own text colour** marchează o valoare al cărei fișier declară culoarea textului, care rămâne. **Copied** marchează o valoare venită din alt colourway sau din culoarea partenerului și pe care nimeni nu a ales-o încă; **Keep this colour** din selector fixează valoarea.
+
+**Puncte de pornire.** Un sistem de design fără roluri proprii arată cuvintele de azi: Primary, Secondary, Surface și Text. Nimic nu se scrie până nu schimbi unul. **+ Add a role** oferă **Primary, Secondary** sau **Main, Accent, Supporting, Tertiary** ca sugestii, sau orice cuvinte tastezi, cu citirea pe care ar primi-o fiecare. Primele două cuvinte devin culoarea principală și culoarea partenerului. Instrumentele desenează în continuare aceleași culori, iar pe un sistem cu o singură culoare principală primul colourway poartă numele acelei culori.
+
+**Redenumire, reordonare, eliminare.** O redenumire schimbă doar cuvântul, deci tot ce folosește rolul continuă să funcționeze. Trage un rol de mâner sau apasă Space pe mâner, folosește tastele săgeată și apasă Space ca să-l lași. **Remove** spune ce mai folosește rolul. Când îl citesc instrumente, **Remove and keep those colours** lasă fiecărei citiri culoarea pe care o desenează acum. O regulă de casă, un grup de ghid, un câmp de instrument sau alt token care folosește rolul îl reține până se schimbă acea folosire. Un document Design salvat poate folosi și el un rol după nume, iar Lolly nu poate vedea asta din fișierul de tokenuri: un document care o face raportează culoarea ca nerezolvată.
+
+**Un fișier scris de mână.** Culorile pe care le conține un fișier de tokenuri și pe care niciun rol nu le declară sunt listate sub **In this file, with no role yet**, fiecare cu un câmp pentru un cuvânt și **Make a role**. Continuă să funcționeze după nume în ambele cazuri. Un token cu cifre în nume nu poate fi rol, așa că rămâne în fișier și continuă să funcționeze după calea lui. O înregistrare din fișier care nu se validează arată tabelul fără controale și spune de ce.
+
+**Restul camerei vorbește aceleași cuvinte.** Chip-urile, rândul **Use as** al mostrei și grupul **Colour roles** al paletei folosesc toate cuvintele sistemului de design, iar tile-ul unui rol de culoare își deschide valoarea. Fișierele exportate nu înregistrează nimic nou despre roluri: culorile dintr-o randare se schimbă pentru că s-au schimbat tokenurile.
+
+**Unde ajung cuvintele.** Cuvintele și descrierile călătoresc cu sistemul de design. Agenții le citesc în brieful de design, în `lolly://tokens` și în `AGENTS.md` al unei pagini de brand, terminalul le arată în `lolly system status`, iar o pagină de brand le listează în `brand.json` și măsoară o pereche de contrast pentru fiecare rol. Fiecare format de export păstrează ce are loc să păstreze: fișierele DTCG și Tokens Studio păstrează tot, `DESIGN.md` păstrează cuvintele și citirile, iar o temă PowerPoint păstrează doar ordinea brandului. [Colour roles în alte formate](/info/design-tokens.html#colour-roles-in-other-formats) are lista completă. Cuvintele sunt întotdeauna citate ca date ale sistemului de design, niciodată citite ca instrucțiuni.
+
+**Unde se alege o culoare.** Fiecare câmp de culoare dintr-un instrument și din Lolly Design începe cu rolurile sistemului de design, în ordinea lui, cu fiecare cuvânt și cu ce face culoarea la vedere. **Aa** de lângă un rol alege culoarea care stă pe acel rol. Restul urmează sub **Other colours**, fără copiile proprii ale unui colourway, culorile „On” (text pe rol) și orice citire pe care un rol o umple deja. O alegere rămâne legată de rol și urmează colourway-ul, câmpul continuă să arate cuvântul oricare colourway ar fi ales, iar Settings și Tokens folosesc și ele cuvântul. Un sistem de design fără roluri păstrează grila de mostre pe care a avut-o dintotdeauna.
+
+### Fiecare culoare pe care o citește un instrument
+
+Cu **Colour roles** închis, primele decizii conduc camera ca chip-uri, fiecare arătând culoarea care joacă rolul și numele ei. Pe un sistem fără cuvinte proprii acestea sunt **Primary**, **Secondary**, **Surface** și **Text**. Apasă un chip ca să alegi culoarea lui dintre mostrele proprii ale paletei. **Every colour a tool reads**, la baza **Colour roles**, are banda completă.
+
+Banda arată cele șapte culori pe care le poate citi un instrument: Primary, Secondary, Surface, Text, Muted, Edge și On primary, în cuvintele proprii ale sistemului de design acolo unde le are. Fiecare joacă aceeași parte în fiecare instrument și export. Niciuna nu trebuie setată (trei culori libere sunt un sistem bun), orice culoare poate umple una, iar citirea spune cum se citește textul, măsurat față de suprafață, mai întâi APCA. Fiecare rând arată o culoare proprie la intensitate deplină, o culoare starter care ține locul sau **↳ follows Primary**.
+
+On primary este derivat din primară, scrie **Derived** și nu are selector. Comutatorul **Light** și **Dark** de lângă el și cel de lângă **In context** aleg ce aspect arată banda, paleta și previzualizarea.
 
 Accentul propriu al aplicației urmează implicit sistemul de design. Aceasta este setarea **Interface follows the design system** din **Settings → Appearance**; oprirea ei lasă interfața aplicației neutră, în timp ce instrumentele, canvasurile și exporturile urmează sistemul de design în ambele cazuri.
 
-**Colourway-uri.** Un sistem de design poate conține mai multe culori principale, alese pe piesă. Rândul **Variante de culoare** de la începutul **Roluri de culoare** arată câte un chip pentru fiecare colourway, cu **Implicit** pe cel canonic. **+ Adaugă** începe un colourway nou dintr-o culoare a paletei. Alege un chip, iar banda de roluri, paleta și previzualizările editează acel colourway, în aspectul ales de comutatorul **Luminos** și **Întunecat**; colourway-ul ales poate fi redenumit, duplicat, făcut implicit sau eliminat. Într-un sistem cu colourway-uri, fiecare colourway are nevoie de propria primară și secundară și de propria suprafață când colourway-urile nuanțează fundalul, deci acele roluri rămân setate în editorul de mostre. [Adaugă colourway-uri unui sistem de design](/info/colourways.html#add-colourways-to-a-design-system) are pașii și formatul tokenurilor, iar [Lolly Demo în uz](/info/lolly-demo-in-use.html#colourways-on-real-work) arată colourway-uri pe muncă reală.
+**Colourway-uri.** Un sistem de design poate conține mai multe culori principale, alese pe piesă. Rândul **Colourways** de la începutul **Colour roles** arată câte un chip pentru fiecare colourway, cu **Default** pe cel canonic. **+ Add** începe un colourway nou dintr-o culoare a paletei. Alege un chip, iar tabelul, banda, paleta și previzualizările arată acel colourway; colourway-ul ales poate fi redenumit, duplicat, făcut implicit sau eliminat. Pe un sistem cu colourway-uri, fiecare colourway are nevoie de propria primară și secundară și de propria suprafață când colourway-urile nuanțează fundalul, deci acele roluri rămân setate în editorul de mostre. [Adaugă colourway-uri unui sistem de design](/info/colourways.html#add-colourways-to-a-design-system) are pașii și formatul de tokenuri, iar [Lolly Demo în uz](/info/lolly-demo-in-use.html#colourways-on-real-work) arată colourway-uri pe lucru real.
 
 ### Găsește mai multe culori
 
@@ -165,7 +209,7 @@ Patru secțiuni pliate stau sub previzualizare și roluri. Fiecare se deschide d
 
 ### Paleta și fiecare mostră
 
-Paleta listează culorile tale în grupuri pliabile, fiecare cu propriul **+ Add**. Creează și redenumește grupuri după plac. Un rol nu face niciodată o a doua tilă: o tilă către care indică un rol poartă în schimb o mică marcă (**P**, **S**, **Su**, **T**). **Colour chart** sub tile arată aceleași culori pe **Wheel** OKLCH (trage un punct ca să recolorezi, fă clic pe spațiu gol ca să adaugi o mostră) și pe diagrama **Gamut**, care arată unde se termină gama afișabilă. `#/start?area=color&focus=chart` deschide direct diagrama.
+Paleta listează culorile tale în grupuri pliabile, fiecare cu propriul **+ Add**. Creează și redenumește grupuri după cum vrei. Un rol nu face niciodată un al doilea tile: un tile spre care arată un rol poartă în schimb numele rolului, precum **Primary**. **Colour chart** sub tile-uri arată aceleași culori pe **Wheel** OKLCH (trage un punct ca să recolorezi, dă clic pe spațiu gol ca să adaugi o mostră) și pe graficul **Gamut**, care arată unde se termină gama afișabilă. `#/start?area=color&focus=chart` deschide direct graficul.
 
 ![Panoul paletei, fiecare grup putând fi restrâns, cu descărcarea paletei în antet](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dgenerate%26seed%3D%2523e0452b&width=1440&height=1000&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-roles-fold%5D%3Esummary%3Bwait%3A500%3Bclick%3A%5Bdata-be-add-ramp%3D%22primary%22%5D%3Bwait%3A1200&cropSelector=.be-split-side&walker=1&format=svg&dark=1&filename=bs-palette-pane)
 
@@ -173,19 +217,19 @@ Paleta listează culorile tale în grupuri pliabile, fiecare cu propriul **+ Add
 
 Fă clic pe o mostră ca să-i deschizi editorul:
 
-- **Rename** mostra.
-- **Setează culoarea** pe glisoare OKLCH sau în **Hex**, **HSL**, **RGB** sau **CMYK**. Câmpul de valoare citește și scrie în spațiul activ. CMYK aici setează culoarea de ecran prin conversie; pentru a fixa cerneluri exacte, folosește **Print substitutes**.
-- **Stored as** alege cum este salvată mostra: **LCH** (implicit, perceptual și gamă largă), Hex, RGB sau HSL.
-- **Use as** dă mostrei direct un rol. Apasă din nou un rol evidențiat ca să-l ștergi.
-- **Print substitutes** (pliat): blochează **CMYK** de la **Auto** la valori exacte de cerneală sau setează o **Spot colour** cu un **Name** (precum `PANTONE 186 C`), un **Book** opțional și un **Finish** pentru folie, embosare, debosare, lac selectiv, soft touch sau tăiere, falț ori perforație. O presă folosește aceste blocări când exporți un PDF sau TIFF CMYK; vezi [Profiluri de culoare](/info/exporting.html#colour-profiles).
-- **In other spaces** (pliat): o valoare pe spațiu de culoare, derivată sau creată de tine, iar cea creată de tine câștigă la export.
+- **Rename** pentru mostră.
+- **Set the colour** pe cursoare OKLCH sau în **Hex**, **HSL**, **RGB** sau **CMYK**. Câmpul de valoare citește și scrie în spațiul activ. CMYK aici setează culoarea de ecran prin conversie; ca să fixezi cerneluri exacte, folosește **Print substitutes**.
+- **Stored as** alege cum este salvată mostra: **LCH** (implicit, perceptual și cu gamă largă), Hex, RGB sau HSL.
+- **Use as** dă mostrei direct un rol, în cuvintele proprii ale sistemului de design acolo unde le are. Apasă din nou un rol evidențiat ca să-l ștergi.
+- **Print substitutes** (pliat): blochează **CMYK** de la **Auto** la valori exacte de cerneală sau setează o **Spot colour** cu un **Name** (precum `PANTONE 186 C`), o **Book** opțională și un **Finish** pentru folie, embosare, debosare, lac selectiv, soft touch sau o tăiere, un plisaj sau o perforație. O tipografie folosește aceste blocări când exporți un PDF sau TIFF CMYK; vezi [Profiluri de culoare](/info/exporting.html#colour-profiles).
+- **In other spaces** (pliat): o valoare pe spațiu de culoare, derivată sau scrisă de tine, iar una scrisă de tine câștigă la export.
 
 **Ștergerea unei mostre** este sigură. Nuanțele derivate și rolurile de temă sunt ascunse, deci nimic care le citește nu se strică, în timp ce culorile adăugate de tine sunt eliminate.
 
 ::: details Lucrul cu multe mostre
 Fiecare mostră are un mâner de tragere. Trage ca să reordonezi în grup sau pune focus pe mâner, apasă Space, folosește tastele săgeți și apasă din nou Space ca să plasezi; Escape anulează. Pe telefon, paleta arată patru culori pe rând, iar mânerele apar în modul Select, nu ca un rând sub fiecare culoare. Ca să muți culori între grupuri, folosește controlul **Group** al editorului sau selectează mai multe și folosește **Move to**.
 
-Selecția nu are nevoie de un mod. Bara apare cu prima tilă selectată și dispare cu ultima.
+Selecția nu are nevoie de un comutator separat. Bara și casetele de bifare apar cu primul tile selectat și dispar cu ultimul.
 
 - **Trage pe spațiu gol** ca să desenezi un dreptunghi; fiecare tilă atinsă intră în selecție, între grupuri. O secțiune pliată nu adaugă nimic.
 - **Shift-clic** ia un interval în ordinea de citire, **Cmd/Ctrl-clic** comută o tilă, iar un clic simplu deschide editorul.
@@ -245,11 +289,11 @@ Tokenurile sunt valorile cu nume din spatele sistemului de design: culori, fontu
 
 - **Antetul** dă un exemplu din propriul sistem (*Primary is Spearmint, #033633*) și acțiunile de fișier: **Download** (întregul sistem ca design tokens sau paleta în alte cinci formate), **Copy CSS** și **Add from…** pentru a citi înapoi un fișier JSON.
 - **Tilele** numără fiecare fel de token și sar la secțiunea lui: Colours, Type, Logos, Shape and spacing, More și All tokens. Numără ce conține fiecare secțiune; o secțiune care conține doar ce a venit cu starterul gol poartă o etichetă **Starter**, iar un sistem venit cu aplicația își numără propriul material fără etichetă. Pe telefon, tilele se împachetează pe două rânduri de câte trei.
-- **Colours** începe cu perechile pe care instrumentele le pun împreună (text pe suprafață, pe primară, estompat pe suprafață) cu o citire APCA în deschis și închis și semnalează **Weak contrast** unde o pereche nu ajunge. Apoi fiecare grup de culori: o rampă ca un rând de chip-uri, alte culori cu valoarea lor și referința pe care o folosesc instrumentele, precum `{color.brand.spearmint}`. Apasă o referință ca s-o copiezi. **Edit in Colours** deschide un grup în camera Colours.
+- **Colours** începe cu perechile pe care instrumentele le pun împreună (text pe suprafață, pe primară, estompat pe suprafață) cu o citire APCA în deschis și închis și semnalează **Weak contrast** unde o pereche nu ajunge. Apoi fiecare grup de culori: o rampă ca un rând de chip-uri, alte culori cu valoarea lor și referința pe care o folosesc instrumentele, precum `{color.brand.spearmint}`. Apasă o referință ca s-o copiezi. **Edit in Colours** deschide un grup în camera Colours. Într-un sistem de design cu [roluri de culoare](#colour-roles-what-the-colours-are-called), **Colour roles** vine primul, cu fiecare rol o singură dată, în cuvintele și ordinea proprii ale sistemului. Un rol păstrează o culoare pentru fiecare variantă de culoare și look, iar acele culori rămân la rol, în loc să apară ca culori de sine stătătoare: schimbă-le în tabelul Colour roles.
 - **Type** și **Logos** listează fontul pentru fiecare rol și fiecare slot de logo, cu **Edit in Type** și **Edit in Logos** odată ce ai ale tale.
 - **Shape and spacing** conține **Rounded corners** (`shape.radius`) și **Spacing rhythm** (`space.base`). Fiecare scrie *Lolly default* până miști glisorul și *Yours* după aceea, se salvează imediat și poate fi anulat.
 - **More tokens** adaugă spațiere, dimensionare, grosimea conturului, opacitate, rotire, numere simple și umbre, stocate ca [design tokens](/info/design-tokens.html) standard.
-- **App appearance (advanced)** listează culorile, dimensiunile și umbrele pe care le folosesc ecranele proprii ale Lolly, iar **Inspect every token (advanced)** caută și editează orice valoare stocată, arătând mai întâi fiecare schimbare spre revizuire.
+- **App appearance (advanced)** listează culorile, dimensiunile și umbrele pe care le folosesc ecranele proprii ale Lolly, iar **Inspect every token (advanced)** caută și editează orice valoare stocată, arătând mai întâi fiecare schimbare spre revizuire. Acolo, valorile unui rol de culoare în fiecare variantă de culoare sunt listate cu rolul: alege tokenul rolului ca să vezi un rând pe variantă de culoare, luminos și întunecat unul lângă altul, iar linia de numărare spune câte valori conțin rolurile. Un sistem de design numai pentru citire arată aceeași listă.
 
 O secțiune fără nimic în ea oferă calea de a umple golul: **Pick a colour**, **Choose a face** sau **Add a logo**.
 
@@ -261,20 +305,22 @@ Plasează fișierele pe care le păstrează brandul tău, în afară de logouri:
 
 **Rules** pune alegerile brandului tău la treabă: ce pot schimba oamenii, ce rămâne fix și ce poate verifica Lolly.
 
-![Rules pe Lolly Demo: un card Brand rules gol cu Add your first rule, apoi Try your brand in use cu exemplele lui gata de randat](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dusage&width=1440&height=1200&dpi=192&waitMs=2400&cropSelector=%23start-panel-usage&format=svg&walker=1&dark=1&filename=bs-usage-rules)
+![Rules pe Lolly Demo: patru reguli de casă, fiecare marcată Checked in Lolly Design și Required sau Advisory, apoi Try your design system in use cu exemplele lui gata de randat](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dusage&width=1440&height=1200&dpi=192&waitMs=2400&cropSelector=%23start-panel-usage&format=svg&walker=1&dark=1&filename=bs-usage-rules)
 
 **Brand rules** listează regulile tale. **Add rule** (sau **Add your first rule**) deschide un scurt formular:
 
 - un **Rule name** în cuvintele tale, precum *Beacon accents*;
 - **Check**: **Colour choices**, **Font choices**, **Fixed artwork** sau **Text length**, cu rolul de brand pe care îl folosește, sub propriul tău nume pentru rol;
-- **Example** la care se aplică (Poster, Title slide, Content slide sau Chart), **Mode** și dacă este **Required** sau **Advisory**;
+- **Example** la care se aplică (Poster, Title slide, Content slide sau Lolly Chart), **Mode** și dacă este **Required** sau **Advisory**;
 - **Reviewed by**, apoi **Save draft** sau **Approve & save**.
 
 Aprobarea înregistrează propria ta decizie pe acest dispozitiv. Regulile obligatorii aprobate constrâng afișul reutilizabil, iar verificările acoperă doar PNG-urile exemplu; nu schimbă niciun alt instrument.
 
-Regulile pe care un sistem de design le aduce în fișierul său de tokenuri, precum perechile de culori aprobate, greutatea și alinierea textului sau un logo pe suprafață, sunt listate aici ca **Checked in Design**. Design le verifică strat cu strat în cardul **Before you export** din panoul de export, iar `lolly check` face la fel pentru un document Design salvat ([Înainte să exporți](/info/design.html#before-you-export)). O regulă pentru care această versiune nu are verificator este păstrată cum a fost furnizată și marcată **Unchecked**.
+Regulile pe care un sistem de design le aduce în fișierul său de tokenuri, precum perechile de culori aprobate, greutatea și alinierea textului sau un logo pe suprafață, sunt listate aici ca **Checked in Lolly Design**. Lolly Design le verifică strat cu strat în cardul **Before you export** din panoul de export, iar `lolly check` face la fel pentru un document Lolly Design salvat ([Înainte să exporți](/info/design.html#before-you-export)). O regulă pentru care această versiune nu are verificator este păstrată așa cum a fost furnizată și marcată **Unchecked**.
 
-**Try your brand in use** randează patru exemple din revizia curentă cu **Render & check examples**. Alege un **Brand mode** și **Try your own text** pentru titlu, textul de sprijin și textul diapozitivului. Fiecare exemplu raportează ce s-a măsurat, cu **See checks & sources** și **Download check report**, iar **Make reusable poster** descarcă un `.lolly` al cărui layout fix și ale cărui alegeri de intrare aprobate călătoresc cu fișierul. Exemplele sunt locale: nimic nu este publicat sau aprobat prin rularea unei verificări.
+Lolly Demo vine cu patru reguli de casă aprobate. Titlurile nu se scriu niciodată cu majuscule: această regulă este obligatorie, deci `lolly check` raportează ca eroare un titlu scris cu majuscule. Celelalte trei sunt consultative. Textul de corp este aliniat la stânga. Mărcile primare stau pe suprafețe deschise, iar cele inversate pe suprafețe închise. Liniile punctate înseamnă plasează aici.
+
+**Try your design system in use** randează patru exemple din revizia curentă cu **Render & check examples**. Alege un **Mode** și **Try your own text** pentru titlu, textul de sprijin și textul diapozitivului. Fiecare exemplu raportează ce s-a măsurat, cu **See checks & sources** și **Download check report**, iar **Make reusable poster** descarcă un `.lolly` al cărui layout fix și ale cărui alegeri de intrare aprobate călătoresc cu fișierul. Exemplele sunt locale: nimic nu este publicat sau aprobat prin rularea unei verificări.
 
 Un build care vine cu un brand fix arată aceleași reguli și exemple doar pentru citire, sub *This brand is set*.
 
@@ -288,7 +334,7 @@ Un build care vine cu un brand fix arată aceleași reguli și exemple doar pent
 
 **Add from…** în bară deschide un selector care întreabă ce ai, nu ce format este:
 
-- **Design tokens or a design file**: JSON DTCG sau Tokens Studio, un proiect Penpot, un zip de seturi de tokenuri, un pachet de sistem de design Lolly sau un SVG.
+- **Design tokens or a design file**: JSON DTCG sau Tokens Studio, un proiect Penpot, un zip de seturi de tokenuri, un pachet de sistem de design Lolly, un SVG, un `DESIGN.md` sau un folder de pagină de brand.
 - **PDF**: un deck sau un fișier de ghiduri, citit pe acest dispozitiv pentru culori, mărci și fonturile încorporate.
 - **Logo or screenshot**: o imagine devine o paletă sugerată, citită pe acest dispozitiv. Citește culori, nu fontul sau layoutul.
 - **Saved web page**: un fișier HTML și fișierele lui CSS sau HTML ori CSS lipit, până la 20 de fișiere și 2 MB. Se citește doar textul furnizat: resursele legate nu sunt preluate, iar scripturile nu rulează.
@@ -299,10 +345,20 @@ Alege sursa fișier de design, iar următorul card listează formatele acceptate
 
 ![Cardul de import - formatele acceptate conduc ca file cu iconițe, iar întregul card este o singură zonă de plasare](/t/url-shot?url=%2F%23%2Fstart%3Fsource%3Dfile&width=1440&height=900&dpi=192&waitMs=1600&css=.start-import-modal%20.modal-msg%2C.start-import-modal%20.modal-title%7Bdisplay%3Anone%7D&cropSelector=.start-import-drop&walker=1&format=svg&dark=1&filename=bs-brand-import-formats)
 
-- Un **pachet de sistem de design Lolly** (`.lolly` sau un `.zip` mai vechi) se instalează într-un singur pas.
-- Un export **Penpot** (`.penpot`) aduce tokenurile sale de design.
-- Un fișier **Design Tokens** (W3C DTCG) sau **Tokens Studio** (`.json`) aduce tokenurile sale.
-- Un **SVG simplu** este scanat pentru culorile din care alegi, prima devenind primara ta.
+- Un **pachet de sistem de design Lolly** (`.lolly` sau un `.zip` vechi) se instalează dintr-un singur pas.
+- Un export **Penpot** (`.penpot`) aduce tokenurile lui de design.
+- Un fișier **Design Tokens** (W3C DTCG) sau **Tokens Studio** (`.json`) aduce tokenurile lui. O descriere care cere unui cititor să ignore instrucțiuni, pretinde permisiuni sau cere rularea de cod este lăsată deoparte, iar importul spune unde se afla. Aceasta este o verificare linie cu linie și nu prinde alte formulări, așa că citește un fișier de la cineva pe care nu îl cunoști înainte să aplici tokenurile.
+- Un **SVG simplu** este scanat pentru culori din care alegi, prima devenind primara ta.
+- Un **`DESIGN.md`** (`.md`) merge la **Try these colours** cu tokenurile lui așa cum sunt scrise. Textul lui poate fi păstrat ca ciornă de abilitate de brand, iar cardul semnalează liniile care cer unui cititor să ignore instrucțiuni, să pretindă permisiuni sau să ruleze cod. Agenții și paginile de brand nu văd o ciornă până nu apeși **Keep this skill** în camera Skills, iar o abilitate păstrată rămâne internă.
+- Un **folder de pagină de brand**, ales ca folder, plasat sau arhivat zip, merge la aceeași revizuire. Fiecare fișier este verificat față de `brand.json` al folderului, iar unul care nu se potrivește refuză tot folderul. Adaugă tokenurile. Logo-urile și fonturile rămân în folder.
+
+Lolly citește o pagină de brand din fișiere pe care le furnizezi tu. Nu preia adresa unui alt site.
+
+### A file with its own colour words
+
+Un fișier de tokenuri sau un `DESIGN.md` poate folosi cuvinte proprii pentru culorile lui, precum main, accent, supporting și tertiary. Când Lolly găsește astfel de cuvinte, revizuirea listează fiecare cuvânt înainte să se aplice ceva: cuvântul, culoarea lui în fiecare aspect, tokenul din care vine și ce ar citi Lolly în el. Lolly sugerează aceste citiri doar din cuvinte, față de o listă scurtă, și nu folosește niciun model. Un cuvânt din afara listei sosește ca propriu brandului, **By name only**. Redenumește orice cuvânt, spune la ce folosește, citește-l ca altceva sau debifează-l ca să rămână o culoare cu nume.
+
+**Install with these roles** le scrie, iar **Install without roles** instalează fișierul exact așa cum a venit. Un fișier fără astfel de cuvinte nu arată niciun pas nou. Un fișier care își declară propriile roluri, precum unul scris de Lolly, le arată așa cum sunt scrise și le instalează neschimbate, iar le poți edita ulterior în camera Colours. Terminalul nu are revizuire, așa că `lolly system import` păstrează o înregistrare declarată și lasă cuvintele altor fișiere ca culori cu nume.
 
 ### Revizuiește o referință
 
@@ -316,7 +372,7 @@ Importurile PDF și de fișiere de design își păstrează propriile controale 
 
 Deschide **Find a look** din Board sau din lista de sisteme de design din Settings. Răsfoiește sistemele salvate pe acest dispozitiv și câteva exemple Lolly reutilizabile și caută după nume, etichetă de culoare sau font declarat. **Closest to my current palette** sortează după similaritatea măsurată a culorii, iar fonturile potrivite departajează egalitățile; nu este un scor de calitate.
 
-Selectează un aspect ca să-l revizuiești sau două ca să le compari alăturat. Selectarea nu schimbă nimic. **Use this saved system** comută la el, iar **Use these colours** aplică culorile unui exemplu prin checkpoint-ul obișnuit, păstrându-ți fonturile. **Restore brand settings** recuperează aspectul anterior. Sistemele salvate au **Search tags** editabile sub **Details and design context**. Exemplele sunt rețete originale de culoare Lolly, fără colecție extrasă și fără cont.
+Dă clic pe un aspect ca să-l previzualizezi în context. Previzualizarea nu schimbă nimic. **Use this look** de pe fiecare card folosește acel aspect. Un sistem salvat devine cel activ, ceea ce nu editează nimic. Culorile unui exemplu trec prin punctul de control obișnuit în sistemul de design deschis, ale cărui logo-uri, fonturi și tot ce exemplul nu definește rămân cum sunt. **Compare looks** adaugă o casetă de bifare pe fiecare card, ca să poți alege două și să le compari alăturat. **Restore brand settings** recuperează aspectul anterior. Sistemele salvate au **Search tags** editabile sub **Details and design context**. Exemplele sunt rețete de culoare Lolly originale, fără colecție extrasă de pe web și fără cont.
 
 ![Compară Sunroom și Orchard unul lângă altul înainte de a aplica oricare dintre sistemele de culoare.](/t/url-shot?url=%2F%23%2Fstart&width=1280&height=900&dpi=96&waitMs=3000&format=svg&filename=brand-compare-looks&try=1&drive=click%3A%5Bdata-ds-door%3D%22looks%22%5D%3Bwait%3A500%3Bclick%3A%5Bdata-looks-compare-toggle%5D%3Bclick%3A%5Bdata-look-select%3D%22example%3Asunroom%22%5D%3Bclick%3A%5Bdata-look-select%3D%22example%3Aorchard%22%5D%3Bclick%3A%5Bdata-looks-review%5D%3Bwait%3A500&cropSelector=.ds-looks-comparison&waitSelector=%5Bdata-ds-door%3D%22looks%22%5D&walker=1&rasterDpi=96)
 
@@ -344,13 +400,35 @@ O versiune publicată este o **copie permanentă, cu nume**, păstrată pe acest
 
 **Publish only** păstrează o versiune fără a schimba ce urmează instrumentele; **Publish and make active** face ca instrumentele și aplicația să urmeze acea versiune. **Follow the latest again** pune fiecare editare live în clipa în care o faci.
 
+### Publish a brand page
+
+O [pagină de brand](/info/brand-page.html) este o singură adresă pentru oameni și pentru agenți: o pagină care arată logo-urile, culorile, fonturile și exemplele, cu aceleași fapte în fișiere alături de pagină. **Publish a brand page**, sub Versions & publishing, arată pagina live și, lângă pagină:
+
+- **Goes public**: fiecare fișier, grupat, cu dimensiunea lui.
+- **Held back**: ce a rămas pe dinafară și de ce. Un logo fără licență înregistrată rămâne pe dinafară până bifezi numele logo-ului. Un fișier de font are nevoie de o licență înregistrată care permite transmiterea lui mai departe, iar pagina arată un specimen în contururi când fișierul rămâne pe dinafară. Abilitățile interne de brand nu apar niciodată.
+- **What was checked**: perechile de culori pe colourway și mod, plus regulile de casă. Acestea sunt măsurători, nu un verdict.
+- **In your words**: o declarație de utilizare și un contact. Pagina tipărește ce scrii, iar Lolly nu adaugă nicio licență sau pretenție legală. Un comutator oprește linia „Made with Lolly” din subsol.
+- **On exports**: un comutator care [înregistrează adresa paginii în exporturile acestui sistem de design](/info/brand-page.html#lead-back-from-your-files). Este oprit până îl pornești, are nevoie de o adresă `https` și nu călătorește cu un pachet sau o copie. Un sistem de design blocat nu arată comutatorul, pentru că decide administratorul lui.
+
+**Download folder** salvează folderul ca ZIP, ca să-l găzduiești oriunde alegi, iar nimic nu devine public până nu o faci. Într-un terminal, `lolly system publish --out=<dir>` scrie același folder. O instanță care servește pagini de brand oferă și **Publish to** adresa ei, care este o apăsare explicită și trece prin lanțul ei de aprobare când are unul. Un sistem de design gestionat se publică doar când administratorul lui permite.
+
+### Connect an agent
+
+**Connect an agent**, în același loc, îți dă text de lipit și spune ce poate face fiecare opțiune:
+
+- **`AGENTS.md`** într-un proiect: agenții citesc numele și regulile sistemului. Nu desenează nimic și nu are nevoie de server.
+- **Serverul public Lolly**: desenează cu Lolly Demo, indiferent ce sistem ai deschis aici. Nu are nevoie de cheie.
+- **Instanța ta**: desenează cu sistemele pe care le ține instanța și citește un token de serviciu dintr-o variabilă de mediu. Foaia dă numele variabilei și nu arată niciodată un token.
+
+Când niciun server găzduit nu desenează cu sistemul tău, foaia spune asta.
+
 ## Administrează sistemele tale de design
 
 Deschide **Settings → Preferences → Design systems** ca să comuți, adaugi sau elimini sisteme. **Open** selectează un sistem și îl deschide aici; **Make a new one** creează un sistem local și îl deschide cu câmpul de nume gata. Un sistem este activ la un moment dat, pentru tot dispozitivul. [Arhitecturi de brand](/info/brand-architectures.html) ajută să decizi când un brand are nevoie de propriul sistem de design.
 
 **De unde vine un sistem.** Sistemul furnizat de catalogul unei instalări scrie **Came with this app** sau **From this instance** într-o aplicație conectată la una. Extinde **Catalogue source** ca să vezi cine îl furnizează, resursa lui de tokenuri și spațiul de nume și versiunea sau suma de control cunoscută; dacă o reîmprospătare eșuează, materialul din cache este etichetat.
 
-**Sistemele administrate sunt doar pentru citire.** Un sistem scrie **Managed by this instance** (sau **Managed by this app** în aplicația desktop fără instanță) când catalogul său îl blochează. Îl poți folosi și descărca, iar deschiderea lui aici arată o notă doar pentru citire cu **Make an editable copy** și **Switch**. Sistemele tale locale rămân editabile, chiar dacă cel administrat a venit primul. Un build cu un brand fix deschide Design System Setup pe *This brand is set*, cu tokenurile și regulile de utilizare ale brandului de citit.
+**Sistemele administrate sunt doar pentru citire.** Un sistem scrie **Managed by this instance** (sau **Managed by this app** în aplicația desktop fără instanță) când catalogul său îl blochează. Îl poți folosi și descărca, iar deschiderea lui aici arată o notă doar pentru citire cu **Make an editable copy** și **Switch**, apoi rolurile lui de culoare și tokenurile fără controale de editare. Sistemele tale locale rămân editabile, chiar dacă cel administrat a venit primul. Un build cu un brand fix deschide Lolly Design System Setup pe *This brand is set*, cu tokenurile și regulile de utilizare ale brandului de citit.
 
 **Orice alt sistem furnizat este al tău** de ascuns, editat și resetat, inclusiv Lolly Demo și Lolly Starter pe lolly.tools. Editarea unuia îi păstrează numele și marchează rândul **Edited here**, iar **Reset to original** din meniul lui renunță la schimbările făcute pe acest dispozitiv. Starter-ul gol este excepția: o primă schimbare acolo începe un sistem de design al tău, deci Lolly întreabă o dată cum să numească noul sistem. [Lolly Demo în uz](/info/lolly-demo-in-use.html#switch-to-your-own) arată ce înlocuiește sistemul tău.
 
@@ -360,16 +438,17 @@ Alege **Remove** din meniul unui sistem; confirmarea spune ce sistem va fi activ
 
 Eliminarea unui sistem furnizat doar îl ascunde: resursele lui din catalog rămân, **Bring back** îl arată din nou și revine singur dacă elimini tot restul. Eliminarea unei copii importate sau editate nu elimină sistemul furnizat, logourile sau fonturile lui, iar dacă copia era activă, sistemul furnizat devine din nou activ. Eliminarea unei copii găzduite active șterge doar conexiunea acelei copii; o instanță aleasă separat rămâne selectată.
 
-Schimbarea a ce furnizează un server este o sarcină de administrator: operatorul lui schimbă catalogul sursă și reinstalează sau un administrator Lolly Work revizuiește și aplică o schimbare de server. Editările de aici rămân locale. Vezi [Eliminarea unui sistem de design din catalog](/info/configuration.html#removing-a-catalogue-design-system) și [Configurare](/info/configuration.html#supplied-and-local-design-systems).
+Schimbarea a ce furnizează un server este o sarcină de administrator: operatorul lui schimbă catalogul sursă și reinstalează sau un administrator Lolly Work revizuiește și aplică o schimbare de server. Editările de aici rămân locale, cu o singură excepție: pe o instanță Lolly Work care îți acordă `brand.edit`, un sistem administrat oferă și **Edit for** acea instanță, care deschide o copie de editare, iar **Send to** acea instanță din **Versions** trimite înapoi culorile, colourway-urile, rolurile de culoare și adresa paginii de brand. [Editează această instanță din studio](/info/work-design-system-administration.html#edit-this-instance-from-the-studio) acoperă ce poate schimba o editare și cum servește instanța schimbarea. Vezi [Eliminarea unui sistem de design din catalog](/info/configuration.html#removing-a-catalogue-design-system) și [Configurare](/info/configuration.html#supplied-and-local-design-systems).
 
 ## Folosește contextul de design în afara aplicației
 
-**Download design context** salvează documentul de tokenuri, culorile rezolvate, familiile de fonturi declarate, id-urile de resurse, dovezile sursei unde au fost înregistrate, acoperirea și regulile explicite, fără fișiere de font și fără dovada proprietății. Linia de comandă citește fișierul fără server: `lolly system import` îl face sistemul de design al terminalului, iar `lolly system check` verifică intrările Design față de contextul salvat. [Adu-ți sistemul de design](/info/cli.html#bring-your-design-system) acoperă importul, [Ce sistem de design folosește o comandă](/info/cli-decks.html#which-design-system-a-command-uses) acoperă verificarea, iar un client MCP citește același brief din `lolly://design-context` ([Serverul MCP](/info/mcp.html)).
+**Download design context** salvează documentul de tokenuri, culorile rezolvate, familiile de fonturi declarate, id-urile de resurse, dovezile sursei unde au fost înregistrate, acoperirea și regulile explicite, fără fișiere de font și fără dovada proprietății. Linia de comandă citește fișierul fără server: `lolly system import` îl face sistemul de design al terminalului, iar `lolly system check` verifică intrările Lolly Design față de contextul salvat. [Adu-ți sistemul de design](/info/cli.html#bring-your-design-system) acoperă importul, iar [Ce sistem de design folosește o comandă](/info/cli-decks.html#which-design-system-a-command-uses) acoperă verificarea, iar un client MCP citește același brief din `lolly://design-context` ([MCP Server](/info/mcp.html)).
 
 ## Ce urmează
 
 - **[Folosirea Lolly](/info/using.html)**: instrumentele, salvarea, partajarea și Assets.
 - **[Arhitecturi de brand](/info/brand-architectures.html)**: cum se mapează diviziile, produsele, brandurile susținute, clienții și sezoanele pe sisteme de design, colourway-uri și identități de logo.
 - **[Lucrul cu partenerii](/info/partners.html)**: partajarea brandului tău cu un partener și lucrul într-un brand primit.
+- **[Pagini de brand](/info/brand-page.html)**: publică-ți sistemul de design la o singură adresă, ca kit de presă și kit pentru agenți.
 - **[Design Tokens](/info/design-tokens.html)**: modelul de tokenuri în care este scris brandul tău.
 - **[Exportă un fișier](/info/exporting.html)**: unități de tipar, CMYK și formatele în care randează brandul tău.
