@@ -23,7 +23,8 @@ import { letterSpacingPx, featureSettingsToHb, canVectoriseText, textBaselineY }
 import { resolveExportFont, extendsChain, withFallbackFonts } from './font-fill.ts';
 import { bakeWebKitBoxShadows } from './webkit-shadow-bake.ts';
 import { newNeutraliseGuard, neutraliseTransform, pdfDrawsThroughMatrix } from './transform-neutralise.ts';
-import { svgDomToIr, type SvgIrContext } from './svg-ir.ts';
+import { svgDomToIr } from './svg-ir.ts';
+import { isSvgRooted, outlinedVectorIr, vectorSvgRoot } from './export-vector-ir.ts';
 import { placeBackground } from './bg-layout.ts';
 import { unscopeStyleEls } from '../lib/scope-css.ts';
 import { tRaw } from '../i18n.ts';
@@ -1595,15 +1596,9 @@ async function renderEmf(node: Element, opts: ExportOpts = {}): Promise<Blob> {
   // Live text records are the default (editable in Office / Google Drawings);
   // opts.text === 'outline' (the "Outline fonts" chip) forces text-as-paths.
   const outline = opts.text === 'outline';
-  let svgEl: Element | null = node.tagName?.toLowerCase() === 'svg' ? node : isSvgRooted(node) ? node.querySelector('svg') : null;
-  if (!svgEl) {
-    // HTML layout: synthesise the complete canvas SVG, including embedded artwork,
-    // or with positioned <text> runs that the live walk below keeps as records.
-    const svgBlob = await renderSvgFromHtml(node, { ...opts, convertPaths: outline, noBoxShadow: true });
-    const xml = await svgBlob.text();
-    svgEl = new DOMParser().parseFromString(xml, 'image/svg+xml').documentElement;
-  }
-  const ir = await svgDomToIr(svgEl, {
+  // An HTML layout becomes the complete canvas SVG, embedded artwork included, with
+  // positioned <text> runs that the live walk below keeps as records.
+  const ir = await svgDomToIr(await vectorSvgRoot(node, opts, outline), {
     host: _host,
     getComputedStyle: (el: Element) => window.getComputedStyle(el),
     background: opts.background,
@@ -1621,44 +1616,12 @@ async function renderEmf(node: Element, opts: ExportOpts = {}): Promise<Blob> {
 // vector paste for legacy Office / clip-art pipelines. `attribution` is accepted for
 // call-site symmetry but is inert: WMF has no comment record to carry a source URL.
 async function renderWmf(node: Element, opts: ExportOpts = {}): Promise<Blob> {
-  let svgEl: Element | null = node.tagName?.toLowerCase() === 'svg' ? node : isSvgRooted(node) ? node.querySelector('svg') : null;
-  if (!svgEl) {
-    const svgBlob = await renderSvgFromHtml(node, { ...opts, convertPaths: true, noBoxShadow: true });
-    const xml = await svgBlob.text();
-    svgEl = new DOMParser().parseFromString(xml, 'image/svg+xml').documentElement;
-  }
-  const pictured = {};
-  const ir = await svgDomToIr(svgEl, {
-    host: _host,
-    getComputedStyle: (el: Element) => window.getComputedStyle(el),
-    background: opts.background,
-    label: 'WMF',
-    ...pictureUncoveredText(pictured),
-  });
+  const { ir, notify } = await outlinedVectorIr(node, opts, 'WMF');
   const bytes = emitWmf(ir, { width: opts.width, height: opts.height, unit: opts.unit, dpi: opts.dpi, attribution: opts.metadata !== false });
-  notePicturedTextIn(pictured, 'WMF');
+  notify();
   // Same legacy metafile type as EMF (see renderEmf) - Google Drive's Drawings
   // import matches application/x-msmetafile for WMF too.
   return new Blob([bytes as BlobPart], { type: 'application/x-msmetafile' });
-}
-
-/**
- * The walk's settings for an EPS or WMF: a run no font can draw goes in as a picture by
- * the browser's own text renderer, as in a PDF, and `key` collects its scripts for the
- * export notice.
- */
-function pictureUncoveredText(key: object): Pick<SvgIrContext, 'uncoveredText' | 'pictureText' | 'onPicturedText'> {
-  return {
-    uncoveredText: 'picture',
-    pictureText: async (run) => (await import('./export-text-stencil.ts')).pictureTextRun(run),
-    onPicturedText: (text) => notePicturedText(key, text),
-  };
-}
-
-/** One notice on the export card naming the scripts an EPS or WMF drew as pictures. */
-function notePicturedTextIn(key: object, format: 'EPS' | 'WMF'): void {
-  const pictured = takePicturedTextNotice(key, format);
-  if (pictured) { _host?.log?.('warn', `${format.toLowerCase()}: ${pictured}`); _exportNotice(pictured); }
 }
 
 // EPS is a fourth sink on the SVG vector pipeline (alongside SVG, PDF, and EMF):
@@ -1675,20 +1638,7 @@ function notePicturedTextIn(key: object, format: 'EPS' | 'WMF'): void {
 // flattened to solids upstream and text is outlined upstream, so the emitter
 // ships no fonts.
 async function renderEps(node: Element, opts: ExportOpts = {}, cmyk = false): Promise<Blob> {
-  let svgEl: Element | null = node.tagName?.toLowerCase() === 'svg' ? node : isSvgRooted(node) ? node.querySelector('svg') : null;
-  if (!svgEl) {
-    const svgBlob = await renderSvgFromHtml(node, { ...opts, convertPaths: true, noBoxShadow: true });
-    const xml = await svgBlob.text();
-    svgEl = new DOMParser().parseFromString(xml, 'image/svg+xml').documentElement;
-  }
-  const pictured = {};
-  const ir = await svgDomToIr(svgEl, {
-    host: _host,
-    getComputedStyle: (el: Element) => window.getComputedStyle(el),
-    background: opts.background,
-    label: 'EPS',
-    ...pictureUncoveredText(pictured),
-  });
+  const { ir, notify } = await outlinedVectorIr(node, opts, 'EPS');
   // Print geometry (bleed + marks + colour bar), when requested - same source as the
   // PDF path. Null when neither is set, so a plain EPS export is byte-identical.
   const separate = cmyk ? (await printSeparation(opts.colorProfile, _host as never, pdfxLog)).sep.separate : undefined;
@@ -1700,7 +1650,7 @@ async function renderEps(node: Element, opts: ExportOpts = {}, cmyk = false): Pr
     ...(cmyk && separate ? { cmykPalette: buildCmykPaletteMap(opts.palette ?? [], separate), separate } : {}),
     ...(geo ? { geometry: geo, markSpace: cmyk ? 'cmyk' as const : 'rgb' as const } : {}),
   });
-  notePicturedTextIn(pictured, 'EPS');
+  notify();
   return new Blob([text], { type: 'application/postscript' });
 }
 
@@ -1712,20 +1662,8 @@ async function renderEps(node: Element, opts: ExportOpts = {}, cmyk = false): Pr
 // has no raster form, so any escape-hatch image prim is dropped - we surface that as
 // a log warning rather than silently losing the effect.
 async function renderDxf(node: Element, opts: ExportOpts = {}): Promise<Blob> {
-  let svgEl: Element | null = node.tagName?.toLowerCase() === 'svg' ? node : isSvgRooted(node) ? node.querySelector('svg') : null;
-  if (!svgEl) {
-    const svgBlob = await renderSvgFromHtml(node, { ...opts, convertPaths: true, noBoxShadow: true });
-    const xml = await svgBlob.text();
-    svgEl = new DOMParser().parseFromString(xml, 'image/svg+xml').documentElement;
-  }
-  const ir = await svgDomToIr(svgEl, {
-    host: _host,
-    getComputedStyle: (el: Element) => window.getComputedStyle(el),
-    background: opts.background,
-    label: 'DXF',
-    // Cutting machines and CAD need outlines: a run no font can draw stops the export.
-    uncoveredText: 'refuse',
-  });
+  // Cutting machines and CAD need outlines: a run no font can draw stops the export.
+  const { ir } = await outlinedVectorIr(node, opts, 'DXF');
   const { text, droppedImages } = emitDxf(ir, { width: opts.width, height: opts.height, unit: opts.unit, dpi: opts.dpi, attribution: opts.metadata !== false });
   if (droppedImages > 0) {
     _host?.log?.('warn', `dxf: dropped ${droppedImages} rasterised region${droppedImages > 1 ? 's' : ''} (DXF is line-art only - use SVG/PDF to keep photographic or filtered content).`);
@@ -1740,16 +1678,6 @@ async function renderDxf(node: Element, opts: ExportOpts = {}): Promise<Blob> {
 //
 // Tools whose canvas IS an SVG element (lockup, qr-code) use the fast-path
 // clone in renderSvg above. This path handles all HTML-DOM tools.
-
-function isSvgRooted(node: Element): boolean {
-  if (node.tagName?.toLowerCase() === 'svg') return true;
-  for (const child of node.children) {
-    const t = child.tagName.toLowerCase();
-    if (t === 'style' || t === 'script') continue;
-    return t === 'svg';
-  }
-  return false;
-}
 
 // The whole-export geometry (the node's own box). One marks-building path only - 
 // see engine/src/print-marks.ts for the geometry, the single source of truth.
