@@ -288,6 +288,12 @@ test('--kit measures partner marks as brand reviews against the profile\'s desig
   const bom = join(dir, 'bom-kit.json');
   await writeFile(bom, `\uFEFF${JSON.stringify(kit)}`);
   assert.equal(lolly(['check', docPath, `--kit=${bom}`, '--browser=off', '--json'], state).status, 5, 'a kit saved with a byte order mark reads');
+  // A huge padded kit is refused by its size, before it is decoded.
+  const huge = join(dir, 'huge-kit.json');
+  await writeFile(huge, JSON.stringify(kit) + ' '.repeat(5 * 1024 * 1024));
+  const tooBig = lolly(['check', docPath, `--kit=${huge}`, '--browser=off', '--json'], state);
+  assert.equal(tooBig.status, 2, tooBig.stderr);
+  assert.match(tooBig.json.error?.message ?? tooBig.stderr, /larger than 65,536 bytes, the most a partner kit may take/);
   const bare = lolly(['check', docPath, '--kit', '--browser=off'], state);
   assert.equal(bare.status, 2);
 }));

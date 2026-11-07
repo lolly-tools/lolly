@@ -178,6 +178,7 @@ test('url-mode: _kit carries a partner kit attachment, and only one that reads',
   for (const v of [null, 'inst/x@3', [], { id: 'inst/x' }, { id: 'inst/x', revision: '3' }, { id: 'x'.repeat(201), revision: 1 }]) assert.equal(readPartnerKitAttachment(v), null);
   assert.equal(formatPartnerKitParam({ id: 'inst/x', revision: 7 }), 'inst/x@7');
   assert.equal(formatPartnerKitParam({ id: 'inst/x', revision: 1.5 }), null);
+  assert.equal(readPartnerKitAttachment(Object.create({ id: 'inst/x', revision: 2 })), null, 'inherited fields are not the record\'s');
 });
 
 test('url-mode: _text=outline is an opt-in EMF text choice, never an input', () => {

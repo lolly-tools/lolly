@@ -1062,7 +1062,7 @@ export type { BrandCheckCatalogOpts, BrandCheckGuestOpts, BrandFinding, BrandFix
 // rules as a guest in the lead brand's work. One reader for the app, the CLI and the server.
 export { checkPartnerKit, readPartnerKit, partnerKitLogoIds, partnerKitColoursFromTokens, partnerKitColoursFromInks } from './partner-kit.ts';
 export type { PartnerKitReadResult } from './partner-kit.ts';
-export { checkGuestMarks } from './partner-kit-check.ts';
+export { checkGuestMarks, guestRecolourFrom } from './partner-kit-check.ts';
 export type { GuestMarkMeasure, GuestMarkReport } from './partner-kit-check.ts';
 // The design brief and the Design house rules (plan 291 W3): the context plus the pack's
 // pairings, type, logos, icons, media, master and machine-checkable rules.

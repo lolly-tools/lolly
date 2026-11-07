@@ -96,3 +96,18 @@ test('snapshotSession: a partner kit attachment is saved as __partnerKit, and no
   assert.equal(savedPartnerKit(null), null);
   assert.equal(templateValuesFromSnapshot(attached, spec).__partnerKit, undefined, 'a template never carries a kit');
 });
+
+test('a template copy never lets a saved partner kit in through the prototype', () => {
+  // Review regression (plans/82 M8): this exact record returned inst/x@2 before the fix.
+  const crafted = JSON.parse('{"__proto__":{"__partnerKit":{"id":"inst/x","revision":2}}}');
+  const template = templateValuesFromSnapshot(crafted, {});
+  assert.equal(savedPartnerKit(template), null);
+  assert.equal(Object.getPrototypeOf(template), Object.prototype, 'the copy keeps an ordinary prototype');
+  assert.equal(Object.hasOwn(template, '__proto__'), false);
+  // An inherited attachment is never read, even on a record built some other way.
+  assert.equal(savedPartnerKit(Object.create({ __partnerKit: { id: 'inst/x', revision: 2 } })), null);
+  assert.equal(savedPartnerKit({ __partnerKit: Object.create({ id: 'inst/x', revision: 2 }) }), null);
+  // Other keys still copy as they always did.
+  assert.deepEqual(templateValuesFromSnapshot({ gap: 3, constructor: 'x', prototype: 1 }, {}), { gap: 3 });
+});
+

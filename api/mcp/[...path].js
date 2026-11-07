@@ -58165,6 +58165,7 @@ function parseSpots(raw) {
 }
 function readPartnerKitAttachment(value2) {
   if (!value2 || typeof value2 !== "object" || Array.isArray(value2)) return null;
+  if (!Object.hasOwn(value2, "id") || !Object.hasOwn(value2, "revision")) return null;
   const { id: id3, revision } = value2;
   if (typeof id3 !== "string" || id3.length > PARTNER_KIT_MAX_ASSET_ID || !PARTNER_KIT_ID.test(id3)) return null;
   if (typeof revision !== "number" || !Number.isInteger(revision) || revision < 1 || revision > PARTNER_KIT_MAX_LOGO_VERSION) return null;
@@ -67979,7 +67980,7 @@ function measureSvgFamily(sources) {
     m2.set(k, (m2.get(k) ?? 0) + 1);
   };
   const views = /* @__PURE__ */ new Map();
-  const fills = /* @__PURE__ */ new Map();
+  const fills2 = /* @__PURE__ */ new Map();
   const pathCounts = [];
   const disallowed = { text: 0, image: 0, script: 0, filter: 0 };
   let themable = 0;
@@ -67987,7 +67988,7 @@ function measureSvgFamily(sources) {
     const root2 = /<svg\b[^>]*>/i.exec(svg)?.[0] ?? "";
     tally3(views, (/\bviewBox\s*=\s*["']([^"']+)["']/i.exec(root2)?.[1] ?? "none").trim().replace(/\s+/g, " "));
     if (/\.c1\b/.test(svg) && /\.c2\b/.test(svg)) themable++;
-    for (const m2 of svg.matchAll(/\bfill\s*[:=]\s*["']?\s*(#[0-9a-f]{3,8})\b/gi)) tally3(fills, hexOf(m2[1]) ?? m2[1].toLowerCase());
+    for (const m2 of svg.matchAll(/\bfill\s*[:=]\s*["']?\s*(#[0-9a-f]{3,8})\b/gi)) tally3(fills2, hexOf(m2[1]) ?? m2[1].toLowerCase());
     pathCounts.push((svg.match(/<(path|circle|rect|ellipse|polygon|polyline|line)\b/gi) ?? []).length);
     if (/<text\b/i.test(svg)) disallowed.text++;
     if (/<image\b/i.test(svg)) disallowed.image++;
@@ -68000,7 +68001,7 @@ function measureSvgFamily(sources) {
     count: sources.length,
     viewBoxes: sorted(views),
     themable,
-    fills: sorted(fills).slice(0, 24),
+    fills: sorted(fills2).slice(0, 24),
     disallowed,
     paths: { min: counts[0] ?? 0, median: counts[Math.floor(counts.length / 2)] ?? 0, max: counts[counts.length - 1] ?? 0 }
   };
@@ -90320,9 +90321,9 @@ function numOrNull(v) {
 function penpotLeafColor(leaf) {
   const fc = pget(leaf, "fill-color");
   if (fc != null) return String(fc);
-  const fills = pget(leaf, "fills");
-  if (Array.isArray(fills) && fills[0]) {
-    const ffc = pget(fills[0], "fill-color");
+  const fills2 = pget(leaf, "fills");
+  if (Array.isArray(fills2) && fills2[0]) {
+    const ffc = pget(fills2[0], "fill-color");
     if (ffc != null) return String(ffc);
   }
   return "";
@@ -90624,10 +90625,10 @@ function penpotGroupToSvg(group, lookup4) {
   let count4 = 0;
   const defs = [];
   const paint2 = (sh) => {
-    const fills = Array.isArray(sh.fills) ? sh.fills : [];
-    if (fills.some((f) => f && f.fillImage && f.fillImage.id != null)) return null;
-    const gradFill = [...fills].reverse().find((f) => f && f.fillColorGradient && Array.isArray(f.fillColorGradient.stops) && f.fillColorGradient.stops.length >= 2) || null;
-    const topFill = fills.length ? fills[fills.length - 1] ?? null : null;
+    const fills2 = Array.isArray(sh.fills) ? sh.fills : [];
+    if (fills2.some((f) => f && f.fillImage && f.fillImage.id != null)) return null;
+    const gradFill = [...fills2].reverse().find((f) => f && f.fillColorGradient && Array.isArray(f.fillColorGradient.stops) && f.fillColorGradient.stops.length >= 2) || null;
+    const topFill = fills2.length ? fills2[fills2.length - 1] ?? null : null;
     let fill2 = "none", fillOp = "";
     if (gradFill) {
       const id3 = `pg${seq++}`;
@@ -90744,7 +90745,7 @@ function penpotShapeToNode(shape, options2 = {}) {
   const h = num10(sel.height, num10(sh.height, 0));
   const rot = num10(sh.rotation, 0);
   const shapeOp = num10(sh.opacity, 1);
-  const fills = Array.isArray(sh.fills) ? sh.fills : [];
+  const fills2 = Array.isArray(sh.fills) ? sh.fills : [];
   if (type === "group" && options2.preserveHierarchy) return {
     kind: "group",
     x,
@@ -90778,7 +90779,7 @@ function penpotShapeToNode(shape, options2 = {}) {
     applyPenpotBlur(sh, node2);
     return node2;
   }
-  const imgFill = fills.find((f) => f && f.fillImage && f.fillImage.id != null);
+  const imgFill = fills2.find((f) => f && f.fillImage && f.fillImage.id != null);
   if (imgFill) {
     const node2 = {
       kind: "image",
@@ -90799,8 +90800,8 @@ function penpotShapeToNode(shape, options2 = {}) {
     applyPenpotBackgroundBlur(sh, node2);
     return node2;
   }
-  const topFill = fills.length ? fills[fills.length - 1] ?? null : null;
-  const gradFill = [...fills].reverse().find((f) => f && f.fillColorGradient && Array.isArray(f.fillColorGradient.stops) && f.fillColorGradient.stops.length >= 2) || null;
+  const topFill = fills2.length ? fills2[fills2.length - 1] ?? null : null;
+  const gradFill = [...fills2].reverse().find((f) => f && f.fillColorGradient && Array.isArray(f.fillColorGradient.stops) && f.fillColorGradient.stops.length >= 2) || null;
   if (type === "path" || type === "bool") {
     const d = penpotPathContentToD(sh.content);
     if (d) {
@@ -91207,8 +91208,8 @@ function figmaNode(node, abs, blobs) {
   const geom = boxGeomFromBBox({ x: 0, y: 0, width: num10(size.x, 0), height: num10(size.y, 0) }, abs);
   const base = { x: geom.x, y: geom.y, w: geom.w, h: geom.h, rot: geom.rot };
   const nodeOp = num10(node.opacity, 1);
-  const fills = Array.isArray(node.fillPaints) ? node.fillPaints.filter((p) => p && get(p, "visible") !== false) : [];
-  const paint2 = fills.length ? fills[fills.length - 1] ?? null : null;
+  const fills2 = Array.isArray(node.fillPaints) ? node.fillPaints.filter((p) => p && get(p, "visible") !== false) : [];
+  const paint2 = fills2.length ? fills2[fills2.length - 1] ?? null : null;
   if (type === "TEXT") {
     const baseFg = paint2 && get(paint2, "color") ? figColorHex(get(paint2, "color")) : "#000000";
     return {
@@ -103865,8 +103866,8 @@ function slotFor(sh) {
     const text13 = sh.content ? parsePenpotContent(sh.content).text : "";
     return text13 ? { kind: "text", label: label5, text: text13 } : { kind: "text", label: label5 };
   }
-  const fills = Array.isArray(sh.fills) ? sh.fills : [];
-  for (const f of fills) {
+  const fills2 = Array.isArray(sh.fills) ? sh.fills : [];
+  for (const f of fills2) {
     if (!isRec5(f)) continue;
     const img = f.fillImage;
     if (isRec5(img) && img.id != null) return { kind: "image", label: label5, imageId: String(img.id) };
@@ -106458,19 +106459,19 @@ function findVectorArtwork(nodes, opts = {}) {
       const f = fillOf(n7);
       if (f) fillCounts.set(f, (fillCounts.get(f) ?? 0) + 1);
     }
-    const fills = [...fillCounts.entries()].sort((a, b) => b[1] - a[1]).map(([f]) => f);
+    const fills2 = [...fillCounts.entries()].sort((a, b) => b[1] - a[1]).map(([f]) => f);
     const allRects = members.every(isPlainRect);
     let reason2;
     if (curved) reason2 = "curved shapes";
     else if (!allRects) reason2 = "non-rectangular shapes";
-    else if (fills.length >= 3) reason2 = "a multi-colour arrangement of rectangles";
+    else if (fills2.length >= 3) reason2 = "a multi-colour arrangement of rectangles";
     else continue;
     if (c.group) reason2 += ", grouped in the document";
     out.push({
       indices: [...c.idx].sort((a, b) => a - b),
       // paint order
       rect,
-      fills,
+      fills: fills2,
       ...c.group ? { group: c.group } : {},
       reason: reason2
     });
@@ -107361,8 +107362,8 @@ function restoreColourRoleWords(doc) {
   if (declaredColourRoleIds(clean2).length) return { doc: clean2, warnings: [] };
   const reading = readColourRoles(withColourwayKindRestored(clean2));
   const specs = [...carrying].filter(([id3]) => !colourRoleIdRefusal(id3)).sort(([a, wordsA], [b, wordsB]) => wordsA.position - wordsB.position || (a < b ? -1 : a > b ? 1 : 0)).map(([id3, said]) => {
-    const fills = reading.roles.find((role) => role.id === id3)?.slots[0];
-    return { id: id3, label: said.label, ...said.description ? { description: said.description } : {}, ...fills && fills !== id3 ? { fills } : {} };
+    const fills2 = reading.roles.find((role) => role.id === id3)?.slots[0];
+    return { id: id3, label: said.label, ...said.description ? { description: said.description } : {}, ...fills2 && fills2 !== id3 ? { fills: fills2 } : {} };
   });
   const adopted = adoptColourRoles(clean2, specs);
   if (!adopted.ok) return { doc: clean2, warnings: [`The colour roles this file names could not be restored, so their words were left out: ${adopted.reasons[0] ?? adopted.code}`] };
@@ -112603,16 +112604,16 @@ var init_deck_census_hash = __esm({
 function vectorFeatures(object4) {
   const items2 = object4.vectorItems?.items;
   if (!items2 || items2.length === 0) return void 0;
-  const fills = /* @__PURE__ */ new Set();
+  const fills2 = /* @__PURE__ */ new Set();
   const series = /* @__PURE__ */ new Set();
   let hasText2 = false;
   for (const item2 of items2) {
     if (item2.kind === "text") hasText2 = true;
     const hex4 = fillHex(item2);
-    if (hex4) fills.add(hex4);
+    if (hex4) fills2.add(hex4);
     if (item2.series) series.add(item2.series);
   }
-  return { fillCount: fills.size, hasText: hasText2, seriesCount: series.size };
+  return { fillCount: fills2.size, hasText: hasText2, seriesCount: series.size };
 }
 function vectorColourUses(object4) {
   const items2 = object4.vectorItems;
@@ -112672,11 +112673,11 @@ function vectorChartEvidence(object4) {
   const series = new Set(items2.items.map((item2) => item2.series).filter((name) => Boolean(name)));
   const barred = sharedEdge >= CHART_MIN_BARS && series.size >= CHART_MIN_SERIES;
   if (!titled && !barred) return void 0;
-  const fills = vectorFeatures(object4)?.fillCount ?? 0;
+  const fills2 = vectorFeatures(object4)?.fillCount ?? 0;
   const evidence = [];
   if (titled) evidence.push({ signal: "native-tag", value: items2.title ?? "", weight: 0.4 });
   if (barred) evidence.push({ signal: "column-alignment", value: sharedEdge, weight: 0.3 });
-  evidence.push({ signal: "fill-count", value: fills, weight: 0.2 });
+  evidence.push({ signal: "fill-count", value: fills2, weight: 0.2 });
   return { class: "chart", confidence: VECTOR_CHART_CONFIDENCE, evidence };
 }
 function fillHex(item2) {
@@ -114253,11 +114254,11 @@ function shapeCandidates(f) {
   }
   const drawnPart = f.customGeometry === true || (f.groupSize ?? 0) >= 2 && f.groupIsDrawing === true;
   if (drawnPart && f.origin === "slide" && !repeats(f)) {
-    const fills = f.groupFills ?? 0;
+    const fills2 = f.groupFills ?? 0;
     out.push({
       class: "diagram",
       confidence: 0.62,
-      evidence: fills >= 2 ? [{ signal: "fill-count", value: fills, weight: 0.3 }] : [{ signal: "text-length", value: 0, weight: 0.2 }, { signal: "area-share", value: Number(f.areaShare.toFixed(4)), weight: 0.1 }]
+      evidence: fills2 >= 2 ? [{ signal: "fill-count", value: fills2, weight: 0.3 }] : [{ signal: "text-length", value: 0, weight: 0.2 }, { signal: "area-share", value: Number(f.areaShare.toFixed(4)), weight: 0.1 }]
     });
   }
   if (f.connector !== void 0 && f.origin === "slide" && !repeats(f)) {
@@ -114525,15 +114526,15 @@ function dateLike(text13) {
 }
 function vectorFillCount(svg) {
   if (!svg) return 0;
-  const fills = /* @__PURE__ */ new Set();
+  const fills2 = /* @__PURE__ */ new Set();
   const re = /fill\s*[:=]\s*"?'?\s*(#[0-9a-fA-F]{3,8}|rgba?\([^)]*\)|[a-zA-Z]+)/g;
   let match = re.exec(svg);
   while (match) {
     const value2 = (match[1] ?? "").toLowerCase();
-    if (value2 && value2 !== "none") fills.add(value2);
+    if (value2 && value2 !== "none") fills2.add(value2);
     match = re.exec(svg);
   }
-  return fills.size;
+  return fills2.size;
 }
 function fractionBox(box4, frame) {
   return { x: box4.x / frame.width, y: box4.y / frame.height, w: box4.w / frame.width, h: box4.h / frame.height };
@@ -119355,9 +119356,9 @@ function svgItemsOf(svgText, parseXml, opts = {}) {
     const fillAlpha = "hex" in fillPaint ? fillPaint.alpha * state.fillOpacity : 0;
     const strokeAlpha = "hex" in strokePaint ? strokePaint.alpha * state.strokeOpacity : 0;
     const strokeWidth = state.strokeWidth * scale;
-    const fills = !lineLike && fillAlpha > 0 && box4.w > 0 && box4.h > 0;
+    const fills2 = !lineLike && fillAlpha > 0 && box4.w > 0 && box4.h > 0;
     const strokes = strokeAlpha > 0 && strokeWidth > 0;
-    if (!fills && !strokes) return;
+    if (!fills2 && !strokes) return;
     const d = dOf(subs);
     if (d.length > SVG_PATH_MAX_CHARS) throw new CapReached();
     if (nodeCount(contours) > VECTOR_ITEM_MAX_NODES) throw new CapReached();
@@ -119374,9 +119375,9 @@ function svgItemsOf(svgText, parseXml, opts = {}) {
     } else if (tag3 === "line") {
       item2.shape = "line";
     }
-    item2.fill = fills && "hex" in fillPaint ? { hex: fillPaint.hex } : { none: true };
-    if (fills && fillAlpha < 1) item2.fillOpacity = round32(fillAlpha);
-    if (fills && state.fillRule === "evenodd") item2.fillRule = "evenodd";
+    item2.fill = fills2 && "hex" in fillPaint ? { hex: fillPaint.hex } : { none: true };
+    if (fills2 && fillAlpha < 1) item2.fillOpacity = round32(fillAlpha);
+    if (fills2 && state.fillRule === "evenodd") item2.fillRule = "evenodd";
     if (strokes && "hex" in strokePaint) {
       const stroke = { color: { hex: strokePaint.hex }, width: round32(strokeWidth) };
       if (strokeAlpha < 1) stroke.opacity = round32(strokeAlpha);
@@ -119835,18 +119836,18 @@ function custGeomItems(geom, box4, paint2) {
     const bounds = pathBounds(pathFromSubPaths(subs));
     if (!bounds) continue;
     const itemBox = { x: round32(bounds.x0), y: round32(bounds.y0), w: round32(bounds.x1 - bounds.x0), h: round32(bounds.y1 - bounds.y0) };
-    const fills = !path.noFill && Boolean(paint2.fill?.hex) && itemBox.w > 0 && itemBox.h > 0;
+    const fills2 = !path.noFill && Boolean(paint2.fill?.hex) && itemBox.w > 0 && itemBox.h > 0;
     const strokeW = paint2.line?.widthPx ?? (paint2.line?.color?.hex ? 1 : 0);
     const strokes = !path.noStroke && Boolean(paint2.line?.color?.hex) && strokeW > 0;
-    if (!fills && !strokes) continue;
+    if (!fills2 && !strokes) continue;
     const d = dOf(subs);
     chars += d.length;
     if (chars > VECTOR_ITEMS_MAX_CHARS) {
       return { ...out, items: [], omitted: [{ reason: "cap-reached", count: geom.paths.length }] };
     }
     const item2 = { kind: "path", d, box: itemBox };
-    item2.fill = fills && paint2.fill ? { ...paint2.fill } : { none: true };
-    if (fills && typeof paint2.fill?.alpha === "number" && paint2.fill.alpha < 1) item2.fillOpacity = round32(paint2.fill.alpha);
+    item2.fill = fills2 && paint2.fill ? { ...paint2.fill } : { none: true };
+    if (fills2 && typeof paint2.fill?.alpha === "number" && paint2.fill.alpha < 1) item2.fillOpacity = round32(paint2.fill.alpha);
     if (strokes && paint2.line?.color) {
       const stroke = { color: { ...paint2.line.color }, width: round32(strokeW) };
       if (typeof paint2.line.color.alpha === "number" && paint2.line.color.alpha < 1) stroke.opacity = round32(paint2.line.color.alpha);
@@ -126165,9 +126166,9 @@ function validColor(color6, opacity = 1) {
     throw new Error("Penpot primitives need resolved sRGB paint.");
   }
 }
-function validatePaint(fills, stroke) {
-  if (fills.length > 1) throw new Error("Penpot primitives carry at most one fill.");
-  for (const fill2 of fills) {
+function validatePaint(fills2, stroke) {
+  if (fills2.length > 1) throw new Error("Penpot primitives carry at most one fill.");
+  for (const fill2 of fills2) {
     if (fill2.kind === "color") {
       validColor(fill2.color, fill2.opacity);
       continue;
@@ -126401,9 +126402,9 @@ function validColor2(color6, alpha) {
     throw new Error("PPTX primitives need resolved sRGB paint.");
   }
 }
-function validatePaint2(fills, stroke) {
-  if (fills.length > 1) throw new Error("PPTX primitives carry at most one solid fill.");
-  for (const fill2 of fills) {
+function validatePaint2(fills2, stroke) {
+  if (fills2.length > 1) throw new Error("PPTX primitives carry at most one solid fill.");
+  for (const fill2 of fills2) {
     if (fill2.kind !== "color") throw new Error("PPTX primitive paint must be solid.");
     validColor2(fill2.color, fill2.opacity);
   }
@@ -126998,9 +126999,9 @@ function compileDesignRow(row, offset, opts = {}) {
   }
   if (kind === "text" && !design) {
     const grad2 = gradientOf(row, box4);
-    const fills2 = [...fill2, ...grad2 ? [grad2] : []];
+    const fills3 = [...fill2, ...grad2 ? [grad2] : []];
     const text13 = rowStr2(row, "text");
-    if (!text13) return { ...base, op: "text", fills: fills2, text: null };
+    if (!text13) return { ...base, op: "text", fills: fills3, text: null };
     const size = rowNum2(row, "fontSize", DEFAULT_FONT_SIZE) || DEFAULT_FONT_SIZE;
     const pad = designTextPad(row);
     const inner = { x: box4.x + pad, y: box4.y + pad, w: Math.max(0, box4.w - pad * 2), h: Math.max(0, box4.h - pad * 2) };
@@ -127008,7 +127009,7 @@ function compileDesignRow(row, offset, opts = {}) {
     return {
       ...base,
       op: "text",
-      fills: fills2,
+      fills: fills3,
       text: {
         inner,
         size,
@@ -127046,10 +127047,10 @@ function compileDesignRow(row, offset, opts = {}) {
   const ringed2 = design && stroke && (stroke.sides || stroke.align !== "inside");
   const inset = design && stroke && !ringed2 ? Math.min(stroke.width, box4.w / 2, box4.h / 2) : 0;
   const grad = gradientOf(row, ringed2 ? paddingArea(box4, shape, stroke).box : inset ? { x: box4.x + inset, y: box4.y + inset, w: box4.w - inset * 2, h: box4.h - inset * 2 } : box4);
-  const fills = [...fill2, ...grad ? [grad] : []];
+  const fills2 = [...fill2, ...grad ? [grad] : []];
   const padding = paddingArea(box4, shape, design ? stroke : void 0);
   const picture = design && !NON_STATIC.has(kind) ? pictureOf(row, padding.box, padding) : void 0;
-  return { ...base, op: "shape", shape, fills, ...stroke ? { stroke } : {}, ...picture ? { picture } : {} };
+  return { ...base, op: "shape", shape, fills: fills2, ...stroke ? { stroke } : {}, ...picture ? { picture } : {} };
 }
 function framePaint(head2, page3, opts) {
   const color6 = opts.colors === "resolved" ? (value2) => {
@@ -127062,12 +127063,12 @@ function framePaint(head2, page3, opts) {
   if (stroke) stroke.align = "inside";
   const padding = paddingArea(box4, shape, stroke);
   const grad = gradientOf(head2, padding.box);
-  const fills = [{ kind: "color", ...color6(rowStr2(head2, "bg")) ?? { color: "#ffffff" } }, ...grad ? [grad] : []];
+  const fills2 = [{ kind: "color", ...color6(rowStr2(head2, "bg")) ?? { color: "#ffffff" } }, ...grad ? [grad] : []];
   const clips2 = designBool(head2.clipChildren, true);
   if (clips2 && (stroke || shape.kind === "ellipse" || shape.radius > 0)) page3.clip = padding;
   const rounded = shape.kind === "ellipse" ? shape : { kind: "rect", radius: Math.min(shape.radius, padding.box.w / 2, padding.box.h / 2) };
   const picture = pictureOf(head2, padding.box, clips2 ? padding : void 0, rounded);
-  page3.frame = { id: rowStr2(head2, "id"), box: box4, opacity: 100, op: "shape", shape, fills, ...stroke ? { stroke } : {}, ...picture ? { picture } : {} };
+  page3.frame = { id: rowStr2(head2, "id"), box: box4, opacity: 100, op: "shape", shape, fills: fills2, ...stroke ? { stroke } : {}, ...picture ? { picture } : {} };
 }
 function compileDesignDraw(rows2, size, opts = {}) {
   if (opts.semantics === "lottie-compat") throw new Error("The Lottie sequence owns page selection; compile its admitted vectors with compileDesignRow.");
@@ -127775,8 +127776,8 @@ function buildPenpotEntries(doc, opts = {}) {
             warn2(`image shape names unknown media ${sh.media}; dropped`);
             return null;
           }
-          const fills = [{ media: sh.media, keepAspectRatio: sh.keepAspectRatio !== false, opacity: 1 }];
-          rec2 = baseRecord(id3, "rect", { ...sh, fills }, parentId, frameId, pageId, media, uuid, warn2, nameOf5(m2.name || "Image"));
+          const fills2 = [{ media: sh.media, keepAspectRatio: sh.keepAspectRatio !== false, opacity: 1 }];
+          rec2 = baseRecord(id3, "rect", { ...sh, fills: fills2 }, parentId, frameId, pageId, media, uuid, warn2, nameOf5(m2.name || "Image"));
           const [r12, r26, r32, r4v] = radii(sh.radius, fin2(sh.w), fin2(sh.h));
           Object.assign(rec2, { r1: r12, r2: r26, r3: r32, r4: r4v });
           shapeCount++;
@@ -128301,9 +128302,9 @@ function boxesToPenpotDoc(boxesIn, o) {
     } else if (kind === "image") {
       const m2 = o.mediaFor?.(b) ?? null;
       if (!m2) {
-        const fills = fillsOf(b, w, h);
-        if (!fills.length) return null;
-        shape = { ...base, type: "rect", fills, strokes: strokeOf3(b), radius: str6(b.shape) === "rounded" ? fin2(b.radius) : 0 };
+        const fills2 = fillsOf(b, w, h);
+        if (!fills2.length) return null;
+        shape = { ...base, type: "rect", fills: fills2, strokes: strokeOf3(b), radius: str6(b.shape) === "rounded" ? fin2(b.radius) : 0 };
       } else {
         media.push(m2);
         shape = {
@@ -128362,11 +128363,11 @@ function boxesToPenpotDoc(boxesIn, o) {
       };
     } else {
       const shapeKind = str6(b.shape);
-      const fills = fillsOf(b, w, h);
+      const fills2 = fillsOf(b, w, h);
       const strokes = strokeOf3(b);
-      const paints2 = fills.map(primitiveDrawPaint);
+      const paints2 = fills2.map(primitiveDrawPaint);
       const placed2 = strokes.some((stroke) => stroke.sides || stroke.alignment && stroke.alignment !== "center");
-      if (!placed2 && paints2.every((paint2) => paint2 !== null) && isPenpotPrimitiveRow(b, shapeKind, fills.some((fill2) => !!fill2.gradient))) {
+      if (!placed2 && paints2.every((paint2) => paint2 !== null) && isPenpotPrimitiveRow(b, shapeKind, fills2.some((fill2) => !!fill2.gradient))) {
         const stroke = strokes[0];
         const op = compileDesignRow(b, { x: 0, y: 0 }, { semantics: "penpot-compat", penpotCompat: {
           capture: { geometry: { x, y, w, h }, ...effectCapture, shapeKind },
@@ -128380,8 +128381,8 @@ function boxesToPenpotDoc(boxesIn, o) {
         } });
         if (op.op !== "shape") throw new Error("Penpot primitive compilation did not produce a shape.");
         shape = { ...base, ...designDrawPenpot(op) };
-      } else if (shapeKind === "ellipse" || shapeKind === "circle") shape = { ...base, type: "circle", fills, strokes };
-      else shape = { ...base, type: "rect", fills, strokes, radius: shapeKind === "rounded" ? fin2(b.radius) : shapeKind === "pill" ? Math.min(w, h) / 2 : 0 };
+      } else if (shapeKind === "ellipse" || shapeKind === "circle") shape = { ...base, type: "circle", fills: fills2, strokes };
+      else shape = { ...base, type: "rect", fills: fills2, strokes, radius: shapeKind === "rounded" ? fin2(b.radius) : shapeKind === "pill" ? Math.min(w, h) / 2 : 0 };
     }
     if (shape) {
       const applied = {};
@@ -129065,11 +129066,11 @@ function svgToPenpotDoc(svgText, o) {
     const ts = transformSubpaths(subs, f.m);
     const bb = subpathBounds(ts);
     if (!bb) return null;
-    const fills = paintFills(f, bb);
-    if (fills === null) return "bail";
+    const fills2 = paintFills(f, bb);
+    if (fills2 === null) return "bail";
     const strokes = strokesOf(f);
-    if (!fills.length && !strokes.length) return null;
-    return decorate({ type: "path", name, d: subpathsToD(ts), x: bb.x, y: bb.y, w: Math.max(0.01, bb.w), h: Math.max(0.01, bb.h), fills, strokes }, f, t);
+    if (!fills2.length && !strokes.length) return null;
+    return decorate({ type: "path", name, d: subpathsToD(ts), x: bb.x, y: bb.y, w: Math.max(0.01, bb.w), h: Math.max(0.01, bb.h), fills: fills2, strokes }, f, t);
   };
   const boxOf6 = (f, x, y, w, h) => {
     const [x0, y0] = apply2(f.m, x, y), [x1, y1] = apply2(f.m, x + w, y + h);
@@ -129150,11 +129151,11 @@ function svgToPenpotDoc(svgText, o) {
           const rx = a.rx != null ? parseLen(a.rx) : a.ry != null ? parseLen(a.ry) : 0, ry = a.ry != null ? parseLen(a.ry) : rx;
           if (isAxisAligned(f.m)) {
             const box4 = boxOf6(f, x, y, w, h);
-            const fills = paintFills(f, box4);
-            if (fills === null) return false;
+            const fills2 = paintFills(f, box4);
+            if (fills2 === null) return false;
             const strokes = strokesOf(f);
-            if (!fills.length && !strokes.length) break;
-            out.push(decorate({ type: "rect", name, ...box4, fills, strokes, radius: Math.max(rx, ry) * meanScale(f.m) }, f, t));
+            if (!fills2.length && !strokes.length) break;
+            out.push(decorate({ type: "rect", name, ...box4, fills: fills2, strokes, radius: Math.max(rx, ry) * meanScale(f.m) }, f, t));
           } else {
             const r5 = pathShape([roundedRectSubpath(x, y, w, h, rx, ry)], f, t, name);
             if (r5 === "bail") return false;
@@ -129169,11 +129170,11 @@ function svgToPenpotDoc(svgText, o) {
           if (!(rx > 0 && ry > 0)) break;
           if (isAxisAligned(f.m)) {
             const box4 = boxOf6(f, cx2 - rx, cy3 - ry, rx * 2, ry * 2);
-            const fills = paintFills(f, box4);
-            if (fills === null) return false;
+            const fills2 = paintFills(f, box4);
+            if (fills2 === null) return false;
             const strokes = strokesOf(f);
-            if (!fills.length && !strokes.length) break;
-            out.push(decorate({ type: "circle", name, ...box4, fills, strokes }, f, t));
+            if (!fills2.length && !strokes.length) break;
+            out.push(decorate({ type: "circle", name, ...box4, fills: fills2, strokes }, f, t));
           } else {
             const r5 = pathShape([ellipseSubpath(cx2, cy3, rx, ry)], f, t, name);
             if (r5 === "bail") return false;
@@ -136755,17 +136756,17 @@ function checkBrandDesign(boxes2, doc, opts = {}) {
       uploads++;
       const look3 = parseTreatedAssetId(image).treatment;
       if (look3 && Array.isArray(opts.treatments) && !opts.treatments.includes(look3)) add3("image", "reference", "unknown", image);
-    } else if (image && guestAssets.has(stripAssetModifiers(image))) checked2.assets++;
-    else if (image) {
+    } else if (image) {
       const assetId2 = aliasPath(image) ? tokens3.resolve(image) : image;
-      if (!allowedAssets.size && !catalogAssets2.size || typeof assetId2 !== "string") add3("image", "asset", "unknown", image);
+      const guest = typeof assetId2 === "string" && guestAssets.has(stripAssetModifiers(assetId2));
+      if (!allowedAssets.size && !catalogAssets2.size && !guest || typeof assetId2 !== "string") add3("image", "asset", "unknown", image);
       else {
         checked2.assets++;
         const base = stripAssetModifiers(assetId2);
         const theme = parseThemedAssetId(assetId2).theme;
         const treatment = parseTreatedAssetId(assetId2).treatment;
         const exact = allowedAssets.has(assetId2);
-        if (!exact && !allowedAssets.has(base) && !catalogAssets2.has(base)) add3("image", "asset", "review", image);
+        if (!exact && !allowedAssets.has(base) && !catalogAssets2.has(base) && !guest) add3("image", "asset", "review", image);
         else if (!exact && theme && theme !== AUTO_ASSET_THEME && Array.isArray(opts.iconThemes) && !opts.iconThemes.includes(theme)) add3("image", "reference", "unknown", image);
         else if (!exact && treatment && Array.isArray(opts.treatments) && !opts.treatments.includes(treatment)) add3("image", "reference", "unknown", image);
       }
@@ -137225,6 +137226,24 @@ var init_partner_kit = __esm({
 });
 
 // engine/src/partner-kit-check.ts
+function guestRecolourFrom(catalog) {
+  const rec2 = (v) => !!v && typeof v === "object" && !Array.isArray(v);
+  const themes = new Map(parseIconThemesDoc(rec2(catalog?.iconThemes) ? catalog.iconThemes : null).map((t) => [t.id, t]));
+  const looks = new Map(parsePhotoTreatmentsDoc(rec2(catalog?.photoTreatments) ? catalog.photoTreatments : null).map((t) => [t.id, t]));
+  return ({ theme, treatment }) => {
+    if (treatment) {
+      const look3 = looks.get(treatment);
+      if (!look3) return null;
+      return look3.kind === "greyscale" ? "mono" : "other";
+    }
+    if (theme) {
+      const pair = themes.get(theme);
+      if (!pair) return null;
+      return String(pair.c1).trim().toLowerCase() === String(pair.c2).trim().toLowerCase() ? "mono" : "other";
+    }
+    return null;
+  };
+}
 function orList(words4) {
   return words4.length <= 1 ? words4[0] ?? "" : `${words4.slice(0, -1).join(", ")} or ${words4[words4.length - 1]}`;
 }
@@ -137272,27 +137291,45 @@ function checkGuestMarks(boxes2, kit, measure3 = {}) {
   if (rules.treatments?.length) notMeasured.push("reversed use: the logo for dark surfaces is the reverse, so a reversed mark is not measured");
   if (rules.minSize?.mm !== void 0 && !physical) notMeasured.push("the minimum size in millimetres: the document is measured in pixels");
   const rows2 = Array.isArray(boxes2) ? boxes2.filter(record29) : [];
+  const capped = rows2.slice(0, MAX_ROWS3);
   let hierarchy = null;
   try {
-    hierarchy = designHierarchyIndex(rows2.slice(0, MAX_ROWS3));
+    hierarchy = designHierarchyIndex(capped);
   } catch {
     hierarchy = null;
   }
+  const ancestorsOf = (id3) => {
+    const out = [];
+    const seen = /* @__PURE__ */ new Set([id3]);
+    let owner3 = id3 ? hierarchy?.parent.get(id3) : void 0;
+    while (owner3 && !seen.has(owner3) && out.length < 65) {
+      seen.add(owner3);
+      const row = hierarchy?.byId.get(owner3);
+      if (row) out.push(row);
+      owner3 = hierarchy?.parent.get(owner3);
+    }
+    return out;
+  };
   const layers = [];
-  rows2.slice(0, MAX_ROWS3).forEach((row, index2) => {
+  capped.forEach((row, index2) => {
     const id3 = typeof row.id === "string" ? row.id : "";
     if (hidden2(row) || id3 && hierarchy?.flags.get(id3)?.hidden === true) return;
+    const ancestors = ancestorsOf(id3);
+    if (ancestors.reduce((o, a) => o * opacityOf(a), opacityOf(row)) <= 0) return;
     const kind = typeof row.kind === "string" && row.kind ? row.kind : "box";
     const rect = boundsOf2(row);
     if (!(rect.w > 0) || !(rect.h > 0)) return;
     const start = num14(row.start, 0);
     const dur = num14(row.dur, 0);
-    const frame = typeof row.frame === "string" ? row.frame : "";
+    const board = kind === "frame" ? id3 : typeof ancestors.find((a) => a.kind === "frame")?.id === "string" ? String(ancestors.find((a) => a.kind === "frame").id) : typeof row.frame === "string" ? row.frame : "";
     const page3 = id3 && hierarchy?.pageById.get(id3) || (typeof row.pageId === "string" ? row.pageId : "");
-    layers.push({ row, id: id3, index: index2, z: num14(row.z, index2), rect, label: layerLabel(row, id3), kind, image: imageId(row.image), start, end: dur > 0 ? start + dur : Number.POSITIVE_INFINITY, frame, page: page3 });
+    const image = imageId(row.image);
+    const paints2 = !!image || fills(row.bg) || typeof row.grad === "string" && row.grad.trim() !== "";
+    layers.push({ row, id: id3, index: index2, rect, label: layerLabel(row, id3), kind, image, start, end: dur > 0 ? start + dur : Number.POSITIVE_INFINITY, frame: board, page: page3, paints: paints2 });
   });
   if (rows2.length > MAX_ROWS3) notMeasured.push(`layers past the first ${MAX_ROWS3.toLocaleString("en")}`);
-  const marks = layers.filter((l) => !NOT_ON_PAGE.has(l.kind) && l.image && logos.has(stripAssetModifiers(l.image)));
+  const isMark = (l) => l.kind !== "frame" && !NOT_ON_PAGE.has(l.kind) && !!l.image && logos.has(stripAssetModifiers(l.image));
+  const marks = layers.filter(isMark);
   const findings = [];
   const add3 = (mark, rule, part, message, extra = {}) => {
     if (findings.length >= MAX_FINDINGS) return;
@@ -137309,27 +137346,32 @@ function checkGuestMarks(boxes2, kit, measure3 = {}) {
       ...extra
     });
   };
-  const beneath = (a, b) => a.z < b.z || a.z === b.z && a.index < b.index;
+  const beneath = (a, b) => a.kind === "frame" ? a.id === b.frame : a.index < b.index;
+  let sizeUnmeasured = 0;
+  let treatmentUnmeasured = 0;
   for (const mark of marks) {
     const aspect2 = measure3.logoAspect?.(stripAssetModifiers(mark.image));
+    const known3 = typeof aspect2 === "number" && Number.isFinite(aspect2) && aspect2 > 0;
+    const contained2 = (typeof mark.row.fit === "string" ? mark.row.fit : "contain") === "contain";
     const drawn2 = drawnRect(mark.row, mark.rect, aspect2);
     const unturned = { x: num14(mark.row.x), y: num14(mark.row.y), w: Math.max(0, num14(mark.row.w)), h: Math.max(0, num14(mark.row.h)) };
     const height = drawnRect({ ...mark.row, rot: 0 }, unturned, aspect2).h;
     if (rules.minSize) {
       const min = rules.minSize;
       const px3 = exportPx(height);
-      if (min.px !== void 0 && px3 + 0.5 < min.px) {
-        add3(mark, "min-size", "px", `${company}'s mark is ${pxText(px3)} px high; the kit asks for at least ${pxText(min.px)} px.`, { value: `${pxText(px3)} px`, expected: `${pxText(min.px)} px` });
-      }
       const mm = millimetres(height);
-      if (physical && min.mm !== void 0 && mm + 0.05 < min.mm) {
-        add3(mark, "min-size", "mm", `${company}'s mark is ${mmText(mm)} mm high; the kit asks for at least ${mmText(min.mm)} mm.`, { value: `${mmText(mm)} mm`, expected: `${mmText(min.mm)} mm` });
-      }
+      const under = (value2, limit3, slack) => value2 + slack < limit3;
+      const pxShort = min.px !== void 0 && under(px3, min.px, 0.5);
+      const mmShort = physical && min.mm !== void 0 && under(mm, min.mm, 0.05);
+      if (pxShort) add3(mark, "min-size", "px", `${company}'s mark is ${pxText(px3)} px high; the kit asks for at least ${pxText(min.px)} px.`, { value: `${pxText(px3)} px`, expected: `${pxText(min.px)} px` });
+      if (mmShort) add3(mark, "min-size", "mm", `${company}'s mark is ${mmText(mm)} mm high; the kit asks for at least ${mmText(min.mm)} mm.`, { value: `${mmText(mm)} mm`, expected: `${mmText(min.mm)} mm` });
+      if (contained2 && !known3 && !pxShort && !mmShort) sizeUnmeasured++;
     }
     if (rules.clearSpace) {
       const pad = rules.clearSpace.value * height;
       const band = { x: drawn2.x - pad, y: drawn2.y - pad, w: drawn2.w + pad * 2, h: drawn2.h + pad * 2 };
-      const inside2 = layers.filter((l) => l !== mark && !NOT_ON_PAGE.has(l.kind) && l.kind !== "group" && together(l, mark) && samePlace2(l, mark) && overlaps2(l.rect, band) && !holds2(l.rect, drawn2));
+      const background = (l) => !isMark(l) && beneath(l, mark) && holds2(l.rect, drawn2);
+      const inside2 = layers.filter((l) => l !== mark && l.kind !== "frame" && !NOT_ON_PAGE.has(l.kind) && l.kind !== "group" && together(l, mark) && samePlace2(l, mark) && overlaps2(l.rect, band) && !background(l));
       if (inside2.length) {
         const first = inside2[0];
         const message = inside2.length === 1 ? `\u201C${first.label}\u201D sits inside ${company}'s clear space.` : `\u201C${first.label}\u201D and ${inside2.length - 1} other ${inside2.length === 2 ? "layer sit" : "layers sit"} inside ${company}'s clear space.`;
@@ -137338,28 +137380,39 @@ function checkGuestMarks(boxes2, kit, measure3 = {}) {
     }
     const allowed = rules.treatments;
     if (allowed?.length) {
-      const recoloured = !!parseTreatedAssetId(mark.image).treatment || /* @__PURE__ */ ((t) => !!t && t !== AUTO_ASSET_THEME)(parseThemedAssetId(mark.image).theme);
-      const drawnAs = recoloured ? "mono" : "colour";
       const rest2 = allowed.map((t) => TREATMENT_WORDS[t]);
-      if (!allowed.includes(drawnAs)) {
-        add3(mark, "treatment", drawnAs, `${company}'s mark is drawn in ${TREATMENT_WORDS[drawnAs]}; the kit allows ${orList(rest2)}.`, { value: drawnAs, expected: allowed.join(", ") });
+      const treatment = parseTreatedAssetId(mark.image).treatment ?? void 0;
+      const themeId = parseThemedAssetId(mark.image).theme;
+      const theme = themeId && themeId !== AUTO_ASSET_THEME ? themeId : void 0;
+      const recolour = treatment || theme ? measure3.recolour?.({ ...theme ? { theme } : {}, ...treatment ? { treatment } : {} }) ?? null : void 0;
+      if (recolour === null) treatmentUnmeasured++;
+      else if (recolour === "other") {
+        add3(mark, "treatment", "recoloured", `${company}'s mark is recoloured; the kit allows ${orList(rest2)}.`, { value: "recoloured", expected: allowed.join(", ") });
+      } else {
+        const drawnAs = recolour === "mono" ? "mono" : "colour";
+        if (!allowed.includes(drawnAs)) {
+          add3(mark, "treatment", drawnAs, `${company}'s mark is drawn in ${TREATMENT_WORDS[drawnAs]}; the kit allows ${orList(rest2)}.`, { value: drawnAs, expected: allowed.join(", ") });
+        }
       }
-      const ground = layers.filter((l) => l !== mark && !NOT_ON_PAGE.has(l.kind) && l.kind !== "group" && beneath(l, mark) && together(l, mark) && samePlace2(l, mark) && holds2(l.rect, drawn2)).sort((a, b) => b.z - a.z || b.index - a.index)[0];
-      const groundAsset = ground?.image && !logos.has(stripAssetModifiers(ground.image)) ? stripAssetModifiers(ground.image) : "";
+      const ground = layers.filter((l) => l !== mark && !isMark(l) && !NOT_ON_PAGE.has(l.kind === "frame" ? "" : l.kind) && l.kind !== "group" && l.paints && beneath(l, mark) && together(l, mark) && samePlace2(l, mark) && holds2(l.rect, drawn2)).sort((a, b) => (a.kind === "frame" ? 1 : 0) - (b.kind === "frame" ? 1 : 0) || b.index - a.index)[0];
+      const groundAsset = ground?.image ? stripAssetModifiers(ground.image) : "";
       const onPicture = !!groundAsset && measure3.pictureKind?.(groundAsset) !== "vector";
       if (onPicture && !allowed.includes("on-photo")) {
         add3(mark, "treatment", "on-photo", `${company}'s mark sits on a photo; the kit allows ${orList(rest2)}.`, { value: "on-photo", expected: allowed.join(", "), related: ground?.id ? [ground.id] : [] });
       }
     }
   }
+  if (sizeUnmeasured) notMeasured.push(`the drawn height of ${sizeUnmeasured === 1 ? "one partner mark" : `${sizeUnmeasured} partner marks`}: the logo's proportions were not given, so a mark in a box at least the minimum may still draw smaller`);
+  if (treatmentUnmeasured) notMeasured.push(`the treatment of ${treatmentUnmeasured === 1 ? "one recoloured mark" : `${treatmentUnmeasured} recoloured marks`}: the catalog does not say what colours its theme or treatment gives`);
   return { findings, checked: { marks: marks.length, rules: checkedRules }, notMeasured };
 }
-var MAX_ROWS3, MAX_FINDINGS, NOT_ON_PAGE, TREATMENT_WORDS, record29, num14, imageId, hidden2, pxText, mmText, EPS4, overlaps2, holds2, together, samePlace2;
+var MAX_ROWS3, MAX_FINDINGS, NOT_ON_PAGE, TREATMENT_WORDS, record29, num14, imageId, hidden2, opacityOf, fills, pxText, mmText, EPS4, overlaps2, holds2, together, samePlace2;
 var init_partner_kit_check = __esm({
   "engine/src/partner-kit-check.ts"() {
     "use strict";
     init_asset_modifiers();
     init_icon_theme();
+    init_photo_treatment();
     init_partner_kit();
     init_units();
     init_design_hierarchy();
@@ -137374,6 +137427,11 @@ var init_partner_kit_check = __esm({
     };
     imageId = (v) => typeof v === "string" ? v : record29(v) && typeof v.id === "string" ? v.id : "";
     hidden2 = (row) => row.hidden === true || row.hidden === "true";
+    opacityOf = (row) => Math.min(1, Math.max(0, num14(row.opacity, 1)));
+    fills = (v) => {
+      const text13 = typeof v === "string" ? v.trim().toLowerCase() : record29(v) && typeof v.ref === "string" ? v.ref : "";
+      return !!text13 && text13 !== "transparent" && text13 !== "none" && !/^#[0-9a-f]{6}00$/.test(text13) && !/^#[0-9a-f]{3}0$/.test(text13);
+    };
     pxText = (n7) => `${Math.round(n7)}`;
     mmText = (n7) => `${Math.round(n7 * 10) / 10}`;
     EPS4 = 0.01;
@@ -156068,6 +156126,7 @@ __export(src_exports, {
   groundOfRegion: () => groundOfRegion,
   groupTextLogs: () => groupTextLogs,
   groupWordsToCues: () => groupWordsToCues,
+  guestRecolourFrom: () => guestRecolourFrom,
   guidedByWords: () => guidedByWords,
   guidedFilter: () => guidedFilter,
   gunzip: () => gunzip,
@@ -158933,7 +158992,7 @@ function rotOf(row) {
   const rot = num19(row, "rot");
   return rot !== 0 && Number.isFinite(rot) ? { rot } : {};
 }
-function opacityOf(row) {
+function opacityOf2(row) {
   return Math.max(0, Math.min(1, num19(row, "opacity", 100) / 100));
 }
 function foldAlpha(alpha, opacity) {
@@ -159012,7 +159071,7 @@ async function picOf(ctx, sink, row, box4) {
     ctx.notes.add(`a picture set to ${fit} was placed over its whole box, because its size could not be read`);
   }
   const placed2 = deckPlacePicture(row, box4, intrinsic, fit);
-  const look3 = deckPicLook({ name: str10(row, "name"), flipH: bool2(row, "flipH"), flipV: bool2(row, "flipV"), opacity: opacityOf(row) * 100 });
+  const look3 = deckPicLook({ name: str10(row, "name"), flipH: bool2(row, "flipH"), flipV: bool2(row, "flipV"), opacity: opacityOf2(row) * 100 });
   const srcRect = placed2.srcRect;
   const bake = ext === "svg" ? deckSvgBakeRaster(got.bytes, MAX_FALLBACK_PX) : null;
   if (bake) {
@@ -159064,7 +159123,7 @@ async function lowerLayer(ctx, sink, row, origin, binding, masterStyle, master, 
     await lowerLayer(ctx, sink, placed2.row, origin, binding, masterStyle, master, siblings);
     const hit = placed2.band ? ctx.palette.resolve(row.stroke) : null;
     if (placed2.band && hit && !hidden3(placed2.row) && !inexpressible(placed2.row, siblings)) {
-      sink.shapes.push(deckStrokeBand(row, placed2.band, origin, hit.hex, foldAlpha(hit.alpha, opacityOf(row))));
+      sink.shapes.push(deckStrokeBand(row, placed2.band, origin, hit.hex, foldAlpha(hit.alpha, opacityOf2(row))));
       ctx.notes.add("a stroke with its own width on each side was drawn as a shape of its own in the deck");
     }
     return;
@@ -159085,7 +159144,7 @@ async function lowerLayer(ctx, sink, row, origin, binding, masterStyle, master, 
     cx: Math.max(1, emu2(geometry3.w)),
     cy: Math.max(1, emu2(geometry3.h))
   };
-  const opacity = opacityOf(row);
+  const opacity = opacityOf2(row);
   if (kind === "path") {
     const initialMetadata = capturePptxPathMetadata(row);
     if (str10(row, "pathPaint").trim() !== "") {
@@ -159655,11 +159714,11 @@ var init_design_pptx = __esm({
         const colors = {};
         for (const [slot, hex4] of this.bySlot) colors[slot] = hex4;
         if (tokenColors?.length) {
-          const fills = themeSlotFills(this.bySlot, tokenColors.flatMap((t) => {
+          const fills2 = themeSlotFills(this.bySlot, tokenColors.flatMap((t) => {
             const hit = deckColor(t.value, this.cssVars);
             return hit && hit.alpha === void 0 ? [{ path: t.path, hex: hit.hex }] : [];
           }));
-          for (const [slot, hex4] of Object.entries(fills)) colors[slot] = hex4;
+          for (const [slot, hex4] of Object.entries(fills2)) colors[slot] = hex4;
         }
         const out = {};
         if (Object.keys(colors).length) out.colors = colors;
@@ -182629,10 +182688,16 @@ function themeNamesOf(doc) {
     return [];
   }
 }
-function partnerKitFindings(doc, partnerKit, lookup4) {
+function partnerKitFindings(doc, partnerKit, lookup4, catalog) {
   const unit2 = typeof doc.values.documentUnit === "string" ? doc.values.documentUnit : "px";
-  const dpi = Number(doc.values.documentDpi);
-  const report4 = checkGuestMarks(doc.boxes, partnerKit, { unit: unit2, ...Number.isFinite(dpi) && dpi > 0 ? { dpi } : {} });
+  const rawDpi = doc.values.documentDpi;
+  const dpi = typeof rawDpi === "number" ? rawDpi : typeof rawDpi === "string" && rawDpi.trim() !== "" ? Number(rawDpi) : Number.NaN;
+  const report4 = checkGuestMarks(doc.boxes, partnerKit, {
+    unit: unit2,
+    ...Number.isFinite(dpi) && dpi > 0 ? { dpi } : {},
+    // A recoloured mark is judged by the catalog's own theme and treatment colours.
+    recolour: guestRecolourFrom(catalog ?? null)
+  });
   const rules = report4.checked.rules.map((r5) => ({ "min-size": "minimum size", "clear-space": "clear space", treatment: "treatments" })[r5]);
   const ruleText = rules.length ? ` against its ${rules.length > 1 ? `${rules.slice(0, -1).join(", ")} and ${rules[rules.length - 1]}` : rules[0]}` : ", which states no rules";
   const notes = [`Partner kit ${partnerKit.label}: measured ${plural8(report4.checked.marks, "partner mark")}${ruleText}.`];
@@ -182701,8 +182766,12 @@ async function checkFile(bytes2, name, asked = {}) {
         families.structure.reason = `${families.structure.reason} ${pictures.unread === 1 ? "One picture layer has" : `${pictures.unread} picture layers have`} no picture bytes to read here, so ${pictures.unread === 1 ? "its" : "their"} resolution was not checked.`;
     }
     designSystem2 = ds ? { origin: ds.origin, ...ds.profile ? { profile: ds.profile } : {}, ...ds.tokensAsset ? { tokensAsset: ds.tokensAsset } : {} } : null;
-    const kit = opts.partnerKit ? partnerKitFindings(doc, opts.partnerKit, lookup4) : null;
-    if (!ds && kit) {
+    const kitRun = opts.partnerKit ? await guarded(opts.signal, async () => partnerKitFindings(doc, opts.partnerKit, lookup4, opts.catalog)) : null;
+    const kitFailed = kitRun && isFailed(kitRun) ? kitRun.failed : null;
+    const kit = kitRun && !isFailed(kitRun) ? kitRun : null;
+    if (kitFailed) {
+      families.brand = familyState("failed", `The partner kit could not be checked: ${kitFailed}`);
+    } else if (!ds && kit) {
       take("brand", familyState("ran", `${words4.noDesignSystem} Only the partner kit was checked. ${kit.note}`), kit.findings);
     } else if (!ds) {
       families.brand = familyState("unavailable", `${words4.noDesignSystem}${opts.theme ? ` The theme "${opts.theme}" was not checked against one.` : ""}`);

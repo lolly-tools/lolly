@@ -29,7 +29,8 @@ export interface SnapshotExtras {
 
 /** The partner kit a saved document carries (`__partnerKit`), or null when it has none that reads. */
 export function savedPartnerKit(values: Readonly<Record<string, unknown>> | null | undefined): PartnerKitAttachmentV1 | null {
-  return readPartnerKitAttachment(values?.__partnerKit);
+  // The record's own key only, never one its prototype supplies.
+  return values && Object.hasOwn(values, '__partnerKit') ? readPartnerKitAttachment(values.__partnerKit) : null;
 }
 
 export function snapshotSession(el: HTMLElement | null, manifest: ToolManifest, runtime: ToolRuntime,
@@ -138,11 +139,15 @@ export function templateValuesFromSnapshot(
   const fileInputs = new Set((manifest.inputs ?? []).filter((i) => i.type === 'file').map((i) => i.id));
   const out: Record<string, unknown> = {};
   for (const [key, value] of Object.entries(snapshot)) {
-    if (TEMPLATE_DROPPED_KEYS.has(key) || fileInputs.has(key) || value === undefined) continue;
+    // A prototype key is never a value: copying `__proto__` would set the template's
+    // prototype, and a dropped key such as `__partnerKit` could come back through that prototype.
+    if (UNSAFE_KEYS.has(key) || TEMPLATE_DROPPED_KEYS.has(key) || fileInputs.has(key) || value === undefined) continue;
     out[key] = value;
   }
   return out;
 }
+
+const UNSAFE_KEYS: ReadonlySet<string> = new Set(['__proto__', 'constructor', 'prototype']);
 
 /** The per-document keys a template never carries (see templateValuesFromSnapshot). */
 export const TEMPLATE_DROPPED_KEYS: ReadonlySet<string> = new Set([

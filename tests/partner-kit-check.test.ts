@@ -6,7 +6,7 @@
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { checkGuestMarks } from '../engine/src/partner-kit-check.ts';
+import { checkGuestMarks, guestRecolourFrom } from '../engine/src/partner-kit-check.ts';
 import { checkFindingFromBrand } from '../engine/src/design-check.ts';
 import { checkFile } from '../packages/node-shell/src/check.ts';
 import type { PartnerKitV1 } from '../packages/core/src/partner-kit-v1.ts';
@@ -153,12 +153,26 @@ test('guest marks: a rotated neighbour is measured by its bounding box', () => {
   assert.deepEqual(rotated.findings.map((f) => f.related), [['bar']]);
 });
 
-test('guest marks: a recoloured mark is one colour, and the kit\'s list decides', () => {
+test('guest marks: a recoloured mark is judged by the catalog\'s own colours, and unmeasured without them', () => {
   const allow = kit({ treatments: ['colour', 'on-photo'] });
-  const greyscale = checkGuestMarks([markBox({ image: `${LOGO}?treatment=greyscale` })], allow);
+  const recolour = guestRecolourFrom({
+    iconThemes: { themes: [{ id: 'ink', c1: '#112233', c2: '#112233' }, { id: 'red-blue', c1: '#ff0000', c2: '#0000ff' }] },
+    photoTreatments: { treatments: [{ id: 'greyscale', kind: 'greyscale' }, { id: 'duo', kind: 'duotone', shadow: '#112233', highlight: '#ffffff' }] },
+  });
+  const greyscale = checkGuestMarks([markBox({ image: `${LOGO}?treatment=greyscale` })], allow, { recolour });
   assert.deepEqual(greyscale.findings.map((f) => f.message), ["Northwind IT's mark is drawn in one colour; the kit allows full colour or on a photo."]);
-  assert.equal(checkGuestMarks([markBox({ image: `${LOGO}?theme=ember` })], allow).findings.length, 1, 'an icon theme recolours too');
-  assert.equal(checkGuestMarks([markBox({ image: `${LOGO}?theme=auto` })], allow).findings.length, 0, 'the surface-aware pick is the partner\'s own logo');
+  assert.deepEqual(checkGuestMarks([markBox({ image: `${LOGO}?theme=ink` })], allow, { recolour }).findings.map((f) => f.value), ['mono'], 'a theme whose two colours are one colour is one colour');
+  // A two-colour theme is not one colour: it recolours the mark, which a mono-only kit does not allow.
+  const twoColour = checkGuestMarks([markBox({ image: `${LOGO}?theme=red-blue` })], kit({ treatments: ['mono'] }), { recolour });
+  assert.deepEqual(twoColour.findings.map((f) => f.message), ["Northwind IT's mark is recoloured; the kit allows one colour."]);
+  assert.deepEqual(checkGuestMarks([markBox({ image: `${LOGO}?treatment=duo` })], allow, { recolour }).findings.map((f) => f.value), ['recoloured']);
+  // Without the catalog's colours, or for a theme it does not declare, the treatment is not measured, and the report says so.
+  for (const opts of [{}, { recolour }]) {
+    const unknown = checkGuestMarks([markBox({ image: `${LOGO}?theme=${'recolour' in opts ? 'unknown-theme' : 'red-blue'}` })], kit({ treatments: ['mono'] }), opts);
+    assert.deepEqual(unknown.findings, []);
+    assert.ok(unknown.notMeasured.some((n) => /treatment of one recoloured mark/.test(n)), JSON.stringify(unknown.notMeasured));
+  }
+  assert.equal(checkGuestMarks([markBox({ image: `${LOGO}?theme=auto` })], allow, { recolour }).findings.length, 0, 'the surface-aware pick is the partner\'s own logo');
   const monoOnly = checkGuestMarks([markBox()], kit({ treatments: ['mono'] }));
   assert.deepEqual(monoOnly.findings.map((f) => f.message), ["Northwind IT's mark is drawn in full colour; the kit allows one colour."]);
 });
@@ -173,7 +187,9 @@ test('guest marks: a mark on a photo is named when the kit leaves on-photo out',
   assert.deepEqual(report.findings.map((f) => f.message), ["Northwind IT's mark sits on a photo; the kit allows full colour or one colour."]);
   assert.deepEqual(report.findings[0]!.related, ['photo']);
   assert.equal(checkGuestMarks(boxes, noPhoto, { pictureKind: () => 'vector' }).findings.length, 0, 'a vector drawing beneath is not a photo');
-  assert.equal(checkGuestMarks([boxes[0]!, { ...boxes[1]!, z: -1 }], noPhoto).findings.length, 0, 'a photo drawn over the mark is not what the mark sits on');
+  assert.equal(checkGuestMarks([boxes[1]!, boxes[0]!], noPhoto).findings.length, 0, 'a photo drawn over the mark (later in layer order) is not what the mark sits on');
+  // Design paints in layer order and `z` is depth: a depth on the mark does not move it off the photo.
+  assert.deepEqual(checkGuestMarks([{ id: 'dummy', kind: 'box', x: 900, y: 900, w: 10, h: 10 }, boxes[0]!, { ...boxes[1]!, z: 0 }], noPhoto).findings.map((f) => f.value), ['on-photo']);
   assert.equal(checkGuestMarks(boxes, kit({ treatments: ['colour', 'on-photo'] })).findings.length, 0);
   // A plain box between the photo and the mark is what the mark sits on.
   const panel = { id: 'panel', kind: 'box', x: 80, y: 80, w: 300, h: 100, bg: '#ffffff' };
@@ -246,4 +262,79 @@ test('guest marks: with a kit attached, the brand check counts the kit colours a
   const guest = checkBrandDesign(boxes, doc, { guest: { colours: ['#1d4ed8'], assets: [LOGO, MARK] } });
   assert.deepEqual(guest.findings.filter((f) => f.kind === 'color' || f.kind === 'asset').map((f) => f.layerId), ['stray'], 'only the colour that is neither brand nor kit is flagged');
   assert.equal(guest.checked.assets, 1);
+});
+
+// Review regressions (plans/82 M8, L-M8-2): each case failed before its fix.
+
+test('guest marks: a guest logo is a known asset, but its undeclared treatment is still a reference to check', async () => {
+  const { checkBrandDesign } = await import('../engine/src/brand-check.ts');
+  const doc = { color: { $type: 'color', ink: { $value: '#112233' } } };
+  const report = checkBrandDesign([{ id: 'logo', name: 'Logo', kind: 'image', image: `${LOGO}?treatment=missing` }], doc, { treatments: [], guest: { colours: [], assets: [LOGO] } });
+  assert.deepEqual(report.findings.map((f) => [f.kind, f.status]), [['reference', 'unknown']]);
+  assert.deepEqual(checkBrandDesign([{ id: 'logo', kind: 'image', image: LOGO }], doc, { guest: { colours: [], assets: [LOGO] } }).findings, [], 'the plain logo is known');
+});
+
+test('guest marks: two kit marks in the same box each crowd the other; another mark is never a background', () => {
+  const report = checkGuestMarks([markBox({ h: 50 }), { id: 'square', kind: 'image', name: 'Northwind square', image: MARK, x: 100, y: 100, w: 200, h: 50 }], SPACE);
+  assert.deepEqual(report.findings.map((f) => [f.layerId, f.related]), [['logo', ['square']], ['square', ['logo']]]);
+});
+
+test('guest marks: a layer at no opacity, its own or its group\'s, is not a neighbour', () => {
+  assert.deepEqual(checkGuestMarks([markBox({ h: 50 }), { id: 'ghost', kind: 'text', text: 'Ghost', opacity: 0, x: 100, y: 160, w: 100, h: 20 }], SPACE).findings, []);
+  assert.deepEqual(checkGuestMarks([
+    markBox({ h: 50 }),
+    { id: 'g', kind: 'group', opacity: 0, x: 100, y: 160, w: 100, h: 20 },
+    { id: 'kid', kind: 'text', text: 'In a faded group', group: 'g', x: 100, y: 160, w: 100, h: 20 },
+  ], SPACE).findings, []);
+  assert.equal(checkGuestMarks([markBox({ h: 50 }), { id: 'half', kind: 'text', text: 'Half', opacity: 0.5, x: 100, y: 160, w: 100, h: 20 }], SPACE).findings.length, 1, 'a half-faded layer still crowds the mark');
+});
+
+test('guest marks: a mark in a group takes its artboard from the hierarchy, so another artboard is never a neighbour', () => {
+  const report = checkGuestMarks([
+    { id: 'a', kind: 'frame', x: 0, y: 0, w: 800, h: 600 },
+    { id: 'b', kind: 'frame', x: 0, y: 0, w: 800, h: 600 },
+    { id: 'g', kind: 'group', frame: 'a', x: 100, y: 100, w: 200, h: 50 },
+    markBox({ h: 50, group: 'g' }),
+    { id: 'other', kind: 'text', text: 'On B', frame: 'b', x: 100, y: 160, w: 100, h: 20 },
+  ], SPACE);
+  assert.deepEqual(report.findings, []);
+});
+
+test('guest marks: what the mark sits on looks through layers that paint nothing, and an artboard\'s own picture counts', () => {
+  const noPhoto = kit({ treatments: ['colour', 'mono'] });
+  const through = checkGuestMarks([
+    { id: 'photo', kind: 'image', image: 'user/photo', x: 0, y: 0, w: 800, h: 600 },
+    { id: 'clear', kind: 'box', bg: 'transparent', x: 50, y: 50, w: 400, h: 200 },
+    markBox(),
+  ], noPhoto);
+  assert.deepEqual(through.findings.map((f) => [f.value, f.related]), [['on-photo', ['photo']]]);
+  const board = checkGuestMarks([
+    { id: 'board', kind: 'frame', image: 'lolly/photos/sea', x: 0, y: 0, w: 800, h: 600 },
+    markBox({ frame: 'board' }),
+  ], noPhoto);
+  assert.deepEqual(board.findings.map((f) => [f.value, f.related]), [['on-photo', ['board']]]);
+  const panel = checkGuestMarks([
+    { id: 'board', kind: 'frame', image: 'lolly/photos/sea', x: 0, y: 0, w: 800, h: 600 },
+    { id: 'panel', kind: 'box', bg: '#ffffff', frame: 'board', x: 50, y: 50, w: 400, h: 200 },
+    markBox({ frame: 'board' }),
+  ], noPhoto);
+  assert.deepEqual(panel.findings, [], 'a painted panel between is what the mark sits on');
+});
+
+test('guest marks: a contained logo of unknown proportions in a box at the minimum is reported as not measured', () => {
+  const box = markBox({ w: 300, h: 120 });
+  const unknown = checkGuestMarks([box], SIZE);
+  assert.deepEqual(unknown.findings, []);
+  assert.ok(unknown.notMeasured.some((n) => /drawn height of one partner mark/.test(n)), JSON.stringify(unknown.notMeasured));
+  // A box already under the minimum is under it whatever the proportions.
+  assert.equal(checkGuestMarks([markBox()], SIZE).notMeasured.some((n) => /drawn height/.test(n)), false);
+  assert.deepEqual(checkGuestMarks([box], SIZE, { logoAspect: () => 4 }).findings.map((f) => f.value), ['75 px']);
+  assert.equal(checkGuestMarks([markBox({ w: 300, h: 120, fit: 'cover' })], SIZE).notMeasured.some((n) => /drawn height/.test(n)), false, 'a cover fit draws the box');
+});
+
+test('guest marks: an unreadable document dpi is read as absent, and the check report carries what was not measured', async () => {
+  const bytes = new TextEncoder().encode(JSON.stringify({ boxes: [markBox({ w: 300, h: 120 })], documentUnit: 'mm', documentDpi: { toString: null } }));
+  const report = await checkFile(bytes, 'flyer.json', { designSystem: null, partnerKit: SIZE, browser: 'off' });
+  assert.equal(report.families.brand.state, 'ran');
+  assert.match(report.families.brand.reason ?? '', /Not measured: .*drawn height of one partner mark/);
 });
