@@ -91,6 +91,7 @@ export const SVG = {
   toolKind:
     '<path d="M4 20 14 10"/><path d="m16.5 3.5 1.4 3.6 3.6 1.4-3.6 1.4-1.4 3.6-1.4-3.6L11.5 8.5l3.6-1.4z"/>',
   info: '<circle cx="12" cy="12" r="9"/><line x1="11" y1="11.5" x2="12" y2="11.5"/><line x1="12" y1="11.5" x2="12" y2="16"/><circle cx="12" cy="8" r="0.7" fill="currentColor" stroke="none"/>',
+  help: '<circle cx="12" cy="12" r="9"/><path d="M9.6 9.2a2.5 2.5 0 0 1 4.8.9c0 1.7-2.4 2.4-2.4 2.4"/><circle cx="12" cy="16.4" r="0.7" fill="currentColor" stroke="none"/>',
   // Import a design file (Figma SVG / Penpot) - an arrow rising UP out of a tray
   // (upload/import, not download: the arrowhead apexes at the top, not the tray).
   importFile:

@@ -39,6 +39,7 @@ import { inferDesignIntent } from '../design-workspace.ts';
 import { createHistory, historyTokenLinks } from '../tool-history.ts';
 import { mountBackPill } from '../../components/back-pill.ts';
 import { autoOpenToolGuide, showToolGuide } from '../../components/tool-guide.ts';
+import { toolGuideRows } from '../../lib/tool-guides.ts';
 import { zipBulkFiles } from '../../lib/bulk-files.ts';
 import { t, tRaw } from '../../i18n.ts';
 import { readScene } from '../present-production/scene.ts';
@@ -902,10 +903,21 @@ export function wireActionsPanel(tview: ToolViewCtx): void {
   // help button beside the title, plus one automatic open per device on a tool
   // the user hasn't opened before. mountModal bodies its dialog, so the handle is
   // kept to close it on teardown - a guide must not outlive the tool it explains.
+  // The same button also opens the docs pages mapped to this tool (plan 354 D6,
+  // lib/tool-guides.ts): it is rendered hidden for a tool with no steps, and shown once
+  // that list arrives holding a row.
   tview.openGuide = null;
-  viewEl.querySelector<HTMLButtonElement>('#tool-guide-btn')?.addEventListener('click', () => {
-    tview.openGuide = showToolGuide(tview.tool.manifest);
+  const guideRows = toolGuideRows(tview.toolId);
+  const guideButtons = [...viewEl.querySelectorAll<HTMLButtonElement>('[data-tool-guide]')];
+  void guideRows.then((rows) => {
+    if (!rows.length || !viewEl.isConnected) return;
+    for (const b of guideButtons) b.hidden = false;
   });
+  for (const b of guideButtons) {
+    b.addEventListener('click', () => {
+      void guideRows.then((rows) => { tview.openGuide = showToolGuide(tview.tool.manifest, rows); });
+    });
+  }
   // The automatic first-visit open is for someone who came to MAKE the thing.
   // Anyone arriving on a finished render - a fullscreen/auto-export share link,
   // or a chromeless editor embed - gets the button and nothing in their way.

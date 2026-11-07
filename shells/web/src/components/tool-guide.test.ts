@@ -139,3 +139,67 @@ test('a tool with no guide neither auto-opens nor mounts anything', () => {
   assert.equal(showToolGuide({ id: 'plain' }), null);
   assert.equal(dialogEl(), null);
 });
+
+// ─── "Read the guide" (plan 354 D6) ──────────────────────────────────────────
+
+const ROWS = [
+  { p: 'start/make-something', a: '', t: 'Make your first file', h: '' },
+  { p: 'create/exporting', a: 'size-and-print-units', t: 'Export a file', h: 'Size and print units' },
+];
+
+test('a tool with docs rows and no steps opens a list of reader links, closed with Close', () => {
+  reset();
+  const handle = showToolGuide({ id: 'qr-code' }, ROWS);
+  assert.ok(handle, 'docs rows alone are reason enough to open');
+  const dlg = dialogEl()!;
+  assert.equal(dlg.querySelector('.tool-guide-title')?.textContent, 'Read the guide');
+  assert.equal(dlg.querySelector('.tool-guide-panel'), null, 'no steps panel without steps');
+  const links = [...dlg.querySelectorAll<HTMLAnchorElement>('.tool-guide-doc')];
+  assert.deepEqual(links.map(a => a.getAttribute('href')), ['#/docs/start/make-something', '#/docs/create/exporting?h=size-and-print-units']);
+  // A section row leads with its own name and carries its page under it; a page row is the page.
+  assert.equal(links[1]!.querySelector('.tool-guide-doc-title')?.textContent, 'Size and print units');
+  assert.equal(links[1]!.querySelector('.tool-guide-doc-page')?.textContent, 'Export a file');
+  assert.equal(links[0]!.querySelector('.tool-guide-doc-page'), null);
+  assert.equal(dlg.querySelector('.tool-guide-docs-title'), null, 'the dialog title already says Read the guide');
+  assert.equal(dlg.querySelector('.tool-guide-done')?.textContent?.trim(), 'Close');
+  handle!.close();
+});
+
+test('a tool with steps keeps them first and lists its docs below, under their own heading', () => {
+  reset();
+  const handle = showToolGuide(manifest, ROWS.slice(0, 1));
+  const dlg = dialogEl()!;
+  const body = dlg.querySelector('.tool-guide-body')!;
+  const order = [...body.children].map(el => el.className.split(' ')[0]);
+  assert.ok(order.indexOf('tool-guide-panel') < order.indexOf('tool-guide-docs'), 'steps come before the docs');
+  assert.equal(dlg.querySelector('.tool-guide-docs-title')?.textContent, 'Read the guide');
+  assert.equal(dlg.querySelector('.tool-guide-done')?.textContent?.trim(), 'Got it');
+  handle!.close();
+});
+
+test('a docs row replaces the dialog\'s Back entry, so one Back returns to the tool', () => {
+  reset();
+  const replaced: string[] = [];
+  const realLocation = globalThis.location;
+  Object.defineProperty(globalThis, 'location', { configurable: true, value: { replace: (href: string) => { replaced.push(href); } } });
+  try {
+    const handle = showToolGuide({ id: 'qr-code' }, ROWS);
+    const link = dialogEl()!.querySelectorAll<HTMLAnchorElement>('.tool-guide-doc')[1]!;
+    const click = new dom.window.MouseEvent('click', { bubbles: true, cancelable: true, button: 0 });
+    link.dispatchEvent(click);
+    assert.equal(click.defaultPrevented, true);
+    assert.deepEqual(replaced, ['#/docs/create/exporting?h=size-and-print-units']);
+    handle!.close();
+  } finally {
+    Object.defineProperty(globalThis, 'location', { configurable: true, value: realLocation });
+  }
+});
+
+test('the help button can be rendered hidden, for a tool whose docs rows have not arrived', () => {
+  const host = document.createElement('div');
+  host.innerHTML = guideButtonHtml('tool-guide-fab', { hidden: true, className: 'filter-fab tool-guide-fab' });
+  const btn = host.querySelector('button')!;
+  assert.equal(btn.hidden, true);
+  assert.equal(btn.className, 'filter-fab tool-guide-fab');
+  assert.ok(btn.hasAttribute('data-tool-guide'), 'setup.ts finds both buttons by this attribute');
+});

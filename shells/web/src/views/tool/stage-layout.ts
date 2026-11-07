@@ -366,7 +366,14 @@ export async function wireSidebar(tview: ToolViewCtx): Promise<void> {
           top of each other. mountBackPill() scans the whole view, so the one the bar emits
           (backHomeHtml, below) is wired by the same call, unsaved-changes intercept and all. */ ''
     }
-    ${noAside && !visitorPage && !isIframeMode() && !designChrome ? backPillHtml(backPillOpts) : ''}
+    ${
+      /* With no sidebar there is no header for the help button, so it sits beside the
+          floating pill in the shared top-left island (overrides.css .chrome-topleft),
+          hidden until the tool has steps or docs rows to show (plan 354 D6). */ ''
+    }
+    ${noAside && !visitorPage && !isIframeMode() && !designChrome
+      ? `<div class="chrome-topleft">${backPillHtml(backPillOpts)}${guideButtonHtml('tool-guide-fab', { hidden: !hasGuide(tview.tool.manifest), className: 'filter-fab tool-guide-fab' })}</div>`
+      : ''}
     <div class="tool-layout${chromeless ? ' is-editor' : ''}${documentLayout ? ' is-document' : ''}${pagedDoc ? ' is-paged' : ''}${webDoc ? ' is-webdoc' : ''}${visitorPage ? ' is-visitor' : ''}${hideSidebar && !visitorPage ? ' is-bare' : ''}" id="tool-layout"${documentLayout ? ' data-theme="light"' : ''} data-sidebar="${noAside ? 'hidden' : sidebarOpen ? 'open' : 'closed'}">
       ${
         showAside
@@ -379,7 +386,7 @@ export async function wireSidebar(tview: ToolViewCtx): Promise<void> {
             <div class="sidebar-header-row">
               <span class="sidebar-title-wrap">
                 <span class="sidebar-title" title="${escapeText(tview.tool.manifest.name)}">${escapeText(tview.tool.manifest.name)}</span>
-                ${hasGuide(tview.tool.manifest) ? guideButtonHtml() : ''}
+                ${guideButtonHtml('tool-guide-btn', { hidden: !hasGuide(tview.tool.manifest) })}
                 ${canSaveSession ? `<button type="button" class="multi-edit-btn" id="multi-edit-btn" data-tip="${escapeText(t('Make variants'))}" aria-label="${escapeText(t('Make variants'))}" aria-haspopup="menu" aria-expanded="false">${icon('grid', { className: 'multi-edit-icon' })}</button>` : ''}
                 ${
                   /* "Templates" - the sidebar layout's door back to the chooser mid-session

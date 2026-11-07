@@ -17,6 +17,11 @@
  *     localStorage - the same tier as the welcome dialog's dismissal, and for
  *     the same reason: it's chrome state, never tool state (which belongs to
  *     host.state).
+ *
+ * The dialog also carries "Read the guide" (plan 354 D6): the docs pages and sections
+ * mapped to this tool in docs/manifest.json (lib/tool-guides.ts), below the steps when
+ * the tool has them and on their own when it does not. Each row opens the in-app
+ * reader in place of this view, so one Back, or the reader's "← <tool>" pill, returns.
  */
 import type { ToolGuide, ToolGuideTrack } from '@lolly-tools/core/contract';
 import { escape } from '../utils.ts';
@@ -24,6 +29,7 @@ import { t } from '../i18n.ts';
 import { icon } from '../lib/icons.ts';
 import { jellyActive } from '../lib/jelly.ts';
 import { captureNeutralPinned } from '../lib/capture-neutral.ts';
+import { toolGuideHref, toolGuideLabel, type ToolGuideRow } from '../lib/tool-guides.ts';
 import { mountModal } from './modal.ts';
 
 /** Tools whose guide has been auto-opened on this device, joined by `,`. */
@@ -42,10 +48,28 @@ export function hasGuide(manifest: GuideManifest | null | undefined): boolean {
 }
 
 /** Markup for the help button that opens the guide - mounted by the caller
- *  (views/tool.ts puts it in the sidebar header, beside the tool name). */
-export function guideButtonHtml(id = 'tool-guide-btn'): string {
+ *  (views/tool.ts puts it in the sidebar header, beside the tool name, or beside the
+ *  floating Home pill where there is no sidebar, with that row's FAB class). `hidden`
+ *  renders it for a tool with no steps of its own, to be shown once its docs rows arrive. */
+export function guideButtonHtml(id = 'tool-guide-btn', opts: { hidden?: boolean; className?: string } = {}): string {
   const label = t('How to use it');
-  return `<button type="button" class="tool-guide-btn" id="${escape(id)}" data-tip="${escape(label)}" aria-label="${escape(label)}" aria-haspopup="dialog">${icon('help', { className: 'tool-guide-icon' })}</button>`;
+  const cls = opts.className ?? 'tool-guide-btn';
+  return `<button type="button" class="${escape(cls)}" id="${escape(id)}" data-tool-guide data-tip="${escape(label)}" aria-label="${escape(label)}" aria-haspopup="dialog"${opts.hidden ? ' hidden' : ''}>${icon('help', { className: 'tool-guide-icon' })}</button>`;
+}
+
+/** The "Read the guide" list: one link per docs page or section, the section's own name
+ *  first and the page's title below. Escaped text only; hrefs are in-app reader routes built
+ *  from a page path and an anchor id. */
+export function guideRowsHtml(rows: readonly ToolGuideRow[], heading: boolean): string {
+  if (!rows.length) return '';
+  const title = t('Read the guide');
+  return `<nav class="tool-guide-docs" aria-label="${escape(title)}">
+      ${heading ? `<h3 class="tool-guide-docs-title">${escape(title)}</h3>` : ''}
+      <ul class="tool-guide-docs-list">${rows.map(row => {
+        const { title: name, page } = toolGuideLabel(row);
+        return `<li><a class="tool-guide-doc" href="${escape(toolGuideHref(row))}">${icon('document', { className: 'tool-guide-doc-icon' })}<span class="tool-guide-doc-text"><span class="tool-guide-doc-title">${escape(name)}</span>${page ? `<span class="tool-guide-doc-page">${escape(page)}</span>` : ''}</span></a></li>`;
+      }).join('')}</ul>
+    </nav>`;
 }
 
 /**
@@ -54,12 +78,12 @@ export function guideButtonHtml(id = 'tool-guide-btn'): string {
  * across a route change would outlive the tool it describes, since mountModal
  * bodies its dialog rather than nesting it in the view.
  */
-export function showToolGuide(manifest: GuideManifest): { close(): void } | null {
-  const guide = manifest.guide;
-  if (!hasGuide(manifest) || !guide) return null;
+export function showToolGuide(manifest: GuideManifest, docs: readonly ToolGuideRow[] = []): { close(): void } | null {
+  const guide = hasGuide(manifest) ? manifest.guide : undefined;
+  if (!guide && !docs.length) return null;
 
-  const tracks = guide.tracks.filter(track => track?.steps?.length);
-  const title  = guide.title || t('How to use it');
+  const tracks = guide ? guide.tracks.filter(track => track?.steps?.length) : [];
+  const title  = guide ? guide.title || t('How to use it') : t('Read the guide');
   const tabbed = tracks.length > 1;
 
   const tabs = tabbed ? `
@@ -70,16 +94,19 @@ export function showToolGuide(manifest: GuideManifest): { close(): void } | null
                 aria-selected="${i === 0}" tabindex="${i === 0 ? '0' : '-1'}">${escape(track.label)}</button>`).join('')}
     </div>` : '';
 
+  // With steps, the reader closes on "Got it"; a list of links alone closes on "Close".
+  const done = guide ? t('Got it') : t('Close');
   const content = `
     <div class="tool-guide-body">
       <h2 class="tool-guide-title">${escape(title)}</h2>
       ${tabs}
-      <div class="tool-guide-panel" id="tool-guide-panel" role="${tabbed ? 'tabpanel' : 'group'}"
-           ${tabbed ? `aria-labelledby="tool-guide-tab-0"` : ''}>${trackHtml(tracks[0]!)}</div>
+      ${guide ? `<div class="tool-guide-panel" id="tool-guide-panel" role="${tabbed ? 'tabpanel' : 'group'}"
+           ${tabbed ? `aria-labelledby="tool-guide-tab-0"` : ''}>${trackHtml(tracks[0]!)}</div>` : ''}
+      ${guideRowsHtml(docs, !!guide)}
       <div class="tool-guide-actions">
         ${jellyActive()
-          ? `<jelly-button variant="platinum" class="tool-guide-done" label="${escape(t('Got it'))}">${escape(t('Got it'))}</jelly-button>`
-          : `<button type="button" class="btn btn--primary tool-guide-done">${escape(t('Got it'))}</button>`}
+          ? `<jelly-button variant="platinum" class="tool-guide-done" label="${escape(done)}">${escape(done)}</jelly-button>`
+          : `<button type="button" class="btn btn--primary tool-guide-done">${escape(done)}</button>`}
       </div>
     </div>`;
 
@@ -89,12 +116,22 @@ export function showToolGuide(manifest: GuideManifest): { close(): void } | null
     initialFocus: el => el.querySelector<HTMLElement>('.tool-guide-done'),
   });
   const dialog = modal.el;
-  const panel  = dialog.querySelector<HTMLElement>('.tool-guide-panel')!;
+  // A docs row REPLACES the history entry this dialog pushed for Back to close it, so the
+  // reader sits where the tool did and one Back returns to the tool (lib/overlay-back.ts:
+  // the route change tears the dialog down without popping that entry).
+  dialog.querySelectorAll<HTMLAnchorElement>('.tool-guide-doc').forEach(link => {
+    link.addEventListener('click', (e: MouseEvent) => {
+      if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
+      e.preventDefault();
+      location.replace(link.getAttribute('href') ?? '#/');
+    });
+  });
+  const panel  = dialog.querySelector<HTMLElement>('.tool-guide-panel');
   const tabEls = [...dialog.querySelectorAll<HTMLButtonElement>('.tool-guide-tab')];
 
   const select = (index: number): void => {
     const track = tracks[index];
-    if (!track) return;
+    if (!track || !panel) return;
     panel.innerHTML = trackHtml(track);
     panel.setAttribute('aria-labelledby', `tool-guide-tab-${index}`);
     tabEls.forEach((tab, i) => {
