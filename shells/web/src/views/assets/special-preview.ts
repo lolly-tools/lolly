@@ -1,9 +1,10 @@
 // SPDX-License-Identifier: MPL-2.0
-/** Original-file previews for fonts and Adobe motion templates. */
+/** Original-file previews for fonts, Adobe motion templates and workspace templates. */
 import type { AssetRef } from '@lolly-tools/core/host-v1';
 import { fetchAssetBytes, MOGRT_LIMIT, readMogrt } from '../../lib/mogrt.ts';
 import { detectFontFormat, parseFontMetadata } from '../../lib/font-utils.ts';
 import { t } from '../../i18n.ts';
+import { fetchWorkspaceValues, workspaceTemplateOf } from '../../lib/workspace-templates.ts';
 import type { CatCtx } from './context.ts';
 import { mountMogrtSimulation } from '../../components/mogrt-simulation.ts';
 import type { UserFontsHost } from '../../user-fonts.ts';
@@ -16,7 +17,41 @@ export function hasSpecialPreview(ref: AssetRef): boolean {
   return ref.type === 'font' || (ref.original?.format ?? ref.format) === 'mogrt';
 }
 
+/**
+ * A workspace template (lib/workspace-templates.ts) is a set of values, not a picture:
+ * draw it in its tool the way the Start chooser draws a tile, so the sheet shows what
+ * Use will open rather than a file that cannot be previewed.
+ */
+function mountTemplatePreview(el: HTMLElement, ref: AssetRef, cat: CatCtx): () => void {
+  const tpl = workspaceTemplateOf(ref)!;
+  let gone = false;
+  const status = document.createElement('p');
+  status.setAttribute('role', 'status');
+  status.textContent = t('Loading preview…');
+  const panel = document.createElement('div');
+  panel.style.cssText = 'display:grid;place-items:center;gap:12px;padding:24px;width:100%;height:100%';
+  panel.append(status);
+  el.replaceChildren(panel);
+  void (async () => {
+    const entry = window.__toolIndex?.tools?.find((tool) => tool.id === tpl.toolId) as { formats?: unknown } | undefined;
+    const formats = Array.isArray(entry?.formats) ? entry.formats.filter((f): f is string => typeof f === 'string') : undefined;
+    const values = await fetchWorkspaceValues(tpl);
+    if (gone) return;
+    if (!values || !formats?.length) { status.textContent = t('Use opens this template in its tool.'); return; }
+    const { coverFormats, renderFeaturedVariant } = await import('../../lib/featured-render.ts');
+    const src = await renderFeaturedVariant(cat.host as Parameters<typeof renderFeaturedVariant>[0], tpl.toolId, coverFormats({ formats }), `published:${tpl.id}`, values, 'published').catch(() => '');
+    if (gone) return;
+    if (!src) { status.textContent = t('Use opens this template in its tool.'); return; }
+    const img = document.createElement('img');
+    img.alt = tpl.name; img.src = src;
+    img.style.cssText = 'max-width:100%;max-height:100%;object-fit:contain';
+    panel.replaceChildren(img);
+  })();
+  return () => { gone = true; };
+}
+
 export function mountSpecialPreview(el: HTMLElement, ref: AssetRef, cat: CatCtx): () => void {
+  if (workspaceTemplateOf(ref)) return mountTemplatePreview(el, ref, cat);
   const abort = new AbortController();
   const urls: string[] = [];
   let face: FontFace | undefined;

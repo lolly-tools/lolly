@@ -221,8 +221,8 @@ test('the chooser gate opens on built-in OR user templates', () => {
     'the user templates are counted from the store list()');
   assert.match(CODE, /createUserTemplateStore\([\s\S]{0,200}?\)\.list\(toolId\)/,
     'the count comes from the user-template store scoped to this tool id');
-  assert.match(CODE, /if \(!startSeeded && \((?:tview\.)?hasTemplates \|\| (?:tview\.)?hasUserTemplates\) && !hasPendingDesignImport\(\)\) \{/,
-    'the chooser opens for built-in OR user templates - for neither, this guard leaves templatePick null -'
+  assert.match(CODE, /if \(!startSeeded && \((?:tview\.)?hasTemplates \|\| (?:tview\.)?hasUserTemplates \|\| hasWorkspaceTemplates\) && !hasPendingDesignImport\(\)\) \{/,
+    'the chooser opens for built-in, user OR workspace templates - for none, this guard leaves templatePick null -'
     + ' and never over a pending design import, whose drop front door owns this mount (2026-09-02),'
     + ' and never once a "Start with" already seeded the document (plans/226)');
 });
@@ -239,6 +239,11 @@ test('the built-in fast path skips the user-template store read before mount', (
   assert.match(branch.slice(0, countAt), /if \(!startSeeded && !(?:tview\.)?hasTemplates\) \{/,
     'the store read only runs when there are no built-in templates (Design stays fast) and no '
     + '"Start with" already answered the question');
+  // The workspace's own templates are read under the same guard, and only when the
+  // person's own did not already open the chooser.
+  const workspaceAt = branch.indexOf('hasWorkspaceTemplates = startableFor(');
+  assert.ok(workspaceAt > countAt, 'the workspace count follows the user count inside the same guard');
+  assert.match(branch.slice(countAt, workspaceAt), /if \(!hasUserTemplates\) \{/);
 });
 
 // ── Surface 2: the blank fresh-open ladder (plans/226 section 3) ──────────────

@@ -551,8 +551,8 @@ export async function wireSidebar(tview: ToolViewCtx): Promise<void> {
 
   // Chromeless editors own their on-canvas affordances; ordinary tools get a focus hint.
   const focusHint = chromeless ? '' : `
-[data-canvas-input] { cursor: pointer; }
-[data-canvas-input]:hover { outline: 2px dashed rgba(128,128,128,0.35); outline-offset: 3px; border-radius: 2px; }`; tview.focusHint = focusHint;
+[data-canvas-input]:not([data-canvas-fixed]) { cursor: pointer; }
+[data-canvas-input]:not([data-canvas-fixed]):hover { outline: 2px dashed rgba(128,128,128,0.35); outline-offset: 3px; border-radius: 2px; }`; tview.focusHint = focusHint;
   const styleEl = mountScopedStyle(`${tview.tool.styles ?? ''}${focusHint}`, canvasScope); tview.styleEl = styleEl;
   // A tool that sets its own fonts draws a script they lack in the same fallback font on
   // the page as in its export (lib/fallback-slots.ts). The CSSOM only: the text stays.
@@ -636,7 +636,9 @@ export function wireFilmstrip(tview: ToolViewCtx): void {
     refresh: (themed) => refreshThemeSwatches(themed, viewEl, { setSwatches, refreshSwatches }),
   }); tview.documentTheme = documentTheme;
   const stopUsage = trackToolTokenUsage(documentTheme, tview.tool, runtime);
-  const themeSection = mountThemeSection({ root: viewEl, controller: documentTheme,
+  // A workspace template that keeps its colourway and mode offers neither, with no
+  // note: what cannot change is simply not offered (lib/workspace-templates.ts).
+  const themeSection = tview.templateFixedTheme ? { destroy: () => {} } : mountThemeSection({ root: viewEl, controller: documentTheme,
     after: (tview.tool.manifest.render as { themeChoicesAfter?: string } | undefined)?.themeChoicesAfter });
   tview.mountLifecycle.add('document theme', () => { stopUsage(); themeSection.destroy(); documentTheme.dispose(); });
   // Always present in the template (both layouts render #tool-stage), so treat it

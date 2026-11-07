@@ -1,0 +1,104 @@
+// SPDX-License-Identifier: MPL-2.0
+/**
+ * The workspace's shelf: what a connected workspace published for this person, at the
+ * top of the gallery, each with Use. A brand team's partner data sheet is here before
+ * the person has to search for it (plans/82 M2).
+ *
+ * Two kinds of thing land on it, both read from the catalog the workspace already
+ * serves, so nothing new is asked of the network:
+ *   - a template of a tool (lib/workspace-templates.ts): Use opens that tool from it,
+ *     through `?template=`, so its rules hold from the first frame;
+ *   - a tool the workspace built from a Share with rules file: an ordinary tool in the
+ *     index that carries the template it came from (`templateId`). Use opens that tool.
+ * A retired one is never offered. On a plain build there is nothing to show and the
+ * shelf is absent, so the gallery renders exactly as before.
+ */
+import { escape as escapeHtml, safeHref } from '../utils.ts';
+import { t, tRaw } from '../i18n.ts';
+import { icon } from '../lib/icons.ts';
+import type { WorkspaceTemplate } from '../lib/workspace-templates.ts';
+
+export interface PublishedItem {
+  /** Stable key: the template's catalog id. */
+  key: string;
+  name: string;
+  /** The tool it opens. */
+  toolId: string;
+  /** What the second line says: the tool it is made with ('' for a tool of its own). */
+  toolName: string;
+  href: string;
+  /** A short version label ("Version 3", "1.0.2"). */
+  version: string;
+  icon?: string;
+  /** For a template, the values a preview draws from. */
+  values?: Record<string, unknown>;
+  formats?: readonly string[];
+  /** The tool's own proportions, for the preview frame. */
+  width?: number;
+  height?: number;
+}
+
+/** The shelf's items: templates of tools this person can open, then rules tools, by name. */
+export function publishedItems(
+  templates: readonly WorkspaceTemplate[],
+  tools: ReadonlyArray<{ id: string; name: string; icon?: string; version?: string; formats?: readonly string[]; width?: number; height?: number; listed?: boolean; templateId?: unknown }>,
+): PublishedItem[] {
+  const byId = new Map(tools.map((tool) => [tool.id, tool]));
+  const out: PublishedItem[] = [];
+  for (const tpl of templates) {
+    const tool = byId.get(tpl.toolId);
+    if (tpl.retired || !tool) continue;
+    out.push({
+      key: tpl.id, name: tpl.name, toolId: tpl.toolId, toolName: tool.name,
+      href: `#/tool/${encodeURIComponent(tpl.toolId)}?template=${encodeURIComponent(tpl.id)}`,
+      version: tRaw('Version {n}', { n: tpl.version }),
+      ...(tool.icon ? { icon: tool.icon } : {}), ...(tool.formats ? { formats: tool.formats } : {}),
+      ...(tool.width && tool.height ? { width: tool.width, height: tool.height } : {}),
+    });
+  }
+  for (const tool of tools) {
+    if (typeof tool.templateId !== 'string' || tool.listed === false) continue;
+    out.push({
+      key: tool.templateId, name: tool.name, toolId: tool.id, toolName: '',
+      href: `#/tool/${encodeURIComponent(tool.id)}`,
+      version: tool.version ? tRaw('Version {n}', { n: tool.version }) : '',
+      ...(tool.icon ? { icon: tool.icon } : {}), ...(tool.formats ? { formats: tool.formats } : {}),
+      ...(tool.width && tool.height ? { width: tool.width, height: tool.height } : {}),
+    });
+  }
+  return out.sort((a, b) => a.name.localeCompare(b.name));
+}
+
+/** A preview frame in the tool's own proportions, kept between portrait and wide. */
+function mediaShape(item: PublishedItem): string {
+  if (!item.width || !item.height) return '';
+  const ratio = Math.min(16 / 9, Math.max(3 / 4, item.width / item.height));
+  return ` style="aspect-ratio: ${ratio.toFixed(3)}"`;
+}
+
+/** One card: the whole card is the link, so it reads as clickable everywhere. */
+function cardHtml(item: PublishedItem): string {
+  if (!safeHref(item.href)) return '';
+  // nosemgrep: lolly-href-escape-is-not-scheme-validation - safeHref()-gated in the guard above
+  return `<a class="published-card" href="${escapeHtml(item.href)}" data-published-key="${escapeHtml(item.key)}">
+            <span class="published-card-media" aria-hidden="true"${mediaShape(item)}><span class="published-card-icon">${item.icon ?? icon('document', { size: 22 })}</span></span>
+            <span class="published-card-text">
+              <span class="published-card-name">${escapeHtml(item.name)}</span>
+              <span class="published-card-sub">${escapeHtml([item.toolName, item.version].filter(Boolean).join(' · '))}</span>
+            </span>
+            <span class="btn btn--primary btn--sm published-card-use">${escapeHtml(t('Use'))}</span>
+          </a>`;
+}
+
+/** The shelf's markup, or '' when there is nothing published (shelf absent). */
+export function publishedShelfHtml(items: readonly PublishedItem[], workspace: string | undefined): string {
+  if (!items.length) return '';
+  const title = workspace ? tRaw('From {name}', { name: workspace }) : t('From your workspace');
+  return `
+      <section class="published-shelf" aria-label="${escapeHtml(title)}">
+        <h2 class="published-shelf-title">${escapeHtml(title)}</h2>
+        <div class="published-shelf-row">
+          ${items.map(cardHtml).join('')}
+        </div>
+      </section>`;
+}

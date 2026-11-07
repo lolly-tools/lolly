@@ -142,6 +142,27 @@ export function documentReadOnlyNote(toolId: string | undefined): string | null 
   return (toolId && documentLayer.get(toolId)?.note) || null;
 }
 
+// ── Template layer ───────────────────────────────────────────────────────────
+// A document started from a template its publisher gave rules (lib/workspace-templates.ts):
+// only the inputs the template leaves open are offered, and every other one is hidden,
+// with no note. What a person cannot change is simply not there (Andy, 2026-10-19).
+// Keyed by tool, set by the mounted tool view and released when the mount ends, like the
+// document layer, and never cleared by a policy source re-reading its own rules.
+const templateLayer = new Map<string, ReadonlySet<string>>();
+const HIDDEN_BY_TEMPLATE: InputPolicy = Object.freeze({ mode: 'hidden' });
+
+/** Offer only `editable` among `toolId`'s inputs. `null` lifts the layer. */
+export function setTemplateInputs(toolId: string, editable: readonly string[] | null): void {
+  if (!toolId) return;
+  if (editable) templateLayer.set(toolId, new Set(editable));
+  else templateLayer.delete(toolId);
+}
+
+/** Lift the template layer for `toolId`. Idempotent. */
+export function clearTemplateInputs(toolId: string): void {
+  templateLayer.delete(toolId);
+}
+
 /** The governed policy alone: an explicit per-tool policy, else the fail-closed overlay. */
 function governedPolicy(toolId: string, inputId: string): InputPolicy | undefined {
   const explicit = registry.size ? registry.get(toolId)?.get(inputId) : undefined;
@@ -161,6 +182,9 @@ function governedPolicy(toolId: string, inputId: string): InputPolicy | undefine
  */
 export function getInputPolicy(toolId: string | undefined, inputId: string): InputPolicy | undefined {
   if (!toolId) return undefined;
+  // Hidden is the strictest answer, so a template's fixed input needs nothing else.
+  const offered = templateLayer.size ? templateLayer.get(toolId) : undefined;
+  if (offered && !offered.has(inputId)) return HIDDEN_BY_TEMPLATE;
   const governed = governedPolicy(toolId, inputId);
   if (!documentLayer.size || (governed && governed.mode !== 'choice')) return governed;
   return documentLayer.get(toolId) ?? governed;
@@ -299,11 +323,12 @@ export function governedParamKeys(
 }
 
 /** TEST-ONLY convenience: empty the registry (and lift any fail-closed overlay and
- *  document layer, drop every mount hook and forget the mounted tool) back to the
+ *  document and template layers, drop every mount hook and forget the mounted tool) back to the
  *  dormant default. */
 export function _clearInputPoliciesForTests(): void {
   registry.clear();
   documentLayer.clear();
+  templateLayer.clear();
   refusedHandlers.clear();
   failClosed = null;
   mountHooks.clear();
