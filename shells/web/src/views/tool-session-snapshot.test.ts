@@ -26,7 +26,7 @@ test('templateValuesFromSnapshot: drops document identity + file inputs, keeps e
     __export_format: 'svg', __export_width: '210', __export_height: '297', __export_unit: 'mm', __export_dpi: '300',
     __design_state: { zoom: 1 }, gone: undefined,
   };
-  assert.deepEqual(templateValuesFromSnapshot(snap, manifest), {
+  assert.deepEqual({ ...templateValuesFromSnapshot(snap, manifest) }, {
     url: 'https://suse.com', photo: { id: 'user/img/1' },
     __export_format: 'svg', __export_width: '210', __export_height: '297', __export_unit: 'mm', __export_dpi: '300',
     __design_state: { zoom: 1 },
@@ -34,7 +34,7 @@ test('templateValuesFromSnapshot: drops document identity + file inputs, keeps e
 });
 
 test('templateValuesFromSnapshot: tolerates a manifest with no inputs', () => {
-  assert.deepEqual(templateValuesFromSnapshot({ a: 1, __label: 'x' }, {}), { a: 1 });
+  assert.deepEqual({ ...templateValuesFromSnapshot({ a: 1, __label: 'x' }, {}) }, { a: 1 });
   assert.deepEqual([...TEMPLATE_DROPPED_KEYS].sort(), ['__export_filename', '__label', '__partnerKit', '__toolId', '__toolVersion']);
 });
 
@@ -102,12 +102,19 @@ test('a template copy never lets a saved partner kit in through the prototype', 
   const crafted = JSON.parse('{"__proto__":{"__partnerKit":{"id":"inst/x","revision":2}}}');
   const template = templateValuesFromSnapshot(crafted, {});
   assert.equal(savedPartnerKit(template), null);
-  assert.equal(Object.getPrototypeOf(template), Object.prototype, 'the copy keeps an ordinary prototype');
+  assert.equal(Object.getPrototypeOf(template), null, 'the copy has no prototype for a key to reach');
   assert.equal(Object.hasOwn(template, '__proto__'), false);
   // An inherited attachment is never read, even on a record built some other way.
   assert.equal(savedPartnerKit(Object.create({ __partnerKit: { id: 'inst/x', revision: 2 } })), null);
   assert.equal(savedPartnerKit({ __partnerKit: Object.create({ id: 'inst/x', revision: 2 }) }), null);
-  // Other keys still copy as they always did.
-  assert.deepEqual(templateValuesFromSnapshot({ gap: 3, constructor: 'x', prototype: 1 }, {}), { gap: 3 });
+});
+
+test('a template copy keeps inputs called constructor or prototype', () => {
+  // Third review regression (plans/82 M8): the pass-two copy dropped both values.
+  const spec = { inputs: [{ id: 'constructor', type: 'text' }, { id: 'prototype', type: 'text' }, { id: 'gap', type: 'number' }] };
+  const template = templateValuesFromSnapshot({ constructor: 'Builder', prototype: 'Alpha', gap: 3, __label: 'Mine' }, spec);
+  assert.deepEqual({ ...template }, { constructor: 'Builder', prototype: 'Alpha', gap: 3 });
+  assert.equal(Object.hasOwn(template, 'constructor'), true);
+  assert.deepEqual(JSON.parse(JSON.stringify(template)), { constructor: 'Builder', prototype: 'Alpha', gap: 3 }, 'the copy saves as an ordinary record');
 });
 
