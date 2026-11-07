@@ -33,6 +33,7 @@ import { suspendNodeRasters, drainNodeRasters } from '../lib/clip-thumbs.ts';
 import { subtreePaintsNothing } from './export-pdf-leaf.ts';
 import { canvasPicture, imageDims, imageForPdf } from './export-pdf-picture.ts';
 import { pageFitRegion } from './export-page-fit.ts';
+import { liveOrigin, originNow, type Origin } from './export-origin.ts';
 import { videoMimeCandidates, AUDIO_FRAME_HEADROOM, videoBitrate, videoFramePlan, bppForQuality, codecAdjustedBitrate, LIVE_BITS_PER_PIXEL } from './video-mime.ts';
 import { bedDuckEnvelope, scheduleGainEvents } from './audio-envelope.ts';
 import type { ExportAudioMixIn } from './audio-envelope.ts';
@@ -72,7 +73,7 @@ import { paintSvgToPdf, svgFlips, type SvgFlips } from './export-pdf-svg.ts';
 import { backgroundPicture, clipsBackgroundToText, paintLiveRun, paintOutlinedRun, runPaint } from './export-pdf-text-paint.ts';
 import { TEXT_PICTURE_DPI, liveTextWouldGarble, notePicturedText, takePicturedTextNotice, textPicture, undrawableTextError, withMarkLabelPictures } from './export-pdf-text-picture.ts';
 import { applyPdfTextStyle, clipOfRun, pdfPseudoContent } from './export-pdf-pseudo-text.ts';
-import { bidiPieces, lineDirection, runBidi } from './export-text.ts';
+import { bidiPiecesAt, lineDirection, runBidi } from './export-text.ts';
 import { hasRtlText } from '@lolly-tools/node-shell/text-bidi';
 import { isOwnProfile, resolveEmbeddedProfile } from '../lib/press-profile-embed.ts';
 import { printSeparation } from '../lib/cmyk-separation.ts';
@@ -2572,11 +2573,10 @@ async function drawHtmlVectors(pdf: any, node: Element, ox: number, oy: number, 
   const cssToPt = regionW / (node.clientWidth || rect0.width);
   // Virtual origin: shifting the reference top-left by the region offset bakes it
   // into every (rect − rootRect)·scale below, so the artwork lands at (ox, oy)
-  // without touching the inline-text / pseudo-content helpers downstream.
-  const rootRect = {
-    left: rect0.left - ox / scaleX, top: rect0.top - oy / scaleY,
-    width: rect0.width, height: rect0.height, right: rect0.right, bottom: rect0.bottom,
-  };
+  // without touching the inline-text / pseudo-content helpers downstream. It reads the
+  // root afresh each time, so a root the page moves during the walk keeps every box in
+  // its place (export-origin.ts).
+  const rootRect = liveOrigin(node, ox / scaleX, oy / scaleY);
   // Tracks which font variants have been registered in this PDF instance.
   const registeredFonts = new Set();
   // Cooperative yielding: the vector walk + host.text.toPath (HarfBuzz) shaping
@@ -2667,13 +2667,15 @@ async function drawHtmlVectors(pdf: any, node: Element, ox: number, oy: number, 
     // refusal and therefore the same wrong picture (a tilted card as an upright
     // rectangle stretched to its projected bounding box).
     if (rasterFallback && isNonAffineTransform(style.transform)) {
+      // The capture reads the element's box before its first await, so the origin is read now.
+      const shotAt = originNow(rootRect);
       const posedShot = await rasterizePosedNodeToDataUrl(
         el as HTMLElement, (RASTER_DPI / 72) * Math.max(scaleX, scaleY), imprint, effectSpillCss(style),
       );
       if (posedShot) {
         tiltedRasters++;
         pdf.addImage(posedShot.dataUrl, 'PNG',
-          (posedShot.x - rootRect.left) * scaleX, (posedShot.y - rootRect.top) * scaleY,
+          (posedShot.x - shotAt.left) * scaleX, (posedShot.y - shotAt.top) * scaleY,
           posedShot.w * scaleX, posedShot.h * scaleY);
         return;
       }
@@ -2683,8 +2685,9 @@ async function drawHtmlVectors(pdf: any, node: Element, ox: number, oy: number, 
     const rect = el.getBoundingClientRect();
     if (rect.width < 0.5 || rect.height < 0.5) return;
 
-    const x = (rect.left - rootRect.left) * scaleX;
-    const y = (rect.top  - rootRect.top)  * scaleY;
+    const at = originNow(rootRect);
+    const x = (rect.left - at.left) * scaleX;
+    const y = (rect.top  - at.top)  * scaleY;
     const w = rect.width  * scaleX;
     const h = rect.height * scaleY;
 
@@ -3202,7 +3205,7 @@ async function drawHtmlVectors(pdf: any, node: Element, ox: number, oy: number, 
 // painter (pdfInlineNonText).
 async function renderInlineContent(
   pdf: any, blockEl: any, blockStyle: CSSStyleDeclaration,
-  rootRect: { left: number; top: number }, scaleX: number, scaleY: number, cssToPt: number,
+  rootRect: Origin, scaleX: number, scaleY: number, cssToPt: number,
   registeredFonts: Set<unknown>, drawBox: (el: Element) => Promise<void>, convertPaths = true, imprint?: ImprintState, rasterFallback = true,
 ): Promise<void> {
   async function walk(node: any, nodeStyle: CSSStyleDeclaration, deco: Deco): Promise<void> {
@@ -3245,14 +3248,18 @@ async function renderInlineContent(
       let offset = 0;
       for (const seg of segs) {
         if (seg.trim().length > 0) {
-          for (const visual of visualLines(node, offset, offset + seg.length)) for (const line of bidiPieces(node, visual, bidi)) {
+          // Each line's box is read here, before the awaits below, so the origin is read
+          // with it: a root that moves during the walk must not move this line (export-origin.ts).
+          const lines = visualLines(node, offset, offset + seg.length);
+          const linesAt = originNow(rootRect);
+          for (const visual of lines) for (const { line, at } of bidiPiecesAt(node, visual, bidi, linesAt, rootRect)) {
             const r = line.rect;
             if (r.width < 0.5 || r.height < 0.5) continue;
-            const x = (r.left - rootRect.left) * scaleX;
+            const x = (r.left - at.left) * scaleX;
             // Baseline within the line box = half-leading + ascent (the SAME textBaselineY
             // the SVG walker uses), so a run with line-height > 1 sits centred instead of
             // riding the top of its line box. (Was `top + ascent`, i.e. half-leading = 0.)
-            const baselinePt = textBaselineY(r.top - rootRect.top, r.height, ascent, descent) * scaleY;
+            const baselinePt = textBaselineY(r.top - at.top, r.height, ascent, descent) * scaleY;
             const shown = applyTextTransform(line.text, nodeStyle.textTransform);
             const direction = lineDirection(bidi, shown);
             const rtl = direction === 'rtl';
@@ -3281,7 +3288,7 @@ async function renderInlineContent(
               return shapedD;
             };
             // A right-to-left run sits on the line's right edge; the path reads from its left.
-            const pathX = (): number => (rtl ? (r.right - rootRect.left) * scaleX - shapedAdvance * cssToPt : x);
+            const pathX = (): number => (rtl ? (r.right - at.left) * scaleX - shapedAdvance * cssToPt : x);
             const liveOk = !garbled && !overridden && pdf.canSetText(shown);
             const pictured = !liveOk && !(outlineRun && await textPathFor(shown) !== null);
             if (pictured) {
@@ -3289,11 +3296,11 @@ async function renderInlineContent(
               const toLayout = scaleX / cssToPt;
               const pic = rasterFallback ? await textPicture({
                 text: shown, style: nodeStyle, direction, override: overridden, box: { w: r.width * toLayout, h: r.height * toLayout },
-                scale: (TEXT_PICTURE_DPI / 72) * cssToPt, clip: paint.under ? clipOfRun(node.parentElement, r, toLayout) : undefined,
+                scale: (TEXT_PICTURE_DPI / 72) * cssToPt, clip: paint.under ? clipOfRun(node.parentElement, { left: r.left - at.left, top: r.top - at.top }, rootRect, toLayout) : undefined,
                 lang: node.parentElement?.closest('[lang]')?.getAttribute('lang'),
               }) : null;
               if (!pic) throw undrawableTextError(shown);
-              pdf.addImage(pic.src, 'PNG', x - pic.pad * cssToPt, (r.top - rootRect.top) * scaleY - pic.pad * cssToPt, (pic.w + 2 * pic.pad) * cssToPt, (pic.h + 2 * pic.pad) * cssToPt);
+              pdf.addImage(pic.src, 'PNG', x - pic.pad * cssToPt, (r.top - at.top) * scaleY - pic.pad * cssToPt, (pic.w + 2 * pic.pad) * cssToPt, (pic.h + 2 * pic.pad) * cssToPt);
               notePicturedText(pdf, shown);
             }
 
@@ -3318,7 +3325,7 @@ async function renderInlineContent(
                     (RASTER_DPI / 72) * scaleX, (RASTER_DPI / 72) * scaleY, imprint);
                   if (png) {
                     pdf.addImage(png, 'PNG', pathX() - pad * scaleX,
-                      (r.top - rootRect.top - pad) * scaleY,
+                      (r.top - at.top - pad) * scaleY,
                       (r.width + 2 * pad) * scaleX, (r.height + 2 * pad) * scaleY);
                   }
                   continue;
@@ -3351,7 +3358,7 @@ async function renderInlineContent(
                 // to pdf.text, which at least renders through an embedded/base font.
                 const { d, notdef, advanceWidth } = await _host!.text!.toPath({ text: shown, fontUrl: fontUrl!, fontSize: fontSizePx, features: features as string[], letterSpacing, variations: vf!.variations, fallbackFonts: vf!.fallbacks, ...direct });
                 if (d && !notdef) {
-                  const left = rtl ? (r.right - rootRect.left) * scaleX - advanceWidth * cssToPt : x;
+                  const left = rtl ? (r.right - at.left) * scaleX - advanceWidth * cssToPt : x;
                   // Fill, text stroke and any background-clip: text background (export-pdf-text-paint.ts).
                   // ponytail: stroke-opacity is not applied there (fill and stroke would need
                   // separate alpha states); add withPdfAlpha around the stroke pass if a

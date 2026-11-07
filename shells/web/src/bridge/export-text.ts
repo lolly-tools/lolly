@@ -10,6 +10,7 @@ import { exportFontFamily } from './fallback-font-source.ts';
 import { n2, parseCssColorFull } from './export-css.ts';
 import { stylePaintsBox } from './export-pdf-leaf.ts';
 import { firstStrongDirection, hasRtlText, type TextRunDirection } from '@lolly-tools/node-shell/text-bidi';
+import { originNow, type Origin } from './export-origin.ts';
 
 export interface InlineTextContext {
   readonly text: Pick<NonNullable<HostV1['text']>, 'toPath'> | null;
@@ -51,7 +52,7 @@ export function mergeDeco(a: Deco, b: Deco): Deco { return { u: a.u || b.u, s: a
 // renderInlineContent for PDF.
 export async function emitInlineTextSvg(
   ctx: InlineTextContext, NS: string, blockEl: ParentNode, blockStyle: CSSStyleDeclaration,
-  rootRect: { left: number; top: number }, parentG: Element,
+  rootRect: Origin, parentG: Element,
 ): Promise<void> {
   const textApi = ctx.text;
   // Filters need a <defs>. This function is called from both walkers and does not
@@ -137,11 +138,12 @@ export async function emitInlineTextSvg(
       };
 
       const bidi = runBidi(node.parentElement);
-      // Emit one run, positioned at its own line box `r`. Used per visual line.
-      const placeLine = async (lineText: string, r: DOMRect) => {
+      // Emit one run, positioned at its own line box `r`, which was read in the layout
+      // `at` was read in. Used per visual line.
+      const placeLine = async (lineText: string, r: DOMRect, at: Origin) => {
         lineText = applyTextTransform(lineText, nodeStyle.textTransform);
-        const x = r.left - rootRect.left;
-        const top = r.top - rootRect.top;
+        const x = r.left - at.left;
+        const top = r.top - at.top;
         const direction = lineDirection(bidi, lineText);
         const rtl = direction === 'rtl';
         const ordered = rtl || hasRtlText(lineText);
@@ -156,7 +158,7 @@ export async function emitInlineTextSvg(
               const by = textBaselineY(top, r.height, ascent, descent);
               const p = document.createElementNS(NS, 'path');
               p.setAttribute('d', d);
-              p.setAttribute('transform', `translate(${n2(rtl ? r.right - rootRect.left - advanceWidth : x)},${n2(by)})`);
+              p.setAttribute('transform', `translate(${n2(rtl ? r.right - at.left - advanceWidth : x)},${n2(by)})`);
               if (fillAttr)  p.setAttribute('fill', fillAttr);
               if (alphaAttr) p.setAttribute('fill-opacity', alphaAttr);
               for (const [k, v] of strokeAttrs) p.setAttribute(k, v);
@@ -171,7 +173,7 @@ export async function emitInlineTextSvg(
         // SVG text defaults to left to right, whatever the page around it did. A
         // right-to-left line states its direction, which keeps a closing full stop or a
         // Latin word where the browser put it, and is anchored at its right edge.
-        t.setAttribute('x',                 String(n2(rtl ? r.right - rootRect.left : x)));
+        t.setAttribute('x',                 String(n2(rtl ? r.right - at.left : x)));
         if (rtl) t.setAttribute('direction', 'rtl');
         if (bidi.override && ordered) t.setAttribute('unicode-bidi', 'bidi-override');
         t.setAttribute('y',                 String(n2(top)));
@@ -192,10 +194,10 @@ export async function emitInlineTextSvg(
 
       // Draw underline / strikethrough as filled rects spanning the line box, in the
       // run's own colour - text-decoration is otherwise dropped by the vector walk.
-      const drawDeco = (r: DOMRect) => {
+      const drawDeco = (r: DOMRect, at: Origin) => {
         if (!fillAttr || (!deco.u && !deco.s)) return;
-        const x = r.left - rootRect.left;
-        const top = r.top - rootRect.top;
+        const x = r.left - at.left;
+        const top = r.top - at.top;
         const { ascent, descent } = ctx.fontMetrics(nodeStyle, fontSizePx);
         const by = textBaselineY(top, r.height, ascent, descent);
         const thick = Math.max(0.75, fontSizePx * 0.06);
@@ -220,11 +222,15 @@ export async function emitInlineTextSvg(
       let offset = 0;
       for (const seg of segs) {
         if (seg.trim().length > 0) {
-          for (const line of visualLines(node, offset, offset + seg.length)) {
+          // The line boxes are read here, before placeLine's awaits, so the origin is read
+          // with them: a root the page moves during the walk must not move these lines.
+          const lines = visualLines(node, offset, offset + seg.length);
+          const linesAt = originNow(rootRect);
+          for (const line of lines) {
             if (line.rect.width > 0.5 && line.rect.height > 0.5) {
-              for (const piece of bidiPieces(node, line, bidi)) {
-                await placeLine(piece.text, piece.rect);
-                drawDeco(piece.rect);
+              for (const { line: piece, at } of bidiPiecesAt(node, line, bidi, linesAt, rootRect)) {
+                await placeLine(piece.text, piece.rect, at);
+                drawDeco(piece.rect, at);
               }
             }
           }
@@ -416,6 +422,19 @@ export function bidiPieces(node: Node, line: VisualLine, bidi: RunBidi): VisualL
 }
 
 export interface VisualLine { text: string; rect: DOMRect; start: number; end: number }
+
+/**
+ * `bidiPieces`, each with the origin its box was read against. A line that stays one
+ * piece keeps `lineAt`, the origin read with the line's own box; pieces measured just now
+ * take the root as it is now. The pieces are measured when this is called, which is in
+ * the same task as the first piece's use, so a caller that awaits between pieces still
+ * subtracts each box from the origin of its own layout (export-origin.ts).
+ */
+export function bidiPiecesAt(node: Node, line: VisualLine, bidi: RunBidi, lineAt: Origin, origin: Origin): Array<{ line: VisualLine; at: Origin }> {
+  const pieces = bidiPieces(node, line, bidi);
+  const at = pieces.length === 1 && pieces[0] === line ? lineAt : originNow(origin);
+  return pieces.map((piece) => ({ line: piece, at }));
+}
 
 // Split a text node's [start,end) offset range into visual lines, so CSS soft
 // wrapping (which inserts no '\n') is honoured. We walk characters and start a

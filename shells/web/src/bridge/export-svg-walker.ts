@@ -12,6 +12,7 @@ import type { Mat2D } from '@lolly/engine';
 import { textStrokeAttrs, canVectoriseText, textBaselineY, applyTextTransform } from './text-svg.ts';
 import { hasRtlText } from '@lolly-tools/node-shell/text-bidi';
 import { createInlineTextContext, emitInlineTextSvg, isReplaced } from './export-text.ts';
+import { liveOrigin, originNow, type Origin } from './export-origin.ts';
 import type { InlineTextContext } from './export-text.ts';
 export { decoFlags, mergeDeco, isReplaced, visualLines, pdfInlineNonText } from './export-text.ts';
 export type { Deco } from './export-text.ts';
@@ -284,7 +285,7 @@ export async function cssUrlToHref(url: string): Promise<string | null> {
  * one the ending side and its corners. Solid borders only; a background image or
  * a dashed border is left out rather than drawn wrongly.
  */
-function paintInlineBox(NS: string, g: Element, el: Element, rootRect: { left: number; top: number }): void {
+function paintInlineBox(NS: string, g: Element, el: Element, rootRect: Origin): void {
   const style = window.getComputedStyle(el);
   if (style.visibility === 'hidden' || !(parseFloat(style.opacity || '1') > 0)) return;
   const bg = parseCssColorFull(style.backgroundColor);
@@ -295,10 +296,11 @@ function paintInlineBox(NS: string, g: Element, el: Element, rootRect: { left: n
   const t = side('top'), r = side('right'), b = side('bottom'), l = side('left');
   if (!(bg && bg[3] > 0) && !t.rgb && !r.rgb && !b.rgb && !l.rgb) return;
   const frags = Array.from(el.getClientRects()).filter((f) => f.width > 0 && f.height > 0);
+  const at = originNow(rootRect);
   const rtl = style.direction === 'rtl';
   const rgbStr = (c: Rgba): string => `rgb(${c[0]},${c[1]},${c[2]})`;
   frags.forEach((f, i) => {
-    const x = f.left - rootRect.left, y = f.top - rootRect.top;
+    const x = f.left - at.left, y = f.top - at.top;
     const opensLeft = rtl ? i === frags.length - 1 : i === 0;
     const closesRight = rtl ? i === 0 : i === frags.length - 1;
     if (bg && bg[3] > 0) {
@@ -331,7 +333,7 @@ function paintInlineBox(NS: string, g: Element, el: Element, rootRect: { left: n
  * track are ordinary CSS the walker already paints, and drawing a second widget on
  * top would be the wrong answer twice.
  */
-function emitWidgetControl(NS: string, rootRect: { left: number; top: number }, _el: Element, d: ControlDesc, style: CSSStyleDeclaration, contentG: Element, r: DOMRect): void {
+function emitWidgetControl(NS: string, rootRect: Origin, _el: Element, d: ControlDesc, style: CSSStyleDeclaration, contentG: Element, r: DOMRect): void {
   const appearance = style.getPropertyValue('appearance') || style.getPropertyValue('-webkit-appearance') || 'auto';
   if (appearance === 'none') return;
   const type = (d.type || '').toLowerCase();
@@ -414,7 +416,7 @@ function regionImageEl(NS: string, href: string, x: number, y: number, w: number
 
 /** A top-layer box's ::backdrop: one viewport-sized rect of its colour. A
  *  backdrop-filter on it is not reconstructed, and the log says so. */
-function emitBackdrop(NS: string, rootG: Element, rootRect: { left: number; top: number }, el: Element): void {
+function emitBackdrop(NS: string, rootG: Element, rootRect: Origin, el: Element): void {
   let bs: CSSStyleDeclaration;
   try { bs = window.getComputedStyle(el, '::backdrop'); } catch { return; }
   if (bs.backdropFilter && bs.backdropFilter !== 'none') {
@@ -792,7 +794,9 @@ async function renderHtmlSvg(node: Element, opts: ExportOpts, textContext: Inlin
   const defs     = document.createElementNS(NS, 'defs');
   svgEl.appendChild(defs);
 
-  const rootRect = node.getBoundingClientRect();
+  // Read afresh each time, so a root the page moves during the walk keeps every box in
+  // its place (export-origin.ts). The walk awaits fonts, shaping and pictures.
+  const rootRect = liveOrigin(node);
   let uid = 0;
   // Per-walk state for the transform neutralise branches below (see
   // bridge/transform-neutralise.ts): which elements are mid-neutralise, and the one
@@ -978,6 +982,9 @@ async function renderHtmlSvg(node: Element, opts: ExportOpts, textContext: Inlin
     if (!d) return;
     const r = el.getBoundingClientRect();
     if (r.width <= 0 || r.height <= 0) return;
+    // The mirror below is fixed where the control was when `r` was read, so its text is
+    // measured from the root as it was then.
+    const at = originNow(rootRect);
 
     const num = (k: string) => Number.parseFloat((style as unknown as Record<string, string>)[k] || '') || 0;
     const insetL = num('borderLeftWidth') + num('paddingLeft');
@@ -989,7 +996,7 @@ async function renderHtmlSvg(node: Element, opts: ExportOpts, textContext: Inlin
     if (cw <= 0 || ch <= 0) return;
     const cx = r.left + insetL, cy = r.top + insetT;
 
-    if (isWidgetControl(d)) { emitWidgetControl(NS, rootRect, el, d, style, contentG, r); return; }
+    if (isWidgetControl(d)) { emitWidgetControl(NS, at, el, d, style, contentG, r); return; }
 
     const ct = controlText(d);
     if (!ct) return;
@@ -1002,7 +1009,7 @@ async function renderHtmlSvg(node: Element, opts: ExportOpts, textContext: Inlin
     clip.setAttribute('id', clipId);
     clip.setAttribute('clipPathUnits', 'userSpaceOnUse');
     const cr = document.createElementNS(NS, 'rect');
-    cr.setAttribute('x', String(n2(cx - rootRect.left))); cr.setAttribute('y', String(n2(cy - rootRect.top)));
+    cr.setAttribute('x', String(n2(cx - at.left))); cr.setAttribute('y', String(n2(cy - at.top)));
     cr.setAttribute('width', String(n2(cw))); cr.setAttribute('height', String(n2(ch)));
     clip.appendChild(cr);
     defs.appendChild(clip);
@@ -1049,7 +1056,7 @@ async function renderHtmlSvg(node: Element, opts: ExportOpts, textContext: Inlin
     mirror.appendChild(inner);
     document.body.appendChild(mirror);
     try {
-      await emitInlineTextSvg(textContext, NS, inner, window.getComputedStyle(inner), rootRect, cg);
+      await emitInlineTextSvg(textContext, NS, inner, window.getComputedStyle(inner), at, cg);
     } finally { mirror.remove(); }
     if (!cg.childNodes.length) cg.remove();
   }
@@ -1234,6 +1241,8 @@ async function renderHtmlSvg(node: Element, opts: ExportOpts, textContext: Inlin
     // emitting the descendants again would paint them a second time, untilted.
     if (opts.rasterFallback !== false && isNonAffineTransform(style.transform)) {
       const pxScale = scaleX * Math.max(1, d.dpi / CSS_DPI);
+      // The capture reads the element's box before its first await, so the origin is read now.
+      const shotAt = originNow(rootRect);
       const posedShot = await rasterizePosedNodeToDataUrl(
         el as HTMLElement, pxScale, opts._imprintSink, effectSpillCss(style),
       );
@@ -1243,8 +1252,8 @@ async function renderHtmlSvg(node: Element, opts: ExportOpts, textContext: Inlin
         place(gT, role, ctx, parentG);
         const img = document.createElementNS(NS, 'image');
         img.setAttribute('href', posedShot.dataUrl);
-        img.setAttribute('x', String(n2(posedShot.x - rootRect.left)));
-        img.setAttribute('y', String(n2(posedShot.y - rootRect.top)));
+        img.setAttribute('x', String(n2(posedShot.x - shotAt.left)));
+        img.setAttribute('y', String(n2(posedShot.y - shotAt.top)));
         img.setAttribute('width', String(n2(posedShot.w)));
         img.setAttribute('height', String(n2(posedShot.h)));
         img.setAttribute('preserveAspectRatio', 'none');
@@ -1263,8 +1272,9 @@ async function renderHtmlSvg(node: Element, opts: ExportOpts, textContext: Inlin
       return;
     }
 
-    const x = rect.left - rootRect.left;
-    const y = rect.top  - rootRect.top;
+    const at = originNow(rootRect);
+    const x = rect.left - at.left;
+    const y = rect.top  - at.top;
     const w = rect.width;
     const h = rect.height;
 
@@ -2774,15 +2784,16 @@ async function emitBackgroundLayers(
 // behind on screen instead of over it (jump's cinema scenes shipped with every
 // label buried under its scene wash this way).
 async function svgPseudoContent(
-  NS: string, parentG: Element, rootRect: { left: number; top: number }, el: Element, vectorText: boolean,
+  NS: string, parentG: Element, rootRect: Origin, el: Element, vectorText: boolean,
   defs: Element, nextId: () => number,
   defer?: (z: number) => Element, negInsert?: (pg: Element) => void,
 ): Promise<void> {
   for (const name of ['::before', '::after']) {
     const ds = pseudoDescriptor(el, name);
     if (!ds) continue;
-    const x = ds.x - rootRect.left;
-    const y = ds.y - rootRect.top;
+    const at = originNow(rootRect);
+    const x = ds.x - at.left;
+    const y = ds.y - at.top;
     // pseudoDescriptor already guarantees `position: absolute`, so the pseudo is
     // a positioned descendant; only its z-index decides which layer.
     const zRaw = (ds.ps.zIndex || 'auto').trim();
