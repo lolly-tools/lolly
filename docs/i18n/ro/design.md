@@ -206,7 +206,7 @@ Selectează un clip și inspectorul dă aceleași editări ca numere: **Length**
 
 ## Înainte să exporți
 
-Design îți verifică documentul înainte să trimiți fișierul. Cardul **Before you export**, în secțiunea **Document** a Inspectorului și din nou în panoul de export, citește structura salvată a straturilor, apoi se uită la canvasul stabilizat după text tăiat și contrast pe culori plate. Întreabă același registru de fonturi pe care îl folosește conturarea SVG și PDF dacă fiecare secvență de text are octeți de font care pot fi încorporați. Fundalurile cu imagine și gradient sunt listate ca verificări vizuale, nu primesc un scor de contrast inventat.
+Design îți verifică documentul înainte să trimiți fișierul. Cardul **Before you export**, în secțiunea **Document** a Inspectorului și din nou în panoul de export, citește structura salvată a straturilor, apoi se uită la canvasul stabilizat după text tăiat și contrast pe culori plate. Întreabă același registru de fonturi pe care îl folosește conturarea SVG și PDF dacă fiecare secvență de text are octeți de font care pot fi încorporați. Textul pe care îl desenează un [font de rezervă](/info/fallback-fonts.html) în export contează ca acoperit. O scriere fără font de rezervă sau un caracter chinezesc, japonez ori coreean din afara seturilor pe care le dețin acele fonturi sunt raportate în continuare. Fundalurile cu imagine și gradient sunt listate ca verificări vizuale, nu primesc un scor de contrast inventat.
 
 ### Verifică o compoziție față de sistemul de design
 

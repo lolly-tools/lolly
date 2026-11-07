@@ -206,7 +206,7 @@ Selecteer een clip en de inspector geeft dezelfde bewerkingen als getallen: **Le
 
 ## Voordat je exporteert
 
-Design controleert je document voordat je het bestand verstuurt. De kaart **Before you export**, in het gedeelte **Document** van de Inspector en opnieuw in het exportpaneel, leest de opgeslagen laagstructuur en kijkt dan naar het gestabiliseerde canvas op afgekapte tekst en contrast van vlakke kleuren. Ze vraagt hetzelfde lettertyperegister dat de SVG- en PDF-omlijning gebruikt of elke tekstrun lettertypebytes heeft die kunnen worden ingesloten. Afbeeldings- en verloopachtergronden worden vermeld als visuele controles in plaats van een verzonnen contrastscore te krijgen.
+Design controleert je document voordat je het bestand verstuurt. De kaart **Before you export**, in het gedeelte **Document** van de Inspector en opnieuw in het exportpaneel, leest de opgeslagen laagstructuur en kijkt dan naar het gestabiliseerde canvas op afgekapte tekst en contrast van vlakke kleuren. Ze vraagt hetzelfde lettertyperegister dat de SVG- en PDF-omlijning gebruikt of elke tekstrun lettertypebytes heeft die kunnen worden ingesloten. Tekst die een [reservelettertype](/info/fallback-fonts.html) in de export tekent, telt als gedekt. Een schrift zonder reservelettertype, of een Chinees, Japans of Koreaans teken buiten de sets die die lettertypen bevatten, wordt nog steeds gemeld. Afbeeldings- en verloopachtergronden worden vermeld als visuele controles in plaats van een verzonnen contrastscore te krijgen.
 
 ### Een compositie controleren tegen het design system
 

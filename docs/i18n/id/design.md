@@ -206,7 +206,7 @@ Pilih klip dan inspector memberikan penyuntingan yang sama sebagai angka: **Leng
 
 ## Sebelum Anda mengekspor
 
-Design memeriksa dokumen Anda sebelum Anda mengirim file. Kartu **Before you export**, di bagian **Document** pada Inspector dan lagi di panel ekspor, membaca struktur layer yang tersimpan, lalu memeriksa kanvas yang sudah stabil untuk teks terpotong dan kontras warna datar. Ia menanyakan registri font yang sama yang dipakai pengubahan SVG dan PDF menjadi kontur apakah setiap run teks memiliki byte font yang dapat disematkan. Latar gambar dan gradien dicantumkan sebagai pemeriksaan visual, bukan diberi skor kontras karangan.
+Design memeriksa dokumen Anda sebelum Anda mengirim file. Kartu **Before you export**, di bagian **Document** pada Inspector dan lagi di panel ekspor, membaca struktur layer yang tersimpan, lalu memeriksa kanvas yang sudah stabil untuk teks terpotong dan kontras warna datar. Ia menanyakan registri font yang sama yang dipakai pengubahan SVG dan PDF menjadi kontur apakah setiap run teks memiliki byte font yang dapat disematkan. Teks yang digambar oleh [font cadangan](/info/fallback-fonts.html) di ekspor dihitung sebagai tercakup. Aksara tanpa font cadangan, atau karakter Tionghoa, Jepang, atau Korea di luar set yang dimiliki font tersebut, tetap dilaporkan. Latar gambar dan gradien dicantumkan sebagai pemeriksaan visual, bukan diberi skor kontras karangan.
 
 ### Periksa komposisi terhadap design system
 

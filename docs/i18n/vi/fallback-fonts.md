@@ -59,7 +59,9 @@ Dòng lệnh, ứng dụng terminal và máy chủ MCP đọc cùng các tệp �
 
 ## Trên trang và trong bản xuất
 
-Trang dùng cùng phông dự phòng với bản xuất. Nếu không, trình duyệt vẽ các chữ đó bằng một phông hệ thống trong khi bản xuất dùng Noto, và một dòng có chúng đổi độ rộng giữa hai nơi. Lolly thêm phông dự phòng vào cuối danh sách phông của hệ thống thiết kế chỉ trên canvas đó, sau các phông riêng của hệ thống thiết kế và trước mọi phông hệ thống. Một canvas mà hệ thống thiết kế bao phủ giữ danh sách phông y như trước.
+Trang dùng cùng phông dự phòng với bản xuất. Nếu không, trình duyệt vẽ các chữ đó bằng một phông hệ thống trong khi bản xuất dùng Noto, và một dòng có chúng đổi độ rộng giữa hai nơi. Lolly thêm phông dự phòng vào cuối danh sách phông của hệ thống thiết kế chỉ trên canvas đó, sau các phông riêng của hệ thống thiết kế và trước mọi phông hệ thống. Một công cụ tự đặt danh sách phông, trong kiểu dáng hoặc trên các phần tử của nó, nhận phông dự phòng ở cùng vị trí: sau các phông mà danh sách đưa ra và trước mọi phông hệ thống. Một canvas mà hệ thống thiết kế bao phủ giữ danh sách phông y như trước.
+
+Trang để yên một danh sách phông khi nó bắt đầu bằng một phông hệ thống, như `system-ui` hoặc Helvetica, vì bản xuất vẽ chữ đó bằng các phông của hệ thống thiết kế còn trang thì không.
 
 Trong PDF, các từ trở thành đường bao được vẽ bằng phông dự phòng, bất kể bạn chọn thiết lập văn bản nào, vì văn bản PDF trực tiếp không thể mang một hệ chữ mà phông nhúng thiếu. Trong SVG, EMF, EPS, DXF và WMF, chúng trở thành đường bao bất cứ khi nào văn bản được chuyển thành đường bao; khi văn bản được giữ trực tiếp, phông riêng của người đọc vẽ chúng, như trước. Khi một phông dự phòng đã vẽ một phần của bản xuất, bảng xuất hiện một ghi chú như:
 
@@ -70,6 +72,10 @@ Dòng lệnh in cùng câu đó như một ghi chú.
 ## Những gì vẫn là ảnh
 
 Một ký tự nằm ngoài bốn bộ ký tự quốc gia thì không có phông dự phòng. Các ký tự hiếm như 𠮷, các ký tự được bộ bổ sung của Hồng Kông thêm vào, và các hệ chữ không có phông dự phòng, như Tamil, Ethiopia hoặc Syriac, đều được xử lý theo cùng một cách. Trong PDF, dòng chứa một ký tự như vậy được đưa vào dưới dạng ảnh 300 dpi, và bảng xuất liệt kê các hệ chữ. Trong SVG, đoạn đó vẫn là văn bản trực tiếp, do phông riêng của người đọc vẽ.
+
+## Kiểm tra trước khi xuất
+
+Thẻ **Before you export** của Lolly Design, và các kiểm tra `render` của `lolly check`, báo cáo chữ mà không phông nào vẽ được. Chúng tính các phông dự phòng như một bản xuất làm, từ cùng những danh sách ký tự mà mỗi phông có, nên chữ do một phông dự phòng vẽ không bị báo cáo. Một hệ chữ không có phông dự phòng, như Tamil, và một ký tự Trung, Nhật hay Hàn nằm ngoài các bộ ký tự quốc gia vẫn được báo cáo, vì bản xuất vẽ chúng dưới dạng ảnh hoặc văn bản trực tiếp. Phép kiểm tra đọc các danh sách đó từ danh mục và không tải phông nào.
 
 ## Giấy phép và ghi công
 

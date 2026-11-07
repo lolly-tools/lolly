@@ -206,7 +206,7 @@ Ang mga **Transition** ay mga preset: Fade, Pop, Grow, Rise, Drop, ang apat na S
 
 ## Bago ka mag-export
 
-Sinusuri ng Design ang dokumento mo bago mo ipadala ang file. Binabasa ng **Before you export** card, sa **Document** section ng Inspector at muli sa export panel, ang naka-save na istruktura ng layer, saka tinitingnan ang naayos na canvas para sa putol na text at flat-colour contrast. Tinatanong nito ang parehong font registry na ginagamit ng SVG at PDF outlining kung ang bawat text run ay may font byte na maaaring i-embed. Ang mga image at gradient background ay inililista bilang visual check sa halip na bigyan ng gawa-gawang contrast score.
+Sinusuri ng Design ang dokumento mo bago mo ipadala ang file. Binabasa ng **Before you export** card, sa **Document** section ng Inspector at muli sa export panel, ang naka-save na istruktura ng layer, saka tinitingnan ang naayos na canvas para sa putol na text at flat-colour contrast. Tinatanong nito ang parehong font registry na ginagamit ng SVG at PDF outlining kung ang bawat text run ay may font byte na maaaring i-embed. Ang text na iginuguhit ng [fallback font](/info/fallback-fonts.html) sa export ay itinuturing na sakop. Iniuulat pa rin ang script na walang fallback font, o ang karakter na Chinese, Japanese o Korean na wala sa mga set na hawak ng mga font na iyon. Ang mga image at gradient background ay inililista bilang visual check sa halip na bigyan ng gawa-gawang contrast score.
 
 ### I-check ang komposisyon laban sa design system
 

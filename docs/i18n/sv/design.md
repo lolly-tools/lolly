@@ -206,7 +206,7 @@ Markera ett klipp så ger inspektören samma ändringar som tal: **Length**, **T
 
 ## Innan du exporterar
 
-Design kontrollerar ditt dokument innan du skickar filen. Kortet **Before you export**, i avsnittet **Document** i Inspector och igen i exportpanelen, läser den sparade lagerstrukturen och tittar sedan på den färdigställda ytan efter avklippt text och kontrast mellan enfärgade ytor. Det frågar samma typsnittsregister som SVG- och PDF-konturningen använder om varje textavsnitt har typsnittsbyte som kan bäddas in. Bild- och gradientbakgrunder listas som visuella kontroller i stället för att få en påhittad kontrastpoäng.
+Design kontrollerar ditt dokument innan du skickar filen. Kortet **Before you export**, i avsnittet **Document** i Inspector och igen i exportpanelen, läser den sparade lagerstrukturen och tittar sedan på den färdigställda ytan efter avklippt text och kontrast mellan enfärgade ytor. Det frågar samma typsnittsregister som SVG- och PDF-konturningen använder om varje textavsnitt har typsnittsbyte som kan bäddas in. Text som ett [reservtypsnitt](/info/fallback-fonts.html) ritar i exporten räknas som täckt. Ett skriftsystem utan reservtypsnitt, eller ett kinesiskt, japanskt eller koreanskt tecken utanför de uppsättningar som dessa typsnitt innehåller, rapporteras fortfarande. Bild- och gradientbakgrunder listas som visuella kontroller i stället för att få en påhittad kontrastpoäng.
 
 ### Kontrollera en komposition mot designsystemet
 

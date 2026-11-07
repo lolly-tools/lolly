@@ -59,7 +59,9 @@ De opdrachtregel, de terminal-app en de MCP-server lezen dezelfde bestanden van 
 
 ## Op de pagina en in de export
 
-De pagina gebruikt hetzelfde reservelettertype als de export. Zonder dit tekent een browser zulke letters in een systeemlettertype terwijl de export Noto gebruikt, en een regel die ze bevat verandert van breedte tussen de twee. Lolly voegt het reservelettertype alleen op dat canvas toe aan het einde van de lettertypelijst van het design system, na de eigen lettertypen van het design system en vóór elk systeemlettertype. Een canvas dat het design system dekt, houdt zijn lettertypelijst precies zoals voorheen.
+De pagina gebruikt hetzelfde reservelettertype als de export. Zonder dit tekent een browser zulke letters in een systeemlettertype terwijl de export Noto gebruikt, en een regel die ze bevat verandert van breedte tussen de twee. Lolly voegt het reservelettertype alleen op dat canvas toe aan het einde van de lettertypelijst van het design system, na de eigen lettertypen van het design system en vóór elk systeemlettertype. Een tool die een eigen lettertypelijst instelt, in zijn stijlen of op zijn elementen, krijgt het reservelettertype op dezelfde plek: na de lettertypen die de lijst geeft en vóór elk systeemlettertype. Een canvas dat het design system dekt, houdt zijn lettertypelijst precies zoals voorheen.
+
+De pagina laat een lettertypelijst met rust als die begint met een systeemlettertype, zoals `system-ui` of Helvetica, omdat de export die tekst met de lettertypen van het design system tekent en de pagina niet.
 
 In een PDF worden de woorden contouren die met het reservelettertype zijn getekend, welke tekstinstelling je ook kiest, omdat live PDF-tekst geen schrift kan dragen dat het ingebedde lettertype mist. In SVG, EMF, EPS, DXF en WMF worden ze contouren zodra tekst naar contouren wordt omgezet; met live gehouden tekst tekenen de eigen lettertypen van de lezer ze, zoals voorheen. Als een reservelettertype een deel van een export tekende, toont het exportpaneel een melding zoals:
 
@@ -70,6 +72,10 @@ De opdrachtregel drukt dezelfde zin af als melding.
 ## Wat een afbeelding blijft
 
 Een teken buiten de vier nationale sets heeft geen reservelettertype. Zeldzame tekens zoals 𠮷, de tekens die voor Hongkong zijn toegevoegd door de aanvullende set, en schriften zonder reservelettertype, zoals Tamil, Ethiopisch of Syrisch, worden allemaal op dezelfde manier behandeld. In een PDF gaat de regel die er een bevat erin als afbeelding van 300 dpi, en het exportpaneel noemt de schriften. In een SVG blijft het tekstdeel live tekst, die de eigen lettertypen van de lezer tekenen.
+
+## De controle voordat je exporteert
+
+De kaart **Before you export** van Lolly Design en de `render`-controles van `lolly check` melden tekst die geen enkel lettertype kan tekenen. Ze tellen de reservelettertypen zoals een export dat doet, uit dezelfde lijsten van de tekens die elk lettertype heeft, dus tekst die een reservelettertype tekent wordt niet gemeld. Een schrift zonder reservelettertype, zoals Tamil, en een Chinees, Japans of Koreaans teken buiten de nationale sets worden nog steeds gemeld, omdat de export ze als afbeelding of als live tekst tekent. De controle leest die lijsten uit de catalogus en downloadt geen lettertype.
 
 ## Licenties en vermeldingen
 
