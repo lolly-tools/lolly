@@ -10,8 +10,8 @@
  * - Minimum size: the mark's drawn height in export pixels and, on a document measured in
  *   a physical unit, in millimetres, against `rules.minSize`.
  * - Clear space: the mark inflated on every side by `clearSpace.value` times its height.
- *   Any other drawn layer that overlaps that band is named, except one beneath the mark
- *   that holds the whole mark, which is its background. Another kit mark is never a
+ *   Any other painted layer that overlaps that band is pointed out, except one beneath the
+ *   mark that holds the whole mark, which is its background. Another kit mark is never a
  *   background, so two kit marks check each other.
  * - Treatment: a mark recoloured by a photo treatment or an icon theme is classified from
  *   the catalog's own colours (one colour, or recoloured); a mark whose nearest painted
@@ -19,19 +19,29 @@
  *   does not list is pointed out. `reverse` is in the vocabulary and is not measured: the
  *   logo for dark surfaces is the reverse by construction.
  *
- * Whatever the check cannot measure is listed, never passed in silence: in `unmeasured` as a
- * stable code with its counts, for an app to say in the reader's language, and in
- * `notMeasured` as the same entries in English, for the CLI and Work's server.
+ * The check claims a result only from layers made of what it models (`GUEST_MARK_FIELDS`).
+ * A layer that uses anything else (a layout, keyframes, an entrance or exit, a hold, a
+ * build, depth or tilt, a connector, or a field the list does not know) could be anywhere
+ * at some moment, so every check it could touch is not measured. A shape other than a
+ * rectangle, a turn, a mask, a stroke, a shadow, a blur or a pen path on a neighbour, and a
+ * blend or a backdrop blur beneath a mark, leave the check they touch not measured when
+ * the layer comes near the mark. Whatever the check cannot measure is listed, never passed
+ * in silence: in `unmeasured` as a stable code with its counts, for an app to say in the
+ * reader's language, and in `notMeasured` as the same entries in English, for the CLI and
+ * Work's server. Text is taken to paint inside its box.
+ *
  * Findings are reviews and never refusals: nothing here blocks an export, a render or a
  * save, and no finding carries an automatic fix, because sizing a mark is the person's
- * call. Geometry follows the Design renderer: a mark's picture is placed by the draw
- * compiler (`compileDesignRow`, `pictureRect`), with its fit, framing and border; layers
- * paint in the layer tree's order, an artboard beneath everything on the artboard, and
- * `z` is depth, not stacking. Opacity is 0 to 100 and reaches a layer through the groups
- * and the artboard that hold the layer. Timing is Design's: a timed layer is on screen from its
- * played start for its duration, and what a mark sits on is read for each stretch of time.
- * A rotated neighbour is placed by its bounding box. A tool's logo input has no geometry
- * without a render, so only Design documents are measured.
+ * call. Geometry follows the Design renderer: boxes on whole pixels, at least one pixel
+ * each way; a mark's picture placed by the draw compiler (`compileDesignRow`,
+ * `pictureRect`) with its fit, framing, border, turn and mirror; layers painted in Design's
+ * stack order, groups at their stack slot, an artboard beneath everything on the artboard,
+ * and `z` as depth, not stacking. Opacity is 0 to 100 and reaches a layer through the groups
+ * and the artboard that hold the layer. Timing is Design's: a timed layer is on screen from
+ * its played start for its duration, and what a mark sits on is read for each stretch of
+ * time. The work is capped (`MAX_WORK` layer comparisons); marks past the cap are counted
+ * as not measured. A tool's logo input has no geometry without a render, so only Design
+ * documents are measured.
  */
 import type { PartnerKitTreatmentV1, PartnerKitV1 } from '@lolly-tools/core/partner-kit-v1';
 import type { DesignBoxRowV1 } from '@lolly-tools/core';
@@ -114,14 +124,18 @@ export function guestRecolourFrom(catalog: { iconThemes?: unknown; photoTreatmen
  * `mm-in-pixels`: a minimum in millimetres on a document measured in pixels. `layer-tree`:
  * the layer tree could not be read. `layer-limit`: layers past the first `limit`.
  * `not-drawn`: marks Design draws no picture for. `size`, `clear-space`, `ground`: a mark's
- * drawn height, clear space, or whether it sits on a photo, left open by what is not known.
- * `treatment`: a recolouring the catalog does not describe. `surface`: a mark that takes
- * its colours from the surface beneath. `motion`: a mark measured where it was placed,
- * because it or a layer near it moves over time. `findings-limit`: findings past `limit`.
+ * drawn height, clear space, or whether it sits on a photo, left open by what is not known
+ * of the logo or by paint that covers only part of the mark. `treatment`: a recolouring the
+ * catalog does not describe. `surface`: a mark that takes its colours from the surface
+ * beneath. `size-unmodelled`, `clear-space-unmodelled`, `ground-unmodelled`: the same three,
+ * left open by a layer using what the check does not model. `treatment-unmodelled`: a mark
+ * mixed with what lies beneath by a blend. `work-limit`: marks past the work cap.
+ * `findings-limit`: findings past `limit`.
  */
 export type GuestMarkUnmeasuredCode =
   | 'reverse' | 'mm-in-pixels' | 'layer-tree' | 'layer-limit' | 'not-drawn' | 'size'
-  | 'clear-space' | 'ground' | 'treatment' | 'surface' | 'motion' | 'findings-limit';
+  | 'clear-space' | 'ground' | 'treatment' | 'surface' | 'size-unmodelled' | 'clear-space-unmodelled'
+  | 'ground-unmodelled' | 'treatment-unmodelled' | 'work-limit' | 'findings-limit';
 
 export interface GuestMarkUnmeasured {
   code: GuestMarkUnmeasuredCode;
@@ -156,22 +170,40 @@ export function guestUnmeasuredText(entry: GuestMarkUnmeasured): string {
     case 'ground': return `whether ${marksText(n, 'one partner mark sits', 'partner marks sit')} on a photo: what lies beneath is translucent, covers only part of the mark or depends on the logo's proportions`;
     case 'treatment': return `the treatment of ${marksText(n, 'one recoloured mark', 'recoloured marks')}: the catalog does not say what colours its theme or treatment gives`;
     case 'surface': return `the colours of ${marksText(n)} set to follow the surface: the variant is chosen from what is drawn beneath when the page is drawn`;
-    case 'motion': return `${marksText(n)} while the piece plays: the mark or a layer near it moves, fades or builds over time, and each layer was measured where it was placed`;
+    case 'size-unmodelled': return `the drawn height of ${marksText(n)}: the mark moves, is placed by a layout or uses a field this check does not model`;
+    case 'clear-space-unmodelled': return `the clear space of ${marksText(n)}: the mark or a layer near the mark uses a shape, turn, mask, stroke, effect, layout or movement this check does not model`;
+    case 'ground-unmodelled': return `whether ${marksText(n, 'one partner mark sits', 'partner marks sit')} on a photo: the mark or a layer beneath the mark uses a layout, movement, mask, blend or effect this check does not model`;
+    case 'treatment-unmodelled': return `the colours of ${marksText(n)}: a blend mixes the mark with what lies beneath`;
+    case 'work-limit': return `${marksText(n)}: the document has more layers and marks than the check compares, so the rest were not measured`;
     case 'findings-limit': return `${n === 1 ? 'one more finding' : `${n} more findings`} past the first ${entry.limit ?? MAX_FINDINGS}, which are not listed`;
   }
 }
 
 type Row = Record<string, unknown>;
 interface Rect { x: number; y: number; w: number; h: number }
+/**
+ * How far the check can follow a layer. `exact`: its paint is its box, which the check
+ * models. `local`: it paints only within its box grown by `margin`, but not exactly where
+ * (a shape, turn, mask, stroke, shadow, blur or pen path). `anywhere`: it moves, is placed by
+ * a layout or a connector, is lifted or tilted, or uses a field the check does not know.
+ */
+type Reach = 'exact' | 'local' | 'anywhere';
 interface Layer {
   row: Row; id: string; order: number; rect: Rect; label: string; kind: string; image: string;
   start: number; end: number; frame: string; page: string;
   /** How much of what lies beneath this layer covers, 0 to 1; NaN when that cannot be read. */
   cover: number;
-  /** Turned, so its bounding box is larger than what it paints. */
-  turned: boolean;
-  /** Keyframes or an entrance or exit move, fade or build it over time. */
-  moving: boolean;
+  /** Paints something: a picture, a fill, text, a stroke, a shadow, or a kind of its own. */
+  paints: boolean;
+  reach: Reach;
+  /** How far a `local` layer may paint past its box. */
+  margin: number;
+  /** Beneath a mark, whether it can hold the mark for certain: unturned, unmasked, unblurred. */
+  solid: boolean;
+  /** Beneath a mark, what it paints cannot be read (a web page, a scene, an unknown kind). */
+  unknownPaint: boolean;
+  /** A blend mixes it with what lies beneath. */
+  blend: boolean;
 }
 /** Where a mark is drawn: exactly, or only within a region with its height between two bounds. */
 interface Placement { exact: boolean; region: Rect; lo: number; hi: number; visibleH: number }
@@ -179,9 +211,39 @@ interface Placement { exact: boolean; region: Rect; lo: number; hi: number; visi
 const MAX_ROWS = 5000;
 const MAX_FINDINGS = 200;
 const MAX_TIME_S = 3600;
+/** Layer comparisons the check makes at most; marks past the cap are counted as not measured. */
+export const MAX_WORK = 200_000;
 /** Layers that are pages, sound or a camera path, never a neighbour on the page. */
 const NOT_ON_PAGE = new Set(['frame', 'audio', 'camera']);
+/** Kinds whose paint the check models: a box, a picture, text, an artboard and a group (which paints nothing). */
+const MODELLED_KINDS = new Set(['box', 'image', 'text', 'frame', 'group']);
 const TREATMENT_WORDS: Record<PartnerKitTreatmentV1, string> = { colour: 'full colour', mono: 'one colour', reverse: 'reversed', 'on-photo': 'on a photo' };
+
+/**
+ * Every Design row field the check knows. A field outside this list, set to anything, could
+ * move the layer, so the layer is followed nowhere (`anywhere`). The fields that change
+ * where or how a known layer paints are read by `reachOf`; the rest (text and its styling,
+ * sound, names, notes, presentation and layout settings that only apply with a layout) do
+ * not change where a layer paints for these checks.
+ */
+export const GUEST_MARK_FIELDS: ReadonlySet<string> = new Set([
+  'id', 'kind', 'x', 'y', 'w', 'h', 'rot', 'shape', 'radius', 'bg', 'opacity', 'image', 'fit', 'blend', 'text', 'fg', 'fontSize',
+  'align', 'valign', 'weight', 'font', 'lineHeight', 'tracking', 'ligatures', 'alternates', 'group', 'clip', 'pad', 'shadow',
+  'shadowColor', 'shadowX', 'shadowY', 'shadowBlur', 'imgpos', 'fitText', 'path', 'stroke', 'strokeW', 'fillRule', 'start', 'dur',
+  'clipIn', 'speed', 'enter', 'exit', 'enterMs', 'exitMs', 'mute', 'lane', 'strokeDash', 'strokeCap', 'strokeJoin', 'grad', 'blur',
+  'strokeDashLen', 'strokeGapLen', 'bgBlur', 'enterEase', 'exitEase', 'frame', 'order', 'clipChildren', 'headStart', 'headEnd',
+  'strokeDashArray', 'dashFit', 'bindStart', 'bindEnd', 'route', 'z', 'kf', 'linkOf', 'presentAudio', 'build', 'state', 'matchOf',
+  'notes', 'flipH', 'flipV', 'cls', 'gain', 'name', 'ignored', 'split', 'stagger', 'splitOrder', 'hold', 'holdRate', 'rx', 'ry',
+  'pan', 'duck', 'pitch', 'varispeed', 'fx', 'stackOf', 'hidden', 'locked', 'slideTransition', 'plainText', 'scene', 'animationId',
+  'animationEdits', 'textStory', 'textFrame', 'pathPaint', 'vectorSource', 'textWrap', 'master', 'role', 'furniture', 'archetype',
+  'textDirection', 'tokenLinks', 'web', 'webView', 'webLoad', 'webCss', 'webHideCookies', 'interact', 'interactOpts', 'layout',
+  'layoutOwner', 'layoutOrder', 'layoutDirection', 'layoutWrap', 'layoutGapX', 'layoutGapY', 'layoutPadTop', 'layoutPadRight',
+  'layoutPadBottom', 'layoutPadLeft', 'layoutAlign', 'layoutAlignContent', 'layoutJustify', 'layoutJustifyItems', 'layoutW',
+  'layoutH', 'layoutMinW', 'layoutMaxW', 'layoutMinH', 'layoutMaxH', 'layoutMarginTop', 'layoutMarginRight', 'layoutMarginBottom',
+  'layoutMarginLeft', 'layoutAbsolute', 'layoutSelf', 'layoutJustifySelf', 'layoutRow', 'layoutColumn', 'layoutRowSpan',
+  'layoutColumnSpan', 'layoutArea', 'layoutX', 'layoutY', 'layoutAngle', 'pageId', 'strokeAlign', 'strokeTop', 'strokeRight',
+  'strokeBottom', 'strokeLeft', 'imageFraming',
+]);
 
 const record = (v: unknown): v is Row => !!v && typeof v === 'object' && !Array.isArray(v);
 const num = (v: unknown, fallback = 0): number => {
@@ -202,13 +264,49 @@ const designBool = (v: unknown, fallback: boolean): boolean => {
   const s = String(v).toLowerCase();
   return s === 'true' || s === '1' || s === 'yes' || s === 'on' ? true : s === 'false' || s === '0' || s === 'no' || s === 'off' ? false : fallback;
 };
+/** A field set to something: not absent, empty, false, zero or `none`. */
+const isSet = (v: unknown): boolean => !(v === undefined || v === null || v === '' || v === false || v === 0 || v === 'none' || (typeof v === 'string' && !v.trim()));
+/** An id or reference as a key, without calling a stranger's `toString`. */
+const keyOf = (v: unknown): string => (typeof v === 'string' ? v : typeof v === 'number' && Number.isFinite(v) ? String(v) : '');
 const clamp = (v: number, lo: number, hi: number): number => Math.min(hi, Math.max(lo, v));
 const imageId = (v: unknown): string => (typeof v === 'string' ? v : record(v) && typeof v.id === 'string' ? v.id : '');
 const hidden = (row: Row): boolean => designBool(row.hidden, false) || row.__offPage === true;
 /** A layer's own opacity as the renderer reads it, 0 to 100 authored, here 0 to 1. */
 const opacityOf = (row: Row): number => clamp(designNum(row.opacity, 100), 0, 100) / 100;
-const transition = (v: unknown): boolean => typeof v === 'string' && v !== '' && v !== 'none';
 const turnedRow = (row: Row): boolean => Math.round(num(row.rot) * 10) % 3600 !== 0;
+const strokeWidths = (row: Row): number[] => [row.strokeW, row.strokeTop, row.strokeRight, row.strokeBottom, row.strokeLeft].map((v) => Math.max(0, num(v)));
+const stroked = (row: Row): boolean => typeof row.stroke === 'string' && row.stroke.trim() !== '' && strokeWidths(row).some((w) => w > 0);
+const shadowed = (row: Row): boolean => isSet(row.shadow);
+const shapeOf = (row: Row): string => (typeof row.shape === 'string' && row.shape !== '' ? row.shape : 'rect');
+const blended = (row: Row): boolean => typeof row.blend === 'string' && row.blend !== '' && row.blend !== 'normal';
+
+/**
+ * Whether a row could be anywhere at some moment, for a reason of its own: it moves (keyframes,
+ * an entrance or exit, a hold, a text split, a build, a morph or an animation), is placed by
+ * a layout or a connector, is lifted or tilted out of the page, or uses a field the check
+ * does not know.
+ */
+function movesOrFloats(row: Row): boolean {
+  if (isSet(row.kf) || isSet(row.hold) || isSet(row.split) || designNum(row.build, 0) >= 1 || isSet(row.matchOf) || isSet(row.animationId) || isSet(row.animationEdits)) return true;
+  if (isSet(row.enter) || isSet(row.exit)) return true;
+  if (designNum(row.z, 0) !== 0 || designNum(row.rx, 0) !== 0 || designNum(row.ry, 0) !== 0) return true;
+  if (isSet(row.route) || isSet(row.bindStart) || isSet(row.bindEnd) || isSet(row.headStart) || isSet(row.headEnd)) return true;
+  if (row.layout === 'flex' || row.layout === 'grid' || isSet(row.layoutOwner) || (row.kind === 'group' && (row.layoutW === 'hug' || row.layoutH === 'hug'))) return true;
+  for (const key of Object.keys(row)) if (!GUEST_MARK_FIELDS.has(key) && !key.startsWith('__') && isSet(row[key])) return true;
+  return false;
+}
+
+/** How far the check can follow a layer as a neighbour, and how far past its box it may paint. */
+function reachOf(row: Row, kind: string, ancestors: Row[]): { reach: Reach; margin: number } {
+  // An artboard is a page: it is never a neighbour, and whatever moves it moves what is drawn on it too.
+  if (kind === 'frame') return { reach: 'exact', margin: 0 };
+  if (movesOrFloats(row) || ancestors.some((a) => a.kind !== 'frame' && movesOrFloats(a))) return { reach: 'anywhere', margin: 0 };
+  const margin = (stroked(row) ? Math.max(...strokeWidths(row)) : 0)
+    + (shadowed(row) ? Math.abs(num(row.shadowX)) + Math.abs(num(row.shadowY)) + 3 * Math.max(0, num(row.shadowBlur, 10)) : 0)
+    + 3 * Math.max(0, num(row.blur));
+  const local = margin > 0 || turnedRow(row) || shapeOf(row) !== 'rect' || isSet(row.clip) || kind === 'path' || isSet(row.path) || !MODELLED_KINDS.has(kind);
+  return { reach: local ? 'local' : 'exact', margin };
+}
 
 /** How much a colour covers: its alpha, or NaN for a linked colour the theme does not resolve. */
 function colourCover(value: unknown, resolve: GuestMarkMeasure['resolveColor']): number {
@@ -232,7 +330,7 @@ function gradientCover(value: unknown): number {
 /**
  * How much of what lies beneath a layer's own paint covers, before its opacity: a picture
  * covers, an artboard is a board (white when it has no fill), a fill by its alpha, and a
- * pen shape, which does not fill its bounding box, cannot be read.
+ * pen shape, which does not fill its bounding box, a blend or a backdrop blur cannot be read.
  */
 function paintCover(row: Row, kind: string, image: string, resolve: GuestMarkMeasure['resolveColor']): number {
   if (image) return 1;
@@ -243,7 +341,7 @@ function paintCover(row: Row, kind: string, image: string, resolve: GuestMarkMea
   const bg = colourCover(row.bg, resolve);
   const grad = gradientCover(row.grad);
   const both = bg === 1 || grad === 1 ? 1 : Number.isNaN(bg) || Number.isNaN(grad) ? Number.NaN : 1 - (1 - bg) * (1 - grad);
-  return kind === 'path' && both !== 0 ? Number.NaN : both;
+  return (kind === 'path' || isSet(row.path) || blended(row) || num(row.bgBlur) > 0) && both !== 0 ? Number.NaN : both;
 }
 
 /** Choices in a sentence: "A, B or C", with no comma before the last. */
@@ -270,10 +368,36 @@ function turnedBounds(r: Rect, rot: number, cx: number, cy: number): Rect {
   return { x, y, w: Math.max(...xs) - x, h: Math.max(...ys) - y };
 }
 
-/** The axis-aligned bounds of a box, rotated about its centre. */
+/** A box as Design places it: on whole pixels, at least one pixel each way. */
+function boxOf(row: Row): Rect {
+  return { x: Math.round(num(row.x)), y: Math.round(num(row.y)), w: Math.max(1, Math.round(num(row.w, 1))), h: Math.max(1, Math.round(num(row.h, 1))) };
+}
+
+/** The axis-aligned bounds of a box, turned about its centre. */
 function boundsOf(row: Row): Rect {
-  const x = num(row.x), y = num(row.y), w = Math.max(0, num(row.w)), h = Math.max(0, num(row.h));
-  return turnedBounds({ x, y, w, h }, num(row.rot), x + w / 2, y + h / 2);
+  const box = boxOf(row);
+  return turnedBounds(box, Math.round(num(row.rot) * 10) / 10, box.x + box.w / 2, box.y + box.h / 2);
+}
+
+/**
+ * Whether a layer's own outline holds a whole rectangle: a rectangle, a rounded one, a pill
+ * or an ellipse, as Design's `radiusFor` outlines the box. Each is convex, so it holds the
+ * rectangle when it holds the rectangle's four corners.
+ */
+function outlineHolds(row: Row, box: Rect, r: Rect): boolean {
+  if (!holds(box, r)) return false;
+  const shape = shapeOf(row);
+  const corners = [[r.x, r.y], [r.x + r.w, r.y], [r.x, r.y + r.h], [r.x + r.w, r.y + r.h]] as const;
+  if (shape === 'ellipse' || shape === 'circle') {
+    const cx = box.x + box.w / 2, cy = box.y + box.h / 2, rx = box.w / 2, ry = box.h / 2;
+    return corners.every(([px, py]) => ((px - cx) / rx) ** 2 + ((py - cy) / ry) ** 2 <= 1 + 1e-9);
+  }
+  const radius = shape === 'pill' ? Math.min(box.w, box.h) / 2 : shape === 'rounded' ? clamp(num(row.radius, 16), 0, Math.min(box.w, box.h) / 2) : 0;
+  if (!radius) return true;
+  return corners.every(([px, py]) => {
+    const qx = clamp(px, box.x + radius, box.x + box.w - radius), qy = clamp(py, box.y + radius, box.y + box.h - radius);
+    return (px - qx) ** 2 + (py - qy) ** 2 <= radius * radius + 1e-9;
+  });
 }
 
 function intersect(a: Rect, b: Rect | undefined): Rect {
@@ -282,13 +406,19 @@ function intersect(a: Rect, b: Rect | undefined): Rect {
   return { x, y, w: Math.max(0, Math.min(a.x + a.w, b.x + b.w) - x), h: Math.max(0, Math.min(a.y + a.h, b.y + b.h) - y) };
 }
 const inflate = (r: Rect, pad: number): Rect => ({ x: r.x - pad, y: r.y - pad, w: r.w + pad * 2, h: r.h + pad * 2 });
+/** A rectangle mirrored about the point (cx, cy), across and down as asked. */
+const mirrored = (r: Rect, flipH: boolean, flipV: boolean, cx: number, cy: number): Rect => ({
+  x: flipH ? 2 * cx - (r.x + r.w) : r.x, y: flipV ? 2 * cy - (r.y + r.h) : r.y, w: r.w, h: r.h,
+});
 
 /**
  * Where Design draws a mark's picture, from the draw compiler: exactly, when the fit can
  * be placed from what is known of the logo, or only the region it lies within and bounds
- * on its height. Null when the renderer draws no picture for the row.
+ * on its height. The region is mirrored and turned about the box's centre, as the pose
+ * draws it (`rotate()` after the mirror), and given as its bounds on the page. Null when the
+ * renderer draws no picture for the row.
  */
-function placeMark(row: Row, base: string, measure: GuestMarkMeasure): (Placement & { rot: number; cx: number; cy: number }) | null {
+function placeMark(row: Row, base: string, measure: GuestMarkMeasure): Placement | null {
   let op: ReturnType<typeof compileDesignRow>;
   try {
     op = compileDesignRow(row as DesignBoxRowV1, { x: 0, y: 0 });
@@ -297,8 +427,8 @@ function placeMark(row: Row, base: string, measure: GuestMarkMeasure): (Placemen
   }
   const picture = (op as { picture?: DrawPicture }).picture;
   if (!picture) return null;
-  const rot = op.pose?.rot ?? 0;
   const cx = op.box.x + op.box.w / 2, cy = op.box.y + op.box.h / 2;
+  const onPage = (r: Rect): Rect => turnedBounds(mirrored(r, !!op.pose?.flipH, !!op.pose?.flipV, cx, cy), op.pose?.rot ?? 0, cx, cy);
   const visible = (r: Rect): Rect => intersect(intersect(r, picture.element.box), picture.clip?.box);
   const bound = visible(picture.element.box);
   const size = measure.logoSize?.(base);
@@ -307,26 +437,26 @@ function placeMark(row: Row, base: string, measure: GuestMarkMeasure): (Placemen
   const proportioned = sized || (typeof aspect === 'number' && Number.isFinite(aspect) && aspect > 0);
   const ownSize = picture.fit === 'none' || picture.fit === 'scale-down';
   const natural = sized ? { width: size.width, height: size.height } : proportioned ? { width: aspect! * 1000, height: 1000 } : null;
-  const place = { rot, cx, cy };
   if (picture.fit === 'fill' || (natural && (sized || !ownSize))) {
     const drawn = pictureRect(picture, natural ?? { width: 1, height: 1 });
     const region = visible(drawn);
-    return { exact: true, region, lo: drawn.h, hi: drawn.h, visibleH: region.h, ...place };
+    return { exact: true, region: onPage(region), lo: drawn.h, hi: drawn.h, visibleH: region.h };
   }
   // The logo's height is known only to lie between two bounds: a contained or scaled-down
   // logo is at most as tall as its box, a covering one at least, one at its own size anything.
   const boxH = picture.area.h * picture.zoom;
   const containH = natural ? pictureRect({ ...picture, fit: 'contain' }, natural).h : boxH;
   const lo = picture.fit === 'cover' ? boxH : 0;
-  const hi = picture.fit === 'none' ? Number.POSITIVE_INFINITY : picture.fit === 'cover' ? Number.POSITIVE_INFINITY : picture.fit === 'scale-down' ? containH : boxH;
-  return { exact: false, region: bound, lo, hi, visibleH: bound.h, ...place };
+  const hi = picture.fit === 'none' || picture.fit === 'cover' ? Number.POSITIVE_INFINITY : picture.fit === 'scale-down' ? containH : boxH;
+  return { exact: false, region: onPage(bound), lo, hi, visibleH: bound.h };
 }
 
 const EPS = 0.01;
 const overlaps = (a: Rect, b: Rect): boolean =>
   a.x < b.x + b.w - EPS && b.x < a.x + a.w - EPS && a.y < b.y + b.h - EPS && b.y < a.y + a.h - EPS;
-const holds = (outer: Rect, inner: Rect): boolean =>
-  inner.x >= outer.x - EPS && inner.y >= outer.y - EPS && inner.x + inner.w <= outer.x + outer.w + EPS && inner.y + inner.h <= outer.y + outer.h + EPS;
+function holds(outer: Rect, inner: Rect): boolean {
+  return inner.x >= outer.x - EPS && inner.y >= outer.y - EPS && inner.x + inner.w <= outer.x + outer.w + EPS && inner.y + inner.h <= outer.y + outer.h + EPS;
+}
 /** Two timed layers that are never on screen together are not neighbours. */
 const together = (a: Layer, b: Layer): boolean => a.start < b.end && b.start < a.end;
 /** Layers on two artboards, or on two pages, never share a page, whatever their coordinates. */
@@ -349,18 +479,64 @@ function layerLabel(row: Row, id: string): string {
 function timingOf(rows: Row[]): (row: Row) => { start: number; end: number } | null {
   const startOf = (row: Row): number => clamp(designNum(row.start, 0), 0, MAX_TIME_S);
   const durOf = (row: Row): number => clamp(designNum(row.dur, 0), 0.1, MAX_TIME_S);
-  const spans = rows.filter((r) => designBool(r.ignored, false) && r.lane === 'seq' && designHasNum(r.dur)).map((r) => ({ s: startOf(r), d: durOf(r) }));
+  // The clips set aside, by start, with the time removed before each, so a lookup is a search.
+  const spans = rows.filter((r) => designBool(r.ignored, false) && r.lane === 'seq' && designHasNum(r.dur)).map((r) => ({ s: startOf(r), d: durOf(r) })).sort((a, b) => a.s - b.s);
+  const removed = [0];
+  for (const sp of spans) removed.push(removed[removed.length - 1]! + sp.d);
+  const removedBefore = (t: number): number => {
+    let lo = 0, hi = spans.length;
+    while (lo < hi) { const mid = (lo + hi) >> 1; if (spans[mid]!.s < t - 1e-6) lo = mid + 1; else hi = mid; }
+    return removed[lo]!;
+  };
   return (row) => {
     if (!(row.lane === 'seq' || designHasNum(row.start))) return { start: 0, end: Number.POSITIVE_INFINITY };
     if (designBool(row.ignored, false)) return null;
     const authored = startOf(row);
-    const start = row.lane === 'seq' ? Math.max(0, authored - spans.reduce((sum, sp) => sum + (sp.s < authored - 1e-6 ? sp.d : 0), 0)) : authored;
+    const start = row.lane === 'seq' ? Math.max(0, authored - removedBefore(authored)) : authored;
     return { start, end: designHasNum(row.dur) ? start + durOf(row) : Number.POSITIVE_INFINITY };
   };
 }
 
+/**
+ * Design's paint order, as the renderer's `hierarchyPaintIndices` walks it: a group's members
+ * follow the group, each group at its stack slot (the earlier of its own place and its top
+ * member's), and everything else in list order.
+ */
+function paintOrder(rows: Row[]): number[] {
+  const order = new Array<number>(rows.length).fill(Number.POSITIVE_INFINITY);
+  if (!rows.some((r) => r.kind === 'group')) { rows.forEach((_r, n) => { order[n] = n; }); return order; }
+  const groups = new Set<string>();
+  rows.forEach((r) => { if (r.kind === 'group' && keyOf(r.id)) groups.add(keyOf(r.id)); });
+  const members = new Map<string, number[]>();
+  const roots: number[] = [];
+  rows.forEach((r, n) => {
+    const parent = keyOf(r.group);
+    if (parent && groups.has(parent)) { const list = members.get(parent) ?? []; list.push(n); members.set(parent, list); } else roots.push(n);
+  });
+  // Each row's stack slot, worked out once: a group sits at the earlier of its own place and its top member's.
+  const slots = rows.map((r, n) => {
+    const children = r.kind === 'group' ? members.get(keyOf(r.id)) : undefined;
+    return children?.length ? Math.min(n, children.reduce((m, c) => Math.max(m, c), 0)) : n;
+  });
+  const bySlot = (a: number, b: number): number => slots[a]! - slots[b]!;
+  roots.sort(bySlot);
+  for (const list of members.values()) list.sort(bySlot);
+  const pending = roots.slice().reverse();
+  const seen = new Set<number>();
+  let next = 0;
+  while (pending.length) {
+    const n = pending.pop()!;
+    if (seen.has(n)) continue;
+    seen.add(n);
+    order[n] = next++;
+    const children = rows[n]!.kind === 'group' ? members.get(keyOf(rows[n]!.id)) ?? [] : [];
+    for (let j = children.length - 1; j >= 0; j--) pending.push(children[j]!);
+  }
+  return order;
+}
+
 type Ground = 'photo' | 'other' | 'unknown';
-interface GroundLayer { certain: boolean; cover: number; picture: boolean; photo: boolean }
+interface GroundLayer { certain: boolean; cover: number; photo: boolean; unknown: boolean }
 
 /**
  * What a mark can be sitting on, read from the painted layers beneath it, top first: a
@@ -372,13 +548,13 @@ function groundOutcomes(list: GroundLayer[]): Set<Ground> {
   let below = new Set<Ground>(['other']);
   for (let i = list.length - 1; i >= 0; i--) {
     const l = list[i]!;
-    const own: Set<Ground> = l.photo ? new Set(['photo']) : l.cover >= 1 ? new Set(['other']) : veiled(below);
+    const own: Set<Ground> = l.unknown ? new Set(['unknown']) : l.photo ? new Set(['photo']) : l.cover >= 1 ? new Set(['other']) : veiled(below);
     below = l.certain ? own : new Set([...own, ...below]);
   }
   return below;
 }
 
-/** The layers Design draws, with their place, paint, paint order and time. */
+/** The layers Design draws, with their place, paint, paint order, time and how far the check follows them. */
 function drawnLayers(capped: Row[], measure: GuestMarkMeasure, unmeasured: GuestMarkUnmeasured[]): Layer[] {
   // A layer's own flag, and a hidden artboard, group or layout container takes its members
   // with it, from the hierarchy Design paints.
@@ -400,25 +576,11 @@ function drawnLayers(capped: Row[], measure: GuestMarkMeasure, unmeasured: Guest
     }
     return out;
   };
-  // Design's paint order: the layer tree walked in list order, each owner (an artboard, a
-  // group, a layout container) beneath what it holds. Without a tree, the list order.
-  const order = new Map<string, number>();
-  if (hierarchy) {
-    let next = 0;
-    const visit = (id: string, depth: number): void => {
-      if (order.has(id) || depth > 65) return;
-      order.set(id, next++);
-      for (const child of hierarchy!.children.get(id) ?? []) visit(child, depth + 1);
-    };
-    for (const row of capped) {
-      const id = typeof row.id === 'string' ? row.id : '';
-      if (id && !hierarchy.parent.has(id)) visit(id, 0);
-    }
-  }
+  const order = paintOrder(capped);
   const timing = timingOf(capped);
   const layers: Layer[] = [];
   capped.forEach((row, index) => {
-    const id = typeof row.id === 'string' ? row.id : '';
+    const id = keyOf(row.id);
     if (hidden(row) || (id && hierarchy?.flags.get(id)?.hidden === true)) return;
     const ancestors = ancestorsOf(id);
     // A layer at no opacity draws nothing. A group and an artboard wrap what they hold, so
@@ -428,18 +590,21 @@ function drawnLayers(capped: Row[], measure: GuestMarkMeasure, unmeasured: Guest
     const time = timing(row);
     if (!time) return;
     const kind = typeof row.kind === 'string' && row.kind ? row.kind : 'box';
-    const rect = boundsOf(row);
-    if (!(rect.w > 0) || !(rect.h > 0)) return;
     // The artboard a layer is drawn on: its own, an ancestor's through groups and layout
     // owners, or the one it names.
     const owner = ancestors.find((a) => a.kind === 'frame');
-    const frame = kind === 'frame' ? id : (owner && typeof owner.id === 'string' ? owner.id : (typeof row.frame === 'string' ? row.frame : ''));
-    const page = (id && hierarchy?.pageById.get(id)) || (typeof row.pageId === 'string' ? row.pageId : '');
+    const frame = kind === 'frame' ? id : (owner ? keyOf(owner.id) : keyOf(row.frame));
+    const page = (id && hierarchy?.pageById.get(id)) || keyOf(row.pageId);
     const image = imageId(row.image);
-    const moving = (kind !== 'frame' && typeof row.kf === 'string' && row.kf.trim() !== '') || transition(row.enter) || transition(row.exit);
+    const cover = paintCover(row, kind, image, measure.resolveColor) * opacity;
+    const { reach, margin } = reachOf(row, kind, ancestors);
+    const paints = !!image || cover !== 0 || (typeof row.text === 'string' && row.text.trim() !== '') || stroked(row) || shadowed(row) || !MODELLED_KINDS.has(kind);
     layers.push({
-      row, id, order: (id ? order.get(id) : undefined) ?? index, rect, label: layerLabel(row, id), kind, image,
-      ...time, frame, page, cover: paintCover(row, kind, image, measure.resolveColor) * opacity, turned: turnedRow(row), moving,
+      row, id, order: Number.isFinite(order[index]!) ? order[index]! : capped.length + index, rect: boundsOf(row), label: layerLabel(row, id), kind, image,
+      ...time, frame, page, cover, paints, reach, margin,
+      solid: !turnedRow(row) && !isSet(row.clip) && !(num(row.blur) > 0),
+      unknownPaint: !MODELLED_KINDS.has(kind) && kind !== 'path',
+      blend: blended(row),
     });
   });
   return layers;
@@ -486,47 +651,64 @@ export function checkGuestMarks(boxes: unknown, kit: Pick<PartnerKitV1, 'label' 
       rule, message, company, ...extra,
     });
   };
-  // Design paints in the tree's order (see above): an artboard beneath what is drawn on the artboard.
+  // Design paints in its stack order (see above): an artboard beneath what is drawn on the artboard.
   const beneath = (a: Layer, b: Layer): boolean => (a.kind === 'frame' ? a.id === b.frame : a.order < b.order);
   const neighbour = (l: Layer, mark: Layer): boolean => l !== mark && together(l, mark) && samePlace(l, mark);
-  const unmeasured = { size: 0, space: 0, ground: 0, treatment: 0, auto: 0, placed: 0, motion: 0 };
+  const count: Partial<Record<GuestMarkUnmeasuredCode, number>> = {};
+  const note = (code: GuestMarkUnmeasuredCode): void => { count[code] = (count[code] ?? 0) + 1; };
+  // Layer comparisons made so far, against `MAX_WORK`.
+  let work = 0;
+  const afford = (cost: number): boolean => {
+    if (work + cost > MAX_WORK) return false;
+    work += cost;
+    return true;
+  };
 
   for (const mark of marks) {
     const base = stripAssetModifiers(mark.image);
     const placed = placeMark(mark.row, base, measure);
-    if (!placed) { unmeasured.placed++; continue; }
-    // The region turns with the mark; its height, which rotation does not change, does not.
-    const region = turnedBounds(placed.region, placed.rot, placed.cx, placed.cy);
-    let moving = mark.moving;
+    if (!placed) { note('not-drawn'); continue; }
+    // A mark that moves or is placed by a layout is followed nowhere, so nothing about its place is measured.
+    const adrift = mark.reach === 'anywhere';
+    const region = placed.region;
+    let overBudget = false;
     if (rules.minSize) {
       const min = rules.minSize;
       const short = (cssPx: number): { px: boolean; mm: boolean } => ({
         px: min.px !== undefined && exportPx(cssPx) + 0.5 < min.px,
         mm: physical && min.mm !== undefined && millimetres(cssPx) + 0.05 < min.mm,
       });
-      // Under the minimum for certain at the tallest it can be drawn; met for certain at the shortest.
-      const atMost = short(placed.hi), atLeast = short(placed.lo);
-      const prefix = placed.exact ? '' : 'at most ';
-      if (atMost.px) add(mark, 'min-size', 'px', `${company}'s mark is ${prefix}${pxText(exportPx(placed.hi))} px high; the kit asks for at least ${pxText(min.px!)} px.`, { value: `${pxText(exportPx(placed.hi))} px`, expected: `${pxText(min.px!)} px` });
-      if (atMost.mm) add(mark, 'min-size', 'mm', `${company}'s mark is ${prefix}${mmText(millimetres(placed.hi))} mm high; the kit asks for at least ${mmText(min.mm!)} mm.`, { value: `${mmText(millimetres(placed.hi))} mm`, expected: `${mmText(min.mm!)} mm` });
-      if ((atLeast.px && !atMost.px) || (atLeast.mm && !atMost.mm)) unmeasured.size++;
+      if (adrift) note('size-unmodelled');
+      else {
+        // Under the minimum for certain at the tallest it can be drawn; met for certain at the shortest.
+        const atMost = short(placed.hi), atLeast = short(placed.lo);
+        const prefix = placed.exact ? '' : 'at most ';
+        if (atMost.px) add(mark, 'min-size', 'px', `${company}'s mark is ${prefix}${pxText(exportPx(placed.hi))} px high; the kit asks for at least ${pxText(min.px!)} px.`, { value: `${pxText(exportPx(placed.hi))} px`, expected: `${pxText(min.px!)} px` });
+        if (atMost.mm) add(mark, 'min-size', 'mm', `${company}'s mark is ${prefix}${mmText(millimetres(placed.hi))} mm high; the kit asks for at least ${mmText(min.mm!)} mm.`, { value: `${mmText(millimetres(placed.hi))} mm`, expected: `${mmText(min.mm!)} mm` });
+        if ((atLeast.px && !atMost.px) || (atLeast.mm && !atMost.mm)) note('size');
+      }
     }
     if (rules.clearSpace) {
-      // Exactly placed, the band is the mark inflated by its clear space; otherwise the
-      // widest band it could have, and a layer in that band leaves the rule not measured.
-      const band = inflate(region, rules.clearSpace.value * placed.visibleH);
-      // A layer beneath the mark that holds the whole mark is its background. Another kit
-      // mark is never a background.
-      const background = (l: Layer): boolean => !isMark(l) && beneath(l, mark) && holds(l.rect, region);
-      const inside = layers.filter((l) => neighbour(l, mark) && l.kind !== 'frame' && !NOT_ON_PAGE.has(l.kind) && l.kind !== 'group' && overlaps(l.rect, band) && !background(l));
-      if (inside.some((l) => l.moving)) moving = true;
-      if (inside.length && !placed.exact) unmeasured.space++;
-      else if (inside.length) {
-        const first = inside[0]!;
-        const message = inside.length === 1
-          ? `“${first.label}” sits inside ${company}'s clear space.`
-          : `“${first.label}” and ${inside.length - 1} other ${inside.length === 2 ? 'layer sit' : 'layers sit'} inside ${company}'s clear space.`;
-        add(mark, 'clear-space', '', message, { value: first.label, expected: `${rules.clearSpace.value} of the mark's height`, related: inside.map((l) => l.id).filter(Boolean) });
+      if (adrift) note('clear-space-unmodelled');
+      else if (!afford(layers.length)) overBudget = true;
+      else {
+        // Exactly placed, the band is the mark inflated by its clear space; otherwise the
+        // widest band it could have, and a layer in that band leaves the rule not measured.
+        const band = inflate(region, rules.clearSpace.value * placed.visibleH);
+        // A layer beneath the mark whose own outline holds the whole mark is its background.
+        // Another kit mark is never a background.
+        const background = (l: Layer): boolean => !isMark(l) && l.reach !== 'anywhere' && l.solid && beneath(l, mark) && outlineHolds(l.row, boxOf(l.row), region);
+        const near = layers.filter((l) => neighbour(l, mark) && l.kind !== 'frame' && !NOT_ON_PAGE.has(l.kind) && l.kind !== 'group' && l.paints
+          && (l.reach === 'anywhere' || overlaps(inflate(l.rect, l.margin), band)) && !background(l));
+        const exact = near.filter((l) => l.reach === 'exact');
+        if (exact.length && placed.exact) {
+          const first = exact[0]!;
+          const message = exact.length === 1
+            ? `“${first.label}” sits inside ${company}'s clear space.`
+            : `“${first.label}” and ${exact.length - 1} other ${exact.length === 2 ? 'layer sit' : 'layers sit'} inside ${company}'s clear space.`;
+          add(mark, 'clear-space', '', message, { value: first.label, expected: `${rules.clearSpace.value} of the mark's height`, related: exact.map((l) => l.id).filter(Boolean) });
+        } else if (near.some((l) => l.reach !== 'exact')) note('clear-space-unmodelled');
+        else if (near.length) note('clear-space');
       }
     }
     const allowed = rules.treatments;
@@ -535,10 +717,12 @@ export function checkGuestMarks(boxes: unknown, kit: Pick<PartnerKitV1, 'label' 
       const treatment = parseTreatedAssetId(mark.image).treatment ?? undefined;
       const theme = parseThemedAssetId(mark.image).theme ?? undefined;
       // A colour modifier is judged by the colours the catalog gives it, never assumed. A
-      // surface-aware mark takes its variant from what is drawn beneath, so it is not judged here.
-      const recolour = theme === AUTO_ASSET_THEME ? 'auto' : treatment || theme ? (measure.recolour?.({ ...(theme ? { theme } : {}), ...(treatment ? { treatment } : {}) }) ?? null) : undefined;
-      if (recolour === 'auto') unmeasured.auto++;
-      else if (recolour === null) unmeasured.treatment++;
+      // surface-aware mark takes its variant from what is drawn beneath, so it is not judged
+      // here, and a blend mixes the mark with what lies beneath.
+      const recolour = mark.blend ? 'blend' : theme === AUTO_ASSET_THEME ? 'auto' : treatment || theme ? (measure.recolour?.({ ...(theme ? { theme } : {}), ...(treatment ? { treatment } : {}) }) ?? null) : undefined;
+      if (recolour === 'blend') note('treatment-unmodelled');
+      else if (recolour === 'auto') note('surface');
+      else if (recolour === null) note('treatment');
       else if (recolour === 'other') {
         add(mark, 'treatment', 'recoloured', `${company}'s mark is recoloured; the kit allows ${orList(rest)}.`, { value: 'recoloured', expected: allowed.join(', ') });
       } else {
@@ -548,52 +732,64 @@ export function checkGuestMarks(boxes: unknown, kit: Pick<PartnerKitV1, 'label' 
         }
       }
       if (!allowed.includes('on-photo')) {
-        const ground = groundOf(mark, region);
-        if (ground.moving) moving = true;
-        if (ground.photo) {
-          add(mark, 'treatment', 'on-photo', `${company}'s mark sits on a photo; the kit allows ${orList(rest)}.`, { value: 'on-photo', expected: allowed.join(', '), related: ground.photo.id ? [ground.photo.id] : [] });
-        } else if (ground.doubt) unmeasured.ground++;
+        if (adrift) note('ground-unmodelled');
+        else {
+          const ground = groundOf(mark, region);
+          if (ground === 'budget') overBudget = true;
+          else if (ground.photo) {
+            add(mark, 'treatment', 'on-photo', `${company}'s mark sits on a photo; the kit allows ${orList(rest)}.`, { value: 'on-photo', expected: allowed.join(', '), related: ground.photo.id ? [ground.photo.id] : [] });
+          } else if (ground.doubt) note(ground.unmodelled ? 'ground-unmodelled' : 'ground');
+        }
       }
     }
-    if (moving) unmeasured.motion++;
+    if (overBudget) note('work-limit');
   }
 
   /**
-   * What a mark sits on, for each stretch of time its neighbours come and go in: the
-   * photo it certainly sits on at some time, or doubt when a stretch leaves the answer open.
+   * What a mark sits on, for each stretch of time its neighbours come and go in: the photo
+   * it certainly sits on at some time, or doubt when a stretch leaves the answer open (from
+   * a layer the check does not model, when `unmodelled`). `budget` when the work cap stops the search.
    */
-  function groundOf(mark: Layer, region: Rect): { photo?: Layer; doubt: boolean; moving: boolean } {
+  function groundOf(mark: Layer, region: Rect): { photo?: Layer; doubt: boolean; unmodelled: boolean } | 'budget' {
+    if (!afford(layers.length)) return 'budget';
     const under = layers
-      .filter((l) => neighbour(l, mark) && !isMark(l) && !NOT_ON_PAGE.has(l.kind === 'frame' ? '' : l.kind) && l.kind !== 'group' && l.cover !== 0 && beneath(l, mark) && overlaps(l.rect, region))
+      .filter((l) => neighbour(l, mark) && !isMark(l) && !NOT_ON_PAGE.has(l.kind === 'frame' ? '' : l.kind) && l.kind !== 'group' && l.cover !== 0 && beneath(l, mark)
+        && (l.reach === 'anywhere' || overlaps(l.rect, region)))
       .sort((a, b) => (a.kind === 'frame' ? 1 : 0) - (b.kind === 'frame' ? 1 : 0) || b.order - a.order);
+    // A layer beneath that moves or floats could come under the mark at any time.
+    if (under.some((l) => l.reach === 'anywhere')) return { doubt: true, unmodelled: true };
     // Each time a layer beneath arrives or leaves while the mark is on screen starts a stretch.
     const times = [...new Set([mark.start, ...under.flatMap((l) => [l.start, l.end])])].filter((t) => t >= mark.start && t < mark.end).sort((a, b) => a - b);
+    if (!afford(times.length * under.length)) return 'budget';
     const photoOf = (l: Layer): boolean => !!l.image && measure.pictureKind?.(stripAssetModifiers(l.image)) !== 'vector';
+    const facts = under.map((l): GroundLayer => ({
+      // Under the whole mark for certain only when the layer's own outline, unturned,
+      // unmasked and unblurred, holds the region the mark is drawn in (or, placed only
+      // roughly, the region it lies within).
+      certain: l.solid && outlineHolds(l.row, boxOf(l.row), region),
+      cover: l.cover,
+      photo: photoOf(l),
+      unknown: l.unknownPaint,
+    }));
+    // Beneath a mark the check models a box's outline, fill and picture; a turn, a mask, a
+    // blur, a blend, a backdrop blur, a pen path or a kind of its own it does not.
+    const unmodelled = under.some((l) => !l.solid || l.unknownPaint || l.blend || num(l.row.bgBlur) > 0 || l.kind === 'path' || isSet(l.row.path));
     let doubt = false;
     for (const t of times) {
-      const now = under.filter((l) => l.start <= t && t < l.end);
-      const outcomes = groundOutcomes(now.map((l) => ({
-        // Under the whole mark for certain only when the layer, unturned, holds the region the
-        // mark is drawn in (or, placed only roughly, the region it lies within).
-        certain: !l.turned && holds(l.rect, region),
-        cover: l.cover,
-        picture: !!l.image,
-        photo: photoOf(l),
-      })));
+      const now: GroundLayer[] = [];
+      under.forEach((l, n) => { if (l.start <= t && t < l.end) now.push(facts[n]!); });
+      const outcomes = groundOutcomes(now);
       if (outcomes.size === 1 && outcomes.has('photo')) {
-        const photo = now.find((l) => photoOf(l) && holds(l.rect, region)) ?? now.find(photoOf);
-        return { photo, doubt: false, moving: under.some((l) => l.moving) };
+        const photo = under.find((l, n) => facts[n]!.photo && l.start <= t && t < l.end && facts[n]!.certain) ?? under.find((l, n) => facts[n]!.photo && l.start <= t && t < l.end);
+        return { photo, doubt: false, unmodelled };
       }
       if (outcomes.has('photo') || outcomes.has('unknown')) doubt = true;
     }
-    return { doubt, moving: under.some((l) => l.moving) };
+    return { doubt, unmodelled };
   }
 
-  const counted: Array<[GuestMarkUnmeasuredCode, number]> = [
-    ['not-drawn', unmeasured.placed], ['size', unmeasured.size], ['clear-space', unmeasured.space], ['ground', unmeasured.ground],
-    ['treatment', unmeasured.treatment], ['surface', unmeasured.auto], ['motion', unmeasured.motion],
-  ];
-  for (const [code, count] of counted) if (count) said.push({ code, count });
+  const order: GuestMarkUnmeasuredCode[] = ['not-drawn', 'size', 'size-unmodelled', 'clear-space', 'clear-space-unmodelled', 'ground', 'ground-unmodelled', 'treatment', 'treatment-unmodelled', 'surface', 'work-limit'];
+  for (const code of order) if (count[code]) said.push({ code, count: count[code] });
   if (dropped) said.push({ code: 'findings-limit', count: dropped, limit: MAX_FINDINGS });
   return { findings, checked: { marks: marks.length, rules: checkedRules }, unmeasured: said, notMeasured: said.map(guestUnmeasuredText) };
 }

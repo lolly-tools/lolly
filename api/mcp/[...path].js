@@ -74633,7 +74633,7 @@ function batchCsvTemplate(tools) {
 }
 function batchCsvTemplateWithNotes(tools) {
   const inputIds = [];
-  const shadowed = [];
+  const shadowed2 = [];
   const reserved = new Set(TEMPLATE_OUTPUT_COLUMNS.map((h) => h.toLowerCase()));
   const seen = /* @__PURE__ */ new Set();
   for (const t of tools) {
@@ -74641,7 +74641,7 @@ function batchCsvTemplateWithNotes(tools) {
       if (seen.has(i.id)) continue;
       seen.add(i.id);
       if (reserved.has(i.id.toLowerCase()) || i.id.toLowerCase() in RESERVED_HEADERS) {
-        shadowed.push(i.id);
+        shadowed2.push(i.id);
         continue;
       }
       inputIds.push(i.id);
@@ -74649,7 +74649,7 @@ function batchCsvTemplateWithNotes(tools) {
   }
   const header = [...TEMPLATE_OUTPUT_COLUMNS, ...inputIds];
   const rows2 = tools.map((t) => ({ toolId: t.id }));
-  return { csv: toCSV(header, rows2), shadowedInputs: shadowed };
+  return { csv: toCSV(header, rows2), shadowedInputs: shadowed2 };
 }
 var RESERVED_HEADERS, TEMPLATE_OUTPUT_COLUMNS;
 var init_batch = __esm({
@@ -114913,11 +114913,11 @@ function sideBySide(a, b) {
   return gap <= Math.max(a.h, b.h);
 }
 function mergeCoLocatedMarks(groups, rows2, frames) {
-  const boxOf6 = /* @__PURE__ */ new Map();
+  const boxOf7 = /* @__PURE__ */ new Map();
   const kindOf4 = /* @__PURE__ */ new Map();
   for (const frame of frames) {
     for (const object4 of frame.slide.objects) {
-      boxOf6.set(object4.id, object4.box);
+      boxOf7.set(object4.id, object4.box);
       kindOf4.set(object4.id, object4.kind);
     }
   }
@@ -114934,9 +114934,9 @@ function mergeCoLocatedMarks(groups, rows2, frames) {
     return out;
   };
   const together2 = (a, b, lockup) => a.some((one) => {
-    const box4 = boxOf6.get(one);
+    const box4 = boxOf7.get(one);
     return box4 !== void 0 && b.some((other) => {
-      const near = boxOf6.get(other);
+      const near = boxOf7.get(other);
       return near !== void 0 && (samePlace(box4, near) || lockup && sideBySide(box4, near));
     });
   });
@@ -114945,7 +114945,7 @@ function mergeCoLocatedMarks(groups, rows2, frames) {
     return origin === "master" || origin === "layout";
   });
   const aspectOf = (group) => {
-    const box4 = boxOf6.get(group.exemplar);
+    const box4 = boxOf7.get(group.exemplar);
     return box4 && box4.h > 0 ? box4.w / box4.h : 0;
   };
   const inheritedCopy = (a, b) => {
@@ -115929,8 +115929,8 @@ function darkFallbackRemap(light, master) {
       continue;
     }
     if (slot || !uses.has("ground") && !uses.has("fill") && !uses.has("ink")) continue;
-    const mirrored = mirroredRampStep(tokenPath, light, light);
-    if (mirrored) rows2.set(tokenPath, mirrored);
+    const mirrored2 = mirroredRampStep(tokenPath, light, light);
+    if (mirrored2) rows2.set(tokenPath, mirrored2);
   }
   return { remap: themeRemapRows(rows2), groundPath };
 }
@@ -117906,8 +117906,8 @@ function buildDeckTheme(id3, source, opts = {}) {
           continue;
         }
         if (!uses.has("ground") && !uses.has("fill") && !uses.has("ink")) continue;
-        const mirrored = mirroredRampStep(tokenPath, light, dark);
-        if (mirrored) rows2.set(tokenPath, mirrored);
+        const mirrored2 = mirroredRampStep(tokenPath, light, dark);
+        if (mirrored2) rows2.set(tokenPath, mirrored2);
       }
       theme = { id: "dark", mode: "dark", remap: remapRows(rows2), flipDark: true };
     } else {
@@ -118721,17 +118721,17 @@ function planSlots(master, from, to, layers, opts) {
       unplaced.push(...left);
     }
   }
-  const keyOf3 = /* @__PURE__ */ new Map();
+  const keyOf4 = /* @__PURE__ */ new Map();
   const seen = /* @__PURE__ */ new Map();
   for (const ph of targets) {
     const n7 = (seen.get(ph.role) ?? 0) + 1;
     seen.set(ph.role, n7);
-    keyOf3.set(ph, `${ph.role}#${n7}`);
+    keyOf4.set(ph, `${ph.role}#${n7}`);
   }
   const sharedSet = new Set(shared);
   const slotKeys = layers.map((_, index2) => {
     const ph = slotOf.get(index2);
-    return ph && !sharedSet.has(index2) ? keyOf3.get(ph) ?? null : null;
+    return ph && !sharedSet.has(index2) ? keyOf4.get(ph) ?? null : null;
   });
   return { origin, slotOf, cellOf: cellOf3, slots: { slotKeys, shared, unplaced } };
 }
@@ -121573,7 +121573,7 @@ function keepRowMarkers(placements, mode3, slideNumber) {
   }
 }
 function pourItems(placements, mode3) {
-  const boxOf6 = (p) => ({
+  const boxOf7 = (p) => ({
     x0: p.object.box.x,
     y0: p.object.box.y,
     x1: p.object.box.x + Math.max(0, p.object.box.w),
@@ -121594,8 +121594,8 @@ function pourItems(placements, mode3) {
     for (let j = i + 1; j < placements.length; j += 1) {
       const a = placements[i];
       const b = placements[j];
-      const ba = boxOf6(a);
-      const bb = boxOf6(b);
+      const ba = boxOf7(a);
+      const bb = boxOf7(b);
       if (mode3 === "rows") {
         if (spanOverlap(ba.y0, ba.y1, bb.y0, bb.y1) >= 0.5) join38(i, j);
       } else if (mode3 === "columns") {
@@ -121620,7 +121620,7 @@ function pourItems(placements, mode3) {
     byRoot.set(root2, list4);
   });
   const items2 = [...byRoot.values()].map((members) => {
-    const boxes2 = members.map(boxOf6);
+    const boxes2 = members.map(boxOf7);
     return {
       members,
       box: {
@@ -129072,7 +129072,7 @@ function svgToPenpotDoc(svgText, o) {
     if (!fills.length && !strokes.length) return null;
     return decorate({ type: "path", name, d: subpathsToD(ts), x: bb.x, y: bb.y, w: Math.max(0.01, bb.w), h: Math.max(0.01, bb.h), fills, strokes }, f, t);
   };
-  const boxOf6 = (f, x, y, w, h) => {
+  const boxOf7 = (f, x, y, w, h) => {
     const [x0, y0] = apply2(f.m, x, y), [x1, y1] = apply2(f.m, x + w, y + h);
     return { x: Math.min(x0, x1), y: Math.min(y0, y1), w: Math.abs(x1 - x0), h: Math.abs(y1 - y0) };
   };
@@ -129150,7 +129150,7 @@ function svgToPenpotDoc(svgText, o) {
           if (!(w > 0 && h > 0)) break;
           const rx = a.rx != null ? parseLen(a.rx) : a.ry != null ? parseLen(a.ry) : 0, ry = a.ry != null ? parseLen(a.ry) : rx;
           if (isAxisAligned(f.m)) {
-            const box4 = boxOf6(f, x, y, w, h);
+            const box4 = boxOf7(f, x, y, w, h);
             const fills = paintFills(f, box4);
             if (fills === null) return false;
             const strokes = strokesOf(f);
@@ -129169,7 +129169,7 @@ function svgToPenpotDoc(svgText, o) {
           const rx = t.name === "circle" ? parseLen(a.r) : parseLen(a.rx), ry = t.name === "circle" ? parseLen(a.r) : parseLen(a.ry);
           if (!(rx > 0 && ry > 0)) break;
           if (isAxisAligned(f.m)) {
-            const box4 = boxOf6(f, cx2 - rx, cy3 - ry, rx * 2, ry * 2);
+            const box4 = boxOf7(f, cx2 - rx, cy3 - ry, rx * 2, ry * 2);
             const fills = paintFills(f, box4);
             if (fills === null) return false;
             const strokes = strokesOf(f);
@@ -129224,7 +129224,7 @@ function svgToPenpotDoc(svgText, o) {
             note2("a rotated <image> is not expressible");
             return false;
           }
-          const box4 = boxOf6(f, x, y, w, h);
+          const box4 = boxOf7(f, x, y, w, h);
           const mediaId = uuid();
           const data = /^data:/i.test(href) ? decodeDataUrl(href) : null;
           const fname = name || "image";
@@ -130300,16 +130300,16 @@ function readMotionTokens(set) {
     if (!e || typeof e.path !== "string") continue;
     const description = typeof e.description === "string" ? e.description : null;
     const spring = springEase(e.extensions);
-    const transition3 = e.type === "transition" && isRecord4(e.value) ? e.value : null;
-    if (spring || e.type === "cubicBezier" || transition3) {
-      const ease = spring ?? (transition3 ? bezierEase(transition3.timingFunction) : bezierEase(e.value));
+    const transition2 = e.type === "transition" && isRecord4(e.value) ? e.value : null;
+    if (spring || e.type === "cubicBezier" || transition2) {
+      const ease = spring ?? (transition2 ? bezierEase(transition2.timingFunction) : bezierEase(e.value));
       if (!ease || !bindable(e.path)) continue;
       curves2.push({
         path: e.path,
         label: label(e.path),
         kind: spring ? "spring" : "curve",
         ease,
-        durationMs: transition3 ? motionDurationMs(transition3.duration) : null,
+        durationMs: transition2 ? motionDurationMs(transition2.duration) : null,
         description
       });
       continue;
@@ -137274,11 +137274,35 @@ function guestUnmeasuredText(entry2) {
       return `the treatment of ${marksText(n7, "one recoloured mark", "recoloured marks")}: the catalog does not say what colours its theme or treatment gives`;
     case "surface":
       return `the colours of ${marksText(n7)} set to follow the surface: the variant is chosen from what is drawn beneath when the page is drawn`;
-    case "motion":
-      return `${marksText(n7)} while the piece plays: the mark or a layer near it moves, fades or builds over time, and each layer was measured where it was placed`;
+    case "size-unmodelled":
+      return `the drawn height of ${marksText(n7)}: the mark moves, is placed by a layout or uses a field this check does not model`;
+    case "clear-space-unmodelled":
+      return `the clear space of ${marksText(n7)}: the mark or a layer near the mark uses a shape, turn, mask, stroke, effect, layout or movement this check does not model`;
+    case "ground-unmodelled":
+      return `whether ${marksText(n7, "one partner mark sits", "partner marks sit")} on a photo: the mark or a layer beneath the mark uses a layout, movement, mask, blend or effect this check does not model`;
+    case "treatment-unmodelled":
+      return `the colours of ${marksText(n7)}: a blend mixes the mark with what lies beneath`;
+    case "work-limit":
+      return `${marksText(n7)}: the document has more layers and marks than the check compares, so the rest were not measured`;
     case "findings-limit":
       return `${n7 === 1 ? "one more finding" : `${n7} more findings`} past the first ${entry2.limit ?? MAX_FINDINGS}, which are not listed`;
   }
+}
+function movesOrFloats(row) {
+  if (isSet(row.kf) || isSet(row.hold) || isSet(row.split) || designNum(row.build, 0) >= 1 || isSet(row.matchOf) || isSet(row.animationId) || isSet(row.animationEdits)) return true;
+  if (isSet(row.enter) || isSet(row.exit)) return true;
+  if (designNum(row.z, 0) !== 0 || designNum(row.rx, 0) !== 0 || designNum(row.ry, 0) !== 0) return true;
+  if (isSet(row.route) || isSet(row.bindStart) || isSet(row.bindEnd) || isSet(row.headStart) || isSet(row.headEnd)) return true;
+  if (row.layout === "flex" || row.layout === "grid" || isSet(row.layoutOwner) || row.kind === "group" && (row.layoutW === "hug" || row.layoutH === "hug")) return true;
+  for (const key2 of Object.keys(row)) if (!GUEST_MARK_FIELDS.has(key2) && !key2.startsWith("__") && isSet(row[key2])) return true;
+  return false;
+}
+function reachOf(row, kind, ancestors) {
+  if (kind === "frame") return { reach: "exact", margin: 0 };
+  if (movesOrFloats(row) || ancestors.some((a) => a.kind !== "frame" && movesOrFloats(a))) return { reach: "anywhere", margin: 0 };
+  const margin = (stroked(row) ? Math.max(...strokeWidths(row)) : 0) + (shadowed(row) ? Math.abs(num14(row.shadowX)) + Math.abs(num14(row.shadowY)) + 3 * Math.max(0, num14(row.shadowBlur, 10)) : 0) + 3 * Math.max(0, num14(row.blur));
+  const local2 = margin > 0 || turnedRow(row) || shapeOf(row) !== "rect" || isSet(row.clip) || kind === "path" || isSet(row.path) || !MODELLED_KINDS.has(kind);
+  return { reach: local2 ? "local" : "exact", margin };
 }
 function colourCover(value2, resolve8) {
   if (record29(value2)) return Number.NaN;
@@ -137304,7 +137328,7 @@ function paintCover(row, kind, image, resolve8) {
   const bg = colourCover(row.bg, resolve8);
   const grad = gradientCover(row.grad);
   const both = bg === 1 || grad === 1 ? 1 : Number.isNaN(bg) || Number.isNaN(grad) ? Number.NaN : 1 - (1 - bg) * (1 - grad);
-  return kind === "path" && both !== 0 ? Number.NaN : both;
+  return (kind === "path" || isSet(row.path) || blended(row) || num14(row.bgBlur) > 0) && both !== 0 ? Number.NaN : both;
 }
 function orList(words4) {
   return words4.length <= 1 ? words4[0] ?? "" : `${words4.slice(0, -1).join(", ")} or ${words4[words4.length - 1]}`;
@@ -137320,9 +137344,27 @@ function turnedBounds(r5, rot, cx2, cy3) {
   const x = Math.min(...xs), y = Math.min(...ys);
   return { x, y, w: Math.max(...xs) - x, h: Math.max(...ys) - y };
 }
+function boxOf3(row) {
+  return { x: Math.round(num14(row.x)), y: Math.round(num14(row.y)), w: Math.max(1, Math.round(num14(row.w, 1))), h: Math.max(1, Math.round(num14(row.h, 1))) };
+}
 function boundsOf2(row) {
-  const x = num14(row.x), y = num14(row.y), w = Math.max(0, num14(row.w)), h = Math.max(0, num14(row.h));
-  return turnedBounds({ x, y, w, h }, num14(row.rot), x + w / 2, y + h / 2);
+  const box4 = boxOf3(row);
+  return turnedBounds(box4, Math.round(num14(row.rot) * 10) / 10, box4.x + box4.w / 2, box4.y + box4.h / 2);
+}
+function outlineHolds(row, box4, r5) {
+  if (!holds2(box4, r5)) return false;
+  const shape = shapeOf(row);
+  const corners3 = [[r5.x, r5.y], [r5.x + r5.w, r5.y], [r5.x, r5.y + r5.h], [r5.x + r5.w, r5.y + r5.h]];
+  if (shape === "ellipse" || shape === "circle") {
+    const cx2 = box4.x + box4.w / 2, cy3 = box4.y + box4.h / 2, rx = box4.w / 2, ry = box4.h / 2;
+    return corners3.every(([px3, py]) => ((px3 - cx2) / rx) ** 2 + ((py - cy3) / ry) ** 2 <= 1 + 1e-9);
+  }
+  const radius = shape === "pill" ? Math.min(box4.w, box4.h) / 2 : shape === "rounded" ? clamp7(num14(row.radius, 16), 0, Math.min(box4.w, box4.h) / 2) : 0;
+  if (!radius) return true;
+  return corners3.every(([px3, py]) => {
+    const qx = clamp7(px3, box4.x + radius, box4.x + box4.w - radius), qy = clamp7(py, box4.y + radius, box4.y + box4.h - radius);
+    return (px3 - qx) ** 2 + (py - qy) ** 2 <= radius * radius + 1e-9;
+  });
 }
 function intersect2(a, b) {
   if (!b) return a;
@@ -137338,8 +137380,8 @@ function placeMark(row, base, measure3) {
   }
   const picture = op.picture;
   if (!picture) return null;
-  const rot = op.pose?.rot ?? 0;
   const cx2 = op.box.x + op.box.w / 2, cy3 = op.box.y + op.box.h / 2;
+  const onPage = (r5) => turnedBounds(mirrored(r5, !!op.pose?.flipH, !!op.pose?.flipV, cx2, cy3), op.pose?.rot ?? 0, cx2, cy3);
   const visible2 = (r5) => intersect2(intersect2(r5, picture.element.box), picture.clip?.box);
   const bound = visible2(picture.element.box);
   const size = measure3.logoSize?.(base);
@@ -137348,17 +137390,19 @@ function placeMark(row, base, measure3) {
   const proportioned = sized || typeof aspect2 === "number" && Number.isFinite(aspect2) && aspect2 > 0;
   const ownSize = picture.fit === "none" || picture.fit === "scale-down";
   const natural = sized ? { width: size.width, height: size.height } : proportioned ? { width: aspect2 * 1e3, height: 1e3 } : null;
-  const place2 = { rot, cx: cx2, cy: cy3 };
   if (picture.fit === "fill" || natural && (sized || !ownSize)) {
     const drawn2 = pictureRect(picture, natural ?? { width: 1, height: 1 });
     const region = visible2(drawn2);
-    return { exact: true, region, lo: drawn2.h, hi: drawn2.h, visibleH: region.h, ...place2 };
+    return { exact: true, region: onPage(region), lo: drawn2.h, hi: drawn2.h, visibleH: region.h };
   }
   const boxH = picture.area.h * picture.zoom;
   const containH = natural ? pictureRect({ ...picture, fit: "contain" }, natural).h : boxH;
   const lo = picture.fit === "cover" ? boxH : 0;
-  const hi = picture.fit === "none" ? Number.POSITIVE_INFINITY : picture.fit === "cover" ? Number.POSITIVE_INFINITY : picture.fit === "scale-down" ? containH : boxH;
-  return { exact: false, region: bound, lo, hi, visibleH: bound.h, ...place2 };
+  const hi = picture.fit === "none" || picture.fit === "cover" ? Number.POSITIVE_INFINITY : picture.fit === "scale-down" ? containH : boxH;
+  return { exact: false, region: onPage(bound), lo, hi, visibleH: bound.h };
+}
+function holds2(outer, inner) {
+  return inner.x >= outer.x - EPS4 && inner.y >= outer.y - EPS4 && inner.x + inner.w <= outer.x + outer.w + EPS4 && inner.y + inner.h <= outer.y + outer.h + EPS4;
 }
 function layerLabel(row, id3) {
   const name = typeof row.name === "string" ? row.name.trim() : "";
@@ -137370,21 +137414,74 @@ function layerLabel(row, id3) {
 function timingOf(rows2) {
   const startOf = (row) => clamp7(designNum(row.start, 0), 0, MAX_TIME_S);
   const durOf = (row) => clamp7(designNum(row.dur, 0), 0.1, MAX_TIME_S);
-  const spans = rows2.filter((r5) => designBool2(r5.ignored, false) && r5.lane === "seq" && designHasNum(r5.dur)).map((r5) => ({ s: startOf(r5), d: durOf(r5) }));
+  const spans = rows2.filter((r5) => designBool2(r5.ignored, false) && r5.lane === "seq" && designHasNum(r5.dur)).map((r5) => ({ s: startOf(r5), d: durOf(r5) })).sort((a, b) => a.s - b.s);
+  const removed = [0];
+  for (const sp of spans) removed.push(removed[removed.length - 1] + sp.d);
+  const removedBefore = (t) => {
+    let lo = 0, hi = spans.length;
+    while (lo < hi) {
+      const mid3 = lo + hi >> 1;
+      if (spans[mid3].s < t - 1e-6) lo = mid3 + 1;
+      else hi = mid3;
+    }
+    return removed[lo];
+  };
   return (row) => {
     if (!(row.lane === "seq" || designHasNum(row.start))) return { start: 0, end: Number.POSITIVE_INFINITY };
     if (designBool2(row.ignored, false)) return null;
     const authored = startOf(row);
-    const start = row.lane === "seq" ? Math.max(0, authored - spans.reduce((sum, sp) => sum + (sp.s < authored - 1e-6 ? sp.d : 0), 0)) : authored;
+    const start = row.lane === "seq" ? Math.max(0, authored - removedBefore(authored)) : authored;
     return { start, end: designHasNum(row.dur) ? start + durOf(row) : Number.POSITIVE_INFINITY };
   };
+}
+function paintOrder(rows2) {
+  const order = new Array(rows2.length).fill(Number.POSITIVE_INFINITY);
+  if (!rows2.some((r5) => r5.kind === "group")) {
+    rows2.forEach((_r, n7) => {
+      order[n7] = n7;
+    });
+    return order;
+  }
+  const groups = /* @__PURE__ */ new Set();
+  rows2.forEach((r5) => {
+    if (r5.kind === "group" && keyOf3(r5.id)) groups.add(keyOf3(r5.id));
+  });
+  const members = /* @__PURE__ */ new Map();
+  const roots2 = [];
+  rows2.forEach((r5, n7) => {
+    const parent = keyOf3(r5.group);
+    if (parent && groups.has(parent)) {
+      const list4 = members.get(parent) ?? [];
+      list4.push(n7);
+      members.set(parent, list4);
+    } else roots2.push(n7);
+  });
+  const slots = rows2.map((r5, n7) => {
+    const children2 = r5.kind === "group" ? members.get(keyOf3(r5.id)) : void 0;
+    return children2?.length ? Math.min(n7, children2.reduce((m2, c) => Math.max(m2, c), 0)) : n7;
+  });
+  const bySlot = (a, b) => slots[a] - slots[b];
+  roots2.sort(bySlot);
+  for (const list4 of members.values()) list4.sort(bySlot);
+  const pending6 = roots2.slice().reverse();
+  const seen = /* @__PURE__ */ new Set();
+  let next2 = 0;
+  while (pending6.length) {
+    const n7 = pending6.pop();
+    if (seen.has(n7)) continue;
+    seen.add(n7);
+    order[n7] = next2++;
+    const children2 = rows2[n7].kind === "group" ? members.get(keyOf3(rows2[n7].id)) ?? [] : [];
+    for (let j = children2.length - 1; j >= 0; j--) pending6.push(children2[j]);
+  }
+  return order;
 }
 function groundOutcomes(list4) {
   const veiled = (s) => new Set([...s].map((g2) => g2 === "photo" ? "unknown" : g2));
   let below = /* @__PURE__ */ new Set(["other"]);
   for (let i = list4.length - 1; i >= 0; i--) {
     const l = list4[i];
-    const own4 = l.photo ? /* @__PURE__ */ new Set(["photo"]) : l.cover >= 1 ? /* @__PURE__ */ new Set(["other"]) : veiled(below);
+    const own4 = l.unknown ? /* @__PURE__ */ new Set(["unknown"]) : l.photo ? /* @__PURE__ */ new Set(["photo"]) : l.cover >= 1 ? /* @__PURE__ */ new Set(["other"]) : veiled(below);
     below = l.certain ? own4 : /* @__PURE__ */ new Set([...own4, ...below]);
   }
   return below;
@@ -137408,23 +137505,11 @@ function drawnLayers(capped, measure3, unmeasured) {
     }
     return out;
   };
-  const order = /* @__PURE__ */ new Map();
-  if (hierarchy) {
-    let next2 = 0;
-    const visit2 = (id3, depth) => {
-      if (order.has(id3) || depth > 65) return;
-      order.set(id3, next2++);
-      for (const child2 of hierarchy.children.get(id3) ?? []) visit2(child2, depth + 1);
-    };
-    for (const row of capped) {
-      const id3 = typeof row.id === "string" ? row.id : "";
-      if (id3 && !hierarchy.parent.has(id3)) visit2(id3, 0);
-    }
-  }
+  const order = paintOrder(capped);
   const timing = timingOf(capped);
   const layers = [];
   capped.forEach((row, index2) => {
-    const id3 = typeof row.id === "string" ? row.id : "";
+    const id3 = keyOf3(row.id);
     if (hidden2(row) || id3 && hierarchy?.flags.get(id3)?.hidden === true) return;
     const ancestors = ancestorsOf(id3);
     const opacity = ancestors.filter((a) => a.kind === "group" || a.kind === "frame").reduce((o, a) => o * opacityOf(a), opacityOf(row));
@@ -137432,27 +137517,31 @@ function drawnLayers(capped, measure3, unmeasured) {
     const time2 = timing(row);
     if (!time2) return;
     const kind = typeof row.kind === "string" && row.kind ? row.kind : "box";
-    const rect = boundsOf2(row);
-    if (!(rect.w > 0) || !(rect.h > 0)) return;
     const owner3 = ancestors.find((a) => a.kind === "frame");
-    const frame = kind === "frame" ? id3 : owner3 && typeof owner3.id === "string" ? owner3.id : typeof row.frame === "string" ? row.frame : "";
-    const page3 = id3 && hierarchy?.pageById.get(id3) || (typeof row.pageId === "string" ? row.pageId : "");
+    const frame = kind === "frame" ? id3 : owner3 ? keyOf3(owner3.id) : keyOf3(row.frame);
+    const page3 = id3 && hierarchy?.pageById.get(id3) || keyOf3(row.pageId);
     const image = imageId(row.image);
-    const moving = kind !== "frame" && typeof row.kf === "string" && row.kf.trim() !== "" || transition(row.enter) || transition(row.exit);
+    const cover = paintCover(row, kind, image, measure3.resolveColor) * opacity;
+    const { reach: reach2, margin } = reachOf(row, kind, ancestors);
+    const paints2 = !!image || cover !== 0 || typeof row.text === "string" && row.text.trim() !== "" || stroked(row) || shadowed(row) || !MODELLED_KINDS.has(kind);
     layers.push({
       row,
       id: id3,
-      order: (id3 ? order.get(id3) : void 0) ?? index2,
-      rect,
+      order: Number.isFinite(order[index2]) ? order[index2] : capped.length + index2,
+      rect: boundsOf2(row),
       label: layerLabel(row, id3),
       kind,
       image,
       ...time2,
       frame,
       page: page3,
-      cover: paintCover(row, kind, image, measure3.resolveColor) * opacity,
-      turned: turnedRow(row),
-      moving
+      cover,
+      paints: paints2,
+      reach: reach2,
+      margin,
+      solid: !turnedRow(row) && !isSet(row.clip) && !(num14(row.blur) > 0),
+      unknownPaint: !MODELLED_KINDS.has(kind) && kind !== "path",
+      blend: blended(row)
     });
   });
   return layers;
@@ -137501,38 +137590,55 @@ function checkGuestMarks(boxes2, kit, measure3 = {}) {
   };
   const beneath = (a, b) => a.kind === "frame" ? a.id === b.frame : a.order < b.order;
   const neighbour = (l, mark) => l !== mark && together(l, mark) && samePlace2(l, mark);
-  const unmeasured = { size: 0, space: 0, ground: 0, treatment: 0, auto: 0, placed: 0, motion: 0 };
+  const count4 = {};
+  const note2 = (code) => {
+    count4[code] = (count4[code] ?? 0) + 1;
+  };
+  let work = 0;
+  const afford = (cost) => {
+    if (work + cost > MAX_WORK2) return false;
+    work += cost;
+    return true;
+  };
   for (const mark of marks) {
     const base = stripAssetModifiers(mark.image);
     const placed2 = placeMark(mark.row, base, measure3);
     if (!placed2) {
-      unmeasured.placed++;
+      note2("not-drawn");
       continue;
     }
-    const region = turnedBounds(placed2.region, placed2.rot, placed2.cx, placed2.cy);
-    let moving = mark.moving;
+    const adrift = mark.reach === "anywhere";
+    const region = placed2.region;
+    let overBudget2 = false;
     if (rules.minSize) {
       const min = rules.minSize;
       const short = (cssPx) => ({
         px: min.px !== void 0 && exportPx(cssPx) + 0.5 < min.px,
         mm: physical && min.mm !== void 0 && millimetres(cssPx) + 0.05 < min.mm
       });
-      const atMost = short(placed2.hi), atLeast = short(placed2.lo);
-      const prefix = placed2.exact ? "" : "at most ";
-      if (atMost.px) add3(mark, "min-size", "px", `${company}'s mark is ${prefix}${pxText(exportPx(placed2.hi))} px high; the kit asks for at least ${pxText(min.px)} px.`, { value: `${pxText(exportPx(placed2.hi))} px`, expected: `${pxText(min.px)} px` });
-      if (atMost.mm) add3(mark, "min-size", "mm", `${company}'s mark is ${prefix}${mmText(millimetres(placed2.hi))} mm high; the kit asks for at least ${mmText(min.mm)} mm.`, { value: `${mmText(millimetres(placed2.hi))} mm`, expected: `${mmText(min.mm)} mm` });
-      if (atLeast.px && !atMost.px || atLeast.mm && !atMost.mm) unmeasured.size++;
+      if (adrift) note2("size-unmodelled");
+      else {
+        const atMost = short(placed2.hi), atLeast = short(placed2.lo);
+        const prefix = placed2.exact ? "" : "at most ";
+        if (atMost.px) add3(mark, "min-size", "px", `${company}'s mark is ${prefix}${pxText(exportPx(placed2.hi))} px high; the kit asks for at least ${pxText(min.px)} px.`, { value: `${pxText(exportPx(placed2.hi))} px`, expected: `${pxText(min.px)} px` });
+        if (atMost.mm) add3(mark, "min-size", "mm", `${company}'s mark is ${prefix}${mmText(millimetres(placed2.hi))} mm high; the kit asks for at least ${mmText(min.mm)} mm.`, { value: `${mmText(millimetres(placed2.hi))} mm`, expected: `${mmText(min.mm)} mm` });
+        if (atLeast.px && !atMost.px || atLeast.mm && !atMost.mm) note2("size");
+      }
     }
     if (rules.clearSpace) {
-      const band = inflate2(region, rules.clearSpace.value * placed2.visibleH);
-      const background = (l) => !isMark(l) && beneath(l, mark) && holds2(l.rect, region);
-      const inside2 = layers.filter((l) => neighbour(l, mark) && l.kind !== "frame" && !NOT_ON_PAGE.has(l.kind) && l.kind !== "group" && overlaps2(l.rect, band) && !background(l));
-      if (inside2.some((l) => l.moving)) moving = true;
-      if (inside2.length && !placed2.exact) unmeasured.space++;
-      else if (inside2.length) {
-        const first = inside2[0];
-        const message = inside2.length === 1 ? `\u201C${first.label}\u201D sits inside ${company}'s clear space.` : `\u201C${first.label}\u201D and ${inside2.length - 1} other ${inside2.length === 2 ? "layer sit" : "layers sit"} inside ${company}'s clear space.`;
-        add3(mark, "clear-space", "", message, { value: first.label, expected: `${rules.clearSpace.value} of the mark's height`, related: inside2.map((l) => l.id).filter(Boolean) });
+      if (adrift) note2("clear-space-unmodelled");
+      else if (!afford(layers.length)) overBudget2 = true;
+      else {
+        const band = inflate2(region, rules.clearSpace.value * placed2.visibleH);
+        const background = (l) => !isMark(l) && l.reach !== "anywhere" && l.solid && beneath(l, mark) && outlineHolds(l.row, boxOf3(l.row), region);
+        const near = layers.filter((l) => neighbour(l, mark) && l.kind !== "frame" && !NOT_ON_PAGE.has(l.kind) && l.kind !== "group" && l.paints && (l.reach === "anywhere" || overlaps2(inflate2(l.rect, l.margin), band)) && !background(l));
+        const exact = near.filter((l) => l.reach === "exact");
+        if (exact.length && placed2.exact) {
+          const first = exact[0];
+          const message = exact.length === 1 ? `\u201C${first.label}\u201D sits inside ${company}'s clear space.` : `\u201C${first.label}\u201D and ${exact.length - 1} other ${exact.length === 2 ? "layer sit" : "layers sit"} inside ${company}'s clear space.`;
+          add3(mark, "clear-space", "", message, { value: first.label, expected: `${rules.clearSpace.value} of the mark's height`, related: exact.map((l) => l.id).filter(Boolean) });
+        } else if (near.some((l) => l.reach !== "exact")) note2("clear-space-unmodelled");
+        else if (near.length) note2("clear-space");
       }
     }
     const allowed = rules.treatments;
@@ -137540,9 +137646,10 @@ function checkGuestMarks(boxes2, kit, measure3 = {}) {
       const rest2 = allowed.map((t) => TREATMENT_WORDS[t]);
       const treatment = parseTreatedAssetId(mark.image).treatment ?? void 0;
       const theme = parseThemedAssetId(mark.image).theme ?? void 0;
-      const recolour = theme === AUTO_ASSET_THEME ? "auto" : treatment || theme ? measure3.recolour?.({ ...theme ? { theme } : {}, ...treatment ? { treatment } : {} }) ?? null : void 0;
-      if (recolour === "auto") unmeasured.auto++;
-      else if (recolour === null) unmeasured.treatment++;
+      const recolour = mark.blend ? "blend" : theme === AUTO_ASSET_THEME ? "auto" : treatment || theme ? measure3.recolour?.({ ...theme ? { theme } : {}, ...treatment ? { treatment } : {} }) ?? null : void 0;
+      if (recolour === "blend") note2("treatment-unmodelled");
+      else if (recolour === "auto") note2("surface");
+      else if (recolour === null) note2("treatment");
       else if (recolour === "other") {
         add3(mark, "treatment", "recoloured", `${company}'s mark is recoloured; the kit allows ${orList(rest2)}.`, { value: "recoloured", expected: allowed.join(", ") });
       } else {
@@ -137552,52 +137659,56 @@ function checkGuestMarks(boxes2, kit, measure3 = {}) {
         }
       }
       if (!allowed.includes("on-photo")) {
-        const ground = groundOf3(mark, region);
-        if (ground.moving) moving = true;
-        if (ground.photo) {
-          add3(mark, "treatment", "on-photo", `${company}'s mark sits on a photo; the kit allows ${orList(rest2)}.`, { value: "on-photo", expected: allowed.join(", "), related: ground.photo.id ? [ground.photo.id] : [] });
-        } else if (ground.doubt) unmeasured.ground++;
+        if (adrift) note2("ground-unmodelled");
+        else {
+          const ground = groundOf3(mark, region);
+          if (ground === "budget") overBudget2 = true;
+          else if (ground.photo) {
+            add3(mark, "treatment", "on-photo", `${company}'s mark sits on a photo; the kit allows ${orList(rest2)}.`, { value: "on-photo", expected: allowed.join(", "), related: ground.photo.id ? [ground.photo.id] : [] });
+          } else if (ground.doubt) note2(ground.unmodelled ? "ground-unmodelled" : "ground");
+        }
       }
     }
-    if (moving) unmeasured.motion++;
+    if (overBudget2) note2("work-limit");
   }
   function groundOf3(mark, region) {
-    const under = layers.filter((l) => neighbour(l, mark) && !isMark(l) && !NOT_ON_PAGE.has(l.kind === "frame" ? "" : l.kind) && l.kind !== "group" && l.cover !== 0 && beneath(l, mark) && overlaps2(l.rect, region)).sort((a, b) => (a.kind === "frame" ? 1 : 0) - (b.kind === "frame" ? 1 : 0) || b.order - a.order);
+    if (!afford(layers.length)) return "budget";
+    const under = layers.filter((l) => neighbour(l, mark) && !isMark(l) && !NOT_ON_PAGE.has(l.kind === "frame" ? "" : l.kind) && l.kind !== "group" && l.cover !== 0 && beneath(l, mark) && (l.reach === "anywhere" || overlaps2(l.rect, region))).sort((a, b) => (a.kind === "frame" ? 1 : 0) - (b.kind === "frame" ? 1 : 0) || b.order - a.order);
+    if (under.some((l) => l.reach === "anywhere")) return { doubt: true, unmodelled: true };
     const times = [.../* @__PURE__ */ new Set([mark.start, ...under.flatMap((l) => [l.start, l.end])])].filter((t) => t >= mark.start && t < mark.end).sort((a, b) => a - b);
+    if (!afford(times.length * under.length)) return "budget";
     const photoOf = (l) => !!l.image && measure3.pictureKind?.(stripAssetModifiers(l.image)) !== "vector";
+    const facts2 = under.map((l) => ({
+      // Under the whole mark for certain only when the layer's own outline, unturned,
+      // unmasked and unblurred, holds the region the mark is drawn in (or, placed only
+      // roughly, the region it lies within).
+      certain: l.solid && outlineHolds(l.row, boxOf3(l.row), region),
+      cover: l.cover,
+      photo: photoOf(l),
+      unknown: l.unknownPaint
+    }));
+    const unmodelled = under.some((l) => !l.solid || l.unknownPaint || l.blend || num14(l.row.bgBlur) > 0 || l.kind === "path" || isSet(l.row.path));
     let doubt = false;
     for (const t of times) {
-      const now2 = under.filter((l) => l.start <= t && t < l.end);
-      const outcomes = groundOutcomes(now2.map((l) => ({
-        // Under the whole mark for certain only when the layer, unturned, holds the region the
-        // mark is drawn in (or, placed only roughly, the region it lies within).
-        certain: !l.turned && holds2(l.rect, region),
-        cover: l.cover,
-        picture: !!l.image,
-        photo: photoOf(l)
-      })));
+      const now2 = [];
+      under.forEach((l, n7) => {
+        if (l.start <= t && t < l.end) now2.push(facts2[n7]);
+      });
+      const outcomes = groundOutcomes(now2);
       if (outcomes.size === 1 && outcomes.has("photo")) {
-        const photo = now2.find((l) => photoOf(l) && holds2(l.rect, region)) ?? now2.find(photoOf);
-        return { photo, doubt: false, moving: under.some((l) => l.moving) };
+        const photo = under.find((l, n7) => facts2[n7].photo && l.start <= t && t < l.end && facts2[n7].certain) ?? under.find((l, n7) => facts2[n7].photo && l.start <= t && t < l.end);
+        return { photo, doubt: false, unmodelled };
       }
       if (outcomes.has("photo") || outcomes.has("unknown")) doubt = true;
     }
-    return { doubt, moving: under.some((l) => l.moving) };
+    return { doubt, unmodelled };
   }
-  const counted = [
-    ["not-drawn", unmeasured.placed],
-    ["size", unmeasured.size],
-    ["clear-space", unmeasured.space],
-    ["ground", unmeasured.ground],
-    ["treatment", unmeasured.treatment],
-    ["surface", unmeasured.auto],
-    ["motion", unmeasured.motion]
-  ];
-  for (const [code, count4] of counted) if (count4) said.push({ code, count: count4 });
+  const order = ["not-drawn", "size", "size-unmodelled", "clear-space", "clear-space-unmodelled", "ground", "ground-unmodelled", "treatment", "treatment-unmodelled", "surface", "work-limit"];
+  for (const code of order) if (count4[code]) said.push({ code, count: count4[code] });
   if (dropped) said.push({ code: "findings-limit", count: dropped, limit: MAX_FINDINGS });
   return { findings, checked: { marks: marks.length, rules: checkedRules }, unmeasured: said, notMeasured: said.map(guestUnmeasuredText) };
 }
-var MAX_ROWS3, MAX_FINDINGS, MAX_TIME_S, NOT_ON_PAGE, TREATMENT_WORDS, record29, num14, designNum, designHasNum, designBool2, clamp7, imageId, hidden2, opacityOf, transition, turnedRow, pxText, mmText, marksText, inflate2, EPS4, overlaps2, holds2, together, samePlace2;
+var MAX_ROWS3, MAX_FINDINGS, MAX_TIME_S, MAX_WORK2, NOT_ON_PAGE, MODELLED_KINDS, TREATMENT_WORDS, GUEST_MARK_FIELDS, record29, num14, designNum, designHasNum, designBool2, isSet, keyOf3, clamp7, imageId, hidden2, opacityOf, turnedRow, strokeWidths, stroked, shadowed, shapeOf, blended, pxText, mmText, marksText, inflate2, mirrored, EPS4, overlaps2, together, samePlace2;
 var init_partner_kit_check = __esm({
   "engine/src/partner-kit-check.ts"() {
     "use strict";
@@ -137613,8 +137724,176 @@ var init_partner_kit_check = __esm({
     MAX_ROWS3 = 5e3;
     MAX_FINDINGS = 200;
     MAX_TIME_S = 3600;
+    MAX_WORK2 = 2e5;
     NOT_ON_PAGE = /* @__PURE__ */ new Set(["frame", "audio", "camera"]);
+    MODELLED_KINDS = /* @__PURE__ */ new Set(["box", "image", "text", "frame", "group"]);
     TREATMENT_WORDS = { colour: "full colour", mono: "one colour", reverse: "reversed", "on-photo": "on a photo" };
+    GUEST_MARK_FIELDS = /* @__PURE__ */ new Set([
+      "id",
+      "kind",
+      "x",
+      "y",
+      "w",
+      "h",
+      "rot",
+      "shape",
+      "radius",
+      "bg",
+      "opacity",
+      "image",
+      "fit",
+      "blend",
+      "text",
+      "fg",
+      "fontSize",
+      "align",
+      "valign",
+      "weight",
+      "font",
+      "lineHeight",
+      "tracking",
+      "ligatures",
+      "alternates",
+      "group",
+      "clip",
+      "pad",
+      "shadow",
+      "shadowColor",
+      "shadowX",
+      "shadowY",
+      "shadowBlur",
+      "imgpos",
+      "fitText",
+      "path",
+      "stroke",
+      "strokeW",
+      "fillRule",
+      "start",
+      "dur",
+      "clipIn",
+      "speed",
+      "enter",
+      "exit",
+      "enterMs",
+      "exitMs",
+      "mute",
+      "lane",
+      "strokeDash",
+      "strokeCap",
+      "strokeJoin",
+      "grad",
+      "blur",
+      "strokeDashLen",
+      "strokeGapLen",
+      "bgBlur",
+      "enterEase",
+      "exitEase",
+      "frame",
+      "order",
+      "clipChildren",
+      "headStart",
+      "headEnd",
+      "strokeDashArray",
+      "dashFit",
+      "bindStart",
+      "bindEnd",
+      "route",
+      "z",
+      "kf",
+      "linkOf",
+      "presentAudio",
+      "build",
+      "state",
+      "matchOf",
+      "notes",
+      "flipH",
+      "flipV",
+      "cls",
+      "gain",
+      "name",
+      "ignored",
+      "split",
+      "stagger",
+      "splitOrder",
+      "hold",
+      "holdRate",
+      "rx",
+      "ry",
+      "pan",
+      "duck",
+      "pitch",
+      "varispeed",
+      "fx",
+      "stackOf",
+      "hidden",
+      "locked",
+      "slideTransition",
+      "plainText",
+      "scene",
+      "animationId",
+      "animationEdits",
+      "textStory",
+      "textFrame",
+      "pathPaint",
+      "vectorSource",
+      "textWrap",
+      "master",
+      "role",
+      "furniture",
+      "archetype",
+      "textDirection",
+      "tokenLinks",
+      "web",
+      "webView",
+      "webLoad",
+      "webCss",
+      "webHideCookies",
+      "interact",
+      "interactOpts",
+      "layout",
+      "layoutOwner",
+      "layoutOrder",
+      "layoutDirection",
+      "layoutWrap",
+      "layoutGapX",
+      "layoutGapY",
+      "layoutPadTop",
+      "layoutPadRight",
+      "layoutPadBottom",
+      "layoutPadLeft",
+      "layoutAlign",
+      "layoutAlignContent",
+      "layoutJustify",
+      "layoutJustifyItems",
+      "layoutW",
+      "layoutH",
+      "layoutMinW",
+      "layoutMaxW",
+      "layoutMinH",
+      "layoutMaxH",
+      "layoutMarginTop",
+      "layoutMarginRight",
+      "layoutMarginBottom",
+      "layoutMarginLeft",
+      "layoutAbsolute",
+      "layoutSelf",
+      "layoutJustifySelf",
+      "layoutRow",
+      "layoutColumn",
+      "layoutRowSpan",
+      "layoutColumnSpan",
+      "layoutArea",
+      "layoutX",
+      "layoutY",
+      "layoutAngle",
+      "pageId",
+      "strokeAlign",
+      "strokeTop",
+      "strokeRight",
+      "strokeBottom",
+      "strokeLeft",
+      "imageFraming"
+    ]);
     record29 = (v) => !!v && typeof v === "object" && !Array.isArray(v);
     num14 = (v, fallback = 0) => {
       const n7 = typeof v === "string" && v.trim() !== "" ? Number(v) : v;
@@ -137631,19 +137910,30 @@ var init_partner_kit_check = __esm({
       const s = String(v).toLowerCase();
       return s === "true" || s === "1" || s === "yes" || s === "on" ? true : s === "false" || s === "0" || s === "no" || s === "off" ? false : fallback;
     };
+    isSet = (v) => !(v === void 0 || v === null || v === "" || v === false || v === 0 || v === "none" || typeof v === "string" && !v.trim());
+    keyOf3 = (v) => typeof v === "string" ? v : typeof v === "number" && Number.isFinite(v) ? String(v) : "";
     clamp7 = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
     imageId = (v) => typeof v === "string" ? v : record29(v) && typeof v.id === "string" ? v.id : "";
     hidden2 = (row) => designBool2(row.hidden, false) || row.__offPage === true;
     opacityOf = (row) => clamp7(designNum(row.opacity, 100), 0, 100) / 100;
-    transition = (v) => typeof v === "string" && v !== "" && v !== "none";
     turnedRow = (row) => Math.round(num14(row.rot) * 10) % 3600 !== 0;
+    strokeWidths = (row) => [row.strokeW, row.strokeTop, row.strokeRight, row.strokeBottom, row.strokeLeft].map((v) => Math.max(0, num14(v)));
+    stroked = (row) => typeof row.stroke === "string" && row.stroke.trim() !== "" && strokeWidths(row).some((w) => w > 0);
+    shadowed = (row) => isSet(row.shadow);
+    shapeOf = (row) => typeof row.shape === "string" && row.shape !== "" ? row.shape : "rect";
+    blended = (row) => typeof row.blend === "string" && row.blend !== "" && row.blend !== "normal";
     pxText = (n7) => `${Math.round(n7)}`;
     mmText = (n7) => `${Math.round(n7 * 10) / 10}`;
     marksText = (n7, one = "one partner mark", many = "partner marks") => n7 === 1 ? one : `${n7} ${many}`;
     inflate2 = (r5, pad) => ({ x: r5.x - pad, y: r5.y - pad, w: r5.w + pad * 2, h: r5.h + pad * 2 });
+    mirrored = (r5, flipH, flipV, cx2, cy3) => ({
+      x: flipH ? 2 * cx2 - (r5.x + r5.w) : r5.x,
+      y: flipV ? 2 * cy3 - (r5.y + r5.h) : r5.y,
+      w: r5.w,
+      h: r5.h
+    });
     EPS4 = 0.01;
     overlaps2 = (a, b) => a.x < b.x + b.w - EPS4 && b.x < a.x + a.w - EPS4 && a.y < b.y + b.h - EPS4 && b.y < a.y + a.h - EPS4;
-    holds2 = (outer, inner) => inner.x >= outer.x - EPS4 && inner.y >= outer.y - EPS4 && inner.x + inner.w <= outer.x + outer.w + EPS4 && inner.y + inner.h <= outer.y + outer.h + EPS4;
     together = (a, b) => a.start < b.end && b.start < a.end;
     samePlace2 = (a, b) => !(a.frame && b.frame && a.frame !== b.frame) && !(a.page && b.page && a.page !== b.page);
   }
@@ -147199,7 +147489,7 @@ function joinOverfullRest(split, archetype, slots, master) {
   }
 }
 function foldBylines(extra, slots, refs, items2) {
-  const boxOf6 = new Map(items2.map((i) => [i.t.objectId, i.t.box]));
+  const boxOf7 = new Map(items2.map((i) => [i.t.objectId, i.t.box]));
   const loose2 = [];
   for (const piece of extra) {
     const short = piece.para === void 0 && wordCount3(piece.text) <= CLOSING_LINE_WORDS && !piece.text.includes("\n");
@@ -147207,7 +147497,7 @@ function foldBylines(extra, slots, refs, items2) {
       if (!["subtitle", "caption", "attribution"].includes(ref2.role)) return false;
       const value3 = slots[ref2.key];
       if (!value3 || typeof value3 !== "object" || typeof value3.from !== "string" || value3.para !== void 0 || value3.join !== void 0) return false;
-      const above = boxOf6.get(value3.from);
+      const above = boxOf7.get(value3.from);
       if (!above) return false;
       const gap = piece.box.y - (above.y + above.height);
       const overlap2 = Math.min(above.x + above.width, piece.box.x + piece.box.width) - Math.max(above.x, piece.box.x);
@@ -147252,11 +147542,11 @@ function fillText(pieces, slots, into) {
   });
   return rest2.slice(open3.length);
 }
-function fillImages(pics, slots, into, keyOf3) {
+function fillImages(pics, slots, into, keyOf4) {
   const images = slots.filter((s) => s.kind === "image");
   images.forEach((slot, k) => {
     const pic = pics[k];
-    if (pic) into[slot.key] = keyOf3(pic.p);
+    if (pic) into[slot.key] = keyOf4(pic.p);
   });
   return pics.slice(images.length);
 }
@@ -147780,7 +148070,7 @@ function suggestComposeSlides(input, master) {
   const page3 = size ?? { width: PAGE_WIDTH, height: PAGE_HEIGHT };
   const assets = /* @__PURE__ */ new Map();
   const mediaOf = new Map(inventory2.media.map((m2) => [m2.sha256, m2]));
-  const keyOf3 = (p) => {
+  const keyOf4 = (p) => {
     const key2 = `photo:${p.sha256.slice(0, 12)}`;
     if (!assets.has(key2)) {
       const media = mediaOf.get(p.sha256);
@@ -147797,7 +148087,7 @@ function suggestComposeSlides(input, master) {
     view,
     size: page3,
     sourceWidth: inventory2.source.width > 0 ? inventory2.source.width : PAGE_WIDTH,
-    keyOf: keyOf3,
+    keyOf: keyOf4,
     read: readerOf(input.census, input.source, view),
     total: inventory2.slides.length
   };
@@ -149229,7 +149519,7 @@ function lineInkColourOf(image, box4) {
     const i = (y * image.width + x) * 4;
     return [image.data[i] ?? 0, image.data[i + 1] ?? 0, image.data[i + 2] ?? 0];
   };
-  const keyOf3 = (c) => c[0] >> 4 << 8 | c[1] >> 4 << 4 | c[2] >> 4;
+  const keyOf4 = (c) => c[0] >> 4 << 8 | c[1] >> 4 << 4 | c[2] >> 4;
   const columns = [];
   for (let x = x0; x < x1; x += stride) columns.push(x);
   const lineGround = lineGroundOf(image, box4);
@@ -149243,7 +149533,7 @@ function lineInkColourOf(image, box4) {
       const c = px3(x, y);
       const d = Math.abs(c[0] - g2[0]) + Math.abs(c[1] - g2[1]) + Math.abs(c[2] - g2[2]);
       if (d < TEXT_MIN_CONTRAST) continue;
-      const key2 = keyOf3(c);
+      const key2 = keyOf4(c);
       counts.set(key2, (counts.get(key2) ?? 0) + 1);
       distance4.set(key2, (distance4.get(key2) ?? 0) + d);
       const sum2 = sums.get(key2);
@@ -149651,7 +149941,7 @@ function lineGlyphsOf(image, box4, text13) {
     const last = words4[words4.length - 1]?.e ?? chars.length - 1;
     spread(first, last, pieces[0]?.a ?? 0, pieces[pieces.length - 1]?.b ?? 0);
   }
-  const keyOf3 = (c) => c[0] >> 4 << 8 | c[1] >> 4 << 4 | c[2] >> 4;
+  const keyOf4 = (c) => c[0] >> 4 << 8 | c[1] >> 4 << 4 | c[2] >> 4;
   const inkOf2 = (a, b) => {
     const counts = /* @__PURE__ */ new Map();
     const sums = /* @__PURE__ */ new Map();
@@ -149663,7 +149953,7 @@ function lineGlyphsOf(image, box4, text13) {
         if (!d) continue;
         const i = ((y0 + r5) * image.width + x) * 4;
         const px3 = [image.data[i] ?? 0, image.data[i + 1] ?? 0, image.data[i + 2] ?? 0];
-        const key2 = keyOf3(px3);
+        const key2 = keyOf4(px3);
         counts.set(key2, (counts.get(key2) ?? 0) + 1);
         far.set(key2, (far.get(key2) ?? 0) + d);
         const sum2 = sums.get(key2);
@@ -149820,7 +150110,7 @@ function lineGlyphsOf(image, box4, text13) {
     for (let c = p.a; c <= p.b; c++) if ((colBottom[c] ?? -1) > top + GLYPH_HIGH_SHARE * inkHeight) return false;
     return p.b - p.a + 1 <= 0.6 * heightCols;
   });
-  const shapeOf = (p) => {
+  const shapeOf2 = (p) => {
     const rows2 = [];
     for (let r5 = top; r5 <= bottom; r5++) {
       let left = -1;
@@ -149871,7 +150161,7 @@ function lineGlyphsOf(image, box4, text13) {
         }
         return;
       }
-      const shapes2 = marks.map(shapeOf);
+      const shapes2 = marks.map(shapeOf2);
       const shape = shapes2[0];
       if (!shape || shape === "straight" || shapes2.some((s) => s !== shape)) return;
       for (const m2 of marks) used.add(m2);
@@ -150185,7 +150475,7 @@ function glyphSetOf(text13) {
   const top = full || lowerAscender ? "ascender" : capOrDigit ? "caps" : "x-height";
   return descends ? WITH_DESCENDER[top] : top;
 }
-function reachOf(set, opts) {
+function reachOf2(set, opts) {
   const cap = opts.capHeight ?? DEFAULT_CAP;
   const x = opts.xHeight ?? cap * 0.72;
   const asc = opts.ascender ?? cap * 1.06;
@@ -150208,7 +150498,7 @@ function reachOf(set, opts) {
   }
 }
 function lineSizeEstimate(text13, boxHeight, opts = {}) {
-  const reach2 = reachOf(glyphSetOf(text13), opts);
+  const reach2 = reachOf2(glyphSetOf(text13), opts);
   if (!reach2 || boxHeight <= 0) return null;
   const ink = boxHeight * (1 - Math.max(0, Math.min(0.9, opts.boxPadding ?? 0)));
   return Math.round(ink / reach2 * 100) / 100;
@@ -153694,8 +153984,8 @@ function readEdl(source, options2 = {}) {
     const tokens3 = line2.split(/\s+/);
     if (/^\d{1,6}$/.test(tokens3[0]) && tokens3.length >= 8 && tokens3.slice(-4).every((t) => TC.test(t))) {
       if (raws.length >= TIMELINE_MAX_CLIPS) throw new Error(`The EDL exceeds ${TIMELINE_MAX_CLIPS} events.`);
-      const middle = tokens3.slice(4, -4), transition3 = Number(middle.find((t) => /^\d{1,5}$/.test(t)) ?? 0);
-      raws.push({ number: tokens3[0], reel: tokens3[1], track: tokens3[2], edit: tokens3[3].toUpperCase(), transition: transition3, tcs: tokens3.slice(-4), drop, line: n7, meta: { audio: [] } });
+      const middle = tokens3.slice(4, -4), transition2 = Number(middle.find((t) => /^\d{1,5}$/.test(t)) ?? 0);
+      raws.push({ number: tokens3[0], reel: tokens3[1], track: tokens3[2], edit: tokens3[3].toUpperCase(), transition: transition2, tcs: tokens3.slice(-4), drop, line: n7, meta: { audio: [] } });
       continue;
     }
     if (!unknown2++) firstUnknown = n7;
@@ -163283,7 +163573,7 @@ function cardEdgeOf(image, unit2, skip = CARD_SKIP_STRIPS) {
     }
     return n7 ? [sum[0] / n7, sum[1] / n7, sum[2] / n7] : null;
   };
-  const reachOf2 = (side2) => {
+  const reachOf3 = (side2) => {
     const size = side2 === "left" || side2 === "right" ? unit2.w : unit2.h;
     let prev = null;
     for (let k = 0; k * step <= CARD_REACH * size; k++) {
@@ -163297,10 +163587,10 @@ function cardEdgeOf(image, unit2, skip = CARD_SKIP_STRIPS) {
     }
     return null;
   };
-  const left = reachOf2("left");
-  const right = reachOf2("right");
-  const top = reachOf2("top");
-  const bottom = reachOf2("bottom");
+  const left = reachOf3("left");
+  const right = reachOf3("right");
+  const top = reachOf3("top");
+  const bottom = reachOf3("bottom");
   if (left === null || right === null || top === null || bottom === null) return null;
   return { x: unit2.x - left, y: unit2.y - top, w: unit2.w + left + right, h: unit2.h + top + bottom };
 }
@@ -163903,7 +164193,7 @@ var init_flattened = __esm({
 
 // packages/node-shell/src/rebrand/source-pdf.ts
 import { PDFArray as PDFArray2, PDFHexString, PDFString } from "pdf-lib";
-function boxOf3(x, y, w, h, rot = 0) {
+function boxOf4(x, y, w, h, rot = 0) {
   return { x: px(x), y: px(y), w: px(w), h: px(h), rot: Math.abs(rot) < 0.5 ? 0 : round28(rot) };
 }
 function colorOf(value2, opacity) {
@@ -164410,12 +164700,12 @@ async function readPage2(page3, slideId, store, caps, fontRuns, struct) {
       const n7 = nodes[i];
       const desc = page3.imageStreams.get(n7._imageXObject ?? "");
       const media = await store(desc);
-      const box4 = boxOf3(n7.x, n7.y, n7.w, n7.h, n7.rot);
+      const box4 = boxOf4(n7.x, n7.y, n7.w, n7.h, n7.rot);
       let fidelity;
       const own4 = [];
       const object4 = { id: id3, fingerprint: "", kind: "pic", box: box4, origin: artifacts[i] ? "pdf-artifact" : "slide", fidelity: { state: "editable" } };
       const clip4 = clipRead(n7);
-      if (clip4.cut && clip4.visible) object4.clip = boxOf3(clip4.visible.x, clip4.visible.y, clip4.visible.w, clip4.visible.h);
+      if (clip4.cut && clip4.visible) object4.clip = boxOf4(clip4.visible.x, clip4.visible.y, clip4.visible.w, clip4.visible.h);
       const cutApprox = clip4.cut && !clip4.exact || !!n7._softMask;
       if (media.ref) {
         object4.media = media.ref;
@@ -164527,7 +164817,7 @@ function ocrLayer(nodes, invisible, picture) {
   return {
     state: "text-found",
     model: "pdf-text-layer",
-    lines: lines.map((line2, k) => ({ text: text13[k], confidence: 1, box: boxOf3(line2.x, line2.y, line2.w, line2.h, line2.rot) })),
+    lines: lines.map((line2, k) => ({ text: text13[k], confidence: 1, box: boxOf4(line2.x, line2.y, line2.w, line2.h, line2.rot) })),
     textDensity: round28(chars / (areaPx / 1e3))
   };
 }
@@ -164547,7 +164837,7 @@ async function textObject(id3, line2, fontRuns) {
     if (color6) item2.color = color6;
     runs2.push(item2);
   }
-  const box4 = boxOf3(line2.x, line2.y, line2.w, line2.h, line2.rot);
+  const box4 = boxOf4(line2.x, line2.y, line2.w, line2.h, line2.rot);
   const object4 = {
     id: id3,
     fingerprint: "",
@@ -164566,9 +164856,9 @@ async function shapeObject(id3, n7, artifact, clip4) {
   const geom = n7.shape === "ellipse" ? "ellipse" : (n7.radius ?? 0) > 0 ? "roundRect" : "rect";
   const exactCut = clip4.cut && clip4.exact && geom === "rect" && clip4.visible;
   const shown = exactCut ? clip4.visible : { x: n7.x, y: n7.y, w: n7.w, h: n7.h };
-  const box4 = boxOf3(shown.x, shown.y, shown.w, shown.h, n7.rot);
+  const box4 = boxOf4(shown.x, shown.y, shown.w, shown.h, n7.rot);
   const object4 = { id: id3, fingerprint: "", kind: "shape", box: box4, origin: artifact ? "pdf-artifact" : "slide", fidelity: { state: "editable" }, geom };
-  if (clip4.cut && !exactCut && clip4.visible) object4.clip = boxOf3(clip4.visible.x, clip4.visible.y, clip4.visible.w, clip4.visible.h);
+  if (clip4.cut && !exactCut && clip4.visible) object4.clip = boxOf4(clip4.visible.x, clip4.visible.y, clip4.visible.w, clip4.visible.h);
   const fill2 = colorOf(n7.fill, n7.opacity);
   if (fill2) object4.fill = fill2;
   const warnings2 = [];
@@ -164597,7 +164887,7 @@ async function vectorObject(id3, nodes, indices, extent2, width, height, artifac
   const y = round28(Math.max(0, extent2.y - PDF_VECTOR_PAD));
   const w = round28(Math.max(1, Math.min(width - x, extent2.w + PDF_VECTOR_PAD * 2)));
   const h = round28(Math.max(1, Math.min(height - y, extent2.h + PDF_VECTOR_PAD * 2)));
-  const box4 = boxOf3(x, y, w, h);
+  const box4 = boxOf4(x, y, w, h);
   const allArtifact = indices.every((i) => artifacts[i]);
   const object4 = {
     id: id3,
@@ -165640,7 +165930,7 @@ function px2(emu3) {
   const n7 = typeof emu3 === "number" && Number.isFinite(emu3) ? emu3 : 0;
   return Math.round(n7 / EMU_PER_PX3 * 100) / 100;
 }
-function boxOf4(node) {
+function boxOf5(node) {
   return { x: px2(node.xEmu), y: px2(node.yEmu), w: px2(node.cxEmu), h: px2(node.cyEmu), rot: node.rot ?? 0 };
 }
 function transformOf(node) {
@@ -165896,7 +166186,7 @@ async function sourceDeckFromPptx(parts, parseXml, opts) {
     for (const { node, origin } of ordered) {
       const id3 = ids2.get(node) ?? `${slideId}.${objects.length}`;
       let kind = kindOf3(node);
-      const box4 = boxOf4(node);
+      const box4 = boxOf5(node);
       let content2 = "";
       let fidelity = { state: "editable" };
       const object4 = { id: id3, fingerprint: "", kind, box: box4, origin, fidelity };
@@ -183292,7 +183582,7 @@ function mimeOf2(bytes2) {
   if (bytes2[0] === 137 && bytes2[1] === 80 && bytes2[2] === 78 && bytes2[3] === 71) return "image/png";
   return null;
 }
-function boxOf5(row) {
+function boxOf6(row) {
   const [x, y, w, h] = ["x", "y", "w", "h"].map((k) => Number(row[k]));
   if (![x, y, w, h].every(Number.isFinite) || !(w > 0) || !(h > 0)) return null;
   return { x, y, w, h };
@@ -183346,7 +183636,7 @@ function gradSvg(row, box4, id3, slideIndex, opts) {
   };
 }
 function rowSvg(row, bytesOf4, slideIndex, n7, opts) {
-  const box4 = boxOf5(row);
+  const box4 = boxOf6(row);
   if (!box4 || hiddenRow(row)) return { svg: "", picture: null };
   const rawOpacity = row.opacity === void 0 || row.opacity === null || row.opacity === "" ? 100 : Number(row.opacity);
   const opacity = Number.isFinite(rawOpacity) ? Math.max(0, Math.min(100, rawOpacity)) / 100 : 1;
@@ -183449,7 +183739,7 @@ async function measureComposePhotos(spec, size, bytesOf4, marks, opts = {}) {
     for (const [n7, row] of slide.under.entries()) {
       if (!record45(row)) continue;
       const drawn2 = rowSvg(row, bytesOf4, index2, n7, opts);
-      const box4 = boxOf5(row);
+      const box4 = boxOf6(row);
       const isPicture = row.kind === "image" || row.kind === void 0 && row.image !== void 0;
       if (isPicture && box4 && !hiddenRow(row)) {
         const across = Math.max(0, Math.min(size.width, box4.x + box4.w) - Math.max(0, box4.x));
@@ -202002,9 +202292,9 @@ var AGENT_TOOLS = LIVE_TOOLS.map((tool) => ({
 }));
 var ajv3 = new Ajv9({ strict: false });
 var validators2 = new Map(AGENT_TOOLS.map((tool) => [tool.name, ajv3.compile(tool.inputSchema)]));
-var transition2 = new BlockList2();
-for (const [network, prefix] of [["::ffff:0:0", 96], ["64:ff9b::", 96], ["64:ff9b:1::", 48], ["2002::", 16], ["2001::", 32]]) transition2.addSubnet(network, prefix, "ipv6");
-var publicRelayAddress = (address) => isPublicAddress(address) && !(isIP3(address) === 6 && transition2.check(address, "ipv6"));
+var transition = new BlockList2();
+for (const [network, prefix] of [["::ffff:0:0", 96], ["64:ff9b::", 96], ["64:ff9b:1::", 48], ["2002::", 16], ["2001::", 32]]) transition.addSubnet(network, prefix, "ipv6");
+var publicRelayAddress = (address) => isPublicAddress(address) && !(isIP3(address) === 6 && transition.check(address, "ipv6"));
 async function requestAgentRelay(invitation, path, body) {
   const url = new URL(invitation.base + path);
   if (url.protocol !== "https:" || url.port && url.port !== "443") throw new Error("Hosted agents require a public HTTPS relay on port 443. Use the local MCP server for local invitations.");
