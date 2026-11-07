@@ -28,7 +28,7 @@ import type { PreflightRow } from '../export-preflight.ts';
 import { fmtLabel, isC2paFmt, isCmykFmt, panelSize, printEnabled, spotsAsProcessChecked } from './shared.ts';
 import { bindOp, type ActionsCtx } from './context.ts';
 import { DOCUMENT_THEME_EVENT } from '../../lib/document-theme.ts';
-import { partnerCheckFor } from '../../lib/partner-kit-state.ts';
+import { pieceKitData } from '../../lib/partner-kit-state.ts';
 
 /** The palette re-read each mounted panel registered on `window`, dropped with the panel. */
 const paletteRereads = new WeakMap<ActionsCtx, () => void>();
@@ -108,7 +108,7 @@ export async function refreshDesignAudit(ta: ActionsCtx): Promise<void> {
     // The same catalog facts `lolly check` uses, so a themed catalog icon is a known asset here too.
     catalog: () => hostBrandCatalog(ta.host as BrandCatalogHost),
     // The partner kit the piece carries: its marks measured, its colours and logos its own (plans/82 M8).
-    partner: () => partnerCheckFor(runtime),
+    partner: async () => (pieceKitData(runtime) ? (await import('../../lib/partner-kit.ts')).partnerCheckInput(runtime, ta.host) : null),
   });
   // Creation feedback: the design system's house rules, layer by layer, and the writing
   // score Verify shows. It informs and never gates Download. Loaded on first open, so a

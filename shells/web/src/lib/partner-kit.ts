@@ -21,12 +21,13 @@
  */
 import type { HostV1 } from '@lolly-tools/core/host-v1';
 import type { PartnerKitAttachmentV1, PartnerKitV1 } from '@lolly-tools/core/partner-kit-v1';
-import { checkPartnerKit } from '../../../../engine/src/partner-kit.ts';
+import { checkPartnerKit, partnerKitLogoIds } from '../../../../engine/src/partner-kit.ts';
+import { guestRecolourFrom, type GuestMarkMeasure } from '../../../../engine/src/partner-kit-check.ts';
 import { readPartnerKitAttachment } from '../../../../engine/src/url-mode.ts';
 import { setGuestSwatches, type GuestSwatchGroup } from '../components/color-field.ts';
 import { tRaw } from '../i18n.ts';
 import { instanceFetch, instancePath } from './instance.ts';
-import { dropPieceState, getPieceState, notifyPieceKit, partnerKitOffer, setPieceState } from './partner-kit-state.ts';
+import { dropPieceState, getPieceState, notifyPieceKit, partnerCheckFor, partnerKitOffer, setPieceState } from './partner-kit-state.ts';
 
 export { brandGuestFor, currentPiece, measureOf, onPieceKitChange, partnerCheckFor, partnerKitParam, partnerMarkIds, pieceKit, pieceKitData, setCurrentPiece } from './partner-kit-state.ts';
 
@@ -124,4 +125,39 @@ export function detachPieceKit(runtime: object): void {
 /** Forget a piece when its view unmounts, so the next tool's colour fields offer no partner colours. */
 export function releasePieceKit(runtime: object): void {
   if (dropPieceState(runtime)) setGuestSwatches(null);
+}
+
+/** The web host's catalog reads the checks use when it has them. */
+interface CheckHost extends Pick<HostV1, 'assets'> {
+  assets: HostV1['assets'] & { _iconThemes?(): Promise<unknown[]>; _photoTreatments?(): Promise<unknown[]> };
+}
+
+/**
+ * What the Design checks measure a piece's marks against, with what the catalog knows: the
+ * logos' own proportions, so a contained mark is measured where it is drawn, and the icon
+ * themes and photo treatments, so a recoloured mark is judged by its colours. A read the
+ * host cannot answer is left out, and the check then lists that measure as not taken.
+ */
+export async function partnerCheckInput(runtime: { getModel(): ReadonlyArray<{ id: string; value?: unknown }> }, host: CheckHost): Promise<{ kit: PartnerKitV1; measure: GuestMarkMeasure } | null> {
+  const base = partnerCheckFor(runtime);
+  if (!base) return null;
+  const safe = async <T>(read: () => Promise<T>, fallback: T): Promise<T> => { try { return await read(); } catch { return fallback; } };
+  const [themes, treatments, refs] = await Promise.all([
+    safe(async () => (await host.assets._iconThemes?.()) ?? [], [] as unknown[]),
+    safe(async () => (await host.assets._photoTreatments?.()) ?? [], [] as unknown[]),
+    Promise.all(partnerKitLogoIds(base.kit).map((id) => safe<readonly [string, unknown]>(async () => [id, await host.assets.get(id)], [id, null]))),
+  ]);
+  const aspects = new Map<string, number>();
+  for (const [id, ref] of refs) {
+    const w = Number((ref as { width?: unknown } | null)?.width), h = Number((ref as { height?: unknown } | null)?.height);
+    if (Number.isFinite(w) && Number.isFinite(h) && w > 0 && h > 0) aspects.set(id, w / h);
+  }
+  return {
+    kit: base.kit,
+    measure: {
+      ...base.measure,
+      logoAspect: (id) => aspects.get(id) ?? null,
+      recolour: guestRecolourFrom({ iconThemes: { themes }, photoTreatments: { treatments } }),
+    },
+  };
 }

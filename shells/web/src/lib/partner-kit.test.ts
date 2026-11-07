@@ -120,3 +120,26 @@ test('the kit\'s swatches are plain colours headed by the company, never by a se
   assert.equal(partnerSwatches(null), null);
   assert.equal(partnerSwatches({ ...KIT, colours: [] } as never), null);
 });
+
+test('the checks get the logos\' proportions and the catalog\'s colour modifiers from the host', async () => {
+  const { partnerCheckInput } = kitMod;
+  const runtime = { getModel: () => [{ id: 'documentUnit', value: 'px' }] };
+  await attachPieceKit({ assets: {} as never, log: () => {} }, runtime, { id: 'inst/k1', revision: 2 }, { load: async () => KIT as never });
+  const host = {
+    assets: {
+      get: async (id: string) => (id === 'inst/nw-light' ? { id, width: 400, height: 100 } : (() => { throw new Error('gone'); })()),
+      _iconThemes: async () => [{ id: 'ink', c1: '#112233', c2: '#112233' }, { id: 'pair', c1: '#ff0000', c2: '#0000ff' }],
+      _photoTreatments: async () => [{ id: 'grey', kind: 'greyscale' }],
+    },
+  };
+  const input = await partnerCheckInput(runtime, host as never);
+  assert.ok(input);
+  assert.equal(input!.measure.logoAspect?.('inst/nw-light'), 4);
+  assert.equal(input!.measure.logoAspect?.('inst/nw-mark'), null, 'a logo the host cannot read has no proportions, and the check lists it as not measured');
+  assert.equal(input!.measure.recolour?.({ theme: 'ink' }), 'mono');
+  assert.equal(input!.measure.recolour?.({ theme: 'pair' }), 'other');
+  assert.equal(input!.measure.recolour?.({ treatment: 'grey' }), 'mono');
+  assert.equal(input!.measure.recolour?.({ theme: 'nope' }), null);
+  releasePieceKit(runtime);
+  assert.equal(await partnerCheckInput({ getModel: () => [] }, host as never), null, 'no kit, nothing to measure');
+});

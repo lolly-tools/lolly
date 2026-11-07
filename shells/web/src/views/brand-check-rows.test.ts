@@ -105,4 +105,5 @@ test('the treatment sentences name what the kit allows, with no comma before the
   assert.equal(markFindingText({ ...base, value: 'mono', expected: 'colour, on-photo' }), 'Northwind IT’s mark is drawn in one colour; the kit allows full colour or on a photo.');
   assert.equal(markFindingText({ ...base, value: 'on-photo', expected: 'colour, mono, reverse' }), 'Northwind IT’s mark sits on a photo; the kit allows full colour, one colour or reversed.');
   assert.equal(markFindingText({ ...base, rule: 'clear-space', value: 'Title', related: ['a', 'b', 'c'] }), '“Title” and 2 other layers sit inside Northwind IT’s clear space.');
+  assert.equal(markFindingText({ ...base, value: 'recoloured', expected: 'mono' }), 'Northwind IT’s mark is recoloured; the kit allows one colour.');
 });

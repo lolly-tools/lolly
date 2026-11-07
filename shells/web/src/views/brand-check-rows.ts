@@ -42,6 +42,7 @@ export function markFindingText(f: BrandFinding): string {
       ? tRaw('“{name}” and 1 other layer sit inside {company}’s clear space.', { name: f.value ?? '', company })
       : tRaw('“{name}” and {count} other layers sit inside {company}’s clear space.', { name: f.value ?? '', count: others, company });
   }
+  if (f.rule === 'treatment' && f.value === 'recoloured') return tRaw('{company}’s mark is recoloured; the kit allows {allowed}.', { company, allowed: allowedWords(f.expected) });
   if (f.rule === 'treatment' && f.value === 'on-photo') return tRaw('{company}’s mark sits on a photo; the kit allows {allowed}.', { company, allowed: allowedWords(f.expected) });
   if (f.rule === 'treatment') return tRaw('{company}’s mark is drawn in {treatment}; the kit allows {allowed}.', { company, treatment: treatmentWord(f.value ?? ''), allowed: allowedWords(f.expected) });
   return f.message ?? '';
@@ -99,10 +100,10 @@ export async function brandCheckRows(options: {
   /** Catalog facts (asset ids, icon themes, photo treatments), as `hostBrandCatalog` reads them. */
   catalog?: () => Promise<BrandCheckCatalogOpts>;
   /** The partner kit the piece carries (plans/82 M8): its marks are measured, and its colours and logos are the guest's own. */
-  partner?: () => { kit: PartnerKitV1; measure: GuestMarkMeasure } | null;
+  partner?: () => { kit: PartnerKitV1; measure: GuestMarkMeasure } | null | Promise<{ kit: PartnerKitV1; measure: GuestMarkMeasure } | null>;
 }): Promise<PreflightRow[]> {
   let partner: { kit: PartnerKitV1; measure: GuestMarkMeasure } | null = null;
-  try { partner = options.partner?.() ?? null; } catch { partner = null; }
+  try { partner = (await options.partner?.()) ?? null; } catch { partner = null; }
   const guest = partner ? { guest: { colours: partner.kit.colours.map((c) => c.value), assets: partnerKitLogoIds(partner.kit) } } : {};
   const markRows: PreflightRow[] = partner
     ? checkGuestMarks(options.boxes(), partner.kit, partner.measure).findings.slice(0, 60).map((f) => ({ id: f.id, tone: 'note' as const, text: markFindingText(f) }))
