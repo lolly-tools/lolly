@@ -34,6 +34,7 @@ import { mapTextFontAssets } from '../../../../engine/src/text-assets.ts';
 import { assetDependency, encodeAssetVersion } from '../../../../engine/src/asset-version.ts';
 import { ensureSceneManifest } from '../bridge/asset-dependencies.ts';
 import { base64ToBytes, bytesToBin } from '../../../../engine/src/bytes.ts';
+import { packCreditsText, type PackCreditEntry, type PackHoldEntry } from '../../../../engine/src/asset-rights.ts';
 import { resolveSessionUserAsset, rebaseImportedAssetPins } from './session-asset-versions.ts';
 import { prepareLollyEmoji } from './lolly-emoji.ts';
 import { zipAsync } from './zip.ts';
@@ -400,33 +401,6 @@ export interface LollyProjectContents {
   name: string;
   folders: LollyProjectFolder[];
   sessions: Array<LollyProjectSessionEntry & { data: Record<string, unknown>; thumbUrl: string | null }>;
-}
-
-/** One catalog work whose bytes travelled inside the pack. */
-export interface PackCreditEntry {
-  label: string;
-  id: string;
-  path: string;
-  licence?: string;
-  credit?: string;
-  notices?: string[];
-  /** True when the sender chose to include bytes that were held back by default. */
-  includedByChoice?: true;
-}
-
-/** One catalog work whose bytes did NOT travel, and the reason. */
-export interface PackHoldEntry {
-  label: string;
-  id: string;
-  reason: string;
-  /**
-   * Whether a deployment rule or a licence condition held the bytes back.
-   * Printed as its own line, because a catalog lock read as a licence condition
-   * would misrepresent a brand policy as an extra copyright term on open
-   * material (plan 253 section 11).
-   */
-  kind?: 'policy' | 'licence' | 'unknown';
-  licence?: string;
 }
 
 /** What `resolveLibrary` hands back for a catalog id it can supply bytes for. */
@@ -1166,51 +1140,6 @@ function readRenovationPart(manifest: LollyManifest, files: Parameters<typeof re
     }
   }
   return { id: block.id.trim(), name: block.name.trim(), project, parts, assets: [...block.assets] };
-}
-
-/**
- * The pack's readable credits: every catalog work whose bytes travelled, with its
- * licence, credit and any notice the licence asks to travel, then every work that
- * was held back with the reason it was.
- *
- * It is a record, not a clearance. It says what this file carries and what it does
- * not; it does not say a use is permitted, and a work with no licence recorded
- * reads exactly that way. Returns '' when no catalog work was involved at all.
- */
-const HOLD_KIND: Record<'policy' | 'licence' | 'unknown', string> = {
-  policy: 'deployment policy',
-  licence: 'licence condition',
-  unknown: 'nothing recorded about passing these bytes on',
-};
-
-export function packCreditsText(carried: readonly PackCreditEntry[], heldBack: readonly PackHoldEntry[]): string {
-  if (!carried.length && !heldBack.length) return '';
-  const lines: string[] = ['Credits for the catalog works in this file.', ''];
-  if (carried.length) {
-    lines.push(`Travelled with this file (${carried.length}):`, '');
-    for (const entry of carried) {
-      lines.push(`- ${entry.label} (${entry.id})`);
-      lines.push(`  file:    ${entry.path}`);
-      lines.push(`  licence: ${entry.licence || 'not recorded'}`);
-      if (entry.credit) lines.push(`  credit:  ${entry.credit}`);
-      if (entry.includedByChoice) lines.push('  included by the sender, who chose to carry bytes held back by default');
-      for (const notice of entry.notices ?? []) lines.push(`  notice:  ${notice}`);
-      lines.push('');
-    }
-  }
-  if (heldBack.length) {
-    lines.push(`Held back (${heldBack.length}) - referenced, but the bytes are not in this file:`, '');
-    for (const entry of heldBack) {
-      lines.push(`- ${entry.label} (${entry.id})`);
-      lines.push(`  licence: ${entry.licence || 'not recorded'}`);
-      lines.push(`  held by: ${HOLD_KIND[entry.kind ?? 'unknown']}`);
-      lines.push(`  reason:  ${entry.reason}`);
-      lines.push('');
-    }
-    lines.push('Open the file on a device that already has these works, or ask the sender.', '');
-  }
-  lines.push('Keep this file with the design when you pass it on.');
-  return lines.join('\n');
 }
 
 /** Binary tool files store verbatim; text (tool.json/template/hooks/css/i18n) deflates. */
