@@ -294,3 +294,59 @@ export function readTemplateOrigin(raw: unknown): TemplateOrigin | null {
   const editable = Array.isArray(o.editable) ? o.editable.filter((id): id is string => typeof id === 'string') : undefined;
   return { ref: o.ref, version: o.version, ...(editable ? { editable } : {}), ...(o.fixedTheme === true ? { fixedTheme: true } : {}) };
 }
+
+/** The most saved sessions the home reads to find the person's copies of what the shelf
+ *  offers: the newest sessions of the shelf's template tools, read once after the shelf
+ *  is drawn, when the page is idle (plans/82 M6). A rules tool needs no read. */
+export const SHELF_COPY_READS = 20;
+
+/** One saved session as the home sees it: the list row and, for a template's tool, the
+ *  origin read back from the session (`__template`). */
+export interface SavedCopy {
+  slot: string;
+  toolId: string;
+  updatedAt: string;
+  origin?: TemplateOrigin | null;
+}
+
+/** What the home needs to know about one shelf card to find its copy. */
+export interface ShelfEntry {
+  /** The card's key: a template's ref, or the template a rules tool was built from. */
+  key: string;
+  toolId: string;
+  /** True for a workspace template; false for a rules tool. */
+  template: boolean;
+  /** A template's version now; a copy made from an older one is behind. */
+  version?: number;
+}
+
+/** The person's newest copy of one shelf card. `behind` says a template moved on since
+ *  the copy was made; a rules tool's copy follows the tool, so it is never behind. */
+export interface ShelfCopy { slot: string; toolId: string; updatedAt: string; behind: boolean }
+
+const newestFirst = <T extends { updatedAt: string }>(list: readonly T[]): T[] =>
+  [...list].sort((a, b) => (a.updatedAt < b.updatedAt ? 1 : a.updatedAt > b.updatedAt ? -1 : 0));
+
+/** The sessions worth reading for their origin: the newest `cap` of the shelf's
+ *  template tools. */
+export function sessionsToRead<T extends { toolId: string; updatedAt: string }>(entries: readonly ShelfEntry[], list: readonly T[], cap = SHELF_COPY_READS): T[] {
+  const tools = new Set(entries.filter((e) => e.template).map((e) => e.toolId));
+  return newestFirst(list.filter((s) => tools.has(s.toolId))).slice(0, cap);
+}
+
+/**
+ * The person's copy of each shelf card, by card key: the newest saved session made from
+ * that template (its origin's ref), or for a rules tool the newest session of the tool,
+ * since every session of a rules tool is a copy of that tool. Pure: the reads happen first.
+ */
+export function copiesOf(entries: readonly ShelfEntry[], saved: readonly SavedCopy[]): Map<string, ShelfCopy> {
+  const sessions = newestFirst(saved);
+  const out = new Map<string, ShelfCopy>();
+  for (const entry of entries) {
+    const copy = sessions.find((s) => s.toolId === entry.toolId && (entry.template ? s.origin?.ref === entry.key : true));
+    if (!copy) continue;
+    const behind = entry.template && typeof entry.version === 'number' && !!copy.origin && copy.origin.version < entry.version;
+    out.set(entry.key, { slot: copy.slot, toolId: copy.toolId, updatedAt: copy.updatedAt, behind });
+  }
+  return out;
+}
