@@ -97,12 +97,18 @@ Publish one from the programme's **Templates** card. Anyone with `programme.mana
 joining the programme. There are two kinds:
 
 - **A template of one of your tools.** Save a template in the tool and submit it to the catalog,
-  then choose it under **Publish a template**. Untick what partners may not change. The card
+  then choose it under **Publish a template**. Submitting needs `catalog.submit`, which authors and
+  admins have; a programme manager without it asks a colleague on the brand team to submit the
+  template, then publishes it from the card. Untick what partners may not change. The card
   counts what stays open, for example "Partners can change 1 of 9 inputs". With every input ticked
-  there are no rules and partners can change everything.
+  there are no rules and partners can change everything. **Colourway and mode** sits below the
+  inputs and starts ticked: partners may pick another of your brand's colourways and switch
+  between light and dark, which moves every colour the tool takes from the design system. Untick
+  it to keep the template's own.
 - **A Share with rules file.** Make it in Design with **Share with rules**, download the `.lolly`
   file and upload it under **Publish a template**. The designer's own rules travel with the file:
-  partners change only the objects the designer chose. Work keeps only the file's data and builds
+  partners change only the objects the designer chose, plus the colourway and mode, which Design's
+  rules leave open. Work keeps only the file's data and builds
   the tool again with this workspace's own Design, so no code from the file ever runs. A file made
   with another version of Lolly is rebuilt the same way, and its row says "Rebuilt with this
   workspace's Design". Files made from a tool other than Design are not taken yet.
@@ -132,7 +138,8 @@ retirement. To stop a template everywhere straight away, revoke it in the catalo
 
 Renders on the server follow the same rules. A render that asks for a template with
 `template=inst/<id>` starts from the template's values and refuses, with `422 INPUT_LOCKED`, any
-input the template fixes. A tool built from a Share with rules file refuses anything the designer
+input the template fixes, and asks to change the colourway or mode (`ds`, `_themes`) when the
+template keeps its own. A tool built from a Share with rules file refuses anything the designer
 did not open the same way, and a value outside the designer's choices with `422 INPUT_NOT_ALLOWED`.
 A template's rules can make a tool's own input rules stricter, never looser. A retired template
 answers `410 TEMPLATE_RETIRED` with the replacement.
