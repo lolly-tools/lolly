@@ -4114,7 +4114,7 @@ var ENGINE_VERSION;
 var init_version = __esm({
   "engine/src/version.ts"() {
     "use strict";
-    ENGINE_VERSION = "1.326.0";
+    ENGINE_VERSION = "1.328.0";
   }
 });
 
@@ -88588,6 +88588,54 @@ function recStretchDibits(prim) {
   }
   return new Uint8Array(buf);
 }
+function recStretchDib1(prim, rows2, zero2, one, rop) {
+  const pxW = Math.max(1, Math.round(prim.pxW));
+  const pxH = Math.max(1, Math.round(prim.pxH));
+  const stride = Math.ceil(pxW / 32) * 4;
+  const bitsLen = stride * pxH;
+  const size = 128 + bitsLen;
+  const buf = new ArrayBuffer(size);
+  const dv = new DataView(buf);
+  dv.setUint32(0, EMR_STRETCHDIBITS, true);
+  dv.setUint32(4, size, true);
+  setRect(dv, 8, { left: clampInt2(prim.x), top: clampInt2(prim.y), right: clampInt2(prim.x + prim.w), bottom: clampInt2(prim.y + prim.h) });
+  dv.setInt32(24, clampInt2(prim.x), true);
+  dv.setInt32(28, clampInt2(prim.y), true);
+  dv.setInt32(32, 0, true);
+  dv.setInt32(36, 0, true);
+  dv.setInt32(40, pxW, true);
+  dv.setInt32(44, pxH, true);
+  dv.setUint32(48, 80, true);
+  dv.setUint32(52, 48, true);
+  dv.setUint32(56, 128, true);
+  dv.setUint32(60, bitsLen, true);
+  dv.setUint32(64, DIB_RGB_COLORS, true);
+  dv.setUint32(68, rop >>> 0, true);
+  dv.setInt32(72, clampInt2(prim.w), true);
+  dv.setInt32(76, clampInt2(prim.h), true);
+  dv.setUint32(80, 40, true);
+  dv.setInt32(84, pxW, true);
+  dv.setInt32(88, pxH, true);
+  dv.setUint16(92, 1, true);
+  dv.setUint16(94, 1, true);
+  dv.setUint32(96, 0, true);
+  dv.setUint32(100, bitsLen, true);
+  dv.setUint32(112, 2, true);
+  const out = new Uint8Array(buf);
+  out.set([zero2.b & 255, zero2.g & 255, zero2.r & 255, 0, one.b & 255, one.g & 255, one.r & 255, 0], 120);
+  const rowBytes = Math.ceil(pxW / 8);
+  for (let y = 0; y < pxH; y++) out.set(rows2.subarray(y * rowBytes, (y + 1) * rowBytes), 128 + (pxH - 1 - y) * stride);
+  return out;
+}
+function emitStencilPrim(prim, out) {
+  const pxW = Math.max(1, Math.round(prim.pxW));
+  const pxH = Math.max(1, Math.round(prim.pxH));
+  const ink = new Uint8Array(Math.ceil(pxW / 8) * pxH);
+  ink.set(prim.bits.subarray(0, ink.length));
+  const black = { r: 0, g: 0, b: 0 }, white = { r: 255, g: 255, b: 255 };
+  out.push(recStretchDib1(prim, ink, black, white, SRCPAINT));
+  out.push(recStretchDib1(prim, ink, white, prim.fill, SRCAND));
+}
 function recCreateFontW(handle, prim) {
   const tenths = clampInt2(-(prim.rotation || 0) * 10);
   return record16(EMR_EXTCREATEFONTINDIRECTW, 96, (dv, o) => {
@@ -88687,6 +88735,7 @@ function emitEmf(ir, opts = {}) {
   for (const prim of ir.prims || []) {
     if (prim?.type === "path") emitPathPrim(prim, body);
     else if (prim?.type === "image") body.push(recStretchDibits(prim));
+    else if (prim?.type === "stencil") emitStencilPrim(prim, body);
     else if (prim?.type === "text") emitTextPrim(prim, body, h.Wpx, h.Hpx, exScale, eyScale);
   }
   body.push(recEof());
@@ -88702,7 +88751,7 @@ function emitEmf(ir, opts = {}) {
   }
   return out;
 }
-var EMR_HEADER, EMR_POLYBEZIERTO, EMR_POLYLINETO, EMR_EOF, EMR_SETPOLYFILLMODE, EMR_MOVETOEX, EMR_SELECTOBJECT, EMR_CREATEBRUSHINDIRECT, EMR_DELETEOBJECT, EMR_BEGINPATH, EMR_ENDPATH, EMR_CLOSEFIGURE, EMR_FILLPATH, EMR_STROKEANDFILLPATH, EMR_STROKEPATH, EMR_EXTCREATEPEN, EMR_STRETCHDIBITS, EMR_SETBKMODE, EMR_SETTEXTALIGN, EMR_SETTEXTCOLOR, EMR_EXTCREATEFONTINDIRECTW, EMR_EXTTEXTOUTW, BKMODE_TRANSPARENT, GM_COMPATIBLE, TA_LEFT, TA_RIGHT, TA_CENTER, TA_TOP, TA_BASELINE, DEFAULT_CHARSET, SRCCOPY, DIB_RGB_COLORS, ALTERNATE, WINDING, NULL_BRUSH, NULL_PEN, SYSTEM_FONT, BS_SOLID, PS_GEOMETRIC_SOLID, ENHMETA_SIGNATURE, HEADER_SIZE, H_BRUSH, H_PEN, H_FONT, N_HANDLES, colorRef, clampInt2, setRect, recBeginPath, recEndPath, recCloseFigure, recSetPolyFillMode, recSelectObject, recDeleteObject, recCreateBrush, recExtCreatePen, recPaint, recEof, recSetBkMode, recSetTextAlign, recSetTextColor;
+var EMR_HEADER, EMR_POLYBEZIERTO, EMR_POLYLINETO, EMR_EOF, EMR_SETPOLYFILLMODE, EMR_MOVETOEX, EMR_SELECTOBJECT, EMR_CREATEBRUSHINDIRECT, EMR_DELETEOBJECT, EMR_BEGINPATH, EMR_ENDPATH, EMR_CLOSEFIGURE, EMR_FILLPATH, EMR_STROKEANDFILLPATH, EMR_STROKEPATH, EMR_EXTCREATEPEN, EMR_STRETCHDIBITS, EMR_SETBKMODE, EMR_SETTEXTALIGN, EMR_SETTEXTCOLOR, EMR_EXTCREATEFONTINDIRECTW, EMR_EXTTEXTOUTW, BKMODE_TRANSPARENT, GM_COMPATIBLE, TA_LEFT, TA_RIGHT, TA_CENTER, TA_TOP, TA_BASELINE, DEFAULT_CHARSET, SRCCOPY, SRCPAINT, SRCAND, DIB_RGB_COLORS, ALTERNATE, WINDING, NULL_BRUSH, NULL_PEN, SYSTEM_FONT, BS_SOLID, PS_GEOMETRIC_SOLID, ENHMETA_SIGNATURE, HEADER_SIZE, H_BRUSH, H_PEN, H_FONT, N_HANDLES, colorRef, clampInt2, setRect, recBeginPath, recEndPath, recCloseFigure, recSetPolyFillMode, recSelectObject, recDeleteObject, recCreateBrush, recExtCreatePen, recPaint, recEof, recSetBkMode, recSetTextAlign, recSetTextColor;
 var init_emf = __esm({
   "engine/src/emf.ts"() {
     "use strict";
@@ -88738,6 +88787,8 @@ var init_emf = __esm({
     TA_BASELINE = 24;
     DEFAULT_CHARSET = 1;
     SRCCOPY = 13369376;
+    SRCPAINT = 15597702;
+    SRCAND = 8913094;
     DIB_RGB_COLORS = 0;
     ALTERNATE = 1;
     WINDING = 2;
@@ -88832,7 +88883,7 @@ function emitImagePrim(prim, out) {
   out.push(">");
   out.push("grestore");
 }
-function emitStencilPrim(prim, cmyk, out, palette, separate) {
+function emitStencilPrim2(prim, cmyk, out, palette, separate) {
   const pxW = Math.max(1, Math.round(prim.pxW));
   const pxH = Math.max(1, Math.round(prim.pxH));
   const need = Math.ceil(pxW / 8) * pxH;
@@ -88911,7 +88962,7 @@ function emitEps(ir, opts = {}) {
     for (const prim of ir.prims || []) {
       if (prim && prim.type === "path") emitPathPrim2(prim, cmyk, L, opts.cmykPalette, opts.separate);
       else if (prim && prim.type === "image") emitImagePrim(prim, L);
-      else if (prim && prim.type === "stencil") emitStencilPrim(prim, cmyk, L, opts.cmykPalette, opts.separate);
+      else if (prim && prim.type === "stencil") emitStencilPrim2(prim, cmyk, L, opts.cmykPalette, opts.separate);
     }
     L.push("grestore");
     emitMarksPs(geo, opts.markSpace ?? (cmyk ? "cmyk" : "rgb"), L);
@@ -88921,7 +88972,7 @@ function emitEps(ir, opts = {}) {
     for (const prim of ir.prims || []) {
       if (prim && prim.type === "path") emitPathPrim2(prim, cmyk, L, opts.cmykPalette, opts.separate);
       else if (prim && prim.type === "image") emitImagePrim(prim, L);
-      else if (prim && prim.type === "stencil") emitStencilPrim(prim, cmyk, L, opts.cmykPalette, opts.separate);
+      else if (prim && prim.type === "stencil") emitStencilPrim2(prim, cmyk, L, opts.cmykPalette, opts.separate);
     }
   }
   L.push("grestore");
@@ -91538,7 +91589,7 @@ function emitPathPrim3(prim, out, tol) {
   out.push(recDeleteObject2(OBJ_PEN));
   out.push(recDeleteObject2(OBJ_BRUSH));
 }
-function recStretchDib1(prim, rows2, zero2, one, rop) {
+function recStretchDib12(prim, rows2, zero2, one, rop) {
   const pxW = Math.max(1, Math.round(prim.pxW));
   const pxH = Math.max(1, Math.round(prim.pxH));
   const stride = Math.ceil(pxW / 32) * 4;
@@ -91574,15 +91625,15 @@ function recStretchDib1(prim, rows2, zero2, one, rop) {
   new DataView(out.buffer).setUint32(0, out.length / 2, true);
   return out;
 }
-function emitStencilPrim2(prim, out) {
+function emitStencilPrim3(prim, out) {
   const pxW = Math.max(1, Math.round(prim.pxW));
   const pxH = Math.max(1, Math.round(prim.pxH));
   const rowBytes = Math.ceil(pxW / 8);
   const ink = new Uint8Array(rowBytes * pxH);
   ink.set(prim.bits.subarray(0, ink.length));
   const black = { r: 0, g: 0, b: 0 }, white = { r: 255, g: 255, b: 255 };
-  out.push(recStretchDib1(prim, ink, black, white, SRCPAINT));
-  out.push(recStretchDib1(prim, ink, white, prim.fill, SRCAND));
+  out.push(recStretchDib12(prim, ink, black, white, SRCPAINT2));
+  out.push(recStretchDib12(prim, ink, white, prim.fill, SRCAND2));
 }
 function headerMath2(ir, opts) {
   const Wpx = Math.max(1, Math.round(ir.width));
@@ -91631,7 +91682,7 @@ function emitWmf(ir, opts = {}) {
     if (prim?.type === "path") {
       emitPathPrim3(prim, body, tol);
       hasPath = true;
-    } else if (prim?.type === "stencil") emitStencilPrim2(prim, body);
+    } else if (prim?.type === "stencil") emitStencilPrim3(prim, body);
     else if (prim?.type === "text") {
       throw new Error(`WMF cannot carry live text (run "${prim.text.slice(0, 24)}") - build the IR with textMode 'outline'`);
     }
@@ -91660,7 +91711,7 @@ function emitWmf(ir, opts = {}) {
   }
   return out;
 }
-var META_EOF, META_SETPOLYFILLMODE, META_SETWINDOWORG, META_SETWINDOWEXT, META_POLYGON, META_POLYLINE, META_SELECTOBJECT, META_DELETEOBJECT, META_CREATEPENINDIRECT, META_CREATEBRUSHINDIRECT, META_STRETCHDIB, SRCAND, SRCPAINT, DIB_RGB_COLORS2, ALTERNATE2, WINDING2, PS_SOLID, PS_NULL, BS_SOLID2, BS_HOLLOW, PLACEABLE_KEY, METAFILE_MEMORY, MHDR_WORDS, MHDR_VERSION, INT16_MIN, INT16_MAX, clampI16, MAX_POLY_POINTS, colorWords, recSetWindowOrg, recSetWindowExt, recSetPolyFillMode2, recCreatePen, recCreateBrush2, recSelectObject2, recDeleteObject2, recEof2, mid2, OBJ_BRUSH, OBJ_PEN, STOCK_NULL_BRUSH, STOCK_NULL_PEN;
+var META_EOF, META_SETPOLYFILLMODE, META_SETWINDOWORG, META_SETWINDOWEXT, META_POLYGON, META_POLYLINE, META_SELECTOBJECT, META_DELETEOBJECT, META_CREATEPENINDIRECT, META_CREATEBRUSHINDIRECT, META_STRETCHDIB, SRCAND2, SRCPAINT2, DIB_RGB_COLORS2, ALTERNATE2, WINDING2, PS_SOLID, PS_NULL, BS_SOLID2, BS_HOLLOW, PLACEABLE_KEY, METAFILE_MEMORY, MHDR_WORDS, MHDR_VERSION, INT16_MIN, INT16_MAX, clampI16, MAX_POLY_POINTS, colorWords, recSetWindowOrg, recSetWindowExt, recSetPolyFillMode2, recCreatePen, recCreateBrush2, recSelectObject2, recDeleteObject2, recEof2, mid2, OBJ_BRUSH, OBJ_PEN, STOCK_NULL_BRUSH, STOCK_NULL_PEN;
 var init_wmf = __esm({
   "engine/src/wmf.ts"() {
     "use strict";
@@ -91676,8 +91727,8 @@ var init_wmf = __esm({
     META_CREATEPENINDIRECT = 762;
     META_CREATEBRUSHINDIRECT = 764;
     META_STRETCHDIB = 3907;
-    SRCAND = 8913094;
-    SRCPAINT = 15597702;
+    SRCAND2 = 8913094;
+    SRCPAINT2 = 15597702;
     DIB_RGB_COLORS2 = 0;
     ALTERNATE2 = 1;
     WINDING2 = 2;
@@ -180071,7 +180122,7 @@ var init_webshell_render = __esm({
       write: () => null
     };
     PAGE_DESIGN_SYSTEM_GLOBAL = "__lollyAutomationDesignSystem";
-    PICTURE_NOTES = ["pdf", "eps", "wmf"].map((f) => `[warn] ${f}: This ${f.toUpperCase()} draws some text as pictures`);
+    PICTURE_NOTES = ["pdf", "emf", "eps", "wmf"].map((f) => `[warn] ${f}: This ${f.toUpperCase()} draws some text as pictures`);
     FILL_NOTE = "[info] fonts: ";
     DESKTOP_REQUEST_MAX_BYTES = 1 << 20;
     DESKTOP_REQUEST_MARGIN = 4 * 1024;
@@ -189211,7 +189262,7 @@ async function createCliBridge({ profile: profile2 = {}, dom, catalogAssets: cat
       if (format === "emf") {
         const svg = rootSvgOf(node);
         if (!svg) throw new Error("EMF export requires an <svg> in the template (HTML-layout tools need a browser engine - use the desktop app)");
-        const ir = await svgDomToIr(svg, { host, resolveFont: cliResolveFont(host, collectFill), background: opts.background, textMode: opts.text === "outline" ? "outline" : "live" });
+        const ir = await svgDomToIr(svg, { host, resolveFont: cliResolveFont(host, collectFill), background: opts.background, textMode: opts.text === "outline" ? "outline" : "live", uncoveredText: "picture" });
         reportFill();
         const bytes2 = emitEmf(ir, { width: opts.width, height: opts.height, unit: opts.unit, dpi: opts.dpi });
         return new Blob([bytes2], { type: "application/x-msmetafile" });
