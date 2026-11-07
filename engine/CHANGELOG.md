@@ -6,6 +6,11 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+## 1.321.0
+
+- `buildPptxParts`: a run, a table cell or a layout placeholder style with a face now writes the face in all three of DrawingML's slots, `latin`, `ea` and `cs`, where it wrote `latin` and `cs`. The theme's font scheme already carries the face in all three, so PowerPoint resolves the same face it inherited before. LibreOffice does not follow the theme for a text box, so there a run now carries the face for East Asian text as well. A run with no face writes nothing, as before.
+- No API change. The Design deck model now gives every run a face (the brand, headings or mono face the canvas draws the slot in, resolved by the shell against the exported node), and the master-bound lowering in `packages/node-shell/src/design-pptx.ts` writes a circle or an ellipse as the ellipse preset and a pill as a full rounded rectangle, where it wrote a plain rectangle. Exported files gain no new data.
+
 ## 1.320.0
 
 - An SVG's Content Credential goes in a `<metadata>` child of the root `<svg>`, the place the C2PA SVG binding defines and c2patool reads. When the page inlined artwork that carries its own manifest, such as a catalog logo, `embedC2pa` used to write the export's manifest over the logo's, inside the logo, and c2patool reported "No claim found" for the file. The logo now keeps its own manifest in its own markup, where the export's hard binding covers those bytes like any others, and the export's claim validates at the root.
