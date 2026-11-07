@@ -219,9 +219,9 @@ Lolly expands a leading `~` in either path, as `--trust-anchor` does, because a 
 
 ## When a render uses the browser
 
-When a render goes to the paint tier ([what renders where](/info/cli-rendering.html#what-the-cli-can-render)), the web shell normally stamps the credential with its own on-device key. It cannot sign with your identity: the key is a handle that cannot leave this process, and there is no way to hand it to a browser over a URL, nor should there be. So with `--sign-key`, the browser is told **not** to stamp, and the CLI applies the credential over the finished bytes, with your identity. The only visible difference is that the manifest records the CLI (`surface: cli`) rather than the web shell.
+When a render goes to the paint tier ([what renders where](/info/cli-rendering.html#what-the-cli-can-render)), the web shell normally stamps the credential with its own on-device key. It cannot sign with your identity: the key is a handle that cannot leave this process, and there is no way to hand it to a browser over a URL, nor should there be. So with `--sign-key`, the CLI applies the credential over the finished bytes, with your identity, in place of the web shell's. The web shell's credential is where the pictures placed in the file are recorded, AI-made ones included, so the CLI reads that record first and writes the same ingredients into your credential. On a PDF the web shell's credential comes off before yours goes on, so the file holds one. On a TIFF the web shell writes none. The only other visible difference is that the manifest records the CLI (`surface: cli`) rather than the web shell.
 
-This browser path is implemented and type-checked. As of October 2026 it has not been run against a real browser; every example on this page uses the browser-free path, which has.
+This browser path was run against a real browser in November 2026 (`tests/cli-credential-carry.browser.test.ts`). The other examples on this page use the browser-free path.
 
 ## Troubleshooting
 
