@@ -6,6 +6,7 @@ import { mountAssetInspectorDock } from '../../components/asset-inspector-dock.t
 import { openAssetInText } from '../../lib/text-handoff.ts';
 import { mountModelPreview } from '../../lib/model-preview.ts';
 import { mountSpecialPreview } from './special-preview.ts';
+import { workspaceTemplateOf } from '../../lib/workspace-templates.ts';
 import { paintSyntaxPreview, syntaxLanguageForFile } from '../../lib/syntax-preview.ts';
 /**
  * catalog details: building the sheet and wiring its events, in mount order.
@@ -333,7 +334,8 @@ export function buildSheet(dt: DetailsCtx): void {
   // is a player, not an image, so it opts out too; a placeholder/dataless-lottie stub has nothing
   // to zoom. attachZoom handles the <svg> player.
   const ownsPreview = (['pdf', 'font', 'converted'].includes(assetViewerKind(String(ref.format ?? '').toLowerCase())) || ref.format === 'svgz') || ref.type === 'font';
-  const specialPreview = (ref.original?.format ?? ref.format) === 'mogrt';
+  // A workspace template is values, not a picture: special-preview.ts draws it in its tool.
+  const specialPreview = (ref.original?.format ?? ref.format) === 'mogrt' || !!workspaceTemplateOf(ref);
   const zoomable = !ownsPreview && !specialPreview && !ref.meta?._placeholder
     && ref.type !== 'audio' && ref.type !== 'model'
     && !isTextKind(ref.type) && ref.type !== 'data'
