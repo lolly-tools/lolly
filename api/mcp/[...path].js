@@ -136925,14 +136925,12 @@ function partnerKitLogoIds(kit) {
   return ids2;
 }
 function opaqueHex(value2) {
-  const hex4 = typeof value2 === "string" && value2.startsWith("#") ? value2 : colorToHex(value2);
-  if (typeof hex4 !== "string") return null;
-  const h = hex4.trim().toLowerCase();
-  if (/^#[0-9a-f]{6}$/.test(h)) return h;
-  if (/^#[0-9a-f]{6}ff$/.test(h)) return h.slice(0, 7);
-  if (/^#[0-9a-f]{3}$/.test(h)) return `#${h[1]}${h[1]}${h[2]}${h[2]}${h[3]}${h[3]}`;
-  if (/^#[0-9a-f]{3}f$/.test(h)) return `#${h[1]}${h[1]}${h[2]}${h[2]}${h[3]}${h[3]}`;
-  return null;
+  const text13 = typeof value2 === "string" ? value2 : colorToHex(value2);
+  if (typeof text13 !== "string" || !text13.trim()) return null;
+  const parsed = parseColor(text13.trim());
+  if (!parsed || parsed.alpha < 1) return null;
+  const hex4 = colorToHexString({ ...parsed, alpha: 1 }).toLowerCase();
+  return /^#[0-9a-f]{6}$/.test(hex4) ? hex4 : null;
 }
 function leafWords(path) {
   const leaf = (path.split(".").pop() ?? "").replace(/[-_]+/g, " ").trim();
@@ -136951,10 +136949,16 @@ function namedElsewhere(tokens3, value2) {
   }
   return null;
 }
+function lightThemeName(doc) {
+  const themes = createTokenSet(doc).themes();
+  const light = themes.find((t) => t.name.trim().toLowerCase() === "light") ?? themes.find((t) => (t.id ?? "").trim().toLowerCase() === "light");
+  return light ? light.name || light.id : void 0;
+}
 function partnerKitColoursFromTokens(doc) {
   let tokens3;
   try {
-    tokens3 = createTokenSet(doc, { theme: "light" });
+    const light = lightThemeName(doc);
+    tokens3 = createTokenSet(doc, light ? { theme: light } : {});
   } catch {
     return [];
   }
@@ -137027,6 +137031,7 @@ var init_partner_kit = __esm({
     init_partner_kit_v1_schema();
     init_partner_kit_v1();
     init_tokens2();
+    init_css_color();
     init_brand_derive();
     utf8Length = (text13) => new TextEncoder().encode(text13).length;
     ROLE_WORD = {
