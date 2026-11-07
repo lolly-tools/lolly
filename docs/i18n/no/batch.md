@@ -1,8 +1,10 @@
-# Batch og Multi-edit
+# Lolly Batch og Lolly Multi-edit
+
+<a id="batch-and-multi-edit"></a>
 
 To jobber dukker opp når du ofte lager samme type fil. Noen ganger trenger du mange versjoner av ett design: et kort på et dusin språk, eller alle størrelser av et banner. Noen ganger har du flere ulike lagrede design og vil at én endring skal nå alle, som en ny dato eller en ny overskrift.
 
-**Batch** gjør den første jobben og **Multi-edit** den andre. Begge kjører på enheten din og eksporterer gjennom den samme gjengivelsesveien som verktøyene selv.
+**Lolly Batch** gjør den første jobben og **Lolly Multi-edit** den andre. Begge kjører på enheten din og eksporterer gjennom den samme gjengivelsesveien som verktøyene selv.
 
 ::: cols
 ## Batch
@@ -10,9 +12,10 @@ To jobber dukker opp når du ofte lager samme type fil. Noen ganger trenger du m
 - Én mal, mange rader. Hver rad er ett sett med inndata og lager én fil.
 - Fyll radene ved å skrive, lime inn fra et regneark eller importere en CSV.
 - Ingen grense for rader; 50 vises per side.
-- Åpnes fra **Batch** i Projects-toppen (`#/batch`).
+- Åpnes fra **Lolly Batch** i Projects-toppen (`#/batch`).
 
-## Multi-edit
+<a id="multi-edit"></a>
+## Lolly Multi-edit
 
 - To til åtte ulike lagrede design, side om side som levende kort.
 - Ett sidefelt redigerer inndataene de deler, deretter hvert korts egne.
@@ -22,7 +25,7 @@ To jobber dukker opp når du ofte lager samme type fil. Noen ganger trenger du m
 
 ## Lag mange versjoner av ett design
 
-Åpne **Projects** og trykk **Batch** i toppen. Rutenettet starter med én rad: velg en mal i den, og dupliser deretter raden eller lim inn data fra regnearket ditt. Åpnet fra inne i en mappe tar Batch deg tilbake til den mappen.
+Åpne visningen **Projects** og trykk **Batch** i toppen. Rutenettet starter med én rad: velg en mal i den, og dupliser deretter raden eller lim inn data fra regnearket ditt. Åpnet fra inne i en mappe tar Batch deg tilbake til den mappen.
 
 ![Batch på et nytt rutenett: filnavnet og radverktøyene øverst, og mallisten til den første raden åpen på verktøyene du kan velge](/t/url-shot?url=%2F%23%2Fbatch&width=1440&height=900&dpi=192&waitMs=3500&walker=1&format=svg&dark=1&filename=use-batch-toolbar)
 
@@ -46,9 +49,13 @@ Hver rad beholder sine egne temavalg: lys eller mørk, og en fargevariant når d
 
 En CSV bærer valgene i en `_themes`-kolonne etter størrelseskolonnene, med samme JSON som lenkeparameteren `_themes`, for eksempel `{"":"dark","colourway":"beach"}`. En tom celle, eller `{}`, betyr designsystemets standarder. Kolonnen skrives bare når en rad har valg, så en batch uten noen eksporterer den samme CSV-en som før. Ved import blir en celle som ikke er gyldige temavalg, oppført som et problem, og raden gjengis i standardene. Rutenettet har ennå ingen kontroll for å endre valgene til en rad, så sett dem i CSV-en eller i den lagrede økten.
 
+### Et språk for hver rad
+
+Et verktøy som skriver ut sin egen ordlyd, som Certificate, kan ta en `language`-kolonne med en kort språkkode som `de`, `ja` eller `ar`. Hver rad skriver da ut ordlyden og datoen sin på det språket, og arabiske og urdu-rader settes opp fra høyre mot venstre. En tom celle følger appens språk. Et språk Lolly ikke har oversettelse for ennå, skrives ut på engelsk, dato inkludert, så et sertifikat aldri blir halvt oversatt.
+
 ### Batch, eller Render folder
 
-Batch lager mange varianter av én mal. For å gjengi økter du allerede har lagret på nytt, velg dem i Projects og bruk **Render selection**, eller **Render folder** for en hel mappe; [Find and recover your work](/info/find-your-work.html#find-something-you-saved) dekker begge.
+Lolly Batch lager mange varianter av én mal. For å gjengi økter du allerede har lagret på nytt, velg dem i Projects og bruk **Render selection**, eller **Render folder** for en hel mappe; [Find and recover your work](/info/find-your-work.html#find-something-you-saved) dekker begge.
 
 ## Rediger flere lagrede design sammen
 
@@ -69,7 +76,7 @@ Hvert kort tegnes i sin egen økts temavalg, også et verktøy plassert inne i d
 - **Åtte som mest.** Hvert kort monterer sin egen levende kjøretid, og åtte er tallet som holder seg responsivt. En lenke som ber om flere, eller om en økt som ikke finnes lenger, sier fra i stedet for å lastes halvveis.
 - **Lenken er lokal.** Den navngir dine egne lagrede plasser, så den åpner det settet igjen på denne enheten. Det er ikke en delingslenke.
 - **For alt større,** velg **Edit as sheet** i samme markeringslinje. Den åpner hele utvalget som rader i batch-rutenettet (`#/batch?s=…`), uten størrelsesgrense og uten regelen om samme verktøy. Mapper holdes utenfor begge: åpne en mappe i rutenettet med **Sessions → Folders…**, eller gjengi en med **Render folder** i Projects.
-- **Søk når ikke Multi-edit.** Det er den ene visningen søkefeltet ikke kjenner til.
+- **Søk når ikke Lolly Multi-edit.** Det er den ene visningen søkefeltet ikke kjenner til.
 
 ## Hvor du går videre
 

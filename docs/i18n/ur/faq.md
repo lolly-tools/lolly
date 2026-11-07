@@ -39,7 +39,7 @@ lolly.tools [Lolly Demo](/info/lolly-demo.html) میں کھلتا ہے، Lolly �
 
 ## کیا میں اپنا برانڈ استعمال کر سکتا ہوں؟
 
-جی ہاں۔ **Design System Setup** (`#/start`) ایک رنگ، ڈیزائن ٹوکنز فائل یا مکمل ڈیزائن سے ڈیزائن سسٹم بناتا ہے، اور پھر ہر ٹول آپ کے ڈیزائن سسٹم سے ڈرا کرتا ہے۔ [آغاز](/info/quickstart.html#put-your-brand-in) تینوں راستوں سے گزارتا ہے۔
+جی ہاں۔ **Lolly Design System Setup** (`#/start`) ایک رنگ، ڈیزائن ٹوکنز فائل یا مکمل ڈیزائن سے ڈیزائن سسٹم بناتا ہے، اور پھر ہر ٹول آپ کے ڈیزائن سسٹم سے ڈرا کرتا ہے۔ [آغاز](/info/quickstart.html#put-your-brand-in) تینوں راستوں سے گزارتا ہے۔
 
 جو ڈیزائن سسٹم آپ کی تنظیم یا آپ کا بلڈ فراہم کرے وہ منظم ہے: وہ لاک دکھاتا ہے اور صرف پڑھنے کے لیے رہتا ہے، اور بدلنے کے لیے آپ قابل ترمیم کاپی بنا سکتے ہیں۔
 
@@ -80,9 +80,9 @@ lolly.tools [Lolly Demo](/info/lolly-demo.html) میں کھلتا ہے، Lolly �
 
 ## کیا Lolly میری Figma، Penpot، Illustrator یا InDesign فائلیں ایڈٹ اور رینڈر کر سکتا ہے؟
 
-جی ہاں۔ **Design** کھولیں اور **Import a design** پر کلک کریں: یہ مقامی Figma **.fig** (Save local copy)، Penpot **.penpot** ایکسپورٹ، Illustrator **.ai** یا **.pdf**، InDesign **.idml** (File → Export → InDesign Markup) یا **کوئی بھی SVG** قبول کرتا ہے۔ آپ کو اکاؤنٹ، پلگ ان یا ڈیزائن ایپ لائسنس نہیں چاہیے۔
+جی ہاں۔ **Design** ٹول کھولیں اور **Import a design** پر کلک کریں: یہ مقامی Figma **.fig** (Save local copy)، Penpot **.penpot** ایکسپورٹ، Illustrator **.ai** یا **.pdf**، InDesign **.idml** (File → Export → InDesign Markup) یا **کوئی بھی SVG** قبول کرتا ہے۔ آپ کو اکاؤنٹ، پلگ ان یا ڈیزائن ایپ لائسنس نہیں چاہیے۔
 
-![Design کا کھلا کینوس - Import a design ٹول بار کے Lolly مینو میں موجود ہے](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D17ZTfS8MwEMf_mryO5NZ288GHrdqJv1CUvWdtOgppMtJMNv96yaV1iRNEQRBZoblwab53l0-uq915bXgrCOSDpf3LzgANnQ4eI0rrPJn7Gh9cd0sE8lIryxtFIFfatFx6L4F0Mi-11GbUiZYr25QjK3bW-S8I5MnUbRXKCkMgb5uqki6JFFU7rjoXYsSgT8GaLebKZSeGAPkUYypMHp80DeugYYR4J_U7X4XRkY8dFHuTYEJ-jDWM3qoqsEHo4Y20-xJi-SPVaOfRUuAL1hiZXNrG4gH6M85Z5lTAk8x8DdlnPL8gecVfBIEU6F5v0bbCor3VUu4JpOPCKTCWsPI9rBS107d6QyCfRET_Ac6wX36X6UpX-49Ip1mAlMEPkM6QX20aoSpECLTmpadcazPQ9hPlWxboRndWmFEIG1s4Yp3E3Ts-0f4GbcruWHLzlC0frmfpfbGk82LxmD0vUndSTcvXAoknWBKCz5LDSIdiRHV0D2Tfq1BIvdY42Zim5WZ_-n3_mRvwBg&width=1360&height=850&dpi=192&waitMs=3000&format=svg&walker=1&chrome=1&localize=1&dark=1&filename=design)
+![Lolly Design کا کھلا کینوس - Import a design ٹول بار کے Lolly مینو میں موجود ہے](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D17ZTfS8MwEMf_mryO5NZ288GHrdqJv1CUvWdtOgppMtJMNv96yaV1iRNEQRBZoblwab53l0-uq915bXgrCOSDpf3LzgANnQ4eI0rrPJn7Gh9cd0sE8lIryxtFIFfatFx6L4F0Mi-11GbUiZYr25QjK3bW-S8I5MnUbRXKCkMgb5uqki6JFFU7rjoXYsSgT8GaLebKZSeGAPkUYypMHp80DeugYYR4J_U7X4XRkY8dFHuTYEJ-jDWM3qoqsEHo4Y20-xJi-SPVaOfRUuAL1hiZXNrG4gH6M85Z5lTAk8x8DdlnPL8gecVfBIEU6F5v0bbCor3VUu4JpOPCKTCWsPI9rBS107d6QyCfRET_Ac6wX36X6UpX-49Ip1mAlMEPkM6QX20aoSpECLTmpadcazPQ9hPlWxboRndWmFEIG1s4Yp3E3Ts-0f4GbcruWHLzlC0frmfpfbGk82LxmD0vUndSTcvXAoknWBKCz5LDSIdiRHV0D2Tfq1BIvdY42Zim5WZ_-n3_mRvwBg&width=1360&height=850&dpi=192&waitMs=3000&format=svg&walker=1&chrome=1&localize=1&dark=1&filename=design)
 
 لیئرز قابل ترمیم باکسز کے طور پر آتی ہیں: متن دوبارہ ٹائپ ہو سکتا ہے، شکلیں شکلیں رہتی ہیں اور تصاویر آپ کی اپنی لائبریری میں شامل ہوتی ہیں۔ اسے محفوظ کریں، اور **Share with rules** لے آؤٹ کو ایسے ٹول میں بدل سکتا ہے جسے Lolly رکھنے والا کوئی بھی دوبارہ بھر سکے۔ دیکھیں [Import a design](/info/design-import.html)۔
 
@@ -100,7 +100,7 @@ Feature flags Lolly کے حصے آن یا آف کرتے ہیں۔ اسٹینڈ ا
 
 یوٹیلیٹی آپ کی پہلے سے موجود فائل پر ایک فوری کام کرتی ہے، مثلاً PDF کمپریس کرنا، تصویر بدلنا یا چھپا ڈیٹا ہٹانا، اور ان میں سے کئی آپ کی ڈیوائس پر چلتی ہیں، کچھ اپ لوڈ کیے بغیر۔ یہ اس لیے ہیں کہ جو کام لوگ عموماً کسی بے ترتیب ویب سائٹ کو دیتے ہیں وہ Lolly کے اندر رہیں۔ معاہدہ کمپریس کرنا، چھٹیوں کی تصاویر کو ان کے مقام کے ساتھ بدلنا یا ٹوکن آن لائن فارمیٹر میں پیسٹ کرنے کا مطلب نامعلوم برقرار رکھنے، دائرہ اختیار اور کاروباری ماڈل والی سائٹ کو فائل دینا نہیں ہونا چاہیے۔ [Lolly Utilities](/info/utilities.html) انہیں درج کرتا ہے، اور [The trade we never agreed to](/info/status-quo.html) ان کے پیچھے کی کہانی سناتا ہے۔
 
-![Utilities منظر: Strip Hidden Data، Compress PDF، Convert Image اور دوسرے آن ڈیوائس کام، سب ایک جگہ](/t/url-shot?url=%2F%23%2Fu&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone!important%7D&tolerance=0.03&format=svg&walker=1&dark=1&filename=use-utilities&try=1)
+![Utilities منظر: Lolly Strip Hidden Data، Compress PDF، Convert Image اور دوسرے آن ڈیوائس کام، سب ایک جگہ](/t/url-shot?url=%2F%23%2Fu&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone!important%7D&tolerance=0.03&format=svg&walker=1&dark=1&filename=use-utilities&try=1)
 
 ## کیا ہماری تنظیم SSO، مشترکہ پروجیکٹس اور منظوریاں استعمال کر سکتی ہے؟
 
@@ -110,7 +110,7 @@ Feature flags Lolly کے حصے آن یا آف کرتے ہیں۔ اسٹینڈ ا
 
 ## Lolly اپناتے وقت مجھے کن رکاوٹوں کی توقع رکھنی چاہیے؟
 
-زیادہ تر تبدیلی ٹیکنالوجی کے بجائے پیداواری طرف ہوتی ہے۔ جو ٹیم ٹولز کا منظم سیٹ چاہتی ہے اسے کسی کی ضرورت ہوتی ہے جو اس کا ڈیزائن سسٹم اور پہلے ٹیمپلیٹس تصنیف کرے، اگرچہ کوئی بھی پہلے دن Design میں اپنے ٹولز بنانا شروع کر سکتا ہے، git کے بغیر۔ اور موجودہ عمل چلتے رہتے ہیں چاہے ان کی آؤٹ پٹ آف برانڈ ہو، اس لیے ایک نظر آنے والی آؤٹ پٹ اچھی طرح بدلنا، پہلے اور بعد ساتھ ساتھ، منصوبے سے زیادہ تیزی سے بات منواتا ہے۔
+زیادہ تر تبدیلی ٹیکنالوجی کے بجائے پیداواری طرف ہوتی ہے۔ جو ٹیم ٹولز کا منظم سیٹ چاہتی ہے اسے کسی کی ضرورت ہوتی ہے جو اس کا ڈیزائن سسٹم اور پہلے ٹیمپلیٹس تصنیف کرے، اگرچہ کوئی بھی پہلے دن Lolly Design میں اپنے ٹولز بنانا شروع کر سکتا ہے، git کے بغیر۔ اور موجودہ عمل چلتے رہتے ہیں چاہے ان کی آؤٹ پٹ آف برانڈ ہو، اس لیے ایک نظر آنے والی آؤٹ پٹ اچھی طرح بدلنا، پہلے اور بعد ساتھ ساتھ، منصوبے سے زیادہ تیزی سے بات منواتا ہے۔
 
 [Adoption & Governance](/info/adoption-governance.html) کردار کے مطابق آن بورڈنگ، پائلٹ کیسے ناپیں اور گورننس کا عمل کیسا ہو سکتا ہے اس کا احاطہ کرتا ہے۔
 
@@ -144,3 +144,11 @@ Lolly کی dependencies میں اعلیٰ یا نازک advisory CI کو روک�
 ## وہ Lolly لوگو کس ذائقے کا ہے؟
 
 کوئی کہتا ہے لیموں، کوئی پودینہ اور کبھی سیب؛ مٹھاس Lolly لاتا ہے، ذائقہ آپ بناتے ہیں!
+
+## Lolly کے نزدیک مواد کی خودمختاری کا کیا مطلب ہے؟
+
+اس پر کنٹرول کہ آپ کا مواد آپ کے چنے ہوئے سسٹمز میں کیسے بنتا، منظم ہوتا، محفوظ ہوتا اور منتقل ہوتا ہے۔ Lolly مقامی پروڈکشن، قابل ایڈٹ کام اور پورٹیبل ٹولز کو سپورٹ کرتا ہے؛ Lolly Work تنظیم کے زیر کنٹرول مشترکہ سروسز شامل کرتا ہے۔ ماخذ کے لائسنس، دستیاب ڈیپنڈنسیز اور ورک فلو کے ڈیٹا کے بہاؤ پھر بھی اہم ہیں۔ [مواد کی خودمختاری کیا ہے؟](/info/content-sovereignty.html) ہر کنٹرول اور اس کی حدیں بیان کرتا ہے۔
+
+## کیا ہم اپنا موجودہ DAM رکھ سکتے ہیں؟
+
+جی ہاں۔ سپورٹڈ DAM ریکارڈ کا ماخذ رہ سکتا ہے جبکہ Lolly Work منتخب اثاثوں کو Lolly ٹولز سے جوڑتا ہے۔ ماخذ تک رسائی، اجازت یافتہ ترامیم، استعمال کے حقوق اور تیار آؤٹ پٹ کی منظوری الگ فیصلے ہیں۔ [اپنے موجودہ DAM کے ساتھ Lolly استعمال کریں](/info/use-with-dam.html) انتظام بیان کرتا ہے، اور [SUSE کا Brandfolder تجربہ](/info/suse-brandfolder.html) اپنانے کے دوران کامیاب استعمال درج کرتا ہے۔

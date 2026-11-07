@@ -6,8 +6,9 @@ Dvě slova znamenají na celé stránce totéž. **Hlavní značka** je značka,
 
 ## Jak Lolly dnes zachází se dvěma značkami
 
-- **Každý kousek kreslí jeden designový systém.** Platí barvy, písmo a pravidla designového systému hlavní značky. Partnerův znak se vkládá jako grafika: obrázek z Assets nebo vlastní znak uložený v designovém systému.
+- **Každý kousek kreslí jeden designový systém.** Platí barvy, písmo a interní pravidla designového systému hlavní značky. Partnerův znak se vkládá jako grafika: obrázek z Assets nebo vlastní znak uložený v designovém systému.
 - **Značka putuje jako soubor.** Soubor designového systému (`.lolly`) nese tokeny, písma a loga. Opakovaně použitelný nástroj vytvořený přes **Share with rules** nese jedno hotové rozvržení se vstupy, které povolíš. Dovednosti značky putují jako vlastní soubory.
+- **Značka může mít také adresu.** [Stránka značky](/info/brand-page.html) zveřejňuje loga, barvy, písmo a pravidla, aby je partner mohl číst, s tokeny a dovednostmi pro jeho nástroje.
 - **Lolly kontroluje jen pravidla hlavní značky.** Pravidla partnera, například ochrannou zónu nebo minimální velikost, nezná, proto je ověř podle partnerových vlastních směrnic.
 
 ## Sdílej svou značku s partnerem
@@ -17,8 +18,9 @@ Dvě slova znamenají na celé stránce totéž. **Hlavní značka** je značka,
 | Co poslat | Jak | Co partner dostane | Hodí se pro |
 | --- | --- | --- | --- |
 | Soubor designového systému | **Export** v liště nahoře v [Lolly Design System Setup](/info/brand-studio.html#move-a-brand-between-devices) | Tvé tokeny, písma, loga a volbu motivu jako designový systém, na který může přepnout | Partnera, který ve tvé značce vytváří mnoho kousků |
-| Opakovaně použitelný nástroj | V Design **Share with rules** ([Sdílej návrh s pravidly](/info/create-a-tool.html)) | Jedno hotové rozvržení se vstupy, které povolíš, například jeho jméno a logo. Soubor nese vyřešené barvy, písma a obrázky, takže jeho vlastní designový systém pevnou grafiku nepřestyluje | Společný leták, visačku nebo banner, který si každý partner vyplní sám |
+| Opakovaně použitelný nástroj | V Lolly Design **Share with rules** ([Sdílej návrh s pravidly](/info/create-a-tool.html)) | Jedno hotové rozvržení se vstupy, které povolíš, například jeho jméno a logo. Soubor nese vyřešené barvy, písma a obrázky, takže jeho vlastní designový systém pevnou grafiku nepřestyluje | Společný leták, visačku nebo banner, který si každý partner vyplní sám |
 | Dovednosti značky | Místnost **Skills**: **Download skill (.zip)** nebo **Copy as one file** | Tvé psané standardy pro jeho lidi a jeho agenty | Kteroukoli z předchozích možností, když část práce dělá agent |
+| Stránka značky | **Publish a brand page** v Lolly Design System Setup, nebo `lolly system publish`, zapíše složku, kterou umístíš na hosting ([Stránky značky](/info/brand-page.html)) | Tvá aktuální loga, barvy, písmo a pravidla na jedné adrese, s tokeny a dovednostmi pro jeho nástroje. Loga a soubory písem se objeví, když to jejich práva dovolí, a stránka uvádí, co zadržela | Sdílení s lidmi, kterým soubory neposíláš |
 | Tokeny | **Tokens (.json)** v nabídce **More** ve studiu | Prostý dokument designových tokenů, bez písem a log | Partnerovy vlastní designové nástroje nebo build |
 
 ![Design System Setup na Lolly Demo otevřený v místnosti Skills: Export v liště, otevřená nabídka More na Tokens (.json) a Download skill (.zip) a Copy as one file vedle vybrané dovednosti](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dskills&width=1200&height=900&dpi=192&waitMs=1800&waitSelector=.skills-reader-actions&drive=click%3A%5Bdata-ds-more%5D%3Bwait%3A500&format=svg&walker=1&dark=1&filename=partners-send)
@@ -108,22 +110,27 @@ Exportuj stěnu jako PNG, SVG, PDF nebo CMYK PDF pro tisk. Nastav v panelu expor
 
 V terminálu postaví `lolly run logo-wall logos/*.png --output=wall.svg` stěnu ze složky obrázků a CSV se sloupci `logo` a `tier` postaví stěnu s úrovněmi. SVG a PNG nepotřebují prohlížeč ([Stěna sponzorů s úrovněmi](/info/cli-rendering.html#a-sponsor-wall-with-tiers)).
 
+Když sponzor zveřejní [stránku značky](/info/brand-page.html), `lolly run logo-wall --logos-from=<address or folder>` převezme jeho aktuální logo pro danou plochu a vypíše, co jeho stránka říká o použití. Přepínač zopakuj pro každého sponzora.
+
 Logo Wall nezná pravidla žádného sponzora. Tiers a Presence určují velikosti vzájemně, ne minimální velikost sponzora, a nic nekontroluje ochrannou zónu mezi sousedy. Hotovou stěnu zkontroluj podle směrnic každého sponzora ve velikosti, v jaké se vytiskne nebo zobrazí.
 
 ## Co Lolly zatím neumí
 
-- Kousek se kreslí v jednom designovém systému. Barvy, písmo a pravidla partnera nejsou designovým systémem uvnitř kousku a partnerův znak je obrázek.
-- Pravidla partnera se neuchovávají ani nekontrolují: ochranná zóna, minimální velikost a povolené úpravy, například jednobarevná nebo negativní verze. Lolly kontroluje jen pravidla designového systému hlavní značky.
-- Zatím neexistuje partnerská sada: lehký balíček, který by držel loga, barvy a pravidla partnera pro použití v práci jiné značky.
-- Lolly negeneruje lockup ze dvou znaků pro uspořádání „s“, „ve spolupráci s“ nebo „od“. Hotový lockup přidej jako vlastní znak.
-- Pro celé zařízení je aktivní jeden designový systém, takže dvě značky nelze otevřít vedle sebe.
-- Soubor designového systému je kopie značky tak, jak byla exportována, a nic tu kopii neaktualizuje. Soubor designového systému exportovaný z aplikace nenese dovednosti značky, takže je pošli jako vlastní soubory.
-- Export zaznamenává designový systém a barevnou variantu hlavní značky, ne značku partnera.
+- Kousek se kreslí v jednom designovém systému. Partnerovy barvy, písmo a pravidla nejsou designový systém uvnitř kousku a partnerův znak je obrázek.
+- Partnerova pravidla se neuchovávají ani nekontrolují: ochranná zóna, minimální velikost a povolené úpravy, například jedna barva nebo obrácená. Lolly kontroluje jen interní pravidla hlavní značky.
+- Zatím neexistuje partnerská sada: lehký balíček, který by držel partnerova loga, barvy a pravidla pro použití uvnitř práce jiné značky.
+- Lolly nevytváří lockup ze dvou znaků pro uspořádání „s“, „ve spolupráci s“ nebo „od“. Hotový lockup přidej jako vlastní znak.
+- Jeden designový systém je aktivní pro celé zařízení, takže dvě značky nelze mít otevřené vedle sebe.
+- Soubor designového systému je kopie značky tak, jak byla exportována, a nic kopii neaktualizuje. Soubor designového systému exportovaný z aplikace nenese dovednosti značky, proto je pošli jako vlastní soubory.
+- Export zaznamenává designový systém a colourway hlavní značky, ne partnerovu značku.
+- Logo převzaté ze stránky značky je obrázek ve svém řádku a řádek si stránku nepamatuje. Nic neukazuje, kdo stránku zveřejnil, takže adresu zkontroluj sám/sama.
+- Hostovaná webová aplikace nemůže stáhnout stránku jiné značky, protože její Content Security Policy povoluje jen pojmenované hostitele. Převezmi logo v terminálu, nebo ulož soubor a přidej ho v **Assets**.
 
 ## Kam dál
 
-- **[Architektury značky](/info/brand-architectures.html)**: co-branding, white label a další uspořádání, s tím, co v Lolly udělat u každého z nich.
+- **[Architektury značky](/info/brand-architectures.html)**: společná značka, white label a další uspořádání, s tím, co dělat v Lolly pro každé.
 - **[Sdílej návrh s pravidly](/info/create-a-tool.html)**: opakovaně použitelné nástroje s pevným rozvržením a vstupy, které zvolíš.
-- **[Dovednosti značky](/info/brand-skills.html)**: jak se dovednosti píší, čtou a předávají agentovi.
+- **[Dovednosti značky](/info/brand-skills.html)**: jak se dovednosti píšou, čtou a předávají agentovi.
 - **[Lolly Design System Setup](/info/brand-studio.html)**: loga, vlastní znaky a přesun designového systému mezi zařízeními.
-- **[Tvůrčí práva a kredity](/info/creative-rights.html)**: co Lolly zaznamenává o dílech, která kreslí.
+- **[Stránky značky](/info/brand-page.html)**: zveřejni svou značku na jedné adrese a převezmi partnerovo logo z jeho.
+- **[Tvůrčí práva a uvedení autorů](/info/creative-rights.html)**: co Lolly zaznamenává o dílech, která kreslí.

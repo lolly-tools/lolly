@@ -1,6 +1,8 @@
-# Design System Setup
+# Lolly Design System Setup
 
-Seu logotipo, suas cores e suas fontes pertencem a um só lugar, para que todas as ferramentas, páginas e exportações desenhem com eles. Esse lugar é o **Design System Setup**, em `#/start`.
+<a id="design-system-setup"></a>
+
+Seu logotipo, suas cores e suas fontes ficam em um só lugar, para que toda ferramenta, página e exportação desenhe com eles. Esse lugar é o **Lolly Design System Setup**, em `#/start`.
 
 Comece com o que você tiver. Solte um logotipo e o Lolly lê as cores dele. Escolha uma fonte, ou solte o arquivo de fonte que a sua empresa licencia. Cada mudança aparece no app inteiro na hora. Seu logotipo, suas fontes e seus tokens ficam neste dispositivo. Escolher uma Google Font é a única etapa que sai do dispositivo: o Lolly pergunta antes e depois busca a família uma vez.
 
@@ -94,9 +96,9 @@ A sala cresce com o sistema de design: uma primeira visita é uma decisão, e o 
 
 ### A primeira cor
 
-Um sistema sem cores próprias abre com um chip grande e um campo, com uma linha dizendo que funções, tons e configurações de impressão chegam conforme o sistema cresce.
+Um sistema sem cores próprias mostra os neutros do modelo inicial, abertos em um grupo próprio, e no topo da sala um campo tracejado de colar e soltar: um chip grande e um campo. Solte uma imagem ou uma lista de cores em qualquer ponto do campo, e o Lolly lê as cores do que você soltou.
 
-- **O chip é o seletor.** Pressione **Pick a colour** e o cartão OKLCH do estúdio abre, preenchido com o que o campo contiver: um nome, a roda, os quatro seletores, o alfa e **Stored as**, com **Cancel** e **Add colour** no rodapé. Nada chega ao sistema até você pressionar **Add colour**.
+- **O chip é o seletor.** Pressione **Pick a colour** e o cartão OKLCH do estúdio abre, preenchido com o que o campo contiver: primeiro o nome e o hex da cor, e depois, em **Fine-tune**, os espaços de cor, a roda, os quatro seletores e o alfa, com **Cancel** e **Add colour** no rodapé. Nada chega ao sistema até você pressionar **Add colour**.
 - **O campo aceita qualquer notação**: `#e0452b`, `rgb(224 69 43)`, `oklch(58% .19 32)` ou um nome de cor. Cole uma lista e ela vira uma fileira de chips para adicionar um de cada vez ou com **Add all**.
 - **Mais duas formas de entrar.** **Pick a colour from the screen** usa o conta-gotas onde o navegador tem um, e **Take colours from an image** lê uma captura de tela ou foto deste dispositivo.
 - **Add nunca fica desativado.** Com o campo vazio, ele abre o seletor; um texto que ele não consegue ler recebe uma linha sob o campo avisando isso.
@@ -106,23 +108,65 @@ Sua primeira cor vira a **primary**, e um chip confirma, como *"Primary is now V
 
 ### Conforme a paleta cresce
 
-Suas cores ficam ao lado de uma prévia **In context** em tela larga, e acima dela em uma menor. A prévia mostra um pôster, gráfico ou cartão de interface na sua paleta. As cores iniciais ficam no próprio grupo recolhível.
+Suas cores ficam ao lado de uma prévia **In context** em tela larga, e acima dela em uma menor. A prévia mostra um pôster, gráfico ou cartão de interface na sua paleta. As cores iniciais ficam no próprio grupo recolhível, que se recolhe quando o sistema passa a ter cores próprias, e o campo de colar e soltar vira uma única linha compacta. A exportação fica em **Export**, na barra, e na sala Tokens, então o cabeçalho da sala não traz nenhuma.
 
 ![A sala Colours no Lolly Demo: a paleta em grupos recolhíveis, cada cor com seu nome e hex, e o download da paleta no cabeçalho](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-roles-fold%5D%3Esummary%3Bwait%3A500&format=svg&walker=1&localize=1&dark=1&filename=brand-colours)
 
-![A sala Colours depois de adicionar uma cor, com sua paleta e uma prévia de composição ao vivo](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dpick&width=1440&height=840&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-editor-add%5D%3Bwait%3A900&format=svg&walker=1&dark=1&filename=bs-colour-first)
+![A sala Colours no Lolly Demo depois de adicionar uma cor: a tabela de papéis de cor e, ao lado de uma prévia de composição ao vivo, o chip da nova cor com Use as Lead? e Fine-tune](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dpick&width=1440&height=840&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-editor-add%5D%3Bwait%3A900&format=svg&walker=1&dark=1&filename=bs-colour-first)
 
-### Roles: o que as ferramentas leem
+### Papéis de cor: como as cores se chamam
 
-![The Colour roles table on Lolly Demo after choosing the suggested words Main, Accent, Supporting and Tertiary: the colourway chips, then each role with its light and dark colour, Main read as the lead colour and Accent as the partner colour, Supporting and Tertiary read by name only and marked Copied, and the readings no role fills listed under the table](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&system=wefthouse&width=2720&height=2000&dpi=192&waitMs=1800&cropSelector=%5Bdata-be-roles-fold%5D&format=svg&walker=1&dark=1&filename=bs-colour-roles)
+O sistema de design diz como as suas cores se chamam e para que serve cada uma, e o Lolly lê isso. Os **Papéis de cor** ficam no topo da sala Colours. Em tela larga, **In context** divide a vista, então uma mudança aparece no pôster, no gráfico e no cartão de interface enquanto você a faz.
 
-As **Roles** dizem qual cor faz cada papel em todas as ferramentas e exportações. São opcionais (três cores soltas e nenhuma função é um sistema perfeitamente bom), qualquer cor pode assumir uma e a leitura de contraste é medida contra a superfície, APCA primeiro. Cada linha de função mostra uma cor própria com força total, uma cor inicial no lugar dela, ou **↳ follows Primary**.
+![A tabela de papéis de cor no Wefthouse, uma marca têxtil inventada, nas próprias palavras dela: os chips de variação de cores Indigo, Madder e Weld e, depois, Main, Accent, Supporting e Tertiary, cada um com sua cor clara e escura, lidos como a cor principal, a cor do parceiro e só pelo nome, com Background, Text, Quiet text e Hairlines listados sob a tabela como as leituras que nenhum papel preenche](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&system=wefthouse&width=2720&height=2000&dpi=192&waitMs=1800&cropSelector=%5Bdata-be-roles-fold%5D&format=svg&walker=1&dark=1&filename=bs-colour-roles)
 
-Quando a paleta tem tons, a faixa mostra as sete funções que uma ferramenta pode ler: Primary, Secondary, Surface, Text, Muted, Edge e On primary. On primary é derivada da primária, mostra **Derived** e não tem seletor.
+A tabela tem quatro colunas, e no celular cada linha vira um cartão que mantém o claro e o escuro lado a lado:
+
+| Coluna | O que ela guarda |
+|---|---|
+| **Role** | A palavra do próprio sistema de design, que você pode editar no lugar, e uma linha dizendo para que serve a cor |
+| **Light** e **Dark** | A cor naquele visual para a variação de cores escolhida, com o nome ou o valor dela e o contraste |
+| **O Lolly lê isto como** | O que uma ferramenta faz com o papel, nas palavras do próprio Lolly |
+
+**Como o Lolly lê um papel.** Cada leitura cabe a um só papel, então escolher uma leitura que outro papel já tem move essa leitura para cá. O Lolly nunca tira significado de uma palavra.
+
+| Leitura | O que decorre dela |
+|---|---|
+| **Cor principal** | Formas grandes, botões, a cor com que uma ferramenta começa |
+| **Cor do parceiro** | A segunda cor a que uma ferramenta recorre |
+| **Fundo** | Fica atrás de todo o resto |
+| **Texto** | Títulos e texto corrido |
+| **Texto discreto** | Legendas e letras miúdas |
+| **Filetes** | Linhas, bordas e divisores |
+| **Só pelo nome** | Nenhuma ferramenta escolhe o papel por conta própria. Ele é oferecido em todo campo de cor e no Design, onde a escolha continua vinculada, então acompanha a variação de cores |
+
+Uma leitura que nenhum papel preenche fica como o sistema de design a define, e a sala lista essas leituras sob a tabela. Um papel que tem o mesmo id de uma leitura, como um papel chamado Primary, é essa leitura e não pode ser movido.
+
+**Valores.** Pressione um valor para escolher a cor daquele papel, naquele visual, na variação de cores escolhida. **Igual ao claro** faz o valor escuro acompanhar o claro até você escolher uma cor própria. O chip **Aa** mostra o texto que o Lolly escolhe para ficar sobre a cor, e a linha sob o valor diz como esse texto se lê, em cada visual: **O texto é legível**, **Só texto grande** ou **Difícil de ler como texto**. Isso diz respeito ao texto sobre a cor e não é nada contra a cor em si, que ainda pode funcionar para formas e áreas grandes. Um papel lido só pelo nome mostra as mesmas palavras sem a cor de aviso, porque nenhuma ferramenta põe texto sobre ele por conta própria. Os números por trás das palavras, APCA primeiro e WCAG depois, estão na dica e no seletor. **Cor de texto própria** marca um valor cujo arquivo declara a cor do texto, que permanece. **Copied** marca um valor que veio de outra variação de cores ou da cor do parceiro e que ninguém escolheu ainda; **Manter esta cor**, no seletor, fixa o valor.
+
+**Pontos de partida.** Um sistema de design sem papéis próprios mostra as palavras de hoje: Primary, Secondary, Surface e Text. Nada é gravado até você mudar um. **+ Adicionar um papel** oferece **Primary, Secondary** ou **Main, Accent, Supporting, Tertiary** como sugestões, ou quaisquer palavras que você digitar, com a leitura que cada uma receberia. As duas primeiras palavras viram a cor principal e a cor do parceiro. As ferramentas continuam desenhando as mesmas cores, e em um sistema com uma só cor principal a primeira variação de cores recebe o nome dessa cor.
+
+**Renomear, reordenar, remover.** Renomear muda só a palavra, então tudo o que usa o papel continua funcionando. Arraste um papel pela alça, ou pressione Espaço na alça, use as setas e pressione Espaço para soltar. **Remove** diz o que ainda usa o papel. Quando ferramentas o leem, **Remover e manter essas cores** deixa cada leitura com a cor que ela desenha agora. Uma regra da casa, um grupo de guias, um campo de ferramenta ou outro token que use o papel o mantém até esse uso mudar. Um documento do Design salvo também pode usar um papel pelo nome, e o Lolly não enxerga isso no arquivo de tokens: um documento que faça isso informa a cor como não resolvida.
+
+**Um arquivo escrito à mão.** As cores que um arquivo de tokens guarda e que nenhum papel declara são listadas em **Neste arquivo, ainda sem papel**, cada uma com um campo para uma palavra e **Criar um papel**. Elas continuam funcionando pelo nome de qualquer forma. Um token com dígitos no nome não pode ser um papel, então fica no arquivo e continua funcionando pelo caminho. Um registro no arquivo que não valida mostra a tabela sem controles e diz por quê.
+
+**O resto da sala fala as mesmas palavras.** Os chips, a linha **Use as** da amostra e o grupo **Papéis de cor** da paleta usam todos as palavras do sistema de design, e o bloco de um papel de cor abre o valor dele. Os arquivos exportados não registram nada novo sobre papéis: as cores em uma renderização mudam porque os tokens mudaram.
+
+**Para onde vão as palavras.** As palavras e as descrições viajam com o sistema de design. Os agentes as leem no resumo de design, em `lolly://tokens` e no `AGENTS.md` de uma página da marca, o terminal as mostra em `lolly system status`, e uma página da marca as lista em `brand.json` e mede um par de contraste para cada papel. Cada formato de exportação guarda o que tem espaço para guardar: os arquivos DTCG e Tokens Studio guardam tudo, o `DESIGN.md` guarda as palavras e as leituras, e um tema do PowerPoint guarda só a ordem da marca. [Colour roles in other formats](/info/design-tokens.html#colour-roles-in-other-formats) traz a lista completa. As palavras são sempre citadas como dados do sistema de design, nunca lidas como instruções.
+
+**Onde uma cor é escolhida.** Todo campo de cor em uma ferramenta e no Lolly Design começa pelos papéis do sistema de design, na ordem própria dele, com cada palavra e para que serve a cor à mostra. O **Aa** ao lado de um papel escolhe a cor que fica sobre esse papel. O restante vem depois, em **Outras cores**, sem as cópias próprias de uma variação de cores, as cores "sobre" e qualquer leitura que um papel já preenche. Uma escolha continua vinculada ao papel e acompanha a variação de cores, o campo continua mostrando a palavra seja qual for a variação escolhida, e Settings e Tokens também usam a palavra. Um sistema de design sem papéis mantém a grade de amostras que sempre teve.
+
+### Toda cor que uma ferramenta lê
+
+Com os **Papéis de cor** fechados, as primeiras decisões abrem a sala como chips, cada um mostrando a cor que faz o papel e o nome dela. Em um sistema sem palavras próprias, eles são **Primary**, **Secondary**, **Surface** e **Text**. Pressione um chip para escolher a cor dele entre as amostras da própria paleta. **Toda cor que uma ferramenta lê**, no rodapé de **Papéis de cor**, tem a faixa completa.
+
+A faixa mostra as sete cores que uma ferramenta pode ler: Primary, Secondary, Surface, Text, Muted, Edge e On primary, nas palavras do próprio sistema de design onde ele as tem. Cada uma faz o mesmo papel em todas as ferramentas e exportações. Nenhuma precisa ser definida (três cores soltas formam um bom sistema), qualquer cor pode ocupar uma e a leitura de contraste diz como o texto se lê, medido contra a superfície, APCA primeiro. Cada linha mostra uma cor própria com força total, uma cor inicial no lugar dela, ou **↳ follows Primary**.
+
+On primary é derivada da primária, mostra **Derived** e não tem seletor. O seletor **Light** e **Dark** ao lado dela, e o que fica ao lado de **In context**, escolhem qual visual a faixa, a paleta e a prévia mostram.
 
 O destaque do próprio app segue o sistema de design por padrão. Essa é a configuração **Interface follows the design system** em **Settings → Appearance**; desativá-la deixa o chrome do app neutro, enquanto ferramentas, canvases e exportações seguem o sistema de design de qualquer forma.
 
-**Variações de cores.** Um sistema de design pode guardar várias cores principais, cada uma escolhida por peça. A linha **Variações de cor**, no topo de **Papéis de cor**, mostra um chip por variação de cores, com **Padrão** na canônica. **+ Adicionar** cria uma nova variação a partir de uma das cores da paleta. Escolha um chip, e a faixa de funções, a paleta e as prévias passam a editar essa variação, no visual que o seletor **Claro** e **Escuro** define; a variação escolhida pode ser renomeada, duplicada, definida como padrão ou removida. Em um sistema com variações de cores, cada variação precisa da própria primária e secundária, e da própria superfície quando as variações tingem o fundo, então essas funções continuam definidas no editor de amostras. [Add colourways to a design system](/info/colourways.html#add-colourways-to-a-design-system) traz os passos e o formato de tokens, e [Lolly Demo in use](/info/lolly-demo-in-use.html#colourways-on-real-work) mostra variações de cores em trabalhos reais.
+**Variações de cores.** Um sistema de design pode guardar várias cores principais, cada uma escolhida por peça. A linha **Variações de cor**, no topo de **Papéis de cor**, mostra um chip por variação de cores, com **Padrão** na canônica. **+ Adicionar** cria uma nova variação a partir de uma das cores da paleta. Escolha um chip, e a tabela, a faixa, a paleta e as prévias passam a mostrar essa variação de cores; a variação escolhida pode ser renomeada, duplicada, definida como padrão ou removida. Em um sistema com variações de cores, cada variação precisa da própria primária e secundária, e da própria superfície quando as variações tingem o fundo, então esses papéis continuam definidos no editor de amostras. [Add colourways to a design system](/info/colourways.html#add-colourways-to-a-design-system) traz os passos e o formato de tokens, e [Lolly Demo in use](/info/lolly-demo-in-use.html#colourways-on-real-work) mostra variações de cores em trabalhos reais.
 
 ### Encontre mais cores
 
@@ -165,7 +209,7 @@ Quatro seções recolhidas ficam abaixo da prévia e das funções. Cada uma abr
 
 ### A paleta e cada amostra
 
-A paleta lista suas cores em grupos recolhíveis, cada um com o próprio **+ Add**. Crie e renomeie grupos como quiser. Uma função nunca cria um segundo bloco: um bloco para o qual uma função aponta usa uma pequena marca (**P**, **S**, **Su**, **T**). **Colour chart**, abaixo dos blocos, mostra as mesmas cores na **Wheel** OKLCH (arraste um ponto para recolorir, clique no espaço vazio para adicionar uma amostra) e no gráfico **Gamut**, que mostra onde termina a faixa exibível. `#/start?area=color&focus=chart` abre o gráfico diretamente.
+A paleta lista as suas cores em grupos recolhíveis, cada um com o próprio **+ Adicionar**. Crie e renomeie grupos como quiser. Um papel nunca cria um segundo bloco: o bloco para o qual um papel aponta leva o nome do papel, como **Primary**. O **Colour chart**, abaixo dos blocos, mostra as mesmas cores na **Wheel** OKLCH (arraste um ponto para recolorir, clique no espaço vazio para adicionar uma amostra) e no gráfico **Gamut**, que mostra onde termina a faixa exibível. `#/start?area=color&focus=chart` abre o gráfico diretamente.
 
 ![O painel de paleta, cada grupo dobrável, com o download da paleta no cabeçalho](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dgenerate%26seed%3D%2523e0452b&width=1440&height=1000&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-roles-fold%5D%3Esummary%3Bwait%3A500%3Bclick%3A%5Bdata-be-add-ramp%3D%22primary%22%5D%3Bwait%3A1200&cropSelector=.be-split-side&walker=1&format=svg&dark=1&filename=bs-palette-pane)
 
@@ -173,19 +217,19 @@ A paleta lista suas cores em grupos recolhíveis, cada um com o próprio **+ Add
 
 Clique em uma amostra para abrir o editor dela:
 
-- **Rename** da amostra.
-- **Defina a cor** em controles OKLCH, ou em **Hex**, **HSL**, **RGB** ou **CMYK**. O campo de valor lê e grava no espaço ativo. O CMYK aqui define a cor da tela por conversão; para fixar tintas exatas, use **Print substitutes**.
-- **Stored as** escolhe como a amostra é salva: **LCH** (o padrão, perceptual e de gama ampla), Hex, RGB ou HSL.
-- **Use as** dá uma função à amostra diretamente. Pressione de novo uma função destacada para limpá-la.
-- **Print substitutes** (recolhido): trave o **CMYK** de **Auto** para valores de tinta exatos, ou defina uma **Spot colour** com um **Name** (como `PANTONE 186 C`), um **Book** opcional e um **Finish** para hot stamping, relevo, baixo-relevo, verniz localizado, soft touch ou corte especial, vinco ou picote. Uma gráfica usa esses bloqueios quando você exporta um PDF ou TIFF CMYK; veja [Colour profiles](/info/exporting.html#colour-profiles).
-- **In other spaces** (recolhido): um valor por espaço de cor, derivado ou criado por você, e um valor criado por você vale na exportação.
+- **Rename** a amostra.
+- **Defina a cor** em seletores OKLCH, ou em **Hex**, **HSL**, **RGB** ou **CMYK**. O campo de valor lê e grava no espaço ativo. Aqui o CMYK define a cor de tela por conversão; para fixar tintas exatas, use **Print substitutes**.
+- **Stored as** escolhe como a amostra é salva: **LCH** (o padrão, perceptual e de gamute amplo), Hex, RGB ou HSL.
+- **Use as** dá um papel à amostra diretamente, nas palavras do próprio sistema de design onde ele as tem. Pressione de novo um papel destacado para limpar o papel.
+- **Print substitutes** (recolhido): trave o **CMYK** de **Auto** para valores exatos de tinta, ou defina uma **Spot colour** com um **Name** (como `PANTONE 186 C`), um **Book** opcional e um **Finish** para foil, relevo, baixo-relevo, verniz localizado, soft touch ou um corte, vinco ou picote. Uma gráfica usa essas travas quando você exporta um PDF ou TIFF em CMYK; veja [Colour profiles](/info/exporting.html#colour-profiles).
+- **In other spaces** (recolhido): um valor por espaço de cor, derivado ou criado por você, e um valor criado por você vence na exportação.
 
 **Excluir uma amostra** é seguro. Tons derivados e funções de tema são ocultados, então nada que os leia quebra, enquanto as cores que você adicionou são removidas.
 
 ::: details Trabalhar com muitas amostras
 Cada amostra tem uma alça de arrastar. Arraste para reordenar dentro de um grupo, ou dê foco à alça, pressione Space, use as setas e pressione Space de novo para soltar; Escape cancela. No celular, a paleta mostra quatro cores por linha e as alças aparecem no modo Select, em vez de uma linha sob cada cor. Para mover cores entre grupos, use o controle **Group** do editor ou selecione várias e use **Move to**.
 
-A seleção não precisa de modo. A barra aparece com o primeiro bloco selecionado e some com o último.
+A seleção não precisa de uma chave separada. A barra e as caixas de seleção aparecem com o primeiro bloco selecionado e saem com o último.
 
 - **Arraste no espaço vazio** para desenhar um retângulo; todo bloco que ele toca entra na seleção, entre grupos. Uma seção recolhida não adiciona nada.
 - **Shift-clique** pega um intervalo na ordem de leitura, **Cmd/Ctrl-clique** alterna um bloco e um clique simples abre o editor.
@@ -245,11 +289,11 @@ Os tokens são os valores nomeados por trás do sistema de design: cores, fontes
 
 - **O cabeçalho** traz um exemplo do seu próprio sistema (*Primary is Spearmint, #033633*) e as ações de arquivo: **Download** (o sistema inteiro como design tokens, ou a paleta em outros cinco formatos), **Copy CSS** e **Add from…** para ler um arquivo JSON de volta.
 - **Os blocos** contam cada tipo de token e levam à respectiva seção: Colours, Type, Logos, Shape and spacing, More e All tokens. Eles contam o que cada seção guarda; uma seção que guarda só o que veio com o modelo inicial em branco leva uma etiqueta **Starter**, e um sistema que veio com o app conta o próprio material sem etiqueta. No celular, os blocos quebram em duas linhas de três.
-- **Colours** começa com os pares que as ferramentas combinam (texto sobre superfície, sobre primária, secundário sobre superfície) com uma leitura APCA em claro e escuro, e sinaliza **Weak contrast** onde um par fica abaixo. Depois, cada grupo de cores: uma rampa como uma fileira de chips, outras cores com o valor e a referência que as ferramentas usam, como `{color.brand.spearmint}`. Pressione uma referência para copiá-la. **Edit in Colours** abre um grupo na sala Colours.
+- **Colours** começa com os pares que as ferramentas combinam (texto sobre superfície, sobre primária, secundário sobre superfície) com uma leitura APCA em claro e escuro, e sinaliza **Weak contrast** onde um par fica abaixo. Depois, cada grupo de cores: uma rampa como uma fileira de chips, outras cores com o valor e a referência que as ferramentas usam, como `{color.brand.spearmint}`. Pressione uma referência para copiá-la. **Edit in Colours** abre um grupo na sala Colours. Em um sistema de design com [papéis de cor](#colour-roles-what-the-colours-are-called), **Colour roles** vem primeiro, com cada papel uma só vez, nas palavras e na ordem do próprio sistema. Um papel guarda uma cor para cada esquema de cores e cada visual, e essas cores ficam com o papel em vez de aparecerem como cores próprias: mude-as na tabela Colour roles.
 - **Type** e **Logos** listam a fonte de cada função e cada slot de logotipo, com **Edit in Type** e **Edit in Logos** quando você já tem os seus.
 - **Shape and spacing** contém **Rounded corners** (`shape.radius`) e **Spacing rhythm** (`space.base`). Cada um mostra *Lolly default* até você mover o controle deslizante e *Yours* depois, salva na hora e pode ser desfeito.
 - **More tokens** acrescenta espaçamento, dimensionamento, espessura de traço, opacidade, rotação, números simples e sombras, armazenados como [design tokens](/info/design-tokens.html) padrão.
-- **App appearance (advanced)** lista as cores, tamanhos e sombras que as telas do próprio Lolly usam, e **Inspect every token (advanced)** pesquisa e edita qualquer valor armazenado, mostrando cada mudança para revisão antes.
+- **App appearance (advanced)** lista as cores, tamanhos e sombras que as telas do próprio Lolly usam, e **Inspect every token (advanced)** pesquisa e edita qualquer valor armazenado, mostrando cada mudança para revisão antes. Ali, os valores de um papel de cor em cada esquema de cores são listados com o papel: escolha o token do papel para ver uma linha por esquema de cores, claro e escuro lado a lado, e a linha de contagem diz quantos valores os papéis guardam. Um sistema de design somente leitura mostra a mesma lista.
 
 Uma seção sem nada oferece o caminho para preencher a lacuna: **Pick a colour**, **Choose a face** ou **Add a logo**.
 
@@ -261,20 +305,22 @@ Solte os arquivos que a sua marca guarda, além dos logotipos: arquivos **vector
 
 **Rules** põe em prática as escolhas da sua marca: o que as pessoas podem mudar, o que fica fixo e o que o Lolly pode verificar.
 
-![Rules no Lolly Demo: um cartão Brand rules vazio com Add your first rule, depois Try your brand in use com os exemplos prontos para renderizar](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dusage&width=1440&height=1200&dpi=192&waitMs=2400&cropSelector=%23start-panel-usage&format=svg&walker=1&dark=1&filename=bs-usage-rules)
+![Rules no Lolly Demo: quatro regras da casa, cada uma marcada como Checked in Lolly Design e Required ou Advisory, depois Try your design system in use com os exemplos prontos para renderizar](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dusage&width=1440&height=1200&dpi=192&waitMs=2400&cropSelector=%23start-panel-usage&format=svg&walker=1&dark=1&filename=bs-usage-rules)
 
 **Brand rules** lista suas regras. **Add rule** (ou **Add your first rule**) abre um formulário curto:
 
 - um **Rule name** nas suas próprias palavras, como *Beacon accents*;
-- o **Check**: **Colour choices**, **Font choices**, **Fixed artwork** ou **Text length**, com a função de marca que ele usa, sob o seu próprio nome para a função;
-- o **Example** ao qual se aplica (Poster, Title slide, Content slide ou Chart), o **Mode** e se é **Required** ou **Advisory**;
+- o **Check**: **Colour choices**, **Font choices**, **Fixed artwork** ou **Text length**, com o papel de marca que ele usa, sob o seu próprio nome para o papel;
+- o **Example** ao qual se aplica (Poster, Title slide, Content slide ou Lolly Chart), o **Mode** e se é **Required** ou **Advisory**;
 - **Reviewed by**, e depois **Save draft** ou **Approve & save**.
 
 A aprovação registra a sua própria decisão neste dispositivo. As regras obrigatórias aprovadas restringem o pôster reutilizável, e as verificações cobrem apenas os PNGs de exemplo; elas não alteram nenhuma outra ferramenta.
 
-As regras que um sistema de design traz no arquivo de tokens, como pares de cores aprovados, peso e alinhamento do texto ou um logotipo por superfície, são listadas aqui como **Checked in Design**. O Design as verifica camada por camada no cartão **Before you export** do painel de exportação, e o `lolly check` faz o mesmo para um documento do Design salvo ([Before you export](/info/design.html#before-you-export)). Uma regra para a qual esta versão não tem verificador é mantida como fornecida e marcada como **Unchecked**.
+As regras que um sistema de design traz no arquivo de tokens, como pares de cores aprovados, peso e alinhamento do texto ou um logotipo por superfície, são listadas aqui como **Checked in Lolly Design**. O Lolly Design as verifica camada por camada no cartão **Before you export** do painel de exportação, e o `lolly check` faz o mesmo para um documento do Lolly Design salvo ([Before you export](/info/design.html#before-you-export)). Uma regra para a qual esta versão não tem verificador é mantida como fornecida e marcada como **Unchecked**.
 
-**Try your brand in use** renderiza quatro exemplos da revisão atual com **Render & check examples**. Escolha um **Brand mode** e **Try your own text** para o título, o texto de apoio e o texto dos slides. Cada exemplo informa o que foi medido, com **See checks & sources** e **Download check report**, e **Make reusable poster** baixa um `.lolly` cujo layout fixo e cujas escolhas de entrada aprovadas viajam com o arquivo. Os exemplos são locais: nada é publicado nem aprovado ao rodar uma verificação.
+O Lolly Demo traz quatro regras da casa aprovadas. Títulos nunca são compostos em maiúsculas: essa regra é obrigatória, então o `lolly check` informa um título em maiúsculas como erro. As outras três são consultivas. O texto corrido é alinhado à esquerda. As marcas primárias ficam sobre superfícies claras e as marcas invertidas sobre as escuras. Linhas tracejadas significam solte aqui.
+
+**Try your design system in use** renderiza quatro exemplos da revisão atual com **Render & check examples**. Escolha um **Mode** e **Try your own text** para o título, o texto de apoio e o texto dos slides. Cada exemplo informa o que foi medido, com **See checks & sources** e **Download check report**, e **Make reusable poster** baixa um `.lolly` cujo layout fixo e cujas escolhas de entrada aprovadas viajam com o arquivo. Os exemplos são locais: nada é publicado nem aprovado ao rodar uma verificação.
 
 Uma compilação que vem com uma marca fixa mostra as mesmas regras e exemplos somente leitura, sob *This brand is set*.
 
@@ -288,7 +334,7 @@ Uma compilação que vem com uma marca fixa mostra as mesmas regras e exemplos s
 
 **Add from…**, na barra, abre um seletor que pergunta o que você tem, não qual é o formato:
 
-- **Design tokens or a design file**: JSON DTCG ou Tokens Studio, um projeto Penpot, um zip de conjuntos de tokens, um pacote de sistema de design do Lolly ou um SVG.
+- **Design tokens or a design file**: JSON DTCG ou Tokens Studio, um projeto Penpot, um zip de conjuntos de tokens, um pacote de sistema de design do Lolly, um SVG, um `DESIGN.md` ou uma pasta de página da marca.
 - **PDF**: um deck ou um arquivo de diretrizes, lido neste dispositivo em busca de cores, marcas e fontes incorporadas.
 - **Logo or screenshot**: uma imagem vira uma paleta sugerida, lida neste dispositivo. Ele lê cores, não a fonte nem o layout.
 - **Saved web page**: um arquivo HTML e seus arquivos CSS, ou HTML ou CSS colado, até 20 arquivos e 2 MB. Apenas o texto que você fornece é lido: os recursos vinculados não são buscados e os scripts não são executados.
@@ -301,8 +347,18 @@ Escolha a origem de arquivo de design e o cartão seguinte lista os formatos ace
 
 - Um **Lolly design-system pack** (`.lolly`, ou um `.zip` legado) é instalado em uma etapa.
 - Uma exportação do **Penpot** (`.penpot`) traz seus design tokens.
-- Um arquivo **Design Tokens** (W3C DTCG) ou **Tokens Studio** (`.json`) traz seus tokens.
+- Um arquivo **Design Tokens** (W3C DTCG) ou **Tokens Studio** (`.json`) traz seus tokens. Uma descrição que pede a quem lê que ignore instruções, afirma permissões ou pede para executar código é deixada de fora, e a importação diz onde ela estava. Essa é uma verificação linha a linha e deixa passar outras formulações, então leia um arquivo de alguém que você não conhece antes de aplicar os tokens.
 - Um **SVG simples** é analisado em busca de cores para você escolher, e a primeira vira sua primária.
+- Um **`DESIGN.md`** (`.md`) vai para **Try these colours** com os tokens como estão escritos. O texto dele pode ser mantido como rascunho de brand skill, e o cartão sinaliza linhas que pedem a quem lê que ignore instruções, afirme permissões ou execute código. Agentes e páginas da marca não veem um rascunho até você pressionar **Manter esta skill** na sala Skills, e uma skill mantida continua interna.
+- Uma **pasta de página da marca**, escolhida como pasta, solta ou compactada, vai para a mesma revisão. Cada arquivo é conferido com o `brand.json` da pasta, e um que não confere recusa a pasta inteira. Ela adiciona os tokens. Logotipos e fontes ficam na pasta.
+
+O Lolly lê uma página da marca a partir de arquivos que você fornece. Ele não busca o endereço de outro site.
+
+### Um arquivo com palavras próprias para as cores
+
+Um arquivo de tokens ou um `DESIGN.md` pode usar palavras próprias para as suas cores, como main, accent, supporting e tertiary. Quando o Lolly encontra essas palavras, a revisão lista cada uma antes de qualquer coisa ser aplicada: a palavra, a cor dela em cada visual, o token de onde veio e como o Lolly a leria. O Lolly sugere essas leituras só pelas palavras, contra uma lista curta, e não usa nenhum modelo. Uma palavra fora da lista chega como própria da marca, **Só pelo nome**. Renomeie qualquer palavra, diga para que serve, leia-a como outra coisa ou desmarque-a para deixá-la como cor nomeada.
+
+**Install with these roles** grava esses papéis, e **Install without roles** instala o arquivo exatamente como veio. Um arquivo sem essas palavras não mostra nenhuma etapa nova. Um arquivo que declara os próprios papéis, como um que o Lolly gravou, os mostra como estão escritos e os instala sem mudança, e você pode editá-los depois na sala Colours. O terminal não tem revisão, então `lolly system import` mantém um registro declarado e deixa as palavras de outros arquivos como cores nomeadas.
 
 ### Revise uma referência
 
@@ -316,7 +372,7 @@ As importações de PDF e de arquivos de design mantêm os próprios controles d
 
 Abra **Find a look** no Board ou na lista de sistemas de design em Settings. Navegue pelos sistemas salvos neste dispositivo e por alguns exemplos reutilizáveis do Lolly, e pesquise por nome, etiqueta de cor ou fonte declarada. **Closest to my current palette** ordena pela similaridade de cor medida, com as fontes correspondentes servindo de desempate; não é uma nota de qualidade.
 
-Selecione um visual para revisá-lo, ou dois para compará-los lado a lado. Selecionar não muda nada. **Use this saved system** troca para ele, e **Use these colours** aplica as cores de um exemplo pelo ponto de restauração habitual, mantendo suas fontes. **Restore brand settings** recupera o visual anterior. Os sistemas salvos têm **Search tags** editáveis em **Details and design context**. Os exemplos são receitas de cor originais do Lolly, sem coleção copiada de sites e sem conta.
+Clique em um visual para vê-lo em contexto. Visualizar não muda nada. O **Use this look** de cada cartão usa esse visual. Um sistema salvo passa a ser o ativo, o que não edita nada. As cores de um exemplo passam pelo ponto de restauração habitual para o sistema de design aberto, cujos logotipos, fontes e tudo o mais que o exemplo não define continuam como estão. **Compare looks** adiciona uma caixa de seleção a cada cartão, para você escolher dois e compará-los lado a lado. **Restore brand settings** recupera o visual anterior. Os sistemas salvos têm **Search tags** editáveis em **Details and design context**. Os exemplos são receitas de cor originais do Lolly, sem coleção copiada de sites e sem conta.
 
 ![Compare Sunroom e Orchard lado a lado antes de aplicar qualquer um dos sistemas de cor.](/t/url-shot?url=%2F%23%2Fstart&width=1280&height=900&dpi=96&waitMs=3000&format=svg&filename=brand-compare-looks&try=1&drive=click%3A%5Bdata-ds-door%3D%22looks%22%5D%3Bwait%3A500%3Bclick%3A%5Bdata-looks-compare-toggle%5D%3Bclick%3A%5Bdata-look-select%3D%22example%3Asunroom%22%5D%3Bclick%3A%5Bdata-look-select%3D%22example%3Aorchard%22%5D%3Bclick%3A%5Bdata-looks-review%5D%3Bwait%3A500&cropSelector=.ds-looks-comparison&waitSelector=%5Bdata-ds-door%3D%22looks%22%5D&walker=1&rasterDpi=96)
 
@@ -344,13 +400,35 @@ Uma versão publicada é uma **cópia nomeada e permanente** mantida neste dispo
 
 **Publish only** guarda uma versão sem mudar o que as ferramentas seguem; **Publish and make active** faz as ferramentas e o app seguirem aquela versão. **Follow the latest again** põe cada edição no ar no instante em que você a faz.
 
+### Publicar uma página da marca
+
+Uma [página da marca](/info/brand-page.html) é um só endereço para pessoas e para agentes: uma página que mostra os logotipos, as cores, a tipografia e os exemplos, com os mesmos fatos em arquivos ao lado da página. **Publicar uma página da marca**, em Versions & publishing, mostra a página ao vivo e, ao lado dela:
+
+- **Fica público**: cada arquivo, agrupado, com o tamanho dele.
+- **Fora da página**: o que ficou de fora, e por quê. Um logotipo sem licença registrada fica de fora até você marcar o nome dele. Um arquivo de fonte precisa de uma licença registrada que permita repassá-lo, e a página mostra um espécime em contornos quando o arquivo fica de fora. As brand skills internas nunca aparecem.
+- **O que foi verificado**: pares de cores por variação de cores e modo, e as regras da casa. São medições, não um veredito.
+- **Nas suas palavras**: uma declaração de uso e um contato. A página imprime o que você escreve e o Lolly não acrescenta nenhuma licença nem afirmação jurídica. Uma chave desliga a linha "Made with Lolly" no rodapé.
+- **Nas exportações**: uma chave que [registra o endereço da página nas exportações deste sistema de design](/info/brand-page.html#lead-back-from-your-files). Ela fica desligada até você ligá-la, exige um endereço `https` e não viaja com um pacote nem com uma cópia. Um sistema de design bloqueado não mostra a chave, porque quem o gerencia decide.
+
+**Baixar pasta** salva a pasta como um ZIP para você hospedar onde escolher, e nada se torna público até você fazer isso. Em um terminal, `lolly system publish --out=<dir>` grava a mesma pasta. Uma instância que serve páginas da marca também oferece **Publish to** o endereço dela, que é um pressionar explícito e passa pela cadeia de aprovação dela quando existe uma. Um sistema de design gerenciado só publica quando quem o gerencia permite.
+
+### Conectar um agente
+
+**Conectar um agente**, no mesmo lugar, dá um texto para colar e diz o que cada opção pode fazer:
+
+- **`AGENTS.md`** em um projeto: os agentes leem os nomes e as regras do sistema. Ele não desenha nada e não precisa de servidor.
+- **O servidor público do Lolly**: desenha com o Lolly Demo, seja qual for o sistema que você tem aberto aqui. Não precisa de chave.
+- **Sua instância**: desenha com os sistemas que a instância guarda e lê um token de serviço de uma variável de ambiente. A folha dá o nome da variável e nunca mostra um token.
+
+Quando nenhum servidor hospedado desenha com o seu sistema, a folha diz isso.
+
 ## Gerencie seus sistemas de design
 
 Abra **Settings → Preferences → Design systems** para alternar, adicionar ou remover sistemas. **Open** seleciona um sistema e o abre aqui; **Make a new one** cria um sistema local e o abre com o campo de nome pronto. Um sistema fica ativo por vez, para o dispositivo inteiro. [Brand architectures](/info/brand-architectures.html) ajuda a decidir quando uma marca precisa de um sistema de design próprio.
 
 **De onde vem um sistema.** O sistema que o catálogo de uma implantação fornece mostra **Came with this app**, ou **From this instance** em um app conectado a uma. Expanda **Catalogue source** para ver quem o fornece, o recurso de tokens e o namespace dele, e a versão ou o checksum conhecido; se uma atualização falhar, o material em cache é identificado.
 
-**Os sistemas gerenciados são somente leitura.** Um sistema mostra **Managed by this instance** (ou **Managed by this app** no app desktop sem instância) quando o catálogo dele o bloqueia. Você pode usá-lo e baixá-lo, e abri-lo aqui mostra uma nota somente leitura com **Make an editable copy** e **Switch**. Seus próprios sistemas locais continuam editáveis, mesmo quando o gerenciado veio primeiro. Uma compilação com uma marca fixa abre o Design System Setup em *This brand is set*, com os tokens e as regras de uso da marca para leitura.
+**Os sistemas gerenciados são somente leitura.** Um sistema mostra **Managed by this instance** (ou **Managed by this app** no app desktop sem instância) quando o catálogo dele o bloqueia. Você pode usá-lo e baixá-lo, e abri-lo aqui mostra uma nota somente leitura com **Make an editable copy** e **Switch**, e depois os papéis de cor e os tokens dele sem controles de edição. Seus próprios sistemas locais continuam editáveis, mesmo quando o gerenciado veio primeiro. Uma compilação com uma marca fixa abre o Lolly Design System Setup em *This brand is set*, com os tokens e as regras de uso da marca para leitura.
 
 **Todo outro sistema fornecido é seu** para ocultar, editar e redefinir, incluindo o Lolly Demo e o Lolly Starter no lolly.tools. Editar um mantém o nome dele e marca a linha como **Edited here**, e **Reset to original** no menu dele descarta as alterações feitas neste dispositivo. O starter em branco é a exceção: uma primeira alteração ali inicia um sistema de design só seu, então o Lolly pergunta uma vez como chamar o novo sistema. [Lolly Demo in use](/info/lolly-demo-in-use.html#switch-to-your-own) mostra o que o seu próprio sistema substitui.
 
@@ -360,16 +438,17 @@ Escolha **Remove** no menu de um sistema; a confirmação diz qual sistema ficar
 
 Remover um sistema fornecido apenas o oculta: os recursos do catálogo dele permanecem, **Bring back** o mostra de novo e ele volta sozinho se você remover todos os outros. Remover uma cópia importada ou editada não remove o sistema fornecido, seus logotipos nem suas fontes, e se a cópia estava ativa, o sistema fornecido volta a ficar ativo. Remover uma cópia hospedada ativa limpa apenas a conexão dessa cópia; uma instância escolhida separadamente continua selecionada.
 
-Mudar o que um servidor fornece é tarefa de administrador: o operador dele altera o catálogo de origem e reimplanta, ou um administrador do Lolly Work revisa e aplica uma mudança no servidor. As edições aqui continuam locais. Veja [Removing a catalogue design system](/info/configuration.html#removing-a-catalogue-design-system) e [Configuration](/info/configuration.html#supplied-and-local-design-systems).
+Mudar o que um servidor fornece é tarefa de administrador: o operador dele altera o catálogo de origem e reimplanta, ou um administrador do Lolly Work revisa e aplica uma mudança no servidor. As edições aqui continuam locais, com uma exceção: em uma instância do Lolly Work que concede a você `brand.edit`, um sistema gerenciado também oferece **Edit for** essa instância, que abre uma cópia de edição, e **Send to** essa instância, em **Versions**, envia de volta as cores, as variações de cores, os papéis de cor e o endereço da página da marca dele. [Edit this instance from the studio](/info/work-design-system-administration.html#edit-this-instance-from-the-studio) cobre o que uma edição pode mudar e como a instância serve a mudança. Veja [Removing a catalogue design system](/info/configuration.html#removing-a-catalogue-design-system) e [Configuration](/info/configuration.html#supplied-and-local-design-systems).
 
 ## Use o contexto de design fora do app
 
-**Download design context** salva o documento de tokens, as cores resolvidas, as famílias de fontes declaradas, os ids de recursos, as evidências de origem quando registradas, a cobertura e as regras explícitas, sem arquivos de fonte e sem prova de propriedade. A linha de comando lê o arquivo sem servidor: `lolly system import` faz dele o sistema de design do terminal e `lolly system check` verifica as entradas do Design contra o contexto salvo. [Bring your design system](/info/cli.html#bring-your-design-system) cobre a importação e [Which design system a command uses](/info/cli-decks.html#which-design-system-a-command-uses) cobre a verificação, e um cliente MCP lê o mesmo resumo em `lolly://design-context` ([MCP Server](/info/mcp.html)).
+**Download design context** salva o documento de tokens, as cores resolvidas, as famílias de fontes declaradas, os ids de recursos, as evidências de origem quando registradas, a cobertura e as regras explícitas, sem arquivos de fonte e sem prova de propriedade. A linha de comando lê o arquivo sem servidor: `lolly system import` faz dele o sistema de design do terminal e `lolly system check` verifica as entradas do Lolly Design contra o contexto salvo. [Bring your design system](/info/cli.html#bring-your-design-system) cobre a importação e [Which design system a command uses](/info/cli-decks.html#which-design-system-a-command-uses) cobre a verificação, e um cliente MCP lê o mesmo resumo em `lolly://design-context` ([MCP Server](/info/mcp.html)).
 
 ## Para onde ir agora
 
 - **[Using Lolly](/info/using.html)**: as ferramentas, salvar, compartilhar e Assets.
 - **[Brand architectures](/info/brand-architectures.html)**: como divisões, produtos, marcas endossadas, clientes e temporadas se encaixam em sistemas de design, variações de cores e identidades de logotipo.
+- **[Working with partners](/info/partners.html)**: compartilhar a sua marca com um parceiro e trabalhar em uma marca que você recebeu.
+- **[Brand pages](/info/brand-page.html)**: publique seu sistema de design em um só endereço, como um kit de imprensa e um kit para agentes.
 - **[Design Tokens](/info/design-tokens.html)**: o modelo de tokens em que a sua marca é escrita.
 - **[Export a file](/info/exporting.html)**: unidades de impressão, CMYK e os formatos em que a sua marca é renderizada.
-- **[Working with partners](/info/partners.html)**: compartilhar a sua marca com um parceiro e trabalhar em uma marca que você recebeu.

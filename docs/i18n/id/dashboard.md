@@ -1,4 +1,4 @@
-# Settings
+# Pengaturan
 
 Settings adalah tempat Anda mengubah cara Lolly bekerja untuk Anda: detail Anda, design system yang Anda pakai, aksesibilitas, apa yang disimpan di perangkat ini, dan apa yang siap offline. Buka dengan **Settings** di bilah dasar layar beranda, atau dari menu avatar Anda. Ia terbuka di **Preferences**, dengan empat tab lain di sampingnya.
 
@@ -34,9 +34,9 @@ Preferences adalah satu halaman panjang dengan **rel pengaturan** di sisi dan fi
 
 Kartu tema adalah pratinjau langsung dan berlaku begitu Anda memilih satu, hanya di perangkat ini.
 
-![Three theme cards, each previewing its own type and colour, with the active one flagged](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dappearance-section&width=1440&height=1400&dpi=192&waitMs=1600&walker=1&format=svg&cropSelector=.profile-card--appearance&dark=1&filename=pd-theme-picker)
+![Tiga kartu tema, masing-masing menampilkan pratinjau huruf dan warnanya sendiri, dengan yang aktif diberi tanda](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dappearance-section&width=1440&height=1400&dpi=192&waitMs=1600&walker=1&format=svg&cropSelector=.profile-card--appearance&dark=1&filename=pd-theme-picker)
 
-### Accessibility
+### Aksesibilitas
 
 **Settings → Preferences → Accessibility** memuat empat pengaturan kenyamanan untuk aplikasi di sekitar pekerjaan Anda. Masing-masing mati sampai Anda menyalakannya, dan tidak satu pun menjangkau ke dalam kanvas alat atau ekspor, sehingga aplikasi yang lebih tenang tidak pernah menggeser satu piksel pun dari file yang Anda kirim.
 
@@ -51,7 +51,7 @@ Kartu yang sama memuat **Sound**, lapisan lembut suara bantu untuk apa yang Anda
 
 Antarmuka dapat dinavigasi dengan keyboard, kontrol kustom membawa label untuk pembaca layar, dan pratinjau langsung setiap alat diekspos sebagai satu gambar berlabel yang menjelaskan apa yang ditampilkannya.
 
-### Storage
+### Penyimpanan
 
 Pengukur penyimpanan memperhitungkan setiap byte yang disimpan instalasi ini, kategori demi kategori, terhadap apa yang dilaporkan browser.
 
@@ -64,7 +64,7 @@ Di bawah pengukur:
 - **Remove automatic checkpoints older than 30 days** membebaskan ruang History dan mempertahankan versi tersimpan dan bernama.
 - **Clear all my data** menghapus semua yang disimpan Lolly di browser ini, setelah Anda mengetik sebuah kata untuk konfirmasi. [If you clear your browser data](/info/find-your-work.html#if-you-clear-your-browser-data) mencantumkan apa yang hilang.
 
-### Available offline
+### Tersedia offline
 
 Lolly men-cache layar saat Anda mengunjunginya, yang hanya mencakup tempat yang sudah Anda datangi. **Available offline** untuk perjalanan yang sudah Anda lihat akan datang: unduh bagian yang akan Anda perlukan dan perhatikan satu bilah kemajuan, dan semua yang Anda ambil tetap berfungsi tanpa koneksi.
 
@@ -86,13 +86,13 @@ Unduhan dilanjutkan dari tempat berhenti jika Anda membatalkan atau kehilangan k
 - **Leave** menghapus design system, alat, dan katalog instans, dan pekerjaan Anda sendiri tetap ada. Lihat [Use Lolly at your organisation](/info/organisation.html#leaving).
 - Saat Anda login ke sebuah organisasi, **Sign out** mengakhiri sesi ini dan **Sign out everywhere** mengakhiri sesi Anda di setiap perangkat, termasuk yang ini.
 
-## This device
+## Perangkat ini
 
 - <!--i:monitor--> **This Machine** - layar, input, grafis, memori, codec, backend penyimpanan, dan lainnya, dibaca langsung dari sesi ini. Tidak ada yang disimpan dan tidak ada yang dikirim. Terbuka sendiri pada layar lebar, tempat tab ditata dalam dua kolom.
 - <!--i:neurobeat--> **Sound** - suara antarmuka dan loop fokus Neurospicy, satu-satunya sakelar di tab ini yang menulis sesuatu.
 - <!--i:database--> **Storage** - tampilan hanya-baca dari pengukur di [Preferences](#storage), tempat Anda membersihkan atau membawa data.
 
-## Design system
+## Sistem desain
 
 Design system aktif, ditata untuk dibaca. Bila browser ini memiliki dua design system atau lebih, strip sampul kecil di bagian atas mencantumkannya: pilih satu untuk menjadikannya aktif, dan **Undo** pada pemberitahuan berikutnya mengembalikan yang sebelumnya.
 

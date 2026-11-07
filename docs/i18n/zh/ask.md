@@ -2,7 +2,7 @@
 
 输入一个问题，Ask Lolly 会用这些指南中涵盖该问题的章节原文来回答，并注明出处页面，附带一个直达该章节的 **Open in docs** 链接。不生成任何内容：答案是在你的设备上检索、引用并标注出处的。
 
-在引用的章节下面是应用中与同一问题匹配的位置：一个工具、一个实用工具、一个已保存的项目、一个目录素材、一项设置或应用的一个页面。每一行只负责导航。答案中的任何内容都不会更改设置、打开文件或替你行事，与[搜索](/info/search.html)遵循的规则相同。
+在引用的章节下面是应用中与同一问题匹配的位置：一个工具、一个实用工具、一个已保存的项目、一个目录素材、一项设置或应用的一个页面。每一行只负责导航。答案中的任何内容都不会更改设置、打开文件或替你行事，与[Lolly Search](/info/search.html)遵循的规则相同。
 
 ## 提出问题
 
@@ -60,4 +60,4 @@
 
 ---
 
-**相关内容：**[搜索](/info/search.html)，移交问题的搜索栏。[使用 Lolly](/info/using.html)，了解应用的其余部分。[设置](/info/dashboard.html#available-offline)，先把文档下载到离线。
+**相关内容：**[Lolly Search](/info/search.html)，移交问题的搜索栏。[使用 Lolly](/info/using.html)，了解应用的其余部分。[Lolly Settings](/info/dashboard.html#available-offline)，先把文档下载到离线。

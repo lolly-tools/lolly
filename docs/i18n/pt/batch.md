@@ -1,8 +1,10 @@
-# Batch e Multi-edit
+# Lolly Batch e Lolly Multi-edit
+
+<a id="batch-and-multi-edit"></a>
 
 Dois trabalhos surgem quando você produz o mesmo tipo de arquivo com frequência. Às vezes você precisa de muitas versões de um design: um cartão em uma dúzia de idiomas ou todos os tamanhos de um banner. Às vezes você tem vários designs salvos diferentes e quer que uma única mudança chegue a todos eles, como uma nova data ou um novo título.
 
-O **Batch** faz o primeiro trabalho e o **Multi-edit** faz o segundo. Ambos rodam no seu dispositivo e exportam pelo mesmo caminho de renderização das próprias ferramentas.
+O **Lolly Batch** faz o primeiro trabalho e o **Lolly Multi-edit** faz o segundo. Ambos rodam no seu dispositivo e exportam pelo mesmo caminho de renderização das próprias ferramentas.
 
 ::: cols
 ## Batch
@@ -10,9 +12,10 @@ O **Batch** faz o primeiro trabalho e o **Multi-edit** faz o segundo. Ambos roda
 - Um template, muitas linhas. Cada linha é um conjunto de entradas e gera um arquivo.
 - Preencha as linhas digitando, colando de uma planilha ou importando um CSV.
 - Sem limite de linhas; 50 aparecem por página.
-- Abre em **Batch** no cabeçalho de Projects (`#/batch`).
+- Abre em **Lolly Batch** no cabeçalho de Projects (`#/batch`).
 
-## Multi-edit
+<a id="multi-edit"></a>
+## Lolly Multi-edit
 
 - De dois a oito designs salvos diferentes, lado a lado como cartões ao vivo.
 - Uma barra lateral edita as entradas que eles compartilham e depois as de cada cartão.
@@ -22,7 +25,7 @@ O **Batch** faz o primeiro trabalho e o **Multi-edit** faz o segundo. Ambos roda
 
 ## Crie muitas versões de um design
 
-Abra **Projects** e pressione **Batch** no cabeçalho. A grade começa com uma linha: escolha um template nela e depois duplique a linha ou cole dados da sua planilha. Quando aberto de dentro de uma pasta, o Batch devolve você a essa pasta.
+Abra a tela **Projects** e pressione **Batch** no cabeçalho. A grade começa com uma linha: escolha um template nela e depois duplique a linha ou cole dados da sua planilha. Quando aberto de dentro de uma pasta, o Batch devolve você a essa pasta.
 
 ![O Batch em uma grade nova: o nome do arquivo e as ferramentas de linha no topo, e a lista de templates da primeira linha aberta com as ferramentas que você pode escolher](/t/url-shot?url=%2F%23%2Fbatch&width=1440&height=900&dpi=192&waitMs=3500&walker=1&format=svg&dark=1&filename=use-batch-toolbar)
 
@@ -46,9 +49,13 @@ Cada linha guarda as próprias escolhas de tema: claro ou escuro, e uma variaç�
 
 Um CSV leva as escolhas em uma coluna `_themes` depois das colunas de tamanho, com o mesmo JSON do parâmetro de link `_themes`, por exemplo `{"":"dark","colourway":"beach"}`. Uma célula em branco, ou `{}`, significa os padrões do sistema de design. A coluna só é gravada quando alguma linha tem escolhas, então um lote sem nenhuma exporta o mesmo CSV de antes. Na importação, uma célula que não seja uma escolha de tema válida é listada como problema e a linha dela é renderizada com os padrões. A grade ainda não tem controle para mudar as escolhas de uma linha, então defina-as no CSV ou na sessão salva.
 
+### Um idioma para cada linha
+
+Uma ferramenta que imprime o próprio texto, como o Certificate, pode receber uma coluna `language` com um código de idioma curto, como `de`, `ja` ou `ar`. Cada linha então imprime o texto e a data nesse idioma, e as linhas em árabe e urdu são dispostas da direita para a esquerda. Uma célula em branco segue o idioma do app. Um idioma cuja tradução o Lolly ainda não tem é impresso em inglês, data incluída, de modo que um certificado nunca fica traduzido pela metade.
+
 ### Batch, ou Render folder
 
-O Batch gera muitas variantes de um template. Para renderizar de novo sessões que você já salvou, selecione-as em Projects e use **Render selection**, ou **Render folder** para uma pasta inteira; [Find and recover your work](/info/find-your-work.html#find-something-you-saved) cobre as duas.
+O Lolly Batch gera muitas variantes de um template. Para renderizar de novo sessões que você já salvou, selecione-as em Projects e use **Render selection**, ou **Render folder** para uma pasta inteira; [Find and recover your work](/info/find-your-work.html#find-something-you-saved) cobre as duas.
 
 ## Edite vários designs salvos juntos
 
@@ -69,7 +76,7 @@ Cada cartão é desenhado com as escolhas de tema da própria sessão, inclusive
 - **No máximo oito.** Cada cartão monta o próprio runtime ao vivo, e oito é o número que continua responsivo. Um link que peça mais, ou uma sessão que não existe mais, avisa isso em vez de carregar pela metade.
 - **O link é local.** Ele nomeia os seus próprios slots salvos, então reabre esse conjunto neste dispositivo. Não é um link de compartilhamento.
 - **Para algo maior,** escolha **Edit as sheet** na mesma barra de seleção. Ela abre toda a seleção como linhas na grade do lote (`#/batch?s=…`), sem limite de tamanho e sem a regra de mesma ferramenta. As pastas ficam fora dos dois: abra uma pasta na grade com **Sessions → Folders…**, ou renderize uma com **Render folder** em Projects.
-- **A busca não alcança o Multi-edit.** É a única tela que a barra de busca não conhece.
+- **A busca não alcança o Lolly Multi-edit.** É a única tela que a barra de busca não conhece.
 
 ## Para onde ir agora
 

@@ -39,7 +39,7 @@
 
 ## هل يمكنني استخدام علامتي الخاصة؟
 
-نعم. يبني **Design System Setup** (`#/start`) نظام تصميم من لون واحد أو ملف رموز تصميم أو تصميم منجز، وترسم كل أداة بعد ذلك بنظام تصميمك. يرشدك [ابدأ](/info/quickstart.html#put-your-brand-in) خلال المسارات الثلاثة.
+نعم. يبني **Lolly Design System Setup** (`#/start`) نظام تصميم من لون واحد أو ملف رموز تصميم أو تصميم منجز، وترسم كل أداة بعد ذلك بنظام تصميمك. يرشدك [ابدأ](/info/quickstart.html#put-your-brand-in) خلال المسارات الثلاثة.
 
 نظام التصميم الذي تقدمه مؤسستك أو بناؤك مُدار: يعرض قفلاً ويبقى للقراءة فقط، ويمكنك صنع نسخة قابلة للتحرير لتغييره.
 
@@ -80,9 +80,9 @@
 
 ## هل يستطيع Lolly تحرير ملفات Figma وPenpot وIllustrator وInDesign وتصييرها؟
 
-نعم. افتح **Design** وانقر **Import a design**: يقبل ملف Figma الأصلي **.fig** (Save local copy)، أو تصدير Penpot **.penpot**، أو Illustrator **.ai** أو **.pdf**، أو InDesign **.idml** (File → Export → InDesign Markup)، أو **أي SVG**. لا تحتاج إلى حساب ولا إضافة ولا ترخيص تطبيق تصميم.
+نعم. افتح أداة **Design** وانقر **Import a design**: يقبل ملف Figma الأصلي **.fig** (Save local copy)، أو تصدير Penpot **.penpot**، أو Illustrator **.ai** أو **.pdf**، أو InDesign **.idml** (File → Export → InDesign Markup)، أو **أي SVG**. لا تحتاج إلى حساب ولا إضافة ولا ترخيص تطبيق تصميم.
 
-![لوحة Design المفتوحة - يقع Import a design في قائمة Lolly ضمن شريط الأدوات](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D17ZTfS8MwEMf_mryO5NZ288GHrdqJv1CUvWdtOgppMtJMNv96yaV1iRNEQRBZoblwab53l0-uq915bXgrCOSDpf3LzgANnQ4eI0rrPJn7Gh9cd0sE8lIryxtFIFfatFx6L4F0Mi-11GbUiZYr25QjK3bW-S8I5MnUbRXKCkMgb5uqki6JFFU7rjoXYsSgT8GaLebKZSeGAPkUYypMHp80DeugYYR4J_U7X4XRkY8dFHuTYEJ-jDWM3qoqsEHo4Y20-xJi-SPVaOfRUuAL1hiZXNrG4gH6M85Z5lTAk8x8DdlnPL8gecVfBIEU6F5v0bbCor3VUu4JpOPCKTCWsPI9rBS107d6QyCfRET_Ac6wX36X6UpX-49Ip1mAlMEPkM6QX20aoSpECLTmpadcazPQ9hPlWxboRndWmFEIG1s4Yp3E3Ts-0f4GbcruWHLzlC0frmfpfbGk82LxmD0vUndSTcvXAoknWBKCz5LDSIdiRHV0D2Tfq1BIvdY42Zim5WZ_-n3_mRvwBg&width=1360&height=850&dpi=192&waitMs=3000&format=svg&walker=1&chrome=1&localize=1&dark=1&filename=design)
+![لوحة Lolly Design المفتوحة - يقع Import a design في قائمة Lolly ضمن شريط الأدوات](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D17ZTfS8MwEMf_mryO5NZ288GHrdqJv1CUvWdtOgppMtJMNv96yaV1iRNEQRBZoblwab53l0-uq915bXgrCOSDpf3LzgANnQ4eI0rrPJn7Gh9cd0sE8lIryxtFIFfatFx6L4F0Mi-11GbUiZYr25QjK3bW-S8I5MnUbRXKCkMgb5uqki6JFFU7rjoXYsSgT8GaLebKZSeGAPkUYypMHp80DeugYYR4J_U7X4XRkY8dFHuTYEJ-jDWM3qoqsEHo4Y20-xJi-SPVaOfRUuAL1hiZXNrG4gH6M85Z5lTAk8x8DdlnPL8gecVfBIEU6F5v0bbCor3VUu4JpOPCKTCWsPI9rBS107d6QyCfRET_Ac6wX36X6UpX-49Ip1mAlMEPkM6QX20aoSpECLTmpadcazPQ9hPlWxboRndWmFEIG1s4Yp3E3Ts-0f4GbcruWHLzlC0frmfpfbGk82LxmD0vUndSTcvXAoknWBKCz5LDSIdiRHV0D2Tfq1BIvdY42Zim5WZ_-n3_mRvwBg&width=1360&height=850&dpi=192&waitMs=3000&format=svg&walker=1&chrome=1&localize=1&dark=1&filename=design)
 
 تصل الطبقات صناديق قابلة للتحرير: يبقى النص قابلاً لإعادة الكتابة، وتبقى الأشكال أشكالاً، وتنضم الصور إلى مكتبتك. احفظه، ويستطيع **Share with rules** تحويل التخطيط إلى أداة يستطيع أي شخص لديه Lolly إعادة ملئها. راجع [استيراد تصميم](/info/design-import.html).
 
@@ -98,9 +98,9 @@
 
 ## ما الذي يميز الأدوات المساعدة عن الأدوات؟
 
-تؤدي الأداة المساعدة مهمة سريعة واحدة على ملف لديك، مثل ضغط PDF أو تحويل صورة أو إزالة البيانات المخفية، ويعمل كثير منها على جهازك دون رفع شيء. وهي موجودة لتبقى المهام التي يسلّمها الناس عادة إلى موقع عشوائي داخل Lolly. ضغط عقد، أو تحويل صور عطلة وموقعها ما زال بداخلها، أو لصق رمز في منسّق على الإنترنت، لا ينبغي أن يعني تسليم الملف إلى موقع مجهول الاحتفاظ والاختصاص القضائي ونموذج العمل. يسردها [الأدوات المساعدة](/info/utilities.html)، ويروي [الصفقة التي لم نوافق عليها قط](/info/status-quo.html) القصة وراءها.
+تؤدي الأداة المساعدة مهمة سريعة واحدة على ملف لديك، مثل ضغط PDF أو تحويل صورة أو إزالة البيانات المخفية، ويعمل كثير منها على جهازك دون رفع شيء. وهي موجودة لتبقى المهام التي يسلمها الناس عادة إلى موقع عشوائي داخل Lolly. ضغط عقد، أو تحويل صور عطلة وموقعها ما زال بداخلها، أو لصق رمز في منسق على الإنترنت، لا ينبغي أن يعني تسليم الملف إلى موقع مجهول الاحتفاظ والاختصاص القضائي ونموذج العمل. يسردها [Lolly Utilities](/info/utilities.html)، ويروي [الصفقة التي لم نوافق عليها قط](/info/status-quo.html) القصة وراءها.
 
-![عرض Utilities: Strip Hidden Data وCompress PDF وConvert Image والمهام الأخرى على الجهاز، كلها في مكان واحد](/t/url-shot?url=%2F%23%2Fu&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone!important%7D&tolerance=0.03&format=svg&walker=1&dark=1&filename=use-utilities&try=1)
+![عرض Utilities: Lolly Strip Hidden Data وCompress PDF وConvert Image والمهام الأخرى على الجهاز، كلها في مكان واحد](/t/url-shot?url=%2F%23%2Fu&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone!important%7D&tolerance=0.03&format=svg&walker=1&dark=1&filename=use-utilities&try=1)
 
 ## هل تستطيع مؤسستنا استخدام SSO والمشاريع المشتركة والموافقات؟
 
@@ -110,7 +110,7 @@
 
 ## ما العقبات التي قد أواجهها عند تبني Lolly؟
 
-يتغير معظمه في جانب الإنتاج لا في التقنية. فالفريق الذي يريد مجموعة أدوات محكومة يحتاج إلى من يؤلف نظام تصميمه وأولى قوالبه، وإن كان يستطيع أي شخص أن يبدأ صنع أدواته في Design من اليوم الأول، دون الحاجة إلى git. وتواصل العمليات القائمة عملها حتى عندما يخالف مخرجها العلامة، لذا فتحويل مخرج مرئي واحد تحويلاً جيداً، قبل وبعد جنباً إلى جنب، يقيم الحجة أسرع من خطة.
+يتغير معظمه في جانب الإنتاج لا في التقنية. فالفريق الذي يريد مجموعة أدوات محكومة يحتاج إلى من يؤلف نظام تصميمه وأولى قوالبه، وإن كان يستطيع أي شخص أن يبدأ صنع أدواته في Lolly Design من اليوم الأول، دون الحاجة إلى git. وتواصل العمليات القائمة عملها حتى عندما يخالف مخرجها العلامة، لذا فتحويل مخرج مرئي واحد تحويلا جيدا، قبل وبعد جنبا إلى جنب، يقيم الحجة أسرع من خطة.
 
 يغطي [الاعتماد والحوكمة](/info/adoption-governance.html) الإعداد بحسب الدور وكيفية قياس تجربة تجريبية وكيف يمكن أن تبدو عملية حوكمة.
 
@@ -144,3 +144,11 @@
 ## ما نكهة شعار Lolly ذاك؟
 
 يقول بعضهم إنها ليمون أخضر، ويقول آخرون نعناع، وأحيانا تفاح؛ Lolly يجلب الحلاوة، وأنت من يصنع النكهة!
+
+## ماذا يعني Lolly بسيادة المحتوى؟
+
+التحكم في كيفية إنشاء محتواك وحوكمته وتخزينه ونقله عبر الأنظمة التي تختارها. يدعم Lolly الإنتاج المحلي والعمل القابل للتحرير والأدوات القابلة للنقل؛ ويضيف Lolly Work خدمات مشتركة تتحكم فيها المؤسسة. وتبقى تراخيص المصدر والاعتماديات المتاحة وتدفقات البيانات في سير العمل مهمة. يشرح [ما هي سيادة المحتوى؟](/info/content-sovereignty.html) كل عنصر تحكم وحدوده.
+
+## هل نستطيع الاحتفاظ بنظام DAM الحالي لدينا؟
+
+نعم. يمكن أن يبقى نظام DAM مدعوم مصدر السجل بينما يربط Lolly Work أصولا مختارة بأدوات Lolly. وصول المصدر والتعديلات المسموح بها وحقوق الاستخدام وموافقة المخرج النهائي قرارات منفصلة. يشرح [استخدم Lolly مع نظام DAM الحالي لديك](/info/use-with-dam.html) الترتيب، ويسجل [تجربة SUSE مع Brandfolder](/info/suse-brandfolder.html) استخداما ناجحا أثناء التبني.

@@ -1,8 +1,10 @@
-# Batch at Multi-edit
+# Lolly Batch at Lolly Multi-edit
+
+<a id="batch-and-multi-edit"></a>
 
 Dalawang gawain ang lumilitaw kapag madalas kang gumagawa ng parehong uri ng file. Minsan kailangan mo ng maraming bersyon ng isang design: card sa isang dosenang wika, o bawat laki ng banner. Minsan marami kang magkakaibang naka-save na design at gusto mong umabot sa lahat ang isang pagbabago, tulad ng bagong petsa o bagong headline.
 
-Ginagawa ng **Batch** ang una at ginagawa ng **Multi-edit** ang pangalawa. Parehong tumatakbo sa device mo at nag-e-export sa parehong render path ng mga tool mismo.
+Ginagawa ng **Lolly Batch** ang una at ginagawa ng **Lolly Multi-edit** ang pangalawa. Parehong tumatakbo sa device mo at nag-e-export sa parehong render path ng mga tool mismo.
 
 ::: cols
 ## Batch
@@ -10,9 +12,10 @@ Ginagawa ng **Batch** ang una at ginagawa ng **Multi-edit** ang pangalawa. Pareh
 - Isang template, maraming row. Ang bawat row ay isang set ng input at gumagawa ng isang file.
 - Punan ang mga row sa pagta-type, pag-paste mula sa spreadsheet o pag-import ng CSV.
 - Walang limitasyon sa row; 50 ang ipinapakita bawat page.
-- Bumubukas mula sa **Batch** sa header ng Projects (`#/batch`).
+- Bumubukas mula sa **Lolly Batch** sa header ng Projects (`#/batch`).
 
-## Multi-edit
+<a id="multi-edit"></a>
+## Lolly Multi-edit
 
 - Dalawa hanggang walong magkakaibang naka-save na design, magkatabi bilang live na card.
 - Isang sidebar ang nag-e-edit ng mga input na pinagsasaluhan nila, saka ng sarili ng bawat card.
@@ -22,7 +25,7 @@ Ginagawa ng **Batch** ang una at ginagawa ng **Multi-edit** ang pangalawa. Pareh
 
 ## Gumawa ng maraming bersyon ng isang design
 
-Buksan ang **Projects** at pindutin ang **Batch** sa header nito. Nagsisimula ang grid sa isang row: pumili ng template dito, saka i-duplicate ang row o i-paste ang data mula sa spreadsheet mo. Kung binuksan mula sa loob ng folder, ibabalik ka ng Batch sa folder na iyon.
+Buksan ang **Projects** view at pindutin ang **Batch** sa header nito. Nagsisimula ang grid sa isang row: pumili ng template dito, saka i-duplicate ang row o i-paste ang data mula sa spreadsheet mo. Kung binuksan mula sa loob ng folder, ibabalik ka ng Batch sa folder na iyon.
 
 ![Ang Batch sa bagong grid: ang file name at mga row tool sa itaas, at ang template list ng unang row na nakabukas sa mga tool na mapipili](/t/url-shot?url=%2F%23%2Fbatch&width=1440&height=900&dpi=192&waitMs=3500&walker=1&format=svg&dark=1&filename=use-batch-toolbar)
 
@@ -46,9 +49,13 @@ Bawat row ay nag-iingat ng sarili nitong mga pagpili sa theme: light o dark, at 
 
 Dala ng CSV ang mga pagpili sa column na `_themes` pagkatapos ng mga size column, na may hawak na parehong JSON ng `_themes` link parameter, halimbawa `{"":"dark","colourway":"beach"}`. Ang blangkong cell, o `{}`, ay nangangahulugang mga default ng design system. Isinusulat lang ang column kapag may row na may mga pagpili, kaya ang batch na wala ay nag-e-export ng parehong CSV tulad ng dati. Sa pag-import, ang cell na hindi wastong theme choice ay inililista bilang isyu at ang row nito ay nagre-render sa mga default. Wala pang kontrol ang grid para baguhin ang mga pagpili ng row, kaya itakda ang mga ito sa CSV o sa naka-save na session.
 
+### Isang wika para sa bawat row
+
+Ang tool na nagpi-print ng sarili nitong wording, tulad ng Certificate, ay puwedeng tumanggap ng column na `language` na may maikling language code tulad ng `de`, `ja` o `ar`. Pagkatapos, ipi-print ng bawat row ang wording at petsa nito sa wikang iyon, at nilalatag nang right to left ang mga row sa Arabic at Urdu. Sinusunod ng blangkong cell ang wika ng app. Ang wikang wala pang hawak na salin ang Lolly ay nagpi-print sa English, kasama ang petsa, kaya hindi kailanman kalahating naisalin ang isang certificate.
+
 ### Batch, o Render folder
 
-Gumagawa ang Batch ng maraming variant ng isang template. Para muling i-render ang mga session na na-save mo na, piliin ang mga ito sa Projects at gamitin ang **Render selection**, o **Render folder** para sa buong folder; sinasaklaw ng [Hanapin at bawiin ang gawa mo](/info/find-your-work.html#find-something-you-saved) ang pareho.
+Gumagawa ang Lolly Batch ng maraming variant ng isang template. Para muling i-render ang mga session na na-save mo na, piliin ang mga ito sa Projects at gamitin ang **Render selection**, o **Render folder** para sa buong folder; sinasaklaw ng [Hanapin at bawiin ang gawa mo](/info/find-your-work.html#find-something-you-saved) ang pareho.
 
 ## Mag-edit ng ilang naka-save na design nang sabay
 
@@ -69,7 +76,7 @@ Gumuguhit ang bawat card sa mga theme choice ng sarili nitong session, kasama an
 - **Walo ang pinakamarami.** Bawat card ay nagma-mount ng sarili nitong live runtime, at ang walo ang bilang na nananatiling responsive. Ang link na humihingi ng higit, o ng session na wala na, ay nagsasabi nito sa halip na bahagyang mag-load.
 - **Lokal ang link.** Pinangangalanan nito ang sarili mong mga naka-save na slot, kaya muling binubuksan nito ang set na iyon sa device na ito. Hindi ito share link.
 - **Para sa anumang mas malaki,** piliin ang **Edit as sheet** sa parehong selection bar. Binubuksan nito ang buong seleksyon bilang mga row sa batch grid (`#/batch?s=…`), na walang limitasyon sa laki at walang same-tool na rule. Wala ang mga folder sa pareho: magbukas ng folder sa grid gamit ang **Sessions → Folders…**, o i-render ang isa gamit ang **Render folder** sa Projects.
-- **Hindi umaabot ang Search sa Multi-edit.** Ito ang nag-iisang view na hindi alam ng search bar.
+- **Hindi umaabot ang Search sa Lolly Multi-edit.** Ito ang nag-iisang view na hindi alam ng search bar.
 
 ## Saan susunod
 

@@ -1,6 +1,6 @@
 # 개인정보 처리방침
 
-*최종 업데이트: 2026년 10월 23일*
+*최종 업데이트: 2026년 11월 3일*
 
 **Lolly에서 무언가를 만드는 일은 모두 사용자의 기기에서 이루어져요.** 도구를 열고, 입력하고, 미리 보고, 내보내고, 파일을 확인하는 과정이 전부 휴대폰, 컴퓨터 또는 브라우저의 앱 안에서 실행돼요. 계정이 필요 없고, 앱은 이 과정에서 쿠키를 설정하지 않아요.
 
@@ -44,21 +44,22 @@ Lolly의 웹, 데스크톱, 모바일 앱은 렌더 엔진 전체를 기기에�
 
 ### 기기에서 실행되는 유틸리티
 
-**Strip Hidden Data**, **Compress** 등 **Runs on your device** 배지가 있는 일부 도구는 사용자가 제공한 파일로 작업해요. 파일은 메모리로 읽히고, 기기에서 변환된 뒤 다운로드로 돌아와요. 경로에 서버가 없으므로 업로드는 전혀 일어나지 않아요. 이 유틸리티는 오프라인에서 동작하고, 출력물에 저희의 워터마크나 메타데이터가 들어가지 않아요.
+**Lolly Strip Hidden Data**, **Compress** 등 **Runs on your device** 배지가 있는 일부 도구는 사용자가 제공한 파일로 작업해요. 파일은 메모리로 읽히고, 기기에서 변환된 뒤 다운로드로 돌아와요. 경로에 서버가 없으므로 업로드는 전혀 일어나지 않아요. 이 유틸리티는 오프라인에서 동작하고, 출력물에 저희의 워터마크나 메타데이터가 들어가지 않아요.
 
-**Rondocode**는 유일한 예외예요. 사용자 파일을 변환하는 것이 아니라 사용자의 노래로 새 오디오를 만들기 때문이에요. 이 도구가 쓰는 모든 오디오 파일에는 노래를 기록하고 AI가 생성한 노래 부분이 있으면 이를 밝히는 Content Credentials가 담겨요. Export 패널은 내보내기 전에 이를 알려주며, [Rondocode 노래](/info/rondocode.html#files-from-the-rondocode-utility)에서 무엇이 기록되는지 정확히 확인할 수 있어요.
+**Lolly Rondocode**는 유일한 예외예요. 사용자 파일을 변환하는 것이 아니라 사용자의 노래로 새 오디오를 만들기 때문이에요. 이 도구가 쓰는 모든 오디오 파일에는 노래를 기록하고 AI가 생성한 노래 부분이 있으면 이를 밝히는 Content Credentials가 담겨요. Export 패널은 내보내기 전에 이를 알려주며, [Lolly Rondocode 노래](/info/rondocode.html#files-from-the-rondocode-utility)에서 무엇이 기록되는지 정확히 확인할 수 있어요.
 
 ![이 도구들에 표시되는 배지: Runs on your device: 업로드되는 것이 없어요](/t/url-shot?url=%2F%23%2Ftool%2Ftext-helper&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&cropSelector=%5Bdata-privacy%5D&dark=1&filename=pv-ondevice-badge)
 
-**Prepare for sharing**과 **Compare**는 기기의 메모리에서 작업하며 서버로 아무것도 보내지 않아요. Prepare는 결과를 저장하기 전까지 기록, 링크, 백업, Sync에 아무것도 추가하지 않아요.
+**Prepare for sharing**과 **Lolly Compare**는 기기의 메모리에서 작업하며 서버로 아무것도 보내지 않아요. Prepare는 결과를 저장하기 전까지 기록, 링크, 백업, Sync에 아무것도 추가하지 않아요.
 
-::: details Prepare for sharing과 Compare가 파일을 다루는 방식
+<a id="how-prepare-for-sharing-and-compare-handle-your-files"></a>
+::: details Prepare for sharing과 Lolly Compare가 파일을 다루는 방식
 **Prepare for sharing**은 작업용 입력, 비공개 검사 결과, 대체 맵을 메모리에 보관하며 기록, 링크, 백업, Sync에 추가하지 않아요. 검사와 대체 과정에서 서버로 파일 내용을 보내지 않고, 인증 정보를 온라인으로 확인하지도 않아요. 결과를 복사할지, 다운로드할지, 보낼지, 라이브러리에 저장할지는 사용자가 선택해요. 저장한 결과는 이후 라이브러리의 백업 및 Sync 설정을 따라요. 레시피 파일에는 이전 내용과 리터럴 매핑이 빠지고, 요약 보고서에는 개수, 범위 ID, 파일 해시가 담겨요. CLI는 `--review-file`로 요청할 때만 원래 값이 담긴 비공개 검토 파일을 저장해요. 준비 화면을 떠나면 작업 상태가 해제되는데, 이것이 브라우저나 운영 체제 메모리에서 흔적 없이 지워진다는 약속은 아니에요.
 
-준비된 사본과 완료된 파일 작업은 Compare 컨트롤을 공유해요. 제거된 값은 접힌 상태로 시작하고, 비교 보고서에는 사용자가 포함하도록 선택하지 않는 한 원본 이름, 경로, 값이 빠져요. 파일 기록에는 사본이 저장되므로, 새로고침 후에 비교하려면 원본을 다시 선택해야 하며, 기록된 SHA-256으로 일치 여부를 확인해요. 원본을 선택해도 파일이 저장되거나 업로드되지는 않아요.
+준비된 사본과 완료된 파일 작업은 Lolly Compare 컨트롤을 공유해요. 제거된 값은 접힌 상태로 시작하고, 비교 보고서에는 사용자가 포함하도록 선택하지 않는 한 원본 이름, 경로, 값이 빠져요. 파일 기록에는 사본이 저장되므로, 새로고침 후에 비교하려면 원본을 다시 선택해야 하며, 기록된 SHA-256으로 일치 여부를 확인해요. 원본을 선택해도 파일이 저장되거나 업로드되지는 않아요.
 :::
 
-Strip Hidden Data와 Prepare for sharing은 DOCX, PPTX, XLSX 파일도 기기에서 검사해요. 지원되는 DOCX 파일은 선택한 속성을 제거한 새 사본을 만들 수 있고, 다른 Office 콘텐츠는 검사만 가능하며, 비공개 미리보기는 표시 컨트롤 뒤에 가려져 있어요.
+Lolly Strip Hidden Data와 Prepare for sharing은 DOCX, PPTX, XLSX 파일도 기기에서 검사해요. 지원되는 DOCX 파일은 선택한 속성을 제거한 새 사본을 만들 수 있고, 다른 Office 콘텐츠는 검사만 가능하며, 비공개 미리보기는 표시 컨트롤 뒤에 가려져 있어요.
 
 ::: details Office 검사가 읽고 제거하는 항목
 | Office 형식 | 검사하는 패키지 콘텐츠 | 지원하는 제거 |
@@ -75,7 +76,7 @@ Strip Hidden Data와 Prepare for sharing은 DOCX, PPTX, XLSX 파일도 기기에
 
 **검사 전용으로 남는 경우.** 확장 디지털 서명 데이터가 있으면 정리가 불가능해요. 서명됨, 매크로 사용, 암호화됨, 형식 오류, 이름 변경 또는 중첩된 Office 패키지는 검사 전용으로 남아요. DOCPROPERTY나 AUTHOR 같이 속성에 의존하는 다른 Word 필드가 있거나 XML에 바인딩된 콘텐츠 컨트롤이 있는 파일도 마찬가지예요. Word가 그 바인딩을 갱신할 때 속성을 제거하면 문서가 바뀔 수 있고, 캐시된 필드 텍스트로는 다음 렌더링이 같게 보일지 알 수 없기 때문이에요. 파일 확장자가 특이한 XML 파트, 안전하게 검사할 수 없는 Word XML 관계 대상, 잘못 선언된 머리글 또는 바닥글 파트, `.svg` 확장자로 XML로 선언된 SVG 파트도 이번 첫 정리 릴리스에서는 검사 전용으로 남아요.
 
-**정리가 작업을 확인하는 방법.** 속성 파트, 그 선언, 관련 없는 패키지 멤버, XML 주석, ZIP 주석은 유지돼요. 정리는 조사 한계를 적용하고 쓰기 전에 모든 멤버의 무결성을 확인한 뒤, 결과 속성을 다시 검사해요. Compare는 지원되는 속성 차이를 값을 접은 채 보여주며, 보이는 텍스트나 렌더링된 모습은 비교하지 않아요. 값은 최대 2048자 미리보기를 사용하므로 미리보기를 넘어서는 차이는 보이지 않을 수 있고, 부분 검토만으로 두 파일이 같다고 확정할 수 없어요. CLI의 `prepare --strip-hidden-data`는 지원되는 DOCX 속성을 제거하며, 비공개 검토 봉투로 개별 속성을 선택할 수 있어요. 정리 안전 확인에 실패하면 파일이 그대로 유지되고 작업 실패가 보고돼요.
+**정리가 작업을 확인하는 방법.** 속성 파트, 그 선언, 관련 없는 패키지 멤버, XML 주석, ZIP 주석은 유지돼요. 정리는 조사 한계를 적용하고 쓰기 전에 모든 멤버의 무결성을 확인한 뒤, 결과 속성을 다시 검사해요. Lolly Compare는 지원되는 속성 차이를 값을 접은 채 보여주며, 보이는 텍스트나 렌더링된 모습은 비교하지 않아요. 값은 최대 2048자 미리보기를 사용하므로 미리보기를 넘어서는 차이는 보이지 않을 수 있고, 부분 검토만으로 두 파일이 같다고 확정할 수 없어요. CLI의 `prepare --strip-hidden-data`는 지원되는 DOCX 속성을 제거하며, 비공개 검토 봉투로 개별 속성을 선택할 수 있어요. 정리 안전 확인에 실패하면 파일이 그대로 유지되고 작업 실패가 보고돼요.
 :::
 
 ## 앱이 보낼 수 있는 모든 네트워크 요청
@@ -85,8 +86,8 @@ Strip Hidden Data와 Prepare for sharing은 DOCX, PPTX, XLSX 파일도 기기에
 ::: details 기기로 가져오는 것
 - <!--i:download--> **도구 카탈로그.** 개인 정보는 없어요. Lolly의 공개 도구 및 에셋 인덱스를 앱 자체 주소에 요청하며, 시작할 때 요청한 뒤 오프라인용으로 캐시해요. 차단되면 앱이 캐시된 도구로 실행되고 새 도구를 찾지 못해요.
 - <!--i:sparkle--> **이모지 세트.** 선택한 세트는 처음 사용할 때 앱 자체 주소에서 다운로드돼요. 개인 정보는 전송되지 않아요. Lottie 애니메이션은 기기에서 읽으며 누구에게도 연결하지 않아요.
-- <!--i:document--> **Google Fonts.** 선택한 글꼴 패밀리 이름과 IP 주소가 Google 글꼴 서버(스타일시트는 `fonts.googleapis.com`, 글꼴 파일은 `fonts.gstatic.com`)로 전송돼요. Design System Setup에서 Google Font를 추가할 때만, 그리고 정확히 이 내용을 알리는 대화상자에서 동의한 뒤에만 일어나요. 각 패밀리는 한 번 가져온 뒤 기기에 보관되어 오프라인에서 사용돼요. 차단되면 선택기가 안전하게 실패하므로 대신 글꼴 파일을 업로드하세요.
-- <!--i:cpu--> **온디바이스 AI 모델.** 개인 정보는 없어요. 모델 파일을 내려받아 기기에 보관해요. 웹 빌드는 기본적으로 앱 자체 주소를 쓰고, 빌드에 따라 다른 모델 호스트를 지정할 수 있어요(예: 패키지 앱에서는 Lolly의 릴리스 호스트 `lolli.li`). 호스트는 요청과 사용자의 IP 주소를 받으며 계정이나 모델 입력은 받지 않아요. 모델이 필요한 기능(Verify의 정밀 검사, 이미지 업스케일, 음성 등)을 쓰거나 오프라인용으로 모델을 내려받기로 선택할 때만 일어나요. 차단되면 그 기능만 대기하고 나머지는 모두 동작해요.
+- <!--i:document--> **Google Fonts.** 선택한 글꼴 패밀리 이름과 IP 주소가 Google 글꼴 서버(스타일시트는 `fonts.googleapis.com`, 글꼴 파일은 `fonts.gstatic.com`)로 전송돼요. Lolly Design System Setup에서 Google Font를 추가할 때만, 그리고 정확히 이 내용을 알리는 대화상자에서 동의한 뒤에만 일어나요. 각 패밀리는 한 번 가져온 뒤 기기에 보관되어 오프라인에서 사용돼요. 차단되면 선택기가 안전하게 실패하므로 대신 글꼴 파일을 업로드하세요.
+- <!--i:cpu--> **온디바이스 AI 모델.** 개인 정보는 없어요. 모델 파일을 내려받아 기기에 보관해요. 웹 빌드는 기본적으로 앱 자체 주소를 쓰고, 빌드에 따라 다른 모델 호스트를 지정할 수 있어요(예: 패키지 앱에서는 Lolly의 릴리스 호스트 `lolli.li`). 호스트는 요청과 사용자의 IP 주소를 받으며 계정이나 모델 입력은 받지 않아요. 모델이 필요한 기능(Lolly Verify의 정밀 검사, 이미지 업스케일, 음성 등)을 쓰거나 오프라인용으로 모델을 내려받기로 선택할 때만 일어나요. 차단되면 그 기능만 대기하고 나머지는 모두 동작해요.
 - <!--i:sliders--> **ICC 인쇄 프로필.** 개인 정보는 없어요. 인쇄 조건 표준 프로필을 ICC 공개 레지스트리(`registry.color.org`, `www.color.org`)에 요청하며, 인쇄 프로필 관리자에서 ICC 프리셋을 클릭할 때만, 프로필당 한 번 일어나요. 차단되면 프리셋이 실패하므로 직접 `.icc` 프로필을 제공하세요.
 - <!--i:globe--> **인터넷 라디오.** 개인 정보는 없어요. 사운드 플레이어에서 선택 사항인 라디오를 재생하는 동안에만 방송국에 재생 목록 요청과 오디오 스트림(`api.somafm.com`과 이것이 가리키는 스트림 서버 `*.somafm.com`)이 이루어져요. 차단되면 라디오만 실패하고 다른 소리 기능은 모두 동작해요.
 :::
@@ -98,16 +99,16 @@ Strip Hidden Data와 Prepare for sharing은 DOCX, PPTX, XLSX 파일도 기기에
 ::: details 직접 보내는 파일
 이들은 모두 해당 서비스의 자체 창에서 로그인을 마친 뒤, Send 버튼을 누를 때 선택한 파일 하나만 전송해요. Bluesky 앱 비밀번호, Discord 웹훅 주소, Nextcloud 앱 비밀번호, S3 키는 이 기기에만 저장되고 백업에는 절대 들어가지 않으며, **Disconnect**를 누르면 지워져요.
 
-- <!--i:upload--> **Google Drive.** 형식에 관계없이 파일이 Google의 Drive API(`www.googleapis.com`)로 전송돼요. Lolly의 접근은 Lolly가 만든 파일(`drive.file` 범위)로 제한되므로 Drive의 나머지 부분은 절대 읽을 수 없어요. 웹 앱에서는 로그인 토큰이 세션 동안 메모리에만 유지되고 저장되지 않으며, 다른 앱에서는 **Stay connected**를 선택한 경우에만 갱신 토큰이 이 기기에 저장돼요. 이 버튼은 운영자가 Google 클라이언트 ID를 구성한 빌드에만 있어요. 차단되면 버튼이 나타나지 않으니, 파일을 다운로드해서 직접 업로드하세요.
-- <!--i:upload--> **Dropbox.** 파일이 Dropbox의 API(로그인과 메타데이터는 `api.dropboxapi.com`, 파일은 `content.dropboxapi.com`)로 전송돼요. 접근은 앱 폴더로만 제한되므로 Lolly는 `Apps/`와 그 안의 자체 폴더만 보고 다른 것은 보지 못해요. 표시되는 **Open** 링크는 수명이 짧은 비공개 링크이며 공개 공유는 만들어지지 않아요. 갱신 토큰은 **Stay connected**를 선택한 경우에만 저장돼요. 이 버튼은 운영자가 구성한 Dropbox 클라이언트 ID가 있을 때만 존재해요.
-- <!--i:upload--> **OneDrive.** 파일이 Microsoft의 ID 및 Graph 서비스(로그인은 `login.microsoftonline.com`, 업로드는 `graph.microsoft.com`)로 전송돼요. 큰 파일은 `api.onedrive.com` 또는 운영자가 구성한 저장소 출처로 조각 단위로 업로드돼요. 접근은 `Apps/` 아래 Lolly 전용 폴더와 계정 라벨에 쓰는 표시 이름으로 제한돼요. 갱신 토큰은 **Stay connected**를 선택한 경우에만 저장돼요. 이 버튼은 운영자가 구성한 Microsoft 클라이언트 ID가 있을 때만 존재해요.
+- <!--i:upload--> **Google Drive.** 형식에 관계없이 파일이 Google의 Drive API(`www.googleapis.com`)로 전송돼요. Lolly의 접근은 Lolly가 만든 파일(`drive.file` 범위)로 제한되므로 Drive의 나머지 부분은 절대 읽을 수 없어요. 웹 앱에서는 로그인 토큰이 세션 동안 메모리에만 유지되고 저장되지 않으며, 다른 앱에서는 **Stay connected**를 선택한 경우에만 갱신 토큰이 이 기기에 저장돼요. 이 버튼은 운영자가 Google 클라이언트 ID를 구성한 빌드에만 있어요. 차단되면 버튼이 나타나지 않으니, 파일을 다운로드해서 직접 업로드하세요. **Share links.** **Create a share link**를 누르면 `www.googleapis.com`에 두 번째 호출을 해서 그 파일에 권한을 추가하고(링크가 있는 누구나, Workspace 도메인, 또는 입력한 주소이며 주소를 입력하면 Google이 이메일을 보내요) 그 링크를 읽어요. **Stop sharing**은 그 권한을 삭제해요. 그 밖에 필요한 것은 없어요. `drive.file` 범위가 Lolly가 만든 파일을 이미 포함하기 때문이에요.
+- <!--i:upload--> **Dropbox.** 파일이 Dropbox의 API(로그인과 메타데이터는 `api.dropboxapi.com`, 파일은 `content.dropboxapi.com`)로 전송돼요. 접근은 앱 폴더로만 제한되므로 Lolly는 `Apps/`와 그 안의 자체 폴더만 보고 다른 것은 보지 못해요. 표시되는 **Open** 링크는 수명이 짧은 비공개 링크이며 공개 공유는 만들어지지 않아요. 갱신 토큰은 **Stay connected**를 선택한 경우에만 저장돼요. 이 버튼은 운영자가 구성한 Dropbox 클라이언트 ID가 있을 때만 존재해요. **Share links.** **Create a share link**를 처음 누를 때만 Dropbox가 권한 하나(`sharing.write`)를 더 승인하라고 요청해요. 그러면 Lolly가 `api.dropboxapi.com`을 호출해 링크를 만들고(`sharing/create_shared_link_with_settings`), **Stop sharing**을 누르면 그 링크를 폐기해요. 파일 전송은 이 권한을 요구하지 않아요.
+- <!--i:upload--> **OneDrive.** 파일이 Microsoft의 ID 및 Graph 서비스(로그인은 `login.microsoftonline.com`, 업로드는 `graph.microsoft.com`)로 전송돼요. 큰 파일은 `api.onedrive.com` 또는 운영자가 구성한 저장소 출처로 조각 단위로 업로드돼요. 접근은 `Apps/` 아래 Lolly 전용 폴더와 계정 라벨에 쓰는 표시 이름으로 제한돼요. 갱신 토큰은 **Stay connected**를 선택한 경우에만 저장돼요. 이 버튼은 운영자가 구성한 Microsoft 클라이언트 ID가 있을 때만 존재해요. **Share links.** **Create a share link**는 이미 부여한 접근 권한으로 `graph.microsoft.com`을 호출해요(파일의 `createLink`). Microsoft가 이를 거부하면 Lolly는 더 넓은 접근을 요청하지 않고, OneDrive의 해당 파일 페이지로 안내해서 그곳의 Share 버튼을 쓰게 해요. **Stop sharing**은 링크의 권한을 삭제해요.
 - <!--i:upload--> **LinkedIn**, **데스크톱 앱에서만**. 파일이 이름을 게시물 텍스트로 해서 LinkedIn(로그인은 사용자의 브라우저에서 `www.linkedin.com`, 업로드와 게시는 `api.linkedin.com`)으로 전송되어 사용자 본인의 피드에 공개 게시물로 올라가요. Lolly는 사용자 이름으로 게시하고 계정 라벨용 이름을 읽을 수 있을 뿐, 다른 것은 못 해요. 로그인은 **Stay connected**를 선택한 경우에만 유지되며, LinkedIn 토큰은 60일간 유효하고 조용히 갱신할 수 없으므로 저절로 만료돼요. 이 호스트들은 웹 앱의 연결 정책에 없어요. 이 버튼은 LinkedIn 앱이 구성된 빌드에만 있어요.
 - <!--i:upload--> **Penpot.** 앱에 붙여넣은 Penpot 개인 액세스 토큰과 디자인의 `.penpot` 아카이브가 앱 자체 주소(`/api/penpot`)의 작은 중계를 거쳐 Penpot의 API(`design.penpot.app`)로 전송돼요. Penpot의 API는 브라우저에 직접 응답하지 않기 때문이에요. 중계는 전달만 하고 기억하지 않으며, 데스크톱 앱은 Penpot과 직접 통신해요. Design 도구에서 **Send to Penpot**을 누르고 프로젝트를 확인할 때만 일어나요. 차단되면 전송이 안전하게 실패하니 `.penpot` 파일을 내보내서 직접 가져오세요.
 - <!--i:upload--> **Bluesky.** 이미지, 게시물 텍스트로 쓰는 이름과 대체 텍스트, 핸들과 앱 비밀번호(Bluesky → Settings → App passwords에서 만들며 계정 비밀번호는 절대 아님)가 지정한 Bluesky 서버로 전송돼요. 다른 서버를 고르지 않으면 `bsky.social`이에요. 먼저 **Settings → Connected services**에서 계정을 연결하세요.
 - <!--i:upload--> **Discord.** 파일이 붙여넣은 채널 웹훅 주소(discord.com)로 첨부 파일 형태로 전송돼요. 웹훅 주소를 가진 사람은 누구나 그 채널에 게시할 수 있으므로 이 주소는 기기에만 보관해요.
 - <!--i:upload--> **Mastodon.** 파일이 이름을 게시물 텍스트로 해서, 해당 서버의 자체 창에서 로그인한 뒤 지정한 Mastodon 또는 호환 서버로 전송돼요. 연결하면 그 서버에 이 기기용 작은 앱이 등록되며, 로그인은 **Stay connected**를 선택한 경우에만 유지돼요.
-- <!--i:upload--> **Nextcloud 또는 WebDAV.** 파일이 입력한 서버 주소, 사용자 이름, 앱 비밀번호(Nextcloud → Settings → Security → Devices & sessions에서 만들며 계정 비밀번호는 절대 아님)로 인증된 한 번의 업로드를 통해 사용자의 서버로 전송돼요.
-- <!--i:upload--> **S3 호환 저장소.** 파일이 입력한 키 쌍으로 기기에서 서명되어 사용자의 버킷(AWS S3, MinIO, R2, B2, Garage 또는 모든 SigV4 엔드포인트)으로 전송돼요.
+- <!--i:upload--> **Nextcloud 또는 WebDAV.** 파일이 입력한 서버 주소, 사용자 이름, 앱 비밀번호(Nextcloud → Settings → Security → Devices & sessions에서 만들며 계정 비밀번호는 절대 아님)로 인증된 한 번의 업로드를 통해 사용자의 서버로 전송돼요. **Share links.** **Create a share link**는 같은 앱 비밀번호로 사용자 서버의 공유 서비스(`/ocs/v2.php/apps/files_sharing/api/v1/shares`)에 한 번 호출해서, 사용자가 고른 비밀번호와 만료일이 있는 읽기 전용 공개 링크를 만들어요. **Stop sharing**은 그 공유를 삭제해요.
+- <!--i:upload--> **S3 호환 저장소.** 파일이 입력한 키 쌍으로 기기에서 서명되어 사용자의 버킷(AWS S3, MinIO, R2, B2, Garage 또는 모든 SigV4 엔드포인트)으로 전송돼요. **Share links.** 링크는 저장한 키로 기기에서 만드는 사전 서명된 주소이므로 만들 때 아무것도 전송되지 않아요. 최대 7일간 유효하며 그보다 일찍 끌 수는 없어요.
 
 **직접 고르는 호스트는 운영자의 승인이 필요해요.** Bluesky, Discord, Mastodon, Nextcloud, S3 호스트는 사용자가 고르는 것이므로 Lolly의 고정 목록에 없어요. 운영자가 그 정확한 HTTPS 호스트를 승인하기 전까지 앱은 그곳으로 아무것도 보내지 않아요. 웹에서는 배포의 Content Security Policy에서, 데스크톱 앱에서는 앱을 빌드할 때 승인해요. 사용자 지정 저장소와 SharePoint 업로드 호스트에도 같은 규칙이 적용돼요. 웹에서는 서버가 앱의 브라우저 호출도 허용해야 하고(CORS), 리디렉션은 안전하게 실패하므로 리디렉션하지 않는 주소를 쓰세요. 데스크톱 앱은 모든 리디렉션을 승인 목록과 대조해요.
 
@@ -122,18 +123,19 @@ Strip Hidden Data와 Prepare for sharing은 DOCX, PPTX, XLSX 파일도 기기에
 
 ::: details 웹 페이지, 캡처, 다른 사이트의 그림
 - <!--i:monitor--> **도구에 캡처를 요청하는 URL.** URL screenshot 도구는 입력한 정확한 주소를 캡처를 시작할 때만 요청해요. 주소를 그 순간에 사용자가 고르기 때문에 연결 정책에 없으며, 운영자가 호스트 단위로 허용하거나 차단할 수 없어요. 이를 없애려면 도구를 제거하세요.
-- <!--i:globe--> **Design 박스의 웹 페이지.** 페이지는 출처 사이트에 사용자의 IP 주소와 함께 요청되며, 페이지 자체가 요청하는 것도 함께 가져와요. 브라우저가 지원하면 프레임에는 쿠키가 전송되지 않고 앱 자체 출처 이상의 주소도 전송되지 않으므로 문서와 그 링크가 요청과 함께 이동하지 않아요. 웹 앱에서 프레임에 넣을 수 있는 플레이어는 `www.youtube-nocookie.com`, `player.vimeo.com`, `www.loom.com`, `www.google.com`(지도), `www.figma.com`뿐이며, 참고 페이지로 `wikipedia.org`와 `*.wikipedia.org`, `commons.wikimedia.org`, `upload.wikimedia.org`, `www.wikidata.org`, `www.mediawiki.org`, `www.openstreetmap.org`가 있어요. **Settings → Trusted sites**의 **Allow pages from any site**는 모든 `https:` 페이지를 프레임에 넣을 수 있는 정책 아래에서 기기의 Lolly를 다시 불러오며, 신뢰와 확인에 관한 같은 규칙이 그대로 적용돼요. 페이지는 Trusted sites에 있는 사이트(제거할 수 있는 기본 참고 사이트 포함)이거나 인스펙터에서 해당 박스를 승인한 경우에만 로드되고, 누군가 보내준 덱에서는 그때까지 각 페이지의 그림이 표시돼요. 발표 전에 목록에서 각 사이트에 대해 **Just this time**과 **Always trust**를 선택할 수 있고, 발표 중에는 아무것도 묻지 않아요. 차단되면 박스에 그림과 함께 새 탭에서 페이지를 여는 링크가 표시돼요. 박스 안의 Lolly 도구와 Sandbox 데모는 앱 자체 주소에서 실행되며 누구에게도 연결하지 않아요.
-- <!--i:sliders--> **보여주는 페이지 바꾸기.** 웹 페이지 박스의 **Use page** 동작으로 페이지 안에서 쿠키를 거부하거나 배너를 닫을 수 있어요. 접근 가능한 Lolly 페이지에서는 **Hide cookie banners**가 OneTrust를 포함한 알려진 오버레이를 쿠키를 수락하거나 사이트의 동의 선택을 바꾸지 않고 숨겨요. **Page CSS**는 해당 박스의 실시간 페이지와 프레젠테이션을 바꾸며, 내보내기에서는 여전히 선택한 포스터를 사용해요. 이 규칙은 리소스나 글꼴을 가져올 수 없고, 브라우저가 Lolly의 다른 사이트 CSS 변경을 막아요. Sandbox 미리보기에는 **Edit in Sandbox** 아래에 별도의 CSS 편집기가 있어요.
-- <!--i:code--> **Sandbox 데모의 웹 리소스.** 데모 코드가 링크하는 스타일시트, 스크립트, 글꼴, 이미지는 각각 그것을 호스팅하는 사이트에 사용자의 IP 주소와 쿠키 없이 요청돼요. 가져온 스타일시트가 지정하는 파일(예: Google Fonts의 글꼴 파일)은 별도 사이트로 계산돼요. **Fetch & inline**을 클릭한 뒤나 Trusted sites에 있는 사이트일 때만 일어나며, 파일 옆의 **Always trust**는 그 사이트를 목록에 추가해요. 차단되면 데모가 그 파일 없이 실행되고, Sandbox가 가져오지 못한 각 파일과 이유를 나열해요.
+- <!--i:globe--> **Lolly Design 박스의 웹 페이지.** 페이지는 출처 사이트에 사용자의 IP 주소와 함께 요청되며, 페이지 자체가 요청하는 것도 함께 가져와요. 브라우저가 지원하면 프레임에는 쿠키가 전송되지 않고 앱 자체 출처 이상의 주소도 전송되지 않으므로 문서와 그 링크가 요청과 함께 이동하지 않아요. 웹 앱에서 프레임에 넣을 수 있는 플레이어는 `www.youtube-nocookie.com`, `player.vimeo.com`, `www.loom.com`, `www.google.com`(지도), `www.figma.com`뿐이며, 참고 페이지로 `wikipedia.org`와 `*.wikipedia.org`, `commons.wikimedia.org`, `upload.wikimedia.org`, `www.wikidata.org`, `www.mediawiki.org`, `www.openstreetmap.org`가 있어요. **Settings → Trusted sites**의 **Allow pages from any site**는 모든 `https:` 페이지를 프레임에 넣을 수 있는 정책 아래에서 기기의 Lolly를 다시 불러오며, 신뢰와 확인에 관한 같은 규칙이 그대로 적용돼요. 페이지는 Trusted sites에 있는 사이트(제거할 수 있는 기본 참고 사이트 포함)이거나 인스펙터에서 해당 박스를 승인한 경우에만 로드되고, 누군가 보내준 덱에서는 그때까지 각 페이지의 그림이 표시돼요. 발표 전에 목록에서 각 사이트에 대해 **Just this time**과 **Always trust**를 선택할 수 있고, 발표 중에는 아무것도 묻지 않아요. 차단되면 박스에 그림과 함께 새 탭에서 페이지를 여는 링크가 표시돼요. 박스 안의 Lolly 도구와 Lolly Sandbox 데모는 앱 자체 주소에서 실행되며 누구에게도 연결하지 않아요.
+- <!--i:sliders--> **보여주는 페이지 바꾸기.** 웹 페이지 박스의 **Use page** 동작으로 페이지 안에서 쿠키를 거부하거나 배너를 닫을 수 있어요. 접근 가능한 Lolly 페이지에서는 **Hide cookie banners**가 OneTrust를 포함한 알려진 오버레이를 쿠키를 수락하거나 사이트의 동의 선택을 바꾸지 않고 숨겨요. **Page CSS**는 해당 박스의 실시간 페이지와 프레젠테이션을 바꾸며, 내보내기에서는 여전히 선택한 포스터를 사용해요. 이 규칙은 리소스나 글꼴을 가져올 수 없고, 브라우저가 Lolly의 다른 사이트 CSS 변경을 막아요. Lolly Sandbox 미리보기에는 **Edit in Sandbox** 아래에 별도의 CSS 편집기가 있어요.
+- <!--i:code--> **Lolly Sandbox 데모의 웹 리소스.** 데모 코드가 링크하는 스타일시트, 스크립트, 글꼴, 이미지는 각각 그것을 호스팅하는 사이트에 사용자의 IP 주소와 쿠키 없이 요청돼요. 가져온 스타일시트가 지정하는 파일(예: Google Fonts의 글꼴 파일)은 별도 사이트로 계산돼요. **Fetch & inline**을 클릭한 뒤나 Trusted sites에 있는 사이트일 때만 일어나며, 파일 옆의 **Always trust**는 그 사이트를 목록에 추가해요. 차단되면 데모가 그 파일 없이 실행되고, Lolly Sandbox가 가져오지 못한 각 파일과 이유를 나열해요.
 - <!--i:download--> **URL로 이미지 추가.** 에셋 선택기나 Assets의 **Add from URL**은 붙여넣은 정확한 이미지 주소를 요청해요. 웹 앱 자체 정책이 브라우저가 다른 사이트를 직접 가져오지 못하게 하므로, 앱 자체 주소의 작은 중계(`/api/fetch-image`)가 이미지를 가져와 바이트만 돌려줘요. 아무것도 저장하지 않고 주소를 기억하지 않으며, 공개 이미지 주소가 아닌 것은 거부해요. 데스크톱 앱은 주소를 직접 가져와요. 붙여넣은 Lolly 링크는 전혀 가져오지 않고 기기에서 렌더링돼요. 운영자가 중계를 끄면(`LOLLY_DISABLE_IMAGE_PROXY=1`) 웹 앱에서는 Lolly 링크, `data:` 이미지, 같은 출처 이미지만 추가할 수 있고 데스크톱 앱은 영향을 받지 않아요.
-- <!--i:palette--> **웹사이트로 만든 디자인 시스템.** Design System Setup은 지정한 사이트의 한 페이지를 [브라우저 확장 프로그램](#the-browser-extension)이나 데스크톱 앱 자체 가져오기로 읽을 수 있으며, Lolly 서버를 거치지 않아요. 누르기 전에는 아무것도 가져오지 않고, 페이지의 링크도 따라가지 않아요.
+- <!--i:palette--> **웹사이트로 만든 디자인 시스템.** Lolly Design System Setup은 지정한 사이트의 한 페이지를 [브라우저 확장 프로그램](#the-browser-extension)이나 데스크톱 앱 자체 가져오기로 읽을 수 있으며, Lolly 서버를 거치지 않아요. 누르기 전에는 아무것도 가져오지 않고, 페이지의 링크도 따라가지 않아요.
 :::
 
 ::: details 다른 사람 및 에이전트와 작업하기
 - <!--i:link--> **비공개 collab.** 두 기기가 중간 서버 없이 직접 연결돼요. 초대와 응답에는 각 기기가 자체 네트워크에서 볼 수 있는 주소가 담기며, 이 빌드는 외부 주소 탐색 서버를 구성하지 않으므로 함께 작업하는 사람에게만 전달하세요. [함께 작업하기](/info/collaborate.html)를 참고하세요.
 - <!--i:monitor--> 데스크톱 앱의 **Nearby**. 표시되는 동안(collab 초대를 시작하면 10분, 켜 두면 앱이 실행 중일 때는 항상) 앱은 로컬 네트워크에 임의의 이름, 선택한 표시 이름, 기기 종류를 알려요. 이메일 주소, 계정, 영구 식별자는 알리지 않아요.
 - <!--i:link--> **에이전트 초대.** 초대된 문서의 상태, 에이전트가 요청한 미리보기, 에이전트의 신원과 편집 내용은 구성된 라이브 릴레이(lolly.tools에서는 `lolly.ing`)를 거쳐 초대한 에이전트에게 전달돼요. 설치된 호스팅 플러그인도 lolly.tools 커넥터를 통해 초대가 선택한 릴레이로 호출을 전달하며, 커넥터는 호출 사이에 초대나 문서를 보관하지 않아요. 릴레이는 연결을 끊거나 만료될 때까지 초대와 대기 중인 요청을 메모리에 보관해요. 사용하지 않은 초대는 10분, 참여한 초대는 활동 없이 30분이에요. 에이전트 공급자는 받은 데이터를 자체 정책에 따라 처리해요. Share에서 초대를 만들고 그 안내를 에이전트에게 전달한 뒤에만 일어나며, 읽기 권한은 검사를, 편집 권한은 변경도 허용해요. Pause는 변경을 멈추고, Disconnect나 초대 취소는 접근을 끝내요. 차단되면 에이전트가 참여하거나 계속할 수 없고 사용자는 계속 편집할 수 있어요.
-- <!--i:cpu--> 데스크톱 앱의 **Allow AI control**. 이 컴퓨터에서 실행 중인 에이전트가 컴퓨터 안에만 머무는 연결로 열려 있는 Design 문서를 읽고 편집할 수 있어요. 켜기 전에는 꺼져 있어요. Lolly는 이를 위해 서버로 아무것도 보내지 않으며, 에이전트가 읽은 내용은 에이전트 공급자가 자체 정책에 따라 처리해요. [위협 모델과 신뢰 경계](/info/threat-model.html)에서 이런 에이전트가 할 수 있는 일과 할 수 없는 일을 나열해요.
+- <!--i:cpu--> 데스크톱 앱의 **Allow AI control**. 이 컴퓨터에서 실행 중인 에이전트가 컴퓨터 안에만 머무는 연결로 열려 있는 Lolly Design 문서를 읽고 편집할 수 있어요. 켜기 전에는 꺼져 있어요. Lolly는 이를 위해 서버로 아무것도 보내지 않으며, 에이전트가 읽은 내용은 에이전트 공급자가 자체 정책에 따라 처리해요. [위협 모델과 신뢰 경계](/info/threat-model.html)에서 이런 에이전트가 할 수 있는 일과 할 수 없는 일을 나열해요.
+- <!--i:cpu--> 데스크톱 앱의 **Ask an agent**. Lolly Design에서 **Ask an agent**를 열면 앱이 이 컴퓨터에서 에이전트 명령줄 도구 네 가지(Claude Code, Codex, Gemini CLI, GitHub Copilot CLI), 앱 일곱 가지(Claude, ChatGPT, Codex, Cursor, Visual Studio Code, LM Studio, Ollama), 그리고 `127.0.0.1`의 Ollama와 LM Studio 서버를 찾아요. 각 도구의 버전 및 도움말 명령(그리고 Codex의 기능 목록)을 실행하고, 앱 번들에서 앱 이름과 버전을 읽으며, 두 로컬 서버에 어떤 모델을 가지고 있는지 물어요. 로그인 정보나 자격 증명 파일은 읽지 않고, 결과는 앱의 메모리에만 남으며, 이에 관한 어떤 것도 어디로도 전송되지 않아요. 에이전트에게 요청하면 사용자의 요청과 열려 있는 문서(업로드한 그림은 제외)가 그 도구가 로그인된 계정으로 해당 에이전트의 공급자(Claude Code는 Anthropic, Codex는 OpenAI)에게 전달되고, 비용은 사용자가 그 공급자에 가진 요금제로 지불돼요. 중간에 Lolly 서버는 없어요. 각 에이전트에 처음 요청하기 전에 패널이 이 내용을 보여주고 한 번 묻고, 답은 이 기기의 `localStorage`에 보관돼요. 에이전트는 도구 없이, 빈 임시 폴더에서, 자신의 로그인을 찾는 데 필요한 환경 변수만 가지고 실행되므로 환경에 설정된 API 키는 전달되지 않아요. 관리형 인스턴스에서는 조직 정책이 이 기능을 끌 수 있으며, 그러면 앱은 에이전트를 찾지도 시작하지도 않아요.
 - <!--i:server--> **원격 인스턴스.** 앱이 다른 Lolly 배포를 가리키면 같은 카탈로그 동기화를 통해 그 인스턴스가 제공하는 것을 모두 받고, 그곳으로 가는 요청에는 버전 태그(앱 종류와 엔진 버전, 사용자 에이전트가 담는 것과 같은 정보)가 붙어서 운영자가 어떤 Lolly 버전이 쓰이는지 볼 수 있어요. 관리형 인스턴스에서는 로그인한 동안 태그에 이 기기의 설치 ID도 담겨 운영자의 기기 목록이 설치를 구분할 수 있고, 떠나면 ID가 삭제되며 나중에 다시 연결한 기기는 새 ID를 제시해요. 호스트는 사용자가 고르므로 연결 정책에 없어요. 차단되면 전환이 실패하고 로컬 인스턴스는 영향을 받지 않아요.
 - <!--i:people--> **조직의 Lolly Work 인스턴스.** 로그인 신원과 기기 정보, 정책 요청, 공유 세션, 협업 편집, 업로드, 승인 제출, 사용하는 전달 파일, 구성된 경우 허용된 사용 이벤트 라벨이 조직의 인스턴스로 전송되며, 로그인은 해당 인스턴스의 신원 공급자를 거쳐요. 정책 갱신과 활성화된 원격 측정은 사용 중에 실행될 수 있으며, 공유 작업, collab, 검토, 전달은 그 워크플로의 일부로 콘텐츠를 보내요. 차단되면 이런 조직 기능을 완료할 수 없고 개인 작업물은 별도로 유지돼요. [Lolly Work의 조직 서비스](#organisation-services-with-lolly-work)를 참고하세요.
 :::
@@ -146,23 +148,23 @@ Strip Hidden Data와 Prepare for sharing은 DOCX, PPTX, XLSX 파일도 기기에
 |---|---|---|
 | 패키지 앱의 온디바이스 모델과 릴리스 파일 | 공개 파일 요청과 사용자의 IP 주소 | `lolli.li` |
 | Google Fonts | 글꼴 패밀리 이름과 사용자의 IP 주소 | `fonts.googleapis.com`, `fonts.gstatic.com` |
-| Google Drive로 보내기 및 Sync | 선택한 파일 또는 백업 | `www.googleapis.com` |
-| Dropbox로 보내기 및 Sync | 선택한 파일 또는 백업 | `api.dropboxapi.com`, `content.dropboxapi.com` |
-| OneDrive로 보내기 및 Sync | 선택한 파일 또는 백업, 계정 라벨용 표시 이름 | `login.microsoftonline.com`, `graph.microsoft.com`, `api.onedrive.com` |
+| Google Drive로 보내기 및 Sync | 선택한 파일 또는 백업, 그리고 공유 링크를 요청할 때의 공유 권한 | `www.googleapis.com` |
+| Dropbox로 보내기 및 Sync | 선택한 파일 또는 백업, 그리고 공유 링크를 요청할 때의 링크 설정 | `api.dropboxapi.com`, `content.dropboxapi.com` |
+| OneDrive로 보내기 및 Sync | 선택한 파일 또는 백업, 계정 라벨용 표시 이름, 그리고 공유 링크를 요청할 때의 링크 요청 | `login.microsoftonline.com`, `graph.microsoft.com`, `api.onedrive.com` |
 | Meeting Planner의 도시 조회 | 각 도시 이름 | `geocoding-api.open-meteo.com` |
 | ICC 인쇄 프로필 | 공개 프로필 요청 | `registry.color.org`, `www.color.org` |
 | 인터넷 라디오 | 재생 목록 요청과 오디오 스트림 | `api.somafm.com`, `*.somafm.com` |
 | 에이전트 초대 및 lolly.ing 워크스페이스 | 초대된 문서의 상태, 미리보기, 편집 내용과 사용자가 하는 워크스페이스 요청 | `lolly.ing` |
-| Design 웹 박스의 플레이어 | 페이지 요청과 사용자의 IP 주소 | `www.youtube-nocookie.com`, `player.vimeo.com`, `www.loom.com`, `www.google.com`, `www.figma.com` |
-| Design 웹 박스의 참고 페이지 | 페이지 요청과 사용자의 IP 주소 | `wikipedia.org`, `*.wikipedia.org`, `commons.wikimedia.org`, `upload.wikimedia.org`, `www.wikidata.org`, `www.mediawiki.org`, `www.openstreetmap.org` |
+| Lolly Design 웹 박스의 플레이어 | 페이지 요청과 사용자의 IP 주소 | `www.youtube-nocookie.com`, `player.vimeo.com`, `www.loom.com`, `www.google.com`, `www.figma.com` |
+| Lolly Design 웹 박스의 참고 페이지 | 페이지 요청과 사용자의 IP 주소 | `wikipedia.org`, `*.wikipedia.org`, `commons.wikimedia.org`, `upload.wikimedia.org`, `www.wikidata.org`, `www.mediawiki.org`, `www.openstreetmap.org` |
 | LinkedIn으로 보내기(데스크톱 앱 전용) | 이름이 공개 게시물로 붙은 파일 | `www.linkedin.com`, `api.linkedin.com` |
 
 데스크톱 앱의 자체 목록에는 Drive 로그인을 위한 Google 토큰 엔드포인트도 포함돼요. 직접 지정한 Mastodon이나 Nextcloud 서버 같은 다른 호스트는 직접 보내는 파일 항목에서 설명한 대로 운영자의 승인이 필요해요. 캡처하는 URL이나 지정한 원격 인스턴스처럼 사용하는 순간에 고르는 호스트는 어떤 목록에도 나타나지 않아요.
 
 
-**SEAL 서명은 요청을 보내지 않아요.** Verify는 서명 키를 DNS에 게시할 수 있는 방식인 SEAL 서명을 확인할 수 있어요. 브라우저는 DNS 쿼리를 보낼 수 없으므로 웹 조회는 타사 DNS-over-HTTPS 리졸버를 거쳐야 하고, 그러면 확인 중인 도메인과 사용자의 IP 주소가 노출돼요. Lolly는 예전에 Cloudflare의 리졸버를 썼지만 지금은 쓰지 않으며 Cloudflare를 대체한 것도 없어요. 현재 어떤 Lolly 앱도 SEAL 키를 조회하지 않아요. 데스크톱과 모바일 앱은 같은 Verify 화면을 실행하고, 명령줄 `lolly validate`는 SEAL을 확인하지 않아요. SEAL 레코드에 키가 인라인으로 담긴 파일은 오프라인으로 확인되며, Verify는 도메인을 확인하지 않은 채 서명이 내부적으로 일관적이라고만 말해요. 키가 DNS에만 있는 파일은 "no key resolver and no inline key"라는 이유와 함께 **SEAL signature did not verify**로 표시돼요.
+**SEAL 서명은 요청을 보내지 않아요.** Lolly Verify는 서명 키를 DNS에 게시할 수 있는 방식인 SEAL 서명을 확인할 수 있어요. 브라우저는 DNS 쿼리를 보낼 수 없으므로 웹 조회는 타사 DNS-over-HTTPS 리졸버를 거쳐야 하고, 그러면 확인 중인 도메인과 사용자의 IP 주소가 노출돼요. Lolly는 예전에 Cloudflare의 리졸버를 썼지만 지금은 쓰지 않으며 Cloudflare를 대체한 것도 없어요. 현재 어떤 Lolly 앱도 SEAL 키를 조회하지 않아요. 데스크톱과 모바일 앱은 같은 Verify 화면을 실행하고, 명령줄 `lolly validate`는 SEAL을 확인하지 않아요. SEAL 레코드에 키가 인라인으로 담긴 파일은 오프라인으로 확인되며, Lolly Verify는 도메인을 확인하지 않은 채 서명이 내부적으로 일관적이라고만 말해요. 키가 DNS에만 있는 파일은 "no key resolver and no inline key"라는 이유와 함께 **SEAL signature did not verify**로 표시돼요.
 
-![Verify 화면: 드롭 대상 하나뿐이며, 파일은 있는 그대로 그 자리에서 확인되고 업로드도 계정도 필요 없어요](/t/url-shot?url=%2F%23%2Fverify&width=1440&height=900&dpi=192&waitMs=1400&walker=1&format=svg&cropSelector=.valid-layout&dark=1&filename=cc-verify-drop)
+![Lolly Verify 화면: 드롭 대상 하나뿐이며, 파일은 있는 그대로 그 자리에서 확인되고 업로드도 계정도 필요 없어요](/t/url-shot?url=%2F%23%2Fverify&width=1440&height=900&dpi=192&waitMs=1400&walker=1&format=svg&cropSelector=.valid-layout&dark=1&filename=cc-verify-drop)
 
 이 페이지의 이 내용과 다른 모든 주장을 직접 확인할 수 있어요. [Verify It Yourself](/info/verify-yourself.html)에서 명령어와 예상 결과를 안내해요.
 
@@ -190,7 +192,7 @@ Strip Hidden Data와 Prepare for sharing은 DOCX, PPTX, XLSX 파일도 기기에
 AI 에이전트는 운영자가 실행하는 엔드포인트를 통해 Model Context Protocol로 Lolly에 접근할 수 있어요. lolly.tools가 하나를 운영하고, 누구나 완전 오프라인을 포함해 직접 운영할 수 있어요.
 
 - <!--i:cpu--> **에이전트가 보내는 파일.** 파일을 받는 도구(`lolly_transform`, `lolly_verify`, `lolly_redact`, `lolly_read`, `lolly_check`, `lolly_package`, `lolly_compose`, `lolly_rebrand`와 이미지 도구 `lolly_look`, `lolly_sample_color`, `lolly_trace_edges`)는 메모리에서 처리하고 같은 호출로 결과를 돌려줘요. 파일은 디스크에 쓰이지 않고 요청이 끝나면 보관되지 않아요. `lolly_inspect`도 파일을 받으며, 동영상 및 인쇄 제작 검사는 호출이 끝나면 삭제되는 임시 작업 사본을 써요. 다른 모든 도구는 호출에 담긴 매개변수, 즉 텍스트, 숫자, 색상, URL, 카탈로그 에셋 ID 또는 호출자가 제공하는 문서로 작업해요.
-- <!--i:cpu--> **Rebrand는 덱이 가는 곳을 알려줘요.** `lolly_rebrand`의 첫 단계인 `capabilities`는 파일을 보내기 전에 바이트가 어디로 가는지 말로 알려줘요. 직접 호스팅하는 로컬 서버에서는 덱이 그 컴퓨터를 떠나지 않으며, 호스팅 서버에서 `lolly_rebrand`를 호출하면 그 단계가 알려주는 크기 및 슬라이드 한도 안에서 덱이 그곳으로 전송돼요.
+- <!--i:cpu--> **Lolly Rebrand는 덱이 가는 곳을 알려줘요.** `lolly_rebrand`의 첫 단계인 `capabilities`는 파일을 보내기 전에 바이트가 어디로 가는지 말로 알려줘요. 직접 호스팅하는 로컬 서버에서는 덱이 그 컴퓨터를 떠나지 않으며, 호스팅 서버에서 `lolly_rebrand`를 호출하면 그 단계가 알려주는 크기 및 슬라이드 한도 안에서 덱이 그곳으로 전송돼요.
 - <!--i:lock--> **공개 엔드포인트.** lolly.tools에서 `lolly.tools/api/mcp`는 토큰 없이 누구에게나 열려 있어요. 호출은 주소별로, 그리고 일일 예산으로 제한돼요. 주소는 아래 로그인 엔드포인트처럼 남용 방지 저장소에서 익명화된 다이제스트가 되고, 예산은 CPU 시간과 전송된 바이트만 세며 주소는 쓰지 않아요. 제한된 엔드포인트의 베어러 토큰은 로그나 렌더 URL에 절대 기록되지 않아요.
 - <!--i:link--> **큰 결과를 위한 다운로드 링크.** lolly.tools는 결과를 인라인으로 반환하며 이런 링크를 발급하지 않아요. 운영자는 인증된 자체 게이트웨이에서 이를 켤 수 있고, 그곳에서 결과는 최대 5분간 보관되며 호출자 본인의 베어러 토큰으로만 가져올 수 있어요. [MCP Server](/info/mcp.html#private-download-links-for-large-results)를 참고하세요. `mcp.lolly.tools`에 계획된 제한 엔드포인트는 운영자가 신뢰하는 클라이언트에 발급하는 베어러 토큰, 또는 공유 비밀로 확인하는 수명이 짧은 서명 토큰이 있는 OAuth 2.1을 받으며, 활성화는 보류 중이고 [전달 호스트와 처리자](#delivery-hosts-and-processors)에 나열돼 있어요.
 
@@ -198,9 +200,15 @@ AI 에이전트는 운영자가 실행하는 엔드포인트를 통해 Model Con
 
 Lolly는 내보내기에 **Content Credential**을 봉인해서, 파일이 Lolly를 떠난 뒤 변경되지 않았음을 누구나 오프라인으로 확인할 수 있게 해요. 이 부분은 **기본으로 켜져 있고 완전히 로컬**이에요. 서명 키는 기기에서 만들어지고 서명은 오프라인으로 이루어져요. 등록하지 않으면 그 키는 일회용으로, 내보낼 때마다 새 키 쌍을 만들고 이후 폐기해요. 등록하면 키가 유지되고 **추출 불가능**하게 생성되어 Lolly 자체 코드도 읽을 수 없고 서명만 요청할 수 있어요. 어느 쪽이든 기기를 떠나지 않아요.
 
-[Exporting](/info/exporting.html#content-credentials-c2pa)에서 자격 증명이 기록하는 내용을 나열해요. 도구, 시간, 대략적인 내보내기 화면, *Use my details*를 켠 경우에만 이름, 내보내기에 들어간 출처 표기 작품, 동영상 또는 오디오 내보내기에서 재생되는 각 Rondocode 노래(이름, 원본 해시, Lolly의 샌드박스가 노래를 렌더링한 방식)가 해당돼요. 내보내기 패널은 내보내기 전에 그 노래들을 나열해요.
+[Exporting](/info/exporting.html#content-credentials-c2pa)에서 자격 증명이 기록하는 내용을 나열해요. 도구, 시간, 대략적인 내보내기 화면, *Use my details*를 켠 경우에만 이름, 내보내기에 들어간 출처 표기 작품, 동영상 또는 오디오 내보내기에서 재생되는 각 Lolly Rondocode 노래(이름, 원본 해시, Lolly의 샌드박스가 노래를 렌더링한 방식)가 해당돼요. 내보내기 패널은 내보내기 전에 그 노래들을 나열해요.
 
 자격 증명과 파일 메타데이터에는 내보내기를 만든 [디자인 시스템과 컬러웨이](/info/exporting.html#the-design-system-record)도 기록돼요. 디자인 시스템의 ID와 이름, 게시된 버전, 컬러웨이예요. 디자인 시스템 이름은 소유자가 입력한 텍스트라서 고객 이름일 수도 있으므로, 내보내기 패널의 **Design system** 카드가 내보내기 전에 정확한 문구를 보여줘요. 카드를 해제하거나 `_madewith=0` 또는 `--no-madewith`를 전달하면 이를 제외할 수 있어요.
+
+디자인 시스템 게시자는 같은 기록에 자신의 [브랜드 페이지](/info/brand-page.html#lead-back-from-your-files) 주소를 남기도록 선택할 수도 있어요. 추가되는 것은 이 주소뿐이에요. 이 설정은 게시자가 켜기 전까지 꺼져 있고, 팩이나 사본과 함께 이동하지 않으며, 같은 카드에서 주소를 보여주거나 뺄 수 있어요. 파일을 다시 읽을 때 그 주소를 불러오는 일은 없어요. Lolly Verify는 호스트만 보여주고, 페이지를 열지는 사용자가 선택해요.
+
+조직의 Lolly Work를 거쳐 승인된 파일에는 서명된 승인 기록도 담길 수 있어요. 승인 ID, 결정한 날짜, 검토한 파일의 다이제스트가 담기며 이름, 이메일, 그룹, 댓글, 체인 이름은 담기지 않아요. 검토를 요청한 사람은 이를 체크 상자로 보고 체크를 해제할 수 있으며, 조직은 기록을 끌 수 있어요.
+
+[인텐트](/info/visual-intent.html#what-goes-in-the-file)로 만든 파일에는 무엇을 하도록 요청받았는지도 기록돼요. 목적, 표면, 도구, 언어, 요청의 다이제스트예요. 행사, 대상, 지역, 프롬프트는 핑거프린트로만 남아요. 프롬프트의 실제 문구는 그 렌더를 실행하는 사람이나 에이전트가 요청할 때만 들어가며, 파일이 닿는 누구나 그 문구를 읽을 수 있으므로 실행 중에 그 사실을 알려줘요. 이 기록은 뺄 수 있고, 다른 내보내기에는 이런 기록이 없어요.
 
 그 위에 얹는 *선택 사항* 단계는 검증된 신원 등록으로, 내보낸 파일에 익명 키 대신 "Verified - signed by \<your email\>"이 표시돼요. **등록을 건너뛰면 인증서 서비스는 사용자로부터 어떤 등록 데이터도 받지 않아요.**
 
@@ -232,7 +240,7 @@ Lolly는 내보내기에 **Content Credential**을 봉인해서, 파일이 Lolly
 |---|---|
 | 로그인 및 프로비저닝 | 신원 공급자 클레임, 계정 및 그룹 멤버십, 로그인 세션, 기기 정보. 로그인은 OIDC가 처리하며 관리자는 SCIM으로 계정을 프로비저닝하고 비활성화할 수 있어요 |
 | 공유 카탈로그와 프로젝트 | 업로드된 에셋, 메타데이터, 버전, 공유 프로젝트와 세션, 구성된 라이브러리 공급자에서 가져온 콘텐츠 |
-| 업무 collab | 인스턴스를 통해 전송되는 공유 세션 상태, 실시간 편집, 참여자 접속 상태이며, 저장된 상태는 해당 저장소 정책에 따라 유지돼요 |
+| Lolly Work collab | 인스턴스를 통해 전송되는 공유 세션 상태, 실시간 편집, 참여자 접속 상태이며, 저장된 상태는 해당 저장소 정책에 따라 유지돼요 |
 | 관리형 공유 링크 | 링크 대상과 만료, 선택적 비밀번호 보호 같은 접근 설정이며, 요청은 인스턴스를 통해 처리되고 폐기할 수 있어요 |
 | 검토 및 전달 | 제출된 콘텐츠, 승인 결정, 선택한 목적지, 준비된 파일, 전달 영수증 |
 | 서버 렌더와 배치 | 제출된 도구 입력값, 렌더 요청, 상태, 보관된 출력 파일. 이 작업은 기기가 아니라 서버에서 실행돼요 |
@@ -350,6 +358,10 @@ lolly.tools의 요청 로깅, 순환, 보관은 UpCloud에서 인스턴스 관�
 **2026년 10월 22일:** 기존 동작의 설명을 바로잡았어요. 브라우저 확장 프로그램 섹션이 이제 모든 요청의 승인 창, 사이트 하나씩 요청하는 사이트 접근, 웹사이트 읽기의 스타일시트 및 아이콘 가져오기를 다뤄요. Google Drive로 보내기와 Meeting Planner 행, SEAL 안내(DNS에서 SEAL 키를 조회하는 Lolly 앱 없음), 조직 서비스의 기본 사용량 원격 측정 단계, MCP 이미지 도구, 공개 서비스의 애플리케이션 로깅도 바로잡았어요. 소프트웨어 자체는 바뀌지 않았어요.
 
 **2026년 10월 23일:** 정책을 각 요청을 시작하는 주체별로 재구성하고, 이전에 다루지 않았던 기존 동작을 설명했어요. 로컬 네트워크 주소를 담는 비공개 collab 초대, 데스크톱 앱의 Nearby, Allow AI control, 웹사이트로 디자인 시스템 읽기, 이모지 세트, Meeting Planner의 도시 조회 온디바이스 캐시, 휴지통, Settings → Storage에 나열되는 다른 기록이에요. 두 가지 서술도 바로잡았어요. Bluesky와 Discord는 데스크톱 전용이 아니며, 보내기를 위해 사람이 고르는 모든 호스트는 웹과 데스크톱 앱 모두에서 운영자의 승인이 필요해요. IP 주소의 속도 제한 다이제스트는 익명이 아니라 가명이에요. 소프트웨어 자체는 바뀌지 않았어요.
+
+**2026년 11월 3일:** Send 이후의 공유 링크를 추가했어요. Create a share link를 누르면 Lolly가 파일을 보낸 공급자(Google Drive, Dropbox, OneDrive 또는 직접 운영하는 Nextcloud)에 호출을 한 번 더 하고, Stop sharing은 링크를 끄기 위해 또 한 번 호출해요. S3 공유 링크는 기기에서 만들어지며 아무것도 전송하지 않아요. 새로운 호스트는 관여하지 않고, Lolly는 링크나 토큰의 사본을 서버에 보관하지 않아요.
+
+**2026년 11월 3일:** 데스크톱 앱에 **Ask an agent**를 추가했어요. 패널이 열릴 때 앱이 컴퓨터에서 무엇을 찾는지, 그리고 요청할 때 에이전트 공급자에게 무엇이 전달되는지(해당 공급자에 가진 사용자 본인의 계정으로)를 설명해요.
 
 ## 책임 주체 및 연락 방법
 

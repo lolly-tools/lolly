@@ -12,7 +12,7 @@ Sommige converterwebsites verwerken formaten die Lolly niet kent, en hebben voor
 
 Een converter in de browser kan een bestand voor verwerking uploaden of lokaal converteren. De conversiehulpprogramma's van Lolly verwerken het bestand lokaal, zonder account, advertenties of trackers, en voegen geen Lolly-watermerk of Content Credentials toe. Zodra de assets die een conversie nodig heeft zijn opgeslagen, werken ze offline. De bestandsgrootte wordt begrensd door het geheugen van het apparaat en de specifieke formaatlezer.
 
-![De weergave Utilities: Strip Hidden Data, Compress PDF, Convert Image en de andere klussen op het apparaat op één plek](/t/url-shot?url=%2F%23%2Fu&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%2C.brand-tips%7Bdisplay%3Anone!important%7D&tolerance=0.03&waitSelector=.utilities-view%5Bdata-shots-settled%5D&format=svg&walker=1&dark=1&filename=aud-utilities)
+![De weergave Utilities: Lolly Strip Hidden Data, Compress PDF, Convert Image en de andere klussen op het apparaat op één plek](/t/url-shot?url=%2F%23%2Fu&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%2C.brand-tips%7Bdisplay%3Anone!important%7D&tolerance=0.03&waitSelector=.utilities-view%5Bdata-shots-settled%5D&format=svg&walker=1&dark=1&filename=aud-utilities)
 
 [Elk formaat dat Lolly kan openen en maken](/info/formats.html) noemt de ondersteunde conversies en hun grenzen, waaronder HEIC naar JPG, PNG naar SVG en PDF naar afbeeldingen.
 

@@ -14,9 +14,9 @@ Parehong hinahayaan ang tao na magsimula sa template at gumawa ng tapos na graph
 
 ## Paano ginagawa ng Lolly ang magkapatong na trabaho
 
-Ang Lolly tool ay nag-e-encode ng mga pagbabagong puwedeng gawin ng tao, at ang parehong tool ay tumatakbo sa browser, desktop app o CLI. Ang layout na ginawa sa Design canvas ay puwedeng maging [tool na may mga patakaran](/info/create-a-tool.html), at ang isang tool ay puwedeng gumawa ng maraming file mula sa table ng mga value.
+Ang Lolly tool ay nag-e-encode ng mga pagbabagong puwedeng gawin ng tao, at ang parehong tool ay tumatakbo sa browser, desktop app o CLI. Ang layout na ginawa sa Lolly Design canvas ay puwedeng maging [tool na may mga patakaran](/info/create-a-tool.html), at ang isang tool ay puwedeng gumawa ng maraming file mula sa table ng mga value.
 
-![Ang malayang canvas ng Design, kung saan ang mga kulay, face at asset na iniaalok ay sa mismong design system](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&dark=1&filename=aud-open-canvas)
+![Ang malayang canvas ng Lolly Design, kung saan ang mga kulay, face at asset na iniaalok ay sa mismong design system](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&dark=1&filename=aud-open-canvas)
 
 Pinananatili ng standalone na Lolly ang paggawa at pag-export sa device, nang walang account, at gumagana offline kapag na-save na ang mga asset nito. Dalawang tao ay puwedeng mag-edit nang live sa [pribadong collab](/info/collaborate.html), device sa device. Naka-on bilang default ang Content Credentials para sa mga sinusuportahang export, at puwede mo itong i-off.
 

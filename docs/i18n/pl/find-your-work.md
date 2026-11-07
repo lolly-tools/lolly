@@ -37,7 +37,7 @@ Element jest nazywany według nazwy pliku wpisanej w panelu eksportu albo wedłu
 :::
 
 ::: details Praca z Projektami
-Projekty możesz też otworzyć z **Ustawienia → Pamięć → Zapisane sesje → Zorganizuj w Projektach**. Działają jak menedżer plików:
+Widok **Projekty** możesz też otworzyć z **Ustawienia → Pamięć → Zapisane sesje → Zorganizuj w Projektach**. Działa jak menedżer plików:
 
 ![Projekty, zanim cokolwiek zostanie zapisane: kafelki Nowy folder, Nowy zasób i Szablony, zegar History w prawym górnym rogu i pasek Szukaj we wszystkich projektach u dołu](/t/url-shot?url=%2F%23%2Fp&width=1440&height=900&dpi=192&waitMs=1200&walker=1&format=svg&localize=1&dark=1&filename=projects)
 <!--
@@ -101,17 +101,17 @@ W narzędziach, które zapisują w trakcie pracy, Historia zachowuje kopię odrz
 :::
 
 ::: details Które narzędzia zapisują w trakcie pracy
-W aplikacji webowej każde narzędzie, które tworzy dokument, zapisuje w trakcie pracy: Design, Chart, QR Code, Text, Sandbox i pozostałe. Te narzędzia nie:
+W aplikacji webowej każde narzędzie, które tworzy dokument, zapisuje w trakcie pracy: Lolly Design, Lolly Chart, QR Code, Text, Lolly Sandbox i pozostałe. Te narzędzia nie:
 
 - narzędzia pracujące na dostarczonym przez Ciebie pliku, takie jak Redact, Sign lub Convert Image, ponieważ Lolly nigdy nie przechowuje kopii tego pliku;
-- narzędzia nagrywające z kamery, mikrofonu lub ekranu, takie jak Record, Screen Capture i Voice Recorder;
+- narzędzia nagrywające z kamery, mikrofonu lub ekranu, takie jak Record, Lolly Screen Capture i Lolly Voice Recorder;
 - narzędzie, w którym nie ma nic do zmiany, takie jak Countdown.
 
 W pozostałych narzędziach pierwsza zmiana składa pracę w **Projects**, jakbyś ją zapisał, a późniejsze zmiany są zachowywane w trakcie pracy, gdy narzędzie skończy rysować. Niezapisane dzieło nadal jest w Projects po zamknięciu karty i otwiera się ponownie ze zmianami oznaczonymi jako niezapisane.
 
 **Leave anyway** nadal odrzuca te zmiany, a History zachowuje kopię odrzuconych edycji przez 30 dni. Ponowne otwarcie narzędzia z ekranu głównego zaczyna nowe dzieło; wcześniejsze otwórz z Projects.
 
-3D i Darkroom zapisują w trakcie pracy, ale nie zachowują pliku, który do nich wczytasz, takiego jak model 3D lub LUT. History i **Save** zachowują nazwę, typ i rozmiar pliku, a nie sam plik. Gdy otworzysz pracę ponownie, uwaga mówi, jaki to był plik, a narzędzie działa bez niego, dopóki nie wczytasz go znowu. Zachowaj swoje oryginalne pliki.
+3D i Lolly Darkroom zapisują w trakcie pracy, ale nie zachowują pliku, który do nich wczytasz, takiego jak model 3D lub LUT. History i **Save** zachowują nazwę, typ i rozmiar pliku, a nie sam plik. Gdy otworzysz pracę ponownie, uwaga mówi, jaki to był plik, a narzędzie działa bez niego, dopóki nie wczytasz go znowu. Zachowaj swoje oryginalne pliki.
 
 Przy włączonej [Synchronizacji](/info/sync.html) kreacja założona w ten sposób trafia na twoje inne urządzenia jak wszystko inne w Projektach. Jej wersje zostają na urządzeniu, na którym powstały.
 
@@ -147,14 +147,14 @@ Na iPhonie, iPadzie i Androidzie nowy plik zastępuje wcześniejszy o tej samej 
 
 Aby otworzyć wcześniejszą wersję:
 
-1. Naciśnij **Historię**, przycisk zegara obok **Wycofaj** i **Powtórz**. W Design **Historia** jest na górnym pasku; na telefonie naciśnij **•••**, a potem **Historia**. W narzędziach bez **Wycofaj**, takich jak Text i Sandbox, **Historia** jest obok **Start** w lewym górnym rogu.
+1. Naciśnij **Historię**, przycisk zegara obok **Wycofaj** i **Powtórz**. W Lolly Design **Historia** jest na górnym pasku; na telefonie naciśnij **•••**, a potem **Historia**. W narzędziach bez **Wycofaj**, takich jak Text i Lolly Sandbox, **Historia** jest obok **Start** w lewym górnym rogu.
 2. Znajdź wersję po dacie i godzinie. Wiersze **Automatyczny punkt kontrolny** są rejestrowane w trakcie pracy; wiersze **Zapisana wersja** to chwile, w których zapisałeś.
 3. Naciśnij **Otwórz jako kopię**. Wersja otwiera się jako nowa kreacja, a ta, którą miałeś otwartą, zostaje bez zmian. Kopia jest w **Projektach**, z dopiskiem „(copy)” po nazwie.
 
 Aby zachować wersję pod nazwą, naciśnij **Name version**, wpisz nazwę i naciśnij **Keep milestone**. Nazwane wersje są wymienione na stronie **History**, pod **Milestones**.
 
 ::: details Panel History i strona History
-Panel **History** zawiera też wiersze **Recovered work**, a **Protected drafts** przechowuje twoje najnowsze zmiany między checkpointami, z **Open draft as a copy**. **Compare** i **Check assets** pomagają zdecydować, zanim otworzysz kopię. Przełącz **This creation** na **All history on this device**, aby zobaczyć każdą kreację.
+Panel **History** zawiera też wiersze **Recovered work**, a **Protected drafts** przechowuje twoje najnowsze zmiany między checkpointami, z **Open draft as a copy**. **Lolly Compare** i **Check assets** pomagają zdecydować, zanim otworzysz kopię. Przełącz **This creation** na **All history on this device**, aby zobaczyć każdą kreację.
 
 Automatyczne punkty kontrolne rzednie z wiekiem: jeden na minutę przez ostatnią godzinę, jeden na godzinę przez ostatni dzień, jeden dziennie przez 30 dni, a potem jeden na tydzień. Zapisane wersje i nazwane wersje są zachowywane wszystkie. Usunięcie kreacji przenosi do **Kosza** też jej wersje, a **Usuń na zawsze** je usuwa.
 

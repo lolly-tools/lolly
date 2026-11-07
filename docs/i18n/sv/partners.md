@@ -6,8 +6,9 @@ Två ord betyder samma sak överallt på den här sidan. **Huvudvarumärket** ä
 
 ## Så hanterar Lolly två varumärken i dag
 
-- **Ett designsystem ritar varje material.** Huvudvarumärkets färger, typsnitt och husregler gäller. Partnerns märke kommer in som grafik: en bild från Assets eller ett eget märke som sparas i ett designsystem.
+- **Ett designsystem ritar varje material.** Huvudvarumärkets färger, typsnitt och husregler gäller. Partnerns märke kommer in som grafik: en bild från Tillgångar eller ett eget märke som sparas i ett designsystem.
 - **Ett varumärke färdas som en fil.** En designsystemfil (`.lolly`) bär tokens, typsnitt och logotyper. Ett återanvändbart verktyg som görs med **Share with rules** bär en färdig layout med de indata du tillåter. Varumärkesfärdigheter färdas som egna filer.
+- **Ett varumärke kan också ha en adress.** En [varumärkessida](/info/brand-page.html) publicerar logotyper, färger, typografi och regler som en partner kan läsa, med tokens och färdigheter för deras verktyg.
 - **Lolly kontrollerar bara huvudvarumärkets regler.** Den känner inte till partnerns regler, till exempel frizon eller minsta storlek, så kontrollera dem mot partnerns egna riktlinjer.
 
 ## Dela ditt varumärke med en partner
@@ -17,8 +18,9 @@ Två ord betyder samma sak överallt på den här sidan. **Huvudvarumärket** ä
 | Skicka | Hur | Partnern får | Passar för |
 | --- | --- | --- | --- |
 | En designsystemfil | **Export** i fältet högst upp i [Lolly Design System Setup](/info/brand-studio.html#move-a-brand-between-devices) | Dina tokens, typsnitt, logotyper och temainställning, som ett designsystem de kan byta till | En partner som gör många material i ditt varumärke |
-| Ett återanvändbart verktyg | I Design, **Share with rules** ([Dela en design med regler](/info/create-a-tool.html)) | En färdig layout med de indata du tillåter, till exempel deras namn och deras logotyp. Filen bär de lösta färgerna, typsnitten och bilderna, så deras eget designsystem kan inte ändra stilen på den fasta grafiken | En co-branded flyer, ett märke eller en banner som varje partner fyller i |
+| Ett återanvändbart verktyg | I Lolly Design, **Share with rules** ([Dela en design med regler](/info/create-a-tool.html)) | En färdig layout med de indata du tillåter, till exempel deras namn och deras logotyp. Filen bär de lösta färgerna, typsnitten och bilderna, så deras eget designsystem kan inte ändra stilen på den fasta grafiken | En co-branded flyer, ett märke eller en banner som varje partner fyller i |
 | Varumärkesfärdigheter | Rummet **Skills**: **Download skill (.zip)** eller **Copy as one file** | Dina skrivna riktlinjer, för deras medarbetare och deras agenter | Något av ovanstående, när en agent gör en del av arbetet |
+| En varumärkessida | **Publicera en varumärkessida** i Lolly Design System Setup, eller `lolly system publish`, skriver en mapp du själv lägger upp ([Varumärkessidor](/info/brand-page.html)) | Dina aktuella logotyper, färger, typografi och regler på en adress, med tokens och färdigheter för deras verktyg. Logotyper och typsnittsfiler visas när deras rättigheter tillåter det, och sidan listar vad den höll tillbaka | Delning med personer du inte skickar filer till |
 | Tokens | **Tokens (.json)** i studions meny **More** | Det rena design-token-dokumentet, utan typsnitt eller logotyper | En partners egna designverktyg eller bygge |
 
 ![Design System Setup i Lolly Demo, öppet i rummet Skills: Export i fältet, menyn More öppen på Tokens (.json), och Download skill (.zip) och Copy as one file bredvid den valda färdigheten](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dskills&width=1200&height=900&dpi=192&waitMs=1800&waitSelector=.skills-reader-actions&drive=click%3A%5Bdata-ds-more%5D%3Bwait%3A500&format=svg&walker=1&dark=1&filename=partners-send)
@@ -108,6 +110,8 @@ Exportera väggen som PNG, SVG, PDF eller en CMYK-PDF för tryck. Ange en annan 
 
 I en terminal bygger `lolly run logo-wall logos/*.png --output=wall.svg` väggen från en mapp med bilder, och en CSV med kolumnerna `logo` och `tier` bygger en vägg med nivåer. SVG och PNG behöver ingen webbläsare ([En sponsorvägg med nivåer](/info/cli-rendering.html#a-sponsor-wall-with-tiers)).
 
+När en sponsor publicerar en [varumärkessida](/info/brand-page.html) hämtar `lolly run logo-wall --logos-from=<address or folder>` deras aktuella logotyp för ytan och skriver ut vad deras sida säger om användning. Upprepa flaggan för varje sponsor.
+
 Logo Wall känner inte till någon sponsors regler. Tiers och Presence anger storlekar i förhållande till varandra, inte en sponsors minsta storlek, och ingenting kontrollerar frizonen mellan grannar. Kontrollera den färdiga väggen mot varje sponsors riktlinjer i den storlek den ska tryckas eller visas i.
 
 ## Vad Lolly inte gör ännu
@@ -119,6 +123,8 @@ Logo Wall känner inte till någon sponsors regler. Tiers och Presence anger sto
 - Ett designsystem är aktivt för hela enheten, så två varumärken kan inte vara öppna sida vid sida.
 - En designsystemfil är en kopia av varumärket som det var när det exporterades, och ingenting uppdaterar kopian. En designsystemfil som exporteras från appen bär inga varumärkesfärdigheter, så skicka dem som egna filer.
 - En export registrerar huvudvarumärkets designsystem och färgvariant, inte partnerns varumärke.
+- En logotyp som hämtats från en varumärkessida är en bild i sin rad, och raden minns inte sidan. Ingenting visar vem som publicerade en sida, så kontrollera adressen själv.
+- Den värdade webbappen kan inte hämta ett annat varumärkes sida, eftersom dess Content Security Policy bara tillåter namngivna värdar. Hämta logotypen i en terminal, eller spara filen och lägg till den i **Tillgångar**.
 
 ## Vart du ska gå härnäst
 
@@ -126,4 +132,5 @@ Logo Wall känner inte till någon sponsors regler. Tiers och Presence anger sto
 - **[Dela en design med regler](/info/create-a-tool.html)**: återanvändbara verktyg med en fast layout och de indata du väljer.
 - **[Varumärkesfärdigheter](/info/brand-skills.html)**: hur färdigheter skrivs, läses och ges till en agent.
 - **[Lolly Design System Setup](/info/brand-studio.html)**: logotyper, custom marks och flytt av ett designsystem mellan enheter.
+- **[Varumärkessidor](/info/brand-page.html)**: publicera ditt varumärke på en adress, och hämta en partners logotyp från deras.
 - **[Kreativa rättigheter och krediter](/info/creative-rights.html)**: vad Lolly registrerar om de verk den ritar.

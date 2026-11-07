@@ -1,6 +1,8 @@
-# Design System Setup
+# Lolly Design System Setup
 
-Je logo, kleuren en lettertypen horen op één plek, zodat elke tool, pagina en export ermee tekent. Die plek is **Design System Setup**, op `#/start`.
+<a id="design-system-setup"></a>
+
+Je logo, kleuren en lettertypen horen op één plek, zodat elke tool, pagina en export ermee tekent. Die plek is **Lolly Design System Setup**, op `#/start`.
 
 Begin met wat je hebt. Zet een logo erin en Lolly leest de kleuren ervan. Kies een lettertype, of zet het fontbestand erin waarvoor je bedrijf een licentie heeft. Elke wijziging is meteen in de hele app te zien. Je logo, lettertypen en tokens blijven op dit apparaat. Een Google Font kiezen is de ene stap die naar buiten reikt: Lolly vraagt eerst en haalt de familie dan één keer op.
 
@@ -94,35 +96,77 @@ De kamer groeit met het design system: een eerste bezoek is één beslissing, en
 
 ### De eerste kleur
 
-Een systeem zonder eigen kleuren opent op één grote chip en één veld, met een regel die zegt dat rollen, tinten en drukinstellingen komen naarmate het systeem groeit.
+Een systeem zonder eigen kleuren toont de neutrale kleuren van de starter, open in hun eigen groep, en bovenaan de kamer een gestippeld veld om te plakken en neer te zetten: één grote chip en één veld. Zet een afbeelding of een lijst kleuren ergens op het veld neer, en Lolly leest de kleuren uit wat je hebt neergezet.
 
-- **De chip is de kiezer.** Druk op **Pick a colour** en de OKLCH-kaart van de studio opent, gevuld met wat het veld bevat: een naam, het wiel, de vier knoppen, alfa en **Stored as**, met **Cancel** en **Add colour** onderaan. Er bereikt niets het systeem totdat je op **Add colour** drukt.
-- **Het veld neemt elke notatie**: `#e0452b`, `rgb(224 69 43)`, `oklch(58% .19 32)` of een kleurnaam. Plak een lijst en die wordt een rij chips om een voor een toe te voegen of met **Add all**.
-- **Twee andere ingangen.** **Pick a colour from the screen** gebruikt de pipet waar de browser er een heeft, en **Take colours from an image** leest een screenshot of foto op dit apparaat.
-- **Add is nooit uitgeschakeld.** Met niets in het veld opent het de kiezer; tekst die het niet kan lezen krijgt een regel onder het veld die dat zegt.
+- **De chip is de kiezer.** Druk op **Pick a colour** en de OKLCH-kaart van de studio opent, gevuld met wat het veld bevat: eerst de naam en hex van de kleur, met de kleurruimtes, het wiel, de vier draaiknoppen en alfa onder **Fine-tune**, en **Cancel** en **Add colour** onderaan. Er komt niets in het systeem voordat je op **Add colour** drukt.
+- **Het veld neemt elke notatie aan**: `#e0452b`, `rgb(224 69 43)`, `oklch(58% .19 32)` of een kleurnaam. Plak een lijst en die wordt een rij chips die je een voor een toevoegt of met **Add all**.
+- **Twee andere manieren om kleuren binnen te halen.** **Pick a colour from the screen** gebruikt de pipet waar de browser er een heeft, en **Take colours from an image** leest een screenshot of foto op dit apparaat.
+- **Add is nooit uitgeschakeld.** Met een leeg veld opent het de kiezer; tekst die het niet kan lezen krijgt onder het veld een regel die dat zegt.
 
 Je eerste kleur wordt de **primary**, en een chip bevestigt het, zoals *"Primary is now Vivid Violet"*, met **Fine-tune** om de kleur bij te stellen.
 
 
 ### Naarmate het palet groeit
 
-Je kleuren staan naast een voorbeeld **In context** op een breed scherm, en erboven op een kleiner scherm. Het voorbeeld toont een poster, grafiek of interfacekaart in je palet. Starterkleuren blijven in hun eigen ingeklapte groep.
+Je kleuren staan naast een voorbeeld **In context** op een breed scherm, en erboven op een kleiner scherm. Het voorbeeld toont een poster, grafiek of interfacekaart in je palet. Starterkleuren blijven in hun eigen opvouwbare groep, die inklapt zodra het systeem eigen kleuren heeft, en het veld om te plakken en neer te zetten wordt één compacte rij. Export zit in de **Export** van de balk en in de kamer Tokens, dus de kop van de kamer heeft er geen.
 
 ![De kamer Colours op Lolly Demo: het palet in ingeklapte groepen, elke kleur met naam en hex, en de palet-download in de kop](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-roles-fold%5D%3Esummary%3Bwait%3A500&format=svg&walker=1&localize=1&dark=1&filename=brand-colours)
 
-![De Colours-room na het toevoegen van één kleur, met zijn palet en een live compositievoorvertoning](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dpick&width=1440&height=840&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-editor-add%5D%3Bwait%3A900&format=svg&walker=1&dark=1&filename=bs-colour-first)
+![De kamer Colours op Lolly Demo na het toevoegen van één kleur: de tabel Colour roles, daarna de chip van de nieuwe kleur met Use as Lead? en Fine-tune, naast een live compositievoorbeeld](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dpick&width=1440&height=840&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-editor-add%5D%3Bwait%3A900&format=svg&walker=1&dark=1&filename=bs-colour-first)
 
-### Rollen: wat tools lezen
+### Colour roles: what the colours are called
 
-![The Colour roles table on Lolly Demo after choosing the suggested words Main, Accent, Supporting and Tertiary: the colourway chips, then each role with its light and dark colour, Main read as the lead colour and Accent as the partner colour, Supporting and Tertiary read by name only and marked Copied, and the readings no role fills listed under the table](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&system=wefthouse&width=2720&height=2000&dpi=192&waitMs=1800&cropSelector=%5Bdata-be-roles-fold%5D&format=svg&walker=1&dark=1&filename=bs-colour-roles)
+Het design system zegt hoe zijn kleuren heten en waar elke kleur voor dient, en Lolly leest dat. **Colour roles** staat bovenaan de kamer Colours. Op een breed scherm deelt **In context** de weergave, dus een wijziging verschijnt op de poster, de grafiek en de interfacekaart terwijl je haar maakt.
 
-**Roles** zeggen welke kleur welk deel speelt in elke tool en export. Ze zijn optioneel (drie losse kleuren zonder rollen is een prima systeem), elke kleur kan er een krijgen en de contrastuitlezing wordt gemeten tegen het vlak, APCA eerst. Elke rolrij toont een eigen kleur op volle sterkte, een starterkleur die inspringt, of **↳ follows Primary**.
+![De tabel Colour roles op Wefthouse, een verzonnen textielmerk, in eigen woorden: de colourway-chips Indigo, Madder en Weld, daarna Main, Accent, Supporting en Tertiary, elk met zijn lichte en donkere kleur, gelezen als de hoofdkleur, de partnerkleur en alleen op naam, en Background, Text, Quiet text en Hairlines onder de tabel vermeld als de lezingen die geen rol invult](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&system=wefthouse&width=2720&height=2000&dpi=192&waitMs=1800&cropSelector=%5Bdata-be-roles-fold%5D&format=svg&walker=1&dark=1&filename=bs-colour-roles)
 
-Zodra het palet tinten heeft, toont de strook alle zeven rollen die een tool kan lezen: Primary, Secondary, Surface, Text, Muted, Edge en On primary. On primary is afgeleid van de primary, leest **Derived** en heeft geen kiezer.
+De tabel heeft vier kolommen, en op een telefoon wordt elke rij een kaart die licht en donker naast elkaar houdt:
+
+| Kolom | Wat erin staat |
+|---|---|
+| **Role** | Het eigen woord van het design system, dat je ter plekke kunt bewerken, en een regel die zegt waar de kleur voor dient |
+| **Light** en **Dark** | De kleur in die look voor de gekozen colourway, met naam of waarde, en het contrast |
+| **Lolly reads this as** | Wat een tool met de rol doet, in Lolly's eigen woorden |
+
+**Hoe Lolly een rol leest.** Elke lezing hoort bij één rol, dus een lezing kiezen die een andere rol heeft, verplaatst die lezing hierheen. Lolly leest nooit betekenis uit een woord.
+
+| Lezing | Wat eruit volgt |
+|---|---|
+| **Lead colour** | Grote vormen, knoppen, de kleur waarmee een tool leidt |
+| **Partner colour** | De tweede kleur waar een tool naar grijpt |
+| **Background** | Ligt achter al het andere |
+| **Text** | Koppen en lopende tekst |
+| **Quiet text** | Bijschriften en kleine letters |
+| **Hairlines** | Lijnen, randen en scheidingen |
+| **By name only** | Geen enkele tool kiest de rol uit zichzelf. Hij wordt aangeboden in elk kleurveld en in Design, waar een keuze gekoppeld blijft, dus hij volgt de colourway |
+
+Een lezing die geen rol invult, blijft zoals het design system haar definieert, en de kamer somt die onder de tabel op. Een rol met hetzelfde id als een lezing, zoals een rol die Primary heet, is die lezing en kan niet worden verplaatst.
+
+**Waarden.** Druk op een waarde om voor die rol, in die look, in de gekozen colourway een kleur te kiezen. **Same as light** laat de donkere waarde de lichte volgen totdat je een eigen kleur kiest. De chip **Aa** toont de tekst die Lolly kiest om op de kleur te staan, en de regel onder de waarde zegt per look hoe die tekst leest: **Text reads well**, **Large text only** of **Hard to read as text**. Dat gaat over tekst op de kleur en zegt niets tegen de kleur zelf, die nog steeds kan werken voor vormen en grote vlakken. Een rol die alleen op naam wordt gelezen, toont dezelfde woorden zonder de waarschuwingskleur, omdat geen enkele tool uit zichzelf tekst erop zet. De cijfers achter de woorden, APCA eerst en WCAG daarna, staan in de tooltip en in de kiezer. **Own text colour** markeert een waarde waarvan het bestand de tekstkleur vastlegt, die blijft staan. **Copied** markeert een waarde die uit een andere colourway of uit de partnerkleur komt en die nog niemand heeft gekozen; **Keep this colour** in de kiezer legt de waarde vast.
+
+**Beginpunten.** Een design system zonder eigen rollen toont de woorden van nu: Primary, Secondary, Surface en Text. Er wordt niets geschreven totdat je er een wijzigt. **+ Add a role** biedt **Primary, Secondary** of **Main, Accent, Supporting, Tertiary** als suggesties, of woorden die je zelf typt, met de lezing die elk zou krijgen. De eerste twee woorden worden de hoofdkleur en de partnerkleur. Tools blijven dezelfde kleuren tekenen, en op een systeem met één hoofdkleur is de eerste colourway naar die kleur genoemd.
+
+**Hernoemen, herordenen, verwijderen.** Een hernoeming wijzigt alleen het woord, dus alles wat de rol gebruikt blijft werken. Sleep een rol aan zijn handvat, of druk op Spatie op het handvat, gebruik de pijltjestoetsen en druk op Spatie om neer te zetten. **Remove** zegt wat de rol nog gebruikt. Wanneer tools hem lezen, laat **Remove and keep those colours** elke lezing met de kleur die ze nu tekent. Een huisregel, een hulplijngroep, een toolveld of een ander token dat de rol gebruikt, houdt hem vast totdat dat gebruik verandert. Een opgeslagen Design-document kan een rol ook op naam gebruiken, en Lolly kan dat niet zien in het tokenbestand: een document dat dat doet, meldt de kleur als onopgelost.
+
+**Een met de hand geschreven bestand.** Kleuren die een tokenbestand bevat en die geen rol declareert, staan onder **In this file, with no role yet**, elk met een veld voor een woord en **Make a role**. Ze blijven hoe dan ook op naam werken. Een token met cijfers in zijn naam kan geen rol zijn, dus het blijft in het bestand staan en blijft via zijn pad werken. Een record in het bestand dat niet valideert, toont de tabel zonder bediening en zegt waarom.
+
+**De rest van de kamer spreekt dezelfde woorden.** De chips, de rij **Use as** van het staal en de groep **Colour roles** van het palet gebruiken allemaal de woorden van het design system, en de tegel van een kleurrol opent zijn waarde. Geëxporteerde bestanden leggen niets nieuws over rollen vast: de kleuren in een render veranderen omdat de tokens veranderden.
+
+**Waar de woorden naartoe gaan.** De woorden en beschrijvingen reizen mee met het design system. Agents lezen ze in de designbrief, `lolly://tokens` en de `AGENTS.md` van een merkpagina, de terminal toont ze in `lolly system status`, en een merkpagina somt ze op in `brand.json` en meet voor elke rol een contrastpaar. Elk exportformaat bewaart wat het kwijt kan: DTCG- en Tokens Studio-bestanden bewaren alles, `DESIGN.md` bewaart de woorden en de lezingen, en een PowerPoint-thema bewaart alleen de volgorde van het merk. [Colour roles in other formats](/info/design-tokens.html#colour-roles-in-other-formats) geeft de volledige lijst. Woorden worden altijd geciteerd als gegevens van het design system en nooit als instructies gelezen.
+
+**Waar een kleur wordt gekozen.** Elk kleurveld in een tool en in Lolly Design begint met de rollen van het design system, in zijn eigen volgorde, met elk woord en waar de kleur voor dient in beeld. **Aa** naast een rol kiest de kleur die op die rol staat. De rest volgt onder **Other colours**, zonder de eigen kopieën van een colourway, de on-kleuren en elke lezing die een rol al invult. Een keuze blijft aan de rol gekoppeld en volgt de colourway, het veld blijft het woord tonen welke colourway ook is gekozen, en Settings en Tokens gebruiken het woord ook. Een design system zonder rollen houdt het raster van stalen dat het altijd had.
+
+### Elke kleur die een tool leest
+
+Met **Colour roles** dicht leiden de eerste beslissingen de kamer als chips, elk met de kleur die de rol speelt en zijn naam. Op een systeem zonder eigen woorden zijn dat **Primary**, **Secondary**, **Surface** en **Text**. Druk op een chip om zijn kleur te kiezen uit de eigen stalen van het palet. **Every colour a tool reads**, onderaan **Colour roles**, heeft de volledige strook.
+
+De strook toont de zeven kleuren die een tool kan lezen: Primary, Secondary, Surface, Text, Muted, Edge en On primary, in de woorden van het design system waar het die heeft. Elke kleur speelt in elke tool en export hetzelfde deel. Geen enkele hoeft ingesteld te zijn (drie losse kleuren vormen een prima systeem), elke kleur kan er een invullen en de uitlezing zegt hoe tekst leest, gemeten tegen het oppervlak, APCA eerst. Elke rij toont een eigen kleur op volle sterkte, een starterkleur die inspringt, of **↳ follows Primary**.
+
+On primary is afgeleid van de primary, leest **Derived** en heeft geen kiezer. De schakelaar **Light** en **Dark** ernaast, en die naast **In context**, bepalen welke look de strook, het palet en het voorbeeld tonen.
 
 Het eigen accent van de app volgt standaard het design system. Dat is de instelling **Interface follows the design system** in **Settings → Appearance**; de instelling uitzetten laat de chrome van de app neutraal, terwijl tools, canvassen en exports in beide gevallen het design system volgen.
 
-**Colourways.** Een design system kan meerdere leadkleuren bevatten, elk per stuk gekozen. De rij **Kleurvarianten** aan het begin van **Kleurrollen** toont één chip per colourway, met **Standaard** op de canonieke. **+ Toevoegen** start een nieuwe colourway vanuit een van de kleuren van het palet. Kies een chip, en de rollenstrook, het palet en de voorvertoningen bewerken die colourway, in de look die de schakelaar **Licht** en **Donker** kiest; de gekozen colourway kan worden hernoemd, gedupliceerd, als standaard ingesteld of verwijderd. Op een systeem met colourways heeft elke colourway een eigen primary en secondary nodig, en een eigen surface wanneer de colourways de achtergrond tinten, dus die rollen blijven ingesteld in de swatch-editor. [Colourways aan een design system toevoegen](/info/colourways.html#add-colourways-to-a-design-system) bevat de stappen en het tokenformaat, en [Lolly Demo in gebruik](/info/lolly-demo-in-use.html#colourways-on-real-work) toont colourways op echt werk.
+**Colourways.** Een design system kan meerdere hoofdkleuren hebben, elk per stuk te kiezen. De rij **Colourways** bovenaan **Colour roles** toont één chip per colourway, met **Default** op de canonieke. **+ Add** start een nieuwe colourway vanuit een van de kleuren van het palet. Kies een chip, en de tabel, de strook, het palet en de voorbeelden tonen die colourway; de gekozen colourway kan worden hernoemd, gedupliceerd, de standaard worden gemaakt of worden verwijderd. Op een systeem met colourways heeft elke colourway een eigen primary en secondary nodig, en een eigen surface wanneer de colourways de achtergrond tinten, dus die rollen blijven ingesteld in de staalbewerker. [Add colourways to a design system](/info/colourways.html#add-colourways-to-a-design-system) geeft de stappen en het tokenformaat, en [Lolly Demo in use](/info/lolly-demo-in-use.html#colourways-on-real-work) toont colourways op echt werk.
 
 ### Meer kleuren vinden
 
@@ -165,7 +209,7 @@ Vier ingeklapte secties staan onder het voorbeeld en de rollen. Elk opent rechts
 
 ### Het palet en elke swatch
 
-Het palet somt je kleuren op in ingeklapte groepen, elk met een eigen **+ Add**. Maak groepen en hernoem ze zoals je wilt. Een rol maakt nooit een tweede tegel: een tegel waar een rol naar wijst draagt in plaats daarvan een klein merkteken (**P**, **S**, **Su**, **T**). **Colour chart** onder de tegels toont dezelfde kleuren op het OKLCH-**Wheel** (sleep een stip om te herkleuren, klik op lege ruimte om een swatch toe te voegen) en de **Gamut**-grafiek, die toont waar het weergeefbare bereik eindigt. `#/start?area=color&focus=chart` opent de grafiek rechtstreeks.
+Het palet toont je kleuren in opvouwbare groepen, elk met een eigen **+ Add**. Maak en hernoem groepen zoals je wilt. Een rol maakt nooit een tweede tegel: een tegel waar een rol naar wijst, draagt in plaats daarvan de naam van de rol, zoals **Primary**. **Colour chart** onder de tegels toont dezelfde kleuren op het OKLCH-**Wheel** (sleep een stip om te herkleuren, klik op lege ruimte om een staal toe te voegen) en de **Gamut**-grafiek, die toont waar het weergeefbare bereik ophoudt. `#/start?area=color&focus=chart` opent de grafiek rechtstreeks.
 
 ![Het paletvlak, elke groep inklapbaar, met de palet-download in de kop](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dgenerate%26seed%3D%2523e0452b&width=1440&height=1000&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-roles-fold%5D%3Esummary%3Bwait%3A500%3Bclick%3A%5Bdata-be-add-ramp%3D%22primary%22%5D%3Bwait%3A1200&cropSelector=.be-split-side&walker=1&format=svg&dark=1&filename=bs-palette-pane)
 
@@ -173,19 +217,19 @@ Het palet somt je kleuren op in ingeklapte groepen, elk met een eigen **+ Add**.
 
 Klik op een swatch om zijn editor te openen:
 
-- **Rename** de swatch.
-- **Stel de kleur in** met OKLCH-schuifregelaars, of in **Hex**, **HSL**, **RGB** of **CMYK**. Het waardeveld leest en schrijft in de actieve ruimte. CMYK stelt hier de schermkleur in door omzetting; om exacte inkten vast te pinnen gebruik je **Print substitutes**.
-- **Stored as** kiest hoe de swatch wordt opgeslagen: **LCH** (de standaard, perceptueel en met breed gamut), Hex, RGB of HSL.
-- **Use as** geeft de swatch rechtstreeks een rol. Druk opnieuw op een gemarkeerde rol om de rol te wissen.
-- **Print substitutes** (ingeklapt): vergrendel **CMYK** van **Auto** naar exacte inktwaarden, of stel een **Spot colour** in met een **Name** (zoals `PANTONE 186 C`), een optioneel **Book** en een **Finish** voor folie, reliëf, blindstempeling, spotlak, soft touch of een stans-, kras- of perforatielijn. Een pers gebruikt deze vergrendelingen wanneer je een CMYK-PDF of TIFF exporteert; zie [Colour profiles](/info/exporting.html#colour-profiles).
-- **In other spaces** (ingeklapt): een waarde per kleurruimte, afgeleid of door jou opgesteld, en een opgestelde wint bij export.
+- **Rename** het staal.
+- **Set the colour** met OKLCH-schuifregelaars, of in **Hex**, **HSL**, **RGB** of **CMYK**. Het waardeveld leest en schrijft in de actieve ruimte. CMYK stelt hier de schermkleur in door conversie; gebruik **Print substitutes** om exacte inkten vast te leggen.
+- **Stored as** kiest hoe het staal wordt bewaard: **LCH** (de standaard, perceptueel en wide-gamut), Hex, RGB of HSL.
+- **Use as** geeft het staal rechtstreeks een rol, in de woorden van het design system waar het die heeft. Druk nogmaals op een gemarkeerde rol om de rol te wissen.
+- **Print substitutes** (ingeklapt): zet **CMYK** van **Auto** op exacte inktwaarden, of stel een **Spot colour** in met een **Name** (zoals `PANTONE 186 C`), een optioneel **Book** en een **Finish** voor folie, reliëf, blindreliëf, spotlak, soft touch of een stans-, kerf- of perforatielijn. Een drukker gebruikt deze vastlegging wanneer je een CMYK-PDF of TIFF exporteert; zie [Colour profiles](/info/exporting.html#colour-profiles).
+- **In other spaces** (ingeklapt): een waarde per kleurruimte, afgeleid of door jou geschreven, en een door jou geschreven waarde wint bij export.
 
 **Een swatch verwijderen** is veilig. Afgeleide tinten en themarollen worden verborgen, zodat niets dat ze leest breekt, terwijl kleuren die je toevoegde worden verwijderd.
 
 ::: details Werken met veel swatches
 Elke swatch heeft een sleepgreep. Sleep om te herordenen binnen een groep, of geef de greep focus, druk op Space, gebruik de pijltjestoetsen en druk nogmaals op Space om neer te zetten; Escape annuleert. Op een telefoon toont het palet vier kleuren per rij en verschijnen de grepen in de modus Select, in plaats van als rij onder elke kleur. Om kleuren tussen groepen te verplaatsen gebruik je de bediening **Group** van de editor of selecteer je er meerdere en gebruik je **Move to**.
 
-Selecteren heeft geen modus nodig. De balk verschijnt met de eerste geselecteerde tegel en verdwijnt met de laatste.
+Selecteren heeft geen aparte schakelaar nodig. De balk en de selectievakjes verschijnen met de eerste geselecteerde tegel en verdwijnen met de laatste.
 
 - **Sleep over lege ruimte** om een rechthoek te tekenen; elke tegel die hij raakt komt in de selectie, over groepen heen. Een ingeklapte sectie voegt niets toe.
 - **Shift-klik** neemt een bereik in leesvolgorde, **Cmd/Ctrl-klik** schakelt één tegel om, en een gewone klik opent de editor.
@@ -245,11 +289,11 @@ Tokens zijn de benoemde waarden achter het design system: kleuren, lettertypen, 
 
 - **De kop** geeft een voorbeeld uit je eigen systeem (*Primary is Spearmint, #033633*) en de bestandsacties: **Download** (het hele systeem als designtokens, of het palet in vijf andere formaten), **Copy CSS** en **Add from…** om een JSON-bestand terug in te lezen.
 - **Tegels** tellen elke soort token en springen naar de sectie: Colours, Type, Logos, Shape and spacing, More en All tokens. Ze tellen wat elke sectie bevat; een sectie met alleen wat bij de lege starter hoorde draagt een tag **Starter**, en een systeem dat met de app is meegeleverd telt zijn eigen materiaal zonder tag. Op een telefoon lopen de tegels over twee rijen van drie.
-- **Colours** begint met de paren die tools samen zetten (tekst op vlak, op primary, gedempt op vlak) met een APCA-uitlezing in licht en donker, en markeert **Weak contrast** waar een paar tekortschiet. Dan elke kleurgroep: een verloop als één rij chips, andere kleuren met hun waarde en de verwijzing die tools gebruiken, zoals `{color.brand.spearmint}`. Druk op een verwijzing om de verwijzing te kopiëren. **Edit in Colours** opent een groep in de kamer Colours.
+- **Colours** begint met de paren die tools samen zetten (tekst op vlak, op primary, gedempt op vlak) met een APCA-uitlezing in licht en donker, en markeert **Weak contrast** waar een paar tekortschiet. Dan elke kleurgroep: een verloop als één rij chips, andere kleuren met hun waarde en de verwijzing die tools gebruiken, zoals `{color.brand.spearmint}`. Druk op een verwijzing om de verwijzing te kopiëren. **Edit in Colours** opent een groep in de kamer Colours. Bij een designsysteem met [kleurrollen](#colour-roles-what-the-colours-are-called) staat **Colour roles** vooraan, met elke rol één keer in de eigen woorden en volgorde van het systeem. Een rol bewaart een kleur voor elke kleurvariant en look, en die kleuren blijven bij de rol in plaats van als eigen kleuren te verschijnen: wijzig ze in de tabel Colour roles.
 - **Type** en **Logos** noemen het lettertype voor elke rol en elk logoslot, met **Edit in Type** en **Edit in Logos** zodra je een eigen hebt.
 - **Shape and spacing** bevat **Rounded corners** (`shape.radius`) en **Spacing rhythm** (`space.base`). Elk leest *Lolly default* totdat je de schuifregelaar verplaatst en *Yours* daarna, slaat meteen op en kan ongedaan worden gemaakt.
 - **More tokens** voegt spacing, sizing, lijndikte, dekking, rotatie, gewone getallen en schaduwen toe, opgeslagen als standaard [designtokens](/info/design-tokens.html).
-- **App appearance (advanced)** somt de kleuren, formaten en schaduwen op die de eigen schermen van Lolly gebruiken, en **Inspect every token (advanced)** doorzoekt en bewerkt elke opgeslagen waarde, waarbij elke wijziging eerst ter review wordt getoond.
+- **App appearance (advanced)** somt de kleuren, formaten en schaduwen op die de eigen schermen van Lolly gebruiken, en **Inspect every token (advanced)** doorzoekt en bewerkt elke opgeslagen waarde, waarbij elke wijziging eerst ter review wordt getoond. Daar staan de waarden van een kleurrol in elke kleurvariant bij de rol: kies het token van de rol om één rij per kleurvariant te zien, licht en donker naast elkaar, en de telregel zegt hoeveel waarden de rollen bevatten. Een alleen-lezen designsysteem toont dezelfde lijst.
 
 Een sectie waar niets in staat biedt de manier om de leemte te vullen: **Pick a colour**, **Choose a face** of **Add a logo**.
 
@@ -261,20 +305,22 @@ Zet de bestanden die je merk bewaart erin, behalve logo's: **vector**-, **image*
 
 **Rules** zet de keuzes van je merk aan het werk: wat mensen kunnen wijzigen, wat vast blijft en wat Lolly kan controleren.
 
-![Rules op Lolly Demo: een lege kaart Brand rules met Add your first rule, dan Try your brand in use met zijn voorbeelden klaar om te renderen](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dusage&width=1440&height=1200&dpi=192&waitMs=2400&cropSelector=%23start-panel-usage&format=svg&walker=1&dark=1&filename=bs-usage-rules)
+![Rules op Lolly Demo: vier huisregels, elk gemarkeerd als Checked in Lolly Design en Required of Advisory, daarna Try your design system in use met zijn voorbeelden klaar om te renderen](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dusage&width=1440&height=1200&dpi=192&waitMs=2400&cropSelector=%23start-panel-usage&format=svg&walker=1&dark=1&filename=bs-usage-rules)
 
 **Brand rules** somt je regels op. **Add rule** (of **Add your first rule**) opent een kort formulier:
 
 - een **Rule name** in je eigen woorden, zoals *Beacon accents*;
-- de **Check**: **Colour choices**, **Font choices**, **Fixed artwork** of **Text length**, met de merkrol die ze gebruikt, onder je eigen naam voor de rol;
-- het **Example** waarop ze van toepassing is (Poster, Title slide, Content slide of Chart), de **Mode** en of ze **Required** of **Advisory** is;
+- de **Check**: **Colour choices**, **Font choices**, **Fixed artwork** of **Text length**, met de merkrol die hij gebruikt, onder je eigen naam voor de rol;
+- het **Example** waarop hij van toepassing is (Poster, Title slide, Content slide of Lolly Chart), de **Mode** en of hij **Required** of **Advisory** is;
 - **Reviewed by**, dan **Save draft** of **Approve & save**.
 
 Goedkeuring legt je eigen beslissing vast op dit apparaat. Goedgekeurde vereiste regels beperken de herbruikbare poster, en controles dekken alleen de PNG-voorbeelden; ze wijzigen geen enkele andere tool.
 
-Regels die een design system meebrengt in zijn tokenbestand, zoals goedgekeurde kleurcombinaties, tekstgewicht en uitlijning of een logo per oppervlak, staan hier vermeld als **Checked in Design**. Design controleert ze laag voor laag in de kaart **Before you export** van het exportpaneel, en `lolly check` doet hetzelfde voor een opgeslagen Design-document ([Voordat je exporteert](/info/design.html#before-you-export)). Een regel waarvoor deze build geen controle heeft, wordt bewaard zoals aangeleverd en gemarkeerd als **Unchecked**.
+Regels die een design system in zijn tokenbestand meebrengt, zoals goedgekeurde kleurparen, tekstgewicht en uitlijning of een logo per oppervlak, staan hier als **Checked in Lolly Design**. Lolly Design controleert ze laag voor laag in de kaart **Before you export** van het exportpaneel, en `lolly check` doet hetzelfde voor een opgeslagen Lolly Design-document ([Before you export](/info/design.html#before-you-export)). Een regel waarvoor deze build geen controle heeft, blijft zoals aangeleverd bewaard en wordt gemarkeerd als **Unchecked**.
 
-**Try your brand in use** rendert vier voorbeelden uit de huidige revisie met **Render & check examples**. Kies een **Brand mode** en **Try your own text** voor de kop, ondersteunende tekst en diatekst. Elk voorbeeld meldt wat is gemeten, met **See checks & sources** en **Download check report**, en **Make reusable poster** downloadt een `.lolly` waarvan de vaste lay-out en goedgekeurde invoerkeuzes met het bestand meereizen. Voorbeelden zijn lokaal: door een controle uit te voeren wordt niets gepubliceerd of goedgekeurd.
+Lolly Demo brengt vier goedgekeurde huisregels mee. Koppen staan nooit in hoofdletters: die regel is verplicht, dus `lolly check` meldt een kop in hoofdletters als fout. De andere drie zijn adviserend. Lopende tekst is links uitgelijnd. Primaire merktekens staan op lichte oppervlakken en omgekeerde op donkere. Gestippelde lijnen betekenen: zet hier neer.
+
+**Try your design system in use** rendert vier voorbeelden uit de huidige revisie met **Render & check examples**. Kies een **Mode** en **Try your own text** voor de kop, de ondersteunende tekst en de dia-tekst. Elk voorbeeld meldt wat is gemeten, met **See checks & sources** en **Download check report**, en **Make reusable poster** downloadt een `.lolly` waarvan de vaste lay-out en de goedgekeurde invoerkeuzes met het bestand meereizen. Voorbeelden zijn lokaal: door een controle uit te voeren wordt niets gepubliceerd of goedgekeurd.
 
 Een build die met een vast merk wordt geleverd, toont dezelfde regels en voorbeelden alleen-lezen, onder *This brand is set*.
 
@@ -288,21 +334,31 @@ Een build die met een vast merk wordt geleverd, toont dezelfde regels en voorbee
 
 **Add from…** in de balk opent een kiezer die vraagt wat je hebt, niet welk formaat het is:
 
-- **Design tokens or a design file**: DTCG- of Tokens Studio-JSON, een Penpot-project, een zip met tokensets, een Lolly-design-systeempakket of een SVG.
-- **PDF**: een deck of een richtlijnenbestand, gelezen op dit apparaat voor zijn kleuren, merktekens en ingesloten lettertypen.
-- **Logo or screenshot**: een afbeelding wordt een voorgesteld palet, gelezen op dit apparaat. Het leest kleuren, niet het lettertype of de lay-out.
+- **Design tokens or a design file**: DTCG- of Tokens Studio-JSON, een Penpot-project, een zip met tokensets, een Lolly design-systempakket, een SVG, een `DESIGN.md` of een map met een merkpagina.
+- **PDF**: een deck of een richtlijnenbestand, op dit apparaat gelezen voor zijn kleuren, merktekens en ingebedde lettertypen.
+- **Logo or screenshot**: een afbeelding wordt een voorgesteld palet, op dit apparaat gelezen. Het leest kleuren, niet het lettertype of de lay-out.
 - **Saved web page**: één HTML-bestand en zijn CSS-bestanden, of geplakte HTML of CSS, tot 20 bestanden en 2 MB. Alleen de tekst die je aanlevert wordt gelezen: gekoppelde bronnen worden niet opgehaald en scripts draaien niet.
 - **Font file**: TTF, OTF of WOFF. Opent de kamer Type, waar het lettertype wordt geïnstalleerd.
-- **Website**: één pagina, gelezen voor zijn kleuren en typografie. Deze tegel verschijnt alleen op een apparaat dat een pagina kan lezen, en zegt welke lezer hij gebruikt: de app op dit apparaat, of de browserextensie in een achtergrondtabblad, aangemeld als jij. Een URL noemen vult alleen het veld in; op ophalen drukken is de toestemming.
+- **Website**: één pagina, gelezen voor zijn kleuren en lettertype. Deze tegel verschijnt alleen op een apparaat dat een pagina kan lezen, en zegt welke lezer hij gebruikt: de app op dit apparaat, of de browserextensie in een achtergrondtabblad, aangemeld als jij. Een URL invullen vult alleen het veld in; op ophalen drukken is de toestemming.
 
 Kies de bron voor ontwerpbestanden en de volgende kaart toont de geaccepteerde formaten als pictogramtegels, waarbij de hele kaart één neerzetdoel is. Je kunt ook een bestand rechtstreeks op de studio zetten.
 
 ![De importkaart - de geaccepteerde formaten staan voorop als pictogramtegels, en de hele kaart is één droptarget](/t/url-shot?url=%2F%23%2Fstart%3Fsource%3Dfile&width=1440&height=900&dpi=192&waitMs=1600&css=.start-import-modal%20.modal-msg%2C.start-import-modal%20.modal-title%7Bdisplay%3Anone%7D&cropSelector=.start-import-drop&walker=1&format=svg&dark=1&filename=bs-brand-import-formats)
 
-- Een **Lolly design-systeempakket** (`.lolly`, of een oudere `.zip`) installeert in één stap.
+- Een **Lolly design-systempakket** (`.lolly`, of een oudere `.zip`) installeert in één stap.
 - Een **Penpot**-export (`.penpot`) brengt zijn designtokens mee.
-- Een **Design Tokens**-bestand (W3C DTCG) of **Tokens Studio**-bestand (`.json`) brengt zijn tokens mee.
-- Een **gewone SVG** wordt gescand op kleuren waaruit je kiest, waarbij de eerste je primary wordt.
+- Een **Design Tokens**-bestand (W3C DTCG) of **Tokens Studio**-bestand (`.json`) brengt zijn tokens mee. Een beschrijving die een lezer vraagt instructies te negeren, rechten claimt of vraagt code uit te voeren, wordt weggelaten, en de import zegt waar ze stond. Dit is een controle regel voor regel en mist andere formuleringen, dus lees een bestand van iemand die je niet kent voordat je de tokens toepast.
+- Een **gewone SVG** wordt gescand op kleuren waaruit je kiest, waarvan de eerste je primaire kleur wordt.
+- Een **`DESIGN.md`** (`.md`) gaat naar **Try these colours** met zijn tokens zoals geschreven. De proza ervan kan worden bewaard als conceptmerkvaardigheid, en de kaart markeert regels die een lezer vragen instructies te negeren, rechten te claimen of code uit te voeren. Agents en merkpagina's zien geen concept totdat je op **Keep this skill** drukt in de kamer Skills, en een bewaarde vaardigheid blijft intern.
+- Een **map met een merkpagina**, gekozen als map, neergezet of gezipt, gaat naar dezelfde beoordeling. Elk bestand wordt gecontroleerd tegen het `brand.json` van de map, en een bestand dat niet past, weigert de hele map. Het voegt de tokens toe. Logo's en lettertypen blijven in de map.
+
+Lolly leest een merkpagina uit bestanden die je aanlevert. Het haalt het adres van een andere site niet op.
+
+### A file with its own colour words
+
+Een tokenbestand of een `DESIGN.md` kan eigen woorden voor zijn kleuren gebruiken, zoals main, accent, supporting en tertiary. Wanneer Lolly zulke woorden vindt, somt de beoordeling elk ervan op voordat iets wordt toegepast: het woord, zijn kleur in elke look, het token waar het vandaan komt en als wat Lolly het zou lezen. Lolly stelt die lezingen voor op basis van alleen de woorden, tegen een korte lijst, en gebruikt geen model. Een woord buiten de lijst komt binnen als eigen woord van het merk, **By name only**. Hernoem elk woord, zeg waar het voor dient, lees het als iets anders, of haal het vinkje weg om het als benoemde kleur te laten staan.
+
+**Install with these roles** schrijft ze, en **Install without roles** installeert het bestand precies zoals het kwam. Een bestand zonder zulke woorden toont geen nieuwe stap. Een bestand dat zijn eigen rollen vermeldt, zoals een door Lolly geschreven bestand, toont ze zoals geschreven en installeert ze ongewijzigd, en je kunt ze daarna bewerken in de kamer Colours. De terminal heeft geen beoordeling, dus `lolly system import` houdt een vermeld record vast en laat de woorden van andere bestanden als benoemde kleuren staan.
 
 ### Een referentie beoordelen
 
@@ -316,7 +372,7 @@ Imports van PDF en ontwerpbestanden houden hun eigen reviewbediening. Items in d
 
 Open **Find a look** vanuit Board of vanuit de lijst met design systems in Settings. Blader door systemen die op dit apparaat zijn opgeslagen en een paar herbruikbare Lolly-voorbeelden, en zoek op naam, kleurtag of gedeclareerd lettertype. **Closest to my current palette** sorteert op gemeten kleurgelijkenis, waarbij passende lettertypen gelijke standen beslissen; het is geen kwaliteitsscore.
 
-Selecteer één look om hem te bekijken, of twee om naast elkaar te vergelijken. Selecteren verandert niets. **Use this saved system** schakelt ernaar, en **Use these colours** past de kleuren van een voorbeeld toe via het gebruikelijke checkpoint, waarbij je lettertypen behouden blijven. **Restore brand settings** herstelt de vorige look. Opgeslagen systemen hebben bewerkbare **Search tags** onder **Details and design context**. De voorbeelden zijn originele Lolly-kleurrecepten, zonder gescrapete collectie en zonder account.
+Klik op een look om hem in context te bekijken. Bekijken wijzigt niets. De **Use this look** van elke kaart gebruikt die look. Een opgeslagen systeem wordt het actieve, wat niets bewerkt. De kleuren van een voorbeeld gaan via het gebruikelijke checkpoint naar het geopende design system, waarvan de logo's, lettertypen en alles wat het voorbeeld niet definieert blijven zoals ze zijn. **Compare looks** voegt een selectievakje aan elke kaart toe, zodat je er twee kunt kiezen en naast elkaar vergelijken. **Restore brand settings** herstelt de vorige look. Opgeslagen systemen hebben bewerkbare **Search tags** onder **Details and design context**. De voorbeelden zijn originele Lolly-kleurrecepten, zonder verzamelde collectie en zonder account.
 
 ![Vergelijk Sunroom en Orchard naast elkaar voordat je een van beide kleursystemen toepast.](/t/url-shot?url=%2F%23%2Fstart&width=1280&height=900&dpi=96&waitMs=3000&format=svg&filename=brand-compare-looks&try=1&drive=click%3A%5Bdata-ds-door%3D%22looks%22%5D%3Bwait%3A500%3Bclick%3A%5Bdata-looks-compare-toggle%5D%3Bclick%3A%5Bdata-look-select%3D%22example%3Asunroom%22%5D%3Bclick%3A%5Bdata-look-select%3D%22example%3Aorchard%22%5D%3Bclick%3A%5Bdata-looks-review%5D%3Bwait%3A500&cropSelector=.ds-looks-comparison&waitSelector=%5Bdata-ds-door%3D%22looks%22%5D&walker=1&rasterDpi=96)
 
@@ -344,13 +400,35 @@ Een gepubliceerde versie is een **permanente, benoemde kopie** die op dit appara
 
 **Publish only** bewaart een versie zonder te veranderen wat tools volgen; **Publish and make active** laat tools en de app die versie volgen. **Follow the latest again** zet elke bewerking live op het moment dat je haar maakt.
 
+### Publish a brand page
+
+Een [merkpagina](/info/brand-page.html) is één adres voor mensen en voor agents: een pagina die de logo's, kleuren, lettertypen en voorbeelden toont, met dezelfde feiten in bestanden naast de pagina. **Publish a brand page**, onder Versions & publishing, toont de live pagina en, naast de pagina:
+
+- **Goes public**: elk bestand, gegroepeerd, met zijn grootte.
+- **Held back**: wat erbuiten bleef, en waarom. Een logo zonder vastgelegde licentie blijft erbuiten totdat je de naam van het logo aanvinkt. Een lettertypebestand heeft een vastgelegde licentie nodig die doorgeven toestaat, en de pagina toont een omlijnd specimen wanneer het bestand erbuiten blijft. Interne merkvaardigheden verschijnen nooit.
+- **What was checked**: kleurparen per colourway en modus, en de huisregels. Dit zijn metingen, geen oordeel.
+- **In your words**: een gebruiksverklaring en een contactpersoon. De pagina drukt af wat je schrijft en Lolly voegt geen licentie of juridische claim toe. Een schakelaar zet de regel "Made with Lolly" in de voettekst uit.
+- **On exports**: een schakelaar die [het adres van de pagina vastlegt in de exports van dit design system](/info/brand-page.html#lead-back-from-your-files). Hij staat uit totdat je hem aanzet, hij heeft een `https`-adres nodig, en hij reist niet mee met een pakket of een kopie. Een vergrendeld design system toont de schakelaar niet, omdat zijn beheerder beslist.
+
+**Download folder** slaat de map op als ZIP om te hosten waar je wilt, en er wordt niets openbaar totdat je dat doet. In een terminal schrijft `lolly system publish --out=<dir>` dezelfde map. Een instantie die merkpagina's serveert, biedt ook **Publish to** zijn adres, wat één expliciete druk is en door zijn goedkeuringsketen gaat wanneer die er is. Een beheerd design system publiceert alleen wanneer zijn beheerder dat toestaat.
+
+### Connect an agent
+
+**Connect an agent**, op dezelfde plek, geeft je tekst om te plakken en zegt wat elke optie kan:
+
+- **`AGENTS.md`** in een project: agents lezen de namen en regels van het systeem. Het tekent niets en heeft geen server nodig.
+- **Lolly's publieke server**: tekent met Lolly Demo, welk systeem je hier ook open hebt. Het heeft geen sleutel nodig.
+- **Je instantie**: tekent met de systemen die de instantie bevat, en leest een servicetoken uit een omgevingsvariabele. Het blad geeft de naam van de variabele en toont nooit een token.
+
+Wanneer geen gehoste server met jouw systeem tekent, zegt het blad dat.
+
 ## Je design systems beheren
 
 Open **Settings → Preferences → Design systems** om systemen te wisselen, toe te voegen of te verwijderen. **Open** selecteert een systeem en opent het hier; **Make a new one** maakt een lokaal systeem en opent het met zijn naamveld klaar. Eén systeem is tegelijk actief, voor het hele apparaat. [Merkarchitecturen](/info/brand-architectures.html) helpt beslissen wanneer een merk een eigen design system nodig heeft.
 
 **Waar een systeem vandaan komt.** Het systeem dat de catalogus van een implementatie levert, leest **Came with this app**, of **From this instance** in een app die met een instantie is verbonden. Klap **Catalogue source** uit om te zien wie het levert, zijn tokensasset en namespace en zijn bekende versie of checksum; als een verversing mislukt, wordt materiaal uit de cache gelabeld.
 
-**Beheerde systemen zijn alleen-lezen.** Een systeem leest **Managed by this instance** (of **Managed by this app** in de desktop-app zonder instantie) wanneer zijn catalogus het systeem vergrendelt. Je kunt het gebruiken en downloaden, en het hier openen toont een alleen-lezen notitie met **Make an editable copy** en **Switch**. Je eigen lokale systemen blijven bewerkbaar, ook als het beheerde eerst kwam. Een build met één vast merk opent Design System Setup op *This brand is set*, met de tokens en gebruiksregels van het merk om te lezen.
+**Beheerde systemen zijn alleen-lezen.** Een systeem leest **Managed by this instance** (of **Managed by this app** in de desktop-app zonder instantie) wanneer zijn catalogus het systeem vergrendelt. Je kunt het gebruiken en downloaden, en het hier openen toont een alleen-lezennotitie met **Make an editable copy** en **Switch**, daarna zijn kleurrollen en tokens zonder bewerkbediening. Je eigen lokale systemen blijven bewerkbaar, ook wanneer het beheerde eerst kwam. Een build met één vast merk opent Lolly Design System Setup op *This brand is set*, met de tokens en gebruiksregels van het merk om te lezen.
 
 **Elk ander geleverd systeem is van jou** om te verbergen, te bewerken en te resetten, inclusief Lolly Demo en Lolly Starter op lolly.tools. Er een bewerken behoudt zijn naam en markeert de rij **Edited here**, en **Reset to original** in zijn menu gooit de wijzigingen weg die op dit apparaat zijn gemaakt. De lege starter is de uitzondering: een eerste wijziging daar begint een eigen design system, dus Lolly vraagt één keer hoe het nieuwe systeem moet heten. [Lolly Demo in gebruik](/info/lolly-demo-in-use.html#switch-to-your-own) toont wat je eigen systeem vervangt.
 
@@ -360,16 +438,17 @@ Kies **Remove** in het menu van een systeem; de bevestiging zegt welk systeem da
 
 Een geleverd systeem verwijderen verbergt het alleen: zijn catalogusassets blijven, **Bring back** toont het weer en het keert vanzelf terug als je al het andere verwijdert. Een geïmporteerde of bewerkte kopie verwijderen verwijdert het geleverde systeem, zijn logo's of zijn lettertypen niet, en als de kopie actief was, wordt het geleverde systeem weer actief. Een actieve gehoste kopie verwijderen wist alleen de verbinding van die kopie; een apart gekozen instantie blijft geselecteerd.
 
-Wijzigen wat een server levert is een taak voor een beheerder: de beheerder wijzigt de bronscatalogus en rolt opnieuw uit, of een Lolly Work-beheerder beoordeelt en past een serverwijziging toe. Bewerkingen hier blijven lokaal. Zie [Een catalogus-design-system verwijderen](/info/configuration.html#removing-a-catalogue-design-system) en [Configuration](/info/configuration.html#supplied-and-local-design-systems).
+Wijzigen wat een server aanlevert is een taak voor een beheerder: de operator wijzigt de broncatalogus en implementeert opnieuw, of een Lolly Work-beheerder beoordeelt en past een serverwijziging toe. Bewerkingen hier blijven lokaal, met één uitzondering: op een Lolly Work-instantie die jou `brand.edit` toekent, biedt een beheerd systeem ook **Edit for** die instantie, wat een bewerkingskopie opent, en **Send to** die instantie in **Versions** stuurt zijn kleuren, colourways, kleurrollen en merkpagina-adres terug. [Edit this instance from the studio](/info/work-design-system-administration.html#edit-this-instance-from-the-studio) behandelt wat een bewerking kan wijzigen en hoe de instantie de wijziging serveert. Zie [Removing a catalogue design system](/info/configuration.html#removing-a-catalogue-design-system) en [Configuration](/info/configuration.html#supplied-and-local-design-systems).
 
 ## Designcontext buiten de app gebruiken
 
-**Download design context** slaat het tokendocument, opgeloste kleuren, gedeclareerde lettertypefamilies, asset-id's, bronbewijs waar vastgelegd, dekking en expliciete regels op, zonder fontbestanden en zonder eigendomsbewijs. De opdrachtregel leest het bestand zonder server: `lolly system import` maakt het het design system van de terminal en `lolly system check` controleert Design-inputs tegen de opgeslagen context. [Bring your design system](/info/cli.html#bring-your-design-system) behandelt de import en [Which design system a command uses](/info/cli-decks.html#which-design-system-a-command-uses) behandelt de controle, en een MCP-client leest dezelfde brief uit `lolly://design-context` ([MCP Server](/info/mcp.html)).
+**Download design context** slaat het tokendocument op, de opgeloste kleuren, gedeclareerde lettertypefamilies, asset-id's, bronbewijs waar vastgelegd, dekking en expliciete regels, zonder lettertypebestanden en zonder bewijs van eigendom. De opdrachtregel leest het bestand zonder server: `lolly system import` maakt het het design system van de terminal en `lolly system check` controleert Lolly Design-invoer tegen de opgeslagen context. [Bring your design system](/info/cli.html#bring-your-design-system) behandelt de import en [Which design system a command uses](/info/cli-decks.html#which-design-system-a-command-uses) behandelt de controle, en een MCP-client leest dezelfde brief uit `lolly://design-context` ([MCP Server](/info/mcp.html)).
 
 ## Waar je hierna heen kunt
 
 - **[Lolly gebruiken](/info/using.html)**: de tools, opslaan, delen en Assets.
-- **[Merkarchitecturen](/info/brand-architectures.html)**: hoe divisies, producten, gesteunde merken, klanten en seizoenen overeenkomen met design systems, colourways en logo-identiteiten.
-- **[Samenwerken met partners](/info/partners.html)**: je merk delen met een partner en werken in een merk dat je kreeg.
+- **[Merkarchitecturen](/info/brand-architectures.html)**: hoe divisies, producten, gesteunde merken, klanten en seizoenen aansluiten op design systems, colourways en logo-identiteiten.
+- **[Werken met partners](/info/partners.html)**: je merk delen met een partner, en werken in een merk dat je hebt gekregen.
+- **[Merkpagina's](/info/brand-page.html)**: publiceer je design system op één adres, als perskit en als agentkit.
 - **[Design Tokens](/info/design-tokens.html)**: het tokenmodel waarin je merk is geschreven.
 - **[Een bestand exporteren](/info/exporting.html)**: drukeenheden, CMYK en de formaten waarin je merk rendert.

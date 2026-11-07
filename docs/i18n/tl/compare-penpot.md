@@ -14,7 +14,7 @@ Ang [mga design token ng Penpot](https://help.penpot.app/user-guide/design-syste
 
 ## Paano ginagawa ng Lolly ang magkapatong na trabaho
 
-Ang Design canvas ng Lolly ay gumagawa ng mae-edit na asset at puwedeng gawing [tool na may mga patakaran](/info/create-a-tool.html) ang layout. Ang parehong tool ay nagre-render sa browser, desktop app o CLI at gumagawa ng mga variant mula sa data. Ang standalone na Lolly ay nagre-render at pumipirma sa device, nang walang account o server. Ang [pribadong collab](/info/collaborate.html) ay direktang nagpapares ng dalawang device.
+Ang Lolly Design canvas ay gumagawa ng mae-edit na asset at puwedeng gawing [tool na may mga patakaran](/info/create-a-tool.html) ang layout. Ang parehong tool ay nagre-render sa browser, desktop app o CLI at gumagawa ng mga variant mula sa data. Ang standalone na Lolly ay nagre-render at pumipirma sa device, nang walang account o server. Ang [pribadong collab](/info/collaborate.html) ay direktang nagpapares ng dalawang device.
 
 ## Sa isang organisasyon
 

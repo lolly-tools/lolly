@@ -22,7 +22,7 @@ Výběr sady se nikdy neblokuje a ovládání sady ukazuje licenci tam, kde vyb�
 
 ## Co vidíš a co dělat
 
-Stejná slova se objevují v panelu exportu, ve Verify, na příkazovém řádku a ve strojovém výsledku, zhruba v pořadí, jak často se s nimi setkáš.
+Stejná slova se objevují v panelu exportu, ve Lolly Verify, na příkazovém řádku a ve strojovém výsledku, zhruba v pořadí, jak často se s nimi setkáš.
 
 | Co vidíš | Co to znamená |
 |---|---|
@@ -51,12 +51,14 @@ Lolly nikdy neříká "copyright verified", "legally safe", "fully cleared" ani 
 
 - **V katalogu.** List díla ukazuje jeho zdroj a tvůrce, kanonický název licence s ponechaným původním popiskem pod ním, kopírovatelné uvedení, kde je zaznamenáno, a jeden řádek říkající, co jeho použití žádá. Dlaždice uvádí požadavek; nikdy netvrdí, že export byl dokončen.
 - **V panelu exportu.** Karta Source credits se objeví uvnitř Content protection, jakmile vykreslení používá zaznamenané dílo, vedle Licence, kterou volíš pro vlastní export. Ukazuje stav, text uvedení za Details, tlačítko Copy credit a vloženou kartu, když je dlužno rozhodnutí. Rozhodnutí není nikdy blokující dialog: stažení s nedokončenou akcí stále pokračuje.
-- **V souboru.** Export, který umístil zaznamenané dílo, zapíše jednu ingredienci zdroje Content Credentials na každé odlišné dílo, vázanou na původní bajty na jejich veřejné adrese a nesoucí tvůrce, licenci a její odkaz, zdroj, revizi a změny. Lolly podepisuje, co pozorovala. Nikdy nepodepisuje tvrzení jménem původního umělce a Verify říká, které z těch dvou se stalo.
+- **V souboru.** Export, který umístil zaznamenané dílo, zapíše jednu ingredienci zdroje Content Credentials na každé odlišné dílo, vázanou na původní bajty na jejich veřejné adrese a nesoucí tvůrce, licenci a její odkaz, zdroj, revizi a změny. Lolly podepisuje, co pozorovala. Nikdy nepodepisuje tvrzení jménem původního umělce a Lolly Verify říká, které z těch dvou se stalo.
 - **V balíčku.** Stažení, které credential nést nemůže, například animace `.lottie`, nese uvedení jako `CREDITS.txt` a `credits.json` uvnitř balíčku. Ty se po zápisu čtou zpět a nenárokuje se pro ně žádný podepsaný credential.
 - **Po zápisu.** Doručené bajty se čtou zpět, než cokoli řekne, že je uvedení zahrnuto. Credential, který se neověřil, se nepočítá jako doručené uvedení.
-- **V upravitelném souboru `.lolly`.** Bajty putují jen tehdy, když přezkoumaná licence zaznamenává povolení zdroj předat dál. `CREDITS.txt` balíčku vypisuje, co putovalo, pod jakou licencí a co bylo zadrženo, s důvodem. Nezaznamenaná licence se zadrží. Zadržený obsah můžeš stále zahrnout záměrně a soubor uvedení zaznamená, že to byla tvá volba.
-- **Ve Verify.** Panel Sources vypisuje každý zdroj, který soubor zaznamenává, s vypočteným souhrnem, uvedením, tlačítkem Copy credit, odkazem Open source, který se otevře jen na tvé žádost, a uvedenými limity toho, co bylo zkontrolováno. Otázka Check for this use se objeví jen tehdy, když vybereš použití, a k odpovědi na ni se nic nestahuje.
+- **V upravitelném souboru `.lolly`.** Bajty putují jen tehdy, když přezkoumaná licence zaznamenává povolení zdroj předat dál, nebo když řádek nese vlastní podmínky svého vlastníka. `CREDITS.txt` balíčku vypisuje, co putovalo, pod jakou licencí a co bylo zadrženo, s důvodem. Nezaznamenaná licence se zadrží. Zadržený obsah můžeš stále zahrnout záměrně a soubor uvedení zaznamená, že to byla tvá volba.
+- **Ve Lolly Verify.** Panel Sources vypisuje každý zdroj, který soubor zaznamenává, s vypočteným souhrnem, uvedením, tlačítkem Copy credit, odkazem Open source, který se otevře jen na tvé žádost, a uvedenými limity toho, co bylo zkontrolováno. Otázka Check for this use se objeví jen tehdy, když vybereš použití, a k odpovědi na ni se nic nestahuje.
 - **Když odstraňuješ metadata.** Odstranění ti řekne, kolik uvedení zdrojů soubor již nenese, nabídne text uvedení a nabídne čistý soubor s uvedením v samostatném souboru. Odstraněné bajty se nikdy znovu neoznačují.
+
+**Vlastní značky vlastníka.** Vlastník málokdy dá logo pod otevřenou licenci. Řádek, jehož záznam práv říká `own-work`, s vlastníkem a podmínkami, může putovat v souboru `.lolly` a na [stránce značky](/info/brand-page.html#publish-your-own-marks). Putuje jako "Owner-published, not an open licence", s podmínkami vedle souboru. To čte, co katalog uvádí. Lolly nekontroluje, kdo značku vlastní. Záznam bez vlastníka, s prázdnými podmínkami nebo bez deklarace zůstává zadržen, stejně jako cizí značka bez takového záznamu.
 
 ::: details Licence, které Lolly přezkoumala
 Verze pravidel `rights-rules-2026-11-05.1`. Každé pravidlo bylo přečteno z vlastního právního textu licence a oddíl, z něhož pochází, je zde citován i u pravidla v `engine/src/rights-profiles.ts`. Verze a port se uchovávají tak, jak byly zaznamenány: deklarace CC BY 3.0 si drží vlastní verzi, místo aby se hlásila jako 4.0 jen proto, že volič aplikace upřednostňuje 4.0.
@@ -69,6 +71,7 @@ Verze pravidel `rights-rules-2026-11-05.1`. Každé pravidlo bylo přečteno z v
 | CC-PDDC | Nic. Zaznamenává se samotné tvrzení a kdo jej učinil, protože certifikace je prohlášení jedné strany, ne důkaz. | Odstavce [věnování a certifikace](https://creativecommons.org/licenses/publicdomain/) |
 | Apache License 2.0 | Upozornění ze zdroje a text uvedení ze souboru NOTICE putují s distribuovaným dílem. Použití za běhu nežádá nic. Licence, která žádá o text upozornění, a dílo, které žádný nenese, se hlásí jako mezera. | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0), oddíl 4, podmínky 1 až 4 |
 | MIT | Řádek o autorských právech a upozornění o povolení putují s kopiemi a podstatnými částmi. Použití za běhu a referenční použití nežádají nic. | [MIT](https://opensource.org/license/mit), podmínka upozornění o povolení |
+| ISC | Totéž co MIT, kratšími slovy: řádek o autorských právech a upozornění o povolení putují s kopiemi. Použití za běhu a referenční použití nežádají nic. | [ISC](https://opensource.org/license/isc-license-txt), podmínka upozornění o povolení |
 | SIL OFL 1.1 | Vykreslení textu písmem nežádá od textu nic. Předání souboru písma nese licenci, upozornění na autorská práva a pravidlo vyhrazeného jména. | [OFL 1.1](https://openfontlicense.org/open-font-license-official-text/), podmínky 2, 3 a 5; [OFL FAQ](https://openfontlicense.org/ofl-faq/) o dokumentech |
 
 **Zaznamenáno, neinterpretováno.** CC BY-NC, CC BY-ND a kombinace NC-SA a NC-ND jsou rozpoznány, jejich podmínky vypsány a žádné zdejší pravidlo je nečte. Hlásí `licence.unknown` s řádkem pojmenovávajícím podmínky. Komerční kontext nelze vyčíst z ceny ani účtu a každý složený text potřebuje vlastní revizi, než jej pravidlo přečte.
@@ -119,7 +122,7 @@ Pět modulů enginu, všechny čisté: žádná síť, žádné hodiny, žádný
 | `engine/src/rights-evaluate.ts` | Klasifikaci, problémy, plán uvedení a otisk. Deterministické: stejná fakta v jiném pořadí dávají stejnou odpověď. |
 | `engine/src/rights-attribution.ts` | Čitelná uvedení, doprovodné soubory, ingredience zdrojů a potvrzení změřené po zápisu. |
 | `engine/src/rights-companion.ts` | Čtení zpět uvedení v balíčku (`CREDITS.txt` a `credits.json` uvnitř stažení založeného na ZIP), které uvedení potvrzuje bez nároku na podepsaný credential. |
-| `engine/src/rights-report.ts` | Ověřený credential přečtený zpět jako tři otázky, které Verify klade. |
+| `engine/src/rights-report.ts` | Ověřený credential přečtený zpět jako tři otázky, které Lolly Verify klade. |
 
 Soubory očekávání v `tests/fixtures/rights/` byly napsány z textů licencí, ne z výstupu vyhodnocovače, a jejich README cituje oddíl za každým očekáváním.
 :::

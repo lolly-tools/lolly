@@ -39,7 +39,7 @@ lolly.tools 默认打开 [Lolly Demo](/info/lolly-demo.html)，即 Lolly 自己�
 
 ## 我可以使用自己的品牌吗？
 
-可以。**Design System Setup**（`#/start`）可以从一种颜色、一个设计令牌文件或一份成品设计构建设计系统，之后每个工具都使用你的设计系统来绘制。[开始](/info/quickstart.html#put-your-brand-in)介绍了这三条路径。
+可以。**Lolly Design System Setup**（`#/start`）可以从一种颜色、一个设计令牌文件或一份成品设计构建设计系统，之后每个工具都使用你的设计系统来绘制。[开始](/info/quickstart.html#put-your-brand-in)介绍了这三条路径。
 
 由你的组织或你的构建版本提供的设计系统是受管理的：它显示一把锁并保持只读，你可以创建一个可编辑的副本来修改。
 
@@ -80,9 +80,9 @@ lolly.tools 默认打开 [Lolly Demo](/info/lolly-demo.html)，即 Lolly 自己�
 
 ## Lolly 能编辑和渲染我的 Figma、Penpot、Illustrator 或 InDesign 文件吗？
 
-可以。打开 **Design** 并点击 **Import a design**：它接受原生的 Figma **.fig**（Save local copy）、Penpot **.penpot** 导出、Illustrator **.ai** 或 **.pdf**、InDesign **.idml**（File → Export → InDesign Markup）或**任何 SVG**。你不需要账号、插件或设计应用许可证。
+可以。打开 **Design** 工具并点击 **Import a design**：它接受原生的 Figma **.fig**（Save local copy）、Penpot **.penpot** 导出、Illustrator **.ai** 或 **.pdf**、InDesign **.idml**（File → Export → InDesign Markup）或**任何 SVG**。你不需要账号、插件或设计应用许可证。
 
-![Design 的开放画布 - Import a design（导入设计）位于工具栏的 Lolly 菜单中](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D17ZTfS8MwEMf_mryO5NZ288GHrdqJv1CUvWdtOgppMtJMNv96yaV1iRNEQRBZoblwab53l0-uq915bXgrCOSDpf3LzgANnQ4eI0rrPJn7Gh9cd0sE8lIryxtFIFfatFx6L4F0Mi-11GbUiZYr25QjK3bW-S8I5MnUbRXKCkMgb5uqki6JFFU7rjoXYsSgT8GaLebKZSeGAPkUYypMHp80DeugYYR4J_U7X4XRkY8dFHuTYEJ-jDWM3qoqsEHo4Y20-xJi-SPVaOfRUuAL1hiZXNrG4gH6M85Z5lTAk8x8DdlnPL8gecVfBIEU6F5v0bbCor3VUu4JpOPCKTCWsPI9rBS107d6QyCfRET_Ac6wX36X6UpX-49Ip1mAlMEPkM6QX20aoSpECLTmpadcazPQ9hPlWxboRndWmFEIG1s4Yp3E3Ts-0f4GbcruWHLzlC0frmfpfbGk82LxmD0vUndSTcvXAoknWBKCz5LDSIdiRHV0D2Tfq1BIvdY42Zim5WZ_-n3_mRvwBg&width=1360&height=850&dpi=192&waitMs=3000&format=svg&walker=1&chrome=1&localize=1&dark=1&filename=design)
+![Lolly Design 的开放画布 - Import a design（导入设计）位于工具栏的 Lolly 菜单中](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D17ZTfS8MwEMf_mryO5NZ288GHrdqJv1CUvWdtOgppMtJMNv96yaV1iRNEQRBZoblwab53l0-uq915bXgrCOSDpf3LzgANnQ4eI0rrPJn7Gh9cd0sE8lIryxtFIFfatFx6L4F0Mi-11GbUiZYr25QjK3bW-S8I5MnUbRXKCkMgb5uqki6JFFU7rjoXYsSgT8GaLebKZSeGAPkUYypMHp80DeugYYR4J_U7X4XRkY8dFHuTYEJ-jDWM3qoqsEHo4Y20-xJi-SPVaOfRUuAL1hiZXNrG4gH6M85Z5lTAk8x8DdlnPL8gecVfBIEU6F5v0bbCor3VUu4JpOPCKTCWsPI9rBS107d6QyCfRET_Ac6wX36X6UpX-49Ip1mAlMEPkM6QX20aoSpECLTmpadcazPQ9hPlWxboRndWmFEIG1s4Yp3E3Ts-0f4GbcruWHLzlC0frmfpfbGk82LxmD0vUndSTcvXAoknWBKCz5LDSIdiRHV0D2Tfq1BIvdY42Zim5WZ_-n3_mRvwBg&width=1360&height=850&dpi=192&waitMs=3000&format=svg&walker=1&chrome=1&localize=1&dark=1&filename=design)
 
 图层会作为可编辑的方框到达：文字仍可重新输入，形状仍是形状，图片并入你自己的库。保存后，**Share with rules** 可以把这个版面变成任何拥有 Lolly 的人都能重新填写的工具。参见[导入设计](/info/design-import.html)。
 
@@ -98,9 +98,9 @@ lolly.tools 默认打开 [Lolly Demo](/info/lolly-demo.html)，即 Lolly 自己�
 
 ## 实用工具（Utilities）与工具（Tools）有什么不同？
 
-实用工具对你已有的文件做一件快速的事，例如压缩 PDF、转换照片或清除隐藏数据，其中许多在你的设备上运行，不上传任何内容。它们的存在，是为了让人们通常交给随便某个网站的工作留在 Lolly 内部。压缩合同、转换仍带有位置信息的假期照片，或把令牌粘贴到在线格式化工具里，都不该意味着把文件交给一个保留期限、司法辖区和商业模式都不明的网站。[实用工具](/info/utilities.html)列出了它们，[我们从未同意的交易](/info/status-quo.html)讲述了它们背后的故事。
+实用工具对你已有的文件做一件快速的事，例如压缩 PDF、转换照片或清除隐藏数据，其中许多在你的设备上运行，不上传任何内容。它们的存在，是为了让人们通常交给随便某个网站的工作留在 Lolly 内部。压缩合同、转换仍带有位置信息的假期照片，或把令牌粘贴到在线格式化工具里，都不该意味着把文件交给一个保留期限、司法辖区和商业模式都不明的网站。[Lolly Utilities](/info/utilities.html)列出了它们，[我们从未同意的交易](/info/status-quo.html)讲述了它们背后的故事。
 
-![Utilities 视图：Strip Hidden Data、Compress PDF、Convert Image 以及其他设备端工作，全部集中在一处](/t/url-shot?url=%2F%23%2Fu&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone!important%7D&tolerance=0.03&format=svg&walker=1&dark=1&filename=use-utilities&try=1)
+![Utilities 视图：Lolly Strip Hidden Data、Compress PDF、Convert Image 以及其他设备端工作，全部集中在一处](/t/url-shot?url=%2F%23%2Fu&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone!important%7D&tolerance=0.03&format=svg&walker=1&dark=1&filename=use-utilities&try=1)
 
 ## 我们的组织可以使用 SSO、共享项目和审批吗？
 
@@ -110,7 +110,7 @@ lolly.tools 默认打开 [Lolly Demo](/info/lolly-demo.html)，即 Lolly 自己�
 
 ## 采用 Lolly 可能会遇到哪些障碍？
 
-需要改变的多半是生产方面，而不是技术。想要一套受管控工具的团队，需要有人来创作其设计系统和最初的模板，不过任何人从第一天起就可以在 Design 中开始制作自己的工具，不需要 git。而且现有流程即使产出不符合品牌也会继续运转，所以把一个可见的产出做好，并把前后效果并排放在一起，比一份计划更快地说明问题。
+需要改变的多半是生产方面，而不是技术。想要一套受管控工具的团队，需要有人来创作其设计系统和最初的模板，不过任何人从第一天起就可以在 Lolly Design 中开始制作自己的工具，不需要 git。而且现有流程即使产出不符合品牌也会继续运转，所以把一个可见的产出做好，并把前后效果并排放在一起，比一份计划更快地说明问题。
 
 [采用与治理](/info/adoption-governance.html)介绍了按角色上手、如何衡量试点，以及治理流程可以是什么样子。
 
@@ -144,3 +144,11 @@ Lolly 依赖项中的高危或严重公告会阻止 CI。暂时无法修复的�
 ## Lolly 那个标志是什么口味的？
 
 有人说是青柠，有人说是薄荷，有时又说是苹果；Lolly 负责带来甜味，口味由你来实现！
+
+## Lolly 所说的内容主权是什么意思？
+
+对内容如何在你所选的系统之间创作、管理、存储和迁移的控制。Lolly 支持本地制作、可编辑的作品和可移植的工具；Lolly Work 则增加由组织控制的共享服务。源代码许可、可用的依赖项以及工作流的数据流向仍然重要。[什么是内容主权？](/info/content-sovereignty.html)解释了每一项控制及其限制。
+
+## 我们能保留现有的 DAM 吗？
+
+可以。受支持的 DAM 可以继续作为记录来源，同时 Lolly Work 把选定的素材连接到 Lolly 工具。来源访问权限、允许的编辑、使用权利和对成品的批准是各自独立的决定。[在现有 DAM 中使用 Lolly](/info/use-with-dam.html)解释了这种安排，[SUSE 的 Brandfolder 经验](/info/suse-brandfolder.html)记录了采用期间的成功使用。

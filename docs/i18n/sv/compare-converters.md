@@ -12,7 +12,7 @@ Vissa konverterarwebbplatser hanterar format som Lolly inte gör, och kräver in
 
 En webbläsarbaserad konverterare kan ladda upp en fil för bearbetning eller konvertera lokalt. Lollys konverteringsverktyg bearbetar filen lokalt, utan konto, annonser eller spårare, och lägger inte till någon Lolly-vattenstämpel eller Content Credentials. När tillgångarna en konvertering behöver är sparade fungerar de offline. Filstorleken begränsas av enhetens minne och det aktuella formatets läsare.
 
-![Vyn Utilities: Strip Hidden Data, Compress PDF, Convert Image och de andra jobben på enheten på ett ställe](/t/url-shot?url=%2F%23%2Fu&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%2C.brand-tips%7Bdisplay%3Anone!important%7D&tolerance=0.03&waitSelector=.utilities-view%5Bdata-shots-settled%5D&format=svg&walker=1&dark=1&filename=aud-utilities)
+![Vyn Utilities: Lolly Strip Hidden Data, Compress PDF, Convert Image och de andra jobben på enheten på ett ställe](/t/url-shot?url=%2F%23%2Fu&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%2C.brand-tips%7Bdisplay%3Anone!important%7D&tolerance=0.03&waitSelector=.utilities-view%5Bdata-shots-settled%5D&format=svg&walker=1&dark=1&filename=aud-utilities)
 
 [Varje format Lolly kan öppna och göra](/info/formats.html) listar de konverteringar som stöds och deras gränser, inklusive HEIC till JPG, PNG till SVG och PDF till bilder.
 

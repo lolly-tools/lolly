@@ -1,8 +1,10 @@
-# Batch y Multi-edit
+# Lolly Batch y Lolly Multi-edit
+
+<a id="batch-and-multi-edit"></a>
 
 Dos tareas surgen cuando creas a menudo el mismo tipo de archivo. A veces necesitas muchas versiones de un diseño: una tarjeta en una docena de idiomas, o cada tamaño de un banner. A veces tienes varios diseños guardados distintos y quieres que un cambio llegue a todos, como una fecha nueva o un titular nuevo.
 
-**Batch** hace la primera tarea y **Multi-edit** la segunda. Ambos se ejecutan en tu dispositivo y exportan por el mismo camino de renderizado que las propias herramientas.
+**Lolly Batch** hace la primera tarea y **Lolly Multi-edit** la segunda. Ambos se ejecutan en tu dispositivo y exportan por el mismo camino de renderizado que las propias herramientas.
 
 ::: cols
 ## Batch
@@ -10,9 +12,10 @@ Dos tareas surgen cuando creas a menudo el mismo tipo de archivo. A veces necesi
 - Una plantilla, muchas filas. Cada fila es un conjunto de entradas y crea un archivo.
 - Rellena las filas escribiendo, pegando desde una hoja de cálculo o importando un CSV.
 - Sin límite de filas; se muestran 50 por página.
-- Se abre desde **Batch** en el encabezado de Projects (`#/batch`).
+- Se abre desde **Lolly Batch** en el encabezado de Projects (`#/batch`).
 
-## Multi-edit
+<a id="multi-edit"></a>
+## Lolly Multi-edit
 
 - De dos a ocho diseños guardados distintos, lado a lado como tarjetas en vivo.
 - Una barra lateral edita las entradas que comparten, y luego las propias de cada tarjeta.
@@ -22,7 +25,7 @@ Dos tareas surgen cuando creas a menudo el mismo tipo de archivo. A veces necesi
 
 ## Crea muchas versiones de un diseño
 
-Abre **Projects** y pulsa **Batch** en su encabezado. La cuadrícula empieza con una fila: elige en ella una plantilla, y luego duplica la fila o pega datos de tu hoja de cálculo. Si se abre desde dentro de una carpeta, Batch te devuelve a esa carpeta.
+Abre la vista **Projects** y pulsa **Batch** en su encabezado. La cuadrícula empieza con una fila: elige en ella una plantilla, y luego duplica la fila o pega datos de tu hoja de cálculo. Si se abre desde dentro de una carpeta, Batch te devuelve a esa carpeta.
 
 ![Batch en una cuadrícula nueva: el nombre de archivo y las herramientas de fila arriba, y la lista de plantillas de la primera fila abierta con las herramientas que puedes elegir](/t/url-shot?url=%2F%23%2Fbatch&width=1440&height=900&dpi=192&waitMs=3500&walker=1&format=svg&dark=1&filename=use-batch-toolbar)
 
@@ -46,9 +49,13 @@ Cada fila conserva sus propias opciones de tema: claro u oscuro, y una colourway
 
 Un CSV lleva las opciones en una columna `_themes` después de las columnas de tamaño, con el mismo JSON que el parámetro de enlace `_themes`, por ejemplo `{"":"dark","colourway":"beach"}`. Una celda en blanco, o `{}`, significa los valores predeterminados del design system. La columna se escribe solo cuando alguna fila tiene opciones, así que un lote sin ninguna exporta el mismo CSV que antes. Al importar, una celda que no son opciones de tema válidas se enumera como incidencia y su fila se renderiza con los valores predeterminados. La cuadrícula aún no tiene un control para cambiar las opciones de una fila, así que defínelas en el CSV o en la sesión guardada.
 
+### Un idioma para cada fila
+
+Una herramienta que imprime su propio texto, como Certificate, puede aceptar una columna `language` con un código de idioma corto como `de`, `ja` o `ar`. Cada fila imprime entonces su texto y su fecha en ese idioma, y las filas en árabe y urdu se maquetan de derecha a izquierda. Una celda en blanco sigue el idioma de la aplicación. Un idioma cuya traducción Lolly aún no tiene se imprime en inglés, fecha incluida, de modo que un certificado nunca queda traducido a medias.
+
 ### Batch, o Render folder
 
-Batch crea muchas variantes de una plantilla. Para volver a renderizar sesiones que ya guardaste, selecciónalas en Projects y usa **Render selection**, o **Render folder** para una carpeta entera; [Find and recover your work](/info/find-your-work.html#find-something-you-saved) cubre ambas.
+Lolly Batch crea muchas variantes de una plantilla. Para volver a renderizar sesiones que ya guardaste, selecciónalas en Projects y usa **Render selection**, o **Render folder** para una carpeta entera; [Find and recover your work](/info/find-your-work.html#find-something-you-saved) cubre ambas.
 
 ## Edita varios diseños guardados juntos
 
@@ -69,7 +76,7 @@ Cada tarjeta se dibuja con las opciones de tema de su propia sesión, incluida u
 - **Ocho como máximo.** Cada tarjeta monta su propio runtime en vivo, y ocho es el número que se mantiene ágil. Un enlace que pide más, o una sesión que ya no existe, lo dice en lugar de cargar a medias.
 - **El enlace es local.** Nombra tus propios espacios guardados, así que reabre ese conjunto en este dispositivo. No es un enlace para compartir.
 - **Para algo más grande,** elige **Edit as sheet** en la misma barra de selección. Abre toda la selección como filas en la cuadrícula de lotes (`#/batch?s=…`), sin límite de tamaño y sin la regla de la misma herramienta. Las carpetas quedan fuera de ambos: abre una carpeta en la cuadrícula con **Sessions → Folders…**, o renderiza una con **Render folder** en Projects.
-- **La búsqueda no llega a Multi-edit.** Es la única vista que la barra de búsqueda no conoce.
+- **La búsqueda no llega a Lolly Multi-edit.** Es la única vista que la barra de búsqueda no conoce.
 
 ## A dónde ir ahora
 

@@ -26,7 +26,7 @@ Bir [work collab](/info/collaborate.html#work-collabs-with-lolly-work-optional) 
 
 1. Aracın sol üstünden **Ana sayfa**'ya bas.
 2. Ana ekranın üstündeki **Projeler** sekmesini aç (telefonda klasör simgesi).
-3. İlk ekrana bak. **Kitaplığım**'a kaydedilen çalışma orada durur ve her proje bir klasördür. Tüm klasörleri aynı anda aramak için ekranın altındaki **Tüm projelerde ara…**'ya yaz.
+3. İlk ekrana bak. **Kitaplığım**'a kaydettiğin çalışma orada durur ve her proje bir klasördür. Tüm klasörleri aynı anda aramak için ekranın altındaki **Tüm projelerde ara…**'ya yaz.
 
 Bir öğe, dışa aktarma panelinde yazdığın dosya adından ya da hiç yazmadıysan **QR Code** gibi aracının adından adlandırılır. Öğeyi aç; her ayar geri gelir, değiştirmeye ve yeniden dışa aktarmaya hazırdır. Yeni işi bu şekilde saklamak için bkz. [Saving & continuing](/info/using.html#saving-continuing).
 
@@ -37,7 +37,7 @@ Bir öğe, dışa aktarma panelinde yazdığın dosya adından ya da hiç yazmad
 :::
 
 ::: details Projeler'le çalışmak
-**Projeler**'i **Ayarlar → Depolama → Kaydedilmiş oturumlar → Projelerde düzenle**'den de açabilirsin. Bir dosya yöneticisi gibi çalışır:
+**Projeler** görünümünü **Ayarlar → Depolama → Kaydedilmiş oturumlar → Projelerde düzenle**'den de açabilirsin. Bir dosya yöneticisi gibi çalışır:
 
 ![Hiçbir şey kaydedilmeden önce Projeler: Yeni klasör, Yeni varlık ve Şablonlar kutucukları, sağ üstteki History saati ve alttaki Tüm projelerde ara çubuğu](/t/url-shot?url=%2F%23%2Fp&width=1440&height=900&dpi=192&waitMs=1200&walker=1&format=svg&localize=1&dark=1&filename=projects)
 <!--
@@ -101,17 +101,17 @@ Otomatik kurtarma kullanılamadığında, düzenleme denetimlerinin yanındaki b
 :::
 
 ::: details Hangi araçlar çalışırken kaydeder
-Web uygulamasında, bir belge oluşturan her araç çalışırken kaydeder: Design, Chart, QR Code, Text, Sandbox ve geri kalanı. Şu araçlar kaydetmez:
+Web uygulamasında, bir belge oluşturan her araç çalışırken kaydeder: Lolly Design, Lolly Chart, QR Code, Text, Lolly Sandbox ve geri kalanı. Şu araçlar kaydetmez:
 
 - Redact, Sign veya Convert Image gibi getirdiğin bir dosya üzerinde çalışan araçlar, çünkü Lolly o dosyanın hiçbir kopyasını tutmaz;
-- Record, Screen Capture ve Voice Recorder gibi kamerandan, mikrofonundan veya ekranından kayıt yapan araçlar;
+- Record, Lolly Screen Capture ve Lolly Voice Recorder gibi kamerandan, mikrofonundan veya ekranından kayıt yapan araçlar;
 - Countdown gibi değiştirilecek bir şeyi olmayan bir araç.
 
 Diğer araçlarda ilk değişikliğin işi kaydetmişsin gibi **Projects** içine dosyalar ve araç çizimi bitirdikten sonra sonraki değişiklikler çalışırken tutulur. Kaydedilmemiş bir yaratım sekmeyi kapattıktan sonra da Projects içindedir ve değişiklikleri kaydedilmemiş olarak işaretlenmiş şekilde yeniden açılır.
 
 **Leave anyway** bu değişiklikleri yine atar ve History atılan düzenlemelerin bir kopyasını 30 gün tutar. Aracı ana ekrandan yeniden açmak yeni bir yaratım başlatır; önceki olanı Projects içinden aç.
 
-3D ve Darkroom çalışırken kaydeder, ancak içlerine yüklediğin bir 3D model veya LUT gibi dosyayı tutmaz. History ve **Save** dosyanın adını, türünü ve boyutunu tutar, dosyayı değil. İşi yeniden açtığında bir not hangi dosya olduğunu söyler ve araç, onu yeniden yükleyene kadar o olmadan çalışır. Özgün dosyalarını sakla.
+3D ve Lolly Darkroom çalışırken kaydeder, ancak içlerine yüklediğin bir 3D model veya LUT gibi dosyayı tutmaz. History ve **Save** dosyanın adını, türünü ve boyutunu tutar, dosyayı değil. İşi yeniden açtığında bir not hangi dosya olduğunu söyler ve araç, onu yeniden yükleyene kadar o olmadan çalışır. Özgün dosyalarını sakla.
 
 [Sync](/info/sync.html) açıkken, bu şekilde dosyalanan bir oluşum, Projeler'deki her şey gibi diğer cihazlarına da gider. Sürümleri ise yapıldıkları cihazda kalır.
 
@@ -147,14 +147,14 @@ iPhone, iPad ve Android'de yeni bir dosya, aynı ada sahip bir öncekinin yerini
 
 Önceki bir sürümü açmak için:
 
-1. **Geri al** ve **Yinele**'nin yanındaki saat düğmesi olan **Geçmiş**'e bas. Design'da **Geçmiş** üst çubuktadır; telefonda, **•••**'e ve ardından **Geçmiş**'e bas. Text ve Sandbox gibi **Geri al**'ı olmayan araçlarda, **Geçmiş** sol üstteki **Ana sayfa**'nın yanındadır.
+1. **Geri al** ve **Yinele**'nin yanındaki saat düğmesi olan **Geçmiş**'e bas. Lolly Design'da **Geçmiş** üst çubuktadır; telefonda, **•••**'e ve ardından **Geçmiş**'e bas. Text ve Lolly Sandbox gibi **Geri al**'ı olmayan araçlarda, **Geçmiş** sol üstteki **Ana sayfa**'nın yanındadır.
 2. Sürümü tarihine ve saatine göre bul. **Otomatik kontrol noktası** satırları çalışırken alınır; **Kaydedilmiş sürüm** satırları kaydettiğin anlardır.
 3. **Kopya olarak aç**'a bas. Sürüm yeni bir oluşum olarak açılır, açık olan da olduğu gibi kalır. Kopya, adının sonunda "(copy)" ile **Projeler**'dedir.
 
 Bir sürümü adıyla tutmak için **Name version**'a bas, bir ad yaz ve **Keep milestone**'a bas. Adlandırılmış sürümler, **History** sayfasında **Milestones** altında listelenir.
 
 ::: details History paneli ve History sayfası
-**History** paneli ayrıca **Recovered work** satırlarını da listeler, **Protected drafts** ise **Open draft as a copy** ile birlikte kontrol noktaları arasındaki son düzenlemelerini tutar. **Compare** ve **Check assets**, bir kopya açmadan önce seçim yapmana yardımcı olur. Her oluşumu görmek için **This creation**'ı **All history on this device**'a çevir.
+**History** paneli ayrıca **Recovered work** satırlarını da listeler, **Protected drafts** ise **Open draft as a copy** ile birlikte kontrol noktaları arasındaki son düzenlemelerini tutar. **Lolly Compare** ve **Check assets**, bir kopya açmadan önce seçim yapmana yardımcı olur. Her oluşumu görmek için **This creation**'ı **All history on this device**'a çevir.
 
 Otomatik kontrol noktaları yaşlandıkça seyrekleşir: son bir saat için dakikada bir, son bir gün için saatte bir, 30 gün boyunca günde bir, sonra haftada bir. Kaydedilmiş sürümler ve adlandırılmış sürümler hepsi tutulur. Bir oluşumu silmek sürümlerini de **Çöp kutusu**'na taşır, **Kalıcı olarak sil** ise onları kaldırır.
 

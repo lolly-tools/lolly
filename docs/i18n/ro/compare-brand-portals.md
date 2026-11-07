@@ -1,8 +1,16 @@
 # Lolly și portalurile de brand
 
-_Ultima verificare: 28 septembrie 2026._
+_Poziționare actualizată: 31 octombrie 2026. Exemplu de capabilitate a furnizorului verificat: 28 septembrie 2026._
 
 Dacă organizația ta își ține resursele aprobate în Bynder, Frontify, Marq sau Brandfolder, această pagină compară asta cu Lolly plus Lolly Work: cum găsesc oamenii resursele de brand și cum fac din ele fișiere noi.
+
+## Păstrarea portalului existent
+
+Un DAM existent poate rămâne sursa de referință. Conectorii de catalog ai Lolly Work fac o parte selectată din biblioteca lui disponibilă în Lolly, unde oamenii fac fișiere noi sub regulile organizației. Constrângerile de sursă acceptate ale DAM-ului și regulile de expunere ale Lolly Work guvernează accesul; revizuirea ieșirii finale este o decizie separată.
+
+[Folosește Lolly cu DAM-ul tău existent](/info/use-with-dam.html) explică responsabilitățile și limitele. [Experiența SUSE cu Brandfolder](/info/suse-brandfolder.html) înregistrează o integrare reușită care a susținut gestionarea schimbării pentru administratori înainte de o migrare planificată. Păstrarea sursei conectate rămâne o alegere acceptată.
+
+Scopul Lolly este [suveranitatea conținutului](/info/content-sovereignty.html), inclusiv controlul asupra producției și libertatea de a alege sistemele. Biblioteca și aprobările proprii susțin organizațiile care aleg să opereze singure aceste capabilități. [Lolly pentru furnizorii de DAM și partenerii de implementare](/info/dam-partners.html) descrie cum poate fluxul conectat să adauge valoare unui sistem de referință existent.
 
 ## Ce face mai bine un portal consacrat
 
@@ -26,11 +34,12 @@ Ambele acoperă resurse aprobate, șabloane blocate, control de acces, revizuire
 | Licențe și credite | Lolly înregistrează licența fiecărei surse folosite de un fișier și pregătește creditele datorate; [Drepturi creative și credite](/info/creative-rights.html) explică ce înregistrează și unde se scriu creditele. Nu clarifică drepturile. |
 | Raportare | Numărători de folosire și descărcare a resurselor, activitate de instrumente și export, dashboard-uri și o urmă de audit. Atribuirea utilizării urmează politica de telemetrie a instalării; setarea implicită de atribuire cere consimțământ. |
 | Distribuție | Linkuri care expiră și pot fi revocate, colecții comune, acces pentru oaspeți și livrare către destinații configurate ale organizației. |
+| O pagină publică de brand | Lolly scrie o [pagină de brand](/info/brand-page.html) statică, din Lolly Design System Setup sau din linia de comandă: logouri, culori, fonturi, reguli și exemple pentru oameni, cu tokenuri, `DESIGN.md` și skills pentru agenți. Tu găzduiești dosarul sau un administrator activează [găzduirea paginii de brand](/info/work-design-system-administration.html#host-a-brand-page) în Lolly Work, dezactivată implicit. |
 
 [Catalog și conținut](/info/work-catalog.html), [Aprobări](/info/work-approvals.html) și [Politică și guvernanță](/info/work-governance.html) descriu aceste funcții și configurarea lor.
 
-## Păstrarea portalului existent
+## Evaluează fluxul combinat
 
-Un DAM existent poate rămâne sursa de adevăr. Conectorii de catalog ai Lolly Work fac resursele lui aprobate disponibile în Lolly, unde oamenii fac fișiere noi sub regulile organizației. Aceasta este o alegere de integrare; biblioteca și aprobările proprii ale Lolly sunt acolo când organizația vrea să le ruleze singură. [Ce rulează unde](/info/compare.html#what-runs-where) listează limitele comune fiecărei comparații.
+Folosește [secvența de producție a cardului de eveniment](/info/dam-production.html) ca să testezi accesul la sursă, editările permise, revizuirea ieșirii și livrarea cu propria bibliotecă. [Ce rulează unde](/info/compare.html#what-runs-where) listează limitele comune fiecărei comparații. O conexiune la sursă nu stabilește prin ea însăși un parteneriat cu furnizorul sau o calificare pentru fiecare tenant.
 
 Vezi [Cum se compară Lolly](/info/positioning.html) pentru comparația de capabilități. Numele furnizorilor identifică produsele comparate; Lolly nu este afiliat cu ele.

@@ -1,4 +1,6 @@
-# Canzoni Rondocode
+# Canzoni Lolly Rondocode
+
+<a id="rondocode-songs"></a>
 
 Una canzone rondocode è musica scritta come codice: sintetizzatori, pattern e un mix, suonati mentre scrivi. Lolly può riprodurre una canzone sotto un video, e l'utility **Rondocode** ti permette di scriverne una ed esportarla come audio. Entrambi registrano la canzone nelle Content Credentials del file, così la musica dice da dove viene.
 
@@ -12,7 +14,7 @@ Dal terminale, `lolly mix` prende una canzone come intera colonna sonora; vedi [
 
 ## Scrivere ed esportare una canzone
 
-Apri **Rondocode** da **Utilities** per scrivere una canzone nell'editor live di rondocode e ascoltarla mentre scrivi. Esportala come **WAV**, **MP3**, **M4A**, **Opus** o **FLAC**, come ZIP di stem, come **MIDI**, o come registrazione di ciò che sta suonando. Dal terminale, `lolly rondocode --export=mid` scrive lo stesso file MIDI. **Export length** imposta quanti secondi dura un'esportazione audio. Il file della canzone stesso (`.rondo.json`) è il tuo codice così come scritto e non porta nulla di aggiunto.
+Apri lo strumento **Rondocode** da **Utilities** per scrivere una canzone nell'editor live di rondocode e ascoltarla mentre scrivi. Esportala come **WAV**, **MP3**, **M4A**, **Opus** o **FLAC**, come ZIP di stem, come **MIDI**, o come registrazione di ciò che sta suonando. Dal terminale, `lolly rondocode --export=mid` scrive lo stesso file MIDI. **Export length** imposta quanti secondi dura un'esportazione audio. Il file della canzone stesso (`.rondo.json`) è il tuo codice così come scritto e non porta nulla di aggiunto.
 
 Una canzone può cantare i suoi testi con `sing()`. Il canto viene prodotto sul tuo dispositivo da modelli vocali scaricati, e un file che contiene canto sintetizzato dichiara sempre il canto come generato dall'IA (vedi [AI features](/info/ai-features.html)).
 
@@ -24,11 +26,11 @@ Un'esportazione video o audio che riproduce una canzone rondocode registra ogni 
 - lo SHA-256 del suo file `.rondo.json`;
 - come è stata renderizzata: nella sandbox di Lolly, la classe di esecuzione `vm`, con la versione e il seed del renderer, e qualsiasi parte che il rendering non ha potuto riprodurre.
 
-La musica calcolata dal codice di una canzone è contrassegnata come media algoritmico, quindi Verify non la segnala come IA. Prima di esportare, una riga sotto **Download** elenca le canzoni che la credenziale registrerà; dopo l'esportazione, la stessa riga riporta ciò che ha trovato una lettura del file consegnato. Deseleziona **C2PA Credentials** per omettere il record. Un'immagine fissa non registra alcuna canzone, perché non porta suono. `lolly mix` e il [server MCP](/info/mcp.html) scrivono lo stesso record.
+La musica calcolata dal codice di una canzone è contrassegnata come media algoritmico, quindi Lolly Verify non la segnala come IA. Prima di esportare, una riga sotto **Download** elenca le canzoni che la credenziale registrerà; dopo l'esportazione, la stessa riga riporta ciò che ha trovato una lettura del file consegnato. Deseleziona **C2PA Credentials** per omettere il record. Un'immagine fissa non registra alcuna canzone, perché non porta suono. `lolly mix` e il [server MCP](/info/mcp.html) scrivono lo stesso record.
 
 ## File dell'utility Rondocode
 
-La maggior parte delle utility sul dispositivo non scrive alcuna credenziale, perché trasforma un file che già possiedi. Rondocode crea nuovo audio, quindi ogni file audio che scrive porta Content Credentials che registrano la canzone come fonte: il suo nome, lo SHA-256 del suo file `.rondo.json` e dove ha girato il suo codice. Questo copre WAV, MP3, M4A, Opus, FLAC, ogni stem in uno ZIP di stem e una registrazione di ciò che sta suonando.
+La maggior parte delle utility sul dispositivo non scrive alcuna credenziale, perché trasforma un file che già possiedi. Lolly Rondocode crea nuovo audio, quindi ogni file audio che scrive porta Content Credentials che registrano la canzone come fonte: il suo nome, lo SHA-256 del suo file `.rondo.json` e dove ha girato il suo codice. Questo copre WAV, MP3, M4A, Opus, FLAC, ogni stem in uno ZIP di stem e una registrazione di ciò che sta suonando.
 
 - I rendering dell'editor stesso girano nel suo frame privato (la classe di esecuzione `frame`) e registrano la versione dell'editor.
 - Un rendering fatto dalla CLI o da un link di condivisione gira nella classe `vm` e registra la versione e il seed del renderer.

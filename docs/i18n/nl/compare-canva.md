@@ -14,9 +14,9 @@ Met beide begint iemand vanuit een sjabloon en maakt een afgeronde afbeelding zo
 
 ## Hoe Lolly de overlappende klus doet
 
-Een Lolly-tool codeert de wijzigingen die mensen mogen maken, en dezelfde tool draait in de browser, de desktop-app of de CLI. Een lay-out die op het Design-canvas is gemaakt kan een [tool met regels](/info/create-a-tool.html) worden, en één tool kan veel bestanden maken uit een tabel met waarden.
+Een Lolly-tool codeert de wijzigingen die mensen mogen maken, en dezelfde tool draait in de browser, de desktop-app of de CLI. Een lay-out die op het Lolly Design-canvas is gemaakt kan een [tool met regels](/info/create-a-tool.html) worden, en één tool kan veel bestanden maken uit een tabel met waarden.
 
-![Het vrije canvas van Design, waar de aangeboden kleuren, lettertypen en assets die van het design system zelf zijn](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&dark=1&filename=aud-open-canvas)
+![Het vrije canvas van Lolly Design, waar de aangeboden kleuren, lettertypen en assets die van het design system zelf zijn](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&dark=1&filename=aud-open-canvas)
 
 Zelfstandig Lolly blijft maken en exporteren op het apparaat, zonder account, en werkt offline zodra de assets zijn opgeslagen. Twee mensen kunnen live bewerken in een [privécollab](/info/collaborate.html), van apparaat naar apparaat. Content Credentials staan standaard aan voor ondersteunde exports, en je kunt ze uitzetten.
 

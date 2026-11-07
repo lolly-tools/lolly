@@ -6,13 +6,20 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
-## 1.322.0
+## 1.323.0
 
 - `placedPicturesOf(store)` (new, `c2pa-extract.ts`): the record of placed pictures in a Content Credential, read back for a shell that writes its own credential in place of that one. It gives each credentialed ingredient the active manifest names, with its title, format, relationship, AI source type and the manifests it brought, verbatim, plus the AI facts the steps state (the pieces declared AI-made, and the model that enlarged one). Source ingredients (emoji, songs) are not read: they have their own census.
 - `aiFactsFromSteps` (`c2pa.ts`) reads the two AI steps `exportActionSteps` writes, and counts a reading only when writing it again gives the same words. `exportActionSteps` writes those steps through the same two helpers, with the same text as before.
 - `pdfWithoutCredential(pdf)` (new, `c2pa-containers.ts`): the bytes before the credential update `embedC2paInPdf` appends, when that update is the last thing in the file. Null for anything else.
 - The MCP server uses all three for a lifetime (`c2pa: "7"` to `"365"`) and for an intent on the browser tier, and the CLI does the same for a signing identity (`--sign-key`) or an intent. The browser now stamps first on those routes, a PDF included, and the server reads the browser credential's record of the placed pictures, AI-made ones included, before its own credential takes that one's place. A PDF's browser update comes off first, so the file holds one credential. A TIFF keeps a replaced credential as a second one, so there the browser writes none, as it already did for an intent.
 - Nothing is added that the browser credential did not hold. A render with no `c2pa` and no intent is unchanged, and so is every browser-free render.
+
+## 1.322.0
+
+- `writeDocx` takes an optional `page` (width, height and margins in twips) and writes it as the section's `w:pgSz` and `w:pgMar`, marking a landscape page as such and holding every value to Word's range. New `snapDocxPage` turns a measured size into the standard paper size it stands for (A4 is 11906 x 16838 twips, US Letter 12240 x 15840), so a page laid out in whole pixels reads as A4, not a custom size. Picture widths and table columns follow the page's text width.
+- `writeDocx` takes optional `styles`: the body face and text colour go into the document defaults, the heading face and colour into Heading 1 to 6. A face is named in `ascii`, `hAnsi`, `eastAsia` and `cs`, and only a plain family name or a six-digit colour is written. Runs carry no font or colour of their own.
+- `DocxMedia.fallback`: for an SVG picture, PNG bytes of the same artwork. The picture is written the way Word writes one, the PNG as the blip and the SVG through the `asvg:svgBlip` extension, so a reader with no SVG support shows the PNG.
+- A document with no `page`, no `styles` and no `fallback` is byte-identical to before. New exports: `snapDocxPage`, and the types `DocxPage` and `DocxStyles`. The web shell's Word export (`shells/web/src/bridge/export-docx.ts`) fills all three from the rendered page. The PNG is drawn from the SVG's own bytes, so the file gains no new information, and a .docx still has no Content Credentials container.
 
 ## 1.321.0
 

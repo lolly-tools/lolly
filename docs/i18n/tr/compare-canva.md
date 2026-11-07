@@ -14,9 +14,9 @@ Canva geniş bir şablon ve stok kitaplığını, uygulamaları ve barındırıl
 
 ## Lolly örtüşen işi nasıl yapar
 
-Bir Lolly aracı insanların yapabileceği değişiklikleri kodlar ve aynı araç tarayıcıda, masaüstü uygulamasında veya CLI'de çalışır. Design tuvalinde yapılan bir düzen [kurallı bir araca](/info/create-a-tool.html) dönüşebilir ve bir araç bir değer tablosundan birçok dosya yapabilir.
+Bir Lolly aracı insanların yapabileceği değişiklikleri kodlar ve aynı araç tarayıcıda, masaüstü uygulamasında veya CLI'de çalışır. Lolly Design tuvalinde yapılan bir düzen [kurallı bir araca](/info/create-a-tool.html) dönüşebilir ve bir araç bir değer tablosundan birçok dosya yapabilir.
 
-![Design'ın serbest tuvali; sunulan renkler, yazı tipleri ve varlıklar tasarım sisteminin kendisine aittir](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&dark=1&filename=aud-open-canvas)
+![Lolly Design'ın serbest tuvali; sunulan renkler, yazı tipleri ve varlıklar tasarım sisteminin kendisine aittir](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&dark=1&filename=aud-open-canvas)
 
 Bağımsız Lolly yapmayı ve dışa aktarmayı hesap olmadan cihazda sürdürür ve varlıkları kaydedildikten sonra çevrimdışı çalışır. İki kişi cihazdan cihaza bir [özel collab](/info/collaborate.html) içinde canlı düzenleyebilir. Content Credentials desteklenen dışa aktarmalarda varsayılan olarak açıktır ve kapatabilirsin.
 

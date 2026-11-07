@@ -12,7 +12,7 @@ Lolly를 열었고 무언가를 만들어 보관하고 전달하고 싶군요. �
 
 홈 화면 위쪽에 **Tools**, **Utilities**, **Assets**, **Projects** 탭 네 개가 있어요. Tools는 만드는 데 쓰는 것이고, Utilities는 파일 변환, 확인, 정리 같은 작업을 위한 작업대이며, Assets는 라이브러리이고, Projects는 저장한 것을 담아요.
 
-아래쪽 막대에는 **Open**, **Settings**, 검색 입력란, **Verify**, **What?**이 있어요. Tools, Utilities, Assets, Projects, Settings와 앱에서 읽는 가이드에 표시되고, 도구를 열면 비켜나요. [검색](/info/search.html)은 이 입력란에서 도구, 저장된 작업물, 에셋, 설정에 닿아요. [Ask Lolly](/info/ask.html)는 입력한 질문에 이 가이드의 해당 섹션으로 답해요.
+아래쪽 막대에는 **Open**, **Settings**, 검색 입력란, Lolly Verify로 가는 **Verify** 바로 가기, **What?**이 있어요. Tools, Utilities, Assets, Projects, Settings와 앱에서 읽는 가이드에 표시되고, 도구를 열면 비켜나요. [Lolly Search](/info/search.html)는 이 입력란에서 도구, 저장된 작업물, 에셋, 설정에 닿아요. [Ask Lolly](/info/ask.html)는 입력한 질문에 이 가이드의 해당 섹션으로 답해요.
 
 카드를 클릭하면 그 도구에서 새로 시작해요. 저장된 작업물은 **Projects**에서 다시 열어요.
 
@@ -22,7 +22,7 @@ Lolly를 열었고 무언가를 만들어 보관하고 전달하고 싶군요. �
 
 ![도구의 분할 화면 - 왼쪽에는 컨트롤 스택, 오른쪽에는 실시간으로 그려지는 그룹형 막대 차트](/t/url-shot?url=%2F%23%2Ftool%2Fchart%3Fct%3Dbar%26t%3DExample%2520data%26st%3DSample%2520values%252C%2520not%2520a%2520real%2520dataset%26d%3DMonth%252CSeries%2520A%252CSeries%2520B%252CSeries%2520C%250AJan%252C12%252C9%252C5%250AFeb%252C18%252C14%252C7%250AMar%252C24%252C17%252C11%250AApr%252C29%252C23%252C15%26lg%3D1&width=1440&height=900&dpi=192&waitMs=2500&walker=1&format=svg&dark=1&filename=vt-tool-split-view)
 
-**Design**은 예외예요. 끌고, 크기를 조정하고, 글을 입력하는 박스로 이루어진 자유 캔버스로 열리며, 자체 상단 막대, 타임라인, 덱 컨트롤이 있어요. [Design: 자유 캔버스](/info/design.html)가 그 가이드예요.
+**Lolly Design**은 예외예요. 끌고, 크기를 조정하고, 글을 입력하는 박스로 이루어진 자유 캔버스로 열리며, 자체 상단 막대, 타임라인, 덱 컨트롤이 있어요. [Lolly Design: 자유 캔버스](/info/design.html)가 그 가이드예요.
 
 ## 도구가 허용하는 것 바꾸기
 
@@ -36,7 +36,7 @@ Lolly를 열었고 무언가를 만들어 보관하고 전달하고 싶군요. �
 
 **디자인 시스템 선택.** 디자인 시스템이 컬러웨이, 밝은 모습과 어두운 모습, 또는 다른 테마 선택지를 둘 이상 제공하면 컨트롤 아래의 **Design system** 섹션에 이것이 있어요. 선택지는 이 도구에 영향을 줄 때만 나타나므로 파일 유틸리티에는 섹션이 아예 없어요. 각 컬러웨이는 자체 색상의 점이고, 밝음과 어두움은 두 개의 버튼이며, 그 밖의 선택은 목록이에요.
 
-선택은 이 작품에 속해요. 링크와 저장된 세션에 담겨 이동하고, 디자인 시스템에 연결된 모든 색상이 이를 따르며, 앱 자체의 색상은 그대로예요. Design은 Inspector의 **Canvas** 탭에서 같은 선택을 보여줘요. 색상이 곧 콘텐츠인 도구는 표준 컬러웨이에 머물 수 있으며, 그러면 컬러웨이 점을 제공하지 않아요. [Lolly Demo 사용하기](/info/lolly-demo-in-use.html#colourways-on-real-work)에서 실제 작업의 컬러웨이를 보여줘요.
+선택은 이 작품에 속해요. 링크와 저장된 세션에 담겨 이동하고, 디자인 시스템에 연결된 모든 색상이 이를 따르며, 앱 자체의 색상은 그대로예요. Lolly Design은 Inspector의 **Canvas** 탭에서 같은 선택을 보여줘요. 색상이 곧 콘텐츠인 도구는 표준 컬러웨이에 머물 수 있으며, 그러면 컬러웨이 점을 제공하지 않아요. [Lolly Demo 사용하기](/info/lolly-demo-in-use.html#colourways-on-real-work)에서 실제 작업의 컬러웨이를 보여줘요.
 
 ### 미리보기 확대/축소와 이동
 
@@ -47,7 +47,7 @@ Lolly를 열었고 무언가를 만들어 보관하고 전달하고 싶군요. �
 - **터치:** 핀치로 확대/축소하고, 끌어서 이동하고, 두 번 탭해서 맞춰요.
 - **확대/축소 HUD:** 모서리의 Lolly 소용돌이를 길게 누르면 `−`, **Fit**, `+`가 펼쳐져요. 소용돌이를 짧게 탭하면 여전히 프로필 메뉴가 열려요.
 
-Design의 **Fit all**은 아트보드와 독립된 레이어를 포함해요. 수동으로 축소하면 전체 페이지가 화면의 절반을 채울 때까지 20% 아래로 내려갈 수 있어요. 최종 하한은 기본 Fit 배율의 5%와 절대 배율 2% 중 더 작은 값이에요.
+Lolly Design의 **Fit all**은 아트보드와 독립된 레이어를 포함해요. 수동으로 축소하면 전체 페이지가 화면의 절반을 채울 때까지 20% 아래로 내려갈 수 있어요. 최종 하한은 기본 Fit 배율의 5%와 절대 배율 2% 중 더 작은 값이에요.
 
 출력 크기가 바뀌면 보기가 항상 깔끔하게 맞춰진 상태로 돌아가요.
 
@@ -55,7 +55,7 @@ Design의 **Fit all**은 아트보드와 독립된 레이어를 포함해요. �
 
 ### 실행 취소와 다시 실행
 
-**Cmd/Ctrl-Z**로 뒤로 가고 **Cmd/Ctrl-Shift-Z**(또는 **Cmd/Ctrl-Y**)로 앞으로 가요. 같은 한 쌍이 컨트롤 위에 **Undo**와 **Redo** 버튼으로도 있으며(Design에서는 상단 막대에 있어요), 되돌릴 것이 없으면 각각 회색으로 바뀌어요. 메시지가 각 실행 취소로 복원된 입력을 알려주며, 메시지에 **Redo** 버튼이 있어요.
+**Cmd/Ctrl-Z**로 뒤로 가고 **Cmd/Ctrl-Shift-Z**(또는 **Cmd/Ctrl-Y**)로 앞으로 가요. 같은 한 쌍이 컨트롤 위에 **Undo**와 **Redo** 버튼으로도 있으며(Lolly Design에서는 상단 막대에 있어요), 되돌릴 것이 없으면 각각 회색으로 바뀌어요. 메시지가 각 실행 취소로 복원된 입력을 알려주며, 메시지에 **Redo** 버튼이 있어요.
 
 - **끌기는 한 단계예요.** 0.5초 안에 한 컨트롤을 반복해서 바꾸면 합쳐지므로, 슬라이더를 끝까지 당겨도 실행 취소는 한 번이에요.
 - **마지막 100단계가 보관돼요.** 실행 취소 후에 새로 편집하면 앞으로 가기 스택이 지워져요.
@@ -72,7 +72,7 @@ Design의 **Fit all**은 아트보드와 독립된 레이어를 포함해요. �
 
 작업물을 보관하려면 렌더 알약의 **Export** 옆 체크 표시인 **Save**를 누르세요. 새 작업물은 **My library**로 가고, 이전에 저장한 작업물은 그 자리에서 업데이트되며 다운로드되는 것은 없어요. 내보내기 패널에도 같은 **Save** 버튼이 있어요.
 
-저장 위치를 고르려면 내보내기 패널의 **Download** 옆 **Save as**를 누르세요. **Save to a project** 아래에서 **My library**를 그대로 두거나 프로젝트를 고르고(**＋ New project…**로 만들 수 있어요) **Save**를 누르세요. **Save as a template**은 디자인을 새 문서의 출발점인 [템플릿](/info/templates.html)으로 보관해요. Design에서는 **Save as**가 Lolly 메뉴에 있어요. 휴대폰에서는 **•••**, **File menu**, **Save as** 순으로 누르세요.
+저장 위치를 고르려면 내보내기 패널의 **Download** 옆 **Save as**를 누르세요. **Save to a project** 아래에서 **My library**를 그대로 두거나 프로젝트를 고르고(**＋ New project…**로 만들 수 있어요) **Save**를 누르세요. **Save as a template**은 디자인을 새 문서의 출발점인 [템플릿](/info/templates.html)으로 보관해요. Lolly Design에서는 **Save as**가 Lolly 메뉴에 있어요. 휴대폰에서는 **•••**, **File menu**, **Save as** 순으로 누르세요.
 
 ![두 부분으로 나뉜 렌더 알약: 내보내기 패널을 여는 위쪽 화살표의 Export, 제자리에 저장하는 체크 표시의 Save](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools&width=1440&height=900&dpi=192&waitMs=2500&css=%23tool-inputs%7Bdisplay%3Anone%7D&cropSelector=.render-pill&walker=1&format=svg&dark=1&filename=use-render-pill)
 
@@ -162,7 +162,7 @@ Design의 **Fit all**은 아트보드와 독립된 레이어를 포함해요. �
 
 `.lolly`는 일반 zip이에요. 이름을 `.zip`으로 바꾸면 내용을 볼 수 있어요. 직접 올린 이미지는 `assets/uploads/` 아래, 카탈로그 아트는 `assets/catalog/` 아래에 있고, `manifest.json`이 모든 파일을 나열하며, README가 파일이 무엇인지 알려줘요.
 
-macOS, Windows, Linux, iOS, Android 모두 이 형식을 등록하며, 데스크톱 파일 관리자는 이를 Lolly 문서로 표시하고 GNOME Files는 저장된 세션 자체의 썸네일을 보여줄 수 있어요. Design System Setup에서 열면 공유 디자인에 디자인 시스템이 들어 있을 때 디자인 시스템 동작을 추천하지만 **Open shared design**을 숨기지는 않아요.
+macOS, Windows, Linux, iOS, Android 모두 이 형식을 등록하며, 데스크톱 파일 관리자는 이를 Lolly 문서로 표시하고 GNOME Files는 저장된 세션 자체의 썸네일을 보여줄 수 있어요. Lolly Design System Setup에서 열면 공유 디자인에 디자인 시스템이 들어 있을 때 디자인 시스템 동작을 추천하지만 **Open shared design**을 숨기지는 않아요.
 
 iOS나 Android에서 다른 앱이 넘긴 문서는 48 MB로 제한돼요. 넘기는 과정이 앱 경계를 넘어 바이트를 복사하기 때문이며, 앱이 이를 알려줘요. Lolly 안의 **Open**에는 그런 제한이 없으니 더 큰 번들에는 그것을 쓰세요.
 
@@ -173,7 +173,7 @@ iOS나 Android에서 다른 앱이 넘긴 문서는 48 MB로 제한돼요. 넘�
 
 ## 애셋 - 내 라이브러리
 
-**Assets**(`#/a`)는 도구가 활용할 수 있는 모든 것을 모아요. 브랜드 로고, 이미지, 오디오, 모션이 종류별로 묶여 있고 직접 올린 파일도 있어요. 업로드한 파일은 기기에 저장돼요. Lolly Work를 쓰는 조직은 자체 접근 규칙에 따른 공유 카탈로그도 제공할 수 있어요. [조직에서 Lolly 사용하기](/info/organisation.html)를 참고하세요.
+**Lolly Assets**(`#/a`)는 도구가 활용할 수 있는 모든 것을 모아요. 브랜드 로고, 이미지, 오디오, 모션이 종류별로 묶여 있고 직접 올린 파일도 있어요. 업로드한 파일은 기기에 저장돼요. Lolly Work를 쓰는 조직은 자체 접근 규칙에 따른 공유 카탈로그도 제공할 수 있어요. [조직에서 Lolly 사용하기](/info/organisation.html)를 참고하세요.
 
 ![애셋 - 브랜드 색상 견본과 글꼴, 그리고 내가 올린 파일](/t/url-shot?url=%2F%23%2Fa%3Fsection%3Dswatches%2Cfonts&width=1440&height=900&dpi=96&waitMs=2400&css=.plat-swatch-grid~%2A%7Bdisplay%3Anone%7D&walker=1&format=svg&localize=1&dark=1&filename=assets)
 
@@ -267,12 +267,25 @@ storage-seeding hook.
 
 ![휴대폰 너비 화면의 도구 - 위쪽에 시트로 놓인 컨트롤, 그 아래 미리보기를 채운 생성된 팔레트, 그리고 아래 가운데에 떠 있는 렌더 알약 버튼](/t/url-shot?url=%2F%23%2Ftool%2Fcolor-palette%3Fseed%3Df97316%26harmony%3Dadjacent-3%26steps%3D9&width=430&height=900&dpi=192&waitMs=2200&walker=1&format=svg&dark=1&filename=vt-phone-palette)
 
+## 폴더블과 iPhone Duo
+
+폴더블, iPhone Duo, 정사각형에 가까운 터치 화면에서는 Lolly가 책의 펼친 두 쪽처럼 도구를 두 개의 패널로 배치해요.
+
+- **한쪽에는 컨트롤, 다른 쪽에는 캔버스.** 컨트롤은 그림을 그리는 손에서 먼 쪽에 놓여요. **Settings → Accessibility**에서 **Dominant hand**를 고르거나 컨트롤 맨 위의 **Swap sides**를 누르세요. 오른쪽에서 왼쪽으로 쓰는 언어에서는 양쪽이 좌우 반전돼요.
+- **구분선이 곧 힌지예요.** 기기가 접힌 위치를 알려주면 패널이 접힌 곳에서 만나므로 접히는 선 위에는 컨트롤도 작업물도 놓이지 않아요. 이어진 화면에서는 구분선을 너비의 3분의 1, 절반, 3분의 2 위치로 끌 수 있어요. Lolly는 이 기기에서 보기마다 선택을 기억해요.
+- **테이블 모드.** 접힌 선이 화면을 가로지르게 반쯤 열면 캔버스가 위쪽 절반을 차지하고 컨트롤은 접힌 선 아래에 놓여요. 발표할 때는 슬라이드가 위에 오고, 그 아래에 노트, 다음 슬라이드, **Back**과 **Next**가 놓여요. Sequence에서는 미리보기가 위, 타임라인이 아래예요.
+- **Lolly Design, Brand Studio, Assets.** Lolly Design에서는 인스펙터, 레이어, 내보내기 패널이 캔버스 옆의 탭이 되고, 도구는 캔버스 바깥쪽 가장자리를 따라 그리는 손 아래에 늘어서요. 도구가 다 들어가지 않으면 열이 스크롤되고, 화살표가 있는 페이드가 나머지가 어느 쪽에 있는지 알려줘요. 테이블 모드에서는 도구가 대신 캔버스 아래쪽을 따라 늘어서요. Brand Studio는 한쪽에 Board를, 다른 쪽에 열어 둔 룸을 유지해요. Assets에서는 에셋의 세부 정보가 라이브러리 옆에서 열리므로 다음에 탭하면 다음 에셋이 같은 자리에 나타나요.
+- **접히는 선 위에는 아무것도 없어요.** 접힌 위치가 보고되면 대화상자는 컨트롤이 있는 쪽 페이지에서 열리고, 홈 화면 아래쪽의 검색창과 그 결과도 마찬가지예요. 평평한 화면에서는 가운데에 그대로 있어요.
+- **접어도 잃는 것이 없어요.** 기기를 접거나 펴거나 돌려도 문서, 선택 항목, 확대/축소, 입력 중이던 필드가 커서 위치까지 그대로 유지돼요.
+
+폴더블의 바깥쪽 화면은 위의 휴대폰 레이아웃을 그대로 유지하고, 분할 화면의 한쪽 절반에 있는 Lolly 창도 마찬가지예요.
+
 ## Settings, 소리, 편안함
 
-홈 화면 하단의 **Settings**에는 내 정보, 디자인 시스템, 접근성, 저장소, 오프라인 다운로드가 있어요. [Lolly Settings](/info/dashboard.html)가 모든 탭을 안내해요.
+홈 화면 하단의 **Lolly Settings**에는 내 정보, 디자인 시스템, 접근성, 저장소, 오프라인 다운로드가 있어요. [Lolly Settings](/info/dashboard.html)가 모든 탭을 안내해요.
 
 - **내 정보와 프로필 사진**은 이메일 서명이나 배지처럼 이를 쓰도록 만들어진 모든 도구에 채워져요. [프로필](/info/profile.html)에서 다뤄요.
-- **접근성**에는 네 가지 편의 스위치가 있어요. **Reduce motion**, **Hide colourful previews**, **High contrast**, **Large text**예요. 작업물 주변의 앱을 바꾸며 도구 캔버스나 내보내기는 절대 바꾸지 않아요.
+- **접근성**에는 네 가지 편의 스위치가 있어요. **Reduce motion**, **Hide colourful previews**, **High contrast**, **Large text**예요. 작업물 주변의 앱을 바꾸며 도구 캔버스나 내보내기는 절대 바꾸지 않아요. 이와 함께 **Dominant hand**는 두 패널 레이아웃에서 컨트롤이 어느 쪽에 놓일지 정해요.
 - **소리**는 사용자의 동작에 맞는 부드러운 보조 소리를 재생하고, **Neurospicy Mode**는 차분한 집중 트랙을 재생해요. 둘 다 **Settings → Accessibility**나 프로필 메뉴에서 켜기 전까지 꺼져 있어요.
 - **Available offline**은 연결이 끊기기 전에 앱의 나머지, 도구, 카탈로그, 가이드를 내려받아요. Lolly는 설치할 수 있는 웹 앱이에요. 브라우저의 설치 버튼이나 휴대폰의 *Add to Home Screen*을 사용하면, 다시 온라인이 되었을 때 스스로 업데이트되는 전체 화면 앱을 얻어요.
 - **Storage**는 Lolly가 이 기기에 보관하는 것을 보여줘요. [브라우저 데이터를 지우면](/info/find-your-work.html#if-you-clear-your-browser-data)에서 지울 때 제거되는 것을 설명하고, [개인정보 처리방침](/info/privacy.html)은 앱이 가져오거나 보내는 모든 것을 나열해요.
@@ -283,10 +296,10 @@ storage-seeding hook.
 
 ## 다음으로 갈 곳
 
-- **[Design: 자유 캔버스](/info/design.html)**: 캔버스, 도형, 타임라인, 덱 발표를 다뤄요.
-- **[Batch와 Multi-edit](/info/batch.html)**: 한 디자인의 여러 버전, 또는 저장된 여러 디자인의 동시 편집을 다뤄요.
+- **[Lolly Design: 자유 캔버스](/info/design.html)**: 캔버스, 도형, 타임라인, 덱 발표를 다뤄요.
+- **[Batch와 Lolly Multi-edit](/info/batch.html)**: 한 디자인의 여러 버전, 또는 저장된 여러 디자인의 동시 편집을 다뤄요.
 - **[파일 내보내기](/info/exporting.html)**: 형식, 크기, 인쇄 단위, 투명도, 동영상 선택을 다뤄요.
-- **[디자인 가져오기](/info/design-import.html)**: Figma, Penpot, Illustrator, InDesign 파일을 Design으로 가져와 계속 편집해요.
+- **[디자인 가져오기](/info/design-import.html)**: Figma, Penpot, Illustrator, InDesign 파일을 Lolly Design으로 가져와 계속 편집해요.
 - **[템플릿](/info/templates.html)**: 도구의 저장된 출발점이에요.
-- **[Wide Colour와 HDR](/info/hdr-editing.html)**: Design과 Darkroom에서 원본 이미지 정밀도를 유지해요.
+- **[Wide Colour와 HDR](/info/hdr-editing.html)**: Lolly Design과 Darkroom에서 원본 이미지 정밀도를 유지해요.
 - **[작업물 찾기와 복구](/info/find-your-work.html)**: 모든 것이 어디에 있는지, 다른 기기로 옮기는 방법을 다뤄요.

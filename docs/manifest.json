@@ -129,6 +129,9 @@
       "path": "start/make-something",
       "icon": "pentool",
       "aliases": [],
+      "tools": [
+        "qr-code"
+      ],
       "contentLicense": "CC-BY-SA-4.0",
       "renderer": "renderMakeSomethingPage",
       "group": "First steps"
@@ -243,6 +246,9 @@
       "path": "create/design",
       "icon": "pentool",
       "aliases": [],
+      "tools": [
+        "design"
+      ],
       "contentLicense": "CC-BY-SA-4.0",
       "group": "Design and templates"
     },
@@ -532,6 +538,9 @@
       "path": "create/partners",
       "icon": "people",
       "aliases": [],
+      "tools": [
+        "logo-wall#sponsor-and-event-logo-walls"
+      ],
       "contentLicense": "CC-BY-SA-4.0",
       "group": "Design and templates",
       "description": "Share your brand with a partner, work in a brand you were given, place a partner's logo and build a sponsor wall in Lolly, with what it does not do yet."
@@ -545,6 +554,9 @@
       "path": "create/3d-studio",
       "icon": "layers",
       "aliases": [],
+      "tools": [
+        "3d-studio"
+      ],
       "contentLicense": "CC-BY-SA-4.0",
       "group": "Design and templates"
     },
@@ -654,6 +666,9 @@
       "path": "create/design-layout",
       "icon": "layers",
       "aliases": [],
+      "tools": [
+        "design"
+      ],
       "contentLicense": "CC-BY-SA-4.0",
       "group": "Design and templates"
     },
@@ -666,6 +681,9 @@
       "path": "create/darkroom",
       "icon": "photos",
       "aliases": [],
+      "tools": [
+        "darkroom"
+      ],
       "contentLicense": "CC-BY-SA-4.0",
       "group": "Design and templates"
     },
@@ -715,6 +733,9 @@
       "path": "create/text-composition",
       "icon": "document",
       "aliases": [],
+      "tools": [
+        "design"
+      ],
       "contentLicense": "CC-BY-SA-4.0",
       "group": "Design and templates"
     },
@@ -762,6 +783,9 @@
       "path": "create/sequence-editor",
       "icon": "clock",
       "aliases": [],
+      "tools": [
+        "design"
+      ],
       "contentLicense": "CC-BY-SA-4.0",
       "group": "Motion and presenting",
       "description": "Cut a video in Lolly Design's timeline: split, trim, cross-fade, mix sound, mark a range, edit Lottie animations and hand off to Premiere."
@@ -775,6 +799,9 @@
       "path": "create/presenting",
       "icon": "monitor",
       "aliases": [],
+      "tools": [
+        "design"
+      ],
       "contentLicense": "CC-BY-SA-4.0",
       "group": "Motion and presenting"
     },
@@ -799,6 +826,9 @@
       "path": "create/agenda",
       "icon": "checklist",
       "aliases": [],
+      "tools": [
+        "agenda"
+      ],
       "contentLicense": "CC-BY-SA-4.0",
       "group": "Motion and presenting"
     },
@@ -811,6 +841,9 @@
       "path": "create/animating",
       "icon": "layers",
       "aliases": [],
+      "tools": [
+        "design"
+      ],
       "contentLicense": "CC-BY-SA-4.0",
       "group": "Motion and presenting"
     },
@@ -823,6 +856,9 @@
       "path": "create/rondocode",
       "icon": "clock",
       "aliases": [],
+      "tools": [
+        "rondocode"
+      ],
       "contentLicense": "CC-BY-SA-4.0",
       "group": "Motion and presenting"
     },
@@ -861,6 +897,19 @@
       "path": "create/utilities",
       "icon": "wrench",
       "aliases": [],
+      "tools": [
+        "strip-data#lolly-strip-hidden-data-and-redact",
+        "redact#lolly-strip-hidden-data-and-redact",
+        "compress-pdf#compress-convert-image-and-convert-font",
+        "convert-image#compress-convert-image-and-convert-font",
+        "font-convert#compress-convert-image-and-convert-font",
+        "text-helper#text",
+        "pages#pdf-pages",
+        "sign#pdf-pages",
+        "trim#audio-and-video",
+        "clean#audio-and-video",
+        "voice-recorder#audio-and-video"
+      ],
       "contentLicense": "CC-BY-SA-4.0",
       "group": "Design and templates"
     },
@@ -872,6 +921,9 @@
       "path": "create/exporting",
       "icon": "download",
       "aliases": [],
+      "tools": [
+        "qr-code#size-and-print-units"
+      ],
       "contentLicense": "CC-BY-SA-4.0",
       "group": "Collaborate and export",
       "description": "Pick the right format for a screen, a printer or another app, set its size and print marks, export many files at once, and see what travels with each file."

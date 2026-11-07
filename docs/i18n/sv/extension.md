@@ -10,26 +10,29 @@ Du godkänner varje förfrågan, och datorappen gör samma jobb utan tillägget.
 
 ## Innan du installerar
 
-Tills tillägget är installerat öppnas **URL Screenshot** ändå, så du kan komponera en bild. En notis överst bland verktygets kontroller säger vad som saknas.
+Tills tillägget är installerat öppnas **Lolly URL Screenshot** ändå, så du kan komponera en bild. En notis överst bland verktygets kontroller säger vad som saknas.
 
 ![URL Screenshot-verktygets notis som erbjuder tillägget, visad när fångst till fil saknar en värd att köra på](/t/url-shot?url=%2F%23%2Ftool%2Furl-shot&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&cropSelector=%23capture-hint-notice&dark=1&filename=exp-url-shot-notice)
 
 Varje kontroll fungerar medan du väntar: mål-URL:en, rullningsdjupet, inställningsfördröjningen, beskärningsmarginalerna och omfärgningen. Bara själva tagningen behöver tillägget.
 
-![URL Screenshot-kontrollerna med en mål-URL, rulldjup, avvaktningsfördröjning och beskärningsmarginaler, alla användbara innan tillägget finns](/t/url-shot?url=%2F%23%2Ftool%2Furl-shot%3Furl%3Dhttps%3A%2F%2Flolly.tools%26scrollDepth%3D0.3%26waitMs%3D1200&width=1440&height=2200&dpi=192&waitMs=2400&format=svg&css=%23tool-canvas%7Bdisplay%3Anone%7D&cropSelector=%23tool-inputs&walker=1&dark=1&filename=fq-url-shot-controls)
+![Lolly URL Screenshot-kontrollerna med en mål-URL, rulldjup, avvaktningsfördröjning och beskärningsmarginaler, alla användbara innan tillägget finns](/t/url-shot?url=%2F%23%2Ftool%2Furl-shot%3Furl%3Dhttps%3A%2F%2Flolly.tools%26scrollDepth%3D0.3%26waitMs%3D1200&width=1440&height=2200&dpi=192&waitMs=2400&format=svg&css=%23tool-canvas%7Bdisplay%3Anone%7D&cropSelector=%23tool-inputs&walker=1&dark=1&filename=fq-url-shot-controls)
 
 ## Installera
 
 **Från Chrome Web Store:** kommer snart. När tillägget är publicerat installerar du det med ett klick.
 
-**Läs in det själv (utvecklare).** Tillägget finns i arkivet på `shells/chrome-extension/`. Den mappen är produktionsbygget, som bara fungerar med Lolly på `https://lolly.tools`.
+**Läs in det själv (utvecklare).** Tilläggets källkod finns i arkivet på `shells/chrome-extension/`. Paketeringssteget bygger produktionspaketet från den mappen, som bara fungerar med Lolly på `https://lolly.tools`.
 
-1. Öppna `chrome://extensions`.
-2. Slå på **Developer mode** (uppe till höger).
-3. Klicka på **Load unpacked** och välj mappen `shells/chrome-extension/`.
-4. Ladda om Lolly-fliken. Upptäckten sker när sidan laddas, så uppmaningen "Get the extension" försvinner. **URL Screenshot** (under Utilities) kan då spara tagningar till en fil och blir tillgänglig i Batch-läget.
+1. Kör `pnpm run pack:chrome-extension`. Det bygger paketet i `dist/chrome-extension/`.
+2. Öppna `chrome://extensions`.
+3. Slå på **Developer mode** (uppe till höger).
+4. Klicka på **Load unpacked** och välj mappen `dist/chrome-extension/`.
+5. Ladda om Lolly-fliken. Upptäckten sker när sidan laddas, så uppmaningen "Get the extension" försvinner. **Lolly URL Screenshot** (under Utilities) kan då spara tagningar till en fil och blir tillgänglig i Lolly Batch-läget.
 
 För en lokal utvecklingsserver kör du `pnpm run pack:chrome-extension:dev` och laddar in `dist/chrome-extension-dev` i stället. Det paketet godtar även `http://localhost:5173` och har **Development** i namnet.
+
+Att läsa in själva mappen `shells/chrome-extension/` fungerar också, för PNG-skärmbilder. Den mappen har ingen sidvandring (paketeringssteget bygger in en), så en SVG från den innehåller en skärmbild i stället för former.
 
 ## Vad som händer när Lolly frågar
 
@@ -40,15 +43,20 @@ För en lokal utvecklingsserver kör du `pnpm run pack:chrome-extension:dev` och
 3. **Chrome frågar en gång per webbplats.** Första gången du godkänner en förfrågan för en webbplats frågar Chrome också om tillägget får komma åt den webbplatsen. Chrome behåller den åtkomsten när du tillåtit den, men varje senare förfrågan behöver fortfarande sin egen **Approve once**.
 4. **Sidan läses i en bakgrundsflik.** Tillägget öppnar målsidan i en bakgrundsflik, tar den via DevTools Protocol (samma `Page.captureScreenshot` som datorappen använder), stänger fliken och lämnar resultatet tillbaka till Lolly-fliken som frågade.
 
+För en **SVG** vandrar tillägget genom sidan i stället för att ta en bild av skärmen. Ett skript som ingår i tillägget läser sidans layout i den bakgrundsfliken och gör om sidan till former och text i konturer, så filen förblir skarp i alla storlekar och varje del förblir redigerbar. Bilder på sidan kommer med som de bilder de är, och det sidan ritar med en canvas, en video eller en effekt som SVG saknar form för kopieras från en skärmbild av samma ögonblick. Lolly jämför resultatet med den skärmbilden, och när de skiljer sig för mycket innehåller SVG:n skärmbilden i stället.
+
+För att lägga texten i konturer med sidans egen typsnittsfamilj ger tillägget Lolly de typsnittsfiler som sidan laddade. Chrome behåller inte ett typsnitts byte där ett tillägg kan läsa dem, så tillägget ber sidan om varje typsnitt igen. Din webbläsare svarar oftast från sin cache, och sidans egen säkerhetspolicy gäller fortfarande för den begäran.
+
 Ett godkännande gäller en förfrågan och löper ut efter 30 sekunder. Bara en förfrågan kan vänta eller köras åt gången, och en godkänd förfrågan stoppas efter 55 sekunder. Om Lolly-sidan stängs eller ändras, eller målsidan flyttar till en annan webbplats, avbryts förfrågan.
 
-Tagningen körs i din webbläsare, på ditt nätverk, så `localhost` och interna webbplatser fungerar. Sidan laddas med din webbläsarsession, så en sida du är inloggad på kan visa privat information i resultatet. Tagningen laddas inte upp: den enda nätverkstrafiken är din egen webbläsare som laddar sidan du bad om.
+Tagningen körs i din webbläsare, på ditt nätverk, så `localhost` och interna webbplatser fungerar. Sidan laddas med din webbläsarsession, så en sida du är inloggad på kan visa privat information i resultatet. Tagningen laddas inte upp: den enda nätverkstrafiken är din egen webbläsare som laddar sidan du bad om, plus, för en SVG, sidans typsnittsfiler en andra gång.
 
 Medan en tagning körs kan du kort se en banner *"…started debugging this browser"* på den tillfälliga fliken. Det är DevTools Protocol i arbete, och bannern försvinner när bilden är klar.
 
-## Att läsa en webbplats för Design System Setup
+<a id="reading-a-site-for-design-system-setup"></a>
+## Att läsa en webbplats för Lolly Design System Setup
 
-Källan **Website** i Design System Setup startar ett designsystem från en webbplats du redan har. I en Chromium-webbläsare läser tillägget sidan. I datorappen hämtar appen sidan själv. I en webbläsare utan tillägg erbjuds inte rutan Website.
+Källan **Website** i Lolly Design System Setup startar ett designsystem från en webbplats du redan har. I en Chromium-webbläsare läser tillägget sidan. I datorappen hämtar appen sidan själv. I en webbläsare utan tillägg erbjuds inte rutan Website.
 
 - **En adress, en sida.** Efter att du godkänt öppnar tillägget sidan i samma sorts bakgrundsflik, läser den renderade markupen, formatmallstexten och en handfull ikon- och logotypbilder och stänger sedan fliken. Det följer inte länkar och kryper inte.
 - **Formatmallar som hostas någon annanstans** (ett CDN eller en typsnittstjänst) hämtas också, eftersom sidans färger och typografi finns i dem. Förfrågningar mellan ursprung går utan dina cookies; förfrågningar inom samma ursprung använder dem, som sidan själv skulle göra.
@@ -59,11 +67,11 @@ Att klistra in en adress fyller bara i fältet. Inget läses förrän du startar
 
 ## Behörigheter
 
-Tilläggets `manifest.json` deklarerar fyra behörigheter, plus webbplatsåtkomst som det ber om en webbplats i taget. Det sätter `minimum_chrome_version: 111`, och den aktuella versionen är 0.4.0.
+Tilläggets `manifest.json` deklarerar fyra behörigheter, plus webbplatsåtkomst som det ber om en webbplats i taget. Det sätter `minimum_chrome_version: 111`, och den aktuella versionen är 0.5.0.
 
 | Behörighet | Vad den är till för | När den beviljas |
 |---|---|---|
-| `debugger` | Styr bakgrundsfliken genom DevTools Protocol, som tar skärmbilden. | Vid installation |
+| `debugger` | Styr bakgrundsfliken genom DevTools Protocol, som tar skärmbilden och, för en SVG, kör sidvandringen. | Vid installation |
 | `tabs` | Öppnar den tillfälliga bakgrundsfliken och stänger den efteråt, och kontrollerar att varken Lolly-sidan eller målsidan har flyttats sedan du godkände. | Vid installation |
 | `scripting` | Kör enkelsideläsaren inne i webbplatsen du angav, för källan Website. | Vid installation |
 | `storage` | Noterar id:t för en flik det öppnat, bara i sessionslagring, så att fliken ändå stängs om webbläsaren pausar tillägget mitt i en läsning. Rensas vid nästa start; inget om dig lagras. | Vid installation |

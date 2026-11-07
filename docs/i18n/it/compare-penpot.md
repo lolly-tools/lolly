@@ -14,7 +14,7 @@ I [design token di Penpot](https://help.penpot.app/user-guide/design-systems/des
 
 ## Come Lolly svolge il compito in comune
 
-La tela Design di Lolly crea risorse modificabili e può trasformare un layout in uno [strumento con regole](/info/create-a-tool.html). Lo stesso strumento esegue il rendering nel browser, nell'app desktop o nella CLI e crea varianti da dati. Lolly standalone esegue il rendering e firma sul dispositivo, senza account né server. Una [collab privata](/info/collaborate.html) mette in coppia due dispositivi direttamente.
+La tela di Lolly Design crea risorse modificabili e può trasformare un layout in uno [strumento con regole](/info/create-a-tool.html). Lo stesso strumento esegue il rendering nel browser, nell'app desktop o nella CLI e crea varianti da dati. Lolly standalone esegue il rendering e firma sul dispositivo, senza account né server. Una [collab privata](/info/collaborate.html) mette in coppia due dispositivi direttamente.
 
 ## Con un'organizzazione
 

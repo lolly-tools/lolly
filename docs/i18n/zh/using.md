@@ -12,7 +12,7 @@
 
 主屏幕顶部有四个标签页：**Tools**、**Utilities**、**Assets** 和 **Projects**。Tools 是用来制作的工具，Utilities 是处理转换、检查或清理文件等事务的工作台，Assets 是你的素材库，Projects 保存你存下来的内容。
 
-底部栏包含 **Open**、**Settings**、一个搜索框、**Verify** 和 **What?**。它显示在 Tools、Utilities、Assets、Projects、Settings 以及你在应用中阅读的指南上，工具打开后则会让位。[搜索](/info/search.html)可以通过该输入框找到你的工具、已保存的作品、素材和设置。[Ask Lolly](/info/ask.html) 会用这些指南中匹配的章节回答你输入的问题。
+底部栏包含 **Open**、**Settings**、一个搜索框、一个通向 Lolly Verify 的 **Verify** 快捷入口和 **What?**。它显示在 Tools、Utilities、Assets、Projects、Settings 以及你在应用中阅读的指南上，工具打开后则会让位。[Lolly Search](/info/search.html)可以通过该输入框找到你的工具、已保存的作品、素材和设置。[Ask Lolly](/info/ask.html) 会用这些指南中匹配的章节回答你输入的问题。
 
 点击卡片，即可在该工具中开始新的内容。已保存的作品则从 **Projects** 重新打开。
 
@@ -22,7 +22,7 @@
 
 ![某工具的分栏视图——左侧是控制面板堆栈,右侧是它实时绘制的分组柱状图](/t/url-shot?url=%2F%23%2Ftool%2Fchart%3Fct%3Dbar%26t%3DExample%2520data%26st%3DSample%2520values%252C%2520not%2520a%2520real%2520dataset%26d%3DMonth%252CSeries%2520A%252CSeries%2520B%252CSeries%2520C%250AJan%252C12%252C9%252C5%250AFeb%252C18%252C14%252C7%250AMar%252C24%252C17%252C11%250AApr%252C29%252C23%252C15%26lg%3D1&width=1440&height=900&dpi=192&waitMs=2500&walker=1&format=svg&dark=1&filename=vt-tool-split-view)
 
-**Design** 是个例外。它打开为一块自由画布，上面是可以拖动、缩放和输入文字的方框，并有自己的顶部栏、时间线和演示控制项。[Design：自由画布](/info/design.html)是它的指南。
+**Lolly Design** 是个例外。它打开为一块自由画布，上面是可以拖动、缩放和输入文字的方框，并有自己的顶部栏、时间线和演示控制项。[Lolly Design：自由画布](/info/design.html)是它的指南。
 
 ## 更改工具允许你更改的内容
 
@@ -36,7 +36,7 @@
 
 **设计系统选项。** 当你的设计系统提供多种配色方案、浅色和深色外观或其他主题选择时，控制项下方的 **Design system** 分区会容纳它们。只有当某个选项会改变这个工具时才会出现，所以文件实用工具根本不显示这个分区。每种配色方案是一个用其自身颜色绘制的圆点，浅色和深色是两个按钮，其他选项则是一个列表。
 
-这个选择属于当前这件作品。它随链接和已保存的会话一起传递，所有关联到设计系统的颜色都会跟随它，而应用自己的颜色保持不变。Design 在检查器的 **Canvas** 标签页中显示同样的选项。颜色本身就是内容的工具可以保持在标准配色方案上，这时它不提供配色方案圆点。[实际使用 Lolly Demo](/info/lolly-demo-in-use.html#colourways-on-real-work)展示了真实作品上的配色方案。
+这个选择属于当前这件作品。它随链接和已保存的会话一起传递，所有关联到设计系统的颜色都会跟随它，而应用自己的颜色保持不变。Lolly Design 在检查器的 **Canvas** 标签页中显示同样的选项。颜色本身就是内容的工具可以保持在标准配色方案上，这时它不提供配色方案圆点。[实际使用 Lolly Demo](/info/lolly-demo-in-use.html#colourways-on-real-work)展示了真实作品上的配色方案。
 
 ### 缩放和平移预览
 
@@ -47,7 +47,7 @@
 - **触摸：** 双指捏合缩放，拖动平移，双击适应窗口。
 - **缩放 HUD：** 按住角落里的 Lolly 旋涡标志，展开 `−`、**Fit** 和 `+`。短按旋涡标志仍会打开你的个人资料菜单。
 
-在 Design 中，**Fit all** 包括画板和独立图层。手动缩小可以低于 20%，直到整个页面占据视图的一半。最低限度取普通 Fit 比例的 5% 与绝对缩放比例 2% 中较小的值。
+在 Lolly Design 中，**Fit all** 包括画板和独立图层。手动缩小可以低于 20%，直到整个页面占据视图的一半。最低限度取普通 Fit 比例的 5% 与绝对缩放比例 2% 中较小的值。
 
 更改输出尺寸总会让视图恢复到整洁的适应状态。
 
@@ -55,7 +55,7 @@
 
 ### 撤销与重做
 
-**Cmd/Ctrl-Z** 后退一步，**Cmd/Ctrl-Shift-Z**（或 **Cmd/Ctrl-Y**）前进一步。同一对操作也以 **Undo** 和 **Redo** 按钮的形式位于控制项上方（在 Design 中位于顶部栏），没有可撤回的内容时各自变灰。一条消息会说明每次撤销恢复了哪个输入项，消息中带有 **Redo** 按钮。
+**Cmd/Ctrl-Z** 后退一步，**Cmd/Ctrl-Shift-Z**（或 **Cmd/Ctrl-Y**）前进一步。同一对操作也以 **Undo** 和 **Redo** 按钮的形式位于控制项上方（在 Lolly Design 中位于顶部栏），没有可撤回的内容时各自变灰。一条消息会说明每次撤销恢复了哪个输入项，消息中带有 **Redo** 按钮。
 
 - **一次拖动算一步。** 半秒内对同一控制项的重复更改会合并，所以把滑块拉过整个范围只算一次撤销。
 - **保留最近 100 步。** 撤销后做出新的编辑会清除前进栈。
@@ -72,7 +72,7 @@
 
 要保留你的作品，请按 **Save**，即渲染按钮上 **Export** 旁边的对勾。新作品进入 **My library**，之前保存的作品就地更新，不会下载任何内容。导出面板中有同样的 **Save** 按钮。
 
-要选择存放位置，请按导出面板中 **Download** 旁边的 **Save as**。在 **Save to a project** 下，保持选中 **My library** 或选择一个项目（**＋ New project…** 可新建），然后按 **Save**；**Save as a template** 会把设计保存为[模板](/info/templates.html)，作为新文档的起点。在 Design 中，**Save as** 位于 Lolly 菜单；在手机上，依次按 **•••**、**File menu**、**Save as**。
+要选择存放位置，请按导出面板中 **Download** 旁边的 **Save as**。在 **Save to a project** 下，保持选中 **My library** 或选择一个项目（**＋ New project…** 可新建），然后按 **Save**；**Save as a template** 会把设计保存为[模板](/info/templates.html)，作为新文档的起点。在 Lolly Design 中，**Save as** 位于 Lolly 菜单；在手机上，依次按 **•••**、**File menu**、**Save as**。
 
 ![分成两半的渲染按钮：Export，带向上箭头，打开导出面板；Save，带对勾，就地保存](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools&width=1440&height=900&dpi=192&waitMs=2500&css=%23tool-inputs%7Bdisplay%3Anone%7D&cropSelector=.render-pill&walker=1&format=svg&dark=1&filename=use-render-pill)
 
@@ -162,7 +162,7 @@
 
 `.lolly` 就是普通的 zip。把它重命名为 `.zip` 就能查看里面：你自己的图片在 `assets/uploads/` 下，目录素材在 `assets/catalog/` 下，`manifest.json` 列出每个文件，还有一个 README 说明这个文件是什么。
 
-macOS、Windows、Linux、iOS 和 Android 都会注册该格式，桌面文件管理器会把它显示为 Lolly 文档，GNOME Files 可以显示已保存会话自己的缩略图。当共享设计带有设计系统操作时，从 Design System Setup 打开会推荐该设计系统操作，但绝不会隐藏 **Open shared design**。
+macOS、Windows、Linux、iOS 和 Android 都会注册该格式，桌面文件管理器会把它显示为 Lolly 文档，GNOME Files 可以显示已保存会话自己的缩略图。当共享设计带有设计系统操作时，从 Lolly Design System Setup 打开会推荐该设计系统操作，但绝不会隐藏 **Open shared design**。
 
 在 iOS 或 Android 上从另一个应用交给 Lolly 的文档上限为 48 MB，因为交接会把其字节复制到应用边界另一侧，应用也会这样告知。Lolly 内部的 **Open** 没有这样的上限，所以较大的包请用它。
 
@@ -173,7 +173,7 @@ macOS、Windows、Linux、iOS 和 Android 都会注册该格式，桌面文件�
 
 ## 素材 - 你的素材库
 
-**Assets**（`#/a`）汇集了你的工具可以使用的一切：品牌徽标、图片、音频和动态，按类型分组，另有你自己的文件。你的上传存放在你的设备上。使用 Lolly Work 的组织还可以在自己的访问规则下提供共享目录；参见[在你的组织中使用 Lolly](/info/organisation.html)。
+**Lolly Assets**（`#/a`）汇集了你的工具可以使用的一切：品牌徽标、图片、音频和动态，按类型分组，另有你自己的文件。你的上传存放在你的设备上。使用 Lolly Work 的组织还可以在自己的访问规则下提供共享目录；参见[在你的组织中使用 Lolly](/info/organisation.html)。
 
 ![素材 - 品牌的色板与字体，以及你自己上传的内容](/t/url-shot?url=%2F%23%2Fa%3Fsection%3Dswatches%2Cfonts&width=1440&height=900&dpi=96&waitMs=2400&css=.plat-swatch-grid~%2A%7Bdisplay%3Anone%7D&walker=1&format=svg&localize=1&dark=1&filename=assets)
 
@@ -267,12 +267,25 @@ storage-seeding hook.
 
 ![手机宽度屏幕上的一个工具——顶部是面板形式的控件，下方预览中是生成的调色板，渲染胶囊按钮浮在底部中央](/t/url-shot?url=%2F%23%2Ftool%2Fcolor-palette%3Fseed%3Df97316%26harmony%3Dadjacent-3%26steps%3D9&width=430&height=900&dpi=192&waitMs=2200&walker=1&format=svg&dark=1&filename=vt-phone-palette)
 
+## 折叠屏设备和 iPhone Duo
+
+在折叠屏设备、iPhone Duo 或接近正方形的触摸屏上，Lolly 会把工具排成两个窗格，就像书的两页：
+
+- **一侧是控制项，另一侧是画布。** 控制项位于你绘图那只手的另一侧。在 **Settings → Accessibility** 中选择 **Dominant hand**，或按控制项顶部的 **Swap sides**。在从右到左的语言中，两侧会镜像对调。
+- **分隔条就是铰链。** 当设备报告折叠位置时，两个窗格在折痕处相接，所以没有任何控制项或画面位于折痕上。在连续的屏幕上，可以把分隔条拖到宽度的三分之一、一半或三分之二。Lolly 会为这台设备上的每个视图记住你的选择。
+- **放在桌上时。** 半开且折痕横跨屏幕时，画布占上半部分，控制项位于折痕下方。演示时，幻灯片在上方，你的备注、下一张幻灯片以及 **Back** 和 **Next** 在下方。在 Sequence 中，预览在上方，时间线在下方。
+- **Lolly Design、Brand Studio 和 Assets。** 在 Lolly Design 中，检查器、图层和导出面板是画布旁边的标签页，工具沿画布外侧边缘排列，位于你绘图的那只手之下。当工具多得放不下时，这一列会滚动，并用带箭头的渐隐提示其余工具在哪个方向。放在桌上时，工具改为沿画布底部排列。Brand Studio 把 Board 放在一侧，把你打开的那个房间放在另一侧。在 Assets 中，素材的详情在资料库旁边打开，所以下一次点按会在同一位置显示下一个素材。
+- **折痕上什么都没有。** 在已报告折叠位置的设备上，对话框会在放有控制项的那一页打开，主屏幕底部的搜索框及其结果也是如此。平整的屏幕则把它们保持在中间。
+- **折叠不会丢失任何东西。** 折叠、展开或旋转设备都会保留你的文档、你的选择、缩放比例，以及你正在输入的字段（光标仍在你离开的位置）。
+
+折叠屏设备的外屏保持上面的手机布局，分屏时位于其中一半的 Lolly 窗口也是如此。
+
 ## 设置、声音和舒适度
 
-主屏幕底部的 **Settings** 包含你的详细信息、设计系统、无障碍、存储和离线下载。[设置](/info/dashboard.html)梳理了每个标签页。
+主屏幕底部的 **Settings** 包含你的详细信息、设计系统、无障碍、存储和离线下载。[Lolly Settings](/info/dashboard.html)梳理了每个标签页。
 
 - **你的详细信息和头像**会填入任何设计为使用它们的工具，例如电子邮件签名或证件。[个人资料](/info/profile.html)介绍了它们。
-- **无障碍**有四个舒适度开关：**Reduce motion**、**Hide colourful previews**、**High contrast** 和 **Large text**。它们改变的是你作品周围的应用，绝不会改变工具画布或导出内容。
+- **无障碍**有四个舒适度开关：**Reduce motion**、**Hide colourful previews**、**High contrast** 和 **Large text**。它们改变的是你作品周围的应用，绝不会改变工具画布或导出内容。在它们旁边，**Dominant hand** 决定在双窗格中控制项位于哪一侧。
 - **声音**会为你的操作播放柔和的辅助音效，**Neurospicy Mode** 会播放平静的专注曲目。两者在你开启之前都是关闭的，可在 **Settings → Accessibility** 或个人资料菜单中开启。
 - **Available offline** 会在你失去连接之前下载应用的其余部分、你的工具、目录和指南。Lolly 是可以安装的网页应用：使用浏览器的安装按钮，或在手机上使用 *Add to Home Screen*，就能得到一个全屏应用，在你重新联网时自动更新。
 - **Storage** 显示 Lolly 在这台设备上保存的内容。[如果你清除了浏览器数据](/info/find-your-work.html#if-you-clear-your-browser-data)解释了清除会移除什么，[隐私政策](/info/privacy.html)则列出了应用获取或发送的一切。
@@ -283,10 +296,10 @@ storage-seeding hook.
 
 ## 接下来去哪里
 
-- **[Design：自由画布](/info/design.html)**：画布、形状、时间线和演示稿的演示。
-- **[批量生成与多重编辑](/info/batch.html)**：同一个设计的多个版本，或同时编辑多个已保存的设计。
+- **[Lolly Design：自由画布](/info/design.html)**：画布、形状、时间线和演示稿的演示。
+- **[批量生成与 Lolly Multi-edit](/info/batch.html)**：同一个设计的多个版本，或同时编辑多个已保存的设计。
 - **[导出文件](/info/exporting.html)**：选择格式、尺寸、印刷单位、透明度和视频。
-- **[导入设计](/info/design-import.html)**：把 Figma、Penpot、Illustrator 或 InDesign 文件带入 Design 并继续编辑。
+- **[导入设计](/info/design-import.html)**：把 Figma、Penpot、Illustrator 或 InDesign 文件带入 Lolly Design 并继续编辑。
 - **[模板](/info/templates.html)**：工具的已保存起点。
-- **[广色域与 HDR](/info/hdr-editing.html)**：在 Design 和 Darkroom 中保持图像的原始精度。
+- **[广色域与 HDR](/info/hdr-editing.html)**：在 Lolly Design 和 Lolly Darkroom 中保持图像的原始精度。
 - **[查找和恢复你的作品](/info/find-your-work.html)**：一切在哪里，以及如何把它迁移到另一台设备。

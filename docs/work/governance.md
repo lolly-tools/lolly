@@ -25,6 +25,11 @@ the audit log and clears the render cache for exactly the affected renders.
 `inputAccess` maps an input id (or `*` as the default) to an ordered list of rules. The first
 rule whose groups match the person wins, and no match means `editable`.
 
+People in a partner programme are the exception: for them, order never decides. A rule for their
+company overrides their programme's rule, the stricter result wins across programmes, and a
+programme or company rule beats a rule for everyone. See
+[Partner programmes](partner-programmes.md#input-rules-for-partners).
+
 ::: figure work-governance-rule-order
 Lolly Work reads one input's rules from the top and stops at the first group that matches.
 :::

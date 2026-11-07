@@ -12,7 +12,7 @@ _সর্বশেষ যাচাই: 28 সেপ্টেম্বর 2026�
 
 একটি ব্রাউজার-ভিত্তিক কনভার্টার প্রসেসের জন্য ফাইল আপলোড করতে পারে বা স্থানীয়ভাবে রূপান্তর করতে পারে। Lolly-র রূপান্তর ইউটিলিটি ফাইল স্থানীয়ভাবে প্রসেস করে, অ্যাকাউন্ট, বিজ্ঞাপন বা ট্র্যাকার ছাড়া, এবং কোনো Lolly ওয়াটারমার্ক বা Content Credentials যোগ করে না। রূপান্তরের দরকারি অ্যাসেট সংরক্ষিত হলে সেগুলো অফলাইনে চলে। ফাইলের আকার সীমিত ডিভাইসের মেমরি ও নির্দিষ্ট ফরম্যাট রিডার দিয়ে।
 
-![Utilities ভিউ: Strip Hidden Data, Compress PDF, Convert Image এবং অন্য অন-ডিভাইস কাজ এক জায়গায়](/t/url-shot?url=%2F%23%2Fu&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%2C.brand-tips%7Bdisplay%3Anone!important%7D&tolerance=0.03&waitSelector=.utilities-view%5Bdata-shots-settled%5D&format=svg&walker=1&dark=1&filename=aud-utilities)
+![Utilities ভিউ: Lolly Strip Hidden Data, Compress PDF, Convert Image এবং অন্য অন-ডিভাইস কাজ এক জায়গায়](/t/url-shot?url=%2F%23%2Fu&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%2C.brand-tips%7Bdisplay%3Anone!important%7D&tolerance=0.03&waitSelector=.utilities-view%5Bdata-shots-settled%5D&format=svg&walker=1&dark=1&filename=aud-utilities)
 
 [Every format Lolly can open and make](/info/formats.html) সমর্থিত রূপান্তর ও তাদের সীমা তালিকা করে, HEIC to JPG, PNG to SVG ও PDF to images সহ।
 

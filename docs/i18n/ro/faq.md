@@ -39,7 +39,7 @@ lolly.tools se deschide în [Lolly Demo](/info/lolly-demo.html), sistemul de des
 
 ## Pot folosi propriul brand?
 
-Da. **Design System Setup** (`#/start`) construiește un sistem de design dintr-o culoare, un fișier de tokenuri de design sau un design terminat, iar apoi fiecare instrument desenează cu sistemul tău de design. [Start](/info/quickstart.html#put-your-brand-in) parcurge cele trei trasee.
+Da. **Lolly Design System Setup** (`#/start`) construiește un sistem de design dintr-o culoare, un fișier de tokenuri de design sau un design terminat, iar apoi fiecare instrument desenează cu sistemul tău de design. [Start](/info/quickstart.html#put-your-brand-in) parcurge cele trei trasee.
 
 Un sistem de design furnizat de organizația ta sau de versiunea ta este administrat: arată un lacăt și rămâne doar pentru citire, iar poți face o copie editabilă pentru a-l schimba.
 
@@ -80,9 +80,9 @@ Aplicația web desenează cu WebGPU, o funcție grafică a browserelor actuale, 
 
 ## Poate Lolly să editeze și să randeze fișierele mele Figma, Penpot, Illustrator sau InDesign?
 
-Da. Deschide **Design** și fă clic pe **Import a design**: acceptă un **.fig** Figma nativ (Save local copy), un export Penpot **.penpot**, un Illustrator **.ai** sau **.pdf**, un InDesign **.idml** (File → Export → InDesign Markup) sau **orice SVG**. Nu ai nevoie de cont, plugin sau licență pentru aplicația de design.
+Da. Deschide instrumentul **Design** și fă clic pe **Import a design**: acceptă un **.fig** Figma nativ (Save local copy), un export Penpot **.penpot**, un Illustrator **.ai** sau **.pdf**, un InDesign **.idml** (File → Export → InDesign Markup) sau **orice SVG**. Nu ai nevoie de cont, plugin sau licență pentru aplicația de design.
 
-![Canvasul liber al Design - Importă o creație stă în meniul Lolly al barei de instrumente](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D17ZTfS8MwEMf_mryO5NZ288GHrdqJv1CUvWdtOgppMtJMNv96yaV1iRNEQRBZoblwab53l0-uq915bXgrCOSDpf3LzgANnQ4eI0rrPJn7Gh9cd0sE8lIryxtFIFfatFx6L4F0Mi-11GbUiZYr25QjK3bW-S8I5MnUbRXKCkMgb5uqki6JFFU7rjoXYsSgT8GaLebKZSeGAPkUYypMHp80DeugYYR4J_U7X4XRkY8dFHuTYEJ-jDWM3qoqsEHo4Y20-xJi-SPVaOfRUuAL1hiZXNrG4gH6M85Z5lTAk8x8DdlnPL8gecVfBIEU6F5v0bbCor3VUu4JpOPCKTCWsPI9rBS107d6QyCfRET_Ac6wX36X6UpX-49Ip1mAlMEPkM6QX20aoSpECLTmpadcazPQ9hPlWxboRndWmFEIG1s4Yp3E3Ts-0f4GbcruWHLzlC0frmfpfbGk82LxmD0vUndSTcvXAoknWBKCz5LDSIdiRHV0D2Tfq1BIvdY42Zim5WZ_-n3_mRvwBg&width=1360&height=850&dpi=192&waitMs=3000&format=svg&walker=1&chrome=1&localize=1&dark=1&filename=design)
+![Canvasul liber al Lolly Design - Importă o creație stă în meniul Lolly al barei de instrumente](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D17ZTfS8MwEMf_mryO5NZ288GHrdqJv1CUvWdtOgppMtJMNv96yaV1iRNEQRBZoblwab53l0-uq915bXgrCOSDpf3LzgANnQ4eI0rrPJn7Gh9cd0sE8lIryxtFIFfatFx6L4F0Mi-11GbUiZYr25QjK3bW-S8I5MnUbRXKCkMgb5uqki6JFFU7rjoXYsSgT8GaLebKZSeGAPkUYypMHp80DeugYYR4J_U7X4XRkY8dFHuTYEJ-jDWM3qoqsEHo4Y20-xJi-SPVaOfRUuAL1hiZXNrG4gH6M85Z5lTAk8x8DdlnPL8gecVfBIEU6F5v0bbCor3VUu4JpOPCKTCWsPI9rBS107d6QyCfRET_Ac6wX36X6UpX-49Ip1mAlMEPkM6QX20aoSpECLTmpadcazPQ9hPlWxboRndWmFEIG1s4Yp3E3Ts-0f4GbcruWHLzlC0frmfpfbGk82LxmD0vUndSTcvXAoknWBKCz5LDSIdiRHV0D2Tfq1BIvdY42Zim5WZ_-n3_mRvwBg&width=1360&height=850&dpi=192&waitMs=3000&format=svg&walker=1&chrome=1&localize=1&dark=1&filename=design)
 
 Straturile sosesc ca casete editabile: textul rămâne editabil, formele rămân forme, iar imaginile se alătură bibliotecii tale. Salvează-l, iar **Share with rules** poate transforma layoutul într-un instrument pe care oricine are Lolly îl poate completa din nou. Vezi [Importă un design](/info/design-import.html).
 
@@ -98,9 +98,9 @@ Feature flags pornesc sau opresc părți din Lolly. În folosirea de sine stăt�
 
 ## Prin ce se deosebesc utilitarele de instrumente?
 
-Un utilitar face o sarcină rapidă pe un fișier pe care îl ai deja, precum comprimarea unui PDF, convertirea unei fotografii sau eliminarea datelor ascunse, iar multe rulează pe dispozitivul tău fără să se încarce nimic. Există ca sarcinile pe care oamenii le dau de obicei unui site oarecare să rămână în Lolly. Comprimarea unui contract, convertirea fotografiilor din vacanță cu locația încă în ele sau lipirea unui token într-un formatator online nu ar trebui să însemne să dai fișierul unui site cu păstrare, jurisdicție și model de afaceri necunoscute. [Utilitare](/info/utilities.html) le listează, iar [Târgul pe care nu l-am acceptat niciodată](/info/status-quo.html) spune povestea din spatele lor.
+Un utilitar face o sarcină rapidă pe un fișier pe care îl ai deja, precum comprimarea unui PDF, convertirea unei fotografii sau eliminarea datelor ascunse, iar multe rulează pe dispozitivul tău fără să se încarce nimic. Există ca sarcinile pe care oamenii le dau de obicei unui site oarecare să rămână în Lolly. Comprimarea unui contract, convertirea fotografiilor din vacanță cu locația încă în ele sau lipirea unui token într-un formatator online nu ar trebui să însemne să dai fișierul unui site cu păstrare, jurisdicție și model de afaceri necunoscute. [Lolly Utilities](/info/utilities.html) le listează, iar [Târgul pe care nu l-am acceptat niciodată](/info/status-quo.html) spune povestea din spatele lor.
 
-![Vederea Utilities: Strip Hidden Data, Compress PDF, Convert Image și celelalte sarcini pe dispozitiv, toate într-un loc](/t/url-shot?url=%2F%23%2Fu&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone!important%7D&tolerance=0.03&format=svg&walker=1&dark=1&filename=use-utilities&try=1)
+![Vederea Utilities: Lolly Strip Hidden Data, Compress PDF, Convert Image și celelalte sarcini pe dispozitiv, toate într-un loc](/t/url-shot?url=%2F%23%2Fu&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone!important%7D&tolerance=0.03&format=svg&walker=1&dark=1&filename=use-utilities&try=1)
 
 ## Poate organizația noastră folosi SSO, proiecte comune și aprobări?
 
@@ -110,7 +110,7 @@ Da, cu **Lolly Work**, serverul de organizație al aceluiași proiect open sourc
 
 ## La ce obstacole mă pot aștepta când adopt Lolly?
 
-Mai ales se schimbă lucruri de partea producției, nu tehnologia. O echipă care vrea un set guvernat de instrumente are nevoie de cineva care să creeze sistemul ei de design și primele șabloane, deși oricine poate începe din prima zi să-și facă propriile instrumente în Design, fără git. Iar procesele existente continuă să funcționeze chiar și când rezultatul lor nu respectă brandul, deci convertirea bună a unui rezultat vizibil, înainte și după unul lângă altul, convinge mai repede decât un plan.
+Mai ales se schimbă lucruri de partea producției, nu tehnologia. O echipă care vrea un set guvernat de instrumente are nevoie de cineva care să creeze sistemul ei de design și primele șabloane, deși oricine poate începe din prima zi să-și facă propriile instrumente în Lolly Design, fără git. Iar procesele existente continuă să funcționeze chiar și când rezultatul lor nu respectă brandul, deci convertirea bună a unui rezultat vizibil, înainte și după unul lângă altul, convinge mai repede decât un plan.
 
 [Adopție și guvernanță](/info/adoption-governance.html) acoperă integrarea pe roluri, cum măsori un pilot și cum poate arăta un proces de guvernanță.
 
@@ -144,3 +144,11 @@ Trăiesc într-un depozit separat, privat. O clonă publică nu preia deloc pach
 ## Ce aromă are logoul Lolly?
 
 Unii spun Lime, alții Mentă și uneori Măr; Lolly aduce dulceața, tu creezi aroma!
+
+## Ce înseamnă suveranitatea conținutului pentru Lolly?
+
+Controlul asupra felului în care conținutul tău este creat, guvernat, stocat și mutat între sistemele pe care le alegi. Lolly susține producția locală, munca editabilă și instrumentele portabile; Lolly Work adaugă servicii comune controlate de organizație. Licențele sursei, dependențele disponibile și fluxurile de date ale procesului contează în continuare. [Ce este suveranitatea conținutului?](/info/content-sovereignty.html) explică fiecare control și limitele lui.
+
+## Putem să ne păstrăm DAM-ul actual?
+
+Da. Un DAM acceptat poate rămâne sursa de referință, în timp ce Lolly Work conectează resurse selectate la instrumentele Lolly. Accesul la sursă, editările permise, drepturile de utilizare și aprobarea rezultatului final sunt decizii separate. [Folosește Lolly cu DAM-ul tău actual](/info/use-with-dam.html) explică aranjamentul, iar [experiența SUSE cu Brandfolder](/info/suse-brandfolder.html) consemnează o utilizare reușită în timpul adoptării.

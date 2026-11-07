@@ -22,7 +22,7 @@ Alegerea unui set nu este niciodată blocată, iar controlul setului arată lice
 
 ## Ce vezi și ce de făcut
 
-Aceleași cuvinte apar în panoul de export, Verify, linia de comandă și rezultatul mașinii, aproximativ în ordinea cât de des le vei întâlni.
+Aceleași cuvinte apar în panoul de export, Lolly Verify, linia de comandă și rezultatul mașinii, aproximativ în ordinea cât de des le vei întâlni.
 
 | Ce vezi | Ce înseamnă |
 |---|---|
@@ -51,12 +51,14 @@ Lolly nu spune niciodată „copyright verified”, „legally safe”, „fully
 
 - **În catalog.** Fișa unei lucrări arată sursa și creatorul, numele canonic al licenței cu eticheta originală păstrată dedesubt, un credit copiabil unde este înregistrat unul și o linie care spune ce cere folosirea ei. O tilă enunță cerința; nu pretinde niciodată că un export a fost finalizat.
 - **În panoul de export.** Un card Source credits apare în Content protection odată ce o randare folosește lucrări înregistrate, lângă Licence pe care o alegi pentru propriul export. Arată starea, textul de credit în spatele Details, un buton Copy credit și un card inline când o decizie este datorată. O decizie nu este niciodată un dialog blocant: o descărcare cu o acțiune rămasă continuă oricum.
-- **În fișier.** Un export care a plasat lucrări înregistrate scrie un ingredient-sursă Content Credentials pe lucrare distinctă, legat de octeții originali la adresa lor publică și purtând creatorul, licența și linkul ei, sursa, revizia și schimbările. Lolly semnează ce a observat. Nu semnează niciodată o afirmație în numele artistului din amonte, iar Verify spune care dintre cele două s-a întâmplat.
+- **În fișier.** Un export care a plasat lucrări înregistrate scrie un ingredient-sursă Content Credentials pe lucrare distinctă, legat de octeții originali la adresa lor publică și purtând creatorul, licența și linkul ei, sursa, revizia și schimbările. Lolly semnează ce a observat. Nu semnează niciodată o afirmație în numele artistului din amonte, iar Lolly Verify spune care dintre cele două s-a întâmplat.
 - **Într-un pachet.** O descărcare care nu poate conține o credențială, precum o animație `.lottie`, poartă creditele ca `CREDITS.txt` și `credits.json` în pachet. Acestea sunt citite înapoi după scriere și nu se pretinde nicio credențială semnată pentru ele.
 - **După scriere.** Octeții livrați sunt citiți înapoi înainte ca ceva să spună că creditele sunt incluse. O credențială care nu s-a verificat nu contează ca credit livrat.
-- **Într-un fișier `.lolly` editabil.** Octeții călătoresc doar când o licență revizuită înregistrează permisiunea de a da sursa mai departe. `CREDITS.txt` al pachetului listează ce a călătorit, sub ce licență și ce a fost reținut, cu motivul. O licență nerecunoscută este reținută. Poți totuși include deliberat conținut reținut, iar fișierul de credite înregistrează că a fost alegerea ta.
-- **În Verify.** Un panou Sources listează fiecare sursă pe care o înregistrează un fișier, cu un rezumat calculat, creditul, un buton Copy credit, un link Open source care se deschide doar când ceri și limitele declarate ale ce a fost inspectat. O întrebare Check for this use apare doar când alegi o folosire, iar nimic nu este preluat pentru a răspunde.
+- **Într-un fișier `.lolly` editabil.** Octeții călătoresc doar când o licență revizuită înregistrează permisiunea de a da sursa mai departe sau când rândul poartă propriii termeni ai proprietarului. `CREDITS.txt` al pachetului listează ce a călătorit, sub ce licență și ce a fost reținut, cu motivul. O licență nerecunoscută este reținută. Poți totuși include deliberat conținut reținut, iar fișierul de credite înregistrează că a fost alegerea ta.
+- **În Lolly Verify.** Un panou Sources listează fiecare sursă pe care o înregistrează un fișier, cu un rezumat calculat, creditul, un buton Copy credit, un link Open source care se deschide doar când ceri și limitele declarate ale ce a fost inspectat. O întrebare Check for this use apare doar când alegi o folosire, iar nimic nu este preluat pentru a răspunde.
 - **Când elimini metadate.** Curățarea îți spune câte credite de sursă nu mai poartă fișierul, oferă textul de credit și oferă un fișier curat cu creditele într-un fișier separat. Octeții curățați nu sunt niciodată re-ștampilați.
+
+**Mărcile proprii ale unui proprietar.** Rar pune un proprietar un logo sub o licență deschisă. Un rând al cărui registru de drepturi spune `own-work`, cu proprietarul și termenii, poate călători într-un fișier `.lolly` și pe o [pagină de brand](/info/brand-page.html#publish-your-own-marks). Călătorește ca „Owner-published, not an open licence”, cu termenii lângă fișier. Aceasta citește ce declară un catalog. Lolly nu verifică cine deține o marcă. O înregistrare fără proprietar, cu termeni goi sau fără declarație rămâne reținută, la fel ca marca altcuiva fără o astfel de înregistrare.
 
 ::: details Licențele pe care le-a revizuit Lolly
 Versiunea regulilor `rights-rules-2026-11-05.1`. Fiecare regulă a fost citită din textul juridic propriu al licenței, iar secțiunea din care a venit este citată aici și lângă regulă în `engine/src/rights-profiles.ts`. O versiune și o adaptare locală sunt păstrate așa cum au fost înregistrate: o declarație CC BY 3.0 își păstrează propria versiune în loc să fie raportată ca 4.0 pentru că selectorul aplicației preferă 4.0.
@@ -69,6 +71,7 @@ Versiunea regulilor `rights-rules-2026-11-05.1`. Fiecare regulă a fost citită 
 | CC-PDDC | Nimic. Ce se înregistrează este aserțiunea însăși și cine a făcut-o, pentru că o certificare este declarația unei părți, nu o dovadă. | Paragrafele [dedicației și certificării](https://creativecommons.org/licenses/publicdomain/) |
 | Apache License 2.0 | Notificările sursei și textul de atribuire din fișierul NOTICE călătoresc cu o lucrare distribuită. O folosire în runtime nu cere nimic. O licență care cere un text de notificare și o lucrare care nu poartă niciunul este raportată ca gol. | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0), secțiunea 4, condițiile 1 până la 4 |
 | MIT | Linia de copyright și nota de permisiune călătoresc cu copiile și porțiunile substanțiale. Folosirile în runtime și de referință nu cer nimic. | [MIT](https://opensource.org/license/mit), condiția notei de permisiune |
+| ISC | La fel ca MIT, în cuvinte mai scurte: linia de copyright și nota de permisiune călătoresc cu copiile. Folosirile în runtime și de referință nu cer nimic. | [ISC](https://opensource.org/license/isc-license-txt), condiția notei de permisiune |
 | SIL OFL 1.1 | Randarea textului cu fontul nu cere nimic de la text. Darea fontului mai departe poartă licența, nota de copyright și regula numelui rezervat. | [OFL 1.1](https://openfontlicense.org/open-font-license-official-text/), condițiile 2, 3 și 5; [OFL FAQ](https://openfontlicense.org/ofl-faq/) despre documente |
 
 **Înregistrat, neinterpretat.** CC BY-NC, CC BY-ND și combinațiile NC-SA și NC-ND sunt recunoscute, condițiile lor sunt listate și nicio regulă de aici nu le citește. Raportează `licence.unknown` cu o linie care numește condițiile. Un context comercial nu poate fi citit dintr-un preț sau un cont, iar fiecare text combinat are nevoie de propria revizuire înainte ca o regulă să-l citească.
@@ -119,7 +122,7 @@ Cinci module de motor, toate pure: fără rețea, fără ceas, fără sistem de 
 | `engine/src/rights-evaluate.ts` | Clasificarea, problemele, planul de atribuire și amprenta. Determinist: aceleași fapte în altă ordine dau același răspuns. |
 | `engine/src/rights-attribution.ts` | Credite lizibile, fișierele însoțitoare, ingredientele-sursă și confirmarea măsurată după scriere. |
 | `engine/src/rights-companion.ts` | Citirea înapoi a creditelor de pachet (`CREDITS.txt` și `credits.json` într-o descărcare bazată pe ZIP), care confirmă creditele fără a pretinde o credențială semnată. |
-| `engine/src/rights-report.ts` | O credențială verificată citită înapoi ca cele trei întrebări pe care le pune Verify. |
+| `engine/src/rights-report.ts` | O credențială verificată citită înapoi ca cele trei întrebări pe care le pune Lolly Verify. |
 
 Fișierele de așteptări din `tests/fixtures/rights/` au fost scrise din textele licențelor, nu din ieșirea evaluatorului, iar README-ul lor citează secțiunea din spatele fiecărei așteptări.
 :::

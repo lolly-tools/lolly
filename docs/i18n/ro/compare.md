@@ -11,7 +11,7 @@ _Ultima verificare: 28 septembrie 2026._
 - [Lolly și Figma](/info/compare-figma.html) - design, colaborare live și producție reutilizabilă de resurse.
 - [Lolly și Penpot](/info/compare-penpot.html) - design open source, tokenuri comune și munca organizației.
 - [Lolly și portalurile de brand](/info/compare-brand-portals.html) - biblioteci aprobate, șabloane blocate, identitate, revizuire și raportare.
-- [Lolly și API-urile de randare](/info/compare-render-apis.html) - generare automată pe dispozitivul tău, în CI sau pe un server Lolly Work.
+- [Lolly și API-urile de randare](/info/compare-render-apis.html) - generare automată pe dispozitivul tău, în CI sau pe propriul server, și [cum te muți](/info/work-move-from-render-api.html) de la Bannerbear sau Placid.
 - [Lolly și convertoarele de fișiere online](/info/compare-converters.html) - conversia formatelor pe propriul dispozitiv.
 
 Pentru vederea capacitate cu capacitate, vezi [Cum se compară Lolly](/info/positioning.html). Fiecare comparație are dată; o afirmație care nu mai corespunde unuia dintre produse trebuie corectată.

@@ -1,5 +1,7 @@
 # Design: den fria ytan
 
+<a id="design-the-free-canvas"></a>
+
 Design är verktyget för layouter som ingen mall täcker: en affisch från grunden, en presentation med bilder, ett rörelsestycke med ljudspår. I stället för ett formulär med kontroller får du en yta med rutor som du drar, ändrar storlek på, roterar och skriver i. Det exporteras genom samma renderingsväg som varje annat verktyg, så det du ser på ytan är filen du får.
 
 Den här sidan går igenom ytan från den första rutan till en färdig presentation: fönstret, att forma rutor, att rita egna former, att placera 3D-scener och andra verktyg, att lägga till tid, att kontrollera resultatet och att presentera den färdiga presentationen. [Använda Lolly](/info/using.html) beskriver det som Design delar med varje verktyg, som att spara och dela.
@@ -27,7 +29,7 @@ Ytan fungerar som en designers arbetsbord runt ritytan:
 
 **Navigator** listar varje ritytan (med rubriken **Artboards**, eller **Slides** i en presentation) som en hopfällbar grupp av dess **Layers**. Välj en rityta namn för att hoppa dit, fäll ut den för att markera eller ordna om dess lager och använd piltangenterna för att röra dig i listan; Vänster återvänder till ritytans rubrik. **Pages** grupperar ritytor i namngivna sidor, och att välja en sida ändrar bara vilka ritytor redigeraren visar.
 
-**Inspector** lägger det markerade objektets text- eller bildkontroller först. Alternativchips täcker de snabba valen, och **Advanced** håller stildetaljerna. På en telefon öppnas Inspector som ett blad från **More actions**; Escape eller Back stänger bladet och behåller din markering.
+**Inspector** lägger det markerade objektets text- eller bildkontroller först. Alternativchips täcker de snabba valen, och **Advanced** håller stildetaljerna. På en telefon delar Inspector och lagerlistan en panel som fälls ned under översta listen, samma panel som alla andra verktyg har sina kontroller i. **Inspect** och **Layer/Page** i listen längst ner öppnar panelen på sin flik. Dra i handtaget på dess nedre kant, eller tryck på handtaget, för att flytta panelen mellan en remsa med de två flikarna, halva skärmen och nästan hela skärmen. På halva skärmen visar ytan under panelen din markering. Escape fäller tillbaka panelen till remsan och behåller din markering.
 
 ![Avsnittet Document i Inspector: flikarna Selection och Canvas, sedan Dimensions och Style & look](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3Dfeature-tour&width=1440&height=900&dpi=192&waitMs=3500&cropSelector=.fc-insp&walker=1&format=svg&dark=1&filename=design-narration)
 
@@ -241,6 +243,8 @@ Pilen bredvid **Present** öppnar **Present from this slide**, **Speaker view**,
 | **Escape** | Skala av ett lager: översikt till presentation, presentation till redigerare |
 
 Ett litet kontrollfält tonas in när du rör pekaren och döljs igen när du slutar. Om webbläsaren blockerar talarpopupen öppnas talarvyn som en panel över presentationen. Anteckningar hör till varje rityta och visas aldrig på bilden.
+
+På en pekskärm sveper du åt vänster för nästa steg eller bild och åt höger för att gå tillbaka. En **Slide**- eller **Fade**-övergång följer ditt finger och slutförs när du släpper; en **Cut**-, **Morph**- eller **Fly between artboards**-övergång spelas upp i sin helhet när du släpper, och en kort, långsam svepning ändrar ingenting. Webbsiderutor, videokontroller, rutor som rullar och markerad text behåller sina egna gester, så en svepning börjar aldrig på någon av dem, och vertikal rullning och nypzoom fungerar som vanligt. Med minskad rörelse byts bilden ändå, utan att följa ditt finger.
 
 - **Avslöjandesteg.** Högerklicka på en ruta och välj **Reveal at step 1**, **2** eller **3** i stället för **Always visible**, så väntar rutan tills du går vidare till dess steg. Rutor med samma nummer kommer tillsammans.
 - **Kiosk.** Ge en rityta en **Length** så stannar presentationen där så länge, och går sedan vidare bakom ett tunt förloppsfält. Lägg till `kiosk` i länken så börjar presentationen om efter slutet, för skyltning.

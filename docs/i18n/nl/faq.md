@@ -39,7 +39,7 @@ lolly.tools opent in [Lolly Demo](/info/lolly-demo.html), het eigen voorbeeld-de
 
 ## Kan ik mijn eigen merk gebruiken?
 
-Ja. **Design System Setup** (`#/start`) bouwt een design system uit één kleur, een designtokensbestand of een afgerond ontwerp, en elke tool tekent dan met jouw design system. [Start](/info/quickstart.html#put-your-brand-in) loopt de drie routes door.
+Ja. **Lolly Design System Setup** (`#/start`) bouwt een design system uit één kleur, een designtokensbestand of een afgerond ontwerp, en elke tool tekent dan met jouw design system. [Start](/info/quickstart.html#put-your-brand-in) loopt de drie routes door.
 
 Een design system dat je organisatie of je build levert is beheerd: het toont een slot en blijft alleen-lezen, en je kunt een bewerkbare kopie maken om te wijzigen.
 
@@ -80,9 +80,9 @@ De webapp tekent met WebGPU, een grafische functie van huidige browsers, en cont
 
 ## Kan Lolly mijn Figma-, Penpot-, Illustrator- of InDesign-bestanden bewerken en renderen?
 
-Ja. Open **Design** en klik op **Import a design**: het accepteert een native Figma-**.fig** (Save local copy), een Penpot-**.penpot**-export, een Illustrator-**.ai** of -**.pdf**, een InDesign-**.idml** (File → Export → InDesign Markup) of **elke SVG**. Je hebt geen account, geen plug-in en geen licentie voor een ontwerpapp nodig.
+Ja. Open de tool **Design** en klik op **Import a design**: het accepteert een native Figma-**.fig** (Save local copy), een Penpot-**.penpot**-export, een Illustrator-**.ai** of -**.pdf**, een InDesign-**.idml** (File → Export → InDesign Markup) of **elke SVG**. Je hebt geen account, geen plug-in en geen licentie voor een ontwerpapp nodig.
 
-![Het open canvas van Design - Import a design staat in het Lolly-menu van de werkbalk](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D17ZTfS8MwEMf_mryO5NZ288GHrdqJv1CUvWdtOgppMtJMNv96yaV1iRNEQRBZoblwab53l0-uq915bXgrCOSDpf3LzgANnQ4eI0rrPJn7Gh9cd0sE8lIryxtFIFfatFx6L4F0Mi-11GbUiZYr25QjK3bW-S8I5MnUbRXKCkMgb5uqki6JFFU7rjoXYsSgT8GaLebKZSeGAPkUYypMHp80DeugYYR4J_U7X4XRkY8dFHuTYEJ-jDWM3qoqsEHo4Y20-xJi-SPVaOfRUuAL1hiZXNrG4gH6M85Z5lTAk8x8DdlnPL8gecVfBIEU6F5v0bbCor3VUu4JpOPCKTCWsPI9rBS107d6QyCfRET_Ac6wX36X6UpX-49Ip1mAlMEPkM6QX20aoSpECLTmpadcazPQ9hPlWxboRndWmFEIG1s4Yp3E3Ts-0f4GbcruWHLzlC0frmfpfbGk82LxmD0vUndSTcvXAoknWBKCz5LDSIdiRHV0D2Tfq1BIvdY42Zim5WZ_-n3_mRvwBg&width=1360&height=850&dpi=192&waitMs=3000&format=svg&walker=1&chrome=1&localize=1&dark=1&filename=design)
+![Het open canvas van Lolly Design - Import a design staat in het Lolly-menu van de werkbalk](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D17ZTfS8MwEMf_mryO5NZ288GHrdqJv1CUvWdtOgppMtJMNv96yaV1iRNEQRBZoblwab53l0-uq915bXgrCOSDpf3LzgANnQ4eI0rrPJn7Gh9cd0sE8lIryxtFIFfatFx6L4F0Mi-11GbUiZYr25QjK3bW-S8I5MnUbRXKCkMgb5uqki6JFFU7rjoXYsSgT8GaLebKZSeGAPkUYypMHp80DeugYYR4J_U7X4XRkY8dFHuTYEJ-jDWM3qoqsEHo4Y20-xJi-SPVaOfRUuAL1hiZXNrG4gH6M85Z5lTAk8x8DdlnPL8gecVfBIEU6F5v0bbCor3VUu4JpOPCKTCWsPI9rBS107d6QyCfRET_Ac6wX36X6UpX-49Ip1mAlMEPkM6QX20aoSpECLTmpadcazPQ9hPlWxboRndWmFEIG1s4Yp3E3Ts-0f4GbcruWHLzlC0frmfpfbGk82LxmD0vUndSTcvXAoknWBKCz5LDSIdiRHV0D2Tfq1BIvdY42Zim5WZ_-n3_mRvwBg&width=1360&height=850&dpi=192&waitMs=3000&format=svg&walker=1&chrome=1&localize=1&dark=1&filename=design)
 
 Lagen komen aan als bewerkbare vakken: tekst blijft bewerkbaar, vormen blijven vormen en afbeeldingen komen in je eigen bibliotheek. Sla het op, en met **Share with rules** wordt van de lay-out een tool die iedereen met Lolly opnieuw kan invullen. Zie [Een ontwerp importeren](/info/design-import.html).
 
@@ -98,9 +98,9 @@ Feature flags zetten delen van Lolly aan of uit. Bij zelfstandig gebruik kies je
 
 ## Wat maakt hulpprogramma's anders dan tools?
 
-Een hulpprogramma doet één snelle klus op een bestand dat je al hebt, zoals een PDF comprimeren, een foto omzetten of verborgen gegevens verwijderen, en veel ervan draaien op je apparaat zonder dat iets wordt geüpload. Ze bestaan zodat de klussen die mensen meestal aan een willekeurige website geven binnen Lolly blijven. Een contract comprimeren, vakantiefoto's omzetten met de locatie er nog in of een token in een online formatter plakken zou niet moeten betekenen dat je het bestand geeft aan een site met onbekende bewaartermijn, rechtsgebied en verdienmodel. [Hulpprogramma's](/info/utilities.html) noemt ze, en [De ruil waar we nooit mee instemden](/info/status-quo.html) vertelt het verhaal erachter.
+Een hulpprogramma doet één snelle klus op een bestand dat je al hebt, zoals een PDF comprimeren, een foto omzetten of verborgen gegevens verwijderen, en veel ervan draaien op je apparaat zonder dat iets wordt geüpload. Ze bestaan zodat de klussen die mensen meestal aan een willekeurige website geven binnen Lolly blijven. Een contract comprimeren, vakantiefoto's omzetten met de locatie er nog in of een token in een online formatter plakken zou niet moeten betekenen dat je het bestand geeft aan een site met onbekende bewaartermijn, rechtsgebied en verdienmodel. [Lolly Utilities](/info/utilities.html) noemt ze, en [De ruil waar we nooit mee instemden](/info/status-quo.html) vertelt het verhaal erachter.
 
-![De weergave Utilities: Strip Hidden Data, Compress PDF, Convert Image en de andere klussen op het apparaat, allemaal op één plek](/t/url-shot?url=%2F%23%2Fu&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone!important%7D&tolerance=0.03&format=svg&walker=1&dark=1&filename=use-utilities&try=1)
+![De weergave Utilities: Lolly Strip Hidden Data, Compress PDF, Convert Image en de andere klussen op het apparaat, allemaal op één plek](/t/url-shot?url=%2F%23%2Fu&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone!important%7D&tolerance=0.03&format=svg&walker=1&dark=1&filename=use-utilities&try=1)
 
 ## Kan onze organisatie SSO, gedeelde projecten en goedkeuringen gebruiken?
 
@@ -110,7 +110,7 @@ Ja, met **Lolly Work**, de organisatieserver van hetzelfde open-sourceproject. D
 
 ## Welke hordes kan ik verwachten als ik Lolly ga gebruiken?
 
-Wat verandert is vooral aan de producerende kant, niet de technologie. Een team dat een beheerde set tools wil, heeft iemand nodig die zijn design system en de eerste sjablonen opstelt, al kan iedereen op dag één zelf tools beginnen te maken in Design, zonder git. En bestaande processen blijven werken, ook als hun uitvoer niet bij het merk past, dus één zichtbare uitvoer goed omzetten, voor en na naast elkaar, bepleit de zaak sneller dan een plan.
+Wat verandert is vooral aan de producerende kant, niet de technologie. Een team dat een beheerde set tools wil, heeft iemand nodig die zijn design system en de eerste sjablonen opstelt, al kan iedereen op dag één zelf tools beginnen te maken in Lolly Design, zonder git. En bestaande processen blijven werken, ook als hun uitvoer niet bij het merk past, dus één zichtbare uitvoer goed omzetten, voor en na naast elkaar, bepleit de zaak sneller dan een plan.
 
 [Adoption & Governance](/info/adoption-governance.html) behandelt onboarding per rol, hoe je een pilot meet en hoe een governanceproces eruit kan zien.
 
@@ -144,3 +144,11 @@ Ze staan in een aparte, privérepository. Een openbare clone haalt het SUSE-merk
 ## Welke smaak heeft dat Lolly-logo?
 
 Sommigen zeggen limoen, anderen zeggen munt en soms appel; Lolly brengt de zoetheid, jij zorgt voor de smaak!
+
+## Wat bedoelt Lolly met contentsoevereiniteit?
+
+Controle over hoe je inhoud wordt gemaakt, beheerd, opgeslagen en verplaatst tussen de systemen die je kiest. Lolly ondersteunt lokale productie, bewerkbaar werk en overdraagbare tools; Lolly Work voegt door de organisatie beheerde gedeelde diensten toe. Bronlicenties, beschikbare afhankelijkheden en de gegevensstromen van de workflow blijven ertoe doen. [What is content sovereignty?](/info/content-sovereignty.html) legt elke controle en de grenzen ervan uit.
+
+## Kunnen we onze bestaande DAM houden?
+
+Ja. Een ondersteunde DAM kan het bronrecord blijven terwijl Lolly Work geselecteerde assets met Lolly-tools verbindt. Toegang tot de bron, toegestane bewerkingen, gebruiksrechten en goedkeuring van de afgewerkte uitvoer zijn afzonderlijke beslissingen. [Use Lolly with your existing DAM](/info/use-with-dam.html) legt de opzet uit, en [SUSE's Brandfolder experience](/info/suse-brandfolder.html) legt succesvol gebruik tijdens de invoering vast.

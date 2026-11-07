@@ -11,7 +11,7 @@ _Последна проверка: 28 септември 2026 г._
 - [Lolly and Figma](/info/compare-figma.html): дизайн, живо сътрудничество и производство на многократно използваеми ресурси.
 - [Lolly and Penpot](/info/compare-penpot.html): дизайн с отворен код, споделени токени и организационна работа.
 - [Lolly and brand portals](/info/compare-brand-portals.html): одобрени библиотеки, заключени шаблони, самоличност, преглед и отчитане.
-- [Lolly and rendering APIs](/info/compare-render-apis.html): автоматизирано генериране на устройството ти, в CI или на сървър на Lolly Work.
+- [Lolly and rendering APIs](/info/compare-render-apis.html): автоматизирано генериране на устройството ти, в CI или на твой собствен сървър, и [как да преминеш](/info/work-move-from-render-api.html) от Bannerbear или Placid.
 - [Lolly and online file converters](/info/compare-converters.html): конвертиране на формати на собственото ти устройство.
 
 За преглед по възможности виж [Как се сравнява Lolly](/info/positioning.html). Всяко сравнение е датирано; твърдение, което вече не отговаря на нито един от двата продукта, трябва да се коригира.

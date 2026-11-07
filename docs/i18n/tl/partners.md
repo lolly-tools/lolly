@@ -8,6 +8,7 @@ Pareho ang kahulugan ng dalawang salita sa buong pahinang ito. Ang **pangunahing
 
 - **Isang design system ang gumuguhit ng bawat materyal.** Umiiral ang mga kulay, type at house rules ng pangunahing brand. Pumapasok ang mark ng partner bilang artwork: isang larawan mula sa Assets, o isang custom mark na nakatago sa isang design system.
 - **Naglalakbay ang brand bilang file.** Dala ng isang design-system file (`.lolly`) ang mga token, font at logo. Dala ng reusable tool na ginawa gamit ang **Share with rules** ang isang tapos na layout kasama ang mga input na pinapayagan mo. May sariling mga file ang brand skills.
+- **Puwede ring magkaroon ng address ang brand.** Naglalathala ang [brand page](/info/brand-page.html) ng mga logo, kulay, type at rules para mabasa ng partner, kasama ang mga token at skill para sa mga tool nila.
 - **Mga rules lang ng pangunahing brand ang sinusuri ng Lolly.** Hindi nito alam ang mga rules ng partner, gaya ng clear space o minimum na laki, kaya suriin ang mga iyon ayon sa sariling mga alituntunin ng partner.
 
 ## Ibahagi ang brand mo sa partner
@@ -17,8 +18,9 @@ Pareho ang kahulugan ng dalawang salita sa buong pahinang ito. Ang **pangunahing
 | Ipapadala | Paano | Matatanggap ng partner | Angkop para sa |
 | --- | --- | --- | --- |
 | Isang design-system file | **Export** sa bar sa itaas ng [Lolly Design System Setup](/info/brand-studio.html#move-a-brand-between-devices) | Ang iyong mga token, font, logo at theme preference, bilang design system na puwede nilang lipatan | Partner na gumagawa ng maraming materyal sa brand mo |
-| Isang reusable tool | Sa Design, **Share with rules** ([Share a design with rules](/info/create-a-tool.html)) | Isang tapos na layout kasama ang mga input na pinapayagan mo, gaya ng pangalan at logo nila. Dala ng file ang mga nalutas na kulay, font at larawan, kaya hindi mababago ng sarili nilang design system ang istilo ng nakapirming artwork | Co-branded na flyer, badge o banner na pinupunan ng bawat partner |
+| Isang reusable tool | Sa Lolly Design, **Share with rules** ([Share a design with rules](/info/create-a-tool.html)) | Isang tapos na layout kasama ang mga input na pinapayagan mo, gaya ng pangalan at logo nila. Dala ng file ang mga nalutas na kulay, font at larawan, kaya hindi mababago ng sarili nilang design system ang istilo ng nakapirming artwork | Co-branded na flyer, badge o banner na pinupunan ng bawat partner |
 | Brand skills | Ang **Skills** room: **Download skill (.zip)** o **Copy as one file** | Ang mga nakasulat mong pamantayan, para sa mga tao at agent nila | Alinman sa dalawa sa itaas, kapag may bahagi ng trabaho na ginagawa ng agent |
+| Isang brand page | **Publish a brand page** sa Lolly Design System Setup, o `lolly system publish`, ay nagsusulat ng folder na ihu-host mo ([Brand pages](/info/brand-page.html)) | Ang kasalukuyan mong mga logo, kulay, type at rules sa isang address, kasama ang mga token at skill para sa mga tool nila. Lumilitaw ang mga logo at font file kapag pinapayagan ng mga karapatan ng mga ito, at inililista ng page ang hindi nito isinama | Pagbabahagi sa mga taong hindi mo pinapadalhan ng file |
 | Tokens | **Tokens (.json)** sa **More** menu ng studio | Ang payak na design-tokens na dokumento, walang font o logo | Sariling design tool o build ng partner |
 
 ![Design System Setup sa Lolly Demo, bukas sa Skills room: Export sa bar, nakabukas ang More menu sa Tokens (.json), at ang Download skill (.zip) at Copy as one file sa tabi ng napiling skill](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dskills&width=1200&height=900&dpi=192&waitMs=1800&waitSelector=.skills-reader-actions&drive=click%3A%5Bdata-ds-more%5D%3Bwait%3A500&format=svg&walker=1&dark=1&filename=partners-send)
@@ -108,6 +110,8 @@ I-export ang wall bilang PNG, SVG, PDF o CMYK PDF para sa print. Magtakda ng iba
 
 Sa terminal, binubuo ng `lolly run logo-wall logos/*.png --output=wall.svg` ang wall mula sa folder ng mga larawan, at binubuo ng CSV na may mga column na `logo` at `tier` ang wall na may mga tier. Hindi kailangan ng browser ang SVG at PNG ([Sponsor wall na may mga tier](/info/cli-rendering.html#a-sponsor-wall-with-tiers)).
 
+Kapag naglathala ang isang sponsor ng [brand page](/info/brand-page.html), kinukuha ng `lolly run logo-wall --logos-from=<address or folder>` ang kasalukuyan nilang logo para sa surface at inililimbag ang sinasabi ng page nila tungkol sa paggamit. Ulitin ang flag para sa bawat sponsor.
+
 Hindi alam ng Logo Wall ang mga rules ng anumang sponsor. Ang Tiers at Presence ay nagtatakda ng mga laki kaugnay ng isa't isa, hindi ng minimum na laki ng sponsor, at walang sumusuri sa clear space sa pagitan ng magkakatabi. Suriin ang tapos na wall laban sa mga alituntunin ng bawat sponsor sa laking ipiprint o ipapakita ito.
 
 ## Ano ang hindi pa ginagawa ng Lolly
@@ -119,11 +123,14 @@ Hindi alam ng Logo Wall ang mga rules ng anumang sponsor. Ang Tiers at Presence 
 - Isang design system ang aktibo para sa buong device, kaya hindi puwedeng magkatabing bukas ang dalawang brand.
 - Ang design-system file ay kopya ng brand sa panahong na-export ito, at walang nag-a-update sa kopya. Hindi nagdadala ng brand skills ang design-system file na na-export mula sa app, kaya ipadala ang mga iyon bilang sariling mga file.
 - Itinatala ng export ang design system at colourway ng pangunahing brand, hindi ang brand ng partner.
+- Ang logong kinuha mula sa brand page ay larawan sa row nito, at hindi naaalala ng row ang page. Walang nagpapakita kung sino ang naglathala ng page, kaya ikaw mismo ang mag-check ng address.
+- Hindi makakakuha ang hosted web app ng brand page ng ibang brand, dahil mga pinangalanang host lang ang pinapayagan ng Content Security Policy nito. Kunin ang logo sa terminal, o i-save ang file at idagdag ang file sa **Assets**.
 
 ## Saan susunod
 
-- **[Mga brand architecture](/info/brand-architectures.html)**: co-branding, white label at iba pang ayos, kasama ang gagawin sa Lolly para sa bawat isa.
+- **[Brand architectures](/info/brand-architectures.html)**: co-branding, white label at iba pang ayos, kasama ang gagawin sa Lolly para sa bawat isa.
 - **[Share a design with rules](/info/create-a-tool.html)**: mga reusable tool na may nakapirming layout at mga input na pipiliin mo.
 - **[Brand skills](/info/brand-skills.html)**: kung paano isinusulat, binabasa at ibinibigay sa agent ang skills.
 - **[Lolly Design System Setup](/info/brand-studio.html)**: mga logo, custom mark, at paglilipat ng design system sa pagitan ng mga device.
+- **[Brand pages](/info/brand-page.html)**: ilathala ang brand mo sa isang address, at kunin ang logo ng partner mula sa kanila.
 - **[Creative rights and credits](/info/creative-rights.html)**: kung ano ang itinatala ng Lolly tungkol sa mga likhang iginuguhit nito.

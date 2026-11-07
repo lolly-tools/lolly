@@ -72,7 +72,7 @@ Ang parehong tool sa lapad ng phone ay hindi nangangailangan ng ikalawang layout
 
 ![Isang audiogram sa 430px-ang-lapad na screen: ang controls sheet sa itaas, ang tapos na parisukat na artwork sa ibaba at ang lumulutang na export pill](/t/url-shot?url=%2F%23%2Ftool%2Faudiogram%3Faudio%3Dlolly%2Floops%2Ffireplace-loop%26title%3DField%2520notes%26subtitle%3DEpisode%252012%26style%3Dwave&width=430&height=900&dpi=192&waitMs=3200&css=%23ag-wave%7Bdisplay%3Anone!important%7D.ag-ph%7Bdisplay%3Ablock!important%7D&walker=1&format=svg&rasterDpi=110&dark=1&filename=ov2-phone-audiogram)
 
-Kasama rin sa web app ang **Batch** (`#/batch`, `shells/web/src/pro/`), isang spreadsheet-style na grid na nagre-render ng maraming row nang sabay sa isa o maraming tool; sinasaklaw ng [Batch at Multi-edit](/info/batch.html#make-many-versions-of-one-design) ang Batch. Ang **Settings → Capabilities** ay nagmamapa ng lahat ng idineklara ng platform na kaya nitong gawin.
+Kasama rin sa web app ang **Batch** (`#/batch`, `shells/web/src/pro/`), isang spreadsheet-style na grid na nagre-render ng maraming row nang sabay sa isa o maraming tool; sinasaklaw ng [Batch at Lolly Multi-edit](/info/batch.html#make-many-versions-of-one-design) ang Batch. Ang **Settings → Capabilities** ay nagmamapa ng lahat ng idineklara ng platform na kaya nitong gawin.
 
 ![Ang Batch sa bagong install: isang walang laman na row na naghihintay ng tool, na nakalagay na ang spreadsheet surface at ang Render button bago pa dumating ang anumang data](/t/url-shot?url=%2F%23%2Fbatch&width=1440&height=900&dpi=192&waitMs=3500&walker=1&format=svg&dark=1&filename=ov2-batch-grid)
 
@@ -141,7 +141,7 @@ Dineklara ng input ang isang `type`: `text`, `longtext`, `number`, `boolean`, `c
 
 - Ang **`asset`**, na may `filter` at `allowUpload`, ang tulay papunta sa asset system. Nililimitahan ng `allowUpload: false` ang slot sa mga asset ng library, at ang mga upload ng user ay may parehong `AssetRef` na hugis ng library.
 - Ang **`blocks`** ay umuulit na field group na ine-edit sa side panel, ginagamit ng Meeting Planner, Wayfinding, Diagrams at iba pa. Ang pag-click sa na-render na block ay nagfo-focus sa row nito.
-- Ang **`file`** ay may hawak ng sariling file ng user sa memory para sa mga on-device utility tulad ng Strip Hidden Data at Compress, at ang **`vector`** ay nagpapangkat ng nakapirming hanay ng mga numero sa isang kontrol.
+- Ang **`file`** ay may hawak ng sariling file ng user sa memory para sa mga on-device utility tulad ng Lolly Strip Hidden Data at Compress, at ang **`vector`** ay nagpapangkat ng nakapirming hanay ng mga numero sa isang kontrol.
 
 ### 9. Walang logic ang mga template
 
@@ -149,7 +149,7 @@ Handlebars ang mga template, pinili para makapagsulat ang mga hindi developer: n
 
 ### 10. Pinagsasama-sama ng mga tool ang mga tool
 
-Ang tool ay maaaring mag-embed ng render ng ibang tool nang walang tool-to-tool na import; ang engine ang nagreresolba ng komposisyon. Maaaring magdeklara ang manifest ng `composes: [{ id, tool, inputs }]` at ilagay ang child gamit ang `{{asset <id>}}`, at ang portable na embed URL (`https://lolly.tools/tool/<id>.svg?…`) ay nagre-render ng child nang lokal, at ganito naglalagay ang Design ng live na QR code o chart. Ang SVG child ay nananatiling vector sa SVG o PDF na parent. Ang mga child ay intermediate, hindi kailanman nilalagyan ng watermark o selyo, at ang shell na hindi makapag-render nito ay iniiwang walang laman ang slot habang nagre-render pa rin ang parent. Nasa [Composition at brand overlays](/info/tool-composition.html) ang mga detalye.
+Ang tool ay maaaring mag-embed ng render ng ibang tool nang walang tool-to-tool na import; ang engine ang nagreresolba ng komposisyon. Maaaring magdeklara ang manifest ng `composes: [{ id, tool, inputs }]` at ilagay ang child gamit ang `{{asset <id>}}`, at ang portable na embed URL (`https://lolly.tools/tool/<id>.svg?…`) ay nagre-render ng child nang lokal, at ganito naglalagay ang Lolly Design ng live na QR code o chart. Ang SVG child ay nananatiling vector sa SVG o PDF na parent. Ang mga child ay intermediate, hindi kailanman nilalagyan ng watermark o selyo, at ang shell na hindi makapag-render nito ay iniiwang walang laman ang slot habang nagre-render pa rin ang parent. Nasa [Composition at brand overlays](/info/tool-composition.html) ang mga detalye.
 
 ## Ang pinili naming hindi gawin
 

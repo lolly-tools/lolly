@@ -14,9 +14,9 @@ Canva একটি ম্যানেজড সেবায় বড় টে�
 
 ## Lolly কীভাবে একই ধরনের কাজ করে
 
-একটি Lolly টুল মানুষ কী কী পরিবর্তন করতে পারবে তা কোড করে রাখে, আর একই টুল ব্রাউজার, ডেস্কটপ অ্যাপ বা CLI-তে চলে। Design ক্যানভাসে বানানো একটি লেআউট [tool with rules](/info/create-a-tool.html) হয়ে উঠতে পারে, এবং একটি টুল মানের একটি টেবিল থেকে বহু ফাইল বানাতে পারে।
+একটি Lolly টুল মানুষ কী কী পরিবর্তন করতে পারবে তা কোড করে রাখে, আর একই টুল ব্রাউজার, ডেস্কটপ অ্যাপ বা CLI-তে চলে। Lolly Design ক্যানভাসে বানানো একটি লেআউট [tool with rules](/info/create-a-tool.html) হয়ে উঠতে পারে, এবং একটি টুল মানের একটি টেবিল থেকে বহু ফাইল বানাতে পারে।
 
-![Design-এর ফ্রি ক্যানভাস, যেখানে দেওয়া রং, ফেস ও অ্যাসেট ডিজাইন সিস্টেমেরই](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&dark=1&filename=aud-open-canvas)
+![Lolly Design-এর ফ্রি ক্যানভাস, যেখানে দেওয়া রং, ফেস ও অ্যাসেট ডিজাইন সিস্টেমেরই](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&dark=1&filename=aud-open-canvas)
 
 আলাদাভাবে ব্যবহৃত Lolly তৈরি ও এক্সপোর্ট ডিভাইসেই রাখে, অ্যাকাউন্ট ছাড়া, এবং অ্যাসেট সংরক্ষিত থাকলে অফলাইনে চলে। দুজন মানুষ একটি [private collab](/info/collaborate.html)-এ ডিভাইস থেকে ডিভাইসে লাইভ সম্পাদনা করতে পারেন। সমর্থিত এক্সপোর্টে Content Credentials ডিফল্টে চালু, আর আপনি বন্ধ করতে পারেন।
 

@@ -14,9 +14,9 @@ Begge lar noen starte fra en mal og lage en ferdig grafikk uten å være designe
 
 ## Hvordan Lolly gjør den overlappende jobben
 
-Et Lolly-verktøy koder endringene folk kan gjøre, og det samme verktøyet kjører i nettleseren, skrivebordsappen eller CLI-et. En layout laget på Design-lerretet kan bli et [verktøy med regler](/info/create-a-tool.html), og ett verktøy kan lage mange filer fra en tabell med verdier.
+Et Lolly-verktøy koder endringene folk kan gjøre, og det samme verktøyet kjører i nettleseren, skrivebordsappen eller CLI-et. En layout laget på Lolly Design-lerretet kan bli et [verktøy med regler](/info/create-a-tool.html), og ett verktøy kan lage mange filer fra en tabell med verdier.
 
-![Designs frie lerret, der fargene, skriftene og ressursene som tilbys, er designsystemets egne](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&dark=1&filename=aud-open-canvas)
+![Lolly Designs frie lerret, der fargene, skriftene og ressursene som tilbys, er designsystemets egne](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&dark=1&filename=aud-open-canvas)
 
 Frittstående Lolly fortsetter å lage og eksportere på enheten, uten konto, og fungerer uten nett når ressursene er lagret. To personer kan redigere live i en [private collab](/info/collaborate.html), enhet til enhet. Content Credentials er på som standard for støttede eksporter, og du kan slå dem av.
 

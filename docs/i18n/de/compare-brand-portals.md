@@ -1,12 +1,20 @@
 # Lolly und Marken-Portale
 
-_Zuletzt geprüft: 28. September 2026._
+_Positionierung aktualisiert: 31. Oktober 2026. Beispiel für Anbieterfunktionen geprüft: 28. September 2026._
 
 Wenn Ihre Organisation ihre freigegebenen Assets in Bynder, Frontify, Marq oder Brandfolder führt, vergleicht diese Seite das mit Lolly plus Lolly Work: wie Menschen Marken-Assets finden und wie sie daraus neue Dateien erstellen.
 
+## Ihr bestehendes Portal behalten
+
+Ein bestehendes DAM kann die maßgebliche Quelle bleiben. Die Katalog-Connectors von Lolly Work machen einen ausgewählten Teil seiner Bibliothek in Lolly verfügbar, wo Menschen unter den Regeln der Organisation neue Dateien erstellen. Die unterstützten Quellbeschränkungen des DAM und die Freigaberegeln von Lolly Work bestimmen den Zugriff; die Prüfung der fertigen Ausgabe ist eine eigene Entscheidung.
+
+[Lolly mit Ihrem bestehenden DAM nutzen](/info/use-with-dam.html) erklärt die Zuständigkeiten und Grenzen. [SUSEs Brandfolder-Erfahrung](/info/suse-brandfolder.html) hält eine gelungene Integration fest, die das Änderungsmanagement der Administratoren vor einer geplanten Migration unterstützt hat. Die angebundene Quelle zu behalten bleibt eine unterstützte Wahl.
+
+Lollys Zweck ist [Content-Souveränität](/info/content-sovereignty.html), einschließlich der Kontrolle über die Produktion und der Freiheit, Systeme zu wählen. Seine eigene Bibliothek und seine Freigaben unterstützen Organisationen, die diese Fähigkeiten selbst betreiben wollen. [Lolly für DAM-Anbieter und Umsetzungspartner](/info/dam-partners.html) beschreibt, wie der angebundene Workflow einem bestehenden maßgeblichen System Mehrwert bringen kann.
+
 ## Was ein etabliertes Portal besser kann
 
-Etablierte Portale bieten verwaltetes Hosting, Support und umfangreiche Workflows der Asset-Verwaltung. [Das Enterprise-DAM von Frontify](https://www.frontify.com/en/solution/enterprise-digital-asset-management) kombiniert zum Beispiel Asset-Suche, Zugriffskontrollen, Freigabe-Workflows und Verteilung. Der Lolly-Stack ist jünger, und seine Freigabeketten sind sequenziell statt beliebig verzweigende Workflows. [Lolly Work-Status und Roadmap](/info/work-status.html) hält seine Bereitstellungsgrenzen fest.
+Etablierte Portale bieten verwaltetes Hosting, Support und umfangreiche Workflows der Asset-Verwaltung. [Das Enterprise-DAM von Frontify](https://www.frontify.com/en/solution/enterprise-digital-asset-management) kombiniert zum Beispiel Asset-Suche, Zugriffskontrollen, Freigabe-Workflows und Verteilung. Der Lolly-Stack ist jünger, und seine Freigabeketten sind sequenziell statt beliebig verzweigende Workflows. [Status und Roadmap von Lolly Work](/info/work-status.html) hält seine Bereitstellungsgrenzen fest.
 
 ## Wo sie sich überschneiden
 
@@ -26,11 +34,12 @@ Beide decken freigegebene Assets, gesperrte Vorlagen, Zugriffskontrolle, Prüfun
 | Lizenzen und Credits | Lolly erfasst die Lizenz jeder Quelle, die eine Datei nutzt, und bereitet die Credits vor, die es schuldet; [Kreativrechte und Credits](/info/creative-rights.html) erklärt, was es erfasst und wo Credits geschrieben werden. Es klärt keine Rechte. |
 | Berichte | Zählwerte zur Asset-Nutzung und zu Downloads, Tool- und Export-Aktivität, Dashboards und ein Audit-Pfad. Die Zuordnung der Nutzung folgt der Telemetrie-Richtlinie der Bereitstellung; die Standard-Zuordnung verlangt Einwilligung. |
 | Verteilung | Ablaufende, widerrufbare Links, gemeinsame Sammlungen, Gastzugang und Lieferung an konfigurierte Organisationsziele. |
+| Eine öffentliche Markenseite | Lolly schreibt eine statische [Markenseite](/info/brand-page.html), aus Lolly Design System Setup oder von der Kommandozeile: Logos, Farben, Schrift, Regeln und Beispiele für Menschen, mit Tokens, `DESIGN.md` und Skills für Agenten. Sie hosten den Ordner, oder eine Administratorin schaltet in Lolly Work das [Hosting der Markenseite](/info/work-design-system-administration.html#host-a-brand-page) ein, das standardmäßig aus ist. |
 
 [Katalog und Inhalte](/info/work-catalog.html), [Freigaben](/info/work-approvals.html) und [Richtlinien und Governance](/info/work-governance.html) beschreiben diese Funktionen und ihre Konfiguration.
 
-## Ihr bestehendes Portal behalten
+## Den kombinierten Workflow bewerten
 
-Ein bestehendes DAM kann die Quelle der Wahrheit bleiben. Die Katalog-Connectors von Lolly Work machen seine freigegebenen Assets in Lolly verfügbar, wo Menschen unter den Regeln der Organisation neue Dateien erstellen. Das ist eine Integrationsentscheidung; Lollys eigene Bibliothek und Freigaben sind da, wenn die Organisation sie selbst betreiben will. [Was wo läuft](/info/compare.html#what-runs-where) listet die Grenzen auf, die jeder Vergleich teilt.
+Nutzen Sie [die Produktionsfolge für Event-Karten](/info/dam-production.html), um Quellzugriff, erlaubte Änderungen, Prüfung der Ausgabe und Lieferung mit Ihrer eigenen Bibliothek zu testen. [Was wo läuft](/info/compare.html#what-runs-where) listet die Grenzen auf, die jeder Vergleich teilt. Eine Quellanbindung begründet für sich weder eine Partnerschaft mit dem Anbieter noch eine Qualifizierung für jeden Mandanten.
 
 Siehe [Wie Lolly sich vergleicht](/info/positioning.html) für den Fähigkeitenvergleich. Herstellernamen kennzeichnen die verglichenen Produkte; Lolly steht in keiner Verbindung zu ihnen.

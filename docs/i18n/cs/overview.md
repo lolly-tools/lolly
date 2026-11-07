@@ -72,7 +72,7 @@ Stejný nástroj v šířce telefonu nepotřebuje druhé rozvržení: ovládací
 
 ![Audiogram na obrazovce široké 430 px: list ovládání nahoře, hotové čtvercové dílo dole a plovoucí pilulka exportu](/t/url-shot?url=%2F%23%2Ftool%2Faudiogram%3Faudio%3Dlolly%2Floops%2Ffireplace-loop%26title%3DField%2520notes%26subtitle%3DEpisode%252012%26style%3Dwave&width=430&height=900&dpi=192&waitMs=3200&css=%23ag-wave%7Bdisplay%3Anone!important%7D.ag-ph%7Bdisplay%3Ablock!important%7D&walker=1&format=svg&rasterDpi=110&dark=1&filename=ov2-phone-audiogram)
 
-Webová aplikace také obsahuje **Batch** (`#/batch`, `shells/web/src/pro/`), mřížku ve stylu tabulky, která vykresluje mnoho řádků najednou napříč jedním nebo více nástroji; Batch pokrývá [Batch a Multi-edit](/info/batch.html#make-many-versions-of-one-design). **Settings → Capabilities** mapuje vše, co platforma deklaruje, že umí.
+Webová aplikace také obsahuje **Batch** (`#/batch`, `shells/web/src/pro/`), mřížku ve stylu tabulky, která vykresluje mnoho řádků najednou napříč jedním nebo více nástroji; Batch pokrývá [Batch a Lolly Multi-edit](/info/batch.html#make-many-versions-of-one-design). **Settings → Capabilities** mapuje vše, co platforma deklaruje, že umí.
 
 ![Batch na čerstvé instalaci: jeden prázdný řádek čekající na nástroj, s povrchem tabulky a tlačítkem Render na místě dřív, než přijdou nějaká data](/t/url-shot?url=%2F%23%2Fbatch&width=1440&height=900&dpi=192&waitMs=3500&walker=1&format=svg&dark=1&filename=ov2-batch-grid)
 
@@ -141,7 +141,7 @@ Vstup deklaruje `type`: `text`, `longtext`, `number`, `boolean`, `color`, `selec
 
 - **`asset`**, s `filter` a `allowUpload`, je most k systému assetů. `allowUpload: false` omezuje slot na assety knihovny a uživatelská nahrání sdílejí tvar `AssetRef` knihovny.
 - **`blocks`** je opakující se skupina polí upravovaná v postranním panelu, používaná v Meeting Planner, Wayfinding, Diagrams a dalších. Kliknutí na vykreslený blok zaostří jeho řádek.
-- **`file`** drží vlastní soubor uživatele v paměti pro utility na zařízení, jako Strip Hidden Data a Compress, a **`vector`** seskupuje pevnou sadu čísel do jednoho ovládacího prvku.
+- **`file`** drží vlastní soubor uživatele v paměti pro utility na zařízení, jako Lolly Strip Hidden Data a Compress, a **`vector`** seskupuje pevnou sadu čísel do jednoho ovládacího prvku.
 
 ### 9. Šablony jsou bez logiky
 
@@ -149,7 +149,7 @@ Vstup deklaruje `type`: `text`, `longtext`, `number`, `boolean`, `color`, `selec
 
 ### 10. Nástroje skládají nástroje
 
-Nástroj může vložit vykreslení jiného nástroje bez importů mezi nástroji; kompozici řeší engine. Manifest může deklarovat `composes: [{ id, tool, inputs }]` a umístit potomka pomocí `{{asset <id>}}` a přenosná URL vložení (`https://lolly.tools/tool/<id>.svg?…`) vykreslí potomka lokálně, tak Design umisťuje živý QR kód nebo graf. Potomek SVG zůstává vektorový v rodiči SVG nebo PDF. Potomci jsou mezistupně, nikdy se neoznačují vodoznakem ani razítkem, a shell, který jednoho nevykreslí, nechá slot prázdný, zatímco rodič se stále vykreslí. [Kompozice a překryvy značky](/info/tool-composition.html) uvádějí podrobnosti.
+Nástroj může vložit vykreslení jiného nástroje bez importů mezi nástroji; kompozici řeší engine. Manifest může deklarovat `composes: [{ id, tool, inputs }]` a umístit potomka pomocí `{{asset <id>}}` a přenosná URL vložení (`https://lolly.tools/tool/<id>.svg?…`) vykreslí potomka lokálně, tak Lolly Design umisťuje živý QR kód nebo graf. Potomek SVG zůstává vektorový v rodiči SVG nebo PDF. Potomci jsou mezistupně, nikdy se neoznačují vodoznakem ani razítkem, a shell, který jednoho nevykreslí, nechá slot prázdný, zatímco rodič se stále vykreslí. [Kompozice a překryvy značky](/info/tool-composition.html) uvádějí podrobnosti.
 
 ## Co jsme se rozhodli nedělat
 

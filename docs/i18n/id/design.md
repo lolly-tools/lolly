@@ -1,5 +1,7 @@
 # Design: kanvas bebas
 
+<a id="design-the-free-canvas"></a>
+
 Design adalah alat untuk tata letak yang tidak tercakup templat mana pun: poster dari nol, deck slide, karya gerak dengan soundtrack. Alih-alih formulir kontrol, Anda mendapatkan kanvas berisi kotak yang dapat Anda seret, ubah ukurannya, putar, dan ketik di dalamnya. Ia mengekspor melalui jalur render yang sama seperti alat lain, jadi apa yang Anda lihat di kanvas adalah file yang Anda dapatkan.
 
 Halaman ini menelusuri kanvas dari kotak pertama hingga deck selesai: jendela, membentuk kotak, menggambar bentuk sendiri, menempatkan adegan 3D dan alat lain, menambahkan waktu, memeriksa hasil, dan mempresentasikan deck jadi. [Using Lolly](/info/using.html) membahas apa yang dibagikan Design dengan setiap alat, seperti menyimpan dan berbagi.
@@ -27,7 +29,7 @@ Kanvas bekerja seperti pasteboard desainer di sekitar artboard:
 
 **Navigator** mencantumkan setiap artboard (berjudul **Artboards**, atau **Slides** dalam deck) sebagai grup lipat dari **Layers**-nya. Pilih nama artboard untuk melompat ke sana, bentangkan untuk memilih atau menyusun ulang layer-nya, dan gunakan tombol panah untuk bergerak di daftar; Left kembali ke judul artboard. **Pages** mengelompokkan artboard ke halaman bernama, dan memilih halaman hanya mengubah artboard mana yang ditampilkan editor.
 
-**Inspector** menaruh kontrol teks atau gambar objek terpilih lebih dulu. Chip opsi mencakup pilihan cepat, dan **Advanced** memuat detail gaya. Di ponsel Inspector terbuka sebagai sheet dari **More actions**; Escape atau Back menutup sheet dan mempertahankan pilihan Anda.
+**Inspector** menaruh kontrol teks atau gambar objek terpilih lebih dulu. Chip opsi mencakup pilihan cepat, dan **Advanced** memuat detail gaya. Di ponsel, Inspector dan daftar lapisan berbagi satu panel yang turun dari bawah bilah atas, panel yang sama tempat setiap alat lain menyimpan kontrolnya. **Inspect** dan **Layer/Page** di bilah bawah membuka panel pada tab masing-masing. Seret pegangan di tepi bawahnya, atau ketuk pegangan itu, untuk memindahkan panel di antara strip dengan dua tab, setengah layar, dan hampir seluruh layar. Pada setengah layar, kanvas di bawah panel menampilkan pilihan Anda. Escape melipat panel kembali ke strip dan mempertahankan pilihan Anda.
 
 ![Bagian Document pada Inspector: tab Selection dan Canvas, lalu Dimensions dan Style & look](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3Dfeature-tour&width=1440&height=900&dpi=192&waitMs=3500&cropSelector=.fc-insp&walker=1&format=svg&dark=1&filename=design-narration)
 
@@ -241,6 +243,8 @@ Panah di samping **Present** membuka **Present from this slide**, **Speaker view
 | **Escape** | Mengupas satu lapisan: overview ke deck, deck ke editor |
 
 Bilah kontrol kecil muncul perlahan saat Anda menggerakkan penunjuk dan bersembunyi lagi saat Anda berhenti. Jika browser memblokir pop-up speaker, speaker view terbuka sebagai panel di atas deck. Catatan milik setiap artboard dan tidak pernah muncul di slide.
+
+Pada layar sentuh, geser ke kiri untuk langkah atau slide berikutnya dan ke kanan untuk kembali. Transisi **Slide** atau **Fade** mengikuti jari Anda dan selesai saat Anda melepasnya; transisi **Cut**, **Morph**, atau **Fly between artboards** diputar penuh setelah Anda melepasnya, dan gesekan singkat yang lambat tidak mengubah apa pun. Kotak halaman web, kontrol video, kotak yang bergulir, dan teks terpilih mempertahankan gestur mereka sendiri, sehingga gesekan tidak pernah dimulai pada salah satunya, dan pengguliran vertikal serta zoom cubit berfungsi seperti biasa. Dengan gerak dikurangi, slide tetap berganti, tanpa mengikuti jari Anda.
 
 - **Langkah munculnya.** Klik kanan kotak dan pilih **Reveal at step 1**, **2**, atau **3** sebagai ganti **Always visible**, dan kotak menunggu sampai Anda maju ke langkahnya. Kotak yang berbagi nomor tiba bersamaan.
 - **Kiosk.** Beri artboard **Length** dan deck bertahan di sana selama itu, lalu maju di balik bilah kemajuan tipis. Tambahkan `kiosk` ke tautan dan deck berputar kembali di akhir, untuk papan reklame digital.

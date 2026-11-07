@@ -16,7 +16,7 @@ Met beide rangschik je tekst, vormen en afbeeldingen op een canvas en werk je me
 
 Lolly maakt van een ontwerp een [herbruikbare tool met regels](/info/create-a-tool.html). De tool draait in de browser of de CLI en neemt zijn inputs uit een link, een script of een batchraster, zodat één sjabloon past bij een persoon die één bestand bewerkt en een team dat er veel maakt.
 
-![Het open canvas van Design, met Import a design in het Lolly-menu van de werkbalk](/info/shots/design.svg)
+![Het open canvas van Lolly Design, met Import a design in het Lolly-menu van de werkbalk](/info/shots/design.svg)
 
 Een [privécollab](/info/collaborate.html) koppelt twee apparaten rechtstreeks, zonder account en zonder internet op een gedeeld netwerk. Zelfstandig Lolly rendert offline. Content Credentials staan standaard aan voor ondersteunde exports, en je kunt ze uitzetten.
 

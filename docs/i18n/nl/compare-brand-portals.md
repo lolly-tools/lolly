@@ -1,8 +1,16 @@
 # Lolly en merkportalen
 
-_Laatst gecontroleerd: 28 september 2026._
+_Positionering bijgewerkt: 31 oktober 2026. Voorbeeld van leveranciersmogelijkheden gecontroleerd: 28 september 2026._
 
 Als je organisatie haar goedgekeurde assets in Bynder, Frontify, Marq of Brandfolder bewaart, vergelijkt deze pagina dat met Lolly plus Lolly Work: hoe mensen merkassets vinden, en hoe ze er nieuwe bestanden van maken.
+
+## Je bestaande portaal behouden
+
+Een bestaande DAM kan de bron van waarheid blijven. De catalogusconnectors van Lolly Work maken een geselecteerd deel van zijn bibliotheek beschikbaar in Lolly, waar mensen nieuwe bestanden maken onder de regels van de organisatie. De ondersteunde bronbeperkingen van de DAM en de blootstellingsregels van Lolly Work bepalen de toegang; de review van de uiteindelijke uitvoer is een aparte beslissing.
+
+[Gebruik Lolly met je bestaande DAM](/info/use-with-dam.html) legt de verantwoordelijkheden en grenzen uit. [De Brandfolder-ervaring van SUSE](/info/suse-brandfolder.html) legt een geslaagde integratie vast die het wijzigingsbeheer van beheerders ondersteunde vóór een geplande migratie. De bron gekoppeld houden blijft een ondersteunde keuze.
+
+Het doel van Lolly is [inhoudssoevereiniteit](/info/content-sovereignty.html), inclusief controle over productie en de vrijheid om systemen te kiezen. Zijn eigen bibliotheek en goedkeuringen ondersteunen organisaties die ervoor kiezen die mogelijkheden zelf te draaien. [Lolly voor DAM-leveranciers en implementatiepartners](/info/dam-partners.html) beschrijft hoe de gekoppelde workflow waarde kan toevoegen aan een bestaand bronsysteem.
 
 ## Wat een gevestigd portaal beter doet
 
@@ -26,11 +34,12 @@ Beide dekken goedgekeurde assets, vergrendelde sjablonen, toegangsbeheer, review
 | Licenties en vermeldingen | Lolly legt de licentie vast van elke bron die een bestand gebruikt en bereidt de vermeldingen voor die het verschuldigd is; [Creatieve rechten en vermeldingen](/info/creative-rights.html) legt uit wat het vastlegt en waar vermeldingen worden geschreven. Het geeft geen rechten vrij. |
 | Rapportage | Aantallen van assetgebruik en downloads, tool- en exportactiviteit, dashboards en een auditspoor. Gebruikstoeschrijving volgt het telemetriebeleid van de implementatie; de standaardinstelling voor toeschrijving vereist toestemming. |
 | Distributie | Verlopende, intrekbare links, gedeelde collecties, gasttoegang en bezorging aan geconfigureerde organisatiebestemmingen. |
+| Een openbare merkpagina | Lolly schrijft een statische [merkpagina](/info/brand-page.html), vanuit Lolly Design System Setup of de opdrachtregel: logo's, kleuren, typografie, regels en voorbeelden voor mensen, met tokens, `DESIGN.md` en skills voor agents. Je host de map zelf, of een beheerder zet [hosting van merkpagina's](/info/work-design-system-administration.html#host-a-brand-page) aan in Lolly Work, wat standaard uit staat. |
 
 [Catalog and content](/info/work-catalog.html), [Approvals](/info/work-approvals.html) en [Policy and governance](/info/work-governance.html) beschrijven deze functies en hun configuratie.
 
-## Je bestaande portaal behouden
+## De gecombineerde workflow beoordelen
 
-Een bestaande DAM kan de bron van waarheid blijven. De catalogusconnectors van Lolly Work maken de goedgekeurde assets beschikbaar in Lolly, waar mensen nieuwe bestanden maken onder de regels van de organisatie. Dat is een integratiekeuze; de eigen bibliotheek en goedkeuringen van Lolly zijn er wanneer de organisatie die zelf wil draaien. [Wat waar draait](/info/compare.html#what-runs-where) noemt de grenzen die elke vergelijking deelt.
+Gebruik [de productiereeks voor evenementkaarten](/info/dam-production.html) om bronstoegang, toegestane bewerkingen, review van de uitvoer en bezorging te testen met je eigen bibliotheek. [Wat waar draait](/info/compare.html#what-runs-where) noemt de grenzen die elke vergelijking deelt. Een bronkoppeling vestigt op zichzelf geen leverancierspartnerschap of kwalificatie voor elke tenant.
 
 Zie [Hoe Lolly zich verhoudt](/info/positioning.html) voor de capabilityvergelijking. Namen van leveranciers identificeren de producten die worden vergeleken; Lolly is niet aan hen verbonden.

@@ -2,6 +2,8 @@
 
 Organisasi Anda dapat menjalankan Lolly-nya sendiri: aplikasi yang sama, dengan alat dan design system yang dipilihnya. Halaman ini menunjukkan cara menjangkaunya, login, dan apa yang berubah setelahnya.
 
+Jika Anda merencanakan penyiapan organisasi, [Use Lolly with your existing DAM](/info/use-with-dam.html) menjelaskan bagaimana pustaka yang sudah disetujui dapat tetap di tempatnya sementara orang mulai memproduksi konten di Lolly. [Content sovereignty](/info/content-sovereignty.html) menjelaskan kendali yang lebih luas atas pembuatan, tata kelola, penyimpanan, dan portabilitas.
+
 ::: note Apa yang Anda perlukan dari organisasi Anda
 Alamat web Lolly miliknya, atau sebuah berkas pengaturan `.lolly` yang dibuat organisasi Anda. lolly.tools dengan sendirinya tidak terhubung ke organisasi mana pun.
 :::
@@ -10,13 +12,13 @@ Alamat web Lolly miliknya, atau sebuah berkas pengaturan `.lolly` yang dibuat or
 
 Buka alamat yang diberikan organisasi Anda. Jika halaman meminta Anda login, tekan **Sign in** dan ikuti halaman login yang dibukanya. Setelah itu aplikasi bekerja seperti Lolly mana pun, dengan alat dan design system organisasi Anda.
 
-Anda juga bisa mulai dari lolly.tools: buka **Settings**, dan pada kartu **Lolly instance** tekan **Open a workspace**, masukkan alamat, lalu tekan **Open this instance**. Browser menuju alamat organisasi Anda sendiri, karena browser tidak dapat memuat alat Lolly lain dari lolly.tools.
+Anda juga bisa mulai dari lolly.tools: buka tampilan **Settings**, dan pada kartu **Lolly instance** tekan **Open a workspace**, masukkan alamat, lalu tekan **Open this instance**. Browser menuju alamat organisasi Anda sendiri, karena browser tidak dapat memuat alat Lolly lain dari lolly.tools.
 
 ![Kartu Lolly instance di Settings, tempat Anda membuka ruang kerja organisasi atau mengubah dari mana aplikasi mendapatkan alatnya](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dinstance-section&width=1440&height=1400&dpi=192&waitMs=2000&format=svg&cropSelector=%23instance-section&walker=1&dark=1&filename=org-instance-card)
 
 ## Di aplikasi desktop atau mobile
 
-Aplikasi dimulai dengan alat bawaannya. Untuk menyambung, buka **Settings** dan tekan **Change** pada kartu **Lolly instance**. Lembar itu bertanya **Where should Lolly get its tools?**
+Aplikasi dimulai dengan alat bawaannya. Untuk menyambung, buka tampilan **Settings** dan tekan **Change** pada kartu **Lolly instance**. Lembar itu bertanya **Where should Lolly get its tools?**
 
 1. Pilih **Sambungkan ke instans Lolly**.
 2. Masukkan alamat web organisasi Anda dan tekan **Periksa dan sambungkan**.

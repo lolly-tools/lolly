@@ -11,7 +11,7 @@ _最終確認日: 2026年9月28日。_
 - [LollyとFigma](/info/compare-figma.html) - デザイン、ライブコラボレーション、再利用できるアセット制作。
 - [LollyとPenpot](/info/compare-penpot.html) - オープンソースのデザイン、共有トークン、組織での作業。
 - [Lollyとブランドポータル](/info/compare-brand-portals.html) - 承認済みライブラリ、ロックされたテンプレート、アイデンティティ、レビュー、レポート。
-- [LollyとレンダリングAPI](/info/compare-render-apis.html) - お使いのデバイス、CI、Lolly Workサーバー上での自動生成。
+- [LollyとレンダリングAPI](/info/compare-render-apis.html) - お使いのデバイス、CI、ご自身のサーバー上での自動生成と、BannerbearやPlacidからの[移行方法](/info/work-move-from-render-api.html)。
 - [Lollyとオンラインファイル変換サービス](/info/compare-converters.html) - ご自身のデバイス上での形式変換。
 
 機能ごとの比較については、[Lolly の比較](/info/positioning.html)を参照してください。各比較には日付が付いています。いずれかの製品の現状と一致しなくなった記述は、修正が必要です。
@@ -44,7 +44,7 @@ _最終確認日: 2026年9月28日。_
 
 これらの制限はこのセットのすべてのページに当てはまるため、ここで一度だけ述べます。
 
-- **ワークコラボは現在、単一のサーバーノードで動作しています。** 規模と運用実績は、長く確立されたホスト型製品とは異なります。現在の制限は[Workのステータスとロードマップ](/info/work-status.html)に記録されています。
+- **Lolly Workのコラボは現在、単一のサーバーノードで動作しています。** 規模と運用実績は、長く確立されたホスト型製品とは異なります。現在の制限は[Lolly Workのステータスとロードマップ](/info/work-status.html)に記録されています。
 - **[lolly.work](https://lolly.work)のサイトはデモ用のサンドボックスです。** 耐久性のある組織向け配備には、永続ストレージと運用者が必要です。どちらも[Lolly Workをインストールする](/info/work-install.html)で扱っています。
 - **LollyとセルフホストのLolly Workに、席数ごとのソフトウェアライセンス料はありません。** ホスティング、ストレージ、運用には、それでも費用がかかります。
 - **署名は信頼された署名者ではありません。** 検証者は、ファイルに署名した証明書を信頼して初めて、署名者を信頼できるものとして表示します。仕組みは[Content Credentialsのアイデンティティ](/info/content-credentials-identity.html)で説明しています。

@@ -505,6 +505,10 @@
 /* Icon-only, like .history-btn above - the glyph carries the whole control. */
 .multi-edit-btn svg,
 .tool-guide-btn svg { width: calc(15px * var(--a11y-fs)); height: calc(15px * var(--a11y-fs)); }
+/* The help button is rendered for every tool and shown once the tool has steps or docs
+   rows to offer (plan 354 D6). Both classes set a display, so restate [hidden]. */
+.tool-guide-btn[hidden],
+.tool-guide-fab[hidden] { display: none; }
 
 /* The how-many-copies dropdown (body-mounted via mountBodyPopover - position:fixed,
    so it escapes the sidebar's overflow clipping). Surface mirrors .profile-menu. */

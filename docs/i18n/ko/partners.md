@@ -8,6 +8,7 @@
 
 - **하나의 디자인 시스템이 제작물 하나를 그려요.** 리드 브랜드의 색상, 서체, 하우스 규칙이 적용돼요. 파트너의 마크는 아트워크로 들어가요. Assets의 이미지이거나 디자인 시스템에 보관한 사용자 지정 마크예요.
 - **브랜드는 파일로 전달돼요.** 디자인 시스템 파일(`.lolly`)에는 토큰, 글꼴, 로고가 담겨요. **Share with rules**로 만든 재사용 도구에는 완성된 레이아웃 하나와 허용한 입력 항목이 담겨요. 브랜드 스킬은 별도의 파일로 전달돼요.
+- **브랜드에는 주소도 있을 수 있어요.** [브랜드 페이지](/info/brand-page.html)는 파트너가 읽을 수 있도록 로고, 색상, 서체, 규칙을 게시하고, 파트너의 도구를 위한 토큰과 스킬도 함께 제공해요.
 - **Lolly는 리드 브랜드의 규칙만 확인해요.** 여백이나 최소 크기 같은 파트너의 규칙은 알지 못하므로, 파트너 자신의 가이드라인으로 확인하세요.
 
 ## 파트너와 내 브랜드 공유하기
@@ -17,8 +18,9 @@
 | 보낼 것 | 방법 | 파트너가 받는 것 | 적합한 경우 |
 | --- | --- | --- | --- |
 | 디자인 시스템 파일 | [Lolly Design System Setup](/info/brand-studio.html#move-a-brand-between-devices) 상단 바의 **Export** | 내 토큰, 글꼴, 로고, 테마 설정. 파트너가 전환해서 쓸 수 있는 디자인 시스템으로 전달돼요 | 내 브랜드로 제작물을 많이 만드는 파트너 |
-| 재사용 도구 | Design에서 **Share with rules**([Share a design with rules](/info/create-a-tool.html)) | 완성된 레이아웃 하나와 허용한 입력 항목(예: 파트너의 이름과 로고). 파일에는 확정된 색상, 글꼴, 이미지가 담기므로 파트너의 디자인 시스템이 고정된 아트워크의 스타일을 바꿀 수 없어요 | 각 파트너가 채워 넣는 공동 브랜드 전단, 배지, 배너 |
+| 재사용 도구 | Lolly Design에서 **Share with rules**([Share a design with rules](/info/create-a-tool.html)) | 완성된 레이아웃 하나와 허용한 입력 항목(예: 파트너의 이름과 로고). 파일에는 확정된 색상, 글꼴, 이미지가 담기므로 파트너의 디자인 시스템이 고정된 아트워크의 스타일을 바꿀 수 없어요 | 각 파트너가 채워 넣는 공동 브랜드 전단, 배지, 배너 |
 | 브랜드 스킬 | **Skills** 룸: **Download skill (.zip)** 또는 **Copy as one file** | 문서로 정리된 내 기준. 파트너의 사람과 에이전트를 위한 것이에요 | 에이전트가 작업 일부를 맡을 때, 위 둘 중 하나와 함께 |
+| 브랜드 페이지 | Lolly Design System Setup의 **Publish a brand page** 또는 `lolly system publish`가 직접 호스팅할 폴더를 써요([브랜드 페이지](/info/brand-page.html)) | 현재 로고, 색상, 서체, 규칙을 하나의 주소에서, 파트너의 도구를 위한 토큰과 스킬과 함께. 로고와 글꼴 파일은 권리가 허용할 때 나타나고, 페이지가 제외한 것을 나열해요 | 파일을 보내지 않는 사람들과의 공유 |
 | 토큰 | 스튜디오 **More** 메뉴의 **Tokens (.json)** | 글꼴이나 로고 없이 디자인 토큰만 담은 문서 | 파트너 자신의 디자인 도구나 빌드 |
 
 ![Lolly Demo의 Design System Setup을 Skills 룸에서 연 화면. 상단 바에 Export, Tokens (.json)에 열려 있는 More 메뉴, 선택한 스킬 옆의 Download skill (.zip)과 Copy as one file](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dskills&width=1200&height=900&dpi=192&waitMs=1800&waitSelector=.skills-reader-actions&drive=click%3A%5Bdata-ds-more%5D%3Bwait%3A500&format=svg&walker=1&dark=1&filename=partners-send)
@@ -108,6 +110,8 @@
 
 터미널에서는 `lolly run logo-wall logos/*.png --output=wall.svg`로 그림 폴더에서 월을 만들고, `logo`와 `tier` 열이 있는 CSV로 등급별 월을 만들어요. SVG와 PNG에는 브라우저가 필요 없어요([등급이 있는 스폰서 월](/info/cli-rendering.html#a-sponsor-wall-with-tiers)).
 
+스폰서가 [브랜드 페이지](/info/brand-page.html)를 게시하면, `lolly run logo-wall --logos-from=<address or folder>`가 그 현재 로고를 해당 표면에 가져오고 사용에 대해 그 페이지가 말하는 내용을 출력해요. 스폰서마다 플래그를 반복하세요.
+
 Logo Wall은 어떤 스폰서의 규칙도 알지 못해요. Tier와 Presence는 서로에 대한 상대적인 크기를 정할 뿐 스폰서의 최소 크기가 아니며, 이웃한 로고 사이의 여백을 확인하는 것도 없어요. 완성된 월은 인쇄하거나 보여줄 크기에서 각 스폰서의 가이드라인에 맞는지 확인하세요.
 
 ## Lolly가 아직 하지 않는 일
@@ -119,6 +123,8 @@ Logo Wall은 어떤 스폰서의 규칙도 알지 못해요. Tier와 Presence는
 - 기기 전체에서 활성화되는 디자인 시스템은 하나이므로, 두 브랜드를 나란히 열 수 없어요.
 - 디자인 시스템 파일은 내보낸 시점의 브랜드를 복사한 것이며, 아무것도 그 사본을 업데이트하지 않아요. 앱에서 내보낸 디자인 시스템 파일에는 브랜드 스킬이 담기지 않으므로, 스킬은 별도의 파일로 보내세요.
 - 내보내기에는 리드 브랜드의 디자인 시스템과 컬러웨이가 기록되고, 파트너의 브랜드는 기록되지 않아요.
+- 브랜드 페이지에서 가져온 로고는 그 행의 그림이며, 행은 그 페이지를 기억하지 않아요. 누가 페이지를 게시했는지 보여주는 것이 없으므로 주소를 직접 확인하세요.
+- 호스팅된 웹 앱은 콘텐츠 보안 정책이 이름이 지정된 호스트만 허용하므로 다른 브랜드의 페이지를 가져올 수 없어요. 터미널에서 로고를 가져오거나, 파일을 저장해서 **Assets**에 추가하세요.
 
 ## 다음으로 갈 곳
 
@@ -126,4 +132,5 @@ Logo Wall은 어떤 스폰서의 규칙도 알지 못해요. Tier와 Presence는
 - **[Share a design with rules](/info/create-a-tool.html)**: 고정된 레이아웃과 직접 고른 입력 항목을 가진 재사용 도구.
 - **[브랜드 스킬](/info/brand-skills.html)**: 스킬을 작성하고 읽고 에이전트에게 넘기는 방법.
 - **[Lolly Design System Setup](/info/brand-studio.html)**: 로고, 사용자 지정 마크, 기기 간 디자인 시스템 이동.
+- **[브랜드 페이지](/info/brand-page.html)**: 브랜드를 하나의 주소에 게시하고, 파트너의 페이지에서 로고를 가져오기.
 - **[크리에이티브 권리와 크레딧](/info/creative-rights.html)**: Lolly가 그리는 작품에 대해 기록하는 내용.

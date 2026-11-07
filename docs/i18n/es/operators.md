@@ -14,6 +14,8 @@ Empieza con [Use Lolly at your organisation](/info/organisation.html) para ver q
 
 ## Conecta recursos y revisa el trabajo
 
+- [Use Lolly with your existing DAM](/info/use-with-dam.html) explica la autoridad de la fuente y la producción conectada. [The SUSE Brandfolder account](/info/suse-brandfolder.html) recoge la experiencia de adopción, y [Plan a DAM transition](/info/dam-transition.html) cubre un traslado posterior opcional.
+
 - [Design-system administration](/info/work-design-system-administration.html) cubre el inventario de fuentes, los cambios revisados y la reversión.
 - [Catalog and content](/info/work-catalog.html) cubre los recursos compartidos y las reglas de exposición. [Provider guides](/info/work-provider-guides.html) da la configuración y los requisitos de verificación de cada plataforma de origen.
 - [Approvals](/info/work-approvals.html) cubre las cadenas de revisión y la separación de funciones. [Rendering and sharing](/info/work-sharing.html) cubre los enlaces y la salida del servidor.

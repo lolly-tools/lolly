@@ -1,4 +1,6 @@
-# Rondocode-sanger
+# Lolly Rondocode-sanger
+
+<a id="rondocode-songs"></a>
 
 En rondocode-sang er musikk skrevet som kode: synther, mønstre og en miks, spilt av mens du skriver. Lolly kan spille en sang under en video, og utilityen **Rondocode** lar deg skrive en og eksportere den som lyd. Begge registrerer sangen i filens Content Credentials, slik at musikken sier hvor den kom fra.
 
@@ -12,7 +14,7 @@ Fra terminalen tar `lolly mix` en sang som hele lydsporet; se [CLI rendering](/i
 
 ## Skriv og eksporter en sang
 
-Åpne **Rondocode** fra **Utilities** for å skrive en sang i rondocodes levende redigeringsprogram og høre den mens du skriver. Eksporter den som **WAV**, **MP3**, **M4A**, **Opus** eller **FLAC**, som en ZIP med stemmer, som **MIDI**, eller som et opptak av det som spilles. Fra terminalen skriver `lolly rondocode --export=mid` den samme MIDI-filen. **Export length** setter hvor mange sekunder en lydeksport varer. Selve sangfilen (`.rondo.json`) er koden din slik den er skrevet og bærer ingenting lagt til.
+Åpne verktøyet **Rondocode** fra **Utilities** for å skrive en sang i rondocodes levende redigeringsprogram og høre den mens du skriver. Eksporter den som **WAV**, **MP3**, **M4A**, **Opus** eller **FLAC**, som en ZIP med stemmer, som **MIDI**, eller som et opptak av det som spilles. Fra terminalen skriver `lolly rondocode --export=mid` den samme MIDI-filen. **Export length** setter hvor mange sekunder en lydeksport varer. Selve sangfilen (`.rondo.json`) er koden din slik den er skrevet og bærer ingenting lagt til.
 
 En sang kan synge tekstene sine med `sing()`. Sangen lages på enheten din av nedlastede stemmemodeller, og en fil som holder syntetisert sang, deklarerer alltid sangen som AI-generert (se [AI features](/info/ai-features.html)).
 
@@ -24,11 +26,11 @@ En video- eller lydeksport som spiller en rondocode-sang, registrerer hver sang 
 - SHA-256 av `.rondo.json`-filen;
 - hvordan den ble gjengitt: i Lollys sandkasse, utførelsesklassen `vm`, med gjengiverens versjon og frø, og enhver del gjengivelsen ikke kunne spille.
 
-Musikk beregnet fra en sangs kode merkes som algoritmiske medier, så Verify flagger den ikke som AI. Før du eksporterer, lister en linje under **Download** sangene credentialen vil registrere; etter eksporten rapporterer den samme linjen hva en lesing av den leverte filen fant. Fjern avkrysningen for **C2PA Credentials** for å utelate posten. Et stillbilde registrerer ingen sang, fordi det ikke bærer lyd. `lolly mix` og [MCP server](/info/mcp.html) skriver den samme posten.
+Musikk beregnet fra en sangs kode merkes som algoritmiske medier, så Lolly Verify flagger den ikke som AI. Før du eksporterer, lister en linje under **Download** sangene credentialen vil registrere; etter eksporten rapporterer den samme linjen hva en lesing av den leverte filen fant. Fjern avkrysningen for **C2PA Credentials** for å utelate posten. Et stillbilde registrerer ingen sang, fordi det ikke bærer lyd. `lolly mix` og [MCP server](/info/mcp.html) skriver den samme posten.
 
 ## Filer fra Rondocode-utilityen
 
-De fleste utilities på enheten skriver ingen credential, fordi de transformerer en fil du allerede eier. Rondocode lager ny lyd, så hver lydfil den skriver, bærer Content Credentials som registrerer sangen som kilde: navnet, SHA-256 av `.rondo.json`-filen og hvor koden kjørte. Det dekker WAV, MP3, M4A, Opus, FLAC, hver stemme i en ZIP med stemmer og et opptak av det som spilles.
+De fleste utilities på enheten skriver ingen credential, fordi de transformerer en fil du allerede eier. Lolly Rondocode lager ny lyd, så hver lydfil den skriver, bærer Content Credentials som registrerer sangen som kilde: navnet, SHA-256 av `.rondo.json`-filen og hvor koden kjørte. Det dekker WAV, MP3, M4A, Opus, FLAC, hver stemme i en ZIP med stemmer og et opptak av det som spilles.
 
 - Redigeringsprogrammets egne gjengivelser kjører i sin private ramme (utførelsesklassen `frame`) og registrerer redigeringsprogrammets versjon.
 - En gjengivelse laget av CLI-et eller en delingslenke kjører i klassen `vm` og registrerer gjengiverens versjon og frø.

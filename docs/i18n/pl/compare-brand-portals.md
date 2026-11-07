@@ -1,8 +1,16 @@
 # Lolly i portale marki
 
-_Ostatnio sprawdzono: 28 września 2026._
+_Pozycjonowanie zaktualizowano: 31 października 2026. Przykład możliwości dostawcy sprawdzono: 28 września 2026._
 
 Jeśli Twoja organizacja trzyma zatwierdzone zasoby w Bynder, Frontify, Marq lub Brandfolder, ta strona porównuje to z Lolly plus Lolly Work: jak ludzie znajdują zasoby marki i jak tworzą z nich nowe pliki.
+
+## Zachowanie istniejącego portalu
+
+Istniejące DAM może pozostać źródłem zapisu. Konektory katalogu Lolly Work udostępniają wybraną część jego biblioteki w Lolly, gdzie ludzie tworzą nowe pliki według reguł organizacji. Dostęp regulują wspierane ograniczenia źródła DAM i reguły ekspozycji Lolly Work; końcowy przegląd wyniku to osobna decyzja.
+
+[Use Lolly with your existing DAM](/info/use-with-dam.html) wyjaśnia odpowiedzialności i ograniczenia. [SUSE's Brandfolder experience](/info/suse-brandfolder.html) zapisuje udaną integrację, która wsparła zarządzanie zmianą przez administratorów przed planowaną migracją. Pozostawienie źródła połączonego nadal jest wspieraną opcją.
+
+Celem Lolly jest [suwerenność treści](/info/content-sovereignty.html), w tym kontrola nad produkcją i swoboda wyboru systemów. Jego własna biblioteka i zatwierdzenia wspierają organizacje, które same chcą prowadzić te możliwości. [Lolly for DAM vendors and implementation partners](/info/dam-partners.html) opisuje, jak połączony przepływ pracy może dodać wartość istniejącemu systemowi zapisu.
 
 ## Co robi lepiej ugruntowany portal
 
@@ -26,11 +34,12 @@ Oba obejmują zatwierdzone zasoby, zablokowane szablony, kontrolę dostępu, prz
 | Licencje i uznania autorstwa | Lolly zapisuje licencję każdego źródła używanego przez plik i przygotowuje uznania, które mu się należą; [Creative rights and credits](/info/creative-rights.html) wyjaśnia, co zapisuje i gdzie uznania są zapisywane. Nie rozstrzyga praw. |
 | Raportowanie | Liczby użycia i pobrań zasobów, aktywność narzędzi i eksportów, panele i ślad audytu. Przypisanie użycia podlega polityce telemetrii wdrożenia; domyślne ustawienie przypisania wymaga zgody. |
 | Dystrybucja | Wygasające, możliwe do unieważnienia linki, wspólne kolekcje, dostęp gościa i dostarczanie do skonfigurowanych miejsc docelowych organizacji. |
+| Publiczna strona marki | Lolly zapisuje statyczną [stronę marki](/info/brand-page.html), z Lolly Design System Setup lub wiersza poleceń: logo, kolory, typografię, reguły i przykłady dla ludzi oraz tokeny, `DESIGN.md` i skille dla agentów. Folder hostujesz sam albo administrator włącza w Lolly Work [hosting strony marki](/info/work-design-system-administration.html#host-a-brand-page), który domyślnie jest wyłączony. |
 
 [Catalog and content](/info/work-catalog.html), [Approvals](/info/work-approvals.html) i [Policy and governance](/info/work-governance.html) opisują te funkcje i ich konfigurację.
 
-## Zachowanie istniejącego portalu
+## Oceń połączony przepływ pracy
 
-Istniejące DAM może pozostać źródłem prawdy. Konektory katalogu Lolly Work udostępniają jego zatwierdzone zasoby w Lolly, gdzie ludzie tworzą nowe pliki według reguł organizacji. To wybór integracji; własna biblioteka i zatwierdzenia Lolly są tam, gdy organizacja chce je prowadzić sama. [What runs where](/info/compare.html#what-runs-where) wymienia ograniczenia wspólne dla każdego porównania.
+Użyj [sekwencji produkcji kart wydarzeń](/info/dam-production.html), aby przetestować dostęp do źródła, dozwolone edycje, przegląd wyniku i dostarczenie na własnej bibliotece. [What runs where](/info/compare.html#what-runs-where) wymienia ograniczenia wspólne dla każdego porównania. Samo połączenie ze źródłem nie ustanawia partnerstwa z dostawcą ani kwalifikacji dla każdego tenanta.
 
 Zobacz [How Lolly compares](/info/positioning.html), aby poznać porównanie możliwości. Nazwy dostawców identyfikują porównywane produkty; Lolly nie jest z nimi powiązane.

@@ -2,6 +2,8 @@
 
 Tổ chức của bạn có thể chạy Lolly riêng: cùng ứng dụng, với các công cụ và hệ thống thiết kế do tổ chức chọn. Trang này cho thấy cách truy cập, đăng nhập và những gì thay đổi sau đó.
 
+Nếu bạn đang lên kế hoạch thiết lập cho tổ chức, [Use Lolly with your existing DAM](/info/use-with-dam.html) giải thích cách một thư viện đã duyệt có thể ở nguyên chỗ trong khi mọi người bắt đầu tạo nội dung trong Lolly. [Content sovereignty](/info/content-sovereignty.html) mô tả quyền kiểm soát rộng hơn đối với việc tạo, quản trị, lưu trữ và di chuyển.
+
 ::: note Những gì bạn cần từ tổ chức của mình
 Địa chỉ web của Lolly thuộc tổ chức đó, hoặc một tệp thiết lập `.lolly` mà tổ chức của bạn đã tạo. Bản thân lolly.tools không kết nối với một tổ chức nào.
 :::
@@ -10,13 +12,13 @@ Tổ chức của bạn có thể chạy Lolly riêng: cùng ứng dụng, với
 
 Mở địa chỉ mà tổ chức đã đưa cho bạn. Nếu trang yêu cầu đăng nhập, nhấn **Sign in** và làm theo trang đăng nhập mà nó mở. Sau đó nó hoạt động như bất kỳ Lolly nào, với các công cụ và hệ thống thiết kế của tổ chức bạn.
 
-Bạn cũng có thể bắt đầu từ lolly.tools: mở **Settings**, và trên thẻ **Lolly instance** nhấn **Open a workspace**, nhập địa chỉ rồi nhấn **Open this instance**. Trình duyệt chuyển tới địa chỉ riêng của tổ chức bạn, vì trình duyệt không thể tải công cụ của một Lolly khác từ lolly.tools.
+Bạn cũng có thể bắt đầu từ lolly.tools: mở trang **Settings**, và trên thẻ **Lolly instance** nhấn **Open a workspace**, nhập địa chỉ rồi nhấn **Open this instance**. Trình duyệt chuyển tới địa chỉ riêng của tổ chức bạn, vì trình duyệt không thể tải công cụ của một Lolly khác từ lolly.tools.
 
 ![Thẻ Lolly instance trong Settings, nơi bạn mở không gian làm việc của tổ chức hoặc đổi nơi ứng dụng lấy công cụ](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dinstance-section&width=1440&height=1400&dpi=192&waitMs=2000&format=svg&cropSelector=%23instance-section&walker=1&dark=1&filename=org-instance-card)
 
 ## Trên ứng dụng máy tính hoặc di động
 
-Ứng dụng khởi động với các công cụ đi kèm. Để kết nối, mở **Settings** và nhấn **Change** trên thẻ **Lolly instance**. Hộp thoại hỏi **Where should Lolly get its tools?**
+Ứng dụng khởi động với các công cụ đi kèm. Để kết nối, mở trang **Settings** và nhấn **Change** trên thẻ **Lolly instance**. Hộp thoại hỏi **Where should Lolly get its tools?**
 
 1. Chọn **Kết nối với một phiên bản Lolly**.
 2. Nhập địa chỉ web của tổ chức bạn và nhấn **Kiểm tra & kết nối**.
