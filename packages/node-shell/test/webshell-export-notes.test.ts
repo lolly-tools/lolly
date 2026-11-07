@@ -38,8 +38,8 @@ test('a PDF that drew text as pictures tells the caller, and other pdf lines sta
   assert.equal(sessionExportNote('warning', '[warn] pdf: SUSE-Regular.ttf is not a TrueType file'), null);
 });
 
-test('an EPS or WMF that drew text as pictures tells the caller too', () => {
-  for (const f of ['eps', 'wmf']) {
+test('an EMF, EPS or WMF that drew text as pictures tells the caller too', () => {
+  for (const f of ['emf', 'eps', 'wmf']) {
     const line = `${f}: This ${f.toUpperCase()} draws some text as pictures, because no font it can outline has those letters (Tamil).`;
     assert.equal(sessionExportNote('warning', `[warn] ${line} `), line);
   }

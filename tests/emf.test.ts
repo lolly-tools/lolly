@@ -352,3 +352,53 @@ test('odd-length text pads the EXTTEXTOUTW record to 4 bytes', () => {
   assert.equal(out.size % 4, 0);
   assert.equal(endOff, bytes.length, 'stream still tiles the buffer');
 });
+
+// ── Stencil prims: words no font could draw, as a picture painted through their shape ─
+const SRCPAINT = 0x00EE0086;
+const SRCAND = 0x008800C6;
+
+/** A 10 x 2 stencil: the first row inked on its left half, the second row empty. */
+const STENCIL_IR: VectorIr = {
+  width: 100,
+  height: 50,
+  prims: [{ type: 'stencil', x: 10, y: 20, w: 40, h: 8, pxW: 10, pxH: 2, bits: new Uint8Array([0b11111000, 0b00000000, 0, 0]), fill: { r: 0x12, g: 0x34, b: 0x56 } }],
+};
+
+test('a stencil is a mask and paint pair of 1-bit DIB blits, so the page under the words shows through', () => {
+  const bytes = emitEmf(STENCIL_IR);
+  const { records, dv, header, endOff } = parseEmf(bytes);
+  assert.equal(records.some((r) => r.malformed), false);
+  assert.equal(endOff, bytes.length);
+  assert.equal(header.nBytes, bytes.length, 'nBytes counts the DIBs');
+  assert.equal(header.nRecords, records.length);
+  assert.equal(header.nHandles, 3, 'a blit takes no handle');
+  const blits = records.filter((r) => r.iType === EMR_STRETCHDIBITS);
+  assert.equal(blits.length, 2);
+  // OR first: the words go white and nothing else changes. AND second: the white takes the ink.
+  assert.deepEqual(blits.map((r) => dv.getUint32(r.off! + 68, true)), [SRCPAINT, SRCAND]);
+  for (const r of blits) {
+    const o = r.off!;
+    assert.equal(r.size, 128 + 4 * 2, 'size = 128 + a 32-bit padded row per picture row');
+    assert.deepEqual([dv.getInt32(o + 8, true), dv.getInt32(o + 12, true), dv.getInt32(o + 16, true), dv.getInt32(o + 20, true)], [10, 20, 50, 28], 'rclBounds');
+    assert.deepEqual([dv.getInt32(o + 24, true), dv.getInt32(o + 28, true), dv.getInt32(o + 72, true), dv.getInt32(o + 76, true)], [10, 20, 40, 8], 'destination');
+    assert.deepEqual([dv.getInt32(o + 40, true), dv.getInt32(o + 44, true)], [10, 2], 'source size');
+    assert.deepEqual([dv.getUint32(o + 48, true), dv.getUint32(o + 52, true), dv.getUint32(o + 56, true), dv.getUint32(o + 60, true)], [80, 48, 128, 8], 'header, colour table and rows');
+    assert.equal(dv.getUint32(o + 64, true), 0, 'DIB_RGB_COLORS');
+    assert.equal(dv.getUint32(o + 80, true), 40, 'a BITMAPINFOHEADER');
+    assert.equal(dv.getInt32(o + 88, true), 2, 'positive height: bottom-up rows');
+    assert.equal(dv.getUint16(o + 94, true), 1, 'one bit per pixel');
+    assert.equal(dv.getUint32(o + 112, true), 2, 'two colours');
+  }
+  const table = (r: (typeof records)[number]): number[] => [...bytes.slice(r.off! + 120, r.off! + 128)];
+  assert.deepEqual(table(blits[0]!), [0, 0, 0, 0, 255, 255, 255, 0], 'mask: 0 black, 1 white');
+  assert.deepEqual(table(blits[1]!), [255, 255, 255, 0, 0x56, 0x34, 0x12, 0], 'paint: 0 white, 1 the ink (blue, green, red)');
+  // Rows are bottom-up and padded to 32 bits: the empty row first, then the inked one.
+  assert.deepEqual([...bytes.slice(blits[0]!.off! + 128, blits[0]!.off! + 136)], [0, 0, 0, 0, 0xf8, 0, 0, 0]);
+});
+
+test('a file with no stencil writes no 1-bit DIB', () => {
+  const { records, dv } = parseEmf(emitEmf(IMG_IR, { width: 100, height: 80 }));
+  const blits = records.filter((r) => r.iType === EMR_STRETCHDIBITS);
+  assert.deepEqual(blits.map((r) => dv.getUint16(r.off! + 94, true)), [32]);
+  assert.equal(parseEmf(emitEmf(IR)).records.some((r) => r.iType === EMR_STRETCHDIBITS), false);
+});
