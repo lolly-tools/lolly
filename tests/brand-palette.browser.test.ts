@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { chromium } from 'playwright';
 import { shellSettled } from './helpers/shell-settled.ts';
+import { pollPage } from './helpers/page-poll.ts';
 
 const origin = process.env.LOLLY_IMPORT_TEST_URL;
 test('palette handles support keyboard, mouse and tablet dragging with persistent order', {
@@ -118,6 +119,13 @@ const journalSlots = (page: import('playwright').Page): Promise<string[]> => pag
   return (await bridge.state.list()).map((r: { slot: string }) => r.slot).filter((s: string) => s.startsWith('__dsjournal__:'));
 });
 
+/** Wait until this device holds no journal slot, or not the one named. */
+const journalGone = (page: import('playwright').Page, slot?: string): Promise<boolean> => pollPage(page, async (only?: string) => {
+  const path = '/src/bridge/index.ts';
+  const bridge = await (await import(path)).createBridge();
+  return !(await bridge.state.list()).some((r: { slot: string }) => (only ? r.slot === only : r.slot.startsWith('__dsjournal__:')));
+}, slot, { message: slot ? `journal slot ${slot} removed` : 'no journal slot left' });
+
 async function openPalette(page: import('playwright').Page) {
   await page.goto(`${origin}/#/start?area=color&focus=generate&seed=%23e0452b`, { waitUntil: 'networkidle' }); await shellSettled(page);
   await page.locator('[data-be-add-ramp="primary"]').click();
@@ -166,22 +174,26 @@ test('an edit made while the studio says Saving… survives a reload, then saves
     const moved = [before[1], before[0], ...before.slice(2)];
     assert.deepEqual(await keys(), moved);
     assert.equal(await status.textContent(), 'Saving…');
-    // The journal has the edit without waiting for the save.
-    await page.waitForFunction(async () => {
+    // The journal has the edit without waiting for the save. The entry must hold this
+    // move: the edit that added the shades left an entry of its own, which can still be
+    // there for a moment after the studio says Saved.
+    await pollPage(page, async (want: string[]) => {
       const path = '/src/bridge/index.ts';
       const bridge = await (await import(path)).createBridge();
-      return (await bridge.state.list()).some((r: { slot: string }) => r.slot.startsWith('__dsjournal__:'));
-    });
+      for (const row of await bridge.state.list() as Array<{ slot: string }>) {
+        if (!row.slot.startsWith('__dsjournal__:')) continue;
+        const entry = await bridge.state.load(row.slot) as { doc?: { $extensions?: Record<string, { paletteOrder?: unknown }> } } | null;
+        const order = Object.values(entry?.doc?.$extensions ?? {}).map(value => value.paletteOrder).find(Array.isArray) as string[] | undefined;
+        if (order && JSON.stringify(order.filter(key => want.includes(key))) === JSON.stringify(want)) return true;
+      }
+      return false;
+    }, moved as string[], { message: 'a journal entry holding the moved order' });
     assert.equal(await status.textContent(), 'Saving…', 'the save is still waiting when the page goes');
     await page.reload({ waitUntil: 'networkidle' }); await shellSettled(page);
     await group.waitFor();
     assert.deepEqual(await keys(), moved, 'the studio opens on the edit that had not finished saving');
     await status.filter({ hasText: /^Saved$/ }).waitFor();
-    await page.waitForFunction(async () => {
-      const path = '/src/bridge/index.ts';
-      const bridge = await (await import(path)).createBridge();
-      return !(await bridge.state.list()).some((r: { slot: string }) => r.slot.startsWith('__dsjournal__:'));
-    });
+    await journalGone(page);
     assert.equal(await page.locator('[data-be-journal]').count(), 0, 'nothing to ask: the base still matched');
     await page.reload({ waitUntil: 'networkidle' }); await shellSettled(page);
     await group.waitFor();
@@ -229,11 +241,7 @@ test('an unsaved edit the stored document has moved on from waits for the person
     assert.equal(new Set(ring).size, 1, 'a hairline all round, never one edge');
     await keepBtn.click();
     await card.waitFor({ state: 'detached' });
-    await page.waitForFunction(async (slot) => {
-      const path = '/src/bridge/index.ts';
-      const bridge = await (await import(path)).createBridge();
-      return !(await bridge.state.list()).some((r: { slot: string }) => r.slot === slot);
-    }, first);
+    await journalGone(page, first);
     assert.deepEqual(await keys(), saved);
 
     // Restore the unsaved changes.
@@ -245,11 +253,7 @@ test('an unsaved edit the stored document has moved on from waits for the person
     await card.waitFor({ state: 'detached' });
     assert.deepEqual(await keys(), restoredOrder);
     await status.filter({ hasText: /^Saved$/ }).waitFor();
-    await page.waitForFunction(async () => {
-      const path = '/src/bridge/index.ts';
-      const bridge = await (await import(path)).createBridge();
-      return !(await bridge.state.list()).some((r: { slot: string }) => r.slot.startsWith('__dsjournal__:'));
-    });
+    await journalGone(page);
     await page.reload({ waitUntil: 'networkidle' }); await shellSettled(page);
     await group.waitFor();
     assert.deepEqual(await keys(), restoredOrder, 'the restored version is the stored one now');

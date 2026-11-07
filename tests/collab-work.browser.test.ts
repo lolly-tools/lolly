@@ -6,6 +6,7 @@ import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import type { Page, BrowserContext } from 'playwright-core';
 import { getBrowser, closeBrowser } from '../packages/node-shell/src/browsers.ts';
+import { pollPage } from './helpers/page-poll.ts';
 
 const viteOrigin = process.env.LOLLY_COLLAB_TEST_URL;
 const ossDir = new URL('..', import.meta.url).pathname;
@@ -59,10 +60,10 @@ test('authenticated work Design: cursors, edits, reconnect, duplicate tabs, view
     });
     await page.goto(fixture.base, { waitUntil: 'domcontentloaded' });
     await page.locator('.gallery').waitFor();
-    await page.waitForFunction(async () => {
+    await pollPage(page, async () => {
       const path = '/src/org/collab-config.ts', mount = '/src/lib/collab-live-mount.ts';
       return (await import(path)).canJoinCollab() && (await import(mount)).liveCollabMountInstalled();
-    });
+    }, undefined, { message: 'the live collab mount' });
     const outcome = await page.evaluate(async sessionId => {
       const path = '/src/org/collab-work-opener.ts';
       return (await import(path)).joinWorkCollabFromInvite({ sessionId, toolId: 'design' });

@@ -24,6 +24,7 @@ import { fileURLToPath } from 'node:url';
 import { PACKS, packTools, type PackTool } from '../scripts/tool-history-audit.ts';
 import { historyParticipation } from '../shells/web/src/views/tool-history-adapters.ts';
 import { shellSettled } from './helpers/shell-settled.ts';
+import { pollPage } from './helpers/page-poll.ts';
 
 const origin = process.env.LOLLY_HISTORY_TEST_URL;
 const skip = origin ? false : 'LOLLY_HISTORY_TEST_URL not set (serve the web shell and point it here)';
@@ -161,13 +162,13 @@ async function dismiss(page: Page): Promise<void> {
 }
 
 async function saved(page: Page, key: string, expected: Value, table = false): Promise<void> {
-  await page.waitForFunction(async ({ key, expected, table }) => {
+  await pollPage(page, async ({ key, expected, table }) => {
     const path = '/src/lib/host-ref.ts', slot = history.state?.lollyHistory?.slot;
     if (!slot) return false;
     const state = (await import(path)).getHostRef().state;
     const record = await state.load(slot), value = table ? record?.[key]?.rows?.[0]?.[1] : record?.[key];
     return value === expected;
-  }, { key, expected, table }, { timeout: 30_000 });
+  }, { key, expected, table }, { timeout: 30_000, message: `${key} saved as ${JSON.stringify(expected)}` });
 }
 async function reveal(page: Page, selector: string): Promise<void> {
   await page.locator(selector).first().evaluate(el => {
@@ -261,10 +262,10 @@ async function walkOne(t: TestContext, fixture: Fixture): Promise<void> {
     // Navigation flushes the latest edits without waiting a minute.
     await page.locator(opener).first().click();
     await page.getByRole('link', { name: 'Open app history', exact: true }).click();
-    await page.waitForFunction(async ({ slot, key, value, table }) => {
+    await pollPage(page, async ({ slot, key, value, table }) => {
       const path = '/src/lib/host-ref.ts', state = (await import(path)).getHostRef().state;
       const data = await state.load(slot); return (table ? data?.[key]?.rows?.[0]?.[1] : data?.[key]) === value && (await state.history.list({ slot })).entries.length >= 2;
-    }, { slot: original.slot, key: fixture.key, value: fixture.second, table: fixture.edit === 'table' }, { timeout: 30_000 });
+    }, { slot: original.slot, key: fixture.key, value: fixture.second, table: fixture.edit === 'table' }, { timeout: 30_000, message: 'the second edit saved with two versions' });
     await page.locator('.app-history > header').getByRole('button', { name: 'Refresh', exact: true }).click();
     await page.locator('.app-history-row').getByRole('button', { name: 'Versions', exact: true }).click();
     await page.locator('.revision-history-entry', { has: page.locator('strong', { hasText: 'Initial version' }) }).getByRole('button', { name: 'Open as a copy', exact: true }).click();
