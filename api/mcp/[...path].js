@@ -139168,7 +139168,7 @@ function checkFindingFromBrand(finding3, lookup4) {
   if (finding3.company !== void 0) evidence.company = finding3.company;
   const fix = finding3.fix ? { layerId: finding3.fix.layerId, field: finding3.fix.field, before: finding3.fix.before ?? null, after: finding3.fix.after } : void 0;
   return {
-    // A partner mark's code names the kit rule (`brand.mark.min-size`), so each rule is stable on its own.
+    // A partner mark's code carries the kit rule (`brand.mark.min-size`), so each rule is stable on its own.
     code: finding3.kind === "mark" && finding3.rule ? `brand.mark.${codePart(finding3.rule)}` : `brand.${codePart(finding3.kind)}.${codePart(finding3.status)}`,
     family: "brand",
     severity: review ? "warn" : "info",
