@@ -148,7 +148,8 @@ async function readEdits(path: string, source: string | undefined): Promise<NonN
  */
 async function readKit(path: string): Promise<NonNullable<CheckFileOptionsV1['partnerKit']>> {
   const { bytes } = await readInput(path);
-  const result = checkPartnerKit(new TextDecoder().decode(bytes));
+  // A kit saved by an editor that writes a byte order mark reads the same as one without.
+  const result = checkPartnerKit(new TextDecoder().decode(bytes).replace(/^\uFEFF/, ''));
   if (!result.ok) throw usageError(`${path} is not a partner kit: ${result.issues[0]?.message ?? 'it could not be read.'}`, 'BAD_FLAG_VALUE');
   return result.kit;
 }
