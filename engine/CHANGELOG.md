@@ -6,6 +6,12 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+## 1.330.0
+
+- The barrel exports the asset rights reader from `asset-rights.ts`: `redistribution`, `ownerPublished`, `OWNER_PUBLISHED`, `assetLicenceDeclaration`, `assetRightsNotices` and `readAssetRightsRecord`, with their types, and `checkCompanionReadback` from `rights-companion.ts`. A Lolly Work server can now ask the same question the `.lolly` builder asks ("may these bytes be passed on?") and get the same answer and reason, and read a package's credits back.
+- `packCreditsText`, with `PackCreditEntry` and `PackHoldEntry`, moves into `asset-rights.ts` from the web shell's `lib/lolly-pack.ts`, unchanged, so a `.lolly` pack and a Work collection ZIP print one text. The shell imports it back; every `.lolly` keeps its bytes.
+- No behaviour changes: nothing is added to any rule, and no output changes.
+
 ## 1.329.0
 
 - A picture placed on a page is a component of the export, not its parent. `runtime.export` marks every credentialed asset it gathers from the input model (uploads and library assets, top-level or in a `blocks` field) as `relationship: 'componentOf'`, so the embedder records each one with a `c2pa.placed` step, after the head step, carrying the picture's AI source type. C2PA 2.2 section 18.15.3 says `parentOf` means the export is a rendition of that one asset, and a manifest may hold one `parentOf` ingredient. Before this, a page with two placed credentialed pictures made the web shell's stamp refuse the whole credential (`manifest.multipleParents`), so the file left with no Content Credential at all.
