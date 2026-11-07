@@ -6,11 +6,18 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
-## 1.329.0
+## 1.330.0
 
 - The barrel exports the asset rights reader from `asset-rights.ts`: `redistribution`, `ownerPublished`, `OWNER_PUBLISHED`, `assetLicenceDeclaration`, `assetRightsNotices` and `readAssetRightsRecord`, with their types, and `checkCompanionReadback` from `rights-companion.ts`. A Lolly Work server can now ask the same question the `.lolly` builder asks ("may these bytes be passed on?") and get the same answer and reason, and read a package's credits back.
 - `packCreditsText`, with `PackCreditEntry` and `PackHoldEntry`, moves into `asset-rights.ts` from the web shell's `lib/lolly-pack.ts`, unchanged, so a `.lolly` pack and a Work collection ZIP print one text. The shell imports it back; every `.lolly` keeps its bytes.
 - No behaviour changes: nothing is added to any rule, and no output changes.
+
+## 1.329.0
+
+- A picture placed on a page is a component of the export, not its parent. `runtime.export` marks every credentialed asset it gathers from the input model (uploads and library assets, top-level or in a `blocks` field) as `relationship: 'componentOf'`, so the embedder records each one with a `c2pa.placed` step, after the head step, carrying the picture's AI source type. C2PA 2.2 section 18.15.3 says `parentOf` means the export is a rendition of that one asset, and a manifest may hold one `parentOf` ingredient. Before this, a page with two placed credentialed pictures made the web shell's stamp refuse the whole credential (`manifest.multipleParents`), so the file left with no Content Credential at all.
+- A page with one placed credentialed picture now records it as `componentOf` and `c2pa.placed` where it used to record `parentOf` and `c2pa.opened`. Nothing else in the ingredient changes: the picture's own manifests, verbatim, its hash and its AI source type. `parentOf` stays for a real parent: an approval update over a reviewed file, and the derived assets the shells sign (a resize, a crop, a background removal, an upscale, a frame taken from a clip).
+- The web shell's PDF walker and its still raster routes (PNG, JPEG, WebP, AVIF, TIFF) now record each credentialed bitmap they draw from an `<img>`, `data:` pictures included, as the SVG walker already did, through one shared rule (`shells/web/src/bridge/export-picture-credentials.ts`). An SVG source is left out on every route, as the SVG walker leaves it out. The MCP server's and the CLI's carry-over (1.325.0) read the browser credential, so they keep these pictures too.
+- Doc comments only in `c2pa.ts` (`exportActionSteps`' `textAdded` says "placed asset") and in the SDK's `IngredientCredential`. No API changes.
 
 ## 1.328.0
 

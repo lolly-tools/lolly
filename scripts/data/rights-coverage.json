@@ -939,9 +939,10 @@
       "code": ["engine/src/runtime.ts"],
       "evidence": [
         { "file": "tests/runtime-ingredients.test.ts", "test": "a library-sourced credentialed asset rides into opts.ingredients (v1.31)" },
-        { "file": "tests/runtime-ingredients.test.ts", "test": "a remote-sourced asset is never consulted for a credential" }
+        { "file": "tests/runtime-ingredients.test.ts", "test": "a remote-sourced asset is never consulted for a credential" },
+        { "file": "tests/runtime-ingredients.test.ts", "test": "two placed credentialed pictures are components, and the credential they make is valid" }
       ],
-      "note": "The asset's credential rides into the export as an ingredient. Its licence is not evaluated and no credit is prepared."
+      "note": "The asset's credential rides into the export as a componentOf ingredient. Its licence is not evaluated and no credit is prepared."
     },
     {
       "id": "census.catalog-art-unsigned",
@@ -954,10 +955,10 @@
     {
       "id": "census.inlined-bitmaps",
       "kind": "census",
-      "title": "Credentialed bitmaps inlined by the SVG and PDF walker, Design image ops and the shared export route",
+      "title": "Credentialed bitmaps drawn by the SVG and PDF walkers, the still raster routes, Design image ops and the shared export route",
       "status": "not-assessed",
-      "code": ["shells/web/src/bridge/export-svg-walker.ts", "shells/web/src/bridge/export-design-ops.ts", "shells/web/src/bridge/export-route.ts", "packages/node-shell/src/design-ops-host.ts"],
-      "note": "An inlined bitmap's credential is collected as a componentOf ingredient: by the web walker and Design image ops, by the web export route when a still takes the GPU path, and by the Node Design host that the CLI and TUI share. No test pins the collection, so no claim is made."
+      "code": ["shells/web/src/bridge/export-picture-credentials.ts", "shells/web/src/bridge/export-svg-walker.ts", "shells/web/src/bridge/export-design-ops.ts", "shells/web/src/bridge/export-route.ts", "packages/node-shell/src/design-ops-host.ts"],
+      "note": "A drawn bitmap's credential is collected as a componentOf ingredient: by the web SVG and PDF walkers and the still raster routes (one rule, export-picture-credentials.ts), by Design image ops, by the web export route when a still takes the GPU path, and by the Node Design host that the CLI and TUI share. The shared rule has unit tests; the routes as a whole are not pinned, so no claim is made."
     },
     {
       "id": "census.sequence-clips",

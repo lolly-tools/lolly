@@ -78,7 +78,7 @@ test('the sensor capabilities still validate (screen is additive, not a replacem
 
 // ─── version ─────────────────────────────────────────────────────────────────
 
-test('ENGINE_VERSION is 1.329.0', () => {
+test('ENGINE_VERSION is 1.330.0', () => {
   // A literal pin: the screencap surface shipped at 1.54, and tools declare
   // ^1.54.0 to require it. session-record only checks the stamp equals whatever
   // ENGINE_VERSION happens to be (tautological) - this catches an errant bump.
@@ -601,8 +601,9 @@ test('ENGINE_VERSION is 1.329.0', () => {
   // 1.326.0 adds a stencil prim to the vector IR, for EPS and WMF text no font can draw. Capture is unchanged.
   // 1.327.0 has preflight count no spot plate when spot inks print as process. Capture is unchanged.
   // 1.328.0 draws the stencil prim in EMF too. Capture is unchanged.
-  // 1.329.0 exports the asset rights reader and the .lolly credits text. Capture is unchanged.
-  assert.equal(ENGINE_VERSION, '1.329.0');
+  // 1.329.0 records placed pictures as components of an export, not its parent. Capture is unchanged.
+  // 1.330.0 exports the asset rights reader and the .lolly credits text. Capture is unchanged.
+  assert.equal(ENGINE_VERSION, '1.330.0');
 });
 
 // ─── loadTool: a ^1.54.0 tool loads against this engine ───────────────────────
