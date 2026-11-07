@@ -136783,7 +136783,7 @@ function partnerKitColoursFromTokens(doc) {
   for (const [role, paths] of TOKEN_SLOT_PATHS) {
     for (const path of paths) {
       const entry2 = tokens3.get(path);
-      if (!entry2 || entry2.type !== "color") continue;
+      if (entry2?.type !== "color") continue;
       let swatch;
       try {
         swatch = toSwatch(entry2);
