@@ -57,7 +57,7 @@
     },
     "shells/web/src/views/deck-editor.ts": {
       "lines": 1969,
-      "largestFunctionLines": 1743,
+      "largestFunctionLines": 1670,
       "importFanIn": 2,
       "importFanOut": 10,
       "typeEscapes": 0
