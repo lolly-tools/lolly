@@ -305,7 +305,7 @@ On primary는 primary에서 파생되며 **파생됨**으로 표시되고 선택
 
 **Rules**는 브랜드의 선택을 실제로 작동하게 해요. 사람들이 바꿀 수 있는 것, 고정된 것, Lolly가 확인할 수 있는 것을 정해요.
 
-![Lolly Demo의 Rules: 하우스 규칙 네 개, 각각 Checked in Lolly Design과 Required 또는 Advisory로 표시되고, 그다음 렌더할 예시가 준비된 Try your design system in use](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dusage&width=1440&height=1200&dpi=192&waitMs=2400&cropSelector=%23start-panel-usage&format=svg&walker=1&dark=1&filename=bs-usage-rules)
+![Lolly Demo의 Rules: 하우스 규칙 네 개, 각각 Checked in Design과 Required 또는 Advisory로 표시되고, 그다음 렌더할 예시가 준비된 Try your design system in use](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dusage&width=1440&height=1200&dpi=192&waitMs=2400&cropSelector=%23start-panel-usage&format=svg&walker=1&dark=1&filename=bs-usage-rules)
 
 **Brand rules**는 규칙을 나열해요. **Add rule**(또는 **Add your first rule**)이 짧은 양식을 열어요.
 
@@ -316,7 +316,7 @@ On primary는 primary에서 파생되며 **파생됨**으로 표시되고 선택
 
 승인은 이 기기에 사용자 자신의 결정을 기록해요. 승인된 필수 규칙은 재사용 가능한 포스터를 제약하며, 검사는 예시 PNG에만 적용되고 다른 도구는 바꾸지 않아요.
 
-디자인 시스템이 토큰 파일에 담아 오는 규칙, 예를 들어 승인된 색상 조합, 텍스트 굵기와 정렬, 표면별 로고는 여기에 **Checked in Lolly Design**으로 나열돼요. Lolly Design은 내보내기 패널의 **Before you export** 카드에서 레이어별로 이를 검사하고, `lolly check`는 저장된 Lolly Design 문서에 같은 검사를 해요([Before you export](/info/design.html#before-you-export)). 이 빌드에 검사기가 없는 규칙은 받은 그대로 보관되고 **Unchecked**로 표시돼요.
+디자인 시스템이 토큰 파일에 담아 오는 규칙, 예를 들어 승인된 색상 조합, 텍스트 굵기와 정렬, 표면별 로고는 여기에 **Checked in Design**으로 나열돼요. Lolly Design은 내보내기 패널의 **Before you export** 카드에서 레이어별로 이를 검사하고, `lolly check`는 저장된 Lolly Design 문서에 같은 검사를 해요([Before you export](/info/design.html#before-you-export)). 이 빌드에 검사기가 없는 규칙은 받은 그대로 보관되고 **Unchecked**로 표시돼요.
 
 Lolly Demo에는 승인된 하우스 규칙 네 개가 있어요. 헤드라인은 절대 대문자로 쓰지 않아요. 이 규칙은 필수이므로 `lolly check`가 대문자 헤드라인을 오류로 보고해요. 나머지 세 개는 권고예요. 본문 텍스트는 왼쪽 정렬이에요. 기본 마크는 밝은 표면에, 반전 마크는 어두운 표면에 놓아요. 점선은 여기에 놓으라는 뜻이에요.
 

@@ -305,7 +305,7 @@ On primary، primary سے اخذ ہوتا ہے، **Derived** پڑھتا ہے ا�
 
 **Rules** آپ کے برانڈ کے انتخاب کو کام میں لاتا ہے: لوگ کیا بدل سکتے ہیں، کیا مقررہ رہتا ہے اور Lolly کیا جانچ سکتا ہے۔
 
-![Lolly Demo پر Rules: چار ہاؤس رولز، ہر ایک Checked in Lolly Design اور Required یا Advisory کے نشان کے ساتھ، پھر Try your design system in use اپنی مثالوں کے ساتھ جو رینڈر کے لیے تیار ہیں](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dusage&width=1440&height=1200&dpi=192&waitMs=2400&cropSelector=%23start-panel-usage&format=svg&walker=1&dark=1&filename=bs-usage-rules)
+![Lolly Demo پر Rules: چار ہاؤس رولز، ہر ایک Checked in Design اور Required یا Advisory کے نشان کے ساتھ، پھر Try your design system in use اپنی مثالوں کے ساتھ جو رینڈر کے لیے تیار ہیں](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dusage&width=1440&height=1200&dpi=192&waitMs=2400&cropSelector=%23start-panel-usage&format=svg&walker=1&dark=1&filename=bs-usage-rules)
 
 **Brand rules** آپ کے اصول درج کرتا ہے۔ **Add rule** (یا **Add your first rule**) مختصر فارم کھولتا ہے:
 
@@ -316,7 +316,7 @@ On primary، primary سے اخذ ہوتا ہے، **Derived** پڑھتا ہے ا�
 
 منظوری اس ڈیوائس پر آپ کا اپنا فیصلہ ریکارڈ کرتی ہے۔ منظور شدہ ضروری اصول دوبارہ قابل استعمال پوسٹر کو پابند کرتے ہیں، اور جانچیں صرف مثال کے PNGs کا احاطہ کرتی ہیں؛ وہ کوئی دوسرا ٹول نہیں بدلتیں۔
 
-وہ رولز جو ڈیزائن سسٹم اپنی ٹوکن فائل میں ساتھ لاتا ہے، جیسے منظور شدہ رنگ جوڑے، متن کا وزن اور سیدھ یا ہر سطح کے لیے لوگو، یہاں **Checked in Lolly Design** کے طور پر درج ہیں۔ Lolly Design انہیں ایکسپورٹ پینل کے **Before you export** کارڈ میں تہہ بہ تہہ جانچتا ہے، اور `lolly check` محفوظ شدہ Lolly Design دستاویز کے لیے یہی کرتا ہے ([Before you export](/info/design.html#before-you-export))۔ جس رول کا اس بلڈ میں کوئی چیکر نہ ہو وہ جیسا دیا گیا ویسا رکھا جاتا ہے اور **Unchecked** نشان زد ہوتا ہے۔
+وہ رولز جو ڈیزائن سسٹم اپنی ٹوکن فائل میں ساتھ لاتا ہے، جیسے منظور شدہ رنگ جوڑے، متن کا وزن اور سیدھ یا ہر سطح کے لیے لوگو، یہاں **Checked in Design** کے طور پر درج ہیں۔ Lolly Design انہیں ایکسپورٹ پینل کے **Before you export** کارڈ میں تہہ بہ تہہ جانچتا ہے، اور `lolly check` محفوظ شدہ Lolly Design دستاویز کے لیے یہی کرتا ہے ([Before you export](/info/design.html#before-you-export))۔ جس رول کا اس بلڈ میں کوئی چیکر نہ ہو وہ جیسا دیا گیا ویسا رکھا جاتا ہے اور **Unchecked** نشان زد ہوتا ہے۔
 
 Lolly Demo چار منظور شدہ ہاؤس رولز ساتھ لاتا ہے۔ سرخیاں کبھی کیپیٹل حروف میں نہیں ہوتیں: یہ رول required ہے، اس لیے `lolly check` کیپیٹل حروف والی سرخی کو غلطی بتاتا ہے۔ باقی تین advisory ہیں۔ باڈی ٹیکسٹ بائیں سیدھ میں ہے۔ Primary نشان ہلکی سطحوں پر اور reverse نشان گہری سطحوں پر بیٹھتے ہیں۔ ڈیشڈ لائنوں کا مطلب یہاں ڈراپ کریں ہے۔
 

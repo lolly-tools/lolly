@@ -63,7 +63,7 @@ In den Desktop- und Mobil-Apps bietet der Anmeldebildschirm auch einen kurzen Co
 
 ## Was Lolly Work hinzufügt
 
-Der Server Ihrer Organisation betreibt **Lolly Work**, die Organisationssoftware desselben Open-Source-Projekts. Die App braucht weder ein Lolly Work-Konto noch Lolly Work, wenn Sie sie allein nutzen.
+Der Server Ihrer Organisation betreibt **Lolly Work**, die Organisationssoftware desselben Open-Source-Projekts. Die App braucht weder ein Work-Konto noch Lolly Work, wenn Sie sie allein nutzen.
 
 ::: details Was Lolly Work hinzufügen kann
 Ihre Organisation hostet [Lolly Work](https://github.com/lolly-tools/lolly-work) neben Lolly und wählt, welche Funktionen sie einschaltet:

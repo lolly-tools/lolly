@@ -45,7 +45,7 @@ Eine Eventmanagerin will an drei Tagen im Jahr das Event-Postfach und die Event-
 ::: details Profile in einer Organisation mit Lolly Work
 Wenn Sie sich am [Lolly einer Organisation](/info/organisation.html) anmelden, kann Lolly Work verifizierte Profilfelder von seinem Identitätsanbieter liefern und Felder oder Einstellungen nach der Richtlinie der Organisation festlegen. Ein verwaltetes Feld ist in der App gekennzeichnet.
 
-Diese Anmeldung steuert auch den Zugriff auf gemeinsame Projekte und Assets. Eine Teamprofil-Datei bleibt eine lokale Datei: Sie gewährt keine Mitgliedschaft in der Organisation und ersetzt kein Lolly Work-Konto. **Use my details to create** steuert den Urheberhinweis in Ihren Exporten, nicht die Anmelde- oder Audit-Aufzeichnungen der Organisation. Siehe [Datenschutz](/info/privacy.html#organisation-services-with-lolly-work).
+Diese Anmeldung steuert auch den Zugriff auf gemeinsame Projekte und Assets. Eine Teamprofil-Datei bleibt eine lokale Datei: Sie gewährt keine Mitgliedschaft in der Organisation und ersetzt kein Work-Konto. **Use my details to create** steuert den Urheberhinweis in Ihren Exporten, nicht die Anmelde- oder Audit-Aufzeichnungen der Organisation. Siehe [Datenschutz](/info/privacy.html#organisation-services-with-lolly-work).
 :::
 
 ## Mehrere behalten, eines nutzen

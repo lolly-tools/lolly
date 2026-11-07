@@ -14,7 +14,7 @@ Dacă echipa ta proiectează în Penpot, Lolly lucrează alături de Penpot: amb
 
 ## Cum face Lolly sarcina comună
 
-Canvasul Lolly Design din Lolly face resurse editabile și poate transforma un layout într-un [instrument cu reguli](/info/create-a-tool.html). Același instrument randează în browser, în aplicația desktop sau în CLI și face variante din date. Lolly de sine stătător randează și semnează pe dispozitiv, fără cont sau server. Un [collab privat](/info/collaborate.html) împerechează direct două dispozitive.
+Canvasul Lolly Design face resurse editabile și poate transforma un layout într-un [instrument cu reguli](/info/create-a-tool.html). Același instrument randează în browser, în aplicația desktop sau în CLI și face variante din date. Lolly de sine stătător randează și semnează pe dispozitiv, fără cont sau server. Un [collab privat](/info/collaborate.html) împerechează direct două dispozitive.
 
 ## Cu o organizație
 

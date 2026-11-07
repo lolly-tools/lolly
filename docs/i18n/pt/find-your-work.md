@@ -26,7 +26,7 @@ Em um [collab de trabalho](/info/collaborate.html#work-collabs-with-lolly-work-o
 
 1. Pressione **Home**, no canto superior esquerdo da ferramenta.
 2. Abra a aba **Projetos** no topo da tela inicial (o ícone de pasta no celular).
-3. Olhe na primeira tela. O que o Lolly Work salvou em **Minha biblioteca** está lá, e cada projeto é uma pasta. Para buscar em todas as pastas de uma vez, digite em **Buscar em todos os projetos…**, no rodapé da tela.
+3. Olhe na primeira tela. Tudo o que você salvou em **Minha biblioteca** está lá, e cada projeto é uma pasta. Para buscar em todas as pastas de uma vez, digite em **Buscar em todos os projetos…**, no rodapé da tela.
 
 Um item recebe o nome do arquivo que você digitou no painel de exportação ou o da ferramenta, como **QR Code**, se você não digitou nenhum. Abra o item e todas as configurações voltam, prontas para mudar e exportar de novo. Para manter o trabalho novo assim, veja [Saving & continuing](/info/using.html#saving-continuing).
 

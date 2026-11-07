@@ -83,8 +83,7 @@ The assumptions Lolly is built on (render on your own device, keep your files yo
 Lolly ships as openSUSE RPMs and a Flatpak and registers with the desktop's own search, so the platform that taught this project its values is also one of its homes.
 
 <!--lb:penpot inkscape blender-->
-<a id="design-in-the-open-penpot-inkscape-and-blender"></a>
-## Lolly Design in the open: Penpot, Inkscape and Blender
+## Design in the open: Penpot, Inkscape and Blender
 
 For most of the history of desktop computing, the tools professional designers and animators worked in were closed and expensive. Three open projects did a great deal to change that.
 
@@ -200,7 +199,7 @@ The story above had room for only some of the names. Here are the rest, grouped 
 - **[jsPDF](https://github.com/parallax/jsPDF)** (James Hall) has been writing PDFs inside browsers for a decade and a half; with **[pdf-lib](https://pdf-lib.js.org/)** (Andrew Dillon) beside it, Lolly writes, reads, merges and strips PDFs on your device.
 - **[DOMPurify](https://github.com/cure53/DOMPurify)**, from Mario Heiderich and the security firm Cure53, has been the standard answer to HTML sanitisation since 2014; every SVG and HTML upload passes through it before touching the page.
 - **[resvg](https://github.com/linebender/resvg)** (Yevhenii Reizner) rasterises SVG in the command line's fast tier. **[libheif](https://github.com/strukturag/libheif)** (Dirk Farin) opens iPhone HEIC photos. **[three.js](https://threejs.org/)**, started by Ricardo Cabello in 2010, renders the 3D and Lolly Flythrough tools. **[lottie-web](https://github.com/airbnb/lottie-web)** plays Lottie animations, **gifenc** (Matt DesLauriers) encodes animated GIFs, and **html2canvas** and **dom-to-image-more** are the raster capture fallbacks.
-- The Gradient tool's flow mode runs **[webgl-noise](https://github.com/ashima/webgl-noise)**, Ian McEwan and Stefan Gustavson's simplex noise shaders from 2011; the Backdrop tool runs **[Paper Shaders](https://github.com/paper-design/shaders)** by Paper Lolly Design; the Lolly Darkroom's film looks come from **FilmSim**, Sébastien Guyader's public-domain emulations of classic film stocks.
+- The Gradient tool's flow mode runs **[webgl-noise](https://github.com/ashima/webgl-noise)**, Ian McEwan and Stefan Gustavson's simplex noise shaders from 2011; the Backdrop tool runs **[Paper Shaders](https://github.com/paper-design/shaders)** by Paper Design; the Lolly Darkroom's film looks come from **FilmSim**, Sébastien Guyader's public-domain emulations of classic film stocks.
 
 :::
 

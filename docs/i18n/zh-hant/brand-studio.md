@@ -305,7 +305,7 @@ Token 是設計系統背後的具名值：色彩、字型、標誌、圓角與�
 
 **Rules** 讓你的品牌選擇發揮作用：人們可以更改什麼、什麼保持固定，以及 Lolly 能檢查什麼。
 
-![Lolly Demo 上的 Rules：四條內部規則，各自標示 Checked in Lolly Design 以及 Required 或 Advisory，接著是 Try your design system in use 與已準備好渲染的範例](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dusage&width=1440&height=1200&dpi=192&waitMs=2400&cropSelector=%23start-panel-usage&format=svg&walker=1&dark=1&filename=bs-usage-rules)
+![Lolly Demo 上的 Rules：四條內部規則，各自標示 Checked in Design 以及 Required 或 Advisory，接著是 Try your design system in use 與已準備好渲染的範例](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dusage&width=1440&height=1200&dpi=192&waitMs=2400&cropSelector=%23start-panel-usage&format=svg&walker=1&dark=1&filename=bs-usage-rules)
 
 **Brand rules** 列出你的規則。**Add rule**（或 **Add your first rule**）開啟一個簡短的表單：
 
@@ -316,7 +316,7 @@ Token 是設計系統背後的具名值：色彩、字型、標誌、圓角與�
 
 核准記錄的是你在這部裝置上自己的決定。已核准的必要規則會約束可重複使用的海報，而檢查只涵蓋範例 PNG；它們不會更改任何其他工具。
 
-設計系統在其 token 檔案中帶來的規則，例如核准的色彩搭配、文字粗細與對齊，或每個表面使用的標誌，會在這裡列為 **Checked in Lolly Design**。Lolly Design 會在匯出面板的 **Before you export** 卡片中逐圖層檢查它們，而 `lolly check` 對已儲存的 Lolly Design 文件做同樣的事（[匯出之前](/info/design.html#before-you-export)）。這個建置版本沒有檢查器的規則，會依提供的內容保留，並標示為 **Unchecked**。
+設計系統在其 token 檔案中帶來的規則，例如核准的色彩搭配、文字粗細與對齊，或每個表面使用的標誌，會在這裡列為 **Checked in Design**。Lolly Design 會在匯出面板的 **Before you export** 卡片中逐圖層檢查它們，而 `lolly check` 對已儲存的 Lolly Design 文件做同樣的事（[匯出之前](/info/design.html#before-you-export)）。這個建置版本沒有檢查器的規則，會依提供的內容保留，並標示為 **Unchecked**。
 
 Lolly Demo 帶有四條核准的內部規則。標題絕不使用全大寫：這條規則是必要的，所以 `lolly check` 會把全大寫的標題回報為錯誤。其他三條是建議性的。內文靠左對齊。主要標記放在淺色表面，反白標記放在深色表面。虛線代表放置在此。
 

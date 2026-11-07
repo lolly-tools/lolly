@@ -305,7 +305,7 @@ Thả các tệp mà thương hiệu của bạn giữ, ngoài logo: tệp **vec
 
 **Rules** đưa các lựa chọn của thương hiệu vào làm việc: người dùng được đổi gì, gì cố định và Lolly kiểm tra được gì.
 
-![Rules trên Lolly Demo: bốn quy tắc nội bộ, mỗi quy tắc được đánh dấu Checked in Lolly Design và Required hoặc Advisory, rồi Try your design system in use với các ví dụ sẵn sàng kết xuất](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dusage&width=1440&height=1200&dpi=192&waitMs=2400&cropSelector=%23start-panel-usage&format=svg&walker=1&dark=1&filename=bs-usage-rules)
+![Rules trên Lolly Demo: bốn quy tắc nội bộ, mỗi quy tắc được đánh dấu Checked in Design và Required hoặc Advisory, rồi Try your design system in use với các ví dụ sẵn sàng kết xuất](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dusage&width=1440&height=1200&dpi=192&waitMs=2400&cropSelector=%23start-panel-usage&format=svg&walker=1&dark=1&filename=bs-usage-rules)
 
 **Brand rules** liệt kê các quy tắc của bạn. **Add rule** (hoặc **Add your first rule**) mở một biểu mẫu ngắn:
 
@@ -316,7 +316,7 @@ Thả các tệp mà thương hiệu của bạn giữ, ngoài logo: tệp **vec
 
 Phê duyệt ghi lại quyết định của riêng bạn trên thiết bị này. Các quy tắc bắt buộc đã duyệt ràng buộc áp phích dùng lại được, và các kiểm tra chỉ bao gồm các PNG ví dụ; chúng không đổi công cụ nào khác.
 
-Các quy tắc mà một hệ thống thiết kế mang theo trong tệp token của nó, như cặp màu đã duyệt, độ đậm và căn lề của chữ hay một logo cho mỗi bề mặt, được liệt kê ở đây là **Checked in Lolly Design**. Lolly Design kiểm tra chúng theo từng lớp trong thẻ **Before you export** của bảng xuất, và `lolly check` làm tương tự cho một tài liệu Lolly Design đã lưu ([Before you export](/info/design.html#before-you-export)). Một quy tắc mà bản dựng này không có bộ kiểm tra được giữ nguyên như được cung cấp và đánh dấu **Unchecked**.
+Các quy tắc mà một hệ thống thiết kế mang theo trong tệp token của nó, như cặp màu đã duyệt, độ đậm và căn lề của chữ hay một logo cho mỗi bề mặt, được liệt kê ở đây là **Checked in Design**. Lolly Design kiểm tra chúng theo từng lớp trong thẻ **Before you export** của bảng xuất, và `lolly check` làm tương tự cho một tài liệu Lolly Design đã lưu ([Before you export](/info/design.html#before-you-export)). Một quy tắc mà bản dựng này không có bộ kiểm tra được giữ nguyên như được cung cấp và đánh dấu **Unchecked**.
 
 Lolly Demo mang theo bốn quy tắc nội bộ đã duyệt. Tiêu đề không bao giờ viết hoa toàn bộ: quy tắc đó là bắt buộc, nên `lolly check` báo một tiêu đề viết hoa toàn bộ là lỗi. Ba quy tắc còn lại chỉ mang tính khuyến nghị. Văn bản chính căn trái. Dấu hiệu chính đặt trên nền sáng và dấu hiệu đảo màu trên nền tối. Đường nét đứt nghĩa là thả vào đây.
 

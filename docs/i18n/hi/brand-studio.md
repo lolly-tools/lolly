@@ -305,7 +305,7 @@ colourway वाला सिस्टम पुनर्निर्माण �
 
 **Rules** आपके ब्रांड के चुनावों को काम पर लगाता है: लोग क्या बदल सकते हैं, क्या तय रहता है और Lolly क्या जाँच सकता है।
 
-![Lolly Demo पर Rules: चार संगठन नियम, हर एक Checked in Lolly Design और Required या Advisory चिह्नित, फिर Try your design system in use अपने उदाहरणों के साथ, जो रेंडर के लिए तैयार हैं](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dusage&width=1440&height=1200&dpi=192&waitMs=2400&cropSelector=%23start-panel-usage&format=svg&walker=1&dark=1&filename=bs-usage-rules)
+![Lolly Demo पर Rules: चार संगठन नियम, हर एक Checked in Design और Required या Advisory चिह्नित, फिर Try your design system in use अपने उदाहरणों के साथ, जो रेंडर के लिए तैयार हैं](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dusage&width=1440&height=1200&dpi=192&waitMs=2400&cropSelector=%23start-panel-usage&format=svg&walker=1&dark=1&filename=bs-usage-rules)
 
 **Brand rules** आपके नियम सूचीबद्ध करता है। **Add rule** (या **Add your first rule**) छोटा फ़ॉर्म खोलता है:
 
@@ -316,7 +316,7 @@ colourway वाला सिस्टम पुनर्निर्माण �
 
 स्वीकृति इस डिवाइस पर आपका अपना निर्णय दर्ज करती है। स्वीकृत आवश्यक नियम दोबारा उपयोग होने वाले पोस्टर को बाँधते हैं, और जाँचें केवल उदाहरण PNG कवर करती हैं; वे किसी और टूल को नहीं बदलतीं।
 
-जो नियम design system अपनी टोकन फ़ाइल में लाता है, जैसे स्वीकृत रंग जोड़ियाँ, टेक्स्ट वज़न और संरेखण या प्रति सतह लोगो, यहाँ **Checked in Lolly Design** के रूप में सूचीबद्ध होते हैं। Lolly Design उन्हें एक्सपोर्ट पैनल के **Before you export** कार्ड में परत-दर-परत जाँचता है, और `lolly check` सहेजे Lolly Design दस्तावेज़ के लिए वही करता है ([Before you export](/info/design.html#before-you-export))। जिस नियम के लिए इस बिल्ड में चेकर नहीं है वह जैसा दिया गया वैसा रखा जाता है और **Unchecked** चिह्नित होता है।
+जो नियम design system अपनी टोकन फ़ाइल में लाता है, जैसे स्वीकृत रंग जोड़ियाँ, टेक्स्ट वज़न और संरेखण या प्रति सतह लोगो, यहाँ **Checked in Design** के रूप में सूचीबद्ध होते हैं। Lolly Design उन्हें एक्सपोर्ट पैनल के **Before you export** कार्ड में परत-दर-परत जाँचता है, और `lolly check` सहेजे Lolly Design दस्तावेज़ के लिए वही करता है ([Before you export](/info/design.html#before-you-export))। जिस नियम के लिए इस बिल्ड में चेकर नहीं है वह जैसा दिया गया वैसा रखा जाता है और **Unchecked** चिह्नित होता है।
 
 Lolly Demo चार स्वीकृत संगठन नियम लाता है। शीर्षक कभी कैपिटल में नहीं लिखे जाते: वह नियम आवश्यक है, इसलिए `lolly check` कैपिटल वाले शीर्षक को त्रुटि बताता है। बाक़ी तीन सलाहकारी हैं। मुख्य टेक्स्ट बाईं ओर संरेखित रहता है। प्राथमिक चिह्न हल्की सतहों पर और रिवर्स चिह्न गहरी सतहों पर बैठते हैं। बिंदीदार रेखाओं का मतलब है यहाँ छोड़ें।
 

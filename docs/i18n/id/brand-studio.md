@@ -305,7 +305,7 @@ Letakkan file yang disimpan brand Anda, selain logo: file **vector**, **image**,
 
 **Rules** menjalankan pilihan brand Anda: apa yang boleh diubah orang, apa yang tetap, dan apa yang dapat diperiksa Lolly.
 
-![Rules pada Lolly Demo: empat aturan baku, masing-masing ditandai Checked in Lolly Design dan Diperlukan atau Advisory, lalu Coba sistem desain Anda dalam penggunaan dengan contoh-contohnya siap dirender](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dusage&width=1440&height=1200&dpi=192&waitMs=2400&cropSelector=%23start-panel-usage&format=svg&walker=1&dark=1&filename=bs-usage-rules)
+![Rules pada Lolly Demo: empat aturan baku, masing-masing ditandai Checked in Design dan Diperlukan atau Advisory, lalu Coba sistem desain Anda dalam penggunaan dengan contoh-contohnya siap dirender](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dusage&width=1440&height=1200&dpi=192&waitMs=2400&cropSelector=%23start-panel-usage&format=svg&walker=1&dark=1&filename=bs-usage-rules)
 
 **Brand rules** mencantumkan aturan Anda. **Add rule** (atau **Add your first rule**) membuka formulir singkat:
 
@@ -316,7 +316,7 @@ Letakkan file yang disimpan brand Anda, selain logo: file **vector**, **image**,
 
 Persetujuan mencatat keputusan Anda sendiri di perangkat ini. Aturan wajib yang disetujui membatasi poster yang dapat dipakai ulang, dan pemeriksaan hanya mencakup PNG contoh; tidak mengubah alat lain.
 
-Aturan yang dibawa design system dalam file tokennya, seperti pasangan warna yang disetujui, bobot dan perataan teks, atau satu logo per permukaan, dicantumkan di sini sebagai **Checked in Lolly Design**. Lolly Design memeriksanya lapisan demi lapisan di kartu **Sebelum Anda mengekspor** pada panel ekspor, dan `lolly check` melakukan hal yang sama untuk dokumen Lolly Design yang tersimpan ([Before you export](/info/design.html#before-you-export)). Aturan yang build ini tidak memiliki pemeriksanya disimpan seperti yang diberikan dan ditandai **Belum diperiksa**.
+Aturan yang dibawa design system dalam file tokennya, seperti pasangan warna yang disetujui, bobot dan perataan teks, atau satu logo per permukaan, dicantumkan di sini sebagai **Checked in Design**. Lolly Design memeriksanya lapisan demi lapisan di kartu **Sebelum Anda mengekspor** pada panel ekspor, dan `lolly check` melakukan hal yang sama untuk dokumen Lolly Design yang tersimpan ([Before you export](/info/design.html#before-you-export)). Aturan yang build ini tidak memiliki pemeriksanya disimpan seperti yang diberikan dan ditandai **Belum diperiksa**.
 
 Lolly Demo membawa empat aturan baku yang disetujui. Judul tidak pernah ditulis dengan huruf kapital: aturan itu wajib, jadi `lolly check` melaporkan judul berhuruf kapital sebagai kesalahan. Tiga lainnya bersifat saran. Teks isi rata kiri. Tanda utama berada di permukaan terang dan tanda terbalik di permukaan gelap. Garis putus-putus berarti lepaskan di sini.
 

@@ -87,8 +87,7 @@ An automated test in the repository (`pnpm test`) backs every cryptographic clai
 
 The cryptography and parsers have not been independently audited. Where a contract calls for certified assurance, deploy Lolly as one layer of defence in depth.
 
-<a id="design-boundaries"></a>
-## Lolly Design boundaries
+## Design boundaries
 
 - **Content Credentials are tamper-*evident*, not tamper-*proof*.** They detect alteration cryptographically and offline. They do not prevent it, and that is what makes fully offline verification possible.
 - **The on-device signer is anonymous by design** unless you enrol a verified identity. No real credential ever leaves the device.

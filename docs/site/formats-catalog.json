@@ -907,7 +907,7 @@
         "audio",
         "lossy"
       ],
-      "desc": "The everywhere audio format for music and voice: compressed to a small file that plays in any app or device. Lolly's Lolly Voice Recorder saves your mic take as MP3 by default (transcoded on your device), and MP3 audio you bring in can become the music bed under a video.",
+      "desc": "The everywhere audio format for music and voice: compressed to a small file that plays in any app or device. Lolly Voice Recorder saves your mic take as MP3 by default (transcoded on your device), and MP3 audio you bring in can become the music bed under a video.",
       "metadata": {
         "reads": [],
         "writes": [
@@ -929,7 +929,7 @@
         "lossy",
         "provenance"
       ],
-      "desc": "An audio-only MP4 file, usually holding AAC-encoded sound, the format Apple devices and many browsers record natively. It sounds a little better than MP3 at the same size. Lolly's Lolly Voice Recorder can save your take as M4A, and imported M4A audio can drive a video's music bed. As an MP4-family file it carries a Content Credential over the same binding as MP4 - so a synthetic or AI-voiced clip stays attributable.",
+      "desc": "An audio-only MP4 file, usually holding AAC-encoded sound, the format Apple devices and many browsers record natively. It sounds a little better than MP3 at the same size. Lolly Voice Recorder can save your take as M4A, and imported M4A audio can drive a video's music bed. As an MP4-family file it carries a Content Credential over the same binding as MP4 - so a synthetic or AI-voiced clip stays attributable.",
       "metadata": {
         "reads": [
           "xmp"

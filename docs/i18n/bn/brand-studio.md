@@ -305,7 +305,7 @@ On primary প্রাইমারি থেকে উদ্ভূত, **Derive
 
 **Rules** আপনার ব্র্যান্ডের পছন্দকে কাজে লাগায়: মানুষ কী বদলাতে পারে, কী স্থির থাকে এবং Lolly কী যাচাই করতে পারে।
 
-![Lolly Demo-তে Rules: চারটি house rule, প্রতিটি Checked in Lolly Design এবং Required বা Advisory চিহ্নিত, তারপর Try your design system in use, রেন্ডারের জন্য প্রস্তুত উদাহরণসহ](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dusage&width=1440&height=1200&dpi=192&waitMs=2400&cropSelector=%23start-panel-usage&format=svg&walker=1&dark=1&filename=bs-usage-rules)
+![Lolly Demo-তে Rules: চারটি house rule, প্রতিটি Checked in Design এবং Required বা Advisory চিহ্নিত, তারপর Try your design system in use, রেন্ডারের জন্য প্রস্তুত উদাহরণসহ](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dusage&width=1440&height=1200&dpi=192&waitMs=2400&cropSelector=%23start-panel-usage&format=svg&walker=1&dark=1&filename=bs-usage-rules)
 
 **Brand rules** আপনার নিয়ম তালিকাভুক্ত করে। **Add rule** (বা **Add your first rule**) একটি ছোট ফর্ম খোলে:
 
@@ -316,7 +316,7 @@ On primary প্রাইমারি থেকে উদ্ভূত, **Derive
 
 অনুমোদন এই ডিভাইসে আপনার নিজের সিদ্ধান্ত রেকর্ড করে। অনুমোদিত আবশ্যক নিয়ম পুনর্ব্যবহারযোগ্য পোস্টারকে বাঁধে, এবং যাচাই কেবল উদাহরণ PNG ধরে; এগুলো অন্য কোনো টুল বদলায় না।
 
-ডিজাইন সিস্টেম তার টোকেন ফাইলে যে নিয়ম নিয়ে আসে, যেমন অনুমোদিত রঙের জোড়া, টেক্সটের ওজন ও সারিবদ্ধতা বা প্রতিটি সারফেসের জন্য একটি লোগো, সেগুলো এখানে **Checked in Lolly Design** হিসেবে তালিকাভুক্ত হয়। Lolly Design সেগুলো স্তর ধরে যাচাই করে এক্সপোর্ট প্যানেলের **Before you export** কার্ডে, আর `lolly check` একটি সংরক্ষিত Lolly Design নথির জন্য একই কাজ করে ([Before you export](/info/design.html#before-you-export))। যে নিয়মের জন্য এই বিল্ডে কোনো চেকার নেই তা যেমন দেওয়া হয়েছে তেমনই রাখা হয় এবং **Unchecked** চিহ্নিত হয়।
+ডিজাইন সিস্টেম তার টোকেন ফাইলে যে নিয়ম নিয়ে আসে, যেমন অনুমোদিত রঙের জোড়া, টেক্সটের ওজন ও সারিবদ্ধতা বা প্রতিটি সারফেসের জন্য একটি লোগো, সেগুলো এখানে **Checked in Design** হিসেবে তালিকাভুক্ত হয়। Lolly Design সেগুলো স্তর ধরে যাচাই করে এক্সপোর্ট প্যানেলের **Before you export** কার্ডে, আর `lolly check` একটি সংরক্ষিত Lolly Design নথির জন্য একই কাজ করে ([Before you export](/info/design.html#before-you-export))। যে নিয়মের জন্য এই বিল্ডে কোনো চেকার নেই তা যেমন দেওয়া হয়েছে তেমনই রাখা হয় এবং **Unchecked** চিহ্নিত হয়।
 
 Lolly Demo চারটি অনুমোদিত house rule নিয়ে আসে। শিরোনাম কখনও বড় হাতের অক্ষরে সাজানো হয় না: সেই নিয়মটি আবশ্যক, তাই `lolly check` বড় হাতের শিরোনামকে ত্রুটি হিসেবে জানায়। বাকি তিনটি পরামর্শমূলক। মূল লেখা বাঁ-সারিবদ্ধ। প্রাইমারি মার্ক হালকা সারফেসে বসে আর রিভার্স মার্ক গাঢ়গুলোতে। ড্যাশ-দাগের রেখার মানে এখানে ফেলুন।
 

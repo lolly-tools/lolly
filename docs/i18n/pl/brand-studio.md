@@ -305,7 +305,7 @@ Upuść pliki, które przechowuje Twoja marka, poza logo: pliki **vector**, **im
 
 **Rules** wprzęga wybory Twojej marki do pracy: co ludzie mogą zmienić, co zostaje stałe i co Lolly może sprawdzić.
 
-![Rules w Lolly Demo: cztery reguły marki, każda oznaczona Checked in Lolly Design oraz Required lub Advisory, potem Try your design system in use z gotowymi do wyrenderowania przykładami](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dusage&width=1440&height=1200&dpi=192&waitMs=2400&cropSelector=%23start-panel-usage&format=svg&walker=1&dark=1&filename=bs-usage-rules)
+![Rules w Lolly Demo: cztery reguły marki, każda oznaczona Checked in Design oraz Required lub Advisory, potem Try your design system in use z gotowymi do wyrenderowania przykładami](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dusage&width=1440&height=1200&dpi=192&waitMs=2400&cropSelector=%23start-panel-usage&format=svg&walker=1&dark=1&filename=bs-usage-rules)
 
 **Brand rules** wymienia Twoje reguły. **Add rule** (lub **Add your first rule**) otwiera krótki formularz:
 
@@ -316,7 +316,7 @@ Upuść pliki, które przechowuje Twoja marka, poza logo: pliki **vector**, **im
 
 Zatwierdzenie zapisuje Twoją własną decyzję na tym urządzeniu. Zatwierdzone reguły wymagane ograniczają plakat wielokrotnego użytku, a kontrole obejmują tylko przykładowe PNG; nie zmieniają żadnego innego narzędzia.
 
-Reguły, które system projektowy niesie ze sobą w pliku tokenów, takie jak zatwierdzone pary kolorów, grubość i wyrównanie tekstu albo logo dla każdej powierzchni, są tu wymienione jako **Checked in Lolly Design**. Lolly Design sprawdza je warstwa po warstwie na karcie **Przed eksportem** w panelu eksportu, a `lolly check` robi to samo dla zapisanego dokumentu Lolly Design ([Before you export](/info/design.html#before-you-export)). Reguła, do której ta kompilacja nie ma sprawdzania, jest zachowana tak, jak ją dostarczono, i oznaczona jako **Niesprawdzone**.
+Reguły, które system projektowy niesie ze sobą w pliku tokenów, takie jak zatwierdzone pary kolorów, grubość i wyrównanie tekstu albo logo dla każdej powierzchni, są tu wymienione jako **Checked in Design**. Lolly Design sprawdza je warstwa po warstwie na karcie **Przed eksportem** w panelu eksportu, a `lolly check` robi to samo dla zapisanego dokumentu Lolly Design ([Before you export](/info/design.html#before-you-export)). Reguła, do której ta kompilacja nie ma sprawdzania, jest zachowana tak, jak ją dostarczono, i oznaczona jako **Niesprawdzone**.
 
 Lolly Demo przynosi cztery zatwierdzone reguły marki. Nagłówki nigdy nie są składane wersalikami: ta reguła jest wymagana, więc `lolly check` zgłasza nagłówek z wersalików jako błąd. Pozostałe trzy są doradcze. Tekst podstawowy jest wyrównany do lewej. Znaki podstawowe leżą na jasnych powierzchniach, a odwrócone na ciemnych. Linie przerywane oznaczają: upuść tutaj.
 

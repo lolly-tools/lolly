@@ -305,7 +305,7 @@ Slipp filene merkevaren din beholder, bortsett fra logoer: **vector**-, **image*
 
 **Regler** setter merkevarens valg i arbeid: hva folk kan endre, hva som er fast og hva Lolly kan sjekke.
 
-![Regler på Lolly Demo: fire interne regler, hver merket Sjekket i Lolly Design og Obligatorisk eller Veiledende, så Prøv designsystemet ditt i bruk med eksemplene klare til å gjengis](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dusage&width=1440&height=1200&dpi=192&waitMs=2400&cropSelector=%23start-panel-usage&format=svg&walker=1&dark=1&filename=bs-usage-rules)
+![Regler på Lolly Demo: fire interne regler, hver merket Sjekket i Design og Obligatorisk eller Veiledende, så Prøv designsystemet ditt i bruk med eksemplene klare til å gjengis](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dusage&width=1440&height=1200&dpi=192&waitMs=2400&cropSelector=%23start-panel-usage&format=svg&walker=1&dark=1&filename=bs-usage-rules)
 
 **Brand rules** lister reglene dine. **Add rule** (eller **Add your first rule**) åpner et kort skjema:
 
@@ -316,7 +316,7 @@ Slipp filene merkevaren din beholder, bortsett fra logoer: **vector**-, **image*
 
 Godkjenning registrerer din egen avgjørelse på denne enheten. Godkjente påkrevde regler begrenser den gjenbrukbare plakaten, og kontrollene dekker bare eksempel-PNG-ene; de endrer ingen andre verktøy.
 
-Regler et designsystem har med seg i token-filen sin, som godkjente fargepar, tekstvekt og justering eller en logo per flate, står oppført her som **Sjekket i Lolly Design**. Lolly Design sjekker dem lag for lag i kortet **Før du eksporterer** i eksportpanelet, og `lolly check` gjør det samme for et lagret Lolly Design-dokument ([Before you export](/info/design.html#before-you-export)). En regel dette bygget ikke har noen sjekker for, beholdes som oppgitt og merkes **Ikke sjekket**.
+Regler et designsystem har med seg i token-filen sin, som godkjente fargepar, tekstvekt og justering eller en logo per flate, står oppført her som **Sjekket i Design**. Lolly Design sjekker dem lag for lag i kortet **Før du eksporterer** i eksportpanelet, og `lolly check` gjør det samme for et lagret Lolly Design-dokument ([Before you export](/info/design.html#before-you-export)). En regel dette bygget ikke har noen sjekker for, beholdes som oppgitt og merkes **Ikke sjekket**.
 
 Lolly Demo har med fire godkjente interne regler. Overskrifter settes aldri med store bokstaver: den regelen er obligatorisk, så `lolly check` rapporterer en overskrift med store bokstaver som en feil. De tre andre er veiledende. Brødtekst er venstrejustert. Primærmerker ligger på lyse flater og reverserte merker på mørke. Stiplede linjer betyr slipp her.
 

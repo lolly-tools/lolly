@@ -305,7 +305,7 @@ Släpp filerna som ditt varumärke behåller, förutom logotyper: **vector**-, *
 
 **Rules** sätter ditt varumärkes val i arbete: vad folk kan ändra, vad som förblir fast och vad Lolly kan kontrollera.
 
-![Rules på Lolly Demo: fyra husregler, var och en märkt Checked in Lolly Design och Obligatoriskt eller Rådgivande, sedan Try your design system in use med sina exempel redo att renderas](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dusage&width=1440&height=1200&dpi=192&waitMs=2400&cropSelector=%23start-panel-usage&format=svg&walker=1&dark=1&filename=bs-usage-rules)
+![Rules på Lolly Demo: fyra husregler, var och en märkt Checked in Design och Obligatoriskt eller Rådgivande, sedan Try your design system in use med sina exempel redo att renderas](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dusage&width=1440&height=1200&dpi=192&waitMs=2400&cropSelector=%23start-panel-usage&format=svg&walker=1&dark=1&filename=bs-usage-rules)
 
 **Brand rules** listar dina regler. **Add rule** (eller **Add your first rule**) öppnar ett kort formulär:
 
@@ -316,7 +316,7 @@ Släpp filerna som ditt varumärke behåller, förutom logotyper: **vector**-, *
 
 Godkännande registrerar ditt eget beslut på den här enheten. Godkända obligatoriska regler begränsar den återanvändbara affischen, och kontroller täcker bara exempel-PNG:erna; de ändrar inget annat verktyg.
 
-Regler som ett designsystem har med sig i sin tokenfil, som godkända färgpar, textvikt och justering eller en logotyp per yta, listas här som **Checked in Lolly Design**. Lolly Design kontrollerar dem lager för lager i exportpanelens kort **Innan du exporterar**, och `lolly check` gör detsamma för ett sparat Lolly Design-dokument ([Before you export](/info/design.html#before-you-export)). En regel som det här bygget saknar kontroll för behålls som den levererades och märks **Inte kontrollerad**.
+Regler som ett designsystem har med sig i sin tokenfil, som godkända färgpar, textvikt och justering eller en logotyp per yta, listas här som **Checked in Design**. Lolly Design kontrollerar dem lager för lager i exportpanelens kort **Innan du exporterar**, och `lolly check` gör detsamma för ett sparat Lolly Design-dokument ([Before you export](/info/design.html#before-you-export)). En regel som det här bygget saknar kontroll för behålls som den levererades och märks **Inte kontrollerad**.
 
 Lolly Demo har med sig fyra godkända husregler. Rubriker sätts aldrig med versaler: den regeln är obligatorisk, så `lolly check` rapporterar en rubrik med versaler som ett fel. De andra tre är rådgivande. Brödtext är vänsterjusterad. Primärmärken ligger på ljusa ytor och omvända märken på mörka. Streckade linjer betyder släpp här.
 

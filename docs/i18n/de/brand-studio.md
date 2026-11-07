@@ -305,7 +305,7 @@ Legen Sie die Dateien ab, die Ihre Marke außer Logos behält: **vector**-, **im
 
 **Rules** setzt die Entscheidungen Ihrer Marke in Kraft: was Menschen ändern dürfen, was fest bleibt und was Lolly prüfen kann.
 
-![Rules bei Lolly Demo: vier Hausregeln, jede als Checked in Lolly Design und als Required oder Advisory markiert, dann Try your design system in use mit seinen zum Rendern bereiten Beispielen](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dusage&width=1440&height=1200&dpi=192&waitMs=2400&cropSelector=%23start-panel-usage&format=svg&walker=1&dark=1&filename=bs-usage-rules)
+![Rules bei Lolly Demo: vier Hausregeln, jede als Checked in Design und als Required oder Advisory markiert, dann Try your design system in use mit seinen zum Rendern bereiten Beispielen](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dusage&width=1440&height=1200&dpi=192&waitMs=2400&cropSelector=%23start-panel-usage&format=svg&walker=1&dark=1&filename=bs-usage-rules)
 
 **Brand rules** listet Ihre Regeln. **Add rule** (oder **Add your first rule**) öffnet ein kurzes Formular:
 
@@ -316,7 +316,7 @@ Legen Sie die Dateien ab, die Ihre Marke außer Logos behält: **vector**-, **im
 
 Die Freigabe hält Ihre eigene Entscheidung auf diesem Gerät fest. Freigegebene Pflichtregeln beschränken das wiederverwendbare Poster, und Prüfungen betreffen nur die Beispiel-PNGs; sie ändern kein anderes Tool.
 
-Regeln, die ein Designsystem in seiner Token-Datei mitbringt, etwa freigegebene Farbpaarungen, Schriftstärke und Ausrichtung oder ein Logo je Fläche, stehen hier als **Checked in Lolly Design**. Lolly Design prüft sie Ebene für Ebene in der Karte **Before you export** des Export-Panels, und `lolly check` tut dasselbe für ein gespeichertes Lolly-Design-Dokument ([Vor dem Export](/info/design.html#before-you-export)). Eine Regel, für die dieser Build keine Prüfung hat, bleibt wie geliefert erhalten und ist als **Unchecked** markiert.
+Regeln, die ein Designsystem in seiner Token-Datei mitbringt, etwa freigegebene Farbpaarungen, Schriftstärke und Ausrichtung oder ein Logo je Fläche, stehen hier als **Checked in Design**. Lolly Design prüft sie Ebene für Ebene in der Karte **Before you export** des Export-Panels, und `lolly check` tut dasselbe für ein gespeichertes Lolly-Design-Dokument ([Vor dem Export](/info/design.html#before-you-export)). Eine Regel, für die dieser Build keine Prüfung hat, bleibt wie geliefert erhalten und ist als **Unchecked** markiert.
 
 Lolly Demo bringt vier freigegebene Hausregeln mit. Überschriften werden nie in Großbuchstaben gesetzt: Diese Regel ist verpflichtend, daher meldet `lolly check` eine Überschrift in Großbuchstaben als Fehler. Die anderen drei sind beratend. Fließtext ist linksbündig. Primäre Zeichen stehen auf hellen Flächen und umgekehrte auf dunklen. Gestrichelte Linien bedeuten: hier ablegen.
 

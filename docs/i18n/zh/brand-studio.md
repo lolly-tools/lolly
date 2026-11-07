@@ -305,7 +305,7 @@ On primary 由主色派生，显示为 **Derived**，没有选择器。它旁边
 
 **Rules** 让你品牌的选择发挥作用：人们可以更改什么、什么保持固定，以及 Lolly 可以检查什么。
 
-![Lolly Demo 上的 Rules：四条内部规范，各自标有 Checked in Lolly Design 以及 Required 或 Advisory，然后是 Try your design system in use，其示例已准备好渲染](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dusage&width=1440&height=1200&dpi=192&waitMs=2400&cropSelector=%23start-panel-usage&format=svg&walker=1&dark=1&filename=bs-usage-rules)
+![Lolly Demo 上的 Rules：四条内部规范，各自标有 Checked in Design 以及 Required 或 Advisory，然后是 Try your design system in use，其示例已准备好渲染](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dusage&width=1440&height=1200&dpi=192&waitMs=2400&cropSelector=%23start-panel-usage&format=svg&walker=1&dark=1&filename=bs-usage-rules)
 
 **Brand rules** 列出你的规则。**Add rule**（或 **Add your first rule**）会打开一个简短的表单：
 
@@ -316,7 +316,7 @@ On primary 由主色派生，显示为 **Derived**，没有选择器。它旁边
 
 批准记录的是你在这台设备上自己的决定。已批准的必需规则会约束可复用的海报，检查只涵盖示例 PNG；它们不会改变任何其他工具。
 
-设计系统在其令牌文件中自带的规则，例如认可的配色组合、文字字重和对齐，或每个界面使用的徽标，在这里列为 **Checked in Lolly Design**。Lolly Design 会在导出面板的 **Before you export** 卡片中逐图层检查它们，`lolly check` 对已保存的 Lolly Design 文档做同样的事（[导出之前](/info/design.html#before-you-export)）。此版本没有检查器的规则会按提供的原样保留，并标记为 **Unchecked**。
+设计系统在其令牌文件中自带的规则，例如认可的配色组合、文字字重和对齐，或每个界面使用的徽标，在这里列为 **Checked in Design**。Lolly Design 会在导出面板的 **Before you export** 卡片中逐图层检查它们，`lolly check` 对已保存的 Lolly Design 文档做同样的事（[导出之前](/info/design.html#before-you-export)）。此版本没有检查器的规则会按提供的原样保留，并标记为 **Unchecked**。
 
 Lolly Demo 自带四条已批准的内部规范。标题绝不使用大写：这条规则是必需的，所以 `lolly check` 会把大写的标题报告为错误。其余三条是建议性的。正文左对齐。主标志放在浅色表面上，反白标志放在深色表面上。虚线表示放在这里。
 

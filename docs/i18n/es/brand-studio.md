@@ -305,7 +305,7 @@ Suelta los archivos que guarda tu marca, aparte de los logotipos: archivos **vec
 
 **Rules** pone a trabajar las decisiones de tu marca: qué pueden cambiar las personas, qué queda fijo y qué puede comprobar Lolly.
 
-![Rules en Lolly Demo: cuatro normas internas, cada una marcada Checked in Lolly Design y Required o Advisory, y luego Try your design system in use con sus ejemplos listos para renderizar](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dusage&width=1440&height=1200&dpi=192&waitMs=2400&cropSelector=%23start-panel-usage&format=svg&walker=1&dark=1&filename=bs-usage-rules)
+![Rules en Lolly Demo: cuatro normas internas, cada una marcada Checked in Design y Required o Advisory, y luego Try your design system in use con sus ejemplos listos para renderizar](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dusage&width=1440&height=1200&dpi=192&waitMs=2400&cropSelector=%23start-panel-usage&format=svg&walker=1&dark=1&filename=bs-usage-rules)
 
 **Brand rules** enumera tus reglas. **Add rule** (o **Add your first rule**) abre un formulario breve:
 
@@ -316,7 +316,7 @@ Suelta los archivos que guarda tu marca, aparte de los logotipos: archivos **vec
 
 La aprobación registra tu propia decisión en este dispositivo. Las reglas obligatorias aprobadas limitan el póster reutilizable, y las comprobaciones cubren solo los PNG de ejemplo; no cambian ninguna otra herramienta.
 
-Las normas que un design system trae en su archivo de tokens, como emparejamientos de colores aprobados, peso y alineación del texto o un logotipo por superficie, se listan aquí como **Checked in Lolly Design**. Lolly Design las comprueba capa por capa en la tarjeta **Before you export** del panel de exportación, y `lolly check` hace lo mismo con un documento de Lolly Design guardado ([Before you export](/info/design.html#before-you-export)). Una norma para la que esta compilación no tiene comprobador se conserva tal como se suministró y se marca como **Unchecked**.
+Las normas que un design system trae en su archivo de tokens, como emparejamientos de colores aprobados, peso y alineación del texto o un logotipo por superficie, se listan aquí como **Checked in Design**. Lolly Design las comprueba capa por capa en la tarjeta **Before you export** del panel de exportación, y `lolly check` hace lo mismo con un documento de Lolly Design guardado ([Before you export](/info/design.html#before-you-export)). Una norma para la que esta compilación no tiene comprobador se conserva tal como se suministró y se marca como **Unchecked**.
 
 Lolly Demo trae cuatro normas internas aprobadas. Los titulares nunca se componen en mayúsculas: esa norma es obligatoria, así que `lolly check` informa de un titular en mayúsculas como un error. Las otras tres son orientativas. El texto del cuerpo se alinea a la izquierda. Las marcas primarias van sobre superficies claras y las marcas invertidas sobre las oscuras. Las líneas discontinuas significan suelta aquí.
 
