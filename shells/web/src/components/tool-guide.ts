@@ -67,6 +67,7 @@ export function guideRowsHtml(rows: readonly ToolGuideRow[], heading: boolean): 
       ${heading ? `<h3 class="tool-guide-docs-title">${escape(title)}</h3>` : ''}
       <ul class="tool-guide-docs-list">${rows.map(row => {
         const { title: name, page } = toolGuideLabel(row);
+        // nosemgrep: lolly-href-escape-is-not-scheme-validation - toolGuideHref() always starts '#/docs/' (docsAppHref over a page path), so no scheme can arrive
         return `<li><a class="tool-guide-doc" href="${escape(toolGuideHref(row))}">${icon('document', { className: 'tool-guide-doc-icon' })}<span class="tool-guide-doc-text"><span class="tool-guide-doc-title">${escape(name)}</span>${page ? `<span class="tool-guide-doc-page">${escape(page)}</span>` : ''}</span></a></li>`;
       }).join('')}</ul>
     </nav>`;
