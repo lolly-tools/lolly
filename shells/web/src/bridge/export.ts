@@ -33,7 +33,7 @@ import { suspendNodeRasters, drainNodeRasters } from '../lib/clip-thumbs.ts';
 import { subtreePaintsNothing } from './export-pdf-leaf.ts';
 import { canvasPicture, imageDims, imageForPdf } from './export-pdf-picture.ts';
 import { pageFitRegion } from './export-page-fit.ts';
-import { liveOrigin, originNow, type Origin } from './export-origin.ts';
+import { liveOrigin, type Origin } from './export-origin.ts';
 import { videoMimeCandidates, AUDIO_FRAME_HEADROOM, videoBitrate, videoFramePlan, bppForQuality, codecAdjustedBitrate, LIVE_BITS_PER_PIXEL } from './video-mime.ts';
 import { bedDuckEnvelope, scheduleGainEvents } from './audio-envelope.ts';
 import type { ExportAudioMixIn } from './audio-envelope.ts';
@@ -73,7 +73,7 @@ import { paintSvgToPdf, svgFlips, type SvgFlips } from './export-pdf-svg.ts';
 import { backgroundPicture, clipsBackgroundToText, paintLiveRun, paintOutlinedRun, runPaint } from './export-pdf-text-paint.ts';
 import { TEXT_PICTURE_DPI, liveTextWouldGarble, notePicturedText, takePicturedTextNotice, textPicture, undrawableTextError, withMarkLabelPictures } from './export-pdf-text-picture.ts';
 import { applyPdfTextStyle, clipOfRun, pdfPseudoContent } from './export-pdf-pseudo-text.ts';
-import { bidiPiecesAt, lineDirection, runBidi } from './export-text.ts';
+import { lineDirection, measuredLines, runBidi } from './export-text.ts';
 import { hasRtlText } from '@lolly-tools/node-shell/text-bidi';
 import { isOwnProfile, resolveEmbeddedProfile } from '../lib/press-profile-embed.ts';
 import { printSeparation } from '../lib/cmyk-separation.ts';
@@ -83,7 +83,7 @@ import { _host, dropInlinedCredentials, canvasToBlob, imprintCanvas, exportDims,
 import { beginFrameClock, renderFrameAt, endFrameClock, withStillHold, posedFrame } from './frame-clock.ts';
 import { isTopTailStage, isRecordStage } from './export-shared.ts';
 import type { WebHost, ExportOpts, ExportDims, ImprintState, Rgba } from './export-shared.ts';
-import { renderSvgFromHtml, stripCommentNodes, inlineBlobUrlsInEl, inlineSvgFromImg, imprintEmbedCanvas, isPaintSkipped, rotationPivot, rasterizePosedNodeToDataUrl, effectSpillCss, detectUnsupportedCss, rasterizeNodeToDataUrl, firstCssUrl, cssUrlToHref, bakeImageFilter, visualLines, mergeDeco, decoFlags, pdfInlineNonText, type Deco } from './export-svg-walker.ts';
+import { renderSvgFromHtml, stripCommentNodes, inlineBlobUrlsInEl, inlineSvgFromImg, imprintEmbedCanvas, isPaintSkipped, rotationPivot, rasterizePosedNodeToDataUrl, effectSpillCss, detectUnsupportedCss, rasterizeNodeToDataUrl, firstCssUrl, cssUrlToHref, bakeImageFilter, mergeDeco, decoFlags, pdfInlineNonText, type Deco } from './export-svg-walker.ts';
 import { designOpsSvg, renderDesignOpsPdf } from './export-design-ops.ts';
 import { finishPng, durableEmbedCanvas } from './export-raster-finish.ts';
 import { rasterStyle, coverRasterStyle } from './export-raster-style.ts';
@@ -2667,15 +2667,13 @@ async function drawHtmlVectors(pdf: any, node: Element, ox: number, oy: number, 
     // refusal and therefore the same wrong picture (a tilted card as an upright
     // rectangle stretched to its projected bounding box).
     if (rasterFallback && isNonAffineTransform(style.transform)) {
-      // The capture reads the element's box before its first await, so the origin is read now.
-      const shotAt = originNow(rootRect);
       const posedShot = await rasterizePosedNodeToDataUrl(
-        el as HTMLElement, (RASTER_DPI / 72) * Math.max(scaleX, scaleY), imprint, effectSpillCss(style),
+        el as HTMLElement, (RASTER_DPI / 72) * Math.max(scaleX, scaleY), imprint, effectSpillCss(style), rootRect,
       );
       if (posedShot) {
         tiltedRasters++;
         pdf.addImage(posedShot.dataUrl, 'PNG',
-          (posedShot.x - shotAt.left) * scaleX, (posedShot.y - shotAt.top) * scaleY,
+          posedShot.x * scaleX, posedShot.y * scaleY,
           posedShot.w * scaleX, posedShot.h * scaleY);
         return;
       }
@@ -2685,9 +2683,8 @@ async function drawHtmlVectors(pdf: any, node: Element, ox: number, oy: number, 
     const rect = el.getBoundingClientRect();
     if (rect.width < 0.5 || rect.height < 0.5) return;
 
-    const at = originNow(rootRect);
-    const x = (rect.left - at.left) * scaleX;
-    const y = (rect.top  - at.top)  * scaleY;
+    const x = (rect.left - rootRect.left) * scaleX;
+    const y = (rect.top  - rootRect.top)  * scaleY;
     const w = rect.width  * scaleX;
     const h = rect.height * scaleY;
 
@@ -3248,11 +3245,9 @@ async function renderInlineContent(
       let offset = 0;
       for (const seg of segs) {
         if (seg.trim().length > 0) {
-          // Each line's box is read here, before the awaits below, so the origin is read
-          // with it: a root that moves during the walk must not move this line (export-origin.ts).
-          const lines = visualLines(node, offset, offset + seg.length);
-          const linesAt = originNow(rootRect);
-          for (const visual of lines) for (const { line, at } of bidiPiecesAt(node, visual, bidi, linesAt, rootRect)) {
+          // Every line's box is read now, before the awaits below, with the origin of the
+          // same layout: a root that moves during the walk must not move a line (export-origin.ts).
+          for (const { line, at } of measuredLines(node, offset, offset + seg.length, bidi, rootRect)) {
             const r = line.rect;
             if (r.width < 0.5 || r.height < 0.5) continue;
             const x = (r.left - at.left) * scaleX;

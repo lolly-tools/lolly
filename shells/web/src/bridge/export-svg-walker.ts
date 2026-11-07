@@ -794,9 +794,7 @@ async function renderHtmlSvg(node: Element, opts: ExportOpts, textContext: Inlin
   const defs     = document.createElementNS(NS, 'defs');
   svgEl.appendChild(defs);
 
-  // Read afresh each time, so a root the page moves during the walk keeps every box in
-  // its place (export-origin.ts). The walk awaits fonts, shaping and pictures.
-  const rootRect = liveOrigin(node);
+  const rootRect = liveOrigin(node);   // read on each use, so a root moved mid-walk keeps its boxes (export-origin.ts)
   let uid = 0;
   // Per-walk state for the transform neutralise branches below (see
   // bridge/transform-neutralise.ts): which elements are mid-neutralise, and the one
@@ -980,11 +978,8 @@ async function renderHtmlSvg(node: Element, opts: ExportOpts, textContext: Inlin
   async function emitControlPaint(el: Element, _tag: string, style: CSSStyleDeclaration, contentG: Element): Promise<void> {
     const d = describeControl(el);
     if (!d) return;
-    const r = el.getBoundingClientRect();
+    const r = el.getBoundingClientRect(), at = originNow(rootRect);   // the mirror below stays where r was read
     if (r.width <= 0 || r.height <= 0) return;
-    // The mirror below is fixed where the control was when `r` was read, so its text is
-    // measured from the root as it was then.
-    const at = originNow(rootRect);
 
     const num = (k: string) => Number.parseFloat((style as unknown as Record<string, string>)[k] || '') || 0;
     const insetL = num('borderLeftWidth') + num('paddingLeft');
@@ -1241,10 +1236,8 @@ async function renderHtmlSvg(node: Element, opts: ExportOpts, textContext: Inlin
     // emitting the descendants again would paint them a second time, untilted.
     if (opts.rasterFallback !== false && isNonAffineTransform(style.transform)) {
       const pxScale = scaleX * Math.max(1, d.dpi / CSS_DPI);
-      // The capture reads the element's box before its first await, so the origin is read now.
-      const shotAt = originNow(rootRect);
       const posedShot = await rasterizePosedNodeToDataUrl(
-        el as HTMLElement, pxScale, opts._imprintSink, effectSpillCss(style),
+        el as HTMLElement, pxScale, opts._imprintSink, effectSpillCss(style), rootRect,
       );
       if (posedShot) {
         tiltedRasters++;
@@ -1252,8 +1245,8 @@ async function renderHtmlSvg(node: Element, opts: ExportOpts, textContext: Inlin
         place(gT, role, ctx, parentG);
         const img = document.createElementNS(NS, 'image');
         img.setAttribute('href', posedShot.dataUrl);
-        img.setAttribute('x', String(n2(posedShot.x - shotAt.left)));
-        img.setAttribute('y', String(n2(posedShot.y - shotAt.top)));
+        img.setAttribute('x', String(n2(posedShot.x)));
+        img.setAttribute('y', String(n2(posedShot.y)));
         img.setAttribute('width', String(n2(posedShot.w)));
         img.setAttribute('height', String(n2(posedShot.h)));
         img.setAttribute('preserveAspectRatio', 'none');
@@ -1272,9 +1265,8 @@ async function renderHtmlSvg(node: Element, opts: ExportOpts, textContext: Inlin
       return;
     }
 
-    const at = originNow(rootRect);
-    const x = rect.left - at.left;
-    const y = rect.top  - at.top;
+    const x = rect.left - rootRect.left;
+    const y = rect.top  - rootRect.top;
     const w = rect.width;
     const h = rect.height;
 
@@ -2791,9 +2783,8 @@ async function svgPseudoContent(
   for (const name of ['::before', '::after']) {
     const ds = pseudoDescriptor(el, name);
     if (!ds) continue;
-    const at = originNow(rootRect);
-    const x = ds.x - at.left;
-    const y = ds.y - at.top;
+    const x = ds.x - rootRect.left;
+    const y = ds.y - rootRect.top;
     // pseudoDescriptor already guarantees `position: absolute`, so the pseudo is
     // a positioned descendant; only its z-index decides which layer.
     const zRaw = (ds.ps.zIndex || 'auto').trim();
@@ -3020,16 +3011,19 @@ export async function rasterizeNodeToDataUrl(el: HTMLElement, pxW: number, pxH: 
  * `tx·(1/w−1)`.
  *
  * The returned `rect` is where the caller must place the image - the posed AABB grown
- * by the effect spill, in the element's own client coordinates. `getBoundingClientRect`
+ * by the effect spill, measured from `origin` (the export root's top-left, read with the
+ * box, so a root that moves during the capture's awaits does not move the picture;
+ * export-origin.ts). `getBoundingClientRect`
  * is exact against an analytic projection in both engines (S2 section 3a), so the placement
  * needs no second implementation of the projection.
  *
  * Null on any failure, so the caller can fall through to what it did before.
  */
 export async function rasterizePosedNodeToDataUrl(
-  el: HTMLElement, scale: number, imprint?: ImprintState, padCss = 0,
+  el: HTMLElement, scale: number, imprint?: ImprintState, padCss = 0, origin: Origin = { left: 0, top: 0 },
 ): Promise<{ dataUrl: string; x: number; y: number; w: number; h: number } | null> {
   const aabb = el.getBoundingClientRect();
+  const at = originNow(origin);
   // The element's own LAYOUT box, which a transform never changes - so the clone can
   // keep it and skip the re-layout that is the whole defect in the escape hatch.
   const cssW = el.offsetWidth || aabb.width;
@@ -3065,7 +3059,7 @@ export async function rasterizePosedNodeToDataUrl(
       // the same padding the capture carries, so the image is placed where the browser
       // painted the pose. `aabb` and `posed` are the same rectangle in two coordinate
       // systems (client vs the box's own), which is why only the pad is added here.
-      x: aabb.left - padCss, y: aabb.top - padCss,
+      x: aabb.left - at.left - padCss, y: aabb.top - at.top - padCss,
       w: aabb.width + 2 * padCss, h: aabb.height + 2 * padCss,
     };
   } catch (e) {

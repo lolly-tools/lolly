@@ -222,17 +222,12 @@ export async function emitInlineTextSvg(
       let offset = 0;
       for (const seg of segs) {
         if (seg.trim().length > 0) {
-          // The line boxes are read here, before placeLine's awaits, so the origin is read
-          // with them: a root the page moves during the walk must not move these lines.
-          const lines = visualLines(node, offset, offset + seg.length);
-          const linesAt = originNow(rootRect);
-          for (const line of lines) {
-            if (line.rect.width > 0.5 && line.rect.height > 0.5) {
-              for (const { line: piece, at } of bidiPiecesAt(node, line, bidi, linesAt, rootRect)) {
-                await placeLine(piece.text, piece.rect, at);
-                drawDeco(piece.rect, at);
-              }
-            }
+          // Every line's box is read now, before placeLine's awaits, with the origin of the
+          // same layout: a root the page moves during the walk must not move a line.
+          const sized = (line: VisualLine): boolean => line.rect.width > 0.5 && line.rect.height > 0.5;
+          for (const { line: piece, at } of measuredLines(node, offset, offset + seg.length, bidi, rootRect, sized)) {
+            await placeLine(piece.text, piece.rect, at);
+            drawDeco(piece.rect, at);
           }
         }
         offset += seg.length + 1; // +1 for the '\n'
@@ -424,16 +419,15 @@ export function bidiPieces(node: Node, line: VisualLine, bidi: RunBidi): VisualL
 export interface VisualLine { text: string; rect: DOMRect; start: number; end: number }
 
 /**
- * `bidiPieces`, each with the origin its box was read against. A line that stays one
- * piece keeps `lineAt`, the origin read with the line's own box; pieces measured just now
- * take the root as it is now. The pieces are measured when this is called, which is in
- * the same task as the first piece's use, so a caller that awaits between pieces still
- * subtracts each box from the origin of its own layout (export-origin.ts).
+ * The visual lines of `node`'s [start, end), each split into its bidi pieces, with the
+ * export root's origin read in the same layout. Every box is read in this one call, so a
+ * caller that awaits between lines still subtracts each box from the origin of the layout
+ * the box was read in (export-origin.ts). `keep` drops a visual line before it is split.
  */
-export function bidiPiecesAt(node: Node, line: VisualLine, bidi: RunBidi, lineAt: Origin, origin: Origin): Array<{ line: VisualLine; at: Origin }> {
-  const pieces = bidiPieces(node, line, bidi);
-  const at = pieces.length === 1 && pieces[0] === line ? lineAt : originNow(origin);
-  return pieces.map((piece) => ({ line: piece, at }));
+export function measuredLines(node: Node, start: number, end: number, bidi: RunBidi, origin: Origin, keep?: (line: VisualLine) => boolean): Array<{ line: VisualLine; at: Origin }> {
+  const pieces = visualLines(node, start, end).filter((line) => !keep || keep(line)).flatMap((line) => bidiPieces(node, line, bidi));
+  const at = originNow(origin);
+  return pieces.map((line) => ({ line, at }));
 }
 
 // Split a text node's [start,end) offset range into visual lines, so CSS soft
