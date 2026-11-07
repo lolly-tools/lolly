@@ -9,26 +9,29 @@
  *
  * - Minimum size: the mark's drawn height in export pixels and, on a document measured in
  *   a physical unit, in millimetres, against `rules.minSize`.
- * - Clear space: the mark inflated on every side by `clearSpace.value` times its drawn
- *   height. Any other visible layer that overlaps that band is named, except one that holds
- *   the whole mark, which is its background and not a neighbour. Two kit marks check each
- *   other the same way.
- * - Treatment: a mark recoloured by a photo treatment or an icon theme is drawn in one
- *   colour, else in full colour; a mark whose nearest layer beneath that holds it whole is a
- *   picture sits on a photo. A treatment the kit does not list is pointed out. `reverse` is
- *   in the vocabulary and is not measured: the logo for dark surfaces is the reverse by
- *   construction, so the report says so rather than guessing.
+ * - Clear space: the mark inflated on every side by `clearSpace.value` times its height.
+ *   Any other drawn layer that overlaps that band is named, except one beneath the mark
+ *   that holds the whole mark, which is its background. Another kit mark is never a
+ *   background, so two kit marks check each other.
+ * - Treatment: a mark recoloured by a photo treatment or an icon theme is classified from
+ *   the catalog's own colours (one colour, or recoloured); a mark whose nearest painted
+ *   layer beneath, the artboard included, is a picture sits on a photo. A treatment the kit
+ *   does not list is pointed out. `reverse` is in the vocabulary and is not measured: the
+ *   logo for dark surfaces is the reverse by construction.
  *
+ * Whatever the check cannot measure is listed in `notMeasured`, never passed in silence.
  * Findings are reviews and never refusals: nothing here blocks an export, a render or a
  * save, and no finding carries an automatic fix, because sizing a mark is the person's
- * call. Geometry is read from the boxes as authored (CSS pixels); a rotated layer is
- * measured by its bounding box. A tool's logo input has no geometry without a render, so
- * only Design documents are measured.
+ * call. Geometry is read from the boxes as authored (CSS pixels), in Design's own paint
+ * order: layer order, with an artboard beneath everything on the artboard. `z` is depth,
+ * not stacking. A rotated layer is placed by its bounding box. A tool's logo input has no
+ * geometry without a render, so only Design documents are measured.
  */
 import type { PartnerKitTreatmentV1, PartnerKitV1 } from '@lolly-tools/core/partner-kit-v1';
 import type { BrandFinding } from './brand-check.ts';
 import { parseThemedAssetId, parseTreatedAssetId, stripAssetModifiers } from './asset-modifiers.ts';
-import { AUTO_ASSET_THEME } from './icon-theme.ts';
+import { AUTO_ASSET_THEME, parseIconThemesDoc } from './icon-theme.ts';
+import { parsePhotoTreatmentsDoc } from './photo-treatment.ts';
 import { partnerKitLogoIds } from './partner-kit.ts';
 import { CSS_DPI, isUnit } from './units.ts';
 import { designHierarchyIndex } from './design-hierarchy.ts';
@@ -45,6 +48,37 @@ export interface GuestMarkMeasure {
   logoAspect?: (assetId: string) => number | null | undefined;
   /** Whether an asset is a raster picture or a vector drawing. Unknown counts as a picture. */
   pictureKind?: (assetId: string) => 'raster' | 'vector' | null | undefined;
+  /**
+   * What a mark's colour modifier draws it in: `mono` for one colour, `other` for any
+   * other recolouring, null when the catalog does not say. `guestRecolourFrom` builds one
+   * from the catalog's icon themes and photo treatments. Without one, a recoloured mark's
+   * treatment is reported as not measured.
+   */
+  recolour?: (modifier: { theme?: string; treatment?: string }) => 'mono' | 'other' | null | undefined;
+}
+
+/**
+ * Classify colour modifiers from the catalog's palette documents: an icon theme whose two
+ * colours are one colour, or a greyscale photo treatment, is one colour; any other theme or
+ * treatment the catalog declares recolours the mark; an id it does not declare is unknown.
+ */
+export function guestRecolourFrom(catalog: { iconThemes?: unknown; photoTreatments?: unknown } | null | undefined): NonNullable<GuestMarkMeasure['recolour']> {
+  const rec = (v: unknown): v is Record<string, unknown> => !!v && typeof v === 'object' && !Array.isArray(v);
+  const themes = new Map(parseIconThemesDoc(rec(catalog?.iconThemes) ? catalog!.iconThemes as never : null).map((t) => [t.id, t]));
+  const looks = new Map(parsePhotoTreatmentsDoc(rec(catalog?.photoTreatments) ? catalog!.photoTreatments as never : null).map((t) => [t.id, t]));
+  return ({ theme, treatment }) => {
+    if (treatment) {
+      const look = looks.get(treatment);
+      if (!look) return null;
+      return look.kind === 'greyscale' ? 'mono' : 'other';
+    }
+    if (theme) {
+      const pair = themes.get(theme);
+      if (!pair) return null;
+      return String(pair.c1).trim().toLowerCase() === String(pair.c2).trim().toLowerCase() ? 'mono' : 'other';
+    }
+    return null;
+  };
 }
 
 export interface GuestMarkReport {
@@ -58,7 +92,7 @@ export interface GuestMarkReport {
 
 type Row = Record<string, unknown>;
 interface Rect { x: number; y: number; w: number; h: number }
-interface Layer { row: Row; id: string; index: number; z: number; rect: Rect; label: string; kind: string; image: string; start: number; end: number; frame: string; page: string }
+interface Layer { row: Row; id: string; index: number; rect: Rect; label: string; kind: string; image: string; start: number; end: number; frame: string; page: string; paints: boolean }
 
 const MAX_ROWS = 5000;
 const MAX_FINDINGS = 200;
@@ -73,6 +107,13 @@ const num = (v: unknown, fallback = 0): number => {
 };
 const imageId = (v: unknown): string => (typeof v === 'string' ? v : record(v) && typeof v.id === 'string' ? v.id : '');
 const hidden = (row: Row): boolean => row.hidden === true || row.hidden === 'true';
+/** A layer's own opacity, 0 to 1; absent or unreadable is fully opaque. */
+const opacityOf = (row: Row): number => Math.min(1, Math.max(0, num(row.opacity, 1)));
+/** A fill that paints something: a colour, a token link or a gradient, not none or transparent. */
+const fills = (v: unknown): boolean => {
+  const text = typeof v === 'string' ? v.trim().toLowerCase() : record(v) && typeof v.ref === 'string' ? v.ref : '';
+  return !!text && text !== 'transparent' && text !== 'none' && !/^#[0-9a-f]{6}00$/.test(text) && !/^#[0-9a-f]{3}0$/.test(text);
+};
 
 /** Choices in a sentence: "A, B or C", with no comma before the last. */
 function orList(words: string[]): string {
@@ -150,30 +191,51 @@ export function checkGuestMarks(boxes: unknown, kit: Pick<PartnerKitV1, 'label' 
   if (rules.minSize?.mm !== undefined && !physical) notMeasured.push('the minimum size in millimetres: the document is measured in pixels');
 
   const rows = Array.isArray(boxes) ? boxes.filter(record) : [];
+  const capped = rows.slice(0, MAX_ROWS);
   // What Design does not draw is not measured: a layer's own flag, and a hidden artboard,
   // group or layout container takes its members with it, from the hierarchy Design paints.
   let hierarchy: ReturnType<typeof designHierarchyIndex> | null = null;
   try {
-    hierarchy = designHierarchyIndex(rows.slice(0, MAX_ROWS));
+    hierarchy = designHierarchyIndex(capped);
   } catch {
     hierarchy = null;
   }
+  const ancestorsOf = (id: string): Row[] => {
+    const out: Row[] = [];
+    const seen = new Set<string>([id]);
+    let owner = id ? hierarchy?.parent.get(id) : undefined;
+    while (owner && !seen.has(owner) && out.length < 65) {
+      seen.add(owner);
+      const row = hierarchy?.byId.get(owner);
+      if (row) out.push(row);
+      owner = hierarchy?.parent.get(owner);
+    }
+    return out;
+  };
   const layers: Layer[] = [];
-  rows.slice(0, MAX_ROWS).forEach((row, index) => {
+  capped.forEach((row, index) => {
     const id = typeof row.id === 'string' ? row.id : '';
     if (hidden(row) || (id && hierarchy?.flags.get(id)?.hidden === true)) return;
+    const ancestors = ancestorsOf(id);
+    // A layer at no opacity, its own or a group's, draws nothing.
+    if (ancestors.reduce((o, a) => o * opacityOf(a), opacityOf(row)) <= 0) return;
     const kind = typeof row.kind === 'string' && row.kind ? row.kind : 'box';
     const rect = boundsOf(row);
     if (!(rect.w > 0) || !(rect.h > 0)) return;
     const start = num(row.start, 0);
     const dur = num(row.dur, 0);
-    const frame = typeof row.frame === 'string' ? row.frame : '';
+    // The artboard a layer is drawn on: its own, an ancestor's through groups and layout
+    // owners, or the one it names.
+    const board = kind === 'frame' ? id : (typeof ancestors.find((a) => a.kind === 'frame')?.id === 'string' ? String(ancestors.find((a) => a.kind === 'frame')!.id) : (typeof row.frame === 'string' ? row.frame : ''));
     const page = (id && hierarchy?.pageById.get(id)) || (typeof row.pageId === 'string' ? row.pageId : '');
-    layers.push({ row, id, index, z: num(row.z, index), rect, label: layerLabel(row, id), kind, image: imageId(row.image), start, end: dur > 0 ? start + dur : Number.POSITIVE_INFINITY, frame, page });
+    const image = imageId(row.image);
+    const paints = !!image || fills(row.bg) || (typeof row.grad === 'string' && row.grad.trim() !== '');
+    layers.push({ row, id, index, rect, label: layerLabel(row, id), kind, image, start, end: dur > 0 ? start + dur : Number.POSITIVE_INFINITY, frame: board, page, paints });
   });
   if (rows.length > MAX_ROWS) notMeasured.push(`layers past the first ${MAX_ROWS.toLocaleString('en')}`);
 
-  const marks = layers.filter(l => !NOT_ON_PAGE.has(l.kind) && l.image && logos.has(stripAssetModifiers(l.image)));
+  const isMark = (l: Layer): boolean => l.kind !== 'frame' && !NOT_ON_PAGE.has(l.kind) && !!l.image && logos.has(stripAssetModifiers(l.image));
+  const marks = layers.filter(isMark);
   const findings: BrandFinding[] = [];
   const add = (mark: Layer, rule: 'min-size' | 'clear-space' | 'treatment', part: string, message: string, extra: Partial<BrandFinding> = {}): void => {
     if (findings.length >= MAX_FINDINGS) return;
@@ -183,10 +245,15 @@ export function checkGuestMarks(boxes: unknown, kit: Pick<PartnerKitV1, 'label' 
       rule, message, company, ...extra,
     });
   };
-  const beneath = (a: Layer, b: Layer): boolean => a.z < b.z || (a.z === b.z && a.index < b.index);
+  // Design paints in layer order, and an artboard beneath everything drawn on the artboard.
+  const beneath = (a: Layer, b: Layer): boolean => (a.kind === 'frame' ? a.id === b.frame : a.index < b.index);
+  let sizeUnmeasured = 0;
+  let treatmentUnmeasured = 0;
 
   for (const mark of marks) {
     const aspect = measure.logoAspect?.(stripAssetModifiers(mark.image));
+    const known = typeof aspect === 'number' && Number.isFinite(aspect) && aspect > 0;
+    const contained = (typeof mark.row.fit === 'string' ? mark.row.fit : 'contain') === 'contain';
     const drawn = drawnRect(mark.row, mark.rect, aspect);
     // The mark's own height, which rotation does not change: a mark turned on its side is
     // as tall as it was, though its bounding box is not.
@@ -195,18 +262,23 @@ export function checkGuestMarks(boxes: unknown, kit: Pick<PartnerKitV1, 'label' 
     if (rules.minSize) {
       const min = rules.minSize;
       const px = exportPx(height);
-      if (min.px !== undefined && px + 0.5 < min.px) {
-        add(mark, 'min-size', 'px', `${company}'s mark is ${pxText(px)} px high; the kit asks for at least ${pxText(min.px)} px.`, { value: `${pxText(px)} px`, expected: `${pxText(min.px)} px` });
-      }
       const mm = millimetres(height);
-      if (physical && min.mm !== undefined && mm + 0.05 < min.mm) {
-        add(mark, 'min-size', 'mm', `${company}'s mark is ${mmText(mm)} mm high; the kit asks for at least ${mmText(min.mm)} mm.`, { value: `${mmText(mm)} mm`, expected: `${mmText(min.mm)} mm` });
-      }
+      // A contained logo with no known proportions draws at most its box's height: a box
+      // below the minimum is below the minimum for certain, and any other is not measured.
+      const under = (value: number, limit: number, slack: number): boolean => value + slack < limit;
+      const pxShort = min.px !== undefined && under(px, min.px, 0.5);
+      const mmShort = physical && min.mm !== undefined && under(mm, min.mm, 0.05);
+      if (pxShort) add(mark, 'min-size', 'px', `${company}'s mark is ${pxText(px)} px high; the kit asks for at least ${pxText(min.px!)} px.`, { value: `${pxText(px)} px`, expected: `${pxText(min.px!)} px` });
+      if (mmShort) add(mark, 'min-size', 'mm', `${company}'s mark is ${mmText(mm)} mm high; the kit asks for at least ${mmText(min.mm!)} mm.`, { value: `${mmText(mm)} mm`, expected: `${mmText(min.mm!)} mm` });
+      if (contained && !known && !pxShort && !mmShort) sizeUnmeasured++;
     }
     if (rules.clearSpace) {
       const pad = rules.clearSpace.value * height;
       const band: Rect = { x: drawn.x - pad, y: drawn.y - pad, w: drawn.w + pad * 2, h: drawn.h + pad * 2 };
-      const inside = layers.filter(l => l !== mark && !NOT_ON_PAGE.has(l.kind) && l.kind !== 'group' && together(l, mark) && samePlace(l, mark) && overlaps(l.rect, band) && !holds(l.rect, drawn));
+      // A layer beneath the mark that holds the whole mark is its background. Another kit
+      // mark is never a background.
+      const background = (l: Layer): boolean => !isMark(l) && beneath(l, mark) && holds(l.rect, drawn);
+      const inside = layers.filter(l => l !== mark && l.kind !== 'frame' && !NOT_ON_PAGE.has(l.kind) && l.kind !== 'group' && together(l, mark) && samePlace(l, mark) && overlaps(l.rect, band) && !background(l));
       if (inside.length) {
         const first = inside[0]!;
         const message = inside.length === 1
@@ -217,22 +289,34 @@ export function checkGuestMarks(boxes: unknown, kit: Pick<PartnerKitV1, 'label' 
     }
     const allowed = rules.treatments;
     if (allowed?.length) {
-      const recoloured = !!parseTreatedAssetId(mark.image).treatment || ((t) => !!t && t !== AUTO_ASSET_THEME)(parseThemedAssetId(mark.image).theme);
-      const drawnAs: PartnerKitTreatmentV1 = recoloured ? 'mono' : 'colour';
       const rest = allowed.map(t => TREATMENT_WORDS[t]);
-      if (!allowed.includes(drawnAs)) {
-        add(mark, 'treatment', drawnAs, `${company}'s mark is drawn in ${TREATMENT_WORDS[drawnAs]}; the kit allows ${orList(rest)}.`, { value: drawnAs, expected: allowed.join(', ') });
+      const treatment = parseTreatedAssetId(mark.image).treatment ?? undefined;
+      const themeId = parseThemedAssetId(mark.image).theme;
+      const theme = themeId && themeId !== AUTO_ASSET_THEME ? themeId : undefined;
+      // A colour modifier is judged by the colours the catalog gives it, never assumed.
+      const recolour = treatment || theme ? (measure.recolour?.({ ...(theme ? { theme } : {}), ...(treatment ? { treatment } : {}) }) ?? null) : undefined;
+      if (recolour === null) treatmentUnmeasured++;
+      else if (recolour === 'other') {
+        add(mark, 'treatment', 'recoloured', `${company}'s mark is recoloured; the kit allows ${orList(rest)}.`, { value: 'recoloured', expected: allowed.join(', ') });
+      } else {
+        const drawnAs: PartnerKitTreatmentV1 = recolour === 'mono' ? 'mono' : 'colour';
+        if (!allowed.includes(drawnAs)) {
+          add(mark, 'treatment', drawnAs, `${company}'s mark is drawn in ${TREATMENT_WORDS[drawnAs]}; the kit allows ${orList(rest)}.`, { value: drawnAs, expected: allowed.join(', ') });
+        }
       }
-      // The nearest layer beneath that holds the whole mark is what the mark sits on.
+      // What the mark sits on: the nearest layer beneath that holds it whole and paints
+      // something, looking through layers that paint nothing, down to the artboard.
       const ground = layers
-        .filter(l => l !== mark && !NOT_ON_PAGE.has(l.kind) && l.kind !== 'group' && beneath(l, mark) && together(l, mark) && samePlace(l, mark) && holds(l.rect, drawn))
-        .sort((a, b) => (b.z - a.z) || (b.index - a.index))[0];
-      const groundAsset = ground?.image && !logos.has(stripAssetModifiers(ground.image)) ? stripAssetModifiers(ground.image) : '';
+        .filter(l => l !== mark && !isMark(l) && !NOT_ON_PAGE.has(l.kind === 'frame' ? '' : l.kind) && l.kind !== 'group' && l.paints && beneath(l, mark) && together(l, mark) && samePlace(l, mark) && holds(l.rect, drawn))
+        .sort((a, b) => (a.kind === 'frame' ? 1 : 0) - (b.kind === 'frame' ? 1 : 0) || b.index - a.index)[0];
+      const groundAsset = ground?.image ? stripAssetModifiers(ground.image) : '';
       const onPicture = !!groundAsset && measure.pictureKind?.(groundAsset) !== 'vector';
       if (onPicture && !allowed.includes('on-photo')) {
         add(mark, 'treatment', 'on-photo', `${company}'s mark sits on a photo; the kit allows ${orList(rest)}.`, { value: 'on-photo', expected: allowed.join(', '), related: ground?.id ? [ground.id] : [] });
       }
     }
   }
+  if (sizeUnmeasured) notMeasured.push(`the drawn height of ${sizeUnmeasured === 1 ? 'one partner mark' : `${sizeUnmeasured} partner marks`}: the logo's proportions were not given, so a mark in a box at least the minimum may still draw smaller`);
+  if (treatmentUnmeasured) notMeasured.push(`the treatment of ${treatmentUnmeasured === 1 ? 'one recoloured mark' : `${treatmentUnmeasured} recoloured marks`}: the catalog does not say what colours its theme or treatment gives`);
   return { findings, checked: { marks: marks.length, rules: checkedRules }, notMeasured };
 }
