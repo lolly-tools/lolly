@@ -4114,7 +4114,7 @@ var ENGINE_VERSION;
 var init_version = __esm({
   "engine/src/version.ts"() {
     "use strict";
-    ENGINE_VERSION = "1.330.0";
+    ENGINE_VERSION = "1.332.0";
   }
 });
 
@@ -56888,7 +56888,7 @@ function dpiIntent(trim2) {
   const hard = intent === "offset" ? OFFSET_HARD_DPI : 50;
   return { intent, floor, hard, longEdgeIn, longEdge };
 }
-var PRINT_MARK_FORMATS, SEPARATING_FORMATS, SPOT_PLATE_FORMATS, HDR_FORMATS, DURABLE_FORMATS, CUTS_FORMATS, MOTION_FORMATS, RASTER_FORMATS, DEPTH_FORMATS, PAGED_FORMATS, STILL_IMAGE_FORMATS, KNOWN_FINISHES, lower, isFiniteNum, num4, labelOf, isDim, PT_TO_M, pt2ToM2, spotSwatches, finishSpots, hexRgb01, swatchTac, tacLimitFor, checkFinishSeparatesAsInk, checkFinishFlattened, checkFinishUnknownKind, checkFormatOffered, bleedIsSet, marksAreSet, checkPrintMarksOnNonPrintFormat, checkPressProfileOnNonSeparatingFormat, checkHdrFormat, checkDurableFormat, checkAspectGuard, model, isBlank, checkRequiredBlank, checkNumberRange, checkTextMaxLength, checkSelectValue, checkVectorClamped, checkNoBleed, checkBleedUnknown, physicalTrim, LARGE_FORMAT_LONG_EDGE_IN, OFFSET_MIN_DPI, OFFSET_HARD_DPI, LARGE_FORMAT_MIN_DPI, round0, checkEffectiveDpi, checkImageEffectiveDpi, checkImageDpiNeedsStage, checkTrimPartial, checkTrimNotPhysical, checkPrintGeometry, checkPagesPaginate, checkPagesPages, checkPagesFromStage, checkArtboardFanOut, checkPagesUnknown, checkSequenceDuration, checkRasterPixels, checkVideoDurationDeclared, spotInkNames, spotsAsProcess, checkProcessPlates, checkSpotCeiling, checkFinishCeiling, checkNoSpotsDeclared, checkInkCoverage, checkRichBlack, checkPaletteUnresolved, cutsOf, checkCutsNeedsStage, checkCutsInert, checkCutsApplies, checkExperimentalWatermark, refusal, checkRefusals, CHECKS;
+var PRINT_MARK_FORMATS, SEPARATING_FORMATS, SPOT_PLATE_FORMATS, HDR_FORMATS, DURABLE_FORMATS, CUTS_FORMATS, MOTION_FORMATS, RASTER_FORMATS, DEPTH_FORMATS, PAGED_FORMATS, STILL_IMAGE_FORMATS, KNOWN_FINISHES, lower, isFiniteNum, num4, labelOf, isDim, PT_TO_M, pt2ToM2, spotSwatches, finishSpots, hexRgb01, swatchTac, tacLimitFor, checkFinishSeparatesAsInk, checkFinishFlattened, checkFinishUnknownKind, checkFormatOffered, bleedIsSet, marksAreSet, checkPrintMarksOnNonPrintFormat, checkPressProfileOnNonSeparatingFormat, checkHdrFormat, checkDurableFormat, checkAspectGuard, model, isBlank, checkRequiredBlank, checkNumberRange, checkTextMaxLength, checkSelectValue, checkVectorClamped, checkNoBleed, checkBleedUnknown, physicalTrim, LARGE_FORMAT_LONG_EDGE_IN, OFFSET_MIN_DPI, OFFSET_HARD_DPI, LARGE_FORMAT_MIN_DPI, round0, checkEffectiveDpi, checkImageEffectiveDpi, checkImageDpiNeedsStage, checkTrimPartial, checkTrimNotPhysical, checkPrintGeometry, checkPagesPaginate, checkPagesPages, checkPagesFromStage, checkArtboardFanOut, checkPagesUnknown, checkSequenceDuration, checkRasterPixels, checkVideoDurationDeclared, spotInkNames, spotsAsProcess, processOnly, checkProcessPlates, checkSpotCeiling, checkFinishCeiling, checkNoSpotsDeclared, checkInkCoverage, checkRichBlack, checkPaletteUnresolved, cutsOf, checkCutsNeedsStage, checkCutsInert, checkCutsApplies, checkExperimentalWatermark, refusal, checkRefusals, CHECKS;
 var init_preflight2 = __esm({
   "engine/src/preflight.ts"() {
     "use strict";
@@ -57495,14 +57495,17 @@ var init_preflight2 = __esm({
     };
     spotInkNames = (c) => new Set(spotSwatches(c).filter((s) => !s.spot.finish).map((s) => s.spot.name));
     spotsAsProcess = (c) => c.job?.settings?.spotsAsProcess === true;
+    processOnly = (c) => !SPOT_PLATE_FORMATS.has(c.fmt);
     checkProcessPlates = (c) => {
       if (!SEPARATING_FORMATS.has(c.fmt)) return;
-      const folded = spotsAsProcess(c) && c.job?.palette?.known === true ? [...spotInkNames(c)] : [];
+      const folded = (spotsAsProcess(c) || processOnly(c)) && c.job?.palette?.known === true ? [...spotInkNames(c)] : [];
       const n7 = folded.length;
+      const inks = n7 === 1 ? "the spot ink prints as process and adds no plate." : `the ${n7} spot inks print as process and add no plates.`;
+      const where = processOnly(c) ? `This format has no named plates, so ${inks}` : `${inks.charAt(0).toUpperCase()}${inks.slice(1)}`;
       c.add({
         id: "plates.process",
         severity: "info",
-        message: n7 > 0 ? `4 process plates. ${n7 === 1 ? "The spot ink prints as process and adds no plate." : `The ${n7} spot inks print as process and add no plates.`} Whether all four carry ink cannot be known before the file is written.` : "4 process plates. Whether all four carry ink cannot be known before the file is written.",
+        message: n7 > 0 ? `4 process plates. ${where} Whether all four carry ink cannot be known before the file is written.` : "4 process plates. Whether all four carry ink cannot be known before the file is written.",
         evidence: n7 > 0 ? { format: c.fmt, spotsAsProcess: folded.join(", ") } : { format: c.fmt },
         count: { kind: "processPlates", value: 4, unit: "plate", bound: "ceiling", basis: "format" }
       });
@@ -57510,7 +57513,7 @@ var init_preflight2 = __esm({
     checkSpotCeiling = (c) => {
       if (!SEPARATING_FORMATS.has(c.fmt)) return;
       if (c.job?.palette?.known !== true) return;
-      if (spotsAsProcess(c)) return;
+      if (spotsAsProcess(c) || processOnly(c)) return;
       const names = spotInkNames(c);
       if (names.size === 0) return;
       c.add({
@@ -57524,6 +57527,7 @@ var init_preflight2 = __esm({
     checkFinishCeiling = (c) => {
       if (!SEPARATING_FORMATS.has(c.fmt)) return;
       if (c.job?.palette?.known !== true) return;
+      if (processOnly(c)) return;
       const names = [...new Set(finishSpots(c).map((s) => s.spot.name))];
       if (names.length === 0) return;
       c.add({
@@ -57536,6 +57540,7 @@ var init_preflight2 = __esm({
     };
     checkNoSpotsDeclared = (c) => {
       if (!SEPARATING_FORMATS.has(c.fmt)) return;
+      if (processOnly(c)) return;
       if (c.job?.palette?.known !== true) return;
       if (spotSwatches(c).length > 0) return;
       c.add({
@@ -58072,6 +58077,9 @@ function hasVideoParams(v) {
 function parseSpots(raw) {
   return typeof raw === "string" && raw.trim().toLowerCase() === "process" ? "process" : null;
 }
+function parseTextSetting(raw) {
+  return typeof raw === "string" && raw.trim().toLowerCase() === "outline" ? "outline" : null;
+}
 function parseMarks(raw) {
   if (raw == null) return null;
   const set = new Set(String(raw).split(",").map((s) => s.trim().toLowerCase()).filter(Boolean));
@@ -58255,7 +58263,9 @@ function parseUrlState(searchParams, manifest) {
     // opt-out reads as false; absent stays null.
     madeWith: parseMeta(params2.get("_madewith")),
     // How the CMYK formats print spot inks (see header). Opt-in: only `process` counts.
-    spots: parseSpots(params2.get("_spots"))
+    spots: parseSpots(params2.get("_spots")),
+    // How an EMF export writes text (see header). Opt-in: only `outline` counts.
+    text: parseTextSetting(params2.get("_text"))
   };
 }
 function serializeUrlState(model2, opts = {}) {
@@ -58491,7 +58501,7 @@ var init_url_mode = __esm({
       av1: "av1",
       av01: "av1"
     });
-    RESERVED = /* @__PURE__ */ new Set(["format", "export", "copy", "slot", "output", "filename", "_v", "width", "height", "w", "h", "unit", "dpi", "profile", "password", "bleed", "marks", "c2pa", "imprint", "durable", "meta", "hdr", "depth", "cuts", "sampletimes", "motionblur", "seqrange", "lang", "designv", "ds", "full", "iframe", "options", "nostage", "template", "preset", "present", "s", "kiosk", "z", "zx", "fps", "seconds", "wait", "codec", "vq", "emoji", "emojifx", "emojistyle", "licence", "_themes", "_madewith", "_spots"]);
+    RESERVED = /* @__PURE__ */ new Set(["format", "export", "copy", "slot", "output", "filename", "_v", "width", "height", "w", "h", "unit", "dpi", "profile", "password", "bleed", "marks", "c2pa", "imprint", "durable", "meta", "hdr", "depth", "cuts", "sampletimes", "motionblur", "seqrange", "lang", "designv", "ds", "full", "iframe", "options", "nostage", "template", "preset", "present", "s", "kiosk", "z", "zx", "fps", "seconds", "wait", "codec", "vq", "emoji", "emojifx", "emojistyle", "licence", "_themes", "_madewith", "_spots", "_text"]);
     CUTS_MAX = 64;
     HEX_COLOR = /^#[0-9a-fA-F]{3,8}$/;
   }
@@ -155422,6 +155432,7 @@ __export(src_exports, {
   parseTextDocument: () => parseTextDocument,
   parseTextFrame: () => parseTextFrame,
   parseTextLogs: () => parseTextLogs,
+  parseTextSetting: () => parseTextSetting,
   parseTextShadow: () => parseTextShadow,
   parseThemedAssetId: () => parseThemedAssetId,
   parseToUnicode: () => parseToUnicode,
@@ -179566,6 +179577,7 @@ function exportUrl2(base, toolId, query2, fmt6, dims) {
   if (dims.madeWith === false) p.set("_madewith", "0");
   if (dims.pressProfile) p.set("profile", dims.pressProfile);
   if (dims.spotsAsProcess) p.set("_spots", "process");
+  if (dims.textOutline) p.set("_text", "outline");
   if (dims.slide) p.set("s", dims.slide);
   if (dims.hdrParam) p.set("hdr", dims.hdrParam);
   if (dims.depth && dims.depth !== "auto") p.set("depth", String(dims.depth));
@@ -180276,7 +180288,7 @@ var init_webshell_render = __esm({
       ".wmf": "application/x-msmetafile"
     };
     served2 = null;
-    EXPORT_URL_RESERVED2 = ["_keepinlinedc2pa", "format", "export", "copy", "width", "w", "height", "h", "unit", "dpi", "password", "bleed", "marks", "imprint", "durable", "profile", "c2pa", "preview", "options", "fps", "seconds", "wait", "codec", "vq", "hdr", "depth", "cuts", "sampletimes", "motionblur", "seqrange", "_spots"];
+    EXPORT_URL_RESERVED2 = ["_keepinlinedc2pa", "format", "export", "copy", "width", "w", "height", "h", "unit", "dpi", "password", "bleed", "marks", "imprint", "durable", "profile", "c2pa", "preview", "options", "fps", "seconds", "wait", "codec", "vq", "hdr", "depth", "cuts", "sampletimes", "motionblur", "seqrange", "_spots", "_text"];
     tierBDebugConfig = { enabled: false, outPath: null };
     DEBUG_MAX_LINES = 500;
     NO_DEBUG = {

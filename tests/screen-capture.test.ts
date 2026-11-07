@@ -78,7 +78,7 @@ test('the sensor capabilities still validate (screen is additive, not a replacem
 
 // ─── version ─────────────────────────────────────────────────────────────────
 
-test('ENGINE_VERSION is 1.330.0', () => {
+test('ENGINE_VERSION is 1.332.0', () => {
   // A literal pin: the screencap surface shipped at 1.54, and tools declare
   // ^1.54.0 to require it. session-record only checks the stamp equals whatever
   // ENGINE_VERSION happens to be (tautological) - this catches an errant bump.
@@ -603,7 +603,9 @@ test('ENGINE_VERSION is 1.330.0', () => {
   // 1.328.0 draws the stencil prim in EMF too. Capture is unchanged.
   // 1.329.0 records placed pictures as components of an export, not its parent. Capture is unchanged.
   // 1.330.0 exports the asset rights reader and the .lolly credits text. Capture is unchanged.
-  assert.equal(ENGINE_VERSION, '1.330.0');
+  // 1.331.0 has preflight count only the process plates for the CMYK TIFF and EPS. Capture is unchanged.
+  // 1.332.0 reads the `_text` URL param (EMF text as outlines) and counts an EMF's live text runs. Capture is unchanged.
+  assert.equal(ENGINE_VERSION, '1.332.0');
 });
 
 // ─── loadTool: a ^1.54.0 tool loads against this engine ───────────────────────

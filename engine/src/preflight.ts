@@ -1270,18 +1270,28 @@ const spotInkNames = (c: Ctx): Set<string> =>
 /** "Print spot inks as process" is on, so the inks fold into the four process plates. */
 const spotsAsProcess = (c: Ctx): boolean => c.job?.settings?.spotsAsProcess === true;
 
+/**
+ * The format writes the four process plates and nothing else. The CMYK TIFF is one
+ * four-channel raster and `eps-cmyk` sets DeviceCMYK colours only, so a spot ink goes in
+ * as its process build and a finish as its black mask (buildCmykPaletteMap), whether or
+ * not spot inks print as process. Only the CMYK PDF writes a named plate.
+ */
+const processOnly = (c: Ctx): boolean => !SPOT_PLATE_FORMATS.has(c.fmt);
+
 const checkProcessPlates: Check = c => {
   if (!SEPARATING_FORMATS.has(c.fmt)) return;
-  // With spot inks printed as process, say where the inks went: a reader who knows
+  // When the inks go into the process plates, say where they went: a reader who knows
   // the brand declares them should not have to guess why no spot plate is counted.
   // The evidence lists the inks; a brand can declare dozens, too many for the sentence.
-  const folded = spotsAsProcess(c) && c.job?.palette?.known === true ? [...spotInkNames(c)] : [];
+  const folded = (spotsAsProcess(c) || processOnly(c)) && c.job?.palette?.known === true ? [...spotInkNames(c)] : [];
   const n = folded.length;
+  const inks = n === 1 ? 'the spot ink prints as process and adds no plate.' : `the ${n} spot inks print as process and add no plates.`;
+  const where = processOnly(c) ? `This format has no named plates, so ${inks}` : `${inks.charAt(0).toUpperCase()}${inks.slice(1)}`;
   c.add({
     id: 'plates.process',
     severity: 'info',
     message: n > 0
-      ? `4 process plates. ${n === 1 ? 'The spot ink prints as process and adds no plate.' : `The ${n} spot inks print as process and add no plates.`} Whether all four carry ink cannot be known before the file is written.`
+      ? `4 process plates. ${where} Whether all four carry ink cannot be known before the file is written.`
       : '4 process plates. Whether all four carry ink cannot be known before the file is written.',
     evidence: n > 0 ? { format: c.fmt, spotsAsProcess: folded.join(', ') } : { format: c.fmt },
     count: { kind: 'processPlates', value: 4, unit: 'plate', bound: 'ceiling', basis: 'format' },
@@ -1292,7 +1302,7 @@ const checkSpotCeiling: Check = c => {
   if (!SEPARATING_FORMATS.has(c.fmt)) return;
   if (c.job?.palette?.known !== true) return;
   // The inks print in the process plates, so the file carries no spot plate to count.
-  if (spotsAsProcess(c)) return;
+  if (spotsAsProcess(c) || processOnly(c)) return;
   const names = spotInkNames(c);
   if (names.size === 0) return;
   c.add({
@@ -1307,6 +1317,9 @@ const checkSpotCeiling: Check = c => {
 const checkFinishCeiling: Check = c => {
   if (!SEPARATING_FORMATS.has(c.fmt)) return;
   if (c.job?.palette?.known !== true) return;
+  // A finish goes into the black plate as a mask here, which print.finish-flattened-into-process
+  // reports as an error, so the file has no finish plate to count.
+  if (processOnly(c)) return;
   const names = [...new Set(finishSpots(c).map(s => s.spot.name))];
   if (names.length === 0) return;
   c.add({
@@ -1325,6 +1338,9 @@ const checkFinishCeiling: Check = c => {
  */
 const checkNoSpotsDeclared: Check = c => {
   if (!SEPARATING_FORMATS.has(c.fmt)) return;
+  // A format with no named plates never has a spot plate, so the sentence would say
+  // nothing about the brand.
+  if (processOnly(c)) return;
   if (c.job?.palette?.known !== true) return;
   if (spotSwatches(c).length > 0) return;
   c.add({

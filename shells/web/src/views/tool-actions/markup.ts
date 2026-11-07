@@ -840,7 +840,7 @@ export function buildPrintAndRows(ta: ActionsCtx): void {
     ? `
         <label class="export-option" data-emf-only style="display:${initialFmt === 'emf' ? 'flex' : 'none'}"
                title="${escapeText(t('Convert text to vector outlines so it looks identical everywhere. Off, text stays editable in Office and Google Slides but uses whatever fonts that device has.'))}">
-          <input type="checkbox" class="field-check" data-action="emf-outline">
+          <input type="checkbox" class="field-check" data-action="emf-outline"${exportDefaults.emfOutline ? ' checked' : ''}>
           ${t('Outline fonts')}
         </label>`
     : ''; ta.emfChip = emfChip;
