@@ -35,6 +35,27 @@ export function newVersionPatch(values: Record<string, unknown>, declared: reado
   return out;
 }
 
+/** How long after opening the catalog is read again: the app syncs it in the
+ *  background, so a version published since the last visit can arrive after mount. */
+const RECHECK_MS = [4000, 15000];
+
+/** Notices for a document made from a workspace template, read now and again once
+ *  the background catalog sync has had time to land. Returns the teardown. */
+export function watchTemplateNotices(opts: Parameters<typeof mountTemplateNotices>[0]): () => void {
+  let off = mountTemplateNotices(opts);
+  let shown = !!opts.now && (!!opts.now.retired || opts.now.version > opts.origin.version);
+  const timers = shown ? [] : RECHECK_MS.map((ms) => setTimeout(() => {
+    if (shown) return;
+    void getWorkspaceTemplate(opts.host as never, opts.origin.ref).then((now) => {
+      if (shown || !now || (!now.retired && now.version <= opts.origin.version)) return;
+      shown = true;
+      off();
+      off = mountTemplateNotices({ ...opts, now });
+    });
+  }, ms));
+  return () => { for (const timer of timers) clearTimeout(timer); off(); };
+}
+
 /** Notices for a document made from a workspace template. Returns the teardown. */
 export function mountTemplateNotices(opts: {
   host: unknown;

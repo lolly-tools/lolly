@@ -93,3 +93,8 @@ test('the template layer offers only what the template leaves open, hidden with 
   assert.equal(getInputPolicy('pricing-table', 'heading'), undefined, 'null lifts the layer');
   _clearInputPoliciesForTests();
 });
+
+test('a new version keeps what the person may change and brings in the rest', async () => {
+  const { newVersionPatch } = await import('../views/tool-template-notices.ts');
+  assert.deepEqual(newVersionPatch({ heading: 'SP1', data: 'theirs?', __label: 'x', stray: 1 }, ['heading', 'data', 'cta'], ['data']), { heading: 'SP1' });
+});

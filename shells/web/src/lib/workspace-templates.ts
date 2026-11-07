@@ -85,16 +85,20 @@ export function startableFor(list: readonly WorkspaceTemplate[], toolId: string)
   return list.filter((t) => t.toolId === toolId && !t.retired);
 }
 
-/** One workspace template as the catalog serves it now, or null when it is gone. */
+/** One workspace template as the catalog serves it now, or null when it is gone. Read
+ *  from the catalog's metadata, so asking never downloads the template itself. */
 export async function getWorkspaceTemplate(host: MetadataHost, id: string): Promise<WorkspaceTemplate | null> {
   if (!isWorkspaceTemplateRef(id)) return null;
+  const listed = (await listWorkspaceTemplates(host)).find((tpl) => tpl.id === id);
+  if (listed || host.assets._queryMetadata) return listed ?? null;
   try { return workspaceTemplateOf(await host.assets.get(id)); } catch { return null; }
 }
 
 /** A workspace template's values, read from its JSON. Null when they cannot be read. */
 export async function fetchWorkspaceValues(template: WorkspaceTemplate, fetchImpl: typeof fetch = fetch): Promise<Record<string, InputValue> | null> {
   try {
-    const res = await fetchImpl(template.url, { credentials: 'include' });
+    // The address stays the same across versions, so never take a cached copy.
+    const res = await fetchImpl(template.url, { credentials: 'include', cache: 'no-store' });
     if (!res.ok) return null;
     const doc = (await res.json()) as { toolId?: unknown; values?: unknown };
     if (doc.toolId !== undefined && doc.toolId !== template.toolId) return null;

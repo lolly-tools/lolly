@@ -1048,7 +1048,6 @@ export function mountActions(tview: ToolViewCtx): void {
       sessionMeta: () => ({ ...(getDesignPublication(runtime) ? {__designPublication:getDesignPublication(runtime)} : {}), ...(getRebrandHandoff(runtime) ? { [REBRAND_HANDOFF_MARKER]: getRebrandHandoff(runtime) } : {}), ...(getDesignToolSource(runtime) ? { __designToolSource: getDesignToolSource(runtime) } : {}), ...(tview.tool.artifactDigest ? { __toolArtifact: tview.tool.artifactDigest } : {}), ...(getDesignToolDraft(runtime) ? { __designTool: getDesignToolDraft(runtime) } : {}), ...(toolId === 'design' ? { __workspace_intent: tview.designIntent } : {}),
         ...(tview.presentationScene ? { __presentation: tview.presentationScene } : {}),
         ...(tview.templateOrigin ? { __template: tview.templateOrigin } : {}),
-        ...(tview.tool.manifest.designTool && typeof (tview.indexEntry as Record<string, unknown> | undefined)?.templateId === 'string' ? { __rulesToolVersion: tview.tool.manifest.version } : {}),
         ...carriedEmojiPins(runtime.emoji, tview.initialValues),
         ...tview.documentMeta?.() }),
       ...historyParticipation(tview.tool.manifest, historyRole.shared),
@@ -1067,13 +1066,13 @@ export function mountActions(tview: ToolViewCtx): void {
   if (!tview.isFull && !tview.autoExport && !tview.autoCopy && (tview.templateOrigin || (tview.tool.manifest.designTool && typeof templateId === 'string'))) {
     void import('../tool-template-notices.ts').then((notices) => {
       if (!viewEl.isConnected) return;
-      if (tview.templateOrigin) mountLifecycle.add('template notices', notices.mountTemplateNotices({
+      if (tview.templateOrigin) mountLifecycle.add('template notices', notices.watchTemplateNotices({
         host: tview.host, toolId, origin: tview.templateOrigin, now: tview.templateNow, runtime,
         updated: (origin) => { tview.templateOrigin = origin; },
         open: (href) => { location.hash = href; },
       }));
       if (tview.tool.manifest.designTool && typeof templateId === 'string') mountLifecycle.add('rules tool notice', notices.mountRulesToolNotice({
-        toolId, name: tview.tool.manifest.name, savedVersion: tview.initialValues.__rulesToolVersion, version: tview.tool.manifest.version,
+        toolId, name: tview.tool.manifest.name, savedVersion: tview.initialValues.__toolVersion, version: tview.tool.manifest.version,
       }));
     });
   }

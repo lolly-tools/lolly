@@ -23,7 +23,7 @@ export interface PublishedItem {
   name: string;
   /** The tool it opens. */
   toolId: string;
-  /** What the second line says: the tool it is made with. */
+  /** What the second line says: the tool it is made with ('' for a tool of its own). */
   toolName: string;
   href: string;
   /** A short version label ("Version 3", "1.0.2"). */
@@ -32,12 +32,15 @@ export interface PublishedItem {
   /** For a template, the values a preview draws from. */
   values?: Record<string, unknown>;
   formats?: readonly string[];
+  /** The tool's own proportions, for the preview frame. */
+  width?: number;
+  height?: number;
 }
 
 /** The shelf's items: templates of tools this person can open, then rules tools, by name. */
 export function publishedItems(
   templates: readonly WorkspaceTemplate[],
-  tools: ReadonlyArray<{ id: string; name: string; icon?: string; version?: string; formats?: readonly string[]; listed?: boolean; templateId?: unknown }>,
+  tools: ReadonlyArray<{ id: string; name: string; icon?: string; version?: string; formats?: readonly string[]; width?: number; height?: number; listed?: boolean; templateId?: unknown }>,
 ): PublishedItem[] {
   const byId = new Map(tools.map((tool) => [tool.id, tool]));
   const out: PublishedItem[] = [];
@@ -49,18 +52,27 @@ export function publishedItems(
       href: `#/tool/${encodeURIComponent(tpl.toolId)}?template=${encodeURIComponent(tpl.id)}`,
       version: tRaw('Version {n}', { n: tpl.version }),
       ...(tool.icon ? { icon: tool.icon } : {}), ...(tool.formats ? { formats: tool.formats } : {}),
+      ...(tool.width && tool.height ? { width: tool.width, height: tool.height } : {}),
     });
   }
   for (const tool of tools) {
     if (typeof tool.templateId !== 'string' || tool.listed === false) continue;
     out.push({
-      key: tool.templateId, name: tool.name, toolId: tool.id, toolName: t('Share with rules'),
+      key: tool.templateId, name: tool.name, toolId: tool.id, toolName: '',
       href: `#/tool/${encodeURIComponent(tool.id)}`,
       version: tool.version ? tRaw('Version {n}', { n: tool.version }) : '',
       ...(tool.icon ? { icon: tool.icon } : {}), ...(tool.formats ? { formats: tool.formats } : {}),
+      ...(tool.width && tool.height ? { width: tool.width, height: tool.height } : {}),
     });
   }
   return out.sort((a, b) => a.name.localeCompare(b.name));
+}
+
+/** A preview frame in the tool's own proportions, kept between portrait and wide. */
+function mediaShape(item: PublishedItem): string {
+  if (!item.width || !item.height) return '';
+  const ratio = Math.min(16 / 9, Math.max(3 / 4, item.width / item.height));
+  return ` style="aspect-ratio: ${ratio.toFixed(3)}"`;
 }
 
 /** The shelf's markup, or '' when there is nothing published (shelf absent). */
@@ -73,7 +85,7 @@ export function publishedShelfHtml(items: readonly PublishedItem[], workspace: s
         <div class="published-shelf-row">
           ${items.map((item) => `
           <a class="published-card" href="${escape(item.href)}" data-published-key="${escape(item.key)}">
-            <span class="published-card-media" aria-hidden="true">${item.icon ? `<span class="published-card-icon">${item.icon}</span>` : ''}</span>
+            <span class="published-card-media" aria-hidden="true"${mediaShape(item)}>${item.icon ? `<span class="published-card-icon">${item.icon}</span>` : ''}</span>
             <span class="published-card-text">
               <span class="published-card-name">${escape(item.name)}</span>
               <span class="published-card-sub">${escape([item.toolName, item.version].filter(Boolean).join(' · '))}</span>

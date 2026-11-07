@@ -1586,12 +1586,12 @@ a.gtile-name:focus-visible::after {
 }
 .published-shelf-row {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(17rem, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(21rem, 1fr));
   gap: var(--sp-6);
 }
 .published-card {
   display: grid;
-  grid-template-columns: 4.5rem minmax(0, 1fr) auto;
+  grid-template-columns: 6rem minmax(0, 1fr) auto;
   align-items: center;
   gap: var(--sp-5);
   padding: var(--sp-4);
@@ -1607,7 +1607,8 @@ a.gtile-name:focus-visible::after {
   position: relative;
   display: grid;
   place-items: center;
-  width: 4.5rem;
+  width: 6rem;
+  max-height: 6rem;
   aspect-ratio: 3 / 4;
   border-radius: var(--radius-sm, 8px);
   background: hsl(var(--muted) / 0.5);
@@ -1618,7 +1619,7 @@ a.gtile-name:focus-visible::after {
 .published-card-icon { display: inline-flex; color: hsl(var(--muted-foreground)); }
 .published-card-icon svg { width: calc(22px * var(--a11y-fs)); height: calc(22px * var(--a11y-fs)); }
 .published-card-text { display: grid; gap: 2px; min-width: 0; }
-.published-card-name { font-size: calc(14px * var(--a11y-fs)); font-weight: 650; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.published-card-name { font-size: calc(14px * var(--a11y-fs)); font-weight: 650; overflow: hidden; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; }
 .published-card-sub { font-size: var(--fs-sm); color: hsl(var(--muted-foreground)); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .published-card-use {
   padding: var(--sp-3) var(--sp-6);

@@ -551,8 +551,8 @@ export async function wireSidebar(tview: ToolViewCtx): Promise<void> {
 
   // Chromeless editors own their on-canvas affordances; ordinary tools get a focus hint.
   const focusHint = chromeless ? '' : `
-[data-canvas-input] { cursor: pointer; }
-[data-canvas-input]:hover { outline: 2px dashed rgba(128,128,128,0.35); outline-offset: 3px; border-radius: 2px; }`; tview.focusHint = focusHint;
+[data-canvas-input]:not([data-canvas-fixed]) { cursor: pointer; }
+[data-canvas-input]:not([data-canvas-fixed]):hover { outline: 2px dashed rgba(128,128,128,0.35); outline-offset: 3px; border-radius: 2px; }`; tview.focusHint = focusHint;
   const styleEl = mountScopedStyle(`${tview.tool.styles ?? ''}${focusHint}`, canvasScope); tview.styleEl = styleEl;
   // A tool that sets its own fonts draws a script they lack in the same fallback font on
   // the page as in its export (lib/fallback-slots.ts). The CSSOM only: the text stays.
