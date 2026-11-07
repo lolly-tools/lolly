@@ -58,7 +58,7 @@
           }
         },
         "rulesVersion": { "type": "string" },
-        "vocabularyVersion": { "const": 1 }
+        "vocabularyVersion": { "const": 2 }
       }
     },
     "coded": {

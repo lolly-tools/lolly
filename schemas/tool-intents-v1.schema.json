@@ -17,7 +17,7 @@
   },
   "$defs": {
     "role": {
-      "enum": ["address", "awarddate", "awardtopic", "bgImage", "body", "company", "cta", "currency", "data", "email", "eventEnd", "eventLocation", "eventName", "eventStart", "firstname", "heading", "headshot", "image", "jobTitle", "lastname", "phone", "recipient", "sender", "sourceAuthor", "subheading", "url"]
+      "enum": ["address", "awarddate", "awardtopic", "bgImage", "body", "company", "cta", "currency", "data", "email", "eventEnd", "eventLocation", "eventName", "eventStart", "firstname", "heading", "headshot", "image", "jobTitle", "lastname", "partnerMark", "phone", "recipient", "sender", "sourceAuthor", "subheading", "url"]
     },
     "surface": {
       "enum": ["slide", "screen", "social-landscape", "social-square", "social-portrait", "story", "banner", "a4-portrait", "a4-landscape", "a3-portrait", "a3-landscape", "a2-portrait", "a2-landscape", "a1-portrait", "letter-portrait", "letter-landscape", "business-card"]

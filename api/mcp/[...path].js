@@ -4114,7 +4114,7 @@ var ENGINE_VERSION;
 var init_version = __esm({
   "engine/src/version.ts"() {
     "use strict";
-    ENGINE_VERSION = "1.329.0";
+    ENGINE_VERSION = "1.331.0";
   }
 });
 
@@ -4221,7 +4221,7 @@ function scalar(raw) {
 }
 function parseSkillFrontmatter(text13) {
   const lines = text13.split("\n");
-  const clean2 = (line) => (line ?? "").replace(/\r$/, "");
+  const clean2 = (line2) => (line2 ?? "").replace(/\r$/, "");
   if (clean2(lines[0]) !== "---") return { present: false, fields: {}, metadata: {}, body: text13, length: 0, errors: [] };
   let end = -1;
   for (let i = 1; i < lines.length; i++) if (clean2(lines[i]).trimEnd() === "---") {
@@ -4229,15 +4229,15 @@ function parseSkillFrontmatter(text13) {
     break;
   }
   if (end < 0) return { present: true, fields: {}, metadata: {}, body: text13, length: 0, errors: ["The frontmatter block is not closed with a --- line."] };
-  const length2 = lines.slice(0, end + 1).reduce((n7, line) => n7 + line.length + 1, 0);
+  const length2 = lines.slice(0, end + 1).reduce((n7, line2) => n7 + line2.length + 1, 0);
   const fields2 = {};
   const metadata2 = {};
   const errors = [];
   const block = lines.slice(1, end).map(clean2);
   for (let i = 0; i < block.length; i++) {
-    const line = block[i];
-    if (!line.trim() || line.trimStart().startsWith("#")) continue;
-    const top = /^([A-Za-z][A-Za-z0-9_-]*):(?:[ \t]+(.*))?$/.exec(line);
+    const line2 = block[i];
+    if (!line2.trim() || line2.trimStart().startsWith("#")) continue;
+    const top = /^([A-Za-z][A-Za-z0-9_-]*):(?:[ \t]+(.*))?$/.exec(line2);
     if (!top) {
       errors.push(`Frontmatter line ${i + 2} is not a "key: value" line.`);
       continue;
@@ -9581,7 +9581,7 @@ var init_intent_v1 = __esm({
     INTENT_RESOLUTION_FORMAT = "lolly-intent-resolution";
     INTENT_RESOLUTION_VERSION = 1;
     VISUAL_INTENT_VERSION = 1;
-    INTENT_VOCABULARY_VERSION = 1;
+    INTENT_VOCABULARY_VERSION = 2;
     INTENT_PURPOSES = [
       "announce",
       "compare",
@@ -9633,6 +9633,10 @@ var init_intent_v1 = __esm({
       image: ["asset"],
       jobTitle: ["text"],
       lastname: ["text"],
+      /** The partner's mark in a co-branded piece: the guest's logo, never the lead brand's
+       *  (vocabulary 2, Lolly Work plan 82 M7). The lead brand's own logo is not a role,
+       *  because the design system supplies the look. */
+      partnerMark: ["asset"],
       phone: ["text"],
       recipient: ["text"],
       sender: ["text"],
@@ -36381,14 +36385,14 @@ async function inkPreparedEmojiSvg(svg) {
   prepared.set(inked, { tree, changes });
   return inked;
 }
-function visitPreparedEmojiPaints(svg, visit) {
+function visitPreparedEmojiPaints(svg, visit2) {
   const record48 = prepared.get(svg);
   if (!record48) throw new Error("SVG has not been admitted.");
   const walk4 = (node) => {
     for (const name of paintNames) {
       const value2 = node.attributes[name];
       if (value2 === void 0 || !hexPaint.test(value2)) continue;
-      visit(value2, name);
+      visit2(value2, name);
     }
     for (const child2 of node.children) walk4(child2);
   };
@@ -38855,14 +38859,14 @@ var init_template = __esm({
             run3 = [];
           }
         };
-        for (const line of lines) {
-          const h = line.match(MD_HEADING);
+        for (const line2 of lines) {
+          const h = line2.match(MD_HEADING);
           if (h) {
             flushRun();
             const level2 = h[1].length;
             out.push(`<h${level2}>${inline(h[2])}</h${level2}>`);
           } else {
-            run3.push(line);
+            run3.push(line2);
           }
         }
         flushRun();
@@ -39223,11 +39227,11 @@ function frozenAssetId(sha256hex, ns2 = "user") {
   }
   return `${ns2}/frozen/${digest2.slice(0, FROZEN_KEY_LEN)}`;
 }
-function walkLeaves(doc, visit) {
+function walkLeaves(doc, visit2) {
   const walk4 = (node, path) => {
     if (!isRec3(node)) return;
     if ("$value" in node) {
-      visit(node, path);
+      visit2(node, path);
       return;
     }
     for (const k of Object.keys(node)) {
@@ -42449,9 +42453,9 @@ function sccToCues(text13, opts = {}) {
   };
   const clock = (frame) => frameToTimecode(frame, true);
   for (let li = at + 1; li < lines.length; li++) {
-    const line = lines[li].trim();
-    if (line === "") continue;
-    const m2 = /^(\d{2}:\d{2}:\d{2}[:;.,]\d{2})(?:[\t ]+(.*))?$/.exec(line);
+    const line2 = lines[li].trim();
+    if (line2 === "") continue;
+    const m2 = /^(\d{2}:\d{2}:\d{2}[:;.,]\d{2})(?:[\t ]+(.*))?$/.exec(line2);
     if (!m2) throw new CaptionFormatError(`SCC line ${li + 1} is not a timecode followed by caption words.`);
     const start = timecodeToFrame(m2[1]);
     if (start === null) throw new CaptionFormatError(`SCC line ${li + 1} has an invalid timecode "${m2[1]}".`);
@@ -42552,10 +42556,10 @@ function sccToCues(text13, opts = {}) {
   if (badParity) note2("parity", `${badParity} byte(s) failed the CEA-608 odd-parity check and were read without it.`);
   return { cues, issues };
 }
-function wrapLine(line) {
+function wrapLine(line2) {
   const rows2 = [];
   let cur = "";
-  for (const word of line.split(" ").filter(Boolean)) {
+  for (const word of line2.split(" ").filter(Boolean)) {
     let w = word;
     while (Array.from(w).length > COLS) {
       if (cur) {
@@ -43199,7 +43203,7 @@ function parseSvgPath(d) {
     const next2 = open3(sx, sy);
     if (next2) cur = next2;
   };
-  const line = (x, y) => {
+  const line2 = (x, y) => {
     if (!cur || overflow) return;
     reopen();
     if (overflow) return;
@@ -43243,7 +43247,7 @@ function parseSvgPath(d) {
             cur = next2;
             sx = x;
             sy = y;
-          } else line(x, y);
+          } else line2(x, y);
           cx2 = x;
           cy3 = y;
         }
@@ -43251,7 +43255,7 @@ function parseSvgPath(d) {
       case "L":
         for (let i = 0; i + 1 < nums.length && !overflow; i += 2) {
           const x = ax(i), y = ay(i + 1);
-          line(x, y);
+          line2(x, y);
           cx2 = x;
           cy3 = y;
         }
@@ -43259,13 +43263,13 @@ function parseSvgPath(d) {
       case "H":
         for (let i = 0; i < nums.length && !overflow; i++) {
           cx2 = abs ? at(i) : cx2 + at(i);
-          line(cx2, cy3);
+          line2(cx2, cy3);
         }
         break;
       case "V":
         for (let i = 0; i < nums.length && !overflow; i++) {
           cy3 = abs ? at(i) : cy3 + at(i);
-          line(cx2, cy3);
+          line2(cx2, cy3);
         }
         break;
       case "C":
@@ -43331,7 +43335,7 @@ function parseSvgPath(d) {
           const sw = at(i + 4) ? 1 : 0;
           const x = ax(i + 5), y = ay(i + 6);
           if (rx < 1e-6 || ry < 1e-6) {
-            line(x, y);
+            line2(x, y);
           } else {
             for (const [bx1, by1, bx2, by2, bx, by] of svgArcToBeziers(cx2, cy3, rx, ry, xRot, la, sw, x, y)) {
               cubic(bx1, by1, bx2, by2, bx, by);
@@ -43968,7 +43972,7 @@ async function applyEmojiToSvgText(root2, style, packs, io, text13, options2 = {
       if (!text13?.fontUrl || requiresEmojiBidiLayout(raw)) throw new Error("This SVG text layout needs a supported text shaper.");
       if (source.getAttribute("textLength")) throw new Error("Stretched SVG text needs explicit outlines.");
       const lines = textOnly(source) ? [source] : Array.from(source.children);
-      if (lines.some((line) => !["tspan", "textpath"].includes(line.tagName.toLowerCase()) && line !== source || !textOnly(line))) throw new Error("Nested SVG text needs explicit outlines.");
+      if (lines.some((line2) => !["tspan", "textpath"].includes(line2.tagName.toLowerCase()) && line2 !== source || !textOnly(line2))) throw new Error("Nested SVG text needs explicit outlines.");
       if (!textOnly(source) && source.innerHTML.replace(/<(tspan|textPath)\b[^>]*>[\s\S]*?<\/\1>/gi, "").trim()) throw new Error("Mixed SVG text children need explicit outlines.");
       const rootEm = coordinate(property2(source, "font-size", "16"), 16);
       let x = coordinate(source.getAttribute("x"), rootEm, 0, percentageBasis(source, "x")), y = coordinate(source.getAttribute("y"), rootEm, 0, percentageBasis(source, "y"));
@@ -43978,25 +43982,25 @@ async function applyEmojiToSvgText(root2, style, packs, io, text13, options2 = {
       }
       const pending6 = { replaced: 0, unresolved: 0, census: [] };
       for (let row = 0; row < lines.length; row++) {
-        const line = lines[row];
-        const em2 = coordinate(property2(line, "font-size", String(rootEm)), rootEm);
-        const family2 = property2(line, "font-family");
-        const weightRaw = property2(line, "font-weight", "400");
+        const line2 = lines[row];
+        const em2 = coordinate(property2(line2, "font-size", String(rootEm)), rootEm);
+        const family2 = property2(line2, "font-family");
+        const weightRaw = property2(line2, "font-weight", "400");
         const weight = weightRaw === "bold" ? 700 : parseFloat(weightRaw) || 400;
-        const italic = /italic|oblique/.test(property2(line, "font-style"));
+        const italic = /italic|oblique/.test(property2(line2, "font-style"));
         let font = null;
         for (const name of family2.split(",").map((item2) => item2.trim().replace(/^['"]|['"]$/g, ""))) {
           if (name) font = await text13.fontUrl(name, { weight, italic });
           if (font) break;
         }
-        const lineText = line.textContent ?? "";
+        const lineText = line2.textContent ?? "";
         const prepared3 = await prepareEmojiText(lineText, style, packs, io, { cache: options2.cache, prefix: `${options2.idScope ?? "e"}_svg_${index2}_${row}` });
-        const fill2 = property2(line, "fill", "#000000");
-        const spacing = property2(line, "letter-spacing", "0");
+        const fill2 = property2(line2, "fill", "#000000");
+        const spacing = property2(line2, "letter-spacing", "0");
         const tracking = spacing === "normal" ? 0 : coordinate(spacing, em2);
         let advance = 0;
         const parts = [];
-        const curveText = line.tagName.toLowerCase() === "textpath";
+        const curveText = line2.tagName.toLowerCase() === "textpath";
         const pieces = [];
         const add3 = (markup2, x2, width) => {
           if (curveText) pieces.push({ markup: markup2, x: x2, advance: width });
@@ -44032,11 +44036,11 @@ async function applyEmojiToSvgText(root2, style, packs, io, text13, options2 = {
             pending6.unresolved++;
           }
         }
-        x = coordinate(line.getAttribute("x"), em2, x, percentageBasis(line, "x")) + coordinate(line.getAttribute("dx"), em2);
-        y = coordinate(line.getAttribute("y"), em2, y, percentageBasis(line, "y")) + coordinate(line.getAttribute("dy"), em2);
-        const anchor = property2(line, "text-anchor", "start");
-        const baseline = property2(line, "dominant-baseline", "auto");
-        const aligned = property2(line, "alignment-baseline");
+        x = coordinate(line2.getAttribute("x"), em2, x, percentageBasis(line2, "x")) + coordinate(line2.getAttribute("dx"), em2);
+        y = coordinate(line2.getAttribute("y"), em2, y, percentageBasis(line2, "y")) + coordinate(line2.getAttribute("dy"), em2);
+        const anchor = property2(line2, "text-anchor", "start");
+        const baseline = property2(line2, "dominant-baseline", "auto");
+        const aligned = property2(line2, "alignment-baseline");
         const mode3 = aligned && !/^(auto|baseline)$/.test(aligned) ? aligned : baseline;
         if (!/^(auto|alphabetic|middle|central|hanging|text-before-edge|text-after-edge)$/.test(mode3)) throw new Error("Unsupported SVG text baseline.");
         let baselineOffset = 0;
@@ -44047,19 +44051,19 @@ async function applyEmojiToSvgText(root2, style, packs, io, text13, options2 = {
         else if (mode3 === "text-after-edge") baselineOffset = -em2 * 0.2;
         const at = x - (anchor === "middle" ? advance / 2 : anchor === "end" ? advance : 0);
         if (curveText) {
-          const href = line.getAttribute("href") || line.getAttribute("xlink:href") || "";
+          const href = line2.getAttribute("href") || line2.getAttribute("xlink:href") || "";
           if (!/^#[A-Za-z_][\w.-]*$/.test(href)) throw new Error("SVG text paths need a local path.");
           let scope2 = source;
           while (scope2.parentElement && scope2.tagName.toLowerCase() !== "svg") scope2 = scope2.parentElement;
           const path = Array.from(scope2.querySelectorAll("path")).find((item2) => item2.getAttribute("id") === href.slice(1));
           if (!path || path.getAttribute("transform") || path.getAttribute("pathLength")) throw new Error("SVG text path transforms need explicit outlines.");
           const curve = emojiTextPath(path.getAttribute("d") || "");
-          const offset = line.getAttribute("startOffset") || "0";
+          const offset = line2.getAttribute("startOffset") || "0";
           let start = offset.endsWith("%") ? coordinate(offset.slice(0, -1), em2) * curve.length / 100 : coordinate(offset, em2);
-          const fit = line.getAttribute("data-lolly-text-fit") === "shrink";
+          const fit = line2.getAttribute("data-lolly-text-fit") === "shrink";
           const scale = fit && advance > curve.length * 0.97 ? curve.length * 0.97 / advance : 1;
           if (fit) {
-            const position = coordinate(line.getAttribute("data-lolly-text-position"), em2) / 100;
+            const position = coordinate(line2.getAttribute("data-lolly-text-position"), em2) / 100;
             start = Math.max(0, Math.min(curve.length - advance * scale, position * curve.length - (anchor === "middle" ? advance * scale / 2 : anchor === "end" ? advance * scale : 0)));
           } else start -= anchor === "middle" ? advance / 2 : anchor === "end" ? advance : 0;
           for (const piece of pieces) {
@@ -56423,34 +56427,34 @@ function computePrintGeometry({ trimWpt, trimHpt, bleedPt = 0, marks = {}, palet
   const trimL = trim2.x, trimT = trim2.y, trimR = trim2.x + trim2.w, trimB = trim2.y + trim2.h;
   const bL = bleed.x, bT = bleed.y, bR = bleed.x + bleed.w, bB = bleed.y + bleed.h;
   const lines = [], circles = [], bars = [], labels = [];
-  const line = (x1, y1, x2, y2, mark) => {
+  const line2 = (x1, y1, x2, y2, mark) => {
     lines.push({ x1, y1, x2, y2, mark });
   };
   if (m2.crop) {
-    line(trimL, bT, trimL, bT - L, "crop");
-    line(bL, trimT, bL - L, trimT, "crop");
-    line(trimR, bT, trimR, bT - L, "crop");
-    line(bR, trimT, bR + L, trimT, "crop");
-    line(trimL, bB, trimL, bB + L, "crop");
-    line(bL, trimB, bL - L, trimB, "crop");
-    line(trimR, bB, trimR, bB + L, "crop");
-    line(bR, trimB, bR + L, trimB, "crop");
+    line2(trimL, bT, trimL, bT - L, "crop");
+    line2(bL, trimT, bL - L, trimT, "crop");
+    line2(trimR, bT, trimR, bT - L, "crop");
+    line2(bR, trimT, bR + L, trimT, "crop");
+    line2(trimL, bB, trimL, bB + L, "crop");
+    line2(bL, trimB, bL - L, trimB, "crop");
+    line2(trimR, bB, trimR, bB + L, "crop");
+    line2(bR, trimB, bR + L, trimB, "crop");
   }
   if (m2.bleed && bleedPt > 0) {
-    line(bL, bT, bL, bT - L, "bleed");
-    line(bL, bT, bL - L, bT, "bleed");
-    line(bR, bT, bR, bT - L, "bleed");
-    line(bR, bT, bR + L, bT, "bleed");
-    line(bL, bB, bL, bB + L, "bleed");
-    line(bL, bB, bL - L, bB, "bleed");
-    line(bR, bB, bR, bB + L, "bleed");
-    line(bR, bB, bR + L, bB, "bleed");
+    line2(bL, bT, bL, bT - L, "bleed");
+    line2(bL, bT, bL - L, bT, "bleed");
+    line2(bR, bT, bR, bT - L, "bleed");
+    line2(bR, bT, bR + L, bT, "bleed");
+    line2(bL, bB, bL, bB + L, "bleed");
+    line2(bL, bB, bL - L, bB, "bleed");
+    line2(bR, bB, bR, bB + L, "bleed");
+    line2(bR, bB, bR + L, bB, "bleed");
   }
   if (m2.registration) {
     const reg = (cx2, cy3) => {
       circles.push({ cx: cx2, cy: cy3, r: rr, mark: "registration" });
-      line(cx2, cy3 - rc, cx2, cy3 + rc, "registration");
-      line(cx2 - rc, cy3, cx2 + rc, cy3, "registration");
+      line2(cx2, cy3 - rc, cx2, cy3 + rc, "registration");
+      line2(cx2 - rc, cy3, cx2 + rc, cy3, "registration");
     };
     const midX = pageW / 2, midY = pageH / 2, half = reach2 / 2;
     reg(midX, bT - half);
@@ -62381,7 +62385,7 @@ var init_operations = __esm({
 });
 
 // engine/src/geom/near-pieces.ts
-function visitNearPieces(edges, weld, visit) {
+function visitNearPieces(edges, weld, visit2) {
   const cell2 = Math.max(weld * 4, 1e-12);
   const buckets = /* @__PURE__ */ new Map();
   const cells = edges.map((edge) => {
@@ -62420,7 +62424,7 @@ function visitNearPieces(edges, weld, visit) {
           for (const j of bucket2) {
             if (j <= i || seen.has(j)) continue;
             seen.add(j);
-            if (!visit(i, j)) return;
+            if (!visit2(i, j)) return;
           }
         }
       }
@@ -62783,7 +62787,7 @@ function decideAt(c) {
   }
   return bestT;
 }
-function sweepPairs(a, b, self, budget3, visit) {
+function sweepPairs(a, b, self, budget3, visit2) {
   const byStart = (list4) => list4.map((_, i) => i).sort((p, q) => list4[p].box.x0 - list4[q].box.x0);
   const prune = (active, list4, x) => {
     let w = 0;
@@ -62802,7 +62806,7 @@ function sweepPairs(a, b, self, budget3, visit) {
       prune(active, a, box4.x0);
       for (const j of active) {
         if (budget3.pairs-- <= 0) return;
-        if (yHit(box4, a[j].box)) visit(Math.min(i, j), Math.max(i, j));
+        if (yHit(box4, a[j].box)) visit2(Math.min(i, j), Math.max(i, j));
         if (budget3.splits <= 0) return;
       }
       active.push(i);
@@ -62821,7 +62825,7 @@ function sweepPairs(a, b, self, budget3, visit) {
       prune(activeB, b, box4.x0);
       for (const j of activeB) {
         if (budget3.pairs-- <= 0) return;
-        if (yHit(box4, b[j].box)) visit(i, j);
+        if (yHit(box4, b[j].box)) visit2(i, j);
         if (budget3.splits <= 0) return;
       }
       activeA.push(i);
@@ -62831,7 +62835,7 @@ function sweepPairs(a, b, self, budget3, visit) {
       prune(activeA, a, box4.x0);
       for (const i of activeA) {
         if (budget3.pairs-- <= 0) return;
-        if (yHit(a[i].box, box4)) visit(i, j);
+        if (yHit(a[i].box, box4)) visit2(i, j);
         if (budget3.splits <= 0) return;
       }
       activeB.push(j);
@@ -63152,8 +63156,8 @@ function findTwins(edges, weld, budget3) {
   });
   return twins;
 }
-function nearPieces(edges, weld, visit) {
-  visitNearPieces(edges, weld, visit);
+function nearPieces(edges, weld, visit2) {
+  visitNearPieces(edges, weld, visit2);
 }
 function buildRayDirs() {
   const out = [[1, 0], [0, 1]];
@@ -64024,9 +64028,9 @@ function fitAdaptive(src, t0, t1, tol, b) {
     const start = endpointSample(src, a, 1, span);
     const end = endpointSample(src, z, -1, span);
     if ((end.x - start.x) ** 2 + (end.y - start.y) ** 2 <= tol * tol) {
-      const line = tryFitLine(src, a, z, tol, start.x, start.y, end.x, end.y);
-      if (line) {
-        b.out.push(line.c);
+      const line2 = tryFitLine(src, a, z, tol, start.x, start.y, end.x, end.y);
+      if (line2) {
+        b.out.push(line2.c);
         continue;
       }
     }
@@ -66135,7 +66139,7 @@ function parseVectorPaint(value2, count4) {
   if (paint2.version !== 1 || ![paint2.width, paint2.height].every((value3) => Number.isFinite(value3) && value3 > 0 && value3 <= 1e6)) throw new Error("Invalid vector paint dimensions.");
   let nodes = 0, budget3 = 0;
   const used = /* @__PURE__ */ new Set(), ids2 = /* @__PURE__ */ new Map(), refs = [];
-  function visit(node, depth) {
+  function visit2(node, depth) {
     if (!node || typeof node !== "object" || ++nodes > 4096 || depth > 32 || !Object.hasOwn(tags2, node.tag)) throw new Error("Unsupported vector paint tree.");
     if (!node.attributes || typeof node.attributes !== "object" || Array.isArray(node.attributes) || Object.keys(node.attributes).length > 48) throw new Error("Invalid vector paint attributes.");
     const attributes2 = {};
@@ -66161,9 +66165,9 @@ function parseVectorPaint(value2, count4) {
     } else if (node.contours !== void 0) throw new Error("Only vector paths own contours.");
     if (node.children !== void 0 && (!Array.isArray(node.children) || node.children.length > 4096)) throw new Error("Invalid vector paint children.");
     if (["path", "stop"].includes(node.tag) && node.children?.length) throw new Error("This vector paint node cannot have children.");
-    return { tag: node.tag, attributes: attributes2, ...contours ? { contours } : {}, ...node.children ? { children: node.children.map((child2) => visit(child2, depth + 1)) } : {} };
+    return { tag: node.tag, attributes: attributes2, ...contours ? { contours } : {}, ...node.children ? { children: node.children.map((child2) => visit2(child2, depth + 1)) } : {} };
   }
-  const root2 = visit(paint2.root, 0);
+  const root2 = visit2(paint2.root, 0);
   if (root2.tag !== "g" || used.size !== count4) throw new Error("Vector paint no longer matches its authored contours.");
   for (const ref2 of refs) if (!ref2.tags.includes(ids2.get(ref2.id) ?? "")) throw new Error("The vector paint has an invalid local reference.");
   return { version: 1, width: paint2.width, height: paint2.height, root: root2 };
@@ -66192,7 +66196,7 @@ function vectorPaintMatrices(paint2, count4, authored) {
     walk4(node, identity);
     return pathBounds(contours);
   }
-  function visit(node, parent) {
+  function visit2(node, parent) {
     if (node.tag === "defs") return;
     const matrix = multiplyVectorMatrix(parent, vectorMatrix(node.attributes.transform));
     for (const index2 of node.contours ?? []) result[index2] = matrix;
@@ -66207,9 +66211,9 @@ function vectorPaintMatrices(paint2, count4, authored) {
       }
       pending6.push({ node: definition, matrix: placement2 });
     }
-    for (const child2 of node.children ?? []) visit(child2, matrix);
+    for (const child2 of node.children ?? []) visit2(child2, matrix);
   }
-  visit(admitted3.root, identity);
+  visit2(admitted3.root, identity);
   const placed2 = /* @__PURE__ */ new Map();
   for (let i = 0; i < pending6.length; i++) {
     if (i > 4096) throw new Error("Vector clipping exceeds the supported depth.");
@@ -66219,7 +66223,7 @@ function vectorPaintMatrices(paint2, count4, authored) {
       continue;
     }
     placed2.set(id3, matrix);
-    visit(node, matrix);
+    visit2(node, matrix);
   }
   if (result.some((matrix) => !matrix) || result.filter(Boolean).length !== count4) throw new Error("Unused clip geometry cannot be edited.");
   return result;
@@ -67402,8 +67406,8 @@ function bodyLines(body, offset) {
 }
 function brandSkillScopeHints(text13) {
   const out = [];
-  text13.split("\n").forEach((line, i) => {
-    for (const p of SCOPE_PATTERNS) if (p.pattern.test(line)) out.push({ code: p.code, severity: "warning", message: p.message, line: i + 1 });
+  text13.split("\n").forEach((line2, i) => {
+    for (const p of SCOPE_PATTERNS) if (p.pattern.test(line2)) out.push({ code: p.code, severity: "warning", message: p.message, line: i + 1 });
   });
   return out;
 }
@@ -67463,7 +67467,7 @@ function parseBrandSkill(text13) {
     } catch {
     }
   }
-  for (const [host, line] of hosts) findings.push({ code: "link.external", severity: "info", message: `Links to ${host}. Lolly never fetches external links and cannot say whether an agent can open them.`, line });
+  for (const [host, line2] of hosts) findings.push({ code: "link.external", severity: "info", message: `Links to ${host}. Lolly never fetches external links and cannot say whether an agent can open them.`, line: line2 });
   for (const hint of brandSkillScopeHints(body)) findings.push({ ...hint, line: (hint.line ?? 0) + offset });
   return { frontmatter, body, headings, links, findings, lines: rows2.length, approxTokens };
 }
@@ -69043,20 +69047,20 @@ function traceTokenDocument(doc, opts) {
   const references = (value2) => {
     const out = /* @__PURE__ */ new Set();
     let count4 = 0;
-    function visit(v, depth) {
+    function visit2(v, depth) {
       if (++count4 > 4096 || depth > 32) {
         truncated = true;
         return;
       }
       if (isAlias(v)) out.add(aliasPath(v));
       else if (Array.isArray(v)) v.forEach((x) => {
-        visit(x, depth + 1);
+        visit2(x, depth + 1);
       });
       else if (record12(v)) {
-        for (const [k, x] of Object.entries(v)) if (!k.startsWith("$")) visit(x, depth + 1);
+        for (const [k, x] of Object.entries(v)) if (!k.startsWith("$")) visit2(x, depth + 1);
       }
     }
-    visit(value2, 0);
+    visit2(value2, 0);
     return [...out];
   };
   const tokens3 = [...definitions].map(([path, candidates2]) => {
@@ -72109,7 +72113,7 @@ function readXcf(bytes2, opts = {}) {
     warnings: warnings2
   };
 }
-function readProps(bytes2, v, p, maxProps, visit) {
+function readProps(bytes2, v, p, maxProps, visit2) {
   for (let i = 0; i < maxProps; i++) {
     if (p + 8 > bytes2.length) return -1;
     const id3 = v.getUint32(p);
@@ -72118,7 +72122,7 @@ function readProps(bytes2, v, p, maxProps, visit) {
     if (id3 === PROP_END) return p;
     const end = p + len2;
     if (len2 > bytes2.length - p) return -1;
-    visit(id3, p, len2);
+    visit2(id3, p, len2);
     p = end;
   }
   return -1;
@@ -74144,19 +74148,19 @@ function parseTableText(text13) {
   });
   return { columns: rows2[0], rows: rows2.slice(1) };
 }
-function splitCsvLine(line) {
+function splitCsvLine(line2) {
   const cells = [];
-  let cur = "", quoted2 = false;
-  for (let i = 0; i < line.length; i++) {
-    const ch = line[i];
-    if (quoted2) {
-      if (ch === '"' && line[i + 1] === '"') {
+  let cur = "", quoted3 = false;
+  for (let i = 0; i < line2.length; i++) {
+    const ch = line2[i];
+    if (quoted3) {
+      if (ch === '"' && line2[i + 1] === '"') {
         cur += '"';
         i++;
-      } else if (ch === '"') quoted2 = false;
+      } else if (ch === '"') quoted3 = false;
       else cur += ch;
     } else if (ch === '"' && cur === "") {
-      quoted2 = true;
+      quoted3 = true;
     } else if (ch === ",") {
       cells.push(cur);
       cur = "";
@@ -78438,7 +78442,7 @@ var init_output_facts = __esm({
       const rootNum = catalog ? ref(catalog.dict, "Pages") : null;
       const sizes = [];
       let complete = rootNum !== null;
-      const visit = (num22, inherited4, depth, seen) => {
+      const visit2 = (num22, inherited4, depth, seen) => {
         const node = objects.get(num22);
         if (!node || seen.has(num22) || depth > 64 || sizes.length >= 1e4) {
           complete = false;
@@ -78448,7 +78452,7 @@ var init_output_facts = __esm({
         const media = boxOf2(node.dict, "MediaBox", objects) ?? inherited4;
         if (/\/Type\s*\/Pages\b/.test(node.dict)) {
           const kids2 = arrayAfter(node.dict, "Kids") ?? "";
-          for (const k of kids2.matchAll(PDF_REF)) visit(Number(k[1]), media, depth + 1, seen);
+          for (const k of kids2.matchAll(PDF_REF)) visit2(Number(k[1]), media, depth + 1, seen);
           return;
         }
         const trim2 = boxOf2(node.dict, "TrimBox", objects), use = trim2 ?? media;
@@ -78460,7 +78464,7 @@ var init_output_facts = __esm({
         const w = Math.abs(use[2] - use[0]), h = Math.abs(use[3] - use[1]);
         sizes.push({ w: rotate ? h : w, h: rotate ? w : h, box: trim2 ? "TrimBox" : "MediaBox" });
       };
-      if (rootNum !== null) visit(rootNum, null, 0, /* @__PURE__ */ new Set());
+      if (rootNum !== null) visit2(rootNum, null, 0, /* @__PURE__ */ new Set());
       const rootCount = rootNum !== null ? Number(/\/Count\s+(\d+)/.exec(objects.get(rootNum)?.dict ?? "")?.[1] ?? Number.NaN) : Number.NaN;
       if (complete && sizes.length) {
         f.pages = known(sizes.length);
@@ -79225,35 +79229,35 @@ function parseRateCard(input, digest2, validate) {
   const lines = [];
   for (const raw of rawLines) {
     const r5 = raw;
-    const line = {
+    const line2 = {
       id: r5.id,
       kind: r5.kind,
       rate: r5.rate
     };
-    if (r5.finish !== void 0) line.finish = r5.finish;
-    if (r5.unit !== void 0) line.unit = r5.unit;
-    if (r5.quantityKind !== void 0) line.quantityKind = r5.quantityKind;
-    if (r5.breaks !== void 0) line.breaks = r5.breaks;
+    if (r5.finish !== void 0) line2.finish = r5.finish;
+    if (r5.unit !== void 0) line2.unit = r5.unit;
+    if (r5.quantityKind !== void 0) line2.quantityKind = r5.quantityKind;
+    if (r5.breaks !== void 0) line2.breaks = r5.breaks;
     let disabled;
-    if (seen.has(line.id)) {
+    if (seen.has(line2.id)) {
       disabled = "bad-rate";
     } else {
-      seen.add(line.id);
+      seen.add(line2.id);
     }
-    if (!disabled && !isFiniteRate(line.rate)) disabled = "bad-rate";
-    if (!disabled && line.breaks !== void 0) {
-      if (!breaksAreValid(line.breaks)) disabled = "bad-rate";
+    if (!disabled && !isFiniteRate(line2.rate)) disabled = "bad-rate";
+    if (!disabled && line2.breaks !== void 0) {
+      if (!breaksAreValid(line2.breaks)) disabled = "bad-rate";
       else if (breakMode === void 0) disabled = "needs-break-mode";
     }
-    if (!disabled && line.kind === "perQuantity") {
-      const qk = line.quantityKind;
+    if (!disabled && line2.kind === "perQuantity") {
+      const qk = line2.quantityKind;
       if (typeof qk !== "string" || qk.trim() === "") disabled = "missing-quantity-kind";
     }
-    if (!disabled && typeof line.finish === "string" && !KNOWN_FINISHES2.has(line.finish)) {
+    if (!disabled && typeof line2.finish === "string" && !KNOWN_FINISHES2.has(line2.finish)) {
       disabled = "unknown-finish";
     }
-    if (disabled) line.disabled = { reason: disabled };
-    lines.push(line);
+    if (disabled) line2.disabled = { reason: disabled };
+    lines.push(line2);
   }
   const anyPriced = lines.some((l) => !l.disabled && isFiniteRate(l.rate));
   if (!anyPriced) return { error: "no-priced-lines" };
@@ -79285,10 +79289,10 @@ function flatTier(breaks, q) {
   for (const b of breaks) if (b.min <= q) chosen = b;
   return chosen;
 }
-function priceQuantity(line, breakMode, rateExact, breaksExact, q, ctx) {
+function priceQuantity(line2, breakMode, rateExact, breaksExact, q, ctx) {
   const base = {
-    lineId: line.id,
-    kind: line.kind,
+    lineId: line2.id,
+    kind: line2.kind,
     quantityKind: ctx.quantityKind,
     bound: ctx.bound,
     ...ctx.unit !== void 0 ? { unit: ctx.unit } : {},
@@ -79322,25 +79326,25 @@ function priceQuantity(line, breakMode, rateExact, breaksExact, q, ctx) {
   }
   return rows2;
 }
-function countsForLine(line, counts) {
-  switch (line.kind) {
+function countsForLine(line2, counts) {
+  switch (line2.kind) {
     case "perPlate":
       return counts.filter(
-        (c) => line.finish !== void 0 ? c.kind === "finishPlates" : c.kind === "processPlates" || c.kind === "spotPlates"
+        (c) => line2.finish !== void 0 ? c.kind === "finishPlates" : c.kind === "processPlates" || c.kind === "spotPlates"
       );
     case "perSheet":
       return counts.filter((c) => c.kind === "sheets");
     case "perArea":
       return counts.filter((c) => c.kind === "area" && c.unit === "m2-sheet" && c.box === "media");
     case "perQuantity":
-      return counts.filter((c) => c.kind === line.quantityKind);
+      return counts.filter((c) => c.kind === line2.quantityKind);
     default:
       return [];
   }
 }
-function gapReason(line) {
-  if (line.kind === "perSheet") return "no-sheet-count";
-  if (line.kind === "perArea") return "no-sheet-area";
+function gapReason(line2) {
+  if (line2.kind === "perSheet") return "no-sheet-count";
+  if (line2.kind === "perArea") return "no-sheet-area";
   return "quantity-not-produced";
 }
 function isExpired(card, now2) {
@@ -79355,24 +79359,24 @@ function computeCost(card, counts, input = {}) {
   const rows2 = [];
   const uncosted = [];
   let coveredLines = 0;
-  for (const line of card.lines) {
-    if (line.disabled) {
-      uncosted.push({ lineId: line.id, reason: line.disabled.reason });
+  for (const line2 of card.lines) {
+    if (line2.disabled) {
+      uncosted.push({ lineId: line2.id, reason: line2.disabled.reason });
       continue;
     }
-    const rateExact = exactMinor(line.rate, exponent);
+    const rateExact = exactMinor(line2.rate, exponent);
     const rateFlat = Math.round(rateExact);
-    const breaksExact = line.breaks ? breaksToMinor(line.breaks, exponent) : void 0;
+    const breaksExact = line2.breaks ? breaksToMinor(line2.breaks, exponent) : void 0;
     if (breaksExact && card.breakMode === void 0) {
-      uncosted.push({ lineId: line.id, reason: "needs-break-mode" });
+      uncosted.push({ lineId: line2.id, reason: "needs-break-mode" });
       continue;
     }
     let lineRows = [];
-    if (line.kind === "perJob") {
+    if (line2.kind === "perJob") {
       lineRows = [
         {
-          lineId: line.id,
-          kind: line.kind,
+          lineId: line2.id,
+          kind: line2.kind,
           quantityKind: "job",
           quantity: 1,
           bound: "exact",
@@ -79381,29 +79385,29 @@ function computeCost(card, counts, input = {}) {
           subtotalBound: "exact"
         }
       ];
-    } else if (line.kind === "perUnit") {
+    } else if (line2.kind === "perUnit") {
       const q = input.runLength;
       if (typeof q !== "number" || !Number.isInteger(q) || q < 0) {
-        uncosted.push({ lineId: line.id, reason: "no-run-length" });
+        uncosted.push({ lineId: line2.id, reason: "no-run-length" });
         continue;
       }
-      lineRows = priceQuantity(line, card.breakMode, rateExact, breaksExact, q, {
+      lineRows = priceQuantity(line2, card.breakMode, rateExact, breaksExact, q, {
         quantityKind: "runLength",
         bound: "exact"
       });
     } else {
-      if (line.kind === "perQuantity" && !QUANTITY_KINDS.has(line.quantityKind ?? "")) {
-        uncosted.push({ lineId: line.id, reason: "quantity-unknown-kind" });
+      if (line2.kind === "perQuantity" && !QUANTITY_KINDS.has(line2.quantityKind ?? "")) {
+        uncosted.push({ lineId: line2.id, reason: "quantity-unknown-kind" });
         continue;
       }
-      const matched = countsForLine(line, counts);
+      const matched = countsForLine(line2, counts);
       if (matched.length === 0) {
-        uncosted.push({ lineId: line.id, reason: gapReason(line) });
+        uncosted.push({ lineId: line2.id, reason: gapReason(line2) });
         continue;
       }
       for (const c of matched) {
         lineRows.push(
-          ...priceQuantity(line, card.breakMode, rateExact, breaksExact, c.value, {
+          ...priceQuantity(line2, card.breakMode, rateExact, breaksExact, c.value, {
             quantityKind: c.kind,
             bound: c.bound,
             unit: c.unit,
@@ -79413,7 +79417,7 @@ function computeCost(card, counts, input = {}) {
       }
     }
     if (lineRows.length === 0) {
-      uncosted.push({ lineId: line.id, reason: gapReason(line) });
+      uncosted.push({ lineId: line2.id, reason: gapReason(line2) });
       continue;
     }
     rows2.push(...lineRows);
@@ -82496,13 +82500,13 @@ function lineBrokenNotSentences(text13) {
   }
   return open3 * 2 >= lines.length && short * 10 >= lines.length * 7;
 }
-function trimmedLine(line, start) {
-  const lead = line.length - line.trimStart().length;
-  return { index: start + lead, length: line.trim().length };
+function trimmedLine(line2, start) {
+  const lead = line2.length - line2.trimStart().length;
+  return { index: start + lead, length: line2.trim().length };
 }
-function scaffoldHeading(line) {
-  if (line.length > 80) return void 0;
-  const core = line.replace(/^[ \t]*(?:#{1,6}[ \t]+)?(?:(?:[-*•+]|\d{1,2}[.)])[ \t]+)?(?:\*\*|__)?/u, "").replace(/(?:\*\*|__)?[ \t]*:?[ \t]*(?:\*\*|__)?[ \t]*#*[ \t]*$/u, "").replace(/’/gu, "'").trim().toLowerCase();
+function scaffoldHeading(line2) {
+  if (line2.length > 80) return void 0;
+  const core = line2.replace(/^[ \t]*(?:#{1,6}[ \t]+)?(?:(?:[-*•+]|\d{1,2}[.)])[ \t]+)?(?:\*\*|__)?/u, "").replace(/(?:\*\*|__)?[ \t]*:?[ \t]*(?:\*\*|__)?[ \t]*#*[ \t]*$/u, "").replace(/’/gu, "'").trim().toLowerCase();
   return SCAFFOLD_SET.has(core) ? core : void 0;
 }
 function chatStructure(text13) {
@@ -82519,42 +82523,42 @@ function chatStructure(text13) {
   lines.forEach((raw, i) => {
     const start = pos;
     pos += raw.length + 1;
-    const line = raw.endsWith("\r") ? raw.slice(0, -1) : raw;
+    const line2 = raw.endsWith("\r") ? raw.slice(0, -1) : raw;
     numberedLine[i] = false;
-    if (/^\s*(?:```|~~~)/u.test(line)) {
+    if (/^\s*(?:```|~~~)/u.test(line2)) {
       inFence = !inFence;
       return;
     }
-    if (inFence || line.length > 2e3) return;
-    if (/^\s*\d{1,2}[.)]\s/u.test(line)) numberedLine[i] = true;
-    const label5 = CHAT_LABEL_LINE.exec(line);
+    if (inFence || line2.length > 2e3) return;
+    if (/^\s*\d{1,2}[.)]\s/u.test(line2)) numberedLine[i] = true;
+    const label5 = CHAT_LABEL_LINE.exec(line2);
     if (label5) {
       const name = label5[2].trim();
       const after = label5[3].trim();
       const words4 = after.split(/\s+/u).filter((w) => new RegExp("\\p{L}", "u").test(w)).length;
       if (!CHAT_LABEL_STOP.test(name) && !CHAT_LABEL_STOP_WORD.test(name) && words4 >= 4 && !/^(?:[`<{[(]|https?:)/u.test(after)) {
-        const from = label5[1] ? line.indexOf(label5[1]) : line.indexOf(name);
-        const colon = line.indexOf(":", line.indexOf(name) + name.length);
-        const close = /^(?:\*\*|__)/u.test(line.slice(colon + 1)) ? 2 : 0;
+        const from = label5[1] ? line2.indexOf(label5[1]) : line2.indexOf(name);
+        const colon = line2.indexOf(":", line2.indexOf(name) + name.length);
+        const close = /^(?:\*\*|__)/u.test(line2.slice(colon + 1)) ? 2 : 0;
         labelSpans.push({ index: start + from, length: colon + 1 + close - from });
         labelKeys.push(name.toLowerCase());
         return;
       }
     }
-    const heading = scaffoldHeading(line);
+    const heading = scaffoldHeading(line2);
     if (heading) {
-      headingSpans.push(trimmedLine(line, start));
+      headingSpans.push(trimmedLine(line2, start));
       headingKeys.add(heading);
       return;
     }
-    const title = CHAT_NUMBERED_TITLE.exec(line);
+    const title = CHAT_NUMBERED_TITLE.exec(line2);
     if (title && title[2].trim().split(/\s+/u).length <= 8) {
-      titles.push({ n: Number(title[1]), line: i, span: trimmedLine(line, start) });
+      titles.push({ n: Number(title[1]), line: i, span: trimmedLine(line2, start) });
       return;
     }
-    const question = CHAT_QUESTION_HEADING.exec(line);
+    const question = CHAT_QUESTION_HEADING.exec(line2);
     if (question && question[1].split(/\s+/u).length <= 10 && !(lines[i + 1] ?? "").trim()) {
-      questions.push(trimmedLine(line, start));
+      questions.push(trimmedLine(line2, start));
     }
   });
   const distinct = new Set(labelKeys).size;
@@ -83653,9 +83657,9 @@ var init_speech_model_bytes = __esm({
 // engine/src/speech-text.ts
 function splitSentences(text13) {
   const out = [];
-  for (const line of text13.split(/\n+/)) {
+  for (const line2 of text13.split(/\n+/)) {
     const re = /[^.!?…]+(?:[.!?…]+["”»)\]']*|$)/g;
-    for (const m2 of line.match(re) ?? []) {
+    for (const m2 of line2.match(re) ?? []) {
       const s = m2.trim();
       if (s) out.push(...wrapLong(s));
     }
@@ -85389,8 +85393,8 @@ function uniqueRondoIngredients(ingredients) {
   return out;
 }
 function rondoRecordedSentence(names) {
-  const quoted2 = names.map((n7) => `"${n7}"`);
-  const which = quoted2.length === 1 ? `the song ${quoted2[0]}` : `the songs ${list(quoted2)}`;
+  const quoted3 = names.map((n7) => `"${n7}"`);
+  const which = quoted3.length === 1 ? `the song ${quoted3[0]}` : `the songs ${list(quoted3)}`;
   return `Content Credentials in this file record ${which}, rendered in Lolly's sandbox (the vm execution class), as a source.`;
 }
 var RONDOCODE_URL, RONDO_SINGING_MODELS, list, sung, MAX_DESCRIPTION;
@@ -86503,18 +86507,18 @@ function routedLineSvg(a, b, decor) {
   }
   const dash = String(decor.dash || "solid");
   const pattern = decor.dashArray && decor.dashArray.length ? decor.dashArray : null;
-  let line = "";
+  let line2 = "";
   if (pattern) {
     const poly = routePolyline(route, pts);
-    line = dashArrayRun(poly.pts, poly.corners, pattern, decor.dashFit !== false, col, width);
+    line2 = dashArrayRun(poly.pts, poly.corners, pattern, decor.dashFit !== false, col, width);
   } else if (dash === "dashed" || dash === "dotted") {
-    for (let i = 0; i < pts.length - 1; i++) line += dashRun(pts[i].x, pts[i].y, pts[i + 1].x, pts[i + 1].y, dash, col, width);
+    for (let i = 0; i < pts.length - 1; i++) line2 += dashRun(pts[i].x, pts[i].y, pts[i + 1].x, pts[i + 1].y, dash, col, width);
   } else if (route.arc && route.cpt) {
-    line = `<path d="${arcPath(pts[0], pts[pts.length - 1], route.cpt)}" fill="none" stroke="${col}" stroke-width="${ef2(width)}" stroke-linecap="round"/>`;
+    line2 = `<path d="${arcPath(pts[0], pts[pts.length - 1], route.cpt)}" fill="none" stroke="${col}" stroke-width="${ef2(width)}" stroke-linecap="round"/>`;
   } else if (route.curved) {
-    line = `<path d="${smoothEdgePath(pts, route.orient)}" fill="none" stroke="${col}" stroke-width="${ef2(width)}" stroke-linejoin="round" stroke-linecap="round"/>`;
+    line2 = `<path d="${smoothEdgePath(pts, route.orient)}" fill="none" stroke="${col}" stroke-width="${ef2(width)}" stroke-linejoin="round" stroke-linecap="round"/>`;
   } else {
-    line = `<path d="${roundedEdgePath(pts, Math.min(16, width * 4 + 6))}" fill="none" stroke="${col}" stroke-width="${ef2(width)}" stroke-linejoin="round" stroke-linecap="round"/>`;
+    line2 = `<path d="${roundedEdgePath(pts, Math.min(16, width * 4 + 6))}" fill="none" stroke="${col}" stroke-width="${ef2(width)}" stroke-linejoin="round" stroke-linecap="round"/>`;
   }
   let heads = "";
   if (headEnd !== "none") heads += edgeArrowHead(endTip, route.tux, route.tuy, headSize, col, headEnd);
@@ -86522,7 +86526,7 @@ function routedLineSvg(a, b, decor) {
     const seg5 = pts[1], L = dist(startTip, seg5) || 1;
     heads += edgeArrowHead(startTip, (startTip.x - seg5.x) / L, (startTip.y - seg5.y) / L, headSize, col, headStart);
   }
-  return line + heads;
+  return line2 + heads;
 }
 function rowDashArray(v) {
   if (Array.isArray(v)) {
@@ -87705,9 +87709,9 @@ function resolvedTextFields(ctx, ref2, frame, ownBg, pointer2, stylePointer) {
 function italicText(text13, stylePointer) {
   if (typeof text13 !== "string" || !text13) return text13;
   if (/[*_]/.test(text13)) throw new Error(`${stylePointer}: an italic style cannot set text that already carries * or _ markup; write the emphasis in the text.`);
-  return text13.split("\n").map((line) => {
-    if (!line.trim()) return line;
-    const m2 = /^(\s*(?:[-•]\s|\d+\.\s))?(.*)$/.exec(line);
+  return text13.split("\n").map((line2) => {
+    if (!line2.trim()) return line2;
+    const m2 = /^(\s*(?:[-•]\s|\d+\.\s))?(.*)$/.exec(line2);
     return `${m2[1] ?? ""}*${m2[2]}*`;
   }).join("\n");
 }
@@ -88876,15 +88880,15 @@ function emitImagePrim(prim, out) {
   out.push(n2(prim.w) + " " + n2(prim.h) + " scale");
   out.push("/DeviceRGB setcolorspace");
   out.push("<< /ImageType 1 /Width " + pxW + " /Height " + pxH + " /BitsPerComponent 8 /Decode [0 1 0 1 0 1] /ImageMatrix [" + pxW + " 0 0 " + pxH + " 0 0] /DataSource currentfile /ASCIIHexDecode filter >> image");
-  let line = "";
+  let line2 = "";
   for (let i = 0; i < need; i++) {
-    line += HEX2[i < rgb3.length ? rgb3[i] : 0];
-    if (line.length >= 64) {
-      out.push(line);
-      line = "";
+    line2 += HEX2[i < rgb3.length ? rgb3[i] : 0];
+    if (line2.length >= 64) {
+      out.push(line2);
+      line2 = "";
     }
   }
-  if (line) out.push(line);
+  if (line2) out.push(line2);
   out.push(">");
   out.push("grestore");
 }
@@ -88897,15 +88901,15 @@ function emitStencilPrim2(prim, cmyk, out, palette, separate) {
   out.push(n2(prim.x) + " " + n2(prim.y) + " translate");
   out.push(n2(prim.w) + " " + n2(prim.h) + " scale");
   out.push("<< /ImageType 1 /Width " + pxW + " /Height " + pxH + " /BitsPerComponent 1 /Decode [1 0] /ImageMatrix [" + pxW + " 0 0 " + pxH + " 0 0] /DataSource currentfile /ASCIIHexDecode filter >> imagemask");
-  let line = "";
+  let line2 = "";
   for (let i = 0; i < need; i++) {
-    line += HEX2[i < prim.bits.length ? prim.bits[i] : 0];
-    if (line.length >= 64) {
-      out.push(line);
-      line = "";
+    line2 += HEX2[i < prim.bits.length ? prim.bits[i] : 0];
+    if (line2.length >= 64) {
+      out.push(line2);
+      line2 = "";
     }
   }
-  if (line) out.push(line);
+  if (line2) out.push(line2);
   out.push(">");
   out.push("grestore");
 }
@@ -89157,7 +89161,7 @@ function emitDxf(ir, opts = {}) {
   g(out, 0, "ENDSEC");
   g(out, 0, "SECTION");
   g(out, 2, "ENTITIES");
-  for (const line of ent) out.push(line);
+  for (const line2 of ent) out.push(line2);
   g(out, 0, "ENDSEC");
   g(out, 0, "EOF");
   return { text: out.join("\n") + "\n", droppedImages };
@@ -90887,7 +90891,7 @@ function collectPenpotExportMarks(shapesById) {
     const kids2 = s && typeof s === "object" && Array.isArray(s.shapes) ? s.shapes : [];
     for (const k of kids2) markSubtreeSeen(String(k));
   };
-  const visit = (id3) => {
+  const visit2 = (id3) => {
     if (seen.has(id3)) return;
     seen.add(id3);
     const s = shapesById[id3];
@@ -90900,10 +90904,10 @@ function collectPenpotExportMarks(shapesById) {
     }
     const entries = normalizePenpotExports(sh.exports);
     if (entries.length) out.push({ shape: sh, entries });
-    for (const k of kids2) visit(String(k));
+    for (const k of kids2) visit2(String(k));
   };
-  visit("00000000-0000-0000-0000-000000000000");
-  for (const id3 of Object.keys(shapesById)) visit(id3);
+  visit2("00000000-0000-0000-0000-000000000000");
+  for (const id3 of Object.keys(shapesById)) visit2(id3);
   return out;
 }
 function penpotAnimationToTransition(animation) {
@@ -91200,16 +91204,16 @@ function figmaNodesToNodes(nodeChanges, blobs) {
   const page3 = canvases[0] || list4.find((n7) => n7 && n7.type === "CANVAS");
   if (!page3) return [];
   const out = [];
-  const visit = (node, pabs) => {
+  const visit2 = (node, pabs) => {
     if (!node || node.visible === false) return;
     const abs = matMul3(pabs, figMatrix(node));
     const dn = figmaNode(node, abs, blobs);
     if (dn) out.push(dn);
     const cs = kids2[key2(node.guid)];
-    if (cs) for (const c of cs) visit(c, abs);
+    if (cs) for (const c of cs) visit2(c, abs);
   };
   const pageAbs = figMatrix(page3);
-  for (const c of kids2[key2(page3.guid)] || []) visit(c, pageAbs);
+  for (const c of kids2[key2(page3.guid)] || []) visit2(c, pageAbs);
   return out;
 }
 function shiftNodesToOrigin(nodes) {
@@ -91263,15 +91267,15 @@ function figmaNodesToScenes(nodeChanges, blobs) {
   for (const page3 of canvases) {
     const pageAbs = figMatrix(page3);
     const collect4 = (root2, into) => {
-      const visit = (node, pabs) => {
+      const visit2 = (node, pabs) => {
         if (!node || node.visible === false) return;
         const abs = matMul3(pabs, figMatrix(node));
         const dn = figmaNode(node, abs, blobs);
         if (dn) into.push(dn);
         const cs = kids2[key2(node.guid)];
-        if (cs) for (const c of cs) visit(c, abs);
+        if (cs) for (const c of cs) visit2(c, abs);
       };
-      visit(root2, pageAbs);
+      visit2(root2, pageAbs);
     };
     const loose2 = [];
     const framed = [];
@@ -92181,12 +92185,12 @@ function notesSlideXml(notes) {
 <p:notes xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:r="${REL}" xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main"><p:cSld><p:spTree><p:nvGrpSpPr><p:cNvPr id="1" name=""/><p:cNvGrpSpPr/><p:nvPr/></p:nvGrpSpPr><p:grpSpPr/><p:sp><p:nvSpPr><p:cNvPr id="2" name="Notes Placeholder"/><p:cNvSpPr><a:spLocks noGrp="1"/></p:cNvSpPr><p:nvPr><p:ph type="body" idx="1"/></p:nvPr></p:nvSpPr><p:spPr/><p:txBody><a:bodyPr/><a:lstStyle/>${paras || "<a:p/>"}</p:txBody></p:sp></p:spTree></p:cSld><p:clrMapOvr><a:overrideClrMapping bg1="lt1" tx1="dk1" bg2="lt2" tx2="dk2" accent1="accent1" accent2="accent2" accent3="accent3" accent4="accent4" accent5="accent5" accent6="accent6" hlink="hlink" folHlink="folHlink"/></p:clrMapOvr></p:notes>`;
 }
 function notesParagraphsXml(notes) {
-  const emptyInside = (line) => line.length > 0 && /^[\u00a0 \t]*$/.test(line) && line.includes("\xA0");
-  const run3 = (line) => emptyInside(line) ? "" : `<a:r><a:rPr lang="en-US" dirty="0"/><a:t>${xmlEsc3(line)}</a:t></a:r>`;
+  const emptyInside = (line2) => line2.length > 0 && /^[\u00a0 \t]*$/.test(line2) && line2.includes("\xA0");
+  const run3 = (line2) => emptyInside(line2) ? "" : `<a:r><a:rPr lang="en-US" dirty="0"/><a:t>${xmlEsc3(line2)}</a:t></a:r>`;
   const br = '<a:br><a:rPr lang="en-US" dirty="0"/></a:br>';
   const lines = notes.replace(/\r\n?/g, "\n").split("\n");
-  const blank = (line) => {
-    for (let i = 0; i < line.length; i++) if (line[i] !== " " && line[i] !== "	") return false;
+  const blank = (line2) => {
+    for (let i = 0; i < line2.length; i++) if (line2[i] !== " " && line2[i] !== "	") return false;
     return true;
   };
   let start = 0;
@@ -92195,11 +92199,11 @@ function notesParagraphsXml(notes) {
   while (end - 1 > start && blank(lines[end - 1])) end--;
   const paras = [[]];
   for (let i = start; i < end; i++) {
-    const line = lines[i];
-    if (end - start > 1 && blank(line)) {
+    const line2 = lines[i];
+    if (end - start > 1 && blank(line2)) {
       if (paras[paras.length - 1].length) paras.push([]);
     } else {
-      paras[paras.length - 1].push(line);
+      paras[paras.length - 1].push(line2);
     }
   }
   return paras.map((para) => `<a:p>${para.map(run3).join(br)}</a:p>`).join("");
@@ -92419,7 +92423,7 @@ var init_pptx2 = __esm({
     finInt = (v, fallback = 0) => Number.isFinite(v) ? Math.round(v) : fallback;
     LINE_ENDS = /* @__PURE__ */ new Set(["triangle", "arrow", "oval", "diamond", "stealth"]);
     lineEndXml = (tag3, end) => end && LINE_ENDS.has(end) ? `<a:${tag3} type="${end}"/>` : "";
-    lineXml = (line) => line ? `<a:ln w="${Math.max(0, Math.round(line.w))}"><a:solidFill>${clr(line.color, line.alpha)}</a:solidFill>${lineEndXml("headEnd", line.head)}${lineEndXml("tailEnd", line.tail)}</a:ln>` : "";
+    lineXml = (line2) => line2 ? `<a:ln w="${Math.max(0, Math.round(line2.w))}"><a:solidFill>${clr(line2.color, line2.alpha)}</a:solidFill>${lineEndXml("headEnd", line2.head)}${lineEndXml("tailEnd", line2.tail)}</a:ln>` : "";
     xfrmXml = (s) => `<a:xfrm${s.rot ? ` rot="${Math.round((s.rot % 360 + 360) % 360 * 6e4)}"` : ""}${s.flipH === true ? ' flipH="1"' : ""}${s.flipV === true ? ' flipV="1"' : ""}><a:off x="${Math.round(s.x)}" y="${Math.round(s.y)}"/><a:ext cx="${Math.max(1, Math.round(s.cx))}" cy="${Math.max(1, Math.round(s.cy))}"/></a:xfrm>`;
     slideLinkRid = null;
     BULLET_STEP = 342900;
@@ -92430,7 +92434,7 @@ var init_pptx2 = __esm({
     DEFAULT_TABLE_STYLE = "{5C22544A-7EE6-4342-B048-85BDC9FD1C3A}";
     spanOf = (v) => Number.isFinite(v) && v > 1 ? Math.floor(v) : 1;
     EMPTY_TXBODY = "<a:txBody><a:bodyPr/><a:lstStyle/><a:p/></a:txBody>";
-    lnSideXml = (tag3, line) => line ? `<a:${tag3} w="${Math.max(0, Math.round(line.w))}" cap="flat" cmpd="sng" algn="ctr"><a:solidFill>${clr(line.color)}</a:solidFill></a:${tag3}>` : "";
+    lnSideXml = (tag3, line2) => line2 ? `<a:${tag3} w="${Math.max(0, Math.round(line2.w))}" cap="flat" cmpd="sng" algn="ctr"><a:solidFill>${clr(line2.color)}</a:solidFill></a:${tag3}>` : "";
     MAX_TABLE_COLS = 128;
     MAX_TABLE_ROWS = 512;
     EFFECT_PRESET_IDS = { appear: 1, fly: 2, fade: 10, zoom: 23, zoomOut: 23 };
@@ -93978,8 +93982,8 @@ function readParaProps(pPr) {
   if (before !== void 0) out.spaceBeforePt = before;
   const after = spacingPt(firstChildByLocal(pPr, "spcAft"));
   if (after !== void 0) out.spaceAfterPt = after;
-  const line = spacingPct(firstChildByLocal(pPr, "lnSpc"));
-  if (line !== void 0) out.lineSpacingPct = line;
+  const line2 = spacingPct(firstChildByLocal(pPr, "lnSpc"));
+  if (line2 !== void 0) out.lineSpacingPct = line2;
   if (firstChildByLocal(pPr, "buNone")) {
     out.bullet = "none";
   } else {
@@ -94340,7 +94344,7 @@ function readSp(sp, ctx, cascade, group) {
   let fill2;
   let gradient2;
   let gradientFill;
-  let line;
+  let line2;
   let lineGradient;
   let lineWidthPt;
   if (spPr) {
@@ -94355,7 +94359,7 @@ function readSp(sp, ctx, cascade, group) {
     const ln = firstChildByLocal(spPr, "ln");
     if (ln) {
       const stroke = readFill(ln, theme);
-      line = stroke.color;
+      line2 = stroke.color;
       lineGradient = stroke.gradient;
       const w = attrByLocal(ln, "w");
       if (w) {
@@ -94413,7 +94417,7 @@ function readSp(sp, ctx, cascade, group) {
   if (fill2) node.fill = fill2;
   if (gradient2) node.gradient = gradient2;
   if (gradientFill) node.gradientFill = gradientFill;
-  if (line) node.line = line;
+  if (line2) node.line = line2;
   if (lineWidthPt) node.lineWidthPt = lineWidthPt;
   if (lineGradient) node.lineGradient = lineGradient;
   if (ph) node.ph = ph;
@@ -95952,16 +95956,16 @@ function designTextFromPlain(text13, paras = [], rowWeight = 400) {
   });
   const lines = text13.replace(/\r\n?/g, "\n").split("\n");
   const rebuilt = [];
-  lines.forEach((line, i) => {
+  lines.forEach((line2, i) => {
     const slot = slots[i];
     const last = rebuilt[rebuilt.length - 1];
     if (slot?.continues && last?.runs[0]) {
       last.runs[0].text += `
-${line}`;
+${line2}`;
       return;
     }
     const kind = paras[slot ? slot.para : paras.length - 1];
-    const para = { runs: [{ text: line }] };
+    const para = { runs: [{ text: line2 }] };
     if (kind?.bullet) para.bullet = kind.bullet;
     if (kind && (kind.lvl ?? 0) > 0) para.lvl = kind.lvl;
     if (kind?.numberStart !== void 0) para.numberStart = kind.numberStart;
@@ -96049,31 +96053,31 @@ function parseInline(source) {
   flush();
   return runs2;
 }
-function parseDesignLine(line) {
-  const bullet = BULLET_LINE.exec(line);
+function parseDesignLine(line2) {
+  const bullet = BULLET_LINE.exec(line2);
   if (bullet) {
     const indent2 = (bullet[1] ?? "").length;
     return { list: "bullet", indent: indent2, level: Math.floor(indent2 / 2), runs: parseInline(bullet[2] ?? "") };
   }
-  const number11 = NUMBER_LINE.exec(line);
+  const number11 = NUMBER_LINE.exec(line2);
   if (number11) {
     const indent2 = (number11[1] ?? "").length;
     return { list: "number", number: Number(number11[2]), indent: indent2, level: Math.floor(indent2 / 2), runs: parseInline(number11[3] ?? "") };
   }
-  const indent = (/^ */.exec(line)?.[0] ?? "").length;
-  return { indent, level: Math.floor(indent / 2), runs: parseInline(line) };
+  const indent = (/^ */.exec(line2)?.[0] ?? "").length;
+  return { indent, level: Math.floor(indent / 2), runs: parseInline(line2) };
 }
 function parseDesignText(text13) {
   return String(text13 ?? "").replace(/\r\n?/g, "\n").split("\n").map(parseDesignLine);
 }
 function plainOfDesignText(text13) {
-  return parseDesignText(text13).map((line) => line.runs.map((run3) => run3.text).join("")).join("\n");
+  return parseDesignText(text13).map((line2) => line2.runs.map((run3) => run3.text).join("")).join("\n");
 }
 function hasDesignMarkup(text13) {
   const s = String(text13 ?? "");
   if (/[*_\\]/.test(s)) return true;
   if (/\{[^|{}]+\|[^{}]*\}/.test(s)) return true;
-  return s.split("\n").some((line) => BULLET_LINE.test(line) || NUMBER_LINE.test(line));
+  return s.split("\n").some((line2) => BULLET_LINE.test(line2) || NUMBER_LINE.test(line2));
 }
 var HEX_TOKEN, WEIGHT_TOKEN, BULLET_LINE, NUMBER_LINE, ATTR_RUN, DROPPED_ORDER, DRAWN_NUMBER_STYLE, PLAIN_BULLETS, PARK_STAR, PARK_UNDERSCORE, B_OPEN, B_CLOSE, I_OPEN, I_CLOSE, S_OPEN, S_CLOSE, SENTINELS;
 var init_design_text = __esm({
@@ -96176,13 +96180,13 @@ function tableOf2(node) {
   let cols = 0;
   for (const row of rows2) cols = Math.max(cols, row.length);
   cols = Math.min(Math.max(cols, 1), MAX_TABLE_COLS3);
-  const line = (cells) => {
+  const line2 = (cells) => {
     const out = [];
     for (let i = 0; i < cols; i++) out.push(cellOf(cells[i]));
     return `| ${out.join(" | ")} |`;
   };
-  const lines = [line(rows2[0]), `| ${Array.from({ length: cols }, () => "---").join(" | ")} |`];
-  for (let r5 = 1; r5 < rows2.length; r5++) lines.push(line(rows2[r5]));
+  const lines = [line2(rows2[0]), `| ${Array.from({ length: cols }, () => "---").join(" | ")} |`];
+  for (let r5 = 1; r5 < rows2.length; r5++) lines.push(line2(rows2[r5]));
   return lines.join("\n");
 }
 function notesOf(slide) {
@@ -96348,13 +96352,13 @@ function mdTable(block) {
     1
   );
   const cellText = (c) => (c ? mdInlines(c.inlines, { inTable: true }, 0) : "").replace(/\n/g, " ").trim();
-  const line = (cells) => {
+  const line2 = (cells) => {
     const out = [];
     for (let i = 0; i < width; i++) out.push(cellText(cells?.[i]));
     return `| ${out.join(" | ")} |`;
   };
-  const lines = [line(block.header), `|${" --- |".repeat(width)}`];
-  for (const r5 of rows2) lines.push(line(r5));
+  const lines = [line2(block.header), `|${" --- |".repeat(width)}`];
+  for (const r5 of rows2) lines.push(line2(r5));
   return lines.join("\n");
 }
 function mdBlock(block) {
@@ -102120,20 +102124,20 @@ function splitDelimited(text13, delimiter2) {
   const rows2 = [];
   let row = [];
   let field2 = "";
-  let quoted2 = false;
+  let quoted3 = false;
   let fieldStart = true;
   for (let i = 0; i < text13.length; i++) {
     const ch = text13[i];
-    if (quoted2) {
+    if (quoted3) {
       if (ch !== '"') field2 += ch;
       else if (text13[i + 1] === '"') {
         field2 += '"';
         i++;
-      } else quoted2 = false;
+      } else quoted3 = false;
       continue;
     }
     if (ch === '"' && fieldStart) {
-      quoted2 = true;
+      quoted3 = true;
       fieldStart = false;
       continue;
     }
@@ -102154,26 +102158,26 @@ function splitDelimited(text13, delimiter2) {
     field2 += ch;
     fieldStart = false;
   }
-  if (quoted2) return text13.split("\n").map((line) => splitLine(line, delimiter2));
+  if (quoted3) return text13.split("\n").map((line2) => splitLine(line2, delimiter2));
   row.push(field2);
   rows2.push(row);
   return rows2;
 }
-function splitLine(line, delimiter2) {
+function splitLine(line2, delimiter2) {
   const cells = [];
   let cur = "";
-  let quoted2 = false;
+  let quoted3 = false;
   let fieldStart = true;
-  for (let i = 0; i < line.length; i++) {
-    const ch = line[i];
-    if (quoted2) {
+  for (let i = 0; i < line2.length; i++) {
+    const ch = line2[i];
+    if (quoted3) {
       if (ch !== '"') cur += ch;
-      else if (line[i + 1] === '"') {
+      else if (line2[i + 1] === '"') {
         cur += '"';
         i++;
-      } else quoted2 = false;
+      } else quoted3 = false;
     } else if (ch === '"' && fieldStart) {
-      quoted2 = true;
+      quoted3 = true;
       fieldStart = false;
     } else if (ch === delimiter2) {
       cells.push(cur);
@@ -102391,17 +102395,17 @@ function createCalcEngine(runner, source) {
       const row = cell2.r - 1;
       const text13 = valueText(cell2.v);
       if (row < 0 || row >= out.length) continue;
-      const line = out[row];
+      const line2 = out[row];
       if (cell2.spill) {
-        if (cell2.c < width && (line[cell2.c] ?? "") === "") {
-          while (line.length <= cell2.c) line.push("");
-          line[cell2.c] = text13;
+        if (cell2.c < width && (line2[cell2.c] ?? "") === "") {
+          while (line2.length <= cell2.c) line2.push("");
+          line2[cell2.c] = text13;
           values.push({ row, col: cell2.c, v: cell2.v });
         }
         continue;
       }
-      while (line.length <= cell2.c) line.push("");
-      line[cell2.c] = cell2.bad !== void 0 ? "#NAME?" : text13;
+      while (line2.length <= cell2.c) line2.push("");
+      line2[cell2.c] = cell2.bad !== void 0 ? "#NAME?" : text13;
       values.push({ row, col: cell2.c, v: cell2.v });
       if (cell2.bad !== void 0) errors.push({ row, col: cell2.c, error: "#NAME?" });
       else if (typeof cell2.v === "object" && cell2.v !== null) errors.push({ row, col: cell2.c, error: cell2.v.e });
@@ -103217,7 +103221,7 @@ function blockXml(block, ctx) {
     case "code": {
       ctx.needCode = true;
       const lines = String(block.text ?? "").split("\n");
-      return lines.map((line) => paraXml2('<w:pStyle w:val="Code"/>', textRun(line, ""))).join("");
+      return lines.map((line2) => paraXml2('<w:pStyle w:val="Code"/>', textRun(line2, ""))).join("");
     }
     case "list": {
       const numId = block.ordered ? DECIMAL_NUM_ID : BULLET_NUM_ID;
@@ -105557,7 +105561,7 @@ function textEl(n7) {
   const weight = n7.fontWeight != null && n7.fontWeight !== "" ? ` font-weight="${escapeXml2(String(n7.fontWeight))}"` : "";
   const tracking = n7.tracking ? ` letter-spacing="${r(n7.tracking)}"` : "";
   const rot = n7.rot ? ` transform="rotate(${r(n7.rot)} ${r(n7.x)} ${r(baseline0)})"` : "";
-  const spans = text13.split("\n").map((line, i) => `<tspan x="${r(n7.x)}" y="${r(baseline0 + i * lineH)}">${escapeXml2(line)}</tspan>`).join("");
+  const spans = text13.split("\n").map((line2, i) => `<tspan x="${r(n7.x)}" y="${r(baseline0 + i * lineH)}">${escapeXml2(line2)}</tspan>`).join("");
   return `<text xml:space="preserve" fill="${safeAttrColor(n7.fg, "#000000")}" font-size="${r(size)}"${familyAttr}${weight}${tracking}${opacityAttr(n7)}${rot}>${spans}</text>`;
 }
 function gradientMarkup(g2, id3, images) {
@@ -105781,10 +105785,10 @@ function assertPdfSvgBudgets(nodes) {
         throw new Error(`pdfNodesToSvg: more than ${PDF_SVG_MAX_OUTLINE_LINES} outline lines`);
       }
       let outlineChars = 0;
-      for (const line of outlines) {
-        if (typeof line !== "string") continue;
-        outlineChars += line.length;
-        charge(line, PDF_SVG_MAX_OUTLINE_D, "outline path");
+      for (const line2 of outlines) {
+        if (typeof line2 !== "string") continue;
+        outlineChars += line2.length;
+        charge(line2, PDF_SVG_MAX_OUTLINE_D, "outline path");
       }
       if (outlineChars > PDF_SVG_MAX_OUTLINE_D) {
         throw new Error(`pdfNodesToSvg: outline paths exceed ${PDF_SVG_MAX_OUTLINE_D} characters`);
@@ -106751,13 +106755,13 @@ function endsInOneFigure(text13) {
   const words4 = text13.split(" ");
   return FIGURE.test(words4[words4.length - 1]) && words4.filter((w) => FIGURE.test(w)).length === 1;
 }
-function startsBlock(prev, line, leading2) {
-  if (line.baseline - prev.baseline > leading2 * PARA_GAP) return true;
-  if (Math.abs(line.size - prev.size) / Math.max(prev.size, 1) > SIZE_SHIFT) return true;
-  if (LIST_MARKER.test(line.text)) return true;
-  const runsOn = new RegExp("^\\p{Ll}", "u").test(line.text) && !/[.!?:]$/.test(prev.text);
-  if (line.bold !== prev.bold && !runsOn) return true;
-  return endsInOneFigure(prev.text) && endsInOneFigure(line.text) && /^[\p{Lu}\d]/u.test(line.text);
+function startsBlock(prev, line2, leading2) {
+  if (line2.baseline - prev.baseline > leading2 * PARA_GAP) return true;
+  if (Math.abs(line2.size - prev.size) / Math.max(prev.size, 1) > SIZE_SHIFT) return true;
+  if (LIST_MARKER.test(line2.text)) return true;
+  const runsOn = new RegExp("^\\p{Ll}", "u").test(line2.text) && !/[.!?:]$/.test(prev.text);
+  if (line2.bold !== prev.bold && !runsOn) return true;
+  return endsInOneFigure(prev.text) && endsInOneFigure(line2.text) && /^[\p{Lu}\d]/u.test(line2.text);
 }
 function blocksFromColumn(lines, column) {
   if (!lines.length) return [];
@@ -106784,9 +106788,9 @@ function blocksFromColumn(lines, column) {
     }
     buf = [];
   };
-  for (const line of ordered) {
-    if (buf.length && startsBlock(buf[buf.length - 1], line, leading2)) flush();
-    buf.push(line);
+  for (const line2 of ordered) {
+    if (buf.length && startsBlock(buf[buf.length - 1], line2, leading2)) flush();
+    buf.push(line2);
   }
   flush();
   return out;
@@ -107228,13 +107232,64 @@ function markDerivedOnColours(doc) {
   }
   return next2;
 }
-var record17, SLOTS_ON_THE_SURFACE, ROLE_WORDS, uniqueSetName, refused, MAX_BLOCK_CHARS;
+function colourRoleBlock(doc, selection = {}) {
+  if (!declaredColourRoleIds(doc).length) return null;
+  const { axes } = readTokenAxes(doc);
+  const axis = axisOfKind(axes, "colourway");
+  const mode3 = modeAxis(axes);
+  const option = axis ? axis.options.find((o) => o.id === selection[axis.group]) ?? axis.options.find((o) => o.id === axis.canonical) ?? null : null;
+  const table = colourRoleTable(doc, option?.id ?? null);
+  const declared = table.rows.filter((row) => row.role.declared);
+  if (!declared.length) return null;
+  const base = axis && option ? { [axis.group]: option.id } : {};
+  const looks = {};
+  const options2 = mode3 ? mode3.options.filter((o) => isSafeKey(o.id)) : [];
+  const namesIn = (extra) => {
+    const out = {};
+    for (const c of createTokenSet(doc, { selection: { ...base, ...extra } }).colors()) {
+      if (!c.path.startsWith("color.semantic.") || typeof c.value !== "string" || !parseColor(c.value)) continue;
+      const name = c.path.slice("color.semantic.".length);
+      if (/^[a-z][a-z-]*$/.test(name)) out[name] = c.value;
+    }
+    return out;
+  };
+  if (mode3) for (const look4 of options2) looks[look4.id] = namesIn({ [mode3.group]: look4.id });
+  else looks.default = namesIn({});
+  const derived = {};
+  const sameAs = {};
+  for (const row of declared) {
+    for (const cell2 of row.cells) {
+      if (!cell2.mode) continue;
+      if (cell2.onColour.origin === "derived") derived[cell2.mode] = [...derived[cell2.mode] ?? [], `on-${row.role.id}`];
+      if (cell2.sameAs) sameAs[cell2.mode] = { ...sameAs[cell2.mode], [row.role.id]: cell2.sameAs };
+    }
+  }
+  const look3 = mode3 ? options2.find((o) => o.id === selection[mode3.group]) ?? options2[0] : void 0;
+  return {
+    format: COLOUR_ROLE_BLOCK_FORMAT,
+    version: 1,
+    ...option ? { colourway: { id: option.id, name: option.name } } : {},
+    ...look3 ? { mode: look3.id } : {},
+    modes: options2.map((o) => ({ id: o.id, name: o.name })),
+    roles: declared.map((row) => ({
+      id: row.role.id,
+      label: row.role.label,
+      ...row.role.description ? { description: row.role.description } : {},
+      ...row.role.slots.length ? { fills: [...row.role.slots] } : {}
+    })),
+    looks,
+    ...Object.keys(derived).length ? { derived } : {},
+    ...Object.keys(sameAs).length ? { sameAs } : {}
+  };
+}
+var record17, SLOTS_ON_THE_SURFACE, ROLE_WORDS, uniqueSetName, refused, COLOUR_ROLE_BLOCK_FORMAT, MAX_BLOCK_CHARS;
 var init_colour_role_portable = __esm({
   "engine/src/colour-role-portable.ts"() {
     "use strict";
     init_brand_derive();
     init_colour_roles();
     init_colourway();
+    init_css_color();
     init_token_ext();
     init_token_axes();
     init_tokens2();
@@ -107246,6 +107301,7 @@ var init_colour_role_portable = __esm({
       for (let i = 2; ; i += 1) if (!taken.has(`${name} ${i}`)) return `${name} ${i}`;
     };
     refused = (code, ...reasons) => ({ ok: false, code, reasons });
+    COLOUR_ROLE_BLOCK_FORMAT = "lolly-colour-roles";
     MAX_BLOCK_CHARS = 256 * 1024;
   }
 });
@@ -109278,34 +109334,34 @@ function parseCubeLut(text13) {
     Number(parts[3])
   ];
   for (let i = 0; i < lines.length; i++) {
-    const line = lines[i].trim();
-    if (!line || line[0] === "#") continue;
-    const up = line.toUpperCase();
+    const line2 = lines[i].trim();
+    if (!line2 || line2[0] === "#") continue;
+    const up = line2.toUpperCase();
     if (up.indexOf("TITLE") === 0) {
-      const m2 = line.match(/"(.*)"/);
-      title = m2 ? m2[1] : line.slice(5).trim();
+      const m2 = line2.match(/"(.*)"/);
+      title = m2 ? m2[1] : line2.slice(5).trim();
       continue;
     }
     if (up.indexOf("LUT_1D_SIZE") === 0) {
       kind = "1d";
-      size = parseInt(line.split(/\s+/)[1], 10);
+      size = parseInt(line2.split(/\s+/)[1], 10);
       continue;
     }
     if (up.indexOf("LUT_3D_SIZE") === 0) {
       kind = "3d";
-      size = parseInt(line.split(/\s+/)[1], 10);
+      size = parseInt(line2.split(/\s+/)[1], 10);
       continue;
     }
     if (up.indexOf("DOMAIN_MIN") === 0) {
-      domainMin = triple(line.split(/\s+/));
+      domainMin = triple(line2.split(/\s+/));
       continue;
     }
     if (up.indexOf("DOMAIN_MAX") === 0) {
-      domainMax = triple(line.split(/\s+/));
+      domainMax = triple(line2.split(/\s+/));
       continue;
     }
     if (up.indexOf("LUT_") === 0) continue;
-    const parts = line.split(/\s+/);
+    const parts = line2.split(/\s+/);
     if (parts.length < 3) continue;
     const r5 = Number(parts[0]);
     const g2 = Number(parts[1]);
@@ -109333,9 +109389,9 @@ function parse3dlLut(text13) {
   let mesh = null;
   const rows2 = [];
   for (let i = 0; i < lines.length; i++) {
-    const line = lines[i].trim();
-    if (!line || line[0] === "#" || /^[A-Za-z]/.test(line)) continue;
-    const parts = line.split(/\s+/).map(Number);
+    const line2 = lines[i].trim();
+    if (!line2 || line2[0] === "#" || /^[A-Za-z]/.test(line2)) continue;
+    const parts = line2.split(/\s+/).map(Number);
     if (parts.some((v) => !isFinite(v))) continue;
     if (!mesh && parts.length > 3) {
       mesh = parts;
@@ -110905,13 +110961,13 @@ function checkedGroupGeometry(row) {
     throw new Error("Group sizing exceeds the finite geometry limit.");
   return row;
 }
-function measureGroupBounds(group, boxes2, children2, visit) {
+function measureGroupBounds(group, boxes2, children2, visit2) {
   if (on2(group.hidden)) return group;
   const origin = corners(group), angle = number2(group.rot) * Math.PI / 180, c = cos(angle), s = sin(angle);
   let left = Infinity, top = Infinity, right = -Infinity, bottom = -Infinity;
   const pending6 = [...children2.get(id(group)) || []];
   for (let at = 0; at < pending6.length; at++) {
-    visit();
+    visit2();
     const row = boxes2[pending6[at]];
     if (on2(row.hidden)) continue;
     if (row.kind !== "group") {
@@ -110946,7 +111002,7 @@ function settleGroupGeometry(before, after) {
   for (const field2 of ["x", "y", "w", "h"]) if (before[field2] != null && Math.abs(number2(before[field2]) - number2(after[field2])) < 1e-4) next2[field2] = before[field2];
   return next2;
 }
-function carryGroupGeometry(before, after, boxes2, children2, visit) {
+function carryGroupGeometry(before, after, boxes2, children2, visit2) {
   if (["x", "y", "w", "h", "rot"].every((field2) => before[field2] === after[field2])) return;
   if ([before, after].some((row) => number2(row.w, 100) <= 0 || number2(row.h, 100) <= 0)) throw new Error("Group sizing requires nonzero bounds.");
   const old = corners(before), next2 = corners(after), ux = old[2] - old[0], uy = old[3] - old[1], vx = old[6] - old[0], vy = old[7] - old[1];
@@ -110954,7 +111010,7 @@ function carryGroupGeometry(before, after, boxes2, children2, visit) {
   if (!Number.isFinite(det) || Math.abs(det) < 1e-12) throw new Error("Group sizing requires nonzero bounds.");
   const pending6 = [...children2.get(id(before)) || []];
   for (let at = 0; at < pending6.length; at++) {
-    visit();
+    visit2();
     const index2 = pending6[at], row = boxes2[index2], points = corners(row), mapped = [];
     for (let p = 0; p < points.length; p += 2) {
       const dx = points[p] - old[0], dy = points[p + 1] - old[1], u = (dx * vy - dy * vx) / det, v = (dy * ux - dx * uy) / det;
@@ -111192,7 +111248,7 @@ function createDesignLayoutEvaluator(solve3, measure3) {
       };
     inheritVisibility(boxes2, byId);
     let solved = 0, passes2 = 0, work = 0;
-    const visit = () => {
+    const visit2 = () => {
       if (++work > MAX_LAYOUT_REFLOW_WORK) throw new Error("Layout exceeds its aggregate reflow work budget.");
     };
     const grids = /* @__PURE__ */ new Map();
@@ -111207,7 +111263,7 @@ function createDesignLayoutEvaluator(solve3, measure3) {
         const before = boxes2.map((r5) => [r5.x, r5.y, r5.w, r5.h, r5.rot].join(","));
         for (const group of intrinsicGroups) {
           const n7 = byId.get(id(group));
-          boxes2[n7] = measureGroupBounds(boxes2[n7], boxes2, children2, visit);
+          boxes2[n7] = measureGroupBounds(boxes2[n7], boxes2, children2, visit2);
         }
         for (const c of containers) {
           const index2 = byId.get(id(c));
@@ -111230,7 +111286,7 @@ function createDesignLayoutEvaluator(solve3, measure3) {
                 y: ny + ss * w / 2 + cc * h / 2 - h / 2
               };
             }
-            if (row.kind === "group") carryGroupGeometry(row, boxes2[n7], boxes2, children2, visit);
+            if (row.kind === "group") carryGroupGeometry(row, boxes2[n7], boxes2, children2, visit2);
           }
           for (const n7 of members) {
             let r5 = boxes2[n7];
@@ -111314,7 +111370,7 @@ function createDesignLayoutEvaluator(solve3, measure3) {
             const answerChild = fromCorners(old, result[i + 1]);
             const nextChild = old.kind === "group" ? settleGroupGeometry(old, answerChild) : answerChild;
             boxes2[n7] = nextChild;
-            if (old.kind === "group") carryGroupGeometry(old, nextChild, boxes2, children2, visit);
+            if (old.kind === "group") carryGroupGeometry(old, nextChild, boxes2, children2, visit2);
             if ((old.kind === "frame" || hasDesignLayout([old])) && (nextChild.x !== old.x || nextChild.y !== old.y)) {
               const dx = number2(nextChild.x) - number2(old.x), dy = number2(nextChild.y) - number2(old.y);
               const pending7 = [...children2.get(id(old)) || []];
@@ -111822,7 +111878,7 @@ function penpotTokenClosure(filtered) {
   const WHITE2 = 0, GREY2 = 1, BLACK2 = 2;
   const color6 = /* @__PURE__ */ new Map();
   const stack = [];
-  const visit = (p) => {
+  const visit2 = (p) => {
     color6.set(p, GREY2);
     stack.push(p);
     for (const ref2 of refsOf(value2.get(p))) {
@@ -111831,12 +111887,12 @@ function penpotTokenClosure(filtered) {
       if (c === GREY2) {
         const from = stack.indexOf(ref2);
         cycles.push([...stack.slice(from), ref2].join(" \u2192 "));
-      } else if (c === WHITE2) visit(ref2);
+      } else if (c === WHITE2) visit2(ref2);
     }
     stack.pop();
     color6.set(p, BLACK2);
   };
-  for (const p of value2.keys()) if ((color6.get(p) ?? WHITE2) === WHITE2) visit(p);
+  for (const p of value2.keys()) if ((color6.get(p) ?? WHITE2) === WHITE2) visit2(p);
   return {
     dangling: [...new Set(dangling)].slice(0, 200),
     cycles: [...new Set(cycles)].slice(0, 200)
@@ -114210,8 +114266,8 @@ function familyOf2(object4, stats) {
   }
   if (object4.kind === "shape") {
     const fill2 = object4.fill?.hex ?? object4.fill?.scheme ?? "none";
-    const line = object4.line?.color?.hex ?? object4.line?.color?.scheme ?? "none";
-    const key2 = `shape:${object4.geom ?? "rect"}:${fill2}:${line}`;
+    const line2 = object4.line?.color?.hex ?? object4.line?.color?.scheme ?? "none";
+    const key2 = `shape:${object4.geom ?? "rect"}:${fill2}:${line2}`;
     return { key: key2, kind: "shape", by: "exact", digitWildcard: false, exact: key2, normalised: key2 };
   }
   return null;
@@ -114732,8 +114788,8 @@ function rowNumberingIds(frame, texts) {
   const lines = texts.filter((entry2) => multiWord(entry2.text));
   const paired = markers.filter((marker) => {
     const m2 = box4(marker.object);
-    return lines.some((line) => {
-      const l = box4(line.object);
+    return lines.some((line2) => {
+      const l = box4(line2.object);
       const gap = l.x - (m2.x + m2.w);
       if (gap < -0.01 || gap > ROW_MARKER_GAP) return false;
       const overlap2 = Math.min(m2.y + m2.h, l.y + l.h) - Math.max(m2.y, l.y);
@@ -119412,25 +119468,25 @@ function glyphRunsOf(items2) {
     open3 = null;
   };
   items2.items.forEach((item2, index2) => {
-    const line = glyphLineOf(item2, short);
-    if (!line) {
+    const line2 = glyphLineOf(item2, short);
+    if (!line2) {
       close();
       return;
     }
     if (open3) {
       const a = open3.line;
-      const gap = line.box.x0 - a.box.x1;
-      const same = line.fill === a.fill && Math.abs(line.alpha - a.alpha) < 1e-3 && line.groupKey === a.groupKey && Math.abs(line.baseline - a.baseline) <= 0.15 * a.ascent && Math.abs(line.ascent - a.ascent) <= 0.25 * a.ascent && gap >= -0.3 * a.ascent && gap <= 1.6 * a.ascent;
+      const gap = line2.box.x0 - a.box.x1;
+      const same = line2.fill === a.fill && Math.abs(line2.alpha - a.alpha) < 1e-3 && line2.groupKey === a.groupKey && Math.abs(line2.baseline - a.baseline) <= 0.15 * a.ascent && Math.abs(line2.ascent - a.ascent) <= 0.25 * a.ascent && gap >= -0.3 * a.ascent && gap <= 1.6 * a.ascent;
       if (same) {
         open3.indices.push(index2);
-        open3.glyphs.push(...line.glyphs);
-        a.box = { x0: Math.min(a.box.x0, line.box.x0), y0: Math.min(a.box.y0, line.box.y0), x1: Math.max(a.box.x1, line.box.x1), y1: Math.max(a.box.y1, line.box.y1) };
-        a.ascent = Math.max(a.ascent, line.ascent);
+        open3.glyphs.push(...line2.glyphs);
+        a.box = { x0: Math.min(a.box.x0, line2.box.x0), y0: Math.min(a.box.y0, line2.box.y0), x1: Math.max(a.box.x1, line2.box.x1), y1: Math.max(a.box.y1, line2.box.y1) };
+        a.ascent = Math.max(a.ascent, line2.ascent);
         return;
       }
       close();
     }
-    open3 = { indices: [index2], line: { ...line, box: { ...line.box } }, glyphs: [...line.glyphs] };
+    open3 = { indices: [index2], line: { ...line2, box: { ...line2.box } }, glyphs: [...line2.glyphs] };
   });
   close();
   return runs2;
@@ -120429,41 +120485,41 @@ function wrapByAverageWidth(text13, fontSize, width) {
       out.push(paragraph);
       continue;
     }
-    let line = "";
+    let line2 = "";
     for (const word of paragraph.split(" ")) {
       let piece = word;
       while (piece.length > perLine) {
-        if (line) {
-          out.push(line);
-          line = "";
+        if (line2) {
+          out.push(line2);
+          line2 = "";
         }
         out.push(piece.slice(0, perLine));
         piece = piece.slice(perLine);
       }
-      if (!line) line = piece;
-      else if (line.length + 1 + piece.length <= perLine) line = `${line} ${piece}`;
+      if (!line2) line2 = piece;
+      else if (line2.length + 1 + piece.length <= perLine) line2 = `${line2} ${piece}`;
       else {
-        out.push(line);
-        line = piece;
+        out.push(line2);
+        line2 = piece;
       }
     }
-    out.push(line);
+    out.push(line2);
   }
   return out;
 }
 function styledDesignLines(text13) {
-  return parseDesignText(text13).map((line) => {
-    const marker = line.list === "bullet" ? "\u2022  " : line.list === "number" ? `${line.number ?? 1}.  ` : "";
-    if (marker) return { indent: line.indent, runs: [{ text: marker }, ...line.runs] };
-    const runs2 = line.runs.map((run3) => ({ ...run3 }));
-    let strip = line.indent;
+  return parseDesignText(text13).map((line2) => {
+    const marker = line2.list === "bullet" ? "\u2022  " : line2.list === "number" ? `${line2.number ?? 1}.  ` : "";
+    if (marker) return { indent: line2.indent, runs: [{ text: marker }, ...line2.runs] };
+    const runs2 = line2.runs.map((run3) => ({ ...run3 }));
+    let strip = line2.indent;
     for (const run3 of runs2) {
       const cut = Math.min(strip, run3.text.length - run3.text.trimStart().length);
       run3.text = run3.text.slice(cut);
       strip -= cut;
       if (strip === 0 || run3.text.length > 0) break;
     }
-    return { indent: line.indent, runs: runs2.filter((run3) => run3.text.length > 0) };
+    return { indent: line2.indent, runs: runs2.filter((run3) => run3.text.length > 0) };
   });
 }
 function wrapStyledRuns(runs2, fontSize, width) {
@@ -120472,10 +120528,10 @@ function wrapStyledRuns(runs2, fontSize, width) {
   if (wrapped.length <= 1) return [runs2];
   const out = [];
   let cursor = 0;
-  for (const line of wrapped) {
-    if (whole.slice(cursor, cursor + line.length) !== line && whole[cursor] === " ") cursor += 1;
+  for (const line2 of wrapped) {
+    if (whole.slice(cursor, cursor + line2.length) !== line2 && whole[cursor] === " ") cursor += 1;
     const start = cursor;
-    const end = start + line.length;
+    const end = start + line2.length;
     const pieces = [];
     let at = 0;
     for (const run3 of runs2) {
@@ -120484,16 +120540,16 @@ function wrapStyledRuns(runs2, fontSize, width) {
       if (to > from) pieces.push({ ...run3, text: run3.text.slice(from - at, to - at) });
       at += run3.text.length;
     }
-    out.push(pieces.length > 0 ? pieces : [{ text: line }]);
+    out.push(pieces.length > 0 ? pieces : [{ text: line2 }]);
     cursor = end;
   }
   return out;
 }
 function layoutDesignText(text13, fontSize, width) {
-  if (!hasDesignMarkup(text13)) return { lines: wrapByAverageWidth(text13, fontSize, width).map((line) => [{ text: line }]), indents: [] };
+  if (!hasDesignMarkup(text13)) return { lines: wrapByAverageWidth(text13, fontSize, width).map((line2) => [{ text: line2 }]), indents: [] };
   const indents = [];
-  const lines = styledDesignLines(text13).flatMap((line) => wrapStyledRuns(line.runs, fontSize, Math.max(1, width - line.indent * fontSize * AVERAGE_GLYPH_EM)).map((runs2, i) => {
-    indents.push(i === 0 ? line.indent : 0);
+  const lines = styledDesignLines(text13).flatMap((line2) => wrapStyledRuns(line2.runs, fontSize, Math.max(1, width - line2.indent * fontSize * AVERAGE_GLYPH_EM)).map((runs2, i) => {
+    indents.push(i === 0 ? line2.indent : 0);
     return runs2;
   }));
   return { lines, indents };
@@ -120512,17 +120568,17 @@ function designTextFit(row) {
   const layout2 = layoutDesignText(text13, size, w);
   const words4 = layout2.lines.map((runs2) => runs2.map((run3) => run3.text).join("").split(/\s+/).filter(Boolean).length);
   const lines = layout2.lines.length;
-  const line = size * DESIGN_LINE_HEIGHT;
-  const needed = round23(lines * line + pad * 2);
+  const line2 = size * DESIGN_LINE_HEIGHT;
+  const needed = round23(lines * line2 + pad * 2);
   if (!text13.trim() || needed <= h + 0.5) return { lines, shown: lines, needed, wordsCut: 0 };
   const valign = rowStr(row, "valign");
   const inner = h - pad * 2;
-  const top = valign === "top" ? pad : valign === "bottom" ? pad + inner - lines * line : pad + (inner - lines * line) / 2;
+  const top = valign === "top" ? pad : valign === "bottom" ? pad + inner - lines * line2 : pad + (inner - lines * line2) / 2;
   let shown = 0;
   let cut = 0;
   for (let i = 0; i < lines; i += 1) {
-    const y0 = top + i * line;
-    if (y0 >= -0.5 && y0 + line <= h + 0.5) shown += 1;
+    const y0 = top + i * line2;
+    if (y0 >= -0.5 && y0 + line2 <= h + 0.5) shown += 1;
     else cut += words4[i] ?? 0;
   }
   return { lines, shown, needed, wordsCut: cut };
@@ -120895,7 +120951,7 @@ function estimateTextHeight(text13, fontSize, width) {
   if (!(fontSize > 0) || !(width > 0)) return 0;
   const perLine = Math.max(1, Math.floor(width / (fontSize * AVERAGE_GLYPH_EM)));
   let lines = 0;
-  for (const line of text13.split("\n")) lines += Math.max(1, Math.ceil(line.length / perLine));
+  for (const line2 of text13.split("\n")) lines += Math.max(1, Math.ceil(line2.length / perLine));
   return round23(lines * fontSize * ESTIMATE_LINE_HEIGHT);
 }
 function colourField(row, role) {
@@ -120917,8 +120973,8 @@ function foldSpace(text13) {
 }
 function footerHolds(held, text13) {
   if (!held) return false;
-  const line = foldSpace(text13);
-  return held.split(FOOTER_JOIN).some((part) => foldSpace(part) === line);
+  const line2 = foldSpace(text13);
+  return held.split(FOOTER_JOIN).some((part) => foldSpace(part) === line2);
 }
 function isIncidentalPicture(klass, object4, slide) {
   if (CONTENT_PICTURE_CLASSES.has(klass)) return false;
@@ -121201,7 +121257,7 @@ function keepRowMarkers(placements, mode3, slideNumber) {
     const cols = spanOverlap(a.box.x, a.box.x + a.box.w, b.box.x, b.box.x + b.box.w) >= 0.5;
     return mode3 === "rows" ? rows2 : mode3 === "columns" ? cols : rows2 || cols;
   };
-  const rowed = candidates2.filter((p) => lines.some((line) => band(p.object, line.object)));
+  const rowed = candidates2.filter((p) => lines.some((line2) => band(p.object, line2.object)));
   if (rowed.length < 2) return;
   for (const p of rowed) {
     const at = placements.indexOf(p);
@@ -121780,8 +121836,8 @@ function compileRenovated(input) {
     }
     if (footer !== void 0 && !text13.includes("\n")) {
       const held = rowStr(footer, "text");
-      const line = designTextFromPlain(text13);
-      footer.text = held ? `${held}${FOOTER_JOIN}${line}` : line;
+      const line2 = designTextFromPlain(text13);
+      footer.text = held ? `${held}${FOOTER_JOIN}${line2}` : line2;
       return [rowStr(footer, "id")];
     }
     return null;
@@ -122523,9 +122579,9 @@ function compileRenovated(input) {
       if (titleText && titlePlacement) {
         const slot = freeSlot(extra, (s) => s.role === "title" && s.kind === "text");
         if (slot) {
-          const line = titleText.split("\n")[0]?.trim() ?? "";
+          const line2 = titleText.split("\n")[0]?.trim() ?? "";
           const richLine = richOf(titlePlacement).split("\n")[0]?.trimEnd() ?? "";
-          const continued = { ...titlePlacement, text: `${line} (continued)`, rich: `${richLine} (continued)` };
+          const continued = { ...titlePlacement, text: `${line2} (continued)`, rich: `${richLine} (continued)` };
           repeats2.push({ objectId: titlePlacement.object.id, ids: takeSlot2(extra, slot, continued) });
         }
       }
@@ -124077,12 +124133,12 @@ function settle(spec) {
     valign: spec.valign ?? TEXT_MEASURE_DEFAULTS.valign
   };
 }
-function segmentsOf(line, s) {
+function segmentsOf(line2, s) {
   const base = { token: s.token, family: s.family, weight: s.weight, italic: false };
   const italicFamily = s.fonts.italic || s.fonts.brand;
   const out = [];
-  if (line.list) out.push({ text: `${" ".repeat(line.indent)}${line.list === "bullet" ? "\u2022  " : `${line.number}.  `}`, face: base });
-  for (const run3 of line.runs) {
+  if (line2.list) out.push({ text: `${" ".repeat(line2.indent)}${line2.list === "bullet" ? "\u2022  " : `${line2.number}.  `}`, face: base });
+  for (const run3 of line2.runs) {
     if (!run3.text) continue;
     let face;
     const weight = run3.weight ?? (run3.bold ? bolder(s.weight) : s.weight);
@@ -124204,15 +124260,15 @@ async function drawDesignText(spec, shaper, opts = {}) {
   const border = borderWidth(spec.strokeW);
   return {
     measure: result,
-    lines: drawn2.map((line) => {
-      const free = result.availableWidth - line.width;
+    lines: drawn2.map((line2) => {
+      const free = result.availableWidth - line2.width;
       const shift = align === "center" ? free / 2 : align === "right" ? free : 0;
       return {
-        baseline: round24(border + offset + line.baseline),
+        baseline: round24(border + offset + line2.baseline),
         x: round24(border + result.pad + shift),
-        width: line.width,
-        runs: line.runs,
-        ...line.hanging ? { hanging: line.hanging } : {}
+        width: line2.width,
+        runs: line2.runs,
+        ...line2.hanging ? { hanging: line2.hanging } : {}
       };
     })
   };
@@ -124444,9 +124500,9 @@ async function measureCore(spec, shaper, draw) {
     ...run3.seg.run?.underline ? { underline: true } : {},
     ...run3.seg.run?.strike ? { strike: true } : {}
   });
-  const drawnLines2 = pendingRuns.map((line, i) => {
-    const hanging = line.hanging.filter((run3) => run3.seg.run?.underline || run3.seg.run?.strike);
-    return { baseline: baselines[i] ?? 0, width: line.width, runs: line.runs.map(drawRun), ...hanging.length ? { hanging: hanging.map(drawRun) } : {} };
+  const drawnLines2 = pendingRuns.map((line2, i) => {
+    const hanging = line2.hanging.filter((run3) => run3.seg.run?.underline || run3.seg.run?.strike);
+    return { baseline: baselines[i] ?? 0, width: line2.width, runs: line2.runs.map(drawRun), ...hanging.length ? { hanging: hanging.map(drawRun) } : {} };
   });
   return { result, drawn: drawnLines2 };
 }
@@ -124626,13 +124682,13 @@ function translateOutlinePath(d, x, y) {
   flush();
   return out;
 }
-function textSpaceWidth(line, source) {
-  return line.pieces.reduce((sum, piece) => sum + (piece.artwork?.whitespace ? piece.advance : piece.shape?.clusters.reduce((sum2, cluster2) => sum2 + (/^[ \u00a0\u202f]+$/u.test(source.slice(cluster2.start, cluster2.end)) ? cluster2.advance : 0), 0) ?? 0), 0);
+function textSpaceWidth(line2, source) {
+  return line2.pieces.reduce((sum, piece) => sum + (piece.artwork?.whitespace ? piece.advance : piece.shape?.clusters.reduce((sum2, cluster2) => sum2 + (/^[ \u00a0\u202f]+$/u.test(source.slice(cluster2.start, cluster2.end)) ? cluster2.advance : 0), 0) ?? 0), 0);
 }
-function spaceTextLine(line, source, factor) {
-  if (Math.abs(factor - 1) < 1e-6) return line;
+function spaceTextLine(line2, source, factor) {
+  if (Math.abs(factor - 1) < 1e-6) return line2;
   let pen = 0;
-  const pieces = line.pieces.map((piece) => {
+  const pieces = line2.pieces.map((piece) => {
     const x = pen;
     if (!piece.shape) {
       const scale = piece.artwork?.whitespace ? factor : 1, advance2 = piece.advance * scale;
@@ -124656,7 +124712,7 @@ function spaceTextLine(line, source, factor) {
     pen += advance;
     return { ...piece, x: n4(x), advance, shape, carets: shape.clusters.flatMap((cluster2) => cluster2.carets.map((caret) => ({ ...caret, x: n4(x + caret.x) }))) };
   });
-  return { ...line, pieces, advance: n4(pen + (line.hyphen?.shape.advance ?? 0)) };
+  return { ...line2, pieces, advance: n4(pen + (line2.hyphen?.shape.advance ?? 0)) };
 }
 var n4;
 var init_text_spacing = __esm({
@@ -124740,20 +124796,20 @@ function outlineAreaContour(area2) {
   }
   const [tlx, tly, trx, try_, brx, bry, blx, bly] = corners2(area2.shape).map((v) => Math.max(0, v));
   const curves2 = [];
-  const line = (x0, y0, x1, y1) => {
+  const line2 = (x0, y0, x1, y1) => {
     if (x0 !== x1 || y0 !== y1) curves2.push(lineToCubic(x0, y0, x1, y1));
   };
   const corner = (cx2, cy3, rx, ry, q) => {
     if (rx > 0 && ry > 0) curves2.push(quarter(cx2, cy3, rx, ry, q));
   };
   const tl = tlx > 0 && tly > 0, tr = trx > 0 && try_ > 0, br = brx > 0 && bry > 0, bl = blx > 0 && bly > 0;
-  line(x + (tl ? tlx : 0), y, x + w - (tr ? trx : 0), y);
+  line2(x + (tl ? tlx : 0), y, x + w - (tr ? trx : 0), y);
   corner(x + w - trx, y + try_, trx, try_, 3);
-  line(x + w, y + (tr ? try_ : 0), x + w, y + h - (br ? bry : 0));
+  line2(x + w, y + (tr ? try_ : 0), x + w, y + h - (br ? bry : 0));
   corner(x + w - brx, y + h - bry, brx, bry, 0);
-  line(x + w - (br ? brx : 0), y + h, x + (bl ? blx : 0), y + h);
+  line2(x + w - (br ? brx : 0), y + h, x + (bl ? blx : 0), y + h);
   corner(x + blx, y + h - bly, blx, bly, 1);
-  line(x, y + h - (bl ? bly : 0), x, y + (tl ? tly : 0));
+  line2(x, y + h - (bl ? bly : 0), x, y + (tl ? tly : 0));
   corner(x + tlx, y + tly, tlx, tly, 2);
   return { closed: true, curves: curves2 };
 }
@@ -126819,14 +126875,14 @@ async function outlineDesignDrawText(page3, toPath, strikeMetrics) {
     words4.outlines = [];
     delete words4.strikes;
     delete words4.underlines;
-    for (const line of layout2.lines) {
+    for (const line2 of layout2.lines) {
       const row = [];
       const strikes = [];
       const underlines = [];
       const bands = [];
-      for (const run3 of line.runs) {
-        const origin = op.box.x + line.x + run3.x;
-        const band2 = run3.underline ? underlineGeometry(m2.size, op.box.y + line.baseline) : null;
+      for (const run3 of line2.runs) {
+        const origin = op.box.x + line2.x + run3.x;
+        const band2 = run3.underline ? underlineGeometry(m2.size, op.box.y + line2.baseline) : null;
         if (run3.underline && !band2) decorated = true;
         bands.push(band2);
         underlines.push(band2 && !run3.text.trim() ? { y: band2.y, height: band2.height, spans: underlineSpans(origin, run3.width, [], band2.dilation) } : null);
@@ -126840,23 +126896,23 @@ async function outlineDesignDrawText(page3, toPath, strikeMetrics) {
               hit = strikeMetrics(run3.face.file, variations).catch(() => null);
               metrics.set(key2, hit);
             }
-            strike = strikeGeometry(await hit, m2.size, run3.width, op.box.y + line.baseline);
+            strike = strikeGeometry(await hit, m2.size, run3.width, op.box.y + line2.baseline);
           }
           if (!strike) decorated = true;
         }
         strikes.push(strike);
       }
       const outlines = [];
-      for (let a = 0; a < line.runs.length; ) {
+      for (let a = 0; a < line2.runs.length; ) {
         let z = a + 1;
-        while (z < line.runs.length && runFace(line.runs[z].face) === runFace(line.runs[a].face)) z++;
-        const stretch = line.runs.slice(a, z);
+        while (z < line2.runs.length && runFace(line2.runs[z].face) === runFace(line2.runs[a].face)) z++;
+        const stretch = line2.runs.slice(a, z);
         const split = stretch.length > 1 && stretch[0].face.file && stretch.some((run3) => run3.text.trim()) ? await whole(stretch) : null;
         if (split) outlines.push(...split);
-        else for (let k = a; k < z; k++) outlines.push(await alone(line.runs[k], !!bands[k]));
+        else for (let k = a; k < z; k++) outlines.push(await alone(line2.runs[k], !!bands[k]));
         a = z;
       }
-      for (const [i, run3] of line.runs.entries()) {
+      for (const [i, run3] of line2.runs.entries()) {
         const got = outlines[i];
         if (!got) {
           row.push(null);
@@ -126867,25 +126923,25 @@ async function outlineDesignDrawText(page3, toPath, strikeMetrics) {
         const band2 = bands[i];
         if (band2 && run3.text.trim()) {
           const gaps = underlineInkGaps(run3.text, got.clusters, band2);
-          if (gaps) underlines[i] = { y: band2.y, height: band2.height, spans: underlineSpans(op.box.x + line.x + run3.x, run3.width, gaps, band2.dilation) };
+          if (gaps) underlines[i] = { y: band2.y, height: band2.height, spans: underlineSpans(op.box.x + line2.x + run3.x, run3.width, gaps, band2.dilation) };
           else decorated = true;
         }
       }
-      const hanging = line.hanging?.filter((run3) => run3.underline) ?? [];
-      const last = line.runs.length - 1, band = hanging.length ? underlineGeometry(m2.size, op.box.y + line.baseline) : null;
+      const hanging = line2.hanging?.filter((run3) => run3.underline) ?? [];
+      const last = line2.runs.length - 1, band = hanging.length ? underlineGeometry(m2.size, op.box.y + line2.baseline) : null;
       if (hanging.length && (last < 0 || !band)) decorated = true;
       else if (band && row[last] !== null) {
         const ink = (run3) => run3.color && /^#[0-9a-fA-F]{3,8}$/.test(run3.color) ? run3.color : words4.ink;
-        const lastInk = ink(line.runs[last]);
-        const pieces = hanging.map((run3) => ({ x: run3.x - line.runs[last].x, width: run3.width, ...ink(run3) !== lastInk ? { ink: ink(run3) } : {} }));
+        const lastInk = ink(line2.runs[last]);
+        const pieces = hanging.map((run3) => ({ x: run3.x - line2.runs[last].x, width: run3.width, ...ink(run3) !== lastInk ? { ink: ink(run3) } : {} }));
         underlines[last] = { y: band.y, height: band.height, spans: [...underlines[last]?.spans ?? [], ...pieces] };
       }
       words4.outlines.push(row);
-      if (line.runs.some((run3) => run3.strike) || words4.strikes) {
+      if (line2.runs.some((run3) => run3.strike) || words4.strikes) {
         words4.strikes ??= words4.outlines.slice(0, -1).map((r5) => r5.map(() => null));
         words4.strikes.push(strikes);
       }
-      if (line.runs.some((run3) => run3.underline) || hanging.length || words4.underlines) {
+      if (line2.runs.some((run3) => run3.underline) || hanging.length || words4.underlines) {
         words4.underlines ??= words4.outlines.slice(0, -1).map((r5) => r5.map(() => null));
         words4.underlines.push(underlines);
       }
@@ -127735,13 +127791,13 @@ function primitiveDrawPaint(fill2) {
   }
   return { kind: "radial", stops };
 }
-function designTextRuns(line) {
+function designTextRuns(line2) {
   const out = [];
   const push = (text13, style) => {
     if (text13) out.push({ text: text13, ...style });
   };
   const unesc = (s) => s.replace(/\\\*/g, "*").replace(/\\_/g, "_");
-  let rest2 = line;
+  let rest2 = line2;
   while (rest2.length) {
     const m2 = /\{([^|{}]+)\|([^{}]*)\}|\*\*([^*]+)\*\*|`([^`]+)`|(?<![\w\\])\*([^*\s][^*]*?)\*(?!\w)|(?<![\w\\])_([^_\s][^_]*?)_(?!\w)/.exec(rest2);
     if (!m2) {
@@ -127917,8 +127973,8 @@ function boxesToPenpotDoc(boxesIn, o) {
       const tracking = clamp(fin2(b.tracking), -100, 400);
       const align = H_ALIGN.has(str6(b.align)) ? str6(b.align) : "center";
       const valignRaw = str6(b.valign);
-      const paragraphs2 = text13.split("\n").map((line) => {
-        let ln = line;
+      const paragraphs2 = text13.split("\n").map((line2) => {
+        let ln = line2;
         const mb2 = /^(\s*)[-*•]\s+(.*)$/.exec(ln);
         const mo = /^(\s*)(\d{1,3})\.\s+(.*)$/.exec(ln);
         if (mb2) ln = `${mb2[1]}\u2022  ${mb2[2]}`;
@@ -129035,17 +129091,17 @@ function parsePenpotImportStream(text13) {
   const strip = (v) => String(v ?? "").replace(/^~[:u]/, "");
   let event = "";
   for (const raw of String(text13 ?? "").split(/\r?\n/)) {
-    const line = raw.trim();
-    if (!line) {
+    const line2 = raw.trim();
+    if (!line2) {
       event = "";
       continue;
     }
-    if (line.startsWith("event:")) {
-      event = line.slice(6).trim();
+    if (line2.startsWith("event:")) {
+      event = line2.slice(6).trim();
       continue;
     }
-    if (!line.startsWith("data:")) continue;
-    const body = line.slice(5).trim();
+    if (!line2.startsWith("data:")) continue;
+    const body = line2.slice(5).trim();
     let data = null;
     try {
       data = JSON.parse(body);
@@ -131864,7 +131920,7 @@ function structuredExcerpt(value2) {
     if (text13.length + part.length > 2e3) truncated = true;
     text13 += part.slice(0, Math.max(0, 2e3 - text13.length));
   };
-  const visit = (value3, depth) => {
+  const visit2 = (value3, depth) => {
     if (text13.length >= 2e3 || ++nodes > 100 || depth > 8) {
       truncated = true;
       return;
@@ -131895,11 +131951,11 @@ function structuredExcerpt(value2) {
       }
       if (count4++) append(", ");
       if (!array) append(`${JSON.stringify(key2.slice(0, 2e3))}: `);
-      visit(value3[key2], depth + 1);
+      visit2(value3[key2], depth + 1);
     }
     append(array ? "]" : "}");
   };
-  visit(value2, 0);
+  visit2(value2, 0);
   return { text: text13, truncated };
 }
 var COMPARE_MAX_TEXT;
@@ -132022,16 +132078,16 @@ var init_compare_structure = __esm({
 
 // engine/src/compare-text.ts
 function tokens2(text13, options2) {
-  let line = 1, offset = 0;
+  let line2 = 1, offset = 0;
   const out = [];
   const pattern = options2.granularity === "word" ? /\s+|[^\s]+/gu : /[^\n]*\n|[^\n]+$/g;
   for (const match of text13.matchAll(pattern)) {
     const text14 = match[0];
     let key2 = options2.whitespace === "ignore" ? text14.replace(/\s+/g, " ").trim() : text14;
     if (options2.ignoreCase) key2 = key2.toLowerCase();
-    const token2 = { text: text14, key: key2, line, offset };
+    const token2 = { text: text14, key: key2, line: line2, offset };
     offset += text14.length;
-    line += (text14.match(/\n/g) ?? []).length;
+    line2 += (text14.match(/\n/g) ?? []).length;
     if (options2.whitespace !== "ignore" || token2.key !== "") out.push(token2);
     if (out.length > 2e4) return null;
   }
@@ -133182,8 +133238,8 @@ function textAscii(text13, opts = {}) {
   const gap = " ".repeat(Math.min(8, Math.max(0, Math.trunc(opts.spacing ?? 1))));
   const width = Math.min(500, Math.max(0, Math.trunc(opts.width ?? 0)));
   const blocks = [];
-  for (const line of source.split("\n")) {
-    const glyphs2 = [...line].map((c) => GLYPHS[c].split("/"));
+  for (const line2 of source.split("\n")) {
+    const glyphs2 = [...line2].map((c) => GLYPHS[c].split("/"));
     const rows2 = Array.from({ length: 7 }, (_, row) => {
       const indent = opts.style === "slant" ? " ".repeat(6 - row) : "";
       return indent + glyphs2.map((g2) => [...g2[row]].map((v) => (v === "1" ? ink : " ").repeat(scale)).join("")).join(gap);
@@ -133275,10 +133331,10 @@ function parseTextLogs(text13) {
   if (new TextEncoder().encode(text13).length > LOG_MAX_BYTES)
     throw new Error("Open a log excerpt of 4 MiB or less.");
   const events = [];
-  let at = 0, line = 0;
+  let at = 0, line2 = 0;
   for (const match of text13.matchAll(/[^\n]*\n|[^\n]+$/g)) {
     const raw = match[0];
-    line++;
+    line2++;
     const body = raw.replace(/\r?\n$/, "");
     const last = events[events.length - 1];
     if (last && (/^\s+(?:at\s|File\s|\S)/.test(body) || /^(?:Caused by:|During handling|Traceback|\.{3} \d+ more)/.test(body))) {
@@ -133286,7 +133342,7 @@ function parseTextLogs(text13) {
       last.message += `
 ${body}`;
       last.end += raw.length;
-      last.lastLine = line;
+      last.lastLine = line2;
       at += raw.length;
       continue;
     }
@@ -133310,9 +133366,9 @@ ${body}`;
       content2
     );
     events.push({
-      id: line,
-      line,
-      lastLine: line,
+      id: line2,
+      line: line2,
+      lastLine: line2,
       start: at,
       end: at + raw.length,
       raw,
@@ -133772,7 +133828,7 @@ ${signals.findings.map((f) => f.label).join("\n")}`;
       ].sort();
       if (s("mode") === "lint") {
         const neutral = text13.split(/\r\n|\r|\n/).map(
-          (line) => line.replace(directive, "").trim() ? line.replace(directive, "__helmval__") : ""
+          (line2) => line2.replace(directive, "").trim() ? line2.replace(directive, "__helmval__") : ""
         ).join("\n");
         readYaml(neutral);
         out = "YAML structure is valid after masking template directives.";
@@ -134002,7 +134058,7 @@ function validLearningRichText(value2) {
   const record48 = (v) => !!v && typeof v === "object" && !Array.isArray(v);
   const keys2 = (v, allowed) => Object.keys(v).every((k) => allowed.includes(k));
   const blocks = ["paragraph", "heading", "bulletList", "orderedList", "blockquote"];
-  const visit = (v, parent, depth) => {
+  const visit2 = (v, parent, depth) => {
     if (!record48(v) || ++count4 > 1e4 || depth > 12 || !keys2(v, ["type", "attrs", "content", "marks", "text"]))
       return false;
     const type = String(v.type);
@@ -134048,9 +134104,9 @@ function validLearningRichText(value2) {
       return false;
     if (type === "listItem" && (!v.content.length || v.content[0]?.type !== "paragraph"))
       return false;
-    return Array.from(v.content).every((child2) => visit(child2, type, depth + 1));
+    return Array.from(v.content).every((child2) => visit2(child2, type, depth + 1));
   };
-  return visit(value2, "", 0);
+  return visit2(value2, "", 0);
 }
 function learningRichTextPlain(node) {
   if (node.type === "text") return node.text || "";
@@ -135585,7 +135641,7 @@ function sourceFrom2(kindValue, picked, modelFormatValue, primitiveValue, where,
     [picked.name, picked.url].some((name) => /\.3mf(?:$|[?#])/i.test(name)) ? "3mf" : [picked.name, picked.url].some((name) => /\.stl(?:$|[?#])/i.test(name)) ? "stl" : "glb"
   ) : requestedFormat;
   if (kind === "text") {
-    const text13 = String(words4?.text ?? "").replace(/\r/g, "").split("\n").map((line) => line.trim()).join("\n").trim().slice(0, 200);
+    const text13 = String(words4?.text ?? "").replace(/\r/g, "").split("\n").map((line2) => line2.trim()).join("\n").trim().slice(0, 200);
     if (!text13 && !allowEmpty) throw new Error(`${where}Type the words to set.`);
     return {
       kind: "text",
@@ -136521,8 +136577,8 @@ function weightsOf(row) {
   const own4 = typeof row.weight === "string" || typeof row.weight === "number" ? String(row.weight) : DESIGN_DEFAULT_WEIGHT;
   const runs2 = /* @__PURE__ */ new Set();
   let bold = false;
-  for (const line of parseDesignText(textOf7(row))) {
-    for (const run3 of line.runs) {
+  for (const line2 of parseDesignText(textOf7(row))) {
+    for (const run3 of line2.runs) {
       if (!run3.text.trim()) continue;
       if (typeof run3.weight === "number") runs2.add(String(run3.weight));
       else if (run3.bold) {
@@ -136538,8 +136594,8 @@ function textColoursOf(layout2, row) {
   const own4 = valueText3(row.fg);
   const ownHex = own4 ? colourOf3(layout2, own4) : null;
   if (own4 && ownHex) out.push({ raw: own4, hex: ownHex });
-  for (const line of parseDesignText(textOf7(row))) {
-    for (const run3 of line.runs) {
+  for (const line2 of parseDesignText(textOf7(row))) {
+    for (const run3 of line2.runs) {
       if (!run3.color || !run3.text.trim()) continue;
       const hex4 = colourOf3(layout2, run3.color);
       if (hex4 && !out.some((c) => c.hex === hex4)) out.push({ raw: run3.color, hex: hex4 });
@@ -137265,6 +137321,274 @@ var init_design_brief = __esm({
   }
 });
 
+// packages/core/src/brand-page-v1.ts
+var DESIGN_MD_TARGET;
+var init_brand_page_v1 = __esm({
+  "packages/core/src/brand-page-v1.ts"() {
+    "use strict";
+    DESIGN_MD_TARGET = "alpha";
+  }
+});
+
+// engine/src/design-md.ts
+import { isAlias as isAlias4, isMap as isMap3, isScalar as isScalar3, isSeq as isSeq3, parseDocument, visit } from "yaml";
+function dimensionOf(value2) {
+  if (typeof value2 === "string" && /^-?\d*\.?\d+(px|em|rem)$/.test(value2.trim())) return value2.trim();
+  if (isRow2(value2) && typeof value2.value === "number" && Number.isFinite(value2.value) && ["px", "em", "rem"].includes(String(value2.unit))) return `${value2.value}${String(value2.unit)}`;
+  return null;
+}
+function firstFamily(value2) {
+  const raw = Array.isArray(value2) ? value2[0] : value2;
+  if (typeof raw !== "string") return null;
+  const first = raw.split(",")[0].trim().replace(/^['"]|['"]$/g, "");
+  return first || null;
+}
+function writeDesignMd(input) {
+  const { doc } = leaveOutScopedTokenText(input.doc);
+  const brief2 = input.brief ?? designBrief(doc, input.catalog ?? null, input.name ? { name: input.name } : {});
+  const name = line(input.name ?? brief2.name, 200) || "Design system";
+  const raw = isRow2(doc) ? doc : {};
+  const description = line(input.description ?? (typeof raw.$description === "string" ? raw.$description : ""), 600);
+  const tokens3 = createTokenSet(doc, input.selection ? { selection: input.selection } : {});
+  const swatches = tokens3.colors().filter((c) => typeof c.value === "string" && parseColor(c.value));
+  const colors = /* @__PURE__ */ new Map();
+  const slotRows2 = [];
+  for (const c of swatches) {
+    if (!c.path.startsWith("color.semantic.")) continue;
+    const slot = c.path.slice("color.semantic.".length);
+    if (!SAFE_NAME.test(slot)) continue;
+    const key2 = SLOT_TO_NAME[slot] ?? slot;
+    colors.set(key2, c.value);
+    slotRows2.push({ slot, name: key2, value: c.value, path: c.path });
+  }
+  const named = swatches.filter((c) => !c.path.startsWith("color.semantic.") && !c.path.startsWith("color.chrome.") && !c.path.startsWith("color.role.") && !c.path.startsWith("color.colourway."));
+  const roleWords = declaredRoleWords(doc, colors);
+  const family2 = (path) => firstFamily(brief2.fonts.find((f) => f.path === path)?.value);
+  const bodyFamily = family2("font.brand") ?? firstFamily(brief2.fonts[0]?.value);
+  const displayFamily = family2("font.display") ?? bodyFamily;
+  const monoFamily = family2("font.mono");
+  const typography = /* @__PURE__ */ new Map();
+  const declared = brief2.coverage.type === "declared";
+  if (declared) {
+    for (const [style, spec] of Object.entries(brief2.type.styles ?? {})) {
+      const key2 = STYLE_TO_NAME[style];
+      if (!key2 || !isRow2(spec)) continue;
+      const fam = DISPLAY_STYLES.has(style) ? displayFamily : bodyFamily;
+      typography.set(key2, {
+        ...fam ? { fontFamily: fam } : {},
+        ...typeof spec.fontSize === "number" ? { fontSize: `${spec.fontSize}px` } : {},
+        ...Number.isFinite(Number(spec.weight)) ? { fontWeight: Number(spec.weight) } : {},
+        ...typeof spec.lineHeight === "number" ? { lineHeight: spec.lineHeight } : {}
+      });
+    }
+  } else {
+    if (displayFamily) typography.set("headline-lg", { fontFamily: displayFamily });
+    if (bodyFamily) typography.set("body-md", { fontFamily: bodyFamily });
+  }
+  if (monoFamily) typography.set("code-md", { fontFamily: monoFamily });
+  const scale = (prefixes) => {
+    const out = /* @__PURE__ */ new Map();
+    for (const e of tokens3.query()) {
+      const prefix = prefixes.find((p) => e.path.startsWith(`${p}.`));
+      if (!prefix) continue;
+      const key2 = tokenName(e.path.slice(prefix.length + 1));
+      const dim = dimensionOf(e.value);
+      if (key2 && dim && !out.has(key2)) out.set(key2, dim);
+    }
+    return out;
+  };
+  const rounded = scale(["radius", "rounded", "border.radius"]);
+  const spacing = scale(["spacing", "space"]);
+  const components = /* @__PURE__ */ new Map();
+  const textStyle = (...names) => {
+    const hit = names.find((n7) => typography.has(n7));
+    return hit ? { typography: `{typography.${hit}}` } : {};
+  };
+  const usedType = /* @__PURE__ */ new Set();
+  const addComponent = (id3, row) => {
+    components.set(id3, row);
+    if (typeof row.typography === "string") usedType.add(row.typography.slice("{typography.".length, -1));
+  };
+  if (colors.has("surface") && colors.has("on-surface")) addComponent("page", { backgroundColor: "{colors.surface}", textColor: "{colors.on-surface}", ...textStyle("body-md") });
+  if (colors.has("primary") && colors.has("on-primary")) addComponent("primary", { backgroundColor: "{colors.primary}", textColor: "{colors.on-primary}", ...textStyle("label-md", "headline-lg") });
+  else if (colors.has("primary")) addComponent("primary", { backgroundColor: "{colors.primary}" });
+  const onOf = new Map(roleWords?.roles.filter((role) => colors.has(`on-${role.id}`)).map((role) => [`on-${role.id}`, role.id]) ?? []);
+  for (const key2 of colors.keys()) {
+    if (key2 === "surface" && components.has("page") || key2 === "on-surface" && components.has("page") || key2 === "primary" || key2 === "on-primary" && components.has("primary")) continue;
+    if (onOf.has(key2)) continue;
+    const on3 = `on-${key2}`;
+    if (onOf.get(on3) === key2) {
+      addComponent(`colour-${key2}`, { backgroundColor: `{colors.${key2}}`, textColor: `{colors.${on3}}` });
+      continue;
+    }
+    addComponent(`colour-${key2}`, ["muted", "on-surface", "on-primary"].includes(key2) ? { textColor: `{colors.${key2}}` } : { backgroundColor: `{colors.${key2}}` });
+  }
+  for (const key2 of typography.keys()) if (!usedType.has(key2)) addComponent(`text-${key2}`, { typography: `{typography.${key2}}` });
+  for (const key2 of rounded.keys()) addComponent(`rounded-${key2}`, { rounded: `{rounded.${key2}}` });
+  for (const key2 of spacing.keys()) addComponent(`spacing-${key2}`, { padding: `{spacing.${key2}}` });
+  const yaml = ["---", `version: ${quoted(DESIGN_MD_TARGET)}`, `name: ${quoted(name)}`];
+  if (description) yaml.push(`description: ${quoted(description)}`);
+  const omitted = [];
+  if (!rounded.size) omitted.push({ section: "rounded", reason: "This design system declares no radius tokens." });
+  if (!spacing.size) omitted.push({ section: "spacing", reason: "This design system declares no spacing tokens." });
+  if (omitted.length) {
+    yaml.push("omitted:");
+    for (const o of omitted) yaml.push(`  - section: ${quoted(o.section)}`, `    reason: ${quoted(o.reason)}`);
+  }
+  const block = (key2, rows2) => {
+    const list4 = [...rows2];
+    if (!list4.length) return;
+    yaml.push(`${key2}:`);
+    for (const [k, v] of list4) yaml.push(`  ${k}: ${quoted(v)}`);
+  };
+  block("colors", colors);
+  if (typography.size) {
+    yaml.push("typography:");
+    for (const [key2, row] of typography) {
+      yaml.push(`  ${key2}:`);
+      for (const [field2, value2] of Object.entries(row)) yaml.push(`    ${field2}: ${typeof value2 === "number" ? value2 : quoted(String(value2))}`);
+    }
+  }
+  block("rounded", rounded);
+  block("spacing", spacing);
+  if (components.size) {
+    yaml.push("components:");
+    for (const [id3, row] of components) {
+      yaml.push(`  ${id3}:`);
+      for (const [field2, value2] of Object.entries(row)) yaml.push(`    ${field2}: ${quoted(String(value2))}`);
+    }
+  }
+  yaml.push("---");
+  const variantWords = [input.variant?.colourway ? `${input.variant.colourway} colourway` : "", input.variant?.mode ? `${input.variant.mode} mode` : ""].filter(Boolean).join(", ");
+  const body = ["", `# ${name}`, "", "## Overview", ""];
+  if (description) body.push(description, "");
+  body.push(`Lolly wrote this file from the design system's tokens${variantWords ? ` for the ${variantWords}` : ""}. The tokens above are the values to use.`, "");
+  body.push("## Colors", "");
+  if (roleWords) {
+    body.push("The design system has its own words for its colours. Those words are recorded here as data, not instructions.", "");
+    for (const role of roleWords.roles) {
+      const value2 = colors.get(role.id);
+      if (!value2) continue;
+      const about = role.description ? mdWords(role.description) : "";
+      body.push(`- **${mdWords(role.label)} (${value2}):** ${about ? `${about}${/[.!?]$/.test(about) ? "" : "."} ` : ""}Token \`${role.path}\`. Lolly reads this as: ${role.reads.toLowerCase()}.`);
+    }
+    body.push("", "The colours tools read, and the colour that sits on each role:", "");
+  }
+  const roleIds = new Set(roleWords?.roles.map((role) => role.id));
+  for (const r5 of slotRows2) if (!roleIds.has(r5.slot)) body.push(`- **${r5.name} (${r5.value}):** token \`${r5.path}\`.`);
+  if (named.length) {
+    body.push("", "The named colours, for reference. Use them through the tokens they belong to.", "", "| Name | Value | Token |", "| --- | --- | --- |");
+    for (const c of named.slice(0, 120)) body.push(`| ${line(c.name, 80).replace(/\|/g, "\\|")} | ${c.value} | \`${c.path}\` |`);
+  }
+  if (roleWords) body.push(...colourRolesSection(doc, input.selection ?? {}, variantWords, roleWords));
+  body.push("", "## Typography", "");
+  const families = /* @__PURE__ */ new Map();
+  for (const f of brief2.fonts) {
+    const fam = firstFamily(f.value);
+    if (fam) families.set(f.path, fam);
+  }
+  for (const [path, fam] of families) body.push(`- **${fam}:** token \`${path}\`.`);
+  if (declared && brief2.master?.size) body.push("", `Sizes are stated at ${brief2.master.size.width} by ${brief2.master.size.height}. Scale them with the page.`);
+  else if (typography.size) body.push("", "This design system states families, not a type scale.");
+  if (components.size) body.push("", "## Components", "", "Lolly tools draw from tokens rather than from components. These entries name the pairs the system states.");
+  const rules = Array.isArray(brief2.houseRules) ? brief2.houseRules : [];
+  if (rules.length) {
+    body.push("", "## Do's and Don'ts", "");
+    for (const rule of rules) {
+      const words4 = line(rule.label, 200);
+      if (!words4 || brandSkillScopeHints(`${words4} ${rule.description ?? ""}`).length) continue;
+      const note2 = line(rule.description, 400);
+      body.push(`- **${rule.requirement === "required" ? "Required" : "Advisory"}:** ${words4}.${note2 ? ` ${note2}` : ""}`);
+    }
+  }
+  return `${yaml.join("\n")}
+${body.join("\n").replace(/\n{3,}/g, "\n\n")}
+`;
+}
+function declaredRoleWords(doc, colors) {
+  if (!declaredColourRoleIds(doc).length) return null;
+  const roles = readColourRoles(doc).roles.filter((role) => role.declared && colors.has(role.id));
+  if (!roles.length) return null;
+  return {
+    roles: roles.map((role) => ({
+      id: role.id,
+      label: role.label,
+      ...role.description ? { description: role.description } : {},
+      path: role.path,
+      slots: [...role.slots],
+      reads: role.slots.length ? role.slots.map((slot) => COLOUR_SLOT_READS[slot].split(":")[0]).join(", ") : COLOUR_ROLE_BY_NAME.split(":")[0]
+    }))
+  };
+}
+function colourRolesSection(doc, selection, variantWords, words4) {
+  const block = colourRoleBlock(doc, selection);
+  if (!block) return [];
+  const lookIds = block.modes.map((m2) => m2.id);
+  const head2 = ["Role", ...block.modes.map((m2) => m2.name.charAt(0).toUpperCase() + m2.name.slice(1)), "Lolly reads this as"];
+  const rows2 = words4.roles.map((role) => [
+    mdWords(role.label),
+    ...lookIds.map((look3) => block.sameAs?.[look3]?.[role.id] ? `Same as ${mdWords(block.sameAs[look3][role.id])}` : block.looks[look3]?.[role.id] ?? ""),
+    role.reads
+  ]);
+  const table = [`| ${head2.map((cell2) => mdWords(cell2)).join(" | ")} |`, `| ${head2.map(() => "---").join(" | ")} |`, ...rows2.map((cells) => `| ${cells.join(" | ")} |`)];
+  return [
+    "",
+    "### Colour roles",
+    "",
+    `The format has no light or dark and no place for a colour's own name, so this file holds ${variantWords ? `the ${variantWords}` : "one look"}, and this table says what the other look holds. The block below repeats the table as data for Lolly. A reader that does not know the block can ignore it: the tokens above are complete.`,
+    "",
+    ...table,
+    "",
+    "```json",
+    // Inert in any reader. No line of this can close the fence.
+    JSON.stringify(block, null, 2).replace(/</g, "\\u003c").replace(/>/g, "\\u003e"),
+    "```"
+  ];
+}
+var isRow2, SLOT_TO_NAME, NAME_TO_SLOT, STYLE_TO_NAME, DISPLAY_STYLES, SAFE_NAME, tokenName, line, quoted, mdWords, MAX_BYTES;
+var init_design_md = __esm({
+  "engine/src/design-md.ts"() {
+    "use strict";
+    init_brand_page_v1();
+    init_css_color();
+    init_tokens2();
+    init_design_brief();
+    init_brand_skill();
+    init_token_scope();
+    init_colour_roles();
+    init_colourway();
+    init_colour_role_portable();
+    isRow2 = (v) => !!v && typeof v === "object" && !Array.isArray(v);
+    SLOT_TO_NAME = {
+      primary: "primary",
+      "on-primary": "on-primary",
+      secondary: "secondary",
+      surface: "surface",
+      text: "on-surface",
+      muted: "muted",
+      edge: "edge"
+    };
+    NAME_TO_SLOT = Object.fromEntries(Object.entries(SLOT_TO_NAME).map(([slot, name]) => [name, slot]));
+    STYLE_TO_NAME = {
+      title: "headline-lg",
+      subtitle: "headline-md",
+      number: "display-number",
+      quote: "display-quote",
+      body: "body-md",
+      caption: "body-sm",
+      label: "label-md",
+      attribution: "label-sm"
+    };
+    DISPLAY_STYLES = /* @__PURE__ */ new Set(["title", "subtitle", "number", "quote"]);
+    SAFE_NAME = /^[a-z0-9][a-z0-9-]*$/;
+    tokenName = (raw) => raw.toLowerCase().replace(/[^a-z0-9-]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 64);
+    line = (raw, limit3 = 400) => String(raw ?? "").replace(/\s+/g, " ").trim().slice(0, limit3);
+    quoted = (s) => JSON.stringify(s);
+    mdWords = (raw) => line(raw, 700).replace(/[\\`*_[\]<>|#]/g, (ch) => `\\${ch}`);
+    MAX_BYTES = 1024 * 1024;
+  }
+});
+
 // engine/src/brand-rules.ts
 var BRAND_RULE_KINDS;
 var init_brand_rules = __esm({
@@ -137601,22 +137925,22 @@ function paintOf3(value2, resolve8) {
 function wrap(text13, chars) {
   if (text13.length <= chars) return [text13];
   const out = [];
-  let line = "";
+  let line2 = "";
   for (const word of text13.split(/(\s+)/)) {
     if (!word) continue;
-    if (line && (line + word).trimEnd().length > chars && word.trim()) {
-      out.push(line.trimEnd());
-      line = word.trimStart();
-    } else line += word;
+    if (line2 && (line2 + word).trimEnd().length > chars && word.trim()) {
+      out.push(line2.trimEnd());
+      line2 = word.trimStart();
+    } else line2 += word;
   }
-  if (line.trim()) out.push(line.trimEnd());
+  if (line2.trim()) out.push(line2.trimEnd());
   return out.length ? out : [text13];
 }
 function drawnLines(row, text13) {
   if (truthy3(row.plainText)) return text13.replace(/\r\n?/g, "\n").split("\n");
-  return parseDesignText(text13).map((line) => {
-    const words4 = line.runs.map((run3) => run3.text).join("");
-    return line.list === "number" ? `${line.number}. ${words4}` : words4;
+  return parseDesignText(text13).map((line2) => {
+    const words4 = line2.runs.map((run3) => run3.text).join("");
+    return line2.list === "number" ? `${line2.number}. ${words4}` : words4;
   });
 }
 function estimateLines(row, box4, text13) {
@@ -137628,15 +137952,15 @@ function estimateLines(row, box4, text13) {
   const inner = Math.max(1, box4.width - 2 * pad);
   const advance = size * GLYPH_WIDTH;
   const chars = Math.max(1, Math.floor(inner / advance));
-  const visual = drawnLines(row, text13).flatMap((line) => line.trim() ? wrap(line, chars) : [""]);
+  const visual = drawnLines(row, text13).flatMap((line2) => line2.trim() ? wrap(line2, chars) : [""]);
   const pitch = size * lineHeight;
   const block = visual.length * pitch;
   const top = valign === "top" ? box4.y + pad : valign === "bottom" ? box4.y + box4.height - pad - block : box4.y + (box4.height - block) / 2;
   const lines = [];
-  visual.forEach((line, i) => {
-    const words4 = line.trim();
+  visual.forEach((line2, i) => {
+    const words4 = line2.trim();
     if (!words4) return;
-    const width = Math.min(inner, line.length * advance);
+    const width = Math.min(inner, line2.length * advance);
     const x = align === "left" ? box4.x + pad : align === "right" ? box4.x + box4.width - pad - width : box4.x + (box4.width - width) / 2;
     lines.push({ text: words4, box: { x, y: top + i * pitch, width, height: pitch } });
   });
@@ -137772,24 +138096,24 @@ function designForensicPages(boxes2, opts = {}) {
       if (item2.rotated) confidence = TEXT_ONLY_CONFIDENCE;
       if (truthy3(row.fitText)) estimatedFit = true;
       const estimate = estimateLines(str8(row.textStory) ? { ...row, plainText: true } : row, item2.box, text14);
-      for (const line of estimate.lines) {
-        const forensic = { text: line.text, box: line.box, size: estimate.size, confidence };
-        refs.set(line.box, { layerIds: [item2.id], ...artboardRef, kind: "line" });
+      for (const line2 of estimate.lines) {
+        const forensic = { text: line2.text, box: line2.box, size: estimate.size, confidence };
+        refs.set(line2.box, { layerIds: [item2.id], ...artboardRef, kind: "line" });
         lines.push(forensic);
       }
     }
     const kept2 = [];
     let length2 = 0;
-    for (const line of lines) {
-      const add3 = line.text.length + (kept2.length ? 1 : 0);
+    for (const line2 of lines) {
+      const add3 = line2.text.length + (kept2.length ? 1 : 0);
       if (kept2.length >= LINE_LIMIT || length2 + add3 > TEXT_LIMIT) {
         complete = false;
         notes.push("lines");
         break;
       }
       length2 += add3;
-      line.index = kept2.length;
-      kept2.push(line);
+      line2.index = kept2.length;
+      kept2.push(line2);
     }
     const text13 = kept2.map((l) => l.text).join("\n");
     const shapes2 = [];
@@ -138339,12 +138663,12 @@ async function forensicReport(bytes2, pages, coverage, models = [], additional =
       const page3 = pages.find((p) => p.id === location4.page);
       if (!location4.box && location4.span && page3?.lines.length) {
         let offset = 0;
-        for (const line of page3.lines) {
-          const start = page3.text.indexOf(line.text, offset);
+        for (const line2 of page3.lines) {
+          const start = page3.text.indexOf(line2.text, offset);
           if (start < 0) continue;
-          offset = start + line.text.length;
+          offset = start + line2.text.length;
           if (start < location4.span.index + location4.span.length && offset > location4.span.index) {
-            location4.box = line.box;
+            location4.box = line2.box;
             break;
           }
         }
@@ -138802,9 +139126,9 @@ function drawnText(row, stories) {
   const text13 = str9(row.textStory) ? stories.get(str9(row.id)) ?? "" : str9(row.text);
   if (!text13.trim()) return [];
   if (truthy4(row.plainText) || str9(row.textStory)) return text13.split(/\r\n?|\n/);
-  return parseDesignText(text13).map((line) => {
-    const words4 = line.runs.map((run3) => run3.text).join("");
-    return line.list === "number" ? `${line.number}. ${words4}` : words4;
+  return parseDesignText(text13).map((line2) => {
+    const words4 = line2.runs.map((run3) => run3.text).join("");
+    return line2.list === "number" ? `${line2.number}. ${words4}` : words4;
   });
 }
 function storiesOf2(input) {
@@ -138894,11 +139218,11 @@ function resultArtboards(boxes2, textDocument2) {
     ).flatMap((m2) => drawnText(m2.row, stories)).map(normaliseFidelityText).filter(Boolean);
     total += lines.length;
     const kept2 = [];
-    for (const line of lines) {
-      if (budget3 <= 0 || line.length > chars) break;
-      kept2.push(line);
+    for (const line2 of lines) {
+      if (budget3 <= 0 || line2.length > chars) break;
+      kept2.push(line2);
       budget3 -= 1;
-      chars -= line.length;
+      chars -= line2.length;
     }
     return kept2;
   };
@@ -138926,8 +139250,8 @@ function resultArtboards(boxes2, textDocument2) {
 }
 function sourceStrings(slide) {
   const out = [];
-  const push = (line) => {
-    const text13 = normaliseFidelityText(line);
+  const push = (line2) => {
+    const text13 = normaliseFidelityText(line2);
     if (!text13 || !meaningful(text13)) return;
     const key2 = loose(text13);
     out.push({ slide: slide.number, text: text13, key: key2, words: wordsIn(key2) });
@@ -138937,12 +139261,12 @@ function sourceStrings(slide) {
   );
   for (const frame of ordered) {
     if (FIDELITY_IGNORED_CLASSES.includes(frame.class) || FIDELITY_IGNORED_ROLES.includes(frame.role)) continue;
-    for (const line of frame.plain.split("\n")) push(line);
+    for (const line2 of frame.plain.split("\n")) push(line2);
   }
   for (const table of slide.tables)
     for (const row of table.rows)
       for (const cell2 of row)
-        for (const line of cell2.split("\n")) push(line);
+        for (const line2 of cell2.split("\n")) push(line2);
   return out;
 }
 function phraseAt(hay, needle, from = 0) {
@@ -139033,11 +139357,11 @@ function piecedFromLines(source, lines, from, work = { left: Infinity }) {
       let k = head2.length;
       let skipped = 0;
       for (let j = i + 1; k < source.length && j < lines.length && skipped <= SEQUENCE_GAP_LINES; j += 1) {
-        const line = lines[j];
-        work.left -= line.length + 1;
-        if (!line.length) continue;
-        if (k + line.length <= source.length && sameWords(line, source.slice(k, k + line.length))) k += line.length;
-        else if (k + line.length > source.length && sameWords(line.slice(0, source.length - k), source.slice(k))) k = source.length;
+        const line2 = lines[j];
+        work.left -= line2.length + 1;
+        if (!line2.length) continue;
+        if (k + line2.length <= source.length && sameWords(line2, source.slice(k, k + line2.length))) k += line2.length;
+        else if (k + line2.length > source.length && sameWords(line2.slice(0, source.length - k), source.slice(k))) k = source.length;
         else skipped += 1;
       }
       if (k === source.length) return true;
@@ -139345,7 +139669,7 @@ function checkFidelity(inventory2, boxes2, opts = {}) {
     for (const slide of inventory2.slides)
       for (const frame of slide.text)
         if (FIDELITY_IGNORED_CLASSES.includes(frame.class) || FIDELITY_IGNORED_ROLES.includes(frame.role))
-          for (const line of frame.plain.split("\n")) decoration.add(loose(normaliseFidelityText(line)));
+          for (const line2 of frame.plain.split("\n")) decoration.add(loose(normaliseFidelityText(line2)));
   }
   for (const k of unused)
     if (!decoration.has(k.source))
@@ -139844,9 +140168,9 @@ var init_text_semantic = __esm({
 });
 
 // engine/src/text-paragraph.ts
-function shapedLineBytes(line) {
+function shapedLineBytes(line2) {
   const runBytes = (run3) => !run3 ? 0 : 1024 + 2 * (run3.text.length + run3.script.length + run3.language.length + JSON.stringify(run3.font).length) + 64 * run3.missing.length + run3.clusters.reduce((sum, cluster2) => sum + 160 + 2 * cluster2.d.length + 48 * cluster2.carets.length, 0);
-  return 256 + runBytes(line.hyphen?.shape) + line.pieces.reduce((sum, piece) => sum + 256 + 2 * JSON.stringify(piece.style).length + 48 * piece.carets.length + runBytes(piece.shape) + runBytes(piece.tab?.shape) + (piece.artwork ? 2 * JSON.stringify(piece.artwork).length : 0), 0);
+  return 256 + runBytes(line2.hyphen?.shape) + line2.pieces.reduce((sum, piece) => sum + 256 + 2 * JSON.stringify(piece.style).length + 48 * piece.carets.length + runBytes(piece.shape) + runBytes(piece.tab?.shape) + (piece.artwork ? 2 * JSON.stringify(piece.artwork).length : 0), 0);
 }
 function covers2(info, text13) {
   for (const char of text13) {
@@ -139914,16 +140238,16 @@ async function prepareTextParagraph(doc, story, paragraph, services, artwork = [
     const result = shapeLine(range, trimEnd, outline2), entry2 = { promise: result, bytes: 0 };
     cache5.set(key2, entry2);
     try {
-      const line = await result;
-      if (cache5.get(key2) !== entry2) return line;
-      entry2.bytes = shapedLineBytes(line);
+      const line2 = await result;
+      if (cache5.get(key2) !== entry2) return line2;
+      entry2.bytes = shapedLineBytes(line2);
       cacheBytes += entry2.bytes;
       while (cache5.size && (cache5.size > 128 || cacheBytes > 1024 * 1024)) {
         const first = cache5.keys().next().value;
         cacheBytes -= cache5.get(first).bytes;
         cache5.delete(first);
       }
-      return line;
+      return line2;
     } catch (error2) {
       if (cache5.get(key2) === entry2) cache5.delete(key2);
       throw error2;
@@ -140217,8 +140541,8 @@ function chooseParagraphBreaks(graph, greedy) {
   const maximum = targetLines ?? Math.min(final, greedy.length + 8);
   const spacing = settings.wordSpacing ?? { min: 0.8, ideal: 1, max: 1.5 };
   const floor = settings.align === "justify" ? Math.min(1, spacing.min / (spacing.ideal || 1)) : 1;
-  for (let line = 0; line < maximum && frontier.size; line++) {
-    const next2 = /* @__PURE__ */ new Map(), room = Math.max(1, width(line));
+  for (let line2 = 0; line2 < maximum && frontier.size; line2++) {
+    const next2 = /* @__PURE__ */ new Map(), room = Math.max(1, width(line2));
     for (const previous2 of frontier.values()) {
       for (let end = previous2.end + 1; end <= final; end++) {
         if (++work > TEXT_LINE_GRAPH_BUDGET) return { ends: greedy, limited: true };
@@ -140230,13 +140554,13 @@ function chooseParagraphBreaks(graph, greedy) {
         }
         if (graph.forbidden?.size && graph.forbidden.has(`${previous2.end}:${end}`)) continue;
         if (candidate.hyphen && hyphens > (settings.hyphenation?.consecutive ?? 2)) continue;
-        if (targetLines && end === final !== (line === targetLines - 1)) continue;
+        if (targetLines && end === final !== (line2 === targetLines - 1)) continue;
         const last = end === final;
         let cost = mode3 === "balanced" ? ((natural - target2) / room) ** 2 : last && settings.lastAlign !== "justify" ? 0 : fit.cost;
-        if (mode3 === "standard" && greedy[line] !== end) cost += 0.05;
+        if (mode3 === "standard" && greedy[line2] !== end) cost += 0.05;
         if (candidate.hyphen) cost += 0.035 + previous2.hyphens * 0.06;
-        if (last && line > 0 && short?.enabled) {
-          const intentional = line === 1 && words4(0, final) <= 2;
+        if (last && line2 > 0 && short?.enabled) {
+          const intentional = line2 === 1 && words4(0, final) <= 2;
           if (!intentional && (words4(previous2.end, end) < short.words || natural < room * short.fraction)) cost += 4;
         }
         cost += previous2.cost + 2e-3;
@@ -140348,7 +140672,7 @@ async function composeParagraphLines(story, range, prepared3, width) {
   const sharedShape = prepared3.shape.shared;
   const readShape = sharedShape ?? prepared3.shape;
   const readHyphen = sharedShape && prepared3.hyphen.shared || prepared3.hyphen;
-  const keep2 = (line) => sharedShape ? structuredClone(line) : line;
+  const keep2 = (line2) => sharedShape ? structuredClone(line2) : line2;
   const settings = prepared3.settings, mode3 = settings.hyphenation?.mode ?? "manual";
   const hyphenator = mode3 === "auto" ? await textHyphenator(settings.language) : null;
   if (mode3 === "auto" && !hyphenator) diagnostics.push({ ...range, code: "hyphenation-language", message: "Automatic hyphenation is unavailable for this language. Choose a supported language or use manual hyphens." });
@@ -140406,13 +140730,13 @@ async function composeParagraphLines(story, range, prepared3, width) {
     const spaces = (a, b) => (spacePrefix.get(measuredEnd(a, b)) ?? 0) - (spacePrefix.get(candidates2[a].at) ?? 0);
     const segmentSettings = ending.next > ending.end ? { ...settings, shortLastLine: { enabled: false, words: 2, fraction: 0.2 } } : settings;
     const fitGraph = { candidates: candidates2, settings: segmentSettings, measure: measure3, spaces };
-    const fits = (a, b, available, line) => paragraphLineFit(line ? { ...fitGraph, measure: () => line.advance, spaces: () => textSpaceWidth(line, story.source) } : fitGraph, a, b, available).fits;
+    const fits = (a, b, available, line2) => paragraphLineFit(line2 ? { ...fitGraph, measure: () => line2.advance, spaces: () => textSpaceWidth(line2, story.source) } : fitGraph, a, b, available).fits;
     const settledGreedy = /* @__PURE__ */ new Map();
     const shape = async (a, b) => {
       const held = settledGreedy.get(`${a}:${b}`);
       if (held) return held;
-      const candidate = candidates2[b], line = await readShape({ start: candidates2[a].at, end: candidate.at });
-      return candidate.hyphen ? { ...line, advance: line.advance + candidate.hyphenWidth, hyphen: await readHyphen(candidate.at) } : line;
+      const candidate = candidates2[b], line2 = await readShape({ start: candidates2[a].at, end: candidate.at });
+      return candidate.hyphen ? { ...line2, advance: line2.advance + candidate.hyphenWidth, hyphen: await readHyphen(candidate.at) } : line2;
     };
     const firstLine2 = result.length, greedy = [];
     let start = 0, consecutive = 0;
@@ -140423,20 +140747,20 @@ async function composeParagraphLines(story, range, prepared3, width) {
         if (!fits(start, end, available) && end > start + 1) break;
         if (!candidates2[end].hyphen || consecutive < (settings.hyphenation?.consecutive ?? 2)) chosen = end;
       }
-      let line = await shape(start, chosen);
-      while (chosen > start + 1 && !fits(start, chosen, available, line)) line = await shape(start, --chosen);
+      let line2 = await shape(start, chosen);
+      while (chosen > start + 1 && !fits(start, chosen, available, line2)) line2 = await shape(start, --chosen);
       while (chosen + 1 < candidates2.length) {
         const next2 = await shape(start, chosen + 1);
         if (!fits(start, chosen + 1, available, next2)) break;
         chosen++;
-        line = next2;
+        line2 = next2;
       }
       if (candidates2[chosen].hyphen && consecutive >= (settings.hyphenation?.consecutive ?? 2)) {
         const unbroken = candidates2.findIndex((candidate, index2) => index2 > start && !candidate.hyphen);
         if (unbroken > start) chosen = unbroken;
       }
-      if (line.start !== candidates2[start].at || line.end !== candidates2[chosen].at) line = await shape(start, chosen);
-      settledGreedy.set(`${start}:${chosen}`, line);
+      if (line2.start !== candidates2[start].at || line2.end !== candidates2[chosen].at) line2 = await shape(start, chosen);
+      settledGreedy.set(`${start}:${chosen}`, line2);
       consecutive = candidates2[chosen].hyphen ? consecutive + 1 : 0;
       greedy.push(chosen);
       start = chosen;
@@ -140450,8 +140774,8 @@ async function composeParagraphLines(story, range, prepared3, width) {
       limited3 ||= decision2.limited;
       let previous3 = 0, invalid4 = false;
       for (const [index2, end] of selected.entries()) {
-        const line = await shape(previous3, end);
-        if (!fits(previous3, end, width(firstLine2 + index2), line) && end > previous3 + 1) {
+        const line2 = await shape(previous3, end);
+        if (!fits(previous3, end, width(firstLine2 + index2), line2) && end > previous3 + 1) {
           forbidden.add(`${previous3}:${end}`);
           invalid4 = true;
         }
@@ -140631,10 +140955,10 @@ function textFlowSlots(frames, direction2, finalHeight, wrap3) {
     }));
   });
 }
-function textLineMetrics(line, settings) {
-  const size = Math.max(settings.character?.size ?? 16, ...line.pieces.map((piece) => piece.style.size ?? 16));
-  const height = Math.max(line.ascent + line.descent, size * (settings.lineHeight ?? 1.2));
-  return { height, above: (height - line.ascent - line.descent) / 2 + line.ascent };
+function textLineMetrics(line2, settings) {
+  const size = Math.max(settings.character?.size ?? 16, ...line2.pieces.map((piece) => piece.style.size ?? 16));
+  const height = Math.max(line2.ascent + line2.descent, size * (settings.lineHeight ?? 1.2));
+  return { height, above: (height - line2.ascent - line2.descent) / 2 + line2.ascent };
 }
 function positionLine(slot, top, metrics, settings, first = false) {
   if (first && slot.frame.firstBaseline !== void 0) top = Math.max(top, slot.top + slot.frame.firstBaseline - metrics.above);
@@ -140642,7 +140966,7 @@ function positionLine(slot, top, metrics, settings, first = false) {
   return top;
 }
 function placeTextLines(lines, settings, start, slots, next2) {
-  const positions = [], metrics = lines.map((line) => textLineMetrics(line, settings));
+  const positions = [], metrics = lines.map((line2) => textLineMetrics(line2, settings));
   let cursor = { ...start }, index2 = 0, impossible = false;
   const keep2 = settings.keep ?? { startLines: 1, endLines: 1, together: false, nextLines: 0 };
   const fit = (slotIndex, from, y) => {
@@ -140650,16 +140974,16 @@ function placeTextLines(lines, settings, start, slots, next2) {
     const first = y <= slot.top + 1e-4;
     y += from === 0 ? settings.spaceBefore ?? 0 : 0;
     for (let i = from; i < lines.length; i++) {
-      const line = metrics[i];
-      y = positionLine(slot, y, line, settings, first && i === from);
-      let band = textWrapBand(slot.exclusions, slot.left, slot.width, y, line.height, slot.direction ?? "ltr"), attempt2 = 0;
+      const line2 = metrics[i];
+      y = positionLine(slot, y, line2, settings, first && i === from);
+      let band = textWrapBand(slot.exclusions, slot.left, slot.width, y, line2.height, slot.direction ?? "ltr"), attempt2 = 0;
       while (band.width < 0.01 && Number.isFinite(band.next) && attempt2++ < 256) {
-        y = positionLine(slot, Math.max(y + 1e-3, band.next + 1e-3), line, settings);
-        band = textWrapBand(slot.exclusions, slot.left, slot.width, y, line.height, slot.direction ?? "ltr");
+        y = positionLine(slot, Math.max(y + 1e-3, band.next + 1e-3), line2, settings);
+        band = textWrapBand(slot.exclusions, slot.left, slot.width, y, line2.height, slot.direction ?? "ltr");
       }
-      if (y + line.height > slot.bottom + 1e-4 || band.width < 0.01) break;
-      result.push({ slot: slotIndex, y, ...line, left: band.left, width: band.width });
-      y += line.height;
+      if (y + line2.height > slot.bottom + 1e-4 || band.width < 0.01) break;
+      result.push({ slot: slotIndex, y, ...line2, left: band.left, width: band.width });
+      y += line2.height;
     }
     return result;
   };
@@ -140696,8 +141020,8 @@ function placeTextLines(lines, settings, start, slots, next2) {
       }
     } else if (keep2.nextLines && next2?.lines.length) {
       let y = fitted.at(-1).y + fitted.at(-1).height + (settings.spaceAfter ?? 0) + (next2.settings.spaceBefore ?? 0);
-      for (const line of next2.lines.slice(0, keep2.nextLines)) {
-        const metrics2 = textLineMetrics(line, next2.settings);
+      for (const line2 of next2.lines.slice(0, keep2.nextLines)) {
+        const metrics2 = textLineMetrics(line2, next2.settings);
         y = positionLine(slot, y, metrics2, next2.settings) + metrics2.height;
       }
       if (y > slot.bottom + 1e-4) {
@@ -140777,19 +141101,19 @@ async function prepareTextDropCap(story, paragraph, prepared3) {
   const shape = prepared3.shape;
   const ordinary = { ...prepared3, shape: async (range, trim2 = true, outline2 = true) => {
     if (range.start >= end) return shape(range, trim2, outline2);
-    const line = await shape({ start: Math.max(range.start, end), end: Math.max(end, range.end) }, trim2, outline2);
-    return { ...line, start: range.start, pieces: [{ start: range.start, end, x: 0, advance: 0, ascent: size * 0.8, descent: size * 0.2, style: cap.pieces[0].style, level: cap.direction === "rtl" ? 1 : 0, carets: [] }, ...line.pieces] };
+    const line2 = await shape({ start: Math.max(range.start, end), end: Math.max(end, range.end) }, trim2, outline2);
+    return { ...line2, start: range.start, pieces: [{ start: range.start, end, x: 0, advance: 0, ascent: size * 0.8, descent: size * 0.2, style: cap.pieces[0].style, level: cap.direction === "rtl" ? 1 : 0, carets: [] }, ...line2.pieces] };
   }, settings: { ...prepared3.settings, keep: { startLines: Math.max(setting.lines, prepared3.settings.keep?.startLines ?? 1), endLines: prepared3.settings.keep?.endLines ?? 1, together: prepared3.settings.keep?.together ?? false, nextLines: prepared3.settings.keep?.nextLines ?? 0 } } };
-  return { prepared: ordinary, end, width: width + setting.gap, lines: setting.lines, height, paint(line, left, right) {
-    line.dropCap = { start: paragraph.start, end };
-    const x = cap.direction === "rtl" ? right - width : left, y = line.y;
+  return { prepared: ordinary, end, width: width + setting.gap, lines: setting.lines, height, paint(line2, left, right) {
+    line2.dropCap = { start: paragraph.start, end };
+    const x = cap.direction === "rtl" ? right - width : left, y = line2.y;
     for (const piece of cap.pieces) if (piece.shape) {
       const shape2 = { ...piece.shape, size: piece.shape.size * scale, advance: piece.shape.advance * scale, ascent: piece.shape.ascent * scale, descent: piece.shape.descent * scale, lineGap: piece.shape.lineGap * scale, clusters: piece.shape.clusters.map((cluster2) => ({ ...cluster2, x: cluster2.x * scale, advance: cluster2.advance * scale, d: transformTextPath(cluster2.d, { a: scale, b: 0, c: 0, d: scale, e: 0, f: 0 }), carets: cluster2.carets.map((caret) => ({ ...caret, x: caret.x * scale })) })) };
       const at = x + (piece.x - bounds.x0) * scale, baseline = y - bounds.y0 * scale - (piece.style.baselineShift ?? 0) * scale;
-      line.runs.unshift({ x: at, y: baseline, angle: 0, color: piece.style.color ?? "#000000", character: { ...piece.style, size: shape2.size }, shape: shape2 });
-      for (const cluster2 of shape2.clusters) for (const caret of cluster2.carets) line.carets.push({ offset: caret.offset, affinity: caret.offset === cluster2.end ? "upstream" : "downstream", x: at + caret.x, y, height, angle: 0 });
+      line2.runs.unshift({ x: at, y: baseline, angle: 0, color: piece.style.color ?? "#000000", character: { ...piece.style, size: shape2.size }, shape: shape2 });
+      for (const cluster2 of shape2.clusters) for (const caret of cluster2.carets) line2.carets.push({ offset: caret.offset, affinity: caret.offset === cluster2.end ? "upstream" : "downstream", x: at + caret.x, y, height, angle: 0 });
     }
-    line.carets.sort((a, b) => a.x - b.x || a.offset - b.offset);
+    line2.carets.sort((a, b) => a.x - b.x || a.offset - b.offset);
   } };
 }
 var init_text_drop_cap = __esm({
@@ -140824,7 +141148,7 @@ function positionTextLine(source, paragraphId, original, index2, last, settings,
     if (cluster2 && /^[.,;:!?“”‘’"'«»‹›،。、「」]+$/u.test(source.slice(cluster2.start, cluster2.end))) optical = (align === "end" ? 1 : -1) * Math.min(cluster2.advance / 2, (edge.style.size ?? 16) / 3);
   }
   const x = left + alignment + optical, baseline = position.y + position.above;
-  const line = {
+  const line2 = {
     start: shaped.start,
     end: shaped.end,
     paragraphId,
@@ -140841,7 +141165,7 @@ function positionTextLine(source, paragraphId, original, index2, last, settings,
     carets: []
   };
   const textX = x + (shaped.direction === "rtl" ? shaped.hyphen?.shape.advance ?? 0 : 0);
-  if (shaped.hyphen) line.hyphen = { ...shaped.hyphen, x: shaped.direction === "rtl" ? x : x + shaped.advance - shaped.hyphen.shape.advance, y: baseline };
+  if (shaped.hyphen) line2.hyphen = { ...shaped.hyphen, x: shaped.direction === "rtl" ? x : x + shaped.advance - shaped.hyphen.shape.advance, y: baseline };
   for (const piece of shaped.pieces) {
     const y = baseline - (piece.style.baselineShift ?? 0);
     if (piece.tab?.shape) {
@@ -140849,32 +141173,32 @@ function positionTextLine(source, paragraphId, original, index2, last, settings,
       if (step > 0) {
         const count4 = Math.min(1024, Math.floor(piece.advance / step));
         if (count4) {
-          line.leaders ??= [];
-          line.leaders.push({ x: textX + piece.x + (piece.advance - count4 * step) / 2, y, shape, count: count4, step, color: piece.style.color ?? "#000000" });
+          line2.leaders ??= [];
+          line2.leaders.push({ x: textX + piece.x + (piece.advance - count4 * step) / 2, y, shape, count: count4, step, color: piece.style.color ?? "#000000" });
         }
       }
     }
-    if (piece.shape) line.runs.push({ x: textX + piece.x, y, angle: 0, color: piece.style.color ?? "#000000", character: piece.style, shape: piece.shape });
-    if (piece.artwork) line.inlines.push({ offset: piece.start, x: textX + piece.x, y: y - piece.ascent, advance: piece.advance, width: piece.artwork.inkWidth ?? piece.advance, height: piece.ascent + piece.descent, angle: 0, svg: piece.artwork.svg, overflow: piece.artwork.overflow, direction: piece.level % 2 ? "rtl" : "ltr", ascent: piece.ascent, baselineShift: piece.style.baselineShift ?? 0 });
-    for (const caret of piece.carets) if (!line.carets.some((item2) => item2.offset === caret.offset && Math.abs(item2.x - textX - caret.x) < 1e-4))
-      line.carets.push({ offset: caret.offset, affinity: caret.offset === piece.end ? "upstream" : "downstream", x: textX + caret.x, y: position.y, height: position.height, angle: 0 });
+    if (piece.shape) line2.runs.push({ x: textX + piece.x, y, angle: 0, color: piece.style.color ?? "#000000", character: piece.style, shape: piece.shape });
+    if (piece.artwork) line2.inlines.push({ offset: piece.start, x: textX + piece.x, y: y - piece.ascent, advance: piece.advance, width: piece.artwork.inkWidth ?? piece.advance, height: piece.ascent + piece.descent, angle: 0, svg: piece.artwork.svg, overflow: piece.artwork.overflow, direction: piece.level % 2 ? "rtl" : "ltr", ascent: piece.ascent, baselineShift: piece.style.baselineShift ?? 0 });
+    for (const caret of piece.carets) if (!line2.carets.some((item2) => item2.offset === caret.offset && Math.abs(item2.x - textX - caret.x) < 1e-4))
+      line2.carets.push({ offset: caret.offset, affinity: caret.offset === piece.end ? "upstream" : "downstream", x: textX + caret.x, y: position.y, height: position.height, angle: 0 });
   }
   for (const [rule, enabled4, at] of [[settings.ruleBefore, index2 === 0, position.y], [settings.ruleAfter, last, position.y + position.height]]) if (rule && rule.enabled !== false && enabled4) {
-    line.rules ??= [];
-    line.rules.push({ x: left, y: at + (enabled4 && rule === settings.ruleBefore ? -rule.offset - rule.width : rule.offset), width: slot.frame.mode === "auto-width" ? shaped.advance : available, height: rule.width, color: rule.color });
+    line2.rules ??= [];
+    line2.rules.push({ x: left, y: at + (enabled4 && rule === settings.ruleBefore ? -rule.offset - rule.width : rule.offset), width: slot.frame.mode === "auto-width" ? shaped.advance : available, height: rule.width, color: rule.color });
   }
-  if (!line.carets.length) line.carets.push({ offset: shaped.start, affinity: "downstream", x, y: position.y, height: position.height, angle: 0 });
-  line.carets.sort((a, b) => a.x - b.x || a.offset - b.offset);
-  return { line, spacingFailure, widthFailure: shaped.advance > available + 1e-3, measuredWidth: shaped.advance + startIndent + endIndent };
+  if (!line2.carets.length) line2.carets.push({ offset: shaped.start, affinity: "downstream", x, y: position.y, height: position.height, angle: 0 });
+  line2.carets.sort((a, b) => a.x - b.x || a.offset - b.offset);
+  return { line: line2, spacingFailure, widthFailure: shaped.advance > available + 1e-3, measuredWidth: shaped.advance + startIndent + endIndent };
 }
-function shiftTextLine(line, y) {
-  line.y += y;
-  line.baseline += y;
-  for (const run3 of line.runs) run3.y += y;
-  for (const inline of line.inlines) inline.y += y;
-  for (const caret of line.carets) caret.y += y;
-  if (line.hyphen) line.hyphen.y += y;
-  for (const item2 of [...line.leaders ?? [], ...line.rules ?? []]) item2.y += y;
+function shiftTextLine(line2, y) {
+  line2.y += y;
+  line2.baseline += y;
+  for (const run3 of line2.runs) run3.y += y;
+  for (const inline of line2.inlines) inline.y += y;
+  for (const caret of line2.carets) caret.y += y;
+  if (line2.hyphen) line2.hyphen.y += y;
+  for (const item2 of [...line2.leaders ?? [], ...line2.rules ?? []]) item2.y += y;
 }
 var init_text_line_layout = __esm({
   "engine/src/text-line-layout.ts"() {
@@ -140934,11 +141258,11 @@ async function composePathText(story, frame, prepared3, result) {
     const at = sample(anchor + (x + width / 2) * scale), origin = point2(at.x, at.y, at.angle, -width * scale / 2, path.baseline - shift * scale);
     return { ...origin, angle: at.angle };
   };
-  const line = { start: 0, end: consumed, paragraphId: story.paragraphs[0].id, frameId: frame.id, column: 0, x: 0, y: 0, baseline: above, width: shaped.advance * scale, height, direction: shaped.direction, path: true, runs: [], inlines: [], carets: [] };
+  const line2 = { start: 0, end: consumed, paragraphId: story.paragraphs[0].id, frameId: frame.id, column: 0, x: 0, y: 0, baseline: above, width: shaped.advance * scale, height, direction: shaped.direction, path: true, runs: [], inlines: [], carets: [] };
   const order = /* @__PURE__ */ new Map();
   const caret = (offset, x, origin, affinity, distance4 = 0) => {
     const at = point2(origin.x, origin.y, origin.angle, x, -above), stop = { offset, affinity, ...at, height, angle: origin.angle };
-    line.carets.push(stop);
+    line2.carets.push(stop);
     order.set(stop, distance4 + x);
   };
   let tight = false;
@@ -140958,7 +141282,7 @@ async function composePathText(story, frame, prepared3, result) {
         lineGap: piece.shape.lineGap * scale,
         clusters: [{ ...cluster2, x: 0, advance: cluster2.advance * scale, d: transformTextPath(cluster2.d, transform2), carets: cluster2.carets.map((caret2) => ({ ...caret2, x: (caret2.x - cluster2.x) * scale })) }]
       };
-      line.runs.push({ ...origin, color: piece.style.color ?? "#000000", character: piece.style, shape });
+      line2.runs.push({ ...origin, color: piece.style.color ?? "#000000", character: piece.style, shape });
       for (const stop of shape.clusters[0].carets) caret(stop.offset, stop.x, base, stop.offset === cluster2.end ? "upstream" : "downstream", x * scale);
       const a = sample(anchor + x * scale).angle, b = sample(anchor + (x + cluster2.advance) * scale).angle;
       if (Math.abs((b - a + 540) % 360 - 180) > 35) tight = true;
@@ -140968,13 +141292,13 @@ async function composePathText(story, frame, prepared3, result) {
       for (const stop of piece.carets) caret(stop.offset, (stop.x - piece.x) * scale, origin, stop.offset === piece.end ? "upstream" : "downstream", piece.x * scale);
       if (piece.artwork) {
         const at = point2(base.x, base.y, base.angle, 0, -piece.ascent * scale);
-        line.inlines.push({ offset: piece.start, ...at, advance: piece.advance * scale, width: (piece.artwork.inkWidth ?? piece.advance) * scale, height: (piece.ascent + piece.descent) * scale, ascent: piece.ascent * scale, angle: base.angle, svg: piece.artwork.svg, overflow: piece.artwork.overflow, direction: piece.level % 2 ? "rtl" : "ltr", baselineShift: (piece.style.baselineShift ?? 0) * scale });
+        line2.inlines.push({ offset: piece.start, ...at, advance: piece.advance * scale, width: (piece.artwork.inkWidth ?? piece.advance) * scale, height: (piece.ascent + piece.descent) * scale, ascent: piece.ascent * scale, angle: base.angle, svg: piece.artwork.svg, overflow: piece.artwork.overflow, direction: piece.level % 2 ? "rtl" : "ltr", baselineShift: (piece.style.baselineShift ?? 0) * scale });
       }
     }
   }
-  if (!line.carets.length) caret(0, 0, pose3(0, 0), "downstream");
-  line.carets.sort((a, b) => order.get(a) - order.get(b) || a.offset - b.offset);
-  result.lines = [line];
+  if (!line2.carets.length) caret(0, 0, pose3(0, 0), "downstream");
+  line2.carets.sort((a, b) => order.get(a) - order.get(b) || a.offset - b.offset);
+  result.lines = [line2];
   result.shaper = prepared3.shaper;
   result.resources = [...prepared3.resources];
   for (const piece of shaped.pieces) if (piece.artwork && !result.resources.some((item2) => item2.id === piece.artwork.id)) result.resources.push({ id: piece.artwork.id, sha256: piece.artwork.sha256 });
@@ -141067,7 +141391,7 @@ async function composeFrames(story, frames, prepared3, finalHeight, wrap3, cache
     const next2 = prepared3[paragraphIndex + 1];
     const following = next2 && settings.keep?.nextLines ? { settings: next2.settings, lines: (await composeParagraphLines(story, story.paragraphs[paragraphIndex + 1], next2, () => initialWidth - (next2.settings.indentStart ?? 0) - (next2.settings.indentEnd ?? 0))).lines } : void 0;
     for (let attempt2 = 0; attempt2 < 12; attempt2++) {
-      const width = (line) => (schedule[line] ?? schedule.at(-1) ?? initialWidth) - (settings.indentStart ?? 0) - (settings.indentEnd ?? 0) - (line ? 0 : settings.firstIndent ?? 0) - (drop && line < drop.lines ? drop.width : 0);
+      const width = (line2) => (schedule[line2] ?? schedule.at(-1) ?? initialWidth) - (settings.indentStart ?? 0) - (settings.indentEnd ?? 0) - (line2 ? 0 : settings.firstIndent ?? 0) - (drop && line2 < drop.lines ? drop.width : 0);
       composed = await composeParagraphLines(drop ? { ...story, spans: [...story.spans, { start: paragraph.start, end: drop.end, noBreak: true }] } : story, paragraph, item2, width);
       flow = placeTextLines(composed.lines, settings, cursor, slots, following);
       const actual = flow.positions.map((position) => position.width ?? slots[position.slot].width);
@@ -141120,9 +141444,9 @@ async function composeFrames(story, frames, prepared3, finalHeight, wrap3, cache
       if (frame.mode === "fixed" && frame.verticalAlign !== "top") {
         const slack = Math.max(0, slot.bottom - bottom2);
         let shift = frame.verticalAlign === "center" ? slack / 2 : slack;
-        const lines = result.lines.filter((line) => line.frameId === frame.id && line.column === slot.column);
-        if (frame.grid && lines.some((line) => prepared3[story.paragraphs.findIndex((paragraph) => paragraph.id === line.paragraphId)].settings.baselineGrid)) shift = Math.floor(shift / frame.grid.step) * frame.grid.step;
-        for (const line of lines) shiftTextLine(line, shift);
+        const lines = result.lines.filter((line2) => line2.frameId === frame.id && line2.column === slot.column);
+        if (frame.grid && lines.some((line2) => prepared3[story.paragraphs.findIndex((paragraph) => paragraph.id === line2.paragraphId)].settings.baselineGrid)) shift = Math.floor(shift / frame.grid.step) * frame.grid.step;
+        for (const line2 of lines) shiftTextLine(line2, shift);
       }
     }
     const bottom = Math.max(frame.inset.top, ...frameSlots.map((index2) => bottoms.get(index2) ?? frame.inset.top));
@@ -141488,24 +141812,24 @@ async function textLayoutSvg(layout2, story, frameId, parseXml) {
   const fragments = frame.guide ? [`<path d="${escapeMarkup2(frame.guide)}" fill="none" stroke="#666666" stroke-width="1"/>`] : [];
   const prefix = `text-${await sha256Hex(new TextEncoder().encode(`${story.id}\0${frameId}`))}`;
   let placement2 = 0;
-  for (const line of layout2.lines) {
-    if (line.frameId !== frameId) continue;
-    for (const rule of line.rules ?? []) fragments.push(`<rect x="${n5(rule.x)}" y="${n5(rule.y)}" width="${n5(rule.width)}" height="${n5(rule.height)}" fill="${color3(rule.color)}"/>`);
-    for (const leader of line.leaders ?? []) for (let i = 0; i < leader.count; i++) fragments.push(`<g fill="${color3(leader.color)}" transform="translate(${n5(leader.x + i * leader.step)} ${n5(leader.y)})">${leader.shape.clusters.map((cluster2) => `<path d="${escapeMarkup2(cluster2.d)}"/>`).join("")}</g>`);
-    for (const run3 of line.runs) {
+  for (const line2 of layout2.lines) {
+    if (line2.frameId !== frameId) continue;
+    for (const rule of line2.rules ?? []) fragments.push(`<rect x="${n5(rule.x)}" y="${n5(rule.y)}" width="${n5(rule.width)}" height="${n5(rule.height)}" fill="${color3(rule.color)}"/>`);
+    for (const leader of line2.leaders ?? []) for (let i = 0; i < leader.count; i++) fragments.push(`<g fill="${color3(leader.color)}" transform="translate(${n5(leader.x + i * leader.step)} ${n5(leader.y)})">${leader.shape.clusters.map((cluster2) => `<path d="${escapeMarkup2(cluster2.d)}"/>`).join("")}</g>`);
+    for (const run3 of line2.runs) {
       const paths = run3.shape.clusters.map((cluster2) => `<path data-text-start="${n5(cluster2.start)}" data-text-end="${n5(cluster2.end)}" d="${escapeMarkup2(cluster2.d)}"/>`).join("");
       const decoration = (y) => `<rect x="0" y="${n5(y)}" width="${n5(run3.shape.advance)}" height="${n5(Math.max(0.5, run3.shape.size / 16))}"/>`;
       fragments.push(`<g fill="${color3(run3.color)}" transform="translate(${n5(run3.x)} ${n5(run3.y)}) rotate(${n5(run3.angle)})">${paths}${run3.character.underline ? decoration(run3.shape.size / 10) : ""}${run3.character.strike ? decoration(-run3.shape.size * 0.3) : ""}</g>`);
     }
-    for (const inline of line.inlines) {
+    for (const inline of line2.inlines) {
       const svg = admitTextInlineSvg(inline.svg, parseXml, `${prefix}-${placement2++}`);
       const fitted = svg.replace(/^<svg([^>]*)>/, (_match, attributes2) => `<svg${attributes2.replace(/ (width|height)="[^"]*"/g, "")} width="${n5(inline.width)}" height="${n5(inline.height)}"${inline.overflow === "visible" ? ' overflow="visible"' : ""}>`);
       const sources = story.inlines.find((item2) => item2.offset === inline.offset)?.emojiSources;
       fragments.push(`<g data-text-start="${n5(inline.offset)}"${sources?.length ? ` data-emoji-vector-sources="${escapeMarkup2(JSON.stringify(sources))}"` : ``} transform="translate(${n5(inline.x)} ${n5(inline.y)}) rotate(${n5(inline.angle)})">${fitted}</g>`);
     }
-    if (line.hyphen) fragments.push(`<g fill="${color3(line.hyphen.color ?? "#000000")}" transform="translate(${n5(line.hyphen.x)} ${n5(line.hyphen.y)})">${line.hyphen.shape.clusters.map((cluster2) => `<path d="${escapeMarkup2(cluster2.d)}"/>`).join("")}</g>`);
+    if (line2.hyphen) fragments.push(`<g fill="${color3(line2.hyphen.color ?? "#000000")}" transform="translate(${n5(line2.hyphen.x)} ${n5(line2.hyphen.y)})">${line2.hyphen.shape.clusters.map((cluster2) => `<path d="${escapeMarkup2(cluster2.d)}"/>`).join("")}</g>`);
   }
-  const stamp3 = await sha256Hex(new TextEncoder().encode(JSON.stringify([layout2.algorithm, layout2.shaper, layout2.documentHash, layout2.resources, frame.width, frame.height, frame.clip, frame.guide, layout2.lines.filter((line) => line.frameId === frameId)])));
+  const stamp3 = await sha256Hex(new TextEncoder().encode(JSON.stringify([layout2.algorithm, layout2.shaper, layout2.documentHash, layout2.resources, frame.width, frame.height, frame.clip, frame.guide, layout2.lines.filter((line2) => line2.frameId === frameId)])));
   return `<svg xmlns="http://www.w3.org/2000/svg" data-composed-text="${escapeMarkup2(story.id)}" data-text-layout="${stamp3}" data-text-frame="${escapeMarkup2(frameId)}" data-text-revision="${n5(story.revision)}"${layout2.overset && layout2.frames.at(-1)?.id === frameId ? ' data-text-overset="' + n5(layout2.overset.start) + '"' : ""} role="img" width="${n5(frame.width)}" height="${n5(frame.height)}" viewBox="0 0 ${n5(frame.width)} ${n5(frame.height)}" overflow="${frame.clip ? "hidden" : "visible"}"><title>${escapeMarkup2(story.source.slice(frame.start, frame.end))}</title>${fragments.join("")}</svg>`;
 }
 var escapeMarkup2, n5, color3;
@@ -142066,14 +142390,14 @@ function pairLabels(units2, ctx) {
   for (const label5 of labels) {
     let best;
     let bestGap = Number.POSITIVE_INFINITY;
-    for (const line of texts) {
-      if (line === label5 || used.has(line.id) || line.words <= label5.words || line.box.w <= label5.box.w) continue;
-      const gap = line.box.x - (label5.box.x + label5.box.w);
+    for (const line2 of texts) {
+      if (line2 === label5 || used.has(line2.id) || line2.words <= label5.words || line2.box.w <= label5.box.w) continue;
+      const gap = line2.box.x - (label5.box.x + label5.box.w);
       if (gap < -0.01 || gap > LABEL_GAP) continue;
-      const level2 = yOverlapShare(label5.box, line.box) >= ROW_OVERLAP || Math.abs(cy(label5.box) - cy(line.box)) <= ROW_CENTRE_TOL;
+      const level2 = yOverlapShare(label5.box, line2.box) >= ROW_OVERLAP || Math.abs(cy(label5.box) - cy(line2.box)) <= ROW_CENTRE_TOL;
       if (!level2) continue;
       if (gap < bestGap) {
-        best = line;
+        best = line2;
         bestGap = gap;
       }
     }
@@ -142086,19 +142410,19 @@ function pairLabels(units2, ctx) {
   const kept2 = pairs2.filter((pair) => columnOf(pair).length >= 3);
   if (kept2.length === 0) return units2;
   const gone = new Set(kept2.flatMap((pair) => [pair.label.id, pair.line.id]));
-  const rows2 = kept2.map(({ label: label5, line }) => ({
-    id: line.id,
+  const rows2 = kept2.map(({ label: label5, line: line2 }) => ({
+    id: line2.id,
     kind: "text",
-    box: union3(label5.box, line.box),
-    words: label5.words + line.words,
-    maxPt: Math.max(label5.maxPt, line.maxPt),
+    box: union3(label5.box, line2.box),
+    words: label5.words + line2.words,
+    maxPt: Math.max(label5.maxPt, line2.maxPt),
     figure: false,
     numbered: true,
-    dated: label5.dated || line.dated,
+    dated: label5.dated || line2.dated,
     iconAbove: false,
     headed: false,
     labelled: true,
-    members: [label5.id, line.id]
+    members: [label5.id, line2.id]
   }));
   return [...units2.filter((u) => !gone.has(u.id)), ...rows2];
 }
@@ -142569,7 +142893,7 @@ function tableRead(cells, body) {
     signature: `table:${cols.length}`
   };
 }
-function wholeRead(su, quoted2) {
+function wholeRead(su, quoted3) {
   const { headings, body } = su;
   const allWords = su.words;
   const picArea = Math.min(1, body.filter((u) => u.kind === "pic").reduce((n7, u) => n7 + area(u.box), 0));
@@ -142584,7 +142908,7 @@ function wholeRead(su, quoted2) {
   });
   if (body.length === 0 && headings.length === 0) return { kind: "empty", read: null };
   if (tables > 0) return named("table", 0.9, "layout.reason.table.native", { tables }, tables + (texts.length > 0 ? 1 : 0));
-  if (quoted2 && allWords <= 40) {
+  if (quoted3 && allWords <= 40) {
     const photo = body.some((u) => u.kind === "pic" && area(u.box) >= SPLIT_PICTURE);
     return photo ? named("image-with-quote", 0.8, "layout.reason.quote.picture", { words: allWords, pictures }, 2) : named("quote", 0.85, "layout.reason.quote", { words: allWords }, 1);
   }
@@ -143520,7 +143844,7 @@ function layoutFindings(plan, source, master) {
       if (characters === 0 || slot.kind !== "text") continue;
       const perLine = Math.max(1, Math.floor(box4.w / Math.max(1, size * AVERAGE_GLYPH_EM)));
       let lines = 0;
-      for (const line of text13.split("\n")) lines += Math.max(1, Math.ceil(line.replace(/\s+/g, " ").trim().length / perLine));
+      for (const line2 of text13.split("\n")) lines += Math.max(1, Math.ceil(line2.replace(/\s+/g, " ").trim().length / perLine));
       const needed = lines * size * ESTIMATE_LINE_HEIGHT;
       if (needed <= box4.h) continue;
       out.push({
@@ -143604,9 +143928,9 @@ function anchorOf2(align, x, w) {
   return { anchor: "start", x: round26(x) };
 }
 function firstBaseline(valign, y, h, fontSize, lines, lineHeight) {
-  const line = fontSize * lineHeight;
-  const block = lines * line;
-  const ascent = (line - fontSize) / 2 + fontSize * 0.8;
+  const line2 = fontSize * lineHeight;
+  const block = lines * line2;
+  const ascent = (line2 - fontSize) / 2 + fontSize * 0.8;
   if (valign === "middle") return round26(y + (h - block) / 2 + ascent);
   if (valign === "bottom") return round26(y + h - block + ascent);
   return round26(y + ascent);
@@ -143815,8 +144139,8 @@ function wordsSvg(op, words4) {
   const style = `white-space:pre${features.length ? `;font-feature-settings:${features.join(", ")}` : ""}`;
   let text13 = `<text font-size="${round26(m2.size)}" style="${svgEscape(style)}"${m2.tracking ? ` letter-spacing="${round26(m2.tracking)}"` : ""}>`;
   let shapes2 = "", live2 = false;
-  layout2.lines.forEach((line, li) => {
-    line.runs.forEach((run3, ri) => {
+  layout2.lines.forEach((line2, li) => {
+    line2.runs.forEach((run3, ri) => {
       const outline2 = words4.outlines?.[li]?.[ri];
       if (outline2 !== void 0 && outline2 !== null) {
         const ink2 = run3.color && /^#[0-9a-fA-F]{3,8}$/.test(run3.color) ? run3.color : words4.ink;
@@ -143824,15 +144148,15 @@ function wordsSvg(op, words4) {
         const under = (own4) => {
           if (underline) for (const span of underline.spans) {
             const paint2 = span.ink ?? ink2;
-            if (span.width > 0 && span.ink === void 0 === own4) shapes2 += `<rect x="${round26(box4.x + line.x + run3.x + span.x)}" y="${round26(box4.y + line.baseline + underline.y)}" width="${round26(span.width)}" height="${round26(underline.height)}"${colorPaint("fill", paint2, paint2 === words4.ink ? words4.inkOpacity : void 0)}/>`;
+            if (span.width > 0 && span.ink === void 0 === own4) shapes2 += `<rect x="${round26(box4.x + line2.x + run3.x + span.x)}" y="${round26(box4.y + line2.baseline + underline.y)}" width="${round26(span.width)}" height="${round26(underline.height)}"${colorPaint("fill", paint2, paint2 === words4.ink ? words4.inkOpacity : void 0)}/>`;
           }
         };
         under(true);
         if (outline2) {
-          shapes2 += `<path transform="translate(${round26(box4.x + line.x + run3.x)} ${round26(box4.y + line.baseline)})" d="${svgEscape(outline2)}"${colorPaint("fill", ink2, ink2 === words4.ink ? words4.inkOpacity : void 0)}/>`;
+          shapes2 += `<path transform="translate(${round26(box4.x + line2.x + run3.x)} ${round26(box4.y + line2.baseline)})" d="${svgEscape(outline2)}"${colorPaint("fill", ink2, ink2 === words4.ink ? words4.inkOpacity : void 0)}/>`;
         }
         const strike = words4.strikes?.[li]?.[ri];
-        if (strike && strike.width > 0) shapes2 += `<rect x="${round26(box4.x + line.x + run3.x)}" y="${round26(box4.y + line.baseline + strike.y)}" width="${round26(strike.width)}" height="${round26(strike.height)}"${colorPaint("fill", ink2, ink2 === words4.ink ? words4.inkOpacity : void 0)}/>`;
+        if (strike && strike.width > 0) shapes2 += `<rect x="${round26(box4.x + line2.x + run3.x)}" y="${round26(box4.y + line2.baseline + strike.y)}" width="${round26(strike.width)}" height="${round26(strike.height)}"${colorPaint("fill", ink2, ink2 === words4.ink ? words4.inkOpacity : void 0)}/>`;
         under(false);
         return;
       }
@@ -143840,7 +144164,7 @@ function wordsSvg(op, words4) {
       live2 = true;
       const deco = [run3.underline ? "underline" : "", run3.strike ? "line-through" : ""].filter(Boolean).join(" ");
       const ink = run3.color && /^#[0-9a-fA-F]{3,8}$/.test(run3.color) ? run3.color : words4.ink;
-      text13 += `<tspan x="${round26(box4.x + line.x + run3.x)}" y="${round26(box4.y + line.baseline)}" font-family="${svgEscape(run3.face.family)}" font-weight="${run3.face.weight}"${run3.face.italic ? ' font-style="italic"' : ""}${colorPaint("fill", ink, ink === words4.ink ? words4.inkOpacity : void 0)}${deco ? ` text-decoration="${deco}"` : ""}>${svgEscape(run3.text)}</tspan>`;
+      text13 += `<tspan x="${round26(box4.x + line2.x + run3.x)}" y="${round26(box4.y + line2.baseline)}" font-family="${svgEscape(run3.face.family)}" font-weight="${run3.face.weight}"${run3.face.italic ? ' font-style="italic"' : ""}${colorPaint("fill", ink, ink === words4.ink ? words4.inkOpacity : void 0)}${deco ? ` text-decoration="${deco}"` : ""}>${svgEscape(run3.text)}</tspan>`;
     });
   });
   text13 = shapes2 + (live2 ? `${text13}</text>` : "");
@@ -143969,8 +144293,8 @@ function drawMuted(box4, label5, ctx) {
   const x = round26(box4.x + box4.w / 2);
   const baseline = firstBaseline("middle", box4.y, box4.h, size, lines.length, ESTIMATE_LINE_HEIGHT);
   out += `<text x="${x}" y="${baseline}" font-family="${svgEscape(ctx.family)}" font-size="${size}" fill="${LABEL_INK}" text-anchor="middle">`;
-  lines.forEach((line, i) => {
-    out += `<tspan x="${x}"${i > 0 ? ` dy="${round26(size * ESTIMATE_LINE_HEIGHT)}"` : ""}>${svgEscape(line)}</tspan>`;
+  lines.forEach((line2, i) => {
+    out += `<tspan x="${x}"${i > 0 ? ` dy="${round26(size * ESTIMATE_LINE_HEIGHT)}"` : ""}>${svgEscape(line2)}</tspan>`;
   });
   return `${out}</text>`;
 }
@@ -144217,9 +144541,9 @@ function lineHeightFor(role) {
 function italicText2(text13, pointer2) {
   if (!text13) return text13;
   if (/[*_]/.test(text13.replace(/\\[\s\S]/g, ""))) throw new Error(`${pointer2}: an italic style cannot set text that already carries * or _ markup; write the emphasis in the text.`);
-  return text13.split("\n").map((line) => {
-    if (!line.trim()) return line;
-    const m2 = /^(\s*(?:[-•]\s|\d+\.\s))?(.*)$/.exec(line);
+  return text13.split("\n").map((line2) => {
+    if (!line2.trim()) return line2;
+    const m2 = /^(\s*(?:[-•]\s|\d+\.\s))?(.*)$/.exec(line2);
     return `${m2[1] ?? ""}*${m2[2]}*`;
   }).join("\n");
 }
@@ -144284,9 +144608,9 @@ function lineEdits(before, after, reason2) {
   const a = plainOfDesignText(before).split("\n");
   const b = plainOfDesignText(after).split("\n");
   const out = [];
-  a.forEach((line, k) => {
+  a.forEach((line2, k) => {
     const result = b[k] ?? "";
-    if (line.trim() && line !== result) out.push({ source: line.trim(), result: result.trim(), reason: reason2 });
+    if (line2.trim() && line2 !== result) out.push({ source: line2.trim(), result: result.trim(), reason: reason2 });
   });
   return out;
 }
@@ -144347,23 +144671,23 @@ function findInventoryObject(inventory2, id3, source) {
 function joinedParagraphs(paragraphs2, sep3) {
   const lines = [];
   for (const p of paragraphs2) {
-    let line = [];
+    let line2 = [];
     for (const r5 of p.runs) {
       r5.text.split(/\r\n?|\n/).forEach((piece, k) => {
         if (k > 0) {
-          lines.push(line);
-          line = [];
+          lines.push(line2);
+          line2 = [];
         }
-        if (piece) line.push({ ...r5, text: piece });
+        if (piece) line2.push({ ...r5, text: piece });
       });
     }
-    lines.push(line);
+    lines.push(line2);
   }
-  const worded = lines.filter((line) => line.some((r5) => r5.text.trim()));
+  const worded = lines.filter((line2) => line2.some((r5) => r5.text.trim()));
   const mark = sep3.trimEnd();
   const runs2 = [];
-  worded.forEach((line, k) => {
-    const own4 = line.map((r5) => ({ ...r5 }));
+  worded.forEach((line2, k) => {
+    const own4 = line2.map((r5) => ({ ...r5 }));
     while (own4.length && !own4[0].text.trim()) own4.shift();
     while (own4.length && !own4[own4.length - 1].text.trim()) own4.pop();
     own4[0].text = own4[0].text.replace(/^\s+/u, "");
@@ -144386,12 +144710,12 @@ function designTextOfInventory(paragraphs2, rowWeight, emphasis = { mode: "bold"
       const recolour = r5.bold === true && !allBold && emphasis.mode === "accent" && !!emphasis.accent && !!r5.text.trim();
       r5.text.split(/\r\n?|\n/).forEach((piece, k) => {
         if (k > 0) lines.push({ text: "", recoloured: false });
-        const line = lines[lines.length - 1];
-        line.text += piece;
-        if (recolour && piece.trim()) line.recoloured = true;
+        const line2 = lines[lines.length - 1];
+        line2.text += piece;
+        if (recolour && piece.trim()) line2.recoloured = true;
       });
     }
-    for (const line of lines) if (line.recoloured) mapped.push(line.text.trim());
+    for (const line2 of lines) if (line2.recoloured) mapped.push(line2.text.trim());
     const para = {
       runs: p.runs.map((r5) => {
         const bold = r5.bold === true && !allBold;
@@ -145082,16 +145406,16 @@ function sourceLinesOf(paragraphs2) {
     for (const r5 of p.runs) {
       r5.text.split(/\r\n?|\n/).forEach((piece, k) => {
         if (k > 0) pieces.push({ text: "", bold: false });
-        const line = pieces[pieces.length - 1];
-        line.text += piece;
-        if (r5.bold === true && piece.trim()) line.bold = true;
+        const line2 = pieces[pieces.length - 1];
+        line2.text += piece;
+        if (r5.bold === true && piece.trim()) line2.bold = true;
       });
     }
-    for (const line of pieces) {
-      const t = line.text.replace(/\s+/g, " ").trim();
+    for (const line2 of pieces) {
+      const t = line2.text.replace(/\s+/g, " ").trim();
       if (!t) continue;
       lines.push(t);
-      if (line.bold) bold.push(t);
+      if (line2.bold) bold.push(t);
     }
   }
   return { lines, bold };
@@ -145123,7 +145447,7 @@ function carriedText(row, source, value2, pointer2, fx, asked) {
   let text13 = out.text;
   if (out.mapped.length && emphasis.accent) {
     const reason2 = `Bold emphasis set in the accent colour ${emphasis.accent}, the brand's form for it (${emphasis.why}).`;
-    for (const line of out.mapped) fx.edits.push(...againstSourceLines([{ source: line, result: line, reason: reason2 }], fx.carried?.bold, false));
+    for (const line2 of out.mapped) fx.edits.push(...againstSourceLines([{ source: line2, result: line2, reason: reason2 }], fx.carried?.bold, false));
     fx.notes.push({
       path: pointer2,
       code: "compose.emphasis.accent",
@@ -145134,7 +145458,7 @@ function carriedText(row, source, value2, pointer2, fx, asked) {
   return tidyCarriedText(text13);
 }
 function tidyCarriedText(text13) {
-  const lines = text13.split("\n").map((line) => line.replace(/(^|[^\\])[ \t\u00a0]+$/u, "$1").replace(/(^|[^\\])[ \t\u00a0]+(\}+)$/u, "$1$2"));
+  const lines = text13.split("\n").map((line2) => line2.replace(/(^|[^\\])[ \t\u00a0]+$/u, "$1").replace(/(^|[^\\])[ \t\u00a0]+(\}+)$/u, "$1$2"));
   while (lines.length && !lines[0].trim()) lines.shift();
   while (lines.length && !lines[lines.length - 1].trim()) lines.pop();
   return lines.join("\n");
@@ -145146,19 +145470,19 @@ function againstSourceLines(edits, lines, changedOnly) {
   for (const edit of edits) {
     const source = norm2(edit.source);
     const result = norm2(edit.result ?? "");
-    if (lines.some((line) => norm2(line) === source)) {
+    if (lines.some((line2) => norm2(line2) === source)) {
       out.push(edit);
       continue;
     }
-    const held = lines.map(norm2).filter((line) => line && source.includes(line) && (!changedOnly || !result.includes(line)));
+    const held = lines.map(norm2).filter((line2) => line2 && source.includes(line2) && (!changedOnly || !result.includes(line2)));
     if (!held.length) {
       out.push(edit);
       continue;
     }
-    for (const line of held) {
-      const at = result.toLowerCase().indexOf(line.toLowerCase());
-      const now2 = at >= 0 ? result.slice(at, at + line.length) : result;
-      if (!out.some((e) => e.source === line && e.result === now2)) out.push({ ...edit, source: line, result: now2 });
+    for (const line2 of held) {
+      const at = result.toLowerCase().indexOf(line2.toLowerCase());
+      const now2 = at >= 0 ? result.slice(at, at + line2.length) : result;
+      if (!out.some((e) => e.source === line2 && e.result === now2)) out.push({ ...edit, source: line2, result: now2 });
     }
   }
   return out;
@@ -145176,7 +145500,7 @@ function replacedBy(missing, literals, inventory2) {
     const said = norm2(lit.text).toLowerCase();
     return !!slide && slide.text.some((t) => {
       const lines = t.plain.split("\n").map(norm2).filter(Boolean);
-      return t.role === lit.role && lines.includes(want) && !lines.some((line) => said.includes(line.toLowerCase()));
+      return t.role === lit.role && lines.includes(want) && !lines.some((line2) => said.includes(line2.toLowerCase()));
     });
   });
   const one = hits2.length === 1 ? hits2[0] : null;
@@ -145184,7 +145508,7 @@ function replacedBy(missing, literals, inventory2) {
   return { source: missing, result: one.text, reason: `Replaced by the words written for the ${one.role} slot (${one.key}).` };
 }
 function notesTextOf(notes) {
-  const paras = Array.isArray(notes.paragraphs) && notes.paragraphs.length ? notes.paragraphs.map((p) => p.lines.map((line, k) => line.trim() === "" && k > 0 && k < p.lines.length - 1 ? NOTES_EMPTY_LINE : line).join("\n")) : [notes.text];
+  const paras = Array.isArray(notes.paragraphs) && notes.paragraphs.length ? notes.paragraphs.map((p) => p.lines.map((line2, k) => line2.trim() === "" && k > 0 && k < p.lines.length - 1 ? NOTES_EMPTY_LINE : line2).join("\n")) : [notes.text];
   return paras.join("\n\n").replace(/^\s*\n|\n\s*$/g, "");
 }
 function slotTableRow(row, value2, pointer2, origin, archetype, frameId) {
@@ -145709,7 +146033,7 @@ function slotLineCapacity(master, archetype, key2) {
 }
 function joinOverfullRest(split, archetype, slots, master) {
   if (!split) return;
-  const lines = split.rest.text.split("\n").filter((line) => line.trim()).length;
+  const lines = split.rest.text.split("\n").filter((line2) => line2.trim()).length;
   if (lines < 2) return;
   const same = JSON.stringify(split.rest.para);
   for (const [key2, value2] of Object.entries(slots)) {
@@ -146289,7 +146613,7 @@ function footerOf(inventory2) {
   const [text13, count4] = [...counts.entries()].sort((a, b) => b[1] - a[1] || compareCodeUnits(a[0], b[0]))[0] ?? [];
   return text13 !== void 0 && count4 !== void 0 && count4 >= 2 && count4 * 2 > carrying ? text13 : void 0;
 }
-function quoted(strings4) {
+function quoted2(strings4) {
   const shown = strings4.slice(0, 3).map((s) => `"${s.replace(/\s+/gu, " ").trim()}"`);
   return strings4.length > 3 ? `${shown.join(", ")} and ${strings4.length - 3} more` : shown.join(", ");
 }
@@ -146368,7 +146692,7 @@ function suggestComposeSlides(input, master) {
       const named = leftTexts.filter((t) => t.role !== "page-number" && t.role !== "footer" && !LOGO_CLASSES.has(t.class) && !everySlide(t.plain)).map((t) => t.plain);
       notes.push(`${left === 1 ? "One item is" : `${left} items are`} left to the master (${[...leftKinds].sort(compareCodeUnits).join(", ")}).`);
       if (named.length > 0) {
-        notes.push(`${named.length === 1 ? "One of them reads" : `${named.length} of them read`} as content and ${named.length === 1 ? "is" : "are"} not placed: ${quoted(named)}. ${named.length === 1 ? "Add an over row for that text if the slide needs the words." : "Add over rows for that text if the slide needs the words."}`);
+        notes.push(`${named.length === 1 ? "One of them reads" : `${named.length} of them read`} as content and ${named.length === 1 ? "is" : "are"} not placed: ${quoted2(named)}. ${named.length === 1 ? "Add an over row for that text if the slide needs the words." : "Add over rows for that text if the slide needs the words."}`);
       }
     }
     const reason2 = { slide: slide.number, archetype: draft.archetype, why: notes.join(" ") };
@@ -147209,8 +147533,8 @@ function textNeighbours(a, b) {
   if (inkDiff > MERGE_MAX_INK_DIFF) return false;
   const vOverlap = Math.min(a.box.y + a.box.h, b.box.y + b.box.h) - Math.max(a.box.y, b.box.y);
   const hGap = Math.max(a.box.x, b.box.x) - Math.min(a.box.x + a.box.w, b.box.x + b.box.w);
-  const line = Math.max(a.lineHeight, b.lineHeight);
-  if (vOverlap >= 0.5 * Math.min(a.box.h, b.box.h) && hGap <= ROW_GAP_LINES * line) return true;
+  const line2 = Math.max(a.lineHeight, b.lineHeight);
+  if (vOverlap >= 0.5 * Math.min(a.box.h, b.box.h) && hGap <= ROW_GAP_LINES * line2) return true;
   const hOverlap = Math.min(a.box.x + a.box.w, b.box.x + b.box.w) - Math.max(a.box.x, b.box.x);
   const vGap = Math.max(a.box.y, b.box.y) - Math.min(a.box.y + a.box.h, b.box.y + b.box.h);
   return hOverlap > 0 && vGap <= STACK_GAP_LINES * Math.min(a.lineHeight, b.lineHeight);
@@ -148759,27 +149083,27 @@ function groupParagraphs(ordered, starts, medianH, pitch) {
   let current = null;
   const tol = EDGE_TOLERANCE2 * medianH;
   for (const work of ordered) {
-    const line = work.line;
+    const line2 = work.line;
     let continues = false;
-    if (current && !starts.has(line.index)) {
+    if (current && !starts.has(line2.index)) {
       const prev = current.items[current.items.length - 1]?.line;
       const first = current.items[0]?.line;
       if (prev && first) {
-        const below = line.box.y >= prev.box.y + prev.box.h * 0.5;
-        const gap = cy2(line.box) - cy2(prev.box);
+        const below = line2.box.y >= prev.box.y + prev.box.h * 0.5;
+        const gap = cy2(line2.box) - cy2(prev.box);
         const limit3 = pitch ? PARAGRAPH_PITCH * pitch : PARAGRAPH_HEIGHTS * medianH;
-        const ratio = Math.max(line.box.h, prev.box.h) / Math.max(1, Math.min(line.box.h, prev.box.h));
-        const sameEdge = Math.abs(line.box.x - prev.box.x) <= tol;
-        const hanging = current.items.length === 1 && line.box.x > first.box.x + HANG_MIN * medianH && line.box.x < first.box.x + 4 * medianH;
-        const firstIndent = current.items.length === 1 && line.box.x < first.box.x - HANG_MIN * medianH && first.box.x - line.box.x < 3 * medianH && !current.bullet;
-        continues = xOverlap(line.box, prev.box) > 0 && below && gap <= limit3 && ratio <= SIZE_STEP && (sameEdge || hanging && current.bullet || firstIndent);
+        const ratio = Math.max(line2.box.h, prev.box.h) / Math.max(1, Math.min(line2.box.h, prev.box.h));
+        const sameEdge = Math.abs(line2.box.x - prev.box.x) <= tol;
+        const hanging = current.items.length === 1 && line2.box.x > first.box.x + HANG_MIN * medianH && line2.box.x < first.box.x + 4 * medianH;
+        const firstIndent = current.items.length === 1 && line2.box.x < first.box.x - HANG_MIN * medianH && first.box.x - line2.box.x < 3 * medianH && !current.bullet;
+        continues = xOverlap(line2.box, prev.box) > 0 && below && gap <= limit3 && ratio <= SIZE_STEP && (sameEdge || hanging && current.bullet || firstIndent);
       }
     }
     if (continues && current) {
       current.items.push(work);
     } else {
       current = { items: [work], bullet: false, kind: "bullet" };
-      if (work.lead && starts.has(line.index)) {
+      if (work.lead && starts.has(line2.index)) {
         current.bullet = true;
         current.kind = work.lead.kind;
         current.glyph = work.lead.glyph;
@@ -148794,13 +149118,13 @@ function hangsUnder(para, medianH) {
   if (!first || para.items.length < 2) return false;
   return para.items.slice(1).every((w) => w.line.box.x > first.box.x + HANG_MIN * medianH);
 }
-function bulletBeside(glyph, line) {
-  if (!glyph || !line || Array.from(glyph.text).length !== 1) return false;
+function bulletBeside(glyph, line2) {
+  if (!glyph || !line2 || Array.from(glyph.text).length !== 1) return false;
   if (!BULLET_GLYPHS2.has(glyph.text) && !SUPPORTED_BULLETS.has(glyph.text) && !AMBIGUOUS_BULLETS.has(glyph.text)) return false;
-  if (Array.from(line.text).length < 2) return false;
+  if (Array.from(line2.text).length < 2) return false;
   const middle = cy2(glyph.box);
-  const gap = line.box.x - (glyph.box.x + glyph.box.w);
-  return middle >= line.box.y && middle <= line.box.y + line.box.h && gap >= -0.25 * glyph.box.w && gap <= BULLET_JOIN_GAP * line.box.h;
+  const gap = line2.box.x - (glyph.box.x + glyph.box.w);
+  return middle >= line2.box.y && middle <= line2.box.y + line2.box.h && gap >= -0.25 * glyph.box.w && gap <= BULLET_JOIN_GAP * line2.box.h;
 }
 function assembleLines(input, opts) {
   const items2 = input.map((l, index2) => ({ l, index: index2 })).filter(({ l }) => typeof l.text === "string" && l.text.trim() !== "").map(({ l, index: index2 }) => ({
@@ -148934,8 +149258,8 @@ function typesetOcrLines(input, opts = {}) {
   );
   const ordered = [];
   for (const i of reading.order) {
-    const line = lines[i];
-    if (line) ordered.push({ line, lead: leadingGlyph(line.raw) });
+    const line2 = lines[i];
+    if (line2) ordered.push({ line: line2, lead: leadingGlyph(line2.raw) });
   }
   const medianH = Math.max(1, median8(lines.map((l) => l.box.h)));
   const pitches = [];
@@ -149210,14 +149534,14 @@ function parseMotionTiming(raw) {
 function resolveCues(timing) {
   const cues = new Map(timing.cues.map((cue) => [cue.id, cue]));
   const times = /* @__PURE__ */ Object.create(null), pending6 = /* @__PURE__ */ new Set();
-  const visit = (id3) => {
+  const visit2 = (id3) => {
     if (Object.hasOwn(times, id3)) return times[id3];
     const cue = cues.get(id3);
     if (!cue || pending6.has(id3)) throw new Error(`Missing or cyclic cue: ${id3}`);
     pending6.add(id3);
     let at;
     if (cue.at !== void 0) at = cue.at;
-    else if (cue.after !== void 0) at = visit(cue.after);
+    else if (cue.after !== void 0) at = visit2(cue.after);
     else {
       if (!timing.tempo?.bpm) throw new Error(`Cue ${id3} needs a known BPM; no rhythm is inferred.`);
       at = timing.tempo.offset + cue.beat * 60 / timing.tempo.bpm;
@@ -149228,7 +149552,7 @@ function resolveCues(timing) {
     times[id3] = at;
     return at;
   };
-  for (const id3 of cues.keys()) visit(id3);
+  for (const id3 of cues.keys()) visit2(id3);
   return times;
 }
 function compileMotionCues(source, raw) {
@@ -150137,12 +150461,12 @@ var init_model = __esm({
 function forensicSegments(text13) {
   const out = [];
   const bounded2 = text13.slice(0, 65536);
-  for (const line of bounded2.matchAll(/[^\n]+/g)) {
-    const raw = line[0];
+  for (const line2 of bounded2.matchAll(/[^\n]+/g)) {
+    const raw = line2[0];
     const lead = raw.length - raw.trimStart().length;
     const body = raw.trim();
     if (!body) continue;
-    const base = line.index + lead;
+    const base = line2.index + lead;
     let start = 0;
     const ends = /[.!?…]+["'”’)\]]*(?=\s+\S|$)/g;
     let found = false;
@@ -151049,9 +151373,9 @@ function recognitionOf(ocr, recognizers) {
   let weighted = 0;
   let chars = 0;
   let min = 1;
-  for (const line of ocr.lines) {
-    const confidence = Number.isFinite(line.confidence) ? Math.min(1, Math.max(0, line.confidence)) : 0;
-    const count4 = Math.max(1, line.text.replace(/\s/g, "").length);
+  for (const line2 of ocr.lines) {
+    const confidence = Number.isFinite(line2.confidence) ? Math.min(1, Math.max(0, line2.confidence)) : 0;
+    const count4 = Math.max(1, line2.text.replace(/\s/g, "").length);
     weighted += confidence * count4;
     chars += count4;
     min = Math.min(min, confidence);
@@ -151067,18 +151391,18 @@ function pictureTextOf(object4, klass, size, recognizers) {
   const recognition = recognitionOf(object4.ocr, recognizers);
   const lines = object4.ocr?.lines ?? [];
   if (!recognition) return null;
-  const kept2 = lines.map((line) => ({ line, text: normaliseLines(line.text).join(" ") })).filter((one) => one.text !== "");
+  const kept2 = lines.map((line2) => ({ line: line2, text: normaliseLines(line2.text).join(" ") })).filter((one) => one.text !== "");
   if (kept2.length === 0) return null;
   const paragraphs2 = kept2.map((one) => ({ runs: [{ text: one.text }] }));
   let x0 = Number.POSITIVE_INFINITY;
   let y0 = Number.POSITIVE_INFINITY;
   let x1 = Number.NEGATIVE_INFINITY;
   let y1 = Number.NEGATIVE_INFINITY;
-  for (const { line } of kept2) {
-    x0 = Math.min(x0, line.box.x);
-    y0 = Math.min(y0, line.box.y);
-    x1 = Math.max(x1, line.box.x + line.box.w);
-    y1 = Math.max(y1, line.box.y + line.box.h);
+  for (const { line: line2 } of kept2) {
+    x0 = Math.min(x0, line2.box.x);
+    y0 = Math.min(y0, line2.box.y);
+    x1 = Math.max(x1, line2.box.x + line2.box.w);
+    y1 = Math.max(y1, line2.box.y + line2.box.h);
   }
   return {
     objectId: object4.id,
@@ -151663,7 +151987,7 @@ function extractMarkdown(extract) {
         parts.push(`![${escapeMarkdown(block.text)}](${block.picture.file ?? `sha256-${block.picture.sha256}`})`);
       } else if (block.kind === "notes") {
         parts.push(`> **Notes**
-${block.text.split("\n").map((line) => `> ${escapeMarkdown(line)}`).join("\n")}`);
+${block.text.split("\n").map((line2) => `> ${escapeMarkdown(line2)}`).join("\n")}`);
       } else if (block.text !== "") {
         const words4 = escapeMarkdown(block.text);
         parts.push(block.role === "title" ? `### ${words4.replace(/\n/g, " ")}` : words4.replace(/\n/g, "  \n"));
@@ -152163,10 +152487,10 @@ function readEdl(source, options2 = {}) {
   const fcmDrops = /* @__PURE__ */ new Set();
   const raws = [];
   for (const [index2, rawLine] of lines.entries()) {
-    const text13 = rawLine.length > MAX_LINE ? rawLine.slice(0, MAX_LINE) : rawLine, line = text13.trim(), n7 = index2 + 1;
-    if (!line) continue;
+    const text13 = rawLine.length > MAX_LINE ? rawLine.slice(0, MAX_LINE) : rawLine, line2 = text13.trim(), n7 = index2 + 1;
+    if (!line2) continue;
     if (rawLine.length > MAX_LINE) report4.add("long-line", `Line ${n7} is longer than ${MAX_LINE} characters and was truncated.`);
-    const titleMatch = /^TITLE:\s*(.*)$/i.exec(line), fcmMatch = /^FCM:\s*(.*)$/i.exec(line);
+    const titleMatch = /^TITLE:\s*(.*)$/i.exec(line2), fcmMatch = /^FCM:\s*(.*)$/i.exec(line2);
     if (titleMatch) {
       title = titleMatch[1];
       continue;
@@ -152179,10 +152503,10 @@ function readEdl(source, options2 = {}) {
       fcmDrops.add(drop);
       continue;
     }
-    if (line.startsWith("*")) {
+    if (line2.startsWith("*")) {
       const last = raws[raws.length - 1];
       if (!last) continue;
-      const body = line.replace(/^\*\s*/, "");
+      const body = line2.replace(/^\*\s*/, "");
       const nameMatch = /^(?:FROM\s+)?CLIP\s+NAME:\s*(.*)$/i.exec(body), fileMatch = /^SOURCE\s+FILE:\s*(.*)$/i.exec(body);
       if (nameMatch) last.meta.from = nameMatch[1].trim();
       else if (fileMatch) last.meta.file = fileMatch[1].trim();
@@ -152194,7 +152518,7 @@ function readEdl(source, options2 = {}) {
       }
       continue;
     }
-    const audMatch = /^AUD\s+([\d\s]+)$/i.exec(line);
+    const audMatch = /^AUD\s+([\d\s]+)$/i.exec(line2);
     if (audMatch) {
       const last = raws[raws.length - 1];
       if (last) {
@@ -152202,16 +152526,16 @@ function readEdl(source, options2 = {}) {
       }
       continue;
     }
-    if (/^M2\s/i.test(line)) {
+    if (/^M2\s/i.test(line2)) {
       const last = raws[raws.length - 1];
-      if (last) last.meta.speed = line;
+      if (last) last.meta.speed = line2;
       continue;
     }
-    if (/^(SPLIT|EFFECTS NAME|FOR TV|\.{3})/i.test(line)) {
+    if (/^(SPLIT|EFFECTS NAME|FOR TV|\.{3})/i.test(line2)) {
       report4.add("split", `Line ${n7}: split edits and effect directives are not imported.`);
       continue;
     }
-    const tokens3 = line.split(/\s+/);
+    const tokens3 = line2.split(/\s+/);
     if (/^\d{1,6}$/.test(tokens3[0]) && tokens3.length >= 8 && tokens3.slice(-4).every((t) => TC.test(t))) {
       if (raws.length >= TIMELINE_MAX_CLIPS) throw new Error(`The EDL exceeds ${TIMELINE_MAX_CLIPS} events.`);
       const middle = tokens3.slice(4, -4), transition2 = Number(middle.find((t) => /^\d{1,5}$/.test(t)) ?? 0);
@@ -153754,7 +154078,7 @@ function createDesignLayoutMeasurer(shaper, fonts, resourceRevision, keyByteBudg
     if (measured.uncovered?.length)
       throw new Error(`The layout font cannot draw ${measured.uncovered.join(", ")}.`);
     const result = {
-      width: Math.max(0, ...measured.lines.map((line) => line.width)) + 2 * measured.pad,
+      width: Math.max(0, ...measured.lines.map((line2) => line2.width)) + 2 * measured.pad,
       height: measured.height
     };
     const concurrent = cache5.get(key2);
@@ -155827,6 +156151,7 @@ __export(src_exports, {
   workerRpcMethods: () => workerRpcMethods,
   wrapByAverageWidth: () => wrapByAverageWidth,
   wrapRasterWithTreatment: () => wrapRasterWithTreatment,
+  writeDesignMd: () => writeDesignMd,
   writeDocx: () => writeDocx,
   writeEpub: () => writeEpub,
   writeFace: () => writeFace,
@@ -156141,6 +156466,7 @@ var init_src2 = __esm({
     init_brand_context();
     init_brand_check();
     init_design_brief();
+    init_design_md();
     init_brand_skill();
     init_token_scope();
     init_design_house_rules();
@@ -157602,21 +157928,21 @@ function longHex(color6) {
 }
 function parasOf(text13, run3, align, resolveColour, onRestart) {
   if (!hasDesignMarkup(text13) && !INDENTED_LINE.test(text13)) {
-    return text13.split("\n").map((line) => ({
-      runs: [{ ...run3, text: line }],
+    return text13.split("\n").map((line2) => ({
+      runs: [{ ...run3, text: line2 }],
       ...align ? { align } : {}
     }));
   }
   const lines = parseDesignText(text13);
-  const listed2 = lines.some((line) => line.list !== void 0);
+  const listed2 = lines.some((line2) => line2.list !== void 0);
   let previous2;
-  return lines.map((line) => {
-    const opensList = line.list === "number" && !(previous2?.list === "number" && previous2.level === line.level);
-    if (opensList && line.number !== void 0 && line.number !== 1) onRestart?.();
-    previous2 = line;
-    let strip = line.list ? 0 : line.level * 2;
+  return lines.map((line2) => {
+    const opensList = line2.list === "number" && !(previous2?.list === "number" && previous2.level === line2.level);
+    if (opensList && line2.number !== void 0 && line2.number !== 1) onRestart?.();
+    previous2 = line2;
+    let strip = line2.list ? 0 : line2.level * 2;
     const runs2 = [];
-    for (const part of line.runs) {
+    for (const part of line2.runs) {
       let partText = part.text;
       if (strip > 0) {
         const cut = Math.min(strip, partText.length - partText.replace(/^ +/, "").length);
@@ -157640,10 +157966,10 @@ function parasOf(text13, run3, align, resolveColour, onRestart) {
       runs2.push(out);
     }
     const para = { runs: runs2.length > 0 ? runs2 : [{ ...run3, text: "" }], ...align ? { align } : {} };
-    if (line.list === "bullet") para.bullet = true;
-    else if (line.list === "number") para.bullet = "number";
-    else if (listed2 || line.level > 0) para.bullet = false;
-    if (line.level > 0) para.level = Math.min(8, line.level);
+    if (line2.list === "bullet") para.bullet = true;
+    else if (line2.list === "number") para.bullet = "number";
+    else if (listed2 || line2.level > 0) para.bullet = false;
+    if (line2.level > 0) para.level = Math.min(8, line2.level);
     return para;
   });
 }
@@ -157863,12 +158189,12 @@ async function lowerLayer(ctx, sink, row, origin, binding, masterStyle, master, 
     const strokeHit2 = ctx.palette.resolve(row.stroke);
     const strokeW2 = num18(row, "strokeW");
     noteDash(ctx, row);
-    const line = strokeHit2 && strokeW2 > 0 ? lineOf(strokeHit2, strokeW2, opacity) : void 0;
-    if (line && data.open) {
+    const line2 = strokeHit2 && strokeW2 > 0 ? lineOf(strokeHit2, strokeW2, opacity) : void 0;
+    if (line2 && data.open) {
       const head2 = lineEndOf(ctx, row, "headStart");
       const tail = lineEndOf(ctx, row, "headEnd");
-      if (head2) line.head = head2;
-      if (tail) line.tail = tail;
+      if (head2) line2.head = head2;
+      if (tail) line2.tail = tail;
     }
     const shape = {
       kind: "path",
@@ -157876,20 +158202,20 @@ async function lowerLayer(ctx, sink, row, origin, binding, masterStyle, master, 
       ...rotOf(row),
       paths: [{ d: data.d }],
       ...fill3 ? { fill: withFillAlpha(fill3, opacity) } : {},
-      ...line ? { line } : {}
+      ...line2 ? { line: line2 } : {}
     };
     const metadata3 = initialMetadata && capturePptxPathMetadata(row);
     const path = { contours: data.contours, rotation: shape.rot, ...data.open ? {
       open: true,
-      ...line?.head ? { head: line.head } : {},
-      ...line?.tail ? { tail: line.tail } : {}
+      ...line2?.head ? { head: line2.head } : {},
+      ...line2?.tail ? { tail: line2.tail } : {}
     } : {} };
     if (metadata3 && initialMetadata && (data.singleClosed || data.open) && Object.keys(metadata3).length === Object.keys(initialMetadata).length && Object.keys(metadata3).every((field2) => Object.is(metadata3[field2], initialMetadata[field2])) && isPptxPathRow(metadata3, origin, geometry3, path)) {
       const op = compileDesignRow(metadata3, origin, { semantics: "pptx-compat", pptxCompat: {
         geometry: geometry3,
         path,
         fills: shape.fill && "solid" in shape.fill ? [{ kind: "color", color: `#${shape.fill.solid}`, opacity: shape.fill.alpha }] : [],
-        ...line ? { stroke: { color: `#${line.color}`, opacity: line.alpha, width: strokeW2 } } : {}
+        ...line2 ? { stroke: { color: `#${line2.color}`, opacity: line2.alpha, width: strokeW2 } } : {}
       } });
       if (op.op !== "shape") throw new Error("PPTX path compilation did not produce a shape.");
       sink.shapes.push(designDrawPptxPath(op));
@@ -157945,11 +158271,11 @@ async function lowerLayer(ctx, sink, row, origin, binding, masterStyle, master, 
   const solidMetadata = capturePptxSolidMetadata(row);
   if (solidMetadata && isPptxPrimitiveRow(solidMetadata, origin, geometry3)) {
     const foldedFill = fill2 ? withFillAlpha(fill2, opacity) : void 0;
-    const line = strokeHit && strokeW > 0 ? lineOf(strokeHit, strokeW, opacity) : void 0;
+    const line2 = strokeHit && strokeW > 0 ? lineOf(strokeHit, strokeW, opacity) : void 0;
     const op = compileDesignRow(solidMetadata, origin, { semantics: "pptx-compat", pptxCompat: {
       geometry: geometry3,
       fills: foldedFill && "solid" in foldedFill ? [{ kind: "color", color: `#${foldedFill.solid}`, opacity: foldedFill.alpha }] : [],
-      ...line ? { stroke: { color: `#${line.color}`, opacity: line.alpha, width: strokeW } } : {}
+      ...line2 ? { stroke: { color: `#${line2.color}`, opacity: line2.alpha, width: strokeW } } : {}
     } });
     if (op.op !== "shape") throw new Error("PPTX primitive compilation did not produce a shape.");
     sink.shapes.push(designDrawPptx(op));
@@ -157964,13 +158290,13 @@ async function lowerLayer(ctx, sink, row, origin, binding, masterStyle, master, 
     const underlayRotation = fill2 ? rotOf(row).rot : void 0, rotation = rotOf(row).rot;
     const foldedFill = fill2 ? withFillAlpha(fill2, opacity) : void 0, topFill = withFillAlpha(gradFill, opacity);
     if (!("grad" in topFill)) throw new Error("PPTX gradient paint did not retain its native stops.");
-    const line = strokeHit && strokeW > 0 ? lineOf(strokeHit, strokeW, opacity) : void 0;
+    const line2 = strokeHit && strokeW > 0 ? lineOf(strokeHit, strokeW, opacity) : void 0;
     const op = compileDesignRow(metadata2, origin, { semantics: "pptx-compat", pptxCompat: {
       geometry: geometry3,
       capture: { ...capture, rotation, underlayRotation },
       fills: foldedFill && "solid" in foldedFill ? [{ kind: "color", color: `#${foldedFill.solid}`, opacity: foldedFill.alpha }] : [],
       linear: { angle: topFill.angle, stops: topFill.grad.map((stop) => ({ offset: stop.pos, color: `#${stop.color}`, opacity: stop.alpha })) },
-      ...line ? { stroke: { color: `#${line.color}`, opacity: line.alpha, width: strokeW } } : {}
+      ...line2 ? { stroke: { color: `#${line2.color}`, opacity: line2.alpha, width: strokeW } } : {}
     } });
     if (op.op !== "shape") throw new Error("PPTX gradient compilation did not produce a shape.");
     sink.shapes.push(...designDrawPptxLayers(op));
@@ -158251,7 +158577,7 @@ async function designFramesToPptx(opts) {
     if (tr) slide.transition = tr;
     slides.push(slide);
   }
-  for (const line of transitionNotes.dropped) ctx.notes.add(line);
+  for (const line2 of transitionNotes.dropped) ctx.notes.add(line2);
   if (drawnDark.length) {
     const which = drawnDark.length === 1 ? `slide ${drawnDark[0]} is` : `slides ${drawnDark.slice(0, -1).join(", ")} and ${drawnDark[drawnDark.length - 1]} are`;
     ctx.notes.add(
@@ -158452,8 +158778,8 @@ var init_design_pptx = __esm({
     INDENTED_LINE = /(^|\n) {2,}\S/;
     Notes = class {
       lines = [];
-      add(line) {
-        if (!this.lines.includes(line)) this.lines.push(line);
+      add(line2) {
+        if (!this.lines.includes(line2)) this.lines.push(line2);
       }
     };
     addMedia2 = (sink, bytes2, ext) => {
@@ -159527,7 +159853,7 @@ function interpretPdfDocPage(doc, pageIndex, opts = {}) {
   if (opts.invisibleText) out.invisible = out.nodes.map((n7) => hidden4.has(n7));
   return out;
 }
-function walkPdfOps(src, visit) {
+function walkPdfOps(src, visit2) {
   const n7 = src.length;
   const code = (k) => src.charCodeAt(k);
   let operands = [];
@@ -159648,7 +159974,7 @@ function walkPdfOps(src, visit) {
         i++;
       }
     }
-    visit({ word, start: opStart, end: i, operandsStart, operands });
+    visit2({ word, start: opStart, end: i, operandsStart, operands });
     operands = [];
     operandsStart = -1;
   }
@@ -160069,19 +160395,19 @@ function runsOfNode(node, nodeIndex, artifact) {
   const lines = raw.split("\n");
   const tracking = typeof node.tracking === "number" && Number.isFinite(node.tracking) && node.tracking > 0 ? node.tracking : 0;
   const out = [];
-  lines.forEach((line, i) => {
-    if (!line.trim()) return;
+  lines.forEach((line2, i) => {
+    if (!line2.trim()) return;
     const inkW = Array.isArray(node.lineInk) ? node.lineInk[i] : void 0;
     const ink = typeof inkW === "number" && Number.isFinite(inkW) && inkW > 0 ? inkW : 0;
-    const w = lines.length === 1 ? node.w : Math.min(node.w, ink || line.length * size * 0.55);
+    const w = lines.length === 1 ? node.w : Math.min(node.w, ink || line2.length * size * 0.55);
     const run3 = {
-      text: line,
+      text: line2,
       x: node.x,
       y: node.y + i * lead,
       w: Math.max(1, w),
       h: lines.length === 1 ? node.h : lead,
       baseline: node.y + 0.8 * size + i * lead,
-      right: node.x + (ink || line.length * size * 0.55),
+      right: node.x + (ink || line2.length * size * 0.55),
       size,
       font,
       weight,
@@ -160106,7 +160432,7 @@ function pdfTextLines(nodes, artifacts) {
     if (node.kind !== "text") return;
     for (const run3 of runsOfNode(node, index2, artifacts?.[index2])) {
       const upright = Math.abs(run3.rot) <= UPRIGHT_DEG;
-      const host = upright ? lines.find((line2) => Math.abs(line2.rot) <= UPRIGHT_DEG && line2.artifact === run3.artifact && Math.abs(line2.baseline - run3.baseline) <= LINE_BASELINE_TOLERANCE * Math.min(line2.size, run3.size) && run3.x >= line2.ink - 0.5 * run3.size && run3.x - line2.ink <= LINE_GAP_SIZES * Math.max(line2.size, run3.size)) : void 0;
+      const host = upright ? lines.find((line3) => Math.abs(line3.rot) <= UPRIGHT_DEG && line3.artifact === run3.artifact && Math.abs(line3.baseline - run3.baseline) <= LINE_BASELINE_TOLERANCE * Math.min(line3.size, run3.size) && run3.x >= line3.ink - 0.5 * run3.size && run3.x - line3.ink <= LINE_GAP_SIZES * Math.max(line3.size, run3.size)) : void 0;
       if (host) {
         host.runs.push(run3);
         const right = Math.max(host.right, run3.x + run3.w);
@@ -160119,7 +160445,7 @@ function pdfTextLines(nodes, artifacts) {
         host.size = Math.max(host.size, run3.size);
         continue;
       }
-      const line = {
+      const line2 = {
         runs: [run3],
         x: run3.x,
         y: run3.y,
@@ -160132,20 +160458,20 @@ function pdfTextLines(nodes, artifacts) {
         baseline: run3.baseline,
         size: run3.size
       };
-      if (run3.artifact) line.artifact = run3.artifact;
-      lines.push(line);
+      if (run3.artifact) line2.artifact = run3.artifact;
+      lines.push(line2);
     }
   });
-  return lines.map(({ right: _right, ink: _ink, baseline: _baseline, size: _size, ...line }) => {
-    line.runs.sort((a, b) => a.x - b.x || a.nodeIndex - b.nodeIndex);
-    return line;
+  return lines.map(({ right: _right, ink: _ink, baseline: _baseline, size: _size, ...line2 }) => {
+    line2.runs.sort((a, b) => a.x - b.x || a.nodeIndex - b.nodeIndex);
+    return line2;
   });
 }
-function pdfLineRunTexts(line) {
+function pdfLineRunTexts(line2) {
   const out = [];
   let acc = "";
   let prev = null;
-  for (const run3 of line.runs) {
+  for (const run3 of line2.runs) {
     let text13 = run3.text;
     if (prev && acc) {
       const measured = prev.measured === true;
@@ -160490,12 +160816,12 @@ function centreIn(a, b) {
   const cy3 = a.y + a.h / 2;
   return cx2 >= b.x && cx2 < b.x + b.w && cy3 >= b.y && cy3 < b.y + b.h;
 }
-function meaningful2(line, minConfidence) {
-  const kept2 = line.text.replace(/[^\p{L}\p{N}]/gu, "");
+function meaningful2(line2, minConfidence) {
+  const kept2 = line2.text.replace(/[^\p{L}\p{N}]/gu, "");
   const chars = Array.from(kept2);
-  if (chars.length === 0 || line.confidence < minConfidence) return false;
+  if (chars.length === 0 || line2.confidence < minConfidence) return false;
   if (chars.length >= REPEAT_RUN && new Set(chars).size === 1) return false;
-  return chars.length >= SHORT_LINE_CHARS || line.confidence >= SHORT_LINE_CONFIDENCE;
+  return chars.length >= SHORT_LINE_CHARS || line2.confidence >= SHORT_LINE_CONFIDENCE;
 }
 function columnInk(image, box4) {
   const x0 = Math.max(0, Math.floor(box4.x));
@@ -160612,14 +160938,14 @@ function parentFirst(regions) {
   }
   const out = [];
   const placed2 = /* @__PURE__ */ new Set();
-  const visit = (r5) => {
+  const visit2 = (r5) => {
     if (placed2.has(r5)) return;
     placed2.add(r5);
     out.push(r5);
-    for (const child2 of children2.get(r5.id) ?? []) visit(child2);
+    for (const child2 of children2.get(r5.id) ?? []) visit2(child2);
   };
-  for (const r5 of roots2) visit(r5);
-  for (const r5 of regions) visit(r5);
+  for (const r5 of roots2) visit2(r5);
+  for (const r5 of regions) visit2(r5);
   return out;
 }
 async function reconstructFlattenedSlide(input) {
@@ -160791,15 +161117,15 @@ async function reconstructFlattenedSlide(input) {
     const lines = block.lines.filter((l) => at2.has(l.index)).sort((a, b) => (at2.get(a.index) ?? 0) - (at2.get(b.index) ?? 0));
     const runs2 = [];
     let joined = "";
-    for (const line of lines) {
-      const piece = line.text.trim();
+    for (const line2 of lines) {
+      const piece = line2.text.trim();
       if (!piece) continue;
       const sep3 = joined ? runsOnAfter(joined) ? "" : " " : "";
       joined += sep3 + piece;
-      const hex4 = colourOf4(line) ?? fallback;
+      const hex4 = colourOf4(line2) ?? fallback;
       const last = runs2[runs2.length - 1];
       if (last) last.text += sep3;
-      for (const part of lineParts(line, piece, hex4, bold, styleOf?.(line) ?? null, heavy ?? (() => false))) {
+      for (const part of lineParts(line2, piece, hex4, bold, styleOf?.(line2) ?? null, heavy ?? (() => false))) {
         const tail = runs2[runs2.length - 1];
         if (tail && tail.color?.hex === part.hex && tail.bold === true === part.bold) tail.text += part.text;
         else runs2.push(part.bold ? { text: part.text, bold: true, color: { hex: part.hex } } : { text: part.text, color: { hex: part.hex } });
@@ -160858,8 +161184,8 @@ async function reconstructFlattenedSlide(input) {
   const evidenceFrom = (lines) => (group, box4) => {
     const read = group.flatMap(
       (p) => p.lines.map((i) => {
-        const line = lines[i];
-        return { text: line?.text ?? "", confidence: line?.confidence ?? 0, box: toSlide(line?.box ?? { x: 0, y: 0, w: 0, h: 0 }) };
+        const line2 = lines[i];
+        return { text: line2?.text ?? "", confidence: line2?.confidence ?? 0, box: toSlide(line2?.box ?? { x: 0, y: 0, w: 0, h: 0 }) };
       })
     );
     const text13 = group.map((p) => p.text).join("");
@@ -160943,13 +161269,13 @@ async function reconstructFlattenedSlide(input) {
       return across && down ? `${down}-${across}` : null;
     };
     const byContainer = /* @__PURE__ */ new Map();
-    for (const line of pageText) {
-      const held = containerOf(line.box)?.id;
-      const corner = held ? null : cornerOf(line.box);
+    for (const line2 of pageText) {
+      const held = containerOf(line2.box)?.id;
+      const corner = held ? null : cornerOf(line2.box);
       const key2 = held ?? (corner ? `~${corner}` : "");
       const list4 = byContainer.get(key2);
-      if (list4) list4.push(line);
-      else byContainer.set(key2, [line]);
+      if (list4) list4.push(line2);
+      else byContainer.set(key2, [line2]);
     }
     const pictures = found.regions.filter((r5) => r5.kind === "picture").sort((a, b) => areaOf2(a.box) - areaOf2(b.box));
     const byHeight = pageText.map((l) => ({ h: l.box.h, n: letters2(l.text) })).sort((a, b) => a.h - b.h);
@@ -161212,8 +161538,8 @@ async function reconstructFlattenedSlide(input) {
     const pageTypeset = largest > 0 ? { ...typesetOpts, minTitlePx: largest / TITLE_SIZE_RATIO } : typesetOpts;
     const typesetOf = /* @__PURE__ */ new Map();
     for (const block of liveBlocks) typesetOf.set(block, snapSizes(typesetOcrLines(inkedOf(block), pageTypeset)));
-    const styleIn = (block, line) => {
-      const parts = line.parts.map((index2) => {
+    const styleIn = (block, line2) => {
+      const parts = line2.parts.map((index2) => {
         const read = block.lines[index2];
         return read ? glyphs2.get(read) ?? null : null;
       });
@@ -161234,7 +161560,7 @@ async function reconstructFlattenedSlide(input) {
       });
       return joined;
     };
-    const wordsOf6 = (block, typeset, para) => typeset.lines.filter((line) => para.lines.includes(line.index)).flatMap((line) => wordStems(styleIn(block, line)));
+    const wordsOf6 = (block, typeset, para) => typeset.lines.filter((line2) => para.lines.includes(line2.index)).flatMap((line2) => wordStems(styleIn(block, line2)));
     const weight = /* @__PURE__ */ new Map();
     for (const block of liveBlocks) {
       const own5 = apart(block.lines);
@@ -161286,18 +161612,18 @@ async function reconstructFlattenedSlide(input) {
       }
       const typeset = typesetOf.get(block) ?? snapSizes(typesetOcrLines(inkedOf(block), pageTypeset));
       const own5 = apart(block.lines);
-      const colourOf4 = (line) => lineInkColourOf(picture, own5[line.index] ?? line.box)?.ink ?? null;
+      const colourOf4 = (line2) => lineInkColourOf(picture, own5[line2.index] ?? line2.box)?.ink ?? null;
       const boldOf = (para) => {
         if (heavierThanPeers(para)) return true;
         if (usualWeight <= 0) return false;
         let sum = 0;
         let n7 = 0;
         for (const index2 of para.lines) {
-          const line = block.lines[index2];
-          const ratio = line ? weight.get(line) : void 0;
-          if (!line || ratio === void 0) continue;
-          sum += ratio * letters2(line.text);
-          n7 += letters2(line.text);
+          const line2 = block.lines[index2];
+          const ratio = line2 ? weight.get(line2) : void 0;
+          if (!line2 || ratio === void 0) continue;
+          sum += ratio * letters2(line2.text);
+          n7 += letters2(line2.text);
         }
         return n7 > 0 && sum / n7 >= BOLD_RATIO * usualWeight;
       };
@@ -161306,7 +161632,7 @@ async function reconstructFlattenedSlide(input) {
         const usualHere = words4.length >= 2 ? weightedMedian(words4.map((w) => ({ r: w.stem, n: w.letters }))) : 0;
         return (stem2, capitals) => stem2 !== null && usualHere > 0 && stem2 >= (capitals ? CAPITALS_BOLD_RATIO : WORD_BOLD_RATIO) * usualHere;
       };
-      const styleOf = (line) => styleIn(block, line);
+      const styleOf = (line2) => styleIn(block, line2);
       const texts = await textObjects(idBase, typeset, colourOf4, ink, evidenceFrom(block.lines), "ocr-estimate", true, boldOf, styleOf, heavyOf);
       built.push(...texts);
       if (block.icon) {
@@ -161479,14 +161805,14 @@ async function reconstructFlattenedSlide(input) {
   out.ocr = rebuiltOcr(carried);
   return out;
 }
-function leadingIcon(picture, line) {
-  const ground = outlineColourOf(picture, line.box);
+function leadingIcon(picture, line2) {
+  const ground = outlineColourOf(picture, line2.box);
   const rgb3 = ground ? Number.parseInt(ground.slice(1), 16) : 16777215;
   const g2 = [rgb3 >> 16 & 255, rgb3 >> 8 & 255, rgb3 & 255];
-  const x0 = Math.max(0, Math.floor(line.box.x));
-  const y0 = Math.max(0, Math.floor(line.box.y));
-  const x1 = Math.min(picture.width, Math.ceil(line.box.x + line.box.w));
-  const y1 = Math.min(picture.height, Math.ceil(line.box.y + line.box.h));
+  const x0 = Math.max(0, Math.floor(line2.box.x));
+  const y0 = Math.max(0, Math.floor(line2.box.y));
+  const x1 = Math.min(picture.width, Math.ceil(line2.box.x + line2.box.w));
+  const y1 = Math.min(picture.height, Math.ceil(line2.box.y + line2.box.h));
   if (x1 - x0 < 4 || y1 - y0 < 4) return null;
   const inked = (x, y) => {
     const i = (y * picture.width + x) * 4;
@@ -161526,13 +161852,13 @@ function leadingIcon(picture, line) {
   if (b0 >= cols.length) return null;
   const width = a1 - a0 + 1;
   if (width < LEAD_MIN_WIDTH * height || width > LEAD_MAX_WIDTH * height || b0 - a1 - 1 < LEAD_GAP * height) return null;
-  const tokens3 = line.text.trim().split(/\s+/);
+  const tokens3 = line2.text.trim().split(/\s+/);
   const first = tokens3[0] ?? "";
   const symbol = Array.from(first).length === 1 && ICON_TOKEN.test(first);
   const wordLetters = first.replace(/[^\p{L}\p{N}]/gu, "").length;
   const wider = wordLetters >= 3 && width < wordLetters * LETTER_WIDTH * height;
   if (!symbol && !wider) return null;
-  const text13 = symbol ? tokens3.slice(1).join(" ") : line.text.trim();
+  const text13 = symbol ? tokens3.slice(1).join(" ") : line2.text.trim();
   if (!text13) return null;
   let iTop = y1;
   let iBottom = -1;
@@ -161546,7 +161872,7 @@ function leadingIcon(picture, line) {
   }
   const icon = { x: x0 + a0, y: iTop, w: width, h: iBottom - iTop + 1 };
   const start = x0 + b0 - Math.round(0.1 * height);
-  return { icon, line: { text: text13, confidence: line.confidence, box: { x: start, y: line.box.y, w: line.box.x + line.box.w - start, h: line.box.h } } };
+  return { icon, line: { text: text13, confidence: line2.confidence, box: { x: start, y: line2.box.y, w: line2.box.x + line2.box.w - start, h: line2.box.h } } };
 }
 function markBefore(image, source, box4, threshold) {
   const word = textBoundsOf(source, box4, outlineColourOf(source, padBox(box4, 2)) ?? "#ffffff", threshold) ?? box4;
@@ -161679,9 +162005,9 @@ function weightedMedian(values) {
 function runsOnAfter(text13) {
   return text13.endsWith("-") || /\S[\u2014\u2013]$/u.test(text13);
 }
-function lineParts(line, piece, hex4, bold, glyphs2, heavy) {
-  const all = Array.from(line.text);
-  if (!glyphs2 || glyphs2.text !== line.text) return [{ text: piece, hex: hex4, bold }];
+function lineParts(line2, piece, hex4, bold, glyphs2, heavy) {
+  const all = Array.from(line2.text);
+  if (!glyphs2 || glyphs2.text !== line2.text) return [{ text: piece, hex: hex4, bold }];
   let offset = 0;
   while (offset < all.length && !all[offset]?.trim()) offset++;
   const chars = Array.from(piece);
@@ -161885,8 +162211,8 @@ async function readPage(picture, ocr, opts) {
     merged.push(inRow.length ? joinReadings([inRow], union5) : { text: best.text, confidence: best.confidence, box: best.box });
   }
   const apartLines = [];
-  for (const line of merged) {
-    const parts = spare() ? looseParts(picture, line.box) : [];
+  for (const line2 of merged) {
+    const parts = spare() ? looseParts(picture, line2.box) : [];
     const read = [];
     for (const part of parts) {
       if (!spare()) break;
@@ -161894,13 +162220,13 @@ async function readPage(picture, ocr, opts) {
       read.push(...(got ?? []).filter((l) => centreIn(l.box, part)));
     }
     if (read.length) apartLines.push(...read);
-    else apartLines.push(line);
+    else apartLines.push(line2);
   }
   const lines = [];
-  for (const line of apartLines) {
-    const b = line.box;
+  for (const line2 of apartLines) {
+    const b = line2.box;
     if (b.w <= opts.maxAspect * b.h || !spare()) {
-      lines.push(line);
+      lines.push(line2);
       continue;
     }
     const pieces = Math.min(MAX_PIECES, Math.max(2, Math.ceil(b.w / (PIECE_ASPECT * Math.max(PIECE_MIN_HEIGHT, b.h)))));
@@ -161916,7 +162242,7 @@ async function readPage(picture, ocr, opts) {
       read.push((got ?? []).filter((l) => l.box.y + l.box.h / 2 >= b.y && l.box.y + l.box.h / 2 <= b.y + b.h).sort((p, q) => p.box.x - q.box.x));
     }
     const joined = read.length === edges.length - 1 && read.some((r5) => r5.length) ? joinReadings(read, b, cuts.map((c) => c.gap >= WORD_GAP * b.h)) : null;
-    lines.push(joined && letters2(joined.text) >= letters2(line.text) ? joined : line);
+    lines.push(joined && letters2(joined.text) >= letters2(line2.text) ? joined : line2);
   }
   return { lines: lines.sort((a, b) => a.box.y - b.box.y || a.box.x - b.box.x), calls };
 }
@@ -162142,18 +162468,18 @@ function carryTextLayer(layer, built) {
   if (!content2.length) return { carried: 0, lost: lines.length };
   const centre = (b) => [b.x + b.w / 2, b.y + b.h / 2];
   const byObject = /* @__PURE__ */ new Map();
-  for (const line of lines) {
+  for (const line2 of lines) {
     let best;
     let bestArea = 0;
     for (const b of content2) {
-      const area2 = overlapArea(line.box, b.object.box);
+      const area2 = overlapArea(line2.box, b.object.box);
       if (area2 > bestArea) {
         best = b;
         bestArea = area2;
       }
     }
     if (!best) {
-      const [lx, ly] = centre(line.box);
+      const [lx, ly] = centre(line2.box);
       let bestDistance = Number.POSITIVE_INFINITY;
       for (const b of content2) {
         const [cx2, cy3] = centre(b.object.box);
@@ -162166,8 +162492,8 @@ function carryTextLayer(layer, built) {
     }
     if (!best) continue;
     const list4 = byObject.get(best);
-    if (list4) list4.push(line);
-    else byObject.set(best, [line]);
+    if (list4) list4.push(line2);
+    else byObject.set(best, [line2]);
   }
   let carried = 0;
   for (const [b, own4] of byObject) {
@@ -162942,18 +163268,18 @@ async function readPage2(page3, slideId, store, caps, fontRuns, struct) {
       });
     }
   } else {
-    const rankOf = (line) => {
+    const rankOf = (line2) => {
       let best;
-      for (const run3 of line.runs) {
+      for (const run3 of line2.runs) {
         const mcid = nodes[run3.nodeIndex]?.mcid;
         const r5 = typeof mcid === "number" ? struct.get(mcid) : void 0;
         if (r5 !== void 0 && (best === void 0 || r5 < best)) best = r5;
       }
       return best;
     };
-    for (const line of pdfTextLines(nodes, artifacts)) {
-      const unit2 = { z: line.firstNode, build: async (id3) => textObject(id3, line, fontRuns) };
-      const rank = rankOf(line);
+    for (const line2 of pdfTextLines(nodes, artifacts)) {
+      const unit2 = { z: line2.firstNode, build: async (id3) => textObject(id3, line2, fontRuns) };
+      const rank = rankOf(line2);
       if (rank !== void 0) unit2.rank = rank;
       units2.push(unit2);
     }
@@ -163012,20 +163338,20 @@ function ocrLayer(nodes, invisible, picture) {
   const layer = nodes.filter((n7, i) => invisible[i] && n7.kind === "text");
   const lines = pdfTextLines(layer).slice(0, MAX_OCR_LINES);
   if (!lines.length) return { state: "not-run" };
-  const text13 = lines.map((line) => pdfLineRunTexts(line).join("").slice(0, 65536));
+  const text13 = lines.map((line2) => pdfLineRunTexts(line2).join("").slice(0, 65536));
   const areaPx = Math.max(1, px(picture.w) * px(picture.h));
   const chars = text13.reduce((sum, t) => sum + t.replace(/\s/g, "").length, 0);
   return {
     state: "text-found",
     model: "pdf-text-layer",
-    lines: lines.map((line, k) => ({ text: text13[k], confidence: 1, box: boxOf3(line.x, line.y, line.w, line.h, line.rot) })),
+    lines: lines.map((line2, k) => ({ text: text13[k], confidence: 1, box: boxOf3(line2.x, line2.y, line2.w, line2.h, line2.rot) })),
     textDensity: round28(chars / (areaPx / 1e3))
   };
 }
-async function textObject(id3, line, fontRuns) {
+async function textObject(id3, line2, fontRuns) {
   const runs2 = [];
-  const texts = pdfLineRunTexts(line);
-  for (const [k, run3] of line.runs.entries()) {
+  const texts = pdfLineRunTexts(line2);
+  for (const [k, run3] of line2.runs.entries()) {
     const item2 = { text: texts[k] ?? run3.text, sizePt: round28(run3.size) };
     if (run3.bold) item2.bold = true;
     if (run3.italic) item2.italic = true;
@@ -163038,18 +163364,18 @@ async function textObject(id3, line, fontRuns) {
     if (color6) item2.color = color6;
     runs2.push(item2);
   }
-  const box4 = boxOf3(line.x, line.y, line.w, line.h, line.rot);
+  const box4 = boxOf3(line2.x, line2.y, line2.w, line2.h, line2.rot);
   const object4 = {
     id: id3,
     fingerprint: "",
     kind: "text",
     box: box4,
-    origin: line.artifact ? "pdf-artifact" : "slide",
+    origin: line2.artifact ? "pdf-artifact" : "slide",
     fidelity: { state: "editable" },
     text: { paras: [{ runs: runs2 }] }
   };
-  if (line.artifact === "Footer") object4.placeholder = "ftr";
-  if (line.runs.every((r5) => r5.opacity <= 0)) object4.hidden = true;
+  if (line2.artifact === "Footer") object4.placeholder = "ftr";
+  if (line2.runs.every((r5) => r5.opacity <= 0)) object4.hidden = true;
   object4.fingerprint = await fingerprintOf3("text", box4, runs2.map((r5) => r5.text).join(""));
   return { object: object4, warnings: [] };
 }
@@ -164004,9 +164330,9 @@ function boundedReader(reader, limit3 = MAX_DECK_LABEL_READS) {
   };
 }
 function readingOf(lines) {
-  const found = lines.filter((line) => line.text.trim()).sort((a, b) => a.box.x - b.box.x);
+  const found = lines.filter((line2) => line2.text.trim()).sort((a, b) => a.box.x - b.box.x);
   if (!found.length) return null;
-  return { text: found.map((line) => line.text.trim()).join(" "), confidence: Math.min(...found.map((line) => line.confidence)) };
+  return { text: found.map((line2) => line2.text.trim()).join(" "), confidence: Math.min(...found.map((line2) => line2.confidence)) };
 }
 function labelReaderFromOcr(ocr) {
   return async (frame) => {
@@ -164412,10 +164738,10 @@ async function sourceDeckFromPptx(parts, parseXml, opts) {
         }
       }
       if (node.type === "shape") {
-        const line = colorOf2(node.line);
-        if (line || typeof node.lineWidthPt === "number") {
+        const line2 = colorOf2(node.line);
+        if (line2 || typeof node.lineWidthPt === "number") {
           object4.line = {};
-          if (line) object4.line.color = line;
+          if (line2) object4.line.color = line2;
           if (typeof node.lineWidthPt === "number") object4.line.widthPt = node.lineWidthPt;
         }
       }
@@ -166975,20 +167301,20 @@ function parseRadianceHeader(bytes2) {
   let software = null;
   const comments = [];
   for (; ; ) {
-    const line = readLine();
-    if (line === null) return null;
-    if (line === "") break;
-    if (line.startsWith("#")) {
-      comments.push(line.slice(1).trim());
+    const line2 = readLine();
+    if (line2 === null) return null;
+    if (line2 === "") break;
+    if (line2.startsWith("#")) {
+      comments.push(line2.slice(1).trim());
       continue;
     }
-    const eq = line.indexOf("=");
+    const eq = line2.indexOf("=");
     if (eq < 0) {
-      comments.push(line.trim());
+      comments.push(line2.trim());
       continue;
     }
-    const key2 = line.slice(0, eq).trim().toUpperCase();
-    const value2 = line.slice(eq + 1).trim();
+    const key2 = line2.slice(0, eq).trim().toUpperCase();
+    const value2 = line2.slice(eq + 1).trim();
     if (key2 === "FORMAT") format = value2;
     else if (key2 === "EXPOSURE") {
       const v = Number(value2);
@@ -172430,13 +172756,13 @@ function orderBoxesReadingOrder(boxes2) {
   const byTop = [...boxes2].sort((a, b) => a.y - b.y);
   const lines = [];
   for (const b of byTop) {
-    const line = lines.find((ln) => {
+    const line2 = lines.find((ln) => {
       const ref2 = ln[0];
       if (!ref2) return false;
       const overlap2 = Math.min(b.y + b.h, ref2.y + ref2.h) - Math.max(b.y, ref2.y);
       return overlap2 > Math.min(b.h, ref2.h) / 2;
     });
-    if (line) line.push(b);
+    if (line2) line2.push(b);
     else lines.push([b]);
   }
   for (const ln of lines) ln.sort((a, b) => a.x - b.x);
@@ -173702,8 +174028,8 @@ async function checkKeepTextOutput(output, bars, fill2) {
       add3(pageNumber, "unreadable", `The text on page ${pageNumber} could not be read again.`);
       continue;
     }
-    for (const line of lines ?? []) {
-      const box4 = { x0: line.x, y0: line.baseline - 0.75 * line.size, x1: line.right, y1: line.baseline + 0.2 * line.size };
+    for (const line2 of lines ?? []) {
+      const box4 = { x0: line2.x, y0: line2.baseline - 0.75 * line2.size, x1: line2.right, y1: line2.baseline + 0.2 * line2.size };
       if (rects.some((bar) => box4.x0 >= bar.x0 - REACH && box4.x1 <= bar.x1 + REACH && box4.y0 >= bar.y0 - REACH && box4.y1 <= bar.y1 + REACH)) {
         add3(pageNumber, "text", `A line of text is still inside a box on page ${pageNumber}.`);
         break;
@@ -175184,7 +175510,7 @@ __export(text_measure_exports, {
 });
 import { existsSync as existsSync14, readdirSync as readdirSync2, readFileSync as readFileSync8 } from "node:fs";
 import { join as join26 } from "node:path";
-function firstFamily(value2) {
+function firstFamily2(value2) {
   if (typeof value2 !== "string") return void 0;
   const first = value2.split(",")[0]?.trim().replace(/^['"]|['"]$/g, "").trim();
   return first || void 0;
@@ -175194,7 +175520,7 @@ function measureFontsFromBrief(brief2) {
   const families = record40(brief2) && record40(brief2.type) && Array.isArray(brief2.type.families) ? brief2.type.families : [];
   for (const entry2 of families) {
     if (!record40(entry2) || typeof entry2.path !== "string") continue;
-    const family2 = firstFamily(entry2.value);
+    const family2 = firstFamily2(entry2.value);
     if (!family2) continue;
     const slot = entry2.path.replace(/^font\./, "");
     if (slot === "brand" || slot === "mono" || slot === "display" || slot === "italic") fonts[slot] = family2;
@@ -175216,7 +175542,7 @@ function measureFontsFromTokens(doc, theme) {
     } catch {
       continue;
     }
-    const family2 = typeof value2 === "string" && !value2.startsWith("{") ? firstFamily(value2) : void 0;
+    const family2 = typeof value2 === "string" && !value2.startsWith("{") ? firstFamily2(value2) : void 0;
     if (family2) fonts[slot] = family2;
   }
   return fonts;
@@ -175402,14 +175728,14 @@ async function createLayoutKernel(bytes2) {
   const decoder6 = new TextDecoder("utf-8", { fatal: true });
   return (request3) => {
     const input = encoder5.encode(JSON.stringify(request3));
-    if (input.length > MAX_BYTES) throw new Error("Layout request exceeds 8 MiB.");
+    if (input.length > MAX_BYTES2) throw new Error("Layout request exceeds 8 MiB.");
     const pointer2 = api.layout_alloc(input.length);
     if (!pointer2) throw new Error("Layout allocation failed.");
     try {
       new Uint8Array(api.memory.buffer, pointer2, input.length).set(input);
       const output = api.layout_solve(pointer2, input.length);
       const length2 = api.layout_output_len();
-      if (!length2 || length2 > MAX_BYTES) throw new Error("Layout response exceeds 8 MiB.");
+      if (!length2 || length2 > MAX_BYTES2) throw new Error("Layout response exceeds 8 MiB.");
       const result = JSON.parse(decoder6.decode(new Uint8Array(api.memory.buffer, output, length2)));
       if (result.error) throw new Error(String(result.error));
       const vectors = (value2, count4, width) => Array.isArray(value2) && value2.length === count4 && value2.every(
@@ -175424,11 +175750,11 @@ async function createLayoutKernel(bytes2) {
     }
   };
 }
-var MAX_BYTES;
+var MAX_BYTES2;
 var init_layout_kernel = __esm({
   "packages/node-shell/src/layout-kernel.ts"() {
     "use strict";
-    MAX_BYTES = 8 * 1024 * 1024;
+    MAX_BYTES2 = 8 * 1024 * 1024;
   }
 });
 
@@ -176456,11 +176782,11 @@ async function exportDesignIdml(opts, host) {
         const family2 = await familyOf9(box4), align = box4.align === "left" ? "LeftAlign" : box4.align === "right" ? "RightAlign" : "CenterAlign";
         if (![400, 700].includes(weight)) notes.push(`${String(box4.id)}: font weight ${weight} uses ${weight >= 600 ? "Bold" : "Regular"}; choose the exact face in InDesign.`);
         const paras = [];
-        for (const line of parseDesignText(String(box4.text ?? ""))) {
-          if (line.list) notes.push(`${String(box4.id)}: list marker exported as literal text.`);
+        for (const line2 of parseDesignText(String(box4.text ?? ""))) {
+          if (line2.list) notes.push(`${String(box4.id)}: list marker exported as literal text.`);
           let runs2 = "";
-          const prefix = line.list === "bullet" ? "\u2022 " : line.list === "number" ? `${line.number}. ` : "";
-          for (const [index2, run3] of line.runs.entries()) {
+          const prefix = line2.list === "bullet" ? "\u2022 " : line2.list === "number" ? `${line2.number}. ` : "";
+          for (const [index2, run3] of line2.runs.entries()) {
             const fontStyle = `${run3.bold || (run3.weight ?? weight) >= 600 ? "Bold" : "Regular"}${run3.italic ? " Italic" : ""}`;
             const runColor = run3.color ? await paint2(run3.color) : color6;
             runs2 += `<CharacterStyleRange AppliedCharacterStyle="CharacterStyle/$ID/[No character style]" PointSize="${number10(size)}" FontStyle="${fontStyle}" FillColor="${runColor}" Underline="${!!run3.underline}" StrikeThru="${!!run3.strike}"><Properties><AppliedFont type="string">${escapeAdobeXml(run3.font === "mono" ? "Courier New" : family2)}</AppliedFont></Properties><Content>${escapeAdobeXml((index2 === 0 ? prefix : "") + run3.text)}</Content></CharacterStyleRange>`;
@@ -176670,7 +176996,7 @@ function designDrawPdfFindings(page3, pictures) {
     if (op.shadow) out.push({ id: op.id, feature: "pdf-shadow" });
     if (op.blur) out.push({ id: op.id, feature: "pdf-blur" });
     if (op.op !== "shape") out.push({ id: op.id, feature: "pdf-preview-op" });
-    if (op.words?.layout?.lines.some((line, l) => line.runs.some((run3, r5) => run3.text.trim() && !op.words.outlines?.[l]?.[r5]))) {
+    if (op.words?.layout?.lines.some((line2, l) => line2.runs.some((run3, r5) => run3.text.trim() && !op.words.outlines?.[l]?.[r5]))) {
       out.push({ id: op.id, feature: "pdf-live-text" });
     }
     if (op.picture) {
@@ -176959,8 +177285,8 @@ Q
       if (op.op === "shape" && op.shape.kind !== "path" && ringed(op)) ({ box: inner, shape } = paddingArea(box4, op.shape, op.stroke));
       let out = `q
 ${clipTo({ box: inner, shape })}`;
-      for (const [li, line] of layout2.lines.entries()) {
-        for (const [ri, run3] of line.runs.entries()) {
+      for (const [li, line2] of layout2.lines.entries()) {
+        for (const [ri, run3] of line2.runs.entries()) {
           const d = words4.outlines?.[li]?.[ri];
           if (d === void 0 || d === null) continue;
           const ink = run3.color && /^#[0-9a-fA-F]{3,8}$/.test(run3.color) ? run3.color : words4.ink;
@@ -176969,7 +177295,7 @@ ${clipTo({ box: inner, shape })}`;
           const pieces = underline?.spans.filter((s) => s.width > 0) ?? [];
           const rect = (s) => `${n6(s.x)} ${n6(underline?.y ?? 0)} ${n6(s.width)} ${n6(underline?.height ?? 0)} re`;
           const under = pieces.filter((s) => s.ink === void 0).map(rect).join(" ");
-          const origin = `1 0 0 1 ${n6(box4.x + line.x + run3.x)} ${n6(box4.y + line.baseline)} cm
+          const origin = `1 0 0 1 ${n6(box4.x + line2.x + run3.x)} ${n6(box4.y + line2.baseline)} cm
 `;
           if (d || strike || under) out += `q ${opacityGs(ink === words4.ink ? words4.inkOpacity : void 0)}${color5(ink, "rg")} ${origin}${under ? `${under} f
 ` : ""}${d ? `${svgPath2(d)}f
@@ -179440,8 +179766,8 @@ function startDebug() {
   const network = [];
   let writtenPath;
   const at = () => `${((Date.now() - t0) / 1e3).toFixed(2)}s`;
-  const push = (into, line) => {
-    if (into.length < DEBUG_MAX_LINES) into.push(`[${at()}] ${line}`);
+  const push = (into, line2) => {
+    if (into.length < DEBUG_MAX_LINES) into.push(`[${at()}] ${line2}`);
     else if (into.length === DEBUG_MAX_LINES) into.push(`\u2026 (further lines dropped at ${DEBUG_MAX_LINES})`);
   };
   return {
@@ -179655,8 +179981,8 @@ async function renderViaChromiumShell(toolId, query2, format, dims = {}) {
     const observeInputs = await observeProductionInputs(page3, toolId, dims.productionInputIds ?? []);
     debug.attach(page3);
     page3.on("console", (message) => {
-      const line = sessionExportNote(message.type(), message.text());
-      if (line && (PICTURE_NOTES.some((note2) => message.text().startsWith(note2)) || message.text().startsWith(FILL_NOTE))) process.stderr.write(`Note: ${line}
+      const line2 = sessionExportNote(message.type(), message.text());
+      if (line2 && (PICTURE_NOTES.some((note2) => message.text().startsWith(note2)) || message.text().startsWith(FILL_NOTE))) process.stderr.write(`Note: ${line2}
 `);
     });
     waiting = await waitForExport(page3, format);
@@ -179882,8 +180208,8 @@ async function exportOpenedSession(page3, base, query2, format, dims, debug, lab
   const waiting = await waitForExport(page3, format);
   const notes = [];
   const onConsole = (message) => {
-    const line = sessionExportNote(message.type(), message.text());
-    if (line && !notes.includes(line)) notes.push(line);
+    const line2 = sessionExportNote(message.type(), message.text());
+    if (line2 && !notes.includes(line2)) notes.push(line2);
   };
   page3.on("console", onConsole);
   try {
@@ -184024,7 +184350,7 @@ async function svgDomToIr(svgEl, ctx = {}) {
     return parsed;
   };
   const warn2 = (m2) => host?.log?.("warn", `${LABEL2.toLowerCase()}: ${m2}`);
-  async function visit(el, t, inherited4) {
+  async function visit2(el, t, inherited4) {
     if (!el.tagName) return;
     const tag3 = el.tagName.toLowerCase().replace(/^svg:/, "");
     if (SKIP2.has(tag3)) return;
@@ -184049,7 +184375,7 @@ async function svgDomToIr(svgEl, ctx = {}) {
         opacity: void 0
         // group opacity does not inherit as a property; applied per-leaf
       };
-      for (const child2 of el.children) await visit(child2, et, inh);
+      for (const child2 of el.children) await visit2(child2, et, inh);
       return;
     }
     const style = parseStyleAttr(el);
@@ -184112,7 +184438,7 @@ async function svgDomToIr(svgEl, ctx = {}) {
       warn2("use elements are not supported (skipped)");
       return;
     } else {
-      for (const child2 of el.children || []) await visit(child2, t, inherited4);
+      for (const child2 of el.children || []) await visit2(child2, t, inherited4);
       return;
     }
     if (!d.trim()) return;
@@ -184339,7 +184665,7 @@ async function svgDomToIr(svgEl, ctx = {}) {
     }
     prims.push({ type: "path", subpaths, fill: rgbObj(rgb3), stroke, fillRule: "nonzero" });
   }
-  await visit(svgEl, IDENTITY7, null);
+  await visit2(svgEl, IDENTITY7, null);
   return { width: Math.round(canvasW), height: Math.round(canvasH), prims };
 }
 function mapSeg(seg5, mapPt) {
@@ -187711,9 +188037,9 @@ function clipsOf(pieces, gaps) {
 function segmentsByLine(segments, pieces, lines) {
   const out = [];
   let i = 0;
-  for (let line = 0; line < lines; line++) {
+  for (let line2 = 0; line2 < lines; line2++) {
     const start = i;
-    while (i < segments.length && pieces[i].line === line) i++;
+    while (i < segments.length && pieces[i].line === line2) i++;
     if (i === start) {
       const at = out.at(-1)?.samples[1] ?? 0;
       const w = out.at(-1)?.words[1] ?? 0;
@@ -187760,7 +188086,7 @@ function createNodeSpeechAPI(opts = {}) {
     const pieces = [];
     for (let i = 0; i < plan.length; i++) {
       if (isAborted()) throw abortError2("speech synthesis aborted");
-      const { sentence, line } = plan[i];
+      const { sentence, line: line2 } = plan[i];
       const rate3 = Math.min(MAX_SPEECH_SPEED, Math.max(MIN_SPEECH_SPEED, sentence.speed ?? speed));
       const words4 = sentence.tokens ?? splitWords(sentence.text);
       const wordPhonemes = [];
@@ -187787,7 +188113,7 @@ function createNodeSpeechAPI(opts = {}) {
           const times = wordTimingsFromDurations(outputs.durations.data, spans, wave.length, KOKORO_SAMPLE_RATE);
           if (times) wordEntries = chunk7.words.map((t, j) => ({ text: t, start: times[j].start, end: times[j].end }));
         }
-        pieces.push({ pcm: wave, sentence: chunk7.words.join(" "), wordEntries, line });
+        pieces.push({ pcm: wave, sentence: chunk7.words.join(" "), wordEntries, line: line2 });
       }
       onProgress?.({ phase: "synthesis", fraction: (i + 1) / plan.length });
     }
@@ -187832,7 +188158,7 @@ function createNodeSpeechAPI(opts = {}) {
       return withAbort(synthOpts.signal, "speech synthesis aborted", async (isAborted) => {
         const { sentences } = parseScriptMarks(text13, { prenormalized: synthOpts.prenormalized === true });
         const pieces = await synthesizePieces(
-          sentences.map((sentence, line) => ({ sentence, line })),
+          sentences.map((sentence, line2) => ({ sentence, line: line2 })),
           voiceId,
           speed,
           isAborted,
@@ -197592,7 +197918,7 @@ var visual_intent_v1_schema_default = {
       type: "object",
       maxProperties: 64,
       propertyNames: {
-        enum: ["address", "awarddate", "awardtopic", "bgImage", "body", "company", "cta", "currency", "data", "email", "eventEnd", "eventLocation", "eventName", "eventStart", "firstname", "heading", "headshot", "image", "jobTitle", "lastname", "phone", "recipient", "sender", "sourceAuthor", "subheading", "url"]
+        enum: ["address", "awarddate", "awardtopic", "bgImage", "body", "company", "cta", "currency", "data", "email", "eventEnd", "eventLocation", "eventName", "eventStart", "firstname", "heading", "headshot", "image", "jobTitle", "lastname", "partnerMark", "phone", "recipient", "sender", "sourceAuthor", "subheading", "url"]
       },
       description: "Content by role. The `roles` section of schemas/canonical-inputs.json says what each one is."
     },
@@ -197703,7 +198029,7 @@ var intent_resolution_v1_schema_default = {
           }
         },
         rulesVersion: { type: "string" },
-        vocabularyVersion: { const: 1 }
+        vocabularyVersion: { const: 2 }
       }
     },
     coded: {
@@ -198887,8 +199213,8 @@ async function brandSkillsSettings(args) {
   if (unknown2.length) {
     const list4 = listProfileBrandSkills({ audience });
     const available = [...list4?.skills.map((s) => s.name) ?? [], ...list4 ? [`${list4.baseline.name} (generated)`] : []];
-    const quoted2 = unknown2.map((n7) => `"${n7}"`).join(", ");
-    return { error: `Unknown brand skill${unknown2.length > 1 ? "s" : ""} ${quoted2}. Available: ${available.length ? available.join(", ") : "none"}. Read lolly://design-system/skills for the list.` };
+    const quoted3 = unknown2.map((n7) => `"${n7}"`).join(", ");
+    return { error: `Unknown brand skill${unknown2.length > 1 ? "s" : ""} ${quoted3}. Available: ${available.length ? available.join(", ") : "none"}. Read lolly://design-system/skills for the list.` };
   }
   return { brandSkills: out };
 }
@@ -200871,14 +201197,14 @@ var UnconfiguredRateLimiter = class {
 };
 var UNCONFIGURED_REASON = "No durable rate limiter is configured for this hosted deployment: set LOLLY_RATE_LIMIT_REST_URL + LOLLY_RATE_LIMIT_REST_TOKEN (a Redis-compatible HTTPS REST store), or LOLLY_ALLOW_IN_MEMORY_RATE_LIMIT=1 to accept per-instance limiting";
 function restStoreConfig(env) {
-  for (const [urlName, tokenName] of [
+  for (const [urlName, tokenName2] of [
     ["LOLLY_RATE_LIMIT_REST_URL", "LOLLY_RATE_LIMIT_REST_TOKEN"],
     ["UPSTASH_REDIS_REST_URL", "UPSTASH_REDIS_REST_TOKEN"],
     ["KV_REST_API_URL", "KV_REST_API_TOKEN"]
   ]) {
     const url = env[urlName]?.trim();
-    const token2 = env[tokenName]?.trim();
-    if (!!url !== !!token2) throw new Error(`${urlName} and ${tokenName} must be configured together`);
+    const token2 = env[tokenName2]?.trim();
+    if (!!url !== !!token2) throw new Error(`${urlName} and ${tokenName2} must be configured together`);
     if (url && token2) return { url, token: token2 };
   }
   return null;
