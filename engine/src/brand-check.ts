@@ -10,7 +10,8 @@ import { AUTO_ASSET_THEME, parseThemedAssetId } from './icon-theme.ts';
 export interface BrandFix { layerId: string; field: string; before: unknown; after: string }
 export interface BrandFinding {
   id: string;
-  kind: 'color' | 'font' | 'asset' | 'reference' | 'coverage';
+  /** `mark`: a partner mark measured against its kit's rules, from `checkGuestMarks` (partner-kit-check.ts). */
+  kind: 'color' | 'font' | 'asset' | 'reference' | 'coverage' | 'mark';
   status: 'review' | 'unknown';
   layerId?: string;
   label: string;
@@ -18,6 +19,16 @@ export interface BrandFinding {
   value?: string;
   suggestion?: string;
   fix?: BrandFix;
+  /** A `mark` finding's kit rule. */
+  rule?: 'min-size' | 'clear-space' | 'treatment';
+  /** A `mark` finding's sentence in English, the one `lolly check` prints. */
+  message?: string;
+  /** What a `mark` finding's rule asks, beside `value`, what was measured. */
+  expected?: string;
+  /** The company a `mark` finding's kit belongs to. */
+  company?: string;
+  /** Other layers a `mark` finding names: those inside the clear space, or the photo beneath. */
+  related?: string[];
 }
 const record = (v: unknown): v is Record<string, unknown> => !!v && typeof v === 'object' && !Array.isArray(v);
 const valueText = (v: unknown): string => typeof v === 'string' ? v : record(v) && typeof v.ref === 'string' ? v.ref : '';

@@ -267,7 +267,8 @@ A check never reads as clean on what it did not read. An export page with no tex
 - `--theme=<name>` is the token theme the document is checked in; a theme the design system does not declare is a usage error.
 - `--themes=<a,b|all>` checks in several themes in one report. The render, brand and Lolly Verify families run once per theme and each finding carries `theme`. Structure and fidelity run once. A link that does not resolve in a theme is `brand.token-link.unresolved`. `--theme` and `--themes` together are refused.
 - `--page-cap=<n>` limits how many artboards or pages Lolly Verify reads (1 to 100).
-- On a standalone CLI with no design system, the brand family is `unavailable`.
+- `--kit=<partner-kit.json>` measures the document's partner marks against a partner kit: its minimum size, clear space and treatments. Each finding is a brand review (`brand.mark.min-size`, `brand.mark.clear-space` or `brand.mark.treatment`) and never an error. A kit that does not read as `partner-kit-v1` is a usage error.
+- On a standalone CLI with no design system, the brand family is `unavailable`. With `--kit` the brand family still runs, on the partner kit alone.
 :::
 
 [CLI batch and automation](/info/cli-automation.html#check-a-design-document-in-ci-lolly-check) shows `check` as a CI gate.

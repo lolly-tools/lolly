@@ -53,7 +53,8 @@ test('check is a reserved, content-free verb with its own value flags', () => {
   assert.ok((RESERVED_SUBCOMMANDS as readonly string[]).includes('check'));
   assert.ok(CONTENT_FREE_COMMANDS.has('check'));
   // 1.244 (plan 291 W4): --themes checks the document in more than one theme.
-  assert.deepEqual([...CHECK_VALUE_FLAGS], ['source', 'file', 'theme', 'browser', 'page-cap', 'edits', 'themes']);
+  // Plans/82 M8: --kit measures partner marks against a partner kit.
+  assert.deepEqual([...CHECK_VALUE_FLAGS], ['source', 'file', 'theme', 'browser', 'page-cap', 'edits', 'themes', 'kit']);
 });
 
 test('the trap document exits 5 with one envelope whose result is a valid check report', () => withState(async (state) => {
@@ -248,4 +249,42 @@ test('--edits records deliberate wording changes: their findings stay as excepte
   assert.equal(bad.status, 2);
   assert.equal(bad.json.error?.kind, 'BAD_FLAG_VALUE');
   assert.match(bad.json.error?.message ?? '', /Edit 1 needs "reason"/);
+}));
+
+test('--kit measures partner marks as brand reviews against the profile\'s design system or --file, and a bad kit refuses', () => withState(async (state, dir) => {
+  const kit = {
+    schemaVersion: 1, id: 'northwind-it', label: 'Northwind IT',
+    logos: { light: { id: 'inst/nw-light', version: 2 } }, colours: [],
+    rules: { minSize: { px: 96 }, clearSpace: { value: 0.5, unit: 'mark-height' } },
+  };
+  const doc = [
+    { id: 'logo', kind: 'image', name: 'Northwind logo', image: 'inst/nw-light', x: 40, y: 40, w: 200, h: 48 },
+    { id: 'heading', kind: 'text', name: 'Heading', text: 'Join the webinar', x: 40, y: 96, w: 600, h: 60 },
+  ];
+  const kitPath = join(dir, 'kit.json');
+  const docPath = join(dir, 'banner.json');
+  await writeFile(kitPath, JSON.stringify(kit));
+  await writeFile(docPath, JSON.stringify(doc));
+  for (const extra of [[], [`--file=${TOKENS}`]]) {
+    const run = lolly(['check', docPath, `--kit=${kitPath}`, '--browser=off', '--json', ...extra], state);
+    assert.equal(run.status, 5, run.stderr);
+    assert.equal(validate(run.json.result), true, JSON.stringify(validate.errors));
+    const marks = run.json.result.findings.filter((f: { code: string }) => f.code.startsWith('brand.mark.'));
+    assert.deepEqual(marks.map((f: { code: string; severity: string; layerId: string }) => [f.code, f.severity, f.layerId]), [
+      ['brand.mark.min-size', 'warn', 'logo'],
+      ['brand.mark.clear-space', 'warn', 'logo'],
+    ]);
+    assert.equal(marks[0].message, "Northwind IT's mark is 48 px high; the kit asks for at least 96 px.");
+    assert.equal(run.json.result.families.brand.state, 'ran');
+    assert.match(run.json.result.families.brand.reason, /Partner kit Northwind IT: measured 1 partner mark against its minimum size and clear space\./);
+  }
+  const human = lolly(['check', docPath, `--kit=${kitPath}`, '--browser=off'], state);
+  assert.match(human.stdout, /brand\.mark\.min-size {2}\[logo\] {2}Northwind IT's mark is 48 px high/);
+  const bad = join(dir, 'bad-kit.json');
+  await writeFile(bad, JSON.stringify({ ...kit, fonts: ['Northwind Sans'] }));
+  const refused = lolly(['check', docPath, `--kit=${bad}`, '--browser=off', '--json'], state);
+  assert.equal(refused.status, 2, refused.stderr);
+  assert.match(refused.json.error?.message ?? refused.stderr, /is not a partner kit: The kit does not match partner-kit-v1/);
+  const bare = lolly(['check', docPath, '--kit', '--browser=off'], state);
+  assert.equal(bare.status, 2);
 }));

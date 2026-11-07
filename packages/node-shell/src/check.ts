@@ -12,7 +12,8 @@
  *              with its pictures (`designChecksViaSession`). Without a browser,
  *              a built shell or a shell that has the hook, the family is `unavailable`
  *              and says why; the others still run.
- *   brand      `checkBrandDesign` and the pack's house rules, against the design system
+ *   brand      `checkBrandDesign` and the pack's house rules, against the design system,
+ *              and, given a partner kit (`--kit`), `checkGuestMarks` on the kit's marks
  *              the caller resolved (`designSystem`). None resolved: `unavailable`.
  *   verify     the forensic rules. A document is read from its own geometry
  *              (`verifyDesignDocument`, no OCR, no pixels); an export from its file
@@ -49,6 +50,7 @@ import {
   checkBrandDesign,
   checkDesignHouseRules,
   checkFidelity,
+  checkGuestMarks,
   checkFindingFromBrand,
   checkFindingFromDesign,
   checkFindingFromMounted,
@@ -73,6 +75,7 @@ import {
 } from '@lolly/engine';
 import type { DesignAuthoringNote, DesignBriefCatalogV1, ForensicCoverage } from '@lolly/engine';
 import { inspectDesignV1 } from '@lolly-tools/core';
+import type { PartnerKitV1 } from '@lolly-tools/core/partner-kit-v1';
 import type {
   CheckDesignSystemV1,
   CheckExitCodeV1,
@@ -144,6 +147,13 @@ export interface CheckFileOptionsV1 {
   designSystem?: CheckDesignSystemInputV1 | null;
   /** Catalog facts (asset ids, icon themes, treatments, logos), so catalog ids are known assets. */
   catalog?: DesignBriefCatalogV1 | null;
+  /**
+   * A partner kit `readPartnerKit` accepted (`lolly check --kit`, plans/82 M8). The brand
+   * family also measures the document's partner marks against the kit's minimum size,
+   * clear space and treatments, once, whatever theme is checked. Each finding is a review
+   * (`brand.mark.<rule>`, warn), never an error. Runs without a design system too.
+   */
+  partnerKit?: PartnerKitV1 | null;
   /** The token theme the document is composed in. */
   theme?: string;
   /**
@@ -1178,6 +1188,23 @@ function themeNamesOf(doc: unknown): string[] {
 }
 
 /**
+ * The partner kit's findings for a document and the sentence the brand family's reason
+ * gains: which kit, how many marks were measured, and what the kit states that was not
+ * measured. The document's own unit and dpi turn its CSS pixels into export pixels and
+ * millimetres, as Design's export does.
+ */
+function partnerKitFindings(doc: DesignInput, partnerKit: PartnerKitV1, lookup: ReturnType<typeof designLayerLookup>): { findings: CheckFindingV1[]; note: string } {
+  const unit = typeof doc.values.documentUnit === 'string' ? doc.values.documentUnit : 'px';
+  const dpi = Number(doc.values.documentDpi);
+  const report = checkGuestMarks(doc.boxes, partnerKit, { unit, ...(Number.isFinite(dpi) && dpi > 0 ? { dpi } : {}) });
+  const rules = report.checked.rules.map((r) => ({ 'min-size': 'minimum size', 'clear-space': 'clear space', treatment: 'treatments' })[r]);
+  const ruleText = rules.length ? ` against its ${rules.length > 1 ? `${rules.slice(0, -1).join(', ')} and ${rules[rules.length - 1]}` : rules[0]}` : ', which states no rules';
+  const notes = [`Partner kit ${partnerKit.label}: measured ${plural(report.checked.marks, 'partner mark')}${ruleText}.`];
+  if (report.notMeasured.length) notes.push(`Not measured: ${report.notMeasured.join('; ')}.`);
+  return { findings: report.findings.map((f) => checkFindingFromBrand(f, lookup)), note: notes.join(' ') };
+}
+
+/**
  * Check one file. Throws `CheckInputError` for an input or source it cannot read;
  * everything else, a crash in one family included, is in the report.
  */
@@ -1254,7 +1281,11 @@ export async function checkFile(bytes: Uint8Array, name: string, asked: CheckFil
     }
 
     designSystem = ds ? { origin: ds.origin, ...(ds.profile ? { profile: ds.profile } : {}), ...(ds.tokensAsset ? { tokensAsset: ds.tokensAsset } : {}) } : null;
-    if (!ds) {
+    // Partner marks against the kit's rules (plans/82 M8): geometry, so once for every theme.
+    const kit = opts.partnerKit ? partnerKitFindings(doc, opts.partnerKit, lookup) : null;
+    if (!ds && kit) {
+      take('brand', familyState('ran', `${words.noDesignSystem} Only the partner kit was checked. ${kit.note}`), kit.findings);
+    } else if (!ds) {
       families.brand = familyState('unavailable', `${words.noDesignSystem}${opts.theme ? ` The theme "${opts.theme}" was not checked against one.` : ''}`);
     } else {
       const lists: CheckFindingV1[] = [];
@@ -1293,6 +1324,7 @@ export async function checkFile(bytes: Uint8Array, name: string, asked: CheckFil
         reasons.push(multiTheme ? `In the ${theme} theme: ${brand.state.reason ?? ''}`.trim() : brand.state.reason ?? '');
       }
       if (failed !== null) families.brand = familyState('failed', failed);
+      else if (kit) take('brand', familyState('ran', `${reasons.join(' ')} ${kit.note}`.trim()), [...lists, ...kit.findings]);
       else take('brand', familyState('ran', reasons.join(' ')), lists);
     }
 

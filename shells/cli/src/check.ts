@@ -5,7 +5,8 @@
  *
  *   lolly check <design.json|file.lolly|export.pdf|.pptx|.png|.jpg|.webp|.svg>
  *               [--source=<deck.pptx|deck.pdf|inventory.json>] [--file=<tokens.json>]
- *               [--theme=<name> | --themes=<a,b|all>] [--browser=auto|off|require]
+ *               [--theme=<name> | --themes=<a,b|all>] [--kit=<partner-kit.json>]
+ *               [--browser=auto|off|require]
  *               [--page-cap=N] [--ocr]
  *               [--edits=<edits.json>] [--strict] [--json]
  *
@@ -35,6 +36,7 @@ import { basename, resolve } from 'node:path';
 import type { CheckFindingV1, CheckReportV1 } from '@lolly-tools/core';
 import { CheckInputError, checkFile, parseFidelityEdits, type CheckFileOptionsV1 } from '@lolly-tools/node-shell/check';
 import { cleanControlChars } from '@lolly-tools/node-shell/verdict-report';
+import { checkPartnerKit } from '@lolly/engine';
 import { CliError, EXIT, usageError } from './exit-codes.ts';
 import { emitResult } from './envelope.ts';
 import { writeOut } from './output.ts';
@@ -140,6 +142,17 @@ async function readEdits(path: string, source: string | undefined): Promise<NonN
   return edits;
 }
 
+/**
+ * `--kit=<partner-kit.json>`: a partner kit (plans/82 M8). A kit the engine reader refuses
+ * refuses the run, with the reader's reason, rather than checking against part of the kit.
+ */
+async function readKit(path: string): Promise<NonNullable<CheckFileOptionsV1['partnerKit']>> {
+  const { bytes } = await readInput(path);
+  const result = checkPartnerKit(new TextDecoder().decode(bytes));
+  if (!result.ok) throw usageError(`${path} is not a partner kit: ${result.issues[0]?.message ?? 'it could not be read.'}`, 'BAD_FLAG_VALUE');
+  return result.kit;
+}
+
 export async function checkCli(positionals: string[], flags: Record<string, string>, opts: CheckCliOptions = {}): Promise<number> {
   if (positionals.length > 1) throw usageError(`lolly check takes one file; got ${positionals.length}.`, 'TOO_MANY_ARGUMENTS');
   const browser = flags.browser ?? 'auto';
@@ -167,6 +180,7 @@ export async function checkCli(positionals: string[], flags: Record<string, stri
     checkOpts.source = source;
   }
   if (flags.edits !== undefined) checkOpts.edits = await readEdits(flags.edits, flags.source);
+  if (flags.kit !== undefined) checkOpts.partnerKit = await readKit(flags.kit);
   // The brand family needs a design system for a document, and for a .pptx, whose
   // painted colours it reads (plan 291 M4); any other export skips that family.
   if (/\.(json|lolly|pptx)$/i.test(name)) {

@@ -6,6 +6,13 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+## 1.333.0
+
+- Guest-mark checks (Lolly Work plan 82, M8). New module `partner-kit-check.ts`, in the barrel: `checkGuestMarks(boxes, kit, measure)` measures a Design document's partner marks, the image layers whose asset is one of the kit's logos by id, against the kit's rules. Minimum size: the mark's drawn height in export pixels and, on a document in a physical unit, in millimetres (`units.ts` at the document's unit and dpi; a contained logo is measured where it is drawn when its aspect is known). Clear space: any visible layer overlapping the mark inflated by the kit's mark-height value, except a layer that holds the whole mark, which is its background; two kit marks check each other. Treatment: a mark recoloured by a photo treatment or an icon theme is one colour, else full colour, and a mark whose nearest holding layer beneath is a picture sits on a photo. Reversed use is reported as not measured.
+- `BrandFinding.kind` gains `mark`, with the optional `rule`, `message`, `expected`, `company` and `related` fields. A `mark` finding is always `status: 'review'` and carries no fix: sizing a mark is the person's call, and nothing blocks an export, a render or a save. In a check report its code is `brand.mark.<rule>` (`checkFindingFromBrand`), a warning.
+- `lolly check --kit=<partner-kit.json>` runs it in the brand family (`checkFile`'s new `partnerKit` option), once whatever theme is checked, and with no design system the brand family runs on the kit alone. A kit the reader refuses is a usage error.
+- No other module changes behaviour. An older app shows no row for a `mark` finding rather than a wrong one.
+
 ## 1.332.0
 
 - Partner kits (Lolly Work plan 82, M8; plan 334 M2a). `partner-kit-v1` is a partner company's logos pinned by asset version, up to 12 colours in closed roles (`primary`, `secondary`, `accent`, `text`, `surface`) and optional placement rules: clear space in mark-height units, a minimum size in px, mm or both, and the treatments the partner allows (`colour`, `mono`, `reverse`, `on-photo`). A kit carries no fonts, no themes and no token document, so it is never a design system, and its JSON is 64 KB at most. The types, the closed lists and every bound live in the SDK (`@lolly-tools/core/partner-kit-v1`, SDK 1.7.0), with `schemas/partner-kit-v1.schema.json` mirrored into `packages/core/schema/`.
