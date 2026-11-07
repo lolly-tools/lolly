@@ -147,7 +147,7 @@ async function readEdits(path: string, source: string | undefined): Promise<NonN
  * `--kit=<partner-kit.json>`: a partner kit (plans/82 M8). A kit the engine reader refuses
  * refuses the run, with the reader's reason, rather than checking against part of the kit.
  */
-async function readKit(path: string): Promise<NonNullable<CheckFileOptionsV1['partnerKit']>> {
+export async function readKit(path: string, openFile: typeof open = open): Promise<NonNullable<CheckFileOptionsV1['partnerKit']>> {
   // Read at most one byte past the kit bound (three more for a byte order mark), so a
   // padded or huge file is refused before it is copied or decoded.
   const limit = PARTNER_KIT_MAX_BYTES + 3;
@@ -165,16 +165,23 @@ async function readKit(path: string): Promise<NonNullable<CheckFileOptionsV1['pa
   } else {
     let handle: Awaited<ReturnType<typeof open>>;
     try {
-      handle = await open(resolve(process.cwd(), path), 'r');
+      handle = await openFile(resolve(process.cwd(), path), 'r');
     } catch (err) {
       if ((err as NodeJS.ErrnoException).code === 'ENOENT') throw usageError(`No file at ${path}.`, 'FILE_NOT_FOUND');
       throw err;
     }
     try {
+      // Read until the end of the file or one byte past the bound: a read may return fewer
+      // bytes than asked, so one short read neither passes a big file nor cuts a small one.
       const buffer = Buffer.alloc(limit + 1);
-      const { bytesRead } = await handle.read(buffer, 0, limit + 1, 0);
-      if (bytesRead > limit) throw usageError(`${path} is larger than ${PARTNER_KIT_MAX_BYTES.toLocaleString('en')} bytes, the most a partner kit may take.`, 'BAD_FLAG_VALUE');
-      bytes = new Uint8Array(buffer.subarray(0, bytesRead));
+      let filled = 0;
+      for (;;) {
+        const { bytesRead } = await handle.read(buffer, filled, buffer.length - filled, filled);
+        if (bytesRead === 0) break;
+        filled += bytesRead;
+        if (filled > limit) throw usageError(`${path} is larger than ${PARTNER_KIT_MAX_BYTES.toLocaleString('en')} bytes, the most a partner kit may take.`, 'BAD_FLAG_VALUE');
+      }
+      bytes = new Uint8Array(buffer.subarray(0, filled));
     } finally {
       await handle.close();
     }
