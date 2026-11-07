@@ -3805,6 +3805,9 @@ html[data-a11y-motion="reduce"] .sidebar-chev{transition:none}
    a page's print edition beside it as an app button, on the title's last line
    rather than over the article's first. On a phone the button wraps under the title. */
 .mast-title{display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:1rem 2rem}
+/* The section label over the title (pageWayfinding): tucked to the title, a row of
+   the band's own. */
+.docs-mast-inner .docs-eyebrow{margin-bottom:-.9rem}
 .mast-title h1{flex:1 1 18rem;min-width:0}
 .mast-title .docs-edition-bar{margin:0 0 .35rem}
 /* The pathways strip at the top of the band (docs-chrome.css, which also makes it
@@ -6257,6 +6260,39 @@ function repeatsPathwayTitle(groupLabel: string, pathwayTitle: string): boolean 
   return bare(groupLabel) === bare(pathwayTitle);
 }
 
+/**
+ * The page's section and the next step for reading (plan 354 D3): the section label
+ * over the title ("Create · Collaborate and export") and Previous and Next at the
+ * article's end, both generated from the manifest's rail order and never written into
+ * page text. The search index and the Markdown twins read the page before this chrome
+ * is added, so neither carries the label or the pager. A page outside its section's
+ * own rail (a borrowed or loose page) gets neither.
+ */
+function pageWayfinding(lang: Lang, page: Page): { eyebrow: string; pager: string } {
+  const pathway = page.pathway;
+  if (!pathway) return { eyebrow: '', pager: '' };
+  const sb = SIDEBARS[pathway];
+  const own = sb.groups.filter((g) => g.label !== 'Also in other sections');
+  const hub = PATHWAY_HUB[pathway];
+  // Reading order: the hub, then every row of the section's own groups.
+  const order: Array<{ slug: string; label: string }> = [{ slug: hub, label: sb.title }];
+  for (const g of own) for (const it of g.items) if (it.slug !== hub) order.push(it);
+  const at = order.findIndex((it) => it.slug === page.slug);
+  if (at < 0) return { eyebrow: '', pager: '' };
+  const group = own.find((g) => g.items.some((it) => it.slug === page.slug));
+  const groupLabel = group && page.slug !== hub && !repeatsPathwayTitle(group.label, sb.title) ? group.label : '';
+  const eyebrow = `<p class="docs-eyebrow"><span>${esc(t(sb.title))}</span>${groupLabel ? `<span aria-hidden="true"> · </span><span>${esc(t(groupLabel))}</span>` : ''}</p>`;
+  const link = (it: { slug: string; label: string } | undefined, dir: 'prev' | 'next'): string => it
+    ? `<a class="docs-pager-link docs-pager-${dir}" href="${localeHref(lang, it.slug)}" rel="${dir}"><span class="docs-pager-dir">${esc(t(dir === 'prev' ? 'Previous' : 'Next'))}</span><span class="docs-pager-title">${esc(t(it.label))}</span></a>`
+    : '<span class="docs-pager-link docs-pager-empty" aria-hidden="true"></span>';
+  const prev = order[at - 1];
+  const next = order[at + 1];
+  const pager = prev || next
+    ? `<nav class="docs-pager" aria-label="${esc(t('Previous and next pages'))}">${link(prev, 'prev')}${link(next, 'next')}</nav>`
+    : '';
+  return { eyebrow, pager };
+}
+
 function buildSidebar(lang: Lang, page: Page, activeHref: string) {
   const pathway: Pathway = page.pathway ?? 'builders';
   const sb = SIDEBARS[pathway];
@@ -6435,13 +6471,13 @@ function pageNavParts(lang: Lang, page: Page, activeHref: string, content: strin
  * page record, and anything a reader has bookmarked. Rebuilding the heading from
  * page.title instead would have quietly renamed every one of them.
  */
-function docsMasthead(content: string, slug: string, top: { strip: string; edition: string }): { band: string; rest: string; canvas: boolean } | null {
+function docsMasthead(content: string, slug: string, top: { strip: string; edition: string; eyebrow?: string }): { band: string; rest: string; canvas: boolean } | null {
   const m = /<h1(\s[^>]*)?>([\s\S]*?)<\/h1>/.exec(content);
   if (!m) return null; // a page with no h1 keeps its plain top
   const rest = content.slice(0, m.index) + content.slice(m.index + m[0].length);
   // The band's two rows (plan 277 step 3c, decisions D15 and D16): the pathways strip,
   // then the title row, where the h1 keeps its element and id and a print edition sits beside the heading.
-  const heading = `${top.strip}<div class="mast-title">${m[0]}${top.edition}</div>`;
+  const heading = `${top.strip}${top.eyebrow ?? ''}<div class="mast-title">${m[0]}${top.edition}</div>`;
   const art = mastheadArt(slug, heading);
   if (art) return { band: art, rest, canvas: false };
   // The band carries words only: the sections and the title. Its drifting chip field
@@ -6574,7 +6610,8 @@ function wrapPage(lang: Lang, page: Page, content: string, ogSlugs: Set<string>,
   // (buildLandingContent). The print edition stays at the top of such a page's <main>,
   // or beside the strip on an immersive page, whose own bands begin at once.
   const strip = pathwaysStrip(lang, activeHref, page.pathway, !!isLanding);
-  const mast = (isLanding || page.generated || page.immersive) ? null : docsMasthead(content, page.slug, { strip, edition });
+  const nav = (isLanding || page.generated || page.immersive) ? { eyebrow: '', pager: '' } : pageWayfinding(lang, page);
+  const mast = (isLanding || page.generated || page.immersive) ? null : docsMasthead(content, page.slug, { strip, edition, eyebrow: nav.eyebrow });
   const article = mast ? mast.rest : content;
   const lead = mast ? '' : edition;
   const reading = readingAttr(content);
@@ -6624,6 +6661,7 @@ ${mast ? mast.band : pathwaysBand(strip)}
   <main class="docs-content${mast ? '' : ' no-mast'} page-${slugClass}"${mainAttrs}${reading}>
     ${lead}
     ${article}
+    ${nav.pager}
   </main>
   ${contents.rail}
 </div>`;
