@@ -363,7 +363,7 @@
             "tools.lolly.opal": {
               "use": "True black, a step below Liquorice: the stage at its darkest, mattes and letterboxes, and grounds for OLED screens. Sugar on Void 21:1."
             },
-            "com.suse.lolly": { "cmyk": [71, 60, 43, 100], "spot": { "name": "H000_L005_C000", "book": "freieFarbe HLC Colour Atlas XL" } }
+            "com.suse.lolly": { "cmyk": [0, 0, 0, 100], "spot": { "name": "H000_L005_C000", "book": "freieFarbe HLC Colour Atlas XL" } }
           }
         },
         "liquorice": {

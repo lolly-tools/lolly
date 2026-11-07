@@ -1,7 +1,7 @@
 {
   "id": "04-void-black-fill",
   "title": "Brand black fill (Void)",
-  "covers": "Lolly Demo's Void is #000000 with a measured rich build of 71/60/43/100. A solid #000000 fill is a Void swatch hit, so it should carry the named spot, or the measured build when flattened.",
+  "covers": "Lolly Demo's Void is #000000 with a declared build of 0/0/0/100, black on the K plate only, so small black text stays sharp when the plates slip. A solid #000000 fill is a Void swatch hit, so it should carry the named spot, or that build when flattened.",
   "profile": "lolly-demo",
   "page": {
     "width": 400,
@@ -94,7 +94,7 @@
           }
         },
         {
-          "name": "Void 71/60/43/100",
+          "name": "Void 0/0/0/100",
           "rect": [
             30,
             30,
@@ -102,9 +102,9 @@
             140
           ],
           "expect": {
-            "C": 71,
-            "M": 60,
-            "Y": 43,
+            "C": 0,
+            "M": 0,
+            "Y": 0,
             "K": 100
           }
         }

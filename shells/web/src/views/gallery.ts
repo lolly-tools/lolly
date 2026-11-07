@@ -477,7 +477,9 @@ function galleryEmptyHtml(loadFailed: boolean): string {
 
 /** Fill the workspace's shelf, then draw each card's preview when the page is idle. It
  *  takes the whole index, unlisted tools included: a tool the workspace set to templates
- *  only is unlisted, and its templates belong on the shelf all the more. */
+ *  only is unlisted, and its templates belong on the shelf all the more. Called once the
+ *  catalog answers, so the shelf never holds the grid back; with nothing published (every
+ *  plain build) the mount stays empty and the gallery is as it was. */
 async function fillPublishedShelf(viewEl: HTMLElement, host: GalleryHost, tools: readonly GalleryTool[]): Promise<void> {
   try {
     const mount = viewEl.querySelector<HTMLElement>('.published-mount');
@@ -511,6 +513,14 @@ async function fillPublishedShelf(viewEl: HTMLElement, host: GalleryHost, tools:
       } catch { /* the icon stays */ }
     }
   } catch { /* the shelf is an offer, never something the gallery waits on */ }
+}
+
+/** The home shelves under the featured strip: the mount the workspace's published
+ *  templates fill later (fillPublishedShelf), then the person's own tools. The Utilities
+ *  view shows neither. */
+function homeShelvesHtml(only: GalleryMountOpts['only'], yours: Parameters<typeof yoursShelfTools>): string {
+  return only ? '' : `<div class="published-mount"></div>
+        ${yoursShelfHtml(yoursShelfTools(...yours))}`;
 }
 
 export async function mountGallery(viewEl: HTMLElement, host: GalleryHost, opts: GalleryMountOpts = {}): Promise<void> {
@@ -894,23 +904,14 @@ export async function mountGallery(viewEl: HTMLElement, host: GalleryHost, opts:
 
       ${visibleCats.length === 0 ? galleryEmptyHtml(index.tools.length === 0) : `
         <div class="featured-mount"></div>
-        ${opts.only ? '' : '<div class="published-mount"></div>'}
-        ${opts.only ? '' : yoursShelfHtml(yoursShelfTools(
-          [...new Set(sortedSaved.filter(e => !isBatchSlot(e.slot)).map(e => e.toolId))],
-          favourites,
-          toolById,
-          hiddenTools,
-        ))}
+        ${homeShelvesHtml(opts.only, [[...new Set(sortedSaved.filter(e => !isBatchSlot(e.slot)).map(e => e.toolId))], favourites, toolById, hiddenTools])}
         <p class="gallery-search-status visually-hidden" role="status" aria-live="polite"></p>
         <div class="tool-masonry${opts.only === 'utility' ? ' tool-masonry--utility' : ''}"${cardSizeAttr(cardSize)}${layoutAttr(browseLayout)}${densityAttr(browseDensity)}></div>
       `}
     </div>
   `;
 
-  // What the connected workspace published for this person (views/published-shelf.ts):
-  // filled once the catalog answers, so it never holds the grid back. Nothing published
-  // (every plain build) leaves the mount empty and the gallery as it was.
-  if (!opts.only) void fillPublishedShelf(viewEl, host, rawIndex.tools);
+  if (!opts.only) void fillPublishedShelf(viewEl, host, rawIndex.tools); // views/published-shelf.ts
 
   // Hidden until the ladder reveals it (see revealFirstRunBanner) - and hidden
   // from the accessibility tree with it, so a screen reader isn't told about a

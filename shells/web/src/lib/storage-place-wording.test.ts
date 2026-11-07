@@ -145,6 +145,9 @@ test('the sync apply prompt updates this browser on the web, and this device in 
 const src = (file: string): string => readFileSync(new URL(`../${file}`, import.meta.url), 'utf8');
 const esc = (s: string): string => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 const PAIRS: Array<[file: string, device: string, browser: string]> = [
+  ['views/privacy-notice.ts',
+    '{workspace} keeps what you save to its projects or share through it, and a log of your sign-ins and what you do there. Everything else stays on this device. Lolly itself has no tracking or analytics.',
+    '{workspace} keeps what you save to its projects or share through it, and a log of your sign-ins and what you do there. Everything else stays in this browser. Lolly itself has no tracking or analytics.'],
   ['views/profile/storage.ts', 'Storage on this device', 'Storage in this browser'],
   ['views/profile/storage.ts', 'On this device', 'In this browser'],
   ['views/profile/storage.ts', 'This removes everything Lolly keeps on this device, then restarts the app:', 'This removes everything Lolly keeps in this browser, then restarts the app:'],

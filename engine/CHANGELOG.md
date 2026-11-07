@@ -6,6 +6,15 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+## 1.328.0
+
+- `emitEmf` draws the vector IR's `stencil` prim (1.326) as WMF does: a pair of 1-bit `EMR_STRETCHDIBITS` blits, OR then AND, bottom-up rows, so the page under the words keeps its colour. A file with no stencil prim keeps its bytes.
+- No other module changes. The vector walk (`packages/node-shell/src/svg-ir.ts`) makes a stencil for EMF too, for a run no font can draw that it outlines: every such run with Outline fonts on, and with live text only a run that GDI text cannot carry. A plain run in live text stays a live record, as before.
+
+## 1.327.0
+
+- `PreflightSettings.spotsAsProcess` (new, optional, `preflight.ts`): the "Print spot inks as process" choice (`_spots=process`, 1.324). With it on, `plates.spot-ceiling` is not emitted and no `spotPlates` count is taken, because every declared spot ink prints in the four process plates; `plates.process` says so ("The 3 spot inks print as process and add no plates.") and lists the inks in its evidence. Finish plates are counted as before. Absent or false, every finding and count is unchanged.
+
 ## 1.326.0
 
 - The vector IR gains a `stencil` prim (`VectorStencilPrim` in `emf.ts`): words as one bit per pixel, painted in one ink, so whatever lies under them shows through. `emitEps` paints it with `imagemask` in the ink (RGB or the CMYK mapping), and `emitWmf` with a pair of 1-bit `META_STRETCHDIB` blits, OR then AND, which leaves the page under the words as it was. `emitDxf` counts one as a dropped picture. `emitEmf` draws none.

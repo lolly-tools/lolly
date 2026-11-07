@@ -69,7 +69,7 @@ import { icon } from '../lib/icons.ts';
 import type { WebProfileAPI } from '../bridge/profile.ts';
 import type { PickerHost } from '../views/picker.ts';
 import { openDropFilePicker } from '../lib/drop-file-picker.ts';
-import { ackPrivacyNotice } from '../views/privacy-notice.ts';
+import { ackPrivacyNotice, connectedWorkspace, WORKSPACE_PRIVACY_HREF, workspacePrivacyLine } from '../views/privacy-notice.ts';
 import { holdWelcomeGate, markWelcomeDismissed } from '../lib/welcome-gate.ts';
 import { mountModal } from './modal.ts';
 
@@ -127,6 +127,21 @@ function welcomeDoors(withImport: boolean): string {
 // The copy matches views/privacy-notice.ts and docs/privacy.md - keep the three
 // in step when any of them changes.
 function welcomePrivacy(): string {
+  // With a workspace connected, the page says what that workspace keeps, in the same
+  // words as the notice (views/privacy-notice.ts), and drops the two facts that no
+  // longer hold: "kept in this browser only" and "nothing is sent anywhere".
+  const workspace = connectedWorkspace();
+  if (workspace) return `
+    <p class="welcome-eyebrow">${t('Private by design')}</p>
+    <h2 class="welcome-title">${t('Where your work is kept')}</h2>
+    <p class="welcome-sub">${escape(workspacePrivacyLine(workspace))}</p>
+    <ul class="welcome-facts">
+      <li>${t('Exports are made here and saved wherever you choose.')}</li>
+    </ul>
+    <p class="welcome-privacy">
+      <a href="${WORKSPACE_PRIVACY_HREF}" class="welcome-privacy-link">${t('What we store')}</a>
+    </p>
+    <button type="button" class="welcome-gotit btn btn--primary" data-ack>${t('Got it')}</button>`;
   return `
     <p class="welcome-eyebrow">${t('Private by design')}</p>
     <h2 class="welcome-title">${t('Your designs and files stay on this device')}</h2>

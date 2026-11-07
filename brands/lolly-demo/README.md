@@ -228,8 +228,11 @@ profile.
   lightness at full weight), with no black in bright colours and the ink total
   under 300%, or 280% for the darks.
 - CMYK cannot reach Jacaranda (chroma 37 of 59), Green Apple (56 of 60), Swell,
-  Pandanus, Reef and Sky. Void and the Liquorice tints are rich blacks at the
-  press's deepest, about L 11.
+  Pandanus, Reef and Sky. The Liquorice tints are rich blacks at the press's
+  deepest, about L 11.
+- Void is black on the K plate only (0/0/0/100), not a rich black, so small
+  black text in Void stays sharp when the plates slip. It loses some depth in a
+  large solid area. Its spot ink is unchanged.
 
 Every colour except the paper whites (Sugar and Daylight) also names a spot ink
 in `com.suse.lolly.spot`, for printing a colour at full strength: the nearest
