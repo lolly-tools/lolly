@@ -473,7 +473,7 @@ export interface ExportMeta {
    * record is on. The company is the one whose details filled the work, with the
    * revision of those details; the programme is the one that published the work.
    * Never the person, a contact's email or phone, an address or a currency. Absent
-   * outside a partner programme and on records written before engine 1.332.
+   * outside a partner programme and on records written before engine 1.334.
    */
   partner?: ExportPartner;
 }
