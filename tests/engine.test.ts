@@ -144,6 +144,22 @@ test('url-mode: profile is a reserved export param', () => {
   assert.equal(new URLSearchParams(qs).get('profile'), 'fogra51');
 });
 
+test('url-mode: _spots=process is an opt-in export choice, never an input', () => {
+  const on = parseUrlState('heading=Hi&_spots=process', SAMPLE_MANIFEST);
+  assert.equal(on.spots, 'process');
+  assert.equal((on.values as Record<string, unknown>)._spots, undefined);
+  assert.equal(parseUrlState('heading=Hi&_spots=PROCESS', SAMPLE_MANIFEST).spots, 'process');
+  // Absent, empty or anything else keeps the named spot plates: a typo never flattens inks.
+  for (const q of ['heading=Hi', 'heading=Hi&_spots=', 'heading=Hi&_spots=1', 'heading=Hi&_spots=keep']) {
+    assert.equal(parseUrlState(q, SAMPLE_MANIFEST).spots, null, q);
+  }
+  assert.equal(new URLSearchParams(serializeUrlState([], { spots: 'process' })).get('_spots'), 'process');
+  // The default writes nothing, so every existing link keeps its bytes.
+  assert.equal(serializeUrlState([], {}), '');
+  assert.equal(serializeUrlState([], { spots: null }), '');
+  assert.equal(serializeUrlState([], { spots: 'keep' }), '');
+});
+
 test('url-mode: RESERVED set matches the documented reserved-param list', () => {
   // Mirrors the header doc-comment in engine/src/url-mode.js AND the table in
   // docs/url-parameters.md. The docs aren't programmatically importable, so this inline
@@ -157,6 +173,8 @@ test('url-mode: RESERVED set matches the documented reserved-param list', () => 
     '_themes',
     // The design-system record toggle (plans/319): `_madewith=0` leaves it out.
     '_madewith',
+    // Print declared spot inks as their process builds in the CMYK formats: `_spots=process`.
+    '_spots',
   ];
   assert.deepEqual([...RESERVED].sort(), [...documented].sort());
 

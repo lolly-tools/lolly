@@ -6,6 +6,12 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+## 1.324.0
+
+- Spots as process, an opt-in export choice for the CMYK formats. `ExportOpts.spotsAsProcess` (host-v1, optional) and `buildCmykPaletteMap(palette, separate, { spotsAsProcess })` (new `CmykPaletteOptions`) write every declared spot ink as its process alternate: the swatch's own CMYK lock, or the press conversion of its colour, which is the value the ink's /Separation already named as its alternate. A Print PDF then has the four process plates and nothing more. A declared finish (foil, emboss, deboss, spot varnish, soft touch, die cut, crease, perforation) is not an ink and keeps its own named plate, because converting it would print its black mask.
+- New reserved URL param `_spots`, read by `parseUrlState` into `spots` and written by `serializeUrlState` from `spots`; `parseSpots` is exported. Only `_spots=process` turns the choice on: absence and every other value keep the spot plates. Minted in the `_` namespace, so no tool input can collide with it.
+- Off by default. With the option absent, `buildCmykPaletteMap` returns the same map as before and every CMYK file keeps its bytes. The Print TIFF and EPS (CMYK) already write each ink as its process build, since they have no named plates, so the choice changes only the Print PDF today. Nothing is recorded about the choice: no metadata, no content credential entry and no export card line.
+
 ## 1.323.0
 
 - `host.tokens.inspect()` answers with `colourRoles`, the document's colour roles as `readColourRoles` reads them: the declared roles in the design system's own order and words, then any undeclared ones, with the slots each fills. Every shell gets it, the isolated hook worker too, because they all inspect through `inspectTokenDocument`. A tool reads a role's colour with `resolve('{' + role.path + '}')`, so it follows the piece's colourway and look.

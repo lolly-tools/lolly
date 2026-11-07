@@ -1,0 +1,191 @@
+{
+  "id": "14-finish-keeps-plate",
+  "title": "A finish keeps its plate when spots print as process",
+  "covers": "Exported with --spots=process in a design system that declares one spot ink and one foil finish (tokens/ink-and-foil.tokens.json, given with --file). The ink prints as its declared CMYK build with no plate of its own; the foil keeps its own named, overprinting plate. A RIP that flattens spots paints the foil as its 100% black mask, which is why a finish is never converted.",
+  "profile": "lolly-demo",
+  "args": [
+    "--spots=process",
+    "--file=tests/fixtures/plate-scenes/tokens/ink-and-foil.tokens.json"
+  ],
+  "page": {
+    "width": 400,
+    "height": 200
+  },
+  "boxes": [
+    {
+      "id": "page",
+      "kind": "frame",
+      "x": 0,
+      "y": 0,
+      "w": 400,
+      "h": 200,
+      "bg": "#ffffff"
+    },
+    {
+      "id": "ink",
+      "kind": "box",
+      "frame": "page",
+      "x": 20,
+      "y": 20,
+      "w": 160,
+      "h": 110,
+      "bg": "#1a85c4"
+    },
+    {
+      "id": "foil",
+      "kind": "box",
+      "frame": "page",
+      "x": 220,
+      "y": 20,
+      "w": 160,
+      "h": 110,
+      "bg": "#c9a227"
+    },
+    {
+      "id": "bar",
+      "kind": "box",
+      "frame": "page",
+      "x": 20,
+      "y": 150,
+      "w": 360,
+      "h": 30,
+      "bg": "#4d4d4d"
+    }
+  ],
+  "structure": {
+    "noDeviceRgbOps": true,
+    "separations": [
+      "Fixture Foil"
+    ],
+    "overprintStates": [
+      "GSfo"
+    ]
+  },
+  "passes": [
+    {
+      "name": "finish plate kept, ink in process",
+      "plates": [
+        "C",
+        "M",
+        "Y",
+        "K",
+        "Fixture Foil"
+      ],
+      "inked": [
+        "C",
+        "M",
+        "Y",
+        "K",
+        "Fixture Foil"
+      ],
+      "regions": [
+        {
+          "name": "paper stays blank",
+          "rect": [
+            0,
+            0,
+            6,
+            6
+          ],
+          "expect": {
+            "C": 0,
+            "M": 0,
+            "Y": 0,
+            "K": 0,
+            "Fixture Foil": 0
+          }
+        },
+        {
+          "name": "Tide ink 82/37/1/2",
+          "rect": [
+            30,
+            30,
+            140,
+            90
+          ],
+          "expect": {
+            "C": 82,
+            "M": 37,
+            "Y": 1,
+            "K": 2,
+            "Fixture Foil": 0
+          }
+        },
+        {
+          "name": "Foil on its own plate",
+          "rect": [
+            230,
+            30,
+            140,
+            90
+          ],
+          "expect": {
+            "Fixture Foil": 100,
+            "C": 0,
+            "M": 0,
+            "Y": 0,
+            "K": 0
+          }
+        },
+        {
+          "name": "process K bar",
+          "rect": [
+            30,
+            155,
+            340,
+            20
+          ],
+          "expect": {
+            "C": 0,
+            "M": 0,
+            "Y": 0,
+            "K": {
+              "value": 69.8,
+              "tol": 3
+            },
+            "Fixture Foil": 0
+          }
+        }
+      ]
+    },
+    {
+      "name": "spots flattened to the process alternate",
+      "rip": [
+        "-dMaxSpots=0"
+      ],
+      "tol": 1.5,
+      "regions": [
+        {
+          "name": "Tide ink unchanged",
+          "rect": [
+            30,
+            30,
+            140,
+            90
+          ],
+          "expect": {
+            "C": 82,
+            "M": 37,
+            "Y": 1,
+            "K": 2
+          }
+        },
+        {
+          "name": "Foil becomes its black mask",
+          "rect": [
+            230,
+            30,
+            140,
+            90
+          ],
+          "expect": {
+            "C": 0,
+            "M": 0,
+            "Y": 0,
+            "K": 100
+          }
+        }
+      ]
+    }
+  ]
+}

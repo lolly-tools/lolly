@@ -4114,7 +4114,7 @@ var ENGINE_VERSION;
 var init_version = __esm({
   "engine/src/version.ts"() {
     "use strict";
-    ENGINE_VERSION = "1.323.0";
+    ENGINE_VERSION = "1.324.0";
   }
 });
 
@@ -57926,6 +57926,9 @@ function parseVideoParams(params2) {
 function hasVideoParams(v) {
   return !!v && (v.fps != null || v.seconds != null || v.wait != null || v.codec != null || v.quality != null);
 }
+function parseSpots(raw) {
+  return typeof raw === "string" && raw.trim().toLowerCase() === "process" ? "process" : null;
+}
 function parseMarks(raw) {
   if (raw == null) return null;
   const set = new Set(String(raw).split(",").map((s) => s.trim().toLowerCase()).filter(Boolean));
@@ -58107,7 +58110,9 @@ function parseUrlState(searchParams, manifest) {
     licence: params2.get("licence") || null,
     // The design-system record (see header). Default-on, so only an explicit
     // opt-out reads as false; absent stays null.
-    madeWith: parseMeta(params2.get("_madewith"))
+    madeWith: parseMeta(params2.get("_madewith")),
+    // How the CMYK formats print spot inks (see header). Opt-in: only `process` counts.
+    spots: parseSpots(params2.get("_spots"))
   };
 }
 function serializeUrlState(model2, opts = {}) {
@@ -58162,6 +58167,7 @@ function serializeUrlState(model2, opts = {}) {
   if (opts.imprint === false) params2.set("imprint", "0");
   if (opts.metadata === false) params2.set("meta", "off");
   if (opts.madeWith === false) params2.set("_madewith", "0");
+  if (parseSpots(opts.spots ?? null)) params2.set("_spots", "process");
   if (opts.durable) params2.set("durable", "1");
   if (opts.hdr) params2.set("hdr", "1");
   if (opts.fps != null && numberIn(String(opts.fps), 1, 120, true) != null) params2.set("fps", String(Math.round(Number(opts.fps))));
@@ -58342,7 +58348,7 @@ var init_url_mode = __esm({
       av1: "av1",
       av01: "av1"
     });
-    RESERVED = /* @__PURE__ */ new Set(["format", "export", "copy", "slot", "output", "filename", "_v", "width", "height", "w", "h", "unit", "dpi", "profile", "password", "bleed", "marks", "c2pa", "imprint", "durable", "meta", "hdr", "depth", "cuts", "sampletimes", "motionblur", "seqrange", "lang", "designv", "ds", "full", "iframe", "options", "nostage", "template", "preset", "present", "s", "kiosk", "z", "zx", "fps", "seconds", "wait", "codec", "vq", "emoji", "emojifx", "emojistyle", "licence", "_themes", "_madewith"]);
+    RESERVED = /* @__PURE__ */ new Set(["format", "export", "copy", "slot", "output", "filename", "_v", "width", "height", "w", "h", "unit", "dpi", "profile", "password", "bleed", "marks", "c2pa", "imprint", "durable", "meta", "hdr", "depth", "cuts", "sampletimes", "motionblur", "seqrange", "lang", "designv", "ds", "full", "iframe", "options", "nostage", "template", "preset", "present", "s", "kiosk", "z", "zx", "fps", "seconds", "wait", "codec", "vq", "emoji", "emojifx", "emojistyle", "licence", "_themes", "_madewith", "_spots"]);
     CUTS_MAX = 64;
     HEX_COLOR = /^#[0-9a-fA-F]{3,8}$/;
   }
@@ -76547,7 +76553,7 @@ var init_contentseal = __esm({
 function cmykKey(r5, g2, b) {
   return `${Math.round(r5 * 100)},${Math.round(g2 * 100)},${Math.round(b * 100)}`;
 }
-function buildCmykPaletteMap(palette, separate = rgbToCmyk) {
+function buildCmykPaletteMap(palette, separate = rgbToCmyk, options2 = {}) {
   const map = /* @__PURE__ */ new Map();
   for (const { hex: hex4, cmyk, spot } of palette ?? []) {
     if (!hex4 || !cmyk && !spot) continue;
@@ -76558,7 +76564,8 @@ function buildCmykPaletteMap(palette, separate = rgbToCmyk) {
     const b = parseInt(h.slice(4, 6), 16) / 255;
     const frac = cmyk && cmyk.length === 4 ? cmyk.map((v) => v / 100) : separate(r5, g2, b);
     const build2 = spot?.finish ? FINISH_MASK_CMYK : frac;
-    map.set(cmykKey(r5, g2, b), spot ? { cmyk: build2, spot: { name: spot.name, cmyk: build2, ...spot.finish ? { finish: spot.finish } : {} } } : { cmyk: frac });
+    const asProcess = options2.spotsAsProcess === true && !!spot && !spot.finish;
+    map.set(cmykKey(r5, g2, b), spot && !asProcess ? { cmyk: build2, spot: { name: spot.name, cmyk: build2, ...spot.finish ? { finish: spot.finish } : {} } } : { cmyk: frac });
   }
   return map;
 }
@@ -154954,6 +154961,7 @@ __export(src_exports, {
   parseScriptMarks: () => parseScriptMarks,
   parseSealRecord: () => parseSealRecord,
   parseSealRecords: () => parseSealRecords,
+  parseSpots: () => parseSpots,
   parseSvgPath: () => parseSvgPath,
   parseSvgPathArgs: () => parseSvgPathArgs,
   parseTableText: () => parseTableText,
@@ -179116,6 +179124,7 @@ function exportUrl2(base, toolId, query2, fmt6, dims) {
   if (dims.durable) p.set("durable", "1");
   if (dims.madeWith === false) p.set("_madewith", "0");
   if (dims.pressProfile) p.set("profile", dims.pressProfile);
+  if (dims.spotsAsProcess) p.set("_spots", "process");
   if (dims.slide) p.set("s", dims.slide);
   if (dims.hdrParam) p.set("hdr", dims.hdrParam);
   if (dims.depth && dims.depth !== "auto") p.set("depth", String(dims.depth));
@@ -179826,7 +179835,7 @@ var init_webshell_render = __esm({
       ".wmf": "application/x-msmetafile"
     };
     served2 = null;
-    EXPORT_URL_RESERVED2 = ["_keepinlinedc2pa", "format", "export", "copy", "width", "w", "height", "h", "unit", "dpi", "password", "bleed", "marks", "imprint", "durable", "profile", "c2pa", "preview", "options", "fps", "seconds", "wait", "codec", "vq", "hdr", "depth", "cuts", "sampletimes", "motionblur", "seqrange"];
+    EXPORT_URL_RESERVED2 = ["_keepinlinedc2pa", "format", "export", "copy", "width", "w", "height", "h", "unit", "dpi", "password", "bleed", "marks", "imprint", "durable", "profile", "c2pa", "preview", "options", "fps", "seconds", "wait", "codec", "vq", "hdr", "depth", "cuts", "sampletimes", "motionblur", "seqrange", "_spots"];
     tierBDebugConfig = { enabled: false, outPath: null };
     DEBUG_MAX_LINES = 500;
     NO_DEBUG = {
@@ -188937,7 +188946,7 @@ async function createCliBridge({ profile: profile2 = {}, dom, catalogAssets: cat
           unit: opts.unit,
           dpi: opts.dpi,
           cmyk: format === "eps-cmyk",
-          ...separate ? { cmykPalette: await brandCmykPalette(host, separate), separate } : {},
+          ...separate ? { cmykPalette: await brandCmykPalette(host, separate, { spotsAsProcess: opts.spotsAsProcess === true }), separate } : {},
           meta: opts.meta
         });
         return new Blob([text13], { type: "application/postscript" });
@@ -189333,7 +189342,7 @@ function mimeFor(format) {
       return "application/octet-stream";
   }
 }
-async function brandCmykPalette(host, separate) {
+async function brandCmykPalette(host, separate, options2 = {}) {
   try {
     const colors = await host.tokens?.colors?.();
     if (!Array.isArray(colors) || colors.length === 0) return /* @__PURE__ */ new Map();
@@ -189342,7 +189351,7 @@ async function brandCmykPalette(host, separate) {
       ...Array.isArray(c.cmyk) ? { cmyk: c.cmyk } : {},
       label: c.name,
       spot: c.spot ?? null
-    })), separate);
+    })), separate, options2);
   } catch {
     return /* @__PURE__ */ new Map();
   }
@@ -189929,6 +189938,7 @@ function exportOpts(o) {
   if (o.colorProfile) opts.colorProfile = o.colorProfile;
   if (o.password) opts.password = o.password;
   if (o.depth && o.depth !== "auto") opts.depth = o.depth;
+  if (o.spots === "process") opts.spotsAsProcess = true;
   if (o.madeWith === false) opts.madeWith = false;
   else if (o.brandSkills?.length) opts.brandSkills = o.brandSkills;
   if (o.hdr) opts.hdr = { targets: [], peakNits: o.hdr.peakNits, reach: o.hdr.reach, lift: o.hdr.lift, richness: o.hdr.richness };
@@ -190459,7 +190469,8 @@ async function renderCandidateBytes(toolId, query2, o = {}) {
     // The `hdr=` request, the CLI/MCP's only float pixel source (see exportOpts).
     hdr: o.hdr ?? st.hdr ?? null,
     depth: o.depth ?? st.depth ?? void 0,
-    madeWith: o.madeWith ?? st.madeWith ?? null
+    madeWith: o.madeWith ?? st.madeWith ?? null,
+    spots: o.spots ?? st.spots ?? null
   };
   const profile2 = o.profile ?? {};
   const canvasSize = canvasSizeOf(merged.width, merged.height, merged.unit || "px");
@@ -198443,6 +198454,11 @@ var EXPORT_ARGS = {
   madeWith: {
     type: "boolean",
     description: "The design-system record: the design system, its published version and its colourway, plus its brand page address when its publisher opted in, written into the file's metadata and Content Credential, with the colourway beside the tool in the description. ON by default - pass false to leave it out (the `_madewith=0` link param)."
+  },
+  spots: {
+    type: "string",
+    enum: ["process"],
+    description: "How the CMYK formats print the design system's spot inks. Leave it out to keep each spot ink on its own named plate (the default). 'process' prints each spot ink with the four process inks, using the CMYK build the design system gives it, so a pdf-cmyk has only the C, M, Y and K plates. Finishes (foil, emboss, spot varnish, die lines) keep their own plates. The `_spots=process` link param. Nothing about the choice is written into the file."
   }
 };
 var EMOJI_ARGS = {
@@ -198522,7 +198538,9 @@ function exportSettings(args) {
     ...args.imprint === false ? { imprint: false } : {},
     ...args.durable === true ? { durable: true } : {},
     // The design-system record is default-on too, so only the opt-out travels.
-    ...args.madeWith === false ? { madeWith: false } : {}
+    ...args.madeWith === false ? { madeWith: false } : {},
+    // Opt-in: only `process` asks; anything else keeps the spot plates.
+    ...parseSpots(typeof args.spots === "string" ? args.spots : null) ? { spots: "process" } : {}
   };
 }
 var TOOL_DEFS = [
@@ -198891,6 +198909,9 @@ function buildLinks(manifest, inputs, o) {
     imprint: o.imprint,
     durable: o.durable,
     ...o.madeWith === false ? { madeWith: false } : {},
+    // Spot inks as process rides the link like the press setup above, and the browser
+    // tier reads it from this same query.
+    spots: o.spots ?? null,
     // The set and its treatment travel too: a link whose emoji did not would
     // draw placeholders for whoever opens it, and the browser tier reads its
     // artwork from this same query.

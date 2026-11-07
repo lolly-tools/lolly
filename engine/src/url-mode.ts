@@ -54,6 +54,13 @@
  *                  drew the export. `_madewith=0`/`off` leaves them out of the file's
  *                  metadata and credential, and the description keeps its plain
  *                  form. Read into `madeWith`.
+ *   - `_spots` - how the CMYK formats print a brand's declared spot inks.
+ *                  `_spots=process` writes every spot ink as its process build (the
+ *                  CMYK it already declares, or the press conversion of its colour),
+ *                  so a Print PDF has the four process plates and nothing more. A
+ *                  declared finish (foil, emboss, varnish, die) is not an ink and
+ *                  keeps its own plate. Absent, or any other value, keeps the spot
+ *                  plates. Read into `spots`.
  *   - `width`/`w`, `height`/`h` - output dimensions (value in `unit`, default px)
  *   - `unit` - physical unit for width/height: px (default), mm, cm, in, pt
  *   - `dpi` - raster resolution for physical units (default 300; px → 96)
@@ -437,6 +444,10 @@ export interface UrlState {
    *  null ⇒ absent (record), false ⇒ an explicit `_madewith=0`/`off`, true ⇒ an
    *  explicit on. */
   madeWith?: boolean | null;
+  /** How the CMYK formats print declared spot inks (the `_spots` param). `process`
+   *  writes each ink as its process build; null ⇒ absent or any other value, which
+   *  keeps the named spot plates. */
+  spots?: SpotsSetting | null;
 }
 
 /** The slice of an input model item serializeUrlState reads. */
@@ -510,6 +521,9 @@ export interface SerializeUrlOpts {
   /** The design-system record (the `_madewith` param). Default-on like `imprint`:
    *  false ⇒ `_madewith=0`; true/undefined ⇒ omitted. */
   madeWith?: boolean;
+  /** How the CMYK formats print spot inks (the `_spots` param). Only `process`
+   *  writes the param; anything else keeps the default and writes nothing. */
+  spots?: SpotsSetting | string | null;
   /** Keep device-local `user/…` asset ids in the serialised state (plan 171).
    *  Default FALSE - the engine-enforced product contract is that a device-local
    *  id never leaves the device (docs/url-mode.md), so a top-level `user/` asset
@@ -527,7 +541,7 @@ export interface SerializeUrlOpts {
 // Param names that are NOT tool inputs (export/render controls). Exported so the
 // engine contract test can assert it stays in lock-step with the documented list
 // (the header comment above + docs/url-mode.md) and nothing drifts silently.
-export const RESERVED = new Set(['format', 'export', 'copy', 'slot', 'output', 'filename', '_v', 'width', 'height', 'w', 'h', 'unit', 'dpi', 'profile', 'password', 'bleed', 'marks', 'c2pa', 'imprint', 'durable', 'meta', 'hdr', 'depth', 'cuts', 'sampletimes', 'motionblur', 'seqrange', 'lang', 'designv', 'ds', 'full', 'iframe', 'options', 'nostage', 'template', 'preset', 'present', 's', 'kiosk', 'z', 'zx', 'fps', 'seconds', 'wait', 'codec', 'vq', 'emoji', 'emojifx', 'emojistyle', 'licence', '_themes', '_madewith']);
+export const RESERVED = new Set(['format', 'export', 'copy', 'slot', 'output', 'filename', '_v', 'width', 'height', 'w', 'h', 'unit', 'dpi', 'profile', 'password', 'bleed', 'marks', 'c2pa', 'imprint', 'durable', 'meta', 'hdr', 'depth', 'cuts', 'sampletimes', 'motionblur', 'seqrange', 'lang', 'designv', 'ds', 'full', 'iframe', 'options', 'nostage', 'template', 'preset', 'present', 's', 'kiosk', 'z', 'zx', 'fps', 'seconds', 'wait', 'codec', 'vq', 'emoji', 'emojifx', 'emojistyle', 'licence', '_themes', '_madewith', '_spots']);
 // NOTE on the presentation-mode kiosk flag: it was the unreserved `loop` until
 // 2026-08-28 (plan 171 executed the rename inside the id-break window). `loop` is a
 // live *input* id in several tools (deck-builder, 3d, flythrough, digi-ad,
@@ -546,6 +560,18 @@ export const RESERVED = new Set(['format', 'export', 'copy', 'slot', 'output', '
 // metadata (pkg.name, pkg.version, pkg.dest, …) beside the rpm and tar.gz formats. No
 // link carries it yet: the export panel passes ExportOpts.pkg and `lolly pack` takes
 // flags. parseUrlState skips it, and an input id or urlKey cannot hold a dot anyway.
+
+/** The one value of the `_spots` param that does anything: print spot inks in process. */
+export type SpotsSetting = 'process';
+
+/**
+ * Read the `_spots` param. Only `process` (any case, trimmed) turns the choice on;
+ * absence and every other value keep the default, the named spot plates. Opt-in by
+ * construction, so a typo can never quietly flatten a brand's inks.
+ */
+export function parseSpots(raw: string | null | undefined): SpotsSetting | null {
+  return typeof raw === 'string' && raw.trim().toLowerCase() === 'process' ? 'process' : null;
+}
 
 // Parse the `marks` param (csv: crop,reg,bleed,bars,prov) into a print-mark
 // toggle map. Returns null when absent so callers fall back to their own defaults.
@@ -814,6 +840,8 @@ export function parseUrlState(searchParams: string | URLSearchParams, manifest: 
     // The design-system record (see header). Default-on, so only an explicit
     // opt-out reads as false; absent stays null.
     madeWith: parseMeta(params.get('_madewith')),
+    // How the CMYK formats print spot inks (see header). Opt-in: only `process` counts.
+    spots: parseSpots(params.get('_spots')),
   };
 }
 
@@ -881,6 +909,8 @@ export function serializeUrlState(model: UrlSerializableInput[], opts: Serialize
   if (opts.metadata === false) params.set('meta', 'off');
   // Default-on as well: only leaving the design-system record out travels.
   if (opts.madeWith === false) params.set('_madewith', '0');
+  // Opt-in, off by default: only the request to print spot inks in process travels.
+  if (parseSpots(opts.spots ?? null)) params.set('_spots', 'process');
   // Opt-in, off by default: only an explicit request writes the param.
   if (opts.durable) params.set('durable', '1');
   if (opts.hdr) params.set('hdr', '1');
