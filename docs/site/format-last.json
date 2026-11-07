@@ -47,6 +47,6 @@
     "label": "Every format, in and out",
     "slug": "formats"
   },
-  "caption": "One Lolly Demo design, five files. Each picture is what another program drew from the file Lolly made, not a mock-up. Lolly Design does not write DOCX, so the document is a page about the same day from Lolly Doc Studio. LibreOffice had Lolly Demo's open fonts installed, and the DOCX sets no typeface, so Writer uses its own. The Print PDF also carries a named spot ink for each brand colour it uses, which Ghostscript folded into the four process plates shown.",
+  "caption": "One Lolly Demo design, five files. Each picture is what another program drew from the file Lolly made, not a mock-up. Lolly Design does not write DOCX, so the document is a page about the same day from Lolly Doc Studio. LibreOffice had Lolly Demo's open fonts installed, as a person who added them would. The Print PDF also carries a named spot ink for each brand colour it uses, which Ghostscript folded into the four process plates shown.",
   "download": "Download"
 }

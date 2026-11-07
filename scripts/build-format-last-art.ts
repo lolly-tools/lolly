@@ -20,8 +20,9 @@
  *          plates through the alternate CMYK the PDF gives each one
  *
  * LibreOffice is given Lolly Demo's own open fonts (the OFL files in the brand pack) in a
- * throwaway profile, the way a recipient who installed them would see the deck. The
- * DOCX sets no face, so its page shows LibreOffice's default serif either way.
+ * throwaway profile, the way a recipient who installed them would see the deck and the
+ * page. The DOCX sets the design system's faces in its styles and is laid out on A4,
+ * the size Doc Studio's page is set to.
  *
  * Needs: a web shell built on the lolly-demo profile (`LOLLY_PROFILE=lolly-demo pnpm
  * run build:web`), LibreOffice (soffice), poppler (pdftocairo), Ghostscript, FFmpeg and
