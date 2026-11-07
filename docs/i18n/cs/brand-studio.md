@@ -82,7 +82,7 @@ Každá značka skončí v mřížce osmi volitelných slotů, po jednom na **or
 
 Skupina bez značek se sbalí na jeden řádek; otevři ji, abys viděl její sloty. Klikni na slot pro přidání PNG, SVG, JPEG nebo WebP, nebo klikni na vyplněný slot pro nahrazení značky. Vše zůstává na tomto zařízení.
 
-![Sloty loga s otevřenými Horizontal a Vertical: každá úprava je vlastní slot a každý slot je volitelný](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dlogos&width=1440&height=1600&dpi=192&waitMs=1600&drive=click%3A.be-logo-identity%3Edetails%3Anth-of-type%281%29%3Esummary%3Bclick%3A.be-logo-identity%3Edetails%3Anth-of-type%282%29%3Esummary%3Bwait%3A600&cropSelector=.be-logo-grid&format=svg&walker=1&dark=1&filename=bs-logo-slots)
+![Sloty loga s otevřenými Horizontal a Vertical: každá úprava je vlastní slot a každý slot je volitelný](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dlogos&system=new-design-system&width=1440&height=1600&dpi=192&waitMs=1600&drive=click%3A.be-logo-identity%3Edetails.be-logo-group--fold%3Anot%28.be-logo-group--custom%29%3Esummary%3Bwait%3A600&cropSelector=.be-logo-grid&format=svg&walker=1&dark=1&filename=bs-logo-slots)
 
 - **Custom marks** jsou značky, které tvá značka nazývá vlastním jménem, například ikona, erb nebo favicon.
 - **Více identit.** Podznačka, produkt nebo akce může mít vlastní úplnou sadu: **+ Add another logo** a pojmenuj sadu. Tvá hlavní sada je "Your logo". [Architektury značek](/info/brand-architectures.html) ukazují, kdy je identita loga správný blok.
@@ -114,7 +114,7 @@ Tvé barvy leží vedle náhledu **In context** na široké obrazovce a nad ním
 
 ### Role: co čtou nástroje
 
-![The Colour roles table on Lolly Demo after choosing the suggested words Main, Accent, Supporting and Tertiary: the colourway chips, then each role with its light and dark colour, Main read as the lead colour and Accent as the partner colour, Supporting and Tertiary read by name only and marked Copied, and the readings no role fills listed under the table](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=2720&height=2000&dpi=192&waitMs=1800&cropSelector=%5Bdata-be-roles-fold%5D&format=svg&walker=1&dark=1&filename=bs-colour-roles)
+![The Colour roles table on Lolly Demo after choosing the suggested words Main, Accent, Supporting and Tertiary: the colourway chips, then each role with its light and dark colour, Main read as the lead colour and Accent as the partner colour, Supporting and Tertiary read by name only and marked Copied, and the readings no role fills listed under the table](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&system=wefthouse&width=2720&height=2000&dpi=192&waitMs=1800&cropSelector=%5Bdata-be-roles-fold%5D&format=svg&walker=1&dark=1&filename=bs-colour-roles)
 
 **Roles** říkají, která barva hraje jakou roli v každém nástroji a exportu. Jsou volitelné (tři volné barvy a žádné role je naprosto dobrý systém), kterákoli barva může jednu převzít a údaj o kontrastu se měří proti povrchu, nejprve APCA. Každý řádek role ukazuje vlastní barvu v plné síle, startovní barvu, která zastupuje, nebo **↳ follows Primary**.
 
@@ -206,7 +206,7 @@ Stažení palety (designové tokeny, CSS, SCSS, GIMP a Adobe Swatch Exchange) le
 
 Bez vlastního řezu je místnost jedna karta: **Primary**, sázená ve velikosti pro čtení v řezu, který ji dnes obsluhuje, se štítkem **Starter**, tlačítkem **Choose for Primary** a řádkem *"Nothing installs until you choose one."* Headings, kód a kurzíva následují primární, dokud je nevybereš; **Choose them separately** ukáže jejich karty.
 
-![Místnost Type bez zatím zvoleného řezu - jedna karta ve čtecí velikosti, na ní štítek Starter, a jedno vyplněné Choose for Primary](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&dark=1&filename=brand-type)
+![Místnost Type bez zatím zvoleného řezu - jedna karta ve čtecí velikosti, na ní štítek Starter, a jedno vyplněné Choose for Primary](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&system=new-design-system&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&dark=1&filename=brand-type)
 
 Vyber jeden řez a místnost se otevře do čtyř karet rolí, seznamu Fonts a živého vzorku:
 
@@ -217,7 +217,7 @@ Vyber jeden řez a místnost se otevře do čtyř karet rolí, seznamu Fonts a �
 
 Karta je odstíněná jen tam, kde jsi ten řez nainstaloval, a její tlačítko říká, pro kterou roli je: **Change Headings** u vlastního řezu a **Choose for Headings** všude jinde. Ukázková řádka se zalamuje, místo aby se oříznula. Nic na kartě nic nepotvrzuje: tlačítko otevře porovnávací scénu pro tu roli.
 
-![Odhalené čtyři karty rolí - každá sazená v řezu, který ji obsluhuje, se štítkem Starter tam, kde nikdo nevybral, a Italic řídící se primárním](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&width=1440&height=1000&dpi=192&waitMs=2600&drive=click%3A%5Bdata-be-typemore-toggle%5D%3Bwait%3A600&cropSelector=.be-typecard-grid&walker=1&format=svg&dark=1&filename=bs-type-specimen)
+![Odhalené čtyři karty rolí - každá sazená v řezu, který ji obsluhuje, se štítkem Starter tam, kde nikdo nevybral, a Italic řídící se primárním](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&system=new-design-system&width=1440&height=1000&dpi=192&waitMs=2600&drive=click%3A%5Bdata-be-typemore-toggle%5D%3Bwait%3A600&cropSelector=.be-typecard-grid&walker=1&format=svg&dark=1&filename=bs-type-specimen)
 
 ### Srovnávací scéna
 

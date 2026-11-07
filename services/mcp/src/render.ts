@@ -123,7 +123,7 @@ export interface RenderOpts {
   rondo?: RondoCaps;
   /** The design-system record (the `_madewith` param, plans/319): false leaves it out. */
   madeWith?: boolean | null;
-  /** Spot inks as process for the CMYK formats (the `_spots` param, engine 1.321). The
+  /** Spot inks as process for the CMYK formats (the `_spots` param, engine 1.322). The
    *  browser tier reads it from the query; the browser-free eps-cmyk gets it as an export
    *  option. Absent keeps the spot plates. */
   spots?: 'process' | null;
@@ -360,7 +360,7 @@ function exportOpts(o: RenderOpts): ExportOpts & { password?: string } {
   // enforce that). Dropping it here made the same URL render differently on MCP
   // than on the CLI - depth=float silently came back as 16-bit HALF.
   if (o.depth && o.depth !== 'auto') opts.depth = o.depth;
-  // `_spots=process` prints each spot ink in process; off writes nothing (engine 1.321).
+  // `_spots=process` prints each spot ink in process; off writes nothing (engine 1.322).
   if (o.spots === 'process') opts.spotsAsProcess = true;
   // `_madewith=0` leaves the design-system record out of the file (plans/319).
   if (o.madeWith === false) opts.madeWith = false;

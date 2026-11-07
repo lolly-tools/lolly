@@ -293,18 +293,25 @@ function fontFamily(v) {
   var safe = key.replace(/[^\w \-]/g, '').trim(); // letters/digits/space/hyphen only
   return safe ? ("'" + safe + "', " + FONTS.sans) : FONTS.sans;
 }
-// A box font → a PLAIN PowerPoint typeface NAME for the deck model (NOT fontFamily's
-// CSS stack, which is a var()/fallback list unusable as a pptx font). 'sans' and
-// 'display' are OMITTED (undefined): the exporter fills the deck theme's fonts from the
-// brand, so those runs take the brand face. 'mono' is written as its custom property,
-// which the exporter resolves against the exported node to that stack's first family
-// (no single static name exists here, and an omitted mono run would come out in the
-// brand sans). A brand family the user added carries a real name; sanitise it exactly as
-// fontFamily() does before it reaches the pptx run.
+// A box font → the typeface the deck model names on the run (NOT fontFamily's CSS
+// stack, which is a var()/fallback list unusable as a pptx font). The three slots are
+// written as the custom property the canvas draws them in, and the exporter resolves
+// each one against the exported node to that stack's first family: 'sans' (and no
+// font) is the brand face, 'display' the headings face with the brand face behind it,
+// 'mono' the mono face. So every run carries the face the canvas used, and a reader that
+// does not follow the deck theme for a text box, such as LibreOffice, still sets the
+// brand face. A slot that resolves to no family is left off, and the theme font applies. A
+// brand family the user added carries a real name; sanitise it exactly as fontFamily()
+// does before it reaches the pptx run.
+var DECK_FONTS = {
+  '': 'var(--font-brand)',
+  'sans': 'var(--font-brand)',
+  'display': 'var(--font-display, var(--font-brand))',
+  'mono': 'var(--font-mono)',
+};
 function deckFont(b) {
   var key = String(b && b.font == null ? '' : b.font);
-  if (key === 'mono') return 'var(--font-mono)';
-  if (key === '' || key === 'sans' || key === 'display') return undefined;
+  if (Object.prototype.hasOwnProperty.call(DECK_FONTS, key)) return DECK_FONTS[key];
   var safe = key.replace(/[^\w \-]/g, '').trim();
   return safe || undefined;
 }

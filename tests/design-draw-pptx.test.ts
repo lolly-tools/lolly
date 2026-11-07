@@ -1558,7 +1558,23 @@ export function slideMasterForExport(
 `;
 
 assert.equal(createHash('sha256').update(legacySource).digest('hex'), 'f8e7c1b606bd4ac2ae9f5926357c5e4bd117f5a2b32b8d26cd4483e34804b88a', 'the retained producer source is immutable');
-const bundled = await build({ stdin: { contents: legacySource, resolveDir: fileURLToPath(new URL('../packages/node-shell/src/', import.meta.url)), sourcefile: 'legacy-design-pptx.ts', loader: 'ts' }, bundle: true, write: false, platform: 'node', format: 'esm' });
+/**
+ * The one deliberate change since both frozen producers were taken: a circle or an
+ * ellipse box is PowerPoint's ellipse preset and a pill a full rounded rectangle, where
+ * both producers wrote a plain rectangle. The change is applied to each frozen source
+ * before it is built, reading the same row fields in the same order, so every other
+ * result, part and read still compares exactly.
+ */
+const OUTLINE_BEFORE = `  const radius = str(row, 'shape') === 'rounded' ? { radius: emu(num(row, 'radius')) } : {};\n`;
+const OUTLINE_AFTER = `  const shapeName = str(row, 'shape');
+  const radius = shapeName === 'circle' || shapeName === 'ellipse' ? { geom: 'ellipse' as const }
+    : shapeName === 'pill' ? { radius: Math.round(Math.min(box.cx, box.cy) / 2) }
+    : shapeName === 'rounded' ? { radius: emu(num(row, 'radius')) } : {};\n`;
+function withOutlines(source: string): string {
+  assert.equal(source.split(OUTLINE_BEFORE).length, 2, 'the outline change replaces one exact source fragment');
+  return source.replace(OUTLINE_BEFORE, OUTLINE_AFTER);
+}
+const bundled = await build({ stdin: { contents: withOutlines(legacySource), resolveDir: fileURLToPath(new URL('../packages/node-shell/src/', import.meta.url)), sourcefile: 'legacy-design-pptx.ts', loader: 'ts' }, bundle: true, write: false, platform: 'node', format: 'esm' });
 const legacy = (await import(`data:text/javascript;base64,${Buffer.from(bundled.outputFiles![0]!.text).toString('base64')}`)).designFramesToPptx as typeof designFramesToPptx;
 
 /** Exact qualified860 producer, reconstructed with its fixed prior primitive patch, not the new consumer. */
@@ -1733,7 +1749,7 @@ export function designDrawPptx(op: DrawShapeOp): PptxRect {
 }
 `;
 assert.equal(createHash('sha256').update(qualifiedPrimitiveSource).digest('hex'), '5f877ddfa9396fb1a2a3d38cc6f303455da90a1ae6e37b15460b7b2617b088c1');
-const qualifiedBundle = await build({ stdin: { contents: qualifiedProducerSource,
+const qualifiedBundle = await build({ stdin: { contents: withOutlines(qualifiedProducerSource),
   resolveDir: fileURLToPath(new URL('../packages/node-shell/src/', import.meta.url)), sourcefile: 'qualified-860-design-pptx.ts', loader: 'ts' },
   bundle: true, write: false, platform: 'node', format: 'esm', plugins: [{ name: 'frozen-860-primitive', setup(builder) {
     builder.onLoad({ filter: /design-draw-pptx\.ts$/ }, () => ({ contents: qualifiedPrimitiveSource
@@ -2456,7 +2472,7 @@ test('native path fallback families preserve full results, notes, heads and fixe
 });
 
 async function pathCompilerProbe(mutation: 'point' | 'closed' | 'alpha' | 'stroke' | 'head' | 'tail' | undefined = undefined, original = false, target = 'admitted-path-line') {
-  const source = original ? qualifiedProducerSource : readFileSync(new URL('../packages/node-shell/src/design-pptx.ts', import.meta.url), 'utf8');
+  const source = original ? withOutlines(qualifiedProducerSource) : readFileSync(new URL('../packages/node-shell/src/design-pptx.ts', import.meta.url), 'utf8');
   const declaration = "import { compileDesignRow } from '../../../engine/src/design-draw.ts';";
   assert.equal(source.split(declaration).length, 2);
   const mutations = {

@@ -584,7 +584,7 @@ async function runToolCliCandidate({ toolId, inputValues, params, repeated = {},
   // is its frozen alias and reads straight off url-mode's reserved `profile` param, so
   // a shared print link and a hand-typed flag mean the same thing (contract B1).
   const pressProfile = params['press-profile'] || pressProfileParam || null;
-  // Spot inks as process (engine 1.320). `--spots=process` is the CLI spelling of a link's
+  // Spot inks as process (engine 1.322). `--spots=process` is the CLI spelling of a link's
   // `_spots=process`, and either one asks. Any other value of the flag is a usage error,
   // because a typo must never come back looking like a four-colour file.
   if (params.spots !== undefined && parseSpots(String(params.spots)) === null) {
@@ -1974,7 +1974,7 @@ export const CLI_FLAGS = new Set([
   // `--no-madewith`: leave the design-system record out (plans/319), the CLI spelling
   // of `_madewith=0`. Read where the runtime is created.
   'no-madewith',
-  // `--spots=process`: print every spot ink in process (engine 1.320), the CLI spelling of
+  // `--spots=process`: print every spot ink in process (engine 1.322), the CLI spelling of
   // `_spots=process`. Read beside the press profile above.
   'spots',
   // The enrolled signing identity (contract section 1.3). Both take a PATH - never key

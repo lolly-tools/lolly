@@ -15,13 +15,12 @@
  * empty record set forever, with no logging - offline is a normal state for this
  * app, not an error.
  *
- * Scoring mirrors the docs sidebar's ladder (heading beats page title beats
- * body prose) through lib/search weights; scoreHaystack's word-boundary doubling
- * preserves the sidebar's extra heading-prefix bonus.
+ * Ranking is docs-rank.ts's rankDocs, the one the /info search bundles: a page
+ * matched in its title leads, then sections by heading, page title and body
+ * (plan 354 D4).
  */
 import { icon, type IconName } from '../../icons.ts';
-import { scoreHaystack } from '../match.ts';
-import { docsAppHrefFor, fetchDocsIndex, type PreparedRecord } from '../docs-index.ts';
+import { docsAppHrefFor, fetchDocsIndex, rankDocs, type PreparedRecord } from '../docs-index.ts';
 import type { SearchHit, SearchProvider } from '../registry.ts';
 
 /**
@@ -62,9 +61,7 @@ export function createDocsProvider(): SearchProvider {
     async search(tokens, limit): Promise<SearchHit[]> {
       if (!tokens.length) return [];
       const hits: SearchHit[] = [];
-      for (const { rec, fields } of await load()) {
-        const score = scoreHaystack(fields, tokens);
-        if (score <= 0) continue;
+      for (const { rec, score } of rankDocs(await load(), tokens).slice(0, limit)) {
         hits.push({
           icon: icon(docsIconName(rec.i)),
           // A heading is the row (the sidebar shows the page title as context
@@ -76,7 +73,7 @@ export function createDocsProvider(): SearchProvider {
           score,
         });
       }
-      return hits.sort((a, b) => b.score - a.score).slice(0, limit);
+      return hits;
     },
   };
 }

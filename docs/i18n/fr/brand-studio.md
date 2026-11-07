@@ -82,7 +82,7 @@ Chaque marque finit dans une grille de huit emplacements facultatifs, un par **o
 
 Un groupe sans marque se replie sur une seule ligne ; ouvre-le pour voir ses emplacements. Clique sur un emplacement pour ajouter un PNG, SVG, JPEG ou WebP, ou clique sur un emplacement rempli pour remplacer la marque. Tout reste sur cet appareil.
 
-![Les emplacements de logo avec Horizontal et Vertical ouverts : chaque traitement est un emplacement à part, et chaque emplacement est facultatif](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dlogos&width=1440&height=1600&dpi=192&waitMs=1600&drive=click%3A.be-logo-identity%3Edetails%3Anth-of-type%281%29%3Esummary%3Bclick%3A.be-logo-identity%3Edetails%3Anth-of-type%282%29%3Esummary%3Bwait%3A600&cropSelector=.be-logo-grid&format=svg&walker=1&dark=1&filename=bs-logo-slots)
+![Les emplacements de logo avec Horizontal et Vertical ouverts : chaque traitement est un emplacement à part, et chaque emplacement est facultatif](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dlogos&system=new-design-system&width=1440&height=1600&dpi=192&waitMs=1600&drive=click%3A.be-logo-identity%3Edetails.be-logo-group--fold%3Anot%28.be-logo-group--custom%29%3Esummary%3Bwait%3A600&cropSelector=.be-logo-grid&format=svg&walker=1&dark=1&filename=bs-logo-slots)
 
 - **Custom marks** sont les marques que ta marque appelle par son propre nom, comme une icône, un blason ou un favicon.
 - **Plus d'identités.** Une sous-marque, un produit ou un événement peut avoir son propre jeu complet : **+ Add another logo** et donne un nom au jeu. Ton jeu principal est « Your logo ». [Brand architectures](/info/brand-architectures.html) montre quand une identité de logo est le bon bloc.
@@ -114,7 +114,7 @@ Tes couleurs se placent à côté d'un aperçu **In context** sur un grand écra
 
 ### Rôles : ce que lisent les outils
 
-![The Colour roles table on Lolly Demo after choosing the suggested words Main, Accent, Supporting and Tertiary: the colourway chips, then each role with its light and dark colour, Main read as the lead colour and Accent as the partner colour, Supporting and Tertiary read by name only and marked Copied, and the readings no role fills listed under the table](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=2720&height=2000&dpi=192&waitMs=1800&cropSelector=%5Bdata-be-roles-fold%5D&format=svg&walker=1&dark=1&filename=bs-colour-roles)
+![The Colour roles table on Lolly Demo after choosing the suggested words Main, Accent, Supporting and Tertiary: the colourway chips, then each role with its light and dark colour, Main read as the lead colour and Accent as the partner colour, Supporting and Tertiary read by name only and marked Copied, and the readings no role fills listed under the table](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&system=wefthouse&width=2720&height=2000&dpi=192&waitMs=1800&cropSelector=%5Bdata-be-roles-fold%5D&format=svg&walker=1&dark=1&filename=bs-colour-roles)
 
 Les **Roles** disent quelle couleur joue quel rôle dans chaque outil et chaque export. Ils sont facultatifs (trois couleurs libres sans rôle forment un système tout à fait valable), toute couleur peut en prendre un et l'indicateur de contraste est mesuré par rapport à la surface, APCA d'abord. Chaque ligne de rôle montre une couleur propre à pleine intensité, une couleur de départ qui tient lieu, ou **↳ follows Primary**.
 
@@ -206,7 +206,7 @@ Les téléchargements de la palette (design tokens, CSS, SCSS, GIMP et Adobe Swa
 
 Sans police propre, la pièce est une seule carte : **Primary**, composée à taille de lecture dans la police qui la sert aujourd'hui, avec une étiquette **Starter**, un bouton **Choose for Primary** et la ligne *"Nothing installs until you choose one."* Headings, code et italique suivent le primaire jusqu'à ce que tu les choisisses ; **Choose them separately** affiche leurs cartes.
 
-![La pièce Type sans police choisie pour l'instant : une carte à taille de lecture, une étiquette Starter dessus et un seul **Choose for Primary** rempli](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&dark=1&filename=brand-type)
+![La pièce Type sans police choisie pour l'instant : une carte à taille de lecture, une étiquette Starter dessus et un seul **Choose for Primary** rempli](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&system=new-design-system&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&dark=1&filename=brand-type)
 
 Choisis une police et la pièce s'ouvre sur quatre cartes de rôle, la liste Fonts et un spécimen en direct :
 
@@ -217,7 +217,7 @@ Choisis une police et la pièce s'ouvre sur quatre cartes de rôle, la liste Fon
 
 Une carte n'est teintée que là où tu as installé cette police. Son bouton dit pour quel rôle il est : **Change Headings** sur une police à toi et **Choose for Headings** partout ailleurs. La ligne d'exemple passe à la ligne au lieu d'être coupée. Rien sur une carte ne valide quoi que ce soit : le bouton ouvre la scène de comparaison pour ce rôle.
 
-![Les quatre cartes de rôle révélées - chacune composée dans la graisse qui la sert, avec une étiquette Starter là où personne n'en a choisi une, et l'italique qui suit la principale](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&width=1440&height=1000&dpi=192&waitMs=2600&drive=click%3A%5Bdata-be-typemore-toggle%5D%3Bwait%3A600&cropSelector=.be-typecard-grid&walker=1&format=svg&dark=1&filename=bs-type-specimen)
+![Les quatre cartes de rôle révélées - chacune composée dans la graisse qui la sert, avec une étiquette Starter là où personne n'en a choisi une, et l'italique qui suit la principale](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&system=new-design-system&width=1440&height=1000&dpi=192&waitMs=2600&drive=click%3A%5Bdata-be-typemore-toggle%5D%3Bwait%3A600&cropSelector=.be-typecard-grid&walker=1&format=svg&dark=1&filename=bs-type-specimen)
 
 ### La scène de comparaison
 

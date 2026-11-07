@@ -85,7 +85,7 @@ export interface ExportOpts {
   c2paAiIngredients?: Array<{ name: string; kind: 'full' | 'partial' }>; // placed assets the user declared AI-made (runtime-supplied) → composite created step + c2pa.placed + a section 18.28 ai-disclosure
   colorProfile?: string;
   /** Print every declared spot ink as its process build in the CMYK formats (HostV1
-   *  v1.321, `_spots=process`). A declared finish keeps its own plate. Unset keeps the
+   *  v1.322, `_spots=process`). A declared finish keeps its own plate. Unset keeps the
    *  named spot plates, so the default output is unchanged. */
   spotsAsProcess?: boolean;
   thumbnail?: boolean;
