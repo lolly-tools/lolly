@@ -78,7 +78,7 @@ test('the sensor capabilities still validate (screen is additive, not a replacem
 
 // ─── version ─────────────────────────────────────────────────────────────────
 
-test('ENGINE_VERSION is 1.329.0', () => {
+test('ENGINE_VERSION is 1.332.0', () => {
   // A literal pin: the screencap surface shipped at 1.54, and tools declare
   // ^1.54.0 to require it. session-record only checks the stamp equals whatever
   // ENGINE_VERSION happens to be (tautological) - this catches an errant bump.
@@ -602,7 +602,8 @@ test('ENGINE_VERSION is 1.329.0', () => {
   // 1.327.0 has preflight count no spot plate when spot inks print as process. Capture is unchanged.
   // 1.328.0 draws the stencil prim in EMF too. Capture is unchanged.
   // 1.329.0 records placed pictures as components of an export, not its parent. Capture is unchanged.
-  assert.equal(ENGINE_VERSION, '1.329.0');
+  // 1.332.0 adds the partner kit reader (partner-kit-v1). Capture is unchanged.
+  assert.equal(ENGINE_VERSION, '1.332.0');
 });
 
 // ─── loadTool: a ^1.54.0 tool loads against this engine ───────────────────────

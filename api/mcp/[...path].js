@@ -4114,7 +4114,7 @@ var ENGINE_VERSION;
 var init_version = __esm({
   "engine/src/version.ts"() {
     "use strict";
-    ENGINE_VERSION = "1.329.0";
+    ENGINE_VERSION = "1.332.0";
   }
 });
 
@@ -133719,8 +133719,8 @@ ${signals.findings.map((f) => f.label).join("\n")}`;
       break;
     }
     case "schema": {
-      const { default: Ajv9 } = await import("ajv");
-      const ajv4 = new Ajv9({ allErrors: true, strict: true, validateFormats: false });
+      const { default: Ajv10 } = await import("ajv");
+      const ajv4 = new Ajv10({ allErrors: true, strict: true, validateFormats: false });
       const validate = ajv4.compile(JSON.parse(s("schema")));
       const valid2 = validate(JSON.parse(text13));
       out = valid2 ? "Valid against this schema." : JSON.stringify(validate.errors, null, 2);
@@ -136438,6 +136438,433 @@ var init_brand_check = __esm({
     record28 = (v) => !!v && typeof v === "object" && !Array.isArray(v);
     valueText2 = (v) => typeof v === "string" ? v : record28(v) && typeof v.ref === "string" ? v.ref : "";
     family = (v) => v.split(",")[0].replace(/["']/g, "").trim().toLowerCase();
+  }
+});
+
+// packages/core/schema/partner-kit-v1.schema.json
+var partner_kit_v1_schema_default;
+var init_partner_kit_v1_schema = __esm({
+  "packages/core/schema/partner-kit-v1.schema.json"() {
+    partner_kit_v1_schema_default = {
+      $schema: "http://json-schema.org/draft-07/schema#",
+      title: "Partner kit v1",
+      description: "A partner company's logos, colours and placement rules, carried as a guest in the lead brand's work. No fonts, no themes and no token document.",
+      type: "object",
+      additionalProperties: false,
+      required: [
+        "schemaVersion",
+        "id",
+        "label",
+        "logos",
+        "colours"
+      ],
+      properties: {
+        schemaVersion: {
+          const: 1
+        },
+        id: {
+          type: "string",
+          pattern: "^[a-z0-9][a-z0-9-]{0,63}$"
+        },
+        label: {
+          type: "string",
+          minLength: 1,
+          maxLength: 120
+        },
+        logos: {
+          type: "object",
+          additionalProperties: false,
+          properties: {
+            light: {
+              type: "object",
+              additionalProperties: false,
+              required: [
+                "id",
+                "version"
+              ],
+              properties: {
+                id: {
+                  type: "string",
+                  minLength: 1,
+                  maxLength: 200,
+                  pattern: "^[A-Za-z0-9][A-Za-z0-9_-]*(/[A-Za-z0-9_-]+){0,7}$"
+                },
+                version: {
+                  type: "integer",
+                  minimum: 1,
+                  maximum: 1e6
+                }
+              }
+            },
+            dark: {
+              type: "object",
+              additionalProperties: false,
+              required: [
+                "id",
+                "version"
+              ],
+              properties: {
+                id: {
+                  type: "string",
+                  minLength: 1,
+                  maxLength: 200,
+                  pattern: "^[A-Za-z0-9][A-Za-z0-9_-]*(/[A-Za-z0-9_-]+){0,7}$"
+                },
+                version: {
+                  type: "integer",
+                  minimum: 1,
+                  maximum: 1e6
+                }
+              }
+            },
+            mark: {
+              type: "object",
+              additionalProperties: false,
+              required: [
+                "id",
+                "version"
+              ],
+              properties: {
+                id: {
+                  type: "string",
+                  minLength: 1,
+                  maxLength: 200,
+                  pattern: "^[A-Za-z0-9][A-Za-z0-9_-]*(/[A-Za-z0-9_-]+){0,7}$"
+                },
+                version: {
+                  type: "integer",
+                  minimum: 1,
+                  maximum: 1e6
+                }
+              }
+            }
+          }
+        },
+        colours: {
+          type: "array",
+          maxItems: 12,
+          items: {
+            type: "object",
+            additionalProperties: false,
+            required: [
+              "role",
+              "name",
+              "value"
+            ],
+            properties: {
+              role: {
+                enum: [
+                  "primary",
+                  "secondary",
+                  "accent",
+                  "text",
+                  "surface"
+                ]
+              },
+              name: {
+                type: "string",
+                minLength: 1,
+                maxLength: 60
+              },
+              value: {
+                type: "string",
+                pattern: "^#[0-9A-Fa-f]{6}$"
+              }
+            }
+          }
+        },
+        rules: {
+          type: "object",
+          additionalProperties: false,
+          properties: {
+            clearSpace: {
+              type: "object",
+              additionalProperties: false,
+              required: [
+                "value",
+                "unit"
+              ],
+              properties: {
+                value: {
+                  type: "number",
+                  exclusiveMinimum: 0,
+                  maximum: 4
+                },
+                unit: {
+                  enum: [
+                    "mark-height"
+                  ]
+                }
+              }
+            },
+            minSize: {
+              type: "object",
+              additionalProperties: false,
+              minProperties: 1,
+              properties: {
+                px: {
+                  type: "number",
+                  exclusiveMinimum: 0,
+                  maximum: 1e4
+                },
+                mm: {
+                  type: "number",
+                  exclusiveMinimum: 0,
+                  maximum: 1e3
+                }
+              }
+            },
+            treatments: {
+              type: "array",
+              minItems: 1,
+              maxItems: 4,
+              uniqueItems: true,
+              items: {
+                enum: [
+                  "colour",
+                  "mono",
+                  "reverse",
+                  "on-photo"
+                ]
+              }
+            }
+          }
+        },
+        skills: {
+          type: "array",
+          maxItems: 16,
+          uniqueItems: true,
+          items: {
+            type: "string",
+            minLength: 1,
+            maxLength: 160
+          }
+        },
+        source: {
+          type: "object",
+          additionalProperties: false,
+          required: [
+            "kind"
+          ],
+          properties: {
+            kind: {
+              enum: [
+                "tokens",
+                "lolly",
+                "logos",
+                "manual"
+              ]
+            },
+            reference: {
+              type: "string",
+              minLength: 1,
+              maxLength: 200
+            }
+          }
+        }
+      }
+    };
+  }
+});
+
+// packages/core/src/partner-kit-v1.ts
+var PARTNER_KIT_MAX_BYTES, PARTNER_KIT_MAX_COLOURS, PARTNER_KIT_MAX_COLOUR_NAME, PARTNER_KIT_LOGO_SURFACES;
+var init_partner_kit_v1 = __esm({
+  "packages/core/src/partner-kit-v1.ts"() {
+    "use strict";
+    PARTNER_KIT_MAX_BYTES = 65536;
+    PARTNER_KIT_MAX_COLOURS = 12;
+    PARTNER_KIT_MAX_COLOUR_NAME = 60;
+    PARTNER_KIT_LOGO_SURFACES = ["light", "dark", "mark"];
+  }
+});
+
+// engine/src/partner-kit.ts
+import Ajv8 from "ajv";
+function schemaValidator5() {
+  if (!validator5) validator5 = new Ajv8({ allErrors: false }).compile(partner_kit_v1_schema_default);
+  return validator5;
+}
+function checkPartnerKit(input) {
+  let value2 = input;
+  let size;
+  if (typeof input === "string") {
+    size = utf8Length(input);
+    if (size > PARTNER_KIT_MAX_BYTES) return tooLarge2(size);
+    try {
+      value2 = JSON.parse(input);
+    } catch {
+      return { ok: false, issues: [{ code: "kit.json", message: "The kit is not JSON." }] };
+    }
+  } else {
+    let text13;
+    try {
+      text13 = JSON.stringify(input);
+    } catch {
+      text13 = void 0;
+    }
+    if (typeof text13 !== "string") return { ok: false, issues: [{ code: "kit.json", message: "The kit cannot be written as JSON." }] };
+    size = utf8Length(text13);
+    if (size > PARTNER_KIT_MAX_BYTES) return tooLarge2(size);
+  }
+  const validate = schemaValidator5();
+  if (!validate(value2)) {
+    const error2 = validate.errors?.[0];
+    const path = error2?.instancePath || "";
+    return {
+      ok: false,
+      issues: [{ code: "kit.schema", message: `The kit does not match partner-kit-v1${path ? ` at ${path}` : ""}: ${error2?.message ?? "unknown problem"}.`, ...path ? { path } : {} }]
+    };
+  }
+  const seen = /* @__PURE__ */ new Set();
+  for (const surface of PARTNER_KIT_LOGO_SURFACES) {
+    const logo = value2.logos[surface];
+    if (!logo) continue;
+    if (seen.has(logo.id)) {
+      return { ok: false, issues: [{ code: "kit.logo-duplicate", message: `The kit pins the logo ${logo.id} twice.`, path: `/logos/${surface}` }] };
+    }
+    seen.add(logo.id);
+  }
+  const kit = structuredClone(value2);
+  kit.colours = kit.colours.map((c) => ({ ...c, value: c.value.toLowerCase() }));
+  return { ok: true, kit };
+}
+function tooLarge2(size) {
+  return { ok: false, issues: [{ code: "kit.too-large", message: `The kit is ${size.toLocaleString("en")} bytes; a kit may take at most ${PARTNER_KIT_MAX_BYTES.toLocaleString("en")}.` }] };
+}
+function readPartnerKit(input) {
+  const result = checkPartnerKit(input);
+  return result.ok ? result.kit : null;
+}
+function partnerKitLogoIds(kit) {
+  const ids2 = [];
+  for (const surface of PARTNER_KIT_LOGO_SURFACES) {
+    const id3 = kit.logos?.[surface]?.id;
+    if (typeof id3 === "string" && id3 && !ids2.includes(id3)) ids2.push(id3);
+  }
+  return ids2;
+}
+function opaqueHex(value2) {
+  const hex4 = typeof value2 === "string" && value2.startsWith("#") ? value2 : colorToHex(value2);
+  if (typeof hex4 !== "string") return null;
+  const h = hex4.trim().toLowerCase();
+  if (/^#[0-9a-f]{6}$/.test(h)) return h;
+  if (/^#[0-9a-f]{6}ff$/.test(h)) return h.slice(0, 7);
+  if (/^#[0-9a-f]{3}$/.test(h)) return `#${h[1]}${h[1]}${h[2]}${h[2]}${h[3]}${h[3]}`;
+  if (/^#[0-9a-f]{3}f$/.test(h)) return `#${h[1]}${h[1]}${h[2]}${h[2]}${h[3]}${h[3]}`;
+  return null;
+}
+function leafWords(path) {
+  const leaf = (path.split(".").pop() ?? "").replace(/[-_]+/g, " ").trim();
+  return leaf ? leaf[0].toUpperCase() + leaf.slice(1) : "";
+}
+function namedElsewhere(tokens3, value2) {
+  for (const entry2 of tokens3.query({ type: "color" })) {
+    if (entry2.path.startsWith("color.semantic.") || /^color\.(primary|secondary|accent)$/.test(entry2.path)) continue;
+    let hex4;
+    try {
+      hex4 = opaqueHex(toSwatch(entry2).value);
+    } catch {
+      hex4 = null;
+    }
+    if (hex4 === value2) return leafWords(entry2.path) || null;
+  }
+  return null;
+}
+function partnerKitColoursFromTokens(doc) {
+  let tokens3;
+  try {
+    tokens3 = createTokenSet(doc, { theme: "light" });
+  } catch {
+    return [];
+  }
+  const out = [];
+  const values = /* @__PURE__ */ new Set();
+  for (const [role, paths] of TOKEN_SLOT_PATHS) {
+    for (const path of paths) {
+      const entry2 = tokens3.get(path);
+      if (!entry2 || entry2.type !== "color") continue;
+      let swatch;
+      try {
+        swatch = toSwatch(entry2);
+      } catch {
+        continue;
+      }
+      const value2 = opaqueHex(swatch.value);
+      if (!value2) continue;
+      if (!values.has(value2)) {
+        values.add(value2);
+        out.push({ role, name: (namedElsewhere(tokens3, value2) ?? ROLE_WORD[role]).slice(0, PARTNER_KIT_MAX_COLOUR_NAME), value: value2 });
+      }
+      break;
+    }
+  }
+  return out;
+}
+function partnerKitColoursFromInks(colours2) {
+  const out = [];
+  const values = /* @__PURE__ */ new Set();
+  let chromatic = 0;
+  let accents = 0;
+  let text13 = false;
+  let surface = false;
+  for (const raw of Array.isArray(colours2) ? colours2.slice(0, 1e3) : []) {
+    if (out.length >= PARTNER_KIT_MAX_COLOURS) break;
+    const value2 = opaqueHex(raw);
+    if (!value2 || values.has(value2)) continue;
+    const lch = hexToOklch(value2);
+    if (!lch) continue;
+    const neutral = lch.c < NEUTRAL_C || lch.l < DARK_L && lch.c < DARK_C;
+    if (neutral && lch.l >= WHITE_L) continue;
+    let role;
+    let name;
+    if (neutral) {
+      if (lch.l < 0.5) {
+        if (text13) continue;
+        text13 = true;
+        role = "text";
+      } else {
+        if (surface) continue;
+        surface = true;
+        role = "surface";
+      }
+      name = ROLE_WORD[role];
+    } else {
+      role = chromatic === 0 ? "primary" : chromatic === 1 ? "secondary" : "accent";
+      chromatic++;
+      if (role === "accent") accents++;
+      name = role === "accent" && accents > 1 ? `${ROLE_WORD.accent} ${accents}` : ROLE_WORD[role];
+    }
+    values.add(value2);
+    out.push({ role, name, value: value2 });
+  }
+  return out;
+}
+var validator5, utf8Length, ROLE_WORD, TOKEN_SLOT_PATHS, WHITE_L, NEUTRAL_C, DARK_L, DARK_C;
+var init_partner_kit = __esm({
+  "engine/src/partner-kit.ts"() {
+    "use strict";
+    init_partner_kit_v1_schema();
+    init_partner_kit_v1();
+    init_tokens2();
+    init_brand_derive();
+    utf8Length = (text13) => new TextEncoder().encode(text13).length;
+    ROLE_WORD = {
+      primary: "Primary",
+      secondary: "Secondary",
+      accent: "Accent",
+      text: "Text",
+      surface: "Surface"
+    };
+    TOKEN_SLOT_PATHS = [
+      ["primary", ["color.semantic.primary", "color.primary", "color.brand.primary"]],
+      ["secondary", ["color.semantic.secondary", "color.secondary", "color.brand.secondary"]],
+      ["accent", ["color.semantic.accent", "color.accent", "color.brand.accent"]]
+    ];
+    WHITE_L = 0.97;
+    NEUTRAL_C = 0.03;
+    DARK_L = 0.3;
+    DARK_C = 0.06;
   }
 });
 
@@ -154448,6 +154875,7 @@ __export(src_exports, {
   checkFindingsFromHouseRules: () => checkFindingsFromHouseRules,
   checkLearningExportSize: () => checkLearningExportSize,
   checkLearningModule: () => checkLearningModule,
+  checkPartnerKit: () => checkPartnerKit,
   checkToolIntents: () => checkToolIntents,
   chromaAxisMax: () => chromaAxisMax,
   chromaKeyAlpha: () => chromaKeyAlpha,
@@ -155252,6 +155680,9 @@ __export(src_exports, {
   parseVoiceBlend: () => parseVoiceBlend,
   parseWav: () => parseWav,
   parseZzfxmRef: () => parseZzfxmRef,
+  partnerKitColoursFromInks: () => partnerKitColoursFromInks,
+  partnerKitColoursFromTokens: () => partnerKitColoursFromTokens,
+  partnerKitLogoIds: () => partnerKitLogoIds,
   pasteTextFrames: () => pasteTextFrames,
   patchJpegDpi: () => patchJpegDpi,
   pathBounds: () => pathBounds,
@@ -155388,6 +155819,7 @@ __export(src_exports, {
   readMotionTokens: () => readMotionTokens,
   readMpfIndex: () => readMpfIndex,
   readOtio: () => readOtio,
+  readPartnerKit: () => readPartnerKit,
   readPptx: () => readPptx,
   readPremiereXml: () => readPremiereXml,
   readPreparationRecipe: () => readPreparationRecipe,
@@ -156140,6 +156572,7 @@ var init_src2 = __esm({
     init_studio3d_motion();
     init_brand_context();
     init_brand_check();
+    init_partner_kit();
     init_design_brief();
     init_brand_skill();
     init_token_scope();
@@ -165570,7 +166003,7 @@ async function handleFlattenedSlides(source, media, input) {
     const keep2 = (reason2, message, objectIds = pic ? [pic.id] : []) => {
       report4(keptSlide(slide, pic, missing, message ? { message, objectIds } : void 0), "kept", reason2);
     };
-    const tooLarge2 = (width, height) => {
+    const tooLarge3 = (width, height) => {
       keep2("too-large", `The picture of ${slide.id} is ${width} by ${height} pixels, over the ${FLATTENED_MAX_PIXELS} pixel limit for a rebuild, so it stays one picture.`);
     };
     if (mode3 === "keep") {
@@ -165589,7 +166022,7 @@ async function handleFlattenedSlides(source, media, input) {
     }
     const size = pictureDimensions(held.bytes);
     if (size && size.width * size.height > FLATTENED_MAX_PIXELS) {
-      tooLarge2(size.width, size.height);
+      tooLarge3(size.width, size.height);
       continue;
     }
     let picture = null;
@@ -165604,7 +166037,7 @@ async function handleFlattenedSlides(source, media, input) {
       continue;
     }
     if (picture.width * picture.height > FLATTENED_MAX_PIXELS) {
-      tooLarge2(picture.width, picture.height);
+      tooLarge3(picture.width, picture.height);
       continue;
     }
     const staged = /* @__PURE__ */ new Map();
@@ -165885,8 +166318,8 @@ async function loadSchemaValidator() {
   }
   if (!schemaFile) return structuralPlanProblems;
   const schema2 = JSON.parse(readFileSync2(schemaFile, "utf8"));
-  const { default: Ajv9 } = await import("ajv/dist/2020.js");
-  const ajv4 = new Ajv9({ allErrors: true, strict: false });
+  const { default: Ajv10 } = await import("ajv/dist/2020.js");
+  const ajv4 = new Ajv10({ allErrors: true, strict: false });
   const validate = ajv4.compile(schema2);
   return (doc) => {
     if (validate(doc)) return structuralPlanProblems(doc);
@@ -194602,7 +195035,7 @@ function readFileArg2(value2, opts) {
   const name = safeFileName(typeof file.name === "string" && file.name.trim() ? file.name : opts.fallbackName, opts.fallbackName);
   return { bytes: bytes2, name, ...typeof file.mime === "string" && file.mime ? { mime: file.mime } : {}, base64Length: compact.length };
 }
-function success2(sentence, structured, files, ctx, tooLarge2, hint) {
+function success2(sentence, structured, files, ctx, tooLarge3, hint) {
   const result = {
     content: [{ type: "text", text: sentence }, { type: "text", text: JSON.stringify(structured) }, ...files],
     structuredContent: structured
@@ -194610,7 +195043,7 @@ function success2(sentence, structured, files, ctx, tooLarge2, hint) {
   if (isHostedServer(ctx.env)) {
     const size = responseBytes(result);
     if (size > ctx.limits.responseMaxBytes)
-      throw new ToolCodeError(tooLarge2, `The result comes to ${size} bytes and this server answers up to ${ctx.limits.responseMaxBytes} bytes; ${hint}`);
+      throw new ToolCodeError(tooLarge3, `The result comes to ${size} bytes and this server answers up to ${ctx.limits.responseMaxBytes} bytes; ${hint}`);
   }
   return result;
 }
@@ -200532,7 +200965,7 @@ init_src();
 import { lookup as lookup3 } from "node:dns/promises";
 import { request as request2 } from "node:https";
 import { BlockList as BlockList2, isIP as isIP3 } from "node:net";
-import Ajv8 from "ajv";
+import Ajv9 from "ajv";
 
 // packages/core/src/live-invite-v1.ts
 function readLiveInvitation(value2) {
@@ -200575,7 +201008,7 @@ var AGENT_TOOLS = LIVE_TOOLS.map((tool) => ({
   securitySchemes: [{ type: "noauth" }],
   _meta: { securitySchemes: [{ type: "noauth" }] }
 }));
-var ajv3 = new Ajv8({ strict: false });
+var ajv3 = new Ajv9({ strict: false });
 var validators2 = new Map(AGENT_TOOLS.map((tool) => [tool.name, ajv3.compile(tool.inputSchema)]));
 var transition = new BlockList2();
 for (const [network, prefix] of [["::ffff:0:0", 96], ["64:ff9b::", 96], ["64:ff9b:1::", 48], ["2002::", 16], ["2001::", 32]]) transition.addSubnet(network, prefix, "ipv6");
