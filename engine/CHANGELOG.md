@@ -6,6 +6,12 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+## 1.329.0
+
+- The barrel exports the asset rights reader from `asset-rights.ts`: `redistribution`, `ownerPublished`, `OWNER_PUBLISHED`, `assetLicenceDeclaration`, `assetRightsNotices` and `readAssetRightsRecord`, with their types, and `checkCompanionReadback` from `rights-companion.ts`. A Lolly Work server can now ask the same question the `.lolly` builder asks ("may these bytes be passed on?") and get the same answer and reason, and read a package's credits back.
+- `packCreditsText`, with `PackCreditEntry` and `PackHoldEntry`, moves into `asset-rights.ts` from the web shell's `lib/lolly-pack.ts`, unchanged, so a `.lolly` pack and a Work collection ZIP print one text. The shell imports it back; every `.lolly` keeps its bytes.
+- No behaviour changes: nothing is added to any rule, and no output changes.
+
 ## 1.327.0
 
 - `PreflightSettings.spotsAsProcess` (new, optional, `preflight.ts`): the "Print spot inks as process" choice (`_spots=process`, 1.324). With it on, `plates.spot-ceiling` is not emitted and no `spotPlates` count is taken, because every declared spot ink prints in the four process plates; `plates.process` says so ("The 3 spot inks print as process and add no plates.") and lists the inks in its evidence. Finish plates are counted as before. Absent or false, every finding and count is unchanged.
