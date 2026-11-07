@@ -24,19 +24,18 @@ async function galleryNeedsWelcome(host: GalleryHost, isCurrent: () => boolean):
     if (await host.tokens?.isLocked?.()) return false;
     if ((await listWorkspaceTemplates(host)).some((tpl) => !tpl.retired)) return false;
     const source = await activeDesignSystemSource(host);
-    // The catalog index, read at most once, for what this device has not synced yet.
-    let index: { assets?: Array<Partial<AssetRef>> } | null | undefined;
-    const served = async () => {
-      if (index === undefined) {
-        const response = isCurrent() ? await instanceFetch(instancePath('/catalog/assets/index.json?paged=1')) : null;
-        index = response?.ok ? await response.json() as { assets?: Array<Partial<AssetRef>> } : null;
-      }
-      return index;
-    };
-    if (source) return source === 'shipped' && !hasPublishedTemplates((await served())?.assets);
+    if (source) return source === 'shipped';
     let tokensId = (await host.assets._findMetaByType('tokens'))?.id;
-    if (tokensId === undefined) tokensId = (await served())?.assets?.find(asset => asset.type === 'tokens')?.id;
-    return tokensId === 'lolly/tokens/brand' && !hasPublishedTemplates((await served())?.assets);
+    if (tokensId === undefined && isCurrent()) {
+      const response = await instanceFetch(instancePath('/catalog/assets/index.json?paged=1'));
+      if (response.ok) {
+        const index = await response.json() as { assets?: Array<Partial<AssetRef>> };
+        // The same read answers for templates this device has not synced yet.
+        if (hasPublishedTemplates(index.assets)) return false;
+        tokensId = index.assets?.find(asset => asset.type === 'tokens')?.id;
+      }
+    }
+    return tokensId === 'lolly/tokens/brand';
   } catch { return false; }
 }
 
