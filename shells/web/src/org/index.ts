@@ -42,7 +42,8 @@ import { setFieldPolicies } from '../lib/field-policy.ts';
 import { beginAiProbe, finishAiProbe, knownManagedAi, startAiPolicyPolling, stopAiPolicyPolling } from './ai-policy.ts';
 import type { AiPolicy } from '../lib/ai-policy.ts';
 import type { FieldPolicy } from '../lib/field-policy.ts';
-import { setToolInputPolicies, clearInputPolicies, setInputPolicyFailClosed, onToolInputMount } from '../lib/input-policy.ts';
+import { setToolInputPolicies, clearInputPolicies, setInputPolicyFailClosed, onToolInputMount, setToolStartValues, clearToolStartValues } from '../lib/input-policy.ts';
+import { companyLogo, setWorkspaceCompany, type WorkspaceCompany } from '../lib/workspace-templates.ts';
 import type { InputPolicy } from '../lib/input-policy.ts';
 import { registerShareSection } from '../lib/share-sections.ts';
 import { registerProfileSection } from '../lib/profile-sections.ts';
@@ -150,6 +151,24 @@ export interface ToolPolicySpec {
    *  deployment-wide `can` bit (a grant named the tool). Mapped onto the
    *  export-policy seam's per-tool answers. */
   can?: { 'export.download'?: boolean; 'export.request'?: boolean };
+  /** What new work in this tool starts from for this caller (the workspace's group
+   *  defaults and their company's details), below a template's values and their own. */
+  defaults?: Record<string, unknown>;
+  /** Inputs that take this caller's company details, by company field. A bound
+   *  input the workspace locks is filled and not offered as a control. */
+  bindings?: Record<string, string>;
+}
+
+/** The caller's partner company and programme (control-plane shape). The logo ids
+ *  are catalog assets the caller already receives. */
+export interface PartnerSpec {
+  company?: {
+    id: string; name: string; revision?: number;
+    logos?: { light?: string; dark?: string; mark?: string };
+    website?: string; contact?: { name?: string; email?: string; phone?: string };
+    address?: string; currency?: string; taxNote?: string;
+  };
+  programme?: { id: string; name: string };
 }
 
 /** A tool the instance injects into the gallery (control-plane shape). `toolId` is
@@ -193,6 +212,8 @@ export interface OrgConfig {
   session?: Session;
   profilePolicy?: Record<string, ProfileFieldSpec>;
   tools?: Record<string, ToolPolicySpec>;
+  /** The caller's partner company and programme, for programme members only. */
+  partner?: PartnerSpec;
   /** Capability flags the caller has on this instance (e.g. 'link.create',
    *  'export.download', 'export.request'. 'export.preflight' is LEGACY: the
    *  prepress card is a personal feature flag since 2026-08-06, and
@@ -792,6 +813,9 @@ function applyInputFailClosed(on: boolean): void {
  */
 export function applyOrgToolPolicies(): void {
   clearInputPolicies();
+  clearToolStartValues();
+  const company = partnerCompany(orgConfigState);
+  setWorkspaceCompany(company);
   const tools = orgConfigState?.tools;
   if (!tools) return;
   const instanceName = orgConfigState!.instance?.name || '';
@@ -816,7 +840,15 @@ export function applyOrgToolPolicies(): void {
       const by = typeof access.by === 'string' && access.by ? access.by : undefined;
       const reason = by && typeof access.reason === 'string' && access.reason ? access.reason : undefined;
       const why = { ...(by ? { by } : {}), ...(reason ? { reason } : {}) };
-      if (access.level === 'locked') {
+      // An input locked to the caller's company details is filled and not offered
+      // as a control: the logo and the details line are simply there. A logo by
+      // mode follows the document between the company's light and dark logos.
+      const field = spec.bindings?.[inp.id];
+      if (access.level === 'locked' && field) {
+        const byMode = field === 'logo' && company
+          ? { byMode: { light: companyLogo(company, 'light') ?? access.value, dark: companyLogo(company, 'dark') ?? access.value } } : {};
+        out[inp.id] = { mode: 'hidden', value: access.value, ...byMode };
+      } else if (access.level === 'locked') {
         out[inp.id] = { mode: 'locked', note: managedNote, value: access.value, ...why };
       } else if (access.level === 'choice') {
         out[inp.id] = { mode: 'choice', note: managedNote, value: access.value, allow: access.allow, ...why };
@@ -825,7 +857,26 @@ export function applyOrgToolPolicies(): void {
     // `hidden` (must-not-see) wins over any access rule for the same input.
     for (const id of spec.hidden ?? []) out[id] = { mode: 'hidden' };
     setToolInputPolicies(toolId, out);
+    if (spec.defaults && typeof spec.defaults === 'object') setToolStartValues(toolId, spec.defaults);
   }
+}
+
+/** The caller's company as the neutral seam takes it, or null. */
+function partnerCompany(config: OrgConfig | null): WorkspaceCompany | null {
+  const c = config?.partner?.company;
+  if (!c?.id || !c.name) return null;
+  return {
+    id: c.id, name: c.name, ...(typeof c.revision === 'number' ? { revision: c.revision } : {}),
+    logos: { ...(c.logos?.light ? { light: c.logos.light } : {}), ...(c.logos?.dark ? { dark: c.logos.dark } : {}), ...(c.logos?.mark ? { mark: c.logos.mark } : {}) },
+    ...(c.website ? { website: c.website } : {}), ...(c.contact ? { contact: { ...c.contact } } : {}),
+    ...(c.address ? { address: c.address } : {}), ...(c.currency ? { currency: c.currency } : {}), ...(c.taxNote ? { taxNote: c.taxNote } : {}),
+  };
+}
+
+/** The caller's partner company and programme, for surfaces that show them (the
+ *  home's company card). Null on a plain build or for an internal person. */
+export function orgPartner(): PartnerSpec | null {
+  return orgConfigState?.partner ?? null;
 }
 
 /**
@@ -1128,6 +1179,9 @@ export async function initOrgWithAuth(auth: AuthConfig): Promise<OrgState | null
       // more restrictive state rather than falling open.
       applyExportPolicy(orgConfigState, failClosed);
       applyInputFailClosed(failClosed);
+      // The person's partner company, for the home's company card and the tools that
+      // take its details: known from the start, not only once a tool mounts.
+      setWorkspaceCompany(partnerCompany(orgConfigState));
       applySitePolicy(orgConfigState, failClosed);
       // Route the instance's injectables (plans/19): tool descriptors into the
       // gallery registry (pure data, beside the apply* group); chrome descriptors
