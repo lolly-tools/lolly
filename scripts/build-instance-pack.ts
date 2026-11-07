@@ -56,6 +56,7 @@ import { zipSync, strToU8 } from 'fflate';
 import { CATALOG_SIG_ALG, jwkThumbprint } from '../engine/src/catalog-integrity.ts';
 import { pemToDer } from '../engine/src/x509.ts';
 import { ENGINE_VERSION } from '../engine/src/version.ts';
+import { variableWeightRange } from '../shells/web/src/lib/design-system/font-resolve.ts';
 import { isPublicBrandSkillAsset } from '../packages/core/src/brand-skill-v1.ts';
 import {
   listToolFiles, readToolManifestText, toolFile, type ContentRoots,
@@ -85,6 +86,12 @@ const BUNDLE_HEADER = '📐 Lolly  •  ❤️ Give Fitzy an Ovation  •  🌏 
 /** woff2/raster bytes are already compressed - store, don't re-deflate. */
 const STORED_EXT = /\.(woff2?|png|webp|jpe?g|avif)$/i;
 
+/** The MIME a packed face is labelled with, by its file extension: the importer stores
+ *  the bytes under this type (brand-transfer.ts), so a TTF must not say woff2. */
+const FONT_MIME: Record<string, string> = {
+  woff2: 'font/woff2', woff: 'font/woff', ttf: 'font/ttf', otf: 'font/otf',
+};
+
 const WEIGHT_NAMES: Record<string, number> = {
   Thin: 100, ExtraLight: 200, Light: 300, Regular: 400, Medium: 500,
   SemiBold: 600, Bold: 700, ExtraBold: 800, Black: 900,
@@ -96,7 +103,9 @@ interface PackRecipe {
   version: string;
   instance?: string;
   tokensAsset: string;
-  fonts: { dir: string; families: string[]; license?: string };
+  /** `license`: one licence file, carried as fonts/LICENSE.txt, or a list of them (one per
+   *  family, say), each carried under its own file name in fonts/. */
+  fonts: { dir: string; families: string[]; license?: string | string[] };
   logos: Record<string, string>;
   includeAssetFamilies: string[];
   excludeAssetFamilies: string[];
@@ -147,14 +156,18 @@ function walkFiles(dir: string, base = dir, out: string[] = []): string[] {
 const sriSha256 = (bytes: Uint8Array): string =>
   'sha256-' + createHash('sha256').update(bytes).digest('base64');
 
-/** Font style/weight from a static webfont filename (`SUSE-BoldItalic.woff2`).
- *  Null for anything unparsable - including `[wght]` variable files, which the
- *  user-font registry has no weight-range story for yet. */
-function parseFontFile(name: string, family: string): { weight: number; style: 'normal' | 'italic' } | null {
+/** Font style/weight from a font filename: a static face (`SUSE-BoldItalic.woff2`),
+ *  or a variable one named `Family-Variable.ttf` / `Family-Italic-Variable.ttf`, whose
+ *  weight is read from its own `wght` axis when it is packed (`variable: true`).
+ *  Null for anything unparsable - including `[wght]` files, a naming this builder
+ *  does not read. */
+function parseFontFile(name: string, family: string): { weight: number; style: 'normal' | 'italic'; variable?: true } | null {
   if (name.includes('[')) return null;
   const m = name.match(/^(.+?)-(.+)\.(woff2?|ttf|otf)$/);
   if (!m || m[1] !== family.replace(/\s+/g, '')) return null;
   const face = m[2]!;
+  if (face === 'Variable') return { weight: 400, style: 'normal', variable: true };
+  if (face === 'Italic-Variable') return { weight: 400, style: 'italic', variable: true };
   const italic = face.endsWith('Italic');
   const weightName = face === 'Italic' ? 'Regular' : face.replace(/Italic$/, '');
   const weight = WEIGHT_NAMES[weightName];
@@ -216,28 +229,49 @@ async function main(): Promise<void> {
       if (!parsed) continue;
       unparsedFonts--;
       const zipPath = `fonts/${file.toLowerCase()}`;
-      put(zipPath, new Uint8Array(readFileSync(join(fontDir, file))));
+      const bytes = readFileSync(join(fontDir, file));
+      put(zipPath, new Uint8Array(bytes));
+      // A variable face is stored with its whole `wght` axis ("100 900"), as an upload
+      // of the same file is (user-fonts.ts installFontFromBytes); a static face keeps
+      // the weight its file name states.
+      const weight = parsed.variable
+        ? variableWeightRange(bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength) as ArrayBuffer)
+        : String(parsed.weight);
+      if (!weight) throw new Error(`${file} is named as a variable face but has no readable wght axis`);
+      const ext = file.slice(file.lastIndexOf('.') + 1).toLowerCase();
       fontRows.push({
         id: `user/fonts/${family.toLowerCase().replace(/\s+/g, '-')}/${fontIdx++}`,
-        format: 'woff2',
+        format: ext,
         version: recipe.version,
         meta: {
-          name: `${family}${parsed.weight !== 400 ? ` ${parsed.weight}` : ''}${parsed.style === 'italic' ? ' italic' : ''}`,
+          name: `${family}${!parsed.variable && parsed.weight !== 400 ? ` ${parsed.weight}` : ''}${parsed.style === 'italic' ? ' italic' : ''}`,
           family,
           style: parsed.style,
-          weight: String(parsed.weight),
+          weight,
           source: 'brand-pack',
           tags: ['font'],
         },
         file: zipPath,
-        mime: 'font/woff2',
+        mime: FONT_MIME[ext] ?? 'font/woff2',
       });
     }
     if (!fontIdx) throw new Error(`no static faces parsed for "${family}" in ${recipe.fonts.dir} - the fonts are a MUST`);
   }
   entries['fonts.json'] = strToU8(JSON.stringify(fontRows, null, 2));
-  if (recipe.fonts.license && existsSync(join(brandDir, recipe.fonts.license))) {
-    entries['fonts/LICENSE.txt'] = new Uint8Array(readFileSync(join(brandDir, recipe.fonts.license)));
+  if (typeof recipe.fonts.license === 'string') {
+    if (existsSync(join(brandDir, recipe.fonts.license))) {
+      entries['fonts/LICENSE.txt'] = new Uint8Array(readFileSync(join(brandDir, recipe.fonts.license)));
+    }
+  } else if (Array.isArray(recipe.fonts.license)) {
+    // Each family's own licence text travels beside its faces; a listed licence that
+    // is not there fails the build rather than shipping fonts without their terms.
+    for (const rel of recipe.fonts.license) {
+      const path = join(brandDir, rel);
+      if (!existsSync(path)) throw new Error(`font licence ${rel} is listed in pack.json but missing`);
+      const zipPath = `fonts/${rel.slice(rel.lastIndexOf('/') + 1)}`;
+      if (entries[zipPath]) throw new Error(`two font licences would both be packed as ${zipPath}`);
+      entries[zipPath] = new Uint8Array(readFileSync(path));
+    }
   }
 
   // ── logos (canonical variant slots → the existing importer) ───────────────
