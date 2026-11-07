@@ -18,6 +18,12 @@
  * kept across an await (the line boxes of a text run, the box a picture was taken of)
  * takes `originNow` in the task that read the geometry and carries that fixed copy, so
  * both halves of each subtraction come from the same layout.
+ *
+ * The origin is the corner of the root as the page shows it, transform included: that is
+ * the frame the export is drawn in. When a walker takes the root's own transform off to
+ * walk its subtree untransformed (transform-neutralise.ts), `keepRootFrame` keeps the
+ * origin on that frame. Without it a scaled or rotated root was drawn from the corner of
+ * its untransformed box, off its page.
  */
 
 /** A top-left corner in client px. */
@@ -27,9 +33,10 @@ export interface Origin {
 }
 
 class LiveOrigin implements Origin {
-  private readonly root: Element;
-  private readonly dx: number;
-  private readonly dy: number;
+  readonly root: Element;
+  /** Subtracted from the root's corner: the region offset, less any frame `keepRootFrame` holds. */
+  dx: number;
+  dy: number;
   constructor(root: Element, dx: number, dy: number) {
     this.root = root;
     this.dx = dx;
@@ -55,4 +62,26 @@ export function liveOrigin(root: Element, dx = 0, dy = 0): Origin {
 /** The origin as it is now, as a fixed copy. A fixed origin gives a copy of itself. */
 export function originNow(origin: Origin): Origin {
   return origin instanceof LiveOrigin ? origin.now() : { left: origin.left, top: origin.top };
+}
+
+/**
+ * Run `strip`, which takes `el`'s transform off and returns how to put the transform back
+ * (null when it could not). When `el` is the root a live origin reads, the origin keeps the
+ * corner the transformed root had: the offset between the two corners is held until the
+ * transform is back, so a root the page moves meanwhile is still followed.
+ */
+export function keepRootFrame(origin: Origin, el: Element, strip: () => (() => void) | null): (() => void) | null {
+  if (!(origin instanceof LiveOrigin) || origin.root !== el) return strip();
+  const before = origin.now();
+  const restore = strip();
+  if (!restore) return null;
+  const after = origin.now();
+  const holdX = after.left - before.left, holdY = after.top - before.top;
+  origin.dx += holdX;
+  origin.dy += holdY;
+  return () => {
+    origin.dx -= holdX;
+    origin.dy -= holdY;
+    restore();
+  };
 }
