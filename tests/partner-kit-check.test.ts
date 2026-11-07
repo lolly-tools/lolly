@@ -6,7 +6,7 @@
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { checkGuestMarks, guestRecolourFrom } from '../engine/src/partner-kit-check.ts';
+import { checkGuestMarks, guestRecolourFrom, guestUnmeasuredText } from '../engine/src/partner-kit-check.ts';
 import { checkFindingFromBrand } from '../engine/src/design-check.ts';
 import { checkFile } from '../packages/node-shell/src/check.ts';
 import type { PartnerKitV1 } from '../packages/core/src/partner-kit-v1.ts';
@@ -499,4 +499,13 @@ test('guest marks: the check report reads what a mark sits on in every theme che
   const report = await checkFile(bytes, 'themes.json', { designSystem: { doc, origin: 'file' }, partnerKit: kit({ treatments: ['colour'] }), themes: ['light', 'dark'], browser: 'off', textMeasure: false });
   const onPhoto = report.findings.filter((f) => f.layerId === 'logo' && /sits on a photo/.test(f.message));
   assert.deepEqual(onPhoto.map((f) => f.theme), ['dark'], 'the light panel covers the photo; the dark one is clear');
+});
+
+test('guest marks: each thing not measured is a stable code with its counts, and the English is read from the code', () => {
+  const report = checkGuestMarks([markBox({ w: 300, h: 120, fit: 'contain', image: `${LOGO}?theme=auto` })], kit({ minSize: { px: 96, mm: 20 }, treatments: ['mono'] }));
+  assert.deepEqual(report.unmeasured, [{ code: 'reverse' }, { code: 'mm-in-pixels' }, { code: 'size', count: 1 }, { code: 'surface', count: 1 }]);
+  assert.deepEqual(report.notMeasured, report.unmeasured.map(guestUnmeasuredText), 'the CLI\'s English is the same entries, in the same order');
+  const many = checkGuestMarks(Array.from({ length: 203 }, (_, n) => markBox({ id: `logo-${n}`, x: n * 300 })), kit({ minSize: { px: 96 } }));
+  assert.deepEqual(many.unmeasured, [{ code: 'findings-limit', count: 3, limit: 200 }]);
+  assert.equal(many.notMeasured[0], '3 more findings past the first 200, which are not listed');
 });

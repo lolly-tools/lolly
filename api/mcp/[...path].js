@@ -137251,6 +137251,35 @@ function guestRecolourFrom(catalog) {
     return null;
   };
 }
+function guestUnmeasuredText(entry2) {
+  const n7 = entry2.count ?? 1;
+  switch (entry2.code) {
+    case "reverse":
+      return "reversed use: the logo for dark surfaces is the reverse, so a reversed mark is not measured";
+    case "mm-in-pixels":
+      return "the minimum size in millimetres: the document is measured in pixels";
+    case "layer-tree":
+      return "artboards, groups and paint order: the document's layer tree could not be read, so each layer is placed by its own fields and its place in the list";
+    case "layer-limit":
+      return `layers past the first ${(entry2.limit ?? MAX_ROWS3).toLocaleString("en")}`;
+    case "not-drawn":
+      return `${marksText(n7)}: Design draws no picture for the layer as written, so its size, clear space and ground were not measured`;
+    case "size":
+      return `the drawn height of ${marksText(n7)}: the logo's proportions or size were not given, so a mark in a box at least the minimum may still draw smaller`;
+    case "clear-space":
+      return `the clear space of ${marksText(n7)}: the logo's proportions or size were not given, and a layer lies where the clear space may reach`;
+    case "ground":
+      return `whether ${marksText(n7, "one partner mark sits", "partner marks sit")} on a photo: what lies beneath is translucent, covers only part of the mark or depends on the logo's proportions`;
+    case "treatment":
+      return `the treatment of ${marksText(n7, "one recoloured mark", "recoloured marks")}: the catalog does not say what colours its theme or treatment gives`;
+    case "surface":
+      return `the colours of ${marksText(n7)} set to follow the surface: the variant is chosen from what is drawn beneath when the page is drawn`;
+    case "motion":
+      return `${marksText(n7)} while the piece plays: the mark or a layer near it moves, fades or builds over time, and each layer was measured where it was placed`;
+    case "findings-limit":
+      return `${n7 === 1 ? "one more finding" : `${n7} more findings`} past the first ${entry2.limit ?? MAX_FINDINGS}, which are not listed`;
+  }
+}
 function colourCover(value2, resolve8) {
   if (record29(value2)) return Number.NaN;
   if (typeof value2 !== "string" || !value2.trim()) return 0;
@@ -137360,12 +137389,12 @@ function groundOutcomes(list4) {
   }
   return below;
 }
-function drawnLayers(capped, measure3, notMeasured) {
+function drawnLayers(capped, measure3, unmeasured) {
   let hierarchy = null;
   try {
     hierarchy = designHierarchyIndex(capped);
   } catch {
-    notMeasured.push("artboards, groups and paint order: the document's layer tree could not be read, so each layer is placed by its own fields and its place in the list");
+    unmeasured.push({ code: "layer-tree" });
   }
   const ancestorsOf = (id3) => {
     const out = [];
@@ -137442,12 +137471,12 @@ function checkGuestMarks(boxes2, kit, measure3 = {}) {
   if (rules.minSize && (rules.minSize.px !== void 0 || rules.minSize.mm !== void 0)) checkedRules.push("min-size");
   if (rules.clearSpace) checkedRules.push("clear-space");
   if (rules.treatments?.length) checkedRules.push("treatment");
-  const notMeasured = [];
-  if (rules.treatments?.length) notMeasured.push("reversed use: the logo for dark surfaces is the reverse, so a reversed mark is not measured");
-  if (rules.minSize?.mm !== void 0 && !physical) notMeasured.push("the minimum size in millimetres: the document is measured in pixels");
+  const said = [];
+  if (rules.treatments?.length) said.push({ code: "reverse" });
+  if (rules.minSize?.mm !== void 0 && !physical) said.push({ code: "mm-in-pixels" });
   const rows2 = Array.isArray(boxes2) ? boxes2.filter(record29) : [];
-  const layers = drawnLayers(rows2.slice(0, MAX_ROWS3), measure3, notMeasured);
-  if (rows2.length > MAX_ROWS3) notMeasured.push(`layers past the first ${MAX_ROWS3.toLocaleString("en")}`);
+  const layers = drawnLayers(rows2.slice(0, MAX_ROWS3), measure3, said);
+  if (rows2.length > MAX_ROWS3) said.push({ code: "layer-limit", limit: MAX_ROWS3 });
   const isMark = (l) => l.kind !== "frame" && !NOT_ON_PAGE.has(l.kind) && !!l.image && logos.has(stripAssetModifiers(l.image));
   const marks = layers.filter(isMark);
   const findings = [];
@@ -137555,15 +137584,18 @@ function checkGuestMarks(boxes2, kit, measure3 = {}) {
     }
     return { doubt, moving: under.some((l) => l.moving) };
   }
-  if (unmeasured.placed) notMeasured.push(`${marksText(unmeasured.placed)}: Design draws no picture for the layer as written, so its size, clear space and ground were not measured`);
-  if (unmeasured.size) notMeasured.push(`the drawn height of ${marksText(unmeasured.size)}: the logo's proportions or size were not given, so a mark in a box at least the minimum may still draw smaller`);
-  if (unmeasured.space) notMeasured.push(`the clear space of ${marksText(unmeasured.space)}: the logo's proportions or size were not given, and a layer lies where the clear space may reach`);
-  if (unmeasured.ground) notMeasured.push(`whether ${marksText(unmeasured.ground, "one partner mark sits", "partner marks sit")} on a photo: what lies beneath is translucent, covers only part of the mark or depends on the logo's proportions`);
-  if (unmeasured.treatment) notMeasured.push(`the treatment of ${marksText(unmeasured.treatment, "one recoloured mark", "recoloured marks")}: the catalog does not say what colours its theme or treatment gives`);
-  if (unmeasured.auto) notMeasured.push(`the colours of ${marksText(unmeasured.auto)} set to follow the surface: the variant is chosen from what is drawn beneath when the page is drawn`);
-  if (unmeasured.motion) notMeasured.push(`${marksText(unmeasured.motion)} while the piece plays: the mark or a layer near it moves, fades or builds over time, and each layer was measured where it was placed`);
-  if (dropped) notMeasured.push(`${dropped === 1 ? "one more finding" : `${dropped} more findings`} past the first ${MAX_FINDINGS}, which are not listed`);
-  return { findings, checked: { marks: marks.length, rules: checkedRules }, notMeasured };
+  const counted = [
+    ["not-drawn", unmeasured.placed],
+    ["size", unmeasured.size],
+    ["clear-space", unmeasured.space],
+    ["ground", unmeasured.ground],
+    ["treatment", unmeasured.treatment],
+    ["surface", unmeasured.auto],
+    ["motion", unmeasured.motion]
+  ];
+  for (const [code, count4] of counted) if (count4) said.push({ code, count: count4 });
+  if (dropped) said.push({ code: "findings-limit", count: dropped, limit: MAX_FINDINGS });
+  return { findings, checked: { marks: marks.length, rules: checkedRules }, unmeasured: said, notMeasured: said.map(guestUnmeasuredText) };
 }
 var MAX_ROWS3, MAX_FINDINGS, MAX_TIME_S, NOT_ON_PAGE, TREATMENT_WORDS, record29, num14, designNum, designHasNum, designBool2, clamp7, imageId, hidden2, opacityOf, transition, turnedRow, pxText, mmText, marksText, inflate2, EPS4, overlaps2, holds2, together, samePlace2;
 var init_partner_kit_check = __esm({
@@ -156302,6 +156334,7 @@ __export(src_exports, {
   groupTextLogs: () => groupTextLogs,
   groupWordsToCues: () => groupWordsToCues,
   guestRecolourFrom: () => guestRecolourFrom,
+  guestUnmeasuredText: () => guestUnmeasuredText,
   guidedByWords: () => guidedByWords,
   guidedFilter: () => guidedFilter,
   gunzip: () => gunzip,
