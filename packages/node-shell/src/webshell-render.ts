@@ -1070,8 +1070,8 @@ export function sessionExportNote(type: string, text: string): string | null {
   return text.slice('[warn] '.length, '[warn] '.length + 2000).trimEnd();
 }
 
-/** What a PDF, EPS or WMF tells the person when it drew text as pictures (export-pdf-text-picture.ts). */
-const PICTURE_NOTES = ['pdf', 'eps', 'wmf'].map((f) => `[warn] ${f}: This ${f.toUpperCase()} draws some text as pictures`);
+/** What a PDF, EMF, EPS or WMF tells the person when it drew text as pictures (export-pdf-text-picture.ts). */
+const PICTURE_NOTES = ['pdf', 'emf', 'eps', 'wmf'].map((f) => `[warn] ${f}: This ${f.toUpperCase()} draws some text as pictures`);
 
 /** What an export tells the person when fallback fonts drew some of its text (font-fill.ts). */
 const FILL_NOTE = '[info] fonts: ';

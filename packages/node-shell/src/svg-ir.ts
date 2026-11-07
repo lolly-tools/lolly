@@ -294,7 +294,7 @@ export interface SvgIrContext {
   readImage?: (href: string) => Promise<Blob | null>;
   /**
    * A run that no font here can draw outlines with `.notdef` boxes. 'picture' draws it as
-   * a stencil prim from `pictureText` (EPS, WMF), as a PDF draws it as a picture; with no
+   * a stencil prim from `pictureText` (EPS, WMF, EMF), as a PDF draws it as a picture; with no
    * `pictureText` the export stops with the NEEDS_BROWSER code, so a Node shell can hand
    * it to its browser tier. 'refuse' stops the export with a message that quotes the run
    * (DXF, which goes to cutting machines and CAD). Left out, the run outlines as before.
