@@ -90,7 +90,7 @@ export { assetVersionPin, encodeAssetVersion, decodeAssetVersion, assetDependenc
 export type { AssetVersionPin } from './asset-version.ts';
 export { toCSV, parseDelimited, detectDelimiter, parseBatchCsv, batchCsvTemplateWithNotes } from './batch.ts';
 export type { BatchRow } from './batch.ts';
-export { buildExportMeta, designRecordCarrier, designRecordEnvironment, designRecordFrom, designRecordWords, guidedByWords, readDesignRecord, readDesignRecordXml, themesSelection, toolCredit, pdfKeywords } from './metadata.ts';
+export { buildExportMeta, designRecordCarrier, designRecordEnvironment, designRecordFrom, designRecordWords, guidedByWords, partnerFactWords, partnerRecord, partnerWords, readDesignRecord, readDesignRecordXml, themesSelection, toolCredit, pdfKeywords } from './metadata.ts';
 export type { DesignRecord, MadeWithPreview } from './metadata.ts';
 export { BRAND_PAGE_ADDRESS_MAX, brandPageAddress, brandPageHost, carriesRecordedBrandPage, readRecordedBrandPage, settleBrandPageWrite, withRecordedBrandPage, withoutRecordedBrandPage } from './brand-page-address.ts';
 export type { BrandPageWrite } from './brand-page-address.ts';

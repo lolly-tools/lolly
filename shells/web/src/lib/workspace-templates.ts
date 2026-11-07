@@ -14,7 +14,7 @@
  * gets an empty list and renders exactly as before.
  */
 
-import type { AssetRef } from '@lolly-tools/core/host-v1';
+import type { AssetRef, ExportPartner } from '@lolly-tools/core/host-v1';
 import type { InputValue } from '../../../../engine/src/inputs.ts';
 import type { TemplateVariant } from './template-source.ts';
 
@@ -116,6 +116,24 @@ export function setWorkspaceCompany(next: WorkspaceCompany | null): void {
 /** The person's company, or null. */
 export function workspaceCompany(): WorkspaceCompany | null {
   return company;
+}
+
+let programme: { id: string; name: string } | null = null;
+
+/** Name the person's partner programme, or null for none. */
+export function setWorkspaceProgramme(next: { id: string; name: string } | null): void {
+  programme = next;
+}
+
+/**
+ * The partner an export records (Lolly Work plans/82 M3): the person's company,
+ * once it has details, with their revision, and their programme. Null for neither.
+ */
+export function workspacePartner(): ExportPartner | null {
+  const out: ExportPartner = {};
+  if (company && (company.revision ?? 0) > 0) out.company = { id: company.id, label: company.name, revision: company.revision! };
+  if (programme) out.programme = { id: programme.id, label: programme.name };
+  return out.company || out.programme ? out : null;
 }
 
 export type CompanyMode = 'light' | 'dark';

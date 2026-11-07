@@ -378,6 +378,8 @@ const EXPECTED: readonly string[] = [
   'themesSelection', 'toolCredit',
   // Additive 1.282 (plan 323): the brand skills that guided an agent-made export, as words.
   'guidedByWords',
+  // Additive 1.331 (Lolly Work plans/82 M3): the partner an export was made for.
+  'partnerFactWords', 'partnerRecord', 'partnerWords',
   // 1.265 (plans/319): theme-group meaning and colourways.
   'readTokenAxes',
   'axisOfKind',

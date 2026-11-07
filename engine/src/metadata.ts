@@ -36,7 +36,7 @@
  * (`TokensSnapshot.brandPage`). The signer records an address, and nothing here
  * shows that the page belongs to anyone. With no address nothing is added anywhere.
  */
-import type { ExportBrandSkill, ExportMeta, ExportThemeChoice, Profile, ProfileAPI, TokenAxisKind, TokensSnapshot } from './bridge/host-v1.ts';
+import type { ExportBrandSkill, ExportMeta, ExportPartner, ExportThemeChoice, Profile, ProfileAPI, TokenAxisKind, TokensSnapshot } from './bridge/host-v1.ts';
 import { TOKEN_AXIS_KINDS } from '@lolly-tools/core/host-v1';
 import { isAgentSkillName } from '@lolly-tools/core/skill-frontmatter-v1';
 import { canonicalJson } from './canonical-json.ts';
@@ -85,10 +85,16 @@ export interface ExportMetaOptions {
    * still records the skills an agent was handed.
    */
   brandSkills?: readonly ExportBrandSkill[] | null;
+  /**
+   * The partner the piece was made for (Lolly Work plans/82 M3), as the host's
+   * workspace gives the company and programme. Recorded after shape checks; absent
+   * or null, nothing is.
+   */
+  partner?: ExportPartner | null;
 }
 
 /** The record fields of an export's metadata, as the readers and writers below take them. */
-export type DesignRecordFields = Pick<ExportMeta, 'designSystem' | 'designVersion' | 'themes' | 'brandSkills' | 'brandPage'>;
+export type DesignRecordFields = Pick<ExportMeta, 'designSystem' | 'designVersion' | 'themes' | 'brandSkills' | 'brandPage' | 'partner'>;
 
 /** The design-system part of an export's metadata (plans/319). Every field is optional. */
 export interface DesignRecord {
@@ -99,6 +105,8 @@ export interface DesignRecord {
   brandSkills?: ExportBrandSkill[];
   /** The brand page address the publisher chose to record (plan 351 B5). */
   brandPage?: string;
+  /** The partner company and programme the piece was made for (Lolly Work plans/82 M3). */
+  partner?: ExportPartner;
 }
 
 /** What an export would write about its design system, shown before anything is written. */
@@ -128,6 +136,9 @@ const SKILL_ID_RE = /^[a-z0-9]+(?:\/[a-z0-9][a-z0-9-]*)+$/;
 /** A brand skill's `skillRevision` (brand-skill-v1 validateBrandSkillMeta). */
 const SKILL_REVISION_RE = /^[A-Za-z0-9._-]{1,32}$/;
 const SHA256_HEX_RE = /^[0-9a-f]{64}$/;
+/** A workspace's company or programme id (Lolly Work's lower-case slugs). */
+const PARTNER_ID_RE = /^[a-z0-9][a-z0-9-]{0,63}$/;
+const MAX_PARTNER_REVISION = 1_000_000_000;
 
 const clip = (s: string, n: number): string => (s.length > n ? s.slice(0, n) : s);
 const text = (v: unknown, n: number): string => (typeof v === 'string' ? clip(v.trim(), n) : '');
@@ -164,6 +175,7 @@ export async function buildExportMeta(
   const toolVersion = clean(manifest?.version);
   const record = opts?.snapshot ? designRecordOf(opts.snapshot, manifest) : {};
   const brandSkills = brandSkillRecords(opts?.brandSkills);
+  const partner = partnerRecord(opts?.partner);
 
   // The colourway joins the tool's name, never the design system's label: the
   // label stays in the record. With no tool name there is nothing to qualify.
@@ -185,6 +197,8 @@ export async function buildExportMeta(
     // Beside the design-system record, never in the description: the description
     // is the one-line credit, and the skills are a record of guidance.
     ...(brandSkills.length ? { brandSkills } : {}),
+    // Beside the record too, and never in the description (Lolly Work plans/82 M3).
+    ...(partner ? { partner } : {}),
   };
 
   // bindToMeta: a tool's own inputs supply/override provenance fields: the artist's
@@ -278,12 +292,13 @@ export function designRecordFrom(meta: DesignRecordFields | null | undefined): D
     ...(meta.themes?.length ? { themes: meta.themes.map(t => ({ ...t })) } : {}),
     ...(meta.brandSkills?.length ? { brandSkills: meta.brandSkills.map(s => ({ ...s })) } : {}),
     ...(meta.brandPage ? { brandPage: meta.brandPage } : {}),
+    ...(meta.partner ? { partner: structuredClone(meta.partner) } : {}),
   };
 }
 
 /** True when the record holds nothing to write. */
 export function isEmptyDesignRecord(record: DesignRecord | null | undefined): boolean {
-  return !record || (!record.designSystem && !record.designVersion && !record.themes?.length && !record.brandSkills?.length && !record.brandPage);
+  return !record || (!record.designSystem && !record.designVersion && !record.themes?.length && !record.brandSkills?.length && !record.brandPage && !record.partner);
 }
 
 /** The colourway a record names, if any. */
@@ -312,7 +327,7 @@ export function toolCredit(meta: Pick<ExportMeta, 'tool' | 'themes'> | null | un
  * page address, for a caller that prints them on a line of their own or compares
  * design systems only.
  */
-export function designRecordWords(record: DesignRecord | null | undefined, opts: { skills?: boolean; page?: boolean } = {}): string {
+export function designRecordWords(record: DesignRecord | null | undefined, opts: { skills?: boolean; page?: boolean; partner?: boolean } = {}): string {
   if (!record) return '';
   const parts: string[] = [];
   if (record.designSystem) parts.push(record.designSystem.label);
@@ -320,8 +335,58 @@ export function designRecordWords(record: DesignRecord | null | undefined, opts:
   for (const t of record.themes ?? []) parts.push(`${themeChoiceLabel(t)}: ${t.name}`);
   const guided = opts.skills === false ? '' : guidedByWords(record.brandSkills);
   if (record.brandPage && opts.page !== false) parts.push(`Brand page: ${record.brandPage}`);
+  const partner = opts.partner === false ? '' : partnerWords(record.partner);
+  if (partner) parts.push(partner);
   if (guided) parts.push(`Guided by: ${guided}`);
   return parts.join(' · ');
+}
+
+/**
+ * The partner in the record line: "Partner: Northwind IT (Resellers, EMEA)",
+ * "Partner: Northwind IT" without a programme, "Partner programme: Resellers, EMEA"
+ * without a company. Empty when there is no partner.
+ */
+export function partnerWords(partner: ExportPartner | null | undefined): string {
+  const company = partner?.company?.label;
+  const programme = partner?.programme?.label;
+  if (company) return programme ? `Partner: ${company} (${programme})` : `Partner: ${company}`;
+  return programme ? `Partner programme: ${programme}` : '';
+}
+
+/**
+ * The partner as Verify's "Partner" fact reads it: "Northwind IT, Resellers, EMEA
+ * programme, details revision 3". Empty when there is no partner.
+ */
+export function partnerFactWords(partner: ExportPartner | null | undefined): string {
+  if (!partner) return '';
+  const parts: string[] = [];
+  if (partner.company?.label) parts.push(partner.company.label);
+  if (partner.programme?.label) parts.push(`${partner.programme.label} programme`);
+  if (partner.company?.label && partner.company.revision > 0) parts.push(`details revision ${partner.company.revision}`);
+  return parts.join(', ');
+}
+
+/**
+ * A partner as recorded, bounded and shape-checked: ids as a workspace writes them,
+ * labels trimmed and bounded, the details revision a positive whole number. A part
+ * that does not hold is dropped, and nothing is invented. Undefined when neither part holds.
+ */
+export function partnerRecord(raw: unknown): ExportPartner | undefined {
+  if (!raw || typeof raw !== 'object') return undefined;
+  const r = raw as { company?: unknown; programme?: unknown };
+  const out: ExportPartner = {};
+  const c = r.company && typeof r.company === 'object' ? r.company as Record<string, unknown> : null;
+  const cid = typeof c?.id === 'string' ? c.id.trim() : '';
+  const clabel = text(c?.label, MAX_LABEL);
+  const revision = typeof c?.revision === 'number' ? c.revision : Number(c?.revision);
+  if (PARTNER_ID_RE.test(cid) && clabel && Number.isSafeInteger(revision) && revision > 0 && revision <= MAX_PARTNER_REVISION) {
+    out.company = { id: cid, label: clabel, revision };
+  }
+  const g = r.programme && typeof r.programme === 'object' ? r.programme as Record<string, unknown> : null;
+  const gid = typeof g?.id === 'string' ? g.id.trim() : '';
+  const glabel = text(g?.label, MAX_LABEL);
+  if (PARTNER_ID_RE.test(gid) && glabel) out.programme = { id: gid, label: glabel };
+  return out.company || out.programme ? out : undefined;
 }
 
 /**
@@ -363,6 +428,18 @@ export function designRecordEnvironment(meta: DesignRecordFields | null | undefi
   // Re-checked for the same reason: this value becomes something a person can click.
   const page = brandPageAddress(meta?.brandPage);
   if (page) out.brandPage = page;
+  // The partner (Lolly Work plans/82 M3, approved 2026-11-07): exactly these five
+  // keys. Re-checked here, so a hand-built meta cannot write anything else.
+  const partner = partnerRecord(meta?.partner);
+  if (partner?.company) {
+    out.partnerCompany = partner.company.id;
+    out.partnerCompanyLabel = partner.company.label;
+    out.partnerProfileRevision = String(partner.company.revision);
+  }
+  if (partner?.programme) {
+    out.partnerProgramme = partner.programme.id;
+    out.partnerProgrammeLabel = partner.programme.label;
+  }
   return out;
 }
 
@@ -379,6 +456,8 @@ export function designRecordKeywords(meta: DesignRecordFields | null | undefined
   const page = brandPageAddress(meta.brandPage);
   if (page) out.push(`Brand page: ${page}`);
   for (const s of brandSkillRecords(meta.brandSkills)) out.push(`Guided by: ${brandSkillLabel(s)}`);
+  const partner = partnerRecord(meta.partner)?.company;
+  if (partner) out.push(`Partner: ${partner.label}`);
   return out;
 }
 
@@ -424,6 +503,11 @@ const XML_PROPS = [
   ['themes', 'Themes'],
   ['brandSkills', 'BrandSkills'],
   ['brandPage', 'BrandPage'],
+  ['partnerCompany', 'PartnerCompany'],
+  ['partnerCompanyLabel', 'PartnerCompanyLabel'],
+  ['partnerProfileRevision', 'PartnerProfileRevision'],
+  ['partnerProgramme', 'PartnerProgramme'],
+  ['partnerProgrammeLabel', 'PartnerProgrammeLabel'],
 ] as const;
 
 /**
@@ -442,7 +526,7 @@ export function readDesignRecordXml(xml: string | null | undefined): DesignRecor
   if (!xml?.includes('lolly:')) return null;
   const env: Record<string, string> = {};
   for (const [key, name] of XML_PROPS) {
-    const max = key === 'brandSkills' ? MAX_BRAND_SKILLS_JSON : MAX_THEMES_JSON;
+    const max = key === 'brandSkills' ? MAX_BRAND_SKILLS_JSON : key.startsWith('partner') ? MAX_LABEL * 6 : MAX_THEMES_JSON;
     const m = new RegExp(`<lolly:${name}>([^<]{0,${max}})</lolly:${name}>`).exec(xml);
     if (m) env[key] = xmlUnesc(m[1]!);
   }
@@ -527,6 +611,11 @@ export function readDesignRecord(env: Readonly<Record<string, unknown>> | null |
   if (brandSkills.length) out.brandSkills = brandSkills;
   const page = brandPageAddress(env.brandPage);
   if (page) out.brandPage = page;
+  const partner = partnerRecord({
+    ...(env.partnerCompany !== undefined ? { company: { id: env.partnerCompany, label: env.partnerCompanyLabel, revision: env.partnerProfileRevision } } : {}),
+    ...(env.partnerProgramme !== undefined ? { programme: { id: env.partnerProgramme, label: env.partnerProgrammeLabel } } : {}),
+  });
+  if (partner) out.partner = partner;
   return isEmptyDesignRecord(out) ? null : out;
 }
 
