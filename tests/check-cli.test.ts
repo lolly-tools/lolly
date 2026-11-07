@@ -285,6 +285,9 @@ test('--kit measures partner marks as brand reviews against the profile\'s desig
   const refused = lolly(['check', docPath, `--kit=${bad}`, '--browser=off', '--json'], state);
   assert.equal(refused.status, 2, refused.stderr);
   assert.match(refused.json.error?.message ?? refused.stderr, /is not a partner kit: The kit does not match partner-kit-v1/);
+  const bom = join(dir, 'bom-kit.json');
+  await writeFile(bom, `\uFEFF${JSON.stringify(kit)}`);
+  assert.equal(lolly(['check', docPath, `--kit=${bom}`, '--browser=off', '--json'], state).status, 5, 'a kit saved with a byte order mark reads');
   const bare = lolly(['check', docPath, '--kit', '--browser=off'], state);
   assert.equal(bare.status, 2);
 }));
