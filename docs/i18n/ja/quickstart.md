@@ -22,7 +22,7 @@ lolly.toolsは、Lolly自身のサンプルデザインシステムである**Lo
 
 初めてギャラリーを開くと、短いウェルカムが同じ選択肢を示します。**Make it yours**はDesign System Setupを開き、**Bring your design**はデザインを選ぶファイルピッカーを開き、**Explore the community tools**はウェルカムを閉じます。
 
-![新規インストール時のDesign System SetupのColoursルーム: ライブチップが1つ、入力欄が1つ、最初の決定のすべて](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-roles-fold%5D%3Esummary%3Bwait%3A500&format=svg&walker=1&localize=1&dark=1&filename=brand-colours)
+![新規インストール時のDesign System SetupのColoursルーム: ライブチップが1つ、入力欄が1つ、最初の決定のすべて](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&system=new-design-system&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&dark=1&filename=bs-colours-new-system)
 
 そこから先は、8つのルームで、好きな順序で好きなところまで進められます。**Board**、**Colours**、**Type**、**Logos**、**Tokens**、**Files**、**Rules**、**Skills**です。アプリ内のすべてのプレビューは、入力に合わせて更新されます。各ルームについては[Lolly Design System Setup](/info/brand-studio.html)で説明しています。
 

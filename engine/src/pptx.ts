@@ -439,13 +439,27 @@ function pathXml(shape: PptxPath, id: number): string {
 // module var is safe): maps a run's linkSlide target → the slide-jump relationship id.
 let slideLinkRid: ((target: number) => string | undefined) | null = null;
 
+/**
+ * The typeface of a run or a placeholder style, written in the three slots DrawingML
+ * reads a face from: `latin` for Latin, Greek and Cyrillic, `ea` for East Asian text and
+ * `cs` for complex scripts. All three carry the same family, as the theme's own font
+ * scheme does, so PowerPoint resolves the face it would have inherited, and a reader
+ * that does not follow the theme for a text box, such as LibreOffice, still sees the face.
+ * The order is the schema's (CT_TextCharacterProperties). With no family, nothing is written.
+ */
+function faceXml(font: string | undefined): string {
+  if (!font) return '';
+  const face = xmlEsc(font);
+  return `<a:latin typeface="${face}"/><a:ea typeface="${face}"/><a:cs typeface="${face}"/>`;
+}
+
 function runXml(run: PptxRun): string {
   const u = run.underline ? ' u="sng"' : '';
   const strike = run.strike ? ' strike="sngStrike"' : '';
   const attrs = `lang="en-US" sz="${clampInt(run.sizePt * 100, 100, 400000)}" b="${run.bold ? 1 : 0}" i="${run.italic ? 1 : 0}"${u}${strike} dirty="0"`;
   const fill = run.color ? `<a:solidFill>${clr(run.color, run.alpha)}</a:solidFill>` : '';
-  const font = run.font ? `<a:latin typeface="${xmlEsc(run.font)}"/><a:cs typeface="${xmlEsc(run.font)}"/>` : '';
-  // hlinkClick sits after latin/cs in CT_TextCharacterProperties; the ppaction marks it an
+  const font = faceXml(run.font);
+  // hlinkClick sits after latin/ea/cs in CT_TextCharacterProperties; the ppaction marks it an
   // internal slide jump rather than an external URL.
   const rid = run.linkSlide != null && slideLinkRid ? slideLinkRid(run.linkSlide) : undefined;
   const hlink = rid ? `<a:hlinkClick r:id="${rid}" action="ppaction://hlinksldjump"/>` : '';
@@ -1252,7 +1266,7 @@ function layoutPlaceholderXml(ph: PptxPlaceholder, id: number): string {
   const st = ph.style ?? {};
   const defRPr = `<a:defRPr sz="${clampInt((st.sizePt ?? 18) * 100, 100, 400000)}">` +
     (st.color ? `<a:solidFill>${clr(st.color)}</a:solidFill>` : '') +
-    (st.font ? `<a:latin typeface="${xmlEsc(st.font)}"/><a:cs typeface="${xmlEsc(st.font)}"/>` : '') +
+    faceXml(st.font) +
     `</a:defRPr>`;
   // buNone before defRPr (CT_TextParagraphProperties child order).
   const lvl1 = `<a:lvl1pPr${st.align ? ` algn="${st.align}"` : ''}>${st.bullet ? '' : '<a:buNone/>'}${defRPr}</a:lvl1pPr>`;

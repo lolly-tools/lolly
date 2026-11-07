@@ -22,7 +22,7 @@ Pilih jalur yang cocok dengan apa yang Anda miliki:
 
 Saat pertama kali membuka galeri, sambutan singkat menawarkan pilihan yang sama: **Make it yours** membuka Design System Setup, **Bring your design** membuka pemilih file untuk sebuah desain, dan **Explore the community tools** menutup sambutan.
 
-![Ruangan Colours di Design System Setup pada instalasi baru: satu chip langsung, satu field, dan keseluruhan keputusan pertama](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-roles-fold%5D%3Esummary%3Bwait%3A500&format=svg&walker=1&localize=1&dark=1&filename=brand-colours)
+![Ruangan Colours di Design System Setup pada instalasi baru: satu chip langsung, satu field, dan keseluruhan keputusan pertama](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&system=new-design-system&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&dark=1&filename=bs-colours-new-system)
 
 Dari sana, delapan ruangan membawanya sejauh yang Anda mau, dalam urutan apa pun: **Board**, **Colours**, **Type**, **Logos**, **Tokens**, **Files**, **Rules**, dan **Skills**. Setiap pratinjau di aplikasi diperbarui saat Anda mengetik. [Lolly Design System Setup](/info/brand-studio.html) membahas setiap ruangan.
 

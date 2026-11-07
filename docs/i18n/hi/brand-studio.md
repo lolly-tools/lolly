@@ -82,7 +82,7 @@
 
 जिस समूह में अभी कोई चिह्न नहीं वह एक पंक्ति में तह होता है; उसके स्लॉट देखने के लिए उसे खोलें। PNG, SVG, JPEG या WebP जोड़ने के लिए स्लॉट पर क्लिक करें, या चिह्न बदलने के लिए भरे स्लॉट पर क्लिक करें। सब कुछ इसी डिवाइस पर रहता है।
 
-![लोगो स्लॉट, Horizontal और Vertical खुले हुए: हर ट्रीटमेंट अपना स्लॉट है, और हर स्लॉट वैकल्पिक है](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dlogos&width=1440&height=1600&dpi=192&waitMs=1600&drive=click%3A.be-logo-identity%3Edetails%3Anth-of-type%281%29%3Esummary%3Bclick%3A.be-logo-identity%3Edetails%3Anth-of-type%282%29%3Esummary%3Bwait%3A600&cropSelector=.be-logo-grid&format=svg&walker=1&dark=1&filename=bs-logo-slots)
+![लोगो स्लॉट, Horizontal और Vertical खुले हुए: हर ट्रीटमेंट अपना स्लॉट है, और हर स्लॉट वैकल्पिक है](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dlogos&system=new-design-system&width=1440&height=1600&dpi=192&waitMs=1600&drive=click%3A.be-logo-identity%3Edetails.be-logo-group--fold%3Anot%28.be-logo-group--custom%29%3Esummary%3Bwait%3A600&cropSelector=.be-logo-grid&format=svg&walker=1&dark=1&filename=bs-logo-slots)
 
 - **Custom marks** वे चिह्न हैं जिन्हें आपका ब्रांड अपने नाम से पुकारता है, जैसे आइकन, क्रेस्ट या फ़ेविकॉन।
 - **और पहचानें।** उप-ब्रांड, उत्पाद या इवेंट का अपना पूरा सेट हो सकता है: **+ Add another logo** और सेट को नाम दें। आपका मुख्य सेट "Your logo" है। [Brand architectures](/info/brand-architectures.html) दिखाता है कि लोगो पहचान कब सही ब्लॉक है।
@@ -114,7 +114,7 @@
 
 ### भूमिकाएँ: टूल क्या पढ़ते हैं
 
-![The Colour roles table on Lolly Demo after choosing the suggested words Main, Accent, Supporting and Tertiary: the colourway chips, then each role with its light and dark colour, Main read as the lead colour and Accent as the partner colour, Supporting and Tertiary read by name only and marked Copied, and the readings no role fills listed under the table](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=2720&height=2000&dpi=192&waitMs=1800&cropSelector=%5Bdata-be-roles-fold%5D&format=svg&walker=1&dark=1&filename=bs-colour-roles)
+![The Colour roles table on Lolly Demo after choosing the suggested words Main, Accent, Supporting and Tertiary: the colourway chips, then each role with its light and dark colour, Main read as the lead colour and Accent as the partner colour, Supporting and Tertiary read by name only and marked Copied, and the readings no role fills listed under the table](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&system=wefthouse&width=2720&height=2000&dpi=192&waitMs=1800&cropSelector=%5Bdata-be-roles-fold%5D&format=svg&walker=1&dark=1&filename=bs-colour-roles)
 
 **Roles** बताती हैं कि हर टूल और एक्सपोर्ट में कौन सा रंग कौन सा हिस्सा निभाता है। वे वैकल्पिक हैं (तीन ढीले रंग और कोई भूमिका नहीं, एकदम ठीक सिस्टम है), कोई भी रंग एक ले सकता है और कंट्रास्ट रीडआउट सतह के सामने मापा जाता है, पहले APCA। हर भूमिका पंक्ति पूरी तीव्रता का अपना रंग, खड़ा हुआ starter रंग, या **↳ follows Primary** दिखाती है।
 
@@ -206,7 +206,7 @@ colourway वाला सिस्टम पुनर्निर्माण �
 
 जब अपना कोई फ़ेस न हो, तो कमरा एक कार्ड है: **Primary**, पढ़ने के आकार में आज उसे परोसने वाले फ़ेस में, **Starter** टैग, **Choose for Primary** बटन और पंक्ति *"Nothing installs until you choose one."* के साथ। Headings, code और italic तब तक प्राथमिक का अनुसरण करते हैं जब तक आप उन्हें न चुनें; **Choose them separately** उनके कार्ड दिखाता है।
 
-![अभी कोई फेस न चुना गया Type कमरा - रीडिंग साइज़ पर एक कार्ड, उस पर एक Starter टैग, और एक भरा हुआ Choose for Primary](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&dark=1&filename=brand-type)
+![अभी कोई फेस न चुना गया Type कमरा - रीडिंग साइज़ पर एक कार्ड, उस पर एक Starter टैग, और एक भरा हुआ Choose for Primary](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&system=new-design-system&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&dark=1&filename=brand-type)
 
 एक फ़ेस चुनें और कमरा चार भूमिका कार्ड, Fonts सूची और लाइव नमूने में खुलता है:
 
@@ -217,7 +217,7 @@ colourway वाला सिस्टम पुनर्निर्माण �
 
 कार्ड केवल तभी टिंट होता है जहाँ आपने वह फ़ेस इंस्टॉल किया। उसका बटन बताता है कि वह किस भूमिका के लिए है: आपके अपने फ़ेस पर **Change Headings** और बाकी हर जगह **Choose for Headings**। नमूना पंक्ति कटने के बजाय लपेट लेती है। कार्ड पर कुछ भी कुछ कमिट नहीं करता: बटन उस भूमिका के लिए तुलना मंच खोलता है।
 
-![सामने आए चार role कार्ड - हर एक उसी फेस में सेट जो उसे सर्व करता है, जहाँ किसी ने कुछ नहीं चुना वहाँ एक Starter टैग और प्राइमरी को फ़ॉलो करता Italic](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&width=1440&height=1000&dpi=192&waitMs=2600&drive=click%3A%5Bdata-be-typemore-toggle%5D%3Bwait%3A600&cropSelector=.be-typecard-grid&walker=1&format=svg&dark=1&filename=bs-type-specimen)
+![सामने आए चार role कार्ड - हर एक उसी फेस में सेट जो उसे सर्व करता है, जहाँ किसी ने कुछ नहीं चुना वहाँ एक Starter टैग और प्राइमरी को फ़ॉलो करता Italic](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&system=new-design-system&width=1440&height=1000&dpi=192&waitMs=2600&drive=click%3A%5Bdata-be-typemore-toggle%5D%3Bwait%3A600&cropSelector=.be-typecard-grid&walker=1&format=svg&dark=1&filename=bs-type-specimen)
 
 ### कंपेयर स्टेज
 

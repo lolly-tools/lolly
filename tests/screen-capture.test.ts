@@ -78,7 +78,7 @@ test('the sensor capabilities still validate (screen is additive, not a replacem
 
 // ─── version ─────────────────────────────────────────────────────────────────
 
-test('ENGINE_VERSION is 1.321.0', () => {
+test('ENGINE_VERSION is 1.322.0', () => {
   // A literal pin: the screencap surface shipped at 1.54, and tools declare
   // ^1.54.0 to require it. session-record only checks the stamp equals whatever
   // ENGINE_VERSION happens to be (tautological) - this catches an errant bump.
@@ -593,8 +593,9 @@ test('ENGINE_VERSION is 1.321.0', () => {
   // 1.318.0 carries colour roles through other formats and back. Capture is unchanged.
   // 1.319.0 adds an optional fill flag to toPath's fallback fonts, for on-demand fallback fonts. Capture is unchanged.
   // 1.320.0 puts an SVG's own credential in the root's metadata, past inlined artwork. Capture is unchanged.
-  // 1.321.0 adds a stencil prim to the vector IR, for EPS and WMF text no font can draw. Capture is unchanged.
-  assert.equal(ENGINE_VERSION, '1.321.0');
+  // 1.321.0 writes a PowerPoint run's face in the East Asian slot too. Capture is unchanged.
+  // 1.322.0 adds a stencil prim to the vector IR, for EPS and WMF text no font can draw. Capture is unchanged.
+  assert.equal(ENGINE_VERSION, '1.322.0');
 });
 
 // ─── loadTool: a ^1.54.0 tool loads against this engine ───────────────────────

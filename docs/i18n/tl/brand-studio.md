@@ -82,7 +82,7 @@ Ang bawat marka ay napupunta sa grid ng walong opsyonal na slot, isa bawat **ori
 
 Ang grupong wala pang marka ay tumitiklop sa isang linya; buksan ito para makita ang mga slot nito. Mag-click ng slot para magdagdag ng PNG, SVG, JPEG o WebP, o mag-click ng punong slot para palitan ang marka. Nananatili sa device na ito ang lahat.
 
-![Ang mga logo slot na nakabukas ang Horizontal at Vertical: ang bawat treatment ay sariling slot, at opsyonal ang bawat slot](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dlogos&width=1440&height=1600&dpi=192&waitMs=1600&drive=click%3A.be-logo-identity%3Edetails%3Anth-of-type%281%29%3Esummary%3Bclick%3A.be-logo-identity%3Edetails%3Anth-of-type%282%29%3Esummary%3Bwait%3A600&cropSelector=.be-logo-grid&format=svg&walker=1&dark=1&filename=bs-logo-slots)
+![Ang mga logo slot na nakabukas ang Horizontal at Vertical: ang bawat treatment ay sariling slot, at opsyonal ang bawat slot](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dlogos&system=new-design-system&width=1440&height=1600&dpi=192&waitMs=1600&drive=click%3A.be-logo-identity%3Edetails.be-logo-group--fold%3Anot%28.be-logo-group--custom%29%3Esummary%3Bwait%3A600&cropSelector=.be-logo-grid&format=svg&walker=1&dark=1&filename=bs-logo-slots)
 
 - **Mga custom na marka** ay mga markang tinatawag ng brand mo sa sarili nitong pangalan, tulad ng icon, crest o favicon.
 - **Mas maraming identity.** Ang sub-brand, produkto o event ay puwedeng magkaroon ng sarili nitong buong set: **+ Add another logo** at pangalanan ang set. Ang pangunahing set mo ay "Your logo". Ipinapakita ng [Brand architectures](/info/brand-architectures.html) kung kailan tamang block ang logo identity.
@@ -114,7 +114,7 @@ Ang mga kulay mo ay nasa tabi ng **In context** preview sa malapad na screen, at
 
 ### Mga role: ang binabasa ng mga tool
 
-![The Colour roles table on Lolly Demo after choosing the suggested words Main, Accent, Supporting and Tertiary: the colourway chips, then each role with its light and dark colour, Main read as the lead colour and Accent as the partner colour, Supporting and Tertiary read by name only and marked Copied, and the readings no role fills listed under the table](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=2720&height=2000&dpi=192&waitMs=1800&cropSelector=%5Bdata-be-roles-fold%5D&format=svg&walker=1&dark=1&filename=bs-colour-roles)
+![The Colour roles table on Lolly Demo after choosing the suggested words Main, Accent, Supporting and Tertiary: the colourway chips, then each role with its light and dark colour, Main read as the lead colour and Accent as the partner colour, Supporting and Tertiary read by name only and marked Copied, and the readings no role fills listed under the table](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&system=wefthouse&width=2720&height=2000&dpi=192&waitMs=1800&cropSelector=%5Bdata-be-roles-fold%5D&format=svg&walker=1&dark=1&filename=bs-colour-roles)
 
 Sinasabi ng mga **Role** kung aling kulay ang gumaganap ng bawat bahagi sa bawat tool at export. Opsyonal ang mga ito (ang tatlong maluwag na kulay na walang role ay ganap na mahusay na system), puwedeng kumuha ng isa ang anumang kulay at ang contrast readout ay sinusukat laban sa surface, APCA muna. Ang bawat role row ay nagpapakita ng sariling kulay nang buong lakas, starter na kulay na pumapalit, o **↳ follows Primary**.
 
@@ -206,7 +206,7 @@ Ang mga palette download (design token, CSS, SCSS, GIMP at Adobe Swatch Exchange
 
 Kapag walang sariling face, ang room ay isang card: **Primary**, nakatakda sa laki ng pagbasa sa face na naglilingkod dito ngayon, na may **Starter** tag, **Choose for Primary** button at ang linyang *"Nothing installs until you choose one."* Ang Headings, code at italic ay sumusunod sa primary hanggang piliin mo ang mga ito; ipinapakita ng **Choose them separately** ang mga card nila.
 
-![Ang Type room na wala pang napiling face - isang card sa reading size, may Starter tag dito, at isang filled na Choose for Primary](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&dark=1&filename=brand-type)
+![Ang Type room na wala pang napiling face - isang card sa reading size, may Starter tag dito, at isang filled na Choose for Primary](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&system=new-design-system&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&dark=1&filename=brand-type)
 
 Pumili ng isang face at bubukas ang room sa apat na role card, ang Fonts list at live na specimen:
 
@@ -217,7 +217,7 @@ Pumili ng isang face at bubukas ang room sa apat na role card, ang Fonts list at
 
 Ang card ay may tint lang kung saan mo ini-install ang face na iyon, at sinasabi ng button nito kung para sa anong role ito: **Change Headings** sa sarili mong face at **Choose for Headings** sa lahat ng iba. Hindi pinuputol ang sample line kundi bumabalot ito. Walang ginagawang commit ang anumang nasa card: binubuksan ng button ang compare stage para sa role na iyon.
 
-![Ang apat na role card na nakalantad - bawat isa naka-set sa face na naglilingkod dito, may Starter tag kung saan walang pumili, at sumusunod ang Italic sa primary](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&width=1440&height=1000&dpi=192&waitMs=2600&drive=click%3A%5Bdata-be-typemore-toggle%5D%3Bwait%3A600&cropSelector=.be-typecard-grid&walker=1&format=svg&dark=1&filename=bs-type-specimen)
+![Ang apat na role card na nakalantad - bawat isa naka-set sa face na naglilingkod dito, may Starter tag kung saan walang pumili, at sumusunod ang Italic sa primary](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&system=new-design-system&width=1440&height=1000&dpi=192&waitMs=2600&drive=click%3A%5Bdata-be-typemore-toggle%5D%3Bwait%3A600&cropSelector=.be-typecard-grid&walker=1&format=svg&dark=1&filename=bs-type-specimen)
 
 ### Ang compare stage
 

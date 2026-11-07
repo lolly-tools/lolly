@@ -99,3 +99,18 @@ test('the sections row holds the sections and nothing else, so it stays one row'
   assert.equal(tabs.length, REGISTRY.sections.length, 'the strip carries something besides the sections');
   assert.ok(tabs.length <= 6, `${tabs.length} tabs no longer fit one row at desktop width`);
 });
+
+test('a page names its section over the title and ends with Previous and Next in rail order', { skip: built }, () => {
+  const html = readFileSync(join(BUILT, 'create/exporting.html'), 'utf-8');
+  // The label sits in the band before the title row, generated, never in the article text.
+  assert.match(html, /<p class="docs-eyebrow"><span>Create<\/span><span aria-hidden="true"> · <\/span><span>[^<]+<\/span><\/p><div class="mast-title"><h1/);
+  const pager = /<nav class="docs-pager" aria-label="[^"]+">([\s\S]*?)<\/nav>/.exec(html)?.[1] ?? '';
+  assert.match(pager, /rel="prev"/, 'no Previous link');
+  assert.match(pager, /rel="next"/, 'no Next link');
+  // Inside the article, so the in-app reader carries it with the rehosted fragment.
+  const main = html.slice(html.indexOf('<main class="docs-content'), html.indexOf('</main>'));
+  assert.ok(main.includes('class="docs-pager"'), 'the pager is outside the article');
+  // The search index reads the page before this chrome, so the index holds neither line.
+  const index = readFileSync(join(BUILT, 'search-index.json'), 'utf-8');
+  assert.ok(!/docs-pager|docs-eyebrow/.test(index));
+});

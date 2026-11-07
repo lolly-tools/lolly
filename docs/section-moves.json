@@ -1975,6 +1975,11 @@
       "slug": "brand-studio",
       "anchor": "rules",
       "label": "Usage & rules"
+    },
+    "roles-what-tools-read": {
+      "slug": "brand-studio",
+      "anchor": "every-colour-a-tool-reads",
+      "label": "Roles: what tools read"
     }
   },
   "search": {

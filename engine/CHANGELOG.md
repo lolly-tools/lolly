@@ -6,10 +6,15 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
-## 1.321.0
+## 1.322.0
 
 - The vector IR gains a `stencil` prim (`VectorStencilPrim` in `emf.ts`): words as one bit per pixel, painted in one ink, so whatever lies under them shows through. `emitEps` paints it with `imagemask` in the ink (RGB or the CMYK mapping), and `emitWmf` with a pair of 1-bit `META_STRETCHDIB` blits, OR then AND, which leaves the page under the words as it was. `emitDxf` counts one as a dropped picture. `emitEmf` draws none.
 - No other module changes. The vector walk (`packages/node-shell/src/svg-ir.ts`) makes a stencil from a picture of a run no font can draw, for EPS and WMF, as a PDF draws such a run as a picture, and DXF stops with a message that names the run instead of outlining boxes. A file with no such run keeps its bytes.
+
+## 1.321.0
+
+- `buildPptxParts`: a run, a table cell or a layout placeholder style with a face now writes the face in all three of DrawingML's slots, `latin`, `ea` and `cs`, where it wrote `latin` and `cs`. The theme's font scheme already carries the face in all three, so PowerPoint resolves the same face it inherited before. LibreOffice does not follow the theme for a text box, so there a run now carries the face for East Asian text as well. A run with no face writes nothing, as before.
+- No API change. The Design deck model now gives every run a face (the brand, headings or mono face the canvas draws the slot in, resolved by the shell against the exported node), and the master-bound lowering in `packages/node-shell/src/design-pptx.ts` writes a circle or an ellipse as the ellipse preset and a pill as a full rounded rectangle, where it wrote a plain rectangle. Exported files gain no new data.
 
 ## 1.320.0
 
