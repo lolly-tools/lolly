@@ -62,6 +62,16 @@ test('the words: the record line, and Verify\'s fact', () => {
   assert.equal(designRecordWords({ designSystem: { id: 'suse', label: 'SUSE' }, partner: PARTNER }, { partner: false }), 'SUSE');
 });
 
+test('a programme with no company writes its keys but no PDF keyword', async () => {
+  const meta = await buildExportMeta(null, MANIFEST, { useDetails: false }, [], { partner: { programme: PARTNER.programme } });
+  assert.deepEqual(designRecordKeywords(meta), [], 'only "Partner: <company>" is an approved keyword');
+  assert.deepEqual(designRecordEnvironment(meta), { partnerProgramme: 'resellers-emea', partnerProgrammeLabel: 'Resellers, EMEA' });
+  assert.deepEqual(designRecordXml(meta), [
+    '<lolly:PartnerProgramme>resellers-emea</lolly:PartnerProgramme>',
+    '<lolly:PartnerProgrammeLabel>Resellers, EMEA</lolly:PartnerProgrammeLabel>',
+  ]);
+});
+
 test('read back from the credential keys and from XMP', async () => {
   const meta = await buildExportMeta(null, MANIFEST, { useDetails: false }, [], { snapshot: snapshot(), partner: PARTNER });
   assert.deepEqual(readDesignRecord(designRecordEnvironment(meta))?.partner, PARTNER);
