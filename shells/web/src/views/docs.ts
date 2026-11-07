@@ -54,7 +54,7 @@ import { hydrateDocsTryIt } from '../lib/docs-tryit.ts';
 import { icon } from '../lib/icons.ts';
 import { createScope } from '../lib/dispose.ts';
 import { enhanceDocsReading } from '../lib/docs-enhance.ts';
-import { enhancePathwaysStrip } from '../lib/docs-strip.ts';
+import { enhancePathwaysStrip, revealCurrentPage } from '../lib/docs-strip.ts';
 import { docsClipboardWriter, docsCopyLabels } from '../lib/docs-clipboard.ts';
 import { enhanceDocsFormats } from '../lib/docs-formats.ts';
 import { ensureLandingStyles, adaptLandingLinks, hydrateLandingCycle, hydrateLandingCovers, hydrateLandingAgentCopy, fitHeroCtaInk } from '../lib/docs-landing.ts';
@@ -295,6 +295,10 @@ export async function mountDocs(
       // heading alone, styled by docs.css like any other h1 in the article.
       h1.classList.add('docs-page-title');
       node.prepend(h1);
+      // The section label the built band carries over its title (docs/build.ts
+      // pageWayfinding), from the same place: the reader shows the section as /info does.
+      const eyebrow = [...doc.querySelectorAll('.docs-eyebrow')].find((e) => !fragment.contains(e));
+      if (eyebrow) node.prepend(document.importNode(eyebrow, true));
     }
   }
 
@@ -392,18 +396,9 @@ export async function mountDocs(
     contentEl.append(check);
   }
   fillSlot('[data-sidebar]', extractSidebar(doc));
-  // The rail's first link is the docs front door, which the built page calls Home. In
-  // the app, Home means the gallery, as on the back pill and in the profile menu, so
-  // here the link takes the name the bottom bar gives the front door: Docs (plan 354
-  // D2, one word for one place).
-  const docsHome = viewEl.querySelector<HTMLAnchorElement>('[data-sidebar] .sidebar-home');
-  if (docsHome) {
-    const arrow = document.createElement('span');
-    arrow.className = 'docs-sidebar-home-arrow';
-    arrow.setAttribute('aria-hidden', 'true');
-    arrow.textContent = '←';
-    docsHome.replaceChildren(arrow, ` ${t('Docs')}`);
-  }
+  // The rail scrolls on its own (docs.css), so its current page is brought into view there.
+  const sideSlot = viewEl.querySelector<HTMLElement>('[data-sidebar]');
+  if (sideSlot && !sideSlot.hidden) requestAnimationFrame(() => revealCurrentPage(sideSlot));
   fillSlot('[data-sitemap]', extractSitemap(doc));
   // The founded-by-SUSE badge + "Questions? Contact fitzy@suse.com" line from the built
   // page's footer - the sitemap already rode up in its own slot just above; this brings
@@ -450,7 +445,6 @@ export async function mountDocs(
         const copy = rail.cloneNode(true) as HTMLElement;
         const title = copy.querySelector('.sidebar-pathway')?.textContent?.trim() || t('Documentation');
         copy.querySelector('.sidebar-pathway')?.remove();
-        copy.querySelector('.sidebar-home')?.remove();
         const list = document.createElement('div');
         list.className = 'docs-compact-list';
         list.append(...Array.from(copy.childNodes));

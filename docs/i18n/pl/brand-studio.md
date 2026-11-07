@@ -82,7 +82,7 @@ Każdy znak trafia do siatki ośmiu opcjonalnych slotów, po jednym na **orienta
 
 Grupa bez znaków jest zwinięta do jednej linii; otwórz ją, aby zobaczyć sloty. Kliknij slot, aby dodać PNG, SVG, JPEG lub WebP, albo kliknij wypełniony slot, aby zastąpić znak. Wszystko zostaje na tym urządzeniu.
 
-![Sloty logo z otwartymi Horizontal i Vertical: każdy wariant ma własny slot i każdy slot jest opcjonalny](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dlogos&width=1440&height=1600&dpi=192&waitMs=1600&drive=click%3A.be-logo-identity%3Edetails%3Anth-of-type%281%29%3Esummary%3Bclick%3A.be-logo-identity%3Edetails%3Anth-of-type%282%29%3Esummary%3Bwait%3A600&cropSelector=.be-logo-grid&format=svg&walker=1&dark=1&filename=bs-logo-slots)
+![Sloty logo z otwartymi Horizontal i Vertical: każdy wariant ma własny slot i każdy slot jest opcjonalny](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dlogos&system=new-design-system&width=1440&height=1600&dpi=192&waitMs=1600&drive=click%3A.be-logo-identity%3Edetails.be-logo-group--fold%3Anot%28.be-logo-group--custom%29%3Esummary%3Bwait%3A600&cropSelector=.be-logo-grid&format=svg&walker=1&dark=1&filename=bs-logo-slots)
 
 - **Custom marks** to znaki, które Twoja marka nazywa własną nazwą, takie jak ikona, herb lub favicon.
 - **Więcej tożsamości.** Submarka, produkt lub wydarzenie mogą mieć własny pełny zestaw: **+ Add another logo** i nadaj zestawowi nazwę. Twój główny zestaw to "Your logo". [Brand architectures](/info/brand-architectures.html) pokazuje, kiedy tożsamość logo jest właściwym klockiem.
@@ -114,7 +114,7 @@ Twoje kolory leżą obok podglądu **In context** na szerokim ekranie i nad nim 
 
 ### Role: co czytają narzędzia
 
-![The Colour roles table on Lolly Demo after choosing the suggested words Main, Accent, Supporting and Tertiary: the colourway chips, then each role with its light and dark colour, Main read as the lead colour and Accent as the partner colour, Supporting and Tertiary read by name only and marked Copied, and the readings no role fills listed under the table](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=2720&height=2000&dpi=192&waitMs=1800&cropSelector=%5Bdata-be-roles-fold%5D&format=svg&walker=1&dark=1&filename=bs-colour-roles)
+![The Colour roles table on Lolly Demo after choosing the suggested words Main, Accent, Supporting and Tertiary: the colourway chips, then each role with its light and dark colour, Main read as the lead colour and Accent as the partner colour, Supporting and Tertiary read by name only and marked Copied, and the readings no role fills listed under the table](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&system=wefthouse&width=2720&height=2000&dpi=192&waitMs=1800&cropSelector=%5Bdata-be-roles-fold%5D&format=svg&walker=1&dark=1&filename=bs-colour-roles)
 
 **Roles** mówią, który kolor gra jaką rolę w każdym narzędziu i eksporcie. Są opcjonalne (trzy luźne kolory i brak ról to w pełni dobry system), każdy kolor może mieć jedną, a odczyt kontrastu jest mierzony względem powierzchni, najpierw APCA. Każdy wiersz roli pokazuje własny kolor w pełnej sile, zastępczy kolor startowy albo **↳ follows Primary**.
 
@@ -206,7 +206,7 @@ Pobrania palety (tokeny projektowe, CSS, SCSS, GIMP i Adobe Swatch Exchange) le�
 
 Bez własnego kroju pokój to jedna karta: **Primary**, złożona w rozmiarze do czytania w kroju, który obsługuje go dziś, z tagiem **Starter**, przyciskiem **Choose for Primary** i linią *"Nothing installs until you choose one."* Headings, code i italic podążają za primary, dopóki ich nie wybierzesz; **Choose them separately** pokazuje ich karty.
 
-![Pokój Type z jeszcze niewybranym krojem - jedna karta w rozmiarze czytelnym, ze znacznikiem Starter, i jedno wypełnione Choose for Primary](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&dark=1&filename=brand-type)
+![Pokój Type z jeszcze niewybranym krojem - jedna karta w rozmiarze czytelnym, ze znacznikiem Starter, i jedno wypełnione Choose for Primary](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&system=new-design-system&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&dark=1&filename=brand-type)
 
 Wybierz jeden krój, a pokój otwiera się na cztery karty ról, listę Fonts i próbkę na żywo:
 
@@ -217,7 +217,7 @@ Wybierz jeden krój, a pokój otwiera się na cztery karty ról, listę Fonts i 
 
 Karta jest zabarwiona tylko tam, gdzie zainstalowałeś ten krój. Jej przycisk mówi, dla jakiej roli jest: **Change Headings** dla Twojego własnego kroju i **Choose for Headings** wszędzie indziej. Linia próbki zawija się zamiast się ucinać. Nic na karcie niczego nie zatwierdza: przycisk otwiera scenę porównania dla tej roli.
 
-![Odsłonięte cztery karty ról - każda złożona w kroju, który ją obsługuje, ze znacznikiem Starter tam, gdzie nikt nie wybrał, i Italic podążającym za primary](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&width=1440&height=1000&dpi=192&waitMs=2600&drive=click%3A%5Bdata-be-typemore-toggle%5D%3Bwait%3A600&cropSelector=.be-typecard-grid&walker=1&format=svg&dark=1&filename=bs-type-specimen)
+![Odsłonięte cztery karty ról - każda złożona w kroju, który ją obsługuje, ze znacznikiem Starter tam, gdzie nikt nie wybrał, i Italic podążającym za primary](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&system=new-design-system&width=1440&height=1000&dpi=192&waitMs=2600&drive=click%3A%5Bdata-be-typemore-toggle%5D%3Bwait%3A600&cropSelector=.be-typecard-grid&walker=1&format=svg&dark=1&filename=bs-type-specimen)
 
 ### Etap porównania
 

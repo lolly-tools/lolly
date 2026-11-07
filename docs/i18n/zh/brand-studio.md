@@ -82,7 +82,7 @@
 
 还没有标志的组会折叠成一行；展开可看到它的槽位。点击槽位可添加 PNG、SVG、JPEG 或 WebP，点击已填充的槽位可替换标志。一切都留在这台设备上。
 
-![展开了 Horizontal 和 Vertical 的徽标槽位：每种处理方式都是自己的槽位，每个槽位都是可选的](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dlogos&width=1440&height=1600&dpi=192&waitMs=1600&drive=click%3A.be-logo-identity%3Edetails%3Anth-of-type%281%29%3Esummary%3Bclick%3A.be-logo-identity%3Edetails%3Anth-of-type%282%29%3Esummary%3Bwait%3A600&cropSelector=.be-logo-grid&format=svg&walker=1&dark=1&filename=bs-logo-slots)
+![展开了 Horizontal 和 Vertical 的徽标槽位：每种处理方式都是自己的槽位，每个槽位都是可选的](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dlogos&system=new-design-system&width=1440&height=1600&dpi=192&waitMs=1600&drive=click%3A.be-logo-identity%3Edetails.be-logo-group--fold%3Anot%28.be-logo-group--custom%29%3Esummary%3Bwait%3A600&cropSelector=.be-logo-grid&format=svg&walker=1&dark=1&filename=bs-logo-slots)
 
 - **Custom marks** 是你的品牌用自己的名称称呼的标志，例如图标、徽章或网站图标。
 - **更多标识。** 子品牌、产品或活动可以有自己的完整一套：**+ Add another logo** 并给这一套命名。你的主套是 “Your logo”。[品牌架构](/info/brand-architectures.html)说明了什么时候徽标标识是合适的构件。
@@ -114,7 +114,7 @@
 
 ### 角色：工具读取什么
 
-![The Colour roles table on Lolly Demo after choosing the suggested words Main, Accent, Supporting and Tertiary: the colourway chips, then each role with its light and dark colour, Main read as the lead colour and Accent as the partner colour, Supporting and Tertiary read by name only and marked Copied, and the readings no role fills listed under the table](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=2720&height=2000&dpi=192&waitMs=1800&cropSelector=%5Bdata-be-roles-fold%5D&format=svg&walker=1&dark=1&filename=bs-colour-roles)
+![The Colour roles table on Lolly Demo after choosing the suggested words Main, Accent, Supporting and Tertiary: the colourway chips, then each role with its light and dark colour, Main read as the lead colour and Accent as the partner colour, Supporting and Tertiary read by name only and marked Copied, and the readings no role fills listed under the table](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&system=wefthouse&width=2720&height=2000&dpi=192&waitMs=1800&cropSelector=%5Bdata-be-roles-fold%5D&format=svg&walker=1&dark=1&filename=bs-colour-roles)
 
 **角色**说明了哪种颜色在每个工具和导出中承担哪个部分。它们是可选的（三个没有角色的零散颜色也是一个完全合格的系统），任何颜色都可以担任一个角色，对比度读数是针对表面测量的，优先使用 APCA。每个角色行显示的是全强度的自有颜色、顶替的起步颜色，或 **↳ follows Primary**。
 
@@ -206,7 +206,7 @@
 
 在没有自己的字体时，这个房间只有一张卡片：**Primary**，以阅读尺寸用目前所用的字体显示，带有 **Starter** 标签、一个 **Choose for Primary** 按钮和一行 *"Nothing installs until you choose one."* Headings、code 和 italic 在你选择它们之前都跟随 primary；**Choose them separately** 会显示它们的卡片。
 
-![尚未选择字体的 Type 房间 - 一张阅读大小的卡片，带有一个 Starter 标签，以及一个已填色的 Choose for Primary](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&dark=1&filename=brand-type)
+![尚未选择字体的 Type 房间 - 一张阅读大小的卡片，带有一个 Starter 标签，以及一个已填色的 Choose for Primary](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&system=new-design-system&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&dark=1&filename=brand-type)
 
 选择一种字体后，房间会展开为四张角色卡片、Fonts 列表和一个实时样张：
 
@@ -217,7 +217,7 @@
 
 只有你安装了该字体的卡片才会带色调，其按钮会说明它对应哪个角色：在你自己的字体上显示 **Change Headings**，其他地方都显示 **Choose for Headings**。示例行会换行而不是被截断。卡片上没有任何内容会提交任何更改：按钮会为该角色打开对比台。
 
-![四张角色卡揭开 - 每张都以服务它的字体呈现，没人选择的一张带着 Starter 标签，Italic 跟随主体](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&width=1440&height=1000&dpi=192&waitMs=2600&drive=click%3A%5Bdata-be-typemore-toggle%5D%3Bwait%3A600&cropSelector=.be-typecard-grid&walker=1&format=svg&dark=1&filename=bs-type-specimen)
+![四张角色卡揭开 - 每张都以服务它的字体呈现，没人选择的一张带着 Starter 标签，Italic 跟随主体](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&system=new-design-system&width=1440&height=1000&dpi=192&waitMs=2600&drive=click%3A%5Bdata-be-typemore-toggle%5D%3Bwait%3A600&cropSelector=.be-typecard-grid&walker=1&format=svg&dark=1&filename=bs-type-specimen)
 
 ### 对比舞台
 

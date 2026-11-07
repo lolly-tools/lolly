@@ -22,7 +22,7 @@ Choose the route that matches what you have:
 
 The first time you open the gallery, a short welcome offers the same choices: **Make it yours** opens Lolly Design System Setup, **Bring your design** opens a file picker for a design and **Explore the community tools** closes the welcome.
 
-![The Colours room of Lolly Design System Setup on a fresh install: one live chip, one field and the whole of the first decision](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-roles-fold%5D%3Esummary%3Bwait%3A500&format=svg&walker=1&localize=1&dark=1&filename=brand-colours)
+![The Colours room of Lolly Design System Setup on a new design system: one live chip, one field and the whole of the first decision](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&system=new-design-system&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&dark=1&filename=bs-colours-new-system)
 
 From there, eight rooms take it as far as you like, in any order: **Board**, **Colours**, **Type**, **Logos**, **Tokens**, **Files**, **Rules** and **Skills**. Every preview in the app updates as you type. [Lolly Design System Setup](/info/brand-studio.html) covers each room.
 

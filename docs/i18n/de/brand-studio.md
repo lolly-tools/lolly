@@ -82,7 +82,7 @@ Jedes Zeichen landet in einem Raster aus acht optionalen Slots, je einer pro **A
 
 Eine Gruppe ohne Zeichen klappt zu einer Zeile zusammen; öffnen Sie sie, um ihre Slots zu sehen. Klicken Sie einen Slot an, um ein PNG, SVG, JPEG oder WebP hinzuzufügen, oder klicken Sie einen gefüllten Slot an, um das Zeichen zu ersetzen. Alles bleibt auf diesem Gerät.
 
-![Die Logo-Slots mit geöffneten Horizontal und Vertical: Jede Behandlung ist ein eigener Slot, und jeder Slot ist optional](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dlogos&width=1440&height=1600&dpi=192&waitMs=1600&drive=click%3A.be-logo-identity%3Edetails%3Anth-of-type%281%29%3Esummary%3Bclick%3A.be-logo-identity%3Edetails%3Anth-of-type%282%29%3Esummary%3Bwait%3A600&cropSelector=.be-logo-grid&format=svg&walker=1&dark=1&filename=bs-logo-slots)
+![Die Logo-Slots mit geöffneten Horizontal und Vertical: Jede Behandlung ist ein eigener Slot, und jeder Slot ist optional](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dlogos&system=new-design-system&width=1440&height=1600&dpi=192&waitMs=1600&drive=click%3A.be-logo-identity%3Edetails.be-logo-group--fold%3Anot%28.be-logo-group--custom%29%3Esummary%3Bwait%3A600&cropSelector=.be-logo-grid&format=svg&walker=1&dark=1&filename=bs-logo-slots)
 
 - **Custom marks** sind Zeichen, die Ihre Marke mit eigenem Namen anspricht, etwa ein Icon, ein Wappen oder ein Favicon.
 - **More identities.** Eine Untermarke, ein Produkt oder ein Event kann einen eigenen vollen Satz haben: **+ Add another logo** und geben Sie dem Satz einen Namen. Ihr Hauptsatz ist "Your logo". [Marken-Architekturen](/info/brand-architectures.html) zeigt, wann eine Logo-Identität der richtige Baustein ist.
@@ -114,7 +114,7 @@ Ihre Farben stehen neben einer Vorschau **In context** auf einem breiten Bildsch
 
 ### Rollen: was Tools lesen
 
-![The Colour roles table on Lolly Demo after choosing the suggested words Main, Accent, Supporting and Tertiary: the colourway chips, then each role with its light and dark colour, Main read as the lead colour and Accent as the partner colour, Supporting and Tertiary read by name only and marked Copied, and the readings no role fills listed under the table](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=2720&height=2000&dpi=192&waitMs=1800&cropSelector=%5Bdata-be-roles-fold%5D&format=svg&walker=1&dark=1&filename=bs-colour-roles)
+![The Colour roles table on Lolly Demo after choosing the suggested words Main, Accent, Supporting and Tertiary: the colourway chips, then each role with its light and dark colour, Main read as the lead colour and Accent as the partner colour, Supporting and Tertiary read by name only and marked Copied, and the readings no role fills listed under the table](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&system=wefthouse&width=2720&height=2000&dpi=192&waitMs=1800&cropSelector=%5Bdata-be-roles-fold%5D&format=svg&walker=1&dark=1&filename=bs-colour-roles)
 
 **Rollen** sagen, welche Farbe in jedem Tool und Export welche Aufgabe übernimmt. Sie sind optional (drei lose Farben und keine Rollen sind ein vollkommen gutes System), jede Farbe kann eine übernehmen, und die Kontrastanzeige wird gegen die Fläche gemessen, APCA zuerst. Jede Rollenzeile zeigt eine eigene Farbe in voller Stärke, eine einspringende Starter-Farbe oder **↳ follows Primary**.
 
@@ -206,7 +206,7 @@ Die Palette-Downloads (Design-Tokens, CSS, SCSS, GIMP und Adobe Swatch Exchange)
 
 Ohne eigene Schrift ist der Raum eine Karte: **Primary**, in Lesegröße in der Schrift gesetzt, die heute dient, mit einem Tag **Starter**, einer Schaltfläche **Choose for Primary** und der Zeile *"Nothing installs until you choose one."* Headings, Code und Italic folgen der Primärschrift, bis Sie sie wählen; **Choose them separately** zeigt ihre Karten.
 
-![Der Schrift-Raum mit noch keinem gewählten Schriftschnitt - eine Karte in Lesegröße, eine Starter-Markierung darauf und ein ausgefülltes Choose for Primary](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&dark=1&filename=brand-type)
+![Der Schrift-Raum mit noch keinem gewählten Schriftschnitt - eine Karte in Lesegröße, eine Starter-Markierung darauf und ein ausgefülltes Choose for Primary](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&system=new-design-system&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&dark=1&filename=brand-type)
 
 Wählen Sie eine Schrift, und der Raum öffnet sich zu vier Rollenkarten, der Liste Fonts und einem Live-Muster:
 
@@ -217,7 +217,7 @@ Wählen Sie eine Schrift, und der Raum öffnet sich zu vier Rollenkarten, der Li
 
 Eine Karte ist nur getönt, wo Sie diese Schrift installiert haben. Ihre Schaltfläche sagt, für welche Rolle sie ist: **Change Headings** bei einer eigenen Schrift und überall sonst **Choose for Headings**. Die Beispielzeile bricht um, statt abgeschnitten zu werden. Nichts auf einer Karte übernimmt etwas: Die Schaltfläche öffnet die Vergleichsbühne für diese Rolle.
 
-![Die vier aufgedeckten Rollenkarten - jede gesetzt in dem Schriftschnitt, der sie bedient, mit einer Starter-Markierung, wo niemand eine gewählt hat, und Kursiv, das Primär folgt](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&width=1440&height=1000&dpi=192&waitMs=2600&drive=click%3A%5Bdata-be-typemore-toggle%5D%3Bwait%3A600&cropSelector=.be-typecard-grid&walker=1&format=svg&dark=1&filename=bs-type-specimen)
+![Die vier aufgedeckten Rollenkarten - jede gesetzt in dem Schriftschnitt, der sie bedient, mit einer Starter-Markierung, wo niemand eine gewählt hat, und Kursiv, das Primär folgt](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&system=new-design-system&width=1440&height=1000&dpi=192&waitMs=2600&drive=click%3A%5Bdata-be-typemore-toggle%5D%3Bwait%3A600&cropSelector=.be-typecard-grid&walker=1&format=svg&dark=1&filename=bs-type-specimen)
 
 ### Die Vergleichsbühne
 

@@ -14,6 +14,13 @@
  * does: a design system font draws every character it has, and only what none of them
  * has reaches the fallback font.
  *
+ * A tool that sets its own fonts, rather than the design system's font variables, gets
+ * the same families through a slot in each of its `font-family` declarations: the live
+ * view places one after the fonts the declaration names and before the system ones
+ * (lib/fallback-slots.ts), and this module sets the slot's property. So a tool's
+ * own `"SUSE", system-ui` stack draws Arabic in the same fallback font its export
+ * outlines, not in a system font.
+ *
  * Nothing changes for a canvas whose text the design system covers: no font loads and no
  * variable is touched, and the page and every export keep their bytes. The faces are
  * created from the same catalog-cache bytes the export reads, so no second download
@@ -29,6 +36,7 @@
  */
 import { hanEvidence, hanForms, hasCjk, runLang, type FallbackFontPack, type HanForm } from '@lolly-tools/node-shell/fallback-fonts';
 import { PAGE_FALLBACK_FAMILY } from './fallback-font-source.ts';
+import { FALLBACK_SLOT_PROPERTY, slotRulesFor } from '../lib/fallback-slots.ts';
 import { fallbackPackUrl, fallbackPacks, packsForText, packsGeneration } from './font-fill.ts';
 import type { FontStyleSlice } from './text-svg.ts';
 
@@ -152,7 +160,10 @@ export async function syncPageFallbackFonts(root: Element, scope: string): Promi
     const value = rootStyle.getPropertyValue(name).trim();
     if (value) decls.push(`${name}: ${withFallbackFamilies(value, families)};`);
   }
-  const css = `${scope} { ${decls.join(' ')} }`;
+  // A tool that sets its own fonts gets the same families through the slots the live
+  // view placed in its stylesheets (lib/fallback-slots.ts).
+  decls.push(`${FALLBACK_SLOT_PROPERTY}: ${families.map((f) => `, ${quoted(f)}`).join('')};`);
+  const css = [`${scope} { ${decls.join(' ')} }`, ...slotRulesFor(root, scope)].join('\n');
   if (!el) {
     el = document.createElement('style');
     el.dataset.lollyFallbackFonts = '';

@@ -82,7 +82,7 @@ Cada marca acaba en una cuadrícula de ocho espacios opcionales, uno por **orien
 
 Un grupo sin marcas todavía se pliega en una línea; ábrelo para ver sus espacios. Haz clic en un espacio para añadir un PNG, SVG, JPEG o WebP, o haz clic en un espacio ocupado para sustituir la marca. Todo se queda en este dispositivo.
 
-![Los espacios de logotipo con Horizontal y Vertical abiertos: cada tratamiento es un espacio propio, y cada espacio es opcional](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dlogos&width=1440&height=1600&dpi=192&waitMs=1600&drive=click%3A.be-logo-identity%3Edetails%3Anth-of-type%281%29%3Esummary%3Bclick%3A.be-logo-identity%3Edetails%3Anth-of-type%282%29%3Esummary%3Bwait%3A600&cropSelector=.be-logo-grid&format=svg&walker=1&dark=1&filename=bs-logo-slots)
+![Los espacios de logotipo con Horizontal y Vertical abiertos: cada tratamiento es un espacio propio, y cada espacio es opcional](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dlogos&system=new-design-system&width=1440&height=1600&dpi=192&waitMs=1600&drive=click%3A.be-logo-identity%3Edetails.be-logo-group--fold%3Anot%28.be-logo-group--custom%29%3Esummary%3Bwait%3A600&cropSelector=.be-logo-grid&format=svg&walker=1&dark=1&filename=bs-logo-slots)
 
 - Las **Custom marks** son marcas que tu marca llama por su propio nombre, como un icono, un escudo o un favicon.
 - **Más identidades.** Una submarca, un producto o un evento puede tener su propio conjunto completo: **+ Add another logo** y da un nombre al conjunto. Tu conjunto principal es "Your logo". [Brand architectures](/info/brand-architectures.html) muestra cuándo una identidad de logotipo es el bloque adecuado.
@@ -114,7 +114,7 @@ Tus colores se sitúan junto a una vista previa **In context** en una pantalla a
 
 ### Roles: lo que leen las herramientas
 
-![The Colour roles table on Lolly Demo after choosing the suggested words Main, Accent, Supporting and Tertiary: the colourway chips, then each role with its light and dark colour, Main read as the lead colour and Accent as the partner colour, Supporting and Tertiary read by name only and marked Copied, and the readings no role fills listed under the table](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=2720&height=2000&dpi=192&waitMs=1800&cropSelector=%5Bdata-be-roles-fold%5D&format=svg&walker=1&dark=1&filename=bs-colour-roles)
+![The Colour roles table on Lolly Demo after choosing the suggested words Main, Accent, Supporting and Tertiary: the colourway chips, then each role with its light and dark colour, Main read as the lead colour and Accent as the partner colour, Supporting and Tertiary read by name only and marked Copied, and the readings no role fills listed under the table](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&system=wefthouse&width=2720&height=2000&dpi=192&waitMs=1800&cropSelector=%5Bdata-be-roles-fold%5D&format=svg&walker=1&dark=1&filename=bs-colour-roles)
 
 Los **Roles** dicen qué color desempeña cada papel en cada herramienta y exportación. Son opcionales (tres colores sueltos y ningún rol es un sistema perfectamente bueno), cualquier color puede tomar uno y la lectura de contraste se mide frente a la superficie, primero con APCA. Cada fila de rol muestra un color propio a plena intensidad, un color de inicio que lo sustituye, o **↳ follows Primary**.
 
@@ -206,7 +206,7 @@ Las descargas de la paleta (design tokens, CSS, SCSS, GIMP y Adobe Swatch Exchan
 
 Sin una tipografía propia, la sala es una sola tarjeta: **Primary**, compuesta a tamaño de lectura con la tipografía que la sirve hoy, con una etiqueta **Starter**, un botón **Choose for Primary** y la línea *"Nothing installs until you choose one."* Headings, Code e Italic siguen al primario hasta que los eliges; **Choose them separately** muestra sus tarjetas.
 
-![La sala Tipografía sin ninguna fuente elegida todavía - una tarjeta a tamaño de lectura, una etiqueta Inicial en ella, y un Choose for Primary relleno](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&dark=1&filename=brand-type)
+![La sala Tipografía sin ninguna fuente elegida todavía - una tarjeta a tamaño de lectura, una etiqueta Inicial en ella, y un Choose for Primary relleno](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&system=new-design-system&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&dark=1&filename=brand-type)
 
 Elige una tipografía y la sala se abre en cuatro tarjetas de rol, la lista Fonts y una muestra en vivo:
 
@@ -217,7 +217,7 @@ Elige una tipografía y la sala se abre en cuatro tarjetas de rol, la lista Font
 
 Una tarjeta se tiñe solo donde instalaste esa tipografía, Su botón dice para qué rol es: **Change Headings** en una tipografía propia y **Choose for Headings** en todas las demás. La línea de muestra se ajusta en lugar de cortarse. Nada de una tarjeta confirma nada: el botón abre la fase de comparación para ese rol.
 
-![Las cuatro tarjetas de rol reveladas - cada una tipografiada en la fuente que la sirve, con una etiqueta Inicial donde nadie eligió una y Cursiva siguiendo a la principal](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&width=1440&height=1000&dpi=192&waitMs=2600&drive=click%3A%5Bdata-be-typemore-toggle%5D%3Bwait%3A600&cropSelector=.be-typecard-grid&walker=1&format=svg&dark=1&filename=bs-type-specimen)
+![Las cuatro tarjetas de rol reveladas - cada una tipografiada en la fuente que la sirve, con una etiqueta Inicial donde nadie eligió una y Cursiva siguiendo a la principal](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&system=new-design-system&width=1440&height=1000&dpi=192&waitMs=2600&drive=click%3A%5Bdata-be-typemore-toggle%5D%3Bwait%3A600&cropSelector=.be-typecard-grid&walker=1&format=svg&dark=1&filename=bs-type-specimen)
 
 ### El escenario de comparación
 

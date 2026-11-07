@@ -963,7 +963,7 @@
   "shells/web/src/lib/scope-css.test.ts": 2,
   "shells/web/src/lib/scope-css.ts": 4,
   "shells/web/src/lib/scrub.ts": 3,
-  "shells/web/src/lib/search/docs-index.ts": 2,
+  "shells/web/src/lib/search/docs-index.ts": 1,
   "shells/web/src/lib/search/providers/ask.ts": 1,
   "shells/web/src/lib/search/providers/catalog.ts": 1,
   "shells/web/src/lib/search/providers/docs.test.ts": 2,

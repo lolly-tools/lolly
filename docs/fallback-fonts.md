@@ -59,7 +59,9 @@ The command line, the terminal app and the MCP server read the same files from d
 
 ## On the page and in the export
 
-The page uses the same fallback font as the export. Without this, a browser draws such letters in a system font while the export uses Noto, and a line that holds them changes width between the two. Lolly adds the fallback font to the end of the design system's font list on that canvas only, after the design system's own fonts and before any system font. A canvas the design system covers keeps its font list exactly as before.
+The page uses the same fallback font as the export. Without this, a browser draws such letters in a system font while the export uses Noto, and a line that holds them changes width between the two. Lolly adds the fallback font to the end of the design system's font list on that canvas only, after the design system's own fonts and before any system font. A tool that sets its own font list, in its styles or on its elements, gets the fallback font in the same place: after the fonts the list gives and before any system font. A canvas the design system covers keeps its font list exactly as before.
+
+The page leaves a font list alone when it starts with a system font, such as `system-ui` or Helvetica, because the export draws that text with the design system's fonts and the page does not.
 
 In a PDF the words become outlines drawn with the fallback font, whichever text setting you choose, because live PDF text cannot carry a script the embedded font lacks. In SVG, EMF, EPS, DXF and WMF they become outlines whenever text is converted to outlines; with text kept live, the reader's own fonts draw them, as before. When a fallback font drew some of an export, the export panel shows a note such as:
 
@@ -70,6 +72,10 @@ The command line prints the same sentence as a note.
 ## What stays a picture
 
 A character outside the four national sets has no fallback font. Rare characters such as 𠮷, the characters added for Hong Kong by its supplementary set, and scripts without a fallback font, such as Tamil, Ethiopic or Syriac, are all treated the same way. In a PDF the line that holds one goes in as a 300 dpi picture, and the export panel lists the scripts. In an SVG the run stays live text, which the reader's own fonts draw.
+
+## The check before you export
+
+Lolly Design's **Before you export** card, and the `render` checks of `lolly check`, report text that no font can draw. They count the fallback fonts the way an export does, from the same lists of the characters each font has, so text a fallback font draws is not reported. A script with no fallback font, such as Tamil, and a Chinese, Japanese or Korean character outside the national sets are still reported, because the export draws them as a picture or as live text. The check reads those lists from the catalog and downloads no font.
 
 ## Licences and credits
 

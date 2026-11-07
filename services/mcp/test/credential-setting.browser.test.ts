@@ -91,7 +91,10 @@ test('certificate SVG: "off" leaves no credential at all, the inlined logo\'s in
   assert.equal(ninety.state, 'valid');
   assert.equal(ninety.surface, 'mcp');
   assert.equal(ninety.days, 90);
-  assert.equal(ninety.bytes.toString().match(/<c2pa:manifest/g)?.length, 1);
+  // This server's credential in the root's metadata, and the inlined logo's own in the logo.
+  const text = ninety.bytes.toString();
+  assert.equal(text.match(/<c2pa:manifest/g)?.length, 2);
+  assert.ok(text.indexOf('<c2pa:manifest') < text.indexOf('<svg', text.indexOf('<svg') + 4), 'the file\'s comes ahead of the inlined artwork');
 });
 
 test('certificate PNG and qr-code PDF: "off" means none, and a lifetime is this server\'s', { skip, timeout: 300_000 }, async () => {
