@@ -58,7 +58,7 @@ Some tools draw several colours at once, and they draw on the whole family: ever
 
 | Where | What the family changes |
 | --- | --- |
-| Lolly Chart | The leads come first in the categorical palette: ahead of the design system's own spectrum, or ahead of the shipped colours when it has none, so the palette never has fewer colours than with one colourway. They follow Primary and Secondary in the ordered palette and the recolour swatches. Another colourway's lead becomes the second hue of the two-hue sequential and diverging ramps. |
+| Lolly Chart | The leads come first in the categorical palette: ahead of the design system's own spectrum, or ahead of the shipped colours when it has none, so the palette never has fewer colours than with one colourway. They follow Primary and Secondary in the ordered palette and the recolour swatches. Another colourway's lead becomes the second hue of the two-hue sequential and diverging ramps. The **Design system - colour roles first** palette, which you choose, leads with the design system's [colour roles](/info/brand-studio.html#colour-roles-what-the-colours-are-called) in the piece's colourway instead. |
 | Audiogram | The other colourways' leads follow the background in the visualiser's colours. |
 | Mesh Gradient | **Shuffle colours** draws on the leads before the rest of the design system. |
 | The visualiser's colour schemes | One scheme per colourway, in the design system's order and labelled with the colourway's name, with that colourway's partner as the counterpoint. A lead too dark or too grey to carry the picture hands the field to its partner. |
@@ -67,7 +67,7 @@ Some tools draw several colours at once, and they draw on the whole family: ever
 
 When a piece's colourway or look changes, Lolly Chart, Mesh Gradient and Lolly Filter read the colours they keep from the design system again as the open tool redraws, and every input keeps its value. Covers belong to the app, not to a piece: they list the same leads whatever colourway a piece uses, in the app's own light or dark appearance.
 
-The family holds one colour per colourway. On a design system with [colour roles](/info/brand-studio.html#colour-roles-what-the-colours-are-called), each member is the role read as the lead colour in that colourway. A role read by name only never joins the family, so no tool draws the role until someone chooses it in a colour field.
+The family holds one colour per colourway. On a design system with [colour roles](/info/brand-studio.html#colour-roles-what-the-colours-are-called), each member is the role read as the lead colour in that colourway. A role read by name only never joins the family, so no tool draws the role until someone chooses it in a colour field or chooses Lolly Chart's colour roles palette.
 
 A design system with one colourway, or none, has no family, and each of these tools draws exactly as before. Tool authors reach the family through the canvas variables `--brand-lead-1` onwards and a colour input's `"palette": "colourway-leads"` option; [Templates and rendering](/info/tool-rendering.html#design-system-colours-in-templates-and-styles) and [Tool inputs](/info/tool-inputs.html) cover both.
 
