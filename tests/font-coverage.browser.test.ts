@@ -22,7 +22,9 @@ test('mounted font checks detect system fallback and an installed Arabic face st
       const { renderPortableHtml } = await import(portablePath);
       const api = createTextAPI();
       const style = { fontFamily: 'SUSE', fontWeight: '700', fontStyle: 'normal' };
-      const before = await Promise.all(['Hello', 'Привет мир', 'مرحبا بالعالم'].map(text => fontCoversText(style, text, api)));
+      // Cyrillic and Arabic draw with a bundled fallback font in an export, so they are
+      // covered; Tamil has no fallback font, so a system font would draw the Tamil.
+      const before = await Promise.all(['Hello', 'Привет мир', 'مرحبا بالعالم', 'வணக்கம்'].map(text => fontCoversText(style, text, api)));
       const css = document.createElement('style');
       css.textContent = '@font-face{font-family:"Coverage Arabic";src:url("/coverage-arabic.ttf");font-weight:100 900}';
       document.head.append(css);
@@ -36,7 +38,7 @@ test('mounted font checks detect system fallback and an installed Arabic face st
       const html = await (await renderPortableHtml(canvas, { title: 'Arabic coverage', lang: 'ar', markup: canvas.outerHTML, styles: '', script: '' })).text();
       return { before, after, html, width: (() => { const range = document.createRange(); range.selectNodeContents(canvas); return range.getBoundingClientRect().width; })() };
     });
-    assert.deepEqual(result.before, [true, false, false]);
+    assert.deepEqual(result.before, [true, true, true, false]);
     assert.equal(result.after, true);
     assert.match(result.html, /data:font\/ttf;base64,/);
     const offline = await browser.newPage(), requests: string[] = [];

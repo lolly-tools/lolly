@@ -16,6 +16,7 @@ import { aiKind } from './ai-kind.ts';
 import { EBML_ID, SEGMENT_ID, readId, readVint, idAt } from './video-meta.ts';
 import { concatBytes, bytesToHex as hexOf, bytesToBin, base64ToBytes } from './bytes.ts';
 import { locateOpusComment, parseOpusTags, commentKey, commentValue, OGG_C2PA_KEY } from './ogg.ts';
+import { locateSvgCredential } from './c2pa-svg.ts';
 // Type-only - no runtime cycle: c2pa-verify.ts imports VALUES from this file,
 // this file imports only a TYPE back (erased at compile time).
 import type { C2paHistoryStep } from './c2pa-verify.ts';
@@ -611,9 +612,16 @@ function extractC2paFromGif(gif: Uint8Array): { manifest: Uint8Array } | null {
   return null;
 }
 
+// The SVG's own credential is the one in a direct <metadata> child of the root, the
+// one c2pa-rs reads (locateSvgCredential, c2pa-svg.ts). A manifest further down belongs
+// to nested artwork, such as an inlined logo. A file with no root credential falls back
+// to the first manifest anywhere, which is where exports written before engine 1.320
+// put theirs, so a credential someone already holds reads as it did.
 function extractC2paFromSvg(svg: Uint8Array): { manifest: Uint8Array } | null {
   const bin = bytesToBin(svg);
-  const m = /<c2pa:manifest[^>]*>([^<]*)<\/c2pa:manifest>/.exec(bin);
+  const site = locateSvgCredential(bin)?.manifest;
+  const text = site && site.end >= 0 ? bin.slice(site.start, site.end) : null;
+  const m = text !== null && !text.includes('<') ? [null, text] : /<c2pa:manifest[^>]*>([^<]*)<\/c2pa:manifest>/.exec(bin);
   if (!m) return null;
   const b64 = m[1]!.trim();
   if (!b64) return null;

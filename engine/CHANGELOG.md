@@ -6,10 +6,17 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
-## 1.320.0
+## 1.321.0
 
 - `buildPptxParts`: a run, a table cell or a layout placeholder style with a face now writes the face in all three of DrawingML's slots, `latin`, `ea` and `cs`, where it wrote `latin` and `cs`. The theme's font scheme already carries the face in all three, so PowerPoint resolves the same face it inherited before. LibreOffice does not follow the theme for a text box, so there a run now carries the face for East Asian text as well. A run with no face writes nothing, as before.
 - No API change. The Design deck model now gives every run a face (the brand, headings or mono face the canvas draws the slot in, resolved by the shell against the exported node), and the master-bound lowering in `packages/node-shell/src/design-pptx.ts` writes a circle or an ellipse as the ellipse preset and a pill as a full rounded rectangle, where it wrote a plain rectangle. Exported files gain no new data.
+
+## 1.320.0
+
+- An SVG's Content Credential goes in a `<metadata>` child of the root `<svg>`, the place the C2PA SVG binding defines and c2patool reads. When the page inlined artwork that carries its own manifest, such as a catalog logo, `embedC2pa` used to write the export's manifest over the logo's, inside the logo, and c2patool reported "No claim found" for the file. The logo now keeps its own manifest in its own markup, where the export's hard binding covers those bytes like any others, and the export's claim validates at the root.
+- New leaf module `c2pa-svg.ts`: `locateSvgCredential` finds the root `<svg>`, its first direct `<metadata>` and the manifest in a direct `<metadata>`, reading past comments, CDATA, quoted attribute values and nested artwork in one linear pass. The SVG placer and reader both use it.
+- The reader takes the root's credential first. A file with none there falls back to the first manifest anywhere, which is where exports written before this version put theirs, so a credential someone already holds reads as it did.
+- Default SVG exports that inline credentialed artwork change bytes: the file now holds the export's manifest at the root and the artwork's own in the artwork. Nothing else goes into the file. An SVG with no nested manifest is placed exactly as before. The MCP server no longer strips the inlined artwork's manifest before it stamps, so its files match the web shell's and the CLI's.
 
 ## 1.319.0
 
