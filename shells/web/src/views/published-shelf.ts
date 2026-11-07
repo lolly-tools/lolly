@@ -102,15 +102,16 @@ export function shelfSearchText(item: Pick<PublishedItem, 'name' | 'toolName'>):
  *  target; the person's copy, added later by markCopies, is a second link above the
  *  stretched one and never inside the Use link. */
 function cardHtml(item: PublishedItem): string {
+  // The scheme guard first, then the escape: a first-party `#/tool/...` route only.
   if (!safeHref(item.href)) return '';
-  // nosemgrep: lolly-href-escape-is-not-scheme-validation - safeHref()-gated in the guard above
+  const useHref = escapeHtml(item.href);
   return `<div class="published-card" data-published-key="${escapeHtml(item.key)}" data-search="${escapeHtml(shelfSearchText(item))}">
             <span class="published-card-media" aria-hidden="true"${mediaShape(item)}><span class="published-card-icon">${item.icon ?? icon('document', { size: 22 })}</span></span>
             <span class="published-card-text">
               <span class="published-card-name">${escapeHtml(item.name)}</span>
               <span class="published-card-sub"><span>${escapeHtml([item.toolName, item.version].filter(Boolean).join(' · '))}</span></span>
             </span>
-            <a class="btn btn--primary btn--sm published-card-use" href="${escapeHtml(item.href)}">${escapeHtml(t('Use'))}<span class="visually-hidden"> ${escapeHtml(item.name)}</span></a>
+            <a class="btn btn--primary btn--sm published-card-use" href="${useHref}">${escapeHtml(t('Use'))}<span class="visually-hidden"> ${escapeHtml(item.name)}</span></a>
           </div>`;
 }
 
