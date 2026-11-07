@@ -169,6 +169,12 @@ export interface PartnerSpec {
     address?: string; currency?: string; taxNote?: string;
   };
   programme?: { id: string; name: string };
+  /** When the person's access through a programme ends (Lolly Work plans/82 M5): the
+   *  earliest of their membership end dates and the ends scheduled for their company
+   *  or programme that they are told about, and the programme it ends through. The
+   *  home's company card shows it as one line (views/company-card.ts). */
+  accessEndsAt?: string;
+  accessEndsThrough?: { id: string; name: string };
 }
 
 /** A tool the instance injects into the gallery (control-plane shape). `toolId` is
