@@ -15,7 +15,7 @@
       <rect x="0" y="0" width="{{sheetW}}" height="{{sheetH}}" fill="#ffffff"/>
 
       {{#if ../error}}
-      <text class="ps-text" x="12" y="20" font-family="system-ui, sans-serif" font-size="5" fill="#14171a">{{../error}}</text>
+      <text class="ps-text" x="12" y="20" font-family="{{@root._fontBrand}}" font-size="5" fill="#14171a">{{../error}}</text>
       {{else}}
 
       {{#each cells}}
@@ -44,7 +44,7 @@
 
       {{#if hint}}
       <text class="ps-text" x="{{hintX}}" y="{{hintY}}" text-anchor="middle"
-            font-family="system-ui, sans-serif" font-size="{{hintSize}}" fill="#14171a" fill-opacity="0.62">Drop designs, or paste a Lolly tool link, to fill the sheet</text>
+            font-family="{{@root._fontBrand}}" font-size="{{hintSize}}" fill="#14171a" fill-opacity="0.62">Drop designs, or paste a Lolly tool link, to fill the sheet</text>
       {{/if}}
 
       {{/if}}

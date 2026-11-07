@@ -10,7 +10,7 @@
   border-radius: 10px;
   background: #fff5f5;
   color: #7a1f12;
-  font: 13px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif;
+  font: 13px/1.45 var(--font-brand, 'SUSE', ui-sans-serif, system-ui, sans-serif);
 }
 
 .qr-scan-warn__h {
@@ -34,6 +34,6 @@
 
 .qr-scan-info {
   margin: 8px 0 0;
-  font: 12px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif;
+  font: 12px/1.45 var(--font-brand, 'SUSE', ui-sans-serif, system-ui, sans-serif);
   color: #6b6b6b;
 }

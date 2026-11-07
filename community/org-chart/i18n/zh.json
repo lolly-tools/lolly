@@ -65,8 +65,6 @@
   "inputs.boxes.fields.weight.options.700": "粗体",
   "inputs.boxes.fields.weight.options.800": "特粗",
   "inputs.boxes.fields.font.label": "字体",
-  "inputs.boxes.fields.font.options.SUSE": "SUSE Sans",
-  "inputs.boxes.fields.font.options.SUSE Mono": "SUSE Mono",
   "inputs.boxes.fields.lineHeight.label": "行高",
   "inputs.boxes.fields.tracking.label": "字距",
   "inputs.boxes.fields.ligatures.label": "连字",
