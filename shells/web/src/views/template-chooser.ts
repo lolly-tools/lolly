@@ -298,9 +298,10 @@ export function openTemplateChooser(opts: ChooserOpts): Promise<Record<string, I
     /** The group name the caller listed the person's own templates under, so a refresh
      *  from the store re-files them under the same chip. */
     const ownCategory = opts.templates.find(v => v.own)?.category ?? t('Yours');
-    /** Own first, shipped after: the person's own starting points lead the grid. */
+    /** The workspace's own first, then the person's, then shipped: what a workspace
+     *  published for this person leads the grid. */
     const ownFirst = (list: readonly TemplateVariant[]): TemplateVariant[] =>
-      [...list.filter(v => v.own), ...list.filter(v => !v.own)];
+      [...list.filter(v => v.published), ...list.filter(v => v.own && !v.published), ...list.filter(v => !v.own && !v.published)];
 
     let hiddenRefs = new Set<string>();
     let startRef: TemplateStart | null = null;
@@ -321,7 +322,7 @@ export function openTemplateChooser(opts: ChooserOpts): Promise<Record<string, I
     /** A shipped tile this person has hidden. Own templates are deleted, never hidden. */
     const isHidden = (v: TemplateVariant): boolean => !!v.ref && !v.own && hiddenRefs.has(v.ref);
     /** The ref the tile menu acts on, or '' for a tile that has none (no menu is wired). */
-    const menuRefOf = (v: TemplateVariant): string => (profileHost && v.ref ? v.ref : '');
+    const menuRefOf = (v: TemplateVariant): string => (profileHost && v.ref && !v.published ? v.ref : '');
 
     // Memoised whole-file per template: the base `values` seed PLUS its preset
     // overlays (plans/142). An inline entry that already carries a non-empty
@@ -377,7 +378,9 @@ export function openTemplateChooser(opts: ChooserOpts): Promise<Record<string, I
       // Ownership reads as a glyph beside the name, never as a coloured edge (house rule).
       const ownMark = v.own
         ? `<span class="tmpl-chooser-tile-own" role="img" title="${escapeHtml(t('Yours'))}" aria-label="${escapeHtml(t('Yours'))}">${icon('user', { size: 12 })}</span>`
-        : '';
+        : v.published && v.category
+          ? `<span class="tmpl-chooser-tile-own" role="img" title="${escapeHtml(v.category)}" aria-label="${escapeHtml(v.category)}">${icon('building', { size: 12 })}</span>`
+          : '';
       // A hidden tile is only ever shown under the Hidden chip, and carries its way back.
       const restore = isHidden(v)
         ? `<span class="tmpl-chooser-tile-actions"><button type="button" class="btn btn--sm" data-restore>${escapeHtml(t('Restore'))}</button></span>`
