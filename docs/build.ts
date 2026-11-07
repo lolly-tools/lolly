@@ -1439,6 +1439,55 @@ function indexSections(html: string, slug: string, title: string): SearchRecord[
   return records;
 }
 
+/** One page's headings in order (h2 to h4), as indexSections reads them. */
+type PageHeadings = Array<{ a: string; h: string }>;
+function guideHeadingList(html: string): PageHeadings {
+  return [...html.matchAll(/<h([2-4])\s+id="([^"]*)"[^>]*>([\s\S]*?)<\/h\1>/g)].map(m => ({ a: m[2]!, h: htmlToText(m[3]!) }));
+}
+
+/** One "Read the guide" row: the page path, the section anchor ('' for the page), the
+ *  page title and the section heading ('' for the page), in the locale's own words. */
+export interface ToolGuideRow { p: string; a: string; t: string; h: string }
+
+/**
+ * The tool to docs list (plan 354 D6), from each manifest page's `tools`, for one locale.
+ * A tool's whole pages come first, then its sections, each in manifest order. Headings
+ * take different ids in each language (a translated slug, or section-N in a script with
+ * no Latin letters), so a section is found by its position among the page's headings in
+ * the English build. A locale whose page has a different number of headings keeps the
+ * row on the page itself, and tests/docs-tool-guides.test.ts fails on that drift.
+ */
+function toolGuides(
+  lang: Lang,
+  headings: Map<string, PageHeadings>,
+  english: Map<string, PageHeadings>,
+  titles: Map<string, string>,
+): Record<string, ToolGuideRow[]> {
+  const entries = DOCS_REGISTRY.pages.flatMap(page => (page.tools ?? []).map(entry => {
+    const [tool, anchor = ''] = entry.split('#') as [string, string?];
+    return { tool, path: page.path, anchor };
+  }));
+  const ordered = [...entries.filter(e => !e.anchor), ...entries.filter(e => e.anchor)];
+  const out: Record<string, ToolGuideRow[]> = {};
+  for (const { tool, path, anchor } of ordered) {
+    const title = titles.get(path);
+    if (title === undefined) throw new Error(`Tool guide for ${tool} names a page this build did not write: ${path}`);
+    let row: ToolGuideRow = { p: path, a: '', t: title, h: '' };
+    if (anchor) {
+      const en = english.get(path) ?? [];
+      const at = en.findIndex(x => x.a === anchor);
+      if (at < 0) throw new Error(`Tool guide ${tool}#${anchor}: no heading with that id on the English ${path}`);
+      const local = headings.get(path) ?? [];
+      if (local.length === en.length) row = { ...row, a: local[at]!.a, h: local[at]!.h };
+      else console.warn(`⚠  /${lang}/info/${path}: ${local.length} headings against ${en.length} in English, so the ${tool} guide row opens the page, not the section`);
+    }
+    const list = out[tool] ?? [];
+    list.push(row);
+    out[tool] = list;
+  }
+  return out;
+}
+
 // CONTENT_TOKEN + stripAuthoringComments now live in @lolly-tools/docs-render (imported above).
 
 // mdToHtml() binds the build-time docCtx to the shared block renderer
@@ -7015,12 +7064,16 @@ async function build() {
   for (const lang of LANGS) {
     if (lang !== 'en' && !BUILT_LANGS.includes(lang)) rmSync(resolve(outDir, lang), { recursive: true, force: true });
   }
+  const englishGuideHeadings = new Map<string, PageHeadings>();
+  if (BUILT_LANGS[0] !== 'en') throw new Error('English must be built first: its headings place every locale\'s tool guide rows.');
   for (const lang of BUILT_LANGS) {
     activeCatalog = loadSiteCatalog(lang);
     activeLang = lang;
     const localeOutDir = lang === 'en' ? outDir : resolve(outDir, lang);
     mkdirSync(localeOutDir, { recursive: true });
     const searchRecords: SearchRecord[] = [];
+    const guideHeadings = new Map<string, PageHeadings>();
+    const guideTitles = new Map<string, string>();
 
     for (const page of pages) {
       const srcPath = resolvePageSrc(page, lang);
@@ -7059,6 +7112,8 @@ async function build() {
       // The record's `p` is the PATH slug (create/using): the search script builds
       // hrefs as /info/<p>.html, which is exactly the doored file.
       searchRecords.push(...indexSections(content, pathSlug(page.slug), t(page.title)));
+      guideHeadings.set(pathSlug(page.slug), guideHeadingList(content));
+      guideTitles.set(pathSlug(page.slug), t(page.title));
       console.log(`✓  ${localeHref(lang, page.slug)}`);
       if (lang === 'en') {
         sitemapUrls.push({ slug: page.slug, isLanding: page.isLanding });
@@ -7136,6 +7191,13 @@ async function build() {
     // never on page load, so a reader who doesn't search pays nothing for it.
     writeFileSync(resolve(localeOutDir, 'search-index.json'), JSON.stringify(searchRecords), 'utf-8');
     console.log(`✓  ${lang === 'en' ? '' : `/${lang}`}/info/search-index.json (${searchRecords.length} sections)`);
+
+    // The tool to docs list the app's help button reads (plan 354 D6), fetched once
+    // when a tool opens. English is built first, and its headings place the sections.
+    if (lang === 'en') for (const [path, list] of guideHeadings) englishGuideHeadings.set(path, list);
+    const guides = toolGuides(lang, guideHeadings, englishGuideHeadings, guideTitles);
+    writeFileSync(resolve(localeOutDir, 'tool-guides.json'), JSON.stringify({ version: 1, tools: guides }), 'utf-8');
+    console.log(`✓  ${lang === 'en' ? '' : `/${lang}`}/info/tool-guides.json (${Object.keys(guides).length} tools)`);
   }
   activeCatalog = {};
   activeLang = 'en';

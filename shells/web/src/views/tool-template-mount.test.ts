@@ -535,7 +535,8 @@ test('the editor layout hands its Home pill to the top bar, and builds no zoom H
   // Two Home pills (the view corner and the bar) would sit on top of each other, and two
   // zoom controls on one stage is the duplication M1 exists to retire. Both are one-line
   // gates, which is exactly the kind of line a later edit drops without noticing.
-  assert.match(CODE, /!designChrome \? backPillHtml\(backPillOpts\) : ''/,
+  // The corner pill rides in the top-left island with the help button (plan 354 D6).
+  assert.match(CODE, /!designChrome\s*\?\s*`<div class="chrome-topleft">\$\{backPillHtml\(backPillOpts\)\}/,
     'the free-floating corner pill is gated off for the design chrome');
   assert.match(CODE, /backPillHtml:\s*backHomeHtml\(backPillOpts\)/,
     '…and the bar emits it instead, so mountBackPill still finds a [data-back-pill]');
