@@ -14,7 +14,7 @@ _最後核查：2026 年 9 月 28 日。_
 
 ## Lolly 如何完成重疊的工作
 
-Lolly 的 Lolly Design 畫布製作可編輯的素材，並可以把版面變成[附規則的工具](/info/create-a-tool.html)。同一個工具在瀏覽器、桌面應用程式或 CLI 中渲染，並根據資料製作變體。單機版 Lolly 在裝置上渲染並簽署，不需要帳號或伺服器。[私人協作](/info/collaborate.html)直接配對兩部裝置。
+Lolly Design 畫布製作可編輯的素材，並可以把版面變成[附規則的工具](/info/create-a-tool.html)。同一個工具在瀏覽器、桌面應用程式或 CLI 中渲染，並根據資料製作變體。單機版 Lolly 在裝置上渲染並簽署，不需要帳號或伺服器。[私人協作](/info/collaborate.html)直接配對兩部裝置。
 
 ## 搭配組織
 

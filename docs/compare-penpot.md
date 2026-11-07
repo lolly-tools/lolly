@@ -14,7 +14,7 @@ If your team designs in Penpot, Lolly works alongside Penpot: both are open sour
 
 ## How Lolly does the overlapping job
 
-Lolly's Lolly Design canvas makes editable assets and can turn a layout into a [tool with rules](/info/create-a-tool.html). The same tool renders in the browser, the desktop app or the CLI and makes variants from data. Standalone Lolly renders and signs on the device, without an account or a server. A [private collab](/info/collaborate.html) pairs two devices directly.
+The Lolly Design canvas makes editable assets and can turn a layout into a [tool with rules](/info/create-a-tool.html). The same tool renders in the browser, the desktop app or the CLI and makes variants from data. Standalone Lolly renders and signs on the device, without an account or a server. A [private collab](/info/collaborate.html) pairs two devices directly.
 
 ## With an organisation
 

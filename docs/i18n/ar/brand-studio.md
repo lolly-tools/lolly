@@ -305,7 +305,7 @@
 
 تضع **Rules** اختيارات علامتك قيد العمل: ما يستطيع الناس تغييره، وما يبقى ثابتا، وما يستطيع Lolly فحصه.
 
-![Rules على Lolly Demo: أربع قواعد للعلامة، كل منها معلمة Checked in Lolly Design وRequired أو Advisory، ثم Try your design system in use مع أمثلته الجاهزة للعرض](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dusage&width=1440&height=1200&dpi=192&waitMs=2400&cropSelector=%23start-panel-usage&format=svg&walker=1&dark=1&filename=bs-usage-rules)
+![Rules على Lolly Demo: أربع قواعد للعلامة، كل منها معلمة Checked in Design وRequired أو Advisory، ثم Try your design system in use مع أمثلته الجاهزة للعرض](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dusage&width=1440&height=1200&dpi=192&waitMs=2400&cropSelector=%23start-panel-usage&format=svg&walker=1&dark=1&filename=bs-usage-rules)
 
 تسرد **Brand rules** قواعدك. يفتح **Add rule** (أو **Add your first rule**) نموذجاً قصيراً:
 
@@ -316,7 +316,7 @@
 
 يسجّل الاعتماد قرارك الخاص على هذا الجهاز. تقيّد القواعد المطلوبة المعتمدة الملصق القابل لإعادة الاستخدام، وتغطي الفحوصات أمثلة PNG فقط؛ ولا تغيّر أي أداة أخرى.
 
-القواعد التي يأتي بها نظام تصميم في ملف رموزه، مثل أزواج الألوان المعتمدة ووزن النص ومحاذاته أو شعار لكل سطح، تسرد هنا بوصفها **Checked in Lolly Design**. يفحصها Lolly Design طبقة طبقة في بطاقة **Before you export** في لوحة التصدير، ويفعل `lolly check` الشيء نفسه لمستند Lolly Design محفوظ ([قبل أن تصدر](/info/design.html#before-you-export)). والقاعدة التي لا يملك هذا البناء مدققا لها تحفظ كما قدمت وتعلم **Unchecked**.
+القواعد التي يأتي بها نظام تصميم في ملف رموزه، مثل أزواج الألوان المعتمدة ووزن النص ومحاذاته أو شعار لكل سطح، تسرد هنا بوصفها **Checked in Design**. يفحصها Lolly Design طبقة طبقة في بطاقة **Before you export** في لوحة التصدير، ويفعل `lolly check` الشيء نفسه لمستند Lolly Design محفوظ ([قبل أن تصدر](/info/design.html#before-you-export)). والقاعدة التي لا يملك هذا البناء مدققا لها تحفظ كما قدمت وتعلم **Unchecked**.
 
 يأتي Lolly Demo بأربع قواعد علامة معتمدة. لا تكتب العناوين الرئيسية بحروف كبيرة أبدا: هذه القاعدة مطلوبة، فيبلغ `lolly check` عن عنوان بحروف كبيرة بوصفه خطأ. والقواعد الثلاث الأخرى استشارية. نص المتن محاذى إلى اليسار. والعلامات الأساسية توضع على الأسطح الفاتحة والعلامات المعكوسة على الداكنة. والخطوط المتقطعة تعني أسقط هنا.
 

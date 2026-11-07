@@ -305,7 +305,7 @@ Zet de bestanden die je merk bewaart erin, behalve logo's: **vector**-, **image*
 
 **Rules** zet de keuzes van je merk aan het werk: wat mensen kunnen wijzigen, wat vast blijft en wat Lolly kan controleren.
 
-![Rules op Lolly Demo: vier huisregels, elk gemarkeerd als Checked in Lolly Design en Required of Advisory, daarna Try your design system in use met zijn voorbeelden klaar om te renderen](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dusage&width=1440&height=1200&dpi=192&waitMs=2400&cropSelector=%23start-panel-usage&format=svg&walker=1&dark=1&filename=bs-usage-rules)
+![Rules op Lolly Demo: vier huisregels, elk gemarkeerd als Checked in Design en Required of Advisory, daarna Try your design system in use met zijn voorbeelden klaar om te renderen](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dusage&width=1440&height=1200&dpi=192&waitMs=2400&cropSelector=%23start-panel-usage&format=svg&walker=1&dark=1&filename=bs-usage-rules)
 
 **Brand rules** somt je regels op. **Add rule** (of **Add your first rule**) opent een kort formulier:
 
@@ -316,7 +316,7 @@ Zet de bestanden die je merk bewaart erin, behalve logo's: **vector**-, **image*
 
 Goedkeuring legt je eigen beslissing vast op dit apparaat. Goedgekeurde vereiste regels beperken de herbruikbare poster, en controles dekken alleen de PNG-voorbeelden; ze wijzigen geen enkele andere tool.
 
-Regels die een design system in zijn tokenbestand meebrengt, zoals goedgekeurde kleurparen, tekstgewicht en uitlijning of een logo per oppervlak, staan hier als **Checked in Lolly Design**. Lolly Design controleert ze laag voor laag in de kaart **Before you export** van het exportpaneel, en `lolly check` doet hetzelfde voor een opgeslagen Lolly Design-document ([Before you export](/info/design.html#before-you-export)). Een regel waarvoor deze build geen controle heeft, blijft zoals aangeleverd bewaard en wordt gemarkeerd als **Unchecked**.
+Regels die een design system in zijn tokenbestand meebrengt, zoals goedgekeurde kleurparen, tekstgewicht en uitlijning of een logo per oppervlak, staan hier als **Checked in Design**. Lolly Design controleert ze laag voor laag in de kaart **Before you export** van het exportpaneel, en `lolly check` doet hetzelfde voor een opgeslagen Lolly Design-document ([Before you export](/info/design.html#before-you-export)). Een regel waarvoor deze build geen controle heeft, blijft zoals aangeleverd bewaard en wordt gemarkeerd als **Unchecked**.
 
 Lolly Demo brengt vier goedgekeurde huisregels mee. Koppen staan nooit in hoofdletters: die regel is verplicht, dus `lolly check` meldt een kop in hoofdletters als fout. De andere drie zijn adviserend. Lopende tekst is links uitgelijnd. Primaire merktekens staan op lichte oppervlakken en omgekeerde op donkere. Gestippelde lijnen betekenen: zet hier neer.
 

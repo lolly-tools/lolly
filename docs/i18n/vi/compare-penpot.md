@@ -14,7 +14,7 @@ Nếu đội của bạn thiết kế trong Penpot, Lolly làm việc song song 
 
 ## Lolly làm phần việc chồng lấn thế nào
 
-Canvas Lolly Design của Lolly tạo tài nguyên chỉnh sửa được và có thể biến một bố cục thành [công cụ có quy tắc](/info/create-a-tool.html). Cùng công cụ đó kết xuất trong trình duyệt, ứng dụng máy tính hoặc CLI và tạo các biến thể từ dữ liệu. Lolly độc lập kết xuất và ký trên thiết bị, không cần tài khoản hay máy chủ. Một [collab riêng tư](/info/collaborate.html) ghép hai thiết bị trực tiếp.
+Canvas Lolly Design tạo tài nguyên chỉnh sửa được và có thể biến một bố cục thành [công cụ có quy tắc](/info/create-a-tool.html). Cùng công cụ đó kết xuất trong trình duyệt, ứng dụng máy tính hoặc CLI và tạo các biến thể từ dữ liệu. Lolly độc lập kết xuất và ký trên thiết bị, không cần tài khoản hay máy chủ. Một [collab riêng tư](/info/collaborate.html) ghép hai thiết bị trực tiếp.
 
 ## Với một tổ chức
 

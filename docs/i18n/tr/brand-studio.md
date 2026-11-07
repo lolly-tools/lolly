@@ -305,7 +305,7 @@ Markanın tuttuğu dosyaları, logolar dışında bırak: **vector**, **image**,
 
 **Rules**, markanın seçimlerini işe koşar: insanların neyi değiştirebileceği, neyin sabit kaldığı ve Lolly'nin neyi denetleyebileceği.
 
-![Lolly Demo üzerinde Rules: her biri Checked in Lolly Design ve Required ya da Advisory olarak işaretlenmiş dört marka kuralı, ardından örnekleri render edilmeye hazır Try your design system in use](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dusage&width=1440&height=1200&dpi=192&waitMs=2400&cropSelector=%23start-panel-usage&format=svg&walker=1&dark=1&filename=bs-usage-rules)
+![Lolly Demo üzerinde Rules: her biri Checked in Design ve Required ya da Advisory olarak işaretlenmiş dört marka kuralı, ardından örnekleri render edilmeye hazır Try your design system in use](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dusage&width=1440&height=1200&dpi=192&waitMs=2400&cropSelector=%23start-panel-usage&format=svg&walker=1&dark=1&filename=bs-usage-rules)
 
 **Brand rules** kurallarını listeler. **Add rule** (veya **Add your first rule**) kısa bir form açar:
 
@@ -316,7 +316,7 @@ Markanın tuttuğu dosyaları, logolar dışında bırak: **vector**, **image**,
 
 Onay, bu cihazdaki kendi kararını kaydeder. Onaylı zorunlu kurallar yeniden kullanılabilir posteri kısıtlar ve denetimler yalnızca örnek PNG'leri kapsar; başka hiçbir aracı değiştirmezler.
 
-Bir tasarım sisteminin token dosyasında getirdiği kurallar, örneğin onaylı renk eşleşmeleri, metin ağırlığı ve hizası ya da yüzey başına bir logo, burada **Checked in Lolly Design** olarak listelenir. Lolly Design bunları dışa aktarma panelinin **Before you export** kartında katman katman denetler ve `lolly check` kaydedilmiş bir Lolly Design belgesi için aynısını yapar ([Before you export](/info/design.html#before-you-export)). Bu derlemenin denetleyicisi olmayan bir kural, verildiği gibi tutulur ve **Unchecked** olarak işaretlenir.
+Bir tasarım sisteminin token dosyasında getirdiği kurallar, örneğin onaylı renk eşleşmeleri, metin ağırlığı ve hizası ya da yüzey başına bir logo, burada **Checked in Design** olarak listelenir. Lolly Design bunları dışa aktarma panelinin **Before you export** kartında katman katman denetler ve `lolly check` kaydedilmiş bir Lolly Design belgesi için aynısını yapar ([Before you export](/info/design.html#before-you-export)). Bu derlemenin denetleyicisi olmayan bir kural, verildiği gibi tutulur ve **Unchecked** olarak işaretlenir.
 
 Lolly Demo dört onaylı marka kuralıyla gelir. Başlıklar asla büyük harfle yazılmaz: bu kural zorunludur, bu yüzden `lolly check` büyük harfli bir başlığı hata olarak bildirir. Diğer üçü tavsiye niteliğindedir. Gövde metni sola hizalıdır. Birincil işaretler açık yüzeylere, ters işaretler koyu yüzeylere konur. Kesikli çizgiler buraya bırak demektir.
 

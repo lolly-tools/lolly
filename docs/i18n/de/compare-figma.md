@@ -6,7 +6,7 @@ Wenn Ihre Designer in Figma arbeiten, sagt diese Seite, wie Lolly daneben steht:
 
 ## Was Figma besser kann
 
-[Figma Design](https://www.figma.com/design/) vereint Oberflächengestaltung, Komponenten, interaktive Prototypen und Übergabe an Entwickler. Seine etablierte Praxis im Produktdesign und sein Ökosystem zählen, wenn ein Team eine ganze Anwendung gestalten und spezifizieren muss, und seine Live-Bearbeitung läuft in einem Maßstab, den die Lolly Work-Collabs von Lolly nicht erreicht haben.
+[Figma Design](https://www.figma.com/design/) vereint Oberflächengestaltung, Komponenten, interaktive Prototypen und Übergabe an Entwickler. Seine etablierte Praxis im Produktdesign und sein Ökosystem zählen, wenn ein Team eine ganze Anwendung gestalten und spezifizieren muss, und seine Live-Bearbeitung läuft in einem Maßstab, den die Work-Collabs von Lolly nicht erreicht haben.
 
 ## Wo sie sich überschneiden
 

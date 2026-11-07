@@ -305,7 +305,7 @@ On primaryはPrimaryから導かれ、**Derived**と表示され、ピッカー�
 
 **Rules**は、ブランドの選択を実際に働かせます: 人が変更できること、固定されたままのこと、Lollyが確認できること。
 
-![Lolly DemoのRules: 4つのハウスルール。それぞれにChecked in Lolly DesignとRequiredまたはAdvisoryの印があり、続いて例をレンダリングできる状態のTry your design system in use](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dusage&width=1440&height=1200&dpi=192&waitMs=2400&cropSelector=%23start-panel-usage&format=svg&walker=1&dark=1&filename=bs-usage-rules)
+![Lolly DemoのRules: 4つのハウスルール。それぞれにChecked in DesignとRequiredまたはAdvisoryの印があり、続いて例をレンダリングできる状態のTry your design system in use](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dusage&width=1440&height=1200&dpi=192&waitMs=2400&cropSelector=%23start-panel-usage&format=svg&walker=1&dark=1&filename=bs-usage-rules)
 
 **Brand rules**は、ルールを一覧にします。**Add rule**(または**Add your first rule**)で短いフォームが開きます。
 
@@ -316,7 +316,7 @@ On primaryはPrimaryから導かれ、**Derived**と表示され、ピッカー�
 
 承認は、このデバイス上でのご自身の判断を記録します。承認済みの必須ルールは再利用可能なポスターを制約し、チェックの対象は例のPNGのみです。他のツールには影響しません。
 
-デザインシステムがトークンファイルとともに持ち込むルール(承認済みの色の組み合わせ、テキストの太さと配置、サーフェスごとのロゴなど)は、ここに**Checked in Lolly Design**として一覧されます。Lolly Designは、書き出しパネルの**Before you export**カードでレイヤーごとにそれらを確認し、`lolly check`は保存済みのLolly Design書類に対して同じことを行います([書き出す前に](/info/design.html#before-you-export))。このビルドに確認機能のないルールは、渡されたまま保持され、**Unchecked**と表示されます。
+デザインシステムがトークンファイルとともに持ち込むルール(承認済みの色の組み合わせ、テキストの太さと配置、サーフェスごとのロゴなど)は、ここに**Checked in Design**として一覧されます。Lolly Designは、書き出しパネルの**Before you export**カードでレイヤーごとにそれらを確認し、`lolly check`は保存済みのLolly Design書類に対して同じことを行います([書き出す前に](/info/design.html#before-you-export))。このビルドに確認機能のないルールは、渡されたまま保持され、**Unchecked**と表示されます。
 
 Lolly Demoには、承認済みの4つのハウスルールがあります。見出しを大文字で組むことはありません。このルールは必須で、`lolly check`は大文字の見出しをエラーとして報告します。ほかの3つは助言です。本文は左揃えです。プライマリのマークは明るいサーフェスに、反転のマークは暗いサーフェスに置きます。破線は「ここにドロップ」を意味します。
 

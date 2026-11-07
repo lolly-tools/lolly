@@ -14,7 +14,7 @@ Jeśli Twój zespół projektuje w Penpot, Lolly działa obok Penpot: oba są op
 
 ## Jak Lolly wykonuje wspólne zadanie
 
-Kanwa Lolly Design w Lolly tworzy edytowalne zasoby i może zamienić układ w [narzędzie z regułami](/info/create-a-tool.html). To samo narzędzie renderuje się w przeglądarce, aplikacji komputerowej lub CLI i tworzy warianty z danych. Samodzielne Lolly renderuje i podpisuje na urządzeniu, bez konta i serwera. [Prywatny collab](/info/collaborate.html) łączy dwa urządzenia bezpośrednio.
+Kanwa Lolly Design tworzy edytowalne zasoby i może zamienić układ w [narzędzie z regułami](/info/create-a-tool.html). To samo narzędzie renderuje się w przeglądarce, aplikacji komputerowej lub CLI i tworzy warianty z danych. Samodzielne Lolly renderuje i podpisuje na urządzeniu, bez konta i serwera. [Prywatny collab](/info/collaborate.html) łączy dwa urządzenia bezpośrednio.
 
 ## Z organizacją
 

@@ -305,7 +305,7 @@ Vlož soubory, které tvá značka uchovává, kromě log: soubory **vector**, *
 
 **Rules** uvádějí volby tvé značky do práce: co lidé mohou měnit, co zůstává pevné a co Lolly umí zkontrolovat.
 
-![Rules v Lolly Demo: čtyři interní pravidla, každé označené Checked in Lolly Design a Required nebo Advisory, pak Try your design system in use s příklady připravenými k vykreslení](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dusage&width=1440&height=1200&dpi=192&waitMs=2400&cropSelector=%23start-panel-usage&format=svg&walker=1&dark=1&filename=bs-usage-rules)
+![Rules v Lolly Demo: čtyři interní pravidla, každé označené Checked in Design a Required nebo Advisory, pak Try your design system in use s příklady připravenými k vykreslení](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dusage&width=1440&height=1200&dpi=192&waitMs=2400&cropSelector=%23start-panel-usage&format=svg&walker=1&dark=1&filename=bs-usage-rules)
 
 **Brand rules** vypisuje tvá pravidla. **Add rule** (nebo **Add your first rule**) otevře krátký formulář:
 
@@ -316,7 +316,7 @@ Vlož soubory, které tvá značka uchovává, kromě log: soubory **vector**, *
 
 Schválení zaznamenává tvé vlastní rozhodnutí na tomto zařízení. Schválená povinná pravidla omezují opakovaně použitelný plakát a kontroly pokrývají jen příklady PNG; nemění žádný jiný nástroj.
 
-Pravidla, která designový systém přináší ve svém souboru tokenů, například schválené dvojice barev, tloušťka a zarovnání textu nebo logo pro každou plochu, jsou zde uvedena jako **Checked in Lolly Design**. Lolly Design je kontroluje vrstvu po vrstvě na kartě **Before you export** v panelu exportu a `lolly check` totéž dělá pro uložený dokument Lolly Design ([Před exportem](/info/design.html#before-you-export)). Pravidlo, pro které toto sestavení nemá kontrolu, se ponechá, jak bylo dodáno, a označí **Unchecked**.
+Pravidla, která designový systém přináší ve svém souboru tokenů, například schválené dvojice barev, tloušťka a zarovnání textu nebo logo pro každou plochu, jsou zde uvedena jako **Checked in Design**. Lolly Design je kontroluje vrstvu po vrstvě na kartě **Before you export** v panelu exportu a `lolly check` totéž dělá pro uložený dokument Lolly Design ([Před exportem](/info/design.html#before-you-export)). Pravidlo, pro které toto sestavení nemá kontrolu, se ponechá, jak bylo dodáno, a označí **Unchecked**.
 
 Lolly Demo přináší čtyři schválená interní pravidla. Nadpisy se nikdy nesází velkými písmeny: toto pravidlo je povinné, takže `lolly check` ohlásí nadpis velkými písmeny jako chybu. Další tři jsou doporučující. Běžný text je zarovnaný doleva. Primární značky leží na světlých plochách a obrácené na tmavých. Přerušované čáry znamenají „upusť sem“.
 

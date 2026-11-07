@@ -305,7 +305,7 @@ I-drop ang mga file na iniingatan ng brand mo, bukod sa mga logo: mga **vector**
 
 Ang **Rules** ang naglalagay sa mga pinili ng brand mo sa trabaho: kung ano ang puwedeng baguhin ng mga tao, kung ano ang nananatiling nakapirmi at kung ano ang kayang suriin ng Lolly.
 
-![Ang Rules sa Lolly Demo: apat na house rule, bawat isa ay may marka na Checked in Lolly Design at Required o Advisory, saka Try your design system in use kasama ang mga halimbawa nitong handang i-render](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dusage&width=1440&height=1200&dpi=192&waitMs=2400&cropSelector=%23start-panel-usage&format=svg&walker=1&dark=1&filename=bs-usage-rules)
+![Ang Rules sa Lolly Demo: apat na house rule, bawat isa ay may marka na Checked in Design at Required o Advisory, saka Try your design system in use kasama ang mga halimbawa nitong handang i-render](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dusage&width=1440&height=1200&dpi=192&waitMs=2400&cropSelector=%23start-panel-usage&format=svg&walker=1&dark=1&filename=bs-usage-rules)
 
 Inililista ng **Brand rules** ang mga rule mo. Ang **Add rule** (o **Add your first rule**) ay nagbubukas ng maikling form:
 
@@ -316,7 +316,7 @@ Inililista ng **Brand rules** ang mga rule mo. Ang **Add rule** (o **Add your fi
 
 Itinatala ng pag-apruba ang sarili mong desisyon sa device na ito. Ang mga aprubadong required na rule ay naglilimita sa reusable na poster, at sakop lang ng mga check ang mga halimbawang PNG; wala silang binabago sa ibang tool.
 
-Ang mga rule na dala ng design system sa token file nito, tulad ng aprubadong pagpapares ng kulay, bigat at alignment ng text o logo bawat surface, ay nakalista rito bilang **Checked in Lolly Design**. Sinusuri ng Lolly Design ang mga ito layer por layer sa **Before you export** card ng export panel, at ganoon din ang ginagawa ng `lolly check` para sa naka-save na Lolly Design document ([Before you export](/info/design.html#before-you-export)). Ang rule na walang checker ang build na ito ay iniingatan ayon sa ibinigay at minamarkahang **Unchecked**.
+Ang mga rule na dala ng design system sa token file nito, tulad ng aprubadong pagpapares ng kulay, bigat at alignment ng text o logo bawat surface, ay nakalista rito bilang **Checked in Design**. Sinusuri ng Lolly Design ang mga ito layer por layer sa **Before you export** card ng export panel, at ganoon din ang ginagawa ng `lolly check` para sa naka-save na Lolly Design document ([Before you export](/info/design.html#before-you-export)). Ang rule na walang checker ang build na ito ay iniingatan ayon sa ibinigay at minamarkahang **Unchecked**.
 
 Apat na aprubadong house rule ang dala ng Lolly Demo. Hindi kailanman sinusulat sa capital ang mga headline: required ang rule na iyon, kaya iniuulat ng `lolly check` bilang error ang headline na naka-capital. Advisory ang tatlo pa. Naka-left-align ang body text. Nasa mga light na surface ang primary mark at nasa mga dark ang reverse mark. Ang putol-putol na linya ay nangangahulugang i-drop dito.
 

@@ -305,7 +305,7 @@ Dépose les fichiers que ta marque conserve, hors logos : fichiers **vector**, *
 
 **Rules** met au travail les choix de ta marque : ce que les gens peuvent changer, ce qui reste fixe et ce que Lolly peut vérifier.
 
-![Rules sur Lolly Demo : quatre règles maison, chacune marquée Checked in Lolly Design et Required ou Advisory, puis Try your design system in use avec ses exemples prêts à être rendus](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dusage&width=1440&height=1200&dpi=192&waitMs=2400&cropSelector=%23start-panel-usage&format=svg&walker=1&dark=1&filename=bs-usage-rules)
+![Rules sur Lolly Demo : quatre règles maison, chacune marquée Checked in Design et Required ou Advisory, puis Try your design system in use avec ses exemples prêts à être rendus](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dusage&width=1440&height=1200&dpi=192&waitMs=2400&cropSelector=%23start-panel-usage&format=svg&walker=1&dark=1&filename=bs-usage-rules)
 
 **Brand rules** liste tes règles. **Add rule** (ou **Add your first rule**) ouvre un court formulaire :
 
@@ -316,7 +316,7 @@ Dépose les fichiers que ta marque conserve, hors logos : fichiers **vector**, *
 
 L'approbation enregistre ta propre décision sur cet appareil. Les règles requises approuvées contraignent l'affiche réutilisable, et les vérifications ne couvrent que les PNG d'exemple ; elles ne changent aucun autre outil.
 
-Les règles qu'un design system apporte dans son fichier de tokens, comme des associations de couleurs approuvées, l'épaisseur et l'alignement du texte ou un logo par surface, sont listées ici comme **Checked in Lolly Design**. Lolly Design les vérifie calque par calque dans la carte **Before you export** du panneau d'export, et `lolly check` fait de même pour un document Lolly Design enregistré ([Before you export](/info/design.html#before-you-export)). Une règle pour laquelle ce build n'a pas de vérificateur est conservée telle quelle et marquée **Unchecked**.
+Les règles qu'un design system apporte dans son fichier de tokens, comme des associations de couleurs approuvées, l'épaisseur et l'alignement du texte ou un logo par surface, sont listées ici comme **Checked in Design**. Lolly Design les vérifie calque par calque dans la carte **Before you export** du panneau d'export, et `lolly check` fait de même pour un document Lolly Design enregistré ([Before you export](/info/design.html#before-you-export)). Une règle pour laquelle ce build n'a pas de vérificateur est conservée telle quelle et marquée **Unchecked**.
 
 Lolly Demo apporte quatre règles maison approuvées. Les titres ne sont jamais composés en capitales : cette règle est obligatoire, donc `lolly check` signale un titre en capitales comme une erreur. Les trois autres sont consultatives. Le corps de texte est aligné à gauche. Les marques principales se placent sur des surfaces claires et les marques inversées sur des surfaces sombres. Les lignes en pointillés signifient déposer ici.
 

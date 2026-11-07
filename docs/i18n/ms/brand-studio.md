@@ -305,7 +305,7 @@ Letakkan fail yang disimpan jenama anda, selain logo: fail **vector**, **image**
 
 **Rules** meletakkan pilihan jenama anda untuk bekerja: apa yang boleh diubah orang, apa yang kekal tetap dan apa yang boleh disemak Lolly.
 
-![Rules pada Lolly Demo: empat peraturan dalaman, masing-masing ditandakan Checked in Lolly Design dan Required atau Advisory, kemudian Try your design system in use dengan contohnya sedia untuk dirender](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dusage&width=1440&height=1200&dpi=192&waitMs=2400&cropSelector=%23start-panel-usage&format=svg&walker=1&dark=1&filename=bs-usage-rules)
+![Rules pada Lolly Demo: empat peraturan dalaman, masing-masing ditandakan Checked in Design dan Required atau Advisory, kemudian Try your design system in use dengan contohnya sedia untuk dirender](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dusage&width=1440&height=1200&dpi=192&waitMs=2400&cropSelector=%23start-panel-usage&format=svg&walker=1&dark=1&filename=bs-usage-rules)
 
 **Brand rules** menyenaraikan peraturan anda. **Add rule** (atau **Add your first rule**) membuka borang ringkas:
 
@@ -316,7 +316,7 @@ Letakkan fail yang disimpan jenama anda, selain logo: fail **vector**, **image**
 
 Kelulusan merekodkan keputusan anda sendiri pada peranti ini. Peraturan wajib yang diluluskan mengekang poster boleh guna semula, dan semakan hanya meliputi PNG contoh; ia tidak mengubah alat lain.
 
-Peraturan yang dibawa sistem reka bentuk dalam fail tokennya, seperti pasangan warna yang diluluskan, berat dan penjajaran teks atau logo bagi setiap permukaan, disenaraikan di sini sebagai **Checked in Lolly Design**. Lolly Design menyemaknya lapisan demi lapisan dalam kad **Before you export** panel eksport, dan `lolly check` melakukan perkara yang sama untuk dokumen Lolly Design yang disimpan ([Before you export](/info/design.html#before-you-export)). Peraturan yang tiada penyemaknya dalam binaan ini disimpan seperti yang dibekalkan dan ditandakan **Unchecked**.
+Peraturan yang dibawa sistem reka bentuk dalam fail tokennya, seperti pasangan warna yang diluluskan, berat dan penjajaran teks atau logo bagi setiap permukaan, disenaraikan di sini sebagai **Checked in Design**. Lolly Design menyemaknya lapisan demi lapisan dalam kad **Before you export** panel eksport, dan `lolly check` melakukan perkara yang sama untuk dokumen Lolly Design yang disimpan ([Before you export](/info/design.html#before-you-export)). Peraturan yang tiada penyemaknya dalam binaan ini disimpan seperti yang dibekalkan dan ditandakan **Unchecked**.
 
 Lolly Demo membawa empat peraturan dalaman yang diluluskan. Tajuk tidak pernah ditetapkan dalam huruf besar: peraturan itu wajib, jadi `lolly check` melaporkan tajuk dalam huruf besar sebagai ralat. Tiga yang lain bersifat nasihat. Teks badan dijajarkan ke kiri. Tanda primer diletakkan pada permukaan cerah dan tanda terbalik pada permukaan gelap. Garis putus-putus bermaksud letakkan di sini.
 

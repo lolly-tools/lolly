@@ -26,7 +26,7 @@ Trong một [work collab](/info/collaborate.html#work-collabs-with-lolly-work-op
 
 1. Nhấn **Trang chủ** ở góc trên bên trái của công cụ.
 2. Mở tab **Dự án** ở đầu màn hình chính (biểu tượng thư mục trên điện thoại).
-3. Xem ở màn hình đầu tiên. Công việc Lolly Work đã lưu vào **Thư viện của tôi** nằm ở đó, và mỗi dự án là một thư mục. Để tìm trong mọi thư mục cùng lúc, hãy gõ vào ô **Tìm trong mọi dự án…** ở chân màn hình.
+3. Xem ở màn hình đầu tiên. Mọi thứ bạn đã lưu vào **Thư viện của tôi** đều nằm ở đó, và mỗi dự án là một thư mục. Để tìm trong mọi thư mục cùng lúc, hãy gõ vào ô **Tìm trong mọi dự án…** ở chân màn hình.
 
 Một mục được đặt tên theo tên tệp bạn gõ trong bảng xuất, hoặc theo công cụ của nó, như **QR Code**, nếu bạn không gõ. Mở mục đó và mọi cài đặt trở lại, sẵn sàng để đổi và xuất lại. Để giữ công việc mới theo cách này, xem [Saving & continuing](/info/using.html#saving-continuing).
 

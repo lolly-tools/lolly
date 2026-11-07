@@ -26,7 +26,7 @@ Dans une [collab de travail](/info/collaborate.html#work-collabs-with-lolly-work
 
 1. Appuie sur **Accueil** en haut à gauche de l'outil.
 2. Ouvre l'onglet **Projets** en haut de l'écran d'accueil (l'icône de dossier sur un téléphone).
-3. Regarde le premier écran. Ce que Lolly Work a enregistré dans **Ma bibliothèque** s'y trouve, et chaque projet est un dossier. Pour rechercher dans tous les dossiers à la fois, tape dans **Rechercher dans tous les projets…** au bas de l'écran.
+3. Regarde le premier écran. Tout ce que tu as enregistré dans **Ma bibliothèque** s'y trouve, et chaque projet est un dossier. Pour rechercher dans tous les dossiers à la fois, tape dans **Rechercher dans tous les projets…** au bas de l'écran.
 
 Un élément porte le nom de fichier que tu as saisi dans le panneau d'export, ou le nom de son outil, comme **QR Code**, si tu n'en as saisi aucun. Ouvre l'élément et tous les réglages sont de retour, prêts à être modifiés et exportés à nouveau. Pour conserver ainsi du nouveau travail, voir [Saving & continuing](/info/using.html#saving-continuing).
 
