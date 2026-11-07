@@ -6,6 +6,12 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+## 1.334.0
+
+- New reserved URL param `_kit` (Lolly Work plan 82, M8): the partner kit a piece carries as a guest, `<id>@<revision>`, the kit asset's catalog id and the asset version attached. `parseUrlState` reads it into `partnerKit` (`PartnerKitAttachmentV1 | null`) and `serializeUrlState` writes it from `partnerKit`, so the attachment travels in a share link, as `emoji` does; the link never carries the kit's bytes. An id outside the kit grammar or a revision that is not a whole number from 1 reads as absent and writes nothing.
+- `readPartnerKitAttachment(value)`, `parsePartnerKitParam(raw)` and `formatPartnerKitParam(attachment)` (url-mode.ts, in the barrel) read and write the attachment for a link and for a saved session's `__partnerKit`.
+- The web shell's session snapshot saves an attachment it is given as `__partnerKit`, and a template drops the key, so a partner's new work takes its own company's kit. Nothing gives an attachment yet, so saved documents keep their bytes.
+
 ## 1.333.0
 
 - Guest-mark checks (Lolly Work plan 82, M8). New module `partner-kit-check.ts`, in the barrel: `checkGuestMarks(boxes, kit, measure)` measures a Design document's partner marks, the image layers whose asset is one of the kit's logos by id, against the kit's rules. Minimum size: the mark's drawn height in export pixels and, on a document in a physical unit, in millimetres (`units.ts` at the document's unit and dpi; a contained logo is measured where it is drawn when its aspect is known). Clear space: any visible layer overlapping the mark inflated by the kit's mark-height value, except a layer that holds the whole mark, which is its background; two kit marks check each other. Treatment: a mark recoloured by a photo treatment or an icon theme is one colour, else full colour, and a mark whose nearest holding layer beneath is a picture sits on a photo. Reversed use is reported as not measured.

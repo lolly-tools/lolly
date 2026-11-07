@@ -11,7 +11,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 
 import { validateManifest } from '../engine/src/validate.ts';
-import { parseUrlState, serializeUrlState, serializeHdr, RESERVED, CUTS_MAX, cutTime, parseVideoParams, hasVideoParams, VIDEO_CODEC_STRINGS } from '../engine/src/url-mode.ts';
+import { parseUrlState, serializeUrlState, serializeHdr, RESERVED, CUTS_MAX, cutTime, parseVideoParams, hasVideoParams, VIDEO_CODEC_STRINGS, readPartnerKitAttachment, formatPartnerKitParam } from '../engine/src/url-mode.ts';
 import type { DepthSetting } from '../engine/src/url-mode.ts';
 import { parseFrameAddress, selectFramePage } from '../engine/src/frame-address.ts';
 import { buildInputModel, updateInput, modelToValues, tokenBindingsOf } from '../engine/src/inputs.ts';
@@ -160,6 +160,26 @@ test('url-mode: _spots=process is an opt-in export choice, never an input', () =
   assert.equal(serializeUrlState([], { spots: 'keep' }), '');
 });
 
+test('url-mode: _kit carries a partner kit attachment, and only one that reads', () => {
+  const on = parseUrlState('heading=Hi&_kit=inst%2F5b2e-Q_x%402', SAMPLE_MANIFEST);
+  assert.deepEqual(on.partnerKit, { id: 'inst/5b2e-Q_x', revision: 2 });
+  assert.equal((on.values as Record<string, unknown>)._kit, undefined, 'a reserved param is never an input');
+  assert.deepEqual(parseUrlState('_kit=lolly/kits/acme@12', SAMPLE_MANIFEST).partnerKit, { id: 'lolly/kits/acme', revision: 12 });
+  for (const q of ['heading=Hi', '_kit=', '_kit=inst/x', '_kit=inst/x@', '_kit=inst/x@0', '_kit=inst/x@-1', '_kit=inst/x@1.5', '_kit=inst/x@01',
+    '_kit=inst/x@99999999', '_kit=@2', '_kit=inst/../x@2', '_kit=/inst/x@2', '_kit=https://e.com/k@2', '_kit=inst/x?v=1@2']) {
+    assert.equal(parseUrlState(q, SAMPLE_MANIFEST).partnerKit, null, q);
+  }
+  const link = new URLSearchParams(serializeUrlState([], { partnerKit: { id: 'inst/5b2e', revision: 2 } }));
+  assert.equal(link.get('_kit'), 'inst/5b2e@2');
+  assert.deepEqual(parseUrlState(link.toString(), SAMPLE_MANIFEST).partnerKit, { id: 'inst/5b2e', revision: 2 }, 'a written link reads back');
+  assert.equal(serializeUrlState([], {}), '', 'no attachment, no param');
+  assert.equal(serializeUrlState([], { partnerKit: { id: 'inst/x', revision: 0 } }), '', 'an attachment that does not read writes nothing');
+  assert.deepEqual(readPartnerKitAttachment({ id: 'inst/x', revision: 3, extra: true }), { id: 'inst/x', revision: 3 });
+  for (const v of [null, 'inst/x@3', [], { id: 'inst/x' }, { id: 'inst/x', revision: '3' }, { id: 'x'.repeat(201), revision: 1 }]) assert.equal(readPartnerKitAttachment(v), null);
+  assert.equal(formatPartnerKitParam({ id: 'inst/x', revision: 7 }), 'inst/x@7');
+  assert.equal(formatPartnerKitParam({ id: 'inst/x', revision: 1.5 }), null);
+});
+
 test('url-mode: RESERVED set matches the documented reserved-param list', () => {
   // Mirrors the header doc-comment in engine/src/url-mode.js AND the table in
   // docs/url-parameters.md. The docs aren't programmatically importable, so this inline
@@ -175,6 +195,8 @@ test('url-mode: RESERVED set matches the documented reserved-param list', () => 
     '_madewith',
     // Print declared spot inks as their process builds in the CMYK formats: `_spots=process`.
     '_spots',
+    // The partner kit a piece carries as a guest (plans/82 M8): `_kit=<id>@<revision>`.
+    '_kit',
   ];
   assert.deepEqual([...RESERVED].sort(), [...documented].sort());
 

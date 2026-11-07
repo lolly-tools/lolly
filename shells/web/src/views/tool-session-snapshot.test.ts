@@ -3,7 +3,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { TEMPLATE_DROPPED_KEYS, awaitsEmojiPins, carriedEmojiPins, snapshotSession, templateValuesFromSnapshot } from './tool-session-snapshot.ts';
+import { TEMPLATE_DROPPED_KEYS, awaitsEmojiPins, carriedEmojiPins, savedPartnerKit, snapshotSession, templateValuesFromSnapshot } from './tool-session-snapshot.ts';
 import { emojiParams } from '../../../../engine/src/emoji-style.ts';
 import { buildInputModel, tokenRestoreRefsOf } from '../../../../engine/src/inputs.ts';
 
@@ -35,7 +35,7 @@ test('templateValuesFromSnapshot: drops document identity + file inputs, keeps e
 
 test('templateValuesFromSnapshot: tolerates a manifest with no inputs', () => {
   assert.deepEqual(templateValuesFromSnapshot({ a: 1, __label: 'x' }, {}), { a: 1 });
-  assert.deepEqual([...TEMPLATE_DROPPED_KEYS].sort(), ['__export_filename', '__label', '__toolId', '__toolVersion']);
+  assert.deepEqual([...TEMPLATE_DROPPED_KEYS].sort(), ['__export_filename', '__label', '__partnerKit', '__toolId', '__toolVersion']);
 });
 
 // ── Emoji artwork pins while the Emoji section is still loading (plan 277 P4, phase 0 finding 1)
@@ -78,4 +78,21 @@ test('snapshotSession: sessionMeta can carry pins and name a document with no ex
   const unnamed = snapshotSession(null, { id: 'qr-code', version: '1.0.0' } as never, runtime as never, {}, () => '', () => '');
   assert.equal(unnamed.__label, undefined, 'no name leaves the existing auto-label alone');
   assert.deepEqual(unnamed.__emojiAssets, []);
+});
+
+test('snapshotSession: a partner kit attachment is saved as __partnerKit, and nothing is saved without one', () => {
+  const spec = { inputs: [{ id: 'gap', type: 'number' as const, default: 10 }] };
+  const model = buildInputModel(spec, { initial: { gap: 12 } });
+  const runtime = { getModel: () => model } as never;
+  const plain = snapshotSession(null, { id: 'example', version: '1.0.0' } as never, runtime, {}, () => '', () => '');
+  assert.equal('__partnerKit' in plain, false, 'a piece with no kit keeps the keys it always had');
+  const kit = { id: 'inst/5b2e', revision: 2 };
+  const attached = snapshotSession(null, { id: 'example', version: '1.0.0' } as never, runtime, {}, () => '', () => '', { partnerKit: kit });
+  assert.deepEqual(attached.__partnerKit, kit);
+  assert.deepEqual(savedPartnerKit(attached), kit, 'the saved attachment reads back');
+  const junk = snapshotSession(null, { id: 'example', version: '1.0.0' } as never, runtime, {}, () => '', () => '', { partnerKit: { id: 'inst/../x', revision: 2 } });
+  assert.equal('__partnerKit' in junk, false, 'an attachment that does not read is not saved');
+  assert.equal(savedPartnerKit({ __partnerKit: { id: 'inst/x', revision: 0 } }), null);
+  assert.equal(savedPartnerKit(null), null);
+  assert.equal(templateValuesFromSnapshot(attached, spec).__partnerKit, undefined, 'a template never carries a kit');
 });
