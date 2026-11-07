@@ -407,7 +407,7 @@ async function publishedOnlyPick(tview: ToolViewCtx): Promise<Record<string, Inp
   const label = getSessionSource()?.label;
   const from = label ? tRaw('From {name}', { name: label }) : t('From your workspace');
   const templates = await workspaceVariants(published, from, undefined, (tpl) => `${from} · ${tRaw('Version {n}', { n: tpl.version })}`);
-  if (!templates.length || tview.templatePickTornDown) return {};
+  if (tview.templatePickTornDown) return {};
   return openTemplateChooser({
     toolName: tview.tool.manifest.name,
     toolId: tview.toolId,
@@ -416,6 +416,8 @@ async function publishedOnlyPick(tview: ToolViewCtx): Promise<Record<string, Inp
     formats: tview.tool.manifest.render?.formats,
     galleryArt: tview.tool.manifest.galleryArt,
     noBlank: true,
+    // Nothing published to this person for this tool yet: one plain line, and closing goes home.
+    emptyText: tRaw('No {tool} templates have been published to you yet.', { tool: tview.tool.manifest.name }),
     onPick: ({ templateId }) => { if (templateId?.startsWith('inst/')) tview.pickedWorkspaceRef = templateId; },
     onOpen: (close) => { if (tview.templatePickTornDown) close(); else tview.templatePickClose = close; },
   });
