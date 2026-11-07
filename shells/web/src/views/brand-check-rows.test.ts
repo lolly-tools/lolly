@@ -115,7 +115,7 @@ test('the treatment sentences name what the kit allows, with no comma before the
 
 test('each thing the kit check could not measure is a sentence of its own, never the engine\'s English', async () => {
   const { unmeasuredText } = await import('./brand-check-rows.ts');
-  const codes = ['reverse', 'mm-in-pixels', 'layer-tree', 'layer-limit', 'not-drawn', 'size', 'clear-space', 'ground', 'treatment', 'surface', 'motion', 'findings-limit'] as const;
+  const codes = ['reverse', 'mm-in-pixels', 'layer-tree', 'layer-limit', 'not-drawn', 'size', 'clear-space', 'ground', 'treatment', 'surface', 'size-unmodelled', 'clear-space-unmodelled', 'ground-unmodelled', 'treatment-unmodelled', 'work-limit', 'findings-limit'] as const;
   for (const code of codes) {
     for (const count of [1, 3]) {
       const text = unmeasuredText({ code, count, limit: 200 }, 'Northwind IT');

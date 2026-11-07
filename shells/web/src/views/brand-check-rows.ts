@@ -86,9 +86,21 @@ export function unmeasuredText(entry: GuestMarkUnmeasured, company: string): str
     case 'surface': return one
       ? tRaw('The colours of one of {company}’s marks are not measured: the mark follows the surface beneath.', words)
       : tRaw('The colours of {count} of {company}’s marks are not measured: the marks follow the surface beneath.', words);
-    case 'motion': return one
-      ? tRaw('One of {company}’s marks was measured where it was placed: the mark or a layer near the mark moves over time.', words)
-      : tRaw('{count} of {company}’s marks were measured where they were placed: each mark or a layer near the mark moves over time.', words);
+    case 'size-unmodelled': return one
+      ? tRaw('The drawn height of one of {company}’s marks is not measured: the mark moves, is placed by a layout or uses a setting this check does not read.', words)
+      : tRaw('The drawn height of {count} of {company}’s marks is not measured: the marks move, are placed by a layout or use a setting this check does not read.', words);
+    case 'clear-space-unmodelled': return one
+      ? tRaw('The clear space of one of {company}’s marks is not measured: the mark or a layer near the mark uses a shape, turn, mask, stroke, effect, layout or movement this check does not read.', words)
+      : tRaw('The clear space of {count} of {company}’s marks is not measured: the marks or layers near them use a shape, turn, mask, stroke, effect, layout or movement this check does not read.', words);
+    case 'ground-unmodelled': return one
+      ? tRaw('Whether one of {company}’s marks sits on a photo is not measured: the mark or a layer beneath the mark uses a layout, movement, mask, blend or effect this check does not read.', words)
+      : tRaw('Whether {count} of {company}’s marks sit on a photo is not measured: the marks or layers beneath them use a layout, movement, mask, blend or effect this check does not read.', words);
+    case 'treatment-unmodelled': return one
+      ? tRaw('The colours of one of {company}’s marks are not measured: a blend mixes the mark with what lies beneath.', words)
+      : tRaw('The colours of {count} of {company}’s marks are not measured: a blend mixes the marks with what lies beneath.', words);
+    case 'work-limit': return one
+      ? tRaw('One of {company}’s marks was not measured: this piece has more layers and marks than the check compares.', words)
+      : tRaw('{count} of {company}’s marks were not measured: this piece has more layers and marks than the check compares.', words);
     case 'findings-limit': return one
       ? tRaw('One more finding for {company}’s kit is not shown.', words)
       : tRaw('{count} more findings for {company}’s kit are not shown.', words);
