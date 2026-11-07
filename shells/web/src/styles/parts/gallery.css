@@ -1591,7 +1591,7 @@ a.gtile-name:focus-visible::after {
 }
 .published-card {
   display: grid;
-  grid-template-columns: 6rem minmax(0, 1fr) auto;
+  grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
   gap: var(--sp-5);
   padding: var(--sp-4);
@@ -1600,15 +1600,15 @@ a.gtile-name:focus-visible::after {
   box-shadow: var(--shadow-1);
   color: hsl(var(--foreground));
   text-decoration: none;
-  transition: box-shadow var(--dur-1), transform var(--dur-1);
 }
 .published-card:hover, .published-card:focus-visible { box-shadow: var(--shadow-2, var(--shadow-1)); }
 .published-card-media {
   position: relative;
   display: grid;
   place-items: center;
-  width: 6rem;
-  max-height: 6rem;
+  height: 5.5rem;
+  width: auto;
+  max-width: 8rem;
   aspect-ratio: 3 / 4;
   border-radius: var(--radius-sm, 8px);
   background: hsl(var(--muted) / 0.5);
