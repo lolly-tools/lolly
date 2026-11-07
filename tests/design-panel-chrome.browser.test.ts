@@ -30,6 +30,10 @@ test('Design panels use short labels, opaque floating surfaces and redock contro
     assert.equal(await inspector.locator('[data-act-col="dock"]').isVisible(), false);
 
     const dragHeader = async (selector: string): Promise<void> => {
+      // boundingBox() answers null for a header that is in the DOM but not shown yet.
+      // The export sheet moves into the right-hand column as it opens, and a CI runner
+      // once measured its header before it was shown, so wait until it is.
+      await page.locator(selector).waitFor({ state: 'visible' });
       const head = await page.locator(selector).boundingBox();
       assert.ok(head);
       await page.mouse.move(head.x + 60, head.y + head.height / 2);

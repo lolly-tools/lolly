@@ -480,6 +480,28 @@ test('readSystemName digs the label out of the tokens asset, and survives a brok
   assert.equal(await readSystemName(bareHost), null);
 });
 
+test('readSystemName names the ACTIVE system, not whichever tokens asset the store finds first', async () => {
+  // lolly.tools: Lolly Demo is active, and the Lolly Starter companion has been
+  // seeded as a local system. The user-first asset read finds the companion's head.
+  const companionSeeded = {
+    tokens: { activeRecord: async () => ({ id: 'shipped', label: 'Lolly Demo' }) },
+    assets: { _findMetaByType: async () => ({ id: 'user/tokens/brand/lolly-starter', meta: { name: 'Lolly Starter' } }) },
+  } as unknown as HostV1;
+  assert.equal(await readSystemName(companionSeeded), 'Lolly Demo');
+
+  const placeholderLabel = {
+    tokens: { activeRecord: async () => ({ id: 'mine', label: 'Brand tokens' }) },
+    assets: { _findMetaByType: async () => ({ id: 'user/tokens/brand', meta: { name: 'Acme Health' } }) },
+  } as unknown as HostV1;
+  assert.equal(await readSystemName(placeholderLabel), null, 'the active system decides, even when it has no usable name');
+
+  const brokenRegistry = {
+    tokens: { activeRecord: async () => { throw new Error('idb unavailable'); } },
+    assets: { _findMetaByType: async () => ({ id: 'user/tokens/brand', meta: { name: 'Acme Health' } }) },
+  } as unknown as HostV1;
+  assert.equal(await readSystemName(brokenRegistry), 'Acme Health', 'an unreadable registry falls back to the asset label');
+});
+
 // ── Pure: markup ─────────────────────────────────────────────────────────────
 
 test('compareCardsHtml paints the face ONLY when the card is ready', () => {

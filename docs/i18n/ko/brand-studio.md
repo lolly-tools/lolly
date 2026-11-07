@@ -82,7 +82,7 @@ Lolly Demo처럼 앱과 함께 오고 편집할 수 있는 디자인 시스템�
 
 아직 마크가 없는 그룹은 한 줄로 접혀 있으며 열면 슬롯이 보여요. 슬롯을 클릭해 PNG, SVG, JPEG, WebP를 추가하거나, 채워진 슬롯을 클릭해 마크를 교체하세요. 모든 것은 이 기기에 남아요.
 
-![Horizontal과 Vertical이 열린 로고 슬롯: 각 처리 방식이 자체 슬롯이며 모든 슬롯은 선택 사항이에요](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dlogos&width=1440&height=1600&dpi=192&waitMs=1600&drive=click%3A.be-logo-identity%3Edetails%3Anth-of-type%281%29%3Esummary%3Bclick%3A.be-logo-identity%3Edetails%3Anth-of-type%282%29%3Esummary%3Bwait%3A600&cropSelector=.be-logo-grid&format=svg&walker=1&dark=1&filename=bs-logo-slots)
+![Horizontal과 Vertical이 열린 로고 슬롯: 각 처리 방식이 자체 슬롯이며 모든 슬롯은 선택 사항이에요](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dlogos&system=new-design-system&width=1440&height=1600&dpi=192&waitMs=1600&drive=click%3A.be-logo-identity%3Edetails.be-logo-group--fold%3Anot%28.be-logo-group--custom%29%3Esummary%3Bwait%3A600&cropSelector=.be-logo-grid&format=svg&walker=1&dark=1&filename=bs-logo-slots)
 
 - **Custom marks**는 아이콘, 문장, 파비콘처럼 브랜드가 자체 이름으로 부르는 마크예요.
 - **More identities.** 서브 브랜드, 제품, 행사는 자체 전체 세트를 가질 수 있어요. **+ Add another logo**를 누르고 세트에 이름을 붙이세요. 기본 세트는 "Your logo"예요. [브랜드 아키텍처](/info/brand-architectures.html)가 로고 신원이 알맞은 블록인 경우를 보여줘요.
@@ -114,7 +114,7 @@ Lolly Demo처럼 앱과 함께 오고 편집할 수 있는 디자인 시스템�
 
 ### 역할: 도구가 읽는 것
 
-![The Colour roles table on Lolly Demo after choosing the suggested words Main, Accent, Supporting and Tertiary: the colourway chips, then each role with its light and dark colour, Main read as the lead colour and Accent as the partner colour, Supporting and Tertiary read by name only and marked Copied, and the readings no role fills listed under the table](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=2720&height=2000&dpi=192&waitMs=1800&cropSelector=%5Bdata-be-roles-fold%5D&format=svg&walker=1&dark=1&filename=bs-colour-roles)
+![The Colour roles table on Lolly Demo after choosing the suggested words Main, Accent, Supporting and Tertiary: the colourway chips, then each role with its light and dark colour, Main read as the lead colour and Accent as the partner colour, Supporting and Tertiary read by name only and marked Copied, and the readings no role fills listed under the table](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&system=wefthouse&width=2720&height=2000&dpi=192&waitMs=1800&cropSelector=%5Bdata-be-roles-fold%5D&format=svg&walker=1&dark=1&filename=bs-colour-roles)
 
 **역할**은 모든 도구와 내보내기에서 어떤 색상이 어떤 부분을 맡을지 알려줘요. 선택 사항이에요(역할 없이 느슨한 색상 세 개도 충분히 좋은 시스템이에요). 어떤 색상이든 역할을 맡을 수 있고, 대비 수치는 표면을 기준으로 측정하며 APCA를 먼저 써요. 각 역할 행은 완전한 강도의 자체 색상, 대신 서 있는 스타터 색상, 또는 **↳ follows Primary**를 보여줘요.
 
@@ -206,7 +206,7 @@ Lolly Demo처럼 앱과 함께 오고 편집할 수 있는 디자인 시스템�
 
 자체 서체가 없으면 룸은 카드 하나예요. **Primary**가 현재 제공하는 서체의 읽기 크기로 표시되고, **Starter** 태그, **Choose for Primary** 버튼, *"Nothing installs until you choose one."* 문구가 있어요. Headings, code, italic은 직접 고르기 전까지 기본을 따르며, **Choose them separately**가 각 카드를 보여줘요.
 
-![아직 서체를 선택하지 않은 Type 룸 - 읽기 좋은 크기의 카드 하나, 그 위의 Starter 태그, 그리고 채워진 Choose for Primary](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&dark=1&filename=brand-type)
+![아직 서체를 선택하지 않은 Type 룸 - 읽기 좋은 크기의 카드 하나, 그 위의 Starter 태그, 그리고 채워진 Choose for Primary](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&system=new-design-system&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&dark=1&filename=brand-type)
 
 서체 하나를 고르면 룸이 역할 카드 네 개, Fonts 목록, 실시간 견본으로 열려요.
 
@@ -217,7 +217,7 @@ Lolly Demo처럼 앱과 함께 오고 편집할 수 있는 디자인 시스템�
 
 카드는 그 서체를 설치한 곳에만 색조가 입혀져요. 버튼은 어느 역할용인지 말해줘요. 사용자 자신의 서체에서는 **Change Headings**, 그 외에는 **Choose for Headings**라고 표시돼요. 샘플 줄은 잘리지 않고 줄바꿈돼요. 카드의 어떤 것도 확정하지 않아요. 버튼은 그 역할의 비교 스테이지를 열어요.
 
-![드러난 네 개의 역할 카드 - 각각 담당하는 서체로 설정되며, 아무도 선택하지 않은 곳에는 Starter 태그가 붙고 Italic은 기본 서체를 따름](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&width=1440&height=1000&dpi=192&waitMs=2600&drive=click%3A%5Bdata-be-typemore-toggle%5D%3Bwait%3A600&cropSelector=.be-typecard-grid&walker=1&format=svg&dark=1&filename=bs-type-specimen)
+![드러난 네 개의 역할 카드 - 각각 담당하는 서체로 설정되며, 아무도 선택하지 않은 곳에는 Starter 태그가 붙고 Italic은 기본 서체를 따름](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&system=new-design-system&width=1440&height=1000&dpi=192&waitMs=2600&drive=click%3A%5Bdata-be-typemore-toggle%5D%3Bwait%3A600&cropSelector=.be-typecard-grid&walker=1&format=svg&dark=1&filename=bs-type-specimen)
 
 ### 비교 스테이지
 

@@ -593,6 +593,7 @@ test('ENGINE_VERSION is 1.322.0', () => {
   // 1.318.0 carries colour roles through other formats and back. Capture is unchanged.
   // 1.319.0 adds an optional fill flag to toPath's fallback fonts, for on-demand fallback fonts. Capture is unchanged.
   // 1.320.0 puts an SVG's own credential in the root's metadata, past inlined artwork. Capture is unchanged.
+  // 1.321.0 writes a PowerPoint run's face in the East Asian slot too. Capture is unchanged.
   // 1.322.0 carries the colour roles on a token inspection. Capture is unchanged.
   assert.equal(ENGINE_VERSION, '1.322.0');
 });

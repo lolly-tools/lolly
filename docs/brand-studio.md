@@ -84,7 +84,7 @@ Every mark ends up in a grid of eight optional slots, one per **orientation** an
 
 A group with no marks yet folds to one line; open it to see its slots. Click a slot to add a PNG, SVG, JPEG or WebP, or click a filled slot to replace the mark. Everything stays on this device.
 
-![The logo slots with Horizontal and Vertical opened: each treatment is a slot of its own, and every slot is optional](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dlogos&width=1440&height=1600&dpi=192&waitMs=1600&drive=click%3A.be-logo-identity%3Edetails%3Anth-of-type%281%29%3Esummary%3Bclick%3A.be-logo-identity%3Edetails%3Anth-of-type%282%29%3Esummary%3Bwait%3A600&cropSelector=.be-logo-grid&format=svg&walker=1&dark=1&filename=bs-logo-slots)
+![The logo slots with Horizontal and Vertical opened: each treatment is a slot of its own, and every slot is optional](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dlogos&system=new-design-system&width=1440&height=1600&dpi=192&waitMs=1600&drive=click%3A.be-logo-identity%3Edetails.be-logo-group--fold%3Anot%28.be-logo-group--custom%29%3Esummary%3Bwait%3A600&cropSelector=.be-logo-grid&format=svg&walker=1&dark=1&filename=bs-logo-slots)
 
 - **Custom marks** are marks your brand calls by its own name, such as an icon, a crest or a favicon.
 - **More identities.** A sub-brand, product or event can have its own full set: **+ Add another logo** and give the set a name. Your main set is "Your logo". [Brand architectures](/info/brand-architectures.html) shows when a logo identity is the right block.
@@ -118,7 +118,7 @@ Your colours sit beside an **In context** preview on a wide screen, and above it
 
 The design system says what its colours are called and what each is for, and Lolly reads that. **Colour roles** sits at the head of the Colours room. On a wide screen **In context** shares the view, so a change shows on the poster, chart and interface card as you make the change.
 
-![The Colour roles table on Lolly Demo in its own words: the colourway chips, then Lead, Partner, Paper and Ink, each with its light and dark colour, read as the lead colour, the partner colour, the background and the text, and Quiet text and Hairlines listed under the table as the readings no role fills](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=2720&height=2000&dpi=192&waitMs=1800&cropSelector=%5Bdata-be-roles-fold%5D&format=svg&walker=1&dark=1&filename=bs-colour-roles)
+![The Colour roles table on Wefthouse, an invented textile brand, in its own words: the colourway chips Indigo, Madder and Weld, then Main, Accent, Supporting and Tertiary, each with its light and dark colour, read as the lead colour, the partner colour and by name only, and Background, Text, Quiet text and Hairlines listed under the table as the readings no role fills](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&system=wefthouse&width=2720&height=2000&dpi=192&waitMs=1800&cropSelector=%5Bdata-be-roles-fold%5D&format=svg&walker=1&dark=1&filename=bs-colour-roles)
 
 The table has four columns, and on a phone each row becomes a card that keeps light and dark side by side:
 
@@ -158,13 +158,13 @@ A reading no role fills stays as the design system defines it, and the room list
 
 **Where a colour is chosen.** Every colour field in a tool and in Lolly Design leads with the design system's roles, in its own order, with each word and what the colour is for on show. **Aa** beside a role picks the colour that sits on that role. The rest follow under **Other colours**, without a colourway's own copies, the on-colours and any reading a role already fills. A pick stays linked to the role and follows the colourway, the field keeps showing the word whichever colourway is chosen, and Settings and Tokens use the word too. A design system with no roles keeps the grid of swatches it has always had.
 
-### Roles: what tools read
+### Every colour a tool reads
 
 With **Colour roles** shut, the first decisions lead the room as chips, each showing the colour that plays the role and its name. On a system with no words of its own these are **Primary**, **Secondary**, **Surface** and **Text**. Press a chip to choose its colour from the palette's own swatches. **Every colour a tool reads**, at the foot of **Colour roles**, has the full strip.
 
-**Roles** say which colour plays each part in every tool and export. They are optional (three loose colours and no roles is a perfectly good system), any colour can take one and the readout says how text reads, measured against the surface, APCA first. Each role row shows an own colour at full strength, a starter colour standing in, or **↳ follows Primary**.
+The strip shows the seven colours a tool can read: Primary, Secondary, Surface, Text, Muted, Edge and On primary, in the design system's own words where it has them. Each one plays the same part in every tool and export. None of them has to be set (three loose colours make a good system), any colour can fill one, and the readout says how text reads, measured against the surface, APCA first. Each row shows an own colour at full strength, a starter colour standing in, or **↳ follows Primary**.
 
-The strip shows all seven roles a tool can read: Primary, Secondary, Surface, Text, Muted, Edge and On primary, in the design system's own words where it has them. On primary is derived from the primary, reads **Derived** and has no picker. The **Light** and **Dark** switch beside it, and the one beside **In context**, choose which look the strip, the palette and the preview show.
+On primary is derived from the primary, reads **Derived** and has no picker. The **Light** and **Dark** switch beside it, and the one beside **In context**, choose which look the strip, the palette and the preview show.
 
 The app's own accent follows the design system by default. That is the **Interface follows the design system** setting in **Settings → Appearance**; turning the setting off leaves the app's chrome neutral, while tools, canvases and exports follow the design system either way.
 
@@ -252,7 +252,7 @@ The palette downloads (design tokens, CSS, SCSS, GIMP and Adobe Swatch Exchange)
 
 With no face of its own, the room is one card: **Primary**, set at reading size in the face serving it today, with a **Starter** tag, a **Choose for Primary** button and the line *"Nothing installs until you choose one."* Headings, code and italic follow the primary until you choose them; **Choose them separately** shows their cards.
 
-![The Type room with no face chosen yet - one card at reading size, a Starter tag on it, and one filled Choose for Primary](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&dark=1&filename=brand-type)
+![The Type room with no face chosen yet - one card at reading size, a Starter tag on it, and one filled Choose for Primary](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&system=new-design-system&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&dark=1&filename=brand-type)
 
 Choose one face and the room opens into four role cards, the Fonts list and a live specimen:
 
@@ -263,7 +263,7 @@ Choose one face and the room opens into four role cards, the Fonts list and a li
 
 A card is tinted only where you installed that face. Its button says which role it is for: **Change Headings** on a face of your own and **Choose for Headings** everywhere else. The sample line wraps rather than cutting off. Nothing on a card commits anything: the button opens the compare stage for that role.
 
-![The four role cards revealed - each set in the face that serves it, with a Starter tag where nobody chose one and Italic following the primary](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&width=1440&height=1000&dpi=192&waitMs=2600&drive=click%3A%5Bdata-be-typemore-toggle%5D%3Bwait%3A600&cropSelector=.be-typecard-grid&walker=1&format=svg&dark=1&filename=bs-type-specimen)
+![The four role cards revealed - each set in the face that serves it, with a Starter tag where nobody chose one and Italic following the primary](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&system=new-design-system&width=1440&height=1000&dpi=192&waitMs=2600&drive=click%3A%5Bdata-be-typemore-toggle%5D%3Bwait%3A600&cropSelector=.be-typecard-grid&walker=1&format=svg&dark=1&filename=bs-type-specimen)
 
 ### The compare stage
 

@@ -82,7 +82,7 @@ Varje märke hamnar i ett rutnät med åtta valfria platser, en per **orienterin
 
 En grupp utan märken ännu viks till en rad; öppna den för att se dess platser. Klicka på en plats för att lägga till en PNG, SVG, JPEG eller WebP, eller klicka på en fylld plats för att ersätta märket. Allt stannar på den här enheten.
 
-![Logoplatserna med Horizontal och Vertical öppnade: varje behandling är en plats för sig, och varje plats är valfri](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dlogos&width=1440&height=1600&dpi=192&waitMs=1600&drive=click%3A.be-logo-identity%3Edetails%3Anth-of-type%281%29%3Esummary%3Bclick%3A.be-logo-identity%3Edetails%3Anth-of-type%282%29%3Esummary%3Bwait%3A600&cropSelector=.be-logo-grid&format=svg&walker=1&dark=1&filename=bs-logo-slots)
+![Logoplatserna med Horizontal och Vertical öppnade: varje behandling är en plats för sig, och varje plats är valfri](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dlogos&system=new-design-system&width=1440&height=1600&dpi=192&waitMs=1600&drive=click%3A.be-logo-identity%3Edetails.be-logo-group--fold%3Anot%28.be-logo-group--custom%29%3Esummary%3Bwait%3A600&cropSelector=.be-logo-grid&format=svg&walker=1&dark=1&filename=bs-logo-slots)
 
 - **Anpassade märken** är märken som ditt varumärke kallar vid eget namn, som en ikon, ett vapen eller en favicon.
 - **Fler identiteter.** Ett undervarumärke, en produkt eller ett event kan ha en egen full uppsättning: **+ Add another logo** och ge uppsättningen ett namn. Din huvuduppsättning är "Your logo". [Brand architectures](/info/brand-architectures.html) visar när en logotypidentitet är rätt block.
@@ -114,7 +114,7 @@ Dina färger sitter bredvid en förhandsvisning **In context** på en bred skär
 
 ### Roller: det verktyg läser
 
-![The Colour roles table on Lolly Demo after choosing the suggested words Main, Accent, Supporting and Tertiary: the colourway chips, then each role with its light and dark colour, Main read as the lead colour and Accent as the partner colour, Supporting and Tertiary read by name only and marked Copied, and the readings no role fills listed under the table](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=2720&height=2000&dpi=192&waitMs=1800&cropSelector=%5Bdata-be-roles-fold%5D&format=svg&walker=1&dark=1&filename=bs-colour-roles)
+![The Colour roles table on Lolly Demo after choosing the suggested words Main, Accent, Supporting and Tertiary: the colourway chips, then each role with its light and dark colour, Main read as the lead colour and Accent as the partner colour, Supporting and Tertiary read by name only and marked Copied, and the readings no role fills listed under the table](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&system=wefthouse&width=2720&height=2000&dpi=192&waitMs=1800&cropSelector=%5Bdata-be-roles-fold%5D&format=svg&walker=1&dark=1&filename=bs-colour-roles)
 
 **Roles** säger vilken färg som spelar vilken del i varje verktyg och export. De är valfria (tre lösa färger och inga roller är ett alldeles utmärkt system), vilken färg som helst kan ta en och kontrastavläsningen mäts mot ytan, APCA först. Varje rollrad visar en egen färg i full styrka, en startfärg som står in, eller **↳ follows Primary**.
 
@@ -206,7 +206,7 @@ Palettnedladdningarna (designtokens, CSS, SCSS, GIMP och Adobe Swatch Exchange) 
 
 Utan ett eget typsnitt är rummet ett kort: **Primary**, satt i lässtorlek i typsnittet som tjänar det i dag, med en **Starter**-tagg, en **Choose for Primary**-knapp och raden *"Nothing installs until you choose one."* Rubriker, kod och kursiv följer primärfärgen tills du väljer dem; **Choose them separately** visar deras kort.
 
-![Typografi-rummet med inget snitt valt än - ett kort i läsbar storlek, en Standard-tagg på det och en fylld Choose for Primary](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&dark=1&filename=brand-type)
+![Typografi-rummet med inget snitt valt än - ett kort i läsbar storlek, en Standard-tagg på det och en fylld Choose for Primary](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&system=new-design-system&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&dark=1&filename=brand-type)
 
 Välj ett typsnitt så öppnas rummet i fyra rollkort, listan Fonts och ett levande specimen:
 
@@ -217,7 +217,7 @@ Välj ett typsnitt så öppnas rummet i fyra rollkort, listan Fonts och ett leva
 
 Ett kort är färgat bara där du installerat det typsnittet. Dess knapp säger vilken roll den gäller: **Change Headings** på ett eget typsnitt och **Choose for Headings** överallt annars. Provraden bryts i stället för att klippas av. Inget på ett kort bekräftar något: knappen öppnar jämförelsescenen för den rollen.
 
-![De fyra rollkorten synliga - vart och ett satt i det snitt som tjänar det, med en Standard-tagg där ingen valt ett och Italic som följer primärfärgen](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&width=1440&height=1000&dpi=192&waitMs=2600&drive=click%3A%5Bdata-be-typemore-toggle%5D%3Bwait%3A600&cropSelector=.be-typecard-grid&walker=1&format=svg&dark=1&filename=bs-type-specimen)
+![De fyra rollkorten synliga - vart och ett satt i det snitt som tjänar det, med en Standard-tagg där ingen valt ett och Italic som följer primärfärgen](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&system=new-design-system&width=1440&height=1000&dpi=192&waitMs=2600&drive=click%3A%5Bdata-be-typemore-toggle%5D%3Bwait%3A600&cropSelector=.be-typecard-grid&walker=1&format=svg&dark=1&filename=bs-type-specimen)
 
 ### Jämförelsevyn
 

@@ -22,6 +22,7 @@ import { patchTextEditingCanvas } from '../../lib/text-edit-paint.ts';
 import { patchLivePreview } from '../../lib/live-preview.ts';
 import { finishCanvasFeedback } from '../../lib/canvas-feedback.ts';
 import { scopeTemplateStyles } from '../../lib/scope-css.ts';
+import { addFallbackSlots } from '../../lib/fallback-slots.ts';
 import { runTemplateScripts, waitForQuiescence } from '../../lib/render-lifecycle.ts';
 import { hydrateEmbeds, neutralizeEmbeds } from '../../bridge/embed.ts';
 import { markdownSafeUrl, mountTableCellEditing } from '../../lib/table-canvas-edit.ts';
@@ -203,6 +204,8 @@ export function paint(tview: ToolViewCtx): void {
       // A <style> inside template.html would otherwise apply unscoped and unlayered,
       // beating every app layer - one tool's `*` reset strips the chrome's padding.
       scopeTemplateStyles(contentEl, canvasScope);
+      // The same fallback font slots the tool's stylesheet has (lib/fallback-slots.ts).
+      for (const style of contentEl.querySelectorAll('style')) addFallbackSlots((style as HTMLStyleElement | SVGStyleElement).sheet as CSSStyleSheet | null);
       if (!hideSidebar) resolveCanvasAnnotations(contentEl);
       // Keep the canvas's accessible summary current when it's a live a11yLabel.
       if (tview.tool.manifest.a11yLabel) contentEl.setAttribute('aria-label', tview.history.canvasLabel());

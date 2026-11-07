@@ -10,7 +10,7 @@ Lolly stores tokens in the [W3C Design Tokens (DTCG)](https://www.designtokens.o
 
 **Lolly Design System Setup** (`#/start`) is where you make and edit tokens. Its Colours, Type and Tokens rooms write colour, typography and dimension tokens (radius, spacing, sizing, stroke, opacity, rotation and shadows), and its import reads W3C DTCG, Tokens Studio and Penpot files. You can also hydrate a pack from a token file with [`ingest:brand`](/info/configuration.html#brand-packs).
 
-![The Tokens room on a fresh system - a card with the ways to start, the shape and spacing sliders, More tokens and the two advanced folds](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtokens&width=1440&height=900&dpi=192&waitMs=1600&css=.start-head%7Bdisplay%3Anone%7D&cropSelector=.be-tokens&format=svg&walker=1&dark=1&filename=bs-token-editor)
+![The Tokens room on a fresh system - a card with the ways to start, the shape and spacing sliders, More tokens and the two advanced folds](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtokens&system=new-design-system&width=1440&height=900&dpi=192&waitMs=1600&css=.start-head%7Bdisplay%3Anone%7D&cropSelector=.be-tokens&format=svg&walker=1&dark=1&filename=bs-token-editor)
 
 Each brand pack ships its design system as a `tokens` asset in its catalog, and the active content profile decides which pack is in use:
 
