@@ -299,7 +299,7 @@ Exports are tagged with a colour profile, so colour-managed apps such as print s
 - **Print PDF (CMYK)** declares its press condition in its *OutputIntent*, telling a print shop how its CMYK inks are meant to be read.
 - **Print TIFF (CMYK)** writes untagged DeviceCMYK pixels and records the press condition in its TIFF metadata. A TIFF cannot embed a press profile, so an **Embed** row records only that profile's name.
 - **TIFF (RGB)** is the uncompressed sRGB sibling for archive or an editor round trip. It flattens transparency onto white. Both TIFFs are desktop-only, because browsers cannot preview a TIFF.
-- **SVG**, **EMF**, **EPS** and **DXF** are vectors with no embedded profile: SVG's colours are sRGB, EMF and EPS use device RGB, **EPS (CMYK)** writes DeviceCMYK and DXF uses the AutoCAD Color Index. SVG, EPS and DXF outline text to paths. EMF keeps text live and editable in Office and Google Slides, falling back to outlines only for runs the format cannot express; the export panel's **Outline fonts** option forces paths everywhere. SVG also reproduces CSS box shadows, inside and out.
+- **SVG**, **EMF**, **EPS** and **DXF** are vectors with no embedded profile: SVG's colours are sRGB, EMF and EPS use device RGB, **EPS (CMYK)** writes DeviceCMYK and DXF uses the AutoCAD Color Index. SVG, EPS and DXF outline text to paths. EMF keeps text live and editable in Office and Google Slides, falling back to outlines only for runs the format cannot express; the export panel's **Outline fonts** option forces paths everywhere, the same as `_text=outline` in a link and `--text=outline` on the command line. SVG also reproduces CSS box shadows, inside and out.
 
 ::: details PDF/X-4 and your own press profile
 Lolly ships one CMYK profile, fitted to Fogra's FOGRA39 characterisation data and released under CC0, and converts colours through it for the default press condition. The profile is not embedded, because it is ICC version 4.3 and PDF/X-4 accepts versions up to 4.2. A named press condition therefore writes the output intent without claiming PDF/X-4 conformance.
@@ -319,7 +319,7 @@ A finish is not an ink. Foil, emboss, deboss, spot varnish, soft touch, die cut,
 
 The **Before you export** card and `lolly preflight` count the plates the file will have. With the box ticked they count the four process plates and any finish plates, and say that the spot inks print as process and add no plates. With the box clear they count up to one spot plate for each spot ink the design system gives, as before. A rate card prices those counts, so it does not price spot plates that the file will not have.
 
-The **Print TIFF** and **EPS (CMYK)** have no named plates, so they print every ink in process with or without the choice.
+The **Print TIFF** and **EPS (CMYK)** have no named plates, so they print every ink in process with or without the choice. For those two formats the card and `lolly preflight` count the four process plates and never a spot or finish plate. A finish goes into them as its black mask on the black plate, and the card reports that as an error.
 
 A link asks for the same file with `_spots=process`, the command line with `--spots=process`, the [MCP server](/info/mcp.html) with `spots: "process"` and the terminal app with its **Spot inks** row. Nothing about the choice goes into the file: only the inks change.
 

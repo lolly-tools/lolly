@@ -43,7 +43,7 @@ import { beginAiProbe, finishAiProbe, knownManagedAi, startAiPolicyPolling, stop
 import type { AiPolicy } from '../lib/ai-policy.ts';
 import type { FieldPolicy } from '../lib/field-policy.ts';
 import { setToolInputPolicies, clearInputPolicies, setInputPolicyFailClosed, onToolInputMount, setToolStartValues, clearToolStartValues } from '../lib/input-policy.ts';
-import { companyLogo, setWorkspaceCompany, type WorkspaceCompany } from '../lib/workspace-templates.ts';
+import { companyLogo, setWorkspaceCompany, setWorkspaceProgramme, type WorkspaceCompany } from '../lib/workspace-templates.ts';
 import type { InputPolicy } from '../lib/input-policy.ts';
 import { registerShareSection } from '../lib/share-sections.ts';
 import { registerProfileSection } from '../lib/profile-sections.ts';
@@ -169,6 +169,12 @@ export interface PartnerSpec {
     address?: string; currency?: string; taxNote?: string;
   };
   programme?: { id: string; name: string };
+  /** When the person's access through a programme ends (Lolly Work plans/82 M5): the
+   *  earliest of their membership end dates and the ends scheduled for their company
+   *  or programme that they are told about, and the programme it ends through. The
+   *  home's company card shows it as one line (views/company-card.ts). */
+  accessEndsAt?: string;
+  accessEndsThrough?: { id: string; name: string };
 }
 
 /** A tool the instance injects into the gallery (control-plane shape). `toolId` is
@@ -816,6 +822,7 @@ export function applyOrgToolPolicies(): void {
   clearToolStartValues();
   const company = partnerCompany(orgConfigState);
   setWorkspaceCompany(company);
+  setWorkspaceProgramme(partnerProgramme(orgConfigState));
   const tools = orgConfigState?.tools;
   if (!tools) return;
   const instanceName = orgConfigState!.instance?.name || '';
@@ -859,6 +866,12 @@ export function applyOrgToolPolicies(): void {
     setToolInputPolicies(toolId, out);
     if (spec.defaults && typeof spec.defaults === 'object') setToolStartValues(toolId, spec.defaults);
   }
+}
+
+/** The caller's partner programme as the neutral seam takes it, or null. */
+function partnerProgramme(config: OrgConfig | null): { id: string; name: string } | null {
+  const g = config?.partner?.programme;
+  return g?.id && g.name ? { id: g.id, name: g.name } : null;
 }
 
 /** The caller's company as the neutral seam takes it, or null. */
@@ -1182,6 +1195,8 @@ export async function initOrgWithAuth(auth: AuthConfig): Promise<OrgState | null
       // The person's partner company, for the home's company card and the tools that
       // take its details: known from the start, not only once a tool mounts.
       setWorkspaceCompany(partnerCompany(orgConfigState));
+      // And the programme, which an export records beside the company (plans/82 M3).
+      setWorkspaceProgramme(partnerProgramme(orgConfigState));
       applySitePolicy(orgConfigState, failClosed);
       // Route the instance's injectables (plans/19): tool descriptors into the
       // gallery registry (pure data, beside the apply* group); chrome descriptors

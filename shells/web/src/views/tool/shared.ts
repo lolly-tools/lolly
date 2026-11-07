@@ -173,6 +173,9 @@ export interface ExportDefaults {
    *  card's "Print spot inks as process" box. Opt-in, so only a link that asks sets it;
    *  never restored from a saved session. */
   spots?: boolean;
+  /** EMF text as outlines from ?_text=outline: ticks the Outline fonts box. Opt-in, so only
+   *  a link that asks sets it; never restored from a saved session. */
+  emfOutline?: boolean;
   password?: string;
   bleed?: string;
   marks?: PrintMarks | null;

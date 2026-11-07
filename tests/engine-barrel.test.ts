@@ -51,6 +51,8 @@ const EXPECTED: readonly string[] = [
   // Additive 1.324 spots as process: the CMYK palette's opt-in to print every spot ink in process,
   // and the `_spots` URL param that asks for the choice.
   'CmykPaletteOptions', 'SpotsSetting', 'parseSpots',
+  // Additive `_text` URL param: an EMF export draws its text as outlines, as the CLI's browser tier asks.
+  'TextSetting', 'parseTextSetting',
   // Additive 1.297 press separation: RGB to CMYK through a press profile, and its raster lattice.
   'CmykSeparation', 'DEVICE_SEPARATION', 'NEUTRAL_EPSILON', 'SeparateRgb', 'iccSeparation', 'separationLattice',
   // Additive 1.293 canvas size: the one conversion every shell hands a tool's hooks and template.
@@ -382,6 +384,8 @@ const EXPECTED: readonly string[] = [
   'themesSelection', 'toolCredit',
   // Additive 1.282 (plan 323): the brand skills that guided an agent-made export, as words.
   'guidedByWords',
+  // Additive 1.334 (Lolly Work plans/82 M3): the partner an export was made for.
+  'partnerFactWords', 'partnerRecord', 'partnerWords',
   // 1.265 (plans/319): theme-group meaning and colourways.
   'readTokenAxes',
   'axisOfKind',
