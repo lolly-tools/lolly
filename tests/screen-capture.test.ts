@@ -602,6 +602,7 @@ test('ENGINE_VERSION is 1.333.0', () => {
   // 1.327.0 has preflight count no spot plate when spot inks print as process. Capture is unchanged.
   // 1.328.0 draws the stencil prim in EMF too. Capture is unchanged.
   // 1.329.0 records placed pictures as components of an export, not its parent. Capture is unchanged.
+  // 1.330.0 exports the asset rights reader and the .lolly credits text. Capture is unchanged.
   // 1.332.0 adds the partner kit reader (partner-kit-v1). Capture is unchanged.
   // 1.333.0 adds the guest-mark checks against a partner kit. Capture is unchanged.
   assert.equal(ENGINE_VERSION, '1.333.0');
