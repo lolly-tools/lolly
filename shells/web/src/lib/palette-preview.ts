@@ -83,10 +83,14 @@ function paperColour(palette: string[]): string {
 const at = (pal: string[], i: number): string => col(pal[i % pal.length]);
 const r1 = (n: number): number => Math.round(n * 10) / 10;
 
-/** Opening tag: viewBox'd, responsive (fills width, keeps ratio), labelled. */
+/** Opening tag: viewBox'd, responsive (fills width, keeps ratio), labelled.
+ *  `direction:ltr` because each scene is laid out left to right at fixed x
+ *  positions. SVG text inherits the page's `direction`, and in a right-to-left
+ *  locale `text-anchor` start then means the right end, so every line grew
+ *  leftwards from its x and the poster's headline ran off its left edge. */
 function open(w: number, h: number, label: string): string {
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w} ${h}" role="img" `
-    + `aria-label="${label}" style="width:100%;height:auto;display:block">`;
+    + `aria-label="${label}" style="width:100%;height:auto;display:block;direction:ltr">`;
 }
 
 /** Actual typography and colour proportions, shared by the studio and component gallery.
