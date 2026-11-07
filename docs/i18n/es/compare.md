@@ -11,7 +11,7 @@ _Última revisión: 28 de septiembre de 2026._
 - [Lolly y Figma](/info/compare-figma.html) - diseño, colaboración en vivo y producción reutilizable de recursos.
 - [Lolly y Penpot](/info/compare-penpot.html) - diseño de código abierto, tokens compartidos y trabajo de organización.
 - [Lolly y los portales de marca](/info/compare-brand-portals.html) - bibliotecas aprobadas, plantillas bloqueadas, identidad, revisión e informes.
-- [Lolly y las API de renderizado](/info/compare-render-apis.html) - generación automatizada en tu dispositivo, en CI o en un servidor de Lolly Work.
+- [Lolly y las API de renderizado](/info/compare-render-apis.html) - generación automatizada en tu dispositivo, en CI o en tu propio servidor, y [cómo cambiar](/info/work-move-from-render-api.html) desde Bannerbear o Placid.
 - [Lolly y los conversores de archivos en línea](/info/compare-converters.html) - conversión de formatos en tu propio dispositivo.
 
 Para ver la comparación función por función, consulta [Cómo se compara Lolly](/info/positioning.html). Cada comparativa lleva fecha; una afirmación que ya no coincida con alguno de los dos productos debe corregirse.

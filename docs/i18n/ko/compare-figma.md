@@ -16,7 +16,7 @@ _최종 확인일: 2026년 9월 28일._
 
 Lolly는 디자인을 [규칙이 있는 재사용 가능한 도구](/info/create-a-tool.html)로 바꿔요. 도구는 브라우저나 CLI에서 실행되고 링크, 스크립트, 배치 그리드에서 입력을 받으므로, 하나의 템플릿이 파일 하나를 편집하는 사람과 많은 파일을 만드는 팀 모두에게 쓰여요.
 
-![Design의 열린 캔버스: 도구 모음의 Lolly 메뉴에 Import a design이 있어요](/info/shots/design.svg)
+![Lolly Design의 열린 캔버스: 도구 모음의 Lolly 메뉴에 Import a design이 있어요](/info/shots/design.svg)
 
 [비공개 collab](/info/collaborate.html)은 두 기기를 직접 연결하며 계정도 필요 없고 공유 네트워크에서는 인터넷도 필요 없어요. 독립 실행형 Lolly는 오프라인으로 렌더링해요. 지원되는 내보내기에는 Content Credentials가 기본으로 켜져 있고 끌 수 있어요.
 

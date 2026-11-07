@@ -2,9 +2,13 @@
 
 Lolly, tek bir açık kaynak projesinin iki parçasıdır. **Lolly**, hesap olmadan cihazında yapmak, düzenlemek, dönüştürmek ve dışa aktarmak için motor, uygulamalar ve araçlardır. **Lolly Work**, giriş, paylaşılan projeler, onaylar ve sunucu render'ı için kendi altyapında çalışan kuruluş sunucusudur. İkisi de MPL-2.0'dır. Bu sayfa çifti insanların dosya tasarladığı, yönettiği ve ürettiği diğer yollarla karşılaştırır.
 
+Örgütleyici fikir [içerik egemenliği](/info/content-sovereignty.html): içeriğin seçilmiş sistemler arasında nasıl oluşturulduğu, yönetildiği, depolandığı ve taşındığı üzerindeki denetim. Yaratıcı uygulamalar tasarımları sağlayabilir, bir DAM kayıt kaynağı olarak kalabilir ve Lolly izin verilen girdileri ve onaylı varlıkları yeni dosyalara çevirebilir. [Lolly'yi mevcut DAM'inle kullan](/info/use-with-dam.html) bu birleşimi anlatır.
+
 ## Bugünün araçları
 
 Her halka, bir ürün sınıfının bir yeteneği ne kadar eksiksiz sunduğunu puanlar; her sınıf en iyi temsilcisi üzerinden puanlanır. Lolly sütunu Lolly ve Lolly Work'ü birlikte kapsar ve her satır hangi parçanın neyi sağladığını söyler. Puanının ardındaki gerekçe için bir satır adını aç. Sütunlar en üstteki Overall completeness satırına göre sıralanır: harcama satırı hariç, puanlanan satırların ortalaması.
+
+Puanlar, Lolly'nin hesap veya bulut ön koşulu olmadan denetimi tercih etmesini kullanır. Bunlar bu ölçütler altında bir karşılaştırmadır; ürün eksiksizliğinin tarafsız bir sıralaması veya bir kurumsal satın alma puanı değildir. Belirli bir iş akışını değerlendirirken yetenek, dağıtım ve kanıt sınırlarını ayrı ayrı oku.
 
 ::: figure positioning-comparison
 Yetenek karşılaştırması: rakip araştırması ve puanlar Ağustos 2026; Lolly + Lolly Work kapsamı 28 Eylül 2026'da gözden geçirildi. Puanlama: 0 yok, 25 geçici çözüm düzeyinde, 50 gerçek ama kısıtlı veya kısmi, 75 çekincelerle güçlü, 100 temel yetkinlik.
@@ -43,9 +47,11 @@ Lolly'nin canlı iş birliği, doğrudan iki cihazlı özel collab'ları ve Loll
 
 İçe aktarılan tasarımlar ve paylaşılan tasarım token'ları bir ekibin Lolly'yi uzmanlaşmış uygulamalarla birleştirmesine izin verirken Lolly Work paylaşılan varlıkları, incelemeyi ve teslimatı yönetir.
 
-Bütün bir slayt sunumu tavanı gösterir: **Markdown Slides** içinde bir sunum veri olarak bildirilir, canlı yerleştirilir ve yerel, düzenlenebilir bir PowerPoint dosyası olarak dışa aktarılır.
+Düzenlenmiş bir DAM'i olan ekipler için önce o kitaplığı ve yöneticilerini yerinde tutarak başla. [SUSE'nin Brandfolder deneyimi](/info/suse-brandfolder.html), entegrasyonun benimsemeyi ve onay değişiklik yönetimini nasıl desteklediğini kaydeder. DAM satıcıları ve uygulama ortakları aynı düzenlemeyi [ortak iş akışı](/info/dam-partners.html) üzerinden değerlendirebilir.
 
-![Bölünmüş görünümde Markdown Slides: solda blok olarak listelenen sunumun slaytları, sağda yerleştirilmiş sunumun render'ı](/t/url-shot?url=%2F%23%2Ftool%2Fdeck-studio&width=1440&height=900&dpi=192&waitMs=2600&walker=1&format=svg&dark=1&filename=ov2-deck-studio-output)
+Bütün bir slayt sunumu tavanı gösterir: **Lolly Markdown Slides** içinde bir sunum veri olarak bildirilir, canlı yerleştirilir ve yerel, düzenlenebilir bir PowerPoint dosyası olarak dışa aktarılır.
+
+![Bölünmüş görünümde Lolly Markdown Slides: solda blok olarak listelenen sunumun slaytları, sağda yerleştirilmiş sunumun render'ı](/t/url-shot?url=%2F%23%2Ftool%2Fdeck-studio&width=1440&height=900&dpi=192&waitMs=2600&walker=1&format=svg&dark=1&filename=ov2-deck-studio-output)
 
 ## Kurallar araçta yaşar
 

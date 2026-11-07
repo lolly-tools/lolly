@@ -1,4 +1,6 @@
-# Chansons Rondocode
+# Chansons Lolly Rondocode
+
+<a id="rondocode-songs"></a>
 
 Une chanson rondocode est de la musique écrite sous forme de code : synthétiseurs, motifs et mixage, jouée pendant que tu tapes. Lolly peut jouer une chanson sous une vidéo, et l'utilitaire **Rondocode** te permet d'en écrire une et de l'exporter en audio. Les deux consignent la chanson dans les Content Credentials du fichier, pour que la musique dise d'où elle vient.
 
@@ -12,7 +14,7 @@ Depuis le terminal, `lolly mix` prend une chanson comme bande-son entière ; voi
 
 ## Écrire et exporter une chanson
 
-Ouvre **Rondocode** depuis **Utilities** pour écrire une chanson dans l'éditeur en direct de rondocode et l'entendre pendant que tu tapes. Exporte-la en **WAV**, **MP3**, **M4A**, **Opus** ou **FLAC**, en ZIP de pistes séparées, en **MIDI**, ou en enregistrement de ce qui joue. Depuis le terminal, `lolly rondocode --export=mid` écrit le même fichier MIDI. **Export length** fixe le nombre de secondes d'un export audio. Le fichier de chanson lui-même (`.rondo.json`) est ton code tel qu'il est écrit et ne porte rien d'ajouté.
+Ouvre l'outil **Rondocode** depuis **Utilities** pour écrire une chanson dans l'éditeur en direct de rondocode et l'entendre pendant que tu tapes. Exporte-la en **WAV**, **MP3**, **M4A**, **Opus** ou **FLAC**, en ZIP de pistes séparées, en **MIDI**, ou en enregistrement de ce qui joue. Depuis le terminal, `lolly rondocode --export=mid` écrit le même fichier MIDI. **Export length** fixe le nombre de secondes d'un export audio. Le fichier de chanson lui-même (`.rondo.json`) est ton code tel qu'il est écrit et ne porte rien d'ajouté.
 
 Une chanson peut chanter ses paroles avec `sing()`. Le chant est produit sur ton appareil par des modèles de voix téléchargés, et un fichier qui contient un chant synthétisé déclare toujours ce chant comme généré par IA (voir [AI features](/info/ai-features.html)).
 
@@ -24,11 +26,11 @@ Un export vidéo ou audio qui joue une chanson rondocode consigne chaque chanson
 - le SHA-256 de son fichier `.rondo.json` ;
 - la façon dont elle a été rendue : dans le bac à sable de Lolly, la classe d'exécution `vm`, avec la version et la graine du moteur de rendu, et toute partie que le rendu n'a pas pu jouer.
 
-La musique calculée à partir du code d'une chanson est marquée comme média algorithmique, donc Verify ne la signale pas comme IA. Avant d'exporter, une ligne sous **Download** liste les chansons que le credential consignera ; après l'export, la même ligne rend compte de ce qu'a trouvé une relecture du fichier livré. Décoche **C2PA Credentials** pour omettre l'enregistrement. Une image fixe ne consigne aucune chanson, car elle ne porte aucun son. `lolly mix` et le [serveur MCP](/info/mcp.html) écrivent le même enregistrement.
+La musique calculée à partir du code d'une chanson est marquée comme média algorithmique, donc Lolly Verify ne la signale pas comme IA. Avant d'exporter, une ligne sous **Download** liste les chansons que le credential consignera ; après l'export, la même ligne rend compte de ce qu'a trouvé une relecture du fichier livré. Décoche **C2PA Credentials** pour omettre l'enregistrement. Une image fixe ne consigne aucune chanson, car elle ne porte aucun son. `lolly mix` et le [serveur MCP](/info/mcp.html) écrivent le même enregistrement.
 
 ## Les fichiers de l'utilitaire Rondocode
 
-La plupart des utilitaires sur l'appareil n'écrivent aucun credential, car ils transforment un fichier que tu possèdes déjà. Rondocode crée de l'audio nouveau, donc chaque fichier audio qu'il écrit porte des Content Credentials qui consignent la chanson comme source : son nom, le SHA-256 de son fichier `.rondo.json` et l'endroit où son code s'est exécuté. Cela couvre WAV, MP3, M4A, Opus, FLAC, chaque piste d'un ZIP de pistes séparées et un enregistrement de ce qui joue.
+La plupart des utilitaires sur l'appareil n'écrivent aucun credential, car ils transforment un fichier que tu possèdes déjà. Lolly Rondocode crée de l'audio nouveau, donc chaque fichier audio qu'il écrit porte des Content Credentials qui consignent la chanson comme source : son nom, le SHA-256 de son fichier `.rondo.json` et l'endroit où son code s'est exécuté. Cela couvre WAV, MP3, M4A, Opus, FLAC, chaque piste d'un ZIP de pistes séparées et un enregistrement de ce qui joue.
 
 - Les rendus propres de l'éditeur s'exécutent dans son cadre privé (la classe d'exécution `frame`) et consignent la version de l'éditeur.
 - Un rendu fait par la CLI ou un lien de partage s'exécute dans la classe `vm` et consigne la version et la graine du moteur de rendu.

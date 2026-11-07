@@ -2,9 +2,13 @@
 
 Lolly to dwie części jednego projektu open source. **Lolly** to silnik, aplikacje i narzędzia do tworzenia, edycji, konwersji i eksportu na Twoim urządzeniu, bez konta. **Lolly Work** to serwer organizacji, prowadzony na Twojej własnej infrastrukturze, do logowania, wspólnych projektów, zatwierdzeń i renderowania serwerowego. Oba są na MPL-2.0. Ta strona porównuje tę parę z innymi sposobami, na jakie ludzie projektują, nadzorują i tworzą pliki.
 
+Główną ideą jest [suwerenność treści](/info/content-sovereignty.html): kontrola nad tym, jak treść jest tworzona, nadzorowana, przechowywana i przenoszona między wybranymi systemami. Aplikacje twórcze mogą dostarczać projekty, DAM może pozostać źródłem zapisu, a Lolly może zamieniać dozwolone dane wejściowe i zatwierdzone zasoby w nowe pliki. [Use Lolly with your existing DAM](/info/use-with-dam.html) opisuje takie połączenie.
+
 ## Dzisiejsze narzędzia
 
 Każdy pierścień ocenia, jak kompletnie klasa produktów dostarcza daną możliwość, przy czym każda klasa jest oceniana na swoim najlepszym przedstawicielu. Kolumna Lolly obejmuje Lolly i Lolly Work razem, a każdy wiersz mówi, która część co zapewnia. Otwórz nazwę wiersza, aby poznać uzasadnienie jego oceny. Kolumny są posortowane według wiersza Overall completeness na górze: średniej z ocenianych wierszy, z wyłączeniem wiersza wydatków.
+
+Oceny odzwierciedlają preferencję Lolly dla kontroli bez konta i bez wymogu chmury. To porównanie według tych kryteriów, a nie neutralny ranking kompletności produktów ani ocena zakupowa dla przedsiębiorstw. Przy ocenie konkretnego przepływu pracy czytaj osobno ograniczenia dotyczące możliwości, wdrożenia i dowodów.
 
 ::: figure positioning-comparison
 Porównanie możliwości: badania konkurencji i oceny z sierpnia 2026; pokrycie Lolly + Lolly Work sprawdzone 28 września 2026. Ocenianie: 0 brak, 25 obejście, 50 prawdziwe, ale z ograniczeniami lub częściowe, 75 mocne z zastrzeżeniami, 100 podstawowa kompetencja.
@@ -43,9 +47,11 @@ Współpraca na żywo w Lolly obejmuje bezpośrednie prywatne collaby dwóch urz
 
 Zaimportowane projekty i wspólne tokeny projektowe pozwalają zespołowi łączyć Lolly ze specjalistycznymi aplikacjami, podczas gdy Lolly Work nadzoruje wspólne zasoby, przegląd i dostarczanie.
 
-Cała prezentacja pokazuje sufit: w **Markdown Slides** prezentacja jest deklarowana jako dane, układana na żywo i eksportowana jako natywny, edytowalny plik PowerPoint.
+Zespołom z kuratorowanym DAM zalecamy zacząć od pozostawienia tej biblioteki i jej administratorów na miejscu. [SUSE's Brandfolder experience](/info/suse-brandfolder.html) zapisuje, jak integracja wsparła przyjęcie i zarządzanie zmianą w zatwierdzaniu. Dostawcy DAM i partnerzy wdrożeniowi mogą ocenić to samo rozwiązanie przez [przepływ pracy dla partnerów](/info/dam-partners.html).
 
-![Markdown Slides w widoku podzielonym: slajdy prezentacji wymienione jako bloki po lewej, ułożona prezentacja renderowana po prawej](/t/url-shot?url=%2F%23%2Ftool%2Fdeck-studio&width=1440&height=900&dpi=192&waitMs=2600&walker=1&format=svg&dark=1&filename=ov2-deck-studio-output)
+Cała prezentacja pokazuje sufit: w **Lolly Markdown Slides** prezentacja jest deklarowana jako dane, układana na żywo i eksportowana jako natywny, edytowalny plik PowerPoint.
+
+![Lolly Markdown Slides w widoku podzielonym: slajdy prezentacji wymienione jako bloki po lewej, ułożona prezentacja renderowana po prawej](/t/url-shot?url=%2F%23%2Ftool%2Fdeck-studio&width=1440&height=900&dpi=192&waitMs=2600&walker=1&format=svg&dark=1&filename=ov2-deck-studio-output)
 
 ## Reguły żyją w narzędziu
 

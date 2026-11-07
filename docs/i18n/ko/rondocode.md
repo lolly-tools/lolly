@@ -1,4 +1,6 @@
-# Rondocode 노래
+# Lolly Rondocode 노래
+
+<a id="rondocode-songs"></a>
 
 rondocode 노래는 코드로 쓴 음악이에요. 신스, 패턴, 믹스가 입력하는 대로 재생돼요. Lolly는 동영상 아래에서 노래를 재생할 수 있고, **Rondocode** 유틸리티로 노래를 쓰고 오디오로 내보낼 수 있어요. 둘 다 노래를 파일의 Content Credentials에 기록하므로 음악이 어디서 왔는지 알려줘요.
 
@@ -12,7 +14,7 @@ rondocode 노래는 코드로 쓴 음악이에요. 신스, 패턴, 믹스가 입
 
 ## 노래 쓰고 내보내기
 
-**Utilities**에서 **Rondocode**를 열어 rondocode의 라이브 편집기로 노래를 쓰고 입력하는 대로 들어보세요. **WAV**, **MP3**, **M4A**, **Opus**, **FLAC**, 스템 ZIP, **MIDI**, 또는 재생 중인 것의 녹음으로 내보내요. 터미널에서는 `lolly rondocode --export=mid`가 같은 MIDI 파일을 써요. **Export length**는 오디오 내보내기가 몇 초인지 정해요. 노래 파일 자체(`.rondo.json`)는 쓴 그대로의 코드이며 추가된 것이 없어요.
+**Utilities**에서 **Rondocode** 도구를 열어 rondocode의 라이브 편집기로 노래를 쓰고 입력하는 대로 들어보세요. **WAV**, **MP3**, **M4A**, **Opus**, **FLAC**, 스템 ZIP, **MIDI**, 또는 재생 중인 것의 녹음으로 내보내요. 터미널에서는 `lolly rondocode --export=mid`가 같은 MIDI 파일을 써요. **Export length**는 오디오 내보내기가 몇 초인지 정해요. 노래 파일 자체(`.rondo.json`)는 쓴 그대로의 코드이며 추가된 것이 없어요.
 
 노래는 `sing()`으로 가사를 부를 수 있어요. 노래는 내려받은 음성 모델이 기기에서 만들며, 합성된 노래가 담긴 파일은 항상 노래를 AI 생성으로 선언해요([AI 기능](/info/ai-features.html) 참고).
 
@@ -24,11 +26,11 @@ rondocode 노래를 재생하는 동영상이나 오디오 내보내기는 각 �
 - `.rondo.json` 파일의 SHA-256
 - 렌더링된 방식: Lolly의 샌드박스에서 `vm` 실행 클래스로, 렌더러의 버전과 시드, 렌더링이 재생할 수 없었던 부분
 
-노래의 코드에서 계산된 음악은 알고리즘 미디어로 표시되므로 Verify가 AI로 표시하지 않아요. 내보내기 전에 **Download** 아래의 한 줄이 자격 증명이 기록할 노래를 나열하고, 내보낸 후에는 같은 줄이 전달된 파일을 읽어서 찾은 것을 보고해요. 기록을 빼려면 **C2PA Credentials**를 선택 해제하세요. 정지 이미지에는 소리가 없으므로 노래를 기록하지 않아요. `lolly mix`와 [MCP 서버](/info/mcp.html)도 같은 기록을 써요.
+노래의 코드에서 계산된 음악은 알고리즘 미디어로 표시되므로 Lolly Verify가 AI로 표시하지 않아요. 내보내기 전에 **Download** 아래의 한 줄이 자격 증명이 기록할 노래를 나열하고, 내보낸 후에는 같은 줄이 전달된 파일을 읽어서 찾은 것을 보고해요. 기록을 빼려면 **C2PA Credentials**를 선택 해제하세요. 정지 이미지에는 소리가 없으므로 노래를 기록하지 않아요. `lolly mix`와 [MCP 서버](/info/mcp.html)도 같은 기록을 써요.
 
 ## Rondocode 유틸리티의 파일
 
-대부분의 기기 내 유틸리티는 이미 가진 파일을 변환하므로 자격 증명을 쓰지 않아요. Rondocode는 새 오디오를 만들므로 쓰는 모든 오디오 파일에 노래를 소스로 기록하는 Content Credentials가 담겨요. 이름, `.rondo.json` 파일의 SHA-256, 코드가 실행된 곳이에요. WAV, MP3, M4A, Opus, FLAC, 스템 ZIP의 각 스템, 재생 중인 것의 녹음이 해당돼요.
+대부분의 기기 내 유틸리티는 이미 가진 파일을 변환하므로 자격 증명을 쓰지 않아요. Lolly Rondocode는 새 오디오를 만들므로 쓰는 모든 오디오 파일에 노래를 소스로 기록하는 Content Credentials가 담겨요. 이름, `.rondo.json` 파일의 SHA-256, 코드가 실행된 곳이에요. WAV, MP3, M4A, Opus, FLAC, 스템 ZIP의 각 스템, 재생 중인 것의 녹음이 해당돼요.
 
 - 편집기 자체의 렌더링은 비공개 프레임(`frame` 실행 클래스)에서 실행되고 편집기의 버전을 기록해요.
 - CLI나 공유 링크로 만든 렌더링은 `vm` 클래스에서 실행되고 렌더러의 버전과 시드를 기록해요.

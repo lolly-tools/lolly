@@ -39,7 +39,7 @@ lolly.tools s'ouvre sur [Lolly Demo](/info/lolly-demo.html), le design system d'
 
 ## Puis-je utiliser ma propre marque ?
 
-Oui. **Design System Setup** (`#/start`) construit un design system à partir d'une couleur, d'un fichier de design tokens ou d'un design terminé, et chaque outil dessine alors avec ton design system. [Start](/info/quickstart.html#put-your-brand-in) détaille les trois voies.
+Oui. **Lolly Design System Setup** (`#/start`) construit un design system à partir d'une couleur, d'un fichier de design tokens ou d'un design terminé, et chaque outil dessine alors avec ton design system. [Start](/info/quickstart.html#put-your-brand-in) détaille les trois voies.
 
 Un design system que fournit ton organisation ou ta version est géré : il affiche un cadenas et reste en lecture seule, et tu peux en faire une copie modifiable pour le changer.
 
@@ -80,9 +80,9 @@ L'application web dessine avec WebGPU, une fonction graphique des navigateurs ac
 
 ## Lolly peut-il modifier et rendre mes fichiers Figma, Penpot, Illustrator ou InDesign ?
 
-Oui. Ouvre **Design** et clique sur **Import a design** : il accepte un **.fig** Figma natif (Save local copy), un export **.penpot** de Penpot, un **.ai** ou **.pdf** Illustrator, un **.idml** InDesign (File → Export → InDesign Markup) ou **n'importe quel SVG**. Tu n'as besoin d'aucun compte, d'aucun plugin ni d'aucune licence d'application de design.
+Oui. Ouvre l'outil **Design** et clique sur **Import a design** : il accepte un **.fig** Figma natif (Save local copy), un export **.penpot** de Penpot, un **.ai** ou **.pdf** Illustrator, un **.idml** InDesign (File → Export → InDesign Markup) ou **n'importe quel SVG**. Tu n'as besoin d'aucun compte, d'aucun plugin ni d'aucune licence d'application de design.
 
-![Le canevas ouvert de Design - Importer un design se trouve dans le menu Lolly de la barre d'outils](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D17ZTfS8MwEMf_mryO5NZ288GHrdqJv1CUvWdtOgppMtJMNv96yaV1iRNEQRBZoblwab53l0-uq915bXgrCOSDpf3LzgANnQ4eI0rrPJn7Gh9cd0sE8lIryxtFIFfatFx6L4F0Mi-11GbUiZYr25QjK3bW-S8I5MnUbRXKCkMgb5uqki6JFFU7rjoXYsSgT8GaLebKZSeGAPkUYypMHp80DeugYYR4J_U7X4XRkY8dFHuTYEJ-jDWM3qoqsEHo4Y20-xJi-SPVaOfRUuAL1hiZXNrG4gH6M85Z5lTAk8x8DdlnPL8gecVfBIEU6F5v0bbCor3VUu4JpOPCKTCWsPI9rBS107d6QyCfRET_Ac6wX36X6UpX-49Ip1mAlMEPkM6QX20aoSpECLTmpadcazPQ9hPlWxboRndWmFEIG1s4Yp3E3Ts-0f4GbcruWHLzlC0frmfpfbGk82LxmD0vUndSTcvXAoknWBKCz5LDSIdiRHV0D2Tfq1BIvdY42Zim5WZ_-n3_mRvwBg&width=1360&height=850&dpi=192&waitMs=3000&format=svg&walker=1&chrome=1&localize=1&dark=1&filename=design)
+![Le canevas ouvert de Lolly Design - Importer un design se trouve dans le menu Lolly de la barre d'outils](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D17ZTfS8MwEMf_mryO5NZ288GHrdqJv1CUvWdtOgppMtJMNv96yaV1iRNEQRBZoblwab53l0-uq915bXgrCOSDpf3LzgANnQ4eI0rrPJn7Gh9cd0sE8lIryxtFIFfatFx6L4F0Mi-11GbUiZYr25QjK3bW-S8I5MnUbRXKCkMgb5uqki6JFFU7rjoXYsSgT8GaLebKZSeGAPkUYypMHp80DeugYYR4J_U7X4XRkY8dFHuTYEJ-jDWM3qoqsEHo4Y20-xJi-SPVaOfRUuAL1hiZXNrG4gH6M85Z5lTAk8x8DdlnPL8gecVfBIEU6F5v0bbCor3VUu4JpOPCKTCWsPI9rBS107d6QyCfRET_Ac6wX36X6UpX-49Ip1mAlMEPkM6QX20aoSpECLTmpadcazPQ9hPlWxboRndWmFEIG1s4Yp3E3Ts-0f4GbcruWHLzlC0frmfpfbGk82LxmD0vUndSTcvXAoknWBKCz5LDSIdiRHV0D2Tfq1BIvdY42Zim5WZ_-n3_mRvwBg&width=1360&height=850&dpi=192&waitMs=3000&format=svg&walker=1&chrome=1&localize=1&dark=1&filename=design)
 
 Les calques arrivent sous forme de blocs modifiables : le texte reste modifiable, les formes restent des formes et les images rejoignent ta propre bibliothèque. Enregistre-le, et **Share with rules** peut transformer la mise en page en outil que toute personne ayant Lolly peut remplir de nouveau. Voir [Import a design](/info/design-import.html).
 
@@ -100,7 +100,7 @@ Les feature flags activent ou désactivent des parties de Lolly. En usage autono
 
 Un utilitaire fait une tâche rapide sur un fichier que tu as déjà, comme compresser un PDF, convertir une photo ou retirer des données cachées, et beaucoup d'entre eux tournent sur ton appareil sans rien envoyer. Ils existent pour que les tâches que l'on confie d'habitude à un site web quelconque restent dans Lolly. Compresser un contrat, convertir des photos de vacances dont l'emplacement est encore inclus ou coller un jeton dans un formateur en ligne ne devrait pas revenir à confier le fichier à un site dont la conservation, la juridiction et le modèle économique sont inconnus. [Lolly Utilities](/info/utilities.html) les liste, et [The trade we never agreed to](/info/status-quo.html) raconte l'histoire derrière eux.
 
-![La vue Utilities : Strip Hidden Data, Compress PDF, Convert Image et les autres tâches sur l'appareil, réunis au même endroit](/t/url-shot?url=%2F%23%2Fu&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone!important%7D&tolerance=0.03&format=svg&walker=1&dark=1&filename=use-utilities&try=1)
+![La vue Utilities : Lolly Strip Hidden Data, Compress PDF, Convert Image et les autres tâches sur l'appareil, réunis au même endroit](/t/url-shot?url=%2F%23%2Fu&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone!important%7D&tolerance=0.03&format=svg&walker=1&dark=1&filename=use-utilities&try=1)
 
 ## Notre organisation peut-elle utiliser le SSO, des projets partagés et des approbations ?
 
@@ -110,7 +110,7 @@ Oui, avec **Lolly Work**, le serveur d'organisation du même projet open source.
 
 ## À quels obstacles s'attendre en adoptant Lolly ?
 
-La plupart des changements concernent le côté production plutôt que la technologie. Une équipe qui veut un ensemble d'outils encadré a besoin de quelqu'un pour rédiger son design system et les premiers modèles, même si chacun peut commencer à créer ses propres outils dans Design dès le premier jour, sans git. Et les processus existants continuent de fonctionner même quand leur résultat est hors charte ; convertir bien un résultat visible, avant et après côte à côte, plaide donc plus vite qu'un plan.
+La plupart des changements concernent le côté production plutôt que la technologie. Une équipe qui veut un ensemble d'outils encadré a besoin de quelqu'un pour rédiger son design system et les premiers modèles, même si chacun peut commencer à créer ses propres outils dans Lolly Design dès le premier jour, sans git. Et les processus existants continuent de fonctionner même quand leur résultat est hors charte ; convertir bien un résultat visible, avant et après côte à côte, plaide donc plus vite qu'un plan.
 
 [Adoption & Governance](/info/adoption-governance.html) couvre l'accueil par rôle, la mesure d'un pilote et à quoi peut ressembler un processus de gouvernance.
 
@@ -144,3 +144,11 @@ Ils vivent dans un dépôt séparé et privé. Un clone public ne récupère pas
 ## Quel parfum a ce logo Lolly ?
 
 Certains disent citron vert, d'autres menthe et parfois pomme ; Lolly apporte le sucré, c'est toi qui fais le parfum !
+
+## Que veut dire Lolly par souveraineté du contenu ?
+
+Le contrôle sur la façon dont ton contenu est créé, encadré, stocké et déplacé entre les systèmes que tu choisis. Lolly prend en charge la production locale, le travail modifiable et les outils portables ; Lolly Work ajoute des services partagés contrôlés par l'organisation. Les licences des sources, les dépendances disponibles et les flux de données du workflow comptent toujours. [What is content sovereignty?](/info/content-sovereignty.html) explique chaque contrôle et ses limites.
+
+## Pouvons-nous garder notre DAM actuel ?
+
+Oui. Un DAM pris en charge peut rester la source de référence pendant que Lolly Work relie des ressources choisies aux outils Lolly. L'accès à la source, les modifications permises, les droits d'usage et l'approbation du résultat final sont des décisions distinctes. [Use Lolly with your existing DAM](/info/use-with-dam.html) explique l'arrangement, et [SUSE's Brandfolder experience](/info/suse-brandfolder.html) consigne une utilisation réussie pendant l'adoption.

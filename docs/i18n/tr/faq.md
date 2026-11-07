@@ -39,7 +39,7 @@ lolly.tools, Lolly'nin kendi örnek tasarım sistemi olan [Lolly Demo](/info/lol
 
 ## Kendi markamı kullanabilir miyim?
 
-Evet. **Design System Setup** (`#/start`) bir renkten, bir tasarım token dosyasından veya bitmiş bir tasarımdan tasarım sistemi kurar ve her araç sonra senin tasarım sistemin ile çizer. [Start](/info/quickstart.html#put-your-brand-in) üç yolu anlatır.
+Evet. **Lolly Design System Setup** (`#/start`) bir renkten, bir tasarım token dosyasından veya bitmiş bir tasarımdan tasarım sistemi kurar ve her araç sonra senin tasarım sistemin ile çizer. [Start](/info/quickstart.html#put-your-brand-in) üç yolu anlatır.
 
 Kuruluşunun veya sürümünün sağladığı bir tasarım sistemi yönetilir: kilit gösterir ve salt okunur kalır; değiştirmek için düzenlenebilir bir kopya yapabilirsin.
 
@@ -80,9 +80,9 @@ Web uygulaması, güncel tarayıcıların bir grafik özelliği olan WebGPU ile 
 
 ## Lolly, Figma, Penpot, Illustrator ya da InDesign dosyalarımı düzenleyip render edebilir mi?
 
-Evet. **Design** uygulamasını aç ve **Import a design** düğmesine tıkla: yerel bir Figma **.fig** (Save local copy), bir Penpot **.penpot** dışa aktarması, bir Illustrator **.ai** veya **.pdf**, bir InDesign **.idml** (File → Export → InDesign Markup) ya da **herhangi bir SVG** kabul eder. Hesap, eklenti veya tasarım uygulaması lisansı gerekmez.
+Evet. **Design** aracını aç ve **Import a design** düğmesine tıkla: yerel bir Figma **.fig** (Save local copy), bir Penpot **.penpot** dışa aktarması, bir Illustrator **.ai** veya **.pdf**, bir InDesign **.idml** (File → Export → InDesign Markup) ya da **herhangi bir SVG** kabul eder. Hesap, eklenti veya tasarım uygulaması lisansı gerekmez.
 
-![Design'ın serbest kanvası - Bir tasarım içe aktar, araç çubuğunun Lolly menüsünde durur](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D17ZTfS8MwEMf_mryO5NZ288GHrdqJv1CUvWdtOgppMtJMNv96yaV1iRNEQRBZoblwab53l0-uq915bXgrCOSDpf3LzgANnQ4eI0rrPJn7Gh9cd0sE8lIryxtFIFfatFx6L4F0Mi-11GbUiZYr25QjK3bW-S8I5MnUbRXKCkMgb5uqki6JFFU7rjoXYsSgT8GaLebKZSeGAPkUYypMHp80DeugYYR4J_U7X4XRkY8dFHuTYEJ-jDWM3qoqsEHo4Y20-xJi-SPVaOfRUuAL1hiZXNrG4gH6M85Z5lTAk8x8DdlnPL8gecVfBIEU6F5v0bbCor3VUu4JpOPCKTCWsPI9rBS107d6QyCfRET_Ac6wX36X6UpX-49Ip1mAlMEPkM6QX20aoSpECLTmpadcazPQ9hPlWxboRndWmFEIG1s4Yp3E3Ts-0f4GbcruWHLzlC0frmfpfbGk82LxmD0vUndSTcvXAoknWBKCz5LDSIdiRHV0D2Tfq1BIvdY42Zim5WZ_-n3_mRvwBg&width=1360&height=850&dpi=192&waitMs=3000&format=svg&walker=1&chrome=1&localize=1&dark=1&filename=design)
+![Lolly Design'ın serbest kanvası - Bir tasarım içe aktar, araç çubuğunun Lolly menüsünde durur](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D17ZTfS8MwEMf_mryO5NZ288GHrdqJv1CUvWdtOgppMtJMNv96yaV1iRNEQRBZoblwab53l0-uq915bXgrCOSDpf3LzgANnQ4eI0rrPJn7Gh9cd0sE8lIryxtFIFfatFx6L4F0Mi-11GbUiZYr25QjK3bW-S8I5MnUbRXKCkMgb5uqki6JFFU7rjoXYsSgT8GaLebKZSeGAPkUYypMHp80DeugYYR4J_U7X4XRkY8dFHuTYEJ-jDWM3qoqsEHo4Y20-xJi-SPVaOfRUuAL1hiZXNrG4gH6M85Z5lTAk8x8DdlnPL8gecVfBIEU6F5v0bbCor3VUu4JpOPCKTCWsPI9rBS107d6QyCfRET_Ac6wX36X6UpX-49Ip1mAlMEPkM6QX20aoSpECLTmpadcazPQ9hPlWxboRndWmFEIG1s4Yp3E3Ts-0f4GbcruWHLzlC0frmfpfbGk82LxmD0vUndSTcvXAoknWBKCz5LDSIdiRHV0D2Tfq1BIvdY42Zim5WZ_-n3_mRvwBg&width=1360&height=850&dpi=192&waitMs=3000&format=svg&walker=1&chrome=1&localize=1&dark=1&filename=design)
 
 Katmanlar düzenlenebilir kutular olarak gelir: metin yeniden yazılabilir kalır, şekiller şekil kalır ve görseller kendi kitaplığına katılır. Kaydet ve **Share with rules** düzeni, Lolly'si olan herkesin yeniden doldurabileceği bir araca dönüştürebilir. Bkz. [Import a design](/info/design-import.html).
 
@@ -100,7 +100,7 @@ Evet. Biri bir davet paylaşır; bir bağlantı, bir QR kodu veya kısa bir kod 
 
 Bir yardımcı araç, zaten elinde olan bir dosya üzerinde hızlı bir iş yapar; örneğin bir PDF'i sıkıştırmak, bir fotoğrafı dönüştürmek veya gizli verileri temizlemek; birçoğu hiçbir şey yüklenmeden cihazında çalışır. İnsanların genellikle rastgele bir web sitesine verdiği işler Lolly içinde kalsın diye vardırlar. Bir sözleşmeyi sıkıştırmak, konumu hâlâ içinde olan tatil fotoğraflarını dönüştürmek veya bir belirteci çevrimiçi bir biçimlendiriciye yapıştırmak, dosyayı saklama süresi, yargı alanı ve iş modeli bilinmeyen bir siteye vermek anlamına gelmemelidir. [Lolly Utilities](/info/utilities.html) onları listeler ve [The trade we never agreed to](/info/status-quo.html) arkalarındaki hikâyeyi anlatır.
 
-![Utilities görünümü: Strip Hidden Data, Compress PDF, Convert Image ve diğer cihaz üzerindeki işler, hepsi tek yerde](/t/url-shot?url=%2F%23%2Fu&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone!important%7D&tolerance=0.03&format=svg&walker=1&dark=1&filename=use-utilities&try=1)
+![Utilities görünümü: Lolly Strip Hidden Data, Compress PDF, Convert Image ve diğer cihaz üzerindeki işler, hepsi tek yerde](/t/url-shot?url=%2F%23%2Fu&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone!important%7D&tolerance=0.03&format=svg&walker=1&dark=1&filename=use-utilities&try=1)
 
 ## Kuruluşumuz SSO, paylaşılan projeler ve onayları kullanabilir mi?
 
@@ -110,7 +110,7 @@ Evet, aynı açık kaynak projesinin kuruluş sunucusu olan **Lolly Work** ile. 
 
 ## Lolly'ye geçerken hangi engelleri beklemeliyim?
 
-Çoğunlukla teknolojiden çok üretim tarafında değişir. Yönetilen bir araç kümesi isteyen bir ekibin, tasarım sistemini ve ilk şablonları yazacak birine ihtiyacı vardır; yine de herkes Design içinde ilk günden kendi araçlarını yapmaya başlayabilir, git gerekmez. Ve mevcut süreçler çıktıları markaya aykırı olsa bile çalışmaya devam eder; bu yüzden görünür bir çıktıyı, önce ve sonra yan yana iyi dönüştürmek, durumu bir plandan daha hızlı anlatır.
+Çoğunlukla teknolojiden çok üretim tarafında değişir. Yönetilen bir araç kümesi isteyen bir ekibin, tasarım sistemini ve ilk şablonları yazacak birine ihtiyacı vardır; yine de herkes Lolly Design içinde ilk günden kendi araçlarını yapmaya başlayabilir, git gerekmez. Ve mevcut süreçler çıktıları markaya aykırı olsa bile çalışmaya devam eder; bu yüzden görünür bir çıktıyı, önce ve sonra yan yana iyi dönüştürmek, durumu bir plandan daha hızlı anlatır.
 
 [Adoption & Governance](/info/adoption-governance.html) role göre karşılamayı, bir pilotun nasıl ölçüleceğini ve bir yönetişim sürecinin nasıl görünebileceğini kapsar.
 
@@ -144,3 +144,11 @@ Ayrı, özel bir depoda yaşarlar. Herkese açık bir klon SUSE marka paketini h
 ## O Lolly logosu hangi aromada?
 
 Kimi misket limonu der, kimi nane, bazen de elma; tatlılığı Lolly getirir, aromayı sen yaratırsın!
+
+## Lolly'nin içerik egemenliği derken kastettiği nedir?
+
+İçeriğinin nasıl oluşturulduğu, yönetildiği, depolandığı ve seçtiğin sistemler arasında nasıl taşındığı üzerindeki denetim. Lolly yerel üretimi, düzenlenebilir işi ve taşınabilir araçları destekler; Lolly Work, kuruluşun denetlediği paylaşılan hizmetleri ekler. Kaynak lisansları, kullanılabilir bağımlılıklar ve iş akışının veri akışları yine de önemlidir. [What is content sovereignty?](/info/content-sovereignty.html) her denetimi ve sınırlarını açıklar.
+
+## Mevcut DAM'imizi koruyabilir miyiz?
+
+Evet. Lolly Work seçilen varlıkları Lolly araçlarına bağlarken desteklenen bir DAM kayıt kaynağı olarak kalabilir. Kaynak erişimi, izin verilen düzenlemeler, kullanım hakları ve bitmiş çıktının onayı ayrı kararlardır. [Use Lolly with your existing DAM](/info/use-with-dam.html) düzenlemeyi açıklar ve [SUSE's Brandfolder experience](/info/suse-brandfolder.html) benimseme sırasındaki başarılı kullanımı kaydeder.

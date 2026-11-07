@@ -19,10 +19,13 @@
  *     A run is `w:r/w:t`, and every `w:t` carries `xml:space="preserve"` so
  *     leading/trailing spaces survive. Headings reference a `w:pStyle`
  *     ("Heading1".."Heading6"); paragraphs carry none. The body's trailing `w:sectPr`
- *     (page geometry) is required for Word to treat the document as laid out.
+ *     (page geometry) is required for Word to treat the document as laid out: the
+ *     caller's `page` (size and margins in twips), else US Letter with 1" margins.
  *   - `word/styles.xml` - defines Normal (the document default) + Heading1..6, so a
  *     `pStyle` reference resolves to a visible style (bold, graded sizes) instead of a
  *     dangling id. Quote / TableHeader / Code are appended only when a block needs them.
+ *     The caller's `styles` name the body face and text colour in the docDefaults and the
+ *     heading face and colour in Heading1..6; absent, no face or colour is named.
  *   - `word/_rels/document.xml.rels` - relates the main document to styles.xml, and to
  *     numbering, footnotes, every unique hyperlink target and every image part.
  *
@@ -34,7 +37,9 @@
  *   - `word/footnotes.xml` - emitted only when a `footnote` block exists, and carries the
  *     two separator pseudo-notes (ids -1 and 0) Word expects alongside the real bodies.
  *   - `word/media/*` - emitted only for images, with a `Default Extension` content type
- *     per distinct extension.
+ *     per distinct extension. An SVG that comes with a PNG of the same artwork is two
+ *     parts, the PNG as the blip and the SVG through the `asvg:svgBlip` extension, the
+ *     way Word itself writes one.
  * Each conditional part registers its own content type and relationship; nothing about
  * the five parts above changes when they are absent.
  *
@@ -48,7 +53,10 @@
  * ── WHAT IS DELIBERATELY NOT EXPRESSED ───────────────────────────────────────
  * A `code` block writes one styled paragraph per line and an inline `code` run writes a
  * monospace run: WordprocessingML has no code construct, so `docx-read.ts` reads both back
- * as ordinary text. Colour, alignment, fonts and sizes are not in the block model at all.
+ * as ordinary text. Colour, alignment, fonts and sizes are not in the block model at all:
+ * the document's faces and text colours travel as STYLES (`DocxDoc.styles`, written into
+ * the docDefaults and the Heading styles), never as per-run overrides, so a reader who
+ * restyles Normal or Heading 1 restyles the whole document.
  * A link inside a footnote body flattens to its text, because a note's relationships live in
  * a second rels part (word/_rels/footnotes.xml.rels) this writer does not emit.
  * Returns the finished zip bytes via the shared `storeZip`. No DOM, no deps beyond the
@@ -88,6 +96,38 @@ export interface DocxMedia {
   bytes: Uint8Array;
   width?: number;
   height?: number;
+  /**
+   * For an SVG picture: PNG bytes of the same artwork. The picture is then written the
+   * way Word writes one, with the PNG as the blip and the SVG next to that, through the
+   * `asvg:svgBlip` extension, so a reader with no SVG support (Google Docs, older Word)
+   * shows the PNG and a current one draws the vector. Ignored for any other picture.
+   */
+  fallback?: Uint8Array;
+}
+
+/**
+ * The page a document is laid out on, in twips (1440 to the inch). Absent, the page is
+ * US Letter with one-inch margins, as before this field existed. `snapDocxPage` turns a
+ * measured size into a standard paper size when it is one.
+ */
+export interface DocxPage {
+  width: number;
+  height: number;
+  margin?: { top: number; right: number; bottom: number; left: number };
+}
+
+/**
+ * The document's faces and text colours, written as styles: `bodyFont` and `textColor`
+ * into the document defaults (so Normal, lists and tables inherit them), `headingFont`
+ * and `headingColor` into Heading 1 to 6. A face is a family name; a colour is `#rrggbb`.
+ * Each field is optional, and an absent one writes nothing, so the reader's default
+ * applies there.
+ */
+export interface DocxStyles {
+  bodyFont?: string;
+  headingFont?: string;
+  textColor?: string;
+  headingColor?: string;
 }
 
 /** The document model `writeDocx` serializes. `title` names the document (dc:title in
@@ -105,6 +145,10 @@ export interface DocxDoc {
   /** dcterms:created/modified timestamp. Defaults to a fixed epoch so output
    *  stays deterministic unless the caller passes a wall clock (pptx precedent). */
   now?: string;
+  /** Page size and margins. Absent: US Letter, one-inch margins. */
+  page?: DocxPage;
+  /** Faces and text colours, as styles. Absent: none named, the reader's defaults apply. */
+  styles?: DocxStyles;
 }
 
 // Nested inline wrappers are bounded the way docx-read.ts bounds them, so a cyclic or
@@ -157,6 +201,8 @@ interface Ctx {
   hrefRel: Map<string, string>;
   /** media name → its rId, so one image used twice is one part. */
   imageRel: Map<string, string>;
+  /** media name → the rId of its SVG part, for a picture written as a PNG plus its SVG. */
+  svgRel: Map<string, string>;
   media: ZipStoreEntry[];
   /** Distinct media extensions, for the [Content_Types] Default entries. */
   exts: Set<string>;
@@ -170,6 +216,8 @@ interface Ctx {
   needQuote: boolean;
   needTableHeader: boolean;
   needCode: boolean;
+  /** The printable width of the page in twips: the page less its left and right margins. */
+  contentTwips: number;
 }
 
 function relId(ctx: Ctx): string {
@@ -319,8 +367,11 @@ const paraXml = (pPrInner: string, runs: string): string =>
 
 // 96dpi is the px basis Word assumes for a pasted bitmap; 914400 EMU per inch / 96 = 9525.
 const EMU_PER_PX = 9525;
-// The printable width of the fixed page geometry below: 8.5in less two 1in margins.
-const MAX_IMAGE_EMU = 6.5 * 914400;
+// 914400 EMU per inch / 1440 twips per inch.
+const EMU_PER_TWIP = 635;
+// The fixed GUID that marks a blip's SVG companion, as Word and PowerPoint write it (pptx.ts).
+const SVG_EXT_URI = '{96DAC541-7B7A-43D3-8B79-37D633B846F1}';
+const ASVG_NS = 'http://schemas.microsoft.com/office/drawing/2016/SVG/main';
 // Used when the bytes carry no size this module can read (SVG, WebP, a truncated file).
 const FALLBACK_PX = { w: 480, h: 360 };
 
@@ -385,27 +436,48 @@ const MEDIA_TYPES: Record<string, string> = {
   wmf: 'image/x-wmf',
 };
 
+/** True when the bytes are a PNG: the only fallback a picture's SVG is written beside. */
+const isPng = (b: Uint8Array | undefined): b is Uint8Array =>
+  !!b && b.length > 24 && b[0] === 0x89 && b[1] === 0x50 && b[2] === 0x4e && b[3] === 0x47;
+
+/** Add one media part and its relationship, returning the relationship id. */
+function addMedia(ctx: Ctx, bytes: Uint8Array, ext: string): string {
+  const path = `media/image${ctx.media.length + 1}.${ext}`;
+  ctx.media.push({ name: `word/${path}`, bytes });
+  ctx.exts.add(ext);
+  return addRel(ctx, 'image', path, false);
+}
+
 /** One `w:p` holding an inline picture, or '' when no bytes back the block's `ref`. */
 function imageXml(ref: string, alt: string, ctx: Ctx): string {
   const entry = ctx.mediaByName.get(ref);
   if (!entry) return '';
+  // An SVG with a PNG of the same artwork is written the way Word writes one: the PNG is
+  // the blip every reader draws, the SVG rides the svgBlip extension for readers that
+  // draw vectors. The PNG part comes first, so its id is the lower of the two.
+  const svgPair = extOf(ref) === 'svg' && isPng(entry.fallback);
   let rid = ctx.imageRel.get(ref);
+  let svgRid = ctx.svgRel.get(ref);
   if (!rid) {
-    const ext = extOf(ref);
-    const path = `media/image${ctx.media.length + 1}.${ext}`;
-    ctx.media.push({ name: `word/${path}`, bytes: entry.bytes });
-    ctx.exts.add(ext);
-    rid = addRel(ctx, 'image', path, false);
+    if (svgPair) {
+      rid = addMedia(ctx, entry.fallback!, 'png');
+      svgRid = addMedia(ctx, entry.bytes, 'svg');
+      ctx.svgRel.set(ref, svgRid);
+    } else {
+      rid = addMedia(ctx, entry.bytes, extOf(ref));
+    }
     ctx.imageRel.set(ref, rid);
   }
   ctx.needR = true;
   ctx.needWp = true;
 
-  const nat = imagePx(entry.bytes) ?? FALLBACK_PX;
+  // The size comes from the vector when there is one: the PNG is drawn larger than the
+  // picture shows, for print, and its pixels are not the picture's size.
+  const nat = (svgPair ? null : imagePx(entry.bytes)) ?? (svgPair ? imagePx(entry.fallback) : null) ?? FALLBACK_PX;
   const w = Number.isFinite(entry.width) && (entry.width as number) > 0 ? (entry.width as number) : nat.w;
   const h = Number.isFinite(entry.height) && (entry.height as number) > 0 ? (entry.height as number) : nat.h;
   // Natural size, scaled down (never up) so the picture fits the printable width.
-  const scale = Math.min(1, MAX_IMAGE_EMU / (w * EMU_PER_PX));
+  const scale = Math.min(1, (ctx.contentTwips * EMU_PER_TWIP) / (w * EMU_PER_PX));
   const cx = Math.max(1, Math.round(w * EMU_PER_PX * scale));
   const cy = Math.max(1, Math.round(h * EMU_PER_PX * scale));
 
@@ -419,10 +491,19 @@ function imageXml(ref: string, alt: string, ctx: Ctx): string {
     `<a:graphic xmlns:a="${A_NS}"><a:graphicData uri="${PIC_NS}">` +
     `<pic:pic xmlns:pic="${PIC_NS}">` +
     `<pic:nvPicPr><pic:cNvPr id="${id}" name="${name}" descr="${descr}"/><pic:cNvPicPr/></pic:nvPicPr>` +
-    `<pic:blipFill><a:blip r:embed="${rid}"/><a:stretch><a:fillRect/></a:stretch></pic:blipFill>` +
+    `<pic:blipFill>${blipXml(rid, svgRid)}<a:stretch><a:fillRect/></a:stretch></pic:blipFill>` +
     `<pic:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="${cx}" cy="${cy}"/></a:xfrm>` +
     `<a:prstGeom prst="rect"><a:avLst/></a:prstGeom></pic:spPr>` +
     `</pic:pic></a:graphicData></a:graphic></wp:inline></w:drawing></w:r></w:p>`
+  );
+}
+
+/** The blip: the raster alone, or the raster with its SVG through the svgBlip extension. */
+function blipXml(rid: string, svgRid: string | undefined): string {
+  if (!svgRid) return `<a:blip r:embed="${rid}"/>`;
+  return (
+    `<a:blip r:embed="${rid}"><a:extLst><a:ext uri="${SVG_EXT_URI}">` +
+    `<asvg:svgBlip xmlns:asvg="${ASVG_NS}" r:embed="${svgRid}"/></a:ext></a:extLst></a:blip>`
   );
 }
 
@@ -434,9 +515,6 @@ const TBL_BORDERS =
     .map((s) => `<w:${s} w:val="single" w:sz="4" w:space="0" w:color="auto"/>`)
     .join('') +
   '</w:tblBorders>';
-
-/** The printable width in twips: the page geometry below, less its margins. */
-const CONTENT_TWIPS = 12240 - 1440 - 1440;
 
 interface PendingMerge {
   span: number;
@@ -501,7 +579,7 @@ function tableXml(
   }
 
   if (cols < 1) cols = 1;
-  const colW = Math.max(1, Math.floor(CONTENT_TWIPS / cols));
+  const colW = Math.max(1, Math.floor(ctx.contentTwips / cols));
   const grid = `<w:tblGrid>${`<w:gridCol w:w="${colW}"/>`.repeat(cols)}</w:tblGrid>`;
   return (
     `<w:tbl><w:tblPr><w:tblW w:w="0" w:type="auto"/>${TBL_BORDERS}</w:tblPr>${grid}${body}</w:tbl>`
@@ -510,14 +588,84 @@ function tableXml(
 
 // ─── body ────────────────────────────────────────────────────────────────────
 
-// Body page geometry: US-Letter (12240x15840 twips) with 1" margins. A body with no trailing
-// w:sectPr is technically parseable, but every real producer emits one, and leaving it out
-// trips Word's layout heuristics. Keep it fixed so output is deterministic.
-const SECT_PR =
-  '<w:sectPr>' +
-  '<w:pgSz w:w="12240" w:h="15840"/>' +
-  '<w:pgMar w:top="1440" w:right="1440" w:bottom="1440" w:left="1440" w:header="720" w:footer="720" w:gutter="0"/>' +
-  '</w:sectPr>';
+// Body page geometry. A body with no trailing w:sectPr is technically parseable, but every
+// real producer emits one, and leaving it out trips Word's layout heuristics. With no
+// `page`, the page is US Letter (12240x15840 twips) with 1" margins, as it always was.
+const LETTER: Required<DocxPage> = {
+  width: 12240, height: 15840, margin: { top: 1440, right: 1440, bottom: 1440, left: 1440 },
+};
+// Word's own page limits: 0.1in to 22in each way.
+const MIN_PAGE_TWIPS = 144;
+const MAX_PAGE_TWIPS = 31680;
+// The space a margin always leaves for text, so a hostile margin cannot leave none.
+const MIN_TEXT_TWIPS = 720;
+// Where Word puts a header and a footer when it is given no other place: half an inch in.
+const HEADER_TWIPS = 720;
+
+const twips = (n: unknown, lo: number, hi: number, fallback: number): number =>
+  typeof n === 'number' && Number.isFinite(n) ? Math.min(hi, Math.max(lo, Math.round(n))) : fallback;
+
+/** The page a document is written on, with every value finite, whole and in Word's range. */
+function pageOf(page: DocxPage | undefined): Required<DocxPage> {
+  if (!page) return LETTER;
+  const width = twips(page.width, MIN_PAGE_TWIPS, MAX_PAGE_TWIPS, LETTER.width);
+  const height = twips(page.height, MIN_PAGE_TWIPS, MAX_PAGE_TWIPS, LETTER.height);
+  const m = page.margin ?? LETTER.margin;
+  // Each pair of margins leaves at least MIN_TEXT_TWIPS (or what the page has) between them.
+  const room = (size: number): number => Math.max(0, size - Math.min(MIN_TEXT_TWIPS, size));
+  const pair = (a: unknown, b: unknown, size: number): [number, number] => {
+    const max = room(size);
+    let x = twips(a, 0, max, Math.min(1440, max / 2));
+    let y = twips(b, 0, max, Math.min(1440, max / 2));
+    if (x + y > max) { const k = max / (x + y); x = Math.floor(x * k); y = Math.floor(y * k); }
+    return [x, y];
+  };
+  const [left, right] = pair(m.left, m.right, width);
+  const [top, bottom] = pair(m.top, m.bottom, height);
+  return { width, height, margin: { top, right, bottom, left } };
+}
+
+function sectPrXml(page: Required<DocxPage>): string {
+  const { width, height, margin } = page;
+  // A landscape page says so, or Word turns it upright when it prints.
+  const orient = width > height ? ' w:orient="landscape"' : '';
+  return (
+    '<w:sectPr>' +
+    `<w:pgSz w:w="${width}" w:h="${height}"${orient}/>` +
+    `<w:pgMar w:top="${margin.top}" w:right="${margin.right}" w:bottom="${margin.bottom}" w:left="${margin.left}"` +
+    ` w:header="${Math.min(HEADER_TWIPS, margin.top)}" w:footer="${Math.min(HEADER_TWIPS, margin.bottom)}" w:gutter="0"/>` +
+    '</w:sectPr>'
+  );
+}
+
+/** Standard paper sizes in millimetres, portrait. Letter, Legal and Tabloid are exact inches. */
+const PAPER_MM: ReadonlyArray<readonly [number, number]> = [
+  [210, 297], [148, 210], [105, 148], [297, 420], [420, 594], [176, 250], [250, 353],
+  [215.9, 279.4], [215.9, 355.6], [279.4, 431.8], [184.15, 266.7],
+];
+const TWIPS_PER_MM = 1440 / 25.4;
+// A measured page within a millimetre of a paper size is that size: a page laid out in
+// whole CSS pixels (794 x 1123 for A4) misses the exact twips by a fraction of one.
+const SNAP_MM = 1;
+
+/**
+ * The page size a measured page stands for, in twips: the standard paper size within a
+ * millimetre of it (A4 is 11906 x 16838, US Letter 12240 x 15840), in the same
+ * orientation, else the measurement rounded to whole twips. Word and every other reader
+ * name a page by its exact size, so A4 written as 11910 twips reads as a custom size.
+ */
+export function snapDocxPage(width: number, height: number): { width: number; height: number } {
+  const wMm = width / TWIPS_PER_MM;
+  const hMm = height / TWIPS_PER_MM;
+  for (const [a, b] of PAPER_MM) {
+    for (const [pw, ph] of [[a, b], [b, a]] as const) {
+      if (Math.abs(wMm - pw) <= SNAP_MM && Math.abs(hMm - ph) <= SNAP_MM) {
+        return { width: Math.round(pw * TWIPS_PER_MM), height: Math.round(ph * TWIPS_PER_MM) };
+      }
+    }
+  }
+  return { width: Math.round(width), height: Math.round(height) };
+}
 
 // numId 1 is the bullet list, numId 2 the decimal one (see numberingXml below).
 const BULLET_NUM_ID = 1;
@@ -577,7 +725,7 @@ function blockXml(block: DocBlock, ctx: Ctx): string {
   }
 }
 
-function documentXml(blocks: DocBlock[], ctx: Ctx): string {
+function documentXml(blocks: DocBlock[], ctx: Ctx, page: Required<DocxPage>): string {
   let paras = '';
   for (const b of blocks) paras += blockXml(b, ctx);
   // An empty body is invalid (Word repairs a bodyless document), so a document with no
@@ -587,7 +735,7 @@ function documentXml(blocks: DocBlock[], ctx: Ctx): string {
     `xmlns:w="${W_NS}"` + (ctx.needR ? ` xmlns:r="${REL}"` : '') + (ctx.needWp ? ` xmlns:wp="${WP_NS}"` : '');
   return (
     `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n` +
-    `<w:document ${ns}><w:body>${paras}${SECT_PR}</w:body></w:document>`
+    `<w:document ${ns}><w:body>${paras}${sectPrXml(page)}</w:body></w:document>`
   );
 }
 
@@ -597,9 +745,36 @@ function documentXml(blocks: DocBlock[], ctx: Ctx): string {
 // bold. Enough that a pStyle reference resolves to a visibly distinct style.
 const HEADING_HALF_PT = [32, 28, 26, 24, 22, 20];
 
-function stylesXml(ctx: Ctx): string {
+// A family name a style may carry: a plain name, as brand-vars.ts accepts one, so nothing
+// a token document says can reach the XML as anything but a name.
+const FAMILY_RE = /^[A-Za-z0-9][A-Za-z0-9 _-]{0,63}$/;
+const familyOf = (v: unknown): string | undefined => {
+  const name = typeof v === 'string' ? v.trim() : '';
+  return FAMILY_RE.test(name) ? name : undefined;
+};
+const colourOf = (v: unknown): string | undefined => {
+  const m = typeof v === 'string' ? /^#?([0-9a-fA-F]{6})$/.exec(v.trim()) : null;
+  return m?.[1] ? m[1].toUpperCase() : undefined;
+};
+
+/**
+ * The face named in every slot Word reads one from: `ascii` and `hAnsi` for Latin text,
+ * `eastAsia` for East Asian text and `cs` for complex scripts. One family in all four, as
+ * the pptx writer gives one family to latin, ea and cs.
+ */
+const rFontsXml = (face: string | undefined): string =>
+  face ? `<w:rFonts w:ascii="${face}" w:hAnsi="${face}" w:eastAsia="${face}" w:cs="${face}"/>` : '';
+const colorXml = (hex: string | undefined): string => (hex ? `<w:color w:val="${hex}"/>` : '');
+
+function stylesXml(ctx: Ctx, look: DocxStyles | undefined): string {
+  const bodyFont = familyOf(look?.bodyFont);
+  const headingFont = familyOf(look?.headingFont);
+  const textColor = colourOf(look?.textColor);
+  const headingColor = colourOf(look?.headingColor);
   // docDefaults + Normal give every paragraph a resolved base; each Heading1..6 is a paragraph
-  // style based on Normal, so a run inherits the base font and only overrides size/weight.
+  // style based on Normal, so a run inherits the base font and only overrides size and
+  // weight, plus the heading face and colour when the document gives them. The children
+  // keep CT_RPr's order: rFonts, b, color, sz.
   let styles =
     `<w:style w:type="paragraph" w:default="1" w:styleId="Normal"><w:name w:val="Normal"/></w:style>`;
   for (let i = 0; i < HEADING_HALF_PT.length; i++) {
@@ -609,7 +784,7 @@ function stylesXml(ctx: Ctx): string {
       `<w:style w:type="paragraph" w:styleId="Heading${lvl}">` +
       `<w:name w:val="heading ${lvl}"/><w:basedOn w:val="Normal"/><w:uiPriority w:val="9"/>` +
       `<w:pPr><w:keepNext/><w:outlineLvl w:val="${i}"/></w:pPr>` +
-      `<w:rPr><w:b/><w:sz w:val="${sz}"/><w:szCs w:val="${sz}"/></w:rPr>` +
+      `<w:rPr>${rFontsXml(headingFont)}<w:b/>${colorXml(headingColor)}<w:sz w:val="${sz}"/><w:szCs w:val="${sz}"/></w:rPr>` +
       `</w:style>`;
   }
   if (ctx.needQuote) {
@@ -635,7 +810,7 @@ function stylesXml(ctx: Ctx): string {
   return (
     `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n` +
     `<w:styles xmlns:w="${W_NS}">` +
-    `<w:docDefaults><w:rPrDefault><w:rPr><w:sz w:val="22"/><w:szCs w:val="22"/></w:rPr></w:rPrDefault><w:pPrDefault/></w:docDefaults>` +
+    `<w:docDefaults><w:rPrDefault><w:rPr>${rFontsXml(bodyFont)}${colorXml(textColor)}<w:sz w:val="22"/><w:szCs w:val="22"/></w:rPr></w:rPrDefault><w:pPrDefault/></w:docDefaults>` +
     styles +
     `</w:styles>`
   );
@@ -751,8 +926,10 @@ const documentRels = (extra: string[]): string =>
  * {@link DocBlock}, or a mix. Every document also carries docProps/core.xml +
  * app.xml (plans/144 Wave 2 G3), fed from `meta`/`now` with 'Lolly' defaults.
  *
- * @param doc  `{ title?, blocks, media? }`. An empty `blocks` still yields a valid
- *             one-paragraph doc. `media` supplies the bytes an `image` block's `ref` names.
+ * @param doc  `{ title?, blocks, media?, page?, styles? }`. An empty `blocks` still yields
+ *             a valid one-paragraph doc. `media` supplies the bytes an `image` block's `ref`
+ *             names. With no `page` and no `styles`, the output is byte-identical to what
+ *             this writer produced before either existed.
  * @returns the finished .docx archive bytes.
  */
 export function writeDocx(doc: DocxDoc): Uint8Array {
@@ -764,6 +941,7 @@ export function writeDocx(doc: DocxDoc): Uint8Array {
     nextRel: 1, // rId1 is styles.xml
     hrefRel: new Map(),
     imageRel: new Map(),
+    svgRel: new Map(),
     media: [],
     exts: new Set(),
     mediaByName: new Map(),
@@ -774,7 +952,10 @@ export function writeDocx(doc: DocxDoc): Uint8Array {
     needQuote: false,
     needTableHeader: false,
     needCode: false,
+    contentTwips: 0,
   };
+  const page = pageOf(doc?.page);
+  ctx.contentTwips = Math.max(1, page.width - page.margin.left - page.margin.right);
   for (const m of Array.isArray(doc?.media) ? doc.media : []) {
     if (m && typeof m.name === 'string' && m.bytes instanceof Uint8Array) ctx.mediaByName.set(m.name, m);
   }
@@ -787,7 +968,7 @@ export function writeDocx(doc: DocxDoc): Uint8Array {
   if (noteBlocks.length) addRel(ctx, 'footnotes', 'footnotes.xml', false);
   noteBlocks.forEach((b, i) => ctx.noteIds.set(String(b.id), i + 1));
 
-  const document = documentXml(blocks, ctx);
+  const document = documentXml(blocks, ctx, page);
   // `inLink` is forced on for a note body: a hyperlink there would resolve through
   // word/_rels/footnotes.xml.rels, a second rels part this writer does not emit, so the link
   // flattens to its own text rather than pointing at a relationship Word cannot find.
@@ -805,7 +986,7 @@ export function writeDocx(doc: DocxDoc): Uint8Array {
     { name: 'docProps/core.xml', bytes: str(corePropsXml(coreMeta, now, 'Document')) },
     { name: 'docProps/app.xml', bytes: str(APP_PROPS) },
     { name: 'word/document.xml', bytes: str(document) },
-    { name: 'word/styles.xml', bytes: str(stylesXml(ctx)) },
+    { name: 'word/styles.xml', bytes: str(stylesXml(ctx, doc?.styles)) },
     { name: 'word/_rels/document.xml.rels', bytes: str(documentRels(ctx.rels)) },
   ];
   if (hasLists) entries.push({ name: 'word/numbering.xml', bytes: str(NUMBERING_XML) });

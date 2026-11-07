@@ -1,6 +1,8 @@
-# Design System Setup
+# Lolly Design System Setup
 
-Logon, renklerin ve yazı tiplerin tek yerde durmalı ki her araç, sayfa ve dışa aktarma onlarla çizsin. O yer, `#/start` adresindeki **Design System Setup**'tır.
+<a id="design-system-setup"></a>
+
+Logon, renklerin ve yazı tiplerin tek yerde durmalı ki her araç, sayfa ve dışa aktarma onlarla çizsin. O yer, `#/start` adresindeki **Lolly Design System Setup**'tır.
 
 Elinde ne varsa onunla başla. Bir logo bırak ve Lolly renklerini okur. Bir yazı tipi seç ya da şirketinin lisansladığı yazı tipi dosyasını bırak. Her değişiklik uygulamanın tamamında hemen görünür. Logon, yazı tiplerin ve token'ların bu cihazda kalır. Bir Google Font seçmek dışarıya uzanan tek adımdır: Lolly önce sorar, sonra aileyi bir kez getirir.
 
@@ -94,9 +96,9 @@ Oda tasarım sistemiyle birlikte büyür: ilk ziyaret tek bir karardır ve geris
 
 ### İlk renk
 
-Kendi rengi olmayan bir sistem tek bir büyük çip ve tek bir alanla açılır; rollerin, tonların ve baskı ayarlarının sistem büyüdükçe geleceğini söyleyen bir satır eşlik eder.
+Kendi rengi olmayan bir sistem, kendi grubunda açık duran starter nötrlerini ve odanın en üstünde kesikli bir yapıştırma ve bırakma alanı gösterir: tek bir büyük çip ve tek bir alan. Alanın herhangi bir yerine bir görsel ya da renk listesi bırak; Lolly renkleri bıraktığından okur.
 
-- **Çip seçicidir.** **Pick a colour** düğmesine bas ve stüdyonun OKLCH kartı alanın tuttuğuyla tohumlanmış olarak açılır: bir ad, tekerlek, dört kadran, alfa ve **Stored as**; altta **Cancel** ve **Add colour** vardır. Sen **Add colour** düğmesine basana kadar sisteme hiçbir şey ulaşmaz.
+- **Çip seçicidir.** **Pick a colour** düğmesine bas ve stüdyonun OKLCH kartı alanın tuttuğuyla tohumlanmış olarak açılır: önce rengin adı ve hex değeri, renk uzayları, tekerlek, dört kadran ve alfa **Fine-tune** altında; altta **Cancel** ve **Add colour** vardır. Sen **Add colour** düğmesine basana kadar sisteme hiçbir şey ulaşmaz.
 - **Alan her gösterimi alır**: `#e0452b`, `rgb(224 69 43)`, `oklch(58% .19 32)` veya bir renk adı. Bir liste yapıştır; tek tek veya **Add all** ile eklenecek bir çip satırı olur.
 - **İki yol daha.** **Pick a colour from the screen** tarayıcıda varsa damlalığı kullanır ve **Take colours from an image** bu cihazdaki bir ekran görüntüsünü veya fotoğrafı okur.
 - **Add asla devre dışı değildir.** Alan boşken seçiciyi açar; okuyamadığı metin için alanın altında bunu söyleyen bir satır çıkar.
@@ -106,23 +108,65 @@ Kendi rengi olmayan bir sistem tek bir büyük çip ve tek bir alanla açılır;
 
 ### Palet büyüdükçe
 
-Renkler geniş ekranda bir **In context** önizlemesinin yanında, daha küçük ekranda üstünde durur. Önizleme paletinde bir poster, grafik veya arayüz kartı gösterir. Starter renkler kendi katlanan gruplarında kalır.
+Renkler geniş ekranda bir **In context** önizlemesinin yanında, daha küçük ekranda üstünde durur. Önizleme paletinde bir poster, grafik veya arayüz kartı gösterir. Starter renkler kendi katlanan gruplarında kalır; sistemin kendi renkleri olunca grup katlanır ve yapıştırma ve bırakma alanı tek kompakt bir satıra dönüşür. Export çubuktaki **Export** düğmesinde ve Tokens odasında durur, bu yüzden odanın başlığında export yoktur.
 
 ![Lolly Demo üzerinde Colours odası: katlanan gruplarda palet, adı ve hex değeriyle her renk ve başlıkta palet indirmesi](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-roles-fold%5D%3Esummary%3Bwait%3A500&format=svg&walker=1&localize=1&dark=1&filename=brand-colours)
 
-![Bir renk eklendikten sonra Colours odası, paletiyle ve canlı bir kompozisyon önizlemesiyle](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dpick&width=1440&height=840&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-editor-add%5D%3Bwait%3A900&format=svg&walker=1&dark=1&filename=bs-colour-first)
+![Bir renk eklendikten sonra Lolly Demo üzerinde Colours odası: Colour roles tablosu, ardından yeni rengin Use as Lead? ve Fine-tune sunan çipi, canlı bir kompozisyon önizlemesinin yanında](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dpick&width=1440&height=840&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-editor-add%5D%3Bwait%3A900&format=svg&walker=1&dark=1&filename=bs-colour-first)
 
-### Roller: araçların okuduğu
+### Colour roles: renklerin adı ne
 
-![The Colour roles table on Lolly Demo after choosing the suggested words Main, Accent, Supporting and Tertiary: the colourway chips, then each role with its light and dark colour, Main read as the lead colour and Accent as the partner colour, Supporting and Tertiary read by name only and marked Copied, and the readings no role fills listed under the table](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&system=wefthouse&width=2720&height=2000&dpi=192&waitMs=1800&cropSelector=%5Bdata-be-roles-fold%5D&format=svg&walker=1&dark=1&filename=bs-colour-roles)
+Tasarım sistemi renklerinin adının ne olduğunu ve her birinin ne işe yaradığını söyler; Lolly bunu okur. **Colour roles** Colours odasının başında durur. Geniş ekranda **In context** görünümü paylaşır, bu yüzden bir değişiklik sen yaparken poster, grafik ve arayüz kartında görünür.
 
-**Roles**, her araçta ve dışa aktarmada hangi rengin hangi rolü oynadığını söyler. İsteğe bağlıdır (üç serbest renk ve rol olmaması mükemmel bir sistemdir), her renk bir rol alabilir ve kontrast göstergesi yüzeye karşı ölçülür, önce APCA. Her rol satırı tam güçte kendi bir rengi, yerine geçen bir starter rengi veya **↳ follows Primary** gösterir.
+![Wefthouse üzerinde, uydurma bir tekstil markası, kendi sözcükleriyle Colour roles tablosu: colourway çipleri Indigo, Madder ve Weld, ardından Main, Accent, Supporting ve Tertiary; her birinin açık ve koyu rengi var ve sırasıyla ana renk, ortak rengi ve yalnızca adıyla okunuyor; tablonun altında hiçbir rolün doldurmadığı okumalar olarak Background, Text, Quiet text ve Hairlines listelenmiş](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&system=wefthouse&width=2720&height=2000&dpi=192&waitMs=1800&cropSelector=%5Bdata-be-roles-fold%5D&format=svg&walker=1&dark=1&filename=bs-colour-roles)
 
-Palette tonlar olduğunda şerit, bir aracın okuyabileceği yedi rolün hepsini gösterir: Primary, Secondary, Surface, Text, Muted, Edge ve On primary. On primary birincil renkten türetilir, **Derived** yazar ve seçicisi yoktur.
+Tablonun dört sütunu vardır ve telefonda her satır, açık ve koyu değeri yan yana tutan bir karta dönüşür:
+
+| Sütun | Ne tutar |
+|---|---|
+| **Role** | Tasarım sisteminin kendi sözcüğü, yerinde düzenleyebilirsin; ayrıca rengin ne işe yaradığını söyleyen bir satır |
+| **Light** ve **Dark** | Seçili colourway için o görünümdeki renk, adı veya değeri ve kontrastı |
+| **Lolly reads this as** | Bir aracın rolle ne yaptığı, Lolly'nin kendi sözcükleriyle |
+
+**Lolly bir rolü nasıl okur.** Her okuma bir rol alır, bu yüzden başka bir rolün tuttuğu bir okumayı seçmek o okumayı buraya taşır. Lolly anlamı asla bir sözcükten çıkarmaz.
+
+| Okuma | Ondan ne çıkar |
+|---|---|
+| **Lead colour** | Büyük şekiller, düğmeler, bir aracın öne çıkardığı renk |
+| **Partner colour** | Bir aracın ikinci olarak seçtiği renk |
+| **Background** | Her şeyin arkasında durur |
+| **Text** | Başlıklar ve gövde metni |
+| **Quiet text** | Alt yazılar ve küçük yazı |
+| **Hairlines** | Çizgiler, kenarlıklar ve ayırıcılar |
+| **By name only** | Hiçbir araç rolü kendiliğinden seçmez. Her renk alanında ve Design'da sunulur; orada seçim bağlı kalır, bu yüzden colourway'i izler |
+
+Hiçbir rolün doldurmadığı bir okuma tasarım sisteminin tanımladığı gibi kalır ve oda bunları tablonun altında listeler. Bir okumanın kendi kimliğini paylaşan bir rol, örneğin Primary adlı bir rol, o okumadır ve taşınamaz.
+
+**Değerler.** O rol için, o görünümde, seçili colourway'de bir renk seçmek için bir değere bas. **Same as light**, kendi rengini seçene kadar koyu değerin açık değeri izlemesini sağlar. **Aa** çipi Lolly'nin o rengin üstüne koymak için seçtiği metni gösterir ve değerin altındaki satır bu metnin görünüm başına nasıl okunduğunu söyler: **Text reads well**, **Large text only** veya **Hard to read as text**. Bu, renk üzerindeki metinle ilgilidir ve rengin kendisi aleyhine bir şey söylemez; renk yine şekiller ve büyük alanlar için işe yarayabilir. Yalnızca adıyla okunan bir rol aynı sözcükleri uyarı rengi olmadan gösterir, çünkü hiçbir araç üstüne kendiliğinden metin koymaz. Sözcüklerin arkasındaki rakamlar, önce APCA sonra WCAG, ipucunda ve seçicide durur. **Own text colour**, dosyası metin rengini belirten ve bu yüzden kalan bir değeri işaretler. **Copied**, başka bir colourway'den veya ortak renkten gelen ve kimsenin henüz seçmediği bir değeri işaretler; seçicideki **Keep this colour** değeri sabitler.
+
+**Başlangıç noktaları.** Kendi rolü olmayan bir tasarım sistemi bugünün sözcüklerini gösterir: Primary, Secondary, Surface ve Text. Sen birini değiştirene kadar hiçbir şey yazılmaz. **+ Add a role**, öneri olarak **Primary, Secondary** veya **Main, Accent, Supporting, Tertiary** sunar, ayrıca yazdığın her sözcüğü, her birinin alacağı okumayla birlikte. İlk iki sözcük ana renk ve ortak renk olur. Araçlar aynı renkleri çizmeye devam eder ve tek ana renkli bir sistemde ilk colourway o rengin adını alır.
+
+**Yeniden adlandırma, yeniden sıralama, kaldırma.** Yeniden adlandırma yalnızca sözcüğü değiştirir, bu yüzden rolü kullanan her şey çalışmaya devam eder. Bir rolü tutamacından sürükle ya da tutamaçta Space'e bas, ok tuşlarını kullan ve bırakmak için Space'e bas. **Remove** rolü hâlâ neyin kullandığını söyler. Araçlar rolü okuyorsa **Remove and keep those colours** her okumayı şimdi çizdiği renkle bırakır. Rolü kullanan bir marka kuralı, bir kılavuz grubu, bir araç alanı veya başka bir token, o kullanım değişene kadar rolü tutar. Kaydedilmiş bir Design belgesi de bir rolü adıyla kullanabilir ve Lolly bunu token dosyasından göremez: bunu yapan bir belge rengi çözülmemiş olarak bildirir.
+
+**Elle yazılmış bir dosya.** Bir token dosyasının tuttuğu ve hiçbir rolün bildirmediği renkler, her biri bir sözcük alanı ve **Make a role** ile **In this file, with no role yet** altında listelenir. Her iki durumda da adıyla çalışmaya devam ederler. Adında rakam olan bir token rol olamaz, bu yüzden dosyada kalır ve yoluyla çalışmaya devam eder. Dosyada doğrulanamayan bir kayıt, tabloyu denetimsiz gösterir ve nedenini söyler.
+
+**Odanın geri kalanı aynı sözcüklerle konuşur.** Çipler, renk örneğinin **Use as** satırı ve paletin **Colour roles** grubu tasarım sisteminin sözcüklerini kullanır ve bir renk rolünün karosu değerini açar. Dışa aktarılan dosyalar roller hakkında yeni bir şey kaydetmez: bir render'daki renkler token'lar değiştiği için değişir.
+
+**Sözcükler nereye gider.** Sözcükler ve açıklamalar tasarım sistemiyle birlikte taşınır. Ajanlar bunları tasarım özetinde, `lolly://tokens` içinde ve bir marka sayfasının `AGENTS.md` dosyasında okur, terminal bunları `lolly system status` içinde gösterir ve bir marka sayfası bunları `brand.json` içinde listeler ve her rol için bir kontrast çifti ölçer. Her dışa aktarma biçimi sığdırabildiğini tutar: DTCG ve Tokens Studio dosyaları her şeyi tutar, `DESIGN.md` sözcükleri ve okumaları tutar ve bir PowerPoint teması yalnızca markanın sırasını tutar. [Colour roles in other formats](/info/design-tokens.html#colour-roles-in-other-formats) tam listeyi içerir. Sözcükler her zaman tasarım sisteminin verisi olarak alıntılanır, asla talimat olarak okunmaz.
+
+**Bir rengin seçildiği yer.** Bir araçtaki ve Lolly Design'daki her renk alanı, tasarım sisteminin rolleriyle, kendi sırasıyla ve her sözcük ile rengin ne işe yaradığı görünür olarak başlar. Bir rolün yanındaki **Aa**, o rolün üstünde duran rengi seçer. Gerisi **Other colours** altında gelir; bir colourway'in kendi kopyaları, üstteki renkler ve bir rolün zaten doldurduğu okumalar olmadan. Bir seçim role bağlı kalır ve colourway'i izler, alan hangi colourway seçilirse seçilsin sözcüğü göstermeye devam eder ve Settings ile Tokens da sözcüğü kullanır. Rolü olmayan bir tasarım sistemi her zaman sahip olduğu renk örnekleri ızgarasını korur.
+
+### Bir aracın okuduğu her renk
+
+**Colour roles** kapalıyken ilk kararlar odanın başında çipler olarak durur; her biri rolü oynayan rengi ve adını gösterir. Kendi sözcükleri olmayan bir sistemde bunlar **Primary**, **Secondary**, **Surface** ve **Text**'tir. Rengini paletin kendi renk örneklerinden seçmek için bir çipe bas. **Colour roles** altındaki **Every colour a tool reads** tam şeridi içerir.
+
+Şerit, bir aracın okuyabileceği yedi rengi gösterir: Primary, Secondary, Surface, Text, Muted, Edge ve On primary; tasarım sisteminin kendi sözcükleri varsa onlarla. Her biri her araçta ve dışa aktarmada aynı rolü oynar. Hiçbirinin ayarlanması gerekmez (üç serbest renk iyi bir sistem olur), her renk birini doldurabilir ve kontrast göstergesi yüzeye karşı ölçülür, önce APCA. Her satır tam güçte kendi bir rengi, yerine geçen bir starter rengi veya **↳ follows Primary** gösterir.
+
+On primary birincil renkten türetilir, **Derived** yazar ve seçicisi yoktur. Yanındaki **Light** ve **Dark** anahtarı ile **In context** yanındaki anahtar, şeridin, paletin ve önizlemenin hangi görünümü göstereceğini seçer.
 
 Uygulamanın kendi vurgusu varsayılan olarak tasarım sistemini izler. Bu, **Settings → Appearance** içindeki **Interface follows the design system** ayarıdır; ayarı kapatmak uygulamanın arayüzünü nötr bırakır, araçlar, tuvaller ve dışa aktarmalar iki durumda da tasarım sistemini izler.
 
-**Colourways.** Bir tasarım sistemi, her biri parça başına seçilen birkaç öncü renk tutabilir. **Renk rolleri** başındaki **Renk düzenleri** satırı her colourway için bir çip gösterir; kurallı olanda **Varsayılan** yazar. **+ Ekle**, paletin renklerinden birinden yeni bir colourway başlatır. Bir çip seç; rol şeridi, palet ve önizlemeler **Açık** ve **Koyu** anahtarının seçtiği görünümde o colourway'i düzenler. Seçili colourway yeniden adlandırılabilir, çoğaltılabilir, varsayılan yapılabilir veya kaldırılabilir. Colourway'li bir sistemde her colourway'in kendi birincil ve ikincil rengi ve colourway'ler arka planı tonladığında kendi yüzeyi gerekir; bu yüzden bu roller renk örneği düzenleyicisinde ayarlı kalır. [Add colourways to a design system](/info/colourways.html#add-colourways-to-a-design-system) adımları ve token biçimini içerir, [Lolly Demo in use](/info/lolly-demo-in-use.html#colourways-on-real-work) ise gerçek işlerde colourway'leri gösterir.
+**Colourways.** Bir tasarım sistemi, her biri parça başına seçilen birkaç öncü renk tutabilir. **Colour roles** başındaki **Colourways** satırı her colourway için bir çip gösterir; kurallı olanda **Default** yazar. **+ Add**, paletin renklerinden birinden yeni bir colourway başlatır. Bir çip seç; tablo, şerit, palet ve önizlemeler o colourway'i gösterir; seçili colourway yeniden adlandırılabilir, çoğaltılabilir, varsayılan yapılabilir veya kaldırılabilir. Colourway'li bir sistemde her colourway'in kendi birincil ve ikincil rengi ve colourway'ler arka planı tonladığında kendi yüzeyi gerekir; bu yüzden bu roller renk örneği düzenleyicisinde ayarlı kalır. [Add colourways to a design system](/info/colourways.html#add-colourways-to-a-design-system) adımları ve token biçimini içerir, [Lolly Demo in use](/info/lolly-demo-in-use.html#colourways-on-real-work) ise gerçek işlerde colourway'leri gösterir.
 
 ### Daha fazla renk bul
 
@@ -165,7 +209,7 @@ Colourway'li bir sistem, yeniden kurmada her colourway'i korur. Kurallı colourw
 
 ### Palet ve her örnek
 
-Palet renklerini, her birinin kendi **+ Add** düğmesi olan katlanan gruplarda listeler. Grupları istediğin gibi oluştur ve yeniden adlandır. Bir rol asla ikinci bir karo oluşturmaz: bir rolün işaret ettiği karo bunun yerine küçük bir işaret taşır (**P**, **S**, **Su**, **T**). Karoların altındaki **Colour chart** aynı renkleri OKLCH **Wheel** üzerinde (yeniden renklendirmek için bir noktayı sürükle, örnek eklemek için boş alana tıkla) ve görüntülenebilir aralığın nerede bittiğini gösteren **Gamut** grafiğinde gösterir. `#/start?area=color&focus=chart` grafiği doğrudan açar.
+Palet renklerini, her birinin kendi **+ Add** düğmesi olan katlanan gruplarda listeler. Grupları istediğin gibi oluştur ve yeniden adlandır. Bir rol hiçbir zaman ikinci bir karo üretmez: bir rolün işaret ettiği karo bunun yerine rolün adını taşır, örneğin **Primary**. Karoların altındaki **Colour chart** aynı renkleri OKLCH **Wheel** üzerinde (bir noktayı sürükleyerek yeniden renklendir, boş bir yere tıklayarak renk örneği ekle) ve görüntülenebilir aralığın nerede bittiğini gösteren **Gamut** grafiğinde gösterir. `#/start?area=color&focus=chart` grafiği doğrudan açar.
 
 ![Palet bölmesi, her grup katlanabilir, palet indirmesi başlığında](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dgenerate%26seed%3D%2523e0452b&width=1440&height=1000&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-roles-fold%5D%3Esummary%3Bwait%3A500%3Bclick%3A%5Bdata-be-add-ramp%3D%22primary%22%5D%3Bwait%3A1200&cropSelector=.be-split-side&walker=1&format=svg&dark=1&filename=bs-palette-pane)
 
@@ -173,19 +217,19 @@ Palet renklerini, her birinin kendi **+ Add** düğmesi olan katlanan gruplarda 
 
 Düzenleyicisini açmak için bir örneğe tıkla:
 
-- Örneği **yeniden adlandır**.
-- OKLCH sürgüleriyle ya da **Hex**, **HSL**, **RGB** veya **CMYK** içinde **rengi ayarla**. Değer alanı etkin uzayda okur ve yazar. Buradaki CMYK ekran rengini dönüşümle ayarlar; tam mürekkepleri sabitlemek için **Print substitutes** kullan.
-- **Stored as** örneğin nasıl kaydedileceğini seçer: **LCH** (varsayılan, algısal ve geniş gamut), Hex, RGB veya HSL.
-- **Use as** örneğe doğrudan bir rol verir. Rolü temizlemek için vurgulanmış bir role yeniden bas.
-- **Print substitutes** (katlanmış): **CMYK** değerini **Auto**'dan tam mürekkep değerlerine kilitle ya da bir **Name** (örneğin `PANTONE 186 C`), isteğe bağlı bir **Book** ve folyo, kabartma, çukur, spot vernik, soft touch veya bir kalıp kesimi, kırım ya da perforasyon için bir **Finish** ile bir **Spot colour** ayarla. Bir CMYK PDF veya TIFF dışa aktardığında bir baskı makinesi bu kilitleri kullanır; bkz. [Colour profiles](/info/exporting.html#colour-profiles).
-- **In other spaces** (katlanmış): renk uzayı başına, türetilmiş veya senin yazdığın bir değer ve yazılmış olan dışa aktarmada kazanır.
+- Renk örneğini **yeniden adlandır**.
+- Rengi OKLCH kaydırıcılarında ya da **Hex**, **HSL**, **RGB** veya **CMYK** ile **ayarla**. Değer alanı etkin uzayda okur ve yazar. Buradaki CMYK ekran rengini dönüşümle ayarlar; tam mürekkepleri sabitlemek için **Print substitutes** kullan.
+- **Stored as** renk örneğinin nasıl kaydedileceğini seçer: **LCH** (varsayılan, algısal ve geniş gamlı), Hex, RGB veya HSL.
+- **Use as** renk örneğine doğrudan bir rol verir; tasarım sisteminin kendi sözcükleri varsa onlarla. Rolü temizlemek için vurgulanmış bir role yeniden bas.
+- **Print substitutes** (katlanmış): **CMYK**'yi **Auto**'dan tam mürekkep değerlerine kilitle ya da bir **Name** (örneğin `PANTONE 186 C`), isteğe bağlı bir **Book** ve folyo, kabartma, çukur baskı, nokta vernik, yumuşak dokunuş ya da bıçak, kırım veya perforaj için bir **Finish** ile bir **Spot colour** ayarla. Bir baskı makinesi bu kilitleri bir CMYK PDF veya TIFF dışa aktardığında kullanır; bkz. [Colour profiles](/info/exporting.html#colour-profiles).
+- **In other spaces** (katlanmış): renk uzayı başına bir değer, türetilmiş ya da senin yazdığın; senin yazdığın dışa aktarmada kazanır.
 
 **Bir örneği silmek** güvenlidir. Türetilmiş tonlar ve tema rolleri gizlenir; böylece onları okuyan hiçbir şey bozulmaz, eklediğin renkler ise kaldırılır.
 
 ::: details Birçok örnekle çalışmak
 Her örneğin bir sürükleme tutamağı vardır. Bir grup içinde yeniden sıralamak için sürükle ya da tutamağa odaklan, Space'e bas, ok tuşlarını kullan ve bırakmak için yeniden Space'e bas; Escape iptal eder. Telefonda palet satır başına dört renk gösterir ve tutamaklar her rengin altında bir satır olarak değil, Select modunda görünür. Renkleri gruplar arasında taşımak için düzenleyicinin **Group** denetimini kullan ya da birkaçını seç ve **Move to** kullan.
 
-Seçim için bir mod gerekmez. Çubuk ilk seçili karoyla belirir ve sonuncuyla kaybolur.
+Seçim için ayrı bir anahtar gerekmez. Çubuk ve onay kutuları ilk seçili karoyla görünür ve sonuncusuyla kaybolur.
 
 - **Boş alanda sürükle** bir dikdörtgen çizmek için; dokunduğu her karo gruplar boyunca seçime katılır. Katlanmış bir bölüm hiçbir şey eklemez.
 - **Shift ile tıkla** okuma sırasında bir aralık alır, **Cmd/Ctrl ile tıkla** bir karoyu açıp kapatır ve düz bir tıklama düzenleyiciyi açar.
@@ -245,11 +289,11 @@ Token'lar tasarım sisteminin ardındaki adlandırılmış değerlerdir: renkler
 
 - **Başlık**, kendi sisteminden bir örnek verir (*Primary is Spearmint, #033633*) ve dosya eylemlerini: **Download** (sistemin tamamı tasarım token'ları olarak ya da palet beş başka biçimde), **Copy CSS** ve bir JSON dosyasını geri okumak için **Add from…**.
 - **Karolar**, her token türünü sayar ve bölümüne atlar: Colours, Type, Logos, Shape and spacing, More ve All tokens. Her bölümün tuttuğunu sayarlar; yalnızca boş starter ile gelen malzemeyi tutan bir bölüm **Starter** etiketi taşır, uygulamayla gelen bir sistem ise kendi malzemesini etiketsiz sayar. Telefonda karolar üç karolu iki satıra sarılır.
-- **Colours**, araçların bir araya getirdiği çiftlerle (yüzeyde metin, birincilde, yüzeyde soluk) açık ve koyuda bir APCA göstergesiyle başlar ve bir çift yetersiz kaldığında **Weak contrast** işaretler. Sonra her renk grubu: bir satır çip olarak rampa, değeri ve araçların kullandığı başvuruyla diğer renkler; örneğin `{color.brand.spearmint}`. Başvuruyu kopyalamak için bir başvuruya bas. **Edit in Colours** bir grubu Colours odasında açar.
+- **Colours**, araçların bir araya getirdiği çiftlerle (yüzeyde metin, birincilde, yüzeyde soluk) açık ve koyuda bir APCA göstergesiyle başlar ve bir çift yetersiz kaldığında **Weak contrast** işaretler. Sonra her renk grubu: bir satır çip olarak rampa, değeri ve araçların kullandığı başvuruyla diğer renkler; örneğin `{color.brand.spearmint}`. Başvuruyu kopyalamak için bir başvuruya bas. **Edit in Colours** bir grubu Colours odasında açar. [Renk rolleri](#colour-roles-what-the-colours-are-called) olan bir tasarım sisteminde önce **Colour roles** gelir; her rol sistemin kendi sözleriyle ve sırasıyla bir kez yer alır. Bir rol her renk varyantı ve görünüm için bir renk tutar; bu renkler kendi başlarına renk olarak görünmez, rolle kalır: bunları Colour roles tablosunda değiştir.
 - **Type** ve **Logos**, kendine ait olanlar olduğunda **Edit in Type** ve **Edit in Logos** ile her rol ve her logo yuvası için yazı tipini listeler.
 - **Shape and spacing**, **Rounded corners** (`shape.radius`) ve **Spacing rhythm** (`space.base`) tutar. Her biri sürgüyü oynatana kadar *Lolly default*, sonra *Yours* okunur, hemen kaydeder ve geri alınabilir.
 - **More tokens**, standart [tasarım token'ları](/info/design-tokens.html) olarak saklanan aralık, boyutlandırma, çizgi kalınlığı, opaklık, döndürme, düz sayılar ve gölgeler ekler.
-- **App appearance (advanced)**, Lolly'nin kendi ekranlarının kullandığı renkleri, boyutları ve gölgeleri listeler ve **Inspect every token (advanced)** her değişikliği önce inceleme için göstererek saklanan her değeri arar ve düzenler.
+- **App appearance (advanced)**, Lolly'nin kendi ekranlarının kullandığı renkleri, boyutları ve gölgeleri listeler ve **Inspect every token (advanced)** her değişikliği önce inceleme için göstererek saklanan her değeri arar ve düzenler. Orada bir renk rolünün her renk varyantındaki değerleri rolle birlikte listelenir: renk varyantı başına bir satır görmek için rolün token'ını seç; açık ve koyu yan yana durur, sayı satırı da rollerin kaç değer tuttuğunu söyler. Salt okunur bir tasarım sistemi aynı listeyi gösterir.
 
 İçinde hiçbir şey olmayan bir bölüm boşluğu doldurmanın yolunu sunar: **Pick a colour**, **Choose a face** veya **Add a logo**.
 
@@ -259,22 +303,24 @@ Markanın tuttuğu dosyaları, logolar dışında bırak: **vector**, **image**,
 
 ## Rules
 
-**Rules**, markanın seçimlerini işe koyar: insanların neyi değiştirebileceği, neyin sabit kaldığı ve Lolly'nin neyi denetleyebileceği.
+**Rules**, markanın seçimlerini işe koşar: insanların neyi değiştirebileceği, neyin sabit kaldığı ve Lolly'nin neyi denetleyebileceği.
 
-![Lolly Demo üzerinde Rules: Add your first rule içeren boş bir Brand rules kartı, sonra örnekleri render edilmeye hazır Try your brand in use](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dusage&width=1440&height=1200&dpi=192&waitMs=2400&cropSelector=%23start-panel-usage&format=svg&walker=1&dark=1&filename=bs-usage-rules)
+![Lolly Demo üzerinde Rules: her biri Checked in Lolly Design ve Required ya da Advisory olarak işaretlenmiş dört marka kuralı, ardından örnekleri render edilmeye hazır Try your design system in use](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dusage&width=1440&height=1200&dpi=192&waitMs=2400&cropSelector=%23start-panel-usage&format=svg&walker=1&dark=1&filename=bs-usage-rules)
 
 **Brand rules** kurallarını listeler. **Add rule** (veya **Add your first rule**) kısa bir form açar:
 
-- *Beacon accents* gibi kendi sözcüklerinle bir **Rule name**;
-- **Check**: **Colour choices**, **Font choices**, **Fixed artwork** veya **Text length**; rol için kendi adınla kullandığı marka rolüyle;
-- uygulandığı **Example** (Poster, Title slide, Content slide veya Chart), **Mode** ve **Required** mi **Advisory** mi olduğu;
-- **Reviewed by**, sonra **Save draft** veya **Approve & save**.
+- kendi sözcüklerinle bir **Rule name**, örneğin *Beacon accents*;
+- **Check**: **Colour choices**, **Font choices**, **Fixed artwork** veya **Text length**; kullandığı marka rolüyle, rol için kendi adınla;
+- uygulandığı **Example** (Poster, Title slide, Content slide veya Lolly Chart), **Mode** ve **Required** mi **Advisory** mi olduğu;
+- **Reviewed by**, ardından **Save draft** veya **Approve & save**.
 
 Onay, bu cihazdaki kendi kararını kaydeder. Onaylı zorunlu kurallar yeniden kullanılabilir posteri kısıtlar ve denetimler yalnızca örnek PNG'leri kapsar; başka hiçbir aracı değiştirmezler.
 
-Bir tasarım sisteminin token dosyasında getirdiği kurallar, örneğin onaylı renk eşleşmeleri, metin ağırlığı ve hizalama ya da yüzey başına bir logo, burada **Checked in Design** olarak listelenir. Design bunları dışa aktarma panelinin **Before you export** kartında katman katman denetler ve `lolly check` kayıtlı bir Design belgesi için aynısını yapar ([Before you export](/info/design.html#before-you-export)). Bu derlemenin denetleyicisi olmayan bir kural sağlandığı gibi tutulur ve **Unchecked** olarak işaretlenir.
+Bir tasarım sisteminin token dosyasında getirdiği kurallar, örneğin onaylı renk eşleşmeleri, metin ağırlığı ve hizası ya da yüzey başına bir logo, burada **Checked in Lolly Design** olarak listelenir. Lolly Design bunları dışa aktarma panelinin **Before you export** kartında katman katman denetler ve `lolly check` kaydedilmiş bir Lolly Design belgesi için aynısını yapar ([Before you export](/info/design.html#before-you-export)). Bu derlemenin denetleyicisi olmayan bir kural, verildiği gibi tutulur ve **Unchecked** olarak işaretlenir.
 
-**Try your brand in use**, **Render & check examples** ile geçerli düzeltmeden dört örnek render eder. Başlık, destekleyici metin ve slayt metni için bir **Brand mode** ve **Try your own text** seç. Her örnek neyin ölçüldüğünü **See checks & sources** ve **Download check report** ile bildirir ve **Make reusable poster**, sabit düzeni ve onaylı girdi seçimleri dosyayla birlikte giden bir `.lolly` indirir. Örnekler yereldir: bir denetim çalıştırmak hiçbir şeyi yayımlamaz veya onaylamaz.
+Lolly Demo dört onaylı marka kuralıyla gelir. Başlıklar asla büyük harfle yazılmaz: bu kural zorunludur, bu yüzden `lolly check` büyük harfli bir başlığı hata olarak bildirir. Diğer üçü tavsiye niteliğindedir. Gövde metni sola hizalıdır. Birincil işaretler açık yüzeylere, ters işaretler koyu yüzeylere konur. Kesikli çizgiler buraya bırak demektir.
+
+**Try your design system in use**, **Render & check examples** ile geçerli revizyondan dört örneği render eder. Bir **Mode** ve başlık, destekleyici metin ve slayt metni için **Try your own text** seç. Her örnek ölçülenleri **See checks & sources** ve **Download check report** ile bildirir ve **Make reusable poster**, sabit düzeni ve onaylı girdi seçimleri dosyayla birlikte taşınan bir `.lolly` indirir. Örnekler yereldir: bir denetim çalıştırmak hiçbir şeyi yayımlamaz ya da onaylamaz.
 
 Sabit bir markayla gelen bir derleme, aynı kuralları ve örnekleri salt okunur olarak *This brand is set* altında gösterir.
 
@@ -286,14 +332,14 @@ Sabit bir markayla gelen bir derleme, aynı kuralları ve örnekleri salt okunur
 
 ## Bir marka getir
 
-Çubuktaki **Add from…**, hangi biçimde olduğunu değil, elinde ne olduğunu soran bir seçici açar:
+Çubuktaki **Add from…**, biçimin ne olduğunu değil elinde ne olduğunu soran bir seçici açar:
 
-- **Design tokens or a design file**: DTCG veya Tokens Studio JSON, bir Penpot projesi, token kümelerinin bir zip'i, bir Lolly tasarım sistemi paketi veya bir SVG.
-- **PDF**: bir sunum veya yönergeler dosyası, renkleri, işaretleri ve gömülü yazı tipleri için bu cihazda okunur.
-- **Logo or screenshot**: bir görsel, bu cihazda okunan önerilen bir palet olur. Renkleri okur, yazı tipini veya düzeni değil.
-- **Saved web page**: bir HTML dosyası ve CSS dosyaları ya da yapıştırılmış HTML veya CSS; en fazla 20 dosya ve 2 MB. Yalnızca sağladığın metin okunur: bağlı kaynaklar getirilmez ve betikler çalışmaz.
+- **Design tokens or a design file**: DTCG veya Tokens Studio JSON, bir Penpot projesi, token setlerinden oluşan bir zip, bir Lolly tasarım sistemi paketi, bir SVG, bir `DESIGN.md` veya bir marka sayfası klasörü.
+- **PDF**: bir sunum veya yönerge dosyası; renkleri, işaretleri ve gömülü yazı tipleri için bu cihazda okunur.
+- **Logo or screenshot**: bir görsel, bu cihazda okunan önerilmiş bir palete dönüşür. Renkleri okur; yazı tipini veya düzeni okumaz.
+- **Saved web page**: bir HTML dosyası ve CSS dosyaları ya da yapıştırılmış HTML veya CSS, en fazla 20 dosya ve 2 MB. Yalnızca verdiğin metin okunur: bağlantılı kaynaklar getirilmez ve betikler çalışmaz.
 - **Font file**: TTF, OTF veya WOFF. Yazı tipinin kurulduğu Type odasını açar.
-- **Website**: bir sayfa, renkleri ve yazısı için okunur. Bu karo yalnızca bir sayfayı okuyabilen cihazda görünür ve hangi okuyucuyu kullandığını söyler: bu cihazdaki uygulama veya arka plan sekmesinde, sen olarak oturum açmış tarayıcı uzantısı. Bir URL'yi adlandırmak yalnızca alanı doldurur; getir düğmesine basmak onaydır.
+- **Website**: bir sayfa, renkleri ve yazısı için okunur. Bu kutucuk yalnızca bir sayfayı okuyabilen cihazda görünür ve hangi okuyucuyu kullandığını söyler: bu cihazdaki uygulama ya da arka plan sekmesinde, senin adına oturum açmış tarayıcı uzantısı. Bir URL yazmak yalnızca alanı doldurur; getir düğmesine basmak onaydır.
 
 Tasarım dosyası kaynağını seç; sonraki kart kabul edilen biçimleri simge karoları olarak listeler ve kartın tamamı tek bir bırakma hedefidir. Bir dosyayı doğrudan stüdyonun üzerine de bırakabilirsin.
 
@@ -301,8 +347,18 @@ Tasarım dosyası kaynağını seç; sonraki kart kabul edilen biçimleri simge 
 
 - Bir **Lolly design-system pack** (`.lolly` veya eski bir `.zip`) tek adımda kurulur.
 - Bir **Penpot** dışa aktarması (`.penpot`) tasarım token'larını getirir.
-- Bir **Design Tokens** (W3C DTCG) veya **Tokens Studio** dosyası (`.json`) token'larını getirir.
-- Bir **plain SVG** seçeceğin renkler için taranır; ilki birincil rengin olur.
+- Bir **Design Tokens** (W3C DTCG) veya **Tokens Studio** dosyası (`.json`) token'larını getirir. Bir okuyucudan talimatları yok saymasını isteyen, izinler iddia eden ya da kod çalıştırmasını isteyen bir açıklama dışarıda bırakılır ve içe aktarma nerede durduğunu söyler. Bu satır satır bir denetimdir ve başka ifadeleri kaçırır, bu yüzden token'ları uygulamadan önce tanımadığın birinden gelen bir dosyayı oku.
+- Bir **plain SVG**, aralarından seçeceğin renkler için taranır ve ilki birincil rengin olur.
+- Bir **`DESIGN.md`** (`.md`) token'ları yazıldığı gibi **Try these colours** ekranına gider. Düzyazısı taslak bir marka becerisi olarak tutulabilir ve kart, bir okuyucudan talimatları yok saymasını, izinler iddia etmesini ya da kod çalıştırmasını isteyen satırları işaretler. Ajanlar ve marka sayfaları, sen Skills odasında **Keep this skill** düğmesine basana kadar bir taslağı görmez ve tutulan bir beceri dahili kalır.
+- Klasör olarak seçilen, bırakılan ya da zip'lenen bir **brand page folder** aynı incelemeye gider. Her dosya klasörün `brand.json` dosyasına karşı denetlenir ve eşleşmeyen biri tüm klasörü reddeder. Token'ları ekler. Logolar ve yazı tipleri klasörde kalır.
+
+Lolly bir marka sayfasını senin verdiğin dosyalardan okur. Başka bir sitenin adresini getirmez.
+
+### Kendi renk sözcükleri olan bir dosya
+
+Bir token dosyası veya bir `DESIGN.md`, renkleri için kendi sözcüklerini, örneğin main, accent, supporting ve tertiary, kullanabilir. Lolly bu tür sözcükler bulduğunda, inceleme hiçbir şey uygulanmadan önce her birini listeler: sözcük, her görünümdeki rengi, geldiği token ve Lolly'nin onu neyin olarak okuyacağı. Lolly bu okumaları yalnızca sözcüklerden, kısa bir listeye karşı önerir ve model kullanmaz. Listede olmayan bir sözcük markanın kendisininki olarak, **By name only** ile gelir. Herhangi bir sözcüğü yeniden adlandır, ne işe yaradığını söyle, başka bir şey olarak oku ya da adlandırılmış bir renk olarak bırakmak için işaretini kaldır.
+
+**Install with these roles** bunları yazar ve **Install without roles** dosyayı geldiği gibi kurar. Böyle sözcükleri olmayan bir dosya yeni bir adım göstermez. Kendi rollerini belirten bir dosya, örneğin Lolly'nin yazdığı biri, bunları yazıldığı gibi gösterir ve değiştirmeden kurar; sonradan Colours odasında düzenleyebilirsin. Terminalde inceleme yoktur, bu yüzden `lolly system import` belirtilmiş bir kaydı korur ve diğer dosyaların sözcüklerini adlandırılmış renkler olarak bırakır.
 
 ### Bir başvuruyu incele
 
@@ -316,7 +372,7 @@ PDF ve tasarım dosyası içe aktarmaları kendi inceleme denetimlerini korur. *
 
 Board'dan ya da Settings'teki tasarım sistemi listesinden **Find a look** aç. Bu cihazda kayıtlı sistemlere ve birkaç yeniden kullanılabilir Lolly örneğine göz at ve ada, renk etiketine veya bildirilmiş yazı tipine göre ara. **Closest to my current palette**, ölçülen renk benzerliğine göre sıralar; eşleşen yazı tipleri beraberlikleri bozar; bir kalite puanı değildir.
 
-Bir görünümü incelemek için birini, yan yana karşılaştırmak için ikisini seç. Seçmek hiçbir şeyi değiştirmez. **Use this saved system** ona geçer ve **Use these colours** bir örneğin renklerini olağan kontrol noktasından geçirerek uygular, yazı tiplerini korur. **Restore brand settings** önceki görünümü geri getirir. Kayıtlı sistemlerin **Details and design context** altında düzenlenebilir **Search tags** değerleri vardır. Örnekler özgün Lolly renk tarifleridir; kazınmış bir koleksiyon ve hesap yoktur.
+Bir görünümü bağlam içinde önizlemek için ona tıkla. Önizleme hiçbir şeyi değiştirmez. Her kartın **Use this look** düğmesi o görünümü kullanır. Kaydedilmiş bir sistem etkin olan olur; bu hiçbir şeyi düzenlemez. Bir örneğin renkleri, olağan kontrol noktasından geçerek açık tasarım sistemine girer; sistemin logoları, yazı tipleri ve örneğin tanımlamadığı her şey olduğu gibi kalır. **Compare looks** her karta bir onay kutusu ekler, böylece ikisini seçip yan yana karşılaştırabilirsin. **Restore brand settings** önceki görünümü geri getirir. Kaydedilmiş sistemlerin **Details and design context** altında düzenlenebilir **Search tags** alanı vardır. Örnekler özgün Lolly renk tarifleridir; kazınmış bir koleksiyon ve hesap yoktur.
 
 ![Herhangi bir renk sistemini uygulamadan önce Sunroom ve Orchard'ı yan yana karşılaştır.](/t/url-shot?url=%2F%23%2Fstart&width=1280&height=900&dpi=96&waitMs=3000&format=svg&filename=brand-compare-looks&try=1&drive=click%3A%5Bdata-ds-door%3D%22looks%22%5D%3Bwait%3A500%3Bclick%3A%5Bdata-looks-compare-toggle%5D%3Bclick%3A%5Bdata-look-select%3D%22example%3Asunroom%22%5D%3Bclick%3A%5Bdata-look-select%3D%22example%3Aorchard%22%5D%3Bclick%3A%5Bdata-looks-review%5D%3Bwait%3A500&cropSelector=.ds-looks-comparison&waitSelector=%5Bdata-ds-door%3D%22looks%22%5D&walker=1&rasterDpi=96)
 
@@ -344,13 +400,35 @@ Yayımlanmış bir sürüm, bu cihazda tutulan **kalıcı, adlandırılmış bir
 
 **Publish only** araçların izlediğini değiştirmeden bir sürümü tutar; **Publish and make active** araçların ve uygulamanın o sürümü izlemesini sağlar. **Follow the latest again**, her düzenlemeyi yaptığın anda yayına alır.
 
+### Bir marka sayfası yayımla
+
+Bir [brand page](/info/brand-page.html) hem insanlar hem ajanlar için tek bir adrestir: logoları, renkleri, yazıyı ve örnekleri gösteren bir sayfa; aynı bilgiler sayfanın yanındaki dosyalarda. Versions & publishing altındaki **Publish a brand page** canlı sayfayı gösterir ve sayfanın yanında şunları:
+
+- **Goes public**: her dosya, gruplanmış, boyutuyla.
+- **Held back**: dışarıda kalanlar ve nedeni. Kayıtlı lisansı olmayan bir logo, logonun adını işaretleyene kadar dışarıda kalır. Bir yazı tipi dosyası, başkasına geçirmeye izin veren kayıtlı bir lisans ister ve dosya dışarıda kaldığında sayfa anahatlı bir örnek gösterir. Dahili marka becerileri asla görünmez.
+- **What was checked**: colourway ve mod başına renk çiftleri ile marka kuralları. Bunlar ölçümdür, hüküm değil.
+- **In your words**: bir kullanım açıklaması ve bir iletişim. Sayfa yazdığını basar ve Lolly hiçbir lisans ya da hukuki iddia eklemez. Bir anahtar, alt bilgideki "Made with Lolly" satırını kapatır.
+- **On exports**: [sayfanın adresini bu tasarım sisteminin dışa aktarmalarına kaydeden](/info/brand-page.html#lead-back-from-your-files) bir anahtar. Sen açana kadar kapalıdır, bir `https` adresi ister ve bir paketle ya da kopyayla taşınmaz. Kilitli bir tasarım sistemi anahtarı göstermez, çünkü karar yöneticisine aittir.
+
+**Download folder** klasörü, istediğin yerde barındırman için bir ZIP olarak kaydeder ve sen barındırana kadar hiçbir şey herkese açık olmaz. Bir terminalde `lolly system publish --out=<dir>` aynı klasörü yazar. Marka sayfalarını sunan bir instance ayrıca adresine **Publish to** sunar; bu tek bir açık basıştır ve varsa onay zincirinden geçer. Yönetilen bir tasarım sistemi yalnızca yöneticisi izin verdiğinde yayımlanır.
+
+### Bir ajan bağla
+
+Aynı yerdeki **Connect an agent** sana yapıştıracağın metni verir ve her seçeneğin neler yapabildiğini söyler:
+
+- Bir projedeki **`AGENTS.md`**: ajanlar sistemin adlarını ve kurallarını okur. Hiçbir şey çizmez ve sunucu gerektirmez.
+- **Lolly's public server**: burada hangi sistemi açtıysan açmış ol, Lolly Demo ile çizer. Anahtar gerektirmez.
+- **Your instance**: instance'ın tuttuğu sistemlerle çizer ve bir hizmet token'ını bir ortam değişkeninden okur. Sayfa değişkenin adını verir ve bir token'ı asla göstermez.
+
+Sistemini hiçbir barındırılan sunucu çizmediğinde sayfa bunu söyler.
+
 ## Tasarım sistemlerini yönet
 
 Sistemleri değiştirmek, eklemek veya kaldırmak için **Settings → Preferences → Design systems** aç. **Open** bir sistemi seçer ve burada açar; **Make a new one** yerel bir sistem oluşturur ve ad alanı hazır olarak açar. Aynı anda tüm cihaz için bir sistem etkindir. Bir markanın kendi tasarım sistemine ne zaman ihtiyaç duyduğuna karar vermeye [Brand architectures](/info/brand-architectures.html) yardım eder.
 
 **Bir sistemin nereden geldiği.** Bir dağıtımın kataloğunun sağladığı sistem **Came with this app** ya da bir örneğe bağlı uygulamada **From this instance** okunur. Kimin sağladığını, token varlığını ve ad alanını ve bilinen sürümü veya sağlama toplamını görmek için **Catalogue source** bölümünü genişlet; bir yenileme başarısız olursa önbellekteki malzeme etiketlenir.
 
-**Yönetilen sistemler salt okunurdur.** Kataloğu sistemi kilitlediğinde bir sistem **Managed by this instance** (ya da örneksiz masaüstü uygulamasında **Managed by this app**) okunur. Onu kullanabilir ve indirebilirsin ve burada açmak **Make an editable copy** ve **Switch** ile salt okunur bir not gösterir. Yönetilen sistem önce gelmiş olsa bile kendi yerel sistemlerin düzenlenebilir kalır. Tek sabit markalı bir derleme, Design System Setup'ı markanın token'ları ve okunacak kullanım kurallarıyla *This brand is set* üzerinde açar.
+**Yönetilen sistemler salt okunurdur.** Kataloğu sistemi kilitlediğinde bir sistem **Managed by this instance** (ya da instance'sız masaüstü uygulamasında **Managed by this app**) yazar. Onu kullanabilir ve indirebilirsin; burada açmak **Make an editable copy** ve **Switch** içeren salt okunur bir not, ardından renk rollerini ve token'larını düzenleme denetimleri olmadan gösterir. Yönetilen sistem önce gelmiş olsa bile kendi yerel sistemlerin düzenlenebilir kalır. Tek bir sabit markalı bir derleme, Lolly Design System Setup'ı markanın token'ları ve kullanım kuralları okunabilir olarak *This brand is set* ekranında açar.
 
 **Sağlanan diğer her sistem** lolly.tools üzerindeki Lolly Demo ve Lolly Starter dahil gizlemek, düzenlemek ve sıfırlamak için **senindir**. Birini düzenlemek adını korur ve satırı **Edited here** olarak işaretler ve menüsündeki **Reset to original** bu cihazda yapılan değişiklikleri atar. Boş starter istisnadır: oradaki ilk değişiklik kendi tasarım sistemini başlatır, bu yüzden Lolly yeni sisteme ne ad vereceğini bir kez sorar. Kendi sisteminin neyin yerini aldığını [Lolly Demo in use](/info/lolly-demo-in-use.html#switch-to-your-own) gösterir.
 
@@ -360,16 +438,17 @@ Bir sistemin menüsünden **Remove** seç; onay, sonrasında hangi sistemin etki
 
 Sağlanan bir sistemi kaldırmak onu yalnızca gizler: katalog varlıkları kalır, **Bring back** onu yeniden gösterir ve diğer her şeyi kaldırırsan kendiliğinden geri döner. İçe aktarılmış veya düzenlenmiş bir kopyayı kaldırmak sağlanan sistemi, logolarını veya yazı tiplerini kaldırmaz ve kopya etkinse sağlanan sistem yeniden etkin olur. Etkin barındırılan bir kopyayı kaldırmak yalnızca o kopyanın bağlantısını temizler; ayrıca seçilen bir örnek seçili kalır.
 
-Bir sunucunun sağladığını değiştirmek yöneticinin görevidir: işletmesi kaynak kataloğu değiştirir ve yeniden dağıtır ya da bir Lolly Work yöneticisi bir sunucu değişikliğini inceler ve uygular. Buradaki düzenlemeler yerel kalır. Bkz. [Removing a catalogue design system](/info/configuration.html#removing-a-catalogue-design-system) ve [Configuration](/info/configuration.html#supplied-and-local-design-systems).
+Bir sunucunun sağladığını değiştirmek bir yönetici işidir: operatörü kaynak kataloğu değiştirir ve yeniden dağıtır ya da bir Lolly Work yöneticisi bir sunucu değişikliğini inceler ve uygular. Buradaki düzenlemeler yerel kalır, tek bir istisnayla: sana `brand.edit` veren bir Lolly Work instance'ında yönetilen bir sistem ayrıca o instance için **Edit for** sunar; bu bir düzenleme kopyası açar ve **Versions** içindeki **Send to** renklerini, colourway'lerini, renk rollerini ve marka sayfası adresini instance'a geri gönderir. [Edit this instance from the studio](/info/work-design-system-administration.html#edit-this-instance-from-the-studio) bir düzenlemenin neyi değiştirebileceğini ve instance'ın değişikliği nasıl sunduğunu kapsar. Bkz. [Removing a catalogue design system](/info/configuration.html#removing-a-catalogue-design-system) ve [Configuration](/info/configuration.html#supplied-and-local-design-systems).
 
 ## Tasarım bağlamını uygulamanın dışında kullan
 
-**Download design context**, token belgesini, çözümlenmiş renkleri, bildirilmiş yazı tipi ailelerini, varlık kimliklerini, kaydedildiği yerde kaynak kanıtını, kapsamı ve açık kuralları kaydeder; yazı tipi dosyası ve sahiplik kanıtı olmadan. Komut satırı dosyayı sunucusuz okur: `lolly system import` onu terminalin tasarım sistemi yapar ve `lolly system check` Design girdilerini kayıtlı bağlama göre denetler. İçe aktarmayı [Bring your design system](/info/cli.html#bring-your-design-system), denetimi [Which design system a command uses](/info/cli-decks.html#which-design-system-a-command-uses) kapsar ve bir MCP istemcisi aynı özeti `lolly://design-context` adresinden okur ([MCP Server](/info/mcp.html)).
+**Download design context** token belgesini, çözülmüş renkleri, bildirilen yazı tipi ailelerini, varlık kimliklerini, kaydedildiği yerde kaynak kanıtını, kapsamı ve açık kuralları kaydeder; yazı tipi dosyası ve sahiplik kanıtı yoktur. Komut satırı dosyayı sunucusuz okur: `lolly system import` onu terminalin tasarım sistemi yapar ve `lolly system check` Lolly Design girdilerini kaydedilmiş bağlama karşı denetler. [Bring your design system](/info/cli.html#bring-your-design-system) içe aktarmayı, [Which design system a command uses](/info/cli-decks.html#which-design-system-a-command-uses) denetimi kapsar ve bir MCP istemcisi aynı özeti `lolly://design-context` üzerinden okur ([MCP Server](/info/mcp.html)).
 
 ## Bundan sonra nereye
 
 - **[Using Lolly](/info/using.html)**: araçlar, kaydetme, paylaşma ve Assets.
-- **[Brand architectures](/info/brand-architectures.html)**: bölümlerin, ürünlerin, onaylı markaların, müşterilerin ve sezonların tasarım sistemlerine, colourway'lere ve logo kimliklerine nasıl eşlendiği.
-- **[Ortaklarla çalışma](/info/partners.html)**: markanı bir ortakla paylaşmak ve sana verilmiş bir markada çalışmak.
-- **[Design Tokens](/info/design-tokens.html)**: markanın yazıldığı token modeli.
-- **[Export a file](/info/exporting.html)**: baskı birimleri, CMYK ve markanın render edildiği biçimler.
+- **[Marka mimarileri](/info/brand-architectures.html)**: bölümlerin, ürünlerin, onaylı markaların, müşterilerin ve sezonların tasarım sistemlerine, colourway'lere ve logo kimliklerine nasıl eşlendiği.
+- **[Ortaklarla çalışmak](/info/partners.html)**: markanı bir ortakla paylaşmak ve sana verilen bir markada çalışmak.
+- **[Marka sayfaları](/info/brand-page.html)**: tasarım sistemini tek bir adreste, basın kiti ve ajan kiti olarak yayımla.
+- **[Design Tokens](/info/design-tokens.html)**: markanın içinde yazıldığı token modeli.
+- **[Bir dosya dışa aktar](/info/exporting.html)**: baskı birimleri, CMYK ve markanın render edildiği biçimler.

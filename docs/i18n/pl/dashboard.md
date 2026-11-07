@@ -1,4 +1,4 @@
-# Settings
+# Ustawienia
 
 Settings to miejsce, w którym zmieniasz sposób działania Lolly dla siebie: swoje dane, używany system projektowy, dostępność, to, co jest przechowywane na tym urządzeniu, i to, co jest gotowe offline. Otwórz je przez **Settings** na pasku na dole ekranu głównego albo z menu awatara. Otwiera się na **Preferences**, a obok jest jeszcze cztery karty.
 
@@ -36,7 +36,7 @@ Karty motywów to podglądy na żywo i stosują się w chwili wyboru, tylko na t
 
 ![Trzy karty motywów, każda z podglądem własnej typografii i koloru, z oznaczoną aktywną](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dappearance-section&width=1440&height=1400&dpi=192&waitMs=1600&walker=1&format=svg&cropSelector=.profile-card--appearance&dark=1&filename=pd-theme-picker)
 
-### Accessibility
+### Dostępność
 
 **Settings → Preferences → Accessibility** zawiera cztery ustawienia komfortu dla aplikacji wokół Twojej pracy. Każde jest wyłączone, dopóki go nie włączysz, i żadne nie sięga wnętrza kanwy narzędzia ani eksportu, więc spokojniejsza aplikacja nigdy nie rusza piksela pliku, który wysyłasz.
 
@@ -51,7 +51,7 @@ Ta sama karta zawiera **Sound**, delikatną warstwę dźwięków pomocniczych dl
 
 Interfejs jest dostępny z klawiatury, niestandardowe kontrolki mają etykiety dla czytników ekranu, a podgląd na żywo każdego narzędzia jest udostępniany jako jeden opisany obraz mówiący, co pokazuje.
 
-### Storage
+### Pamięć
 
 Miernik pamięci rozlicza każdy bajt, który ta instalacja przechowuje, kategoria po kategorii, względem tego, co zgłasza przeglądarka.
 
@@ -64,7 +64,7 @@ Pod miernikiem:
 - **Remove automatic checkpoints older than 30 days** zwalnia miejsce w History i zachowuje zapisane oraz nazwane wersje.
 - **Clear all my data** usuwa wszystko, co Lolly przechowuje w tej przeglądarce, po wpisaniu słowa potwierdzenia. [If you clear your browser data](/info/find-your-work.html#if-you-clear-your-browser-data) wymienia, co znika.
 
-### Available offline
+### Dostępne offline
 
 Lolly zapamiętuje ekrany, które odwiedzasz, co obejmuje tylko miejsca, w których już byłeś. **Available offline** jest na podróż, którą widzisz na horyzoncie: pobierz części, których będziesz potrzebować, i obserwuj jeden pasek postępu, a wszystko, co wziąłeś, działa dalej bez połączenia.
 
@@ -86,13 +86,13 @@ Pobieranie wznawia się tam, gdzie się zatrzymało, jeśli anulujesz lub straci
 - **Leave** usuwa system projektowy, narzędzia i katalog instancji, a Twoja własna praca zostaje. Zobacz [Use Lolly at your organisation](/info/organisation.html#leaving).
 - Gdy jesteś zalogowany do organizacji, **Sign out** kończy tę sesję, a **Sign out everywhere** kończy Twoje sesje na każdym urządzeniu, także tym.
 
-## This device
+## To urządzenie
 
 - <!--i:monitor--> **This Machine** - ekran, wejście, grafika, pamięć, kodeki, backend pamięci i więcej, odczytane na żywo z tej sesji. Nic nie jest zapisywane ani wysyłane. Otwiera się samo na szerokim ekranie, gdzie karta układa się w dwie kolumny.
 - <!--i:neurobeat--> **Sound** - dźwięki interfejsu i pętle skupienia Neurospicy, jedyny przełącznik na tej karcie, który cokolwiek zapisuje.
 - <!--i:database--> **Storage** - widok miernika z [Preferences](#storage) tylko do odczytu, gdzie czyścisz lub przenosisz swoje dane.
 
-## Design system
+## System projektowy
 
 Aktywny system projektowy, rozłożony do czytania. Gdy ta przeglądarka przechowuje dwa lub więcej systemów projektowych, pasek małych okładek u góry je wymienia: wybierz jeden, aby uczynić go aktywnym, a **Undo** w następującym po tym komunikacie przywraca poprzedni.
 

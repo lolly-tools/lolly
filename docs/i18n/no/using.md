@@ -12,7 +12,7 @@ Startskjermen: fire faner langs toppen og linjen nederst. Et verktøy, når det 
 
 Fire faner går langs toppen av startskjermen: **Tools**, **Utilities**, **Assets** og **Projects**. Tools er det du lager med, Utilities er arbeidsbenker for jobber som å konvertere, sjekke eller rydde opp i en fil, Assets er biblioteket ditt og Projects holder det du har lagret.
 
-Linjen nederst har **Open**, **Settings**, et søkefelt, **Verify** og **What?**. Den vises på Tools, Utilities, Assets, Projects, Settings og veiledningene du leser i appen, og viker unna når et verktøy er åpnet. [Lolly Search](/info/search.html) når verktøyene, det lagrede arbeidet, ressursene og innstillingene dine fra det feltet. [Ask Lolly](/info/ask.html) svarer på et skrevet spørsmål med den passende delen av disse veiledningene.
+Linjen nederst har **Open**, **Settings**, et søkefelt, en snarvei til Lolly Verify, **Verify**, og **What?**. Den vises på Tools, Utilities, Assets, Projects, Settings og veiledningene du leser i appen, og viker unna når et verktøy er åpnet. [Lolly Search](/info/search.html) når verktøyene, det lagrede arbeidet, ressursene og innstillingene dine fra det feltet. [Ask Lolly](/info/ask.html) svarer på et skrevet spørsmål med den passende delen av disse veiledningene.
 
 Klikk på et kort for å starte noe nytt i det verktøyet. Lagret arbeid åpnes i stedet på nytt fra **Projects**.
 
@@ -22,7 +22,7 @@ Hvert verktøy er en delt visning: **kontroller** på den ene siden og en levend
 
 ![Et verktøys delte visning - kontrollstabelen til venstre, og det live grupperte stolpediagrammet det tegner til høyre](/t/url-shot?url=%2F%23%2Ftool%2Fchart%3Fct%3Dbar%26t%3DExample%2520data%26st%3DSample%2520values%252C%2520not%2520a%2520real%2520dataset%26d%3DMonth%252CSeries%2520A%252CSeries%2520B%252CSeries%2520C%250AJan%252C12%252C9%252C5%250AFeb%252C18%252C14%252C7%250AMar%252C24%252C17%252C11%250AApr%252C29%252C23%252C15%26lg%3D1&width=1440&height=900&dpi=192&waitMs=2500&walker=1&format=svg&dark=1&filename=vt-tool-split-view)
 
-**Design** er unntaket. Det åpnes som et fritt lerret med bokser du drar, endrer størrelse på og skriver i, med sin egen toppmeny, tidslinje og presentasjonskontroller. [Design: the free canvas](/info/design.html) er veiledningen for det.
+**Lolly Design** er unntaket. Det åpnes som et fritt lerret med bokser du drar, endrer størrelse på og skriver i, med sin egen toppmeny, tidslinje og presentasjonskontroller. [Lolly Design: the free canvas](/info/design.html) er veiledningen for det.
 
 ## Endre det verktøyet lar deg endre
 
@@ -36,7 +36,7 @@ Et verktøy viser bare inndataene som er ment å variere. Forfatteren har allere
 
 **Valg for designsystemet.** Når designsystemet ditt tilbyr mer enn én fargevariant, et lyst og et mørkt utseende eller et annet temavalg, ligger de i en del som heter **Design system** under kontrollene. Et valg vises bare når det endrer dette verktøyet, så et filverktøy viser ingen slik del. Hver fargevariant er en prikk i sine egne farger, lys og mørk er to knapper og et hvilket som helst annet valg er en liste.
 
-Valget tilhører dette arbeidet. Det følger med i lenken og den lagrede økten, hver farge som er knyttet til designsystemet følger det, og appens egne farger blir som de er. Design viser de samme valgene i fanen **Canvas** i Inspector. Et verktøy der fargene er selve innholdet, kan bli på den kanoniske fargevarianten, og tilbyr da ingen fargevariantprikker. [Lolly Demo in use](/info/lolly-demo-in-use.html#colourways-on-real-work) viser fargevarianter på ekte arbeid.
+Valget tilhører dette arbeidet. Det følger med i lenken og den lagrede økten, hver farge som er knyttet til designsystemet følger det, og appens egne farger blir som de er. Lolly Design viser de samme valgene i fanen **Canvas** i Inspector. Et verktøy der fargene er selve innholdet, kan bli på den kanoniske fargevarianten, og tilbyr da ingen fargevariantprikker. [Lolly Demo in use](/info/lolly-demo-in-use.html#colourways-on-real-work) viser fargevarianter på ekte arbeid.
 
 ### Zoom og panorer forhåndsvisningen
 
@@ -47,7 +47,7 @@ Forhåndsvisningen viser alltid nøyaktig det som blir eksportert.
 - **Berøring:** klyp for å zoome, dra for å panorere og dobbelttrykk for å tilpasse.
 - **Zoom-HUD:** trykk og hold på Lolly-virvelen i hjørnet for å folde ut `−`, **Fit** og `+`. Et kort trykk på virvelen åpner fortsatt profilmenyen din.
 
-I Design tar **Fit all** med tegnebrett og løse lag. Du kan zoome ut manuelt under 20% til hele siden fyller halve visningen. Den faste nedre grensen er den laveste av 5% av vanlig Fit-skala og 2% absolutt zoom.
+I Lolly Design tar **Fit all** med tegnebrett og løse lag. Du kan zoome ut manuelt under 20% til hele siden fyller halve visningen. Den faste nedre grensen er den laveste av 5% av vanlig Fit-skala og 2% absolutt zoom.
 
 En endring av utdatastørrelsen setter alltid visningen tilbake til en ren tilpasning.
 
@@ -55,7 +55,7 @@ En endring av utdatastørrelsen setter alltid visningen tilbake til en ren tilpa
 
 ### Angre og gjøre om
 
-**Cmd/Ctrl-Z** går tilbake og **Cmd/Ctrl-Shift-Z** (eller **Cmd/Ctrl-Y**) går fremover. Det samme paret ligger som knappene **Undo** og **Redo** over kontrollene (i Design står de i toppmenyen), og hver blir grå når det ikke er mer å ta tilbake. En melding sier hvilken inndata hver angring gjenopprettet, med en **Redo**-knapp i meldingen.
+**Cmd/Ctrl-Z** går tilbake og **Cmd/Ctrl-Shift-Z** (eller **Cmd/Ctrl-Y**) går fremover. Det samme paret ligger som knappene **Undo** og **Redo** over kontrollene (i Lolly Design står de i toppmenyen), og hver blir grå når det ikke er mer å ta tilbake. En melding sier hvilken inndata hver angring gjenopprettet, med en **Redo**-knapp i meldingen.
 
 - **Et drag er ett trinn.** Gjentatte endringer av én kontroll innen et halvt sekund slås sammen, så å dra en glider over hele området er én angring.
 - **De siste 100 trinnene beholdes.** En ny redigering etter en angring tømmer fremovertrinnene.
@@ -72,7 +72,7 @@ Effektene i **Filter**-verktøyet (Halftone, Scanline, Posterize, Voronoi, Duoto
 
 For å beholde arbeidet, trykk **Save**, haken ved siden av **Export** på gjengivelsespillen. Nytt arbeid havner i **My library**, arbeid du har lagret før, oppdateres der det er, og ingenting lastes ned. Eksportpanelet har den samme **Save**-knappen.
 
-For å velge hvor det havner, trykk **Save as**, ved siden av **Download** i eksportpanelet. Under **Save to a project** lar du **My library** stå valgt eller velger et prosjekt (**＋ New project…** lager ett), og trykker deretter **Save**; **Save as a template** beholder designet som en [mal](/info/templates.html), et utgangspunkt for nye dokumenter. I Design ligger **Save as** i Lolly-menyen; på en telefon trykker du **•••**, deretter **File menu**, deretter **Save as**.
+For å velge hvor det havner, trykk **Save as**, ved siden av **Download** i eksportpanelet. Under **Save to a project** lar du **My library** stå valgt eller velger et prosjekt (**＋ New project…** lager ett), og trykker deretter **Save**; **Save as a template** beholder designet som en [mal](/info/templates.html), et utgangspunkt for nye dokumenter. I Lolly Design ligger **Save as** i Lolly-menyen; på en telefon trykker du **•••**, deretter **File menu**, deretter **Save as**.
 
 ![Den todelte gjengivelsespillen: Export, med en pil opp som åpner eksportpanelet, og Save, med en hake som lagrer på stedet](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools&width=1440&height=900&dpi=192&waitMs=2500&css=%23tool-inputs%7Bdisplay%3Anone%7D&cropSelector=.render-pill&walker=1&format=svg&dark=1&filename=use-render-pill)
 
@@ -162,7 +162,7 @@ En full enhetssikkerhetskopi er ikke en `.lolly`. Den forblir en `LollyTools-…
 
 En `.lolly` er en vanlig zip. Gi den nytt navn `.zip` for å se inni: dine egne bilder ligger under `assets/uploads/`, katalogkunst under `assets/catalog/`, `manifest.json` lister hver fil, og en README sier hva filen er.
 
-macOS, Windows, Linux, iOS og Android registrerer alle formatet, filbehandlere på skrivebordet viser det som et Lolly-dokument, og GNOME Files kan vise miniatyrbildet til en lagret økt. Å åpne fra Design System Setup anbefaler designsystemhandlingen når et delt design har en, men skjuler aldri **Open shared design**.
+macOS, Windows, Linux, iOS og Android registrerer alle formatet, filbehandlere på skrivebordet viser det som et Lolly-dokument, og GNOME Files kan vise miniatyrbildet til en lagret økt. Å åpne fra Lolly Design System Setup anbefaler designsystemhandlingen når et delt design har en, men skjuler aldri **Open shared design**.
 
 Et dokument som overleveres fra en annen app på iOS eller Android, er begrenset til 48 MB, fordi overleveringen kopierer bytene over appgrensen, og appen sier fra om det. **Open** inne i Lolly har ingen slik grense, så bruk det for en større bundle.
 
@@ -173,7 +173,7 @@ En lenke og en fil overleverer begge et øyeblikksbilde. For redigering i sannti
 
 ## Ressurser - biblioteket ditt
 
-**Assets** (`#/a`) samler alt verktøyene dine kan hente fra: merkevarelogoer, bilder, lyd og bevegelse, gruppert etter type, sammen med dine egne filer. Opplastingene dine lagres på enheten din. En organisasjon som bruker Lolly Work kan også tilby en delt katalog under sine egne tilgangsregler; se [Use Lolly at your organisation](/info/organisation.html).
+**Lolly Assets** (`#/a`) samler alt verktøyene dine kan hente fra: merkevarelogoer, bilder, lyd og bevegelse, gruppert etter type, sammen med dine egne filer. Opplastingene dine lagres på enheten din. En organisasjon som bruker Lolly Work kan også tilby en delt katalog under sine egne tilgangsregler; se [Use Lolly at your organisation](/info/organisation.html).
 
 ![Ressurser, med merkevarens fargeprøver og skrifter og dine egne opplastinger](/t/url-shot?url=%2F%23%2Fa%3Fsection%3Dswatches%2Cfonts&width=1440&height=900&dpi=96&waitMs=2400&css=.plat-swatch-grid~%2A%7Bdisplay%3Anone%7D&walker=1&format=svg&localize=1&dark=1&filename=assets)
 
@@ -267,12 +267,25 @@ På en smal skjerm blir layouten én kolonne:
 
 ![Et verktøy på en telefonbred skjerm - kontrollene som et ark øverst, den genererte paletten som fyller forhåndsvisningen under og renderpillen som flyter nederst i midten](/t/url-shot?url=%2F%23%2Ftool%2Fcolor-palette%3Fseed%3Df97316%26harmony%3Dadjacent-3%26steps%3D9&width=430&height=900&dpi=192&waitMs=2200&walker=1&format=svg&dark=1&filename=vt-phone-palette)
 
+## Sammenleggbare skjermer og iPhone Duo
+
+På en sammenleggbar enhet, en iPhone Duo eller en nesten kvadratisk berøringsskjerm legger Lolly et verktøy ut i to ruter, som sidene i en bok:
+
+- **Kontroller på den ene siden, lerretet på den andre.** Kontrollene ligger bort fra hånden du tegner med. Velg **Dominant hand** i **Settings → Accessibility**, eller trykk **Swap sides** øverst i kontrollene. I et språk som skrives fra høyre mot venstre speiles sidene.
+- **Skillelinjen er hengselen.** Når enheten melder fra om bretten, møtes rutene ved bretten, så ingen kontroll og ingen illustrasjon havner i falsen. På en sammenhengende skjerm drar du skillelinjen til en tredjedel, halvparten eller to tredjedeler av bredden. Lolly husker valget ditt for hver visning på denne enheten.
+- **På bordet.** Halvt åpen, med bretten på tvers av skjermen, tar lerretet den øvre halvdelen, og kontrollene ligger under bretten. Når du presenterer, ligger lysbildet øverst, med notatene dine, neste lysbilde og **Back** og **Next** under. I Sequence ligger forhåndsvisningen øverst og tidslinjen under.
+- **Lolly Design, Brand Studio og Assets.** I Lolly Design er inspektøren, lagene og eksportpanelet faner ved siden av lerretet, og verktøyene står langs lerretets ytterkant, under tegnehånden din. Når det er flere verktøy enn det er plass til, ruller kolonnen, og en tone med en pil viser hvilken vei resten ligger. På bordet går verktøyene i stedet langs foten av lerretet. Brand Studio beholder Board på den ene siden og rommet du åpner på den andre. I Assets åpnes detaljene til en ressurs ved siden av biblioteket, så neste trykk viser neste ressurs på samme sted.
+- **Ingenting i falsen.** På en rapportert bretteline åpnes en dialog på siden som har kontrollene, og det samme gjelder søkefeltet nederst på startskjermen og resultatene fra det. En flat skjerm beholder dem i midten.
+- **Å brette mister ingenting.** Å brette, brette ut eller snu enheten beholder dokumentet, utvalget, zoomen og feltet du skrev i, med markøren der du lot den stå.
+
+Den ytre skjermen på en sammenleggbar enhet beholder telefonoppsettet ovenfor, og det samme gjør et Lolly-vindu i den ene halvdelen av en delt skjerm.
+
 ## Innstillinger, lyd og komfort
 
 **Settings**, nederst på startskjermen, holder detaljene dine, designsystemene dine, tilgjengelighet, lagring og nedlastinger for bruk uten nett. [Lolly Settings](/info/dashboard.html) kartlegger hver fane.
 
 - **Detaljene og portrettbildet ditt** fyller ut ethvert verktøy som er bygget for å bruke dem, som en e-postsignatur eller et navneskilt. [Profiles](/info/profile.html) dekker dem.
-- **Accessibility** har fire komfortbrytere: **Reduce motion**, **Hide colourful previews**, **High contrast** og **Large text**. De endrer appen rundt arbeidet ditt, aldri et verktøylerret eller en eksport.
+- **Accessibility** har fire komfortbrytere: **Reduce motion**, **Hide colourful previews**, **High contrast** og **Large text**. De endrer appen rundt arbeidet ditt, aldri et verktøylerret eller en eksport. Ved siden av dem velger **Dominant hand** hvilken side kontrollene tar i to ruter.
 - **Sound** spiller milde hjelpelyder for det du gjør, og **Neurospicy Mode** spiller et rolig fokusspor. Begge er av til du slår dem på, i **Settings → Accessibility** eller profilmenyen.
 - **Available offline** laster ned resten av appen, verktøyene, katalogen og veiledningene før du mister forbindelsen. Lolly er en nettapp du kan installere: bruk nettleserens installeringsknapp, eller *Add to Home Screen* på en telefon, for en fullskjermsapp som oppdaterer seg selv når du er online igjen.
 - **Storage** viser hva Lolly beholder på denne enheten. [If you clear your browser data](/info/find-your-work.html#if-you-clear-your-browser-data) forklarer hva tømming fjerner, og [Privacy Policy](/info/privacy.html) lister alt appen henter eller sender.
@@ -283,10 +296,10 @@ Et tomt panel eller en melding om "failed to fetch" rett etter en oppdatering g�
 
 ## Hvor du går videre
 
-- **[Design: the free canvas](/info/design.html)**: lerretet, former, tidslinjen og å presentere en presentasjon.
-- **[Batch and Multi-edit](/info/batch.html)**: mange versjoner av ett design, eller flere lagrede design redigert sammen.
+- **[Lolly Design: the free canvas](/info/design.html)**: lerretet, former, tidslinjen og å presentere en presentasjon.
+- **[Batch and Lolly Multi-edit](/info/batch.html)**: mange versjoner av ett design, eller flere lagrede design redigert sammen.
 - **[Export a file](/info/exporting.html)**: valg av format, størrelse, trykkenheter, gjennomsiktighet og video.
-- **[Import a design](/info/design-import.html)**: ta en Figma-, Penpot-, Illustrator- eller InDesign-fil inn i Design og fortsett å redigere.
+- **[Import a design](/info/design-import.html)**: ta en Figma-, Penpot-, Illustrator- eller InDesign-fil inn i Lolly Design og fortsett å redigere.
 - **[Templates](/info/templates.html)**: lagrede utgangspunkt for et verktøy.
-- **[Wide Colour and HDR](/info/hdr-editing.html)**: behold den opprinnelige bildepresisjonen i Design og Darkroom.
+- **[Wide Colour and HDR](/info/hdr-editing.html)**: behold den opprinnelige bildepresisjonen i Lolly Design og Lolly Darkroom.
 - **[Find and recover your work](/info/find-your-work.html)**: hvor alt er, og hvordan du flytter det til en annen enhet.

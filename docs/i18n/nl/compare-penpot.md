@@ -14,7 +14,7 @@ Als je team in Penpot ontwerpt, werkt Lolly naast Penpot: beide zijn open source
 
 ## Hoe Lolly de overlappende klus doet
 
-Het Design-canvas van Lolly maakt bewerkbare assets en kan een lay-out omzetten in een [tool met regels](/info/create-a-tool.html). Dezelfde tool rendert in de browser, de desktop-app of de CLI en maakt varianten uit gegevens. Zelfstandig Lolly rendert en ondertekent op het apparaat, zonder account of server. Een [privécollab](/info/collaborate.html) koppelt twee apparaten rechtstreeks.
+Het Lolly Design-canvas van Lolly maakt bewerkbare assets en kan een lay-out omzetten in een [tool met regels](/info/create-a-tool.html). Dezelfde tool rendert in de browser, de desktop-app of de CLI en maakt varianten uit gegevens. Zelfstandig Lolly rendert en ondertekent op het apparaat, zonder account of server. Een [privécollab](/info/collaborate.html) koppelt twee apparaten rechtstreeks.
 
 ## Met een organisatie
 

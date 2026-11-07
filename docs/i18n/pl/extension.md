@@ -10,26 +10,29 @@ Zatwierdzasz każde żądanie, a aplikacja komputerowa wykonuje te same zadania 
 
 ## Przed instalacją
 
-Dopóki rozszerzenie nie jest zainstalowane, **URL Screenshot** nadal się otwiera, więc możesz skomponować ujęcie. Uwaga na górze kontrolek narzędzia mówi, czego brakuje.
+Dopóki rozszerzenie nie jest zainstalowane, **Lolly URL Screenshot** nadal się otwiera, więc możesz skomponować ujęcie. Uwaga na górze kontrolek narzędzia mówi, czego brakuje.
 
 ![Notatka narzędzia URL Screenshot oferująca rozszerzenie, pokazywana gdy przechwytywanie do pliku nie ma hosta, na którym mogłoby działać](/t/url-shot?url=%2F%23%2Ftool%2Furl-shot&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&cropSelector=%23capture-hint-notice&dark=1&filename=exp-url-shot-notice)
 
 Każda kontrolka działa, gdy czekasz: docelowy URL, głębokość przewijania, opóźnienie ustabilizowania, wcięcia kadru i zmiana kolorów. Samo przechwycenie potrzebuje rozszerzenia.
 
-![Kontrolki URL Screenshot z docelowym URL, głębokością przewijania, opóźnieniem ustabilizowania i marginesami kadrowania, wszystkie użyteczne zanim rozszerzenie istnieje](/t/url-shot?url=%2F%23%2Ftool%2Furl-shot%3Furl%3Dhttps%3A%2F%2Flolly.tools%26scrollDepth%3D0.3%26waitMs%3D1200&width=1440&height=2200&dpi=192&waitMs=2400&format=svg&css=%23tool-canvas%7Bdisplay%3Anone%7D&cropSelector=%23tool-inputs&walker=1&dark=1&filename=fq-url-shot-controls)
+![Kontrolki Lolly URL Screenshot z docelowym URL, głębokością przewijania, opóźnieniem ustabilizowania i marginesami kadrowania, wszystkie użyteczne zanim rozszerzenie istnieje](/t/url-shot?url=%2F%23%2Ftool%2Furl-shot%3Furl%3Dhttps%3A%2F%2Flolly.tools%26scrollDepth%3D0.3%26waitMs%3D1200&width=1440&height=2200&dpi=192&waitMs=2400&format=svg&css=%23tool-canvas%7Bdisplay%3Anone%7D&cropSelector=%23tool-inputs&walker=1&dark=1&filename=fq-url-shot-controls)
 
 ## Instalacja
 
 **Ze sklepu Chrome Web Store:** wkrótce. Gdy rozszerzenie zostanie opublikowane, zainstalujesz je jednym kliknięciem.
 
-**Wczytaj je sam (deweloperzy).** Rozszerzenie żyje w repozytorium w `shells/chrome-extension/`. Ten folder to kompilacja produkcyjna, która działa tylko z Lolly pod `https://lolly.tools`.
+**Wczytaj je sam (deweloperzy).** Źródło rozszerzenia leży w repozytorium w `shells/chrome-extension/`. Krok pakowania buduje z tego folderu pakiet produkcyjny, który działa tylko z Lolly pod `https://lolly.tools`.
 
-1. Otwórz `chrome://extensions`.
-2. Włącz **Developer mode** (prawy górny róg).
-3. Kliknij **Load unpacked** i wybierz folder `shells/chrome-extension/`.
-4. Przeładuj kartę Lolly. Wykrywanie dzieje się przy ładowaniu strony, więc monit "Get the extension" znika. **URL Screenshot** (w Utilities) może wtedy zapisywać przechwycenia do pliku i staje się dostępny w trybie Batch.
+1. Uruchom `pnpm run pack:chrome-extension`. Buduje pakiet w `dist/chrome-extension/`.
+2. Otwórz `chrome://extensions`.
+3. Włącz **Developer mode** (prawy górny róg).
+4. Kliknij **Load unpacked** i wybierz folder `dist/chrome-extension/`.
+5. Przeładuj kartę Lolly. Wykrywanie dzieje się przy ładowaniu strony, więc monit "Get the extension" znika. **Lolly URL Screenshot** (w Utilities) może wtedy zapisywać przechwycenia do pliku i staje się dostępny w trybie Lolly Batch.
 
 Dla lokalnego serwera deweloperskiego uruchom `pnpm run pack:chrome-extension:dev` i wczytaj zamiast tego `dist/chrome-extension-dev`. Ten pakiet akceptuje też `http://localhost:5173` i ma w nazwie **Development**.
+
+Wczytanie samego folderu `shells/chrome-extension/` także działa, dla zrzutów PNG. Ten folder nie ma przejścia po stronie (krok pakowania dodaje je do paczki), więc SVG z niego zawiera zrzut ekranu zamiast kształtów.
 
 ## Co się dzieje, gdy Lolly prosi
 
@@ -40,15 +43,20 @@ Dla lokalnego serwera deweloperskiego uruchom `pnpm run pack:chrome-extension:de
 3. **Chrome pyta raz na witrynę.** Przy pierwszym zatwierdzeniu żądania dla witryny Chrome pyta też, czy rozszerzenie może mieć dostęp do tej witryny. Chrome zachowuje ten dostęp po zezwoleniu, ale każde późniejsze żądanie nadal wymaga własnego **Approve once**.
 4. **Strona jest czytana w karcie w tle.** Rozszerzenie otwiera stronę docelową w karcie w tle, przechwytuje ją przez DevTools Protocol (ten sam `Page.captureScreenshot`, którego używa aplikacja komputerowa), zamyka kartę i oddaje wynik karcie Lolly, która o to poprosiła.
 
+Dla **SVG** rozszerzenie przechodzi po stronie, zamiast robić zdjęcie ekranu. Skrypt spakowany z rozszerzeniem czyta układ strony w tej karcie w tle i zamienia stronę w kształty i tekst obrysowany, więc plik pozostaje ostry w każdym rozmiarze, a każda część pozostaje edytowalna. Obrazy na stronie przechodzą jako obrazy, którymi są, a to, co strona rysuje przez canvas, wideo lub efekt, dla którego SVG nie ma formy, jest kopiowane ze zrzutu ekranu z tej samej chwili. Lolly porównuje wynik z tym zrzutem i gdy oba za bardzo się różnią, SVG zawiera zamiast tego zrzut ekranu.
+
+Aby obrysować tekst krojem pisma samej strony, rozszerzenie przekazuje Lolly pliki czcionek, które strona załadowała. Chrome nie przechowuje bajtów czcionki tam, skąd rozszerzenie może je odczytać, więc rozszerzenie prosi stronę o każdą czcionkę ponownie. Przeglądarka zwykle odpowiada z pamięci podręcznej, a własna polityka bezpieczeństwa strony nadal obowiązuje dla tego żądania.
+
 Zatwierdzenie obejmuje jedno żądanie i wygasa po 30 sekundach. Naraz może czekać lub działać tylko jedno żądanie, a zatwierdzone żądanie zatrzymuje się po 55 sekundach. Jeśli strona Lolly zostanie zamknięta lub się zmieni albo strona docelowa przejdzie do innej witryny, żądanie jest anulowane.
 
-Przechwytywanie działa w Twojej przeglądarce, w Twojej sieci, więc `localhost` i witryny wewnętrzne działają. Strona ładuje się z sesją Twojej przeglądarki, więc strona, na którą jesteś zalogowany, może pokazać w wyniku prywatne informacje. Przechwycenie nie jest wysyłane: jedyny ruch sieciowy to Twoja własna przeglądarka ładująca stronę, o którą poprosiłeś.
+Przechwytywanie działa w Twojej przeglądarce, w Twojej sieci, więc `localhost` i witryny wewnętrzne działają. Strona ładuje się z sesją Twojej przeglądarki, więc strona, na którą jesteś zalogowany, może pokazać w wyniku prywatne informacje. Przechwycenie nie jest wysyłane: jedyny ruch sieciowy to Twoja własna przeglądarka ładująca stronę, o którą poprosiłeś, oraz, dla SVG, ponowne załadowanie plików czcionek tej strony.
 
 Podczas przechwytywania możesz na chwilę zobaczyć baner *"…started debugging this browser"* na tymczasowej karcie. To działa DevTools Protocol, a baner znika po zakończeniu ujęcia.
 
-## Odczyt witryny dla Design System Setup
+<a id="reading-a-site-for-design-system-setup"></a>
+## Odczyt witryny dla Lolly Design System Setup
 
-Źródło **Website** w Design System Setup zaczyna system projektowy od witryny, którą już masz. W przeglądarce Chromium stronę czyta rozszerzenie. W aplikacji komputerowej aplikacja pobiera stronę sama. W przeglądarce bez rozszerzenia kafel Website nie jest oferowany.
+Źródło **Website** w Lolly Design System Setup zaczyna system projektowy od witryny, którą już masz. W przeglądarce Chromium stronę czyta rozszerzenie. W aplikacji komputerowej aplikacja pobiera stronę sama. W przeglądarce bez rozszerzenia kafel Website nie jest oferowany.
 
 - **Jeden adres, jedna strona.** Po zatwierdzeniu rozszerzenie otwiera stronę w takiej samej karcie w tle, odczytuje wyrenderowany kod, tekst arkuszy stylów i kilka obrazów ikon i logo, a potem zamyka kartę. Nie podąża za linkami i nie przeszukuje witryny.
 - **Arkusze stylów hostowane gdzie indziej** (CDN lub usługa czcionek) też są pobierane, ponieważ kolory i typografia strony w nich mieszkają. Żądania między źródłami idą bez Twoich plików cookie; żądania do tego samego źródła ich używają, tak jak sama strona.
@@ -59,11 +67,11 @@ Wklejenie adresu tylko wypełnia pole. Nic nie jest odczytywane, dopóki nie roz
 
 ## Uprawnienia
 
-`manifest.json` rozszerzenia deklaruje cztery uprawnienia oraz dostęp do witryn, o który prosi po jednej witrynie naraz. Ustawia `minimum_chrome_version: 111`, a obecna wersja to 0.4.0.
+`manifest.json` rozszerzenia deklaruje cztery uprawnienia oraz dostęp do witryn, o który prosi po jednej witrynie naraz. Ustawia `minimum_chrome_version: 111`, a obecna wersja to 0.5.0.
 
 | Uprawnienie | Do czego służy | Kiedy jest przyznawane |
 |---|---|---|
-| `debugger` | Steruje kartą w tle przez DevTools Protocol, który robi zrzut ekranu. | Przy instalacji |
+| `debugger` | Steruje kartą w tle przez DevTools Protocol, który robi zrzut ekranu i, dla SVG, uruchamia przejście po stronie. | Przy instalacji |
 | `tabs` | Otwiera tymczasową kartę w tle i potem ją zamyka oraz sprawdza, że ani strona Lolly, ani strona docelowa nie zmieniły adresu od zatwierdzenia. | Przy instalacji |
 | `scripting` | Uruchamia jednostronicowy czytnik wewnątrz wskazanej witryny, dla źródła Website. | Przy instalacji |
 | `storage` | Zapisuje identyfikator otwartej karty, tylko w pamięci sesji, aby karta nadal się zamykała, jeśli przeglądarka zawiesi rozszerzenie w trakcie odczytu. Czyszczone przy następnym uruchomieniu; nic o Tobie nie jest przechowywane. | Przy instalacji |

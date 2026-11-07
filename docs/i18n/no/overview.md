@@ -72,7 +72,7 @@ Det samme verktøyet i telefonbredde trenger ingen andre layout: kontrollene bli
 
 ![Et audiogram på en 430 px bred skjerm: kontrollarket over, det ferdige kvadratiske bildet under og den flytende eksportpillen](/t/url-shot?url=%2F%23%2Ftool%2Faudiogram%3Faudio%3Dlolly%2Floops%2Ffireplace-loop%26title%3DField%2520notes%26subtitle%3DEpisode%252012%26style%3Dwave&width=430&height=900&dpi=192&waitMs=3200&css=%23ag-wave%7Bdisplay%3Anone!important%7D.ag-ph%7Bdisplay%3Ablock!important%7D&walker=1&format=svg&rasterDpi=110&dark=1&filename=ov2-phone-audiogram)
 
-Nettappen leveres også med **Batch** (`#/batch`, `shells/web/src/pro/`), et regnearklignende rutenett som gjengir mange rader samtidig på tvers av ett eller flere verktøy; [Batch and Multi-edit](/info/batch.html#make-many-versions-of-one-design) dekker Batch. **Settings → Capabilities** kartlegger alt plattformen oppgir at den kan gjøre.
+Nettappen leveres også med **Batch** (`#/batch`, `shells/web/src/pro/`), et regnearklignende rutenett som gjengir mange rader samtidig på tvers av ett eller flere verktøy; [Batch and Lolly Multi-edit](/info/batch.html#make-many-versions-of-one-design) dekker Batch. **Settings → Capabilities** kartlegger alt plattformen oppgir at den kan gjøre.
 
 ![Batch på en ny installasjon: én tom rad som venter på et verktøy, med regnearkflaten og Render-knappen på plass før noen data kommer](/t/url-shot?url=%2F%23%2Fbatch&width=1440&height=900&dpi=192&waitMs=3500&walker=1&format=svg&dark=1&filename=ov2-batch-grid)
 
@@ -141,7 +141,7 @@ En inndata deklarerer en `type`: `text`, `longtext`, `number`, `boolean`, `color
 
 - **`asset`**, med `filter` og `allowUpload`, er broen til ressurssystemet. `allowUpload: false` begrenser en plass til bibliotekressurser, og brukeropplastinger deler bibliotekets `AssetRef`-form.
 - **`blocks`** er en repeterende feltgruppe redigert i et sidepanel, brukt av Meeting Planner, Wayfinding, Diagrams og andre. Å klikke på en gjengitt blokk gir raden fokus.
-- **`file`** holder brukerens egen fil i minnet for verktøy på enheten som Strip Hidden Data og Compress, og **`vector`** grupperer et fast sett med tall i én kontroll.
+- **`file`** holder brukerens egen fil i minnet for verktøy på enheten som Lolly Strip Hidden Data og Compress, og **`vector`** grupperer et fast sett med tall i én kontroll.
 
 ### 9. Maler er logikkfrie
 
@@ -149,7 +149,7 @@ Maler er Handlebars, valgt slik at ikke-utviklere kan skrive dem: `{{x}}` escape
 
 ### 10. Verktøy komponerer verktøy
 
-Et verktøy kan bygge inn gjengivelsen til et annet verktøy uten verktøy-til-verktøy-importer; motoren løser opp sammensetningen. Et manifest kan deklarere `composes: [{ id, tool, inputs }]` og plassere barnet med `{{asset <id>}}`, og en portabel innbyggings-URL (`https://lolly.tools/tool/<id>.svg?…`) gjengir barnet lokalt, og det er slik Design plasserer en levende QR-kode eller et diagram. Et SVG-barn forblir vektor i en SVG- eller PDF-forelder. Barn er mellomprodukter, aldri vannmerket eller stemplet, og et skall som ikke kan gjengi et, lar plassen stå tom mens forelderen likevel gjengis. [Composition and brand overlays](/info/tool-composition.html) har detaljene.
+Et verktøy kan bygge inn gjengivelsen til et annet verktøy uten verktøy-til-verktøy-importer; motoren løser opp sammensetningen. Et manifest kan deklarere `composes: [{ id, tool, inputs }]` og plassere barnet med `{{asset <id>}}`, og en portabel innbyggings-URL (`https://lolly.tools/tool/<id>.svg?…`) gjengir barnet lokalt, og det er slik Lolly Design plasserer en levende QR-kode eller et diagram. Et SVG-barn forblir vektor i en SVG- eller PDF-forelder. Barn er mellomprodukter, aldri vannmerket eller stemplet, og et skall som ikke kan gjengi et, lar plassen stå tom mens forelderen likevel gjengis. [Composition and brand overlays](/info/tool-composition.html) har detaljene.
 
 ## Hva vi valgte å ikke gjøre
 

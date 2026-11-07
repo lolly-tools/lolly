@@ -14,6 +14,8 @@ Lolly हर व्यक्ति के डिवाइस पर चलता
 
 ## एसेट जोड़ें और काम की समीक्षा करें
 
+- [Use Lolly with your existing DAM](/info/use-with-dam.html) स्रोत अधिकार और जुड़ा उत्पादन समझाता है। [The SUSE Brandfolder account](/info/suse-brandfolder.html) अपनाने का अनुभव दर्ज करता है, और [Plan a DAM transition](/info/dam-transition.html) वैकल्पिक बाद के बदलाव को कवर करता है।
+
 - [Design-system administration](/info/work-design-system-administration.html) स्रोत सूची, समीक्षित बदलाव और रोलबैक कवर करता है।
 - [Catalog and content](/info/work-catalog.html) साझा एसेट और एक्सपोज़र नियम कवर करता है। [Provider guides](/info/work-provider-guides.html) हर स्रोत प्लेटफ़ॉर्म की सेटअप और सत्यापन आवश्यकताएँ देता है।
 - [Approvals](/info/work-approvals.html) समीक्षा शृंखला और कर्तव्यों का पृथक्करण कवर करता है। [Rendering and sharing](/info/work-sharing.html) लिंक और सर्वर आउटपुट कवर करता है।

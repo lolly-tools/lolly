@@ -14,6 +14,8 @@ Magsimula sa [Gamitin ang Lolly sa organisasyon mo](/info/organisation.html) par
 
 ## Ikonekta ang mga asset at i-review ang gawa
 
+- Ipinapaliwanag ng [Use Lolly with your existing DAM](/info/use-with-dam.html) ang source authority at connected production. Itinatala ng [The SUSE Brandfolder account](/info/suse-brandfolder.html) ang karanasan sa adoption, at sinasaklaw ng [Plan a DAM transition](/info/dam-transition.html) ang opsyonal na paglipat sa hinaharap.
+
 - Sinasaklaw ng [Design-system administration](/info/work-design-system-administration.html) ang source inventory, mga reviewed na pagbabago at rollback.
 - Sinasaklaw ng [Catalog at nilalaman](/info/work-catalog.html) ang mga shared asset at exposure rule. Ibinibigay ng [Provider guides](/info/work-provider-guides.html) ang setup at verification requirement ng bawat source platform.
 - Sinasaklaw ng [Mga approval](/info/work-approvals.html) ang mga review chain at paghihiwalay ng tungkulin. Sinasaklaw ng [Rendering at pagbabahagi](/info/work-sharing.html) ang mga link at server output.

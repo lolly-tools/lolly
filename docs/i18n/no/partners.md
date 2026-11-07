@@ -8,6 +8,7 @@ To ord betyr det samme overalt på denne siden. **Hovedmerkevaren** er merkevare
 
 - **Ett designsystem tegner hvert produkt.** Hovedmerkevarens farger, skrift og interne regler gjelder. Partnerens merke legges inn som grafikk: et bilde fra Assets, eller et tilpasset merke som er lagret i et designsystem.
 - **En merkevare reiser som en fil.** En designsystemfil (`.lolly`) inneholder tokens, skrifter og logoer. Et gjenbrukbart verktøy laget med **Share with rules** inneholder én ferdig layout med inndataene du tillater. Merkevareferdigheter reiser som egne filer.
+- **En merkevare kan også ha en adresse.** En [brand page](/info/brand-page.html) publiserer logoer, farger, skrift og regler som en partner kan lese, med tokens og ferdigheter til verktøyene deres.
 - **Lolly sjekker bare hovedmerkevarens regler.** Den kjenner ikke partnerens regler, for eksempel frisone eller minstestørrelse, så sjekk dem mot partnerens egne retningslinjer.
 
 ## Del merkevaren din med en partner
@@ -17,9 +18,10 @@ To ord betyr det samme overalt på denne siden. **Hovedmerkevaren** er merkevare
 | Send | Hvordan | Partneren får | Passer for |
 | --- | --- | --- | --- |
 | En designsystemfil | **Export** i linjen øverst i [Lolly Design System Setup](/info/brand-studio.html#move-a-brand-between-devices) | Tokens, skrifter, logoer og temainnstilling fra deg, som et designsystem partneren kan bytte til | En partner som lager mange produkter i merkevaren din |
-| Et gjenbrukbart verktøy | I Design, **Share with rules** ([Del et design med regler](/info/create-a-tool.html)) | Én ferdig layout med inndataene du tillater, for eksempel navnet og logoen deres. Filen inneholder de løste fargene, skriftene og bildene, så partnerens eget designsystem kan ikke endre stilen på den faste grafikken | Et felles flygeblad, navneskilt eller banner som hver partner fyller ut |
-| Merkevareferdigheter | Rommet **Skills**: **Download skill (.zip)** eller **Copy as one file** | De skriftlige standardene dine, for partnerens folk og agenter | Et av de to alternativene over, når en agent gjør deler av jobben |
-| Tokens | **Tokens (.json)** i **More**-menyen i studioet | Selve design-token-dokumentet, uten skrifter og logoer | Partnerens egne designverktøy eller byggeprosess |
+| Et gjenbrukbart verktøy | I Lolly Design, **Share with rules** ([Del et design med regler](/info/create-a-tool.html)) | Én ferdig layout med inndataene du tillater, for eksempel navnet og logoen deres. Filen inneholder de løste fargene, skriftene og bildene, så partnerens eget designsystem kan ikke endre stilen på den faste grafikken | Et felles flygeblad, navneskilt eller banner som hver partner fyller ut |
+| Merkevareferdigheter | Rommet **Skills**: **Download skill (.zip)** eller **Copy as one file** | De skrevne standardene dine, til folkene og agentene deres | Et av de to ovenfor, når en agent gjør noe av arbeidet |
+| En merkevareside | **Publish a brand page** i Lolly Design System Setup, eller `lolly system publish`, skriver en mappe du hoster ([Brand pages](/info/brand-page.html)) | Dine nåværende logoer, farger, skrift og regler på én adresse, med tokens og ferdigheter til verktøyene deres. Logoer og skriftfiler vises når rettighetene tillater det, og siden lister hva den holdt tilbake | Deling med folk du ikke sender filer til |
+| Tokens | **Tokens (.json)** i studioets **More**-meny | Det rene designtokendokumentet, uten skrifter eller logoer | Partnerens egne designverktøy eller bygg |
 
 ![Design System Setup på Lolly Demo, åpnet i rommet Skills: Export i linjen, More-menyen åpen på Tokens (.json), og Download skill (.zip) og Copy as one file ved siden av den valgte ferdigheten](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dskills&width=1200&height=900&dpi=192&waitMs=1800&waitSelector=.skills-reader-actions&drive=click%3A%5Bdata-ds-more%5D%3Bwait%3A500&format=svg&walker=1&dark=1&filename=partners-send)
 
@@ -108,6 +110,8 @@ Eksporter veggen som PNG, SVG, PDF eller en CMYK-PDF for trykk. Sett en annen st
 
 I en terminal bygger `lolly run logo-wall logos/*.png --output=wall.svg` veggen fra en mappe med bilder, og en CSV med kolonnene `logo` og `tier` bygger en vegg med nivåer. SVG og PNG trenger ingen nettleser ([En sponsorvegg med nivåer](/info/cli-rendering.html#a-sponsor-wall-with-tiers)).
 
+Når en sponsor publiserer en [brand page](/info/brand-page.html), henter `lolly run logo-wall --logos-from=<address or folder>` den nåværende logoen deres til flaten og skriver ut hva siden deres sier om bruk. Gjenta flagget for hver sponsor.
+
 Logovegg kjenner ingen sponsors regler. Tier og Presence setter størrelser i forhold til hverandre, ikke en sponsors minstestørrelse, og ingenting sjekker frisonen mellom naboer. Sjekk den ferdige veggen mot hver sponsors retningslinjer i den størrelsen den skal trykkes eller vises i.
 
 ## Hva Lolly ikke gjør ennå
@@ -119,11 +123,14 @@ Logovegg kjenner ingen sponsors regler. Tier og Presence setter størrelser i fo
 - Ett designsystem er aktivt for hele enheten, så to merkevarer kan ikke være åpne side ved side.
 - En designsystemfil er en kopi av merkevaren slik den ble eksportert, og ingenting oppdaterer kopien. En designsystemfil eksportert fra appen inneholder ikke merkevareferdigheter, så send dem som egne filer.
 - En eksport registrerer hovedmerkevarens designsystem og fargevariant, ikke partnerens merkevare.
+- En logo hentet fra en merkevareside er et bilde i raden sin, og raden husker ikke siden. Ingenting viser hvem som publiserte en side, så sjekk adressen selv.
+- Den hostede nettappen kan ikke hente en annen merkevares side, fordi Content Security Policy bare tillater navngitte verter. Hent logoen i en terminal, eller lagre filen og legg den til i **Assets**.
 
 ## Hvor du går videre
 
-- **[Merkevarearkitekturer](/info/brand-architectures.html)**: samarbeid mellom to merkevarer, white label og de andre ordningene, med hva du gjør i Lolly for hver.
-- **[Del et design med regler](/info/create-a-tool.html)**: gjenbrukbare verktøy med fast layout og inndataene du velger.
-- **[Merkevareferdigheter](/info/brand-skills.html)**: hvordan ferdigheter skrives, leses og gis til en agent.
+- **[Brand architectures](/info/brand-architectures.html)**: samarbeid mellom to merkevarer, white label og de andre ordningene, med hva du gjør i Lolly for hver.
+- **[Share a design with rules](/info/create-a-tool.html)**: gjenbrukbare verktøy med fast layout og inndataene du velger.
+- **[Brand skills](/info/brand-skills.html)**: hvordan ferdigheter skrives, leses og gis til en agent.
 - **[Lolly Design System Setup](/info/brand-studio.html)**: logoer, tilpassede merker og flytting av et designsystem mellom enheter.
-- **[Kreative rettigheter og kreditering](/info/creative-rights.html)**: hva Lolly registrerer om verkene den tegner.
+- **[Brand pages](/info/brand-page.html)**: publiser merkevaren din på én adresse, og hent en partners logo fra deres.
+- **[Creative rights and credits](/info/creative-rights.html)**: hva Lolly registrerer om verkene den tegner.

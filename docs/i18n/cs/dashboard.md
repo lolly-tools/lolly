@@ -1,4 +1,4 @@
-# Settings
+# Nastavení
 
 Settings je místo, kde měníš, jak Lolly funguje pro tebe: tvé údaje, designový systém, který používáš, přístupnost, co je uloženo na tomto zařízení a co je připraveno offline. Otevřeš je přes **Settings** na liště dole na domovské obrazovce nebo z nabídky avataru. Otevře se na **Preferences** se čtyřmi dalšími kartami vedle.
 
@@ -64,7 +64,7 @@ Pod měřičem:
 - **Remove automatic checkpoints older than 30 days** uvolní místo v History a ponechá uložené a pojmenované verze.
 - **Clear all my data** odstraní vše, co Lolly v tomto prohlížeči drží, po napsání slova pro potvrzení. [Když vymažeš data prohlížeče](/info/find-your-work.html#if-you-clear-your-browser-data) vypisuje, co zmizí.
 
-### Available offline
+### Dostupné offline
 
 Lolly ukládá do cache obrazovky, které navštívíš, což pokrývá jen místa, kde jsi už byl. **Available offline** je pro cestu, kterou vidíš přicházet: stáhni části, které budeš potřebovat, a sleduj jeden ukazatel průběhu, a vše, cos vzal, funguje dál bez připojení.
 
@@ -86,13 +86,13 @@ Stahování pokračuje tam, kde přestalo, když zrušíš nebo ztratíš připo
 - **Leave** odstraní designový systém, nástroje a katalog instance a tvá vlastní práce zůstane. Viz [Používej Lolly ve své organizaci](/info/organisation.html#leaving).
 - Když jsi přihlášen k organizaci, **Sign out** ukončí tuto relaci a **Sign out everywhere** ukončí tvé relace na každém zařízení, včetně tohoto.
 
-## This device
+## Toto zařízení
 
 - <!--i:monitor--> **This Machine** - obrazovka, vstup, grafika, paměť, kodeky, backend úložiště a další, čteno živě z této relace. Nic se neukládá a nic se neodesílá. Na široké obrazovce se otevře samo, kde karta rozloží obsah do dvou sloupců.
 - <!--i:neurobeat--> **Sound** - zvuky rozhraní a soustředící smyčky Neurospicy, jediný přepínač na této kartě, který cokoli zapisuje.
 - <!--i:database--> **Storage** - zobrazení měřiče z [Preferences](#storage) jen pro čtení, kde data mažeš nebo přenášíš.
 
-## Design system
+## Designový systém
 
 Aktivní designový systém, vyložený ke čtení. Když tento prohlížeč drží dva nebo více designových systémů, pás malých obálek nahoře je vypisuje: vyber jednu, aby se stala aktivní, a **Undo** v následujícím upozornění vrátí předchozí.
 

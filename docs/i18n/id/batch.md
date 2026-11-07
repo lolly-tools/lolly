@@ -1,8 +1,10 @@
-# Batch dan Multi-edit
+# Lolly Batch dan Lolly Multi-edit
+
+<a id="batch-and-multi-edit"></a>
 
 Dua pekerjaan muncul begitu Anda sering membuat jenis file yang sama. Kadang Anda memerlukan banyak versi dari satu desain: kartu dalam belasan bahasa, atau setiap ukuran banner. Kadang Anda memiliki beberapa desain tersimpan yang berbeda dan menginginkan satu perubahan menjangkau semuanya, seperti tanggal atau judul baru.
 
-**Batch** menangani pekerjaan pertama dan **Multi-edit** menangani yang kedua. Keduanya berjalan di perangkat Anda dan mengekspor melalui jalur render yang sama seperti alat itu sendiri.
+**Lolly Batch** menangani pekerjaan pertama dan **Lolly Multi-edit** menangani yang kedua. Keduanya berjalan di perangkat Anda dan mengekspor melalui jalur render yang sama seperti alat itu sendiri.
 
 ::: cols
 ## Batch
@@ -10,9 +12,10 @@ Dua pekerjaan muncul begitu Anda sering membuat jenis file yang sama. Kadang And
 - Satu templat, banyak baris. Setiap baris adalah satu set input dan menghasilkan satu file.
 - Isi baris dengan mengetik, menempel dari spreadsheet, atau mengimpor CSV.
 - Tidak ada batas baris; 50 tampil per halaman.
-- Dibuka dari **Batch** di header Projects (`#/batch`).
+- Dibuka dari **Lolly Batch** di header Projects (`#/batch`).
 
-## Multi-edit
+<a id="multi-edit"></a>
+## Lolly Multi-edit
 
 - Dua hingga delapan desain tersimpan yang berbeda, berdampingan sebagai kartu langsung.
 - Satu sidebar menyunting input yang mereka bagi, lalu input milik tiap kartu.
@@ -22,7 +25,7 @@ Dua pekerjaan muncul begitu Anda sering membuat jenis file yang sama. Kadang And
 
 ## Buat banyak versi dari satu desain
 
-Buka **Projects** dan tekan **Batch** di headernya. Grid dimulai dengan satu baris: pilih templat di dalamnya, lalu gandakan baris atau tempel data dari spreadsheet Anda. Bila dibuka dari dalam folder, Batch mengembalikan Anda ke folder itu.
+Buka tampilan **Projects** dan tekan **Batch** di headernya. Grid dimulai dengan satu baris: pilih templat di dalamnya, lalu gandakan baris atau tempel data dari spreadsheet Anda. Bila dibuka dari dalam folder, Batch mengembalikan Anda ke folder itu.
 
 ![Batch pada grid baru: nama file dan alat baris di bagian atas, dan daftar templat baris pertama terbuka pada alat yang dapat Anda pilih](/t/url-shot?url=%2F%23%2Fbatch&width=1440&height=900&dpi=192&waitMs=3500&walker=1&format=svg&dark=1&filename=use-batch-toolbar)
 
@@ -46,9 +49,13 @@ Setiap baris mempertahankan pilihan temanya sendiri: terang atau gelap, dan colo
 
 CSV membawa pilihan dalam kolom `_themes` setelah kolom ukuran, berisi JSON yang sama dengan parameter tautan `_themes`, misalnya `{"":"dark","colourway":"beach"}`. Sel kosong, atau `{}`, berarti default design system. Kolom hanya ditulis bila ada baris yang memiliki pilihan, jadi batch tanpa pilihan mengekspor CSV yang sama seperti sebelumnya. Saat impor, sel yang bukan pilihan tema yang valid dicantumkan sebagai masalah dan barisnya dirender dengan default. Grid belum memiliki kontrol untuk mengubah pilihan sebuah baris, jadi atur di CSV atau di sesi tersimpan.
 
+### Satu bahasa untuk setiap baris
+
+Alat yang mencetak teksnya sendiri, seperti Certificate, dapat menerima kolom `language` dengan kode bahasa singkat seperti `de`, `ja`, atau `ar`. Setiap baris kemudian mencetak teks dan tanggalnya dalam bahasa itu, dan baris berbahasa Arab dan Urdu ditata dari kanan ke kiri. Sel kosong mengikuti bahasa aplikasi. Bahasa yang terjemahannya belum dimiliki Lolly dicetak dalam bahasa Inggris, termasuk tanggalnya, sehingga sertifikat tidak pernah setengah diterjemahkan.
+
 ### Batch, atau Render folder
 
-Batch membuat banyak varian dari satu templat. Untuk merender ulang sesi yang sudah Anda simpan, pilih di Projects dan gunakan **Render selection**, atau **Render folder** untuk seluruh folder; [Find and recover your work](/info/find-your-work.html#find-something-you-saved) membahas keduanya.
+Lolly Batch membuat banyak varian dari satu templat. Untuk merender ulang sesi yang sudah Anda simpan, pilih di Projects dan gunakan **Render selection**, atau **Render folder** untuk seluruh folder; [Find and recover your work](/info/find-your-work.html#find-something-you-saved) membahas keduanya.
 
 ## Sunting beberapa desain tersimpan bersama
 
@@ -69,7 +76,7 @@ Setiap kartu digambar dalam pilihan tema sesinya sendiri, termasuk alat yang dit
 - **Paling banyak delapan.** Setiap kartu memasang runtime langsungnya sendiri, dan delapan adalah jumlah yang tetap responsif. Tautan yang meminta lebih, atau sesi yang tidak ada lagi, menyatakannya alih-alih memuat setengah-setengah.
 - **Tautannya lokal.** Tautan menyebut slot tersimpan milik Anda sendiri, jadi membuka kembali set itu di perangkat ini. Ini bukan tautan berbagi.
 - **Untuk yang lebih besar,** pilih **Edit as sheet** di bilah pilihan yang sama. Ia membuka seluruh pilihan sebagai baris di grid batch (`#/batch?s=…`), tanpa batas ukuran dan tanpa aturan alat yang sama. Folder tidak ikut di keduanya: buka folder di grid dengan **Sessions → Folders…**, atau render dengan **Render folder** di Projects.
-- **Pencarian tidak menjangkau Multi-edit.** Ini satu-satunya tampilan yang tidak dikenal bilah pencarian.
+- **Pencarian tidak menjangkau Lolly Multi-edit.** Ini satu-satunya tampilan yang tidak dikenal bilah pencarian.
 
 ## Ke mana selanjutnya
 

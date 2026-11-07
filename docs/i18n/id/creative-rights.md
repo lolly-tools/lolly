@@ -22,7 +22,7 @@ Memilih set tidak pernah diblokir, dan kontrol set menampilkan lisensi di tempat
 
 ## Apa yang Anda lihat, dan apa yang dilakukan
 
-Kata-kata yang sama muncul di panel ekspor, Verify, baris perintah, dan hasil mesin, kira-kira berurutan menurut seberapa sering Anda menemuinya.
+Kata-kata yang sama muncul di panel ekspor, Lolly Verify, baris perintah, dan hasil mesin, kira-kira berurutan menurut seberapa sering Anda menemuinya.
 
 | Yang Anda lihat | Artinya |
 |---|---|
@@ -51,12 +51,14 @@ Lolly tidak pernah mengatakan "hak cipta terverifikasi", "aman secara hukum", "s
 
 - **Di katalog.** Lembar sebuah karya menampilkan sumber dan pembuatnya, nama lisensi kanonis dengan label aslinya tetap di bawahnya, kredit yang dapat disalin bila tercatat, dan satu baris yang menyatakan apa yang diminta pemakaiannya. Ubin menyatakan persyaratan; ia tidak pernah mengklaim ekspor telah selesai.
 - **Di panel ekspor.** Kartu Source credits muncul di dalam Content protection begitu render memakai karya tercatat, di samping Licence yang Anda pilih untuk ekspor Anda sendiri. Ia menampilkan statusnya, teks kredit di balik Details, tombol Copy credit, dan kartu inline bila keputusan terutang. Keputusan tidak pernah menjadi dialog pemblokir: unduhan dengan aksi yang tersisa tetap berlanjut.
-- **Di file.** Ekspor yang menempatkan karya tercatat menulis satu ingredient sumber Content Credentials per karya berbeda, terikat pada byte asli di alamat publiknya, dan membawa pembuat, lisensi dan tautannya, sumber, revisi, dan perubahan. Lolly menandatangani apa yang diamatinya. Ia tidak pernah menandatangani klaim atas nama seniman hulu, dan Verify menyatakan mana dari keduanya yang terjadi.
+- **Di file.** Ekspor yang menempatkan karya tercatat menulis satu ingredient sumber Content Credentials per karya berbeda, terikat pada byte asli di alamat publiknya, dan membawa pembuat, lisensi dan tautannya, sumber, revisi, dan perubahan. Lolly menandatangani apa yang diamatinya. Ia tidak pernah menandatangani klaim atas nama seniman hulu, dan Lolly Verify menyatakan mana dari keduanya yang terjadi.
 - **Di paket.** Unduhan yang tidak dapat memuat kredensial, seperti animasi `.lottie`, membawa kredit sebagai `CREDITS.txt` dan `credits.json` di dalam paket. Keduanya dibaca kembali setelah ditulis, dan tidak ada kredensial bertanda tangan yang diklaim untuknya.
 - **Setelah menulis.** Byte yang dikirim dibaca kembali sebelum apa pun menyatakan kredit disertakan. Kredensial yang tidak terverifikasi tidak dihitung sebagai kredit yang dikirim.
-- **Di file `.lolly` yang dapat disunting.** Byte ikut hanya bila lisensi yang telah ditinjau mencatat izin meneruskan sumber. `CREDITS.txt` paket mencantumkan apa yang ikut, di bawah lisensi mana, dan apa yang ditahan beserta alasannya. Lisensi yang tidak tercatat ditahan. Anda masih dapat menyertakan konten yang ditahan dengan sengaja, dan file kredit mencatat bahwa itu pilihan Anda.
-- **Di Verify.** Panel Sources mencantumkan setiap sumber yang dicatat file, dengan ringkasan terhitung, kredit, tombol Copy credit, tautan Open source yang terbuka hanya saat Anda memintanya, dan batas yang dinyatakan dari apa yang diperiksa. Pertanyaan Check for this use muncul hanya saat Anda memilih pemakaian, dan tidak ada yang diambil untuk menjawab pertanyaan itu.
+- **Di file `.lolly` yang dapat disunting.** Byte ikut hanya bila lisensi yang telah ditinjau mencatat izin meneruskan sumber, atau baris itu membawa ketentuan milik pemiliknya sendiri. `CREDITS.txt` paket mencantumkan apa yang ikut, di bawah lisensi mana, dan apa yang ditahan beserta alasannya. Lisensi yang tidak tercatat ditahan. Anda masih dapat menyertakan konten yang ditahan dengan sengaja, dan file kredit mencatat bahwa itu pilihan Anda.
+- **Di Lolly Verify.** Panel Sources mencantumkan setiap sumber yang dicatat file, dengan ringkasan terhitung, kredit, tombol Copy credit, tautan Open source yang terbuka hanya saat Anda memintanya, dan batas yang dinyatakan dari apa yang diperiksa. Pertanyaan Check for this use muncul hanya saat Anda memilih pemakaian, dan tidak ada yang diambil untuk menjawab pertanyaan itu.
 - **Saat Anda menghapus metadata.** Pelucutan memberi tahu berapa banyak kredit sumber yang tidak lagi dibawa file, menawarkan teks kredit, dan menawarkan file bersih dengan kredit di file terpisah. Byte yang dilucuti tidak pernah distempel ulang.
+
+**Tanda milik pemilik sendiri.** Pemilik jarang menaruh logonya di bawah lisensi terbuka. Baris yang catatan haknya menyatakan `own-work`, dengan pemilik dan ketentuannya, dapat ikut dalam file `.lolly` dan di [brand page](/info/brand-page.html#publish-your-own-marks). Baris itu ikut sebagai "Diterbitkan pemilik, bukan lisensi terbuka", dengan ketentuan di samping file. Ini membaca apa yang dinyatakan sebuah katalog. Lolly tidak memeriksa siapa pemilik sebuah tanda. Catatan tanpa pemilik, ketentuan kosong, atau tanpa deklarasi tetap ditahan, begitu pula tanda milik orang lain tanpa catatan seperti itu.
 
 ::: details Lisensi yang telah ditinjau Lolly
 Versi aturan `rights-rules-2026-11-05.1`. Setiap aturan dibaca dari teks hukum lisensi itu sendiri, dan bagian asalnya dikutip di sini dan di samping aturan di `engine/src/rights-profiles.ts`. Versi dan port dipertahankan sebagaimana tercatat: deklarasi CC BY 3.0 mempertahankan versinya sendiri dan tidak dilaporkan sebagai 4.0 karena pemilih aplikasi lebih menyukai 4.0.
@@ -69,6 +71,7 @@ Versi aturan `rights-rules-2026-11-05.1`. Setiap aturan dibaca dari teks hukum l
 | CC-PDDC | Tidak ada. Yang dicatat adalah pernyataan itu sendiri dan siapa yang membuatnya, karena sertifikasi adalah pernyataan satu pihak, bukan bukti. | Paragraf [dedikasi dan sertifikasi](https://creativecommons.org/licenses/publicdomain/) |
 | Apache License 2.0 | Pemberitahuan dari sumber dan teks atribusi file NOTICE ikut bersama karya yang didistribusikan. Pemakaian runtime tidak meminta apa pun. Lisensi yang meminta teks pemberitahuan dan karya yang tidak membawanya dilaporkan sebagai celah. | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0), bagian 4, syarat 1 sampai 4 |
 | MIT | Baris hak cipta dan pemberitahuan izin ikut bersama salinan dan bagian substansial. Pemakaian runtime dan referensi tidak meminta apa pun. | [MIT](https://opensource.org/license/mit), syarat pemberitahuan izin |
+| ISC | Sama seperti MIT, dengan kata yang lebih ringkas: baris hak cipta dan pemberitahuan izin ikut bersama salinan. Pemakaian runtime dan referensi tidak meminta apa pun. | [ISC](https://opensource.org/license/isc-license-txt), syarat pemberitahuan izin |
 | SIL OFL 1.1 | Merender teks dengan font tidak meminta apa pun dari teks. Meneruskan file font membawa lisensi, pemberitahuan hak cipta, dan aturan nama yang dicadangkan. | [OFL 1.1](https://openfontlicense.org/open-font-license-official-text/), syarat 2, 3, dan 5; [OFL FAQ](https://openfontlicense.org/ofl-faq/) tentang dokumen |
 
 **Tercatat, tidak ditafsirkan.** CC BY-NC, CC BY-ND, dan kombinasi NC-SA dan NC-ND dikenali, syaratnya dicantumkan, dan tidak ada aturan di sini yang membacanya. Mereka melaporkan `licence.unknown` dengan baris yang menyebut syaratnya. Konteks komersial tidak dapat dibaca dari harga atau akun, dan setiap teks gabungan memerlukan tinjauannya sendiri sebelum aturan membaca teks itu.
@@ -119,7 +122,7 @@ Lima modul engine, semuanya murni: tanpa jaringan, tanpa jam, tanpa filesystem. 
 | `engine/src/rights-evaluate.ts` | Klasifikasi, masalah, rencana atribusi, dan sidik jari. Deterministik: fakta yang sama dalam urutan berbeda memberi jawaban yang sama. |
 | `engine/src/rights-attribution.ts` | Kredit yang terbaca, file pendamping, ingredient sumber, dan tanda terima yang diukur setelah menulis. |
 | `engine/src/rights-companion.ts` | Pembacaan kembali kredit paket (`CREDITS.txt` dan `credits.json` di dalam unduhan berbasis ZIP), yang mengonfirmasi kredit tanpa mengklaim kredensial bertanda tangan. |
-| `engine/src/rights-report.ts` | Kredensial terverifikasi yang dibaca kembali sebagai tiga pertanyaan yang diajukan Verify. |
+| `engine/src/rights-report.ts` | Kredensial terverifikasi yang dibaca kembali sebagai tiga pertanyaan yang diajukan Lolly Verify. |
 
 File ekspektasi di `tests/fixtures/rights/` ditulis dari teks lisensi, bukan dari keluaran evaluator, dan README-nya mengutip bagian di balik setiap ekspektasi.
 :::

@@ -39,7 +39,7 @@ Bumubukas ang lolly.tools sa [Lolly Demo](/info/lolly-demo.html), ang sariling s
 
 ## Magagamit ko ba ang sarili kong brand?
 
-Oo. Ang **Design System Setup** (`#/start`) ay bumubuo ng design system mula sa isang kulay, design tokens file o tapos na design, at ang bawat tool ay gumuguhit na gamit ang design system mo. Ginagabayan ka ng [Simulan](/info/quickstart.html#put-your-brand-in) sa tatlong ruta.
+Oo. Ang **Lolly Design System Setup** (`#/start`) ay bumubuo ng design system mula sa isang kulay, design tokens file o tapos na design, at ang bawat tool ay gumuguhit na gamit ang design system mo. Ginagabayan ka ng [Simulan](/info/quickstart.html#put-your-brand-in) sa tatlong ruta.
 
 Ang design system na ibinibigay ng organisasyon o build mo ay managed: may lock ito at nananatiling read-only, at puwede kang gumawa ng mae-edit na kopya para baguhin.
 
@@ -80,9 +80,9 @@ Gumuguhit ang web app gamit ang WebGPU, isang graphics feature ng mga kasalukuya
 
 ## Kaya bang i-edit at i-render ng Lolly ang mga file kong Figma, Penpot, Illustrator o InDesign?
 
-Oo. Buksan ang **Design** at i-click ang **Import a design**: tumatanggap ito ng native na Figma **.fig** (Save local copy), Penpot **.penpot** export, Illustrator **.ai** o **.pdf**, InDesign **.idml** (File → Export → InDesign Markup) o **anumang SVG**. Hindi mo kailangan ng account, plugin o lisensya ng design app.
+Oo. Buksan ang **Design** tool at i-click ang **Import a design**: tumatanggap ito ng native na Figma **.fig** (Save local copy), Penpot **.penpot** export, Illustrator **.ai** o **.pdf**, InDesign **.idml** (File → Export → InDesign Markup) o **anumang SVG**. Hindi mo kailangan ng account, plugin o lisensya ng design app.
 
-![Ang bukas na canvas ng Design - nasa Lolly menu ng toolbar ang Import a design](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D17ZTfS8MwEMf_mryO5NZ288GHrdqJv1CUvWdtOgppMtJMNv96yaV1iRNEQRBZoblwab53l0-uq915bXgrCOSDpf3LzgANnQ4eI0rrPJn7Gh9cd0sE8lIryxtFIFfatFx6L4F0Mi-11GbUiZYr25QjK3bW-S8I5MnUbRXKCkMgb5uqki6JFFU7rjoXYsSgT8GaLebKZSeGAPkUYypMHp80DeugYYR4J_U7X4XRkY8dFHuTYEJ-jDWM3qoqsEHo4Y20-xJi-SPVaOfRUuAL1hiZXNrG4gH6M85Z5lTAk8x8DdlnPL8gecVfBIEU6F5v0bbCor3VUu4JpOPCKTCWsPI9rBS107d6QyCfRET_Ac6wX36X6UpX-49Ip1mAlMEPkM6QX20aoSpECLTmpadcazPQ9hPlWxboRndWmFEIG1s4Yp3E3Ts-0f4GbcruWHLzlC0frmfpfbGk82LxmD0vUndSTcvXAoknWBKCz5LDSIdiRHV0D2Tfq1BIvdY42Zim5WZ_-n3_mRvwBg&width=1360&height=850&dpi=192&waitMs=3000&format=svg&walker=1&chrome=1&localize=1&dark=1&filename=design)
+![Ang bukas na canvas ng Lolly Design - nasa Lolly menu ng toolbar ang Import a design](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D17ZTfS8MwEMf_mryO5NZ288GHrdqJv1CUvWdtOgppMtJMNv96yaV1iRNEQRBZoblwab53l0-uq915bXgrCOSDpf3LzgANnQ4eI0rrPJn7Gh9cd0sE8lIryxtFIFfatFx6L4F0Mi-11GbUiZYr25QjK3bW-S8I5MnUbRXKCkMgb5uqki6JFFU7rjoXYsSgT8GaLebKZSeGAPkUYypMHp80DeugYYR4J_U7X4XRkY8dFHuTYEJ-jDWM3qoqsEHo4Y20-xJi-SPVaOfRUuAL1hiZXNrG4gH6M85Z5lTAk8x8DdlnPL8gecVfBIEU6F5v0bbCor3VUu4JpOPCKTCWsPI9rBS107d6QyCfRET_Ac6wX36X6UpX-49Ip1mAlMEPkM6QX20aoSpECLTmpadcazPQ9hPlWxboRndWmFEIG1s4Yp3E3Ts-0f4GbcruWHLzlC0frmfpfbGk82LxmD0vUndSTcvXAoknWBKCz5LDSIdiRHV0D2Tfq1BIvdY42Zim5WZ_-n3_mRvwBg&width=1360&height=850&dpi=192&waitMs=3000&format=svg&walker=1&chrome=1&localize=1&dark=1&filename=design)
 
 Dumarating ang mga layer bilang mae-edit na kahon: nananatiling matatype muli ang text, nananatiling hugis ang mga hugis at sumasali ang mga larawan sa sarili mong library. I-save ito, at maaaring gawing tool ng **Share with rules** ang layout na maaaring muling punan ng sinumang may Lolly. Tingnan ang [Import a design](/info/design-import.html).
 
@@ -98,9 +98,9 @@ Ang mga feature flag ay nag-o-on o nag-o-off ng mga bahagi ng Lolly. Sa standalo
 
 ## Ano ang pagkakaiba ng utilities sa tools?
 
-Ang utility ay gumagawa ng isang mabilis na trabaho sa file na meron ka na, tulad ng pag-compress ng PDF, pag-convert ng litrato o pag-strip ng nakatagong data, at marami sa mga ito ay tumatakbo sa device mo nang walang ina-upload. Umiiral ang mga ito para manatili sa loob ng Lolly ang mga trabahong karaniwang ibinibigay ng mga tao sa kung anong website. Ang pag-compress ng kontrata, pag-convert ng litrato sa bakasyon na nasa loob pa ang lokasyon o pag-paste ng token sa online formatter ay hindi dapat mangahulugan ng pagbibigay ng file sa site na hindi alam ang retention, jurisdiction at business model. Inililista ng [Mga utility](/info/utilities.html) ang mga ito, at ikinukuwento ng [Ang kalakalang hindi natin kailanman pinagkasunduan](/info/status-quo.html) ang kuwento sa likod nila.
+Ang utility ay gumagawa ng isang mabilis na trabaho sa file na meron ka na, tulad ng pag-compress ng PDF, pag-convert ng litrato o pag-strip ng nakatagong data, at marami sa mga ito ay tumatakbo sa device mo nang walang ina-upload. Umiiral ang mga ito para manatili sa loob ng Lolly ang mga trabahong karaniwang ibinibigay ng mga tao sa kung anong website. Ang pag-compress ng kontrata, pag-convert ng litrato sa bakasyon na nasa loob pa ang lokasyon o pag-paste ng token sa online formatter ay hindi dapat mangahulugan ng pagbibigay ng file sa site na hindi alam ang retention, jurisdiction at business model. Inililista ng [Lolly Utilities](/info/utilities.html) ang mga ito, at ikinukuwento ng [Ang kalakalang hindi natin kailanman pinagkasunduan](/info/status-quo.html) ang kuwento sa likod nila.
 
-![Ang Utilities view: Strip Hidden Data, Compress PDF, Convert Image at iba pang on-device na trabaho, lahat sa iisang lugar](/t/url-shot?url=%2F%23%2Fu&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone!important%7D&tolerance=0.03&format=svg&walker=1&dark=1&filename=use-utilities&try=1)
+![Ang Utilities view: Lolly Strip Hidden Data, Compress PDF, Convert Image at iba pang on-device na trabaho, lahat sa iisang lugar](/t/url-shot?url=%2F%23%2Fu&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone!important%7D&tolerance=0.03&format=svg&walker=1&dark=1&filename=use-utilities&try=1)
 
 ## Magagamit ba ng organisasyon namin ang SSO, shared project at approval?
 
@@ -110,7 +110,7 @@ Sinasaklaw ng [Gamitin ang Lolly sa organisasyon mo](/info/organisation.html) an
 
 ## Anong mga hadlang ang puwede kong asahan sa pag-adopt ng Lolly?
 
-Karamihan ay pagbabago sa panig ng paggawa kaysa sa teknolohiya. Ang team na gusto ng governed na hanay ng mga tool ay nangangailangan ng taong magsusulat ng design system nito at ng mga unang template, bagaman maaaring magsimulang gumawa ng sarili nilang tool ang sinuman sa Design sa unang araw, nang hindi nangangailangan ng git. At patuloy na gumagana ang mga umiiral na proseso kahit off-brand ang output nila, kaya ang mahusay na pag-convert ng isang nakikitang output, magkatabi ang bago at pagkatapos, ay mas mabilis na nagpapatunay kaysa sa isang plano.
+Karamihan ay pagbabago sa panig ng paggawa kaysa sa teknolohiya. Ang team na gusto ng governed na hanay ng mga tool ay nangangailangan ng taong magsusulat ng design system nito at ng mga unang template, bagaman maaaring magsimulang gumawa ng sarili nilang tool ang sinuman sa Lolly Design sa unang araw, nang hindi nangangailangan ng git. At patuloy na gumagana ang mga umiiral na proseso kahit off-brand ang output nila, kaya ang mahusay na pag-convert ng isang nakikitang output, magkatabi ang bago at pagkatapos, ay mas mabilis na nagpapatunay kaysa sa isang plano.
 
 Sinasaklaw ng [Adoption & Governance](/info/adoption-governance.html) ang onboarding ayon sa papel, kung paano sukatin ang pilot at kung ano ang itsura ng governance process.
 
@@ -144,3 +144,11 @@ Nasa hiwalay at pribadong repository ang mga ito. Hindi kailanman kinukuha ng pa
 ## Anong lasa ang Lolly logo na iyan?
 
 May nagsasabing Lime, may nagsasabing Mint at minsan Apple, ang Lolly ang nagdadala ng tamis, ikaw ang bahalang magpalasa!
+
+## Ano ang ibig sabihin ng Lolly sa content sovereignty?
+
+Kontrol kung paano nililikha, pinamamahalaan, iniimbak at inililipat ang content mo sa mga sistemang pinipili mo. Sinusuportahan ng Lolly ang lokal na produksyon, mae-edit na gawa at portable na mga tool; nagdaragdag ang Lolly Work ng mga shared service na kontrolado ng organisasyon. May bigat pa rin ang mga source licence, ang mga available na dependency at ang mga data flow ng workflow. Ipinapaliwanag ng [Ano ang content sovereignty?](/info/content-sovereignty.html) ang bawat kontrol at ang mga limitasyon nito.
+
+## Puwede ba naming panatilihin ang umiiral naming DAM?
+
+Oo. Puwedeng manatiling source of record ang isang sinusuportahang DAM habang ikinokonekta ng Lolly Work ang mga piniling asset sa mga Lolly tool. Magkakahiwalay na desisyon ang source access, mga pinapayagang edit, use rights at pag-apruba ng tapos na output. Ipinapaliwanag ng [Gamitin ang Lolly sa umiiral mong DAM](/info/use-with-dam.html) ang kaayusan, at itinatala ng [Karanasan ng SUSE sa Brandfolder](/info/suse-brandfolder.html) ang matagumpay na paggamit habang nag-aampon.

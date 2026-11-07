@@ -6,10 +6,17 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
-## 1.322.0
+## 1.323.0
 
 - The vector IR gains a `stencil` prim (`VectorStencilPrim` in `emf.ts`): words as one bit per pixel, painted in one ink, so whatever lies under them shows through. `emitEps` paints it with `imagemask` in the ink (RGB or the CMYK mapping), and `emitWmf` with a pair of 1-bit `META_STRETCHDIB` blits, OR then AND, which leaves the page under the words as it was. `emitDxf` counts one as a dropped picture. `emitEmf` draws none.
 - No other module changes. The vector walk (`packages/node-shell/src/svg-ir.ts`) makes a stencil from a picture of a run no font can draw, for EPS and WMF, as a PDF draws such a run as a picture, and DXF stops with a message that names the run instead of outlining boxes. A file with no such run keeps its bytes.
+
+## 1.322.0
+
+- `writeDocx` takes an optional `page` (width, height and margins in twips) and writes it as the section's `w:pgSz` and `w:pgMar`, marking a landscape page as such and holding every value to Word's range. New `snapDocxPage` turns a measured size into the standard paper size it stands for (A4 is 11906 x 16838 twips, US Letter 12240 x 15840), so a page laid out in whole pixels reads as A4, not a custom size. Picture widths and table columns follow the page's text width.
+- `writeDocx` takes optional `styles`: the body face and text colour go into the document defaults, the heading face and colour into Heading 1 to 6. A face is named in `ascii`, `hAnsi`, `eastAsia` and `cs`, and only a plain family name or a six-digit colour is written. Runs carry no font or colour of their own.
+- `DocxMedia.fallback`: for an SVG picture, PNG bytes of the same artwork. The picture is written the way Word writes one, the PNG as the blip and the SVG through the `asvg:svgBlip` extension, so a reader with no SVG support shows the PNG.
+- A document with no `page`, no `styles` and no `fallback` is byte-identical to before. New exports: `snapDocxPage`, and the types `DocxPage` and `DocxStyles`. The web shell's Word export (`shells/web/src/bridge/export-docx.ts`) fills all three from the rendered page. The PNG is drawn from the SVG's own bytes, so the file gains no new information, and a .docx still has no Content Credentials container.
 
 ## 1.321.0
 

@@ -1,8 +1,10 @@
-# Batch dan Multi-edit
+# Lolly Batch dan Lolly Multi-edit
+
+<a id="batch-and-multi-edit"></a>
 
 Dua tugas timbul sebaik sahaja anda kerap membuat jenis fail yang sama. Kadangkala anda memerlukan banyak versi satu reka bentuk: kad dalam sedozen bahasa, atau setiap saiz sepanduk. Kadangkala anda mempunyai beberapa reka bentuk tersimpan yang berbeza dan mahu satu perubahan sampai kepada semuanya, seperti tarikh baharu atau tajuk baharu.
 
-**Batch** melakukan tugas pertama dan **Multi-edit** melakukan yang kedua. Kedua-duanya berjalan pada peranti anda dan mengeksport melalui laluan render yang sama seperti alat itu sendiri.
+**Lolly Batch** melakukan tugas pertama dan **Lolly Multi-edit** melakukan yang kedua. Kedua-duanya berjalan pada peranti anda dan mengeksport melalui laluan render yang sama seperti alat itu sendiri.
 
 ::: cols
 ## Batch
@@ -10,9 +12,10 @@ Dua tugas timbul sebaik sahaja anda kerap membuat jenis fail yang sama. Kadangka
 - Satu templat, banyak baris. Setiap baris ialah satu set input dan menghasilkan satu fail.
 - Isi baris dengan menaip, menampal daripada hamparan atau mengimport CSV.
 - Tiada had baris; 50 ditunjukkan bagi setiap halaman.
-- Dibuka daripada **Batch** dalam pengepala Projects (`#/batch`).
+- Dibuka daripada **Lolly Batch** dalam pengepala Projects (`#/batch`).
 
-## Multi-edit
+<a id="multi-edit"></a>
+## Lolly Multi-edit
 
 - Dua hingga lapan reka bentuk tersimpan berbeza, bersebelahan sebagai kad langsung.
 - Satu bar sisi menyunting input yang dikongsi, kemudian input setiap kad sendiri.
@@ -22,7 +25,7 @@ Dua tugas timbul sebaik sahaja anda kerap membuat jenis fail yang sama. Kadangka
 
 ## Buat banyak versi satu reka bentuk
 
-Buka **Projects** dan tekan **Batch** dalam pengepalanya. Grid bermula dengan satu baris: pilih templat di dalamnya, kemudian gandakan baris atau tampal data daripada hamparan anda. Dibuka dari dalam folder, Batch mengembalikan anda ke folder itu.
+Buka paparan **Projects** dan tekan **Batch** dalam pengepalanya. Grid bermula dengan satu baris: pilih templat di dalamnya, kemudian gandakan baris atau tampal data daripada hamparan anda. Dibuka dari dalam folder, Batch mengembalikan anda ke folder itu.
 
 ![Batch pada grid baharu: nama fail dan alat baris di bahagian atas, dan senarai templat baris pertama dibuka pada alat yang boleh anda pilih](/t/url-shot?url=%2F%23%2Fbatch&width=1440&height=900&dpi=192&waitMs=3500&walker=1&format=svg&dark=1&filename=use-batch-toolbar)
 
@@ -46,9 +49,13 @@ Setiap baris mengekalkan pilihan temanya sendiri: cerah atau gelap, dan colourwa
 
 CSV membawa pilihan dalam lajur `_themes` selepas lajur saiz, memegang JSON yang sama seperti parameter pautan `_themes`, contohnya `{"":"dark","colourway":"beach"}`. Sel kosong, atau `{}`, bermakna lalai sistem reka bentuk. Lajur ditulis hanya apabila sesetengah baris mempunyai pilihan, jadi kelompok tanpa mana-mana mengeksport CSV yang sama seperti sebelum ini. Semasa import, sel yang bukan pilihan tema yang sah disenaraikan sebagai isu dan barisnya dirender dalam lalai. Grid belum mempunyai kawalan untuk mengubah pilihan baris, jadi tetapkannya dalam CSV atau sesi tersimpan.
 
+### Bahasa untuk setiap baris
+
+Alat yang mencetak perkataannya sendiri, seperti Certificate, boleh mengambil lajur `language` dengan kod bahasa pendek seperti `de`, `ja` atau `ar`. Setiap baris kemudian mencetak perkataan dan tarikhnya dalam bahasa itu, dan baris Arab dan Urdu disusun kanan ke kiri. Sel kosong mengikut bahasa apl. Bahasa yang terjemahannya belum dimiliki Lolly dicetak dalam bahasa Inggeris, termasuk tarikh, jadi sijil tidak pernah separuh diterjemahkan.
+
 ### Batch, atau Render folder
 
-Batch membuat banyak varian satu templat. Untuk merender semula sesi yang sudah anda simpan, pilihnya dalam Projects dan gunakan **Render selection**, atau **Render folder** untuk seluruh folder; [Find and recover your work](/info/find-your-work.html#find-something-you-saved) meliputi kedua-duanya.
+Lolly Batch membuat banyak varian satu templat. Untuk merender semula sesi yang sudah anda simpan, pilihnya dalam Projects dan gunakan **Render selection**, atau **Render folder** untuk seluruh folder; [Find and recover your work](/info/find-your-work.html#find-something-you-saved) meliputi kedua-duanya.
 
 ## Sunting beberapa reka bentuk tersimpan bersama
 
@@ -69,7 +76,7 @@ Setiap kad dilukis dalam pilihan tema sesinya sendiri, termasuk alat yang dileta
 - **Lapan paling banyak.** Setiap kad memasang masa jalan langsungnya sendiri, dan lapan ialah nombor yang kekal responsif. Pautan yang meminta lebih, atau sesi yang tidak lagi wujud, menyatakannya dan bukan dimuatkan separuh.
 - **Pautan itu setempat.** Ia menamakan slot tersimpan anda sendiri, jadi ia membuka semula set itu pada peranti ini. Ia bukan pautan kongsi.
 - **Untuk yang lebih besar,** pilih **Edit as sheet** dalam bar pilihan yang sama. Ia membuka keseluruhan pilihan sebagai baris dalam grid kelompok (`#/batch?s=…`), tanpa had saiz dan tanpa peraturan alat sama. Folder kekal di luar kedua-duanya: buka folder dalam grid dengan **Sessions → Folders…**, atau render satu dengan **Render folder** dalam Projects.
-- **Carian tidak sampai ke Multi-edit.** Ia satu-satunya paparan yang tidak diketahui bar carian.
+- **Carian tidak sampai ke Lolly Multi-edit.** Ia satu-satunya paparan yang tidak diketahui bar carian.
 
 ## Ke mana seterusnya
 

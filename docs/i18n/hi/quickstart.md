@@ -22,7 +22,7 @@ lolly.tools **Lolly Demo** में खुलता है, जो Lolly का
 
 गैलरी पहली बार खोलने पर एक छोटा स्वागत यही विकल्प देता है: **Make it yours** Design System Setup खोलता है, **Bring your design** डिज़ाइन के लिए फ़ाइल पिकर खोलता है और **Explore the community tools** स्वागत बंद करता है।
 
-![नई इंस्टॉल पर Design System Setup का Colours रूम: एक लाइव चिप, एक फ़ील्ड और पहले निर्णय का पूरा हिस्सा](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&system=new-design-system&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&dark=1&filename=bs-colours-new-system)
+![नए design system पर Lolly Design System Setup का Colours कमरा: एक लाइव चिप, एक फ़ील्ड और पहला पूरा निर्णय](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&system=new-design-system&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&dark=1&filename=bs-colours-new-system)
 
 वहाँ से आठ रूम इसे जितना चाहें आगे ले जाते हैं, किसी भी क्रम में: **Board**, **Colours**, **Type**, **Logos**, **Tokens**, **Files**, **Rules** और **Skills**। आपके टाइप करते ही ऐप का हर प्रीव्यू अपडेट होता है। [Lolly Design System Setup](/info/brand-studio.html) हर रूम को कवर करता है।
 

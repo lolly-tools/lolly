@@ -11,7 +11,7 @@ _최종 확인일: 2026년 9월 28일._
 - [Lolly와 Figma](/info/compare-figma.html): 디자인, 실시간 협업, 재사용 가능한 에셋 제작.
 - [Lolly와 Penpot](/info/compare-penpot.html): 오픈 소스 디자인, 공유 토큰, 조직 작업.
 - [Lolly와 브랜드 포털](/info/compare-brand-portals.html): 승인된 라이브러리, 잠긴 템플릿, 신원, 검토, 보고.
-- [Lolly와 렌더링 API](/info/compare-render-apis.html): 기기, CI 또는 Lolly Work 서버에서의 자동 생성.
+- [Lolly와 렌더링 API](/info/compare-render-apis.html): 기기, CI 또는 자체 서버에서의 자동 생성, 그리고 Bannerbear나 Placid에서 [옮기는 방법](/info/work-move-from-render-api.html).
 - [Lolly와 온라인 파일 변환기](/info/compare-converters.html): 자신의 기기에서 형식 변환.
 
 기능별 비교는 [Lolly 비교](/info/positioning.html)를 참고하세요. 각 비교에는 날짜가 있으며, 어느 한쪽 제품과 더 이상 맞지 않는 내용은 수정이 필요해요.

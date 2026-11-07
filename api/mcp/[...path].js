@@ -4114,7 +4114,7 @@ var ENGINE_VERSION;
 var init_version = __esm({
   "engine/src/version.ts"() {
     "use strict";
-    ENGINE_VERSION = "1.322.0";
+    ENGINE_VERSION = "1.323.0";
   }
 });
 
@@ -101132,30 +101132,44 @@ function imagePx(bytes2) {
   }
   return null;
 }
+function addMedia(ctx, bytes2, ext) {
+  const path = `media/image${ctx.media.length + 1}.${ext}`;
+  ctx.media.push({ name: `word/${path}`, bytes: bytes2 });
+  ctx.exts.add(ext);
+  return addRel(ctx, "image", path, false);
+}
 function imageXml(ref2, alt, ctx) {
   const entry2 = ctx.mediaByName.get(ref2);
   if (!entry2) return "";
+  const svgPair = extOf4(ref2) === "svg" && isPng(entry2.fallback);
   let rid = ctx.imageRel.get(ref2);
+  let svgRid = ctx.svgRel.get(ref2);
   if (!rid) {
-    const ext = extOf4(ref2);
-    const path = `media/image${ctx.media.length + 1}.${ext}`;
-    ctx.media.push({ name: `word/${path}`, bytes: entry2.bytes });
-    ctx.exts.add(ext);
-    rid = addRel(ctx, "image", path, false);
+    if (svgPair) {
+      rid = addMedia(ctx, entry2.fallback, "png");
+      svgRid = addMedia(ctx, entry2.bytes, "svg");
+      ctx.svgRel.set(ref2, svgRid);
+    } else {
+      rid = addMedia(ctx, entry2.bytes, extOf4(ref2));
+    }
     ctx.imageRel.set(ref2, rid);
   }
   ctx.needR = true;
   ctx.needWp = true;
-  const nat = imagePx(entry2.bytes) ?? FALLBACK_PX;
+  const nat = (svgPair ? null : imagePx(entry2.bytes)) ?? (svgPair ? imagePx(entry2.fallback) : null) ?? FALLBACK_PX;
   const w = Number.isFinite(entry2.width) && entry2.width > 0 ? entry2.width : nat.w;
   const h = Number.isFinite(entry2.height) && entry2.height > 0 ? entry2.height : nat.h;
-  const scale = Math.min(1, MAX_IMAGE_EMU / (w * EMU_PER_PX2));
+  const scale = Math.min(1, ctx.contentTwips * EMU_PER_TWIP / (w * EMU_PER_PX2));
   const cx2 = Math.max(1, Math.round(w * EMU_PER_PX2 * scale));
   const cy3 = Math.max(1, Math.round(h * EMU_PER_PX2 * scale));
   const id3 = ++ctx.drawings;
   const name = `Picture ${id3}`;
   const descr = xmlEsc5(alt ?? "");
-  return `<w:p><w:r><w:drawing><wp:inline distT="0" distB="0" distL="0" distR="0"><wp:extent cx="${cx2}" cy="${cy3}"/><wp:docPr id="${id3}" name="${name}" descr="${descr}"/><a:graphic xmlns:a="${A_NS}"><a:graphicData uri="${PIC_NS}"><pic:pic xmlns:pic="${PIC_NS}"><pic:nvPicPr><pic:cNvPr id="${id3}" name="${name}" descr="${descr}"/><pic:cNvPicPr/></pic:nvPicPr><pic:blipFill><a:blip r:embed="${rid}"/><a:stretch><a:fillRect/></a:stretch></pic:blipFill><pic:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="${cx2}" cy="${cy3}"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom></pic:spPr></pic:pic></a:graphicData></a:graphic></wp:inline></w:drawing></w:r></w:p>`;
+  return `<w:p><w:r><w:drawing><wp:inline distT="0" distB="0" distL="0" distR="0"><wp:extent cx="${cx2}" cy="${cy3}"/><wp:docPr id="${id3}" name="${name}" descr="${descr}"/><a:graphic xmlns:a="${A_NS}"><a:graphicData uri="${PIC_NS}"><pic:pic xmlns:pic="${PIC_NS}"><pic:nvPicPr><pic:cNvPr id="${id3}" name="${name}" descr="${descr}"/><pic:cNvPicPr/></pic:nvPicPr><pic:blipFill>${blipXml(rid, svgRid)}<a:stretch><a:fillRect/></a:stretch></pic:blipFill><pic:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="${cx2}" cy="${cy3}"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom></pic:spPr></pic:pic></a:graphicData></a:graphic></wp:inline></w:drawing></w:r></w:p>`;
+}
+function blipXml(rid, svgRid) {
+  if (!svgRid) return `<a:blip r:embed="${rid}"/>`;
+  return `<a:blip r:embed="${rid}"><a:extLst><a:ext uri="${SVG_EXT_URI2}"><asvg:svgBlip xmlns:asvg="${ASVG_NS}" r:embed="${svgRid}"/></a:ext></a:extLst></a:blip>`;
 }
 function tableXml2(header, rows2, ctx) {
   const all = header ? [header, ...rows2] : rows2;
@@ -101196,9 +101210,47 @@ function tableXml2(header, rows2, ctx) {
     body += `<w:tr>${trPr}${cells}</w:tr>`;
   }
   if (cols < 1) cols = 1;
-  const colW = Math.max(1, Math.floor(CONTENT_TWIPS / cols));
+  const colW = Math.max(1, Math.floor(ctx.contentTwips / cols));
   const grid = `<w:tblGrid>${`<w:gridCol w:w="${colW}"/>`.repeat(cols)}</w:tblGrid>`;
   return `<w:tbl><w:tblPr><w:tblW w:w="0" w:type="auto"/>${TBL_BORDERS}</w:tblPr>${grid}${body}</w:tbl>`;
+}
+function pageOf(page3) {
+  if (!page3) return LETTER;
+  const width = twips(page3.width, MIN_PAGE_TWIPS, MAX_PAGE_TWIPS, LETTER.width);
+  const height = twips(page3.height, MIN_PAGE_TWIPS, MAX_PAGE_TWIPS, LETTER.height);
+  const m2 = page3.margin ?? LETTER.margin;
+  const room = (size) => Math.max(0, size - Math.min(MIN_TEXT_TWIPS, size));
+  const pair = (a, b, size) => {
+    const max = room(size);
+    let x = twips(a, 0, max, Math.min(1440, max / 2));
+    let y = twips(b, 0, max, Math.min(1440, max / 2));
+    if (x + y > max) {
+      const k = max / (x + y);
+      x = Math.floor(x * k);
+      y = Math.floor(y * k);
+    }
+    return [x, y];
+  };
+  const [left, right] = pair(m2.left, m2.right, width);
+  const [top, bottom] = pair(m2.top, m2.bottom, height);
+  return { width, height, margin: { top, right, bottom, left } };
+}
+function sectPrXml(page3) {
+  const { width, height, margin } = page3;
+  const orient = width > height ? ' w:orient="landscape"' : "";
+  return `<w:sectPr><w:pgSz w:w="${width}" w:h="${height}"${orient}/><w:pgMar w:top="${margin.top}" w:right="${margin.right}" w:bottom="${margin.bottom}" w:left="${margin.left}" w:header="${Math.min(HEADER_TWIPS, margin.top)}" w:footer="${Math.min(HEADER_TWIPS, margin.bottom)}" w:gutter="0"/></w:sectPr>`;
+}
+function snapDocxPage(width, height) {
+  const wMm = width / TWIPS_PER_MM;
+  const hMm = height / TWIPS_PER_MM;
+  for (const [a, b] of PAPER_MM) {
+    for (const [pw, ph] of [[a, b], [b, a]]) {
+      if (Math.abs(wMm - pw) <= SNAP_MM && Math.abs(hMm - ph) <= SNAP_MM) {
+        return { width: Math.round(pw * TWIPS_PER_MM), height: Math.round(ph * TWIPS_PER_MM) };
+      }
+    }
+  }
+  return { width: Math.round(width), height: Math.round(height) };
 }
 function blockXml(block, ctx) {
   switch (block.type) {
@@ -101243,20 +101295,24 @@ function blockXml(block, ctx) {
       return "";
   }
 }
-function documentXml(blocks, ctx) {
+function documentXml(blocks, ctx, page3) {
   let paras = "";
   for (const b of blocks) paras += blockXml(b, ctx);
   if (!paras) paras = "<w:p/>";
   const ns2 = `xmlns:w="${W_NS}"` + (ctx.needR ? ` xmlns:r="${REL2}"` : "") + (ctx.needWp ? ` xmlns:wp="${WP_NS}"` : "");
   return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<w:document ${ns2}><w:body>${paras}${SECT_PR}</w:body></w:document>`;
+<w:document ${ns2}><w:body>${paras}${sectPrXml(page3)}</w:body></w:document>`;
 }
-function stylesXml2(ctx) {
+function stylesXml2(ctx, look3) {
+  const bodyFont = familyOf(look3?.bodyFont);
+  const headingFont = familyOf(look3?.headingFont);
+  const textColor = colourOf(look3?.textColor);
+  const headingColor = colourOf(look3?.headingColor);
   let styles = `<w:style w:type="paragraph" w:default="1" w:styleId="Normal"><w:name w:val="Normal"/></w:style>`;
   for (let i = 0; i < HEADING_HALF_PT.length; i++) {
     const lvl = i + 1;
     const sz = HEADING_HALF_PT[i];
-    styles += `<w:style w:type="paragraph" w:styleId="Heading${lvl}"><w:name w:val="heading ${lvl}"/><w:basedOn w:val="Normal"/><w:uiPriority w:val="9"/><w:pPr><w:keepNext/><w:outlineLvl w:val="${i}"/></w:pPr><w:rPr><w:b/><w:sz w:val="${sz}"/><w:szCs w:val="${sz}"/></w:rPr></w:style>`;
+    styles += `<w:style w:type="paragraph" w:styleId="Heading${lvl}"><w:name w:val="heading ${lvl}"/><w:basedOn w:val="Normal"/><w:uiPriority w:val="9"/><w:pPr><w:keepNext/><w:outlineLvl w:val="${i}"/></w:pPr><w:rPr>${rFontsXml(headingFont)}<w:b/>${colorXml(headingColor)}<w:sz w:val="${sz}"/><w:szCs w:val="${sz}"/></w:rPr></w:style>`;
   }
   if (ctx.needQuote) {
     styles += `<w:style w:type="paragraph" w:styleId="Quote"><w:name w:val="Quote"/><w:basedOn w:val="Normal"/><w:uiPriority w:val="29"/><w:pPr><w:ind w:left="720" w:right="720"/></w:pPr><w:rPr><w:i/></w:rPr></w:style>`;
@@ -101268,7 +101324,7 @@ function stylesXml2(ctx) {
     styles += `<w:style w:type="paragraph" w:styleId="Code"><w:name w:val="HTML Preformatted"/><w:basedOn w:val="Normal"/><w:rPr><w:rFonts w:ascii="Consolas" w:hAnsi="Consolas" w:cs="Consolas"/></w:rPr></w:style>`;
   }
   return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<w:styles xmlns:w="${W_NS}"><w:docDefaults><w:rPrDefault><w:rPr><w:sz w:val="22"/><w:szCs w:val="22"/></w:rPr></w:rPrDefault><w:pPrDefault/></w:docDefaults>` + styles + `</w:styles>`;
+<w:styles xmlns:w="${W_NS}"><w:docDefaults><w:rPrDefault><w:rPr>${rFontsXml(bodyFont)}${colorXml(textColor)}<w:sz w:val="22"/><w:szCs w:val="22"/></w:rPr></w:rPrDefault><w:pPrDefault/></w:docDefaults>` + styles + `</w:styles>`;
 }
 function abstractNum(id3, ordered) {
   let lvls = "";
@@ -101305,6 +101361,7 @@ function writeDocx(doc) {
     // rId1 is styles.xml
     hrefRel: /* @__PURE__ */ new Map(),
     imageRel: /* @__PURE__ */ new Map(),
+    svgRel: /* @__PURE__ */ new Map(),
     media: [],
     exts: /* @__PURE__ */ new Set(),
     mediaByName: /* @__PURE__ */ new Map(),
@@ -101314,8 +101371,11 @@ function writeDocx(doc) {
     needWp: false,
     needQuote: false,
     needTableHeader: false,
-    needCode: false
+    needCode: false,
+    contentTwips: 0
   };
+  const page3 = pageOf(doc?.page);
+  ctx.contentTwips = Math.max(1, page3.width - page3.margin.left - page3.margin.right);
   for (const m2 of Array.isArray(doc?.media) ? doc.media : []) {
     if (m2 && typeof m2.name === "string" && m2.bytes instanceof Uint8Array) ctx.mediaByName.set(m2.name, m2);
   }
@@ -101324,7 +101384,7 @@ function writeDocx(doc) {
   if (hasLists) addRel(ctx, "numbering", "numbering.xml", false);
   if (noteBlocks.length) addRel(ctx, "footnotes", "footnotes.xml", false);
   noteBlocks.forEach((b, i) => ctx.noteIds.set(String(b.id), i + 1));
-  const document2 = documentXml(blocks, ctx);
+  const document2 = documentXml(blocks, ctx, page3);
   const notes = noteBlocks.map((b, i) => ({
     id: i + 1,
     runs: inlinesXml(b.inlines ?? [], ctx, NO_MARKS, false, true, 0)
@@ -101338,7 +101398,7 @@ function writeDocx(doc) {
     { name: "docProps/core.xml", bytes: str11(corePropsXml(coreMeta, now2, "Document")) },
     { name: "docProps/app.xml", bytes: str11(APP_PROPS) },
     { name: "word/document.xml", bytes: str11(document2) },
-    { name: "word/styles.xml", bytes: str11(stylesXml2(ctx)) },
+    { name: "word/styles.xml", bytes: str11(stylesXml2(ctx, doc?.styles)) },
     { name: "word/_rels/document.xml.rels", bytes: str11(documentRels(ctx.rels)) }
   ];
   if (hasLists) entries.push({ name: "word/numbering.xml", bytes: str11(NUMBERING_XML) });
@@ -101346,7 +101406,7 @@ function writeDocx(doc) {
   for (const m2 of ctx.media) entries.push(m2);
   return storeZip(entries);
 }
-var encoder3, W_NS, REL2, PKG_REL_NS2, CT_NS, A_NS, PIC_NS, WP_NS, MAX_INLINE_DEPTH3, xmlEsc5, clampLevel2, clampSpan, NO_MARKS, textRun, paraXml2, EMU_PER_PX2, MAX_IMAGE_EMU, FALLBACK_PX, extOf4, MEDIA_TYPES, TBL_BORDERS, CONTENT_TWIPS, SECT_PR, BULLET_NUM_ID, DECIMAL_NUM_ID, MAX_ILVL, HEADING_HALF_PT, BULLET_GLYPHS, NUMBERING_XML, ROOT_RELS2, APP_PROPS, documentRels;
+var encoder3, W_NS, REL2, PKG_REL_NS2, CT_NS, A_NS, PIC_NS, WP_NS, MAX_INLINE_DEPTH3, xmlEsc5, clampLevel2, clampSpan, NO_MARKS, textRun, paraXml2, EMU_PER_PX2, EMU_PER_TWIP, SVG_EXT_URI2, ASVG_NS, FALLBACK_PX, extOf4, MEDIA_TYPES, isPng, TBL_BORDERS, LETTER, MIN_PAGE_TWIPS, MAX_PAGE_TWIPS, MIN_TEXT_TWIPS, HEADER_TWIPS, twips, PAPER_MM, TWIPS_PER_MM, SNAP_MM, BULLET_NUM_ID, DECIMAL_NUM_ID, MAX_ILVL, HEADING_HALF_PT, FAMILY_RE, familyOf, colourOf, rFontsXml, colorXml, BULLET_GLYPHS, NUMBERING_XML, ROOT_RELS2, APP_PROPS, documentRels;
 var init_docx = __esm({
   "engine/src/docx.ts"() {
     "use strict";
@@ -101368,7 +101428,9 @@ var init_docx = __esm({
     textRun = (text13, rPr) => `<w:r>${rPr}<w:t xml:space="preserve">${xmlEsc5(text13)}</w:t></w:r>`;
     paraXml2 = (pPrInner, runs2) => `<w:p>${pPrInner ? `<w:pPr>${pPrInner}</w:pPr>` : ""}${runs2}</w:p>`;
     EMU_PER_PX2 = 9525;
-    MAX_IMAGE_EMU = 6.5 * 914400;
+    EMU_PER_TWIP = 635;
+    SVG_EXT_URI2 = "{96DAC541-7B7A-43D3-8B79-37D633B846F1}";
+    ASVG_NS = "http://schemas.microsoft.com/office/drawing/2016/SVG/main";
     FALLBACK_PX = { w: 480, h: 360 };
     extOf4 = (name) => {
       const m2 = /\.([A-Za-z0-9]{1,8})$/.exec(name);
@@ -101387,13 +101449,48 @@ var init_docx = __esm({
       emf: "image/x-emf",
       wmf: "image/x-wmf"
     };
+    isPng = (b) => !!b && b.length > 24 && b[0] === 137 && b[1] === 80 && b[2] === 78 && b[3] === 71;
     TBL_BORDERS = "<w:tblBorders>" + ["top", "left", "bottom", "right", "insideH", "insideV"].map((s) => `<w:${s} w:val="single" w:sz="4" w:space="0" w:color="auto"/>`).join("") + "</w:tblBorders>";
-    CONTENT_TWIPS = 12240 - 1440 - 1440;
-    SECT_PR = '<w:sectPr><w:pgSz w:w="12240" w:h="15840"/><w:pgMar w:top="1440" w:right="1440" w:bottom="1440" w:left="1440" w:header="720" w:footer="720" w:gutter="0"/></w:sectPr>';
+    LETTER = {
+      width: 12240,
+      height: 15840,
+      margin: { top: 1440, right: 1440, bottom: 1440, left: 1440 }
+    };
+    MIN_PAGE_TWIPS = 144;
+    MAX_PAGE_TWIPS = 31680;
+    MIN_TEXT_TWIPS = 720;
+    HEADER_TWIPS = 720;
+    twips = (n7, lo, hi, fallback) => typeof n7 === "number" && Number.isFinite(n7) ? Math.min(hi, Math.max(lo, Math.round(n7))) : fallback;
+    PAPER_MM = [
+      [210, 297],
+      [148, 210],
+      [105, 148],
+      [297, 420],
+      [420, 594],
+      [176, 250],
+      [250, 353],
+      [215.9, 279.4],
+      [215.9, 355.6],
+      [279.4, 431.8],
+      [184.15, 266.7]
+    ];
+    TWIPS_PER_MM = 1440 / 25.4;
+    SNAP_MM = 1;
     BULLET_NUM_ID = 1;
     DECIMAL_NUM_ID = 2;
     MAX_ILVL = 8;
     HEADING_HALF_PT = [32, 28, 26, 24, 22, 20];
+    FAMILY_RE = /^[A-Za-z0-9][A-Za-z0-9 _-]{0,63}$/;
+    familyOf = (v) => {
+      const name = typeof v === "string" ? v.trim() : "";
+      return FAMILY_RE.test(name) ? name : void 0;
+    };
+    colourOf = (v) => {
+      const m2 = typeof v === "string" ? /^#?([0-9a-fA-F]{6})$/.exec(v.trim()) : null;
+      return m2?.[1] ? m2[1].toUpperCase() : void 0;
+    };
+    rFontsXml = (face) => face ? `<w:rFonts w:ascii="${face}" w:hAnsi="${face}" w:eastAsia="${face}" w:cs="${face}"/>` : "";
+    colorXml = (hex4) => hex4 ? `<w:color w:val="${hex4}"/>` : "";
     BULLET_GLYPHS = ["\u2022", "\u25E6", "\u25AA"];
     NUMBERING_XML = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <w:numbering xmlns:w="${W_NS}">` + abstractNum(0, false) + abstractNum(1, true) + `<w:num w:numId="${BULLET_NUM_ID}"><w:abstractNumId w:val="0"/></w:num><w:num w:numId="${DECIMAL_NUM_ID}"><w:abstractNumId w:val="1"/></w:num></w:numbering>`;
@@ -113883,7 +113980,7 @@ function vectorFillCount(svg) {
 function fractionBox(box4, frame) {
   return { x: box4.x / frame.width, y: box4.y / frame.height, w: box4.w / frame.width, h: box4.h / frame.height };
 }
-function familyOf(object4, stats) {
+function familyOf2(object4, stats) {
   if (object4.kind === "pic") {
     if (object4.media) {
       return { key: `media:${object4.media}`, kind: "media", by: "exact", digitWildcard: false, exact: object4.media, normalised: object4.media };
@@ -114039,7 +114136,7 @@ function censusDeck(source, opts = {}) {
   const families = /* @__PURE__ */ new Map();
   for (const frame of frames) {
     for (const object4 of frame.slide.objects) {
-      const candidate = familyOf(object4, statsOf(object4));
+      const candidate = familyOf2(object4, statsOf(object4));
       if (!candidate) continue;
       const family2 = families.get(candidate.key) ?? { key: candidate.key, kind: candidate.kind, by: candidate.by, digitWildcard: candidate.digitWildcard, members: [] };
       const member = { object: object4, frame, normalised: candidate.normalised };
@@ -117651,7 +117748,7 @@ function furnitureKind(kind) {
   if (kind === "bar" || kind === "rect") return "box";
   return "text";
 }
-function colourOf(hex4, tokenPath, resolve8) {
+function colourOf2(hex4, tokenPath, resolve8) {
   if (typeof hex4 === "string" && hex4) return hex4;
   if (typeof tokenPath === "string" && tokenPath && resolve8) {
     const v = resolve8(tokenPath);
@@ -117685,7 +117782,7 @@ function applyTextStyle(row, master, role, style, resolve8, link) {
   if (style.align) row.align = style.align;
   if (style.valign) row.valign = style.valign;
   if (style.font) row.font = style.font;
-  const fg = colourOf(style.fg, style.fgTokenPath, resolve8);
+  const fg = colourOf2(style.fg, style.fgTokenPath, resolve8);
   if (fg) row.fg = fg;
   if (fg && link && !style.fg && style.fgTokenPath) link(row, "fg", style.fgTokenPath, fg);
 }
@@ -117704,13 +117801,13 @@ function shownFurniture(master, archetype) {
   return [...chosen.filter((f) => f.kind === "rect"), ...chosen.filter((f) => f.kind !== "rect")];
 }
 function logoDarkness(master, archetype, resolve8) {
-  const frameBg = colourOf(archetype.background?.hex, archetype.background?.tokenPath, resolve8);
+  const frameBg = colourOf2(archetype.background?.hex, archetype.background?.tokenPath, resolve8);
   const frameDark = archetype.background?.dark ?? (frameBg ? bgIsDark(frameBg) : false);
   const painted = [];
   const byFurniture = /* @__PURE__ */ new Map();
   for (const f of shownFurniture(master, archetype)) {
     if (f.kind === "bar" || f.kind === "rect") {
-      const fill2 = colourOf(f.hex, f.tokenPath, resolve8);
+      const fill2 = colourOf2(f.hex, f.tokenPath, resolve8);
       if (fill2) painted.push({ box: f.box, dark: bgIsDark(fill2) });
       continue;
     }
@@ -117733,7 +117830,7 @@ function seedFrame(master, archetypeId, opts) {
   if (!archetype) return null;
   const prefix = opts.idPrefix ?? opts.frameId;
   const resolve8 = opts.resolveToken;
-  const bg = colourOf(archetype.background?.hex, archetype.background?.tokenPath, resolve8);
+  const bg = colourOf2(archetype.background?.hex, archetype.background?.tokenPath, resolve8);
   const ox = Math.round(opts.x);
   const oy = Math.round(opts.y);
   const frame = {
@@ -117782,7 +117879,7 @@ function seedFrame(master, archetypeId, opts) {
       const mark = markFor(f);
       if (mark) row.image = mark;
     } else if (f.kind === "bar" || f.kind === "rect") {
-      const fill2 = colourOf(f.hex, f.tokenPath, resolve8);
+      const fill2 = colourOf2(f.hex, f.tokenPath, resolve8);
       if (fill2) row.bg = fill2;
       if (fill2 && link && !f.hex && f.tokenPath) link(row, "bg", f.tokenPath, fill2);
     } else {
@@ -117965,11 +118062,11 @@ function paintOver(top, under) {
   return `#${[0, 1, 2].map((i) => channel5(i).toString(16).padStart(2, "0")).join("")}`;
 }
 function groundUnder(master, archetype, box4, resolve8) {
-  let ground = colourOf(archetype.background?.hex, archetype.background?.tokenPath, resolve8);
+  let ground = colourOf2(archetype.background?.hex, archetype.background?.tokenPath, resolve8);
   ground = ground ? paintOver(ground, "#ffffff") : void 0;
   for (const f of shownFurniture(master, archetype)) {
     if (f.kind !== "bar" && f.kind !== "rect") continue;
-    const fill2 = colourOf(f.hex, f.tokenPath, resolve8);
+    const fill2 = colourOf2(f.hex, f.tokenPath, resolve8);
     if (fill2 && coveredFraction(box4, f.box) >= 0.5) ground = paintOver(fill2, ground);
   }
   return ground;
@@ -117986,7 +118083,7 @@ function inkFor(master, archetype, box4, preferred, resolve8) {
   let best;
   const seen = /* @__PURE__ */ new Set();
   for (const style of styles) {
-    const raw = style ? colourOf(style.fg, style.fgTokenPath, resolve8) : void 0;
+    const raw = style ? colourOf2(style.fg, style.fgTokenPath, resolve8) : void 0;
     const hex4 = raw ? paintOver(raw, ground) : void 0;
     if (!hex4 || seen.has(hex4)) continue;
     seen.add(hex4);
@@ -118095,7 +118192,7 @@ function applyArchetype(master, fromArchetypeId, toArchetypeId, layers, opts) {
   if (!plan) return layers.slice();
   const { origin, slotOf, cellOf: cellOf3 } = plan;
   const resolve8 = opts?.resolveToken;
-  const targetBg = colourOf(to.background?.hex, to.background?.tokenPath, resolve8);
+  const targetBg = colourOf2(to.background?.hex, to.background?.tokenPath, resolve8);
   const darkness = logoDarkness(master, to, resolve8);
   const logos = opts?.logos;
   const bodyStyle = to.placeholders.find((one) => one.role === "body" && one.kind !== "image")?.style;
@@ -118106,7 +118203,7 @@ function applyArchetype(master, fromArchetypeId, toArchetypeId, layers, opts) {
       if (!f) return row;
       const next3 = { ...row, ...place(f.box, master, origin.x, origin.y) };
       if (f.kind === "bar" || f.kind === "rect") {
-        const fill2 = colourOf(f.hex, f.tokenPath, resolve8);
+        const fill2 = colourOf2(f.hex, f.tokenPath, resolve8);
         if (fill2) next3.bg = fill2;
       } else if (f.kind === "logo") {
         next3.fit = "contain";
@@ -118461,7 +118558,7 @@ function unitOf(value2) {
   const n7 = Number(m2[1]) / (m2[2] ? 100 : 1);
   return Number.isFinite(n7) ? Math.max(0, Math.min(1, n7)) : void 0;
 }
-function familyOf2(value2) {
+function familyOf3(value2) {
   let list4 = value2.trim();
   const v = /^var\(\s*--[\w-]+\s*,\s*(.*)\)$/s.exec(list4);
   if (v) list4 = v[1];
@@ -118640,7 +118737,7 @@ function svgItemsOf(svgText, parseXml, opts = {}) {
     if (visibility === "hidden" || visibility === "collapse") own4.visible = false;
     else if (visibility === "visible") own4.visible = true;
     const family2 = get4("font-family");
-    if (family2) own4.fontFamily = familyOf2(family2) ?? own4.fontFamily;
+    if (family2) own4.fontFamily = familyOf3(family2) ?? own4.fontFamily;
     const weight = get4("font-weight");
     if (weight) own4.bold = weight === "bold" || weight === "bolder" || Number(weight) >= 600;
     const fontStyle = get4("font-style");
@@ -123728,7 +123825,7 @@ function borderWidth(strokeW) {
   if (!(sw > 0)) return 0;
   return sw < 1 ? 1 : Math.floor(sw);
 }
-function familyOf3(token2, fonts) {
+function familyOf4(token2, fonts) {
   if (token2 === "sans" || token2 === "") return fonts.brand;
   if (token2 === "display") return fonts.display || fonts.brand;
   if (token2 === "mono") return fonts.mono || fonts.brand;
@@ -123759,7 +123856,7 @@ function settle(spec) {
     text: spec.text.replace(/\r\n?/g, "\n"),
     fonts,
     token: token2,
-    family: familyOf3(token2, fonts),
+    family: familyOf4(token2, fonts),
     weight: layerWeight(spec.weight, token2),
     italic: spec.italic === true,
     plain: spec.plain === true,
@@ -123786,8 +123883,8 @@ function segmentsOf(line, s) {
     const weight = run3.weight ?? (run3.bold ? bolder(s.weight) : s.weight);
     if (run3.italic || s.italic) {
       const fontInner = !!run3.font && (run3.italic ? run3.fontInsideItalic === true : true);
-      face = fontInner ? { token: run3.font, family: familyOf3(run3.font, s.fonts), weight, italic: true } : { token: "italic", family: italicFamily, weight, italic: true };
-    } else if (run3.font) face = { token: run3.font, family: familyOf3(run3.font, s.fonts), weight, italic: false };
+      face = fontInner ? { token: run3.font, family: familyOf4(run3.font, s.fonts), weight, italic: true } : { token: "italic", family: italicFamily, weight, italic: true };
+    } else if (run3.font) face = { token: run3.font, family: familyOf4(run3.font, s.fonts), weight, italic: false };
     else face = { ...base, weight };
     out.push({ text: run3.text, face, run: run3 });
   }
@@ -127518,7 +127615,7 @@ function boxesToPenpotDoc(boxesIn, o) {
     if (alias) return alias[1];
     return o.bindToken?.(s, kind) ?? null;
   };
-  const familyOf8 = (key2) => {
+  const familyOf9 = (key2) => {
     const k = str6(key2).trim();
     if (!k || k === "sans") return o.fonts?.sans || "sans-serif";
     if (k === "mono") return o.fonts?.mono || "monospace";
@@ -127607,7 +127704,7 @@ function boxesToPenpotDoc(boxesIn, o) {
     if (kind === "text") {
       const text13 = str6(b.text);
       if (!text13.trim()) return null;
-      const family2 = familyOf8(b.font);
+      const family2 = familyOf9(b.font);
       const weight = weightOf(b);
       const fg = color6(b.fg) ?? "#000000";
       const size = Math.max(1, Math.round(fin2(b.fontSize, 48)));
@@ -127627,7 +127724,7 @@ function boxesToPenpotDoc(boxesIn, o) {
           const rp = parsePenpotColor(rc) ?? { hex: "#000000", alpha: 1 };
           return {
             text: r5.text,
-            fontFamily: r5.family ? familyOf8(r5.family) : family2,
+            fontFamily: r5.family ? familyOf9(r5.family) : family2,
             fontWeight: r5.weight ?? weight,
             italic: r5.italic === true,
             fontSize: size,
@@ -136151,7 +136248,7 @@ function setInCapitals(text13, exempt) {
   if (!cased.length || cased.some((w) => w !== w.toUpperCase())) return false;
   return cased.filter((w) => w.length >= 3).length >= 2;
 }
-function colourOf2(layout2, raw) {
+function colourOf3(layout2, raw) {
   if (!raw || raw === "transparent" || raw === "none") return null;
   const path = aliasPath(raw);
   if (path) {
@@ -136234,12 +136331,12 @@ function weightsOf(row) {
 function textColoursOf(layout2, row) {
   const out = [];
   const own4 = valueText3(row.fg);
-  const ownHex = own4 ? colourOf2(layout2, own4) : null;
+  const ownHex = own4 ? colourOf3(layout2, own4) : null;
   if (own4 && ownHex) out.push({ raw: own4, hex: ownHex });
   for (const line of parseDesignText(textOf7(row))) {
     for (const run3 of line.runs) {
       if (!run3.color || !run3.text.trim()) continue;
-      const hex4 = colourOf2(layout2, run3.color);
+      const hex4 = colourOf3(layout2, run3.color);
       if (hex4 && !out.some((c) => c.hex === hex4)) out.push({ raw: run3.color, hex: hex4 });
     }
   }
@@ -136429,7 +136526,7 @@ function checkDesignHouseRules(boxes2, rules, doc, opts = {}) {
     } else if (rule.kind === "stroke-on-rounded") {
       checked2++;
       const shapes2 = strings2(p.shapes).length ? strings2(p.shapes) : ROUNDED_SHAPES;
-      const neutral = new Set(strings2(p.neutral).map((v) => colourOf2(layout2, v)).filter((v) => !!v));
+      const neutral = new Set(strings2(p.neutral).map((v) => colourOf3(layout2, v)).filter((v) => !!v));
       const stripMax = num14(p.stripMax, 12);
       const rounded = (row) => {
         const shape = typeof row.shape === "string" ? row.shape : "";
@@ -136443,7 +136540,7 @@ function checkDesignHouseRules(boxes2, rules, doc, opts = {}) {
       };
       for (const { row, index: index2 } of layers) {
         if (row.kind === "path" || row.kind === "frame" || !rounded(row)) continue;
-        const stroke = colourOf2(layout2, valueText3(row.stroke));
+        const stroke = colourOf3(layout2, valueText3(row.stroke));
         if (stroke && num14(row.strokeW, 0) > 0 && !neutral.has(stroke)) {
           add3(
             row,
@@ -136457,7 +136554,7 @@ function checkDesignHouseRules(boxes2, rules, doc, opts = {}) {
         for (let i = index2 + 1; i < layout2.rows.length && i < 5e3; i++) {
           const strip = layout2.rows[i];
           if (layout2.hidden(strip) || strip.kind === "frame" || strip.kind === "image" || textOf7(strip).trim() || artboardOf(strip) !== artboardOf(row)) continue;
-          const fill2 = colourOf2(layout2, valueText3(strip.bg));
+          const fill2 = colourOf3(layout2, valueText3(strip.bg));
           if (!fill2 || !accent(fill2) || num14(strip.opacity, 1) <= 0) continue;
           const [sx, sy, sw, sh] = [num14(strip.x, 0), num14(strip.y, 0), num14(strip.w, 0), num14(strip.h, 0)];
           const tol = 2;
@@ -136483,7 +136580,7 @@ function checkDesignHouseRules(boxes2, rules, doc, opts = {}) {
       for (const { row } of layers) {
         if (row.kind === "path") continue;
         const style = typeof row.strokeDash === "string" && row.strokeDash ? row.strokeDash : typeof row.strokeDashArray === "string" && row.strokeDashArray.trim() ? "dashed" : "";
-        if (!style || !styles.includes(style) || num14(row.strokeW, 0) <= 0 || !colourOf2(layout2, valueText3(row.stroke))) continue;
+        if (!style || !styles.includes(style) || num14(row.strokeW, 0) <= 0 || !colourOf3(layout2, valueText3(row.stroke))) continue;
         add3(row, "strokeDash", style, "solid", `A ${style} border is reserved for ${meaning}.`);
       }
     } else if (rule.kind === "logo-surface") {
@@ -143627,7 +143724,7 @@ function hatchedBox(box4, flat) {
 function round12(n7) {
   return Number.isFinite(n7) ? Math.round(n7 * 10) / 10 : 0;
 }
-function familyOf4(stated, ctx) {
+function familyOf5(stated, ctx) {
   switch (stated) {
     case "":
       return ctx.family;
@@ -143678,7 +143775,7 @@ function drawRow(row, offset, placeholder, ctx) {
   const kind = rowStr2(row, "kind");
   const emit = {
     assetHref: ctx.assetHref,
-    family: (font) => familyOf4(font, ctx),
+    family: (font) => familyOf5(font, ctx),
     mono: ctx.slots.mono,
     // `alt`, the row's name or a plain sentence labels a picture that cannot be drawn here.
     missingImage: (image) => drawMuted(image.box, image.label, ctx),
@@ -155293,6 +155390,7 @@ __export(src_exports, {
   smfTimeSignature: () => smfTimeSignature,
   smfTimeSignatureEvent: () => smfTimeSignatureEvent,
   smoothEdgePath: () => smoothEdgePath,
+  snapDocxPage: () => snapDocxPage,
   snapTextRange: () => snapTextRange,
   sniffAnimatedRaster: () => sniffAnimatedRaster,
   sniffContainer: () => sniffContainer,
@@ -157279,7 +157377,7 @@ function themeSlotFills(filled2, candidates2) {
   }
   return out;
 }
-function familyOf5(slot, fonts) {
+function familyOf6(slot, fonts) {
   if (!slot) return void 0;
   if (slot === "display") return fonts?.major;
   if (slot === "mono") return fonts?.mono || fonts?.minor;
@@ -157471,7 +157569,7 @@ async function picOf(ctx, sink, row, box4) {
       ctx.notes.add("a treated picture was left out because this run cannot render it to a raster");
       return null;
     }
-    return { kind: "pic", ...placed2.box, media: addMedia(sink, baked, "png"), ...look3, ...srcRect ? { srcRect } : {} };
+    return { kind: "pic", ...placed2.box, media: addMedia2(sink, baked, "png"), ...look3, ...srcRect ? { srcRect } : {} };
   }
   if (ext === "svg") {
     const scale = Math.min(FALLBACK_SCALE, MAX_FALLBACK_PX / Math.max(placed2.drawn.cx / EMU_PER_PX, placed2.drawn.cy / EMU_PER_PX, 1));
@@ -157482,8 +157580,8 @@ async function picOf(ctx, sink, row, box4) {
       ctx.notes.add("a vector picture was left out because this run cannot render its PNG fallback");
       return null;
     }
-    const svgIdx = addMedia(sink, got.bytes, "svg");
-    const pngIdx = addMedia(sink, png, "png");
+    const svgIdx = addMedia2(sink, got.bytes, "svg");
+    const pngIdx = addMedia2(sink, png, "png");
     return {
       kind: "pic",
       ...placed2.box,
@@ -157497,7 +157595,7 @@ async function picOf(ctx, sink, row, box4) {
   return {
     kind: "pic",
     ...placed2.box,
-    media: addMedia(sink, got.bytes, ext),
+    media: addMedia2(sink, got.bytes, ext),
     name: str10(row, "name") || void 0,
     ...look3,
     ...srcRect ? { srcRect } : {}
@@ -157607,7 +157705,7 @@ async function lowerLayer(ctx, sink, row, origin, binding, masterStyle, master, 
     };
     const runWeight = deckWeight(weight);
     if (runWeight !== void 0) run3.weight = runWeight;
-    const family2 = familyOf5(str10(row, "font") || masterStyle?.font || "", ctx.fonts);
+    const family2 = familyOf6(str10(row, "font") || masterStyle?.font || "", ctx.fonts);
     if (family2) run3.font = family2;
     const align = ALIGN[str10(row, "align") || masterStyle?.align || ""];
     const anchor = ANCHOR[str10(row, "valign") || masterStyle?.valign || ""];
@@ -157730,7 +157828,7 @@ function layoutFor(ctx, archetype, master, size, bindings, kept2) {
       ...style?.valign && ANCHOR[style.valign] ? { anchor: ANCHOR[style.valign] } : {},
       ...ph.prompt ? { prompt: ph.prompt } : {}
     };
-    const family2 = familyOf5(style?.font ?? "", ctx.fonts);
+    const family2 = familyOf6(style?.font ?? "", ctx.fonts);
     const sizePt = Math.round(roleFontSize(master, ph.role, style) * typeScale * 0.75 * 100) / 100;
     const align = style?.align ? ALIGN[style.align] : void 0;
     const styleWeight = deckWeight(Number(style?.weight) || void 0);
@@ -157824,7 +157922,7 @@ function furnitureShape(ctx, f, master, size) {
   };
   const runWeight = deckWeight(weight);
   if (runWeight !== void 0) run3.weight = runWeight;
-  const family2 = familyOf5(f.style?.font ?? "", ctx.fonts);
+  const family2 = familyOf6(f.style?.font ?? "", ctx.fonts);
   if (family2) run3.font = family2;
   const align = f.style?.align ? ALIGN[f.style.align] : void 0;
   const anchor = f.style?.valign ? ANCHOR[f.style.valign] : void 0;
@@ -157992,7 +158090,7 @@ function framesOfDesignDoc(doc) {
   }
   return frames;
 }
-var SCHEME_SLOTS, MAX_SLIDES3, MAX_LAYERS_PER_SLIDE, MAX_PICTURE_BYTES, num18, str10, bool2, emu2, TOKEN_PATH_RE, ROLE_PH_TYPE, SLD_NUM_IDX, Palette, SLOT_FILL_GROUPS, ALIGN, ANCHOR, INDENTED_LINE, Notes, addMedia, EXT_OF_MIME, BLEND_MODES2, MOTION_FIELDS, SHADOW_TARGETS, DEFAULT_TEXT_WEIGHT, DEFAULT_TEXT_HEX, DEFAULT_LINE_HEIGHT, LINE_ENDS_OF_HEADS, FOLDS_OPACITY, TURNS, MIRRORS, hidden2, MAX_FALLBACK_PX, FALLBACK_SCALE;
+var SCHEME_SLOTS, MAX_SLIDES3, MAX_LAYERS_PER_SLIDE, MAX_PICTURE_BYTES, num18, str10, bool2, emu2, TOKEN_PATH_RE, ROLE_PH_TYPE, SLD_NUM_IDX, Palette, SLOT_FILL_GROUPS, ALIGN, ANCHOR, INDENTED_LINE, Notes, addMedia2, EXT_OF_MIME, BLEND_MODES2, MOTION_FIELDS, SHADOW_TARGETS, DEFAULT_TEXT_WEIGHT, DEFAULT_TEXT_HEX, DEFAULT_LINE_HEIGHT, LINE_ENDS_OF_HEADS, FOLDS_OPACITY, TURNS, MIRRORS, hidden2, MAX_FALLBACK_PX, FALLBACK_SCALE;
 var init_design_pptx = __esm({
   "packages/node-shell/src/design-pptx.ts"() {
     "use strict";
@@ -158148,7 +158246,7 @@ var init_design_pptx = __esm({
         if (!this.lines.includes(line)) this.lines.push(line);
       }
     };
-    addMedia = (sink, bytes2, ext) => {
+    addMedia2 = (sink, bytes2, ext) => {
       sink.media.push({ bytes: bytes2, ext });
       return sink.media.length - 1;
     };
@@ -160478,7 +160576,7 @@ async function reconstructFlattenedSlide(input) {
     };
     return { object: object4, pictureBox: region.box, layer: region.kind === "panel" ? 0 : 1, region };
   };
-  const runsOf = (para, block, colourOf3, fallback, bold = false, styleOf, heavy) => {
+  const runsOf = (para, block, colourOf4, fallback, bold = false, styleOf, heavy) => {
     const at2 = new Map(para.lines.map((index2, k) => [index2, k]));
     const lines = block.lines.filter((l) => at2.has(l.index)).sort((a, b) => (at2.get(a.index) ?? 0) - (at2.get(b.index) ?? 0));
     const runs2 = [];
@@ -160488,7 +160586,7 @@ async function reconstructFlattenedSlide(input) {
       if (!piece) continue;
       const sep3 = joined ? runsOnAfter(joined) ? "" : " " : "";
       joined += sep3 + piece;
-      const hex4 = colourOf3(line) ?? fallback;
+      const hex4 = colourOf4(line) ?? fallback;
       const last = runs2[runs2.length - 1];
       if (last) last.text += sep3;
       for (const part of lineParts(line, piece, hex4, bold, styleOf?.(line) ?? null, heavy ?? (() => false))) {
@@ -160499,7 +160597,7 @@ async function reconstructFlattenedSlide(input) {
     }
     return joined === para.text && runs2.length ? runs2 : [bold ? { text: para.text, bold: true, color: { hex: fallback } } : { text: para.text, color: { hex: fallback } }];
   };
-  const textObjects = async (idBase, block, colourOf3, ink, evidenceFor, reason2, estimateRole, boldOf, styleOf, heavyOf) => {
+  const textObjects = async (idBase, block, colourOf4, ink, evidenceFor, reason2, estimateRole, boldOf, styleOf, heavyOf) => {
     const groups = [];
     for (const para of block.paragraphs) {
       const last = groups[groups.length - 1];
@@ -160511,7 +160609,7 @@ async function reconstructFlattenedSlide(input) {
       const inPicture = unionOf(group.map((p) => p.box));
       const box4 = toSlide(inPicture);
       const paras = group.map((p) => {
-        const runs2 = runsOf(p, block, colourOf3, ink, boldOf?.(p) === true, styleOf, heavyOf?.(p));
+        const runs2 = runsOf(p, block, colourOf4, ink, boldOf?.(p) === true, styleOf, heavyOf?.(p));
         if (p.sizePx !== null) {
           const sizePt = Math.round(p.sizePx * sy * PT_PER_PX * 2) / 2;
           for (const run3 of runs2) run3.sizePt = sizePt;
@@ -160978,7 +161076,7 @@ async function reconstructFlattenedSlide(input) {
       }
       const typeset = typesetOf.get(block) ?? snapSizes(typesetOcrLines(inkedOf(block), pageTypeset));
       const own5 = apart(block.lines);
-      const colourOf3 = (line) => lineInkColourOf(picture, own5[line.index] ?? line.box)?.ink ?? null;
+      const colourOf4 = (line) => lineInkColourOf(picture, own5[line.index] ?? line.box)?.ink ?? null;
       const boldOf = (para) => {
         if (heavierThanPeers(para)) return true;
         if (usualWeight <= 0) return false;
@@ -160999,7 +161097,7 @@ async function reconstructFlattenedSlide(input) {
         return (stem2, capitals) => stem2 !== null && usualHere > 0 && stem2 >= (capitals ? CAPITALS_BOLD_RATIO : WORD_BOLD_RATIO) * usualHere;
       };
       const styleOf = (line) => styleIn(block, line);
-      const texts = await textObjects(idBase, typeset, colourOf3, ink, evidenceFrom(block.lines), "ocr-estimate", true, boldOf, styleOf, heavyOf);
+      const texts = await textObjects(idBase, typeset, colourOf4, ink, evidenceFrom(block.lines), "ocr-estimate", true, boldOf, styleOf, heavyOf);
       built.push(...texts);
       if (block.icon) {
         const inside2 = (page3?.lines ?? []).filter((l) => l.text.trim() && centreIn(l.box, block.icon ?? l.box) && !textBoxes.some((t) => t !== block.icon && centreIn(l.box, t)));
@@ -163896,7 +163994,7 @@ function parasOf2(paras) {
     return out;
   });
 }
-function familyOf6(font, theme) {
+function familyOf7(font, theme) {
   if (font === "+mj-lt" || font === "+mj-ea" || font === "+mj-cs") return theme.majorFont ?? font;
   if (font === "+mn-lt" || font === "+mn-ea" || font === "+mn-cs") return theme.minorFont ?? font;
   return font;
@@ -164041,7 +164139,7 @@ async function sourceDeckFromPptx(parts, parseXml, opts) {
   const countFont = (font) => {
     if (!font) return;
     const provenance = font.startsWith("+") ? "theme" : "literal";
-    const family2 = familyOf6(font, deck.theme);
+    const family2 = familyOf7(font, deck.theme);
     const key2 = `${provenance}:${family2}`;
     const entry2 = fontRuns.get(key2) ?? { family: family2, provenance, runs: 0 };
     entry2.runs += 1;
@@ -165872,15 +165970,15 @@ function darkColorsFromDtcg(file) {
   }
   return out.size > 0 ? out : void 0;
 }
-function familyOf7(value2) {
+function familyOf8(value2) {
   const first = Array.isArray(value2) ? value2[0] : value2;
   if (typeof first !== "string" || first.startsWith("{")) return "";
   return first.replace(/^['"]|['"]$/g, "").trim();
 }
 function fontsFromDtcg(file) {
   const set = createTokenSet(file);
-  const brand = familyOf7(set.get("font.brand")?.value);
-  const mono = familyOf7(set.get("font.mono")?.value);
+  const brand = familyOf8(set.get("font.brand")?.value);
+  const mono = familyOf8(set.get("font.mono")?.value);
   return { ...brand ? { brand } : {}, ...mono ? { mono } : {} };
 }
 function assetsOf(roots2) {
@@ -169487,7 +169585,7 @@ var init_jxl2 = __esm({
 });
 
 // packages/node-shell/src/pdf-images.ts
-function isPng(bytes2) {
+function isPng2(bytes2) {
   return bytes2.length > 8 && bytes2[0] === 137 && bytes2[1] === 80 && bytes2[2] === 78 && bytes2[3] === 71;
 }
 function isJpeg(bytes2) {
@@ -169603,7 +169701,7 @@ function cleanJpeg(src) {
 }
 function readPngFacts(bytes2) {
   const u327 = (o) => bytes2[o] * 16777216 + (bytes2[o + 1] << 16 | bytes2[o + 2] << 8 | bytes2[o + 3]);
-  if (!isPng(bytes2) || bytes2.length < 33 || !startsWith2(bytes2.subarray(12), "IHDR")) throw refusal2("this PNG is damaged and cannot be placed on a page");
+  if (!isPng2(bytes2) || bytes2.length < 33 || !startsWith2(bytes2.subarray(12), "IHDR")) throw refusal2("this PNG is damaged and cannot be placed on a page");
   const facts2 = { width: u327(16), height: u327(20), ppiX: 0, ppiY: 0, animated: false };
   let at = 33;
   for (let n7 = 0; n7 < 4096 && at + 12 <= bytes2.length; n7++) {
@@ -169675,7 +169773,7 @@ async function imagesToPdf(images, opts = {}) {
       if (jpeg.droppedMetadata) stripped++;
       if (jpeg.droppedTrailing) trailing++;
       if (orientation !== 1) turned++;
-    } else if (isPng(input)) {
+    } else if (isPng2(input)) {
       const png = readPngFacts(input);
       if (png.animated) throw refusal2(`image ${index2 + 1} is an animated PNG; save it as a still image first`);
       if (png.width * png.height > MAX_PNG_PIXELS) {
@@ -170482,7 +170580,7 @@ async function stampPdf(bytes2, opts) {
     if (!Number.isInteger(mark.page) || mark.page < 1 || mark.page > doc.getPageCount()) {
       throw pdfRefusal(`signature page ${mark.page} is outside this ${doc.getPageCount()}-page document`);
     }
-    const image = isPng(mark.bytes) ? await doc.embedPng(mark.bytes) : isJpeg(mark.bytes) ? await doc.embedJpg(mark.bytes) : null;
+    const image = isPng2(mark.bytes) ? await doc.embedPng(mark.bytes) : isJpeg(mark.bytes) ? await doc.embedJpg(mark.bytes) : null;
     if (!image) throw pdfRefusal("signature image must be PNG or JPEG");
     const page3 = doc.getPage(mark.page - 1);
     const requestedWidth = Math.max(0.1, Number(mark.width) || 1);
@@ -176085,7 +176183,7 @@ async function exportDesignIdml(opts, host) {
     entries.push({ name, bytes: bytes3 });
   };
   const colors = /* @__PURE__ */ new Map(), notes = ["Supported static subset. Canvas coordinate units are written as InDesign points. Text layout can change when InDesign resolves fonts."];
-  async function familyOf8(box4) {
+  async function familyOf9(box4) {
     const font = String(box4.font || "sans");
     if (!["sans", "display", "mono"].includes(font)) return font;
     const resolved2 = await host.tokens?.resolve(`{font.${font === "sans" ? "brand" : font}}`) ?? (font === "display" ? await host.tokens?.resolve("{font.brand}") : void 0);
@@ -176145,7 +176243,7 @@ async function exportDesignIdml(opts, host) {
         const id3 = `story-${++story}`, path2 = `Stories/Story_${id3}.xml`;
         extra = ` ParentStory="${id3}" PreviousTextFrame="n" NextTextFrame="n"`;
         const color6 = await paint2(box4.fg ?? "#000000"), size = num19(box4.fontSize, 48), weight = num19(box4.weight, num19(box4.fontWeight, 500));
-        const family2 = await familyOf8(box4), align = box4.align === "left" ? "LeftAlign" : box4.align === "right" ? "RightAlign" : "CenterAlign";
+        const family2 = await familyOf9(box4), align = box4.align === "left" ? "LeftAlign" : box4.align === "right" ? "RightAlign" : "CenterAlign";
         if (![400, 700].includes(weight)) notes.push(`${String(box4.id)}: font weight ${weight} uses ${weight >= 600 ? "Bold" : "Regular"}; choose the exact face in InDesign.`);
         const paras = [];
         for (const line of parseDesignText(String(box4.text ?? ""))) {
@@ -192718,7 +192816,7 @@ function strongestEvidence(evidence) {
   const first = ranked[0];
   return first ? { text: `${first.signal}: ${String(first.value)}`, signal: first.signal } : { text: "No evidence was recorded.", signal: null };
 }
-function pageOf(all, pageNumber, limit3) {
+function pageOf2(all, pageNumber, limit3) {
   return { total: all.length, page: pageNumber, limit: limit3, items: all.slice((pageNumber - 1) * limit3, pageNumber * limit3) };
 }
 function responseBytes(result) {
@@ -193081,7 +193179,7 @@ async function inspectStage(args, ctx) {
         signal: evidence.signal
       };
     });
-    const objects = pageOf(all, pageNumber, limit3);
+    const objects = pageOf2(all, pageNumber, limit3);
     const structured2 = { ...base, slide: slideRow, objects, ...known3 ? {} : { note: withoutFile } };
     const shownTo = Math.min(objects.total, pageNumber * limit3);
     const shownFrom = Math.min(objects.total, (pageNumber - 1) * limit3 + 1);
@@ -193090,13 +193188,13 @@ async function inspectStage(args, ctx) {
   }
   if (known3) {
     const summary = planSummary(plan, known3.source, known3.census);
-    const queue2 = pageOf(reviewQueue(plan, known3.census, known3.source).map(queueRecord), pageNumber, limit3);
-    const slides2 = pageOf(slideStates(plan, known3.source, known3.census).map((state) => ({ ...state })), pageNumber, limit3);
+    const queue2 = pageOf2(reviewQueue(plan, known3.census, known3.source).map(queueRecord), pageNumber, limit3);
+    const slides2 = pageOf2(slideStates(plan, known3.source, known3.census).map((state) => ({ ...state })), pageNumber, limit3);
     const structured2 = { ...base, summary, queue: queue2, slides: slides2 };
     const sentence = `${known3.deck.name}: ${summary.slides.included} of ${summary.slides.total} slides included, ${queue2.total} queue items and ${summary.review.attention} objects that need attention.`;
     return success(sentence, structured2, [], ctx);
   }
-  const slides = pageOf(planOnlySlides(plan), pageNumber, limit3);
+  const slides = pageOf2(planOnlySlides(plan), pageNumber, limit3);
   const structured = { ...base, slides, note: withoutFile };
   return success(`The plan covers ${plan.slides.length} slides; pass slide to list one slide's objects.`, structured, [], ctx);
 }

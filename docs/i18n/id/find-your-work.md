@@ -37,7 +37,7 @@ Item dinamai sesuai nama file yang Anda ketik di panel ekspor, atau sesuai alatn
 :::
 
 ::: details Bekerja dengan Proyek
-Anda juga bisa membuka **Proyek** dari **Pengaturan → Penyimpanan → Sesi tersimpan → Atur dalam Proyek**. Ini bekerja seperti pengelola file:
+Anda juga bisa membuka tampilan **Proyek** dari **Pengaturan → Penyimpanan → Sesi tersimpan → Atur dalam Proyek**. Ini bekerja seperti pengelola file:
 
 ![Proyek sebelum ada apa pun yang disimpan: ubin Folder baru, Aset baru dan Templat, jam History di kanan atas dan bilah Cari semua proyek… di bagian bawah](/t/url-shot?url=%2F%23%2Fp&width=1440&height=900&dpi=192&waitMs=1200&walker=1&format=svg&localize=1&dark=1&filename=projects)
 <!--
@@ -101,17 +101,17 @@ Di tool yang menyimpan sambil Anda bekerja, History menyimpan sebuah salinan edi
 :::
 
 ::: details Tool mana yang menyimpan sambil Anda bekerja
-Di aplikasi web, setiap tool yang menghasilkan sebuah dokumen menyimpan sambil Anda bekerja: Design, Chart, QR Code, Text, Sandbox dan yang lainnya. Tool berikut tidak:
+Di aplikasi web, setiap tool yang menghasilkan sebuah dokumen menyimpan sambil Anda bekerja: Lolly Design, Lolly Chart, QR Code, Text, Lolly Sandbox dan yang lainnya. Tool berikut tidak:
 
 - alat yang bekerja dengan file yang Anda bawa, seperti Redact, Sign, atau Convert Image, karena Lolly tidak pernah menyimpan salinan file itu;
-- alat yang merekam dari kamera, mikrofon, atau layar Anda, seperti Record, Screen Capture, dan Voice Recorder;
+- alat yang merekam dari kamera, mikrofon, atau layar Anda, seperti Record, Lolly Screen Capture, dan Lolly Voice Recorder;
 - alat tanpa yang bisa diubah, seperti Countdown.
 
 Pada alat lain, perubahan pertama Anda menyimpan pekerjaan di **Projects** seolah Anda menyimpannya, dan perubahan berikutnya disimpan seiring Anda bekerja setelah alat selesai menggambar. Karya yang belum disimpan tetap ada di Projects setelah Anda menutup tab, dan terbuka kembali dengan perubahannya ditandai belum disimpan.
 
 **Leave anyway** tetap membuang perubahan itu, dan History menyimpan salinan suntingan yang dibuang selama 30 hari. Membuka alat lagi dari layar beranda memulai karya baru; buka yang sebelumnya dari Projects.
 
-3D dan Darkroom menyimpan saat Anda bekerja, tetapi tidak menyimpan file yang Anda muat ke dalamnya, seperti model 3D atau LUT. History dan **Save** menyimpan nama, tipe, dan ukuran file, bukan file-nya. Saat Anda membuka pekerjaan lagi, catatan menyatakan file mana itu, dan alat bekerja tanpanya sampai Anda memuatnya lagi. Simpan file asli Anda.
+3D dan Lolly Darkroom menyimpan saat Anda bekerja, tetapi tidak menyimpan file yang Anda muat ke dalamnya, seperti model 3D atau LUT. History dan **Save** menyimpan nama, tipe, dan ukuran file, bukan file-nya. Saat Anda membuka pekerjaan lagi, catatan menyatakan file mana itu, dan alat bekerja tanpanya sampai Anda memuatnya lagi. Simpan file asli Anda.
 
 Dengan [Sync](/info/sync.html) aktif, sebuah kreasi yang diajukan dengan cara ini ikut ke perangkat lain Anda seperti hal lain di Proyek. Versinya tetap berada di perangkat tempat ia dibuat.
 
@@ -147,14 +147,14 @@ Di iPhone, iPad dan Android, berkas baru menggantikan yang sebelumnya dengan nam
 
 Untuk membuka versi sebelumnya:
 
-1. Tekan **History**, tombol jam di samping **Undo** dan **Redo**. Di Design, **History** ada di bilah atas; di ponsel, tekan **•••** lalu **History**. Di tool tanpa **Undo**, seperti Text dan Sandbox, **History** ada di samping **Beranda** di kiri atas.
+1. Tekan **History**, tombol jam di samping **Undo** dan **Redo**. Di Lolly Design, **History** ada di bilah atas; di ponsel, tekan **•••** lalu **History**. Di tool tanpa **Undo**, seperti Text dan Lolly Sandbox, **History** ada di samping **Beranda** di kiri atas.
 2. Temukan versi itu berdasarkan tanggal dan waktunya. Baris **Automatic checkpoint** diambil sambil Anda bekerja; baris **Saved version** adalah waktu-waktu Anda menyimpan.
 3. Tekan **Open as a copy**. Versi itu terbuka sebagai sebuah kreasi baru, dan yang tadinya Anda buka tetap seperti semula. Salinannya ada di **Proyek**, dengan "(copy)" setelah namanya.
 
 Untuk mempertahankan sebuah versi dengan nama, tekan **Name version**, ketik sebuah nama dan tekan **Keep milestone**. Versi yang diberi nama terdaftar di halaman **History**, di bawah **Milestones**.
 
 ::: details Panel History dan halaman History
-Panel **History** juga mencantumkan baris **Recovered work**, dan **Protected drafts** menyimpan editan terbaru Anda di antara checkpoint, dengan **Open draft as a copy**. **Compare** dan **Check assets** membantu Anda memilih sebelum membuka sebuah salinan. Alihkan **This creation** ke **All history on this device** untuk melihat setiap kreasi.
+Panel **History** juga mencantumkan baris **Recovered work**, dan **Protected drafts** menyimpan editan terbaru Anda di antara checkpoint, dengan **Open draft as a copy**. **Lolly Compare** dan **Check assets** membantu Anda memilih sebelum membuka sebuah salinan. Alihkan **This creation** ke **All history on this device** untuk melihat setiap kreasi.
 
 Automatic checkpoint makin jarang seiring waktu: satu per menit untuk satu jam terakhir, satu per jam untuk satu hari terakhir, satu per hari selama 30 hari, lalu satu per minggu. Saved version dan versi bernama semuanya dipertahankan. Menghapus sebuah kreasi juga memindahkan versinya ke **Sampah**, dan **Hapus permanen** menghapusnya.
 

@@ -37,7 +37,7 @@ Položka se jmenuje podle názvu souboru, který jsi napsal do panelu exportu, n
 :::
 
 ::: details Práce s Projekty
-Projekty můžeš také otevřít z **Nastavení → Úložiště → Uložené relace → Organizuj v projektech**. Fungují jako správce souborů:
+Můžeš také otevřít zobrazení **Projekty** z **Nastavení → Úložiště → Uložené relace → Organizuj v projektech**. Funguje jako správce souborů:
 
 ![Projekty předtím, než se cokoli uloží: dlaždice Nová složka, Nový prvek a Šablony, hodiny History vpravo nahoře a lišta Hledat ve všech projektech dole](/t/url-shot?url=%2F%23%2Fp&width=1440&height=900&dpi=192&waitMs=1200&walker=1&format=svg&localize=1&dark=1&filename=projects)
 <!--
@@ -101,17 +101,17 @@ V nástrojích, které ukládají za chodu, uchovává Historie kopii zahozenýc
 :::
 
 ::: details Které nástroje ukládají za chodu
-Ve webové aplikaci ukládá za chodu každý nástroj, který vytváří dokument: Design, Chart, QR Code, Text, Sandbox a další. Tyto nástroje ne:
+Ve webové aplikaci ukládá za chodu každý nástroj, který vytváří dokument: Lolly Design, Lolly Chart, QR Code, Text, Lolly Sandbox a další. Tyto nástroje ne:
 
 - nástroje, které pracují se souborem, který přineseš, jako Redact, Sign nebo Convert Image, protože Lolly nikdy nedrží kopii toho souboru;
-- nástroje, které nahrávají z kamery, mikrofonu nebo obrazovky, jako Record, Screen Capture a Voice Recorder;
+- nástroje, které nahrávají z kamery, mikrofonu nebo obrazovky, jako Record, Lolly Screen Capture a Lolly Voice Recorder;
 - nástroj, ve kterém není co měnit, jako Countdown.
 
 V ostatních nástrojích tvá první změna založí práci v **Projects**, jako bys uložil, a pozdější změny se uchovávají při práci, jakmile nástroj dokončí vykreslení. Neuložená tvorba je v Projects stále po zavření karty a znovu se otevře s označenými neuloženými změnami.
 
 **Leave anyway** stále zahodí ty změny a History uchovává kopii zahozených úprav 30 dní. Opětovné otevření nástroje z domovské obrazovky začne novou tvorbu; dřívější otevři z Projects.
 
-3D a Darkroom ukládají při práci, ale neuchovávají soubor, který do nich načteš, například 3D model nebo LUT. History a **Save** uchovávají název, typ a velikost souboru, ne soubor. Když práci otevřeš znovu, poznámka říká, který soubor to byl, a nástroj funguje bez něj, dokud jej znovu nenačteš. Ponech si původní soubory.
+3D a Lolly Darkroom ukládají při práci, ale neuchovávají soubor, který do nich načteš, například 3D model nebo LUT. Historie a **Uložit** uchovávají název, typ a velikost souboru, ne soubor. Když práci otevřeš znovu, poznámka říká, který soubor to byl, a nástroj funguje bez něj, dokud jej znovu nenačteš. Ponech si původní soubory.
 
 Se zapnutou [Synchronizací](/info/sync.html) putuje takto založený výtvor na tvá další zařízení jako cokoli jiného v Projektech. Jeho verze zůstávají na zařízení, kde vznikly.
 
@@ -147,14 +147,14 @@ Na iPhonu, iPadu a Androidu nový soubor nahradí dřívější se stejným náz
 
 Chceš-li otevřít dřívější verzi:
 
-1. Stiskni **Historii**, tlačítko s hodinami vedle **Zpět** a **Znovu**. V Designu je **Historie** v horní liště; na mobilu stiskni **•••** a pak **Historie**. V nástrojích bez **Zpět**, jako Text a Sandbox, je **Historie** vedle **Domů** vlevo nahoře.
+1. Stiskni **Historii**, tlačítko s hodinami vedle **Zpět** a **Znovu**. V Lolly Design je **Historie** v horní liště; na mobilu stiskni **•••** a pak **Historie**. V nástrojích bez **Zpět**, jako Text a Lolly Sandbox, je **Historie** vedle **Domů** vlevo nahoře.
 2. Najdi verzi podle data a času. Řádky **Automatický kontrolní bod** vznikají za chodu; řádky **Uložená verze** jsou chvíle, kdy jsi uložil/a.
 3. Stiskni **Otevřít jako kopii**. Verze se otevře jako nový výtvor, a ten, který jsi měl/a otevřený, zůstane, jak byl. Kopie je v **Projektech**, s dovětkem „(copy)“ za názvem.
 
 Chceš-li verzi zachovat pod názvem, stiskni **Name version**, napiš název a stiskni **Keep milestone**. Pojmenované verze jsou uvedené na stránce **History**, pod **Milestones**.
 
-::: details Panel History a stránka History
-Panel **History** navíc uvádí řádky **Recovered work**, a **Protected drafts** uchovává tvoje nejnovější úpravy mezi checkpointy, s **Open draft as a copy**. **Compare** a **Check assets** ti pomůžou rozhodnout se, než kopii otevřeš. Přepni **This creation** na **All history on this device**, abys viděl/a každý výtvor.
+::: details Panel Historie a stránka Historie
+Panel **Historie** navíc uvádí řádky **Obnovená práce** a **Chráněné koncepty** uchovávají tvoje nejnovější úpravy mezi kontrolními body, s **Otevřít koncept jako kopii**. **Lolly Compare** a **Zkontrolovat assety** ti pomůžou rozhodnout se, než kopii otevřeš. Přepni **Tento výtvor** na **Celá historie na tomto zařízení**, abys viděl/a každý výtvor.
 
 Automatické kontrolní body s časem řídnou: jeden za minutu za poslední hodinu, jeden za hodinu za poslední den, jeden za den po 30 dní, pak jeden týdně. Uložené verze i pojmenované verze se uchovávají všechny. Smazání výtvoru přesune do **Koše** i jeho verze, a **Smazat natrvalo** je odstraní.
 

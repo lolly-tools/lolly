@@ -12,7 +12,7 @@ _آخر تحقق: 28 سبتمبر 2026._
 
 قد يرفع محوّل في المتصفح ملفاً للمعالجة أو يحوّل محلياً. وتعالج أدوات التحويل في Lolly الملف محلياً، دون حساب أو إعلانات أو متتبعات، ولا تضيف علامة Lolly المائية ولا Content Credentials. وبمجرد حفظ الأصول التي يحتاجها التحويل، تعمل دون اتصال. ويحدّ حجمَ الملف ذاكرةُ الجهاز وقارئ الصيغة المعيّن.
 
-![عرض Utilities: Strip Hidden Data وCompress PDF وConvert Image والمهام الأخرى على الجهاز في مكان واحد](/t/url-shot?url=%2F%23%2Fu&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%2C.brand-tips%7Bdisplay%3Anone!important%7D&tolerance=0.03&waitSelector=.utilities-view%5Bdata-shots-settled%5D&format=svg&walker=1&dark=1&filename=aud-utilities)
+![عرض Utilities: Lolly Strip Hidden Data وCompress PDF وConvert Image والمهام الأخرى على الجهاز في مكان واحد](/t/url-shot?url=%2F%23%2Fu&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%2C.brand-tips%7Bdisplay%3Anone!important%7D&tolerance=0.03&waitSelector=.utilities-view%5Bdata-shots-settled%5D&format=svg&walker=1&dark=1&filename=aud-utilities)
 
 يسرد [كل صيغة يستطيع Lolly فتحها وصنعها](/info/formats.html) التحويلات المدعومة وحدودها، بما فيها HEIC إلى JPG وPNG إلى SVG وPDF إلى صور.
 

@@ -72,7 +72,7 @@ Alat yang sama pada lebar telefon tidak memerlukan reka letak kedua: kawalan men
 
 ![Audiogram pada skrin selebar 430px: helaian kawalan di atas, karya persegi siap di bawah dan pil eksport terapung](/t/url-shot?url=%2F%23%2Ftool%2Faudiogram%3Faudio%3Dlolly%2Floops%2Ffireplace-loop%26title%3DField%2520notes%26subtitle%3DEpisode%252012%26style%3Dwave&width=430&height=900&dpi=192&waitMs=3200&css=%23ag-wave%7Bdisplay%3Anone!important%7D.ag-ph%7Bdisplay%3Ablock!important%7D&walker=1&format=svg&rasterDpi=110&dark=1&filename=ov2-phone-audiogram)
 
-Apl web juga menghantar **Batch** (`#/batch`, `shells/web/src/pro/`), grid gaya hamparan yang merender banyak baris sekali gus merentasi satu atau banyak alat; [Batch and Multi-edit](/info/batch.html#make-many-versions-of-one-design) meliputi Batch. **Settings → Capabilities** memetakan segala yang diisytiharkan platform boleh dilakukan.
+Apl web juga menghantar **Batch** (`#/batch`, `shells/web/src/pro/`), grid gaya hamparan yang merender banyak baris sekali gus merentasi satu atau banyak alat; [Batch and Lolly Multi-edit](/info/batch.html#make-many-versions-of-one-design) meliputi Batch. **Settings → Capabilities** memetakan segala yang diisytiharkan platform boleh dilakukan.
 
 ![Batch pada pemasangan baharu: satu baris kosong menunggu alat, dengan permukaan hamparan dan butang Render sedia sebelum sebarang data tiba](/t/url-shot?url=%2F%23%2Fbatch&width=1440&height=900&dpi=192&waitMs=3500&walker=1&format=svg&dark=1&filename=ov2-batch-grid)
 
@@ -141,7 +141,7 @@ Input mengisytiharkan `type`: `text`, `longtext`, `number`, `boolean`, `color`, 
 
 - **`asset`**, dengan `filter` dan `allowUpload`, ialah jambatan kepada sistem aset. `allowUpload: false` mengehadkan slot kepada aset pustaka, dan muat naik pengguna berkongsi bentuk `AssetRef` pustaka.
 - **`blocks`** ialah kumpulan medan berulang yang disunting dalam panel sisi, digunakan oleh Meeting Planner, Wayfinding, Diagrams dan lain-lain. Mengklik blok yang dirender memfokuskan barisnya.
-- **`file`** memegang fail pengguna sendiri dalam memori untuk utiliti pada peranti seperti Strip Hidden Data dan Compress, dan **`vector`** mengumpulkan set nombor tetap ke dalam satu kawalan.
+- **`file`** memegang fail pengguna sendiri dalam memori untuk utiliti pada peranti seperti Lolly Strip Hidden Data dan Compress, dan **`vector`** mengumpulkan set nombor tetap ke dalam satu kawalan.
 
 ### 9. Templat tanpa logik
 
@@ -149,7 +149,7 @@ Templat ialah Handlebars, dipilih supaya bukan pembangun boleh menulisnya: `{{x}
 
 ### 10. Alat menggubah alat
 
-Alat boleh membenamkan render alat lain tanpa import alat-ke-alat; enjin menyelesaikan gubahan. Manifes boleh mengisytiharkan `composes: [{ id, tool, inputs }]` dan meletakkan anak dengan `{{asset <id>}}`, dan URL benam mudah alih (`https://lolly.tools/tool/<id>.svg?…`) merender anak secara setempat, itulah cara Design meletakkan kod QR atau carta langsung. Anak SVG kekal vektor dalam induk SVG atau PDF. Anak ialah perantaraan, tidak pernah ditera air atau dicap, dan shell yang tidak dapat merender satu membiarkan slot kosong manakala induk masih dirender. [Composition and brand overlays](/info/tool-composition.html) mempunyai butirannya.
+Alat boleh membenamkan render alat lain tanpa import alat-ke-alat; enjin menyelesaikan gubahan. Manifes boleh mengisytiharkan `composes: [{ id, tool, inputs }]` dan meletakkan anak dengan `{{asset <id>}}`, dan URL benam mudah alih (`https://lolly.tools/tool/<id>.svg?…`) merender anak secara setempat, itulah cara Lolly Design meletakkan kod QR atau carta langsung. Anak SVG kekal vektor dalam induk SVG atau PDF. Anak ialah perantaraan, tidak pernah ditera air atau dicap, dan shell yang tidak dapat merender satu membiarkan slot kosong manakala induk masih dirender. [Composition and brand overlays](/info/tool-composition.html) mempunyai butirannya.
 
 ## Apa yang kami pilih untuk tidak lakukan
 

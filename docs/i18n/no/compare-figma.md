@@ -16,7 +16,7 @@ Begge lar deg ordne skrift, former og bilder på et lerret og arbeide med andre.
 
 Lolly gjør et design om til et [gjenbrukbart verktøy med regler](/info/create-a-tool.html). Verktøyet kjører i nettleseren eller CLI-et og henter inndataene sine fra en lenke, et skript eller et batch-rutenett, så én mal tjener en person som redigerer én fil og et team som lager mange.
 
-![Designs åpne lerret, med Import a design i Lolly-menyen på verktøylinjen](/info/shots/design.svg)
+![Lolly Designs åpne lerret, med Import a design i Lolly-menyen på verktøylinjen](/info/shots/design.svg)
 
 En [private collab](/info/collaborate.html) kobler to enheter direkte, uten konto og uten internett på et delt nettverk. Frittstående Lolly gjengir uten nett. Content Credentials er på som standard for støttede eksporter, og du kan slå dem av.
 

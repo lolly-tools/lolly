@@ -37,7 +37,7 @@ Een item krijgt de naam van de bestandsnaam die je in het exportpaneel typte, of
 :::
 
 ::: details Werken met Projecten
-Je kunt **Projecten** ook openen via **Instellingen → Opslag → Opgeslagen sessies → Organiseren in Projecten**. Het werkt als een bestandsbeheerder:
+Je kunt de weergave **Projecten** ook openen via **Instellingen → Opslag → Opgeslagen sessies → Organiseren in Projecten**. Het werkt als een bestandsbeheerder:
 
 ![Projecten voordat er iets is opgeslagen: de tegels Nieuwe map, Nieuw asset en Sjablonen, de History-klok rechtsboven en de balk Zoek in alle projecten onderaan](/t/url-shot?url=%2F%23%2Fp&width=1440&height=900&dpi=192&waitMs=1200&walker=1&format=svg&localize=1&dark=1&filename=projects)
 <!--
@@ -101,17 +101,17 @@ In tools die opslaan terwijl je werkt, bewaart Geschiedenis een kopie van de ver
 :::
 
 ::: details Welke tools opslaan terwijl je werkt
-In de webapp slaat elke tool die een document maakt, op terwijl je werkt: Design, Chart, QR Code, Text, Sandbox en de rest. Deze tools doen dat niet:
+In de webapp slaat elke tool die een document maakt, op terwijl je werkt: Lolly Design, Lolly Chart, QR Code, Text, Lolly Sandbox en de rest. Deze tools doen dat niet:
 
 - tools die op een bestand werken dat je meebrengt, zoals Redact, Sign of Convert Image, omdat Lolly nooit een kopie van dat bestand bewaart;
-- tools die opnemen van je camera, microfoon of scherm, zoals Record, Screen Capture en Voice Recorder;
+- tools die opnemen van je camera, microfoon of scherm, zoals Record, Lolly Screen Capture en Lolly Voice Recorder;
 - een tool zonder iets om te wijzigen, zoals Countdown.
 
 In de andere tools bergt je eerste wijziging het werk op in **Projects** alsof je had opgeslagen, en latere wijzigingen worden bewaard terwijl je werkt zodra de tool klaar is met tekenen. Een niet-opgeslagen creatie staat nog in Projects nadat je het tabblad sluit, en heropent met zijn wijzigingen gemarkeerd als niet opgeslagen.
 
 **Leave anyway** gooit die wijzigingen nog steeds weg, en History bewaart 30 dagen een kopie van de weggegooide bewerkingen. De tool opnieuw openen vanaf het startscherm begint een nieuwe creatie; open de eerdere vanuit Projects.
 
-3D en Darkroom slaan op terwijl je werkt, maar bewaren geen bestand dat je erin laadt, zoals een 3D-model of een LUT. History en **Save** bewaren de naam, het type en de grootte van het bestand, niet het bestand. Wanneer je het werk opnieuw opent, zegt een opmerking welk bestand het was, en de tool werkt zonder het totdat je het opnieuw laadt. Bewaar je oorspronkelijke bestanden.
+3D en Lolly Darkroom slaan op terwijl je werkt, maar bewaren geen bestand dat je erin laadt, zoals een 3D-model of een LUT. History en **Save** bewaren de naam, het type en de grootte van het bestand, niet het bestand. Wanneer je het werk opnieuw opent, zegt een opmerking welk bestand het was, en de tool werkt zonder het totdat je het opnieuw laadt. Bewaar je oorspronkelijke bestanden.
 
 Met [Synchronisatie](/info/sync.html) aan gaat een creatie die zo is gearchiveerd naar je andere apparaten zoals al het andere in Projecten. De versies ervan blijven op het apparaat waarop ze zijn gemaakt.
 
@@ -147,14 +147,14 @@ Op iPhone, iPad en Android vervangt een nieuw bestand een eerder bestand met dez
 
 Om een eerdere versie te openen:
 
-1. Druk op **Geschiedenis**, de klokknop naast **Undo** en **Redo**. In Design staat **Geschiedenis** in de bovenbalk; op een telefoon druk je op **•••** en dan op **Geschiedenis**. In tools zonder **Undo**, zoals Text en Sandbox, staat **Geschiedenis** naast **Home** linksboven.
+1. Druk op **Geschiedenis**, de klokknop naast **Undo** en **Redo**. In Lolly Design staat **Geschiedenis** in de bovenbalk; op een telefoon druk je op **•••** en dan op **Geschiedenis**. In tools zonder **Undo**, zoals Text en Lolly Sandbox, staat **Geschiedenis** naast **Home** linksboven.
 2. Zoek de versie op datum en tijd. Rijen van **Automatic checkpoint** worden genomen terwijl je werkt; rijen van **Saved version** zijn de momenten waarop je hebt opgeslagen.
 3. Druk op **Open as a copy**. De versie opent als een nieuwe creatie, en degene die je open had blijft zoals hij was. De kopie staat in **Projecten**, met "(copy)" na de naam.
 
 Om een versie met een naam te bewaren, druk je op **Name version**, typ je een naam en druk je op **Keep milestone**. Genoemde versies staan op de pagina **History**, onder **Milestones**.
 
 ::: details Het History-paneel en de History-pagina
-Het paneel **History** toont ook rijen van **Recovered work**, en **Protected drafts** bewaart je laatste bewerkingen tussen checkpoints, met **Open draft as a copy**. **Compare** en **Check assets** helpen je kiezen voordat je een kopie opent. Zet **This creation** op **All history on this device** om elke creatie te zien.
+Het paneel **History** toont ook rijen van **Recovered work**, en **Protected drafts** bewaart je laatste bewerkingen tussen checkpoints, met **Open draft as a copy**. **Lolly Compare** en **Check assets** helpen je kiezen voordat je een kopie opent. Zet **This creation** op **All history on this device** om elke creatie te zien.
 
 Automatische checkpoints worden met de tijd spaarzamer: één per minuut in het laatste uur, één per uur op de laatste dag, één per dag gedurende 30 dagen, daarna één per week. Opgeslagen versies en benoemde versies worden allemaal bewaard. Een creatie verwijderen verplaatst ook zijn versies naar de **Prullenbak**, en **Delete forever** verwijdert ze.
 

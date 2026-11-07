@@ -2,9 +2,13 @@
 
 Lolly 是同一个开源项目的两个部分。**Lolly** 是在你的设备上制作、编辑、转换和导出的引擎、应用和工具，无需账号。**Lolly Work** 是在你自己的基础设施上运行的组织服务器，用于登录、共享项目、审批和服务器渲染。两者都采用 MPL-2.0。本页把这一对与人们设计、管理和制作文件的其他方式进行比较。
 
+核心理念是[内容主权](/info/content-sovereignty.html)：控制内容如何在自己选择的系统之间创建、治理、存储和流转。创意应用可以提供设计，DAM 可以继续作为记录的来源，Lolly 可以把获准的输入和已批准的素材变成新文件。[在现有 DAM 中使用 Lolly](/info/use-with-dam.html) 介绍了这种组合。
+
 ## 当今的工具
 
 每个圆环为一类产品评分，衡量它对某项能力的完整交付程度，每一类都以其最佳代表来评分。Lolly 列涵盖 Lolly 和 Lolly Work 两者，每一行都说明哪一部分提供什么。点开行名可以看到其评分的理由。各列按顶部的 Overall completeness 行排序：即已评分各行的平均值，不含花费这一行。
+
+这些评分采用的是 Lolly 偏好的标准：无需账号或云端即可掌控。它们是在这些标准下的比较，不是对产品完整度的中立排名，也不是企业采购评分。评估具体工作流时，请分别阅读能力、部署和证据方面的限制。
 
 ::: figure positioning-comparison
 能力对比：竞品调研和评分截至 2026 年 8 月；Lolly + Lolly Work 的覆盖情况于 2026 年 9 月 28 日审阅。评分：0 缺失，25 勉强可用，50 真实但受限或不完整，75 强但有保留，100 核心竞争力。
@@ -43,9 +47,11 @@ Lolly 的实时协作包括两台设备之间直接的私密协作，以及通�
 
 导入的设计和共享的设计令牌让团队可以把 Lolly 与专业应用结合使用，而 Lolly Work 管控共享素材、审阅和交付。
 
-一整套幻灯片演示稿显示了上限：在 **Markdown Slides** 中，演示稿被声明为数据，实时排版，并导出为原生可编辑的 PowerPoint 文件。
+对于有精心管理的 DAM 的团队，先保持该素材库及其管理员不变。[SUSE 的 Brandfolder 经验](/info/suse-brandfolder.html)记录了集成如何支持采用和审批的变更管理。DAM 厂商和实施合作伙伴可以通过[合作伙伴工作流](/info/dam-partners.html)评估同样的安排。
 
-![分栏视图中的 Markdown Slides：左侧以块的形式列出演示稿的幻灯片，右侧是排好版的演示稿渲染](/t/url-shot?url=%2F%23%2Ftool%2Fdeck-studio&width=1440&height=900&dpi=192&waitMs=2600&walker=1&format=svg&dark=1&filename=ov2-deck-studio-output)
+一整套幻灯片演示稿显示了上限：在 **Lolly Markdown Slides** 中，演示稿被声明为数据，实时排版，并导出为原生可编辑的 PowerPoint 文件。
+
+![分栏视图中的 Lolly Markdown Slides：左侧以块的形式列出演示稿的幻灯片，右侧是排好版的演示稿渲染](/t/url-shot?url=%2F%23%2Ftool%2Fdeck-studio&width=1440&height=900&dpi=192&waitMs=2600&walker=1&format=svg&dark=1&filename=ov2-deck-studio-output)
 
 ## 规则存在于工具中
 

@@ -6,8 +6,9 @@ Dua istilah berarti sama di seluruh halaman ini. **Merek utama** adalah merek ya
 
 ## Cara Lolly menangani dua merek saat ini
 
-- **Satu design system menggambar setiap karya.** Warna, huruf, dan aturan baku merek utama berlaku. Tanda merek mitra masuk sebagai karya seni: gambar dari Assets, atau tanda kustom yang disimpan di sebuah design system.
-- **Satu merek berpindah sebagai file.** File design system (`.lolly`) membawa token, font, dan logo. Alat yang dapat dipakai ulang dan dibuat dengan **Share with rules** membawa satu tata letak jadi beserta input yang Anda izinkan. Skill merek berpindah sebagai file tersendiri.
+- **Satu design system menggambar setiap karya.** Warna, huruf, dan aturan baku merek utama berlaku. Tanda merek mitra masuk sebagai karya seni: gambar dari Aset, atau tanda kustom yang disimpan di sebuah design system.
+- **Satu merek berpindah sebagai file.** File design system (`.lolly`) membawa token, font, dan logo. Alat yang dapat dipakai ulang dan dibuat dengan **Bagikan dengan aturan** membawa satu tata letak jadi beserta input yang Anda izinkan. Skill merek berpindah sebagai file tersendiri.
+- **Satu merek juga dapat memiliki alamat.** [Halaman brand](/info/brand-page.html) menerbitkan logo, warna, huruf, dan aturan untuk dibaca mitra, dengan token dan skill untuk alat mereka.
 - **Lolly hanya memeriksa aturan merek utama.** Lolly tidak mengetahui aturan mitra, seperti ruang kosong atau ukuran minimum, jadi periksalah aturan itu pada pedoman milik mitra sendiri.
 
 ## Bagikan merek Anda kepada mitra
@@ -16,10 +17,11 @@ Dua istilah berarti sama di seluruh halaman ini. **Merek utama** adalah merek ya
 
 | Yang dikirim | Cara | Yang diterima mitra | Cocok untuk |
 | --- | --- | --- | --- |
-| File design system | **Export** di bilah atas [Lolly Design System Setup](/info/brand-studio.html#move-a-brand-between-devices) | Token, font, logo, dan preferensi tema Anda, sebagai design system yang bisa mereka pilih | Mitra yang membuat banyak karya dalam merek Anda |
-| Alat yang dapat dipakai ulang | Di Design, **Share with rules** ([Share a design with rules](/info/create-a-tool.html)) | Satu tata letak jadi beserta input yang Anda izinkan, seperti nama dan logo mereka. File ini membawa warna, font, dan gambar yang sudah ditetapkan, sehingga design system mereka sendiri tidak dapat mengubah gaya karya seni yang tetap | Flyer, lencana, atau banner co-branding yang diisi oleh setiap mitra |
-| Skill merek | Ruang **Skills**: **Download skill (.zip)** atau **Copy as one file** | Standar tertulis Anda, untuk orang dan agen mereka | Salah satu dari dua cara di atas, saat agen mengerjakan sebagian pekerjaan |
-| Token | **Tokens (.json)** di menu **More** studio | Dokumen design token apa adanya, tanpa font atau logo | Alat desain atau proses build milik mitra |
+| File design system | **Ekspor** di bilah atas [Lolly Design System Setup](/info/brand-studio.html#move-a-brand-between-devices) | Token, font, logo, dan preferensi tema Anda, sebagai design system yang bisa mereka pilih | Mitra yang membuat banyak karya dalam merek Anda |
+| Alat yang dapat dipakai ulang | Di Lolly Design, **Bagikan dengan aturan** ([Share a design with rules](/info/create-a-tool.html)) | Satu tata letak jadi beserta input yang Anda izinkan, seperti nama dan logo mereka. File ini membawa warna, font, dan gambar yang sudah ditetapkan, sehingga design system mereka sendiri tidak dapat mengubah gaya karya seni yang tetap | Flyer, lencana, atau banner co-branding yang diisi oleh setiap mitra |
+| Skill merek | Ruang **Skills**: **Unduh skill (.zip)** atau **Salin sebagai satu file** | Standar tertulis Anda, untuk orang dan agen mereka | Salah satu dari dua cara di atas, saat agen mengerjakan sebagian pekerjaan |
+| Halaman brand | **Terbitkan halaman brand** di Lolly Design System Setup, atau `lolly system publish`, menulis folder yang Anda host ([Brand pages](/info/brand-page.html)) | Logo, warna, huruf, dan aturan Anda saat ini di satu alamat, dengan token dan skill untuk alat mereka. Logo dan file font muncul bila haknya mengizinkan, dan halaman mencantumkan apa yang ditahan | Berbagi dengan orang yang tidak Anda kirimi file |
+| Token | **Token (.json)** di menu **Lagi** studio | Dokumen design token apa adanya, tanpa font atau logo | Alat desain atau proses build milik mitra |
 
 ![Design System Setup di Lolly Demo, terbuka di ruang Skills: Export di bilah, menu More terbuka di Tokens (.json), serta Download skill (.zip) dan Copy as one file di samping skill yang dipilih](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dskills&width=1200&height=900&dpi=192&waitMs=1800&waitSelector=.skills-reader-actions&drive=click%3A%5Bdata-ds-more%5D%3Bwait%3A500&format=svg&walker=1&dark=1&filename=partners-send)
 
@@ -108,6 +110,8 @@ Ekspor dinding sebagai PNG, SVG, PDF, atau PDF CMYK untuk cetak. Atur ukuran dan
 
 Di terminal, `lolly run logo-wall logos/*.png --output=wall.svg` membuat dinding dari folder gambar, dan CSV dengan kolom `logo` dan `tier` membuat dinding bertingkat. SVG dan PNG tidak memerlukan browser ([Dinding sponsor dengan tingkat](/info/cli-rendering.html#a-sponsor-wall-with-tiers)).
 
+Saat sponsor menerbitkan [halaman brand](/info/brand-page.html), `lolly run logo-wall --logos-from=<address or folder>` mengambil logo terbaru mereka untuk permukaan itu dan mencetak apa yang dikatakan halaman mereka tentang penggunaan. Ulangi flag untuk setiap sponsor.
+
 Logo Wall tidak mengetahui aturan sponsor mana pun. Tiers dan Presence menetapkan ukuran relatif satu sama lain, bukan ukuran minimum sponsor, dan tidak ada yang memeriksa ruang kosong antara logo bertetangga. Periksa dinding yang sudah jadi terhadap pedoman setiap sponsor pada ukuran saat dicetak atau ditampilkan.
 
 ## Yang belum dilakukan Lolly
@@ -119,6 +123,8 @@ Logo Wall tidak mengetahui aturan sponsor mana pun. Tiers dan Presence menetapka
 - Satu design system aktif untuk seluruh perangkat, jadi dua merek tidak dapat dibuka berdampingan.
 - File design system adalah salinan merek saat diekspor, dan tidak ada yang memperbarui salinan tersebut. File design system yang diekspor dari aplikasi tidak membawa skill merek, jadi kirim skill itu sebagai file tersendiri.
 - Ekspor mencatat design system dan colourway merek utama, bukan merek mitra.
+- Logo yang diambil dari halaman brand adalah gambar dalam barisnya, dan baris itu tidak mengingat halamannya. Tidak ada yang menunjukkan siapa yang menerbitkan halaman, jadi periksa sendiri alamatnya.
+- Aplikasi web yang di-host tidak dapat mengambil halaman brand lain, karena Content Security Policy-nya hanya mengizinkan host yang disebutkan. Ambil logo di terminal, atau simpan file dan tambahkan file itu di **Aset**.
 
 ## Ke mana selanjutnya
 
@@ -126,4 +132,5 @@ Logo Wall tidak mengetahui aturan sponsor mana pun. Tiers dan Presence menetapka
 - **[Share a design with rules](/info/create-a-tool.html)**: alat yang dapat dipakai ulang dengan tata letak tetap dan input yang Anda pilih.
 - **[Skill merek](/info/brand-skills.html)**: cara skill ditulis, dibaca, dan diserahkan kepada agen.
 - **[Lolly Design System Setup](/info/brand-studio.html)**: logo, tanda kustom, dan memindahkan design system antarperangkat.
+- **[Brand pages](/info/brand-page.html)**: terbitkan merek Anda di satu alamat, dan ambil logo mitra dari alamat mereka.
 - **[Creative rights and credits](/info/creative-rights.html)**: apa yang dicatat Lolly tentang karya yang digambarnya.

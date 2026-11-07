@@ -39,7 +39,7 @@ lolly.tools otwiera się w [Lolly Demo](/info/lolly-demo.html), własnym przykł
 
 ## Czy mogę użyć własnej marki?
 
-Tak. **Design System Setup** (`#/start`) buduje system projektowy z jednego koloru, pliku tokenów projektowych lub gotowego projektu, a każde narzędzie rysuje potem Twoim systemem projektowym. [Start](/info/quickstart.html#put-your-brand-in) prowadzi przez trzy drogi.
+Tak. **Lolly Design System Setup** (`#/start`) buduje system projektowy z jednego koloru, pliku tokenów projektowych lub gotowego projektu, a każde narzędzie rysuje potem Twoim systemem projektowym. [Start](/info/quickstart.html#put-your-brand-in) prowadzi przez trzy drogi.
 
 System projektowy dostarczony przez Twoją organizację lub kompilację jest zarządzany: pokazuje kłódkę i pozostaje tylko do odczytu, a aby go zmienić, możesz zrobić edytowalną kopię.
 
@@ -80,9 +80,9 @@ Aplikacja internetowa rysuje przez WebGPU, funkcję graficzną współczesnych p
 
 ## Czy Lolly potrafi edytować i renderować moje pliki z Figmy, Penpota, Illustratora albo InDesigna?
 
-Tak. Otwórz **Design** i kliknij **Import a design**: przyjmuje natywny plik Figma **.fig** (Save local copy), eksport Penpot **.penpot**, plik Illustratora **.ai** lub **.pdf**, plik InDesign **.idml** (File → Export → InDesign Markup) lub **dowolny SVG**. Nie potrzebujesz konta, wtyczki ani licencji na aplikację projektową.
+Tak. Otwórz narzędzie **Design** i kliknij **Import a design**: przyjmuje natywny plik Figma **.fig** (Save local copy), eksport Penpot **.penpot**, plik Illustratora **.ai** lub **.pdf**, plik InDesign **.idml** (File → Export → InDesign Markup) lub **dowolny SVG**. Nie potrzebujesz konta, wtyczki ani licencji na aplikację projektową.
 
-![Otwarte płótno Design - Importowanie projektu znajduje się w menu Lolly na pasku narzędzi](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D17ZTfS8MwEMf_mryO5NZ288GHrdqJv1CUvWdtOgppMtJMNv96yaV1iRNEQRBZoblwab53l0-uq915bXgrCOSDpf3LzgANnQ4eI0rrPJn7Gh9cd0sE8lIryxtFIFfatFx6L4F0Mi-11GbUiZYr25QjK3bW-S8I5MnUbRXKCkMgb5uqki6JFFU7rjoXYsSgT8GaLebKZSeGAPkUYypMHp80DeugYYR4J_U7X4XRkY8dFHuTYEJ-jDWM3qoqsEHo4Y20-xJi-SPVaOfRUuAL1hiZXNrG4gH6M85Z5lTAk8x8DdlnPL8gecVfBIEU6F5v0bbCor3VUu4JpOPCKTCWsPI9rBS107d6QyCfRET_Ac6wX36X6UpX-49Ip1mAlMEPkM6QX20aoSpECLTmpadcazPQ9hPlWxboRndWmFEIG1s4Yp3E3Ts-0f4GbcruWHLzlC0frmfpfbGk82LxmD0vUndSTcvXAoknWBKCz5LDSIdiRHV0D2Tfq1BIvdY42Zim5WZ_-n3_mRvwBg&width=1360&height=850&dpi=192&waitMs=3000&format=svg&walker=1&chrome=1&localize=1&dark=1&filename=design)
+![Otwarte płótno Lolly Design - Importowanie projektu znajduje się w menu Lolly na pasku narzędzi](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D17ZTfS8MwEMf_mryO5NZ288GHrdqJv1CUvWdtOgppMtJMNv96yaV1iRNEQRBZoblwab53l0-uq915bXgrCOSDpf3LzgANnQ4eI0rrPJn7Gh9cd0sE8lIryxtFIFfatFx6L4F0Mi-11GbUiZYr25QjK3bW-S8I5MnUbRXKCkMgb5uqki6JFFU7rjoXYsSgT8GaLebKZSeGAPkUYypMHp80DeugYYR4J_U7X4XRkY8dFHuTYEJ-jDWM3qoqsEHo4Y20-xJi-SPVaOfRUuAL1hiZXNrG4gH6M85Z5lTAk8x8DdlnPL8gecVfBIEU6F5v0bbCor3VUu4JpOPCKTCWsPI9rBS107d6QyCfRET_Ac6wX36X6UpX-49Ip1mAlMEPkM6QX20aoSpECLTmpadcazPQ9hPlWxboRndWmFEIG1s4Yp3E3Ts-0f4GbcruWHLzlC0frmfpfbGk82LxmD0vUndSTcvXAoknWBKCz5LDSIdiRHV0D2Tfq1BIvdY42Zim5WZ_-n3_mRvwBg&width=1360&height=850&dpi=192&waitMs=3000&format=svg&walker=1&chrome=1&localize=1&dark=1&filename=design)
 
 Warstwy przychodzą jako edytowalne boksy: tekst da się dalej edytować, kształty pozostają kształtami, a obrazy dołączają do Twojej biblioteki. Zapisz, a **Share with rules** może zamienić układ w narzędzie, które każdy z Lolly może ponownie wypełnić. Zobacz [Import a design](/info/design-import.html).
 
@@ -100,7 +100,7 @@ Flagi funkcji włączają lub wyłączają części Lolly. W użyciu samodzielny
 
 Utility wykonuje jedno szybkie zadanie na pliku, który już masz, taki jak kompresja PDF, konwersja zdjęcia lub usunięcie ukrytych danych, a wiele z nich działa na Twoim urządzeniu bez wysyłania czegokolwiek. Istnieją po to, aby zadania, które ludzie zwykle oddają przypadkowej stronie internetowej, zostawały w Lolly. Kompresja umowy, konwersja zdjęć z wakacji z wciąż zapisaną lokalizacją czy wklejenie tokenu do internetowego formatera nie powinny oznaczać oddania pliku witrynie o nieznanej retencji, jurysdykcji i modelu biznesowym. [Lolly Utilities](/info/utilities.html) je wymienia, a [The trade we never agreed to](/info/status-quo.html) opowiada historię za nimi.
 
-![Widok Utilities: Strip Hidden Data, Compress PDF, Convert Image i pozostałe zadania na urządzeniu, wszystko w jednym miejscu](/t/url-shot?url=%2F%23%2Fu&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone!important%7D&tolerance=0.03&format=svg&walker=1&dark=1&filename=use-utilities&try=1)
+![Widok Utilities: Lolly Strip Hidden Data, Compress PDF, Convert Image i pozostałe zadania na urządzeniu, wszystko w jednym miejscu](/t/url-shot?url=%2F%23%2Fu&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone!important%7D&tolerance=0.03&format=svg&walker=1&dark=1&filename=use-utilities&try=1)
 
 ## Czy nasza organizacja może używać SSO, wspólnych projektów i zatwierdzeń?
 
@@ -110,7 +110,7 @@ Tak, z **Lolly Work**, serwerem organizacji tego samego projektu open source. Dz
 
 ## Jakich przeszkód mogę się spodziewać przy wdrażaniu Lolly?
 
-Zmienia się głównie strona producentów, a nie technologia. Zespół, który chce nadzorowanego zestawu narzędzi, potrzebuje kogoś, kto stworzy jego system projektowy i pierwsze szablony, choć każdy może zacząć tworzyć własne narzędzia w Design od pierwszego dnia, bez git. A istniejące procesy nadal działają, nawet gdy ich wynik jest niezgodny z marką, więc dobre przekształcenie jednego widocznego wyniku, przed i po obok siebie, przekonuje szybciej niż plan.
+Zmienia się głównie strona producentów, a nie technologia. Zespół, który chce nadzorowanego zestawu narzędzi, potrzebuje kogoś, kto stworzy jego system projektowy i pierwsze szablony, choć każdy może zacząć tworzyć własne narzędzia w Lolly Design od pierwszego dnia, bez git. A istniejące procesy nadal działają, nawet gdy ich wynik jest niezgodny z marką, więc dobre przekształcenie jednego widocznego wyniku, przed i po obok siebie, przekonuje szybciej niż plan.
 
 [Adoption & Governance](/info/adoption-governance.html) opisuje wdrożenie według ról, jak mierzyć pilotaż i jak może wyglądać proces nadzoru.
 
@@ -144,3 +144,11 @@ Ta lista nie obejmuje modeli dołączonych (vendored) do Lolly.
 ## Jaki smak ma to logo Lolly?
 
 Jedni mówią, że limonka, inni że mięta, a czasem że jabłko - Lolly wnosi słodycz, a smak tworzysz ty!
+
+## Co Lolly rozumie przez suwerenność treści?
+
+Kontrolę nad tym, jak Twoje treści są tworzone, nadzorowane, przechowywane i przenoszone między systemami, które wybierzesz. Lolly wspiera lokalną produkcję, edytowalną pracę i przenośne narzędzia; Lolly Work dodaje wspólne usługi kontrolowane przez organizację. Licencje źródłowe, dostępne zależności i przepływy danych w danym procesie nadal mają znaczenie. [What is content sovereignty?](/info/content-sovereignty.html) wyjaśnia każdą kontrolę i jej granice.
+
+## Czy możemy zachować nasz obecny DAM?
+
+Tak. Obsługiwany DAM może pozostać źródłem prawdy, podczas gdy Lolly Work łączy wybrane zasoby z narzędziami Lolly. Dostęp do źródła, dozwolone edycje, prawa użycia i zatwierdzenie gotowego wyniku to osobne decyzje. [Use Lolly with your existing DAM](/info/use-with-dam.html) wyjaśnia ten układ, a [SUSE's Brandfolder experience](/info/suse-brandfolder.html) opisuje udane użycie w trakcie wdrożenia.

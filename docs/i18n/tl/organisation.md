@@ -2,6 +2,8 @@
 
 Puwedeng magpatakbo ang organisasyon mo ng sarili nitong Lolly: ang parehong app, na may mga tool at design system na pinili nito. Ipinapakita ng pahinang ito kung paano ito maaabot, mag-sign in at ano ang nagbabago pagkatapos.
 
+Kung pinaplano mo ang setup ng organisasyon, ipinapaliwanag ng [Gamitin ang Lolly sa umiiral mong DAM](/info/use-with-dam.html) kung paano mananatili sa lugar ang isang aprubadong library habang nagsisimulang gumawa ng content ang mga tao sa Lolly. Inilalarawan ng [Content sovereignty](/info/content-sovereignty.html) ang mas malawak na kontrol sa paglikha, governance, storage at portability.
+
 ::: note Ang kailangan mo mula sa iyong organisasyon
 Ang web address ng Lolly nito, o isang `.lolly` na setup file na ginawa ng organisasyon mo. Hindi kumokonekta sa isang organisasyon ang lolly.tools mismo.
 :::
@@ -10,13 +12,13 @@ Ang web address ng Lolly nito, o isang `.lolly` na setup file na ginawa ng organ
 
 Buksan ang address na ibinigay ng organisasyon mo. Kung hihilingin ng page na mag-sign in ka, pindutin ang **Sign in** at sundin ang sign-in page na bubukas. Pagkatapos noon, gumagana ito gaya ng anumang Lolly, kasama ang mga tool at design system ng organisasyon mo.
 
-Puwede ka ring magsimula sa lolly.tools: buksan ang **Settings**, at sa **Lolly instance** card pindutin ang **Open a workspace**, ilagay ang address at pindutin ang **Open this instance**. Pupunta ang browser sa sariling address ng organisasyon mo, dahil hindi makakapag-load ang browser ng mga tool ng ibang Lolly mula sa lolly.tools.
+Puwede ka ring magsimula sa lolly.tools: buksan ang **Settings** view, at sa **Lolly instance** card pindutin ang **Open a workspace**, ilagay ang address at pindutin ang **Open this instance**. Pupunta ang browser sa sariling address ng organisasyon mo, dahil hindi makakapag-load ang browser ng mga tool ng ibang Lolly mula sa lolly.tools.
 
 ![Ang Lolly instance card sa Settings, kung saan mo binubuksan ang workspace ng organisasyon mo o binabago kung saan kumukuha ng mga tool ang app](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dinstance-section&width=1440&height=1400&dpi=192&waitMs=2000&format=svg&cropSelector=%23instance-section&walker=1&dark=1&filename=org-instance-card)
 
 ## Sa desktop o mobile app
 
-Nagsisimula ang app sa mga kasamang tool nito. Para kumonekta, buksan ang **Settings** at pindutin ang **Change** sa **Lolly instance** card. Itinatanong ng sheet ang **Where should Lolly get its tools?**
+Nagsisimula ang app sa mga kasamang tool nito. Para kumonekta, buksan ang **Settings** view at pindutin ang **Change** sa **Lolly instance** card. Itinatanong ng sheet ang **Where should Lolly get its tools?**
 
 1. Piliin ang **Kumonekta sa isang Lolly instance**.
 2. Ilagay ang web address ng organisasyon mo at pindutin ang **I-check at kumonekta**.

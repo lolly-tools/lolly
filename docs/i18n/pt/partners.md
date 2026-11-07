@@ -6,8 +6,9 @@ Duas palavras significam a mesma coisa em toda esta página. A **marca principal
 
 ## Como o Lolly lida hoje com duas marcas
 
-- **Um sistema de design desenha cada peça.** Valem as cores, a tipografia e as regras da marca principal. A marca do parceiro entra como arte: uma imagem de Assets, ou um símbolo personalizado guardado em um sistema de design.
+- **Um sistema de design desenha cada peça.** Valem as cores, a tipografia e as regras da casa da marca principal. A marca do parceiro entra como arte: uma imagem de Assets, ou um símbolo personalizado guardado em um sistema de design.
 - **Uma marca viaja como arquivo.** Um arquivo de sistema de design (`.lolly`) leva tokens, fontes e logotipos. Uma ferramenta reutilizável feita com **Share with rules** leva um layout pronto com os campos que você permitir. As skills de marca viajam em arquivos próprios.
+- **Uma marca também pode ter um endereço.** Uma [página da marca](/info/brand-page.html) publica logotipos, cores, tipografia e regras para um parceiro ler, com tokens e skills para as ferramentas dele.
 - **O Lolly confere apenas as regras da marca principal.** Ele não conhece as regras do parceiro, como área de proteção ou tamanho mínimo, então confira essas regras nas diretrizes do próprio parceiro.
 
 ## Compartilhe sua marca com um parceiro
@@ -17,8 +18,9 @@ Duas palavras significam a mesma coisa em toda esta página. A **marca principal
 | Enviar | Como | O parceiro recebe | Serve para |
 | --- | --- | --- | --- |
 | Um arquivo de sistema de design | **Export** na barra do alto de [Lolly Design System Setup](/info/brand-studio.html#move-a-brand-between-devices) | Seus tokens, fontes, logotipos e preferência de tema, como um sistema de design para o qual ele pode mudar | Um parceiro que faz muitas peças na sua marca |
-| Uma ferramenta reutilizável | No Design, **Share with rules** ([Compartilhar um design com regras](/info/create-a-tool.html)) | Um layout pronto com os campos que você permitir, como o nome e o logotipo dele. O arquivo leva as cores, fontes e imagens já resolvidas, então o sistema de design do próprio parceiro não consegue restilizar a arte fixa | Um folheto, crachá ou banner em co-branding que cada parceiro preenche |
+| Uma ferramenta reutilizável | No Lolly Design, **Share with rules** ([Compartilhar um design com regras](/info/create-a-tool.html)) | Um layout pronto com os campos que você permitir, como o nome e o logotipo dele. O arquivo leva as cores, fontes e imagens já resolvidas, então o sistema de design do próprio parceiro não consegue restilizar a arte fixa | Um folheto, crachá ou banner em co-branding que cada parceiro preenche |
 | Skills de marca | A sala **Skills**: **Download skill (.zip)** ou **Copy as one file** | Seus padrões escritos, para as pessoas e os agentes do parceiro | Qualquer uma das opções acima, quando um agente faz parte do trabalho |
+| Uma página da marca | **Publicar uma página da marca** no Lolly Design System Setup, ou `lolly system publish`, grava uma pasta que você hospeda ([Brand pages](/info/brand-page.html)) | Seus logotipos, cores, tipografia e regras atuais em um só endereço, com tokens e skills para as ferramentas dele. Logotipos e arquivos de fonte aparecem quando os direitos deles permitem, e a página lista o que deixou de fora | Compartilhar com pessoas para quem você não envia arquivos |
 | Tokens | **Tokens (.json)** no menu **More** do estúdio | O documento simples de design tokens, sem fontes nem logotipos | As ferramentas de design ou o build do próprio parceiro |
 
 ![Design System Setup no Lolly Demo, aberto na sala Skills: Export na barra, o menu More aberto em Tokens (.json), e Download skill (.zip) e Copy as one file ao lado da skill escolhida](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dskills&width=1200&height=900&dpi=192&waitMs=1800&waitSelector=.skills-reader-actions&drive=click%3A%5Bdata-ds-more%5D%3Bwait%3A500&format=svg&walker=1&dark=1&filename=partners-send)
@@ -108,22 +110,27 @@ Exporte o mural como PNG, SVG, PDF ou um PDF CMYK para impressão. Defina outro 
 
 Em um terminal, `lolly run logo-wall logos/*.png --output=wall.svg` monta o mural a partir de uma pasta de imagens, e um CSV com as colunas `logo` e `tier` monta um mural em níveis. SVG e PNG não precisam de navegador ([Um mural de patrocinadores com níveis](/info/cli-rendering.html#a-sponsor-wall-with-tiers)).
 
+Quando um patrocinador publica uma [página da marca](/info/brand-page.html), `lolly run logo-wall --logos-from=<address or folder>` pega o logotipo atual dele para a superfície e imprime o que a página dele diz sobre o uso. Repita a opção para cada patrocinador.
+
 O Logo Wall não conhece as regras de nenhum patrocinador. Tier e Presence definem tamanhos relativos entre si, não o tamanho mínimo de um patrocinador, e nada confere a área de proteção entre vizinhos. Confira o mural pronto com as diretrizes de cada patrocinador, no tamanho em que ele será impresso ou exibido.
 
 ## O que o Lolly ainda não faz
 
 - Uma peça é desenhada em um só sistema de design. As cores, a tipografia e as regras do parceiro não são um sistema de design dentro da peça, e a marca do parceiro é uma imagem.
-- As regras do parceiro não são guardadas nem conferidas: área de proteção, tamanho mínimo e tratamentos permitidos, como uma cor só ou reverso. O Lolly confere apenas as regras da marca principal.
+- As regras do parceiro não são guardadas nem conferidas: área de proteção, tamanho mínimo e tratamentos permitidos, como uma cor só ou reverso. O Lolly confere apenas as regras da casa da marca principal.
 - Ainda não existe um kit de parceiro: um pacote leve que guardaria os logotipos, as cores e as regras de um parceiro para uso dentro do trabalho de outra marca.
 - O Lolly não gera um lockup a partir de duas marcas para um arranjo "com", "em parceria com" ou "por". Adicione um lockup pronto como símbolo personalizado.
 - Um sistema de design fica ativo para o dispositivo inteiro, então duas marcas não podem ficar abertas lado a lado.
 - Um arquivo de sistema de design é uma cópia da marca como ela foi exportada, e nada atualiza a cópia. Um arquivo de sistema de design exportado do app não leva skills de marca, então envie-as como arquivos próprios.
-- Uma exportação registra o sistema de design e o esquema de cores da marca principal, não a marca do parceiro.
+- Uma exportação registra o sistema de design e a variação de cores da marca principal, não a marca do parceiro.
+- Um logotipo tirado de uma página da marca é uma imagem na linha dele, e a linha não se lembra da página. Nada mostra quem publicou uma página, então confira o endereço por conta própria.
+- O app web hospedado não consegue buscar a página de outra marca, porque a Content Security Policy dele permite apenas hosts nomeados. Pegue o logotipo em um terminal, ou salve o arquivo e adicione-o em **Assets**.
 
 ## Para onde ir agora
 
-- **[Arquiteturas de marca](/info/brand-architectures.html)**: co-branding, white label e os outros arranjos, com o que fazer no Lolly em cada um.
-- **[Compartilhar um design com regras](/info/create-a-tool.html)**: ferramentas reutilizáveis com layout fixo e os campos que você escolher.
-- **[Skills de marca](/info/brand-skills.html)**: como as skills são escritas, lidas e entregues a um agente.
+- **[Brand architectures](/info/brand-architectures.html)**: co-branding, white label e os outros arranjos, com o que fazer no Lolly em cada um.
+- **[Share a design with rules](/info/create-a-tool.html)**: ferramentas reutilizáveis com layout fixo e os campos que você escolher.
+- **[Brand skills](/info/brand-skills.html)**: como as skills são escritas, lidas e entregues a um agente.
 - **[Lolly Design System Setup](/info/brand-studio.html)**: logotipos, símbolos personalizados e como mover um sistema de design entre dispositivos.
-- **[Direitos criativos e créditos](/info/creative-rights.html)**: o que o Lolly registra sobre as obras que ele desenha.
+- **[Brand pages](/info/brand-page.html)**: publique sua marca em um só endereço e pegue o logotipo de um parceiro na página dele.
+- **[Creative rights and credits](/info/creative-rights.html)**: o que o Lolly registra sobre as obras que ele desenha.

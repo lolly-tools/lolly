@@ -2,6 +2,8 @@
 
 Organizația ta poate rula propriul Lolly: aceeași aplicație, cu instrumentele și sistemele de design alese de ea. Această pagină arată cum ajungi la el, cum te autentifici și ce se schimbă după aceea.
 
+Dacă planifici configurarea organizației, [Folosește Lolly cu DAM-ul tău actual](/info/use-with-dam.html) explică cum poate rămâne o bibliotecă aprobată pe loc, în timp ce oamenii încep să producă conținut în Lolly. [Suveranitatea conținutului](/info/content-sovereignty.html) descrie controlul mai larg asupra creării, guvernanței, stocării și portabilității.
+
 ::: note Ce ai nevoie de la organizația ta
 Adresa web a Lolly-ului ei, sau un fișier de configurare `.lolly` făcut de organizația ta. lolly.tools de unul singur nu se conectează la o organizație.
 :::
@@ -10,13 +12,13 @@ Adresa web a Lolly-ului ei, sau un fișier de configurare `.lolly` făcut de org
 
 Deschide adresa dată de organizația ta. Dacă pagina îți cere să te autentifici, apasă **Sign in** și urmează pagina de autentificare pe care o deschide. După aceea funcționează ca orice Lolly, cu instrumentele și sistemele de design ale organizației tale.
 
-Poți porni și de la lolly.tools: deschide **Settings**, iar pe cardul **Lolly instance** apasă **Open a workspace**, introdu adresa și apasă **Open this instance**. Browserul merge la adresa proprie a organizației tale, pentru că un browser nu poate încărca instrumentele altui Lolly de pe lolly.tools.
+Poți porni și de la lolly.tools: deschide vederea **Settings**, iar pe cardul **Lolly instance** apasă **Open a workspace**, introdu adresa și apasă **Open this instance**. Browserul merge la adresa proprie a organizației tale, pentru că un browser nu poate încărca instrumentele altui Lolly de pe lolly.tools.
 
 ![Cardul Lolly instance din Settings, unde deschizi spațiul de lucru al organizației tale sau schimbi de unde ia aplicația instrumentele](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dinstance-section&width=1440&height=1400&dpi=192&waitMs=2000&format=svg&cropSelector=%23instance-section&walker=1&dark=1&filename=org-instance-card)
 
 ## În aplicația desktop sau mobilă
 
-Aplicația pornește cu instrumentele ei incluse. Ca să te conectezi, deschide **Settings** și apasă **Change** pe cardul **Lolly instance**. Foaia întreabă **Where should Lolly get its tools?**
+Aplicația pornește cu instrumentele ei incluse. Ca să te conectezi, deschide vederea **Settings** și apasă **Change** pe cardul **Lolly instance**. Foaia întreabă **Where should Lolly get its tools?**
 
 1. Alege **Conectează-te la o instanță Lolly**.
 2. Introdu adresa web a organizației tale și apasă **Verifică și conectează-te**.

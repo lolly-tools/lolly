@@ -1,5 +1,7 @@
 # Design: swobodna kanwa
 
+<a id="design-the-free-canvas"></a>
+
 Design to narzędzie do układów, których nie obejmuje żaden szablon: plakat od zera, zestaw slajdów, utwór ruchomy ze ścieżką dźwiękową. Zamiast formularza z kontrolkami dostajesz kanwę boksów, które przeciągasz, skalujesz, obracasz i w które wpisujesz tekst. Eksportuje przez tę samą ścieżkę renderowania co każde inne narzędzie, więc to, co widzisz na kanwie, jest plikiem, który dostajesz.
 
 Ta strona prowadzi przez kanwę od pierwszego boksu do gotowej prezentacji: okno, kształtowanie boksów, rysowanie własnych kształtów, umieszczanie scen 3D i innych narzędzi, dodawanie czasu, sprawdzanie wyniku i prezentowanie gotowej prezentacji. [Using Lolly](/info/using.html) opisuje to, co Design dzieli z każdym narzędziem, takie jak zapisywanie i udostępnianie.
@@ -27,7 +29,7 @@ Kanwa działa jak stół projektanta wokół obszaru roboczego:
 
 **Navigator** wymienia każdy obszar roboczy (z nagłówkiem **Artboards** lub **Slides** w prezentacji) jako zwijaną grupę jego **Layers**. Zaznacz nazwę obszaru roboczego, aby tam przeskoczyć, rozwiń go, aby zaznaczać lub zmieniać kolejność warstw, i używaj klawiszy strzałek do poruszania się po liście; Left wraca do nagłówka obszaru roboczego. **Pages** grupuje obszary robocze w nazwane strony, a wybór strony zmienia tylko to, które obszary robocze pokazuje edytor.
 
-**Inspector** stawia na pierwszym miejscu kontrolki tekstu lub obrazu zaznaczonego obiektu. Znaczniki opcji obejmują szybkie wybory, a **Advanced** zawiera szczegóły stylizacji. Na telefonie Inspector otwiera się jako arkusz z **More actions**; Escape lub Back zamyka arkusz i zachowuje zaznaczenie.
+**Inspector** stawia na pierwszym miejscu kontrolki tekstu lub obrazu zaznaczonego obiektu. Znaczniki opcji obejmują szybkie wybory, a **Advanced** zawiera szczegóły stylizacji. Na telefonie Inspector i lista warstw dzielą jeden panel, który rozsuwa się spod górnego paska, ten sam, w którym każde inne narzędzie trzyma swoje kontrolki. **Inspect** oraz **Layer/Page** na dolnym pasku otwierają panel na swojej karcie. Przeciągnij uchwyt na jego dolnej krawędzi albo dotknij uchwytu, aby przełączać panel między paskiem z dwiema kartami, połową ekranu i prawie całym ekranem. W połowie kanwa pod panelem pokazuje Twoje zaznaczenie. Escape zwija panel do paska i zachowuje zaznaczenie.
 
 ![Sekcja Document w Inspectorze: karty Selection i Canvas, potem Dimensions i Style & look](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3Dfeature-tour&width=1440&height=900&dpi=192&waitMs=3500&cropSelector=.fc-insp&walker=1&format=svg&dark=1&filename=design-narration)
 
@@ -241,6 +243,8 @@ Strzałka obok **Present** otwiera **Present from this slide**, **Speaker view**
 | **Escape** | Zdejmuje jedną warstwę: przegląd do prezentacji, prezentacja do edytora |
 
 Mały pasek sterowania pojawia się, gdy ruszasz wskaźnikiem, i znika, gdy przestajesz. Jeśli przeglądarka blokuje okno widoku prelegenta, widok prelegenta otwiera się jako panel nad prezentacją. Notatki należą do każdego obszaru roboczego i nigdy nie pojawiają się na slajdzie.
+
+Na ekranie dotykowym przesuń palcem w lewo, aby przejść do następnego kroku lub slajdu, a w prawo, aby wrócić. Przejście **Slide** lub **Fade** podąża za palcem i kończy się po puszczeniu; przejście **Cut**, **Morph** lub **Fly between artboards** odtwarza się w całości po puszczeniu, a krótkie, powolne przesunięcie niczego nie zmienia. Boksy stron internetowych, kontrolki wideo, boksy z przewijaniem i zaznaczony tekst zachowują własne gesty, więc przesunięcie nigdy nie zaczyna się na żadnym z nich, a przewijanie w pionie i powiększanie dwoma palcami działają jak zwykle. Przy ograniczonym ruchu slajd nadal się zmienia, ale nie podąża za palcem.
 
 - **Kroki odsłaniania.** Kliknij box prawym przyciskiem i wybierz **Reveal at step 1**, **2** lub **3** zamiast **Always visible**, a box czeka, aż przejdziesz do jego kroku. Boksy z tym samym numerem pojawiają się razem.
 - **Kiosk.** Nadaj obszarowi roboczemu **Length**, a prezentacja zatrzymuje się tam na ten czas, po czym przechodzi dalej za cienkim paskiem postępu. Dodaj `kiosk` do linku, a prezentacja zapętla się na końcu, dla oznakowania cyfrowego.

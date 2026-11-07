@@ -1,6 +1,6 @@
 # 管理する
 
-Lollyは各自のデバイス上で動作します。チームにサインイン、共有プロジェクト、管理されたアセット、レビュー、サーバージョブが必要になったとき、組織は同じプロジェクトのオープンソースの組織向けサーバーである**Lolly Lolly Work**を追加します。これらのページは、そのサーバーを設定し、世話をする人向けです。
+Lollyは各自のデバイス上で動作します。チームにサインイン、共有プロジェクト、管理されたアセット、レビュー、サーバージョブが必要になったとき、組織は同じプロジェクトのオープンソースの組織向けサーバーである**Lolly Work**を追加します。これらのページは、そのサーバーを設定し、世話をする人向けです。
 
 メンバーが得られるものは[組織でLollyを使う](/info/organisation.html)で、サーバーが担う責任は[Lolly Workのアーキテクチャ](/info/work-overview.html)で、まず確認してください。
 
@@ -9,10 +9,12 @@ Lollyは各自のデバイス上で動作します。チームにサインイン
 - [導入とガバナンス](/info/adoption-governance.html)では、展開の進め方とブランドルールの役割を扱っています。
 - [IDとセッション](/info/work-identity.html)では、サインインとグループのマッピングを扱っています。[ロールと権限付与](/info/work-permissions.html)では、ロール、権限付与、オーナーガードを説明しています。
 - [ポリシーとガバナンス](/info/work-governance.html)では、ツールのオーバーレイ、ロックされた入力、ポリシーを扱っています。[組織のAIポリシーを管理する](/info/work-ai-policy.html)では、承認と実行の制限を扱っています。
-- [アカウントデータの管理](/info/work-account-lifecycle.html)と[Workのストレージとデータライフサイクル](/info/work-data-lifecycle.html)では、エクスポート、退職時の手続き、保持、およびそれらの限界を扱っています。
+- [アカウントデータの管理](/info/work-account-lifecycle.html)と[Lolly Workのストレージとデータライフサイクル](/info/work-data-lifecycle.html)では、エクスポート、退職時の手続き、保持、およびそれらの限界を扱っています。
 - [プロファイル、ブランド、ツールの設定](/info/configuration.html)では、Lollyのビルドがどのツールとデザインシステムを含むかを扱っています。
 
 ## アセットを接続して作業をレビューする
+
+- [既存のDAMでLollyを使う](/info/use-with-dam.html)では、ソースの権限と接続された制作を説明しています。[SUSEのBrandfolderアカウント](/info/suse-brandfolder.html)には導入の経験が記録されており、[DAM移行を計画する](/info/dam-transition.html)では、任意で行う後の移行を扱っています。
 
 - [デザインシステムの管理](/info/work-design-system-administration.html)では、ソースの一覧、レビューされた変更、ロールバックを扱っています。
 - [カタログとコンテンツ](/info/work-catalog.html)では、共有アセットと公開ルールを扱っています。[プロバイダーガイド](/info/work-provider-guides.html)では、各ソースプラットフォームの設定と検証の要件を示しています。

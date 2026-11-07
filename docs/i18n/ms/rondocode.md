@@ -1,4 +1,6 @@
-# Lagu Rondocode
+# Lagu Lolly Rondocode
+
+<a id="rondocode-songs"></a>
 
 Lagu rondocode ialah muzik yang ditulis sebagai kod: sintesis, corak dan campuran, dimainkan semasa anda menaip. Lolly boleh memainkan lagu di bawah video, dan utiliti **Rondocode** membolehkan anda menulis satu dan mengeksportnya sebagai audio. Kedua-duanya merekodkan lagu dalam Content Credentials fail, supaya muzik menyatakan dari mana asalnya.
 
@@ -12,7 +14,7 @@ Daripada terminal, `lolly mix` mengambil lagu sebagai keseluruhan runut bunyi; l
 
 ## Tulis dan eksport lagu
 
-Buka **Rondocode** daripada **Utilities** untuk menulis lagu dalam penyunting langsung rondocode dan mendengarnya semasa anda menaip. Eksportnya sebagai **WAV**, **MP3**, **M4A**, **Opus** atau **FLAC**, sebagai ZIP stem, sebagai **MIDI**, atau sebagai rakaman apa yang dimainkan. Daripada terminal, `lolly rondocode --export=mid` menulis fail MIDI yang sama. **Export length** menetapkan berapa saat eksport audio bertahan. Fail lagu itu sendiri (`.rondo.json`) ialah kod anda seperti yang ditulis dan tidak membawa tambahan.
+Buka alat **Rondocode** daripada **Utilities** untuk menulis lagu dalam penyunting langsung rondocode dan mendengarnya semasa anda menaip. Eksportnya sebagai **WAV**, **MP3**, **M4A**, **Opus** atau **FLAC**, sebagai ZIP stem, sebagai **MIDI**, atau sebagai rakaman apa yang dimainkan. Daripada terminal, `lolly rondocode --export=mid` menulis fail MIDI yang sama. **Export length** menetapkan berapa saat eksport audio bertahan. Fail lagu itu sendiri (`.rondo.json`) ialah kod anda seperti yang ditulis dan tidak membawa tambahan.
 
 Lagu boleh menyanyikan liriknya dengan `sing()`. Nyanyian dibuat pada peranti anda oleh model suara yang dimuat turun, dan fail yang memegang nyanyian sintesis sentiasa mengisytiharkan nyanyian itu sebagai dijana AI (lihat [AI features](/info/ai-features.html)).
 
@@ -24,11 +26,11 @@ Eksport video atau audio yang memainkan lagu rondocode merekodkan setiap lagu da
 - SHA-256 fail `.rondo.json`-nya;
 - cara ia dirender: dalam kotak pasir Lolly, kelas pelaksanaan `vm`, dengan versi dan benih perender, dan mana-mana bahagian yang tidak dapat dimainkan render.
 
-Muzik yang dikira daripada kod lagu ditandakan sebagai media algoritma, jadi Verify tidak menandakannya sebagai AI. Sebelum anda mengeksport, baris di bawah **Download** menyenaraikan lagu yang akan direkodkan kredensial; selepas eksport, baris yang sama melaporkan apa yang ditemui oleh bacaan fail yang dihantar. Nyahtanda **C2PA Credentials** untuk tidak menyertakan rekod. Imej pegun tidak merekodkan lagu, kerana ia tidak membawa bunyi. `lolly mix` dan [pelayan MCP](/info/mcp.html) menulis rekod yang sama.
+Muzik yang dikira daripada kod lagu ditandakan sebagai media algoritma, jadi Lolly Verify tidak menandakannya sebagai AI. Sebelum anda mengeksport, baris di bawah **Download** menyenaraikan lagu yang akan direkodkan kredensial; selepas eksport, baris yang sama melaporkan apa yang ditemui oleh bacaan fail yang dihantar. Nyahtanda **C2PA Credentials** untuk tidak menyertakan rekod. Imej pegun tidak merekodkan lagu, kerana ia tidak membawa bunyi. `lolly mix` dan [pelayan MCP](/info/mcp.html) menulis rekod yang sama.
 
 ## Fail daripada utiliti Rondocode
 
-Kebanyakan utiliti pada peranti tidak menulis kredensial, kerana ia mengubah fail yang sudah anda miliki. Rondocode membuat audio baharu, jadi setiap fail audio yang ditulisnya membawa Content Credentials yang merekodkan lagu sebagai sumbernya: namanya, SHA-256 fail `.rondo.json`-nya dan di mana kodnya dijalankan. Itu meliputi WAV, MP3, M4A, Opus, FLAC, setiap stem dalam ZIP stem dan rakaman apa yang dimainkan.
+Kebanyakan utiliti pada peranti tidak menulis kredensial, kerana ia mengubah fail yang sudah anda miliki. Lolly Rondocode membuat audio baharu, jadi setiap fail audio yang ditulisnya membawa Content Credentials yang merekodkan lagu sebagai sumbernya: namanya, SHA-256 fail `.rondo.json`-nya dan di mana kodnya dijalankan. Itu meliputi WAV, MP3, M4A, Opus, FLAC, setiap stem dalam ZIP stem dan rakaman apa yang dimainkan.
 
 - Render penyunting sendiri dijalankan dalam bingkai persendiriannya (kelas pelaksanaan `frame`) dan merekodkan versi penyunting.
 - Render yang dibuat oleh CLI atau pautan kongsi dijalankan dalam kelas `vm` dan merekodkan versi dan benih perender.

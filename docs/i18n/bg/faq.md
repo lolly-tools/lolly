@@ -39,7 +39,7 @@ lolly.tools се отваря в [Lolly Demo](/info/lolly-demo.html), собст
 
 ## Мога ли да използвам собствената си марка?
 
-Да. **Design System Setup** (`#/start`) изгражда дизайн система от един цвят, файл с дизайн токени или завършен дизайн, а след това всеки инструмент рисува с твоята дизайн система. [Начало](/info/quickstart.html#put-your-brand-in) води през трите пътя.
+Да. **Lolly Design System Setup** (`#/start`) изгражда дизайн система от един цвят, файл с дизайн токени или завършен дизайн, а след това всеки инструмент рисува с твоята дизайн система. [Начало](/info/quickstart.html#put-your-brand-in) води през трите пътя.
 
 Дизайн система, която организацията ти или изданието ти предоставя, е управлявана: показва катинар и остава само за четене, а можеш да направиш редактируемо копие, за да я промениш.
 
@@ -80,9 +80,9 @@ lolly.tools се отваря в [Lolly Demo](/info/lolly-demo.html), собст
 
 ## Може ли Lolly да редактира и рендерира моите файлове от Figma, Penpot, Illustrator или InDesign?
 
-Да. Отвори **Design** и щракни **Import a design**: приема роден Figma **.fig** (Save local copy), експорт на Penpot **.penpot**, Illustrator **.ai** или **.pdf**, InDesign **.idml** (File → Export → InDesign Markup) или **всякакъв SVG**. Не ти трябват акаунт, плъгин или лиценз за дизайн приложение.
+Да. Отвори инструмента **Design** и щракни **Import a design**: приема роден Figma **.fig** (Save local copy), експорт на Penpot **.penpot**, Illustrator **.ai** или **.pdf**, InDesign **.idml** (File → Export → InDesign Markup) или **всякакъв SVG**. Не ти трябват акаунт, плъгин или лиценз за дизайн приложение.
 
-![Отвореният канвас на Design - „Импортирай дизайн“ е в менюто Lolly на лентата с инструменти](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D17ZTfS8MwEMf_mryO5NZ288GHrdqJv1CUvWdtOgppMtJMNv96yaV1iRNEQRBZoblwab53l0-uq915bXgrCOSDpf3LzgANnQ4eI0rrPJn7Gh9cd0sE8lIryxtFIFfatFx6L4F0Mi-11GbUiZYr25QjK3bW-S8I5MnUbRXKCkMgb5uqki6JFFU7rjoXYsSgT8GaLebKZSeGAPkUYypMHp80DeugYYR4J_U7X4XRkY8dFHuTYEJ-jDWM3qoqsEHo4Y20-xJi-SPVaOfRUuAL1hiZXNrG4gH6M85Z5lTAk8x8DdlnPL8gecVfBIEU6F5v0bbCor3VUu4JpOPCKTCWsPI9rBS107d6QyCfRET_Ac6wX36X6UpX-49Ip1mAlMEPkM6QX20aoSpECLTmpadcazPQ9hPlWxboRndWmFEIG1s4Yp3E3Ts-0f4GbcruWHLzlC0frmfpfbGk82LxmD0vUndSTcvXAoknWBKCz5LDSIdiRHV0D2Tfq1BIvdY42Zim5WZ_-n3_mRvwBg&width=1360&height=850&dpi=192&waitMs=3000&format=svg&walker=1&chrome=1&localize=1&dark=1&filename=design)
+![Отвореният канвас на Lolly Design - „Импортирай дизайн“ е в менюто Lolly на лентата с инструменти](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D17ZTfS8MwEMf_mryO5NZ288GHrdqJv1CUvWdtOgppMtJMNv96yaV1iRNEQRBZoblwab53l0-uq915bXgrCOSDpf3LzgANnQ4eI0rrPJn7Gh9cd0sE8lIryxtFIFfatFx6L4F0Mi-11GbUiZYr25QjK3bW-S8I5MnUbRXKCkMgb5uqki6JFFU7rjoXYsSgT8GaLebKZSeGAPkUYypMHp80DeugYYR4J_U7X4XRkY8dFHuTYEJ-jDWM3qoqsEHo4Y20-xJi-SPVaOfRUuAL1hiZXNrG4gH6M85Z5lTAk8x8DdlnPL8gecVfBIEU6F5v0bbCor3VUu4JpOPCKTCWsPI9rBS107d6QyCfRET_Ac6wX36X6UpX-49Ip1mAlMEPkM6QX20aoSpECLTmpadcazPQ9hPlWxboRndWmFEIG1s4Yp3E3Ts-0f4GbcruWHLzlC0frmfpfbGk82LxmD0vUndSTcvXAoknWBKCz5LDSIdiRHV0D2Tfq1BIvdY42Zim5WZ_-n3_mRvwBg&width=1360&height=850&dpi=192&waitMs=3000&format=svg&walker=1&chrome=1&localize=1&dark=1&filename=design)
 
 Слоевете пристигат като редактируеми кутии: текстът остава редактируем, фигурите остават фигури, а изображенията се присъединяват към собствената ти библиотека. Запази го и **Share with rules** може да превърне оформлението в инструмент, който всеки с Lolly може да попълни наново. Вж. [Import a design](/info/design-import.html).
 
@@ -100,7 +100,7 @@ Feature flags включват или изключват части от Lolly. 
 
 Помощната програма върши една бърза задача върху файл, който вече имаш, например компресиране на PDF, конвертиране на снимка или премахване на скрити данни, и много от тях работят на устройството ти, без да се качва нищо. Те съществуват, за да останат в Lolly задачите, които хората обикновено дават на случаен уебсайт. Компресирането на договор, конвертирането на ваканционни снимки с все още вътре местоположение или поставянето на токен в онлайн форматиращ инструмент не бива да означава да дадеш файла на сайт с неизвестно съхранение, юрисдикция и бизнес модел. [Lolly Utilities](/info/utilities.html) ги изброява, а [The trade we never agreed to](/info/status-quo.html) разказва историята зад тях.
 
-![Изгледът Utilities: Strip Hidden Data, Compress PDF, Convert Image и другите задачи на устройството, всички на едно място](/t/url-shot?url=%2F%23%2Fu&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone!important%7D&tolerance=0.03&format=svg&walker=1&dark=1&filename=use-utilities&try=1)
+![Изгледът Utilities: Lolly Strip Hidden Data, Compress PDF, Convert Image и другите задачи на устройството, всички на едно място](/t/url-shot?url=%2F%23%2Fu&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone!important%7D&tolerance=0.03&format=svg&walker=1&dark=1&filename=use-utilities&try=1)
 
 ## Може ли организацията ни да използва SSO, споделени проекти и одобрения?
 
@@ -110,7 +110,7 @@ Feature flags включват или изключват части от Lolly. 
 
 ## Какви пречки да очаквам при въвеждането на Lolly?
 
-Най-вече се променят нещата от страна на производството, а не технологията. Екип, който иска управляван набор от инструменти, се нуждае от някой, който да състави дизайн системата му и първите шаблони, макар че всеки може да започне да прави свои инструменти в Design още първия ден, без git. А съществуващите процеси продължават да работят, дори когато резултатът им не е в стила на марката, така че добре преобразуван един видим резултат, преди и след един до друг, убеждава по-бързо от план.
+Най-вече се променят нещата от страна на производството, а не технологията. Екип, който иска управляван набор от инструменти, се нуждае от някой, който да състави дизайн системата му и първите шаблони, макар че всеки може да започне да прави свои инструменти в Lolly Design още първия ден, без git. А съществуващите процеси продължават да работят, дори когато резултатът им не е в стила на марката, така че добре преобразуван един видим резултат, преди и след един до друг, убеждава по-бързо от план.
 
 [Adoption & Governance](/info/adoption-governance.html) обхваща въвеждането по роли, как да се измери пилот и как може да изглежда процес на управление.
 
@@ -144,3 +144,11 @@ Lolly е разработен с кодиране с помощта на AI, о�
 ## Какъв вкус е това лого на Lolly?
 
 Едни казват лайм, други мента, а понякога и ябълка. Lolly носи сладостта, а вкусът го правиш ти!
+
+## Какво разбира Lolly под суверенитет върху съдържанието?
+
+Контрол върху начина, по който съдържанието ти се създава, управлява, съхранява и премества между системите, които избереш. Lolly поддържа локално производство, редактируема работа и преносими инструменти; Lolly Work добавя споделени услуги, контролирани от организацията. Лицензите на източниците, наличните зависимости и потоците от данни на работния процес все пак имат значение. [What is content sovereignty?](/info/content-sovereignty.html) обяснява всеки контрол и границите му.
+
+## Можем ли да запазим съществуващия си DAM?
+
+Да. Поддържан DAM може да остане източник на истина, докато Lolly Work свързва избрани ресурси с инструментите на Lolly. Достъпът до източника, позволените редакции, правата за използване и одобрението на готовия резултат са отделни решения. [Use Lolly with your existing DAM](/info/use-with-dam.html) обяснява уговорката, а [SUSE's Brandfolder experience](/info/suse-brandfolder.html) отбелязва успешна употреба по време на внедряването.

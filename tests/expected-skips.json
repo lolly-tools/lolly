@@ -1508,6 +1508,13 @@
       "owner": "tests"
     },
     {
+      "file": "tests/docs-tool-guides.test.ts",
+      "fullName": "every manifest entry opens a real page and section in every locale build",
+      "reason": "no built /info on disk - run `pnpm run build:info`",
+      "capability": "docs-build",
+      "owner": "tests"
+    },
+    {
       "file": "tests/docs-logos.test.ts",
       "fullName": "a page with sections gets the contents rail, and every docs page gets the page bar",
       "reason": "no built /info on disk - run `pnpm run build:info`",

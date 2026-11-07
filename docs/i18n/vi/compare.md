@@ -11,7 +11,7 @@ _Kiểm tra lần cuối: 28 tháng 9 năm 2026._
 - [Lolly and Figma](/info/compare-figma.html) - thiết kế, cộng tác trực tiếp và sản xuất tài nguyên dùng lại được.
 - [Lolly and Penpot](/info/compare-penpot.html) - thiết kế mã nguồn mở, token dùng chung và công việc tổ chức.
 - [Lolly and brand portals](/info/compare-brand-portals.html) - thư viện được duyệt, mẫu bị khóa, danh tính, xem xét và báo cáo.
-- [Lolly and rendering APIs](/info/compare-render-apis.html) - tạo tự động trên thiết bị của bạn, trong CI hoặc trên máy chủ Lolly Work.
+- [Lolly and rendering APIs](/info/compare-render-apis.html) - tạo tự động trên thiết bị của bạn, trong CI hoặc trên máy chủ của chính bạn, và [cách chuyển](/info/work-move-from-render-api.html) từ Bannerbear hoặc Placid.
 - [Lolly and online file converters](/info/compare-converters.html) - chuyển đổi định dạng trên thiết bị của chính bạn.
 
 Để xem so sánh theo từng khả năng, hãy đọc [Lolly so sánh thế nào](/info/positioning.html). Mỗi bài so sánh đều có ghi ngày; nhận định nào không còn khớp với một trong hai sản phẩm thì cần được sửa lại.

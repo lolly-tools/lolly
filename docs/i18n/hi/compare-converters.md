@@ -12,7 +12,7 @@ _अंतिम जाँच: 28 सितंबर 2026।_
 
 ब्राउज़र-आधारित कन्वर्टर प्रोसेसिंग के लिए फ़ाइल अपलोड कर सकता है या स्थानीय रूप से बदल सकता है। Lolly की रूपांतरण यूटिलिटी फ़ाइल स्थानीय रूप से प्रोसेस करती हैं, बिना खाते, विज्ञापन या ट्रैकर के, और कोई Lolly वॉटरमार्क या Content Credentials नहीं जोड़तीं। रूपांतरण को चाहिए एसेट सहेजे जाने के बाद वे ऑफ़लाइन काम करती हैं। फ़ाइल का आकार डिवाइस की मेमोरी और विशेष फ़ॉर्मेट रीडर से सीमित है।
 
-![Utilities व्यू: Strip Hidden Data, Compress PDF, Convert Image और डिवाइस पर चलने वाले बाकी काम एक जगह](/t/url-shot?url=%2F%23%2Fu&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%2C.brand-tips%7Bdisplay%3Anone!important%7D&tolerance=0.03&waitSelector=.utilities-view%5Bdata-shots-settled%5D&format=svg&walker=1&dark=1&filename=aud-utilities)
+![Utilities व्यू: Lolly Strip Hidden Data, Compress PDF, Convert Image और डिवाइस पर चलने वाले बाकी काम एक जगह](/t/url-shot?url=%2F%23%2Fu&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%2C.brand-tips%7Bdisplay%3Anone!important%7D&tolerance=0.03&waitSelector=.utilities-view%5Bdata-shots-settled%5D&format=svg&walker=1&dark=1&filename=aud-utilities)
 
 [Every format Lolly can open and make](/info/formats.html) समर्थित रूपांतरण और उनकी सीमाएँ सूचीबद्ध करता है, HEIC से JPG, PNG से SVG और PDF से इमेज सहित।
 

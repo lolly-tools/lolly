@@ -30,6 +30,8 @@ import { DESIGN_INTENT_OPTIONS, designNarrationEnabled, designOutcome, designTim
 import { backHomeHtml, mountBackPill } from '../../components/back-pill.ts';
 import { mountHomeFab } from '../../components/home-fab.ts';
 import { t, tRaw } from '../../i18n.ts';
+import { hasGuide, showToolGuide } from '../../components/tool-guide.ts';
+import { toolGuideRows, type ToolGuideRow } from '../../lib/tool-guides.ts';
 import { isTauriMobileShell, isTauriShell } from '../../lib/instance-choice.ts';
 import { tauriInvoke } from '../../lib/nearby-boot.ts';
 import { aiAllowed, aiPolicy, AiPolicyError } from '../../lib/ai-policy.ts';
@@ -1407,6 +1409,10 @@ export async function bakeFraming(tview: ToolViewCtx, key: string): Promise<void
           openAgentConnect({ viewEl, link: () => agentLink, setLink: (link) => { agentLink = link; }, editor });
         };
         const pageController = await createPageController(tview);
+        // The docs pages mapped to this tool (lib/tool-guides.ts), read when the Lolly
+        // menu opens, so the row appears once the list has arrived.
+        let designGuideRows: ToolGuideRow[] = [];
+        void toolGuideRows(toolId).then((rows) => { designGuideRows = rows; });
         const fc = initFreeCanvas({
           getActivePage: pageController ? pageController.port.active : undefined,
           getDesignPages: pageController ? pageController.port.get : undefined,
@@ -1584,6 +1590,12 @@ export async function bakeFraming(tview: ToolViewCtx, key: string): Promise<void
                 }
               : undefined,
             askAgentShown: () => aiAllowed('agents') && !askAgentNothingFound,
+            // "Read the guide" (plan 354 D6): Design's door to the help dialog, which the
+            // sidebar layouts open from the button beside the tool name.
+            guide: () => {
+              tview.openGuide = showToolGuide(tview.tool.manifest, designGuideRows);
+            },
+            guideShown: () => designGuideRows.length > 0 || hasGuide(tview.tool.manifest),
             canSave: canSaveSession,
             dirtyRef: tview.renderSaveBtn,
           },

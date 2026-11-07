@@ -22,7 +22,7 @@ Bir set seçmek asla engellenmez ve set denetimi lisansı seçtiğin yerde göst
 
 ## Ne görürsün ve ne yapmalı
 
-Aynı sözcükler, ne sıklıkla karşılaşacağına göre kabaca sıralanmış olarak dışa aktarma panelinde, Verify'da, komut satırında ve makine sonucunda görünür.
+Aynı sözcükler, ne sıklıkla karşılaşacağına göre kabaca sıralanmış olarak dışa aktarma panelinde, Lolly Verify'da, komut satırında ve makine sonucunda görünür.
 
 | Ne görürsün | Ne anlama gelir |
 |---|---|
@@ -51,12 +51,14 @@ Lolly asla "copyright verified", "legally safe", "fully cleared" veya "rights cl
 
 - **Katalogda.** Bir çalışmanın sayfası kaynağını ve yaratıcısını, altında özgün etiketin korunduğu kurallı lisans adını, kayıtlıysa kopyalanabilir bir atıf ve kullanmanın ne istediğini söyleyen tek bir satır gösterir. Bir karo gereksinimi belirtir; bir dışa aktarmanın tamamlandığını asla iddia etmez.
 - **Dışa aktarma panelinde.** Bir render kayıtlı çalışma kullandığında Content protection içinde, kendi dışa aktarman için seçtiğin Licence'ın yanında bir Source credits kartı belirir. Durumu, Details arkasındaki atıf metnini, bir Copy credit düğmesini ve bir karar gerektiğinde satır içi bir kartı gösterir. Bir karar asla engelleyen bir iletişim kutusu değildir: bir eylemi kalan bir indirme yine devam eder.
-- **Dosyada.** Kayıtlı çalışma yerleştiren bir dışa aktarma, her ayrı çalışma için bir Content Credentials kaynak bileşeni yazar; özgün baytlara herkese açık adreslerinde bağlıdır ve yaratıcıyı, lisansı ve bağlantısını, kaynağı, revizyonu ve değişiklikleri taşır. Lolly gözlemlediğini imzalar. Yukarı akıştaki sanatçı adına bir iddiayı asla imzalamaz ve Verify ikisinden hangisinin olduğunu söyler.
+- **Dosyada.** Kayıtlı çalışma yerleştiren bir dışa aktarma, her ayrı çalışma için bir Content Credentials kaynak bileşeni yazar; özgün baytlara herkese açık adreslerinde bağlıdır ve yaratıcıyı, lisansı ve bağlantısını, kaynağı, revizyonu ve değişiklikleri taşır. Lolly gözlemlediğini imzalar. Yukarı akıştaki sanatçı adına bir iddiayı asla imzalamaz ve Lolly Verify ikisinden hangisinin olduğunu söyler.
 - **Bir pakette.** `.lottie` animasyonu gibi bir kimlik bilgisi tutamayan bir indirme, atıfları paketin içinde `CREDITS.txt` ve `credits.json` olarak taşır. Bunlar yazıldıktan sonra geri okunur ve onlar için imzalı bir kimlik bilgisi iddia edilmez.
 - **Yazıldıktan sonra.** Hiçbir şey atıfların dahil olduğunu söylemeden önce teslim edilen baytlar geri okunur. Doğrulanmamış bir kimlik bilgisi teslim edilmiş bir atıf sayılmaz.
-- **Düzenlenebilir bir `.lolly` dosyasında.** Baytlar yalnızca incelenmiş bir lisans kaynağı devretme iznini kaydettiğinde gider. Paketin `CREDITS.txt` dosyası nelerin gittiğini, hangi lisans altında ve nelerin gerekçesiyle geri tutulduğunu listeler. Kaydedilmemiş bir lisans geri tutulur. Geri tutulan içeriği yine de bilerek dahil edebilirsin ve atıf dosyası bunun senin seçimin olduğunu kaydeder.
-- **Verify'da.** Bir Sources paneli bir dosyanın kaydettiği her kaynağı, hesaplanmış bir özet, atıf, bir Copy credit düğmesi, yalnızca sen istediğinde açılan bir Open source bağlantısı ve neyin incelendiğinin belirtilen sınırlarıyla listeler. Bir Check for this use sorusu yalnızca bir kullanım seçtiğinde görünür ve soruyu yanıtlamak için hiçbir şey getirilmez.
+- **Düzenlenebilir bir `.lolly` dosyasında.** Baytlar yalnızca incelenmiş bir lisans kaynağı devretme iznini kaydettiğinde ya da satır sahibinin kendi koşullarını taşıdığında gider. Paketin `CREDITS.txt` dosyası nelerin gittiğini, hangi lisans altında ve nelerin gerekçesiyle geri tutulduğunu listeler. Kaydedilmemiş bir lisans geri tutulur. Geri tutulan içeriği yine de bilerek dahil edebilirsin ve atıf dosyası bunun senin seçimin olduğunu kaydeder.
+- **Lolly Verify'da.** Bir Sources paneli bir dosyanın kaydettiği her kaynağı, hesaplanmış bir özet, atıf, bir Copy credit düğmesi, yalnızca sen istediğinde açılan bir Open source bağlantısı ve neyin incelendiğinin belirtilen sınırlarıyla listeler. Bir Check for this use sorusu yalnızca bir kullanım seçtiğinde görünür ve soruyu yanıtlamak için hiçbir şey getirilmez.
 - **Meta veriyi kaldırdığında.** Temizleme, dosyanın artık kaç kaynak atfı taşımadığını söyler, atıf metnini sunar ve atıfların ayrı bir dosyada olduğu temiz bir dosya sunar. Temizlenen baytlar asla yeniden damgalanmaz.
+
+**Bir sahibin kendi işaretleri.** Bir sahip bir logoyu nadiren açık bir lisans altına koyar. Hak kaydı sahibi ve koşullarıyla birlikte `own-work` diyen bir satır, bir `.lolly` dosyasında ve bir [marka sayfasında](/info/brand-page.html#publish-your-own-marks) taşınabilir. "Owner-published, not an open licence" olarak, koşulları dosyanın yanında olacak şekilde taşınır. Bu, bir kataloğun belirttiğini okur. Lolly bir işaretin kime ait olduğunu denetlemez. Sahibi, koşulu veya beyanı olmayan bir kayıt geri tutulur; böyle bir kaydı olmayan, başkasına ait bir işaret de öyle.
 
 ::: details Lolly'nin incelediği lisanslar
 Kural sürümü `rights-rules-2026-11-05.1`. Her kural lisansın kendi hukuki metninden okundu ve geldiği bölüm burada ve `engine/src/rights-profiles.ts` içindeki kuralın yanında belirtilir. Bir sürüm ve bir port kaydedildiği gibi tutulur: bir CC BY 3.0 beyanı, uygulamanın seçicisi 4.0'ı tercih ediyor diye 4.0 olarak bildirilmek yerine kendi sürümünü korur.
@@ -69,6 +71,7 @@ Kural sürümü `rights-rules-2026-11-05.1`. Her kural lisansın kendi hukuki me
 | CC-PDDC | Hiçbir şey. Kaydedilen, beyanın kendisi ve kimin yaptığıdır, çünkü bir sertifikasyon kanıt değil, bir tarafın ifadesidir. | [The dedication and certification](https://creativecommons.org/licenses/publicdomain/) paragrafları |
 | Apache License 2.0 | Kaynaktan gelen bildirimler ve NOTICE dosyasının atıf metni dağıtılan bir çalışmayla birlikte gider. Bir çalışma zamanı kullanımı hiçbir şey istemez. Bildirim metni isteyen bir lisans ve hiçbirini taşımayan bir çalışma bir boşluk olarak bildirilir. | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0), bölüm 4, 1 ila 4. koşullar |
 | MIT | Telif hakkı satırı ve izin bildirimi kopyalar ve önemli bölümlerle birlikte gider. Çalışma zamanı ve başvuru kullanımları hiçbir şey istemez. | [MIT](https://opensource.org/license/mit), izin bildirimi koşulu |
+| ISC | MIT ile aynı, daha kısa sözcüklerle: telif hakkı satırı ve izin bildirimi kopyalarla birlikte gider. Çalışma zamanı ve başvuru kullanımları hiçbir şey istemez. | [ISC](https://opensource.org/license/isc-license-txt), izin bildirimi koşulu |
 | SIL OFL 1.1 | Yazıyı yazı tipiyle render etmek metin için hiçbir şey istemez. Yazı tipi dosyasını devretmek lisansı, telif hakkı bildirimini ve ayrılmış ad kuralını taşır. | [OFL 1.1](https://openfontlicense.org/open-font-license-official-text/), 2, 3 ve 5. koşullar; belgeler için [OFL FAQ](https://openfontlicense.org/ofl-faq/) |
 
 **Kaydedildi, yorumlanmadı.** CC BY-NC, CC BY-ND ve NC-SA ile NC-ND kombinasyonları tanınır, koşulları listelenir ve burada hiçbir kural onları okumaz. Koşulları adlandıran bir satırla `licence.unknown` bildirirler. Ticari bir bağlam bir fiyattan veya hesaptan okunamaz ve her birleşik metin, bir kural o metni okumadan önce kendi incelemesine ihtiyaç duyar.
@@ -119,7 +122,7 @@ Beş motor modülü, hepsi saf: ağ yok, saat yok, dosya sistemi yok. Kural veri
 | `engine/src/rights-evaluate.ts` | Sınıflandırma, sorunlar, atıf planı ve parmak izi. Deterministik: farklı sırayla aynı olgular aynı yanıtı verir. |
 | `engine/src/rights-attribution.ts` | Okunabilir atıflar, yardımcı dosyalar, kaynak bileşenleri ve yazıldıktan sonra ölçülen makbuz. |
 | `engine/src/rights-companion.ts` | Paket atıflarının (bir ZIP tabanlı indirme içindeki `CREDITS.txt` ve `credits.json`) geri okunması; imzalı bir kimlik bilgisi iddia etmeden atıfları doğrular. |
-| `engine/src/rights-report.ts` | Verify'ın sorduğu üç soru olarak geri okunan doğrulanmış bir kimlik bilgisi. |
+| `engine/src/rights-report.ts` | Lolly Verify'ın sorduğu üç soru olarak geri okunan doğrulanmış bir kimlik bilgisi. |
 
 `tests/fixtures/rights/` içindeki beklenti dosyaları değerlendiricinin çıktısından değil, lisans metinlerinden yazıldı ve README dosyası her beklentinin ardındaki bölümü belirtir.
 :::

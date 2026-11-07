@@ -26,7 +26,7 @@
 
 1. 按工具左上角的**首頁**。
 2. 開啟首頁頂端的**專案**分頁（在手機上是一個資料夾圖示）。
-3. 看第一個畫面。儲存到**我的資料庫**的作品就在那裡，每個專案則是一個資料夾。要一次搜尋所有資料夾，請在畫面底部輸入**搜尋所有專案…**。
+3. 看第一個畫面。你儲存到**我的資料庫**的作品就在那裡，每個專案則是一個資料夾。要一次搜尋所有資料夾，請在畫面底部輸入**搜尋所有專案…**。
 
 項目會以你在匯出面板中輸入的檔名命名，如果沒有輸入，則以其工具命名，例如 **QR Code**。開啟項目，每項設定都回來了，可以再次更改與匯出。若要以這種方式保存新作品，請見[儲存與繼續](/info/using.html#saving-continuing)。
 
@@ -37,7 +37,7 @@
 :::
 
 ::: details 在專案中操作
-你也可以從**設定 → 儲存空間 → 已儲存的工作階段 → 在專案中整理**開啟**專案**。它的使用方式就像一個檔案管理員：
+你也可以從 **Settings → Storage → Saved sessions → Organise in Projects** 開啟 **Projects** 檢視。它的使用方式就像一個檔案管理員：
 
 ![專案還沒有任何已儲存內容時的樣子：新增資料夾、新增資產和範本方塊，右上角的 History 時鐘按鈕，以及底部的搜尋所有專案欄](/t/url-shot?url=%2F%23%2Fp&width=1440&height=900&dpi=192&waitMs=1200&walker=1&format=svg&localize=1&dark=1&filename=projects)
 <!--
@@ -101,17 +101,17 @@ not visible in the closed menu, so the alt does not list them.
 :::
 
 ::: details 哪些工具會隨手儲存
-在網頁版應用程式中，每個用來製作文件的工具都會隨手儲存：Design、Chart、QR Code、Text、Sandbox 及其餘同類工具。以下這些工具則不會：
+在網頁版應用程式中，每個用來製作文件的工具都會隨手儲存：Lolly Design、Lolly Chart、QR Code、Text、Lolly Sandbox 及其餘同類工具。以下這些工具則不會：
 
 - 處理你帶來的檔案的工具，例如 Redact、Sign 或 Convert Image，因為 Lolly 絕不保留該檔案的副本；
-- 從你的攝影機、麥克風或螢幕錄製的工具，例如 Record、Screen Capture 與 Voice Recorder；
+- 從你的攝影機、麥克風或螢幕錄製的工具，例如 Record、Lolly Screen Capture 與 Lolly Voice Recorder；
 - 沒有任何東西可更改的工具，例如 Countdown。
 
 在其他工具中，你的第一次更改就會把作品歸檔到 **Projects**，如同你已儲存一樣，之後的更改則會在工具完成繪製之後隨工作自動保留。未儲存的創作在你關閉分頁後仍在 Projects 中，重新開啟時其更改會標示為未儲存。
 
 **Leave anyway** 仍會捨棄那些更改，而 History 會保留被捨棄之編輯的副本 30 天。從首頁再次開啟該工具會開始新的創作；請從 Projects 開啟較早的那一個。
 
-3D 與 Darkroom 會隨工作自動儲存，但它們不會保留你載入其中的檔案，例如 3D 模型或 LUT。History 與 **Save** 保留的是檔案的名稱、類型與大小，而不是檔案本身。當你再次開啟該作品時，備註會說明那是哪個檔案，而工具在你再次載入它之前，會在沒有它的情況下運作。請保留你的原始檔案。
+3D 與 Lolly Darkroom 會隨工作自動儲存，但它們不會保留你載入其中的檔案，例如 3D 模型或 LUT。History 與 **Save** 保留的是檔案的名稱、類型與大小，而不是檔案本身。當你再次開啟該作品時，備註會說明那是哪個檔案，而工具在你再次載入它之前，會在沒有它的情況下運作。請保留你的原始檔案。
 
 開啟[同步](/info/sync.html)後，以這種方式歸檔的創作會像專案中的其他內容一樣，同步到你的其他裝置。它的各個版本則留在製作它們的那台裝置上。
 
@@ -147,14 +147,14 @@ not visible in the closed menu, so the alt does not list them.
 
 要開啟較早的版本：
 
-1. 按 **History**，也就是**復原**和**重做**旁邊的時鐘按鈕。在 Design 中，**History** 位於頂部欄；在手機上，按 **•••**，然後按 **History**。在沒有**復原**的工具中，例如 Text 和 Sandbox，**History** 位於左上角的**首頁**旁邊。
+1. 按 **History**，也就是**復原**和**重做**旁邊的時鐘按鈕。在 Lolly Design 中，**History** 位於頂部欄；在手機上，按 **•••**，然後按 **History**。在沒有**復原**的工具中，例如 Text 和 Lolly Sandbox，**History** 位於左上角的**首頁**旁邊。
 2. 按日期和時間找到相應版本。**Automatic checkpoint** 列是你操作過程中自動產生的；**Saved version** 列則是你儲存的時刻。
 3. 按 **Open as a copy**。該版本會作為一份新創作開啟，而你原本開啟的那一份保持不變。這份副本會出現在**專案**中，名稱後面帶有「(copy)」。
 
 要依名稱保留一個版本，請按 **Name version**，輸入一個名稱，然後按 **Keep milestone**。具名版本會列在 **History** 頁面的 **Milestones** 底下。
 
 ::: details History 面板與 History 頁面
-**History** 面板還會列出 **Recovered work** 列，**Protected drafts** 則保存著你在各檢查點之間的最新更改，並提供 **Open draft as a copy**。**Compare** 和 **Check assets** 可以幫助你在開啟一份副本之前先做判斷。把 **This creation** 切換為 **All history on this device**，即可查看所有創作。
+**History** 面板還會列出 **Recovered work** 列，**Protected drafts** 則保存著你在各檢查點之間的最新更改，並提供 **Open draft as a copy**。**Lolly Compare** 和 **Check assets** 可以幫助你在開啟一份副本之前先做判斷。把 **This creation** 切換為 **All history on this device**，即可查看所有創作。
 
 Automatic checkpoint 會隨著時間推移而變得稀疏：最近一小時內每分鐘一個，最近一天內每小時一個，30 天內每天一個，此後每週一個。已儲存的版本和具名版本則全部保留。刪除一份創作也會把它的版本移入**回收桶**，**永久刪除**則會將它們一併移除。
 

@@ -16,7 +16,7 @@ Obojí umožňuje uspořádat písmo, tvary a obrázky na plátně a pracovat s 
 
 Lolly změní návrh na [opakovaně použitelný nástroj s pravidly](/info/create-a-tool.html). Nástroj běží v prohlížeči nebo v CLI a bere vstupy z odkazu, skriptu nebo dávkové mřížky, takže jedna šablona slouží člověku upravujícímu jeden soubor i týmu vytvářejícímu mnoho.
 
-![Otevřené plátno Design s Import a design v nabídce Lolly na liště nástrojů](/info/shots/design.svg)
+![Otevřené plátno Lolly Design s Import a design v nabídce Lolly na liště nástrojů](/info/shots/design.svg)
 
 [Soukromá kolaborace](/info/collaborate.html) spojí dvě zařízení přímo, bez účtu a bez internetu, na sdílené síti. Samostatná Lolly vykresluje offline. Content Credentials jsou u podporovaných exportů ve výchozím stavu zapnuté a můžeš je vypnout.
 

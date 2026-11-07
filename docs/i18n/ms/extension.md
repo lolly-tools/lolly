@@ -10,26 +10,29 @@ Anda meluluskan setiap permintaan, dan apl desktop melakukan tugas yang sama tan
 
 ## Sebelum anda memasang
 
-Sehingga sambungan dipasang, **URL Screenshot** masih dibuka, jadi anda boleh menggubah tangkapan. Nota di bahagian atas kawalan alat menyatakan apa yang hilang.
+Sehingga sambungan dipasang, **Lolly URL Screenshot** masih dibuka, jadi anda boleh menggubah tangkapan. Nota di bahagian atas kawalan alat menyatakan apa yang hilang.
 
 ![Nota alat URL Screenshot menawarkan sambungan itu, dipaparkan apabila tangkapan ke fail tiada host untuk dijalankan](/t/url-shot?url=%2F%23%2Ftool%2Furl-shot&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&cropSelector=%23capture-hint-notice&dark=1&filename=exp-url-shot-notice)
 
 Setiap kawalan berfungsi semasa anda menunggu: URL sasaran, kedalaman skrol, kelewatan menetap, inset pangkas dan pewarnaan semula. Hanya tangkapan itu sendiri memerlukan sambungan.
 
-![Kawalan URL Screenshot dengan URL sasaran, kedalaman skrol, kelewatan settle dan inset pemotongan, semuanya boleh digunakan sebelum sambungan wujud](/t/url-shot?url=%2F%23%2Ftool%2Furl-shot%3Furl%3Dhttps%3A%2F%2Flolly.tools%26scrollDepth%3D0.3%26waitMs%3D1200&width=1440&height=2200&dpi=192&waitMs=2400&format=svg&css=%23tool-canvas%7Bdisplay%3Anone%7D&cropSelector=%23tool-inputs&walker=1&dark=1&filename=fq-url-shot-controls)
+![Kawalan Lolly URL Screenshot dengan URL sasaran, kedalaman skrol, kelewatan settle dan inset pemotongan, semuanya boleh digunakan sebelum sambungan wujud](/t/url-shot?url=%2F%23%2Ftool%2Furl-shot%3Furl%3Dhttps%3A%2F%2Flolly.tools%26scrollDepth%3D0.3%26waitMs%3D1200&width=1440&height=2200&dpi=192&waitMs=2400&format=svg&css=%23tool-canvas%7Bdisplay%3Anone%7D&cropSelector=%23tool-inputs&walker=1&dark=1&filename=fq-url-shot-controls)
 
 ## Pasang
 
 **Daripada Chrome Web Store:** akan datang. Setelah sambungan diterbitkan, anda memasangnya dengan satu klik.
 
-**Muatkan sendiri (pembangun).** Sambungan berada dalam repositori di `shells/chrome-extension/`. Folder itu ialah binaan pengeluaran, yang berfungsi dengan Lolly di `https://lolly.tools` sahaja.
+**Muatkan sendiri (pembangun).** Sumber sambungan berada dalam repositori di `shells/chrome-extension/`. Langkah pembungkusan membina pakej pengeluaran daripada folder itu, yang berfungsi dengan Lolly di `https://lolly.tools` sahaja.
 
-1. Buka `chrome://extensions`.
-2. Hidupkan **Developer mode** (kanan atas).
-3. Klik **Load unpacked** dan pilih folder `shells/chrome-extension/`.
-4. Muat semula tab Lolly. Pengesanan berlaku apabila halaman dimuatkan, jadi gesaan "Get the extension" hilang. **URL Screenshot** (di bawah Utilities) kemudian boleh menyimpan tangkapan ke fail dan tersedia dalam mod Batch.
+1. Jalankan `pnpm run pack:chrome-extension`. Ia membina pakej ke dalam `dist/chrome-extension/`.
+2. Buka `chrome://extensions`.
+3. Hidupkan **Developer mode** (kanan atas).
+4. Klik **Load unpacked** dan pilih folder `dist/chrome-extension/`.
+5. Muat semula tab Lolly. Pengesanan berlaku apabila halaman dimuatkan, jadi gesaan "Get the extension" hilang. **Lolly URL Screenshot** (di bawah Utilities) kemudian boleh menyimpan tangkapan ke fail dan tersedia dalam mod Lolly Batch.
 
 Untuk pelayan pembangunan setempat, jalankan `pnpm run pack:chrome-extension:dev` dan muatkan `dist/chrome-extension-dev` sebaliknya. Pakej itu turut menerima `http://localhost:5173` dan mempunyai **Development** pada namanya.
+
+Memuatkan folder `shells/chrome-extension/` itu sendiri juga berfungsi, untuk tangkapan skrin PNG. Folder itu tiada penjelajahan halaman (langkah pembungkusan membinanya masuk), jadi SVG daripadanya memegang tangkapan skrin dan bukan bentuk.
 
 ## Apa yang berlaku apabila Lolly meminta
 
@@ -40,15 +43,20 @@ Untuk pelayan pembangunan setempat, jalankan `pnpm run pack:chrome-extension:dev
 3. **Chrome bertanya sekali bagi setiap tapak.** Kali pertama anda meluluskan permintaan untuk tapak, Chrome juga bertanya sama ada sambungan boleh mengakses tapak itu. Chrome mengekalkan akses itu setelah anda membenarkan, tetapi setiap permintaan kemudian masih memerlukan **Approve once** sendiri.
 4. **Halaman dibaca dalam tab latar belakang.** Sambungan membuka halaman sasaran dalam tab latar belakang, menangkapnya melalui DevTools Protocol (`Page.captureScreenshot` yang sama yang digunakan apl desktop), menutup tab dan menyerahkan hasil kembali kepada tab Lolly yang meminta.
 
+Untuk **SVG**, sambungan menjelajah halaman dan bukan mengambil gambar skrin. Skrip yang dibungkus bersama sambungan membaca reka letak halaman dalam tab latar belakang itu dan menukar halaman menjadi bentuk dan teks berkontur, jadi fail kekal tajam pada sebarang saiz dan setiap bahagian kekal boleh disunting. Gambar pada halaman dibawa masuk sebagai gambar itu sendiri, dan apa yang dilukis halaman dengan kanvas, video atau kesan yang SVG tiada bentuknya disalin daripada tangkapan skrin pada saat yang sama. Lolly menyemak hasilnya berbanding tangkapan skrin itu, dan apabila kedua-duanya berbeza terlalu banyak, SVG memegang tangkapan skrin sebaliknya.
+
+Untuk mengonturkan teks dalam muka taip halaman itu sendiri, sambungan menyerahkan fail fon yang dimuatkan halaman kepada Lolly. Chrome tidak menyimpan bait fon di tempat yang boleh dibaca sambungan, jadi sambungan meminta setiap fon sekali lagi daripada halaman. Pelayar anda biasanya menjawab daripada cachenya, dan dasar keselamatan halaman itu sendiri masih terpakai pada permintaan itu.
+
 Kelulusan meliputi satu permintaan dan tamat dalam 30 saat. Hanya satu permintaan boleh menunggu atau berjalan pada satu masa, dan permintaan yang diluluskan berhenti selepas 55 saat. Jika halaman Lolly ditutup atau berubah, atau halaman sasaran berpindah ke tapak lain, permintaan dibatalkan.
 
-Tangkapan berjalan dalam pelayar anda, pada rangkaian anda, jadi `localhost` dan tapak dalaman berfungsi. Halaman dimuatkan dengan sesi pelayar anda, jadi halaman yang anda log masuk boleh menunjukkan maklumat peribadi dalam hasil. Tangkapan tidak dimuat naik: satu-satunya trafik rangkaian ialah pelayar anda sendiri memuatkan halaman yang anda minta.
+Tangkapan berjalan dalam pelayar anda, pada rangkaian anda, jadi `localhost` dan tapak dalaman berfungsi. Halaman dimuatkan dengan sesi pelayar anda, jadi halaman yang anda log masuk boleh menunjukkan maklumat peribadi dalam hasil. Tangkapan tidak dimuat naik: satu-satunya trafik rangkaian ialah pelayar anda sendiri memuatkan halaman yang anda minta, serta, untuk SVG, fail fon halaman itu buat kali kedua.
 
 Semasa tangkapan berjalan anda mungkin seketika melihat sepanduk *"…started debugging this browser"* pada tab sementara. Itu DevTools Protocol sedang bekerja, dan sepanduk hilang apabila tangkapan selesai.
 
-## Membaca tapak untuk Design System Setup
+<a id="reading-a-site-for-design-system-setup"></a>
+## Membaca tapak untuk Lolly Design System Setup
 
-Sumber **Website** dalam Design System Setup memulakan sistem reka bentuk daripada tapak yang sudah anda ada. Dalam pelayar Chromium sambungan membaca halaman. Dalam apl desktop, apl mengambil halaman itu sendiri. Dalam pelayar tanpa sambungan, jubin Website tidak ditawarkan.
+Sumber **Website** dalam Lolly Design System Setup memulakan sistem reka bentuk daripada tapak yang sudah anda ada. Dalam pelayar Chromium sambungan membaca halaman. Dalam apl desktop, apl mengambil halaman itu sendiri. Dalam pelayar tanpa sambungan, jubin Website tidak ditawarkan.
 
 - **Satu alamat, satu halaman.** Selepas anda meluluskan, sambungan membuka halaman dalam jenis tab latar belakang yang sama, membaca markup yang dirender, teks helaian gaya dan beberapa imej ikon dan logo, kemudian menutup tab. Ia tidak mengikut pautan atau merangkak.
 - **Helaian gaya yang dihoskan di tempat lain** (CDN atau perkhidmatan fon) turut diambil, kerana warna dan tipografi halaman terdapat di dalamnya. Permintaan silang asal pergi tanpa kuki anda; permintaan asal sama menggunakannya, seperti yang dilakukan halaman itu sendiri.
@@ -59,11 +67,11 @@ Menampal alamat hanya mengisi medan. Tiada apa-apa dibaca sehingga anda memulaka
 
 ## Kebenaran
 
-`manifest.json` sambungan mengisytiharkan empat kebenaran, serta akses tapak yang diminta satu tapak pada satu masa. Ia menetapkan `minimum_chrome_version: 111`, dan versi semasa ialah 0.4.0.
+`manifest.json` sambungan mengisytiharkan empat kebenaran, serta akses tapak yang diminta satu tapak pada satu masa. Ia menetapkan `minimum_chrome_version: 111`, dan versi semasa ialah 0.5.0.
 
 | Kebenaran | Untuk apa | Bila diberikan |
 |---|---|---|
-| `debugger` | Memacu tab latar belakang melalui DevTools Protocol, yang mengambil tangkapan skrin. | Semasa pemasangan |
+| `debugger` | Memacu tab latar belakang melalui DevTools Protocol, yang mengambil tangkapan skrin dan, untuk SVG, menjalankan penjelajahan halaman. | Semasa pemasangan |
 | `tabs` | Membuka tab latar belakang sementara dan menutupnya selepas itu, dan menyemak bahawa sama ada halaman Lolly mahupun halaman sasaran tidak berpindah sejak anda meluluskan. | Semasa pemasangan |
 | `scripting` | Menjalankan pembaca satu halaman di dalam tapak yang anda namakan, untuk sumber Website. | Semasa pemasangan |
 | `storage` | Mencatat id tab yang dibukanya, dalam storan sesi sahaja, supaya tab masih ditutup jika pelayar menggantung sambungan semasa membaca. Dikosongkan pada permulaan seterusnya; tiada apa-apa tentang anda disimpan. | Semasa pemasangan |

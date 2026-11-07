@@ -14,6 +14,8 @@ Begin met [Lolly gebruiken bij je organisatie](/info/organisation.html) om te zi
 
 ## Assets koppelen en werk reviewen
 
+- [Use Lolly with your existing DAM](/info/use-with-dam.html) legt bronautoriteit en gekoppelde productie uit. [The SUSE Brandfolder account](/info/suse-brandfolder.html) legt de ervaring met de invoering vast, en [Plan a DAM transition](/info/dam-transition.html) behandelt een optionele latere overstap.
+
 - [Design-system administration](/info/work-design-system-administration.html) behandelt bronnenoverzicht, gereviewde wijzigingen en terugdraaien.
 - [Catalog and content](/info/work-catalog.html) behandelt gedeelde assets en zichtbaarheidsregels. [Provider guides](/info/work-provider-guides.html) geeft de opzet- en verificatievereisten van elk bronplatform.
 - [Approvals](/info/work-approvals.html) behandelt reviewketens en functiescheiding. [Rendering and sharing](/info/work-sharing.html) behandelt links en serveruitvoer.

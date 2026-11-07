@@ -14,6 +14,8 @@ Lolly প্রতিটি মানুষের নিজের ডিভা�
 
 ## অ্যাসেট সংযুক্ত করুন ও কাজ পর্যালোচনা করুন
 
+- [Use Lolly with your existing DAM](/info/use-with-dam.html) সোর্স কর্তৃত্ব ও সংযুক্ত প্রোডাকশন ব্যাখ্যা করে। [The SUSE Brandfolder account](/info/suse-brandfolder.html) গ্রহণের অভিজ্ঞতা নথিভুক্ত করে, আর [Plan a DAM transition](/info/dam-transition.html) পরে ঐচ্ছিক স্থানান্তর নিয়ে।
+
 - [Design-system administration](/info/work-design-system-administration.html) উৎস তালিকা, পর্যালোচিত পরিবর্তন ও রোলব্যাক নিয়ে।
 - [Catalog and content](/info/work-catalog.html) শেয়ার্ড অ্যাসেট ও প্রকাশের নিয়ম নিয়ে। [Provider guides](/info/work-provider-guides.html) প্রতিটি উৎস প্ল্যাটফর্মের সেটআপ ও যাচাইয়ের প্রয়োজন দেয়।
 - [Approvals](/info/work-approvals.html) রিভিউ শৃঙ্খল ও দায়িত্বের বিভাজন নিয়ে। [Rendering and sharing](/info/work-sharing.html) লিংক ও সার্ভার আউটপুট নিয়ে।

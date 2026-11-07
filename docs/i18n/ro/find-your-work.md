@@ -101,17 +101,17 @@ Când recuperarea automată nu este disponibilă, o notă de lângă controalele
 :::
 
 ::: details Ce instrumente salvează pe măsură ce lucrezi
-În aplicația web, fiecare instrument care produce un document salvează pe măsură ce lucrezi: Design, Chart, QR Code, Text, Sandbox și restul. Acestea nu salvează:
+În aplicația web, fiecare instrument care produce un document salvează pe măsură ce lucrezi: Lolly Design, Lolly Chart, QR Code, Text, Lolly Sandbox și restul. Acestea nu salvează:
 
 - instrumentele care lucrează pe un fișier adus de tine, precum Redact, Sign sau Convert Image, pentru că Lolly nu păstrează niciodată o copie a acelui fișier;
-- instrumentele care înregistrează de la camera, microfonul sau ecranul tău, precum Record, Screen Capture și Voice Recorder;
+- instrumentele care înregistrează de la camera, microfonul sau ecranul tău, precum Record, Lolly Screen Capture și Lolly Voice Recorder;
 - un instrument fără nimic de schimbat, precum Countdown.
 
 În celelalte instrumente, prima ta schimbare arhivează munca în **Projects** ca și cum ai fi salvat, iar schimbările ulterioare sunt păstrate pe măsură ce lucrezi, odată ce instrumentul a terminat de desenat. O creație nesalvată este tot în Projects după ce închizi fila și se redeschide cu modificările marcate ca nesalvate.
 
 **Leave anyway** renunță totuși la acele modificări, iar History păstrează 30 de zile o copie a editărilor aruncate. Redeschiderea instrumentului de pe ecranul principal începe o creație nouă; deschide-o pe cea anterioară din Projects.
 
-3D și Darkroom salvează pe măsură ce lucrezi, dar nu păstrează un fișier încărcat în ele, precum un model 3D sau un LUT. History și **Save** păstrează numele, tipul și dimensiunea fișierului, nu fișierul. Când redeschizi munca, o notă spune ce fișier a fost, iar instrumentul funcționează fără el până îl încarci din nou. Păstrează-ți fișierele originale.
+3D și Lolly Darkroom salvează pe măsură ce lucrezi, dar nu păstrează un fișier încărcat în ele, precum un model 3D sau un LUT. History și **Save** păstrează numele, tipul și dimensiunea fișierului, nu fișierul. Când redeschizi munca, o notă spune ce fișier a fost, iar instrumentul funcționează fără el până îl încarci din nou. Păstrează-ți fișierele originale.
 
 Cu [Sync](/info/sync.html) activat, o creație depusă astfel ajunge pe celelalte dispozitive ale tale ca orice altceva din Proiecte. Versiunile ei rămân pe dispozitivul pe care au fost făcute.
 
@@ -147,14 +147,14 @@ Pe iPhone, iPad și Android, un fișier nou îl înlocuiește pe unul anterior c
 
 Ca să deschizi o versiune anterioară:
 
-1. Apasă **Istoric**, butonul cu ceas de lângă **Anulează** și **Refă**. În Design, **Istoric** este în bara de sus; pe telefon, apasă **•••** și apoi **Istoric**. În instrumentele fără **Anulează**, cum ar fi Text și Sandbox, **Istoric** este lângă **Acasă**, în stânga sus.
+1. Apasă **Istoric**, butonul cu ceas de lângă **Anulează** și **Refă**. În Lolly Design, **Istoric** este în bara de sus; pe telefon, apasă **•••** și apoi **Istoric**. În instrumentele fără **Anulează**, cum ar fi Text și Lolly Sandbox, **Istoric** este lângă **Acasă**, în stânga sus.
 2. Găsește versiunea după data și ora ei. Rândurile **Punct de control automat** sunt luate pe măsură ce lucrezi; rândurile **Versiune salvată** sunt momentele în care ai salvat.
 3. Apasă **Deschide ca o copie**. Versiunea se deschide ca o creație nouă, iar cea pe care o aveai deschisă rămâne așa cum era. Copia e în **Proiecte**, cu „(copy)” după numele ei.
 
 Ca să păstrezi o versiune după nume, apasă **Name version**, tastează un nume și apasă **Keep milestone**. Versiunile numite sunt listate pe pagina **History**, sub **Milestones**.
 
 ::: details Panoul History și pagina History
-Panoul **History** mai listează și rânduri **Recovered work**, iar **Protected drafts** păstrează ultimele tale modificări dintre puncte de control, cu **Open draft as a copy**. **Compare** și **Check assets** te ajută să alegi înainte să deschizi o copie. Comută **This creation** pe **All history on this device** ca să vezi fiecare creație.
+Panoul **History** mai listează și rânduri **Recovered work**, iar **Protected drafts** păstrează ultimele tale modificări dintre puncte de control, cu **Open draft as a copy**. **Lolly Compare** și **Check assets** te ajută să alegi înainte să deschizi o copie. Comută **This creation** pe **All history on this device** ca să vezi fiecare creație.
 
 Punctele de control automate se răresc odată cu vechimea: unul pe minut în ultima oră, unul pe oră în ultima zi, unul pe zi timp de 30 de zile, apoi unul pe săptămână. Versiunile salvate și versiunile denumite sunt păstrate toate. Ștergerea unei creații îi mută și versiunile în **Coș de gunoi**, iar **Șterge definitiv** le elimină.
 

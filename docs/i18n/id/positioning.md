@@ -2,9 +2,13 @@
 
 Lolly adalah dua bagian dari satu proyek sumber terbuka. **Lolly** adalah engine, aplikasi, dan alat untuk membuat, menyunting, mengonversi, dan mengekspor di perangkat Anda, tanpa akun. **Lolly Work** adalah server organisasi, dijalankan di infrastruktur Anda sendiri, untuk login, proyek bersama, persetujuan, dan rendering server. Keduanya MPL-2.0. Halaman ini membandingkan pasangan itu dengan cara-cara lain orang mendesain, mengatur, dan memproduksi file.
 
+Gagasan pengorganisasinya adalah [content sovereignty](/info/content-sovereignty.html): kendali atas bagaimana konten dibuat, diatur, disimpan, dan dipindahkan di antara sistem pilihan. Aplikasi kreatif dapat menyediakan desain, DAM dapat tetap menjadi sumber rujukan utama, dan Lolly dapat mengubah input yang diizinkan serta aset yang disetujui menjadi file baru. [Use Lolly with your existing DAM](/info/use-with-dam.html) menjelaskan kombinasi itu.
+
 ## Alat masa kini
 
 Setiap cincin menilai seberapa lengkap suatu kelas produk menyediakan sebuah kapabilitas, dengan setiap kelas dinilai pada wakil terbaiknya. Kolom Lolly mencakup Lolly dan Lolly Work bersama, dan setiap baris menyatakan bagian mana yang menyediakan apa. Buka nama baris untuk penalaran di balik skornya. Kolom diurutkan menurut baris Overall completeness di bagian atas: rata-rata baris yang dinilai, dengan baris pengeluaran tidak dihitung.
+
+Skor memakai preferensi Lolly untuk kendali tanpa syarat akun atau cloud. Skor itu adalah perbandingan berdasarkan kriteria tersebut, bukan peringkat netral atas kelengkapan produk atau skor pengadaan enterprise. Baca batas kemampuan, deployment, dan bukti secara terpisah saat menilai alur kerja tertentu.
 
 ::: figure positioning-comparison
 Perbandingan kapabilitas: riset pesaing dan skor dari Agustus 2026; cakupan Lolly + Lolly Work ditinjau 28 September 2026. Penilaian: 0 tidak ada, 25 tingkat akal-akalan, 50 nyata tetapi terbatas atau parsial, 75 kuat dengan catatan, 100 kompetensi inti.
@@ -43,9 +47,11 @@ Kolaborasi langsung Lolly mencakup collab privat langsung dua perangkat dan work
 
 Desain yang diimpor dan token desain bersama memungkinkan tim menggabungkan Lolly dengan aplikasi spesialis, sementara Lolly Work mengatur aset bersama, tinjauan, dan pengiriman.
 
-Seluruh deck slide menunjukkan langit-langitnya: di **Markdown Slides** deck dideklarasikan sebagai data, ditata secara langsung, dan diekspor sebagai file PowerPoint native yang dapat disunting.
+Bagi tim dengan DAM yang dikurasi, mulailah dengan tetap mempertahankan pustaka itu beserta administratornya. [SUSE's Brandfolder experience](/info/suse-brandfolder.html) mencatat bagaimana integrasi mendukung adopsi dan manajemen perubahan persetujuan. Vendor DAM dan mitra implementasi dapat menilai pengaturan yang sama melalui [alur kerja mitra](/info/dam-partners.html).
 
-![Markdown Slides dalam tampilan terbagi: slide deck terdaftar sebagai blok di kiri, deck yang sudah ditata dirender di kanan](/t/url-shot?url=%2F%23%2Ftool%2Fdeck-studio&width=1440&height=900&dpi=192&waitMs=2600&walker=1&format=svg&dark=1&filename=ov2-deck-studio-output)
+Seluruh deck slide menunjukkan langit-langitnya: di **Lolly Markdown Slides** deck dideklarasikan sebagai data, ditata secara langsung, dan diekspor sebagai file PowerPoint native yang dapat disunting.
+
+![Lolly Markdown Slides dalam tampilan terbagi: slide deck terdaftar sebagai blok di kiri, deck yang sudah ditata dirender di kanan](/t/url-shot?url=%2F%23%2Ftool%2Fdeck-studio&width=1440&height=900&dpi=192&waitMs=2600&walker=1&format=svg&dark=1&filename=ov2-deck-studio-output)
 
 ## Aturan hidup di dalam alat
 
