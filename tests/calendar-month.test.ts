@@ -158,7 +158,10 @@ test('view=list renders byte-identically to the pre-grid card', async () => {
 test('an empty "More dates" list leaves the .ics untouched', async () => {
   const { rt: plain } = await mount(LIST_SEED);
   const { rt: withEmpty } = await mount({ ...LIST_SEED, events: [{ date: '', time: '', title: '' }] });
-  assert.equal(ics(withEmpty), ics(plain));
+  // DTSTAMP is the time of the render, so two renders a second apart differ there and
+  // nowhere else. Compare the rest.
+  const unstamped = (text: string): string => text.replace(/^DTSTAMP:.*$/gm, 'DTSTAMP:');
+  assert.equal(unstamped(ics(withEmpty)), unstamped(ics(plain)));
   assert.equal((ics(plain).match(/BEGIN:VEVENT/g) ?? []).length, 1);
 });
 

@@ -32,6 +32,9 @@ export interface WorkspaceTemplate {
   fixedTheme?: boolean;
   retired?: boolean;
   replacedBy?: string;
+  /** Inputs that take the person's company details, by company field (`logo`,
+   *  `contact` and the rest), when the workspace says which company they are in. */
+  bindings?: Record<string, string>;
   /** Where its JSON is served. */
   url: string;
 }
@@ -67,8 +70,97 @@ export function workspaceTemplateOf(ref: AssetRef | null | undefined): Workspace
     ...(meta.fixedTheme === true ? { fixedTheme: true } : {}),
     ...(meta.retired === true ? { retired: true } : {}),
     ...(typeof meta.replacedBy === 'string' ? { replacedBy: meta.replacedBy } : {}),
+    ...(bindingsOf(meta.bindings) ? { bindings: bindingsOf(meta.bindings)! } : {}),
     url: ref.url,
   };
+}
+
+/** A bindings map read back from catalog metadata: input id to company field. */
+function bindingsOf(raw: unknown): Record<string, string> | undefined {
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return undefined;
+  const out = Object.fromEntries(Object.entries(raw as Record<string, unknown>).filter(([, f]) => typeof f === 'string' && (COMPANY_FIELDS as readonly string[]).includes(f))) as Record<string, string>;
+  return Object.keys(out).length ? out : undefined;
+}
+
+// ── The person's company ─────────────────────────────────────────────────────
+// A workspace can say which company a person makes pieces for: its logos for light
+// and dark surfaces and the details a piece prints. Inputs a template (or the
+// workspace's own rules) binds to a company field start from these values. Set by
+// whoever reads the workspace's configuration; null on a plain build, where nothing
+// here changes what any tool does.
+
+/** The company fields a binding may take, in the workspace's own words. */
+export const COMPANY_FIELDS = [
+  'name', 'logo', 'logoLight', 'logoDark', 'mark', 'website', 'contact', 'contactEmail', 'contactPhone', 'address', 'currency', 'taxNote',
+] as const;
+
+export interface WorkspaceCompany {
+  id: string;
+  name: string;
+  revision?: number;
+  logos: { light?: string; dark?: string; mark?: string };
+  website?: string;
+  contact?: { name?: string; email?: string; phone?: string };
+  address?: string;
+  currency?: string;
+  taxNote?: string;
+}
+
+let company: WorkspaceCompany | null = null;
+
+/** Name the person's company, or null for none. */
+export function setWorkspaceCompany(next: WorkspaceCompany | null): void {
+  company = next;
+}
+
+/** The person's company, or null. */
+export function workspaceCompany(): WorkspaceCompany | null {
+  return company;
+}
+
+export type CompanyMode = 'light' | 'dark';
+
+/** The mode a document draws in, from its theme choices (`{ "": "dark" }`). */
+export function modeOfSelection(selection: unknown): CompanyMode {
+  if (!selection || typeof selection !== 'object') return 'light';
+  return Object.values(selection as Record<string, unknown>).some((v) => typeof v === 'string' && /^dark$/i.test(v)) ? 'dark' : 'light';
+}
+
+/** The logo for a mode, falling back to the other surface's: the company's own mark
+ *  beats any placeholder. */
+export function companyLogo(c: WorkspaceCompany, mode: CompanyMode): string | undefined {
+  return mode === 'dark' ? c.logos.dark ?? c.logos.light : c.logos.light ?? c.logos.dark;
+}
+
+/** The value one company field gives. The contact line reads "name, email, phone",
+ *  as the workspace writes it for a server render, so both draw the same line. */
+export function companyFieldValue(field: string, c: WorkspaceCompany, mode: CompanyMode): string | undefined {
+  switch (field) {
+    case 'name': return c.name;
+    case 'logo': return companyLogo(c, mode);
+    case 'logoLight': return c.logos.light;
+    case 'logoDark': return c.logos.dark;
+    case 'mark': return c.logos.mark;
+    case 'website': return c.website;
+    case 'contact': return [c.contact?.name, c.contact?.email, c.contact?.phone].filter(Boolean).join(', ') || undefined;
+    case 'contactEmail': return c.contact?.email;
+    case 'contactPhone': return c.contact?.phone;
+    case 'address': return c.address;
+    case 'currency': return c.currency;
+    case 'taxNote': return c.taxNote;
+    default: return undefined;
+  }
+}
+
+/** The values a set of bindings gives for the person's company; empty with no company. */
+export function companyValuesFor(bindings: Record<string, string> | undefined, mode: CompanyMode, c: WorkspaceCompany | null = company): Record<string, string> {
+  const out: Record<string, string> = {};
+  if (!bindings || !c) return out;
+  for (const [id, field] of Object.entries(bindings)) {
+    const value = companyFieldValue(field, c, mode);
+    if (value !== undefined) out[id] = value;
+  }
+  return out;
 }
 
 /** Every workspace template the catalog holds, retired ones included. Empty on a

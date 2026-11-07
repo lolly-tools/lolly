@@ -116,3 +116,29 @@ test('the home shelf keeps a template whose tool is unlisted for templates only'
   const items = publishedItems([tpl], [{ id: 'pricing-table', name: 'Pricing', listed: false, templatesOnly: true } as never]);
   assert.deepEqual(items.map((i) => i.key), ['inst/abc123'], 'out of the gallery, still on the shelf');
 });
+
+// ── The person's company (plans/82 M3) ─────────────────────────────────────
+
+test('a template entry carries the bindings it names, and nothing that is not a company field', async () => {
+  const { workspaceTemplateOf } = await import('./workspace-templates.ts');
+  const tpl = workspaceTemplateOf({ source: 'library', id: 'inst/abc', type: 'template', url: '/catalog/inst/abc/json',
+    meta: { toolId: 'price-card', version: 2, bindings: { logo: 'logo', details: 'contact', bogus: 'colour', n: 3 } } } as never);
+  assert.deepEqual(tpl?.bindings, { logo: 'logo', details: 'contact' });
+  const none = workspaceTemplateOf({ source: 'library', id: 'inst/abd', type: 'template', url: '/x', meta: { toolId: 'price-card' } } as never);
+  assert.equal(none?.bindings, undefined);
+});
+
+test('company values: the logo follows the mode, the contact line reads as the workspace writes it', async () => {
+  const { companyValuesFor, companyFieldValue, modeOfSelection, setWorkspaceCompany } = await import('./workspace-templates.ts');
+  const company = { id: 'nw', name: 'Northwind IT', logos: { light: 'inst/l', dark: 'inst/d' }, contact: { name: 'Rita Ortiz', email: 'rita@n.example', phone: '+49 30 1' }, currency: 'EUR' };
+  assert.equal(modeOfSelection({ '': 'dark' }), 'dark');
+  assert.equal(modeOfSelection(undefined), 'light');
+  assert.equal(companyFieldValue('contact', company, 'light'), 'Rita Ortiz, rita@n.example, +49 30 1');
+  assert.equal(companyFieldValue('logo', { ...company, logos: { light: 'inst/l' } }, 'dark'), 'inst/l', 'the other surface\'s logo before none');
+  assert.deepEqual(companyValuesFor({ logo: 'logo', price: 'currency', note: 'taxNote' }, 'dark', company), { logo: 'inst/d', price: 'EUR' });
+  setWorkspaceCompany(null);
+  assert.deepEqual(companyValuesFor({ logo: 'logo' }, 'light'), {}, 'no company, no values');
+  setWorkspaceCompany(company);
+  assert.deepEqual(companyValuesFor({ logo: 'logo' }, 'light'), { logo: 'inst/l' });
+  setWorkspaceCompany(null);
+});
