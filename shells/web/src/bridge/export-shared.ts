@@ -69,7 +69,7 @@ export interface ExportOpts {
   ingredients?: (IngredientCredential | SourceIngredient)[];  // preserved source-asset credentials, and sources with none of their own → C2PA
   c2paInputs?: Record<string, string>;   // scalar-input digest → tools.lolly.export assertion (runtime-supplied)
   c2paCapture?: { camera?: boolean; microphone?: boolean; screen?: boolean }; // sensor/screen origin → created step = digitalCapture/screenCapture (runtime-supplied)
-  c2paTextAdded?: { sample?: string };   // text over an opened asset → a c2pa.edited "Added text" step (runtime-supplied)
+  c2paTextAdded?: { sample?: string };   // text over a placed asset → a c2pa.edited "Added text" step (runtime-supplied)
   /** The attribution this export promised, and the callback that says what it
    *  delivered (plan 253, HostV1 v1.197). Runtime-supplied: the plan comes from
    *  one frozen evaluation, and the bridge calls `onReceipt` once after reading

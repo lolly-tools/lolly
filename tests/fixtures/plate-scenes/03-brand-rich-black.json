@@ -1,7 +1,7 @@
 {
   "id": "03-brand-rich-black",
-  "title": "Brand rich black and dark swatches",
-  "covers": "Liquorice (a rich black) and Basalt carry measured CMYK and a spot name. A RIP that keeps spots gets the named plate; one that flattens spots gets the measured CMYK exactly.",
+  "title": "Brand ink black and dark grey",
+  "covers": "Liquorice (the ink) and Basalt (the quiet text grey) carry a K-only CMYK build and a spot name. A RIP that keeps spots gets the named plate; one that flattens spots gets the K-only build exactly, so text in either stays on one plate.",
   "profile": "lolly-demo",
   "page": {
     "width": 400,
@@ -121,7 +121,7 @@
           }
         },
         {
-          "name": "Liquorice 89/48/32/100",
+          "name": "Liquorice 0/0/0/100",
           "rect": [
             30,
             30,
@@ -129,14 +129,14 @@
             140
           ],
           "expect": {
-            "C": 89,
-            "M": 48,
-            "Y": 32,
+            "C": 0,
+            "M": 0,
+            "Y": 0,
             "K": 100
           }
         },
         {
-          "name": "Basalt 68/48/37/71",
+          "name": "Basalt 0/0/0/92",
           "rect": [
             220,
             30,
@@ -144,10 +144,10 @@
             140
           ],
           "expect": {
-            "C": 68,
-            "M": 48,
-            "Y": 37,
-            "K": 71
+            "C": 0,
+            "M": 0,
+            "Y": 0,
+            "K": 92
           }
         }
       ]
