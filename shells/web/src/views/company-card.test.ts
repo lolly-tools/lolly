@@ -8,7 +8,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-const { companyCardHtml, cardLogoId } = await import('./company-card.ts');
+const { companyCardHtml, cardLogoId, accessEndsOf, accessEndsLine } = await import('./company-card.ts');
 const { publishedShelfHtml } = await import('./published-shelf.ts');
 
 const view = (revision: number, profile: Record<string, unknown> = {}) => ({
@@ -45,4 +45,26 @@ test('the shelf shows with the company card alone, and stays absent with nothing
   assert.match(shelf, /published-shelf/);
   assert.match(shelf, /From SUSE/);
   assert.match(shelf, /data-company-card/);
+});
+
+test('an end date the workspace set shows as one line on the card, the day in UTC (plans/82 M5)', () => {
+  const now = Date.parse('2026-11-07T12:00:00Z');
+  const ends = accessEndsOf({ accessEndsAt: '2026-11-21T23:59:59.999Z', accessEndsThrough: { id: 'resellers-emea', name: 'Resellers, EMEA' } }, now);
+  assert.deepEqual(ends, { at: '2026-11-21T23:59:59.999Z', programme: 'Resellers, EMEA' });
+  assert.equal(accessEndsLine(ends!, 'en-GB'), 'Your access through Resellers, EMEA ends on 21 November 2026');
+  assert.equal(accessEndsLine(ends!, 'en-US'), 'Your access through Resellers, EMEA ends on November 21, 2026', 'the reader\'s own day and month order');
+  const html = companyCardHtml({ ...view(3), accessEnds: { ...ends!, programme: 'Resellers <EMEA>' } });
+  assert.match(html, /company-card-ends/);
+  assert.match(html, /Your access through Resellers &lt;EMEA&gt; ends on/, 'escaped');
+  assert.match(html, /Your details are on every piece/, 'the details line stays');
+});
+
+test('no line without a date, without a programme to name, or once the date has passed', () => {
+  const now = Date.parse('2026-11-07T12:00:00Z');
+  assert.equal(accessEndsOf(null, now), null);
+  assert.equal(accessEndsOf({}, now), null);
+  assert.equal(accessEndsOf({ accessEndsAt: '2026-11-21T23:59:59.999Z' }, now), null, 'no programme');
+  assert.equal(accessEndsOf({ accessEndsAt: 'soon', accessEndsThrough: { name: 'Resellers' } }, now), null, 'not a date');
+  assert.equal(accessEndsOf({ accessEndsAt: '2026-11-01T23:59:59.999Z', accessEndsThrough: { name: 'Resellers' } }, now), null, 'passed');
+  assert.doesNotMatch(companyCardHtml(view(3)), /company-card-ends|ends on/);
 });

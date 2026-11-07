@@ -11,12 +11,20 @@
  * (`/api/v1/me/company/profile`), asked only when the workspace says which company
  * the person is in (lib/workspace-templates.ts), so a plain build asks nothing and
  * shows nothing.
+ *
+ * When the workspace has set a date their access through a programme ends (Lolly
+ * Work plans/82 M5, org-config's `partner.accessEndsAt`), the card carries one more
+ * line: "Your access through Resellers, EMEA ends on 21 November 2026". That keeps
+ * the promise the workspace's sign-in message makes, that a person with an end date
+ * sees it when they sign in. The notice before the end reaches them in
+ * Notifications either way.
  */
 import { escape as escapeHtml } from '../utils.ts';
 import { t, tRaw } from '../i18n.ts';
 import { icon } from '../lib/icons.ts';
 import { instanceFetch, instancePath } from '../lib/instance.ts';
 import { currentTheme } from '../theme.ts';
+import { dateLocale } from '../lib/meta-dates.ts';
 import { mountModal } from '../components/modal.ts';
 import '../styles/parts/company-card.css';
 
@@ -30,6 +38,9 @@ export interface CompanyView {
     contact?: { name?: string; email?: string; phone?: string }; address?: string; currency?: string; taxNote?: string;
   };
   mayEdit?: boolean;
+  /** When the person's access through a programme ends, from the workspace's
+   *  configuration rather than this route (see `accessEndsOf`). */
+  accessEnds?: AccessEnds;
   changesWait?: boolean;
   pending?: unknown;
   limits?: {
@@ -45,6 +56,42 @@ export interface CardHost {
 
 const ROUTE = '/api/v1/me/company/profile';
 
+/** When the person's access through a programme ends: the instant, and the
+ *  programme's name. */
+export interface AccessEnds { at: string; programme: string }
+
+/** Read the workspace's `partner.accessEndsAt` and `partner.accessEndsThrough`, or
+ *  null when either is missing, the date is not a date or it has passed. */
+export function accessEndsOf(
+  partner: { accessEndsAt?: unknown; accessEndsThrough?: { id?: unknown; name?: unknown } | null } | null | undefined, now = Date.now(),
+): AccessEnds | null {
+  const at = typeof partner?.accessEndsAt === 'string' ? Date.parse(partner.accessEndsAt) : NaN;
+  const name = partner?.accessEndsThrough?.name;
+  if (!Number.isFinite(at) || at <= now || typeof name !== 'string' || !name.trim()) return null;
+  return { at: new Date(at).toISOString(), programme: name.trim() };
+}
+
+/** The card's line for an end date: the day in the reader's language, in UTC, the
+ *  zone the workspace sets the end in, so everyone reads the same day. */
+export function accessEndsLine(ends: AccessEnds, locale = dateLocale()): string {
+  const day = new Date(ends.at);
+  const options: Intl.DateTimeFormatOptions = { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' };
+  let date: string;
+  try { date = new Intl.DateTimeFormat(locale, options).format(day); } catch { date = new Intl.DateTimeFormat(undefined, options).format(day); }
+  return tRaw('Your access through {programme} ends on {date}', { programme: ends.programme, date });
+}
+
+/** The person's end date, from the workspace's configuration (org/index.ts),
+ *  which is loaded whenever this card is: the card shows only for a workspace. */
+async function workspaceAccessEnds(): Promise<AccessEnds | null> {
+  try {
+    const { orgPartner } = await import('../org/index.ts');
+    return accessEndsOf(orgPartner());
+  } catch {
+    return null;
+  }
+}
+
 /** The person's company, or null when there is none to show (no workspace, no
  *  company, or a company with no details yet for someone who cannot add them). */
 export async function loadCompanyView(): Promise<CompanyView | null> {
@@ -53,7 +100,9 @@ export async function loadCompanyView(): Promise<CompanyView | null> {
     if (!res.ok) return null;
     const view = await res.json() as CompanyView;
     if (!view?.company?.name) return null;
-    return view.revision > 0 || view.mayEdit ? view : null;
+    if (!(view.revision > 0 || view.mayEdit)) return null;
+    const ends = await workspaceAccessEnds();
+    return ends ? { ...view, accessEnds: ends } : view;
   } catch {
     return null;
   }
@@ -75,6 +124,7 @@ export function companyCardHtml(view: CompanyView): string {
             <span class="published-card-text">
               <span class="published-card-name">${escapeHtml(view.company.name)}</span>
               <span class="published-card-sub">${escapeHtml(line)}</span>
+              ${view.accessEnds ? `<span class="published-card-sub company-card-ends">${escapeHtml(accessEndsLine(view.accessEnds))}</span>` : ''}
             </span>
             <span class="btn btn--sm published-card-use">${escapeHtml(empty ? t('Add') : t('Details'))}</span>
           </button>`;
