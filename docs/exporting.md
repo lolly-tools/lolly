@@ -311,7 +311,7 @@ Three things withhold the claim while keeping the output intent: RGB artwork the
 
 ### Spot inks as process
 
-A design system can give a colour a spot ink, such as a Pantone or HLC colour. The **Print PDF** then prints that colour on a plate of its own, so the printer runs the job with that ink. Lolly Demo gives every colour except Sugar a spot ink, so a Print PDF made in Lolly Demo prints most colours on spot plates.
+A design system can give a colour a spot ink, such as a Pantone or HLC colour. The **Print PDF** then prints that colour on a plate of its own, so the printer runs the job with that ink. Lolly Demo gives every colour a spot ink except its whites, Sugar and Daylight, and its black, Void, so a Print PDF made in Lolly Demo prints most colours on spot plates and black on the black plate.
 
 When you need a plain four-colour file, tick **Print spot inks as process** in the export panel's Profile card. Each spot ink then prints with cyan, magenta, yellow and black, using the CMYK build the design system gives that colour. A colour with no build of its own takes the press profile's conversion, the same as every other colour in the artwork. The file then has the four process plates and nothing more. The choice is off by default. The panel shows the box for **Print PDF** only, and only when the design system gives a colour a spot ink.
 
