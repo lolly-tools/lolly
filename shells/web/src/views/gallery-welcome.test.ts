@@ -22,3 +22,15 @@ test('nothing published, a retired template or another kind of asset leaves the 
   assert.equal(hasPublishedTemplates([{ id: 'lolly/tokens/brand', type: 'tokens' } as never]), false);
   assert.equal(hasPublishedTemplates([template('poster', { toolId: 'pricing-table' })]), false, 'a tool\'s own template is not a workspace one');
 });
+
+test('a person the workspace names a company with details for is not shown "Make it yours" (plans/82 M3)', async () => {
+  const { hasCompany } = await import('./gallery-welcome.ts');
+  const { setWorkspaceCompany } = await import('../lib/workspace-templates.ts');
+  setWorkspaceCompany(null);
+  assert.equal(hasCompany(), false, 'no company: the welcome decides as before');
+  setWorkspaceCompany({ id: 'nw', name: 'Northwind IT', revision: 0, logos: {} });
+  assert.equal(hasCompany(), false, 'a company with no details yet keeps the welcome as before');
+  setWorkspaceCompany({ id: 'nw', name: 'Northwind IT', revision: 3, logos: { light: 'inst/l' } });
+  assert.equal(hasCompany(), true);
+  setWorkspaceCompany(null);
+});

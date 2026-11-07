@@ -3,7 +3,7 @@
 import { instanceFetch, instancePath } from '../lib/instance.ts';
 import { activeDesignSystemSource } from '../lib/design-system/active.ts';
 import { decideWelcome } from '../lib/welcome-gate.ts';
-import { listWorkspaceTemplates, workspaceTemplateOf } from '../lib/workspace-templates.ts';
+import { listWorkspaceTemplates, workspaceCompany, workspaceTemplateOf } from '../lib/workspace-templates.ts';
 import type { AssetRef } from '@lolly-tools/core/host-v1';
 // The welcome is first content on a new public visit; fetch its code and CSS with boot.
 import * as welcome from '../components/welcome-dialog.ts';
@@ -19,9 +19,18 @@ export function hasPublishedTemplates(assets: ReadonlyArray<Partial<AssetRef>> |
   return (assets ?? []).some((asset) => { const tpl = workspaceTemplateOf(asset as AssetRef); return !!tpl && !tpl.retired; });
 }
 
+/** Whether the workspace gives this person a company with details. Exported for tests. */
+export function hasCompany(): boolean {
+  const c = workspaceCompany();
+  return !!c && (c.revision ?? 0) > 0;
+}
+
 async function galleryNeedsWelcome(host: GalleryHost, isCurrent: () => boolean): Promise<boolean> {
   try {
     if (await host.tokens?.isLocked?.()) return false;
+    // Someone the workspace puts in a company opens on its shelf, which their company
+    // card leads, even before anything is published to them (plans/82 M3).
+    if (hasCompany()) return false;
     if ((await listWorkspaceTemplates(host)).some((tpl) => !tpl.retired)) return false;
     const source = await activeDesignSystemSource(host);
     if (source) return source === 'shipped';
