@@ -7,7 +7,8 @@
  * - `prepare`, from loadDocument before anything renders, works out which design system
  *   the saves go to, drops entries nobody will come back for, and replays or holds back
  *   what a closed tab left behind. A replayed document is the one the studio shows.
- * - `record`, from persist, puts the newest document in the journal at once.
+ * - `record`, from persist, puts the newest document in the journal at once, with the
+ *   edit's writer stamp. The save of the same edit puts that stamp on the stored head.
  * - `saved`, after a save has written, moves the base on, and clears the entry when the
  *   newest edit is the one saved.
  * - `afterMount` saves a replayed document the normal way and shows the choice for an
@@ -15,16 +16,22 @@
  *   "Keep the saved version". Nothing is written over the stored document until the
  *   person picks, and both stay until then.
  *
+ * `prepare` reads the stamp on the stored head, so an entry its own page made after its
+ * last save is replayed like any other unsaved edit, not offered as a choice: the base
+ * such an entry carries can be the one from before that save (see edit-journal.ts).
+ *
  * A locked or managed design system never mounts the editor, and is never journalled.
  */
 import { DEFAULT_DESIGN_SYSTEM_ID } from '@lolly/engine';
+import { JOURNAL_WRITER_META } from '../../bridge/tokens.ts';
 import { t, tRaw } from '../../i18n.ts';
 import { announce } from '../../a11y.ts';
 import { withLogoGroupFrom } from '../brand-logos.ts';
 import {
-  docHash, heldJournalTabs, journalSlot, journalTabIds, mintJournalTab, planRecovery, readEntries, startEditJournal, sweepJournal,
+  docHash, heldJournalTabs, journalSlot, journalTabIds, mintJournalTab, nextWriterStamp, parseWriterStamp, planRecovery, readEntries,
+  startEditJournal, sweepJournal,
 } from '../design-system/edit-journal.ts';
-import type { JournalEntry, JournalStore } from '../design-system/edit-journal.ts';
+import type { JournalEntry, JournalStore, WriterStamp } from '../design-system/edit-journal.ts';
 import { bindOp } from './context.ts';
 import type { BrandEditorCtx } from './context.ts';
 
@@ -49,6 +56,16 @@ async function targetSystem(bedit: BrandEditorCtx): Promise<{ id: string; locked
   return { id, locked: bedit.locked || !!summary?.locked, present: [...list.map(s => s.id), DEFAULT_DESIGN_SYSTEM_ID, LEGACY_SYSTEM] };
 }
 
+/** The writer stamp on the stored head's record, or null when it carries none. */
+async function storedStamp(bedit: BrandEditorCtx): Promise<WriterStamp | null> {
+  try {
+    const id = await bedit.tokens?.headId();
+    const assets = bedit.host.assets as { _getUserRecord?(id: string): Promise<{ meta?: Record<string, unknown> } | null> };
+    if (!id || !assets._getUserRecord) return null;
+    return parseWriterStamp((await assets._getUserRecord(id))?.meta?.[JOURNAL_WRITER_META]);
+  } catch { return null; }
+}
+
 /**
  * Before the studio shows `stored`, recover what a closed tab left and start this
  * tab's journal. Returns the document to show: a replayed edit, or `stored` unchanged.
@@ -68,7 +85,7 @@ export async function prepare(bedit: BrandEditorCtx, stored: Record<string, unkn
     const entries = await readEntries(store, target.id);
     const own = new Set([ids.tab, ...(ids.previous ? [ids.previous] : [])]);
     const plan = await planRecovery(store, entries, {
-      storedDoc: stored, liveTabs: held, ownTabs: own, locked: false,
+      storedDoc: stored, liveTabs: held, ownTabs: own, locked: false, storedStamp: await storedStamp(bedit),
       effective: (doc, from) => withLogoGroupFrom(doc, from),
     });
     // An entry left waiting on a choice keeps its slot: this page journals under a new id.
@@ -85,7 +102,7 @@ export async function prepare(bedit: BrandEditorCtx, stored: Record<string, unkn
     const doc = structuredClone(plan.replay.entry.doc);
     // The replayed edit is this tab's now: written under this tab first, then the old
     // entry goes, so there is no moment with neither.
-    bedit.editJournal.record(doc);
+    bedit.editJournal.record(doc, nextWriterStamp());
     if (plan.replay.slot !== bedit.journalSlotId) {
       await bedit.editJournal.idle();
       await store.delete(plan.replay.slot).catch(() => {});
@@ -98,8 +115,8 @@ export async function prepare(bedit: BrandEditorCtx, stored: Record<string, unkn
 }
 
 /** The newest document goes to the journal at once (persist calls this on every edit). */
-export function record(bedit: BrandEditorCtx): void {
-  if (bedit.editJournal && bedit.doc) bedit.editJournal.record(bedit.doc);
+export function record(bedit: BrandEditorCtx, stamp: WriterStamp): void {
+  if (bedit.editJournal && bedit.doc) bedit.editJournal.record(bedit.doc, stamp);
 }
 
 /**

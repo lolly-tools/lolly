@@ -22,8 +22,20 @@ type Rec = Record<string, unknown>;
 const load = (path: string): Rec => JSON.parse(readFileSync(new URL(path, import.meta.url), 'utf8'));
 const SHIPPED = load('../brands/lolly-demo/catalog/assets/lolly/tokens/demo.json');
 const SINGLE_LEAD = load('./fixtures/colourway/lolly-demo-single-lead.json');
-/** Void's CMYK build since 2026-11-07: black on the K plate only, so small black text stays sharp on press. */
-const VOID_BUILD = [0, 0, 0, 100];
+/**
+ * The print builds changed on purpose since the single-lead copy, all on 2026-11-07: Void,
+ * Liquorice (the text colour) and Basalt (the quiet text grey) print on the K plate only, so
+ * small text in them stays sharp when the plates slip. Basalt's 92% K is the K-only tint
+ * nearest its old 68/48/37/71 build in lightness under FOGRA39. Void also has no spot
+ * ink, so black goes to K in a Print PDF. Every screen colour is unchanged.
+ */
+const K_ONLY_BUILDS: Readonly<Record<string, readonly number[]>> = {
+  'color.brand.void': [0, 0, 0, 100],
+  'color.brand.liquorice': [0, 0, 0, 100],
+  'color.brand.basalt': [0, 0, 0, 92],
+};
+/** The swatches whose spot ink was removed: Void prints as process black. */
+const NO_SPOT = new Set(['color.brand.void']);
 
 const LOOKS = ['light', 'dark'] as const;
 type Look = (typeof LOOKS)[number];
@@ -76,13 +88,13 @@ test('every colourway role links to a named Opal colour, never a bare value', ()
 
 test('the canonical colourway resolves every token exactly as the single-lead pack did', () => {
   // Two deliberate changes since the single-lead copy: the horizontal logo slots hold
-  // the wordmark now (tests/lolly-demo-wordmark.test.ts), and Void's CMYK build is
-  // 100% K (VOID_BUILD), asserted on its own below.
-  const voidBuild = (ext: unknown): unknown => (ext as { 'com.suse.lolly'?: { cmyk?: unknown } } | undefined)?.['com.suse.lolly']?.cmyk;
-  const withoutBuild = (ext: unknown): unknown => {
+  // the wordmark now (tests/lolly-demo-wordmark.test.ts), and the K-only print builds
+  // (K_ONLY_BUILDS, NO_SPOT), asserted on their own below.
+  const print = (ext: unknown): { cmyk?: unknown; spot?: unknown } | undefined => (ext as { 'com.suse.lolly'?: { cmyk?: unknown; spot?: unknown } } | undefined)?.['com.suse.lolly'];
+  const withoutPrint = (ext: unknown, keys: readonly string[]): unknown => {
     const lolly = (ext as { 'com.suse.lolly'?: Record<string, unknown> } | undefined)?.['com.suse.lolly'];
     if (!lolly) return ext ?? null;
-    const { cmyk: _cmyk, ...rest } = lolly;
+    const rest = Object.fromEntries(Object.entries(lolly).filter(([k]) => !keys.includes(k)));
     return { ...(ext as Record<string, unknown>), 'com.suse.lolly': rest };
   };
   for (const look of LOOKS) {
@@ -93,9 +105,14 @@ test('the canonical colourway resolves every token exactly as the single-lead pa
       for (const e of before) {
         const now = after.get(e.path);
         assert.ok(now, `${e.path} still resolves under ${JSON.stringify(selection)}`);
-        if (e.path === 'color.brand.void') {
-          assert.deepEqual(voidBuild(now.extensions), VOID_BUILD, `Void prints on K alone under ${JSON.stringify(selection)}`);
-          assert.deepEqual([now.type, now.value, now.description ?? null, withoutBuild(now.extensions)], [e.type, e.value, e.description ?? null, withoutBuild(e.extensions)], `${e.path} under ${JSON.stringify(selection)}`);
+        const build = K_ONLY_BUILDS[e.path];
+        if (build) {
+          const at = `${e.path} under ${JSON.stringify(selection)}`;
+          assert.deepEqual(print(now.extensions)?.cmyk, build, `${at} prints on K alone`);
+          const keys = NO_SPOT.has(e.path) ? ['cmyk', 'spot'] : ['cmyk'];
+          if (NO_SPOT.has(e.path)) assert.equal(print(now.extensions)?.spot, undefined, `${at} has no spot ink`);
+          else assert.deepEqual(print(now.extensions)?.spot, print(e.extensions)?.spot, `${at} keeps its spot ink`);
+          assert.deepEqual([now.type, now.value, now.description ?? null, withoutPrint(now.extensions, keys)], [e.type, e.value, e.description ?? null, withoutPrint(e.extensions, keys)], at);
           continue;
         }
         assert.deepEqual([now.type, now.value, now.description ?? null, now.extensions ?? null], [e.type, e.value, e.description ?? null, e.extensions ?? null], `${e.path} under ${JSON.stringify(selection)}`);

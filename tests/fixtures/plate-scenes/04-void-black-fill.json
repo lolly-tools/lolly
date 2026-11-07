@@ -1,7 +1,7 @@
 {
   "id": "04-void-black-fill",
   "title": "Brand black fill (Void)",
-  "covers": "Lolly Demo's Void is #000000 with a declared build of 0/0/0/100, black on the K plate only, so small black text stays sharp when the plates slip. A solid #000000 fill is a Void swatch hit, so it should carry the named spot, or that build when flattened.",
+  "covers": "Lolly Demo's Void is #000000 with a declared build of 0/0/0/100 and no spot ink, so black is process black: a solid #000000 fill is a Void swatch hit and prints on the K plate only, whether the RIP keeps spots or flattens them. Small black text stays sharp when the plates slip.",
   "profile": "lolly-demo",
   "page": {
     "width": 400,
@@ -30,13 +30,20 @@
   ],
   "structure": {
     "noDeviceRgbOps": true,
-    "separations": [
-      "H000_L005_C000"
-    ]
+    "noSeparations": true
   },
   "passes": [
     {
       "name": "spots kept",
+      "plates": [
+        "C",
+        "M",
+        "Y",
+        "K"
+      ],
+      "inked": [
+        "K"
+      ],
       "regions": [
         {
           "name": "paper stays blank",
@@ -54,7 +61,7 @@
           }
         },
         {
-          "name": "Void fill",
+          "name": "Void 0/0/0/100",
           "rect": [
             30,
             30,
@@ -62,11 +69,10 @@
             140
           ],
           "expect": {
-            "H000_L005_C000": 100,
             "C": 0,
             "M": 0,
             "Y": 0,
-            "K": 0
+            "K": 100
           }
         }
       ]

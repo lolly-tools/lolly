@@ -228,14 +228,21 @@ profile.
   lightness at full weight), with no black in bright colours and the ink total
   under 300%, or 280% for the darks.
 - CMYK cannot reach Jacaranda (chroma 37 of 59), Green Apple (56 of 60), Swell,
-  Pandanus, Reef and Sky. The Liquorice tints are rich blacks at the press's
-  deepest, about L 11.
-- Void is black on the K plate only (0/0/0/100), not a rich black, so small
-  black text in Void stays sharp when the plates slip. It loses some depth in a
-  large solid area. Its spot ink is unchanged.
+  Pandanus, Reef and Sky. Liquorice raised and Liquorice panel are rich blacks
+  at the press's deepest, about L 11.
+- Black is process black. Void and Liquorice print at 100% K (0/0/0/100) and
+  Basalt at 92% K (0/0/0/92), on the K plate only, so text in the ink colour
+  and the quiet text grey stays sharp when the plates slip. 92% K is the
+  whole-percent K tint nearest Basalt's old four-ink build (68/48/37/71) in
+  lightness under FOGRA39: L 25.8 against L 25.5. Void and Liquorice lose some
+  depth in a large solid area, because 100% K alone is about L 17.5.
+- Void has no spot ink, so black in a Print PDF prints on the K plate and
+  never on a plate of its own. Liquorice and Basalt keep their spot inks: with
+  the spot plates kept, their text prints on one named plate, and a RIP that
+  flattens the spot inks prints it on K.
 
-Every colour except the paper whites (Sugar and Daylight) also names a spot ink
-in `com.suse.lolly.spot`, for printing a colour at full strength: the nearest
+Every colour except the paper whites (Sugar and Daylight) and Void also names a
+spot ink in `com.suse.lolly.spot`, for printing a colour at full strength: the nearest
 colour in the [freieFarbe HLC Colour Atlas XL](https://freiefarbe.de/en/thema-farbe/hlc-colour-atlas/)
 (13,283 colours, CC BY-ND 4.0, freieFarbe e.V.). HLC is an open colour system
 defined in CIELAB (D50, 2° observer) and the basis of DIN SPEC 16699, "Open

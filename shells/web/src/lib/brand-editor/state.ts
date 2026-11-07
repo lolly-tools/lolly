@@ -11,6 +11,7 @@ import { RAMP_STEPS_MAX, RAMP_STEPS_MIN, aliasPath, colorToHex, createTokenSet, 
 import { leadTokenSet, withoutLeadColours } from '../design-system/leads.ts';
 import type { EditContext } from '../design-system/leads.ts';
 import { installUserTokens } from '../../bridge/tokens.ts';
+import { nextWriterStamp } from '../design-system/edit-journal.ts';
 import { isUserDesignSystemActive } from '../design-system/active.ts';
 import { saveWithStoredLogos } from '../brand-logos.ts';
 import { RAMP_IDS, getRampCurve, isRec, leafAt, walkSwatches } from '../brand-doc.ts';
@@ -89,7 +90,10 @@ export const persist = (bedit: BrandEditorCtx, immediate = false): void => {
   for (const status of statuses) { status.hidden = false; status.textContent = t('Saving…'); status.classList.remove('is-error'); }
   notify(bedit, 'color');
   bedit.ramps.notifyPaletteObservers(); // the doc is already mutated - mirrors repaint now, not post-debounce
-  bedit.journal.record(); // the journal has the edit at once; the save can take its time
+  // The journal has the edit at once; the save can take its time. Both carry the same
+  // stamp, so a later load can tell this page's own late edit from another writer's save.
+  const stamp = nextWriterStamp();
+  bedit.journal.record(stamp);
   const run = (): void => {
     const snapshot = structuredClone(bedit.doc);
     // The newest edit wins: a save that a newer one is waiting behind is skipped
@@ -104,7 +108,7 @@ export const persist = (bedit: BrandEditorCtx, immediate = false): void => {
       let written: unknown = null;
       await saveWithStoredLogos(fontsHost, snapshot, async doc => {
         if (superseded()) return;
-        await installUserTokens(host as unknown as Parameters<typeof installUserTokens>[0], doc);
+        await installUserTokens(host as unknown as Parameters<typeof installUserTokens>[0], doc, { journalWriter: stamp });
         written = doc;
       });
       if (superseded()) return; // the newer save reports, repaints and refreshes

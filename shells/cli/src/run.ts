@@ -398,9 +398,10 @@ let stdinReplay: { bytes: Buffer; used: boolean } | null = null;
  * browser tier's page is given the same one. With no `--file`, an active terminal system is what this runtime
  * resolves in, so the page is given that one; with neither, the page keeps its content
  * profile's system, which is this runtime's too. `--file` belongs to Design alone, and a
- * share link cannot carry a design system.
+ * share link cannot carry a design system. `lolly preflight` reads `--file` through this
+ * too, so the palette it counts is the one the export separates with.
  */
-async function designSystemForRun(
+export async function designSystemForRun(
   toolId: string, file: string | undefined, share: boolean | undefined,
 ): Promise<{ runDesignSystem: Record<string, unknown> | null; pageDesignSystem: Record<string, unknown> | null }> {
   if (file !== undefined) {

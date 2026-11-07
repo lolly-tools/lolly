@@ -193,6 +193,14 @@ const ASSET_INDEX_URL = '/catalog/assets/index.json?paged=1';
  *  shell's branded/unbranded signal (plans/archive/brand-token-contract.md section 5). */
 export const USER_TOKENS_ID = 'user/tokens/brand';
 
+/**
+ * The meta key a head record keeps Brand Studio's writer stamp under: the page load
+ * that wrote the head and the edit it holds (lib/design-system/edit-journal.ts
+ * `WriterStamp`). Every other head write leaves it out, so a stamp is only ever on the
+ * bytes that page wrote.
+ */
+export const JOURNAL_WRITER_META = 'journalWriter';
+
 /** The host slice installUserTokens needs: the asset store's user-upload writer
  *  plus (when wired) this module's own live tokens instance, to bust its caches
  *  and honour the brand lock. The record parameter mirrors bridge/assets.ts's
@@ -297,6 +305,9 @@ export async function installUserTokens(
      * Absent, this head's own setting stands, so a new head from a copy or a fork has none.
      */
     brandPage?: BrandPageWrite;
+    /** Brand Studio's stamp for the edit this head write holds (JOURNAL_WRITER_META).
+     *  A head write only; a version write never carries one. */
+    journalWriter?: { writer: string; seq: number };
   } = {},
 ): Promise<void> {
   if (typeof doc !== 'object' || doc === null || Array.isArray(doc)) {
@@ -313,7 +324,10 @@ export async function installUserTokens(
       format: 'json',
       blob: new Blob([JSON.stringify(settled)], { type: 'application/json' }),
       version: '1.0.0',
-      meta: { name: await headName(host, headId, opts.label ?? target.label) },
+      meta: {
+        name: await headName(host, headId, opts.label ?? target.label),
+        ...(opts.journalWriter ? { [JOURNAL_WRITER_META]: { writer: opts.journalWriter.writer, seq: opts.journalWriter.seq } } : {}),
+      },
     }, { skipQuota: opts.skipQuota });
     if (target.record && opts.label && opts.label !== target.record.label) {
       await host.designSystems?.put({ ...target.record, label: opts.label }).catch(() => { /* label is cosmetic */ });
