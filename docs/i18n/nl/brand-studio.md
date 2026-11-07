@@ -84,7 +84,7 @@ Elk merkteken belandt in een raster van acht optionele slots, één per **oriën
 
 Een groep zonder merktekens klapt in tot één regel; open haar om haar slots te zien. Klik op een slot om een PNG, SVG, JPEG of WebP toe te voegen, of klik op een gevuld slot om het merkteken te vervangen. Alles blijft op dit apparaat.
 
-![De logoslots met Horizontal en Vertical geopend: elke behandeling is een eigen slot, en elk slot is optioneel](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dlogos&width=1440&height=1600&dpi=192&waitMs=1600&drive=click%3A.be-logo-identity%3Edetails%3Anth-of-type%281%29%3Esummary%3Bclick%3A.be-logo-identity%3Edetails%3Anth-of-type%282%29%3Esummary%3Bwait%3A600&cropSelector=.be-logo-grid&format=svg&walker=1&dark=1&filename=bs-logo-slots)
+![De logoslots met Horizontal en Vertical geopend: elke behandeling is een eigen slot, en elk slot is optioneel](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dlogos&system=new-design-system&width=1440&height=1600&dpi=192&waitMs=1600&drive=click%3A.be-logo-identity%3Edetails.be-logo-group--fold%3Anot%28.be-logo-group--custom%29%3Esummary%3Bwait%3A600&cropSelector=.be-logo-grid&format=svg&walker=1&dark=1&filename=bs-logo-slots)
 
 - **Custom marks** zijn merktekens die je merk bij een eigen naam noemt, zoals een pictogram, een wapen of een favicon.
 - **More identities.** Een submerk, product of evenement kan een eigen volledige set hebben: **+ Add another logo** en geef de set een naam. Je hoofdset heet "Your logo". [Merkarchitecturen](/info/brand-architectures.html) laat zien wanneer een logo-identiteit het juiste bouwblok is.
@@ -118,7 +118,7 @@ Je kleuren staan naast een voorbeeld **In context** op een breed scherm, en erbo
 
 Het design system zegt hoe zijn kleuren heten en waar elke kleur voor dient, en Lolly leest dat. **Colour roles** staat bovenaan de kamer Colours. Op een breed scherm deelt **In context** de weergave, dus een wijziging verschijnt op de poster, de grafiek en de interfacekaart terwijl je haar maakt.
 
-![De tabel Colour roles op Lolly Demo in eigen woorden: de colourway-chips, daarna Lead, Partner, Paper en Ink, elk met zijn lichte en donkere kleur, gelezen als de hoofdkleur, de partnerkleur, de achtergrond en de tekst, en Quiet text en Hairlines onder de tabel vermeld als de lezingen die geen rol invult](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=2720&height=2000&dpi=192&waitMs=1800&cropSelector=%5Bdata-be-roles-fold%5D&format=svg&walker=1&dark=1&filename=bs-colour-roles)
+![De tabel Colour roles op Wefthouse, een verzonnen textielmerk, in eigen woorden: de colourway-chips Indigo, Madder en Weld, daarna Main, Accent, Supporting en Tertiary, elk met zijn lichte en donkere kleur, gelezen als de hoofdkleur, de partnerkleur en alleen op naam, en Background, Text, Quiet text en Hairlines onder de tabel vermeld als de lezingen die geen rol invult](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&system=wefthouse&width=2720&height=2000&dpi=192&waitMs=1800&cropSelector=%5Bdata-be-roles-fold%5D&format=svg&walker=1&dark=1&filename=bs-colour-roles)
 
 De tabel heeft vier kolommen, en op een telefoon wordt elke rij een kaart die licht en donker naast elkaar houdt:
 
@@ -156,13 +156,13 @@ Een lezing die geen rol invult, blijft zoals het design system haar definieert, 
 
 **Waar een kleur wordt gekozen.** Elk kleurveld in een tool en in Lolly Design begint met de rollen van het design system, in zijn eigen volgorde, met elk woord en waar de kleur voor dient in beeld. **Aa** naast een rol kiest de kleur die op die rol staat. De rest volgt onder **Other colours**, zonder de eigen kopieën van een colourway, de on-kleuren en elke lezing die een rol al invult. Een keuze blijft aan de rol gekoppeld en volgt de colourway, het veld blijft het woord tonen welke colourway ook is gekozen, en Settings en Tokens gebruiken het woord ook. Een design system zonder rollen houdt het raster van stalen dat het altijd had.
 
-### Rollen: wat tools lezen
+### Elke kleur die een tool leest
 
 Met **Colour roles** dicht leiden de eerste beslissingen de kamer als chips, elk met de kleur die de rol speelt en zijn naam. Op een systeem zonder eigen woorden zijn dat **Primary**, **Secondary**, **Surface** en **Text**. Druk op een chip om zijn kleur te kiezen uit de eigen stalen van het palet. **Every colour a tool reads**, onderaan **Colour roles**, heeft de volledige strook.
 
-**Roles** zeggen welke kleur elk deel speelt in elke tool en export. Ze zijn optioneel (drie losse kleuren en geen rollen is een prima systeem), elke kleur kan er een krijgen en de uitlezing zegt hoe tekst leest, gemeten tegen het oppervlak, APCA eerst. Elke rolrij toont een eigen kleur op volle sterkte, een starterkleur die inspringt, of **↳ follows Primary**.
+De strook toont de zeven kleuren die een tool kan lezen: Primary, Secondary, Surface, Text, Muted, Edge en On primary, in de woorden van het design system waar het die heeft. Elke kleur speelt in elke tool en export hetzelfde deel. Geen enkele hoeft ingesteld te zijn (drie losse kleuren vormen een prima systeem), elke kleur kan er een invullen en de uitlezing zegt hoe tekst leest, gemeten tegen het oppervlak, APCA eerst. Elke rij toont een eigen kleur op volle sterkte, een starterkleur die inspringt, of **↳ follows Primary**.
 
-De strook toont alle zeven rollen die een tool kan lezen: Primary, Secondary, Surface, Text, Muted, Edge en On primary, in de woorden van het design system waar het die heeft. On primary is afgeleid van de primary, leest **Derived** en heeft geen kiezer. De schakelaar **Light** en **Dark** ernaast, en die naast **In context**, bepalen welke look de strook, het palet en het voorbeeld tonen.
+On primary is afgeleid van de primary, leest **Derived** en heeft geen kiezer. De schakelaar **Light** en **Dark** ernaast, en die naast **In context**, bepalen welke look de strook, het palet en het voorbeeld tonen.
 
 Het eigen accent van de app volgt standaard het design system. Dat is de instelling **Interface follows the design system** in **Settings → Appearance**; de instelling uitzetten laat de chrome van de app neutraal, terwijl tools, canvassen en exports in beide gevallen het design system volgen.
 
@@ -250,7 +250,7 @@ De palet-downloads (designtokens, CSS, SCSS, GIMP en Adobe Swatch Exchange) staa
 
 Zonder eigen lettertype is de kamer één kaart: **Primary**, gezet op leesgrootte in het lettertype dat het vandaag levert, met een tag **Starter**, een knop **Choose for Primary** en de regel *"Nothing installs until you choose one."* Headings, code en cursief volgen de primary totdat je ze kiest; **Choose them separately** toont hun kaarten.
 
-![De Type-room zonder gekozen lettertype - één kaart op leesgrootte, een Starter-label erop, en één gevulde Choose for Primary](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&dark=1&filename=brand-type)
+![De Type-room zonder gekozen lettertype - één kaart op leesgrootte, een Starter-label erop, en één gevulde Choose for Primary](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&system=new-design-system&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&dark=1&filename=brand-type)
 
 Kies één lettertype en de kamer opent in vier rolkaarten, de lijst Fonts en een live specimen:
 
@@ -261,7 +261,7 @@ Kies één lettertype en de kamer opent in vier rolkaarten, de lijst Fonts en ee
 
 Een kaart is alleen getint waar je dat lettertype installeerde. Zijn knop zegt voor welke rol hij is: **Change Headings** bij een eigen lettertype en **Choose for Headings** overal elders. De voorbeeldregel breekt om in plaats van af te kappen. Niets op een kaart legt iets vast: de knop opent het vergelijkingspodium voor die rol.
 
-![De vier rolkaarten onthuld - elk gezet in het lettertype dat het bedient, met een Starter-label waar niemand er een koos en Italic dat de primaire volgt](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&width=1440&height=1000&dpi=192&waitMs=2600&drive=click%3A%5Bdata-be-typemore-toggle%5D%3Bwait%3A600&cropSelector=.be-typecard-grid&walker=1&format=svg&dark=1&filename=bs-type-specimen)
+![De vier rolkaarten onthuld - elk gezet in het lettertype dat het bedient, met een Starter-label waar niemand er een koos en Italic dat de primaire volgt](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&system=new-design-system&width=1440&height=1000&dpi=192&waitMs=2600&drive=click%3A%5Bdata-be-typemore-toggle%5D%3Bwait%3A600&cropSelector=.be-typecard-grid&walker=1&format=svg&dark=1&filename=bs-type-specimen)
 
 ### Het vergelijkingsscherm
 

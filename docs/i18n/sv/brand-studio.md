@@ -84,7 +84,7 @@ Varje märke hamnar i ett rutnät med åtta valfria platser, en per **orienterin
 
 En grupp utan märken ännu viks till en rad; öppna den för att se dess platser. Klicka på en plats för att lägga till en PNG, SVG, JPEG eller WebP, eller klicka på en fylld plats för att ersätta märket. Allt stannar på den här enheten.
 
-![Logoplatserna med Horizontal och Vertical öppnade: varje behandling är en plats för sig, och varje plats är valfri](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dlogos&width=1440&height=1600&dpi=192&waitMs=1600&drive=click%3A.be-logo-identity%3Edetails%3Anth-of-type%281%29%3Esummary%3Bclick%3A.be-logo-identity%3Edetails%3Anth-of-type%282%29%3Esummary%3Bwait%3A600&cropSelector=.be-logo-grid&format=svg&walker=1&dark=1&filename=bs-logo-slots)
+![Logoplatserna med Horizontal och Vertical öppnade: varje behandling är en plats för sig, och varje plats är valfri](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dlogos&system=new-design-system&width=1440&height=1600&dpi=192&waitMs=1600&drive=click%3A.be-logo-identity%3Edetails.be-logo-group--fold%3Anot%28.be-logo-group--custom%29%3Esummary%3Bwait%3A600&cropSelector=.be-logo-grid&format=svg&walker=1&dark=1&filename=bs-logo-slots)
 
 - **Anpassade märken** är märken som ditt varumärke kallar vid eget namn, som en ikon, ett vapen eller en favicon.
 - **Fler identiteter.** Ett undervarumärke, en produkt eller ett event kan ha en egen full uppsättning: **+ Add another logo** och ge uppsättningen ett namn. Din huvuduppsättning är "Your logo". [Brand architectures](/info/brand-architectures.html) visar när en logotypidentitet är rätt block.
@@ -118,7 +118,7 @@ Dina färger sitter bredvid en förhandsvisning **In context** på en bred skär
 
 Designsystemet säger vad dess färger heter och vad var och en är till för, och Lolly läser det. **Colour roles** finns överst i rummet Colours. På en bred skärm delar **In context** vyn, så en ändring syns på affischen, diagrammet och gränssnittskortet medan du gör den.
 
-![Tabellen Färgroller på Lolly Demo med egna ord: färgvariantchipsen, sedan Lead, Partner, Paper och Ink, var och en med sin ljusa och mörka färg, lästa som huvudfärgen, partnerfärgen, bakgrunden och texten, och Dämpad text och Hårfina linjer listade under tabellen som de avläsningar ingen roll fyller](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=2720&height=2000&dpi=192&waitMs=1800&cropSelector=%5Bdata-be-roles-fold%5D&format=svg&walker=1&dark=1&filename=bs-colour-roles)
+![Tabellen Färgroller på Wefthouse, ett påhittat textilvarumärke, med egna ord: färgvariantchipsen Indigo, Madder och Weld, sedan Huvud, Accent, Supporting och Tertiary, var och en med sin ljusa och mörka färg, lästa som huvudfärgen, partnerfärgen och bara på namn, och Bakgrund, Text, Dämpad text och Hårfina linjer listade under tabellen som de avläsningar ingen roll fyller](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&system=wefthouse&width=2720&height=2000&dpi=192&waitMs=1800&cropSelector=%5Bdata-be-roles-fold%5D&format=svg&walker=1&dark=1&filename=bs-colour-roles)
 
 Tabellen har fyra kolumner, och på en telefon blir varje rad ett kort som håller ljust och mörkt sida vid sida:
 
@@ -156,13 +156,13 @@ En avläsning som ingen roll fyller förblir som designsystemet definierar den, 
 
 **Var en färg väljs.** Varje färgfält i ett verktyg och i Lolly Design leder med designsystemets roller, i dess egen ordning, med varje ord och vad färgen är till för synligt. **Aa** bredvid en roll väljer den färg som ligger på den rollen. Resten följer under **Andra färger**, utan en färgvariants egna kopior, på-färgerna och varje avläsning en roll redan fyller. Ett val förblir länkat till rollen och följer färgvarianten, fältet visar fortsatt ordet oavsett vilken färgvariant som är vald, och Settings och Tokens använder ordet också. Ett designsystem utan roller behåller det rutnät av färgprover det alltid haft.
 
-### Roller: det verktyg läser
+### Varje färg ett verktyg läser
 
 När **Colour roles** är stängd leder de första besluten rummet som chips, var och en visar färgen som spelar rollen och dess namn. På ett system utan egna ord är dessa **Primary**, **Secondary**, **Surface** och **Text**. Tryck på ett chip för att välja dess färg bland palettens egna färgprover. **Varje färg ett verktyg läser**, längst ner i **Colour roles**, har hela remsan.
 
-**Roller** säger vilken färg som spelar vilken del i varje verktyg och export. De är valfria (tre lösa färger och inga roller är ett alldeles utmärkt system), vilken färg som helst kan ta en och avläsningen säger hur text läses, mätt mot ytan, APCA först. Varje rollrad visar en egen färg i full styrka, en startfärg som står in, eller **↳ follows Primary**.
+Remsan visar de sju färger ett verktyg kan läsa: Primary, Secondary, Surface, Text, Muted, Edge och On primary, med designsystemets egna ord där det har sådana. Var och en spelar samma del i varje verktyg och export. Ingen av dem behöver anges (tre lösa färger är ett bra system), vilken färg som helst kan fylla en och avläsningen säger hur text läses, mätt mot ytan, APCA först. Varje rad visar en egen färg i full styrka, en startfärg som står in, eller **↳ follows Primary**.
 
-Remsan visar alla sju roller ett verktyg kan läsa: Primary, Secondary, Surface, Text, Muted, Edge och On primary, med designsystemets egna ord där det har sådana. On primary härleds från primärfärgen, lyder **Härledd** och har ingen väljare. Växlaren **Light** och **Dark** bredvid, och den bredvid **In context**, väljer vilket utseende remsan, paletten och förhandsvisningen visar.
+On primary härleds från primärfärgen, lyder **Härledd** och har ingen väljare. Växlaren **Light** och **Dark** bredvid, och den bredvid **In context**, väljer vilket utseende remsan, paletten och förhandsvisningen visar.
 
 Appens egen accent följer designsystemet som standard. Det är inställningen **Interface follows the design system** i **Settings → Appearance**; att stänga av den lämnar appens gränssnitt neutralt, medan verktyg, ytor och exporter följer designsystemet i båda fallen.
 
@@ -250,7 +250,7 @@ Palettnedladdningarna (designtokens, CSS, SCSS, GIMP och Adobe Swatch Exchange) 
 
 Utan ett eget typsnitt är rummet ett kort: **Primary**, satt i lässtorlek i typsnittet som tjänar det i dag, med en **Starter**-tagg, en **Choose for Primary**-knapp och raden *"Nothing installs until you choose one."* Rubriker, kod och kursiv följer primärfärgen tills du väljer dem; **Choose them separately** visar deras kort.
 
-![Typografi-rummet med inget snitt valt än - ett kort i läsbar storlek, en Standard-tagg på det och en fylld Choose for Primary](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&dark=1&filename=brand-type)
+![Typografi-rummet med inget snitt valt än - ett kort i läsbar storlek, en Standard-tagg på det och en fylld Choose for Primary](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&system=new-design-system&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&dark=1&filename=brand-type)
 
 Välj ett typsnitt så öppnas rummet i fyra rollkort, listan Fonts och ett levande specimen:
 
@@ -261,7 +261,7 @@ Välj ett typsnitt så öppnas rummet i fyra rollkort, listan Fonts och ett leva
 
 Ett kort är färgat bara där du installerat det typsnittet. Dess knapp säger vilken roll den gäller: **Change Headings** på ett eget typsnitt och **Choose for Headings** överallt annars. Provraden bryts i stället för att klippas av. Inget på ett kort bekräftar något: knappen öppnar jämförelsescenen för den rollen.
 
-![De fyra rollkorten synliga - vart och ett satt i det snitt som tjänar det, med en Standard-tagg där ingen valt ett och Italic som följer primärfärgen](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&width=1440&height=1000&dpi=192&waitMs=2600&drive=click%3A%5Bdata-be-typemore-toggle%5D%3Bwait%3A600&cropSelector=.be-typecard-grid&walker=1&format=svg&dark=1&filename=bs-type-specimen)
+![De fyra rollkorten synliga - vart och ett satt i det snitt som tjänar det, med en Standard-tagg där ingen valt ett och Italic som följer primärfärgen](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&system=new-design-system&width=1440&height=1000&dpi=192&waitMs=2600&drive=click%3A%5Bdata-be-typemore-toggle%5D%3Bwait%3A600&cropSelector=.be-typecard-grid&walker=1&format=svg&dark=1&filename=bs-type-specimen)
 
 ### Jämförelsevyn
 

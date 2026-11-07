@@ -84,7 +84,7 @@ Jedes Zeichen landet in einem Raster aus acht optionalen Slots, je einer pro **A
 
 Eine Gruppe ohne Zeichen klappt zu einer Zeile zusammen; öffnen Sie sie, um ihre Slots zu sehen. Klicken Sie einen Slot an, um ein PNG, SVG, JPEG oder WebP hinzuzufügen, oder klicken Sie einen gefüllten Slot an, um das Zeichen zu ersetzen. Alles bleibt auf diesem Gerät.
 
-![Die Logo-Slots mit geöffneten Horizontal und Vertical: Jede Behandlung ist ein eigener Slot, und jeder Slot ist optional](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dlogos&width=1440&height=1600&dpi=192&waitMs=1600&drive=click%3A.be-logo-identity%3Edetails%3Anth-of-type%281%29%3Esummary%3Bclick%3A.be-logo-identity%3Edetails%3Anth-of-type%282%29%3Esummary%3Bwait%3A600&cropSelector=.be-logo-grid&format=svg&walker=1&dark=1&filename=bs-logo-slots)
+![Die Logo-Slots mit geöffneten Horizontal und Vertical: Jede Behandlung ist ein eigener Slot, und jeder Slot ist optional](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dlogos&system=new-design-system&width=1440&height=1600&dpi=192&waitMs=1600&drive=click%3A.be-logo-identity%3Edetails.be-logo-group--fold%3Anot%28.be-logo-group--custom%29%3Esummary%3Bwait%3A600&cropSelector=.be-logo-grid&format=svg&walker=1&dark=1&filename=bs-logo-slots)
 
 - **Custom marks** sind Zeichen, die Ihre Marke mit eigenem Namen anspricht, etwa ein Icon, ein Wappen oder ein Favicon.
 - **More identities.** Eine Untermarke, ein Produkt oder ein Event kann einen eigenen vollen Satz haben: **+ Add another logo** und geben Sie dem Satz einen Namen. Ihr Hauptsatz ist "Your logo". [Marken-Architekturen](/info/brand-architectures.html) zeigt, wann eine Logo-Identität der richtige Baustein ist.
@@ -118,7 +118,7 @@ Ihre Farben stehen neben einer Vorschau **In context** auf einem breiten Bildsch
 
 Das Designsystem sagt, wie seine Farben heißen und wofür jede da ist, und Lolly liest das. **Colour roles** steht am Kopf des Raums Colours. Auf einem breiten Bildschirm teilt sich **In context** die Ansicht, sodass eine Änderung sofort auf Poster, Diagramm und Oberflächenkarte erscheint.
 
-![Die Tabelle Colour roles bei Lolly Demo in den eigenen Worten: die Chips der Farbvarianten, dann Lead, Partner, Paper und Ink, jeweils mit ihrer hellen und dunklen Farbe, gelesen als Leitfarbe, Partnerfarbe, Hintergrund und Text, und Quiet text und Hairlines unter der Tabelle als die Lesarten, die keine Rolle belegt](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=2720&height=2000&dpi=192&waitMs=1800&cropSelector=%5Bdata-be-roles-fold%5D&format=svg&walker=1&dark=1&filename=bs-colour-roles)
+![Die Tabelle Colour roles bei Wefthouse, einer erfundenen Textilmarke, in den eigenen Worten: die Chips der Farbvarianten Indigo, Madder und Weld, dann Main, Accent, Supporting und Tertiary, jeweils mit ihrer hellen und dunklen Farbe, gelesen als Leitfarbe, Partnerfarbe und nur nach Namen, und Background, Text, Quiet text und Hairlines unter der Tabelle als die Lesarten, die keine Rolle belegt](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&system=wefthouse&width=2720&height=2000&dpi=192&waitMs=1800&cropSelector=%5Bdata-be-roles-fold%5D&format=svg&walker=1&dark=1&filename=bs-colour-roles)
 
 Die Tabelle hat vier Spalten, und auf einem Smartphone wird jede Zeile zu einer Karte, die Hell und Dunkel nebeneinander hält:
 
@@ -156,13 +156,13 @@ Eine Lesart, die keine Rolle belegt, bleibt, wie das Designsystem sie festlegt, 
 
 **Wo eine Farbe gewählt wird.** Jedes Farbfeld in einem Tool und in Lolly Design führt mit den Rollen des Designsystems, in dessen eigener Reihenfolge, mit sichtbarem Wort und sichtbarem Zweck der Farbe. **Aa** neben einer Rolle wählt die Farbe, die auf dieser Rolle sitzt. Der Rest folgt unter **Other colours**, ohne die eigenen Kopien einer Farbvariante, die On-Farben und jede Lesart, die eine Rolle schon belegt. Eine Wahl bleibt mit der Rolle verknüpft und folgt der Farbvariante, das Feld zeigt das Wort weiter an, welche Farbvariante auch gewählt ist, und auch Settings und Tokens nutzen das Wort. Ein Designsystem ohne Rollen behält das Raster aus Farbfeldern, das es immer hatte.
 
-### Rollen: was Tools lesen
+### Jede Farbe, die ein Tool liest
 
 Bei geschlossenem **Colour roles** führen die ersten Entscheidungen den Raum als Chips an, jeder mit der Farbe, die die Rolle spielt, und ihrem Namen. In einem System ohne eigene Worte sind das **Primary**, **Secondary**, **Surface** und **Text**. Drücken Sie einen Chip, um seine Farbe aus den eigenen Farbfeldern der Palette zu wählen. **Every colour a tool reads** am Fuß von **Colour roles** hat den vollständigen Streifen.
 
-**Rollen** sagen, welche Farbe in jedem Tool und Export welche Aufgabe übernimmt. Sie sind optional (drei lose Farben und keine Rollen sind ein vollkommen gutes System), jede Farbe kann eine übernehmen, und die Anzeige sagt, wie sich Text liest, gemessen gegen die Fläche, APCA zuerst. Jede Rollenzeile zeigt eine eigene Farbe in voller Stärke, eine einspringende Starter-Farbe oder **↳ follows Primary**.
+Der Streifen zeigt die sieben Farben, die ein Tool lesen kann: Primary, Secondary, Surface, Text, Muted, Edge und On primary, in den eigenen Worten des Designsystems, wo es welche hat. Jede übernimmt in jedem Tool und Export dieselbe Aufgabe. Keine muss gesetzt sein (drei lose Farben sind ein gutes System), jede Farbe kann eine belegen, und die Anzeige sagt, wie sich Text liest, gemessen gegen die Fläche, APCA zuerst. Jede Zeile zeigt eine eigene Farbe in voller Stärke, eine einspringende Starter-Farbe oder **↳ follows Primary**.
 
-Der Streifen zeigt alle sieben Rollen, die ein Tool lesen kann: Primary, Secondary, Surface, Text, Muted, Edge und On primary, in den eigenen Worten des Designsystems, wo es welche hat. On primary wird aus der Primärfarbe abgeleitet, steht als **Derived** und hat keine Auswahl. Der Schalter **Light** und **Dark** daneben und der neben **In context** wählen, welchen Look der Streifen, die Palette und die Vorschau zeigen.
+On primary wird aus der Primärfarbe abgeleitet, steht als **Derived** und hat keine Auswahl. Der Schalter **Light** und **Dark** daneben und der neben **In context** wählen, welchen Look der Streifen, die Palette und die Vorschau zeigen.
 
 Der eigene Akzent der App folgt standardmäßig dem Designsystem. Das ist die Einstellung **Interface follows the design system** unter **Settings → Appearance**; ist sie aus, bleibt das Chrome der App neutral, während Tools, Arbeitsflächen und Exporte dem Designsystem in beiden Fällen folgen.
 
@@ -250,7 +250,7 @@ Die Palette-Downloads (Design-Tokens, CSS, SCSS, GIMP und Adobe Swatch Exchange)
 
 Ohne eigene Schrift ist der Raum eine Karte: **Primary**, in Lesegröße in der Schrift gesetzt, die heute dient, mit einem Tag **Starter**, einer Schaltfläche **Choose for Primary** und der Zeile *"Nothing installs until you choose one."* Headings, Code und Italic folgen der Primärschrift, bis Sie sie wählen; **Choose them separately** zeigt ihre Karten.
 
-![Der Schrift-Raum mit noch keinem gewählten Schriftschnitt - eine Karte in Lesegröße, eine Starter-Markierung darauf und ein ausgefülltes Choose for Primary](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&dark=1&filename=brand-type)
+![Der Schrift-Raum mit noch keinem gewählten Schriftschnitt - eine Karte in Lesegröße, eine Starter-Markierung darauf und ein ausgefülltes Choose for Primary](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&system=new-design-system&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&dark=1&filename=brand-type)
 
 Wählen Sie eine Schrift, und der Raum öffnet sich zu vier Rollenkarten, der Liste Fonts und einem Live-Muster:
 
@@ -261,7 +261,7 @@ Wählen Sie eine Schrift, und der Raum öffnet sich zu vier Rollenkarten, der Li
 
 Eine Karte ist nur getönt, wo Sie diese Schrift installiert haben. Ihre Schaltfläche sagt, für welche Rolle sie ist: **Change Headings** bei einer eigenen Schrift und überall sonst **Choose for Headings**. Die Beispielzeile bricht um, statt abgeschnitten zu werden. Nichts auf einer Karte übernimmt etwas: Die Schaltfläche öffnet die Vergleichsbühne für diese Rolle.
 
-![Die vier aufgedeckten Rollenkarten - jede gesetzt in dem Schriftschnitt, der sie bedient, mit einer Starter-Markierung, wo niemand eine gewählt hat, und Kursiv, das Primär folgt](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&width=1440&height=1000&dpi=192&waitMs=2600&drive=click%3A%5Bdata-be-typemore-toggle%5D%3Bwait%3A600&cropSelector=.be-typecard-grid&walker=1&format=svg&dark=1&filename=bs-type-specimen)
+![Die vier aufgedeckten Rollenkarten - jede gesetzt in dem Schriftschnitt, der sie bedient, mit einer Starter-Markierung, wo niemand eine gewählt hat, und Kursiv, das Primär folgt](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&system=new-design-system&width=1440&height=1000&dpi=192&waitMs=2600&drive=click%3A%5Bdata-be-typemore-toggle%5D%3Bwait%3A600&cropSelector=.be-typecard-grid&walker=1&format=svg&dark=1&filename=bs-type-specimen)
 
 ### Die Vergleichsbühne
 

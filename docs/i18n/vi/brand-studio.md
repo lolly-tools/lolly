@@ -84,7 +84,7 @@ Mỗi dấu hiệu kết thúc trong một lưới tám ô tùy chọn, mỗi ô
 
 Nhóm chưa có dấu hiệu nào gập thành một dòng; mở để xem các ô. Nhấp một ô để thêm PNG, SVG, JPEG hoặc WebP, hoặc nhấp ô đã điền để thay dấu hiệu. Mọi thứ ở lại trên thiết bị này.
 
-![Các ô logo với Horizontal và Vertical đã mở: mỗi treatment là một ô riêng, và mọi ô đều tùy chọn](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dlogos&width=1440&height=1600&dpi=192&waitMs=1600&drive=click%3A.be-logo-identity%3Edetails%3Anth-of-type%281%29%3Esummary%3Bclick%3A.be-logo-identity%3Edetails%3Anth-of-type%282%29%3Esummary%3Bwait%3A600&cropSelector=.be-logo-grid&format=svg&walker=1&dark=1&filename=bs-logo-slots)
+![Các ô logo với Horizontal và Vertical đã mở: mỗi treatment là một ô riêng, và mọi ô đều tùy chọn](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dlogos&system=new-design-system&width=1440&height=1600&dpi=192&waitMs=1600&drive=click%3A.be-logo-identity%3Edetails.be-logo-group--fold%3Anot%28.be-logo-group--custom%29%3Esummary%3Bwait%3A600&cropSelector=.be-logo-grid&format=svg&walker=1&dark=1&filename=bs-logo-slots)
 
 - **Custom marks** là các dấu hiệu mà thương hiệu của bạn gọi bằng tên riêng, như biểu tượng, huy hiệu hoặc favicon.
 - **More identities.** Một thương hiệu con, sản phẩm hay sự kiện có thể có bộ đầy đủ của riêng nó: **+ Add another logo** và đặt tên cho bộ. Bộ chính của bạn là "Your logo". [Brand architectures](/info/brand-architectures.html) cho thấy khi nào một danh tính logo là khối đúng.
@@ -118,7 +118,7 @@ Màu của bạn nằm cạnh bản xem trước **In context** trên màn hình
 
 Hệ thống thiết kế nói các màu của nó được gọi là gì và mỗi màu dùng để làm gì, và Lolly đọc điều đó. **Colour roles** nằm ở đầu phòng Colours. Trên màn hình rộng, **In context** dùng chung chế độ xem, nên một thay đổi hiện ngay trên áp phích, biểu đồ và thẻ giao diện khi bạn thực hiện.
 
-![Bảng Colour roles trên Lolly Demo bằng chính từ của nó: các chip colourway, rồi Lead, Partner, Paper và Ink, mỗi vai trò có màu sáng và màu tối, được đọc là màu chủ đạo, màu đối tác, nền và chữ, còn Quiet text và Hairlines được liệt kê dưới bảng như các cách đọc mà không vai trò nào đảm nhiệm](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=2720&height=2000&dpi=192&waitMs=1800&cropSelector=%5Bdata-be-roles-fold%5D&format=svg&walker=1&dark=1&filename=bs-colour-roles)
+![Bảng Colour roles trên Wefthouse, một thương hiệu dệt may hư cấu, bằng chính từ của nó: các chip colourway Indigo, Madder và Weld, rồi Main, Accent, Supporting và Tertiary, mỗi mục có màu sáng và màu tối, được đọc là màu chủ đạo, màu đối tác và chỉ theo tên, còn Background, Text, Quiet text và Hairlines được liệt kê dưới bảng như các cách đọc mà không vai trò nào đảm nhiệm](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&system=wefthouse&width=2720&height=2000&dpi=192&waitMs=1800&cropSelector=%5Bdata-be-roles-fold%5D&format=svg&walker=1&dark=1&filename=bs-colour-roles)
 
 Bảng có bốn cột, và trên điện thoại mỗi hàng thành một thẻ giữ màu sáng và màu tối cạnh nhau:
 
@@ -156,13 +156,13 @@ Một cách đọc mà không vai trò nào đảm nhiệm vẫn giữ như hệ
 
 **Nơi một màu được chọn.** Mọi ô màu trong công cụ và trong Lolly Design đều mở đầu bằng các vai trò của hệ thống thiết kế, theo thứ tự riêng của nó, với mỗi từ và công dụng của màu được hiển thị. **Aa** cạnh một vai trò chọn màu đặt trên vai trò đó. Phần còn lại theo sau dưới **Other colours**, không gồm bản sao riêng của colourway, các màu trên nền và mọi cách đọc mà một vai trò đã đảm nhiệm. Một lựa chọn vẫn liên kết với vai trò và theo colourway, ô luôn hiện từ đó dù colourway nào được chọn, và Settings cùng Tokens cũng dùng từ đó. Một hệ thống thiết kế không có vai trò giữ lưới mẫu màu như xưa nay.
 
-### Vai trò: công cụ đọc gì
+### Mọi màu mà công cụ đọc
 
 Khi **Colour roles** đóng, các quyết định đầu tiên mở đầu phòng dưới dạng chip, mỗi chip hiện màu đóng vai trò và tên của nó. Trên hệ thống không có từ riêng, đó là **Primary**, **Secondary**, **Surface** và **Text**. Nhấn một chip để chọn màu từ các mẫu màu của chính bảng màu. **Every colour a tool reads**, ở chân **Colour roles**, có dải đầy đủ.
 
-**Roles** nói màu nào đóng phần nào trong mọi công cụ và bản xuất. Chúng là tùy chọn (ba màu rời và không có vai trò vẫn là một hệ thống hoàn toàn tốt), màu nào cũng có thể nhận một vai trò và phần hiển thị nói chữ đọc ra sao, đo trên nền, APCA trước. Mỗi hàng vai trò hiện một màu riêng ở độ đậm đầy đủ, một màu khởi đầu đang thay thế, hoặc **↳ follows Primary**.
+Dải hiện bảy màu mà một công cụ có thể đọc: Primary, Secondary, Surface, Text, Muted, Edge và On primary, bằng từ riêng của hệ thống thiết kế nếu có. Mỗi màu đóng cùng một phần trong mọi công cụ và bản xuất. Không màu nào bắt buộc phải đặt (ba màu rời đã là một hệ thống tốt), màu nào cũng có thể giữ một vị trí và phần hiển thị nói chữ đọc ra sao, đo trên nền, APCA trước. Mỗi hàng hiện một màu riêng ở độ đậm đầy đủ, một màu khởi đầu đang thay thế, hoặc **↳ follows Primary**.
 
-Dải hiện cả bảy vai trò mà một công cụ có thể đọc: Primary, Secondary, Surface, Text, Muted, Edge và On primary, bằng từ riêng của hệ thống thiết kế nếu có. On primary được suy ra từ primary, hiện **Derived** và không có bộ chọn. Công tắc **Light** và **Dark** bên cạnh, và công tắc cạnh **In context**, chọn giao diện mà dải, bảng màu và bản xem trước hiển thị.
+On primary được suy ra từ primary, hiện **Derived** và không có bộ chọn. Công tắc **Light** và **Dark** bên cạnh, và công tắc cạnh **In context**, chọn giao diện mà dải, bảng màu và bản xem trước hiển thị.
 
 Màu nhấn của chính ứng dụng theo hệ thống thiết kế theo mặc định. Đó là cài đặt **Interface follows the design system** trong **Settings → Appearance**; tắt cài đặt để khung ứng dụng trung tính, còn công cụ, canvas và bản xuất theo hệ thống thiết kế dù thế nào.
 
@@ -250,7 +250,7 @@ Các bản tải bảng màu (design token, CSS, SCSS, GIMP và Adobe Swatch Exc
 
 Khi chưa có kiểu chữ riêng, phòng là một thẻ: **Primary**, đặt cỡ đọc bằng kiểu chữ đang phục vụ hôm nay, với thẻ **Starter**, nút **Choose for Primary** và dòng *"Nothing installs until you choose one."* Headings, code và italic theo primary cho đến khi bạn chọn chúng; **Choose them separately** hiện các thẻ của chúng.
 
-![Phòng Type khi chưa chọn kiểu chữ nào - một thẻ ở cỡ đọc, mang nhãn Starter, và một nút Choose for Primary đã tô đậm](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&dark=1&filename=brand-type)
+![Phòng Type khi chưa chọn kiểu chữ nào - một thẻ ở cỡ đọc, mang nhãn Starter, và một nút Choose for Primary đã tô đậm](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&system=new-design-system&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&dark=1&filename=brand-type)
 
 Chọn một kiểu chữ và phòng mở thành bốn thẻ vai trò, danh sách Fonts và một mẫu chữ trực tiếp:
 
@@ -261,7 +261,7 @@ Chọn một kiểu chữ và phòng mở thành bốn thẻ vai trò, danh sác
 
 Một thẻ chỉ được nhuộm màu nơi bạn cài kiểu chữ đó. Nút của nó cho biết nó dành cho vai trò nào: **Change Headings** trên kiểu chữ của riêng bạn và **Choose for Headings** ở mọi nơi khác. Dòng mẫu xuống dòng thay vì bị cắt. Không gì trên thẻ xác nhận điều gì: nút mở sân khấu so sánh cho vai trò đó.
 
-![Bốn thẻ vai trò được mở ra - mỗi thẻ đặt trong kiểu chữ phục vụ nó, mang nhãn Starter ở nơi chưa ai chọn, và Italic đang theo primary](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&width=1440&height=1000&dpi=192&waitMs=2600&drive=click%3A%5Bdata-be-typemore-toggle%5D%3Bwait%3A600&cropSelector=.be-typecard-grid&walker=1&format=svg&dark=1&filename=bs-type-specimen)
+![Bốn thẻ vai trò được mở ra - mỗi thẻ đặt trong kiểu chữ phục vụ nó, mang nhãn Starter ở nơi chưa ai chọn, và Italic đang theo primary](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&system=new-design-system&width=1440&height=1000&dpi=192&waitMs=2600&drive=click%3A%5Bdata-be-typemore-toggle%5D%3Bwait%3A600&cropSelector=.be-typecard-grid&walker=1&format=svg&dark=1&filename=bs-type-specimen)
 
 ### Compare stage
 

@@ -22,7 +22,7 @@ Elindekine uyan yolu seç:
 
 Galeriyi ilk açtığında kısa bir karşılama aynı seçenekleri sunar: **Make it yours** Design System Setup'ı açar, **Bring your design** bir tasarım için dosya seçici açar ve **Explore the community tools** karşılamayı kapatır.
 
-![Yeni kurulumda Design System Setup'ın Colours odası: bir canlı çip, bir alan ve ilk kararın tamamı](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-roles-fold%5D%3Esummary%3Bwait%3A500&format=svg&walker=1&localize=1&dark=1&filename=brand-colours)
+![Yeni bir tasarım sisteminde Lolly Design System Setup'ın Colours odası: tek bir canlı çip, tek bir alan ve ilk kararın tamamı](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&system=new-design-system&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&dark=1&filename=bs-colours-new-system)
 
 Oradan sekiz oda, istediğin kadar ileri, istediğin sırayla götürür: **Board**, **Colours**, **Type**, **Logos**, **Tokens**, **Files**, **Rules** ve **Skills**. Uygulamadaki her önizleme yazdıkça güncellenir. [Lolly Design System Setup](/info/brand-studio.html) her odayı kapsar.
 

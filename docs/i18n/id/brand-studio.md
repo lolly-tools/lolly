@@ -84,7 +84,7 @@ Setiap lambang berakhir di grid delapan slot opsional, satu per **orientasi** da
 
 Grup yang belum memiliki lambang terlipat menjadi satu baris; buka untuk melihat slotnya. Klik slot untuk menambah PNG, SVG, JPEG, atau WebP, atau klik slot terisi untuk mengganti lambang. Semuanya tetap di perangkat ini.
 
-![Slot logo dengan Horizontal dan Vertical terbuka: setiap perlakuan adalah slot sendiri, dan setiap slot opsional](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dlogos&width=1440&height=1600&dpi=192&waitMs=1600&drive=click%3A.be-logo-identity%3Edetails%3Anth-of-type%281%29%3Esummary%3Bclick%3A.be-logo-identity%3Edetails%3Anth-of-type%282%29%3Esummary%3Bwait%3A600&cropSelector=.be-logo-grid&format=svg&walker=1&dark=1&filename=bs-logo-slots)
+![Slot logo dengan Horizontal dan Vertical terbuka: setiap perlakuan adalah slot sendiri, dan setiap slot opsional](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dlogos&system=new-design-system&width=1440&height=1600&dpi=192&waitMs=1600&drive=click%3A.be-logo-identity%3Edetails.be-logo-group--fold%3Anot%28.be-logo-group--custom%29%3Esummary%3Bwait%3A600&cropSelector=.be-logo-grid&format=svg&walker=1&dark=1&filename=bs-logo-slots)
 
 - **Lambang kustom** adalah lambang yang disebut brand Anda dengan namanya sendiri, seperti ikon, lencana, atau favicon.
 - **Identitas lain.** Sub-brand, produk, atau acara dapat memiliki set lengkapnya sendiri: **+ Add another logo** dan beri nama set itu. Set utama Anda adalah "Your logo". [Brand architectures](/info/brand-architectures.html) menunjukkan kapan identitas logo adalah blok yang tepat.
@@ -118,7 +118,7 @@ Warna Anda berada di samping pratinjau **Dalam konteks** pada layar lebar, dan d
 
 Design system menyatakan apa sebutan warna-warnanya dan untuk apa masing-masing, dan Lolly membacanya. **Peran warna** berada di bagian kepala ruang Colours. Pada layar lebar **Dalam konteks** berbagi tampilan, jadi perubahan tampak pada poster, bagan, dan kartu antarmuka saat Anda membuatnya.
 
-![Tabel Colour roles pada Lolly Demo dengan kata-katanya sendiri: chip colourway, lalu Lead, Partner, Paper, dan Ink, masing-masing dengan warna terang dan gelapnya, dibaca sebagai warna utama, warna mitra, latar belakang, dan teks, serta Quiet text dan Hairlines tercantum di bawah tabel sebagai pembacaan yang tidak diisi peran mana pun](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=2720&height=2000&dpi=192&waitMs=1800&cropSelector=%5Bdata-be-roles-fold%5D&format=svg&walker=1&dark=1&filename=bs-colour-roles)
+![Tabel Colour roles pada Wefthouse, merek tekstil rekaan, dengan kata-katanya sendiri: chip colourway Indigo, Madder dan Weld, lalu Main, Accent, Supporting dan Tertiary, masing-masing dengan warna terang dan gelapnya, dibaca sebagai warna utama, warna mitra dan hanya berdasarkan nama, serta Background, Text, Quiet text dan Hairlines tercantum di bawah tabel sebagai pembacaan yang tidak diisi peran mana pun](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&system=wefthouse&width=2720&height=2000&dpi=192&waitMs=1800&cropSelector=%5Bdata-be-roles-fold%5D&format=svg&walker=1&dark=1&filename=bs-colour-roles)
 
 Tabel memiliki empat kolom, dan di ponsel setiap baris menjadi kartu yang menjaga terang dan gelap berdampingan:
 
@@ -156,13 +156,13 @@ Pembacaan yang tidak diisi peran mana pun tetap seperti yang ditentukan design s
 
 **Tempat sebuah warna dipilih.** Setiap field warna di alat dan di Lolly Design dibuka dengan peran design system, dalam urutannya sendiri, dengan setiap kata dan fungsi warnanya ditampilkan. **Aa** di samping sebuah peran memilih warna yang berada di atas peran itu. Sisanya menyusul di bawah **Warna lain**, tanpa salinan milik colourway, warna-di-atas, dan pembacaan yang sudah diisi sebuah peran. Pilihan tetap terhubung ke peran dan mengikuti colourway, field terus menampilkan katanya apa pun colourway yang dipilih, dan Settings serta Tokens juga memakai kata itu. Design system tanpa peran mempertahankan grid swatch yang selalu dimilikinya.
 
-### Peran: yang dibaca alat
+### Setiap warna yang dibaca alat
 
 Saat **Peran warna** tertutup, keputusan pertama memimpin ruang itu sebagai chip, masing-masing menampilkan warna yang memerankannya dan namanya. Pada sistem tanpa kata sendiri, chip itu adalah **Primary**, **Secondary**, **Surface**, dan **Text**. Tekan sebuah chip untuk memilih warnanya dari swatch palet sendiri. **Setiap warna yang dibaca alat**, di dasar **Peran warna**, memuat strip lengkapnya.
 
-**Peran** menyatakan warna mana yang memerankan setiap bagian di tiap alat dan ekspor. Peran bersifat opsional (tiga warna lepas tanpa peran adalah sistem yang sangat baik), warna apa pun dapat mengambil satu, dan pembacaan menyatakan bagaimana teks terbaca, diukur terhadap permukaan, APCA lebih dulu. Setiap baris peran menampilkan warna sendiri dengan kekuatan penuh, warna starter yang menggantikan, atau **↳ mengikuti Primer**.
+Strip menampilkan tujuh warna yang dapat dibaca alat: Primary, Secondary, Surface, Text, Muted, Edge dan On primary, dalam kata milik design system bila ada. Setiap warna memerankan bagian yang sama di tiap alat dan ekspor. Tidak satu pun harus diatur (tiga warna lepas sudah menjadi sistem yang baik), warna apa pun dapat mengisi satu, dan pembacaan menyatakan bagaimana teks terbaca, diukur terhadap permukaan, APCA lebih dulu. Setiap baris menampilkan warna sendiri dengan kekuatan penuh, warna starter yang menggantikan, atau **↳ mengikuti Primer**.
 
-Strip menampilkan ketujuh peran yang dapat dibaca alat: Primary, Secondary, Surface, Text, Muted, Edge, dan On primary, dalam kata milik design system bila ada. On primary diturunkan dari primary, berbunyi **Turunan**, dan tidak memiliki pemilih. Sakelar **Terang** dan **Gelap** di sampingnya, serta yang di samping **Dalam konteks**, memilih tampilan mana yang ditunjukkan strip, palet, dan pratinjau.
+On primary diturunkan dari primary, berbunyi **Turunan** dan tidak memiliki pemilih. Sakelar **Terang** dan **Gelap** di sampingnya, serta yang di samping **Dalam konteks**, memilih tampilan mana yang ditunjukkan strip, palet dan pratinjau.
 
 Aksen aplikasi sendiri mengikuti design system secara default. Itulah pengaturan **Interface follows the design system** di **Settings → Appearance**; mematikan pengaturan membiarkan chrome aplikasi netral, sementara alat, kanvas, dan ekspor mengikuti design system dalam kedua kasus.
 
@@ -250,7 +250,7 @@ Unduhan palet (token desain, CSS, SCSS, GIMP, dan Adobe Swatch Exchange) berada 
 
 Tanpa huruf sendiri, ruangan hanya satu kartu: **Primary**, diset pada ukuran baca dalam huruf yang melayaninya hari ini, dengan tag **Starter**, tombol **Choose for Primary**, dan baris *"Nothing installs until you choose one."* Headings, code, dan italic mengikuti primary sampai Anda memilihnya; **Choose them separately** menampilkan kartunya.
 
-![Ruang Type dengan belum ada wajah yang dipilih - satu kartu pada ukuran baca, sebuah tag Starter di atasnya, dan satu Choose for Primary yang terisi](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&dark=1&filename=brand-type)
+![Ruang Type dengan belum ada wajah yang dipilih - satu kartu pada ukuran baca, sebuah tag Starter di atasnya, dan satu Choose for Primary yang terisi](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&system=new-design-system&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&dark=1&filename=brand-type)
 
 Pilih satu huruf dan ruangan membuka menjadi empat kartu peran, daftar Fonts, dan spesimen langsung:
 
@@ -261,7 +261,7 @@ Pilih satu huruf dan ruangan membuka menjadi empat kartu peran, daftar Fonts, da
 
 Kartu bertint hanya di tempat Anda memasang huruf itu. Tombolnya menyebut peran yang dituju: **Change Headings** pada huruf milik Anda dan **Choose for Headings** di tempat lain. Baris contoh membungkus, tidak terpotong. Tidak ada di kartu yang meng-commit apa pun: tombol membuka panggung perbandingan untuk peran itu.
 
-![Empat kartu peran tersingkap - masing-masing disetel dalam wajah yang melayaninya, dengan tag Starter di mana tidak ada yang memilih satu dan Italic mengikuti primary](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&width=1440&height=1000&dpi=192&waitMs=2600&drive=click%3A%5Bdata-be-typemore-toggle%5D%3Bwait%3A600&cropSelector=.be-typecard-grid&walker=1&format=svg&dark=1&filename=bs-type-specimen)
+![Empat kartu peran tersingkap - masing-masing disetel dalam wajah yang melayaninya, dengan tag Starter di mana tidak ada yang memilih satu dan Italic mengikuti primary](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&system=new-design-system&width=1440&height=1000&dpi=192&waitMs=2600&drive=click%3A%5Bdata-be-typemore-toggle%5D%3Bwait%3A600&cropSelector=.be-typecard-grid&walker=1&format=svg&dark=1&filename=bs-type-specimen)
 
 ### Compare stage
 

@@ -84,7 +84,7 @@ Her işaret, **yön** ve **işlem** başına bir olan sekiz isteğe bağlı yuva
 
 Henüz işareti olmayan bir grup tek satıra katlanır; yuvalarını görmek için aç. Bir PNG, SVG, JPEG veya WebP eklemek için bir yuvaya tıkla ya da işareti değiştirmek için dolu bir yuvaya tıkla. Her şey bu cihazda kalır.
 
-![Horizontal ve Vertical açık logo yuvaları: her işlem kendi yuvasıdır ve her yuva isteğe bağlıdır](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dlogos&width=1440&height=1600&dpi=192&waitMs=1600&drive=click%3A.be-logo-identity%3Edetails%3Anth-of-type%281%29%3Esummary%3Bclick%3A.be-logo-identity%3Edetails%3Anth-of-type%282%29%3Esummary%3Bwait%3A600&cropSelector=.be-logo-grid&format=svg&walker=1&dark=1&filename=bs-logo-slots)
+![Horizontal ve Vertical açık logo yuvaları: her işlem kendi yuvasıdır ve her yuva isteğe bağlıdır](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dlogos&system=new-design-system&width=1440&height=1600&dpi=192&waitMs=1600&drive=click%3A.be-logo-identity%3Edetails.be-logo-group--fold%3Anot%28.be-logo-group--custom%29%3Esummary%3Bwait%3A600&cropSelector=.be-logo-grid&format=svg&walker=1&dark=1&filename=bs-logo-slots)
 
 - **Custom marks**, markanın bir simge, arma veya favicon gibi kendi adıyla çağırdığı işaretlerdir.
 - **More identities.** Bir alt marka, ürün veya etkinliğin kendi tam seti olabilir: **+ Add another logo** ve sete bir ad ver. Ana setin "Your logo"dur. Bir logo kimliğinin ne zaman doğru blok olduğunu [Brand architectures](/info/brand-architectures.html) gösterir.
@@ -118,7 +118,7 @@ Renkler geniş ekranda bir **In context** önizlemesinin yanında, daha küçük
 
 Tasarım sistemi renklerinin adının ne olduğunu ve her birinin ne işe yaradığını söyler; Lolly bunu okur. **Colour roles** Colours odasının başında durur. Geniş ekranda **In context** görünümü paylaşır, bu yüzden bir değişiklik sen yaparken poster, grafik ve arayüz kartında görünür.
 
-![Lolly Demo üzerinde kendi sözcükleriyle Colour roles tablosu: colourway çipleri, ardından Lead, Partner, Paper ve Ink; her birinin açık ve koyu rengi var ve sırasıyla ana renk, ortak rengi, arka plan ve metin olarak okunuyor; tablonun altında hiçbir rolün doldurmadığı okumalar olarak Quiet text ve Hairlines listelenmiş](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=2720&height=2000&dpi=192&waitMs=1800&cropSelector=%5Bdata-be-roles-fold%5D&format=svg&walker=1&dark=1&filename=bs-colour-roles)
+![Wefthouse üzerinde, uydurma bir tekstil markası, kendi sözcükleriyle Colour roles tablosu: colourway çipleri Indigo, Madder ve Weld, ardından Main, Accent, Supporting ve Tertiary; her birinin açık ve koyu rengi var ve sırasıyla ana renk, ortak rengi ve yalnızca adıyla okunuyor; tablonun altında hiçbir rolün doldurmadığı okumalar olarak Background, Text, Quiet text ve Hairlines listelenmiş](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&system=wefthouse&width=2720&height=2000&dpi=192&waitMs=1800&cropSelector=%5Bdata-be-roles-fold%5D&format=svg&walker=1&dark=1&filename=bs-colour-roles)
 
 Tablonun dört sütunu vardır ve telefonda her satır, açık ve koyu değeri yan yana tutan bir karta dönüşür:
 
@@ -156,13 +156,13 @@ Hiçbir rolün doldurmadığı bir okuma tasarım sisteminin tanımladığı gib
 
 **Bir rengin seçildiği yer.** Bir araçtaki ve Lolly Design'daki her renk alanı, tasarım sisteminin rolleriyle, kendi sırasıyla ve her sözcük ile rengin ne işe yaradığı görünür olarak başlar. Bir rolün yanındaki **Aa**, o rolün üstünde duran rengi seçer. Gerisi **Other colours** altında gelir; bir colourway'in kendi kopyaları, üstteki renkler ve bir rolün zaten doldurduğu okumalar olmadan. Bir seçim role bağlı kalır ve colourway'i izler, alan hangi colourway seçilirse seçilsin sözcüğü göstermeye devam eder ve Settings ile Tokens da sözcüğü kullanır. Rolü olmayan bir tasarım sistemi her zaman sahip olduğu renk örnekleri ızgarasını korur.
 
-### Roller: araçların okuduğu
+### Bir aracın okuduğu her renk
 
 **Colour roles** kapalıyken ilk kararlar odanın başında çipler olarak durur; her biri rolü oynayan rengi ve adını gösterir. Kendi sözcükleri olmayan bir sistemde bunlar **Primary**, **Secondary**, **Surface** ve **Text**'tir. Rengini paletin kendi renk örneklerinden seçmek için bir çipe bas. **Colour roles** altındaki **Every colour a tool reads** tam şeridi içerir.
 
-**Roles**, her araçta ve dışa aktarmada hangi rengin hangi rolü oynadığını söyler. İsteğe bağlıdır (üç serbest renk ve rol olmaması mükemmel bir sistemdir), her renk bir rol alabilir ve kontrast göstergesi yüzeye karşı ölçülür, önce APCA. Her rol satırı tam güçte kendi bir rengi, yerine geçen bir starter rengi veya **↳ follows Primary** gösterir.
+Şerit, bir aracın okuyabileceği yedi rengi gösterir: Primary, Secondary, Surface, Text, Muted, Edge ve On primary; tasarım sisteminin kendi sözcükleri varsa onlarla. Her biri her araçta ve dışa aktarmada aynı rolü oynar. Hiçbirinin ayarlanması gerekmez (üç serbest renk iyi bir sistem olur), her renk birini doldurabilir ve kontrast göstergesi yüzeye karşı ölçülür, önce APCA. Her satır tam güçte kendi bir rengi, yerine geçen bir starter rengi veya **↳ follows Primary** gösterir.
 
-Şerit, bir aracın okuyabileceği yedi rolün hepsini gösterir: Primary, Secondary, Surface, Text, Muted, Edge ve On primary; tasarım sisteminin kendi sözcükleri varsa onlarla. On primary birincil renkten türetilir, **Derived** yazar ve seçicisi yoktur. Yanındaki **Light** ve **Dark** anahtarı ile **In context** yanındaki anahtar, şeridin, paletin ve önizlemenin hangi görünümü göstereceğini seçer.
+On primary birincil renkten türetilir, **Derived** yazar ve seçicisi yoktur. Yanındaki **Light** ve **Dark** anahtarı ile **In context** yanındaki anahtar, şeridin, paletin ve önizlemenin hangi görünümü göstereceğini seçer.
 
 Uygulamanın kendi vurgusu varsayılan olarak tasarım sistemini izler. Bu, **Settings → Appearance** içindeki **Interface follows the design system** ayarıdır; ayarı kapatmak uygulamanın arayüzünü nötr bırakır, araçlar, tuvaller ve dışa aktarmalar iki durumda da tasarım sistemini izler.
 
@@ -250,7 +250,7 @@ Palet indirmeleri (tasarım token'ları, CSS, SCSS, GIMP ve Adobe Swatch Exchang
 
 Kendi yazı tipi olmadığında oda tek bir karttır: bugün onu sunan yazı tipiyle okuma boyutunda ayarlı **Primary**, bir **Starter** etiketi, bir **Choose for Primary** düğmesi ve *"Nothing installs until you choose one."* satırı. Headings, code ve italic sen seçene kadar birincili izler; **Choose them separately** kartlarını gösterir.
 
-![Henüz bir yüz seçilmemiş Type odası - okuma boyutunda bir kart, üzerinde bir Starter etiketi ve dolu bir Choose for Primary](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&dark=1&filename=brand-type)
+![Henüz bir yüz seçilmemiş Type odası - okuma boyutunda bir kart, üzerinde bir Starter etiketi ve dolu bir Choose for Primary](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&system=new-design-system&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&dark=1&filename=brand-type)
 
 Bir yazı tipi seç ve oda dört rol kartına, Fonts listesine ve canlı bir örneğe açılır:
 
@@ -261,7 +261,7 @@ Bir yazı tipi seç ve oda dört rol kartına, Fonts listesine ve canlı bir ör
 
 Bir kart yalnızca o yazı tipini kurduğun yerde tonludur. Düğmesi hangi rol için olduğunu söyler: kendi yazı tipinde **Change Headings**, her yerde **Choose for Headings**. Örnek satır kesilmek yerine sarılır. Bir karttaki hiçbir şey bir şey uygulamaz: düğme o rol için karşılaştırma sahnesini açar.
 
-![Ortaya çıkan dört rol kartı - her biri kendine hizmet eden yüzde ayarlanmış, kimsenin seçmediği yerde bir Starter etiketiyle ve İtalik'in Birincili izlemesiyle](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&width=1440&height=1000&dpi=192&waitMs=2600&drive=click%3A%5Bdata-be-typemore-toggle%5D%3Bwait%3A600&cropSelector=.be-typecard-grid&walker=1&format=svg&dark=1&filename=bs-type-specimen)
+![Ortaya çıkan dört rol kartı - her biri kendine hizmet eden yüzde ayarlanmış, kimsenin seçmediği yerde bir Starter etiketiyle ve İtalik'in Birincili izlemesiyle](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&system=new-design-system&width=1440&height=1000&dpi=192&waitMs=2600&drive=click%3A%5Bdata-be-typemore-toggle%5D%3Bwait%3A600&cropSelector=.be-typecard-grid&walker=1&format=svg&dark=1&filename=bs-type-specimen)
 
 ### Karşılaştırma sahnesi
 

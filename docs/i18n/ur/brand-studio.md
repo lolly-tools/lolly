@@ -84,7 +84,7 @@
 
 جس گروپ میں ابھی نشان نہ ہوں وہ ایک لائن میں تہہ ہوتا ہے؛ اس کے سلاٹس دیکھنے کے لیے کھولیں۔ PNG، SVG، JPEG یا WebP شامل کرنے کے لیے سلاٹ پر کلک کریں، یا نشان بدلنے کے لیے بھرے سلاٹ پر کلک کریں۔ سب کچھ اس ڈیوائس پر رہتا ہے۔
 
-![لوگو سلاٹس جن میں Horizontal اور Vertical کھلے ہیں: ہر treatment اپنا سلاٹ ہے، اور ہر سلاٹ اختیاری ہے](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dlogos&width=1440&height=1600&dpi=192&waitMs=1600&drive=click%3A.be-logo-identity%3Edetails%3Anth-of-type%281%29%3Esummary%3Bclick%3A.be-logo-identity%3Edetails%3Anth-of-type%282%29%3Esummary%3Bwait%3A600&cropSelector=.be-logo-grid&format=svg&walker=1&dark=1&filename=bs-logo-slots)
+![لوگو سلاٹس جن میں Horizontal اور Vertical کھلے ہیں: ہر treatment اپنا سلاٹ ہے، اور ہر سلاٹ اختیاری ہے](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dlogos&system=new-design-system&width=1440&height=1600&dpi=192&waitMs=1600&drive=click%3A.be-logo-identity%3Edetails.be-logo-group--fold%3Anot%28.be-logo-group--custom%29%3Esummary%3Bwait%3A600&cropSelector=.be-logo-grid&format=svg&walker=1&dark=1&filename=bs-logo-slots)
 
 - **Custom marks** وہ نشان ہیں جنہیں آپ کا برانڈ اپنے نام سے پکارتا ہے، مثلاً آئیکن، crest یا favicon۔
 - **مزید identities۔** ذیلی برانڈ، پروڈکٹ یا ایونٹ کا اپنا مکمل سیٹ ہو سکتا ہے: **+ Add another logo** اور سیٹ کو نام دیں۔ آپ کا مرکزی سیٹ "Your logo" ہے۔ [Brand architectures](/info/brand-architectures.html) دکھاتا ہے کہ لوگو identity کب درست بلاک ہے۔
@@ -118,7 +118,7 @@
 
 ڈیزائن سسٹم بتاتا ہے کہ اس کے رنگ کیا کہلاتے ہیں اور ہر ایک کس کام کا ہے، اور Lolly اسے پڑھتا ہے۔ **Colour roles** Colours روم کے سر پر ہے۔ چوڑی اسکرین پر **In context** منظر بانٹتا ہے، اس لیے آپ کی ہر تبدیلی پوسٹر، چارٹ اور انٹرفیس کارڈ پر ساتھ ساتھ دکھتی ہے۔
 
-![Lolly Demo پر Colour roles کی جدول اس کے اپنے الفاظ میں: کلر وے چپس، پھر Lead، Partner، Paper اور Ink، ہر ایک اپنے light اور dark رنگ کے ساتھ، جو بالترتیب مرکزی رنگ، پارٹنر رنگ، پس منظر اور متن پڑھے جاتے ہیں، اور جدول کے نیچے Quiet text اور Hairlines ان ریڈنگز کے طور پر درج ہیں جنہیں کوئی رول نہیں بھرتا](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=2720&height=2000&dpi=192&waitMs=1800&cropSelector=%5Bdata-be-roles-fold%5D&format=svg&walker=1&dark=1&filename=bs-colour-roles)
+![Wefthouse پر، ایک فرضی ٹیکسٹائل برانڈ، اس کے اپنے الفاظ میں Colour roles کی جدول: کلر وے چپس Indigo، Madder اور Weld، پھر Main، Accent، Supporting اور Tertiary، ہر ایک اپنے light اور dark رنگ کے ساتھ، جو بالترتیب مرکزی رنگ، پارٹنر رنگ اور صرف نام سے پڑھے جاتے ہیں، اور جدول کے نیچے Background، Text، Quiet text اور Hairlines ان ریڈنگز کے طور پر درج ہیں جنہیں کوئی رول نہیں بھرتا](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&system=wefthouse&width=2720&height=2000&dpi=192&waitMs=1800&cropSelector=%5Bdata-be-roles-fold%5D&format=svg&walker=1&dark=1&filename=bs-colour-roles)
 
 جدول میں چار کالم ہیں، اور فون پر ہر قطار ایک کارڈ بن جاتی ہے جو light اور dark کو ساتھ ساتھ رکھتا ہے:
 
@@ -156,13 +156,13 @@
 
 **رنگ کہاں چنا جاتا ہے۔** ٹول اور Lolly Design کا ہر رنگ فیلڈ ڈیزائن سسٹم کے رولز سے شروع ہوتا ہے، اس کی اپنی ترتیب میں، ہر لفظ اور رنگ کے کام کی وضاحت کے ساتھ۔ رول کے ساتھ **Aa** وہ رنگ چنتا ہے جو اس رول پر بیٹھتا ہے۔ باقی **Other colours** کے تحت آتے ہیں، کلر وے کی اپنی نقلوں، on-colours اور اس ریڈنگ کے بغیر جسے کوئی رول پہلے ہی بھرتا ہو۔ چنا ہوا رنگ رول سے جڑا رہتا ہے اور کلر وے کی پیروی کرتا ہے، فیلڈ کوئی بھی کلر وے چنا ہو لفظ دکھاتا رہتا ہے، اور Settings اور Tokens بھی وہی لفظ استعمال کرتے ہیں۔ جس ڈیزائن سسٹم میں رولز نہ ہوں وہ swatches کا وہی گرڈ رکھتا ہے جو ہمیشہ سے تھا۔
 
-### رول: ٹولز کیا پڑھتے ہیں
+### ہر رنگ جو ٹول پڑھتا ہے
 
 **Colour roles** بند ہوں تو پہلے فیصلے روم کی قیادت چپس کے طور پر کرتے ہیں، ہر ایک وہ رنگ دکھاتی ہے جو رول ادا کرتا ہے اور اس کا نام۔ جس سسٹم کے اپنے الفاظ نہ ہوں اس میں یہ **Primary**، **Secondary**، **Surface** اور **Text** ہیں۔ چپ دبائیں تاکہ پیلیٹ کے اپنے swatches سے اس کا رنگ چنیں۔ **Every colour a tool reads**، **Colour roles** کے نیچے، میں پوری پٹی ہے۔
 
-**Roles** بتاتے ہیں کہ ہر ٹول اور ایکسپورٹ میں کون سا رنگ کون سا کردار ادا کرتا ہے۔ وہ اختیاری ہیں (تین ڈھیلے رنگ اور کوئی رول نہیں بالکل اچھا سسٹم ہے)، کوئی بھی رنگ ایک لے سکتا ہے اور ریڈ آؤٹ بتاتا ہے کہ سطح کے مقابل متن کیسا پڑھا جاتا ہے، پہلے APCA۔ ہر رول کی قطار پوری قوت پر اپنا رنگ، کھڑا ہوا starter رنگ، یا **↳ follows Primary** دکھاتی ہے۔
+پٹی وہ سات رنگ دکھاتی ہے جو ٹول پڑھ سکتا ہے: Primary، Secondary، Surface، Text، Muted، Edge اور On primary، ڈیزائن سسٹم کے اپنے الفاظ میں جہاں وہ موجود ہوں۔ ہر رنگ ہر ٹول اور ایکسپورٹ میں وہی کردار ادا کرتا ہے۔ ان میں سے کسی کو سیٹ کرنا ضروری نہیں (تین ڈھیلے رنگ ایک اچھا سسٹم بناتے ہیں)، کوئی بھی رنگ ایک کو بھر سکتا ہے اور ریڈ آؤٹ بتاتا ہے کہ سطح کے مقابل متن کیسا پڑھا جاتا ہے، پہلے APCA۔ ہر قطار پوری قوت پر اپنا رنگ، کھڑا ہوا starter رنگ، یا **↳ follows Primary** دکھاتی ہے۔
 
-پٹی وہ سب سات رول دکھاتی ہے جو ٹول پڑھ سکتا ہے: Primary، Secondary، Surface، Text، Muted، Edge اور On primary، ڈیزائن سسٹم کے اپنے الفاظ میں جہاں وہ موجود ہوں۔ On primary، primary سے اخذ ہوتا ہے، **Derived** پڑھتا ہے اور پکر نہیں رکھتا۔ اس کے ساتھ **Light** اور **Dark** سوئچ، اور **In context** کے ساتھ والا، چنتے ہیں کہ پٹی، پیلیٹ اور پری ویو کون سا روپ دکھائیں۔
+On primary، primary سے اخذ ہوتا ہے، **Derived** پڑھتا ہے اور پکر نہیں رکھتا۔ اس کے ساتھ **Light** اور **Dark** سوئچ، اور **In context** کے ساتھ والا، چنتے ہیں کہ پٹی، پیلیٹ اور پری ویو کون سا روپ دکھائیں۔
 
 ایپ کا اپنا accent بطور ڈیفالٹ ڈیزائن سسٹم کی پیروی کرتا ہے۔ یہ **Settings → Appearance** میں **Interface follows the design system** سیٹنگ ہے؛ سیٹنگ بند کرنے سے ایپ کا chrome غیر جانبدار رہتا ہے، جبکہ ٹولز، کینوس اور ایکسپورٹس دونوں صورتوں میں ڈیزائن سسٹم کی پیروی کرتے ہیں۔
 
@@ -250,7 +250,7 @@
 
 جب اپنا کوئی فیس نہ ہو تو روم ایک کارڈ ہے: **Primary**، آج جو فیس اسے پیش کر رہا ہے اس میں پڑھنے کے سائز پر، **Starter** ٹیگ، **Choose for Primary** بٹن اور *"Nothing installs until you choose one."* لائن کے ساتھ۔ Headings، code اور italic primary کی پیروی کرتے ہیں جب تک آپ انہیں نہ چنیں؛ **Choose them separately** ان کے کارڈز دکھاتا ہے۔
 
-![Type روم ابھی تک کوئی فیس منتخب نہ ہونے کی صورت میں - reading سائز پر ایک کارڈ، اس پر ایک Starter ٹیگ، اور ایک بھرا ہوا Choose for Primary](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&dark=1&filename=brand-type)
+![Type روم ابھی تک کوئی فیس منتخب نہ ہونے کی صورت میں - reading سائز پر ایک کارڈ، اس پر ایک Starter ٹیگ، اور ایک بھرا ہوا Choose for Primary](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&system=new-design-system&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&dark=1&filename=brand-type)
 
 ایک فیس چنیں اور روم چار رول کارڈز، Fonts فہرست اور لائیو specimen میں کھلتا ہے:
 
@@ -261,7 +261,7 @@
 
 کارڈ صرف وہاں رنگت والا ہوتا ہے جہاں آپ نے وہ فیس انسٹال کیا، اور اس کا بٹن بتاتا ہے کہ وہ کس رول کے لیے ہے: آپ کے اپنے فیس پر **Change Headings** اور باقی ہر جگہ **Choose for Headings**۔ نمونے کی لائن کٹنے کے بجائے لپٹ جاتی ہے۔ کارڈ پر کچھ بھی کمٹ نہیں کرتا: بٹن اس رول کا compare stage کھولتا ہے۔
 
-![چاروں رول کارڈز ظاہر - ہر ایک اُس فیس میں سیٹ جو اس کی خدمت کرتی ہے، جہاں کسی نے فیس نہیں چنی وہاں Starter ٹیگ اور Italic Primary کی پیروی کرتا ہوا](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&width=1440&height=1000&dpi=192&waitMs=2600&drive=click%3A%5Bdata-be-typemore-toggle%5D%3Bwait%3A600&cropSelector=.be-typecard-grid&walker=1&format=svg&dark=1&filename=bs-type-specimen)
+![چاروں رول کارڈز ظاہر - ہر ایک اُس فیس میں سیٹ جو اس کی خدمت کرتی ہے، جہاں کسی نے فیس نہیں چنی وہاں Starter ٹیگ اور Italic Primary کی پیروی کرتا ہوا](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&system=new-design-system&width=1440&height=1000&dpi=192&waitMs=2600&drive=click%3A%5Bdata-be-typemore-toggle%5D%3Bwait%3A600&cropSelector=.be-typecard-grid&walker=1&format=svg&dark=1&filename=bs-type-specimen)
 
 ### کمپیئر اسٹیج
 

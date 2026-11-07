@@ -84,7 +84,7 @@ Hvert merke havner i et rutenett med åtte valgfrie plasser, én per **orientati
 
 En gruppe uten merker ennå folder seg til én linje; åpne den for å se plassene. Klikk på en plass for å legge til en PNG, SVG, JPEG eller WebP, eller klikk på en fylt plass for å erstatte merket. Alt blir på denne enheten.
 
-![Logoplassene med Horizontal og Vertical åpnet: hver behandling er en egen plass, og hver plass er valgfri](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dlogos&width=1440&height=1600&dpi=192&waitMs=1600&drive=click%3A.be-logo-identity%3Edetails%3Anth-of-type%281%29%3Esummary%3Bclick%3A.be-logo-identity%3Edetails%3Anth-of-type%282%29%3Esummary%3Bwait%3A600&cropSelector=.be-logo-grid&format=svg&walker=1&dark=1&filename=bs-logo-slots)
+![Logoplassene med Horizontal og Vertical åpnet: hver behandling er en egen plass, og hver plass er valgfri](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dlogos&system=new-design-system&width=1440&height=1600&dpi=192&waitMs=1600&drive=click%3A.be-logo-identity%3Edetails.be-logo-group--fold%3Anot%28.be-logo-group--custom%29%3Esummary%3Bwait%3A600&cropSelector=.be-logo-grid&format=svg&walker=1&dark=1&filename=bs-logo-slots)
 
 - **Custom marks** er merker merkevaren din kaller ved eget navn, som et ikon, et våpenskjold eller et favicon.
 - **Flere identiteter.** En underbrand, et produkt eller et arrangement kan ha sitt eget fulle sett: **+ Add another logo** og gi settet et navn. Hovedsettet ditt er "Your logo". [Brand architectures](/info/brand-architectures.html) viser når en logoidentitet er den riktige blokken.
@@ -118,7 +118,7 @@ Fargene dine ligger ved siden av en **I sammenheng**-forhåndsvisning på en bre
 
 Designsystemet sier hva fargene kalles og hva hver av dem er til for, og Lolly leser det. **Fargeroller** ligger øverst i rommet Farger. På en bred skjerm deler **I sammenheng** visningen, så en endring vises på plakaten, diagrammet og grensesnittkortet mens du gjør den.
 
-![Tabellen Fargeroller på Lolly Demo med egne ord: fargevariantbrikkene, så Lead, Partner, Paper og Ink, hver med sin lyse og mørke farge, lest som hovedfargen, partnerfargen, bakgrunnen og teksten, og Dempet tekst og Hårlinjer oppført under tabellen som lesningene ingen rolle fyller](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=2720&height=2000&dpi=192&waitMs=1800&cropSelector=%5Bdata-be-roles-fold%5D&format=svg&walker=1&dark=1&filename=bs-colour-roles)
+![Tabellen Fargeroller på Wefthouse, et oppdiktet tekstilmerke, med egne ord: fargevariantbrikkene Indigo, Madder og Weld, så Main, Accent, Supporting og Tertiary, hver med sin lyse og mørke farge, lest som hovedfargen, partnerfargen og bare ved navn, og Bakgrunn, Tekst, Dempet tekst og Hårlinjer oppført under tabellen som lesningene ingen rolle fyller](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&system=wefthouse&width=2720&height=2000&dpi=192&waitMs=1800&cropSelector=%5Bdata-be-roles-fold%5D&format=svg&walker=1&dark=1&filename=bs-colour-roles)
 
 Tabellen har fire kolonner, og på en telefon blir hver rad et kort som holder lys og mørk side ved side:
 
@@ -156,13 +156,13 @@ En lesning ingen rolle fyller, blir som designsystemet definerer den, og rommet 
 
 **Hvor en farge velges.** Hvert fargefelt i et verktøy og i Lolly Design leder med designsystemets roller, i sin egen rekkefølge, med hvert ord og hva fargen er til for synlig. **Aa** ved siden av en rolle velger fargen som ligger på den rollen. Resten følger under **Andre farger**, uten en fargevariants egne kopier, på-fargene og enhver lesning en rolle allerede fyller. Et valg forblir koblet til rollen og følger fargevarianten, feltet fortsetter å vise ordet uansett hvilken fargevariant som er valgt, og Innstillinger og Tokens bruker også ordet. Et designsystem uten roller beholder rutenettet av fargeprøver det alltid har hatt.
 
-### Roller: det verktøy leser
+### Hver farge et verktøy leser
 
 Med **Fargeroller** lukket leder de første valgene rommet som brikker, hver med fargen som spiller rollen og navnet. I et system uten egne ord er disse **Primary**, **Secondary**, **Surface** og **Text**. Trykk på en brikke for å velge fargen fra paletens egne fargeprøver. **Hver farge et verktøy leser**, nederst i **Fargeroller**, har hele stripen.
 
-**Roller** sier hvilken farge som spiller hver del i hvert verktøy og hver eksport. De er valgfrie (tre løse farger og ingen roller er et helt utmerket system), enhver farge kan ta en, og avlesningen sier hvordan tekst leses, målt mot flaten, APCA først. Hver rolle-rad viser en egen farge i full styrke, en starterfarge som står inne, eller **↳ følger Primær**.
+Stripen viser de sju fargene et verktøy kan lese: Primary, Secondary, Surface, Text, Muted, Edge og On primary, med designsystemets egne ord der det har noen. Hver av dem spiller samme del i hvert verktøy og hver eksport. Ingen av dem må settes (tre løse farger utgjør et godt system), enhver farge kan fylle én, og avlesningen sier hvordan tekst leses, målt mot flaten, APCA først. Hver rad viser en egen farge i full styrke, en starterfarge som står inne, eller **↳ følger Primær**.
 
-Stripen viser alle de sju rollene et verktøy kan lese: Primary, Secondary, Surface, Text, Muted, Edge og On primary, med designsystemets egne ord der det har noen. On primary utledes fra primærfargen, leses **Avledet** og har ingen velger. Bryteren **Lys** og **Mørk** ved siden av, og den ved siden av **I sammenheng**, velger hvilket utseende stripen, paletten og forhåndsvisningen viser.
+On primary utledes fra primærfargen, leses **Avledet** og har ingen velger. Bryteren **Lys** og **Mørk** ved siden av, og den ved siden av **I sammenheng**, velger hvilket utseende stripen, paletten og forhåndsvisningen viser.
 
 Appens egen aksent følger designsystemet som standard. Det er innstillingen **Interface follows the design system** i **Settings → Appearance**; å slå innstillingen av lar appens ramme være nøytral, mens verktøy, lerreter og eksporter følger designsystemet uansett.
 
@@ -250,7 +250,7 @@ Palettnedlastingene (designtokens, CSS, SCSS, GIMP og Adobe Swatch Exchange) lig
 
 Uten en egen skrift er rommet ett kort: **Primary**, satt i lesestørrelse i skriften som tjener det i dag, med et **Starter**-merke, en **Choose for Primary**-knapp og linjen *"Nothing installs until you choose one."* Headings, code og italic følger primærskriften til du velger dem; **Choose them separately** viser kortene deres.
 
-![Typografi-rommet med ingen skrift valgt ennå - ett kort i lesestørrelse, en Start-tagg på det og en fylt Choose for Primary](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&dark=1&filename=brand-type)
+![Typografi-rommet med ingen skrift valgt ennå - ett kort i lesestørrelse, en Start-tagg på det og en fylt Choose for Primary](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&system=new-design-system&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&dark=1&filename=brand-type)
 
 Velg én skrift, så åpner rommet seg til fire rollekort, Fonts-listen og et levende prøveeksempel:
 
@@ -261,7 +261,7 @@ Velg én skrift, så åpner rommet seg til fire rollekort, Fonts-listen og et le
 
 Et kort er bare tonet der du installerte den skriften. Knappen sier hvilken rolle den gjelder: **Change Headings** på en skrift du eier selv og **Choose for Headings** overalt ellers. Prøvelinjen brytes i stedet for å kuttes. Ingenting på et kort bekrefter noe: knappen åpner sammenligningsscenen for den rollen.
 
-![De fire rollekortene avdekket - hvert satt i skriften som betjener det, med en Start-tagg der ingen har valgt en, og Italic som følger primærfargen](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&width=1440&height=1000&dpi=192&waitMs=2600&drive=click%3A%5Bdata-be-typemore-toggle%5D%3Bwait%3A600&cropSelector=.be-typecard-grid&walker=1&format=svg&dark=1&filename=bs-type-specimen)
+![De fire rollekortene avdekket - hvert satt i skriften som betjener det, med en Start-tagg der ingen har valgt en, og Italic som følger primærfargen](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&system=new-design-system&width=1440&height=1000&dpi=192&waitMs=2600&drive=click%3A%5Bdata-be-typemore-toggle%5D%3Bwait%3A600&cropSelector=.be-typecard-grid&walker=1&format=svg&dark=1&filename=bs-type-specimen)
 
 ### Sammenligningsstadiet
 

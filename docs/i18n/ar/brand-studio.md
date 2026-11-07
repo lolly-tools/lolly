@@ -84,7 +84,7 @@
 
 المجموعة التي لا علامات فيها بعد تنطوي في سطر واحد؛ افتحها لترى خاناتها. انقر خانة لإضافة PNG أو SVG أو JPEG أو WebP، أو انقر خانة ممتلئة لاستبدال العلامة. كل شيء يبقى على هذا الجهاز.
 
-![خانات الشعار مع فتح Horizontal وVertical: كل معالجة خانة خاصة بها، وكل خانة اختيارية](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dlogos&width=1440&height=1600&dpi=192&waitMs=1600&drive=click%3A.be-logo-identity%3Edetails%3Anth-of-type%281%29%3Esummary%3Bclick%3A.be-logo-identity%3Edetails%3Anth-of-type%282%29%3Esummary%3Bwait%3A600&cropSelector=.be-logo-grid&format=svg&walker=1&dark=1&filename=bs-logo-slots)
+![خانات الشعار مع فتح Horizontal وVertical: كل معالجة خانة خاصة بها، وكل خانة اختيارية](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dlogos&system=new-design-system&width=1440&height=1600&dpi=192&waitMs=1600&drive=click%3A.be-logo-identity%3Edetails.be-logo-group--fold%3Anot%28.be-logo-group--custom%29%3Esummary%3Bwait%3A600&cropSelector=.be-logo-grid&format=svg&walker=1&dark=1&filename=bs-logo-slots)
 
 - **العلامات المخصصة** علامات تسميها علامتك باسمها الخاص، مثل أيقونة أو شعار نبالة أو favicon.
 - **هويات أكثر.** يمكن لعلامة فرعية أو منتج أو فعالية أن تملك مجموعتها الكاملة: **+ Add another logo** وسمِّ المجموعة. مجموعتك الرئيسية هي "Your logo". يبيّن [هياكل العلامة](/info/brand-architectures.html) متى تكون هوية الشعار الكتلة الصحيحة.
@@ -118,7 +118,7 @@
 
 يقول نظام التصميم ما تسمى به ألوانه وما غرض كل منها، ويقرأ Lolly ذلك. يقع **Colour roles** في رأس غرفة Colours. وعلى الشاشة العريضة يشارك **In context** العرض، فيظهر التغيير على الملصق والمخطط وبطاقة الواجهة أثناء إجرائه.
 
-![جدول Colour roles على Lolly Demo بكلماته الخاصة: شرائح أطقم الألوان، ثم Lead وPartner وPaper وInk، لكل منها لونه الفاتح والداكن، وتقرأ لونا رئيسيا ولونا شريكا وخلفية ونصا، مع Quiet text وHairlines مسرودين تحت الجدول بوصفهما قراءتين لا يملؤهما أي دور](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=2720&height=2000&dpi=192&waitMs=1800&cropSelector=%5Bdata-be-roles-fold%5D&format=svg&walker=1&dark=1&filename=bs-colour-roles)
+![جدول Colour roles على Wefthouse، وهي علامة منسوجات مخترعة، بكلماته الخاصة: شرائح أطقم الألوان Indigo وMadder وWeld، ثم Main وAccent وSupporting وTertiary، لكل منها لونه الفاتح والداكن، وتقرأ لونا رئيسيا ولونا شريكا وبالاسم فقط، مع Background وText وQuiet text وHairlines مسرودة تحت الجدول بوصفها قراءات لا يملؤها أي دور](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&system=wefthouse&width=2720&height=2000&dpi=192&waitMs=1800&cropSelector=%5Bdata-be-roles-fold%5D&format=svg&walker=1&dark=1&filename=bs-colour-roles)
 
 للجدول أربعة أعمدة، وعلى الهاتف يصبح كل صف بطاقة تبقي الفاتح والداكن جنبا إلى جنب:
 
@@ -156,13 +156,13 @@
 
 **أين يختار اللون.** يبدأ كل حقل لون في أداة وفي Lolly Design بأدوار نظام التصميم، بترتيبه الخاص، مع إظهار كل كلمة وغرض اللون. ويختار **Aa** بجانب دور اللون الذي يوضع على ذلك الدور. وتتبع بقية الألوان تحت **Other colours**، دون نسخ طقم الألوان الخاصة، وألوان On، وأي قراءة يملؤها دور أصلا. ويبقى الاختيار مرتبطا بالدور ويتبع طقم الألوان، ويواصل الحقل عرض الكلمة أيا كان طقم الألوان المختار، وتستخدم Settings وTokens الكلمة أيضا. أما نظام التصميم بلا أدوار فيحتفظ بشبكة العينات التي كانت له دائما.
 
-### الأدوار: ما تقرؤه الأدوات
+### كل لون تقرؤه الأداة
 
 مع إغلاق **Colour roles**، تتصدر القرارات الأولى الغرفة شرائح، تعرض كل منها اللون الذي يؤدي الدور واسمه. وفي نظام بلا كلمات خاصة به تكون هذه **Primary** و**Secondary** و**Surface** و**Text**. اضغط شريحة لتختار لونها من عينات اللوحة نفسها. ويحتوي **Every colour a tool reads**، في أسفل **Colour roles**، الشريط الكامل.
 
-تقول **Roles** أي لون يؤدي كل دور في كل أداة وتصدير. وهي اختيارية (ثلاثة ألوان سائبة بلا أدوار نظام جيد تماما)، ويمكن لأي لون أن يأخذ دورا، ويقول المقروء كيف يقرأ النص، مقيسا مقابل السطح، APCA أولا. يعرض كل صف دور لونا خاصا بكامل القوة، أو لون starter قائما مقامه، أو **↳ follows Primary**.
+يعرض الشريط الألوان السبعة التي تستطيع أداة قراءتها: Primary وSecondary وSurface وText وMuted وEdge وOn primary، بكلمات نظام التصميم نفسه حيث توجد. ويؤدي كل لون الدور نفسه في كل أداة وتصدير. ولا يلزم ضبط أي منها (ثلاثة ألوان سائبة تصنع نظاما جيدا)، ويمكن لأي لون أن يملأ واحدا منها، ويقول المقروء كيف يقرأ النص، مقيسا مقابل السطح، APCA أولا. يعرض كل صف لونا خاصا بكامل القوة، أو لون starter قائما مقامه، أو **↳ follows Primary**.
 
-يعرض الشريط الأدوار السبعة كلها التي تستطيع أداة قراءتها: Primary وSecondary وSurface وText وMuted وEdge وOn primary، بكلمات نظام التصميم نفسه حيث توجد. ويشتق On primary من الأساسي ويقرأ **Derived** وليس له منتق. ويختار مفتاح **Light** و**Dark** بجانبه، والمفتاح الذي بجانب **In context**، أي مظهر يعرضه الشريط واللوحة والمعاينة.
+ويشتق On primary من الأساسي ويقرأ **Derived** وليس له منتق. ويختار مفتاح **Light** و**Dark** بجانبه، والمفتاح الذي بجانب **In context**، أي مظهر يعرضه الشريط واللوحة والمعاينة.
 
 تتبع لكنة التطبيق نفسه نظام التصميم افتراضياً. هذا هو إعداد **Interface follows the design system** في **Settings → Appearance**؛ وإيقاف الإعداد يترك واجهة التطبيق محايدة، بينما تتبع الأدوات واللوحات والتصديرات نظام التصميم في الحالتين.
 
@@ -250,7 +250,7 @@
 
 بلا وجه خاص بها، تكون الغرفة بطاقة واحدة: **Primary**، بحجم القراءة بالوجه الذي يخدمه اليوم، بوسم **Starter** وزر **Choose for Primary** وسطر *"Nothing installs until you choose one."* تتبع Headings وCode وItalic الأساسي إلى أن تختارها؛ ويعرض **Choose them separately** بطاقاتها.
 
-![غرفة الخط بلا وجه مختار بعد - بطاقة واحدة بحجم القراءة، ووسم تمهيدي عليها، وChoose for Primary واحد ممتلئ](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&dark=1&filename=brand-type)
+![غرفة الخط بلا وجه مختار بعد - بطاقة واحدة بحجم القراءة، ووسم تمهيدي عليها، وChoose for Primary واحد ممتلئ](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&system=new-design-system&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&dark=1&filename=brand-type)
 
 اختر وجهاً واحداً فتنفتح الغرفة على أربع بطاقات أدوار وقائمة Fonts وعينة حية:
 
@@ -261,7 +261,7 @@
 
 لا تُلوَّن البطاقة إلا حيث ثبّتّ ذلك الوجه، ويقول زرها لأي دور هو: **Change Headings** على وجه من عندك و**Choose for Headings** في كل مكان آخر. ويلتف سطر العينة بدلاً من أن يُقطع. لا شيء على بطاقة يلتزم أي شيء: يفتح الزر منصة المقارنة لذلك الدور.
 
-![بطاقات الأدوار الأربع مكشوفة - كل واحدة بالوجه الذي يخدمها، مع وسم تمهيدي حيث لم يختر أحد وجها والمائل يتبع الأساسي](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&width=1440&height=1000&dpi=192&waitMs=2600&drive=click%3A%5Bdata-be-typemore-toggle%5D%3Bwait%3A600&cropSelector=.be-typecard-grid&walker=1&format=svg&dark=1&filename=bs-type-specimen)
+![بطاقات الأدوار الأربع مكشوفة - كل واحدة بالوجه الذي يخدمها، مع وسم تمهيدي حيث لم يختر أحد وجها والمائل يتبع الأساسي](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&system=new-design-system&width=1440&height=1000&dpi=192&waitMs=2600&drive=click%3A%5Bdata-be-typemore-toggle%5D%3Bwait%3A600&cropSelector=.be-typecard-grid&walker=1&format=svg&dark=1&filename=bs-type-specimen)
 
 ### مسرح المقارنة
 

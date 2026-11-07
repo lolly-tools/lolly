@@ -84,7 +84,7 @@ Fiecare marcă ajunge într-o grilă de opt sloturi opționale, câte unul pe **
 
 Un grup fără mărci încă se pliază la o linie; deschide-l ca să vezi sloturile lui. Fă clic pe un slot ca să adaugi un PNG, SVG, JPEG sau WebP sau fă clic pe un slot umplut ca să înlocuiești marca. Totul rămâne pe acest dispozitiv.
 
-![Sloturile de logo cu Horizontal și Vertical deschise: fiecare tratament este un slot separat, iar fiecare slot este opțional](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dlogos&width=1440&height=1600&dpi=192&waitMs=1600&drive=click%3A.be-logo-identity%3Edetails%3Anth-of-type%281%29%3Esummary%3Bclick%3A.be-logo-identity%3Edetails%3Anth-of-type%282%29%3Esummary%3Bwait%3A600&cropSelector=.be-logo-grid&format=svg&walker=1&dark=1&filename=bs-logo-slots)
+![Sloturile de logo cu Horizontal și Vertical deschise: fiecare tratament este un slot separat, iar fiecare slot este opțional](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dlogos&system=new-design-system&width=1440&height=1600&dpi=192&waitMs=1600&drive=click%3A.be-logo-identity%3Edetails.be-logo-group--fold%3Anot%28.be-logo-group--custom%29%3Esummary%3Bwait%3A600&cropSelector=.be-logo-grid&format=svg&walker=1&dark=1&filename=bs-logo-slots)
 
 - **Mărci personalizate** sunt mărci pe care brandul tău le numește cu numele lui, precum o pictogramă, o stemă sau un favicon.
 - **Mai multe identități.** Un sub-brand, produs sau eveniment poate avea propriul set complet: **+ Add another logo** și dă un nume setului. Setul tău principal este „Your logo”. [Arhitecturi de brand](/info/brand-architectures.html) arată când o identitate de logo este blocul potrivit.
@@ -118,7 +118,7 @@ Culorile tale stau lângă o previzualizare **In context** pe un ecran lat și d
 
 Sistemul de design spune cum se numesc culorile lui și la ce folosește fiecare, iar Lolly citește asta. **Colour roles** se află la începutul camerei Colours. Pe un ecran lat **In context** împarte vederea, așa că o schimbare apare pe afiș, diagramă și cardul de interfață pe măsură ce o faci.
 
-![Tabelul Colour roles pe Lolly Demo în cuvintele lui: chip-urile de colourway, apoi Lead, Partner, Paper și Ink, fiecare cu culoarea lui luminoasă și întunecată, citite ca culoarea principală, culoarea partenerului, fundalul și textul, iar Quiet text și Hairlines sunt listate sub tabel ca citiri pe care niciun rol nu le umple](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=2720&height=2000&dpi=192&waitMs=1800&cropSelector=%5Bdata-be-roles-fold%5D&format=svg&walker=1&dark=1&filename=bs-colour-roles)
+![Tabelul Colour roles pe Wefthouse, un brand textil inventat, în cuvintele lui: chip-urile de colourway Indigo, Madder și Weld, apoi Main, Accent, Supporting și Tertiary, fiecare cu culoarea lui luminoasă și întunecată, citite ca culoarea principală, culoarea partenerului și doar după nume, iar Background, Text, Quiet text și Hairlines sunt listate sub tabel ca citiri pe care niciun rol nu le umple](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&system=wefthouse&width=2720&height=2000&dpi=192&waitMs=1800&cropSelector=%5Bdata-be-roles-fold%5D&format=svg&walker=1&dark=1&filename=bs-colour-roles)
 
 Tabelul are patru coloane, iar pe telefon fiecare rând devine un card care ține aspectul luminos și pe cel întunecat unul lângă altul:
 
@@ -156,13 +156,13 @@ O citire pe care niciun rol nu o umple rămâne așa cum o definește sistemul d
 
 **Unde se alege o culoare.** Fiecare câmp de culoare dintr-un instrument și din Lolly Design începe cu rolurile sistemului de design, în ordinea lui, cu fiecare cuvânt și cu ce face culoarea la vedere. **Aa** de lângă un rol alege culoarea care stă pe acel rol. Restul urmează sub **Other colours**, fără copiile proprii ale unui colourway, culorile „On” (text pe rol) și orice citire pe care un rol o umple deja. O alegere rămâne legată de rol și urmează colourway-ul, câmpul continuă să arate cuvântul oricare colourway ar fi ales, iar Settings și Tokens folosesc și ele cuvântul. Un sistem de design fără roluri păstrează grila de mostre pe care a avut-o dintotdeauna.
 
-### Roluri: ce citesc instrumentele
+### Fiecare culoare pe care o citește un instrument
 
 Cu **Colour roles** închis, primele decizii conduc camera ca chip-uri, fiecare arătând culoarea care joacă rolul și numele ei. Pe un sistem fără cuvinte proprii acestea sunt **Primary**, **Secondary**, **Surface** și **Text**. Apasă un chip ca să alegi culoarea lui dintre mostrele proprii ale paletei. **Every colour a tool reads**, la baza **Colour roles**, are banda completă.
 
-**Rolurile** spun ce culoare joacă fiecare parte în fiecare instrument și export. Sunt opționale (trei culori libere și niciun rol este un sistem perfect bun), orice culoare poate primi unul, iar citirea spune cum se citește textul, măsurat față de suprafață, mai întâi APCA. Fiecare rând de rol arată o culoare proprie la intensitate deplină, o culoare starter care ține locul sau **↳ follows Primary**.
+Banda arată cele șapte culori pe care le poate citi un instrument: Primary, Secondary, Surface, Text, Muted, Edge și On primary, în cuvintele proprii ale sistemului de design acolo unde le are. Fiecare joacă aceeași parte în fiecare instrument și export. Niciuna nu trebuie setată (trei culori libere sunt un sistem bun), orice culoare poate umple una, iar citirea spune cum se citește textul, măsurat față de suprafață, mai întâi APCA. Fiecare rând arată o culoare proprie la intensitate deplină, o culoare starter care ține locul sau **↳ follows Primary**.
 
-Banda arată toate cele șapte roluri pe care le poate citi un instrument: Primary, Secondary, Surface, Text, Muted, Edge și On primary, în cuvintele proprii ale sistemului de design acolo unde le are. On primary este derivat din primară, scrie **Derived** și nu are selector. Comutatorul **Light** și **Dark** de lângă ea și cel de lângă **In context** aleg ce aspect arată banda, paleta și previzualizarea.
+On primary este derivat din primară, scrie **Derived** și nu are selector. Comutatorul **Light** și **Dark** de lângă el și cel de lângă **In context** aleg ce aspect arată banda, paleta și previzualizarea.
 
 Accentul propriu al aplicației urmează implicit sistemul de design. Aceasta este setarea **Interface follows the design system** din **Settings → Appearance**; oprirea ei lasă interfața aplicației neutră, în timp ce instrumentele, canvasurile și exporturile urmează sistemul de design în ambele cazuri.
 
@@ -250,7 +250,7 @@ Descărcările paletei (design tokens, CSS, SCSS, GIMP și Adobe Swatch Exchange
 
 Fără un font propriu, camera este un singur card: **Primary**, setat la dimensiune de citire în fontul care îl servește astăzi, cu o etichetă **Starter**, un buton **Choose for Primary** și linia *„Nothing installs until you choose one.”* Headings, code și italic urmează primarul până le alegi; **Choose them separately** arată cardurile lor.
 
-![Camera Type fără niciun font ales încă - un card la mărime de citire, o etichetă Starter pe el și un buton plin Choose for Primary](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&dark=1&filename=brand-type)
+![Camera Type fără niciun font ales încă - un card la mărime de citire, o etichetă Starter pe el și un buton plin Choose for Primary](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&system=new-design-system&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&dark=1&filename=brand-type)
 
 Alege un font și camera se deschide în patru carduri de rol, lista Fonts și un specimen live:
 
@@ -261,7 +261,7 @@ Alege un font și camera se deschide în patru carduri de rol, lista Fonts și u
 
 Un card este nuanțat doar unde ai instalat acel font. Butonul lui spune pentru ce rol este: **Change Headings** pe un font al tău și **Choose for Headings** peste tot în rest. Linia de exemplu se împachetează în loc să fie tăiată. Nimic de pe un card nu confirmă nimic: butonul deschide scena de comparare pentru acel rol.
 
-![Cele patru carduri de rol dezvăluite - fiecare setat în fontul care îl servește, cu o etichetă Starter acolo unde nimeni nu a ales unul și Italic urmând principalul](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&width=1440&height=1000&dpi=192&waitMs=2600&drive=click%3A%5Bdata-be-typemore-toggle%5D%3Bwait%3A600&cropSelector=.be-typecard-grid&walker=1&format=svg&dark=1&filename=bs-type-specimen)
+![Cele patru carduri de rol dezvăluite - fiecare setat în fontul care îl servește, cu o etichetă Starter acolo unde nimeni nu a ales unul și Italic urmând principalul](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&system=new-design-system&width=1440&height=1000&dpi=192&waitMs=2600&drive=click%3A%5Bdata-be-typemore-toggle%5D%3Bwait%3A600&cropSelector=.be-typecard-grid&walker=1&format=svg&dark=1&filename=bs-type-specimen)
 
 ### Scena de comparație
 

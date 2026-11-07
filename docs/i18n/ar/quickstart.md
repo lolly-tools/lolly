@@ -22,7 +22,7 @@
 
 في أول مرة تفتح فيها المعرض، يقدّم ترحيب قصير الخيارات نفسها: يفتح **Make it yours** الأداة Design System Setup، ويفتح **Bring your design** منتقي ملفات لتصميم، ويغلق **Explore the community tools** الترحيب.
 
-![غرفة Colours في Design System Setup على تثبيت جديد: شريحة حية واحدة وحقل واحد والقرار الأول كاملاً](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-roles-fold%5D%3Esummary%3Bwait%3A500&format=svg&walker=1&localize=1&dark=1&filename=brand-colours)
+![غرفة Colours في Lolly Design System Setup على نظام تصميم جديد: شريحة حية واحدة وحقل واحد والقرار الأول كاملا](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&system=new-design-system&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&dark=1&filename=bs-colours-new-system)
 
 ومن هناك، تأخذه ثماني غرف إلى أي مدى تريد، بأي ترتيب: **Board** و**Colours** و**Type** و**Logos** و**Tokens** و**Files** و**Rules** و**Skills**. تتحدث كل معاينة في التطبيق أثناء الكتابة. يغطي [Lolly Design System Setup](/info/brand-studio.html) كل غرفة.
 

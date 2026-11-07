@@ -84,7 +84,7 @@ Lolly Demo처럼 앱과 함께 오고 편집할 수 있는 디자인 시스템�
 
 아직 마크가 없는 그룹은 한 줄로 접혀 있으며 열면 슬롯이 보여요. 슬롯을 클릭해 PNG, SVG, JPEG, WebP를 추가하거나, 채워진 슬롯을 클릭해 마크를 교체하세요. 모든 것은 이 기기에 남아요.
 
-![Horizontal과 Vertical이 열린 로고 슬롯: 각 처리 방식이 자체 슬롯이며 모든 슬롯은 선택 사항이에요](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dlogos&width=1440&height=1600&dpi=192&waitMs=1600&drive=click%3A.be-logo-identity%3Edetails%3Anth-of-type%281%29%3Esummary%3Bclick%3A.be-logo-identity%3Edetails%3Anth-of-type%282%29%3Esummary%3Bwait%3A600&cropSelector=.be-logo-grid&format=svg&walker=1&dark=1&filename=bs-logo-slots)
+![Horizontal과 Vertical이 열린 로고 슬롯: 각 처리 방식이 자체 슬롯이며 모든 슬롯은 선택 사항이에요](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dlogos&system=new-design-system&width=1440&height=1600&dpi=192&waitMs=1600&drive=click%3A.be-logo-identity%3Edetails.be-logo-group--fold%3Anot%28.be-logo-group--custom%29%3Esummary%3Bwait%3A600&cropSelector=.be-logo-grid&format=svg&walker=1&dark=1&filename=bs-logo-slots)
 
 - **Custom marks**는 아이콘, 문장, 파비콘처럼 브랜드가 자체 이름으로 부르는 마크예요.
 - **More identities.** 서브 브랜드, 제품, 행사는 자체 전체 세트를 가질 수 있어요. **+ Add another logo**를 누르고 세트에 이름을 붙이세요. 기본 세트는 "Your logo"예요. [브랜드 아키텍처](/info/brand-architectures.html)가 로고 신원이 알맞은 블록인 경우를 보여줘요.
@@ -118,7 +118,7 @@ Lolly Demo처럼 앱과 함께 오고 편집할 수 있는 디자인 시스템�
 
 디자인 시스템은 색상이 무엇으로 불리고 각각 무엇을 위한 것인지 알려주고, Lolly가 그것을 읽어요. **Colour roles**는 Colours 룸 맨 위에 있어요. 넓은 화면에서는 **In context**가 화면을 함께 쓰므로, 변경하는 대로 포스터, 차트, 인터페이스 카드에 바로 보여요.
 
-![Lolly Demo의 Colour roles 표를 디자인 시스템 자신의 단어로 본 모습: 컬러웨이 칩, 그다음 Lead, Partner, Paper, Ink가 각각 라이트와 다크 색상과 함께 있고, 각각 대표 색상, 파트너 색상, 배경, 텍스트로 읽히며, 표 아래에 어떤 역할도 채우지 않는 읽는 방식으로 Quiet text와 Hairlines가 나열돼 있어요](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=2720&height=2000&dpi=192&waitMs=1800&cropSelector=%5Bdata-be-roles-fold%5D&format=svg&walker=1&dark=1&filename=bs-colour-roles)
+![Wefthouse(가상의 텍스타일 브랜드)의 Colour roles 표를 디자인 시스템 자신의 단어로 본 모습: 컬러웨이 칩 Indigo, Madder, Weld, 그다음 Main, Accent, Supporting, Tertiary가 각각 라이트와 다크 색상과 함께 있고, 각각 대표 색상, 파트너 색상, 이름으로만 읽히며, 표 아래에 어떤 역할도 채우지 않는 읽는 방식으로 Background, Text, Quiet text, Hairlines가 나열돼 있어요](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&system=wefthouse&width=2720&height=2000&dpi=192&waitMs=1800&cropSelector=%5Bdata-be-roles-fold%5D&format=svg&walker=1&dark=1&filename=bs-colour-roles)
 
 표에는 열이 네 개 있고, 휴대폰에서는 각 행이 라이트와 다크를 나란히 보여주는 카드가 돼요:
 
@@ -156,13 +156,13 @@ Lolly Demo처럼 앱과 함께 오고 편집할 수 있는 디자인 시스템�
 
 **색상을 고르는 곳.** 도구와 Lolly Design의 모든 색상 필드는 디자인 시스템의 역할을 자체 순서대로 맨 앞에 놓고, 각 단어와 그 색상이 무엇을 위한 것인지를 함께 보여줘요. 역할 옆의 **Aa**는 그 역할 위에 놓을 색상을 골라요. 나머지는 **다른 색상** 아래에 이어지며, 컬러웨이 자체의 사본, 온 컬러, 역할이 이미 채운 읽는 방식은 제외돼요. 고른 색은 역할에 연결된 채로 컬러웨이를 따라가고, 필드는 어떤 컬러웨이를 골라도 그 단어를 계속 보여주며, Settings와 Tokens도 그 단어를 써요. 역할이 없는 디자인 시스템은 늘 있던 견본 격자를 그대로 유지해요.
 
-### 역할: 도구가 읽는 것
+### 도구가 읽는 모든 색상
 
 **Colour roles**를 닫으면 첫 결정들이 룸 맨 위에 칩으로 나오며, 각 칩은 그 역할을 맡은 색상과 이름을 보여줘요. 자체 단어가 없는 시스템에서는 **Primary**, **Secondary**, **Surface**, **Text**예요. 칩을 누르면 팔레트의 견본에서 색상을 고를 수 있어요. **도구가 읽는 모든 색상**은 **Colour roles** 맨 아래에 있으며 전체 띠가 있어요.
 
-**역할**은 모든 도구와 내보내기에서 어떤 색상이 어떤 부분을 맡을지 알려줘요. 선택 사항이에요(느슨한 색상 세 개에 역할이 없어도 충분히 좋은 시스템이에요). 어떤 색상이든 역할을 맡을 수 있고, 판독값은 텍스트가 표면 위에서 어떻게 읽히는지 APCA를 먼저 써서 알려줘요. 각 역할 행은 완전한 강도의 자체 색상, 대신 서 있는 스타터 색상, 또는 **↳ follows Primary**를 보여줘요.
+띠는 도구가 읽을 수 있는 일곱 가지 색상을 보여줘요. Primary, Secondary, Surface, Text, Muted, Edge, On primary이며, 디자인 시스템에 자체 단어가 있으면 그 단어로 나와요. 각 색상은 모든 도구와 내보내기에서 같은 부분을 맡아요. 어느 것도 꼭 설정할 필요는 없어요(느슨한 색상 세 개로도 좋은 시스템이 돼요). 어떤 색상이든 하나를 채울 수 있고, 판독값은 텍스트가 표면 위에서 어떻게 읽히는지 APCA를 먼저 써서 알려줘요. 각 행은 완전한 강도의 자체 색상, 대신 서 있는 스타터 색상, 또는 **↳ follows Primary**를 보여줘요.
 
-띠는 도구가 읽을 수 있는 일곱 가지 역할을 모두 보여줘요. Primary, Secondary, Surface, Text, Muted, Edge, On primary이며, 디자인 시스템에 자체 단어가 있으면 그 단어로 나와요. On primary는 primary에서 파생되며 **파생됨**으로 표시되고 선택기가 없어요. 그 옆의 **라이트**와 **다크** 스위치, 그리고 **In context** 옆의 스위치가 띠, 팔레트, 미리보기가 보여줄 모습을 정해요.
+On primary는 primary에서 파생되며 **파생됨**으로 표시되고 선택기가 없어요. 그 옆의 **라이트**와 **다크** 스위치, 그리고 **In context** 옆의 스위치가 띠, 팔레트, 미리보기가 보여줄 모습을 정해요.
 
 앱 자체의 강조색은 기본적으로 디자인 시스템을 따라요. **Settings → Appearance**의 **Interface follows the design system** 설정이에요. 이 설정을 끄면 앱 크롬은 중립으로 남고, 도구, 캔버스, 내보내기는 어느 쪽이든 디자인 시스템을 따라요.
 
@@ -250,7 +250,7 @@ Lolly Demo처럼 앱과 함께 오고 편집할 수 있는 디자인 시스템�
 
 자체 서체가 없으면 룸은 카드 하나예요. **Primary**가 현재 제공하는 서체의 읽기 크기로 표시되고, **Starter** 태그, **Choose for Primary** 버튼, *"Nothing installs until you choose one."* 문구가 있어요. Headings, code, italic은 직접 고르기 전까지 기본을 따르며, **Choose them separately**가 각 카드를 보여줘요.
 
-![아직 서체를 선택하지 않은 Type 룸 - 읽기 좋은 크기의 카드 하나, 그 위의 Starter 태그, 그리고 채워진 Choose for Primary](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&dark=1&filename=brand-type)
+![아직 서체를 선택하지 않은 Type 룸 - 읽기 좋은 크기의 카드 하나, 그 위의 Starter 태그, 그리고 채워진 Choose for Primary](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&system=new-design-system&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&dark=1&filename=brand-type)
 
 서체 하나를 고르면 룸이 역할 카드 네 개, Fonts 목록, 실시간 견본으로 열려요.
 
@@ -261,7 +261,7 @@ Lolly Demo처럼 앱과 함께 오고 편집할 수 있는 디자인 시스템�
 
 카드는 그 서체를 설치한 곳에만 색조가 입혀져요. 버튼은 어느 역할용인지 말해줘요. 사용자 자신의 서체에서는 **Change Headings**, 그 외에는 **Choose for Headings**라고 표시돼요. 샘플 줄은 잘리지 않고 줄바꿈돼요. 카드의 어떤 것도 확정하지 않아요. 버튼은 그 역할의 비교 스테이지를 열어요.
 
-![드러난 네 개의 역할 카드 - 각각 담당하는 서체로 설정되며, 아무도 선택하지 않은 곳에는 Starter 태그가 붙고 Italic은 기본 서체를 따름](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&width=1440&height=1000&dpi=192&waitMs=2600&drive=click%3A%5Bdata-be-typemore-toggle%5D%3Bwait%3A600&cropSelector=.be-typecard-grid&walker=1&format=svg&dark=1&filename=bs-type-specimen)
+![드러난 네 개의 역할 카드 - 각각 담당하는 서체로 설정되며, 아무도 선택하지 않은 곳에는 Starter 태그가 붙고 Italic은 기본 서체를 따름](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&system=new-design-system&width=1440&height=1000&dpi=192&waitMs=2600&drive=click%3A%5Bdata-be-typemore-toggle%5D%3Bwait%3A600&cropSelector=.be-typecard-grid&walker=1&format=svg&dark=1&filename=bs-type-specimen)
 
 ### 비교 스테이지
 

@@ -84,7 +84,7 @@ Cada marca acaba en una cuadrícula de ocho espacios opcionales, uno por **orien
 
 Un grupo sin marcas todavía se pliega en una línea; ábrelo para ver sus espacios. Haz clic en un espacio para añadir un PNG, SVG, JPEG o WebP, o haz clic en un espacio ocupado para sustituir la marca. Todo se queda en este dispositivo.
 
-![Los espacios de logotipo con Horizontal y Vertical abiertos: cada tratamiento es un espacio propio, y cada espacio es opcional](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dlogos&width=1440&height=1600&dpi=192&waitMs=1600&drive=click%3A.be-logo-identity%3Edetails%3Anth-of-type%281%29%3Esummary%3Bclick%3A.be-logo-identity%3Edetails%3Anth-of-type%282%29%3Esummary%3Bwait%3A600&cropSelector=.be-logo-grid&format=svg&walker=1&dark=1&filename=bs-logo-slots)
+![Los espacios de logotipo con Horizontal y Vertical abiertos: cada tratamiento es un espacio propio, y cada espacio es opcional](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dlogos&system=new-design-system&width=1440&height=1600&dpi=192&waitMs=1600&drive=click%3A.be-logo-identity%3Edetails.be-logo-group--fold%3Anot%28.be-logo-group--custom%29%3Esummary%3Bwait%3A600&cropSelector=.be-logo-grid&format=svg&walker=1&dark=1&filename=bs-logo-slots)
 
 - Las **Custom marks** son marcas que tu marca llama por su propio nombre, como un icono, un escudo o un favicon.
 - **Más identidades.** Una submarca, un producto o un evento puede tener su propio conjunto completo: **+ Add another logo** y da un nombre al conjunto. Tu conjunto principal es "Your logo". [Brand architectures](/info/brand-architectures.html) muestra cuándo una identidad de logotipo es el bloque adecuado.
@@ -118,7 +118,7 @@ Tus colores se sitúan junto a una vista previa **In context** en una pantalla a
 
 El design system dice cómo se llaman sus colores y para qué sirve cada uno, y Lolly lo lee. **Colour roles** está al principio de la sala Colours. En una pantalla ancha **In context** comparte la vista, así que un cambio se ve en el póster, el gráfico y la tarjeta de interfaz a medida que lo haces.
 
-![La tabla Colour roles en Lolly Demo con sus propias palabras: los chips de colourway, y luego Lead, Partner, Paper e Ink, cada uno con su color claro y oscuro, leídos como el color principal, el color del socio, el fondo y el texto, y Quiet text y Hairlines listados bajo la tabla como las lecturas que ningún rol ocupa](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=2720&height=2000&dpi=192&waitMs=1800&cropSelector=%5Bdata-be-roles-fold%5D&format=svg&walker=1&dark=1&filename=bs-colour-roles)
+![La tabla Colour roles en Wefthouse, una marca textil inventada, con sus propias palabras: los chips de colourway Indigo, Madder y Weld, y luego Main, Accent, Supporting y Tertiary, cada uno con su color claro y oscuro, leídos como el color principal, el color del socio y solo por nombre, y Background, Text, Quiet text y Hairlines listados bajo la tabla como las lecturas que ningún rol ocupa](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&system=wefthouse&width=2720&height=2000&dpi=192&waitMs=1800&cropSelector=%5Bdata-be-roles-fold%5D&format=svg&walker=1&dark=1&filename=bs-colour-roles)
 
 La tabla tiene cuatro columnas, y en un teléfono cada fila se convierte en una tarjeta que mantiene lado a lado el claro y el oscuro:
 
@@ -156,13 +156,13 @@ Una lectura que ningún rol ocupa se queda como la define el design system, y la
 
 **Dónde se elige un color.** Cada campo de color de una herramienta y de Lolly Design empieza con los roles del design system, en su propio orden, con cada palabra y para qué sirve el color a la vista. **Aa** junto a un rol elige el color que va sobre ese rol. El resto sigue bajo **Other colours**, sin las copias propias de una colourway, los colores "sobre" y cualquier lectura que ya ocupa un rol. Una elección queda enlazada al rol y sigue a la colourway, el campo sigue mostrando la palabra sea cual sea la colourway elegida, y Settings y Tokens también usan la palabra. Un design system sin roles conserva la cuadrícula de muestras que siempre ha tenido.
 
-### Roles: lo que leen las herramientas
+### Cada color que lee una herramienta
 
 Con **Colour roles** cerrado, las primeras decisiones encabezan la sala como chips, cada uno con el color que hace el papel y su nombre. En un sistema sin palabras propias son **Primary**, **Secondary**, **Surface** y **Text**. Pulsa un chip para elegir su color entre las muestras de la propia paleta. **Every colour a tool reads**, al pie de **Colour roles**, tiene la tira completa.
 
-Los **roles** dicen qué color hace cada papel en cada herramienta y exportación. Son opcionales (tres colores sueltos y ningún rol es un sistema perfectamente válido), cualquier color puede tomar uno y el indicador dice cómo se lee el texto, medido contra la superficie, primero con APCA. Cada fila de rol muestra un color propio a plena intensidad, un color de inicio que ocupa su lugar, o **↳ follows Primary**.
+La tira muestra los siete colores que puede leer una herramienta: Primary, Secondary, Surface, Text, Muted, Edge y On primary, con las palabras propias del design system donde las tiene. Cada uno hace el mismo papel en cada herramienta y exportación. Ninguno tiene que estar definido (tres colores sueltos son un buen sistema), cualquier color puede ocupar uno y el indicador dice cómo se lee el texto, medido contra la superficie, primero con APCA. Cada fila muestra un color propio a plena intensidad, un color de inicio que ocupa su lugar, o **↳ follows Primary**.
 
-La tira muestra los siete roles que puede leer una herramienta: Primary, Secondary, Surface, Text, Muted, Edge y On primary, con las palabras propias del design system donde las tiene. On primary se deriva del primario, se lee **Derived** y no tiene selector. El interruptor **Light** y **Dark** junto a ella, y el que está junto a **In context**, eligen qué aspecto muestran la tira, la paleta y la vista previa.
+On primary se deriva del primario, se lee **Derived** y no tiene selector. El interruptor **Light** y **Dark** junto a ella, y el que está junto a **In context**, eligen qué aspecto muestran la tira, la paleta y la vista previa.
 
 El acento propio de la aplicación sigue por defecto al design system. Ese es el ajuste **Interface follows the design system** en **Settings → Appearance**; desactivarlo deja neutro el marco de la aplicación, mientras que las herramientas, los lienzos y las exportaciones siguen al design system en ambos casos.
 
@@ -250,7 +250,7 @@ Las descargas de la paleta (design tokens, CSS, SCSS, GIMP y Adobe Swatch Exchan
 
 Sin una tipografía propia, la sala es una sola tarjeta: **Primary**, compuesta a tamaño de lectura con la tipografía que la sirve hoy, con una etiqueta **Starter**, un botón **Choose for Primary** y la línea *"Nothing installs until you choose one."* Headings, Code e Italic siguen al primario hasta que los eliges; **Choose them separately** muestra sus tarjetas.
 
-![La sala Tipografía sin ninguna fuente elegida todavía - una tarjeta a tamaño de lectura, una etiqueta Inicial en ella, y un Choose for Primary relleno](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&dark=1&filename=brand-type)
+![La sala Tipografía sin ninguna fuente elegida todavía - una tarjeta a tamaño de lectura, una etiqueta Inicial en ella, y un Choose for Primary relleno](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&system=new-design-system&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&dark=1&filename=brand-type)
 
 Elige una tipografía y la sala se abre en cuatro tarjetas de rol, la lista Fonts y una muestra en vivo:
 
@@ -261,7 +261,7 @@ Elige una tipografía y la sala se abre en cuatro tarjetas de rol, la lista Font
 
 Una tarjeta se tiñe solo donde instalaste esa tipografía, Su botón dice para qué rol es: **Change Headings** en una tipografía propia y **Choose for Headings** en todas las demás. La línea de muestra se ajusta en lugar de cortarse. Nada de una tarjeta confirma nada: el botón abre la fase de comparación para ese rol.
 
-![Las cuatro tarjetas de rol reveladas - cada una tipografiada en la fuente que la sirve, con una etiqueta Inicial donde nadie eligió una y Cursiva siguiendo a la principal](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&width=1440&height=1000&dpi=192&waitMs=2600&drive=click%3A%5Bdata-be-typemore-toggle%5D%3Bwait%3A600&cropSelector=.be-typecard-grid&walker=1&format=svg&dark=1&filename=bs-type-specimen)
+![Las cuatro tarjetas de rol reveladas - cada una tipografiada en la fuente que la sirve, con una etiqueta Inicial donde nadie eligió una y Cursiva siguiendo a la principal](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&system=new-design-system&width=1440&height=1000&dpi=192&waitMs=2600&drive=click%3A%5Bdata-be-typemore-toggle%5D%3Bwait%3A600&cropSelector=.be-typecard-grid&walker=1&format=svg&dark=1&filename=bs-type-specimen)
 
 ### El escenario de comparación
 

@@ -84,7 +84,7 @@ Každá značka skončí v mřížce osmi volitelných slotů, po jednom na **or
 
 Skupina bez značek se sbalí na jeden řádek; otevři ji, abys viděl její sloty. Klikni na slot pro přidání PNG, SVG, JPEG nebo WebP, nebo klikni na vyplněný slot pro nahrazení značky. Vše zůstává na tomto zařízení.
 
-![Sloty loga s otevřenými Horizontal a Vertical: každá úprava je vlastní slot a každý slot je volitelný](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dlogos&width=1440&height=1600&dpi=192&waitMs=1600&drive=click%3A.be-logo-identity%3Edetails%3Anth-of-type%281%29%3Esummary%3Bclick%3A.be-logo-identity%3Edetails%3Anth-of-type%282%29%3Esummary%3Bwait%3A600&cropSelector=.be-logo-grid&format=svg&walker=1&dark=1&filename=bs-logo-slots)
+![Sloty loga s otevřenými Horizontal a Vertical: každá úprava je vlastní slot a každý slot je volitelný](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dlogos&system=new-design-system&width=1440&height=1600&dpi=192&waitMs=1600&drive=click%3A.be-logo-identity%3Edetails.be-logo-group--fold%3Anot%28.be-logo-group--custom%29%3Esummary%3Bwait%3A600&cropSelector=.be-logo-grid&format=svg&walker=1&dark=1&filename=bs-logo-slots)
 
 - **Custom marks** jsou značky, které tvá značka nazývá vlastním jménem, například ikona, erb nebo favicon.
 - **Více identit.** Podznačka, produkt nebo akce může mít vlastní úplnou sadu: **+ Add another logo** a pojmenuj sadu. Tvá hlavní sada je "Your logo". [Architektury značek](/info/brand-architectures.html) ukazují, kdy je identita loga správný blok.
@@ -118,7 +118,7 @@ Tvé barvy leží vedle náhledu **In context** na široké obrazovce a nad ním
 
 Designový systém říká, jak se jeho barvy jmenují a k čemu každá slouží, a Lolly to čte. **Colour roles** jsou na začátku místnosti Colours. Na široké obrazovce sdílí zobrazení **In context**, takže změna se ukáže na plakátu, grafu i kartě rozhraní, jakmile ji uděláš.
 
-![Tabulka Colour roles v Lolly Demo vlastními slovy: čipy colourway, pak Lead, Partner, Paper a Ink, každá se světlou a tmavou barvou, čtená jako hlavní barva, partnerská barva, pozadí a text, a Quiet text a Hairlines uvedené pod tabulkou jako čtení, které žádná role nenaplňuje](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=2720&height=2000&dpi=192&waitMs=1800&cropSelector=%5Bdata-be-roles-fold%5D&format=svg&walker=1&dark=1&filename=bs-colour-roles)
+![Tabulka Colour roles u Wefthouse, vymyšlené textilní značky, vlastními slovy: čipy colourway Indigo, Madder a Weld, pak Main, Accent, Supporting a Tertiary, každá se světlou a tmavou barvou, čtená jako hlavní barva, partnerská barva a jen podle jména, a Background, Text, Quiet text a Hairlines uvedené pod tabulkou jako čtení, které žádná role nenaplňuje](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&system=wefthouse&width=2720&height=2000&dpi=192&waitMs=1800&cropSelector=%5Bdata-be-roles-fold%5D&format=svg&walker=1&dark=1&filename=bs-colour-roles)
 
 Tabulka má čtyři sloupce a na telefonu se každý řádek změní na kartu, která drží světlou a tmavou hodnotu vedle sebe:
 
@@ -156,13 +156,13 @@ Tabulka má čtyři sloupce a na telefonu se každý řádek změní na kartu, k
 
 **Kde se barva vybírá.** Každé pole barvy v nástroji a v Lolly Design začíná rolemi designového systému, v jeho vlastním pořadí, s viditelným slovem a tím, k čemu barva slouží. **Aa** vedle role vybírá barvu, která na té roli leží. Ostatní následují pod **Other colours**, bez vlastních kopií colourway, bez on-barev a bez čtení, které už role naplňuje. Výběr zůstává propojený s rolí a sleduje colourway, pole ukazuje slovo ať je zvolen kterýkoli colourway a Settings a Tokens slovo používají také. Designový systém bez rolí si ponechává mřížku vzorků, jakou měl vždy.
 
-### Role: co čtou nástroje
+### Každá barva, kterou nástroj čte
 
 Když jsou **Colour roles** zavřené, první rozhodnutí vedou místnost jako čipy, z nichž každý ukazuje barvu, která roli hraje, a její jméno. V systému bez vlastních slov to jsou **Primary**, **Secondary**, **Surface** a **Text**. Stiskni čip a vyber jeho barvu z vlastních vzorků palety. **Every colour a tool reads** dole v **Colour roles** má celý pás.
 
-**Role** říkají, která barva hraje jakou část v každém nástroji a exportu. Jsou volitelné (tři volné barvy bez rolí jsou naprosto dobrý systém), roli může dostat jakákoli barva a údaj říká, jak se text čte, měřeno proti povrchu, nejprve APCA. Každý řádek role ukazuje vlastní barvu v plné síle, startovní barvu, která zastupuje, nebo **↳ follows Primary**.
+Pás ukazuje sedm barev, které nástroj může číst: Primary, Secondary, Surface, Text, Muted, Edge a On primary, vlastními slovy designového systému, kde je má. Každá hraje v každém nástroji a exportu stejnou část. Žádnou není nutné nastavit (tři volné barvy jsou dobrý systém), obsadit ji může jakákoli barva a údaj říká, jak se text čte, měřeno proti povrchu, nejprve APCA. Každý řádek ukazuje vlastní barvu v plné síle, startovní barvu, která zastupuje, nebo **↳ follows Primary**.
 
-Pás ukazuje všech sedm rolí, které nástroj může číst: Primary, Secondary, Surface, Text, Muted, Edge a On primary, vlastními slovy designového systému, kde je má. On primary se odvozuje z primární, čte se **Derived** a nemá výběr. Přepínač **Light** a **Dark** vedle něj a ten vedle **In context** volí, který vzhled pás, paleta a náhled ukazují.
+On primary se odvozuje z primární, čte se **Derived** a nemá výběr. Přepínač **Light** a **Dark** vedle něj a ten vedle **In context** volí, který vzhled pás, paleta a náhled ukazují.
 
 Vlastní akcent aplikace ve výchozím stavu následuje designový systém. To je nastavení **Interface follows the design system** v **Settings → Appearance**; vypnutí nastavení nechá chrome aplikace neutrální, zatímco nástroje, plátna a exporty následují designový systém v obou případech.
 
@@ -250,7 +250,7 @@ Stažení palety (designové tokeny, CSS, SCSS, GIMP a Adobe Swatch Exchange) le
 
 Bez vlastního řezu je místnost jedna karta: **Primary**, sázená ve velikosti pro čtení v řezu, který ji dnes obsluhuje, se štítkem **Starter**, tlačítkem **Choose for Primary** a řádkem *"Nothing installs until you choose one."* Headings, kód a kurzíva následují primární, dokud je nevybereš; **Choose them separately** ukáže jejich karty.
 
-![Místnost Type bez zatím zvoleného řezu - jedna karta ve čtecí velikosti, na ní štítek Starter, a jedno vyplněné Choose for Primary](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&dark=1&filename=brand-type)
+![Místnost Type bez zatím zvoleného řezu - jedna karta ve čtecí velikosti, na ní štítek Starter, a jedno vyplněné Choose for Primary](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&system=new-design-system&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&dark=1&filename=brand-type)
 
 Vyber jeden řez a místnost se otevře do čtyř karet rolí, seznamu Fonts a živého vzorku:
 
@@ -261,7 +261,7 @@ Vyber jeden řez a místnost se otevře do čtyř karet rolí, seznamu Fonts a �
 
 Karta je odstíněná jen tam, kde jsi ten řez nainstaloval, a její tlačítko říká, pro kterou roli je: **Change Headings** u vlastního řezu a **Choose for Headings** všude jinde. Ukázková řádka se zalamuje, místo aby se oříznula. Nic na kartě nic nepotvrzuje: tlačítko otevře porovnávací scénu pro tu roli.
 
-![Odhalené čtyři karty rolí - každá sazená v řezu, který ji obsluhuje, se štítkem Starter tam, kde nikdo nevybral, a Italic řídící se primárním](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&width=1440&height=1000&dpi=192&waitMs=2600&drive=click%3A%5Bdata-be-typemore-toggle%5D%3Bwait%3A600&cropSelector=.be-typecard-grid&walker=1&format=svg&dark=1&filename=bs-type-specimen)
+![Odhalené čtyři karty rolí - každá sazená v řezu, který ji obsluhuje, se štítkem Starter tam, kde nikdo nevybral, a Italic řídící se primárním](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&system=new-design-system&width=1440&height=1000&dpi=192&waitMs=2600&drive=click%3A%5Bdata-be-typemore-toggle%5D%3Bwait%3A600&cropSelector=.be-typecard-grid&walker=1&format=svg&dark=1&filename=bs-type-specimen)
 
 ### Srovnávací scéna
 

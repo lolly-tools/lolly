@@ -84,7 +84,7 @@
 
 जिस समूह में अभी कोई चिह्न नहीं वह एक पंक्ति में तह होता है; उसके स्लॉट देखने के लिए उसे खोलें। PNG, SVG, JPEG या WebP जोड़ने के लिए स्लॉट पर क्लिक करें, या चिह्न बदलने के लिए भरे स्लॉट पर क्लिक करें। सब कुछ इसी डिवाइस पर रहता है।
 
-![लोगो स्लॉट, Horizontal और Vertical खुले हुए: हर ट्रीटमेंट अपना स्लॉट है, और हर स्लॉट वैकल्पिक है](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dlogos&width=1440&height=1600&dpi=192&waitMs=1600&drive=click%3A.be-logo-identity%3Edetails%3Anth-of-type%281%29%3Esummary%3Bclick%3A.be-logo-identity%3Edetails%3Anth-of-type%282%29%3Esummary%3Bwait%3A600&cropSelector=.be-logo-grid&format=svg&walker=1&dark=1&filename=bs-logo-slots)
+![लोगो स्लॉट, Horizontal और Vertical खुले हुए: हर ट्रीटमेंट अपना स्लॉट है, और हर स्लॉट वैकल्पिक है](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dlogos&system=new-design-system&width=1440&height=1600&dpi=192&waitMs=1600&drive=click%3A.be-logo-identity%3Edetails.be-logo-group--fold%3Anot%28.be-logo-group--custom%29%3Esummary%3Bwait%3A600&cropSelector=.be-logo-grid&format=svg&walker=1&dark=1&filename=bs-logo-slots)
 
 - **Custom marks** वे चिह्न हैं जिन्हें आपका ब्रांड अपने नाम से पुकारता है, जैसे आइकन, क्रेस्ट या फ़ेविकॉन।
 - **और पहचानें।** उप-ब्रांड, उत्पाद या इवेंट का अपना पूरा सेट हो सकता है: **+ Add another logo** और सेट को नाम दें। आपका मुख्य सेट "Your logo" है। [Brand architectures](/info/brand-architectures.html) दिखाता है कि लोगो पहचान कब सही ब्लॉक है।
@@ -118,7 +118,7 @@
 
 design system बताता है कि उसके रंगों के नाम क्या हैं और हर एक किसलिए है, और Lolly उसे पढ़ता है। **Colour roles** Colours कमरे के शीर्ष में है। चौड़ी स्क्रीन पर **In context** व्यू साझा करता है, इसलिए आप जो बदलाव करते हैं वह पोस्टर, चार्ट और इंटरफ़ेस कार्ड पर साथ-साथ दिखता है।
 
-![Lolly Demo पर Colour roles तालिका, उसके अपने शब्दों में: colourway चिप, फिर Lead, Partner, Paper और Ink, हर एक अपने हल्के और गहरे रंग के साथ, जो मुख्य रंग, भागीदार रंग, बैकग्राउंड और टेक्स्ट के रूप में पढ़े जाते हैं, और तालिका के नीचे Quiet text और Hairlines वे रीडिंग हैं जिन्हें कोई भूमिका नहीं भरती](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=2720&height=2000&dpi=192&waitMs=1800&cropSelector=%5Bdata-be-roles-fold%5D&format=svg&walker=1&dark=1&filename=bs-colour-roles)
+![Wefthouse, एक गढ़े हुए टेक्सटाइल ब्रांड, पर Colour roles तालिका, उसके अपने शब्दों में: colourway चिप Indigo, Madder और Weld, फिर Main, Accent, Supporting और Tertiary, हर एक अपने हल्के और गहरे रंग के साथ, जो मुख्य रंग, भागीदार रंग और केवल नाम से पढ़े जाते हैं, और तालिका के नीचे Background, Text, Quiet text और Hairlines वे रीडिंग हैं जिन्हें कोई भूमिका नहीं भरती](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&system=wefthouse&width=2720&height=2000&dpi=192&waitMs=1800&cropSelector=%5Bdata-be-roles-fold%5D&format=svg&walker=1&dark=1&filename=bs-colour-roles)
 
 तालिका में चार कॉलम हैं, और फ़ोन पर हर पंक्ति एक कार्ड बन जाती है जो हल्का और गहरा साथ-साथ रखता है:
 
@@ -156,13 +156,13 @@ design system बताता है कि उसके रंगों के 
 
 **रंग कहाँ चुना जाता है।** टूल और Lolly Design का हर रंग फ़ील्ड design system की भूमिकाओं से शुरू होता है, उसके अपने क्रम में, हर शब्द और रंग किसलिए है यह दिखाते हुए। भूमिका के बगल का **Aa** वह रंग चुनता है जो उस भूमिका पर बैठता है। बाक़ी **Other colours** के नीचे आते हैं, जिनमें colourway की अपनी प्रतियाँ, ऑन-रंग और वे रीडिंग नहीं होतीं जिन्हें कोई भूमिका पहले से भरती है। चुना हुआ रंग भूमिका से जुड़ा रहता है और colourway का अनुसरण करता है, फ़ील्ड कोई भी colourway चुनने पर शब्द ही दिखाता रहता है, और Settings और Tokens भी वही शब्द उपयोग करते हैं। जिस design system में भूमिकाएँ नहीं, वह स्वैच की वही ग्रिड रखता है जो हमेशा से थी।
 
-### भूमिकाएँ: टूल क्या पढ़ते हैं
+### हर रंग जो टूल पढ़ते हैं
 
 **Colour roles** बंद होने पर, पहले निर्णय कमरे में चिप के रूप में आगे आते हैं, हर एक वह रंग और उसका नाम दिखाती है जो भूमिका निभाता है। अपने शब्दों के बिना सिस्टम पर ये **Primary**, **Secondary**, **Surface** और **Text** हैं। किसी चिप को दबाकर पैलेट के अपने स्वैच से उसका रंग चुनें। **Colour roles** के नीचे **Every colour a tool reads** में पूरी पट्टी है।
 
-**Roles** बताती हैं कि हर टूल और एक्सपोर्ट में कौन सा रंग कौन सा हिस्सा निभाता है। वे वैकल्पिक हैं (तीन ढीले रंग और कोई भूमिका नहीं, एकदम ठीक सिस्टम है), कोई भी रंग एक ले सकता है और रीडआउट बताता है कि टेक्स्ट कैसा पढ़ा जाता है, सतह के सामने मापा हुआ, पहले APCA। हर भूमिका पंक्ति पूरी तीव्रता का अपना रंग, खड़ा हुआ starter रंग, या **↳ follows Primary** दिखाती है।
+पट्टी वे सातों रंग दिखाती है जो टूल पढ़ सकता है: Primary, Secondary, Surface, Text, Muted, Edge और On primary, design system के अपने शब्दों में जहाँ वे हों। हर रंग हर टूल और एक्सपोर्ट में वही हिस्सा निभाता है। इनमें से किसी को सेट करना ज़रूरी नहीं (तीन ढीले रंग एक अच्छा सिस्टम बनाते हैं), कोई भी रंग एक को भर सकता है, और रीडआउट बताता है कि टेक्स्ट कैसा पढ़ा जाता है, सतह के सामने मापा हुआ, पहले APCA। हर पंक्ति पूरी तीव्रता का अपना रंग, खड़ा हुआ starter रंग, या **↳ follows Primary** दिखाती है।
 
-पट्टी वे सातों भूमिकाएँ दिखाती है जो टूल पढ़ सकता है: Primary, Secondary, Surface, Text, Muted, Edge और On primary, design system के अपने शब्दों में जहाँ वे हों। On primary प्राथमिक से व्युत्पन्न है, **Derived** पढ़ता है और उसका कोई पिकर नहीं। उसके बगल का **Light** और **Dark** स्विच, और **In context** के बगल वाला, तय करते हैं कि पट्टी, पैलेट और प्रीव्यू कौन सा रूप दिखाएँ।
+On primary प्राथमिक से व्युत्पन्न है, **Derived** पढ़ता है और उसका कोई पिकर नहीं। उसके बगल का **Light** और **Dark** स्विच, और **In context** के बगल वाला, तय करते हैं कि पट्टी, पैलेट और प्रीव्यू कौन सा रूप दिखाएँ।
 
 ऐप का अपना एक्सेंट डिफ़ॉल्ट रूप से design system का अनुसरण करता है। यही **Settings → Appearance** की **Interface follows the design system** सेटिंग है; इसे बंद करने से ऐप का क्रोम तटस्थ रहता है, जबकि टूल, कैनवास और एक्सपोर्ट दोनों हाल में design system का अनुसरण करते हैं।
 
@@ -250,7 +250,7 @@ colourway वाला सिस्टम पुनर्निर्माण �
 
 जब अपना कोई फ़ेस न हो, तो कमरा एक कार्ड है: **Primary**, पढ़ने के आकार में आज उसे परोसने वाले फ़ेस में, **Starter** टैग, **Choose for Primary** बटन और पंक्ति *"Nothing installs until you choose one."* के साथ। Headings, code और italic तब तक प्राथमिक का अनुसरण करते हैं जब तक आप उन्हें न चुनें; **Choose them separately** उनके कार्ड दिखाता है।
 
-![अभी कोई फेस न चुना गया Type कमरा - रीडिंग साइज़ पर एक कार्ड, उस पर एक Starter टैग, और एक भरा हुआ Choose for Primary](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&dark=1&filename=brand-type)
+![अभी कोई फेस न चुना गया Type कमरा - रीडिंग साइज़ पर एक कार्ड, उस पर एक Starter टैग, और एक भरा हुआ Choose for Primary](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&system=new-design-system&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&dark=1&filename=brand-type)
 
 एक फ़ेस चुनें और कमरा चार भूमिका कार्ड, Fonts सूची और लाइव नमूने में खुलता है:
 
@@ -261,7 +261,7 @@ colourway वाला सिस्टम पुनर्निर्माण �
 
 कार्ड केवल तभी टिंट होता है जहाँ आपने वह फ़ेस इंस्टॉल किया। उसका बटन बताता है कि वह किस भूमिका के लिए है: आपके अपने फ़ेस पर **Change Headings** और बाकी हर जगह **Choose for Headings**। नमूना पंक्ति कटने के बजाय लपेट लेती है। कार्ड पर कुछ भी कुछ कमिट नहीं करता: बटन उस भूमिका के लिए तुलना मंच खोलता है।
 
-![सामने आए चार role कार्ड - हर एक उसी फेस में सेट जो उसे सर्व करता है, जहाँ किसी ने कुछ नहीं चुना वहाँ एक Starter टैग और प्राइमरी को फ़ॉलो करता Italic](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&width=1440&height=1000&dpi=192&waitMs=2600&drive=click%3A%5Bdata-be-typemore-toggle%5D%3Bwait%3A600&cropSelector=.be-typecard-grid&walker=1&format=svg&dark=1&filename=bs-type-specimen)
+![सामने आए चार role कार्ड - हर एक उसी फेस में सेट जो उसे सर्व करता है, जहाँ किसी ने कुछ नहीं चुना वहाँ एक Starter टैग और प्राइमरी को फ़ॉलो करता Italic](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&system=new-design-system&width=1440&height=1000&dpi=192&waitMs=2600&drive=click%3A%5Bdata-be-typemore-toggle%5D%3Bwait%3A600&cropSelector=.be-typecard-grid&walker=1&format=svg&dark=1&filename=bs-type-specimen)
 
 ### कंपेयर स्टेज
 

@@ -84,7 +84,7 @@
 
 还没有标志的组会折叠成一行；展开可看到它的槽位。点击槽位可添加 PNG、SVG、JPEG 或 WebP，点击已填充的槽位可替换标志。一切都留在这台设备上。
 
-![展开了 Horizontal 和 Vertical 的徽标槽位：每种处理方式都是自己的槽位，每个槽位都是可选的](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dlogos&width=1440&height=1600&dpi=192&waitMs=1600&drive=click%3A.be-logo-identity%3Edetails%3Anth-of-type%281%29%3Esummary%3Bclick%3A.be-logo-identity%3Edetails%3Anth-of-type%282%29%3Esummary%3Bwait%3A600&cropSelector=.be-logo-grid&format=svg&walker=1&dark=1&filename=bs-logo-slots)
+![展开了 Horizontal 和 Vertical 的徽标槽位：每种处理方式都是自己的槽位，每个槽位都是可选的](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dlogos&system=new-design-system&width=1440&height=1600&dpi=192&waitMs=1600&drive=click%3A.be-logo-identity%3Edetails.be-logo-group--fold%3Anot%28.be-logo-group--custom%29%3Esummary%3Bwait%3A600&cropSelector=.be-logo-grid&format=svg&walker=1&dark=1&filename=bs-logo-slots)
 
 - **Custom marks** 是你的品牌用自己的名称称呼的标志，例如图标、徽章或网站图标。
 - **更多标识。** 子品牌、产品或活动可以有自己的完整一套：**+ Add another logo** 并给这一套命名。你的主套是 “Your logo”。[品牌架构](/info/brand-architectures.html)说明了什么时候徽标标识是合适的构件。
@@ -118,7 +118,7 @@
 
 设计系统会说明它的颜色叫什么、各自用来做什么，Lolly 会读取这些内容。**Colour roles** 位于 Colours 房间的头部。在宽屏上 **In context** 与它共享视图，所以你做出更改时，海报、图表和界面卡片会随之显示。
 
-![Lolly Demo 上用自己用语写成的 Colour roles 表：先是配色方案芯片，然后是 Lead、Partner、Paper 和 Ink，每个都带有浅色和深色，分别读作主导色、合作伙伴颜色、背景和文字，表下列出的 Quiet text 和 Hairlines 是没有角色填充的读法](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=2720&height=2000&dpi=192&waitMs=1800&cropSelector=%5Bdata-be-roles-fold%5D&format=svg&walker=1&dark=1&filename=bs-colour-roles)
+![Wefthouse（一个虚构的纺织品牌）上用自己用语写成的 Colour roles 表：配色方案芯片 Indigo、Madder 和 Weld，然后是 Main、Accent、Supporting 和 Tertiary，每个都带有浅色和深色，分别读作主导色、合作伙伴颜色和仅按名称，表下列出的 Background、Text、Quiet text 和 Hairlines 是没有角色填充的读法](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&system=wefthouse&width=2720&height=2000&dpi=192&waitMs=1800&cropSelector=%5Bdata-be-roles-fold%5D&format=svg&walker=1&dark=1&filename=bs-colour-roles)
 
 这个表有四列，在手机上每一行变成一张卡片，并把浅色和深色并排放在一起：
 
@@ -156,13 +156,13 @@
 
 **在哪里选择颜色。** 工具和 Lolly Design 中的每个颜色字段，都以设计系统的角色打头，按它自己的顺序排列，并显示每个用语和该颜色的用途。角色旁边的 **Aa** 会选取放在该角色上的颜色。其余的跟在 **Other colours** 下，不含配色方案自己的副本、on 颜色和已被某个角色填充的任何读法。选取的颜色保持与角色关联并跟随配色方案，无论选择哪种配色方案，字段都继续显示该用语，Settings 和 Tokens 也使用该用语。没有角色的设计系统保留它一贯的色板网格。
 
-### 角色：工具读取什么
+### 工具读取的每一种颜色
 
 **Colour roles** 收起时，最先的决定以芯片形式排在房间前面，每个芯片显示担任该角色的颜色及其名称。在没有自己用语的系统上，这些是 **Primary**、**Secondary**、**Surface** 和 **Text**。按一个芯片，即可从调色板自己的色板中为它选择颜色。**Colour roles** 底部的 **Every colour a tool reads** 有完整的色带。
 
-**角色**说明了哪种颜色在每个工具和导出中承担哪个部分。它们是可选的（三个没有角色的零散颜色也是一个完全合格的系统），任何颜色都可以担任一个角色，读数会说明文字读起来如何，是针对表面测量的，优先使用 APCA。每个角色行显示的是全强度的自有颜色、顶替的起步颜色，或 **↳ follows Primary**。
+色带显示工具可以读取的七种颜色：Primary、Secondary、Surface、Text、Muted、Edge 和 On primary，有设计系统自己用语的地方使用这些用语。每一种在每个工具和导出中承担相同的部分。它们都不必设置（三个零散颜色就是一个好系统），任何颜色都可以填入其中一个，读数会说明文字读起来如何，是针对表面测量的，优先使用 APCA。每一行显示的是全强度的自有颜色、顶替的起步颜色，或 **↳ follows Primary**。
 
-色带显示工具可以读取的全部七个角色：Primary、Secondary、Surface、Text、Muted、Edge 和 On primary，有设计系统自己用语的地方使用这些用语。On primary 由主色派生，显示为 **Derived**，没有选择器。它旁边的 **Light** 和 **Dark** 开关，以及 **In context** 旁边的那个开关，决定色带、调色板和预览显示哪种外观。
+On primary 由主色派生，显示为 **Derived**，没有选择器。它旁边的 **Light** 和 **Dark** 开关，以及 **In context** 旁边的那个开关，决定色带、调色板和预览显示哪种外观。
 
 应用自己的强调色默认跟随设计系统。这就是 **Settings → Appearance** 中的 **Interface follows the design system** 设置；关闭该设置会让应用的外壳保持中性，而工具、画布和导出无论如何都跟随设计系统。
 
@@ -250,7 +250,7 @@
 
 在没有自己的字体时，这个房间只有一张卡片：**Primary**，以阅读尺寸用目前所用的字体显示，带有 **Starter** 标签、一个 **Choose for Primary** 按钮和一行 *"Nothing installs until you choose one."* Headings、code 和 italic 在你选择它们之前都跟随 primary；**Choose them separately** 会显示它们的卡片。
 
-![尚未选择字体的 Type 房间 - 一张阅读大小的卡片，带有一个 Starter 标签，以及一个已填色的 Choose for Primary](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&dark=1&filename=brand-type)
+![尚未选择字体的 Type 房间 - 一张阅读大小的卡片，带有一个 Starter 标签，以及一个已填色的 Choose for Primary](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&system=new-design-system&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&dark=1&filename=brand-type)
 
 选择一种字体后，房间会展开为四张角色卡片、Fonts 列表和一个实时样张：
 
@@ -261,7 +261,7 @@
 
 只有你安装了该字体的卡片才会带色调，其按钮会说明它对应哪个角色：在你自己的字体上显示 **Change Headings**，其他地方都显示 **Choose for Headings**。示例行会换行而不是被截断。卡片上没有任何内容会提交任何更改：按钮会为该角色打开对比台。
 
-![四张角色卡揭开 - 每张都以服务它的字体呈现，没人选择的一张带着 Starter 标签，Italic 跟随主体](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&width=1440&height=1000&dpi=192&waitMs=2600&drive=click%3A%5Bdata-be-typemore-toggle%5D%3Bwait%3A600&cropSelector=.be-typecard-grid&walker=1&format=svg&dark=1&filename=bs-type-specimen)
+![四张角色卡揭开 - 每张都以服务它的字体呈现，没人选择的一张带着 Starter 标签，Italic 跟随主体](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&system=new-design-system&width=1440&height=1000&dpi=192&waitMs=2600&drive=click%3A%5Bdata-be-typemore-toggle%5D%3Bwait%3A600&cropSelector=.be-typecard-grid&walker=1&format=svg&dark=1&filename=bs-type-specimen)
 
 ### 对比舞台
 

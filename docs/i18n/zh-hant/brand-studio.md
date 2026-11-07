@@ -84,7 +84,7 @@
 
 還沒有標記的群組會摺疊成一行；開啟它即可看到它的欄位。點擊欄位可新增 PNG、SVG、JPEG 或 WebP，或點擊已填入的欄位來取代標記。一切都留在這部裝置上。
 
-![展開 Horizontal 與 Vertical 的標誌欄位：每種處理方式都是自己的欄位，且每個欄位都是選用的](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dlogos&width=1440&height=1600&dpi=192&waitMs=1600&drive=click%3A.be-logo-identity%3Edetails%3Anth-of-type%281%29%3Esummary%3Bclick%3A.be-logo-identity%3Edetails%3Anth-of-type%282%29%3Esummary%3Bwait%3A600&cropSelector=.be-logo-grid&format=svg&walker=1&dark=1&filename=bs-logo-slots)
+![展開 Horizontal 與 Vertical 的標誌欄位：每種處理方式都是自己的欄位，且每個欄位都是選用的](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dlogos&system=new-design-system&width=1440&height=1600&dpi=192&waitMs=1600&drive=click%3A.be-logo-identity%3Edetails.be-logo-group--fold%3Anot%28.be-logo-group--custom%29%3Esummary%3Bwait%3A600&cropSelector=.be-logo-grid&format=svg&walker=1&dark=1&filename=bs-logo-slots)
 
 - **Custom marks** 是你的品牌以自己的名稱稱呼的標記，例如圖示、徽章或 favicon。
 - **More identities。** 子品牌、產品或活動可以有自己的完整一組：**+ Add another logo** 並為該組命名。你的主要一組是 "Your logo"。[品牌架構](/info/brand-architectures.html)說明何時標誌身分是正確的區塊。
@@ -118,7 +118,7 @@
 
 設計系統會說明它的色彩叫什麼、各自有什麼用途，Lolly 會讀取這些說明。**Colour roles** 位於 Colours 房間的頂端。在寬螢幕上，**In context** 與它共用畫面，所以你一做更改，海報、圖表與介面卡片上就會顯示出來。
 
-![Lolly Demo 上以自己用語呈現的 Colour roles 表格：先是配色方案色塊，然後是 Lead、Partner、Paper 與 Ink，各有淺色與深色的色彩，分別被讀作主導色、搭配色、背景與文字，而 Quiet text 與 Hairlines 列在表格下方，是沒有角色填入的讀法](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=2720&height=2000&dpi=192&waitMs=1800&cropSelector=%5Bdata-be-roles-fold%5D&format=svg&walker=1&dark=1&filename=bs-colour-roles)
+![Wefthouse（虛構的紡織品牌）上以自己用語呈現的 Colour roles 表格：配色方案色塊 Indigo、Madder 與 Weld，然後是 Main、Accent、Supporting 與 Tertiary，各有淺色與深色的色彩，分別被讀作主導色、搭配色與僅以名稱，而 Background、Text、Quiet text 與 Hairlines 列在表格下方，是沒有角色填入的讀法](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&system=wefthouse&width=2720&height=2000&dpi=192&waitMs=1800&cropSelector=%5Bdata-be-roles-fold%5D&format=svg&walker=1&dark=1&filename=bs-colour-roles)
 
 表格有四欄，在手機上每一列會變成一張卡片，把淺色與深色並排保留：
 
@@ -156,13 +156,13 @@
 
 **在哪裡選擇色彩。** 工具與 Lolly Design 中的每個色彩欄位，都以設計系統的角色領頭，依它自己的順序，並顯示每個用語與色彩的用途。角色旁的 **Aa** 會挑選放在該角色上的色彩。其餘的接在 **Other colours** 之下，不含配色方案自己的副本、在色彩上的色彩，以及已有角色填入的任何讀法。選取的結果保持與角色連結並跟隨配色方案，無論選了哪一種配色方案，欄位都持續顯示該用語，而 Settings 與 Tokens 也使用該用語。沒有角色的設計系統則保留它一向有的色票格線。
 
-### 角色：工具讀取什麼
+### 工具讀取的每一個色彩
 
 當 **Colour roles** 收合時，最先的決定會以色塊的形式領頭，每個色塊顯示扮演該角色的色彩及其名稱。在沒有自己用語的系統上，這些是 **Primary**、**Secondary**、**Surface** 與 **Text**。按一個色塊，即可從調色盤自己的色票中選擇它的色彩。**Every colour a tool reads** 位於 **Colour roles** 底部，有完整的色帶。
 
-**角色**說明哪個色彩在每個工具與匯出中扮演哪個部分。它們是選用的（三個零散的色彩而沒有角色，是完全合格的系統），任何色彩都可以承擔一個，而讀數會說明文字讀起來如何，對照表面測量，以 APCA 為先。每個角色列顯示完整強度的自有色彩、頂替的起始色彩，或 **↳ follows Primary**。
+色帶顯示工具可讀取的七個色彩：Primary、Secondary、Surface、Text、Muted、Edge 與 On primary，有用語的地方就用設計系統自己的用語。每一個在每個工具與匯出中扮演相同的部分。它們都不必設定（三個零散的色彩就是好系統），任何色彩都可以填入其中一個，而讀數會說明文字讀起來如何，對照表面測量，以 APCA 為先。每一列顯示完整強度的自有色彩、頂替的起始色彩，或 **↳ follows Primary**。
 
-色帶顯示工具可讀取的全部七個角色：Primary、Secondary、Surface、Text、Muted、Edge 與 On primary，有用語的地方就用設計系統自己的用語。On primary 由主色衍生，顯示為 **Derived**，沒有選擇器。旁邊的 **Light** 與 **Dark** 切換，以及 **In context** 旁邊的那一個，會選擇色帶、調色盤與預覽顯示哪一種外觀。
+On primary 由主色衍生，顯示為 **Derived**，沒有選擇器。旁邊的 **Light** 與 **Dark** 切換，以及 **In context** 旁邊的那一個，會選擇色帶、調色盤與預覽顯示哪一種外觀。
 
 應用程式自己的強調色預設跟隨設計系統。這就是 **Settings → Appearance** 中的 **Interface follows the design system** 設定；關閉該設定會讓應用程式的外框保持中性，而工具、畫布與匯出無論如何都跟隨設計系統。
 
@@ -250,7 +250,7 @@
 
 在沒有自己字型時，房間只是一張卡片：**Primary**，以目前提供服務的字型用閱讀大小排版，帶有 **Starter** 標籤、**Choose for Primary** 按鈕，以及 *"Nothing installs until you choose one."* 這一行。Headings、code 與 italic 在你選擇它們之前都跟隨主色；**Choose them separately** 會顯示它們的卡片。
 
-![尚未選擇字體的 Type 房間 - 一張閱讀大小的卡片，帶有一個 Starter 標籤，以及一個已填色的 Choose for Primary](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&dark=1&filename=brand-type)
+![尚未選擇字體的 Type 房間 - 一張閱讀大小的卡片，帶有一個 Starter 標籤，以及一個已填色的 Choose for Primary](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&system=new-design-system&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&dark=1&filename=brand-type)
 
 選擇一種字型，房間就會展開成四張角色卡片、Fonts 清單與即時樣張：
 
@@ -261,7 +261,7 @@
 
 只有在你安裝了該字型之處，卡片才會有色調。它的按鈕會說明是為哪個角色：自己的字型上顯示 **Change Headings**，其他地方顯示 **Choose for Headings**。範例文字會換行而不是被截斷。卡片上的任何東西都不會提交任何內容：按鈕會開啟該角色的比較舞台。
 
-![四張角色卡揭曉 - 每張都以服務它的字體呈現，沒人選擇的一張帶著 Starter 標籤，Italic 沿用主要字體](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&width=1440&height=1000&dpi=192&waitMs=2600&drive=click%3A%5Bdata-be-typemore-toggle%5D%3Bwait%3A600&cropSelector=.be-typecard-grid&walker=1&format=svg&dark=1&filename=bs-type-specimen)
+![四張角色卡揭曉 - 每張都以服務它的字體呈現，沒人選擇的一張帶著 Starter 標籤，Italic 沿用主要字體](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&system=new-design-system&width=1440&height=1000&dpi=192&waitMs=2600&drive=click%3A%5Bdata-be-typemore-toggle%5D%3Bwait%3A600&cropSelector=.be-typecard-grid&walker=1&format=svg&dark=1&filename=bs-type-specimen)
 
 ### 比較舞台
 

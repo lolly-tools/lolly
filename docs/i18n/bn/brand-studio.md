@@ -84,7 +84,7 @@
 
 এখনও চিহ্নহীন গ্রুপ এক লাইনে গুটিয়ে থাকে; তার স্লট দেখতে খুলুন। একটি PNG, SVG, JPEG বা WebP যোগ করতে স্লটে ক্লিক করুন, অথবা চিহ্ন প্রতিস্থাপন করতে ভরা স্লটে ক্লিক করুন। সবকিছু এই ডিভাইসে থাকে।
 
-![Horizontal ও Vertical খোলা অবস্থায় লোগো স্লট: প্রতিটি ট্রিটমেন্ট একটি আলাদা স্লট, এবং প্রতিটি স্লট ঐচ্ছিক](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dlogos&width=1440&height=1600&dpi=192&waitMs=1600&drive=click%3A.be-logo-identity%3Edetails%3Anth-of-type%281%29%3Esummary%3Bclick%3A.be-logo-identity%3Edetails%3Anth-of-type%282%29%3Esummary%3Bwait%3A600&cropSelector=.be-logo-grid&format=svg&walker=1&dark=1&filename=bs-logo-slots)
+![Horizontal ও Vertical খোলা অবস্থায় লোগো স্লট: প্রতিটি ট্রিটমেন্ট একটি আলাদা স্লট, এবং প্রতিটি স্লট ঐচ্ছিক](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dlogos&system=new-design-system&width=1440&height=1600&dpi=192&waitMs=1600&drive=click%3A.be-logo-identity%3Edetails.be-logo-group--fold%3Anot%28.be-logo-group--custom%29%3Esummary%3Bwait%3A600&cropSelector=.be-logo-grid&format=svg&walker=1&dark=1&filename=bs-logo-slots)
 
 - **Custom marks** হলো আপনার ব্র্যান্ডের নিজের নামে ডাকা চিহ্ন, যেমন একটি আইকন, ক্রেস্ট বা ফেভিকন।
 - **আরও পরিচয়।** একটি সাব-ব্র্যান্ড, পণ্য বা ইভেন্টের নিজস্ব পূর্ণ সেট থাকতে পারে: **+ Add another logo** এবং সেটের একটি নাম দিন। আপনার প্রধান সেট "Your logo"। লোগো পরিচয় কখন সঠিক ব্লক তা [Brand architectures](/info/brand-architectures.html) দেখায়।
@@ -118,7 +118,7 @@
 
 ডিজাইন সিস্টেম বলে তার রঙগুলোকে কী বলে ডাকা হয় এবং প্রতিটি কীসের জন্য, আর Lolly তা পড়ে। **Colour roles** Colours রুমের মাথায় থাকে। চওড়া পর্দায় **In context** একই দৃশ্য ভাগ করে, তাই আপনি পরিবর্তন করতে করতেই পোস্টার, চার্ট ও ইন্টারফেস কার্ডে তা দেখা যায়।
 
-![Lolly Demo-তে নিজস্ব শব্দে Colour roles টেবিল: কালারওয়ে চিপ, তারপর Lead, Partner, Paper ও Ink, প্রতিটির লাইট ও ডার্ক রঙসহ, যাদের পড়া হয় লিড রং, পার্টনার রং, ব্যাকগ্রাউন্ড ও টেক্সট হিসেবে, এবং টেবিলের নিচে তালিকাভুক্ত Quiet text ও Hairlines, যে পাঠগুলো কোনো রোল পূরণ করে না](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=2720&height=2000&dpi=192&waitMs=1800&cropSelector=%5Bdata-be-roles-fold%5D&format=svg&walker=1&dark=1&filename=bs-colour-roles)
+![Wefthouse-এ, একটি কাল্পনিক টেক্সটাইল ব্র্যান্ড, নিজস্ব শব্দে Colour roles টেবিল: কালারওয়ে চিপ Indigo, Madder ও Weld, তারপর Main, Accent, Supporting ও Tertiary, প্রতিটির লাইট ও ডার্ক রঙসহ, যাদের পড়া হয় লিড রং, পার্টনার রং এবং শুধু নাম দিয়ে, এবং টেবিলের নিচে তালিকাভুক্ত Background, Text, Quiet text ও Hairlines, যে পাঠগুলো কোনো রোল পূরণ করে না](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&system=wefthouse&width=2720&height=2000&dpi=192&waitMs=1800&cropSelector=%5Bdata-be-roles-fold%5D&format=svg&walker=1&dark=1&filename=bs-colour-roles)
 
 টেবিলে চারটি কলাম, আর ফোনে প্রতিটি সারি একটি কার্ড হয়ে যায় যা লাইট ও ডার্ক পাশাপাশি রাখে:
 
@@ -156,13 +156,13 @@
 
 **রঙ কোথায় বাছা হয়।** টুলের ও Lolly Design-এর প্রতিটি রঙের ফিল্ড শুরু হয় ডিজাইন সিস্টেমের রোল দিয়ে, তার নিজস্ব ক্রমে, প্রতিটি শব্দ ও রঙটি কীসের জন্য তা দৃশ্যমান রেখে। রোলের পাশে **Aa** সেই রোলের ওপর বসা রঙ বাছে। বাকিগুলো **অন্যান্য রং**-এর নিচে আসে, কালারওয়ের নিজস্ব কপি, অন-কালার ও রোল আগে থেকে পূরণ করা যেকোনো পাঠ বাদে। একটি বাছাই রোলের সঙ্গে যুক্ত থাকে এবং কালারওয়ে অনুসরণ করে, কোন কালারওয়ে বাছা তা নির্বিশেষে ফিল্ড শব্দটিই দেখায়, আর Settings ও Tokens-ও শব্দটি ব্যবহার করে। রোল নেই এমন ডিজাইন সিস্টেম সবসময়ের সোয়াচের গ্রিডই রাখে।
 
-### রোল: টুল যা পড়ে
+### টুল যে প্রতিটি রঙ পড়ে
 
 **Colour roles** বন্ধ থাকলে, প্রথম সিদ্ধান্তগুলো চিপ হয়ে রুমের শুরুতে আসে, প্রতিটি দেখায় যে রঙ রোলটি পালন করে এবং তার নাম। নিজস্ব শব্দ নেই এমন সিস্টেমে এগুলো **Primary**, **Secondary**, **Surface** ও **Text**। একটি চিপ চাপলে প্যালেটের নিজস্ব সোয়াচ থেকে তার রঙ বাছা যায়। **টুল যত রং পড়ে সব**, **Colour roles**-এর নিচে, সম্পূর্ণ স্ট্রিপ রাখে।
 
-**Roles** বলে প্রতিটি টুল ও এক্সপোর্টে কোন রঙ কোন ভূমিকা পালন করে। এগুলো ঐচ্ছিক (তিনটি আলগা রঙ ও কোনো রোল না থাকাও একটি পুরোপুরি ভালো সিস্টেম), যেকোনো রঙ একটি নিতে পারে এবং রিডআউট বলে টেক্সট কেমন পড়া যায়, সারফেসের বিপরীতে মাপা, APCA আগে। প্রতিটি রোল সারি দেখায় পূর্ণ জোরে একটি নিজস্ব রঙ, একটি স্টার্টার রঙ বদলি হিসেবে, বা **↳ follows Primary**।
+স্ট্রিপ টুলের পড়তে পারা সাতটি রঙ দেখায়: Primary, Secondary, Surface, Text, Muted, Edge এবং On primary, ডিজাইন সিস্টেমের নিজস্ব শব্দে যেখানে তা আছে। প্রতিটি রঙ প্রতিটি টুল ও এক্সপোর্টে একই ভূমিকা পালন করে। এগুলোর কোনোটিই সেট করতে হয় না (তিনটি আলগা রঙ একটি ভালো সিস্টেম বানায়), যেকোনো রঙ একটি ভরতে পারে এবং রিডআউট বলে টেক্সট কেমন পড়া যায়, সারফেসের বিপরীতে মাপা, APCA আগে। প্রতিটি সারি পূর্ণ জোরে একটি নিজস্ব রঙ, একটি স্টার্টার রঙ বদলি হিসেবে, বা **↳ follows Primary** দেখায়।
 
-স্ট্রিপ টুলের পড়তে পারা সাতটি রোলই দেখায়: Primary, Secondary, Surface, Text, Muted, Edge এবং On primary, ডিজাইন সিস্টেমের নিজস্ব শব্দে যেখানে তা আছে। On primary প্রাইমারি থেকে উদ্ভূত, **Derived** পড়ে এবং কোনো পিকার নেই। তার পাশের **Light** ও **Dark** সুইচ, এবং **In context**-এর পাশেরটি, ঠিক করে স্ট্রিপ, প্যালেট ও প্রিভিউ কোন লুক দেখাবে।
+On primary প্রাইমারি থেকে উদ্ভূত, **Derived** পড়ে এবং কোনো পিকার নেই। তার পাশের **Light** ও **Dark** সুইচ, এবং **In context**-এর পাশেরটি, ঠিক করে স্ট্রিপ, প্যালেট ও প্রিভিউ কোন লুক দেখাবে।
 
 অ্যাপের নিজস্ব অ্যাকসেন্ট ডিফল্টে ডিজাইন সিস্টেম অনুসরণ করে। সেটি **Settings → Appearance**-এ **Interface follows the design system** সেটিং; সেটিং বন্ধ করলে অ্যাপের ক্রোম নিরপেক্ষ থাকে, আর টুল, ক্যানভাস ও এক্সপোর্ট দুই ক্ষেত্রেই ডিজাইন সিস্টেম অনুসরণ করে।
 
@@ -250,7 +250,7 @@
 
 নিজস্ব ফেস না থাকলে রুমটি একটি কার্ড: **Primary**, আজ যে ফেস তাকে পরিবেশন করছে তাতে পড়ার মাপে সাজানো, একটি **Starter** ট্যাগ, একটি **Choose for Primary** বোতাম এবং লাইন *"Nothing installs until you choose one."* সহ। আপনি না বাছা পর্যন্ত Headings, code ও italic প্রাইমারি অনুসরণ করে; **Choose them separately** তাদের কার্ড দেখায়।
 
-![এখনো কোনো face বেছে নেওয়া হয়নি এমন Type room - reading সাইজে একটা কার্ড, তাতে একটা Starter ট্যাগ, আর একটা ভরা Choose for Primary](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&dark=1&filename=brand-type)
+![এখনো কোনো face বেছে নেওয়া হয়নি এমন Type room - reading সাইজে একটা কার্ড, তাতে একটা Starter ট্যাগ, আর একটা ভরা Choose for Primary](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&system=new-design-system&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&dark=1&filename=brand-type)
 
 একটি ফেস বাছুন, রুম চারটি রোল কার্ড, Fonts তালিকা ও একটি লাইভ নমুনায় খোলে:
 
@@ -261,7 +261,7 @@
 
 একটি কার্ডে রঙ থাকে কেবল যেখানে আপনি সেই ফেস ইনস্টল করেছেন। তার বোতাম বলে এটি কোন রোলের জন্য: আপনার নিজের ফেসে **Change Headings**, অন্য সব জায়গায় **Choose for Headings**। নমুনা লাইনটি কেটে না গিয়ে ভাঁজ হয়ে নামে। কার্ডের কিছুই কিছু কমিট করে না: বোতাম সেই রোলের জন্য তুলনা মঞ্চ খোলে।
 
-![সামনে আনা চারটা role কার্ড - প্রতিটা সেই face-এ সেট যা তাকে সার্ভ করে, যেখানে কেউ কিছু বেছে নেয়নি সেখানে একটা Starter ট্যাগ আর প্রাইমারি অনুসরণ করা Italic](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&width=1440&height=1000&dpi=192&waitMs=2600&drive=click%3A%5Bdata-be-typemore-toggle%5D%3Bwait%3A600&cropSelector=.be-typecard-grid&walker=1&format=svg&dark=1&filename=bs-type-specimen)
+![সামনে আনা চারটা role কার্ড - প্রতিটা সেই face-এ সেট যা তাকে সার্ভ করে, যেখানে কেউ কিছু বেছে নেয়নি সেখানে একটা Starter ট্যাগ আর প্রাইমারি অনুসরণ করা Italic](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&system=new-design-system&width=1440&height=1000&dpi=192&waitMs=2600&drive=click%3A%5Bdata-be-typemore-toggle%5D%3Bwait%3A600&cropSelector=.be-typecard-grid&walker=1&format=svg&dark=1&filename=bs-type-specimen)
 
 ### কম্পেয়ার স্টেজ
 

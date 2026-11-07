@@ -84,7 +84,7 @@ Toda marca termina em uma grade de oito slots opcionais, um por **orientation** 
 
 Um grupo ainda sem marcas se recolhe em uma linha; abra-o para ver os slots. Clique em um slot para adicionar um PNG, SVG, JPEG ou WebP, ou clique em um slot preenchido para substituir a marca. Tudo fica neste dispositivo.
 
-![Os slots de logotipo com Horizontal e Vertical abertos: cada tratamento é um slot próprio, e todos os slots são opcionais](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dlogos&width=1440&height=1600&dpi=192&waitMs=1600&drive=click%3A.be-logo-identity%3Edetails%3Anth-of-type%281%29%3Esummary%3Bclick%3A.be-logo-identity%3Edetails%3Anth-of-type%282%29%3Esummary%3Bwait%3A600&cropSelector=.be-logo-grid&format=svg&walker=1&dark=1&filename=bs-logo-slots)
+![Os slots de logotipo com Horizontal e Vertical abertos: cada tratamento é um slot próprio, e todos os slots são opcionais](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dlogos&system=new-design-system&width=1440&height=1600&dpi=192&waitMs=1600&drive=click%3A.be-logo-identity%3Edetails.be-logo-group--fold%3Anot%28.be-logo-group--custom%29%3Esummary%3Bwait%3A600&cropSelector=.be-logo-grid&format=svg&walker=1&dark=1&filename=bs-logo-slots)
 
 - **Custom marks** são marcas que a sua marca chama pelo próprio nome, como um ícone, um brasão ou um favicon.
 - **More identities.** Uma submarca, produto ou evento pode ter um conjunto completo próprio: **+ Add another logo** e dê um nome ao conjunto. Seu conjunto principal é "Your logo". [Brand architectures](/info/brand-architectures.html) mostra quando uma identidade de logotipo é o bloco certo.
@@ -118,7 +118,7 @@ Suas cores ficam ao lado de uma prévia **In context** em tela larga, e acima de
 
 O sistema de design diz como as suas cores se chamam e para que serve cada uma, e o Lolly lê isso. Os **Papéis de cor** ficam no topo da sala Colours. Em tela larga, **In context** divide a vista, então uma mudança aparece no pôster, no gráfico e no cartão de interface enquanto você a faz.
 
-![A tabela de papéis de cor no Lolly Demo, nas próprias palavras dele: os chips de variação de cores e, depois, Lead, Partner, Paper e Ink, cada um com sua cor clara e escura, lidos como a cor principal, a cor do parceiro, o fundo e o texto, com Quiet text e Hairlines listados sob a tabela como as leituras que nenhum papel preenche](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=2720&height=2000&dpi=192&waitMs=1800&cropSelector=%5Bdata-be-roles-fold%5D&format=svg&walker=1&dark=1&filename=bs-colour-roles)
+![A tabela de papéis de cor no Wefthouse, uma marca têxtil inventada, nas próprias palavras dela: os chips de variação de cores Indigo, Madder e Weld e, depois, Main, Accent, Supporting e Tertiary, cada um com sua cor clara e escura, lidos como a cor principal, a cor do parceiro e só pelo nome, com Background, Text, Quiet text e Hairlines listados sob a tabela como as leituras que nenhum papel preenche](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&system=wefthouse&width=2720&height=2000&dpi=192&waitMs=1800&cropSelector=%5Bdata-be-roles-fold%5D&format=svg&walker=1&dark=1&filename=bs-colour-roles)
 
 A tabela tem quatro colunas, e no celular cada linha vira um cartão que mantém o claro e o escuro lado a lado:
 
@@ -156,13 +156,13 @@ Uma leitura que nenhum papel preenche fica como o sistema de design a define, e 
 
 **Onde uma cor é escolhida.** Todo campo de cor em uma ferramenta e no Lolly Design começa pelos papéis do sistema de design, na ordem própria dele, com cada palavra e para que serve a cor à mostra. O **Aa** ao lado de um papel escolhe a cor que fica sobre esse papel. O restante vem depois, em **Outras cores**, sem as cópias próprias de uma variação de cores, as cores "sobre" e qualquer leitura que um papel já preenche. Uma escolha continua vinculada ao papel e acompanha a variação de cores, o campo continua mostrando a palavra seja qual for a variação escolhida, e Settings e Tokens também usam a palavra. Um sistema de design sem papéis mantém a grade de amostras que sempre teve.
 
-### Roles: o que as ferramentas leem
+### Toda cor que uma ferramenta lê
 
 Com os **Papéis de cor** fechados, as primeiras decisões abrem a sala como chips, cada um mostrando a cor que faz o papel e o nome dela. Em um sistema sem palavras próprias, eles são **Primary**, **Secondary**, **Surface** e **Text**. Pressione um chip para escolher a cor dele entre as amostras da própria paleta. **Toda cor que uma ferramenta lê**, no rodapé de **Papéis de cor**, tem a faixa completa.
 
-Os **Papéis** dizem qual cor faz cada parte em todas as ferramentas e exportações. São opcionais (três cores soltas e nenhum papel é um sistema perfeitamente bom), qualquer cor pode assumir um e a leitura de contraste diz como o texto se lê, medido contra a superfície, APCA primeiro. Cada linha de papel mostra uma cor própria com força total, uma cor inicial no lugar dela, ou **↳ follows Primary**.
+A faixa mostra as sete cores que uma ferramenta pode ler: Primary, Secondary, Surface, Text, Muted, Edge e On primary, nas palavras do próprio sistema de design onde ele as tem. Cada uma faz o mesmo papel em todas as ferramentas e exportações. Nenhuma precisa ser definida (três cores soltas formam um bom sistema), qualquer cor pode ocupar uma e a leitura de contraste diz como o texto se lê, medido contra a superfície, APCA primeiro. Cada linha mostra uma cor própria com força total, uma cor inicial no lugar dela, ou **↳ follows Primary**.
 
-A faixa mostra os sete papéis que uma ferramenta pode ler: Primary, Secondary, Surface, Text, Muted, Edge e On primary, nas palavras do próprio sistema de design onde ele as tem. On primary é derivada da primária, mostra **Derived** e não tem seletor. O seletor **Light** e **Dark** ao lado dela, e o que fica ao lado de **In context**, escolhem qual visual a faixa, a paleta e a prévia mostram.
+On primary é derivada da primária, mostra **Derived** e não tem seletor. O seletor **Light** e **Dark** ao lado dela, e o que fica ao lado de **In context**, escolhem qual visual a faixa, a paleta e a prévia mostram.
 
 O destaque do próprio app segue o sistema de design por padrão. Essa é a configuração **Interface follows the design system** em **Settings → Appearance**; desativá-la deixa o chrome do app neutro, enquanto ferramentas, canvases e exportações seguem o sistema de design de qualquer forma.
 
@@ -250,7 +250,7 @@ Os downloads da paleta (design tokens, CSS, SCSS, GIMP e Adobe Swatch Exchange) 
 
 Sem uma fonte própria, a sala é um único cartão: **Primary**, composto em tamanho de leitura na fonte que o atende hoje, com uma etiqueta **Starter**, um botão **Choose for Primary** e a linha *"Nothing installs until you choose one."* Headings, code e italic seguem a primária até você escolhê-los; **Choose them separately** mostra os cartões deles.
 
-![A sala Type sem fonte escolhida ainda - um cartão em tamanho de leitura, uma tag Starter nele, e um Choose for Primary preenchido](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&dark=1&filename=brand-type)
+![A sala Type sem fonte escolhida ainda - um cartão em tamanho de leitura, uma tag Starter nele, e um Choose for Primary preenchido](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&system=new-design-system&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&dark=1&filename=brand-type)
 
 Escolha uma fonte e a sala se abre em quatro cartões de função, na lista Fonts e em um espécime ao vivo:
 
@@ -261,7 +261,7 @@ Escolha uma fonte e a sala se abre em quatro cartões de função, na lista Font
 
 Um cartão só é tingido onde você instalou aquela fonte. O botão diz para qual função ele serve: **Change Headings** em uma fonte sua e **Choose for Headings** nos demais casos. A linha de amostra quebra em vez de ser cortada. Nada em um cartão confirma nada: o botão abre o palco de comparação para aquela função.
 
-![Os quatro cartões de papel revelados - cada um na fonte que o atende, com uma tag Starter onde ninguém escolheu uma e Italic seguindo a primária](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&width=1440&height=1000&dpi=192&waitMs=2600&drive=click%3A%5Bdata-be-typemore-toggle%5D%3Bwait%3A600&cropSelector=.be-typecard-grid&walker=1&format=svg&dark=1&filename=bs-type-specimen)
+![Os quatro cartões de papel revelados - cada um na fonte que o atende, com uma tag Starter onde ninguém escolheu uma e Italic seguindo a primária](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&system=new-design-system&width=1440&height=1000&dpi=192&waitMs=2600&drive=click%3A%5Bdata-be-typemore-toggle%5D%3Bwait%3A600&cropSelector=.be-typecard-grid&walker=1&format=svg&dark=1&filename=bs-type-specimen)
 
 ### O palco de comparação
 

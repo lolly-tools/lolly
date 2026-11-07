@@ -84,7 +84,7 @@ Setiap lambang berakhir dalam grid lapan slot pilihan, satu bagi setiap **orient
 
 Kumpulan tanpa lambang lagi dilipat menjadi satu baris; buka untuk melihat slotnya. Klik slot untuk menambah PNG, SVG, JPEG atau WebP, atau klik slot terisi untuk menggantikan lambang. Segala-galanya kekal pada peranti ini.
 
-![Slot logo dengan Horizontal dan Vertical dibuka: setiap rawatan ialah slotnya sendiri, dan setiap slot adalah pilihan](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dlogos&width=1440&height=1600&dpi=192&waitMs=1600&drive=click%3A.be-logo-identity%3Edetails%3Anth-of-type%281%29%3Esummary%3Bclick%3A.be-logo-identity%3Edetails%3Anth-of-type%282%29%3Esummary%3Bwait%3A600&cropSelector=.be-logo-grid&format=svg&walker=1&dark=1&filename=bs-logo-slots)
+![Slot logo dengan Horizontal dan Vertical dibuka: setiap rawatan ialah slotnya sendiri, dan setiap slot adalah pilihan](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dlogos&system=new-design-system&width=1440&height=1600&dpi=192&waitMs=1600&drive=click%3A.be-logo-identity%3Edetails.be-logo-group--fold%3Anot%28.be-logo-group--custom%29%3Esummary%3Bwait%3A600&cropSelector=.be-logo-grid&format=svg&walker=1&dark=1&filename=bs-logo-slots)
 
 - **Custom marks** ialah lambang yang dipanggil jenama anda dengan namanya sendiri, seperti ikon, jata atau favicon.
 - **More identities.** Sub-jenama, produk atau acara boleh mempunyai set penuh sendiri: **+ Add another logo** dan beri nama kepada set itu. Set utama anda ialah "Your logo". [Brand architectures](/info/brand-architectures.html) menunjukkan bila identiti logo ialah blok yang betul.
@@ -118,7 +118,7 @@ Warna anda berada di sebelah pratonton **In context** pada skrin lebar, dan di a
 
 Sistem reka bentuk menyatakan apa nama warnanya dan untuk apa setiap satu, dan Lolly membacanya. **Colour roles** berada di kepala bilik Colours. Pada skrin lebar **In context** berkongsi paparan, jadi perubahan ditunjukkan pada poster, carta dan kad antara muka semasa anda membuat perubahan itu.
 
-![Jadual Colour roles pada Lolly Demo dalam perkataannya sendiri: cip colourway, kemudian Lead, Partner, Paper dan Ink, masing-masing dengan warna terang dan gelapnya, dibaca sebagai warna utama, warna rakan kongsi, latar belakang dan teks, dengan Quiet text dan Hairlines disenaraikan di bawah jadual sebagai bacaan yang tidak diisi mana-mana peranan](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=2720&height=2000&dpi=192&waitMs=1800&cropSelector=%5Bdata-be-roles-fold%5D&format=svg&walker=1&dark=1&filename=bs-colour-roles)
+![Jadual Colour roles pada Wefthouse, jenama tekstil rekaan, dalam perkataannya sendiri: cip colourway Indigo, Madder dan Weld, kemudian Main, Accent, Supporting dan Tertiary, masing-masing dengan warna terang dan gelapnya, dibaca sebagai warna utama, warna rakan kongsi dan mengikut nama sahaja, dengan Background, Text, Quiet text dan Hairlines disenaraikan di bawah jadual sebagai bacaan yang tidak diisi mana-mana peranan](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&system=wefthouse&width=2720&height=2000&dpi=192&waitMs=1800&cropSelector=%5Bdata-be-roles-fold%5D&format=svg&walker=1&dark=1&filename=bs-colour-roles)
 
 Jadual itu mempunyai empat lajur, dan pada telefon setiap baris menjadi kad yang menyimpan terang dan gelap bersebelahan:
 
@@ -156,13 +156,13 @@ Bacaan yang tidak diisi mana-mana peranan kekal seperti yang ditakrifkan sistem 
 
 **Di mana warna dipilih.** Setiap medan warna dalam alat dan dalam Lolly Design bermula dengan peranan sistem reka bentuk, mengikut susunannya sendiri, dengan setiap perkataan dan untuk apa warna itu ditunjukkan. **Aa** di sebelah peranan memilih warna yang diletakkan pada peranan itu. Selebihnya mengikut di bawah **Warna lain**, tanpa salinan colourway sendiri, warna-pada dan sebarang bacaan yang sudah diisi peranan. Pilihan kekal dipautkan kepada peranan dan mengikut colourway, medan terus menunjukkan perkataan itu walau colourway mana dipilih, dan Settings serta Tokens turut menggunakan perkataan itu. Sistem reka bentuk tanpa peranan mengekalkan grid swatch yang sentiasa ada padanya.
 
-### Peranan: apa yang dibaca alat
+### Setiap warna yang dibaca alat
 
 Apabila **Colour roles** ditutup, keputusan pertama mendahului bilik sebagai cip, masing-masing menunjukkan warna yang memainkan peranan itu dan namanya. Pada sistem tanpa perkataan sendiri ini ialah **Primary**, **Secondary**, **Surface** dan **Text**. Tekan cip untuk memilih warnanya daripada swatch palet sendiri. **Setiap warna yang dibaca alat**, di kaki **Colour roles**, mempunyai jalur penuh.
 
-**Roles** menyatakan warna mana memainkan setiap bahagian dalam setiap alat dan eksport. Ia pilihan (tiga warna longgar tanpa peranan ialah sistem yang baik sempurna), mana-mana warna boleh mengambil satu dan bacaan menunjukkan bagaimana teks dibaca, diukur terhadap permukaan, APCA dahulu. Setiap baris peranan menunjukkan warna sendiri pada kekuatan penuh, warna starter yang bertumpu atau **↳ follows Primary**.
+Jalur menunjukkan tujuh warna yang boleh dibaca alat: Primary, Secondary, Surface, Text, Muted, Edge dan On primary, dalam perkataan sistem reka bentuk sendiri di mana ada. Setiap satu memainkan bahagian yang sama dalam setiap alat dan eksport. Tiada satu pun perlu ditetapkan (tiga warna longgar ialah sistem yang baik), mana-mana warna boleh mengisi satu dan bacaan menunjukkan bagaimana teks dibaca, diukur terhadap permukaan, APCA dahulu. Setiap baris menunjukkan warna sendiri pada kekuatan penuh, warna starter yang bertumpu atau **↳ follows Primary**.
 
-Jalur menunjukkan ketujuh-tujuh peranan yang boleh dibaca alat: Primary, Secondary, Surface, Text, Muted, Edge dan On primary, dalam perkataan sistem reka bentuk sendiri di mana ada. On primary diperoleh daripada primary, berbunyi **Derived** dan tidak mempunyai pemilih. Suis **Terang** dan **Gelap** di sebelahnya, dan yang di sebelah **In context**, memilih rupa mana yang ditunjukkan jalur, palet dan pratonton.
+On primary diperoleh daripada primary, berbunyi **Derived** dan tidak mempunyai pemilih. Suis **Terang** dan **Gelap** di sebelahnya, dan yang di sebelah **In context**, memilih rupa mana yang ditunjukkan jalur, palet dan pratonton.
 
 Aksen apl sendiri mengikut sistem reka bentuk secara lalai. Itulah tetapan **Interface follows the design system** dalam **Settings → Appearance**; mematikan tetapan membiarkan chrome apl neutral, manakala alat, kanvas dan eksport mengikut sistem reka bentuk dalam kedua-dua keadaan.
 
@@ -250,7 +250,7 @@ Muat turun palet (token reka bentuk, CSS, SCSS, GIMP dan Adobe Swatch Exchange) 
 
 Tanpa muka sendiri, bilik ialah satu kad: **Primary**, ditetapkan pada saiz bacaan dalam muka yang melayaninya hari ini, dengan teg **Starter**, butang **Choose for Primary** dan baris *"Nothing installs until you choose one."* Headings, code dan italic mengikut primer sehingga anda memilihnya; **Choose them separately** menunjukkan kad mereka.
 
-![Bilik Type dengan belum ada muka taip yang dipilih - satu kad pada saiz bacaan, satu tag Starter di atasnya, dan satu Choose for Primary yang terisi](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&dark=1&filename=brand-type)
+![Bilik Type dengan belum ada muka taip yang dipilih - satu kad pada saiz bacaan, satu tag Starter di atasnya, dan satu Choose for Primary yang terisi](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&system=new-design-system&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&dark=1&filename=brand-type)
 
 Pilih satu muka dan bilik terbuka menjadi empat kad peranan, senarai Fonts dan spesimen langsung:
 
@@ -261,7 +261,7 @@ Pilih satu muka dan bilik terbuka menjadi empat kad peranan, senarai Fonts dan s
 
 Kad hanya diwarnakan di mana anda memasang muka itu. Butangnya menyatakan untuk peranan mana ia: **Change Headings** pada muka milik anda dan **Choose for Headings** di tempat lain. Baris sampel dibalut dan bukan dipotong. Tiada apa-apa pada kad mengomit apa-apa: butang membuka pentas banding untuk peranan itu.
 
-![Empat kad peranan didedahkan - setiap satu ditetapkan dalam muka taip yang berkhidmat untuknya, dengan satu tag Starter di mana tiada sesiapa memilih satu dan Italic mengikuti primary](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&width=1440&height=1000&dpi=192&waitMs=2600&drive=click%3A%5Bdata-be-typemore-toggle%5D%3Bwait%3A600&cropSelector=.be-typecard-grid&walker=1&format=svg&dark=1&filename=bs-type-specimen)
+![Empat kad peranan didedahkan - setiap satu ditetapkan dalam muka taip yang berkhidmat untuknya, dengan satu tag Starter di mana tiada sesiapa memilih satu dan Italic mengikuti primary](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&system=new-design-system&width=1440&height=1000&dpi=192&waitMs=2600&drive=click%3A%5Bdata-be-typemore-toggle%5D%3Bwait%3A600&cropSelector=.be-typecard-grid&walker=1&format=svg&dark=1&filename=bs-type-specimen)
 
 ### Peringkat perbandingan
 

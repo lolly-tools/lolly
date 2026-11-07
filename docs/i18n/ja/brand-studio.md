@@ -84,7 +84,7 @@ Lolly Demoのように、アプリに付属していて編集できるデザイ�
 
 まだマークのないグループは1行に折りたたまれ、開くとそのスロットが表示されます。スロットをクリックするとPNG、SVG、JPEG、WebPを追加でき、埋まっているスロットをクリックするとマークを置き換えます。すべてはこのデバイスにとどまります。
 
-![HorizontalとVerticalを開いたロゴスロット: 各処理がそれぞれ独立したスロットで、すべてのスロットは任意](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dlogos&width=1440&height=1600&dpi=192&waitMs=1600&drive=click%3A.be-logo-identity%3Edetails%3Anth-of-type%281%29%3Esummary%3Bclick%3A.be-logo-identity%3Edetails%3Anth-of-type%282%29%3Esummary%3Bwait%3A600&cropSelector=.be-logo-grid&format=svg&walker=1&dark=1&filename=bs-logo-slots)
+![HorizontalとVerticalを開いたロゴスロット: 各処理がそれぞれ独立したスロットで、すべてのスロットは任意](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dlogos&system=new-design-system&width=1440&height=1600&dpi=192&waitMs=1600&drive=click%3A.be-logo-identity%3Edetails.be-logo-group--fold%3Anot%28.be-logo-group--custom%29%3Esummary%3Bwait%3A600&cropSelector=.be-logo-grid&format=svg&walker=1&dark=1&filename=bs-logo-slots)
 
 - **Custom marks**は、アイコン、紋章、ファビコンなど、ブランドが独自の名前で呼ぶマークです。
 - **More identities。** サブブランド、製品、イベントは、それぞれ独自の完全なセットを持てます。**+ Add another logo**を押して、セットに名前を付けます。メインのセットは「Your logo」です。ロゴのアイデンティティが適切な構成要素となるのはいつかは、[ブランドアーキテクチャ](/info/brand-architectures.html)で示しています。
@@ -118,7 +118,7 @@ Lolly Demoのように、アプリに付属していて編集できるデザイ�
 
 デザインシステムは、その色が何と呼ばれ、それぞれ何のためにあるかを示し、Lollyはそれを読み取ります。**Colour roles**はColoursルームの先頭にあります。広い画面では**In context**がビューを分け合うため、変更はポスター、グラフ、インターフェースカードにその場で反映されます。
 
-![Lolly Demo自身の言葉によるColour rolesの表: カラーウェイのチップ、続いてLead、Partner、Paper、Ink。それぞれにライトとダークの色があり、メインカラー、パートナーカラー、背景、テキストとして読み取られる。表の下には、どのロールも担っていない読み取りとしてQuiet textとHairlinesが並ぶ](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=2720&height=2000&dpi=192&waitMs=1800&cropSelector=%5Bdata-be-roles-fold%5D&format=svg&walker=1&dark=1&filename=bs-colour-roles)
+![架空のテキスタイルブランドWefthouseのColour rolesの表(自身の言葉で): カラーウェイのチップIndigo、Madder、Weld、続いてMain、Accent、Supporting、Tertiary。それぞれにライトとダークの色があり、メインカラー、パートナーカラー、名前のみとして読み取られる。表の下には、どのロールも担っていない読み取りとしてBackground、Text、Quiet text、Hairlinesが並ぶ](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&system=wefthouse&width=2720&height=2000&dpi=192&waitMs=1800&cropSelector=%5Bdata-be-roles-fold%5D&format=svg&walker=1&dark=1&filename=bs-colour-roles)
 
 表は4列で、スマートフォンでは各行がカード1枚になり、ライトとダークが並んだまま残ります:
 
@@ -156,13 +156,13 @@ Lolly Demoのように、アプリに付属していて編集できるデザイ�
 
 **色を選ぶ場所。** ツールとLolly Designのすべての色の欄は、デザインシステムのロールを、その独自の順序で先頭に表示し、各言葉と、その色が何のためにあるかを見せます。ロールの横の**Aa**は、そのロールの上に置く色を選びます。残りは**Other colours**の下に続き、カラーウェイ独自のコピー、オン・カラー、ロールがすでに担っている読み取りは含まれません。選んだ色はロールにリンクされたままカラーウェイに追従し、欄はどのカラーウェイを選んでも言葉を表示し続け、SettingsとTokensもその言葉を使います。ロールのないデザインシステムは、従来どおりのスウォッチのグリッドを保ちます。
 
-### 役割: ツールが読むもの
+### ツールが読むすべての色
 
 **Colour roles**を閉じているとき、最初の判断がチップとしてルームの先頭に並び、それぞれが、そのロールを担う色とその名前を示します。独自の言葉がないシステムでは、**Primary**、**Secondary**、**Surface**、**Text**です。チップを押すと、パレット自身のスウォッチから色を選べます。**Colour roles**の末尾にある**Every colour a tool reads**に、全体のストリップがあります。
 
-**ロール**は、すべてのツールと書き出しで、どの色がどの役を担うかを示します。任意です(ばらばらの3色でロールなしでも、まったく問題のないシステムです)。どの色にもロールを付けられ、読み出し表示は、サーフェスに対してテキストがどう読めるかを、APCAを先にして示します。各ロール行は、ご自身の色を最大の強さで、代役を務めるスターターの色を、または**↳ follows Primary**を表示します。
+ストリップには、ツールが読める7色が表示されます: Primary、Secondary、Surface、Text、Muted、Edge、On primary。デザインシステムが独自の言葉を持つ場合は、その言葉で表示されます。どの色も、すべてのツールと書き出しで同じ役を担います。設定が必須の色はなく(ばらばらの3色でも十分によいシステムです)、どの色でも1つを担え、読み出し表示は、サーフェスに対してテキストがどう読めるかを、APCAを先にして示します。各行は、ご自身の色を最大の強さで、代役を務めるスターターの色を、または**↳ follows Primary**を表示します。
 
-ストリップには、ツールが読める7つのロールすべてが表示されます: Primary、Secondary、Surface、Text、Muted、Edge、On primary。デザインシステムが独自の言葉を持つ場合は、その言葉で表示されます。On primaryはPrimaryから導かれ、**Derived**と表示され、ピッカーはありません。その横の**Light**と**Dark**のスイッチ、そして**In context**の横のスイッチは、ストリップ、パレット、プレビューがどちらの見た目を表示するかを選びます。
+On primaryはPrimaryから導かれ、**Derived**と表示され、ピッカーはありません。その横の**Light**と**Dark**のスイッチ、そして**In context**の横のスイッチは、ストリップ、パレット、プレビューがどちらの見た目を表示するかを選びます。
 
 アプリ自身のアクセントは、既定でデザインシステムに従います。これが**Settings → Appearance**の**Interface follows the design system**設定です。この設定をオフにすると、アプリのクロームはニュートラルのままになりますが、ツール、キャンバス、書き出しは、どちらの場合もデザインシステムに従います。
 
@@ -250,7 +250,7 @@ Lolly Demoのように、アプリに付属していて編集できるデザイ�
 
 独自の書体がない場合、ルームは1枚のカードだけです。**Primary**が、現在使われている書体で読みやすいサイズで表示され、**Starter**タグ、**Choose for Primary**ボタン、*"Nothing installs until you choose one."*という一文があります。Headings、Code、Italicは、選ぶまではプライマリに従い、**Choose them separately**でそれらのカードが表示されます。
 
-![まだ書体が選ばれていないTypeルーム - 読みやすいサイズの1枚のカード、その上のStarterタグ、そして塗りつぶされたChoose for Primary](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&dark=1&filename=brand-type)
+![まだ書体が選ばれていないTypeルーム - 読みやすいサイズの1枚のカード、その上のStarterタグ、そして塗りつぶされたChoose for Primary](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&system=new-design-system&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&dark=1&filename=brand-type)
 
 書体を1つ選ぶと、ルームは、4つの役割カード、Fontsの一覧、ライブの見本に開きます。
 
@@ -261,7 +261,7 @@ Lolly Demoのように、アプリに付属していて編集できるデザイ�
 
 カードに色味が付くのは、その書体をインストールした場合だけです。ボタンには、どの役割用かが表示されます。ご自身の書体では**Change Headings**、それ以外では**Choose for Headings**です。サンプルの行は、途中で切れずに折り返されます。カード上の操作は何も確定せず、ボタンは、その役割の比較ステージを開きます。
 
-![明らかになった4つのロールカード - それぞれが担当するフェイスで設定され、誰も選んでいない場合はStarterタグが付き、Italicはプライマリに従う](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&width=1440&height=1000&dpi=192&waitMs=2600&drive=click%3A%5Bdata-be-typemore-toggle%5D%3Bwait%3A600&cropSelector=.be-typecard-grid&walker=1&format=svg&dark=1&filename=bs-type-specimen)
+![明らかになった4つのロールカード - それぞれが担当するフェイスで設定され、誰も選んでいない場合はStarterタグが付き、Italicはプライマリに従う](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&system=new-design-system&width=1440&height=1000&dpi=192&waitMs=2600&drive=click%3A%5Bdata-be-typemore-toggle%5D%3Bwait%3A600&cropSelector=.be-typecard-grid&walker=1&format=svg&dark=1&filename=bs-type-specimen)
 
 ### 比較ステージ
 

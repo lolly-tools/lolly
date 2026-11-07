@@ -84,7 +84,7 @@ Ang bawat marka ay napupunta sa grid ng walong opsyonal na slot, isa bawat **ori
 
 Ang grupong wala pang marka ay tumitiklop sa isang linya; buksan ito para makita ang mga slot nito. Mag-click ng slot para magdagdag ng PNG, SVG, JPEG o WebP, o mag-click ng punong slot para palitan ang marka. Nananatili sa device na ito ang lahat.
 
-![Ang mga logo slot na nakabukas ang Horizontal at Vertical: ang bawat treatment ay sariling slot, at opsyonal ang bawat slot](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dlogos&width=1440&height=1600&dpi=192&waitMs=1600&drive=click%3A.be-logo-identity%3Edetails%3Anth-of-type%281%29%3Esummary%3Bclick%3A.be-logo-identity%3Edetails%3Anth-of-type%282%29%3Esummary%3Bwait%3A600&cropSelector=.be-logo-grid&format=svg&walker=1&dark=1&filename=bs-logo-slots)
+![Ang mga logo slot na nakabukas ang Horizontal at Vertical: ang bawat treatment ay sariling slot, at opsyonal ang bawat slot](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dlogos&system=new-design-system&width=1440&height=1600&dpi=192&waitMs=1600&drive=click%3A.be-logo-identity%3Edetails.be-logo-group--fold%3Anot%28.be-logo-group--custom%29%3Esummary%3Bwait%3A600&cropSelector=.be-logo-grid&format=svg&walker=1&dark=1&filename=bs-logo-slots)
 
 - **Mga custom na marka** ay mga markang tinatawag ng brand mo sa sarili nitong pangalan, tulad ng icon, crest o favicon.
 - **Mas maraming identity.** Ang sub-brand, produkto o event ay puwedeng magkaroon ng sarili nitong buong set: **+ Add another logo** at pangalanan ang set. Ang pangunahing set mo ay "Your logo". Ipinapakita ng [Brand architectures](/info/brand-architectures.html) kung kailan tamang block ang logo identity.
@@ -118,7 +118,7 @@ Ang mga kulay mo ay nasa tabi ng **In context** preview sa malapad na screen, at
 
 Sinasabi ng design system kung ano ang tawag sa mga kulay nito at kung para saan ang bawat isa, at binabasa iyon ng Lolly. Nasa unahan ng Colours room ang **Colour roles**. Sa malapad na screen, kahati ng view ang **In context**, kaya lumalabas ang pagbabago sa poster, chart at interface card habang ginagawa mo ito.
 
-![Ang Colour roles table sa Lolly Demo sa sarili nitong mga salita: ang mga colourway chip, saka Lead, Partner, Paper at Ink, bawat isa ay may light at dark na kulay, binabasa bilang lead colour, partner colour, background at text, at nakalista sa ilalim ng table ang Quiet text at Hairlines bilang mga pagbasang walang pumupuno na role](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=2720&height=2000&dpi=192&waitMs=1800&cropSelector=%5Bdata-be-roles-fold%5D&format=svg&walker=1&dark=1&filename=bs-colour-roles)
+![Ang Colour roles table sa Wefthouse, isang imbentong textile brand, sa sarili nitong mga salita: ang mga colourway chip na Indigo, Madder at Weld, saka Main, Accent, Supporting at Tertiary, bawat isa ay may light at dark na kulay, binabasa bilang lead colour, partner colour at sa pangalan lang, at nakalista sa ilalim ng table ang Background, Text, Quiet text at Hairlines bilang mga pagbasang walang pumupuno na role](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&system=wefthouse&width=2720&height=2000&dpi=192&waitMs=1800&cropSelector=%5Bdata-be-roles-fold%5D&format=svg&walker=1&dark=1&filename=bs-colour-roles)
 
 Apat ang column ng table, at sa telepono ay nagiging card ang bawat row na nagtatabi ng light at dark:
 
@@ -156,13 +156,13 @@ Ang pagbasang walang pumupuno na role ay nananatili ayon sa depinisyon ng design
 
 **Kung saan pinipili ang kulay.** Ang bawat colour field sa tool at sa Lolly Design ay nagsisimula sa mga role ng design system, sa sarili nitong pagkakasunod, na kita ang bawat salita at kung para saan ang kulay. Pinipili ng **Aa** sa tabi ng role ang kulay na ilalagay sa role na iyon. Kasunod ang iba sa ilalim ng **Other colours**, na walang sariling kopya ng colourway, ang mga on-colour at anumang pagbasang pinupunan na ng role. Nananatiling naka-link sa role ang pick at sumusunod sa colourway, patuloy na ipinapakita ng field ang salita anumang colourway ang napili, at gumagamit din ng salita ang Settings at Tokens. Ang design system na walang role ay nananatili sa grid ng mga swatch na dati nang meron.
 
-### Mga role: ang binabasa ng mga tool
+### Bawat kulay na binabasa ng tool
 
 Kapag nakasara ang **Colour roles**, ang mga unang desisyon ang nangunguna sa room bilang mga chip, bawat isa ay nagpapakita ng kulay na gumaganap sa role at ang pangalan nito. Sa system na walang sariling salita, ang mga ito ay **Primary**, **Secondary**, **Surface** at **Text**. Pindutin ang chip para pumili ng kulay nito mula sa sariling mga swatch ng palette. Ang **Every colour a tool reads**, sa paanan ng **Colour roles**, ay may buong strip.
 
-Sinasabi ng mga **Role** kung aling kulay ang gumaganap sa bawat bahagi sa bawat tool at export. Opsyonal ang mga ito (ang tatlong maluwag na kulay na walang role ay ganap na magandang system), puwedeng kumuha ng role ang anumang kulay at sinasabi ng readout kung paano nababasa ang text, sinusukat laban sa surface, APCA muna. Ang bawat role row ay nagpapakita ng sariling kulay sa buong lakas, starter na kulay na pumapalit, o **↳ follows Primary**.
+Ipinapakita ng strip ang pitong kulay na mababasa ng tool: Primary, Secondary, Surface, Text, Muted, Edge at On primary, sa sariling mga salita ng design system kung meron. Pareho ang ginagampanan ng bawat isa sa bawat tool at export. Hindi kailangang i-set ang alinman sa mga ito (ang tatlong maluwag na kulay ay magandang system na), puwedeng pumuno sa isa ang anumang kulay at sinasabi ng readout kung paano nababasa ang text, sinusukat laban sa surface, APCA muna. Ang bawat row ay nagpapakita ng sariling kulay sa buong lakas, starter na kulay na pumapalit, o **↳ follows Primary**.
 
-Ipinapakita ng strip ang lahat ng pitong role na mababasa ng tool: Primary, Secondary, Surface, Text, Muted, Edge at On primary, sa sariling mga salita ng design system kung meron. Hinango ang On primary mula sa primary, nagsasabing **Derived** at walang picker. Ang switch na **Light** at **Dark** sa tabi nito, at ang nasa tabi ng **In context**, ang pumipili kung aling look ang ipapakita ng strip, palette at preview.
+Hinango ang On primary mula sa primary, nagsasabing **Derived** at walang picker. Ang switch na **Light** at **Dark** sa tabi nito, at ang nasa tabi ng **In context**, ang pumipili kung aling look ang ipapakita ng strip, palette at preview.
 
 Ang sariling accent ng app ay sumusunod sa design system bilang default. Iyon ang setting na **Interface follows the design system** sa **Settings → Appearance**; ang pag-off ng setting ay iniiwang neutral ang chrome ng app, habang ang mga tool, canvas at export ay sumusunod sa design system sa alinmang paraan.
 
@@ -250,7 +250,7 @@ Ang mga palette download (design token, CSS, SCSS, GIMP at Adobe Swatch Exchange
 
 Kapag walang sariling face, ang room ay isang card: **Primary**, nakatakda sa laki ng pagbasa sa face na naglilingkod dito ngayon, na may **Starter** tag, **Choose for Primary** button at ang linyang *"Nothing installs until you choose one."* Ang Headings, code at italic ay sumusunod sa primary hanggang piliin mo ang mga ito; ipinapakita ng **Choose them separately** ang mga card nila.
 
-![Ang Type room na wala pang napiling face - isang card sa reading size, may Starter tag dito, at isang filled na Choose for Primary](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&dark=1&filename=brand-type)
+![Ang Type room na wala pang napiling face - isang card sa reading size, may Starter tag dito, at isang filled na Choose for Primary](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&system=new-design-system&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&dark=1&filename=brand-type)
 
 Pumili ng isang face at bubukas ang room sa apat na role card, ang Fonts list at live na specimen:
 
@@ -261,7 +261,7 @@ Pumili ng isang face at bubukas ang room sa apat na role card, ang Fonts list at
 
 Ang card ay may tint lang kung saan mo ini-install ang face na iyon, at sinasabi ng button nito kung para sa anong role ito: **Change Headings** sa sarili mong face at **Choose for Headings** sa lahat ng iba. Hindi pinuputol ang sample line kundi bumabalot ito. Walang ginagawang commit ang anumang nasa card: binubuksan ng button ang compare stage para sa role na iyon.
 
-![Ang apat na role card na nakalantad - bawat isa naka-set sa face na naglilingkod dito, may Starter tag kung saan walang pumili, at sumusunod ang Italic sa primary](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&width=1440&height=1000&dpi=192&waitMs=2600&drive=click%3A%5Bdata-be-typemore-toggle%5D%3Bwait%3A600&cropSelector=.be-typecard-grid&walker=1&format=svg&dark=1&filename=bs-type-specimen)
+![Ang apat na role card na nakalantad - bawat isa naka-set sa face na naglilingkod dito, may Starter tag kung saan walang pumili, at sumusunod ang Italic sa primary](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&system=new-design-system&width=1440&height=1000&dpi=192&waitMs=2600&drive=click%3A%5Bdata-be-typemore-toggle%5D%3Bwait%3A600&cropSelector=.be-typecard-grid&walker=1&format=svg&dark=1&filename=bs-type-specimen)
 
 ### Ang compare stage
 

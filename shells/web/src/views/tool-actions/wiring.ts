@@ -18,6 +18,7 @@ import { deliverBatchFile, releaseBackgroundDelivery } from '../../lib/backgroun
 import { approvalPdfPreview, approvalWantsArtifact, openApprovalRequest } from '../../lib/approval-request.ts';
 import { isAudioFormat as isAudioFmt } from '../../lib/audio-encode.js';
 import { stageDeckAsSequence, stagedDeckMs } from '../../lib/deck-as-sequence.ts';
+import { fansOutPerPage, pageExportSize, stagePages } from '../../lib/export-target.ts';
 import { saveExportPrefs } from '../../lib/export-prefs.ts';
 import { livePalette } from '../../lib/live-palette.ts';
 import { isModuleFormat, modUrlToWavBlobUrl } from '../../lib/mod-render.ts';
@@ -658,8 +659,8 @@ export function wireApprovalAndActions(ta: ActionsCtx): void {
       // html / zip formats keep their own paths.) Each [data-pdf-page] frame is exported
       // at its own measured size - width/height dims are stripped so a re-sized page still
       // exports at its true pixel size rather than the static render dimensions.
-      // Gate on the carousel-specific render.pages - NOT render.paged, which also marks
-      // multi-page-pdf / doc-studio, whose SVG export must stay a single whole-canvas file.
+      // A paged document (render.paged) fans out too: its single-image export used to hold
+      // the first page only, cropped to the export size (lib/export-target.ts).
       // Also admit the Design frame primitive: an editor-layout tool whose
       // boxes input declares canvas.frameField emits one [data-pdf-page] per ARTBOARD (frame
       // box). A no-frames Design doc renders a single .artboard with zero [data-pdf-page], so
@@ -674,8 +675,9 @@ export function wireApprovalAndActions(ta: ActionsCtx): void {
             )?.canvas
           : undefined;
       const hasFrames = !!framesCanvas?.frameField;
+      const pageSource = stagePages(manifest.render, hasFrames);
       const pageEls =
-        (manifest.render.pages || hasFrames) && canvasEl
+        pageSource && canvasEl
           ? [...canvasEl.querySelectorAll<HTMLElement>('[data-pdf-page]')]
           : [];
       // The `?s=` STILL-EXPORT FILTER (plan 112 section 10): `?s=2&format=png` renders just
@@ -1285,15 +1287,9 @@ export function wireApprovalAndActions(ta: ActionsCtx): void {
           );
           await deliver(downloadedBlob!, `${outputBase}.pdf`);
         } else if (
+          pageSource &&
           pageEls.length >= 1 &&
-          !isAnimated &&
-          fmt !== 'pdf' &&
-          fmt !== 'zip' &&
-          fmt !== 'html' &&
-          fmt !== 'pptx' &&
-          fmt !== 'penpot' &&
-          fmt !== 'rpm' &&
-          fmt !== 'tar.gz'
+          fansOutPerPage(fmt, isAnimated, pageSource)
         ) {
           if (framePick.kind === 'unmatched') {
             const why = tRaw('No slide matches ?s={s}. Exporting every slide.', {
@@ -1379,8 +1375,7 @@ export function wireApprovalAndActions(ta: ActionsCtx): void {
                   }
                   const pb = await runtime.export(el, fmt, {
                     ...pageOpts,
-                    width: el.offsetWidth,
-                    height: el.offsetHeight,
+                    ...pageExportSize(el, exportDims, pageSource),
                   });
                   out.push({ name: `${filename}-${i + 1}.${extFor(fmt, pb)}`, blob: pb });
                 }

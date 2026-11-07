@@ -84,7 +84,7 @@ Każdy znak trafia do siatki ośmiu opcjonalnych slotów, po jednym na **orienta
 
 Grupa bez znaków jest zwinięta do jednej linii; otwórz ją, aby zobaczyć sloty. Kliknij slot, aby dodać PNG, SVG, JPEG lub WebP, albo kliknij wypełniony slot, aby zastąpić znak. Wszystko zostaje na tym urządzeniu.
 
-![Sloty logo z otwartymi Horizontal i Vertical: każdy wariant ma własny slot i każdy slot jest opcjonalny](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dlogos&width=1440&height=1600&dpi=192&waitMs=1600&drive=click%3A.be-logo-identity%3Edetails%3Anth-of-type%281%29%3Esummary%3Bclick%3A.be-logo-identity%3Edetails%3Anth-of-type%282%29%3Esummary%3Bwait%3A600&cropSelector=.be-logo-grid&format=svg&walker=1&dark=1&filename=bs-logo-slots)
+![Sloty logo z otwartymi Horizontal i Vertical: każdy wariant ma własny slot i każdy slot jest opcjonalny](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dlogos&system=new-design-system&width=1440&height=1600&dpi=192&waitMs=1600&drive=click%3A.be-logo-identity%3Edetails.be-logo-group--fold%3Anot%28.be-logo-group--custom%29%3Esummary%3Bwait%3A600&cropSelector=.be-logo-grid&format=svg&walker=1&dark=1&filename=bs-logo-slots)
 
 - **Custom marks** to znaki, które Twoja marka nazywa własną nazwą, takie jak ikona, herb lub favicon.
 - **Więcej tożsamości.** Submarka, produkt lub wydarzenie mogą mieć własny pełny zestaw: **+ Add another logo** i nadaj zestawowi nazwę. Twój główny zestaw to "Your logo". [Brand architectures](/info/brand-architectures.html) pokazuje, kiedy tożsamość logo jest właściwym klockiem.
@@ -118,7 +118,7 @@ Twoje kolory leżą obok podglądu **W kontekście** na szerokim ekranie i nad n
 
 System projektowy mówi, jak nazywają się jego kolory i do czego służy każdy z nich, a Lolly to odczytuje. **Role kolorów** są na początku pokoju Colours. Na szerokim ekranie **W kontekście** dzieli widok, więc zmiana widać na plakacie, wykresie i karcie interfejsu w trakcie jej wprowadzania.
 
-![Tabela Colour roles w Lolly Demo we własnych słowach: znaczniki colourway, potem Lead, Partner, Paper i Ink, każda z kolorem jasnym i ciemnym, odczytane jako kolor wiodący, kolor partnera, tło i tekst, a Quiet text i Hairlines wymienione pod tabelą jako odczyty, których żadna rola nie wypełnia](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=2720&height=2000&dpi=192&waitMs=1800&cropSelector=%5Bdata-be-roles-fold%5D&format=svg&walker=1&dark=1&filename=bs-colour-roles)
+![Tabela Colour roles w Wefthouse, zmyślonej marce tekstylnej, we własnych słowach: znaczniki colourway Indigo, Madder i Weld, potem Main, Accent, Supporting i Tertiary, każda z kolorem jasnym i ciemnym, odczytane jako kolor wiodący, kolor partnera i tylko po nazwie, a Background, Text, Quiet text i Hairlines wymienione pod tabelą jako odczyty, których żadna rola nie wypełnia](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&system=wefthouse&width=2720&height=2000&dpi=192&waitMs=1800&cropSelector=%5Bdata-be-roles-fold%5D&format=svg&walker=1&dark=1&filename=bs-colour-roles)
 
 Tabela ma cztery kolumny, a na telefonie każdy wiersz staje się kartą, która trzyma jasny i ciemny obok siebie:
 
@@ -156,13 +156,13 @@ Odczyt, którego żadna rola nie wypełnia, zostaje taki, jak definiuje go syste
 
 **Gdzie wybiera się kolor.** Każde pole koloru w narzędziu i w Lolly Design zaczyna się od ról systemu projektowego, w jego własnej kolejności, z widocznym każdym słowem i tym, do czego służy kolor. **Aa** obok roli wybiera kolor, który leży na tej roli. Reszta następuje pod **Pozostałe kolory**, bez własnych kopii colourway, kolorów na kolorze i odczytów, które rola już wypełnia. Wybór pozostaje powiązany z rolą i podąża za colourway, pole nadal pokazuje słowo bez względu na wybrany colourway, a Settings i Tokens też używają tego słowa. System projektowy bez ról zachowuje siatkę próbek, którą zawsze miał.
 
-### Role: co czytają narzędzia
+### Każdy kolor, który czyta narzędzie
 
 Gdy **Role kolorów** są zamknięte, pierwsze decyzje prowadzą pokój jako znaczniki, każdy z kolorem, który gra rolę, i jego nazwą. W systemie bez własnych słów są to **Podstawowy**, **Wtórny**, **Powierzchnia** i **Tekst**. Naciśnij znacznik, aby wybrać jego kolor spośród próbek palety. **Każdy kolor, który odczytuje narzędzie**, na dole **Ról kolorów**, ma pełny pasek.
 
-**Role** mówią, który kolor gra jaką część w każdym narzędziu i eksporcie. Są opcjonalne (trzy luźne kolory i brak ról to w pełni dobry system), każdy kolor może mieć jedną, a odczyt mówi, jak czyta się tekst, mierzony względem powierzchni, najpierw APCA. Każdy wiersz roli pokazuje własny kolor w pełnej sile, zastępczy kolor startowy albo **↳ podąża za Podstawowym**.
+Pasek pokazuje siedem kolorów, które może czytać narzędzie: Primary, Secondary, Surface, Text, Muted, Edge i On primary, słowami systemu projektowego, gdy je ma. Każdy gra tę samą część w każdym narzędziu i eksporcie. Żadnego z nich nie trzeba ustawiać (trzy luźne kolory to dobry system), każdy kolor może wypełnić jeden, a odczyt mówi, jak czyta się tekst, mierzony względem powierzchni, najpierw APCA. Każdy wiersz pokazuje własny kolor w pełnej sile, zastępczy kolor startowy albo **↳ podąża za Podstawowym**.
 
-Pasek pokazuje wszystkie siedem ról, które może czytać narzędzie: Primary, Secondary, Surface, Text, Muted, Edge i On primary, słowami systemu projektowego, gdy je ma. On primary jest wyprowadzony z koloru podstawowego, brzmi **Wyprowadzony** i nie ma selektora. Przełącznik **Jasny** i **Ciemny** obok niego oraz ten obok **W kontekście** wybierają, który wygląd pokazują pasek, paleta i podgląd.
+On primary jest wyprowadzony z koloru podstawowego, brzmi **Wyprowadzony** i nie ma selektora. Przełącznik **Jasny** i **Ciemny** obok niego oraz ten obok **W kontekście** wybierają, który wygląd pokazują pasek, paleta i podgląd.
 
 Własny akcent aplikacji domyślnie podąża za systemem projektowym. To ustawienie **Interface follows the design system** w **Settings → Appearance**; wyłączenie go zostawia obramowanie aplikacji neutralne, a narzędzia, kanwy i eksporty podążają za systemem projektowym w obu przypadkach.
 
@@ -250,7 +250,7 @@ Pobrania palety (tokeny projektowe, CSS, SCSS, GIMP i Adobe Swatch Exchange) le�
 
 Bez własnego kroju pokój to jedna karta: **Primary**, złożona w rozmiarze do czytania w kroju, który obsługuje go dziś, z tagiem **Starter**, przyciskiem **Choose for Primary** i linią *"Nothing installs until you choose one."* Headings, code i italic podążają za primary, dopóki ich nie wybierzesz; **Choose them separately** pokazuje ich karty.
 
-![Pokój Type z jeszcze niewybranym krojem - jedna karta w rozmiarze czytelnym, ze znacznikiem Starter, i jedno wypełnione Choose for Primary](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&dark=1&filename=brand-type)
+![Pokój Type z jeszcze niewybranym krojem - jedna karta w rozmiarze czytelnym, ze znacznikiem Starter, i jedno wypełnione Choose for Primary](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&system=new-design-system&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&dark=1&filename=brand-type)
 
 Wybierz jeden krój, a pokój otwiera się na cztery karty ról, listę Fonts i próbkę na żywo:
 
@@ -261,7 +261,7 @@ Wybierz jeden krój, a pokój otwiera się na cztery karty ról, listę Fonts i 
 
 Karta jest zabarwiona tylko tam, gdzie zainstalowałeś ten krój. Jej przycisk mówi, dla jakiej roli jest: **Change Headings** dla Twojego własnego kroju i **Choose for Headings** wszędzie indziej. Linia próbki zawija się zamiast się ucinać. Nic na karcie niczego nie zatwierdza: przycisk otwiera scenę porównania dla tej roli.
 
-![Odsłonięte cztery karty ról - każda złożona w kroju, który ją obsługuje, ze znacznikiem Starter tam, gdzie nikt nie wybrał, i Italic podążającym za primary](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&width=1440&height=1000&dpi=192&waitMs=2600&drive=click%3A%5Bdata-be-typemore-toggle%5D%3Bwait%3A600&cropSelector=.be-typecard-grid&walker=1&format=svg&dark=1&filename=bs-type-specimen)
+![Odsłonięte cztery karty ról - każda złożona w kroju, który ją obsługuje, ze znacznikiem Starter tam, gdzie nikt nie wybrał, i Italic podążającym za primary](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&system=new-design-system&width=1440&height=1000&dpi=192&waitMs=2600&drive=click%3A%5Bdata-be-typemore-toggle%5D%3Bwait%3A600&cropSelector=.be-typecard-grid&walker=1&format=svg&dark=1&filename=bs-type-specimen)
 
 ### Etap porównania
 
