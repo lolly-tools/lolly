@@ -6,6 +6,12 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+## 1.332.0
+
+- Partner kits (Lolly Work plan 82, M8; plan 334 M2a). `partner-kit-v1` is a partner company's logos pinned by asset version, up to 12 colours in closed roles (`primary`, `secondary`, `accent`, `text`, `surface`) and optional placement rules: clear space in mark-height units, a minimum size in px, mm or both, and the treatments the partner allows (`colour`, `mono`, `reverse`, `on-photo`). A kit carries no fonts, no themes and no token document, so it is never a design system, and its JSON is 64 KB at most. The types, the closed lists and every bound live in the SDK (`@lolly-tools/core/partner-kit-v1`, SDK 1.7.0), with `schemas/partner-kit-v1.schema.json` mirrored into `packages/core/schema/`.
+- New module `partner-kit.ts`, in the barrel: `checkPartnerKit(json)` reads a kit from its text or a value and says why it refused one (`kit.json`, `kit.too-large`, `kit.schema`, `kit.logo-duplicate`); `readPartnerKit(json)` returns the kit or null; `partnerKitLogoIds(kit)` lists the logo asset ids. `partnerKitColoursFromTokens(doc)` proposes the light look's primary, secondary and accent from a DTCG document, and `partnerKitColoursFromInks(colours)` proposes colours from an SVG logo's inks (`extractSvgColors`). Neither proposes a rule.
+- Additive only. No module that exists changes behaviour, and nothing reads a kit yet.
+
 ## 1.330.0
 
 - The barrel exports the asset rights reader from `asset-rights.ts`: `redistribution`, `ownerPublished`, `OWNER_PUBLISHED`, `assetLicenceDeclaration`, `assetRightsNotices` and `readAssetRightsRecord`, with their types, and `checkCompanionReadback` from `rights-companion.ts`. A Lolly Work server can now ask the same question the `.lolly` builder asks ("may these bytes be passed on?") and get the same answer and reason, and read a package's credits back.
