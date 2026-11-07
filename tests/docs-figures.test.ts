@@ -338,8 +338,9 @@ test('the build inlines through the shared fn and credits the file it inlined', 
   // with their own bands; a regular page still resolves the band with its real slug,
   // which is what keeps MASTHEADS able to apply. The band also receives the pathways
   // strip and the print edition for its first rows (plan 277 step 3c).
-  // The section label (plan 354 D3) rides along as a third optional row.
-  assert.match(BUILD_TS, /const mast = \(isLanding \|\| page\.generated \|\| page\.immersive\) \? null : docsMasthead\(content, page\.slug, \{ strip, edition, eyebrow: nav\.eyebrow \}\);/,
+  // The section label (plan 354 D3) rides along as a third optional row, and the strip
+  // left the band for the site bar (plan 354 D7), so the band's strip slot is empty.
+  assert.match(BUILD_TS, /const mast = \(isLanding \|\| page\.generated \|\| page\.immersive\) \? null : docsMasthead\(content, page\.slug, \{ strip: '', edition, eyebrow: nav\.eyebrow \}\);/,
     'the masthead band no longer knows which page it is building, so MASTHEADS can never apply');
 });
 

@@ -6,10 +6,16 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
-## 1.323.0
+## 1.324.0
 
 - The vector IR gains a `stencil` prim (`VectorStencilPrim` in `emf.ts`): words as one bit per pixel, painted in one ink, so whatever lies under them shows through. `emitEps` paints it with `imagemask` in the ink (RGB or the CMYK mapping), and `emitWmf` with a pair of 1-bit `META_STRETCHDIB` blits, OR then AND, which leaves the page under the words as it was. `emitDxf` counts one as a dropped picture. `emitEmf` draws none.
 - No other module changes. The vector walk (`packages/node-shell/src/svg-ir.ts`) makes a stencil from a picture of a run no font can draw, for EPS and WMF, as a PDF draws such a run as a picture, and DXF stops with a message that names the run instead of outlining boxes. A file with no such run keeps its bytes.
+
+## 1.323.0
+
+- `host.tokens.inspect()` answers with `colourRoles`, the document's colour roles as `readColourRoles` reads them: the declared roles in the design system's own order and words, then any undeclared ones, with the slots each fills. Every shell gets it, the isolated hook worker too, because they all inspect through `inspectTokenDocument`. A tool reads a role's colour with `resolve('{' + role.path + '}')`, so it follows the piece's colourway and look.
+- Additive and optional: a tool feature-detects the field, and an older host leaves it out. `diffTokenDocuments` compares values only and does not read the roles.
+- Lolly Chart's **Colour roles first** palette is the first reader. Nothing new goes into an exported file.
 
 ## 1.322.0
 

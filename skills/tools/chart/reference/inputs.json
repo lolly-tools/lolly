@@ -662,6 +662,10 @@
         "label": "Design system - ordered"
       },
       {
+        "value": "roles",
+        "label": "Design system - colour roles first"
+      },
+      {
         "value": "suse",
         "label": "Design system - categorical"
       },
@@ -694,7 +698,7 @@
         "label": "Monochrome (design system)"
       }
     ],
-    "help": "Ordered follows the design system palette in its own order (the default for most); Categorical spaces its hues apart for maximum contrast; From a base colour extrapolates a full set from one seed. The rest are sequential and diverging ramps built from the design system."
+    "help": "Ordered follows the design system palette in its own order (the default for most); Colour roles first starts with the design system's own colour roles in the order it lists them, leaves out the roles Lolly reads as the background, text, quiet text or hairlines, and then follows the ordered palette (with no colour roles it draws as Ordered); Categorical spaces its hues apart for maximum contrast; From a base colour extrapolates a full set from one seed. The rest are sequential and diverging ramps built from the design system."
   },
   {
     "id": "paletteSeed",

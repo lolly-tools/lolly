@@ -2,7 +2,7 @@
   "id": "chart",
   "name": "Chart",
   "description": "Charts from first paste to advanced visualisation - explained data recommendations, explicit field mapping, 35 classic vector families including Pareto, bullet targets and range bars, sixteen statistical and editorial articulations, real-z 3-D scenes, cinematic flights, deterministic motion, accessible descriptions and styles compiled from the active design system.",
-  "version": "1.27.3",
+  "version": "1.28.0",
   "engineVersion": "^1.181.0",
   "status": "official",
   "category": "designer",
@@ -851,6 +851,10 @@
           "label": "Design system - ordered"
         },
         {
+          "value": "roles",
+          "label": "Design system - colour roles first"
+        },
+        {
           "value": "suse",
           "label": "Design system - categorical"
         },
@@ -883,7 +887,7 @@
           "label": "Monochrome (design system)"
         }
       ],
-      "help": "Ordered follows the design system palette in its own order (the default for most); Categorical spaces its hues apart for maximum contrast; From a base colour extrapolates a full set from one seed. The rest are sequential and diverging ramps built from the design system."
+      "help": "Ordered follows the design system palette in its own order (the default for most); Colour roles first starts with the design system's own colour roles in the order it lists them, leaves out the roles Lolly reads as the background, text, quiet text or hairlines, and then follows the ordered palette (with no colour roles it draws as Ordered); Categorical spaces its hues apart for maximum contrast; From a base colour extrapolates a full set from one seed. The rest are sequential and diverging ramps built from the design system."
     },
     {
       "id": "paletteSeed",
