@@ -31,6 +31,8 @@ const EXPECTED: readonly string[] = [
   // Additive 1.304 approval record in Content Credentials.
   'APPROVAL_RECORD_FORMATS', 'ApprovalNotRecordedReason', 'ApprovalRecordOutcome', 'C2paApprovalRecord',
   'RecordApprovalOptions', 'artworkUnchanged', 'recordApprovalInCredential',
+  // Additive 1.331: DESIGN.md written by the engine for a server with no published brand page.
+  'DesignMdWriteInputV1', 'writeDesignMd',
   // Additive 1.305 visual intent: what a piece has to do, resolved to a tool for each surface.
   'INTENT_RULES_VERSION', 'IntentInvalidError', 'IntentToolSource', 'ParseToolIntentsResult', 'ParseVisualIntentResult', 'ParsedVisualIntent', 'ToolIntentIssue',
   'checkToolIntents', 'loadIntentTools', 'parseToolIntents', 'parseVisualIntent', 'resolveIntent',
@@ -378,7 +380,7 @@ const EXPECTED: readonly string[] = [
   'themesSelection', 'toolCredit',
   // Additive 1.282 (plan 323): the brand skills that guided an agent-made export, as words.
   'guidedByWords',
-  // Additive 1.331 (Lolly Work plans/82 M3): the partner an export was made for.
+  // Additive 1.332 (Lolly Work plans/82 M3): the partner an export was made for.
   'partnerFactWords', 'partnerRecord', 'partnerWords',
   // 1.265 (plans/319): theme-group meaning and colourways.
   'readTokenAxes',

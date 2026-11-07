@@ -6,12 +6,17 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
-## 1.331.0
+## 1.332.0
 
 - The design-system record gains the partner a piece was made for (Lolly Work plans/82 M3, approved by Andy on 2026-11-07). `ExportMeta.partner` (SDK, optional, new `ExportPartner`) holds the partner company (id, name, details revision) and programme (id, name). The runtime takes it from the host through `runtime.setPartner()` and gives it back through `runtime.partner()`, so a second runtime that exports the same document (the web shell's multi-page Design export) records the same partner. An export records it under the record's one switch: the card's "Design system" box, `_madewith` and `--no-madewith` leave it out with the rest.
 - Written exactly as approved. The credential's `environment` gets `partnerCompany`, `partnerCompanyLabel`, `partnerProfileRevision`, `partnerProgramme` and `partnerProgrammeLabel`. XMP and SVG metadata get the matching `lolly:Partner*` properties. The PDF keywords get one `Partner: <company>` entry. The description does not change. Nothing about the person, a contact's email or phone, an address or a currency is ever written.
 - `partnerRecord` shape-checks a partner on the way in and on the way back (ids as Lolly Work writes them, labels up to 200 characters, the revision a positive whole number) and drops a part that does not hold. `readDesignRecord` and `readDesignRecordXml` read the partner back. `designRecordWords` adds "Partner: Northwind IT (Resellers, EMEA)", and `partnerFactWords` gives Verify's "Northwind IT, Resellers, EMEA programme, details revision 3". All three are exported from the barrel with `partnerWords`.
 - `madeWithPreview` now answers for a host with a partner and no design system. With no partner set, every writer keeps its bytes.
+
+## 1.331.0
+
+- The intent vocabulary gains one role, `partnerMark` (accepts `asset`): the partner's mark in a co-branded piece, the guest's logo and never the lead brand's. `INTENT_VOCABULARY_VERSION` moves from 1 to 2, as it does for any new role, so a resolution and an intent record made from now on state `vocabularyVersion: 2`. The SDK (`@lolly-tools/core` 1.6.0) carries the role in `INTENT_ROLES`, `schemas/canonical-inputs.json` lists it, and the request, sidecar and resolution schemas (and their copies in the SDK) accept it. `resolveIntent` needs no change: it reads `INTENT_ROLES`. No community tool maps the role yet and no tool gains an input; a published template or a brand pack's co-brand tool declares it in its own `intents.json` (Lolly Work plan 82 M7).
+- `writeDesignMd` and its input type `DesignMdWriteInputV1` are exported from the barrel, so a server with no published brand page writes the same DESIGN.md a brand page holds, with the engine's own writer. Nothing about the writer changes.
 
 ## 1.330.0
 

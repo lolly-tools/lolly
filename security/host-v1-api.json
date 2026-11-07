@@ -530,7 +530,7 @@
     "ExportMeta": {
       "module": "export.ts",
       "kind": "InterfaceDeclaration",
-      "sha256": "3fdea8ea4d7ff33327a0251e3154a4c1fbb179a2f42a40cae1b00e89a0acc8e4"
+      "sha256": "05ffecc06a77dbe00ecb55ca937431ada2be36d4c54c1437bf441ab9a15686d2"
     },
     "ExportPartner": {
       "module": "export.ts",
