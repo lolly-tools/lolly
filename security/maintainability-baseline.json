@@ -78,7 +78,7 @@
     },
     "shells/web/src/views/gallery.ts": {
       "lines": 1789,
-      "largestFunctionLines": 1740,
+      "largestFunctionLines": 1737,
       "importFanIn": 1,
       "importFanOut": 66,
       "typeEscapes": 8
