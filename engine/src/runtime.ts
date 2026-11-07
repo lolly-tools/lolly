@@ -44,7 +44,7 @@ import { evaluateCreativeUses } from './rights-evaluate.ts';
 import { outputLicenceId, outputLicenceNotice } from './rights-profiles.ts';
 import { buildInputModel, updateInput, modelToValues, modelForHooks, flattenValue, summarizeInputDigests, matchesShowIf, normalizeTableValue, tokenBindingsOf, type InputWriteOptions } from './inputs.ts';
 import { hydrate, resolvePaintBindings } from './template.ts';
-import { buildExportMeta, designRecordFrom, isEmptyDesignRecord, type MadeWithPreview } from './metadata.ts';
+import { buildExportMeta, designRecordFrom, isEmptyDesignRecord, partnerRecord, type MadeWithPreview } from './metadata.ts';
 import { isTokenValue, isAlias, aliasPath, colorToHex } from './tokens.ts';
 import { resolveBlockTokenBindings } from './token-block-bindings.ts';
 import { resolveTextDocumentTokenBindings } from './text-token-bindings.ts';
@@ -60,7 +60,7 @@ import type { EmojiLineSource } from './emoji-line.ts';
 import type { VerifiedEmojiPack } from './emoji-pack.ts';
 import type { C2paSourceIngredient } from './c2pa.ts';
 import type {
-  HostV1, AssetRef, ExportFormat, ExportOpts, ExportMeta, MediaFrame, TokenSet, TokenSelection, TokensSnapshot,
+  HostV1, AssetRef, ExportFormat, ExportOpts, ExportMeta, ExportPartner, MediaFrame, TokenSet, TokenSelection, TokensSnapshot,
   AudioLevel, RecordOpts, RecordSession, IngredientCredential, SourceIngredient,
 } from './bridge/host-v1.ts';
 import type {
@@ -465,10 +465,20 @@ export interface Runtime {
   setMadeWith(on: boolean): void;
   madeWith(): boolean;
   /**
+   * The partner company and programme this work is made for (Lolly Work plans/82
+   * M3), as the host's workspace gives them, or null for none. While the record is
+   * on, an export records them beside the design system (`ExportMeta.partner`)
+   * and `madeWithPreview` shows them. Shape-checked; a malformed part is dropped.
+   */
+  setPartner(partner: ExportPartner | null): void;
+  /** The partner set by `setPartner`, as recorded (a copy), or null. A second
+   *  runtime that exports the same document copies it from here. */
+  partner(): ExportPartner | null;
+  /**
    * What an export would write about its design system right now: the record and
    * the description with the record on and off, so the export panel can show the
    * exact words before anything is written. Null for an on-device utility, a host
-   * with no token snapshot, and a render with nothing to record.
+   * with neither a token snapshot nor a partner, and a render with nothing to record.
    */
   madeWithPreview(): Promise<MadeWithPreview | null>;
   /**
@@ -1378,6 +1388,8 @@ export async function createRuntime(
   let lastRightsReceipt: AttributionReceiptV1 | null = null;
   // The design-system record (plans/319): on unless the person turned it off.
   let madeWithOn = true;
+  // The partner the work is made for (Lolly Work plans/82 M3), set by the host.
+  let partnerFacts: ExportPartner | null = null;
   let lastExportMeta: ExportMeta | null = null;
   /** The render's token snapshot, read through this runtime's scoped host so it
    *  carries the artefact's own theme choice. Null when the host has none. */
@@ -1524,11 +1536,13 @@ export async function createRuntime(
     outputLicence: () => declaredLicence,
     setMadeWith(on) { madeWithOn = on !== false; },
     madeWith: () => madeWithOn,
+    setPartner(next) { partnerFacts = partnerRecord(next) ?? null; },
+    partner: () => (partnerFacts ? structuredClone(partnerFacts) : null),
     async madeWithPreview() {
       if (tool.manifest.privacy === 'on-device') return null;
       const snapshot = await recordSnapshot();
-      if (!snapshot) return null;
-      const on = await buildExportMeta(host, tool.manifest, profile, model, { snapshot });
+      if (!snapshot && !partnerFacts) return null;
+      const on = await buildExportMeta(host, tool.manifest, profile, model, { ...(snapshot ? { snapshot } : {}), ...(partnerFacts ? { partner: partnerFacts } : {}) });
       const record = designRecordFrom(on);
       if (isEmptyDesignRecord(record)) return null;
       const off = await buildExportMeta(host, tool.manifest, profile, model);
@@ -2277,10 +2291,12 @@ export async function createRuntime(
         // The brand skills an agent declared (plan 323) ride the same switch, and
         // only as the caller handed them: the runtime never fills them in itself.
         const brandSkills = recordOn && opts.brandSkills?.length ? opts.brandSkills : null;
+        // The partner (Lolly Work plans/82 M3) rides the same switch.
+        const partner = recordOn ? partnerFacts : null;
         // Pass the input model so bindToMeta inputs (the artist's author/copyright/
         // licence declaration) merge over the profile-derived provenance.
-        meta = await buildExportMeta(host, tool.manifest, profile, model, snapshot || brandSkills
-          ? { ...(snapshot ? { snapshot } : {}), ...(brandSkills ? { brandSkills } : {}) }
+        meta = await buildExportMeta(host, tool.manifest, profile, model, snapshot || brandSkills || partner
+          ? { ...(snapshot ? { snapshot } : {}), ...(brandSkills ? { brandSkills } : {}), ...(partner ? { partner } : {}) }
           : undefined);
         // The licence the person picked in the export panel. A tool input bound to
         // the licence field is the more specific declaration, so it wins.

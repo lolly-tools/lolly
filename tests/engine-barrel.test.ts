@@ -21,6 +21,11 @@ const EXPECTED: readonly string[] = [
   'onColourFloor', 'readColourRoles', 'refreshDerivedOnColours', 'removeColourRole', 'renameColourRole', 'reorderColourRoles',
   'setColourRoles', 'setRoleSameAsLight', 'setRoleValue', 'unbindRole',
   'AdoptColourRolesOptions', 'AdoptedColourRole', 'adoptColourRoles', 'colourRoleThemeAccents', 'withColourwayKindRestored',
+  // Additive 1.330: the asset rights reader, the `.lolly` credits text and the package credits
+  // readback, for a Lolly Work server that gates what partners receive.
+  'AssetRightsMeta', 'OWNER_PUBLISHED', 'OwnerPublishedV1', 'PackCreditEntry', 'PackHoldEntry', 'Redistribution',
+  'assetLicenceDeclaration', 'assetRightsNotices', 'checkCompanionReadback', 'ownerPublished', 'packCreditsText',
+  'readAssetRightsRecord', 'redistribution',
   // Additive 1.325: a server credential keeps the pictures the browser's credential recorded.
   'PlacedPictures', 'pdfWithoutCredential', 'placedPicturesOf',
   // Additive 1.304 approval record in Content Credentials.
@@ -373,6 +378,8 @@ const EXPECTED: readonly string[] = [
   'themesSelection', 'toolCredit',
   // Additive 1.282 (plan 323): the brand skills that guided an agent-made export, as words.
   'guidedByWords',
+  // Additive 1.331 (Lolly Work plans/82 M3): the partner an export was made for.
+  'partnerFactWords', 'partnerRecord', 'partnerWords',
   // 1.265 (plans/319): theme-group meaning and colourways.
   'readTokenAxes',
   'axisOfKind',

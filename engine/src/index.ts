@@ -90,7 +90,7 @@ export { assetVersionPin, encodeAssetVersion, decodeAssetVersion, assetDependenc
 export type { AssetVersionPin } from './asset-version.ts';
 export { toCSV, parseDelimited, detectDelimiter, parseBatchCsv, batchCsvTemplateWithNotes } from './batch.ts';
 export type { BatchRow } from './batch.ts';
-export { buildExportMeta, designRecordCarrier, designRecordEnvironment, designRecordFrom, designRecordWords, guidedByWords, readDesignRecord, readDesignRecordXml, themesSelection, toolCredit, pdfKeywords } from './metadata.ts';
+export { buildExportMeta, designRecordCarrier, designRecordEnvironment, designRecordFrom, designRecordWords, guidedByWords, partnerFactWords, partnerRecord, partnerWords, readDesignRecord, readDesignRecordXml, themesSelection, toolCredit, pdfKeywords } from './metadata.ts';
 export type { DesignRecord, MadeWithPreview } from './metadata.ts';
 export { BRAND_PAGE_ADDRESS_MAX, brandPageAddress, brandPageHost, carriesRecordedBrandPage, readRecordedBrandPage, settleBrandPageWrite, withRecordedBrandPage, withoutRecordedBrandPage } from './brand-page-address.ts';
 export type { BrandPageWrite } from './brand-page-address.ts';
@@ -596,6 +596,11 @@ export type { RightsEvaluationInputV1 } from './rights-evaluate.ts';
 export { attributionCompanion, attributionCredits, checkAttributionReadback, sourceIngredientsFor } from './rights-attribution.ts';
 export type { AttributionCompanionV1, SourceDetailV1 } from './rights-attribution.ts';
 export { evaluateReuse, rightsReportFromC2pa } from './rights-report.ts';
+// One answer to "may these bytes be passed on?" and the `.lolly` credits text, so a
+// Lolly Work server, a `.lolly` pack and a brand page agree, plus the package credits readback.
+export { OWNER_PUBLISHED, assetLicenceDeclaration, assetRightsNotices, ownerPublished, packCreditsText, readAssetRightsRecord, redistribution } from './asset-rights.ts';
+export type { AssetRightsMeta, OwnerPublishedV1, PackCreditEntry, PackHoldEntry, Redistribution } from './asset-rights.ts';
+export { checkCompanionReadback } from './rights-companion.ts';
 export {
   verifySeal, parseSealRecord, parseSealRecords, computeSealDigest, assembleSealMessage,
   resolveRanges, verifySealSignature, importSealKey,
