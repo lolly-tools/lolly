@@ -1,8 +1,8 @@
 {
   "version": 1,
   "toolId": "prompt-card",
-  "toolVersion": "1.0.1",
-  "toolVersionRange": "1.0.1",
+  "toolVersion": "1.1.0",
+  "toolVersionRange": "1.1.0",
   "skillRevision": "1",
   "origin": "generated",
   "references": [
@@ -11,7 +11,7 @@
   ],
   "files": {
     "SKILL.md": {
-      "sha256": "7193234ad1518818e75b92c83dad4d545177bbca80506ebb16b4569482b596ca",
+      "sha256": "d7d11b2072a05fef53e429ebe7e14361c5346bef04d2629bad2f48eeedf6170a",
       "bytes": 1972
     },
     "reference/inputs.json": {

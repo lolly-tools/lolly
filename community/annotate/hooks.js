@@ -319,7 +319,7 @@ function markSvg(m, g) {
     var fs = f2(r * 1.15);
     var label = m.text
       ? '<text x="' + f2(m.x + r + r * 0.5) + '" y="' + f2(m.y) + '" font-size="' + f2(r * 0.95) +
-        '" font-family="ui-sans-serif, system-ui, sans-serif" font-weight="600" dominant-baseline="central"' +
+        '" font-family="' + g.font + '" font-weight="600" dominant-baseline="central"' +
         ' fill="' + accent + '" stroke="#ffffff" stroke-width="' + f2(r * 0.32) +
         '" paint-order="stroke" stroke-linejoin="round">' + esc(m.text) + '</text>'
       : '';
@@ -327,7 +327,7 @@ function markSvg(m, g) {
       '<circle cx="' + f2(m.x) + '" cy="' + f2(m.y) + '" r="' + f2(r) + '" fill="' + accent +
       '" stroke="#ffffff" stroke-width="' + f2(sw * 0.35) + '"/>' +
       '<text x="' + f2(m.x) + '" y="' + f2(m.y) + '" font-size="' + fs +
-      '" font-family="ui-sans-serif, system-ui, sans-serif" font-weight="700" text-anchor="middle"' +
+      '" font-family="' + g.font + '" font-weight="700" text-anchor="middle"' +
       ' dominant-baseline="central" fill="' + g.pinInk + '">' + m.n + '</text>' + label + '</g>';
   }
 
@@ -364,7 +364,7 @@ function markSvg(m, g) {
     var top = m.y + m.h / 2 - (lines.length - 1) * size * 0.625;
     for (var li = 0; li < lines.length; li++) {
       body += '<text x="' + f2(m.x + m.w / 2) + '" y="' + f2(top + li * size * 1.25) +
-        '" font-size="' + f2(size) + '" font-family="ui-sans-serif, system-ui, sans-serif"' +
+        '" font-size="' + f2(size) + '" font-family="' + g.font + '"' +
         ' font-weight="500" text-anchor="middle" dominant-baseline="central" fill="' + g.pinInk + '">' +
         esc(lines[li]) + '</text>';
     }
@@ -415,6 +415,80 @@ function toOverlayUnits(rows, vbH) {
       y: m.y * vbH / 100, h: m.h * vbH / 100,
     };
   });
+}
+
+// === lolly:shared brandFonts - generated from community/_shared/brand-fonts.js; edit there and run npm run sync:shared ===
+// The design system's text face (font.brand) and mono face (font.mono) as
+// font-family lists, for an SVG attribute, an inline style or a canvas font.
+// A tool never names a face of its own. A headless SVG has no stylesheet, so
+// the CLI, the TUI and the MCP server read the attribute to outline the text,
+// and the page draws the same family. A design system that declares no such
+// face gets the shell's own default, SUSE or SUSE Mono, as --font-brand and
+// --font-mono do. Family names pass the shell's brand-vars.ts rule; a name
+// with a space or a digit is quoted.
+var BF_FAMILY = /^[A-Za-z0-9][A-Za-z0-9 _-]{0,63}$/;
+var BF_GENERIC = /^(serif|sans-serif|monospace|cursive|fantasy|system-ui|ui-(sans-serif|serif|monospace|rounded)|emoji|math|fangsong)$/i;
+function bfFamilyList(value, fallback, generic) {
+  var names = [];
+  var list = Array.isArray(value) ? value : (typeof value === 'string' && value.charAt(0) !== '{' ? value.split(',') : []);
+  for (var i = 0; i < list.length; i++) {
+    var n = String(list[i]).trim().replace(/^['"]+|['"]+$/g, '').trim();
+    if (!BF_FAMILY.test(n) || BF_GENERIC.test(n)) continue;
+    var dup = false;
+    for (var j = 0; j < names.length; j++) if (names[j].toLowerCase() === n.toLowerCase()) dup = true;
+    if (!dup) names.push(n);
+  }
+  if (!names.length) names.push(fallback);
+  return names.map(function (f) { return /^[A-Za-z_-][A-Za-z0-9_-]*$/.test(f) ? f : "'" + f + "'"; }).join(', ') + ', ' + generic;
+}
+async function brandFonts(host) {
+  var out = { brand: bfFamilyList(null, 'SUSE', 'sans-serif'), mono: bfFamilyList(null, 'SUSE Mono', 'monospace') };
+  if (!host || !host.tokens || !host.tokens.resolve) return out;
+  try { out.brand = bfFamilyList(await host.tokens.resolve('{font.brand}'), 'SUSE', 'sans-serif'); } catch (e) { /* the shell's default face stands */ }
+  try { out.mono = bfFamilyList(await host.tokens.resolve('{font.mono}'), 'SUSE Mono', 'monospace'); } catch (e) { /* the shell's default face stands */ }
+  return out;
+}
+// === /lolly:shared brandFonts ===
+
+// The export draws the overlay as a picture, and an SVG drawn as a picture
+// cannot reach the page's fonts: its words would fall back to whatever face the
+// machine has. So the export carries the design system's text face inside the
+// overlay, as a data: URL for each weight the marks use (500, 600 and 700). A
+// variable font is one file for every weight. Without host.text.fontUrl, or
+// when the file cannot be read, the overlay keeps the family names alone.
+var MARK_WEIGHTS = [500, 600, 700];
+async function withEmbeddedFace(svg, familyList) {
+  if (!host.text || typeof host.text.fontUrl !== 'function') return svg;
+  var family = String(familyList).split(',')[0].trim().replace(/^'|'$/g, '');
+  var byUrl = {}, urls = [];
+  for (var i = 0; i < MARK_WEIGHTS.length; i++) {
+    var face = null;
+    try { face = await host.text.fontUrl(family, { weight: MARK_WEIGHTS[i] }); } catch (e) { face = null; }
+    if (!face || !face.url) continue;
+    if (!byUrl[face.url]) { byUrl[face.url] = { weights: [], variable: !!(face.variations && face.variations.length) }; urls.push(face.url); }
+    byUrl[face.url].weights.push(MARK_WEIGHTS[i]);
+  }
+  var rules = '';
+  for (var u = 0; u < urls.length; u++) {
+    var entry = byUrl[urls[u]];
+    var data = await fontDataUrl(urls[u]);
+    if (!data) continue;
+    var variable = entry.variable || entry.weights.length > 1;
+    var weights = variable ? ['100 900'] : entry.weights;
+    for (var k = 0; k < weights.length; k++) {
+      rules += "@font-face{font-family:'" + family + "';src:url(" + data + ');font-weight:' + weights[k] + ';}';
+    }
+  }
+  if (!rules) return svg;
+  return svg.replace(/^(<svg\b[^>]*>)/, '$1<style>' + rules + '</style>');
+}
+async function fontDataUrl(url) {
+  try {
+    var bytes = new Uint8Array(await (await fetch(url)).arrayBuffer());
+    var bin = '';
+    for (var i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
+    return 'data:font/ttf;base64,' + btoa(bin);
+  } catch (e) { return ''; }
 }
 
 // ─── measuring the picture (one job per file) ────────────────────────────────
@@ -581,9 +655,10 @@ async function patch(ctx) {
   }
   var vbH = 100 * dims.h / dims.w;
 
+  var fonts = await brandFonts(host);
   var g = {
     accent: accent, sw: sw, sketchy: sketchy,
-    vbW: 100, vbH: vbH, pinInk: inkOn(accent),
+    vbW: 100, vbH: vbH, pinInk: inkOn(accent), font: fonts.brand,
   };
   var overlay = buildOverlay(toOverlayUnits(rows, vbH), g);
 
@@ -700,13 +775,15 @@ async function exportFile(ctx) {
   var accent = hex(inputs.accent, ACCENT_FALLBACK);
   var sw = clamp(num(inputs.strokeWidth, 4), 1, 12) * 0.25;
   var vbH = 100 * H / W;
+  var fonts = await brandFonts(host);
   var overlay = buildOverlay(toOverlayUnits(rows, vbH), {
     accent: accent, sw: sw,
     sketchy: String(inputs.annotStyle) === 'sketchy',
-    vbW: 100, vbH: vbH, pinInk: inkOn(accent),
+    vbW: 100, vbH: vbH, pinInk: inkOn(accent), font: fonts.brand,
   }, { w: W, h: H });
 
   if (host.emoji && host.emoji.renderSvg) overlay = await host.emoji.renderSvg(overlay);
+  if (drawn) overlay = await withEmbeddedFace(overlay, fonts.brand);
   var canvas = rasterCanvas(W, H);
   var c2d = canvas.getContext('2d');
   if (!c2d) throw new Error(HEADLESS_MSG);
