@@ -31,6 +31,8 @@ const EXPECTED: readonly string[] = [
   // Additive 1.304 approval record in Content Credentials.
   'APPROVAL_RECORD_FORMATS', 'ApprovalNotRecordedReason', 'ApprovalRecordOutcome', 'C2paApprovalRecord',
   'RecordApprovalOptions', 'artworkUnchanged', 'recordApprovalInCredential',
+  // Additive 1.331: DESIGN.md written by the engine for a server with no published brand page.
+  'DesignMdWriteInputV1', 'writeDesignMd',
   // Additive 1.305 visual intent: what a piece has to do, resolved to a tool for each surface.
   'INTENT_RULES_VERSION', 'IntentInvalidError', 'IntentToolSource', 'ParseToolIntentsResult', 'ParseVisualIntentResult', 'ParsedVisualIntent', 'ToolIntentIssue',
   'checkToolIntents', 'loadIntentTools', 'parseToolIntents', 'parseVisualIntent', 'resolveIntent',
