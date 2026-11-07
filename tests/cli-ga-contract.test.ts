@@ -408,6 +408,31 @@ test('an --s= that names nothing is a usage error and writes NOTHING', async () 
   );
 });
 
+test('a still export of several pages with no --s says the file is the whole canvas', async () => {
+  // The web shell's export panel writes one file per page; the CLI keeps its one image of
+  // the whole canvas and prints a note on stderr, with no change to the file or the exit code.
+  // The whole deck has no browser-free path in this fixture, so the run itself fails as it
+  // did before; the note is printed before the render, which is what is pinned here.
+  const chunks: string[] = [];
+  resetOutput();
+  configureOutput({ strict: false });
+  const orig = process.stderr.write.bind(process.stderr);
+  (process.stderr as { write: unknown }).write = (s: string) => { chunks.push(String(s)); return true; };
+  try {
+    await assert.rejects(() => runToolCli({ toolId: 'deck-tool', params: {}, outputPath: outPath('svg'), format: 'svg' }));
+  } finally {
+    (process.stderr as { write: unknown }).write = orig;
+  }
+  assert.match(chunks.join(''), /This document has 3 pages\. This file shows the whole canvas; add --s=1 to --s=3 for one page\./);
+  assert.doesNotMatch(chunks.join(''), /--export=pdf/, 'a tool without PDF is not told to use it');
+
+  // One page picked, or a format that carries every page, says nothing new.
+  const picked = await run({ toolId: 'deck-tool', params: { s: '2' }, outputPath: outPath('svg'), format: 'svg' });
+  assert.doesNotMatch(picked.stderr, /This document has/);
+  const html = await run({ toolId: 'deck-tool', params: {}, outputPath: outPath('html'), format: 'html' });
+  assert.doesNotMatch(html.stderr, /This document has/);
+});
+
 test('a format the filter cannot narrow is REPORTED, not silently obeyed', async () => {
   // html carries every slide by construction (as pdf/zip/pptx do, and as the motion
   // formats do by being a timeline). The web shell renders the whole document for the
