@@ -3365,6 +3365,15 @@ section[id]{scroll-margin-top:calc(var(--site-bar-h) + 2.65rem)}
    (buttons.css .btn--glass), holding the app's mark, the name and, on English
    pages, a quiet Beta chip. It pushes the rest of the row to the inline end. */
 .site-home{display:inline-flex;align-items:center;gap:var(--sp-4);flex:none;margin-inline-end:auto;box-sizing:border-box;min-height:var(--chrome-h);padding-block:0;padding-inline:var(--sp-3) var(--sp-7);border:1px solid transparent;border-radius:calc(var(--radius) * 1.5);font-size:var(--fs-md);font-weight:600;line-height:1;color:var(--ui-color-text-default);text-decoration:none;white-space:nowrap;box-shadow:inset 0 -.1em 1em 1px hsl(var(--primary) / .22),0 .1em .3em #0002}
+/* The six sections in the bar's middle, where the app keeps its view tabs (plan 354 D7).
+   One line: on a narrow bar the row scrolls, and lib/docs-strip.ts fades an edge with
+   tabs beyond it. From 48em down the menu's sheet carries the sections instead. */
+.site-tabs{flex:1 1 auto;min-width:0;display:flex;justify-content:center}
+.site-tabs .docs-pathways{--strip-fade-start:0px;--strip-fade-end:0px;flex-wrap:nowrap;min-width:0;overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:none;padding-block:2px;-webkit-mask-image:linear-gradient(to right,transparent,black var(--strip-fade-start),black calc(100% - var(--strip-fade-end)),transparent);mask-image:linear-gradient(to right,transparent,black var(--strip-fade-start),black calc(100% - var(--strip-fade-end)),transparent)}
+.site-tabs .docs-pathways::-webkit-scrollbar{display:none}
+.site-tabs .docs-pathways[data-strip-edges~="start"]{--strip-fade-start:2rem}
+.site-tabs .docs-pathways[data-strip-edges~="end"]{--strip-fade-end:2rem}
+[dir="rtl"] .site-tabs .docs-pathways{-webkit-mask-image:linear-gradient(to left,transparent,black var(--strip-fade-start),black calc(100% - var(--strip-fade-end)),transparent);mask-image:linear-gradient(to left,transparent,black var(--strip-fade-start),black calc(100% - var(--strip-fade-end)),transparent)}
 .site-home:hover{background:hsl(var(--primary) / .16);box-shadow:inset 0 0 0 1px hsl(var(--primary) / .34);text-decoration:none}
 .site-home:focus-visible{outline:2px solid var(--ui-color-focus-ring);outline-offset:2px}
 .site-home img{display:block;width:calc(26px * var(--a11y-fs));height:calc(26px * var(--a11y-fs));border-radius:var(--radius-round)}
@@ -3486,7 +3495,13 @@ html[data-a11y-motion="reduce"] .site-menu[open] .site-sheet{animation:none}
   .site-bar.is-searching .docs-search{display:flex;position:absolute;inset-inline:var(--site-bar-inset);inset-block:calc(var(--sp-4) + var(--safe-top)) calc(var(--sp-4) + 1px);z-index:2}
   .site-bar.is-searching .docs-search-input{inline-size:100%}
 }
-@media(max-width:48em){.site-menu{display:block}}
+/* The same fold when the sections need the field's room (DOCS_SEARCH_SCRIPT sets
+   .site-bar--tight from the sections' own width). */
+.site-bar--tight .docs-search{display:none}
+.site-bar--tight .site-fab--search{display:inline-flex}
+.site-bar--tight.is-searching .docs-search{display:flex;position:absolute;inset-inline:var(--site-bar-inset);inset-block:calc(var(--sp-4) + var(--safe-top)) calc(var(--sp-4) + 1px);z-index:2}
+.site-bar--tight.is-searching .docs-search-input{inline-size:100%}
+@media(max-width:48em){.site-menu{display:block}.site-tabs{display:none}}
 @media(min-width:40.0625em){.site-sheet-tools,.site-sheet .site-launch{display:none}}
 @media(max-width:40em){
   :root{--site-bar-inset:var(--sp-6)}
@@ -5328,6 +5343,21 @@ function syncClear(){if(!clearBtn)return;var open=!!bar&&bar.classList.contains(
 function openField(){if(!bar)return;bar.classList.add('is-searching');fab.setAttribute('aria-expanded','true');input.focus();load();syncClear();}
 function foldField(focusFab){if(!bar||!bar.classList.contains('is-searching'))return;bar.classList.remove('is-searching');if(fab){fab.setAttribute('aria-expanded','false');if(focusFab)fab.focus();}syncClear();}
 if(fab)fab.addEventListener('click',openField);
+
+// The sections share the bar with the field (plan 354 D7). When they do not fit beside
+// it (a narrower window, or a language with long section names) the field folds into
+// its round button, as below 1000px, and opens again once both fit. The fold remembers
+// the room it freed, so the bar does not flip back and forth at the edge.
+var tabRow=bar&&bar.querySelector('.site-tabs'),tabNav=tabRow&&tabRow.querySelector('.docs-pathways');
+if(tabNav&&window.ResizeObserver){
+  var freed=0;
+  var roomy=function(){
+    var spare=tabRow.clientWidth-tabNav.scrollWidth;
+    if(!bar.classList.contains('site-bar--tight')){if(spare<0){freed=wrap.offsetWidth-(fab?fab.offsetWidth:0);bar.classList.add('site-bar--tight');}}
+    else if(spare>freed+16&&!bar.classList.contains('is-searching'))bar.classList.remove('site-bar--tight');
+  };
+  new ResizeObserver(roomy).observe(bar);roomy();
+}
 if(clearBtn)clearBtn.addEventListener('click',function(){if(input.value){input.value='';close();syncClear();input.focus();}else foldField(true);});
 input.addEventListener('input',syncClear);
 
@@ -5790,16 +5820,18 @@ interface SheetParts {
 
 /**
  * The site bar: the app's top row (decision D14). The home pill on the inline start;
- * then search, Language, Theme, GitHub and Launch App; and, below 48em, the menu
- * button whose sheet is the app's profile menu. The five section links left the bar
- * for the pathways strip (pathwaysStrip). The landing's bar starts transparent over
- * its hero (NAV_SOLID_JS adds the ground once the hero has scrolled away).
+ * the six sections in the middle, where the app keeps its view tabs (plan 354 D7: the
+ * pathways strip moved here from the masthead); then search, Language, Theme, GitHub
+ * and Launch App; and, below 48em, the menu button whose sheet is the app's profile
+ * menu and carries the sections instead. The landing keeps its strip in the page under
+ * the hero, so its bar has none. The landing's bar starts transparent over its hero
+ * (NAV_SOLID_JS adds the ground once the hero has scrolled away).
  *
  * The sheet puts navigation first (the sections, this section's pages, this page's
  * headings), then the tools (theme, Language, GitHub), then Launch App. The tools and
  * Launch App show only below 40em, where they have left the bar.
  */
-function buildNav(lang: Lang, slug: string, isLanding: boolean | undefined, sheet: SheetParts) {
+function buildNav(lang: Lang, slug: string, isLanding: boolean | undefined, sheet: SheetParts, strip: string) {
   const launchHref = esc(localizeHref(lang, '/'));
   const launch = `<a href="${launchHref}" class="btn btn--primary site-launch">${esc(t('Launch App'))}${docIcon('chrome-arrow')}</a>`;
   // The way back, beside Launch App rather than in its place (plan 354 D7): hidden until
@@ -5830,7 +5862,8 @@ function buildNav(lang: Lang, slug: string, isLanding: boolean | undefined, shee
     + `<div class="site-sheet">${sheet.sections}${disclosures}<div class="site-sheet-tools"><hr class="site-sheet-rule">${themeSeg}${langRow}${settingsRow}${githubRow}</div>${launch}</div></details>`;
   // Search sits first in the cluster of whole-site controls. Docs pages only - there is
   // no index behind the landing page, and a box that returns nothing is worse than no box.
-  return `<header class="site-bar${isLanding ? ' site-bar--over-hero' : ''}">${home}${isLanding ? '' : searchBox(lang)}${langPickerHtml(lang, slug)}${THEME_TOGGLE}${GITHUB_LINK}${back}${launch}${menu}</header>`;
+  const tabs = isLanding ? '' : `<div class="site-tabs">${strip}</div>`;
+  return `<header class="site-bar${isLanding ? ' site-bar--over-hero' : ''}">${home}${tabs}${isLanding ? '' : searchBox(lang)}${langPickerHtml(lang, slug)}${THEME_TOGGLE}${GITHUB_LINK}${back}${launch}${menu}</header>`;
 }
 
 /**
@@ -6611,7 +6644,7 @@ function wrapPage(lang: Lang, page: Page, content: string, ogSlugs: Set<string>,
   // or beside the strip on an immersive page, whose own bands begin at once.
   const strip = pathwaysStrip(lang, activeHref, page.pathway, !!isLanding);
   const nav = (isLanding || page.generated || page.immersive) ? { eyebrow: '', pager: '' } : pageWayfinding(lang, page);
-  const mast = (isLanding || page.generated || page.immersive) ? null : docsMasthead(content, page.slug, { strip, edition, eyebrow: nav.eyebrow });
+  const mast = (isLanding || page.generated || page.immersive) ? null : docsMasthead(content, page.slug, { strip: '', edition, eyebrow: nav.eyebrow });
   const article = mast ? mast.rest : content;
   const lead = mast ? '' : edition;
   const reading = readingAttr(content);
@@ -6642,10 +6675,10 @@ function wrapPage(lang: Lang, page: Page, content: string, ogSlugs: Set<string>,
   // to .docs-content sit at (0,1,1) and would out-specify every band rule at (0,1,0),
   // restyling all of the landing headings.
   const body = isLanding ? `<main class="docs-landing page-${slugClass}"${mainAttrs}>${edition}${content}</main>`
-    : page.immersive ? `<main class="docs-landing docs-immersive page-${slugClass}"${mainAttrs}>${pathwaysBand(strip + edition, { wide: true })}${content}</main>`
+    : page.immersive ? `<main class="docs-landing docs-immersive page-${slugClass}"${mainAttrs}>${pathwaysBand(edition, { wide: true })}${content}</main>`
     : page.generated ? `
 ${contents.bar}
-${pathwaysBand(strip)}
+${pathwaysBand('')}
 <div class="docs-wrap">
   ${page.rail?.aside ?? buildSidebar(lang, page, activeHref)}
   <main class="docs-content no-mast page-${slugClass}"${mainAttrs}${reading}>
@@ -6655,7 +6688,7 @@ ${pathwaysBand(strip)}
 </div>`
     : `
 ${contents.bar}
-${mast ? mast.band : pathwaysBand(strip)}
+${mast ? mast.band : pathwaysBand('')}
 <div class="${wrapClass}">
   ${page.rail?.aside ?? buildSidebar(lang, page, activeHref)}
   <main class="docs-content${mast ? '' : ' no-mast'} page-${slugClass}"${mainAttrs}${reading}>
@@ -6722,7 +6755,7 @@ ${NOSCRIPT_NAV}
 </head>
 <body class="page-${slugClass}${contents.rail ? ' page-has-rail' : ''}">
 <a class="skip-link" href="#docs-main">${esc(t('Skip to content'))}</a>
-${buildNav(lang, page.slug, isLanding, sheet)}
+${buildNav(lang, page.slug, isLanding, sheet, strip)}
 ${body}
 ${FOOTER(lang, page)}
 ${DOCS_JS_TAG}

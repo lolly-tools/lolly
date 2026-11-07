@@ -94,30 +94,28 @@ test('every article page opens with the masthead band, and the landing does not'
     const bandAt = body.indexOf('<div class="docs-masthead">');
     const wrapAt = body.indexOf('<div class="docs-wrap');
     assert.ok(bandAt >= 0 && wrapAt > bandAt, `${f}: the band is not above .docs-wrap`);
-    // Exactly one h1, and it is inside the band: after the pathways strip, in the title
-    // row (plan 277 step 3c), so the band opens with the sections and then the title.
+    // Exactly one h1, and it is inside the band, in the title row (plan 277 step 3c).
     const h1s = [...body.matchAll(/<h1[\s>]/g)];
     assert.equal(h1s.length, 1, `${f}: expected exactly one h1`);
-    // Strip, then the section label (plan 354 D3, when the page sits in its section's
-    // rail), then the title row.
-    assert.match(body, /<div class="docs-mast-inner"><nav class="docs-pathways" aria-label="[^"]+">[\s\S]*?<\/nav>(?:<p class="docs-eyebrow">[\s\S]*?<\/p>)?<div class="mast-title"><h1[^>]*>/,
-      `${f}: the h1 was not hoisted into the band's title row, after the pathways strip`);
-    // The strip marks the page's section, and the band carries it once.
+    // The section label (plan 354 D3, when the page sits in its section's rail), then the
+    // title row. The sections left the band for the site bar (plan 354 D7).
+    assert.match(body, /<div class="docs-mast-inner">(?:<p class="docs-eyebrow">[\s\S]*?<\/p>)?<div class="mast-title"><h1[^>]*>/,
+      `${f}: the h1 was not hoisted into the band's title row`);
     const band = body.slice(bandAt, wrapAt);
-    assert.equal((band.match(/<nav class="docs-pathways"/g) ?? []).length, 1, `${f}: the band should carry the pathways strip exactly once`);
-    assert.match(band, /<a class="docs-pathway active" href="[^"]+" aria-current="(?:page|true)">/, `${f}: the strip does not mark the current section`);
+    assert.ok(!band.includes('<nav class="docs-pathways"'), `${f}: the band carries the sections again; they live in the bar`);
   }
   const landing = bodyOf(page('index.html'));
   assert.ok(!/docs-masthead/.test(landing), 'the landing page grew an article masthead (it has its own hero)');
   assert.match(landing, /id="heroCanvas"/, 'the landing lost its hero canvas');
 });
 
-test('a page with no masthead still opens with the pathways strip, once, in its body', { skip: built }, () => {
-  // Plan 277 step 3c review, C3: format and conversion pages, specification chapters,
-  // the immersive Tenets page and the landing lost the section links at desktop when the
-  // strip lived only in the masthead band. Each now carries it in a slim band, and the
-  // phone menu opens with the same links as rows (a plain group, not a second nav).
-  const pages = ['formats/png/index.html', 'spec/document-model/conformance.html', 'trust/tenets.html', 'index.html'];
+test('every docs page carries the sections once, in the bar; the landing carries them in its page', { skip: built }, () => {
+  // Plan 354 D7: the six sections sit in the site bar's middle, where the app keeps its
+  // view tabs, on every docs page: an article, a format page, a specification chapter
+  // and the immersive Tenets page. The landing's bar has no tabs; its strip stays in
+  // the page under the hero. The phone reaches the sections through the page bar's
+  // sheet on a docs page, and through the menu where there is no page bar.
+  const pages = ['create/exporting.html', 'formats/png/index.html', 'spec/document-model/conformance.html', 'trust/tenets.html', 'index.html'];
   for (const rel of pages) {
     const file = join(BUILT, rel);
     if (!existsSync(file)) continue; // a page family a trimmed build left out
@@ -125,13 +123,16 @@ test('a page with no masthead still opens with the pathways strip, once, in its 
     const navs = body.match(/<nav class="docs-pathways"/g) ?? [];
     assert.equal(navs.length, 1, `${rel}: expected exactly one pathways strip, found ${navs.length}`);
     const header = /<header class="site-bar[\s\S]*?<\/header>/.exec(body)?.[0] ?? '';
-    assert.ok(!header.includes('<nav class="docs-pathways"'), `${rel}: the strip must sit in the page, not in the bar or its menu`);
-    // The phone reaches the sections through the page bar's sheet on a docs page, and
-    // through the menu on the landing and an immersive page, which have no bar.
+    if (rel === 'index.html') {
+      assert.ok(!header.includes('<nav class="docs-pathways"'), 'the landing\'s bar has no tabs; the strip sits under the hero');
+      assert.match(body, /<div class="docs-strip-band[^"]*"><div class="docs-mast-inner"><nav class="docs-pathways"/, 'the landing lost its strip band');
+    } else {
+      assert.match(header, /<div class="site-tabs"><nav class="docs-pathways" aria-label="[^"]+">/, `${rel}: the sections are not in the bar's tab slot`);
+      assert.match(header, /<a class="docs-pathway active" href="[^"]+" aria-current="(?:page|true)">/, `${rel}: the bar does not mark the current section`);
+    }
     const hasBar = /<div class="doc-pagebar" data-doc-contents>/.test(body);
     if (hasBar) assert.match(body, /<nav class="doc-sheet-sections" aria-label="[^"]+">/, `${rel}: the page bar's sheet lost the sections`);
     else assert.match(header, /<div class="site-sheet-sections" role="group" aria-label="[^"]+">/, `${rel}: the phone menu no longer opens with the sections`);
-    assert.match(body, /<div class="docs-strip-band[^"]*"><div class="docs-mast-inner"><nav class="docs-pathways"/, `${rel}: the strip is not in its own band`);
   }
 });
 
