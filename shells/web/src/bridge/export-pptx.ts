@@ -27,6 +27,7 @@ import { renderVideo } from './export.ts';
 import { pickWebCodecsVideo } from './video-shared.ts';
 import { narrationDwellMs } from "../lib/motion-model.ts";
 import { pureRotationDeg, detectUnsupportedCss, inlineBlobUrlsInEl, rasterizeNodeToDataUrl, imprintEmbedCanvas, stripCommentNodes, _host, _exportNotice, type ExportOpts, type ImprintState } from "./export.ts";
+import { liveOrigin, originNow } from "./export-origin.ts";
 
 type Rgba = [number, number, number, number];
 
@@ -318,10 +319,18 @@ async function pptxSlideFromPage(pageEl: Element, opts: ExportOpts): Promise<Ppt
   const shapes: PptxShape[] = [];
   const motionNotes: DeckNotes = { mapped: [], dropped: [] };
   const media: PptxMedia[] = [];
-  const rootRect = pageEl.getBoundingClientRect();
+  // Each box is read as its offset from the page, measured in the same task as the box
+  // (`boxRect`), so a page the app moves while the walk awaits a picture keeps every
+  // shape in its place (export-origin.ts).
+  const origin = liveOrigin(pageEl);
+  const boxRect = (el: Element): DOMRect => {
+    const r = el.getBoundingClientRect();
+    const at = originNow(origin);
+    return new DOMRect(r.left - at.left, r.top - at.top, r.width, r.height);
+  };
   const E = EMU_PER_PX;
   const addMedia = (bytes: Uint8Array, ext: PptxMedia['ext']): number => (media.push({ bytes, ext }), media.length - 1);
-  const boxOf = (r: DOMRect) => ({ x: Math.round((r.left - rootRect.left) * E), y: Math.round((r.top - rootRect.top) * E), cx: Math.round(r.width * E), cy: Math.round(r.height * E) });
+  const boxOf = (r: DOMRect) => ({ x: Math.round(r.left * E), y: Math.round(r.top * E), cx: Math.round(r.width * E), cy: Math.round(r.height * E) });
   const full = () => shapes.length >= MAX_PPTX_SHAPES;
 
   // NATIVE-vector fast path: lower a FLAT stroke/fill SVG (the user's own line-art)
@@ -469,7 +478,7 @@ async function pptxSlideFromPage(pageEl: Element, opts: ExportOpts): Promise<Ppt
     if (el.hasAttribute('data-slide-notes')) return;
     const style = window.getComputedStyle(el);
     if (style.display === 'none' || style.visibility === 'hidden' || parseFloat(style.opacity || '1') === 0) return;
-    const rect = el.getBoundingClientRect();
+    const rect = boxRect(el);
     if (rect.width < 0.5 || rect.height < 0.5) return;
 
     // A rotated element: bake it to a picture (rotation preserved) rather than

@@ -33,6 +33,7 @@ import { suspendNodeRasters, drainNodeRasters } from '../lib/clip-thumbs.ts';
 import { subtreePaintsNothing } from './export-pdf-leaf.ts';
 import { canvasPicture, imageDims, imageForPdf } from './export-pdf-picture.ts';
 import { pageFitRegion } from './export-page-fit.ts';
+import { keepRootFrame, liveOrigin, type Origin } from './export-origin.ts';
 import { videoMimeCandidates, AUDIO_FRAME_HEADROOM, videoBitrate, videoFramePlan, bppForQuality, codecAdjustedBitrate, LIVE_BITS_PER_PIXEL } from './video-mime.ts';
 import { bedDuckEnvelope, scheduleGainEvents } from './audio-envelope.ts';
 import type { ExportAudioMixIn } from './audio-envelope.ts';
@@ -72,17 +73,17 @@ import { paintSvgToPdf, svgFlips, type SvgFlips } from './export-pdf-svg.ts';
 import { backgroundPicture, clipsBackgroundToText, paintLiveRun, paintOutlinedRun, runPaint } from './export-pdf-text-paint.ts';
 import { TEXT_PICTURE_DPI, liveTextWouldGarble, notePicturedText, takePicturedTextNotice, textPicture, undrawableTextError, withMarkLabelPictures } from './export-pdf-text-picture.ts';
 import { applyPdfTextStyle, clipOfRun, pdfPseudoContent } from './export-pdf-pseudo-text.ts';
-import { bidiPieces, lineDirection, runBidi } from './export-text.ts';
+import { lineDirection, measuredLines, runBidi } from './export-text.ts';
 import { hasRtlText } from '@lolly-tools/node-shell/text-bidi';
 import { isOwnProfile, resolveEmbeddedProfile } from '../lib/press-profile-embed.ts';
 import { printSeparation } from '../lib/cmyk-separation.ts';
 import { rgbaToCmyk } from './export-cmyk-raster.ts';
 import type { EmbedResolution } from '../lib/press-profile-embed.ts';
-import { _host, dropInlinedCredentials, canvasToBlob, imprintCanvas, exportDims, getDomToImage, swapBlobUrls, thumbnailClone, fontMetricsPx, blobToDataUrl, MAX_RASTER_PX, makeRoundedFill, setExportHost, foldIngredientSinks } from './export-shared.ts';
+import { _host, dropInlinedCredentials, canvasToBlob, imprintCanvas, exportDims, getDomToImage, swapBlobUrls, thumbnailClone, fontMetricsPx, MAX_RASTER_PX, makeRoundedFill, setExportHost, foldIngredientSinks } from './export-shared.ts';
 import { beginFrameClock, renderFrameAt, endFrameClock, withStillHold, posedFrame } from './frame-clock.ts';
 import { isTopTailStage, isRecordStage } from './export-shared.ts';
 import type { WebHost, ExportOpts, ExportDims, ImprintState, Rgba } from './export-shared.ts';
-import { renderSvgFromHtml, stripCommentNodes, inlineBlobUrlsInEl, inlineSvgFromImg, imprintEmbedCanvas, isPaintSkipped, rotationPivot, rasterizePosedNodeToDataUrl, effectSpillCss, detectUnsupportedCss, rasterizeNodeToDataUrl, firstCssUrl, cssUrlToHref, bakeImageFilter, visualLines, mergeDeco, decoFlags, pdfInlineNonText, type Deco } from './export-svg-walker.ts';
+import { renderSvgFromHtml, stripCommentNodes, inlineBlobUrlsInEl, inlineSvgFromImg, imprintEmbedCanvas, isPaintSkipped, inlinePicture, recordDrawnPictures, rotationPivot, rasterizePosedNodeToDataUrl, effectSpillCss, detectUnsupportedCss, rasterizeNodeToDataUrl, firstCssUrl, cssUrlToHref, bakeImageFilter, mergeDeco, decoFlags, pdfInlineNonText, type Deco } from './export-svg-walker.ts';
 import { designOpsSvg, renderDesignOpsPdf } from './export-design-ops.ts';
 import { finishPng, durableEmbedCanvas } from './export-raster-finish.ts';
 import { rasterStyle, coverRasterStyle } from './export-raster-style.ts';
@@ -370,6 +371,9 @@ async function renderPreparedFormat(node: Element, format: string, opts: ExportO
   // Sources with no credential of their own that only the render meets (a rondocode
   // song the sequence mix played). A caller's own filled list is kept.
   if (opts.c2pa) opts._sourceIngredientSink ??= [];
+  // A still raster paints the page's pictures into new pixels with no walk to read
+  // them on the way, so they are recorded here, by the walkers' own rule.
+  await recordDrawnPictures(node, format, opts._ingredientSink);
   const blob = await dropInlinedCredentials(await renderFormatDispatch(node, format, opts), format, opts);
   await assertPdfCameOutLocked(blob, format, opts);
   const key = format === 'webm' || format === 'mp4'
@@ -1710,7 +1714,7 @@ async function renderArtworkPdf(node: Element, opts: ExportOpts, geo: PrintGeome
   if (svgRoot) {
     await drawSvgVectorsInRegion(pdf, svgRoot, art.x, art.y, art.w, art.h, new Set(), opts._imprintSink, opts.convertPaths !== false);
   } else {
-    await drawHtmlVectors(pdf, node, art.x, art.y, art.w, art.h, opts.convertPaths !== false, opts.onProgress, opts.rasterFallback !== false, opts._imprintSink, opts.signal);
+    await drawHtmlVectors(pdf, node, art.x, art.y, art.w, art.h, opts.convertPaths !== false, opts.onProgress, opts.rasterFallback !== false, opts._imprintSink, opts.signal, opts._ingredientSink);
   }
 
   logPdfWarnings(pdf);
@@ -1885,7 +1889,7 @@ async function stampC2pa(blob: Blob, format: string, opts: ExportOpts, dimension
       audio: !!opts.audio?.url,
       // Honest origin: the runtime flags a sensor capture (live camera / mic take).
       ...(opts.c2paCapture ? { capture: opts.c2paCapture } : {}),
-      // The runtime only sets c2paTextAdded when text sits over an opened asset,
+      // The runtime only sets c2paTextAdded when text sits over a placed asset,
       // so passing it through here keeps the "text is a real edit" gate intact.
       ...(opts.c2paTextAdded ? { textAdded: true, textSample: opts.c2paTextAdded.sample } : {}),
       // The runtime sets c2paAiUpscale when the render's essence is an on-device
@@ -2226,7 +2230,7 @@ async function renderMultiPagePdf(pageEls: Element[], opts: ExportOpts, prepare?
     const svgRoot = el.tagName?.toLowerCase() === 'svg' ? el
       : isSvgRooted(el) ? el.querySelector('svg') : null;
     if (svgRoot) await drawSvgVectorsInRegion(pdf, svgRoot, art.x, art.y, art.w, art.h, new Set(), opts._imprintSink, opts.convertPaths !== false);
-    else await drawHtmlVectors(pdf, el, art.x, art.y, art.w, art.h, convert, opts.onProgress, opts.rasterFallback !== false, opts._imprintSink, opts.signal);
+    else await drawHtmlVectors(pdf, el, art.x, art.y, art.w, art.h, convert, opts.onProgress, opts.rasterFallback !== false, opts._imprintSink, opts.signal, opts._ingredientSink);
   }
   logPdfWarnings(pdf);
   const blob = await pdf.output('blob') as Blob;
@@ -2562,7 +2566,7 @@ const RASTER_DPI = 200;
 // here, because it emits drawing operators straight into a content stream rather
 // than building a re-parentable node tree, so the same fix is a different (and
 // larger) piece of work. Nothing regresses - PDF keeps the order it always had.
-async function drawHtmlVectors(pdf: any, node: Element, ox: number, oy: number, regionW: number, regionH: number, convertPaths = true, onProgress?: (done: number, total: number) => void, rasterFallback = true, imprint?: ImprintState, signal?: AbortSignal): Promise<void> {
+async function drawHtmlVectors(pdf: any, node: Element, ox: number, oy: number, regionW: number, regionH: number, convertPaths = true, onProgress?: (done: number, total: number) => void, rasterFallback = true, imprint?: ImprintState, signal?: AbortSignal, pictures?: IngredientCredential[]): Promise<void> {
   if (await paintDesignGroupPage(pdf, node, { x: ox, y: oy, w: regionW, h: regionH }, { rasterFallback, dpi: RASTER_DPI, maxPixels: MAX_RASTER_PX }, (root, w, h) => rasterizeNodeToDataUrl(root, w, h, undefined, imprint))) return;
   const rect0 = node.getBoundingClientRect();
   const scaleX = regionW / rect0.width;
@@ -2572,11 +2576,10 @@ async function drawHtmlVectors(pdf: any, node: Element, ox: number, oy: number, 
   const cssToPt = regionW / (node.clientWidth || rect0.width);
   // Virtual origin: shifting the reference top-left by the region offset bakes it
   // into every (rect − rootRect)·scale below, so the artwork lands at (ox, oy)
-  // without touching the inline-text / pseudo-content helpers downstream.
-  const rootRect = {
-    left: rect0.left - ox / scaleX, top: rect0.top - oy / scaleY,
-    width: rect0.width, height: rect0.height, right: rect0.right, bottom: rect0.bottom,
-  };
+  // without touching the inline-text / pseudo-content helpers downstream. It reads the
+  // root afresh each time, so a root the page moves during the walk keeps every box in
+  // its place (export-origin.ts).
+  const rootRect = liveOrigin(node, ox / scaleX, oy / scaleY);
   // Tracks which font variants have been registered in this PDF instance.
   const registeredFonts = new Set();
   // Cooperative yielding: the vector walk + host.text.toPath (HarfBuzz) shaping
@@ -2624,7 +2627,7 @@ async function drawHtmlVectors(pdf: any, node: Element, ox: number, oy: number, 
       // animation outranks the inline style, and the re-entry that follows recurses
       // per attempt (plans/104 section 9 P3.1; bridge/transform-neutralise.ts). `null` = the
       // transform survived, so fall through to the AABB path with its rect as-is.
-      const restore = neutraliseTransform(el, neutralise, warnTransform);
+      const restore = keepRootFrame(rootRect, el, () => neutraliseTransform(el, neutralise, warnTransform));
       if (restore) {
         try {
           const unrot = el.getBoundingClientRect();     // reading forces the reflow
@@ -2642,7 +2645,7 @@ async function drawHtmlVectors(pdf: any, node: Element, ox: number, oy: number, 
     const mtx = pureRotationDeg(style.transform) === 0 ? parseCssMatrix(style.transform) : null;
     if (mtx && pdfDrawsThroughMatrix(el, node, style, mtx)) {
       // Same guarded neutralise as the rotation branch above.
-      const restore = neutraliseTransform(el, neutralise, warnTransform);
+      const restore = keepRootFrame(rootRect, el, () => neutraliseTransform(el, neutralise, warnTransform));
       if (restore) {
         try {
           const unrot = el.getBoundingClientRect();
@@ -2668,12 +2671,12 @@ async function drawHtmlVectors(pdf: any, node: Element, ox: number, oy: number, 
     // rectangle stretched to its projected bounding box).
     if (rasterFallback && isNonAffineTransform(style.transform)) {
       const posedShot = await rasterizePosedNodeToDataUrl(
-        el as HTMLElement, (RASTER_DPI / 72) * Math.max(scaleX, scaleY), imprint, effectSpillCss(style),
+        el as HTMLElement, (RASTER_DPI / 72) * Math.max(scaleX, scaleY), imprint, effectSpillCss(style), rootRect,
       );
       if (posedShot) {
         tiltedRasters++;
         pdf.addImage(posedShot.dataUrl, 'PNG',
-          (posedShot.x - rootRect.left) * scaleX, (posedShot.y - rootRect.top) * scaleY,
+          posedShot.x * scaleX, posedShot.y * scaleY,
           posedShot.w * scaleX, posedShot.h * scaleY);
         return;
       }
@@ -3097,9 +3100,9 @@ async function drawHtmlVectors(pdf: any, node: Element, ox: number, oy: number, 
           // and inlines http (cssUrlToHref, :1651), so this was the `<img>` branch
           // being inconsistent with it rather than a deliberate exemption.
           // Falls back to the raw src on failure (cross-origin without CORS, 404),
-          // which is exactly the old behaviour - never worse than before.
-          const dataUrl0 = src.startsWith('data:') ? src
-            : await blobToDataUrl(src).catch(() => src);
+          // which is exactly the old behaviour - never worse than before. Records the
+          // picture's credential first, as the SVG walker does (export-picture-credentials.ts).
+          const dataUrl0 = await inlinePicture(src, pictures);
           // Bake any CSS filter() into the bitmap (browser canvas) so PDF matches
           // screen/PNG; no-op + graceful fallback when filter is none.
           const dataUrl = await bakeImageFilter(el, dataUrl0, style.filter);
@@ -3202,7 +3205,7 @@ async function drawHtmlVectors(pdf: any, node: Element, ox: number, oy: number, 
 // painter (pdfInlineNonText).
 async function renderInlineContent(
   pdf: any, blockEl: any, blockStyle: CSSStyleDeclaration,
-  rootRect: { left: number; top: number }, scaleX: number, scaleY: number, cssToPt: number,
+  rootRect: Origin, scaleX: number, scaleY: number, cssToPt: number,
   registeredFonts: Set<unknown>, drawBox: (el: Element) => Promise<void>, convertPaths = true, imprint?: ImprintState, rasterFallback = true,
 ): Promise<void> {
   async function walk(node: any, nodeStyle: CSSStyleDeclaration, deco: Deco): Promise<void> {
@@ -3245,14 +3248,16 @@ async function renderInlineContent(
       let offset = 0;
       for (const seg of segs) {
         if (seg.trim().length > 0) {
-          for (const visual of visualLines(node, offset, offset + seg.length)) for (const line of bidiPieces(node, visual, bidi)) {
+          // Every line's box is read now, before the awaits below, with the origin of the
+          // same layout: a root that moves during the walk must not move a line (export-origin.ts).
+          for (const { line, at } of measuredLines(node, offset, offset + seg.length, bidi, rootRect)) {
             const r = line.rect;
             if (r.width < 0.5 || r.height < 0.5) continue;
-            const x = (r.left - rootRect.left) * scaleX;
+            const x = (r.left - at.left) * scaleX;
             // Baseline within the line box = half-leading + ascent (the SAME textBaselineY
             // the SVG walker uses), so a run with line-height > 1 sits centred instead of
             // riding the top of its line box. (Was `top + ascent`, i.e. half-leading = 0.)
-            const baselinePt = textBaselineY(r.top - rootRect.top, r.height, ascent, descent) * scaleY;
+            const baselinePt = textBaselineY(r.top - at.top, r.height, ascent, descent) * scaleY;
             const shown = applyTextTransform(line.text, nodeStyle.textTransform);
             const direction = lineDirection(bidi, shown);
             const rtl = direction === 'rtl';
@@ -3281,7 +3286,7 @@ async function renderInlineContent(
               return shapedD;
             };
             // A right-to-left run sits on the line's right edge; the path reads from its left.
-            const pathX = (): number => (rtl ? (r.right - rootRect.left) * scaleX - shapedAdvance * cssToPt : x);
+            const pathX = (): number => (rtl ? (r.right - at.left) * scaleX - shapedAdvance * cssToPt : x);
             const liveOk = !garbled && !overridden && pdf.canSetText(shown);
             const pictured = !liveOk && !(outlineRun && await textPathFor(shown) !== null);
             if (pictured) {
@@ -3289,11 +3294,11 @@ async function renderInlineContent(
               const toLayout = scaleX / cssToPt;
               const pic = rasterFallback ? await textPicture({
                 text: shown, style: nodeStyle, direction, override: overridden, box: { w: r.width * toLayout, h: r.height * toLayout },
-                scale: (TEXT_PICTURE_DPI / 72) * cssToPt, clip: paint.under ? clipOfRun(node.parentElement, r, toLayout) : undefined,
+                scale: (TEXT_PICTURE_DPI / 72) * cssToPt, clip: paint.under ? clipOfRun(node.parentElement, { left: r.left - at.left, top: r.top - at.top }, rootRect, toLayout) : undefined,
                 lang: node.parentElement?.closest('[lang]')?.getAttribute('lang'),
               }) : null;
               if (!pic) throw undrawableTextError(shown);
-              pdf.addImage(pic.src, 'PNG', x - pic.pad * cssToPt, (r.top - rootRect.top) * scaleY - pic.pad * cssToPt, (pic.w + 2 * pic.pad) * cssToPt, (pic.h + 2 * pic.pad) * cssToPt);
+              pdf.addImage(pic.src, 'PNG', x - pic.pad * cssToPt, (r.top - at.top) * scaleY - pic.pad * cssToPt, (pic.w + 2 * pic.pad) * cssToPt, (pic.h + 2 * pic.pad) * cssToPt);
               notePicturedText(pdf, shown);
             }
 
@@ -3318,7 +3323,7 @@ async function renderInlineContent(
                     (RASTER_DPI / 72) * scaleX, (RASTER_DPI / 72) * scaleY, imprint);
                   if (png) {
                     pdf.addImage(png, 'PNG', pathX() - pad * scaleX,
-                      (r.top - rootRect.top - pad) * scaleY,
+                      (r.top - at.top - pad) * scaleY,
                       (r.width + 2 * pad) * scaleX, (r.height + 2 * pad) * scaleY);
                   }
                   continue;
@@ -3351,7 +3356,7 @@ async function renderInlineContent(
                 // to pdf.text, which at least renders through an embedded/base font.
                 const { d, notdef, advanceWidth } = await _host!.text!.toPath({ text: shown, fontUrl: fontUrl!, fontSize: fontSizePx, features: features as string[], letterSpacing, variations: vf!.variations, fallbackFonts: vf!.fallbacks, ...direct });
                 if (d && !notdef) {
-                  const left = rtl ? (r.right - rootRect.left) * scaleX - advanceWidth * cssToPt : x;
+                  const left = rtl ? (r.right - at.left) * scaleX - advanceWidth * cssToPt : x;
                   // Fill, text stroke and any background-clip: text background (export-pdf-text-paint.ts).
                   // ponytail: stroke-opacity is not applied there (fill and stroke would need
                   // separate alpha states); add withPdfAlpha around the stroke pass if a

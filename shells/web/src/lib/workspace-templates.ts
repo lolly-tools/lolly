@@ -14,7 +14,7 @@
  * gets an empty list and renders exactly as before.
  */
 
-import type { AssetRef } from '@lolly-tools/core/host-v1';
+import type { AssetRef, ExportPartner } from '@lolly-tools/core/host-v1';
 import type { InputValue } from '../../../../engine/src/inputs.ts';
 import type { TemplateVariant } from './template-source.ts';
 
@@ -32,6 +32,9 @@ export interface WorkspaceTemplate {
   fixedTheme?: boolean;
   retired?: boolean;
   replacedBy?: string;
+  /** Inputs that take the person's company details, by company field (`logo`,
+   *  `contact` and the rest), when the workspace says which company they are in. */
+  bindings?: Record<string, string>;
   /** Where its JSON is served. */
   url: string;
 }
@@ -67,8 +70,159 @@ export function workspaceTemplateOf(ref: AssetRef | null | undefined): Workspace
     ...(meta.fixedTheme === true ? { fixedTheme: true } : {}),
     ...(meta.retired === true ? { retired: true } : {}),
     ...(typeof meta.replacedBy === 'string' ? { replacedBy: meta.replacedBy } : {}),
+    ...(bindingsOf(meta.bindings) ? { bindings: bindingsOf(meta.bindings)! } : {}),
     url: ref.url,
   };
+}
+
+/** A bindings map read back from catalog metadata: input id to company field. */
+function bindingsOf(raw: unknown): Record<string, string> | undefined {
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return undefined;
+  const out = Object.fromEntries(Object.entries(raw as Record<string, unknown>).filter(([, f]) => typeof f === 'string' && (COMPANY_FIELDS as readonly string[]).includes(f))) as Record<string, string>;
+  return Object.keys(out).length ? out : undefined;
+}
+
+// ── The person's company ─────────────────────────────────────────────────────
+// A workspace can say which company a person makes pieces for: its logos for light
+// and dark surfaces and the details a piece prints. Inputs a template (or the
+// workspace's own rules) binds to a company field start from these values. Set by
+// whoever reads the workspace's configuration; null on a plain build, where nothing
+// here changes what any tool does.
+
+/** The company fields a binding may take, in the workspace's own words. */
+export const COMPANY_FIELDS = [
+  'name', 'logo', 'logoLight', 'logoDark', 'mark', 'website', 'contact', 'contactEmail', 'contactPhone', 'address', 'currency', 'taxNote',
+] as const;
+
+export interface WorkspaceCompany {
+  id: string;
+  name: string;
+  revision?: number;
+  logos: { light?: string; dark?: string; mark?: string };
+  website?: string;
+  contact?: { name?: string; email?: string; phone?: string };
+  address?: string;
+  currency?: string;
+  taxNote?: string;
+}
+
+let company: WorkspaceCompany | null = null;
+
+/** Name the person's company, or null for none. */
+export function setWorkspaceCompany(next: WorkspaceCompany | null): void {
+  company = next;
+}
+
+/** The person's company, or null. */
+export function workspaceCompany(): WorkspaceCompany | null {
+  return company;
+}
+
+let programme: { id: string; name: string } | null = null;
+
+/** Name the person's partner programme, or null for none. */
+export function setWorkspaceProgramme(next: { id: string; name: string } | null): void {
+  programme = next;
+}
+
+/**
+ * The partner an export records (Lolly Work plans/82 M3): the person's company,
+ * once it has details, with their revision, and their programme. Null for neither.
+ */
+export function workspacePartner(): ExportPartner | null {
+  const out: ExportPartner = {};
+  if (company && (company.revision ?? 0) > 0) out.company = { id: company.id, label: company.name, revision: company.revision! };
+  if (programme) out.programme = { id: programme.id, label: programme.name };
+  return out.company || out.programme ? out : null;
+}
+
+/** The longest a first visit waits to learn the person's company. */
+export const WORKSPACE_COMPANY_WAIT_MS = 3000;
+
+let companyKnown = false;
+let governed = false;
+let companyWaiters: Array<() => void> = [];
+
+/**
+ * Boot has asked the instance who this person is (org/probe.ts), so the company,
+ * if they have one, is set. Called once every outcome is in: no instance, a
+ * sign-in gate or a member. `member` says a workspace now governs this session.
+ */
+export function settleWorkspaceCompany(member = false): void {
+  governed = member;
+  companyKnown = true;
+  const ready = companyWaiters;
+  companyWaiters = [];
+  for (const resolve of ready) resolve();
+}
+
+/** Resolves once boot knows the person's company, or after `ms`, whichever is first. */
+export function workspaceCompanySettled(ms = WORKSPACE_COMPANY_WAIT_MS): Promise<void> {
+  if (companyKnown) return Promise.resolve();
+  return new Promise((resolve) => {
+    const timer = setTimeout(done, ms);
+    function done(): void { clearTimeout(timer); companyWaiters = companyWaiters.filter((w) => w !== done); resolve(); }
+    companyWaiters.push(done);
+  });
+}
+
+/** True once boot has signed this person in to a workspace. */
+export function workspaceGoverned(): boolean {
+  return governed;
+}
+
+/** Forget what boot learned, for tests. */
+export function _resetWorkspaceCompanyForTests(): void {
+  company = null;
+  programme = null;
+  companyKnown = false;
+  governed = false;
+  companyWaiters = [];
+}
+
+export type CompanyMode = 'light' | 'dark';
+
+/** The mode a document draws in, from its theme choices (`{ "": "dark" }`). */
+export function modeOfSelection(selection: unknown): CompanyMode {
+  if (!selection || typeof selection !== 'object') return 'light';
+  return Object.values(selection as Record<string, unknown>).some((v) => typeof v === 'string' && /^dark$/i.test(v)) ? 'dark' : 'light';
+}
+
+/** The logo for a mode, falling back to the other surface's: the company's own mark
+ *  beats any placeholder. */
+export function companyLogo(c: WorkspaceCompany, mode: CompanyMode): string | undefined {
+  return mode === 'dark' ? c.logos.dark ?? c.logos.light : c.logos.light ?? c.logos.dark;
+}
+
+/** The value one company field gives. The contact line reads "name, email, phone",
+ *  as the workspace writes it for a server render, so both draw the same line. */
+export function companyFieldValue(field: string, c: WorkspaceCompany, mode: CompanyMode): string | undefined {
+  switch (field) {
+    case 'name': return c.name;
+    case 'logo': return companyLogo(c, mode);
+    case 'logoLight': return c.logos.light;
+    case 'logoDark': return c.logos.dark;
+    case 'mark': return c.logos.mark;
+    case 'website': return c.website;
+    case 'contact': return [c.contact?.name, c.contact?.email, c.contact?.phone].filter(Boolean).join(', ') || undefined;
+    case 'contactEmail': return c.contact?.email;
+    case 'contactPhone': return c.contact?.phone;
+    case 'address': return c.address;
+    case 'currency': return c.currency;
+    case 'taxNote': return c.taxNote;
+    default: return undefined;
+  }
+}
+
+/** The values a set of bindings gives for the person's company; empty with no company. */
+export function companyValuesFor(bindings: Record<string, string> | undefined, mode: CompanyMode, c: WorkspaceCompany | null = company): Record<string, string> {
+  const out: Record<string, string> = {};
+  if (!bindings || !c) return out;
+  for (const [id, field] of Object.entries(bindings)) {
+    const value = companyFieldValue(field, c, mode);
+    if (value !== undefined) out[id] = value;
+  }
+  return out;
 }
 
 /** Every workspace template the catalog holds, retired ones included. Empty on a
@@ -158,4 +312,60 @@ export function readTemplateOrigin(raw: unknown): TemplateOrigin | null {
   if (!isWorkspaceTemplateRef(o.ref) || typeof o.version !== 'number') return null;
   const editable = Array.isArray(o.editable) ? o.editable.filter((id): id is string => typeof id === 'string') : undefined;
   return { ref: o.ref, version: o.version, ...(editable ? { editable } : {}), ...(o.fixedTheme === true ? { fixedTheme: true } : {}) };
+}
+
+/** The most saved sessions the home reads to find the person's copies of what the shelf
+ *  offers: the newest sessions of the shelf's template tools, read once after the shelf
+ *  is drawn, when the page is idle (plans/82 M6). A rules tool needs no read. */
+export const SHELF_COPY_READS = 20;
+
+/** One saved session as the home sees it: the list row and, for a template's tool, the
+ *  origin read back from the session (`__template`). */
+export interface SavedCopy {
+  slot: string;
+  toolId: string;
+  updatedAt: string;
+  origin?: TemplateOrigin | null;
+}
+
+/** What the home needs to know about one shelf card to find its copy. */
+export interface ShelfEntry {
+  /** The card's key: a template's ref, or the template a rules tool was built from. */
+  key: string;
+  toolId: string;
+  /** True for a workspace template; false for a rules tool. */
+  template: boolean;
+  /** A template's version now; a copy made from an older one is behind. */
+  version?: number;
+}
+
+/** The person's newest copy of one shelf card. `behind` says a template moved on since
+ *  the copy was made; a rules tool's copy follows the tool, so it is never behind. */
+export interface ShelfCopy { slot: string; toolId: string; updatedAt: string; behind: boolean }
+
+const newestFirst = <T extends { updatedAt: string }>(list: readonly T[]): T[] =>
+  [...list].sort((a, b) => (a.updatedAt < b.updatedAt ? 1 : a.updatedAt > b.updatedAt ? -1 : 0));
+
+/** The sessions worth reading for their origin: the newest `cap` of the shelf's
+ *  template tools. */
+export function sessionsToRead<T extends { toolId: string; updatedAt: string }>(entries: readonly ShelfEntry[], list: readonly T[], cap = SHELF_COPY_READS): T[] {
+  const tools = new Set(entries.filter((e) => e.template).map((e) => e.toolId));
+  return newestFirst(list.filter((s) => tools.has(s.toolId))).slice(0, cap);
+}
+
+/**
+ * The person's copy of each shelf card, by card key: the newest saved session made from
+ * that template (its origin's ref), or for a rules tool the newest session of the tool,
+ * since every session of a rules tool is a copy of that tool. Pure: the reads happen first.
+ */
+export function copiesOf(entries: readonly ShelfEntry[], saved: readonly SavedCopy[]): Map<string, ShelfCopy> {
+  const sessions = newestFirst(saved);
+  const out = new Map<string, ShelfCopy>();
+  for (const entry of entries) {
+    const copy = sessions.find((s) => s.toolId === entry.toolId && (entry.template ? s.origin?.ref === entry.key : true));
+    if (!copy) continue;
+    const behind = entry.template && typeof entry.version === 'number' && !!copy.origin && copy.origin.version < entry.version;
+    out.set(entry.key, { slot: copy.slot, toolId: copy.toolId, updatedAt: copy.updatedAt, behind });
+  }
+  return out;
 }

@@ -62,7 +62,7 @@ export {
 export type { CssBlendMode, RasterLayer, LayeredRasterDoc, InflateFn } from './raster-layers.ts';
 export { buildInputModel, summarizeInputs, CREDENTIAL_READABLE_TYPES, normalizeTableValue, deriveExportFilename, matchesShowIf, tokenRestoreRefsOf, DEFAULT_FILE_MAX_BYTES } from './inputs.ts';
 export type { TableValue, TableColumnEditor, ShowIf, InputWriteOptions } from './inputs.ts';
-export { parseUrlState, serializeUrlState, serializeHdr, encodeBlocksCompact, encodeTableCompact, decodeTableCompact, RESERVED, HDR_DEFAULTS, VIDEO_CODEC_STRINGS, parseVideoParams, hasVideoParams, parseSpots } from './url-mode.ts';
+export { parseUrlState, serializeUrlState, serializeHdr, encodeBlocksCompact, encodeTableCompact, decodeTableCompact, RESERVED, HDR_DEFAULTS, VIDEO_CODEC_STRINGS, parseVideoParams, hasVideoParams, parseSpots, parseTextSetting } from './url-mode.ts';
 // The `s=` state address + the still-export frame filter both shells apply (plan 112).
 export { parseFrameAddress, selectFramePage, frameFilterApplies } from './frame-address.ts';
 export {
@@ -74,7 +74,7 @@ export type {
   PresentInteractDepth, PresentInteractOptions, PresentInteractContext, PresentInteractStop, PresentInteractAutoSample,
 } from './present-interact.ts';
 export { looksLikeTable, parseTableText, toTsv, toMarkdown, toHtmlTable } from './table-text.ts';
-export type { HdrSettings, DepthSetting, SpotsSetting, VideoUrlSettings, VideoQuality } from './url-mode.ts';
+export type { HdrSettings, DepthSetting, SpotsSetting, TextSetting, VideoUrlSettings, VideoQuality } from './url-mode.ts';
 export { LANGS, LANG_META, normalizeLang, flagEmoji, sortedLangs } from './lang.ts';
 export type { Lang, LangSort } from './lang.ts';
 export { packQuery, unpackToken, expandQuery, hasPackedState, isPackAvailable, PACK_PARAM } from './url-pack.ts';
@@ -90,7 +90,7 @@ export { assetVersionPin, encodeAssetVersion, decodeAssetVersion, assetDependenc
 export type { AssetVersionPin } from './asset-version.ts';
 export { toCSV, parseDelimited, detectDelimiter, parseBatchCsv, batchCsvTemplateWithNotes } from './batch.ts';
 export type { BatchRow } from './batch.ts';
-export { buildExportMeta, designRecordCarrier, designRecordEnvironment, designRecordFrom, designRecordWords, guidedByWords, readDesignRecord, readDesignRecordXml, themesSelection, toolCredit, pdfKeywords } from './metadata.ts';
+export { buildExportMeta, designRecordCarrier, designRecordEnvironment, designRecordFrom, designRecordWords, guidedByWords, partnerFactWords, partnerRecord, partnerWords, readDesignRecord, readDesignRecordXml, themesSelection, toolCredit, pdfKeywords } from './metadata.ts';
 export type { DesignRecord, MadeWithPreview } from './metadata.ts';
 export { BRAND_PAGE_ADDRESS_MAX, brandPageAddress, brandPageHost, carriesRecordedBrandPage, readRecordedBrandPage, settleBrandPageWrite, withRecordedBrandPage, withoutRecordedBrandPage } from './brand-page-address.ts';
 export type { BrandPageWrite } from './brand-page-address.ts';
@@ -596,6 +596,11 @@ export type { RightsEvaluationInputV1 } from './rights-evaluate.ts';
 export { attributionCompanion, attributionCredits, checkAttributionReadback, sourceIngredientsFor } from './rights-attribution.ts';
 export type { AttributionCompanionV1, SourceDetailV1 } from './rights-attribution.ts';
 export { evaluateReuse, rightsReportFromC2pa } from './rights-report.ts';
+// One answer to "may these bytes be passed on?" and the `.lolly` credits text, so a
+// Lolly Work server, a `.lolly` pack and a brand page agree, plus the package credits readback.
+export { OWNER_PUBLISHED, assetLicenceDeclaration, assetRightsNotices, ownerPublished, packCreditsText, readAssetRightsRecord, redistribution } from './asset-rights.ts';
+export type { AssetRightsMeta, OwnerPublishedV1, PackCreditEntry, PackHoldEntry, Redistribution } from './asset-rights.ts';
+export { checkCompanionReadback } from './rights-companion.ts';
 export {
   verifySeal, parseSealRecord, parseSealRecords, computeSealDigest, assembleSealMessage,
   resolveRanges, verifySealSignature, importSealKey,
@@ -1057,6 +1062,9 @@ export type { BrandCheckCatalogOpts, BrandFinding, BrandFix } from './brand-chec
 // pairings, type, logos, icons, media, master and machine-checkable rules.
 export { designBrief, brandCheckCatalog } from './design-brief.ts';
 export type { DesignBriefAssetV1, DesignBriefCatalogV1, DesignBriefOpts, DesignBriefV1 } from './design-brief.ts';
+// Additive 1.331: a server with no published brand page writes the same DESIGN.md a page holds (Lolly Work plan 82 M7).
+export { writeDesignMd } from './design-md.ts';
+export type { DesignMdWriteInputV1 } from './design-md.ts';
 // Brand skills (plan 323): a brand's standards per discipline as design-system assets.
 export { parseBrandSkill, brandSkillScopeHints, admitBrandSkill, classifyBrandSkillLinks, brandSkillCoverage, brandSkillCoverageFacts, exportBrandSkillFolder, brandSkillFreshness, brandSkillsSection, baselineBrandSkill, measureSvgFamily, spreadExemplars, brandSkillFilesSize } from './brand-skill.ts';
 export type { BrandSkillFindingV1, BrandSkillHeadingV1, BrandSkillLinkV1, ParsedBrandSkillV1, AdmittedBrandSkillV1, BrandSkillAdmissionV1, BrandSkillCatalogAssetV1, BrandSkillLinkClassV1, BrandSkillCoverageFactsV1, BrandSkillCoverageStatusV1, BrandSkillCoverageRowV1, BrandSkillCoverageV1, BrandSkillExportModeV1, BrandSkillExportInputV1, BrandSkillExportV1, BrandSkillFreshnessV1, SvgFamilyMeasureV1 } from './brand-skill.ts';

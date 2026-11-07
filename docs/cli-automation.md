@@ -168,7 +168,7 @@ pnpm --silent run cli preflight qr-code --export=svg --json | jq   # the machine
 pnpm --silent run cli preflight 'https://lolly.tools/t/qr-code?url=…&format=pdf-cmyk'
 ```
 
-`lolly preflight` answers "what am I about to export, and is anything wrong with it" without rendering. It takes the **same** render flags a real run takes, including `--input.<id>=` and a pasted share link (`https` or `lolly://`), because checking other settings than the render would use proves nothing. The rules live in the engine (`engine/src/preflight.ts`), so the app's export panel and this command report the same findings for the same job. A reserved flag that shadows a tool input warns here as it does on `lolly run`, and the report records it as `collect.reserved-flag-shadows-input`.
+`lolly preflight` answers "what am I about to export, and is anything wrong with it" without rendering. It takes the **same** render flags a real run takes, including `--input.<id>=` and a pasted share link (`https` or `lolly://`), because checking other settings than the render would use proves nothing. The rules live in the engine (`engine/src/preflight.ts`), so the app's export panel and this command report the same findings for the same job. A reserved flag that shadows a tool input warns here as it does on `lolly run`, and the report records it as `collect.reserved-flag-shadows-input`. For a Design document, `--file=<tokens.json>` picks the design system as it does on `lolly run design`, so the plates and inks are counted from that system's colours and not the content profile's. A pasted link cannot pick the file: type `--file` after the link.
 
 | Flag | Effect |
 |---|---|

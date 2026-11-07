@@ -467,6 +467,23 @@ export interface ExportMeta {
    * signer records an address. It does not show that the page belongs to anyone.
    */
   brandPage?: string;
+  /**
+   * The partner company and programme the export was made for (Lolly Work plans/82
+   * M3), from the workspace the person is signed in to, while the design-system
+   * record is on. The company is the one whose details filled the work, with the
+   * revision of those details; the programme is the one that published the work.
+   * Never the person, a contact's email or phone, an address or a currency. Absent
+   * outside a partner programme and on records written before engine 1.334.
+   */
+  partner?: ExportPartner;
+}
+
+/** The partner an export was made for (Lolly Work plans/82 M3). Either part may be absent. */
+export interface ExportPartner {
+  /** The partner company: its workspace id, its name and its details revision. */
+  company?: { id: string; label: string; revision: number };
+  /** The partner programme: its workspace id and its name. */
+  programme?: { id: string; label: string };
 }
 
 /** One brand skill revision that guided an export (plan 323). */

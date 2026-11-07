@@ -63,7 +63,7 @@ import { openToolSession } from '../tool-session-open.ts';
 import { carriedEmojiPins } from '../tool-session-snapshot.ts';
 import { _sliderDragging, fileToRef, fmtBytes, makeBlocksDropper, syncInputs } from '../tool-inputs.ts';
 import { cappedFileRef, fileInputCap } from '../../lib/file-input-ref.ts';
-import { notifyToolInputMount, guardDocumentEdits, policyValuesFor } from '../../lib/input-policy.ts';
+import { notifyToolInputMount, guardDocumentEdits, getInputPolicy, policyValuesFor, toolStartValues } from '../../lib/input-policy.ts';
 import { createLiveControls, mountSidebarLiveControls, registerLiveControls } from '../live-controls.ts';
 import { mountCaptureSignin } from '../capture-signin.ts';
 import { captureThumbnail, renderActions } from '../tool-actions.ts';
@@ -463,6 +463,19 @@ export async function templatePick(tview: ToolViewCtx): Promise<void> {
     tview.initialValues = { ...seed, ...tview.initialValues };
     for (const id of Object.keys(seed)) templateSeededIds.add(id);
   };
+  /** A workspace template's values with the person's company details over the inputs
+   *  it binds (plans/82 M3): their logo and details line are in place from the start.
+   *  A bound input the template keeps fixed is not offered, so it holds this value. */
+  const withCompanyValues = async (found: { ref: { kind: string; id: string }; values: Record<string, InputValue> }): Promise<Record<string, InputValue>> => {
+    if (found.ref.kind !== 'workspace') return found.values;
+    const { companyValuesFor, getWorkspaceTemplate, modeOfSelection, workspaceCompany } = await import('../../lib/workspace-templates.ts');
+    if (!workspaceCompany()) return found.values;
+    const bindings = (await getWorkspaceTemplate(tview.host as never, found.ref.id))?.bindings;
+    if (!bindings) return found.values;
+    companyLogoInputs.set(tview, Object.entries(bindings).filter(([, field]) => field === 'logo').map(([id]) => id));
+    const mode = modeOfSelection(tview.openedSession?.url.tokenSelection ?? tview.initialValues.__tokenSelection);
+    return { ...found.values, ...companyValuesFor(bindings, mode) as Record<string, InputValue> };
+  };
   // The profile record, read at most ONCE per mount: the "Start with" ladder below wants
   // it, and so does the profile-fill loop further down. Null until something asks.
   let mountProfile: Profile | null = null;
@@ -485,7 +498,7 @@ export async function templatePick(tview: ToolViewCtx): Promise<void> {
       templateParam,
       { toolId, templateMeta, presetId: presetParam },
     );
-    if (found) await applyTemplateSeed(found.values);
+    if (found) await applyTemplateSeed(await withCompanyValues(found));
     noteOrigin(found);
     // Design's intent was first guessed in guardNetworkAndSeed from the bare id, before
     // the template was read, so a Video template opened by link got the plain Design
@@ -546,7 +559,7 @@ export async function templatePick(tview: ToolViewCtx): Promise<void> {
           { toolId, templateMeta },
         );
         if (found) {
-          await applyTemplateSeed(found.values);
+          await applyTemplateSeed(await withCompanyValues(found));
           noteOrigin(found);
           startSeeded = true;
         } else {
@@ -769,6 +782,13 @@ export async function templatePick(tview: ToolViewCtx): Promise<void> {
     const seed = await newWorkTokenSelection(tview.host, tview.tool.manifest.tokenAxes);
     if (seed) tview.initialValues = { ...tview.initialValues, __tokenSelection: seed };
   }
+  // New work starts from what the workspace says for this tool (plans/82 M3): its
+  // group defaults and the person's company details, below a template's values and
+  // their own. Empty on a plain build. A saved document keeps what it holds.
+  if (newWork) {
+    const start = toolStartValues(toolId);
+    if (Object.keys(start).length) tview.initialValues = { ...start as Record<string, InputValue>, ...tview.initialValues };
+  }
 
   // The document's emoji style (link, saved session or brand, preference) goes in at
   // creation, before onInit: the tool's first text composition then uses the right
@@ -809,11 +829,57 @@ export async function templatePick(tview: ToolViewCtx): Promise<void> {
   // allowed set) goes into the runtime, not only onto the sidebar: the canvas,
   // the saved session and any link then carry the value the control shows.
   // Empty on an ungoverned instance, so nothing here runs for it.
-  const policyValues = policyValuesFor(toolId, runtime.getModel());
+  const { modeOfSelection } = await import('../../lib/workspace-templates.ts');
+  const policyValues = policyValuesFor(toolId, runtime.getModel(), modeOfSelection(runtime.tokenSelection));
   if (Object.keys(policyValues).length) {
     await runtime.applyPatch(policyValues);
     await runtime.resolveRefs();
   }
+  await followCompanyMode(tview, runtime);
+  // The partner this work is made for, which the export records beside the design
+  // system while the record is on (plans/82 M3). Null outside a partner programme.
+  const { workspacePartner } = await import('../../lib/workspace-templates.ts');
+  runtime.setPartner(workspacePartner());
+}
+
+/** The inputs of a mounted workspace template that take the company's logo by mode. */
+const companyLogoInputs = new WeakMap<ToolViewCtx, string[]>();
+
+/**
+ * A partner company's logo follows the document between its light and dark logos
+ * (plans/82 M3): now, for a document opened in dark mode, and on every switch, beside
+ * the colours that follow the theme. Nothing happens without a company.
+ */
+async function followCompanyMode(tview: ToolViewCtx, runtime: ToolRuntime): Promise<void> {
+  const { companyLogo, modeOfSelection, workspaceCompany } = await import('../../lib/workspace-templates.ts');
+  if (!workspaceCompany()) return;
+  const logoIds = companyLogoInputs.get(tview) ?? [];
+  const idOf = (v: unknown): unknown => (v && typeof v === 'object' ? (v as { id?: unknown }).id : v);
+  const apply = async (): Promise<void> => {
+    const company = workspaceCompany();
+    if (!company || tview.runtime !== runtime) return;
+    const mode = modeOfSelection(runtime.tokenSelection);
+    const model = runtime.getModel();
+    const patch: Record<string, unknown> = {};
+    // A logo a policy holds by mode: compared by asset id, as the model holds the resolved asset.
+    for (const input of model) {
+      const want = getInputPolicy(tview.toolId, input.id)?.byMode?.[mode];
+      if (want !== undefined && idOf(input.value) !== want) patch[input.id] = want;
+    }
+    for (const id of logoIds) {
+      const want = companyLogo(company, mode);
+      const have = model.find((i) => i.id === id);
+      if (want && have && idOf(have.value) !== want) patch[id] = want;
+    }
+    if (!Object.keys(patch).length) return;
+    await runtime.applyPatch(patch as Record<string, InputValue>);
+    await runtime.resolveRefs();
+  };
+  await apply();
+  const { DOCUMENT_THEME_EVENT } = await import('../../lib/document-theme.ts');
+  const onTheme = (): void => { void apply().catch((e) => console.error(e)); };
+  window.addEventListener(DOCUMENT_THEME_EVENT, onTheme);
+  tview.mountLifecycle.add('company logo by mode', () => window.removeEventListener(DOCUMENT_THEME_EVENT, onTheme));
 }
 
 export function documentSurface(tview: ToolViewCtx): void {
