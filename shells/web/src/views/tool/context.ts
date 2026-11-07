@@ -138,6 +138,18 @@ export interface ToolViewCtx {
   poseTemplate: () => void;
   templatePickTornDown: boolean;
   templatePickClose: (() => void) | null;
+  /** The workspace template this document started from (lib/workspace-templates.ts),
+   *  kept in the saved record as `__template`. Null for any other document. */
+  templateOrigin: import('../../lib/workspace-templates.ts').TemplateOrigin | null;
+  /** That template as the workspace serves it now: null when it has left the catalog. */
+  templateNow: import('../../lib/workspace-templates.ts').WorkspaceTemplate | null;
+  /** The template keeps its colourway and mode, so the Design system section is not offered. */
+  templateFixedTheme: boolean;
+  /** The workspace set this tool to templates only for this person (the index entry's
+   *  `templatesOnly`): a fresh open offers only its published templates. */
+  templatesOnly: boolean;
+  /** A workspace template picked in the Start chooser: it opens as a fresh document. */
+  pickedWorkspaceRef: string | null;
   fileIntoFolder: string | null;
   returnTo: string;
   fromFolder: boolean;

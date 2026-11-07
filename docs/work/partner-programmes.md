@@ -86,6 +86,71 @@ Licence records do not decide what a provider folder carries yet. That comes wit
 licence-aware exposure, which will apply the same rule to collections, folders, links and
 downloads.
 
+## Templates
+
+A template gives a programme a ready piece to finish, such as a product data sheet where a reseller
+adds only their price. Partners find it on their home, under **From** and your workspace's name, and
+in the tool's **Start** chooser, and **Use** opens the template. Only what the template leaves open is offered;
+everything else is simply not there, with no note about why.
+
+Publish one from the programme's **Templates** card. Anyone with `programme.manage` can, without
+joining the programme. There are two kinds:
+
+- **A template of one of your tools.** Save a template in the tool and submit it to the catalog,
+  then choose it under **Publish a template**. Submitting needs `catalog.submit`, which authors and
+  admins have; a programme manager without it asks a colleague on the brand team to submit the
+  template, then publishes it from the card. Untick what partners may not change. The card
+  counts what stays open, for example "Partners can change 1 of 9 inputs". With every input ticked
+  there are no rules and partners can change everything. **Colourway and mode** sits below the
+  inputs and starts ticked: partners may pick another of your brand's colourways and switch
+  between light and dark, which moves every colour the tool takes from the design system. Untick
+  it to keep the template's own.
+- **A Share with rules file.** Make it in Design with **Share with rules**, download the `.lolly`
+  file and upload it under **Publish a template**. The designer's own rules travel with the file:
+  partners change only the objects the designer chose, plus the colourway and mode, which Design's
+  rules leave open. Work keeps only the file's data and builds
+  the tool again with this workspace's own Design, so no code from the file ever runs. A file made
+  with another version of Lolly is rebuilt the same way, and its row says "Rebuilt with this
+  workspace's Design". Files made from a tool other than Design are not taken yet.
+
+**Who gets it** can be the whole programme, one of its companies, or several programmes.
+
+When people in the programme can also open the template's tool on its own, the row says so. They
+could then make the same piece outside the template's rules. To keep them inside, turn on the switch under
+the row, for example **Partners use Pricing only through its published templates**. It is off by
+default and set per programme and per tool. When it is on, the tool leaves their gallery and search, its
+**Start** chooser offers only the templates published to them, with no blank canvas, and a server
+render must name one of those templates. Copies they saved before keep opening. If any of a
+person's programmes turns it on, the tool is templates only for that person, and Preview says which
+programme turned the switch on.
+
+### New versions and retiring
+
+**New version** takes a newer template of the same tool, or a newer Share with rules file of the
+same tool id. What happens to work partners already saved:
+
+- A copy made from a tool template stays as it was. The next time it opens, the person is told a
+  new version is ready. **Use new version** brings in what the template fixes and keeps what they
+  changed. Without rules, the new version opens as a new document instead.
+- A copy made from a Share with rules file opens on the newest version, with the person's entries
+  kept, and a one-time notice tells them it was updated.
+
+**Retire** takes a template off partners' homes and choosers at once. Copies already made keep
+working and say it was retired; name a replacement and they offer the replacement. **Publish again** undoes a
+retirement. To stop a template everywhere straight away, revoke it in the catalog.
+
+### Rules on the server
+
+Renders on the server follow the same rules. A render that asks for a template with
+`template=inst/<id>` starts from the template's values and refuses, with `422 INPUT_LOCKED`, any
+input the template fixes, and asks to change the colourway or mode (`ds`, `_themes`) when the
+template keeps its own. A tool built from a Share with rules file refuses anything the designer
+did not open the same way, and a value outside the designer's choices with `422 INPUT_NOT_ALLOWED`.
+A template's rules can make a tool's own input rules stricter, never looser. A retired template
+answers `410 TEMPLATE_RETIRED` with the replacement. When the tool is templates only for the
+caller, a render that gives no template answers `422 TEMPLATE_REQUIRED` with the templates they
+may use.
+
 ## Companies
 
 A programme can hold companies: the partner organisations in it, such as one reseller or one
@@ -207,9 +272,11 @@ instead.
 ## See what they get
 
 **See what they get** opens Preview for the programme's group, before anyone is invited. Preview
-shows the tools the programme can open, the number and kinds of assets it gets, its collections
-and a sample of asset names, along with its permissions and the input rules it meets. It asks the
-same code the app does, so what you see is what they get.
+shows the tools the programme can open, its templates with what each lets them change, the number
+and kinds of assets it gets, its collections and a sample of asset names, along with its
+permissions and the input rules it meets. Under each template, Preview says why the rest is fixed.
+It asks the same code the app does, so what you see is what they get. Anyone with
+`programme.manage` can preview a programme and its companies.
 
 ## A person in two programmes
 
@@ -290,6 +357,14 @@ DELETE /api/v1/partner-domains/:domain[?programme=<id>]
 GET    /api/v1/programmes/:id/folders             # its provider folders, and every folder each source's last sync found, with counts
 PUT    /api/v1/programmes/:id/folders             # { provider, path, company?, endsAt? }; the whole source is path "" with whole: true
 DELETE /api/v1/programmes/:id/folders?provider=&path=&company=
+GET    /api/v1/programmes/:id/templates           # its templates, and the catalog templates to publish from
+POST   /api/v1/programmes/:id/templates           # { from, groups, editable? }: publish a catalog template
+POST   /api/v1/programmes/:id/templates/rules-file?groups=   # the .lolly as the body
+PUT    /api/v1/programmes/:id/templates/:asset    # { groups?, editable?, fixedTheme? }
+POST   /api/v1/programmes/:id/templates/:asset/versions      # { from }, or a newer .lolly as the body
+POST   /api/v1/programmes/:id/templates/:asset/retire        # { replacedBy? }
+POST   /api/v1/programmes/:id/templates/:asset/restore
+PUT    /api/v1/programmes/:id/templates-only/:tool         # { on }
 ```
 
 A `PUT` that leaves out `tools` or `collections` keeps what the programme had. Each change is
@@ -302,6 +377,8 @@ never the address, and `via: "domain"` with the domain for someone who joined th
 companies as `programme.company.create`, `.edit` and `.delete`. Domains are audited as
 `programme.domain.add`, `.rule`, `.assert`, `.proof`, `.verify`, `.pause`, `.move-staff` and
 `.remove`. Provider folders are audited as `programme.folder.add`, `.edit`, `.remove` and `.end`.
+Templates are audited as `programme.template.publish`, `.update`, `.version`, `.retire` and `.restore`,
+and the templates-only switch as `programme.template.only`.
 
 The same steps from the command line:
 
@@ -319,8 +396,8 @@ lw people exit --domain northwind.example             # a preview; add --apply t
 
 ## Not yet
 
-Partner company profiles with their own logos, agent tokens for a programme and templates
-published to a programme are planned.
+Partner company profiles with their own logos and agent tokens for a programme are planned, and
+so are Share with rules files made from tools other than Design.
 
 ## Related
 

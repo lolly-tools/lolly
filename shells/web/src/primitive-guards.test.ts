@@ -1320,7 +1320,9 @@ const RAW_HTML_ALLOWED: Record<string, number> = {
   // app-level prefs, and the /profile sound card is their home), taking its sink with it.
   // +1 2026-09-27 (plan 277 P3): the saved-sessions dialog redraws its rows after
   // a Trash Undo; savedItem builds each row through sessionRow, which escapes.
-  'views/gallery.ts': 8,
+  // +1 2026-11-07 (plan 82 M2, lolly-work): the workspace's shelf of published templates;
+  // views/published-shelf.ts escapes every value, and a tool icon is the catalog's own markup.
+  'views/gallery.ts': 9,
   'views/multi-edit.ts': 3,
   // 6, unchanged 2026-08-09 (plan 97 M5 - the design-system hand-offs). The three
   // new controls are markup inside the existing report template, not new sinks:

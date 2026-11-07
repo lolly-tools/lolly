@@ -475,6 +475,44 @@ function galleryEmptyHtml(loadFailed: boolean): string {
       `;
 }
 
+/** Fill the workspace's shelf, then draw each card's preview when the page is idle. It
+ *  takes the whole index, unlisted tools included: a tool the workspace set to templates
+ *  only is unlisted, and its templates belong on the shelf all the more. */
+async function fillPublishedShelf(viewEl: HTMLElement, host: GalleryHost, tools: readonly GalleryTool[]): Promise<void> {
+  try {
+    const mount = viewEl.querySelector<HTMLElement>('.published-mount');
+    if (!mount) return;
+    const [{ listWorkspaceTemplates, fetchWorkspaceValues }, { publishedItems, publishedShelfHtml }, { getSessionSource }] = await Promise.all([
+      import('../lib/workspace-templates.ts'), import('./published-shelf.ts'), import('../lib/session-source.ts'),
+    ]);
+    const templates = await listWorkspaceTemplates(host as never);
+    const items = publishedItems(templates, tools);
+    if (!items.length || !mount.isConnected) return;
+    mount.innerHTML = publishedShelfHtml(items, getSessionSource()?.label);
+    // Previews: the template's own values, or a rules tool's defaults, drawn the way the
+    // Start chooser draws its tiles. A preview that cannot be drawn keeps the icon.
+    const { coverFormats, renderFeaturedVariant } = await import('../lib/featured-render.ts');
+    for (const item of items) {
+      if (!mount.isConnected) return;
+      const formats = coverFormats({ formats: item.formats });
+      if (!formats?.length) continue;
+      const tpl = templates.find((x) => x.id === item.key && x.toolId === item.toolId);
+      const values = tpl ? await fetchWorkspaceValues(tpl) : {};
+      if (!values) continue;
+      try {
+        const src = await renderFeaturedVariant(host as Parameters<typeof renderFeaturedVariant>[0], item.toolId, formats, `published:${item.key}`, values, 'published');
+        const media = mount.querySelector<HTMLElement>(`.published-card[data-published-key="${CSS.escape(item.key)}"] .published-card-media`);
+        if (!src || !media) continue;
+        const img = document.createElement('img');
+        img.className = 'published-card-thumb';
+        img.alt = '';
+        img.src = src;
+        media.prepend(img);
+      } catch { /* the icon stays */ }
+    }
+  } catch { /* the shelf is an offer, never something the gallery waits on */ }
+}
+
 export async function mountGallery(viewEl: HTMLElement, host: GalleryHost, opts: GalleryMountOpts = {}): Promise<void> {
   document.title = opts.only ? 'Utilities - Lolly' : 'Lolly';
   holdEarlyDrops(viewEl); // a file dropped before the drop router loads waits for it (see below)
@@ -856,6 +894,7 @@ export async function mountGallery(viewEl: HTMLElement, host: GalleryHost, opts:
 
       ${visibleCats.length === 0 ? galleryEmptyHtml(index.tools.length === 0) : `
         <div class="featured-mount"></div>
+        ${opts.only ? '' : '<div class="published-mount"></div>'}
         ${opts.only ? '' : yoursShelfHtml(yoursShelfTools(
           [...new Set(sortedSaved.filter(e => !isBatchSlot(e.slot)).map(e => e.toolId))],
           favourites,
@@ -867,6 +906,11 @@ export async function mountGallery(viewEl: HTMLElement, host: GalleryHost, opts:
       `}
     </div>
   `;
+
+  // What the connected workspace published for this person (views/published-shelf.ts):
+  // filled once the catalog answers, so it never holds the grid back. Nothing published
+  // (every plain build) leaves the mount empty and the gallery as it was.
+  if (!opts.only) void fillPublishedShelf(viewEl, host, rawIndex.tools);
 
   // Hidden until the ladder reveals it (see revealFirstRunBanner) - and hidden
   // from the accessibility tree with it, so a screen reader isn't told about a
