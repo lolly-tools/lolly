@@ -578,6 +578,34 @@ test('spot inks as process with no inks declared changes nothing', () => {
   assert.equal(one(r, 'plates.process').message, '4 process plates. Whether all four carry ink cannot be known before the file is written.');
 });
 
+// The CMYK TIFF and eps-cmyk write the four process plates and nothing else: a spot ink
+// goes in as its process build and a finish as its black mask (buildCmykPaletteMap), so
+// a rate card has no spot or finish plate to price, with spot inks as process or not.
+for (const format of ['cmyk-tiff', 'eps-cmyk']) {
+  test(`${format} counts the four process plates and no spot or finish plate`, () => {
+    for (const settings of [{ format }, { format, spotsAsProcess: false }, { format, spotsAsProcess: true }]) {
+      const r = preflight(job({ settings, palette: { known: true, value: INKS_AND_FOIL } }));
+      assert.deepEqual(plateCounts(r), { processPlates: 4 }, JSON.stringify(settings));
+      assert.equal(has(r, 'plates.spot-ceiling'), false);
+      assert.equal(has(r, 'plates.finish-ceiling'), false);
+      const f = one(r, 'plates.process');
+      assert.match(f.message, /^4 process plates\. This format has no named plates, so the 2 spot inks print as process and add no plates\. /);
+      assert.equal(f.evidence?.spotsAsProcess, 'PANTONE 186 C, PANTONE 300 C');
+      // The finish is not lost: it is the error that says the format makes it a mask.
+      assert.equal(one(r, 'print.finish-flattened-into-process').evidence?.spotName, 'Gold');
+    }
+  });
+
+  test(`${format}: one ink in the singular, and a brand with no spots needs no plate sentence`, () => {
+    const oneInk = preflight(job({ settings: { format }, palette: { known: true, value: [swatch('Red', 'PANTONE 186 C')] } }));
+    assert.match(one(oneInk, 'plates.process').message, /^4 process plates\. This format has no named plates, so the spot ink prints as process and adds no plate\. /);
+    const none = preflight(job({ settings: { format }, palette: { known: true, value: [{ path: 'brand.color.red', name: 'Red', spot: null }] } }));
+    assert.deepEqual(plateCounts(none), { processPlates: 4 });
+    assert.equal(one(none, 'plates.process').message, '4 process plates. Whether all four carry ink cannot be known before the file is written.');
+    assert.equal(has(none, 'plates.no-spots-declared'), false, 'the format has no spot plates, whatever the brand declares');
+  });
+}
+
 test('a brand with no spots says so, and does not report the number zero', () => {
   const r = preflight(job({
     settings: { format: 'pdf-cmyk' },

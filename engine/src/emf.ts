@@ -692,3 +692,23 @@ export function emitEmf(ir: VectorIr, opts: VectorEmitOpts = {}): Uint8Array {
   for (const r of body) { out.set(r, off); off += r.length; }
   return out;
 }
+
+/**
+ * How many EMR_EXTTEXTOUTW records an EMF holds: runs of live text that the reader's
+ * fonts draw. Zero when every run is outlines or a picture, and for bytes that are not
+ * an EMF. Walks the records by their own sizes, so a file from any writer reads, and
+ * stops at EMR_EOF or at a record that does not fit.
+ */
+export function emfLiveTextRecords(bytes: Uint8Array): number {
+  const dv = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+  if (bytes.byteLength < 8 || dv.getUint32(0, true) !== EMR_HEADER) return 0;
+  let runs = 0;
+  for (let at = 0; at + 8 <= bytes.byteLength;) {
+    const type = dv.getUint32(at, true), size = dv.getUint32(at + 4, true);
+    if (size < 8 || size % 4 !== 0 || at + size > bytes.byteLength) break;
+    if (type === EMR_EXTTEXTOUTW) runs++;
+    if (type === EMR_EOF) break;
+    at += size;
+  }
+  return runs;
+}

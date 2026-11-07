@@ -90,15 +90,17 @@ function cardHtml(item: PublishedItem): string {
           </a>`;
 }
 
-/** The shelf's markup, or '' when there is nothing published (shelf absent). */
-export function publishedShelfHtml(items: readonly PublishedItem[], workspace: string | undefined): string {
-  if (!items.length) return '';
+/** The shelf's markup, or '' when there is nothing published (shelf absent). `lead`
+ *  is markup for the first card, the person's company card (views/company-card.ts),
+ *  which keeps the shelf on screen even before anything is published. */
+export function publishedShelfHtml(items: readonly PublishedItem[], workspace: string | undefined, lead = ''): string {
+  if (!items.length && !lead) return '';
   const title = workspace ? tRaw('From {name}', { name: workspace }) : t('From your workspace');
   return `
       <section class="published-shelf" aria-label="${escapeHtml(title)}">
         <h2 class="published-shelf-title">${escapeHtml(title)}</h2>
         <div class="published-shelf-row">
-          ${items.map(cardHtml).join('')}
+          ${lead}${items.map(cardHtml).join('')}
         </div>
       </section>`;
 }

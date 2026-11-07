@@ -180,6 +180,17 @@ test('url-mode: _kit carries a partner kit attachment, and only one that reads',
   assert.equal(formatPartnerKitParam({ id: 'inst/x', revision: 1.5 }), null);
 });
 
+test('url-mode: _text=outline is an opt-in EMF text choice, never an input', () => {
+  const on = parseUrlState('heading=Hi&_text=outline', SAMPLE_MANIFEST);
+  assert.equal(on.text, 'outline');
+  assert.equal((on.values as Record<string, unknown>)._text, undefined);
+  assert.equal(parseUrlState('heading=Hi&_text= Outline ', SAMPLE_MANIFEST).text, 'outline');
+  // Absent, empty or anything else keeps the live EMF text records.
+  for (const q of ['heading=Hi', 'heading=Hi&_text=', 'heading=Hi&_text=1', 'heading=Hi&_text=live']) {
+    assert.equal(parseUrlState(q, SAMPLE_MANIFEST).text, null, q);
+  }
+});
+
 test('url-mode: RESERVED set matches the documented reserved-param list', () => {
   // Mirrors the header doc-comment in engine/src/url-mode.js AND the table in
   // docs/url-parameters.md. The docs aren't programmatically importable, so this inline
@@ -197,6 +208,8 @@ test('url-mode: RESERVED set matches the documented reserved-param list', () => 
     '_spots',
     // The partner kit a piece carries as a guest (plans/82 M8): `_kit=<id>@<revision>`.
     '_kit',
+    // Draw EMF text as vector outlines: `_text=outline`.
+    '_text',
   ];
   assert.deepEqual([...RESERVED].sort(), [...documented].sort());
 
