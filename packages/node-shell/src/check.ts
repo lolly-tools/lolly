@@ -51,6 +51,7 @@ import {
   checkDesignHouseRules,
   checkFidelity,
   checkGuestMarks,
+  partnerKitLogoIds,
   checkFindingFromBrand,
   checkFindingFromDesign,
   checkFindingFromMounted,
@@ -1294,7 +1295,12 @@ export async function checkFile(bytes: Uint8Array, name: string, asked: CheckFil
       for (const theme of checkThemes) {
         const boxes = inTheme(theme);
         const brand = await guarded(opts.signal, async () => {
-          const result = checkBrandDesign(boxes, ds.doc, { ...(theme ? { theme } : {}), ...brandCheckCatalog(opts.catalog ?? null) });
+          const result = checkBrandDesign(boxes, ds.doc, {
+            ...(theme ? { theme } : {}),
+            ...brandCheckCatalog(opts.catalog ?? null),
+            // The partner kit's colours and logos are the guest's own, not off-brand values.
+            ...(opts.partnerKit ? { guest: { colours: opts.partnerKit.colours.map((c) => c.value), assets: partnerKitLogoIds(opts.partnerKit) } } : {}),
+          });
           const rules = checkDesignHouseRules(boxes, brandSystemOf(ds.doc)?.rules ?? [], ds.doc, {
             ...(theme ? { theme } : {}),
             ...(opts.catalog ? { catalog: opts.catalog } : {}),

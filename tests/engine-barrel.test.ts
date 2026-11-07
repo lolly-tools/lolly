@@ -13,7 +13,7 @@ const EXPECTED: readonly string[] = [
   // Additive partner kits (plans/82 M8): the kit reader and its two colour proposers.
   'PartnerKitReadResult', 'checkPartnerKit', 'partnerKitColoursFromInks', 'partnerKitColoursFromTokens', 'partnerKitLogoIds', 'readPartnerKit',
   // Additive guest-mark checks (plans/82 M8): partner marks against their kit's rules.
-  'GuestMarkMeasure', 'GuestMarkReport', 'checkGuestMarks',
+  'GuestMarkMeasure', 'GuestMarkReport', 'checkGuestMarks', 'BrandCheckGuestOpts',
   // Additive `_kit` (plans/82 M8): a piece's partner kit attachment in a link and a saved session.
   'formatPartnerKitParam', 'parsePartnerKitParam', 'readPartnerKitAttachment',
   // Additive colour roles (plans/352): a design system's colours in its own words.
