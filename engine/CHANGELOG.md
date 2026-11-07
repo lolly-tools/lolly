@@ -6,6 +6,10 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+## 1.330.0
+
+- `preflight.ts`: the CMYK TIFF (`cmyk-tiff`) and EPS (CMYK) (`eps-cmyk`) write the four process plates and nothing else, since a spot ink goes in as its process build and a finish as its black mask (`buildCmykPaletteMap`). For those two formats `plates.spot-ceiling`, `plates.finish-ceiling` and `plates.no-spots-declared` are no longer emitted, so no `spotPlates` or `finishPlates` count is taken, with spot inks as process or not. `plates.process` says where the inks went ("This format has no named plates, so the 3 spot inks print as process and add no plates.") and lists them in its evidence. A finish keeps its `print.finish-flattened-into-process` error. `pdf-cmyk` is unchanged in every finding and count.
+
 ## 1.328.0
 
 - `emitEmf` draws the vector IR's `stencil` prim (1.326) as WMF does: a pair of 1-bit `EMR_STRETCHDIBITS` blits, OR then AND, bottom-up rows, so the page under the words keeps its colour. A file with no stencil prim keeps its bytes.
