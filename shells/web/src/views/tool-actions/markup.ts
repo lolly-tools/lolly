@@ -137,7 +137,7 @@ export function buildFormatOptions(ta: ActionsCtx): void {
         "Names the CMYK press standard your printer targets: the Print PDF's output intent, the Print TIFF's metadata (the pixels stay untagged DeviceCMYK). An Embed row carries a profile from this device inside the PDF, which is what PDF/X-4 conformance needs; the file then claims it unless something else in the export can't (RGB artwork, the credit-text stamp, a strong password)."
       )
     : null; ta.cmykTip = cmykTip;
-  // Spot inks as process (engine 1.323, opt-in, off by default). Only the Print PDF
+  // Spot inks as process (engine 1.324, opt-in, off by default). Only the Print PDF
   // writes named spot plates, so the row shows for pdf-cmyk alone, and only once
   // the design system is known to declare a spot ink (refresh.ts refreshSpotsUi).
   // A `_spots=process` link ticks the box. Finishes keep their plates either way.

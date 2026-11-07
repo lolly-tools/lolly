@@ -720,6 +720,39 @@ function normHex(x) {
   return typeof x === 'string' && /^#[0-9a-f]{6}([0-9a-f]{2})?$/i.test(x.trim()) ? x.trim().toLowerCase() : null;
 }
 
+// The slots the chart draws its ground and its words in. A colour role Lolly reads as
+// one of these is never a series colour: a series in the background colour vanishes.
+const GROUND_SLOTS = ['surface', 'text', 'muted', 'edge'];
+
+// The design system's colour roles (plans/352) for the 'roles' palette: each declared
+// role's colour in this colourway and look, in the design system's own order. The
+// roles come from host.tokens.inspect() (engine 1.323); an older host has none, and
+// the palette then draws as Design system - ordered.
+async function brandRoles(toHex) {
+  try {
+    if (typeof host === 'undefined' || !host || !host.tokens || typeof host.tokens.inspect !== 'function') return [];
+    const reading = (await host.tokens.inspect()).colourRoles;
+    const roles = reading && Array.isArray(reading.roles) ? reading.roles : [];
+    const out = [];
+    for (const role of roles) {
+      if (!role || role.declared !== true || typeof role.path !== 'string') continue;
+      const slots = Array.isArray(role.slots) ? role.slots : [];
+      if (slots.some((s) => GROUND_SLOTS.indexOf(s) >= 0)) continue;
+      let value = null;
+      try { value = await host.tokens.resolve('{' + role.path + '}'); } catch (e) { value = null; }
+      const hex = typeof value === 'string' ? toHex(value) : null;
+      if (hex && out.indexOf(hex) < 0) out.push(hex);
+    }
+    return out;
+  } catch (e) { return []; }
+}
+
+// A palette that leads with `first` and carries on with the colours of `rest` it does
+// not already hold, so every series still gets a colour of its own.
+function leadWith(first, rest) {
+  return first.concat((rest || []).filter((v) => first.indexOf(String(v).toLowerCase()) < 0));
+}
+
 async function resolveBrandColors() {
   try {
     const c = typeof host !== 'undefined' && host && host.color;
@@ -756,6 +789,7 @@ async function resolveBrandColors() {
       for (const l of leads) spectrum.push(l.value);
       for (const v of own) spectrum.push(v);
     }
+    const roles = await brandRoles(toHex);
     const primary = await sem('primary');
     const surface = (await sem('surface')) || '#ffffff';
     const text    = (await sem('text')) || '#111111';
@@ -861,6 +895,8 @@ async function resolveBrandColors() {
       spectrum: spectrum.length ? spectrum : null,
       // The family's leads, active first; null without a family.
       leads: leads.length ? leads.map(function (l) { return l.value; }) : null,
+      // The declared colour roles a series can take, in brand order; null without any.
+      roles: roles.length ? roles : null,
       // The brand's swatches in their AUTHORED order (primary → secondary → brand
       // hues → variations → neutrals) - what the 'ordered' palette (the default)
       // and the recolour picker both follow, so a chart matches the palette the way
@@ -1033,7 +1069,8 @@ function chartThemeFromBrand(cfg) {
   const fallback = ['#008657','#2453ff','#fe7c3f','#5d4f99','#00bda7','#bd3314','#3c8eef','#192072'];
   const seeded = cfg.seedPalette && cfg.seedPalette.categorical;
   const authored = (BRAND && BRAND.ordered) || (BRAND && BRAND.spectrum) || null;
-  const categorical = (seeded || authored || fallback).slice(0, 16);
+  const rolesFirst = cfg.brandRoles ? leadWith(cfg.brandRoles, authored || fallback) : null;
+  const categorical = (seeded || rolesFirst || authored || fallback).slice(0, 16);
   const ramps = (cfg.seedPalette && cfg.seedPalette.ramps) || (BRAND && BRAND.ramps) || null;
   const sequential = (ramps && (ramps[cfg.palette] || ramps.suse || ramps.pine)) || categorical.slice(0, 7);
   const diverging = (ramps && ramps.diverging) || categorical.slice(0, 7);
@@ -1784,6 +1821,10 @@ function compute(model, inputPatch) {
   // design system has no spectrum. Absent without a family, so a one-lead state
   // is byte-identical to one from before colourways.
   if (BRAND && BRAND.leads) cfg.brandLeads = BRAND.leads;
+  // 'roles' palette: the design system's colour roles lead, in its own order, and the
+  // ordered palette follows. Set only when chosen, so every other palette's state is
+  // what it was, and a design system with no roles charts as the ordered palette.
+  if (cfg.palette === 'roles' && BRAND && BRAND.roles) cfg.brandRoles = BRAND.roles;
   // 'seed' palette: extrapolate a whole palette from the chosen base colour. A
   // colour input's token default arrives already resolved to hex; blank/unresolved
   // falls back to the brand's primary so the option still does something on any brand.

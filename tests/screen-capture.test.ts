@@ -78,7 +78,7 @@ test('the sensor capabilities still validate (screen is additive, not a replacem
 
 // ─── version ─────────────────────────────────────────────────────────────────
 
-test('ENGINE_VERSION is 1.323.0', () => {
+test('ENGINE_VERSION is 1.324.0', () => {
   // A literal pin: the screencap surface shipped at 1.54, and tools declare
   // ^1.54.0 to require it. session-record only checks the stamp equals whatever
   // ENGINE_VERSION happens to be (tautological) - this catches an errant bump.
@@ -595,8 +595,9 @@ test('ENGINE_VERSION is 1.323.0', () => {
   // 1.320.0 puts an SVG's own credential in the root's metadata, past inlined artwork. Capture is unchanged.
   // 1.321.0 writes a PowerPoint run's face in the East Asian slot too. Capture is unchanged.
   // 1.322.0 gives a Word document its page, its styles and a PNG beside each SVG picture. Capture is unchanged.
-  // 1.323.0 adds the opt-in spotsAsProcess export choice for the CMYK formats. Capture is unchanged.
-  assert.equal(ENGINE_VERSION, '1.323.0');
+  // 1.323.0 carries the colour roles on a token inspection. Capture is unchanged.
+  // 1.324.0 adds the opt-in spotsAsProcess export choice for the CMYK formats. Capture is unchanged.
+  assert.equal(ENGINE_VERSION, '1.324.0');
 });
 
 // ─── loadTool: a ^1.54.0 tool loads against this engine ───────────────────────

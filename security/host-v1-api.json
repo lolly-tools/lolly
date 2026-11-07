@@ -525,7 +525,7 @@
     "ExportOpts": {
       "module": "export.ts",
       "kind": "InterfaceDeclaration",
-      "sha256": "15c4180fe4a5931f32785b45b97125041817e46dac18d3c4fcf9c9eb69443094"
+      "sha256": "5daac19b64fc4eccf14a3c1afca6d067b10aa0eb9e9ceef578a221763aaaf879"
     },
     "ExportMeta": {
       "module": "export.ts",
@@ -1390,7 +1390,7 @@
     "TokenInspection": {
       "module": "tokens.ts",
       "kind": "InterfaceDeclaration",
-      "sha256": "f779a58f20aea406cb2400ff997e552efb06c4e4c31baf06258fa97f961595ee"
+      "sha256": "f966188f78b42be1495f61e0c63c9ba423139e9095d23f4053c264eb1446436d"
     },
     "TokensAPI": {
       "module": "tokens.ts",

@@ -55,9 +55,36 @@ To give one asset to a programme without a collection, submit it with the progra
 for example `lw catalog submit ./price-sheet.pdf --name "Price sheet" --groups programme-resellers-emea`.
 Anyone with `programme.manage` may submit into a programme's group without joining the programme.
 To give a whole connected provider, add the programme's group to the provider's exposure groups.
+To give one folder of it, use [Provider folders](#provider-folders).
 
 Per-input locks work for programmes as for any group: add a rule for `programme-<id>` in the
 tool's overlay ([Policy and governance](governance.md#per-input-access)).
+
+## Provider folders
+
+**Provider folders** on the programme's page gives one folder of a connected source, and
+everything inside it, to the programme or to one company in it, until an optional end date. Its
+people then get those files even when the source is otherwise for your own people, and nothing
+else from that source. Choose the source, then the folder: the list shows every folder the
+source's last sync found, with how many files each holds.
+
+Nothing is chosen at first, and **All of it** comes last, so pressing the button without looking
+never gives the whole source away. When the folder you choose holds other folders, the line
+above the button lists them, for example "This includes Internal (2) and Internal/Roadmaps (1)",
+so you can check what comes with your choice before you press the button.
+
+The folder decides everywhere a partner meets those files: the catalog, the files themselves,
+links they make and search. A file outside the folder answers as if it did not exist for them.
+When the end date passes, the files go at once. Deleting a company or a programme removes its
+folders. A source enabled a moment ago is listed as syncing until its first sync finishes.
+
+Each source reports folders in its own way: S3 and Dropbox by key prefix, WebDAV and
+OneDrive/SharePoint by directory, Brandfolder by section. Google Drive reads one folder unless
+you turn on `recursive` ([Google Drive](providers/gdrive.md)).
+
+Licence records do not decide what a provider folder carries yet. That comes with
+licence-aware exposure, which will apply the same rule to collections, folders, links and
+downloads.
 
 ## Companies
 
@@ -260,6 +287,9 @@ GET    /api/v1/partner-domains[?programme=<id>]   # every partner domain, its pr
 PUT    /api/v1/partner-domains/:domain            # { programme?, company?, endsAt?, proof?: "txt" | "admin", reason?, dryRun?, moveStaff? }
 POST   /api/v1/partner-domains/:domain/check      # look the TXT record up now
 DELETE /api/v1/partner-domains/:domain[?programme=<id>]
+GET    /api/v1/programmes/:id/folders             # its provider folders, and every folder each source's last sync found, with counts
+PUT    /api/v1/programmes/:id/folders             # { provider, path, company?, endsAt? }; the whole source is path "" with whole: true
+DELETE /api/v1/programmes/:id/folders?provider=&path=&company=
 ```
 
 A `PUT` that leaves out `tools` or `collections` keeps what the programme had. Each change is
@@ -271,7 +301,7 @@ Adding people is audited per person as `programme.member.add` (with the account 
 never the address, and `via: "domain"` with the domain for someone who joined through one), and
 companies as `programme.company.create`, `.edit` and `.delete`. Domains are audited as
 `programme.domain.add`, `.rule`, `.assert`, `.proof`, `.verify`, `.pause`, `.move-staff` and
-`.remove`.
+`.remove`. Provider folders are audited as `programme.folder.add`, `.edit`, `.remove` and `.end`.
 
 The same steps from the command line:
 
@@ -282,13 +312,14 @@ lw domains add northwind.example --programme resellers-emea --assert --reason "A
 lw domains add northwind.example --programme resellers-emea --dry-run      # staff are listed with their ids
 lw domains add northwind.example --programme resellers-emea --move-staff <id,id>
 lw domains check northwind.example
+lw folders add partner-dam Partners/EMEA --programme resellers-emea --company northwind --ends 2027-06-30
+lw folders --programme resellers-emea                 # its folders, with counts
 lw people exit --domain northwind.example             # a preview; add --apply to do it
 ```
 
 ## Not yet
 
-A programme's folder in a connected provider,
-partner company profiles with their own logos, agent tokens for a programme and templates
+Partner company profiles with their own logos, agent tokens for a programme and templates
 published to a programme are planned.
 
 ## Related

@@ -548,7 +548,7 @@ test('buildCmykPaletteMap: an ordinary spot ink is byte-identical to before', ()
   assert.deepEqual(process.get(cmykKey(1, 0, 0)), { cmyk: [0, 1, 1, 0] });
 });
 
-// ── Spots as process (engine 1.323, ExportOpts.spotsAsProcess) ───────────────
+// ── Spots as process (engine 1.324, ExportOpts.spotsAsProcess) ───────────────
 // Opt-in. Every declared spot INK becomes the process build its /Separation would
 // have named as the alternate; a FINISH keeps its plate, because its alternate is
 // the black mask and printing that would be the very failure the mask exists to show.

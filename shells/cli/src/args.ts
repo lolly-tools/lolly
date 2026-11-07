@@ -68,7 +68,7 @@ export const VALUE_FLAGS = new Set([
   // a bare form parsing to "1" names neither, so the render would quietly draw a
   // placeholder for every emoji and say only that a param was ignored.
   'emoji', 'emojifx', 'emojistyle',
-  // `--spots=process` (engine 1.323). A bare `--spots` parsing to "1" would ask for no
+  // `--spots=process` (engine 1.324). A bare `--spots` parsing to "1" would ask for no
   // known value, so it is refused here like every other value flag.
   'spots',
   // The signing identity. Both take a PATH, and a bare form must never parse to the

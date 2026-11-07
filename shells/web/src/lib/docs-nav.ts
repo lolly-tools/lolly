@@ -129,7 +129,7 @@ export function extractContactFooter(doc: Document): HTMLElement | null {
 /**
  * The PATHWAYS strip (the documentation sections: Start · Create · Automate · Manage
  * · Trust). Since plan 277 step 3c the built page carries the strip itself -
- * `nav.docs-pathways`, at the top of an article's masthead band, or in the phone menu on
+ * `nav.docs-pathways`, in the site bar's tab slot (plan 354 D7), or in the phone menu on
  * a page with no band - so the reader adopts that very element, links rewritten like
  * the rail's: both readers show one strip, with the build's `.active` and
  * `aria-current`. A page built before then (an older cache, a pinned build) has only the
