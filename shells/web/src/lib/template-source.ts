@@ -49,6 +49,9 @@ export interface TemplateVariant {
   /** True for a template the person saved (delete, rename, update); false/absent for a
    *  shipped one (hide, make a copy). */
   own?: boolean;
+  /** True for a template the connected workspace published (lib/workspace-templates.ts):
+   *  it leads the grid, carries no management menu, and is the workspace's to change. */
+  published?: boolean;
 }
 
 /** Narrow an unknown `presets` array (template file, index metadata, or inline

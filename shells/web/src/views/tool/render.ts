@@ -1,4 +1,5 @@
 import { hasDesignLayout } from '@lolly/engine';
+import { getInputPolicy } from '../../lib/input-policy.ts';
 import { designSelection } from '@lolly-tools/core/design-tool-v1';
 import { wireSyntaxRequests } from '../../lib/syntax-preview.ts';
 // SPDX-License-Identifier: MPL-2.0
@@ -206,7 +207,12 @@ export function paint(tview: ToolViewCtx): void {
       scopeTemplateStyles(contentEl, canvasScope);
       // The same fallback font slots the tool's stylesheet has (lib/fallback-slots.ts).
       for (const style of contentEl.querySelectorAll('style')) addFallbackSlots((style as HTMLStyleElement | SVGStyleElement).sheet as CSSStyleSheet | null);
-      if (!hideSidebar) resolveCanvasAnnotations(contentEl);
+      // An input the person may not change (a template or an organisation fixed it)
+      // keeps its mark but loses the hover outline that says "edit me".
+      if (!hideSidebar) resolveCanvasAnnotations(contentEl, (id) => {
+        const mode = getInputPolicy(tview.toolId, id.split(':')[0] ?? '')?.mode;
+        return mode === 'hidden' || mode === 'locked';
+      });
       // Keep the canvas's accessible summary current when it's a live a11yLabel.
       if (tview.tool.manifest.a11yLabel) contentEl.setAttribute('aria-label', tview.history.canvasLabel());
       runTemplateScripts(contentEl);
