@@ -65,7 +65,7 @@ var STARTER = {
     { type: 'bulletList', content: [
       { type: 'listItem', content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Paste rich text - bold, italics, lists and tables keep their shape' }] }] },
       { type: 'listItem', content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Insert a Lolly render (a QR code, a chart, a map) inline' }] }] },
-      { type: 'listItem', content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Headings 1 to 4, SUSE or SUSE Mono, export to PDF' }] }] },
+      { type: 'listItem', content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Headings 1 to 4, the brand text or mono face, export to PDF' }] }] },
     ] },
   ],
 };
@@ -362,7 +362,7 @@ function compute(model) {
   var muted = dark ? 'rgba(243,247,245,.62)' : '#5b6b66';
   var tableLine = dark ? 'rgba(243,247,245,.28)' : 'rgba(16,35,31,.16)';
   var headBg = dark ? 'rgba(255,255,255,.06)' : 'rgba(48,186,120,.10)';
-  var docFont = safeFont(inputs.font) || "'SUSE', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif";
+  var docFont = safeFont(inputs.font) || safeFont('brand');
 
   var docTitle = str(inputs.docTitle);
   var showNums = inputs.pageNumbers !== false;
