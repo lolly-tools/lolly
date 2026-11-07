@@ -13,7 +13,6 @@ import type { PartnerKitAttachmentV1 } from '@lolly-tools/core/partner-kit-v1';
 import { attachPieceKit, currentPiece, detachPieceKit, onPieceKitChange, pieceKit, pieceKitData, releasePieceKit, setCurrentPiece } from '../../lib/partner-kit.ts';
 import { partnerKitOffer } from '../../lib/partner-kit-state.ts';
 import { t, tRaw } from '../../i18n.ts';
-import { escape as escapeText } from '../../utils.ts';
 
 export interface PartnerKitLineOpts {
   /** The mounted view, holding `#theme-section` and `#theme-section-body`. */
@@ -55,15 +54,26 @@ export function mountPartnerKitLine(opts: PartnerKitLineOpts): PartnerKitLine {
     const kit = pieceKitData(runtime);
     const attached = pieceKit(runtime);
     const offer = partnerKitOffer();
+    const doc = node.ownerDocument;
+    const button = (act: 'attach' | 'detach', label: string): HTMLButtonElement => {
+      const b = doc.createElement('button');
+      b.type = 'button';
+      b.className = 'tool-notice-link';
+      b.dataset.partnerKit = act;
+      b.textContent = label;
+      return b;
+    };
     if (kit && attached) {
-      node.innerHTML = `<span class="partner-kit-line-text">${escapeText(tRaw('Partner kit: {company} · revision {revision}', { company: kit.label, revision: attached.revision }))}</span>`
-        + `<button type="button" class="tool-notice-link" data-partner-kit="detach">${escapeText(t('Detach'))}</button>`;
+      const text = doc.createElement('span');
+      text.className = 'partner-kit-line-text';
+      text.textContent = tRaw('Partner kit: {company} · revision {revision}', { company: kit.label, revision: attached.revision });
+      node.replaceChildren(text, button('detach', t('Detach')));
       node.hidden = false;
     } else if (!attached && offer) {
-      node.innerHTML = `<button type="button" class="tool-notice-link" data-partner-kit="attach">${escapeText(tRaw('Attach {company}’s kit', { company: offer.label }))}</button>`;
+      node.replaceChildren(button('attach', tRaw('Attach {company}’s kit', { company: offer.label })));
       node.hidden = false;
     } else {
-      node.innerHTML = '';
+      node.replaceChildren();
       node.hidden = true;
     }
     if (!node.hidden) {
