@@ -7,7 +7,7 @@ import { icon } from '../../lib/icons.ts';
 import { catalogSubmitter } from '../../lib/catalog-submit.ts';
 import { escape as escapeText } from '../../utils.ts';
 import { bindOp, type DetailsCtx } from './details-context.ts';
-import { CHEVRON_RIGHT, CROP_ICON, DOWNLOAD_ICON, EYE_ICON, EYE_OFF_ICON, PENCIL_ICON, REPLACE_ICON, SHARE_ICON, STAR_ICON, TAG_ICON, TRASH_ICON, emojiPackMeta } from './shared.ts';
+import { CHEVRON_RIGHT, CROP_ICON, DOWNLOAD_ICON, EYE_ICON, EYE_OFF_ICON, PENCIL_ICON, REPLACE_ICON, SHARE_ICON, STAR_ICON, TAG_ICON, TRASH_ICON, emojiPackMeta, startableTemplate } from './shared.ts';
 
 interface EditAction {
   act: string;
@@ -81,7 +81,8 @@ export function sidebarHtml(dt: DetailsCtx): string {
     </div></details>`;
   return `<div class="cat-details-actions">
     ${shared ? '' : `<div class="cat-act-row">${button('fav', fav ? t('Favourited') : t('Favourite'), STAR_ICON, `cat-act-fav${fav ? ' is-fav' : ''}`, `data-sfx="twinkle" aria-pressed="${fav}"`)}
-      ${emojiPackMeta(ref) ? button('use-emoji-set', t('Use this set'), icon('smile'), 'cat-act-use-emoji', 'aria-pressed="false"') : ''}</div>`}
+      ${emojiPackMeta(ref) ? button('use-emoji-set', t('Use this set'), icon('smile'), 'cat-act-use-emoji', 'aria-pressed="false"') : ''}
+      ${startableTemplate(ref) ? button('use-template', t('Use'), icon('arrowRight'), 'btn--primary cat-act-use-template') : ''}</div>`}
     <details class="cat-action-group" open><summary>${t('Share & export')}</summary><div class="cat-act-row">${sharing}</div></details>
     ${management}
   </div>`;

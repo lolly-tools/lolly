@@ -328,7 +328,8 @@
   align-items: center;
 }
 
-.tmpl-chooser-empty {
+.tmpl-chooser-empty,
+.tmpl-chooser-none {
   padding: 40px 12px;
   text-align: center;
   color: hsl(var(--muted-foreground));

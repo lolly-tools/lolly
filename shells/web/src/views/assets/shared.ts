@@ -23,6 +23,7 @@ import type { AssetScope } from '../../lib/design-system/asset-scope.ts';
 import type { EmojiPackPinV1 } from '@lolly-tools/core/emoji-v1';
 import type { EmojiSpecimenSource } from '../../lib/emoji-specimen.ts';
 import { VISUAL_TYPES } from '../../lib/asset-kinds.ts';
+import { workspaceTemplateOf, type WorkspaceTemplate } from '../../lib/workspace-templates.ts';
 import { actionButtonContent } from '../../components/action-button.ts';
 import type { PhotoTreatment } from '../../../../../engine/src/photo-treatment.ts';
 import type { IconTheme } from '../../../../../engine/src/icon-theme.ts';
@@ -134,6 +135,13 @@ export const isCanonicalGlyphKey = (key: string): boolean => /^[0-9a-f]{4,6}(?:-
  * not a pack: every field the host needs to load the set has to be there, or the
  * tile would be an offer nothing can honour.
  */
+/** A workspace template this person can start from (lib/workspace-templates.ts): the
+ *  details sheet's Use opens its tool from the template. A retired one is never offered. */
+export function startableTemplate(ref: AssetRef | undefined): WorkspaceTemplate | null {
+  const tpl = workspaceTemplateOf(ref);
+  return tpl && !tpl.retired ? tpl : null;
+}
+
 export function emojiPackMeta(ref: AssetRef | undefined): EmojiPackTileMeta | null {
   if (ref?.type !== 'data') return null;
   const value = (ref.meta as { emoji?: unknown } | undefined)?.emoji;

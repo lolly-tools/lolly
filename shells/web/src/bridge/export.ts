@@ -23,8 +23,7 @@ import { letterSpacingPx, featureSettingsToHb, canVectoriseText, textBaselineY }
 import { resolveExportFont, extendsChain, withFallbackFonts } from './font-fill.ts';
 import { bakeWebKitBoxShadows } from './webkit-shadow-bake.ts';
 import { newNeutraliseGuard, neutraliseTransform, pdfDrawsThroughMatrix } from './transform-neutralise.ts';
-import { svgDomToIr } from './svg-ir.ts';
-import { isSvgRooted, outlinedVectorIr, vectorSvgRoot } from './export-vector-ir.ts';
+import { isSvgRooted, vectorIr } from './export-vector-ir.ts';
 import { placeBackground } from './bg-layout.ts';
 import { unscopeStyleEls } from '../lib/scope-css.ts';
 import { tRaw } from '../i18n.ts';
@@ -1580,16 +1579,12 @@ async function renderSvgz(node: Element, opts: ExportOpts = {}): Promise<Blob> {
 async function renderEmf(node: Element, opts: ExportOpts = {}): Promise<Blob> {
   // Live text records are the default (editable in Office / Google Drawings);
   // opts.text === 'outline' (the "Outline fonts" chip) forces text-as-paths.
-  const outline = opts.text === 'outline';
   // An HTML layout becomes the complete canvas SVG, embedded artwork included, with
-  // positioned <text> runs that the live walk below keeps as records.
-  const ir = await svgDomToIr(await vectorSvgRoot(node, opts, outline), {
-    host: _host,
-    getComputedStyle: (el: Element) => window.getComputedStyle(el),
-    background: opts.background,
-    textMode: outline ? 'outline' : 'live',
-  });
+  // positioned <text> runs that the live walk keeps as records. A run it outlines that
+  // no font can draw goes in as a picture, as in WMF.
+  const { ir, notify } = await vectorIr(node, opts, 'EMF', opts.text === 'outline' ? 'outline' : 'live');
   const bytes = emitEmf(ir, { width: opts.width, height: opts.height, unit: opts.unit, dpi: opts.dpi, attribution: opts.metadata !== false });
+  notify();
   // application/x-msmetafile, not the RFC 7903 image/emf: Google Drive only
   // routes a metafile into Google Drawings (and from there Slides) under the
   // legacy type - image/emf uploads sit in Drive as an unopenable blob.
@@ -1601,7 +1596,7 @@ async function renderEmf(node: Element, opts: ExportOpts = {}): Promise<Blob> {
 // vector paste for legacy Office / clip-art pipelines. `attribution` is accepted for
 // call-site symmetry but is inert: WMF has no comment record to carry a source URL.
 async function renderWmf(node: Element, opts: ExportOpts = {}): Promise<Blob> {
-  const { ir, notify } = await outlinedVectorIr(node, opts, 'WMF');
+  const { ir, notify } = await vectorIr(node, opts, 'WMF');
   const bytes = emitWmf(ir, { width: opts.width, height: opts.height, unit: opts.unit, dpi: opts.dpi, attribution: opts.metadata !== false });
   notify();
   // Same legacy metafile type as EMF (see renderEmf) - Google Drive's Drawings
@@ -1623,7 +1618,7 @@ async function renderWmf(node: Element, opts: ExportOpts = {}): Promise<Blob> {
 // flattened to solids upstream and text is outlined upstream, so the emitter
 // ships no fonts.
 async function renderEps(node: Element, opts: ExportOpts = {}, cmyk = false): Promise<Blob> {
-  const { ir, notify } = await outlinedVectorIr(node, opts, 'EPS');
+  const { ir, notify } = await vectorIr(node, opts, 'EPS');
   // Print geometry (bleed + marks + colour bar), when requested - same source as the
   // PDF path. Null when neither is set, so a plain EPS export is byte-identical.
   const separate = cmyk ? (await printSeparation(opts.colorProfile, _host as never, pdfxLog)).sep.separate : undefined;
@@ -1648,7 +1643,7 @@ async function renderEps(node: Element, opts: ExportOpts = {}, cmyk = false): Pr
 // a log warning rather than silently losing the effect.
 async function renderDxf(node: Element, opts: ExportOpts = {}): Promise<Blob> {
   // Cutting machines and CAD need outlines: a run no font can draw stops the export.
-  const { ir } = await outlinedVectorIr(node, opts, 'DXF');
+  const { ir } = await vectorIr(node, opts, 'DXF');
   const { text, droppedImages } = emitDxf(ir, { width: opts.width, height: opts.height, unit: opts.unit, dpi: opts.dpi, attribution: opts.metadata !== false });
   if (droppedImages > 0) {
     _host?.log?.('warn', `dxf: dropped ${droppedImages} rasterised region${droppedImages > 1 ? 's' : ''} (DXF is line-art only - use SVG/PDF to keep photographic or filtered content).`);

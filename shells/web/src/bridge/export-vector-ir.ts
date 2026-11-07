@@ -4,10 +4,12 @@
  * the canvas is one, else the walker's SVG of the HTML layout, walked by svg-ir.ts.
  *
  * A run no font here can draw (a script with no fallback font, or a Chinese, Japanese or
- * Korean character outside the national sets) used to outline as boxes. EPS and WMF now
- * draw it as a picture by the browser's own text renderer, as a PDF does, with one notice
- * that gives the scripts. DXF goes to cutting machines and CAD, so it stops with a message
- * that quotes the run. EMF keeps its own rules: live text, or outlines when asked.
+ * Korean character outside the national sets) used to outline as boxes. EPS, WMF and EMF
+ * now draw it as a picture by the browser's own text renderer, as a PDF does, with one
+ * notice that gives the scripts. DXF goes to cutting machines and CAD, so it stops with a
+ * message that quotes the run. EMF keeps live text by default, which the reader's fonts
+ * draw, so its picture route applies to a run it outlines: every run with Outline fonts
+ * on, and otherwise only a run that GDI text cannot express.
  */
 import { renderSvgFromHtml } from './export-svg-walker.ts';
 import { notePicturedText, takePicturedTextNotice } from './export-pdf-text-picture.ts';
@@ -35,10 +37,11 @@ export async function vectorSvgRoot(node: Element, opts: ExportOpts, convertPath
 }
 
 /**
- * The outlined IR for a WMF, EPS or DXF export, and `notify`, which puts one notice on the
- * export card for the scripts an EPS or WMF drew as pictures. Call it once the file is written.
+ * The IR for an EMF, WMF, EPS or DXF export, and `notify`, which puts one notice on the
+ * export card for the scripts an EMF, EPS or WMF drew as pictures. Call it once the file
+ * is written. Text is outlined unless `textMode` is 'live', which only EMF asks for.
  */
-export async function outlinedVectorIr(node: Element, opts: ExportOpts, label: 'WMF' | 'EPS' | 'DXF'): Promise<{ ir: VectorIrResult; notify: () => void }> {
+export async function vectorIr(node: Element, opts: ExportOpts, label: 'EMF' | 'WMF' | 'EPS' | 'DXF', textMode: 'outline' | 'live' = 'outline'): Promise<{ ir: VectorIrResult; notify: () => void }> {
   const pictured = {};
   const uncovered: Pick<SvgIrContext, 'uncoveredText' | 'pictureText' | 'onPicturedText'> = label === 'DXF'
     ? { uncoveredText: 'refuse' }
@@ -47,11 +50,12 @@ export async function outlinedVectorIr(node: Element, opts: ExportOpts, label: '
       pictureText: async (run) => (await import('./export-text-stencil.ts')).pictureTextRun(run),
       onPicturedText: (text) => notePicturedText(pictured, text),
     };
-  const ir = await svgDomToIr(await vectorSvgRoot(node, opts, true), {
+  const ir = await svgDomToIr(await vectorSvgRoot(node, opts, textMode === 'outline'), {
     host: _host,
     getComputedStyle: (el: Element) => window.getComputedStyle(el),
     background: opts.background,
     label,
+    ...(textMode === 'live' ? { textMode } : {}),
     ...uncovered,
   });
   const notify = (): void => {

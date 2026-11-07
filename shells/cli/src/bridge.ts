@@ -1324,9 +1324,11 @@ async function noteDesignOps(opts: object, ingredients: readonly import('@lolly-
         // can't express (tracking, features, stroke, skew) are outlined via
         // host.text (createNodeTextAPI above), where an unresolvable family still
         // throws. `--text=outline` forces the old always-text-as-paths output.
+        // An outlined run no font can draw goes in as a picture, which needs a text
+        // renderer: the walk stops with NEEDS_BROWSER and the browser tier draws the file.
         const svg = rootSvgOf(node);
         if (!svg) throw new Error('EMF export requires an <svg> in the template (HTML-layout tools need a browser engine - use the desktop app)');
-        const ir = await svgDomToIr(svg, { host, resolveFont: cliResolveFont(host, collectFill), background: opts.background, textMode: opts.text === 'outline' ? 'outline' : 'live' });
+        const ir = await svgDomToIr(svg, { host, resolveFont: cliResolveFont(host, collectFill), background: opts.background, textMode: opts.text === 'outline' ? 'outline' : 'live', uncoveredText: 'picture' });
         reportFill();
         const bytes = emitEmf(ir, { width: opts.width, height: opts.height, unit: opts.unit, dpi: opts.dpi });
         // application/x-msmetafile, not RFC 7903 image/emf - Google Drive only

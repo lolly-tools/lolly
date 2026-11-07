@@ -135,9 +135,9 @@ const scriptNames = new Intl.DisplayNames(['en'], { type: 'script' });
 
 /**
  * What this document has to tell the person about its pictured text, once, or null.
- * `format` is the kind of file: a PDF embeds fonts, and an EPS or WMF outlines them.
+ * `format` is the kind of file: a PDF embeds fonts, and an EMF, EPS or WMF outlines them.
  */
-export function takePicturedTextNotice(pdf: object, format: 'PDF' | 'EPS' | 'WMF' = 'PDF'): string | null {
+export function takePicturedTextNotice(pdf: object, format: 'PDF' | 'EMF' | 'EPS' | 'WMF' = 'PDF'): string | null {
   const scripts = pictured.get(pdf);
   if (!scripts) return null;
   pictured.delete(pdf);
