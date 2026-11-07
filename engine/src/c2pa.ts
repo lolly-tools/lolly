@@ -732,7 +732,7 @@ export function collectAiIngredientDeclarations(model: ReadonlyArray<{ type: str
  * description; `aiUpscale` (the essence is an on-device AI-upscaled asset) swaps
  * it to `compositeWithTrainedAlgorithmicMedia` - a real image with model-inferred
  * detail - and appends an "AI-upscaled with <model> <version>" edit step naming
- * the model; `textAdded` (rendered text placed OVER an opened asset - the caller
+ * the model; `textAdded` (rendered text placed OVER a placed asset - the caller
  * gates this on an ingredient being present) appends a `c2pa.edited` "Added text"
  * step. From-scratch text is content, not an edit - it belongs in the input
  * digest, so callers must NOT set `textAdded` without an ingredient.
@@ -751,7 +751,7 @@ export function exportActionSteps(format: string, flags: {
    *  `screen` instead means a display was captured (a screenshot / screen recording) →
    *  created → screenCapture, which is a different IPTC term and a different claim. */
   capture?: { camera?: boolean; microphone?: boolean; screen?: boolean };
-  /** Text was placed over an opened asset (gate on ingredients) - appends "Added text". */
+  /** Text was placed over a placed asset (gate on ingredients) - appends "Added text". */
   textAdded?: boolean;
   /** Short teaser of that text for the step label (full copy rides in the input digest). */
   textSample?: string;

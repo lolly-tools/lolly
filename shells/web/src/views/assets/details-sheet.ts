@@ -857,7 +857,7 @@ export function wireSheetEvents(dt: DetailsCtx): void {
       const tpl = startableTemplate(ref);
       if (!tpl) return;
       cat.sections.closeDetails();
-      location.hash = `#/tool/${encodeURIComponent(tpl.toolId)}?template=${encodeURIComponent(tpl.id)}`;
+      location.hash = dt.controls.templateUseHash(tpl);
       return;
     }
     if (act === 'open-with') { cat.actions.openWith([ref], dlg.querySelector<HTMLElement>('[data-act="open-with"]') ?? undefined); return; }
@@ -884,7 +884,10 @@ export function wireSheetEvents(dt: DetailsCtx): void {
       const btn = target.closest<HTMLElement>('.cat-act-share');
       // Share the styled variant when a colour is picked, so the recipient reopens the same
       // look (the modifier rides in the asset id - buildThemedAssetId / buildTreatedAssetId).
-      const link = themable && dt.dTheme
+      // A workspace template's link is its Use route, so a colleague opens the tool.
+      const tpl = startableTemplate(ref);
+      const link = tpl ? `${location.origin}${appPathname()}${dt.controls.templateUseHash(tpl)}`
+        : themable && dt.dTheme
         ? `${location.origin}${appPathname()}#/a?asset=${encodeURIComponent(buildThemedAssetId(base, dt.dTheme))}`
         : treatable && dt.dTreatment
           ? `${location.origin}${appPathname()}#/a?asset=${encodeURIComponent(buildTreatedAssetId(base, dt.dTreatment))}`

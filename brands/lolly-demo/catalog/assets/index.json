@@ -35,8 +35,8 @@
         {
           "format": "json",
           "url": "/catalog/assets/lolly/tokens/demo.json",
-          "checksum": "sha256-JbOMQw5cGRfK3d0gsMJif9XDJoVWpn9vdqZSrh9t0Cg=",
-          "size": 57068
+          "checksum": "sha256-B/YTRzxq/puiYyMwE/uCWb12fbfaowpYz8Hb04Hf4Og=",
+          "size": 56982
         }
       ]
     },
@@ -55,8 +55,8 @@
         {
           "format": "json",
           "url": "/catalog/assets/lolly/tokens/opal.json",
-          "checksum": "sha256-JbOMQw5cGRfK3d0gsMJif9XDJoVWpn9vdqZSrh9t0Cg=",
-          "size": 57068
+          "checksum": "sha256-B/YTRzxq/puiYyMwE/uCWb12fbfaowpYz8Hb04Hf4Og=",
+          "size": 56982
         }
       ],
       "deprecated": true,
