@@ -15,7 +15,7 @@ import type { Mat2D } from '@lolly/engine';
 import { textStrokeAttrs, canVectoriseText, textBaselineY, applyTextTransform } from './text-svg.ts';
 import { hasRtlText } from '@lolly-tools/node-shell/text-bidi';
 import { createInlineTextContext, emitInlineTextSvg, isReplaced } from './export-text.ts';
-import { liveOrigin, originNow, type Origin } from './export-origin.ts';
+import { keepRootFrame, liveOrigin, originNow, type Origin } from './export-origin.ts';
 import type { InlineTextContext } from './export-text.ts';
 export { decoFlags, mergeDeco, isReplaced, visualLines, pdfInlineNonText } from './export-text.ts';
 export type { Deco } from './export-text.ts';
@@ -1152,7 +1152,7 @@ async function renderHtmlSvg(node: Element, opts: ExportOpts, textContext: Inlin
       // groups (plans/104 section 9 P3.1 - see bridge/transform-neutralise.ts). `null` means
       // the transform survived and nothing was touched, so this element falls through
       // to the AABB path below, whose rect already carries the rotation.
-      const restore = neutraliseTransform(el, neutralise, warnTransform);
+      const restore = keepRootFrame(rootRect, el, () => neutraliseTransform(el, neutralise, warnTransform));
       if (restore) {
         try {
           const unrot = el.getBoundingClientRect();   // reading forces the reflow
@@ -1200,7 +1200,7 @@ async function renderHtmlSvg(node: Element, opts: ExportOpts, textContext: Inlin
       && (Math.abs(mtx.a - 1) > 1e-4 || Math.abs(mtx.d - 1) > 1e-4));
     if (mtx && (!isAxisAlignedMat(mtx) || scaled)) {
       // Same guarded neutralise as the rotation branch - read its comment.
-      const restore = neutraliseTransform(el, neutralise, warnTransform);
+      const restore = keepRootFrame(rootRect, el, () => neutraliseTransform(el, neutralise, warnTransform));
       if (restore) {
         try {
           const unrot = el.getBoundingClientRect();

@@ -68,6 +68,12 @@
  *                  with belongs to the piece. The link points at a kit and never carries
  *                  its bytes: a recipient the kit is not served to renders without the
  *                  kit. A value that is not an id and a whole revision reads as absent.
+ *   - `_text` - how an EMF export writes text. `_text=outline` draws every run as
+ *                  vector outlines, the export panel's Outline fonts box, where the
+ *                  default keeps GDI text records the reader's fonts draw. A run no font
+ *                  can outline goes in as a picture. Absent, or any other value, keeps
+ *                  the live text. The CLI's browser tier sends it for
+ *                  `--export=emf --text=outline`. Read into `text`.
  *   - `width`/`w`, `height`/`h` - output dimensions (value in `unit`, default px)
  *   - `unit` - physical unit for width/height: px (default), mm, cm, in, pt
  *   - `dpi` - raster resolution for physical units (default 300; px → 96)
@@ -460,6 +466,9 @@ export interface UrlState {
    *  null ⇒ absent or unreadable. Which kits a caller is served is not something
    *  url-mode can know, so a kit it is not served is the caller's to leave out. */
   partnerKit?: PartnerKitAttachmentV1 | null;
+  /** How an EMF export writes text (the `_text` param). `outline` draws outlines;
+   *  null ⇒ absent or any other value, which keeps live text records. */
+  text?: TextSetting | null;
 }
 
 /** The slice of an input model item serializeUrlState reads. */
@@ -555,7 +564,7 @@ export interface SerializeUrlOpts {
 // Param names that are NOT tool inputs (export/render controls). Exported so the
 // engine contract test can assert it stays in lock-step with the documented list
 // (the header comment above + docs/url-mode.md) and nothing drifts silently.
-export const RESERVED = new Set(['format', 'export', 'copy', 'slot', 'output', 'filename', '_v', 'width', 'height', 'w', 'h', 'unit', 'dpi', 'profile', 'password', 'bleed', 'marks', 'c2pa', 'imprint', 'durable', 'meta', 'hdr', 'depth', 'cuts', 'sampletimes', 'motionblur', 'seqrange', 'lang', 'designv', 'ds', 'full', 'iframe', 'options', 'nostage', 'template', 'preset', 'present', 's', 'kiosk', 'z', 'zx', 'fps', 'seconds', 'wait', 'codec', 'vq', 'emoji', 'emojifx', 'emojistyle', 'licence', '_themes', '_madewith', '_spots', '_kit']);
+export const RESERVED = new Set(['format', 'export', 'copy', 'slot', 'output', 'filename', '_v', 'width', 'height', 'w', 'h', 'unit', 'dpi', 'profile', 'password', 'bleed', 'marks', 'c2pa', 'imprint', 'durable', 'meta', 'hdr', 'depth', 'cuts', 'sampletimes', 'motionblur', 'seqrange', 'lang', 'designv', 'ds', 'full', 'iframe', 'options', 'nostage', 'template', 'preset', 'present', 's', 'kiosk', 'z', 'zx', 'fps', 'seconds', 'wait', 'codec', 'vq', 'emoji', 'emojifx', 'emojistyle', 'licence', '_themes', '_madewith', '_spots', '_text', '_kit']);
 // NOTE on the presentation-mode kiosk flag: it was the unreserved `loop` until
 // 2026-08-28 (plan 171 executed the rename inside the id-break window). `loop` is a
 // live *input* id in several tools (deck-builder, 3d, flythrough, digi-ad,
@@ -616,6 +625,17 @@ export function parsePartnerKitParam(raw: string | null | undefined): PartnerKit
 export function formatPartnerKitParam(attachment: unknown): string | null {
   const att = readPartnerKitAttachment(attachment);
   return att ? `${att.id}@${att.revision}` : null;
+}
+
+/** The one value of the `_text` param that does anything: draw EMF text as outlines. */
+export type TextSetting = 'outline';
+
+/**
+ * Read the `_text` param. Only `outline` (any case, trimmed) turns the choice on;
+ * absence and every other value keep the default, live EMF text records.
+ */
+export function parseTextSetting(raw: string | null | undefined): TextSetting | null {
+  return typeof raw === 'string' && raw.trim().toLowerCase() === 'outline' ? 'outline' : null;
 }
 
 // Parse the `marks` param (csv: crop,reg,bleed,bars,prov) into a print-mark
@@ -889,6 +909,8 @@ export function parseUrlState(searchParams: string | URLSearchParams, manifest: 
     spots: parseSpots(params.get('_spots')),
     // The partner kit attached (see header). An id and a whole revision, else absent.
     partnerKit: parsePartnerKitParam(params.get('_kit')),
+    // How an EMF export writes text (see header). Opt-in: only `outline` counts.
+    text: parseTextSetting(params.get('_text')),
   };
 }
 
