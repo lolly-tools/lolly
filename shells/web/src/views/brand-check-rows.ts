@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 /** Brand findings share the export check panel and the tool's normal undo path. */
 import { applyBrandFix, checkBrandDesign, type BrandCheckCatalogOpts, type BrandFinding } from '../../../../engine/src/brand-check.ts';
-import { checkGuestMarks, type GuestMarkMeasure } from '../../../../engine/src/partner-kit-check.ts';
+import { checkGuestMarks, type GuestMarkMeasure, type GuestMarkUnmeasured } from '../../../../engine/src/partner-kit-check.ts';
 import { partnerKitLogoIds } from '../../../../engine/src/partner-kit.ts';
 import type { PartnerKitTreatmentV1, PartnerKitV1 } from '@lolly-tools/core/partner-kit-v1';
 import { brandCheckCatalog } from '../../../../engine/src/design-brief.ts';
@@ -52,6 +52,47 @@ export function markFindingText(f: BrandFinding): string {
   if (f.rule === 'treatment' && f.value === 'on-photo') return tRaw('{company}’s mark sits on a photo; the kit allows {allowed}.', { company, allowed: allowedWords(f.expected) });
   if (f.rule === 'treatment') return tRaw('{company}’s mark is drawn in {treatment}; the kit allows {allowed}.', { company, treatment: treatmentWord(f.value ?? ''), allowed: allowedWords(f.expected) });
   return f.message ?? '';
+}
+
+/**
+ * What the partner kit check could not measure (`unmeasured`, plans/82 M8), one sentence
+ * per code in the reader's language. Each count is its own singular or plural sentence,
+ * written as whole t() literals so the translation extractor sees both forms.
+ */
+export function unmeasuredText(entry: GuestMarkUnmeasured, company: string): string {
+  const count = entry.count ?? 1;
+  const one = count === 1;
+  const words = { company, count };
+  switch (entry.code) {
+    case 'reverse': return tRaw('Reversed use of {company}’s mark is not measured: the logo for dark surfaces is the reverse.', words);
+    case 'mm-in-pixels': return tRaw('{company}’s minimum size in millimetres is not measured: this piece is measured in pixels.', words);
+    case 'layer-tree': return tRaw('The layer tree could not be read, so {company}’s marks were placed without artboards, groups or paint order.', words);
+    case 'layer-limit': return tRaw('Layers past the first {limit} were not measured against {company}’s kit.', { company, limit: entry.limit ?? 0 });
+    case 'not-drawn': return one
+      ? tRaw('One of {company}’s marks draws no picture as written, so the mark was not measured.', words)
+      : tRaw('{count} of {company}’s marks draw no picture as written, so those marks were not measured.', words);
+    case 'size': return one
+      ? tRaw('The drawn height of one of {company}’s marks is not measured: the logo’s proportions are not known.', words)
+      : tRaw('The drawn height of {count} of {company}’s marks is not measured: the logo’s proportions are not known.', words);
+    case 'clear-space': return one
+      ? tRaw('The clear space of one of {company}’s marks is not measured: the logo’s proportions are not known, and a layer lies where the clear space may reach.', words)
+      : tRaw('The clear space of {count} of {company}’s marks is not measured: the logo’s proportions are not known, and a layer lies where the clear space may reach.', words);
+    case 'ground': return one
+      ? tRaw('Whether one of {company}’s marks sits on a photo is not measured: what lies beneath is translucent, covers only part of the mark or depends on the logo’s proportions.', words)
+      : tRaw('Whether {count} of {company}’s marks sit on a photo is not measured: what lies beneath is translucent, covers only part of the mark or depends on the logo’s proportions.', words);
+    case 'treatment': return one
+      ? tRaw('The treatment of one of {company}’s marks is not measured: the catalog does not say what colours its theme or treatment gives.', words)
+      : tRaw('The treatment of {count} of {company}’s marks is not measured: the catalog does not say what colours their theme or treatment gives.', words);
+    case 'surface': return one
+      ? tRaw('The colours of one of {company}’s marks are not measured: the mark follows the surface beneath.', words)
+      : tRaw('The colours of {count} of {company}’s marks are not measured: the marks follow the surface beneath.', words);
+    case 'motion': return one
+      ? tRaw('One of {company}’s marks was measured where it was placed: the mark or a layer near the mark moves over time.', words)
+      : tRaw('{count} of {company}’s marks were measured where they were placed: each mark or a layer near the mark moves over time.', words);
+    case 'findings-limit': return one
+      ? tRaw('One more finding for {company}’s kit is not shown.', words)
+      : tRaw('{count} more findings for {company}’s kit are not shown.', words);
+  }
 }
 
 /** What the brand check compared. Each count is its own singular or plural phrase,
@@ -113,9 +154,10 @@ export async function brandCheckRows(options: {
   const guest = partner ? { guest: { colours: partner.kit.colours.map((c) => c.value), assets: partnerKitLogoIds(partner.kit) } } : {};
   const marks = partner ? checkGuestMarks(options.boxes(), partner.kit, partner.measure) : null;
   const markRows: PreflightRow[] = marks ? marks.findings.slice(0, 60).map((f) => ({ id: f.id, tone: 'note' as const, text: markFindingText(f) })) : [];
-  // What the kit states and the check could not measure is said, never passed in silence.
-  if (partner && marks?.notMeasured.length) {
-    markRows.push({ id: 'brand.mark.not-measured', tone: 'gap', text: tRaw('Not measured for {company}’s kit: {what}.', { company: partner.kit.label, what: marks.notMeasured.join('; ') }) });
+  // What the kit states and the check could not measure is said, never passed in silence,
+  // one row per code in the reader's language.
+  if (partner && marks) {
+    for (const entry of marks.unmeasured) markRows.push({ id: `brand.mark.not-measured.${entry.code}`, tone: 'gap', text: unmeasuredText(entry, partner.kit.label) });
   }
   let snapshot: TokensSnapshot | undefined;
   try { snapshot = await options.snapshot(); } catch { snapshot = undefined; }
