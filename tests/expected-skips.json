@@ -1460,7 +1460,7 @@
     },
     {
       "file": "tests/docs-masthead.test.ts",
-      "fullName": "a page with no masthead still opens with the pathways strip, once, in its body",
+      "fullName": "every docs page carries the sections once, in the bar; the landing carries them in its page",
       "reason": "no built /info on disk - run `pnpm run build:info`",
       "capability": "docs-build",
       "owner": "tests"
