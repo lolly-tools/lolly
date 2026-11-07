@@ -3,25 +3,40 @@
 import { instanceFetch, instancePath } from '../lib/instance.ts';
 import { activeDesignSystemSource } from '../lib/design-system/active.ts';
 import { decideWelcome } from '../lib/welcome-gate.ts';
+import { listWorkspaceTemplates, workspaceTemplateOf } from '../lib/workspace-templates.ts';
+import type { AssetRef } from '@lolly-tools/core/host-v1';
 // The welcome is first content on a new public visit; fetch its code and CSS with boot.
 import * as welcome from '../components/welcome-dialog.ts';
 import type { GalleryHost } from './gallery.ts';
 import type { PickerHost } from './picker.ts';
 
+/**
+ * Whether a connected workspace published a template this person can start from. Such a
+ * person (a partner, say) already has their welcome: the home shelf of those templates,
+ * so "Make it yours" would only stand between them and the shelf. Exported for tests.
+ */
+export function hasPublishedTemplates(assets: ReadonlyArray<Partial<AssetRef>> | undefined): boolean {
+  return (assets ?? []).some((asset) => { const tpl = workspaceTemplateOf(asset as AssetRef); return !!tpl && !tpl.retired; });
+}
+
 async function galleryNeedsWelcome(host: GalleryHost, isCurrent: () => boolean): Promise<boolean> {
   try {
     if (await host.tokens?.isLocked?.()) return false;
+    if ((await listWorkspaceTemplates(host)).some((tpl) => !tpl.retired)) return false;
     const source = await activeDesignSystemSource(host);
-    if (source) return source === 'shipped';
-    let tokensId = (await host.assets._findMetaByType('tokens'))?.id;
-    if (tokensId === undefined && isCurrent()) {
-      const response = await instanceFetch(instancePath('/catalog/assets/index.json?paged=1'));
-      if (response.ok) {
-        const index = await response.json() as { assets?: Array<{ id?: string; type?: string }> };
-        tokensId = index.assets?.find(asset => asset.type === 'tokens')?.id;
+    // The catalog index, read at most once, for what this device has not synced yet.
+    let index: { assets?: Array<Partial<AssetRef>> } | null | undefined;
+    const served = async () => {
+      if (index === undefined) {
+        const response = isCurrent() ? await instanceFetch(instancePath('/catalog/assets/index.json?paged=1')) : null;
+        index = response?.ok ? await response.json() as { assets?: Array<Partial<AssetRef>> } : null;
       }
-    }
-    return tokensId === 'lolly/tokens/brand';
+      return index;
+    };
+    if (source) return source === 'shipped' && !hasPublishedTemplates((await served())?.assets);
+    let tokensId = (await host.assets._findMetaByType('tokens'))?.id;
+    if (tokensId === undefined) tokensId = (await served())?.assets?.find(asset => asset.type === 'tokens')?.id;
+    return tokensId === 'lolly/tokens/brand' && !hasPublishedTemplates((await served())?.assets);
   } catch { return false; }
 }
 
