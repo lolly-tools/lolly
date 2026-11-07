@@ -82,7 +82,7 @@
 
 المجموعة التي لا علامات فيها بعد تنطوي في سطر واحد؛ افتحها لترى خاناتها. انقر خانة لإضافة PNG أو SVG أو JPEG أو WebP، أو انقر خانة ممتلئة لاستبدال العلامة. كل شيء يبقى على هذا الجهاز.
 
-![خانات الشعار مع فتح Horizontal وVertical: كل معالجة خانة خاصة بها، وكل خانة اختيارية](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dlogos&width=1440&height=1600&dpi=192&waitMs=1600&drive=click%3A.be-logo-identity%3Edetails%3Anth-of-type%281%29%3Esummary%3Bclick%3A.be-logo-identity%3Edetails%3Anth-of-type%282%29%3Esummary%3Bwait%3A600&cropSelector=.be-logo-grid&format=svg&walker=1&dark=1&filename=bs-logo-slots)
+![خانات الشعار مع فتح Horizontal وVertical: كل معالجة خانة خاصة بها، وكل خانة اختيارية](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dlogos&system=new-design-system&width=1440&height=1600&dpi=192&waitMs=1600&drive=click%3A.be-logo-identity%3Edetails.be-logo-group--fold%3Anot%28.be-logo-group--custom%29%3Esummary%3Bwait%3A600&cropSelector=.be-logo-grid&format=svg&walker=1&dark=1&filename=bs-logo-slots)
 
 - **العلامات المخصصة** علامات تسميها علامتك باسمها الخاص، مثل أيقونة أو شعار نبالة أو favicon.
 - **هويات أكثر.** يمكن لعلامة فرعية أو منتج أو فعالية أن تملك مجموعتها الكاملة: **+ Add another logo** وسمِّ المجموعة. مجموعتك الرئيسية هي "Your logo". يبيّن [هياكل العلامة](/info/brand-architectures.html) متى تكون هوية الشعار الكتلة الصحيحة.
@@ -114,7 +114,7 @@
 
 ### الأدوار: ما تقرؤه الأدوات
 
-![The Colour roles table on Lolly Demo after choosing the suggested words Main, Accent, Supporting and Tertiary: the colourway chips, then each role with its light and dark colour, Main read as the lead colour and Accent as the partner colour, Supporting and Tertiary read by name only and marked Copied, and the readings no role fills listed under the table](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=2720&height=2000&dpi=192&waitMs=1800&cropSelector=%5Bdata-be-roles-fold%5D&format=svg&walker=1&dark=1&filename=bs-colour-roles)
+![The Colour roles table on Lolly Demo after choosing the suggested words Main, Accent, Supporting and Tertiary: the colourway chips, then each role with its light and dark colour, Main read as the lead colour and Accent as the partner colour, Supporting and Tertiary read by name only and marked Copied, and the readings no role fills listed under the table](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&system=wefthouse&width=2720&height=2000&dpi=192&waitMs=1800&cropSelector=%5Bdata-be-roles-fold%5D&format=svg&walker=1&dark=1&filename=bs-colour-roles)
 
 تقول **الأدوار (Roles)** أي لون يؤدي كل دور في كل أداة وتصدير. وهي اختيارية (ثلاثة ألوان سائبة بلا أدوار نظام جيد تماماً)، ويمكن لأي لون أن يأخذ دوراً، ويُقاس مقروء التباين مقابل السطح، APCA أولاً. يعرض كل صف دور لوناً خاصاً بكامل القوة، أو لون starter قائماً مقامه، أو **↳ follows Primary**.
 
@@ -206,7 +206,7 @@
 
 بلا وجه خاص بها، تكون الغرفة بطاقة واحدة: **Primary**، بحجم القراءة بالوجه الذي يخدمه اليوم، بوسم **Starter** وزر **Choose for Primary** وسطر *"Nothing installs until you choose one."* تتبع Headings وCode وItalic الأساسي إلى أن تختارها؛ ويعرض **Choose them separately** بطاقاتها.
 
-![غرفة الخط بلا وجه مختار بعد - بطاقة واحدة بحجم القراءة، ووسم تمهيدي عليها، وChoose for Primary واحد ممتلئ](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&dark=1&filename=brand-type)
+![غرفة الخط بلا وجه مختار بعد - بطاقة واحدة بحجم القراءة، ووسم تمهيدي عليها، وChoose for Primary واحد ممتلئ](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&system=new-design-system&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&dark=1&filename=brand-type)
 
 اختر وجهاً واحداً فتنفتح الغرفة على أربع بطاقات أدوار وقائمة Fonts وعينة حية:
 
@@ -217,7 +217,7 @@
 
 لا تُلوَّن البطاقة إلا حيث ثبّتّ ذلك الوجه، ويقول زرها لأي دور هو: **Change Headings** على وجه من عندك و**Choose for Headings** في كل مكان آخر. ويلتف سطر العينة بدلاً من أن يُقطع. لا شيء على بطاقة يلتزم أي شيء: يفتح الزر منصة المقارنة لذلك الدور.
 
-![بطاقات الأدوار الأربع مكشوفة - كل واحدة بالوجه الذي يخدمها، مع وسم تمهيدي حيث لم يختر أحد وجها والمائل يتبع الأساسي](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&width=1440&height=1000&dpi=192&waitMs=2600&drive=click%3A%5Bdata-be-typemore-toggle%5D%3Bwait%3A600&cropSelector=.be-typecard-grid&walker=1&format=svg&dark=1&filename=bs-type-specimen)
+![بطاقات الأدوار الأربع مكشوفة - كل واحدة بالوجه الذي يخدمها، مع وسم تمهيدي حيث لم يختر أحد وجها والمائل يتبع الأساسي](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&system=new-design-system&width=1440&height=1000&dpi=192&waitMs=2600&drive=click%3A%5Bdata-be-typemore-toggle%5D%3Bwait%3A600&cropSelector=.be-typecard-grid&walker=1&format=svg&dark=1&filename=bs-type-specimen)
 
 ### مسرح المقارنة
 

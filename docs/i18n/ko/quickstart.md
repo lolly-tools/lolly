@@ -22,7 +22,7 @@ lolly.tools는 Lolly 자체의 샘플 디자인 시스템인 **Lolly Demo**로 �
 
 갤러리를 처음 열면 짧은 환영 화면이 같은 선택지를 제공해요. **Make it yours**는 Design System Setup을 열고, **Bring your design**은 디자인용 파일 선택기를 열고, **Explore the community tools**는 환영 화면을 닫아요.
 
-![새로 설치한 상태의 Design System Setup의 Colours 룸: 실시간 칩 하나, 입력란 하나, 첫 결정의 전부](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-roles-fold%5D%3Esummary%3Bwait%3A500&format=svg&walker=1&localize=1&dark=1&filename=brand-colours)
+![새로 설치한 상태의 Design System Setup의 Colours 룸: 실시간 칩 하나, 입력란 하나, 첫 결정의 전부](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&system=new-design-system&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&dark=1&filename=bs-colours-new-system)
 
 거기서부터 여덟 개의 룸이 원하는 만큼, 어떤 순서로든 이어져요. **Board**, **Colours**, **Type**, **Logos**, **Tokens**, **Files**, **Rules**, **Skills**예요. 앱의 모든 미리보기는 입력하는 대로 업데이트돼요. [Lolly Design System Setup](/info/brand-studio.html)에서 각 룸을 다뤄요.
 

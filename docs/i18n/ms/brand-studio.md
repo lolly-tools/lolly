@@ -82,7 +82,7 @@ Setiap lambang berakhir dalam grid lapan slot pilihan, satu bagi setiap **orient
 
 Kumpulan tanpa lambang lagi dilipat menjadi satu baris; buka untuk melihat slotnya. Klik slot untuk menambah PNG, SVG, JPEG atau WebP, atau klik slot terisi untuk menggantikan lambang. Segala-galanya kekal pada peranti ini.
 
-![Slot logo dengan Horizontal dan Vertical dibuka: setiap rawatan ialah slotnya sendiri, dan setiap slot adalah pilihan](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dlogos&width=1440&height=1600&dpi=192&waitMs=1600&drive=click%3A.be-logo-identity%3Edetails%3Anth-of-type%281%29%3Esummary%3Bclick%3A.be-logo-identity%3Edetails%3Anth-of-type%282%29%3Esummary%3Bwait%3A600&cropSelector=.be-logo-grid&format=svg&walker=1&dark=1&filename=bs-logo-slots)
+![Slot logo dengan Horizontal dan Vertical dibuka: setiap rawatan ialah slotnya sendiri, dan setiap slot adalah pilihan](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dlogos&system=new-design-system&width=1440&height=1600&dpi=192&waitMs=1600&drive=click%3A.be-logo-identity%3Edetails.be-logo-group--fold%3Anot%28.be-logo-group--custom%29%3Esummary%3Bwait%3A600&cropSelector=.be-logo-grid&format=svg&walker=1&dark=1&filename=bs-logo-slots)
 
 - **Custom marks** ialah lambang yang dipanggil jenama anda dengan namanya sendiri, seperti ikon, jata atau favicon.
 - **More identities.** Sub-jenama, produk atau acara boleh mempunyai set penuh sendiri: **+ Add another logo** dan beri nama kepada set itu. Set utama anda ialah "Your logo". [Brand architectures](/info/brand-architectures.html) menunjukkan bila identiti logo ialah blok yang betul.
@@ -114,7 +114,7 @@ Warna anda berada di sebelah pratonton **In context** pada skrin lebar, dan di a
 
 ### Peranan: apa yang dibaca alat
 
-![The Colour roles table on Lolly Demo after choosing the suggested words Main, Accent, Supporting and Tertiary: the colourway chips, then each role with its light and dark colour, Main read as the lead colour and Accent as the partner colour, Supporting and Tertiary read by name only and marked Copied, and the readings no role fills listed under the table](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=2720&height=2000&dpi=192&waitMs=1800&cropSelector=%5Bdata-be-roles-fold%5D&format=svg&walker=1&dark=1&filename=bs-colour-roles)
+![The Colour roles table on Lolly Demo after choosing the suggested words Main, Accent, Supporting and Tertiary: the colourway chips, then each role with its light and dark colour, Main read as the lead colour and Accent as the partner colour, Supporting and Tertiary read by name only and marked Copied, and the readings no role fills listed under the table](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&system=wefthouse&width=2720&height=2000&dpi=192&waitMs=1800&cropSelector=%5Bdata-be-roles-fold%5D&format=svg&walker=1&dark=1&filename=bs-colour-roles)
 
 **Roles** menyatakan warna mana memainkan setiap bahagian dalam setiap alat dan eksport. Ia pilihan (tiga warna longgar tanpa peranan ialah sistem yang baik sempurna), mana-mana warna boleh mengambil satu dan bacaan kontras diukur terhadap permukaan, APCA dahulu. Setiap baris peranan menunjukkan warna sendiri pada kekuatan penuh, warna starter yang bertumpu atau **↳ follows Primary**.
 
@@ -206,7 +206,7 @@ Muat turun palet (token reka bentuk, CSS, SCSS, GIMP dan Adobe Swatch Exchange) 
 
 Tanpa muka sendiri, bilik ialah satu kad: **Primary**, ditetapkan pada saiz bacaan dalam muka yang melayaninya hari ini, dengan teg **Starter**, butang **Choose for Primary** dan baris *"Nothing installs until you choose one."* Headings, code dan italic mengikut primer sehingga anda memilihnya; **Choose them separately** menunjukkan kad mereka.
 
-![Bilik Type dengan belum ada muka taip yang dipilih - satu kad pada saiz bacaan, satu tag Starter di atasnya, dan satu Choose for Primary yang terisi](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&dark=1&filename=brand-type)
+![Bilik Type dengan belum ada muka taip yang dipilih - satu kad pada saiz bacaan, satu tag Starter di atasnya, dan satu Choose for Primary yang terisi](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&system=new-design-system&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&dark=1&filename=brand-type)
 
 Pilih satu muka dan bilik terbuka menjadi empat kad peranan, senarai Fonts dan spesimen langsung:
 
@@ -217,7 +217,7 @@ Pilih satu muka dan bilik terbuka menjadi empat kad peranan, senarai Fonts dan s
 
 Kad hanya diwarnakan di mana anda memasang muka itu. Butangnya menyatakan untuk peranan mana ia: **Change Headings** pada muka milik anda dan **Choose for Headings** di tempat lain. Baris sampel dibalut dan bukan dipotong. Tiada apa-apa pada kad mengomit apa-apa: butang membuka pentas banding untuk peranan itu.
 
-![Empat kad peranan didedahkan - setiap satu ditetapkan dalam muka taip yang berkhidmat untuknya, dengan satu tag Starter di mana tiada sesiapa memilih satu dan Italic mengikuti primary](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&width=1440&height=1000&dpi=192&waitMs=2600&drive=click%3A%5Bdata-be-typemore-toggle%5D%3Bwait%3A600&cropSelector=.be-typecard-grid&walker=1&format=svg&dark=1&filename=bs-type-specimen)
+![Empat kad peranan didedahkan - setiap satu ditetapkan dalam muka taip yang berkhidmat untuknya, dengan satu tag Starter di mana tiada sesiapa memilih satu dan Italic mengikuti primary](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&system=new-design-system&width=1440&height=1000&dpi=192&waitMs=2600&drive=click%3A%5Bdata-be-typemore-toggle%5D%3Bwait%3A600&cropSelector=.be-typecard-grid&walker=1&format=svg&dark=1&filename=bs-type-specimen)
 
 ### Peringkat perbandingan
 

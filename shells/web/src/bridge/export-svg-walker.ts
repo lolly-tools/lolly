@@ -17,7 +17,7 @@ export { decoFlags, mergeDeco, isReplaced, visualLines, pdfInlineNonText } from 
 export type { Deco } from './export-text.ts';
 import { resolveExportFont } from './font-fill.ts';
 import { exportFontFamily } from './fallback-font-source.ts';
-import { namespaceInlinedSvgIds } from './svg-inline-ids.ts';
+import { inlineIdKey, namespaceInlinedSvgIds } from './svg-inline-ids.ts';
 import { newNeutraliseGuard, neutraliseTransform } from './transform-neutralise.ts';
 import { placeBackground } from './bg-layout.ts';
 import { parseCssFilter, isDropShadowOnly } from './css-filter.ts';
@@ -3257,7 +3257,8 @@ export async function inlineSvgFromImg(src: string): Promise<Element | null> {
   // Inlined files carry their own generated ids - namespace them or same-named
   // ids across several inlined files bind every reference to the FIRST one
   // (four covers all clipped by cover 1's `fcovclip-1`; see svg-inline-ids.ts).
-  namespaceInlinedSvgIds(svg, src);
+  // A blob: URL is new in every session, so the prefix is hashed from its text instead.
+  namespaceInlinedSvgIds(svg, inlineIdKey(src, text));
   return svg;
 }
 
