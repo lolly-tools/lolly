@@ -596,6 +596,11 @@ export type { RightsEvaluationInputV1 } from './rights-evaluate.ts';
 export { attributionCompanion, attributionCredits, checkAttributionReadback, sourceIngredientsFor } from './rights-attribution.ts';
 export type { AttributionCompanionV1, SourceDetailV1 } from './rights-attribution.ts';
 export { evaluateReuse, rightsReportFromC2pa } from './rights-report.ts';
+// One answer to "may these bytes be passed on?" and the `.lolly` credits text, so a
+// Lolly Work server, a `.lolly` pack and a brand page agree, plus the package credits readback.
+export { OWNER_PUBLISHED, assetLicenceDeclaration, assetRightsNotices, ownerPublished, packCreditsText, readAssetRightsRecord, redistribution } from './asset-rights.ts';
+export type { AssetRightsMeta, OwnerPublishedV1, PackCreditEntry, PackHoldEntry, Redistribution } from './asset-rights.ts';
+export { checkCompanionReadback } from './rights-companion.ts';
 export {
   verifySeal, parseSealRecord, parseSealRecords, computeSealDigest, assembleSealMessage,
   resolveRanges, verifySealSignature, importSealKey,
