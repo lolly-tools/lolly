@@ -156,7 +156,7 @@ programme keeps the account and leaves only this programme
 **Ending on a date.** In the same card, choose **At the end of a day** and the day. With **Tell
 them before the end** ticked, people are told in their notifications 14 days and 1 day before, and
 their company card gives the date. The scheduled end then shows on the page with **Change** and
-**Cancel** ([End on a date, with a notice](partner-programmes.md#end-on-a-date-with-a-notice)).
+**Cancel the end** ([End on a date, with a notice](partner-programmes.md#end-on-a-date-with-a-notice)).
 
 **Undoing an end.** An ended programme or company shows the date of the end and the person who
 ended the partnership. For 30 days its page offers **Reopen**, which first shows who signs in again

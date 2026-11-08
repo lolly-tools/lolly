@@ -215,8 +215,8 @@ The programme's **Licences** card shows, for one programme:
 
 Elsewhere in the console:
 
-- **Preview**'s **Assets** card lists the files held back, the files shared anyway, with who chose
-  them, and the files that need a new choice.
+- **Preview**'s **Assets** card counts the files held back and the files that need a new choice,
+  and lists the files shared anyway, with who chose each and when.
 - An asset's page has a **Licence** row: what the file records and where the answer comes from
   (its own record, a licence record or a mark, with who stated it and when), with **Record
   licence**, **Mark** and **Unmark**.
@@ -418,7 +418,8 @@ company's people and agents receive; a change is a new revision.
   space, minimum size and treatments. Whether your brand team or the partner's own designer does
   that depends on how you work together.
 - **The logos** a kit pins must be the company's own logos from its page.
-- **Who edits.** Anyone with `programme.manage`, and a contact who may edit the company's details.
+- **Who edits.** Anyone with `programme.manage`, and a contact who may edit the company's details
+  while contact changes need no approval. With approval on, your team edits the kit.
 - **Ending.** Ending a partnership retires the kit, Reopen brings back the revision it retired, and
   deleting the company deletes the kit. With the licence gate on, a kit counts as the company's own
   file.
@@ -580,7 +581,8 @@ banner.
 - **Nothing else.** Every change to the partner's account is refused, first-run prompts are hidden
   and live collaboration stays closed: "Not while viewing as a partner".
 
-Each view's start and end are audited as `programme.view-as` and `programme.view-as.end`.
+Each view's start is audited as `programme.view-as`, and **Stop viewing** as
+`programme.view-as.end`; a view that runs out after its hour simply ends.
 
 ## A person in two programmes
 
@@ -670,7 +672,7 @@ then the day; the button reads "Schedule the end for 30 November 2026". A domain
 The end runs at the end of that day in UTC, by the server's minute check, and is credited to the
 person who scheduled the end. A programme or company holds one scheduled end at a time
 (`409 EXIT_SCHEDULED`). The scheduled end shows on the programme's page, or the company's, with
-**Change** for a new date or notice and **Cancel**. From a terminal,
+**Change** for a new date or notice and **Cancel the end**. From a terminal,
 `lw people exit --programme <id>` or `--company <id>` takes `--at YYYY-MM-DD`; the API takes `at`
 on `POST /api/v1/programmes/exit`, and `PUT /api/v1/programmes/exits/:id` moves the date or, with
 `at: "now"`, ends the partnership at once.
@@ -792,8 +794,8 @@ as "This token has used its 2,000 renders for today. The budget renews at 00:00 
 budget cannot hold is refused whole. A token in no programme has no limits unless an owner sets
 some.
 
-**What agents did**, on the same page, counts what each token did for the last 4 weeks by week or
-the last 7 days by day, with **Download CSV**. `lw programmes usage <programme>`
+**What agents did**, on the same page, totals what each token did over the last 4 weeks or the
+last 7 days, and **Download CSV** gives the same counts week by week or day by day. `lw programmes usage <programme>`
 (`GET /api/v1/programmes/:id/usage`) counts what each token did,
 by day or week, for up to 92 days: calls, renders (by tool, format and outcome for the renders
 that keep a record, the durable ones), batches, deliveries,
@@ -832,7 +834,7 @@ on the template's `POST` or `PUT`; `null` clears them.
 - An agent is offered the templates in its own feed where their purposes fit, and only the
   templates for a tool kept to its templates. A retired template is never offered.
 - Inputs the company fills count as given, so an agent for Northwind IT is never asked for the
-  partner's mark or the company name. A programme token with no company still is.
+  partner's mark or the company name. An input the template fixes counts as given too.
 - A Share with rules file brings its own rules and takes no purposes here.
 
 `GET /api/v1/schema/:toolId?template=inst/<id>`, and `describe_tool` over MCP with `template`,
