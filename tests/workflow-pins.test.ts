@@ -165,3 +165,12 @@ test('every GitHub release download has the REST API route and is checked agains
   }
   assert.ok(fetches >= 10, `expected the pinned tool installs to use ${helper}, found ${fetches}`);
 });
+
+test('cached Playwright browsers are keyed on the runner image they were installed on', () => {
+  // A WebKit build cached on Ubuntu 24.04 needs libicu74 and cannot start on 26.04.
+  const ci = readFileSync(path.join(workflowDir, 'ci.yml'), 'utf8');
+  const keys = [...ci.matchAll(/key: (playwright-[^\n]+)/g)].map((match) => match[1] ?? '');
+  assert.ok(keys.length >= 2, 'expected the Chromium and the Firefox and WebKit caches');
+  for (const key of keys) assert.match(key, /\$\{\{ steps\.runner-image\.outputs\.id \}\}/, key);
+  assert.match(ci, /echo "id=\$\{ImageOS:-unknown-os\}-\$\{ImageVersion:-unknown-version\}" >> "\$GITHUB_OUTPUT"/);
+});

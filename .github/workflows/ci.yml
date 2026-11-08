@@ -296,12 +296,24 @@ jobs:
       # tier on a runner that has a browser. pnpm-workspace.yaml holds them together and
       # tests/browser-tier-install.test.ts asserts it; the cache key below is that same
       # resolved version, so a bump re-downloads instead of serving the wrong revision.
+      #
+      # A cached browser is only valid on the runner image it was installed on.
+      # Playwright downloads a WebKit build per Ubuntu release, and the keys named
+      # only the OS family, so when ubuntu-latest became Ubuntu 26.04 its runners
+      # restored the WebKit built for 24.04, which needs libicu74 and could not
+      # start. The image name and version (ImageOS, ImageVersion) join both keys,
+      # so a new image installs browsers that match its own libraries.
+      - name: Name the runner image for the browser caches
+        if: matrix.shard == 'browser' || matrix.shard == 'security'
+        id: runner-image
+        run: echo "id=${ImageOS:-unknown-os}-${ImageVersion:-unknown-version}" >> "$GITHUB_OUTPUT"
+
       - name: Cache Chromium (browser and security shards)
         if: matrix.shard == 'browser' || matrix.shard == 'security'
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
         with:
           path: .browsers
-          key: playwright-chromium-${{ runner.os }}-${{ hashFiles('node_modules/playwright-core/package.json') }}
+          key: playwright-chromium-${{ runner.os }}-${{ steps.runner-image.outputs.id }}-${{ hashFiles('node_modules/playwright-core/package.json') }}
 
       # The package installs below retry. Runner apt mirrors stall: `apt-get
       # update` has sat for 4 hours with no output, and a slow mirror has taken
@@ -393,8 +405,9 @@ jobs:
         run: pnpm run test:geometry
 
       # The Firefox and WebKit builds Playwright downloads (about 190 MB) come
-      # from this cache, keyed by the exact revisions playwright-core pins, so
-      # `playwright install` below downloads them only when Playwright moves.
+      # from this cache, keyed by the runner image and the exact revisions
+      # playwright-core pins, so `playwright install` below downloads them only
+      # when the image or Playwright moves.
       - name: Cache Firefox and WebKit (browser 2/8)
         if: matrix.shard == 'browser' && matrix.partition == '2/8'
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
@@ -402,7 +415,7 @@ jobs:
           path: |
             .browsers/firefox-*
             .browsers/webkit-*
-          key: playwright-firefox-webkit-${{ runner.os }}-${{ hashFiles('node_modules/playwright-core/browsers.json') }}
+          key: playwright-firefox-webkit-${{ runner.os }}-${{ steps.runner-image.outputs.id }}-${{ hashFiles('node_modules/playwright-core/browsers.json') }}
 
       # WebKit's system libraries are not on the runner image: install-deps adds
       # about 200 packages (93 MB, GStreamer, GTK 4 and libav), so they still come
