@@ -45,6 +45,7 @@ import { isDesignSystemId } from './design-system.ts';
 import { brandPageAddress } from './brand-page-address.ts';
 import { modeAxis, readTokenAxes } from './token-axes.ts';
 import { resolveTokenSelection } from './token-selection.ts';
+import { readPartnerKitAttachment } from './partner-kit-attachment.ts';
 
 /** The slice of the host bridge this module needs: an optional profile source. */
 export interface MetadataHost {
@@ -349,7 +350,10 @@ export function designRecordWords(record: DesignRecord | null | undefined, opts:
 export function partnerWords(partner: ExportPartner | null | undefined): string {
   const company = partner?.company?.label;
   const programme = partner?.programme?.label;
-  if (company) return programme ? `Partner: ${company} (${programme})` : `Partner: ${company}`;
+  if (company) {
+    const words = programme ? `Partner: ${company} (${programme})` : `Partner: ${company}`;
+    return partner?.kit ? `${words}, kit revision ${partner.kit.revision}` : words;
+  }
   return programme ? `Partner programme: ${programme}` : '';
 }
 
@@ -363,6 +367,7 @@ export function partnerFactWords(partner: ExportPartner | null | undefined): str
   if (partner.company?.label) parts.push(partner.company.label);
   if (partner.programme?.label) parts.push(`${partner.programme.label} programme`);
   if (partner.company?.label && partner.company.revision > 0) parts.push(`details revision ${partner.company.revision}`);
+  if (partner.company?.label && partner.kit) parts.push(`kit revision ${partner.kit.revision}`);
   return parts.join(', ');
 }
 
@@ -373,7 +378,7 @@ export function partnerFactWords(partner: ExportPartner | null | undefined): str
  */
 export function partnerRecord(raw: unknown): ExportPartner | undefined {
   if (!raw || typeof raw !== 'object') return undefined;
-  const r = raw as { company?: unknown; programme?: unknown };
+  const r = raw as { company?: unknown; programme?: unknown; kit?: unknown };
   const out: ExportPartner = {};
   const c = r.company && typeof r.company === 'object' ? r.company as Record<string, unknown> : null;
   const cid = typeof c?.id === 'string' ? c.id.trim() : '';
@@ -386,6 +391,8 @@ export function partnerRecord(raw: unknown): ExportPartner | undefined {
   const gid = typeof g?.id === 'string' ? g.id.trim() : '';
   const glabel = text(g?.label, MAX_LABEL);
   if (PARTNER_ID_RE.test(gid) && glabel) out.programme = { id: gid, label: glabel };
+  const kit = out.company ? readPartnerKitAttachment(r.kit) : null;
+  if (kit) out.kit = kit;
   return out.company || out.programme ? out : undefined;
 }
 
@@ -428,7 +435,7 @@ export function designRecordEnvironment(meta: DesignRecordFields | null | undefi
   // Re-checked for the same reason: this value becomes something a person can click.
   const page = brandPageAddress(meta?.brandPage);
   if (page) out.brandPage = page;
-  // The partner (Lolly Work plans/82 M3, approved 2026-11-07): exactly these five
+  // The partner and attached kit (Lolly Work plans/82 M3 and M8): only the approved
   // keys. Re-checked here, so a hand-built meta cannot write anything else.
   const partner = partnerRecord(meta?.partner);
   if (partner?.company) {
@@ -439,6 +446,10 @@ export function designRecordEnvironment(meta: DesignRecordFields | null | undefi
   if (partner?.programme) {
     out.partnerProgramme = partner.programme.id;
     out.partnerProgrammeLabel = partner.programme.label;
+  }
+  if (partner?.kit) {
+    out.partnerKit = partner.kit.id;
+    out.partnerKitRevision = String(partner.kit.revision);
   }
   return out;
 }
@@ -508,6 +519,8 @@ const XML_PROPS = [
   ['partnerProfileRevision', 'PartnerProfileRevision'],
   ['partnerProgramme', 'PartnerProgramme'],
   ['partnerProgrammeLabel', 'PartnerProgrammeLabel'],
+  ['partnerKit', 'PartnerKit'],
+  ['partnerKitRevision', 'PartnerKitRevision'],
 ] as const;
 
 /**
@@ -614,6 +627,7 @@ export function readDesignRecord(env: Readonly<Record<string, unknown>> | null |
   const partner = partnerRecord({
     ...(env.partnerCompany !== undefined ? { company: { id: env.partnerCompany, label: env.partnerCompanyLabel, revision: env.partnerProfileRevision } } : {}),
     ...(env.partnerProgramme !== undefined ? { programme: { id: env.partnerProgramme, label: env.partnerProgrammeLabel } } : {}),
+    ...(env.partnerKit !== undefined ? { kit: { id: env.partnerKit, revision: typeof env.partnerKitRevision === 'string' ? Number(env.partnerKitRevision) : env.partnerKitRevision } } : {}),
   });
   if (partner) out.partner = partner;
   return isEmptyDesignRecord(out) ? null : out;

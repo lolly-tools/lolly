@@ -12,6 +12,8 @@ import type { PartnerKitAttachmentV1, PartnerKitV1 } from '@lolly-tools/core/par
 import { PARTNER_KIT_LOGO_SURFACES, PARTNER_KIT_MAX_LABEL } from '@lolly-tools/core/partner-kit-v1';
 import { formatPartnerKitParam, readPartnerKitAttachment } from '../../../../engine/src/url-mode.ts';
 import type { GuestMarkMeasure } from '../../../../engine/src/partner-kit-check.ts';
+import type { ExportPartner } from '@lolly-tools/core/host-v1';
+import { workspacePartner } from './workspace-templates.ts';
 
 /** What org-config says the person's company kit is: the asset, its live revision and the company's name. */
 export interface PartnerKitOffer extends PartnerKitAttachmentV1 {
@@ -155,3 +157,25 @@ export async function runPieceKitAction(act: 'attach' | 'detach'): Promise<void>
   else await own.attach();
 }
 
+/**
+ * Keep a piece's partner record with its attachment, and tell the runtime's subscribers
+ * (the export card among them) when the record changes. Returns the way to stop.
+ * It lives here, not in workspace-templates.ts, which is on the boot path: this
+ * module reaches the engine's URL reader, which must stay off boot.
+ */
+export function followPiecePartner(runtime: { setPartner(partner: ExportPartner | null): void; refresh?(): void }): () => void {
+  let last = '';
+  const update = (): void => {
+    const partner = workspacePartner();
+    const kit = pieceKit(runtime);
+    const next = kit && partner?.company && pieceKitData(runtime)?.id === partner.company.id ? { ...partner, kit } : partner;
+    const key = JSON.stringify(next);
+    if (key === last) return;
+    const first = last === '';
+    last = key;
+    runtime.setPartner(next);
+    if (!first) runtime.refresh?.();
+  };
+  update();
+  return onPieceKitChange(update);
+}

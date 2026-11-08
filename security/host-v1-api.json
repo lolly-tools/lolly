@@ -535,7 +535,7 @@
     "ExportPartner": {
       "module": "export.ts",
       "kind": "InterfaceDeclaration",
-      "sha256": "18dbc6c19f88f8e749ea17786ae44fb7dc1fb1414e9b27db3311504380829af6"
+      "sha256": "739ecaafa2fe393a6c2a1b6122cdfd1a3df6b5649d6d354c8b97fcc07537e978"
     },
     "ExportBrandSkill": {
       "module": "export.ts",
