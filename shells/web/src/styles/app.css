@@ -55,6 +55,7 @@
 @import './parts/spotlight.css'    layer(chrome); /* the search overlay above the footer bar (plans/99 M2) - chrome, like the bar it docks to */
 @import './parts/featured.css'     layer(chrome);
 @import './parts/topbar.css'       layer(chrome);
+@import './parts/view-as.css'      layer(overrides);
 @import './parts/folders.css'      layer(chrome);
 @import './parts/team-projects.css' layer(chrome);
 @import './parts/collab.css'       layer(chrome); /* the Projects live-collab tile badge (plan 100 section 4.6) - sits beside folders.css/projects.css, which it decorates; the rest of the presence chrome is self-styled components (see the file's own header) */

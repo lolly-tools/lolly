@@ -33,7 +33,7 @@
         {{else}}{{#if signatureUrl}}<img class="placed-signature" tabindex="0" draggable="false" src="{{signatureUrl}}" style="left:{{xPct}}%;top:{{yPct}}%;width:{{wPct}}%;height:{{hPct}}%" alt="Signature placement. Drag or use arrow keys to move.">{{else}}<div class="placed-signature placeholder" style="left:{{xPct}}%;top:{{yPct}}%;width:{{wPct}}%;height:{{hPct}}%">Draw or choose a signature</div>{{/if}}{{/if}}
         <svg class="extra-marks" viewBox="0 0 {{pageW}} {{pageH}}" aria-label="Initials and date preview"><g>
           {{#if initialsMark}}<image href="{{initialsUrl}}" x="{{initialsMark.x}}" y="{{initialsMark.y}}" width="{{initialsMark.width}}" height="{{initialsMark.height}}" preserveAspectRatio="none" />{{/if}}
-          {{#if dateMark}}<text x="{{dateMark.x}}" y="{{dateMark.y}}" dy="{{dateMark.size}}" font-size="{{dateMark.size}}" font-family="Helvetica, Arial, sans-serif" fill="#141414">{{dateMark.text}}</text>{{/if}}
+          {{#if dateMark}}<text x="{{dateMark.x}}" y="{{dateMark.y}}" dy="{{dateMark.size}}" font-size="{{dateMark.size}}" font-family="{{dateFont}}" fill="#141414">{{dateMark.text}}</text>{{/if}}
         </g></svg>
       </div></div>
     </div>

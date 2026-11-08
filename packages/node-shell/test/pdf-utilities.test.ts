@@ -108,6 +108,38 @@ test('Sign stamp placement uses exact top-left PDF points', async () => {
   assert.ok(Math.abs(image.h! - 30) < 0.01);
 });
 
+test('Sign stamps a path at its baseline in top-left PDF points, and only path data', async () => {
+  const doc = await PDFDocument.create(); doc.addPage([300, 400]);
+  const src = await doc.save();
+  // A 20 x 10 box drawn up from its baseline, as host.text.toPath outlines text (y-down).
+  const out = await stampPdf(src, { images: [], paths: [{ page: 1, x: 40, y: 100, d: 'M0 0L20 0L20 -10L0 -10Z', color: '#ff0000' }] });
+  assert.equal(out.stamps, 1, 'the path counts as a stamp');
+  const scan = await scanPdfPages(out.bytes);
+  const fill = scan.pages[0]!.nodes.find(node => node.kind === 'box');
+  assert.ok(fill, `a filled path is on the page: ${JSON.stringify(scan.pages[0]!.nodes.map(n => n.kind))}`);
+  assert.ok(Math.abs(fill.x! - 40) < 0.01 && Math.abs(fill.y! - 90) < 0.01, `at x 40, top 90: ${fill.x}, ${fill.y}`);
+  assert.ok(Math.abs(fill.w! - 20) < 0.01 && Math.abs(fill.h! - 10) < 0.01, `20 x 10: ${fill.w} x ${fill.h}`);
+  for (const d of ['', 'M0 0 <script>', 'M0 0 script', 'M0 0L1 1'.repeat(30_000), 'M0 0L1e999 1Z', `M0 0${'Z'.repeat(190_000)}`, 'L1 1', 'M0']) {
+    await assert.rejects(stampPdf(src, { images: [], paths: [{ page: 1, x: 0, y: 0, d }] }), /SVG path data/, d.slice(0, 20));
+  }
+  await assert.rejects(stampPdf(src, { images: [], paths: [{ page: 2, x: 0, y: 0, d: 'M0 0L1 1Z' }] }), /outside/);
+  // A non-finite origin is pinned to the page, never written into the transform.
+  const pinned = await stampPdf(src, { images: [], paths: [{ page: 1, x: Infinity, y: Number.NaN, d: 'M0 0L10 0L10 10L0 10Z' }] });
+  const box = (await scanPdfPages(pinned.bytes)).pages[0]!.nodes.find(node => node.kind === 'box');
+  assert.ok(box && Math.abs(box.x!) < 0.01 && Math.abs(box.y!) < 0.01, `the origin falls back to the page's top-left: ${JSON.stringify(box)}`);
+});
+
+test('a stamped path\'s quadratic curves become the cubics with the same shape', async () => {
+  const { parseStampPath } = await import('../src/pdf.ts');
+  // A quadratic from (0,0) through control (30,60) to (60,0): its cubic controls sit two
+  // thirds of the way to the quadratic control, (20,40) and (40,40).
+  assert.deepEqual(parseStampPath('M0 0Q30 60 60 0Z'), [['M', 0, 0], ['C', 20, 40, 40, 40, 60, 0], ['Z']]);
+  // A subnormal number is rounded to zero rather than written in a form the PDF cannot read.
+  assert.deepEqual(parseStampPath('M0 0L5e-324 1Z'), [['M', 0, 0], ['L', 0, 1], ['Z']]);
+  // Relative commands, H and V, an uppercase exponent and a repeated L after M.
+  assert.deepEqual(parseStampPath('m10 10h5v5l-5 0 1E1 1E1z'), [['M', 10, 10], ['L', 15, 10], ['L', 15, 15], ['L', 10, 15], ['L', 20, 25], ['Z']]);
+});
+
 test('locked output needs its password and page transforms name the refusal', async () => {
   const locked = await lockPdf(await fixture(), 'correct horse battery staple');
   await assert.rejects(() => PDFDocument.load(locked.bytes), /encrypted/i);

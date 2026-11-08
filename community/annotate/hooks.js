@@ -317,11 +317,18 @@ function markSvg(m, g) {
   if (m.kind === 'pin') {
     var r = 1.6 + sw * 0.9;
     var fs = f2(r * 1.15);
+    // The caption's white halo is its own <text>, drawn first, and the words go on top.
+    // `paint-order="stroke"` on one element did the same in a browser, but the CLI, TUI
+    // and MCP server draw this overlay with Skia's SVG reader, which ignores
+    // paint-order, so the halo was painted over the words and they came out as a white
+    // smear. Two elements draw the same in every reader. The halo copy is hidden from
+    // assistive tech so the caption is read once.
+    var at = '<text x="' + f2(m.x + r + r * 0.5) + '" y="' + f2(m.y) + '" font-size="' + f2(r * 0.95) +
+      '" font-family="' + g.font + '" font-weight="600" dominant-baseline="central"';
     var label = m.text
-      ? '<text x="' + f2(m.x + r + r * 0.5) + '" y="' + f2(m.y) + '" font-size="' + f2(r * 0.95) +
-        '" font-family="' + g.font + '" font-weight="600" dominant-baseline="central"' +
-        ' fill="' + accent + '" stroke="#ffffff" stroke-width="' + f2(r * 0.32) +
-        '" paint-order="stroke" stroke-linejoin="round">' + esc(m.text) + '</text>'
+      ? at + ' fill="#ffffff" stroke="#ffffff" stroke-width="' + f2(r * 0.32) +
+        '" stroke-linejoin="round" aria-hidden="true">' + esc(m.text) + '</text>' +
+        at + ' fill="' + accent + '">' + esc(m.text) + '</text>'
       : '';
     return open +
       '<circle cx="' + f2(m.x) + '" cy="' + f2(m.y) + '" r="' + f2(r) + '" fill="' + accent +

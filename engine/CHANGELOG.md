@@ -12,6 +12,14 @@ Moved verbatim from the comment block that used to live in `src/index.ts`.
 - The credential's `environment` gains exactly `partnerKit` and `partnerKitRevision` (text), and XMP and SVG metadata gain `lolly:PartnerKit` and `lolly:PartnerKitRevision`. `readDesignRecord` reads them back into `partner.kit`. The PDF keywords and description stay unchanged. No kit colours, rules or bytes are written.
 - The export card's partner part appends ", kit revision 2", and Verify's Partner fact ends with "details revision 3, kit revision 2". The record's existing switch leaves the kit out with the partner. A piece with no attachment or with another company's kit records no kit.
 
+## 1.340.0
+
+- `host.pdf.stamp` takes vector marks: `PdfStampOpts.paths` (SDK, optional, new `PdfStampPath`: `page`, `x`, `y`, `d`, `color`). `d` is SVG path data read y-down from the mark's origin at `x`, `y` in top-left PDF points, one unit a point, which is what `host.text.toPath` returns for a run shaped at that size, so a tool can stamp words in the design system's face as outlines where `texts` sets them in a standard PDF face. The shared stamp (`packages/node-shell/src/pdf.ts`, web and CLI) parses each path itself (`parseStampPath`: M, L, H, V, C, Q and Z, finite numbers rounded to a ten-thousandth of a point, whole argument groups, at most 20,000 commands; a quadratic becomes the cubic with the same shape) and refuses anything else with "a stamped path must be SVG path data". A host that predates `paths` ignores them, and its `stamps` count comes back short, so a tool can stamp `texts` instead. Sign 1.1.0 uses it for "Add today's date".
+
+## 1.339.0
+
+- `preflight.ts`: for the CMYK TIFF (`cmyk-tiff`) and EPS (CMYK) (`eps-cmyk`), `plates.palette-unresolved` no longer says "plate count is unavailable", because those formats have the 4 process plates whatever the palette holds (`plates.process` counts them, 1.332.0). It now says what an unresolved palette leaves unchecked there: "No brand palette resolved, so the brand colours cannot be checked for ink limits or rich black. The plate count is still known: this format has only the 4 process plates." The finding's id, `needs` and evidence do not change, and `pdf-cmyk` keeps its message, since its named plates come from the palette.
+
 ## 1.338.0
 
 - New reserved URL param `_kit` (Lolly Work plan 82, M8): the partner kit a piece carries as a guest, `<id>@<revision>`, the kit asset's catalog id and the asset version attached. `parseUrlState` reads it into `partnerKit` (`PartnerKitAttachmentV1 | null`) and `serializeUrlState` writes it from `partnerKit`, so the attachment travels in a share link, as `emoji` does; the link never carries the kit's bytes. An id outside the kit grammar or a revision that is not a whole number from 1 reads as absent and writes nothing.

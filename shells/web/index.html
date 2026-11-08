@@ -195,6 +195,7 @@
     (() => {
       try {
         if (window.__TAURI_INTERNALS__) return;
+        if (sessionStorage.getItem('lolly-view-as')) return;
         if ('sbt-tool-index' in localStorage || 'sbt-catalog:assets-index' in localStorage) return;
         if ('lolly:catalog-refused:same-origin' in localStorage) return;
         var u = '/catalog/assets/index.json?paged=1';
@@ -208,6 +209,7 @@
     (() => {
       try {
         if ('sbt-tool-index' in localStorage) return;   // cached index → main.ts never fetches slim
+        if (sessionStorage.getItem('lolly-view-as')) return;
         // This instance refused its catalog last time (signed out, lib/catalog-access.ts):
         // loadSlimToolIndex will not adopt the answer, so asking again is only a 401.
         if ('lolly:catalog-refused:same-origin' in localStorage) return;

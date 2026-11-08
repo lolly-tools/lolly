@@ -5,6 +5,7 @@ import { t } from '../i18n.ts';
 import { safeHref } from '../utils.ts';
 import { getInstanceBase } from '../lib/instance.ts';
 import { publishNotification } from '../lib/notifications.ts';
+import { viewingAs } from './view-as.ts';
 import type { ChromeInjectable } from './index.ts';
 
 /** Slots the shell renders TODAY. An unwired slot renders nothing (fail-closed),
@@ -54,9 +55,13 @@ function readDismissed(): string[] {
   } catch { return []; }
 }
 function isDismissed(id: string): boolean {
+  // A view shows the partner's notices whatever this browser's own person closed.
+  if (viewingAs()) return false;
   return readDismissed().includes(id);
 }
 function rememberDismissed(id: string): void {
+  // Viewing as a partner: the bar closes for now, and no dismissal is recorded for them.
+  if (viewingAs()) return;
   try {
     const ids = readDismissed();
     if (!ids.includes(id)) localStorage.setItem(dismissKey(), JSON.stringify([...ids, id]));

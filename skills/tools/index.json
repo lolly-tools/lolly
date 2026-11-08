@@ -75,8 +75,8 @@
     {
       "version": 1,
       "toolId": "annotate",
-      "toolVersion": "1.1.0",
-      "toolVersionRange": "1.1.0",
+      "toolVersion": "1.1.1",
+      "toolVersionRange": "1.1.1",
       "skillRevision": "1",
       "origin": "generated",
       "references": [
@@ -85,7 +85,7 @@
       ],
       "files": {
         "SKILL.md": {
-          "sha256": "1442c9818ec10675a929a3a40146756ddffa2d9a4e3486b189c1087313af0b00",
+          "sha256": "5fc40b9c453219ca2529fc3590d736674c47bcd1d4c4d50cdc7ca054ff49f786",
           "bytes": 1868
         },
         "reference/inputs.json": {
@@ -1398,8 +1398,8 @@
     {
       "version": 1,
       "toolId": "sign",
-      "toolVersion": "1.0.2",
-      "toolVersionRange": "1.0.2",
+      "toolVersion": "1.1.0",
+      "toolVersionRange": "1.1.0",
       "skillRevision": "1",
       "origin": "generated",
       "references": [
@@ -1407,7 +1407,7 @@
       ],
       "files": {
         "SKILL.md": {
-          "sha256": "b79c83b28b5748616f0c6ab685e44aa9039aa60a7b954558a4c9c3cb27cd2528",
+          "sha256": "7c3a7c43f7162d9acbc7b031b8a85dcd46b77076847c25de65f3f188d3a07b13",
           "bytes": 1723
         },
         "reference/inputs.json": {

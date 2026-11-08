@@ -61,6 +61,7 @@
 // scripts/check-bundle-budget.ts.
 import { ENGINE_VERSION } from '../../../../engine/src/version.ts';
 import { openDB } from '../bridge/db.ts';
+import { markViewEnded, viewAsHeader, viewingAs } from '../org/view-as.ts';
 import { initPackStore, packActive, packAssetEntries, packFetch } from './pack-store.ts';
 
 /** Key of the persisted base inside the 'profile' KV store. */
@@ -296,7 +297,7 @@ export function adoptBootFetch(path: string): Promise<Response> | null {
   const pending = window.__lollyBootFetch?.[path];
   if (!pending) return null;
   delete window.__lollyBootFetch?.[path];
-  if (base || packActive()) return null;
+  if (base || packActive() || viewingAs()) return null;
   return pending;
 }
 
@@ -334,9 +335,18 @@ export function instanceFetch(input: string | URL, init?: RequestInit, limits?: 
   return transportFetch(url, init, limits);
 }
 
-function transportFetch(url: string, init?: RequestInit, limits?: InstanceFetchLimits): Promise<Response> {
-  if (hasTauriInternals() && isCrossOrigin(url)) return tauriRemoteFetch(url, withClientHeader(init), undefined, limits);
-  return (limits?.fallbackFetch ?? fetch)(url, isCrossOrigin(url) ? init : withClientHeader(init));
+async function transportFetch(url: string, init?: RequestInit, limits?: InstanceFetchLimits): Promise<Response> {
+  const crossOrigin = isCrossOrigin(url);
+  const response = await (hasTauriInternals() && crossOrigin
+    ? tauriRemoteFetch(url, withClientHeader(init, false), undefined, limits)
+    : (limits?.fallbackFetch ?? fetch)(url, crossOrigin ? init : withClientHeader(init)));
+  if (!crossOrigin && response.status === 403 && viewingAs()) {
+    try {
+      const body = await response.clone().json();
+      if (body?.error?.code === 'VIEWING_AS_ENDED') markViewEnded();
+    } catch { /* non-JSON responses still pass through unchanged */ }
+  }
+  return response;
 }
 
 /** The root-relative path of an instance URL (absolute or already relative).
@@ -387,9 +397,11 @@ async function packMergedAssetIndex(url: string, init: RequestInit | undefined, 
  * CROSS-origin fetch forces a CORS preflight, which a plain static host
  * serving a remote instance would fail - those requests stay untagged.
  */
-function withClientHeader(init?: RequestInit): RequestInit {
+function withClientHeader(init?: RequestInit, sameOrigin = true): RequestInit {
   const headers = new Headers(init?.headers);
   if (!headers.has('x-lolly-client')) headers.set('x-lolly-client', clientHeaderValue());
+  const token = sameOrigin ? viewAsHeader() : null;
+  if (token && !headers.has('x-lw-view-as')) headers.set('x-lw-view-as', token);
   return { ...init, headers };
 }
 
@@ -414,9 +426,12 @@ function hasTauriInternals(): boolean {
 }
 
 function isCrossOrigin(url: string): boolean {
-  if (!/^https?:/i.test(url)) return false;
+  // Resolved against the page, so a scheme-relative (`//host/...`) or backslashed URL,
+  // which fetch would send to another origin, counts as cross-origin and never carries
+  // this tab's headers.
   try {
-    return new URL(url).origin !== location.origin;
+    const page = new URL(location.href ?? location.origin);
+    return new URL(url, page).origin !== page.origin;
   } catch {
     return false;
   }

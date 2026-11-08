@@ -40624,7 +40624,9 @@ var init_preflight2 = __esm({
         id: "plates.palette-unresolved",
         severity: "info",
         needs: p.why,
-        message: "No brand palette resolved, so plate count is unavailable.",
+        // A process-only format has its 4 plates whatever the palette holds (plates.process
+        // counts them), so what goes unchecked there is the brand colours, not the count.
+        message: processOnly(c) ? "No brand palette resolved, so the brand colours cannot be checked for ink limits or rich black. The plate count is still known: this format has only the 4 process plates." : "No brand palette resolved, so plate count is unavailable.",
         evidence: { format: c.fmt, why: p.why }
       });
     };
@@ -172706,6 +172708,65 @@ async function organizePdf(bytes2, opts) {
     effects: effects(order)
   };
 }
+function parseStampPath(d) {
+  if (!d.trim() || d.length > STAMP_PATH_MAX_COMMANDS * 40) return null;
+  const tokens3 = d.match(/[A-Za-z]|[-+]?(?:\d+\.?\d*|\.\d+)(?:[eE][-+]?\d+)?/g);
+  if (!tokens3 || tokens3.join("").length !== d.replace(/[\s,]+/g, "").length) return null;
+  const out = [];
+  let i = 0, cx2 = 0, cy3 = 0, sx = 0, sy = 0, cmd = "";
+  const num23 = () => {
+    const t = tokens3[i];
+    if (t === void 0 || /^[A-Za-z]$/.test(t)) return null;
+    i++;
+    const v = Number(t);
+    return Number.isFinite(v) && Math.abs(v) < 1e7 ? Math.round(v * 1e4) / 1e4 : null;
+  };
+  while (i < tokens3.length) {
+    if (/^[A-Za-z]$/.test(tokens3[i])) cmd = tokens3[i++];
+    else if (!cmd || /[Zz]/.test(cmd)) return null;
+    const rel = cmd === cmd.toLowerCase(), up = cmd.toUpperCase();
+    const ox = rel ? cx2 : 0, oy = rel ? cy3 : 0;
+    if (up === "Z") {
+      out.push(["Z"]);
+      cx2 = sx;
+      cy3 = sy;
+    } else if (up === "M" || up === "L") {
+      const x = num23(), y = num23();
+      if (x === null || y === null) return null;
+      cx2 = ox + x;
+      cy3 = oy + y;
+      if (up === "M") {
+        sx = cx2;
+        sy = cy3;
+        out.push(["M", cx2, cy3]);
+        cmd = rel ? "l" : "L";
+      } else out.push(["L", cx2, cy3]);
+    } else if (up === "H" || up === "V") {
+      const v = num23();
+      if (v === null) return null;
+      if (up === "H") cx2 = (rel ? cx2 : 0) + v;
+      else cy3 = (rel ? cy3 : 0) + v;
+      out.push(["L", cx2, cy3]);
+    } else if (up === "C") {
+      const a = [num23(), num23(), num23(), num23(), num23(), num23()];
+      if (a.some((v) => v === null)) return null;
+      const [x1, y1, x2, y2, x, y] = a;
+      out.push(["C", ox + x1, oy + y1, ox + x2, oy + y2, ox + x, oy + y]);
+      cx2 = ox + x;
+      cy3 = oy + y;
+    } else if (up === "Q") {
+      const a = [num23(), num23(), num23(), num23()];
+      if (a.some((v) => v === null)) return null;
+      const qx = ox + a[0], qy = oy + a[1], x = ox + a[2], y = oy + a[3];
+      const r5 = (v) => Math.round(v * 1e4) / 1e4;
+      out.push(["C", r5(cx2 + 2 / 3 * (qx - cx2)), r5(cy3 + 2 / 3 * (qy - cy3)), r5(x + 2 / 3 * (qx - x)), r5(y + 2 / 3 * (qy - y)), x, y]);
+      cx2 = x;
+      cy3 = y;
+    } else return null;
+    if (out.length > STAMP_PATH_MAX_COMMANDS) return null;
+  }
+  return out.length && out[0][0] === "M" ? out : null;
+}
 async function stampPdf(bytes2, opts) {
   const doc = await loadEditablePdf(bytes2);
   const { StandardFonts: StandardFonts2, rgb: rgb3 } = await import("pdf-lib");
@@ -172741,6 +172802,35 @@ async function stampPdf(bytes2, opts) {
         font,
         color: rgb3(0.08, 0.08, 0.08)
       });
+      stamps++;
+    }
+  }
+  if (opts.paths?.length) {
+    const ops = await import("pdf-lib");
+    for (const mark of opts.paths) {
+      if (!Number.isInteger(mark.page) || mark.page < 1 || mark.page > doc.getPageCount()) {
+        throw pdfRefusal(`path page ${mark.page} is outside this ${doc.getPageCount()}-page document`);
+      }
+      const segments = parseStampPath(String(mark.d ?? ""));
+      if (!segments) throw pdfRefusal("a stamped path must be SVG path data");
+      const page3 = doc.getPage(mark.page - 1);
+      const hex4 = /^#([0-9a-f]{6})$/i.exec(String(mark.color ?? ""));
+      const n7 = hex4 ? parseInt(hex4[1], 16) : null;
+      const [r5, g2, b] = n7 === null ? [0.08, 0.08, 0.08] : [(n7 >> 16 & 255) / 255, (n7 >> 8 & 255) / 255, (n7 & 255) / 255];
+      const onPage = (v, max) => {
+        const n8 = Number(v);
+        return Number.isFinite(n8) ? Math.min(Math.max(0, n8), max) : 0;
+      };
+      const x = onPage(mark.x, page3.getWidth()), top = onPage(mark.y, page3.getHeight());
+      page3.pushOperators(
+        ops.pushGraphicsState(),
+        ops.setFillingRgbColor(r5, g2, b),
+        // The path reads y-down from its origin; PDF space reads y-up from the bottom.
+        ops.concatTransformationMatrix(1, 0, 0, -1, x, page3.getHeight() - top),
+        ...segments.map((seg5) => seg5[0] === "M" ? ops.moveTo(seg5[1], seg5[2]) : seg5[0] === "L" ? ops.lineTo(seg5[1], seg5[2]) : seg5[0] === "C" ? ops.appendBezierCurve(seg5[1], seg5[2], seg5[3], seg5[4], seg5[5], seg5[6]) : ops.closePath()),
+        ops.fill(),
+        ops.popGraphicsState()
+      );
       stamps++;
     }
   }
@@ -172832,7 +172922,7 @@ function createPdfAPI() {
     // (`typeof host.pdf?.redact === 'function'`).
   };
 }
-var PDF_LOAD_OPTS, INFO_FIELDS, xmpField, COMPRESS_LEVELS, MIN_IMAGE_BYTES;
+var PDF_LOAD_OPTS, INFO_FIELDS, xmpField, COMPRESS_LEVELS, MIN_IMAGE_BYTES, STAMP_PATH_MAX_COMMANDS;
 var init_pdf2 = __esm({
   "packages/node-shell/src/pdf.ts"() {
     "use strict";
@@ -172859,6 +172949,7 @@ var init_pdf2 = __esm({
       strong: { maxDim: 1100, quality: 0.58 }
     };
     MIN_IMAGE_BYTES = 12 * 1024;
+    STAMP_PATH_MAX_COMMANDS = 2e4;
   }
 });
 
