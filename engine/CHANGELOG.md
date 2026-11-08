@@ -6,6 +6,19 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+## 1.336.0
+
+- The approval record (`tools.lolly.approval`) gains its second closed shape, for one template version's variants (Lolly Work plans/82 M7, decision 5, approved by Andy on 2026-11-07): `{ version: 1, approvalId, decidedAt, covers: 'template', templateId, templateVersion, exampleSha256 }`. It holds no `reviewedSha256`, so the example's digest is never read as this file's. `C2paApprovalRecord` is now the union of `C2paFileApprovalRecord` (unchanged) and `C2paTemplateApprovalRecord`, and `isTemplateApproval` says which one a record is.
+- The writer stays closed: the six keys or the existing three, and nothing else. `templateId` is an identifier with up to two `/` segments (`inst/<id>`) and no spaces, so a template's name cannot take its place. `templateVersion` is a positive whole number and `exampleSha256` is `sha256:<64 hex>`. A template record goes in a variant render's own first credential, so it needs no credentialed parent. A file's record keeps that rule.
+- `verifyC2pa` reads either shape exactly (`readApprovalRecord`, exported from `c2pa-verify.ts` only). Under a template record the render's own facts are read from its own manifest, not from a parent. A reader from before this version requires exactly four keys, so it shows no approval for the new shape rather than a mislabelled one.
+- Verify, the CLI, the TUI and MCP read it as "Approved as a template: <templateId> v<n> (<FORMAT>). Example file sha256 ...". No file's bytes change unless a caller passes a template record.
+
+## 1.335.0
+
+- Partner kits (Lolly Work plan 82, M8; plan 334 M2a). `partner-kit-v1` is a partner company's logos pinned by asset version, up to 12 colours in closed roles (`primary`, `secondary`, `accent`, `text`, `surface`) and optional placement rules: clear space in mark-height units, a minimum size in px, mm or both, and the treatments the partner allows (`colour`, `mono`, `reverse`, `on-photo`). A kit carries no fonts, no themes and no token document, so it is never a design system, and its JSON is 64 KB at most. The types, the closed lists and every bound live in the SDK (`@lolly-tools/core/partner-kit-v1`, SDK 1.7.0), with `schemas/partner-kit-v1.schema.json` mirrored into `packages/core/schema/`.
+- New module `partner-kit.ts`, in the barrel: `checkPartnerKit(json)` reads a kit from its text or a value and says why it refused one (`kit.json`, `kit.too-large`, `kit.schema`, `kit.logo-duplicate`); `readPartnerKit(json)` returns the kit or null; `partnerKitLogoIds(kit)` lists the logo asset ids. `partnerKitColoursFromTokens(doc)` proposes the light look's primary, secondary and accent from a DTCG document, and `partnerKitColoursFromInks(colours)` proposes colours from an SVG logo's inks (`extractSvgColors`). Neither proposes a rule.
+- Additive only. No module that exists changes behaviour, and nothing reads a kit yet.
+
 ## 1.334.0
 
 - The design-system record gains the partner a piece was made for (Lolly Work plans/82 M3, approved by Andy on 2026-11-07). `ExportMeta.partner` (SDK, optional, new `ExportPartner`) holds the partner company (id, name, details revision) and programme (id, name). The runtime takes it from the host through `runtime.setPartner()` and gives it back through `runtime.partner()`, so a second runtime that exports the same document (the web shell's multi-page Design export) records the same partner. An export records it under the record's one switch: the card's "Design system" box, `_madewith` and `--no-madewith` leave it out with the rest.

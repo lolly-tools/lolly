@@ -4,6 +4,8 @@
  * as they were, and the approved file is those bytes plus a signed update naming the
  * reviewed credential as parent. These tests prove the artwork did not change, that the
  * record holds only what Andy approved, and that a readback is what decides "recorded".
+ * A template's approval (plans/82 M7) is the second closed shape: written into a variant
+ * render's own credential, naming the template and the example the reviewer saw.
  * Cross-checked with c2patool where it is installed; skipped by name where it is not.
  */
 import { test } from 'node:test';
@@ -16,8 +18,9 @@ import { Resvg } from '@resvg/resvg-js';
 import sharp from 'sharp';
 import { embedC2pa, generateSigner, LOLLY_APPROVAL_ASSERTION, LOLLY_EXPORT_ASSERTION, type C2paApprovalRecord } from '../engine/src/c2pa.ts';
 import { APPROVAL_RECORD_FORMATS, artworkUnchanged, recordApprovalInCredential } from '../engine/src/c2pa-approval.ts';
-import { extractC2paStore, parseC2paStore, prepareC2paIngredient, verifyC2pa } from '../engine/src/c2pa-verify.ts';
+import { extractC2paStore, parseC2paStore, prepareC2paIngredient, readApprovalRecord, verifyC2pa } from '../engine/src/c2pa-verify.ts';
 import { decodeCbor } from '../engine/src/c2pa-extract.ts';
+import { encodeCbor } from '../engine/src/c2pa.ts';
 import { verdictApproval } from '../packages/node-shell/src/verdict-report.ts';
 
 const hasC2patool = spawnSync('c2patool', ['--version']).status === 0;
@@ -334,3 +337,90 @@ test('terminals and agents read the record in the same words, and say so when a 
 
   assert.equal(verdictApproval(await verifyC2pa(await reviewedFile('png', signer))), null, 'no record, no section');
 });
+
+// A template's approval (plans/82 M7, decision 5): the approval id and date, covers
+// 'template' with the template id and version, and the example's digest labelled as the
+// example's. Work writes it into a variant render's own credential.
+const TEMPLATE_APPROVAL = { ...APPROVAL, covers: 'template' as const, templateId: 'inst/MuU9SdcSHiM', templateVersion: 3, exampleSha256: `sha256:${'c'.repeat(64)}` };
+
+for (const format of APPROVAL_RECORD_FORMATS) {
+  test(`${format}: a variant render carries the template's approval in its own first credential, and the reader reports it`, async () => {
+    const signer = await signerFor();
+    const file = await embedC2pa(await plain(format), format, { ...ORIGIN, signer, approval: TEMPLATE_APPROVAL });
+    const report = await verifyC2pa(file);
+    assert.equal(report.state, 'valid', JSON.stringify(report.checks.filter((c) => !c.ok)));
+    assert.deepEqual(report.approval, TEMPLATE_APPROVAL);
+    assert.equal(report.ingredients?.some((i) => i.relationship === 'parentOf') ?? false, false, 'no parent: the render is the first credential');
+    assert.equal(report.environment?.tool, 'qr-code', 'the render\'s own facts are there beside the record');
+    const map = decodeCbor(activeAssertion(file, LOLLY_APPROVAL_ASSERTION)!) as Map<string, unknown>;
+    assert.deepEqual([...map.keys()].sort(), ['approvalId', 'covers', 'decidedAt', 'exampleSha256', 'templateId', 'templateVersion', 'version']);
+    assert.equal(map.get('version'), 1);
+    assert.equal(map.has('reviewedSha256'), false, 'the example\'s digest is never labelled as this file\'s');
+  });
+}
+
+test('the template record is closed too: no other field, no name for an id, and nothing of the file shape', async () => {
+  const signer = await signerFor();
+  const png = await plain('png');
+  for (const extra of [{ approver: 'Bruno Marques' }, { templateName: 'Partner data sheet' }, { reviewedSha256: `sha256:${'b'.repeat(64)}` }, { format: 'png' }]) {
+    await assert.rejects(embedC2pa(png, 'png', { signer, approval: { ...TEMPLATE_APPROVAL, ...extra } as C2paApprovalRecord }), /an approval record cannot carry/);
+  }
+  for (const templateId of ['Partner data sheet', 'inst/partner data sheet', '', 'inst//x', '../x', 'a/b/c/d']) {
+    await assert.rejects(embedC2pa(png, 'png', { signer, approval: { ...TEMPLATE_APPROVAL, templateId } }), /templateId/, templateId);
+  }
+  for (const templateVersion of [0, -1, 1.5, Number.NaN, '3' as unknown as number]) {
+    await assert.rejects(embedC2pa(png, 'png', { signer, approval: { ...TEMPLATE_APPROVAL, templateVersion } }), /templateVersion/, String(templateVersion));
+  }
+  await assert.rejects(embedC2pa(png, 'png', { signer, approval: { ...TEMPLATE_APPROVAL, exampleSha256: 'nope' } }), /exampleSha256/);
+  await assert.rejects(embedC2pa(png, 'png', { signer, approval: { ...TEMPLATE_APPROVAL, covers: 'tool' } as unknown as C2paApprovalRecord }), /covers/);
+  // A file's approval still needs its credentialed parent.
+  await assert.rejects(embedC2pa(png, 'png', { signer, approval: { ...APPROVAL, reviewedSha256: `sha256:${'b'.repeat(64)}` } }), /needs a credentialed parentOf ingredient/);
+});
+
+test('the reader takes each closed shape exactly, and never reads a template\'s record as a reviewed file\'s', () => {
+  const map = (entries: Record<string, unknown>): Uint8Array => encodeCbor(new Map(Object.entries(entries)));
+  const file = { version: 1, approvalId: 'apr_abc12345', decidedAt: '2026-11-05T10:15:00.000Z', reviewedSha256: `sha256:${'b'.repeat(64)}` };
+  const template = { version: 1, ...TEMPLATE_APPROVAL };
+  assert.deepEqual(readApprovalRecord(map(file)), { approvalId: file.approvalId, decidedAt: file.decidedAt, reviewedSha256: file.reviewedSha256 });
+  assert.deepEqual(readApprovalRecord(map(template)), TEMPLATE_APPROVAL);
+  assert.equal(readApprovalRecord(map({ ...template, reviewedSha256: file.reviewedSha256 })), null, 'both digests: neither shape');
+  assert.equal(readApprovalRecord(map({ ...file, covers: 'template' })), null);
+  assert.equal(readApprovalRecord(map({ ...template, covers: 'tool' })), null);
+  assert.equal(readApprovalRecord(map({ ...template, templateId: 'Partner data sheet' })), null, 'a name in the id is refused');
+  assert.equal(readApprovalRecord(map({ ...template, templateVersion: 0 })), null);
+  assert.equal(readApprovalRecord(map({ ...template, exampleSha256: 'sha256:xyz' })), null);
+  assert.equal(readApprovalRecord(map({ ...template, version: 2 })), null);
+});
+
+test('a reader from before the template shape shows no approval for it, never a mislabelled one', async () => {
+  // The reader as it stood before this engine version: version 1 and exactly four keys.
+  const olderReader = (content: Uint8Array) => {
+    const m = decodeCbor(content);
+    if (!(m instanceof Map) || m.get('version') !== 1 || m.size !== 4) return null;
+    const reviewedSha256 = m.get('reviewedSha256');
+    return typeof reviewedSha256 === 'string' && /^sha256:[0-9a-f]{64}$/.test(reviewedSha256) ? { reviewedSha256 } : null;
+  };
+  const signer = await signerFor();
+  const file = await embedC2pa(await plain('png'), 'png', { ...ORIGIN, signer, approval: TEMPLATE_APPROVAL });
+  assert.equal(olderReader(activeAssertion(file, LOLLY_APPROVAL_ASSERTION)!), null);
+});
+
+test('terminals and agents read a template\'s approval in the approved words, with the example\'s digest named as the example\'s', async () => {
+  const signer = await signerFor();
+  const file = await embedC2pa(await plain('png'), 'png', { ...ORIGIN, signer, approval: TEMPLATE_APPROVAL });
+  const read = verdictApproval(await verifyC2pa(file))!;
+  assert.equal(read.intact, true);
+  assert.deepEqual(read.facts.map(([k]) => k), ['Request', 'Decided', 'Covers', 'This file']);
+  assert.ok(read.facts.some(([k, v]) => k === 'Covers' && v === `Approved as a template: inst/MuU9SdcSHiM v3 (PNG). Example file sha256 ${'c'.repeat(64)}`), JSON.stringify(read.facts));
+  assert.ok(!read.facts.some(([k]) => k === 'Reviewed'), 'no reviewed-file row: the example is a different file');
+});
+
+for (const format of ['png', 'svg'] as const) {
+  test(`c2patool reads a ${format} variant render with the template's approval as one valid credential`, { skip: hasC2patool ? false : 'c2patool not installed (brew install c2patool)' }, async () => {
+    const signer = await signerFor();
+    const file = await embedC2pa(await plain(format), format, { ...ORIGIN, signer, approval: TEMPLATE_APPROVAL });
+    const report = c2patoolReport(file, format);
+    assert.equal(report.manifests, 1);
+    assert.deepEqual(report.beyondTrust, []);
+  });
+}

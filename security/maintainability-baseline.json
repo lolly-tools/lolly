@@ -57,7 +57,7 @@
     },
     "shells/web/src/views/deck-editor.ts": {
       "lines": 1969,
-      "largestFunctionLines": 1743,
+      "largestFunctionLines": 1670,
       "importFanIn": 2,
       "importFanOut": 10,
       "typeEscapes": 0
@@ -89,6 +89,13 @@
       "importFanIn": 33,
       "importFanOut": 69,
       "typeEscapes": 3
+    },
+    "shells/web/src/views/present-mode.ts": {
+      "lines": 1532,
+      "largestFunctionLines": 1651,
+      "importFanIn": 2,
+      "importFanOut": 20,
+      "typeEscapes": 0
     },
     "shells/web/src/views/projects.ts": {
       "lines": 2018,
