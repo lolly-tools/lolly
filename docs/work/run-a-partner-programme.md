@@ -59,8 +59,10 @@ Work in this order. Everything can be changed later.
    and upload its logo for light surfaces, its logo for dark surfaces and an optional square mark.
    Lolly Work checks each logo and flags one that is hard to see on your design system's surfaces.
    You can let named contacts at the company edit the details themselves, and you can ask for
-   approval of their changes. Both are off by default
-   ([Company details and logos](partner-programmes.md#company-details-and-logos)).
+   approval of their changes. Both are off by default. When the company has rules of its own for
+   its logo, such as clear space and a minimum size, keep them as the company's partner kit
+   ([Company details and logos](partner-programmes.md#company-details-and-logos),
+   [Partner kits](partner-programmes.md#partner-kits)).
 4. **Publish templates.** Someone draws each template: your brand team, or a designer in your own
    team, depending on how your organisation works. Publish it from the programme's **Templates**
    card, choose who gets it and untick what partners may not change. Under **Change**, **Takes
@@ -97,6 +99,10 @@ Rita works at Northwind IT, a company in Resellers, EMEA. When she signs in, her
   as a preview.
 - **The end of her access**, when there is one. Her company card adds a line such as "Your access
   through Resellers, EMEA ends on 21 November 2026".
+- **Her company's kit**, when it has one. New work starts with Northwind IT's kit attached: colours
+  offer the company's colours under its name, the picture picker offers its logos first, and Lolly
+  Design's checks point out a mark smaller than the kit allows or too close to other artwork. A
+  finding is a note to review and never stops an export.
 
 In a template, the inputs she may change are the only controls shown. Northwind IT's logo and
 details are already in place, and a logo the template takes by mode follows the piece between
@@ -171,9 +177,7 @@ agents are off unless you turn them on ([Partners' agents](partner-programmes.md
 
 ## Not yet
 
-- **Partner kits in the app.** A partner company's own rules for its logo, such as clear space and
-  minimum size, checked as a partner works in Lolly Design. Lolly Work keeps a kit for each company
-  today, with `lw companies kit`; a console card and the check in the app are planned.
+- **A console card for partner kits.** Kits are kept with `lw companies kit` until then.
 
 ## Related
 

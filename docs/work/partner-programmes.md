@@ -423,8 +423,20 @@ company's people and agents receive; a change is a new revision.
   deleting the company deletes the kit. With the licence gate on, a kit counts as the company's own
   file.
 
-Kits are kept with `lw companies kit show|import|set|remove` and the routes below today. A console
-card, and the check in Lolly Design as partners work, are planned.
+Kits are kept with `lw companies kit show|import|set|remove` and the routes below today; a console
+card is planned.
+
+**In the app.** A partner in a company with a kit starts new work with the kit attached. The tool's
+**Design system** section, or Lolly Design's inspector, reads "Partner kit: Northwind IT · revision
+2", with **Detach**, and a piece without the kit offers "Attach Northwind IT's kit". The colour
+field offers the kit's colours in a group under the company's name, and the picture picker offers
+the kit's logos first. Lolly Design's checks and **Before you export** point out a mark smaller than
+the kit allows, a mark inside another mark's clear space and a treatment the kit does not allow, for
+example "Northwind IT's mark is 48 px high; the kit asks for at least 96 px.", with one sentence
+for each thing they could not measure. A finding is for review and never blocks an export. The kit
+is never a design system: your brand still leads, and the app's look stays the same. A piece's
+attachment travels in its share link as `_kit`, and someone the kit is not served to sees the piece
+without the kit.
 
 ## Add people
 
@@ -983,9 +995,7 @@ lw programmes usage resellers-emea --by week --csv
 
 ## Not yet
 
-- **Partner kits in the console and the app**: a console card for a company's kit, and the kit's
-  check as partners work in Lolly Design. [`lolly check --kit`](/info/cli-decks.html) reads a kit
-  file today.
+- **A console card for partner kits.** The routes and `lw companies kit` above do the work today.
 - **Share with rules files made from tools other than Design.**
 
 ## Related

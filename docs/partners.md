@@ -9,7 +9,7 @@ Two words mean the same thing everywhere on this page. The **lead brand** is the
 - **One design system draws each piece.** The lead brand's colours, type and house rules apply. The partner's mark goes in as artwork: a picture from Assets, or a custom mark kept in a design system.
 - **A brand travels as a file.** A design-system file (`.lolly`) carries tokens, fonts and logos. A reusable tool made with **Share with rules** carries one finished layout with the inputs you allow. Brand skills travel as files of their own.
 - **A brand can also have an address.** A [brand page](/info/brand-page.html) publishes logos, colours, type and rules for a partner to read, with tokens and skills for their tools.
-- **Lolly checks the lead brand's rules only.** It does not know the partner's rules, such as clear space or minimum size, so check those against the partner's own guidelines.
+- **Lolly checks the lead brand's rules only.** It does not know the partner's rules, such as clear space or minimum size, so check those against the partner's own guidelines. In a Lolly Work partner programme, a company's partner kit holds its rules, and Lolly Design checks the company's marks against the kit.
 - **A whole programme of partners runs on Lolly Work.** When resellers, distributors or other partners make pieces in your brand on your own Lolly Work, a partner programme gives each partner company only the tools, files and templates you choose, keeps the company's logos and details, fills them into your templates and records the company in each file. [Run a partner programme](/info/manage/run-a-partner-programme.html) is the guide for the team that runs one.
 
 ## Share your brand with a partner
@@ -118,8 +118,8 @@ Lolly Logo Wall does not know any sponsor's rules. Tiers and Presence set sizes 
 ## What Lolly does not do yet
 
 - A piece is drawn in one design system. The partner's colours, type and rules are not a design system inside the piece, and the partner's mark is a picture.
-- Partner rules are not held or checked in the app: clear space, minimum size and allowed treatments such as one colour or reverse. Lolly checks the lead brand's house rules only.
-- A partner kit, a light pack that holds a partner's logos, colours and rules for use inside another brand's work, is not in the app yet. Lolly Work keeps one for each partner company in a programme, and the kit's check exists: `lolly check --kit=<file>` measures a Lolly Design document's partner marks from a terminal ([Check the recreation](/info/cli-decks.html#check-the-recreation)).
+- Outside a Lolly Work partner programme, partner rules are not held or checked in the app: clear space, minimum size and allowed treatments such as one colour or reverse. Lolly checks the lead brand's house rules only.
+- A partner kit, a light pack that holds a partner's logos, colours and rules for use inside another brand's work, reaches the app only through a Lolly Work partner programme. Elsewhere, the kit's check runs from a terminal: `lolly check --kit=<file>` measures a Lolly Design document's partner marks from a terminal ([Check the recreation](/info/cli-decks.html#check-the-recreation)).
 - Lolly does not generate a lockup from two marks for a "with", "in partnership with" or "by" arrangement. Add a finished lockup as a custom mark.
 - One design system is active for the whole device, so two brands cannot be open side by side.
 - A design-system file is a copy of the brand as it was exported, and nothing updates the copy. A design-system file exported from the app does not carry brand skills, so send those as files of their own.
