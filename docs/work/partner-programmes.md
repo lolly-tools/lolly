@@ -466,16 +466,24 @@ company's people and agents receive; a change is a new revision.
 - **The logos** a kit pins must be the company's own logos from its page.
 - **Who edits.** Anyone with `programme.manage`, and a contact who may edit the company's details.
   While contact changes need approval, a contact may change the kit only when kit review is on.
-- **Kit review**, off by default. Kit changes apply at once until you choose a chain for them
-  (`lw companies profile settings resellers-emea northwind-it --kit-chain <chain>`, and `none`
-  turns review off). Then every kit change, your team's or a contact's, waits for approval, and an
+- **Kit review**, off by default. Kit changes apply at once until you turn on **Kit changes need
+  approval** on the card, or choose a chain with
+  `lw companies profile settings resellers-emea northwind-it --kit-chain <chain>` (`none` turns
+  review off). Then every kit change, your team's or a contact's, waits for approval, and an
   approved change applies only onto the revision it was made against.
 - **Ending.** Ending a partnership retires the kit, Reopen brings back the revision it retired, and
   deleting the company deletes the kit. With the licence gate on, a kit counts as the company's own
   file.
 
-Kits are kept with `lw companies kit show|import|set|remove` and the routes below today; a console
-card is planned.
+**The Partner kit card** on the company page, after **Logos**, keeps the kit in the console.
+**Import** takes a tokens file or a `.lolly` share, dropped or chosen, and **Make from the logos**
+reads colours from the company's SVG logos. An import is a proposal, and nothing is stored until
+**Save**. You edit the label and the colours' names and roles, and type the placement rules: clear
+space in mark heights, a minimum size in px and mm, and the allowed treatments. Lolly offers no
+defaults, and an empty field stores no rule. The logo pins are read only. The card shows "Up to 12
+colours, 64 KB, logos pinned by version", and **All limits** lists the rest. Preview as a company
+shows the kit's line, such as "Northwind IT · revision 1". From a terminal,
+`lw companies kit show|import|set|remove` does the same.
 
 **In the app.** A partner in a company with a kit starts new work with the kit attached. The tool's
 **Design system** section, or Lolly Design's inspector, reads "Partner kit: Northwind IT · revision
@@ -1073,8 +1081,7 @@ lw programmes usage resellers-emea --by week --csv
 
 ## Not yet
 
-- **A console card for partner kits, and the kit in exported files.** The routes and
-  `lw companies kit` above do the work today.
+- **The kit in exported files**: recording which revision of a company's kit a piece carried.
 - **Share with rules files made from tools other than Design.**
 
 ## Related

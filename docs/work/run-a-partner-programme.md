@@ -60,8 +60,8 @@ Work in this order. Everything can be changed later.
    Lolly Work checks each logo and flags one that is hard to see on your design system's surfaces.
    You can let named contacts at the company edit the details themselves, and you can ask for
    approval of their changes. Both are off by default. When the company has rules of its own for
-   its logo, such as clear space and a minimum size, keep them as the company's partner kit
-   ([Company details and logos](partner-programmes.md#company-details-and-logos),
+   its logo, such as clear space and a minimum size, keep them on the company page's **Partner
+   kit** card ([Company details and logos](partner-programmes.md#company-details-and-logos),
    [Partner kits](partner-programmes.md#partner-kits)).
 4. **Publish templates.** Someone draws each template: your brand team, or a designer in your own
    team, depending on how your organisation works. Publish it from the programme's **Templates**
@@ -404,8 +404,8 @@ links and tokens stay ended.
 
 ## Not yet
 
-- **A console card for partner kits, and the kit in exported files.** Kits are kept with
-  `lw companies kit` until the card arrives.
+- **The kit in exported files.** An export records the partner company, and recording which
+  revision of the company's kit was attached is planned.
 
 ## Related
 
