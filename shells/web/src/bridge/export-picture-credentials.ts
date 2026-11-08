@@ -102,21 +102,90 @@ function drawnPicture(img: HTMLImageElement, root: Element): boolean {
   return true;
 }
 
+/** A picture's credential, read from its `src` as it is: a `data:` URL decoded, anything else fetched. */
+async function pictureFromSrc(src: string): Promise<IngredientCredential | null> {
+  // The bytes are read as they are, with no detour through a data: URL: nothing is inlined here.
+  const ing = src.startsWith('data:') ? pictureIngredient(src)
+    : await fetch(src).then(async (r) => (r.ok ? bytesIngredient(new Uint8Array(await r.arrayBuffer())) : null)).catch(() => null);
+  // An SVG source is left out, as the walkers leave it out: they draw it as vectors, and it
+  // keeps its own manifest in its own markup.
+  return ing?.format === 'svg' ? null : ing;
+}
+
 /**
  * The raster routes' record of the pictures they paint: every `<img>` the walkers
- * would draw, in document order, read and recorded as they record theirs. An SVG
- * source is left out, as the walkers leave it out: they draw it as vectors, and it
- * keeps its own manifest in its own markup. Formats a walker draws record their
- * pictures as they walk, so this only runs for the still raster formats.
+ * would draw, in document order, read and recorded as they record theirs. Formats a
+ * walker draws record their pictures as they walk, so this only runs for the still
+ * raster formats; a motion format records per frame (framePictureRecorder) or per
+ * timeline layer (recordLayerPictures).
  */
 export async function recordDrawnPictures(node: Element, format: string, sink: IngredientCredential[] | undefined): Promise<void> {
   if (!sink || !RASTER_STILLS.has(format)) return;
   for (const img of node.querySelectorAll('img')) {
     const src = img.src || img.getAttribute('src') || '';
     if (!src || !drawnPicture(img, node)) continue;
-    // The bytes are read as they are, with no detour through a data: URL: nothing is inlined here.
-    const ing = src.startsWith('data:') ? pictureIngredient(src)
-      : await fetch(src).then(async (r) => (r.ok ? bytesIngredient(new Uint8Array(await r.arrayBuffer())) : null)).catch(() => null);
-    if (ing?.format !== 'svg') keep(sink, ing);
+    keep(sink, await pictureFromSrc(src));
   }
+}
+
+/**
+ * The record for a motion export that paints the page's DOM frame by frame (video, GIF,
+ * APNG, animated WebP through createFrameSource). Call it once per captured frame, at
+ * that frame's pose: every picture the frame draws, by the stills' rule, is recorded, so
+ * a picture drawn in any frame of the clip is a component of the file. Each source's
+ * bytes are read once, at the first frame that draws the picture. Null when the export is not
+ * stamped, so an unstamped clip never reads a picture.
+ */
+export function framePictureRecorder(node: Element, sink: IngredientCredential[] | undefined): (() => Promise<void>) | null {
+  if (!sink) return null;
+  const read = new Set<string>();
+  return async () => {
+    for (const img of node.querySelectorAll('img')) {
+      const src = img.src || img.getAttribute('src') || '';
+      if (!src || read.has(src) || !drawnPicture(img, node)) continue;
+      read.add(src);
+      keep(sink, await pictureFromSrc(src));
+    }
+  };
+}
+
+/** One timeline layer as the sequence plan reads it: enough to say whether it draws in a range. */
+export interface PictureLayer { el: Element; kind: string; startMs: number; durMs: number; ignored?: boolean }
+
+/**
+ * The record for a sequence export (Design and Sequence motion), which draws each layer
+ * from its authored DOM: the pictures in every DOM-drawn (`static`) layer that is on
+ * screen at some time in the exported range, by the stills' rule within the layer.
+ * A picture inside a nested layer belongs to that layer and is judged by its timing.
+ * Video and audio clips are recorded by the sequence's own gather; a struck-through
+ * layer draws nothing and records nothing.
+ *
+ * `offClass` is the class the playhead puts on a box outside its window. The compositor
+ * clears it for each plate it shoots (rasterBox), so it is cleared here too while the
+ * pictures are judged. The judging is synchronous, so nothing paints in between.
+ */
+export async function recordLayerPictures(
+  layers: readonly PictureLayer[], range: { fromMs: number; toMs: number }, sink: IngredientCredential[] | undefined, offClass = 'seq-off',
+): Promise<void> {
+  if (!sink) return;
+  const layerEls = new Set(layers.map((L) => L.el));
+  const ownerOf = (img: Element): Element | null => {
+    for (let el = img.parentElement; el; el = el.parentElement) if (layerEls.has(el)) return el;
+    return null;
+  };
+  const drawn: string[] = [];
+  for (const L of layers) {
+    if (L.ignored || L.kind !== 'static' || !(L.startMs < range.toMs && L.startMs + L.durMs > range.fromMs)) continue;
+    const off = [L.el, ...L.el.querySelectorAll(`.${offClass}`)].filter((el) => el.classList.contains(offClass));
+    for (const el of off) el.classList.remove(offClass);
+    try {
+      for (const img of L.el.querySelectorAll('img')) {
+        const src = img.src || img.getAttribute('src') || '';
+        if (src && ownerOf(img) === L.el && drawnPicture(img, L.el)) drawn.push(src);
+      }
+    } finally {
+      for (const el of off) el.classList.add(offClass);
+    }
+  }
+  for (const src of new Set(drawn)) keep(sink, await pictureFromSrc(src));
 }

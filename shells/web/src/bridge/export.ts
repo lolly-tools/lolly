@@ -83,6 +83,7 @@ import { _host, dropInlinedCredentials, canvasToBlob, imprintCanvas, exportDims,
 import { beginFrameClock, renderFrameAt, endFrameClock, withStillHold, posedFrame } from './frame-clock.ts';
 import { isTopTailStage, isRecordStage } from './export-shared.ts';
 import type { WebHost, ExportOpts, ExportDims, ImprintState, Rgba } from './export-shared.ts';
+import { framePictureRecorder } from './export-picture-credentials.ts';
 import { renderSvgFromHtml, stripCommentNodes, inlineBlobUrlsInEl, inlineSvgFromImg, imprintEmbedCanvas, isPaintSkipped, inlinePicture, recordDrawnPictures, rotationPivot, rasterizePosedNodeToDataUrl, effectSpillCss, detectUnsupportedCss, rasterizeNodeToDataUrl, firstCssUrl, cssUrlToHref, bakeImageFilter, mergeDeco, decoFlags, pdfInlineNonText, type Deco } from './export-svg-walker.ts';
 import { designOpsSvg, renderDesignOpsPdf } from './export-design-ops.ts';
 import { finishPng, durableEmbedCanvas } from './export-raster-finish.ts';
@@ -4132,6 +4133,8 @@ export async function createFrameSource(node: Element, opts: ExportOpts & { fram
       height: `${nodeH}px`,
     },
   };
+  // A stamped clip records the pictures its frames draw (D2, as the stills do since #779).
+  const recordFramePictures = framePictureRecorder(node, opts._ingredientSink);
   const restore = await swapBlobUrls(node);
   const waitMs = (opts.wait ?? 1) * 1000;
   const durationMs = (opts.duration ?? 5) * 1000;   // same default every caller uses to derive frameCount
@@ -4261,6 +4264,8 @@ export async function createFrameSource(node: Element, opts: ExportOpts & { fram
       // frameClock - a clocked canvas can still share the DOM with CSS-animated
       // chrome around it. No-op when the node has none.
       scrubAnimations(node, t * durationMs, scrubbedAnims);
+      // The frame is posed: the pictures it draws are recorded before it is taken.
+      if (recordFramePictures) await recordFramePictures();
       // A Node caller's real screenshot replaces dom-to-image, and SMIL (which
       // scrubAnimations cannot reach) is posed at this frame's time: see posedFrame.
       const posed = await posedFrame(node, t * durationMs, window.__lollyCaptureScreenshot ? () => captureViaExternalScreenshot(targetW, targetH, window.__lollyCaptureScreenshot!) : null, () => lib.toCanvas(node, dtoOpts));

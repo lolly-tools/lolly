@@ -231,6 +231,7 @@ import type { AudioPcm } from '../lib/audio-encode.ts';
 // nothing in THIS file can be reached by a headless test - see its header.
 import { gatherSequenceIngredients, type SequenceIngredientSource } from './sequence-ingredients.ts';
 import { assetIdForUrl, MAX_CREDENTIAL_SCAN_BYTES } from './assets.ts';
+import { recordLayerPictures } from './export-picture-credentials.ts';
 
 /**
  * The slice of the web host this renderer needs.
@@ -1584,6 +1585,9 @@ async function renderSequenceAuthored(
 
   const authoredTotalSec = stage.totalMs / 1000;
   const range = sequenceSettings(node, stage.totalMs, opts.sequenceRange);
+  // A stamped film records the pictures its DOM-drawn layers place in the exported range
+  // (D2, as the stills do since #779). Video and audio clips are gathered above.
+  if (opts.c2pa) await recordLayerPictures(stage.layers, range, opts._ingredientSink, OFF_CLASS);
   const fps = format === 'gif' ? GIF_FPS : Math.max(1, Math.round(opts.fps ?? range.fps));
   const grid = capture?.timesMs ?? frameTimestamps(range.toMs - range.fromMs, fps).map(ms => ms + range.fromMs);
   if (!grid.length) throw sequenceError('SEQ_DECODE_FAILED', 'sequence has no frames');

@@ -112,3 +112,51 @@ test('only the still raster formats read the page, and only when the export is s
   }
   await recordDrawnPictures(root, 'png', undefined);
 });
+
+// D2 (2026-11-07): an animated or video export of the same page recorded none of its
+// pictures. The frame source now records, at each captured frame's pose, the pictures
+// that frame draws; a film records the pictures of every DOM-drawn layer on screen in
+// the exported range.
+test('a clip records each picture any of its frames draws, once, and only when stamped', async () => {
+  const { framePictureRecorder } = await import('./export-picture-credentials.ts');
+  const early = await signedPng('Shown in the first frame');
+  const late = await signedPng('Shown later', GENERATED_SOURCE_TYPE);
+  const root = page(`<img id="a" src="${early}"><img id="b" style="opacity:0" src="${late}"><img id="c" style="display:none" src="${await signedPng('Never shown')}">`);
+  assert.equal(framePictureRecorder(root, undefined), null, 'an unstamped clip reads no picture');
+  const sink: IngredientCredential[] = [];
+  const record = framePictureRecorder(root, sink)!;
+  await record();                                   // frame 1: only the first picture is drawn
+  assert.deepEqual(sink.map((i) => i.title), ['Shown in the first frame']);
+  (root.querySelector('#b') as HTMLElement).style.opacity = '1';
+  await record();                                   // a later frame fades the second one in
+  await record();
+  assert.deepEqual(sink.map((i) => i.title), ['Shown in the first frame', 'Shown later'], 'each picture once, in the order the clip shows them');
+  assert.ok(sink.every((i) => i.relationship === 'componentOf'));
+  assert.equal(sink[1]!.digitalSourceType, GENERATED_SOURCE_TYPE);
+});
+
+test('a film records the pictures of the DOM-drawn layers on screen in the exported range', async () => {
+  const { recordLayerPictures } = await import('./export-picture-credentials.ts');
+  const root = page(`
+    <style>.seq-off { display: none }</style>
+    <div id="in" class="seq-off"><img src="${await signedPng('In range, off the playhead')}">
+      <div id="nested"><img src="${await signedPng('Nested, before the range')}"></div></div>
+    <div id="out"><img src="${await signedPng('Before the range')}"></div>
+    <div id="struck"><img src="${await signedPng('Struck through')}"></div>
+    <div id="clip"><img src="${await signedPng('A video layer poster')}"></div>`);
+  const el = (id: string): Element => root.querySelector(`#${id}`)!;
+  const layers = [
+    { el: el('in'), kind: 'static', startMs: 4000, durMs: 3000 },
+    { el: el('nested'), kind: 'static', startMs: 0, durMs: 2000 },
+    { el: el('out'), kind: 'static', startMs: 0, durMs: 2000 },
+    { el: el('struck'), kind: 'static', startMs: 4000, durMs: 3000, ignored: true },
+    { el: el('clip'), kind: 'video', startMs: 4000, durMs: 3000 },
+  ];
+  const sink: IngredientCredential[] = [];
+  await recordLayerPictures(layers, { fromMs: 3000, toMs: 6000 }, sink);
+  assert.deepEqual(sink.map((i) => i.title), ['In range, off the playhead'],
+    'a box the playhead hides is still drawn by the film, and a nested layer keeps its own timing');
+  assert.ok(el('in').classList.contains('seq-off'), 'the playhead class is put back');
+  await recordLayerPictures(layers, { fromMs: 0, toMs: 6000 }, undefined);
+  assert.deepEqual(sink.map((i) => i.title), ['In range, off the playhead'], 'an unstamped film reads no picture');
+});
