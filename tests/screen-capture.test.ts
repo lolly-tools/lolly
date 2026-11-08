@@ -78,7 +78,7 @@ test('the sensor capabilities still validate (screen is additive, not a replacem
 
 // ─── version ─────────────────────────────────────────────────────────────────
 
-test('ENGINE_VERSION is 1.336.0', () => {
+test('ENGINE_VERSION is 1.337.0', () => {
   // A literal pin: the screencap surface shipped at 1.54, and tools declare
   // ^1.54.0 to require it. session-record only checks the stamp equals whatever
   // ENGINE_VERSION happens to be (tautological) - this catches an errant bump.
@@ -608,8 +608,8 @@ test('ENGINE_VERSION is 1.336.0', () => {
   // 1.333.0 reads the `_text` URL param (EMF text as outlines) and counts an EMF's live text runs. Capture is unchanged.
   // 1.334.0 records the partner beside the design system. Capture is unchanged.
   // 1.335.0 adds the partner kit reader (partner-kit-v1). Capture is unchanged.
-  // 1.336.0 adds the guest-mark checks against a partner kit. Capture is unchanged.
-  assert.equal(ENGINE_VERSION, '1.336.0');
+  // 1.337.0 adds the guest-mark checks against a partner kit. Capture is unchanged.
+  assert.equal(ENGINE_VERSION, '1.337.0');
 });
 
 // ─── loadTool: a ^1.54.0 tool loads against this engine ───────────────────────
