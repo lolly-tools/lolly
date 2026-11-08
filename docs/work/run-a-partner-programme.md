@@ -206,7 +206,7 @@ On its page, set **Owning team** to your partner team's group, here `partner-tea
 lw programmes create resellers-emea --name "Resellers, EMEA" --team partner-team
 ```
 
-::: details The API request
+::: details Step 1 with the API
 ```
 PUT /api/v1/programmes/resellers-emea
 { "name": "Resellers, EMEA", "team": "partner-team" }
@@ -255,7 +255,7 @@ lw companies profile logo resellers-emea northwind-it dark ./northwind-dark.svg
 lw companies profile logo resellers-emea northwind-it mark ./northwind-mark.svg
 ```
 
-::: details The API request
+::: details Step 3 with the API
 ```
 PUT /api/v1/programmes/resellers-emea/companies/northwind-it/profile
 {
@@ -352,7 +352,7 @@ the secret, which is shown this one time, press **I have copied it** and hand th
 lw tokens add --programme resellers-emea --company northwind-it --label "Rita's agent"
 ```
 
-::: details The API request
+::: details Step 7 with the API
 ```
 POST /api/v1/programmes/resellers-emea/tokens
 { "label": "Rita's agent", "company": "northwind-it" }
@@ -384,7 +384,7 @@ lw people exit --company northwind-it --at 2027-06-30            # a preview
 lw people exit --company northwind-it --at 2027-06-30 --apply    # schedules it
 ```
 
-::: details The API request
+::: details Step 8 with the API
 ```
 POST /api/v1/programmes/exit
 { "company": "northwind-it", "at": "2027-06-30" }
