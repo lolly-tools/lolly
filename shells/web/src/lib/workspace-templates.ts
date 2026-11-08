@@ -153,14 +153,22 @@ export function workspacePartner(): ExportPartner | null {
   return out.company || out.programme ? out : null;
 }
 
-/** Keep a piece's partner record with its attachment. Returns the way to stop. */
-export function followPiecePartner(runtime: { setPartner(partner: ExportPartner | null): void }): () => void {
+/**
+ * Keep a piece's partner record with its attachment, and tell the runtime's subscribers
+ * (the export card among them) when the record changes. Returns the way to stop.
+ */
+export function followPiecePartner(runtime: { setPartner(partner: ExportPartner | null): void; refresh?(): void }): () => void {
+  let last = '';
   const update = (): void => {
     const partner = workspacePartner();
     const kit = pieceKit(runtime);
-    runtime.setPartner(kit && partner?.company && pieceKitData(runtime)?.id === partner.company.id
-      ? { ...partner, kit }
-      : partner);
+    const next = kit && partner?.company && pieceKitData(runtime)?.id === partner.company.id ? { ...partner, kit } : partner;
+    const key = JSON.stringify(next);
+    if (key === last) return;
+    const first = last === '';
+    last = key;
+    runtime.setPartner(next);
+    if (!first) runtime.refresh?.();
   };
   update();
   return onPieceKitChange(update);

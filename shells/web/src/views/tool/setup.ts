@@ -846,10 +846,9 @@ export async function templatePick(tview: ToolViewCtx): Promise<void> {
   await followCompanyMode(tview, runtime);
   // The partner this work is made for, which the export records beside the design
   // system while the record is on (plans/82 M3). Null outside a partner programme.
+  // It follows the piece's kit attachment, released with the mount.
   const { followPiecePartner } = await import('../../lib/workspace-templates.ts');
-  const stopPartner = followPiecePartner(runtime);
-  const prevCleanup = tview.viewEl._cleanup;
-  tview.viewEl._cleanup = () => { stopPartner(); prevCleanup?.(); };
+  tview.mountLifecycle.add('partner record', followPiecePartner(runtime));
 }
 
 /** The inputs of a mounted workspace template that take the company's logo by mode. */

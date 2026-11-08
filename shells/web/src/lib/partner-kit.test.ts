@@ -34,17 +34,20 @@ test('the partner record follows Attach and Detach at the attached revision, and
   setWorkspaceCompany({ id: 'northwind-it', name: 'Northwind IT', revision: 3, logos: {} });
   setWorkspaceProgramme({ id: 'resellers-emea', name: 'Resellers, EMEA' });
   const records: (ExportPartner | null)[] = [];
-  const runtime = { setPartner: (partner: ExportPartner | null) => { records.push(partner); } };
+  let refreshed = 0;
+  const runtime = { setPartner: (partner: ExportPartner | null) => { records.push(partner); }, refresh: () => { refreshed++; } };
   const stop = followPiecePartner(runtime);
   const env = () => designRecordEnvironment({ partner: records.at(-1) ?? undefined });
   try {
     assert.equal(env().partnerKit, undefined, 'no attachment at mount');
+    assert.equal(refreshed, 0, 'the mount itself repaints nothing');
     const host = fakeHost().host;
     setPartnerKitOffer({ id: 'inst/5b2e', revision: 9, label: 'Northwind IT' });
     await attachPieceKit(host, runtime, { id: 'inst/5b2e', revision: 2 }, { load: async () => KIT as never });
     assert.equal(env().partnerCompany, 'northwind-it');
     assert.equal(env().partnerKit, 'inst/5b2e');
     assert.equal(env().partnerKitRevision, '2', 'the attached revision, not the live offer or company details revision');
+    assert.ok(refreshed >= 1, 'the export card is told the record changed, so it never shows an older line than the file records');
     let finish!: (kit: PartnerKitV1) => void;
     const replacing = attachPieceKit(host, runtime, { id: 'inst/5b2e', revision: 4 }, { load: () => new Promise((resolve) => { finish = resolve; }) });
     assert.equal(env().partnerKit, undefined, 'a replacement still loading cannot leave the old kit in the record');
@@ -216,4 +219,11 @@ test('the checks get the logos\' proportions and the catalog\'s colour modifiers
   assert.equal(input!.measure.recolour?.({ theme: 'nope' }), null);
   releasePieceKit(runtime);
   assert.equal(await partnerCheckInput({ getModel: () => [] }, host as never), null, 'no kit, nothing to measure');
+});
+
+test('the tool view releases the partner listener with its mount, never with a cleanup a later step replaces', async () => {
+  const { readFileSync } = await import('node:fs');
+  const setup = readFileSync(new URL('../views/tool/setup.ts', import.meta.url), 'utf8');
+  assert.match(setup, /tview\.mountLifecycle\.add\('partner record', followPiecePartner\(runtime\)\)/);
+  assert.doesNotMatch(setup, /stopPartner/);
 });
