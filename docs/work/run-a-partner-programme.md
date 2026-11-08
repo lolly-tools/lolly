@@ -102,7 +102,8 @@ Rita works at Northwind IT, a company in Resellers, EMEA. When she signs in, her
 - **Her company's kit**, when it has one. New work starts with Northwind IT's kit attached: colours
   offer the company's colours under its name, the picture picker offers its logos first, and Lolly
   Design's checks point out a mark smaller than the kit allows or too close to other artwork. A
-  finding is a note to review and never stops an export.
+  finding is a note to review and never stops an export. Her exports record which revision of the
+  kit was attached.
 
 ![Rita's home shelf: the Northwind IT card with Details, then the Partner data sheet and a Reseller price list, each with Use](shots/partner-home.svg)
 
@@ -401,11 +402,6 @@ access through Resellers, EMEA ends on 30 June 2027". At the end of that day her
 links and her agent's token stop, and her saved pieces stay with your team, read-only. For 30
 days, **Reopen** on the company's page brings back her access, the templates and her projects;
 links and tokens stay ended.
-
-## Not yet
-
-- **The kit in exported files.** An export records the partner company, and recording which
-  revision of the company's kit was attached is planned.
 
 ## Related
 
