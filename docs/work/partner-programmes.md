@@ -174,6 +174,12 @@ interpreted, so those files stay held. A file whose own record states a licence 
 LICENCE_RECORDED`. Marks and licence records need `catalog.edit`, and nothing is written back to a
 provider.
 
+```bash
+lw catalog rights mark folder:partner-dam/Logos       # your own: the holder is your workspace's name
+lw catalog rights licence ext/partner-dam/a1 CC-BY-4.0 --attribution "Photo by A. Person"
+lw catalog rights                                      # the marks and records in force
+```
+
 ### Share a held file anyway
 
 Someone with `programme.manage` can choose to send held files to one programme or one company, up
@@ -181,6 +187,14 @@ to 200 files at a time, with an optional note. Each choice is remembered against
 file, a changed licence record or a new version of the rules retires the choice, and the report
 lists the file as needing a new choice. A choice covers the file it names, never a file synced
 later. Withdraw a choice at any time; ending a partnership withdraws its choices.
+
+```
+PUT /api/v1/programmes/resellers-emea/rights/choices
+{ "assetIds": ["ext/partner-dam/a1"], "company": "northwind-it", "note": "The sponsor asked for the full set" }
+```
+
+Nothing is written unless every file qualifies: a file outside the audience's feed answers
+`404 NOT_IN_FEED`, and one the gate does not hold `409 NOT_HELD`.
 
 ### Links, ZIPs and credits
 
@@ -350,6 +364,15 @@ background, an SVG that only wraps a picture, parts that cleaning removed and in
 contrast on the surface the logo is for, read from your design system's surfaces. The page shows
 these limits as the server enforces them.
 
+From a terminal, the same set-up reads:
+
+```bash
+lw companies profile set resellers-emea northwind-it --field website=https://northwind.example/ \
+    --field contact.name="Rita Ortiz" --field currency=EUR --field taxNote="Prices exclude VAT"
+lw companies profile logo resellers-emea northwind-it light ./northwind-light.svg --dry-run   # checks only
+lw companies profile history resellers-emea northwind-it                                  # every revision
+```
+
 ### Contacts who may edit
 
 **Contacts who may edit** is off by default: your team keeps the company's details. Tick **People
@@ -394,6 +417,15 @@ company:" followed by the inputs.
 Group defaults in a tool policy seed new work only when they are saved in the current
 `[{ groups, values }]` shape. A policy that still holds defaults in the older flat shape applies
 none of them, and the policy editor marks it, with a choice to apply them when you next save.
+
+For example, to fill a data sheet's partner logo by mode and its details line from the contact:
+
+```bash
+lw templates set resellers-emea inst/7f3a… --bindings logo=logo,details=contact
+```
+
+The template's row then reads "From the company: Partner logo (Logo (by mode)), Details line
+(Contact)".
 
 ### What partners see of their company
 

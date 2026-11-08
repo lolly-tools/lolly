@@ -174,6 +174,197 @@ limits, by default 120 calls a minute and 2,000 renders a day, and you can read 
 Approvals for agents are off unless you turn them on. A console card for tokens is planned
 ([Partners' agents](partner-programmes.md#partners-agents)).
 
+## Worked example: Northwind IT
+
+Your organisation runs a programme for resellers in Europe, the Middle East and Africa. Northwind
+IT, a reseller in Berlin, joins it, and Rita Ortiz is their sales lead. Your brand team has made a
+product data sheet in Lolly Design where a reseller adds only a price. Each step below gives the
+console clicks, the same step with `lw` and, where it helps, the API request. Example ids such as
+`resellers-emea` are yours to choose.
+
+### 1. Create the programme
+
+**Console.** Open **Partner programmes**, type "Resellers, EMEA" and press **Create programme**.
+On its page, set **Owning team** to your partner team's group, here `partner-team`.
+
+**`lw`.**
+
+```bash
+lw programmes create resellers-emea --name "Resellers, EMEA" --team partner-team
+```
+
+::: details The API request
+```
+PUT /api/v1/programmes/resellers-emea
+{ "name": "Resellers, EMEA", "team": "partner-team" }
+```
+
+The answer is `201` with the programme: its `id`, `name` and `team`, its group
+`programme-resellers-emea`, and empty `tools`, `collections` and `members` lists.
+:::
+
+**Rita** has not been invited yet, so she sees nothing.
+
+### 2. Give the programme its tools and logos
+
+**Console.** Open **Choose what they get**. Tick the tools, here **Certificate** and **QR Code**,
+and the **Logos for partners** collection, which holds the logos the data sheet uses.
+
+**`lw`.** A collection reaches the programme when its groups include the programme's group:
+
+```bash
+lw programmes set resellers-emea --tools certificate,qr-code
+lw catalog collection partner-logos --name "Logos for partners" \
+    --members lolly/logo/primary,lolly/logo/reverse --groups design,programme-resellers-emea
+```
+
+**Rita** still sees nothing. Once she joins, she gets these two tools, your design system's
+colours, type and palettes, and the logos in the collection, and nothing else from your catalog.
+
+### 3. Add Northwind IT and its details
+
+**Console.** Under **Companies**, add "Northwind IT" and open the company. Fill in the website,
+the contact (Rita Ortiz, her email and phone), the address, the currency `EUR` and the tax note
+"Prices exclude VAT", then press **Save details**. Under **Logos**, upload the logo for light
+surfaces, the logo for dark surfaces and the square mark Northwind IT sent. Leave **Contacts who
+may edit** off for now.
+
+**`lw`.**
+
+```bash
+lw companies add resellers-emea northwind-it --name "Northwind IT"
+lw companies profile set resellers-emea northwind-it --field website=https://northwind.example/ \
+    --field contact.name="Rita Ortiz" --field contact.email=rita@northwind.example \
+    --field currency=EUR --field taxNote="Prices exclude VAT"
+lw companies profile logo resellers-emea northwind-it light ./northwind-light.svg
+lw companies profile logo resellers-emea northwind-it dark ./northwind-dark.svg
+lw companies profile logo resellers-emea northwind-it mark ./northwind-mark.svg
+```
+
+::: details The API request
+```
+PUT /api/v1/programmes/resellers-emea/companies/northwind-it/profile
+{
+  "website": "https://northwind.example/",
+  "contact": { "name": "Rita Ortiz", "email": "rita@northwind.example", "phone": "+49 30 1234 567" },
+  "address": "Unter den Linden 1\n10117 Berlin\nGermany",
+  "currency": "EUR",
+  "taxNote": "Prices exclude VAT"
+}
+```
+
+The answer is `200` with `company`, `programme`, `revision` (1 after the first save), `profile`,
+the `logos` and the `limits` the server enforces. Each logo goes up on its own:
+`POST .../profile/logo?surface=light` with the SVG or PNG as the body.
+:::
+
+**Rita** still sees nothing, but every piece she makes from now on can carry these details.
+
+### 4. Publish the data sheet
+
+**Console.** The brand team saves the data sheet with **Share with rules** in Lolly Design,
+leaving three things open: the price, the partner logo and the details line. On the programme's
+**Templates** card, choose **Publish a template**, upload the `.lolly` file and choose **Everyone
+in Resellers, EMEA**. Then press **Change** on its row, and under **Takes from the company** set
+**Partner logo** to **Logo (by mode)** and **Details line** to **Contact**. Press **Save**.
+
+**`lw`.** The upload prints the template's id, such as `inst/7f3a…`:
+
+```bash
+lw templates upload resellers-emea product-data-sheet.lolly --groups programme-resellers-emea
+lw templates set resellers-emea inst/7f3a… --bindings logo=logo,details=contact
+```
+
+**Rita** is not in yet. When she is, the logo and the details line fill themselves from Northwind
+IT's details and are not offered to her, so the price is the only thing she changes.
+
+### 5. Check what Northwind IT gets
+
+**Console.** On Northwind IT's page, press **See what they get**. Preview shows the company card
+at details revision 1, the two tools, the logos collection and the data sheet drawn with
+Northwind IT's logo and contact line, as a watermarked preview. To see the app itself, choose
+**View as partner…** in the app's account menu, then Resellers, EMEA and Northwind IT, and press
+**Stop viewing** when you are done.
+
+**Rita** sees nothing yet; Preview and View as partner change nothing for her.
+
+### 6. Invite Rita
+
+**Console.** On the programme's page, press **Add people** and paste one line per person:
+
+```
+rita@northwind.example,Rita Ortiz,Northwind IT,2027-06-30
+```
+
+**Preview** lists Rita as new and to be invited. Press **Add**, then copy the one message Lolly
+Work offers and send it to her yourself.
+
+**`lw`.**
+
+```bash
+lw people import resellers-emea roster.csv            # a preview
+lw people import resellers-emea roster.csv --apply    # does it
+```
+
+**Rita** signs in, and her home opens with Northwind IT's card first, then the data sheet.
+**Use** opens the sheet with Northwind IT's logo and contact line in place and one field, **Your
+price**. When she exports, the **Design system** card reads "Records: Lolly Demo · Colourway:
+Spearmint · Partner: Northwind IT (Resellers, EMEA)", and the file records nothing about Rita
+herself.
+
+### 7. Give Rita's agent a token
+
+**`lw`.** The programme's manager issues the token and hands the secret to Rita once:
+
+```bash
+lw tokens add --programme resellers-emea --company northwind-it --label "Rita's agent"
+```
+
+::: details The API request
+```
+POST /api/v1/programmes/resellers-emea/tokens
+{ "label": "Rita's agent", "company": "northwind-it" }
+```
+
+The answer is `201` with the token's `id` (`tok_…`), `label`, `company`, `scopes` (`render` and
+`catalog.read` by default), `expiresAt` (90 days on), its limits and today's use, and `token`, the
+secret (`lwt_…`). The secret appears in this answer only.
+:::
+
+**Rita's agent** connects to your organisation's MCP endpoint with the secret. It sees what Rita
+sees, renders the data sheet with only the price open, and its files record Northwind IT, never
+the agent.
+
+### 8. End the partnership on a date
+
+**Console.** **End this partnership**, with **Whose access ends** set to Northwind IT, then **See
+what ending it does**, lists Rita, her agent token and anything else that ends.
+
+**`lw`.** To end it at the close of 30 June 2027 rather than now:
+
+```bash
+lw people exit --company northwind-it --at 2027-06-30            # a preview
+lw people exit --company northwind-it --at 2027-06-30 --apply    # schedules it
+```
+
+::: details The API request
+```
+POST /api/v1/programmes/exit
+{ "company": "northwind-it", "at": "2027-06-30" }
+```
+
+Without `"apply": true` the answer is `200` and changes nothing: `dryRun: true`, the `accounts`
+whose access ends, those who `stays` through another programme, the `tokens`, `templates`,
+`folders` and `rightsChoices` it covers, `endsAt` and `notice`. With `"apply": true` the answer is
+`201` with `scheduled: true` and the receipt's id as `exit`.
+:::
+
+**Rita** is told in her notifications 14 days and 1 day before, and her company card reads "Your
+access through Resellers, EMEA ends on 30 June 2027". At the end of that day her access ends, her
+links and her agent's token stop, and her saved pieces stay with your team, read-only. For 30
+days `lw people reopen` can bring back her access, the templates and her projects; links and
+tokens stay ended.
+
 ## Not yet
 
 - **A console card for partner kits, and the kit in exported files.** Kits are kept with
