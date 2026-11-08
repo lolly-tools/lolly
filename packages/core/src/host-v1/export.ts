@@ -393,7 +393,7 @@ export interface ExportOpts {
    * embedder opens that parent first and writes `action` where a new file writes
    * `c2pa.created`. Opaque to the shell; ignored by non-C2PA exports.
    */
-  c2paRendition?: { action: import('../manifest.ts').RenditionAction };
+  c2paRendition?: { action: import('../rendition-v1.ts').RenditionAction };
 
   /**
    * The attribution this export promised, and the way back to say what it

@@ -34,7 +34,7 @@ import { DESIGN_STILL_RASTER_FORMATS } from './design-export-route.ts';
 import { missingRequires, type HostApiName } from '@lolly-tools/core';
 import type { EmojiStyleV1 } from '@lolly-tools/core';
 import type { CanvasSize } from '@lolly-tools/core';
-import type { RenditionAction } from '@lolly-tools/core';
+import type { RenditionAction } from '@lolly-tools/core/rendition-v1';
 import type { EmojiSetInfoV1 } from '@lolly-tools/core/emoji-v1';
 import { defaultEmojiStyle } from './emoji-default.ts';
 import { emojiTextTrigger } from './emoji-trigger.ts';

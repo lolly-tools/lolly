@@ -15,6 +15,7 @@
  */
 import type { Capability, ExportFormat, TokenAxisKind } from './host-v1.ts';
 import type { HostApiName } from './host-v1/apis.ts';
+import type { RenditionOf } from './rendition-v1.ts';
 
 /**
  * What a tool does with one kind of theme group. `ignore` is the only behaviour
@@ -359,21 +360,6 @@ export interface TemplateVariant {
  * validate with {@link validateTool} before shipping (Lolly's catalog CI does the
  * same). `id` is a permanent contract: never rename or reuse it.
  */
-/** What a rendition tool did to the picture it opened, as a C2PA action. */
-export const RENDITION_ACTIONS = ['c2pa.color_adjustments', 'c2pa.filtered', 'c2pa.converted', 'c2pa.resized', 'c2pa.cropped', 'c2pa.edited'] as const;
-export type RenditionAction = (typeof RENDITION_ACTIONS)[number];
-
-/** {@link ToolManifest.renditionOf}: the input the output is a rendition of, and the action the tool performs. */
-export interface RenditionOf {
-  /** The id of a top-level `asset` input. */
-  input: string;
-  action: RenditionAction;
-  /** Inputs that replace the picture as the source while they hold anything (Darkroom's
-   *  layer stack). While one does, the export is not recorded as a rendition. A live
-   *  camera frame or a recording replaces the picture too, without being listed. */
-  unlessSet?: string[];
-}
-
 export interface ToolManifest {
   openWith?: import('./asset-open-v1.ts').AssetOpenIntentV1[];
   designTool?: import('./design-tool-v1.ts').DesignToolPolicyV1;

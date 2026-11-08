@@ -102,6 +102,8 @@ const ALLOWED_PACKAGES = new Set([
   '@lolly-tools/core/schema/partner-kit-v1.schema.json',
   // engine/src/validate.ts - the asset-open intent record and its pure validator.
   '@lolly-tools/core/asset-open-v1',
+  // engine/src/validate.ts and runtime.ts - the rendition field's actions and reference check.
+  '@lolly-tools/core/rendition-v1',
   // Plan 291: the check report and the content inventory. Types and constants only.
   '@lolly-tools/core/check-v1',
   '@lolly-tools/core/content-inventory-v1',

@@ -8,6 +8,7 @@
  */
 import Ajv from 'ajv/dist/2020.js';
 import { assetOpenErrors, type AssetOpenIntentV1 } from './asset-open-v1.ts';
+import { renditionOfErrors } from './rendition-v1.ts';
 import type { ErrorObject } from 'ajv/dist/2020.js';
 import toolSchema from '../schema/tool.schema.json' with { type: 'json' };
 import assetSchema from '../schema/asset.schema.json' with { type: 'json' };
@@ -38,25 +39,6 @@ ajv.addSchema(canvasOpSchema);
 
 const validate = ajv.compile(toolSchema);
 const validateOp = ajv.compile(canvasOpSchema);
-
-/**
- * A rendition's parent is one picture, so `renditionOf.input` has to name a declared
- * top-level `asset` input. The schema checks the shape; this checks the reference.
- */
-export function renditionOfErrors(manifest: { renditionOf?: { input: string; unlessSet?: string[] }; inputs?: { id: string; type: string }[] }): ValidationIssue[] {
-  const rendition = manifest.renditionOf;
-  if (!rendition) return [];
-  const issues: ValidationIssue[] = [];
-  if (!manifest.inputs?.some((input) => input.id === rendition.input && input.type === 'asset')) {
-    issues.push({ path: '/renditionOf/input', message: 'must name a declared top-level asset input' });
-  }
-  for (const [i, id] of (rendition.unlessSet ?? []).entries()) {
-    if (id === rendition.input || !manifest.inputs?.some((input) => input.id === id)) {
-      issues.push({ path: `/renditionOf/unlessSet/${i}`, message: 'must name another declared input' });
-    }
-  }
-  return issues;
-}
 
 /** Validate a `tool.json` manifest object against the bundled schema. */
 export function validateTool(manifest: unknown): ValidationResult {

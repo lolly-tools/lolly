@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import { assetOpenErrors } from '@lolly-tools/core/asset-open-v1';
-import { renditionOfErrors } from '@lolly-tools/core';
+import { renditionOfErrors } from '@lolly-tools/core/rendition-v1';
 import { parseTemplateMotion } from '../shells/web/src/lib/template-motion.ts';
 import { parseKitDefinition, createKitRows, kitIssues } from '../shells/web/src/pro/kit-model.ts';
 import type { ToolManifest } from '../engine/src/loader.ts';

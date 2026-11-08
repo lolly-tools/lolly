@@ -10,7 +10,7 @@
 
 import Ajv from 'ajv/dist/2020.js';
 import { assetOpenErrors, type AssetOpenIntentV1 } from '@lolly-tools/core/asset-open-v1';
-import { renditionOfErrors } from '@lolly-tools/core';
+import { renditionOfErrors } from '@lolly-tools/core/rendition-v1';
 import type { Ajv2020, ErrorObject, ValidateFunction } from 'ajv/dist/2020.js';
 import toolSchema from '../../schemas/tool.schema.json' with { type: 'json' };
 import assetSchema from '../../schemas/asset.schema.json' with { type: 'json' };

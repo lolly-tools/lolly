@@ -525,7 +525,7 @@
     "ExportOpts": {
       "module": "export.ts",
       "kind": "InterfaceDeclaration",
-      "sha256": "e156f000b60212fa9ca9966d6ccf28c2510253a5c803bbaa946711f4e4ab2d27"
+      "sha256": "6c665dfcaaf24292a1d0e7c03289c28d0b5ab6a2deabb34b68923f8c80c36338"
     },
     "ExportMeta": {
       "module": "export.ts",
