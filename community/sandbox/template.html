@@ -452,7 +452,7 @@
    own html/body background (re-scoped onto .rwc-shot-body); a text snippet keeps the
    reset's white body. So the export honours whatever the pen actually renders. */
 .rwc-shot { position: absolute; left: -100000px; top: 0; width: 1px; height: 1px; overflow: hidden; pointer-events: none; }
-.rwc-shot-body { all: initial; display: block; width: 100%; height: 100%; }
+.rwc-shot-body { all: initial; display: block; width: 100%; height: 100%; font-family: var(--font-brand, 'SUSE', ui-sans-serif, system-ui, sans-serif); }
 /* Saved sessions */
 .rwc-sess { position: relative; display: inline-flex; align-items: center; gap: 8px; }
 .rwc-sess-name { display: inline-flex; align-items: center; gap: 6px; max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; font-weight: 700; color: hsl(var(--rwc-muted)); }
@@ -721,6 +721,9 @@
     // (a tainted/cross-origin canvas throws on toDataURL) falls back to the plain HTML.
     'function snap(){try{var d=document,de=d.documentElement,b=d.body;var w=Math.max(de.scrollWidth,b?b.scrollWidth:0)||de.clientWidth||1280;var h=Math.max(de.scrollHeight,b?b.scrollHeight:0)||de.clientHeight||800;var html;try{var src=d.getElementsByTagName("canvas");if(src&&src.length){var clone=de.cloneNode(true);var cc=clone.getElementsByTagName("canvas");for(var i=0;i<src.length&&i<cc.length;i++){try{var u=src[i].toDataURL("image/png");if(u&&u.slice(0,10)==="data:image"){var im=d.createElement("img");im.src=u;var st=src[i].getAttribute("style");if(st)im.setAttribute("style",st);var cw=src[i].width,ch=src[i].height;if(cw)im.setAttribute("width",cw);if(ch)im.setAttribute("height",ch);if(cc[i].parentNode)cc[i].parentNode.replaceChild(im,cc[i]);}}catch(_){}}html=clone.outerHTML;}else{html=de.outerHTML;}}catch(_){html=de.outerHTML;}parent.postMessage({__rwc:1,level:"__snapshot__",html:"<!doctype html>"+html,w:w,h:h},"*");}catch(e){}}',
     'window.addEventListener("message",function(e){try{if(e.source===parent&&e.data&&e.data.__rwcCmd==="snap")snap();}catch(_){}});',
+    // The design system's faces arrive from the app as bytes: an opaque frame cannot
+    // fetch the app's font files, and the reset below names their families.
+    'window.addEventListener("message",function(e){try{var f=e.source===parent&&e.data&&e.data.__rwcFonts;if(!f||!f.length)return;f.forEach(function(x){var ff=new FontFace(x.family,x.buffer,{weight:x.weight,style:x.style});document.fonts.add(ff);ff.load().catch(function(){});});}catch(_){}});',
     'if(document.readyState==="complete")requestAnimationFrame(snap);else window.addEventListener("load",function(){requestAnimationFrame(snap);});',
     '})();'
   ].join('\n');
@@ -748,6 +751,59 @@
     return injectBeforeBodyClose(doc, frag);
   }
 
+  // ── The design system's text face ─────────────────────────────────────────
+  // A pen's text with no font of its own is set in the design system's text face,
+  // the face the export mirror draws it in. The family list is read off the canvas
+  // (--font-brand) for the reset, and the faces themselves are posted into the
+  // frame (shareFonts), because the opaque frame cannot reach the app's fonts. A
+  // face the app registered without a stylesheet rule, such as an uploaded font,
+  // is not posted: the frame then falls back as the list says.
+  function brandStack() {
+    var v = '';
+    try { v = getComputedStyle(root).getPropertyValue('--font-brand').trim(); } catch (e) { v = ''; }
+    return /^[A-Za-z0-9 _'",-]+$/.test(v) ? v : "'SUSE', ui-sans-serif, system-ui, sans-serif";
+  }
+  function stackFamilies(stack) {
+    return String(stack).split(',').map(function (f) { return f.trim().replace(/^['"]+|['"]+$/g, '').toLowerCase(); }).filter(Boolean);
+  }
+  var brandFacesFor = '', brandFaces = null;
+  function brandFaceList() {
+    var stack = brandStack();
+    if (brandFaces && brandFacesFor === stack) return brandFaces;
+    brandFacesFor = stack;
+    var want = stackFamilies(stack), jobs = [];
+    Array.prototype.forEach.call(document.styleSheets, function (sheet) {
+      var rules;
+      try { rules = sheet.cssRules; } catch (e) { return; }
+      Array.prototype.forEach.call(rules || [], function (r) {
+        if (typeof CSSFontFaceRule === 'undefined' || !(r instanceof CSSFontFaceRule)) return;
+        var fam = String(r.style.getPropertyValue('font-family')).trim().replace(/^['"]+|['"]+$/g, '');
+        if (want.indexOf(fam.toLowerCase()) < 0) return;
+        var m = /url\((['"]?)([^'")]+)\1\)/.exec(r.style.getPropertyValue('src'));
+        if (!m) return;
+        var url;
+        try { url = new URL(m[2], sheet.href || location.href).href; } catch (e) { return; }
+        if (new URL(url).origin !== location.origin) return;
+        jobs.push(fetch(url).then(function (res) { return res.ok ? res.arrayBuffer() : null; }).then(function (buffer) {
+          return buffer ? {
+            family: fam, buffer: buffer,
+            weight: r.style.getPropertyValue('font-weight') || 'normal',
+            style: r.style.getPropertyValue('font-style') || 'normal',
+          } : null;
+        }).catch(function () { return null; }));
+      });
+    });
+    brandFaces = Promise.all(jobs).then(function (list) { return list.filter(Boolean); });
+    return brandFaces;
+  }
+  function shareFonts() {
+    var win = frame && frame.contentWindow;
+    if (!win) return;
+    brandFaceList().then(function (faces) {
+      if (faces.length && frame && frame.contentWindow === win) win.postMessage({ __rwcFonts: faces }, '*');
+    });
+  }
+
   function buildDoc(files) {
     var shimTag = '<script>' + SHIM + '\n<\/script>';
     var css = files.css || '', js = files.js || '', html = files.html || '';
@@ -769,7 +825,7 @@
     // gives dark-text-on-dark-canvas (unreadable), which Safari hits by rendering the
     // sandboxed iframe's canvas dark in the app's LIGHT mode. A pen can still opt into
     // dark by setting its own background / color-scheme (its CSS comes after this reset).
-    var reset = 'html{color-scheme:light;background:#fff}*{box-sizing:border-box}body{margin:16px;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;line-height:1.5;color:#111;background:#fff}';
+    var reset = 'html{color-scheme:light;background:#fff}*{box-sizing:border-box}body{margin:16px;font-family:' + brandStack() + ';line-height:1.5;color:#111;background:#fff}';
     return '<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">'
       + shimTag + '<style>' + reset + '</style>' + headExtra + styleTag
       + '</head><body>' + html + jsTag + '</body></html>';
@@ -1874,7 +1930,7 @@
     if (!frame || e.source !== frame.contentWindow) return;
     var d = e.data;
     if (!d || d.__rwc !== 1) return;
-    if (d.level === '__ready__') { setStatus(''); liveEl.classList.add('is-live'); return; }
+    if (d.level === '__ready__') { setStatus(''); liveEl.classList.add('is-live'); shareFonts(); return; }
     if (d.level === '__snapshot__') { mountShot(d.html, d.w, d.h); return; }
     // Only when this Sandbox is itself framed on a slide (the shell's ?iframe mode): the
     // deck listens for these from its own frames (views/present-mode.ts).

@@ -51,7 +51,7 @@ import { AUTO_ASSET_THEME, parseIconThemesDoc } from './icon-theme.ts';
 import { parsePhotoTreatmentsDoc } from './photo-treatment.ts';
 import { colorToHexString, parseColor } from './css-color.ts';
 import { gradientSpecStops, parseGradientSpec } from './gradient-spec.ts';
-import { compileDesignRow, pictureRect, resolveDrawColor, type DrawPicture } from './design-draw.ts';
+import { compileDesignRow, designBool as rendererBool, pictureRect, resolveDrawColor, type DrawPicture } from './design-draw.ts';
 import { partnerKitLogoIds } from './partner-kit.ts';
 import { CSS_DPI, isUnit } from './units.ts';
 import { designHierarchyIndex } from './design-hierarchy.ts';
@@ -253,21 +253,34 @@ export const GUEST_MARK_FIELDS: ReadonlySet<string> = new Set([
 ]);
 
 const record = (v: unknown): v is Row => !!v && typeof v === 'object' && !Array.isArray(v);
-/** The renderer's `num`: a number, or the leading number of a string ("310px" is 310); anything else is `fallback`. */
+/**
+ * The renderer's `num`: a number, or `parseFloat` of anything else, so "310px" and
+ * ["310px"] are 310; what does not read is `fallback`. A value whose text conversion
+ * throws reads as `fallback` here, where the renderer would stop.
+ */
 const designNum = (v: unknown, fallback: number): number => {
-  const n = typeof v === 'number' ? v : typeof v === 'string' ? Number.parseFloat(v) : Number.NaN;
+  let n: number;
+  try {
+    n = typeof v === 'number' ? v : Number.parseFloat(v as string);
+  } catch {
+    n = Number.NaN;
+  }
   return Number.isFinite(n) ? n : fallback;
 };
 /** Every number in a row is read the way the renderer reads numbers. */
 const num = (v: unknown, fallback = 0): number => designNum(v, fallback);
 /** The renderer's `isFiniteNum`: authored, and a number. */
 const designHasNum = (v: unknown): boolean => v !== '' && Number.isFinite(designNum(v, Number.NaN));
-/** The renderer's `boolVal`: true, 1, yes or on, and false, 0, no or off, in any case. */
+/**
+ * The renderer's `boolVal`, through the draw compiler's own copy, so `["yes"]` is true, as
+ * in the renderer. A value whose text conversion throws reads as `fallback` here.
+ */
 const designBool = (v: unknown, fallback: boolean): boolean => {
-  if (v === true || v === false) return v;
-  if (typeof v !== 'string' && typeof v !== 'number') return fallback;
-  const s = String(v).toLowerCase();
-  return s === 'true' || s === '1' || s === 'yes' || s === 'on' ? true : s === 'false' || s === '0' || s === 'no' || s === 'off' ? false : fallback;
+  try {
+    return rendererBool(v, fallback);
+  } catch {
+    return fallback;
+  }
 };
 /** A field set to something: not absent, empty, false, zero or `none`. */
 const isSet = (v: unknown): boolean => !(v === undefined || v === null || v === '' || v === false || v === 0 || v === 'none' || (typeof v === 'string' && !v.trim()));
@@ -302,6 +315,9 @@ function movesOrFloats(row: Row, styled: boolean): boolean {
   const keys = Object.keys(row);
   if (keys.length > MAX_ROW_FIELDS) return true;
   if (styled && isSet(row.cls)) return true;
+  // Composed text flows through its frames, and text on a pen path follows the curve: either can paint past the box.
+  if (isSet(row.textStory) || isSet(row.textFrame)) return true;
+  if ((row.kind === 'path' || isSet(row.path)) && typeof row.text === 'string' && row.text.trim() !== '') return true;
   if (isSet(row.kf) || isSet(row.hold) || isSet(row.split) || designNum(row.build, 0) >= 1 || isSet(row.matchOf) || isSet(row.animationId) || isSet(row.animationEdits)) return true;
   if (isSet(row.enter) || isSet(row.exit)) return true;
   if (designNum(row.z, 0) !== 0 || designNum(row.rx, 0) !== 0 || designNum(row.ry, 0) !== 0) return true;
@@ -322,10 +338,7 @@ function reachOf(row: Row, kind: string, ancestors: Row[], floats: (row: Row) =>
   const margin = (stroked(row) ? Math.max(...strokeWidths(row)) : 0)
     + (shadowed(row) ? Math.abs(num(row.shadowX)) + Math.abs(num(row.shadowY)) + 3 * Math.max(0, num(row.shadowBlur, 10)) : 0)
     + 3 * Math.max(0, num(row.blur));
-  // Composed text (a story flowing through text frames) is laid out elsewhere, so where the
-  // words fall in this box is not read.
-  const local = margin > 0 || turnedRow(row) || shapeOf(row) !== 'rect' || isSet(row.clip) || kind === 'path' || isSet(row.path) || !MODELLED_KINDS.has(kind)
-    || isSet(row.textStory) || isSet(row.textFrame);
+  const local = margin > 0 || turnedRow(row) || shapeOf(row) !== 'rect' || isSet(row.clip) || kind === 'path' || isSet(row.path) || !MODELLED_KINDS.has(kind);
   return { reach: local ? 'local' : 'exact', margin };
 }
 
@@ -434,11 +447,11 @@ const mirrored = (r: Rect, flipH: boolean, flipV: boolean, cx: number, cy: numbe
 
 /** The fields the draw compiler reads as numbers, which the renderer reads as leading numbers. */
 const NUMBER_FIELDS = ['x', 'y', 'w', 'h', 'rot', 'radius', 'strokeW', 'strokeTop', 'strokeRight', 'strokeBottom', 'strokeLeft', 'opacity'];
-/** A copy of a row with each number field read as the renderer reads it ("310px" is 310), or left out when it reads as none. */
+/** A copy of a row with each number field read as the renderer reads it ("310px" and ["310px"] are 310), or left out when it reads as none. */
 function rendererNumbers(row: Row): Row {
   const out: Row = { ...row };
   for (const key of NUMBER_FIELDS) {
-    if (typeof out[key] !== 'string') continue;
+    if (out[key] === undefined || typeof out[key] === 'number') continue;
     const n = designNum(out[key], Number.NaN);
     if (Number.isFinite(n)) out[key] = n;
     else delete out[key];
@@ -646,8 +659,9 @@ function drawnLayers(capped: Row[], measure: GuestMarkMeasure, unmeasured: Guest
     const own = paintCover(row, kind, image, measure.resolveColor) * opacity;
     const cover = blend && own !== 0 ? Number.NaN : own;
     const { reach, margin } = reachOf(row, kind, ancestors, floats);
+    // A row that changes its prototype when the renderer copies the row may paint whatever the prototype holds.
     const paints = !!image || cover !== 0 || (typeof row.text === 'string' && row.text.trim() !== '') || isSet(row.textStory) || isSet(row.textFrame)
-      || stroked(row) || shadowed(row) || !MODELLED_KINDS.has(kind);
+      || stroked(row) || shadowed(row) || !MODELLED_KINDS.has(kind) || Object.keys(row).some((k) => PROTOTYPE_KEYS.has(k));
     layers.push({
       row, id, order: Number.isFinite(order[index]!) ? order[index]! : capped.length + index, rect: boundsOf(row), label: layerLabel(row, id), kind, image,
       ...time, frame, page, cover, paints, reach, margin,

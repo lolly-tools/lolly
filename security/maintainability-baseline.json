@@ -57,7 +57,7 @@
     },
     "shells/web/src/views/deck-editor.ts": {
       "lines": 1969,
-      "largestFunctionLines": 1743,
+      "largestFunctionLines": 1670,
       "importFanIn": 2,
       "importFanOut": 10,
       "typeEscapes": 0
@@ -90,6 +90,13 @@
       "importFanOut": 69,
       "typeEscapes": 3
     },
+    "shells/web/src/views/present-mode.ts": {
+      "lines": 1532,
+      "largestFunctionLines": 1651,
+      "importFanIn": 2,
+      "importFanOut": 20,
+      "typeEscapes": 0
+    },
     "shells/web/src/views/projects.ts": {
       "lines": 2018,
       "largestFunctionLines": 2668,
@@ -106,7 +113,7 @@
     },
     "shells/web/src/views/tool/session.ts": {
       "lines": 1611,
-      "largestFunctionLines": 1571,
+      "largestFunctionLines": 1520,
       "importFanIn": 1,
       "importFanOut": 67,
       "typeEscapes": 10

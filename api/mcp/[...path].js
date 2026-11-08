@@ -4114,7 +4114,7 @@ var ENGINE_VERSION;
 var init_version = __esm({
   "engine/src/version.ts"() {
     "use strict";
-    ENGINE_VERSION = "1.337.0";
+    ENGINE_VERSION = "1.338.0";
   }
 });
 
@@ -137294,6 +137294,8 @@ function movesOrFloats(row, styled) {
   const keys2 = Object.keys(row);
   if (keys2.length > MAX_ROW_FIELDS) return true;
   if (styled && isSet(row.cls)) return true;
+  if (isSet(row.textStory) || isSet(row.textFrame)) return true;
+  if ((row.kind === "path" || isSet(row.path)) && typeof row.text === "string" && row.text.trim() !== "") return true;
   if (isSet(row.kf) || isSet(row.hold) || isSet(row.split) || designNum(row.build, 0) >= 1 || isSet(row.matchOf) || isSet(row.animationId) || isSet(row.animationEdits)) return true;
   if (isSet(row.enter) || isSet(row.exit)) return true;
   if (designNum(row.z, 0) !== 0 || designNum(row.rx, 0) !== 0 || designNum(row.ry, 0) !== 0) return true;
@@ -137309,7 +137311,7 @@ function reachOf(row, kind, ancestors, floats) {
   if (kind === "frame") return { reach: "exact", margin: 0 };
   if (floats(row) || ancestors.some((a) => a.kind !== "frame" && floats(a))) return { reach: "anywhere", margin: 0 };
   const margin = (stroked(row) ? Math.max(...strokeWidths(row)) : 0) + (shadowed(row) ? Math.abs(num14(row.shadowX)) + Math.abs(num14(row.shadowY)) + 3 * Math.max(0, num14(row.shadowBlur, 10)) : 0) + 3 * Math.max(0, num14(row.blur));
-  const local2 = margin > 0 || turnedRow(row) || shapeOf(row) !== "rect" || isSet(row.clip) || kind === "path" || isSet(row.path) || !MODELLED_KINDS.has(kind) || isSet(row.textStory) || isSet(row.textFrame);
+  const local2 = margin > 0 || turnedRow(row) || shapeOf(row) !== "rect" || isSet(row.clip) || kind === "path" || isSet(row.path) || !MODELLED_KINDS.has(kind);
   return { reach: local2 ? "local" : "exact", margin };
 }
 function colourCover(value2, resolve8) {
@@ -137382,7 +137384,7 @@ function intersect2(a, b) {
 function rendererNumbers(row) {
   const out = { ...row };
   for (const key2 of NUMBER_FIELDS) {
-    if (typeof out[key2] !== "string") continue;
+    if (out[key2] === void 0 || typeof out[key2] === "number") continue;
     const n7 = designNum(out[key2], Number.NaN);
     if (Number.isFinite(n7)) out[key2] = n7;
     else delete out[key2];
@@ -137554,7 +137556,7 @@ function drawnLayers(capped, measure3, unmeasured) {
     const own4 = paintCover(row, kind, image, measure3.resolveColor) * opacity;
     const cover = blend2 && own4 !== 0 ? Number.NaN : own4;
     const { reach: reach2, margin } = reachOf(row, kind, ancestors, floats);
-    const paints2 = !!image || cover !== 0 || typeof row.text === "string" && row.text.trim() !== "" || isSet(row.textStory) || isSet(row.textFrame) || stroked(row) || shadowed(row) || !MODELLED_KINDS.has(kind);
+    const paints2 = !!image || cover !== 0 || typeof row.text === "string" && row.text.trim() !== "" || isSet(row.textStory) || isSet(row.textFrame) || stroked(row) || shadowed(row) || !MODELLED_KINDS.has(kind) || Object.keys(row).some((k) => PROTOTYPE_KEYS.has(k));
     layers.push({
       row,
       id: id3,
@@ -137928,16 +137930,22 @@ var init_partner_kit_check = __esm({
     ]);
     record29 = (v) => !!v && typeof v === "object" && !Array.isArray(v);
     designNum = (v, fallback) => {
-      const n7 = typeof v === "number" ? v : typeof v === "string" ? Number.parseFloat(v) : Number.NaN;
+      let n7;
+      try {
+        n7 = typeof v === "number" ? v : Number.parseFloat(v);
+      } catch {
+        n7 = Number.NaN;
+      }
       return Number.isFinite(n7) ? n7 : fallback;
     };
     num14 = (v, fallback = 0) => designNum(v, fallback);
     designHasNum = (v) => v !== "" && Number.isFinite(designNum(v, Number.NaN));
     designBool2 = (v, fallback) => {
-      if (v === true || v === false) return v;
-      if (typeof v !== "string" && typeof v !== "number") return fallback;
-      const s = String(v).toLowerCase();
-      return s === "true" || s === "1" || s === "yes" || s === "on" ? true : s === "false" || s === "0" || s === "no" || s === "off" ? false : fallback;
+      try {
+        return designBool(v, fallback);
+      } catch {
+        return fallback;
+      }
     };
     isSet = (v) => !(v === void 0 || v === null || v === "" || v === false || v === 0 || v === "none" || typeof v === "string" && !v.trim());
     keyOf3 = (v) => typeof v === "string" ? v : typeof v === "number" && Number.isFinite(v) ? String(v) : "";
@@ -171368,6 +171376,50 @@ async function serveSessionOnce(page3, origin, path, bytes2) {
   await page3.route(matches3, handler);
   return { remove, requested };
 }
+async function probeOpenRoute(page3) {
+  let timer;
+  const late = new Promise((resolve8) => {
+    timer = setTimeout(() => resolve8(null), OPEN_ROUTE_PROBE_MS);
+  });
+  const asked = page3.evaluate((mountingAttr) => {
+    const view = document.getElementById("view");
+    return {
+      hash: location.hash,
+      card: document.querySelector("[data-open-route]")?.getAttribute("data-open-route") ?? null,
+      loading: !view || view.hasAttribute(mountingAttr) || !!document.querySelector("#view > .loading[data-drop-stand-in], dialog.view-loading[open]"),
+      webgpu: document.documentElement.dataset.webgpu ?? null,
+      error: document.querySelector("#view > .error p")?.textContent?.trim() || null,
+      gallery: !!view?.classList.contains("gallery-view")
+    };
+  }, ROUTE_MOUNTING_ATTR).catch(() => null);
+  try {
+    return await Promise.race([asked, late]);
+  } finally {
+    clearTimeout(timer);
+  }
+}
+function silentOpenMessage(probe, root2, name, waitedMs) {
+  const waited = waitedMs < 1e3 ? `${waitedMs} ms` : `${Number((waitedMs / 1e3).toFixed(1))} s`;
+  if (!probe) {
+    return `The web shell at ${root2} did not ask for ${name} within ${waited}, and the page did not answer when asked what it showed. The machine may be too busy: try again. If this keeps happening, check that the shell is current (pnpm run build:web, or LOLLY_WEB_BASE).`;
+  }
+  if (probe.webgpu === "unsupported") {
+    return `The web shell at ${root2} stopped at its WebGPU startup check, so it never asked for ${name}.`;
+  }
+  if (probe.error) {
+    return `The web shell at ${root2} showed an error before it asked for ${name}: ${probe.error}`;
+  }
+  if (probe.card !== null || probe.hash === "#/open") {
+    return `The web shell at ${root2} started opening ${name} but had not fetched it after ${waited}. The shell has the #/open route; the machine may be too busy. Try again.`;
+  }
+  if (probe.loading) {
+    return `The web shell at ${root2} was still loading after ${waited}, so it had not asked for ${name} yet. The machine may be too busy: try again.`;
+  }
+  if (probe.gallery && probe.hash.startsWith("#/open?")) {
+    return `The web shell at ${root2} opened the gallery for #/open and never asked for ${name}, so it has no #/open route (it predates plan 291 W8). Rebuild it (pnpm run build:web), or point LOLLY_WEB_BASE at a current one.`;
+  }
+  return `The web shell at ${root2} did not ask for ${name} within ${waited}, and the page is not opening it. Check that the shell is current (pnpm run build:web, or LOLLY_WEB_BASE) and try again.`;
+}
 async function settleEditor(page3, timeoutMs, opts = {}) {
   await page3.evaluate(() => {
     window.__lollyOpenSettled = 0;
@@ -171400,8 +171452,9 @@ async function openSessionInPage(page3, base, bytes2, name, opts = {}) {
     const never = () => new Promise(() => {
     });
     let quiet2;
+    const askMs = Math.min(timeout, opts.askTimeoutMs ?? OPEN_ROUTE_ASK_MS);
     const silent = new Promise((resolve8) => {
-      quiet2 = setTimeout(() => resolve8({ kind: "silent" }), Math.min(timeout, opts.askTimeoutMs ?? OPEN_ROUTE_ASK_MS));
+      quiet2 = setTimeout(() => resolve8({ kind: "silent" }), askMs);
     });
     void requested.then(() => clearTimeout(quiet2));
     const outcome = await Promise.race([
@@ -171416,9 +171469,7 @@ async function openSessionInPage(page3, base, bytes2, name, opts = {}) {
       page3.locator('[data-open-route="failed"]').waitFor({ state: "visible", timeout }).then(async () => ({ kind: "failed", message: (await page3.locator('[data-open-route="failed"] p').innerText().catch(() => "")).trim() })).catch(never),
       page3.locator('[data-dialog-tag="lolly-intake"]').waitFor({ state: "visible", timeout }).then(() => ({ kind: "asks" })).catch(never)
     ]).finally(() => clearTimeout(quiet2));
-    if (outcome.kind === "silent") {
-      throw new OpenSessionError(`The web shell at ${root2} never asked for ${name}, so it has no #/open route (it predates plan 291 W8). Rebuild it (pnpm run build:web), or point LOLLY_WEB_BASE at a current one.`);
-    }
+    if (outcome.kind === "silent") throw new OpenSessionError(silentOpenMessage(await probeOpenRoute(page3), root2, name, askMs));
     if (outcome.kind === "failed") throw new OpenSessionError(`The web shell did not open ${name}: ${outcome.message || "no reason was given."}`);
     if (outcome.kind === "asks") {
       throw new OpenSessionError(`${name} carries more than a saved session (a tool, a design system, templates, a renovation or a project), so the app asks a person what to do with it. Open it in the app instead.`);
@@ -171528,7 +171579,7 @@ async function checksInOpenedPage(page3, base, bytes2, name, tokenSelection, tim
 function shortenUrls(message, max = 2e3) {
   return message.replace(/(?:https?|data):[^\s"'<>]+/g, (url) => url.length > max ? `${url.slice(0, 200)}... (${url.length.toLocaleString("en")} characters)` : url);
 }
-var OPEN_ROUTE_PREFIX, OPEN_ROUTE_MAX_BYTES, OpenSessionError, OPEN_ROUTE_ASK_MS, ROUTE_MOUNTING_ATTR;
+var OPEN_ROUTE_PREFIX, OPEN_ROUTE_MAX_BYTES, OpenSessionError, OPEN_ROUTE_ASK_MS, OPEN_ROUTE_PROBE_MS, ROUTE_MOUNTING_ATTR;
 var init_open_session = __esm({
   "packages/node-shell/src/open-session.ts"() {
     "use strict";
@@ -171546,6 +171597,7 @@ var init_open_session = __esm({
       }
     };
     OPEN_ROUTE_ASK_MS = 45e3;
+    OPEN_ROUTE_PROBE_MS = 5e3;
     ROUTE_MOUNTING_ATTR = "data-route-mounting";
   }
 });

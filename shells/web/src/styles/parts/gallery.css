@@ -1575,8 +1575,10 @@ a.gtile-name:focus-visible::after {
 
 /* ── The workspace's shelf - what a connected workspace published for this person
    (views/published-shelf.ts), above the grid: one card per template, the picture
-   first, then the name, and a Use that reads as a button before hover. Absent on a
-   plain build. hidePreviews swaps each picture for the tool's icon. ── */
+   first, then the name, and a Use that reads as a button before hover. Use is the
+   card's link, stretched over the whole card; the person's copy and the New version
+   button sit above that stretch so each takes its own tap. Absent on a plain build.
+   hidePreviews swaps each picture for the tool's icon. ── */
 .published-shelf { margin: var(--sp-7) var(--sp-7) 0; }
 .published-shelf-title {
   margin: 0 0 var(--sp-5);
@@ -1590,6 +1592,7 @@ a.gtile-name:focus-visible::after {
   gap: var(--sp-6);
 }
 .published-card {
+  position: relative;
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
@@ -1601,7 +1604,7 @@ a.gtile-name:focus-visible::after {
   color: hsl(var(--foreground));
   text-decoration: none;
 }
-.published-card:hover, .published-card:focus-visible { box-shadow: var(--shadow-2, var(--shadow-1)); }
+.published-card:hover, .published-card:focus-visible, .published-card:has(.published-card-use:focus-visible) { box-shadow: var(--shadow-2, var(--shadow-1)); }
 .published-card-media {
   position: relative;
   display: grid;
@@ -1620,9 +1623,32 @@ a.gtile-name:focus-visible::after {
 .published-card-icon svg { width: calc(22px * var(--a11y-fs)); height: calc(22px * var(--a11y-fs)); }
 .published-card-text { display: grid; gap: 2px; min-width: 0; }
 .published-card-name { font-size: var(--fs-lg); font-weight: 650; overflow: hidden; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; }
-.published-card-sub { font-size: var(--fs-sm); color: hsl(var(--muted-foreground)); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-/* The card is the link; Use is the button's look on it, so it reads as clickable. */
-.published-card-use { pointer-events: none; }
+.published-card-sub { display: flex; align-items: center; flex-wrap: wrap; gap: 2px var(--sp-3); min-width: 0; font-size: var(--fs-sm); color: hsl(var(--muted-foreground)); }
+.published-card-sub > span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* The company card is a button with Use's look on it; a published card's Use is the
+   link, and its ::after covers the card, so a tap anywhere on the card is Use. */
+span.published-card-use { pointer-events: none; }
+a.published-card-use::after { content: ""; position: absolute; inset: 0; border-radius: var(--radius-lg, 16px); }
+/* The person's copy and the New version button take their own taps, above Use's stretch. */
+.published-card-copy, .published-card-new { position: relative; z-index: 1; }
+.published-card-copy {
+  justify-self: start;
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  color: hsl(var(--foreground));
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.published-card-new {
+  flex: none;
+  font-weight: 650;
+  background: hsl(var(--primary) / .14);
+  color: hsl(var(--foreground));
+}
+@media (pointer: coarse) {
+  a.published-card-use, .published-card-new { min-height: var(--ui-size-target); display: inline-flex; align-items: center; }
+  .published-card-copy { min-height: 32px; display: inline-flex; align-items: center; }
+}
 html[data-a11y-previews="hidden"] .published-card-thumb { display: none; }
 html[data-a11y-previews="hidden"] .published-card-media .published-card-icon { display: inline-flex; }
 .gallery:not(.has-featured) .published-shelf { margin-top: 6.4rem; }

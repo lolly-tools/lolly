@@ -91,14 +91,7 @@ export function mountTemplateNotices(opts: {
   const startAgain = (): void => opts.open(`#/tool/${encodeURIComponent(now.toolId)}?template=${encodeURIComponent(now.id)}`);
   const editable = now.editable;
   let off = (): void => {};
-  off = publishNotification({
-    id: `template-version:${origin.ref}:${now.version}`,
-    title: t('New version available'),
-    body: editable
-      ? tRaw('{name} has a new version. What you changed is kept.', { name: now.name })
-      : tRaw('{name} has a new version. It opens as a new document, and this copy stays as it is.', { name: now.name }),
-    tone: 'action',
-    action: editable ? { label: t('Use new version'), run: async () => {
+  const action = editable ? { label: t('Use new version'), run: async () => {
       const values = await (opts.fetchValues ?? fetchWorkspaceValues)(now);
       if (!values) return;
       const declared = opts.runtime.getModel().map((input) => input.id);
@@ -108,9 +101,39 @@ export function mountTemplateNotices(opts: {
       setTemplateInputs(opts.toolId, editable);
       opts.updated({ ref: origin.ref, version: now.version, editable, ...(now.fixedTheme ? { fixedTheme: true } : {}) });
       off();
-    } } : { label: t('Open new version'), run: startAgain },
+    } } : { label: t('Open new version'), run: startAgain };
+  off = publishNotification({
+    id: `template-version:${origin.ref}:${now.version}`,
+    title: t('New version available'),
+    body: editable
+      ? tRaw('{name} has a new version. What you changed is kept.', { name: now.name })
+      : tRaw('{name} has a new version. It opens as a new document, and this copy stays as it is.', { name: now.name }),
+    tone: 'action',
+    action,
   });
+  // A "New version" tap on the home's shelf card (views/published-shelf.ts) opened this
+  // copy: run the notice's own action, as a tap on it in the list would.
+  if (takeNewVersionRequest(origin.ref)) void action.run();
   return () => off();
+}
+
+/** How long a "New version" tap on the home's shelf card waits for its copy to open. */
+const NEW_VERSION_REQUEST_MS = 60_000;
+let newVersionRequest: { ref: string; at: number } | null = null;
+
+/** Ask the next copy of template `ref` that opens to take its new version, through the
+ *  same action its notice offers. The request lapses after a minute. */
+export function requestNewVersion(ref: string, at = Date.now()): void {
+  newVersionRequest = { ref, at };
+}
+
+/** True once when a copy of `ref` was asked to take its new version. */
+function takeNewVersionRequest(ref: string, now = Date.now()): boolean {
+  const request = newVersionRequest;
+  if (!request) return false;
+  const live = now - request.at <= NEW_VERSION_REQUEST_MS;
+  if (!live || request.ref === ref) newVersionRequest = null;
+  return live && request.ref === ref;
 }
 
 /** The once-only notice for a tool built from a Share with rules file that moved on
