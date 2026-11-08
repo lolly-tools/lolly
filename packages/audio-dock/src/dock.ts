@@ -27,6 +27,7 @@ import type {
   DockPlacement,
   DockSectionId,
   DockSource,
+  DockSources,
   DockVizPreset,
   DockVizTheme,
   DockVizTransition,
@@ -139,6 +140,11 @@ export function createAudioDock(opts: AudioDockOptions): DockController {
   // The narration block subscribes independently (it is a second, coexisting player).
   let narrRef: DockNarrationPlayer | null = null;
   let narrUnsub: (() => void) | null = null;
+  // The source list's change subscription, held against the sources object it came from.
+  // A host can gain its sources after the dock is built (the web shell builds one dock
+  // before any music source registers), so this follows host.sources like narration.
+  let listRef: DockSources | null = null;
+  let listUnsub: (() => void) | null = null;
 
   // ── placement (drag position + per-state window size) ───────────────────────
   const MIN_W = 260;
@@ -1024,6 +1030,15 @@ export function createAudioDock(opts: AudioDockOptions): DockController {
     setText('[data-narr-disclosure]', nar.disclosure?.() ?? '');
   }
   // (Re)subscribe to the narration block's own change stream when it appears/changes.
+  function syncListSub(): void {
+    const s = host.sources ?? null;
+    if (s === listRef) return;
+    listUnsub?.();
+    listUnsub = null;
+    listRef = s;
+    if (s?.onListChange) listUnsub = s.onListChange(rebuildSources);
+  }
+
   function syncNarrationSub(): void {
     const nb = host.narrationBlock ?? null;
     if (nb === narrRef) return;
@@ -1185,6 +1200,7 @@ export function createAudioDock(opts: AudioDockOptions): DockController {
   function refresh(): void {
     if (destroyed) return;
     syncNarrationSub();
+    syncListSub();
     applyCaps();   // block visibility can change as sources register/unregister
     // main (music/flat) transport + mini
     const playing = host.isPlaying();
@@ -1626,6 +1642,7 @@ export function createAudioDock(opts: AudioDockOptions): DockController {
     caps = { ...next };
     applyCaps();
     sourcesBuilt = false;
+    syncListSub();
     rebuildNarration();
     rebuildSources();
     rebuildAtmosphere();
@@ -1680,7 +1697,7 @@ export function createAudioDock(opts: AudioDockOptions): DockController {
   rebuildVolumes();
   void rebuildVisualiser();
   const unsub = host.onChange(refresh);
-  const listUnsub = host.sources?.onListChange?.(rebuildSources) ?? null;
+  syncListSub();
   syncNarrationSub();
   refresh();
   syncViz();

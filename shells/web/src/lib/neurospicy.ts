@@ -25,8 +25,10 @@ import { RADIO_STATIONS, radioStation, isRadioId, radioAvailable, resolveStreamU
 import { isSfxMuted } from './sfx.ts';
 import {
   isLofiId, lofiId, lofiTracks, startLofi, stopLofi, lofiLive, applyLofiPrefs, queueLofiSeed, retiredTrackStation, LOFI_DEFAULTS, LOFI_STATION_MOODS,
+  playsOnStation, rememberSavedTune, currentLofiRecipe, lofiTune, lofiMoodOf, savedTuneOf,
   type LofiPrefs, type LofiLink,
 } from './neurospicy-lofi.ts';
+import { LOFI_TUNE_FORMAT, lofiTuneBytes, lofiTuneFromMeta, lofiTuneFromUrl, lofiTuneName } from './lofi-tune.ts';
 
 // Just the host surface this module uses - the catalog assets (loop list + bytes) and the
 // profile (persist). host.profile.set is a web-shell capability, not on the read-only engine
@@ -37,6 +39,8 @@ export type NeurospicyHost = {
   // see, as it only reads catalog assets). Optional so non-web hosts just skip it.
   assets: Pick<HostV1['assets'], 'get' | 'query'> & {
     _listUserAssets?(): Promise<Array<{ id: string; type?: string; format?: string; url?: string; meta?: Record<string, unknown> }>>;
+    // Writes a user asset (web shell only): how a station tune is saved to the library.
+    _uploadUserAsset?(record: { id: string; type: 'audio'; format: string; blob: Blob; meta: Record<string, unknown> }): Promise<void>;
   };
   profile: { get(): Promise<object>; set(p: object): Promise<unknown> };
 };
@@ -699,7 +703,9 @@ async function play(host: NeurospicyHost): Promise<void> {
   if (!state.enabled || !state.loopId || isSfxMuted() || paused) { stopSource(); return; }
   // Radio station? Stream it via <audio>, not the focus-loop buffer path.
   if (isRadioId(state.loopId) || formatById.get(state.loopId) === 'stream') { await playRadio(); return; }
-  if (isLofiId(state.loopId)) { await playLofi(); return; }
+  if (playsOnStation(state.loopId) || (formatById.get(state.loopId) === LOFI_TUNE_FORMAT && await learnSavedTune(state.loopId))) {
+    await playLofi(); return;
+  }
   if (src && playingId === state.loopId) { if (gain) gain.gain.value = state.volume; return; }
   const a = audio(); if (!a) return;
   // Capture the target now: awaits below can interleave with another play() (rapid
@@ -736,7 +742,10 @@ async function playLofi(): Promise<void> {
   const a = audio(); if (!a) return;
   stopSource();
   a.gain.gain.value = state.volume;
-  await startLofi(a.ctx, a.input, id, state.lofi);
+  // A saved tune repeats on the station; in forward mode the player moves on when it ends.
+  await startLofi(a.ctx, a.input, id, state.lofi, () => {
+    if (state.loopId === id && !state.repeat && activeHost) void cycleNeurospicyLoop(activeHost, 1, { skipStreams: true });
+  });
   // The station loads on first use; the selection may have moved on meanwhile.
   if (state.loopId !== id || !state.enabled || paused || isSfxMuted()) { stopLofi(); return; }
   playingId = id;
@@ -855,7 +864,12 @@ export const NEURO_CATEGORY_ORDER: string[] = ['catalog', 'uploads', 'lolly', 'l
 
 /** Which playlist group a track belongs to (the picker's section, and the sort key). */
 export function trackCategory(t: NeuroTrack): string {
-  if (t.format === 'lofi') return t.id === lofiId('sings') ? 'lolly' : 'lofi';   // the generated stations: Lolly Sings, then Lofi
+  if (t.format === 'lofi') {
+    // The generated stations, and the tunes saved from them (presets and the listener's
+    // own), grouped by genre: Lolly Sings, then Lofi.
+    const mood = lofiMoodOf(t.id) ?? savedTuneOf(t.id)?.mood ?? (t.tags.includes('lolly-sings') ? 'sings' : null);
+    return mood === 'sings' ? 'lolly' : 'lofi';
+  }
   if (t.format === 'stream' || t.tags.includes('radio') || t.tags.includes('stream')) return 'radio';
   if (t.id.startsWith('user/')) return 'uploads';       // the user's own uploads
   if (!t.tags.includes('neurospicy')) return 'catalog'; // catalog audio outside the focus sets (music beds…)
@@ -895,7 +909,13 @@ export async function listLoops(host: NeurospicyHost): Promise<NeuroTrack[]> {
       // other audio (e.g. licensed music beds) is playable here too; the player's
       // picker groups it under a separate "Catalog" section (see trackCategory).
       const refs = await host.assets.query({ type: 'audio' });
-      for (const r of refs) { if (r.url) urlById.set(r.id, r.url); if (r.format) formatById.set(r.id, r.format); }
+      for (const r of refs) {
+        if (r.url) urlById.set(r.id, r.url);
+        if (r.format) formatById.set(r.id, r.format);
+        // A catalog preset tune (lib/lofi-tune.ts) plays live on the station, like a saved one.
+        const recipe = r.format === LOFI_TUNE_FORMAT ? lofiTuneFromMeta(r.meta?.lofi) : null;
+        if (recipe) rememberSavedTune(r.id, recipe);
+      }
       loops = refs.map((r): NeuroTrack => ({
         id: r.id,
         name: String((r.meta?.name as string | undefined) ?? r.id),
@@ -912,6 +932,9 @@ export async function listLoops(host: NeurospicyHost): Promise<NeuroTrack[]> {
       for (const a of userAssets) {
         const tags = Array.isArray(a.meta?.tags) ? (a.meta.tags as string[]) : [];
         if (a.type !== 'audio') continue;
+        // A saved station tune plays live on the station, from the recipe in its meta.
+        const recipe = a.format === LOFI_TUNE_FORMAT ? lofiTuneFromMeta(a.meta?.lofi) : null;
+        if (recipe) rememberSavedTune(a.id, recipe);
         if (a.url) urlById.set(a.id, a.url);
         if (a.format) formatById.set(a.id, a.format);
         loops.push({ id: a.id, name: String((a.meta?.name as string | undefined) ?? a.id), tags, format: a.format ?? '' });
@@ -946,6 +969,40 @@ function radioTracks(): NeuroTrack[] {
   if (!radioAvailable()) return [];
   for (const s of RADIO_STATIONS) formatById.set(s.id, 'stream');
   return RADIO_STATIONS.map((s): NeuroTrack => ({ id: s.id, name: s.name, tags: ['radio', 'stream'], format: 'stream' }));
+}
+
+/** A saved tune whose recipe was not in its meta: read the recipe from its bytes. */
+async function learnSavedTune(id: string): Promise<boolean> {
+  const url = urlById.get(id);
+  if (!url) return false;
+  try { rememberSavedTune(id, await lofiTuneFromUrl(url)); return true; } catch { return false; }
+}
+
+/**
+ * Save the tune playing on a station to the asset library, so it can be played again
+ * later (it lists under the listener's own audio). Returns the saved asset's id, or null
+ * when nothing is playing on a station or this host cannot write assets.
+ */
+export async function saveLofiTune(host: NeurospicyHost): Promise<string | null> {
+  const recipe = currentLofiRecipe();
+  const tune = lofiTune();
+  if (!recipe || !tune || !host.assets._uploadUserAsset) return null;
+  const { lofiTuneSeconds } = await import('../../../../engine/src/lofi-compose.ts');
+  const id = `user/tune/${Date.now()}-${recipe.mood}-${recipe.seed}`;
+  const bytes = lofiTuneBytes(recipe);
+  await host.assets._uploadUserAsset({
+    id, type: 'audio', format: LOFI_TUNE_FORMAT,
+    blob: new Blob([bytes.slice().buffer], { type: 'application/json' }),
+    meta: {
+      name: lofiTuneName(recipe, tune),
+      tags: ['neurospicy', 'generated', recipe.mood === 'sings' ? 'lolly-sings' : 'lofi'],
+      lofi: { mood: recipe.mood, seed: recipe.seed },
+      durationMs: Math.round(lofiTuneSeconds(recipe.seed, recipe.mood) * 1000),
+    },
+  });
+  rememberSavedTune(id, recipe);
+  invalidateNeurospicyTracks();
+  return id;
 }
 
 /** Drop the cached track list (an audio upload changed it) and nudge any mounted

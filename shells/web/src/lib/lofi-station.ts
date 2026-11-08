@@ -39,6 +39,8 @@ export interface LofiSettings {
   texture: number;
   /** Fix parts of every tune's style (for auditioning an instrument); normally empty. */
   style?: Partial<LofiStyle>;
+  /** Repeat the first tune rather than going on to new ones (a saved tune). */
+  repeat?: boolean;
 }
 
 /** Part levels, for tuning the balance. 1 is the designed level. */
@@ -132,7 +134,7 @@ export class LofiStation {
     this.ctx = ctx;
     this.settings = { ...settings };
     this.mix = { ...mix };
-    this.stream = lofiStream(seed, { mood: settings.mood, style: settings.style });
+    this.stream = lofiStream(seed, { mood: settings.mood, style: settings.style, repeat: settings.repeat });
     const noise = noiseBuffer(ctx, 2, mulberry32(seed ^ 0x51));
     this.kit = { ctx, noise, rng: mulberry32(seed ^ 0x5eed) };
 
@@ -287,7 +289,7 @@ export class LofiStation {
     for (const g of Object.values(old)) g.gain.setTargetAtTime(0, now, 0.06);
     if (typeof setTimeout === 'function') setTimeout(() => { for (const g of Object.values(old)) g.disconnect(); }, 800);
     this.lanes = this.newLanes();
-    this.stream = lofiStream(seed, { mood: this.settings.mood, style: this.settings.style });
+    this.stream = lofiStream(seed, { mood: this.settings.mood, style: this.settings.style, repeat: this.settings.repeat });
     this.queue = [];
     this.marks = [];
     this.nextBarAt = now + 0.15;

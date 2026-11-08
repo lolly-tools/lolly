@@ -49,7 +49,9 @@ export const typeBucketEmpty = (cat: CatCtx): boolean => cat.typeFilter !== 'all
 export const playableHere = (cat: CatCtx, a: AssetRef): boolean =>
   (cat.modulesPlayable !== false || !isModuleFormat(a.format))
   // A rondocode song renders in QuickJS inside a Worker; without both there is nothing to play.
-  && (a.format !== 'rondo' || (typeof Worker !== 'undefined' && typeof WebAssembly !== 'undefined'));
+  && (a.format !== 'rondo' || (typeof Worker !== 'undefined' && typeof WebAssembly !== 'undefined'))
+  // A saved station tune is composed and rendered with Web Audio.
+  && (a.format !== 'lofi' || typeof OfflineAudioContext !== 'undefined');
 // The search index, memoised across keystrokes and dropped whenever the asset
 // set or the category overrides change (see setOverrides and the reload path).
 // Built on FIRST SEARCH, never merely on render - indexing every asset for a

@@ -609,7 +609,8 @@ function extForAsset(format: string, mime: string): string {
 function assetPath(dir: string, base: string, format: string, mime: string, taken: Set<string>): string {
   // A rondocode song is stored as its canonical JSON, the file rondocode itself
   // opens as `.rondo.json`; `.rondo` alone would claim rondo-language text.
-  const ext = (format || '').toLowerCase() === 'rondo' ? 'rondo.json' : extForAsset(format, mime);
+  const lower = (format || '').toLowerCase();
+  const ext = lower === 'rondo' ? 'rondo.json' : lower === 'lofi' ? 'lofi.json' : extForAsset(format, mime);
   let stem = (base.split(/[\\/]/).pop() ?? base);           // last segment of an id-shaped name
   const dot = stem.lastIndexOf('.');                        // drop an already-matching extension
   if (dot > 0 && stem.slice(dot + 1).toLowerCase() === ext) stem = stem.slice(0, dot);

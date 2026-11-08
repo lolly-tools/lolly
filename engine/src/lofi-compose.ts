@@ -134,6 +134,8 @@ export interface LofiOptions {
   mood: LofiMood;
   /** Fix parts of the style instead of drawing them (for auditioning one instrument). */
   style?: Partial<LofiStyle>;
+  /** Play the first tune again when it ends, instead of moving on (a saved tune). */
+  repeat?: boolean;
 }
 
 // ── harmony ───────────────────────────────────────────────────────────────
@@ -665,13 +667,23 @@ export function lofiStream(seed: number, opts: LofiOptions): LofiStream {
   return {
     next(): LofiBar {
       if (at >= bars.length) {
-        tuneSeed = nextLofiSeed(tuneSeed);
-        bars = composeLofiTune(tuneSeed, opts.mood, opts.style);
+        // A repeating stream keeps the same bars: composing is deterministic, so the
+        // tune would come out identical anyway.
+        if (!opts.repeat) {
+          tuneSeed = nextLofiSeed(tuneSeed);
+          bars = composeLofiTune(tuneSeed, opts.mood, opts.style);
+        }
         at = 0;
       }
       return bars[at++]!;
     },
   };
+}
+
+/** How long one tune lasts, in seconds: its bars at its tempo (four beats a bar). */
+export function lofiTuneSeconds(seed: number, mood: LofiMood): number {
+  const bars = composeLofiTune(seed >>> 0, mood);
+  return (bars.length * 4 * 60) / bars[0]!.tune.bpm;
 }
 
 // ── melody helpers ────────────────────────────────────────────────────────

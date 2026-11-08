@@ -829,10 +829,11 @@ export function wireApprovalAndActions(ta: ActionsCtx): void {
             throw new Error(words.rondoFailureSentence(err));
           }
         };
-        // ZzFXM songs, tracker modules and rondocode songs have no playable audio file -
-        // render them to a transient WAV blob URL so the URL-driven muxer paths consume
-        // them exactly like an encoded loop. (mod → libopenmpt, zzfxm → the synth,
-        // rondo → the song renderer.)
+        // ZzFXM songs, tracker modules, rondocode songs and saved station tunes have no
+        // playable audio file - render them to a transient WAV blob URL so the URL-driven
+        // muxer paths consume them exactly like an encoded loop. (mod → libopenmpt,
+        // zzfxm → the synth, rondo → the song renderer, lofi → the station, repeating
+        // the tune to fill the video.)
         const toWavIfNeeded = async (r: { url: string; format?: string }, seconds?: number): Promise<string> =>
           r.format === 'zzfxm'
             ? trackBlobUrl(await songUrlToWavBlobUrl(r.url))
@@ -840,7 +841,9 @@ export function wireApprovalAndActions(ta: ActionsCtx): void {
               ? trackBlobUrl(await modUrlToWavBlobUrl(r.url))
               : r.format === 'rondo'
                 ? await songToWav(r.url, seconds)
-                : r.url;
+                : r.format === 'lofi'
+                  ? trackBlobUrl(await (await import('../../lib/lofi-tune.ts')).lofiTuneUrlToWavBlobUrl(r.url, seconds))
+                  : r.url;
         // The video's own length, which a song bed is rendered to fill.
         const videoSec = (): number | undefined => {
           const d = ta.video.videoParams().duration;

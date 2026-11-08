@@ -121,14 +121,19 @@ export async function generatedWavUrl(ta: ActionsCtx, targetSec: number): Promis
 /**
  * A track's audition url. Encoded audio plays from its own url; a rondocode song
  * is code, so it is rendered first (lib/rondo-render.ts runs it in the `vm` class)
- * to a WAV blob, at its own length. The previous song's blob is revoked when a new
+ * to a WAV blob, at its own length, and a saved station tune is composed and rendered
+ * the same way (lib/lofi-tune.ts). The previous song's blob is revoked when a new
  * one is minted, so at most one is held.
  */
 export async function trackPreviewUrl(ta: ActionsCtx, id: string): Promise<string> {
   const ref = await ta.host.assets.get(id);
-  if (ref.format !== 'rondo') return ref.url;
-  const r = await import('../../lib/rondo-render.ts');
-  const { url } = await r.renderRondoToWavUrl(await r.songFromUrl(ref.url));
+  if (ref.format !== 'rondo' && ref.format !== 'lofi') return ref.url;
+  const url = ref.format === 'lofi'
+    ? await (await import('../../lib/lofi-tune.ts')).lofiTuneUrlToWavBlobUrl(ref.url)
+    : await (async () => {
+      const r = await import('../../lib/rondo-render.ts');
+      return (await r.renderRondoToWavUrl(await r.songFromUrl(ref.url))).url;
+    })();
   if (ta.songWavUrl) URL.revokeObjectURL(ta.songWavUrl);
   ta.songWavUrl = url;
   return url;

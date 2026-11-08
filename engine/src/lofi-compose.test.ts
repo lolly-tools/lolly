@@ -18,7 +18,7 @@
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { composeLofiTune, lofiStream, nextLofiSeed, LOFI_MOODS, LOFI_DRUM_VOICES } from './lofi-compose.ts';
+import { composeLofiTune, lofiStream, lofiTuneSeconds, nextLofiSeed, LOFI_MOODS, LOFI_DRUM_VOICES } from './lofi-compose.ts';
 import type { LofiBar } from './lofi-compose.ts';
 
 const SEEDS = Array.from({ length: 24 }, (_, i) => (i * 2654435761) >>> 0);
@@ -39,6 +39,27 @@ test('a station plays one tune after another, each seed following from the last'
   assert.equal(next.index, 0, 'the next tune starts at its first bar');
   assert.equal(next.tune.seed, nextLofiSeed(99));
   assert.equal(next.tune.mood, 'rainy', 'and keeps the mood');
+});
+
+test('a saved tune repeats: the stream plays the same tune again instead of moving on', () => {
+  const stream = lofiStream(4111860815, { mood: 'sings', repeat: true });
+  const tune = composeLofiTune(4111860815, 'sings');
+  for (let round = 0; round < 2; round++) {
+    for (let i = 0; i < tune.length; i++) {
+      const bar = stream.next();
+      assert.equal(bar.tune.seed, 4111860815);
+      assert.equal(bar.index, i, `round ${round}: bar ${i} comes round again in order`);
+    }
+  }
+});
+
+test('a tune lasts its bars at its tempo', () => {
+  const bars = composeLofiTune(250249288, 'warm');
+  assert.equal(lofiTuneSeconds(250249288, 'warm'), (bars.length * 4 * 60) / bars[0]!.tune.bpm);
+  for (const mood of LOFI_MOODS) for (const seed of SEEDS.slice(0, 6)) {
+    const s = lofiTuneSeconds(seed, mood);
+    assert.ok(s > 40 && s < 400, `${mood} ${seed}: ${s.toFixed(0)} s is a plausible tune length`);
+  }
 });
 
 test('every note is playable', () => {
