@@ -105,9 +105,13 @@ Rita works at Northwind IT, a company in Resellers, EMEA. When she signs in, her
   Design's checks point out a mark smaller than the kit allows or too close to other artwork. A
   finding is a note to review and never stops an export.
 
+![Rita's home shelf: the Northwind IT card with Details, then the Partner data sheet and a Reseller price list, each with Use](shots/partner-home.svg)
+
 In a template, the inputs she may change are the only controls shown. Northwind IT's logo and
 details are already in place, and a logo the template takes by mode follows the piece between
 light and dark. A phone shows the same home in the same order.
+
+![The Partner data sheet open for Rita: Your price is the only field beside the colourway and mode, and the sheet already shows Northwind IT's logo and contact line](shots/partner-template-tool.svg)
 
 When she exports, the export panel's **Design system** card shows what the file records, such as
 "Records: Lolly Demo · Colourway: Spearmint · Partner: Northwind IT (Resellers, EMEA)". Anyone who
@@ -115,6 +119,8 @@ checks the file in [Lolly Verify](/info/what-verify-checks.html#partner) reads "
 Resellers, EMEA programme, details revision 3" as its **Partner** fact. The partner record is
 about the company, never Rita: it holds no person, contact details, address or currency
 ([The partner record in files](partner-programmes.md#the-partner-record-in-files)).
+
+![The export panel's Design system card, reading Records: Lolly Demo, Colourway: Spearmint, Partner: Northwind IT (Resellers, EMEA)](shots/partner-export-record.svg)
 
 ## Day to day
 
@@ -260,6 +266,8 @@ the `logos` and the `limits` the server enforces. Each logo goes up on its own,
 next revision, so the three logos bring Northwind IT to revision 4.
 :::
 
+
+![Northwind IT's page in the console: its details at revision 4, its logos for light and dark surfaces and its mark, each previewed on both surfaces, and Contacts who may edit, off](shots/partner-company.svg)
 **Rita** still sees nothing, but every piece she makes from now on can carry these details.
 
 ### 4. Publish the data sheet
@@ -276,6 +284,8 @@ in Resellers, EMEA**. Then press **Change** on its row, and under **Takes from t
 lw templates upload resellers-emea product-data-sheet.lolly --groups programme-resellers-emea
 lw templates set resellers-emea inst/7f3a… --bindings logo=logo,details=contact
 ```
+
+![The Templates card for Resellers, EMEA: the Partner data sheet with its logo and details line taken from the company, a Pricing template and the switch that keeps Pricing to its templates](shots/partner-programme-templates.svg)
 
 **Rita** is not in yet. When she is, the logo and the details line fill themselves from Northwind
 IT's details and are not offered to her. She types only the price, and may switch the colourway
@@ -345,6 +355,8 @@ Northwind IT, never the agent.
 
 **Console.** **End this partnership**, with **Whose access ends** set to Northwind IT, then **See
 what ending it does**, lists Rita, her agent token and anything else that ends.
+
+![End this partnership for everyone at Northwind IT after See what ending it does: two accounts with no projects or links, and the button that ends access for 2 people](shots/partner-end-dry-run.svg)
 
 **`lw`.** To end it at the close of 30 June 2027 rather than now:
 

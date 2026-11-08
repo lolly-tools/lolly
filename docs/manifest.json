@@ -3774,6 +3774,126 @@
         "sha256": "314ee6c4909c95410760871c8a68f46ba6bc4eb270386a8adddb536b3042f683",
         "originalPath": "docs/shots/overview-dashboard.svg"
       },
+      "shots/partner-company-sheet.dark.svg": {
+        "source": "shots/work/partner-company-sheet.dark.svg",
+        "sha256": "18885ec4d7638a3b6107be996815927b4915d75fc5771c6d0661c46cda2481ac",
+        "originalPath": "docs/shots/partner-company-sheet.dark.svg"
+      },
+      "shots/partner-company-sheet.root.pem": {
+        "source": "shots/work/partner-company-sheet.root.pem",
+        "sha256": "0fb8aa4d6a2bc5958b94459d6eafef9b9126d4dacf1b86dbb2a08f1b37a05422",
+        "originalPath": "docs/shots/partner-company-sheet.root.pem"
+      },
+      "shots/partner-company-sheet.svg": {
+        "source": "shots/work/partner-company-sheet.svg",
+        "sha256": "17527224c4d220a3226b7b042e220b6009d129278787ffd2381b510ba6c1e77f",
+        "originalPath": "docs/shots/partner-company-sheet.svg"
+      },
+      "shots/partner-company.dark.svg": {
+        "source": "shots/work/partner-company.dark.svg",
+        "sha256": "59a1d126fa6e30ccc78f0725ed8f0abd4bf62c5be350fcd789f5d3e9e3588cab",
+        "originalPath": "docs/shots/partner-company.dark.svg"
+      },
+      "shots/partner-company.root.pem": {
+        "source": "shots/work/partner-company.root.pem",
+        "sha256": "ec4204b1c21f4782ebdfb52d4a0e4ea76859aa77b9f43f9f15f8f4d2fd5d972d",
+        "originalPath": "docs/shots/partner-company.root.pem"
+      },
+      "shots/partner-company.svg": {
+        "source": "shots/work/partner-company.svg",
+        "sha256": "c8659525391e1fdf4064986c89548fcb98ca3a15a78f827bf38b49d4a1eca439",
+        "originalPath": "docs/shots/partner-company.svg"
+      },
+      "shots/partner-end-dry-run.dark.svg": {
+        "source": "shots/work/partner-end-dry-run.dark.svg",
+        "sha256": "3afa4d1479427a604407f90275e198b8c863c2d59f8da2292f7f4e9a2a288742",
+        "originalPath": "docs/shots/partner-end-dry-run.dark.svg"
+      },
+      "shots/partner-end-dry-run.root.pem": {
+        "source": "shots/work/partner-end-dry-run.root.pem",
+        "sha256": "49efba0405e7c2352081cfaa60b80420d3796e01c16fbdfe94e80963af06db53",
+        "originalPath": "docs/shots/partner-end-dry-run.root.pem"
+      },
+      "shots/partner-end-dry-run.svg": {
+        "source": "shots/work/partner-end-dry-run.svg",
+        "sha256": "004cb24c733d423d21f672bad1726f803253a7d736aa5f36bc66aad47dabe019",
+        "originalPath": "docs/shots/partner-end-dry-run.svg"
+      },
+      "shots/partner-export-record.dark.svg": {
+        "source": "shots/work/partner-export-record.dark.svg",
+        "sha256": "01340d34da4eada272df1a5af4a983dc7d6cbd559500a37be709f8751bdffb9a",
+        "originalPath": "docs/shots/partner-export-record.dark.svg"
+      },
+      "shots/partner-export-record.root.pem": {
+        "source": "shots/work/partner-export-record.root.pem",
+        "sha256": "0fb8aa4d6a2bc5958b94459d6eafef9b9126d4dacf1b86dbb2a08f1b37a05422",
+        "originalPath": "docs/shots/partner-export-record.root.pem"
+      },
+      "shots/partner-export-record.svg": {
+        "source": "shots/work/partner-export-record.svg",
+        "sha256": "b36421ed6856076b774326318cdeb23ad1b6d6ba06412cea45e047b69636c8ef",
+        "originalPath": "docs/shots/partner-export-record.svg"
+      },
+      "shots/partner-home.dark.svg": {
+        "source": "shots/work/partner-home.dark.svg",
+        "sha256": "5d2d468c62195ec1d3156467425f1288ee4e40d7cf69709deb661075f02b2108",
+        "originalPath": "docs/shots/partner-home.dark.svg"
+      },
+      "shots/partner-home.root.pem": {
+        "source": "shots/work/partner-home.root.pem",
+        "sha256": "49efba0405e7c2352081cfaa60b80420d3796e01c16fbdfe94e80963af06db53",
+        "originalPath": "docs/shots/partner-home.root.pem"
+      },
+      "shots/partner-home.svg": {
+        "source": "shots/work/partner-home.svg",
+        "sha256": "b1249c509911a717e2063e95b9714052b93d417669a89a9bfbcbb86a819016d1",
+        "originalPath": "docs/shots/partner-home.svg"
+      },
+      "shots/partner-licences.dark.svg": {
+        "source": "shots/work/partner-licences.dark.svg",
+        "sha256": "534d7ac897be16535888a4563cb0967bfeb07faf31761ed02621f137f9bf9b1c",
+        "originalPath": "docs/shots/partner-licences.dark.svg"
+      },
+      "shots/partner-licences.root.pem": {
+        "source": "shots/work/partner-licences.root.pem",
+        "sha256": "ec4204b1c21f4782ebdfb52d4a0e4ea76859aa77b9f43f9f15f8f4d2fd5d972d",
+        "originalPath": "docs/shots/partner-licences.root.pem"
+      },
+      "shots/partner-licences.svg": {
+        "source": "shots/work/partner-licences.svg",
+        "sha256": "56ea8243bbc5a4c7938cb42e2a7b6d5c79e49186ec5dbb3fbe39a895f5f350ce",
+        "originalPath": "docs/shots/partner-licences.svg"
+      },
+      "shots/partner-programme-templates.dark.svg": {
+        "source": "shots/work/partner-programme-templates.dark.svg",
+        "sha256": "1f39558f87316485df8ce36829ea1a38274bf7fe8965b37c18c4e9a9b4001ae1",
+        "originalPath": "docs/shots/partner-programme-templates.dark.svg"
+      },
+      "shots/partner-programme-templates.root.pem": {
+        "source": "shots/work/partner-programme-templates.root.pem",
+        "sha256": "ec4204b1c21f4782ebdfb52d4a0e4ea76859aa77b9f43f9f15f8f4d2fd5d972d",
+        "originalPath": "docs/shots/partner-programme-templates.root.pem"
+      },
+      "shots/partner-programme-templates.svg": {
+        "source": "shots/work/partner-programme-templates.svg",
+        "sha256": "3e44b6026a63aaa30f815f7605728ff84eefd52a52d7e5ce9063c82f72a76076",
+        "originalPath": "docs/shots/partner-programme-templates.svg"
+      },
+      "shots/partner-template-tool.dark.svg": {
+        "source": "shots/work/partner-template-tool.dark.svg",
+        "sha256": "e2e798c6ea01dc3bf690e6b99edcebce0c4f07e6c20c0be61c218c2c1c4d93fe",
+        "originalPath": "docs/shots/partner-template-tool.dark.svg"
+      },
+      "shots/partner-template-tool.root.pem": {
+        "source": "shots/work/partner-template-tool.root.pem",
+        "sha256": "49efba0405e7c2352081cfaa60b80420d3796e01c16fbdfe94e80963af06db53",
+        "originalPath": "docs/shots/partner-template-tool.root.pem"
+      },
+      "shots/partner-template-tool.svg": {
+        "source": "shots/work/partner-template-tool.svg",
+        "sha256": "0bcd85564e3bf7a708f9188d3cd763d88421b57b08a49ed6472d5d7b6ad29223",
+        "originalPath": "docs/shots/partner-template-tool.svg"
+      },
       "shots/people-directory.dark.svg": {
         "source": "shots/work/people-directory.dark.svg",
         "sha256": "2b666b62c69b8d157b96854572a1efec6d3d6d6a182c24ced996703ff61ae305",

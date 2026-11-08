@@ -212,6 +212,8 @@ Nothing is written unless every file qualifies: a file outside the audience's fe
 
 ### The Licences card
 
+![The Licences card for Resellers, EMEA: the gate set in configuration, 1 of 17 files held back because its licence is not recorded, and the sources that travel, most of them exempt](shots/partner-licences.svg)
+
 The programme's **Licences** card shows, for one programme:
 
 - the mode and its reason;
@@ -247,6 +249,8 @@ A template gives a programme a ready piece to finish, such as a product data she
 adds only their price. Partners find it on their home, under **From** and your workspace's name, and
 in the tool's **Start** chooser, and **Use** opens the template. Only what the template leaves open is offered;
 everything else is simply not there, with no note about why.
+
+![The Templates card for Resellers, EMEA: the Partner data sheet with its logo and details line taken from the company, a Pricing template and the switch that keeps Pricing to its templates](shots/partner-programme-templates.svg)
 
 Publish one from the programme's **Templates** card. Anyone with `programme.manage` can, without
 joining the programme. There are two kinds:
@@ -331,6 +335,8 @@ its programme's rule, which is how one company gets an exception
 ([Input rules for partners](#input-rules-for-partners)).
 
 ### Company details and logos
+
+![Northwind IT's page in the console: its details at revision 4, its logos for light and dark surfaces and its mark, each previewed on both surfaces, and Contacts who may edit, off](shots/partner-company.svg)
 
 Each company has a page of its own: open the programme, then the company under **Companies**. The
 brand team sets the company up once, and its details and logos then go on every piece its people
@@ -429,6 +435,8 @@ The template's row then reads "From the company: Partner logo (Logo (by mode)), 
 
 ### What partners see of their company
 
+![The Northwind IT details sheet: the logo on light and dark backgrounds, then the website, contact, address, currency and tax note](shots/partner-company-sheet.svg)
+
 A partner in one company sees their company's card first on their home, once the company has
 details or when they may edit them: the logo on your design system's surface and
 "Your details are on every piece". **Details** shows both logos on light and dark backgrounds,
@@ -450,8 +458,12 @@ company's people and agents receive; a change is a new revision.
   space, minimum size and treatments. Whether your brand team or the partner's own designer does
   that depends on how you work together.
 - **The logos** a kit pins must be the company's own logos from its page.
-- **Who edits.** Anyone with `programme.manage`, and a contact who may edit the company's details
-  while contact changes need no approval. With approval on, your team edits the kit.
+- **Who edits.** Anyone with `programme.manage`, and a contact who may edit the company's details.
+  While contact changes need approval, a contact may change the kit only when kit review is on.
+- **Kit review**, off by default. Kit changes apply at once until you choose a chain for them
+  (`lw companies profile settings resellers-emea northwind-it --kit-chain <chain>`, and `none`
+  turns review off). Then every kit change, your team's or a contact's, waits for approval, and an
+  approved change applies only onto the revision it was made against.
 - **Ending.** Ending a partnership retires the kit, Reopen brings back the revision it retired, and
   deleting the company deletes the kit. With the licence gate on, a kit counts as the company's own
   file.
@@ -652,6 +664,8 @@ they made to assets, collections or tools stop working at the same moment
 still include.
 
 ### End a partnership
+
+![End this partnership for everyone at Northwind IT after See what ending it does: two accounts with no projects or links, and the button that ends access for 2 people](shots/partner-end-dry-run.svg)
 
 **End this partnership** on the programme's page, or `POST /api/v1/programmes/exit` with a
 programme, a company, a domain or a list of addresses, first shows what ending it does: the
@@ -910,7 +924,7 @@ PUT    /api/v1/policy/overlays/:toolId            # a tool policy; { bindings } 
 GET    /api/v1/programmes/:id/companies/:company/profile[?revision=N]   # a company's details, logos and settings
 PUT    /api/v1/programmes/:id/companies/:company/profile                # { name?, website?, contact?, address?, currency?, taxNote?, revision? }
 GET    /api/v1/programmes/:id/companies/:company/profile/history        # every revision
-PUT    /api/v1/programmes/:id/companies/:company/profile/settings       # { editors, approvalChain }
+PUT    /api/v1/programmes/:id/companies/:company/profile/settings       # { editors, approvalChain, kitApprovalChain }
 POST   /api/v1/programmes/:id/companies/:company/profile/logo?surface=light|dark|mark   # the file as the body; &dryRun=1 checks only
 DELETE /api/v1/programmes/:id/companies/:company/profile/logo?surface=light|dark|mark
 GET    /api/v1/me/company/profile                 # a partner's own company; PUT and /logo for a contact who may edit
