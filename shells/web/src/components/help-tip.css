@@ -22,7 +22,7 @@
   .help-tip-btn:hover,
   .help-tip-btn:focus-visible {
     opacity: 1;
-    color: hsl(var(--primary));
+    color: hsl(var(--primary-text));
   }
   .help-tip-btn:focus-visible {
     outline: 2px solid hsl(var(--ring));
@@ -79,7 +79,7 @@
   .help-tip-link {
     display: block;
     margin-top: var(--sp-3);
-    color: hsl(var(--primary));
+    color: hsl(var(--primary-text));
     font-weight: 600;
     text-decoration: none;
   }

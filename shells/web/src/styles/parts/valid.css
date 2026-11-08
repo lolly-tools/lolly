@@ -158,7 +158,7 @@
 .valid-origin-note { margin: var(--sp-6) 0 0; color: var(--ui-color-text-muted); font-size: var(--ui-type-label); line-height: 1.5; }
 /* File-supplied links disclose their destination before opening. */
 .valid-metadata-link { color: var(--ui-color-text-default); font: inherit; text-align: start; text-decoration: underline; text-underline-offset: 0.18em; overflow-wrap: anywhere; cursor: pointer; }
-.valid-metadata-link:hover { color: var(--ui-color-action-primary); }
+.valid-metadata-link:hover { color: var(--ui-color-text-accent); }
 .valid-metadata-link:focus-visible, .valid-auxiliary summary:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 3px; border-radius: var(--ui-radius-choice); }
 .valid-link-destination { padding: var(--sp-6); border: 1px solid var(--ui-color-border-default); border-radius: var(--ui-radius-panel); background: color-mix(in srgb, var(--ui-color-surface-muted) 40%, transparent); font-family: var(--ui-type-mono-family); font-size: var(--ui-type-label); overflow-wrap: anywhere; user-select: text; }
 .valid-auxiliary { margin-top: var(--sp-6); padding: var(--sp-6) var(--ui-space-panel); border: 1px solid var(--ui-color-border-default); border-radius: var(--ui-radius-panel); background: var(--ui-color-surface-raised); min-width: 0; }
@@ -524,13 +524,13 @@
 .valid-meta-sensitive svg { width: 0.9rem; height: 0.9rem; }
 .valid-meta-body { display: grid; gap: var(--sp-6); margin-top: var(--ui-space-panel); }
 .valid-meta-note { margin: var(--ui-space-control-inline) 0 0; font-size: var(--ui-type-label); line-height: 1.5; color: var(--ui-color-text-muted); max-width: 68ch; }
-.valid-meta-note a { color: var(--ui-color-action-primary); text-underline-offset: 2px; }
+.valid-meta-note a { color: var(--ui-color-text-accent); text-underline-offset: 2px; }
 /* The "download a cleaned copy" action - deliberately just another inline text
    link beside the Hidden Data tool link, not a CTA button, so a fast lossless
    clean-up path sits quietly where a viewer just saw what the file discloses. */
 .valid-clean-link {
   appearance: none; background: none; border: 0; padding: 0; margin: 0;
-  font: inherit; font-size: var(--ui-type-label); color: var(--ui-color-action-primary);
+  font: inherit; font-size: var(--ui-type-label); color: var(--ui-color-text-accent);
   text-decoration: underline; text-underline-offset: 2px; cursor: pointer;
 }
 .valid-clean-link:hover { opacity: 0.8; }
@@ -607,7 +607,7 @@
 .valid-meta-loc-item { display: inline-flex; align-items: baseline; gap: var(--ui-space-control-inline); }
 .valid-meta-loc-item .k { font-size: calc(0.62rem * var(--a11y-fs)); text-transform: uppercase; letter-spacing: 0.07em; color: var(--ui-color-text-muted); }
 .valid-meta-loc-item .v { font-family: var(--ui-type-mono-family); font-size: var(--ui-type-label); color: hsl(var(--vf-fail)); }
-.valid-meta-map { font-size: var(--fs-xs); color: var(--ui-color-action-primary); text-underline-offset: 2px; white-space: nowrap; }
+.valid-meta-map { font-size: var(--fs-xs); color: var(--ui-color-text-accent); text-underline-offset: 2px; white-space: nowrap; }
 
 /* Hero scorecard - eight canonical checks at a glance. Each pip is a struck
    status chip: pass = glossy pine glass, fail = persimmon/rust glass (equal
@@ -1472,7 +1472,7 @@ box-shadow: var(--ui-elevation-control);
   font-weight: 700; font-size: calc(0.92rem * var(--a11y-fs));
 }
 .valid-claim-summary::-webkit-details-marker { display: none; }
-.valid-claim-ic { display: inline-flex; color: var(--ui-color-action-primary); }
+.valid-claim-ic { display: inline-flex; color: var(--ui-color-text-accent); }
 .valid-claim-ic svg { width: calc(1.05em * var(--a11y-fs)); height: calc(1.05em * var(--a11y-fs)); }
 .valid-claim-title { flex: 1 1 auto; }
 .valid-claim-chev { display: inline-flex; color: var(--ui-color-text-muted); transition: transform var(--ui-motion-overlay) ease; }

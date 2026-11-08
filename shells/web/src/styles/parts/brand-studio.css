@@ -144,7 +144,7 @@
 .be-lock-body[hidden], .be-lock-spot[hidden], .be-ps-body[hidden] { display: none; }
 .be-lock-block { display: grid; gap: .5rem; }
 .be-lock-block + .be-lock-block { padding-top: .5rem; border-top: 1px solid hsl(var(--border) / .5); }
-.be-lock-block.is-pinned .be-subst-val { color: hsl(var(--primary)); font-weight: 600; }
+.be-lock-block.is-pinned .be-subst-val { color: hsl(var(--primary-text)); font-weight: 600; }
 .be-lock-body { display: grid; gap: .5rem; margin-top: .1rem; }
 .be-lock-spot { display: flex; gap: .5rem; flex-wrap: wrap; }
 .be-lock-field { display: grid; gap: .12rem; flex: 1 1 10rem; font-size: var(--fs-xs); color: hsl(var(--muted-foreground)); }
@@ -175,7 +175,7 @@
 .be-swatch-lock {
   display: inline-block; margin-inline-start: .4rem; padding: .05rem .35rem;
   font-size: calc(.58rem * var(--a11y-fs)); font-weight: 700; letter-spacing: .05em; vertical-align: middle;
-  color: hsl(var(--primary)); border: 0; 
+  color: hsl(var(--primary-text)); border: 0; 
 }
 .be-derive-controls { display: grid; gap: .8rem; align-content: start; }
 .be-field { display: grid; gap: .35rem; }
@@ -244,7 +244,7 @@ button.be-ramp-cell.is-selected { box-shadow: inset 0 0 0 2px hsl(var(--ring)), 
 .be-cand-hex { font-family: var(--font-mono); font-size: var(--fs-xs); color: hsl(var(--muted-foreground)); }
 .be-cand-add {
   flex: 0 0 auto; border: 1px solid hsl(var(--border)); background: hsl(var(--primary) / .1);
-  color: hsl(var(--primary)); font: inherit; font-size: var(--fs-xs); font-weight: 700;
+  color: hsl(var(--primary-text)); font: inherit; font-size: var(--fs-xs); font-weight: 700;
   padding: .3rem .6rem; border-radius: var(--radius-pill); cursor: pointer; transition: background var(--dur-1), border-color var(--dur-1);
 }
 .be-cand-add:hover:not(:disabled) { background: hsl(var(--primary) / .18); border-color: hsl(var(--primary) / .4); }
@@ -554,7 +554,7 @@ button.be-ramp-cell.is-selected { box-shadow: inset 0 0 0 2px hsl(var(--ring)), 
 .be-font-meta { display: grid; gap: 1px; min-width: 0; margin-inline-end: auto; }
 .be-font-name { font-size: var(--fs-md); font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .be-font-sub { font-size: var(--fs-xs); color: hsl(var(--muted-foreground)); }
-.be-font-badge { font-size: var(--fs-xs); font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: hsl(var(--primary)); }
+.be-font-badge { font-size: var(--fs-xs); font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: hsl(var(--primary-text)); }
 .be-font-del {
   flex: 0 0 auto; border: 0; background: transparent; cursor: pointer; padding: .25rem .4rem;
   color: hsl(var(--muted-foreground)); font-size: var(--fs-md); border-radius: var(--radius-sm);
@@ -1236,7 +1236,7 @@ button.be-lead:hover { background: hsl(var(--muted) / .7); }
 /* Beat 0's "or bring a file" - a real button that reads as the link it is
    (the studio has no shared link-button primitive; this is the only one). */
 .be-beat0-file {
-  border: 0; padding: 0; background: none; font: inherit; color: hsl(var(--primary));
+  border: 0; padding: 0; background: none; font: inherit; color: hsl(var(--primary-text));
   text-decoration: underline; cursor: pointer;
 }
 .be-beat0-file:hover, .be-beat0-file:focus-visible { text-decoration: none; }
@@ -1580,7 +1580,7 @@ button.be-lead:hover { background: hsl(var(--muted) / .7); }
   box-shadow: var(--ui-edge-faint);
 }
 .be-ui-starter-head { display: flex; align-items: start; justify-content: space-between; gap: .75rem; flex-wrap: wrap; }
-.be-ui-starter-kicker { margin: 0 0 .16rem; font-size: var(--fs-2xs); font-weight: 800; letter-spacing: .075em; text-transform: uppercase; color: hsl(var(--primary)); }
+.be-ui-starter-kicker { margin: 0 0 .16rem; font-size: var(--fs-2xs); font-weight: 800; letter-spacing: .075em; text-transform: uppercase; color: hsl(var(--primary-text)); }
 .be-ui-starter-title { margin: 0; font-size: var(--fs-xl); line-height: 1.25; }
 .be-ui-starter-count, .be-ui-role-badge, .be-ui-group-count {
   display: inline-flex; align-items: center; min-height: 1.45rem; padding-inline: .48rem;
@@ -1712,7 +1712,7 @@ button.be-lead:hover { background: hsl(var(--muted) / .7); }
 }
 .tk-tile:hover { border-color: color-mix(in oklab, var(--ui-color-action-primary) 55%, var(--ui-color-border-default)); }
 .tk-tile:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 2px; }
-.tk-tile-ic { display: grid; width: var(--ui-size-icon-md); height: var(--ui-size-icon-md); color: var(--ui-color-action-primary); }
+.tk-tile-ic { display: grid; width: var(--ui-size-icon-md); height: var(--ui-size-icon-md); color: var(--ui-color-text-accent); }
 .tk-tile-ic svg, .tk-sec-ic svg { width: 100%; height: 100%; }
 .tk-tile-n { justify-self: end; font-size: var(--ui-type-title); font-weight: 700; line-height: 1.1; font-variant-numeric: tabular-nums; }
 .tk-tile-label { grid-column: 1 / -1; font-size: var(--ui-type-label); font-weight: 600; }
@@ -1725,7 +1725,7 @@ button.be-lead:hover { background: hsl(var(--muted) / .7); }
 .tk-sec:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 2px; }
 .tk-sec-head { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-3); font-size: var(--ui-type-section); }
 .tk-sec-head > .tk-sec-act { margin-inline-start: auto; }
-.tk-sec-ic { flex: 0 0 auto; display: grid; width: var(--ui-size-icon-md); height: var(--ui-size-icon-md); color: var(--ui-color-action-primary); }
+.tk-sec-ic { flex: 0 0 auto; display: grid; width: var(--ui-size-icon-md); height: var(--ui-size-icon-md); color: var(--ui-color-text-accent); }
 .tk-sec-name { min-width: 0; margin: 0; font-size: var(--ui-type-section); font-weight: var(--ui-type-weight-section); color: var(--ui-color-text-default); }
 .tk-sec-n {
   padding: 0 var(--sp-2); border-radius: var(--ui-radius-pill); background: var(--ui-color-surface-muted);
@@ -2267,7 +2267,7 @@ html[data-a11y-motion="reduce"] .start:has(> .stu-sheet) .be-bulkbar { transitio
   padding: 0;
   border: 0;
   background: none;
-  color: hsl(var(--primary));
+  color: hsl(var(--primary-text));
   cursor: pointer;
   text-decoration: underline;
   font: inherit;
@@ -2333,7 +2333,7 @@ html[data-a11y-motion="reduce"] .start:has(> .stu-sheet) .be-bulkbar { transitio
   border: 1px solid hsl(var(--border));
   border-radius: calc(var(--radius) * 0.6);
   background-color: hsl(var(--primary) / 0.08);
-  color: hsl(var(--primary));
+  color: hsl(var(--primary-text));
   font-size: var(--fs-sm);
   font-weight: 500;
   cursor: pointer;
@@ -2487,10 +2487,10 @@ html[data-a11y-motion="reduce"] .start:has(> .stu-sheet) .be-bulkbar { transitio
   cursor: pointer; transition: color var(--dur-1), background var(--dur-1), border-color var(--dur-1);
 }
 .be-ramp-curve:hover { color: hsl(var(--foreground)); background: hsl(var(--muted) / .5); }
-.be-ramp-curve.is-edited { color: hsl(var(--primary)); }
+.be-ramp-curve.is-edited { color: hsl(var(--primary-text)); }
 /* Open state reads as a filled control (a background swap, not an accent border -
    that's the pill/card border rule). */
-.be-ramp-curve.is-open { background: hsl(var(--primary) / .14); color: hsl(var(--primary)); border-color: hsl(var(--border)); }
+.be-ramp-curve.is-open { background: hsl(var(--primary) / .14); color: hsl(var(--primary-text)); border-color: hsl(var(--border)); }
 .be-ramp-curve:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 1px; }
 .be-ramp-curve svg { display: block; }
 @media (prefers-reduced-motion: reduce) { .be-ramp-curve { transition: none; } }
@@ -2525,7 +2525,7 @@ html[data-a11y-motion="reduce"] .be-ramp-curve { transition: none; }
   font: inherit; font-size: var(--fs-xs); font-weight: 700; cursor: pointer;
 }
 .be-curve-ch:hover { color: hsl(var(--foreground)); }
-.be-curve-ch.is-active { background: hsl(var(--primary) / .14); color: hsl(var(--primary)); }
+.be-curve-ch.is-active { background: hsl(var(--primary) / .14); color: hsl(var(--primary-text)); }
 .be-curve-ch:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 1px; }
 .be-curve-axis { margin-inline-start: auto; font-family: var(--font-mono); font-size: var(--fs-2xs); color: hsl(var(--muted-foreground)); }
 

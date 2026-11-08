@@ -26,7 +26,7 @@
     flex-wrap: wrap;
   }
   .learning-ui a {
-    color: var(--ui-color-action-primary);
+    color: var(--ui-color-text-accent);
   }
   .learning-ui a:hover {
     text-decoration-thickness: 2px;

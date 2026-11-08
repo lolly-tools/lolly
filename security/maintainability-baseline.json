@@ -28,7 +28,7 @@
       "typeEscapes": 17
     },
     "shells/web/src/bridge/export.ts": {
-      "lines": 3646,
+      "lines": 3641,
       "largestFunctionLines": 626,
       "importFanIn": 26,
       "importFanOut": 76,

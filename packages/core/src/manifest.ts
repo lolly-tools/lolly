@@ -15,6 +15,7 @@
  */
 import type { Capability, ExportFormat, TokenAxisKind } from './host-v1.ts';
 import type { HostApiName } from './host-v1/apis.ts';
+import type { RenditionOf } from './rendition-v1.ts';
 
 /**
  * What a tool does with one kind of theme group. `ignore` is the only behaviour
@@ -426,6 +427,16 @@ export interface ToolManifest {
    * Names are the optional members of `HostV1` (`HOST_V1_OPTIONAL_APIS`).
    */
   requires?: HostApiName[];
+  /**
+   * The tool's output is a rendition of one picture the person gives it (a colour
+   * grade, a filter, a format conversion). When that input's picture carries Content
+   * Credentials of its own, a stamped export records it as the export's `parentOf`
+   * ingredient, opened first, and writes `action` where a new file writes
+   * `c2pa.created` (C2PA 2.2 section 18.15.3). Every other picture stays a component.
+   * An input whose picture has no credential changes nothing and adds no
+   * ingredient. `input` is the id of a top-level `asset` input (engine 1.341).
+   */
+  renditionOf?: RenditionOf;
   /** `'network'`-capability config: the https URL allowlist the host builds `host.net`
    *  from. A trailing `*` on an entry is a prefix wildcard; otherwise it permits that
    *  exact URL. Absent ⇒ every `host.net` fetch rejects. */

@@ -243,14 +243,14 @@ details.section-card > .section-card-summary > .section-card-value {
 .cmyk-icon, .audio-icon, .pdfpass-icon, .c2pa-icon, .print-icon, .protection-icon, .hdr-icon {
   width: var(--ui-size-icon-md);
   height: var(--ui-size-icon-md);
-  color: var(--ui-color-action-primary);
+  color: var(--ui-color-text-accent);
   opacity: .75;
   stroke-width: 1.5px;
 }
 
 details.section-card:has(> .section-card-body) > .section-card-summary:hover,
 .input-section-summary:hover {
-  color: hsl(var(--primary));
+  color: hsl(var(--primary-text));
   background-color: hsl(var(--background) / .1);
 }
 
@@ -290,7 +290,7 @@ details.section-card:has(> .section-card-body) > .section-card-summary::after,
   transition: transform var(--dur-1) ease;
   flex-shrink: 0;
   opacity: .75;
-  color: var(--ui-color-action-primary);
+  color: var(--ui-color-text-accent);
 }
 
 

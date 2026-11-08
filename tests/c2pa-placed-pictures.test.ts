@@ -138,3 +138,30 @@ test('a PDF loses the credential update and nothing else, and only that update i
   const edited = new Uint8Array([...stamped, ...new TextEncoder().encode('% a note\n')]);
   assert.equal(pdfWithoutCredential(edited), null);
 });
+
+// D1: a shell that replaces the web shell's credential with its own (the CLI with an
+// identity, the MCP server) keeps a rendition's parent and the step that says what was
+// done to it, so its credential never claims a rendition was made from nothing.
+test('a replacing credential keeps a rendition: the parent opened, then what was done to it', async () => {
+  const parent = { ...(await placed('Harbour photo', CAPTURE_SOURCE_TYPE)), relationship: 'parentOf' };
+  const web = await embedC2pa(PNG_1PX, 'png', {
+    title: 'Darkroom', claimGenerator: 'Lolly lolly.tools', environment: { surface: 'web' },
+    actions: exportActionSteps('png', { rendition: { action: 'c2pa.color_adjustments' } }), ingredients: [parent], dates: DATES,
+  });
+  const read = placedPicturesOf(storeOf(web));
+  assert.deepEqual(read.rendition, { action: 'c2pa.color_adjustments' });
+  assert.equal(read.ingredients[0]!.relationship, 'parentOf');
+  const { buildExportC2paOpts } = await import('../packages/node-shell/src/c2pa-opts.ts');
+  const opts = buildExportC2paOpts({
+    surface: 'mcp', manifest: { id: 'darkroom', name: 'Darkroom', version: '2.6.0', render: { width: 4, height: 4 } } as never, model: [],
+    format: 'png', dims: { width: 4, height: 4 }, profile: {}, ingredients: read.ingredients as never, carried: read,
+  } as never);
+  assert.deepEqual((opts.actions ?? []).map((s) => s.action), ['c2pa.color_adjustments', 'c2pa.converted']);
+  const again = await embedC2pa(PNG_1PX, 'png', opts);
+  const report = await verifyC2pa(again);
+  assert.equal(report.state, 'valid');
+  assert.deepEqual(placedPicturesOf(storeOf(again)).rendition, { action: 'c2pa.color_adjustments' }, 'and it reads back the same');
+  // A record with no parent left carries no rendition: a history has to start somewhere true.
+  const orphan = buildExportC2paOpts({ surface: 'mcp', manifest: { id: 'darkroom', name: 'Darkroom', version: '2.6.0', render: { width: 4, height: 4 } } as never, model: [], format: 'png', dims: { width: 4, height: 4 }, profile: {}, ingredients: [], carried: read } as never);
+  assert.equal(orphan.actions, undefined);
+});

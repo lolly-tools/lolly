@@ -9,6 +9,7 @@ on:
       - deploy/docker/**
       - deploy/models-host/**
       - scripts/model-release.ts
+      - scripts/ci/fetch-release-asset.sh
       - tests/deployment-suse.test.ts
       - tests/deployment-sovereign.test.ts
       - tests/deployment-sovereign.integration.ts
@@ -25,6 +26,7 @@ on:
       - deploy/docker/**
       - deploy/models-host/**
       - scripts/model-release.ts
+      - scripts/ci/fetch-release-asset.sh
       - tests/deployment-suse.test.ts
       - tests/deployment-sovereign.test.ts
       - tests/deployment-sovereign.integration.ts
@@ -106,6 +108,7 @@ jobs:
           sparse-checkout-cone-mode: false
           sparse-checkout: |
             /deploy/helm/
+            /scripts/ci/fetch-release-asset.sh
             /tests/deployment-suse.test.ts
             /tests/deployment-sovereign.test.ts
             /tests/deployment-sovereign.integration.ts
@@ -132,6 +135,8 @@ jobs:
           package-manager-cache: false
 
       - name: Install checksum-verified chart tools
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           bindir="$RUNNER_TEMP/lolly-chart-bin"
           mkdir -p "$bindir"
@@ -142,16 +147,15 @@ jobs:
           printf '%s  %s\n' "$HELM_LINUX_AMD64_SHA256" "$helm_archive" | sha256sum --check
           tar -xzf "$helm_archive" -C "$bindir" --strip-components=1 linux-amd64/helm
           schema_archive="$RUNNER_TEMP/lolly-kubeconform.tar.gz"
-          curl --fail --silent --show-error --location \
-            --output "$schema_archive" \
-            "https://github.com/yannh/kubeconform/releases/download/v${KUBECONFORM_VERSION}/kubeconform-linux-amd64.tar.gz"
+          scripts/ci/fetch-release-asset.sh yannh/kubeconform "v${KUBECONFORM_VERSION}" \
+            kubeconform-linux-amd64.tar.gz "$schema_archive"
           printf '%s  %s\n' "$KUBECONFORM_LINUX_AMD64_SHA256" "$schema_archive" | sha256sum --check
           tar -xzf "$schema_archive" -C "$bindir" kubeconform
           echo "$bindir" >> "$GITHUB_PATH"
           rm "$helm_archive" "$schema_archive"
           caddy_archive="$RUNNER_TEMP/lolly-chart-caddy.tar.gz"
-          curl --fail --silent --show-error --location --output "$caddy_archive" \
-            "https://github.com/caddyserver/caddy/releases/download/v${CADDY_VERSION}/caddy_${CADDY_VERSION}_linux_amd64.tar.gz"
+          scripts/ci/fetch-release-asset.sh caddyserver/caddy "v${CADDY_VERSION}" \
+            "caddy_${CADDY_VERSION}_linux_amd64.tar.gz" "$caddy_archive"
           printf '%s  %s\n' "$CADDY_LINUX_AMD64_SHA256" "$caddy_archive" | sha256sum --check
           tar -xzf "$caddy_archive" -C "$bindir" caddy
           rm "$caddy_archive"
@@ -259,6 +263,7 @@ jobs:
           sparse-checkout-cone-mode: false
           sparse-checkout: |
             /deploy/docker/
+            /scripts/ci/fetch-release-asset.sh
             /services/mcp/scripts/native-public-image-probe.ts
             /deploy/models-host/
             /scripts/model-release.ts
@@ -293,12 +298,14 @@ jobs:
           package-manager-cache: false
 
       - name: Install checksum-verified Caddy
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           bindir="$RUNNER_TEMP/lolly-public-bin"
           mkdir -p "$bindir"
           archive="$RUNNER_TEMP/lolly-caddy.tar.gz"
-          curl --fail --silent --show-error --location --output "$archive" \
-            "https://github.com/caddyserver/caddy/releases/download/v${CADDY_VERSION}/caddy_${CADDY_VERSION}_linux_amd64.tar.gz"
+          scripts/ci/fetch-release-asset.sh caddyserver/caddy "v${CADDY_VERSION}" \
+            "caddy_${CADDY_VERSION}_linux_amd64.tar.gz" "$archive"
           printf '%s  %s\n' "$CADDY_LINUX_AMD64_SHA256" "$archive" | sha256sum --check
           tar -xzf "$archive" -C "$bindir" caddy
           echo "$bindir" >> "$GITHUB_PATH"

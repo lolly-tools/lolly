@@ -233,12 +233,12 @@ jobs:
         env:
           GITLEAKS_VERSION: '8.29.1'
           GITLEAKS_LINUX_X64_SHA256: 'e4eb209d04e20339d77122a3bdf9cd41351255cfb27ebcb75e85325e04f88924'
+          GH_TOKEN: ${{ github.token }}
         run: |
           archive="$RUNNER_TEMP/gitleaks.tar.gz"
           bindir="$RUNNER_TEMP/gitleaks-bin"
-          curl --fail --silent --show-error --location \
-            --output "$archive" \
-            "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz"
+          scripts/ci/fetch-release-asset.sh gitleaks/gitleaks "v${GITLEAKS_VERSION}" \
+            "gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz" "$archive"
           echo "$GITLEAKS_LINUX_X64_SHA256  $archive" | sha256sum --check
           mkdir -p "$bindir"
           tar -xzf "$archive" -C "$bindir" gitleaks
@@ -296,12 +296,24 @@ jobs:
       # tier on a runner that has a browser. pnpm-workspace.yaml holds them together and
       # tests/browser-tier-install.test.ts asserts it; the cache key below is that same
       # resolved version, so a bump re-downloads instead of serving the wrong revision.
+      #
+      # A cached browser is only valid on the runner image it was installed on.
+      # Playwright downloads a WebKit build per Ubuntu release, and the keys named
+      # only the OS family, so when ubuntu-latest became Ubuntu 26.04 its runners
+      # restored the WebKit built for 24.04, which needs libicu74 and could not
+      # start. The image name and version (ImageOS, ImageVersion) join both keys,
+      # so a new image installs browsers that match its own libraries.
+      - name: Name the runner image for the browser caches
+        if: matrix.shard == 'browser' || matrix.shard == 'security'
+        id: runner-image
+        run: echo "id=${ImageOS:-unknown-os}-${ImageVersion:-unknown-version}" >> "$GITHUB_OUTPUT"
+
       - name: Cache Chromium (browser and security shards)
         if: matrix.shard == 'browser' || matrix.shard == 'security'
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
         with:
           path: .browsers
-          key: playwright-chromium-${{ runner.os }}-${{ hashFiles('node_modules/playwright-core/package.json') }}
+          key: playwright-chromium-${{ runner.os }}-${{ steps.runner-image.outputs.id }}-${{ hashFiles('node_modules/playwright-core/package.json') }}
 
       # The package installs below retry. Runner apt mirrors stall: `apt-get
       # update` has sat for 4 hours with no output, and a slow mirror has taken
@@ -393,8 +405,9 @@ jobs:
         run: pnpm run test:geometry
 
       # The Firefox and WebKit builds Playwright downloads (about 190 MB) come
-      # from this cache, keyed by the exact revisions playwright-core pins, so
-      # `playwright install` below downloads them only when Playwright moves.
+      # from this cache, keyed by the runner image and the exact revisions
+      # playwright-core pins, so `playwright install` below downloads them only
+      # when the image or Playwright moves.
       - name: Cache Firefox and WebKit (browser 2/8)
         if: matrix.shard == 'browser' && matrix.partition == '2/8'
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
@@ -402,7 +415,7 @@ jobs:
           path: |
             .browsers/firefox-*
             .browsers/webkit-*
-          key: playwright-firefox-webkit-${{ runner.os }}-${{ hashFiles('node_modules/playwright-core/browsers.json') }}
+          key: playwright-firefox-webkit-${{ runner.os }}-${{ steps.runner-image.outputs.id }}-${{ hashFiles('node_modules/playwright-core/browsers.json') }}
 
       # WebKit's system libraries are not on the runner image: install-deps adds
       # about 200 packages (93 MB, GStreamer, GTK 4 and libav), so they still come
@@ -468,12 +481,12 @@ jobs:
           FFMPEG_RELEASE: autobuild-2026-09-30-13-08
           FFMPEG_BUILD: ffmpeg-n9.0.2-17-g2a571b6068-linux64-gpl-9.0
           FFMPEG_LINUX_X64_SHA256: '68ee646831adaae2495618346f3bba94ff207ff83bbd34d643e7004730d66269'
+          FETCH_RELEASE_MAX_TIME: '180'
+          GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
           archive="$RUNNER_TEMP/ffmpeg.tar.xz"
-          curl --fail --silent --show-error --location --retry 5 --retry-all-errors \
-            --connect-timeout 15 --max-time 180 --output "$archive" \
-            "https://github.com/BtbN/FFmpeg-Builds/releases/download/${FFMPEG_RELEASE}/${FFMPEG_BUILD}.tar.xz"
+          scripts/ci/fetch-release-asset.sh BtbN/FFmpeg-Builds "$FFMPEG_RELEASE" "${FFMPEG_BUILD}.tar.xz" "$archive"
           echo "$FFMPEG_LINUX_X64_SHA256  $archive" | sha256sum --check
           mkdir -p ~/.cache/ffmpeg
           tar -xJf "$archive" -C ~/.cache/ffmpeg --strip-components=2 "${FFMPEG_BUILD}/bin/ffmpeg" "${FFMPEG_BUILD}/bin/ffprobe"
@@ -520,12 +533,12 @@ jobs:
         env:
           CADDY_VERSION: '2.11.7'
           CADDY_LINUX_AMD64_SHA256: 727b91701a392de6ebc5027509f548bf39979e5216340d0faed8fa5e69c84f8b
+          GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
           archive="$RUNNER_TEMP/lolly-reference-caddy.tar.gz"
-          curl --fail --silent --show-error --location --retry 3 \
-            --output "$archive" \
-            "https://github.com/caddyserver/caddy/releases/download/v${CADDY_VERSION}/caddy_${CADDY_VERSION}_linux_amd64.tar.gz"
+          scripts/ci/fetch-release-asset.sh caddyserver/caddy "v${CADDY_VERSION}" \
+            "caddy_${CADDY_VERSION}_linux_amd64.tar.gz" "$archive"
           printf '%s  %s\n' "$CADDY_LINUX_AMD64_SHA256" "$archive" | sha256sum --check
           mkdir -p "$RUNNER_TEMP/lolly-reference-proxies"
           tar -xzf "$archive" -C "$RUNNER_TEMP/lolly-reference-proxies" caddy
@@ -694,9 +707,10 @@ jobs:
         timeout-minutes: 5
         env:
           C2PATOOL_LINUX_X64_SHA256: '7ad4d0958ca9f930b8048cc36f937f4203ba5335b1e726b0982a6e7f604942aa'
+          GH_TOKEN: ${{ github.token }}
         run: |
-          curl -fsSL -o /tmp/c2patool.tar.gz \
-            "https://github.com/contentauth/c2pa-rs/releases/download/c2patool-v0.26.70/c2patool-v0.26.70-x86_64-unknown-linux-gnu.tar.gz"
+          scripts/ci/fetch-release-asset.sh contentauth/c2pa-rs c2patool-v0.26.70 \
+            c2patool-v0.26.70-x86_64-unknown-linux-gnu.tar.gz /tmp/c2patool.tar.gz
           echo "$C2PATOOL_LINUX_X64_SHA256  /tmp/c2patool.tar.gz" | sha256sum --check
           tar -xzf /tmp/c2patool.tar.gz -C /tmp
           mkdir -p ~/.cache/c2patool
@@ -1239,13 +1253,13 @@ jobs:
         env:
           CARGO_AUDIT_VERSION: '0.22.2'
           CARGO_AUDIT_LINUX_X64_SHA256: '7fb9497f8594b389e5fce5ef9b92db08432996895b2e0c5a0167a69ed445c428'
+          GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
           archive="$RUNNER_TEMP/cargo-audit.tgz"
           bindir="$RUNNER_TEMP/cargo-audit-bin"
-          curl --fail --silent --show-error --location --retry 3 \
-            --output "$archive" \
-            "https://github.com/rustsec/rustsec/releases/download/cargo-audit%2Fv${CARGO_AUDIT_VERSION}/cargo-audit-x86_64-unknown-linux-musl-v${CARGO_AUDIT_VERSION}.tgz"
+          scripts/ci/fetch-release-asset.sh rustsec/rustsec "cargo-audit/v${CARGO_AUDIT_VERSION}" \
+            "cargo-audit-x86_64-unknown-linux-musl-v${CARGO_AUDIT_VERSION}.tgz" "$archive"
           echo "$CARGO_AUDIT_LINUX_X64_SHA256  $archive" | sha256sum --check
           mkdir -p "$bindir"
           tar -xzf "$archive" -C "$bindir" --strip-components=1 \

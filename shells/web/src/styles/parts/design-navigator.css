@@ -464,7 +464,7 @@ button.fc-nav-chip:focus-visible { outline: 2px solid var(--ui-color-focus-ring)
 .fc-nav-layer.is-active { background: var(--ui-color-selection-surface); color: var(--ui-color-text-default); }
 .fc-nav-layer:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 2px; }
 .fc-nav-layer-glyph { flex: none; display: inline-flex; color: var(--ui-color-text-muted); }
-.fc-nav-layer.is-active .fc-nav-layer-glyph { color: var(--ui-color-action-primary); }
+.fc-nav-layer.is-active .fc-nav-layer-glyph { color: var(--ui-color-text-accent); }
 .fc-nav-layer-name {
   flex: 1 1 auto;
   min-width: 0;

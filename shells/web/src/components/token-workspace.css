@@ -77,7 +77,7 @@
 .tk-bar { display: inline-block; width: var(--len, 8px); max-width: 12rem; height: 8px; border-radius: var(--ui-radius-pill); background: var(--ui-color-action-primary); }
 .tk-bar--stroke { width: 24px; height: var(--len, 1px); max-height: 12px; border-radius: 0; }
 .tk-turn { display: inline-grid; color: var(--ui-color-text-muted); transform: rotate(var(--turn, 0deg)); }
-.tk-ease { flex: 0 0 auto; color: var(--ui-color-action-primary); }
+.tk-ease { flex: 0 0 auto; color: var(--ui-color-text-accent); }
 .tk-face-aa {
   flex: 0 0 auto; display: inline-grid; place-items: center; width: 36px; height: 28px;
   font-size: var(--ui-type-title); line-height: 1; color: var(--ui-color-text-default);

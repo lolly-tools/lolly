@@ -115,7 +115,7 @@
 .profile-view .profile-nav-item:focus-visible { outline: 2px solid hsl(var(--primary)); outline-offset: -1px; }
 .profile-view .profile-nav-item.is-active {
   background: hsl(var(--primary) / .12);
-  color: hsl(var(--primary));
+  color: hsl(var(--primary-text));
 }
 .profile-view .profile-nav-ic { flex: 0 0 auto; width: var(--fs-xl); height: var(--fs-xl); }
 .profile-view .profile-nav-text { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -325,7 +325,7 @@
   flex: none;
   font-size: calc(.58rem * var(--a11y-fs)); font-weight: 700; text-transform: uppercase; letter-spacing: .05em;
   padding: .1rem .45rem; border-radius: calc(var(--radius)*2);
-  background: hsl(var(--primary) / .15); color: hsl(var(--primary));
+  background: hsl(var(--primary) / .15); color: hsl(var(--primary-text));
 }
 
 /* Brief attention highlight when a #/profile?focus=<id> deep link lands (the
@@ -382,7 +382,7 @@
   margin-left: .5rem; padding: .1rem .5rem;
   border-radius: var(--radius-pill);
   background: hsl(var(--primary) / .12);
-  color: hsl(var(--primary));
+  color: hsl(var(--primary-text));
   font-size: var(--fs-xs); font-weight: 600; letter-spacing: .02em;
 }
 /* Small (i) explainer beside a flag label - the shared help-tip button now
@@ -531,7 +531,7 @@ html[data-a11y-motion="reduce"] .profile-view .profile-hand-ic svg { transition:
 .profile-view .profile-theme-name { display: flex; align-items: center; gap: .4rem; font-weight: 600; }
 .profile-view .profile-theme-ic { display: inline-flex; }
 .profile-view .profile-theme-ic svg { width: var(--fs-xl); height: var(--fs-xl); }
-.profile-view .profile-theme.is-active .profile-theme-name::after { content: '✓'; margin-inline-start: auto; color: hsl(var(--primary)); font-weight: 800; }
+.profile-view .profile-theme.is-active .profile-theme-name::after { content: '✓'; margin-inline-start: auto; color: hsl(var(--primary-text)); font-weight: 800; }
 /* Tiny "default" pill on the Light preview. */
 .profile-view .profile-theme-pill {
   display: inline-block; font-size: calc(.58rem * var(--a11y-fs)); font-weight: 700;
@@ -606,7 +606,7 @@ html[data-a11y-motion="reduce"] .profile-view .profile-theme:hover { transform: 
 }
 .profile-view .activity-meta .activity-fav::after { content: "→"; font-weight: 600; opacity: .55; }
 .profile-view .activity-meta .activity-fav:hover {
-  background: var(--ui-color-selection-surface); border-color: var(--ui-color-selection-border); color: var(--ui-color-action-primary);
+  background: var(--ui-color-selection-surface); border-color: var(--ui-color-selection-border); color: var(--ui-color-text-accent);
 }
 
 /* Storage */
@@ -700,7 +700,7 @@ html[data-a11y-motion="reduce"] .profile-view .profile-theme:hover { transform: 
 .profile-view .store-sess-thumb.is-placeholder svg { width: calc(20px * var(--a11y-fs)); height: calc(20px * var(--a11y-fs)); }
 .profile-view .store-sess-meta { display: flex; flex-direction: column; min-width: 0; flex: 1; }
 .profile-view .store-sess-label { font-size: var(--fs-md); color: var(--ui-color-text-default); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.profile-view .store-sess-tag { font-size: var(--fs-2xs); padding: 0 5px; margin-left: .35rem; border-radius: var(--ui-radius-pill); background: var(--ui-color-selection-surface); color: var(--ui-color-action-primary); }
+.profile-view .store-sess-tag { font-size: var(--fs-2xs); padding: 0 5px; margin-left: .35rem; border-radius: var(--ui-radius-pill); background: var(--ui-color-selection-surface); color: var(--ui-color-text-accent); }
 .profile-view .store-sess-sub { font-size: var(--fs-xs); color: var(--ui-color-text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .profile-view .store-sess .session-size { margin: 0; flex: none; }
 .profile-view .store-sess-del {
@@ -929,14 +929,14 @@ html[data-a11y-motion="reduce"] .profile-view .profile-theme:hover { transform: 
 .profile-view .profile-row[open] { background: color-mix(in srgb, var(--ui-color-surface-muted) 45%, transparent); }
 .profile-view .profile-row-sum { gap: var(--sp-6); min-height: 48px; padding: 0 var(--sp-7); transition: background var(--dur-1); }
 .profile-view .profile-row-sum:hover { background: color-mix(in srgb, var(--ui-color-surface-muted) 60%, transparent); }
-.profile-view .profile-mark { flex: none; display: inline-flex; width: var(--profile-mark-size); height: var(--profile-mark-size); color: hsl(var(--primary)); }
+.profile-view .profile-mark { flex: none; display: inline-flex; width: var(--profile-mark-size); height: var(--profile-mark-size); color: hsl(var(--primary-text)); }
 .profile-view .profile-mark svg { width: 100%; height: 100%; }
 .profile-view .profile-row-name { flex: 1 1 auto; min-width: 0; font-size: var(--fs-lg); font-weight: 500; color: var(--ui-color-text-default); }
 .profile-view .profile-row-value { flex: none; font-size: var(--fs-md); color: var(--ui-color-text-muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
 /* A settled state (Connected, Downloaded): the selection tint as a fill, never an outline. */
 .profile-view .profile-row-tag {
   flex: none; padding: var(--sp-1) var(--sp-4); border-radius: var(--ui-radius-pill);
-  background: var(--ui-color-selection-surface); color: var(--ui-color-action-primary);
+  background: var(--ui-color-selection-surface); color: var(--ui-color-text-accent);
   font-size: var(--fs-sm); font-weight: 600;
 }
 /* The body's text lines up under the service name, past the mark. */

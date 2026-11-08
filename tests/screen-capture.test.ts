@@ -613,6 +613,8 @@ test('ENGINE_VERSION is 1.343.0', () => {
   // 1.338.0 adds the reserved _kit param for a partner kit attachment. Capture is unchanged.
   // 1.339.0 words an unresolved palette truly for the CMYK TIFF and EPS. Capture is unchanged.
   // 1.340.0 adds stamped paths to host.pdf.stamp (Sign's date in the design system's face). Capture is unchanged.
+  // 1.341.0 records a rendition tool's picture as the parent (renditionOf). Capture is unchanged.
+  // 1.342.0 lets a template approval's id segment start with - or _. Capture is unchanged.
   // 1.343.0 records the partner kit beside the partner. Capture is unchanged.
   assert.equal(ENGINE_VERSION, '1.343.0');
 });

@@ -74,7 +74,7 @@
    Inactive tabs mute their glyph so the active one reads at a glance (the
    a11y ask, same date) - opacity, not colour, so it works over any brand. */
 .view-toggle-ic { display: inline-flex; align-items: center; margin-inline-end: 4px; opacity: 1;    color: hsl(var(--accent-foreground) / .45);  }
-.view-toggle-opt:hover .view-toggle-ic { opacity: 1; color:var(--ui-color-action-primary);}
+.view-toggle-opt:hover .view-toggle-ic { opacity: 1; color:var(--ui-color-text-accent);}
 .view-toggle-opt.is-active .view-toggle-ic{color:var(--ui-color-text-default); }
 
 /* Second cue riding the same states: a lighter stroke on inactive glyphs, the
@@ -98,7 +98,7 @@
    app on a phone. */
 .view-toggle-ic svg { display: block; width: calc(18px * var(--a11y-fs)); height: calc(18px * var(--a11y-fs)); }
 .view-toggle-opt:hover { color: var(--ui-color-text-default); }
-.view-toggle-opt:hover{color:var(--ui-color-action-primary) }
+.view-toggle-opt:hover{color:var(--ui-color-text-accent) }
 
 .view-toggle-opt.is-active {
   background: var(--ui-color-surface-canvas); color: var(--ui-color-text-default); box-shadow: var(--ui-elevation-control);
@@ -306,7 +306,7 @@ button.projects-result-path:hover { background: var(--ui-color-surface-muted); c
 
 /* Inline "clear the search" link inside the no-results message. */
 .projects-linkbtn {
-  border: 0; background: none; padding: 0; font: inherit; color: hsl(var(--primary));
+  border: 0; background: none; padding: 0; font: inherit; color: hsl(var(--primary-text));
   text-decoration: underline; text-underline-offset: 2px; cursor: pointer;
 }
 
@@ -343,7 +343,7 @@ button.projects-result-path:hover { background: var(--ui-color-surface-muted); c
   color: var(--ui-color-text-muted); background: transparent;
   border-bottom: 0;   /* override the base .tile-cover divider - create tiles are seamless */
 }
-.folder-tile--create:hover .tile-cover--create { color: var(--ui-color-action-primary); }
+.folder-tile--create:hover .tile-cover--create { color: var(--ui-color-text-accent); }
 .tile-cover--create svg { width: calc(30px * var(--a11y-fs)); height: calc(30px * var(--a11y-fs)); }
 
 /* Breadcrumb trail above a folder's header - links each ancestor back up the tree. */

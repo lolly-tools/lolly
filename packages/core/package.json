@@ -58,6 +58,7 @@
     "./partner-kit-v1": "./src/partner-kit-v1.ts",
     "./schema/partner-kit-v1.schema.json": "./schema/partner-kit-v1.schema.json",
     "./asset-open-v1": "./src/asset-open-v1.ts",
+    "./rendition-v1": "./src/rendition-v1.ts",
     "./check-v1": "./src/check-v1.ts",
     "./schema/check-report-v1.schema.json": "./schema/check-report-v1.schema.json",
     "./content-inventory-v1": "./src/content-inventory-v1.ts",

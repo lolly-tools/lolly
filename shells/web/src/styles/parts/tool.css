@@ -909,7 +909,7 @@
   color: hsl(var(--muted-foreground)); cursor: pointer;
   opacity: 0.55; transition: opacity var(--dur-1) ease, color var(--dur-1) ease;
 }
-.input-data-src:hover, .input-data-src:focus-visible { opacity: 1; color: hsl(var(--primary)); }
+.input-data-src:hover, .input-data-src:focus-visible { opacity: 1; color: hsl(var(--primary-text)); }
 .input-data-src:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 2px; }
 /* Textarea actions have their own row, clear of the editable text. */
 .input-row--multiline > .input-label {
@@ -1225,7 +1225,7 @@
   box-shadow: var(--ui-effect-bevel), var(--ui-elevation-control), var(--ui-effect-selected);
 }
 .input-row--pill:has(input:checked) .input-label {
-  color: hsl(var(--primary));
+  color: hsl(var(--primary-text));
 }
 
 /* ── Badged select (select options carrying a `badge`) ────────────────────────
@@ -1268,7 +1268,7 @@
 .badge-select-opt.is-na .badge-select-label { color: hsl(var(--muted-foreground)); }
 .badge-select-na { font-weight: 400; font-size: var(--fs-2xs); }
 .badge-select-opt.is-on .badge-select-label {
-  color: hsl(var(--primary));
+  color: hsl(var(--primary-text));
   font-weight: 600;
 }
 .badge-select-pill {
@@ -1286,7 +1286,7 @@
    Tint only (no coloured border) so the pill obeys the rounded-pill border rule. */
 .badge-select-pill[data-badge="vector"] {
   background: hsl(var(--primary) / 0.15);
-  color: hsl(var(--primary));
+  color: hsl(var(--primary-text));
 }
 /* Icon pill (vector/raster): the export picker's format glyph replaces the word.
    Glyph box rides the a11y type multiplier like other chrome icons. */
@@ -1343,7 +1343,7 @@
   color: var(--ui-color-text-muted);
 }
 .badge-select-mark svg { width: var(--ui-size-icon-md); height: var(--ui-size-icon-md); }
-.badge-select-opt.is-on .badge-select-mark { color: var(--ui-color-action-primary); }
+.badge-select-opt.is-on .badge-select-mark { color: var(--ui-color-text-accent); }
 
 /* A marked picker is a grid of CARDS rather than a stack of rows: the glyph
    leads, the name sits under it, and the badge closes. Two-up is the same bet
@@ -1534,7 +1534,7 @@ span.flatpickr-weekday {
 }
 
 .flatpickr-day.today:not(.selected) {
-  color: hsl(var(--primary));
+  color: hsl(var(--primary-text));
 }
 
 .flatpickr-day.flatpickr-disabled,
@@ -1841,7 +1841,7 @@ html[data-a11y-text="large"] .input-section--dense .input-section-body {
      the inset selection ring rather than an accent border. */
   border: 1px solid transparent;
   border-radius: var(--radius-pill);
-  color: hsl(var(--primary));
+  color: hsl(var(--primary-text));
   font: inherit; font-size: var(--fs-md); font-weight: 600; line-height: 1;
   cursor: pointer;
   box-shadow: var(--ui-effect-accent-ring);
@@ -2017,7 +2017,7 @@ html[data-a11y-text="large"] .input-section--dense .input-section-body {
 }
 .block-control--ico > .block-control-ico > svg { width: 100%; height: auto; }
 .block-control--ico > .block-control-ico:hover,
-.block-control--ico > .block-control-ico:focus-visible { color: hsl(var(--primary)); opacity: 1; }
+.block-control--ico > .block-control-ico:focus-visible { color: hsl(var(--primary-text)); opacity: 1; }
 .block-control--ico > .block-field,
 .block-control--ico > input[type="range"] { flex: 1 1 0; min-width: 0; }
 /* A grid of icon-labelled controls gets a wider column gutter so the two columns of
@@ -2078,7 +2078,7 @@ html[data-a11y-text="large"] .input-section--dense .input-section-body {
 }
 .block-act:hover { background: hsl(var(--muted-foreground) / 0.12); color: hsl(var(--foreground)); }
 .block-act svg { width: var(--fs-sm); height: var(--fs-sm); }
-.block-act.is-done { color: hsl(var(--primary)); }   /* brief tick after Copy */
+.block-act.is-done { color: hsl(var(--primary-text)); }   /* brief tick after Copy */
 .block-item.is-collapsed .block-act { display: none; }
 
 .block-item.is-collapsed { padding: 0; border-radius: var(--radius-pill); background: hsl(var(--muted) / 0.5); }
@@ -2131,7 +2131,7 @@ html[data-a11y-text="large"] .input-section--dense .input-section-body {
 /* ✦ Edit - shown only for a block image that came from a Lolly link. */
 .block-asset-edit {
   flex-shrink: 0; width: 24px; border: none; border-radius: var(--radius);
-  background: none; cursor: pointer; color: hsl(var(--primary));
+  background: none; cursor: pointer; color: hsl(var(--primary-text));
   font-size: var(--fs-sm); transition: background var(--dur-1), filter var(--dur-1);
 }
 .block-asset-edit:hover { background: hsl(var(--primary) / 0.1); filter: brightness(1.1); }
@@ -2360,7 +2360,7 @@ html[data-a11y-text="large"] .input-section--dense .input-section-body {
 .asset-slot-tab:hover { border-color: hsl(var(--primary) / 0.55); background: hsl(var(--primary) / 0.07); }
 /* The active source reads as a filled tab: tinted fill plus the inset selection
    ring, over the neutral hairline the resting tab already carries. */
-.asset-slot-tab.is-active { background: hsl(var(--primary) / 0.12); color: hsl(var(--primary)); box-shadow: var(--ui-effect-selected); }
+.asset-slot-tab.is-active { background: hsl(var(--primary) / 0.12); color: hsl(var(--primary-text)); box-shadow: var(--ui-effect-selected); }
 /* Empty slot: the pick tab is the primary call to action - a full-width dashed drop
    target (it accepts a dragged catalog tile), matching the app's drop-area language. */
 .asset-slot:not(.has-value) .asset-slot-tab { flex: 1 1 auto; justify-content: center; border-style: dashed; padding: var(--sp-6); }
@@ -2405,7 +2405,7 @@ html[data-a11y-text="large"] .input-section--dense .input-section-body {
 .saved-row small{    display: grid;
     padding: var(--sp-1) var(--sp-2);
     border-radius: var(--radius);
-    color: hsl(var(--primary));
+    color: hsl(var(--primary-text));
     font-size: calc(9px * var(--a11y-fs));
     font-weight: 400;
     cursor: pointer;
@@ -2522,7 +2522,7 @@ html[data-a11y-text="large"] .input-section--dense .input-section-body {
   text-overflow: ellipsis;
 }
 .asset-from-tool-label strong { color: hsl(var(--foreground)); font-weight: 600; }
-.asset-from-tool-spark { color: hsl(var(--primary)); }
+.asset-from-tool-spark { color: hsl(var(--primary-text)); }
 
 /* Opt-in per-slot media affordances: Fit canvas / Match length / Preview sound. */
 .slot-actions { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 6px; }
@@ -2632,7 +2632,7 @@ html[data-a11y-text="large"] .input-section--dense .input-section-body {
   font-size: var(--fs-sm);
   transition: border-color var(--dur-1), color var(--dur-1);
 }
-.asset-edit:hover { border-color: hsl(var(--primary)); color: hsl(var(--primary)); }
+.asset-edit:hover { border-color: hsl(var(--primary)); color: hsl(var(--primary-text)); }
 
 /* ─── Edit-a-Lolly-image overlay (openEmbedEditor) ────────────────────────────
    Body-mounted modal: the source tool's own inputs on the left, format/size +
@@ -2661,7 +2661,7 @@ html[data-a11y-text="large"] .input-section--dense .input-section-body {
   padding: var(--sp-7) var(--sp-8);
   border-bottom: 1px solid hsl(var(--border));
 }
-.embed-editor-spark { color: hsl(var(--primary)); font-size: var(--fs-xl); flex: none; }
+.embed-editor-spark { color: hsl(var(--primary-text)); font-size: var(--fs-xl); flex: none; }
 .embed-editor-title { margin: 0; font-size: calc(15px * var(--a11y-fs)); font-weight: 600; flex: 1; min-width: 0; }
 .embed-editor-from { color: hsl(var(--muted-foreground)); font-weight: 400; }
 .embed-editor-close {
@@ -2743,14 +2743,14 @@ html[data-a11y-text="large"] .input-section--dense .input-section-body {
 
 .file-trigger:hover {
   border-color: hsl(var(--ring) / 0.5);
-  color: hsl(var(--primary));
+  color: hsl(var(--primary-text));
 }
 
 /* Live drop feedback - the binding accepts drops on the whole control, so the
    dashed border keeps its promise. */
 .file-picker.is-dragover .file-trigger {
   border-color: hsl(var(--primary));
-  color: hsl(var(--primary));
+  color: hsl(var(--primary-text));
   background: hsl(var(--primary) / 0.05);
 }
 
@@ -2804,7 +2804,7 @@ html[data-a11y-text="large"] .input-section--dense .input-section-body {
   border-radius: var(--radius);
   box-shadow: var(--ui-effect-accent-ring);
   background: hsl(var(--primary) / 0.06);
-  color: hsl(var(--primary));
+  color: hsl(var(--primary-text));
   font-size: var(--fs-sm);
   font-weight: 600;
   line-height: 1.3;
@@ -2934,7 +2934,7 @@ html[data-a11y-text="large"] .input-section--dense .input-section-body {
 }
 .canvas-input-popover-opt:hover,
 .canvas-input-popover-opt:focus-visible { background: hsl(var(--muted)); outline: none; }
-.canvas-input-popover-opt.is-current { font-weight: 600; color: hsl(var(--primary)); }
+.canvas-input-popover-opt.is-current { font-weight: 600; color: hsl(var(--primary-text)); }
 
 /* Device recording (engine v1.17): a Record button centred at the foot of the stage,
    for tools declaring render.capture.
@@ -3280,7 +3280,7 @@ html[data-a11y-text="large"] .input-section--dense .input-section-body {
   transition: color var(--dur-1), border-color var(--dur-1);
 }
 .canvas-record-help .crh-btn:hover,
-.canvas-record-help.is-open .crh-btn { color: hsl(var(--primary)); border-color: hsl(var(--primary) / 0.55); }
+.canvas-record-help.is-open .crh-btn { color: hsl(var(--primary-text)); border-color: hsl(var(--primary) / 0.55); }
 .canvas-record-help .crh-btn:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 2px; }
 .canvas-record-help .crh-panel {
   position: absolute; top: 34px; left: 0;
@@ -3314,7 +3314,7 @@ html[data-a11y-text="large"] .input-section--dense .input-section-body {
   flex: 0 0 auto;
   width: clamp(15px, 2.1cqi, 22px); height: clamp(15px, 2.1cqi, 22px);
   margin-top: 1px;
-  color: hsl(var(--primary));
+  color: hsl(var(--primary-text));
 }
 /* Spotlight for a detected tip (in-panel flash) - a brief primary pulse. */
 .canvas-record-help .crt-item.is-flash { animation: crt-flash 1.1s ease-out 2; }
@@ -3766,7 +3766,7 @@ html[data-a11y-text="large"] .input-section--dense .input-section-body {
   font-size: var(--fs-2xs); font-weight: 600; color: hsl(var(--muted-foreground));
   padding-left: 2px;
 }
-.pagestrip-thumb.is-active .pagestrip-num { color: hsl(var(--primary)); }
+.pagestrip-thumb.is-active .pagestrip-num { color: hsl(var(--primary-text)); }
 
 /* ── Bottom filmstrip (render.filmstrip: "bottom") ───────────────────────────
    Same rail, laid along the bottom edge instead of the left - the deck-strip shape,
@@ -4385,7 +4385,7 @@ html[data-a11y-text="large"] .input-section--dense .input-section-body {
   padding: 0;
   margin-left: 0.25em;
   font: inherit;
-  color: hsl(var(--primary));
+  color: hsl(var(--primary-text));
   text-decoration: underline;
   cursor: pointer;
 }

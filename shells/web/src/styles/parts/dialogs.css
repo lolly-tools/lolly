@@ -280,7 +280,7 @@ html[data-a11y-motion="reduce"] .view-loading-mark .lolly-mark__spin-3 { animati
 .save-dialog-foot span { flex: 1 1 200px; line-height: 1.4; }
 .save-link {
   flex: none; border: 0; background: none; padding: 0; cursor: pointer;
-  color: hsl(var(--primary)); font: inherit; font-size: var(--fs-sm); font-weight: 600;
+  color: hsl(var(--primary-text)); font: inherit; font-size: var(--fs-sm); font-weight: 600;
 }
 .save-link:hover { text-decoration: underline; }
 
@@ -385,7 +385,7 @@ html[data-a11y-motion="reduce"] .view-loading-mark .lolly-mark__spin-3 { animati
   /* A soft accent TAG, not a solid primary-fill button (that fill pair is buttons.css's
      alone - see the R2 primitive guard); a translucent tint reads better here anyway. */
   background: hsl(var(--primary) / 0.16);
-  color: hsl(var(--primary));
+  color: hsl(var(--primary-text));
   font-size: var(--fs-2xs);
   font-weight: 600;
   letter-spacing: 0.02em;
@@ -471,7 +471,7 @@ html[data-a11y-motion="reduce"] .view-loading-mark .lolly-mark__spin-3 { animati
   font-size: var(--fs-sm);
   font-weight: 400;
   font-style:italic;
-  color: var(--ui-color-action-primary);
+  color: var(--ui-color-text-accent);
 }
 /* Each label carries `.field-toggle` and each box `.field-check` - the row's
    flex/centre/gap/cursor and the tick's whole appearance live there now. */

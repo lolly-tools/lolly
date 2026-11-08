@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import { assetOpenErrors } from '@lolly-tools/core/asset-open-v1';
+import { renditionOfErrors } from '@lolly-tools/core/rendition-v1';
 import { parseTemplateMotion } from '../shells/web/src/lib/template-motion.ts';
 import { parseKitDefinition, createKitRows, kitIssues } from '../shells/web/src/pro/kit-model.ts';
 import type { ToolManifest } from '../engine/src/loader.ts';
@@ -271,6 +272,7 @@ for (const dir of toolDirs) {
   }
 
   for (const issue of assetOpenErrors(manifest)) errors.push(`[${dir}] ${issue.path} ${issue.message}`);
+  for (const issue of renditionOfErrors(manifest)) errors.push(`[${dir}] ${issue.path} ${issue.message}`);
 
   // Required files present?
   if (!toolFile(dir, 'template.html')) {

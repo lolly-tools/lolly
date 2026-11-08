@@ -431,7 +431,7 @@ html[data-a11y-motion="reduce"] .fc-btn-lolly:focus-visible svg .lolly-mark__spi
 .fc-btn[data-variant="pencil"] .fc-slot-pencil { display: inline; }
 /* Primary actions (Export/Save/Copy/Share) - a touch more prominent than the plain
    tools: brand-accent icons, with Export filled as the lead call-to-action. */
-.fc-btn.fc-action { color: var(--ui-color-action-primary); }
+.fc-btn.fc-action { color: var(--ui-color-text-accent); }
 .fc-btn.fc-action:hover:not(:disabled) { background: var(--ui-color-selection-surface); }
 .fc-btn.fc-action-primary { background: var(--ui-color-action-primary); color: var(--ui-color-action-on-primary); }
 .fc-btn.fc-action-primary:hover:not(:disabled) { background: color-mix(in srgb, var(--ui-color-action-primary) 85%, transparent); }
@@ -510,7 +510,7 @@ html[data-a11y-motion="reduce"] .fc-btn-lolly:focus-visible svg .lolly-mark__spi
 .fc-pop-item:hover:not(:disabled) { background: var(--ui-color-surface-muted); }
 /* Radio rows (the pen's spline type): the current one reads as chosen, not merely hovered,
    so it stays legible while the pointer is somewhere else in the list. */
-.fc-pop-item.is-on { color: var(--ui-color-action-primary); font-weight: 600; }
+.fc-pop-item.is-on { color: var(--ui-color-text-accent); font-weight: 600; }
 .fc-pop-item.is-on::after { content: ''; margin-left: auto; width: 6px; height: 6px; border-radius: var(--ui-radius-choice-round); background: currentColor; }
 .fc-pop-item:disabled,
 .fc-pop-gitem:disabled{ opacity: 0.38; cursor: default; }
@@ -588,7 +588,7 @@ html[data-a11y-motion="reduce"] .fc-btn-lolly:focus-visible svg .lolly-mark__spi
   color: color-mix(in oklab, var(--ui-color-status-danger) 60%, var(--ui-color-text-default));
 }
 /* The object bar's Scale toggle on a coarse pointer: a full accent wash while on. */
-.fc-ctxbar .fc-cbtn[data-cx="scale"].is-on { background: hsl(var(--primary) / 0.16); color: hsl(var(--primary)); }
+.fc-ctxbar .fc-cbtn[data-cx="scale"].is-on { background: hsl(var(--primary) / 0.16); color: hsl(var(--primary-text)); }
 
 /* Selection overlay - siblings of the canvas, never exported. */
 .fc-overlay { position: absolute; inset: 0; z-index: 12; pointer-events: none; }
@@ -1080,7 +1080,7 @@ html[data-a11y-motion="reduce"] .fc-zone { animation: none; }
   padding: 3px 2px;
   font-size: var(--fs-sm);
 }
-.fc-lift-tick { display: inline-flex; color: hsl(var(--primary)); }
+.fc-lift-tick { display: inline-flex; color: hsl(var(--primary-text)); }
 .fc-lift-tick svg { width: var(--fs-lg); height: var(--fs-lg); }
 .fc-lift-name { flex: 1 1 auto; }
 .fc-lift-n {
@@ -1273,7 +1273,7 @@ html[data-a11y-motion="reduce"] .fc-toolbar .fc-btn { transition: none; }
   transition: color var(--dur-1), background var(--dur-1);
 }
 .fc-frame-label:hover { color: hsl(var(--foreground)); background: hsl(var(--muted) / 0.6); }
-.fc-frame-label.is-active { color: hsl(var(--primary)); }
+.fc-frame-label.is-active { color: hsl(var(--primary-text)); }
 .fc-frame-label:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 1px; }
 
 /* Artboard rename (plans/179 A10) - the editor's one-field prompt (`.fc-panel` +
@@ -1363,7 +1363,7 @@ html[data-a11y-motion="reduce"] .fc-toolbar .fc-btn { transition: none; }
 .fc-edge-panel { min-width: 236px; }
 .fc-edge-count {
   font-size: var(--fs-xs); font-weight: 700; letter-spacing: 0.02em; text-transform: uppercase;
-  color: hsl(var(--primary)); padding: 1px 2px 5px; margin-bottom: 2px;
+  color: hsl(var(--primary-text)); padding: 1px 2px 5px; margin-bottom: 2px;
   border-bottom: 1px solid hsl(var(--border));
 }
 .fc-edge-panel .fc-seg { flex: 1 1 auto; }
@@ -1468,7 +1468,7 @@ html[data-a11y-motion="reduce"] .fc-toolbar .fc-btn { transition: none; }
    tight WITHIN a group (1px); the bar's own 7px gap sets the group apart. Each group
    is one non-splitting flex item, so a wrap breaks cleanly between groups. */
 .fc-fmt-group { display: inline-flex; align-items: center; gap: 1px; }
-.fc-fmtbar .fc-cbtn.is-on { background: hsl(var(--primary) / 0.16); color: hsl(var(--primary)); }
+.fc-fmtbar .fc-cbtn.is-on { background: hsl(var(--primary) / 0.16); color: hsl(var(--primary-text)); }
 /* Both are `.field-select .field-select--sm .field-select--auto`; the only thing
    the bar has an opinion about is how wide a font/weight name may get before it
    ellipsises, so that is all that is left here. */
@@ -1714,7 +1714,7 @@ html[data-a11y-motion="reduce"] .fc-toolbar .fc-btn { transition: none; }
 /* "Embedded in exports" sub-heading + the provenance opt-in note. */
 .fc-panel-head.fc-info-sub { margin-top: 14px; font-size: var(--fs-xs); text-transform: uppercase; letter-spacing: 0.06em; color: hsl(var(--muted-foreground)); }
 .fc-info-note { font-size: var(--fs-xs); line-height: 1.4; color: hsl(var(--muted-foreground)); margin-top: 2px; }
-.fc-info-note a { color: hsl(var(--primary)); text-decoration: underline; }
+.fc-info-note a { color: hsl(var(--primary-text)); text-decoration: underline; }
 .fc-info-note:empty { display: none; }
 
 /* The transform readout is now a button (opens the dims panel). */

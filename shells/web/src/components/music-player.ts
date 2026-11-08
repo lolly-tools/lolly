@@ -68,7 +68,7 @@ const CSS = `
 /* The very small repeat/forward toggle, pinned to the right of the transport. */
 .neuro-tbtn.neuro-mode { position: absolute; right: 0; top: 50%; transform: translateY(-50%); width: 26px; height: 26px; }
 .neuro-tbtn.neuro-mode:active { transform: translateY(-50%) scale(.9); }
-.neuro-tbtn.neuro-mode.is-active { color: hsl(var(--primary)); }
+.neuro-tbtn.neuro-mode.is-active { color: hsl(var(--primary-text)); }
 /* searchable track picker - a flex item in the dock header row (grip · picker · min · close) */
 .neuro-picker { flex: 1; min-width: 0; }
 .neuro-picker-btn { display: flex; align-items: center; gap: 8px; width: 100%; padding: 8px 12px; border: 1px solid hsl(var(--border)); border-radius: var(--radius); background: hsl(var(--card)); color: hsl(var(--foreground)); font-size: .85rem; cursor: pointer; text-align: left; }
@@ -123,7 +123,7 @@ html[data-a11y-motion="reduce"] .neuro-cat-caret { transition: none; }
 .neuro-atmo[data-open="true"] .neuro-atmo-caret { transform: none; }
 /* Count of layers currently turned up - the only cue that something is sounding
    while the section is folded away. */
-.neuro-atmo-count { margin-left: auto; font-size: .7rem; font-weight: 700; letter-spacing: 0; text-transform: none; color: hsl(var(--primary)); }
+.neuro-atmo-count { margin-left: auto; font-size: .7rem; font-weight: 700; letter-spacing: 0; text-transform: none; color: hsl(var(--primary-text)); }
 .neuro-atmo-count[hidden] { display: none; }
 /* Seven rows on top of a full player can push the bottom-docked panel off the top
    of a short viewport, so the rows scroll rather than growing the dock without
@@ -153,7 +153,7 @@ html[data-a11y-motion="reduce"] :is(.neuro-atmo-caret, .neuro-atmo-icon) { trans
    display:none, so it can fade and be measured for positioning). */
 .neuro-warn-tip { position: fixed; left: 0; top: 0; z-index: 2147483000; max-width: 224px; padding: 9px 12px; border: 1px solid hsl(var(--border)); border-radius: var(--radius); background: hsl(var(--popover, var(--card))); color: hsl(var(--foreground)); font-size: .72rem; line-height: 1.45; box-shadow: 0 10px 30px rgb(0 0 0 / .32); opacity: 0; pointer-events: none; transition: opacity .12s ease; }
 .neuro-warn-tip.is-shown { opacity: 1; pointer-events: auto; }
-.neuro-warn-tip a { color: hsl(var(--primary)); text-decoration: underline; font-weight: 600; }
+.neuro-warn-tip a { color: hsl(var(--primary-text)); text-decoration: underline; font-weight: 600; }
 .neuro-warn-tip a:hover { text-decoration: none; }
 @media (prefers-reduced-motion: reduce) { .neuro-tbtn, .neuro-track, .neuro-picker-caret, .neuro-warn-tip { transition: none; } }
 /* The app's own preference (data-a11y-motion, lib/a11y-prefs.ts) repeats each
