@@ -667,10 +667,13 @@ still include.
 
 ![End this partnership for everyone at Northwind IT after See what ending it does: two accounts with no projects or links, and the button that ends access for 2 people](shots/partner-end-dry-run.svg)
 
-**End this partnership** on the programme's page, or `POST /api/v1/programmes/exit` with a
-programme, a company, a domain or a list of addresses, first shows what ending it does: the
-accounts, the projects each owns, the links each made, the invitations still open and the domains
-that stop letting people join. Choose what happens to their projects:
+The **End this partnership** card on the programme's page, the same card on a company's page for
+that company alone, or `POST /api/v1/programmes/exit` with a programme, a company, a domain or a
+list of addresses, first shows what ending does, one table per kind: the people, with who stays
+through another programme and who cannot be ended; their projects, share links and agent tokens;
+the templates to retire; the folders, domain rules and licence choices to withdraw; and the open
+invitations. Below the tables it says what ending does, how long Reopen is offered and who is
+told when. Choose what happens to their projects:
 
 - **Move their projects to the owning team, read-only** (the default when the programme has an
   owning team): the person who made the programme becomes the owner (you, when that account
@@ -710,14 +713,18 @@ their history stay, because files already made record them.
 
 ### End on a date, with a notice
 
-An end can wait for a day you choose: `lw people exit --programme <id>` or `--company <id>` with
-`--at YYYY-MM-DD`, or `at` on `POST /api/v1/programmes/exit`. It ends at the end of that day in
-UTC, run by the server's minute check and credited to the person who scheduled the end. A
-programme or company holds one scheduled end at a time (`409 EXIT_SCHEDULED`). `PUT
-/api/v1/programmes/exits/:id` moves the date, or ends the partnership at once with `at: "now"`,
-and `DELETE` cancels the scheduled end.
+An end can wait for a day you choose. In the End card, choose **At the end of a day** under when,
+then the day; the button reads "Schedule the end for 30 November 2026". A domain always ends now.
+The end runs at the end of that day in UTC, by the server's minute check, and is credited to the
+person who scheduled the end. A programme or company holds one scheduled end at a time
+(`409 EXIT_SCHEDULED`). The scheduled end shows on the programme's page, or the company's, with
+**Change** for a new date or notice and **Cancel the end**. From a terminal,
+`lw people exit --programme <id>` or `--company <id>` takes `--at YYYY-MM-DD`; the API takes `at`
+on `POST /api/v1/programmes/exit`, and `PUT /api/v1/programmes/exits/:id` moves the date or, with
+`at: "now"`, ends the partnership at once.
 
-A notice goes out unless you turn it off with `--no-notice` (`notice: false`). Each person whose
+A notice goes out unless you untick **Tell them before the end** (`--no-notice`, or `notice:
+false`). Each person whose
 access ends is told in their notifications 14 days and again 1 day before the end, or at once when
 the end is nearer, and by email too when [people's email](configuration.md#emailing-people-notices)
 is set up. The notice reads "Your access through Resellers, EMEA ends on 21 November 2026", with
@@ -731,9 +738,14 @@ date sends the same notice to that person.
 
 ### Reopen an end
 
-An end made by mistake can be reopened from its receipt within 30 days.
-`lw people exits <programme>` lists a programme's ends, newest first, with whether Reopen is still
-offered, and `lw people reopen <exit>` previews what comes back; add `--apply` to reopen.
+An end made by mistake can be reopened from its receipt within 30 days. An ended programme or
+company reads "Ended on 8 November 2026 by" and the name of the person who ended it, with the
+receipt below as counts. While the 30 days run, the page offers **Reopen**, with **Give their
+projects back** ticked. Reopen first shows who signs in again, what comes back and what stays
+ended, then reopens in a second step. After the 30 days, the page says Reopen is no longer offered
+and to add the people again by list. From a terminal, `lw people exits <programme>` lists a
+programme's ends and `lw people reopen <exit>` previews; add `--apply` to reopen.
+
 Reopening brings back the accounts that end disabled, their groups and memberships, the templates it retired, the
 provider folders it ended (where their own end date is still ahead), the domain rules it withdrew
 (where the domain's proof still holds) and the projects it moved, unless you pass
@@ -783,9 +795,11 @@ programme, never the agent.
 
 ### Programme tokens
 
-Anyone with `programme.manage` for a programme issues its tokens: `lw tokens add --programme
-resellers-emea --company northwind --label "Rita's agent"`, or `POST
-/api/v1/programmes/:id/tokens`. A grant of `programme.manage` on `programme:<id>` lets its holder
+Anyone with `programme.manage` for a programme issues its tokens from the **Agent tokens** card,
+on the programme's page or on a company's page for that company. **Mint token** takes a label, the
+company, the scopes, the days until the token expires and any limits, then shows the secret once,
+with **Copy**. From a terminal or the API: `lw tokens add --programme resellers-emea --company
+northwind --label "Rita's agent"`, or `POST /api/v1/programmes/:id/tokens`. A grant of `programme.manage` on `programme:<id>` lets its holder
 manage that programme's tokens only. The server sets what the request cannot: the `automation`
 role, the programme's and company's groups and the `partner` group. The secret appears once.
 
@@ -796,7 +810,7 @@ role, the programme's and company's groups and the `partner` group. The secret a
 - **Tools.** A list inside the programme's own, else `400 TOOL_NOT_IN_PROGRAMME`.
 - **Expiry.** 90 days by default, between 1 and 365. The list marks a token with under 14 days
   left as expiring; no notice is sent.
-- **Revoke** with `lw tokens revoke <id> --programme <programme>`. A programme token is never
+- **Revoke** on the card, in two steps, or `lw tokens revoke <id> --programme <programme>`. A programme token is never
   moved out of its programme (`409 PROGRAMME_TOKEN`), only revoked. Ending the programme or company
   revokes its tokens.
 
@@ -815,15 +829,20 @@ Every token placed in a programme meets three limits:
 | Renders a day, in UTC | 2,000 | `--renders-per-day <n>` | `--renders-per-day <n>` |
 | Renders a month, in UTC | No cap | `--renders-per-month <n>` | `--renders-per-month <n>` |
 
-The token's own figure wins, then its programme's, then the instance default
-(`automation.tokenLimits`). `none` removes a cap and `default` takes the next level's figure.
+The **Agent tokens** card shows each limit with where the figure comes from and today's use
+against it, with what a limit turned away this week and when. **Change limits** sets a token's own
+figures; a blank field takes the programme's. **Change the programme's limits** sets the figures
+every token there starts with. The token's own figure wins, then its programme's, then the instance
+default (`automation.tokenLimits`). `none` removes a cap and `default` takes the next level's figure.
 Admins see each limit, where it comes from and today's use in the token list. A token over a limit
 gets `429 RATE_LIMITED` or `429 BUDGET_EXHAUSTED` with plain words and the time to try again, such
 as "This token has used its 2,000 renders for today. The budget renews at 00:00 UTC." A render the
 budget cannot hold is refused whole. A token in no programme has no limits unless an owner sets
 some.
 
-`lw programmes usage <programme>` (`GET /api/v1/programmes/:id/usage`) counts what each token did,
+**What agents did**, on the same page, totals what each token did over the last 4 weeks or the
+last 7 days, and **Download CSV** gives the same counts week by week or day by day. `lw programmes usage <programme>`
+(`GET /api/v1/programmes/:id/usage`) counts what each token did,
 by day or week, for up to 92 days: calls, renders (by tool, format and outcome for the renders
 that keep a record, the durable ones), batches, deliveries,
 approval requests and refusals by code, with totals per company and for the programme. `--csv` gives
@@ -851,8 +870,9 @@ answers `422 INPUT_LOCKED`, and one outside the designer's choices `422 INPUT_NO
 An agent can ask for a piece by what the piece is for, with `resolve_intent`, rather than by tool.
 A published template can state its purposes, written like the entries in a tool's `intents.json`:
 the purpose, what it needs, the roles each input takes and the shapes it draws.
-Set a template's purposes with `intents` on the template's `POST` or `PUT`; `null` clears
-them.
+Set a template's purposes with **Purposes** on the programme's **Templates** card, which then
+reads, for example, "This template is for: Promote · Banner, Social landscape", or with `intents`
+on the template's `POST` or `PUT`; `null` clears them.
 
 - Each purpose is checked against the template's rules, so a purpose cannot need something only a
   fixed input takes. A later change to what partners may change that would break a purpose is
@@ -875,13 +895,16 @@ requests and withdraw them. Deciding stays with people. The request goes to the 
 escalation chain, or else to a chain the programme lists (`approvalChains` on
 `PUT /api/v1/programmes/:id`, with the programme's `name`); a partner's agent never reaches an internal chain by name. The approver's
 notice gives the company and the label you wrote on the token, for example "Northwind IT's agent
-(Rita's agent) asked for your review", followed by the step.
+(Rita's agent) asked for your review", followed by the step. The approval card adds that an agent
+asked, and that the file under review is the agent's own render, exactly as Lolly Work made the
+file.
 
 A tool's policy can also let one approval cover a template's variants: with `enforce.approvalCovers`
 set to `template-variants`, approving one version of a published template that lists what partners
 may change clears every partner's
 render from it, whatever the inputs the template leaves open, such as the price or the logo. This
-is off by default and set through the API only. A new version, or a change to what is open or
+is off by default. Set it in the tool's policy under **One approval covers**: **This file only**,
+the default, or **Every file from one version of a published template**. A new version, or a change to what is open or
 fixed, needs a new approval. A partner's clean render from that template version then carries the
 template's approval record in its own Content Credential: the approval, its date, the template's id
 and version and the fingerprint of the example file the reviewer saw. It never holds this file's own
@@ -889,6 +912,20 @@ fingerprint, a name or a person. [Lolly Verify](/info/what-verify-checks.html#ap
 reads the record as "Approved as a template: inst/price-sheet v3 (SVG)". A render that is still
 marked, one in a format the approval did not cover and one from an instance with no signer carry no
 record.
+
+## Limits and quotas
+
+The deployment page's **Limits and quotas** tab, for people with `policy.edit`, lists the limits
+Lolly Work enforces, grouped by area and read from the same figures the code enforces. The areas include rate limits,
+request bodies, approvals and submissions, uploads and files, renders, agent tokens, sign-in
+lifetimes and password lengths, live collaboration, document versions, sharing and access
+requests, comments, storage, retention and purge, links, providers and partner programmes. Each limit shows its value in words and where the value comes from: **Configuration**,
+**Environment** or **Built-in default**. A setting left at its default reads as built-in. For
+partner programmes, the cards cover the logo and profile limits, the licence gate's mode, the
+bounds on ending a partnership, the Reopen window, the notice days and the agent token defaults,
+maxima and lifetime. `GET /api/v1/limits` gives the same list. The panel covers every
+limit a person meets. It leaves out timing cadences, clock skew tolerances, provider field lists
+and caches.
 
 ## API and audit
 
@@ -1022,10 +1059,6 @@ lw programmes usage resellers-emea --by week --csv
 
 - **A console card for partner kits, and the kit in exported files.** The routes and
   `lw companies kit` above do the work today.
-- **Console cards** for programme tokens and a scheduled end with Reopen. The routes and `lw` above
-  do each of these today.
-- **Limits and quotas**: one console page that lists the limits Lolly Work enforces, grouped by
-  area, with each value and source. The limits on this page are given where each applies.
 - **Share with rules files made from tools other than Design.**
 
 ## Related
