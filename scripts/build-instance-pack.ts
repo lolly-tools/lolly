@@ -56,6 +56,7 @@ import { zipSync, strToU8 } from 'fflate';
 import { CATALOG_SIG_ALG, jwkThumbprint } from '../engine/src/catalog-integrity.ts';
 import { pemToDer } from '../engine/src/x509.ts';
 import { ENGINE_VERSION } from '../engine/src/version.ts';
+import { woffToSfnt } from '../engine/src/font-convert.ts';
 import { variableWeightRange } from '../shells/web/src/lib/design-system/font-resolve.ts';
 import { isPublicBrandSkillAsset } from '../packages/core/src/brand-skill-v1.ts';
 import {
@@ -174,6 +175,20 @@ function parseFontFile(name: string, family: string): { weight: number; style: '
   return weight ? { weight, style: italic ? 'italic' : 'normal' } : null;
 }
 
+/** The sfnt tables of a font file, for reading its `wght` axis: a WOFF or WOFF2 wrapper
+ *  hides them, so those are unwrapped first. The packed bytes stay the original file. */
+async function sfntOf(bytes: Uint8Array, ext: string): Promise<ArrayBuffer> {
+  let sfnt = bytes;
+  if (ext === 'woff2') {
+    const { default: decompress } = await import('woff2-encoder/decompress');
+    const out = await decompress(bytes) as Uint8Array | ArrayBuffer;
+    sfnt = out instanceof Uint8Array ? out : new Uint8Array(out);
+  } else if (ext === 'woff') {
+    sfnt = woffToSfnt(bytes);
+  }
+  return sfnt.buffer.slice(sfnt.byteOffset, sfnt.byteOffset + sfnt.byteLength) as ArrayBuffer;
+}
+
 async function loadSigningKey(keyfile: string | null): Promise<{ key: wc.CryptoKey; thumbprint: string } | null> {
   const material = keyfile ? readFileSync(keyfile, 'utf8') : process.env.LOLLY_CATALOG_SIGNING_KEY;
   if (!material) return null;
@@ -234,11 +249,9 @@ async function main(): Promise<void> {
       // A variable face is stored with its whole `wght` axis ("100 900"), as an upload
       // of the same file is (user-fonts.ts installFontFromBytes); a static face keeps
       // the weight its file name states.
-      const weight = parsed.variable
-        ? variableWeightRange(bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength) as ArrayBuffer)
-        : String(parsed.weight);
-      if (!weight) throw new Error(`${file} is named as a variable face but has no readable wght axis`);
       const ext = file.slice(file.lastIndexOf('.') + 1).toLowerCase();
+      const weight = parsed.variable ? variableWeightRange(await sfntOf(bytes, ext)) : String(parsed.weight);
+      if (!weight) throw new Error(`${file} is named as a variable face but has no readable wght axis`);
       fontRows.push({
         id: `user/fonts/${family.toLowerCase().replace(/\s+/g, '-')}/${fontIdx++}`,
         format: ext,
