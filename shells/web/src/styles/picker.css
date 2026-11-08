@@ -105,7 +105,7 @@
 }
 .asset-picker-tab:hover { color: hsl(var(--foreground)); background: hsl(var(--accent)); }
 .asset-picker-tab.is-active {
-  color: hsl(var(--primary));
+  color: hsl(var(--primary-text));
   border-bottom-color: hsl(var(--primary));
 }
 .asset-picker-tab:focus-visible { outline: 2px solid hsl(var(--primary) / 0.5); outline-offset: -2px; }
@@ -134,7 +134,7 @@
   text-overflow: ellipsis;
 }
 .asset-picker-current-label strong { color: hsl(var(--foreground)); font-weight: 600; }
-.asset-picker-current-spark { color: hsl(var(--primary)); }
+.asset-picker-current-spark { color: hsl(var(--primary-text)); }
 .asset-picker-current-edit {
   flex: none;
   padding: 4px 12px;
@@ -148,7 +148,7 @@
   font-weight: 600;
   transition: border-color var(--dur-1), color var(--dur-1);
 }
-.asset-picker-current-edit:hover { border-color: hsl(var(--primary)); color: hsl(var(--primary)); }
+.asset-picker-current-edit:hover { border-color: hsl(var(--primary)); color: hsl(var(--primary-text)); }
 
 .asset-picker-body {
   flex: 1;
@@ -337,7 +337,7 @@
 .asset-picker-catbtn--named { width: auto; max-width: 280px; gap: var(--sp-2); padding: 0 var(--sp-3); font: inherit; font-size: var(--fs-sm); }
 .asset-picker-catbtn--named > span:last-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .asset-picker-catbtn.is-active {
-  color: hsl(var(--primary));
+  color: hsl(var(--primary-text));
   border-color: hsl(var(--primary));
   background: hsl(var(--primary) / 0.1);
 }
@@ -519,7 +519,7 @@
   color: hsl(var(--card-foreground));
 }
 .asset-picker-toolcard-head strong { font-weight: 700; }
-.asset-picker-toolcard-spark { color: hsl(var(--primary)); font-size: calc(15px * var(--a11y-fs)); }
+.asset-picker-toolcard-spark { color: hsl(var(--primary-text)); font-size: calc(15px * var(--a11y-fs)); }
 
 .asset-picker-toolcard-controls {
   display: flex;
@@ -663,7 +663,7 @@
   height: 84px;
   border-radius: var(--radius);
   background: hsl(var(--muted));
-  color: hsl(var(--primary));
+  color: hsl(var(--primary-text));
 }
 .asset-picker-toolitem-icon svg { width: calc(26px * var(--a11y-fs)); height: calc(26px * var(--a11y-fs)); }
 
@@ -677,7 +677,7 @@
   font: inherit;
   font-size: var(--fs-sm);
   font-weight: 600;
-  color: hsl(var(--primary));
+  color: hsl(var(--primary-text));
   background: hsl(var(--primary) / 0.08);
   border: 1px solid hsl(var(--border));
   border-radius: var(--radius);
@@ -735,7 +735,7 @@
   color: hsl(var(--muted-foreground));
 }
 /* A session/tool with no rendered thumb falls back to its tool icon. */
-.asset-picker-thumb-icon { color: hsl(var(--primary)); }
+.asset-picker-thumb-icon { color: hsl(var(--primary-text)); }
 .asset-picker-thumb-icon svg { width: calc(34px * var(--a11y-fs)); height: calc(34px * var(--a11y-fs)); }
 
 /* ── Projects tab (folders of saved creations + images) ─────────────────────
@@ -774,7 +774,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: hsl(var(--primary));
+  color: hsl(var(--primary-text));
   background: hsl(var(--muted));
 }
 .asset-picker-folder-thumb svg { width: calc(40px * var(--a11y-fs)); height: calc(40px * var(--a11y-fs)); }
@@ -1266,7 +1266,7 @@
 .asset-picker-card-matte:focus-visible { opacity: 1; }
 .asset-picker-card-upscale:hover,
 .asset-picker-card-matte:hover {
-  color: hsl(var(--primary));
+  color: hsl(var(--primary-text));
   background: hsl(var(--accent));
 }
 .asset-picker-card-upscale svg,

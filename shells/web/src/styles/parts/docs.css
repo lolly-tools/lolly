@@ -118,7 +118,7 @@
   color: var(--ui-color-text-muted);
   font-size: calc(0.9375rem * var(--a11y-fs, 1));
 }
-.docs-status a { color: hsl(var(--primary)); }
+.docs-status a { color: hsl(var(--primary-text)); }
 
 /* ── Body: the rehosted .docs-content fragment ──────────────────────────────── */
 .docs-content {
@@ -549,7 +549,7 @@
    link, then the groups as folds, open where the current page is. */
 .docs-sidebar-slot a.sidebar-pathway { display: block; margin-top: 0; padding: 0 .55rem .5rem; color: hsl(var(--foreground)); font-weight: 600; background: none; }
 .docs-sidebar-slot a.sidebar-pathway:hover,
-.docs-sidebar-slot a.sidebar-pathway.active { color: hsl(var(--primary)); background: none; }
+.docs-sidebar-slot a.sidebar-pathway.active { color: hsl(var(--primary-text)); background: none; }
 .docs-sidebar-slot .sidebar-group { margin-top: var(--sp-5); }
 .docs-sidebar-slot .sidebar-group > summary {
   display: flex; align-items: center; justify-content: space-between; gap: var(--sp-4);
@@ -568,7 +568,7 @@ html[data-a11y-motion="reduce"] .docs-sidebar-slot .sidebar-chev { transition: n
 .docs-sidebar-slot :is(ul, ol) { list-style: none; margin: 0; padding: 0; }
 .docs-sidebar-slot a { display: flex; align-items: center; gap: .55rem; color: hsl(var(--muted-foreground)); text-decoration: none; padding: .32rem .55rem; border-radius: 7px; line-height: 1.35; }
 .docs-sidebar-slot a:hover { background: hsl(var(--muted)); color: hsl(var(--foreground)); }
-.docs-sidebar-slot a.active { color: hsl(var(--primary)); font-weight: 600; background: hsl(var(--primary) / .09); }
+.docs-sidebar-slot a.active { color: hsl(var(--primary-text)); font-weight: 600; background: hsl(var(--primary) / .09); }
 .docs-sidebar-slot :is(.docs-sidebar-group, h2, h3, .sidebar-head) { font: 700 calc(.68rem * var(--a11y-fs, 1))/1 var(--font-mono, ui-monospace, monospace); letter-spacing: .1em; text-transform: uppercase; color: hsl(var(--muted-foreground)); margin: 1.1rem 0 .4rem .55rem; }
 
 /* on-page table of contents (derived from stamped heading ids) */
@@ -579,7 +579,7 @@ html[data-a11y-motion="reduce"] .docs-sidebar-slot .sidebar-chev { transition: n
 .docs-sitemap-slot { margin-top: 3.5rem; padding-top: 2rem; border-top: 1px solid hsl(var(--border)); font-size: calc(.88rem * var(--a11y-fs, 1)); color: hsl(var(--muted-foreground)); }
 .docs-sitemap-slot :is(ul, ol) { list-style: none; margin: 0; padding: 0; }
 .docs-sitemap-slot a { color: hsl(var(--muted-foreground)); text-decoration: none; }
-.docs-sitemap-slot a:hover { color: hsl(var(--primary)); }
+.docs-sitemap-slot a:hover { color: hsl(var(--primary-text)); }
 
 /* footer contact block (extracted <footer> minus the sitemap) - the "Questions? Contact
    Andy Fitzsimon - fitzy@suse.com" line, the Open-Source/Privacy/Inclusive-Design line,
@@ -593,7 +593,7 @@ html[data-a11y-motion="reduce"] .docs-sidebar-slot .sidebar-chev { transition: n
 .docs-contact-slot .docs-contact-footer { text-align: center; }
 .docs-contact-slot p { margin: 0 0 .5rem; }
 .docs-contact-slot a { color: hsl(var(--muted-foreground)); text-decoration: underline; text-underline-offset: 2px; }
-.docs-contact-slot a:hover { color: hsl(var(--primary)); }
+.docs-contact-slot a:hover { color: hsl(var(--primary-text)); }
 .docs-contact-slot .founded-badge { display: inline-block; line-height: 0; margin-top: .5rem; }
 .docs-contact-slot .founded-badge img { display: block; width: 15em; max-width: 100%; height: auto; }
 .docs-contact-slot .docs-license { margin: .5rem 0 0; font-size: calc(.6875rem * var(--a11y-fs, 1)); font-weight: 300; line-height: 1.6; }

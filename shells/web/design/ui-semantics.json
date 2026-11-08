@@ -21,6 +21,16 @@
                 "css": "hsl(var(--muted-foreground))"
               }
             }
+          },
+          "accent": {
+            "$type": "color",
+            "$value": "#0c322c",
+            "$description": "The brand accent for words and glyphs: the action primary walked per theme until it reads 4.5:1 on the surfaces it sits on (Lc 75 under High contrast). Fills keep color.action.primary.",
+            "$extensions": {
+              "tools.lolly": {
+                "css": "hsl(var(--primary-text))"
+              }
+            }
           }
         },
         "surface": {

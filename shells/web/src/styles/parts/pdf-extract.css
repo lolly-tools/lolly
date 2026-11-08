@@ -199,7 +199,7 @@
 /* The same pair the other way round, so the count still stands out on the filled tab. */
 .pdfx-tab.is-active .pdfx-tab-n {
   background: var(--ui-color-action-on-primary);
-  color: var(--ui-color-action-primary);
+  color: var(--ui-color-text-accent);
 }
 
 /* One tab is not a choice. A text-only document therefore shows no strip at all

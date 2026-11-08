@@ -127,7 +127,7 @@
   border-inline-start: 3px solid hsl(var(--border));
   color: hsl(var(--muted-foreground));
 }
-.ask-section a { color: hsl(var(--primary)); text-decoration: underline; text-underline-offset: 2px; }
+.ask-section a { color: hsl(var(--primary-text)); text-decoration: underline; text-underline-offset: 2px; }
 
 .ask-table-wrap { overflow-x: auto; margin: 0 0 0.7rem; }
 .ask-table { border-collapse: collapse; font-size: var(--fs-md); width: 100%; }
@@ -143,7 +143,7 @@
   align-self: flex-start;
   background: none;
   border: none;
-  color: hsl(var(--primary));
+  color: hsl(var(--primary-text));
   font-size: var(--fs-md);
   font-weight: 600;
   cursor: pointer;
@@ -154,7 +154,7 @@
   font-size: var(--fs-sm);
   color: hsl(var(--muted-foreground));
 }
-.ask-cite-link { color: hsl(var(--primary)); }
+.ask-cite-link { color: hsl(var(--primary-text)); }
 
 /* ─── related sections + in-app hits ──────────────────────────────────────────── */
 .ask-group-label {
@@ -231,7 +231,7 @@
   padding: 0.45rem 1.2rem 0.45rem 0.55rem;
   font-size: var(--fs-xl);
   font-weight: 650;
-  color: hsl(var(--primary));
+  color: hsl(var(--primary-text));
   background: hsl(var(--background));
   border: 1.5px solid hsl(var(--primary) / 0.35);
   border-radius: var(--radius-pill);

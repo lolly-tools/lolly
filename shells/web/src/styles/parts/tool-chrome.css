@@ -899,7 +899,7 @@ html[data-a11y-motion="reduce"] .share-meter-toast { animation: none; }
   align-items: center;
   min-height: 24px;
   margin-block-start: var(--sp-2);
-  color: var(--ui-color-action-primary);
+  color: var(--ui-color-text-accent);
   font-weight: 600;
   text-decoration: underline;
   text-decoration-thickness: 1px;
@@ -1199,7 +1199,7 @@ html[data-a11y-motion="reduce"] .share-meter-toast { animation: none; }
 /* Icon-only control (aria-label + glyph), so the glyph is the whole of what the
    button says; the 38px box still clears it at 1.2×. */
 .audio-preview svg { width: calc(18px * var(--a11y-fs)); height: calc(18px * var(--a11y-fs)); display: block; }
-.audio-preview:hover:not(:disabled) { border-color: hsl(var(--primary)); color: hsl(var(--primary)); }
+.audio-preview:hover:not(:disabled) { border-color: hsl(var(--primary)); color: hsl(var(--primary-text)); }
 .audio-preview.is-playing {
   background: hsl(var(--primary));
   border-color: hsl(var(--primary));
@@ -1272,7 +1272,7 @@ html[data-a11y-motion="reduce"] .share-meter-toast { animation: none; }
   cursor: pointer;
 }
 .pdfpass-head:hover,
-.protection-head:hover { color: hsl(var(--primary)); }
+.protection-head:hover { color: hsl(var(--primary-text)); }
 .pdfpass-head::after,
 .protection-head::after {
   content: '';
@@ -1285,7 +1285,7 @@ html[data-a11y-motion="reduce"] .share-meter-toast { animation: none; }
   border-bottom: 1.25px solid currentColor;
   transform: rotate(-45deg);
   transition: transform var(--dur-1) ease;
-    color: var(--ui-color-action-primary);
+    color: var(--ui-color-text-accent);
     opacity:.75;
 
   flex-shrink: 0;
@@ -1576,7 +1576,7 @@ box-shadow:none;
 }
 .prosettings-head:hover { color: hsl(var(--foreground)); }
 .prosettings-head:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 2px; border-radius: calc(var(--radius) * 0.75); }
-.prosettings-head svg { flex: 0 0 auto; color: hsl(var(--primary));     opacity: .76; stroke-width: 1.5px;}
+.prosettings-head svg { flex: 0 0 auto; color: hsl(var(--primary-text));     opacity: .76; stroke-width: 1.5px;}
 /* Caret: a rotated corner glyph, not a one-sided border on a radiused box. */
 .prosettings-head::after {
   content: "";

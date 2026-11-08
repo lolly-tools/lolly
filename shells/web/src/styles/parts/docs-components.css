@@ -47,7 +47,7 @@
    dark grounds (Dark, Brand), where a tint into the canvas all but vanished. */
 .docs-content .doc-note--warning { background: color-mix(in srgb, var(--ui-color-status-danger) 14%, var(--ui-color-surface-muted)); }
 .docs-content .doc-note-glyph { display: flex; margin-block-start: 2px; color: var(--ui-color-text-muted); }
-.docs-content .doc-note--check .doc-note-glyph { color: var(--ui-color-action-primary); }
+.docs-content .doc-note--check .doc-note-glyph { color: var(--ui-color-text-accent); }
 .docs-content .doc-note--warning .doc-note-glyph { color: color-mix(in oklab, var(--ui-color-status-danger) 60%, var(--ui-color-text-default)); }
 .docs-content .doc-note-glyph svg { width: calc(20px * var(--a11y-fs, 1)); height: calc(20px * var(--a11y-fs, 1)); }
 .docs-content .doc-note-title { font-weight: 600; line-height: 1.4; color: var(--ui-color-text-default); }

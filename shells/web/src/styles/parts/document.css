@@ -65,7 +65,7 @@
 .fc-pop-item--sep { margin-top: 4px; padding-top: 8px; border-top: 1px solid hsl(var(--border)); }
 
 .doc-ribbon .fc-cbtn:disabled { opacity: 0.32; cursor: default; }
-.doc-ribbon .fc-cbtn.is-on { background: hsl(var(--primary) / 0.16); color: hsl(var(--primary)); }
+.doc-ribbon .fc-cbtn.is-on { background: hsl(var(--primary) / 0.16); color: hsl(var(--primary-text)); }
 .doc-ribbon .fc-cbtn i { font-style: italic; }
 /* Text-colour swatch trigger in the ribbon. */
 .doc-color { position: relative; overflow: hidden; }
@@ -108,7 +108,7 @@
 /* Empty image block invites a click to pick a Lolly / upload. */
 .tool-layout.is-document .doc-media--empty { cursor: pointer; }
 .tool-layout.is-document .doc-media--empty:hover {
-  border-color: hsl(var(--primary)); color: hsl(var(--primary));
+  border-color: hsl(var(--primary)); color: hsl(var(--primary-text));
 }
 
 /* Settings (page setup) mini-form inside a .fc-panel popover. */
@@ -246,7 +246,7 @@
 .doc-tt-guide-lbl {
   position: absolute; right: 6px; top: 2px;
   font-family: var(--font-mono); font-size: calc(9.5px * var(--a11y-fs)); letter-spacing: .04em;
-  color: hsl(var(--primary)); background: #fff; padding: 0 5px; border-radius: var(--radius-pill);
+  color: hsl(var(--primary-text)); background: #fff; padding: 0 5px; border-radius: var(--radius-pill);
   box-shadow: 0 0 0 1px hsl(var(--primary) / .3);
 }
 /* Explicit hard page break rendered inside the editor content. */
@@ -259,7 +259,7 @@
 .doc-pagebreak-label {
   position: absolute; left: 50%; top: -.75em; transform: translateX(-50%);
   background: #fff; padding: 0 .6em; font-size: var(--fs-xs); font-weight: 700; letter-spacing: .04em;
-  color: hsl(var(--primary)); text-transform: uppercase;
+  color: hsl(var(--primary-text)); text-transform: uppercase;
 }
 
 /* ── Images: float/wrap alignment + the floating image toolbar (views/doc-image.js) ── */

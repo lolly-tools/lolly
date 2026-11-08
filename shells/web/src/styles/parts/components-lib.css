@@ -10,7 +10,7 @@
 .cl-head { display: grid; grid-template-columns: 1.3fr 1fr; align-items: center; gap: var(--ui-space-section); padding: 0 0 var(--ui-space-panel); }
 .cl-eyebrow { margin: 0 0 18px; font: 600 var(--ui-type-caption)/1.4 var(--font-mono); letter-spacing: .09em; text-transform: uppercase; color: var(--ui-color-text-muted); }
 .cl-title { margin: 0; font-size: clamp(calc(var(--ui-type-display) * .625), 5.1vw, var(--ui-type-display)); font-weight: 650;  line-height: 1.03; }
-.cl-title span { color: var(--ui-color-action-primary); }
+.cl-title span { color: var(--ui-color-text-accent); }
 .cl-sub { max-width: 47ch; margin: 24px 0 28px; font-size: var(--ui-type-lead); line-height: 1.65; color: var(--ui-color-text-muted); }
 .cl-head-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; }
 .cl-head-actions .btn { display: inline-flex; align-items: center; justify-content: center; gap: 16px; min-height: var(--ui-size-target); padding: 10px 18px; font-size: var(--ui-type-body); border-radius: var(--ui-radius-control); }
@@ -50,7 +50,7 @@
 .cl-section-head .cl-eyebrow { margin-bottom: 10px; }
 .cl-section-head h2 { margin: 0; font-size: var(--ui-type-heading); font-weight: 600; line-height: 1.2;  }
 .cl-section-intro { max-width: 65ch; margin: -4px 0 24px; color: var(--ui-color-text-muted); line-height: 1.65; font-size: var(--ui-type-body); }
-.cl-text-link { color: var(--ui-color-action-primary); text-decoration-thickness: 1px; text-underline-offset: 4px; font-size: var(--ui-type-caption); white-space: nowrap; padding-block: 12px; }
+.cl-text-link { color: var(--ui-color-text-accent); text-decoration-thickness: 1px; text-underline-offset: 4px; font-size: var(--ui-type-caption); white-space: nowrap; padding-block: 12px; }
 .cl-foundation-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
 .cl-foundation { display: flex; flex-direction: column; justify-content: space-between; padding: 24px; border: 1px solid var(--ui-color-border-default); border-radius: var(--ui-radius-panel); background: var(--ui-color-surface-raised); min-width: 0; }
 .cl-foundation:last-child { grid-column: 1 / -1; }
@@ -178,7 +178,7 @@
 .cl-ref-sheet { margin: 6px 0 0; }
 .cl-ref-note { margin: 8px 0 0; }
 .cl-ref-status:empty { display: none; }
-.cl-ref-status { margin: 8px 0 0; color: var(--ui-color-action-primary); }
+.cl-ref-status { margin: 8px 0 0; color: var(--ui-color-text-accent); }
 .cl-details summary { cursor: pointer; padding: 10px 0; color: var(--ui-color-text-default); }
 .cl-details code, .cl-details pre, .cl-src, .cl-code { font: var(--ui-type-caption)/1.6 var(--font-mono); overflow-wrap: anywhere; white-space: pre-wrap; }
 .cl-details pre { padding: 12px; border-radius: var(--ui-radius-control); background: var(--ui-color-surface-muted); }
@@ -201,7 +201,7 @@
 .cl-audit-grid article { padding: 24px; background: var(--ui-color-surface-muted); border-radius: var(--ui-radius-panel); }
 .cl-audit-grid h3 { font-size: var(--ui-type-lead); font-weight: 600; letter-spacing: -.02em; margin: 16px 0 10px; }
 .cl-audit-grid p { font-size: var(--ui-type-body); line-height: 1.7; color: var(--ui-color-text-muted); margin: 0; }
-.cl-audit-state { display: inline-block; color: var(--ui-color-action-primary); font-size: var(--ui-type-caption); font-weight: 600; }
+.cl-audit-state { display: inline-block; color: var(--ui-color-text-accent); font-size: var(--ui-type-caption); font-weight: 600; }
 .cl-audit-state--open { color: var(--ui-color-text-default); }
 .cl-audit-followup { padding: 8px 20px; border: 1px solid var(--ui-color-border-default); border-radius: var(--ui-radius-control); }.cl-audit-followup li { margin-bottom: 12px; }
 .cl-page-footer { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px; border-top: 1px solid var(--ui-color-border-default); padding: 24px 0; font-size: var(--ui-type-caption); color: var(--ui-color-text-muted); }
@@ -227,12 +227,12 @@
 .cl-fixture-wave { color: var(--ui-color-action-primary); font-size: var(--ui-type-heading); margin: 24px 0; text-align: center; }
 .cl-fixture-page { display: grid; place-items: center; width: 64px; height: 80px; border: 1px solid var(--ui-color-border-default); background: var(--ui-color-surface-raised); border-radius: var(--ui-radius-control); }
 .cl-fixture-drop { width: 100%; padding: 24px; border: 1px dashed var(--ui-color-border-default); border-radius: var(--ui-radius-panel); text-align: center; font-size: var(--ui-type-body); }.cl-fixture-drop p { color: var(--ui-color-text-muted); }
-.cl-fixture-confetti { display: flex; gap: 16px; align-items: center; color: var(--ui-color-action-primary); font-size: var(--ui-type-heading); }.cl-fixture-confetti strong { font-size: var(--ui-type-lead); }
+.cl-fixture-confetti { display: flex; gap: 16px; align-items: center; color: var(--ui-color-text-accent); font-size: var(--ui-type-heading); }.cl-fixture-confetti strong { font-size: var(--ui-type-lead); }
 .cl-fixture-type { font-size: calc(var(--ui-type-display) * .625); letter-spacing: -.045em; line-height: 1.1; }
 .cl-fixture-colour { width: 62px; height: 90px; border-radius: var(--ui-radius-control); display: flex; align-items: end; }.cl-fixture-colour span { padding: 4px; font: var(--ui-type-caption)/1.5 var(--font-mono); background: var(--ui-color-surface-raised); color: var(--ui-color-text-default); }
 .cl-fixture-avatar { display: grid; place-items: center; width: 112px; height: 112px; border-radius: var(--ui-radius-pill); background: var(--ui-color-surface-muted); font-size: var(--ui-type-heading); margin: 20px auto; }
 .cl-fixture-kv { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: var(--ui-type-caption); }.cl-fixture-kv dd { margin: 0; }.cl-fixture-kv dt { color: var(--ui-color-text-muted); }
-.cl-fixture-checks { font-size: var(--ui-type-caption); color: var(--ui-color-action-primary); }
+.cl-fixture-checks { font-size: var(--ui-type-caption); color: var(--ui-color-text-accent); }
 .cl-fixture-grip { width: 40px; height: 4px; border-radius: var(--ui-radius-pill); background: var(--ui-color-border-default); margin: 0 auto 16px; }
 @media (min-width: 1600px) { .cl-view { padding-inline: 56px; } }
 @media (max-width: 1100px) {

@@ -94,7 +94,7 @@
 
 .catalog .cat-group-chevron { display: inline-flex; transition: transform var(--dur-2) ease; color: hsl(var(--muted-foreground)); }
 /* Per-category glyph (lib/category-icons.ts) - sits between the chevron and title. */
-.catalog .cat-group-icon { display: inline-flex; flex-shrink: 0; color: var(--ui-color-action-primary); opacity:.5;}
+.catalog .cat-group-icon { display: inline-flex; flex-shrink: 0; color: var(--ui-color-text-accent); opacity:.5;}
 .catalog .cat-group:not(.is-collapsed) .cat-group-chevron { transform: rotate(90deg); }
 .catalog .cat-group-title {
   font-size: calc(1.05rem * var(--a11y-fs)); font-weight: 700;
@@ -180,7 +180,7 @@
   font-size: calc(.6rem * var(--a11y-fs)); font-weight: 700; text-transform: uppercase; letter-spacing: .04em;
   padding: 1px 5px; border-radius: var(--radius);
 }
-.cat-src--user { background: hsl(var(--primary) / .15); color: hsl(var(--primary)); }
+.cat-src--user { background: hsl(var(--primary) / .15); color: hsl(var(--primary-text)); }
 
 /* Generative-AI provenance pill. Box (inline-flex/gap/radius) composes .chip
    (chips.css, lib/genai-pill.ts's markup carries both classes); everything
@@ -283,7 +283,7 @@
    These are collapsible .cat-group sections now (see groupSection in views/assets/tiles.ts); their
    bodies keep the panel-* styling below. A divider on the first sets the reference zone
    apart from the asset categories above. */
-.cat-panel-foot a, .cat-download { color: hsl(var(--primary)); }
+.cat-panel-foot a, .cat-download { color: hsl(var(--primary-text)); }
 
 /* Font download links under each specimen. */
 .cat-font-downloads { display: flex; flex-wrap: wrap; gap: var(--sp-4); margin-top: 12px; }

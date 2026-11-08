@@ -132,7 +132,7 @@
      same optical weight as the heading rather than shrinking against it. */
   width: calc(34px * var(--a11y-fs)); height: calc(34px * var(--a11y-fs)); flex: none;
   border-radius: var(--radius-md);
-  color: hsl(var(--primary));
+  color: hsl(var(--primary-text));
   background: hsl(var(--primary) / 0.12);
 }
 .personalize-nudge-icon svg { width: calc(19px * var(--a11y-fs)); height: calc(19px * var(--a11y-fs)); }
@@ -436,7 +436,7 @@
 }
 .gallery-empty-hint { margin: 0; font-size: var(--fs-lg); }
 .gallery-empty-hint a,
-.gallery-retry { color: hsl(var(--primary)); font-weight: 600; }
+.gallery-retry { color: hsl(var(--primary-text)); font-weight: 600; }
 .gallery-retry {
   font: inherit;
   background: none;
@@ -502,7 +502,7 @@
 .tool-card-icon {
     display: block;
     flex-shrink: 0;
-    color: hsl(var(--primary));
+    color: hsl(var(--primary-text));
     place-self: start;
 
 }
@@ -770,7 +770,7 @@ stroke-width:.81;
 .gallery-sort-dir .sd-down { opacity: 1; }
 /* Reversed (ascending): flip the emphasis and tint the control so the non-default
    state reads at a glance (matches the filter FAB's active dot signal). */
-.gallery-sort-dir.is-asc { color: hsl(var(--primary)); border-color: hsl(var(--primary)); }
+.gallery-sort-dir.is-asc { color: hsl(var(--primary-text)); border-color: hsl(var(--primary)); }
 .gallery-sort-dir.is-asc .sd-up { opacity: 1; }
 .gallery-sort-dir.is-asc .sd-down { opacity: 0.3; }
 
@@ -820,10 +820,10 @@ stroke-width:.81;
 /* Favourites pill - leading star; the glyph carries the accent when inactive and
    rides the foreground colour when the pill is active (filled). */
 .gallery-pill--fav { display: inline-flex; align-items: center; }
-.gallery-pill--fav .pill-star { margin-right: 5px; color: hsl(var(--primary)); line-height: 1; }
+.gallery-pill--fav .pill-star { margin-right: 5px; color: hsl(var(--primary-text)); line-height: 1; }
 .gallery-pill--fav.active .pill-star { color: inherit; }
 /* Inline star used in the empty-favourites message. */
-.star-inline { color: hsl(var(--primary)); font-weight: 700; }
+.star-inline { color: hsl(var(--primary-text)); font-weight: 700; }
 
 /* CSS multi-column masonry. --cols scales with width. Column count is fixed by the
    viewport, NOT the result count: a short list (search / filter) packs into the
@@ -1798,7 +1798,7 @@ html[data-a11y-previews="hidden"] .published-card-media .published-card-icon { d
   border: 1px solid hsl(var(--border) / 0.6);
 }
 .meta-fmt--default {
-  color: hsl(var(--primary));
+  color: hsl(var(--primary-text));
   font-weight: 600;
   background: hsl(var(--primary) / 0.12);
   border-color: hsl(var(--primary) / 0.4);
@@ -1828,7 +1828,7 @@ html[data-a11y-previews="hidden"] .published-card-media .published-card-icon { d
   transition: color var(--dur-1), border-color var(--dur-1), background var(--dur-1);
 }
 .gtile-iconbtn:hover {
-  color: hsl(var(--primary));
+  color: hsl(var(--primary-text));
   border-color: hsl(var(--primary) / 0.5);
   background: hsl(var(--primary) / 0.08);
 }
@@ -2010,7 +2010,7 @@ html[data-a11y-previews="hidden"] .published-card-media .published-card-icon { d
   background: none;
   padding: 0;
   font: inherit;
-  color: hsl(var(--primary));
+  color: hsl(var(--primary-text));
   cursor: pointer;
   text-decoration: underline;
 }

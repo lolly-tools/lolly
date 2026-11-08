@@ -61,7 +61,7 @@
   padding-inline: 0.7rem;
   border-color: hsl(var(--border));
   background: hsl(var(--primary) / 0.14);
-  color: hsl(var(--primary));
+  color: hsl(var(--primary-text));
   line-height: 1;
   display: inline-flex;
   align-items: center;

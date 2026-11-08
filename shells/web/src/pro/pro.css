@@ -245,7 +245,7 @@ body.pro-col-resizing, body.pro-col-resizing * { cursor: col-resize !important; 
 .pro-fill-btn {
   display: inline-flex; align-items: center; justify-content: center;
   width: 1.6rem; height: 1.6rem; padding: 0; cursor: pointer;
-  border: 0; transform: scaleX(-1); color: hsl(var(--primary));
+  border: 0; transform: scaleX(-1); color: hsl(var(--primary-text));
   background: transparent; border-radius: 6px;
 }
 .pro-fill-btn:hover { background: hsl(var(--primary)); color: hsl(var(--primary-foreground)); }
@@ -342,7 +342,7 @@ body.pro-col-resizing, body.pro-col-resizing * { cursor: col-resize !important; 
   margin-left: auto; flex: none;
   display: inline-flex; align-items: center; justify-content: center;
   width: 1.5rem; height: 1.5rem; border-radius: 50%;
-  color: hsl(var(--primary)); font-weight: 700; line-height: 1; cursor: pointer;
+  color: hsl(var(--primary-text)); font-weight: 700; line-height: 1; cursor: pointer;
 }
 .pro-asset-clear::before { content: '✓'; }
 .pro-asset-clear:hover,
@@ -395,14 +395,14 @@ body.pro-col-resizing, body.pro-col-resizing * { cursor: col-resize !important; 
   border: 1px solid hsl(var(--border)); border-radius: 6px;
   background: hsl(var(--background)); color: hsl(var(--muted-foreground));
 }
-.pro-eye:hover, .pro-fmt:hover { color: hsl(var(--primary)); border-color: hsl(var(--primary)); background: hsl(var(--accent)); }
+.pro-eye:hover, .pro-fmt:hover { color: hsl(var(--primary-text)); border-color: hsl(var(--primary)); background: hsl(var(--accent)); }
 .pro-eye svg, .pro-fmt svg { pointer-events: none; width: 16px; height: 16px; }
 /* The format pill widens to hold the extension label (e.g. WEBP). */
 .pro-fmt { width: 2.4rem; }
 .pro-fmt-ext { font-size: calc(.62rem * var(--a11y-fs)); font-weight: 600; line-height: 1; letter-spacing: .02em; pointer-events: none; }
 /* The native <select> overlays the document icon at zero opacity. */
 .pro-fmt-select { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; border: none; appearance: none; }
-.pro-fmt--set { color: hsl(var(--primary)); border-color: hsl(var(--primary)); } /* per-row override active */
+.pro-fmt--set { color: hsl(var(--primary-text)); border-color: hsl(var(--primary)); } /* per-row override active */
 
 /* Colour cell: the shared picker's trigger fills the cell (whole-cell target). */
 .pro-cell--color .color-picker-field { width: 100%; height: 100%; }
@@ -435,7 +435,7 @@ body.pro-col-resizing, body.pro-col-resizing * { cursor: col-resize !important; 
    no source row or nothing empty to fill. */
 .pro-addrow .pro-fill-last {
   background: transparent;
-  color: hsl(var(--primary));
+  color: hsl(var(--primary-text));
   font-weight: 600;
 }
 .pro-addrow .pro-fill-last:hover:not(:disabled) {
@@ -450,7 +450,7 @@ body.pro-col-resizing, body.pro-col-resizing * { cursor: col-resize !important; 
   border: 1px solid hsl(var(--border)); background: transparent; color: hsl(var(--muted-foreground));
   border-radius: 999px; padding: .16rem .5rem;
 }
-.pro-collapsed-tag:hover { border-color: hsl(var(--primary)); color: hsl(var(--primary)); }
+.pro-collapsed-tag:hover { border-color: hsl(var(--primary)); color: hsl(var(--primary-text)); }
 .pro-collapsed-tag span { opacity: .55; font-weight: 700; }
 
 /* Export-column tags (Save as / Width / Height / Unit / DPI) lead the bar and
@@ -459,13 +459,13 @@ body.pro-col-resizing, body.pro-col-resizing * { cursor: col-resize !important; 
 .pro-collapsed-tag--export {
   background: hsl(var(--primary) / .1);
   border-color: hsl(var(--primary) / .45);
-  color: hsl(var(--primary));
+  color: hsl(var(--primary-text));
   font-weight: 600;
 }
 .pro-collapsed-tag--export:hover {
   background: hsl(var(--primary) / .18);
   border-color: hsl(var(--primary));
-  color: hsl(var(--primary));
+  color: hsl(var(--primary-text));
 }
 .pro-collapsed-tag--export span { opacity: .7; }
 
@@ -486,7 +486,7 @@ body.pro-col-resizing, body.pro-col-resizing * { cursor: col-resize !important; 
   border: 1px solid hsl(var(--border)); background: hsl(var(--secondary)); color: hsl(var(--secondary-foreground));
   border-radius: 999px; padding: .3rem .8rem;
 }
-.pro-cols-action:hover { border-color: hsl(var(--primary)); color: hsl(var(--primary)); }
+.pro-cols-action:hover { border-color: hsl(var(--primary)); color: hsl(var(--primary-text)); }
 [data-show-all-cols] { margin-left: .25rem; }
 
 /* Spreadsheet focus model: a navigable "focused" ring and a stronger "editing"
@@ -575,7 +575,7 @@ body.pro-row-dragging, body.pro-row-dragging * { cursor: grabbing !important; us
   .pro-empty-hint { animation: none; }
 }
 /* Warning icon sits to the left of the message, nudged to align with the first line. */
-.pro-empty-hint-icon { flex: none; color: hsl(var(--primary)); margin-top: .1rem; line-height: 0; }
+.pro-empty-hint-icon { flex: none; color: hsl(var(--primary-text)); margin-top: .1rem; line-height: 0; }
 .pro-empty-hint-text { margin: 0; line-height: 1.5; }
 .pro-empty-hint-text strong { color: hsl(var(--foreground)); font-weight: 700; }
 
@@ -623,7 +623,7 @@ body.pro-row-dragging, body.pro-row-dragging * { cursor: grabbing !important; us
 /* The toolbar trigger. `.is-on` marks a run that actually carries print settings. */
 .pro-print-btn { display: inline-flex; align-items: center; gap: .35rem; }
 .pro-print-btn[hidden] { display: none; }
-.pro-print-btn.is-on { border-color: hsl(var(--primary)); color: hsl(var(--primary)); }
+.pro-print-btn.is-on { border-color: hsl(var(--primary)); color: hsl(var(--primary-text)); }
 .pro-print-icon { flex: none; }
 
 /* Saved-sessions popover */
@@ -750,7 +750,7 @@ body.pro-row-dragging, body.pro-row-dragging * { cursor: grabbing !important; us
   padding: .25rem .4rem; border-radius: 6px; color: hsl(var(--muted-foreground));
 }
 .pro-blk-prev-toggle:hover { color: hsl(var(--foreground)); background: hsl(var(--muted)); }
-.pro-blk-prev-toggle[aria-pressed="true"] { color: hsl(var(--primary)); }
+.pro-blk-prev-toggle[aria-pressed="true"] { color: hsl(var(--primary-text)); }
 
 /* Live-preview pane: pinned between the head and the scrolling card body so it
    stays in view while editing. A checkerboard backdrop reveals transparency. */

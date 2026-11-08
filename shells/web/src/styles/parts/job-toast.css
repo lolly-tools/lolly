@@ -214,7 +214,7 @@ html[data-a11y-motion="reduce"] .job-bar-fill { animation: none; transition: non
    win, the --primary precedent from run-overlay's render-time pill), failed as
    destructive, cancelled/queued as muted. Never a one-sided border. */
 .job-row-status { font-size: calc(11.5px * var(--a11y-fs)); font-weight: 700; }
-.job-row-status--done { color: hsl(var(--primary)); }
+.job-row-status--done { color: hsl(var(--primary-text)); }
 .job-row-status--failed { color: hsl(var(--destructive-text)); }
 .job-row-status--cancelled,
 .job-row-status--queued { color: hsl(var(--muted-foreground)); font-weight: 600; }
@@ -328,7 +328,7 @@ html[data-a11y-motion="reduce"] .job-bar-fill { animation: none; transition: non
 .undo-toast-btn {
   flex: none; border: 0; background: none; cursor: pointer;
   font: inherit; font-weight: 700;
-  color: hsl(var(--primary));
+  color: hsl(var(--primary-text));
   padding: 2px 8px; border-radius: var(--radius);
 }
 .undo-toast-btn:hover { background: hsl(var(--muted)); }
