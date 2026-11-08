@@ -1,0 +1,48 @@
+{
+  "$description": "Preflight fixture for a link's _themes choice: the Day colourway has one spot ink, the Night colourway two spot inks and a foil finish, so the plates preflight counts show which colourway it read. Synthetic: the names are made up and stand for no real ink.",
+  "$themes": [
+    { "id": "day", "name": "Day", "selectedTokenSets": { "base": "enabled", "day": "enabled" } },
+    { "id": "night", "name": "Night", "selectedTokenSets": { "base": "enabled", "night": "enabled" } }
+  ],
+  "base": {
+    "color": {
+      "paper": { "$type": "color", "$value": "#ffffff", "$description": "Paper" }
+    }
+  },
+  "day": {
+    "color": {
+      "brand": {
+        "tide": {
+          "$type": "color",
+          "$value": "#1a85c4",
+          "$description": "Tide",
+          "$extensions": { "com.suse.lolly": { "cmyk": [82, 37, 1, 2], "spot": { "name": "Fixture Tide" } } }
+        }
+      }
+    }
+  },
+  "night": {
+    "color": {
+      "brand": {
+        "ember": {
+          "$type": "color",
+          "$value": "#c4421a",
+          "$description": "Ember",
+          "$extensions": { "com.suse.lolly": { "cmyk": [5, 85, 100, 2], "spot": { "name": "Fixture Ember" } } }
+        },
+        "moss": {
+          "$type": "color",
+          "$value": "#3f6b2a",
+          "$description": "Moss",
+          "$extensions": { "com.suse.lolly": { "cmyk": [70, 30, 100, 20], "spot": { "name": "Fixture Moss" } } }
+        },
+        "foil": {
+          "$type": "color",
+          "$value": "#c9a227",
+          "$description": "Foil",
+          "$extensions": { "com.suse.lolly": { "spot": { "name": "Fixture Foil", "finish": "foil" } } }
+        }
+      }
+    }
+  }
+}
