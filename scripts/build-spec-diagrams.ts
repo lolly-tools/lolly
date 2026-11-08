@@ -99,8 +99,13 @@ interface Figure {
   lang: Lang;
   /** Drawn as the figure's heading, and passed as `--title`. */
   title: string;
+  /** Draw no heading: the page's own heading or intro already says what the figure shows.
+   *  The title stays here as the figure's name in this list. */
+  untitled?: boolean;
   /** Per figure overrides, appended after SHARED_FLAGS so they win. */
   flags?: string[];
+  /** Overrides for the dark twin only, appended after DARK_FLAGS. */
+  darkFlags?: string[];
 }
 
 /** The ten figures, in the order the chapters use them. */
@@ -186,12 +191,21 @@ export const WORK_INTEGRATION_FIGURES: Figure[] = [
 ];
 
 /** Partner programme guides: how a programme fits together, what reaches a partner, the
- *  approvals a partner team can turn on and a partnership from invitation to reopening. */
+ *  approvals a partner team can turn on and a partnership from invitation to reopening.
+ *
+ *  These read as product pages, so they take the docs' own greens from Lolly Demo's Opal
+ *  palette rather than the starter brand's greys: Bunyapine connectors, Pandanus card
+ *  edges and Spearmint labels, with the key cards tinted in the source (#dcf3e6, which the
+ *  dark twin swaps for its deeper green). The dark twin sits on the docs' dark card colour
+ *  with Green Apple connectors. Each page heading or intro already says what its figure
+ *  shows, so the figures draw no heading of their own. */
+const PARTNER_LIGHT = ['--look=minimal', '--edgeColor=#008657', '--nodeStroke=#ace1ad', '--nodeText=#033633'];
+const PARTNER_DARK = ['--background=#121d24', '--nodeFill=#1c282f', '--nodeStroke=#2f5a46', '--nodeText=#edf6e0', '--edgeColor=#50c369'];
 export const WORK_PARTNER_FIGURES: Figure[] = [
-  { set: 'work-partners', name: 'programme-structure', lang: 'dot', title: 'How a programme fits together', flags: ['--look=minimal', '--cardWidth=176', '--siblingGap=20'] },
-  { set: 'work-partners', name: 'what-reaches-a-partner', lang: 'dot', title: 'What reaches a partner', flags: ['--look=minimal', '--cardWidth=176', '--siblingGap=18'] },
-  { set: 'work-partners', name: 'approval-paths', lang: 'dot', title: 'Approvals you can turn on', flags: ['--look=minimal', '--cardWidth=168', '--siblingGap=16'] },
-  { set: 'work-partners', name: 'partnership-lifecycle', lang: 'text', title: 'From invitation to reopening', flags: ['--look=minimal', '--diagramType=timeline', '--timelineDir=down', '--cardWidth=180', '--siblingGap=8'] },
+  { set: 'work-partners', name: 'programme-structure', lang: 'dot', title: 'How a programme fits together', untitled: true, flags: [...PARTNER_LIGHT, '--cardWidth=176', '--siblingGap=20'], darkFlags: PARTNER_DARK },
+  { set: 'work-partners', name: 'what-reaches-a-partner', lang: 'dot', title: 'What reaches a partner', untitled: true, flags: [...PARTNER_LIGHT, '--cardWidth=176', '--siblingGap=18'], darkFlags: PARTNER_DARK },
+  { set: 'work-partners', name: 'approval-paths', lang: 'dot', title: 'Approvals you can turn on', untitled: true, flags: [...PARTNER_LIGHT, '--cardWidth=168', '--siblingGap=16'], darkFlags: PARTNER_DARK },
+  { set: 'work-partners', name: 'partnership-lifecycle', lang: 'text', title: 'From invitation to reopening', untitled: true, flags: [...PARTNER_LIGHT, '--diagramType=timeline', '--timelineDir=down', '--cardWidth=180', '--siblingGap=8'], darkFlags: PARTNER_DARK },
 ];
 
 /** Every figure the script renders, in set order. */
@@ -211,9 +225,9 @@ export const sourceInput = (fig: Figure): string => SOURCE_INPUT[fig.lang];
 export function figureInputs(fig: Figure, variant: Variant = 'light'): Record<string, string> {
   let source = readFileSync(sourcePath(fig), 'utf8');
   if (variant === 'dark') source = source.replace(/#[0-9a-f]{6}\b/gi, hex => DARK_FILLS[hex.toLowerCase()] ?? hex);
-  const inputs: Record<string, string> = { source: fig.lang, title: fig.title, [SOURCE_INPUT[fig.lang]]: source };
+  const inputs: Record<string, string> = { source: fig.lang, title: fig.untitled ? '' : fig.title, [SOURCE_INPUT[fig.lang]]: source };
   const shared = setOf(fig) === 'shoulders-of-giants' ? GIANTS_FLAGS : SHARED_FLAGS;
-  for (const flag of [...shared, ...(fig.flags ?? []), ...(variant === 'dark' ? DARK_FLAGS : [])]) {
+  for (const flag of [...shared, ...(fig.flags ?? []), ...(variant === 'dark' ? [...DARK_FLAGS, ...(fig.darkFlags ?? [])] : [])]) {
     const split = flag.indexOf('=');
     inputs[flag.slice(2, split)] = flag.slice(split + 1);
   }

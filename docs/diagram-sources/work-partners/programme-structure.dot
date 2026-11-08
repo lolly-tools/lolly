@@ -1,8 +1,8 @@
 digraph programme_structure {
   rankdir=TB
   node [shape=box]
-  brand [label="Your design system\ncolours, type, palettes"]
-  programme [label="Programme\ntools, assets, templates"]
+  brand [label="Your design system\ncolours, type, palettes", style=filled, fillcolor="#dcf3e6"]
+  programme [label="Programme\ntools, assets, templates", style=filled, fillcolor="#dcf3e6"]
   company [label="Company\ndetails, logos, kit"]
   people [label="Its people\nsign in and make"]
   agents [label="Agent tokens\nwithin your limits"]

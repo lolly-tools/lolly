@@ -6,7 +6,7 @@ digraph what_reaches_a_partner {
   system [label="Your design system\ntokens, fonts, palettes"]
   gate [label="Licence gate\nwhen it is on"]
   held [label="Held back\nlisted on Licences"]
-  partner [label="Person or agent\nin the company"]
+  partner [label="Person or agent\nin the company", style=filled, fillcolor="#dcf3e6"]
   programme -> gate
   company -> gate
   gate -> held
