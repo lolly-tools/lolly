@@ -35,10 +35,10 @@
       "typeEscapes": 37
     },
     "shells/web/src/bridge/sequence-render.ts": {
-      "lines": 1622,
-      "largestFunctionLines": 1003,
+      "lines": 1649,
+      "largestFunctionLines": 1001,
       "importFanIn": 6,
-      "importFanOut": 33,
+      "importFanOut": 34,
       "typeEscapes": 13
     },
     "shells/web/src/lib/rebrand/controller.ts": {
