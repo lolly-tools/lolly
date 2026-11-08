@@ -365,7 +365,12 @@ test('the template record is closed too: no other field, no name for an id, and 
   for (const extra of [{ approver: 'Bruno Marques' }, { templateName: 'Partner data sheet' }, { reviewedSha256: `sha256:${'b'.repeat(64)}` }, { format: 'png' }]) {
     await assert.rejects(embedC2pa(png, 'png', { signer, approval: { ...TEMPLATE_APPROVAL, ...extra } as C2paApprovalRecord }), /an approval record cannot carry/);
   }
-  for (const templateId of ['Partner data sheet', 'inst/partner data sheet', '', 'inst//x', '../x', 'a/b/c/d']) {
+  // Lolly Work mints a template's id from random base64url, so a segment may start with - or _.
+  for (const templateId of ['inst/-x0AbCdEfGh', 'inst/_x0AbCdEfGh', 'inst/MuU9SdcSHiM']) {
+    const file = await embedC2pa(png, 'png', { signer, approval: { ...TEMPLATE_APPROVAL, templateId } });
+    assert.equal((await verifyC2pa(file)).approval?.templateId, templateId, templateId);
+  }
+  for (const templateId of ['Partner data sheet', 'inst/partner data sheet', '', 'inst//x', '../x', 'a/b/c/d', '-inst/x', 'inst/x.y']) {
     await assert.rejects(embedC2pa(png, 'png', { signer, approval: { ...TEMPLATE_APPROVAL, templateId } }), /templateId/, templateId);
   }
   for (const templateVersion of [0, -1, 1.5, Number.NaN, '3' as unknown as number]) {
