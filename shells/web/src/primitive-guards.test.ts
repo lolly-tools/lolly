@@ -113,6 +113,12 @@ const DIALOG_CREATE_ALLOWED: Record<string, number> = {
   // element; the zoom also fills the viewport with its own dim ground (no ::backdrop box to
   // hit-test) and re-renders the QR at full size. Documented at openQrZoom.
   'components/collab-ceremony.ts': 1,
+  // The docs picture viewer (2026-11-08): one module both readers run, and /info runs it
+  // without the app, so mountModal is not there to call. It is also the QR-zoom case: a
+  // full-window gesture surface (pinch, drag, swipe to close) with its own ground, not a
+  // centred content box. Escape, Back and focus return are its own and are tested
+  // (lib/docs-lightbox.test.ts, tests/docs-lightbox.browser.test.ts).
+  'lib/docs-lightbox.ts': 1,
 };
 const SHOW_MODAL_ALLOWED: Record<string, number> = {
   'components/modal.ts': 1,  // the primitive itself
@@ -127,6 +133,9 @@ const SHOW_MODAL_ALLOWED: Record<string, number> = {
   // The collab QR-zoom opens the nested full-screen dialog it mints (see DIALOG_CREATE_ALLOWED):
   // mountModal cannot own a nested dialog's Escape, so this one lifecycle is deliberate + local.
   'components/collab-ceremony.ts': 1,
+  // The docs picture viewer opens the dialog it mints (see DIALOG_CREATE_ALLOWED), with the
+  // setAttribute('open') fallback for an engine without showModal.
+  'lib/docs-lightbox.ts': 1,
 };
 
 test('R1 (rec 4): the <dialog> lifecycle is minted only by components/modal.ts (mountModal)', () => {
@@ -804,6 +813,11 @@ const RAW_HTML_ALLOWED: Record<string, number> = {
   // the build's own sprite reference on /info). The button's label, its accessible name
   // and the confirmation are set via textContent or setAttribute, never as HTML.
   'lib/docs-enhance.ts': 1,
+  // The docs picture viewer (2026-11-08). One insertAdjacentHTML sink, in putIcon: a
+  // TRUSTED lib/icons.ts glyph the host passes in (icon() in the app, the same calls made
+  // at build time for /info). Labels, alt text and captions are set through setAttribute
+  // and textContent; a figure's copy is cloned nodes, never markup.
+  'lib/docs-lightbox.ts': 1,
   // 1 as of 2026-08-09: the non-camera animated-SVG live source. `start()` inlines the
   // armed markup into an off-screen host so its CSS/SMIL actually ticks and `grabAnim`
   // can sample it - the same reason views/anim-svg-mount.ts inlines rather than uses an
