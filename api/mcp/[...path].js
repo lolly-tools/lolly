@@ -4114,7 +4114,7 @@ var ENGINE_VERSION;
 var init_version = __esm({
   "engine/src/version.ts"() {
     "use strict";
-    ENGINE_VERSION = "1.337.0";
+    ENGINE_VERSION = "1.338.0";
   }
 });
 
@@ -58151,6 +58151,21 @@ var init_lang = __esm({
   }
 });
 
+// packages/core/src/partner-kit-v1.ts
+var PARTNER_KIT_MAX_BYTES, PARTNER_KIT_MAX_COLOURS, PARTNER_KIT_MAX_COLOUR_NAME, PARTNER_KIT_MAX_ASSET_ID, PARTNER_KIT_MAX_LOGO_VERSION, PARTNER_KIT_LOGO_SURFACES, PARTNER_KIT_ASSET_ID_PATTERN;
+var init_partner_kit_v1 = __esm({
+  "packages/core/src/partner-kit-v1.ts"() {
+    "use strict";
+    PARTNER_KIT_MAX_BYTES = 65536;
+    PARTNER_KIT_MAX_COLOURS = 12;
+    PARTNER_KIT_MAX_COLOUR_NAME = 60;
+    PARTNER_KIT_MAX_ASSET_ID = 200;
+    PARTNER_KIT_MAX_LOGO_VERSION = 1e6;
+    PARTNER_KIT_LOGO_SURFACES = ["light", "dark", "mark"];
+    PARTNER_KIT_ASSET_ID_PATTERN = "^[A-Za-z0-9][A-Za-z0-9_-]*(/[A-Za-z0-9_-]+){0,7}$";
+  }
+});
+
 // engine/src/url-mode.ts
 function numberIn(raw, min, max, integer2 = false) {
   if (raw == null || raw.trim() === "") return null;
@@ -58174,6 +58189,26 @@ function hasVideoParams(v) {
 }
 function parseSpots(raw) {
   return typeof raw === "string" && raw.trim().toLowerCase() === "process" ? "process" : null;
+}
+function readPartnerKitAttachment(value2) {
+  if (!value2 || typeof value2 !== "object" || Array.isArray(value2)) return null;
+  if (!Object.hasOwn(value2, "id") || !Object.hasOwn(value2, "revision")) return null;
+  const { id: id3, revision } = value2;
+  if (typeof id3 !== "string" || id3.length > PARTNER_KIT_MAX_ASSET_ID || !PARTNER_KIT_ID.test(id3)) return null;
+  if (typeof revision !== "number" || !Number.isInteger(revision) || revision < 1 || revision > PARTNER_KIT_MAX_LOGO_VERSION) return null;
+  return { id: id3, revision };
+}
+function parsePartnerKitParam(raw) {
+  if (typeof raw !== "string") return null;
+  const at = raw.lastIndexOf("@");
+  if (at <= 0) return null;
+  const digits = raw.slice(at + 1);
+  if (!/^[1-9][0-9]{0,6}$/.test(digits)) return null;
+  return readPartnerKitAttachment({ id: raw.slice(0, at), revision: Number(digits) });
+}
+function formatPartnerKitParam(attachment) {
+  const att = readPartnerKitAttachment(attachment);
+  return att ? `${att.id}@${att.revision}` : null;
 }
 function parseTextSetting(raw) {
   return typeof raw === "string" && raw.trim().toLowerCase() === "outline" ? "outline" : null;
@@ -58362,6 +58397,8 @@ function parseUrlState(searchParams, manifest) {
     madeWith: parseMeta(params2.get("_madewith")),
     // How the CMYK formats print spot inks (see header). Opt-in: only `process` counts.
     spots: parseSpots(params2.get("_spots")),
+    // The partner kit attached (see header). An id and a whole revision, else absent.
+    partnerKit: parsePartnerKitParam(params2.get("_kit")),
     // How an EMF export writes text (see header). Opt-in: only `outline` counts.
     text: parseTextSetting(params2.get("_text"))
   };
@@ -58419,6 +58456,8 @@ function serializeUrlState(model2, opts = {}) {
   if (opts.metadata === false) params2.set("meta", "off");
   if (opts.madeWith === false) params2.set("_madewith", "0");
   if (parseSpots(opts.spots ?? null)) params2.set("_spots", "process");
+  const kit = formatPartnerKitParam(opts.partnerKit);
+  if (kit) params2.set("_kit", kit);
   if (opts.durable) params2.set("durable", "1");
   if (opts.hdr) params2.set("hdr", "1");
   if (opts.fps != null && numberIn(String(opts.fps), 1, 120, true) != null) params2.set("fps", String(Math.round(Number(opts.fps))));
@@ -58563,7 +58602,7 @@ function splitToFields(str11, count4) {
   if (parts.length <= count4) return parts;
   return [...parts.slice(0, count4 - 1), parts.slice(count4 - 1).join(",")];
 }
-var HDR_DEFAULTS, DEPTH_VALUES, VIDEO_CODEC_STRINGS, VIDEO_CODEC_ALIASES, RESERVED, CUTS_MAX, HEX_COLOR;
+var HDR_DEFAULTS, DEPTH_VALUES, VIDEO_CODEC_STRINGS, VIDEO_CODEC_ALIASES, RESERVED, PARTNER_KIT_ID, CUTS_MAX, HEX_COLOR;
 var init_url_mode = __esm({
   "engine/src/url-mode.ts"() {
     "use strict";
@@ -58577,6 +58616,7 @@ var init_url_mode = __esm({
     init_design_system();
     init_lang();
     init_inputs();
+    init_partner_kit_v1();
     HDR_DEFAULTS = { peakNits: 1e3, reach: 45, lift: 0, richness: 40 };
     DEPTH_VALUES = /* @__PURE__ */ new Map([["8", 8], ["16", 16], ["float", "float"], ["auto", "auto"]]);
     VIDEO_CODEC_STRINGS = Object.freeze({
@@ -58599,7 +58639,8 @@ var init_url_mode = __esm({
       av1: "av1",
       av01: "av1"
     });
-    RESERVED = /* @__PURE__ */ new Set(["format", "export", "copy", "slot", "output", "filename", "_v", "width", "height", "w", "h", "unit", "dpi", "profile", "password", "bleed", "marks", "c2pa", "imprint", "durable", "meta", "hdr", "depth", "cuts", "sampletimes", "motionblur", "seqrange", "lang", "designv", "ds", "full", "iframe", "options", "nostage", "template", "preset", "present", "s", "kiosk", "z", "zx", "fps", "seconds", "wait", "codec", "vq", "emoji", "emojifx", "emojistyle", "licence", "_themes", "_madewith", "_spots", "_text"]);
+    RESERVED = /* @__PURE__ */ new Set(["format", "export", "copy", "slot", "output", "filename", "_v", "width", "height", "w", "h", "unit", "dpi", "profile", "password", "bleed", "marks", "c2pa", "imprint", "durable", "meta", "hdr", "depth", "cuts", "sampletimes", "motionblur", "seqrange", "lang", "designv", "ds", "full", "iframe", "options", "nostage", "template", "preset", "present", "s", "kiosk", "z", "zx", "fps", "seconds", "wait", "codec", "vq", "emoji", "emojifx", "emojistyle", "licence", "_themes", "_madewith", "_spots", "_text", "_kit"]);
+    PARTNER_KIT_ID = new RegExp(PARTNER_KIT_ASSET_ID_PATTERN);
     CUTS_MAX = 64;
     HEX_COLOR = /^#[0-9a-fA-F]{3,8}$/;
   }
@@ -137017,18 +137058,6 @@ var init_partner_kit_v1_schema = __esm({
   }
 });
 
-// packages/core/src/partner-kit-v1.ts
-var PARTNER_KIT_MAX_BYTES, PARTNER_KIT_MAX_COLOURS, PARTNER_KIT_MAX_COLOUR_NAME, PARTNER_KIT_LOGO_SURFACES;
-var init_partner_kit_v1 = __esm({
-  "packages/core/src/partner-kit-v1.ts"() {
-    "use strict";
-    PARTNER_KIT_MAX_BYTES = 65536;
-    PARTNER_KIT_MAX_COLOURS = 12;
-    PARTNER_KIT_MAX_COLOUR_NAME = 60;
-    PARTNER_KIT_LOGO_SURFACES = ["light", "dark", "mark"];
-  }
-});
-
 // engine/src/partner-kit.ts
 import Ajv8 from "ajv";
 function schemaValidator5() {
@@ -156615,6 +156644,7 @@ __export(src_exports, {
   formatEdgePoint: () => formatEdgePoint,
   formatGradientSpec: () => formatGradientSpec,
   formatOklch: () => formatOklch,
+  formatPartnerKitParam: () => formatPartnerKitParam,
   formatPdfDate: () => formatPdfDate,
   formatStoryParagraphs: () => formatStoryParagraphs,
   formatStoryRange: () => formatStoryRange,
@@ -157031,6 +157061,7 @@ __export(src_exports, {
   parseMotionTiming: () => parseMotionTiming,
   parseOklch: () => parseOklch,
   parsePageSelection: () => parsePageSelection,
+  parsePartnerKitParam: () => parsePartnerKitParam,
   parsePenpotColor: () => parsePenpotColor,
   parsePenpotContent: () => parsePenpotContent,
   parsePenpotImportStream: () => parsePenpotImportStream,
@@ -157215,6 +157246,7 @@ __export(src_exports, {
   readMpfIndex: () => readMpfIndex,
   readOtio: () => readOtio,
   readPartnerKit: () => readPartnerKit,
+  readPartnerKitAttachment: () => readPartnerKitAttachment,
   readPptx: () => readPptx,
   readPremiereXml: () => readPremiereXml,
   readPreparationRecipe: () => readPreparationRecipe,

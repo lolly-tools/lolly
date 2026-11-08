@@ -14,6 +14,8 @@ const EXPECTED: readonly string[] = [
   'PartnerKitReadResult', 'checkPartnerKit', 'partnerKitColoursFromInks', 'partnerKitColoursFromTokens', 'partnerKitLogoIds', 'readPartnerKit',
   // Additive guest-mark checks (plans/82 M8): partner marks against their kit's rules.
   'GuestMarkMeasure', 'GuestMarkReport', 'GuestMarkUnmeasured', 'GuestMarkUnmeasuredCode', 'checkGuestMarks', 'guestRecolourFrom', 'guestUnmeasuredText', 'BrandCheckGuestOpts',
+  // Additive `_kit` (plans/82 M8): a piece's partner kit attachment in a link and a saved session.
+  'formatPartnerKitParam', 'parsePartnerKitParam', 'readPartnerKitAttachment',
   // Additive colour roles (plans/352): a design system's colours in its own words.
   'AddColourRoleOptions', 'BINDABLE_COLOUR_SLOTS', 'BriefColourRoles', 'COLOUR_ROLE_BY_NAME', 'COLOUR_ROLE_GROUP', 'COLOUR_ROLE_ID',
   'COLOUR_SLOTS', 'COLOUR_SLOT_READS', 'ColourPairContrast', 'ColourRoleCarry', 'ColourRoleCell', 'ColourRoleEdit', 'ColourRoleEntry',
