@@ -151,7 +151,7 @@ test('Grid hides every piece only Card and List draw, the description included',
 
 test('a programme member sees no status chip but Experimental, and staff keep every chip (plans/82 M6)', async () => {
   const { setProgrammeMember } = await import('../lib/workspace-templates.ts');
-  const chips = () => ['community', 'experimental'].map((status) => !!tile(cardMarkup({ ...tool, status }, undefined, [], false, false, false, '')).querySelector(`.badge-${status}`));
+  const chips = () => ['community', 'experimental'].map((status) => !!tile(cardMarkup({ ...tool, status }, undefined, [], false, false, false, null)).querySelector(`.badge-${status}`));
   assert.deepEqual(chips(), [true, true], 'staff: Community and Experimental');
   setProgrammeMember(true);
   try {
