@@ -730,3 +730,48 @@ test('destroy() unmounts and unsubscribes', () => {
   host.emit();
   assert.notEqual(dock.el.querySelector('[data-title]')?.textContent, 'gone');
 });
+
+test('controls: the current source brings its own choice, switch, slider and action', async () => {
+  const st = { mood: 'warm', drums: true, texture: 0.5, shared: 0 };
+  let show: 'lofi' | 'none' = 'lofi';
+  const host = makeHost({
+    controls: () => show === 'none' ? [] : [
+      { kind: 'choice', id: 'mood', label: 'Mood', options: [{ id: 'warm', label: 'Warm' }, { id: 'rainy', label: 'Rainy' }], get: () => st.mood, set: (v) => { st.mood = v; } },
+      { kind: 'toggle', id: 'drums', label: 'Drums', get: () => st.drums, set: (v) => { st.drums = v; } },
+      { kind: 'range', id: 'texture', label: 'Texture', min: 0, max: 1, step: 0.05, get: () => st.texture, set: (v) => { st.texture = v; } },
+      { kind: 'action', id: 'share', label: 'Share', run: () => { st.shared++; return 'Link copied'; } },
+    ],
+  });
+  const dock = createAudioDock({ host, capabilities: { music: true }, mount: document.body });
+  const block = dock.el.querySelector<HTMLElement>('[data-controls]')!;
+  const opt = (id: string): HTMLButtonElement => block.querySelector<HTMLButtonElement>(`[data-ctl="mood"][data-ctl-opt="${id}"]`)!;
+  assert.equal(opt('warm').getAttribute('aria-pressed'), 'true', 'the current choice is pressed');
+  assert.equal(opt('rainy').getAttribute('aria-pressed'), 'false');
+
+  opt('rainy').click();
+  await new Promise((r) => setTimeout(r, 0));
+  assert.equal(st.mood, 'rainy', 'a choice sets the host');
+  assert.equal(opt('rainy').getAttribute('aria-pressed'), 'true', 'and repaints');
+
+  const drums = block.querySelector<HTMLButtonElement>('[data-ctl="drums"]')!;
+  assert.equal(drums.getAttribute('aria-pressed'), 'true');
+  drums.click();
+  await new Promise((r) => setTimeout(r, 0));
+  assert.equal(st.drums, false, 'a switch flips');
+
+  const range = block.querySelector<HTMLInputElement>('input[data-ctl="texture"]')!;
+  range.value = '0.8';
+  range.dispatchEvent(new dom.window.Event('input', { bubbles: true }));
+  assert.equal(st.texture, 0.8, 'a slider sets live');
+
+  const share = block.querySelector<HTMLButtonElement>('[data-ctl="share"]')!;
+  share.click();
+  await new Promise((r) => setTimeout(r, 0));
+  assert.equal(st.shared, 1, 'an action runs');
+  assert.equal(share.textContent, 'Link copied', 'and shows what it said for a moment');
+
+  show = 'none';
+  host.emit();
+  assert.equal(block.innerHTML, '', 'a source with no controls shows no block');
+  dock.destroy();
+});

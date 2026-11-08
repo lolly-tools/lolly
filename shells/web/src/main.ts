@@ -52,7 +52,7 @@ import { initSpotlightBoot } from './components/spotlight-boot.ts';
 import { ensureJelly, jellyEnabled } from './lib/jelly.ts';
 import { applyCaptureNeutral, ROUTE_MOUNTING_ATTR } from './lib/capture-neutral.ts';
 import { wireViewPrewarmIntent } from './lib/view-prewarm-intent.ts';
-import { peekNeuroDemo } from './lib/neuro-demo-peek.ts';
+import { peekNeuroDemo, peekLofiLinked } from './lib/neuro-demo-peek.ts';
 import { syncJellyNavToggle, UTILITIES_FLAG_ID, type ViewToggleKey } from './components/view-toggle.ts';
 import { installGlobalReveal } from './lib/reveal.ts';
 import { installFoldSettle } from './lib/disclosure-motion.ts';
@@ -1610,21 +1610,33 @@ async function boot(): Promise<void> {
   // dock. Those users pay nothing at boot now and load the modules on first use, from
   // the Sound control's own imports (plans/155 Task 3.3).
   const neuroDemo = peekNeuroDemo();
+  // A shared Lofi tune (#/?lofi=warm.123456) opens the player on that tune, so it counts
+  // as Neurospicy state even for someone who has never turned the mode on.
+  const lofiLinked = peekLofiLinked();
   const neuroState = (profile as { neurospicy?: unknown }).neurospicy !== undefined
     || (profile as { atmosphere?: unknown }).atmosphere !== undefined;
-  if ((neuroState || neuroDemo) && !isIframeMode()) {
-    void Promise.all([import('./lib/neurospicy.ts'), import('./lib/atmosphere.ts')]).then(([neuro, atmo]) => {
+  if ((neuroState || neuroDemo || lofiLinked) && !isIframeMode()) {
+    void Promise.all([import('./lib/neurospicy.ts'), import('./lib/atmosphere.ts')]).then(async ([neuro, atmo]) => {
       neuro.hydrateNeurospicy((profile as { neurospicy?: unknown }).neurospicy);
       atmo.hydrateAtmosphere((profile as { atmosphere?: unknown }).atmosphere);
+      // The runtime host is the full WebHost, whose profile can also be written.
+      const neuroHost = host as unknown as Parameters<typeof neuro.armNeurospicy>[0];
       if (neuroDemo) void import('./lib/neuro-demo.ts').then(d => d.applyNeuroDemo(host as unknown as Parameters<typeof d.applyNeuroDemo>[0], neuroDemo));
+      if (lofiLinked && flagEnabledSync('neurospicy')) {
+        const lofi = await import('./lib/neurospicy-lofi.ts');
+        const link = lofi.readLofiLink(window.location);
+        if (link) await neuro.openLofiLink(neuroHost, link);
+        // Take the tune out of the address, so a reload does not queue it again.
+        history.replaceState(history.state, '', lofi.withoutLofiLink(window.location));
+      }
       if (flagEnabledSync('neurospicy')) {
-        neuro.armNeurospicy(host as unknown as Parameters<typeof neuro.armNeurospicy>[0]);
+        neuro.armNeurospicy(neuroHost);
         atmo.armAtmosphere(host as unknown as Parameters<typeof atmo.armAtmosphere>[0]);
         // Show the bottom-right dock if the mode was left on. The dock (and the music
         // player inside it) is dynamic-imported and only when the mode is actually enabled.
         if (neuro.getNeurospicy().enabled) {
           void import('./components/neuro-dock.ts')
-            .then(m => m.syncNeuroDock(host as unknown as Parameters<typeof m.syncNeuroDock>[0]));
+            .then(m => m.syncNeuroDock(neuroHost));
         }
       }
     });

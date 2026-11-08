@@ -21,21 +21,21 @@
   ],
   "modules": {
     "shells/web/src/bridge/export-svg-walker.ts": {
-      "lines": 1859,
+      "lines": 1863,
       "largestFunctionLines": 1621,
-      "importFanIn": 4,
-      "importFanOut": 19,
+      "importFanIn": 7,
+      "importFanOut": 23,
       "typeEscapes": 17
     },
     "shells/web/src/bridge/export.ts": {
       "lines": 3641,
       "largestFunctionLines": 626,
       "importFanIn": 26,
-      "importFanOut": 76,
+      "importFanOut": 80,
       "typeEscapes": 37
     },
     "shells/web/src/bridge/sequence-render.ts": {
-      "lines": 1649,
+      "lines": 1680,
       "largestFunctionLines": 1001,
       "importFanIn": 6,
       "importFanOut": 34,
@@ -56,38 +56,38 @@
       "typeEscapes": 0
     },
     "shells/web/src/views/deck-editor.ts": {
-      "lines": 1969,
+      "lines": 1977,
       "largestFunctionLines": 1670,
       "importFanIn": 2,
       "importFanOut": 10,
       "typeEscapes": 0
     },
     "shells/web/src/views/design-import.ts": {
-      "lines": 1831,
+      "lines": 1911,
       "largestFunctionLines": 145,
       "importFanIn": 5,
-      "importFanOut": 13,
+      "importFanOut": 17,
       "typeEscapes": 68
     },
     "shells/web/src/views/design-inspector.ts": {
-      "lines": 1557,
+      "lines": 1562,
       "largestFunctionLines": 2017,
       "importFanIn": 1,
-      "importFanOut": 31,
+      "importFanOut": 32,
       "typeEscapes": 0
     },
     "shells/web/src/views/gallery.ts": {
-      "lines": 1789,
+      "lines": 1852,
       "largestFunctionLines": 1737,
       "importFanIn": 1,
-      "importFanOut": 66,
+      "importFanOut": 74,
       "typeEscapes": 8
     },
     "shells/web/src/views/picker.ts": {
       "lines": 2389,
       "largestFunctionLines": 2042,
-      "importFanIn": 33,
-      "importFanOut": 69,
+      "importFanIn": 34,
+      "importFanOut": 72,
       "typeEscapes": 3
     },
     "shells/web/src/views/present-mode.ts": {
@@ -108,21 +108,21 @@
       "lines": 2778,
       "largestFunctionLines": 2037,
       "importFanIn": 8,
-      "importFanOut": 43,
+      "importFanOut": 45,
       "typeEscapes": 5
     },
     "shells/web/src/views/tool/session.ts": {
-      "lines": 1611,
+      "lines": 1675,
       "largestFunctionLines": 1520,
       "importFanIn": 1,
-      "importFanOut": 67,
+      "importFanOut": 71,
       "typeEscapes": 10
     },
     "shells/web/src/views/valid.ts": {
       "lines": 2657,
       "largestFunctionLines": 1915,
       "importFanIn": 3,
-      "importFanOut": 56,
+      "importFanOut": 57,
       "typeEscapes": 1
     }
   },
@@ -335,7 +335,7 @@
     "shells/web/src/lib/upscaler.ts": 4,
     "shells/web/src/lib/video-jobs.ts": 3,
     "shells/web/src/lib/viz-stock.ts": 3,
-    "shells/web/src/main.ts": 41,
+    "shells/web/src/main.ts": 40,
     "shells/web/src/org/ai-policy.ts": 1,
     "shells/web/src/org/collab-handle.ts": 1,
     "shells/web/src/pro/batch.ts": 1,

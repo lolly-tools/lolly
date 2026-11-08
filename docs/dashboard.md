@@ -49,6 +49,8 @@ These settings live on your profile, so they travel in a profile export and arri
 
 The same card holds **Sound**, a gentle layer of assistive sounds for what you do (arriving in the gallery, a Content Credentials result, closing a panel), and **Neurospicy Mode**, a calm focus track. Turning Neurospicy on opens a small player in the corner that follows you across the app. There you pick a track, skip, set the volume and minimise or close the player. Tracks include procedural *Lolly Sings* tunes, ambient loops and beats, your own audio and internet radio stations, which need a connection. Both are off by default and remembered, and turning Sound off mutes the focus track too. The profile menu and **This device** carry the same switch.
 
+The **Lofi stations** (Warm, Late night and Rainy) make their music as they play: endless lo-fi beats with no samples and no voices, each tune with its own instruments, groove and running order. On a Lofi station, next and previous move between tunes rather than tracks. Under the transport, **Mood** switches station, **Drums** takes the kit out, **Texture** runs from clean to a dusty record, and **Share this tune** copies a link that plays the same tune for anyone who opens the link. The visualizer listens to every track at a steady level, so a quiet track moves the picture as much as a loud one, whatever the volume.
+
 The interface is keyboard-navigable, custom controls carry labels for screen readers and each tool's live preview is exposed as one labelled image describing what it shows.
 
 ### Storage

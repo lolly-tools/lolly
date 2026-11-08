@@ -7,6 +7,14 @@
  * localStorage mirror (known before the profile loads), exactly like the sfx mute. Gapless:
  * each loop is decoded into an AudioBuffer and played via an AudioBufferSourceNode(loop=true)
  * - so mp3/aac priming gaps never apply. Shell chrome (host audio), never the engine.
+ *
+ * Besides the catalog, uploads and radio, the list carries three generated Lofi stations
+ * (lib/neurospicy-lofi.ts): endless, never the same tune twice, with their own mood,
+ * drums and texture controls, and Next and Previous step between tunes.
+ *
+ * The VISUALIZER listens to a copy of the music taken before the volume control and kept
+ * at a steady level (see the feed below), so a quiet track, a loud stream and the player
+ * turned right down all move it alike.
  */
 import type { HostV1 } from '@lolly-tools/core/host-v1';
 import type { ZzfxSong } from '../../../../engine/src/zzfxm.ts';
@@ -14,6 +22,10 @@ import { renderSongToAudioBuffer } from './zzfxm-render.ts';
 import { renderModToAudioBuffer, isModuleFormat } from './mod-render.ts';
 import { RADIO_STATIONS, radioStation, isRadioId, radioAvailable, resolveStreamUrl } from './radio.ts';
 import { isSfxMuted } from './sfx.ts';
+import {
+  isLofiId, lofiId, lofiTracks, startLofi, stopLofi, lofiLive, applyLofiPrefs, queueLofiSeed, LOFI_DEFAULTS, LOFI_STATION_MOODS,
+  type LofiPrefs, type LofiLink,
+} from './neurospicy-lofi.ts';
 
 // Just the host surface this module uses - the catalog assets (loop list + bytes) and the
 // profile (persist). host.profile.set is a web-shell capability, not on the read-only engine
@@ -28,24 +40,28 @@ export type NeurospicyHost = {
   profile: { get(): Promise<object>; set(p: object): Promise<unknown> };
 };
 
-export interface NeurospicyState { enabled: boolean; loopId: string; volume: number; repeat: boolean; }
+export interface NeurospicyState { enabled: boolean; loopId: string; volume: number; repeat: boolean; lofi: LofiPrefs }
 const KEY = 'lolly:neurospicy';
 // repeat: the classic behaviour - the selected track loops forever. false = play
 // FORWARD through the list, advancing to the next track when the current one ends.
 // Defaults to repeat (true), so nothing changes for anyone who never touches the
 // toggle; spread into readInitial/hydrate so older persisted states inherit it.
-const DEFAULTS: NeurospicyState = { enabled: false, loopId: '', volume: 0.5, repeat: true };
+const DEFAULTS: NeurospicyState = { enabled: false, loopId: '', volume: 0.5, repeat: true, lofi: LOFI_DEFAULTS };
+/** A stored state over the defaults, the Lofi preferences merged field by field. */
+function withDefaults(stored: Partial<NeurospicyState>): NeurospicyState {
+  return { ...DEFAULTS, ...stored, lofi: { ...LOFI_DEFAULTS, ...(stored.lofi ?? {}) } };
+}
 
 let state: NeurospicyState = readInitial();
 function readInitial(): NeurospicyState {
-  try { const raw = localStorage.getItem(KEY); if (raw) return { ...DEFAULTS, ...(JSON.parse(raw) as Partial<NeurospicyState>) }; } catch { /* no storage */ }
-  return { ...DEFAULTS };
+  try { const raw = localStorage.getItem(KEY); if (raw) return withDefaults(JSON.parse(raw) as Partial<NeurospicyState>); } catch { /* no storage */ }
+  return withDefaults({});
 }
 function persistLocal(): void { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch { /* best-effort */ } }
-async function persistProfile(host: NeurospicyHost): Promise<void> {
+async function persistProfile(host: Pick<NeurospicyHost, 'profile'>): Promise<void> {
   try { const p = await host.profile.get(); await host.profile.set({ ...p, neurospicy: { ...state } }); } catch { /* best-effort */ }
 }
-export function getNeurospicy(): NeurospicyState { return { ...state }; }
+export function getNeurospicy(): NeurospicyState { return { ...state, lofi: { ...state.lofi } }; }
 /** Demo override for the ?neuro deep-link (lib/neuro-demo.ts): assign player state
  *  IN MEMORY only - no persistLocal, no persistProfile - so a shared demo link
  *  affects exactly one page load. `paused: false` makes isNeurospicyPlaying()
@@ -58,13 +74,25 @@ export function demoNeurospicy(partial: Partial<NeurospicyState> & { paused?: bo
 }
 /** Reconcile from the profile (canonical) at boot; leaves defaults if absent. */
 export function hydrateNeurospicy(fromProfile: unknown): void {
-  if (fromProfile && typeof fromProfile === 'object') { state = { ...DEFAULTS, ...(fromProfile as Partial<NeurospicyState>) }; persistLocal(); }
+  if (fromProfile && typeof fromProfile === 'object') { state = withDefaults(fromProfile as Partial<NeurospicyState>); persistLocal(); }
 }
 
 // ── audio graph (own context, so muting sfx never touches the focus loop) ────────
 type WinAudio = Window & typeof globalThis & { webkitAudioContext?: typeof AudioContext };
 let ctx: AudioContext | null = null;
 let gain: GainNode | null = null;
+// Every source plays into `input`, which feeds the volume (`gain`) for the speakers and,
+// separately, the visualizer's FEED: the same music before the volume control, under a
+// slow automatic gain that holds it near one steady level. Butterchurn reads 8-bit
+// samples, so a quiet track (or the player turned down) would otherwise leave its hats and
+// highs lost in rounding; through the feed every track moves it alike. The feed ends in a
+// silent sink, so it is never heard.
+let input: GainNode | null = null;
+let feed: GainNode | null = null;
+let feedAnalyser: AnalyserNode | null = null;
+let feedSink: GainNode | null = null;
+let feedTimer: ReturnType<typeof setInterval> | null = null;
+let feedLevel = 0;
 // A pass-through analyser between the gain and the speakers, so the player can draw a
 // level meter and the MilkDrop visualizer has something to react to. Everything audible
 // flows through it: local buffer sources (zzfxm/opus/mod) AND, when the station's server
@@ -153,7 +181,7 @@ function makeAnalyser(c: AudioContext): AnalyserNode {
   return a;
 }
 
-function audio(): { ctx: AudioContext; gain: GainNode } | null {
+function audio(): { ctx: AudioContext; gain: GainNode; input: GainNode } | null {
   if (typeof window === 'undefined') return null;
   const AC = window.AudioContext ?? (window as WinAudio).webkitAudioContext;
   if (!AC) return null;
@@ -164,10 +192,52 @@ function audio(): { ctx: AudioContext; gain: GainNode } | null {
     analyser = makeAnalyser(ctx);
     gain.connect(analyser);
     analyser.connect(ctx.destination);
+    input = ctx.createGain();
+    input.connect(gain);
+    feed = ctx.createGain();
+    feed.gain.value = 4;
+    feedAnalyser = makeAnalyser(ctx);
+    feedSink = ctx.createGain();
+    feedSink.gain.value = 0;
+    input.connect(feed);
+    feed.connect(feedAnalyser);
+    feedAnalyser.connect(feedSink);
+    feedSink.connect(ctx.destination);
     startAnalyserWatchdog();
+    startFeedLevel();
   }
   if (ctx.state === 'suspended') void ctx.resume().catch(() => { /* stays suspended until the next gesture */ });
-  return { ctx, gain: gain! };
+  return { ctx, gain: gain!, input: input! };
+}
+
+/** The visualizer feed's level: RMS this loud (about -18 dBFS) leaves the peaks room. */
+const FEED_TARGET = 0.12;
+/** The feed's gain for a music level (RMS before the feed): towards FEED_TARGET, between
+ *  unity and 24 times, and held where it is through silence. */
+export function feedGainFor(level: number, current: number): number {
+  if (!(level > 0.0005)) return current;
+  return Math.max(1, Math.min(24, FEED_TARGET / level));
+}
+
+/** Measure the music a few times a second and ease the feed's gain towards its level. */
+function startFeedLevel(): void {
+  if (feedTimer != null || typeof setInterval === 'undefined') return;
+  const buf = new Float32Array(128);
+  feedTimer = setInterval(() => {
+    if (!ctx || !feed || !feedAnalyser || neurospicySignalState() !== 'live') return;
+    feedAnalyser.getFloatTimeDomainData(buf);
+    let sum = 0;
+    for (const v of buf) sum += v * v;
+    const now = Math.sqrt(sum / buf.length) / Math.max(1e-6, feed.gain.value);   // the level before the feed
+    // Like a limiter: follow a rise in the music at once and come down fast, but lift
+    // slowly, so a quiet intro opening into the full band never drives the feed into
+    // clipping on the way.
+    feedLevel = !feedLevel || now > feedLevel ? now : feedLevel * 0.92 + now * 0.08;
+    const target = feedGainFor(feedLevel, feed.gain.value);
+    feed.gain.setTargetAtTime(target, ctx.currentTime, target < feed.gain.value ? 0.05 : 1.5);
+  }, 120);
+  const timer: unknown = feedTimer;   // a Timeout under node: never hold a test runner open
+  if (timer && typeof timer === 'object' && 'unref' in timer && typeof timer.unref === 'function') timer.unref();
 }
 
 // ── analyser stall watchdog (iOS/WebKit) ─────────────────────────────────────────
@@ -193,6 +263,16 @@ function reviveAnalyser(): void {
   gain.connect(a);
   a.connect(ctx.destination);
   analyser = a;
+}
+
+function reviveFeedAnalyser(): void {
+  if (!ctx || !feed || !feedSink) return;
+  try { feed.disconnect(); } catch { /* wasn't connected */ }
+  try { feedAnalyser?.disconnect(); } catch { /* wasn't connected */ }
+  const a = makeAnalyser(ctx);
+  feed.connect(a);
+  a.connect(feedSink);
+  feedAnalyser = a;
 }
 
 // The iOS-radio parallel viz tap (plans/146 upgrade path) is subject to the SAME analyser
@@ -222,7 +302,9 @@ function startAnalyserWatchdog(): void {
     const same = lastWave != null && lastWave.length === buf.length && buf.every((v, i) => v === lastWave![i]);
     if (same) {
       if (++stallTicks >= STALL_TICKS) {
-        if (vizAnalyser && active === vizAnalyser) reviveVizAnalyser(); else reviveAnalyser();
+        if (vizAnalyser && active === vizAnalyser) reviveVizAnalyser();
+        else if (active === feedAnalyser) reviveFeedAnalyser();
+        else reviveAnalyser();
         stallTicks = 0; lastWave = null;
       }
     } else {
@@ -236,10 +318,10 @@ function startAnalyserWatchdog(): void {
   (watchdog as unknown as { unref?: () => void }).unref?.();
 }
 
-/** The analyser the meter + visualiser read each frame. Normally the focus-loop graph's,
- *  but the iOS parallel viz tap (see startVizTap) has its OWN analyser fed by the silent
- *  second element - prefer it when present so radio reacts on iOS too. Null until audio starts. */
-export function getNeurospicyAnalyser(): AnalyserNode | null { return vizAnalyser ?? analyser; }
+/** The analyser the meter + visualiser read each frame: the level-steady feed (see above).
+ *  The iOS parallel viz tap (see startVizTap) has its OWN analyser fed by the silent second
+ *  element - prefer it when present so radio reacts on iOS too. Null until audio starts. */
+export function getNeurospicyAnalyser(): AnalyserNode | null { return vizAnalyser ?? feedAnalyser ?? analyser; }
 
 /**
  * The shared focus-audio context, built and resumed on demand - for the Atmosphere
@@ -270,7 +352,7 @@ export function isNeurospicyRadio(): boolean {
  */
 export type NeuroSignalState = 'live' | 'idle' | 'connecting' | 'unanalysable';
 export function neurospicySignalState(): NeuroSignalState {
-  if (src?.buffer) return 'live';
+  if (src?.buffer || lofiLive()) return 'live';
   if (radioSource && radioEl && !radioEl.paused && radioEl.readyState >= 2) return 'live';
   // The iOS parallel viz tap: the audible radioEl is bare, but the silent vizEl is feeding
   // the analyser, so there IS a signal to draw (foreground only - it's paused when hidden).
@@ -307,7 +389,7 @@ export function seekNeurospicy(seconds: number): void {
   try { src.stop(); } catch { /* already stopped */ }
   src.disconnect();
   const s = a.ctx.createBufferSource();
-  s.buffer = buf; s.connect(a.gain);
+  s.buffer = buf; s.connect(a.input);
   armSourceEnd(s, activeHost); // keep the same repeat/forward behaviour after a seek
   s.start(0, offset);
   src = s;
@@ -325,6 +407,7 @@ function stopSource(): void {
     radioEl.removeAttribute('src');
   }
   dropVizTap();   // stop the silent iOS viz stream too (no-op off Apple mobile / when never started)
+  stopLofi();     // a Lofi station remembers its tune, so playing again picks it up
   playingId = '';
 }
 
@@ -387,7 +470,7 @@ function ensureRadioEl(tap: boolean): HTMLAudioElement {
     try {
       if (!a) throw new Error('no audio graph');
       radioSource = a.ctx.createMediaElementSource(el);
-      radioSource.connect(a.gain);
+      radioSource.connect(a.input);
     } catch {
       // No Web Audio at all (or the node was refused): play it bare rather than not at all.
       radioSource = null;
@@ -601,6 +684,7 @@ async function play(host: NeurospicyHost): Promise<void> {
   if (!state.enabled || !state.loopId || isSfxMuted() || paused) { stopSource(); return; }
   // Radio station? Stream it via <audio>, not the focus-loop buffer path.
   if (isRadioId(state.loopId) || formatById.get(state.loopId) === 'stream') { await playRadio(); return; }
+  if (isLofiId(state.loopId)) { await playLofi(); return; }
   if (src && playingId === state.loopId) { if (gain) gain.gain.value = state.volume; return; }
   const a = audio(); if (!a) return;
   // Capture the target now: awaits below can interleave with another play() (rapid
@@ -622,13 +706,58 @@ async function play(host: NeurospicyHost): Promise<void> {
   if (!buf || state.loopId !== id || !state.enabled || paused || isSfxMuted()) return;
   stopSource();
   const s = a.ctx.createBufferSource();
-  s.buffer = buf; s.connect(a.gain);
+  s.buffer = buf; s.connect(a.input);
   armSourceEnd(s, host); // loop (repeat) or advance-on-end (forward), per state.repeat
   a.gain.gain.value = state.volume; s.start();
   src = s; playingId = id;
   srcStartedAt = a.ctx.currentTime; srcOffset = 0;
   notifyPlaying();
 }
+
+// A Lofi station: generated live into the same graph (lib/neurospicy-lofi.ts).
+async function playLofi(): Promise<void> {
+  const id = state.loopId;
+  if (lofiLive() && playingId === id) { if (gain) gain.gain.value = state.volume; return; }
+  const a = audio(); if (!a) return;
+  stopSource();
+  a.gain.gain.value = state.volume;
+  await startLofi(a.ctx, a.input, id, state.lofi);
+  // The station loads on first use; the selection may have moved on meanwhile.
+  if (state.loopId !== id || !state.enabled || paused || isSfxMuted()) { stopLofi(); return; }
+  playingId = id;
+  notifyPlaying();
+}
+
+/** Lofi drums on or off, for every station, from now on. */
+export function setLofiDrums(host: NeurospicyHost, on: boolean): void {
+  state.lofi = { ...state.lofi, drums: on }; persistLocal(); void persistProfile(host);
+  applyLofiPrefs(state.lofi);
+}
+/** Lofi texture, 0 clean to 1 dusty, for every station, from now on. */
+export function setLofiTexture(host: NeurospicyHost, texture: number): void {
+  state.lofi = { ...state.lofi, texture: Math.max(0, Math.min(1, texture)) }; persistLocal(); void persistProfile(host);
+  applyLofiPrefs(state.lofi);
+}
+
+/**
+ * Open a shared Lofi tune: select its station, queue its seed and switch the mode on.
+ * Boot arms it to play on the next gesture if sound is on; with sound off, the dock's play
+ * button turns sound on (see lib/neurospicy-dock-host.ts), since pressing play on a tune
+ * someone sent is the listener asking to hear the tune.
+ */
+export async function openLofiLink(host: Pick<NeurospicyHost, 'profile'>, link: LofiLink): Promise<void> {
+  queueLofiSeed(link.seed);
+  lofiLinkOpened = true;
+  stopSource();
+  state.loopId = lofiId(link.mood);
+  state.enabled = true;
+  paused = false;
+  notifyEnabledChanged();
+  persistLocal(); void persistProfile(host);
+}
+let lofiLinkOpened = false;
+/** Whether this page was opened from a shared Lofi tune that has not played yet. Asking clears the answer. */
+export function takeLofiLinkConsent(): boolean { const was = lofiLinkOpened; lofiLinkOpened = false; return was; }
 
 // Signal that audio just started, so the dock's level meter (re)starts its rAF - 
 // notably on the boot autoplay-resume path, where the analyser doesn't exist until
@@ -707,16 +836,23 @@ export interface NeuroTrack { id: string; name: string; tags: string[]; format: 
 // picker renders them in it (grouped by these keys), and prev/next + the
 // end-of-track advance walk it. They must not diverge - "next" has to go where
 // the list says it goes.
-export const NEURO_CATEGORY_ORDER: string[] = ['catalog', 'uploads', 'lolly', 'ambient', 'beats', 'radio'];
+export const NEURO_CATEGORY_ORDER: string[] = ['catalog', 'uploads', 'lolly', 'lofi', 'ambient', 'beats', 'radio'];
 
 /** Which playlist group a track belongs to (the picker's section, and the sort key). */
 export function trackCategory(t: NeuroTrack): string {
+  if (t.format === 'lofi') return 'lofi';               // the generated Lofi stations
   if (t.format === 'stream' || t.tags.includes('radio') || t.tags.includes('stream')) return 'radio';
   if (t.id.startsWith('user/')) return 'uploads';       // the user's own uploads
   if (!t.tags.includes('neurospicy')) return 'catalog'; // catalog audio outside the focus sets (music beds…)
   if (t.format === 'zzfxm') return 'lolly';             // our generated / MIDI-converted tracks
   if (t.tags.includes('lofi')) return 'ambient';        // the lo-fi loops
   return 'beats';                                       // the remaining loops (breakbeats)
+}
+
+/** The Lofi stations keep their mood order (warm, late night, rainy), not A to Z. */
+function lofiRank(t: NeuroTrack): number {
+  const i = LOFI_STATION_MOODS.findIndex((m) => lofiId(m) === t.id);
+  return i < 0 ? 0 : i;
 }
 
 /** Sort comparator for the canonical playlist order: group, then any featured
@@ -726,7 +862,7 @@ function byPlaylistOrder(a: NeuroTrack, b: NeuroTrack): number {
     const i = NEURO_CATEGORY_ORDER.indexOf(trackCategory(t));
     return i < 0 ? NEURO_CATEGORY_ORDER.length : i; // an unknown group trails, never leads
   };
-  return rank(a) - rank(b) || loopRank(a.id) - loopRank(b.id) || a.name.localeCompare(b.name);
+  return rank(a) - rank(b) || loopRank(a.id) - loopRank(b.id) || lofiRank(a) - lofiRank(b) || a.name.localeCompare(b.name);
 }
 // Cache only the connectivity-INDEPENDENT part (catalog + user uploads). Radio is
 // appended fresh on every call so it appears/disappears with `navigator.onLine`
@@ -770,11 +906,20 @@ export async function listLoops(host: NeurospicyHost): Promise<NeuroTrack[]> {
     // until reload. An empty result stays uncached so the next call re-queries
     // (main.ts also invalidates once the sync resolves).
     if (loops.length) localLoopsCache = loops;
-    else return radioTracks();
+    else return withLofi([]).concat(radioTracks());
   }
   // Opt-in radio (SomaFM) trails the local tracks - re-evaluated each call so it
   // appears/disappears with `navigator.onLine` instead of freezing in the cache.
-  return localLoopsCache.concat(radioTracks());
+  return withLofi(localLoopsCache).concat(radioTracks());
+}
+
+/** The local tracks with the Lofi stations sorted in. The stations are always there (they
+ *  need no catalog and no connection), so they are added on every call and never cached:
+ *  caching them would make a cold boot's not-yet-synced catalog look loaded. */
+function withLofi(local: NeuroTrack[]): NeuroTrack[] {
+  const stations = lofiTracks();
+  for (const t of stations) formatById.set(t.id, 'lofi');
+  return [...local, ...stations].sort(byPlaylistOrder);
 }
 
 /** The connectivity-gated radio stations (empty offline; fresh each call). */
@@ -824,13 +969,14 @@ export async function dropNeurospicyTracks(host: NeurospicyHost, ids: string[]):
  *  Call ONLY after the catalog sync resolves - see the empty-list guard below. */
 export async function reconcileNeurospicySelection(host: NeurospicyHost): Promise<void> {
   const id = state.loopId;
-  if (!id || isRadioId(id)) return;              // nothing picked, or a station (always resolvable)
+  if (!id || isRadioId(id) || isLofiId(id)) return;   // nothing picked, or a station (always resolvable)
   const loops = await listLoops(host);
   // Local = catalog assets + the user's own uploads. Radio is appended fresh on every
   // call and is present even offline, so it must NOT count as evidence the catalog loaded:
   // on a cold/offline boot listLoops() legitimately returns radio-only, and treating that
   // as "your track is gone" would wipe a perfectly good selection.
-  const local = loops.filter((t) => t.format !== 'stream' && !t.tags.includes('radio'));
+  // The Lofi stations are always listed, so they are no evidence either.
+  const local = loops.filter((t) => t.format !== 'stream' && t.format !== 'lofi' && !t.tags.includes('radio'));
   if (!local.length) return;                     // catalog not loaded yet - never clear on no evidence
   if (local.some((t) => t.id === id)) return;    // still there - nothing to do
   const wasEnabled = state.enabled;
