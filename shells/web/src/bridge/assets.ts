@@ -382,7 +382,7 @@ export function createAssetsAPI(db: AssetsDb, opts: AssetsApiOptions = {}) {
     return looks;
   };
   // The "Colourway asset treatments" flag decides whether the looks are OFFERED. A piece
-  // that already names one still resolves it whichever way the flag is set.
+  // that already carries a colourway look resolves the look whichever way the flag is set.
   const colourwayTreatmentsOffered = (): boolean => isFlagOnSync(COLOURWAY_ASSET_TREATMENTS_FLAG);
   /** Ours first, then theirs under any other id. */
   const lookUnion = <T extends { id: string }>(ours: T[], theirs: T[]): T[] => [...ours, ...theirs.filter(t => !ours.some(o => o.id === t.id))];

@@ -382,7 +382,7 @@ test('colourway icon colours are offered and baked, and a palette id still bakes
   const none = createAssetsAPI(db as never) as unknown as { _iconThemes(): Promise<unknown[]> };
   assert.deepEqual(await none._iconThemes(), [], 'no design system document: no colourways, nothing offered');
 
-  // "Colourway asset treatments" off: nothing is offered, and a piece that names a
+  // "Colourway asset treatments" off: nothing is offered, and a piece that carries a
   // colourway look still bakes its colours.
   const { overrideFlagInMemory, COLOURWAY_ASSET_TREATMENTS_FLAG } = await import('../feature-flags.ts');
   overrideFlagInMemory(COLOURWAY_ASSET_TREATMENTS_FLAG.id, false);

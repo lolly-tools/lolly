@@ -166,7 +166,7 @@ export const STRIP_UPLOAD_META_FLAG: FeatureFlag = {
 // ON by default: the icon colours and photo washes Assets and the asset picker offer come
 // from the design system's colourways (bridge/assets.ts _iconThemes, _photoTreatments). A
 // brand that would rather its icons and photos were only ever shown in their own colours
-// turns it off: the colour strips go, and a piece that already names a colourway look
+// turns it off: the colour strips go, and a piece that already carries a colourway look
 // keeps its colours. A control plane can force it fleet-wide and hide the toggle
 // (GOVERNED_FLAG_IDS below, mirrored in lolly-work policy/feature-flags.ts).
 export const COLOURWAY_ASSET_TREATMENTS_FLAG: FeatureFlag = {
