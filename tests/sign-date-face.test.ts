@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 // Sign's "Add today's date" was set in Helvetica on the page preview and in the signed PDF,
 // whatever the design system. Tools set their words in the design system's faces, so the
-// preview names the face and the file carries the date as outlines in that face, stamped
+// preview draws the date in that face and the file carries it as outlines in that face, stamped
 // through host.pdf.stamp's `paths`. A host that predates stamped paths ignores them and
 // counts fewer stamps; the date then goes in as text, so it is never lost.
 import test from 'node:test';
