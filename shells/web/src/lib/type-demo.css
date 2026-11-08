@@ -48,7 +48,7 @@
 }
 .td-face { font-weight: 700; color: hsl(var(--foreground)); }
 .td-axis { margin-left: auto; font-family: var(--font-mono); /* the live mono face (tokens.css default: SUSE Mono) */ font-size: calc(0.66rem * var(--a11y-fs)); }
-.td-axis b { color: hsl(var(--primary)); font-variant-numeric: tabular-nums; font-weight: 700; }
+.td-axis b { color: hsl(var(--primary-text)); font-variant-numeric: tabular-nums; font-weight: 700; }
 .td-dots { display: inline-flex; gap: 4px; }
 .td-dots i { width: 8px; height: 8px; border-radius: 50%; background: hsl(var(--muted)); }
 
@@ -65,7 +65,7 @@
    child prompt/typed spans inherit it) so `wght` actually animates the terminal. */
 .td-line, .td-italic { font-family: var(--font-mono); /* the live mono face (tokens.css default: SUSE Mono) */ }
 .td-line { display: block; font-size: calc(1.18rem * var(--a11y-fs)); line-height: 1.5; white-space: nowrap; overflow: hidden; }
-.td-prompt { color: hsl(var(--primary)); }
+.td-prompt { color: hsl(var(--primary-text)); }
 .td-caret {
   display: inline-block;
   width: 0.5ch;
@@ -140,7 +140,7 @@
   transition: color .15s ease, border-color .15s ease, background .15s ease;
 }
 .td-auto-dot { width: 0.5rem; height: 0.5rem; border-radius: 50%; background: currentColor; opacity: 0.5; }
-.td-auto.is-on { color: hsl(var(--primary)); border-color: hsl(var(--primary) / 0.5); background: hsl(var(--primary) / 0.08); }
+.td-auto.is-on { color: hsl(var(--primary-text)); border-color: hsl(var(--primary) / 0.5); background: hsl(var(--primary) / 0.08); }
 .td-auto.is-on .td-auto-dot { opacity: 1; animation: td-pulse 1.6s ease-in-out infinite; }
 .td-auto:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 2px; }
 @keyframes td-pulse { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.5); opacity: 0.55; } }

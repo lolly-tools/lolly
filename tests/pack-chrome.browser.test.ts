@@ -102,8 +102,9 @@ const HIGH = {
   light: staticBlock('html[data-a11y-contrast="high"]:not([data-theme="dark"]):not([data-theme="brand"])', '--card'),
   dark: staticBlock('html[data-a11y-contrast="high"][data-theme="dark"]', '--card'),
 };
-/** The accent the pack's semantic primaries own, under High contrast as well. */
-const ACCENT = new Set(['--primary', '--primary-foreground', '--ring']);
+/** The accent the pack's semantic primaries own, under High contrast as well:
+ *  the fill, its ink, the ring and the accent for words made from that fill. */
+const ACCENT = new Set(['--primary', '--primary-foreground', '--ring', '--primary-text']);
 
 // ── The page ─────────────────────────────────────────────────────────────────
 

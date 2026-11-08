@@ -22,6 +22,10 @@ export interface LollyUiToken {
   type: string;
   value: unknown;
   description?: string;
+  /** Worked out from other roles per theme (`tools.lolly.derived`), so there is
+   *  no value of its own to save: color.text.accent is the action primary
+   *  walked until it reads. */
+  derived?: boolean;
 }
 
 /**
@@ -79,7 +83,8 @@ export function listLollyUiTokens(): LollyUiToken[] {
   const walk = (node: Rec, path: string[]): void => {
     if ('$value' in node) {
       const type = typeof node.$type === 'string' ? node.$type : '';
-      if (type) out.push({ path, type, value: structuredClone(node.$value), description: typeof node.$description === 'string' ? node.$description : undefined });
+      const ext = isRec(node.$extensions) && isRec(node.$extensions['tools.lolly']) ? node.$extensions['tools.lolly'] : null;
+      if (type) out.push({ path, type, value: structuredClone(node.$value), description: typeof node.$description === 'string' ? node.$description : undefined, ...(ext?.derived === true ? { derived: true } : {}) });
       return;
     }
     for (const [key, child] of Object.entries(node)) if (!key.startsWith('$') && isRec(child)) walk(child, [...path, key]);

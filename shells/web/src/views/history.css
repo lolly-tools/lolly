@@ -38,7 +38,7 @@
 .app-history-search > .app-history-icon { position: absolute; inset-inline-start: var(--sp-3); pointer-events: none; color: var(--ui-color-text-muted); }
 .app-history-search input { width: 100%; padding-inline-start: calc(var(--sp-3) * 2 + var(--ui-size-icon-md)); }
 .app-history-filter-toggle { flex: none; }
-.app-history-filter-count { min-width: 1.5em; padding: 0 var(--sp-1); border-radius: var(--ui-radius-pill); background: var(--ui-color-selection-surface); font-variant-numeric: tabular-nums; font-weight: 650; color: var(--ui-color-action-primary); }
+.app-history-filter-count { min-width: 1.5em; padding: 0 var(--sp-1); border-radius: var(--ui-radius-pill); background: var(--ui-color-selection-surface); font-variant-numeric: tabular-nums; font-weight: 650; color: var(--ui-color-text-accent); }
 .app-history-filter-options { display: flex; align-items: end; flex-wrap: wrap; gap: var(--sp-3); padding: var(--sp-6); border-radius: var(--ui-radius-card); background: var(--ui-color-surface-raised); box-shadow: var(--ui-edge-faint); }
 .app-history-filters:not(.is-expanded) .app-history-filter-options { display: none; }
 .app-history-filter-field { display: flex; flex-direction: column; gap: var(--sp-1); flex: 1 1 180px; min-width: 0; }
@@ -55,7 +55,7 @@
 .app-history-picker-list { overflow-y: auto; overscroll-behavior: contain; min-height: 0; padding: var(--sp-2) 0 0; }
 .app-history-picker-option { display: flex; align-items: center; gap: var(--sp-3); width: 100%; min-height: var(--ui-size-target); padding: var(--sp-2); text-align: start; font-weight: 400; background: transparent; box-shadow: none; }
 .app-history-picker-option:hover, .app-history-picker-option.is-active { background: var(--ui-color-selection-surface); }
-.app-history-picker-option[aria-selected=true] { color: var(--ui-color-action-primary); font-weight: 600; }
+.app-history-picker-option[aria-selected=true] { color: var(--ui-color-text-accent); font-weight: 600; }
 .app-history-picker-empty { padding: var(--sp-3) var(--sp-2); margin: 0; font-size: var(--ui-type-body); color: var(--ui-color-text-muted); }
 /* Nothing to filter yet: the search and filters wait until there is history. */
 .app-history-controls.is-quiet :is(.app-history-search, .app-history-filter-toggle, .app-history-layout) { visibility: hidden; }
@@ -84,7 +84,7 @@
 .app-history-day-chevron { display: inline-flex; flex: none; color: var(--ui-color-text-muted); rotate: -90deg; transition: rotate var(--ui-motion-feedback); }
 .app-history-day-chevron svg { width: var(--ui-size-icon-md); height: var(--ui-size-icon-md); }
 .app-history-day[open] > summary > .app-history-day-chevron { rotate: 0deg; }
-.app-history-day-summary:hover h2 { color: var(--ui-color-action-primary); }
+.app-history-day-summary:hover h2 { color: var(--ui-color-text-accent); }
 .app-history-day-entries {
   /* Larger type asks for wider tiles, so the column minimum rides the multiplier. */
   --app-history-tile-min: calc(200px * var(--a11y-fs));
@@ -115,7 +115,7 @@
 .app-history-open { all: unset; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: pointer; color: inherit; }
 .app-history-open::after { content: ''; position: absolute; inset: 0; z-index: 1; border-radius: inherit; }
 .app-history-row:has(.app-history-open:focus-visible) { box-shadow: 0 0 0 2px var(--ui-color-focus-ring), var(--object-shadow-hover); }
-.app-history-row:hover .app-history-open { color: var(--ui-color-action-primary); }
+.app-history-row:hover .app-history-open { color: var(--ui-color-text-accent); }
 .app-history-open:disabled { cursor: default; }
 .app-history-row .tile-check, .app-history-row .tile-menu-btn { z-index: 2; }
 .app-history-versions { position: relative; z-index: 2; }
@@ -134,11 +134,11 @@
 /* In Recent every tile is a creation, so the kind says nothing the tab did not. */
 .app-history[data-view="recent"] .app-history-row[data-kind="creation"] .app-history-kind { display: none; }
 .app-history-row[data-kind="milestone"] .app-history-kind { background: var(--ui-color-selection-surface); color: var(--ui-color-text-default); }
-.app-history-row[data-kind="milestone"] .app-history-kind svg { color: var(--ui-color-action-primary); }
+.app-history-row[data-kind="milestone"] .app-history-kind svg { color: var(--ui-color-text-accent); }
 .app-history-original-title, .app-history-result { margin: 0; font-size: var(--ui-type-caption); color: var(--ui-color-text-muted); overflow-wrap: anywhere; }
 .app-history-result[data-state=failed], .app-history-result[data-state=interrupted] { color: hsl(var(--destructive-text)); }
 .app-history-versions.btn { flex: none; width: var(--ui-size-control); height: var(--ui-size-control); min-height: 0; padding: 0; box-shadow: none; background: transparent; color: var(--ui-color-text-muted); }
-.app-history-versions:hover { color: var(--ui-color-action-primary); }
+.app-history-versions:hover { color: var(--ui-color-text-accent); }
 html[data-a11y-previews="hidden"] .app-history-cover img { filter: saturate(.5) contrast(.5); }
 
 /* ── List: the same tiles as rows, for scanning many at once ─────────────── */

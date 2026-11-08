@@ -132,7 +132,7 @@
   height: 1.55rem;
   border-radius: var(--radius-pill);
   background: hsl(var(--primary) / 0.14);
-  color: hsl(var(--primary));
+  color: hsl(var(--primary-text));
   font-size: var(--fs-md);
   font-weight: 700;
   font-variant-numeric: tabular-nums;
@@ -579,7 +579,7 @@
 .labp-cond[data-state="loaded"] .labp-cond-id::before {
   content: '●';
   margin-inline-end: 0.35rem;
-  color: hsl(var(--primary));
+  color: hsl(var(--primary-text));
 }
 .labp-cond:not([data-state="loaded"]) .labp-cond-id { opacity: 0.75; }
 .labp-list { margin: 0; padding: 0; list-style: none; display: grid; gap: 0.5rem; }
@@ -1364,7 +1364,7 @@ tbody .lab-mx-h .lab-mx-name { display: inline-block; vertical-align: middle; }
   width: 2rem; height: 2rem;
   border-radius: var(--radius-pill);
   background: hsl(var(--primary) / 0.14);
-  color: hsl(var(--primary));
+  color: hsl(var(--primary-text));
 }
 .lab-cloud-add-ic svg { width: 1.05rem; height: 1.05rem; }
 .lab-cloud-add-txt { display: flex; flex-direction: column; gap: 0.1rem; min-width: 0; }
@@ -1407,7 +1407,7 @@ tbody .lab-mx-h .lab-mx-name { display: inline-block; vertical-align: middle; }
   cursor: pointer;
 }
 .lab-pop-btn:hover { background: hsl(var(--accent)); color: hsl(var(--accent-foreground)); }
-.lab-pop-btn[aria-pressed="true"] { border-color: hsl(var(--primary)); color: hsl(var(--primary)); }
+.lab-pop-btn[aria-pressed="true"] { border-color: hsl(var(--primary)); color: hsl(var(--primary-text)); }
 .lab-pop-btn:focus-visible { outline: 2px solid hsl(var(--primary)); outline-offset: 1px; }
 /* Inside the panel the figure's own pop button is redundant - the panel's bar
    already carries fullscreen and put-back - and two ⤢ glyphs one above the other

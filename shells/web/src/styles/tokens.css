@@ -369,6 +369,7 @@
 :root {
   --ui-color-text-default: hsl(var(--foreground));
   --ui-color-text-muted: hsl(var(--muted-foreground));
+  --ui-color-text-accent: hsl(var(--primary-text));
   --ui-color-surface-canvas: hsl(var(--background));
   --ui-color-surface-raised: hsl(var(--card));
   --ui-color-surface-overlay: hsl(var(--popover));
@@ -480,6 +481,16 @@
 
   --primary:                171 62% 12%;      /* SUSE dark teal - #0c322c */
   --primary-foreground:     0 0% 100%;
+  /* The accent for WORDS and glyphs. --primary is a fill, and a brand's fill
+     is not always a text colour (SUSE's Jungle reads 2.5:1 on white), so each
+     theme carries an accent of its own for words: the primary's hue and chroma
+     at the lightness nearest its own that reads 4.5:1 on the page, cards,
+     popovers, the muted and hover surfaces, and the strongest accent wash
+     over the resting ones. A primary that already reads keeps its colour.
+     brand-vars.ts's accentText() computes every value here, emits the same
+     token beside every --primary it sets, and brand-vars.test.ts holds the
+     two together. Fills, borders and rings keep --primary. */
+  --primary-text:           170.5 61.3% 12.2%; /* #0c322c - the fill reads 9:1 here, so words keep it */
 
   --secondary:              210 40% 96%;
   --secondary-foreground:   224 71% 4%;
@@ -536,6 +547,7 @@
   --primary:                151 57% 46%;      /* SUSE Jungle - #30ba78 */
   /* Readable ink on green follows the shared contrastText rule. */
   --primary-foreground:     0 0% 0%;
+  --primary-text:           151.3 57.3% 45.9%; /* #32b878 - reads 4.7:1 here, so words keep it (see the light theme's note) */
 
   --secondary:              217 33% 14%;
   --secondary-foreground:   213 31% 91%;
@@ -595,6 +607,7 @@
   --primary:                151 57% 46%;      /* #30ba78 SUSE Jungle */
   /* See the dark theme's note. */
   --primary-foreground:     0 0% 0%;
+  --primary-text:           148.1 67% 63.1%;  /* #62e09d - Jungle lifted until it reads 4.5:1 on these surfaces (see the light theme's note) */
 
   --secondary:              171 48% 21%;
   --secondary-foreground:   160 30% 92%;
@@ -722,6 +735,11 @@
    (4.5:1 normally, Lc 75 here), which on a dark page means a pale red that
    still reads as a red.
 
+   ACCENT WORDS take --primary-text the same way: the theme's primary walked
+   to Lc 75 on the surfaces below and an accent wash over them. Each block
+   states it, and brand-vars.ts states a design system's own in the same
+   gated shape, so the fill above can stay the brand's colour.
+
    KNOWN LIMITS - what a token-only pass cannot reach:
     • ALPHA-COMPOSITED TEXT. 27 declarations fade ink with
       `color: hsl(var(--foreground) / 0.6)`-style alpha (14 files; 663 uses of
@@ -758,6 +776,7 @@ html[data-a11y-contrast="high"]:not([data-theme="dark"]):not([data-theme="brand"
 
   --destructive:            0 80% 34%;     /* was 0 72% 51%   - white on it Lc 77 → 92 */
   --destructive-text:       0 100% 22.9%;  /* #750000 - Lc 75 on every surface and wash; the fill reads Lc 81 on white but less on a wash */
+  --primary-text:           172.1 86.4% 8.6%; /* #032924 - the accent for words at Lc 75 on every surface and wash */
 
   /* Fill ramp, not text: the goal is separation from the surface and between
      neighbours, so the whole ramp shifts darker with even ~10% L steps. Order
@@ -805,6 +824,7 @@ html[data-a11y-contrast="high"][data-theme="dark"] {
   --destructive:            0 72% 44%;     /* was 0 63% 38%   - ink on it Lc 74 → 80 */
   --destructive-foreground: 213 45% 98%;
   --destructive-text:       9.5 100% 88.8%;  /* #ffcfc6 - Lc 75 on every surface and wash; a red at that bar is a pale one */
+  --primary-text:           147.4 87.4% 72%;  /* #79f6b2 - Jungle for words at Lc 75 on every surface and on a wash of the lifted fill */
 
   --store-other:            215 16% 66%;   /* was 215 12% 46% - Lc 53 on card */
 }
@@ -842,6 +862,7 @@ html[data-a11y-contrast="high"][data-theme="brand"] {
   --destructive:            0 72% 44%;     /* was 0 55% 42%   - white on it Lc 84 */
   --destructive-foreground: 0 0% 100%;
   --destructive-text:       9.3 100% 91.2%;  /* #ffd9d2 - Lc 75 on every brand theme's surfaces and washes */
+  --primary-text:           147.3 100% 82.4%; /* #a5ffce - Jungle for words at Lc 75 on these surfaces and on a wash of the lifted fill */
 
   --store-other:            0 0% 68%;      /* was 171 16% 54% - the "not a category" neutral, now visibly neutral */
 }

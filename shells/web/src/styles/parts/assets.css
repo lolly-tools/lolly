@@ -694,7 +694,7 @@
 /* fill (background/color) is aliased in parts/buttons.css's .btn--primary list */
 .cat-act-fav.is-fav { border-color: hsl(var(--primary)); }
 .cat-act-fav.is-fav svg { fill: currentColor; }
-.cat-act-share.is-copied { color: hsl(var(--primary)); }
+.cat-act-share.is-copied { color: hsl(var(--primary-text)); }
 
 /* ── Content Credentials (details) ── the checker for any inspectable asset, plus the
    "Made with Lolly" lockup revealed only once the verifier confirms it (openDetails). */
@@ -757,11 +757,11 @@
   margin: 0 0 var(--sp-4); color: hsl(var(--muted-foreground)); font-size: var(--fs-sm); line-height: 1.4;
 }
 .cat-dl-provenance { padding-left: 22px; position: relative; }
-.cat-dl-provenance::before { content: '✓'; position: absolute; left: 2px; color: hsl(var(--primary)); font-weight: 800; }
+.cat-dl-provenance::before { content: '✓'; position: absolute; left: 2px; color: hsl(var(--primary-text)); font-weight: 800; }
 .cat-dl-status:empty { display: none; }
 .cat-dl-media-mark {
   display: grid; place-items: center; width: 72px; height: 72px; margin: 0 auto var(--sp-6);
-  border-radius: var(--radius-round); color: hsl(var(--primary)); background: hsl(var(--primary) / .1);
+  border-radius: var(--radius-round); color: hsl(var(--primary-text)); background: hsl(var(--primary) / .1);
 }
 .cat-dl-media-mark svg { width: 34px; height: 34px; }
 .cat-dl-actions { display: flex; justify-content: flex-end; gap: var(--sp-4); margin-top: 4px; }
@@ -775,7 +775,7 @@
 .cat-send-row { display: flex; flex-wrap: wrap; gap: var(--sp-3); }
 .cat-send-row .btn { display: inline-flex; align-items: center; gap: var(--sp-2); }
 .cat-send-status { min-height: 1.2em; margin: var(--sp-3) 0 0; font-size: var(--fs-sm); color: hsl(var(--muted-foreground)); }
-.cat-send-status a { color: hsl(var(--primary)); }
+.cat-send-status a { color: hsl(var(--primary-text)); }
 .cat-send-empty { color: hsl(var(--muted-foreground)); font-size: var(--fs-lg); max-width: 40ch; }
 .cat-crop-work { position: relative; width: max-content; max-width: 100%; margin: 0 auto 14px; }
 .cat-crop-viewport {

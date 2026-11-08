@@ -252,7 +252,7 @@
   background: hsl(var(--destructive) / 0.06);
 }
 .fc-design-check[data-design-check="error"] .fc-design-check-icon { color: hsl(var(--destructive-text)); }
-.fc-design-check[data-design-check="warn"] .fc-design-check-icon { color: var(--ui-color-action-primary); }
+.fc-design-check[data-design-check="warn"] .fc-design-check-icon { color: var(--ui-color-text-accent); }
 
 /* ── keyboard focus ─────────────────────────────────────────────────────────── */
 
@@ -574,7 +574,7 @@
 }
 .fc-kf-key[data-state="none"] .fc-kf-key-glyph { opacity: 0.6; }
 .fc-kf-key[data-state="animated"],
-.fc-kf-key[data-state="key"] { color: var(--ui-color-action-primary); }
+.fc-kf-key[data-state="key"] { color: var(--ui-color-text-accent); }
 .fc-kf-key[data-state="key"] .fc-kf-key-glyph { fill: currentColor; }
 .fc-kf-key:hover:not([aria-disabled="true"]) { background: var(--ui-color-surface-muted); }
 .fc-kf-key:hover:not([aria-disabled="true"]) .fc-kf-key-glyph { opacity: 1; }

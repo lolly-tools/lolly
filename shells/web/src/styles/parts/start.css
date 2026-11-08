@@ -267,7 +267,7 @@ html[dir="rtl"] .start-back-row {
   margin-bottom: var(--sp-2);
   border-radius: var(--radius-round);
   background: hsl(var(--primary) / 0.1);
-  color: hsl(var(--primary));
+  color: hsl(var(--primary-text));
 }
 .ds-ov-door-ic svg { width: calc(22px * var(--a11y-fs)); height: calc(22px * var(--a11y-fs)); }
 .ds-ov-door-name { font-size: var(--fs-xl); font-weight: 700; }
@@ -301,11 +301,11 @@ html[dir="rtl"] .start-back-row {
 }
 /* The welcome dialog's door: glyph, name, what it does, where it goes. */
 .ds-ov-start-door { display: flex; flex-direction: column; align-items: flex-start; gap: var(--sp-2); }
-.ds-ov-start-ic { display: grid; width: calc(22px * var(--a11y-fs)); height: calc(22px * var(--a11y-fs)); color: hsl(var(--primary)); }
+.ds-ov-start-ic { display: grid; width: calc(22px * var(--a11y-fs)); height: calc(22px * var(--a11y-fs)); color: hsl(var(--primary-text)); }
 .ds-ov-start-ic svg { width: 100%; height: 100%; }
 .ds-ov-start-name { margin-top: var(--sp-1); font-size: var(--fs-xl); font-weight: 700; }
 .ds-ov-start-line { font-size: var(--fs-sm); line-height: 1.5; color: hsl(var(--muted-foreground)); }
-.ds-ov-start-cta { margin-top: auto; padding-top: var(--sp-2); font-size: var(--fs-sm); font-weight: 650; color: hsl(var(--primary)); }
+.ds-ov-start-cta { margin-top: auto; padding-top: var(--sp-2); font-size: var(--fs-sm); font-weight: 650; color: hsl(var(--primary-text)); }
 
 /* ── The inventory: label, value and specimen, every card the same height ── */
 .ds-ov-cards {
@@ -803,7 +803,7 @@ html[data-layout="split"] .start--studio .ds-main > .ds-live {
   place-items: center;
   width: calc(22px * var(--a11y-fs));
   height: calc(22px * var(--a11y-fs));
-  color: hsl(var(--primary));
+  color: hsl(var(--primary-text));
 }
 .ds-src-tile-ic svg { width: 100%; height: 100%; }
 .ds-src-tile-name { font-size: var(--fs-lg); font-weight: 700; }

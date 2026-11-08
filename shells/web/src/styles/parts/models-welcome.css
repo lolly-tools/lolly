@@ -41,7 +41,7 @@
   margin-bottom: 20px;
   border-radius: 18px;
   background: color-mix(in oklab, hsl(var(--primary)) 14%, transparent);
-  color: hsl(var(--primary));
+  color: hsl(var(--primary-text));
 }
 .mw-eyebrow {
   margin: 0 0 6px;
@@ -120,7 +120,7 @@
   align-items: center;
   gap: 10px;
   margin-top: 8px;
-  color: hsl(var(--primary));
+  color: hsl(var(--primary-text));
   font-weight: 600;
 }
 .mw-done[hidden] { display: none; }

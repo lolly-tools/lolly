@@ -984,13 +984,25 @@ function readsOnAll(text: string, surfaces: readonly string[], high: boolean): b
  * The text red for one theme: `red`'s OKLCH hue and chroma at the lightness
  * nearest its own that reads on every one of `surfaces` (`high` for the High
  * contrast bar). `red` itself when it already reads; null when it doesn't
- * parse or no lightness can (an empty surface list included). The search is
- * highContrastAccent's: bisect each direction for the smallest move, keep the
- * smaller. Exported for tests and for the static values in tokens.css.
+ * parse or no lightness can (an empty surface list included). Exported for
+ * tests and for the static values in tokens.css.
  */
 export function dangerText(red: string, surfaces: readonly string[], high = false): string | null {
-  const base = hexToOklch(red);
-  const authored = parseHex(red) ? red.trim().toLowerCase().slice(0, 7) : null;
+  return readableInk(red, surfaces, high);
+}
+
+/**
+ * `colour` as words: its OKLCH hue and chroma at the lightness nearest its own
+ * that reads on every one of `surfaces` (4.5:1, or APCA Lc 75 with `high`).
+ * `colour` itself when it already reads; null when it doesn't parse or no
+ * lightness can (an empty surface list included). The search is
+ * highContrastAccent's: bisect each direction for the smallest move, keep the
+ * smaller. The text red (dangerText) and the accent for words (accentText) are
+ * both this walk.
+ */
+function readableInk(colour: string, surfaces: readonly string[], high = false): string | null {
+  const base = hexToOklch(colour);
+  const authored = parseHex(colour) ? colour.trim().toLowerCase().slice(0, 7) : null;
   if (!base || !authored || !surfaces.length) return null;
   if (readsOnAll(authored, surfaces, high)) return authored;
   const at = (l: number): string => oklchToHex({ l, c: base.c, h: base.h });
@@ -1038,6 +1050,89 @@ export function dangerTextSurfaces(theme: 'light' | 'dark' | 'brand', high = fal
   dangerSurfaceCache.set(key, surfaces);
   return surfaces;
 }
+
+// ── Accent text: the brand colour as words ───────────────────────────────────
+// --primary is a FILL: the main button, the selection tint, a slider's thumb.
+// The chrome also writes words and glyphs in it (a chosen segment, an active
+// nav item, a tag, a link), and a brand's fill colour is not always a text
+// colour: SUSE's Jungle measures 2.5:1 on white, so its light-theme accent
+// words read at about 2:1 on their pale tint. --primary-text is the accent for
+// words, made the way --destructive-text is: the theme's primary, its OKLCH hue
+// and chroma held, its lightness walked until it reads on the page, cards,
+// popovers, the muted and hover surfaces, and the strongest accent wash over
+// the resting ones (accent words often sit on their own tint). A primary that
+// already reads keeps its colour. Under High contrast the floor is APCA Lc 75.
+// tokens.css carries the values for its static primaries; chromeBrandCss emits
+// them for a design system's own, beside every --primary it emits.
+
+/** The strongest accent wash the stylesheets lay under accent words:
+ *  `hsl(var(--primary) / .18)` behind the pro rows' active labels. The chosen
+ *  segment (.14), the Settings tags (.15) and the selection surface (.12) are
+ *  all lighter. */
+export const ACCENT_WASH_ALPHA = 0.18;
+
+/** The resting surfaces accent words are measured against. */
+const ACCENT_RESTING: readonly SurfaceRole[] = ['background', 'card', 'popover', 'muted'];
+
+/**
+ * The grounds accent words are measured against: the resting surfaces, the
+ * hover surfaces, and each resting surface under the strongest wash of `fill`
+ * (the theme's primary, the colour the tint is made of). Exported for tests.
+ */
+export function accentTextGrounds(resting: readonly string[], hover: readonly string[], fill: string | null): string[] {
+  const washed = fill ? resting.map(s => overlayHex(fill, s, ACCENT_WASH_ALPHA)).filter((hex): hex is string => !!hex) : [];
+  return [...resting, ...hover, ...washed];
+}
+
+/** tokens.css's own grounds for one theme, High contrast included. The brand
+ *  theme's are the static SUSE-palette instance; a constructed brand theme
+ *  measures against the surfaces it built (brandAccentGrounds). */
+export function accentTextSurfaces(theme: 'light' | 'dark' | 'brand', fill: string | null, high = false): string[] {
+  const set = THEME_SURFACES[high && theme !== 'brand' ? (theme === 'dark' ? 'darkHigh' : 'lightHigh') : theme];
+  return accentTextGrounds(surfaceHexes(set, ACCENT_RESTING), surfaceHexes(set, ['accent']), fill);
+}
+
+/** The grounds of the brand theme brandThemeCss builds from `lightPrimaryHex`. */
+function brandAccentGrounds(lightPrimaryHex: string, fill: string | null): string[] {
+  return accentTextGrounds(brandSurfaceHexes(lightPrimaryHex, ACCENT_RESTING), brandSurfaceHexes(lightPrimaryHex, ['accent']), fill);
+}
+
+/**
+ * The accent for words: `primary` itself when it reads on every one of
+ * `grounds` (4.5:1, or APCA Lc 75 with `high`), else the nearest lightness of
+ * its hue and chroma that does. Null when it doesn't parse or nothing reads.
+ * Exported for tests and for the static values in tokens.css.
+ */
+export function accentText(primary: string, grounds: readonly string[], high = false): string | null {
+  return readableInk(primary, grounds, high);
+}
+
+/** `  --primary-text: <triple>;` for one theme, or '' when nothing reads. */
+function accentTextDecl(primary: string | null, grounds: readonly string[], high = false): string {
+  const hex = primary ? accentText(primary, grounds, high) : null;
+  const triple = hex ? hexToHslTriple(hex) : null;
+  return triple ? `  --primary-text: ${triple};` : '';
+}
+
+/** tokens.css's static primaries, per theme, as #rrggbb: what a theme shows
+ *  when no design system sets its primary. A pack whose chrome replaces a
+ *  theme's surfaces but sets no primary measures this one against them.
+ *  brand-vars.test.ts holds them to tokens.css. */
+export const STATIC_PRIMARY: Readonly<Record<'light' | 'dark' | 'brand', string>> = {
+  light: '#0c322c', // 171 62% 12%
+  dark: '#32b878', // 151 57% 46%, SUSE Jungle as tokens.css rounds it
+  brand: '#32b878',
+};
+
+/** The fills tokens.css's High contrast blocks leave in force, per theme: the
+ *  light block keeps the light primary, the dark and brand blocks lift Jungle
+ *  (147.6 75% 67.1%). Accent words under High contrast are measured against
+ *  washes of these. brand-vars.test.ts holds them to tokens.css. */
+export const STATIC_HC_PRIMARY: Readonly<Record<'light' | 'dark' | 'brand', string>> = {
+  light: '#0c322c',
+  dark: '#6ceaa6',
+  brand: '#6ceaa6',
+};
 
 /**
  * The per-theme `--destructive-text` sheet for a design system's own danger
@@ -1106,6 +1201,7 @@ function hcAccentBlock(
   restate = false,
   ringSurfaces: readonly string[] = [],
   controlSurfaces: readonly string[] = [],
+  textGrounds: ((fill: string) => string[]) | null = null,
 ): string {
   const judge = (surfaces: readonly string[]) => {
     const fixed = highContrastAccent(primary, onPrimary, surfaces);
@@ -1121,17 +1217,24 @@ function hcAccentBlock(
   const ring = visibleRing((repaired ?? clearing)?.fill ?? null, ringSurfaces);
   const r = ring && hexToHslTriple(ring);
   if (r) decls.push(`  --ring: ${r};`);
+  // The accent for words, measured against washes of the fill in force under
+  // High contrast: the pair stated here, else the theme's own primary.
+  const textDecl = textGrounds && primary ? accentTextDecl(primary, textGrounds(pair?.fill ?? primary), true) : '';
+  if (textDecl) decls.push(textDecl);
   return decls.length ? `${selector} {\n${decls.join('\n')}\n}` : '';
 }
 
 /** One shell theme's accent overrides, or '' when primary didn't resolve. The
  * ink is COMPUTED from the fill via the app-wide inversion rule (contrastText),
- * not taken from the brand's authored on-primary - see contrastText's note. */
-function accentBlock(selector: string, primary: string | null): string {
+ * not taken from the brand's authored on-primary - see contrastText's note.
+ * The accent for words (--primary-text) is the fill walked until it reads on
+ * the theme's own surfaces (accentText). */
+function accentBlock(selector: string, primary: string | null, theme: 'light' | 'dark'): string {
   const p = primary && hexToHslTriple(primary);
   if (!p) return '';
   const fg = hexToHslTriple(contrastText(primary));
-  return `${selector} {\n  --primary: ${p};\n  --ring: ${p};\n  --primary-foreground: ${fg};\n}`;
+  const text = accentTextDecl(primary, accentTextSurfaces(theme, primary));
+  return `${selector} {\n  --primary: ${p};\n  --ring: ${p};\n  --primary-foreground: ${fg};\n${text ? `${text}\n` : ''}}`;
 }
 
 /**
@@ -1160,6 +1263,9 @@ export function brandThemeCss(lightPrimaryHex: string, darkPrimaryHex: string): 
   // accent blocks - never the authored on-primary (see contrastText's note).
   const accentFg = hexToHslTriple(contrastText(darkPrimaryHex));
   const v = (name: string, val: string | null) => (val ? `  --${name}: ${val};\n` : '');
+  // The accent for words: the dark primary walked until it reads on the very
+  // surfaces this block lays down (accentText).
+  const textDecl = accentTextDecl(darkPrimaryHex, brandAccentGrounds(lightPrimaryHex, darkPrimaryHex));
   // Lightness stops lifted from the SUSE construction: bg .29, card .35,
   // muted .38, secondary .39, accent-surface .40, border .51; body ink .95,
   // secondary (muted-foreground) ink .90 - raised from .84 (OKLCH), which sat
@@ -1176,7 +1282,7 @@ export function brandThemeCss(lightPrimaryHex: string, darkPrimaryHex: string): 
   // at runtime and would otherwise leave the canvas pinned to the static SUSE ink.
   return `[data-theme="brand"] {
   color-scheme: dark;
-${v('background', t(0.29, 1))}${v('foreground', t(0.95, 0.35))}${v('foreground-canvas', t(0.95, 0.35))}${v('card', t(0.35, 1.18))}${v('card-foreground', t(0.95, 0.35))}${v('popover', t(0.35, 1.18))}${v('popover-foreground', t(0.95, 0.35))}${v('primary', accent)}${v('primary-foreground', accentFg)}${v('secondary', t(0.39, 1.27))}${v('secondary-foreground', t(0.95, 0.35))}${v('muted', t(0.38, 1.2))}${v('muted-foreground', t(0.90, 0.55))}${v('accent', t(0.40, 1.3))}${v('accent-foreground', t(0.95, 0.35))}${v('border', t(0.51, 1.45))}${v('input', t(0.51, 1.45))}${v('ring', accent)}${v('store-1', t(0.65, 0.75, acc.h))}${v('store-2', t(0.70, 0.75, acc.h))}${v('store-3', t(0.74, 0.75, acc.h))}${v('store-4', t(0.79, 0.75, acc.h))}${v('store-5', t(0.84, 0.75, acc.h))}${v('store-other', t(0.62, 0.4))}}`;
+${v('background', t(0.29, 1))}${v('foreground', t(0.95, 0.35))}${v('foreground-canvas', t(0.95, 0.35))}${v('card', t(0.35, 1.18))}${v('card-foreground', t(0.95, 0.35))}${v('popover', t(0.35, 1.18))}${v('popover-foreground', t(0.95, 0.35))}${v('primary', accent)}${v('primary-foreground', accentFg)}${textDecl ? `${textDecl}\n` : ''}${v('secondary', t(0.39, 1.27))}${v('secondary-foreground', t(0.95, 0.35))}${v('muted', t(0.38, 1.2))}${v('muted-foreground', t(0.90, 0.55))}${v('accent', t(0.40, 1.3))}${v('accent-foreground', t(0.95, 0.35))}${v('border', t(0.51, 1.45))}${v('input', t(0.51, 1.45))}${v('ring', accent)}${v('store-1', t(0.65, 0.75, acc.h))}${v('store-2', t(0.70, 0.75, acc.h))}${v('store-3', t(0.74, 0.75, acc.h))}${v('store-4', t(0.79, 0.75, acc.h))}${v('store-5', t(0.84, 0.75, acc.h))}${v('store-other', t(0.62, 0.4))}}`;
 }
 
 // ── Lolly's own mark, recoloured to the guest brand ──────────────────────────
@@ -1295,7 +1401,7 @@ export const UNSAVED_SEL: Readonly<Record<ChromeThemeName, string>> = {
  * ones, starting from the design system's own red when it declares one and
  * from the theme's static fill otherwise.
  */
-function chromeSurfaceBlock(theme: ChromeThemeName, chrome: ChromeTheme, dangerRed: string | null): string {
+function chromeSurfaceBlock(theme: ChromeThemeName, chrome: ChromeTheme, dangerRed: string | null, primary: string | null): string {
   const decls: string[] = [];
   for (const { key, names } of CHROME_SLOTS) {
     const hex = key ? chrome[key] : null;
@@ -1309,6 +1415,12 @@ function chromeSurfaceBlock(theme: ChromeThemeName, chrome: ChromeTheme, dangerR
   const text = red ? dangerText(red, [...resting, chrome.hover, ...washed]) : null;
   const textTriple = text ? hexToHslTriple(text) : null;
   if (textTriple) decls.push(`  --destructive-text: ${textTriple};`);
+  // The accent for words, walked against the pack's surfaces: the theme's
+  // primary when the design system sets one, else the static primary the
+  // theme keeps.
+  const fillHex = primary ?? STATIC_PRIMARY[theme];
+  const accent = accentTextDecl(fillHex, accentTextGrounds(resting, [chrome.hover], fillHex));
+  if (accent) decls.push(accent);
   return `${CHROME_SEL[theme]} {\n${decls.join('\n')}\n}`;
 }
 
@@ -1337,8 +1449,8 @@ export function chromeBrandCss(
   dangerRed?: string | null,
 ): string {
   return [
-    accentBlock(':root, [data-theme="light"]', light.primary),
-    accentBlock('[data-theme="dark"]', dark.primary),
+    accentBlock(':root, [data-theme="light"]', light.primary, 'light'),
+    accentBlock('[data-theme="dark"]', dark.primary, 'dark'),
     // The brand theme is CONSTRUCTED, not accent-patched: surfaces from the
     // light primary's hue, accent from the dark primary (see brandThemeCss).
     light.primary && dark.primary ? brandThemeCss(light.primary, dark.primary) : '',
@@ -1348,7 +1460,7 @@ export function chromeBrandCss(
     // wins over the construction, and before the High contrast blocks.
     ...CHROME_THEMES.map(theme => {
       const surfaces = chrome?.[theme];
-      return surfaces ? chromeSurfaceBlock(theme, surfaces, dangerRed ?? null) : '';
+      return surfaces ? chromeSurfaceBlock(theme, surfaces, dangerRed ?? null, theme === 'light' ? light.primary : dark.primary) : '';
     }),
     chrome ? unsavedBlocks(chrome.unsaved) : '',
     // High contrast, per theme and gated on the attribute, so a user with no
@@ -1359,12 +1471,18 @@ export function chromeBrandCss(
     // only the ring. Dark and brand always state the brand's pair, because
     // tokens.css's static one would otherwise win there. In every theme the
     // ring follows that fill wherever it reads 3:1 on the high-contrast page,
-    // cards and popovers (see visibleRing).
+    // cards and popovers (see visibleRing). Each block also states the accent
+    // for words, the brand's primary walked to Lc 75 on the surfaces in force
+    // there, because tokens.css's static value in the same gated shape would
+    // otherwise win. Light and dark pack chrome steps aside under High
+    // contrast, so those two measure against Lolly's High contrast surfaces.
     hcAccentBlock('html[data-a11y-contrast="high"]:not([data-theme="dark"]):not([data-theme="brand"])',
       light.primary, light.onPrimary, false,
-      surfaceHexes(THEME_SURFACES.lightHigh, ['background', 'card', 'popover'])),
+      surfaceHexes(THEME_SURFACES.lightHigh, ['background', 'card', 'popover']), [],
+      (fill) => accentTextSurfaces('light', fill, true)),
     hcAccentBlock('html[data-a11y-contrast="high"][data-theme="dark"]', dark.primary, dark.onPrimary, true,
-      surfaceHexes(THEME_SURFACES.darkHigh, ['background', 'card', 'popover'])),
+      surfaceHexes(THEME_SURFACES.darkHigh, ['background', 'card', 'popover']), [],
+      (fill) => accentTextSurfaces('dark', fill, true)),
     // The brand theme wears the DARK primary as its accent (brandThemeCss), so
     // it takes the same adjustment - but only when that constructed theme was
     // emitted at all. Without it the static tokens.css brand block is in
@@ -1376,9 +1494,19 @@ export function chromeBrandCss(
     // states brand chrome; docs/design-tokens.md describes both limits.
     light.primary && dark.primary
       ? hcAccentBlock('html[data-a11y-contrast="high"][data-theme="brand"]', dark.primary, dark.onPrimary, true,
-        brandSurfaceHexes(light.primary), brandSurfaceHexes(light.primary))
+        brandSurfaceHexes(light.primary), brandSurfaceHexes(light.primary),
+        (fill) => hcBrandAccentGrounds(light.primary!, fill, chrome?.brand ?? null))
       : '',
   ].filter(Boolean).join('\n');
+}
+
+/** The grounds of the brand theme under High contrast, for accent words: the
+ *  pack's brand chrome when it has one (brand chrome stays in force there),
+ *  else the surfaces brandThemeCss built. */
+function hcBrandAccentGrounds(lightPrimary: string, fill: string, brandChrome: ChromeTheme | null): string[] {
+  return brandChrome
+    ? accentTextGrounds([brandChrome.page, brandChrome.raised, brandChrome.overlay, brandChrome.muted], [brandChrome.hover], fill)
+    : brandAccentGrounds(lightPrimary, fill);
 }
 
 /** localStorage mirror of the chrome sheet's exact text, which index.html's

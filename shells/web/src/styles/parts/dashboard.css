@@ -83,7 +83,7 @@
 .dash-tab-icon svg { width: calc(18px * var(--a11y-fs)); height: calc(18px * var(--a11y-fs)); display: block; }
 .dash-tab.is-active {
   background: hsl(var(--card));
-  color: hsl(var(--primary));
+  color: hsl(var(--primary-text));
   border-color: hsl(var(--border));
   box-shadow: 0 1px 3px hsl(0 0% 0% / .07);
 }
@@ -118,9 +118,9 @@
   background: color-mix(in srgb, var(--ui-color-surface-muted) 45%, transparent); color: var(--ui-color-text-default); text-decoration: none;
   font-size: var(--fs-sm); font-weight: 650;
 }
-.dash-yours-tool:hover { background: var(--ui-color-surface-muted); color: var(--ui-color-action-primary); text-decoration: none; }
+.dash-yours-tool:hover { background: var(--ui-color-surface-muted); color: var(--ui-color-text-accent); text-decoration: none; }
 .dash-yours-tool:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 2px; }
-.dash-yours-tool svg { width: calc(15px * var(--a11y-fs)); height: calc(15px * var(--a11y-fs)); color: var(--ui-color-action-primary); flex: none; }
+.dash-yours-tool svg { width: calc(15px * var(--a11y-fs)); height: calc(15px * var(--a11y-fs)); color: var(--ui-color-text-accent); flex: none; }
 
 .dash-sec-head { margin: 0 0 1.05rem; }
 .dash-sec-title { margin: 0; font-size: calc(.95rem * var(--a11y-fs)); font-weight: 700; letter-spacing: -.01em; }
@@ -129,7 +129,7 @@
   color: hsl(var(--muted-foreground)); font-size: calc(.84rem * var(--a11y-fs)); line-height: 1.55;
 }
 .dash-sec-desc strong { color: hsl(var(--foreground)); }
-.dash-sec-desc a, .dash-foot a, .dash-store-note a, .dash-store-headline a { color: hsl(var(--primary)); }
+.dash-sec-desc a, .dash-foot a, .dash-store-note a, .dash-store-headline a { color: hsl(var(--primary-text)); }
 
 /* ── Collapsible primary sections (device · palette · catalogue · capabilities) ──
    Each folds the whole card down to its title bar, reusing the reference-panel
@@ -210,7 +210,7 @@
 .dash-store-donut-c { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
 .dash-store-donut-c strong { font-size: calc(1.7rem * var(--a11y-fs)); font-weight: 700; letter-spacing: -0.02em; }
 .dash-store-donut-c span { font-size: var(--fs-md); color: var(--ui-color-text-muted); margin-top: 0.1rem; }
-.dash-store-donut-c em { font-size: var(--fs-xs); font-style: normal; font-weight: 700; color: var(--ui-color-action-primary); margin-top: 0.28rem; letter-spacing: 0.02em; }
+.dash-store-donut-c em { font-size: var(--fs-xs); font-style: normal; font-weight: 700; color: var(--ui-color-text-accent); margin-top: 0.28rem; letter-spacing: 0.02em; }
 @media (prefers-reduced-motion: reduce) { .dash-donut-arc { transition: none; } }
 
 /* ── This device - a full-width collapsible section. Six big readouts, the machine
@@ -282,7 +282,7 @@
 .dashboard-view .fmt-track { height: .5rem; border-radius: var(--radius-pill); }
 .dashboard-view .fmt-fill { border-radius: var(--radius-pill); }
 .dashboard-view .activity-meta { font-size: var(--fs-md); margin: 1rem 0 0; }
-.dashboard-view .activity-meta .activity-fav { color: var(--ui-color-action-primary); font-weight: 650; }
+.dashboard-view .activity-meta .activity-fav { color: var(--ui-color-text-accent); font-weight: 650; }
 .dashboard-view .activity-meta .activity-fav::after { content: " →"; opacity: .6; }
 .dashboard-view .storage-hint-text { margin: 0; color: hsl(var(--muted-foreground)); font-size: var(--fs-lg); line-height: 1.6; }
 
@@ -501,14 +501,14 @@
   color: hsl(var(--muted-foreground));
 }
 .dash-cap-peek li { position: relative; padding-left: .85rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.dash-cap-peek li::before { content: '›'; position: absolute; left: 0; color: hsl(var(--primary) / .7); font-weight: 700; }
+.dash-cap-peek li::before { content: '›'; position: absolute; left: 0; color: hsl(var(--primary-text) / .7); font-weight: 700; }
 
 .dash-cap-foot { display: flex; align-items: center; gap: .5rem; margin-top: .1rem; padding-top: .55rem; border-top: 1px solid hsl(var(--border)); }
 .dash-cap-n { flex: 0 0 auto; font-size: calc(.6rem * var(--a11y-fs)); font-weight: 700; padding: .12rem .45rem; border-radius: var(--radius-pill); background: hsl(var(--muted)); color: hsl(var(--muted-foreground)); }
-.dash-cap-more { margin-left: auto; font-size: var(--fs-xs); font-weight: 700; color: hsl(var(--primary)); opacity: .7; transform: translateX(-2px); transition: opacity var(--dur-1) ease, transform var(--dur-1) ease; }
+.dash-cap-more { margin-left: auto; font-size: var(--fs-xs); font-weight: 700; color: hsl(var(--primary-text)); opacity: .7; transform: translateX(-2px); transition: opacity var(--dur-1) ease, transform var(--dur-1) ease; }
 .dash-cap-card:hover .dash-cap-more, .dash-cap-card:focus-visible .dash-cap-more { opacity: 1; transform: none; }
 .dash-cap-feat { padding: 0; margin: 0; }
-.dash-cap-feat dd a { color: hsl(var(--primary)); }
+.dash-cap-feat dd a { color: hsl(var(--primary-text)); }
 
 /* Build-up: cards float in, staggered, when the grid scrolls into view (JS adds
    [data-build] + .is-in; without JS/reduced-motion they're just visible). */

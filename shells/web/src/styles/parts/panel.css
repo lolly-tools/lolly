@@ -204,7 +204,12 @@ input.lp-head-name:focus {
   font-weight: var(--ui-type-weight-label);
   text-transform: uppercase;
   letter-spacing: var(--ui-type-tracking-label);
-  color: color-mix(in srgb, var(--ui-color-border-default) 70%, var(--ui-color-text-muted));
+  /* The muted ink, the band head's own (.lp-band-head below): every theme and
+     every pack's room holds it at 4.5:1 on its resting surfaces (tokens.css,
+     lib/brand-chrome.ts chromeIssues). The band stays the quiet tier through
+     its size, case and tracking and the faint rule after it, not through a
+     faded ink; the old border-and-muted mix read about 2:1. */
+  color: var(--ui-color-text-muted);
 }
 .lp-band-label::after {
   content: '';
@@ -298,7 +303,7 @@ input.lp-head-name:focus {
   text-align: start;
   cursor: pointer;
 }
-.lp-sec-head:hover { color: var(--ui-color-action-primary); background: hsl(var(--background) / .1); }
+.lp-sec-head:hover { color: var(--ui-color-text-accent); background: hsl(var(--background) / .1); }
 .lp-sec-head:focus-visible { outline: none; }
 .lp-sec-head > .lp-sec-name {
   min-width: 0;
@@ -646,7 +651,7 @@ html[data-a11y-text="large"] .lp-row--wide > .lp-control { grid-column: 1 / -1; 
   color: var(--ui-color-text-default);
   font-size: var(--ui-type-help);
 }
-.lp-status > .lp-status-icon { flex: none; display: inline-flex; color: var(--ui-color-action-primary); }
+.lp-status > .lp-status-icon { flex: none; display: inline-flex; color: var(--ui-color-text-accent); }
 .lp-status > .lp-status-icon svg { width: var(--ui-size-icon-md); height: var(--ui-size-icon-md); }
 .lp-status-copy { min-width: 0; display: flex; flex-direction: column; gap: var(--sp-1); }
 .lp-status-copy > strong { font-size: var(--ui-type-field); text-transform: uppercase; letter-spacing: var(--ui-type-tracking-label); }
@@ -692,7 +697,7 @@ html[data-a11y-text="large"] .lp-row--wide > .lp-control { grid-column: 1 / -1; 
   color: var(--ui-color-text-muted);
 }
 .lp-details > summary > span { flex: 1 1 auto; min-width: 0; }
-.lp-details > summary:hover { color: var(--ui-color-action-primary); }
+.lp-details > summary:hover { color: var(--ui-color-text-accent); }
 .lp-details > summary:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 2px; }
 /* Closed is the resting state, so the caret points along rather than down. The
    section head spells this with aria-expanded; a <details> has `open`. */
