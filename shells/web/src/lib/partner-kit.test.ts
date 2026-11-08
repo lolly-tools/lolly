@@ -11,7 +11,8 @@ import { JSDOM } from 'jsdom';
 import type { ExportPartner } from '@lolly-tools/core/host-v1';
 import type { PartnerKitV1 } from '@lolly-tools/core/partner-kit-v1';
 import { designRecordEnvironment } from '../../../../engine/src/metadata.ts';
-import { followPiecePartner, setWorkspaceCompany, setWorkspaceProgramme } from './workspace-templates.ts';
+import { setWorkspaceCompany, setWorkspaceProgramme } from './workspace-templates.ts';
+import { followPiecePartner } from './partner-kit-state.ts';
 
 const dom = new JSDOM('<!doctype html><html><body></body></html>', { url: 'https://work.example/' });
 for (const k of ['window', 'document', 'HTMLElement', 'Element', 'Node', 'Event', 'localStorage']) {

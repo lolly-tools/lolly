@@ -847,7 +847,7 @@ export async function templatePick(tview: ToolViewCtx): Promise<void> {
   // The partner this work is made for, which the export records beside the design
   // system while the record is on (plans/82 M3). Null outside a partner programme.
   // It follows the piece's kit attachment, released with the mount.
-  const { followPiecePartner } = await import('../../lib/workspace-templates.ts');
+  const { followPiecePartner } = await import('../../lib/partner-kit-state.ts');
   tview.mountLifecycle.add('partner record', followPiecePartner(runtime));
 }
 

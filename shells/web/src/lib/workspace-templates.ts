@@ -17,7 +17,6 @@
 import type { AssetRef, ExportPartner } from '@lolly-tools/core/host-v1';
 import type { InputValue } from '../../../../engine/src/inputs.ts';
 import type { TemplateVariant } from './template-source.ts';
-import { onPieceKitChange, pieceKit, pieceKitData } from './partner-kit-state.ts';
 
 /** What a workspace template entry says about itself, before its values are read. */
 export interface WorkspaceTemplate {
@@ -151,27 +150,6 @@ export function workspacePartner(): ExportPartner | null {
   if (company && (company.revision ?? 0) > 0) out.company = { id: company.id, label: company.name, revision: company.revision! };
   if (programme) out.programme = { id: programme.id, label: programme.name };
   return out.company || out.programme ? out : null;
-}
-
-/**
- * Keep a piece's partner record with its attachment, and tell the runtime's subscribers
- * (the export card among them) when the record changes. Returns the way to stop.
- */
-export function followPiecePartner(runtime: { setPartner(partner: ExportPartner | null): void; refresh?(): void }): () => void {
-  let last = '';
-  const update = (): void => {
-    const partner = workspacePartner();
-    const kit = pieceKit(runtime);
-    const next = kit && partner?.company && pieceKitData(runtime)?.id === partner.company.id ? { ...partner, kit } : partner;
-    const key = JSON.stringify(next);
-    if (key === last) return;
-    const first = last === '';
-    last = key;
-    runtime.setPartner(next);
-    if (!first) runtime.refresh?.();
-  };
-  update();
-  return onPieceKitChange(update);
 }
 
 /** The longest a first visit waits to learn the person's company. */

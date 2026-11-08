@@ -220,7 +220,8 @@ test('set by the host, shown before the export, and the card\'s one switch takes
 });
 
 test('a piece with no attachment, a detached piece or another company\'s kit records no kit', async () => {
-  const { followPiecePartner, setWorkspaceCompany } = await import('../shells/web/src/lib/workspace-templates.ts');
+  const { setWorkspaceCompany } = await import('../shells/web/src/lib/workspace-templates.ts');
+  const { followPiecePartner } = await import('../shells/web/src/lib/partner-kit-state.ts');
   const { dropPieceState, notifyPieceKit, setPieceState } = await import('../shells/web/src/lib/partner-kit-state.ts');
   const renders: Rec[] = [];
   const runtime = await createRuntime(tool(), host(renders, snapshot()), {});

@@ -45,7 +45,7 @@ import { isDesignSystemId } from './design-system.ts';
 import { brandPageAddress } from './brand-page-address.ts';
 import { modeAxis, readTokenAxes } from './token-axes.ts';
 import { resolveTokenSelection } from './token-selection.ts';
-import { readPartnerKitAttachment } from './url-mode.ts';
+import { readPartnerKitAttachment } from './partner-kit-attachment.ts';
 
 /** The slice of the host bridge this module needs: an optional profile source. */
 export interface MetadataHost {
