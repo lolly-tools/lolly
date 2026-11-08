@@ -103,6 +103,7 @@ import type { VideoJobHost } from '../lib/video-jobs.ts';
 
 import { UPLOAD_ACCEPT, isPdfUpload, isPptxUpload } from '../lib/upload-types.ts';
 import { tryStoreModelUpload, tryStoreRadianceUpload } from '../lib/model-upload.ts';
+import { currentPiece, partnerMarkIds } from '../lib/partner-kit-state.ts';
 export { UPLOAD_ACCEPT, isPdfUpload, isPptxUpload };
 
 type TabId = 'library' | 'uploads' | 'sessions' | 'projects' | 'tools' | 'templates';
@@ -576,7 +577,7 @@ async function render(
             <div class="asset-picker-typebar" role="group" aria-label="${escapeHtml(t('Filter by type'))}" hidden></div>
             <div class="asset-picker-catbar" role="group" aria-label="${escapeHtml(t('Filter by category'))}" hidden></div>
           </div>
-          <section class="asset-picker-recents" hidden></section>
+          <section class="asset-picker-partner" hidden></section><section class="asset-picker-recents" hidden></section>
           <section class="asset-picker-favourites" hidden></section>
           <section class="asset-picker-library">
             <div class="asset-picker-loading">${t('Loading…')}</div>
@@ -1277,11 +1278,7 @@ async function render(
     }
     userEl.innerHTML = inner;
     if (treatable) { ensureTreatmentDefs(); retreatPhotoCards(); }
-    refreshLottieThumbs();
-    refreshAudioThumbs();
-    refreshTextThumbs();
-    refreshMotionThumbs();
-    markIncompatibleTiles(); // fade-not-hide: dim tiles this slot can't accept
+    refreshCardThumbs();
   }
 
   /**
@@ -1658,11 +1655,11 @@ async function render(
   function afterLibraryPaint(): void {
     retintThemableCards();
     retreatPhotoCards();
-    refreshLottieThumbs();
-    refreshAudioThumbs();
-    refreshTextThumbs();
-    refreshMotionThumbs();
-    markIncompatibleTiles(); // fade-not-hide: dim tiles this slot can't accept
+    refreshCardThumbs();
+  }
+  // The thumbnails a painted card set needs, then fade-not-hide: dim tiles this slot can't accept.
+  function refreshCardThumbs(): void {
+    refreshLottieThumbs(); refreshAudioThumbs(); refreshTextThumbs(); refreshMotionThumbs(); markIncompatibleTiles();
   }
 
   // Fade-not-hide (plans/162): a still-image family slot shows the whole visual
@@ -1804,7 +1801,17 @@ async function render(
   // or the favourites set change; unaffected by the search box (it's a fixed shortcut).
   /** The pinned "Recent" section (plans/134 P1): recently picked assets that
    *  this pick could still place, newest first, capped at 8. */
+  /** The partner kit's marks first (plans/82 M8), when the piece being edited carries a
+   *  kit: the company's own served logos, under "Partner". */
+  function renderPartnerMarks(): void {
+    const el = root.querySelector<HTMLElement>('.asset-picker-partner');
+    const items = partnerMarkIds(currentPiece()).map(id => libraryCandidates.find(ref => assetBaseId(ref.id) === id)).filter((r): r is AssetRef => !!r);
+    if (el) { el.hidden = !items.length; el.innerHTML = items.length ? sectionHtml({ key: 'partner', label: t('Partner') }, items.length, '', `<div class="asset-picker-grid">${items.map(card).join('')}</div>`) : ''; }
+    if (items.length) afterLibraryPaint();
+  }
+
   function renderRecents(): void {
+    renderPartnerMarks();
     if (!recentsEl) return;
     const order = readRecentAssets();
     if (!order.length) { recentsEl.hidden = true; recentsEl.innerHTML = ''; return; }
@@ -1821,11 +1828,7 @@ async function render(
       items.length, '',
       `<div class="asset-picker-grid">${items.map(card).join('')}</div>`,
     );
-    refreshLottieThumbs();
-    refreshAudioThumbs();
-    refreshTextThumbs();
-    refreshMotionThumbs();
-    markIncompatibleTiles(); // fade-not-hide: dim tiles this slot can't accept
+    refreshCardThumbs();
   }
 
   function renderFavourites(): void {
@@ -1849,13 +1852,7 @@ async function render(
       favItems.length, '',
       `<div class="asset-picker-grid">${favItems.map(card).join('')}</div>`,
     );
-    retintThemableCards();
-    retreatPhotoCards();
-    refreshLottieThumbs();
-    refreshAudioThumbs();
-    refreshTextThumbs();
-    refreshMotionThumbs();
-    markIncompatibleTiles(); // fade-not-hide: dim tiles this slot can't accept
+    afterLibraryPaint();
   }
 
   // ── Saved creations (previous single-tool sessions) ────────────────────────
