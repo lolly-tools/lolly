@@ -4157,7 +4157,7 @@ var ENGINE_VERSION;
 var init_version = __esm({
   "engine/src/version.ts"() {
     "use strict";
-    ENGINE_VERSION = "1.341.0";
+    ENGINE_VERSION = "1.342.0";
   }
 });
 
@@ -49461,7 +49461,7 @@ var init_c2pa2 = __esm({
     INTENT_RULES = /^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$/;
     APPROVAL_ID = /^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$/;
     ISO_INSTANT = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,9})?(?:Z|[+-]\d{2}:\d{2})$/;
-    APPROVAL_TEMPLATE_ID = /^[A-Za-z0-9][A-Za-z0-9_-]{0,63}(?:\/[A-Za-z0-9][A-Za-z0-9_-]{0,127}){0,2}$/;
+    APPROVAL_TEMPLATE_ID = /^[A-Za-z0-9][A-Za-z0-9_-]{0,63}(?:\/[A-Za-z0-9_-]{1,128}){0,2}$/;
     FILE_APPROVAL_KEYS = ["approvalId", "decidedAt", "reviewedSha256"];
     TEMPLATE_APPROVAL_KEYS = ["approvalId", "decidedAt", "covers", "templateId", "templateVersion", "exampleSha256"];
     isTemplateApproval = (a) => a.covers !== void 0;
