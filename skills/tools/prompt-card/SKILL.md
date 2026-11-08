@@ -5,7 +5,7 @@ description: "Operate the Lolly Prompt Card tool (prompt-card) using its declare
 
 # Prompt Card
 
-Tool ID: `prompt-card`. Tool version: `1.0.1`. Engine range: `^1.0.0`.
+Tool ID: `prompt-card`. Tool version: `1.1.0`. Engine range: `^1.0.0`.
 
 Typeset a long prompt into one compact, legible image for a multimodal model - image input is often cheaper than the same words as text tokens.
 

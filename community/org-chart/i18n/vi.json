@@ -65,8 +65,6 @@
   "inputs.boxes.fields.weight.options.700": "Đậm",
   "inputs.boxes.fields.weight.options.800": "Siêu đậm",
   "inputs.boxes.fields.font.label": "Phông chữ",
-  "inputs.boxes.fields.font.options.SUSE": "SUSE Sans",
-  "inputs.boxes.fields.font.options.SUSE Mono": "SUSE Mono",
   "inputs.boxes.fields.lineHeight.label": "Giãn dòng",
   "inputs.boxes.fields.tracking.label": "Giãn cách chữ",
   "inputs.boxes.fields.ligatures.label": "Chữ ghép",

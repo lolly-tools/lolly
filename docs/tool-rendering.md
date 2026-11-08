@@ -145,6 +145,25 @@ The web shell and the CLI paint the same variables, and the lead variables come 
 
 A role's variable exists only on a design system that declares that role, so a tool meant for any design system reads the slots above and leaves a role's name to the person choosing a colour. For a colour input that offers only the colourway leads, see [Colourway leads as swatches](/info/tool-inputs.html#colourway-leads-as-swatches). A tool whose colours are its content can opt out of colourway switching with `tokenAxes` ([Colours that are the content](/info/tool-manifest.html#colours-that-are-the-content)).
 
+### Design system fonts in templates, styles and hooks
+
+A tool sets its words in the design system's fonts and never in a font of its own, so one tool draws the type of each design system. The canvas carries the fonts as two CSS custom properties:
+
+| Variable | Holds |
+| --- | --- |
+| `--font-brand` | The text font (`font.brand`) |
+| `--font-mono` | The mono font for code, data and readouts (`font.mono`) |
+
+A design system that declares no text font or no mono font gets the app's default, SUSE or SUSE Mono, so a tool needs no second rule for that case. Give a fallback all the same, as in `var(--font-brand, 'SUSE', ui-sans-serif, system-ui, sans-serif)` or `var(--font-mono, 'SUSE Mono', ui-monospace, monospace)`, because a copy of the file outside the app has no variables.
+
+Three places cannot read a CSS variable, and each one needs the font names instead:
+
+- **Text that a hook writes into an `<svg>`.** A render with no browser reads the `font-family` attribute and not the stylesheet. Read the names with `host.tokens.resolve('{font.brand}')` and `host.tokens.resolve('{font.mono}')`. The `brandFonts` region in `community/_shared/brand-fonts.js` does this and returns lists ready for an attribute: add its marker lines to your `hooks.js` and run `pnpm run sync:shared` to fill them.
+- **Text drawn on a canvas.** Read `--font-brand` off the canvas with `getComputedStyle`, and wait for `document.fonts.load()` before the first draw. Otherwise the canvas draws a fallback font.
+- **An SVG drawn as a picture.** An SVG loaded as an image cannot reach the fonts of the page. Put the font into the SVG as a `data:` URL in an `@font-face` rule before you draw the picture. `host.text.fontUrl()` gives the file.
+
+Do not start a font list with a system font such as `system-ui` or `sans-serif`. The page then draws the font of the device, and an export cannot outline that font, so the page and the file disagree even for Latin text.
+
 ### What the vector export keeps
 
 SVG and PDF exports are not screenshots. The exporter reads each element's computed style and re-emits it as vector, so the CSS you choose decides whether a feature survives as geometry, is rasterised into the file or is dropped. A row marked *raster* still exports correctly, but that one element becomes a bitmap inside an otherwise vector file.

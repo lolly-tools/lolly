@@ -22,7 +22,7 @@ import { join, resolve } from 'node:path';
 import { gzipSync, gunzipSync } from 'node:zlib';
 
 import {
-  designSessionValues, OPEN_ROUTE_MAX_BYTES, OpenSessionError, packageDesignSession, serveSessionOnce, sessionExportQuery, sessionQuery, shortenUrls,
+  designSessionValues, OPEN_ROUTE_MAX_BYTES, OpenSessionError, openSessionInPage, packageDesignSession, serveSessionOnce, sessionExportQuery, sessionQuery, shortenUrls,
 } from '../packages/node-shell/src/open-session.ts';
 import { DESKTOP_REQUEST_MAX_BYTES, PAGE_DESIGN_SYSTEM_GLOBAL, exportUrl, fitsDesktopRequest, renderDesignViaSession, seedPageDesignSystem } from '../packages/node-shell/src/webshell-render.ts';
 import { AUTOMATION_DESIGN_SYSTEM_GLOBAL } from '../shells/web/src/bridge/tokens.ts';
@@ -132,6 +132,68 @@ test('the file route answers one GET and detaches only when the caller finishes'
     serveSessionOnce(fakePage() as never, 'http://127.0.0.1:9', '/p', new Uint8Array(OPEN_ROUTE_MAX_BYTES + 1)),
     (err: unknown) => err instanceof OpenSessionError && /over the 64 MB/.test(err.message),
   );
+});
+
+/**
+ * A page that never asks for the file and never reaches the tool, the failure card or
+ * the chooser, and answers the probe with `probe` (or fails it with an Error).
+ */
+function silentPage(probe: Record<string, unknown> | Error) {
+  const never = (): Promise<never> => new Promise<never>(() => {});
+  return Object.assign(fakePage(), {
+    async goto() {},
+    waitForFunction: never,
+    locator: () => ({ waitFor: never, innerText: async () => '' }),
+    async evaluate() { if (probe instanceof Error) throw probe; return probe; },
+  });
+}
+
+test('a shell that has not asked for the file is called out of date only when it sent #/open to the gallery', async () => {
+  const { bytes } = await packageDesignSession({ boxes: [{ id: 'f', kind: 'frame', x: 0, y: 0, w: 100, h: 100, bg: '#ffffff' }] }, { label: 'Silent' });
+  const failure = async (probe: Record<string, unknown> | Error): Promise<string> => {
+    try {
+      await openSessionInPage(silentPage(probe) as never, 'http://127.0.0.1:9', bytes, 'Design.lolly', { askTimeoutMs: 20 });
+    } catch (error) {
+      assert.ok(error instanceof OpenSessionError, String(error));
+      return error.message;
+    }
+    assert.fail('the open resolved');
+  };
+  const outOfDate = /predates plan 291|Rebuild it|no #\/open route/;
+
+  const shown = { hash: '#/open?lolly=%2F__lolly-open%2Fx%2FDesign.lolly', card: null, loading: false, webgpu: 'ready', error: null, gallery: false };
+  // A busy machine: the boot screen or a route mount is still up.
+  const loading = await failure({ ...shown, loading: true, webgpu: null });
+  assert.match(loading, /was still loading after 20 ms, so it had not asked for Design\.lolly yet\. The machine may be too busy: try again\./);
+  assert.doesNotMatch(loading, outOfDate);
+
+  // The route has mounted (it rewrote the address and put its card up), so the shell is current.
+  const opening = await failure({ ...shown, hash: '#/open', card: 'opening' });
+  assert.match(opening, /started opening Design\.lolly but had not fetched it after 20 ms\. The shell has the #\/open route/);
+  assert.doesNotMatch(opening, /predates plan 291|Rebuild it/);
+
+  // Booted onto the gallery with the address untouched: an unknown route, so this shell has none.
+  const old = await failure({ ...shown, gallery: true });
+  assert.match(old, /opened the gallery for #\/open and never asked for Design\.lolly, so it has no #\/open route \(it predates plan 291 W8\)\. Rebuild it/);
+
+  const webgpu = await failure({ ...shown, webgpu: 'unsupported' });
+  assert.match(webgpu, /stopped at its WebGPU startup check, so it never asked for Design\.lolly/);
+  assert.doesNotMatch(webgpu, outOfDate);
+
+  // A current shell whose view failed to mount shows its Reload card: its words, not a guess.
+  const failed = await failure({ ...shown, error: 'This view didn’t finish loading. Reload to try again.' });
+  assert.match(failed, /showed an error before it asked for Design\.lolly: This view didn’t finish loading\. Reload to try again\./);
+  assert.doesNotMatch(failed, outOfDate);
+
+  // Anything else is not taken as proof either way.
+  const other = await failure({ ...shown });
+  assert.match(other, /did not ask for Design\.lolly within 20 ms, and the page is not opening it\. Check that the shell is current/);
+  assert.doesNotMatch(other, /predates plan 291/);
+
+  // A page too busy to answer is not called out of date either.
+  const mute = await failure(new Error('Target page, context or browser has been closed'));
+  assert.match(mute, /did not ask for Design\.lolly within 20 ms, and the page did not answer/);
+  assert.doesNotMatch(mute, /predates plan 291/);
 });
 
 test('a long address in an error message is cut to its head and its length', () => {

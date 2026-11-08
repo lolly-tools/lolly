@@ -65,8 +65,6 @@
   "inputs.boxes.fields.weight.options.700": "볼드",
   "inputs.boxes.fields.weight.options.800": "엑스트라볼드",
   "inputs.boxes.fields.font.label": "글꼴",
-  "inputs.boxes.fields.font.options.SUSE": "SUSE Sans",
-  "inputs.boxes.fields.font.options.SUSE Mono": "SUSE Mono",
   "inputs.boxes.fields.lineHeight.label": "줄 간격",
   "inputs.boxes.fields.tracking.label": "커닝",
   "inputs.boxes.fields.ligatures.label": "합자",

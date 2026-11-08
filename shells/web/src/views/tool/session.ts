@@ -600,6 +600,132 @@ export async function bakeFraming(tview: ToolViewCtx, key: string): Promise<void
     announce(t('That image couldn’t be saved. The framing is unchanged.'), { assertive: true });
   }
 }
+
+/** The ports wireDocumentAgents needs from wireLiveEditing's mount: the values it destructured
+ *  from the view at entry, the document id, Design's canvas ports and the invitations mount. */
+interface DocumentAgentsPorts extends Pick<ToolViewCtx, 'actionsEl' | 'isPresent' | 'mountLifecycle' | 'nativeH' | 'nativeW' | 'runtime' | 'stageEl' | 'toolId' | 'viewEl'> {
+  canvasEl: HTMLElement;
+  documentId: string;
+  design: NonNullable<Parameters<typeof import('../tool-agent-editor.ts').toolAgentEditor>[1]['design']>;
+  mountToolAgentInvitations: typeof import('../tool-agent-guidance.ts').mountToolAgentInvitations;
+}
+/** AI agents in a Design document: the browser pairing, the desktop listener, Ask an agent and
+ *  the invitations. Returns the handlers and the state the toolbox menu reads. */
+function wireDocumentAgents(tview: ToolViewCtx, ports: DocumentAgentsPorts): {
+  desktopAgents: boolean;
+  openAgentLink: () => Promise<void>;
+  openAskAgent: () => Promise<void>;
+  askAgentNothingFound: () => boolean;
+  invitationsReady: Promise<void>;
+} {
+  const { actionsEl, canvasEl, documentId, isPresent, mountLifecycle, mountToolAgentInvitations, nativeH, nativeW, runtime, stageEl, toolId, viewEl } = ports;
+  // AI agents in this document (plans/289 D1). In a browser the tab pairs with a
+  // code (agentLink); in the desktop app the app listens while Allow AI control
+  // is on and this view answers (desktopServing). Both end with the view.
+  const desktopAgents = isTauriShell() && !isTauriMobileShell();
+  let agentLink: import('../../lib/live-agent-connect.ts').AgentLink | null = null;
+  let desktopServing: import('../../lib/live-agent-desktop.ts').DesktopServing | null = null;
+  let desktopPill: import('../agent-connect.ts').AgentPill | null = null;
+  mountLifecycle.add('agent-link', () => { agentLink?.disconnect(); desktopServing?.stop(); desktopPill?.remove(); });
+  const liveEditorFactory = mountToolSiteEditor(tview, stageEl, () => import('../tool-agent-editor.ts').then(({ toolAgentEditor }) => toolAgentEditor(tview, {
+    documentId, desktop: desktopAgents, canvas: canvasEl,
+    design: ports.design, size: () => ({ width: nativeW, height: nativeH }),
+  })));
+  const startDesktopServing = async (): Promise<void> => {
+    const invoke = tauriInvoke();
+    if (!invoke || desktopServing || !viewEl.isConnected || !aiAllowed('agents')) return;
+    const [{ serveDesktop, setListener }, { mountAgentPill }, editor] = await Promise.all([
+      import('../../lib/live-agent-desktop.ts'), import('../agent-connect.ts'), liveEditorFactory(),
+    ]);
+    if (!viewEl.isConnected || desktopServing) return;
+    await setListener(invoke, true);
+    const serving = serveDesktop(invoke, editor, {
+      onActivity: (event) => {
+        if (event.method === 'hello' && !desktopPill) {
+          desktopPill = mountAgentPill(viewEl, {
+            client: () => serving.session().client(),
+            pause: value => serving.session().pause(value),
+            disconnect: () => { serving.disconnect(); desktopPill?.remove(); desktopPill = null; announce(t('The AI agent was disconnected.')); },
+          });
+        }
+        desktopPill?.activity(event.method, event.note, event.change);
+      },
+    });
+    desktopServing = serving;
+  };
+  if (desktopAgents && toolId === 'design' && !isPresent) {
+    void import('../../lib/live-agent-desktop.ts').then(({ allowAiControl }) => { if (allowAiControl()) void startDesktopServing().catch(() => {}); });
+    // Allow AI control sits under the `agents` policy: a withdrawal stops the
+    // listener at once, and a later grant restarts it if the person had it on.
+    const offPolicy = aiPolicy.subscribe(() => {
+      void import('../../lib/live-agent-desktop.ts').then(async ({ aiControlPermitted, allowAiControl, setListener }) => {
+        if (!viewEl.isConnected) return;
+        if (!aiControlPermitted() && desktopServing) {
+          desktopServing.stop();
+          desktopServing = null;
+          desktopPill?.remove();
+          desktopPill = null;
+          const invoke = tauriInvoke();
+          if (invoke) await setListener(invoke, false).catch(() => {});
+        } else if (allowAiControl() && !desktopServing) {
+          void startDesktopServing().catch(() => {});
+        }
+      });
+    });
+    mountLifecycle.add('agent-policy', offPolicy);
+  }
+  // Ask an agent (device agents without local MCP): the desktop app's own agent
+  // CLIs, one request at a time. Detection runs when the panel opens; one that
+  // finds nothing hides the row until this document is opened again.
+  let askAgentNothingFound = false;
+  const openAskAgent = async (): Promise<void> => {
+    const invoke = tauriInvoke();
+    if (!invoke || !aiAllowed('agents')) return;
+    const { openAgentAsk } = await import('../agent-ask.ts');
+    if (!viewEl.isConnected) return;
+    openAgentAsk({ viewEl, invoke, editor: liveEditorFactory, onNothingFound: () => { askAgentNothingFound = true; } });
+  };
+  const invitationsReady = mountToolAgentInvitations(tview, liveEditorFactory);
+  const openAgentLink = async (): Promise<void> => {
+    const { agentRelayBase } = await import('../../lib/agent-invitation-host.ts');
+    if (agentRelayBase()) {
+      await invitationsReady;
+      if (viewEl.isConnected) showShareDialog(runtime, actionsEl, tview.tool.manifest);
+      return;
+    }
+    if (desktopAgents) {
+      const [{ openAgentControl }, { allowAiControl, setAllowAiControlPref, setListener }] = await Promise.all([
+        import('../agent-connect.ts'), import('../../lib/live-agent-desktop.ts'),
+      ]);
+      if (!viewEl.isConnected) return;
+      openAgentControl({
+        allowed: allowAiControl,
+        permitted: () => aiAllowed('agents'),
+        async setAllowed(on) {
+          const invoke = tauriInvoke();
+          if (!invoke) throw new Error(t('This build cannot listen for agents.'));
+          if (on && !aiAllowed('agents')) throw new AiPolicyError();
+          if (on) { setAllowAiControlPref(true); await startDesktopServing(); return; }
+          setAllowAiControlPref(false);
+          desktopServing?.stop();
+          desktopServing = null;
+          desktopPill?.remove();
+          desktopPill = null;
+          await setListener(invoke, false);
+        },
+        connectedClient: () => (desktopServing?.session().connected() ? desktopServing.session().client() : ''),
+        disconnect: () => { desktopServing?.disconnect(); desktopPill?.remove(); desktopPill = null; },
+        renew: () => desktopServing?.renew(),
+      });
+      return;
+    }
+    const [{ openAgentConnect }, editor] = await Promise.all([import('../agent-connect.ts'), liveEditorFactory()]);
+    if (!viewEl.isConnected) return;
+    openAgentConnect({ viewEl, link: () => agentLink, setLink: (link) => { agentLink = link; }, editor });
+  };
+  return { desktopAgents, openAgentLink, openAskAgent, askAgentNothingFound: () => askAgentNothingFound, invitationsReady };
+}
+
 /** Live editing: the runtime subscriptions, the canvas edit tools and the collab wiring. */export async function wireLiveEditing(tview: ToolViewCtx): Promise<void> {
   await mountToolTextWorkspace(tview);
   const { TOOL_URL_BASE, actionsApi, actionsEl, backPillOpts, barSeq, brandVarsReady, canBulk, canSaveSession, canvasEditInput, canvasEl, collabHandle, contentEl, deckEditInput, deckLayout, docEditInput, documentLayout, editorLayout, fixedCanvasMode, frameCfg, hasTemplates, isPresent, mountLifecycle, nativeH, nativeW, outerEl, pagesCfg, pagesMode, presentAddress, profileToggle, renderFab, runtime, slot, soundToggle, stageEl, templateMeta, templateParam, templateSeededIds, themeToggle, toolId, transcribeSpec, urlFlags, urlHeight, urlWidth, viewEl } = tview;
@@ -1304,110 +1430,11 @@ export async function bakeFraming(tview: ToolViewCtx, key: string): Promise<void
         const profileApi = tview.host.profile as typeof tview.host.profile & {
           set?: (p: Profile) => Promise<void>;
         };
-        // AI agents in this document (plans/289 D1). In a browser the tab pairs with a
-        // code (agentLink); in the desktop app the app listens while Allow AI control
-        // is on and this view answers (desktopServing). Both end with the view.
-        const desktopAgents = isTauriShell() && !isTauriMobileShell();
-        let agentLink: import('../../lib/live-agent-connect.ts').AgentLink | null = null;
-        let desktopServing: import('../../lib/live-agent-desktop.ts').DesktopServing | null = null;
-        let desktopPill: import('../agent-connect.ts').AgentPill | null = null;
-        mountLifecycle.add('agent-link', () => { agentLink?.disconnect(); desktopServing?.stop(); desktopPill?.remove(); });
-        const liveEditorFactory = mountToolSiteEditor(tview, stageEl, () => import('../tool-agent-editor.ts').then(({ toolAgentEditor }) => toolAgentEditor(tview, {
-          documentId, desktop: desktopAgents, canvas: canvasEl,
-          design: () => fc.design, size: () => ({ width: nativeW, height: nativeH }),
-        })));
-        const startDesktopServing = async (): Promise<void> => {
-          const invoke = tauriInvoke();
-          if (!invoke || desktopServing || !viewEl.isConnected || !aiAllowed('agents')) return;
-          const [{ serveDesktop, setListener }, { mountAgentPill }, editor] = await Promise.all([
-            import('../../lib/live-agent-desktop.ts'), import('../agent-connect.ts'), liveEditorFactory(),
-          ]);
-          if (!viewEl.isConnected || desktopServing) return;
-          await setListener(invoke, true);
-          const serving = serveDesktop(invoke, editor, {
-            onActivity: (event) => {
-              if (event.method === 'hello' && !desktopPill) {
-                desktopPill = mountAgentPill(viewEl, {
-                  client: () => serving.session().client(),
-                  pause: value => serving.session().pause(value),
-                  disconnect: () => { serving.disconnect(); desktopPill?.remove(); desktopPill = null; announce(t('The AI agent was disconnected.')); },
-                });
-              }
-              desktopPill?.activity(event.method, event.note, event.change);
-            },
-          });
-          desktopServing = serving;
-        };
-        if (desktopAgents && toolId === 'design' && !isPresent) {
-          void import('../../lib/live-agent-desktop.ts').then(({ allowAiControl }) => { if (allowAiControl()) void startDesktopServing().catch(() => {}); });
-          // Allow AI control sits under the `agents` policy: a withdrawal stops the
-          // listener at once, and a later grant restarts it if the person had it on.
-          const offPolicy = aiPolicy.subscribe(() => {
-            void import('../../lib/live-agent-desktop.ts').then(async ({ aiControlPermitted, allowAiControl, setListener }) => {
-              if (!viewEl.isConnected) return;
-              if (!aiControlPermitted() && desktopServing) {
-                desktopServing.stop();
-                desktopServing = null;
-                desktopPill?.remove();
-                desktopPill = null;
-                const invoke = tauriInvoke();
-                if (invoke) await setListener(invoke, false).catch(() => {});
-              } else if (allowAiControl() && !desktopServing) {
-                void startDesktopServing().catch(() => {});
-              }
-            });
-          });
-          mountLifecycle.add('agent-policy', offPolicy);
-        }
-        // Ask an agent (device agents without local MCP): the desktop app's own agent
-        // CLIs, one request at a time. Detection runs when the panel opens; one that
-        // finds nothing hides the row until this document is opened again.
-        let askAgentNothingFound = false;
-        const openAskAgent = async (): Promise<void> => {
-          const invoke = tauriInvoke();
-          if (!invoke || !aiAllowed('agents')) return;
-          const { openAgentAsk } = await import('../agent-ask.ts');
-          if (!viewEl.isConnected) return;
-          openAgentAsk({ viewEl, invoke, editor: liveEditorFactory, onNothingFound: () => { askAgentNothingFound = true; } });
-        };
-        agentInvitationsReady = mountToolAgentInvitations(tview, liveEditorFactory);
-        const openAgentLink = async (): Promise<void> => {
-          const { agentRelayBase } = await import('../../lib/agent-invitation-host.ts');
-          if (agentRelayBase()) {
-            await agentInvitationsReady;
-            if (viewEl.isConnected) showShareDialog(runtime, actionsEl, tview.tool.manifest);
-            return;
-          }
-          if (desktopAgents) {
-            const [{ openAgentControl }, { allowAiControl, setAllowAiControlPref, setListener }] = await Promise.all([
-              import('../agent-connect.ts'), import('../../lib/live-agent-desktop.ts'),
-            ]);
-            if (!viewEl.isConnected) return;
-            openAgentControl({
-              allowed: allowAiControl,
-              permitted: () => aiAllowed('agents'),
-              async setAllowed(on) {
-                const invoke = tauriInvoke();
-                if (!invoke) throw new Error(t('This build cannot listen for agents.'));
-                if (on && !aiAllowed('agents')) throw new AiPolicyError();
-                if (on) { setAllowAiControlPref(true); await startDesktopServing(); return; }
-                setAllowAiControlPref(false);
-                desktopServing?.stop();
-                desktopServing = null;
-                desktopPill?.remove();
-                desktopPill = null;
-                await setListener(invoke, false);
-              },
-              connectedClient: () => (desktopServing?.session().connected() ? desktopServing.session().client() : ''),
-              disconnect: () => { desktopServing?.disconnect(); desktopPill?.remove(); desktopPill = null; },
-              renew: () => desktopServing?.renew(),
-            });
-            return;
-          }
-          const [{ openAgentConnect }, editor] = await Promise.all([import('../agent-connect.ts'), liveEditorFactory()]);
-          if (!viewEl.isConnected) return;
-          openAgentConnect({ viewEl, link: () => agentLink, setLink: (link) => { agentLink = link; }, editor });
-        };
+        const { desktopAgents, openAgentLink, openAskAgent, askAgentNothingFound, invitationsReady } = wireDocumentAgents(tview, {
+          actionsEl, canvasEl, isPresent, mountLifecycle, nativeH, nativeW, runtime, stageEl, toolId, viewEl,
+          documentId, design: () => fc.design, mountToolAgentInvitations,
+        });
+        agentInvitationsReady = invitationsReady;
         const pageController = await createPageController(tview);
         // The docs pages mapped to this tool (lib/tool-guides.ts), read when the Lolly
         // menu opens, so the row appears once the list has arrived.
@@ -1589,7 +1616,7 @@ export async function bakeFraming(tview: ToolViewCtx, key: string): Promise<void
                   void openAskAgent();
                 }
               : undefined,
-            askAgentShown: () => aiAllowed('agents') && !askAgentNothingFound,
+            askAgentShown: () => aiAllowed('agents') && !askAgentNothingFound(),
             // "Read the guide" (plan 354 D6): Design's door to the help dialog, which the
             // sidebar layouts open from the button beside the tool name.
             guide: () => {
