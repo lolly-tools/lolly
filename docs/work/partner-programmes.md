@@ -665,7 +665,7 @@ still include.
 
 ### End a partnership
 
-![End this partnership for everyone at Northwind IT after See what ending it does: two accounts with no projects or links, and the button that ends access for 2 people](shots/partner-end-dry-run.svg)
+![The End this partnership card for everyone at Northwind IT, set to end at the close of 29 November 2026 with a notice: Rita Ortiz and Nils Berg lose access, and the button schedules the end](shots/partner-end-dry-run.svg)
 
 The **End this partnership** card on the programme's page, the same card on a company's page for
 that company alone, or `POST /api/v1/programmes/exit` with a programme, a company, a domain or a
@@ -892,8 +892,10 @@ values.
 Approvals stay off for agents unless you turn them on. Give a programme token the
 `approvals.request` scope and it may ask for review of one of its own finished renders, read its own
 requests and withdraw them. Deciding stays with people. The request goes to the tool's bound
-escalation chain, or else to a chain the programme lists (`approvalChains` on
-`PUT /api/v1/programmes/:id`, with the programme's `name`); a partner's agent never reaches an internal chain by name. The approver's
+escalation chain, or else to a chain the programme lists (`approvalChains` on `PUT
+/api/v1/programmes/:id`, with the programme's `name`); a partner's agent never reaches an internal
+chain by name. A delivery to a destination that needs approval waits for the approval when the token
+holds the scope, and is refused with `403 HUMAN_APPROVAL_REQUIRED` when it does not. The approver's
 notice gives the company and the label you wrote on the token, for example "Northwind IT's agent
 (Rita's agent) asked for your review", followed by the step. The approval card adds that an agent
 asked, and that the file under review is the agent's own render, exactly as Lolly Work made the
@@ -901,17 +903,16 @@ file.
 
 A tool's policy can also let one approval cover a template's variants: with `enforce.approvalCovers`
 set to `template-variants`, approving one version of a published template that lists what partners
-may change clears every partner's
-render from it, whatever the inputs the template leaves open, such as the price or the logo. This
-is off by default. Set it in the tool's policy under **One approval covers**: **This file only**,
-the default, or **Every file from one version of a published template**. A new version, or a change to what is open or
-fixed, needs a new approval. A partner's clean render from that template version then carries the
-template's approval record in its own Content Credential: the approval, its date, the template's id
-and version and the fingerprint of the example file the reviewer saw. It never holds this file's own
-fingerprint, a name or a person. [Lolly Verify](/info/what-verify-checks.html#approval-and-intent-records)
-reads the record as "Approved as a template: inst/price-sheet v3 (SVG)". A render that is still
-marked, one in a format the approval did not cover and one from an instance with no signer carry no
-record.
+may change clears every partner's render from it, whatever the inputs the template leaves open, such
+as the price or the logo. This is off by default. Set it in the tool's policy under **One approval
+covers**: **This file only**, the default, or **Every file from one version of a published
+template**. A new version, or a change to what is open or fixed, needs a new approval. A partner's
+clean render from that template version then carries the template's approval record in its own
+Content Credential: the approval, its date, the template's id and version and the fingerprint of the
+example file the reviewer saw. It never holds this file's own fingerprint, a name or a person.
+[Lolly Verify](/info/what-verify-checks.html#approval-and-intent-records) reads the record as
+"Approved as a template: inst/price-sheet v3 (SVG)". A render that is still marked, one in a format
+the approval did not cover and one from an instance with no signer carry no record.
 
 ## Limits and quotas
 
@@ -923,7 +924,7 @@ requests, comments, storage, retention and purge, links, providers and partner p
 **Environment** or **Built-in default**. A setting left at its default reads as built-in. For
 partner programmes, the cards cover the logo and profile limits, the licence gate's mode, the
 bounds on ending a partnership, the Reopen window, the notice days and the agent token defaults,
-maxima and lifetime. `GET /api/v1/limits` gives the same list. The panel covers every
+maxima and lifetime. `GET /api/v1/limits` (`policy.edit`) gives the same list. The panel covers every
 limit a person meets. It leaves out timing cadences, clock skew tolerances, provider field lists
 and caches.
 
@@ -981,7 +982,8 @@ GET    /api/v1/catalog/rights/coverage?scope=     # how many files a mark would 
 GET    /api/v1/catalog/rights/collections         # what each collection carries to partners
 POST   /api/v1/links?dryRun=1                     # what a link would carry and hold back; staff add includeHeld: true and a note
 
-GET    /api/v1/programmes/:id/exits               # its ends and its companies', newest first, with whether Reopen is offered
+GET    /api/v1/programmes/:id/exits               # its ends and its companies', newest first, with whether Reopen is offered;
+                                                  # a scheduled end carries its endsAt, notice and projects
 GET    /api/v1/programmes/exits/:exit             # one receipt
 PUT    /api/v1/programmes/exits/:exit             # { at?, notice?, projects? } for a scheduled end; at: "now" ends it now
 DELETE /api/v1/programmes/exits/:exit             # cancel a scheduled end

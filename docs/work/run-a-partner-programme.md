@@ -370,7 +370,7 @@ ticked and press **See what ending it does**. The dry run lists Rita, her agent 
 anything else that ends, one table per kind. **Schedule the end for 30 June 2027** then schedules
 it in two steps, and the scheduled end shows on the page with **Change** and **Cancel the end**.
 
-![End this partnership for everyone at Northwind IT after See what ending it does: two accounts with no projects or links, and the button that ends access for 2 people](shots/partner-end-dry-run.svg)
+![The End this partnership card for everyone at Northwind IT, set to end at the close of 29 November 2026 with a notice: Rita Ortiz and Nils Berg lose access, and the button schedules the end](shots/partner-end-dry-run.svg)
 
 **`lw`.** The same end from a terminal:
 
