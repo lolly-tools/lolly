@@ -6,6 +6,10 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+## 1.340.0
+
+- `host.pdf.stamp` takes vector marks: `PdfStampOpts.paths` (SDK, optional, new `PdfStampPath`: `page`, `x`, `y`, `d`, `color`). `d` is SVG path data read y-down from the mark's origin at `x`, `y` in top-left PDF points, one unit a point, which is what `host.text.toPath` returns for a run shaped at that size, so a tool can stamp words in the design system's face as outlines where `texts` sets them in a standard PDF face. The shared stamp (`packages/node-shell/src/pdf.ts`, web and CLI) parses each path itself (`parseStampPath`: M, L, H, V, C, Q and Z, finite numbers rounded to a ten-thousandth of a point, whole argument groups, at most 20,000 commands; a quadratic becomes the cubic with the same shape) and refuses anything else with "a stamped path must be SVG path data". A host that predates `paths` ignores them, and its `stamps` count comes back short, so a tool can stamp `texts` instead. Sign 1.1.0 uses it for "Add today's date".
+
 ## 1.339.0
 
 - `preflight.ts`: for the CMYK TIFF (`cmyk-tiff`) and EPS (CMYK) (`eps-cmyk`), `plates.palette-unresolved` no longer says "plate count is unavailable", because those formats have the 4 process plates whatever the palette holds (`plates.process` counts them, 1.332.0). It now says what an unresolved palette leaves unchecked there: "No brand palette resolved, so the brand colours cannot be checked for ink limits or rich black. The plate count is still known: this format has only the 4 process plates." The finding's id, `needs` and evidence do not change, and `pdf-cmyk` keeps its message, since its named plates come from the palette.

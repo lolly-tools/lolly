@@ -96,11 +96,11 @@ async function pagePreview(host, f, pageNo) {
 }
 // One point-space layout drives the visible marks and the exported PDF.
 // Scale the whole group (including initials and date) to fit small pages.
-function placement(v, page, sig, ini) {
+function placement(v, page, sig, ini, dateW) {
   var pos = position(v), sw = pos.width, sh = sw * sig.height / sig.width;
   var iw = ini ? sw * .28 : 0, ih = ini ? iw * ini.height / ini.width : 0;
   var iy = sh * .35, bottom = Math.max(sh, ini ? iy + ih : 0);
-  var groupW = Math.max(sw + (ini ? 8 + iw : 0), v.date ? 56 : 0);
+  var groupW = Math.max(sw + (ini ? 8 + iw : 0), v.date ? (dateW || 56) : 0);
   var groupH = bottom + (v.date ? 15 : 0);
   var scale = Math.min(1, page.widthPt / groupW, page.heightPt / groupH);
   var width = groupW * scale, height = groupH * scale;
@@ -114,7 +114,21 @@ async function signingLayout(host, v) {
   var ink = parseInk(v.signatureInk);
   var sig = ink.paths.length ? await drawnBytes(host, v.signatureInk) : v.signature ? await imageBytes(host, v.signature) : { width: 600, height: 180 };
   var ini = v.initials ? await imageBytes(host, v.initials) : null;
-  return { page: pp.page, total: pp.total, signature: sig, initials: ini, layout: placement(v, pp.page, sig, ini) };
+  // The date is shaped for the preview and the file alike. The layout keeps 56 points for
+  // it (a Helvetica date), or the shaped width when the design system's face is wider, so
+  // a small page scales the whole group down to fit. Once placed, the date is shaped
+  // again at its final size if the group was scaled, and moved left if it would still
+  // pass the page's right edge.
+  var first = v.date ? await dateOutline(host, { text: today(), size: 10 }) : null;
+  var layout = placement(v, pp.page, sig, ini, first ? Math.max(56, first.advance) : 56);
+  if (layout.date && first) {
+    var outline = layout.date.size === 10 ? first : await dateOutline(host, layout.date);
+    if (outline) {
+      layout.date.outline = outline;
+      layout.date.x = Math.max(0, Math.min(layout.date.x, pp.page.widthPt - outline.advance));
+    }
+  }
+  return { page: pp.page, total: pp.total, signature: sig, initials: ini, layout: layout };
 }
 async function compute(ctx) {
   var v = vals(ctx.model), f = v.source, ink = parseInk(v.signatureInk), pageNo = Math.max(1, Math.round(Number(v.page) || 1));
@@ -126,6 +140,8 @@ async function compute(ctx) {
     posJson: '{}', positionWidth: 144, pageW: 612, pageH: 792, pageDisplayW: 301, signer: 'Signer', seal: Boolean(v.seal), lock: Boolean(v.lock), date: v.date !== false,
     sealText: v.seal ? 'Credential on' : 'Credential off', lockText: v.lock ? 'Password lock on' : 'Password lock off', positionText: ''
   };
+  // The date is set in the design system's text face, on the page preview as in the file.
+  o.dateFont = (await brandFonts(ctx.host)).brand;
   if (!f || !f.bytes) return o;
   o.hasFile = true; o.fileName = f.name || 'document.pdf'; o.fileSize = fmtBytes(f.size || f.bytes.length);
   if (!pdfMagic(f.bytes)) { o.error = 'That file is not a PDF.'; return o; }
@@ -142,7 +158,7 @@ async function compute(ctx) {
     o.positionText = 'x ' + round1(l.x) + ' · y ' + round1(l.y) + ' · ' + round1(l.width) + ' pt wide';
     o.xPct = l.x / p.widthPt * 100; o.yPct = l.y / p.heightPt * 100; o.wPct = l.width / p.widthPt * 100; o.hPct = l.height / p.heightPt * 100;
     o.posJson = JSON.stringify({ x: l.x, y: l.y, width: l.width });
-    o.initialsMark = l.initials; o.dateMark = o.hasSignature ? l.date : null;
+    o.initialsMark = l.initials; o.dateMark = o.hasSignature && l.date ? { text: l.date.text, x: l.date.x, y: l.date.y, size: l.date.size } : null;
     if (v.lock && v.seal) throw new Error('A password lock and a Content Credential cannot be combined: encryption would invalidate the credential. Turn one off.');
     if (v.seal && (!ctx.host.c2pa || typeof ctx.host.c2pa.sign !== 'function')) throw new Error('Content Credentials are unavailable in this app. Turn the credential off to download a visible signature.');
     if (v.lock && typeof ctx.host.pdf.lock !== 'function') throw new Error('AES-256 PDF locking is unavailable in this app.');
@@ -150,6 +166,24 @@ async function compute(ctx) {
   } catch (e) { o.error = String(e && e.message || e); }
   o.pending = false;
   return o;
+}
+// The date in the design system's text face, outlined: the first family in the face's
+// list that this app can shape. Null when it has no shaper or no file for the face, and
+// the date is then stamped as text in a standard PDF face, as before.
+async function dateOutline(host, date) {
+  if (!host || !host.text || typeof host.text.fontUrl !== 'function' || typeof host.text.toPath !== 'function') return null;
+  var list = (await brandFonts(host)).brand.split(',');
+  for (var i = 0; i < list.length; i++) {
+    var family = list[i].trim().replace(/^['"]+|['"]+$/g, '');
+    if (!family || BF_GENERIC.test(family)) continue;
+    try {
+      var face = await host.text.fontUrl(family, { weight: 400 });
+      if (!face || !face.url) continue;
+      var run = await host.text.toPath({ text: date.text, fontUrl: face.url, fontSize: date.size, variations: face.variations });
+      if (run && run.d && !run.notdef) return { d: run.d, advance: Number(run.advanceWidth) || 0 };
+    } catch (e) { /* the next family, or text */ }
+  }
+  return null;
 }
 function onInit(ctx) { return compute(ctx); }
 function onInput(ctx) { return compute(ctx); }
@@ -164,8 +198,18 @@ async function exportFile(ctx) {
   var r = await signingLayout(host, v), l = r.layout, page = Math.max(1, Math.round(Number(v.page) || 1));
   var images = [{ bytes: r.signature.bytes, page: page, x: l.x, y: l.y, width: l.width, height: l.height }];
   if (r.initials && l.initials) images.push(Object.assign({ bytes: r.initials.bytes, page: page }, l.initials));
-  var texts = l.date ? [Object.assign({ page: page }, l.date)] : [];
-  var stamped = await host.pdf.stamp(f.bytes, { images: images, texts: texts }), bytes = stamped.bytes, signer = await profileName(host);
+  var texts = l.date ? [{ page: page, text: l.date.text, x: l.date.x, y: l.date.y, size: l.date.size }] : [];
+  var stamped = null;
+  if (l.date && l.date.outline) {
+    // The date as outlines in the design system's face, its baseline one size below the
+    // top of its box, where stamped text puts it. A host older than stamped paths
+    // ignores them and counts fewer stamps, so the date then goes in as text after all.
+    var path = { page: page, x: l.date.x, y: l.date.y + l.date.size, d: l.date.outline.d, color: '#141414' };
+    stamped = await host.pdf.stamp(f.bytes, { images: images, texts: [], paths: [path] });
+    if (!stamped || stamped.stamps !== images.length + 1) stamped = null;
+  }
+  if (!stamped) stamped = await host.pdf.stamp(f.bytes, { images: images, texts: texts });
+  var bytes = stamped.bytes, signer = await profileName(host);
   if (v.seal) {
     if (!host.c2pa || typeof host.c2pa.sign !== 'function') throw new Error('Content Credentials are not available in this app; turn the credential off or use a supported shell.');
     var ingredients = typeof host.c2pa.readIngredients === 'function' ? await host.c2pa.readIngredients(f.bytes) : [];
@@ -178,3 +222,36 @@ async function exportFile(ctx) {
   }
   return { bytes: bytes, mime: 'application/pdf', filename: base(f.name) + '-signed.pdf' };
 }
+
+// === lolly:shared brandFonts - generated from community/_shared/brand-fonts.js; edit there and run npm run sync:shared ===
+// The design system's text face (font.brand) and mono face (font.mono) as
+// font-family lists, for an SVG attribute, an inline style or a canvas font.
+// A tool never names a face of its own. A headless SVG has no stylesheet, so
+// the CLI, the TUI and the MCP server read the attribute to outline the text,
+// and the page draws the same family. A design system that declares no such
+// face gets the shell's own default, SUSE or SUSE Mono, as --font-brand and
+// --font-mono do. Family names pass the shell's brand-vars.ts rule; a name
+// with a space or a digit is quoted.
+var BF_FAMILY = /^[A-Za-z0-9][A-Za-z0-9 _-]{0,63}$/;
+var BF_GENERIC = /^(serif|sans-serif|monospace|cursive|fantasy|system-ui|ui-(sans-serif|serif|monospace|rounded)|emoji|math|fangsong)$/i;
+function bfFamilyList(value, fallback, generic) {
+  var names = [];
+  var list = Array.isArray(value) ? value : (typeof value === 'string' && value.charAt(0) !== '{' ? value.split(',') : []);
+  for (var i = 0; i < list.length; i++) {
+    var n = String(list[i]).trim().replace(/^['"]+|['"]+$/g, '').trim();
+    if (!BF_FAMILY.test(n) || BF_GENERIC.test(n)) continue;
+    var dup = false;
+    for (var j = 0; j < names.length; j++) if (names[j].toLowerCase() === n.toLowerCase()) dup = true;
+    if (!dup) names.push(n);
+  }
+  if (!names.length) names.push(fallback);
+  return names.map(function (f) { return /^[A-Za-z_-][A-Za-z0-9_-]*$/.test(f) ? f : "'" + f + "'"; }).join(', ') + ', ' + generic;
+}
+async function brandFonts(host) {
+  var out = { brand: bfFamilyList(null, 'SUSE', 'sans-serif'), mono: bfFamilyList(null, 'SUSE Mono', 'monospace') };
+  if (!host || !host.tokens || !host.tokens.resolve) return out;
+  try { out.brand = bfFamilyList(await host.tokens.resolve('{font.brand}'), 'SUSE', 'sans-serif'); } catch (e) { /* the shell's default face stands */ }
+  try { out.mono = bfFamilyList(await host.tokens.resolve('{font.mono}'), 'SUSE Mono', 'monospace'); } catch (e) { /* the shell's default face stands */ }
+  return out;
+}
+// === /lolly:shared brandFonts ===
