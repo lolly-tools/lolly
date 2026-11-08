@@ -99,6 +99,7 @@ import { buildSync } from 'esbuild';
 // The app's icon registry: pure path data with no imports, so the static build can use
 // the very glyphs the app draws (plan 277: the docs reading components).
 import { icon as appIcon } from '../shells/web/src/lib/icons.ts';
+import { lightboxIcons } from '../shells/web/src/lib/docs-lightbox.ts';
 // The /info locale list (LOLLY_INFO_LOCALES), parsed the same way the shell reads it so
 // the pages this build writes and the shell's docs links agree.
 import { parseInfoLocales } from '../shells/web/src/lib/info-locales.ts';
@@ -2726,6 +2727,48 @@ function readingAttr(content: string): string {
     icon: docIcon('adm-clipboard'),
   };
   return ` data-reading="${escAttr(JSON.stringify(words))}"`;
+}
+
+/**
+ * The picture viewer (lib/docs-lightbox.ts): a screenshot, diagram or figure opens full
+ * screen to zoom into. The in-app reader imports the same module; bundled once here, like
+ * the reading enhancer. Its words come from the page (lightboxAttr), in the page's
+ * language. Back closes it through one same-address history entry (sameEntryBack), which
+ * moves no anchor and fires no hashchange.
+ */
+let _lightboxJs: string | null = null;
+function lightboxScript(): string {
+  if (_lightboxJs === null) {
+    const out = buildSync({
+      entryPoints: [resolve(repoRoot, 'shells/web/src/lib/docs-lightbox.ts')],
+      bundle: true, write: false, format: 'iife', globalName: 'LollyDocsLightbox',
+      minify: true, platform: 'browser', target: 'es2019', logLevel: 'silent',
+    });
+    _lightboxJs = out.outputFiles[0]!.text.trim();
+  }
+  // The glyphs come from the app's own registry at build time, once for every page.
+  const icons = JSON.stringify(lightboxIcons((name) => appIcon(name))).replace(/</g, '\\u003c');
+  return `<script>\n${_lightboxJs}\n(function(){var root=document.querySelector('main.docs-content');if(!root)return;`
+    + `var l=null;try{l=JSON.parse(root.getAttribute('data-lightbox')||'null')}catch(e){}if(!l)return;`
+    + `var lang=document.documentElement.lang||undefined;function num(n){try{return Number(n).toLocaleString(lang)}catch(e){return String(n)}}`
+    + `function fill(s,k,v){return String(s).split(k).join(v)}`
+    + `LollyDocsLightbox.enhanceDocsLightbox(root,{back:LollyDocsLightbox.sameEntryBack(window),icons:${icons},labels:{`
+    + `enlarge:function(a){return a?fill(l.enlarge||'Enlarge: {alt}','{alt}',a):(l.enlargeBare||'Enlarge picture')},`
+    + `viewer:l.viewer||'Picture viewer',close:l.close||'Close',zoomIn:l.zoomIn||'Zoom in',zoomOut:l.zoomOut||'Zoom out',`
+    + `fit:l.fit||'Fit to screen',previous:l.previous||'Previous picture',next:l.next||'Next picture',`
+    + `position:function(n,t){return fill(fill(l.position||'{n} of {total}','{n}',num(n)),'{total}',num(t))}}});})();\n</script>`;
+}
+
+/** The viewer's words for this page, in its language, as one attribute on the article.
+ *  Only pages with a picture the viewer opens carry the attribute. */
+function lightboxAttr(content: string): string {
+  if (!/class="(?:shot|docs-diagram)[" ]|class="(?:showcase|docs-figure|asset-cred)"/.test(content)) return '';
+  const words = {
+    enlarge: t('Enlarge: {alt}'), enlargeBare: t('Enlarge picture'), viewer: t('Picture viewer'),
+    close: t('Close'), zoomIn: t('Zoom in'), zoomOut: t('Zoom out'), fit: t('Fit to screen'),
+    previous: t('Previous picture'), next: t('Next picture'), position: t('{n} of {total}'),
+  };
+  return ` data-lightbox="${escAttr(JSON.stringify(words))}"`;
 }
 
 let _coversJs: string | null = null;
@@ -6697,6 +6740,7 @@ const DOCS_JS = [
   SHOT_CRED_SCRIPT, SCROLL_REVEAL_SCRIPT, LIQUID_GLASS_SCRIPT, HERO_CANVAS_SCRIPT,
   VERIFY_POPOUT_SCRIPT, docsRankScript(), DOCS_SEARCH_SCRIPT, HAMBURGER_SCRIPT,
   LANG_PICKER_SCRIPT, ORIGIN_SCRIPT, readingScript(), stripScript(), contentsScript(), agentCopyScript(), MAST_CLEAR_SCRIPT,
+  lightboxScript(),
 ].map(stripScriptTags).join('\n;\n');
 const fingerprint = (s: string): string =>
   createHash('sha256').update(s).digest('base64url').slice(0, 16);
@@ -6760,7 +6804,7 @@ function wrapPage(lang: Lang, page: Page, content: string, ogSlugs: Set<string>,
   const mast = (isLanding || page.generated || page.immersive) ? null : docsMasthead(content, page.slug, { strip: '', edition, eyebrow: nav.eyebrow });
   const article = mast ? mast.rest : content;
   const lead = mast ? '' : edition;
-  const reading = readingAttr(content);
+  const reading = readingAttr(content) + lightboxAttr(content);
   const sectionPages = isLanding ? null
     : page.rail ? { title: page.rail.mobileTitle, body: page.rail.mobile }
     : sheetPagesHtml(lang, page.pathway ?? 'builders', activeHref);

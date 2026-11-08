@@ -54,6 +54,8 @@ import { hydrateDocsTryIt } from '../lib/docs-tryit.ts';
 import { icon } from '../lib/icons.ts';
 import { createScope } from '../lib/dispose.ts';
 import { enhanceDocsReading } from '../lib/docs-enhance.ts';
+import { enhanceDocsLightbox, lightboxIcons, type DocsLightboxLabels } from '../lib/docs-lightbox.ts';
+import { registerOverlay } from '../lib/overlay-back.ts';
 import { enhancePathwaysStrip, revealCurrentPage } from '../lib/docs-strip.ts';
 import { docsClipboardWriter, docsCopyLabels } from '../lib/docs-clipboard.ts';
 import { enhanceDocsFormats } from '../lib/docs-formats.ts';
@@ -310,6 +312,21 @@ export async function mountDocs(
   node.setAttribute('data-skip-target', '');
   contentEl.replaceChildren(node);
 
+  // The picture viewer (lib/docs-lightbox.ts, the module /info runs too), bound once the
+  // article is in the document so each picture's on-screen twin can be read. System Back
+  // closes it through the shell's one overlay stack, like every dialog in the app.
+  scope.add(enhanceDocsLightbox(node, {
+    labels: docsLightboxLabels(),
+    icons: lightboxIcons((name) => icon(name)),
+    back: (dismiss) => {
+      const entry = registerOverlay({
+        nav: () => { entry.disown(); dismiss(); },
+        pop: () => { entry.disown(); dismiss(); },
+      });
+      return () => entry.release();
+    },
+  }));
+
   // Scrolling a heading into view within #view is lib/docs-rehost.ts's
   // scrollToHeading: it opens every closed <details> above the target first (the
   // landing's FAQ is a list of `details.faq-item`, and the static page runs its own
@@ -523,4 +540,24 @@ export async function mountDocs(
   posture();
 
   armViewEnter(viewEl, '.docs-content, .docs-landing');
+}
+
+/** The picture viewer's words in the reader's language. Raw, because each one is set as
+ *  an attribute or as text, never as markup. */
+function docsLightboxLabels(): DocsLightboxLabels {
+  return {
+    enlarge: (alt) => (alt ? tRaw('Enlarge: {alt}', { alt }) : tRaw('Enlarge picture')),
+    viewer: tRaw('Picture viewer'),
+    close: tRaw('Close'),
+    zoomIn: tRaw('Zoom in'),
+    zoomOut: tRaw('Zoom out'),
+    fit: tRaw('Fit to screen'),
+    previous: tRaw('Previous picture'),
+    next: tRaw('Next picture'),
+    position: (n, total) => tRaw('{n} of {total}', { n: localNumber(n), total: localNumber(total) }),
+  };
+}
+
+function localNumber(n: number): string {
+  try { return n.toLocaleString(currentLang()); } catch { return String(n); }
 }

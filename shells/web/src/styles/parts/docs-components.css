@@ -331,3 +331,243 @@ html[data-a11y-motion="reduce"] :is(.docs-content, .docs-compact-nav) .doc-detai
   .docs-content .docs-pager { grid-template-columns: minmax(0, 1fr); }
   .docs-content .docs-pager-empty { display: none; }
 }
+
+/* ── Picture viewer: a screenshot, diagram or figure full screen ─────────────
+   Behaviour: lib/docs-lightbox.ts, which both readers run. The page keeps its own
+   pinch-zoom; only the open viewer takes gestures (touch-action: none on the
+   viewer, nowhere else).
+
+   The trigger is a small round button on the picture's top corner, opposite the
+   credential glyph on the bottom corner. With a mouse it shows when the pointer
+   reaches the picture or the keyboard reaches the button; on a touch screen it rests
+   visible, so a reader can tell the picture opens. A tap on the picture itself opens
+   it too. */
+.docs-content :is(.docs-diagram, .showcase, .asset-cred)[data-doc-lightbox] { position: relative; }
+.docs-content .asset-cred[data-doc-lightbox] { display: block; }
+.docs-content [data-doc-lightbox] > img,
+.docs-content [data-doc-lightbox] .showcase-stage,
+.docs-content [data-doc-lightbox] > .docs-figure-art { cursor: zoom-in; }
+.docs-content .doc-lightbox-open {
+  position: absolute;
+  inset-block-start: 0.55rem;
+  inset-inline-end: 0.55rem;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  width: calc(32px * var(--a11y-fs, 1));
+  height: calc(32px * var(--a11y-fs, 1));
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-pill, 999px);
+  background: color-mix(in srgb, var(--ui-color-surface-canvas) 88%, transparent);
+  color: var(--ui-color-text-muted);
+  box-shadow: 0 1px 3px #00000024, var(--ui-edge-faint, 0 0 0 0 transparent);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  cursor: zoom-in;
+  transition: opacity var(--ui-motion-feedback, 150ms), color var(--ui-motion-feedback, 150ms), background var(--ui-motion-feedback, 150ms);
+}
+.docs-content .doc-lightbox-open svg { display: block; width: calc(16px * var(--a11y-fs, 1)); height: calc(16px * var(--a11y-fs, 1)); }
+.docs-content .doc-lightbox-open:hover { color: var(--ui-color-text-default); background: var(--ui-color-surface-canvas); }
+.docs-content .doc-lightbox-open:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 2px; opacity: 1; }
+@media (hover: hover) and (pointer: fine) {
+  .docs-content .doc-lightbox-open { opacity: 0; }
+  .docs-content [data-doc-lightbox]:hover > .doc-lightbox-open,
+  .docs-content .doc-lightbox-open:focus-visible { opacity: 1; }
+}
+/* A diagram is centred in a wider box: the button follows the image's own corner. */
+.docs-content .docs-diagram[data-doc-lightbox] > .doc-lightbox-open {
+  inset-inline-end: calc((100% - min(var(--doc-lb-w, 100000) * 1px, 100%)) / 2 + 0.55rem);
+}
+/* The in-app reader's live tool embed covers the shot; the viewer would show the still. */
+.docs-content .shot--live > .doc-lightbox-open { display: none; }
+@media print { .docs-content .doc-lightbox-open { display: none; } }
+@media (prefers-reduced-motion: reduce) { .docs-content .doc-lightbox-open { transition: none; } }
+html[data-a11y-motion="reduce"] .docs-content .doc-lightbox-open { transition: none; }
+
+/* The viewer itself: a full-window modal dialog on the theme's own canvas, so a
+   light screenshot opens on light and its dark twin on dark. */
+dialog.doc-lightbox {
+  position: fixed;
+  inset: 0;
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  overflow: hidden;
+  background: transparent;
+  color: var(--ui-color-text-default);
+  z-index: 2147483000;
+  touch-action: none;
+  overscroll-behavior: contain;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+dialog.doc-lightbox:not([open]) { display: none; }
+dialog.doc-lightbox::backdrop { background: transparent; }
+.doc-lightbox-scrim {
+  position: absolute;
+  inset: 0;
+  background: color-mix(in srgb, var(--ui-color-surface-canvas) 96%, transparent);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  opacity: calc(1 - var(--doc-lb-drag, 0) * 0.75);
+}
+.doc-lightbox-stage { position: absolute; inset: 0; overflow: hidden; touch-action: none; cursor: default; }
+.doc-lightbox-pic {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform-origin: 0 0;
+  overflow: hidden;
+  border-radius: var(--ui-radius-card, 10px);
+  background: var(--ui-color-surface-canvas);
+  box-shadow: var(--ui-elevation-floating, 0 8px 30px #0003);
+  cursor: zoom-in;
+}
+.doc-lightbox-pic > img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  margin: 0;
+  border-radius: 0;
+  box-shadow: none;
+  -webkit-user-drag: none;
+  pointer-events: none;
+}
+/* A figure brings its own ground and corners. */
+.doc-lightbox-pic--art { background: none; box-shadow: none; border-radius: 0; overflow: visible; }
+.doc-lightbox-art { position: relative; border-radius: 1.2em; overflow: hidden; text-align: start; }
+.doc-lightbox-art > svg { display: block; width: 100%; height: auto; }
+dialog.doc-lightbox[data-zoomed] .doc-lightbox-pic { cursor: grab; }
+dialog.doc-lightbox[data-dragging] .doc-lightbox-pic { cursor: grabbing; }
+
+/* The bar: the count on the start side, the zoom controls and Close on the end side. */
+.doc-lightbox-bar {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: max(10px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) 10px max(12px, env(safe-area-inset-left));
+  pointer-events: none;
+}
+.doc-lightbox-bar > * { pointer-events: auto; }
+.doc-lightbox-count {
+  padding: 4px 10px;
+  border-radius: var(--radius-pill, 999px);
+  background: color-mix(in srgb, var(--ui-color-surface-canvas) 85%, transparent);
+  color: var(--ui-color-text-muted);
+  font-size: calc(13px * var(--a11y-fs, 1));
+  font-variant-numeric: tabular-nums;
+}
+/* One picture on the page: no count, but its place keeps the tools at the end. */
+dialog.doc-lightbox:not([data-many]) .doc-lightbox-count { visibility: hidden; }
+.doc-lightbox-tools { display: flex; gap: 8px; }
+.doc-lightbox-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  box-sizing: border-box;
+  width: var(--ui-size-target, 44px);
+  height: var(--ui-size-target, 44px);
+  margin: 0;
+  padding: 0;
+  border: 1px solid var(--ui-color-border-default);
+  border-radius: var(--radius-pill, 999px);
+  background: color-mix(in srgb, var(--ui-color-surface-canvas) 85%, transparent);
+  color: var(--ui-color-text-default);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  font: inherit;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: background var(--ui-motion-feedback, 150ms), opacity var(--ui-motion-feedback, 150ms);
+}
+.doc-lightbox-btn svg { width: calc(20px * var(--a11y-fs, 1)); height: calc(20px * var(--a11y-fs, 1)); }
+.doc-lightbox-btn:hover { background: var(--ui-color-surface-muted); }
+.doc-lightbox-btn:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 2px; }
+.doc-lightbox-btn[aria-disabled="true"] { opacity: 0.4; cursor: default; }
+.doc-lightbox-btn[aria-disabled="true"]:hover { background: color-mix(in srgb, var(--ui-color-surface-canvas) 85%, transparent); }
+.doc-lightbox-btn[hidden] { display: none; }
+/* Previous and next follow the reading direction. */
+[dir="rtl"] .doc-lightbox-nav svg { transform: scaleX(-1); }
+
+/* The foot: the caption, with previous and next either side of it on a narrow
+   screen. A long caption scrolls inside its own box. */
+.doc-lightbox-foot {
+  position: absolute;
+  inset-block-end: 0;
+  inset-inline: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: calc(var(--ui-size-target, 44px) + 20px);
+  padding: 10px 16px max(12px, env(safe-area-inset-bottom));
+  pointer-events: none;
+}
+.doc-lightbox-foot[hidden] { display: none; }
+dialog.doc-lightbox[data-many] .doc-lightbox-foot { padding-inline: calc(var(--ui-size-target, 44px) + 24px); }
+/* On glass, like the controls, so it stays readable over a zoomed picture. */
+.doc-lightbox-caption {
+  max-width: 62ch;
+  max-height: 30vh;
+  margin: 0;
+  padding: 8px 14px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  touch-action: pan-y;
+  pointer-events: auto;
+  border-radius: var(--ui-radius-card, 10px);
+  background: color-mix(in srgb, var(--ui-color-surface-canvas) 85%, transparent);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  color: var(--ui-color-text-default);
+  font-size: calc(15px * var(--a11y-fs, 1));
+  line-height: 1.45;
+  text-align: center;
+  text-wrap: balance;
+  -webkit-user-select: text;
+  user-select: text;
+}
+.doc-lightbox-caption:empty { display: none; }
+.doc-lightbox-nav {
+  position: absolute;
+  inset-block-end: max(12px, env(safe-area-inset-bottom));
+}
+.doc-lightbox-nav[data-lb="prev"] { inset-inline-start: 12px; }
+.doc-lightbox-nav[data-lb="next"] { inset-inline-end: 12px; }
+@media (min-width: 48em) {
+  .doc-lightbox-nav { inset-block-end: auto; inset-block-start: calc(50% - var(--ui-size-target, 44px) / 2); }
+  .doc-lightbox-nav[data-lb="prev"] { inset-inline-start: 20px; }
+  .doc-lightbox-nav[data-lb="next"] { inset-inline-end: 20px; }
+  dialog.doc-lightbox[data-many] .doc-lightbox-foot { padding-inline: 16px; }
+  .doc-lightbox-caption { font-size: calc(16px * var(--a11y-fs, 1)); }
+  .doc-lightbox-count { font-size: calc(14px * var(--a11y-fs, 1)); }
+}
+
+/* Opening and closing: the scrim and the controls fade while the picture grows from,
+   or shrinks back to, its place on the page (the script moves the picture). */
+dialog.doc-lightbox :is(.doc-lightbox-scrim, .doc-lightbox-bar, .doc-lightbox-foot, .doc-lightbox-nav) {
+  transition: opacity var(--ui-motion-overlay, 220ms) ease;
+}
+dialog.doc-lightbox[data-entering] :is(.doc-lightbox-scrim, .doc-lightbox-bar, .doc-lightbox-foot, .doc-lightbox-nav),
+dialog.doc-lightbox[data-leaving] :is(.doc-lightbox-scrim, .doc-lightbox-bar, .doc-lightbox-foot, .doc-lightbox-nav) { opacity: 0; }
+dialog.doc-lightbox[data-dragging] :is(.doc-lightbox-bar, .doc-lightbox-foot, .doc-lightbox-nav) {
+  opacity: calc(1 - var(--doc-lb-drag, 0) * 1.5);
+  transition: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  dialog.doc-lightbox :is(.doc-lightbox-scrim, .doc-lightbox-bar, .doc-lightbox-foot, .doc-lightbox-nav, .doc-lightbox-btn) { transition: none; }
+}
+html[data-a11y-motion="reduce"] dialog.doc-lightbox :is(.doc-lightbox-scrim, .doc-lightbox-bar, .doc-lightbox-foot, .doc-lightbox-nav, .doc-lightbox-btn) { transition: none; }
