@@ -49,6 +49,8 @@ These settings live on your profile, so they travel in a profile export and arri
 
 The same card holds **Sound**, a gentle layer of assistive sounds for what you do (arriving in the gallery, a Content Credentials result, closing a panel), and **Neurospicy Mode**, a calm focus track. Turning Neurospicy on opens a small player in the corner that follows you across the app. There you pick a track, skip, set the volume and minimise or close the player. Tracks include procedural *Lolly Sings* tunes, ambient loops and beats, your own audio and internet radio stations, which need a connection. Both are off by default and remembered, and turning Sound off mutes the focus track too. The profile menu and **This device** carry the same switch.
 
+Under the Sound switch, a slider sets what those sounds are made of. Toward the round **Bouba** blob they become soft drops, bubbles and a little bass; toward the spiky **Kiki** star they become dry ticks, scratches and metal; the middle keeps Lolly's chimes and notes. If wet, bubbly sounds or sharp, scratchy ones are hard for you to bear, move toward the other end. The slider works while Sound is off, so you can choose before anything plays, and letting go of the slider plays a short sample.
+
 The interface is keyboard-navigable, custom controls carry labels for screen readers and each tool's live preview is exposed as one labelled image describing what it shows.
 
 ### Storage

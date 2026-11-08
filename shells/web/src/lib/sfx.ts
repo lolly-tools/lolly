@@ -34,9 +34,22 @@
  *    an explicit stored preference - localStorage mirror or the profile - always
  *    wins, so anyone who has turned sound on keeps it. (Reduced-motion is about
  *    MOTION, not audio, so it is not what silences sounds here.)
+ *  - Shaped: every cue plays in the listener's sound shape (getSfxShape), a slider from
+ *    Bouba (round drops, bubbles and bass) through Lolly's chimes to Kiki (ticks, scratches
+ *    and metal). The voices are written once; ./sfx-voices.ts redraws them in each material.
+ *  - No speech: interface sounds never speak or sing words.
  */
 
-export type SfxName = 'click' | 'pickup' | 'drop' | 'delete' | 'toggle' | 'navigate' | 'shutter' | 'shuffle' | 'coverflow' | 'gallery' | 'save' | 'saveProfile' | 'whoosh' | 'vacuum' | 'fanfare' | 'twinkle' | 'shimmer' | 'ding' | 'victory' | 'braaam' | 'sign' | 'warn' | 'ghost' | 'shoo' | 'reel' | 'aperture' | 'scribble' | 'waveform' | 'flick' | 'optIn' | 'optOut' | 'byebye' | 'key' | 'slider' | 'scrub' | 'tick' | 'select' | 'hydraulicOpen' | 'hydraulicClose' | 'verify' | 'dashboard' | 'newSession' | 'leaveSession' | 'whisper' | 'crystal' | 'land';
+/** Every interface cue, by name. A control picks one with `data-sfx="<name>"`. */
+export const SFX_NAMES = [
+  'click', 'pickup', 'drop', 'delete', 'toggle', 'navigate', 'shutter', 'shuffle', 'coverflow', 'gallery',
+  'save', 'saveProfile', 'whoosh', 'vacuum', 'fanfare', 'twinkle', 'shimmer', 'ding', 'victory', 'braaam',
+  'sign', 'warn', 'ghost', 'shoo', 'reel', 'aperture', 'scribble', 'waveform', 'flick', 'optIn', 'optOut',
+  'byebye', 'key', 'slider', 'scrub', 'tick', 'select', 'hydraulicOpen', 'hydraulicClose', 'verify',
+  'dashboard', 'newSession', 'leaveSession', 'whisper', 'crystal', 'land',
+  'expand', 'collapse', 'switchOn', 'switchOff', 'preview',
+] as const;
+export type SfxName = typeof SFX_NAMES[number];
 
 /** localStorage mirror of the mute flag ('1' muted / '0' on). Canonical store is the profile. */
 const MUTE_KEY = 'lolly:sfxMuted';
@@ -103,6 +116,37 @@ export function hydrateSfxVolume(profileVolume: number | undefined): void {
   if (typeof profileVolume === 'number' && Number.isFinite(profileVolume)) setSfxVolume(profileVolume);
 }
 
+// ── sound shape (0 Bouba … 0.5 chimes … 1 Kiki) ─────────────────────────────────
+// What interface sounds are made of. The centre is Lolly's own chimes and notes, and is
+// the default. Toward Bouba they become round drops, bubbles and bass; toward Kiki, dry
+// ticks, scratches and metal. Listeners who find one kind hard to bear can move toward the other.
+const SHAPE_KEY = 'lolly:sfxShape';
+export const SFX_SHAPE_DEFAULT = 0.5;
+let sfxShape = readInitialShape();
+
+function readInitialShape(): number {
+  try {
+    const s = localStorage.getItem(SHAPE_KEY);
+    if (s !== null) { const v = parseFloat(s); if (Number.isFinite(v)) return Math.max(0, Math.min(1, v)); }
+  } catch { /* no storage - the chimes by default */ }
+  return SFX_SHAPE_DEFAULT;
+}
+
+export function getSfxShape(): number { return sfxShape; }
+
+/** Set + persist (localStorage mirror) the sound shape; the next cue plays in the new shape. Profile
+ *  write is the caller's job (mirrors setSfxMuted). */
+export function setSfxShape(v: number): void {
+  if (!Number.isFinite(v)) return;
+  sfxShape = Math.max(0, Math.min(1, v));
+  try { localStorage.setItem(SHAPE_KEY, String(sfxShape)); } catch { /* best-effort */ }
+}
+
+/** Reconcile from the profile (canonical) at boot, like hydrateSfxMuted. */
+export function hydrateSfxShape(profileShape: number | undefined): void {
+  if (typeof profileShape === 'number' && Number.isFinite(profileShape)) setSfxShape(profileShape);
+}
+
 // ── audio graph (lazy, shared) ─────────────────────────────────────────────────
 
 type WindowWithWebkitAudio = Window & typeof globalThis & { webkitAudioContext?: typeof AudioContext };
@@ -148,8 +192,8 @@ function flushPending(): void {
   if (!muted) {
     const a = audio();
     if (a) {
-      try { if (pendingCue) m.VOICES[pendingCue]?.(a.ctx, a.master); } catch { /* best-effort */ }
-      try { if (pendingTheme) (m.THEME_VOICES[pendingTheme] ?? m.THEME_VOICES.light)?.(a.ctx, a.master); } catch { /* best-effort */ }
+      try { if (pendingCue) m.playCue(pendingCue, a.ctx, a.master, sfxShape); } catch { /* best-effort */ }
+      try { if (pendingTheme) m.playThemeCue(pendingTheme, a.ctx, a.master, sfxShape); } catch { /* best-effort */ }
     }
   }
   pendingCue = null;
@@ -162,7 +206,7 @@ export function playSfx(name: SfxName): void {
   const a = audio();
   if (!a) return;
   const m = voicesMod;
-  if (m) { try { m.VOICES[name]?.(a.ctx, a.master); } catch { /* audio is best-effort, never throws into the UI */ } return; }
+  if (m) { try { m.playCue(name, a.ctx, a.master, sfxShape); } catch { /* audio is best-effort, never throws into the UI */ } return; }
   pendingCue = name;   // pre-warm window - flushed when the boot-warmed import resolves
   void ensureVoices();
 }
@@ -197,19 +241,6 @@ export function playScrubTick(): void {
   playSfx('scrub');
 }
 
-// Speak a control's NAME in a robot voice - build-time clips at /voice/<slug>.mp3 (see
-// scripts/build-voice-clips.ts). Lazy-loaded + cached per slug; respects the sound mute.
-// A control opts in with `data-voice="<label>"`, spoken by the global click delegation.
-const voiceCache = new Map<string, HTMLAudioElement>();
-export function playVoice(text: string): void {
-  if (muted || typeof Audio === 'undefined') return;
-  const slug = text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
-  if (!slug) return;
-  let a = voiceCache.get(slug);
-  if (!a) { a = new Audio(`/voice/${slug}.mp3`); a.volume = 0.6; a.preload = 'auto'; voiceCache.set(slug, a); }
-  try { a.currentTime = 0; void a.play().catch(() => { /* autoplay-gated or clip missing */ }); } catch { /* best-effort */ }
-}
-
 /**
  * Play the magical theme-change chime for `theme` ('light' | 'dark' | 'brand' | …).
  * A longer, shimmering cue that differs per theme; falls back to the light chime for
@@ -221,7 +252,7 @@ export function playThemeSfx(theme: string): void {
   const a = audio();
   if (!a) return;
   const m = voicesMod;
-  if (m) { try { (m.THEME_VOICES[theme] ?? m.THEME_VOICES.light)?.(a.ctx, a.master); } catch { /* best-effort */ } return; }
+  if (m) { try { m.playThemeCue(theme, a.ctx, a.master, sfxShape); } catch { /* best-effort */ } return; }
   pendingTheme = theme;
   void ensureVoices();
 }
@@ -249,8 +280,10 @@ let arrivalToken = 0;
 function scheduleArrivalLazy(pick: (m: typeof import('./sfx-voices.ts')) => ArrivalRender): void {
   if (muted) return;
   const token = ++arrivalToken;
-  if (voicesMod) { scheduleArrival(pick(voicesMod)); return; }
-  void ensureVoices().then((m) => { if (token === arrivalToken) scheduleArrival(pick(m)); });
+  // Drawn in the sound shape current when it plays, which may be a gesture later.
+  const shaped = (m: typeof import('./sfx-voices.ts')): ArrivalRender => (c, o) => m.renderShaped(pick(m), c, o, sfxShape);
+  if (voicesMod) { scheduleArrival(shaped(voicesMod)); return; }
+  void ensureVoices().then((m) => { if (token === arrivalToken) scheduleArrival(shaped(m)); });
 }
 
 /** The gallery's arrival - faint, high fairy bells (a sparkly "ding-a-ring-ding"). */
@@ -285,30 +318,36 @@ function armArrival(): void {
 
 /** Button-like controls that should tick on click. Plain text / range inputs stay quiet. */
 const INTERACTIVE_SEL =
-  'button, [role="button"], a.btn, .btn, summary, label.switch, ' +
+  'button, [role="button"], [role="switch"], a.btn, .btn, summary, label.switch, ' +
   'input[type="checkbox"], input[type="radio"], select, [data-sfx]';
 
-function isSfxName(v: string | undefined): v is SfxName {
-  return v === 'click' || v === 'pickup' || v === 'drop' || v === 'delete' || v === 'toggle'
-    || v === 'navigate' || v === 'shutter' || v === 'shuffle' || v === 'coverflow' || v === 'gallery'
-    || v === 'save' || v === 'saveProfile' || v === 'whoosh' || v === 'vacuum' || v === 'fanfare'
-    || v === 'twinkle' || v === 'shimmer' || v === 'ding' || v === 'victory' || v === 'braaam' || v === 'warn' || v === 'ghost'
-    || v === 'shoo' || v === 'reel' || v === 'aperture' || v === 'scribble' || v === 'waveform' || v === 'flick'
-    || v === 'optIn' || v === 'optOut' || v === 'byebye' || v === 'key' || v === 'slider' || v === 'scrub' || v === 'tick'
-    || v === 'select' || v === 'hydraulicOpen' || v === 'hydraulicClose' || v === 'verify' || v === 'dashboard' || v === 'newSession' || v === 'leaveSession'
-    || v === 'whisper' || v === 'crystal' || v === 'land';
+export function isSfxName(v: string | undefined): v is SfxName {
+  return (SFX_NAMES as readonly string[]).includes(v ?? '');
 }
 
-/** Decide which cue a clicked control should make. */
-function cueForTarget(el: Element): SfxName {
+/** Decide which cue a clicked control should make. Runs in the capture phase, before the
+ *  control's own handler, so a switch or disclosure still shows the state it is leaving. */
+export function cueForTarget(el: Element): SfxName {
   const tagged = el.closest<HTMLElement>('[data-sfx]');
   if (tagged && isSfxName(tagged.dataset.sfx)) return tagged.dataset.sfx as SfxName;
   // A tile's selection dot (Assets, Projects, the gallery) ticks rather than clicks, the
   // same tick the marquee and Shift-range make in lib/tile-select.ts.
   if (el.closest('[data-select]')) return 'tick';
-  // The shared confirm dialog's destructive button (confirm-dialog.ts, danger:true) - 
+  // The shared confirm dialog's destructive button (confirm-dialog.ts, danger:true) -
   // fires the "gone" cue at the moment of confirmation, everywhere it's used.
   if (el.closest('.modal-danger')) return 'delete';
+  // A switch steps up as it turns on and down as it turns off. A role="switch" button
+  // still holds its old state here; a checkbox has already flipped by the time its click
+  // event is dispatched.
+  if (el.getAttribute('role') === 'switch') return el.getAttribute('aria-checked') === 'true' ? 'switchOff' : 'switchOn';
+  if (el instanceof HTMLInputElement && el.type === 'checkbox') return el.checked ? 'switchOn' : 'switchOff';
+  // A section opening or closing: a <details> summary, or a button that discloses
+  // something (a menu, a panel) and carries aria-expanded.
+  if (el.tagName === 'SUMMARY') {
+    const details = el.parentElement;
+    if (details instanceof HTMLDetailsElement) return details.open ? 'collapse' : 'expand';
+  }
+  if (el.hasAttribute('aria-expanded')) return el.getAttribute('aria-expanded') === 'true' ? 'collapse' : 'expand';
   return 'click';
 }
 
@@ -329,9 +368,10 @@ export function installGlobalSfx(): void {
     const el = t.closest<HTMLElement>(INTERACTIVE_SEL);
     if (!el) return;
     if ((el as HTMLButtonElement).disabled || el.getAttribute('aria-disabled') === 'true') return;
+    // A click on a switch's label is passed on to its checkbox as a second click, which
+    // makes the sound (knowing which way the checkbox went). Sounding the label too would play two.
+    if (el instanceof HTMLLabelElement && el.control && el.control !== t && el.control.matches(INTERACTIVE_SEL)) return;
     playSfx(cueForTarget(el));
-    const voiced = el.closest<HTMLElement>('[data-voice]');
-    if (voiced?.dataset.voice) playVoice(voiced.dataset.voice); // robot voice speaks the name
   }, true);
 
   // HTML5 drag-and-drop, app-wide: a card / asset lifts out, then lands.

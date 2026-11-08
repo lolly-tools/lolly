@@ -259,7 +259,7 @@ export function assetsSectionHtml(cat: CatCtx): string {
   const shownFilters = TYPE_FILTERS.filter(f => f.key === 'all' || cat.allAssets.some(a => matchesTypeRule(a, f.key as TypeFilter)));
   const filterSeg = `
       <div class="cat-typefilter" role="group" aria-label="${escapeText(t('Filter by file type'))}">
-        ${shownFilters.map(f => `<button type="button" class="cat-typefilter-opt${cat.typeFilter === f.key ? ' is-on' : ''}" data-typefilter="${f.key}"${f.sfx ? ` data-sfx="${f.sfx}"` : ''} data-voice="${escapeText(t(f.label))}" aria-pressed="${cat.typeFilter === f.key}" aria-label="${escapeText(t(f.label))}" title="${escapeText(t(f.label))}">${f.icon}<span class="cat-btn-label">${t(f.label)}</span></button>`).join('')}
+        ${shownFilters.map(f => `<button type="button" class="cat-typefilter-opt${cat.typeFilter === f.key ? ' is-on' : ''}" data-typefilter="${f.key}"${f.sfx ? ` data-sfx="${f.sfx}"` : ''} aria-pressed="${cat.typeFilter === f.key}" aria-label="${escapeText(t(f.label))}" title="${escapeText(t(f.label))}">${f.icon}<span class="cat-btn-label">${t(f.label)}</span></button>`).join('')}
       </div>`;
   const collapseLabel = anyExpanded ? t('Collapse all') : t('Expand all');
   const showHiddenLabel = cat.showHidden ? t('Hide hidden') : t('Show hidden ({n})', { n: hiddenItems.length });
