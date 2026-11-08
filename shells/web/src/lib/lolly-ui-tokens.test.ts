@@ -126,3 +126,9 @@ test('a real Penpot archive keeps Lolly semantic aliases and active UI overrides
   assert.equal(exported.lolly.ui.elevation.floating.$value, '{lolly.foundation.elevation.3}');
   assert.equal(exported.lolly.foundation.space['4'].$value, '8px');
 });
+
+test('the accent for words is listed as derived, so the studio offers no editor of its own', () => {
+  const accent = listLollyUiTokens().find(t => t.path.join('.') === 'color.text.accent');
+  assert.equal(accent?.derived, true);
+  assert.equal(listLollyUiTokens().filter(t => t.derived).length, 1, 'no other role is derived');
+});

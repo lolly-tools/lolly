@@ -974,7 +974,7 @@ html[data-a11y-motion="reduce"] .fc-zone { animation: none; }
 /* The preview path is a single stroked <path> painted in currentColor, so its halo has to
    come from the layer: a tight light glow, then a darker one over that result. */
 .fc-pen-layer {
-  pointer-events: none; color: hsl(var(--primary-text)); z-index: 13;
+  pointer-events: none; color: hsl(var(--primary)); z-index: 13;
   filter: drop-shadow(0 0 1px var(--pen-casing)) drop-shadow(0 0 1.5px rgba(0, 0, 0, 0.45));
 }
 .fc-pen-chrome { position: absolute; inset: 0; pointer-events: none; z-index: 16; }

@@ -1124,6 +1124,16 @@ export const STATIC_PRIMARY: Readonly<Record<'light' | 'dark' | 'brand', string>
   brand: '#32b878',
 };
 
+/** The fills tokens.css's High contrast blocks leave in force, per theme: the
+ *  light block keeps the light primary, the dark and brand blocks lift Jungle
+ *  (147.6 75% 67.1%). Accent words under High contrast are measured against
+ *  washes of these. brand-vars.test.ts holds them to tokens.css. */
+export const STATIC_HC_PRIMARY: Readonly<Record<'light' | 'dark' | 'brand', string>> = {
+  light: '#0c322c',
+  dark: '#6ceaa6',
+  brand: '#6ceaa6',
+};
+
 /**
  * The per-theme `--destructive-text` sheet for a design system's own danger
  * red, or '' when it doesn't parse. Same selector shapes as tokens.css and
@@ -1191,7 +1201,7 @@ function hcAccentBlock(
   restate = false,
   ringSurfaces: readonly string[] = [],
   controlSurfaces: readonly string[] = [],
-  textDecl = '',
+  textGrounds: ((fill: string) => string[]) | null = null,
 ): string {
   const judge = (surfaces: readonly string[]) => {
     const fixed = highContrastAccent(primary, onPrimary, surfaces);
@@ -1207,6 +1217,9 @@ function hcAccentBlock(
   const ring = visibleRing((repaired ?? clearing)?.fill ?? null, ringSurfaces);
   const r = ring && hexToHslTriple(ring);
   if (r) decls.push(`  --ring: ${r};`);
+  // The accent for words, measured against washes of the fill in force under
+  // High contrast: the pair stated here, else the theme's own primary.
+  const textDecl = textGrounds && primary ? accentTextDecl(primary, textGrounds(pair?.fill ?? primary), true) : '';
   if (textDecl) decls.push(textDecl);
   return decls.length ? `${selector} {\n${decls.join('\n')}\n}` : '';
 }
@@ -1466,10 +1479,10 @@ export function chromeBrandCss(
     hcAccentBlock('html[data-a11y-contrast="high"]:not([data-theme="dark"]):not([data-theme="brand"])',
       light.primary, light.onPrimary, false,
       surfaceHexes(THEME_SURFACES.lightHigh, ['background', 'card', 'popover']), [],
-      accentTextDecl(light.primary, accentTextSurfaces('light', light.primary, true), true)),
+      (fill) => accentTextSurfaces('light', fill, true)),
     hcAccentBlock('html[data-a11y-contrast="high"][data-theme="dark"]', dark.primary, dark.onPrimary, true,
       surfaceHexes(THEME_SURFACES.darkHigh, ['background', 'card', 'popover']), [],
-      accentTextDecl(dark.primary, accentTextSurfaces('dark', dark.primary, true), true)),
+      (fill) => accentTextSurfaces('dark', fill, true)),
     // The brand theme wears the DARK primary as its accent (brandThemeCss), so
     // it takes the same adjustment - but only when that constructed theme was
     // emitted at all. Without it the static tokens.css brand block is in
@@ -1482,7 +1495,7 @@ export function chromeBrandCss(
     light.primary && dark.primary
       ? hcAccentBlock('html[data-a11y-contrast="high"][data-theme="brand"]', dark.primary, dark.onPrimary, true,
         brandSurfaceHexes(light.primary), brandSurfaceHexes(light.primary),
-        accentTextDecl(dark.primary, hcBrandAccentGrounds(light.primary, dark.primary, chrome?.brand ?? null), true))
+        (fill) => hcBrandAccentGrounds(light.primary!, fill, chrome?.brand ?? null))
       : '',
   ].filter(Boolean).join('\n');
 }
@@ -1490,10 +1503,10 @@ export function chromeBrandCss(
 /** The grounds of the brand theme under High contrast, for accent words: the
  *  pack's brand chrome when it has one (brand chrome stays in force there),
  *  else the surfaces brandThemeCss built. */
-function hcBrandAccentGrounds(lightPrimary: string, darkPrimary: string, brandChrome: ChromeTheme | null): string[] {
+function hcBrandAccentGrounds(lightPrimary: string, fill: string, brandChrome: ChromeTheme | null): string[] {
   return brandChrome
-    ? accentTextGrounds([brandChrome.page, brandChrome.raised, brandChrome.overlay, brandChrome.muted], [brandChrome.hover], darkPrimary)
-    : brandAccentGrounds(lightPrimary, darkPrimary);
+    ? accentTextGrounds([brandChrome.page, brandChrome.raised, brandChrome.overlay, brandChrome.muted], [brandChrome.hover], fill)
+    : brandAccentGrounds(lightPrimary, fill);
 }
 
 /** localStorage mirror of the chrome sheet's exact text, which index.html's

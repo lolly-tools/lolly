@@ -824,7 +824,7 @@ html[data-a11y-contrast="high"][data-theme="dark"] {
   --destructive:            0 72% 44%;     /* was 0 63% 38%   - ink on it Lc 74 → 80 */
   --destructive-foreground: 213 45% 98%;
   --destructive-text:       9.5 100% 88.8%;  /* #ffcfc6 - Lc 75 on every surface and wash; a red at that bar is a pale one */
-  --primary-text:           147.4 81.7% 70%;  /* #74f1ad - Jungle for words at Lc 75 on every surface and wash */
+  --primary-text:           147.4 87.4% 72%;  /* #79f6b2 - Jungle for words at Lc 75 on every surface and on a wash of the lifted fill */
 
   --store-other:            215 16% 66%;   /* was 215 12% 46% - Lc 53 on card */
 }
@@ -862,7 +862,7 @@ html[data-a11y-contrast="high"][data-theme="brand"] {
   --destructive:            0 72% 44%;     /* was 0 55% 42%   - white on it Lc 84 */
   --destructive-foreground: 0 0% 100%;
   --destructive-text:       9.3 100% 91.2%;  /* #ffd9d2 - Lc 75 on every brand theme's surfaces and washes */
-  --primary-text:           146.9 100% 75.5%; /* #82ffba - Jungle for words at Lc 75 on these surfaces and washes */
+  --primary-text:           147.3 100% 82.4%; /* #a5ffce - Jungle for words at Lc 75 on these surfaces and on a wash of the lifted fill */
 
   --store-other:            0 0% 68%;      /* was 171 16% 54% - the "not a category" neutral, now visibly neutral */
 }

@@ -1453,7 +1453,7 @@ html[data-a11y-contrast="high"] .tl-btn svg { opacity: 1; }
   min-width: 0;
   pointer-events: none;
   border-radius: var(--ui-radius-control);
-  color: var(--ui-color-text-accent);
+  color: var(--ui-color-action-primary);
   /* The crossfade mark every editor draws: the incoming picture rising along the
      diagonal, over a lighter plate so the band reads as a thing of its own on the clip. */
   background:

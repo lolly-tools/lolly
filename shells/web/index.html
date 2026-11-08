@@ -300,6 +300,10 @@
       // script, and at equal specificity the later sheet wins.
       try {
         var cc = localStorage.getItem('lolly-follow-ds') === '0' ? null : localStorage.getItem('brand-chrome');
+        // A mirror that sets an accent but not the accent for words was written
+        // before --primary-text existed: restoring it would pair the brand's fill
+        // with tokens.css's own accent words until boot repaints, so boot paints.
+        if (cc && cc.indexOf('--primary:') >= 0 && cc.indexOf('--primary-text:') < 0) cc = null;
         if (cc && cc.length <= 16384) {
           var CL = ':root:not([data-theme="dark"]):not([data-theme="brand"]):not([data-a11y-contrast="high"]), [data-theme="light"]:not([data-a11y-contrast="high"]):not([data-a11y-contrast="high"] *)';
           var CD = '[data-theme="dark"]:not([data-a11y-contrast="high"]):not([data-a11y-contrast="high"] *)';

@@ -1222,7 +1222,7 @@ test('chromeTokens leaves a design system without colourways exactly as it was',
 
 // ── Accent text: the brand colour as words (--primary-text) ──────────────────
 
-const { accentText, accentTextSurfaces, accentTextGrounds, ACCENT_WASH_ALPHA, STATIC_PRIMARY } = await import('./brand-vars.ts');
+const { accentText, accentTextSurfaces, accentTextGrounds, ACCENT_WASH_ALPHA, STATIC_PRIMARY, STATIC_HC_PRIMARY } = await import('./brand-vars.ts');
 
 /** The lowest WCAG 2 ratio (or APCA |Lc| with `high`) of `ink` on `grounds`. */
 function worst(ink: string, grounds: readonly string[], high = false): number {
@@ -1251,12 +1251,17 @@ test("tokens.css carries the accent for words accentText computes from each them
   for (const theme of ['light', 'dark', 'brand'] as const) {
     const fill = hslTripleToHex(STATIC[theme]().get('primary')!)!;
     assert.ok(near(fill, STATIC_PRIMARY[theme]), `STATIC_PRIMARY.${theme} is tokens.css's --primary`);
+    // The fill High contrast leaves in force: its own block's, else the base one.
+    const hcFill = hslTripleToHex(HIGH(theme).get('primary') ?? STATIC[theme]().get('primary')!)!;
+    assert.ok(near(hcFill, STATIC_HC_PRIMARY[theme]), `STATIC_HC_PRIMARY.${theme} is the fill tokens.css keeps under High contrast`);
     for (const high of [false, true]) {
       const block = high ? HIGH(theme) : STATIC[theme]();
       const text = block.get('primary-text');
       assert.ok(text, `${theme}${high ? ' high' : ''} declares --primary-text`);
-      // High contrast walks the theme's own primary, not its lifted fill.
-      const expected = accentText(STATIC_PRIMARY[theme], accentTextSurfaces(theme, STATIC_PRIMARY[theme], high), high);
+      // High contrast walks the theme's own primary against washes of the fill
+      // in force there (the lifted one in dark and brand).
+      const wash = high ? STATIC_HC_PRIMARY[theme] : STATIC_PRIMARY[theme];
+      const expected = accentText(STATIC_PRIMARY[theme], accentTextSurfaces(theme, wash, high), high);
       assert.ok(near(hslTripleToHex(text!), expected), `${theme}${high ? ' high' : ''}: tokens.css ${text} vs accentText ${expected}`);
     }
   }
@@ -1279,12 +1284,17 @@ test('every --primary-text the chrome sheet emits reads on the surfaces of its t
       const built = brandSurfaceHexes(lp, ['background', 'card', 'popover', 'muted']);
       const brandGrounds = accentTextGrounds(built, brandSurfaceHexes(lp, ['accent']), dp);
       assert.ok(worst(brandText, brandGrounds) >= 4.5 - 0.02, `brand ${lp}/${dp}: ${brandText}`);
-      // High contrast: Lc 75 on that theme's High contrast surfaces.
+      // High contrast: Lc 75 on that theme's High contrast surfaces and on a
+      // wash of the fill in force there (the block's repaired --primary, else
+      // the theme's own).
       const hc = hcBlocks(css);
-      const hcText = (theme: string): string => hslTripleToHex(declsOf(hc.get(theme)!).get('primary-text')!)!;
-      assert.ok(worst(hcText('light'), accentTextSurfaces('light', lp, true), true) >= 75 - 0.2, `high light ${lp}`);
-      assert.ok(worst(hcText('dark'), accentTextSurfaces('dark', dp, true), true) >= 75 - 0.2, `high dark ${dp}`);
-      assert.ok(worst(hcText('brand'), brandGrounds, true) >= 75 - 0.2, `high brand ${lp}/${dp}`);
+      const hcDecl = (theme: string, name: string): string | undefined => declsOf(hc.get(theme)!).get(name);
+      const hcText = (theme: string): string => hslTripleToHex(hcDecl(theme, 'primary-text')!)!;
+      const hcFill = (theme: string, own: string): string => { const t = hcDecl(theme, 'primary'); return t ? hslTripleToHex(t)! : own; };
+      assert.ok(worst(hcText('light'), accentTextSurfaces('light', hcFill('light', lp), true), true) >= 75 - 0.2, `high light ${lp}`);
+      assert.ok(worst(hcText('dark'), accentTextSurfaces('dark', hcFill('dark', dp), true), true) >= 75 - 0.2, `high dark ${dp}`);
+      const hcBrandGrounds = accentTextGrounds(built, brandSurfaceHexes(lp, ['accent']), hcFill('brand', dp));
+      assert.ok(worst(hcText('brand'), hcBrandGrounds, true) >= 75 - 0.2, `high brand ${lp}/${dp}`);
     }
   }
 });

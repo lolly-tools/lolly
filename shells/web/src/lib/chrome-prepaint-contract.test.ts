@@ -180,6 +180,18 @@ test('a tampered mirror restores nothing', () => {
   }
 });
 
+test('a mirror from before the accent for words is not restored, so boot paints a whole one', () => {
+  // A sheet that sets --primary without --primary-text came from an older app:
+  // restored, it would pair the brand's fill with tokens.css's own accent words.
+  const older = SHEETS.suse!.split('\n').filter((line) => !line.startsWith('  --primary-text:')).join('\n');
+  assert.ok(older.includes('--primary:') && !older.includes('--primary-text:'));
+  assert.equal(restored(run({ [CHROME_CACHE_KEY]: older })), null);
+  // A sheet that sets no accent at all (pack chrome alone) still restores.
+  const chromeOnly = chromeBrandCss({ primary: null, onPrimary: null }, { primary: null, onPrimary: null }, NEWSPRINT);
+  assert.ok(!chromeOnly.includes('--primary:'));
+  assert.equal(restored(run({ [CHROME_CACHE_KEY]: chromeOnly })), chromeOnly);
+});
+
 test('with "Interface follows the design system" off the mirror is not restored', () => {
   assert.equal(restored(run({ [CHROME_CACHE_KEY]: SHEETS.opal, 'lolly-follow-ds': '0' })), null);
   assert.equal(restored(run({ [CHROME_CACHE_KEY]: SHEETS.opal, 'lolly-follow-ds': '1' })), SHEETS.opal, 'any other value follows');
