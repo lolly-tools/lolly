@@ -6,20 +6,26 @@
  * offline render for a video music bed, and in any shell that can play notes.
  *
  * It writes NOTES, not sound: each bar is a list of { voice, beat, dur, midi, vel }
- * events for the shell's instruments (shells/web/src/lib/lofi-voices.ts) to play.
- * Swing, laid-back timing and velocity variation are already in the beats and
- * velocities here, so a render never needs its own randomness to sound human.
+ * events for the shell's instruments (shells/web/src/lib/lofi-voices.ts) to play, and
+ * each tune carries a STYLE that tells the shell which instruments, drum tuning and
+ * signal-chain colour to use. Swing, laid-back timing and velocity variation are already
+ * in the beats and velocities here, so a render never needs its own randomness.
  *
- * A tune is one key, tempo and pair of four-bar progressions, arranged as intro,
- * verse, bridge, break, verse and outro (about two to three minutes). When it ends the
- * stream rests for a bar and starts the next tune, whose seed follows from this one,
- * so a station never runs out and never repeats a tune it has just played.
+ * What makes one tune sound unlike the last is mostly not its key. So each seed picks a
+ * whole style: the keys (a Rhodes, a felt piano, a Wurlitzer, a soft pluck), the lead
+ * (vibes, flute, a soft brass-like line, kalimba, or none), the bass, the drum kit and
+ * its tuning, the groove (boom-bap, half-time, shuffle, lazy, sparse), how often the
+ * chords change, how busy the keys are, and how much tape wobble and room it gets. The
+ * mood leans those choices without fixing them. Each tune also builds its own running
+ * order (see arrange): how it opens, which instrument takes the front when, and how it
+ * ends, so a tune can start on the hats alone or the whole kit as well as the keys.
  *
  * The harmony is the jazz-derived vocabulary lofi leans on: major and minor ninths,
  * dominant thirteenths and altered dominants, voiced without the root (the bass has
- * it) and voice-led so each chord moves as little as possible from the last. Melodies
- * are a two-bar motif and its answer, drawn from the key's pentatonic scale and
- * pulled onto a chord tone on the strong beats, so the lead never fights the keys.
+ * it) and voice-led so each chord moves as little as possible from the last, with the
+ * occasional substitution so a progression is not always played the same way.
+ * Melodies are a two-bar motif and its answer, drawn from the key's pentatonic scale
+ * and pulled onto a chord tone on the strong beats, so the lead never fights the keys.
  * No voices: nothing here sings or speaks.
  */
 import { mulberry32 } from './zzfx-compose.ts';
@@ -29,6 +35,40 @@ export const LOFI_MOODS: readonly LofiMood[] = ['warm', 'lateNight', 'rainy'];
 
 export type LofiVoice = 'keys' | 'bass' | 'lead' | 'kick' | 'snare' | 'rim' | 'hat' | 'openHat';
 export const LOFI_DRUM_VOICES: readonly LofiVoice[] = ['kick', 'snare', 'rim', 'hat', 'openHat'];
+
+export const LOFI_KEYS = ['rhodes', 'felt', 'wurli', 'pluck'] as const;
+export const LOFI_LEADS = ['vibes', 'flute', 'soft', 'kalimba', 'none'] as const;
+export const LOFI_BASSES = ['round', 'upright', 'synth'] as const;
+export const LOFI_SNARES = ['snare', 'brush', 'rim', 'clap'] as const;
+export const LOFI_HATS = ['hat', 'shaker', 'none'] as const;
+export const LOFI_GROOVES = ['boomBap', 'halfTime', 'shuffle', 'lazy', 'sparse'] as const;
+export const LOFI_COMPS = ['hold', 'sparse', 'arp', 'pulse'] as const;
+
+/** Everything about how a tune sounds, besides its notes. */
+export interface LofiStyle {
+  keys: typeof LOFI_KEYS[number];
+  lead: typeof LOFI_LEADS[number];
+  bass: typeof LOFI_BASSES[number];
+  snare: typeof LOFI_SNARES[number];
+  hats: typeof LOFI_HATS[number];
+  groove: typeof LOFI_GROOVES[number];
+  /** How busy the keys are: one held chord, a sparse restrike, a broken chord, or a pulse. */
+  comp: typeof LOFI_COMPS[number];
+  /** Bars per chord: 2 halves how often the harmony (and the keys) moves. */
+  chordBars: 1 | 2;
+  /** Drum tuning: kick pitch (Hz) and length (s), snare or clap centre (Hz), hat brightness (Hz). */
+  kick: number;
+  kickLen: number;
+  snareTone: number;
+  hatTone: number;
+  /** Signal-chain colour, each about 1: tape wobble, room, tone filter, how far the music ducks under the kick. */
+  wow: number;
+  room: number;
+  tone: number;
+  duck: number;
+  /** A sampler's grit on the music (a coarse bit depth, mixed in quietly). */
+  crunch: boolean;
+}
 
 export interface LofiNote {
   voice: LofiVoice;
@@ -42,18 +82,21 @@ export interface LofiNote {
   vel: number;
 }
 
-export type LofiSection = 'intro' | 'verse' | 'bridge' | 'break' | 'outro' | 'rest';
+export type LofiSection = 'intro' | 'verse' | 'bridge' | 'feature' | 'groove' | 'break' | 'drums' | 'outro' | 'rest';
 
 export interface LofiTuneInfo {
   seed: number;
   mood: LofiMood;
   bpm: number;
-  /** 0.5 is straight; lofi sits around 0.56 to 0.62 on the sixteenths. */
+  /** Swing on the sixteenths: 0.5 is straight; lofi sits around 0.56 to 0.62. */
   swing: number;
+  /** Swing on the eighths, for the shuffle groove (0.5 elsewhere). */
+  swing8: number;
   /** "E♭ minor". */
   key: string;
   /** Chord names of the two progressions, e.g. ["Cm9", "Fm9", …]. */
   progressions: [string[], string[]];
+  style: LofiStyle;
   /** Bars in the tune, the rest bar after it included. */
   bars: number;
 }
@@ -63,6 +106,10 @@ export interface LofiBar {
   /** 0-based bar within the tune. */
   index: number;
   section: LofiSection;
+  /** What this section puts in front, if anything. */
+  feature?: LofiFeature;
+  /** The parts playing in this bar. */
+  layers: readonly LofiLayer[];
   /** The chord this bar sits on, e.g. "Fm9" (empty for the rest bar). */
   chord: string;
   notes: LofiNote[];
@@ -77,15 +124,24 @@ export interface LofiStream {
   next(): LofiBar;
 }
 
+export interface LofiOptions {
+  /** The first tune's mood, which later tunes keep. */
+  mood: LofiMood;
+  /** Fix parts of the style instead of drawing them (for auditioning one instrument). */
+  style?: Partial<LofiStyle>;
+}
+
 // ── harmony ───────────────────────────────────────────────────────────────
 
 /** Chord qualities as semitones from the root, root first. */
 const QUALITIES = {
   maj7: [0, 4, 7, 11],
   maj9: [0, 4, 7, 11, 14],
+  six9: [0, 4, 7, 9, 14],
   m7: [0, 3, 7, 10],
   m9: [0, 3, 7, 10, 14],
   m11: [0, 3, 7, 10, 14, 17],
+  m6: [0, 3, 7, 9, 14],
   dom9: [0, 4, 7, 10, 14],
   dom13: [0, 4, 10, 14, 21],
   sus: [0, 5, 7, 10, 14],
@@ -95,53 +151,66 @@ const QUALITIES = {
 } as const;
 type Quality = keyof typeof QUALITIES;
 const SUFFIX: Record<Quality, string> = {
-  maj7: 'maj7', maj9: 'maj9', m7: 'm7', m9: 'm9', m11: 'm11', dom9: '9', dom13: '13',
-  sus: '9sus4', b9: '7♭9', s9: '7♯9', m7b5: 'm7♭5',
+  maj7: 'maj7', maj9: 'maj9', six9: '6/9', m7: 'm7', m9: 'm9', m11: 'm11', m6: 'm6/9', dom9: '9',
+  dom13: '13', sus: '9sus4', b9: '7♭9', s9: '7♯9', m7b5: 'm7♭5',
 };
 const NAMES = ['C', 'D♭', 'D', 'E♭', 'E', 'F', 'F♯', 'G', 'A♭', 'A', 'B♭', 'B'];
 
 /** A chord in a progression: [semitones above the key's tonic, quality]. */
 type Step = readonly [number, Quality];
 
-/** Four-bar progressions. Major ones for warm; minor (aeolian and dorian) for the others. */
+/** Four-chord progressions. Major ones for warm; minor (aeolian and dorian) for the others. */
 const MAJOR: readonly (readonly Step[])[] = [
   [[0, 'maj9'], [9, 'm9'], [2, 'm9'], [7, 'dom13']],     // I vi ii V
-  [[2, 'm9'], [7, 'dom13'], [0, 'maj9'], [0, 'maj7']],    // ii V I I
+  [[2, 'm9'], [7, 'dom13'], [0, 'maj9'], [0, 'six9']],    // ii V I I
   [[5, 'maj9'], [4, 'm7'], [2, 'm9'], [0, 'maj9']],      // IV iii ii I
   [[0, 'maj7'], [5, 'maj9'], [4, 'm7'], [9, 'm9']],      // I IV iii vi
   [[5, 'maj9'], [7, 'sus'], [4, 'm7'], [9, 'm9']],       // IV V iii vi
   [[0, 'maj9'], [4, 'm7'], [5, 'maj9'], [7, 'sus']],     // I iii IV V
+  [[5, 'maj9'], [5, 'm6'], [0, 'maj9'], [9, 'dom9']],    // IV iv I VI7
+  [[0, 'six9'], [10, 'dom9'], [5, 'maj9'], [5, 'm6']],   // I ♭VII IV iv
+  [[9, 'm9'], [2, 'dom9'], [7, 'maj9'], [0, 'maj9']],    // vi II V I (secondary dominant)
+  [[0, 'maj9'], [2, 'm9'], [0, 'maj9'], [2, 'm9']],      // I ii vamp
 ];
 const MINOR: readonly (readonly Step[])[] = [
-  [[0, 'm9'], [5, 'm9'], [10, 'dom9'], [3, 'maj9']],     // i iv VII III
-  [[0, 'm9'], [8, 'maj9'], [2, 'm7b5'], [7, 'b9']],      // i VI ii° V
-  [[5, 'm9'], [0, 'm9'], [8, 'maj9'], [7, 's9']],        // iv i VI V
+  [[0, 'm9'], [5, 'm9'], [10, 'dom9'], [3, 'maj9']],     // i iv ♭VII ♭III
+  [[0, 'm9'], [8, 'maj9'], [2, 'm7b5'], [7, 'b9']],      // i ♭VI ii° V
+  [[5, 'm9'], [0, 'm9'], [8, 'maj9'], [7, 's9']],        // iv i ♭VI V
   [[0, 'm9'], [5, 'dom9'], [0, 'm11'], [5, 'dom9']],     // dorian i IV
-  [[8, 'maj9'], [7, 'b9'], [0, 'm9'], [0, 'm11']],       // VI V i i
-  [[0, 'm11'], [3, 'maj9'], [8, 'maj9'], [7, 'sus']],    // i III VI V
+  [[8, 'maj9'], [7, 'b9'], [0, 'm9'], [0, 'm11']],       // ♭VI V i i
+  [[0, 'm11'], [3, 'maj9'], [8, 'maj9'], [7, 'sus']],    // i ♭III ♭VI V
+  [[0, 'm9'], [10, 'dom13'], [8, 'maj9'], [7, 'sus']],   // i ♭VII ♭VI V
+  [[3, 'maj9'], [2, 'm7b5'], [0, 'm9'], [0, 'm6']],      // ♭III ii° i i
+  [[0, 'm9'], [3, 'maj9'], [5, 'm9'], [10, 'dom9']],     // i ♭III iv ♭VII
+  [[0, 'm11'], [5, 'm9'], [0, 'm11'], [5, 'm9']],        // i iv vamp
 ];
 const PENTA_MAJOR = [0, 2, 4, 7, 9];
 const PENTA_MINOR = [0, 3, 5, 7, 10];
 
-/** Tempo, swing and register per mood. */
-const MOOD: Record<LofiMood, { minor: boolean; bpm: [number, number]; swing: [number, number]; snare: 'snare' | 'rim'; busy: number }> = {
-  warm: { minor: false, bpm: [76, 88], swing: [0.56, 0.6], snare: 'snare', busy: 0.6 },
-  lateNight: { minor: true, bpm: [66, 76], swing: [0.58, 0.62], snare: 'snare', busy: 0.4 },
-  rainy: { minor: true, bpm: [68, 80], swing: [0.57, 0.61], snare: 'rim', busy: 0.45 },
-};
-
 interface Chord { root: number; quality: Quality; name: string; tones: number[] }
 
 function chordOf(key: number, [degree, quality]: Step): Chord {
-  const root = (key + degree) % 12;
+  const root = ((key + degree) % 12 + 12) % 12;
   return { root, quality, name: NAMES[root] + SUFFIX[quality], tones: QUALITIES[quality].map(i => (root + i) % 12) };
+}
+
+/** Play a progression a little differently: swap a dominant for its tritone substitute,
+ *  or recolour a chord with a sibling quality. */
+function vary(prog: readonly Step[], chance: (p: number) => boolean): Step[] {
+  return prog.map(([deg, q]): Step => {
+    if ((q === 'dom13' || q === 'b9' || q === 'dom9') && deg === 7 && chance(0.25)) return [1, 'dom9'];   // tritone sub
+    if (q === 'maj9' && chance(0.2)) return [deg, 'six9'];
+    if (q === 'm9' && chance(0.2)) return [deg, 'm11'];
+    if (q === 'dom13' && chance(0.25)) return [deg, 'sus'];
+    return [deg, q];
+  });
 }
 
 /** The keys' voicing: up to four chord tones without the root, guide tones first. */
 function voicingClasses(c: Chord): number[] {
   const iv = QUALITIES[c.quality];
-  // Order by importance: third, seventh, then the colour tones, then the fifth.
-  const rank = (i: number): number => ([3, 4].includes(i % 12) ? 0 : [10, 11].includes(i) ? 1 : i > 12 ? 2 : i === 5 || i === 6 ? 2 : 3);
+  // Order by importance: third, seventh (or sixth), then the colour tones, then the fifth.
+  const rank = (i: number): number => ([3, 4].includes(i) ? 0 : [9, 10, 11].includes(i) ? 1 : i > 12 || i === 5 || i === 6 ? 2 : 3);
   const picked = iv.slice(1).sort((a, b) => rank(a) - rank(b)).slice(0, 4);
   return picked.map(i => (c.root + i) % 12);
 }
@@ -176,27 +245,192 @@ function voiceLead(classes: number[], prev: number[] | null): number[] {
   return best;
 }
 
-// ── rhythm ────────────────────────────────────────────────────────────────
+// ── style ─────────────────────────────────────────────────────────────────
 
-/** [step, length in steps] hits for the keys, per bar. */
-const COMPING: readonly (readonly (readonly [number, number])[])[] = [
-  [[0, 15]],                       // hold the bar
-  [[0, 9], [10, 6]],               // and again on the and of three
-  [[0, 7], [8, 7]],                // twice
-  [[0, 5], [6, 4], [12, 4]],       // a lilting three
-  [[0, 3], [3, 7], [14, 2]],       // pushed
-];
-const KICKS: readonly (readonly number[])[] = [[0, 10], [0, 7, 10], [0, 3, 10], [0, 8, 10], [0, 10, 11]];
+/** Weighted choices: [option, weight] pairs. */
+type Weights<T> = ReadonlyArray<readonly [T, number]>;
 
-export interface LofiOptions {
-  /** The first tune's mood, which later tunes keep. */
-  mood: LofiMood;
+/** How each mood leans the style. Every option stays possible in every mood. */
+const LEAN: Record<LofiMood, {
+  minor: boolean; bpm: [number, number]; swing: [number, number];
+  keys: Weights<LofiStyle['keys']>; lead: Weights<LofiStyle['lead']>; bass: Weights<LofiStyle['bass']>;
+  snare: Weights<LofiStyle['snare']>; hats: Weights<LofiStyle['hats']>; groove: Weights<LofiStyle['groove']>;
+  busy: number;
+}> = {
+  warm: {
+    minor: false, bpm: [74, 92], swing: [0.55, 0.6],
+    keys: [['rhodes', 3], ['wurli', 3], ['pluck', 2], ['felt', 1]],
+    lead: [['vibes', 2], ['soft', 2], ['flute', 2], ['kalimba', 1], ['none', 2]],
+    bass: [['round', 2], ['upright', 2], ['synth', 1]],
+    snare: [['snare', 3], ['clap', 2], ['rim', 1], ['brush', 1]],
+    hats: [['hat', 4], ['shaker', 2], ['none', 1]],
+    groove: [['boomBap', 4], ['shuffle', 2], ['lazy', 2], ['halfTime', 1], ['sparse', 1]],
+    busy: 0.6,
+  },
+  lateNight: {
+    minor: true, bpm: [62, 78], swing: [0.57, 0.62],
+    keys: [['felt', 3], ['rhodes', 3], ['wurli', 1], ['pluck', 1]],
+    lead: [['vibes', 2], ['soft', 2], ['flute', 1], ['kalimba', 1], ['none', 3]],
+    bass: [['round', 3], ['upright', 2], ['synth', 1]],
+    snare: [['rim', 3], ['brush', 2], ['snare', 2], ['clap', 1]],
+    hats: [['hat', 3], ['shaker', 1], ['none', 2]],
+    groove: [['halfTime', 3], ['lazy', 3], ['boomBap', 2], ['sparse', 2], ['shuffle', 1]],
+    busy: 0.35,
+  },
+  rainy: {
+    minor: true, bpm: [66, 82], swing: [0.56, 0.61],
+    keys: [['felt', 3], ['pluck', 3], ['rhodes', 2], ['wurli', 1]],
+    lead: [['kalimba', 3], ['flute', 2], ['vibes', 1], ['soft', 1], ['none', 2]],
+    bass: [['round', 2], ['upright', 3], ['synth', 1]],
+    snare: [['brush', 4], ['rim', 2], ['snare', 1], ['clap', 1]],
+    hats: [['shaker', 3], ['hat', 2], ['none', 2]],
+    groove: [['lazy', 3], ['boomBap', 2], ['sparse', 2], ['halfTime', 2], ['shuffle', 1]],
+    busy: 0.45,
+  },
+};
+const COMP_WEIGHTS: Weights<LofiStyle['comp']> = [['hold', 4], ['sparse', 3], ['arp', 2], ['pulse', 1]];
+
+/** One option from `w`, each as likely as its weight. */
+function weightedPick<T>(rng: () => number, w: Weights<T>): T {
+  const total = w.reduce((sum, [, n]) => sum + n, 0);
+  let r = rng() * total;
+  for (const [v, n] of w) {
+    r -= n;
+    if (r < 0) return v;
+  }
+  return w[w.length - 1]![0];
 }
 
-/** Sixteenth `step` of a bar as a beat, with swing on the off-sixteenths. */
-function stepBeat(step: number, swing: number): number {
-  const beat = step / 4;
-  return step % 2 === 1 ? beat + (swing - 0.5) * 0.5 : beat;
+function drawStyle(rng: () => number, mood: LofiMood, fixed: Partial<LofiStyle> = {}): LofiStyle {
+  const lean = LEAN[mood];
+  const weighted = <T>(w: Weights<T>): T => weightedPick(rng, w);
+  const range = (lo: number, hi: number): number => lo + rng() * (hi - lo);
+  // Every draw happens even when `fixed` overrides it, so fixing one part does not
+  // reshuffle the rest of a seed's style.
+  const drawn: LofiStyle = {
+    keys: weighted(lean.keys), lead: weighted(lean.lead), bass: weighted(lean.bass),
+    snare: weighted(lean.snare), hats: weighted(lean.hats), groove: weighted(lean.groove),
+    comp: weighted(COMP_WEIGHTS), chordBars: rng() < 0.45 ? 2 : 1,
+    kick: Math.round(range(44, 60)), kickLen: Math.round(range(0.3, 0.55) * 100) / 100,
+    snareTone: Math.round(range(1500, 2500)), hatTone: Math.round(range(6000, 9500)),
+    wow: Math.round(range(0.5, 1.7) * 100) / 100, room: Math.round(range(0.6, 1.5) * 100) / 100,
+    tone: Math.round(range(0.8, 1.15) * 100) / 100, duck: Math.round(range(0.6, 1.3) * 100) / 100,
+    crunch: rng() < 0.15,
+  };
+  return { ...drawn, ...fixed };
+}
+
+// ── arrangement ───────────────────────────────────────────────────────────
+
+/** The parts that can play in a stretch of a tune. */
+export type LofiLayer = 'keys' | 'bass' | 'lead' | 'kick' | 'snare' | 'hats';
+/** What a section puts in front: the lead's melody, busier keys, a walking bass, or the drums alone. */
+export type LofiFeature = 'lead' | 'keys' | 'bass' | 'drums';
+
+interface Part {
+  section: LofiSection;
+  bars: number;
+  prog: 0 | 1;
+  layers: readonly LofiLayer[];
+  feature?: LofiFeature;
+  /** The tone filter's opening across the part, start to end (default fully open). */
+  open?: readonly [number, number];
+  fade?: boolean;
+}
+
+const KIT: readonly LofiLayer[] = ['kick', 'snare', 'hats'];
+const BAND: readonly LofiLayer[] = ['keys', 'bass', 'kick', 'snare', 'hats'];
+
+/**
+ * A tune's running order. It opens in one of several ways (the keys alone, the hats and
+ * then the kit, the whole kit, bass and hats, keys and hats), plays a verse, then two
+ * or three middle sections drawn from a menu (the second progression with the melody, a
+ * lead feature, a keys feature, a walking-bass feature, a groove with the beat held back,
+ * a breakdown without drums, a drum break), another verse, and one of several endings.
+ * So instruments come in, take the front and drop out at different moments in each tune.
+ */
+function arrange(rng: () => number, hasLead: boolean): Part[] {
+  const pick = <T>(a: readonly T[]): T => a[Math.floor(rng() * a.length)] as T;
+  const weighted = <T>(w: Weights<T>): T => weightedPick(rng, w);
+  const withLead = (layers: readonly LofiLayer[]): readonly LofiLayer[] => (hasLead ? [...layers, 'lead'] : layers);
+  const parts: Part[] = [];
+
+  switch (weighted<string>([['keys', 3], ['hats', 2], ['kit', 2], ['bassHats', 1], ['keysHats', 2]])) {
+    case 'hats':
+      parts.push({ section: 'intro', bars: 2, prog: 0, layers: ['hats'], open: [0.5, 0.65] });
+      parts.push({ section: 'intro', bars: 2, prog: 0, layers: KIT, open: [0.7, 0.9] });
+      break;
+    case 'kit': parts.push({ section: 'intro', bars: pick([2, 4]), prog: 0, layers: KIT, open: [0.45, 0.9] }); break;
+    case 'bassHats': parts.push({ section: 'intro', bars: 4, prog: 0, layers: ['bass', 'hats'], open: [0.4, 0.85] }); break;
+    case 'keysHats': parts.push({ section: 'intro', bars: 4, prog: 0, layers: ['keys', 'hats'], open: [0.4, 0.85] }); break;
+    default: parts.push({ section: 'intro', bars: 4, prog: 0, layers: ['keys'], open: [0.35, 0.85] });
+  }
+
+  const verse = (bars: number): void => {
+    parts.push({ section: 'verse', bars: bars / 2, prog: 0, layers: BAND });
+    parts.push({ section: 'verse', bars: bars / 2, prog: 0, layers: withLead(BAND) });   // the melody joins halfway
+  };
+  verse(pick([8, 8, 16]));
+
+  const menu: Array<[string, number]> = [
+    ['bridge', 3], ['leadFeature', hasLead ? 2 : 0], ['keysFeature', 2], ['bassFeature', 2],
+    ['groove', 2], ['breakdown', 2], ['drumBreak', 1],
+  ];
+  const count = rng() < 0.5 ? 2 : 3;
+  let usedB = false;
+  for (let n = 0; n < count; n++) {
+    const choice = weighted<string>(menu.filter(([, w]) => w > 0));
+    menu.find(m => m[0] === choice)![1] = 0;   // each middle section at most once
+    const prog: 0 | 1 = choice === 'bridge' || (!usedB && rng() < 0.5) ? 1 : 0;
+    if (prog) usedB = true;
+    switch (choice) {
+      case 'bridge': parts.push({ section: 'bridge', bars: 8, prog, layers: withLead(BAND) }); break;
+      case 'leadFeature': parts.push({ section: 'feature', bars: 8, prog, layers: ['keys', 'bass', 'kick', 'hats', 'lead'], feature: 'lead' }); break;
+      case 'keysFeature': parts.push({ section: 'feature', bars: 8, prog, layers: BAND, feature: 'keys' }); break;
+      case 'bassFeature': parts.push({ section: 'feature', bars: pick([4, 8]), prog, layers: BAND, feature: 'bass' }); break;
+      case 'groove': parts.push({ section: 'groove', bars: 4, prog, layers: ['keys', 'bass', 'hats'], open: [0.7, 0.8] }); break;
+      case 'breakdown': parts.push({ section: 'break', bars: 4, prog, layers: withLead(['keys']), open: [0.6, 0.5] }); break;
+      default: parts.push({ section: 'drums', bars: pick([2, 4]), prog, layers: rng() < 0.5 ? KIT : [...KIT, 'bass'], feature: 'drums' });
+    }
+  }
+  verse(8);
+
+  switch (weighted<string>([['fade', 3], ['drumsOut', 2], ['keysOut', 2], ['hatsOut', 1]])) {
+    case 'drumsOut':
+      parts.push({ section: 'outro', bars: 2, prog: 0, layers: BAND, open: [0.9, 0.8] });
+      parts.push({ section: 'outro', bars: 2, prog: 0, layers: KIT, open: [0.7, 0.4], fade: true });
+      break;
+    case 'keysOut':
+      parts.push({ section: 'outro', bars: 2, prog: 0, layers: ['keys', 'bass'], open: [0.8, 0.6] });
+      parts.push({ section: 'outro', bars: 2, prog: 0, layers: ['keys'], open: [0.5, 0.3], fade: true });
+      break;
+    case 'hatsOut':
+      parts.push({ section: 'outro', bars: 2, prog: 0, layers: ['keys', 'hats'], open: [0.8, 0.6] });
+      parts.push({ section: 'outro', bars: 2, prog: 0, layers: ['hats'], open: [0.5, 0.35], fade: true });
+      break;
+    default:
+      parts.push({ section: 'outro', bars: 2, prog: 0, layers: ['keys', 'bass', 'kick', 'hats'], open: [0.85, 0.7] });
+      parts.push({ section: 'outro', bars: 2, prog: 0, layers: ['keys'], open: [0.55, 0.3], fade: true });
+  }
+  return parts;
+}
+
+// ── rhythm ────────────────────────────────────────────────────────────────
+
+const KICKS: Record<LofiStyle['groove'], readonly (readonly number[])[]> = {
+  boomBap: [[0, 10], [0, 7, 10], [0, 3, 10], [0, 8, 10], [0, 10, 11]],
+  halfTime: [[0, 6], [0, 11], [0, 3, 6]],
+  shuffle: [[0, 6, 10], [0, 10], [0, 6, 8]],
+  lazy: [[0, 7, 10], [0, 9, 11], [0, 3, 10]],
+  sparse: [[0], [0, 10], [0, 11]],
+};
+
+/** Sixteenth `step` of a bar as a beat, with swing on the off-sixteenths and, for a shuffle, the off-eighths. */
+function stepBeat(step: number, swing: number, swing8 = 0.5): number {
+  let beat = step / 4;
+  if (step % 4 === 2) beat += swing8 - 0.5;
+  else if (step % 2 === 1) beat += (swing - 0.5) * 0.5;
+  return beat;
 }
 
 /** The next tune's seed: a fixed scramble of this one, so a station's run of tunes is reproducible. */
@@ -205,93 +439,135 @@ export function nextLofiSeed(seed: number): number {
 }
 
 /** Build one tune's bars. */
-export function composeLofiTune(seed: number, mood: LofiMood): LofiBar[] {
+export function composeLofiTune(seed: number, mood: LofiMood, fixed: Partial<LofiStyle> = {}): LofiBar[] {
   const rng = mulberry32(seed >>> 0);
   const pick = <T>(a: readonly T[]): T => a[Math.floor(rng() * a.length)] as T;
   const range = ([lo, hi]: [number, number]): number => lo + rng() * (hi - lo);
   const chance = (p: number): boolean => rng() < p;
-  const m = MOOD[mood];
+  const lean = LEAN[mood];
 
   const key = Math.floor(rng() * 12);
-  const bpm = Math.round(range(m.bpm));
-  const swing = Math.round(range(m.swing) * 100) / 100;
-  const pool = m.minor ? MINOR : MAJOR;
-  const progA = pick(pool);
-  let progB = pick(pool);
-  for (let tries = 0; progB === progA && tries < 4; tries++) progB = pick(pool);
-  const chordsA = progA.map(s => chordOf(key, s));
-  const chordsB = progB.map(s => chordOf(key, s));
-  const penta = (m.minor ? PENTA_MINOR : PENTA_MAJOR).map(i => (key + i) % 12);
-
-  // The arrangement: [section, bars, progression]. Verses are 8 or 16 bars.
-  const verse = chance(0.35) ? 16 : 8;
-  const plan: Array<[LofiSection, number, Chord[]]> = [
-    ['intro', 4, chordsA], ['verse', verse, chordsA], ['bridge', 8, chordsB],
-    ['break', 4, chordsA], ['verse', 8, chordsA], ['outro', 4, chordsA], ['rest', 1, chordsA],
-  ];
-  const total = plan.reduce((s, [, n]) => s + n, 0);
+  const style = drawStyle(rng, mood, fixed);
+  const halfTime = style.groove === 'halfTime';
+  const bpm = Math.round(range(lean.bpm) * (halfTime ? 1.12 : 1));
+  const swing = Math.round(range(style.groove === 'lazy' ? [0.6, 0.64] : lean.swing) * 100) / 100;
+  const swing8 = style.groove === 'shuffle' ? Math.round(range([0.6, 0.66]) * 100) / 100 : 0.5;
+  const pool = lean.minor ? MINOR : MAJOR;
+  const progA = vary(pick(pool), chance);
+  let base = pick(pool);
+  for (let tries = 0; base === progA && tries < 4; tries++) base = pick(pool);
+  const progB = vary(base, chance);
+  const chords = [progA.map(s => chordOf(key, s)), progB.map(s => chordOf(key, s))];
+  const penta = (lean.minor ? PENTA_MINOR : PENTA_MAJOR).map(i => (key + i) % 12);
+  const hasLead = style.lead !== 'none';
+  const parts = arrange(rng, hasLead);
+  const total = parts.reduce((s, p) => s + p.bars, 0) + 1;
   const info: LofiTuneInfo = {
-    seed: seed >>> 0, mood, bpm, swing,
-    key: `${NAMES[key]} ${m.minor ? 'minor' : 'major'}`,
-    progressions: [chordsA.map(c => c.name), chordsB.map(c => c.name)],
+    seed: seed >>> 0, mood, bpm, swing, swing8, style,
+    key: `${NAMES[key]} ${lean.minor ? 'minor' : 'major'}`,
+    progressions: [chords[0]!.map(c => c.name), chords[1]!.map(c => c.name)],
     bars: total,
   };
 
-  // Per-tune grooves, kept for a few bars at a time so the parts settle in.
-  const kick = pick(KICKS);
-  const motifs = [motif(rng, m.busy), motif(rng, m.busy)];
-  let comp = pick(COMPING);
+  const kickSteps = pick(KICKS[style.groove]);
+  // Three motifs: the verse's, the second progression's, and a busier one for a lead feature.
+  const motifs = [motif(rng, lean.busy), motif(rng, lean.busy), motif(rng, Math.min(1, lean.busy + 0.4))];
   let prevVoicing: number[] | null = null;
   let prevLead = 72;
+  const sb = (step: number): number => stepBeat(step, swing, swing8);
+  const loose = style.groove === 'lazy' ? 0.035 : 0.012;   // how far hands drift off the grid
 
   const bars: LofiBar[] = [];
   let index = 0;
-  for (const [section, count, chords] of plan) {
-    for (let i = 0; i < count; i++, index++) {
-      const chord = chords[i % chords.length]!;
-      const nextChord = chords[(i + 1) % chords.length]!;
+  for (let pi = 0; pi < parts.length; pi++) {
+    const part = parts[pi]!;
+    const prog = chords[part.prog]!;
+    const has = (l: LofiLayer): boolean => part.layers.includes(l);
+    // The fade runs across the whole ending, both of its parts.
+    const outroStart = parts.findIndex(p => p.section === 'outro');
+    for (let i = 0; i < part.bars; i++, index++) {
+      const slot = Math.floor(i / style.chordBars);
+      const firstOfChord = i % style.chordBars === 0;
+      const chord = prog[slot % prog.length]!;
+      const nextChord = prog[(slot + 1) % prog.length]!;
       const notes: LofiNote[] = [];
-      const phraseEnd = i % 8 === 7 || i === count - 1;
-      if (i % 4 === 0 && chance(0.5)) comp = pick(COMPING);
+      const partEnd = i === part.bars - 1;
+      const [o0, o1] = part.open ?? [1, 1];
+      const open = o0 + (o1 - o0) * (part.bars > 1 ? i / (part.bars - 1) : 1);
+      let level = 1;
+      if (part.section === 'outro') {
+        const intoOutro = parts.slice(outroStart, pi).reduce((s, p) => s + p.bars, 0) + i;
+        level = part.fade || intoOutro > 0 ? 1 - (intoOutro + 1) * 0.17 : 1;
+      }
+      const feature = part.feature;
+      const leadOn = hasLead && has('lead');
 
-      // Section switches.
-      const keysOn = section !== 'rest';
-      const bassOn = section === 'verse' || section === 'bridge' || (section === 'intro' && i >= 2) || (section === 'break' && i >= 2) || (section === 'outro' && i < 3);
-      const drumsOn = section === 'verse' || section === 'bridge' || (section === 'outro' && i < 2);
-      const leadOn = (section === 'verse' && i >= Math.min(4, count / 2)) || section === 'bridge' || (section === 'break' && i % 2 === 1);
-      const level = section === 'outro' ? 1 - (i + 1) * 0.17 : section === 'rest' ? 0 : 1;
-      const open = section === 'intro' ? 0.35 + i * 0.15 : section === 'break' ? 0.55 : section === 'outro' ? 0.8 - i * 0.18 : section === 'rest' ? 0.3 : 1;
-
-      if (keysOn) {
-        const voicing = voiceLead(voicingClasses(chord), prevVoicing);
-        prevVoicing = voicing;
-        const hits = section === 'intro' || section === 'outro' ? [[0, 15] as const] : comp;
-        for (const [step, len] of hits) {
-          const roll = 0.012 + rng() * 0.02;   // fingers never land together
+      // KEYS: one voicing per chord; how often it is struck depends on the style.
+      if (firstOfChord) prevVoicing = voiceLead(voicingClasses(chord), prevVoicing);
+      const voicing = prevVoicing ?? [];
+      if (has('keys')) {
+        const span = style.chordBars * 4;   // beats the chord lasts
+        const soft = part.section === 'intro' || part.section === 'outro' || part.section === 'break';
+        // While the lead or the bass has the front, the keys hold the chord; when the
+        // keys have it, they play more than their usual pattern.
+        let comp: LofiStyle['comp'] = style.comp;
+        if (feature === 'keys') comp = style.comp === 'hold' || style.comp === 'sparse' ? 'arp' : style.comp;
+        else if (soft || leadOn || feature === 'bass') comp = 'hold';
+        const strike = (beat: number, len: number, vel: number, spread: number): void => {
           voicing.forEach((p, n) => {
-            notes.push({
-              voice: 'keys', midi: p, beat: stepBeat(step, swing) + n * roll,
-              dur: len / 4, vel: clamp01((step === 0 ? 0.62 : 0.5) + (n === voicing.length - 1 ? 0.06 : 0) + (rng() - 0.5) * 0.1),
-            });
+            notes.push({ voice: 'keys', midi: p, beat: beat + n * spread, dur: len, vel: clamp01(vel + (n === voicing.length - 1 ? 0.05 : 0) + (rng() - 0.5) * 0.08) });
           });
+        };
+        // A chord that started in a part before this one is struck again where the keys come in.
+        const enter = firstOfChord || i === 0;
+        const left = (style.chordBars - (i % style.chordBars)) * 4;
+        if (comp === 'hold') {
+          if (enter) strike(0, Math.min(span, left) - 0.25, 0.58, 0.012 + rng() * 0.02);
+        } else if (comp === 'sparse') {
+          if (enter) strike(0, Math.min(span, left) - 0.25, 0.58, 0.015 + rng() * 0.02);
+          else if (chance(0.5)) strike(sb(10), 1.4, 0.4, 0.02);   // a quiet touch in the chord's second bar
+          if (style.chordBars === 1 && chance(0.25)) strike(sb(10), 1.4, 0.38, 0.02);
+        } else if (comp === 'arp') {
+          // A broken chord, a few notes a beat apart, each left to ring; in a chord's second
+          // bar just two notes answer the chord.
+          const order = (enter ? (style.chordBars === 2 ? [0, 1, 2, 3] : [0, 2, 3]) : [3, 1]).filter(n => n < voicing.length);
+          order.forEach((n, j) => {
+            const step = enter ? j * 4 : 6 + j * 6;
+            notes.push({ voice: 'keys', midi: voicing[n]!, beat: sb(step), dur: Math.max(1, 3.6 - sb(step)), vel: clamp01((enter ? 0.48 : 0.38) + (rng() - 0.5) * 0.1) });
+          });
+        } else {
+          strike(0, 1.8, 0.55, 0.015);
+          strike(sb(10), 1.4, 0.45, 0.02);
         }
       }
 
-      if (bassOn) {
+      // BASS
+      if (has('bass')) {
         const root = placeIn(chord.root, 36, 47);
         const fifth = root + 7 <= 50 ? root + 7 : root - 5;
-        const walk = chance(0.5);
-        notes.push({ voice: 'bass', midi: root, beat: 0, dur: walk ? 0.75 : 1.6, vel: 0.82 });
-        if (walk) notes.push({ voice: 'bass', midi: chance(0.5) ? root : root + 12 <= 52 ? root + 12 : root, beat: stepBeat(3, swing), dur: 0.6, vel: 0.62 });
-        notes.push({ voice: 'bass', midi: chance(0.6) ? root : fifth, beat: stepBeat(10, swing), dur: 0.9, vel: 0.7 });
-        if (nextChord.root !== chord.root && chance(0.45)) {
+        const third = placeIn(chord.tones[1]!, root, root + 11);
+        if (feature === 'bass') {
+          // A walking line: a note a beat, chord tones, then a step into the next root.
           const target = placeIn(nextChord.root, 36, 47);
-          notes.push({ voice: 'bass', midi: target + (chance(0.5) ? 1 : -1), beat: stepBeat(14, swing), dur: 0.4, vel: 0.6 });
+          const line = [root, chance(0.5) ? third : fifth, chance(0.5) ? fifth : root + 12 <= 52 ? root + 12 : third, target + (target > root ? -1 : 1)];
+          line.forEach((m, b) => {
+            notes.push({ voice: 'bass', midi: m, beat: b === 0 ? 0 : sb(b * 4) + (rng() - 0.5) * 0.02, dur: 0.85, vel: b === 0 ? 0.82 : 0.66 });
+          });
+        } else if (style.groove === 'sparse' || !has('kick')) {
+          notes.push({ voice: 'bass', midi: root, beat: 0, dur: 3.2, vel: 0.8 });
+        } else {
+          const walk = chance(0.45);
+          notes.push({ voice: 'bass', midi: root, beat: 0, dur: walk ? 0.75 : 1.6, vel: 0.82 });
+          if (walk) notes.push({ voice: 'bass', midi: chance(0.5) ? root : root + 12 <= 52 ? root + 12 : root, beat: sb(3), dur: 0.6, vel: 0.62 });
+          notes.push({ voice: 'bass', midi: chance(0.6) ? root : fifth, beat: sb(halfTime ? 11 : 10), dur: 0.9, vel: 0.7 });
+          const changing = i % style.chordBars === style.chordBars - 1 && nextChord.root !== chord.root;
+          if (changing && chance(0.45)) notes.push({ voice: 'bass', midi: placeIn(nextChord.root, 36, 47) + (chance(0.5) ? 1 : -1), beat: sb(14), dur: 0.4, vel: 0.6 });
         }
       }
 
+      // LEAD
       if (leadOn) {
-        const mo = motifs[section === 'bridge' ? 1 : 0]!;
+        const mo = motifs[feature === 'lead' ? 2 : part.prog]!;
         const answer = i % 2 === 1;
         const bar = mo[i % 2]!;
         for (let n = 0; n < bar.length; n++) {
@@ -300,46 +576,58 @@ export function composeLofiTune(seed: number, mood: LofiMood): LofiBar[] {
           if (step % 8 === 0 || n === bar.length - 1) pitch = nearestTone(pitch, chord.tones);   // strong beats sit on the chord
           pitch = Math.max(64, Math.min(84, pitch));
           prevLead = pitch;
-          notes.push({ voice: 'lead', midi: pitch, beat: stepBeat(step, swing) + (rng() - 0.5) * 0.02, dur: len / 4, vel: clamp01(0.5 + (rng() - 0.5) * 0.14) });
+          notes.push({ voice: 'lead', midi: pitch, beat: sb(step) + (rng() - 0.5) * 0.02, dur: len / 4, vel: clamp01((feature === 'lead' ? 0.56 : 0.5) + (rng() - 0.5) * 0.14) });
         }
       }
 
-      if (drumsOn) {
-        const outroThin = section === 'outro';
-        for (const s of kick) notes.push({ voice: 'kick', midi: 0, dur: 0, beat: stepBeat(s, swing), vel: s === 0 ? 0.9 : 0.74 });
-        if (!outroThin) {
-          for (const s of [4, 12]) notes.push({ voice: m.snare, midi: 0, dur: 0, beat: s / 4 + 0.02 + rng() * 0.012, vel: 0.78 + (rng() - 0.5) * 0.08 });   // laid back
-          for (const s of [7, 9, 15]) if (chance(0.16)) notes.push({ voice: 'snare', midi: 0, dur: 0, beat: stepBeat(s, swing), vel: 0.22 });   // ghosts
+      // DRUMS
+      const backbeat = style.snare === 'rim' ? 'rim' : 'snare';
+      const drumsFront = feature === 'drums';
+      if (has('kick')) {
+        for (const s of kickSteps) notes.push({ voice: 'kick', midi: 0, dur: 0, beat: sb(s) + (s ? (rng() - 0.5) * loose : 0), vel: s === 0 ? 0.9 : 0.74 });
+      }
+      if (has('snare')) {
+        const hits = halfTime ? [8] : style.groove === 'sparse' ? [12] : [4, 12];
+        for (const s of hits) notes.push({ voice: backbeat, midi: 0, dur: 0, beat: s / 4 + 0.02 + rng() * (style.groove === 'lazy' ? 0.04 : 0.012), vel: 0.78 + (rng() - 0.5) * 0.08 });
+        if (style.groove !== 'sparse' || drumsFront) {
+          for (const s of [7, 9, 15]) if (chance(drumsFront ? 0.4 : 0.14)) notes.push({ voice: 'snare', midi: 0, dur: 0, beat: sb(s), vel: 0.2 });   // ghosts
         }
-        const open = !outroThin && i % 4 === 3 && chance(0.6);
-        for (let s = 0; s < 16; s += 2) {
-          if (open && s === 14) { notes.push({ voice: 'openHat', midi: 0, dur: 0, beat: stepBeat(s, swing), vel: 0.42 }); continue; }
-          notes.push({ voice: 'hat', midi: 0, dur: 0, beat: stepBeat(s, swing) + (rng() - 0.5) * 0.015, vel: clamp01((s % 4 === 2 ? 0.46 : 0.34) + (rng() - 0.5) * 0.1) });
-          if (chance(0.1 * m.busy)) notes.push({ voice: 'hat', midi: 0, dur: 0, beat: stepBeat(s + 1, swing), vel: 0.2 });
+      }
+      if (has('hats') && style.hats !== 'none') {
+        const openOne = i % 4 === 3 && style.hats === 'hat' && chance(0.6);
+        const every = style.groove === 'sparse' && !drumsFront ? 4 : 2;
+        for (let s = 0; s < 16; s += every) {
+          if (openOne && s === 14) { notes.push({ voice: 'openHat', midi: 0, dur: 0, beat: sb(s), vel: 0.42 }); continue; }
+          notes.push({ voice: 'hat', midi: 0, dur: 0, beat: sb(s) + (rng() - 0.5) * loose, vel: clamp01((s % 4 === 2 ? 0.46 : 0.34) + (rng() - 0.5) * 0.1) });
+          if (every === 2 && chance((drumsFront ? 0.3 : 0.1) * lean.busy)) notes.push({ voice: 'hat', midi: 0, dur: 0, beat: sb(s + 1), vel: 0.2 });
         }
-        if (phraseEnd && !outroThin) {   // a small fill to turn the phrase
-          if (chance(0.5)) notes.push({ voice: 'kick', midi: 0, dur: 0, beat: stepBeat(13, swing), vel: 0.6 });
-          notes.push({ voice: 'snare', midi: 0, dur: 0, beat: stepBeat(15, swing), vel: 0.35 });
-        }
+      } else if (has('hats') && style.hats === 'none' && part.layers.length <= 2) {
+        // A kit with no hats still needs something to count in an intro or ending made of hats.
+        for (const s of [2, 6, 10, 14]) notes.push({ voice: 'rim', midi: 0, dur: 0, beat: sb(s), vel: 0.3 });
+      }
+      if ((partEnd || i % 8 === 7) && has('snare') && part.section !== 'outro') {   // a small fill to turn the phrase
+        if (has('kick') && chance(0.5)) notes.push({ voice: 'kick', midi: 0, dur: 0, beat: sb(13), vel: 0.6 });
+        notes.push({ voice: 'snare', midi: 0, dur: 0, beat: sb(15), vel: drumsFront ? 0.45 : 0.32 });
       }
 
       notes.sort((a, b) => a.beat - b.beat);
-      bars.push({ tune: info, index, section, chord: section === 'rest' ? '' : chord.name, notes, open, level });
+      bars.push({ tune: info, index, section: part.section, feature, layers: part.layers, chord: chord.name, notes, open, level });
     }
   }
+  bars.push({ tune: info, index, section: 'rest', layers: [], chord: '', notes: [], open: 0.3, level: 0 });
   return bars;
 }
 
 /** An endless stream of bars from `seed`: one tune after another. */
 export function lofiStream(seed: number, opts: LofiOptions): LofiStream {
   let tuneSeed = seed >>> 0;
-  let bars = composeLofiTune(tuneSeed, opts.mood);
+  let bars = composeLofiTune(tuneSeed, opts.mood, opts.style);
   let at = 0;
   return {
     next(): LofiBar {
       if (at >= bars.length) {
         tuneSeed = nextLofiSeed(tuneSeed);
-        bars = composeLofiTune(tuneSeed, opts.mood);
+        bars = composeLofiTune(tuneSeed, opts.mood, opts.style);
         at = 0;
       }
       return bars[at++]!;
