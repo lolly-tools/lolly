@@ -44,6 +44,7 @@ import type { AiPolicy } from '../lib/ai-policy.ts';
 import type { FieldPolicy } from '../lib/field-policy.ts';
 import { setToolInputPolicies, clearInputPolicies, setInputPolicyFailClosed, onToolInputMount, setToolStartValues, clearToolStartValues } from '../lib/input-policy.ts';
 import { companyLogo, setProgrammeMember, setWorkspaceCompany, setWorkspaceProgramme, type WorkspaceCompany } from '../lib/workspace-templates.ts';
+import { readPartnerKitOffer, setPartnerKitOffer } from '../lib/partner-kit-state.ts';
 import type { InputPolicy } from '../lib/input-policy.ts';
 import { registerShareSection } from '../lib/share-sections.ts';
 import { registerProfileSection } from '../lib/profile-sections.ts';
@@ -167,6 +168,8 @@ export interface PartnerSpec {
     logos?: { light?: string; dark?: string; mark?: string };
     website?: string; contact?: { name?: string; email?: string; phone?: string };
     address?: string; currency?: string; taxNote?: string;
+    /** The company's partner kit (plans/82 M8): its asset id, live revision and the company's name. */
+    kit?: { id: string; revision: number; label: string };
   };
   programme?: { id: string; name: string };
   /** When the person's access through a programme ends (Lolly Work plans/82 M5): the
@@ -826,6 +829,7 @@ export function applyOrgToolPolicies(): void {
   const company = partnerCompany(orgConfigState);
   setWorkspaceCompany(company);
   setWorkspaceProgramme(partnerProgramme(orgConfigState));
+  setPartnerKitOffer(readPartnerKitOffer(orgConfigState?.partner?.company?.kit));
   setProgrammeMember(orgConfigState?.programmeScoped === true);
   const tools = orgConfigState?.tools;
   if (!tools) return;
@@ -1201,6 +1205,7 @@ export async function initOrgWithAuth(auth: AuthConfig): Promise<OrgState | null
       setWorkspaceCompany(partnerCompany(orgConfigState));
       // And the programme, which an export records beside the company (plans/82 M3).
       setWorkspaceProgramme(partnerProgramme(orgConfigState));
+      setPartnerKitOffer(readPartnerKitOffer(orgConfigState?.partner?.company?.kit));
       // Whether the person reaches the workspace through a partner programme: the
       // home keeps to what is published to them (plans/82 M6).
       setProgrammeMember(orgConfigState?.programmeScoped === true);

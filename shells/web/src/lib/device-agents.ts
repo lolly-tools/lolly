@@ -23,6 +23,8 @@
 import { LIVE_LIMITS, LIVE_PROTOCOL } from '@lolly-tools/core';
 import type { TauriInvoke } from './nearby-boot.ts';
 import { aiAllowed, aiPolicy, AiPolicyError } from './ai-policy.ts';
+import { tRaw } from '../i18n.ts';
+import { viewingAs } from '../org/view-as.ts';
 import { createLiveSession, type LiveEditor, type LiveSession, type LiveSessionOpts } from './live-agent.ts';
 
 export type DeviceAgentKind = 'cli' | 'app' | 'local-model';
@@ -411,6 +413,7 @@ interface RunOutcome { ok?: unknown; output?: unknown; reason?: unknown; detail?
 
 /** Ask the CLI once and apply its answer. Never throws; the result says what happened. */
 export async function runDeviceAgent(opts: DeviceRunOpts): Promise<DeviceRunResult> {
+  if (viewingAs()) return { status: 'failed', reason: 'refused', detail: tRaw('Not while viewing as a partner') };
   const { invoke, agent, editor, request } = opts;
   if (!deviceAgentsAllowed()) return { status: 'failed', reason: 'policy' };
   if (!agent.runnable) return { status: 'failed', reason: 'not-detected' };

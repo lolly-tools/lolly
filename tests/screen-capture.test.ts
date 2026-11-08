@@ -611,6 +611,9 @@ test('ENGINE_VERSION is 1.342.0', () => {
   // 1.336.0 adds the template approval record and its Verify line. Capture is unchanged.
   // 1.337.0 adds the guest-mark checks against a partner kit. Capture is unchanged.
   // 1.338.0 adds the reserved _kit param for a partner kit attachment. Capture is unchanged.
+  // 1.339.0 words an unresolved palette truly for the CMYK TIFF and EPS. Capture is unchanged.
+  // 1.340.0 adds stamped paths to host.pdf.stamp (Sign's date in the design system's face). Capture is unchanged.
+  // 1.341.0 records a rendition tool's picture as the parent (renditionOf). Capture is unchanged.
   // 1.342.0 lets a template approval's id segment start with - or _. Capture is unchanged.
   assert.equal(ENGINE_VERSION, '1.342.0');
 });

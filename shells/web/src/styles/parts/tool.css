@@ -736,6 +736,24 @@
 }
 .tool-notice-close:hover,
 .embed-editor-close:hover{ color: hsl(var(--foreground)); background: hsl(var(--accent)); }
+/* The partner kit's line heads the Design system section (plans/82 M8,
+   views/tool/partner-kit-line.ts): read-only, with Detach or Attach. */
+.partner-kit-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--sp-2) var(--sp-4);
+  margin: 0 0 var(--sp-4);
+  font-size: var(--fs-md);
+  line-height: 1.4;
+  color: hsl(var(--muted-foreground));
+}
+.partner-kit-line[hidden] { display: none; }
+/* In the sidebar section the line sits above the section's body: one row, and the
+   body below keeps its own top gutter, so the line needs none of its own below. */
+.input-section-body.partner-kit-line { flex-direction: row; padding-bottom: 0; margin: 0; }
+.partner-kit-line-text { color: hsl(var(--foreground)); overflow-wrap: anywhere; }
+.partner-kit-line .tool-notice-link { margin-left: 0; }
 .fullscreen-toggle-float {
   position: absolute;
   top: 10px;

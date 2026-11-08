@@ -75,8 +75,8 @@
     {
       "version": 1,
       "toolId": "annotate",
-      "toolVersion": "1.1.0",
-      "toolVersionRange": "1.1.0",
+      "toolVersion": "1.1.1",
+      "toolVersionRange": "1.1.1",
       "skillRevision": "1",
       "origin": "generated",
       "references": [
@@ -85,7 +85,7 @@
       ],
       "files": {
         "SKILL.md": {
-          "sha256": "1442c9818ec10675a929a3a40146756ddffa2d9a4e3486b189c1087313af0b00",
+          "sha256": "5fc40b9c453219ca2529fc3590d736674c47bcd1d4c4d50cdc7ca054ff49f786",
           "bytes": 1868
         },
         "reference/inputs.json": {
@@ -102,8 +102,8 @@
     {
       "version": 1,
       "toolId": "asset-export",
-      "toolVersion": "1.1.0",
-      "toolVersionRange": "1.1.0",
+      "toolVersion": "1.2.0",
+      "toolVersionRange": "1.2.0",
       "skillRevision": "1",
       "origin": "generated",
       "references": [
@@ -112,8 +112,8 @@
       ],
       "files": {
         "SKILL.md": {
-          "sha256": "8f4e28486cc5cf5a0a2310e5853fece5772060f9ef61025e69c0836007ccec26",
-          "bytes": 1785
+          "sha256": "b029be0ccde3d15f4b11b2f48587fd9317bf222af7f5bd510cd39436aa7f40ca",
+          "bytes": 1787
         },
         "reference/inputs.json": {
           "sha256": "ae3523684b77b7850b26933e94b4d945854bee2f17e6271e291bdf1e9f42189a",
@@ -516,8 +516,8 @@
     {
       "version": 1,
       "toolId": "darkroom",
-      "toolVersion": "2.5.3",
-      "toolVersionRange": "2.5.3",
+      "toolVersion": "2.6.0",
+      "toolVersionRange": "2.6.0",
       "skillRevision": "1",
       "origin": "generated",
       "references": [
@@ -526,7 +526,7 @@
       ],
       "files": {
         "SKILL.md": {
-          "sha256": "6fdfa895d17711dd7adc97ba0d4c3d53ce1ce42d3b090a49d5349d3a5bc2d9f3",
+          "sha256": "7b64f006ea581c7671b73e11a7d398670609874e82358b8972a20ab70a7e38e7",
           "bytes": 5127
         },
         "reference/inputs.json": {
@@ -678,8 +678,8 @@
     {
       "version": 1,
       "toolId": "filter",
-      "toolVersion": "1.6.0",
-      "toolVersionRange": "1.6.0",
+      "toolVersion": "1.7.0",
+      "toolVersionRange": "1.7.0",
       "skillRevision": "1",
       "origin": "generated",
       "references": [
@@ -688,7 +688,7 @@
       ],
       "files": {
         "SKILL.md": {
-          "sha256": "8433d2227f36c75cbbe140458b4b0d3261b96d3d080e75841b624f489cb32970",
+          "sha256": "2a5886472091bc09d4775866d6a3c5c10ddf7d8f309d84ae159935efa8a93e0d",
           "bytes": 5320
         },
         "reference/inputs.json": {
@@ -1310,8 +1310,8 @@
     {
       "version": 1,
       "toolId": "sandbox",
-      "toolVersion": "1.8.0",
-      "toolVersionRange": "1.8.0",
+      "toolVersion": "1.9.0",
+      "toolVersionRange": "1.9.0",
       "skillRevision": "1",
       "origin": "generated",
       "references": [
@@ -1319,7 +1319,7 @@
       ],
       "files": {
         "SKILL.md": {
-          "sha256": "7fb0b538614e9d7ab4bab1e6308b7383e1e3f1ee74f1f23eef7c6ff773d51c79",
+          "sha256": "375af84a8a55dd797ad42088c35e6270a6cfa6481f45d0cc9f4ef3acce570457",
           "bytes": 1628
         },
         "reference/inputs.json": {
@@ -1398,8 +1398,8 @@
     {
       "version": 1,
       "toolId": "sign",
-      "toolVersion": "1.0.2",
-      "toolVersionRange": "1.0.2",
+      "toolVersion": "1.1.0",
+      "toolVersionRange": "1.1.0",
       "skillRevision": "1",
       "origin": "generated",
       "references": [
@@ -1407,7 +1407,7 @@
       ],
       "files": {
         "SKILL.md": {
-          "sha256": "b79c83b28b5748616f0c6ab685e44aa9039aa60a7b954558a4c9c3cb27cd2528",
+          "sha256": "7c3a7c43f7162d9acbc7b031b8a85dcd46b77076847c25de65f3f188d3a07b13",
           "bytes": 1723
         },
         "reference/inputs.json": {

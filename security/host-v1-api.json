@@ -525,7 +525,7 @@
     "ExportOpts": {
       "module": "export.ts",
       "kind": "InterfaceDeclaration",
-      "sha256": "5daac19b64fc4eccf14a3c1afca6d067b10aa0eb9e9ceef578a221763aaaf879"
+      "sha256": "6c665dfcaaf24292a1d0e7c03289c28d0b5ab6a2deabb34b68923f8c80c36338"
     },
     "ExportMeta": {
       "module": "export.ts",
@@ -1017,10 +1017,15 @@
       "kind": "InterfaceDeclaration",
       "sha256": "a5028a82294f26ffe83b7cdfd7809718c9d6d3fe763b6a12f3fa7ad0177cd43e"
     },
+    "PdfStampPath": {
+      "module": "pdf.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "6a48b4fc888a39a280bf866e97b92e81f61acdc519eea980afec4128d6e54ae1"
+    },
     "PdfStampOpts": {
       "module": "pdf.ts",
       "kind": "InterfaceDeclaration",
-      "sha256": "f75684ac38115e30db3ff8ded6e0dac351d056318d08f2b736a29d29eb41723b"
+      "sha256": "cfa997b0828e01c5362793dfd79cd24e97733c422c9d9028492ff49d9590f404"
     },
     "PdfStampResult": {
       "module": "pdf.ts",

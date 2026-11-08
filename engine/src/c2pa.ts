@@ -784,6 +784,11 @@ export function exportActionSteps(format: string, flags: {
    *  created → compositeWithTrainedAlgorithmicMedia, plus a c2pa.placed step naming
    *  each. Pair with an `aiDisclosure` on the manifest (section 18.28.3). */
   aiIngredients?: AiIngredientDeclaration[];
+  /** The export is a rendition of a credentialed picture that travels as its one
+   *  `parentOf` ingredient (a tool's `renditionOf`): `action` takes the place of the
+   *  created step, after the `c2pa.opened` step the embedder writes for that parent.
+   *  Pass it only with that ingredient: a history has to start with created or opened. */
+  rendition?: { action: string };
 } = {}): C2paActionInput[] {
   if (flags.delivered) return [{ action: 'c2pa.published' }];
   const f = String(format || '').toLowerCase();
@@ -813,7 +818,7 @@ export function exportActionSteps(format: string, flags: {
       : captured
         ? { action: 'c2pa.created', digitalSourceType: CAPTURE_SOURCE_TYPE, description: captureDescription(cap!) }
         : { action: 'c2pa.created', digitalSourceType: DIGITAL_SOURCE_TYPE };
-  const steps: C2paActionInput[] = [created];
+  const steps: C2paActionInput[] = [flags.rendition ? renditionStep(flags.rendition.action, created) : created];
   if (flags.cmyk) steps.push({ action: 'c2pa.color_adjustments', description: 'Converted colours to CMYK for print' });
   if (flags.paletteColors) steps.push({ action: 'c2pa.color_adjustments', description: `Snapped colours to the brand palette (${flags.paletteColors} colour${flags.paletteColors === 1 ? '' : 's'})` });
   if (flags.marks?.length) steps.push({ action: 'c2pa.edited', description: `Added ${joinList(flags.marks)}` });
@@ -834,6 +839,30 @@ export function exportActionSteps(format: string, flags: {
   else if (VIDEO_OUTPUTS.has(f)) steps.push({ action: 'c2pa.converted', description: `Encoded to ${f.toUpperCase()}` });
   else if (f === 'pdf' || f === 'pdf-cmyk') steps.push({ action: 'c2pa.converted', description: 'Rendered to PDF' });
   return steps;
+}
+
+/** What each rendition action says it did, for the step's description. */
+const RENDITION_DESCRIPTIONS: Record<string, string> = {
+  'c2pa.color_adjustments': 'Adjusted the colours',
+  'c2pa.filtered': 'Applied a filter',
+  'c2pa.converted': 'Converted the picture',
+  'c2pa.resized': 'Resized the picture',
+  'c2pa.cropped': 'Cropped the picture',
+  'c2pa.edited': 'Edited the picture',
+};
+
+/**
+ * A rendition's head step. The picture was opened, not made, so the step keeps no
+ * digitalCreation claim; a composite or AI source type the created step would have
+ * declared (an AI-declared component, an upscale) still travels on this step.
+ */
+function renditionStep(action: string, created: C2paActionInput): C2paActionInput {
+  const declared = created.digitalSourceType && created.digitalSourceType !== DIGITAL_SOURCE_TYPE ? created.digitalSourceType : undefined;
+  return {
+    action,
+    ...(declared ? { digitalSourceType: declared } : {}),
+    description: RENDITION_DESCRIPTIONS[action] ?? 'Edited the picture',
+  };
 }
 
 // The two AI steps exportActionSteps writes, as text. One writer for each, so the
@@ -878,6 +907,19 @@ export function aiFactsFromSteps(steps: ReadonlyArray<{ action?: unknown; descri
     }
   }
   return { aiIngredients, ...(aiUpscale ? { aiUpscale } : {}) };
+}
+
+/**
+ * The rendition step {@link exportActionSteps} wrote, read back: the first step after
+ * the opened ones, when it is a rendition action with the description that writer
+ * gives such a step. A shell that replaces a credential with its own passes the step on,
+ * so the replacement still says what was done to the parent rather than that a new file
+ * was made. Undefined when the history starts as a new file's does.
+ */
+export function renditionFromSteps(steps: ReadonlyArray<{ action?: unknown; description?: unknown }>): { action: string } | undefined {
+  const head = steps.find((step) => step.action !== 'c2pa.opened');
+  const action = typeof head?.action === 'string' ? head.action : '';
+  return RENDITION_DESCRIPTIONS[action] !== undefined && head?.description === RENDITION_DESCRIPTIONS[action] ? { action } : undefined;
 }
 
 // The created step's description for a captured essence - camera, mic, or both.
