@@ -132,3 +132,36 @@ test('the preview web workflow is dispatch-only and its downloaded registry tool
   const calls = [...preview.matchAll(/^\s*uses:\s*(\.\/\S+)/gm)].map((match) => match[1]);
   assert.deepEqual(calls, ['./.github/workflows/release-frontend.yml']);
 });
+
+test('every GitHub release download has the REST API route and is checked against its pinned digest', () => {
+  // On 2026-11-08 every releases/download URL returned HTTP 504 for hours while the
+  // REST API served the same files. scripts/ci/fetch-release-asset.sh tries the URL
+  // and then the API; a job that runs no repository script writes out the gh route.
+  const helper = 'scripts/ci/fetch-release-asset.sh';
+  let fetches = 0;
+  for (const filename of workflowFiles) {
+    const relative = path.relative(repoRoot, filename);
+    const workflow = parse(readFileSync(filename, 'utf8')) as {
+      jobs: Record<string, { env?: Record<string, string>; steps?: { name?: string; run?: string; env?: Record<string, string> }[] }>;
+    };
+    for (const [job, { env: jobEnv, steps = [] }] of Object.entries(workflow.jobs ?? {})) {
+      for (const step of steps) {
+        const run = step.run ?? '';
+        const label = `${relative} ${job}: ${step.name ?? run.slice(0, 40)}`;
+        if (/github\.com\/[^\s/"]+\/[^\s/"]+\/releases\/download\//.test(run)) {
+          assert.match(run, /\bgh release download\b/, `${label}: a release URL with no REST API route; use ${helper}`);
+        }
+        const calls = [...run.matchAll(/scripts\/ci\/fetch-release-asset\.sh /g)];
+        if (calls.length === 0) continue;
+        fetches += calls.length;
+        assert.match(step.env?.GH_TOKEN ?? jobEnv?.GH_TOKEN ?? '', /^\$\{\{ github\.token \}\}$/, `${label}: the API route needs the job token as GH_TOKEN`);
+        const checks = [...run.matchAll(/sha256sum --check/g)];
+        assert.ok(checks.length >= calls.length, `${label}: every fetched asset is checked against its pinned digest`);
+        for (const call of calls) {
+          assert.ok(checks.some(check => check.index! > call.index!), `${label}: the digest check follows the download`);
+        }
+      }
+    }
+  }
+  assert.ok(fetches >= 10, `expected the pinned tool installs to use ${helper}, found ${fetches}`);
+});

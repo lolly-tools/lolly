@@ -233,12 +233,12 @@ jobs:
         env:
           GITLEAKS_VERSION: '8.29.1'
           GITLEAKS_LINUX_X64_SHA256: 'e4eb209d04e20339d77122a3bdf9cd41351255cfb27ebcb75e85325e04f88924'
+          GH_TOKEN: ${{ github.token }}
         run: |
           archive="$RUNNER_TEMP/gitleaks.tar.gz"
           bindir="$RUNNER_TEMP/gitleaks-bin"
-          curl --fail --silent --show-error --location \
-            --output "$archive" \
-            "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz"
+          scripts/ci/fetch-release-asset.sh gitleaks/gitleaks "v${GITLEAKS_VERSION}" \
+            "gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz" "$archive"
           echo "$GITLEAKS_LINUX_X64_SHA256  $archive" | sha256sum --check
           mkdir -p "$bindir"
           tar -xzf "$archive" -C "$bindir" gitleaks
@@ -468,12 +468,12 @@ jobs:
           FFMPEG_RELEASE: autobuild-2026-09-30-13-08
           FFMPEG_BUILD: ffmpeg-n9.0.2-17-g2a571b6068-linux64-gpl-9.0
           FFMPEG_LINUX_X64_SHA256: '68ee646831adaae2495618346f3bba94ff207ff83bbd34d643e7004730d66269'
+          FETCH_RELEASE_MAX_TIME: '180'
+          GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
           archive="$RUNNER_TEMP/ffmpeg.tar.xz"
-          curl --fail --silent --show-error --location --retry 5 --retry-all-errors \
-            --connect-timeout 15 --max-time 180 --output "$archive" \
-            "https://github.com/BtbN/FFmpeg-Builds/releases/download/${FFMPEG_RELEASE}/${FFMPEG_BUILD}.tar.xz"
+          scripts/ci/fetch-release-asset.sh BtbN/FFmpeg-Builds "$FFMPEG_RELEASE" "${FFMPEG_BUILD}.tar.xz" "$archive"
           echo "$FFMPEG_LINUX_X64_SHA256  $archive" | sha256sum --check
           mkdir -p ~/.cache/ffmpeg
           tar -xJf "$archive" -C ~/.cache/ffmpeg --strip-components=2 "${FFMPEG_BUILD}/bin/ffmpeg" "${FFMPEG_BUILD}/bin/ffprobe"
@@ -520,12 +520,12 @@ jobs:
         env:
           CADDY_VERSION: '2.11.7'
           CADDY_LINUX_AMD64_SHA256: 727b91701a392de6ebc5027509f548bf39979e5216340d0faed8fa5e69c84f8b
+          GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
           archive="$RUNNER_TEMP/lolly-reference-caddy.tar.gz"
-          curl --fail --silent --show-error --location --retry 3 \
-            --output "$archive" \
-            "https://github.com/caddyserver/caddy/releases/download/v${CADDY_VERSION}/caddy_${CADDY_VERSION}_linux_amd64.tar.gz"
+          scripts/ci/fetch-release-asset.sh caddyserver/caddy "v${CADDY_VERSION}" \
+            "caddy_${CADDY_VERSION}_linux_amd64.tar.gz" "$archive"
           printf '%s  %s\n' "$CADDY_LINUX_AMD64_SHA256" "$archive" | sha256sum --check
           mkdir -p "$RUNNER_TEMP/lolly-reference-proxies"
           tar -xzf "$archive" -C "$RUNNER_TEMP/lolly-reference-proxies" caddy
@@ -694,9 +694,10 @@ jobs:
         timeout-minutes: 5
         env:
           C2PATOOL_LINUX_X64_SHA256: '7ad4d0958ca9f930b8048cc36f937f4203ba5335b1e726b0982a6e7f604942aa'
+          GH_TOKEN: ${{ github.token }}
         run: |
-          curl -fsSL -o /tmp/c2patool.tar.gz \
-            "https://github.com/contentauth/c2pa-rs/releases/download/c2patool-v0.26.70/c2patool-v0.26.70-x86_64-unknown-linux-gnu.tar.gz"
+          scripts/ci/fetch-release-asset.sh contentauth/c2pa-rs c2patool-v0.26.70 \
+            c2patool-v0.26.70-x86_64-unknown-linux-gnu.tar.gz /tmp/c2patool.tar.gz
           echo "$C2PATOOL_LINUX_X64_SHA256  /tmp/c2patool.tar.gz" | sha256sum --check
           tar -xzf /tmp/c2patool.tar.gz -C /tmp
           mkdir -p ~/.cache/c2patool
@@ -1239,13 +1240,13 @@ jobs:
         env:
           CARGO_AUDIT_VERSION: '0.22.2'
           CARGO_AUDIT_LINUX_X64_SHA256: '7fb9497f8594b389e5fce5ef9b92db08432996895b2e0c5a0167a69ed445c428'
+          GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
           archive="$RUNNER_TEMP/cargo-audit.tgz"
           bindir="$RUNNER_TEMP/cargo-audit-bin"
-          curl --fail --silent --show-error --location --retry 3 \
-            --output "$archive" \
-            "https://github.com/rustsec/rustsec/releases/download/cargo-audit%2Fv${CARGO_AUDIT_VERSION}/cargo-audit-x86_64-unknown-linux-musl-v${CARGO_AUDIT_VERSION}.tgz"
+          scripts/ci/fetch-release-asset.sh rustsec/rustsec "cargo-audit/v${CARGO_AUDIT_VERSION}" \
+            "cargo-audit-x86_64-unknown-linux-musl-v${CARGO_AUDIT_VERSION}.tgz" "$archive"
           echo "$CARGO_AUDIT_LINUX_X64_SHA256  $archive" | sha256sum --check
           mkdir -p "$bindir"
           tar -xzf "$archive" -C "$bindir" --strip-components=1 \
