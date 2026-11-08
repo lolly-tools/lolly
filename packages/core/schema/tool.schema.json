@@ -649,6 +649,26 @@
       },
       "description": "Declares what host capabilities this tool needs. The host disables the tool on shells that can't provide them (e.g. an ffmpeg-using tool is unavailable in the web shell; a 'microphone'/'camera'/'screen' recording tool is unavailable in the headless CLI). 'screen' (v1.54) is DISPLAY capture via host.recorder - the user picks a screen/window/tab in browser-native UI; distinct from 'capture', which rasterises a URL the tool itself names."
     },
+    "renditionOf": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["input", "action"],
+      "properties": {
+        "input": { "type": "string", "pattern": "^[a-zA-Z][a-zA-Z0-9_]*$", "description": "The id of a top-level asset input: the picture the output is a rendition of." },
+        "action": {
+          "type": "string",
+          "enum": ["c2pa.color_adjustments", "c2pa.filtered", "c2pa.converted", "c2pa.resized", "c2pa.cropped", "c2pa.edited"],
+          "description": "What the tool did to that picture, written where a new file writes c2pa.created."
+        },
+        "unlessSet": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "type": "string", "pattern": "^[a-zA-Z][a-zA-Z0-9_]*$" },
+          "description": "Ids of inputs that replace the picture as the source while they hold anything (a non-empty list, a chosen asset, a non-empty value). While one does, the export is not recorded as a rendition."
+        }
+      },
+      "description": "The output is a rendition of one picture the person gives the tool. When that picture carries Content Credentials of its own, a stamped export records it as the parentOf ingredient, opened first, followed by this action (C2PA 2.2 section 18.15.3). A picture with no credential changes nothing."
+    },
     "requires": {
       "type": "array",
       "uniqueItems": true,

@@ -467,3 +467,35 @@ test('every shipped example hydrates and draws', { skip: SKIP }, async () => {
     }
   }
 });
+
+// Defect (2026-11-07): a step pin's caption came out of the CLI as a white smear. Its
+// white halo was one element with `paint-order="stroke"`, and Skia's SVG reader (the
+// one the CLI, the TUI and the MCP server draw this overlay with) ignores paint-order,
+// so the halo was painted over the words. The halo is now its own element, drawn first.
+const { isCanvasAvailable } = await import('@lolly-tools/node-shell/canvas');
+test('a step pin caption reads in the CLI\'s SVG reader, not as a white smear', { skip: SKIP || (!isCanvasAvailable() && '@napi-rs/canvas is not installed here') }, async () => {
+  const html = await render({ annotations: [mark('pin', 20, 20, 0, 0, 'Start here')], accent: '#d01f4a' });
+  const svg = /<svg class="an-svg"[\s\S]*?<\/svg>/.exec(html)?.[0];
+  assert.ok(svg, 'no overlay');
+  assert.doesNotMatch(svg!, /paint-order/, 'the caption leans on paint-order, which Skia ignores');
+  const canvasMod: any = await import('@napi-rs/canvas');
+  const W = 1600, H = 1000;
+  const img = new canvasMod.Image();
+  img.src = Buffer.from(svg!.replace('<svg class="an-svg"', `<svg width="${W}" height="${H}" class="an-svg"`));
+  const c = canvasMod.createCanvas(W, H);
+  const g = c.getContext('2d');
+  g.fillStyle = '#808080';
+  g.fillRect(0, 0, W, H);
+  g.drawImage(img, 0, 0, W, H);
+  // The caption starts 1.5 pin radii right of the pin (r = 2.5 units, 16 px a unit at
+  // this size) and is centred on the pin's row, 12.5 units down.
+  const box = g.getImageData(390, 185, 170, 30).data;
+  let ink = 0, white = 0;
+  for (let i = 0; i < box.length; i += 4) {
+    const [r, gg, b] = [box[i]!, box[i + 1]!, box[i + 2]!];
+    if (r > 235 && gg > 235 && b > 235) white++;
+    else if (Math.abs(r - 0xd0) < 40 && Math.abs(gg - 0x1f) < 40 && Math.abs(b - 0x4a) < 40) ink++;
+  }
+  assert.ok(white > 0, 'the halo is drawn');
+  assert.ok(ink > 200, `the words are in the accent over their halo (${ink} accent pixels, ${white} white)`);
+});

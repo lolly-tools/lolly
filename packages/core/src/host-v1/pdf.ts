@@ -283,9 +283,31 @@ export interface PdfStampText {
   size?: number;
 }
 
+/**
+ * A vector mark: SVG path data placed with its origin at `x`, `y`, in top-left PDF points.
+ * The path reads y-down from that origin, at the size it is drawn (one unit is one point),
+ * which is what `host.text.toPath` returns for a run shaped at `fontSize` points, with the
+ * baseline at the origin. So a tool can stamp words in the design system's face, as
+ * outlines, where `texts` can only set them in a standard PDF face. Optional/additive
+ * (v1.NNN): a host that predates it ignores `paths`, so `PdfStampResult.stamps` comes back
+ * short and the tool can stamp `texts` instead.
+ */
+export interface PdfStampPath {
+  /** 1-based destination page. */
+  page: number;
+  x: number;
+  /** Distance from the TOP edge of the page to the path's origin, in PDF points. */
+  y: number;
+  /** SVG path data, y-down, in points. */
+  d: string;
+  /** Fill as #rrggbb. Defaults to the near-black stamped text is set in. */
+  color?: string;
+}
+
 export interface PdfStampOpts {
   images: PdfStampImage[];
   texts?: PdfStampText[];
+  paths?: PdfStampPath[];
 }
 
 export interface PdfStampResult {

@@ -5,7 +5,7 @@ description: "Operate the Lolly Annotate tool (annotate) using its declared inpu
 
 # Annotate
 
-Tool ID: `annotate`. Tool version: `1.1.0`. Engine range: `^1.214.0`.
+Tool ID: `annotate`. Tool version: `1.1.1`. Engine range: `^1.214.0`.
 
 Mark up your own screenshot on your device - arrows, boxes, numbered steps, callouts, highlighter and a spotlight dim.
 

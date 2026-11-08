@@ -10,6 +10,7 @@
  */
 
 import { LIVE_LIMITS } from '@lolly-tools/core';
+import { viewingAs } from '../org/view-as.ts';
 import { createLiveSession, type LiveEditor, type LiveSession, type LiveSessionOpts } from './live-agent.ts';
 
 export interface PairingCode { port: number; secret: string }
@@ -53,7 +54,7 @@ export interface PairOpts extends LiveSessionOpts {
 }
 
 /** Why a pairing did not start; the dialog words each one for the person. */
-export type PairFailure = 'timeout' | 'unreachable' | 'wrong-code' | 'closed';
+export type PairFailure = 'timeout' | 'unreachable' | 'wrong-code' | 'closed' | 'viewing-as';
 
 export class PairError extends Error {
   readonly reason: PairFailure;
@@ -79,6 +80,7 @@ function browserSocket(url: string): SocketLike {
  * rejects with a PairError naming why it did not.
  */
 export function pairWithAgent(code: PairingCode, editor: LiveEditor, opts: PairOpts = {}): Promise<AgentLink> {
+  if (viewingAs()) return Promise.reject(new PairError('viewing-as'));
   const socket = (opts.makeSocket ?? browserSocket)(`ws://127.0.0.1:${code.port}`);
   const session = createLiveSession(editor, opts);
   let paired = false;

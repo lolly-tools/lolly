@@ -82,6 +82,7 @@ export interface ExportOpts {
   };
   sourceDocument?: { toolId: string; values: Record<string, unknown> };
   c2paAiUpscale?: { model: string; version: string }; // AI-upscaled essence → created = compositeWithTrainedAlgorithmicMedia + a model-naming edit step (runtime-supplied)
+  c2paRendition?: { action: import('@lolly-tools/core').RenditionAction }; // a rendition tool's credentialed parent travels as parentOf; this action replaces created (runtime-supplied)
   c2paAiIngredients?: Array<{ name: string; kind: 'full' | 'partial' }>; // placed assets the user declared AI-made (runtime-supplied) → composite created step + c2pa.placed + a section 18.28 ai-disclosure
   colorProfile?: string;
   /** Print every declared spot ink as its process build in the CMYK formats (HostV1
@@ -628,6 +629,17 @@ export function setExportHost(host: WebHost): void { _host = host; }
  * soundtrack (plan 301), are deduped by instanceId, so a zip member re-entering the
  * render, or a song placed twice, is listed once.
  */
+/** The print marks an export adds, by name, for the credential's "Added ..." step. */
+export function printMarkNames(opts: ExportOpts): string[] {
+  const marks: string[] = [];
+  if (opts.bleed) marks.push(`${opts.bleed}${typeof opts.bleed === 'number' ? 'px' : ''} bleed`);
+  if (opts.cropMarks) marks.push('crop marks');
+  if (opts.registrationMarks) marks.push('registration marks');
+  if (opts.bleedMarks) marks.push('bleed marks');
+  if (opts.colorBars) marks.push('a colour bar');
+  return marks;
+}
+
 /**
  * A bundle member's own options: its ingredient record starts from what the caller gave
  * the bundle, so the pictures and sources one member draws never reach another

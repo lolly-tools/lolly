@@ -15,6 +15,7 @@ import { mountDownloadRecovery } from '../../lib/download-recovery.ts';
 import { markSyncDirty } from '../../lib/sync-service.ts';
 import { navigateTo } from '../../nav.js';
 import { snapshotSession } from '../tool-session-snapshot.ts';
+import { pieceKit } from '../../lib/partner-kit-state.ts';
 import { historyRedact } from '../tool-history-adapters.ts';
 import { THUMB_CAPTURE_TIMEOUT_MS, captureThumbnail } from '../tool-action-helpers.ts';
 import { jellyActive } from '../../lib/jelly.ts';
@@ -41,7 +42,7 @@ export const saveBtnHtml = (ta: ActionsCtx) =>
 // (tool identity + export settings). Shared by performSave and the "Make
 // variants" action so a variant is byte-for-byte a normal saved session, except
 // that a save where history keeps the document goes through keptSnapshot below.
-export const sessionSnapshot = (ta: ActionsCtx) => { const { el, experience, manifest, runtime } = ta; return snapshotSession(el, manifest, runtime, experience, readBleed, readMarks); };
+export const sessionSnapshot = (ta: ActionsCtx) => { const { el, experience, manifest, runtime } = ta; return snapshotSession(el, manifest, runtime, experience, readBleed, readMarks, { partnerKit: pieceKit(runtime) }); };
 // The same payload as history keeps it: each file input recorded as not kept (plan 277
 // P4, class B). Automatic history writes this, and so does Save where history keeps the
 // document, because the record a save writes is the one recovery drafts replace.

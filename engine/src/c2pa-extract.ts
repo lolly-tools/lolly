@@ -11,7 +11,7 @@
  * it only parses bytes into structure. c2pa-verify.ts imports all of this back.
  */
 
-import { C2PA_BMFF_UUID, C2PA_ATTACHMENT_MIME, aiFactsFromSteps, ingredientFormatOfMime } from './c2pa.ts';
+import { C2PA_BMFF_UUID, C2PA_ATTACHMENT_MIME, aiFactsFromSteps, renditionFromSteps, ingredientFormatOfMime } from './c2pa.ts';
 import type { AiIngredientDeclaration } from './c2pa.ts';
 import { aiKind } from './ai-kind.ts';
 import { EBML_ID, SEGMENT_ID, readId, readVint, idAt } from './video-meta.ts';
@@ -1984,6 +1984,8 @@ export interface PlacedPictures {
   aiIngredients: AiIngredientDeclaration[];
   /** The model its steps say enlarged a placed picture. */
   aiUpscale?: { model: string; version: string };
+  /** What its steps say was done to its parent, when the export was a rendition of one. */
+  rendition?: { action: string };
 }
 
 /**
@@ -2070,7 +2072,8 @@ export function placedPicturesOf(store: Uint8Array): PlacedPictures {
       ...(digitalSourceType ? { digitalSourceType } : {}),
     });
   }
-  return { ingredients, ...aiFactsFromSteps(steps) };
+  const rendition = ingredients.some((i) => i.relationship === 'parentOf') ? renditionFromSteps(steps) : undefined;
+  return { ingredients, ...aiFactsFromSteps(steps), ...(rendition ? { rendition } : {}) };
 }
 
 /**

@@ -149,6 +149,21 @@ export interface ColorFieldAuto {
 let SWATCHES: ColorSwatchOption[] = PALETTE.map(s => ({ value: s.hex, label: s.label, group: s.group ?? null, ref: null }));
 
 /** Replace the picker's swatches (e.g. with tokens). Ignored if empty/invalid. */
+/**
+ * A guest's colours (a partner kit, plans/82 M8), each group under a heading of its own:
+ * the company's name, since a design system may call one of its own roles "Partner".
+ * `spoken` is what a screen reader hears for the group, and each swatch's `group` should
+ * carry the same words. Each is a plain colour. Null or empty takes them away. Only the
+ * shared list gains them; a field with a named source of its own keeps that.
+ */
+export interface GuestSwatchGroup { heading: string; spoken: string; swatches: ColorSwatchOption[] }
+let GUEST_GROUPS: GuestSwatchGroup[] = [];
+export function setGuestSwatches(groups: readonly GuestSwatchGroup[] | null | undefined): void {
+  GUEST_GROUPS = Array.isArray(groups)
+    ? groups.map((g) => ({ ...g, swatches: (g.swatches ?? []).filter((s: ColorSwatchOption) => s && typeof s.value === 'string' && s.value) })).filter((g) => g.swatches.length && g.heading)
+    : [];
+}
+
 export function setSwatches(list: ColorSwatchOption[]): void {
   if (!Array.isArray(list) || !list.length) return;
   SWATCHES = list;
@@ -1300,31 +1315,41 @@ function swatchButtonsHtml(id: string, source?: string | null): string {
   const list = swatchesFor(source);
   const roles = list.filter(s => s.role);
   const plain = roles.length ? list.filter(s => !s.role) : list;
-  const heads = roles.length
+  const rolesHtml = roles.length
     ? `<div class="color-role-swatches" role="group" aria-label="${escape(t('Colour roles'))}">
         <span class="color-swatch-head" aria-hidden="true">${escape(t('Colour roles'))}</span>
         ${roles.map(s => roleSwatchHtml(eid, s)).join('')}
-      </div>${plain.length ? `<span class="color-swatch-head color-swatch-head--rest">${escape(t('Other colours'))}</span>` : ''}`
+      </div>`
     : '';
-  return heads + plain.map(s => {
-    const isTrans = s.value === 'transparent';
-    const refAttr = s.ref ? ` data-swatch-ref="${escape(s.ref)}"` : '';
-    const name = s.label || s.value;
-    const aria = s.group && s.label ? `${s.group} · ${s.label}` : name;
-    // Each swatch carries the value it is painted with (--swatch-c); the floating
-    // hover tooltip paints itself in that same value and measures its label ink
-    // against it (see showSwatchTip). Transparent has no colour of its own, so its
-    // tooltip is a neutral chip. No native `title`: the graphical tip takes its place.
-    // safeCssColor: this is a CSS context, so attribute-escaping alone isn't
-    // enough - an unvalidated token value could smuggle extra declarations.
-    const val = safeCssColor(s.wide ?? s.value);
-    const tip = isTrans ? `--swatch-c:${NEUTRAL_CHIP}` : `--swatch-c:${escape(val || NEUTRAL_CHIP)};background:${escape(val)}`;
-    return `<button type="button"
-      class="color-swatch${isTrans ? ' color-swatch--transparent' : ''}"
-      data-swatch-for="${eid}" data-swatch-value="${escape(s.wide ?? s.value)}"${refAttr}
-      data-name="${escape(name)}" style="${tip}"
-      aria-label="${escape(aria)}"></button>`;
-  }).join('');
+  const restHead = roles.length && plain.length ? `<span class="color-swatch-head color-swatch-head--rest">${escape(t('Other colours'))}</span>` : '';
+  const own = source ? SWATCH_SOURCES.get(source) : undefined;
+  // A guest's colours (a partner kit) follow the brand's roles, ahead of a long list of
+  // other colours, under a heading of their own; with no roles they follow the palette.
+  const guests = own?.length ? '' : GUEST_GROUPS.map(g =>
+    `<span class="color-swatch-head color-swatch-head--rest" aria-label="${escape(g.spoken)}">${escape(g.heading)}</span>${g.swatches.map(s => plainSwatchHtml(eid, s)).join('')}`).join('');
+  const brand = plain.map(s => plainSwatchHtml(eid, s)).join('');
+  return roles.length ? rolesHtml + guests + restHead + brand : brand + guests;
+}
+
+/** One swatch button that is not a colour role: a brand colour, or a guest's. */
+function plainSwatchHtml(eid: string, s: ColorSwatchOption): string {
+  const isTrans = s.value === 'transparent';
+  const refAttr = s.ref ? ` data-swatch-ref="${escape(s.ref)}"` : '';
+  const name = s.label || s.value;
+  const aria = s.group && s.label ? `${s.group} · ${s.label}` : name;
+  // Each swatch carries the value it is painted with (--swatch-c); the floating
+  // hover tooltip paints itself in that same value and measures its label ink
+  // against it (see showSwatchTip). Transparent has no colour of its own, so its
+  // tooltip is a neutral chip. No native `title`: the graphical tip takes its place.
+  // safeCssColor: this is a CSS context, so attribute-escaping alone isn't
+  // enough - an unvalidated token value could smuggle extra declarations.
+  const val = safeCssColor(s.wide ?? s.value);
+  const tip = isTrans ? `--swatch-c:${NEUTRAL_CHIP}` : `--swatch-c:${escape(val || NEUTRAL_CHIP)};background:${escape(val)}`;
+  return `<button type="button"
+    class="color-swatch${isTrans ? ' color-swatch--transparent' : ''}"
+    data-swatch-for="${eid}" data-swatch-value="${escape(s.wide ?? s.value)}"${refAttr}
+    data-name="${escape(name)}" style="${tip}"
+    aria-label="${escape(aria)}"></button>`;
 }
 
 // ── Swatch name tooltip (a single shared, floating chip) ─────────────────────────

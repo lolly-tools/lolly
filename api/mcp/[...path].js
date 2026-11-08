@@ -50,6 +50,27 @@ var init_asset_open_v1 = __esm({
   }
 });
 
+// packages/core/src/rendition-v1.ts
+function renditionOfErrors(manifest) {
+  const rendition = manifest.renditionOf;
+  if (!rendition) return [];
+  const issues = [];
+  if (!manifest.inputs?.some((input) => input.id === rendition.input && input.type === "asset")) {
+    issues.push({ path: "/renditionOf/input", message: "must name a declared top-level asset input" });
+  }
+  for (const [i, id3] of (rendition.unlessSet ?? []).entries()) {
+    if (id3 === rendition.input || !manifest.inputs?.some((input) => input.id === id3)) {
+      issues.push({ path: `/renditionOf/unlessSet/${i}`, message: "must name another declared input" });
+    }
+  }
+  return issues;
+}
+var init_rendition_v1 = __esm({
+  "packages/core/src/rendition-v1.ts"() {
+    "use strict";
+  }
+});
+
 // schemas/tool.schema.json
 var tool_schema_default;
 var init_tool_schema = __esm({
@@ -704,6 +725,26 @@ var init_tool_schema = __esm({
             ]
           },
           description: "Declares what host capabilities this tool needs. The host disables the tool on shells that can't provide them (e.g. an ffmpeg-using tool is unavailable in the web shell; a 'microphone'/'camera'/'screen' recording tool is unavailable in the headless CLI). 'screen' (v1.54) is DISPLAY capture via host.recorder - the user picks a screen/window/tab in browser-native UI; distinct from 'capture', which rasterises a URL the tool itself names."
+        },
+        renditionOf: {
+          type: "object",
+          additionalProperties: false,
+          required: ["input", "action"],
+          properties: {
+            input: { type: "string", pattern: "^[a-zA-Z][a-zA-Z0-9_]*$", description: "The id of a top-level asset input: the picture the output is a rendition of." },
+            action: {
+              type: "string",
+              enum: ["c2pa.color_adjustments", "c2pa.filtered", "c2pa.converted", "c2pa.resized", "c2pa.cropped", "c2pa.edited"],
+              description: "What the tool did to that picture, written where a new file writes c2pa.created."
+            },
+            unlessSet: {
+              type: "array",
+              uniqueItems: true,
+              items: { type: "string", pattern: "^[a-zA-Z][a-zA-Z0-9_]*$" },
+              description: "Ids of inputs that replace the picture as the source while they hold anything (a non-empty list, a chosen asset, a non-empty value). While one does, the export is not recorded as a rendition."
+            }
+          },
+          description: "The output is a rendition of one picture the person gives the tool. When that picture carries Content Credentials of its own, a stamped export records it as the parentOf ingredient, opened first, followed by this action (C2PA 2.2 section 18.15.3). A picture with no credential changes nothing."
         },
         requires: {
           type: "array",
@@ -3542,6 +3583,7 @@ function validateManifest(manifest) {
     if (input.tokenBindingsField && (input.type !== "blocks" || !input.fields?.some((field2) => field2.id === input.tokenBindingsField && (field2.type ?? "text") === "text"))) errors.push({ path: `/inputs/${index2}/tokenBindingsField`, message: "must name a declared text sub-field of this blocks input" });
   }
   if (ok3) errors.push(...assetOpenErrors(manifest));
+  if (ok3) errors.push(...renditionOfErrors(manifest));
   return {
     valid: errors.length === 0,
     errors
@@ -3570,6 +3612,7 @@ var init_validate = __esm({
   "engine/src/validate.ts"() {
     "use strict";
     init_asset_open_v1();
+    init_rendition_v1();
     init_tool_schema();
     init_asset_schema();
     init_asset_ref_schema();
@@ -4114,7 +4157,7 @@ var ENGINE_VERSION;
 var init_version = __esm({
   "engine/src/version.ts"() {
     "use strict";
-    ENGINE_VERSION = "1.339.0";
+    ENGINE_VERSION = "1.341.0";
   }
 });
 
@@ -48802,6 +48845,7 @@ __export(c2pa_exports, {
   generateSigner: () => generateSigner,
   ingredientFormatOfMime: () => ingredientFormatOfMime,
   isTemplateApproval: () => isTemplateApproval,
+  renditionFromSteps: () => renditionFromSteps,
   urnUuid: () => urnUuid
 });
 function ingredientRelationship(ing) {
@@ -49082,7 +49126,7 @@ function exportActionSteps(format, flags = {}) {
   const upscaled = flags.aiUpscale;
   const aiPlaced = flags.aiIngredients?.length ? flags.aiIngredients : void 0;
   const created = upscaled ? { action: "c2pa.created", digitalSourceType: COMPOSITE_SOURCE_TYPE, description: "Composited from a real image enhanced by a trained algorithm" } : aiPlaced ? { action: "c2pa.created", digitalSourceType: COMPOSITE_SOURCE_TYPE, description: "Composited with ingredient media declared as AI-made" } : screened ? { action: "c2pa.created", digitalSourceType: SCREEN_SOURCE_TYPE, description: captureDescription(cap) } : captured ? { action: "c2pa.created", digitalSourceType: CAPTURE_SOURCE_TYPE, description: captureDescription(cap) } : { action: "c2pa.created", digitalSourceType: DIGITAL_SOURCE_TYPE };
-  const steps = [created];
+  const steps = [flags.rendition ? renditionStep(flags.rendition.action, created) : created];
   if (flags.cmyk) steps.push({ action: "c2pa.color_adjustments", description: "Converted colours to CMYK for print" });
   if (flags.paletteColors) steps.push({ action: "c2pa.color_adjustments", description: `Snapped colours to the brand palette (${flags.paletteColors} colour${flags.paletteColors === 1 ? "" : "s"})` });
   if (flags.marks?.length) steps.push({ action: "c2pa.edited", description: `Added ${joinList(flags.marks)}` });
@@ -49096,6 +49140,14 @@ function exportActionSteps(format, flags = {}) {
   else if (VIDEO_OUTPUTS.has(f)) steps.push({ action: "c2pa.converted", description: `Encoded to ${f.toUpperCase()}` });
   else if (f === "pdf" || f === "pdf-cmyk") steps.push({ action: "c2pa.converted", description: "Rendered to PDF" });
   return steps;
+}
+function renditionStep(action, created) {
+  const declared = created.digitalSourceType && created.digitalSourceType !== DIGITAL_SOURCE_TYPE ? created.digitalSourceType : void 0;
+  return {
+    action,
+    ...declared ? { digitalSourceType: declared } : {},
+    description: RENDITION_DESCRIPTIONS[action] ?? "Edited the picture"
+  };
 }
 function aiPlacedDescription(list4) {
   return `Placed AI-declared ingredient${list4.length === 1 ? "" : "s"}: ${joinList(list4.map((i) => `${i.name} (${AI_GRADE[i.kind]})`))}`;
@@ -49124,6 +49176,11 @@ function aiFactsFromSteps(steps) {
     }
   }
   return { aiIngredients, ...aiUpscale ? { aiUpscale } : {} };
+}
+function renditionFromSteps(steps) {
+  const head2 = steps.find((step) => step.action !== "c2pa.opened");
+  const action = typeof head2?.action === "string" ? head2.action : "";
+  return RENDITION_DESCRIPTIONS[action] !== void 0 && head2?.description === RENDITION_DESCRIPTIONS[action] ? { action } : void 0;
 }
 function captureDescription(cap) {
   if (cap.screen) return cap.microphone ? "Captured from the screen with microphone narration" : "Captured from the screen";
@@ -49379,7 +49436,7 @@ async function buildExternalC2paStore(bytes2, opts = {}) {
     assetHash: { exclusions: [], name: hashName || "whole document", hash: await sha256(bytes2) }
   });
 }
-var isSourceIngredient, HTTP_URL_MAX, boundedText, SHA256_TEXT, INTENT_RECORD_KEYS, INTENT_WORD, INTENT_SURFACE_ID, INTENT_TOOL_ID, INTENT_LANGUAGE, INTENT_RULES, APPROVAL_ID, ISO_INSTANT, APPROVAL_TEMPLATE_ID, FILE_APPROVAL_KEYS, TEMPLATE_APPROVAL_KEYS, isTemplateApproval, te5, subtle4, CborTag, JUMBF_UUID_SUFFIX, boxUuid, UUID_C2PA_STORE, UUID_MANIFEST, UUID_ASSERTION_STORE, UUID_CLAIM, UUID_SIGNATURE, UUID_CBOR_CONTENT, UUID_JSON_CONTENT, COSE_HEADER_ALG, COSE_HEADER_X5CHAIN, isoSeconds, DIGITAL_SOURCE_TYPE, CAPTURE_SOURCE_TYPE, SCREEN_SOURCE_TYPE, GENERATED_SOURCE_TYPE, COMPOSITE_SOURCE_TYPE, ALGORITHMIC_SOURCE_TYPE, RASTER_OUTPUTS, VIDEO_OUTPUTS, INGREDIENT_MIME, AI_GRADE, LOLLY_EXPORT_ASSERTION, LOLLY_RIGHTS_ASSERTION, LOLLY_INTENT_ASSERTION, INTENT_PROMPT_NOTE, LOLLY_APPROVAL_ASSERTION, BMFF_HASH_LABEL, CREATIVE_WORK_ASSERTION, METADATA_ASSERTION, DC_CONTEXT, AI_DISCLOSURE_ASSERTION, AI_MODEL_TYPE_GENERIC, AI_MODEL_TYPES, NAMESPACED_LABEL_RE, HUMAN_OVERSIGHT_LEVELS, SCIENTIFIC_DOMAIN_RE, SEMVER_RE, C2PA_SPEC_VERSION;
+var isSourceIngredient, HTTP_URL_MAX, boundedText, SHA256_TEXT, INTENT_RECORD_KEYS, INTENT_WORD, INTENT_SURFACE_ID, INTENT_TOOL_ID, INTENT_LANGUAGE, INTENT_RULES, APPROVAL_ID, ISO_INSTANT, APPROVAL_TEMPLATE_ID, FILE_APPROVAL_KEYS, TEMPLATE_APPROVAL_KEYS, isTemplateApproval, te5, subtle4, CborTag, JUMBF_UUID_SUFFIX, boxUuid, UUID_C2PA_STORE, UUID_MANIFEST, UUID_ASSERTION_STORE, UUID_CLAIM, UUID_SIGNATURE, UUID_CBOR_CONTENT, UUID_JSON_CONTENT, COSE_HEADER_ALG, COSE_HEADER_X5CHAIN, isoSeconds, DIGITAL_SOURCE_TYPE, CAPTURE_SOURCE_TYPE, SCREEN_SOURCE_TYPE, GENERATED_SOURCE_TYPE, COMPOSITE_SOURCE_TYPE, ALGORITHMIC_SOURCE_TYPE, RASTER_OUTPUTS, VIDEO_OUTPUTS, INGREDIENT_MIME, RENDITION_DESCRIPTIONS, AI_GRADE, LOLLY_EXPORT_ASSERTION, LOLLY_RIGHTS_ASSERTION, LOLLY_INTENT_ASSERTION, INTENT_PROMPT_NOTE, LOLLY_APPROVAL_ASSERTION, BMFF_HASH_LABEL, CREATIVE_WORK_ASSERTION, METADATA_ASSERTION, DC_CONTEXT, AI_DISCLOSURE_ASSERTION, AI_MODEL_TYPE_GENERIC, AI_MODEL_TYPES, NAMESPACED_LABEL_RE, HUMAN_OVERSIGHT_LEVELS, SCIENTIFIC_DOMAIN_RE, SEMVER_RE, C2PA_SPEC_VERSION;
 var init_c2pa2 = __esm({
   "engine/src/c2pa.ts"() {
     "use strict";
@@ -49457,6 +49514,14 @@ var init_c2pa2 = __esm({
       mp3: "audio/mpeg",
       ogg: "audio/ogg",
       avif: "image/avif"
+    };
+    RENDITION_DESCRIPTIONS = {
+      "c2pa.color_adjustments": "Adjusted the colours",
+      "c2pa.filtered": "Applied a filter",
+      "c2pa.converted": "Converted the picture",
+      "c2pa.resized": "Resized the picture",
+      "c2pa.cropped": "Cropped the picture",
+      "c2pa.edited": "Edited the picture"
     };
     AI_GRADE = { full: "AI-generated", partial: "AI-assisted" };
     LOLLY_EXPORT_ASSERTION = "tools.lolly.export";
@@ -52753,7 +52818,8 @@ function placedPicturesOf(store) {
       ...digitalSourceType ? { digitalSourceType } : {}
     });
   }
-  return { ingredients, ...aiFactsFromSteps(steps) };
+  const rendition = ingredients.some((i) => i.relationship === "parentOf") ? renditionFromSteps(steps) : void 0;
+  return { ingredients, ...aiFactsFromSteps(steps), ...rendition ? { rendition } : {} };
 }
 function readParentManifest(store, active) {
   for (const assertion of active.assertions) {
@@ -53669,7 +53735,7 @@ async function verifyC2pa(bytes2, { trustAnchors, externalManifest, enrollmentTr
     }
   }
   const acts = report4.claim.actions || [];
-  const created = acts.some((a) => a.action === "c2pa.created");
+  const created = acts.some((a) => a.action === "c2pa.created") || renditionFromSteps(acts) !== void 0;
   const names = [report4.claim.claimGenerator, report4.claim.generatorInfo?.name].filter(Boolean).join(" ");
   const claimsLolly = created && /\blolly\b/i.test(names);
   report4.madeWithLolly = report4.state === "valid" && claimsLolly;
@@ -54546,6 +54612,27 @@ var init_brand_treatments = __esm({
 });
 
 // engine/src/runtime.ts
+function pictureIdentity(v) {
+  if (!v || typeof v !== "object") return String(v ?? "");
+  const ref2 = v;
+  return typeof ref2.id === "string" && ref2.id ? `id:${ref2.id}` : `url:${String(ref2.url ?? "")}`;
+}
+function percentDecodedBytes(body) {
+  const out = [];
+  const enc6 = new TextEncoder();
+  for (let i = 0; i < body.length; i++) {
+    const hex4 = body[i] === "%" ? body.slice(i + 1, i + 3) : "";
+    if (/^[0-9a-fA-F]{2}$/.test(hex4)) {
+      out.push(parseInt(hex4, 16));
+      i += 2;
+      continue;
+    }
+    const cp = body.codePointAt(i);
+    if (cp > 65535) i++;
+    out.push(...enc6.encode(String.fromCodePoint(cp)));
+  }
+  return Uint8Array.from(out);
+}
 async function createRuntime(tool, host, initialState = {}, opts = {}) {
   let tokenSelection = opts.tokenSelection ?? parseTokenSelection(initialState.__tokenSelection ? JSON.stringify(initialState.__tokenSelection) : null);
   const unscopedHost = host;
@@ -54777,6 +54864,7 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
     return tool.manifest.render?.liveMaxEdge;
   };
   let liveCameraShown = false;
+  let cameraOverPicture = false;
   let recordedCamera = false;
   let recordedMic = false;
   let recordedScreen = false;
@@ -55349,7 +55437,9 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
       }
       const priorType = model2.find((i) => i.id === id3)?.type;
       if (priorType === "asset" || priorType === "file" || priorType === "url") liveCameraShown = false;
+      const priorPicture = pictureIdentity(model2.find((i) => i.id === id3)?.value);
       model2 = updateInput(model2, id3, value2, writeOptionsFor(id3, value2, options2));
+      if (id3 === tool.manifest.renditionOf?.input && pictureIdentity(model2.find((i) => i.id === id3)?.value) !== priorPicture) cameraOverPicture = false;
       if (liveResubscribe && id3 === tool.manifest.render?.liveMaxEdgeInput) liveResubscribe();
       const seq = ++setInputSeq;
       emit();
@@ -55431,6 +55521,7 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
         const after = next2.find((i) => i.id === id3);
         if (Object.is(after.value, before.value) && after.restoreTokenRef === before.restoreTokenRef) continue;
         if (before.type === "asset" || before.type === "file" || before.type === "url") liveCameraShown = false;
+        if (id3 === tool.manifest.renditionOf?.input && pictureIdentity(after.value) !== pictureIdentity(before.value)) cameraOverPicture = false;
         model2 = next2;
         applied.push({ id: id3, value: flattenValue(after.value) });
       }
@@ -55619,7 +55710,10 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
         Promise.resolve(onFrame({ frame, model: modelForHooks(model2), view: viewState, lang: hookLang, canvasSize, host })).then((patch) => {
           if (patch && liveUnsub && generation === liveGeneration) {
             ({ model: model2, extras } = mergePatch(model2, extras, patch, inputIds));
-            if (sensorSource) liveCameraShown = true;
+            if (sensorSource) {
+              liveCameraShown = true;
+              cameraOverPicture = true;
+            } else cameraOverPicture = false;
             emit();
           }
         }).catch((e) => host.log("warn", `onFrame ${e.message}`, { toolId: tool.manifest.id })).finally(() => {
@@ -55887,16 +55981,24 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
       lastExportMeta = meta ? structuredClone(meta) : null;
       const dataExtra = buildDataPayload(tool, format, model2, getHydratedText);
       let ingredients;
+      const holds4 = (v) => Array.isArray(v) ? v.length > 0 : v !== void 0 && v !== null && v !== "" && v !== false;
+      const renditionOf = tool.manifest.renditionOf && !cameraOverPicture && !recordedCamera && !recordedScreen && !(tool.manifest.renditionOf.unlessSet ?? []).some((id3) => holds4(model2.find((input) => input.id === id3)?.value)) ? tool.manifest.renditionOf : void 0;
+      let parentKey;
+      let c2paRendition;
       if (!isOnDevice && meta !== void 0 && host.assets?.credential) {
         const ids2 = /* @__PURE__ */ new Set();
-        const note2 = (v) => {
+        const note2 = (v, parent = false) => {
           if (v && typeof v === "object") {
             const { id: id3, source } = v;
-            if (typeof id3 === "string" && (source === "user" || source === "library")) ids2.add(assetDependency(v).key);
+            if (typeof id3 === "string" && (source === "user" || source === "library")) {
+              const key2 = assetDependency(v).key;
+              ids2.add(key2);
+              if (parent) parentKey = key2;
+            }
           }
         };
         for (const input of model2) {
-          if (input.type === "asset") note2(input.value);
+          if (input.type === "asset") note2(input.value, input.id === renditionOf?.input);
           else if (input.type === "blocks" && Array.isArray(input.value)) {
             const assetFields = (input.fields ?? []).filter((f) => f.type === "asset").map((f) => f.id);
             for (const item2 of input.value) {
@@ -55909,11 +56011,37 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
           try {
             const cred = await host.assets.credential(id3);
             const ing = cred?.store ? (await Promise.resolve().then(() => (init_c2pa_verify(), c2pa_verify_exports))).prepareC2paIngredientFromStore(cred.store, cred.format) : null;
-            if (ing) prepared3.push({ ...ing, relationship: "componentOf" });
+            const parent = id3 === parentKey && !!renditionOf;
+            if (ing) prepared3.push({ ...ing, relationship: parent ? "parentOf" : "componentOf" });
+            if (ing && parent) c2paRendition = { action: renditionOf.action };
           } catch {
           }
         }
-        if (prepared3.length) ingredients = prepared3;
+        const parentLabel = prepared3.find((i) => i.relationship === "parentOf")?.activeLabel;
+        const kept2 = prepared3.filter((i) => i.relationship === "parentOf" || i.activeLabel !== parentLabel);
+        if (kept2.length) ingredients = kept2;
+      }
+      if (renditionOf && !c2paRendition && !isOnDevice && meta !== void 0) {
+        const value2 = model2.find((input) => input.id === renditionOf.input && input.type === "asset")?.value;
+        const url = typeof value2?.url === "string" ? value2.url : "";
+        if (url.startsWith("data:")) {
+          try {
+            const { extractC2paStore: extractC2paStore2, prepareC2paIngredientFromStore: prepareC2paIngredientFromStore2 } = await Promise.resolve().then(() => (init_c2pa_verify(), c2pa_verify_exports));
+            const comma = url.indexOf(",");
+            const body = url.slice(comma + 1);
+            const base64 = /;[ ]*base64[\t\n\f\r ]*$/i.test(url.slice(0, comma));
+            const text13 = (b) => b.replace(/[\t\n\f\r ]/g, "");
+            const bytes2 = !base64 ? percentDecodedBytes(body) : base64ToBytes(text13(body.includes("%") ? Array.from(percentDecodedBytes(body), (c) => String.fromCharCode(c)).join("") : body));
+            const found = extractC2paStore2(bytes2);
+            const ing = found ? prepareC2paIngredientFromStore2(found.store, found.format) : null;
+            if (ing) {
+              const others = (ingredients ?? []).filter((i) => !("activeLabel" in i) || i.activeLabel !== ing.activeLabel);
+              ingredients = [{ ...ing, relationship: "parentOf" }, ...others];
+              c2paRendition = { action: renditionOf.action };
+            }
+          } catch {
+          }
+        }
       }
       let rightsPlan = null;
       if (!isOnDevice && meta !== void 0 && emojiPass.census.length) {
@@ -55973,6 +56101,7 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
           ...c2paCapture ? { c2paCapture } : {},
           ...c2paTextAdded ? { c2paTextAdded } : {},
           ...c2paAiUpscale ? { c2paAiUpscale } : {},
+          ...c2paRendition ? { c2paRendition } : {},
           ...c2paAiIngredients.length ? { c2paAiIngredients } : {},
           // The attribution this export promised, and the way back for what it
           // delivered. A host that reads its own bytes back calls onReceipt
@@ -56460,6 +56589,7 @@ var init_runtime = __esm({
     init_compose2();
     init_tool_url();
     init_bake();
+    init_bytes();
     init_asset_provider();
     init_captions();
     init_captions_ttml();
@@ -172694,6 +172824,65 @@ async function organizePdf(bytes2, opts) {
     effects: effects(order)
   };
 }
+function parseStampPath(d) {
+  if (!d.trim() || d.length > STAMP_PATH_MAX_COMMANDS * 40) return null;
+  const tokens3 = d.match(/[A-Za-z]|[-+]?(?:\d+\.?\d*|\.\d+)(?:[eE][-+]?\d+)?/g);
+  if (!tokens3 || tokens3.join("").length !== d.replace(/[\s,]+/g, "").length) return null;
+  const out = [];
+  let i = 0, cx2 = 0, cy3 = 0, sx = 0, sy = 0, cmd = "";
+  const num23 = () => {
+    const t = tokens3[i];
+    if (t === void 0 || /^[A-Za-z]$/.test(t)) return null;
+    i++;
+    const v = Number(t);
+    return Number.isFinite(v) && Math.abs(v) < 1e7 ? Math.round(v * 1e4) / 1e4 : null;
+  };
+  while (i < tokens3.length) {
+    if (/^[A-Za-z]$/.test(tokens3[i])) cmd = tokens3[i++];
+    else if (!cmd || /[Zz]/.test(cmd)) return null;
+    const rel = cmd === cmd.toLowerCase(), up = cmd.toUpperCase();
+    const ox = rel ? cx2 : 0, oy = rel ? cy3 : 0;
+    if (up === "Z") {
+      out.push(["Z"]);
+      cx2 = sx;
+      cy3 = sy;
+    } else if (up === "M" || up === "L") {
+      const x = num23(), y = num23();
+      if (x === null || y === null) return null;
+      cx2 = ox + x;
+      cy3 = oy + y;
+      if (up === "M") {
+        sx = cx2;
+        sy = cy3;
+        out.push(["M", cx2, cy3]);
+        cmd = rel ? "l" : "L";
+      } else out.push(["L", cx2, cy3]);
+    } else if (up === "H" || up === "V") {
+      const v = num23();
+      if (v === null) return null;
+      if (up === "H") cx2 = (rel ? cx2 : 0) + v;
+      else cy3 = (rel ? cy3 : 0) + v;
+      out.push(["L", cx2, cy3]);
+    } else if (up === "C") {
+      const a = [num23(), num23(), num23(), num23(), num23(), num23()];
+      if (a.some((v) => v === null)) return null;
+      const [x1, y1, x2, y2, x, y] = a;
+      out.push(["C", ox + x1, oy + y1, ox + x2, oy + y2, ox + x, oy + y]);
+      cx2 = ox + x;
+      cy3 = oy + y;
+    } else if (up === "Q") {
+      const a = [num23(), num23(), num23(), num23()];
+      if (a.some((v) => v === null)) return null;
+      const qx = ox + a[0], qy = oy + a[1], x = ox + a[2], y = oy + a[3];
+      const r5 = (v) => Math.round(v * 1e4) / 1e4;
+      out.push(["C", r5(cx2 + 2 / 3 * (qx - cx2)), r5(cy3 + 2 / 3 * (qy - cy3)), r5(x + 2 / 3 * (qx - x)), r5(y + 2 / 3 * (qy - y)), x, y]);
+      cx2 = x;
+      cy3 = y;
+    } else return null;
+    if (out.length > STAMP_PATH_MAX_COMMANDS) return null;
+  }
+  return out.length && out[0][0] === "M" ? out : null;
+}
 async function stampPdf(bytes2, opts) {
   const doc = await loadEditablePdf(bytes2);
   const { StandardFonts: StandardFonts2, rgb: rgb3 } = await import("pdf-lib");
@@ -172729,6 +172918,35 @@ async function stampPdf(bytes2, opts) {
         font,
         color: rgb3(0.08, 0.08, 0.08)
       });
+      stamps++;
+    }
+  }
+  if (opts.paths?.length) {
+    const ops = await import("pdf-lib");
+    for (const mark of opts.paths) {
+      if (!Number.isInteger(mark.page) || mark.page < 1 || mark.page > doc.getPageCount()) {
+        throw pdfRefusal(`path page ${mark.page} is outside this ${doc.getPageCount()}-page document`);
+      }
+      const segments = parseStampPath(String(mark.d ?? ""));
+      if (!segments) throw pdfRefusal("a stamped path must be SVG path data");
+      const page3 = doc.getPage(mark.page - 1);
+      const hex4 = /^#([0-9a-f]{6})$/i.exec(String(mark.color ?? ""));
+      const n7 = hex4 ? parseInt(hex4[1], 16) : null;
+      const [r5, g2, b] = n7 === null ? [0.08, 0.08, 0.08] : [(n7 >> 16 & 255) / 255, (n7 >> 8 & 255) / 255, (n7 & 255) / 255];
+      const onPage = (v, max) => {
+        const n8 = Number(v);
+        return Number.isFinite(n8) ? Math.min(Math.max(0, n8), max) : 0;
+      };
+      const x = onPage(mark.x, page3.getWidth()), top = onPage(mark.y, page3.getHeight());
+      page3.pushOperators(
+        ops.pushGraphicsState(),
+        ops.setFillingRgbColor(r5, g2, b),
+        // The path reads y-down from its origin; PDF space reads y-up from the bottom.
+        ops.concatTransformationMatrix(1, 0, 0, -1, x, page3.getHeight() - top),
+        ...segments.map((seg5) => seg5[0] === "M" ? ops.moveTo(seg5[1], seg5[2]) : seg5[0] === "L" ? ops.lineTo(seg5[1], seg5[2]) : seg5[0] === "C" ? ops.appendBezierCurve(seg5[1], seg5[2], seg5[3], seg5[4], seg5[5], seg5[6]) : ops.closePath()),
+        ops.fill(),
+        ops.popGraphicsState()
+      );
       stamps++;
     }
   }
@@ -172820,7 +173038,7 @@ function createPdfAPI() {
     // (`typeof host.pdf?.redact === 'function'`).
   };
 }
-var PDF_LOAD_OPTS, INFO_FIELDS, xmpField, COMPRESS_LEVELS, MIN_IMAGE_BYTES;
+var PDF_LOAD_OPTS, INFO_FIELDS, xmpField, COMPRESS_LEVELS, MIN_IMAGE_BYTES, STAMP_PATH_MAX_COMMANDS;
 var init_pdf2 = __esm({
   "packages/node-shell/src/pdf.ts"() {
     "use strict";
@@ -172847,6 +173065,7 @@ var init_pdf2 = __esm({
       strong: { maxDim: 1100, quality: 0.58 }
     };
     MIN_IMAGE_BYTES = 12 * 1024;
+    STAMP_PATH_MAX_COMMANDS = 2e4;
   }
 });
 
@@ -185167,6 +185386,7 @@ function buildExportC2paOpts(o) {
     if (!aiIngredients.some((have) => have.name === piece.name && have.kind === piece.kind)) aiIngredients.push(piece);
   }
   const aiUpscale = o.carried?.aiUpscale;
+  const rendition = o.carried?.rendition && o.ingredients?.some((i) => i.relationship === "parentOf") ? o.carried.rendition : void 0;
   return {
     title: name,
     claimGenerator: "Lolly lolly.tools",
@@ -185189,7 +185409,7 @@ function buildExportC2paOpts(o) {
     dates: o.signer && o.signerValidity ? { notBefore: o.signerValidity.notBefore, notAfter: o.signerValidity.notAfter } : { notBefore: new Date(Date.now() - 6e4), notAfter: new Date(Date.now() + days * 864e5) },
     // Carry a genAI source forward so the record stays accurate (default drops both).
     ...o.ingredients?.length ? { ingredients: o.ingredients } : {},
-    ...o.actions?.length ? { actions: o.actions } : aiIngredients.length || aiUpscale ? { actions: exportActionSteps(format, { aiIngredients, ...aiUpscale ? { aiUpscale } : {} }) } : {},
+    ...o.actions?.length ? { actions: o.actions } : aiIngredients.length || aiUpscale || rendition ? { actions: exportActionSteps(format, { aiIngredients, ...aiUpscale ? { aiUpscale } : {}, ...rendition ? { rendition } : {} }) } : {},
     ...o.aiDisclosure ? { aiDisclosure: o.aiDisclosure } : aiIngredients.length ? { aiDisclosure: {} } : {},
     ...o.specVersion ? { specVersion: o.specVersion } : {}
   };

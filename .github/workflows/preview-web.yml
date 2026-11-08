@@ -357,13 +357,22 @@ jobs:
           [[ "$ARCHIVE_SHA256" =~ ^[a-f0-9]{64}$ ]]
           echo "$ARCHIVE_SHA256  $RUNNER_TEMP/preview/lolly-preview-web.tar" | sha256sum --check
 
+      # This job runs no repository script, so the second route is written out here
+      # instead of calling scripts/ci/fetch-release-asset.sh: when the release
+      # download URL fails, gh fetches the same asset through the REST API.
       - name: Install the pinned registry tool
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
           bin="$RUNNER_TEMP/release-tools"
           mkdir -p "$bin"
-          curl -fsSL --retry 3 -o "$RUNNER_TEMP/crane.tar.gz" \
-            "https://github.com/google/go-containerregistry/releases/download/v${CRANE_VERSION}/go-containerregistry_Linux_x86_64.tar.gz"
+          if ! curl -fsSL --retry 3 -o "$RUNNER_TEMP/crane.tar.gz" \
+            "https://github.com/google/go-containerregistry/releases/download/v${CRANE_VERSION}/go-containerregistry_Linux_x86_64.tar.gz"; then
+            echo '::warning::Release download failed; fetching the same asset through the GitHub REST API'
+            gh release download "v${CRANE_VERSION}" --repo google/go-containerregistry \
+              --pattern go-containerregistry_Linux_x86_64.tar.gz --output "$RUNNER_TEMP/crane.tar.gz" --clobber
+          fi
           echo "$CRANE_LINUX_X64_SHA256  $RUNNER_TEMP/crane.tar.gz" | sha256sum --check
           tar -xzf "$RUNNER_TEMP/crane.tar.gz" -C "$bin" crane
           echo "$bin" >> "$GITHUB_PATH"
