@@ -834,6 +834,9 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           submodules: recursive
+          # The merge commit and its base parent, so the maintainability ratchet can list
+          # the files this pull request or push changes.
+          fetch-depth: 2
 
       - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
         with:
@@ -913,8 +916,16 @@ jobs:
 
       # The browser shell legitimately owns far more code than CLI. This gate is
       # about concentration inside individual modules, not cross-shell parity.
+      # The function and type-escape ratchets judge the files this event changes. A
+      # pull request is checked out as GitHub's merge commit, whose first parent is the
+      # branch it merges into, so the base is HEAD^1. A main push compares with the main
+      # commit it replaced, which is fetched when the push held more than one commit.
       - name: Web shell maintainability no-growth ratchet
-        run: pnpm run check:maintainability
+        env:
+          MAINTAINABILITY_BASE: ${{ github.event_name == 'pull_request' && 'HEAD^1' || github.event.before }}
+        run: |
+          git cat-file -e "${MAINTAINABILITY_BASE}^{commit}" 2>/dev/null || git fetch --no-tags --depth=1 origin "$MAINTAINABILITY_BASE"
+          pnpm run check:maintainability
 
       # The shell's CSS house rules: no rail on a rounded element, dashed only for
       # drop areas, durations from the motion tokens, both Reduce motion switches
