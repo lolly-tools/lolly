@@ -610,6 +610,7 @@ test('ENGINE_VERSION is 1.341.0', () => {
   // 1.335.0 adds the partner kit reader (partner-kit-v1). Capture is unchanged.
   // 1.336.0 adds the template approval record and its Verify line. Capture is unchanged.
   // 1.337.0 adds the guest-mark checks against a partner kit. Capture is unchanged.
+  // 1.338.0 adds the reserved _kit param for a partner kit attachment. Capture is unchanged.
   // 1.341.0 records a rendition tool's picture as the parent (renditionOf). Capture is unchanged.
   assert.equal(ENGINE_VERSION, '1.341.0');
 });
