@@ -27,11 +27,11 @@ import {
   getNeurospicy, toggleNeurospicyPlay, cycleNeurospicyLoop, setNeurospicyLoop,
   setNeurospicyVolume, setNeurospicyRepeat, seekNeurospicy, getNeurospicyProgress,
   getNeurospicyAnalyser, isNeurospicyPlaying, listLoops, trackCategory,
-  setLofiDrums, setLofiTexture, takeLofiLinkConsent,
+  setLofiDrums, setLofiTexture, takeLofiLinkConsent, saveLofiTune,
   type NeurospicyHost, type NeuroTrack,
 } from './neurospicy.ts';
 import {
-  isLofiId, lofiId, lofiMoodOf, lofiTune, nextLofiTune, prevLofiTune, lofiShareUrl,
+  isLofiId, lofiId, lofiMoodOf, lofiTune, nextLofiTune, prevLofiTune, lofiShareUrl, playsOnStation, savedTuneOf,
   LOFI_ONLY_MOODS, LOFI_MOOD_LABEL,
 } from './neurospicy-lofi.ts';
 import type { LofiStyle } from '../../../../engine/src/lofi-compose.ts';
@@ -697,16 +697,25 @@ class NeurospicyDockHost implements DockHost {
   }
 
   /** A generated station's own controls: its mood (the three Lofi stations; Lolly Sings
-   *  is a genre of its own, so has none), drums, texture, and a link to the tune now
-   *  playing. Nothing for any other source. */
+   *  is a genre of its own, so has none), drums, texture, a link to the tune now playing
+   *  and a button that saves it to the library. A saved tune keeps drums, texture and
+   *  the link. Nothing for any other source. */
   controls(): DockControl[] {
-    const mood = lofiMoodOf(getNeurospicy().loopId);
-    if (!mood) return [];
-    const moodControl: DockControl[] = mood === 'sings' ? [] : [{
+    const id = getNeurospicy().loopId;
+    const saved = savedTuneOf(id) !== null;
+    const mood = lofiMoodOf(id);
+    if (!mood && !saved) return [];
+    const moodControl: DockControl[] = !mood || mood === 'sings' ? [] : [{
       kind: 'choice', id: 'lofi-mood', label: 'Mood',
       options: LOFI_ONLY_MOODS.map((m) => ({ id: m, label: LOFI_MOOD_LABEL[m] })),
       get: () => lofiMoodOf(getNeurospicy().loopId) ?? mood,
-      set: (m) => this.select(lofiId(m as typeof mood)),
+      set: (m) => this.select(lofiId(m as NonNullable<typeof mood>)),
+    }];
+    const saveControl: DockControl[] = saved ? [] : [{
+      kind: 'action', id: 'lofi-save', label: 'Save to library',
+      run: async () => {
+        try { return (await saveLofiTune(this.nhost)) ? 'Saved to your library' : 'Play it first'; } catch { return 'Could not save'; }
+      },
     }];
     return [
       ...moodControl,
@@ -728,6 +737,7 @@ class NeurospicyDockHost implements DockHost {
           try { await navigator.clipboard.writeText(url); return 'Link copied'; } catch { return 'Could not copy'; }
         },
       },
+      ...saveControl,
     ];
   }
 
@@ -750,7 +760,7 @@ class NeurospicyDockHost implements DockHost {
     const t = this.tracks.find((x) => x.id === id);
     if (!t) return { title: 'Select a track', kind: 'music' };
     const radio = trackCategory(t) === 'radio';
-    if (isLofiId(id)) {
+    if (playsOnStation(id)) {
       // The tune itself: its key, tempo and instruments, since every one is different.
       const tune = isNeurospicyPlaying() ? lofiTune() : null;
       const lead = tune ? LOFI_LEAD_NAME[tune.style.lead] : '';

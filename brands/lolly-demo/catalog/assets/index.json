@@ -3628,6 +3628,192 @@
         "licenceFile": "/catalog/fonts/OFL-SUSE-Mono.txt",
         "source": "https://github.com/SUSE/suse-font"
       }
+    },
+    {
+      "id": "lolly/tunes/warm-250249288",
+      "name": "Lofi · Warm · E major · 82 bpm",
+      "description": "A Warm Lofi tune: Rhodes and flute over a synth bass and a boom-bap groove. Composed on the device from its seed each time it plays (about 2:12). A focus track for Neurospicy Mode, also selectable as a video music bed. Public domain (CC0).",
+      "type": "audio",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "audio",
+        "song",
+        "neurospicy",
+        "generated",
+        "lofi"
+      ],
+      "formats": [
+        {
+          "format": "lofi",
+          "url": "/catalog/assets/lolly/tunes/warm-250249288.lofi.json",
+          "checksum": "sha256-Ha9x+2tJzYSVJmw4S/Ci3ABAl4IsaUYov6miwq4305Y=",
+          "size": 69
+        }
+      ],
+      "license": "CC0-1.0",
+      "meta": {
+        "lofi": {
+          "mood": "warm",
+          "seed": 250249288
+        }
+      },
+      "added": "2026-11-08"
+    },
+    {
+      "id": "lolly/tunes/sings-4111860815",
+      "name": "Lolly Sings · F major · 98 bpm",
+      "description": "A Lolly Sings tune: Rhodes and kalimba over an upright bass and a shuffle. Composed on the device from its seed each time it plays (about 1:50). A focus track for Neurospicy Mode, also selectable as a video music bed. Public domain (CC0).",
+      "type": "audio",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "audio",
+        "song",
+        "neurospicy",
+        "generated",
+        "lolly-sings"
+      ],
+      "formats": [
+        {
+          "format": "lofi",
+          "url": "/catalog/assets/lolly/tunes/sings-4111860815.lofi.json",
+          "checksum": "sha256-ss+liEJFmSzaxS1ZxfFPRG7QoPBuIOc3oIyU0xcojZw=",
+          "size": 71
+        }
+      ],
+      "license": "CC0-1.0",
+      "meta": {
+        "lofi": {
+          "mood": "sings",
+          "seed": 4111860815
+        }
+      },
+      "added": "2026-11-08"
+    },
+    {
+      "id": "lolly/tunes/sings-2971202674",
+      "name": "Lolly Sings · E♭ major · 88 bpm",
+      "description": "A Lolly Sings tune: Rhodes and kalimba over a round bass, with sparse drums. Composed on the device from its seed each time it plays (about 2:25). A focus track for Neurospicy Mode, also selectable as a video music bed. Public domain (CC0).",
+      "type": "audio",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "audio",
+        "song",
+        "neurospicy",
+        "generated",
+        "lolly-sings"
+      ],
+      "formats": [
+        {
+          "format": "lofi",
+          "url": "/catalog/assets/lolly/tunes/sings-2971202674.lofi.json",
+          "checksum": "sha256-CfLCWU81upn8vI0oE8YKhwSrzXK2b5Lzwg2rwAX2Xbk=",
+          "size": 71
+        }
+      ],
+      "license": "CC0-1.0",
+      "meta": {
+        "lofi": {
+          "mood": "sings",
+          "seed": 2971202674
+        }
+      },
+      "added": "2026-11-08"
+    },
+    {
+      "id": "lolly/tunes/sings-3112281404",
+      "name": "Lolly Sings · B♭ major · 98 bpm",
+      "description": "A Lolly Sings tune: Wurlitzer and kalimba over a round bass and a half-time groove. Composed on the device from its seed each time it plays (about 1:40). A focus track for Neurospicy Mode, also selectable as a video music bed. Public domain (CC0).",
+      "type": "audio",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "audio",
+        "song",
+        "neurospicy",
+        "generated",
+        "lolly-sings"
+      ],
+      "formats": [
+        {
+          "format": "lofi",
+          "url": "/catalog/assets/lolly/tunes/sings-3112281404.lofi.json",
+          "checksum": "sha256-R4GaQIpSXOBiO7ok4AD4pUtfnoKOrj/HeEaK5WIiIg0=",
+          "size": 71
+        }
+      ],
+      "license": "CC0-1.0",
+      "meta": {
+        "lofi": {
+          "mood": "sings",
+          "seed": 3112281404
+        }
+      },
+      "added": "2026-11-08"
+    },
+    {
+      "id": "lolly/tunes/sings-4228372535",
+      "name": "Lolly Sings · D♭ major · 86 bpm",
+      "description": "A Lolly Sings tune: Plucked keys and a chip lead over a round bass, with sparse brushes. Composed on the device from its seed each time it plays (about 2:11). A focus track for Neurospicy Mode, also selectable as a video music bed. Public domain (CC0).",
+      "type": "audio",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "audio",
+        "song",
+        "neurospicy",
+        "generated",
+        "lolly-sings"
+      ],
+      "formats": [
+        {
+          "format": "lofi",
+          "url": "/catalog/assets/lolly/tunes/sings-4228372535.lofi.json",
+          "checksum": "sha256-RcRuIrZNQtyHS3+KhnBaYCuoOyvE0moT98vUjaLDKNw=",
+          "size": 71
+        }
+      ],
+      "license": "CC0-1.0",
+      "meta": {
+        "lofi": {
+          "mood": "sings",
+          "seed": 4228372535
+        }
+      },
+      "added": "2026-11-08"
+    },
+    {
+      "id": "lolly/tunes/sings-2439981767",
+      "name": "Lolly Sings · E♭ major · 94 bpm",
+      "description": "A Lolly Sings tune: Rhodes and a chip lead over a round bass and a boom-bap groove. Composed on the device from its seed each time it plays (about 1:55). A focus track for Neurospicy Mode, also selectable as a video music bed. Public domain (CC0).",
+      "type": "audio",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "audio",
+        "song",
+        "neurospicy",
+        "generated",
+        "lolly-sings"
+      ],
+      "formats": [
+        {
+          "format": "lofi",
+          "url": "/catalog/assets/lolly/tunes/sings-2439981767.lofi.json",
+          "checksum": "sha256-LHlkiQhDhnkzWKi7ZKLjH2OjQdTcHgbcGJVpyTk4EWw=",
+          "size": 71
+        }
+      ],
+      "license": "CC0-1.0",
+      "meta": {
+        "lofi": {
+          "mood": "sings",
+          "seed": 2439981767
+        }
+      },
+      "added": "2026-11-08"
     }
   ]
 }

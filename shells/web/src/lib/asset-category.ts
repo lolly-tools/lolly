@@ -60,13 +60,13 @@ export const LIB_GROUPS: LibGroup[] = [
 
 // Audio is grouped by what it is FOR, the split an editor's sound panel uses. Tags
 // decide first; then the format, because a computed song (ZzFXM, a tracker module,
-// a MIDI import, a rondocode song) is music whatever it is tagged. Audio whose role
+// a MIDI import, a rondocode song, a saved station tune) is music whatever it is tagged. Audio whose role
 // nothing states (a plain recording, a sound pulled out of a video) is Other audio,
 // never guessed into Music.
 const VOICE_TAGS = ['voice', 'voiceover', 'tts', 'speech', 'narration', 'podcast', 'recording', 'dictation', 'interview'];
 const SFX_TAGS = ['sfx', 'sound-effect', 'sound-effects', 'effect', 'foley', 'ui-sound', 'whoosh'];
 const MUSIC_TAGS = ['music', 'song', 'loop', 'module', 'tracker', 'midi', 'rondocode', 'soundtrack', 'bed', 'jingle'];
-const MUSIC_FORMATS = new Set(['zzfxm', 'rondo', 'mid', 'midi', 'mod', 'xm', 'it', 's3m', 'stm', 'mtm']);
+const MUSIC_FORMATS = new Set(['zzfxm', 'rondo', 'lofi', 'mid', 'midi', 'mod', 'xm', 'it', 's3m', 'stm', 'mtm']);
 
 /** Whether an asset is audio: its type says so, or its tags do. */
 export function isAudioAsset(ref: AssetRef | undefined): boolean {

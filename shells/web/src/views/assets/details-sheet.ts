@@ -1616,7 +1616,9 @@ export function wireSheetEvents(dt: DetailsCtx): void {
     // the only difference is which renderer decodes the source.
     const zzUrl = audioEl.dataset.zzfxmUrl;
     const modUrl = audioEl.dataset.modUrl;
-    const render = zzUrl ? songUrlToWavBlobUrl(zzUrl) : modUrl ? modUrlToWavBlobUrl(modUrl) : null;
+    const lofiUrl = audioEl.dataset.lofiUrl;
+    const render = zzUrl ? songUrlToWavBlobUrl(zzUrl) : modUrl ? modUrlToWavBlobUrl(modUrl)
+      : lofiUrl ? import('../../lib/lofi-tune.ts').then((m) => m.lofiTuneUrlToWavBlobUrl(lofiUrl)) : null;
     // A rondocode song renders the same way, and its section also shows the source
     // and names any part the render could not play (details-rondo.ts).
     if (audioEl.dataset.rondoUrl) void dt.rondo.wireRondo(audioEl, note ?? null);

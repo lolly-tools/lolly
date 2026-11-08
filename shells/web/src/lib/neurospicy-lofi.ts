@@ -58,6 +58,23 @@ export function retiredTrackStation(id: string): string | null {
   return lofiId('warm');
 }
 
+// ── saved tunes ──────────────────────────────────────────────────────────────
+
+/**
+ * Tunes the listener saved to the asset library (lib/lofi-tune.ts), by asset id. The
+ * player fills this as it lists the library, so playing one needs no fetch.
+ */
+const savedTunes = new Map<string, LofiLink>();
+
+/** Note that asset `id` is a saved tune with this recipe. */
+export function rememberSavedTune(id: string, recipe: LofiLink): void { savedTunes.set(id, recipe); }
+
+/** The recipe of saved tune `id`, or null when `id` is not one. */
+export function savedTuneOf(id: string): LofiLink | null { return savedTunes.get(id) ?? null; }
+
+/** A station or a saved tune: anything the live station plays. */
+export function playsOnStation(id: string): boolean { return isLofiId(id) || savedTunes.has(id); }
+
 // ── the live station ─────────────────────────────────────────────────────────
 
 let station: LofiStation | null = null;
@@ -80,21 +97,26 @@ function notifyTune(): void {
 
 /**
  * Start station `id` into `dest` on `ctx`. A queued link seed wins; then the tune that
- * was paused, if it was this station's; otherwise a new tune.
+ * was paused, if it was this station's; otherwise a new tune. A saved tune (`id` is its
+ * asset id) plays its own seed and repeats; `onTuneEnd` runs each time it comes round
+ * again, for a player that moves on to the next track instead.
  */
-export async function startLofi(ctx: AudioContext, dest: AudioNode, id: string, prefs: LofiPrefs): Promise<void> {
-  const mood = lofiMoodOf(id);
+export async function startLofi(ctx: AudioContext, dest: AudioNode, id: string, prefs: LofiPrefs, onTuneEnd?: () => void): Promise<void> {
+  const saved = savedTunes.get(id);
+  const mood = saved?.mood ?? lofiMoodOf(id);
   if (!mood) return;
   const { LofiStation } = await import('./lofi-station.ts');
   stopLofi();
-  const seed = queued ?? (resume?.id === id ? resume.seed : freshSeed());
-  queued = null;
+  const seed = saved?.seed ?? queued ?? (resume?.id === id ? resume.seed : freshSeed());
+  if (!saved) queued = null;
   if (stationId !== id || heard[heard.length - 1] !== seed) heard = [...(stationId === id ? heard : []), seed].slice(-50);
   stationId = id;
-  const s = new LofiStation(ctx, dest, seed, { mood, drums: prefs.drums, texture: prefs.texture });
+  const s = new LofiStation(ctx, dest, seed, { mood, drums: prefs.drums, texture: prefs.texture, repeat: Boolean(saved) });
   s.setVolume(1);
+  let rounds = 0;
   s.onBar = (bar) => {
     if (bar.index !== 0) return;
+    if (saved && rounds++ > 0) { onTuneEnd?.(); return; }
     // A tune that followed on by itself joins the run, so Previous can go back to that tune.
     if (heard[heard.length - 1] !== bar.tune.seed) heard = [...heard, bar.tune.seed].slice(-50);
     notifyTune();
@@ -144,6 +166,14 @@ export function applyLofiPrefs(prefs: LofiPrefs): void {
   station?.setTexture(prefs.texture);
 }
 
+/** The tune now playing on a station, as a recipe to save: its mood and seed. Null on a
+ *  saved tune (it is already saved) or before the first bar. */
+export function currentLofiRecipe(): LofiLink | null {
+  const mood = lofiMoodOf(stationId);
+  const seed = station?.current?.tune.seed;
+  return mood && seed !== undefined ? { mood, seed } : null;
+}
+
 /** Play `seed` the next time a station starts (a shared link). */
 export function queueLofiSeed(seed: number): void { queued = seed >>> 0; }
 
@@ -167,7 +197,7 @@ export function parseLofiLink(value: string | null | undefined): LofiLink | null
 
 /** A link that opens the app and plays the tune now playing. Null when nothing is. */
 export function lofiShareUrl(origin: string): string | null {
-  const mood = lofiMoodOf(stationId);
+  const mood = savedTunes.get(stationId)?.mood ?? lofiMoodOf(stationId);
   const seed = station?.current?.tune.seed ?? heard[heard.length - 1];
   if (!mood || seed === undefined || !station) return null;
   return `${origin}/#/?lofi=${lofiLinkValue({ mood, seed })}`;
