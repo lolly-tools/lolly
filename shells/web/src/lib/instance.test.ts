@@ -111,6 +111,66 @@ test('setInstallTag: anything outside the header grammar is refused, not escaped
   }
 });
 
+test('viewing headers follow same-origin instance requests and preserve a caller header', async (ctx) => {
+  const keys = ['sessionStorage', 'location', 'window'] as const;
+  const saved = keys.map(key => [key, Object.getOwnPropertyDescriptor(globalThis, key)] as const);
+  ctx.after(() => {
+    for (const [key, descriptor] of saved) {
+      if (descriptor) Object.defineProperty(globalThis, key, descriptor);
+      else Reflect.deleteProperty(globalThis, key);
+    }
+  });
+  const state = { token: 'tab-view-token', expiresAt: new Date(Date.now() + 60_000).toISOString(), programme: { id: 'p1', name: 'Partners' } };
+  Object.defineProperty(globalThis, 'sessionStorage', { configurable: true, value: { getItem: () => JSON.stringify(state) } });
+  Object.defineProperty(globalThis, 'location', { configurable: true, value: { origin: 'https://work.test' } });
+  const seen: Array<string | null> = [];
+  const fallbackFetch: typeof fetch = async (_input, init) => {
+    seen.push(new Headers(init?.headers).get('x-lw-view-as'));
+    return Response.json({});
+  };
+  await instanceFetch('/api/v1/org-config', {}, { fallbackFetch });
+  await instanceFetch('https://work.test/catalog/assets/index.json', {}, { fallbackFetch });
+  await instanceFetch('/api/v1/org-config', { headers: { 'x-lw-view-as': 'caller-token' } }, { fallbackFetch });
+  await instanceFetch('https://other.test/api/v1/org-config', {}, { fallbackFetch });
+  await instanceFetch('//other.test/catalog/assets/index.json', {}, { fallbackFetch });
+  await instanceFetch('\\\\other.test/catalog/assets/index.json', {}, { fallbackFetch });
+  assert.deepEqual(seen, ['tab-view-token', 'tab-view-token', 'caller-token', null, null, null]);
+
+  const nativeHeaders: Array<Array<[string, string]>> = [];
+  Object.defineProperty(globalThis, 'window', { configurable: true, value: {
+    __TAURI_INTERNALS__: { invoke: async (_command: string, args: { request: { headers: Array<[string, string]> } }) => {
+      nativeHeaders.push(args.request.headers);
+      return { status: 200, statusText: 'OK', url: 'https://other.test/file', headers: [], body: [] };
+    } },
+  } });
+  await instanceFetch('https://other.test/file');
+  assert.equal(new Headers(nativeHeaders[0]).get('x-lw-view-as'), null);
+});
+
+test('an ended-view response updates the banner without consuming the response body', async (ctx) => {
+  const keys = ['sessionStorage', 'location', 'document'] as const;
+  const saved = keys.map(key => [key, Object.getOwnPropertyDescriptor(globalThis, key)] as const);
+  ctx.after(() => {
+    for (const [key, descriptor] of saved) {
+      if (descriptor) Object.defineProperty(globalThis, key, descriptor);
+      else Reflect.deleteProperty(globalThis, key);
+    }
+  });
+  const title = { textContent: 'Viewing as Partners' };
+  Object.defineProperty(globalThis, 'document', { configurable: true, value: { querySelector: () => title } });
+  Object.defineProperty(globalThis, 'location', { configurable: true, value: { origin: 'https://work.test' } });
+  Object.defineProperty(globalThis, 'sessionStorage', { configurable: true, value: {
+    getItem: () => JSON.stringify({ token: 'tab-view-token', expiresAt: new Date(Date.now() + 60_000).toISOString(), programme: { id: 'p1', name: 'Partners' } }),
+  } });
+  const body = { error: { code: 'VIEWING_AS_ENDED' } };
+  const fallbackFetch: typeof fetch = async () => Response.json(body, { status: 403 });
+  await instanceFetch('https://other.test/api/v1/org-config', {}, { fallbackFetch });
+  assert.equal(title.textContent, 'Viewing as Partners');
+  const response = await instanceFetch('/api/v1/org-config', {}, { fallbackFetch });
+  assert.equal(title.textContent, 'This view has ended.');
+  assert.deepEqual(await response.json(), body);
+});
+
 test('native sessions remain bound to the instance that issued them', async (ctx) => {
   const NativeRequest = globalThis.Request;
   // Match the WebView's forbidden-header guard, which Node's Request lacks.

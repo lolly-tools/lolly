@@ -60,7 +60,8 @@ import { isTauriShell } from './lib/instance-choice.ts';
 // The memoised instance-base load. Boot has no wiring of its own to do here (every
 // syncing entry point awaits the same promise itself) - it needs the handle only to
 // hold the control-plane probe back until the base it fetches through is known.
-import { initInstanceBase } from './lib/instance.ts';
+import { initInstanceBase, instanceFetch } from './lib/instance.ts';
+import { mountViewAsBanner, stopViewAs } from './org/view-as.ts';
 // components/models-welcome.ts is NOT imported here: it is Tauri-only, yet its static
 // graph (lib/offline-manager.ts + the four model-catalog modules) rode the WEB boot
 // bundle - the exact regression scripts/check-bundle-budget.ts:74-76 records as fixed
@@ -1210,6 +1211,7 @@ function startBootCatalog(host: Awaited<ReturnType<typeof createBridge>>, coldGa
 }
 
 async function boot(): Promise<void> {
+  mountViewAsBanner(document, () => stopViewAs(instanceFetch));
   // Capture export intent before mounting can rewrite the address.
   const bootRoute = parseRoute();
   const scriptedExport = new URLSearchParams('params' in bootRoute ? bootRoute.params ?? '' : '').has('export');

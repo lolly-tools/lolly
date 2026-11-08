@@ -404,9 +404,10 @@ html[data-a11y-contrast="high"][data-theme="brand"] {
      reading components (docs-components.css) look the same here as in the app. */
   --ui-color-surface-muted:hsl(var(--secondary));
   --ui-color-border-default:hsl(var(--input));
-  /* The app's type scale multiplies by the a11y text setting (parts/a11y.css), which a
-     static page has no control for. Declared at 1 so the app's type tokens resolve here
-     at their normal sizes instead of computing as invalid. */
+  /* The app's type scale multiplies by the a11y text setting (parts/a11y.css). A static
+     page has no switch of its own, so it reads the app's: the pre-paint script copies
+     Large text from the same mirror the app writes (lolly-a11y, THEME_INIT_SCRIPT) to
+     html[data-a11y-text], and the article and the chrome scale with it, as in the app. */
   --a11y-fs:1;
   --green:hsl(var(--primary));
   --dark:hsl(var(--foreground));
@@ -692,10 +693,11 @@ strong{font-weight:600}
    app's buttons.css, and the in-app reader (views/docs.ts) imports it ahead of
    docs.css. It holds the pieces the two readers show the same way:
 
-     - the round top-row button (.site-fab on /info, .docs-top-btn in the app),
+     - the round top-row button (.site-fab on /info; the app's reader uses the
+       app's own top row since plan 354),
        sized on the top-row height (--chrome-h), so it is exactly as tall as
        the home pill and the app's own back pill beside it;
-     - the pathways strip (Welcome and the five documentation sections), which
+     - the pathways strip (the documentation sections), which
        /info builds and the in-app reader adopts from the fetched page;
      - the compact lists inside the two disclosures (the section's pages and On
        this page): the in-app reader's phone navigation and the /info menu;
@@ -708,11 +710,9 @@ strong{font-weight:600}
    docs.css. */
 
 /* ── Round top-row button ───────────────────────────────────────────────────
-   Language, Theme, GitHub, Search and Menu on /info; Wide, Theme and the
-   profile link in the in-app reader. A glass circle on the canvas with one
-   hairline, the glyph on the type multiplier. */
-.site-fab,
-.docs-top-btn {
+   Language, Theme, GitHub, Search and Menu on /info. A glass circle on the canvas
+   with one hairline, the glyph on the type multiplier. */
+.site-fab {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -732,30 +732,22 @@ strong{font-weight:600}
   cursor: pointer;
   transition: background var(--ui-motion-feedback), border-color var(--ui-motion-feedback), transform var(--ui-motion-feedback);
 }
-.site-fab:hover,
-.docs-top-btn:hover {
+.site-fab:hover {
   background: var(--ui-color-surface-muted);
   border-color: color-mix(in srgb, var(--ui-color-text-default) 25%, transparent);
   text-decoration: none;
 }
-.site-fab:active,
-.docs-top-btn:active { transform: scale(0.94); }
-.site-fab:focus-visible,
-.docs-top-btn:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 2px; }
-.site-fab svg,
-.docs-top-btn svg { width: calc(18px * var(--a11y-fs, 1)); height: calc(18px * var(--a11y-fs, 1)); }
+.site-fab:active { transform: scale(0.94); }
+.site-fab:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 2px; }
+.site-fab svg { width: calc(18px * var(--a11y-fs, 1)); height: calc(18px * var(--a11y-fs, 1)); }
 @media (prefers-reduced-motion: reduce) {
-  .site-fab,
-  .docs-top-btn { transition: none; }
-  .site-fab:active,
-  .docs-top-btn:active { transform: none; }
+  .site-fab { transition: none; }
+  .site-fab:active { transform: none; }
 }
 /* The app's Reduce motion switch, for both readers: /info never loads base.css, and
    base.css's own block shortens animations but leaves transitions and the press. */
-html[data-a11y-motion="reduce"] .site-fab,
-html[data-a11y-motion="reduce"] .docs-top-btn { transition: none; }
-html[data-a11y-motion="reduce"] .site-fab:active,
-html[data-a11y-motion="reduce"] .docs-top-btn:active { transform: none; }
+html[data-a11y-motion="reduce"] .site-fab { transition: none; }
+html[data-a11y-motion="reduce"] .site-fab:active { transform: none; }
 
 /* ── Pathways strip ─────────────────────────────────────────────────────────
    Text tabs. The current section takes the full-strength text colour, its weight
@@ -848,6 +840,157 @@ html[data-a11y-motion="reduce"] .docs-top-btn:active { transform: none; }
 .docs-compact-list .docs-toc-list { border: 0; }
 .docs-compact-list .docs-toc-link { border: 0; margin: 0; }
 .docs-compact-list svg { width: 16px; height: 16px; flex: none; }
+
+/* ── The page's contents ────────────────────────────────────────────────────
+   Markup from packages/docs-render contents.ts, behaviour from lib/docs-contents.ts,
+   both readers. Two forms of one list: the rail beside the article on a wide
+   screen, and the page bar's sheet everywhere narrower. Each
+   surface decides where they sit and at which width each one shows (docs.css in
+   the app, the site stylesheet in docs/build.ts); this is how they look. The row
+   being read carries aria-current="location" and .active. The rail starts at 1100px
+   on both surfaces; below that the page bar holds the same list in its sheet. */
+.docs-toc-head {
+  margin: 0 0 0.65rem;
+  font: 700 calc(0.68rem * var(--a11y-fs, 1)) / 1 var(--font-mono, ui-monospace, monospace);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ui-color-text-muted);
+}
+.docs-toc-list { list-style: none; margin: 0; padding: 0; border-inline-start: 1px solid var(--ui-color-border-default); }
+.docs-toc-link {
+  display: block;
+  margin-inline-start: -1px;
+  padding: 0.28rem 0.85rem;
+  border-inline-start: 2px solid transparent;
+  color: var(--ui-color-text-muted);
+  font-size: calc(0.85rem * var(--a11y-fs, 1));
+  line-height: 1.35;
+  text-decoration: none;
+}
+.docs-toc-link.is-h3 { padding-inline-start: 1.7rem; font-size: calc(0.82rem * var(--a11y-fs, 1)); }
+.docs-toc-link:hover { color: var(--ui-color-text-default); border-inline-start-color: var(--ui-color-border-default); text-decoration: none; }
+.docs-toc-link:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: -2px; }
+/* The section being read: full-strength text and weight, the primary as the marker
+   (a non-text mark, which needs 3:1, not the 4.5:1 small primary text would). */
+.docs-toc-link.active,
+.docs-toc-link[aria-current] {
+  color: var(--ui-color-text-default);
+  font-weight: 600;
+  border-inline-start-color: var(--ui-color-action-primary);
+}
+
+/* The page bar: one line under the top row ("Create v Export a file") opening one
+   sheet with the sections, this page's headings and this section's pages. Sticky,
+   on the canvas at most of its strength with one hairline under it, so the article
+   passes beneath it. Each surface decides where it sits and below which width it
+   shows (docs.css, the site stylesheet in docs/build.ts). */
+.doc-pagebar {
+  position: sticky;
+  z-index: 40;
+  box-sizing: border-box;
+  padding: var(--sp-3) 0;
+  background: color-mix(in srgb, var(--ui-color-surface-canvas) 92%, transparent);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--ui-color-border-default);
+}
+.doc-pagebar-btn {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  box-sizing: border-box;
+  width: 100%;
+  min-height: var(--ui-size-target);
+  padding: 0 var(--sp-6);
+  border: 1px solid var(--ui-color-border-default);
+  border-radius: var(--radius-pill);
+  background: var(--ui-color-surface-raised);
+  color: var(--ui-color-text-default);
+  font: 400 var(--fs-lg) / 1.2 var(--font-brand, system-ui, sans-serif);
+  text-align: start;
+  cursor: pointer;
+}
+.doc-pagebar-btn:hover { background: var(--ui-color-surface-muted); }
+.doc-pagebar-btn:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 2px; }
+.doc-pagebar-btn[aria-expanded="true"] { background: var(--ui-color-selection-surface); }
+.doc-pagebar-section { flex: none; font-weight: 600; }
+.doc-pagebar-chev { flex: none; display: inline-flex; color: var(--ui-color-text-muted); transform: rotate(90deg); transition: transform var(--ui-motion-feedback); }
+.doc-pagebar-btn[aria-expanded="true"] .doc-pagebar-chev { transform: rotate(270deg); }
+.doc-pagebar-chev svg { width: var(--fs-xl); height: var(--fs-xl); }
+.doc-pagebar-page { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--ui-color-text-muted); }
+.doc-contents-panel {
+  position: absolute;
+  inset-inline: 0;
+  top: calc(100% + var(--sp-2));
+  box-sizing: border-box;
+  max-height: min(72dvh, 40rem);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: var(--sp-4);
+  border-radius: var(--ui-radius-card);
+  background: var(--ui-color-surface-raised);
+  color: var(--ui-color-text-default);
+  /* The floating level of surfaces.css: the faint ring and the floating drop. */
+  box-shadow: var(--ui-edge-faint), var(--ui-elevation-floating);
+  text-align: start;
+}
+.doc-contents-panel[hidden] { display: none; }
+/* The sections, as a wrap of text tabs: the strip's own links, current one marked. */
+.doc-sheet-sections { display: flex; flex-wrap: wrap; gap: var(--sp-2) var(--sp-7); padding: var(--sp-3) var(--sp-5) var(--sp-5); }
+.doc-sheet-sections .docs-pathway { min-height: 32px; display: inline-flex; align-items: center; }
+@media (pointer: coarse) { .doc-sheet-sections .docs-pathway { min-height: var(--ui-size-target); } }
+.doc-sheet-group { margin-top: var(--sp-2); padding-top: var(--sp-2); border-top: 1px solid var(--ui-color-border-default); }
+.doc-contents-title,
+.doc-contents-panel .sidebar-label,
+.doc-contents-panel .sidebar-pathway {
+  margin: var(--sp-4) var(--sp-5) var(--sp-3);
+  font-size: var(--fs-2xs);
+  font-weight: 700;
+  letter-spacing: var(--ui-type-tracking-label);
+  text-transform: uppercase;
+  color: var(--ui-color-text-muted);
+}
+.doc-contents-panel .docs-toc-list { border: 0; }
+.doc-contents-panel :is(.docs-toc-link, .docs-compact-list a) {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-4);
+  box-sizing: border-box;
+  min-height: var(--ui-size-target);
+  margin: 0;
+  padding: var(--sp-3) var(--sp-5);
+  border: 0;
+  border-radius: var(--ui-radius-control);
+  color: var(--ui-color-text-default);
+  font-size: var(--fs-lg);
+  font-weight: 400;
+  line-height: 1.35;
+  text-decoration: none;
+}
+.doc-contents-panel :is(.docs-toc-link, .docs-compact-list a):hover { background: var(--ui-color-surface-muted); }
+.doc-contents-panel .docs-toc-link[aria-current] { background: var(--ui-color-selection-surface); font-weight: 600; }
+@media (prefers-reduced-motion: no-preference) {
+  .doc-contents-panel:not([hidden]) {
+    animation: doc-contents-in var(--ui-motion-overlay, 160ms) var(--ui-motion-standard, ease-out) both;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .doc-pagebar-chev { transition: none; }
+}
+html[data-a11y-motion="reduce"] .doc-contents-panel:not([hidden]) { animation: none; }
+html[data-a11y-motion="reduce"] .doc-pagebar-chev { transition: none; }
+@keyframes doc-contents-in { from { opacity: 0; transform: translateY(-4px); } }
+/* Tracking pulls a joined script apart (Arabic, Urdu) and breaks conjuncts (Hindi,
+   Bengali), so the small headings set their letters at the font's own spacing
+   there, in the body face rather than the monospace. */
+:is([dir="rtl"], :lang(hi), :lang(bn)) :is(.docs-toc-head, .doc-contents-title, .doc-contents-panel .sidebar-label) {
+  letter-spacing: normal;
+  font-family: inherit;
+}
+@media (forced-colors: active) {
+  .docs-toc-link[aria-current] { border-inline-start-color: Highlight; }
+  .doc-contents-panel .docs-toc-link[aria-current] { outline: 2px solid Highlight; outline-offset: -2px; }
+}
 
 .footer-sitemap { container-type: inline-size; text-align: start; }
 .footer-sitemap :is(.sitemap-disclosure, .sitemap-section) > summary {
@@ -967,6 +1110,15 @@ section[id]{scroll-margin-top:calc(var(--site-bar-h) + 2.65rem)}
    (buttons.css .btn--glass), holding the app's mark, the name and, on English
    pages, a quiet Beta chip. It pushes the rest of the row to the inline end. */
 .site-home{display:inline-flex;align-items:center;gap:var(--sp-4);flex:none;margin-inline-end:auto;box-sizing:border-box;min-height:var(--chrome-h);padding-block:0;padding-inline:var(--sp-3) var(--sp-7);border:1px solid transparent;border-radius:calc(var(--radius) * 1.5);font-size:var(--fs-md);font-weight:600;line-height:1;color:var(--ui-color-text-default);text-decoration:none;white-space:nowrap;box-shadow:inset 0 -.1em 1em 1px hsl(var(--primary) / .22),0 .1em .3em #0002}
+/* The six sections in the bar's middle, where the app keeps its view tabs (plan 354 D7).
+   One line: on a narrow bar the row scrolls, and lib/docs-strip.ts fades an edge with
+   tabs beyond it. From 48em down the menu's sheet carries the sections instead. */
+.site-tabs{flex:1 1 auto;min-width:0;display:flex;justify-content:center}
+.site-tabs .docs-pathways{--strip-fade-start:0px;--strip-fade-end:0px;flex-wrap:nowrap;min-width:0;overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:none;padding-block:2px;-webkit-mask-image:linear-gradient(to right,transparent,black var(--strip-fade-start),black calc(100% - var(--strip-fade-end)),transparent);mask-image:linear-gradient(to right,transparent,black var(--strip-fade-start),black calc(100% - var(--strip-fade-end)),transparent)}
+.site-tabs .docs-pathways::-webkit-scrollbar{display:none}
+.site-tabs .docs-pathways[data-strip-edges~="start"]{--strip-fade-start:2rem}
+.site-tabs .docs-pathways[data-strip-edges~="end"]{--strip-fade-end:2rem}
+[dir="rtl"] .site-tabs .docs-pathways{-webkit-mask-image:linear-gradient(to left,transparent,black var(--strip-fade-start),black calc(100% - var(--strip-fade-end)),transparent);mask-image:linear-gradient(to left,transparent,black var(--strip-fade-start),black calc(100% - var(--strip-fade-end)),transparent)}
 .site-home:hover{background:hsl(var(--primary) / .16);box-shadow:inset 0 0 0 1px hsl(var(--primary) / .34);text-decoration:none}
 .site-home:focus-visible{outline:2px solid var(--ui-color-focus-ring);outline-offset:2px}
 .site-home img{display:block;width:calc(26px * var(--a11y-fs));height:calc(26px * var(--a11y-fs));border-radius:var(--radius-round)}
@@ -991,6 +1143,17 @@ section[id]{scroll-margin-top:calc(var(--site-bar-h) + 2.65rem)}
 .site-launch:hover{text-decoration:none}
 .site-launch svg{width:calc(15px * var(--a11y-fs));height:calc(15px * var(--a11y-fs))}
 [dir="rtl"] .site-launch svg{transform:scaleX(-1)}
+/* The way back (ORIGIN_SCRIPT), beside Launch App: the back arrow and the name of the
+   app view this tab came from, cut short with an ellipsis when it is long. Hidden
+   until the script finds one. */
+/* The same pill as the Lolly home button opposite (.site-home): glass, the bar's
+   radius, the inset glow and the drop, so the bar's two pills read as one pair. */
+.site-return{display:inline-flex;align-items:center;gap:var(--sp-3);flex:0 1 auto;min-width:0;box-sizing:border-box;min-height:var(--chrome-h);padding-inline:var(--sp-6);border:1px solid transparent;border-radius:calc(var(--radius) * 1.5);font-size:var(--fs-md);font-weight:600;line-height:1;color:var(--ui-color-text-default);text-decoration:none;white-space:nowrap;box-shadow:inset 0 -.1em 1em 1px hsl(var(--primary) / .22),0 .1em .3em #0002}
+.site-return[hidden]{display:none}
+.site-return:hover{text-decoration:none}
+.site-return svg{flex:none;width:calc(15px * var(--a11y-fs));height:calc(15px * var(--a11y-fs))}
+[dir="rtl"] .site-return svg{transform:scaleX(-1)}
+.site-return-label{display:block;max-width:14em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 
 /* Language menu: the app's language popover (topbar.css .lang-menu, the same
    role tokens), a raised card with the sort tabs and one column of languages.
@@ -1077,12 +1240,22 @@ html[data-a11y-motion="reduce"] .site-menu[open] .site-sheet{animation:none}
   .site-bar.is-searching .docs-search{display:flex;position:absolute;inset-inline:var(--site-bar-inset);inset-block:calc(var(--sp-4) + var(--safe-top)) calc(var(--sp-4) + 1px);z-index:2}
   .site-bar.is-searching .docs-search-input{inline-size:100%}
 }
-@media(max-width:48em){.site-menu{display:block}}
+/* The same fold when the sections need the field's room (DOCS_SEARCH_SCRIPT sets
+   .site-bar--tight from the sections' own width). */
+.site-bar--tight .docs-search{display:none}
+.site-bar--tight .site-fab--search{display:inline-flex}
+.site-bar--tight.is-searching .docs-search{display:flex;position:absolute;inset-inline:var(--site-bar-inset);inset-block:calc(var(--sp-4) + var(--safe-top)) calc(var(--sp-4) + 1px);z-index:2}
+.site-bar--tight.is-searching .docs-search-input{inline-size:100%}
+@media(max-width:48em){.site-menu{display:block}.site-tabs{display:none}}
 @media(min-width:40.0625em){.site-sheet-tools,.site-sheet .site-launch{display:none}}
 @media(max-width:40em){
   :root{--site-bar-inset:var(--sp-6)}
   .site-bar{gap:var(--sp-4)}
   .site-fab--theme,.site-fab--lang,.site-fab--github,.site-bar>.site-launch,.site-beta{display:none}
+  /* A reader who came from the app keeps the way back in the bar on a phone: one
+     press, not the menu. Launch App waits in the menu. */
+  .site-return{padding-inline:var(--sp-5)}
+  .site-return-label{max-width:8em}
 }
 @media(max-width:22.5em){.site-home img{display:none}.site-home{padding-inline:var(--sp-7)}}
 
@@ -2439,6 +2612,70 @@ html[data-a11y-motion="reduce"] .covers-open-btn{transition:none}
 @media (prefers-reduced-motion: reduce){.covers--fan .cover-card{transition:none}}
 html[data-a11y-motion="reduce"] .covers--fan .cover-card{transition:none}
 
+/* ── beat 1b: choose the format last ──────────────────────────────────────
+   Between the hero and the covers, on the same dark ground (.hero-wrap paints it, as
+   for the covers). One piece as five real files, each drawn by its own reader. Each
+   panel grows by its own aspect ratio (--fl-a, which build.ts reads off the file), so
+   every panel stands at one height and none is cropped: four landscape files and one
+   portrait page. Under 720px the row becomes a filmstrip that swipes. Nothing here moves. */
+.fl-section{position:relative;z-index:1;color:hsl(var(--on-band-dark));padding:1rem 1.5rem 1.5rem}
+.fl-inner{max-width:1120px;margin:0 auto;text-align:center}
+.fl-title{margin:0 0 .6rem;font-size:clamp(1.6rem,3.4vw,2.5rem);font-weight:800;line-height:1.1;letter-spacing:0;text-transform:none;color:hsl(var(--on-band-dark));text-wrap:balance}
+.fl-line{max-width:44rem;margin:0 auto;font-size:clamp(.95rem,1.6vw,1.075rem);line-height:1.6;color:hsl(var(--on-band-dark) / .78);text-wrap:balance}
+.fl-control{max-width:44rem;margin:.7rem auto 0;font-size:.9rem;line-height:1.5;color:hsl(var(--on-band-dark) / .7)}
+.fl-control a{color:hsl(var(--on-band-dark));font-weight:700;text-decoration:underline;text-underline-offset:.2em}
+.fl-row{list-style:none;margin:1.75rem 0 0;padding:0;display:flex;gap:14px;align-items:flex-start}
+.fl-out{flex:var(--fl-a,1.7778) 1 0;min-width:0;margin:0}
+.fl-out a{display:flex;flex-direction:column;gap:.5rem;color:inherit;text-decoration:none;border-radius:10px}
+.fl-out a:focus-visible{outline:2px solid hsl(var(--on-band-dark));outline-offset:4px}
+.fl-art{display:block;border-radius:8px;overflow:hidden;background:#fff;box-shadow:0 18px 36px -18px rgba(0,0,0,.6),0 0 0 1px hsl(var(--on-band-dark) / .14)}
+.fl-out a:hover .fl-art{box-shadow:0 18px 36px -18px rgba(0,0,0,.6),0 0 0 2px hsl(var(--on-band-dark) / .55)}
+.fl-art img{display:block;width:100%;height:auto;aspect-ratio:auto}
+.fl-cap{display:flex;align-items:baseline;justify-content:center;flex-wrap:wrap;gap:.1rem .45rem;font-size:.82rem;line-height:1.3}
+.fl-cap b{font-weight:700}
+.fl-cap i{font-style:normal;font-family:'SUSE Mono','SF Mono',monospace;font-size:.92em;color:hsl(var(--on-band-dark) / .66)}
+.fl-formats{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:.55rem 1.4rem;margin-top:1.5rem}
+.fl-chips{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:.35rem;margin:0}
+.fl-chips-label{font-size:.62rem;font-weight:800;text-transform:uppercase;letter-spacing:.12em;color:hsl(var(--on-band-dark) / .6);margin-inline-end:.25rem}
+.fl-chip{display:inline-flex;align-items:center;padding:.28em .66em;border-radius:1em;border:1px solid hsl(var(--on-band-dark) / .26);color:hsl(var(--on-band-dark));font-family:'SUSE Mono','SF Mono',monospace;font-size:.74rem;font-weight:700;letter-spacing:.03em;text-decoration:none;white-space:nowrap}
+.fl-chip:hover{border-color:hsl(var(--on-band-dark) / .7);text-decoration:none}
+.fl-chip:focus-visible,.fl-more:focus-visible{outline:2px solid hsl(var(--on-band-dark));outline-offset:2px}
+.fl-more{font-size:.9rem;font-weight:700;color:hsl(var(--on-band-dark));text-decoration:none;white-space:nowrap}
+.fl-more:hover{text-decoration:underline}
+@media(max-width:719px){
+  .fl-section{padding-left:0;padding-right:0}
+  .fl-inner{max-width:none}
+  .fl-title,.fl-line,.fl-control,.fl-formats{padding-left:1.25rem;padding-right:1.25rem}
+  .fl-row{display:flex;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;padding:0 1.25rem 1rem;scroll-padding-inline:1.25rem;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+  .fl-row::-webkit-scrollbar{display:none}
+  .fl-out{flex:0 0 auto;scroll-snap-align:start}
+  .fl-art{height:150px;width:auto}
+  .fl-art img{height:150px;width:auto}
+  .fl-formats{flex-direction:column;gap:.6rem;margin-top:.75rem}
+}
+
+/* The proof on the formats page: the same five panels, larger, each with the reader
+   that drew it, its credential and the original file. On a wide page the slide and the
+   portrait page share the first row (two thirds and one third), and the other three
+   take a third each; on a phone, one column. */
+.fl-figure{margin:2rem 0 2.5rem}
+.fl-panels{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:1.4rem 1.1rem}
+.fl-panel{grid-column:span 2;margin:0;min-width:0;display:flex;flex-direction:column;gap:.55rem}
+.fl-panel--slide{grid-column:span 4}
+.fl-panel-art{position:relative;border-radius:8px;overflow:hidden;background:#fff;box-shadow:0 0 0 1px var(--border)}
+.fl-panel-art>img{display:block;width:100%;height:auto}
+.fl-panel figcaption{font-size:.85rem;line-height:1.45;color:var(--muted)}
+.fl-panel figcaption b{color:var(--text);font-weight:700;margin-inline-end:.25em}
+.fl-panel-file{display:inline-flex;align-items:center;gap:.25em;margin-inline-start:.4em;font-family:'SUSE Mono','SF Mono',monospace;font-size:.78rem;font-weight:700;color:var(--green);text-decoration:none;white-space:nowrap}
+.fl-panel-file:hover{text-decoration:underline}
+.fl-panel-file svg{width:.95em;height:.95em}
+.fl-figure-caption{margin:1rem 0 0;font-size:.875rem;line-height:1.55;color:var(--muted)}
+@media(max-width:640px){
+  .fl-panels{grid-template-columns:minmax(0,1fr)}
+  .fl-panel,.fl-panel--slide{grid-column:auto}
+  .fl-panel--page .fl-panel-art{max-width:70%;align-self:center}
+}
+
 /* ── beat 3: what / why ─────────────────────────────────────────────────── */
 .whatwhy-section{padding:4rem 1.5rem 2.5rem}
 .whatwhy-inner{max-width:1120px;margin:0 auto;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(300px,100%),1fr));gap:2.5rem 3.5rem}
@@ -2798,8 +3035,20 @@ html[data-a11y-motion="reduce"] .persona-tabs img{transition:none}
    half of this: a first group whose label only repeats the pathway is dropped. */
 .sidebar-label{font-size:.6875rem;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);font-weight:600;margin:2rem 0 .5rem}
 .sidebar-label:first-child{margin-top:0}
-.sidebar-home{display:block;font-size:.8125rem;color:var(--muted)!important;margin-bottom:1rem;padding:0!important}
-.sidebar-home:hover{color:var(--green)!important;background:none!important}
+/* The rail's folds (buildSidebar): each group is a native disclosure whose summary is
+   the group's eyebrow, open where the current page is. The summary keeps the eyebrow's
+   type and gains the chevron the sitemap uses; the gap above it is the group break. */
+.sidebar-group{margin-top:1rem}
+.sidebar-group>summary.sidebar-label{display:flex;align-items:center;justify-content:space-between;gap:.5rem;min-height:32px;margin:0 0 .25rem;padding:0 .5rem;border-radius:5px;cursor:pointer;list-style:none}
+.sidebar-group>summary::-webkit-details-marker{display:none}
+.sidebar-group>summary:hover{background:var(--pale);color:var(--text)}
+.sidebar-group>summary:focus-visible{outline:2px solid var(--ui-color-focus-ring);outline-offset:2px}
+.sidebar-chev{display:inline-flex;flex:none;width:1em;height:1em;transform:rotate(90deg);transition:transform var(--ui-motion-feedback)}
+.sidebar-chev svg{width:100%;height:100%}
+.sidebar-group[open]>summary .sidebar-chev{transform:rotate(270deg)}
+@media(prefers-reduced-motion:reduce){.sidebar-chev{transition:none}}
+html[data-a11y-motion="reduce"] .sidebar-chev{transition:none}
+@media(pointer:coarse){.sidebar-group>summary.sidebar-label{min-height:var(--ui-size-target)}}
 /* Docs search - in the TOPBAR, not the rail. It sits with the other whole-site
    controls (language, theme, launch) because it acts on the whole site: the rail
    answers "what is there", the box answers "where is the thing I already know I
@@ -2867,6 +3116,10 @@ html[data-a11y-motion="reduce"] .persona-tabs img{transition:none}
 .spec-heads a{font-size:.8125rem;color:var(--muted);padding:.2rem .5rem}
 .spec-heads a.is-sub{padding-left:1.1rem}
 .sidebar-pathway{font-size:1.0625rem;font-weight:700;color:var(--dark);margin-top:2rem; margin-bottom:.75rem;padding-bottom:.75rem;border-bottom:1px solid var(--border)}
+/* The heading is the section's hub page, a link (plan 354); out-specify the rail's row rule. */
+.docs-sidebar a.sidebar-pathway{display:block;margin-top:0;padding:0 .5rem .75rem;border-radius:0;font-size:1.0625rem;color:var(--dark)}
+.docs-sidebar a.sidebar-pathway:hover{color:var(--green);background:none}
+.docs-sidebar a.sidebar-pathway.active{color:var(--green);background:none}
 .docs-sidebar a{display:flex;align-items:flex-start;gap:.5rem;padding:.3rem .5rem;font-size:.875rem;color:var(--text);border-radius:5px}
 .docs-sidebar a:hover{color:var(--green);background:var(--pale);text-decoration:none}
 .docs-sidebar a.active{color:var(--green);font-weight:600;background:var(--pale)}
@@ -2981,8 +3234,8 @@ html[data-a11y-motion="reduce"] .persona-tabs img{transition:none}
 .docs-content{padding:2.75rem 3.5rem 6rem;min-width:0}
 /* No band (a page with no h1 at all): the column clears the fixed bar by itself. */
 .docs-content.no-mast{padding-top:calc(var(--site-bar-h) + 2.25rem)}
-/* ── Article masthead (docsMasthead + DOCS_MASTHEAD_SCRIPT) ───────────────────
-   The page's own h1 over the chip field, FULL VIEWPORT WIDTH: the band is a sibling
+/* ── Article masthead (docsMasthead) ──────────────────────────────────────────
+   The section strip and the page's own h1, FULL VIEWPORT WIDTH: the band is a sibling
    of .docs-wrap, so the sidebar rail and the article both begin underneath it. That
    is the landing page's own grammar (its hero spans the window and the content
    starts below), and a band inset to one column would have read as an illustration
@@ -2993,22 +3246,20 @@ html[data-a11y-motion="reduce"] .persona-tabs img{transition:none}
    this one up with the column the article is about to start in makes the band feel
    structural instead of pasted on. Logical padding, so an RTL locale mirrors it.
 
-   isolation:isolate keeps the canvas's blend mode inside the band - without it the
-   dark theme's color-dodge would reach the page behind. */
-.docs-masthead{position:relative;isolation:isolate;overflow:hidden;padding:calc(var(--site-bar-h) + 2.25rem) 0 2.25rem;min-height:clamp(14rem,30vh,20rem);display:flex;flex-direction:column;justify-content:flex-end;background:linear-gradient(180deg,var(--pale) 0%,var(--page) 100%)}
-/* The dark plate stays a PLATE - a green a couple of steps up from the page - because
-   color-dodge divides by the backdrop: over near-black (#061816) the chips resolve to
-   near-black too and the field disappears. The gradient's last stop still reaches the
-   page colour, so the band ends where the article begins. */
+   It holds words only (no chip field since 2026-11-06), so it is as tall as its two
+   rows and the article starts right under the title. A banked masthead (MASTHEADS,
+   docs-art.ts) brings its own art and height. */
+.docs-masthead{position:relative;isolation:isolate;overflow:hidden;padding:calc(var(--site-bar-h) + 2.25rem) 0 2.25rem;display:flex;flex-direction:column;justify-content:flex-end;background:linear-gradient(180deg,var(--pale) 0%,var(--page) 100%)}
+/* In dark the band is a plate a couple of green steps up from the page; the
+   gradient's last stop reaches the page colour, so the band ends where the article
+   begins. */
 [data-theme="dark"] .docs-masthead,[data-theme="dark"] .docs-strip-band:not(.docs-strip-band--flow){background:linear-gradient(180deg,#0a4744 0%,#052927 58%,var(--page) 100%)}
 /* Same box as .docs-wrap, then indented past the rail: the h1 starts exactly where
    the article's text will. Below 768px the rail is gone and so is the indent. It
    holds two rows (plan 277 step 3c): the pathways strip, then the title row. */
 .docs-mast-inner{position:relative;z-index:2;max-width:1180px;width:100%;margin:0 auto;padding-inline:calc(220px + 3.5rem) 3.5rem;display:flex;flex-direction:column;gap:1.4rem}
-.docs-mast-canvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:0;opacity:.55}
-/* The chips are decoration under the title; the bar and the pathways strip above it
-   carry words, so the field fades in only below them. The banked art takes the same
-   line. --mast-clear sits on the band: MAST_CLEAR_SCRIPT sets it to the strip's own
+/* Banked art fades in only below the bar and the pathways strip, which carry words.
+   --mast-clear sits on the band: MAST_CLEAR_SCRIPT sets it to the strip's own
    foot, which moves with the band's height and the title's length; the values here
    are the estimate a reader without JavaScript gets. */
 .docs-masthead{--mast-clear:calc(var(--site-bar-h) + 5rem)}
@@ -3018,7 +3269,6 @@ html[data-a11y-motion="reduce"] .persona-tabs img{transition:none}
    a normal blend, because dodging on a near-white band blows the chips out to
    invisible white. Blend and opacity live here rather than in the JS: they are how
    the field MEETS the page, and the page's own theme rules already know that. */
-[data-theme="dark"] .docs-mast-canvas{mix-blend-mode:color-dodge;opacity:.6}
 /* Two scrims, both above the canvas and below the h1 (::before/::after are z-index 1,
    the heading is 2). The first is legibility insurance - the heading is currentColor,
    so decoration must never be allowed to eat its contrast; the second melts the band
@@ -3037,11 +3287,14 @@ html[data-a11y-motion="reduce"] .persona-tabs img{transition:none}
    is (0,1,1) and gives every page heading a bottom rule and 2rem of padding. Inside a
    band that rule is a second horizontal line under a heading that already sits on
    one, so it has to be out-specified rather than tied with. */
-.docs-masthead h1{margin:0;padding:0;border-bottom:0;color:var(--dark);font-size:clamp(2.25rem,3.4vw,3rem);font-weight:300;line-height:1.15}
+.docs-masthead h1{margin:0;padding:0;border-bottom:0;color:var(--dark);font-size:calc(clamp(2.25rem,3.4vw,3rem) * var(--a11y-fs));font-weight:300;line-height:1.15}
 /* The title row: the page's h1 (the in-app reader's title size and weight) with
    a page's print edition beside it as an app button, on the title's last line
    rather than over the article's first. On a phone the button wraps under the title. */
 .mast-title{display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:1rem 2rem}
+/* The section label over the title (pageWayfinding): tucked to the title, a row of
+   the band's own. */
+.docs-mast-inner .docs-eyebrow{margin-bottom:-.9rem}
 .mast-title h1{flex:1 1 18rem;min-width:0}
 .mast-title .docs-edition-bar{margin:0 0 .35rem}
 /* The pathways strip at the top of the band (docs-chrome.css, which also makes it
@@ -3487,39 +3740,49 @@ html[data-a11y-motion="reduce"] .showcase-art [data-sc-i]{opacity:1}
    bytes are exactly what Lolly exported - never re-encode it in a build step.
    Full column width: it is the page's one image and the argument's evidence. */
 .docs-content img[src*="the-flood"]{width:100%;max-width:100%;border-radius:1.2em;box-shadow:0 3px 6px #0002, 0 6px 2em #0001}
-.docs-content h2{font-size:1.75rem;font-weight:350;letter-spacing:normal;text-transform:none;border-top:1px solid var(--border);padding-top:2rem;margin-top:2.5rem;margin-bottom:1rem;color:var(--dark)}
+.docs-content{font-size:calc(1rem * var(--a11y-fs))}
+html[data-a11y-text="large"]{--a11y-fs:1.2}
+.docs-content h2{font-size:calc(1.75rem * var(--a11y-fs));font-weight:350;letter-spacing:normal;text-transform:none;border-top:1px solid var(--border);padding-top:2rem;margin-top:2.5rem;margin-bottom:1rem;color:var(--dark)}
 .docs-content h2:first-of-type{border-top:none;padding-top:0;margin-top:0}
-.docs-content h3{font-size:1.15rem;margin-top:1.75rem;margin-bottom:.5rem;color:var(--dark)}
-.docs-content h4{font-size:1rem;margin-top:1.25rem;margin-bottom:.35rem;color:var(--muted)}
-/* The top bar is fixed, so a heading reached by an #anchor (the jump nav below, a
+.docs-content h3{font-size:calc(1.15rem * var(--a11y-fs));margin-top:1.75rem;margin-bottom:.5rem;color:var(--dark)}
+.docs-content h4{font-size:calc(1rem * var(--a11y-fs));margin-top:1.25rem;margin-bottom:.35rem;color:var(--muted)}
+/* The top bar is fixed, so a heading reached by an #anchor (the page's contents, a
    search result, a shared deep link) would otherwise sit UNDER it. Same idea as
    section[id] on the landing page, with room for the heading's rule. */
 .docs-content h2[id],.docs-content h3[id],.docs-content h4[id]{scroll-margin-top:calc(var(--site-bar-h) + 1.75rem)}
 .docs-content ul,.docs-content ol{margin-bottom:1rem}
-/* ── "On this page" jump nav (long docs pages only - pageJumpNav) ─────────────
-   Bottom-right, deliberately quiet: a 2.25rem disc that reads as page furniture
-   until you want it. Logical inset so the Arabic build puts it in the corner an RTL
-   reader reaches for. Tokens only (--text/--muted/--border/--pale, all redefined by
-   .dark) so dark mode needs no second palette here. */
-.doc-jump{position:fixed;bottom:1rem;inset-inline-end:1rem;z-index:88}
-.doc-jump-btn{display:flex;align-items:center;justify-content:center;width:2.25rem;height:2.25rem;border-radius:999px;border:1px solid var(--border);background:var(--pale);color:var(--muted);cursor:pointer;box-shadow:0 2px 10px #0336331f;transition:color .12s,border-color .12s}
-.doc-jump-btn svg{width:1.1rem;height:1.1rem}
-.doc-jump-btn:hover,.doc-jump-btn[aria-expanded="true"]{color:var(--green);border-color:var(--green)}
-/* The first six declarations are RESETS, not choices. A bare nav element selector
-   used to be the site's top bar (fixed, full-width, flex) and landed on any <nav>
-   on the page; the bar is its own .site-bar now, and the resets stay so no element
-   rule can ever lay this panel out as a strip across the bottom of the window. */
-.doc-jump-nav{position:absolute;display:block;top:auto;width:auto;height:auto;overflow-x:hidden;transition:none;bottom:calc(100% + .5rem);inset-inline-end:0;min-width:14rem;max-width:min(20rem,calc(100vw - 2rem));max-height:min(60vh,26rem);overflow-y:auto;padding:.4rem;background:var(--pale);border:1px solid var(--border);border-radius:10px;box-shadow:0 10px 34px #03363326}
-.doc-jump-nav[hidden]{display:none}
-.doc-jump-title{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);margin:.15rem .5rem .35rem}
-.doc-jump-nav a{display:block;padding:.32rem .5rem;border-radius:6px;font-size:.875rem;line-height:1.35;color:var(--text);text-decoration:none}
-.doc-jump-nav a:hover{background:#50c36918;color:var(--green);text-decoration:none}
-[data-theme="brand"] .doc-jump-nav a:hover{color:#ace1ad}
-.doc-jump-top{margin-top:.25rem;border-top:1px solid var(--border);padding-top:.45rem;color:var(--muted)}
-@media(prefers-reduced-motion:reduce){.doc-jump-btn{transition:none}}
-html[data-a11y-motion="reduce"] .doc-jump-btn{transition:none}
-@media print{.doc-jump{display:none}}
-.docs-content h1{font-size:3rem;color:var(--dark);line-height:1.15;margin-bottom:2rem;padding-bottom:2rem;border-bottom:1px solid var(--border); font-weight:300;}
+/* ── The page's contents: where they sit on /info (their look is docs-chrome.css's) ──
+   From 1100px the rail is a third column beside the article, sticky under the bar,
+   and the wrap and the masthead widen by its width so the article keeps its place
+   under the title. Below 1100px the page bar takes over: sticky under the site bar,
+   its sheet holding the sections, the headings and the pages. It sits before the
+   band, so the band no longer clears the site bar itself; on a phone the band's own
+   strip goes, because the bar's sheet carries the sections. */
+.docs-onpage{display:none}
+.doc-pagebar{top:var(--site-bar-h);margin-top:var(--site-bar-h);z-index:90;padding-inline:max(1rem,calc((100% - 46rem) / 2))}
+@media(max-width:1099px){
+  .doc-pagebar+.docs-masthead{padding-top:1.5rem}
+  .doc-pagebar+.docs-strip-band{padding-top:1.25rem}
+}
+@media(max-width:768px){.doc-pagebar+.docs-masthead{padding-top:1rem;min-height:0}}
+@media(max-width:640px){
+  .doc-pagebar+.docs-masthead .docs-pathways{display:none}
+  .doc-pagebar+.docs-strip-band:not(:has(.docs-edition-bar)){display:none}
+  .doc-pagebar+.docs-strip-band .docs-pathways{display:none}
+  .doc-pagebar+.docs-masthead{padding-bottom:1rem}
+  .doc-pagebar+.docs-masthead .docs-mast-inner{gap:0}
+  .doc-pagebar+.docs-masthead h1{font-size:calc(2.1rem * var(--a11y-fs))}
+  .doc-pagebar~.docs-wrap .docs-content{padding-top:1.25rem}
+}
+@media(min-width:1100px){
+  .doc-pagebar{display:none}
+  .docs-wrap--rail{grid-template-columns:220px minmax(0,1fr) 14rem;max-width:calc(1180px + 14rem)}
+  .docs-wrap--rail .docs-content{padding-inline-end:2rem}
+  .docs-wrap--rail .docs-onpage{display:block;position:sticky;top:var(--site-bar-h);align-self:start;max-height:calc(100vh - var(--site-bar-h));max-height:calc(100dvh - var(--site-bar-h));overflow-y:auto;overscroll-behavior:contain;padding:2.75rem 1.25rem 2rem 0;box-sizing:border-box}
+  .page-has-rail .docs-masthead .docs-mast-inner,.page-has-rail .docs-strip-band .docs-mast-inner{max-width:calc(1180px + 14rem);padding-inline-end:calc(14rem + 2rem)}
+}
+@media print{.doc-pagebar,.docs-onpage{display:none!important}}
+.docs-content h1{font-size:calc(3rem * var(--a11y-fs));color:var(--dark);line-height:1.15;margin-bottom:2rem;padding-bottom:2rem;border-bottom:1px solid var(--border); font-weight:300;}
 
 /* Table */
 .table-wrap{overflow-x:auto;margin-bottom:2rem;box-shadow: 0 0 0 1px hsl(var(--border)), 0 .2rem .4rem #00000018; border-radius: 1.5em;}
@@ -3706,6 +3969,15 @@ footer .founded-badge{margin-top:.5rem}
    Standing rules: meaning is carried by an icon, a label and a tinted fill, never
    by an accent-coloured edge; no negative letter spacing; sizes ride the a11y type
    multiplier, which falls back to 1 where it is not defined. */
+
+/* ── The reading measure ────────────────────────────────────────────────
+   Prose stops at 68ch, about 75 characters of running text, in both readers: a
+   line much longer than that makes the eye lose its place on the way back to the
+   start of the next one (the article column ran to about 115 characters on /info
+   and 105 in the app). Only the running text is capped: tables, code, figures,
+   screenshots and the column layouts keep the full column. `ch` follows the
+   element's own size, so the cap holds under Large text and browser zoom alike. */
+.docs-content > :is(p, ul, ol, dl, blockquote, .doc-note, .doc-details) { max-width: 68ch; }
 
 .docs-content .doc-visually-hidden {
   position: absolute !important; width: 1px; height: 1px; padding: 0; margin: -1px;
@@ -3964,4 +4236,52 @@ html[data-a11y-motion="reduce"] :is(.docs-content, .docs-compact-nav) .doc-detai
   .docs-content .doc-note, .docs-content .doc-details { break-inside: avoid; background: none; box-shadow: none; outline: 1px solid #888; outline-offset: -1px; }
   .docs-content .doc-code { background: none; box-shadow: none; outline: 1px solid #888; outline-offset: -1px; }
   .docs-content .doc-code pre { white-space: pre-wrap; overflow: visible; }
+}
+
+/* ── Where the page sits, and where reading goes next (plan 354 D3) ─────────
+   Generated from the manifest by docs/build.ts (pageWayfinding), both readers:
+   the section label over the title, and Previous and Next after the article.
+   The label is the house eyebrow; the pager is two quiet cards at the reading
+   measure, the next one aligned to the inline end. */
+.docs-eyebrow {
+  margin: 0;
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  letter-spacing: var(--ui-type-tracking-label);
+  text-transform: uppercase;
+  color: var(--ui-color-text-muted);
+}
+.docs-content > .docs-eyebrow { margin-bottom: var(--sp-4); }
+:is([dir="rtl"], :lang(hi), :lang(bn)) .docs-eyebrow { letter-spacing: normal; text-transform: none; }
+/* Below 1100 px the page bar above the article already names the section and the page,
+   and its sheet lists the groups, so the label would only repeat it and push the first
+   paragraph down (plan 354's phone layout). */
+@media (max-width: 1099px) { .docs-eyebrow { display: none; } }
+.docs-content .docs-pager {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: var(--sp-6);
+  max-width: 68ch;
+  margin: var(--sp-8) 0 0;
+}
+.docs-content .docs-pager-link {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  min-height: var(--ui-size-target);
+  padding: var(--sp-5) var(--sp-6);
+  border-radius: var(--ui-radius-card);
+  box-shadow: var(--ui-edge-faint);
+  color: var(--ui-color-text-default);
+  text-decoration: none;
+}
+.docs-content a.docs-pager-link:hover { background: var(--ui-color-surface-muted); text-decoration: none; }
+.docs-content a.docs-pager-link:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 2px; }
+.docs-content .docs-pager-empty { box-shadow: none; }
+.docs-content .docs-pager-next { text-align: end; }
+.docs-content .docs-pager-dir { font-size: var(--fs-sm); color: var(--ui-color-text-muted); }
+.docs-content .docs-pager-title { font-weight: 600; line-height: 1.3; }
+@media (max-width: 480px) {
+  .docs-content .docs-pager { grid-template-columns: minmax(0, 1fr); }
+  .docs-content .docs-pager-empty { display: none; }
 }
