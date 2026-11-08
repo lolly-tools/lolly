@@ -24,7 +24,7 @@ Lolly Demo, Lolly's own example brand, carries three public skills. They are the
 | --- | --- | --- | --- |
 | `lolly/skill/brand` | `lolly-demo-brand` | `brand` | Every piece of work: voice, the Opal palette, type, logo use and layout |
 | `lolly/skill/photography` | `lolly-demo-photography` | `photography` | Lolly Darkroom and Filter, and the `lolly/luts/` colour looks |
-| `lolly/skill/motion` | `lolly-demo-motion` | `motion` | Lolly Design and Lottie Ad; video and audio exports; the `lolly/loops/` and `lolly/songs/` music |
+| `lolly/skill/motion` | `lolly-demo-motion` | `motion` | Lolly Design and Lottie Ad; video and audio exports and their music |
 
 List them from a checkout with the Lolly Demo content profile:
 

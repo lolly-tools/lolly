@@ -8,9 +8,10 @@
  * each loop is decoded into an AudioBuffer and played via an AudioBufferSourceNode(loop=true)
  * - so mp3/aac priming gaps never apply. Shell chrome (host audio), never the engine.
  *
- * Besides the catalog, uploads and radio, the list carries three generated Lofi stations
- * (lib/neurospicy-lofi.ts): endless, never the same tune twice, with their own mood,
- * drums and texture controls, and Next and Previous step between tunes.
+ * Besides the catalog, uploads and radio, the list carries the player's own generated
+ * stations (lib/neurospicy-lofi.ts): Lolly Sings and three Lofi moods, endless and never
+ * the same tune twice, with their own drums and texture controls (and mood, for Lofi);
+ * Next and Previous step between tunes.
  *
  * The VISUALIZER listens to a copy of the music taken before the volume control and kept
  * at a steady level (see the feed below), so a quiet track, a loud stream and the player
@@ -23,7 +24,7 @@ import { renderModToAudioBuffer, isModuleFormat } from './mod-render.ts';
 import { RADIO_STATIONS, radioStation, isRadioId, radioAvailable, resolveStreamUrl } from './radio.ts';
 import { isSfxMuted } from './sfx.ts';
 import {
-  isLofiId, lofiId, lofiTracks, startLofi, stopLofi, lofiLive, applyLofiPrefs, queueLofiSeed, LOFI_DEFAULTS, LOFI_STATION_MOODS,
+  isLofiId, lofiId, lofiTracks, startLofi, stopLofi, lofiLive, applyLofiPrefs, queueLofiSeed, retiredTrackStation, LOFI_DEFAULTS, LOFI_STATION_MOODS,
   type LofiPrefs, type LofiLink,
 } from './neurospicy-lofi.ts';
 
@@ -49,7 +50,9 @@ const KEY = 'lolly:neurospicy';
 const DEFAULTS: NeurospicyState = { enabled: false, loopId: '', volume: 0.5, repeat: true, lofi: LOFI_DEFAULTS };
 /** A stored state over the defaults, the Lofi preferences merged field by field. */
 function withDefaults(stored: Partial<NeurospicyState>): NeurospicyState {
-  return { ...DEFAULTS, ...stored, lofi: { ...LOFI_DEFAULTS, ...(stored.lofi ?? {}) } };
+  const state = { ...DEFAULTS, ...stored, lofi: { ...LOFI_DEFAULTS, ...(stored.lofi ?? {}) } };
+  // A selection that was a retired catalog track carries on with the nearest station.
+  return { ...state, loopId: retiredTrackStation(state.loopId) ?? state.loopId };
 }
 
 let state: NeurospicyState = readInitial();
@@ -840,7 +843,7 @@ export const NEURO_CATEGORY_ORDER: string[] = ['catalog', 'uploads', 'lolly', 'l
 
 /** Which playlist group a track belongs to (the picker's section, and the sort key). */
 export function trackCategory(t: NeuroTrack): string {
-  if (t.format === 'lofi') return 'lofi';               // the generated Lofi stations
+  if (t.format === 'lofi') return t.id === lofiId('sings') ? 'lolly' : 'lofi';   // the generated stations: Lolly Sings, then Lofi
   if (t.format === 'stream' || t.tags.includes('radio') || t.tags.includes('stream')) return 'radio';
   if (t.id.startsWith('user/')) return 'uploads';       // the user's own uploads
   if (!t.tags.includes('neurospicy')) return 'catalog'; // catalog audio outside the focus sets (music beds…)
@@ -849,11 +852,15 @@ export function trackCategory(t: NeuroTrack): string {
   return 'beats';                                       // the remaining loops (breakbeats)
 }
 
-/** The Lofi stations keep their mood order (warm, late night, rainy), not A to Z. */
+/** The generated stations lead their group in station order (warm, late night, rainy;
+ *  Lolly Sings ahead of any other Lolly Sings track), not A to Z. */
 function lofiRank(t: NeuroTrack): number {
   const i = LOFI_STATION_MOODS.findIndex((m) => lofiId(m) === t.id);
-  return i < 0 ? 0 : i;
+  return i < 0 ? 100 : i;
 }
+
+/** The id of a generated station, for callers outside the player (the docs demo). */
+export function lofiStationId(mood: (typeof LOFI_STATION_MOODS)[number]): string { return lofiId(mood); }
 
 /** Sort comparator for the canonical playlist order: group, then any featured
  *  slugs, then alphabetical within the group. */

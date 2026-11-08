@@ -158,7 +158,7 @@ const POSES: CoverPose[] = [
   // brand influence at full, so the card plays the clip and none of the app. The
   // palette LEADS with `accent`, which defaults to the brand's secondary - the
   // complement, so the sky-blue tile came out red - hence accent = the primary.
-  { slug: 'audiogram', hue: 202.5, route: '#/tool/audiogram?audio=lolly/loops/pixel-quest-save-point&style=milkdrop&vizLook=stock:flexi-bouncing-balls-double-mindblob-neon-mix&title=Save%20point&subtitle=Pixel%20Quest&layout=overlay-center&vizBrand=full&credit=false&captions=false&size=wide&accent={primary}&bg={primaryDark}', wait: '.lolly-viz-canvas', settleMs: 4000, exportVideo: { fps: 60, seconds: LOOP_SECONDS } },
+  { slug: 'audiogram', hue: 202.5, route: '#/tool/audiogram?audio=zzfxm:7:lofi&style=milkdrop&vizLook=stock:flexi-bouncing-balls-double-mindblob-neon-mix&title=Save%20point&subtitle=Pixel%20Quest&layout=overlay-center&vizBrand=full&credit=false&captions=false&size=wide&accent={primary}&bg={primaryDark}', wait: '.lolly-viz-canvas', settleMs: 4000, exportVideo: { fps: 60, seconds: LOOP_SECONDS } },
   { slug: 'street-map', hue: 225, route: '#/tool/street-map?city=brisbane&theme=dark&roadColor={primaryLight}&waterColor={primary}&background={primaryDark}', settleMs: 7000 },
   // The 3D Studio scene Andy composed for this slot (2026-09-23): a "Lolly" badge
   // beside a sphere and a box, iridescent and chrome over a dark blue gradient

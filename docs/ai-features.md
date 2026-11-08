@@ -14,7 +14,7 @@ That split is what makes a generated element safe to build on. The moment a voic
 
 Re-open a project next year, render it in CI or send the link to a colleague on another platform, and the speech, the upscaled photo and the cutout compose exactly the same way, because none of them is generated again. Provenance rests on this too: a Content Credential that attests to *these bytes* means something only when those bytes are stable.
 
-![A spoken clip turned into an audiogram, its waveform the actual shape of the audio - the kind of card a synthesised voice arrives in before it chains into a video's credentials](/t/url-shot?url=%2F%23%2Ftool%2Faudiogram%3Faudio%3Dlolly%2Floops%2Ffireplace-loop%26title%3DA%2520read%2520aloud%26subtitle%3DSynthesised%2520on%2520device%26style%3Dwave&width=1440&height=900&dpi=192&waitMs=3600&css=%23ag-wave%7Bdisplay%3Anone!important%7D.ag-ph%7Bdisplay%3Ablock!important%7D&walker=1&format=svg&rasterDpi=110&cropSelector=%23tool-canvas&dark=1&filename=aif-audiogram)
+![A spoken clip turned into an audiogram, its waveform the actual shape of the audio - the kind of card a synthesised voice arrives in before it chains into a video's credentials](/t/url-shot?url=%2F%23%2Ftool%2Faudiogram%3Faudio%3Dzzfxm%3A7%3Alofi%26title%3DA%2520read%2520aloud%26subtitle%3DSynthesised%2520on%2520device%26style%3Dwave&width=1440&height=900&dpi=192&waitMs=3600&css=%23ag-wave%7Bdisplay%3Anone!important%7D.ag-ph%7Bdisplay%3Ablock!important%7D&walker=1&format=svg&rasterDpi=110&cropSelector=%23tool-canvas&dark=1&filename=aif-audiogram)
 
 ## The test: did a model invent what you see?
 

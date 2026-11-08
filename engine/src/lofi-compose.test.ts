@@ -132,6 +132,29 @@ test("a tune's shape: an opening, a verse, a fading outro and one silent bar", (
   }
 });
 
+test('Lolly Sings: a lead in every tune, singing through every verse, in a major key', () => {
+  for (const seed of SEEDS.slice(0, 12)) {
+    const bars = composeLofiTune(seed, 'sings');
+    const st = bars[0]!.tune.style;
+    assert.notEqual(st.lead, 'none', `seed ${seed}: Lolly Sings always has a lead`);
+    assert.equal(st.crunch, false, 'and no sampler grit');
+    assert.ok(st.dust < 1, 'and less dust than Lofi');
+    assert.match(bars[0]!.tune.key, /major$/);
+    for (const bar of bars.filter(b => b.section === 'verse')) {
+      assert.ok(bar.layers.includes('lead'), `seed ${seed} bar ${bar.index}: the lead sings the whole verse`);
+    }
+  }
+});
+
+test('adding Lolly Sings changed no Lofi tune: a seed still composes what it did', () => {
+  // A shared Lofi link is a seed, so a new genre must not shift the old ones' draws.
+  const t = composeLofiTune(12345, 'warm')[0]!.tune;
+  assert.equal(t.key, 'B major');
+  assert.equal(t.bpm, 88);
+  assert.equal(t.style.keys, 'rhodes');
+  assert.equal(t.style.lead, 'flute');
+});
+
 test('fixing one style part changes that part only', () => {
   const base = composeLofiTune(77, 'warm')[0]!.tune;
   const fixed = composeLofiTune(77, 'warm', { keys: 'felt' })[0]!.tune;

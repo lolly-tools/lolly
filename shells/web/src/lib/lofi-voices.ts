@@ -10,7 +10,7 @@
  *          wurli   a reedier FM piano with more bark on the attack
  *          pluck   a soft pluck, half guitar and half koto: a filter that closes fast
  *   lead   vibes, flute (with breath), soft (a filtered saw, a little like muted brass),
- *          kalimba (a bright inharmonic tine)
+ *          kalimba (a bright inharmonic tine), chip (a soft chiptune square, for Lolly Sings)
  *   bass   round (sine and triangle), upright (a darker pluck with a thump), synth
  *          (a filtered saw over a sine)
  *   drums  kick, snare, brush, clap, rim, hat and shaker, tuned by the style
@@ -155,6 +155,29 @@ export function lead(style: LofiStyle['lead'], k: VoiceKit, out: AudioNode, t: n
   else if (style === 'soft') softLead(k, out, t, midi, vel, dur);
   else if (style === 'kalimba') kalimba(k, out, t, midi, vel);
   else if (style === 'vibes') vibes(k, out, t, midi, vel, dur);
+  else if (style === 'chip') chip(k, out, t, midi, vel, dur);
+}
+
+/**
+ * Chip: a soft chiptune lead for Lolly Sings. A square wave, rounded by a low-pass a few
+ * harmonics up, that blips down into its pitch and gets a light vibrato as it holds -
+ * the sound of an old console singing, not buzzing.
+ */
+function chip(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number, dur: number): void {
+  const { ctx } = k;
+  const f = mtof(midi);
+  const end = t + dur + 0.2;
+  const lp = ctx.createBiquadFilter();
+  lp.type = 'lowpass';
+  lp.frequency.setValueAtTime(Math.min(9000, f * 5), t);
+  lp.Q.value = 0.6;
+  const amp = ctx.createGain();
+  struck(amp.gain, t, dur, 0.06 * vel, 0.004, 0.35, 0.6, 0.06);
+  lp.connect(amp).connect(out);
+  const o = osc(k, 'square', f * 1.06, t, end);
+  o.frequency.exponentialRampToValueAtTime(f, t + 0.025);   // the blip down into pitch
+  vibrato(k, o.detune, t, end, 5.8, 12, 0.3);
+  o.connect(lp);
 }
 
 /** A vibrato (in cents) that eases in after the attack. */

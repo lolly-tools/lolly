@@ -54,10 +54,11 @@ test('listLoops returns tracks grouped in NEURO_CATEGORY_ORDER, alphabetical wit
   const declared = NEURO_CATEGORY_ORDER.filter((k) => runs.includes(k));
   assert.deepEqual(runs, declared);
   // The exact list a user reads in the picker (catalog → uploads → lolly → Lofi stations → ambient → beats → radio…).
-  assert.deepEqual(names(loops).slice(0, 11), [
+  assert.deepEqual(names(loops).slice(0, 12), [
     'Bed A',                        // catalog
     'A First Upload', 'My Take Two',// uploads, A→Z
-    'Amber Glow', 'Drift',          // Lolly Sings (zzfxm), A→Z
+    'Lolly Sings',                  // the generated Lolly Sings station leads its group…
+    'Amber Glow', 'Drift',          // …then any Lolly Sings songs (zzfxm), A→Z
     'Lofi · Warm', 'Lofi · Late night', 'Lofi · Rainy',   // the generated stations, in mood order
     'Calm Tide',                    // ambient (lofi)
     'Aero Beat', 'Zulu Beat',       // beats, A→Z

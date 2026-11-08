@@ -35,7 +35,7 @@ Read the Lolly Demo brand standards first. This skill covers anything that moves
 
 ## Sound
 
-- Use the catalog loops and songs, so every track has a recorded licence.
+- Use Lolly's generated music (a seeded bed made for the length of the piece) or a track with a recorded licence.
 - Duck music under speech. Speech always wins.
 - Cut to the beat for a hype piece, never for an explainer.
 
