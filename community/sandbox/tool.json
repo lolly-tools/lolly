@@ -51,6 +51,7 @@
     ]
   },
   "hooks": {
+    "onInit": true,
     "beforeExport": true
   },
   "inputs": [

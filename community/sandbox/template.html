@@ -1,4 +1,4 @@
-<div class="rwc" data-rwc>
+<div class="rwc" data-rwc data-rwc-faces="{{rwcFaces}}">
   <header class="rwc-bar" data-export-hide>
     <!-- Controls hug the right: the top-left is left clear for the shell's fixed
          back pill (position:fixed, z-index 99999) whose label width is unbounded. -->
@@ -643,6 +643,10 @@
   var consoleBody = $('[data-rwc-console-body]');
   var countEl = $('[data-rwc-count]');
   var shotEl = $('[data-rwc-shot]');
+  // The mirror's own id, so the pen's html and body rules can out-rank the tool's
+  // reset of .rwc-shot-body (which the shell scopes under an id of its own). One per
+  // mount: a page can hold this tool more than once.
+  if (shotEl && !shotEl.id) shotEl.id = 'rwc-shot-' + Math.random().toString(36).slice(2, 10);
   var codeEls = {};
   Array.prototype.forEach.call(root.querySelectorAll('.rwc-code'), function (el) { codeEls[el.dataset.pane] = el; });
   var tabEls = Array.prototype.slice.call(root.querySelectorAll('.rwc-tab'));
@@ -757,7 +761,7 @@
   // (--font-brand) for the reset, and the faces themselves are posted into the
   // frame (shareFonts), because the opaque frame cannot reach the app's fonts. A
   // face the app registered without a stylesheet rule, such as an uploaded font,
-  // is not posted: the frame then falls back as the list says.
+  // comes from the hook's list of face files (data-rwc-faces).
   function brandStack() {
     var v = '';
     try { v = getComputedStyle(root).getPropertyValue('--font-brand').trim(); } catch (e) { v = ''; }
@@ -793,7 +797,26 @@
         }).catch(function () { return null; }));
       });
     });
-    brandFaces = Promise.all(jobs).then(function (list) { return list.filter(Boolean); });
+    // Then the faces the hook resolved through the app (rwcFaces): a family the
+    // stylesheets do not declare, such as a font uploaded to the brand, arrives here as
+    // a file the app can read (a blob: or same-origin URL). A family the stylesheets
+    // already gave keeps those faces.
+    var given = [];
+    try { given = JSON.parse(root.getAttribute('data-rwc-faces') || '[]'); } catch (e) { given = []; }
+    brandFaces = Promise.all(jobs).then(function (list) {
+      var found = list.filter(Boolean), have = {};
+      found.forEach(function (x) { have[String(x.family).toLowerCase()] = true; });
+      var more = (Array.isArray(given) ? given : []).filter(function (x) {
+        if (!x || typeof x.url !== 'string' || typeof x.family !== 'string' || have[x.family.toLowerCase()]) return false;
+        if (want.indexOf(x.family.toLowerCase()) < 0) return false;
+        try { return new URL(x.url, location.href).origin === location.origin; } catch (e) { return false; }
+      }).map(function (x) {
+        return fetch(x.url).then(function (res) { return res.ok ? res.arrayBuffer() : null; }).then(function (buffer) {
+          return buffer ? { family: x.family, buffer: buffer, weight: String(x.weight || 'normal'), style: x.style === 'italic' ? 'italic' : 'normal' } : null;
+        }).catch(function () { return null; });
+      });
+      return Promise.all(more).then(function (extra) { return found.concat(extra.filter(Boolean)); });
+    });
     return brandFaces;
   }
   function shareFonts() {
@@ -2030,7 +2053,15 @@
       var doc = cleanShot(new DOMParser().parseFromString(String(html), 'text/html'));
       shotEl.textContent = '';
       Array.prototype.forEach.call(doc.head ? doc.head.querySelectorAll('style') : [], function (st) {
-        var css = (st.textContent || '').replace(/(^|\})\s*(html|body)\b/gi, '$1 .rwc-shot-body');
+        // The pen's html and body rules become rules for the mirror's body. A rule for
+        // the body itself (a bare `body` or `html, body` selector) needs more weight than the tool's own
+        // `.rwc-shot-body` reset, which the shell scopes under an id (so one id and two
+        // classes): without it the pen's font, size and colours never reached the export.
+        // A rule for what is inside the body (`body p`) keeps its old weight, so it still
+        // ranks against the pen's other rules the way it does in the preview.
+        var css = (st.textContent || '')
+          .replace(/(^|\x7d)\s*(html|body)(?=\s*[\x7b,])/gi, '$1 #' + shotEl.id + ' .rwc-shot-body.rwc-shot-body')
+          .replace(/(^|\x7d)\s*(html|body)\b/gi, '$1 .rwc-shot-body');
         var s2 = document.createElement('style'); s2.textContent = css; shotEl.appendChild(s2);
       });
       var wrap = document.createElement('div');

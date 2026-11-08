@@ -409,8 +409,41 @@ export async function resolveVectorFont(style: FontStyleSlice, text: string): Pr
   return null;
 }
 
-/** The registry, built once per generation; an unreadable store answers with no faces. */
+/**
+ * The document's faces as a short key: each FontFace in `document.fonts` (which holds every
+ * `@font-face` rule's face as well as the faces a script added) by identity, with its
+ * family, weight and style. A rule whose source changes makes a new FontFace, so the key
+ * changes even when the family, weight and style stay the same. '' with no document (Node,
+ * a worker).
+ */
+const faceIds = new WeakMap<object, number>();
+let nextFaceId = 0;
+export function documentFontsKey(fonts: Iterable<{ family: string; weight: string; style: string }> | null | undefined): string {
+  if (!fonts) return '';
+  let key = '';
+  for (const face of fonts) {
+    let id = faceIds.get(face);
+    if (id === undefined) { id = ++nextFaceId; faceIds.set(face, id); }
+    key += `${id}\u0000${face.family}\u0000${face.weight}\u0000${face.style}\u0001`;
+  }
+  return key;
+}
+let registryFontsKey = '';
+
+/**
+ * The registry, built once per generation; an unreadable store answers with no faces.
+ * A face added to the page after the registry was built (a tool's own `@font-face`, the
+ * fonts a Sandbox pen declares in its export mirror) starts a new generation, the way
+ * refreshFontRegistry does, so the face outlines instead of falling back to live text in
+ * a family the reader may not have.
+ */
 async function registryFaces(): Promise<Map<string, RegistryFace[]>> {
+  let key = '';
+  try { key = documentFontsKey((globalThis as { document?: { fonts?: Iterable<FontFace> } }).document?.fonts); } catch { key = ''; }
+  if (key !== registryFontsKey) {
+    registryFontsKey = key;
+    refreshFontRegistry();
+  }
   const registry = (registryPromise ??= buildRegistry());
   try { return await registry; }
   catch { registryPromise = null; return new Map(); }
