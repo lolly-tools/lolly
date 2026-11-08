@@ -93,12 +93,17 @@ export function verdictApproval(report: C2paReport): VerdictApproval | null {
   const fails = report.checks.filter(chk => !chk.ok && chk.code !== 'signingCredential.untrusted');
   const changed = fails.some(chk => chk.code === 'assertion.dataHash.mismatch' || chk.code === 'assertion.bmffHash.mismatch');
   const lapsed = fails.length === 1 && fails[0]!.code === 'signingCredential.expired';
+  // A template's record gives the template and the example the reviewer saw, never
+  // this file's digest: the example is a different file.
+  const covered: Array<[string, string]> = r.covers === 'template'
+    ? [['Covers', `Approved as a template: ${cleanControlChars(r.templateId)} v${r.templateVersion}${report.format ? ` (${cleanControlChars(report.format).toUpperCase()})` : ''}. Example file sha256 ${cleanControlChars(r.exampleSha256).replace(/^sha256:/, '')}`]]
+    : [['Reviewed', cleanControlChars(r.reviewedSha256)]];
   return {
     intact,
     facts: [
       ['Request', cleanControlChars(r.approvalId)],
       ['Decided', cleanControlChars(r.decidedAt)],
-      ['Reviewed', cleanControlChars(r.reviewedSha256)],
+      ...covered,
       ['This file', intact ? 'unchanged since the signer recorded this approval'
         : changed ? 'does not match the signed record'
         : lapsed ? 'still matches its credential'
