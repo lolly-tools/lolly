@@ -622,6 +622,14 @@ export interface Runtime {
 // help here; JPEG has no alpha at all.
 const ALPHA_EXPORT_FORMATS = new Set(['jxl', 'jxl-lossless', 'png', 'webp', 'avif', 'apng', 'webp-anim', 'gif']);
 
+/** Which picture an asset value is, for the rendition's camera guard: a re-applied or
+ *  re-resolved copy of the same picture is the same picture. */
+function pictureIdentity(v: unknown): string {
+  if (!v || typeof v !== 'object') return String(v ?? '');
+  const ref = v as { id?: unknown; url?: unknown };
+  return typeof ref.id === 'string' && ref.id ? `id:${ref.id}` : `url:${String(ref.url ?? '')}`;
+}
+
 /** A `data:` URL's body that is not base64, as bytes: each `%XX` is one byte, any other
  *  character its UTF-8 bytes (WHATWG percent-decode), so a binary picture survives. */
 function percentDecodedBytes(body: string): Uint8Array {
@@ -1022,8 +1030,9 @@ export async function createRuntime(
   // them per the captured MIME + the tool's declared capabilities.
   let liveCameraShown = false;
   // A rendition's camera guard (manifest `renditionOf`): set with liveCameraShown, but
-  // cleared only when the rendition's own picture input changes, because a frozen camera
-  // frame keeps showing while an unrelated asset (a filter's lower-third headshot) changes.
+  // cleared only when the rendition's own picture changes to another picture or a decoded
+  // asset frame replaces the camera, because a frozen camera frame keeps showing while an
+  // unrelated asset (a filter's lower-third headshot) changes.
   let cameraOverPicture = false;
   let recordedCamera = false;
   let recordedMic = false;
@@ -1680,8 +1689,9 @@ export async function createRuntime(
       // the capture the moment it's committed.
       const priorType = model.find(i => i.id === id)?.type;
       if (priorType === 'asset' || priorType === 'file' || priorType === 'url') liveCameraShown = false;
-      if (id === tool.manifest.renditionOf?.input) cameraOverPicture = false;
+      const priorPicture = pictureIdentity(model.find(i => i.id === id)?.value);
       model = updateInput(model, id, value, writeOptionsFor(id, value, options));
+      if (id === tool.manifest.renditionOf?.input && pictureIdentity(model.find(i => i.id === id)?.value) !== priorPicture) cameraOverPicture = false;
       // A live-camera resolution slider (render.liveMaxEdgeInput) re-applies to the
       // running stream without a camera stop/start - the grab loop just starts
       // producing frames at the new working edge. No-op unless currently live.
@@ -1778,7 +1788,7 @@ export async function createRuntime(
         // Same live-capture retirement as setInput - swapping the image SOURCE
         // means the render no longer shows camera essence.
         if (before.type === 'asset' || before.type === 'file' || before.type === 'url') liveCameraShown = false;
-        if (id === tool.manifest.renditionOf?.input) cameraOverPicture = false;
+        if (id === tool.manifest.renditionOf?.input && pictureIdentity(after.value) !== pictureIdentity(before.value)) cameraOverPicture = false;
         model = next;
         applied.push({ id, value: flattenValue(after.value) });
       }
@@ -1999,7 +2009,7 @@ export async function createRuntime(
             // Guard liveUnsub so a frame in flight when stopLive() ran can't repaint.
             // A SENSOR frame drove the render → its essence is now a live camera
             // capture; an animated-asset frame is decoded file content and is not.
-            if (patch && liveUnsub && generation === liveGeneration) { ({ model, extras } = mergePatch(model, extras, patch, inputIds)); if (sensorSource) { liveCameraShown = true; cameraOverPicture = true; } emit(); }
+            if (patch && liveUnsub && generation === liveGeneration) { ({ model, extras } = mergePatch(model, extras, patch, inputIds)); if (sensorSource) { liveCameraShown = true; cameraOverPicture = true; } else cameraOverPicture = false; emit(); }
           })
           .catch((e: unknown) => host.log('warn', `onFrame ${(e as Error).message}`, { toolId: tool.manifest.id }))
           .finally(() => { framePending = false; });
@@ -2414,7 +2424,7 @@ export async function createRuntime(
             const body = url.slice(comma + 1);
             // A data: URL body is percent-decoded first, then base64-decoded when it says so
             // (WHATWG fetch). A base64 body with no escapes, the common case, skips the first step.
-            const base64 = /;base64$/i.test(url.slice(0, comma));
+            const base64 = /;[ ]*base64[\t\n\f\r ]*$/i.test(url.slice(0, comma));
             const text = (b: string): string => b.replace(/[\t\n\f\r ]/g, '');
             const bytes = !base64 ? percentDecodedBytes(body)
               : base64ToBytes(text(body.includes('%') ? Array.from(percentDecodedBytes(body), (c) => String.fromCharCode(c)).join('') : body));

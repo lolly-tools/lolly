@@ -58297,6 +58297,11 @@ var init_brand_treatments = __esm({
 });
 
 // engine/src/runtime.ts
+function pictureIdentity(v) {
+  if (!v || typeof v !== "object") return String(v ?? "");
+  const ref2 = v;
+  return typeof ref2.id === "string" && ref2.id ? `id:${ref2.id}` : `url:${String(ref2.url ?? "")}`;
+}
 function percentDecodedBytes(body) {
   const out = [];
   const enc6 = new TextEncoder();
@@ -59117,8 +59122,9 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
       }
       const priorType = model2.find((i) => i.id === id3)?.type;
       if (priorType === "asset" || priorType === "file" || priorType === "url") liveCameraShown = false;
-      if (id3 === tool.manifest.renditionOf?.input) cameraOverPicture = false;
+      const priorPicture = pictureIdentity(model2.find((i) => i.id === id3)?.value);
       model2 = updateInput(model2, id3, value2, writeOptionsFor(id3, value2, options2));
+      if (id3 === tool.manifest.renditionOf?.input && pictureIdentity(model2.find((i) => i.id === id3)?.value) !== priorPicture) cameraOverPicture = false;
       if (liveResubscribe && id3 === tool.manifest.render?.liveMaxEdgeInput) liveResubscribe();
       const seq = ++setInputSeq;
       emit();
@@ -59200,7 +59206,7 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
         const after = next2.find((i) => i.id === id3);
         if (Object.is(after.value, before.value) && after.restoreTokenRef === before.restoreTokenRef) continue;
         if (before.type === "asset" || before.type === "file" || before.type === "url") liveCameraShown = false;
-        if (id3 === tool.manifest.renditionOf?.input) cameraOverPicture = false;
+        if (id3 === tool.manifest.renditionOf?.input && pictureIdentity(after.value) !== pictureIdentity(before.value)) cameraOverPicture = false;
         model2 = next2;
         applied.push({ id: id3, value: flattenValue(after.value) });
       }
@@ -59392,7 +59398,7 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
             if (sensorSource) {
               liveCameraShown = true;
               cameraOverPicture = true;
-            }
+            } else cameraOverPicture = false;
             emit();
           }
         }).catch((e) => host.log("warn", `onFrame ${e.message}`, { toolId: tool.manifest.id })).finally(() => {
@@ -59708,7 +59714,7 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
             const { extractC2paStore: extractC2paStore2, prepareC2paIngredientFromStore: prepareC2paIngredientFromStore2 } = await Promise.resolve().then(() => (init_c2pa_verify(), c2pa_verify_exports));
             const comma = url.indexOf(",");
             const body = url.slice(comma + 1);
-            const base64 = /;base64$/i.test(url.slice(0, comma));
+            const base64 = /;[ ]*base64[\t\n\f\r ]*$/i.test(url.slice(0, comma));
             const text13 = (b) => b.replace(/[\t\n\f\r ]/g, "");
             const bytes2 = !base64 ? percentDecodedBytes(body) : base64ToBytes(text13(body.includes("%") ? Array.from(percentDecodedBytes(body), (c) => String.fromCharCode(c)).join("") : body));
             const found = extractC2paStore2(bytes2);
