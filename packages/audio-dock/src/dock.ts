@@ -314,7 +314,7 @@ export function createAudioDock(opts: AudioDockOptions): DockController {
 
   const q = <T extends Element = HTMLElement>(sel: string): T | null => root.querySelector<T>(sel);
   const setText = (sel: string, text: string): void => { const el = q<HTMLElement>(sel); if (el) el.textContent = text; };
-  const vizCanvas = q<HTMLCanvasElement>('[data-viz-canvas]')!;
+  let vizCanvas = q<HTMLCanvasElement>('[data-viz-canvas]')!;
   const scrub = q<HTMLInputElement>('[data-scrub]')!;
   const speedSel = q<HTMLSelectElement>('[data-speed]')!;
   const srcList = q<HTMLUListElement>('[data-src-list]')!;
@@ -1084,6 +1084,31 @@ export function createAudioDock(opts: AudioDockOptions): DockController {
     }
     cx.globalAlpha = 1;
   }
+  // A canvas whose WebGL context the browser took back (it drops the oldest when a page
+  // has too many) can't be given a new one: the element keeps returning the lost
+  // context. So swap in a fresh canvas and let the renderer mount on that. A few swaps a
+  // minute at most, so a GPU that keeps failing can't make the dock thrash.
+  const canvasSwaps: number[] = [];
+  function onVizContextLost(e: Event): void {
+    e.preventDefault();
+    if (destroyed) return;
+    const now = Date.now();
+    while (canvasSwaps.length && now - canvasSwaps[0]! > 60_000) canvasSwaps.shift();
+    if (canvasSwaps.length >= 4) return;
+    canvasSwaps.push(now);
+    const lost = vizCanvas;
+    const fresh = lost.cloneNode(false) as HTMLCanvasElement;
+    lost.removeEventListener('webglcontextlost', onVizContextLost);
+    if (hostVizActive) { try { host.viz?.unmount?.(); } catch { /* already gone */ } hostVizActive = false; }
+    vizRo?.unobserve(lost);
+    lost.replaceWith(fresh);
+    vizCanvas = fresh;
+    fresh.addEventListener('webglcontextlost', onVizContextLost);
+    vizRo?.observe(fresh);
+    setTimeout(syncViz, 250);
+  }
+  vizCanvas.addEventListener('webglcontextlost', onVizContextLost);
+
   function syncViz(): void {
     if (destroyed) return;
     applyVizMode();

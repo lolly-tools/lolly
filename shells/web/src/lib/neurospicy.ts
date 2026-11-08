@@ -288,6 +288,18 @@ function reviveVizAnalyser(): void {
   vizAnalyser = a;
 }
 
+/**
+ * Has the analyser frozen? The same waveform read twice while a signal is live. A FLAT
+ * waveform (every byte 128) is silence, not a freeze: the bar of rest between two Lofi
+ * tunes, or a quiet passage, reads that way for seconds on end, and treating it as a
+ * stall swapped in a new analyser under a visualizer still wired to the old one.
+ */
+export function waveStalled(prev: Uint8Array | null, cur: Uint8Array): boolean {
+  if (!prev || prev.length !== cur.length) return false;
+  if (cur.every((v) => v === 128)) return false;
+  return cur.every((v, i) => v === prev[i]);
+}
+
 function startAnalyserWatchdog(): void {
   if (watchdog != null || typeof setInterval === 'undefined') return;
   watchdog = setInterval(() => {
@@ -299,7 +311,7 @@ function startAnalyserWatchdog(): void {
     if (!active || neurospicySignalState() !== 'live') { stallTicks = 0; lastWave = null; return; }
     const buf = new Uint8Array(active.fftSize);
     active.getByteTimeDomainData(buf);
-    const same = lastWave != null && lastWave.length === buf.length && buf.every((v, i) => v === lastWave![i]);
+    const same = waveStalled(lastWave, buf);
     if (same) {
       if (++stallTicks >= STALL_TICKS) {
         if (vizAnalyser && active === vizAnalyser) reviveVizAnalyser();

@@ -775,3 +775,23 @@ test('controls: the current source brings its own choice, switch, slider and act
   assert.equal(block.innerHTML, '', 'a source with no controls shows no block');
   dock.destroy();
 });
+
+test('a visualizer canvas whose WebGL context is lost is swapped for a fresh one and mounted again', async () => {
+  const mounted: HTMLCanvasElement[] = [];
+  let unmounts = 0;
+  const host = makeHost({ viz: { supported: () => true, mount: (c) => { mounted.push(c); }, unmount: () => { unmounts++; } } }, true);
+  const dock = createAudioDock({ host, capabilities: { music: true, viz: true }, mount: document.body });
+  const before = dock.el.querySelector<HTMLCanvasElement>('[data-viz-canvas]')!;
+  assert.equal(mounted.at(-1), before, 'the renderer mounts on the dock canvas');
+
+  const lost = new dom.window.Event('webglcontextlost', { cancelable: true });
+  before.dispatchEvent(lost);
+  assert.ok(lost.defaultPrevented, 'the loss is taken (so the browser may restore it)');
+  await new Promise((r) => setTimeout(r, 300));
+  const after = dock.el.querySelector<HTMLCanvasElement>('[data-viz-canvas]')!;
+  assert.notEqual(after, before, 'a fresh canvas element replaces the lost one');
+  assert.ok(!before.isConnected, 'the lost canvas is gone');
+  assert.ok(unmounts >= 1, 'the old renderer is released');
+  assert.equal(mounted.at(-1), after, 'and the renderer mounts again on the fresh canvas');
+  dock.destroy();
+});
