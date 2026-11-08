@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * The Lofi stations in the Neurospicy player: three endless, generated stations (warm,
- * late night and rainy) that sit in the track list beside the catalog, uploads and
- * internet radio. Each plays engine/src/lofi-compose.ts's tunes through
- * lib/lofi-station.ts, one after another, never the same twice.
+ * The generated stations in the Neurospicy player: three Lofi moods (warm, late night
+ * and rainy) and Lolly Sings, the melody-first genre. They sit in the track list beside
+ * uploads and internet radio and are the player's own music: endless, made as they play
+ * by engine/src/lofi-compose.ts through lib/lofi-station.ts, never the same tune twice.
  *
  * This module is the thin layer lib/neurospicy.ts calls: the station ids, the live
  * station, the run of tunes heard so far (so Previous goes back a tune), the seed a
@@ -19,9 +19,11 @@ import type { LofiMood, LofiTuneInfo } from '../../../../engine/src/lofi-compose
 import type { LofiStation } from './lofi-station.ts';
 
 export const LOFI_PREFIX = 'lofi:';
-/** The moods, in picker order. Kept here (not imported) so this module never loads the composer. */
-export const LOFI_STATION_MOODS: readonly LofiMood[] = ['warm', 'lateNight', 'rainy'];
-export const LOFI_MOOD_LABEL: Record<LofiMood, string> = { warm: 'Warm', lateNight: 'Late night', rainy: 'Rainy' };
+/** The stations, in picker order. Kept here (not imported) so this module never loads the composer. */
+export const LOFI_STATION_MOODS: readonly LofiMood[] = ['warm', 'lateNight', 'rainy', 'sings'];
+/** The Lofi moods: the stations the Mood control moves between (Lolly Sings is its own genre). */
+export const LOFI_ONLY_MOODS: readonly LofiMood[] = ['warm', 'lateNight', 'rainy'];
+export const LOFI_MOOD_LABEL: Record<LofiMood, string> = { warm: 'Warm', lateNight: 'Late night', rainy: 'Rainy', sings: 'Lolly Sings' };
 
 /** What a listener sets for every Lofi station: whether the drums play, and how dusty it sounds. */
 export interface LofiPrefs { drums: boolean; texture: number }
@@ -37,7 +39,23 @@ export function lofiMoodOf(id: string): LofiMood | null {
 
 /** The three stations as player tracks (the same shape as lib/neurospicy.ts's NeuroTrack). */
 export function lofiTracks(): Array<{ id: string; name: string; tags: string[]; format: string }> {
-  return LOFI_STATION_MOODS.map((mood) => ({ id: lofiId(mood), name: `Lofi · ${LOFI_MOOD_LABEL[mood]}`, tags: ['generated'], format: 'lofi' }));
+  return LOFI_STATION_MOODS.map((mood) => ({
+    id: lofiId(mood), name: mood === 'sings' ? 'Lolly Sings' : `Lofi · ${LOFI_MOOD_LABEL[mood]}`, tags: ['generated'], format: 'lofi',
+  }));
+}
+
+/**
+ * The station a retired catalog track hands over to. The recorded lo-fi loops, the
+ * tracker modules and the hand-written Lolly Sings songs left the starter catalogs once
+ * the player could make its own music; a listener whose selection was one of them
+ * carries on with the nearest station rather than silence. Null for anything else.
+ */
+export function retiredTrackStation(id: string): string | null {
+  if (/^lolly\/songs\//.test(id)) return lofiId('sings');
+  if (!/^lolly\/(loops|modules)\//.test(id)) return null;
+  if (/rain/.test(id)) return lofiId('rainy');
+  if (/3-?am|night|static|echoes|blue|jazz/.test(id)) return lofiId('lateNight');
+  return lofiId('warm');
 }
 
 // ── the live station ─────────────────────────────────────────────────────────

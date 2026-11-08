@@ -30,18 +30,19 @@
  */
 import { mulberry32 } from './zzfx-compose.ts';
 
-export type LofiMood = 'warm' | 'lateNight' | 'rainy';
-export const LOFI_MOODS: readonly LofiMood[] = ['warm', 'lateNight', 'rainy'];
+/** The three Lofi moods, and Lolly Sings: the melody-first genre (see LEAN.sings). */
+export type LofiMood = 'warm' | 'lateNight' | 'rainy' | 'sings';
+export const LOFI_MOODS: readonly LofiMood[] = ['warm', 'lateNight', 'rainy', 'sings'];
 
 export type LofiVoice = 'keys' | 'bass' | 'lead' | 'kick' | 'snare' | 'rim' | 'hat' | 'openHat';
 export const LOFI_DRUM_VOICES: readonly LofiVoice[] = ['kick', 'snare', 'rim', 'hat', 'openHat'];
 
 export const LOFI_KEYS = ['rhodes', 'felt', 'wurli', 'pluck'] as const;
-export const LOFI_LEADS = ['vibes', 'flute', 'soft', 'kalimba', 'none'] as const;
+export const LOFI_LEADS = ['vibes', 'flute', 'soft', 'kalimba', 'chip', 'none'] as const;
 export const LOFI_BASSES = ['round', 'upright', 'synth'] as const;
 export const LOFI_SNARES = ['snare', 'brush', 'rim', 'clap'] as const;
 export const LOFI_HATS = ['hat', 'shaker', 'none'] as const;
-export const LOFI_GROOVES = ['boomBap', 'halfTime', 'shuffle', 'lazy', 'sparse'] as const;
+export const LOFI_GROOVES = ['boomBap', 'halfTime', 'shuffle', 'lazy', 'sparse', 'bossa'] as const;
 export const LOFI_COMPS = ['hold', 'sparse', 'arp', 'pulse'] as const;
 
 /** Everything about how a tune sounds, besides its notes. */
@@ -68,6 +69,8 @@ export interface LofiStyle {
   duck: number;
   /** A sampler's grit on the music (a coarse bit depth, mixed in quietly). */
   crunch: boolean;
+  /** How much crackle and hiss, about 1 for Lofi; Lolly Sings is cleaner. */
+  dust: number;
 }
 
 export interface LofiNote {
@@ -291,6 +294,19 @@ const LEAN: Record<LofiMood, {
     groove: [['lazy', 3], ['boomBap', 2], ['sparse', 2], ['halfTime', 2], ['shuffle', 1]],
     busy: 0.45,
   },
+  // Lolly Sings: the melody is the point. Major keys, a little faster, brighter tuned
+  // instruments, a lead in every tune (it sings through every verse, see arrange) and
+  // grooves that leave it room: a bossa, a shuffle, or almost nothing.
+  sings: {
+    minor: false, bpm: [86, 108], swing: [0.5, 0.56],
+    keys: [['pluck', 3], ['felt', 2], ['rhodes', 2], ['wurli', 1]],
+    lead: [['kalimba', 3], ['vibes', 3], ['chip', 3], ['flute', 2], ['soft', 1]],
+    bass: [['round', 3], ['upright', 2], ['synth', 1]],
+    snare: [['rim', 3], ['clap', 2], ['brush', 2], ['snare', 1]],
+    hats: [['shaker', 3], ['hat', 2], ['none', 1]],
+    groove: [['bossa', 3], ['shuffle', 3], ['sparse', 2], ['boomBap', 2], ['halfTime', 1]],
+    busy: 0.85,
+  },
 };
 const COMP_WEIGHTS: Weights<LofiStyle['comp']> = [['hold', 4], ['sparse', 3], ['arp', 2], ['pulse', 1]];
 
@@ -309,6 +325,9 @@ function drawStyle(rng: () => number, mood: LofiMood, fixed: Partial<LofiStyle> 
   const lean = LEAN[mood];
   const weighted = <T>(w: Weights<T>): T => weightedPick(rng, w);
   const range = (lo: number, hi: number): number => lo + rng() * (hi - lo);
+  // Lolly Sings is cleaner tape: less wobble, a brighter tone, no grit. Same draws over
+  // other ranges, so the Lofi moods' tunes are exactly what they were before it existed.
+  const sings = mood === 'sings';
   // Every draw happens even when `fixed` overrides it, so fixing one part does not
   // reshuffle the rest of a seed's style.
   const drawn: LofiStyle = {
@@ -317,9 +336,10 @@ function drawStyle(rng: () => number, mood: LofiMood, fixed: Partial<LofiStyle> 
     comp: weighted(COMP_WEIGHTS), chordBars: rng() < 0.45 ? 2 : 1,
     kick: Math.round(range(44, 60)), kickLen: Math.round(range(0.3, 0.55) * 100) / 100,
     snareTone: Math.round(range(1500, 2500)), hatTone: Math.round(range(6000, 9500)),
-    wow: Math.round(range(0.5, 1.7) * 100) / 100, room: Math.round(range(0.6, 1.5) * 100) / 100,
-    tone: Math.round(range(0.8, 1.15) * 100) / 100, duck: Math.round(range(0.6, 1.3) * 100) / 100,
-    crunch: rng() < 0.15,
+    wow: Math.round(range(sings ? 0.3 : 0.5, sings ? 0.8 : 1.7) * 100) / 100, room: Math.round(range(sings ? 0.8 : 0.6, sings ? 1.3 : 1.5) * 100) / 100,
+    tone: Math.round(range(sings ? 1 : 0.8, sings ? 1.2 : 1.15) * 100) / 100, duck: Math.round(range(0.6, 1.3) * 100) / 100,
+    crunch: rng() < 0.15 && !sings,
+    dust: sings ? 0.45 : 1,
   };
   return { ...drawn, ...fixed };
 }
@@ -353,7 +373,7 @@ const BAND: readonly LofiLayer[] = ['keys', 'bass', 'kick', 'snare', 'hats'];
  * a breakdown without drums, a drum break), another verse, and one of several endings.
  * So instruments come in, take the front and drop out at different moments in each tune.
  */
-function arrange(rng: () => number, hasLead: boolean): Part[] {
+function arrange(rng: () => number, hasLead: boolean, singing = false): Part[] {
   const pick = <T>(a: readonly T[]): T => a[Math.floor(rng() * a.length)] as T;
   const weighted = <T>(w: Weights<T>): T => weightedPick(rng, w);
   const withLead = (layers: readonly LofiLayer[]): readonly LofiLayer[] => (hasLead ? [...layers, 'lead'] : layers);
@@ -371,13 +391,14 @@ function arrange(rng: () => number, hasLead: boolean): Part[] {
   }
 
   const verse = (bars: number): void => {
-    parts.push({ section: 'verse', bars: bars / 2, prog: 0, layers: BAND });
-    parts.push({ section: 'verse', bars: bars / 2, prog: 0, layers: withLead(BAND) });   // the melody joins halfway
+    // The melody joins halfway; in Lolly Sings it sings the whole verse.
+    parts.push({ section: 'verse', bars: bars / 2, prog: 0, layers: singing ? withLead(BAND) : BAND });
+    parts.push({ section: 'verse', bars: bars / 2, prog: 0, layers: withLead(BAND) });
   };
   verse(pick([8, 8, 16]));
 
   const menu: Array<[string, number]> = [
-    ['bridge', 3], ['leadFeature', hasLead ? 2 : 0], ['keysFeature', 2], ['bassFeature', 2],
+    ['bridge', 3], ['leadFeature', hasLead ? (singing ? 4 : 2) : 0], ['keysFeature', 2], ['bassFeature', 2],
     ['groove', 2], ['breakdown', 2], ['drumBreak', 1],
   ];
   const count = rng() < 0.5 ? 2 : 3;
@@ -427,7 +448,11 @@ const KICKS: Record<LofiStyle['groove'], readonly (readonly number[])[]> = {
   shuffle: [[0, 6, 10], [0, 10], [0, 6, 8]],
   lazy: [[0, 7, 10], [0, 9, 11], [0, 3, 10]],
   sparse: [[0], [0, 10], [0, 11]],
+  // The bossa nova bass drum: one, the and of two, three, and the and of four.
+  bossa: [[0, 6, 8, 14], [0, 6, 8, 12]],
 };
+/** The bossa's clave, played on the rim in place of a backbeat. */
+const CLAVE = [0, 3, 6, 10, 12];
 
 /** Sixteenth `step` of a bar as a beat, with swing on the off-sixteenths and, for a shuffle, the off-eighths. */
 function stepBeat(step: number, swing: number, swing8 = 0.5): number {
@@ -464,7 +489,7 @@ export function composeLofiTune(seed: number, mood: LofiMood, fixed: Partial<Lof
   const chords = [progA.map(s => chordOf(key, s)), progB.map(s => chordOf(key, s))];
   const penta = (lean.minor ? PENTA_MINOR : PENTA_MAJOR).map(i => (key + i) % 12);
   const hasLead = style.lead !== 'none';
-  const parts = arrange(rng, hasLead);
+  const parts = arrange(rng, hasLead, mood === 'sings');
   const total = parts.reduce((s, p) => s + p.bars, 0) + 1;
   const info: LofiTuneInfo = {
     seed: seed >>> 0, mood, bpm, swing, swing8, style,
@@ -559,6 +584,12 @@ export function composeLofiTune(seed: number, mood: LofiMood, fixed: Partial<Lof
           });
         } else if (style.groove === 'sparse' || !has('kick')) {
           notes.push({ voice: 'bass', midi: root, beat: 0, dur: 3.2, vel: 0.8 });
+        } else if (style.groove === 'bossa') {
+          // The bossa bass: root and fifth, each held into the next.
+          notes.push({ voice: 'bass', midi: root, beat: 0, dur: 1.4, vel: 0.8 });
+          notes.push({ voice: 'bass', midi: fifth, beat: sb(6), dur: 0.45, vel: 0.62 });
+          notes.push({ voice: 'bass', midi: fifth, beat: sb(8), dur: 1.4, vel: 0.72 });
+          notes.push({ voice: 'bass', midi: root, beat: sb(14), dur: 0.45, vel: 0.6 });
         } else {
           const walk = chance(0.45);
           notes.push({ voice: 'bass', midi: root, beat: 0, dur: walk ? 0.75 : 1.6, vel: 0.82 });
@@ -592,7 +623,9 @@ export function composeLofiTune(seed: number, mood: LofiMood, fixed: Partial<Lof
       if (has('kick')) {
         for (const s of kickSteps) notes.push({ voice: 'kick', midi: 0, dur: 0, beat: sb(s) + (s ? (rng() - 0.5) * loose : 0), vel: s === 0 ? 0.9 : 0.74 });
       }
-      if (has('snare')) {
+      if (has('snare') && style.groove === 'bossa') {
+        for (const s of CLAVE) notes.push({ voice: 'rim', midi: 0, dur: 0, beat: sb(s) + (rng() - 0.5) * loose, vel: s === 0 ? 0.62 : 0.5 });
+      } else if (has('snare')) {
         const hits = halfTime ? [8] : style.groove === 'sparse' ? [12] : [4, 12];
         for (const s of hits) notes.push({ voice: backbeat, midi: 0, dur: 0, beat: s / 4 + 0.02 + rng() * (style.groove === 'lazy' ? 0.04 : 0.012), vel: 0.78 + (rng() - 0.5) * 0.08 });
         if (style.groove !== 'sparse' || drumsFront) {

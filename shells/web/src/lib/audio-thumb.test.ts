@@ -2,9 +2,9 @@
 /**
  * Tests for audio-thumb.ts - the audio waveform thumbnail renderer.
  *
- * WHAT IS COVERED HERE (real module, real catalog ids, no mocks):
- *   • audioThumbShape - determinism + the measured distribution over the ACTUAL
- *                             audio asset ids in brands/lolly-start + brands/suse
+ * WHAT IS COVERED HERE (real module, no mocks):
+ *   • audioThumbShape - determinism + the measured distribution over catalog-shaped
+ *                             ids that share long prefixes
  *   • audioThumbSvg - all five shapes emit well-formed SVG for peak arrays of
  *                             length 1, 2, 64, all-zero and all-one
  *   • corrupt caches - NaN / Infinity / negatives never reach a path, so no
@@ -14,9 +14,7 @@
  *   • audioThumbPlaceholder - the honest glyph: no waveform path, no data attribution
  */
 import assert from 'node:assert/strict';
-import { existsSync, readFileSync } from 'node:fs';
 import { test } from 'node:test';
-import { fileURLToPath } from 'node:url';
 import {
   type AudioThumbShape,
   audioThumbPlaceholder,
@@ -25,23 +23,21 @@ import {
 } from './audio-thumb.ts';
 
 const SHAPES: AudioThumbShape[] = ['bars', 'mirror', 'wave', 'ring', 'blob'];
-const REPO = fileURLToPath(new URL('../../../../', import.meta.url));
-
 /**
- * Audio asset ids from a mounted brand pack. brands/suse is a PRIVATE submodule with
- * `update = none`, so a public clone (and CI) simply has no such directory - return
- * nothing rather than fail a test about hashing.
+ * Audio ids the way catalogs write them: a brand, a family and a slug, so long runs
+ * of ids differ only in the tail. These are the ids the starter catalogs carried
+ * before the player made its own music; they stay here as a fixed, public sample
+ * (the SUSE pack is private, so CI never sees its ids).
  */
-function catalogAudioIds(brand: string): string[] {
-  const path = `${REPO}brands/${brand}/catalog/assets/index.json`;
-  if (!existsSync(path)) return [];
-  const raw = readFileSync(path, 'utf8');
-  const parsed = JSON.parse(raw) as unknown;
-  const list = (
-    Array.isArray(parsed) ? parsed : ((parsed as { assets?: unknown[] }).assets ?? [])
-  ) as { id: string; type?: string }[];
-  return list.filter((a) => a.type === 'audio').map((a) => a.id);
-}
+const CATALOG_SHAPED_IDS = [
+  ...['3-am-echoes', '3am-sink-light', 'after-school-rain', 'breezy-afternoon-terrace', 'continue-screen-dreams',
+    'empty-street-static', 'fireplace-loop', 'first-coffee-thoughts', 'pixel-quest-save-point', 'rain-on-the-boulevard',
+    'saxophone-in-the-rain', 'slow-dance-in-the-living-room'].map((s) => `lolly/loops/${s}`),
+  ...['aleja-deszczu', 'blue-intermission', 'headspin', 'jazzical-interpolation', 'jazznocn', 'take-a-walk',
+    'wild-perspective'].map((s) => `lolly/modules/${s}`),
+  ...['amber-glow', 'bn-copacabana-breeze', 'ct-pixel-quest', 'ct-turbo-dash', 'drift', 'meadow', 'paper-lanterns',
+    'tide-pool'].map((s) => `lolly/songs/${s}`),
+];
 
 /** Every number that appears in a coordinate position of the markup. */
 function coordTokens(svg: string): string[] {
@@ -79,9 +75,8 @@ test('audioThumbShape is deterministic and returns a known shape', () => {
   }
 });
 
-test('audioThumbShape spreads the REAL catalog ids across all five shapes', () => {
-  const ids = [...catalogAudioIds('lolly-start'), ...catalogAudioIds('suse')];
-  assert.ok(ids.length >= 20, `expected real audio ids, got ${ids.length}`);
+test('audioThumbShape spreads catalog-shaped ids across all five shapes', () => {
+  const ids = CATALOG_SHAPED_IDS;
   const counts = new Map<AudioThumbShape, number>(SHAPES.map((s) => [s, 0]));
   for (const id of ids) counts.set(audioThumbShape(id), (counts.get(audioThumbShape(id)) ?? 0) + 1);
   // Catalog ids share long prefixes (suse/music/…, lolly/loops/…). The point of the

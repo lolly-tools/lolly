@@ -29,36 +29,14 @@ export { neuroDemoActive, peekNeuroDemo } from './neuro-demo-peek.ts';
 export type { NeuroDemoMode } from './neuro-demo-peek.ts';
 import { type NeuroDemoMode } from './neuro-demo-peek.ts';
 
-/** How long to wait for the catalog sync before giving up on picking a demo track.
- *  Bounded so an empty catalog still yields a dock (with no selection) rather than
- *  a promise that never settles. */
-const TRACKS_WAIT_MS = 20_000;
-
-
 type NeuroModule = typeof import('./neurospicy.ts');
 
 /**
- * The demo track: the first 'neurospicy'-tagged, non-radio entry in the canonical
- * playlist order. NOT loops[0] - radio is online-gated, so [0] is nondeterministic.
- * On a cold context the catalog sync hasn't landed when boot runs this, so wait for
- * the track-list invalidation main.ts fires once it does ('lolly:neuro-tracks').
+ * The demo track: the Warm Lofi station. Generated, so it is always in the list (no
+ * catalog sync to wait for) and the same on every capture. The demo never plays the station.
  */
-async function demoLoopId(host: NeurospicyHost, neuro: NeuroModule): Promise<string> {
-  const pick = async (): Promise<string> =>
-    (await neuro.listLoops(host))
-      .find((t) => t.tags?.includes('neurospicy') && neuro.trackCategory(t) !== 'radio')?.id ?? '';
-  const now = await pick();
-  if (now || typeof document === 'undefined') return now;
-  return new Promise<string>((resolve) => {
-    const done = (id: string): void => {
-      clearTimeout(timer);
-      document.removeEventListener('lolly:neuro-tracks', onTracks);
-      resolve(id);
-    };
-    const onTracks = (): void => { void pick().then((id) => { if (id) done(id); }); };
-    const timer = setTimeout(() => done(''), TRACKS_WAIT_MS);
-    document.addEventListener('lolly:neuro-tracks', onTracks);
-  });
+function demoLoopId(neuro: NeuroModule): string {
+  return neuro.lofiStationId('warm');
 }
 
 /**
@@ -76,7 +54,7 @@ export async function applyNeuroDemo(host: NeurospicyHost, mode: NeuroDemoMode):
   // In memory only - outranks the mirror, so this works even under the docs
   // pipeline's capture-neutral pin (which forces the mirror copy off).
   overrideFlagInMemory('neurospicy', true);
-  const loopId = await demoLoopId(host, neuro);
+  const loopId = demoLoopId(neuro);
   neuro.demoNeurospicy({ enabled: true, loopId, volume: 0.5, paused: false });
   // Real layer ids from ATMOSPHERE_LAYERS: Wind / Birdsong / Crickets.
   atmo.demoAtmosphere({ wind: 0.55, birds: 0.32, night: 0.18 }, { open: true });

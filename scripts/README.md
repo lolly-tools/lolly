@@ -189,9 +189,7 @@ All four write into `brands/lolly-start/catalog/`, which this repository owns, s
 
 | Script | npm alias | Purpose | Flags |
 |---|---|---|---|
-| `gen-music.ts` | none | Generates a varied set of CC0 ZzFXM tracks (ambient, rhythmic and others) for Neurospicy Mode and video music beds. | DESTRUCTIVE |
 | `ingest-midi.ts` | none | Converts a Standard MIDI File into a small ZzFXM song and registers it as an `audio`/`zzfxm` catalog asset tagged `neurospicy`. | DESTRUCTIVE |
-| `ingest-lofi.ts` | none | Converts a curated set of public-domain lo-fi tracks to opus and registers them under `lolly/loops/`. | DESTRUCTIVE, network |
 | `ingest-audio.ts` | none | Tracker-module and general audio catalog ingest. Dry run by default. | DESTRUCTIVE |
 | `build-street-clips.ts` | none | Offline road and water geometry prep for the `street-map` tool, fetched from OpenStreetMap via the public Overpass API. Writes into the tool's own `lib/` directory in its pack, `community/street-map/lib/`. | DESTRUCTIVE, submodule, network |
 | `lib/zzfx-music.ts` | none | A re-export shim. The ZzFX preset bank and ZzFXM composition helpers now live in `engine/src/zzfx-compose.ts`. | |

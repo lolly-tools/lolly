@@ -6,7 +6,9 @@
  * Run directly:  node --import ./tests/css-stub.mjs --test shells/web/src/lib/neurospicy-lofi.test.ts
  *
  * What is pinned:
- *  - three stations, warm, late night and rainy, with ids that round-trip to their mood;
+ *  - four stations, the Lofi moods warm, late night and rainy, and Lolly Sings, with ids
+ *    that round-trip to their mood;
+ *  - a selection that was a retired catalog track carries on with the nearest station;
  *  - a shared link carries a mood and a 32-bit seed, and anything else is ignored;
  *  - taking the link out of the address keeps every other parameter and the route;
  *  - the stations are in the track list in their own group, always (no catalog needed),
@@ -16,13 +18,13 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  isLofiId, lofiId, lofiMoodOf, lofiTracks, parseLofiLink, lofiLinkValue, readLofiLink, withoutLofiLink,
+  isLofiId, lofiId, lofiMoodOf, lofiTracks, parseLofiLink, lofiLinkValue, readLofiLink, withoutLofiLink, retiredTrackStation,
   LOFI_STATION_MOODS,
 } from './neurospicy-lofi.ts';
 import { listLoops, trackCategory, invalidateNeurospicyTracks, feedGainFor, type NeurospicyHost } from './neurospicy.ts';
 import { LOFI_MOODS } from '../../../../engine/src/lofi-compose.ts';
 
-test('three stations whose ids round-trip to their mood', () => {
+test('four stations whose ids round-trip to their mood', () => {
   assert.deepEqual([...LOFI_STATION_MOODS].sort(), [...LOFI_MOODS].sort(), 'the player offers every mood the composer has');
   for (const mood of LOFI_STATION_MOODS) {
     assert.equal(lofiMoodOf(lofiId(mood)), mood);
@@ -30,7 +32,17 @@ test('three stations whose ids round-trip to their mood', () => {
   }
   assert.equal(lofiMoodOf('lofi:sunny'), null, 'an unknown mood is not a station');
   assert.equal(isLofiId('lolly/songs/amber-glow'), false);
-  assert.deepEqual(lofiTracks().map(t => t.name), ['Lofi · Warm', 'Lofi · Late night', 'Lofi · Rainy']);
+  assert.deepEqual(lofiTracks().map(t => t.name), ['Lofi · Warm', 'Lofi · Late night', 'Lofi · Rainy', 'Lolly Sings']);
+});
+
+test('a retired catalog track hands over to the nearest station', () => {
+  assert.equal(retiredTrackStation('lolly/songs/amber-glow'), 'lofi:sings');
+  assert.equal(retiredTrackStation('lolly/loops/rain-on-the-boulevard'), 'lofi:rainy');
+  assert.equal(retiredTrackStation('lolly/loops/3-am-echoes'), 'lofi:lateNight');
+  assert.equal(retiredTrackStation('lolly/modules/headspin'), 'lofi:warm');
+  assert.equal(retiredTrackStation('suse/music/a-beautiful-dream'), null, 'a track still in a catalog is left alone');
+  assert.equal(retiredTrackStation('lofi:warm'), null);
+  assert.equal(retiredTrackStation('user/abc'), null);
 });
 
 test('a shared link carries a mood and a seed; anything else is ignored', () => {
@@ -55,11 +67,12 @@ const emptyHost: NeurospicyHost = {
   profile: { get: async () => ({}), set: async () => ({}) },
 };
 
-test('the stations are always in the track list, in their own group', async () => {
+test('the stations are always in the track list: Lolly Sings in its group, the Lofi moods in theirs', async () => {
   invalidateNeurospicyTracks();
   const loops = await listLoops(emptyHost);   // no catalog at all: a cold or offline boot
-  const lofi = loops.filter(t => trackCategory(t) === 'lofi');
-  assert.deepEqual(lofi.map(t => t.id), LOFI_STATION_MOODS.map(lofiId));
+  assert.deepEqual(loops.filter(t => isLofiId(t.id)).map(t => t.id), ['lofi:sings', 'lofi:warm', 'lofi:lateNight', 'lofi:rainy']);
+  assert.deepEqual(loops.filter(t => trackCategory(t) === 'lolly').map(t => t.name), ['Lolly Sings']);
+  assert.deepEqual(loops.filter(t => trackCategory(t) === 'lofi').map(t => t.id), ['warm', 'lateNight', 'rainy'].map(m => lofiId(m as 'warm')));
 });
 
 test('the visualizer feed lifts a quiet track, caps a loud one, and holds through silence', () => {

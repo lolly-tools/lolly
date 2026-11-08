@@ -32,7 +32,7 @@ import {
 } from './neurospicy.ts';
 import {
   isLofiId, lofiId, lofiMoodOf, lofiTune, nextLofiTune, prevLofiTune, lofiShareUrl,
-  LOFI_STATION_MOODS, LOFI_MOOD_LABEL,
+  LOFI_ONLY_MOODS, LOFI_MOOD_LABEL,
 } from './neurospicy-lofi.ts';
 import type { LofiStyle } from '../../../../engine/src/lofi-compose.ts';
 import { applySoundMaster } from './sound-master.ts';
@@ -113,7 +113,7 @@ function trackMood(tags: string[]): string {
 
 /** The words the now-playing line uses for a Lofi tune's instruments. */
 const LOFI_KEYS_NAME: Record<LofiStyle['keys'], string> = { rhodes: 'Rhodes', felt: 'felt piano', wurli: 'Wurlitzer', pluck: 'soft pluck' };
-const LOFI_LEAD_NAME: Record<LofiStyle['lead'], string> = { vibes: 'vibes', flute: 'flute', soft: 'soft lead', kalimba: 'kalimba', none: '' };
+const LOFI_LEAD_NAME: Record<LofiStyle['lead'], string> = { vibes: 'vibes', flute: 'flute', soft: 'soft lead', kalimba: 'kalimba', chip: 'chip lead', none: '' };
 
 export interface NeurospicyDockHandle {
   /** The DockHost to hand to createAudioDock. */
@@ -696,18 +696,20 @@ class NeurospicyDockHost implements DockHost {
     this.emitChange();
   }
 
-  /** A Lofi station's own controls: its mood (the three stations), drums, texture, and a
-   *  link to the tune now playing. Nothing for any other source. */
+  /** A generated station's own controls: its mood (the three Lofi stations; Lolly Sings
+   *  is a genre of its own, so has none), drums, texture, and a link to the tune now
+   *  playing. Nothing for any other source. */
   controls(): DockControl[] {
     const mood = lofiMoodOf(getNeurospicy().loopId);
     if (!mood) return [];
+    const moodControl: DockControl[] = mood === 'sings' ? [] : [{
+      kind: 'choice', id: 'lofi-mood', label: 'Mood',
+      options: LOFI_ONLY_MOODS.map((m) => ({ id: m, label: LOFI_MOOD_LABEL[m] })),
+      get: () => lofiMoodOf(getNeurospicy().loopId) ?? mood,
+      set: (m) => this.select(lofiId(m as typeof mood)),
+    }];
     return [
-      {
-        kind: 'choice', id: 'lofi-mood', label: 'Mood',
-        options: LOFI_STATION_MOODS.map((m) => ({ id: m, label: LOFI_MOOD_LABEL[m] })),
-        get: () => lofiMoodOf(getNeurospicy().loopId) ?? mood,
-        set: (m) => this.select(lofiId(m as typeof mood)),
-      },
+      ...moodControl,
       {
         kind: 'toggle', id: 'lofi-drums', label: 'Drums',
         get: () => getNeurospicy().lofi.drums,

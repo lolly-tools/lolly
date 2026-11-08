@@ -46,7 +46,9 @@ export interface LofiMix { keys: number; bass: number; lead: number; drums: numb
 export const LOFI_MIX: LofiMix = { keys: 1, bass: 1, lead: 1, drums: 1, reverb: 1, texture: 1 };
 
 /** The tone filter's most open cutoff per mood (Hz); texture and each bar close it from there. */
-const MOOD_TONE: Record<LofiMood, number> = { warm: 7500, lateNight: 4300, rainy: 5400 };
+const MOOD_TONE: Record<LofiMood, number> = { warm: 7500, lateNight: 4300, rainy: 5400, sings: 8200 };
+/** Lolly Sings is melody-first: its lead sits this much higher than Lofi's (about +4 dB). */
+const SINGS_LEAD = 1.6;
 const DRUMS = new Set(LOFI_DRUM_VOICES);
 /**
  * Each part's designed level: first measured K-weighted and soloed (keys about -25 LUFS,
@@ -66,13 +68,13 @@ const VARIANT: { keys: Record<LofiStyle['keys'], number>; lead: Record<LofiStyle
   // Short, decaying sounds (pluck, kalimba, rim, clap) measure quieter than they sound,
   // so they take most of the measured difference, not the whole difference.
   keys: { rhodes: 1, felt: 0.93, wurli: 1.4, pluck: 1.8 },
-  lead: { vibes: 1, flute: 0.82, soft: 1.35, kalimba: 1.7, none: 0 },
+  lead: { vibes: 1, flute: 0.82, soft: 1.35, kalimba: 1.7, chip: 0.8, none: 0 },
   bass: { round: 1, upright: 1.05, synth: 1.2 },
   snare: { snare: 1, brush: 1.15, rim: 1.8, clap: 2.3 },
   hats: { hat: 1, shaker: 1.15, none: 0 },
 };
 /** The style a station starts from, until its first tune's arrives. */
-const PLAIN: Pick<LofiStyle, 'wow' | 'room' | 'tone' | 'duck' | 'crunch'> = { wow: 1, room: 1, tone: 1, duck: 1, crunch: false };
+const PLAIN: Pick<LofiStyle, 'wow' | 'room' | 'tone' | 'duck' | 'crunch' | 'dust'> = { wow: 1, room: 1, tone: 1, duck: 1, crunch: false, dust: 1 };
 /** How far the texture control reaches into the chain's range: past this it stops sounding like a record. */
 const TEXTURE_MAX = 0.4;
 /** A record at 33⅓ rpm turns once every 1.8 s. */
@@ -237,7 +239,9 @@ export class LofiStation {
     this.rain = ctx.createGain();
     this.rain.connect(this.shaper);
     const rainBp = ctx.createBiquadFilter();
-    rainBp.type = 'bandpass'; rainBp.frequency.value = 1100; rainBp.Q.value = 0.35;
+    // Rain is a soft, dark patter under the music rather than a hiss over the top, so it
+    // is low-passed well down and kept quiet. A broad band at 1.1 kHz was too much.
+    rainBp.type = 'lowpass'; rainBp.frequency.value = 1400; rainBp.Q.value = 0.4;
     const gust = ctx.createGain();
     gust.gain.value = 0.75;
     const gustDepth = ctx.createGain();
@@ -380,7 +384,7 @@ export class LofiStation {
     switch (note.voice) {
       case 'keys': V.keys(st.keys, k, lanes.keys, t, note.midi, vel * VARIANT.keys[st.keys], len); break;
       case 'bass': V.bass(st.bass, k, lanes.bass, t, note.midi, vel * VARIANT.bass[st.bass], len); break;
-      case 'lead': V.lead(st.lead, k, lanes.lead, t, note.midi, vel * VARIANT.lead[st.lead], len); break;
+      case 'lead': V.lead(st.lead, k, lanes.lead, t, note.midi, vel * VARIANT.lead[st.lead] * (bar.tune.mood === 'sings' ? SINGS_LEAD : 1), len); break;
       case 'kick': V.kick(k, lanes.drums, t, vel, st.kick, st.kickLen); this.duck(t, st.duck); break;
       case 'snare':
         V.snare(st.snare === 'rim' ? 'snare' : st.snare, k, lanes.drums, t, vel * VARIANT.snare[st.snare], st.snareTone);
@@ -431,9 +435,10 @@ export class LofiStation {
     set(this.flutterDepth.gain, (0.00001 + x * 0.00011) * w);
     set(this.toneWander.gain, this.cutoff(this.lastOpen) * (0.03 + x * 0.12));
     const tex = BUS.texture * this.mix.texture;
-    set(this.crackle.gain, x * 0.09 * tex);
-    set(this.hiss.gain, (0.002 + x * 0.008) * tex);
-    set(this.rain.gain, this.settings.mood === 'rainy' ? (0.05 + x * 0.02) * tex : 0);
+    const dust = tex * this.colour.dust;
+    set(this.crackle.gain, x * 0.09 * dust);
+    set(this.hiss.gain, (0.002 + x * 0.008) * dust);
+    set(this.rain.gain, this.settings.mood === 'rainy' ? (0.03 + x * 0.016) * tex : 0);
     set(this.tone.frequency, this.cutoff(this.lastOpen));
     set(this.drumTone.frequency, drumCutoff(this.cutoff(this.lastOpen)));
     const k = 1.05 + x * 1.3;   // gentle: warmth, never crunch
