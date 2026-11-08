@@ -34,6 +34,7 @@ import { DESIGN_STILL_RASTER_FORMATS } from './design-export-route.ts';
 import { missingRequires, type HostApiName } from '@lolly-tools/core';
 import type { EmojiStyleV1 } from '@lolly-tools/core';
 import type { CanvasSize } from '@lolly-tools/core';
+import type { RenditionAction } from '@lolly-tools/core';
 import type { EmojiSetInfoV1 } from '@lolly-tools/core/emoji-v1';
 import { defaultEmojiStyle } from './emoji-default.ts';
 import { emojiTextTrigger } from './emoji-trigger.ts';
@@ -51,6 +52,7 @@ import { resolveTextDocumentTokenBindings } from './text-token-bindings.ts';
 import { resolveNestedRenders } from './compose.ts';
 import { isToolUrl } from './tool-url.ts';
 import { isBakedRef } from './bake.ts';
+import { base64ToBytes } from './bytes.ts';
 import type { InputModelItem, InputValue } from './inputs.ts';
 import type { LoadedTool, ToolManifest } from './loader.ts';
 import type { ComposeMemo } from './compose.ts';
@@ -2329,16 +2331,27 @@ export async function createRuntime(
       // The SVG and PDF walkers record the same picture as componentOf when
       // they inline its bytes, so both routes now name it the same way.
       let ingredients: (IngredientCredential | SourceIngredient)[] | undefined;
+      // A rendition tool (manifest `renditionOf`) makes its output FROM one picture: that
+      // picture's credential is the export's parent (`parentOf`, opened first), and the
+      // tool's own action takes the place of `c2pa.created`. Only a credentialed picture
+      // becomes the parent; a picture without a credential changes nothing and adds no ingredient.
+      const renditionOf = tool.manifest.renditionOf;
+      let parentKey: string | undefined;
+      let c2paRendition: { action: RenditionAction } | undefined;
       if (!isOnDevice && meta !== undefined && host.assets?.credential) {
         const ids = new Set<string>();
-        const note = (v: unknown): void => {
+        const note = (v: unknown, parent = false): void => {
           if (v && typeof v === 'object') {
             const { id, source } = v as { id?: unknown; source?: unknown };
-            if (typeof id === 'string' && (source === 'user' || source === 'library')) ids.add(assetDependency(v as AssetRef).key);
+            if (typeof id === 'string' && (source === 'user' || source === 'library')) {
+              const key = assetDependency(v as AssetRef).key;
+              ids.add(key);
+              if (parent) parentKey = key;
+            }
           }
         };
         for (const input of model) {
-          if (input.type === 'asset') note(input.value);
+          if (input.type === 'asset') note(input.value, input.id === renditionOf?.input);
           else if (input.type === 'blocks' && Array.isArray(input.value)) {
             const assetFields = (input.fields ?? []).filter(f => f.type === 'asset').map(f => f.id);
             for (const item of input.value) {
@@ -2353,10 +2366,32 @@ export async function createRuntime(
             // Lazy: the C2PA read side (c2pa-verify → c2pa-extract → containers)
             // is ~7K lines that only an export with placed credentials needs.
             const ing = cred?.store ? (await import('./c2pa-verify.ts')).prepareC2paIngredientFromStore(cred.store, cred.format) : null;
-            if (ing) prepared.push({ ...ing, relationship: 'componentOf' });
+            const parent = id === parentKey && !!renditionOf;
+            if (ing) prepared.push({ ...ing, relationship: parent ? 'parentOf' : 'componentOf' });
+            if (ing && parent) c2paRendition = { action: renditionOf.action };
           } catch { /* unreadable credential - skip, don't fail the export */ }
         }
         if (prepared.length) ingredients = prepared;
+      }
+      // A rendition's picture given as a `data:` URL (a share link, the CLI, an agent) is
+      // no stored asset, so its credential is read from the bytes themselves.
+      if (renditionOf && !c2paRendition && !isOnDevice && meta !== undefined) {
+        const value = model.find((input) => input.id === renditionOf.input && input.type === 'asset')?.value as { url?: unknown } | null | undefined;
+        const url = typeof value?.url === 'string' ? value.url : '';
+        if (url.startsWith('data:')) {
+          try {
+            const { extractC2paStore, prepareC2paIngredientFromStore } = await import('./c2pa-verify.ts');
+            const comma = url.indexOf(',');
+            const body = url.slice(comma + 1);
+            const bytes = /;base64$/i.test(url.slice(0, comma)) ? base64ToBytes(body) : new TextEncoder().encode(decodeURIComponent(body));
+            const found = extractC2paStore(bytes);
+            const ing = found ? prepareC2paIngredientFromStore(found.store, found.format) : null;
+            if (ing) {
+              ingredients = [...(ingredients ?? []), { ...ing, relationship: 'parentOf' }];
+              c2paRendition = { action: renditionOf.action };
+            }
+          } catch { /* a picture with no readable credential is no parent */ }
+        }
       }
       // Emoji artwork this render placed: one source ingredient per distinct
       // glyph, recording the set's own licence and creator and the exact bytes
@@ -2463,6 +2498,7 @@ export async function createRuntime(
           ...(c2paCapture ? { c2paCapture } : {}),
           ...(c2paTextAdded ? { c2paTextAdded } : {}),
           ...(c2paAiUpscale ? { c2paAiUpscale } : {}),
+          ...(c2paRendition ? { c2paRendition } : {}),
           ...(c2paAiIngredients.length ? { c2paAiIngredients } : {}),
           // The attribution this export promised, and the way back for what it
           // delivered. A host that reads its own bytes back calls onReceipt

@@ -45,3 +45,16 @@ test('the bundled example tool validates', () => {
   const result = validateTool(manifest);
   assert.equal(result.valid, true, JSON.stringify(result.errors, null, 2));
 });
+
+test('renditionOf names a top-level asset input and one of the rendition actions', () => {
+  const base = {
+    id: 'demo-tool', name: 'Demo Tool', version: '1.0.0', engineVersion: '1.0.0', status: 'community',
+    render: { width: 1, height: 1, formats: ['png'] },
+    inputs: [{ id: 'image', type: 'asset' }, { id: 'caption', type: 'text' }],
+  };
+  assert.equal(validateTool({ ...base, renditionOf: { input: 'image', action: 'c2pa.filtered' } }).valid, true);
+  const notAsset = validateTool({ ...base, renditionOf: { input: 'caption', action: 'c2pa.filtered' } });
+  assert.deepEqual(notAsset.errors.map((e) => e.path), ['/renditionOf/input']);
+  assert.equal(validateTool({ ...base, renditionOf: { input: 'missing', action: 'c2pa.filtered' } }).valid, false);
+  assert.equal(validateTool({ ...base, renditionOf: { input: 'image', action: 'c2pa.created' } }).valid, false, 'a rendition is never a new file');
+});

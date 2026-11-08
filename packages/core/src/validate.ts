@@ -39,10 +39,23 @@ ajv.addSchema(canvasOpSchema);
 const validate = ajv.compile(toolSchema);
 const validateOp = ajv.compile(canvasOpSchema);
 
+/**
+ * A rendition's parent is one picture, so `renditionOf.input` has to name a declared
+ * top-level `asset` input. The schema checks the shape; this checks the reference.
+ */
+export function renditionOfErrors(manifest: { renditionOf?: { input: string }; inputs?: { id: string; type: string }[] }): ValidationIssue[] {
+  const rendition = manifest.renditionOf;
+  if (!rendition || manifest.inputs?.some((input) => input.id === rendition.input && input.type === 'asset')) return [];
+  return [{ path: '/renditionOf/input', message: 'must name a declared top-level asset input' }];
+}
+
 /** Validate a `tool.json` manifest object against the bundled schema. */
 export function validateTool(manifest: unknown): ValidationResult {
   const ok = validate(manifest);
-  const openingErrors = ok ? assetOpenErrors(manifest as { id: string; openWith?: AssetOpenIntentV1[]; inputs?: { id: string; type: string; multiple?: boolean }[] }) : [];
+  const openingErrors = ok ? [
+    ...assetOpenErrors(manifest as { id: string; openWith?: AssetOpenIntentV1[]; inputs?: { id: string; type: string; multiple?: boolean }[] }),
+    ...renditionOfErrors(manifest as { renditionOf?: { input: string }; inputs?: { id: string; type: string }[] }),
+  ] : [];
   return {
     valid: Boolean(ok) && openingErrors.length === 0,
     errors: ok ? openingErrors : ((validate.errors ?? []) as ErrorObject[]).map(formatError),

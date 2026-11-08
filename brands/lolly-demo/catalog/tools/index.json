@@ -846,7 +846,7 @@
       "id": "asset-export",
       "name": "Asset Export",
       "description": "Render any catalog asset - or a Lolly tool link - out to any format and size.",
-      "version": "1.1.0",
+      "version": "1.2.0",
       "status": "official",
       "category": "everyone",
       "listed": false,
@@ -4066,7 +4066,7 @@
       "id": "darkroom",
       "name": "Darkroom",
       "description": "Grade photos and video with film looks, Adobe XMP presets, .cube LUTs and your design system colours. Reuse a look through LUT export or Grade a video. Opens Photoshop and GIMP layers for positioning, blending and image export.",
-      "version": "2.5.3",
+      "version": "2.6.0",
       "status": "community",
       "category": "designer",
       "tags": [
@@ -5756,7 +5756,7 @@
       "id": "filter",
       "name": "Filter",
       "description": "One tool for photo effects: pick halftone, scanline, posterize, voronoi, dither or ASCII art (vector) or duotone, pixel-stretch, misprint or glitch (raster). Design system overlays, live camera and exports to as many formats as each effect supports.",
-      "version": "1.6.0",
+      "version": "1.7.0",
       "status": "official",
       "category": "designer",
       "tags": [

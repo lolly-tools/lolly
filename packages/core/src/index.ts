@@ -28,7 +28,8 @@ export { KNOWN_FINISH_KINDS } from './host-v1.ts';
  *  engine's axis reader and any schema check share one list. */
 export { TOKEN_AXIS_KINDS } from './host-v1.ts';
 
-export { validateTool, validateCanvasOp } from './validate.ts';
+export { validateTool, validateCanvasOp, renditionOfErrors } from './validate.ts';
+export { RENDITION_ACTIONS } from './manifest.ts';
 export type { ValidationIssue, ValidationResult } from './validate.ts';
 
 export { createMockHost } from './mock-host.ts';

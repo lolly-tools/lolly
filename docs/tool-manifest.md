@@ -42,6 +42,7 @@ None of these fields stay private to the repository. The About card is the manif
 - `isolate` - boolean. Asks the shell to run a built-in tool's hooks in a Worker. See [Run hooks in a Worker](/info/tool-hooks.html#run-hooks-in-a-worker-isolate).
 - `singleInstance` - boolean. Set `true` when only one copy of the tool can run on a page, for example a tool that holds a WebGL context or keeps a handle on `window` (the 3D viewers, `spatial-photo`, `synth`). Lolly Multi-edit then shows its cells as still previews one after another instead of live copies. The single-tool view, URL mode and the CLI are unaffected.
 - `composes` - embed another tool's render as an image. Requires the `compose` capability. See [Composition and brand overlays](/info/tool-composition.html).
+- `renditionOf` - `{ "input": "image", "action": "c2pa.color_adjustments" }`, for a tool whose output is a changed copy of one picture the person gives it, such as a colour grade, a filter or a format conversion. `input` is the id of a top-level `asset` input, and `action` is one of `c2pa.color_adjustments`, `c2pa.filtered`, `c2pa.converted`, `c2pa.resized`, `c2pa.cropped` or `c2pa.edited`. When that picture carries a Content Credential of its own, the export's credential records the picture as its parent and opens it first, and `action` takes the place of the step that says the file was made new. Every other picture stays a component. A picture with no credential changes nothing. Darkroom, Filter and Asset Export declare it.
 
 ### Design-system behaviour
 

@@ -359,6 +359,17 @@ export interface TemplateVariant {
  * validate with {@link validateTool} before shipping (Lolly's catalog CI does the
  * same). `id` is a permanent contract: never rename or reuse it.
  */
+/** What a rendition tool did to the picture it opened, as a C2PA action. */
+export const RENDITION_ACTIONS = ['c2pa.color_adjustments', 'c2pa.filtered', 'c2pa.converted', 'c2pa.resized', 'c2pa.cropped', 'c2pa.edited'] as const;
+export type RenditionAction = (typeof RENDITION_ACTIONS)[number];
+
+/** {@link ToolManifest.renditionOf}: the input the output is a rendition of, and the action the tool performs. */
+export interface RenditionOf {
+  /** The id of a top-level `asset` input. */
+  input: string;
+  action: RenditionAction;
+}
+
 export interface ToolManifest {
   openWith?: import('./asset-open-v1.ts').AssetOpenIntentV1[];
   designTool?: import('./design-tool-v1.ts').DesignToolPolicyV1;
@@ -426,6 +437,16 @@ export interface ToolManifest {
    * Names are the optional members of `HostV1` (`HOST_V1_OPTIONAL_APIS`).
    */
   requires?: HostApiName[];
+  /**
+   * The tool's output is a rendition of one picture the person gives it (a colour
+   * grade, a filter, a format conversion). When that input's picture carries Content
+   * Credentials of its own, a stamped export records it as the export's `parentOf`
+   * ingredient, opened first, and writes `action` where a new file writes
+   * `c2pa.created` (C2PA 2.2 section 18.15.3). Every other picture stays a component.
+   * An input whose picture has no credential changes nothing and adds no
+   * ingredient. `input` is the id of a top-level `asset` input (engine 1.341).
+   */
+  renditionOf?: RenditionOf;
   /** `'network'`-capability config: the https URL allowlist the host builds `host.net`
    *  from. A trailing `*` on an entry is a prefix wildcard; otherwise it permits that
    *  exact URL. Absent ⇒ every `host.net` fetch rejects. */

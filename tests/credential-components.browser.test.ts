@@ -133,6 +133,34 @@ test('web link: frame and work-avatar record a signed data: picture in their PNG
   }
 });
 
+// D1: a tool that changes one picture records that picture as the file's parent, opened
+// first and followed by what the tool did, where it used to be one more placed component
+// after a step that said the file was made new.
+test('web link: Darkroom, Filter and Asset Export record their signed picture as the parent of their PNG', { skip, timeout: 600_000 }, async () => {
+  for (const [tool, input, action] of [['darkroom', 'image', 'c2pa.color_adjustments'], ['filter', 'image', 'c2pa.filtered'], ['asset-export', 'src', 'c2pa.converted']] as const) {
+    await withPage(tool, async (page, base) => {
+      const download = page.waitForEvent('download', { timeout: 150_000 });
+      await page.goto(`${base}/#/tool/${tool}?${input}=${encodeURIComponent(dataUrl(photo))}&format=png&export`, { waitUntil: 'commit' });
+      const bytes = new Uint8Array(await readFile((await (await download).path())!));
+      const report = await verifyC2pa(bytes);
+      assert.equal(report.state, 'valid', `${tool}: the credential is valid`);
+      const active = report.ingredients?.at(-1)?.manifest;
+      assert.deepEqual((report.ingredients ?? []).filter((i) => i.manifest === active).map((i) => `${i.title}/${i.relationship}`), ['Harbour photo/parentOf'], `${tool}: the picture is the parent`);
+      const steps = (report.history ?? []).map((s) => s.action);
+      const own = steps.slice(steps.lastIndexOf('c2pa.opened'));
+      assert.deepEqual(own.slice(0, 2), ['c2pa.opened', action], `${tool}: opened, then what the tool did`);
+      assert.equal(own.includes('c2pa.created'), false, `${tool}: never made from nothing`);
+      if (hasC2patool) {
+        const file = join(dir, `rendition-${tool}.png`);
+        await writeFile(file, bytes);
+        const store = JSON.parse(spawnSync('c2patool', [file], { encoding: 'utf8' }).stdout) as { active_manifest: string; validation_state: string; manifests: Record<string, { ingredients?: { relationship: string }[] }> };
+        assert.equal(store.validation_state, 'Valid', `${tool}: c2patool reads it as valid`);
+        assert.deepEqual(store.manifests[store.active_manifest]!.ingredients?.map((i) => i.relationship), ['parentOf']);
+      }
+    });
+  }
+});
+
 test('CLI: a Design page with two signed pictures records both as components in its PNG, SVG and PDF', { skip, timeout: 420_000 }, async () => {
   const boxes = [
     { id: 'page', kind: 'frame', name: 'Page', x: 0, y: 0, w: 800, h: 600, bg: '#ffffff' },

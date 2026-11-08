@@ -79,7 +79,7 @@ import { isOwnProfile, resolveEmbeddedProfile } from '../lib/press-profile-embed
 import { printSeparation } from '../lib/cmyk-separation.ts';
 import { rgbaToCmyk } from './export-cmyk-raster.ts';
 import type { EmbedResolution } from '../lib/press-profile-embed.ts';
-import { _host, dropInlinedCredentials, canvasToBlob, imprintCanvas, exportDims, getDomToImage, swapBlobUrls, thumbnailClone, fontMetricsPx, MAX_RASTER_PX, makeRoundedFill, setExportHost, foldIngredientSinks } from './export-shared.ts';
+import { _host, dropInlinedCredentials, canvasToBlob, imprintCanvas, exportDims, getDomToImage, swapBlobUrls, thumbnailClone, fontMetricsPx, MAX_RASTER_PX, makeRoundedFill, setExportHost, foldIngredientSinks, printMarkNames } from './export-shared.ts';
 import { beginFrameClock, renderFrameAt, endFrameClock, withStillHold, posedFrame } from './frame-clock.ts';
 import { isTopTailStage, isRecordStage } from './export-shared.ts';
 import type { WebHost, ExportOpts, ExportDims, ImprintState, Rgba } from './export-shared.ts';
@@ -1866,12 +1866,6 @@ async function stampC2pa(blob: Blob, format: string, opts: ExportOpts, dimension
     // the per-format renderers. Each genuine transformation gets its own,
     // individually-described step (task: "as granular as possible") rather than
     // a handful of lumped-together flags.
-    const marks: string[] = [];
-    if (opts.bleed) marks.push(`${opts.bleed}${typeof opts.bleed === 'number' ? 'px' : ''} bleed`);
-    if (opts.cropMarks) marks.push('crop marks');
-    if (opts.registrationMarks) marks.push('registration marks');
-    if (opts.bleedMarks) marks.push('bleed marks');
-    if (opts.colorBars) marks.push('a colour bar');
     // The durable in-pixel watermark runs two ways: unconditionally for the
     // canvas-based raster encoders (renderRaster/renderBitmap/renderTiff's
     // opts.imprint branch - imprintCapable formats always carry it), and - for
@@ -1883,7 +1877,7 @@ async function stampC2pa(blob: Blob, format: string, opts: ExportOpts, dimension
     const actions = exportActionSteps(format, {
       cmyk: /cmyk/i.test(format),
       paletteColors: opts.palette?.length,
-      marks,
+      marks: printMarkNames(opts),
       watermarked: !!opts.watermark,
       imprint: !!opts.imprint && (imprintCapable || !!opts._imprintSink?.applied),
       audio: !!opts.audio?.url,
@@ -1896,6 +1890,9 @@ async function stampC2pa(blob: Blob, format: string, opts: ExportOpts, dimension
       // AI-upscaled asset - created → compositeWithTrainedAlgorithmicMedia + a step
       // naming the model. Honest AI disclosure, surfaced on /verify automatically.
       ...(opts.c2paAiUpscale ? { aiUpscale: opts.c2paAiUpscale } : {}),
+      // A rendition opens its credentialed parent and then says what the tool did,
+      // only while that parent travels as the one parentOf ingredient.
+      ...(opts.c2paRendition && opts.ingredients?.some((i) => i.relationship === 'parentOf') ? { rendition: opts.c2paRendition } : {}),
       // The runtime sets c2paAiIngredients from the user's own AI-origins
       // assertions on placed assets - the fresh credential declares the
       // composite and names each declared piece (plans/126 WP-B3).
