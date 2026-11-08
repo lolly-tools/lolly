@@ -6,6 +6,10 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+## 1.339.0
+
+- `preflight.ts`: for the CMYK TIFF (`cmyk-tiff`) and EPS (CMYK) (`eps-cmyk`), `plates.palette-unresolved` no longer says "plate count is unavailable", because those formats have the 4 process plates whatever the palette holds (`plates.process` counts them, 1.332.0). It now says what an unresolved palette leaves unchecked there: "No brand palette resolved, so the brand colours cannot be checked for ink limits or rich black. The plate count is still known: this format has only the 4 process plates." The finding's id, `needs` and evidence do not change, and `pdf-cmyk` keeps its message, since its named plates come from the palette.
+
 ## 1.334.0
 
 - The design-system record gains the partner a piece was made for (Lolly Work plans/82 M3, approved by Andy on 2026-11-07). `ExportMeta.partner` (SDK, optional, new `ExportPartner`) holds the partner company (id, name, details revision) and programme (id, name). The runtime takes it from the host through `runtime.setPartner()` and gives it back through `runtime.partner()`, so a second runtime that exports the same document (the web shell's multi-page Design export) records the same partner. An export records it under the record's one switch: the card's "Design system" box, `_madewith` and `--no-madewith` leave it out with the rest.
