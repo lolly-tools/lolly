@@ -78,7 +78,8 @@ test('a failing release URL falls back to the REST API, and the token stays in t
 });
 
 test('tracing with bash -x never prints the token', () => {
-  for (const env of [{ GH_TOKEN: TOKEN }, { GITHUB_TOKEN: TOKEN }]) {
+  const envs: Record<string, string>[] = [{ GH_TOKEN: TOKEN }, { GITHUB_TOKEN: TOKEN }];
+  for (const env of envs) {
     const result = run({ curl: 'fail', gh: 'ok', env, trace: true });
     assert.equal(result.status, 0, result.stderr);
     assert.doesNotMatch(result.stdout + result.stderr, new RegExp(TOKEN));
