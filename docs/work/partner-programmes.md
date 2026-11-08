@@ -867,6 +867,18 @@ reads the record as "Approved as a template: inst/price-sheet v3 (SVG)". A rende
 marked, one in a format the approval did not cover and one from an instance with no signer carry no
 record.
 
+## Limits and quotas
+
+The deployment page's **Limits and quotas** tab, for people with `policy.edit`, lists every limit
+Lolly Work enforces, read from the same figures the code enforces. There is one card each for rate
+limits, agent tokens, renders, uploads and bodies, retention and purge, links and partner
+programmes. Each limit shows its value in words and where the value comes from: **Configuration**,
+**Environment** or **Built-in default**. A setting left at its default reads as built-in. For
+partner programmes, the cards cover the logo and profile limits, the licence gate's mode, the
+bounds on ending a partnership, the Reopen window, the notice days and the agent token defaults,
+maxima and lifetime. `GET /api/v1/limits` gives the same list. A few limits still written
+inline in the code, such as some request sizes, are not listed yet.
+
 ## API and audit
 
 ```

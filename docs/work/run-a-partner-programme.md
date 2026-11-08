@@ -145,6 +145,12 @@ held files with one programme or company, with a note: the card shows who chose 
 **Withdraw** takes a choice back. When you give a provider folder, the form says how many of its
 files record no licence ([Licences](partner-programmes.md#licences)).
 
+**Checking a limit.** The deployment page's **Limits and quotas** tab, for anyone with
+`policy.edit`, lists every limit Lolly Work enforces, one card per area, partner programmes and
+agent tokens included. Each limit shows its value and whether the figure comes from your
+configuration, the environment or the built-in default
+([Limits and quotas](partner-programmes.md#limits-and-quotas)).
+
 **Ending a partnership.** The **End this partnership** card on the programme's page ends the
 whole programme, and the same card on a company's page ends that company alone. It first shows what ending does, then does all of it in one step: nobody
 new joins through its domains, accounts are disabled and signed out, their links and agent tokens
