@@ -58544,6 +58544,7 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
     return tool.manifest.render?.liveMaxEdge;
   };
   let liveCameraShown = false;
+  let cameraOverPicture = false;
   let recordedCamera = false;
   let recordedMic = false;
   let recordedScreen = false;
@@ -59116,6 +59117,7 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
       }
       const priorType = model2.find((i) => i.id === id3)?.type;
       if (priorType === "asset" || priorType === "file" || priorType === "url") liveCameraShown = false;
+      if (id3 === tool.manifest.renditionOf?.input) cameraOverPicture = false;
       model2 = updateInput(model2, id3, value2, writeOptionsFor(id3, value2, options2));
       if (liveResubscribe && id3 === tool.manifest.render?.liveMaxEdgeInput) liveResubscribe();
       const seq = ++setInputSeq;
@@ -59198,6 +59200,7 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
         const after = next2.find((i) => i.id === id3);
         if (Object.is(after.value, before.value) && after.restoreTokenRef === before.restoreTokenRef) continue;
         if (before.type === "asset" || before.type === "file" || before.type === "url") liveCameraShown = false;
+        if (id3 === tool.manifest.renditionOf?.input) cameraOverPicture = false;
         model2 = next2;
         applied.push({ id: id3, value: flattenValue(after.value) });
       }
@@ -59386,7 +59389,10 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
         Promise.resolve(onFrame({ frame, model: modelForHooks(model2), view: viewState, lang: hookLang, canvasSize, host })).then((patch) => {
           if (patch && liveUnsub && generation === liveGeneration) {
             ({ model: model2, extras } = mergePatch(model2, extras, patch, inputIds));
-            if (sensorSource) liveCameraShown = true;
+            if (sensorSource) {
+              liveCameraShown = true;
+              cameraOverPicture = true;
+            }
             emit();
           }
         }).catch((e) => host.log("warn", `onFrame ${e.message}`, { toolId: tool.manifest.id })).finally(() => {
@@ -59655,7 +59661,7 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
       const dataExtra = buildDataPayload(tool, format, model2, getHydratedText);
       let ingredients;
       const holds4 = (v) => Array.isArray(v) ? v.length > 0 : v !== void 0 && v !== null && v !== "" && v !== false;
-      const renditionOf = tool.manifest.renditionOf && !liveCameraShown && !recordedCamera && !recordedScreen && !(tool.manifest.renditionOf.unlessSet ?? []).some((id3) => holds4(model2.find((input) => input.id === id3)?.value)) ? tool.manifest.renditionOf : void 0;
+      const renditionOf = tool.manifest.renditionOf && !cameraOverPicture && !recordedCamera && !recordedScreen && !(tool.manifest.renditionOf.unlessSet ?? []).some((id3) => holds4(model2.find((input) => input.id === id3)?.value)) ? tool.manifest.renditionOf : void 0;
       let parentKey;
       let c2paRendition;
       if (!isOnDevice && meta !== void 0 && host.assets?.credential) {
@@ -59702,7 +59708,9 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
             const { extractC2paStore: extractC2paStore2, prepareC2paIngredientFromStore: prepareC2paIngredientFromStore2 } = await Promise.resolve().then(() => (init_c2pa_verify(), c2pa_verify_exports));
             const comma = url.indexOf(",");
             const body = url.slice(comma + 1);
-            const bytes2 = /;base64$/i.test(url.slice(0, comma)) ? base64ToBytes(body) : percentDecodedBytes(body);
+            const base64 = /;base64$/i.test(url.slice(0, comma));
+            const text13 = (b) => b.replace(/[\t\n\f\r ]/g, "");
+            const bytes2 = !base64 ? percentDecodedBytes(body) : base64ToBytes(text13(body.includes("%") ? Array.from(percentDecodedBytes(body), (c) => String.fromCharCode(c)).join("") : body));
             const found = extractC2paStore2(bytes2);
             const ing = found ? prepareC2paIngredientFromStore2(found.store, found.format) : null;
             if (ing) {

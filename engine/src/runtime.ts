@@ -1021,6 +1021,10 @@ export async function createRuntime(
   // (the recording IS the content, re-composited across edits); a fresh take re-sets
   // them per the captured MIME + the tool's declared capabilities.
   let liveCameraShown = false;
+  // A rendition's camera guard (manifest `renditionOf`): set with liveCameraShown, but
+  // cleared only when the rendition's own picture input changes, because a frozen camera
+  // frame keeps showing while an unrelated asset (a filter's lower-third headshot) changes.
+  let cameraOverPicture = false;
   let recordedCamera = false;
   let recordedMic = false;
   // A SCREEN take is a distinct origin from a camera take - IPTC screenCapture, not
@@ -1676,6 +1680,7 @@ export async function createRuntime(
       // the capture the moment it's committed.
       const priorType = model.find(i => i.id === id)?.type;
       if (priorType === 'asset' || priorType === 'file' || priorType === 'url') liveCameraShown = false;
+      if (id === tool.manifest.renditionOf?.input) cameraOverPicture = false;
       model = updateInput(model, id, value, writeOptionsFor(id, value, options));
       // A live-camera resolution slider (render.liveMaxEdgeInput) re-applies to the
       // running stream without a camera stop/start - the grab loop just starts
@@ -1773,6 +1778,7 @@ export async function createRuntime(
         // Same live-capture retirement as setInput - swapping the image SOURCE
         // means the render no longer shows camera essence.
         if (before.type === 'asset' || before.type === 'file' || before.type === 'url') liveCameraShown = false;
+        if (id === tool.manifest.renditionOf?.input) cameraOverPicture = false;
         model = next;
         applied.push({ id, value: flattenValue(after.value) });
       }
@@ -1993,7 +1999,7 @@ export async function createRuntime(
             // Guard liveUnsub so a frame in flight when stopLive() ran can't repaint.
             // A SENSOR frame drove the render → its essence is now a live camera
             // capture; an animated-asset frame is decoded file content and is not.
-            if (patch && liveUnsub && generation === liveGeneration) { ({ model, extras } = mergePatch(model, extras, patch, inputIds)); if (sensorSource) liveCameraShown = true; emit(); }
+            if (patch && liveUnsub && generation === liveGeneration) { ({ model, extras } = mergePatch(model, extras, patch, inputIds)); if (sensorSource) { liveCameraShown = true; cameraOverPicture = true; } emit(); }
           })
           .catch((e: unknown) => host.log('warn', `onFrame ${(e as Error).message}`, { toolId: tool.manifest.id }))
           .finally(() => { framePending = false; });
@@ -2353,7 +2359,7 @@ export async function createRuntime(
       // The picture is the source only while nothing replaced it: no live camera frame or
       // recording took its place, and no input the manifest lists in `unlessSet` holds anything.
       const holds = (v: unknown): boolean => (Array.isArray(v) ? v.length > 0 : v !== undefined && v !== null && v !== '' && v !== false);
-      const renditionOf = tool.manifest.renditionOf && !liveCameraShown && !recordedCamera && !recordedScreen
+      const renditionOf = tool.manifest.renditionOf && !cameraOverPicture && !recordedCamera && !recordedScreen
         && !(tool.manifest.renditionOf.unlessSet ?? []).some((id) => holds(model.find((input) => input.id === id)?.value))
         ? tool.manifest.renditionOf : undefined;
       let parentKey: string | undefined;
@@ -2406,7 +2412,12 @@ export async function createRuntime(
             const { extractC2paStore, prepareC2paIngredientFromStore } = await import('./c2pa-verify.ts');
             const comma = url.indexOf(',');
             const body = url.slice(comma + 1);
-            const bytes = /;base64$/i.test(url.slice(0, comma)) ? base64ToBytes(body) : percentDecodedBytes(body);
+            // A data: URL body is percent-decoded first, then base64-decoded when it says so
+            // (WHATWG fetch). A base64 body with no escapes, the common case, skips the first step.
+            const base64 = /;base64$/i.test(url.slice(0, comma));
+            const text = (b: string): string => b.replace(/[\t\n\f\r ]/g, '');
+            const bytes = !base64 ? percentDecodedBytes(body)
+              : base64ToBytes(text(body.includes('%') ? Array.from(percentDecodedBytes(body), (c) => String.fromCharCode(c)).join('') : body));
             const found = extractC2paStore(bytes);
             const ing = found ? prepareC2paIngredientFromStore(found.store, found.format) : null;
             if (ing) {

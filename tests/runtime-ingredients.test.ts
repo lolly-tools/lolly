@@ -257,3 +257,16 @@ test('a percent-encoded binary data: picture is read byte for byte', async () =>
   assert.equal(seen[0].ingredients?.[0]?.title, 'Binary photo');
   assert.equal(seen[0].ingredients?.[0]?.relationship, 'parentOf');
 });
+
+test('a percent-encoded base64 data: picture is read too', async () => {
+  const signed = await embedC2pa(new TextEncoder().encode('<svg xmlns="http://www.w3.org/2000/svg" width="8" height="8"><rect width="8" height="8"/></svg>'), 'svg', { title: 'Escaped photo' });
+  const url = `data:image/svg+xml;base64,${encodeURIComponent(Buffer.from(signed).toString('base64'))}`;
+  assert.ok(url.includes('%2B') || url.includes('%2F') || url.includes('%3D'), 'the fixture really escapes base64 characters');
+  const seen: any[] = [];
+  const host: any = { ...makeHost('remote', null, []).host };
+  host.assets = { get: async (id: string) => ({ id, source: 'remote', type: 'vector', format: 'svg', url }), credential: async () => null };
+  host.export = { render: async (_n: unknown, _f: string, opts: any) => { seen.push(opts); return {}; } };
+  const rt = await createRuntime(renditionTool(), host, { image: { id: 'linked', source: 'remote', type: 'vector', format: 'svg', url } });
+  await rt.export({} as any, 'png', {});
+  assert.equal(seen[0].ingredients?.[0]?.title, 'Escaped photo');
+});
