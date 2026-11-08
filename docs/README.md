@@ -68,6 +68,7 @@ Original Lolly prose is CC BY-SA 4.0; imported Lolly Work prose and screenshots 
 | Agenda screens and programmes | [agenda.md](agenda.md) |
 | Animating: keyframes, depth and a camera | [animating.md](animating.md) |
 | Lolly Rondocode songs | [rondocode.md](rondocode.md) |
+| Generated music | [generated-music.md](generated-music.md) |
 | Working together | [collaborate.md](collaborate.md) |
 | Shared project assets | [project-asset-transfers.md](project-asset-transfers.md) |
 | Utilities | [utilities.md](utilities.md) |

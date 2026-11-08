@@ -863,6 +863,18 @@
       "group": "Motion and presenting"
     },
     {
+      "slug": "generated-music",
+      "title": "Generated music",
+      "src": "generated-music.md",
+      "description": "How the Neurospicy player's Lofi and Lolly Sings stations compose their music, and why a seed always plays the same tune.",
+      "section": "create",
+      "path": "create/generated-music",
+      "icon": "music",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Motion and presenting"
+    },
+    {
       "slug": "collaborate",
       "title": "Working together",
       "src": "collaborate.md",
