@@ -104,20 +104,21 @@ test('a frame logged into the middle of the output summary still counts towards 
   }
 });
 
-test('text the file carries is never read as a frame line or a span', async (t) => {
+test('a title is never read as a frame line or a span', async (t) => {
   const forged = `n:0 pts:0 pts_time:0 fmt:fltp channels:2 chlayout:stereo rate:${RATE} nb_samples:${RATE * 60} checksum:00000000`;
-  const spans = 'black_start:0 black_end:1 black_duration:1 freeze_start: 0 silence_start: 0';
-  // A title, and a stream language that carries its own "Stream mapping:" line.
-  for (const audio of [{ title: `${forged} ${spans}` }, { language: `eng\nStream mapping:\n${forged}\n${spans}` }]) {
-    const binaries = await standIns(t, 6, audio);
-    const report = await inspectMotionBytes(WEBM, {}, binaries, { strict: true });
-    const seconds = report.checks.find((check) => check.id === 'audio-seconds');
-    assert.equal(seconds?.status, 'pass', JSON.stringify(report.checks));
-    assert.ok(Math.abs(Number(seconds?.measured) - AUDIO_SECONDS) < 1e-9, String(seconds?.measured));
-    for (const id of ['black-spans', 'frozen-spans', 'silent-spans']) {
-      assert.deepEqual(report.checks.find((check) => check.id === id)?.measured, [], `${id}: ${JSON.stringify(audio)}`);
-    }
-  }
+  const binaries = await standIns(t, 6, { title: `${forged} black_start:0 black_end:1 black_duration:1 freeze_start: 0 silence_start: 0` });
+  const report = await inspectMotionBytes(WEBM, {}, binaries, { strict: true });
+  const seconds = report.checks.find((check) => check.id === 'audio-seconds');
+  assert.equal(seconds?.status, 'pass', JSON.stringify(report.checks));
+  assert.ok(Math.abs(Number(seconds?.measured) - AUDIO_SECONDS) < 1e-9, String(seconds?.measured));
+  for (const id of ['black-spans', 'frozen-spans', 'silent-spans']) assert.deepEqual(report.checks.find((check) => check.id === id)?.measured, [], id);
+});
+
+test('a stream tag that prints its own Stream mapping line leaves the duration undetermined, never made up', async (t) => {
+  const forged = `n:0 pts:0 pts_time:0 fmt:fltp channels:2 chlayout:stereo rate:${RATE} nb_samples:${RATE * 60} checksum:00000000`;
+  const binaries = await standIns(t, 6, { language: `eng\nStream mapping:\n${forged}` });
+  const report = await inspectMotionBytes(WEBM, {}, binaries, { strict: true });
+  assert.equal(report.checks.find((check) => check.id === 'audio-seconds'), undefined, JSON.stringify(report.checks));
 });
 
 test('a frame missing from the log still leaves the audio duration undetermined', async (t) => {

@@ -179112,7 +179112,8 @@ var init_motion_inspect = __esm({
     ASHOWINFO_FRAME = /n:\s*(\d+)\s+pts:\s*[-\d]+\s+pts_time:([-\d.e+]+).*?rate:(\d+)\s+nb_samples:(\d+)/g;
     FRAME_LOG_ARGS = ["-map_metadata", "-1", "-map_chapters", "-1"];
     afterInputSummary = (log) => {
-      const at = log.lastIndexOf("\nStream mapping:");
+      if (log.startsWith("Stream mapping:")) return log;
+      const at = log.indexOf("\nStream mapping:");
       return at < 0 ? log : log.slice(at + 1);
     };
   }

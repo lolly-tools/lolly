@@ -33,14 +33,17 @@ const ASHOWINFO_FRAME = /n:\s*(\d+)\s+pts:\s*[-\d]+\s+pts_time:([-\d.e+]+).*?rat
 /** Output options that keep the file's own metadata and chapter titles out of the output summary. */
 export const FRAME_LOG_ARGS = ['-map_metadata', '-1', '-map_chapters', '-1'] as const;
 /**
- * The part of an ffmpeg log after the input summary, where the filters' lines start: from
- * the LAST line that begins "Stream mapping:", because the input summary prints stream
- * languages and other tags as the file gives them, newlines included, so an earlier copy
- * of that line can come from the file. Nothing the file carries is printed after the
- * real one (FRAME_LOG_ARGS). The whole log when there is no such line.
+ * The ffmpeg log from the first line that starts "Stream mapping:", which follows the input
+ * summary (the file's title, chapters and stream tags) and precedes every frame line.
+ * The FIRST one, never a later one: a file can print text that includes that line, in a
+ * stream tag or in a demuxer warning during the decode, and a cut at a later copy could
+ * drop real frames and keep made-up ones. Text a file prints after the cut and that looks
+ * like a frame line breaks the frame order, so the measure stays undetermined, never a
+ * wrong number. The whole log when there is no such line.
  */
 export const afterInputSummary = (log: string): string => {
-  const at = log.lastIndexOf('\nStream mapping:');
+  if (log.startsWith('Stream mapping:')) return log;
+  const at = log.indexOf('\nStream mapping:');
   return at < 0 ? log : log.slice(at + 1);
 };
 
