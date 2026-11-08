@@ -120,8 +120,8 @@ jobs:
           set -euo pipefail
           bin="$RUNNER_TEMP/release-tools"
           mkdir -p "$bin"
-          curl -fsSL --retry 3 -o "$RUNNER_TEMP/crane.tar.gz" \
-            "https://github.com/google/go-containerregistry/releases/download/v${CRANE_VERSION}/go-containerregistry_Linux_x86_64.tar.gz"
+          scripts/ci/fetch-release-asset.sh google/go-containerregistry "v${CRANE_VERSION}" \
+            go-containerregistry_Linux_x86_64.tar.gz "$RUNNER_TEMP/crane.tar.gz"
           echo "$CRANE_LINUX_X64_SHA256  $RUNNER_TEMP/crane.tar.gz" | sha256sum --check
           tar -xzf "$RUNNER_TEMP/crane.tar.gz" -C "$bin" crane
           echo "$bin" >> "$GITHUB_PATH"
@@ -206,15 +206,17 @@ jobs:
           cosign-release: v3.0.6
 
       - name: Install the pinned registry and SBOM tools
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
           bin="$RUNNER_TEMP/release-tools"
           mkdir -p "$bin"
-          curl -fsSL --retry 3 -o "$RUNNER_TEMP/crane.tar.gz" \
-            "https://github.com/google/go-containerregistry/releases/download/v${CRANE_VERSION}/go-containerregistry_Linux_x86_64.tar.gz"
+          scripts/ci/fetch-release-asset.sh google/go-containerregistry "v${CRANE_VERSION}" \
+            go-containerregistry_Linux_x86_64.tar.gz "$RUNNER_TEMP/crane.tar.gz"
           echo "$CRANE_LINUX_X64_SHA256  $RUNNER_TEMP/crane.tar.gz" | sha256sum --check
-          curl -fsSL --retry 3 -o "$RUNNER_TEMP/syft.tar.gz" \
-            "https://github.com/anchore/syft/releases/download/v${SYFT_VERSION}/syft_${SYFT_VERSION}_linux_amd64.tar.gz"
+          scripts/ci/fetch-release-asset.sh anchore/syft "v${SYFT_VERSION}" \
+            "syft_${SYFT_VERSION}_linux_amd64.tar.gz" "$RUNNER_TEMP/syft.tar.gz"
           echo "$SYFT_LINUX_X64_SHA256  $RUNNER_TEMP/syft.tar.gz" | sha256sum --check
           tar -xzf "$RUNNER_TEMP/crane.tar.gz" -C "$bin" crane
           tar -xzf "$RUNNER_TEMP/syft.tar.gz" -C "$bin" syft
