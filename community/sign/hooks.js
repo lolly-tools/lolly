@@ -96,11 +96,11 @@ async function pagePreview(host, f, pageNo) {
 }
 // One point-space layout drives the visible marks and the exported PDF.
 // Scale the whole group (including initials and date) to fit small pages.
-function placement(v, page, sig, ini) {
+function placement(v, page, sig, ini, dateW) {
   var pos = position(v), sw = pos.width, sh = sw * sig.height / sig.width;
   var iw = ini ? sw * .28 : 0, ih = ini ? iw * ini.height / ini.width : 0;
   var iy = sh * .35, bottom = Math.max(sh, ini ? iy + ih : 0);
-  var groupW = Math.max(sw + (ini ? 8 + iw : 0), v.date ? 56 : 0);
+  var groupW = Math.max(sw + (ini ? 8 + iw : 0), v.date ? (dateW || 56) : 0);
   var groupH = bottom + (v.date ? 15 : 0);
   var scale = Math.min(1, page.widthPt / groupW, page.heightPt / groupH);
   var width = groupW * scale, height = groupH * scale;
@@ -114,12 +114,15 @@ async function signingLayout(host, v) {
   var ink = parseInk(v.signatureInk);
   var sig = ink.paths.length ? await drawnBytes(host, v.signatureInk) : v.signature ? await imageBytes(host, v.signature) : { width: 600, height: 180 };
   var ini = v.initials ? await imageBytes(host, v.initials) : null;
-  var layout = placement(v, pp.page, sig, ini);
-  if (layout.date) {
-    // Shaped once, for the preview and the file alike. The layout keeps room for a
-    // Helvetica date; a wider face would run off the page's right edge, so the date
-    // moves left by what it needs.
-    var outline = await dateOutline(host, layout.date);
+  // The date is shaped for the preview and the file alike. The layout keeps 56 points for
+  // it (a Helvetica date), or the shaped width when the design system's face is wider, so
+  // a small page scales the whole group down to fit. Once placed, the date is shaped
+  // again at its final size if the group was scaled, and moved left if it would still
+  // pass the page's right edge.
+  var first = v.date ? await dateOutline(host, { text: today(), size: 10 }) : null;
+  var layout = placement(v, pp.page, sig, ini, first ? Math.max(56, first.advance) : 56);
+  if (layout.date && first) {
+    var outline = layout.date.size === 10 ? first : await dateOutline(host, layout.date);
     if (outline) {
       layout.date.outline = outline;
       layout.date.x = Math.max(0, Math.min(layout.date.x, pp.page.widthPt - outline.advance));

@@ -579,7 +579,9 @@ export function parseStampPath(d: string): StampSegment[] | null {
     if (t === undefined || /^[A-Za-z]$/.test(t)) return null;
     i++;
     const v = Number(t);
-    return Number.isFinite(v) && Math.abs(v) < 1e7 ? v : null;
+    // Rounded to a ten-thousandth of a point, so a tiny number cannot reach the PDF in a
+    // form its writer cannot spell.
+    return Number.isFinite(v) && Math.abs(v) < 1e7 ? Math.round(v * 1e4) / 1e4 : null;
   };
   while (i < tokens.length) {
     if (/^[A-Za-z]$/.test(tokens[i]!)) cmd = tokens[i++]!;
@@ -608,7 +610,8 @@ export function parseStampPath(d: string): StampSegment[] | null {
       const a = [num(), num(), num(), num()];
       if (a.some((v) => v === null)) return null;
       const qx = ox + a[0]!, qy = oy + a[1]!, x = ox + a[2]!, y = oy + a[3]!;
-      out.push(['C', cx + (2 / 3) * (qx - cx), cy + (2 / 3) * (qy - cy), x + (2 / 3) * (qx - x), y + (2 / 3) * (qy - y), x, y]);
+      const r = (v: number): number => Math.round(v * 1e4) / 1e4;
+      out.push(['C', r(cx + (2 / 3) * (qx - cx)), r(cy + (2 / 3) * (qy - cy)), r(x + (2 / 3) * (qx - x)), r(y + (2 / 3) * (qy - y)), x, y]);
       cx = x; cy = y;
     } else return null;
     if (out.length > STAMP_PATH_MAX_COMMANDS) return null;
@@ -671,7 +674,9 @@ export async function stampPdf(bytes: Uint8Array, opts: PdfStampOpts): Promise<P
       const hex = /^#([0-9a-f]{6})$/i.exec(String(mark.color ?? ''));
       const n = hex ? parseInt(hex[1]!, 16) : null;
       const [r, g, b] = n === null ? [0.08, 0.08, 0.08] : [((n >> 16) & 255) / 255, ((n >> 8) & 255) / 255, (n & 255) / 255];
-      const x = Math.max(0, Number(mark.x) || 0), top = Math.max(0, Number(mark.y) || 0);
+      // A finite origin on the page: anything else would go into the transform as is.
+      const onPage = (v: unknown, max: number): number => { const n = Number(v); return Number.isFinite(n) ? Math.min(Math.max(0, n), max) : 0; };
+      const x = onPage(mark.x, page.getWidth()), top = onPage(mark.y, page.getHeight());
       page.pushOperators(
         ops.pushGraphicsState(),
         ops.setFillingRgbColor(r, g, b),

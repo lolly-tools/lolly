@@ -91,3 +91,16 @@ test('a date wider than the room the layout keeps moves left to stay on the page
   assert.equal(stamps[0]!.paths?.[0]?.x, 412);
   assert.equal((preview.dateMark as { x: number }).x, 412);
 });
+
+test('the layout keeps room for a date the design system\'s face draws wider than Helvetica', async () => {
+  // On a page narrower than a 300-point date, the whole group scales down to fit, and the
+  // date is shaped again at its scaled size.
+  const src = await readFile(HOOKS, 'utf8');
+  const { host, stamps } = stubHost({ paths: true, text: true, advance: 300 });
+  host.pdf.pages = async () => ({ pages: [{ page: 1, svg: '<svg/>', widthPt: 200, heightPt: 400 }], totalPages: 1 });
+  const hooks = new Function('host', `${src}\nreturn { exportFile };`)(host) as { exportFile: (ctx: unknown) => Promise<unknown> };
+  await hooks.exportFile({ model: modelAt(0), host, opts: {} });
+  const path = stamps[0]!.paths![0]!;
+  assert.ok(Number(path.x) >= 0, 'on the page');
+  assert.match(String(path.d), /^M0 0L6\.66/, 'shaped again at the scaled size (10 x 200 / 300)');
+});
