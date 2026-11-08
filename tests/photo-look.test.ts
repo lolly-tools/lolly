@@ -213,9 +213,9 @@ test('every derived pack gets the Tone look, with a dark variant and no copied b
   assert.equal(tone.stops?.length, 3);
   assert.ok(tone.themes?.dark?.stops);
   assert.deepEqual(parsePhotoTreatmentsDoc(doc).map(t => t.id), doc.treatments.map(t => t.id));
-  const shipped = parsePhotoTreatmentsDoc(JSON.parse(readFileSync(join(ROOT, 'brands/lolly-start/catalog/assets/lolly/palette/photo-treatments.json'), 'utf8')));
+  const shipped = parsePhotoTreatmentsDoc(derivePhotoTreatmentsDoc(JSON.parse(readFileSync(join(ROOT, 'brands/lolly-start/catalog/assets/lolly/tokens/brand.json'), 'utf8'))));
   const look = shipped.find(t => t.id === 'tone')!;
-  assert.ok(look, 'lolly-start ships the Tone look');
+  assert.ok(look, 'the starter tokens derive the Tone look');
   const light = frame(), dark = frame();
   applyPhotoLook(light.data, light.w, light.h, look, { theme: photoLookThemeKey(look, { '': 'light' }) === 'base' ? undefined : 'light' });
   applyPhotoLook(dark.data, dark.w, dark.h, look, { theme: photoLookThemeKey(look, { '': 'dark' }) });
@@ -261,7 +261,7 @@ test("with no explicit choice, a look follows the design system's stored active 
   doc.$metadata = { ...doc.$metadata, activeThemeSelection: { '': 'dark' } };
   const choices = resolveTokenSelection(doc).choices;
   assert.deepEqual(choices, { '': 'dark' }, 'the tokens resolve to the stored dark theme');
-  const looks = parsePhotoTreatmentsDoc(JSON.parse(readFileSync(join(ROOT, 'brands/lolly-start/catalog/assets/lolly/palette/photo-treatments.json'), 'utf8')));
+  const looks = parsePhotoTreatmentsDoc(derivePhotoTreatmentsDoc(JSON.parse(readFileSync(join(ROOT, 'brands/lolly-start/catalog/assets/lolly/tokens/brand.json'), 'utf8'))));
   const tone = looks.find(t => t.id === 'tone')!;
   const calls: Array<[string, { tokenSelection?: Record<string, string> } | undefined]> = [];
   const host = {
@@ -302,7 +302,7 @@ test('the public Tone look keeps a white title legible over a bright sky, and it
     for (let i = 0; i < d.length; i += 4) out.push(0.2126 * lin(d[i]!) + 0.7152 * lin(d[i + 1]!) + 0.0722 * lin(d[i + 2]!));
     return out.sort((a, b) => a - b);
   };
-  const shipped = parsePhotoTreatmentsDoc(JSON.parse(readFileSync(join(ROOT, 'brands/lolly-start/catalog/assets/lolly/palette/photo-treatments.json'), 'utf8')));
+  const shipped = parsePhotoTreatmentsDoc(derivePhotoTreatmentsDoc(JSON.parse(readFileSync(join(ROOT, 'brands/lolly-start/catalog/assets/lolly/tokens/brand.json'), 'utf8'))));
   const look = shipped.find(t => t.id === 'tone')!;
   const light = sky.slice(), dark = sky.slice();
   applyPhotoLook(light, w, h, look);

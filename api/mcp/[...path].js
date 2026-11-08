@@ -54476,10 +54476,13 @@ var init_surface_variant = __esm({
 var brand_treatments_exports = {};
 __export(brand_treatments_exports, {
   COLOURWAY_LOOK_PREFIX: () => COLOURWAY_LOOK_PREFIX,
+  ON_DARK_SUFFIX: () => ON_DARK_SUFFIX,
+  activeColourwayOf: () => activeColourwayOf,
   colourwayIconThemes: () => colourwayIconThemes,
   colourwayInks: () => colourwayInks,
   colourwayLookId: () => colourwayLookId,
   colourwayPhotoTreatments: () => colourwayPhotoTreatments,
+  colourwaySurfaceIconThemes: () => colourwaySurfaceIconThemes,
   deriveIconThemesDoc: () => deriveIconThemesDoc,
   derivePhotoTreatmentsDoc: () => derivePhotoTreatmentsDoc,
   isColourwayLookId: () => isColourwayLookId,
@@ -54632,7 +54635,7 @@ function deriveIconThemesDoc(source) {
   };
 }
 function colourwayLookId(option) {
-  const slug4 = option.toLowerCase().replace(/[^a-z0-9-]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 64);
+  const slug4 = option.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 64);
   return slug4 ? `${COLOURWAY_LOOK_PREFIX}${slug4}` : null;
 }
 function towards(from, to, step) {
@@ -54644,7 +54647,7 @@ function towards(from, to, step) {
 }
 function lookSelections(doc) {
   const mode3 = modeAxis(readTokenAxes(doc).axes);
-  if (!mode3 || !mode3.options.length) return { light: {}, dark: {} };
+  if (!mode3?.options.length) return { light: {}, dark: {} };
   const named = (word) => mode3.options.find((o) => o.id.toLowerCase() === word || o.name.toLowerCase() === word);
   const light = named("light") ?? mode3.options.find((o) => o.id === mode3.canonical) ?? mode3.options[0];
   const dark = named("dark") ?? mode3.options.find((o) => o !== light) ?? light;
@@ -54685,13 +54688,35 @@ function colourwayInks(doc) {
     const accent = twoLeads ? lighter : vivid;
     const base = twoLeads ? deeper : inkFor2(accent);
     const shadow = contrastRatio(deeper, surface) >= SHADOW_ON_SURFACE ? deeper : inkFor2(vivid);
+    const mid3 = vivid === shadow ? lighter : vivid;
+    const ground = dark("surface", "background") ?? "#000000";
+    const onDarkBase = [other, lighter, dark("text", "on-surface") ?? "#ffffff"].find((c) => contrastRatio(c, ground) >= ON_DARK_GROUND) ?? "#ffffff";
+    const candidates2 = [dark("secondary"), dark("text", "on-surface") ?? "#ffffff"].filter((c) => !!c && c !== onDarkBase);
+    const onDarkAccent = candidates2.find((c) => contrastRatio(c, ground) >= ON_DARK_GROUND && contrastRatio(c, onDarkBase) >= ON_DARK_APART) ?? [...candidates2].sort((a, b) => contrastRatio(b, onDarkBase) - contrastRatio(a, onDarkBase))[0] ?? "#ffffff";
     seen.add(id3);
-    out.push({ id: id3, name: option.name || option.id, accent, base, shadow, mid: vivid, highlight: towards(vivid, surface, HIGHLIGHT_TOWARD_SURFACE) });
+    out.push({ id: id3, name: option.name || option.id, accent, base, onDarkAccent, onDarkBase, shadow, mid: mid3, highlight: towards(mid3, surface, HIGHLIGHT_TOWARD_SURFACE) });
   }
   return out;
 }
 function colourwayIconThemes(doc) {
   return colourwayInks(doc).map((c) => ({ id: c.id, label: c.name, c1: c.accent, c2: c.base }));
+}
+function activeColourwayOf(doc, selection) {
+  const axis = colourwayAxis(doc);
+  if (!axis || !selection) return null;
+  const chosen = selection.choices?.[axis.group];
+  if (chosen && axis.options.some((o) => o.id === chosen)) return chosen;
+  const named = new Set(selection.activeThemes ?? []);
+  return axis.options.find((o) => named.has(o.id) || named.has(o.name) || named.has(`${axis.group}/${o.name}`) || named.has(`${axis.group}/${o.id}`))?.id ?? null;
+}
+function colourwaySurfaceIconThemes(doc, first) {
+  const inks = colourwayInks(doc);
+  const lead = first ? colourwayLookId(first) : null;
+  const ordered = lead ? [...inks.filter((c) => c.id === lead), ...inks.filter((c) => c.id !== lead)] : inks;
+  return ordered.flatMap((c) => [
+    { id: c.id, label: c.name, c1: c.accent, c2: c.base, surfaces: ["light"] },
+    { id: `${c.id}${ON_DARK_SUFFIX}`, label: `${c.name} on dark`, c1: c.onDarkAccent, c2: c.onDarkBase, surfaces: ["dark", "photo"] }
+  ]);
 }
 function colourwayPhotoTreatments(doc) {
   return colourwayInks(doc).map((c) => ({ id: c.id, label: c.name, kind: "duotone", shadow: c.shadow, mid: c.mid, highlight: c.highlight }));
@@ -54705,7 +54730,7 @@ function withColourwayLooks(catalog, doc) {
   let themes = [];
   let treatments = [];
   try {
-    themes = colourwayIconThemes(doc);
+    themes = colourwaySurfaceIconThemes(doc);
     treatments = colourwayPhotoTreatments(doc);
   } catch {
   }
@@ -54720,7 +54745,7 @@ function withColourwayLooks(catalog, doc) {
     photoTreatments: { ...base.photoTreatments && typeof base.photoTreatments === "object" ? base.photoTreatments : {}, treatments: after(treatments, listOf2(base.photoTreatments, "treatments")) }
   };
 }
-var MAX_SWATCHES, ACCENT_MIN_CHROMA, HUE_APART_DEG, MAX_ACCENTS, HUE_NAMES, hueDist, hueName, titleCase, COLOURWAY_LOOK_PREFIX, MAX_COLOURWAY_LOOKS, BASE_ON_SURFACE, TONES_APART, SHADOW_ON_SURFACE, HIGHLIGHT_TOWARD_SURFACE, isColourwayLookId, luminanceOrder, chromaOf3, deepOf;
+var MAX_SWATCHES, ACCENT_MIN_CHROMA, HUE_APART_DEG, MAX_ACCENTS, HUE_NAMES, hueDist, hueName, titleCase, COLOURWAY_LOOK_PREFIX, MAX_COLOURWAY_LOOKS, BASE_ON_SURFACE, TONES_APART, ON_DARK_GROUND, ON_DARK_APART, ON_DARK_SUFFIX, SHADOW_ON_SURFACE, HIGHLIGHT_TOWARD_SURFACE, isColourwayLookId, luminanceOrder, chromaOf3, deepOf;
 var init_brand_treatments = __esm({
   "engine/src/brand-treatments.ts"() {
     "use strict";
@@ -54757,6 +54782,9 @@ var init_brand_treatments = __esm({
     MAX_COLOURWAY_LOOKS = 32;
     BASE_ON_SURFACE = 4.5;
     TONES_APART = 2;
+    ON_DARK_GROUND = 3;
+    ON_DARK_APART = 1.5;
+    ON_DARK_SUFFIX = "--on-dark";
     SHADOW_ON_SURFACE = 7;
     HIGHLIGHT_TOWARD_SURFACE = 214;
     isColourwayLookId = (id3) => typeof id3 === "string" && id3.startsWith(COLOURWAY_LOOK_PREFIX);
@@ -56448,12 +56476,25 @@ async function surfaceContext(host) {
   } catch {
   }
   let doc = null;
+  let selection = null;
   try {
-    doc = (await host.tokens?.snapshot?.())?.document ?? null;
+    const snap = await host.tokens?.snapshot?.();
+    doc = snap?.document ?? null;
+    selection = snap?.selection ?? null;
   } catch {
     doc = null;
   }
-  let iconThemes = await readIconThemesPalette(host);
+  let iconThemes = null;
+  if (doc) {
+    try {
+      const looks = await Promise.resolve().then(() => (init_brand_treatments(), brand_treatments_exports));
+      const themes = looks.colourwaySurfaceIconThemes(doc, looks.activeColourwayOf(doc, selection));
+      if (themes.length) iconThemes = { themes };
+    } catch {
+      iconThemes = null;
+    }
+  }
+  iconThemes ??= await readIconThemesPalette(host);
   if (!iconThemes && doc) {
     try {
       iconThemes = (await Promise.resolve().then(() => (init_brand_treatments(), brand_treatments_exports))).deriveIconThemesDoc(doc);
@@ -138930,7 +138971,7 @@ function iconSection(doc, catalog, assets, themes) {
   const icons = assets.filter((a) => tagsOf(a).includes("icon")).map((a) => ({ id: a.id, ...a.name ? { name: a.name } : {}, themable: tagsOf(a).includes("themable") }));
   let ours = [];
   try {
-    ours = colourwayIconThemes(doc);
+    ours = colourwaySurfaceIconThemes(doc);
   } catch {
     ours = [];
   }
@@ -156158,6 +156199,7 @@ __export(src_exports, {
   NEUTRAL_EPSILON: () => NEUTRAL_EPSILON,
   NOTATION_SPACES: () => NOTATION_SPACES,
   NO_GAMUT_SOURCE: () => NO_GAMUT_SOURCE,
+  ON_DARK_SUFFIX: () => ON_DARK_SUFFIX,
   OUTPUT_LICENCE_CHOICES: () => OUTPUT_LICENCE_CHOICES,
   OWNER_PUBLISHED: () => OWNER_PUBLISHED,
   P3_SOURCE: () => P3_SOURCE,
@@ -156623,6 +156665,7 @@ __export(src_exports, {
   colourwayPhotoTreatments: () => colourwayPhotoTreatments,
   colourwayRolesOf: () => colourwayRolesOf,
   colourwaySetName: () => colourwaySetName,
+  colourwaySurfaceIconThemes: () => colourwaySurfaceIconThemes,
   colourwaysEditable: () => colourwaysEditable,
   combinationPolicy: () => combinationPolicy,
   compactPath: () => compactPath,
@@ -190867,7 +190910,7 @@ async function createCliBridge({ profile: profile2 = {}, dom, catalogAssets: cat
     iconThemesCache ??= (async () => {
       let ours = [];
       try {
-        ours = colourwayIconThemes(await tokensDoc());
+        ours = colourwaySurfaceIconThemes(await tokensDoc());
       } catch {
         ours = [];
       }

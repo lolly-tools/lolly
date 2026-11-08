@@ -366,7 +366,9 @@ test('colourway icon colours are offered and baked, and a palette id still bakes
   };
   const offered = (await api._iconThemes()).map((t) => t.id);
   assert.deepEqual(offered, ['colourway-spearmint', 'colourway-morning', 'colourway-spring', 'colourway-beach', 'colourway-afternoon', 'colourway-midnight']);
-  assert.deepEqual((await api._knownIconThemes()).map((t) => t.id), [...offered, 'brand', 'ember'], 'the palette ids still resolve, after the colourways');
+  const { colourwaySurfaceIconThemes } = await import('../../../../engine/src/brand-treatments.ts');
+  assert.deepEqual((await api._knownIconThemes()).map((t) => t.id), [...colourwaySurfaceIconThemes(demo).map((t) => t.id), 'brand', 'ember'],
+    'every colourway pairing resolves, dark ones included, then a palette a catalog still ships');
 
   const morning = await api.get('demo/icons/star?theme=colourway-morning');
   const baked = await (await readObjectUrl(morning.url)).text();
@@ -379,5 +381,19 @@ test('colourway icon colours are offered and baked, and a palette id still bakes
 
   const none = createAssetsAPI(db as never) as unknown as { _iconThemes(): Promise<unknown[]> };
   assert.deepEqual(await none._iconThemes(), [], 'no design system document: no colourways, nothing offered');
+
+  // "Colourway asset treatments" off: nothing is offered, and a piece that names a
+  // colourway look still bakes its colours.
+  const { overrideFlagInMemory, COLOURWAY_ASSET_TREATMENTS_FLAG } = await import('../feature-flags.ts');
+  overrideFlagInMemory(COLOURWAY_ASSET_TREATMENTS_FLAG.id, false);
+  try {
+    const off = createAssetsAPI(db as never, { designSystemDocument: async () => demo }) as unknown as typeof api & { _photoTreatments(): Promise<unknown[]> };
+    assert.deepEqual(await off._iconThemes(), [], 'no icon colours offered');
+    assert.deepEqual(await off._photoTreatments(), [], 'no photo washes offered');
+    const kept = await off.get('demo/icons/star?theme=colourway-morning');
+    assert.match(await (await readObjectUrl(kept.url)).text(), /fill="#fac044"/, 'an existing pick keeps its colours');
+  } finally {
+    overrideFlagInMemory(COLOURWAY_ASSET_TREATMENTS_FLAG.id, true);
+  }
   for (const ref of [morning, ember]) URL.revokeObjectURL(ref.url);
 });

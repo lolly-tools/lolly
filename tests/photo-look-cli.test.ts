@@ -1,77 +1,66 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * The CLI bridge bakes a photo look into raster bytes (plan 291 W7): a catalog
- * photo or an inline picture with `?treatment=<lookId>` resolves to a JPEG whose
- * pixels are the engine's look, the document's theme choice picks the look's
- * variant, and the legacy SVG-filter kinds keep their wrapper. Without a canvas in
- * the install, the plain picture is served under the treated id.
+ * The CLI bridge resolves the looks a design system's colourways make (engine
+ * brand-treatments.ts): a catalog photo with `?treatment=colourway-<id>` gets that
+ * colourway's gradient map in its SVG filter wrapper, an inline picture is baked into
+ * raster bytes when the install has a canvas, an icon with `?theme=colourway-<id>` (or
+ * its `--on-dark` pairing) bakes the colourway's colours, and an unknown look serves the
+ * plain picture under the id it was asked for.
  *
- * Public: the lolly-start profile and its derived Tone look.
+ * Public: the lolly-demo profile and its colourways. The pixel bake of a gradient-map or
+ * LUT look is covered by tests/photo-look.test.ts and the web bridge's own tests.
  *
  * Run with: node --test tests/photo-look-cli.test.ts
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 
-process.env.LOLLY_PROFILE = 'lolly-start';
+process.env.LOLLY_PROFILE = 'lolly-demo';
 const { createCliBridge } = await import('../shells/cli/src/bridge.ts');
-const { isCanvasAvailable, decodeToCanvas } = await import('../packages/node-shell/src/canvas.ts');
-const { applyPhotoLook } = await import('../engine/src/photo-look.ts');
+const { isCanvasAvailable } = await import('../packages/node-shell/src/canvas.ts');
+const { colourwayInks } = await import('../engine/src/brand-treatments.ts');
 
 const PHOTO = 'lolly/demo/lorikeet-lollipop';
+const ICON = 'lolly/icons/award';
 const fakeDom = () => ({ window: {} as Window & typeof globalThis });
-const bytesOf = async (url: string): Promise<Uint8Array> => new Uint8Array(await (await fetch(url)).arrayBuffer());
+const DEMO = JSON.parse(readFileSync(new URL('../brands/lolly-demo/catalog/assets/lolly/tokens/demo.json', import.meta.url), 'utf8'));
+const inks = new Map(colourwayInks(DEMO).map((c) => [c.id, c]));
 
-async function pixels(bytes: Uint8Array): Promise<{ data: Uint8ClampedArray; width: number; height: number }> {
-  const canvas = (await decodeToCanvas(bytes))!;
-  const image = canvas.getContext('2d').getImageData(0, 0, canvas.width, canvas.height);
-  return { data: image.data, width: canvas.width, height: canvas.height };
+/** The text of a data: URL or an object URL the bridge handed back. */
+async function textOf(url: string): Promise<string> {
+  return (await fetch(url)).text();
 }
 
-test('a catalog photo with a look resolves to baked pixels, per theme', async () => {
+test('a catalog photo with a colourway wash gets that colourway\'s gradient map', async () => {
   const host = await createCliBridge({ dom: fakeDom() });
-  const plain = await host.assets.get(PHOTO);
-  const light = await host.assets.get(`${PHOTO}?treatment=tone`);
-  const dark = await host.assets.get(`${PHOTO}?treatment=tone`, { tokenSelection: { '': 'dark' } });
-  assert.equal(light.id, `${PHOTO}?treatment=tone`, 'the treated id is kept');
-  if (!isCanvasAvailable()) {
-    assert.equal(light.url, plain.url, 'with no canvas the plain picture is served');
-    return;
-  }
-  assert.match(light.url, /^data:image\/jpeg;base64,/);
-  assert.equal(light.format, 'jpg');
-  assert.equal(light.meta?.treatment, 'tone');
-  assert.equal(dark.meta?.lookTheme, 'dark');
-  assert.notEqual(light.url, plain.url);
-  assert.notEqual(light.url, dark.url, 'the dark variant bakes differently');
-  // The baked bytes are the engine's look of the decoded photo, give or take JPEG.
-  const source = await pixels(await bytesOf(plain.url));
-  const looks = (await host.assets.get('lolly/palette/photo-treatments')).meta as { treatments: Array<Record<string, unknown>> };
-  const tone = looks.treatments.find(t => t.id === 'tone')!;
-  applyPhotoLook(source.data, source.width, source.height, tone as never);
-  const baked = await pixels(await bytesOf(light.url));
-  assert.equal(baked.width, source.width);
-  let sum = 0;
-  for (let i = 0; i < baked.data.length; i += 4) for (let c = 0; c < 3; c++) sum += Math.abs(baked.data[i + c]! - source.data[i + c]!);
-  assert.ok(sum / (baked.data.length * 0.75) < 2, `baked pixels are the engine look (mean ${sum / (baked.data.length * 0.75)})`);
-  // A second resolve is the same bake.
-  assert.equal((await host.assets.get(`${PHOTO}?treatment=tone`)).url, light.url);
+  const midnight = await host.assets.get(`${PHOTO}?treatment=colourway-midnight`);
+  const morning = await host.assets.get(`${PHOTO}?treatment=colourway-morning`);
+  assert.equal(midnight.id, `${PHOTO}?treatment=colourway-midnight`, 'the treated id is kept');
+  assert.match(midnight.url, /^data:image\/svg\+xml/);
+  assert.match(await textOf(midnight.url), /feComponentTransfer|feColorMatrix/, 'the wash is an SVG filter over the photo');
+  assert.notEqual(midnight.url, morning.url, 'each colourway washes differently');
 });
 
-test('the legacy kinds keep their SVG filter wrapper', async () => {
-  const host = await createCliBridge({ dom: fakeDom() });
-  const grey = await host.assets.get(`${PHOTO}?treatment=greyscale`);
-  assert.match(grey.url, /^data:image\/svg\+xml;base64,/);
-});
-
-test('an inline picture with a look is baked too, and an unknown look serves the plain picture', async () => {
+test('an inline picture with a colourway wash is baked, and an unknown look serves the plain picture', async () => {
   const host = await createCliBridge({ dom: fakeDom() });
   const plain = await host.assets.get(PHOTO);
   const inline = plain.url;
-  const looked = await host.assets.get(`${inline}?treatment=tone`);
-  assert.equal(looked.id, `${inline}?treatment=tone`);
+  const looked = await host.assets.get(`${inline}?treatment=colourway-spearmint`);
+  assert.equal(looked.id, `${inline}?treatment=colourway-spearmint`);
   if (isCanvasAvailable()) assert.notEqual(looked.url, inline);
   const unknown = await host.assets.get(`${inline}?treatment=no-such-look`);
   assert.equal(unknown.url, inline);
   assert.equal(unknown.id, `${inline}?treatment=no-such-look`);
+});
+
+test('an icon takes a colourway\'s pairing, and its pairing for a dark ground', async () => {
+  const host = await createCliBridge({ dom: fakeDom() });
+  const morning = inks.get('colourway-morning')!;
+  const light = await textOf((await host.assets.get(`${ICON}?theme=colourway-morning`)).url);
+  assert.match(light, new RegExp(`fill="${morning.accent}"`), 'the accent');
+  assert.match(light, new RegExp(`fill="${morning.base}"`), 'the base');
+  const dark = await textOf((await host.assets.get(`${ICON}?theme=colourway-morning--on-dark`)).url);
+  assert.match(dark, new RegExp(`fill="${morning.onDarkAccent}"`));
+  assert.match(dark, new RegExp(`fill="${morning.onDarkBase}"`));
 });

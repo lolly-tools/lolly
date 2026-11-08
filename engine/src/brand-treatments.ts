@@ -319,15 +319,25 @@ const BASE_ON_SURFACE = 4.5;
 /** A pairing's two tones must stand apart, or the icon reads as one colour. */
 const TONES_APART = 2;
 
+/** On a dark ground an icon's outline is a graphic: WCAG's 3:1 for non-text contrast. */
+const ON_DARK_GROUND = 3;
+
+/** On a dark ground the two tones are both light, so they need only this much apart. */
+const ON_DARK_APART = 1.5;
+
+/** The suffix of a colourway's pairing for dark grounds and photographs. */
+export const ON_DARK_SUFFIX = '--on-dark';
+
 /** A photo's shadow must be dark enough to hold the picture's depth. */
 const SHADOW_ON_SURFACE = 7;
 
 /** How far a photo's highlight moves from the accent toward the surface, out of 255. */
 const HIGHLIGHT_TOWARD_SURFACE = 214;
 
-/** The look id for a colourway: its option id, lowercased, with anything else a hyphen. */
+/** The look id for a colourway: its option id, lowercased, each run of anything else one
+ *  hyphen. A slug never holds two hyphens together, so `--on-dark` cannot meet one. */
 export function colourwayLookId(option: string): string | null {
-  const slug = option.toLowerCase().replace(/[^a-z0-9-]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 64);
+  const slug = option.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 64);
   return slug ? `${COLOURWAY_LOOK_PREFIX}${slug}` : null;
 }
 
@@ -344,6 +354,9 @@ export interface ColourwayInks {
   accent: string;
   /** The icon base (c2). */
   base: string;
+  /** The icon pairing for a dark ground or a photograph: accent (c1) and base (c2). */
+  onDarkAccent: string;
+  onDarkBase: string;
   /** The photo gradient map, shadow to highlight. */
   shadow: string;
   mid: string;
@@ -423,8 +436,19 @@ export function colourwayInks(doc: unknown): ColourwayInks[] {
     const accent = twoLeads ? lighter : vivid;
     const base = twoLeads ? deeper : inkFor(accent);
     const shadow = contrastRatio(deeper, surface) >= SHADOW_ON_SURFACE ? deeper : inkFor(vivid);
+    // A lead that is also the shadow would flatten the map's lower half: the other lead
+    // carries the middle instead (a midnight lead with a mint partner runs midnight > mint).
+    const mid = vivid === shadow ? lighter : vivid;
+    // On a dark ground the base is the dark look's lead, when it holds there; the accent
+    // is the colourway's own partner when that stands apart, else its text colour, else
+    // whichever of the two stands further from the base.
+    const ground = dark('surface', 'background') ?? '#000000';
+    const onDarkBase = [other, lighter, dark('text', 'on-surface') ?? '#ffffff'].find((c) => contrastRatio(c, ground) >= ON_DARK_GROUND) ?? '#ffffff';
+    const candidates = [dark('secondary'), dark('text', 'on-surface') ?? '#ffffff'].filter((c): c is string => !!c && c !== onDarkBase);
+    const onDarkAccent = candidates.find((c) => contrastRatio(c, ground) >= ON_DARK_GROUND && contrastRatio(c, onDarkBase) >= ON_DARK_APART)
+      ?? [...candidates].sort((a, b) => contrastRatio(b, onDarkBase) - contrastRatio(a, onDarkBase))[0] ?? '#ffffff';
     seen.add(id);
-    out.push({ id, name: option.name || option.id, accent, base, shadow, mid: vivid, highlight: towards(vivid, surface, HIGHLIGHT_TOWARD_SURFACE) });
+    out.push({ id, name: option.name || option.id, accent, base, onDarkAccent, onDarkBase, shadow, mid, highlight: towards(mid, surface, HIGHLIGHT_TOWARD_SURFACE) });
   }
   return out;
 }
@@ -432,6 +456,38 @@ export function colourwayInks(doc: unknown): ColourwayInks[] {
 /** The icon themes a design system offers: one per colourway, canonical first. */
 export function colourwayIconThemes(doc: unknown): IconTheme[] {
   return colourwayInks(doc).map((c) => ({ id: c.id, label: c.name, c1: c.accent, c2: c.base }));
+}
+
+/**
+ * The colourway a render selection chose, as an option id: the selection's choice for the
+ * colourway group, else a theme it names as active. Null when it names none, which reads
+ * as the canonical colourway.
+ */
+export function activeColourwayOf(doc: unknown, selection?: { activeThemes?: readonly string[]; choices?: Readonly<Record<string, string>> } | null): string | null {
+  const axis = colourwayAxis(doc);
+  if (!axis || !selection) return null;
+  const chosen = selection.choices?.[axis.group];
+  if (chosen && axis.options.some((o) => o.id === chosen)) return chosen;
+  const named = new Set(selection.activeThemes ?? []);
+  return axis.options.find((o) => named.has(o.id) || named.has(o.name) || named.has(`${axis.group}/${o.name}`) || named.has(`${axis.group}/${o.id}`))?.id ?? null;
+}
+
+/**
+ * Every colourway icon pairing an id can name, each with the grounds it is for: the
+ * offered pairing (`surfaces: ['light']`) and, after it, the pairing for a dark ground or a
+ * photograph (`<id>--on-dark`, `surfaces: ['dark', 'photo']`). An icon written as
+ * `<id>?theme=auto` takes the first pairing for the ground under it (surface-variant.ts),
+ * so the colourway named by `first` (the piece's own) leads; the rest follow canonical
+ * first. Hosts resolve every id here; strips offer only `colourwayIconThemes`.
+ */
+export function colourwaySurfaceIconThemes(doc: unknown, first?: string | null): Array<IconTheme & { surfaces: string[] }> {
+  const inks = colourwayInks(doc);
+  const lead = first ? colourwayLookId(first) : null;
+  const ordered = lead ? [...inks.filter((c) => c.id === lead), ...inks.filter((c) => c.id !== lead)] : inks;
+  return ordered.flatMap((c) => [
+    { id: c.id, label: c.name, c1: c.accent, c2: c.base, surfaces: ['light'] },
+    { id: `${c.id}${ON_DARK_SUFFIX}`, label: `${c.name} on dark`, c1: c.onDarkAccent, c2: c.onDarkBase, surfaces: ['dark', 'photo'] },
+  ]);
 }
 
 /** The photo treatments a design system offers: one gradient map per colourway, canonical first. */
@@ -442,8 +498,8 @@ export function colourwayPhotoTreatments(doc: unknown): PhotoTreatment[] {
 /**
  * Catalog facts with the colourway looks in front: each list holds the design system's
  * colourway looks, then whatever the pack's own palettes declare under another id. For the
- * readers that judge or redraw a piece already made (brand checks, partner recolours), which
- * must still know an older id; what is offered is `colourwayIconThemes` alone.
+ * readers that judge or redraw a piece already made (brand checks, partner recolours): the
+ * icon list holds the dark-ground pairings too. What is offered is `colourwayIconThemes` alone.
  */
 export function withColourwayLooks<T extends { iconThemes?: unknown; photoTreatments?: unknown }>(catalog: T | null | undefined, doc: unknown): T {
   const base = (catalog ?? {}) as T;
@@ -453,7 +509,7 @@ export function withColourwayLooks<T extends { iconThemes?: unknown; photoTreatm
   };
   let themes: IconTheme[] = [];
   let treatments: PhotoTreatment[] = [];
-  try { themes = colourwayIconThemes(doc); treatments = colourwayPhotoTreatments(doc); } catch { /* a document the reader cannot read adds nothing */ }
+  try { themes = colourwaySurfaceIconThemes(doc); treatments = colourwayPhotoTreatments(doc); } catch { /* a document the reader cannot read adds nothing */ }
   if (!themes.length && !treatments.length) return base;
   const after = <L extends { id: string }>(ours: L[], theirs: unknown[]): unknown[] => {
     const ids = new Set(ours.map((x) => x.id));

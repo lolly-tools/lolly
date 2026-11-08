@@ -14,6 +14,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { photoTreatmentSwatch } from './photo-treatment-swatch.ts';
 import { parsePhotoTreatmentsDoc, type PhotoTreatment } from '../../../../engine/src/photo-treatment.ts';
+import { colourwayPhotoTreatments, derivePhotoTreatmentsDoc } from '../../../../engine/src/brand-treatments.ts';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(HERE, '../../../..');
@@ -39,9 +40,12 @@ test('the legacy kinds keep their swatches, a lut gets a neutral marker, and bad
   assert.equal(hostile, 'linear-gradient(135deg,#000000,#ffffff)');
 });
 
-test("every shipped public look has a swatch with colours", () => {
-  const doc = JSON.parse(readFileSync(join(ROOT, 'brands/lolly-start/catalog/assets/lolly/palette/photo-treatments.json'), 'utf8'));
-  for (const look of parsePhotoTreatmentsDoc(doc)) {
+test("every colourway wash and every derived look has a swatch with colours", () => {
+  const demo = JSON.parse(readFileSync(join(ROOT, 'brands/lolly-demo/catalog/assets/lolly/tokens/demo.json'), 'utf8'));
+  const starter = JSON.parse(readFileSync(join(ROOT, 'brands/lolly-start/catalog/assets/lolly/tokens/brand.json'), 'utf8'));
+  const looks = [...colourwayPhotoTreatments(demo), ...parsePhotoTreatmentsDoc(derivePhotoTreatmentsDoc(starter))];
+  assert.ok(looks.length > 6, 'the demo colourways and the starter derivation give looks to draw');
+  for (const look of looks) {
     const css = photoTreatmentSwatch(look);
     assert.ok(look.kind === 'lut' || colours(css).length >= 2, `${look.id}: ${css}`);
   }

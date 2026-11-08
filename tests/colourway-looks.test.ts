@@ -10,8 +10,10 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import {
-  COLOURWAY_LOOK_PREFIX, colourwayIconThemes, colourwayInks, colourwayPhotoTreatments, isColourwayLookId, withColourwayLooks,
+  COLOURWAY_LOOK_PREFIX, ON_DARK_SUFFIX, activeColourwayOf, colourwayIconThemes, colourwayInks, colourwayPhotoTreatments,
+  colourwaySurfaceIconThemes, isColourwayLookId, withColourwayLooks,
 } from '../engine/src/brand-treatments.ts';
+import { buildSurfaceVariantTable } from '../engine/src/surface-variant.ts';
 import { addColourway, colourwayAxis, liftToColourways } from '../engine/src/colourway.ts';
 import { contrastRatio, deriveBrandTokens } from '../engine/src/brand-derive.ts';
 import { createTokenSet } from '../engine/src/tokens.ts';
@@ -89,16 +91,47 @@ test('the same document gives the same looks every time', () => {
   assert.deepEqual(colourwayInks(DEMO), colourwayInks(structuredClone(DEMO)));
 });
 
-test('checks still know a palette id after the colourway looks, so older pieces are not flagged', () => {
+test('each colourway has a pairing for a dark ground, and auto takes the piece\'s own colourway', () => {
+  const surface = colourwaySurfaceIconThemes(DEMO);
+  assert.equal(surface.length, colourwayIconThemes(DEMO).length * 2, 'a light pairing and a dark one per colourway');
+  for (const ink of colourwayInks(DEMO)) {
+    const dark = surface.find((t) => t.id === `${ink.id}${ON_DARK_SUFFIX}`)!;
+    assert.deepEqual(dark.surfaces, ['dark', 'photo']);
+    assert.ok(contrastRatio(dark.c2, '#09141a') >= 3, `${ink.id}: the dark base holds on the dark ground`);
+  }
+  // The piece's colourway leads, so `?theme=auto` picks its pairings, not the canonical one's.
+  const table = buildSurfaceVariantTable({ tokens: null, iconThemes: { themes: colourwaySurfaceIconThemes(DEMO, 'morning') } });
+  assert.deepEqual([table.icons.light, table.icons.dark, table.icons.photo], ['colourway-morning', 'colourway-morning--on-dark', 'colourway-morning--on-dark']);
+  assert.equal(activeColourwayOf(DEMO, { choices: { colourway: 'beach' } }), 'beach');
+  assert.equal(activeColourwayOf(DEMO, { activeThemes: ['light', 'Spring'] }), 'spring');
+  assert.equal(activeColourwayOf(DEMO, { activeThemes: ['light'] }), null, 'no colourway named reads as the canonical one');
+});
+
+test('a lead that is also the darkest tone hands the photo map\'s middle to its partner', () => {
+  // SUSE's eu-policy: Midnight leads in light, Mint in dark, on white. Midnight is both the
+  // most vivid lead and the shadow, so the map runs Midnight > Mint > pale mint.
+  const lifted = liftToColourways(deriveBrandTokens({ primary: '#30ba78', name: 'Fixture' }) as Rec, { id: 'jungle', name: 'Jungle' });
+  assert.ok(lifted.ok);
+  const added = addColourway(lifted.doc, { id: 'eu-policy', name: 'EU policy', values: {
+    light: { primary: '#192072', 'on-primary': '#ffffff', secondary: '#90ebcd', surface: '#ffffff' },
+    dark: { primary: '#90ebcd', 'on-primary': '#192072', secondary: '#efefef', surface: '#192072' },
+  } });
+  assert.ok(added.ok, added.ok ? '' : added.reasons.join(' '));
+  const eu = colourwayInks(added.doc).find((c) => c.id === 'colourway-eu-policy')!;
+  assert.deepEqual([eu.accent, eu.base], ['#90ebcd', '#192072'], 'a Mint accent on a Midnight base');
+  assert.deepEqual([eu.shadow, eu.mid], ['#192072', '#90ebcd']);
+  assert.equal(eu.onDarkBase, '#90ebcd', 'on the Midnight ground the Mint lead is the outline');
+});
+
+test('a pack that still ships a palette keeps its ids known after the colourway looks', () => {
   const catalog = {
     assets: [],
-    iconThemes: { themes: [{ id: 'brand', label: 'Green Apple', c1: '#50c369', c2: '#033633' }, { id: 'ember', label: 'Outback', c1: '#ee9138', c2: '#72251c' }] },
+    iconThemes: { themes: [{ id: 'ember', label: 'Outback', c1: '#ee9138', c2: '#72251c' }] },
     photoTreatments: { treatments: [{ id: 'greyscale', kind: 'greyscale' }] },
   };
   const known = brandCheckCatalog(withColourwayLooks(catalog, DEMO));
-  const ours = colourwayIconThemes(DEMO).map((t) => t.id);
-  assert.deepEqual(known.iconThemes, [...ours, 'brand', 'ember'], 'colourway looks first, then the palette');
-  assert.deepEqual(known.treatments, [...ours, 'greyscale']);
-  assert.ok(guestRecolourFrom(withColourwayLooks(catalog, DEMO))({ theme: 'colourway-morning' }), 'a colourway look resolves to colours');
+  assert.deepEqual(known.iconThemes, [...colourwaySurfaceIconThemes(DEMO).map((t) => t.id), 'ember'], 'colourway looks first, dark pairings included');
+  assert.deepEqual(known.treatments, [...colourwayPhotoTreatments(DEMO).map((t) => t.id), 'greyscale']);
+  assert.ok(guestRecolourFrom(withColourwayLooks(catalog, DEMO))({ theme: 'colourway-morning--on-dark' }), 'a dark pairing resolves to colours');
   assert.equal(withColourwayLooks(catalog, START), catalog, 'no colourways: the catalog is handed back as it was');
 });

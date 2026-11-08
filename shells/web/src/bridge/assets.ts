@@ -53,6 +53,7 @@ const assetHistory = () => import('./asset-history.ts');
 import type { AssetRef, AssetQuery } from '@lolly-tools/core/host-v1';
 import type { CatalogHistoryDb } from './catalog-history.ts';
 import type { IconTheme } from '../../../../engine/src/icon-theme.ts';
+import { COLOURWAY_ASSET_TREATMENTS_FLAG, isFlagOnSync } from '../feature-flags.ts';
 import type { PhotoTreatment } from '../../../../engine/src/photo-treatment.ts';
 import type { PhotoLookBakeRequest } from './photo-look-raster.ts';
 
@@ -361,19 +362,28 @@ export function createAssetsAPI(db: AssetsDb, opts: AssetsApiOptions = {}) {
   const inFlight = new Map<string, Promise<Blob>>();
   // The looks a design system's colourways make, per token document. A changed system is
   // a new document, so its looks are read again; the same one is read once.
-  const colourwayLookCache = new WeakMap<object, { themes: IconTheme[]; treatments: PhotoTreatment[] }>();
-  const colourwayLooks = async (): Promise<{ themes: IconTheme[]; treatments: PhotoTreatment[] }> => {
+  // `themes` is what a strip offers; `resolvable` adds each colourway's pairing for a dark
+  // ground, which an auto icon picks and a piece can carry.
+  type ColourwayLooks = { themes: IconTheme[]; resolvable: IconTheme[]; treatments: PhotoTreatment[] };
+  const NO_LOOKS: ColourwayLooks = { themes: [], resolvable: [], treatments: [] };
+  const colourwayLookCache = new WeakMap<object, ColourwayLooks>();
+  const colourwayLooks = async (): Promise<ColourwayLooks> => {
     let doc: unknown = null;
     try { doc = (await opts.designSystemDocument?.()) ?? null; } catch { doc = null; }
-    if (!doc || typeof doc !== 'object') return { themes: [], treatments: [] };
+    if (!doc || typeof doc !== 'object') return NO_LOOKS;
     let looks = colourwayLookCache.get(doc);
     if (!looks) {
-      const { colourwayIconThemes, colourwayPhotoTreatments } = await import('../../../../engine/src/brand-treatments.ts');
-      try { looks = { themes: colourwayIconThemes(doc), treatments: colourwayPhotoTreatments(doc) }; } catch { looks = { themes: [], treatments: [] }; }
+      const { colourwayIconThemes, colourwaySurfaceIconThemes, colourwayPhotoTreatments } = await import('../../../../engine/src/brand-treatments.ts');
+      try {
+        looks = { themes: colourwayIconThemes(doc), resolvable: colourwaySurfaceIconThemes(doc), treatments: colourwayPhotoTreatments(doc) };
+      } catch { looks = NO_LOOKS; }
       colourwayLookCache.set(doc, looks);
     }
     return looks;
   };
+  // The "Colourway asset treatments" flag decides whether the looks are OFFERED. A piece
+  // that already names one still resolves it whichever way the flag is set.
+  const colourwayTreatmentsOffered = (): boolean => isFlagOnSync(COLOURWAY_ASSET_TREATMENTS_FLAG);
   /** Ours first, then theirs under any other id. */
   const lookUnion = <T extends { id: string }>(ours: T[], theirs: T[]): T[] => [...ours, ...theirs.filter(t => !ours.some(o => o.id === t.id))];
   const fetchAndCacheOnce = (meta: AssetMetaRecord, format: AssetFormat, blobKey: string): Promise<Blob> => {
@@ -760,17 +770,18 @@ export function createAssetsAPI(db: AssetsDb, opts: AssetsApiOptions = {}) {
      * listed: a strip leads with "Original", which is the plain id with no suffix.
      */
     async _iconThemes(_forAssetId?: string): Promise<IconTheme[]> {
-      return (await colourwayLooks()).themes;
+      return colourwayTreatmentsOffered() ? (await colourwayLooks()).themes : [];
     },
 
     /**
      * Internal: every icon colour pairing an id can name, for resolving and checking a piece
-     * already made: the active system's colourway pairings, then the catalog's own palette
-     * (`_catalogIconThemes`), whose ids are no longer offered but still resolve.
+     * already made: the active system's colourway pairings (each with its dark-ground
+     * pairing), then any palette a catalog still ships (`_catalogIconThemes`), whose ids are
+     * not offered but still resolve.
      */
     async _knownIconThemes(forAssetId?: string): Promise<IconTheme[]> {
       const [ours, theirs] = await Promise.all([colourwayLooks(), api._catalogIconThemes(forAssetId)]);
-      return lookUnion(ours.themes, theirs);
+      return lookUnion(ours.resolvable, theirs);
     },
 
     /**
@@ -812,7 +823,7 @@ export function createAssetsAPI(db: AssetsDb, opts: AssetsApiOptions = {}) {
      * listed here: the plain photo has no id suffix, and the picker adds that choice itself.
      */
     async _photoTreatments(_forAssetId?: string): Promise<PhotoTreatment[]> {
-      return (await colourwayLooks()).treatments;
+      return colourwayTreatmentsOffered() ? (await colourwayLooks()).treatments : [];
     },
 
     /** Internal: every photo treatment an id can name: the colourway washes, then the catalog's own. */
