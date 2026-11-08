@@ -87,9 +87,9 @@ A separately scaled Chromium pod (`workers/render/`, Helm `renderWorker.enabled`
   `render.formats`, with a Content Credential signed on the server side in every
   container format.
 - Holds no database connection and no secret beyond the shared HMAC key.
-- Caps renders per pod with `LW_RENDER_MAX_CONCURRENT`. A busy pod answers
-  `503 RENDER_BUSY` with `Retry-After` and leaves readiness, and the autoscaler adds
-  pods.
+- Caps renders per pod with `LW_RENDER_MAX_CONCURRENT`. A busy pod answers each new
+  job with `503 RENDER_BUSY` and `Retry-After` and stays ready, reporting
+  `atCapacity: true`, and the autoscaler adds pods.
 :::
 
 Capacity depends on the pack, how many people edit at once, the database and the

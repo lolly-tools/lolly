@@ -163,6 +163,7 @@ Original Lolly prose is CC BY-SA 4.0; imported Lolly Work prose and screenshots 
 | Sign-in and sessions | [work/identity.md](work/identity.md) |
 | Account data controls | [work/account-lifecycle.md](work/account-lifecycle.md) |
 | Invite people and handle requests | [work/invitations.md](work/invitations.md) |
+| Run a partner programme | [work/run-a-partner-programme.md](work/run-a-partner-programme.md) |
 | Partner programmes | [work/partner-programmes.md](work/partner-programmes.md) |
 | Design-system administration | [work/design-system-administration.md](work/design-system-administration.md) |
 | Roles and grants | [work/permissions.md](work/permissions.md) |

@@ -482,8 +482,14 @@ asset. `supersede` writes `replacedBy`, which is advice to consumers and not a t
 ```bash
 lw msg send --title "Update by Aug 15" \
     [--body "…"] [--kind …] [--severity action] \
-    [--groups marketing,legal] [--shells tauri] [--max-engine 1.52.99]
+    [--groups marketing,legal] [--shells tauri] [--max-engine 1.52.99] \
+    [--starts 2026-12-07T09:00:00Z] [--ends 2026-12-14T17:00:00+01:00]
 ```
+
+`--starts` is when the message begins to show and `--ends` when it stops. Each takes a date and
+time with its zone (`Z` or an offset), so the moment is the same wherever `lw` runs. A message
+cannot be ended once it is sent, so `--ends` is how a message gets its last day. `lw` refuses an
+`--ends` in the past, and one that is not later than `--starts`.
 
 ## Design-system sources and project transfer
 

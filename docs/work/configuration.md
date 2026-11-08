@@ -358,6 +358,7 @@ Room for a 500 MiB recording in a project, lifting the file cap and its budgets 
 | `submit.quota.bytes` | `0` | cumulative byte ceiling per group; `0` is unlimited |
 | `submit.quota.count` | `0` | cumulative submission-count ceiling per group; `0` is unlimited |
 | `catalog.versionKeep` | `0` | how many versions of one instance asset to keep, head included. `0` keeps every version; a positive number trims oldest-first and deletes the trimmed bytes. The served version is never trimmed, and a held asset is never trimmed at all |
+| `catalog.partnerRights` | *decided once* | `gate` or `report`: whether the licence each file records decides what reaches people in a partner programme. Absent, the instance decides at its first start on the release that added the setting: `gate` with no accounts yet, `report` when upgraded with accounts. The setting always wins. See [partner programmes](partner-programmes.md#licences) |
 
 Submit is **open to authors** by default: anyone holding `catalog.submit` submits and the
 asset goes live immediately. Name a `submit.chain` when the org wants review. Quota scopes are
@@ -392,6 +393,7 @@ What each telemetry level stores, and what is never recorded, is in [telemetry](
 | `allowHooksInFastPath` | `false` | whether the in-process jsdom path may run a tool's `hooks.js`. Default refuses hooked tools with `501 HOOKED_TOOL_NEEDS_CHROMIUM`. When on, a tool whose manifest `requires` identifies a `host.*` API the in-process host lacks is refused with `501 TOOL_REQUIRES_UNMET` before any hook runs. Hooks run in a `node:vm` context with the DOM and host bridge but no `process`, `require` or `fetch` - contained, not isolated. Turn on only for a pack you curate end to end; the server warns at boot when it is on for any pack other than the bundled `packs/demo` |
 | `worker.url` | `""` | the Chromium render worker. Set (with `LW_RENDER_WORKER_SECRET`) ⇒ hooked/HTML-heavy tools dispatch there instead of `501`. **This pair is the render-topology switch** - the deployment's capability set is advertised to shells via org_config's `render` block either way ([deployment](deployment.md)) |
 | `worker.timeoutMs` | `20000` | per-job timeout |
+| `worker.connectRetryMs` | `30000` | how long a job keeps trying a worker that refuses the connection, from 0 to 120000 milliseconds. A worker that is restarting, or out of its Service while its slots are full, counts as busy: the job tries again with a short backoff and, when the time is up, fails as `503 RENDER_BUSY` with `Retry-After`. Any other worker failure is returned at once. Push dispatch only |
 | `c2pa.certFile` | `""` | signing-cert chain PEM (leaf first), public |
 | `c2pa.claimGenerator` | `""` | producer label in the signed manifest |
 
@@ -416,8 +418,9 @@ with the existing non-root, seccomp and container permissions before rollout, an
 that refuses the sandbox out of service until its runtime is qualified.
 
 At capacity the worker answers `503 RENDER_BUSY` with `Retry-After` at once, with no internal
-queue, so saturation stays visible to the autoscaler, and it drops out of readiness until a slot
-frees. Its concurrency, timeouts and startup budget are set in its own environment (see
+queue, so saturation stays visible to the autoscaler. Readiness follows the browser, not capacity:
+a full worker stays ready, its `/readyz` reports `atCapacity: true`, and a job already under way
+can still make its next call, such as the raster of the SVG it has just rendered. Its concurrency, timeouts and startup budget are set in its own environment (see
 [Render worker](#render-worker)); on Helm, `renderWorker.maxConcurrent` and
 `renderWorker.browserStartupTimeoutMs` set the first and the last. The worker HMAC key and the C2PA private key are secrets; see
 [Secrets](#secrets) and [c2pa](c2pa.md).
@@ -663,6 +666,7 @@ Where automation may call back to. Absent (the default) leaves callbacks with th
 | Key | Default | What it does |
 |---|---|---|
 | `callbacks.allowedOrigins` | `[]` | exact HTTPS origins a job, durable render or render batch may name as its callback URL, such as `https://hooks.example.com`. A path or a plain `http` origin is refused at boot, and so is a list without `LW_WEBHOOK_SECRET`, because a callback is always signed |
+| `tokenLimits` | `{ "callsPerMinute": 120, "rendersPerDay": 2000, "rendersPerMonth": null }` | the instance default for service tokens placed in a partner programme: calls a minute, renders a UTC day and renders a UTC month, `null` for no cap. A programme's limits and a token's own limits come first. See [partner programmes](partner-programmes.md#limits-and-usage) |
 
 A durable render or batch that asks for any other URL is refused at submission. Every send checks the
 list again, so removing an origin stops callbacks still waiting. See [be told when a render
