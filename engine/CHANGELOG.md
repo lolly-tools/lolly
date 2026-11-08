@@ -6,6 +6,10 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+## 1.339.0
+
+- `preflight.ts`: for the CMYK TIFF (`cmyk-tiff`) and EPS (CMYK) (`eps-cmyk`), `plates.palette-unresolved` no longer says "plate count is unavailable", because those formats have the 4 process plates whatever the palette holds (`plates.process` counts them, 1.332.0). It now says what an unresolved palette leaves unchecked there: "No brand palette resolved, so the brand colours cannot be checked for ink limits or rich black. The plate count is still known: this format has only the 4 process plates." The finding's id, `needs` and evidence do not change, and `pdf-cmyk` keeps its message, since its named plates come from the palette.
+
 ## 1.338.0
 
 - New reserved URL param `_kit` (Lolly Work plan 82, M8): the partner kit a piece carries as a guest, `<id>@<revision>`, the kit asset's catalog id and the asset version attached. `parseUrlState` reads it into `partnerKit` (`PartnerKitAttachmentV1 | null`) and `serializeUrlState` writes it from `partnerKit`, so the attachment travels in a share link, as `emoji` does; the link never carries the kit's bytes. An id outside the kit grammar or a revision that is not a whole number from 1 reads as absent and writes nothing.

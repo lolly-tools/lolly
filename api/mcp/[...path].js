@@ -4114,7 +4114,7 @@ var ENGINE_VERSION;
 var init_version = __esm({
   "engine/src/version.ts"() {
     "use strict";
-    ENGINE_VERSION = "1.338.0";
+    ENGINE_VERSION = "1.339.0";
   }
 });
 
@@ -57702,7 +57702,9 @@ var init_preflight2 = __esm({
         id: "plates.palette-unresolved",
         severity: "info",
         needs: p.why,
-        message: "No brand palette resolved, so plate count is unavailable.",
+        // A process-only format has its 4 plates whatever the palette holds (plates.process
+        // counts them), so what goes unchecked there is the brand colours, not the count.
+        message: processOnly(c) ? "No brand palette resolved, so the brand colours cannot be checked for ink limits or rich black. The plate count is still known: this format has only the 4 process plates." : "No brand palette resolved, so plate count is unavailable.",
         evidence: { format: c.fmt, why: p.why }
       });
     };

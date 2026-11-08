@@ -626,6 +626,20 @@ test('an unresolved palette withholds the ceiling rather than defaulting it', ()
   assert.equal(has(r, 'plates.no-spots-declared'), false);
 });
 
+test('an unresolved palette leaves the plate count of a process-only format known', () => {
+  for (const format of ['cmyk-tiff', 'eps-cmyk']) {
+    const r = preflight(job({ settings: { format }, palette: { known: false, why: 'not-resolved' } }));
+    const f = one(r, 'plates.palette-unresolved');
+    assert.equal(f.needs, 'not-resolved', format);
+    assert.doesNotMatch(f.message, /plate count is unavailable/, format);
+    assert.match(f.message, /only the 4 process plates/, format);
+    assert.equal(r.counts.find(c => c.kind === 'processPlates')?.value, 4, format);
+  }
+  // A CMYK PDF can add named plates, so its count does wait on the palette.
+  const pdf = preflight(job({ settings: { format: 'pdf-cmyk' }, palette: { known: false, why: 'not-resolved' } }));
+  assert.match(one(pdf, 'plates.palette-unresolved').message, /plate count is unavailable/);
+});
+
 test('plate findings stay off non-separating formats', () => {
   const r = preflight(job({ settings: { format: 'png' }, palette: { known: true, value: [swatch('Gold', 'Gold', 'foil')] } }));
   for (const id of ['plates.process', 'plates.spot-ceiling', 'plates.finish-ceiling', 'plates.no-spots-declared', 'plates.palette-unresolved']) {
