@@ -37,7 +37,7 @@ test('an open that finishes inside the delay never shows the card', async () => 
   assert.equal(card(), null);
 });
 
-test('past the delay: the name, the step, the thumbnail and a focused Cancel', async () => {
+test('past the delay: the name, the step, the thumbnail, and focus on the title', async () => {
   const before = window.history.length;
   const p = openProgress({ name: 'Quarterly deck', thumb: 'data:image/png;base64,AAAA', delayMs: 0 });
   await sleep(5);
@@ -45,7 +45,13 @@ test('past the delay: the name, the step, the thumbnail and a focused Cancel', a
   assert.equal(text('.modal-title'), 'Opening Quarterly deck');
   assert.equal(text('.open-progress-step'), 'Reading the document');
   assert.ok(card()!.querySelector('.open-progress-thumb img'), 'the thumbnail is drawn');
-  assert.equal(document.activeElement, card()!.querySelector('[data-act="cancel"]'), 'Cancel has focus');
+  // Not on Cancel: the card appears by itself, and a focused button takes a stray Space or
+  // Enter as a press. Cancel stays in the Tab order, one Tab from the title.
+  assert.equal(document.activeElement, card()!.querySelector('.modal-title'), 'the title has focus');
+  const cancelBtn = card()!.querySelector<HTMLButtonElement>('[data-act="cancel"]')!;
+  assert.notEqual(document.activeElement, cancelBtn, 'Cancel does not have focus');
+  assert.equal(cancelBtn.disabled, false);
+  assert.equal(cancelBtn.getAttribute('tabindex'), null, 'Cancel can still be reached with Tab');
   assert.equal(window.history.length, before, 'no history entry: the card is off the Back stack');
   p.phase('pages');
   assert.equal(text('.open-progress-step'), 'Preparing the pages');
