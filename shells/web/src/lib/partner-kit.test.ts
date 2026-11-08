@@ -123,7 +123,7 @@ test('the kit\'s swatches are plain colours headed by the company, never by a se
 
 test('the checks get the logos\' proportions and the catalog\'s colour modifiers from the host', async () => {
   const { partnerCheckInput } = kitMod;
-  const runtime = { getModel: () => [{ id: 'documentUnit', value: 'px' }] };
+  const runtime = { getModel: () => [{ id: 'documentUnit', value: 'px' }, { id: 'customCss', value: '.tiny { height: 10px; }' }] };
   await attachPieceKit({ assets: {} as never, log: () => {} }, runtime, { id: 'inst/k1', revision: 2 }, { load: async () => KIT as never });
   const host = {
     assets: {
@@ -138,6 +138,7 @@ test('the checks get the logos\' proportions and the catalog\'s colour modifiers
   assert.equal(input!.measure.logoAspect?.('inst/nw-mark'), null, 'a logo the host cannot read has no proportions, and the check lists it as not measured');
   assert.deepEqual(input!.measure.logoSize?.('inst/nw-light'), { width: 400, height: 100 }, 'a fit drawn at the logo\'s own size reads the size');
   assert.equal(input!.measure.logoSize?.('inst/nw-mark'), null);
+  assert.equal(input!.measure.customCss, '.tiny { height: 10px; }', 'the document\'s own CSS reaches the check, which says the CSS was not read');
   assert.equal(input!.measure.recolour?.({ theme: 'ink' }), 'mono');
   assert.equal(input!.measure.recolour?.({ theme: 'pair' }), 'other');
   assert.equal(input!.measure.recolour?.({ treatment: 'grey' }), 'mono');

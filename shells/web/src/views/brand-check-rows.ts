@@ -101,6 +101,7 @@ export function unmeasuredText(entry: GuestMarkUnmeasured, company: string): str
     case 'work-limit': return one
       ? tRaw('One of {company}’s marks was not measured: this piece has more layers and marks than the check compares.', words)
       : tRaw('{count} of {company}’s marks were not measured: this piece has more layers and marks than the check compares.', words);
+    case 'custom-css': return tRaw('This piece’s own CSS can restyle any layer, and the check for {company}’s kit reads each layer without that CSS.', words);
     case 'findings-limit': return one
       ? tRaw('One more finding for {company}’s kit is not shown.', words)
       : tRaw('{count} more findings for {company}’s kit are not shown.', words);

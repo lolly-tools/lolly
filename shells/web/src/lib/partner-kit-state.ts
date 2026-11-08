@@ -119,7 +119,13 @@ export function partnerCheckFor(runtime: { getModel(): ReadonlyArray<{ id: strin
 export function measureOf(model: ReadonlyArray<{ id: string; value?: unknown }>): GuestMarkMeasure {
   const unit = model.find((i) => i.id === 'documentUnit')?.value;
   const dpi = Number(model.find((i) => i.id === 'documentDpi')?.value);
-  return { ...(typeof unit === 'string' ? { unit } : {}), ...(Number.isFinite(dpi) && dpi > 0 ? { dpi } : {}) };
+  // The document's own CSS can restyle a layer, so the check is told the document has some.
+  const customCss = model.find((i) => i.id === 'customCss')?.value;
+  return {
+    ...(typeof unit === 'string' ? { unit } : {}),
+    ...(Number.isFinite(dpi) && dpi > 0 ? { dpi } : {}),
+    ...(typeof customCss === 'string' && customCss.trim() ? { customCss } : {}),
+  };
 }
 
 /** What a surface shows for a piece: its kit and revision, or the company's kit to attach, or nothing. */
