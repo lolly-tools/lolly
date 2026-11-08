@@ -2446,6 +2446,23 @@
       }
     },
     {
+      "slug": "work-run-a-partner-programme",
+      "title": "Run a partner programme",
+      "src": "work/run-a-partner-programme.md",
+      "section": "manage",
+      "group": "People and access",
+      "path": "manage/run-a-partner-programme",
+      "icon": "usercheck",
+      "aliases": [],
+      "contentLicense": "MPL-2.0",
+      "description": "For partner teams: what a partner sees, can open, can change and cannot reach, and how to set up a programme, run it day to day and end a partnership.",
+      "work": {
+        "slug": "run-a-partner-programme",
+        "path": "run-a-partner-programme.md",
+        "icon": "instance"
+      }
+    },
+    {
       "slug": "work-partner-programmes",
       "title": "Partner programmes",
       "src": "work/partner-programmes.md",
@@ -2455,7 +2472,7 @@
       "icon": "usercheck",
       "aliases": [],
       "contentLicense": "MPL-2.0",
-      "description": "Name each kind of partner and choose the tools and assets its people get, with nothing internal shared by default.",
+      "description": "The reference for partner programmes: tools and files, company details and logos, templates, licences, ending a partnership, agent tokens, routes and audit events.",
       "work": {
         "slug": "partner-programmes",
         "path": "partner-programmes.md",
@@ -3614,7 +3631,7 @@
       },
       "shots/README.md": {
         "source": "shots/work/README.md",
-        "sha256": "a845f3eaecf13fad99cf159dac308e219ca057c89f70e28ef4cf2c0dd41e1945",
+        "sha256": "a8ebcd9b66b173bac9be8ab3c9a404614339e164462b5944373824d27d0d4c96",
         "originalPath": "docs/shots/README.md"
       },
       "shots/activity-timeline.dark.svg": {
@@ -3756,6 +3773,186 @@
         "source": "shots/work/overview-dashboard.svg",
         "sha256": "314ee6c4909c95410760871c8a68f46ba6bc4eb270386a8adddb536b3042f683",
         "originalPath": "docs/shots/overview-dashboard.svg"
+      },
+      "shots/partner-agent-tokens.dark.svg": {
+        "source": "shots/work/partner-agent-tokens.dark.svg",
+        "sha256": "173d98a6cb540c345a0cab3e5a995bcaba196f8e85bf4076a9719253658045ac",
+        "originalPath": "docs/shots/partner-agent-tokens.dark.svg"
+      },
+      "shots/partner-agent-tokens.root.pem": {
+        "source": "shots/work/partner-agent-tokens.root.pem",
+        "sha256": "72eb0d1190738d925dac5243b2203cd683ff6d8afdeacb34c4ec71b7521295a1",
+        "originalPath": "docs/shots/partner-agent-tokens.root.pem"
+      },
+      "shots/partner-agent-tokens.svg": {
+        "source": "shots/work/partner-agent-tokens.svg",
+        "sha256": "84795a3da2abe58213bbc4a5f21f8f5d45923f365a744b7d7c5396dc749c5118",
+        "originalPath": "docs/shots/partner-agent-tokens.svg"
+      },
+      "shots/partner-agent-usage.dark.svg": {
+        "source": "shots/work/partner-agent-usage.dark.svg",
+        "sha256": "ce77f769c1faafe2e01d809a5eb1bff4363d9e77b86eaa114d8585f084d516b0",
+        "originalPath": "docs/shots/partner-agent-usage.dark.svg"
+      },
+      "shots/partner-agent-usage.root.pem": {
+        "source": "shots/work/partner-agent-usage.root.pem",
+        "sha256": "72eb0d1190738d925dac5243b2203cd683ff6d8afdeacb34c4ec71b7521295a1",
+        "originalPath": "docs/shots/partner-agent-usage.root.pem"
+      },
+      "shots/partner-agent-usage.svg": {
+        "source": "shots/work/partner-agent-usage.svg",
+        "sha256": "231a3cd964111b9210b4ebea583f33b38b44c24cd20fc04b8c86f201f462b1cf",
+        "originalPath": "docs/shots/partner-agent-usage.svg"
+      },
+      "shots/partner-company-sheet.dark.svg": {
+        "source": "shots/work/partner-company-sheet.dark.svg",
+        "sha256": "6dd75075da6d0e93c9a40903baf0e630e6cfbf4b90b12faff4bfb2257e21d8e5",
+        "originalPath": "docs/shots/partner-company-sheet.dark.svg"
+      },
+      "shots/partner-company-sheet.root.pem": {
+        "source": "shots/work/partner-company-sheet.root.pem",
+        "sha256": "72eb0d1190738d925dac5243b2203cd683ff6d8afdeacb34c4ec71b7521295a1",
+        "originalPath": "docs/shots/partner-company-sheet.root.pem"
+      },
+      "shots/partner-company-sheet.svg": {
+        "source": "shots/work/partner-company-sheet.svg",
+        "sha256": "a577ab37a08ff8231b713110170253ec5dd6a1b52e81f5782e5712b8f921db5b",
+        "originalPath": "docs/shots/partner-company-sheet.svg"
+      },
+      "shots/partner-company.dark.svg": {
+        "source": "shots/work/partner-company.dark.svg",
+        "sha256": "bccb57046e32ad488a716145b887482166497ea1205d025689a51d0cfef32098",
+        "originalPath": "docs/shots/partner-company.dark.svg"
+      },
+      "shots/partner-company.root.pem": {
+        "source": "shots/work/partner-company.root.pem",
+        "sha256": "0a5c264efcbad774f58e8f3f5c7e81d01a173c7a64d84ed2f7e111b959351c94",
+        "originalPath": "docs/shots/partner-company.root.pem"
+      },
+      "shots/partner-company.svg": {
+        "source": "shots/work/partner-company.svg",
+        "sha256": "5385b3f9e098cb6551c39ef7cf300246e12af9be0c590f24812ae25e9edf46d5",
+        "originalPath": "docs/shots/partner-company.svg"
+      },
+      "shots/partner-end-dry-run.dark.svg": {
+        "source": "shots/work/partner-end-dry-run.dark.svg",
+        "sha256": "40810b4fc796aa78c3152f8eda2004b67a14f4a666af083674219dc320aaafd1",
+        "originalPath": "docs/shots/partner-end-dry-run.dark.svg"
+      },
+      "shots/partner-end-dry-run.root.pem": {
+        "source": "shots/work/partner-end-dry-run.root.pem",
+        "sha256": "72eb0d1190738d925dac5243b2203cd683ff6d8afdeacb34c4ec71b7521295a1",
+        "originalPath": "docs/shots/partner-end-dry-run.root.pem"
+      },
+      "shots/partner-end-dry-run.svg": {
+        "source": "shots/work/partner-end-dry-run.svg",
+        "sha256": "4f4dc3e954a2f5e7c44b9a916044467b4967f54daba12e843e7f2105f56e417a",
+        "originalPath": "docs/shots/partner-end-dry-run.svg"
+      },
+      "shots/partner-export-record.dark.svg": {
+        "source": "shots/work/partner-export-record.dark.svg",
+        "sha256": "3430626d9ecb34d4c1216333a3b35f8773399a20b3f596b687ce9f8fd4a7b26d",
+        "originalPath": "docs/shots/partner-export-record.dark.svg"
+      },
+      "shots/partner-export-record.root.pem": {
+        "source": "shots/work/partner-export-record.root.pem",
+        "sha256": "72eb0d1190738d925dac5243b2203cd683ff6d8afdeacb34c4ec71b7521295a1",
+        "originalPath": "docs/shots/partner-export-record.root.pem"
+      },
+      "shots/partner-export-record.svg": {
+        "source": "shots/work/partner-export-record.svg",
+        "sha256": "a20e03b918af89bfad799b9c66739f3f029ecb2425c18b59a3648e4450d97c4b",
+        "originalPath": "docs/shots/partner-export-record.svg"
+      },
+      "shots/partner-home.dark.svg": {
+        "source": "shots/work/partner-home.dark.svg",
+        "sha256": "ad7ba59c7d62c4ba6b6dad4aba07f08133104894424d9f146ffa0ac9910bfc3b",
+        "originalPath": "docs/shots/partner-home.dark.svg"
+      },
+      "shots/partner-home.root.pem": {
+        "source": "shots/work/partner-home.root.pem",
+        "sha256": "72eb0d1190738d925dac5243b2203cd683ff6d8afdeacb34c4ec71b7521295a1",
+        "originalPath": "docs/shots/partner-home.root.pem"
+      },
+      "shots/partner-home.svg": {
+        "source": "shots/work/partner-home.svg",
+        "sha256": "8d340ba5c54b62b1fc5d233477fb2ebe424cc16649d7ba70b0afcde6825e9fae",
+        "originalPath": "docs/shots/partner-home.svg"
+      },
+      "shots/partner-licences.dark.svg": {
+        "source": "shots/work/partner-licences.dark.svg",
+        "sha256": "afeda4a1ae019b75fb19aed70c7c10be7651e1cb79cf47e51bd3c6e641756e3e",
+        "originalPath": "docs/shots/partner-licences.dark.svg"
+      },
+      "shots/partner-licences.root.pem": {
+        "source": "shots/work/partner-licences.root.pem",
+        "sha256": "72eb0d1190738d925dac5243b2203cd683ff6d8afdeacb34c4ec71b7521295a1",
+        "originalPath": "docs/shots/partner-licences.root.pem"
+      },
+      "shots/partner-licences.svg": {
+        "source": "shots/work/partner-licences.svg",
+        "sha256": "17ccf266adc4c194155f5e10f6a04224eca3a5d946411fe549373eaa1065e7ed",
+        "originalPath": "docs/shots/partner-licences.svg"
+      },
+      "shots/partner-limits-tokens.dark.svg": {
+        "source": "shots/work/partner-limits-tokens.dark.svg",
+        "sha256": "b73ea73090166f458d9b702854e0fd54058f262eab33e51e4c8c1f988f6c829d",
+        "originalPath": "docs/shots/partner-limits-tokens.dark.svg"
+      },
+      "shots/partner-limits-tokens.root.pem": {
+        "source": "shots/work/partner-limits-tokens.root.pem",
+        "sha256": "72eb0d1190738d925dac5243b2203cd683ff6d8afdeacb34c4ec71b7521295a1",
+        "originalPath": "docs/shots/partner-limits-tokens.root.pem"
+      },
+      "shots/partner-limits-tokens.svg": {
+        "source": "shots/work/partner-limits-tokens.svg",
+        "sha256": "0eb7563e0bf3f5022b9acdcdba0ab5de1a88521340f6436043f2569f078486ca",
+        "originalPath": "docs/shots/partner-limits-tokens.svg"
+      },
+      "shots/partner-limits.dark.svg": {
+        "source": "shots/work/partner-limits.dark.svg",
+        "sha256": "e3e7741585fd9ec703cf750d139c8d3e4835e1111d48300726a5120a1c050c7f",
+        "originalPath": "docs/shots/partner-limits.dark.svg"
+      },
+      "shots/partner-limits.root.pem": {
+        "source": "shots/work/partner-limits.root.pem",
+        "sha256": "72eb0d1190738d925dac5243b2203cd683ff6d8afdeacb34c4ec71b7521295a1",
+        "originalPath": "docs/shots/partner-limits.root.pem"
+      },
+      "shots/partner-limits.svg": {
+        "source": "shots/work/partner-limits.svg",
+        "sha256": "d628dacba2e907bafbf2425e71777eb31283c08281290953e39a19abe3fdba09",
+        "originalPath": "docs/shots/partner-limits.svg"
+      },
+      "shots/partner-programme-templates.dark.svg": {
+        "source": "shots/work/partner-programme-templates.dark.svg",
+        "sha256": "a450b4a4005c9be46bed6fd577b28a8969478e01f1256c1472339e95d2e2900f",
+        "originalPath": "docs/shots/partner-programme-templates.dark.svg"
+      },
+      "shots/partner-programme-templates.root.pem": {
+        "source": "shots/work/partner-programme-templates.root.pem",
+        "sha256": "72eb0d1190738d925dac5243b2203cd683ff6d8afdeacb34c4ec71b7521295a1",
+        "originalPath": "docs/shots/partner-programme-templates.root.pem"
+      },
+      "shots/partner-programme-templates.svg": {
+        "source": "shots/work/partner-programme-templates.svg",
+        "sha256": "043f619118ed9fadf783b8b223afa64eacaab95912c5662f2d0a994ecb280b8f",
+        "originalPath": "docs/shots/partner-programme-templates.svg"
+      },
+      "shots/partner-template-tool.dark.svg": {
+        "source": "shots/work/partner-template-tool.dark.svg",
+        "sha256": "fa30d05a581773d584425760d8739931a3a15e689565a839f585c2c9c1f7c8b0",
+        "originalPath": "docs/shots/partner-template-tool.dark.svg"
+      },
+      "shots/partner-template-tool.root.pem": {
+        "source": "shots/work/partner-template-tool.root.pem",
+        "sha256": "72eb0d1190738d925dac5243b2203cd683ff6d8afdeacb34c4ec71b7521295a1",
+        "originalPath": "docs/shots/partner-template-tool.root.pem"
+      },
+      "shots/partner-template-tool.svg": {
+        "source": "shots/work/partner-template-tool.svg",
+        "sha256": "e2f3c417b1e50b3837df7de2c0fdc160b30e724fbef840759c9da0776de2b689",
+        "originalPath": "docs/shots/partner-template-tool.svg"
       },
       "shots/people-directory.dark.svg": {
         "source": "shots/work/people-directory.dark.svg",

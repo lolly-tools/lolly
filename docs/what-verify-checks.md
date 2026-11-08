@@ -25,6 +25,8 @@ A Content Credential can carry a record of an approval and a record of what the 
 
 **Approved** gives the signer, the date of the decision, the request and a short fingerprint of the file that was reviewed. Hover over the fingerprint for the whole value, or use **Copy digest**. **This file** says whether the credential still checks. Lolly Verify holds no copy of the reviewed file, so it cannot compare the two pictures. The writer made that comparison when it recorded the approval. To check against a file you hold, compare its digest with the one shown here.
 
+An approval can also cover every variant of a template, such as a data sheet each partner fills in with their own price. Then **Covers** reads "Approved as a template: inst/price-sheet v3 (PNG). Example file sha256 …", with the template's id and version and the format of the file in front of you. The fingerprint is the example file the reviewer saw, labelled as the example's, never as this file's: the reviewer approved the template and what it leaves open, not these exact pixels. An older version of Lolly shows no approval for such a file rather than a mislabelled one. `lolly validate`, the terminal app and `lolly_verify` print the same line with the whole fingerprint.
+
 Each panel is a statement the signer made. The panel says whether a CA verified that signer or whether the signer is self-asserted. A record says a decision happened. It does not say the file meets a brand rule, a licence or a law.
 
 **When the check fails**, the record stays on the page under the heading **Approval record**, under a warning and with a red **Approval** lamp, because you need to know the claim is there and cannot be relied on. **Made for** is not shown in that case: an intent record is read only from a credential that verifies.
@@ -42,6 +44,13 @@ A design system's publisher can [record the address of its brand page](/info/bra
 **The signer recorded this address. It does not show that the page belongs to anyone.** Anyone can publish a page that looks like a brand's own, and anyone with a signing key can record any address. Read the host, then decide.
 
 Only a plain `https` address on a named host is shown. When a credential does not verify, or the value is anything else, Lolly Verify says the file holds an address and leaves the address out. The same address in a file's own metadata is editable, so it is listed under **Links in this file** with the other unverified links. `lolly validate`, the terminal app and `lolly_verify` label the address as recorded data, and never print it as a link.
+
+
+### Partner
+
+A file made for a partner company in a [Lolly Work partner programme](/info/manage/partner-programmes.html#the-partner-record-in-files) records the company beside the design system. Lolly Verify lists the record as **Partner** in the file's credential details, beside **Design system**: the company, the programme and the revision of the company's details, such as "Northwind IT, Resellers, EMEA programme, details revision 3". When the piece carried the company's partner kit, the fact ends with the kit's revision: ", kit revision 2". A programme with no company reads "Resellers, EMEA programme". The revision tells the workspace which of the company's details the file was made with, and the workspace keeps every revision.
+
+The record is the company's, written by whoever signed the file. It holds no person, contact details, address, currency, token or agent, and of a kit only its id and revision. It does not show that the company approved the piece, and Lolly does not check the company's own brand rules.
 
 ## AI-generated content
 

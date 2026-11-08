@@ -52,7 +52,10 @@ export function madeWithWords(record: DesignRecord | null | undefined, opts: { s
 export function partnerWords(partner: ExportPartner | null | undefined): string {
   const company = partner?.company?.label;
   const programme = partner?.programme?.label;
-  if (company) return programme ? tRaw('Partner: {company} ({programme})', { company, programme }) : tRaw('Partner: {company}', { company });
+  if (company) {
+    const words = programme ? tRaw('Partner: {company} ({programme})', { company, programme }) : tRaw('Partner: {company}', { company });
+    return partner?.kit ? tRaw('{partner}, kit revision {revision}', { partner: words, revision: partner.kit.revision }) : words;
+  }
   return programme ? tRaw('Partner programme: {programme}', { programme }) : '';
 }
 
@@ -67,7 +70,8 @@ export function partnerFact(environment: Readonly<Record<string, unknown>> | nul
   if (partner.company) parts.push(partner.company.label);
   if (partner.programme) parts.push(tRaw('{programme} programme', { programme: partner.programme.label }));
   if (partner.company) parts.push(tRaw('details revision {revision}', { revision: partner.company.revision }));
-  return parts.join(', ') || null;
+  const words = parts.join(', ');
+  return partner.kit ? tRaw('{partner}, kit revision {revision}', { partner: words, revision: partner.kit.revision }) : words || null;
 }
 
 /** The slice of a design-system summary the Recreate rule compares. */

@@ -6,6 +6,12 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+## 1.343.0
+
+- The partner record gains the piece's attached kit (Lolly Work plan 82, M8, L-M8-5). `ExportPartner.kit` (SDK 1.8.0) holds the kit asset's catalog id and attached revision, only beside a valid company. The web shell sets the record at mount and follows Attach and Detach, with a kit recorded only when its company id matches the workspace partner company.
+- The credential's `environment` gains exactly `partnerKit` and `partnerKitRevision` (text), and XMP and SVG metadata gain `lolly:PartnerKit` and `lolly:PartnerKitRevision`. `readDesignRecord` reads them back into `partner.kit`. The PDF keywords and description stay unchanged. No kit colours, rules or bytes are written.
+- The export card's partner part appends ", kit revision 2", and Verify's Partner fact ends with "details revision 3, kit revision 2". The record's existing switch leaves the kit out with the partner. A piece with no attachment or with another company's kit records no kit.
+
 ## 1.342.0
 
 - The template approval record (`tools.lolly.approval`, `covers: 'template'`, 1.336.0) takes a template id whose segment after the first starts with `-` or `_`. Lolly Work mints a published template's id from random base64url (`inst/<11 characters>`), so about one id in thirty-two starts that way, and the writer and reader refused it: a variant render of such a template was signed without its approval record. `APPROVAL_TEMPLATE_ID` now allows `[A-Za-z0-9_-]` from the first character of each later segment. There are still no spaces, dots or free text, so a template's name cannot take the id's place. The record's shape and fields are unchanged.

@@ -100,6 +100,7 @@ export async function attachPieceKit(host: Pick<HostV1, 'assets' | 'log'>, runti
   const att = readPartnerKitAttachment(attachment);
   if (!att) return null;
   setPieceState(runtime, { attachment: att, kit: null });
+  notifyPieceKit();
   const kit = await (deps.load ?? loadPartnerKit)(host, att);
   if (getPieceState(runtime)?.attachment !== att) return null; // detached or replaced while it read
   if (!kit) {

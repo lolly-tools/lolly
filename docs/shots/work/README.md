@@ -50,3 +50,21 @@ Check text, form values, crop boundaries and credential lines. Browser previews 
 for visual review are temporary; the documentation assets remain SVGs. The tests check
 vector files, references from nested guides, theme pairs and valid screen-capture
 credentials.
+
+## Reproduce the partner programme screenshots
+
+The `partner-*` recipes run after the other console shots, on a second in-memory demo. It is
+seeded over the API with an example programme, Resellers, EMEA, its companies Northwind IT and
+Contoso Systems, two people and one agent token. The app shots (`partner-home`,
+`partner-company-sheet`, `partner-template-tool` and `partner-export-record`) need the Lolly shell
+built with the `lolly-demo` profile in the checkout `LOLLY_OSS_DIR` names.
+
+```sh
+LOLLY_OSS_DIR=<Lolly checkout with a built shell> LOLLY_PROFILE=lolly-demo \
+  node scripts/capture-console.ts partner-programme-templates partner-company partner-licences \
+  partner-end-dry-run partner-agent-tokens partner-agent-usage partner-limits partner-limits-tokens \
+  partner-home partner-company-sheet partner-template-tool partner-export-record
+```
+
+The End card shot schedules its end 21 days after the capture day, so its date changes with each
+capture.

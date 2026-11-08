@@ -493,6 +493,8 @@ export interface ExportPartner {
   company?: { id: string; label: string; revision: number };
   /** The partner programme: its workspace id and its name. */
   programme?: { id: string; label: string };
+  /** The piece's attached kit: its catalog asset id and revision, only for this company (engine 1.343+). */
+  kit?: { id: string; revision: number };
 }
 
 /** One brand skill revision that guided an export (plan 323). */

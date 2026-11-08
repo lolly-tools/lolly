@@ -86,6 +86,7 @@ function clearEnv(db: Map<string, unknown>, order: string[], signal: ClearSignal
       };
     },
     indexedDB: null,
+    serviceWorkers: null,
     caches: null,
     storageRoot: async () => null,
     localStorage: null,

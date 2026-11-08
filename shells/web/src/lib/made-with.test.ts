@@ -10,6 +10,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { designRecordEnvironment } from '../../../../engine/src/metadata.ts';
 import { guidedByFact, madeWithFact, madeWithLine, madeWithWords, partnerFact, partnerWords, recreateHrefFor, recreateSystemId, recreateWithRecord, withDesignRecordParams } from './made-with.ts';
+import { tRaw } from '../i18n.ts';
 
 const RECORD = {
   designSystem: { id: 'acme', label: 'Acme & Co' },
@@ -110,4 +111,16 @@ test('the partner (Lolly Work plans/82 M3): the export card\'s line and Verify\'
   assert.equal(partnerFact(env), 'Northwind IT, Resellers, EMEA programme, details revision 3');
   assert.equal(madeWithFact(env), 'SUSE · Colourway: Spearmint', 'Verify lists the partner as a fact of its own');
   assert.equal(partnerFact(designRecordEnvironment({ designSystem: { id: 'suse', label: 'SUSE' } })), null);
+});
+
+test('the attached partner kit: the export card line and Verify fact, word for word as approved', () => {
+  const partner = { company: { id: 'northwind-it', label: 'Northwind IT', revision: 3 }, programme: { id: 'resellers-emea', label: 'Resellers, EMEA' }, kit: { id: 'inst/5b2e', revision: 2 } };
+  const record = { designSystem: { id: 'suse', label: 'SUSE' }, themes: [{ group: 'colourway', kind: 'colourway' as const, id: 'spearmint', name: 'Spearmint' }], partner };
+  assert.equal(tRaw('Records: {words}', { words: madeWithWords(record) }),
+    'Records: SUSE · Colourway: Spearmint · Partner: Northwind IT (Resellers, EMEA), kit revision 2');
+  assert.equal(partnerWords({ company: partner.company, kit: partner.kit }), 'Partner: Northwind IT, kit revision 2');
+  const env = designRecordEnvironment(record);
+  assert.equal(partnerFact(env), 'Northwind IT, Resellers, EMEA programme, details revision 3, kit revision 2');
+  assert.equal(madeWithFact(env), 'SUSE · Colourway: Spearmint');
+  assert.equal(partnerFact({ ...env, partnerCompany: undefined }), 'Resellers, EMEA programme');
 });
