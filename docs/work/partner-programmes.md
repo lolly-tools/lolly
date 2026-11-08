@@ -214,6 +214,11 @@ Nothing is written unless every file qualifies: a file outside the audience's fe
 
 ![The Licences card for Resellers, EMEA: the gate set in configuration, 1 of 17 files held back because its licence is not recorded, and the sources that travel, most of them exempt](shots/partner-licences.svg)
 
+In this example one logo in the Partner logos collection records no licence, so the gate holds the
+logo back: the row reads "Licence not recorded: 1". To send the logo, mark the file as your own
+with **Mark** on its page in the catalog, which records the logo as owner-published, or choose
+**Share anyway** for this programme.
+
 The programme's **Licences** card shows, for one programme:
 
 - the mode and its reason;
@@ -347,8 +352,9 @@ company without joining the programme.
   a three-letter ISO code and a tax note such as "Prices exclude VAT". **Save details** saves them
   as a numbered revision, and **Revision history** keeps every revision.
 - **Logos.** **Logo for light surfaces**, **Logo for dark surfaces** and an optional **Mark**, a
-  square mark for badges and small spaces. Each is previewed on your design system's light and
-  dark surfaces. A replaced logo becomes the next version of the same asset, and only that
+  square mark for badges and small spaces. Each logo is previewed on both of your design
+  system's surfaces, light and dark, which shows why a company needs a version for each: a logo
+  made for light surfaces looks faint on the dark preview. A replaced logo becomes the next version of the same asset, and only that
   company's people and agent tokens receive its logos.
 
 | Limit | Value |
@@ -665,7 +671,7 @@ still include.
 
 ### End a partnership
 
-![The End this partnership card for everyone at Northwind IT, set to end at the close of 29 November 2026 with a notice: Rita Ortiz and Nils Berg lose access, and the button schedules the end](shots/partner-end-dry-run.svg)
+![The End this partnership card for everyone at Northwind IT, set to end at the close of a chosen day with a notice: Rita Ortiz and Nils Berg lose access, and the button schedules the end](shots/partner-end-dry-run.svg)
 
 The **End this partnership** card on the programme's page, the same card on a company's page for
 that company alone, or `POST /api/v1/programmes/exit` with a programme, a company, a domain or a
@@ -795,6 +801,8 @@ programme, never the agent.
 
 ### Programme tokens
 
+![The Agent tokens card for Northwind IT: Rita's agent with its limits, where each figure comes from, today's use and the expiry, then the form that mints a token with a label, a lifetime, what it may do and its limits](shots/partner-agent-tokens.svg)
+
 Anyone with `programme.manage` for a programme issues its tokens from the **Agent tokens** card,
 on the programme's page or on a company's page for that company. **Mint token** takes a label, the
 company, the scopes, the days until the token expires and any limits, then shows the secret once,
@@ -840,6 +848,8 @@ as "This token has used its 2,000 renders for today. The budget renews at 00:00 
 budget cannot hold is refused whole. A token in no programme has no limits unless an owner sets
 some.
 
+![The Agent tokens card on the Limits and quotas tab: the default calls a minute and renders a day, their maxima and the token lifetime bounds, each with its source](shots/partner-limits-tokens.svg)
+
 **What agents did**, on the same page, totals what each token did over the last 4 weeks or the
 last 7 days, and **Download CSV** gives the same counts week by week or day by day. `lw programmes usage <programme>`
 (`GET /api/v1/programmes/:id/usage`) counts what each token did,
@@ -848,6 +858,8 @@ that keep a record, the durable ones), batches, deliveries,
 approval requests and refusals by code, with totals per company and for the programme. `--csv` gives
 the same as a spreadsheet. The counts hold no input values, prompts, titles, file names or agent
 names.
+
+![What agents did over the last 4 weeks: calls, renders, batches, deliveries, approvals and refusals for Rita's agent, for Northwind IT and for Resellers, EMEA, then renders by tool](shots/partner-agent-usage.svg)
 
 ### What an agent reads
 
@@ -915,6 +927,8 @@ example file the reviewer saw. It never holds this file's own fingerprint, a nam
 the approval did not cover and one from an instance with no signer carry no record.
 
 ## Limits and quotas
+
+![The Partner programmes card on the Limits and quotas tab: each limit with its value and where the value comes from, such as the 30-day Reopen window and the 512 KB SVG logo size](shots/partner-limits.svg)
 
 The deployment page's **Limits and quotas** tab, for people with `policy.edit`, lists the limits
 Lolly Work enforces, grouped by area and read from the same figures the code enforces. The areas include rate limits,

@@ -275,6 +275,9 @@ next revision, so the three logos bring Northwind IT to revision 4.
 
 
 ![Northwind IT's page in the console: its details at revision 4, its logos for light and dark surfaces and its mark, each previewed on both surfaces, and Contacts who may edit, off](shots/partner-company.svg)
+
+Each logo is previewed on both surfaces, which is why Northwind IT sends one for light surfaces
+and one for dark: the light-surface logo looks faint on the dark preview.
 **Rita** still sees nothing, but every piece she makes from now on can carry these details.
 
 ### 4. Publish the data sheet
@@ -341,6 +344,8 @@ step 3.
 keep the default scopes and the 90 days until the token expires, and press **Mint token**. Copy
 the secret, which is shown this one time, press **I have copied it** and hand the secret to Rita.
 
+![The Agent tokens card for Northwind IT: Rita's agent with its limits, where each figure comes from, today's use and the expiry, then the form that mints a token with a label, a lifetime, what it may do and its limits](shots/partner-agent-tokens.svg)
+
 **`lw`.**
 
 ```bash
@@ -370,7 +375,7 @@ ticked and press **See what ending it does**. The dry run lists Rita, her agent 
 anything else that ends, one table per kind. **Schedule the end for 30 June 2027** then schedules
 it in two steps, and the scheduled end shows on the page with **Change** and **Cancel the end**.
 
-![The End this partnership card for everyone at Northwind IT, set to end at the close of 29 November 2026 with a notice: Rita Ortiz and Nils Berg lose access, and the button schedules the end](shots/partner-end-dry-run.svg)
+![The End this partnership card for everyone at Northwind IT, set to end at the close of a chosen day with a notice: Rita Ortiz and Nils Berg lose access, and the button schedules the end](shots/partner-end-dry-run.svg)
 
 **`lw`.** The same end from a terminal:
 
