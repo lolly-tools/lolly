@@ -119,7 +119,7 @@ Lolly Logo Wall does not know any sponsor's rules. Tiers and Presence set sizes 
 
 - A piece is drawn in one design system. The partner's colours, type and rules are not a design system inside the piece, and the partner's mark is a picture.
 - Partner rules are not held or checked in the app: clear space, minimum size and allowed treatments such as one colour or reverse. Lolly checks the lead brand's house rules only.
-- A partner kit, a light pack that holds a partner's logos, colours and rules for use inside another brand's work, is not in the app yet. Its format and its check exist: `lolly check --kit=<file>` measures a Lolly Design document's partner marks from a terminal ([Check the recreation](/info/cli-decks.html#check-the-recreation)).
+- A partner kit, a light pack that holds a partner's logos, colours and rules for use inside another brand's work, is not in the app yet. Lolly Work keeps one for each partner company in a programme, and the kit's check exists: `lolly check --kit=<file>` measures a Lolly Design document's partner marks from a terminal ([Check the recreation](/info/cli-decks.html#check-the-recreation)).
 - Lolly does not generate a lockup from two marks for a "with", "in partnership with" or "by" arrangement. Add a finished lockup as a custom mark.
 - One design system is active for the whole device, so two brands cannot be open side by side.
 - A design-system file is a copy of the brand as it was exported, and nothing updates the copy. A design-system file exported from the app does not carry brand skills, so send those as files of their own.

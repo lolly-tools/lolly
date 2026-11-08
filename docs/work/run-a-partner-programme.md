@@ -6,9 +6,8 @@ answers two questions. What does a partner get in Lolly Work? And how do you sha
 first setup to the end of a partnership?
 
 Each step links to [Partner programmes](partner-programmes.md), the reference with every option,
-route and audit event. Most steps happen in the Lolly Work console. A few are done with `lw`,
-Lolly Work's command line, until their console card arrives, and each of those steps gives the
-command.
+route and audit event. Most steps happen in the Lolly Work console, and `lw`, Lolly Work's
+command line, does the same from a terminal.
 
 ## Four words
 
@@ -30,14 +29,14 @@ unaffected, and admins and owners are never narrowed.
 | **To start with** | Your design system's colours, type and palettes, so every tool draws in your brand. No tools, files, announcements or projects meant for your own people. | Built in |
 | **Tools** | Only the tools their programme includes: in the gallery, in search, in server renders and for their agents. | **Choose what they get** |
 | **Files** | Only the files shared with their programme or their company: a collection, a folder of a connected source or a file submitted to the programme. A file shared with everyone does not reach them. | **Choose what they get** and **Provider folders** |
-| **Licences** | When the licence gate is on, only the shared files whose licence lets them be passed on, that your team marked as its own or that someone chose to share anyway. | An administrator's setting |
+| **Licences** | When the licence gate is on, only the shared files whose licence lets them be passed on, that your team marked as its own or that someone chose to share anyway. | An administrator's setting, and the programme's **Licences** card |
 | **Templates** | The templates published to them, on their home and in the tool's **Start** chooser. They change only what you left open; everything else is simply not there, with no note about why. | The programme's **Templates** card |
 | **Templates only** | Optional, per tool: the tool leaves their gallery, and they make pieces from your templates only. Off by default. | A switch under each template |
 | **Their company** | A card for their company at the top of their home, with its logos and details. A template that takes company details fills them in, and partners cannot change those inputs. Named contacts may edit the details. | The company's page |
 | **What they can do** | Open tools and files, make, save and export pieces, comment, work in projects and make links to what they can see. Admin actions are refused for partners whatever a grant says: editing grants, policy, programmes or the catalog, inviting people, sending messages, making groups and deciding approvals. | Fixed |
 | **Their files** | Each export records the company and programme it was made for, and the revision of the company's details. Never the person, a contact's details, the address, the currency, a token or an agent. | Built in; the export panel's **Design system** card can leave the record out |
-| **Their agents** | A token you issue sees what the company's people see, within limits you set. | `lw` today |
-| **When they leave** | Access ends at once, or on a date you choose with a notice before. Links they made stop working. | **End this partnership**, or `lw` for a date |
+| **Their agents** | A token you issue sees what the company's people see, within limits you set. | The **Agent tokens** card |
+| **When they leave** | Access ends at once, or on a date you choose with a notice before. Links they made stop working. | **End this partnership** |
 
 ## Set up a programme
 
@@ -71,7 +70,10 @@ Work in this order. Everything can be changed later.
 5. **Check what they get.** On the programme's page, or a company's, **See what they get** shows
    the programme or the company as its partners get it: the tools, the files and the templates
    with what each lets them change, each drawn with the company's details. Check here before
-   anyone is invited ([See what they get](partner-programmes.md#see-what-they-get)).
+   anyone is invited. To see the app itself as a partner does, choose **View as partner…** in the
+   app's account menu, then the programme and a company; **Stop viewing** ends the view
+   ([See what they get](partner-programmes.md#see-what-they-get),
+   [View as partner](partner-programmes.md#view-as-partner)).
 6. **Invite the people.** On the programme's page, **Add people** takes a list, with a company and
    an end date on each line, and shows what will happen before anything does. **Domains** lets everyone at a partner's
    proved domain join the programme and the company when they sign in. Lolly Work sends no email
@@ -129,49 +131,48 @@ companies; anywhere else those inputs start from the tool's own default
 ([A person in two programmes](partner-programmes.md#a-person-in-two-programmes)).
 
 **A file the licence gate holds back.** With the licence gate on, a file that records no licence
-stays with your own people. Your brand team can mark a folder or a file as your own, or record the
-licence of a file that records none. You can also share one held file anyway with one programme or
-company, and the choice is recorded with your name. A console card for this is planned. Until then
-`lw programmes rights-report` lists what is held and why, `lw catalog rights` records marks and
-licences and the API shares a file anyway ([Licences](partner-programmes.md#licences)).
+stays with your own people. The programme's **Licences** card shows what reaches its partners, what
+is held back and why. Your brand team can mark a folder or a whole source as your own with **These
+are ours**, or record a file's licence on its page in the catalog. You can also **Share anyway**
+held files with one programme or company, with a note: the card shows who chose each file, and
+**Withdraw** takes a choice back. When you give a provider folder, the form says how many of its
+files record no licence ([Licences](partner-programmes.md#licences)).
 
-**Ending a partnership.** **End this partnership** on the programme's page ends the whole
-programme or one company. It first shows what ending does, then does all of it in one step: nobody
+**Ending a partnership.** The **End this partnership** card on the programme's page ends the
+whole programme, and the same card on a company's page ends that company alone. It first shows what ending does, then does all of it in one step: nobody
 new joins through its domains, accounts are disabled and signed out, their links and agent tokens
 stop working, open invitations are withdrawn, templates published only to them are retired, their
 provider folders end and their projects move as you chose. Someone who is also in another live
 programme keeps the account and leaves only this programme
 ([End a partnership](partner-programmes.md#end-a-partnership)).
 
-**Ending on a date.** An end can wait for a day you choose. People are told in their notifications
-14 days and 1 day before, and their company card gives the date. Set the date with
-`lw people exit --at` today
-([End on a date, with a notice](partner-programmes.md#end-on-a-date-with-a-notice)).
+**Ending on a date.** In the same card, choose **At the end of a day** and the day. With **Tell
+them before the end** ticked, people are told in their notifications 14 days and 1 day before, and
+their company card gives the date. The scheduled end then shows on the page with **Change** and
+**Cancel** ([End on a date, with a notice](partner-programmes.md#end-on-a-date-with-a-notice)).
 
-**Undoing an end.** Within 30 days, `lw people reopen` brings back the people, templates, folders
-and projects an end took away. Links, tokens and sessions stay ended
+**Undoing an end.** An ended programme or company shows the date of the end and the person who
+ended the partnership. For 30 days its page offers **Reopen**, which first shows who signs in again
+and what comes back: the people, templates, folders and, with **Give their projects back**, their
+projects. Links, tokens, licence choices and sessions stay ended
 ([Reopen an end](partner-programmes.md#reopen-an-end)).
 
 ## Partners' agents
 
-A partner can work through an AI agent too. The programme's manager issues the agent a token for
-the programme, or for one company in it, with `lw tokens add --programme`. The token sees what that
-company's people see, reads your brand guidance and its company's details over your organisation's
-MCP endpoint, and the files it makes record the company, never the agent. Tokens have limits, by
-default 120 calls a minute and 2,000 renders a day, and you can read what each token did. Approvals
-for agents are off unless you turn them on. A console card for tokens, and offering templates to
-agents by purpose, are planned ([Partners' agents](partner-programmes.md#partners-agents)).
+A partner can work through an AI agent too. On the programme's page, or a company's, the **Agent
+tokens** card mints a token for the agent, for the programme or one company, and shows its secret
+once. The token sees what that company's people see, reads your brand guidance and its company's
+details over your organisation's MCP endpoint, and the files it makes record the company, never the
+agent. When the agent asks for a piece by what the piece is for, your templates are offered where
+their purposes fit. Tokens have limits, by default 120 calls a minute and 2,000 renders a day, which
+the card shows with today's use, and **What agents did** counts what each token did. Approvals for
+agents are off unless you turn them on ([Partners' agents](partner-programmes.md#partners-agents)).
 
 ## Not yet
 
-- **Partner kits.** A partner company's own rules for its logo, such as clear space and minimum
-  size, checked as a partner works in Lolly Design. The kit format and the check exist, and
-  `lolly check --kit` reads a kit from a terminal; keeping a kit for each company in Lolly Work is
-  planned.
-- **Console cards** for licences, agent tokens and their use, a planned end and Reopen. Use `lw` or
-  the API until then.
-- **View as partner**: opening the app itself as one of a programme's companies, beyond what
-  **See what they get** shows.
+- **Partner kits in the app.** A partner company's own rules for its logo, such as clear space and
+  minimum size, checked as a partner works in Lolly Design. Lolly Work keeps a kit for each company
+  today, with `lw companies kit`; a console card and the check in the app are planned.
 
 ## Related
 

@@ -115,7 +115,8 @@ OneDrive/SharePoint by directory, Brandfolder by section. Google Drive reads one
 you turn on `recursive` ([Google Drive](providers/gdrive.md)).
 
 With the [licence gate](#licences) on, a folder's files reach partners only as their licence
-records allow. To send a folder of your own work, mark the folder as your own.
+records allow. When you choose a folder, the form says how many of its files have no licence
+record, and **These files are ours** marks the folder as your own in the same save.
 
 ## Licences
 
@@ -132,8 +133,8 @@ The licence each file records can decide what reaches partners. One setting choo
 When the setting is absent, the instance decides once, at its first start on this release: a new
 instance with no accounts yet gates, and an instance upgraded with accounts already in place
 reports. The decision never changes by itself, and the setting always wins over the decision. The
-report and the setup check (`partner-rights` in `GET /api/v1/system/setup`) give the mode and the
-reason in one line, with the setting to change.
+report, the **Licences** card and the setup wizard's **Licence gate for partners** check give the
+mode and the reason in one line, with the setting to change.
 
 Your own people receive exactly what they did before, in either mode. Some files are exempt,
 because every tool needs them or because they are yours by nature: tokens, fonts, palettes,
@@ -195,14 +196,36 @@ later. Withdraw a choice at any time; ending a partnership withdraws its choices
 - **The collection link page** shows one credit line for a file whose licence asks for a credit,
   with the licence and the source.
 
-### The licence report
+### The Licences card
 
-`lw programmes rights-report <programme>` and `GET /api/v1/programmes/:id/rights-report` show, for
-one programme: the mode and its reason; what travels and what is held, by source and by licence;
-the marks and choices in force, with who made them; the links your people made that would lose
-files; the published templates that use a file an audience will not receive, such as "Partner
-price sheet uses 2 files held back from Northwind IT"; and the limits. A console card for all of
-this is planned. Until then use the report, `lw catalog rights` and the routes below.
+The programme's **Licences** card shows, for one programme:
+
+- the mode and its reason;
+- what travels and what is held back, source by source, with the reason for each held file;
+- **These are ours** on a folder or source row. The holder and terms are filled in, the sentence
+  says the mark is your own statement and that Lolly does not check ownership, and one
+  confirmation records the mark;
+- **Share anyway** for one held file or several at once, with a note;
+- **Shared anyway**, with who chose each file and when, and **Withdraw**;
+- pack files held back, by id prefix, with what each declares;
+- the published templates that start with files an audience will not receive, such as "Partner
+  price sheet uses 2 files held back from Northwind IT";
+- the links your people made that would lose files;
+- the limits the server enforces.
+
+Elsewhere in the console:
+
+- **Preview**'s **Assets** card lists the files held back, the files shared anyway, with who chose
+  them, and the files that need a new choice.
+- An asset's page has a **Licence** row: what the file records and where the answer comes from
+  (its own record, a licence record or a mark, with who stated it and when), with **Record
+  licence**, **Mark** and **Unmark**.
+- The **Collections** card has a **Travel** column, such as "8 of 10".
+- A collection's link buttons run the dry run first. When files are held, choose **Make the link
+  without them** or **Include them anyway**, with a note.
+
+`lw programmes rights-report <programme>` and `GET /api/v1/programmes/:id/rights-report` give the
+same report from a terminal, and `lw catalog rights` records marks and licences.
 
 ## Templates
 
@@ -378,6 +401,27 @@ the limits listed. When an end date applies to the person, the card adds "Your a
 Resellers, EMEA ends on 21 November 2026", in UTC and in the reader's own date order. Nothing on
 the card mentions a rule or a policy.
 
+### Partner kits
+
+A partner kit holds a company's own logo rules for use inside your work: its logos for light and
+dark surfaces and its mark, up to 12 colours in named roles, and optional rules for clear space,
+minimum size and allowed treatments. Lolly Work keeps one kit for each company, as a file only that
+company's people and agents receive; a change is a new revision.
+
+- **Import** a starting point from the company's tokens file (DTCG, Tokens Studio or Penpot), from
+  a `.lolly` share, or from the inks of the company's SVG logos. An import proposes logos and
+  colours only and stores nothing: Lolly does not know a partner's rules, so a person types clear
+  space, minimum size and treatments. Whether your brand team or the partner's own designer does
+  that depends on how you work together.
+- **The logos** a kit pins must be the company's own logos from its page.
+- **Who edits.** Anyone with `programme.manage`, and a contact who may edit the company's details.
+- **Ending.** Ending a partnership retires the kit, Reopen brings back the revision it retired, and
+  deleting the company deletes the kit. With the licence gate on, a kit counts as the company's own
+  file.
+
+Kits are kept with `lw companies kit show|import|set|remove` and the routes below today. A console
+card, and the check in Lolly Design as partners work, are planned.
+
 ## Add people
 
 **Add people** on the programme's page takes a pasted list or a CSV file's text, one address per
@@ -502,6 +546,26 @@ A template the groups do not get answers `404`. Under each input taken from the 
 says where the value comes from, for example "Details line: set from Northwind IT's details
 (contact), and fixed." Only admins see these lines.
 
+### View as partner
+
+Someone who manages a programme can open the app itself as one of its partners. In the app's
+account menu, choose **View as partner…**, then the programme and, optionally, one company. The tab
+reloads as that partner: their home, company card, templates and tools, with their locks and their
+company's details. A banner reads "Viewing as Northwind IT · Resellers, EMEA" and "Changes are not
+saved to the partner's account."; **Stop viewing** is the only way out, and Esc does not close the
+banner.
+
+- **One tab.** The view lives in that tab only and ends after an hour. Your other tabs stay your
+  own, and the view keeps its own storage, so your saved work and settings are untouched.
+- **Only what both of you may see.** The view shows what the partner gets, and never anything your
+  own access leaves out beyond the viewed programme's and company's own files.
+- **Downloads, saves and copies work.** A file made while viewing records the company it was made
+  for, and the person who made it is you, never the partner.
+- **Nothing else.** Every change to the partner's account is refused, first-run prompts are hidden
+  and live collaboration stays closed: "Not while viewing as a partner".
+
+Each view's start and end are audited as `programme.view-as` and `programme.view-as.end`.
+
 ## A person in two programmes
 
 Someone in two programmes gets the tools and assets of both. Input rules combine as described
@@ -540,10 +604,13 @@ still include.
 
 ### End a partnership
 
-**End this partnership** on the programme's page, or `POST /api/v1/programmes/exit` with a
-programme, a company, a domain or a list of addresses, first shows what ending it does: the
-accounts, the projects each owns, the links each made, the invitations still open and the domains
-that stop letting people join. Choose what happens to their projects:
+The **End this partnership** card on the programme's page, the same card on a company's page for
+that company alone, or `POST /api/v1/programmes/exit` with a programme, a company, a domain or a
+list of addresses, first shows what ending does, one table per kind: the people, with who stays
+through another programme and who cannot be ended; their projects, share links and agent tokens;
+the templates to retire; the folders, domain rules and licence choices to withdraw; and the open
+invitations. Below the tables it says what ending does, how long Reopen is offered and who is
+told when. Choose what happens to their projects:
 
 - **Move their projects to the owning team, read-only** (the default when the programme has an
   owning team): the person who made the programme becomes the owner (you, when that account
@@ -583,14 +650,18 @@ their history stay, because files already made record them.
 
 ### End on a date, with a notice
 
-An end can wait for a day you choose: `lw people exit --programme <id>` or `--company <id>` with
-`--at YYYY-MM-DD`, or `at` on `POST /api/v1/programmes/exit`. It ends at the end of that day in
-UTC, run by the server's minute check and credited to the person who scheduled the end. A
-programme or company holds one scheduled end at a time (`409 EXIT_SCHEDULED`). `PUT
-/api/v1/programmes/exits/:id` moves the date, or ends the partnership at once with `at: "now"`,
-and `DELETE` cancels the scheduled end.
+An end can wait for a day you choose. In the End card, choose **At the end of a day** under when,
+then the day; the button reads "Schedule the end for 30 November 2026". A domain always ends now.
+The end runs at the end of that day in UTC, by the server's minute check, and is credited to the
+person who scheduled the end. A programme or company holds one scheduled end at a time
+(`409 EXIT_SCHEDULED`). The scheduled end shows on the programme's page, or the company's, with
+**Change** for a new date or notice and **Cancel**. From a terminal,
+`lw people exit --programme <id>` or `--company <id>` takes `--at YYYY-MM-DD`; the API takes `at`
+on `POST /api/v1/programmes/exit`, and `PUT /api/v1/programmes/exits/:id` moves the date or, with
+`at: "now"`, ends the partnership at once.
 
-A notice goes out unless you turn it off with `--no-notice` (`notice: false`). Each person whose
+A notice goes out unless you untick **Tell them before the end** (`--no-notice`, or `notice:
+false`). Each person whose
 access ends is told in their notifications 14 days and again 1 day before the end, or at once when
 the end is nearer, and by email too when [people's email](configuration.md#emailing-people-notices)
 is set up. The notice reads "Your access through Resellers, EMEA ends on 21 November 2026", with
@@ -604,9 +675,14 @@ date sends the same notice to that person.
 
 ### Reopen an end
 
-An end made by mistake can be reopened from its receipt within 30 days.
-`lw people exits <programme>` lists a programme's ends, newest first, with whether Reopen is still
-offered, and `lw people reopen <exit>` previews what comes back; add `--apply` to reopen.
+An end made by mistake can be reopened from its receipt within 30 days. An ended programme or
+company reads "Ended on 8 November 2026 by" and the name of the person who ended it, with the
+receipt below as counts. While the 30 days run, the page offers **Reopen**, with **Give their
+projects back** ticked. Reopen first shows who signs in again, what comes back and what stays
+ended, then reopens in a second step. After the 30 days, the page says Reopen is no longer offered
+and to add the people again by list. From a terminal, `lw people exits <programme>` lists a
+programme's ends and `lw people reopen <exit>` previews; add `--apply` to reopen.
+
 Reopening brings back the accounts that end disabled, their groups and memberships, the templates it retired, the
 provider folders it ended (where their own end date is still ahead), the domain rules it withdrew
 (where the domain's proof still holds) and the projects it moved, unless you pass
@@ -654,9 +730,11 @@ programme, never the agent.
 
 ### Programme tokens
 
-Anyone with `programme.manage` for a programme issues its tokens: `lw tokens add --programme
-resellers-emea --company northwind --label "Rita's agent"`, or `POST
-/api/v1/programmes/:id/tokens`. A grant of `programme.manage` on `programme:<id>` lets its holder
+Anyone with `programme.manage` for a programme issues its tokens from the **Agent tokens** card,
+on the programme's page or on a company's page for that company. **Mint token** takes a label, the
+company, the scopes, the days until the token expires and any limits, then shows the secret once,
+with **Copy**. From a terminal or the API: `lw tokens add --programme resellers-emea --company
+northwind --label "Rita's agent"`, or `POST /api/v1/programmes/:id/tokens`. A grant of `programme.manage` on `programme:<id>` lets its holder
 manage that programme's tokens only. The server sets what the request cannot: the `automation`
 role, the programme's and company's groups and the `partner` group. The secret appears once.
 
@@ -667,7 +745,7 @@ role, the programme's and company's groups and the `partner` group. The secret a
 - **Tools.** A list inside the programme's own, else `400 TOOL_NOT_IN_PROGRAMME`.
 - **Expiry.** 90 days by default, between 1 and 365. The list marks a token with under 14 days
   left as expiring; no notice is sent.
-- **Revoke** with `lw tokens revoke <id> --programme <programme>`. A programme token is never
+- **Revoke** on the card, in two steps, or `lw tokens revoke <id> --programme <programme>`. A programme token is never
   moved out of its programme (`409 PROGRAMME_TOKEN`), only revoked. Ending the programme or company
   revokes its tokens.
 
@@ -686,15 +764,20 @@ Every token placed in a programme meets three limits:
 | Renders a day, in UTC | 2,000 | `--renders-per-day <n>` | `--renders-per-day <n>` |
 | Renders a month, in UTC | No cap | `--renders-per-month <n>` | `--renders-per-month <n>` |
 
-The token's own figure wins, then its programme's, then the instance default
-(`automation.tokenLimits`). `none` removes a cap and `default` takes the next level's figure.
+The **Agent tokens** card shows each limit with where the figure comes from and today's use
+against it, with what a limit turned away this week and when. **Change limits** sets a token's own
+figures; a blank field takes the programme's. **Change the programme's limits** sets the figures
+every token there starts with. The token's own figure wins, then its programme's, then the instance
+default (`automation.tokenLimits`). `none` removes a cap and `default` takes the next level's figure.
 Admins see each limit, where it comes from and today's use in the token list. A token over a limit
 gets `429 RATE_LIMITED` or `429 BUDGET_EXHAUSTED` with plain words and the time to try again, such
 as "This token has used its 2,000 renders for today. The budget renews at 00:00 UTC." A render the
 budget cannot hold is refused whole. A token in no programme has no limits unless an owner sets
 some.
 
-`lw programmes usage <programme>` (`GET /api/v1/programmes/:id/usage`) counts what each token did,
+**What agents did**, on the same page, counts what each token did for the last 4 weeks by week or
+the last 7 days by day, with **Download CSV**. `lw programmes usage <programme>`
+(`GET /api/v1/programmes/:id/usage`) counts what each token did,
 by day or week, for up to 92 days: calls, renders by tool, format and outcome, batches, deliveries,
 approval requests and refusals by code, with totals per company and for the programme. `--csv` gives
 the same as a spreadsheet. The counts hold no input values, prompts, titles, file names or agent
@@ -716,6 +799,28 @@ The same answers are at `GET /api/v1/context/*` for REST callers. An agent can l
 validate and render a published Share with rules template over MCP; a value the designer fixed
 answers `422 INPUT_LOCKED`, and one outside the designer's choices `422 INPUT_NOT_ALLOWED`.
 
+### Templates by purpose
+
+An agent can ask for a piece by what the piece is for, with `resolve_intent`, rather than by tool.
+A published template can state its purposes, written like the entries in a tool's `intents.json`:
+the purpose, what it needs, the roles each input takes and the shapes it draws.
+Set a template's purposes with **Purposes** on the programme's **Templates** card, which then
+reads, for example, "This template is for: Promote · Banner, Social landscape", or with `intents`
+on the template's `POST` or `PUT`; `null` clears them.
+
+- Each purpose is checked against the template's rules, so a purpose cannot need something only a
+  fixed input takes. A later change to what partners may change that would break a purpose is
+  refused.
+- An agent is offered the templates in its own feed where their purposes fit, and only the
+  templates for a tool kept to its templates. A retired template is never offered.
+- Inputs the company fills count as given, so an agent for Northwind IT is never asked for the
+  partner's mark or the company name. A programme token with no company still is.
+- A Share with rules file brings its own rules and takes no purposes here.
+
+`GET /api/v1/schema/:toolId?template=inst/<id>`, and `describe_tool` over MCP with `template`,
+describe a render that starts from that template: its rules, its starting values and the company's
+values.
+
 ### Approvals for agents
 
 Approvals stay off for agents unless you turn them on. Give a programme token the
@@ -724,14 +829,22 @@ requests and withdraw them. Deciding stays with people. The request goes to the 
 escalation chain, or else to a chain the programme lists (`PUT /api/v1/programmes/:id
 { approvalChains }`); a partner's agent never reaches an internal chain by name. The approver's
 notice gives the company and the label you wrote on the token, for example "Northwind IT's agent
-(Rita's agent) asked for your review", followed by the step.
+(Rita's agent) asked for your review", followed by the step. The approval card adds that an agent
+asked, and that the file under review is the agent's own render, exactly as Lolly Work made the
+file.
 
 A tool's policy can also let one approval cover a template's variants: with `enforce.approvalCovers`
 set to `template-variants`, approving one version of a published template clears every partner's
 render from it, whatever the inputs the template leaves open, such as the price or the logo. This
-is off by default and set through the API only. A new version, or a change to what is open or
-fixed, needs a new approval. Files cleared this way do not carry the approval record in their
-Content Credentials yet.
+is off by default. Set it in the tool's policy under **One approval covers**: **This file only**,
+the default, or **Every file from one version of a published template**. A new version, or a change to what is open or
+fixed, needs a new approval. A partner's clean render from that template version then carries the
+template's approval record in its own Content Credential: the approval, its date, the template's id
+and version and the fingerprint of the example file the reviewer saw. It never holds this file's own
+fingerprint, a name or a person. [Lolly Verify](/info/what-verify-checks.html#approval-and-intent-records)
+reads the record as "Approved as a template: inst/price-sheet v3 (SVG)". A render that is still
+marked, one in a format the approval did not cover and one from an instance with no signer carry no
+record.
 
 ## API and audit
 
@@ -771,12 +884,20 @@ PUT    /api/v1/programmes/:id/companies/:company/profile/settings       # { edit
 POST   /api/v1/programmes/:id/companies/:company/profile/logo?surface=light|dark|mark   # the file as the body; &dryRun=1 checks only
 DELETE /api/v1/programmes/:id/companies/:company/profile/logo?surface=light|dark|mark
 GET    /api/v1/me/company/profile                 # a partner's own company; PUT and /logo for a contact who may edit
+GET    /api/v1/programmes/:id/companies/:company/kit         # the company's kit; PUT saves a revision, DELETE removes the kit
+POST   /api/v1/programmes/:id/companies/:company/kit/import?from=tokens|lolly|logos   # a proposal; stores nothing
+GET    /api/v1/me/company/kit                     # a partner's own kit; PUT and /import for a contact who may edit
 POST   /api/v1/org-config/preview/render          # draw a template as a programme or company gets it, watermarked
+POST   /api/v1/programmes/:id/view-as             # { company? }: start a view for one tab, for an hour
+POST   /api/v1/view-as/end                        # { token }: end the view
 
 GET    /api/v1/programmes/:id/rights-report       # the licence report
 PUT    /api/v1/programmes/:id/rights/choices      # { assetIds, company?, note? }: share held files anyway; DELETE withdraws
 GET    /api/v1/catalog/rights/marks               # catalog.edit; PUT { scope, holder?, terms?, note? } marks, DELETE ?scope= unmarks
 GET    /api/v1/catalog/rights/licences            # catalog.edit; PUT { assetId, declaration, attribution?, note? }, DELETE ?assetId=
+GET    /api/v1/catalog/rights/asset?id=           # one file's licence answer and where it comes from
+GET    /api/v1/catalog/rights/coverage?scope=     # how many files a mark would cover
+GET    /api/v1/catalog/rights/collections         # what each collection carries to partners
 POST   /api/v1/links?dryRun=1                     # what a link would carry and hold back; staff add includeHeld: true and a note
 
 GET    /api/v1/programmes/:id/exits               # its ends and its companies', newest first, with whether Reopen is offered
@@ -816,7 +937,8 @@ and the templates-only switch as `programme.template.only`. Bindings are audited
 Company details are audited as `programme.company.profile.edit`, with the fields before and after,
 `programme.company.profile.settings` and `programme.company.logo`, which records the surface, the
 asset version and any warnings, never the file. A contact's change that waits for approval is an
-`approval.submit`. Licences are audited as `catalog.rights.mark`, `.unmark`, `.licence` and
+`approval.submit`. A kit is audited as `programme.company.kit`, with the revisions and the
+source, never the files or colours. Licences are audited as `catalog.rights.mark`, `.unmark`, `.licence` and
 `.licence.remove`, and choices as `programme.rights.share-anyway` (one row per file) and
 `programme.rights.withdraw`. A link that carries held files records them, with the note, on its
 `link.create`. Ends are audited as `programme.exit`, `programme.member.leave`,
@@ -853,15 +975,9 @@ lw programmes usage resellers-emea --by week --csv
 
 ## Not yet
 
-- **Partner kits**: a company's own logo rules, such as clear space and minimum size, kept in Lolly
-  Work and checked as partners work. The kit format and its check are in Lolly, and
-  [`lolly check --kit`](/info/cli-decks.html) reads a kit file today.
-- **Console cards** for licences, programme tokens and their use, a scheduled end and Reopen. The
-  routes and `lw` above do each of these today.
-- **Templates for agents by purpose**: an agent asking for a piece by what it is for is offered
-  tools, not yet the programme's published templates.
-- **View as partner**: an admin who manages a programme opening the app itself as one of its
-  companies, beyond what Preview shows.
+- **Partner kits in the console and the app**: a console card for a company's kit, and the kit's
+  check as partners work in Lolly Design. [`lolly check --kit`](/info/cli-decks.html) reads a kit
+  file today.
 - **Share with rules files made from tools other than Design.**
 
 ## Related
