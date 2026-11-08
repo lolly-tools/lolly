@@ -231,7 +231,7 @@ import type { AudioPcm } from '../lib/audio-encode.ts';
 // nothing in THIS file can be reached by a headless test - see its header.
 import { gatherSequenceIngredients, type SequenceIngredientSource } from './sequence-ingredients.ts';
 import { assetIdForUrl, MAX_CREDENTIAL_SCAN_BYTES } from './assets.ts';
-import { recordLayerPictures } from './export-picture-credentials.ts';
+import { recordStagePictures } from './export-picture-credentials.ts';
 
 /**
  * The slice of the web host this renderer needs.
@@ -847,6 +847,54 @@ export function plateWindowDemands(
   return out;
 }
 
+/** How a film poses a slide's boxes (plans/184 R1): one set of options for the plates and the credential. */
+function filmSlidePose(stageEl: HTMLElement, L: SeqLayer): SlidePose {
+  const staged = stageEl.hasAttribute('data-deck-staged');
+  return poseSlideBoxes(L.el, {
+    reduced: false, clicks: 'show', pageStartMs: L.startMs,
+    authoredPageStartMs: staged ? 0 : L.startMs, pageDurMs: L.durMs,
+  });
+}
+
+/**
+ * The boxes of a film's slide that none of `timesMs` shows, by slideShotAt's rule: a
+ * posed box is in a frame's shot when it is active at that frame's slide time. Read
+ * under a pose that is put back before returning, so nothing paints in between.
+ */
+export function slideBoxesNeverShown(stageEl: HTMLElement, L: SeqLayer, timesMs: readonly number[], totalMs: number): Element[] {
+  if (!L.frameScene || L.durMs <= 0) return [];
+  const pose = filmSlidePose(stageEl, L);
+  try {
+    return pose.boxes.filter((box) => {
+      const timing = readTiming(box);
+      return !timesMs.some((ms) => isActiveAt(timing, sceneSampleMs(ms, L.startMs, L.durMs), totalMs));
+    });
+  } finally {
+    pose.restore();
+  }
+}
+
+/**
+ * A stamped film records the pictures its plates draw, as a still records the ones it
+ * paints (#779): each DOM-drawn layer's within its exported frames (`win`, over the same
+ * sample grid the plates are planned on), a slide's boxes only when a frame shows them,
+ * and the background plate's.
+ */
+async function recordFilmPictures(
+  stageEl: HTMLElement, stage: { layers: SeqLayer[]; totalMs: number },
+  win: ReadonlyMap<number, { first: number; last: number }>, sampleGrid: readonly number[], sink: ExportOpts['_ingredientSink'],
+): Promise<void> {
+  const plates = stage.layers.map((L) => {
+    const w = win.get(L.idx)!;
+    const drawn = !L.ignored && L.kind === 'static' && w.first >= 0;
+    return { el: L.el, drawn, hidden: drawn ? slideBoxesNeverShown(stageEl, L, sampleGrid.slice(w.first, w.last + 1), stage.totalMs) : [] };
+  });
+  await recordStagePictures(stageEl, plates, sink, { offClass: OFF_CLASS, backgroundHides: STAGE_BACKGROUND_HIDES });
+}
+
+/** What the stage background plate is shot without: every clip box and every timed frame page. */
+const STAGE_BACKGROUND_HIDES = '.lolly-box, [data-pdf-page][data-t-start]';
+
 /**
  * The stage background plate: everything on the stage that is not a planned layer,
  * photographed once and drawn under every output frame.
@@ -873,10 +921,7 @@ async function stageBackgroundPlate(stageEl: HTMLElement, S: number, transparent
   const stageBg = stageEl.style.background;
   if (transparent) stageEl.style.background = 'transparent';
   try {
-    return await rasterBox(stageEl, S, [
-      ...stageEl.querySelectorAll('.lolly-box'),
-      ...stageEl.querySelectorAll('[data-pdf-page][data-t-start]'),
-    ], opts);
+    return await rasterBox(stageEl, S, [...stageEl.querySelectorAll(STAGE_BACKGROUND_HIDES)], opts);
   } finally {
     if (transparent) { if (stageBg) stageEl.style.background = stageBg; else stageEl.style.removeProperty('background'); }
   }
@@ -1585,9 +1630,6 @@ async function renderSequenceAuthored(
 
   const authoredTotalSec = stage.totalMs / 1000;
   const range = sequenceSettings(node, stage.totalMs, opts.sequenceRange);
-  // A stamped film records the pictures its DOM-drawn layers place in the exported range
-  // (D2, as the stills do since #779). Video and audio clips are gathered above.
-  if (opts.c2pa) await recordLayerPictures(stage.layers, range, opts._ingredientSink, OFF_CLASS);
   const fps = format === 'gif' ? GIF_FPS : Math.max(1, Math.round(opts.fps ?? range.fps));
   const grid = capture?.timesMs ?? frameTimestamps(range.toMs - range.fromMs, fps).map(ms => ms + range.fromMs);
   if (!grid.length) throw sequenceError('SEQ_DECODE_FAILED', 'sequence has no frames');
@@ -1678,6 +1720,8 @@ async function renderSequenceAuthored(
   const win = new Map<number, { first: number; last: number; span: number[] }>();
   for (const L of stage.layers) win.set(L.idx, activeFrameWindow(L, sampleGrid, ext.get(L.idx) ?? 0));
   assertVideoOverlap(stage.layers, sampleGrid.length, win, MAX_LIVE_PROVIDERS);
+  // Before the tilt tier's early exit, which films the same stage live (recordFilmPictures).
+  if (opts.c2pa) await recordFilmPictures(stageEl, stage, win, sampleGrid, opts._ingredientSink);
 
   const transparent = opts.background === 'transparent';
 
@@ -1879,13 +1923,9 @@ async function renderSequenceAuthored(
       // frame while anything moves (`slideShotAt` below) and served one at-rest shot in
       // between, so its static plate is only the fallback - posed at rest, with the boxes
       // not yet on screen hidden from the shot.
-      const staged = stageEl.hasAttribute('data-deck-staged');
       for (const L of stage.layers) {
         if (!L.frameScene || L.durMs <= 0) continue;
-        const pose = poseSlideBoxes(L.el, {
-          reduced: false, clicks: 'show', pageStartMs: L.startMs,
-          authoredPageStartMs: staged ? 0 : L.startMs, pageDurMs: L.durMs,
-        });
+        const pose = filmSlidePose(stageEl, L);
         if (!pose.posed) { pose.restore(); continue; }
         slidePoses.set(L.idx, pose);
       }

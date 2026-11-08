@@ -115,48 +115,61 @@ test('only the still raster formats read the page, and only when the export is s
 
 // D2 (2026-11-07): an animated or video export of the same page recorded none of its
 // pictures. The frame source now records, at each captured frame's pose, the pictures
-// that frame draws; a film records the pictures of every DOM-drawn layer on screen in
-// the exported range.
+// that frame draws; a film records the pictures of each plate it draws in some exported
+// frame.
 test('a clip records each picture any of its frames draws, once, and only when stamped', async () => {
-  const { framePictureRecorder } = await import('./export-picture-credentials.ts');
+  const { recordFramePictures } = await import('./export-picture-credentials.ts');
   const early = await signedPng('Shown in the first frame');
   const late = await signedPng('Shown later', GENERATED_SOURCE_TYPE);
   const root = page(`<img id="a" src="${early}"><img id="b" style="opacity:0" src="${late}"><img id="c" style="display:none" src="${await signedPng('Never shown')}">`);
-  assert.equal(framePictureRecorder(root, undefined), null, 'an unstamped clip reads no picture');
+  await recordFramePictures(root, undefined);                  // an unstamped clip: nothing to record into
   const sink: IngredientCredential[] = [];
-  const record = framePictureRecorder(root, sink)!;
-  await record();                                   // frame 1: only the first picture is drawn
+  await recordFramePictures(root, sink);                       // frame 1: only the first picture is drawn
   assert.deepEqual(sink.map((i) => i.title), ['Shown in the first frame']);
   (root.querySelector('#b') as HTMLElement).style.opacity = '1';
-  await record();                                   // a later frame fades the second one in
-  await record();
+  await recordFramePictures(root, sink);                       // a later frame fades the second one in
+  await recordFramePictures(root, sink);
   assert.deepEqual(sink.map((i) => i.title), ['Shown in the first frame', 'Shown later'], 'each picture once, in the order the clip shows them');
   assert.ok(sink.every((i) => i.relationship === 'componentOf'));
   assert.equal(sink[1]!.digitalSourceType, GENERATED_SOURCE_TYPE);
 });
 
-test('a film records the pictures of the DOM-drawn layers on screen in the exported range', async () => {
-  const { recordLayerPictures } = await import('./export-picture-credentials.ts');
+test('a film records the pictures its plates draw: drawn layers, their subtrees and the stage background', async () => {
+  const { recordStagePictures } = await import('./export-picture-credentials.ts');
   const root = page(`
     <style>.seq-off { display: none }</style>
-    <div id="in" class="seq-off"><img src="${await signedPng('In range, off the playhead')}">
-      <div id="nested"><img src="${await signedPng('Nested, before the range')}"></div></div>
-    <div id="out"><img src="${await signedPng('Before the range')}"></div>
-    <div id="struck"><img src="${await signedPng('Struck through')}"></div>
-    <div id="clip"><img src="${await signedPng('A video layer poster')}"></div>`);
+    <div id="stage">
+      <img src="${await signedPng('On the stage background')}">
+      <div id="drawn" class="lolly-box seq-off"><img src="${await signedPng('Drawn, off the playhead')}">
+        <div id="nested" class="lolly-box"><img src="${await signedPng('Nested, in the parent plate')}"></div></div>
+      <div id="slide" data-pdf-page data-t-start="0">
+        <div class="lolly-box"><img src="${await signedPng('On the slide')}"></div>
+        <div id="later" class="lolly-box"><img src="${await signedPng('Timed after every exported frame')}"></div></div>
+      <div id="out" class="lolly-box"><img src="${await signedPng('Never in a frame')}"></div>
+      <div id="loose" class="lolly-box"><img src="${await signedPng('A box the background hides')}"></div>
+    </div>`);
   const el = (id: string): Element => root.querySelector(`#${id}`)!;
   const layers = [
-    { el: el('in'), kind: 'static', startMs: 4000, durMs: 3000 },
-    { el: el('nested'), kind: 'static', startMs: 0, durMs: 2000 },
-    { el: el('out'), kind: 'static', startMs: 0, durMs: 2000 },
-    { el: el('struck'), kind: 'static', startMs: 4000, durMs: 3000, ignored: true },
-    { el: el('clip'), kind: 'video', startMs: 4000, durMs: 3000 },
+    { el: el('drawn'), drawn: true },
+    { el: el('nested'), drawn: false },
+    { el: el('slide'), drawn: true, hidden: [el('later')] },
+    { el: el('out'), drawn: false },
   ];
+  const own = { offClass: 'seq-off', backgroundHides: '.lolly-box, [data-pdf-page][data-t-start]' };
   const sink: IngredientCredential[] = [];
-  await recordLayerPictures(layers, { fromMs: 3000, toMs: 6000 }, sink);
-  assert.deepEqual(sink.map((i) => i.title), ['In range, off the playhead'],
-    'a box the playhead hides is still drawn by the film, and a nested layer keeps its own timing');
-  assert.ok(el('in').classList.contains('seq-off'), 'the playhead class is put back');
-  await recordLayerPictures(layers, { fromMs: 0, toMs: 6000 }, undefined);
-  assert.deepEqual(sink.map((i) => i.title), ['In range, off the playhead'], 'an unstamped film reads no picture');
+  await recordStagePictures(el('stage'), layers, sink, own);
+  assert.deepEqual(sink.map((i) => i.title), ['Drawn, off the playhead', 'Nested, in the parent plate', 'On the slide', 'On the stage background'],
+    'a box the playhead hides is still in its plate, and a plate holds its whole subtree');
+  assert.ok(el('drawn').classList.contains('seq-off'), 'the playhead class is put back');
+  await recordStagePictures(el('stage'), layers, undefined, own);
+  assert.equal(sink.length, 4, 'an unstamped film reads no picture');
+});
+
+test('posedFrame runs the record at the frame pose, whether or not it takes the frame itself', async () => {
+  const { posedFrame } = await import('./frame-clock.ts');
+  const order: string[] = [];
+  const plain = document.createElement('div');
+  assert.equal(await posedFrame(plain, 0, null, async () => 'clone', async () => { order.push('posed'); }), null);
+  assert.equal(await posedFrame(plain, 0, async () => { order.push('shot'); return 'shot'; }, async () => 'clone', async () => { order.push('posed'); }), 'shot');
+  assert.deepEqual(order, ['posed', 'posed', 'shot'], 'recorded before the caller or the screenshot takes the frame');
 });

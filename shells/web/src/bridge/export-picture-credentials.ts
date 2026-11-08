@@ -116,8 +116,8 @@ async function pictureFromSrc(src: string): Promise<IngredientCredential | null>
  * The raster routes' record of the pictures they paint: every `<img>` the walkers
  * would draw, in document order, read and recorded as they record theirs. Formats a
  * walker draws record their pictures as they walk, so this only runs for the still
- * raster formats; a motion format records per frame (framePictureRecorder) or per
- * timeline layer (recordLayerPictures).
+ * raster formats; a motion format records per frame (recordFramePictures) or per
+ * plate (recordStagePictures).
  */
 export async function recordDrawnPictures(node: Element, format: string, sink: IngredientCredential[] | undefined): Promise<void> {
   if (!sink || !RASTER_STILLS.has(format)) return;
@@ -128,64 +128,71 @@ export async function recordDrawnPictures(node: Element, format: string, sink: I
   }
 }
 
+/** The sources each stamped clip has read, keyed by its sink, so a source is read once per clip. */
+const clipSources = new WeakMap<IngredientCredential[], Set<string>>();
+
 /**
  * The record for a motion export that paints the page's DOM frame by frame (video, GIF,
- * APNG, animated WebP through createFrameSource). Call it once per captured frame, at
+ * APNG, animated WebP through createFrameSource). Called once per captured frame, at
  * that frame's pose: every picture the frame draws, by the stills' rule, is recorded, so
  * a picture drawn in any frame of the clip is a component of the file. Each source's
- * bytes are read once, at the first frame that draws the picture. Null when the export is not
- * stamped, so an unstamped clip never reads a picture.
+ * bytes are read once per sink, at the first frame that draws the picture, so a repeat
+ * call costs a walk and no read. Nothing is read when the export is not stamped.
  */
-export function framePictureRecorder(node: Element, sink: IngredientCredential[] | undefined): (() => Promise<void>) | null {
-  if (!sink) return null;
-  const read = new Set<string>();
-  return async () => {
-    for (const img of node.querySelectorAll('img')) {
-      const src = img.src || img.getAttribute('src') || '';
-      if (!src || read.has(src) || !drawnPicture(img, node)) continue;
-      read.add(src);
-      keep(sink, await pictureFromSrc(src));
-    }
-  };
+export async function recordFramePictures(node: Element, sink: IngredientCredential[] | undefined): Promise<void> {
+  if (!sink) return;
+  const read = clipSources.get(sink) ?? new Set<string>();
+  clipSources.set(sink, read);
+  for (const img of node.querySelectorAll('img')) {
+    const src = img.src || img.getAttribute('src') || '';
+    if (!src || read.has(src) || !drawnPicture(img, node)) continue;
+    read.add(src);
+    keep(sink, await pictureFromSrc(src));
+  }
 }
 
-/** One timeline layer as the sequence plan reads it: enough to say whether it draws in a range. */
-export interface PictureLayer { el: Element; kind: string; startMs: number; durMs: number; ignored?: boolean }
+/**
+ * A planned layer of a sequence stage: whether the film draws its plate in some exported
+ * frame, and what inside it no exported frame shows (a slide's boxes timed outside them).
+ */
+export interface StageLayer { el: Element; drawn: boolean; hidden?: readonly Element[] }
 
 /**
- * The record for a sequence export (Design and Sequence motion), which draws each layer
- * from its authored DOM: the pictures in every DOM-drawn (`static`) layer that is on
- * screen at some time in the exported range, by the stills' rule within the layer.
- * A picture inside a nested layer belongs to that layer and is judged by its timing.
- * Video and audio clips are recorded by the sequence's own gather; a struck-through
- * layer draws nothing and records nothing.
+ * The record for a sequence export (Design and Sequence motion). The compositor draws
+ * the stage as plates: one per planned layer, inside that layer's exported frames, with
+ * the layer's whole subtree, and one background plate of the rest of the stage under
+ * every frame, shot without `backgroundHides`. A picture is recorded when a drawn plate
+ * holds it and shows it, judged by the stills' rule from that plate's root. Video and
+ * audio clips are recorded by the sequence's own gather.
  *
  * `offClass` is the class the playhead puts on a box outside its window. The compositor
  * clears it for each plate it shoots (rasterBox), so it is cleared here too while the
  * pictures are judged. The judging is synchronous, so nothing paints in between.
  */
-export async function recordLayerPictures(
-  layers: readonly PictureLayer[], range: { fromMs: number; toMs: number }, sink: IngredientCredential[] | undefined, offClass = 'seq-off',
+export async function recordStagePictures(
+  stage: Element, layers: readonly StageLayer[], sink: IngredientCredential[] | undefined,
+  own: { offClass: string; backgroundHides: string },
 ): Promise<void> {
   if (!sink) return;
-  const layerEls = new Set(layers.map((L) => L.el));
-  const ownerOf = (img: Element): Element | null => {
-    for (let el = img.parentElement; el; el = el.parentElement) if (layerEls.has(el)) return el;
-    return null;
-  };
+  const off = [...(stage.classList.contains(own.offClass) ? [stage] : []), ...stage.querySelectorAll(`.${own.offClass}`)];
+  for (const el of off) el.classList.remove(own.offClass);
   const drawn: string[] = [];
-  for (const L of layers) {
-    if (L.ignored || L.kind !== 'static' || !(L.startMs < range.toMs && L.startMs + L.durMs > range.fromMs)) continue;
-    const off = [L.el, ...L.el.querySelectorAll(`.${offClass}`)].filter((el) => el.classList.contains(offClass));
-    for (const el of off) el.classList.remove(offClass);
-    try {
+  const srcOf = (img: HTMLImageElement): string => img.src || img.getAttribute('src') || '';
+  try {
+    for (const L of layers) {
+      if (!L.drawn) continue;
       for (const img of L.el.querySelectorAll('img')) {
-        const src = img.src || img.getAttribute('src') || '';
-        if (src && ownerOf(img) === L.el && drawnPicture(img, L.el)) drawn.push(src);
+        if (L.hidden?.some((h) => h.contains(img))) continue;
+        if (srcOf(img) && drawnPicture(img, L.el)) drawn.push(srcOf(img));
       }
-    } finally {
-      for (const el of off) el.classList.add(offClass);
     }
+    for (const img of stage.querySelectorAll('img')) {
+      const hidden = img.closest(own.backgroundHides);
+      if (hidden && hidden !== stage && stage.contains(hidden)) continue;
+      if (srcOf(img) && drawnPicture(img, stage)) drawn.push(srcOf(img));
+    }
+  } finally {
+    for (const el of off) el.classList.add(own.offClass);
   }
   for (const src of new Set(drawn)) keep(sink, await pictureFromSrc(src));
 }
