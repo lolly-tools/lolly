@@ -96,7 +96,7 @@ export interface BuildExportC2paOpts {
    * one. Added to what the model's own census finds, so the steps and the AI
    * disclosure are the ones that credential had. Absent, nothing changes.
    */
-  carried?: Pick<PlacedPictures, 'aiIngredients' | 'aiUpscale'> | null;
+  carried?: Pick<PlacedPictures, 'aiIngredients' | 'aiUpscale' | 'rendition'> | null;
 }
 
 /** Build the embedC2pa options for a shell export, INCLUDING author from the profile. */
@@ -132,6 +132,8 @@ export function buildExportC2paOpts(o: BuildExportC2paOpts): ExportC2paOpts {
     if (!aiIngredients.some((have) => have.name === piece.name && have.kind === piece.kind)) aiIngredients.push(piece);
   }
   const aiUpscale = o.carried?.aiUpscale;
+  // A rendition's step travels with its parent: only while that parent is still the parentOf.
+  const rendition = o.carried?.rendition && o.ingredients?.some((i) => i.relationship === 'parentOf') ? o.carried.rendition : undefined;
   return {
     title: name,
     claimGenerator: 'Lolly lolly.tools',
@@ -159,7 +161,7 @@ export function buildExportC2paOpts(o: BuildExportC2paOpts): ExportC2paOpts {
     ...(o.ingredients?.length ? { ingredients: o.ingredients } : {}),
     ...(o.actions?.length
       ? { actions: o.actions }
-      : aiIngredients.length || aiUpscale ? { actions: exportActionSteps(format, { aiIngredients, ...(aiUpscale ? { aiUpscale } : {}) }) } : {}),
+      : aiIngredients.length || aiUpscale || rendition ? { actions: exportActionSteps(format, { aiIngredients, ...(aiUpscale ? { aiUpscale } : {}), ...(rendition ? { rendition } : {}) }) } : {}),
     ...(o.aiDisclosure
       ? { aiDisclosure: o.aiDisclosure }
       : aiIngredients.length ? { aiDisclosure: {} } : {}),

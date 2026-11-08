@@ -48,7 +48,7 @@
  */
 
 import { brandPageAddress } from './brand-page-address.ts';
-import { checkedIntentRecord, encodeCbor, INTENT_PROMPT_NOTE, LOLLY_APPROVAL_ASSERTION, LOLLY_EXPORT_ASSERTION, LOLLY_INTENT_ASSERTION, APPROVAL_TEMPLATE_ID, isTemplateApproval } from './c2pa.ts';
+import { checkedIntentRecord, encodeCbor, renditionFromSteps, INTENT_PROMPT_NOTE, LOLLY_APPROVAL_ASSERTION, LOLLY_EXPORT_ASSERTION, LOLLY_INTENT_ASSERTION, APPROVAL_TEMPLATE_ID, isTemplateApproval } from './c2pa.ts';
 import type { C2paApprovalRecord, C2paIntentRecord } from './c2pa.ts';
 // The check-code vocabulary lives in c2pa-verdict.ts (the shared verdict
 // module); every pass/fail below emits through this map so the strings can
@@ -1425,8 +1425,10 @@ export async function verifyC2pa(
   // not merely a delivery), AND it names Lolly as the generator. Requiring the
   // created action keeps the claim honest: a delivered/distributed asset can
   // name Lolly without ever reading as authored by it.
+  // A rendition Lolly made (an opened parent, then the step that says what Lolly did to
+  // it) is a Lolly creation too: its history starts with the parent, not with created.
   const acts = report.claim!.actions || [];
-  const created = acts.some((a) => a.action === 'c2pa.created');
+  const created = acts.some((a) => a.action === 'c2pa.created') || renditionFromSteps(acts) !== undefined;
   const names = [report.claim!.claimGenerator, report.claim!.generatorInfo?.name].filter(Boolean).join(' ');
   const claimsLolly = created && /\blolly\b/i.test(names);
   report.madeWithLolly = report.state === 'valid' && claimsLolly;

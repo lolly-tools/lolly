@@ -5,7 +5,7 @@ description: "Operate the Lolly Asset Export tool (asset-export) using its decla
 
 # Asset Export
 
-Tool ID: `asset-export`. Tool version: `1.1.0`. Engine range: `^1.0.0`.
+Tool ID: `asset-export`. Tool version: `1.2.0`. Engine range: `^1.341.0`.
 
 Render any catalog asset - or a Lolly tool link - out to any format and size.
 

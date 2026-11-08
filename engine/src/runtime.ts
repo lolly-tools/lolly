@@ -34,6 +34,7 @@ import { DESIGN_STILL_RASTER_FORMATS } from './design-export-route.ts';
 import { missingRequires, type HostApiName } from '@lolly-tools/core';
 import type { EmojiStyleV1 } from '@lolly-tools/core';
 import type { CanvasSize } from '@lolly-tools/core';
+import type { RenditionAction } from '@lolly-tools/core/rendition-v1';
 import type { EmojiSetInfoV1 } from '@lolly-tools/core/emoji-v1';
 import { defaultEmojiStyle } from './emoji-default.ts';
 import { emojiTextTrigger } from './emoji-trigger.ts';
@@ -51,6 +52,7 @@ import { resolveTextDocumentTokenBindings } from './text-token-bindings.ts';
 import { resolveNestedRenders } from './compose.ts';
 import { isToolUrl } from './tool-url.ts';
 import { isBakedRef } from './bake.ts';
+import { base64ToBytes } from './bytes.ts';
 import type { InputModelItem, InputValue } from './inputs.ts';
 import type { LoadedTool, ToolManifest } from './loader.ts';
 import type { ComposeMemo } from './compose.ts';
@@ -620,6 +622,29 @@ export interface Runtime {
 // help here; JPEG has no alpha at all.
 const ALPHA_EXPORT_FORMATS = new Set(['jxl', 'jxl-lossless', 'png', 'webp', 'avif', 'apng', 'webp-anim', 'gif']);
 
+/** Which picture an asset value is, for the rendition's camera guard: a re-applied or
+ *  re-resolved copy of the same picture is the same picture. */
+function pictureIdentity(v: unknown): string {
+  if (!v || typeof v !== 'object') return String(v ?? '');
+  const ref = v as { id?: unknown; url?: unknown };
+  return typeof ref.id === 'string' && ref.id ? `id:${ref.id}` : `url:${String(ref.url ?? '')}`;
+}
+
+/** A `data:` URL's body that is not base64, as bytes: each `%XX` is one byte, any other
+ *  character its UTF-8 bytes (WHATWG percent-decode), so a binary picture survives. */
+function percentDecodedBytes(body: string): Uint8Array {
+  const out: number[] = [];
+  const enc = new TextEncoder();
+  for (let i = 0; i < body.length; i++) {
+    const hex = body[i] === '%' ? body.slice(i + 1, i + 3) : '';
+    if (/^[0-9a-fA-F]{2}$/.test(hex)) { out.push(parseInt(hex, 16)); i += 2; continue; }
+    const cp = body.codePointAt(i)!;
+    if (cp > 0xffff) i++;
+    out.push(...enc.encode(String.fromCodePoint(cp)));
+  }
+  return Uint8Array.from(out);
+}
+
 export async function createRuntime(
   tool: LoadedTool,
   host: HostV1,
@@ -1004,6 +1029,11 @@ export async function createRuntime(
   // (the recording IS the content, re-composited across edits); a fresh take re-sets
   // them per the captured MIME + the tool's declared capabilities.
   let liveCameraShown = false;
+  // A rendition's camera guard (manifest `renditionOf`): set with liveCameraShown, but
+  // cleared only when the rendition's own picture changes to another picture or a decoded
+  // asset frame replaces the camera, because a frozen camera frame keeps showing while an
+  // unrelated asset (a filter's lower-third headshot) changes.
+  let cameraOverPicture = false;
   let recordedCamera = false;
   let recordedMic = false;
   // A SCREEN take is a distinct origin from a camera take - IPTC screenCapture, not
@@ -1659,7 +1689,9 @@ export async function createRuntime(
       // the capture the moment it's committed.
       const priorType = model.find(i => i.id === id)?.type;
       if (priorType === 'asset' || priorType === 'file' || priorType === 'url') liveCameraShown = false;
+      const priorPicture = pictureIdentity(model.find(i => i.id === id)?.value);
       model = updateInput(model, id, value, writeOptionsFor(id, value, options));
+      if (id === tool.manifest.renditionOf?.input && pictureIdentity(model.find(i => i.id === id)?.value) !== priorPicture) cameraOverPicture = false;
       // A live-camera resolution slider (render.liveMaxEdgeInput) re-applies to the
       // running stream without a camera stop/start - the grab loop just starts
       // producing frames at the new working edge. No-op unless currently live.
@@ -1756,6 +1788,7 @@ export async function createRuntime(
         // Same live-capture retirement as setInput - swapping the image SOURCE
         // means the render no longer shows camera essence.
         if (before.type === 'asset' || before.type === 'file' || before.type === 'url') liveCameraShown = false;
+        if (id === tool.manifest.renditionOf?.input && pictureIdentity(after.value) !== pictureIdentity(before.value)) cameraOverPicture = false;
         model = next;
         applied.push({ id, value: flattenValue(after.value) });
       }
@@ -1976,7 +2009,7 @@ export async function createRuntime(
             // Guard liveUnsub so a frame in flight when stopLive() ran can't repaint.
             // A SENSOR frame drove the render → its essence is now a live camera
             // capture; an animated-asset frame is decoded file content and is not.
-            if (patch && liveUnsub && generation === liveGeneration) { ({ model, extras } = mergePatch(model, extras, patch, inputIds)); if (sensorSource) liveCameraShown = true; emit(); }
+            if (patch && liveUnsub && generation === liveGeneration) { ({ model, extras } = mergePatch(model, extras, patch, inputIds)); if (sensorSource) { liveCameraShown = true; cameraOverPicture = true; } else cameraOverPicture = false; emit(); }
           })
           .catch((e: unknown) => host.log('warn', `onFrame ${(e as Error).message}`, { toolId: tool.manifest.id }))
           .finally(() => { framePending = false; });
@@ -2329,16 +2362,32 @@ export async function createRuntime(
       // The SVG and PDF walkers record the same picture as componentOf when
       // they inline its bytes, so both routes now name it the same way.
       let ingredients: (IngredientCredential | SourceIngredient)[] | undefined;
+      // A rendition tool (manifest `renditionOf`) makes its output FROM one picture: that
+      // picture's credential is the export's parent (`parentOf`, opened first), and the
+      // tool's own action takes the place of `c2pa.created`. Only a credentialed picture
+      // becomes the parent; a picture without a credential changes nothing and adds no ingredient.
+      // The picture is the source only while nothing replaced it: no live camera frame or
+      // recording took its place, and no input the manifest lists in `unlessSet` holds anything.
+      const holds = (v: unknown): boolean => (Array.isArray(v) ? v.length > 0 : v !== undefined && v !== null && v !== '' && v !== false);
+      const renditionOf = tool.manifest.renditionOf && !cameraOverPicture && !recordedCamera && !recordedScreen
+        && !(tool.manifest.renditionOf.unlessSet ?? []).some((id) => holds(model.find((input) => input.id === id)?.value))
+        ? tool.manifest.renditionOf : undefined;
+      let parentKey: string | undefined;
+      let c2paRendition: { action: RenditionAction } | undefined;
       if (!isOnDevice && meta !== undefined && host.assets?.credential) {
         const ids = new Set<string>();
-        const note = (v: unknown): void => {
+        const note = (v: unknown, parent = false): void => {
           if (v && typeof v === 'object') {
             const { id, source } = v as { id?: unknown; source?: unknown };
-            if (typeof id === 'string' && (source === 'user' || source === 'library')) ids.add(assetDependency(v as AssetRef).key);
+            if (typeof id === 'string' && (source === 'user' || source === 'library')) {
+              const key = assetDependency(v as AssetRef).key;
+              ids.add(key);
+              if (parent) parentKey = key;
+            }
           }
         };
         for (const input of model) {
-          if (input.type === 'asset') note(input.value);
+          if (input.type === 'asset') note(input.value, input.id === renditionOf?.input);
           else if (input.type === 'blocks' && Array.isArray(input.value)) {
             const assetFields = (input.fields ?? []).filter(f => f.type === 'asset').map(f => f.id);
             for (const item of input.value) {
@@ -2353,10 +2402,41 @@ export async function createRuntime(
             // Lazy: the C2PA read side (c2pa-verify → c2pa-extract → containers)
             // is ~7K lines that only an export with placed credentials needs.
             const ing = cred?.store ? (await import('./c2pa-verify.ts')).prepareC2paIngredientFromStore(cred.store, cred.format) : null;
-            if (ing) prepared.push({ ...ing, relationship: 'componentOf' });
+            const parent = id === parentKey && !!renditionOf;
+            if (ing) prepared.push({ ...ing, relationship: parent ? 'parentOf' : 'componentOf' });
+            if (ing && parent) c2paRendition = { action: renditionOf.action };
           } catch { /* unreadable credential - skip, don't fail the export */ }
         }
-        if (prepared.length) ingredients = prepared;
+        // One manifest is one ingredient: a picture that is the parent is not also placed.
+        const parentLabel = prepared.find((i) => i.relationship === 'parentOf')?.activeLabel;
+        const kept = prepared.filter((i) => i.relationship === 'parentOf' || i.activeLabel !== parentLabel);
+        if (kept.length) ingredients = kept;
+      }
+      // A rendition's picture given as a `data:` URL (a share link, the CLI, an agent) is
+      // no stored asset, so its credential is read from the bytes themselves.
+      if (renditionOf && !c2paRendition && !isOnDevice && meta !== undefined) {
+        const value = model.find((input) => input.id === renditionOf.input && input.type === 'asset')?.value as { url?: unknown } | null | undefined;
+        const url = typeof value?.url === 'string' ? value.url : '';
+        if (url.startsWith('data:')) {
+          try {
+            const { extractC2paStore, prepareC2paIngredientFromStore } = await import('./c2pa-verify.ts');
+            const comma = url.indexOf(',');
+            const body = url.slice(comma + 1);
+            // A data: URL body is percent-decoded first, then base64-decoded when it says so
+            // (WHATWG fetch). A base64 body with no escapes, the common case, skips the first step.
+            const base64 = /;[ ]*base64[\t\n\f\r ]*$/i.test(url.slice(0, comma));
+            const text = (b: string): string => b.replace(/[\t\n\f\r ]/g, '');
+            const bytes = !base64 ? percentDecodedBytes(body)
+              : base64ToBytes(text(body.includes('%') ? Array.from(percentDecodedBytes(body), (c) => String.fromCharCode(c)).join('') : body));
+            const found = extractC2paStore(bytes);
+            const ing = found ? prepareC2paIngredientFromStore(found.store, found.format) : null;
+            if (ing) {
+              const others = (ingredients ?? []).filter((i) => !('activeLabel' in i) || i.activeLabel !== ing.activeLabel);
+              ingredients = [{ ...ing, relationship: 'parentOf' }, ...others];
+              c2paRendition = { action: renditionOf.action };
+            }
+          } catch { /* a picture with no readable credential is no parent */ }
+        }
       }
       // Emoji artwork this render placed: one source ingredient per distinct
       // glyph, recording the set's own licence and creator and the exact bytes
@@ -2463,6 +2543,7 @@ export async function createRuntime(
           ...(c2paCapture ? { c2paCapture } : {}),
           ...(c2paTextAdded ? { c2paTextAdded } : {}),
           ...(c2paAiUpscale ? { c2paAiUpscale } : {}),
+          ...(c2paRendition ? { c2paRendition } : {}),
           ...(c2paAiIngredients.length ? { c2paAiIngredients } : {}),
           // The attribution this export promised, and the way back for what it
           // delivered. A host that reads its own bytes back calls onReceipt
