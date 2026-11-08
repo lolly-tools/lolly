@@ -8,6 +8,10 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { JSDOM } from 'jsdom';
+import type { ExportPartner } from '@lolly-tools/core/host-v1';
+import type { PartnerKitV1 } from '@lolly-tools/core/partner-kit-v1';
+import { designRecordEnvironment } from '../../../../engine/src/metadata.ts';
+import { followPiecePartner, setWorkspaceCompany, setWorkspaceProgramme } from './workspace-templates.ts';
 
 const dom = new JSDOM('<!doctype html><html><body></body></html>', { url: 'https://work.example/' });
 for (const k of ['window', 'document', 'HTMLElement', 'Element', 'Node', 'Event', 'localStorage']) {
@@ -25,6 +29,73 @@ const KIT = {
   colours: [{ role: 'primary', name: 'Northwind blue', value: '#1d4ed8' }, { role: 'accent', name: 'Signal', value: '#f59e0b' }],
   rules: { minSize: { px: 96 } },
 };
+
+test('the partner record follows Attach and Detach at the attached revision, and stops on cleanup', async () => {
+  setWorkspaceCompany({ id: 'northwind-it', name: 'Northwind IT', revision: 3, logos: {} });
+  setWorkspaceProgramme({ id: 'resellers-emea', name: 'Resellers, EMEA' });
+  const records: (ExportPartner | null)[] = [];
+  const runtime = { setPartner: (partner: ExportPartner | null) => { records.push(partner); } };
+  const stop = followPiecePartner(runtime);
+  const env = () => designRecordEnvironment({ partner: records.at(-1) ?? undefined });
+  try {
+    assert.equal(env().partnerKit, undefined, 'no attachment at mount');
+    const host = fakeHost().host;
+    setPartnerKitOffer({ id: 'inst/5b2e', revision: 9, label: 'Northwind IT' });
+    await attachPieceKit(host, runtime, { id: 'inst/5b2e', revision: 2 }, { load: async () => KIT as never });
+    assert.equal(env().partnerCompany, 'northwind-it');
+    assert.equal(env().partnerKit, 'inst/5b2e');
+    assert.equal(env().partnerKitRevision, '2', 'the attached revision, not the live offer or company details revision');
+    let finish!: (kit: PartnerKitV1) => void;
+    const replacing = attachPieceKit(host, runtime, { id: 'inst/5b2e', revision: 4 }, { load: () => new Promise((resolve) => { finish = resolve; }) });
+    assert.equal(env().partnerKit, undefined, 'a replacement still loading cannot leave the old kit in the record');
+    finish(KIT as PartnerKitV1);
+    await replacing;
+    assert.equal(env().partnerKitRevision, '4');
+    detachPieceKit(runtime);
+    assert.equal(env().partnerCompany, 'northwind-it');
+    assert.equal(env().partnerKit, undefined);
+    assert.equal(env().partnerKitRevision, undefined);
+    stop();
+    const count = records.length;
+    await attachPieceKit(host, runtime, { id: 'inst/5b2e', revision: 2 }, { load: async () => KIT as never });
+    assert.equal(records.length, count, 'cleanup removes the listener');
+  } finally {
+    stop();
+    releasePieceKit(runtime);
+    setPartnerKitOffer(null);
+    setWorkspaceCompany(null);
+    setWorkspaceProgramme(null);
+  }
+});
+
+test('mount records an existing matching kit, and another company or piece contributes no kit', async () => {
+  const records: (ExportPartner | null)[] = [];
+  const runtime = { setPartner: (partner: ExportPartner | null) => { records.push(partner); } };
+  const other = {};
+  const host = fakeHost().host;
+  setWorkspaceCompany({ id: 'northwind-it', name: 'Northwind IT', revision: 3, logos: {} });
+  await attachPieceKit(host, runtime, { id: 'inst/5b2e', revision: 2 }, { load: async () => KIT as never });
+  const stop = followPiecePartner(runtime);
+  try {
+    assert.deepEqual(records.at(-1)?.kit, { id: 'inst/5b2e', revision: 2 }, 'an existing attachment at mount');
+    detachPieceKit(runtime);
+    await attachPieceKit(host, other, { id: 'inst/5b2e', revision: 2 }, { load: async () => KIT as never });
+    assert.equal(records.at(-1)?.kit, undefined, 'a kit on another piece is not this attachment');
+    await attachPieceKit(host, runtime, { id: 'inst/other-company', revision: 2 }, { load: async () => ({ ...KIT, id: 'another-company' }) as never });
+    assert.equal(records.at(-1)?.kit, undefined, 'a matching label cannot replace the company id');
+    assert.equal('partnerKit' in designRecordEnvironment({ partner: records.at(-1) ?? undefined }), false);
+    setWorkspaceCompany(null);
+    setWorkspaceProgramme({ id: 'resellers-emea', name: 'Resellers, EMEA' });
+    await attachPieceKit(host, runtime, { id: 'inst/5b2e', revision: 2 }, { load: async () => KIT as never });
+    assert.deepEqual(records.at(-1), { programme: { id: 'resellers-emea', label: 'Resellers, EMEA' } }, 'no company in the record');
+  } finally {
+    stop();
+    releasePieceKit(runtime);
+    releasePieceKit(other);
+    setWorkspaceCompany(null);
+    setWorkspaceProgramme(null);
+  }
+});
 
 function fakeHost(type = 'partner-kit') {
   const asked: string[] = [];

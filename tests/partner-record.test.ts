@@ -2,8 +2,8 @@
 /**
  * The partner in the Lolly record (Lolly Work plans/82 M3, section 6, approved by
  * Andy on 2026-11-07). An export made for a partner company records it beside the
- * design system, with exactly the five approved credential keys, the five
- * `lolly:` properties and one PDF keyword, under the record's one switch. Nothing
+ * design system, with the five approved partner keys and two attached kit keys
+ * (M8), their `lolly:` properties and one PDF keyword, under the record's one switch. Nothing
  * about the person, a contact's email or phone, an address or a currency is
  * written. With no partner every writer stays exactly as it was.
  */
@@ -25,6 +25,8 @@ type Tool = Parameters<typeof createRuntime>[0];
 type Host = Parameters<typeof createRuntime>[1];
 
 const PARTNER: ExportPartner = { company: { id: 'northwind-it', label: 'Northwind IT', revision: 3 }, programme: { id: 'resellers-emea', label: 'Resellers, EMEA' } };
+const KIT = { id: 'inst/5b2e', revision: 2 };
+const PARTNER_WITH_KIT: ExportPartner = { ...PARTNER, kit: KIT };
 const SYSTEM = { id: 'suse', label: 'SUSE', source: 'local', active: true, locked: false, headId: null } as const;
 const DOC = { color: { brand: { $type: 'color', $value: '#30ba78' } } };
 const snapshot = (): TokensSnapshot => ({ document: DOC, system: SYSTEM, version: 'latest', selection: {} } as TokensSnapshot);
@@ -60,6 +62,74 @@ test('the words: the record line, and Verify\'s fact', () => {
   assert.equal(partnerWords(undefined), '');
   assert.equal(partnerFactWords(PARTNER), 'Northwind IT, Resellers, EMEA programme, details revision 3');
   assert.equal(designRecordWords({ designSystem: { id: 'suse', label: 'SUSE' }, partner: PARTNER }, { partner: false }), 'SUSE');
+  assert.equal(`Records: ${designRecordWords({ designSystem: { id: 'suse', label: 'SUSE' }, themes: [{ group: 'colourway', kind: 'colourway', id: 'spearmint', name: 'Spearmint' }], partner: PARTNER_WITH_KIT })}`,
+    'Records: SUSE · Colourway: Spearmint · Partner: Northwind IT (Resellers, EMEA), kit revision 2');
+  assert.equal(partnerWords({ company: PARTNER.company, kit: KIT }), 'Partner: Northwind IT, kit revision 2');
+  assert.equal(partnerFactWords(PARTNER_WITH_KIT), 'Northwind IT, Resellers, EMEA programme, details revision 3, kit revision 2');
+});
+
+test('the attached kit adds exactly two keys and XML properties, with no PDF keyword', async () => {
+  const meta = await buildExportMeta(null, MANIFEST, { useDetails: false }, [], { snapshot: snapshot(), partner: PARTNER_WITH_KIT });
+  const base = { ...meta, partner: PARTNER };
+  assert.deepEqual(meta.partner, PARTNER_WITH_KIT);
+  assert.deepEqual(designRecordEnvironment(meta), { ...designRecordEnvironment(base), partnerKit: 'inst/5b2e', partnerKitRevision: '2' });
+  assert.deepEqual(designRecordXml(meta), [
+    ...designRecordXml(base),
+    '<lolly:PartnerKit>inst/5b2e</lolly:PartnerKit>',
+    '<lolly:PartnerKitRevision>2</lolly:PartnerKitRevision>',
+  ]);
+  assert.deepEqual(designRecordKeywords(meta), designRecordKeywords(base));
+  assert.deepEqual(readDesignRecord(designRecordEnvironment(meta))?.partner, PARTNER_WITH_KIT);
+  assert.deepEqual(readDesignRecordXml(buildExportXmp(meta))?.partner, PARTNER_WITH_KIT);
+  const svg = injectSvgMeta('<svg xmlns="http://www.w3.org/2000/svg"></svg>', meta);
+  assert.ok(svg.includes('<lolly:PartnerKit>inst/5b2e</lolly:PartnerKit>'));
+  assert.ok(svg.includes('<lolly:PartnerKitRevision>2</lolly:PartnerKitRevision>'));
+  assert.deepEqual(readDesignRecordXml(svg)?.partner, PARTNER_WITH_KIT);
+});
+
+test('a kit needs a valid company beside the attachment', () => {
+  for (const partner of [
+    { kit: KIT },
+    { company: { id: '../northwind-it', label: 'Northwind IT', revision: 3 }, kit: KIT },
+    { programme: PARTNER.programme, kit: KIT },
+  ]) {
+    const record = { partner: partner as ExportPartner };
+    assert.equal(partnerRecord(partner)?.kit, undefined);
+    assert.equal('partnerKit' in designRecordEnvironment(record), false);
+    assert.equal('partnerKitRevision' in designRecordEnvironment(record), false);
+    assert.ok(designRecordXml(record).every((p) => !p.includes('PartnerKit')));
+  }
+  assert.equal(readDesignRecord({ partnerKit: KIT.id, partnerKitRevision: '2' }), null);
+  assert.equal(readDesignRecord({ partnerCompany: '../x', partnerCompanyLabel: 'X', partnerProfileRevision: '3', partnerKit: KIT.id, partnerKitRevision: '2' }), null);
+});
+
+test('a hostile kit id or revision is dropped at every writer and reader', async () => {
+  for (const kit of [
+    null, [], {}, 'inst/5b2e@2',
+    { id: '../x', revision: 2 }, { id: 'inst/x?token=private', revision: 2 },
+    { id: 'inst/<x>', revision: 2 }, { id: 'x'.repeat(201), revision: 2 },
+    { id: 'a/b/c/d/e/f/g/h/i', revision: 2 },
+    ...[0, -1, 1.5, 1_000_001, Infinity, NaN, '2', true, [2]].map((revision) => ({ id: KIT.id, revision })),
+    Object.create(KIT),
+  ]) {
+    const partner = { ...PARTNER, kit } as unknown as ExportPartner;
+    assert.deepEqual(partnerRecord(partner), PARTNER);
+    const meta = await buildExportMeta(null, MANIFEST, { useDetails: false }, [], { partner });
+    assert.deepEqual(meta.partner, PARTNER);
+    assert.deepEqual(designRecordEnvironment({ partner }), designRecordEnvironment({ partner: PARTNER }));
+    assert.deepEqual(designRecordXml({ partner }), designRecordXml({ partner: PARTNER }));
+    assert.deepEqual(designRecordKeywords({ partner }), ['Partner: Northwind IT']);
+  }
+  const env = designRecordEnvironment({ partner: PARTNER });
+  for (const partnerKitRevision of [undefined, null, true, ['2'], {}, Symbol('2')]) {
+    assert.deepEqual(readDesignRecord({ ...env, partnerKit: KIT.id, partnerKitRevision })?.partner, PARTNER);
+  }
+  for (const [partnerKit, partnerKitRevision] of [['../x', '2'], [KIT.id, '0'], [KIT.id, '1.5'], [KIT.id, '1000001'], [KIT.id, 'two']]) {
+    const raw = { ...env, partnerKit, partnerKitRevision };
+    assert.deepEqual(readDesignRecord(raw)?.partner, PARTNER);
+    const xml = `${designRecordXml({ partner: PARTNER }).join('')}<lolly:PartnerKit>${partnerKit}</lolly:PartnerKit><lolly:PartnerKitRevision>${partnerKitRevision}</lolly:PartnerKitRevision>`;
+    assert.deepEqual(readDesignRecordXml(xml)?.partner, PARTNER);
+  }
 });
 
 test('a programme with no company writes its keys but no PDF keyword', async () => {
@@ -82,10 +152,11 @@ test('read back from the credential keys and from XMP', async () => {
 });
 
 test('nothing about a person, a contact, an address or a currency is ever written', async () => {
-  const leaky = { ...PARTNER, company: { ...PARTNER.company!, email: 'rita@northwind.example', phone: '+49 30 1', address: 'Unter den Linden 1', currency: 'EUR' }, person: 'Rita Ortiz', token: 'tok_1' };
+  const leaky = { ...PARTNER, kit: { ...KIT, colours: ['#123456'], rules: { minSize: 42 }, bytes: 'kit-secret' }, company: { ...PARTNER.company!, email: 'rita@northwind.example', phone: '+49 30 1', address: 'Unter den Linden 1', currency: 'EUR' }, person: 'Rita Ortiz', token: 'tok_1', agent: 'agent-secret' };
   const meta = await buildExportMeta(null, MANIFEST, { useDetails: false }, [], { partner: leaky as never });
   const written = JSON.stringify([meta, designRecordEnvironment(meta), designRecordKeywords(meta), designRecordXml(meta)]);
-  for (const never of ['rita@', '+49', 'Linden', 'EUR', 'Rita', 'tok_']) assert.ok(!written.includes(never), `never written: ${never}`);
+  assert.deepEqual(meta.partner, PARTNER_WITH_KIT);
+  for (const never of ['rita@', '+49', 'Linden', 'EUR', 'Rita', 'tok_', '#123456', 'minSize', 'kit-secret', 'agent-secret']) assert.ok(!written.includes(never), `never written: ${never}`);
 });
 
 test('a hand-built or foreign value is refused at every writer and reader', async () => {
@@ -133,19 +204,44 @@ test('no partner set: every export stays exactly as it was', async () => {
 test('set by the host, shown before the export, and the card\'s one switch takes it out with the rest', async () => {
   const renders: Rec[] = [];
   const runtime = await createRuntime(tool(), host(renders, snapshot()), {});
-  runtime.setPartner(PARTNER);
-  assert.deepEqual((await runtime.madeWithPreview())!.record.partner, PARTNER, 'the card can show the words before anything is written');
+  runtime.setPartner(PARTNER_WITH_KIT);
+  assert.deepEqual((await runtime.madeWithPreview())!.record.partner, PARTNER_WITH_KIT, 'the card can show the words before anything is written');
   await runtime.export(canvas(), 'png', {});
-  assert.deepEqual((renders[0]!.meta as ExportMeta).partner, PARTNER);
+  assert.deepEqual((renders[0]!.meta as ExportMeta).partner, PARTNER_WITH_KIT);
   runtime.setMadeWith(false);
   await runtime.export(canvas(), 'png', {});
   assert.equal('partner' in (renders[1]!.meta as Rec), false, 'unticking leaves the partner out together with the design system');
-  assert.deepEqual(runtime.partner(), PARTNER, 'a second runtime exporting the same document copies it from here');
+  assert.deepEqual(runtime.partner(), PARTNER_WITH_KIT, 'a second runtime exporting the same document copies it from here');
   runtime.setMadeWith(true);
   runtime.setPartner(null);
   assert.equal(runtime.partner(), null);
   await runtime.export(canvas(), 'png', {});
   assert.equal('partner' in (renders[2]!.meta as Rec), false);
+});
+
+test('a piece with no attachment, a detached piece or another company\'s kit records no kit', async () => {
+  const { followPiecePartner, setWorkspaceCompany } = await import('../shells/web/src/lib/workspace-templates.ts');
+  const { dropPieceState, notifyPieceKit, setPieceState } = await import('../shells/web/src/lib/partner-kit-state.ts');
+  const renders: Rec[] = [];
+  const runtime = await createRuntime(tool(), host(renders, snapshot()), {});
+  setWorkspaceCompany({ id: 'northwind-it', name: 'Northwind IT', revision: 3, logos: {} });
+  const stop = followPiecePartner(runtime);
+  try {
+    for (const company of [null, 'northwind-it', null, 'another-company']) {
+      if (company) setPieceState(runtime, { attachment: KIT, kit: { schemaVersion: 1, id: company, label: 'Northwind IT', logos: {}, colours: [] } });
+      else dropPieceState(runtime);
+      notifyPieceKit();
+      await runtime.export(canvas(), 'png', {});
+      const env = designRecordEnvironment(renders.at(-1)!.meta as ExportMeta);
+      assert.equal(env.partnerCompany, 'northwind-it');
+      assert.equal(env.partnerKit, company === 'northwind-it' ? KIT.id : undefined);
+      assert.equal(env.partnerKitRevision, company === 'northwind-it' ? '2' : undefined);
+    }
+  } finally {
+    stop();
+    dropPieceState(runtime);
+    setWorkspaceCompany(null);
+  }
 });
 
 test('a host with no design system still records the partner, and the card can show it', async () => {
@@ -158,9 +254,9 @@ test('a host with no design system still records the partner, and the card can s
   assert.deepEqual((renders[0]!.meta as ExportMeta).partner, PARTNER);
 });
 
-test('a signed credential carries the five keys, and Verify reads them back', async () => {
+test('a signed credential carries the partner and kit keys, and Verify reads them back', async () => {
   const dates = { notBefore: new Date(Date.now() - 60_000), notAfter: new Date(Date.now() + 86_400_000) };
-  const meta = await buildExportMeta(null, MANIFEST, { useDetails: false }, [], { snapshot: snapshot(), partner: PARTNER });
+  const meta = await buildExportMeta(null, MANIFEST, { useDetails: false }, [], { snapshot: snapshot(), partner: PARTNER_WITH_KIT });
   const svg = new TextEncoder().encode('<svg xmlns="http://www.w3.org/2000/svg" width="8" height="8"><rect width="8" height="8"/></svg>');
   const bytes = await embedC2pa(svg, 'svg', {
     claimGenerator: 'Lolly', generatorInfo: { name: 'Lolly', version: 'test' }, title: 'Data sheet',
@@ -168,6 +264,6 @@ test('a signed credential carries the five keys, and Verify reads them back', as
   } as Parameters<typeof embedC2pa>[2]);
   const report = await verifyC2pa(bytes);
   assert.equal(report.state, 'valid');
-  assert.deepEqual(readDesignRecord(report.environment)?.partner, PARTNER);
-  assert.equal(partnerFactWords(readDesignRecord(report.environment)?.partner), 'Northwind IT, Resellers, EMEA programme, details revision 3');
+  assert.deepEqual(readDesignRecord(report.environment)?.partner, PARTNER_WITH_KIT);
+  assert.equal(partnerFactWords(readDesignRecord(report.environment)?.partner), 'Northwind IT, Resellers, EMEA programme, details revision 3, kit revision 2');
 });

@@ -6,6 +6,12 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+## 1.343.0
+
+- The partner record gains the piece's attached kit (Lolly Work plan 82, M8, L-M8-5). `ExportPartner.kit` (SDK 1.8.0) holds the kit asset's catalog id and attached revision, only beside a valid company. The web shell sets the record at mount and follows Attach and Detach, with a kit recorded only when its company id matches the workspace partner company.
+- The credential's `environment` gains exactly `partnerKit` and `partnerKitRevision` (text), and XMP and SVG metadata gain `lolly:PartnerKit` and `lolly:PartnerKitRevision`. `readDesignRecord` reads them back into `partner.kit`. The PDF keywords and description stay unchanged. No kit colours, rules or bytes are written.
+- The export card's partner part appends ", kit revision 2", and Verify's Partner fact ends with "details revision 3, kit revision 2". The record's existing switch leaves the kit out with the partner. A piece with no attachment or with another company's kit records no kit.
+
 ## 1.338.0
 
 - New reserved URL param `_kit` (Lolly Work plan 82, M8): the partner kit a piece carries as a guest, `<id>@<revision>`, the kit asset's catalog id and the asset version attached. `parseUrlState` reads it into `partnerKit` (`PartnerKitAttachmentV1 | null`) and `serializeUrlState` writes it from `partnerKit`, so the attachment travels in a share link, as `emoji` does; the link never carries the kit's bytes. An id outside the kit grammar or a revision that is not a whole number from 1 reads as absent and writes nothing.
