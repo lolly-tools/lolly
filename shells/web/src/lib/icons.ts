@@ -288,6 +288,11 @@ const PATHS = {
   neuroBeat: '<path d="M2 12h3l2-7 4 18 3-14 2 7h6"/>',
   volumeOn: '<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>',
   volumeOff: '<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="22" x2="16" y1="9" y2="15"/><line x1="16" x2="22" y1="9" y2="15"/>',
+  // The two ends of the sound shape slider (components/sound-toggle.ts), drawn solid
+  // ({ filled: true }): Köhler's round "bouba" blob and spiky "kiki" star, the shapes
+  // most people match to soft, rounded sounds and to sharp, bright ones.
+  bouba: '<path d="M12 3.1C12.9 2.6 14.3 2.3 15.1 2.7C16 3.1 16.4 4.7 16.9 5.5C17.4 6.4 17.6 7 18.3 7.6C19 8.2 20.7 8.4 21.3 9.1C22 9.8 22.5 11.1 22.2 12C21.9 12.9 20.2 13.7 19.5 14.3C18.7 15 18 15.2 17.7 15.9C17.3 16.7 17.7 18.2 17.3 19C16.8 19.8 15.9 20.8 15 20.8C14.1 20.9 12.9 19.8 12 19.5C11.1 19.1 10.7 18.8 9.7 18.8C8.7 18.8 7.3 19.8 6.2 19.6C5.2 19.5 3.9 18.8 3.5 17.9C3.1 17.1 3.9 15.5 4.1 14.5C4.2 13.5 4.7 12.9 4.5 12C4.3 11.1 3.2 10.1 3.1 9.2C3.1 8.3 3.4 7 4.1 6.5C4.9 6 6.6 6.3 7.6 6.2C8.5 6 9.1 6.2 9.8 5.6C10.6 5.1 11.1 3.6 12 3.1Z"/>',
+  kiki: '<path d="M12 1L13.5 8L19 4.6L16.2 9.9L22.9 9.6L16.1 12.5L20.5 16.9L15 15.5L15.1 22.4L11.7 16.4L8.8 21.9L9.4 15.3L2.4 17.6L7.3 12.8L2.4 9.7L8.4 9.6L4.9 4.2L10.3 7.8Z"/>',
 
   // ---- tool-actions.ts export bar ----
   // Lucide rotate-cw - the "Regenerate music" button on the video audio-track card.

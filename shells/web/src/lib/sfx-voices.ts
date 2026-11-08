@@ -2,13 +2,141 @@
 /**
  * sfx-voices - the SYNTHESIS half of the interface-sound layer, split out of sfx.ts so it
  * stays OFF the boot path. Holds the tone primitives, the VOICES / THEME_VOICES tables, and
- * the per-view arrival renderers, all pure Web-Audio math over an injected (ctx, out), with no
- * module state. sfx.ts owns mute/volume/dispatch and dynamic-imports this module on demand (warmed
- * at installGlobalSfx), so a cue never blocks first paint. Everything here plays only when
- * sfx.ts hands it a live, gesture-resumed AudioContext.
+ * the per-view arrival renderers, all pure Web-Audio math over an injected (ctx, out). The one
+ * piece of module state is the material a render pass is drawn in (below), set and reset
+ * around each pass by renderShaped. sfx.ts owns mute/volume/shape/dispatch and dynamic-imports
+ * this module on demand (warmed at installGlobalSfx), so a cue never blocks first paint.
+ * Everything here plays only when sfx.ts hands it a live, gesture-resumed AudioContext.
  */
 
 import type { SfxName } from './sfx.ts';
+
+// ── materials: Bouba, chimes, Kiki ────────────────────────────────────────────────
+// The listener's sound shape (sfx.ts getSfxShape, 0 Bouba … 0.5 chimes … 1 Kiki) picks the
+// MATERIAL every primitive below is made of. The cues never change: their rhythm, pitch contour
+// and length stay put, so a cue that rises for "leaving" still rises. What the notes are made of
+// moves:
+//
+//   bouba  round and wet. Notes become sine drops that scoop up into a pitch a fifth lower,
+//          clicks become droplets, airy sweeps slosh, and the weighty moments get a bass "bwah"
+//          under them (BOUBA_BASS). Nothing starts with a hard edge.
+//   chime  Lolly's own chimes and notes, exactly as they were before the slider existed.
+//   kiki   dry and bright. Notes become short metal pings a fifth higher, glides become
+//          ratchets, breathy bursts become scratches. No glides, no bloops, no bass.
+//
+// Some listeners find wet bloops hard to bear and some find ticks and scratches hard to bear,
+// so each end leaves out what the other end is made of. renderShaped draws a cue once per
+// material in the mix (at most two, the centre and one end), each pass through its own gain,
+// so the slider crossfades between neighbours at equal power.
+
+export type Material = 'bouba' | 'chime' | 'kiki';
+/** A cue renderer: schedules its nodes on `ctx`, into `out`, starting now. */
+export type Render = (ctx: AudioContext, out: AudioNode) => void;
+
+/** The material the current render pass is drawn in. Only renderShaped changes this. */
+let material: Material = 'chime';
+
+/** Below this a material's share of the mix is inaudible under the other, so it is skipped. */
+const MIN_WEIGHT = 0.05;
+/** Per-material level, so the three ends sound equally loud (measured, see sfx-voices.test.ts). */
+const MATERIAL_TRIM: Record<Material, number> = { bouba: 0.85, chime: 1, kiki: 1.25 };
+
+/**
+ * How much of each material a sound shape plays, as [material, gain] pairs. The centre is
+ * pure chimes, either end is purely its own material, and between them the two neighbours
+ * share an equal-power crossfade.
+ */
+export function materialMix(shape: number): Array<[Material, number]> {
+  const x = Number.isFinite(shape) ? Math.min(1, Math.max(0, shape)) : 0.5;
+  const reach = Math.abs(x - 0.5) * 2;               // 0 at the centre, 1 at either end
+  const end: Material = x < 0.5 ? 'bouba' : 'kiki';
+  const mix: Array<[Material, number]> = [
+    ['chime', Math.cos(reach * Math.PI / 2)],
+    [end, Math.sin(reach * Math.PI / 2)],
+  ];
+  return mix.filter(([, w]) => w >= MIN_WEIGHT);
+}
+
+/**
+ * Draw `render` in the materials `shape` mixes, each pass through its own gain into `out`.
+ * `bass` is drawn in the Bouba pass only: the "bwah" a weighty cue gets at the round end.
+ */
+export function renderShaped(render: Render | undefined, ctx: AudioContext, out: AudioNode, shape: number, bass?: Render): void {
+  if (!render) return;
+  for (const [m, w] of materialMix(shape)) {
+    const level = w * MATERIAL_TRIM[m];
+    let dest: AudioNode = out;
+    if (level !== 1) {
+      const g = ctx.createGain();
+      g.gain.value = level;
+      g.connect(out);
+      dest = g;
+    }
+    material = m;
+    try {
+      render(ctx, dest);
+      if (m === 'bouba') bass?.(ctx, dest);
+    } finally {
+      material = 'chime';
+    }
+  }
+}
+
+/** Play the interface cue `name` in the listener's sound shape. */
+export function playCue(name: SfxName, ctx: AudioContext, out: AudioNode, shape: number): void {
+  renderShaped(VOICES[name], ctx, out, shape, BOUBA_BASS[name]);
+}
+
+/** Play the theme-change chime for `theme` (the light one for a theme without its own). */
+export function playThemeCue(theme: string, ctx: AudioContext, out: AudioNode, shape: number): void {
+  renderShaped(THEME_VOICES[theme] ?? THEME_VOICES.light, ctx, out, shape);
+}
+
+/** Bouba sits a fifth lower than the chimes, rounder, but never pushes a note under 110 Hz. */
+function lower(f: number): number {
+  return f <= 110 ? f : Math.max(110, f * 2 / 3);
+}
+/** Kiki sits a fifth higher, brighter. A low note is lifted two octaves first (Kiki has no bass). */
+function higher(f: number): number {
+  return Math.min((f < 160 ? f * 4 : f) * 1.5, 9000);
+}
+const EPS = 0.0001;
+const clamp = (v: number, lo: number, hi: number): number => Math.min(hi, Math.max(lo, v));
+
+// One second each of white noise and crackle per context, read from a random offset, so the
+// new materials don't build a fresh noise buffer for every grain of a ratchet or a scratch.
+// Crackle is sparse sharp grains (about 900 a second): the raw stuff of a scratch.
+const NOISE = new WeakMap<BaseAudioContext, { white: AudioBuffer; crackle: AudioBuffer }>();
+function noiseBuffers(ctx: BaseAudioContext): { white: AudioBuffer; crackle: AudioBuffer } {
+  let bufs = NOISE.get(ctx);
+  if (!bufs) {
+    const n = ctx.sampleRate;
+    const white = ctx.createBuffer(1, n, ctx.sampleRate);
+    const crackle = ctx.createBuffer(1, n, ctx.sampleRate);
+    const w = white.getChannelData(0);
+    const c = crackle.getChannelData(0);
+    const density = 900 / ctx.sampleRate;
+    for (let i = 0; i < n; i++) {
+      w[i] = Math.random() * 2 - 1;                    // shell code - Math.random is fine
+      if (Math.random() < density && i + 2 < n) {
+        const a = (0.4 + Math.random() * 0.6) * (Math.random() < 0.5 ? -1 : 1);
+        c[i] = a; c[i + 1] = -a * 0.6; c[i + 2] = a * 0.25;
+      }
+    }
+    bufs = { white, crackle };
+    NOISE.set(ctx, bufs);
+  }
+  return bufs;
+}
+/** A looping noise source that starts at `t0` and stops after `dur`. */
+function noiseSource(ctx: AudioContext, kind: 'white' | 'crackle', t0: number, dur: number): AudioBufferSourceNode {
+  const src = ctx.createBufferSource();
+  src.buffer = noiseBuffers(ctx)[kind];
+  src.loop = true;
+  src.start(t0, Math.random() * 0.9);
+  src.stop(t0 + dur + 0.03);
+  return src;
+}
 
 // ── voice primitives ───────────────────────────────────────────────────────────
 
@@ -22,7 +150,10 @@ interface BlipOpts {
 }
 
 /** A single enveloped oscillator tone: fast attack, exponential decay to silence. */
-function blip(ctx: AudioContext, out: AudioNode, { type = 'sine', from, to, dur, peak = 0.5, delay = 0 }: BlipOpts): void {
+function blip(ctx: AudioContext, out: AudioNode, opts: BlipOpts): void {
+  if (material === 'bouba') { drop(ctx, out, opts); return; }
+  if (material === 'kiki') { strike(ctx, out, opts); return; }
+  const { type = 'sine', from, to, dur, peak = 0.5, delay = 0 } = opts;
   const t0 = ctx.currentTime + delay;
   const osc = ctx.createOscillator();
   const g = ctx.createGain();
@@ -51,7 +182,10 @@ interface SweepOpts {
 }
 
 /** A short filtered-noise sweep - the "away" texture under the delete cue. */
-function sweep(ctx: AudioContext, out: AudioNode, { dur, peak = 0.4, cutoffFrom, cutoffTo, delay = 0 }: SweepOpts): void {
+function sweep(ctx: AudioContext, out: AudioNode, opts: SweepOpts): void {
+  if (material === 'bouba') { slosh(ctx, out, opts); return; }
+  if (material === 'kiki') { swish(ctx, out, opts); return; }
+  const { dur, peak = 0.4, cutoffFrom, cutoffTo, delay = 0 } = opts;
   const t0 = ctx.currentTime + delay;
   const n = Math.max(1, Math.floor(ctx.sampleRate * dur));
   const buf = ctx.createBuffer(1, n, ctx.sampleRate);
@@ -85,7 +219,10 @@ interface TickOpts {
  * not a pitched beep). Instant attack, fast exponential decay. Layered under a tonal
  * body it gives a UI tap its tactile edge without sounding electronic.
  */
-function tick(ctx: AudioContext, out: AudioNode, { dur, peak = 0.4, freq, q = 0.8, delay = 0 }: TickOpts): void {
+function tick(ctx: AudioContext, out: AudioNode, opts: TickOpts): void {
+  if (material === 'bouba') { softTick(ctx, out, opts); return; }
+  if (material === 'kiki') { sharpTick(ctx, out, opts); return; }
+  const { dur, peak = 0.4, freq, q = 0.8, delay = 0 } = opts;
   const t0 = ctx.currentTime + delay;
   const n = Math.max(1, Math.floor(ctx.sampleRate * dur));
   const buf = ctx.createBuffer(1, n, ctx.sampleRate);
@@ -124,14 +261,19 @@ interface SurgeOpts {
  * the envelope of an EV pulling away or a maglev gliding in. The core of a "takeoff" cue.
  */
 function surge(ctx: AudioContext, out: AudioNode, { type = 'triangle', from, to, dur, peak = 0.2, attack = 0.12, delay = 0, detune = 0 }: SurgeOpts): void {
+  // Kiki: the swell becomes a ratchet that grows over the same attack. Bouba: a pure sine, lower.
+  if (material === 'kiki') { ratchet(ctx, out, { from, to: to ?? from, dur, peak: peak * 3, delay, swell: attack }); return; }
+  const bouba = material === 'bouba';
+  const f0 = bouba ? lower(from) : from;
+  const f1 = to === undefined ? undefined : bouba ? lower(to) : to;
   const t0 = ctx.currentTime + delay;
   const osc = ctx.createOscillator();
   const g = ctx.createGain();
   const eps = 0.0001;
-  osc.type = type;
-  osc.frequency.setValueAtTime(from, t0);
+  osc.type = bouba ? 'sine' : type;
+  osc.frequency.setValueAtTime(f0, t0);
   osc.detune.setValueAtTime(detune, t0);
-  if (to !== undefined && to !== from) osc.frequency.exponentialRampToValueAtTime(Math.max(1, to), t0 + dur);
+  if (f1 !== undefined && f1 !== f0) osc.frequency.exponentialRampToValueAtTime(Math.max(1, f1), t0 + dur);
   g.gain.setValueAtTime(eps, t0);
   g.gain.exponentialRampToValueAtTime(peak, t0 + attack);              // swell in
   g.gain.exponentialRampToValueAtTime(peak * 0.72, t0 + dur * 0.72);   // hold-ish
@@ -161,6 +303,9 @@ interface BrassOpts {
  * PUNCHES then blooms and rings. It is the core of a deep cinematic hit. Layer a few at octaves.
  */
 function brass(ctx: AudioContext, out: AudioNode, { from, dur, peak = 0.2, attack = 0.03, cutoffFrom = 180, cutoffTo = 2000, bloom = 0.22, detune = 10, delay = 0 }: BrassOpts): void {
+  // Bouba: the brass hit is a big round "bwah". Kiki: a struck steel plate, high and dry.
+  if (material === 'bouba') { bwah(ctx, out, { freq: from, dur, peak: peak * 1.3, delay }); return; }
+  if (material === 'kiki') { clash(ctx, out, { freq: Math.min(from * 8, 1600), dur: 0.6, peak: peak * 1.8, delay }); return; }
   const t0 = ctx.currentTime + delay;
   const eps = 0.0001;
   const lp = ctx.createBiquadFilter();
@@ -188,6 +333,267 @@ function brass(ctx: AudioContext, out: AudioNode, { from, dur, peak = 0.2, attac
   }
 }
 
+// ── Bouba: drops, droplets, sloshes and the bwah ──────────────────────────────────
+// A sine carries about three times the energy of a band of noise at the same peak, and a
+// sawtooth more again than a sine, so each Bouba voice scales its peak to sit level with
+// the chime it replaces.
+const BOUBA_TYPE_LEVEL: Partial<Record<OscillatorType, number>> = { sawtooth: 1.3, square: 1.2, triangle: 1.05 };
+
+/** Bouba's note: a sine a fifth lower that scoops up into its pitch like a drop of water,
+ *  with a soft onset and a slightly longer, rounder tail. Follows the cue's own glide. */
+function drop(ctx: AudioContext, out: AudioNode, { type = 'sine', from, to, dur, peak = 0.5, delay = 0 }: BlipOpts): void {
+  const t0 = ctx.currentTime + delay;
+  const d = dur * 1.25 + 0.015;
+  const f = lower(from);
+  const osc = ctx.createOscillator();
+  const g = ctx.createGain();
+  osc.type = 'sine';
+  osc.detune.setValueAtTime((Math.random() * 2 - 1) * 6, t0);
+  osc.frequency.setValueAtTime(f * 0.74, t0);
+  osc.frequency.exponentialRampToValueAtTime(f, t0 + Math.min(0.045, d * 0.35));   // the scoop
+  if (to !== undefined && to !== from) osc.frequency.exponentialRampToValueAtTime(Math.max(1, lower(to)), t0 + d);
+  g.gain.setValueAtTime(EPS, t0);
+  g.gain.exponentialRampToValueAtTime(peak * (BOUBA_TYPE_LEVEL[type] ?? 1), t0 + Math.min(0.02, d * 0.4));
+  g.gain.exponentialRampToValueAtTime(EPS, t0 + d);
+  osc.connect(g).connect(out);
+  osc.start(t0);
+  osc.stop(t0 + d + 0.02);
+}
+
+/** Bouba's click: a droplet. A short sine that chirps upward the way a drop does as it
+ *  meets the water, so a press reads as a soft "plip" with no edge. */
+function droplet(ctx: AudioContext, out: AudioNode, { freq, peak, dur, delay }: { freq: number; peak: number; dur: number; delay: number }): void {
+  const t0 = ctx.currentTime + delay;
+  const osc = ctx.createOscillator();
+  const g = ctx.createGain();
+  osc.type = 'sine';
+  osc.frequency.setValueAtTime(freq * 0.8, t0);
+  osc.frequency.exponentialRampToValueAtTime(freq * 1.6, t0 + dur * 0.7);
+  g.gain.setValueAtTime(EPS, t0);
+  g.gain.exponentialRampToValueAtTime(peak, t0 + 0.005);
+  g.gain.exponentialRampToValueAtTime(EPS, t0 + dur);
+  osc.connect(g).connect(out);
+  osc.start(t0);
+  osc.stop(t0 + dur + 0.02);
+}
+
+/** Bouba's tick: a droplet for a click, or a soft low puff of air for a breathy burst. */
+function softTick(ctx: AudioContext, out: AudioNode, { dur, peak = 0.4, freq, q = 0.8, delay = 0 }: TickOpts): void {
+  if (dur >= 0.03 && q < 0.6) {
+    const t0 = ctx.currentTime + delay;
+    const lp = ctx.createBiquadFilter();
+    lp.type = 'lowpass';
+    lp.frequency.setValueAtTime(clamp(freq * 0.3, 500, 1800), t0);
+    lp.Q.setValueAtTime(0.5, t0);
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(EPS, t0);
+    g.gain.exponentialRampToValueAtTime(peak * 0.8, t0 + Math.min(0.015, dur * 0.35));
+    g.gain.exponentialRampToValueAtTime(EPS, t0 + dur * 1.4);
+    noiseSource(ctx, 'white', t0, dur * 1.4).connect(lp).connect(g).connect(out);
+    return;
+  }
+  droplet(ctx, out, { freq: clamp(freq * 0.22, 220, 1100), peak: peak * 0.4, dur: clamp(dur * 3, 0.035, 0.09), delay });
+}
+
+/** Bouba's sweep: a slosh. A resonant band of noise follows the sweep's direction an octave
+ *  lower, wobbling like water in a glass, with a round tone gliding along underneath. */
+function slosh(ctx: AudioContext, out: AudioNode, { dur, peak = 0.4, cutoffFrom, cutoffTo, delay = 0 }: SweepOpts): void {
+  const t0 = ctx.currentTime + delay;
+  const bp = ctx.createBiquadFilter();
+  bp.type = 'bandpass';
+  bp.Q.setValueAtTime(3.5, t0);
+  bp.frequency.setValueAtTime(clamp(cutoffFrom * 0.45, 180, 2600), t0);
+  bp.frequency.exponentialRampToValueAtTime(clamp(cutoffTo * 0.45, 180, 2600), t0 + dur);
+  const wobble = ctx.createOscillator();
+  const depth = ctx.createGain();
+  wobble.frequency.setValueAtTime(7, t0);
+  depth.gain.setValueAtTime(clamp(Math.min(cutoffFrom, cutoffTo) * 0.08, 20, 160), t0);
+  wobble.connect(depth).connect(bp.frequency);
+  wobble.start(t0);
+  wobble.stop(t0 + dur + 0.03);
+  const g = ctx.createGain();
+  g.gain.setValueAtTime(EPS, t0);
+  // A short slosh never reaches full swell under its soft onset, so it starts a little louder.
+  const level = peak * (1.1 + 4 * Math.max(0, 0.25 - dur));
+  g.gain.exponentialRampToValueAtTime(level, t0 + Math.min(0.05, dur * 0.3));
+  g.gain.exponentialRampToValueAtTime(EPS, t0 + dur);
+  noiseSource(ctx, 'white', t0, dur).connect(bp).connect(g).connect(out);
+  drop(ctx, out, { from: clamp(cutoffFrom * 0.3, 160, 1000), to: clamp(cutoffTo * 0.3, 160, 1000), dur: dur * 0.8, peak: peak * 0.3, delay });
+}
+
+interface BwahOpts {
+  /** The bass note (Hz). */ freq: number;
+  /** Duration (s). */ dur?: number;
+  /** Peak gain (0–1, relative to master). */ peak?: number;
+  /** Start offset (s). */ delay?: number;
+  /** Where the pitch ends, as a ratio of `freq`: under 1 sags (a sad trombone), 1 holds. */ bend?: number;
+}
+
+/**
+ * Bouba's bass: "bwah". A low note scoops up into pitch while a resonant low-pass opens fast
+ * (the "bw-", lips parting) and closes slowly (the "-aah"). Two detuned saws give the filter
+ * something to sing through; a sine underneath carries the weight on speakers that have bass.
+ */
+function bwah(ctx: AudioContext, out: AudioNode, { freq, dur = 0.45, peak = 0.2, delay = 0, bend = 1 }: BwahOpts): void {
+  const t0 = ctx.currentTime + delay;
+  const lp = ctx.createBiquadFilter();
+  lp.type = 'lowpass';
+  lp.Q.setValueAtTime(4, t0);
+  lp.frequency.setValueAtTime(freq * 1.2, t0);
+  lp.frequency.exponentialRampToValueAtTime(freq * 8, t0 + Math.min(0.09, dur * 0.3));   // "bw-"
+  lp.frequency.exponentialRampToValueAtTime(freq * 1.5, t0 + dur);                       // "-aah"
+  const g = ctx.createGain();
+  g.gain.setValueAtTime(EPS, t0);
+  g.gain.exponentialRampToValueAtTime(peak, t0 + 0.025);
+  g.gain.exponentialRampToValueAtTime(peak * 0.55, t0 + dur * 0.55);
+  g.gain.exponentialRampToValueAtTime(EPS, t0 + dur);
+  lp.connect(g).connect(out);
+  const layers: ReadonlyArray<readonly [OscillatorType, number, number]> = [['sawtooth', 0.45, -7], ['sawtooth', 0.45, 7], ['sine', 1, 0]];
+  for (const [type, level, cents] of layers) {
+    const osc = ctx.createOscillator();
+    osc.type = type;
+    osc.detune.setValueAtTime(cents, t0);
+    osc.frequency.setValueAtTime(freq * 0.84, t0);
+    osc.frequency.exponentialRampToValueAtTime(freq, t0 + 0.06);                          // scoop up into pitch
+    if (bend !== 1) osc.frequency.exponentialRampToValueAtTime(freq * bend, t0 + dur);
+    const og = ctx.createGain();
+    og.gain.value = level;
+    osc.connect(og).connect(lp);
+    osc.start(t0);
+    osc.stop(t0 + dur + 0.03);
+  }
+}
+
+// ── Kiki: pings, ratchets, scratches and swishes ─────────────────────────────────
+
+/** A struck bar of metal: four inharmonic partials, higher ones softer and shorter. */
+const METAL: ReadonlyArray<readonly [ratio: number, length: number, level: number]> = [
+  [1, 1, 1], [1.483, 0.8, 0.5], [2.137, 0.6, 0.3], [3.731, 0.4, 0.16],
+];
+
+/** The pick of a Kiki strike: a few milliseconds of bright, narrow noise. */
+function pick(ctx: AudioContext, out: AudioNode, freq: number, peak: number, t0: number): void {
+  const bp = ctx.createBiquadFilter();
+  bp.type = 'bandpass';
+  bp.frequency.setValueAtTime(freq * (1 + (Math.random() * 2 - 1) * 0.06), t0);
+  bp.Q.setValueAtTime(1.4, t0);
+  const g = ctx.createGain();
+  g.gain.setValueAtTime(peak, t0);
+  g.gain.exponentialRampToValueAtTime(EPS, t0 + 0.005);
+  noiseSource(ctx, 'white', t0, 0.006).connect(bp).connect(g).connect(out);
+}
+
+/** Kiki's note: a short metal ping a fifth higher. A long note rings a little longer, but
+ *  never for more than 0.4 s, and never glides more than a hair. */
+function ping(ctx: AudioContext, out: AudioNode, { freq, dur, peak, delay }: { freq: number; dur: number; peak: number; delay: number }): void {
+  const t0 = ctx.currentTime + delay;
+  const f = higher(freq);
+  const ring = Math.min(dur, 0.035 + dur * 0.3, 0.4);
+  const level0 = peak * 0.55 * (1 + 0.8 * (1 - ring / dur));   // a note cut short keeps its weight
+  for (const [ratio, length, level] of METAL) {
+    const pf = f * ratio;
+    if (pf > 12000) continue;
+    const end = t0 + Math.max(0.012, ring * length);
+    const osc = ctx.createOscillator();
+    const g = ctx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(pf, t0);
+    osc.frequency.exponentialRampToValueAtTime(pf * 0.99, end);
+    g.gain.setValueAtTime(EPS, t0);
+    g.gain.linearRampToValueAtTime(level0 * level, t0 + 0.0015);
+    g.gain.exponentialRampToValueAtTime(EPS, end);
+    osc.connect(g).connect(out);
+    osc.start(t0);
+    osc.stop(end + 0.02);
+  }
+  pick(ctx, out, Math.min(f * 3, 9500), peak * 0.45, t0);
+}
+
+/** One tooth of a ratchet: a tiny two-partial metal tick. */
+function tooth(ctx: AudioContext, out: AudioNode, freq: number, peak: number, delay: number): void {
+  const t0 = ctx.currentTime + delay;
+  const f = higher(freq);
+  for (const [ratio, level] of [[1, 0.75], [2.137, 0.3]] as const) {
+    const osc = ctx.createOscillator();
+    const g = ctx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(Math.min(f * ratio, 12000), t0);
+    g.gain.setValueAtTime(EPS, t0);
+    g.gain.linearRampToValueAtTime(peak * level, t0 + 0.001);
+    g.gain.exponentialRampToValueAtTime(EPS, t0 + 0.022);
+    osc.connect(g).connect(out);
+    osc.start(t0);
+    osc.stop(t0 + 0.04);
+  }
+  pick(ctx, out, Math.min(f * 2.5, 9500), peak * 0.7, t0);
+}
+
+/** Kiki's glide: a ratchet. Teeth about 30 ms apart step along the glide's pitch path, fading
+ *  as they go, or growing over `swell` seconds when the glide swelled in. */
+function ratchet(ctx: AudioContext, out: AudioNode, { from, to, dur, peak = 0.3, delay = 0, swell = 0 }: { from: number; to: number; dur: number; peak?: number; delay?: number; swell?: number }): void {
+  const n = Math.max(3, Math.min(20, Math.round(dur / 0.032)));
+  const ratio = to / from;
+  for (let i = 0; i < n; i++) {
+    const p = i / (n - 1);
+    const at = p * dur * 0.92;
+    const env = swell > 0 ? Math.min(1, (at + 0.03) / swell) * (1 - 0.35 * p) : 1 - 0.5 * p;
+    tooth(ctx, out, from * ratio ** p, peak * env, delay + at);
+  }
+}
+
+/** Kiki's blip: a glide of three semitones or more becomes a ratchet, anything else a ping. */
+function strike(ctx: AudioContext, out: AudioNode, { from, to, dur, peak = 0.5, delay = 0 }: BlipOpts): void {
+  const glide = to !== undefined && to !== from ? to / from : 1;
+  if (dur >= 0.08 && (glide > 1.2 || glide < 1 / 1.2)) { ratchet(ctx, out, { from, to: from * glide, dur, peak, delay }); return; }
+  ping(ctx, out, { freq: from, dur, peak, delay });
+}
+
+/** Kiki's tick: tighter and brighter than the chime's, or a scratch for a breathy burst. */
+function sharpTick(ctx: AudioContext, out: AudioNode, { dur, peak = 0.4, freq, q = 0.8, delay = 0 }: TickOpts): void {
+  const t0 = ctx.currentTime + delay;
+  if (dur >= 0.03 && q < 0.6) { scratch(ctx, out, { dur, peak, freq, t0 }); return; }
+  const d = Math.max(0.004, dur * 0.6);
+  const bp = ctx.createBiquadFilter();
+  bp.type = 'bandpass';
+  bp.frequency.setValueAtTime(Math.min(freq * 1.4, 10000) * (1 + (Math.random() * 2 - 1) * 0.06), t0);
+  bp.Q.setValueAtTime(Math.max(1.6, q * 2), t0);
+  const g = ctx.createGain();
+  g.gain.setValueAtTime(peak * 1.1, t0);
+  g.gain.exponentialRampToValueAtTime(EPS, t0 + d);
+  noiseSource(ctx, 'white', t0, d).connect(bp).connect(g).connect(out);
+}
+
+/** A pen scratching paper: crackle through a bright band, swelling and falling over `dur`. */
+function scratch(ctx: AudioContext, out: AudioNode, { dur, peak, freq, t0 }: { dur: number; peak: number; freq: number; t0: number }): void {
+  const bp = ctx.createBiquadFilter();
+  bp.type = 'bandpass';
+  bp.frequency.setValueAtTime(clamp(freq * 1.2, 1500, 9000), t0);
+  bp.Q.setValueAtTime(1.2, t0);
+  const g = ctx.createGain();
+  g.gain.setValueAtTime(EPS, t0);
+  g.gain.exponentialRampToValueAtTime(peak * 3.7, t0 + dur * 0.25);
+  g.gain.exponentialRampToValueAtTime(EPS, t0 + dur * 1.2);
+  noiseSource(ctx, 'crackle', t0, dur * 1.2).connect(bp).connect(g).connect(out);
+}
+
+/** Kiki's sweep: a blade swish. A bright band of noise follows the sweep's direction higher
+ *  up, with a scratch of crackle in it and a small metal tick as it ends. */
+function swish(ctx: AudioContext, out: AudioNode, { dur, peak = 0.4, cutoffFrom, cutoffTo, delay = 0 }: SweepOpts): void {
+  const t0 = ctx.currentTime + delay;
+  const bp = ctx.createBiquadFilter();
+  bp.type = 'bandpass';
+  bp.Q.setValueAtTime(2.2, t0);
+  bp.frequency.setValueAtTime(clamp(cutoffFrom * 1.6, 1200, 9500), t0);
+  bp.frequency.exponentialRampToValueAtTime(clamp(cutoffTo * 1.6, 1200, 9500), t0 + dur);
+  const g = ctx.createGain();
+  g.gain.setValueAtTime(EPS, t0);
+  g.gain.exponentialRampToValueAtTime(peak, t0 + Math.min(0.025, dur * 0.25));
+  g.gain.exponentialRampToValueAtTime(EPS, t0 + dur);
+  noiseSource(ctx, 'white', t0, dur).connect(bp).connect(g).connect(out);
+  scratch(ctx, out, { dur: dur * 0.8, peak: peak * 0.5, freq: Math.max(cutoffFrom, cutoffTo), t0 });
+  tooth(ctx, out, Math.max(cutoffFrom, cutoffTo) * 0.4, peak * 0.4, delay + dur * 0.85);
+}
+
 // ── the sound grammar ───────────────────────────────────────────────────────────
 // One small vocabulary, deliberately consistent: rising = "leaving", falling = "settling",
 // receding + noise = "gone". Kept quiet and short so it reads as feedback, not decoration.
@@ -198,37 +604,6 @@ function bell(ctx: AudioContext, out: AudioNode, { freq, dur = 0.4, peak = 0.2, 
   blip(ctx, out, { type: 'sine', from: freq * 2.007, dur: dur * 0.6, peak: peak * 0.34, delay });
   blip(ctx, out, { type: 'sine', from: freq * 3.83, dur: dur * 0.28, peak: peak * 0.11, delay });
   tick(ctx, out, { dur: 0.005, peak: peak * 0.45, freq: freq * 3.5, q: 1.1, delay });
-}
-
-/** A sweet, high, kawaii "yum". A formant vowel glides from an open "yu" into a nasal "m"
- *  close, with an upward playful lilt. Two or three of these back to back read as "yum-yum(-YUM)". */
-function yum(ctx: AudioContext, out: AudioNode, { pitch = 620, dur = 0.16, peak = 0.32, delay = 0, lilt = 1.16 }: { pitch?: number; dur?: number; peak?: number; delay?: number; lilt?: number }): void {
-  const t0 = ctx.currentTime + delay;
-  const eps = 0.0001;
-  const src = ctx.createOscillator(); src.type = 'sawtooth';
-  src.frequency.setValueAtTime(pitch, t0);
-  src.frequency.exponentialRampToValueAtTime(pitch * lilt, t0 + dur);   // playful upward lilt
-  const vib = ctx.createOscillator(); const vibg = ctx.createGain();     // a touch of vibrato = sweetness
-  vib.frequency.value = 24; vibg.gain.value = pitch * 0.02; vib.connect(vibg).connect(src.frequency);
-  const mix = ctx.createGain(); mix.gain.value = 0.5; src.connect(mix);
-  const sum = ctx.createGain();
-  const formant = (f0: number, f1: number, q: number, gain: number): void => {
-    const bp = ctx.createBiquadFilter(); bp.type = 'bandpass'; bp.Q.value = q;
-    bp.frequency.setValueAtTime(f0, t0); bp.frequency.linearRampToValueAtTime(f1, t0 + dur);
-    const fg = ctx.createGain(); fg.gain.value = gain; mix.connect(bp).connect(fg).connect(sum);
-  };
-  formant(720, 300, 7, 1.0);    // F1 - opens on the "u", closes down for the "m"
-  formant(1180, 950, 9, 0.7);   // F2
-  const lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 2600;
-  const bg = ctx.createGain(); bg.gain.value = 0.1; mix.connect(lp).connect(bg).connect(sum); // "y" brightness
-  const g = ctx.createGain();
-  g.gain.setValueAtTime(eps, t0);
-  g.gain.exponentialRampToValueAtTime(peak, t0 + 0.02);              // "y" onset
-  g.gain.setValueAtTime(peak, t0 + dur * 0.5);                       // hold the "u"
-  g.gain.exponentialRampToValueAtTime(peak * 0.42, t0 + dur * 0.8);  // dip into the "m"
-  g.gain.exponentialRampToValueAtTime(eps, t0 + dur + 0.05);         // nasal tail closes
-  sum.connect(g).connect(out);
-  src.start(t0); vib.start(t0); src.stop(t0 + dur + 0.08); vib.stop(t0 + dur + 0.08);
 }
 
 /** A metallic "ching", a sword-cross clang. A bright band-passed noise scrape (the
@@ -264,14 +639,15 @@ export const VOICES: Record<SfxName, (ctx: AudioContext, out: AudioNode) => void
     bell(ctx, out, { freq: 2093, dur: 0.6, peak: 0.1, delay: 0.08 });  // C7
     bell(ctx, out, { freq: 2637, dur: 0.5, peak: 0.07, delay: 0.22 }); // E7
   },
-  // Leaving an editing session: a sugary "yum-yum-YUM" cheer with a trailing sparkle spray
-  // (auditions #10 and #7). Three small "yum"s climb to a happy top, a bell lands, then
-  // sugar sparkles spray out. A sweet reward for stepping away from something you made.
+  // Leaving an editing session: a sugary three-step cheer with a trailing sparkle spray
+  // (auditions #10 and #7). Three small notes, each lilting upward, climb to a happy top, a
+  // bell rings, then sugar sparkles spray out. A sweet reward for stepping away from something
+  // you made. (It used to sing "yum-yum-YUM" in a synthesised voice; spoken sounds are gone.)
   leaveSession(ctx, out) {
-    yum(ctx, out, { pitch: 560, dur: 0.15, peak: 0.3 });
-    yum(ctx, out, { pitch: 660, dur: 0.15, peak: 0.32, delay: 0.16 });
-    yum(ctx, out, { pitch: 800, dur: 0.2, peak: 0.34, delay: 0.32, lilt: 1.22 });
-    bell(ctx, out, { freq: 2093, dur: 0.4, peak: 0.14, delay: 0.5 }); // C7 landing
+    blip(ctx, out, { type: 'triangle', from: 560, to: 650, dur: 0.15, peak: 0.24 });
+    blip(ctx, out, { type: 'triangle', from: 660, to: 766, dur: 0.15, peak: 0.25, delay: 0.16 });
+    blip(ctx, out, { type: 'triangle', from: 800, to: 976, dur: 0.2, peak: 0.26, delay: 0.32 });
+    bell(ctx, out, { freq: 2093, dur: 0.4, peak: 0.14, delay: 0.5 }); // C7, the top
     [0.5, 0.58, 0.66].forEach((d, i) => tick(ctx, out, { dur: 0.007, peak: 0.06, freq: 6000 + i * 900, q: 1, delay: d }));
   },
   // Flipping past one featured tile or cover: a soft, dry paper flick. A single very short
@@ -531,6 +907,7 @@ export const VOICES: Record<SfxName, (ctx: AudioContext, out: AudioNode) => void
   // shimmer). "oo" vowel formants shape the "hooo"; a drift of airy breath haunts
   // underneath. Quiet and long-tailed: it haunts, never jump-scares.
   ghost(ctx, out) {
+    if (material === 'kiki') { creak(ctx, out); return; }   // a wail is all bloop: Kiki creaks a door instead
     const t0 = ctx.currentTime;
     const eps = 0.0001;
     const D = 1.6;
@@ -650,12 +1027,13 @@ export const VOICES: Record<SfxName, (ctx: AudioContext, out: AudioNode) => void
   },
   // Clearing ALL data: the "bye-bye song". A fond sing-song wave goodbye, NOT the sombre
   // optOut sigh above (the slate is being wiped clean for a fresh hello, so it should smile).
-  // Two vocal "bye~"s play on the classic falling sing-song third (the yum voice with a downward
-  // lilt), then a gentle farewell walk-down settles on a warm low root, while a soft receding
-  // whoosh underneath carries the data away, and a tiny click sounds as the door closes behind it.
+  // Two drooping notes play the classic falling sing-song third, then a gentle farewell
+  // walk-down settles on a warm low root, while a soft receding whoosh underneath carries the
+  // data away, and a tiny click sounds as the door closes. (The two notes used to be
+  // a synthesised voice singing "bye~"; spoken sounds are gone.)
   byebye(ctx, out) {
-    yum(ctx, out, { pitch: 784, dur: 0.22, peak: 0.30, lilt: 0.80 });               // "bye~" - G5 drooping down
-    yum(ctx, out, { pitch: 622, dur: 0.28, peak: 0.28, delay: 0.30, lilt: 0.76 });  // "bye~" - a third lower, drooping further
+    blip(ctx, out, { type: 'triangle', from: 784, to: 627, dur: 0.22, peak: 0.24 });              // G5 drooping down
+    blip(ctx, out, { type: 'triangle', from: 622, to: 473, dur: 0.28, peak: 0.22, delay: 0.30 }); // a third lower, drooping further
     // …a little farewell walk-down, each step softer: G5 E5 D5 C5.
     [783.99, 659.25, 587.33, 523.25].forEach((f, i) =>
       blip(ctx, out, { type: 'sine', from: f, dur: 0.24 + i * 0.05, peak: 0.16 - i * 0.02, delay: 0.68 + i * 0.14 }));
@@ -759,6 +1137,75 @@ export const VOICES: Record<SfxName, (ctx: AudioContext, out: AudioNode) => void
     sweep(ctx, out, { dur: 0.42, peak: 0.10, cutoffFrom: 3600, cutoffTo: 600 });
     tick(ctx, out, { dur: 0.012, peak: 0.06, freq: 6800, q: 1.0, delay: 0.12 });
   },
+  // A section opening (a <details> summary, or a button that shows what it controls): a quick
+  // two-note rise, D5 up to A5, with a pinch of air on the second note. Quiet, because a
+  // settings page opens and closes a lot of these.
+  expand(ctx, out) {
+    blip(ctx, out, { type: 'sine', from: 587, dur: 0.09, peak: 0.15 });
+    blip(ctx, out, { type: 'sine', from: 880, dur: 0.16, peak: 0.13, delay: 0.055 });
+    tick(ctx, out, { dur: 0.008, peak: 0.05, freq: 4200, q: 1.0, delay: 0.055 });
+  },
+  // …and closing again: the same two notes falling, settling onto a soft low body.
+  collapse(ctx, out) {
+    blip(ctx, out, { type: 'sine', from: 880, dur: 0.08, peak: 0.13 });
+    blip(ctx, out, { type: 'sine', from: 587, to: 554, dur: 0.16, peak: 0.14, delay: 0.05 });
+    blip(ctx, out, { type: 'sine', from: 196, to: 165, dur: 0.12, peak: 0.07, delay: 0.05 });
+  },
+  // A switch or checkbox turning on: the sound-on chirp, softer, since a page of switches
+  // flips often. The pair steps up.
+  switchOn(ctx, out) {
+    blip(ctx, out, { type: 'triangle', from: 700, dur: 0.045, peak: 0.26 });
+    blip(ctx, out, { type: 'triangle', from: 1040, dur: 0.06, peak: 0.26, delay: 0.055 });
+  },
+  // …and turning off: the same pair stepping down.
+  switchOff(ctx, out) {
+    blip(ctx, out, { type: 'triangle', from: 1040, dur: 0.045, peak: 0.24 });
+    blip(ctx, out, { type: 'triangle', from: 700, dur: 0.07, peak: 0.24, delay: 0.055 });
+  },
+  // Letting go of the sound shape slider: one short phrase holding every ingredient (a tap,
+  // a two-note lift and a breath of air) so the listener hears what the new position changed.
+  preview(ctx, out) {
+    tick(ctx, out, { dur: 0.007, peak: 0.14, freq: 3600, q: 1.0 });
+    blip(ctx, out, { type: 'sine', from: 940, to: 780, dur: 0.024, peak: 0.12 });
+    blip(ctx, out, { type: 'sine', from: 660, dur: 0.22, peak: 0.22, delay: 0.12 });
+    blip(ctx, out, { type: 'sine', from: 990, dur: 0.3, peak: 0.17, delay: 0.18 });
+    tick(ctx, out, { dur: 0.009, peak: 0.08, freq: 3400, q: 1.0, delay: 0.18 });
+    sweep(ctx, out, { dur: 0.22, peak: 0.14, cutoffFrom: 900, cutoffTo: 3600, delay: 0.14 });
+  },
+};
+
+// ── Bouba's bass ────────────────────────────────────────────────────────────────
+// The "bwah" layer the round end adds under the weighty moments: things settling, saving,
+// finishing, arriving or going. Drawn in the Bouba pass only (renderShaped), so it fades in
+// as the slider moves toward Bouba and is never heard at the chimes or at Kiki. Pitches sit
+// on the cue's own key so the bass agrees with the notes above.
+const C2 = 65.41, D2 = 73.42, F2 = 87.31, G2 = 98.0, A2 = 110.0;
+/** One bwah at `freq` for `dur` seconds, `delay` in; `bend` sags the pitch. Peaks are kept low:
+ *  most of a bwah's energy is under 200 Hz, where headphones are loud and laptops are not. */
+const bass = (freq: number, dur: number, peak: number, delay = 0, bend = 1): Render =>
+  (ctx, out) => bwah(ctx, out, { freq, dur, peak, delay, bend });
+export const BOUBA_BASS: Partial<Record<SfxName, Render>> = {
+  drop: bass(G2, 0.3, 0.11, 0.02),
+  delete: bass(D2, 0.42, 0.11, 0, 0.8),
+  save: bass(G2, 0.24, 0.055),
+  saveProfile: bass(C2, 0.62, 0.11, 0.4),
+  victory: bass(C2, 0.5, 0.1, 0.16),
+  fanfare: bass(C2, 1.0, 0.12, 0.48),
+  sign: bass(C2, 0.6, 0.09, 0.72 + 0.18),
+  verify: bass(C2, 0.5, 0.1),
+  shutter: bass(F2, 0.6, 0.08, 0.96),
+  vacuum: bass(D2, 0.3, 0.1, 0.47),
+  dashboard: bass(G2, 1.0, 0.11),
+  hydraulicOpen: bass(F2, 0.9, 0.07, 0.1),
+  newSession: bass(C2, 0.5, 0.07, 0.08),
+  leaveSession: bass(C2, 0.5, 0.09, 0.5),
+  optIn: bass(C2, 0.9, 0.1, 0.02),
+  // The sad trombone: optOut's long final droop gets a sagging bwah underneath.
+  optOut: bass(F2, 0.9, 0.07, 1.08, 0.67),
+  warn: bass(D2, 0.3, 0.06, 0.13, 0.89),
+  byebye: bass(C2, 0.8, 0.09, 1.1),
+  land: bass(D2, 0.36, 0.09, 0.3),
+  preview: bass(A2, 0.3, 0.07, 0.12),
 };
 
 // ── theme chimes ────────────────────────────────────────────────────────────────
@@ -819,8 +1266,12 @@ export function renderProjectsWind(ctx: AudioContext, out: AudioNode): void {
   for (let i = 0; i < 4; i++) { // the same rising stack the catalog used to lead with
     tick(ctx, out, { dur: 0.02, peak: 0.14 + i * 0.02, freq: 1500 * 1.16 ** i, q: 1.3, delay: i * 0.06 });
   }
-  const s = ctx.currentTime + 4 * 0.06; // the gust starts as the stack lands
+  const s = ctx.currentTime + 4 * 0.06; // the gust starts once the stack is done
   const dur = 0.55;
+  if (material === 'kiki') {           // Kiki: a gust of blown sand, crackle through a bright band
+    scratch(ctx, out, { dur, peak: 0.16, freq: 2600, t0: s });
+    return;
+  }
   const n = Math.max(1, Math.floor(ctx.sampleRate * dur));
   const buf = ctx.createBuffer(1, n, ctx.sampleRate);
   const data = buf.getChannelData(0);
@@ -898,6 +1349,31 @@ function foghorn(ctx: AudioContext, out: AudioNode, opts: {
 // The roughly 7.25 Hz fundamental is infrasound (felt, not heard); its dense sawtooth harmonics
 // (passed up to about 620 Hz) carry the pitch as a low growl on small speakers.
 export function renderCatalogHorn(ctx: AudioContext, out: AudioNode): void {
+  // Bouba: the horn as one long, low, sagging bwah. Kiki: a struck steel plate, no growl.
+  if (material === 'bouba') { bwah(ctx, out, { freq: 55, dur: 1.6, peak: 0.15, bend: 0.93 }); return; }
+  if (material === 'kiki') { clash(ctx, out, { freq: 880, dur: 0.8, peak: 0.28 }); return; }
   foghorn(ctx, out, { freq: 7.25, dur: 1.85, peak: 0.5, attack: 0.03, sag: 0.07, bright: 620, air: 0.12 });
+}
+
+/** Kiki's ghost: a door creaking open. Irregular grains ring through a narrow resonance that
+ *  climbs and falls back, bunching up and spreading out the way a slow hinge does. */
+function creak(ctx: AudioContext, out: AudioNode): void {
+  const D = 1.4;
+  let t = 0;
+  let gap = 0.06;
+  while (t < D) {
+    const p = t / D;
+    const t0 = ctx.currentTime + t;
+    const bp = ctx.createBiquadFilter();
+    bp.type = 'bandpass';
+    bp.frequency.setValueAtTime(700 + 900 * Math.sin(p * Math.PI), t0);
+    bp.Q.setValueAtTime(18, t0);
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(3.5 * (1 - 0.4 * p), t0);
+    g.gain.exponentialRampToValueAtTime(EPS, t0 + 0.03);
+    noiseSource(ctx, 'white', t0, 0.004).connect(bp).connect(g).connect(out);
+    t += gap * (0.6 + Math.random() * 0.8);
+    gap = 0.018 + 0.05 * Math.abs(Math.cos(p * Math.PI * 1.5));
+  }
 }
 

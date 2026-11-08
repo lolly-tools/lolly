@@ -38,7 +38,7 @@ import { applyIframeModeAttr, forwardDeckKeys, isIframeMode } from './lib/iframe
 import { hydrateChromeFollow } from './lib/chrome-follow.ts';
 import { computeViewportInsets } from './lib/viewport-insets.ts';
 import { initI18n, loadedLang } from './i18n.ts';
-import { hydrateSfxMuted, hydrateSfxVolume, installGlobalSfx, playSfx } from './lib/sfx.ts';
+import { hydrateSfxMuted, hydrateSfxShape, hydrateSfxVolume, installGlobalSfx, playSfx } from './lib/sfx.ts';
 import { hydrateFeatureFlags, flagEnabledSync, isFlagOnSync, applyPerfUi, perfUiOn, PERFORMANCE_UI_FLAG } from './feature-flags.ts';
 import { perfUiAutoPending } from './lib/perf-ui-auto-state.ts';
 // The collab + nearby WIRING is installed after first paint (see installCollabWiring
@@ -1550,6 +1550,7 @@ async function boot(): Promise<void> {
   // then install the one set of app-wide, delegated cue listeners (idempotent).
   hydrateSfxMuted((profile as { sfxMuted?: boolean }).sfxMuted);
   hydrateSfxVolume((profile as { sfxVolume?: number }).sfxVolume);
+  hydrateSfxShape((profile as { sfxShape?: number }).sfxShape);
   installGlobalSfx();
   installGlobalReveal();
   installFoldSettle();

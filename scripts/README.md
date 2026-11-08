@@ -193,7 +193,6 @@ All four write into `brands/lolly-start/catalog/`, which this repository owns, s
 | `ingest-midi.ts` | none | Converts a Standard MIDI File into a small ZzFXM song and registers it as an `audio`/`zzfxm` catalog asset tagged `neurospicy`. | DESTRUCTIVE |
 | `ingest-lofi.ts` | none | Converts a curated set of public-domain lo-fi tracks to opus and registers them under `lolly/loops/`. | DESTRUCTIVE, network |
 | `ingest-audio.ts` | none | Tracker-module and general audio catalog ingest. Dry run by default. | DESTRUCTIVE |
-| `build-voice-clips.ts` | `voice` | Synthesises a robot voice speaking each UI filter, treatment and theme name at build time. One-shot: run locally, commit the output. | DESTRUCTIVE, submodule |
 | `build-street-clips.ts` | none | Offline road and water geometry prep for the `street-map` tool, fetched from OpenStreetMap via the public Overpass API. Writes into the tool's own `lib/` directory in its pack, `community/street-map/lib/`. | DESTRUCTIVE, submodule, network |
 | `lib/zzfx-music.ts` | none | A re-export shim. The ZzFX preset bank and ZzFXM composition helpers now live in `engine/src/zzfx-compose.ts`. | |
 

@@ -499,19 +499,19 @@ describe('service worker: the offline-download buckets', () => {
       'offline, with the runtime only in the legacy lolly-ort bucket, /ort-hf/ is still served');
   });
 
-  test('the whole app group serves offline - not just /_app/: voice, viz-presets, share stubs', async () => {
+  test('the whole app group serves offline - not just /_app/: icons, viz-presets, share stubs', async () => {
     // Regression pin for the review finding that downloadApp filled lolly-app
-    // with /voice/, /viz-presets/, /t/ etc. but no fetch-handler rule ever
+    // with /icons/, /viz-presets/, /t/ etc. but no fetch-handler rule ever
     // read the bucket for those paths - "downloaded" yet unservable.
     const h = loadServiceWorker();
     const app = new FakeCache();
-    app.entries.set('/voice/welcome.mp3', 'MP3_BYTES');
+    app.entries.set('/icons/icon-192.png', 'PNG_BYTES');
     app.entries.set('/viz-presets/stock.json', 'PRESETS');
     app.entries.set('/t/qr-code.html', 'SHARE_STUB');
     h.caches.set('lolly-app', app);
 
     h.offline.value = true;
-    assert.equal(await subresource(h, 'https://lolly.tools/voice/welcome.mp3'), 'MP3_BYTES');
+    assert.equal(await subresource(h, 'https://lolly.tools/icons/icon-192.png'), 'PNG_BYTES');
     assert.equal(await subresource(h, 'https://lolly.tools/viz-presets/stock.json'), 'PRESETS');
     assert.equal(await subresource(h, 'https://lolly.tools/t/qr-code.html'), 'SHARE_STUB');
   });

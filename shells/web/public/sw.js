@@ -350,7 +350,7 @@ self.addEventListener('fetch', event => {
     return;
   }
 
-  // Everything else same-origin (/viz-presets/, /voice/, /icons/, the share
+  // Everything else same-origin (/viz-presets/, /icons/, the share
   // stubs under /t/ and /view/, manifest.webmanifest, …): pass straight to the
   // network as before, but fall back to the pre-downloaded APP_CACHE when the
   // network fails. Without this, most of what "download the app" stores could

@@ -11,10 +11,16 @@
  * The mute flag lives in lib/sfx.ts (in-memory + localStorage mirror); the PROFILE is the
  * canonical store, exactly like the theme (an undeclared `sfxMuted` field on the record).
  * Turning sound back ON plays a short confirming chirp; turning it off stays silent.
+ *
+ * Under the switch sits the sound shape slider: the Bouba blob at one end, the Kiki star at
+ * the other, Lolly's chimes in the middle. It sets what every interface sound is made of
+ * (lib/sfx-voices.ts) and persists as `sfxShape` (0 to 1) on the profile, the same way.
+ * It stays usable while sound is off, so a listener can pick a shape before hearing anything.
  */
 import { t } from '../i18n.ts';
 import { icon } from '../lib/icons.ts';
-import { isSfxMuted } from '../lib/sfx.ts';
+import { escape as escapeHtml } from '../utils.ts';
+import { isSfxMuted, playSfx, getSfxShape, setSfxShape } from '../lib/sfx.ts';
 import { getNeurospicy, setNeurospicyEnabled } from '../lib/neurospicy.ts';
 import { applySoundMaster } from '../lib/sound-master.ts';
 // The dock itself (and, through it, components/music-player.ts) is dynamic-imported:
@@ -40,6 +46,10 @@ type NeuroHost = SoundToggleHost & Pick<HostV1, 'assets'>;
 const NEURO_ICON = icon('neuroBeat', { size: 22 });
 const ICON_ON = icon('volumeOn', { size: 16 });
 const ICON_OFF = icon('volumeOff', { size: 16 });
+const BOUBA_ICON = icon('bouba', { size: 22, filled: true });
+const KIKI_ICON = icon('kiki', { size: 22, filled: true });
+/** Fired on document when the sound shape is committed, so every open slider follows. */
+const SHAPE_EVENT = 'lolly:sfx-shape';
 
 /**
  * Apply + persist a new mute state everywhere: the in-memory flag + localStorage mirror
@@ -110,19 +120,43 @@ const SWITCH_CSS = `
 }
 @keyframes sound-switch-ring { from { transform: scale(1); opacity: .9; } to { transform: scale(1.9, 2.4); opacity: 0; } }
 @media (prefers-reduced-motion: reduce) {
-  .sound-switch-knob, .sound-switch-track, .sound-switch-icon { transition: none; }
+  .sound-switch-knob, .sound-switch-track, .sound-switch-icon, .sound-shape, .sound-shape-end { transition: none; }
   .sound-switch-track.is-celebrating::after { animation: none; display: none; }
 }
 /* And for the app's own preference (data-a11y-motion, lib/a11y-prefs.ts) -
    parts/base.css leaves transitions alone by design, so this has to repeat. */
-html[data-a11y-motion="reduce"] :is(.sound-switch-knob, .sound-switch-track, .sound-switch-icon) { transition: none; }
+html[data-a11y-motion="reduce"] :is(.sound-switch-knob, .sound-switch-track, .sound-switch-icon, .sound-shape, .sound-shape-end) { transition: none; }
 html[data-a11y-motion="reduce"] .sound-switch-track.is-celebrating::after { animation: none; display: none; }
 /* Neurospicy sits directly under Sound as ONE group - no dividing rule between them; the loop
    picker + volume tuck underneath its own switch. */
 .neurospicy { display: flex; flex-direction: column; gap: 9px; margin-top: 9px; transition: opacity .18s ease; }
 /* Sound is the master switch: while it's muted, Neurospicy reads as off + dimmed and can't be
    toggled until sound is turned back on. */
-.neurospicy.is-muted { opacity: .45; pointer-events: none; }`;
+.neurospicy.is-muted { opacity: .45; pointer-events: none; }
+/* The sound shape slider: Bouba blob, track, Kiki star, and a caption underneath. Each shape
+   brightens as the thumb moves toward it (--sound-shape, 0 to 1, set by wireSoundShape).
+   Muted, it dims but stays usable: the shape can be chosen before any sound plays. */
+.sound-shape { display: flex; flex-direction: column; gap: 3px; max-width: 22rem; margin-top: 10px; transition: opacity .18s ease; }
+.sound-shape.is-muted { opacity: .6; }
+.sound-shape-row { display: flex; align-items: center; gap: 10px; }
+.sound-shape-row > .field-range, .sound-shape-row > .custom-slider { flex: 1 1 auto; min-width: 0; }
+/* Two ends, not an amount: no fill from the left, an even track, and a small mark at the
+   centre where the chimes are. */
+.sound-shape .cs-fill { visibility: hidden; }
+.sound-shape .cs-track { background: var(--ui-color-border-default, hsl(var(--muted))); }
+.sound-shape .cs-track::before {
+  content: ''; position: absolute; left: 50%; top: 50%; width: 2px; height: 10px;
+  border-radius: 1px; transform: translate(-50%, -50%);
+  background: hsl(var(--muted-foreground)); opacity: .6; pointer-events: none;
+}
+.sound-shape-end {
+  display: inline-flex; flex-shrink: 0; color: hsl(var(--foreground)); cursor: pointer;
+  transition: opacity .18s ease;
+}
+.sound-shape-end svg { width: calc(26px * var(--a11y-fs, 1)); height: calc(26px * var(--a11y-fs, 1)); }
+.sound-shape-end[data-end="bouba"] { opacity: calc(.35 + .65 * (1 - var(--sound-shape, .5))); }
+.sound-shape-end[data-end="kiki"] { opacity: calc(.35 + .65 * var(--sound-shape, .5)); }
+.sound-shape-caption { font-size: .78rem; line-height: 1.3; color: hsl(var(--muted-foreground)); text-align: center; }`;
 function ensureSoundSwitchStyles(): void {
   if (typeof document === 'undefined' || document.getElementById(SWITCH_STYLE_ID)) return;
   const style = document.createElement('style');
@@ -145,7 +179,100 @@ export function soundSwitchHtml(): string {
       <button type="button" class="sound-switch-track" role="switch" aria-checked="${on}" aria-label="${t('Interface sounds')}" data-sound-switch>
         <span class="sound-switch-knob"></span>
       </button>
-    </div>${flagEnabledSync('neurospicy') ? neurospicyHtml() : ''}`;
+    </div>${soundShapeHtml()}${flagEnabledSync('neurospicy') ? neurospicyHtml() : ''}`;
+}
+
+/** The words for a sound shape position (0 Bouba … 0.5 chimes … 1 Kiki): the caption
+ *  under the slider and the value a screen reader announces. */
+export function soundShapeCaption(shape: number): string {
+  if (shape <= 0) return t('Bouba: drops, bubbles and bass');
+  if (shape < 0.25) return t('Mostly drops and bubbles');
+  if (shape < 0.5) return t('Chimes with drops');
+  if (shape === 0.5) return t('Chimes and notes');
+  if (shape <= 0.75) return t('Chimes with ticks');
+  if (shape < 1) return t('Mostly ticks and scratches');
+  return t('Kiki: ticks, scratches and metal');
+}
+
+// The sound shape slider. A plain `.field-range`, so the app's range upgrader
+// (components/custom-slider.ts) draws it as the same slider as every other one in the
+// chrome; the input stays the value and event carrier that wireSoundShape listens to.
+// The shapes are click targets for the two ends; the slider itself takes Home and End.
+function soundShapeHtml(): string {
+  const shape = getSfxShape();
+  const caption = soundShapeCaption(shape);
+  return `<div class="sound-shape${isSfxMuted() ? ' is-muted' : ''}" data-sound-shape-root style="--sound-shape:${shape}">
+      <div class="sound-shape-row">
+        <span class="sound-shape-end" data-end="bouba" data-shape-to="0" title="${escapeHtml(t('Bouba'))}" aria-hidden="true">${BOUBA_ICON}</span>
+        <input type="range" class="field-range" min="0" max="100" step="5" value="${Math.round(shape * 100)}"
+          aria-label="${escapeHtml(t('Sound shape, from Bouba (round drops and bubbles) to Kiki (ticks and scratches)'))}"
+          aria-valuetext="${escapeHtml(caption)}" data-sound-shape>
+        <span class="sound-shape-end" data-end="kiki" data-shape-to="100" title="${escapeHtml(t('Kiki'))}" aria-hidden="true">${KIKI_ICON}</span>
+      </div>
+      <span class="sound-shape-caption" data-sound-shape-caption aria-hidden="true">${escapeHtml(caption)}</span>
+    </div>`;
+}
+
+/** Bring a sound shape block in line with the current shape and mute state. */
+function paintSoundShape(root: ParentNode): void {
+  const wrap = root.querySelector<HTMLElement>('[data-sound-shape-root]');
+  if (!wrap) return;
+  const shape = getSfxShape();
+  const caption = soundShapeCaption(shape);
+  wrap.classList.toggle('is-muted', isSfxMuted());
+  wrap.style.setProperty('--sound-shape', String(shape));
+  const capEl = wrap.querySelector<HTMLElement>('[data-sound-shape-caption]');
+  if (capEl) capEl.textContent = caption;
+  const input = wrap.querySelector<HTMLInputElement>('[data-sound-shape]');
+  if (!input) return;
+  const v = String(Math.round(shape * 100));
+  if (input.value !== v) input.value = v;   // an upgraded slider follows its input's value
+  input.setAttribute('aria-valuetext', caption);
+  // The upgraded slider announces its own number after every step; give it the words instead.
+  wrap.querySelector('.custom-slider')?.setAttribute('aria-valuetext', caption);
+}
+
+/**
+ * Wire a soundShapeHtml() block: dragging moves the shape live (the slider's own detent
+ * ticks play in it as it changes); letting go saves it to the profile and plays a short
+ * preview phrase in the new shape. Clicking a shape jumps to that end.
+ */
+function wireSoundShape(root: ParentNode, host: SoundToggleHost): void {
+  const wrap = root.querySelector<HTMLElement>('[data-sound-shape-root]');
+  const input = wrap?.querySelector<HTMLInputElement>('[data-sound-shape]');
+  if (!wrap || !input) return;
+  const read = (): number => Math.min(1, Math.max(0, Number(input.value) / 100));
+  input.addEventListener('input', () => {
+    setSfxShape(read());
+    paintSoundShape(root);
+  });
+  input.addEventListener('change', async () => {
+    const shape = read();
+    setSfxShape(shape);
+    paintSoundShape(root);
+    playSfx('preview');
+    document.dispatchEvent(new CustomEvent(SHAPE_EVENT));
+    try {
+      const profile = await host.profile.get();
+      await host.profile.set({ ...profile, sfxShape: shape });
+    } catch { /* preference save is best-effort */ }
+  });
+  for (const end of wrap.querySelectorAll<HTMLElement>('[data-shape-to]')) {
+    end.addEventListener('click', (e) => {
+      e.stopPropagation();   // keep a host popover from reading it as a dismiss
+      input.value = end.dataset.shapeTo ?? '50';
+      input.dispatchEvent(new Event('change', { bubbles: true }));
+    });
+  }
+  // Another open copy (the profile menu over the Profile page) committed a new shape.
+  // Popovers are rebuilt on each open, so unhook once this one has left the document.
+  const follow = (): void => {
+    if (!wrap.isConnected) { document.removeEventListener(SHAPE_EVENT, follow); return; }
+    paintSoundShape(root);
+  };
+  document.addEventListener(SHAPE_EVENT, follow);
+  // The range upgrader mounts the real slider just after this markup is added; give that slider the words too.
+  requestAnimationFrame(() => paintSoundShape(root));
 }
 
 // Neurospicy Mode - a background focus BEAT that loops while you use the app: a switch (like
@@ -175,6 +302,7 @@ function neurospicyHtml(): string {
 export function wireSoundSwitch(root: ParentNode, host: NeuroHost): void {
   ensureSoundSwitchStyles();
   wireNeurospicy(root, host);
+  wireSoundShape(root, host);
   const wrap = root.querySelector<HTMLElement>('[data-sound-switch-root]');
   const btn = root.querySelector<HTMLButtonElement>('[data-sound-switch]');
   const icon = wrap?.querySelector<HTMLElement>('.sound-switch-icon');
@@ -185,6 +313,7 @@ export function wireSoundSwitch(root: ParentNode, host: NeuroHost): void {
     btn.setAttribute('aria-checked', String(on));
     if (icon) icon.innerHTML = on ? ICON_ON : ICON_OFF;
     paintNeurospicy(root);   // master mute greys out + switches off the Neurospicy control too
+    paintSoundShape(root);   // and dims the sound shape slider (which stays usable)
   };
   btn.addEventListener('click', async (e) => {
     e.stopPropagation();
