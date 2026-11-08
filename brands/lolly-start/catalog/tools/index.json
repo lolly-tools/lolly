@@ -7240,7 +7240,7 @@
       "id": "annotate",
       "name": "Annotate",
       "description": "Mark up your own screenshot on your device - arrows, boxes, numbered steps, callouts, highlighter and a spotlight dim.",
-      "version": "1.1.0",
+      "version": "1.1.1",
       "status": "community",
       "category": "utility",
       "privacy": "on-device",
