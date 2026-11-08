@@ -137265,6 +137265,8 @@ function movesOrFloats(row, styled) {
   const keys2 = Object.keys(row);
   if (keys2.length > MAX_ROW_FIELDS) return true;
   if (styled && isSet(row.cls)) return true;
+  if (isSet(row.textStory) || isSet(row.textFrame)) return true;
+  if ((row.kind === "path" || isSet(row.path)) && typeof row.text === "string" && row.text.trim() !== "") return true;
   if (isSet(row.kf) || isSet(row.hold) || isSet(row.split) || designNum(row.build, 0) >= 1 || isSet(row.matchOf) || isSet(row.animationId) || isSet(row.animationEdits)) return true;
   if (isSet(row.enter) || isSet(row.exit)) return true;
   if (designNum(row.z, 0) !== 0 || designNum(row.rx, 0) !== 0 || designNum(row.ry, 0) !== 0) return true;
@@ -137280,7 +137282,7 @@ function reachOf(row, kind, ancestors, floats) {
   if (kind === "frame") return { reach: "exact", margin: 0 };
   if (floats(row) || ancestors.some((a) => a.kind !== "frame" && floats(a))) return { reach: "anywhere", margin: 0 };
   const margin = (stroked(row) ? Math.max(...strokeWidths(row)) : 0) + (shadowed(row) ? Math.abs(num14(row.shadowX)) + Math.abs(num14(row.shadowY)) + 3 * Math.max(0, num14(row.shadowBlur, 10)) : 0) + 3 * Math.max(0, num14(row.blur));
-  const local2 = margin > 0 || turnedRow(row) || shapeOf(row) !== "rect" || isSet(row.clip) || kind === "path" || isSet(row.path) || !MODELLED_KINDS.has(kind) || isSet(row.textStory) || isSet(row.textFrame);
+  const local2 = margin > 0 || turnedRow(row) || shapeOf(row) !== "rect" || isSet(row.clip) || kind === "path" || isSet(row.path) || !MODELLED_KINDS.has(kind);
   return { reach: local2 ? "local" : "exact", margin };
 }
 function colourCover(value2, resolve8) {
@@ -137353,7 +137355,7 @@ function intersect2(a, b) {
 function rendererNumbers(row) {
   const out = { ...row };
   for (const key2 of NUMBER_FIELDS) {
-    if (typeof out[key2] !== "string") continue;
+    if (out[key2] === void 0 || typeof out[key2] === "number") continue;
     const n7 = designNum(out[key2], Number.NaN);
     if (Number.isFinite(n7)) out[key2] = n7;
     else delete out[key2];
@@ -137525,7 +137527,7 @@ function drawnLayers(capped, measure3, unmeasured) {
     const own4 = paintCover(row, kind, image, measure3.resolveColor) * opacity;
     const cover = blend2 && own4 !== 0 ? Number.NaN : own4;
     const { reach: reach2, margin } = reachOf(row, kind, ancestors, floats);
-    const paints2 = !!image || cover !== 0 || typeof row.text === "string" && row.text.trim() !== "" || isSet(row.textStory) || isSet(row.textFrame) || stroked(row) || shadowed(row) || !MODELLED_KINDS.has(kind);
+    const paints2 = !!image || cover !== 0 || typeof row.text === "string" && row.text.trim() !== "" || isSet(row.textStory) || isSet(row.textFrame) || stroked(row) || shadowed(row) || !MODELLED_KINDS.has(kind) || Object.keys(row).some((k) => PROTOTYPE_KEYS.has(k));
     layers.push({
       row,
       id: id3,
@@ -137899,16 +137901,22 @@ var init_partner_kit_check = __esm({
     ]);
     record29 = (v) => !!v && typeof v === "object" && !Array.isArray(v);
     designNum = (v, fallback) => {
-      const n7 = typeof v === "number" ? v : typeof v === "string" ? Number.parseFloat(v) : Number.NaN;
+      let n7;
+      try {
+        n7 = typeof v === "number" ? v : Number.parseFloat(v);
+      } catch {
+        n7 = Number.NaN;
+      }
       return Number.isFinite(n7) ? n7 : fallback;
     };
     num14 = (v, fallback = 0) => designNum(v, fallback);
     designHasNum = (v) => v !== "" && Number.isFinite(designNum(v, Number.NaN));
     designBool2 = (v, fallback) => {
-      if (v === true || v === false) return v;
-      if (typeof v !== "string" && typeof v !== "number") return fallback;
-      const s = String(v).toLowerCase();
-      return s === "true" || s === "1" || s === "yes" || s === "on" ? true : s === "false" || s === "0" || s === "no" || s === "off" ? false : fallback;
+      try {
+        return designBool(v, fallback);
+      } catch {
+        return fallback;
+      }
     };
     isSet = (v) => !(v === void 0 || v === null || v === "" || v === false || v === 0 || v === "none" || typeof v === "string" && !v.trim());
     keyOf3 = (v) => typeof v === "string" ? v : typeof v === "number" && Number.isFinite(v) ? String(v) : "";

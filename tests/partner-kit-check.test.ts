@@ -685,3 +685,33 @@ test('guest marks: the check report passes the document\'s own CSS to the kit ch
   const report = await checkFile(bytes, 'styled.json', { designSystem: null, partnerKit: kit({ minSize: { px: 96 } }), browser: 'off' });
   assert.match(report.families.brand.reason ?? '', /Not measured: the document's own CSS: .*the drawn height of one partner mark: the mark moves, is placed by a layout or uses a field/);
 });
+
+// The narrow check after the last pass (plans/82 M8, L-M8-2): each test fails on aa1c28f2.
+
+test('guest marks: composed text and text on a pen path could paint anywhere', () => {
+  const story = checkGuestMarks([markBox({ h: 50 }), { id: 't', kind: 'text', text: '', textStory: 's', x: 1000, y: 1000, w: 100, h: 20 }], CLEAR);
+  assert.deepEqual([story.findings, codes(story)], [[], ['clear-space-unmodelled']]);
+  const onPath = checkGuestMarks([markBox({ h: 50 }), { id: 'p', kind: 'path', path: 'M0 0 L10 0', text: 'Along the curve', x: 1000, y: 1000, w: 10, h: 10 }], CLEAR);
+  assert.deepEqual(codes(onPath), ['clear-space-unmodelled']);
+});
+
+test('guest marks: a row carrying its own prototype may paint whatever the prototype holds', () => {
+  const crafted = JSON.parse('{"id":"n","kind":"box","x":100,"y":160,"w":100,"h":20,"__proto__":{"bg":"#000000"}}');
+  const report = checkGuestMarks([markBox({ h: 50 }), crafted], CLEAR);
+  assert.deepEqual([report.findings, codes(report)], [[], ['clear-space-unmodelled']]);
+});
+
+test('guest marks: hidden is read with the renderer\'s full coercion, so ["yes"] hides', () => {
+  const report = checkGuestMarks([{ id: 'g', kind: 'group', hidden: ['yes'], x: 0, y: 0, w: 800, h: 600 }, markBox({ group: 'g', h: 48 })], kit({ minSize: { px: 96 } }));
+  assert.equal(report.checked.marks, 0);
+  assert.equal(checkGuestMarks([markBox({ h: 48, hidden: ['yes'] })], kit({ minSize: { px: 96 } })).checked.marks, 0);
+});
+
+test('guest marks: a number in a list is read as the renderer reads it, so ["310px"] is 310', () => {
+  const neighbour = checkGuestMarks([markBox({ h: 50 }), { id: 'n', kind: 'box', bg: '#000000', x: ['310px'], y: 100, w: 10, h: 10 }], CLEAR);
+  assert.deepEqual(neighbour.findings.map((f) => f.related), [['n']]);
+  const mark = checkGuestMarks([markBox({ h: ['50px'] })], kit({ minSize: { px: 96 } }));
+  assert.deepEqual(mark.findings.map((f) => f.value), ['50 px']);
+  // A value whose text conversion throws reads as absent rather than stopping the check.
+  assert.doesNotThrow(() => checkGuestMarks([markBox({ x: { toString: null }, hidden: { toString: null } })], kit({ minSize: { px: 96 } })));
+});
