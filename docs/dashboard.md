@@ -51,6 +51,8 @@ The same card holds **Sound**, a gentle layer of assistive sounds for what you d
 
 Under the Sound switch, a slider sets what those sounds are made of. Toward the round **Bouba** blob they become soft drops, bubbles and a little bass; toward the spiky **Kiki** star they become dry ticks, scratches and metal; the middle keeps Lolly's chimes and notes. If wet, bubbly sounds or sharp, scratchy ones are hard for you to bear, move toward the other end. The slider works while Sound is off, so you can choose before anything plays, and letting go of the slider plays a short sample.
 
+The **Lofi stations** (Warm, Late night and Rainy) make their music as they play: endless lo-fi beats with no samples and no voices, each tune with its own instruments, groove and running order. On a Lofi station, next and previous move between tunes rather than tracks. Under the transport, **Mood** switches station, **Drums** takes the kit out, **Texture** runs from clean to a dusty record, and **Share this tune** copies a link that plays the same tune for anyone who opens the link. The visualizer listens to every track at a steady level, so a quiet track moves the picture as much as a loud one, whatever the volume.
+
 The interface is keyboard-navigable, custom controls carry labels for screen readers and each tool's live preview is exposed as one labelled image describing what it shows.
 
 ### Storage

@@ -16,6 +16,7 @@
 
 import type {
   AudioDockOptions,
+  DockControl,
   DockBrandMark,
   DockCapabilities,
   DockCollapse,
@@ -243,6 +244,7 @@ export function createAudioDock(opts: AudioDockOptions): DockController {
             <input type="range" data-scrub min="0" max="1000" step="1" value="0" aria-label="Seek within track">
             <div class="audio-dock-time"><span data-time-cur>0:00</span><span data-time-dur>0:00</span></div>
           </div>
+          <div class="audio-dock-controls" data-controls></div>
           <div class="audio-dock-volumes" data-volumes></div>
           <div class="audio-dock-sections">
             <section class="audio-dock-section" data-section="narration">
@@ -320,6 +322,7 @@ export function createAudioDock(opts: AudioDockOptions): DockController {
   const srcAttr = q<HTMLElement>('[data-src-attr]')!;
   const atmoRows = q<HTMLElement>('[data-atmo-rows]')!;
   const volumesEl = q<HTMLElement>('[data-volumes]')!;
+  const controlsEl = q<HTMLElement>('[data-controls]')!;
   const volBtn = q<HTMLButtonElement>('[data-vol-btn]');
   const volPop = q<HTMLElement>('[data-volpop]');
   const volRange = q<HTMLInputElement>('[data-vol-range]');
@@ -691,6 +694,52 @@ export function createAudioDock(opts: AudioDockOptions): DockController {
   // Remembered level per atmosphere layer, so tapping its icon mutes to 0 and un-mutes back
   // to where it was (plans/147).
   const atmoLastLevel = new Map<string, number>();
+
+  // ── the current source's own controls ─────────────────────────────────────────
+  // Rebuilt only when the SET of controls changes (another source, other options);
+  // otherwise just repainted in place, so a slider being dragged or a button being
+  // pressed is never replaced mid-gesture.
+  let controlsSig = '';
+  function controlList(): DockControl[] {
+    try { return host.controls?.() ?? []; } catch { return []; }
+  }
+  function controlHtml(c: DockControl): string {
+    const id = esc(c.id);
+    switch (c.kind) {
+      case 'choice':
+        return `<div class="audio-dock-choice" role="group" aria-label="${esc(c.label)}">`
+          + c.options.map((o) => `<button type="button" aria-pressed="false" data-ctl="${id}" data-ctl-opt="${esc(o.id)}">${esc(o.label)}</button>`).join('')
+          + `</div>`;
+      case 'toggle':
+        return `<button type="button" class="audio-dock-toggle" aria-pressed="false" data-ctl="${id}">${esc(c.label)}</button>`;
+      case 'range':
+        return `<label class="audio-dock-vol"><span>${esc(c.label)}</span><input type="range" min="${c.min}" max="${c.max}" step="${c.step}" value="${c.get()}" data-ctl="${id}" aria-label="${esc(c.label)}"></label>`;
+      case 'action':
+        return `<button type="button" class="audio-dock-toggle audio-dock-action" data-ctl="${id}">${esc(c.label)}</button>`;
+      default:
+        return '';
+    }
+  }
+  function renderControls(): void {
+    const list = controlList();
+    const sig = list.map((c) => `${c.kind}:${c.id}:${c.label}${c.kind === 'choice' ? `:${c.options.map((o) => `${o.id}=${o.label}`).join(',')}` : ''}`).join('|');
+    if (sig !== controlsSig) {
+      controlsSig = sig;
+      controlsEl.innerHTML = list.map(controlHtml).join('');
+    }
+    const active = doc.activeElement;
+    for (const el of controlsEl.querySelectorAll<HTMLElement>('[data-ctl]')) {
+      const c = list.find((x) => x.id === el.dataset.ctl);
+      if (!c) continue;
+      if (c.kind === 'choice') el.setAttribute('aria-pressed', String(el.dataset.ctlOpt === c.get()));
+      else if (c.kind === 'toggle') el.setAttribute('aria-pressed', String(c.get()));
+      // A slider is left alone while it has focus, so a drag is never pulled back mid-gesture.
+      else if (c.kind === 'range' && el !== active && el instanceof doc.defaultView!.HTMLInputElement) { el.value = String(c.get()); setFill(el); }
+    }
+  }
+  function controlFor(el: HTMLElement): DockControl | undefined {
+    return controlList().find((c) => c.id === el.dataset.ctl);
+  }
 
   // ── volume sliders ───────────────────────────────────────────────────────────
   function rebuildVolumes(): void {
@@ -1148,6 +1197,7 @@ export function createAudioDock(opts: AudioDockOptions): DockController {
     paintRepeat();
     paintVolume();
     paintVolumes();
+    renderControls();
     updateScrub();
 
     if (hasNarration() && host.narration) {
@@ -1333,6 +1383,34 @@ export function createAudioDock(opts: AudioDockOptions): DockController {
   });
   volRange?.addEventListener('change', () => host.volume?.commit?.(Number(volRange.value)));
   srcSearch.addEventListener('input', () => applySearch());
+  controlsEl.addEventListener('click', (e) => {
+    const el = (e.target as HTMLElement).closest?.<HTMLElement>('button[data-ctl]');
+    if (!el) return;
+    const c = controlFor(el);
+    if (!c) return;
+    if (c.kind === 'choice') void Promise.resolve(c.set(el.dataset.ctlOpt ?? '')).then(refresh);
+    else if (c.kind === 'toggle') void Promise.resolve(c.set(!c.get())).then(refresh);
+    else if (c.kind === 'action') {
+      void Promise.resolve(c.run()).then((said) => {
+        if (!said || !el.isConnected) return;
+        el.textContent = said;
+        setTimeout(() => { if (el.isConnected) el.textContent = c.label; }, 1600);
+      });
+    }
+    refresh();
+  });
+  controlsEl.addEventListener('input', (e) => {
+    const range = (e.target as HTMLElement).closest?.<HTMLInputElement>('input[data-ctl]');
+    if (!range) return;
+    const c = controlFor(range);
+    if (c?.kind === 'range') { c.set(Number(range.value)); setFill(range); }
+  });
+  controlsEl.addEventListener('change', (e) => {
+    const range = (e.target as HTMLElement).closest?.<HTMLInputElement>('input[data-ctl]');
+    if (!range) return;
+    const c = controlFor(range);
+    if (c?.kind === 'range') c.commit?.(Number(range.value));
+  });
   volumesEl.addEventListener('input', (e) => {
     const range = (e.target as HTMLElement).closest?.<HTMLInputElement>('[data-vol-id]');
     if (!range) return;
@@ -1530,6 +1608,8 @@ export function createAudioDock(opts: AudioDockOptions): DockController {
     // after the dock is built (the web shell builds one dock before any music source
     // registers) would otherwise keep the empty block it was born with.
     rebuildVolumes();
+    controlsSig = '';
+    renderControls();
     void rebuildVisualiser();
     updateExpandVisibility();
     syncViz();

@@ -20,9 +20,9 @@
 import { t } from '../i18n.ts';
 import { icon } from '../lib/icons.ts';
 import { escape as escapeHtml } from '../utils.ts';
-import { isSfxMuted, setSfxMuted, playSfx, getSfxShape, setSfxShape } from '../lib/sfx.ts';
-import { getNeurospicy, setNeurospicyEnabled, applyNeurospicy } from '../lib/neurospicy.ts';
-import { applyAtmosphere } from '../lib/atmosphere.ts';
+import { isSfxMuted, playSfx, getSfxShape, setSfxShape } from '../lib/sfx.ts';
+import { getNeurospicy, setNeurospicyEnabled } from '../lib/neurospicy.ts';
+import { applySoundMaster } from '../lib/sound-master.ts';
 // The dock itself (and, through it, components/music-player.ts) is dynamic-imported:
 // every use below is inside a click handler or a post-render sync, and the module
 // would otherwise sit on the boot path for every visitor - including the majority
@@ -57,18 +57,8 @@ const SHAPE_EVENT = 'lolly:sfx-shape';
  * when enabling. Exported so bespoke settings surfaces (e.g. the profile page) can reuse it.
  */
 export async function applySfxMuted(host: SoundToggleHost, muted: boolean): Promise<void> {
-  setSfxMuted(muted);
-  if (!muted) playSfx('toggle');
-  // Master mute: stop the Neurospicy focus loop when muting, resume it (if still enabled) when
-  // un-muting. The runtime host is the full WebHost (has assets), so the cast is safe.
-  void applyNeurospicy(host as unknown as Parameters<typeof applyNeurospicy>[0]);
-  // Same master-mute contract for the Atmosphere beds: muting stops them, un-muting
-  // brings back exactly the layers that were up.
-  applyAtmosphere(host);
-  try {
-    const profile = await host.profile.get();
-    await host.profile.set({ ...profile, sfxMuted: muted });
-  } catch { /* preference save is best-effort */ }
+  // The runtime host is the full WebHost (has assets), so the cast is safe.
+  await applySoundMaster(host as unknown as Parameters<typeof applySoundMaster>[0], muted);
 }
 
 /**

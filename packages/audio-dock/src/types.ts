@@ -65,6 +65,20 @@ export interface DockSource {
  *  returns null. */
 export interface DockAttribution { text: string; href: string; linkText: string }
 
+/**
+ * A control the CURRENT source brings with it, beyond the transport: a generated
+ * station's mood, a switch for its drums, a slider for its texture, a "share this"
+ * action. The dock renders whatever `DockHost.controls()` returns as a small block under
+ * the transport and re-reads it on every refresh, so the controls can change with the
+ * source. An action's `run` may return a short message (e.g. "Link copied") that the
+ * button shows for a moment.
+ */
+export type DockControl =
+  | { kind: 'choice'; id: string; label: string; options: ReadonlyArray<{ id: string; label: string }>; get(): string; set(id: string): void | Promise<void> }
+  | { kind: 'toggle'; id: string; label: string; get(): boolean; set(on: boolean): void | Promise<void> }
+  | { kind: 'range'; id: string; label: string; min: number; max: number; step: number; get(): number; set(v: number): void; commit?(v: number): void }
+  | { kind: 'action'; id: string; label: string; run(): string | undefined | Promise<string | undefined> };
+
 /** The music/radio adapter. Present only for a host that offers a picker.
  *  Narration hosts omit it entirely (they page with prev/next, not a dropdown). */
 export interface DockSources {
@@ -333,6 +347,9 @@ export interface DockHost {
    *  narration host maps it to its audio element / utterance volume. Absent ⇒ no
    *  volume button. Reuses DockVolume; a host uses id 'master'. */
   volume?: DockVolume;
+  /** The current source's own controls (see {@link DockControl}), rendered under the
+   *  transport. Absent, or an empty list, ⇒ no block. */
+  controls?(): DockControl[];
   /** A SECOND, self-contained narration player rendered as its own block above the main
    *  (music) player, so the unified dock can carry BOTH page voice and music at once.
    *  Absent ⇒ no narration block. Additive/optional; see {@link DockNarrationPlayer}. */
