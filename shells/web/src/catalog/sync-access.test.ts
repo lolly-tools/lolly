@@ -238,3 +238,22 @@ test('a failed prepared request reaches the normal offline fallback', async () =
   assert.equal(networkStatus.offline, true);
   assert.equal(chipShown(), true);
 });
+
+test('a view as a partner refreshes nothing for offline use (org/view-as.ts)', async () => {
+  Object.defineProperty(globalThis, 'sessionStorage', { configurable: true, writable: true, value: dom.window.sessionStorage });
+  sessionStorage.setItem('lolly-view-as', JSON.stringify({
+    token: 'view-token', expiresAt: new Date(Date.now() + 60_000).toISOString(), programme: { id: 'resellers', name: 'Resellers' },
+  }));
+  try {
+    const touched: string[] = [];
+    const host = mockHost();
+    for (const [name, run] of Object.entries(host.assets)) {
+      (host.assets as Record<string, unknown>)[name] = async (...args: unknown[]) => { touched.push(name); return (run as (...a: unknown[]) => unknown)(...args); };
+    }
+    await syncCorePrefetch(host);
+    assert.deepEqual(requests, [], 'no catalog request');
+    assert.deepEqual(touched, [], 'nothing is cached in this browser');
+  } finally {
+    sessionStorage.clear();
+  }
+});

@@ -921,7 +921,6 @@ export async function mountGallery(viewEl: HTMLElement, host: GalleryHost, opts:
   // shows, nothing else does, and the answer to that is async (token discovery).
   // Placed ahead of the content so the phone-width nudge reads as an in-flow
   // card at the top of the gallery (A4); the privacy strip is fixed either way.
-  // No slot at all while viewing as a partner (views/first-run-banner.ts).
   const firstRunBanner = firstRunBannerMarkup(profile, isProgrammeMember());
 
   const cardSizeView = opts.only ? 'utilities' : 'tools', cardSize = readCardSize(cardSizeView);

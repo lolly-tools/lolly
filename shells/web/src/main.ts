@@ -1211,10 +1211,10 @@ function startBootCatalog(host: Awaited<ReturnType<typeof createBridge>>, coldGa
 }
 
 async function boot(): Promise<void> {
-  mountViewAsBanner(document, () => stopViewAs(instanceFetch));
   // Capture export intent before mounting can rewrite the address.
   const bootRoute = parseRoute();
   const scriptedExport = new URLSearchParams('params' in bootRoute ? bootRoute.params ?? '' : '').has('export');
+  mountViewAsBanner(document, () => stopViewAs(instanceFetch));
   installToolByteVerification();
   installVerifiedPreviews();
   // The view this tab leaves the app from, for the static docs' way back (lib/back-nav.ts).
@@ -1701,9 +1701,7 @@ async function boot(): Promise<void> {
   // It also refreshes pinned tool files and downloaded offline parts, so it waits for
   // the first-run welcome to close as well.
   // Scripted exports fetch their own resources; offline warming can exhaust a worker's request budget.
-  // Not while viewing as a partner: it would refresh this browser's pinned tool files and
-  // offline parts from the partner's view.
-  if (!scriptedExport && !isIframeMode() && !viewingAs()) catalogReady.then(() => afterWelcomeIdle(() => { void syncCorePrefetch(host as unknown as Parameters<typeof syncCorePrefetch>[0]); }));
+  if (!scriptedExport && !isIframeMode()) catalogReady.then(() => afterWelcomeIdle(() => { void syncCorePrefetch(host as unknown as Parameters<typeof syncCorePrefetch>[0]); }));
   // Hosted design systems (plans/186 section 3.6): once a day, and when the tab
   // comes back to the front after a day away, ask each host whether its design
   // system moved. Idle-scheduled and best-effort - a host that is away, or a

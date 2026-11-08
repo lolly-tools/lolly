@@ -37,6 +37,7 @@ import { CatalogRefusedError, catalogRefused, catalogRefusedBefore, isAccessRefu
 import type { RenditionSpec } from '../../../../packages/core/src/delivery-v1.ts';
 import type { CompanionHost } from '../lib/design-system/companions.ts';
 import { readCompanionAssets } from '../lib/design-system/asset-scope.ts';
+import { viewingAs } from '../org/view-as.ts';
 
 /** One resolvable file for a catalog asset (an entry in an asset's `formats`).
  *  Structurally matches the bridge's AssetFormat so it flows into
@@ -751,7 +752,9 @@ async function offlineScopeFilter(): Promise<((a: AssetMetaRecord) => boolean) |
 }
 
 export async function syncCorePrefetch(host: SyncHost): Promise<void> {
-  if (catalogRefused()) return;
+  // Not while viewing as a partner: it would refresh this browser's pinned tool files and
+  // offline parts from the partner's view.
+  if (catalogRefused() || viewingAs()) return;
   try {
     // Reuse the index syncAssets already fetched this boot. Only fall back to a
     // network fetch if it ran a 304 (unchanged) and never stashed one.
