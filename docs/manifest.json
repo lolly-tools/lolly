@@ -3614,37 +3614,37 @@
       },
       "shots/README.md": {
         "source": "shots/work/README.md",
-        "sha256": "5c8cdb66a50ad73d6ba074c670e78e18492192c9607592d9845a1fc3b25970b9",
+        "sha256": "a845f3eaecf13fad99cf159dac308e219ca057c89f70e28ef4cf2c0dd41e1945",
         "originalPath": "docs/shots/README.md"
       },
       "shots/activity-timeline.dark.svg": {
         "source": "shots/work/activity-timeline.dark.svg",
-        "sha256": "c2ef0a31733b857691a9a2d8ca2f5fef25518d62846b281f4395ed8d3fda8217",
+        "sha256": "d207c63f0edc1fbbfca40309f4edbd7069bb0749aa5efef9a3f8bb5f5ee6e230",
         "originalPath": "docs/shots/activity-timeline.dark.svg"
       },
       "shots/activity-timeline.svg": {
         "source": "shots/work/activity-timeline.svg",
-        "sha256": "89b6abb8ac1dafb0224e9ef0a2b3b1a3222714e47b9aa3409303bd43102920b6",
+        "sha256": "b2438c5f0140e1abc702be1ad3289f6d080ed487d317f13a9659d7629234032e",
         "originalPath": "docs/shots/activity-timeline.svg"
       },
       "shots/approvals-inbox.dark.svg": {
         "source": "shots/work/approvals-inbox.dark.svg",
-        "sha256": "3103509c35a1837300163f966237067b4c71d6037cd42da5c0bde0539b9f483c",
+        "sha256": "7a18a321fa696c30e8178e4406659b7777d00a6137251f5e26cbd867da6a1f83",
         "originalPath": "docs/shots/approvals-inbox.dark.svg"
       },
       "shots/approvals-inbox.svg": {
         "source": "shots/work/approvals-inbox.svg",
-        "sha256": "8d91d464f2b08a7da381489fe7705dd53ce6c5d06c5d09ba689210b832b4eddb",
+        "sha256": "43c6171854e050a4e6b3841b64207b5e200441d1c892db1b7b3f433dc1d4da25",
         "originalPath": "docs/shots/approvals-inbox.svg"
       },
       "shots/audit-chain.dark.svg": {
         "source": "shots/work/audit-chain.dark.svg",
-        "sha256": "3e1bf179cb4f9b7d2666d3b11550d715e31f414b2f264748dd6300c8b89fd696",
+        "sha256": "9e680d1f10aab1e0eb7f5b02d9e6badd0599d4073b23a1cd10b675fb8e685832",
         "originalPath": "docs/shots/audit-chain.dark.svg"
       },
       "shots/audit-chain.svg": {
         "source": "shots/work/audit-chain.svg",
-        "sha256": "dd05a5c4a0669a129b3db78ff94f764900244e2024f581b481d6473d979e7b80",
+        "sha256": "0ccb456c146edab342b533c8439136313866454033cb315206971f0516ef2037",
         "originalPath": "docs/shots/audit-chain.svg"
       },
       "shots/broadcast-messages.dark.svg": {
@@ -3694,17 +3694,17 @@
       },
       "shots/customer-setup-deployment.dark.svg": {
         "source": "shots/work/customer-setup-deployment.dark.svg",
-        "sha256": "b68527a5fbf564f0c8574ed5dc6199d9666b17f9246adaeba3c139905a3a98db",
+        "sha256": "9820b68f1d23b315bfae3a8feda06d7fb3cdce596bac0cb6861c7db2887cbbfc",
         "originalPath": "docs/shots/customer-setup-deployment.dark.svg"
       },
       "shots/customer-setup-deployment.root.pem": {
         "source": "shots/work/customer-setup-deployment.root.pem",
-        "sha256": "0b0826b0c836cb82e06e21cb715825247ca829ff5c2cebc961742c17dfa55bef",
+        "sha256": "f513426cb8b7b006787005ca95b38604714082e98cf45b3153b923fda867ff57",
         "originalPath": "docs/shots/customer-setup-deployment.root.pem"
       },
       "shots/customer-setup-deployment.svg": {
         "source": "shots/work/customer-setup-deployment.svg",
-        "sha256": "9114f098a82bd495fa8f7c9f99c2826a047eded61e6a7ad83e0ac6609f58aeee",
+        "sha256": "bf5638f2d5e7a8a43a58e26bf48bb173657cc219bb687e81e469cccabed0fdaf",
         "originalPath": "docs/shots/customer-setup-deployment.svg"
       },
       "shots/customer-setup-identity.dark.svg": {
@@ -3749,22 +3749,22 @@
       },
       "shots/overview-dashboard.dark.svg": {
         "source": "shots/work/overview-dashboard.dark.svg",
-        "sha256": "d18bcbc380c5976f1ec556ebe00e1cffaabf1e94d05a4bd5c2a45276c94fd911",
+        "sha256": "61e9b5c3b6926f8d450a6c11e9ac51ae6798c2e2ac5a7940fa21de3233cdfe09",
         "originalPath": "docs/shots/overview-dashboard.dark.svg"
       },
       "shots/overview-dashboard.svg": {
         "source": "shots/work/overview-dashboard.svg",
-        "sha256": "dcafcb768b2b6c77e793cf067ea88fb5ce132197cbf22cc3a09a924980e0f4a5",
+        "sha256": "314ee6c4909c95410760871c8a68f46ba6bc4eb270386a8adddb536b3042f683",
         "originalPath": "docs/shots/overview-dashboard.svg"
       },
       "shots/people-directory.dark.svg": {
         "source": "shots/work/people-directory.dark.svg",
-        "sha256": "b0376ce2ceb24b683be41acc6e6ff4a3aaa24ca604400826cccb64489158b4b1",
+        "sha256": "2b666b62c69b8d157b96854572a1efec6d3d6d6a182c24ced996703ff61ae305",
         "originalPath": "docs/shots/people-directory.dark.svg"
       },
       "shots/people-directory.svg": {
         "source": "shots/work/people-directory.svg",
-        "sha256": "bbd3cddf584ccb1ebef1507e72780ddae1204a37a07e80cc2a228ea6acfa2e75",
+        "sha256": "1144ee5722b69c0dcf8af499e2d02bf50694b50d14322037bfe40007662d24b5",
         "originalPath": "docs/shots/people-directory.svg"
       },
       "shots/permissions-grants.dark.svg": {
@@ -3834,12 +3834,12 @@
       },
       "shots/share-links.dark.svg": {
         "source": "shots/work/share-links.dark.svg",
-        "sha256": "621317b4cf48171948bb9ff3a595094db941e95a9f687352388b348eba985276",
+        "sha256": "e0ff6c9362e2d2410bd5954d12d7307b624b64cb12b3984af0da8e40ad91a1ab",
         "originalPath": "docs/shots/share-links.dark.svg"
       },
       "shots/share-links.svg": {
         "source": "shots/work/share-links.svg",
-        "sha256": "461421df38c7bd10fd55fd8da68312b28a6be595474620a5276af26b8b9aa193",
+        "sha256": "288b63e19d3a0d3ddfbc52bbff979e370d251cf77604a82706a9906e1e7c1d45",
         "originalPath": "docs/shots/share-links.svg"
       },
       "shots/signing-root.pem": {
@@ -3849,12 +3849,12 @@
       },
       "shots/tool-policy.dark.svg": {
         "source": "shots/work/tool-policy.dark.svg",
-        "sha256": "873599ec135186a71c18e006661a3c3806848b86a785a464466a672376630592",
+        "sha256": "b006b7be4f49ecb73c6cc49d83633b063bff92712d823a89bc5b03eabadef246",
         "originalPath": "docs/shots/tool-policy.dark.svg"
       },
       "shots/tool-policy.svg": {
         "source": "shots/work/tool-policy.svg",
-        "sha256": "ad855705acb81deab45596037df38ca5e6dc3978137a7138f8fa3465ba262ed6",
+        "sha256": "ea04b00cc938b3268b310eb9deda0c64db8486e924118b5b332c1b49edbeae1d",
         "originalPath": "docs/shots/tool-policy.svg"
       },
       "status.md": {
@@ -3880,6 +3880,41 @@
       "resumable-uploads.md": {
         "source": "work/resumable-uploads.md",
         "sha256": "0efbed02e63d03fdacc9df9c79ab23341e57c2924a6bf310af2dcf760022375d"
+      },
+      "shots/activity-timeline.root.pem": {
+        "source": "shots/work/activity-timeline.root.pem",
+        "sha256": "f513426cb8b7b006787005ca95b38604714082e98cf45b3153b923fda867ff57",
+        "originalPath": "docs/shots/activity-timeline.root.pem"
+      },
+      "shots/approvals-inbox.root.pem": {
+        "source": "shots/work/approvals-inbox.root.pem",
+        "sha256": "f513426cb8b7b006787005ca95b38604714082e98cf45b3153b923fda867ff57",
+        "originalPath": "docs/shots/approvals-inbox.root.pem"
+      },
+      "shots/audit-chain.root.pem": {
+        "source": "shots/work/audit-chain.root.pem",
+        "sha256": "f513426cb8b7b006787005ca95b38604714082e98cf45b3153b923fda867ff57",
+        "originalPath": "docs/shots/audit-chain.root.pem"
+      },
+      "shots/overview-dashboard.root.pem": {
+        "source": "shots/work/overview-dashboard.root.pem",
+        "sha256": "f513426cb8b7b006787005ca95b38604714082e98cf45b3153b923fda867ff57",
+        "originalPath": "docs/shots/overview-dashboard.root.pem"
+      },
+      "shots/people-directory.root.pem": {
+        "source": "shots/work/people-directory.root.pem",
+        "sha256": "e26033f072a2af3c730814f9c997708f778ba9814677c8a9ce99a99bbd2db9ec",
+        "originalPath": "docs/shots/people-directory.root.pem"
+      },
+      "shots/share-links.root.pem": {
+        "source": "shots/work/share-links.root.pem",
+        "sha256": "f513426cb8b7b006787005ca95b38604714082e98cf45b3153b923fda867ff57",
+        "originalPath": "docs/shots/share-links.root.pem"
+      },
+      "shots/tool-policy.root.pem": {
+        "source": "shots/work/tool-policy.root.pem",
+        "sha256": "f513426cb8b7b006787005ca95b38604714082e98cf45b3153b923fda867ff57",
+        "originalPath": "docs/shots/tool-policy.root.pem"
       }
     }
   }
