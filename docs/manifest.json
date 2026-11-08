@@ -2450,15 +2450,117 @@
       "title": "Run a partner programme",
       "src": "work/run-a-partner-programme.md",
       "section": "manage",
-      "group": "People and access",
+      "group": "Partners",
       "path": "manage/run-a-partner-programme",
       "icon": "usercheck",
       "aliases": [],
       "contentLicense": "MPL-2.0",
-      "description": "For partner teams: what a partner sees, can open, can change and cannot reach, and how to set up a programme, run it day to day and end a partnership.",
+      "description": "For partner teams: what partners get and see, how a programme fits together and where to start, with a guide for each subject from co-branding to ending a partnership.",
       "work": {
         "slug": "run-a-partner-programme",
         "path": "run-a-partner-programme.md",
+        "icon": "instance"
+      }
+    },
+    {
+      "slug": "work-partner-co-branding",
+      "title": "Co-branding and partner kits",
+      "src": "work/partner-co-branding.md",
+      "section": "manage",
+      "group": "Partners",
+      "path": "manage/partner-co-branding",
+      "icon": "palette",
+      "aliases": [],
+      "contentLicense": "MPL-2.0",
+      "description": "Give each partner company its details, logos for light and dark surfaces and a partner kit, see what partners see of their company, and what a co-branded file records.",
+      "work": {
+        "slug": "partner-co-branding",
+        "path": "partner-co-branding.md",
+        "icon": "instance"
+      }
+    },
+    {
+      "slug": "work-partner-templates",
+      "title": "Partner templates",
+      "src": "work/partner-templates.md",
+      "section": "manage",
+      "group": "Partners",
+      "path": "manage/partner-templates",
+      "icon": "document",
+      "aliases": [],
+      "contentLicense": "MPL-2.0",
+      "description": "Publish ready pieces to a partner programme, fill inputs from each company's details, keep a tool to its templates, and bring out new versions or retire a template.",
+      "work": {
+        "slug": "partner-templates",
+        "path": "partner-templates.md",
+        "icon": "instance"
+      }
+    },
+    {
+      "slug": "work-partner-approvals",
+      "title": "Partner approvals",
+      "src": "work/partner-approvals.md",
+      "section": "manage",
+      "group": "Partners",
+      "path": "manage/partner-approvals",
+      "icon": "checklist",
+      "aliases": [],
+      "contentLicense": "MPL-2.0",
+      "description": "The reviews a partner team can turn on, all off by default: contact edits, partner kit changes, requests from partners' agents and one approval for a template's variants.",
+      "work": {
+        "slug": "partner-approvals",
+        "path": "partner-approvals.md",
+        "icon": "instance"
+      }
+    },
+    {
+      "slug": "work-partner-shared-assets",
+      "title": "Shared assets and licences",
+      "src": "work/partner-shared-assets.md",
+      "section": "manage",
+      "group": "Partners",
+      "path": "manage/partner-shared-assets",
+      "icon": "folder",
+      "aliases": [],
+      "contentLicense": "MPL-2.0",
+      "description": "What reaches partners: collections, provider folders, the licence gate, files marked as your own, sharing a held file anyway, and the credits that travel with links.",
+      "work": {
+        "slug": "partner-shared-assets",
+        "path": "partner-shared-assets.md",
+        "icon": "instance"
+      }
+    },
+    {
+      "slug": "work-partner-agents",
+      "title": "Partners' agents",
+      "src": "work/partner-agents.md",
+      "section": "manage",
+      "group": "Partners",
+      "path": "manage/partner-agents",
+      "icon": "sparkle",
+      "aliases": [],
+      "contentLicense": "MPL-2.0",
+      "description": "Give a partner's AI agent a token that sees what the company's people see: scopes, expiry, limits and usage, and the brand and company context it reads over MCP.",
+      "work": {
+        "slug": "partner-agents",
+        "path": "partner-agents.md",
+        "icon": "instance"
+      }
+    },
+    {
+      "slug": "work-partner-people",
+      "title": "People and the partnership",
+      "src": "work/partner-people.md",
+      "section": "manage",
+      "group": "Partners",
+      "path": "manage/partner-people",
+      "icon": "people",
+      "aliases": [],
+      "contentLicense": "MPL-2.0",
+      "description": "Create a partner programme, check what partners get, invite people by list or domain, then end a partnership at once or on a date with a notice, and reopen an end.",
+      "work": {
+        "slug": "partner-people",
+        "path": "partner-people.md",
         "icon": "instance"
       }
     },
@@ -2467,7 +2569,7 @@
       "title": "Partner programmes",
       "src": "work/partner-programmes.md",
       "section": "manage",
-      "group": "People and access",
+      "group": "Partners",
       "path": "manage/partner-programmes",
       "icon": "usercheck",
       "aliases": [],

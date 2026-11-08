@@ -23,6 +23,8 @@ function shotTry(file: string, ctx: DocsRenderContext): string {
 // before the image sets the plate a mark is drawn for (a reverse mark needs a dark one).
 const PICTURE_GROUND = /^<!--g:(light|dark|brand)-->\s*/;
 const PICTURE_ITEM = /^(!\[[^\]]*\]\([^)\s]+\))\s*([\s\S]*)$/;
+// `::: intro <icon>`: a subject page's opening paragraph, led by the subject's doc icon.
+const INTRO_FENCE = /^intro(?:\s+([a-z0-9-]+))?$/;
 
 export function inline(text: string, ctx: DocsRenderContext): string {
   let s = esc(text);
@@ -274,6 +276,17 @@ export function mdToHtml(md: string, ctx: DocsRenderContext): string {
         out.push(`<div class="md-cols">${parts.map(part => `<div class="md-col">${mdToHtml(part, ctx)}</div>`).join('')}</div>`);
       } else if (label === 'timeline') {
         out.push(`<div class="md-timeline">${mdToHtml(body, ctx)}</div>`);
+      } else if (label === 'cards') {
+        // An icon list drawn as a grid of cards. An item that opens with a bold link
+        // makes the whole card that link (the stylesheet stretches it); the body stays
+        // an ordinary list, so the markdown twin and the console read a plain list.
+        out.push(`<div class="md-cards">${mdToHtml(body, ctx)}</div>`);
+      } else if (INTRO_FENCE.test(label)) {
+        // A subject page's opening: its icon beside the paragraph that says what the
+        // subject covers. The icon is decoration, so a reader without it loses nothing.
+        const key = INTRO_FENCE.exec(label)![1];
+        const glyph = key ? ctx.docIcon(key) : '';
+        out.push(`<div class="md-intro">${glyph ? `<span class="md-intro-icon" aria-hidden="true">${glyph}</span>` : ''}<div class="md-intro-body">${mdToHtml(body, ctx)}</div></div>`);
       } else if (label === 'showcase') {
         out.push(buildShowcase(body, ctx));
       } else if (parseFigureFence(label)) {
