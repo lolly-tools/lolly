@@ -557,10 +557,64 @@ export async function organizePdf(bytes: Uint8Array, opts: PdfOrganizeOpts): Pro
   };
 }
 
-/** The longest path data one stamped mark may carry: a date or a short line of words. */
-const STAMP_PATH_MAX = 200_000;
-/** SVG path data: commands, numbers, signs, exponents, separators. */
-const STAMP_PATH_DATA = /^[MmLlHhVvCcSsQqTtAaZz0-9eE.,+\-\s]+$/;
+/** The most commands one stamped mark may carry: a date or a short line of words. */
+const STAMP_PATH_MAX_COMMANDS = 20_000;
+
+type StampSegment = ['M' | 'L', number, number] | ['C', number, number, number, number, number, number] | ['Z'];
+
+/**
+ * SVG path data as absolute moves, lines, cubic curves and closes, or null when it is
+ * anything else. Reads M, L, H, V, C, Q and Z in both cases (what a text shaper writes);
+ * a quadratic curve becomes the cubic with the same shape. Every number must be finite,
+ * every command must have whole groups of arguments, and the count is capped.
+ */
+export function parseStampPath(d: string): StampSegment[] | null {
+  if (!d.trim() || d.length > STAMP_PATH_MAX_COMMANDS * 40) return null;
+  const tokens = d.match(/[A-Za-z]|[-+]?(?:\d+\.?\d*|\.\d+)(?:[eE][-+]?\d+)?/g);
+  if (!tokens || tokens.join('').length !== d.replace(/[\s,]+/g, '').length) return null;
+  const out: StampSegment[] = [];
+  let i = 0, cx = 0, cy = 0, sx = 0, sy = 0, cmd = '';
+  const num = (): number | null => {
+    const t = tokens[i];
+    if (t === undefined || /^[A-Za-z]$/.test(t)) return null;
+    i++;
+    const v = Number(t);
+    return Number.isFinite(v) && Math.abs(v) < 1e7 ? v : null;
+  };
+  while (i < tokens.length) {
+    if (/^[A-Za-z]$/.test(tokens[i]!)) cmd = tokens[i++]!;
+    else if (!cmd || /[Zz]/.test(cmd)) return null;
+    const rel = cmd === cmd.toLowerCase(), up = cmd.toUpperCase();
+    const ox = rel ? cx : 0, oy = rel ? cy : 0;
+    if (up === 'Z') { out.push(['Z']); cx = sx; cy = sy; }
+    else if (up === 'M' || up === 'L') {
+      const x = num(), y = num();
+      if (x === null || y === null) return null;
+      cx = ox + x; cy = oy + y;
+      if (up === 'M') { sx = cx; sy = cy; out.push(['M', cx, cy]); cmd = rel ? 'l' : 'L'; }
+      else out.push(['L', cx, cy]);
+    } else if (up === 'H' || up === 'V') {
+      const v = num();
+      if (v === null) return null;
+      if (up === 'H') cx = (rel ? cx : 0) + v; else cy = (rel ? cy : 0) + v;
+      out.push(['L', cx, cy]);
+    } else if (up === 'C') {
+      const a = [num(), num(), num(), num(), num(), num()];
+      if (a.some((v) => v === null)) return null;
+      const [x1, y1, x2, y2, x, y] = a as number[];
+      out.push(['C', ox + x1!, oy + y1!, ox + x2!, oy + y2!, ox + x!, oy + y!]);
+      cx = ox + x!; cy = oy + y!;
+    } else if (up === 'Q') {
+      const a = [num(), num(), num(), num()];
+      if (a.some((v) => v === null)) return null;
+      const qx = ox + a[0]!, qy = oy + a[1]!, x = ox + a[2]!, y = oy + a[3]!;
+      out.push(['C', cx + (2 / 3) * (qx - cx), cy + (2 / 3) * (qy - cy), x + (2 / 3) * (qx - x), y + (2 / 3) * (qy - y), x, y]);
+      cx = x; cy = y;
+    } else return null;
+    if (out.length > STAMP_PATH_MAX_COMMANDS) return null;
+  }
+  return out.length && out[0]![0] === 'M' ? out : null;
+}
 
 export async function stampPdf(bytes: Uint8Array, opts: PdfStampOpts): Promise<PdfStampResult> {
   const doc = await loadEditablePdf(bytes);
@@ -601,23 +655,37 @@ export async function stampPdf(bytes: Uint8Array, opts: PdfStampOpts): Promise<P
     }
   }
   // Vector marks: words a tool outlined in the design system's face, drawn as filled
-  // paths so the PDF needs no font for them. Only path commands and numbers are
-  // accepted, and the data is capped, so a mark cannot carry anything else.
-  for (const mark of opts.paths ?? []) {
-    if (!Number.isInteger(mark.page) || mark.page < 1 || mark.page > doc.getPageCount()) {
-      throw pdfRefusal(`path page ${mark.page} is outside this ${doc.getPageCount()}-page document`);
+  // paths so the PDF needs no font for them. The path data is parsed here into plain
+  // PDF path operators (pdf-lib's own SVG path reader turns quadratic curves into the
+  // wrong cubics, and writes non-finite numbers as they come), so only finite moves,
+  // lines and curves under a size cap reach the page.
+  if (opts.paths?.length) {
+    const ops = await import('pdf-lib');
+    for (const mark of opts.paths) {
+      if (!Number.isInteger(mark.page) || mark.page < 1 || mark.page > doc.getPageCount()) {
+        throw pdfRefusal(`path page ${mark.page} is outside this ${doc.getPageCount()}-page document`);
+      }
+      const segments = parseStampPath(String(mark.d ?? ''));
+      if (!segments) throw pdfRefusal('a stamped path must be SVG path data');
+      const page = doc.getPage(mark.page - 1);
+      const hex = /^#([0-9a-f]{6})$/i.exec(String(mark.color ?? ''));
+      const n = hex ? parseInt(hex[1]!, 16) : null;
+      const [r, g, b] = n === null ? [0.08, 0.08, 0.08] : [((n >> 16) & 255) / 255, ((n >> 8) & 255) / 255, (n & 255) / 255];
+      const x = Math.max(0, Number(mark.x) || 0), top = Math.max(0, Number(mark.y) || 0);
+      page.pushOperators(
+        ops.pushGraphicsState(),
+        ops.setFillingRgbColor(r, g, b),
+        // The path reads y-down from its origin; PDF space reads y-up from the bottom.
+        ops.concatTransformationMatrix(1, 0, 0, -1, x, page.getHeight() - top),
+        ...segments.map((seg) => seg[0] === 'M' ? ops.moveTo(seg[1], seg[2])
+          : seg[0] === 'L' ? ops.lineTo(seg[1], seg[2])
+            : seg[0] === 'C' ? ops.appendBezierCurve(seg[1], seg[2], seg[3], seg[4], seg[5], seg[6])
+              : ops.closePath()),
+        ops.fill(),
+        ops.popGraphicsState(),
+      );
+      stamps++;
     }
-    const d = String(mark.d ?? '');
-    if (!d.trim() || d.length > STAMP_PATH_MAX || !STAMP_PATH_DATA.test(d)) throw pdfRefusal('a stamped path must be SVG path data');
-    const page = doc.getPage(mark.page - 1);
-    const hex = /^#([0-9a-f]{6})$/i.exec(String(mark.color ?? ''));
-    const n = hex ? parseInt(hex[1]!, 16) : null;
-    page.drawSvgPath(d, {
-      x: Math.max(0, Number(mark.x) || 0),
-      y: page.getHeight() - Math.max(0, Number(mark.y) || 0),
-      color: n === null ? rgb(0.08, 0.08, 0.08) : rgb(((n >> 16) & 255) / 255, ((n >> 8) & 255) / 255, (n & 255) / 255),
-    });
-    stamps++;
   }
   // A visual signature must not leave editable field appearances floating over
   // the stamped page. XFA was refused above; AcroForm fields can be flattened.

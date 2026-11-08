@@ -114,7 +114,18 @@ async function signingLayout(host, v) {
   var ink = parseInk(v.signatureInk);
   var sig = ink.paths.length ? await drawnBytes(host, v.signatureInk) : v.signature ? await imageBytes(host, v.signature) : { width: 600, height: 180 };
   var ini = v.initials ? await imageBytes(host, v.initials) : null;
-  return { page: pp.page, total: pp.total, signature: sig, initials: ini, layout: placement(v, pp.page, sig, ini) };
+  var layout = placement(v, pp.page, sig, ini);
+  if (layout.date) {
+    // Shaped once, for the preview and the file alike. The layout keeps room for a
+    // Helvetica date; a wider face would run off the page's right edge, so the date
+    // moves left by what it needs.
+    var outline = await dateOutline(host, layout.date);
+    if (outline) {
+      layout.date.outline = outline;
+      layout.date.x = Math.max(0, Math.min(layout.date.x, pp.page.widthPt - outline.advance));
+    }
+  }
+  return { page: pp.page, total: pp.total, signature: sig, initials: ini, layout: layout };
 }
 async function compute(ctx) {
   var v = vals(ctx.model), f = v.source, ink = parseInk(v.signatureInk), pageNo = Math.max(1, Math.round(Number(v.page) || 1));
@@ -144,7 +155,7 @@ async function compute(ctx) {
     o.positionText = 'x ' + round1(l.x) + ' · y ' + round1(l.y) + ' · ' + round1(l.width) + ' pt wide';
     o.xPct = l.x / p.widthPt * 100; o.yPct = l.y / p.heightPt * 100; o.wPct = l.width / p.widthPt * 100; o.hPct = l.height / p.heightPt * 100;
     o.posJson = JSON.stringify({ x: l.x, y: l.y, width: l.width });
-    o.initialsMark = l.initials; o.dateMark = o.hasSignature ? l.date : null;
+    o.initialsMark = l.initials; o.dateMark = o.hasSignature && l.date ? { text: l.date.text, x: l.date.x, y: l.date.y, size: l.date.size } : null;
     if (v.lock && v.seal) throw new Error('A password lock and a Content Credential cannot be combined: encryption would invalidate the credential. Turn one off.');
     if (v.seal && (!ctx.host.c2pa || typeof ctx.host.c2pa.sign !== 'function')) throw new Error('Content Credentials are unavailable in this app. Turn the credential off to download a visible signature.');
     if (v.lock && typeof ctx.host.pdf.lock !== 'function') throw new Error('AES-256 PDF locking is unavailable in this app.');
@@ -166,8 +177,7 @@ async function dateOutline(host, date) {
       var face = await host.text.fontUrl(family, { weight: 400 });
       if (!face || !face.url) continue;
       var run = await host.text.toPath({ text: date.text, fontUrl: face.url, fontSize: date.size, variations: face.variations });
-      // The baseline sits one size below the top of the date's box, where stamped text puts it.
-      if (run && run.d && !run.notdef) return { x: date.x, y: date.y + date.size, d: run.d, color: '#141414' };
+      if (run && run.d && !run.notdef) return { d: run.d, advance: Number(run.advanceWidth) || 0 };
     } catch (e) { /* the next family, or text */ }
   }
   return null;
@@ -185,13 +195,14 @@ async function exportFile(ctx) {
   var r = await signingLayout(host, v), l = r.layout, page = Math.max(1, Math.round(Number(v.page) || 1));
   var images = [{ bytes: r.signature.bytes, page: page, x: l.x, y: l.y, width: l.width, height: l.height }];
   if (r.initials && l.initials) images.push(Object.assign({ bytes: r.initials.bytes, page: page }, l.initials));
-  var texts = l.date ? [Object.assign({ page: page }, l.date)] : [];
-  var outline = l.date ? await dateOutline(host, l.date) : null;
+  var texts = l.date ? [{ page: page, text: l.date.text, x: l.date.x, y: l.date.y, size: l.date.size }] : [];
   var stamped = null;
-  if (outline) {
-    // The date as outlines in the design system's face. A host older than stamped paths
+  if (l.date && l.date.outline) {
+    // The date as outlines in the design system's face, its baseline one size below the
+    // top of its box, where stamped text puts it. A host older than stamped paths
     // ignores them and counts fewer stamps, so the date then goes in as text after all.
-    stamped = await host.pdf.stamp(f.bytes, { images: images, texts: [], paths: [Object.assign({ page: page }, outline)] });
+    var path = { page: page, x: l.date.x, y: l.date.y + l.date.size, d: l.date.outline.d, color: '#141414' };
+    stamped = await host.pdf.stamp(f.bytes, { images: images, texts: [], paths: [path] });
     if (!stamped || stamped.stamps !== images.length + 1) stamped = null;
   }
   if (!stamped) stamped = await host.pdf.stamp(f.bytes, { images: images, texts: texts });

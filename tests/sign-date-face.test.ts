@@ -10,20 +10,21 @@ import { readFile } from 'node:fs/promises';
 
 const HOOKS = new URL('../community/sign/hooks.js', import.meta.url);
 const PDF = new TextEncoder().encode('%PDF-1.7\n%stand-in\n');
-const model = [
+const modelAt = (x: number) => [
   { id: 'source', value: { bytes: PDF, name: 'contract.pdf', size: PDF.length } },
   { id: 'signature', value: { url: 'data:image/png;base64,AA==' } },
   { id: 'signatureInk', value: '' },
   { id: 'page', value: 1 },
-  { id: 'position', value: { x: 72, y: 620, width: 144 } },
+  { id: 'position', value: { x, y: 620, width: 144 } },
   { id: 'initials', value: null },
   { id: 'date', value: true },
   { id: 'seal', value: false },
   { id: 'lock', value: false },
 ];
+const model = modelAt(72);
 
 type StampOpts = { images: unknown[]; texts?: Array<Record<string, unknown>>; paths?: Array<Record<string, unknown>> };
-function stubHost(opts: { paths: boolean; text: boolean }) {
+function stubHost(opts: { paths: boolean; text: boolean; advance?: number }) {
   const stamps: StampOpts[] = [];
   const host = {
     profile: { get: async () => ({}) },
@@ -38,19 +39,19 @@ function stubHost(opts: { paths: boolean; text: boolean }) {
     },
     ...(opts.text ? { text: {
       fontUrl: async (family: string) => (family === 'Probe Face' ? { url: 'blob:http://localhost/probe' } : null),
-      toPath: async (o: { text: string; fontSize: number }) => ({ d: `M0 0L${o.fontSize} 0L${o.fontSize} -${o.fontSize}Z`, advanceWidth: 50, notdef: 0 }),
+      toPath: async (o: { text: string; fontSize: number }) => ({ d: `M0 0L${o.fontSize} 0L${o.fontSize} -${o.fontSize}Z`, advanceWidth: opts.advance ?? 50, notdef: 0 }),
     } } : {}),
   };
   return { host, stamps };
 }
-async function sign(opts: { paths: boolean; text: boolean }) {
+async function sign(opts: { paths: boolean; text: boolean; advance?: number }, m = model) {
   const src = await readFile(HOOKS, 'utf8');
   const { host, stamps } = stubHost(opts);
   const hooks = new Function('host', `${src}\nreturn { exportFile, onInit };`)(host) as {
     exportFile: (ctx: unknown) => Promise<{ bytes: Uint8Array }>; onInit: (ctx: unknown) => Promise<Record<string, unknown>>;
   };
-  await hooks.exportFile({ model, host, opts: {} });
-  return { stamps, preview: await hooks.onInit({ model, host }) };
+  await hooks.exportFile({ model: m, host, opts: {} });
+  return { stamps, preview: await hooks.onInit({ model: m, host }) };
 }
 
 test('the signed PDF carries the date as outlines in the design system\'s face', async () => {
@@ -81,4 +82,12 @@ test('a host that predates stamped paths, or cannot shape text, still stamps the
     assert.equal(last.texts?.length, 1, JSON.stringify(opts));
     assert.equal(last.paths, undefined);
   }
+});
+
+test('a date wider than the room the layout keeps moves left to stay on the page, in the preview and the file', async () => {
+  // The signature group sits at the page's right edge (612 - 144 = 468); a 200-point-wide
+  // date would end at 668, so it starts at 612 - 200 = 412 in both.
+  const { stamps, preview } = await sign({ paths: true, text: true, advance: 200 }, modelAt(600));
+  assert.equal(stamps[0]!.paths?.[0]?.x, 412);
+  assert.equal((preview.dateMark as { x: number }).x, 412);
 });
