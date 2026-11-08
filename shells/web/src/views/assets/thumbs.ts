@@ -556,7 +556,11 @@ export function assetTile(cat: CatCtx, ref: AssetRef): string {
               const added = assetAddedAt(ref);
               return added ? `${name} - ${tRaw('added {date}', { date: new Date(added).toLocaleDateString() })}` : name;
             })())}">${escapeText(name)}</span>
-            <span class="cat-tile-sub"><span class="cat-src cat-src--${isUser ? 'user' : 'lib'}">${sourceLabel}</span>${ref.meta?.providerOriginalsAvailable === false ? ` · ${t('Renditions only')}` : ''}${assetFiles(ref.meta).length > 1 ? ` · ${assetFiles(ref.meta).length} files` : fmt ? ` · ${escapeText(fmt)}` : ''}${aiKind ? genAiPill(aiKind) : ''}${aiSignalsChip(ref)}${(() => {
+            <span class="cat-tile-sub"><span class="cat-src cat-src--${isUser ? 'user' : 'lib'}">${sourceLabel}</span>${ref.meta?.providerOriginalsAvailable === false ? `<span class="cat-tile-note">${t('Renditions only')}</span>` : ''}${
+              // The format (or the file count) is a piece of its own, not text after a
+              // separator, so Grid can leave it to Card, List and the details sheet
+              // (styles/parts/assets.css) and a narrow caption never strands a dot.
+              assetFiles(ref.meta).length > 1 ? `<span class="cat-tile-fmt">${assetFiles(ref.meta).length} files</span>` : fmt ? `<span class="cat-tile-fmt">${escapeText(fmt)}</span>` : ''}${aiKind ? genAiPill(aiKind) : ''}${aiSignalsChip(ref)}${(() => {
               // Match context (plans/132 WP-C item 4): while searching, say WHY a tile
               // is in the result set when the name alone doesn't show it.
               if (!cat.query) return '';
