@@ -34,7 +34,7 @@ import { canStartCollab, startCollab } from '../lib/collab-availability.ts';
 import { syncCatalog, prefetchAssetsById, defaultHiddenToolIds } from '../catalog/sync.ts';
 import { shippedTemplateRef, userTemplateRef } from '../lib/template-ref.ts';
 import { createUserTemplateStore, type UserTemplate } from '../lib/user-templates.ts';
-import { galleryTemplates, templateLine, templateSearchTerms, templateMotionPreviews, infoTemplates, NO_INFO_TEMPLATES, type InfoTemplates } from './gallery-templates.ts';
+import { galleryTemplates, templateChip, templateSearchTerms, templateMotionPreviews, infoTemplates, NO_INFO_TEMPLATES, type InfoTemplates } from './gallery-templates.ts';
 import { activeExampleIndex, markLookFailed, stripCarouselNav, wireCarousel } from './gallery-carousel.ts';
 import { cardMarkup, catLabel, fmtLabel, galleryExampleLooks, statusLabel, viewCardMarkup, viewFavKey, type SavedEntry } from './gallery-tiles.ts';
 import { matchesGalleryFilter } from './gallery-filter.ts';
@@ -1604,7 +1604,7 @@ export async function mountGallery(viewEl: HTMLElement, host: GalleryHost, opts:
         .slice(0, featuredHandle ? EAGER_TILES_WITH_HERO : EAGER_TILES).map(t => t.id),
     );
     masonry.innerHTML = viewCards + allTools
-      .map(t => cardMarkup(t, latestByTool(t.id), host.capabilities, theme.dark, opts.only === 'utility', eagerIds.has(t.id), templateLine(gtpl, t)))
+      .map(t => cardMarkup(t, latestByTool(t.id), host.capabilities, theme.dark, opts.only === 'utility', eagerIds.has(t.id), templateChip(gtpl, t)))
       .join('');
     syncDescriptions(masonry, browseLayout);
     masonry.append(noResults);

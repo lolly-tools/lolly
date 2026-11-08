@@ -7,10 +7,11 @@
  * One markup serves every browse layout (components/browse-layout.ts). A tile carries,
  * from its first paint, the pieces Card draws and Grid does not: the Continue button
  * (`.gtile-resume-link`), the quiet "+ New" icon (`.gtile-new-icon`), the status line
- * (`.gtile-status`), the formats line on a utility and the detail cells
- * (`.tile-cols`, which describe the tile outside Grid). Each is `display: none` in
- * Grid (styles/parts/browse-layout.css), so a layout switch only flips an attribute
- * and Grid draws exactly what it drew before.
+ * (`.gtile-status`) and the detail cells (`.tile-cols`, which describe the tile outside
+ * Grid). Each is `display: none` in Grid (styles/parts/browse-layout.css), so a layout
+ * switch only flips an attribute. Grid draws the picture and one caption line: the
+ * name and the starting-point chip. The description is for Card and List, and the
+ * About dialog.
  */
 import { escape as escapeHtml } from '../utils.ts';
 import { t, tRaw } from '../i18n.ts';
@@ -99,11 +100,36 @@ export const viewFavKey = (id: string): string => `view:${id}`;
 const selectDot = (ref: string, name: string): string => selectToggle(ref, null, false, name);
 
 const PLUS_ICON = icon('plus');
+const DOC_ICON = icon('document');
 // The Tools glyph from the view toggle, for a tool whose index entry has no icon.
 const FALLBACK_ICON = icon('hammer');
 
 /** The id of a tile's detail cells, which its name link names in `data-describedby`. */
 const cellsId = (ref: string): string => `gtc-${ref}`;
+
+/** A card's starting-point chip (views/gallery-templates.ts templateChip): `short` is
+ *  what the chip shows beside its document glyph (a count, or the "Start with" name) and
+ *  `label` the whole line ("25 templates"). */
+export interface TemplateChip { short: string; label: string }
+
+/** The chip's accessible name: the whole line, then what pressing the chip does. The
+ *  name starts with the visible text, so a voice command that says the chip's text
+ *  still reaches the chip. */
+export function templateChipLabel(tool: Pick<GalleryTool, 'name'>, chip: TemplateChip): string {
+  return `${chip.label}. ${tRaw('Start a new {name} session', { name: tool.name })}`;
+}
+
+/** The starting-point chip: a document glyph and a short count or name. It opens the
+ *  template chooser through the empty `?template=` boot flag (views/tool.ts), the same
+ *  place "+ New" goes, and sits above the stretched name link so it takes its own click.
+ *  A tool with nothing to start from still carries the chip, hidden, so a later "Start
+ *  with" only fills it in (views/gallery-templates.ts refreshTemplateLine). */
+export function templateChipHtml(tool: Pick<GalleryTool, 'id' | 'name' | 'openQuery'>, chip: TemplateChip | null): string {
+  const href = `#/tool/${escapeHtml(tool.id)}?template=${tool.openQuery ? `&amp;${escapeHtml(tool.openQuery)}` : ''}`;
+  const named = chip ? ` title="${escapeHtml(chip.label)}" aria-label="${escapeHtml(templateChipLabel(tool, chip))}"` : ' hidden';
+  return `<a class="gtile-tpl" href="${href}" data-new-tool="${escapeHtml(tool.id)}"${named}>`
+    + `<span class="gtile-tpl-icon" aria-hidden="true">${DOC_ICON}</span><span class="gtile-tpl-n">${escapeHtml(chip?.short ?? '')}</span></a>`;
+}
 
 /**
  * A tile's detail cells, in column order. List draws them as columns; outside Grid
@@ -119,10 +145,6 @@ function detailCells(ref: string, cells: ReadonlyArray<readonly [col: string, va
     return `<span class="tile-col" data-col="${col}">${value ? `${sep}<bdi>${escapeHtml(value)}</bdi>` : ''}</span>`;
   }).join('')}</span>`;
 }
-
-/** Up to three export formats, for a utility card's Card line. */
-const formatsLine = (tool: GalleryTool): string =>
-  (tool.exportable !== false ? tool.formats ?? [] : []).slice(0, 3).map(fmtLabel).join(' · ');
 
 export function viewCardMarkup(v: UtilityView): string {
   const ref = `view-${v.id}`;
@@ -150,10 +172,10 @@ export function cardMarkup(
   darkTheme = false,
   utilityLayout = false,
   eager = false,
-  /** The starting-point line (plans/226): "Starts with X", "N templates", or nothing.
+  /** The starting-point chip (plans/226): "Starts with X", "N templates", or nothing.
    *  Composed by the mount, which is where the hidden overlay and the person's own
-   *  templates live; this function only places the line. */
-  templateLine = '',
+   *  templates live; this function only places the chip. */
+  templateChip: TemplateChip | null = null,
 ): string {
   const sup = toolSupport(tool, shellCaps);
   const unavailable = sup.status === 'unavailable';
@@ -197,7 +219,7 @@ export function cardMarkup(
   // card is a fixed landscape box (CSS clamps it between 4:3 and 16:9) so every tile
   // is the same height regardless of description length.
   if (utilityLayout) {
-    const formats = formatsLine(tool);
+    const primaryFmt = tool.exportable !== false && tool.formats?.length ? fmtLabel(tool.formats[0]!) : '';
     const uName = unavailable
       ? `<span class="gtile-name" aria-disabled="true"${describedBy}>${escapeHtml(tool.name)}</span>`
       : `<a class="gtile-name" href="${openHref}" data-new-tool="${escapeHtml(tool.id)}"${hasSession ? ` aria-label="${escapeHtml(tRaw('Start a new {name} session', { name: tool.name }))}"` : ''}${describedBy}>${escapeHtml(tool.name)}</a>`;
@@ -212,8 +234,7 @@ export function cardMarkup(
               ${statusLine(false)}
               ${resumeLink}
               <p class="gtile-desc">${escapeHtml(tool.description ?? '')}</p>
-              ${formats ? `<span class="gtile-fmts">${escapeHtml(formats)}</span>` : ''}
-              ${detailCells(tool.id, [['opened', lastOpened], ['format', formats.split(' · ')[0] ?? ''], ['description', tool.description ?? '']])}
+              ${detailCells(tool.id, [['opened', lastOpened], ['format', primaryFmt], ['description', tool.description ?? '']])}
             </span>
             ${statusBadge}
           </div>
@@ -227,6 +248,11 @@ export function cardMarkup(
   const exampleLooks = (unavailable || paged) ? [] : galleryExampleLooks(tool, darkTheme);
   const hasExamples = exampleLooks.length > 0;
   const hasImageHero = hasExamples || paged;
+  // No look and no session: the tile leads with the tool's icon, in the same box.
+  const iconLed = !unavailable && !hasImageHero && !hasSession;
+  // The status badge sits on the picture's corner wherever there is a picture box to
+  // hold it, so every Grid card puts it in the same place and the caption stays one line.
+  const badgeOnVisual = hasImageHero || iconLed;
 
   let visual: string;
   if (unavailable) {
@@ -277,7 +303,7 @@ export function cardMarkup(
     // a network fetch, so never broken) so the tile is a real, on-brand card rather
     // than a bare line of text. Decorative duplicate of the name link (tabindex/
     // aria-hidden so AT hears one link).
-    visual = `<a class="gtile-tile gtile-tile--iconled" href="${openHref}" data-new-tool="${escapeHtml(tool.id)}" tabindex="-1" aria-hidden="true">${tool.icon ? `<span class="gtile-tile-icon" aria-hidden="true">${tool.icon}</span>` : ''}</a>`;
+    visual = `<a class="gtile-tile gtile-tile--iconled" href="${openHref}" data-new-tool="${escapeHtml(tool.id)}" tabindex="-1" aria-hidden="true">${tool.icon ? `<span class="gtile-tile-icon" aria-hidden="true">${tool.icon}</span>` : ''}${statusBadge}</a>`;
   }
 
   // Caption sub-line: when the resumable session was last opened or changed, and
@@ -317,18 +343,19 @@ export function cardMarkup(
           <span class="gtile-meta">
             ${name}
             ${sub ? `<span class="gtile-sub">${sub}</span>` : ''}
-            ${statusLine(hasImageHero)}
+            ${statusLine(badgeOnVisual)}
             ${resumeLink}
             <p class="gtile-desc">${escapeHtml(tool.description ?? '')}</p>
-            ${templateLine && !unavailable
-              // Curated starting points (plans/142): say they exist right on the card.
-              // Opening the tool fresh presents the chooser, so the count IS the path -
-              // unless this person set a "Start with", in which case the line says which one
-              // and the chooser is one "+ New" click away (plans/226 section 4.4).
-              ? `<a class="gtile-tpl btn" href="${newHref}" data-new-tool="${escapeHtml(tool.id)}" aria-label="${escapeHtml(tRaw('Start a new {name} session', { name: tool.name }))}"><span>${escapeHtml(templateLine)}</span></a>`
-              : ''}
             ${detailCells(tool.id, [['opened', lastOpened], ['format', primaryFormat], ['category', t(catLabel(tool.category))], ['description', tool.description ?? '']])}
           </span>
+          ${!unavailable
+            // Curated starting points (plans/142): say they exist right on the card, as a
+            // document glyph and a count at the end of the caption line. Opening the tool
+            // fresh presents the chooser, so the count IS the path - unless this person set
+            // a "Start with", in which case the chip shows that template and the chooser is one
+            // "+ New" click away (plans/226 section 4.4).
+            ? templateChipHtml(tool, templateChip)
+            : ''}
           ${unavailable ? ''
             // Persistent "+ New" action on every card: opens the tool's template
             // chooser via the empty-`?template=` boot flag (views/tool.ts reads it as
@@ -336,9 +363,9 @@ export function cardMarkup(
             // openQuery (url-source injected tools) rides along so their seed survives.
             // Card draws the same action as a quiet icon button at the card's end.
             : `<a class="gtile-new-icon" href="${newHref}" data-new-tool="${escapeHtml(tool.id)}" aria-label="${escapeHtml(tRaw('New {name}', { name: tool.name }))}">${PLUS_ICON}</a>`}
-          ${hasImageHero
-            // Badge moved onto the preview image (see the hero markup), but that
-            // hero is aria-hidden / aria-labelled, so keep the status announced.
+          ${badgeOnVisual
+            // Badge moved onto the picture (see the visual markup), but that box is
+            // aria-hidden / aria-labelled, so keep the status announced.
             ? (statusBadge ? `<span class="visually-hidden">${escapeHtml(t(statusLabel(tool.status) || ''))}</span>` : '')
             : statusBadge}
         </div>

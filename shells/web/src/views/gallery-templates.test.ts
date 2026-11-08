@@ -162,9 +162,19 @@ test('a start-with change repaints the card behind the dialog', () => {
   assert.match(setStart, /refreshTemplateLine\(gt, toolId\);/,
     'and the card underneath is repainted, or it keeps advertising the old count');
   const repaint = bodyAfter(CODE, 'export function refreshTemplateLine(gt: GalleryTemplates, toolId: string): void {');
-  assert.match(repaint, /el\.textContent = line;/, 'the line is set as TEXT - a template name is the person\'s own words');
-  assert.match(repaint, /if \(!line\) \{ el\?\.remove\(\); return; \}/,
-    '…and a tool with nothing left to say loses the line entirely');
+  assert.match(repaint, /el\.querySelector<HTMLElement>\('\.gtile-tpl-n'\)!\.textContent = chip\.short;/,
+    'the chip text is set as TEXT - a template name is the person\'s own words');
+  assert.match(repaint, /el\.hidden = !chip;/,
+    '…and a tool with nothing left to say hides its chip, which leaves the accessibility tree too');
+  assert.match(repaint, /el\.title = chip\.label;/, 'the tooltip keeps the whole line');
+});
+
+test('the chip shows the "Start with" name, else the count, and reads the whole line', () => {
+  const chip = bodyAfter(CODE, 'export function templateChip(gt: GalleryTemplates, tool: GalleryTool): TemplateChip | null {');
+  assert.match(chip, /const label = templateLine\(gt, tool\);\s*if \(!label\) return null;/,
+    'the chip exists exactly when the line has something to say');
+  assert.match(chip, /short: name \?\? String\(shippedTemplatesOf\(gt, tool\)\.length \+ myTemplatesOf\(gt, tool\.id\)\.length\)/,
+    'short is the named start, else the same count the line gives');
 });
 
 test('search finds a tool through the templates the person can see', () => {
