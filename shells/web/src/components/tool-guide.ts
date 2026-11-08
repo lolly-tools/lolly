@@ -29,6 +29,7 @@ import { t } from '../i18n.ts';
 import { icon } from '../lib/icons.ts';
 import { jellyActive } from '../lib/jelly.ts';
 import { captureNeutralPinned } from '../lib/capture-neutral.ts';
+import { viewingAs } from '../org/view-as.ts';
 import { toolGuideHref, toolGuideLabel, type ToolGuideRow } from '../lib/tool-guides.ts';
 import { mountModal } from './modal.ts';
 
@@ -172,6 +173,8 @@ export function autoOpenToolGuide(manifest: GuideManifest): { close(): void } | 
   // Asking the pin beats seeding one id per tool - a new tool cannot drift out of
   // it. See lib/capture-neutral.ts.
   if (captureNeutralPinned()) return null;
+  // Not while viewing as a partner: opening it would mark the guide seen for this browser.
+  if (viewingAs()) return null;
   if (guideSeen(id)) return null;
   markGuideSeen(id);
   return showToolGuide(manifest);

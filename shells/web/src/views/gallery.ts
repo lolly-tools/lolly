@@ -42,10 +42,11 @@ import { pinTool, unpinTool, pinnedToolIds, pinnedRenderLayouts } from '../lib/o
 import { getInjectedTools } from '../lib/injected-tools.ts';
 import { LEAD_TOOL_ORDER } from '../lib/lead-tools.ts';
 import { instanceFetch, instancePath } from '../lib/instance.ts';
-import { privacyNoticeMarkup, mountPrivacyNotice } from './privacy-notice.ts';
-import { personalizeNudgeMarkup, mountPersonalizeNudge } from './personalize-nudge.ts';
-import { offlineNudgeMarkup, mountOfflineNudge } from './offline-nudge.ts';
+import { mountPrivacyNotice } from './privacy-notice.ts';
+import { mountPersonalizeNudge } from './personalize-nudge.ts';
+import { mountOfflineNudge } from './offline-nudge.ts';
 import { holdFirstRunBanner, settleFirstRunBanner } from '../lib/first-run-prompts.ts';
+import { firstRunBannerMarkup } from './first-run-banner.ts';
 import { viewTopbarHtml, mountViewTopbar } from '../components/view-topbar.ts';
 import { mountFeaturedRow, resolveExamples } from '../components/featured-row.ts';
 import { armMotionPreviews, playMotionIn, stopMotionIn } from '../lib/preview-media.ts';
@@ -920,7 +921,8 @@ export async function mountGallery(viewEl: HTMLElement, host: GalleryHost, opts:
   // shows, nothing else does, and the answer to that is async (token discovery).
   // Placed ahead of the content so the phone-width nudge reads as an in-flow
   // card at the top of the gallery (A4); the privacy strip is fixed either way.
-  const firstRunBanner = privacyNoticeMarkup() || (isProgrammeMember() ? '' : personalizeNudgeMarkup(profile)) || offlineNudgeMarkup(profile);
+  // No slot at all while viewing as a partner (views/first-run-banner.ts).
+  const firstRunBanner = firstRunBannerMarkup(profile, isProgrammeMember());
 
   const cardSizeView = opts.only ? 'utilities' : 'tools', cardSize = readCardSize(cardSizeView);
   let browseLayout = readLayout(cardSizeView, opts.params, GALLERY_LAYOUTS);
