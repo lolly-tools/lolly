@@ -173,3 +173,17 @@ test('posedFrame runs the record at the frame pose, whether or not it takes the 
   assert.equal(await posedFrame(plain, 0, async () => { order.push('shot'); return 'shot'; }, async () => 'clone', async () => { order.push('posed'); }), 'shot');
   assert.deepEqual(order, ['posed', 'posed', 'shot'], 'recorded before the caller or the screenshot takes the frame');
 });
+
+test('each member of a bundle keeps its own record, so one member\'s pictures never reach another\'s credential', async () => {
+  const { memberIngredientOpts } = await import('./export-shared.ts');
+  const given = { title: 'Given by the caller' } as IngredientCredential;
+  const bundle = { c2pa: true, _ingredientSink: [given] };
+  const first = memberIngredientOpts(bundle);
+  const second = memberIngredientOpts(bundle);
+  first._ingredientSink!.push({ title: 'Only in the MP4' } as IngredientCredential);
+  assert.deepEqual(second._ingredientSink!.map((i) => i.title), ['Given by the caller'], 'each starts from what the caller gave');
+  assert.equal(bundle._ingredientSink.length, 1);
+  const { readFileSync } = await import('node:fs');
+  const exp = readFileSync(new URL('./export.ts', import.meta.url), 'utf8');
+  assert.match(exp, /renderFormat\(node, f, memberIngredientOpts\(memberOpts\)\)/, 'the ZIP renders each member with its own record');
+});

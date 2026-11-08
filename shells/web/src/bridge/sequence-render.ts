@@ -858,38 +858,79 @@ function filmSlidePose(stageEl: HTMLElement, L: SeqLayer): SlidePose {
 
 /**
  * The boxes of a film's slide that none of `timesMs` shows, by slideShotAt's rule: a
- * posed box is in a frame's shot when it is active at that frame's slide time. Read
- * under a pose that is put back before returning, so nothing paints in between.
+ * frame's shot hides each posed box that is not active at that frame's slide time, with
+ * everything inside it, so a box shows only while it and every posed box around it are
+ * active. Read under a pose that is put back before returning, so nothing paints in
+ * between.
  */
 export function slideBoxesNeverShown(stageEl: HTMLElement, L: SeqLayer, timesMs: readonly number[], totalMs: number): Element[] {
   if (!L.frameScene || L.durMs <= 0) return [];
   const pose = filmSlidePose(stageEl, L);
   try {
-    return pose.boxes.filter((box) => {
-      const timing = readTiming(box);
-      return !timesMs.some((ms) => isActiveAt(timing, sceneSampleMs(ms, L.startMs, L.durMs), totalMs));
-    });
+    const timings = pose.boxes.map((box) => readTiming(box));
+    const shown = new Set<Element>();
+    const seen = new Set<string>();
+    for (const ms of timesMs) {
+      const t = sceneSampleMs(ms, L.startMs, L.durMs);
+      const active = timings.map((timing) => isActiveAt(timing, t, totalMs));
+      const key = active.map(Number).join('');
+      if (seen.has(key)) continue;
+      seen.add(key);
+      const off = pose.boxes.filter((_, i) => !active[i]);
+      for (const box of pose.boxes) if (!off.some((o) => o.contains(box))) shown.add(box);
+    }
+    return pose.boxes.filter((box) => !shown.has(box));
   } finally {
     pose.restore();
   }
 }
 
 /**
+ * The samples at which the compositor draws each layer's plate, by layer index: the
+ * plan's items with some alpha and some area, the same skips the executors make before
+ * a draw. A layer the plan never draws has no entry.
+ */
+export function filmDrawTimes(layers: SeqLayer[], sampleGrid: readonly number[], totalMs: number, env?: SeqPlanEnv | null): Map<number, number[]> {
+  const drawnAt = new Map<number, number[]>();
+  for (const t of sampleGrid) {
+    for (const item of sequenceDrawPlan(layers, t, totalMs, env)) {
+      const L = item.layer;
+      const bw = item.sized ? item.w : (Number.isFinite(item.w) && item.w > 0 ? item.w : L.rect.w);
+      const bh = item.sized ? item.h : (Number.isFinite(item.h) && item.h > 0 ? item.h : L.rect.h);
+      if (L.kind === 'audio' || L.kind === 'camera' || item.alpha <= 0 || bw <= 0 || bh <= 0) continue;
+      const times = drawnAt.get(L.idx);
+      if (times) times.push(t);
+      else drawnAt.set(L.idx, [t]);
+    }
+  }
+  return drawnAt;
+}
+
+/**
  * A stamped film records the pictures its plates draw, as a still records the ones it
- * paints (#779): each DOM-drawn layer's within its exported frames (`win`, over the same
- * sample grid the plates are planned on), a slide's boxes only when a frame shows them,
- * and the background plate's.
+ * paints (#779). The compositor's own plan says which layers draw: a layer counts at
+ * each sample the plan gives it with some alpha and some area (the frame cap, crossfade
+ * tails and keyframed opacity included). Its plate then shows its whole subtree, less a
+ * video's frozen stills and a slide's boxes that none of those samples shows; the
+ * background plate shows the rest of the stage.
  */
 async function recordFilmPictures(
-  stageEl: HTMLElement, stage: { layers: SeqLayer[]; totalMs: number },
-  win: ReadonlyMap<number, { first: number; last: number }>, sampleGrid: readonly number[], sink: ExportOpts['_ingredientSink'],
+  stageEl: HTMLElement, stage: { layers: SeqLayer[]; totalMs: number }, sampleGrid: readonly number[],
+  env: SeqPlanEnv, sink: ExportOpts['_ingredientSink'], log: (level: string, message: string) => void,
 ): Promise<void> {
-  const plates = stage.layers.map((L) => {
-    const w = win.get(L.idx)!;
-    const drawn = !L.ignored && L.kind === 'static' && w.first >= 0;
-    return { el: L.el, drawn, hidden: drawn ? slideBoxesNeverShown(stageEl, L, sampleGrid.slice(w.first, w.last + 1), stage.totalMs) : [] };
-  });
-  await recordStagePictures(stageEl, plates, sink, { offClass: OFF_CLASS, backgroundHides: STAGE_BACKGROUND_HIDES });
+  // Never fatal, like the gather above: a record that cannot be made is no reason to refuse the film.
+  try {
+    const drawnAt = filmDrawTimes(stage.layers, sampleGrid, stage.totalMs, env);
+    const plates = stage.layers.map((L) => {
+      const times = drawnAt.get(L.idx);
+      if (!times) return { el: L.el, drawn: false };
+      const hidden = L.kind === 'video' ? [...L.el.querySelectorAll('[data-motion-still]')] : slideBoxesNeverShown(stageEl, L, times, stage.totalMs);
+      return { el: L.el, drawn: true, hidden };
+    });
+    await recordStagePictures(stageEl, plates, sink, { offClass: OFF_CLASS, backgroundHides: STAGE_BACKGROUND_HIDES });
+  } catch (err) {
+    log('warn', `Placed pictures not recorded (${(err as { message?: string })?.message ?? err}); exporting without them.`);
+  }
 }
 
 /** What the stage background plate is shot without: every clip box and every timed frame page. */
@@ -1720,8 +1761,6 @@ async function renderSequenceAuthored(
   const win = new Map<number, { first: number; last: number; span: number[] }>();
   for (const L of stage.layers) win.set(L.idx, activeFrameWindow(L, sampleGrid, ext.get(L.idx) ?? 0));
   assertVideoOverlap(stage.layers, sampleGrid.length, win, MAX_LIVE_PROVIDERS);
-  // Before the tilt tier's early exit, which films the same stage live (recordFilmPictures).
-  if (opts.c2pa) await recordFilmPictures(stageEl, stage, win, sampleGrid, opts._ingredientSink);
 
   const transparent = opts.background === 'transparent';
 
@@ -1746,6 +1785,8 @@ async function renderSequenceAuthored(
   const cameras = stageCameras(stage.layers);
   const planEnv: SeqPlanEnv = { stageW: nativeW, stageH: nativeH, cameras };
   const camMoves = camerasMove(cameras);
+  // Before the tilt tier's early exit, which films the same stage live (recordFilmPictures).
+  if (opts.c2pa) await recordFilmPictures(stageEl, stage, sampleGrid, planEnv, opts._ingredientSink, log);
 
   // ── the TILT GATE (plans/104 section 6.4, P2) ────────────────────────────────────
   //
