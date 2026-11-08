@@ -228,3 +228,12 @@ test('a New version tap runs the notice\'s own Use new version, once, and takes 
   assert.deepEqual(again, []);
   _resetNotificationsForTests();
 });
+
+test('the programme member flag starts off and resets with the company (plans/82 M6)', async () => {
+  const { isProgrammeMember, setProgrammeMember, _resetWorkspaceCompanyForTests } = await import('./workspace-templates.ts');
+  assert.equal(isProgrammeMember(), false, 'off on a plain build');
+  setProgrammeMember(true);
+  assert.equal(isProgrammeMember(), true);
+  _resetWorkspaceCompanyForTests();
+  assert.equal(isProgrammeMember(), false);
+});

@@ -1,6 +1,6 @@
 {
   "name": "@lolly-tools/core",
-  "version": "1.6.0",
+  "version": "1.7.0",
   "description": "The Lolly tool-author contract: HostV1 capability-bridge types, the tool.json manifest schema + validator, an in-memory mock host for testing, and typed authoring helpers. Depend on this to build a Lolly tool without the platform monorepo.",
   "license": "MPL-2.0",
   "type": "module",
@@ -55,6 +55,8 @@
     "./schema/brand-page-v1.schema.json": "./schema/brand-page-v1.schema.json",
     "./brand-system-v1": "./src/brand-system-v1.ts",
     "./schema/brand-system-v1.schema.json": "./schema/brand-system-v1.schema.json",
+    "./partner-kit-v1": "./src/partner-kit-v1.ts",
+    "./schema/partner-kit-v1.schema.json": "./schema/partner-kit-v1.schema.json",
     "./asset-open-v1": "./src/asset-open-v1.ts",
     "./check-v1": "./src/check-v1.ts",
     "./schema/check-report-v1.schema.json": "./schema/check-report-v1.schema.json",

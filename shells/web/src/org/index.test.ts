@@ -61,7 +61,7 @@ const { hasInstanceSession, setInstanceSession } = await import('../lib/instance
 const { flagHidden, isFlagOn, flagEnabled, hydrateFeatureFlags, NEUROSPICY_FLAG, JELLY_FLAG, STRIP_UPLOAD_META_FLAG } = await import('../feature-flags.ts');
 const { getFieldPolicy, _clearFieldPoliciesForTests } = await import('../lib/field-policy.ts');
 const { getInputPolicy, notifyToolInputMount, policyValuesFor, toolStartValues, _clearInputPoliciesForTests } = await import('../lib/input-policy.ts');
-const { workspaceCompany, setWorkspaceCompany } = await import('../lib/workspace-templates.ts');
+const { workspaceCompany, setWorkspaceCompany, isProgrammeMember, setProgrammeMember } = await import('../lib/workspace-templates.ts');
 const ORG_CONFIG_KEY = 'lolly:org-config:same-origin';
 const { getExportPolicy, exportAffordance, _clearExportPolicyForTests } = await import('../lib/export-policy.ts');
 const { aiAllowed } = await import('../lib/ai-policy.ts');
@@ -1251,4 +1251,21 @@ test('home view: every link that asks for Tools uses #/tools, never the bare add
   const og = read('../../../../scripts/build-view-og.ts');
   const row = og.slice(og.indexOf("slug: 'tools'"), og.indexOf("slug: 'utilities'"));
   assert.match(row, /hash: '#\/tools',/, 'the /tools page bounces to #/tools');
+});
+
+test('org-config programmeScoped marks a programme member from the start, and only then (plans/82 M6)', async () => {
+  for (const [scoped, want] of [[true, true], [undefined, false]] as const) {
+    reset();
+    setProgrammeMember(!want);
+    controlPlane({
+      mode: 'open',
+      session: 'member',
+      orgConfig: { instance: { name: 'SUSE' }, inboxUnread: 0, ...(scoped ? { programmeScoped: true } : {}) },
+    });
+    await initOrg();
+    assert.equal(isProgrammeMember(), want, `programmeScoped ${scoped}: known before any view mounts`);
+    applyOrgToolPolicies();
+    assert.equal(isProgrammeMember(), want, `programmeScoped ${scoped}: still so after the tool policies apply`);
+  }
+  setProgrammeMember(false);
 });

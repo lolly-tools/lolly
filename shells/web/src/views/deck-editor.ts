@@ -908,6 +908,88 @@ export function richHtmlToMd(root: HTMLElement): string {
   return blocks.join('\n');
 }
 
+// ── layout-slide text editing: helpers that read no editor state ─────────────
+
+// The rendered element(s) that hold this slide's editable text: the title band and the
+// body. A truly empty slide has neither - we inject a bare editable body so it can still
+// be typed into (returned as `injected` so it's removed cleanly if the edit is abandoned).
+function editRegions(slideEl: HTMLElement): { regions: HTMLElement[]; injected: HTMLElement | null } {
+  // Direct children only (a nested `.sl-body` inside a slot must not become editable) - 
+  // filtered by class rather than a `:scope >` selector so it's robust across engines.
+  const found = Array.from(slideEl.children).filter(
+    (c): c is HTMLElement => c instanceof HTMLElement && (c.classList.contains('sl-head') || c.classList.contains('sl-body')),
+  );
+  if (found.length) return { regions: found, injected: null };
+  const body = document.createElement('div');
+  body.className = 'sl-body';
+  body.innerHTML = '<p><br></p>';
+  // Before the corner furniture so it reads as slide content, not over the logo.
+  const furniture = slideEl.querySelector('.sl-logo, .sl-pageno');
+  slideEl.insertBefore(body, furniture ?? null);
+  return { regions: [body], injected: body };
+}
+// Serialise the editable regions back to the slide's `content` markdown. Head (its <h1>) →
+// `# title`; body blocks → their lines. Joined, the hook re-lifts the first heading as the
+// title on the next render, so this round-trips.
+function serializeLayout(regions: HTMLElement[]): string {
+  return regions.map(r => richHtmlToMd(r)).filter(md => md.trim() !== '').join('\n\n');
+}
+
+/** Place the caret where the user clicked, rather than selecting the region - so the first
+ *  keystroke edits, never replaces. Falls back to the end of the text. */
+function caretAt(region: HTMLElement, at: { x: number; y: number } | null): void {
+  const sel = document.defaultView?.getSelection?.();
+  if (!sel) return;
+  const range = document.createRange();
+  let placed = false;
+  if (at) {
+    const doc = document as Document & {
+      caretRangeFromPoint?: (x: number, y: number) => Range | null;
+      caretPositionFromPoint?: (x: number, y: number) => { offsetNode: Node; offset: number } | null;
+    };
+    try {
+      // Two names for one feature: WebKit/Blink ship caretRangeFromPoint, Gecko the
+      // standard caretPositionFromPoint. Neither exists in jsdom.
+      const r = doc.caretRangeFromPoint?.(at.x, at.y);
+      if (r && region.contains(r.startContainer)) { range.setStart(r.startContainer, r.startOffset); placed = true; }
+      else {
+        const p = doc.caretPositionFromPoint?.(at.x, at.y);
+        if (p && region.contains(p.offsetNode)) { range.setStart(p.offsetNode, p.offset); placed = true; }
+      }
+    } catch { /* unsupported - fall through to the end */ }
+  }
+  if (!placed) range.selectNodeContents(region);
+  range.collapse(placed);   // caret point → collapse to it; fallback → END, never select-all
+  sel.removeAllRanges();
+  sel.addRange(range);
+}
+
+// A compact floating format bar (bold / italic / H2 / bullet / numbered), styled like the
+// freeform toolbar for a consistent look. It acts on whichever region has the selection;
+// pointerdown-preventDefault keeps that selection alive through the click.
+function buildTextFormatBar(exec: (c: string, val?: string) => void): HTMLElement {
+  const fmt = document.createElement('div');
+  fmt.className = 'deck-fmt';
+  fmt.setAttribute('data-export-hide', '');
+  const cmd = (label: string, title: string, run: () => void, cls = ''): HTMLButtonElement => {
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = 'deck-fmt__btn' + cls; b.title = title;
+    b.setAttribute('aria-label', title);
+    b.textContent = label;
+    b.addEventListener('pointerdown', (e) => e.preventDefault());   // keep the editable's selection
+    b.addEventListener('click', run);
+    return b;
+  };
+  fmt.append(
+    cmd('B', 'Bold (⌘B)', () => exec('bold'), ' deck-fmt__btn--b'),
+    cmd('I', 'Italic (⌘I)', () => exec('italic'), ' deck-fmt__btn--i'),
+    cmd('H', 'Heading', () => exec('formatBlock', 'h2')),
+    cmd('•', 'Bulleted list', () => exec('insertUnorderedList')),
+    cmd('1.', 'Numbered list', () => exec('insertOrderedList')),
+  );
+  return fmt;
+}
+
 // ── the overlay ──────────────────────────────────────────────────────────────
 
 export function initDeckEditor(opts: InitDeckEditorOpts): DeckEditorHandle {
@@ -1163,30 +1245,6 @@ export function initDeckEditor(opts: InitDeckEditorOpts): DeckEditorHandle {
   const onEditorKey = (e: KeyboardEvent): void => {
     if (e.key === 'Escape') { e.stopPropagation(); commitLayoutEdit(); }
   };
-  // The rendered element(s) that hold this slide's editable text: the title band and the
-  // body. A truly empty slide has neither - we inject a bare editable body so it can still
-  // be typed into (returned as `injected` so it's removed cleanly if the edit is abandoned).
-  function editRegions(slideEl: HTMLElement): { regions: HTMLElement[]; injected: HTMLElement | null } {
-    // Direct children only (a nested `.sl-body` inside a slot must not become editable) - 
-    // filtered by class rather than a `:scope >` selector so it's robust across engines.
-    const found = Array.from(slideEl.children).filter(
-      (c): c is HTMLElement => c instanceof HTMLElement && (c.classList.contains('sl-head') || c.classList.contains('sl-body')),
-    );
-    if (found.length) return { regions: found, injected: null };
-    const body = document.createElement('div');
-    body.className = 'sl-body';
-    body.innerHTML = '<p><br></p>';
-    // Before the corner furniture so it reads as slide content, not over the logo.
-    const furniture = slideEl.querySelector('.sl-logo, .sl-pageno');
-    slideEl.insertBefore(body, furniture ?? null);
-    return { regions: [body], injected: body };
-  }
-  // Serialise the editable regions back to the slide's `content` markdown. Head (its <h1>) →
-  // `# title`; body blocks → their lines. Joined, the hook re-lifts the first heading as the
-  // title on the next render, so this round-trips.
-  function serializeLayout(regions: HTMLElement[]): string {
-    return regions.map(r => richHtmlToMd(r)).filter(md => md.trim() !== '').join('\n\n');
-  }
   function teardownLayoutEdit(): void {
     if (!layoutEdit) return;
     for (const r of layoutEdit.regions) {
@@ -1210,60 +1268,6 @@ export function initDeckEditor(opts: InitDeckEditorOpts): DeckEditorHandle {
     if (md !== asText(readDeck()[slideIdx]?.content)) commitSlideAt(slideIdx, { content: md });
   }
 
-  /** Place the caret where the user clicked, rather than selecting the region - so the first
-   *  keystroke edits, never replaces. Falls back to the end of the text. */
-  function caretAt(region: HTMLElement, at: { x: number; y: number } | null): void {
-    const sel = document.defaultView?.getSelection?.();
-    if (!sel) return;
-    const range = document.createRange();
-    let placed = false;
-    if (at) {
-      const doc = document as Document & {
-        caretRangeFromPoint?: (x: number, y: number) => Range | null;
-        caretPositionFromPoint?: (x: number, y: number) => { offsetNode: Node; offset: number } | null;
-      };
-      try {
-        // Two names for one feature: WebKit/Blink ship caretRangeFromPoint, Gecko the
-        // standard caretPositionFromPoint. Neither exists in jsdom.
-        const r = doc.caretRangeFromPoint?.(at.x, at.y);
-        if (r && region.contains(r.startContainer)) { range.setStart(r.startContainer, r.startOffset); placed = true; }
-        else {
-          const p = doc.caretPositionFromPoint?.(at.x, at.y);
-          if (p && region.contains(p.offsetNode)) { range.setStart(p.offsetNode, p.offset); placed = true; }
-        }
-      } catch { /* unsupported - fall through to the end */ }
-    }
-    if (!placed) range.selectNodeContents(region);
-    range.collapse(placed);   // caret point → collapse to it; fallback → END, never select-all
-    sel.removeAllRanges();
-    sel.addRange(range);
-  }
-
-  // A compact floating format bar (bold / italic / H2 / bullet / numbered), styled like the
-  // freeform toolbar for a consistent look. It acts on whichever region has the selection;
-  // pointerdown-preventDefault keeps that selection alive through the click.
-  function buildTextFormatBar(exec: (c: string, val?: string) => void): HTMLElement {
-    const fmt = document.createElement('div');
-    fmt.className = 'deck-fmt';
-    fmt.setAttribute('data-export-hide', '');
-    const cmd = (label: string, title: string, run: () => void, cls = ''): HTMLButtonElement => {
-      const b = document.createElement('button');
-      b.type = 'button'; b.className = 'deck-fmt__btn' + cls; b.title = title;
-      b.setAttribute('aria-label', title);
-      b.textContent = label;
-      b.addEventListener('pointerdown', (e) => e.preventDefault());   // keep the editable's selection
-      b.addEventListener('click', run);
-      return b;
-    };
-    fmt.append(
-      cmd('B', 'Bold (⌘B)', () => exec('bold'), ' deck-fmt__btn--b'),
-      cmd('I', 'Italic (⌘I)', () => exec('italic'), ' deck-fmt__btn--i'),
-      cmd('H', 'Heading', () => exec('formatBlock', 'h2')),
-      cmd('•', 'Bulleted list', () => exec('insertUnorderedList')),
-      cmd('1.', 'Numbered list', () => exec('insertOrderedList')),
-    );
-    return fmt;
-  }
   function positionFormatBar(): void {
     if (!layoutEdit) return;
     const m = canvasMetrics();

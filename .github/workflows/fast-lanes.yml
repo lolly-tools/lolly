@@ -75,6 +75,8 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           persist-credentials: false
+          # The merge commit and its base parent, for the maintainability ratchet below.
+          fetch-depth: 2
       - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
         with:
           version: 11.26.0
@@ -98,8 +100,14 @@ jobs:
         run: pnpm run check:house-rules
       - name: Locale innerHTML markup allowlist
         run: pnpm run check:locale-markup
+      # Judges the files this event changes, as ci.yml's typecheck job does: HEAD^1 for
+      # a pull request's merge commit, the replaced main commit for a main push.
       - name: Web shell maintainability no-growth ratchet
-        run: pnpm run check:maintainability
+        env:
+          MAINTAINABILITY_BASE: ${{ github.event_name == 'pull_request' && 'HEAD^1' || github.event.before }}
+        run: |
+          git cat-file -e "${MAINTAINABILITY_BASE}^{commit}" 2>/dev/null || git fetch --no-tags --depth=1 origin "$MAINTAINABILITY_BASE"
+          pnpm run check:maintainability
 
   # The unit:web shard of scripts/run-test-suite.ts, split across two runners.
   web-unit:

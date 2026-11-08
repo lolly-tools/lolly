@@ -11,6 +11,9 @@
  * envelope (integrity map covers every part; format constants match the
  * brand-transfer reader - the two are separate codebases on purpose, so a
  * text-level drift guard pins them together).
+ *
+ * The lolly-demo test is NOT gated: Lolly Demo is public. It covers the variable
+ * faces (`Family-Variable.ttf`) and the per-family licence list.
  */
 
 import { test } from 'node:test';
@@ -128,6 +131,67 @@ test('the suse pack builds clean: exclusions hold, fonts/tools/envelope complete
       assert.ok(sri, `no integrity entry for ${name}`);
       const digest = 'sha256-' + createHash('sha256').update(files[name]!).digest('base64');
       assert.equal(sri, digest, `integrity mismatch for ${name}`);
+    }
+  } finally {
+    rmSync(out, { recursive: true, force: true });
+  }
+});
+
+test('the lolly-demo pack builds from variable faces, with each family\'s licence', () => {
+  // Lolly Demo is public, so this runs on every clone. Its fonts are variable files only
+  // (`Family-Variable.ttf`, `Family-Italic-Variable.ttf`), and each family has its own OFL text.
+  const out = mkdtempSync(join(tmpdir(), 'lolly-demo-pack-'));
+  try {
+    execFileSync('node', ['scripts/build-instance-pack.ts', '--brand', 'lolly-demo', '--out', out], { cwd: ROOT, stdio: 'pipe' });
+    const recipe = JSON.parse(readFileSync(join(ROOT, 'brands/lolly-demo/pack.json'), 'utf8')) as
+      { version: string; fonts: { families: string[]; license: string[] }; logos: Record<string, string> };
+    const bytes = readFileSync(join(out, `lolly-demo-brand-${recipe.version}.lolly`));
+    const files = unzipSync(new Uint8Array(bytes));
+    const names = Object.keys(files);
+
+    // Fonts: every family, upright and italic where the brand has one, each a variable face
+    // labelled by its own extension and stored with its whole wght axis, as an upload is.
+    const fontRows = JSON.parse(Buffer.from(files['fonts.json']!).toString()) as
+      Array<{ format: string; mime: string; file: string; meta: { family: string; style: string; weight: string } }>;
+    assert.deepEqual([...new Set(fontRows.map(r => r.meta.family))].sort(), [...recipe.fonts.families].sort());
+    assert.ok(fontRows.some(r => r.meta.family === 'SUSE' && r.meta.style === 'italic'));
+    for (const row of fontRows) {
+      assert.ok(files[row.file], `font row names a missing part: ${row.file}`);
+      assert.equal(row.format, 'ttf');
+      assert.equal(row.mime, 'font/ttf');
+      assert.match(row.meta.weight, /^\d+ \d+$/, `${row.file} keeps its weight axis`);
+    }
+    assert.equal(fontRows.find(r => r.meta.family === 'SUSE' && r.meta.style === 'normal')?.meta.weight, '100 900');
+
+    // Every listed licence travels under its own name with its bytes unchanged.
+    for (const rel of recipe.fonts.license) {
+      const part = `fonts/${rel.slice(rel.lastIndexOf('/') + 1)}`;
+      assert.deepEqual(Buffer.from(files[part]!), readFileSync(join(ROOT, 'brands/lolly-demo', rel)), `${part} is the listed licence`);
+    }
+    assert.ok(!files['fonts/LICENSE.txt'], 'a licence list does not also write the single-licence name');
+
+    // Logos: one row per recipe slot.
+    const logoRows = JSON.parse(Buffer.from(files['logos.json']!).toString()) as Array<{ id: string }>;
+    assert.deepEqual(logoRows.map(r => r.id).sort(), Object.keys(recipe.logos).map(k => `user/logo/${k}`).sort());
+
+    // No audio and no media family travels; everything the catalog part names is aboard.
+    for (const name of names) assert.ok(!AUDIO_EXT.test(name), `audio leaked: ${name}`);
+    const catalogPart = JSON.parse(Buffer.from(files['catalog.json']!).toString()) as
+      { assets: Array<{ id: string; formats?: Array<{ url: string }> }> };
+    for (const a of catalogPart.assets) {
+      assert.ok(!/^lolly\/(loops|songs|modules|luts|3d)\//.test(a.id), `excluded family travelled: ${a.id}`);
+      for (const f of a.formats ?? []) {
+        if (f.url.startsWith('/catalog/')) assert.ok(files[f.url.slice(1)], `${a.id} references ${f.url} but the bytes are not aboard`);
+      }
+    }
+    assert.ok(catalogPart.assets.some(a => a.id === 'lolly/tokens/demo'));
+
+    // Envelope: the integrity map covers every part.
+    const manifest = JSON.parse(Buffer.from(files['manifest.json']!).toString());
+    assert.equal(manifest.counts.fontFiles, fontRows.length);
+    for (const name of names) {
+      if (name === 'manifest.json' || name === 'lolly.txt' || name === 'pack.sig') continue;
+      assert.equal(manifest.integrity?.[name], 'sha256-' + createHash('sha256').update(files[name]!).digest('base64'), `integrity for ${name}`);
     }
   } finally {
     rmSync(out, { recursive: true, force: true });

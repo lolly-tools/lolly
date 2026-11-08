@@ -4114,7 +4114,7 @@ var ENGINE_VERSION;
 var init_version = __esm({
   "engine/src/version.ts"() {
     "use strict";
-    ENGINE_VERSION = "1.334.0";
+    ENGINE_VERSION = "1.336.0";
   }
 });
 
@@ -48769,6 +48769,7 @@ __export(c2pa_exports, {
   AI_MODEL_TYPES: () => AI_MODEL_TYPES,
   AI_MODEL_TYPE_GENERIC: () => AI_MODEL_TYPE_GENERIC,
   ALGORITHMIC_SOURCE_TYPE: () => ALGORITHMIC_SOURCE_TYPE,
+  APPROVAL_TEMPLATE_ID: () => APPROVAL_TEMPLATE_ID,
   BMFF_HASH_LABEL: () => BMFF_HASH_LABEL,
   C2PA_ATTACHMENT_MIME: () => C2PA_ATTACHMENT_MIME,
   C2PA_BMFF_UUID: () => C2PA_BMFF_UUID,
@@ -48800,6 +48801,7 @@ __export(c2pa_exports, {
   exportActionSteps: () => exportActionSteps,
   generateSigner: () => generateSigner,
   ingredientFormatOfMime: () => ingredientFormatOfMime,
+  isTemplateApproval: () => isTemplateApproval,
   urnUuid: () => urnUuid
 });
 function ingredientRelationship(ing) {
@@ -48858,13 +48860,22 @@ function intentAssertionMap(r5) {
   };
 }
 function approvalAssertionMap(a) {
+  const template = isTemplateApproval(a);
+  const allowed = template ? TEMPLATE_APPROVAL_KEYS : FILE_APPROVAL_KEYS;
   for (const key2 of Object.keys(a)) {
-    if (key2 !== "approvalId" && key2 !== "decidedAt" && key2 !== "reviewedSha256") throw new Error(`c2pa: an approval record cannot carry '${key2.slice(0, 40)}'`);
+    if (!allowed.includes(key2)) throw new Error(`c2pa: an approval record cannot carry '${key2.slice(0, 40)}'`);
   }
   if (typeof a.approvalId !== "string" || !APPROVAL_ID.test(a.approvalId)) throw new Error("c2pa: approval.approvalId must be an identifier");
   if (typeof a.decidedAt !== "string" || !ISO_INSTANT.test(a.decidedAt) || Number.isNaN(Date.parse(a.decidedAt))) throw new Error("c2pa: approval.decidedAt must be an ISO 8601 date and time");
-  if (typeof a.reviewedSha256 !== "string" || !SHA256_TEXT.test(a.reviewedSha256)) throw new Error("c2pa: approval.reviewedSha256 must be 'sha256:<64 hex>'");
-  return { version: 1, approvalId: a.approvalId, decidedAt: a.decidedAt, reviewedSha256: a.reviewedSha256 };
+  if (!template) {
+    if (typeof a.reviewedSha256 !== "string" || !SHA256_TEXT.test(a.reviewedSha256)) throw new Error("c2pa: approval.reviewedSha256 must be 'sha256:<64 hex>'");
+    return { version: 1, approvalId: a.approvalId, decidedAt: a.decidedAt, reviewedSha256: a.reviewedSha256 };
+  }
+  if (a.covers !== "template") throw new Error("c2pa: approval.covers must be 'template'");
+  if (typeof a.templateId !== "string" || !APPROVAL_TEMPLATE_ID.test(a.templateId)) throw new Error("c2pa: approval.templateId must be an identifier");
+  if (!Number.isSafeInteger(a.templateVersion) || a.templateVersion < 1) throw new Error("c2pa: approval.templateVersion must be a positive whole number");
+  if (typeof a.exampleSha256 !== "string" || !SHA256_TEXT.test(a.exampleSha256)) throw new Error("c2pa: approval.exampleSha256 must be 'sha256:<64 hex>'");
+  return { version: 1, approvalId: a.approvalId, decidedAt: a.decidedAt, covers: "template", templateId: a.templateId, templateVersion: a.templateVersion, exampleSha256: a.exampleSha256 };
 }
 function sourceIngredientAssertion(ing) {
   const title = boundedText(ing.title, "source ingredient title", 1024);
@@ -49188,7 +49199,7 @@ async function buildC2paManifest({
   if (relationships.filter((r5) => r5 === "parentOf").length > 1) {
     throw new Error("c2pa: a manifest may carry only one parentOf ingredient (manifest.multipleParents) - mark the components componentOf");
   }
-  if (approval && !ingList.some((ing, i) => relationships[i] === "parentOf" && !isSourceIngredient(ing))) {
+  if (approval && !isTemplateApproval(approval) && !ingList.some((ing, i) => relationships[i] === "parentOf" && !isSourceIngredient(ing))) {
     throw new Error("c2pa: an approval record needs a credentialed parentOf ingredient");
   }
   const ingredientBoxes = [];
@@ -49368,7 +49379,7 @@ async function buildExternalC2paStore(bytes2, opts = {}) {
     assetHash: { exclusions: [], name: hashName || "whole document", hash: await sha256(bytes2) }
   });
 }
-var isSourceIngredient, HTTP_URL_MAX, boundedText, SHA256_TEXT, INTENT_RECORD_KEYS, INTENT_WORD, INTENT_SURFACE_ID, INTENT_TOOL_ID, INTENT_LANGUAGE, INTENT_RULES, APPROVAL_ID, ISO_INSTANT, te5, subtle4, CborTag, JUMBF_UUID_SUFFIX, boxUuid, UUID_C2PA_STORE, UUID_MANIFEST, UUID_ASSERTION_STORE, UUID_CLAIM, UUID_SIGNATURE, UUID_CBOR_CONTENT, UUID_JSON_CONTENT, COSE_HEADER_ALG, COSE_HEADER_X5CHAIN, isoSeconds, DIGITAL_SOURCE_TYPE, CAPTURE_SOURCE_TYPE, SCREEN_SOURCE_TYPE, GENERATED_SOURCE_TYPE, COMPOSITE_SOURCE_TYPE, ALGORITHMIC_SOURCE_TYPE, RASTER_OUTPUTS, VIDEO_OUTPUTS, INGREDIENT_MIME, AI_GRADE, LOLLY_EXPORT_ASSERTION, LOLLY_RIGHTS_ASSERTION, LOLLY_INTENT_ASSERTION, INTENT_PROMPT_NOTE, LOLLY_APPROVAL_ASSERTION, BMFF_HASH_LABEL, CREATIVE_WORK_ASSERTION, METADATA_ASSERTION, DC_CONTEXT, AI_DISCLOSURE_ASSERTION, AI_MODEL_TYPE_GENERIC, AI_MODEL_TYPES, NAMESPACED_LABEL_RE, HUMAN_OVERSIGHT_LEVELS, SCIENTIFIC_DOMAIN_RE, SEMVER_RE, C2PA_SPEC_VERSION;
+var isSourceIngredient, HTTP_URL_MAX, boundedText, SHA256_TEXT, INTENT_RECORD_KEYS, INTENT_WORD, INTENT_SURFACE_ID, INTENT_TOOL_ID, INTENT_LANGUAGE, INTENT_RULES, APPROVAL_ID, ISO_INSTANT, APPROVAL_TEMPLATE_ID, FILE_APPROVAL_KEYS, TEMPLATE_APPROVAL_KEYS, isTemplateApproval, te5, subtle4, CborTag, JUMBF_UUID_SUFFIX, boxUuid, UUID_C2PA_STORE, UUID_MANIFEST, UUID_ASSERTION_STORE, UUID_CLAIM, UUID_SIGNATURE, UUID_CBOR_CONTENT, UUID_JSON_CONTENT, COSE_HEADER_ALG, COSE_HEADER_X5CHAIN, isoSeconds, DIGITAL_SOURCE_TYPE, CAPTURE_SOURCE_TYPE, SCREEN_SOURCE_TYPE, GENERATED_SOURCE_TYPE, COMPOSITE_SOURCE_TYPE, ALGORITHMIC_SOURCE_TYPE, RASTER_OUTPUTS, VIDEO_OUTPUTS, INGREDIENT_MIME, AI_GRADE, LOLLY_EXPORT_ASSERTION, LOLLY_RIGHTS_ASSERTION, LOLLY_INTENT_ASSERTION, INTENT_PROMPT_NOTE, LOLLY_APPROVAL_ASSERTION, BMFF_HASH_LABEL, CREATIVE_WORK_ASSERTION, METADATA_ASSERTION, DC_CONTEXT, AI_DISCLOSURE_ASSERTION, AI_MODEL_TYPE_GENERIC, AI_MODEL_TYPES, NAMESPACED_LABEL_RE, HUMAN_OVERSIGHT_LEVELS, SCIENTIFIC_DOMAIN_RE, SEMVER_RE, C2PA_SPEC_VERSION;
 var init_c2pa2 = __esm({
   "engine/src/c2pa.ts"() {
     "use strict";
@@ -49393,6 +49404,10 @@ var init_c2pa2 = __esm({
     INTENT_RULES = /^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$/;
     APPROVAL_ID = /^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$/;
     ISO_INSTANT = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,9})?(?:Z|[+-]\d{2}:\d{2})$/;
+    APPROVAL_TEMPLATE_ID = /^[A-Za-z0-9][A-Za-z0-9_-]{0,63}(?:\/[A-Za-z0-9][A-Za-z0-9_-]{0,127}){0,2}$/;
+    FILE_APPROVAL_KEYS = ["approvalId", "decidedAt", "reviewedSha256"];
+    TEMPLATE_APPROVAL_KEYS = ["approvalId", "decidedAt", "covers", "templateId", "templateVersion", "exampleSha256"];
+    isTemplateApproval = (a) => a.covers !== void 0;
     te5 = new TextEncoder();
     subtle4 = globalThis.crypto.subtle;
     CborTag = class {
@@ -53015,6 +53030,7 @@ __export(c2pa_verify_exports, {
   parseCertificate: () => parseCertificate,
   prepareC2paIngredient: () => prepareC2paIngredient,
   prepareC2paIngredientFromStore: () => prepareC2paIngredientFromStore,
+  readApprovalRecord: () => readApprovalRecord,
   readIntentRecord: () => readIntentRecord,
   signedBy: () => signedBy,
   sniffFormat: () => sniffFormat,
@@ -53331,9 +53347,9 @@ async function verifyC2pa(bytes2, { trustAnchors, externalManifest, enrollmentTr
   const AI_DISCLOSURE_LABEL = /^c2pa\.ai-disclosure(\.v\d+)?(__\d+)?$/;
   let factAssertions = parts.assertions;
   const approvalAssertion = parts.assertions.find((a) => a.label === LOLLY_APPROVAL_ASSERTION);
-  if (approvalAssertion) {
-    const record48 = readApprovalRecord(approvalAssertion.content);
-    if (record48) report4.approval = record48;
+  const approvalRecord = approvalAssertion ? readApprovalRecord(approvalAssertion.content) : null;
+  if (approvalRecord) report4.approval = approvalRecord;
+  if (approvalAssertion && !(approvalRecord && isTemplateApproval(approvalRecord))) {
     const parent = readParentManifest(extracted.manifest, parts);
     if (parent && bytesToHex(await sha256(parent.payload)) === bytesToHex(parent.recordedHash)) {
       factAssertions = parent.parts.assertions;
@@ -53690,13 +53706,24 @@ function readApprovalRecord(content2) {
   }
   if (!(map instanceof Map)) return null;
   const keys2 = [...map.keys()];
-  if (map.get("version") !== 1 || keys2.length !== 4) return null;
+  if (map.get("version") !== 1) return null;
   const approvalId = map.get("approvalId");
   const decidedAt = map.get("decidedAt");
-  const reviewedSha256 = map.get("reviewedSha256");
-  if (typeof approvalId !== "string" || typeof decidedAt !== "string" || typeof reviewedSha256 !== "string") return null;
-  if (!/^sha256:[0-9a-f]{64}$/.test(reviewedSha256)) return null;
-  return { approvalId, decidedAt, reviewedSha256 };
+  if (typeof approvalId !== "string" || typeof decidedAt !== "string") return null;
+  const sha = (value2) => typeof value2 === "string" && /^sha256:[0-9a-f]{64}$/.test(value2);
+  if (keys2.length === 4) {
+    const reviewedSha256 = map.get("reviewedSha256");
+    return sha(reviewedSha256) ? { approvalId, decidedAt, reviewedSha256 } : null;
+  }
+  if (keys2.length === 7 && map.get("covers") === "template") {
+    const templateId = map.get("templateId");
+    const templateVersion = map.get("templateVersion");
+    const exampleSha256 = map.get("exampleSha256");
+    if (typeof templateId !== "string" || !APPROVAL_TEMPLATE_ID.test(templateId)) return null;
+    if (typeof templateVersion !== "number" || !Number.isSafeInteger(templateVersion) || templateVersion < 1 || !sha(exampleSha256)) return null;
+    return { approvalId, decidedAt, covers: "template", templateId, templateVersion, exampleSha256 };
+  }
+  return null;
 }
 var td4, te8, tdText, subtle7, MAX_CHAIN_INTERMEDIATES, COSE_ALGS, HASHED_URI_PREFIX, EPHEMERAL_CN, TEXT_BINDING_KIND, isCutWrapper, excludesWrapper, MAX_WRAPPER_CANDIDATES, sameRanges, SVGZ_MAX_DOCUMENT_BYTES, verifyC2paPdf;
 var init_c2pa_verify = __esm({
@@ -134032,8 +134059,8 @@ ${signals.findings.map((f) => f.label).join("\n")}`;
       break;
     }
     case "schema": {
-      const { default: Ajv9 } = await import("ajv");
-      const ajv4 = new Ajv9({ allErrors: true, strict: true, validateFormats: false });
+      const { default: Ajv10 } = await import("ajv");
+      const ajv4 = new Ajv10({ allErrors: true, strict: true, validateFormats: false });
       const validate = ajv4.compile(JSON.parse(s("schema")));
       const valid2 = validate(JSON.parse(text13));
       out = valid2 ? "Valid against this schema." : JSON.stringify(validate.errors, null, 2);
@@ -136751,6 +136778,438 @@ var init_brand_check = __esm({
     record28 = (v) => !!v && typeof v === "object" && !Array.isArray(v);
     valueText2 = (v) => typeof v === "string" ? v : record28(v) && typeof v.ref === "string" ? v.ref : "";
     family = (v) => v.split(",")[0].replace(/["']/g, "").trim().toLowerCase();
+  }
+});
+
+// packages/core/schema/partner-kit-v1.schema.json
+var partner_kit_v1_schema_default;
+var init_partner_kit_v1_schema = __esm({
+  "packages/core/schema/partner-kit-v1.schema.json"() {
+    partner_kit_v1_schema_default = {
+      $schema: "http://json-schema.org/draft-07/schema#",
+      title: "Partner kit v1",
+      description: "A partner company's logos, colours and placement rules, carried as a guest in the lead brand's work. No fonts, no themes and no token document.",
+      type: "object",
+      additionalProperties: false,
+      required: [
+        "schemaVersion",
+        "id",
+        "label",
+        "logos",
+        "colours"
+      ],
+      properties: {
+        schemaVersion: {
+          const: 1
+        },
+        id: {
+          type: "string",
+          pattern: "^[a-z0-9][a-z0-9-]{0,63}$"
+        },
+        label: {
+          type: "string",
+          minLength: 1,
+          maxLength: 120
+        },
+        logos: {
+          type: "object",
+          additionalProperties: false,
+          properties: {
+            light: {
+              type: "object",
+              additionalProperties: false,
+              required: [
+                "id",
+                "version"
+              ],
+              properties: {
+                id: {
+                  type: "string",
+                  minLength: 1,
+                  maxLength: 200,
+                  pattern: "^[A-Za-z0-9][A-Za-z0-9_-]*(/[A-Za-z0-9_-]+){0,7}$"
+                },
+                version: {
+                  type: "integer",
+                  minimum: 1,
+                  maximum: 1e6
+                }
+              }
+            },
+            dark: {
+              type: "object",
+              additionalProperties: false,
+              required: [
+                "id",
+                "version"
+              ],
+              properties: {
+                id: {
+                  type: "string",
+                  minLength: 1,
+                  maxLength: 200,
+                  pattern: "^[A-Za-z0-9][A-Za-z0-9_-]*(/[A-Za-z0-9_-]+){0,7}$"
+                },
+                version: {
+                  type: "integer",
+                  minimum: 1,
+                  maximum: 1e6
+                }
+              }
+            },
+            mark: {
+              type: "object",
+              additionalProperties: false,
+              required: [
+                "id",
+                "version"
+              ],
+              properties: {
+                id: {
+                  type: "string",
+                  minLength: 1,
+                  maxLength: 200,
+                  pattern: "^[A-Za-z0-9][A-Za-z0-9_-]*(/[A-Za-z0-9_-]+){0,7}$"
+                },
+                version: {
+                  type: "integer",
+                  minimum: 1,
+                  maximum: 1e6
+                }
+              }
+            }
+          }
+        },
+        colours: {
+          type: "array",
+          maxItems: 12,
+          items: {
+            type: "object",
+            additionalProperties: false,
+            required: [
+              "role",
+              "name",
+              "value"
+            ],
+            properties: {
+              role: {
+                enum: [
+                  "primary",
+                  "secondary",
+                  "accent",
+                  "text",
+                  "surface"
+                ]
+              },
+              name: {
+                type: "string",
+                minLength: 1,
+                maxLength: 60
+              },
+              value: {
+                type: "string",
+                pattern: "^#[0-9A-Fa-f]{6}$"
+              }
+            }
+          }
+        },
+        rules: {
+          type: "object",
+          additionalProperties: false,
+          properties: {
+            clearSpace: {
+              type: "object",
+              additionalProperties: false,
+              required: [
+                "value",
+                "unit"
+              ],
+              properties: {
+                value: {
+                  type: "number",
+                  exclusiveMinimum: 0,
+                  maximum: 4
+                },
+                unit: {
+                  enum: [
+                    "mark-height"
+                  ]
+                }
+              }
+            },
+            minSize: {
+              type: "object",
+              additionalProperties: false,
+              minProperties: 1,
+              properties: {
+                px: {
+                  type: "number",
+                  exclusiveMinimum: 0,
+                  maximum: 1e4
+                },
+                mm: {
+                  type: "number",
+                  exclusiveMinimum: 0,
+                  maximum: 1e3
+                }
+              }
+            },
+            treatments: {
+              type: "array",
+              minItems: 1,
+              maxItems: 4,
+              uniqueItems: true,
+              items: {
+                enum: [
+                  "colour",
+                  "mono",
+                  "reverse",
+                  "on-photo"
+                ]
+              }
+            }
+          }
+        },
+        skills: {
+          type: "array",
+          maxItems: 16,
+          uniqueItems: true,
+          items: {
+            type: "string",
+            minLength: 1,
+            maxLength: 160
+          }
+        },
+        source: {
+          type: "object",
+          additionalProperties: false,
+          required: [
+            "kind"
+          ],
+          properties: {
+            kind: {
+              enum: [
+                "tokens",
+                "lolly",
+                "logos",
+                "manual"
+              ]
+            },
+            reference: {
+              type: "string",
+              minLength: 1,
+              maxLength: 200
+            }
+          }
+        }
+      }
+    };
+  }
+});
+
+// packages/core/src/partner-kit-v1.ts
+var PARTNER_KIT_MAX_BYTES, PARTNER_KIT_MAX_COLOURS, PARTNER_KIT_MAX_COLOUR_NAME, PARTNER_KIT_LOGO_SURFACES;
+var init_partner_kit_v1 = __esm({
+  "packages/core/src/partner-kit-v1.ts"() {
+    "use strict";
+    PARTNER_KIT_MAX_BYTES = 65536;
+    PARTNER_KIT_MAX_COLOURS = 12;
+    PARTNER_KIT_MAX_COLOUR_NAME = 60;
+    PARTNER_KIT_LOGO_SURFACES = ["light", "dark", "mark"];
+  }
+});
+
+// engine/src/partner-kit.ts
+import Ajv8 from "ajv";
+function schemaValidator5() {
+  if (!validator5) validator5 = new Ajv8({ allErrors: false }).compile(partner_kit_v1_schema_default);
+  return validator5;
+}
+function checkPartnerKit(input) {
+  let value2 = input;
+  let size;
+  if (typeof input === "string") {
+    size = utf8Length(input);
+    if (size > PARTNER_KIT_MAX_BYTES) return tooLarge2(size);
+    try {
+      value2 = JSON.parse(input);
+    } catch {
+      return { ok: false, issues: [{ code: "kit.json", message: "The kit is not JSON." }] };
+    }
+  } else {
+    let text13;
+    try {
+      text13 = JSON.stringify(input);
+    } catch {
+      text13 = void 0;
+    }
+    if (typeof text13 !== "string") return { ok: false, issues: [{ code: "kit.json", message: "The kit cannot be written as JSON." }] };
+    size = utf8Length(text13);
+    if (size > PARTNER_KIT_MAX_BYTES) return tooLarge2(size);
+  }
+  const validate = schemaValidator5();
+  if (!validate(value2)) {
+    const error2 = validate.errors?.[0];
+    const path = error2?.instancePath || "";
+    return {
+      ok: false,
+      issues: [{ code: "kit.schema", message: `The kit does not match partner-kit-v1${path ? ` at ${path}` : ""}: ${error2?.message ?? "unknown problem"}.`, ...path ? { path } : {} }]
+    };
+  }
+  const seen = /* @__PURE__ */ new Set();
+  for (const surface of PARTNER_KIT_LOGO_SURFACES) {
+    const logo = value2.logos[surface];
+    if (!logo) continue;
+    if (seen.has(logo.id)) {
+      return { ok: false, issues: [{ code: "kit.logo-duplicate", message: `The kit pins the logo ${logo.id} twice.`, path: `/logos/${surface}` }] };
+    }
+    seen.add(logo.id);
+  }
+  const kit = structuredClone(value2);
+  kit.colours = kit.colours.map((c) => ({ ...c, value: c.value.toLowerCase() }));
+  return { ok: true, kit };
+}
+function tooLarge2(size) {
+  return { ok: false, issues: [{ code: "kit.too-large", message: `The kit is ${size.toLocaleString("en")} bytes; a kit may take at most ${PARTNER_KIT_MAX_BYTES.toLocaleString("en")}.` }] };
+}
+function readPartnerKit(input) {
+  const result = checkPartnerKit(input);
+  return result.ok ? result.kit : null;
+}
+function partnerKitLogoIds(kit) {
+  const ids2 = [];
+  for (const surface of PARTNER_KIT_LOGO_SURFACES) {
+    const id3 = kit.logos?.[surface]?.id;
+    if (typeof id3 === "string" && id3 && !ids2.includes(id3)) ids2.push(id3);
+  }
+  return ids2;
+}
+function opaqueHex(value2) {
+  const text13 = typeof value2 === "string" ? value2 : colorToHex(value2);
+  if (typeof text13 !== "string" || !text13.trim()) return null;
+  const parsed = parseColor(text13.trim());
+  if (!parsed || parsed.alpha < 1) return null;
+  const hex4 = colorToHexString({ ...parsed, alpha: 1 }).toLowerCase();
+  return /^#[0-9a-f]{6}$/.test(hex4) ? hex4 : null;
+}
+function leafWords(path) {
+  const leaf = (path.split(".").pop() ?? "").replace(/[-_]+/g, " ").trim();
+  return leaf ? leaf[0].toUpperCase() + leaf.slice(1) : "";
+}
+function namedElsewhere(tokens3, value2) {
+  for (const entry2 of tokens3.query({ type: "color" })) {
+    if (entry2.path.startsWith("color.semantic.") || /^color\.(primary|secondary|accent)$/.test(entry2.path)) continue;
+    let hex4;
+    try {
+      hex4 = opaqueHex(toSwatch(entry2).value);
+    } catch {
+      hex4 = null;
+    }
+    if (hex4 === value2) return leafWords(entry2.path) || null;
+  }
+  return null;
+}
+function lightThemeName(doc) {
+  const themes = createTokenSet(doc).themes();
+  const light = themes.find((t) => t.name.trim().toLowerCase() === "light") ?? themes.find((t) => (t.id ?? "").trim().toLowerCase() === "light");
+  return light ? light.name || light.id : void 0;
+}
+function partnerKitColoursFromTokens(doc) {
+  let tokens3;
+  try {
+    const light = lightThemeName(doc);
+    tokens3 = createTokenSet(doc, light ? { theme: light } : {});
+  } catch {
+    return [];
+  }
+  const out = [];
+  const values = /* @__PURE__ */ new Set();
+  for (const [role, paths] of TOKEN_SLOT_PATHS) {
+    for (const path of paths) {
+      const entry2 = tokens3.get(path);
+      if (entry2?.type !== "color") continue;
+      let swatch;
+      try {
+        swatch = toSwatch(entry2);
+      } catch {
+        continue;
+      }
+      const value2 = opaqueHex(swatch.value);
+      if (!value2) continue;
+      if (!values.has(value2)) {
+        values.add(value2);
+        out.push({ role, name: (namedElsewhere(tokens3, value2) ?? ROLE_WORD[role]).slice(0, PARTNER_KIT_MAX_COLOUR_NAME), value: value2 });
+      }
+      break;
+    }
+  }
+  return out;
+}
+function partnerKitColoursFromInks(colours2) {
+  const out = [];
+  const values = /* @__PURE__ */ new Set();
+  let chromatic = 0;
+  let accents = 0;
+  let text13 = false;
+  let surface = false;
+  for (const raw of Array.isArray(colours2) ? colours2.slice(0, 1e3) : []) {
+    if (out.length >= PARTNER_KIT_MAX_COLOURS) break;
+    const value2 = opaqueHex(raw);
+    if (!value2 || values.has(value2)) continue;
+    const lch = hexToOklch(value2);
+    if (!lch) continue;
+    const neutral = lch.c < NEUTRAL_C || lch.l < DARK_L && lch.c < DARK_C;
+    if (neutral && lch.l >= WHITE_L) continue;
+    let role;
+    let name;
+    if (neutral) {
+      if (lch.l < 0.5) {
+        if (text13) continue;
+        text13 = true;
+        role = "text";
+      } else {
+        if (surface) continue;
+        surface = true;
+        role = "surface";
+      }
+      name = ROLE_WORD[role];
+    } else {
+      role = chromatic === 0 ? "primary" : chromatic === 1 ? "secondary" : "accent";
+      chromatic++;
+      if (role === "accent") accents++;
+      name = role === "accent" && accents > 1 ? `${ROLE_WORD.accent} ${accents}` : ROLE_WORD[role];
+    }
+    values.add(value2);
+    out.push({ role, name, value: value2 });
+  }
+  return out;
+}
+var validator5, utf8Length, ROLE_WORD, TOKEN_SLOT_PATHS, WHITE_L, NEUTRAL_C, DARK_L, DARK_C;
+var init_partner_kit = __esm({
+  "engine/src/partner-kit.ts"() {
+    "use strict";
+    init_partner_kit_v1_schema();
+    init_partner_kit_v1();
+    init_tokens2();
+    init_css_color();
+    init_brand_derive();
+    utf8Length = (text13) => new TextEncoder().encode(text13).length;
+    ROLE_WORD = {
+      primary: "Primary",
+      secondary: "Secondary",
+      accent: "Accent",
+      text: "Text",
+      surface: "Surface"
+    };
+    TOKEN_SLOT_PATHS = [
+      ["primary", ["color.semantic.primary", "color.primary", "color.brand.primary"]],
+      ["secondary", ["color.semantic.secondary", "color.secondary", "color.brand.secondary"]],
+      ["accent", ["color.semantic.accent", "color.accent", "color.brand.accent"]]
+    ];
+    WHITE_L = 0.97;
+    NEUTRAL_C = 0.03;
+    DARK_L = 0.3;
+    DARK_C = 0.06;
   }
 });
 
@@ -155033,6 +155492,7 @@ __export(src_exports, {
   checkFindingsFromHouseRules: () => checkFindingsFromHouseRules,
   checkLearningExportSize: () => checkLearningExportSize,
   checkLearningModule: () => checkLearningModule,
+  checkPartnerKit: () => checkPartnerKit,
   checkToolIntents: () => checkToolIntents,
   chromaAxisMax: () => chromaAxisMax,
   chromaKeyAlpha: () => chromaKeyAlpha,
@@ -155841,6 +156301,9 @@ __export(src_exports, {
   parseWav: () => parseWav,
   parseZzfxmRef: () => parseZzfxmRef,
   partnerFactWords: () => partnerFactWords,
+  partnerKitColoursFromInks: () => partnerKitColoursFromInks,
+  partnerKitColoursFromTokens: () => partnerKitColoursFromTokens,
+  partnerKitLogoIds: () => partnerKitLogoIds,
   partnerRecord: () => partnerRecord,
   partnerWords: () => partnerWords,
   pasteTextFrames: () => pasteTextFrames,
@@ -155980,6 +156443,7 @@ __export(src_exports, {
   readMotionTokens: () => readMotionTokens,
   readMpfIndex: () => readMpfIndex,
   readOtio: () => readOtio,
+  readPartnerKit: () => readPartnerKit,
   readPptx: () => readPptx,
   readPremiereXml: () => readPremiereXml,
   readPreparationRecipe: () => readPreparationRecipe,
@@ -156736,6 +157200,7 @@ var init_src2 = __esm({
     init_studio3d_motion();
     init_brand_context();
     init_brand_check();
+    init_partner_kit();
     init_design_brief();
     init_design_md();
     init_brand_skill();
@@ -166167,7 +166632,7 @@ async function handleFlattenedSlides(source, media, input) {
     const keep2 = (reason2, message, objectIds = pic ? [pic.id] : []) => {
       report4(keptSlide(slide, pic, missing, message ? { message, objectIds } : void 0), "kept", reason2);
     };
-    const tooLarge2 = (width, height) => {
+    const tooLarge3 = (width, height) => {
       keep2("too-large", `The picture of ${slide.id} is ${width} by ${height} pixels, over the ${FLATTENED_MAX_PIXELS} pixel limit for a rebuild, so it stays one picture.`);
     };
     if (mode3 === "keep") {
@@ -166186,7 +166651,7 @@ async function handleFlattenedSlides(source, media, input) {
     }
     const size = pictureDimensions(held.bytes);
     if (size && size.width * size.height > FLATTENED_MAX_PIXELS) {
-      tooLarge2(size.width, size.height);
+      tooLarge3(size.width, size.height);
       continue;
     }
     let picture = null;
@@ -166201,7 +166666,7 @@ async function handleFlattenedSlides(source, media, input) {
       continue;
     }
     if (picture.width * picture.height > FLATTENED_MAX_PIXELS) {
-      tooLarge2(picture.width, picture.height);
+      tooLarge3(picture.width, picture.height);
       continue;
     }
     const staged = /* @__PURE__ */ new Map();
@@ -166482,8 +166947,8 @@ async function loadSchemaValidator() {
   }
   if (!schemaFile) return structuralPlanProblems;
   const schema2 = JSON.parse(readFileSync2(schemaFile, "utf8"));
-  const { default: Ajv9 } = await import("ajv/dist/2020.js");
-  const ajv4 = new Ajv9({ allErrors: true, strict: false });
+  const { default: Ajv10 } = await import("ajv/dist/2020.js");
+  const ajv4 = new Ajv10({ allErrors: true, strict: false });
   const validate = ajv4.compile(schema2);
   return (doc) => {
     if (validate(doc)) return structuralPlanProblems(doc);
@@ -170134,6 +170599,50 @@ async function serveSessionOnce(page3, origin, path, bytes2) {
   await page3.route(matches3, handler);
   return { remove, requested };
 }
+async function probeOpenRoute(page3) {
+  let timer;
+  const late = new Promise((resolve8) => {
+    timer = setTimeout(() => resolve8(null), OPEN_ROUTE_PROBE_MS);
+  });
+  const asked = page3.evaluate((mountingAttr) => {
+    const view = document.getElementById("view");
+    return {
+      hash: location.hash,
+      card: document.querySelector("[data-open-route]")?.getAttribute("data-open-route") ?? null,
+      loading: !view || view.hasAttribute(mountingAttr) || !!document.querySelector("#view > .loading[data-drop-stand-in], dialog.view-loading[open]"),
+      webgpu: document.documentElement.dataset.webgpu ?? null,
+      error: document.querySelector("#view > .error p")?.textContent?.trim() || null,
+      gallery: !!view?.classList.contains("gallery-view")
+    };
+  }, ROUTE_MOUNTING_ATTR).catch(() => null);
+  try {
+    return await Promise.race([asked, late]);
+  } finally {
+    clearTimeout(timer);
+  }
+}
+function silentOpenMessage(probe, root2, name, waitedMs) {
+  const waited = waitedMs < 1e3 ? `${waitedMs} ms` : `${Number((waitedMs / 1e3).toFixed(1))} s`;
+  if (!probe) {
+    return `The web shell at ${root2} did not ask for ${name} within ${waited}, and the page did not answer when asked what it showed. The machine may be too busy: try again. If this keeps happening, check that the shell is current (pnpm run build:web, or LOLLY_WEB_BASE).`;
+  }
+  if (probe.webgpu === "unsupported") {
+    return `The web shell at ${root2} stopped at its WebGPU startup check, so it never asked for ${name}.`;
+  }
+  if (probe.error) {
+    return `The web shell at ${root2} showed an error before it asked for ${name}: ${probe.error}`;
+  }
+  if (probe.card !== null || probe.hash === "#/open") {
+    return `The web shell at ${root2} started opening ${name} but had not fetched it after ${waited}. The shell has the #/open route; the machine may be too busy. Try again.`;
+  }
+  if (probe.loading) {
+    return `The web shell at ${root2} was still loading after ${waited}, so it had not asked for ${name} yet. The machine may be too busy: try again.`;
+  }
+  if (probe.gallery && probe.hash.startsWith("#/open?")) {
+    return `The web shell at ${root2} opened the gallery for #/open and never asked for ${name}, so it has no #/open route (it predates plan 291 W8). Rebuild it (pnpm run build:web), or point LOLLY_WEB_BASE at a current one.`;
+  }
+  return `The web shell at ${root2} did not ask for ${name} within ${waited}, and the page is not opening it. Check that the shell is current (pnpm run build:web, or LOLLY_WEB_BASE) and try again.`;
+}
 async function settleEditor(page3, timeoutMs, opts = {}) {
   await page3.evaluate(() => {
     window.__lollyOpenSettled = 0;
@@ -170166,8 +170675,9 @@ async function openSessionInPage(page3, base, bytes2, name, opts = {}) {
     const never = () => new Promise(() => {
     });
     let quiet2;
+    const askMs = Math.min(timeout, opts.askTimeoutMs ?? OPEN_ROUTE_ASK_MS);
     const silent = new Promise((resolve8) => {
-      quiet2 = setTimeout(() => resolve8({ kind: "silent" }), Math.min(timeout, opts.askTimeoutMs ?? OPEN_ROUTE_ASK_MS));
+      quiet2 = setTimeout(() => resolve8({ kind: "silent" }), askMs);
     });
     void requested.then(() => clearTimeout(quiet2));
     const outcome = await Promise.race([
@@ -170182,9 +170692,7 @@ async function openSessionInPage(page3, base, bytes2, name, opts = {}) {
       page3.locator('[data-open-route="failed"]').waitFor({ state: "visible", timeout }).then(async () => ({ kind: "failed", message: (await page3.locator('[data-open-route="failed"] p').innerText().catch(() => "")).trim() })).catch(never),
       page3.locator('[data-dialog-tag="lolly-intake"]').waitFor({ state: "visible", timeout }).then(() => ({ kind: "asks" })).catch(never)
     ]).finally(() => clearTimeout(quiet2));
-    if (outcome.kind === "silent") {
-      throw new OpenSessionError(`The web shell at ${root2} never asked for ${name}, so it has no #/open route (it predates plan 291 W8). Rebuild it (pnpm run build:web), or point LOLLY_WEB_BASE at a current one.`);
-    }
+    if (outcome.kind === "silent") throw new OpenSessionError(silentOpenMessage(await probeOpenRoute(page3), root2, name, askMs));
     if (outcome.kind === "failed") throw new OpenSessionError(`The web shell did not open ${name}: ${outcome.message || "no reason was given."}`);
     if (outcome.kind === "asks") {
       throw new OpenSessionError(`${name} carries more than a saved session (a tool, a design system, templates, a renovation or a project), so the app asks a person what to do with it. Open it in the app instead.`);
@@ -170294,7 +170802,7 @@ async function checksInOpenedPage(page3, base, bytes2, name, tokenSelection, tim
 function shortenUrls(message, max = 2e3) {
   return message.replace(/(?:https?|data):[^\s"'<>]+/g, (url) => url.length > max ? `${url.slice(0, 200)}... (${url.length.toLocaleString("en")} characters)` : url);
 }
-var OPEN_ROUTE_PREFIX, OPEN_ROUTE_MAX_BYTES, OpenSessionError, OPEN_ROUTE_ASK_MS, ROUTE_MOUNTING_ATTR;
+var OPEN_ROUTE_PREFIX, OPEN_ROUTE_MAX_BYTES, OpenSessionError, OPEN_ROUTE_ASK_MS, OPEN_ROUTE_PROBE_MS, ROUTE_MOUNTING_ATTR;
 var init_open_session = __esm({
   "packages/node-shell/src/open-session.ts"() {
     "use strict";
@@ -170312,6 +170820,7 @@ var init_open_session = __esm({
       }
     };
     OPEN_ROUTE_ASK_MS = 45e3;
+    OPEN_ROUTE_PROBE_MS = 5e3;
     ROUTE_MOUNTING_ATTR = "data-route-mounting";
   }
 });
@@ -183526,12 +184035,13 @@ function verdictApproval(report4) {
   const fails = report4.checks.filter((chk) => !chk.ok && chk.code !== "signingCredential.untrusted");
   const changed = fails.some((chk) => chk.code === "assertion.dataHash.mismatch" || chk.code === "assertion.bmffHash.mismatch");
   const lapsed = fails.length === 1 && fails[0].code === "signingCredential.expired";
+  const covered = r5.covers === "template" ? [["Covers", `Approved as a template: ${cleanControlChars(r5.templateId)} v${r5.templateVersion}${report4.format ? ` (${cleanControlChars(report4.format).toUpperCase()})` : ""}. Example file sha256 ${cleanControlChars(r5.exampleSha256).replace(/^sha256:/, "")}`]] : [["Reviewed", cleanControlChars(r5.reviewedSha256)]];
   return {
     intact,
     facts: [
       ["Request", cleanControlChars(r5.approvalId)],
       ["Decided", cleanControlChars(r5.decidedAt)],
-      ["Reviewed", cleanControlChars(r5.reviewedSha256)],
+      ...covered,
       ["This file", intact ? "unchanged since the signer recorded this approval" : changed ? "does not match the signed record" : lapsed ? "still matches its credential" : "could not be confirmed"]
     ],
     note: intact ? "A record the signer made, not a review of the work." : changed ? "This file changed after the approval was recorded, or the record itself was altered." : lapsed ? "The signing certificate has lapsed, so this approval can no longer be confirmed." : "This approval record did not pass its checks, so it cannot be relied on."
@@ -195071,7 +195581,7 @@ function readFileArg2(value2, opts) {
   const name = safeFileName(typeof file.name === "string" && file.name.trim() ? file.name : opts.fallbackName, opts.fallbackName);
   return { bytes: bytes2, name, ...typeof file.mime === "string" && file.mime ? { mime: file.mime } : {}, base64Length: compact.length };
 }
-function success2(sentence, structured, files, ctx, tooLarge2, hint) {
+function success2(sentence, structured, files, ctx, tooLarge3, hint) {
   const result = {
     content: [{ type: "text", text: sentence }, { type: "text", text: JSON.stringify(structured) }, ...files],
     structuredContent: structured
@@ -195079,7 +195589,7 @@ function success2(sentence, structured, files, ctx, tooLarge2, hint) {
   if (isHostedServer(ctx.env)) {
     const size = responseBytes(result);
     if (size > ctx.limits.responseMaxBytes)
-      throw new ToolCodeError(tooLarge2, `The result comes to ${size} bytes and this server answers up to ${ctx.limits.responseMaxBytes} bytes; ${hint}`);
+      throw new ToolCodeError(tooLarge3, `The result comes to ${size} bytes and this server answers up to ${ctx.limits.responseMaxBytes} bytes; ${hint}`);
   }
   return result;
 }
@@ -201001,7 +201511,7 @@ init_src();
 import { lookup as lookup3 } from "node:dns/promises";
 import { request as request2 } from "node:https";
 import { BlockList as BlockList2, isIP as isIP3 } from "node:net";
-import Ajv8 from "ajv";
+import Ajv9 from "ajv";
 
 // packages/core/src/live-invite-v1.ts
 function readLiveInvitation(value2) {
@@ -201044,7 +201554,7 @@ var AGENT_TOOLS = LIVE_TOOLS.map((tool) => ({
   securitySchemes: [{ type: "noauth" }],
   _meta: { securitySchemes: [{ type: "noauth" }] }
 }));
-var ajv3 = new Ajv8({ strict: false });
+var ajv3 = new Ajv9({ strict: false });
 var validators2 = new Map(AGENT_TOOLS.map((tool) => [tool.name, ajv3.compile(tool.inputSchema)]));
 var transition = new BlockList2();
 for (const [network, prefix] of [["::ffff:0:0", 96], ["64:ff9b::", 96], ["64:ff9b:1::", 48], ["2002::", 16], ["2001::", 32]]) transition.addSubnet(network, prefix, "ipv6");

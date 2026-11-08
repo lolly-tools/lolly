@@ -125,3 +125,13 @@ test('Grid hides every piece only Card draws', () => {
     for (const r of shows) assert.match(r.selector, /\[data-browse-layout="card"\]/, `${piece} shows only in Card: ${r.selector}`);
   }
 });
+
+test('a programme member sees no status chip but Experimental, and staff keep every chip (plans/82 M6)', async () => {
+  const { setProgrammeMember } = await import('../lib/workspace-templates.ts');
+  const chips = () => ['community', 'experimental'].map((status) => !!tile(cardMarkup({ ...tool, status }, undefined, [], false, false, false, '')).querySelector(`.badge-${status}`));
+  assert.deepEqual(chips(), [true, true], 'staff: Community and Experimental');
+  setProgrammeMember(true);
+  try {
+    assert.deepEqual(chips(), [false, true], 'a member: Experimental only, for its watermark');
+  } finally { setProgrammeMember(false); }
+});
