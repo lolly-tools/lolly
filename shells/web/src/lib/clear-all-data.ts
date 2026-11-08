@@ -23,8 +23,11 @@
  *   3. every object store in the app's IndexedDB database, read from the
  *      database's own store list (bridge/db.ts creates them; nothing here names
  *      one), then any other database on the origin where the browser can list them;
- *   4. every Cache Storage cache on the origin (offline app, docs, pinned tools,
- *      installed tools, models, the share inbox);
+ *   4. every service worker registered on the origin, then every Cache Storage
+ *      cache (offline app, docs, pinned tools, installed tools, models, the share
+ *      inbox). The worker goes first, so it cannot fill a cache again while the
+ *      caches are emptied, and a worker left over from an older build can no
+ *      longer answer this origin's requests with files that build kept;
  *   5. every entry in the origin-private file system (file results, sequence
  *      audio, recorder and mux scratch);
  *   6. localStorage and sessionStorage. The whole origin is Lolly's, and the app
@@ -68,6 +71,10 @@ export interface ClearableCaches {
   keys(): Promise<string[]>;
   delete(name: string): Promise<boolean>;
 }
+/** The slice of ServiceWorkerContainer the clear uses. */
+export interface ClearableServiceWorkers {
+  getRegistrations(): Promise<ReadonlyArray<{ scope: string; unregister(): Promise<boolean> }>>;
+}
 /** The slice of an OPFS directory handle the clear uses. */
 export interface ClearableDirectory {
   keys(): AsyncIterable<string>;
@@ -103,6 +110,7 @@ export interface ClearAllEnv {
   clearPackStore(): Promise<void>;
   openAppDb(): Promise<ClearableDb | null>;
   indexedDB: ClearableIdbFactory | null;
+  serviceWorkers: ClearableServiceWorkers | null;
   caches: ClearableCaches | null;
   storageRoot(): Promise<ClearableDirectory | null>;
   localStorage: ClearableStorage | null;
@@ -114,6 +122,8 @@ export interface ClearAllReport {
   stores: string[];
   /** Other databases deleted. */
   databases: string[];
+  /** Scopes of the service workers unregistered. */
+  serviceWorkers: string[];
   caches: string[];
   /** Top-level OPFS entries removed. */
   files: string[];
@@ -161,6 +171,7 @@ function browserEnv(): ClearAllEnv {
       return { objectStoreNames: db.objectStoreNames, transaction: (names, mode) => db.transaction(names, mode), close: () => db.close() };
     },
     indexedDB: g.indexedDB ?? null,
+    serviceWorkers: (globalThis.navigator as Navigator | undefined)?.serviceWorker ?? null,
     caches: g.caches ?? null,
     storageRoot: async () => {
       const storage = (globalThis.navigator as Navigator | undefined)?.storage;
@@ -240,7 +251,7 @@ async function clearAppDatabase(db: ClearableDb, errors: string[]): Promise<stri
  */
 export async function clearAllLollyData(opts: { state?: ClearableState; env?: Partial<ClearAllEnv> } = {}): Promise<ClearAllReport> {
   const env: ClearAllEnv = { ...browserEnv(), ...opts.env };
-  const report: ClearAllReport = { stores: [], databases: [], caches: [], files: [], localKeys: 0, sessionKeys: 0, cleared: [], tabs: { seen: 0, ready: 0 }, errors: [] };
+  const report: ClearAllReport = { stores: [], databases: [], serviceWorkers: [], caches: [], files: [], localKeys: 0, sessionKeys: 0, cleared: [], tabs: { seen: 0, ready: 0 }, errors: [] };
   const step = async (label: string, run: () => Promise<void>): Promise<void> => {
     try { await run(); } catch (error) { report.errors.push(`${label}: ${String((error as Error)?.message ?? error)}`); }
   };
@@ -299,7 +310,18 @@ async function clearEverything(
     });
   }
 
-  // 4. Cache Storage, every cache on the origin.
+  // 4. Every service worker on the origin, then every Cache Storage cache. An
+  //    unregistered worker still answers this page until it reloads, which the
+  //    caller does next; after that nothing on the origin is served by a worker.
+  const workers = env.serviceWorkers;
+  if (workers) {
+    await step('serviceWorkers', async () => {
+      for (const registration of await workers.getRegistrations()) {
+        if (await registration.unregister()) report.serviceWorkers.push(registration.scope);
+        else report.errors.push(`service worker ${registration.scope}: not unregistered`);
+      }
+    });
+  }
   const cacheStorage = env.caches;
   if (cacheStorage) {
     await step('caches', async () => {
