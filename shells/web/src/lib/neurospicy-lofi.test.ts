@@ -32,7 +32,10 @@ test('four stations whose ids round-trip to their mood', () => {
   }
   assert.equal(lofiMoodOf('lofi:sunny'), null, 'an unknown mood is not a station');
   assert.equal(isLofiId('lolly/songs/amber-glow'), false);
-  assert.deepEqual(lofiTracks().map(t => t.name), ['Lofi · Warm', 'Lofi · Late night', 'Lofi · Rainy', 'Lolly Sings']);
+  assert.deepEqual(lofiTracks().map(t => t.name), [
+    'Lofi · Warm', 'Lofi · Late night', 'Lofi · Rainy',
+    'Lolly Sings', 'Lolly Sings · Sugar', 'Lolly Sings · Electro', 'Lolly Sings · Dubstep', 'Lolly Sings · Brostep', 'Lolly Sings · D&B',
+  ]);
 });
 
 test('a retired catalog track hands over to the nearest station', () => {
@@ -70,8 +73,12 @@ const emptyHost: NeurospicyHost = {
 test('the stations are always in the track list: Lolly Sings in its group, the Lofi moods in theirs', async () => {
   invalidateNeurospicyTracks();
   const loops = await listLoops(emptyHost);   // no catalog at all: a cold or offline boot
-  assert.deepEqual(loops.filter(t => isLofiId(t.id)).map(t => t.id), ['lofi:sings', 'lofi:warm', 'lofi:lateNight', 'lofi:rainy']);
-  assert.deepEqual(loops.filter(t => trackCategory(t) === 'lolly').map(t => t.name), ['Lolly Sings']);
+  assert.deepEqual(loops.filter(t => isLofiId(t.id)).map(t => t.id), [
+    'lofi:sings', 'lofi:sugar', 'lofi:electro', 'lofi:dubstep', 'lofi:brostep', 'lofi:dnb', 'lofi:warm', 'lofi:lateNight', 'lofi:rainy',
+  ]);
+  assert.deepEqual(loops.filter(t => trackCategory(t) === 'lolly').map(t => t.name), [
+    'Lolly Sings', 'Lolly Sings · Sugar', 'Lolly Sings · Electro', 'Lolly Sings · Dubstep', 'Lolly Sings · Brostep', 'Lolly Sings · D&B',
+  ]);
   assert.deepEqual(loops.filter(t => trackCategory(t) === 'lofi').map(t => t.id), ['warm', 'lateNight', 'rainy'].map(m => lofiId(m as 'warm')));
 });
 

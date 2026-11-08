@@ -25,7 +25,7 @@ import { RADIO_STATIONS, radioStation, isRadioId, radioAvailable, resolveStreamU
 import { isSfxMuted } from './sfx.ts';
 import {
   isLofiId, lofiId, lofiTracks, startLofi, stopLofi, lofiLive, applyLofiPrefs, queueLofiSeed, retiredTrackStation, LOFI_DEFAULTS, LOFI_STATION_MOODS,
-  playsOnStation, rememberSavedTune, currentLofiRecipe, lofiTune, lofiMoodOf, savedTuneOf,
+  playsOnStation, rememberSavedTune, currentLofiRecipe, lofiTune, lofiMoodOf, savedTuneOf, isSingsMood,
   type LofiPrefs, type LofiLink,
 } from './neurospicy-lofi.ts';
 import { LOFI_TUNE_FORMAT, lofiTuneBytes, lofiTuneFromMeta, lofiTuneFromUrl, lofiTuneName } from './lofi-tune.ts';
@@ -868,7 +868,7 @@ export function trackCategory(t: NeuroTrack): string {
     // The generated stations, and the tunes saved from them (presets and the listener's
     // own), grouped by genre: Lolly Sings, then Lofi.
     const mood = lofiMoodOf(t.id) ?? savedTuneOf(t.id)?.mood ?? (t.tags.includes('lolly-sings') ? 'sings' : null);
-    return mood === 'sings' ? 'lolly' : 'lofi';
+    return mood && isSingsMood(mood) ? 'lolly' : 'lofi';
   }
   if (t.format === 'stream' || t.tags.includes('radio') || t.tags.includes('stream')) return 'radio';
   if (t.id.startsWith('user/')) return 'uploads';       // the user's own uploads
@@ -995,7 +995,7 @@ export async function saveLofiTune(host: NeurospicyHost): Promise<string | null>
     blob: new Blob([bytes.slice().buffer], { type: 'application/json' }),
     meta: {
       name: lofiTuneName(recipe, tune),
-      tags: ['neurospicy', 'generated', recipe.mood === 'sings' ? 'lolly-sings' : 'lofi'],
+      tags: ['neurospicy', 'generated', isSingsMood(recipe.mood) ? 'lolly-sings' : 'lofi'],
       lofi: { mood: recipe.mood, seed: recipe.seed },
       durationMs: Math.round(lofiTuneSeconds(recipe.seed, recipe.mood) * 1000),
     },

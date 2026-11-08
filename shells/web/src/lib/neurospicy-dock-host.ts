@@ -32,7 +32,7 @@ import {
 } from './neurospicy.ts';
 import {
   isLofiId, lofiId, lofiMoodOf, lofiTune, nextLofiTune, prevLofiTune, lofiShareUrl, playsOnStation, savedTuneOf,
-  LOFI_ONLY_MOODS, LOFI_MOOD_LABEL,
+  LOFI_ONLY_MOODS, LOFI_SINGS_MOODS, LOFI_MOOD_LABEL, isSingsMood,
 } from './neurospicy-lofi.ts';
 import type { LofiStyle } from '../../../../engine/src/lofi-compose.ts';
 import { applySoundMaster } from './sound-master.ts';
@@ -86,6 +86,16 @@ const CATEGORY_LABEL: Record<string, string> = {
 
 /** Persisted visualiser prefs (device-local, like the old panel's). */
 const ENABLED_KEY = 'lolly:vizEnabled';
+/** Whether the heavy stations show bars instead of the visualiser (see NeuroDockViz.light). */
+const LIGHT_KEY = 'lolly:vizLightHeavy';
+
+/** A modest device: few cores, little memory, or a phone. Heavy stations start light there. */
+function modestDevice(): boolean {
+  if (typeof navigator === 'undefined') return false;
+  const nav = navigator as Navigator & { deviceMemory?: number };
+  const coarse = typeof matchMedia === 'function' && matchMedia('(pointer: coarse)').matches;
+  return (nav.hardwareConcurrency ?? 8) <= 4 || (nav.deviceMemory ?? 8) <= 4 || coarse;
+}
 const SCHEME_KEY = 'lolly:vizScheme';
 
 /**
@@ -112,8 +122,23 @@ function trackMood(tags: string[]): string {
 }
 
 /** The words the now-playing line uses for a Lofi tune's instruments. */
-const LOFI_KEYS_NAME: Record<LofiStyle['keys'], string> = { rhodes: 'Rhodes', felt: 'felt piano', wurli: 'Wurlitzer', pluck: 'soft pluck' };
-const LOFI_LEAD_NAME: Record<LofiStyle['lead'], string> = { vibes: 'vibes', flute: 'flute', soft: 'soft lead', kalimba: 'kalimba', chip: 'chip lead', none: '' };
+const LOFI_KEYS_NAME: Record<LofiStyle['keys'], string> = {
+  rhodes: 'Rhodes', felt: 'felt piano', wurli: 'Wurlitzer', pluck: 'soft pluck', pad: 'pad', supersaw: 'saw chords',
+};
+const LOFI_LEAD_NAME: Record<LofiStyle['lead'], string> = {
+  vibes: 'vibes', flute: 'flute', soft: 'soft lead', kalimba: 'kalimba', chip: 'chip lead', angel: 'angel lead', pulse: 'pulse lead', none: '',
+};
+/** A heavy station: a dance genre of the Lolly Sings family, live or a saved tune of one. */
+function heavyStation(id: string): boolean {
+  const mood = lofiMoodOf(id) ?? savedTuneOf(id)?.mood ?? null;
+  return !!mood && isSingsMood(mood) && mood !== 'sings';
+}
+
+/** The dance genres name their bass, which is what each one is built around. */
+const LOFI_BASS_NAME: Partial<Record<LofiStyle['bass'], string>> = {
+  wobble: 'wobble bass', growl: 'growl bass', reese: 'reese bass', slap: 'slap bass', round: 'rolling bass',
+  screech: 'screech bass', pulse: 'chip bass', electro: 'electro bass',
+};
 
 export interface NeurospicyDockHandle {
   /** The DockHost to hand to createAudioDock. */
@@ -141,6 +166,14 @@ class NeuroDockViz implements DockViz {
   private canvas: HTMLCanvasElement | null = null;
   private mounting: Promise<void> | null = null;
   private vizEnabled: boolean;
+  /**
+   * Light: on a heavy station (the dance genres synthesise many more voices than Lofi),
+   * show the bars instead of the visualiser, so the music has the CPU it needs. On by
+   * default on a modest device, a choice in the station's controls, kept on this device.
+   */
+  private light: boolean;
+  /** Whether a heavy station is what is playing; the host sets this. */
+  heavy: () => boolean = () => false;
   private presetId = '';
   private stock: StockPresetInfo[] = [];
   private brandTint: BrandTint = 'strong';
@@ -171,6 +204,9 @@ class NeuroDockViz implements DockViz {
     let saved = '1';
     try { saved = localStorage.getItem(ENABLED_KEY) ?? '1'; } catch { /* private mode */ }
     this.vizEnabled = saved !== '0';
+    let light: string | null = null;
+    try { light = localStorage.getItem(LIGHT_KEY); } catch { /* private mode */ }
+    this.light = light === null ? modestDevice() : light === '1';
     this.cycleSeconds = loadCycleSeconds();
     this.unsubscribePerf = subscribePerfUi(on => { if (on) this.unmount(); });
   }
@@ -246,8 +282,16 @@ class NeuroDockViz implements DockViz {
   }
 
   // ── on/off ──────────────────────────────────────────────────────────────────
-  enabled(): boolean { return this.vizEnabled; }
+  enabled(): boolean { return this.vizEnabled && !(this.light && this.heavy()); }
+  lightOn(): boolean { return this.light; }
+  setLight(on: boolean): void {
+    this.light = on;
+    try { localStorage.setItem(LIGHT_KEY, on ? '1' : '0'); } catch { /* best-effort */ }
+    if (on && this.heavy()) this.unmount();
+  }
   setEnabled(on: boolean): void {
+    // Asking for the visualiser on a heavy station that is showing bars means "show it here too".
+    if (on && this.light && this.heavy()) this.setLight(false);
     this.vizEnabled = on;
     try { localStorage.setItem(ENABLED_KEY, on ? '1' : '0'); } catch { /* best-effort */ }
     if (!on) this.unmount();
@@ -278,7 +322,7 @@ class NeuroDockViz implements DockViz {
   async mount(canvas: HTMLCanvasElement): Promise<void> {
     // The rich dock visualiser idle-animates off a silent analyser even with nothing
     // playing, so it's an ambient loop - don't start it under reduced motion or perf-ui.
-    if (this.destroyed || !this.vizEnabled || !vizSupported() || prefersReducedMotion() || perfUiOn()) return;
+    if (this.destroyed || !this.enabled() || !vizSupported() || prefersReducedMotion() || perfUiOn()) return;
     // Render IMMEDIATELY, audio or not: use the live analyser when it exists (reactive),
     // else a silent one (idle animation). When the live analyser first appears we remount
     // so the picture starts reacting.
@@ -579,6 +623,7 @@ class NeurospicyDockHost implements DockHost {
 
     // The rich in-dock visualiser (butterchurn) + its preset/theme library.
     this.viz = new NeuroDockViz(nhost);
+    this.viz.heavy = () => heavyStation(getNeurospicy().loopId);
 
     this.repeat = {
       get: () => getNeurospicy().repeat,
@@ -705,9 +750,11 @@ class NeurospicyDockHost implements DockHost {
     const saved = savedTuneOf(id) !== null;
     const mood = lofiMoodOf(id);
     if (!mood && !saved) return [];
-    const moodControl: DockControl[] = !mood || mood === 'sings' ? [] : [{
-      kind: 'choice', id: 'lofi-mood', label: 'Mood',
-      options: LOFI_ONLY_MOODS.map((m) => ({ id: m, label: LOFI_MOOD_LABEL[m] })),
+    // Lofi stations choose a mood; the Lolly Sings family chooses a style.
+    const family = mood && isSingsMood(mood) ? LOFI_SINGS_MOODS : LOFI_ONLY_MOODS;
+    const moodControl: DockControl[] = !mood ? [] : [{
+      kind: 'choice', id: 'lofi-mood', label: isSingsMood(mood) ? 'Style' : 'Mood',
+      options: family.map((m) => ({ id: m, label: m === 'sings' ? 'Original' : LOFI_MOOD_LABEL[m] })),
       get: () => lofiMoodOf(getNeurospicy().loopId) ?? mood,
       set: (m) => this.select(lofiId(m as NonNullable<typeof mood>)),
     }];
@@ -717,6 +764,11 @@ class NeurospicyDockHost implements DockHost {
         try { return (await saveLofiTune(this.nhost)) ? 'Saved to your library' : 'Play it first'; } catch { return 'Could not save'; }
       },
     }];
+    const lightControl: DockControl[] = heavyStation(id) ? [{
+      kind: 'toggle', id: 'lofi-light-viz', label: 'Light visualiser',
+      get: () => this.viz.lightOn(),
+      set: (on) => { this.viz.setLight(on); this.emitChange(); },
+    }] : [];
     return [
       ...moodControl,
       {
@@ -738,6 +790,7 @@ class NeurospicyDockHost implements DockHost {
         },
       },
       ...saveControl,
+      ...lightControl,
     ];
   }
 
@@ -766,7 +819,9 @@ class NeurospicyDockHost implements DockHost {
       const lead = tune ? LOFI_LEAD_NAME[tune.style.lead] : '';
       return {
         title: t.name,
-        subtitle: tune ? `${tune.key} · ${tune.bpm} bpm · ${LOFI_KEYS_NAME[tune.style.keys]}${lead ? `, ${lead}` : ''}` : 'Generated, never the same tune twice',
+        subtitle: tune
+          ? `${tune.key} · ${tune.bpm} bpm · ${(isSingsMood(tune.mood) && tune.mood !== 'sings' && LOFI_BASS_NAME[tune.style.bass]) || LOFI_KEYS_NAME[tune.style.keys]}${lead ? `, ${lead}` : ''}`
+          : 'Generated, never the same tune twice',
         kind: 'music',
       };
     }

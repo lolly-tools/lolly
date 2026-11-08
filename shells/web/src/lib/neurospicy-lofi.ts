@@ -20,10 +20,24 @@ import type { LofiStation } from './lofi-station.ts';
 
 export const LOFI_PREFIX = 'lofi:';
 /** The stations, in picker order. Kept here (not imported) so this module never loads the composer. */
-export const LOFI_STATION_MOODS: readonly LofiMood[] = ['warm', 'lateNight', 'rainy', 'sings'];
-/** The Lofi moods: the stations the Mood control moves between (Lolly Sings is its own genre). */
+export const LOFI_STATION_MOODS: readonly LofiMood[] = ['warm', 'lateNight', 'rainy', 'sings', 'sugar', 'electro', 'dubstep', 'brostep', 'dnb'];
+/** The Lofi moods: the stations the Mood control moves between. */
 export const LOFI_ONLY_MOODS: readonly LofiMood[] = ['warm', 'lateNight', 'rainy'];
-export const LOFI_MOOD_LABEL: Record<LofiMood, string> = { warm: 'Warm', lateNight: 'Late night', rainy: 'Rainy', sings: 'Lolly Sings' };
+/** The Lolly Sings family: the melody-first station and its dance genres, which the Style control moves between. */
+export const LOFI_SINGS_MOODS: readonly LofiMood[] = ['sings', 'sugar', 'electro', 'dubstep', 'brostep', 'dnb'];
+export const LOFI_MOOD_LABEL: Record<LofiMood, string> = {
+  warm: 'Warm', lateNight: 'Late night', rainy: 'Rainy', sings: 'Lolly Sings',
+  sugar: 'Sugar', electro: 'Electro', dubstep: 'Dubstep', brostep: 'Brostep', dnb: 'D&B',
+};
+
+/** Whether `mood` belongs to the Lolly Sings family. */
+export function isSingsMood(mood: LofiMood): boolean { return LOFI_SINGS_MOODS.includes(mood); }
+
+/** A station's name in the player: "Lofi · Warm", "Lolly Sings", "Lolly Sings · Sugar". */
+export function lofiStationName(mood: LofiMood): string {
+  if (mood === 'sings') return 'Lolly Sings';
+  return isSingsMood(mood) ? `Lolly Sings · ${LOFI_MOOD_LABEL[mood]}` : `Lofi · ${LOFI_MOOD_LABEL[mood]}`;
+}
 
 /** What a listener sets for every Lofi station: whether the drums play, and how dusty it sounds. */
 export interface LofiPrefs { drums: boolean; texture: number }
@@ -37,11 +51,9 @@ export function lofiMoodOf(id: string): LofiMood | null {
   return LOFI_STATION_MOODS.includes(mood) ? mood : null;
 }
 
-/** The three stations as player tracks (the same shape as lib/neurospicy.ts's NeuroTrack). */
+/** The stations as player tracks (the same shape as lib/neurospicy.ts's NeuroTrack). */
 export function lofiTracks(): Array<{ id: string; name: string; tags: string[]; format: string }> {
-  return LOFI_STATION_MOODS.map((mood) => ({
-    id: lofiId(mood), name: mood === 'sings' ? 'Lolly Sings' : `Lofi · ${LOFI_MOOD_LABEL[mood]}`, tags: ['generated'], format: 'lofi',
-  }));
+  return LOFI_STATION_MOODS.map((mood) => ({ id: lofiId(mood), name: lofiStationName(mood), tags: ['generated'], format: 'lofi' }));
 }
 
 /**

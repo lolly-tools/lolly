@@ -18,7 +18,7 @@
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { composeLofiTune, lofiStream, lofiTuneSeconds, nextLofiSeed, LOFI_MOODS, LOFI_DRUM_VOICES } from './lofi-compose.ts';
+import { composeLofiTune, lofiStream, lofiTuneSeconds, nextLofiSeed, isDanceMood, LOFI_MOODS, LOFI_DRUM_VOICES, DANCE_MOODS } from './lofi-compose.ts';
 import type { LofiBar } from './lofi-compose.ts';
 
 const SEEDS = Array.from({ length: 24 }, (_, i) => (i * 2654435761) >>> 0);
@@ -39,6 +39,90 @@ test('a station plays one tune after another, each seed following from the last'
   assert.equal(next.index, 0, 'the next tune starts at its first bar');
   assert.equal(next.tune.seed, nextLofiSeed(99));
   assert.equal(next.tune.mood, 'rainy', 'and keeps the mood');
+});
+
+test('the dance genres: their tempo, a build with a riser and a roll, then a drop that opens on a crash', () => {
+  const BPM = { sugar: [116, 130], electro: [118, 126], dubstep: [138, 142], brostep: [145, 150], dnb: [170, 176] } as const;
+  for (const mood of DANCE_MOODS) for (const seed of SEEDS.slice(0, 6)) {
+    const bars = composeLofiTune(seed, mood);
+    const t = bars[0]!.tune;
+    const where = `${mood} ${seed}`;
+    assert.ok(t.bpm >= BPM[mood][0] && t.bpm <= BPM[mood][1], `${where}: ${t.bpm} bpm`);
+    const builds = bars.filter(b => b.section === 'build');
+    const drops = bars.filter(b => b.section === 'drop');
+    assert.ok(builds.length >= 8 && drops.length >= 32, `${where}: two builds and two drops`);
+    assert.ok(builds.some(b => b.notes.some(n => n.voice === 'riser')), `${where}: a build has a riser`);
+    const firstBuild = bars.findIndex(b => b.section === 'build');
+    const lastBuildBar = bars.findIndex((b, i) => i > firstBuild && b.section !== 'build') - 1;
+    const rollEnd = bars[lastBuildBar]!.notes.filter(n => n.voice === 'snare').length;
+    const rollStart = bars[firstBuild]!.notes.filter(n => n.voice === 'snare').length;
+    assert.ok(rollEnd > rollStart, `${where}: the roll speeds up (${rollStart} hits, then ${rollEnd})`);
+    const drop = bars[lastBuildBar + 1]!;
+    assert.equal(drop.section, 'drop');
+    assert.ok(drop.notes.some(n => n.voice === 'crash' && n.beat === 0), `${where}: the drop opens on a crash`);
+    assert.ok(drops.every(b => b.notes.some(n => n.voice === 'bass')), `${where}: the bass plays through every drop bar`);
+    assert.ok(drops.some(b => b.notes.some(n => n.voice === 'lead')), `${where}: Lolly Sings, so the melody is in the drop too`);
+  }
+});
+
+test('sugar: slap bass in every drop (a chip bass now and then in the verse), four on the floor, claps on two and four, and coin dings', () => {
+  const verseBasses = new Set<string>();
+  for (const seed of SEEDS.slice(0, 12)) {
+    const bars = composeLofiTune(seed, 'sugar');
+    const st = bars[0]!.tune.style;
+    assert.equal(st.bass, 'slap', `${seed}: ${st.bass}`);
+    for (const b of bars.filter(x => x.section === 'verse')) verseBasses.add(b.voices?.bass ?? st.bass);
+    const drop = bars.filter(b => b.section === 'drop');
+    assert.ok(drop.every(b => (b.voices?.bass ?? st.bass) === 'slap'), `${seed}: slap through both drops`);
+    const arts = new Set(drop.flatMap(b => b.notes.filter(n => n.voice === 'bass').map(n => n.mod)));
+    assert.ok(arts.has(0) && arts.has(1), `${seed}: thumbed and popped notes`);
+    assert.ok(arts.has(2) || arts.has(3), `${seed}: a slide or a bend`);
+    for (const b of drop.slice(0, 4)) {
+      const kicks = b.notes.filter(n => n.voice === 'kick').map(n => Math.round(n.beat * 4));
+      assert.deepEqual(kicks, [0, 4, 8, 12], `${seed} bar ${b.index}: four on the floor`);
+      const backbeat = b.notes.filter(n => n.voice === 'snare' && n.vel > 0.9).map(n => n.beat);
+      assert.deepEqual(backbeat, [1, 3], `${seed} bar ${b.index}: claps on two and four`);
+    }
+    assert.ok(bars.some(b => b.notes.some(n => n.voice === 'coin')), `${seed}: a coin ding`);
+  }
+  assert.deepEqual([...verseBasses].sort(), ['pulse', 'slap'], 'verses use both basses across a dozen tunes');
+});
+
+test('the dance genres change instruments between sections', () => {
+  for (const mood of DANCE_MOODS) {
+    let softer = 0, newLead = 0;
+    for (const seed of SEEDS.slice(0, 8)) {
+      const bars = composeLofiTune(seed, mood);
+      const st = bars[0]!.tune.style;
+      const intro = bars.find(b => b.section === 'intro')!;
+      if ((intro.voices?.keys ?? st.keys) !== st.keys) softer++;
+      const secondDrop = bars.filter(b => b.section === 'drop').at(-1)!;
+      if ((secondDrop.voices?.lead ?? st.lead) !== st.lead) newLead++;
+    }
+    assert.ok(softer >= 6, `${mood}: the intro's keys differ from the drop's in most tunes (${softer} of 8)`);
+    assert.ok(newLead >= 6, `${mood}: the second drop brings a second lead in most tunes (${newLead} of 8)`);
+  }
+});
+
+test('every dance tune draws its own brightness and drive, within its genre', () => {
+  for (const mood of DANCE_MOODS) {
+    const tones = SEEDS.slice(0, 8).map(seed => composeLofiTune(seed, mood)[0]!.tune.style);
+    for (const st of tones) {
+      assert.ok(st.bright! >= 0.6 && st.bright! <= 1.6, `${mood}: bright ${st.bright}`);
+      assert.ok(st.drive! >= 1 && st.drive! <= 4, `${mood}: drive ${st.drive}`);
+    }
+    assert.ok(new Set(tones.map(st => st.bright)).size > 4, `${mood}: brightness varies`);
+  }
+  assert.equal(composeLofiTune(12345, 'warm')[0]!.tune.style.bright, undefined, 'the Lofi tunes keep their own colour');
+});
+
+test('the wobble and the growl move: every note says how fast its filter swings', () => {
+  for (const mood of ['dubstep', 'brostep'] as const) for (const seed of SEEDS.slice(0, 4)) {
+    const bass = composeLofiTune(seed, mood).flatMap(b => b.notes.filter(n => n.voice === 'bass'));
+    assert.ok(bass.length > 20);
+    assert.ok(bass.every(n => typeof n.mod === 'number' && n.mod > 0), `${mood} ${seed}: a rate on every note`);
+    assert.ok(new Set(bass.map(n => n.mod)).size >= 3, `${mood} ${seed}: the rate changes`);
+  }
 });
 
 test('a saved tune repeats: the stream plays the same tune again instead of moving on', () => {
@@ -72,7 +156,10 @@ test('every note is playable', () => {
         assert.ok(n.vel > 0 && n.vel <= 1, `${where}: velocity ${n.vel}`);
         if (DRUMS.has(n.voice)) continue;
         assert.ok(n.dur > 0, `${where}: length ${n.dur}`);
-        const [lo, hi] = n.voice === 'bass' ? [33, 53] : n.voice === 'keys' ? [52, 76] : [64, 84];
+        if (n.voice === 'riser') continue;   // a sweep, not a pitch
+        const dance = isDanceMood(mood);
+        // The dance basses sit lower (a sub register), and a slap bass pops up to a twelfth above.
+        const [lo, hi] = n.voice === 'bass' ? (dance ? [28, 64] : [33, 53]) : n.voice === 'keys' ? [52, 76] : n.voice === 'coin' ? [79, 95] : [64, 84];
         assert.ok(n.midi >= lo && n.midi <= hi, `${where}: note ${n.midi} outside ${lo}..${hi}`);
       }
     }

@@ -16,7 +16,7 @@
  */
 import type { LofiMood } from '../../../../engine/src/lofi-compose.ts';
 import type { RenderedPcm } from '../../../../engine/src/zzfxm.ts';
-import { LOFI_STATION_MOODS, LOFI_MOOD_LABEL, type LofiLink, type LofiPrefs } from './neurospicy-lofi.ts';
+import { LOFI_STATION_MOODS, lofiStationName, type LofiLink, type LofiPrefs } from './neurospicy-lofi.ts';
 
 /** The asset format of a saved tune. */
 export const LOFI_TUNE_FORMAT = 'lofi';
@@ -59,7 +59,7 @@ export async function lofiTuneFromUrl(url: string): Promise<LofiTuneRecipe> {
 
 /** A saved tune's library name: its station, key and tempo, e.g. "Lolly Sings · C major · 96 bpm". */
 export function lofiTuneName(recipe: LofiTuneRecipe, tune: { key: string; bpm: number }): string {
-  return `${LOFI_MOOD_LABEL[recipe.mood]} · ${tune.key} · ${Math.round(tune.bpm)} bpm`;
+  return `${lofiStationName(recipe.mood)} · ${tune.key} · ${Math.round(tune.bpm)} bpm`;
 }
 
 /**
