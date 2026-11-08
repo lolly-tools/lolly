@@ -477,9 +477,13 @@ export async function mountCatalog(viewEl: HTMLElement, hostIn: HostV1, params =
   // multi-select above only covers your own uploads, so this is what reaches the
   // catalogue's tiles.
   const unwireArrows = wireArrowNav(viewEl, { items: '.cat-tile', primary: '.cat-tile-open' });
+  // The ground behind the assets follows the app's light or dark scheme until the Dark
+  // ground switch says otherwise, so a theme change while the view is open moves it too.
+  const groundObserver = new MutationObserver(() => cat.wiring.syncAssetGround());
+  groundObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
 
   (viewEl as ViewElement)._cleanup = () => {
-    unwireArrows(); cat.uploadToolbarDispose?.();
+    unwireArrows(); groundObserver.disconnect(); cat.uploadToolbarDispose?.();
     cat.mounted = false; cat.sourceDispose?.();
     cat.actionsPopover?.close();
     viewEl.removeEventListener('dragstart', cat.wiring.onTileDragStart);

@@ -55,7 +55,7 @@ import { licenceLabel, ownerPublished, readAssetRightsRecord, type AssetRightsMe
 import { lollyBadge } from '../../lib/lolly-badge.ts';
 import { projectRefSubject } from '../../org/project-catalog-submit.ts';
 import { openCatalogSubmit, uploadSubject } from '../../lib/catalog-submit.ts';
-import { CHEVRON_LEFT, CHEVRON_RIGHT, PAUSE_ICON, PLAY_ICON, SHIELD_ICON, attachZoom, catalogAddedText, emojiPackMeta, emojiPackPin, startableTemplate, isCanonicalGlyphKey, isThemable, isVector, isVerifiableAsset, setCropModeActive, svgTextToDataUrl } from './shared.ts';
+import { CHEVRON_LEFT, CHEVRON_RIGHT, PAUSE_ICON, PLAY_ICON, SHIELD_ICON, applyAssetGround, attachZoom, catalogAddedText, emojiPackMeta, emojiPackPin, startableTemplate, isCanonicalGlyphKey, isThemable, isVector, isVerifiableAsset, setCropModeActive, svgTextToDataUrl } from './shared.ts';
 import type { EmojiPackAbsence, EmojiPackTileMeta } from './shared.ts';
 import type { EmojiPrefsHost } from '../../lib/emoji-prefs.ts';
 import { audioCardArt, wireAudioViz } from './details-shared.ts';
@@ -542,6 +542,8 @@ export function buildSheet(dt: DetailsCtx): void {
     },
   }); dt.modal = modal;
   const dlg = modal.el; dt.dlg = dlg;
+  // The preview starts on the ground the grid is on (the toolbar's Dark ground switch).
+  applyAssetGround(dlg);
   stopPane = followSplitPane(modal, { id: 'assets' });
   clearSiteInspection = publishSiteInspection(() => dlg.isConnected ? dt.ref : null);
   if (ref.type === 'model') {
