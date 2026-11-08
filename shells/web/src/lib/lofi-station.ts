@@ -87,13 +87,6 @@ interface Lanes { keys: GainNode; bass: GainNode; lead: GainNode; drums: GainNod
 
 export class LofiStation {
   readonly ctx: BaseAudioContext;
-  /**
-   * The station at full level, before the volume control, for a visualizer to listen to
-   * and never to be heard. Butterchurn reads 8-bit samples, so a quiet feed would lose
-   * the hats and the snare's crack in rounding; this one peaks near full scale at any
-   * volume, so every band can move the picture.
-   */
-  readonly tap: GainNode;
   /** The bar now playing (live only), and a callback when it changes. */
   current: LofiBar | null = null;
   onBar: ((bar: LofiBar) => void) | null = null;
@@ -107,6 +100,8 @@ export class LofiStation {
   private nextBarAt = 0;
   private lastOpen = 1;
   private timer: ReturnType<typeof setInterval> | null = null;
+  /** Playing live (set before the first tick, so the very first bar is announced too). */
+  private running = false;
   private sources: AudioScheduledSourceNode[] = [];
   private colour = PLAIN;
 
@@ -147,8 +142,6 @@ export class LofiStation {
     comp.threshold.value = -18; comp.knee.value = 10; comp.ratio.value = 2.5;
     comp.attack.value = 0.015; comp.release.value = 0.3;
     comp.connect(this.out);
-    this.tap = ctx.createGain();
-    comp.connect(this.tap);
     this.shaper = ctx.createWaveShaper();
     this.shaper.oversample = '2x';
     this.shaper.connect(comp);
@@ -263,6 +256,7 @@ export class LofiStation {
   /** Start playing on a live AudioContext. */
   start(): void {
     if (this.timer) return;
+    this.running = true;
     this.nextBarAt = this.ctx.currentTime + 0.1;
     this.tick();
     this.timer = setInterval(() => this.tick(), 25);
@@ -272,6 +266,7 @@ export class LofiStation {
   stop(fade = 0.4): void {
     if (this.timer) clearInterval(this.timer);
     this.timer = null;
+    this.running = false;
     const now = this.ctx.currentTime;
     this.out.gain.cancelScheduledValues(now);
     this.out.gain.setValueAtTime(this.out.gain.value, now);
@@ -369,7 +364,7 @@ export class LofiStation {
       this.lastOpen = m.bar.open;
       this.tone.frequency.setTargetAtTime(this.cutoff(m.bar.open), Math.max(m.at, now), 0.5);
       this.drumTone.frequency.setTargetAtTime(drumCutoff(this.cutoff(m.bar.open)), Math.max(m.at, now), 0.5);
-      if (this.onBar && typeof setTimeout === 'function' && this.timer) {
+      if (this.running && typeof setTimeout === 'function') {
         setTimeout(() => { this.current = m.bar; this.onBar?.(m.bar); }, Math.max(0, (m.at - now) * 1000));
       }
     }

@@ -112,6 +112,8 @@ export interface LofiBar {
   layers: readonly LofiLayer[];
   /** The chord this bar sits on, e.g. "Fm9" (empty for the rest bar). */
   chord: string;
+  /** That chord's pitch classes (0 is C), root first. */
+  tones: readonly number[];
   notes: LofiNote[];
   /** How open the tone filter is, 0 (muffled) to 1 (open): intros and outros close the filter. */
   open: number;
@@ -225,7 +227,9 @@ function voiceLead(classes: number[], prev: number[] | null): number[] {
   let bestCost = Infinity;
   for (let rot = 0; rot < sorted.length; rot++) {
     const order = [...sorted.slice(rot), ...sorted.slice(0, rot)];
-    for (let base = KEYS_LO - 12; base <= KEYS_HI; base += 12) {
+    // Each base is a C, so base + pitch class is that pitch class (40 would be an E, and
+    // every voicing would sound a major third away from the bass and the lead).
+    for (let base = Math.floor((KEYS_LO - 12) / 12) * 12; base <= KEYS_HI; base += 12) {
       const v: number[] = [];
       let last = -Infinity;
       for (const pc of order) {
@@ -574,7 +578,9 @@ export function composeLofiTune(seed: number, mood: LofiMood, fixed: Partial<Lof
           const { step, move, len } = bar[n]!;
           let pitch = stepScale(prevLead, answer && n === bar.length - 1 ? -Math.abs(move) : move, penta);
           if (step % 8 === 0 || n === bar.length - 1) pitch = nearestTone(pitch, chord.tones);   // strong beats sit on the chord
-          pitch = Math.max(64, Math.min(84, pitch));
+          // Keep the lead in its range by whole octaves, so a note snapped to the chord stays a chord tone.
+          while (pitch < 64) pitch += 12;
+          while (pitch > 84) pitch -= 12;
           prevLead = pitch;
           notes.push({ voice: 'lead', midi: pitch, beat: sb(step) + (rng() - 0.5) * 0.02, dur: len / 4, vel: clamp01((feature === 'lead' ? 0.56 : 0.5) + (rng() - 0.5) * 0.14) });
         }
@@ -611,10 +617,10 @@ export function composeLofiTune(seed: number, mood: LofiMood, fixed: Partial<Lof
       }
 
       notes.sort((a, b) => a.beat - b.beat);
-      bars.push({ tune: info, index, section: part.section, feature, layers: part.layers, chord: chord.name, notes, open, level });
+      bars.push({ tune: info, index, section: part.section, feature, layers: part.layers, chord: chord.name, tones: chord.tones, notes, open, level });
     }
   }
-  bars.push({ tune: info, index, section: 'rest', layers: [], chord: '', notes: [], open: 0.3, level: 0 });
+  bars.push({ tune: info, index, section: 'rest', layers: [], chord: '', tones: [], notes: [], open: 0.3, level: 0 });
   return bars;
 }
 

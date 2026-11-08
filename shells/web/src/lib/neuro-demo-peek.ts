@@ -35,3 +35,12 @@ export function peekNeuroDemo(): NeuroDemoMode | null {
 
 /** Is this page load a ?neuro demo? The gate the dock/visualizer bypasses hang on. */
 export function neuroDemoActive(): boolean { return peekNeuroDemo() !== null; }
+
+/** Was this page opened from a shared Lofi tune (`#/?lofi=…`)? Presence only: the
+ *  link is parsed (and anything malformed ignored) by lib/neurospicy-lofi.ts, loaded only
+ *  when this is true. */
+export function peekLofiLinked(): boolean {
+  if (typeof window === 'undefined') return false;
+  const hashQuery = window.location.hash.split('?')[1] ?? '';
+  return new URLSearchParams(hashQuery).has('lofi') || new URLSearchParams(window.location.search).has('lofi');
+}

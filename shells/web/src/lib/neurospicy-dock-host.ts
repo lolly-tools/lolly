@@ -27,13 +27,20 @@ import {
   getNeurospicy, toggleNeurospicyPlay, cycleNeurospicyLoop, setNeurospicyLoop,
   setNeurospicyVolume, setNeurospicyRepeat, seekNeurospicy, getNeurospicyProgress,
   getNeurospicyAnalyser, isNeurospicyPlaying, listLoops, trackCategory,
+  setLofiDrums, setLofiTexture, takeLofiLinkConsent,
   type NeurospicyHost, type NeuroTrack,
 } from './neurospicy.ts';
+import {
+  isLofiId, lofiId, lofiMoodOf, lofiTune, nextLofiTune, prevLofiTune, lofiShareUrl,
+  LOFI_STATION_MOODS, LOFI_MOOD_LABEL,
+} from './neurospicy-lofi.ts';
+import type { LofiStyle } from '../../../../engine/src/lofi-compose.ts';
+import { applySoundMaster } from './sound-master.ts';
 import {
   ATMOSPHERE_LAYERS, ATMOSPHERE_GROUPS, atmosphereLevel, setAtmosphereLevel,
   type AmbienceKind,
 } from './atmosphere.ts';
-import { getSfxVolume, setSfxVolume } from './sfx.ts';
+import { getSfxVolume, setSfxVolume, isSfxMuted } from './sfx.ts';
 import { SOMAFM_HOME, radioAvailable } from './radio.ts';
 import { vizSupported } from './viz-support.ts';
 import { neuroDemoActive, DEMO_VIZ_PRESET_ID, demoVizWave, pumpVizDemoFrames } from './neuro-demo.ts';
@@ -52,7 +59,7 @@ import { vizSchemes, vizSchemeById, type VizScheme } from './viz-schemes.ts';
 import { CYCLE_CHOICES, loadCycleSeconds, saveCycleSeconds } from './viz-cycle.ts';
 import type { VizPalette, VizPaletteHost } from './viz-palette.ts';
 import type {
-  DockHost, DockNowPlaying, DockSource, DockSources, DockAtmosphere, DockViz,
+  DockHost, DockNowPlaying, DockSource, DockSources, DockAtmosphere, DockViz, DockControl,
   DockRepeat, DockVolume, DockAttribution, DockVizPreset, DockVizTheme, DockVizTransition, DockVizInfluence,
   DockBrandMark,
 } from '@lolly-tools/audio-dock';
@@ -71,6 +78,7 @@ const CATEGORY_LABEL: Record<string, string> = {
   catalog: 'Catalog',
   uploads: 'Uploads',
   lolly: 'Lolly Sings',
+  lofi: 'Lofi stations',
   ambient: 'Ambient',
   beats: 'Beats',
   radio: 'Internet Radio',
@@ -102,6 +110,10 @@ function trackMood(tags: string[]): string {
   if (tags.includes('generated')) return 'generated';
   return '';
 }
+
+/** The words the now-playing line uses for a Lofi tune's instruments. */
+const LOFI_KEYS_NAME: Record<LofiStyle['keys'], string> = { rhodes: 'Rhodes', felt: 'felt piano', wurli: 'Wurlitzer', pluck: 'soft pluck' };
+const LOFI_LEAD_NAME: Record<LofiStyle['lead'], string> = { vibes: 'vibes', flute: 'flute', soft: 'soft lead', kalimba: 'kalimba', none: '' };
 
 export interface NeurospicyDockHandle {
   /** The DockHost to hand to createAudioDock. */
@@ -552,6 +564,7 @@ class NeurospicyDockHost implements DockHost {
         this.docListeners.push([name, fn]);
       };
       wire('lolly:neuro-playing', onChange);   // audio started (incl. boot autoplay-resume)
+      wire('lolly:neuro-tune', onChange);      // a Lofi station moved to another tune
       wire('lolly:neuro-enabled', onChange);   // mode toggled
       wire('lolly:atmosphere', onChange);      // an ambience level changed elsewhere
       wire('lolly:neuro-tracks', onTracks);    // an upload/deletion changed the library
@@ -609,20 +622,64 @@ class NeurospicyDockHost implements DockHost {
   isPlaying(): boolean { return isNeurospicyPlaying(); }
 
   async togglePlay(): Promise<void> {
+    // A tune someone shared, opened with interface sound off: pressing play IS the
+    // listener asking to hear it, so turn sound on (the master switch) rather than
+    // leave the button doing nothing. Only for that first play from a shared link.
+    if (!isNeurospicyPlaying() && isSfxMuted() && takeLofiLinkConsent()) {
+      await applySoundMaster(this.nhost, false);
+      this.emitChange();
+      return;
+    }
     await toggleNeurospicyPlay(this.nhost);
     this.emitChange();
   }
 
   // cycleNeurospicyLoop wraps infinitely, so stepping is always possible - canNext/
-  // canPrev are omitted (the dock then treats them as true).
+  // canPrev are omitted (the dock then treats them as true). On a Lofi station, next
+  // and previous step between its tunes rather than leaving the station.
   async next(): Promise<void> {
-    await cycleNeurospicyLoop(this.nhost, 1);
+    if (isLofiId(getNeurospicy().loopId) && isNeurospicyPlaying()) nextLofiTune();
+    else await cycleNeurospicyLoop(this.nhost, 1);
     this.emitChange();
   }
 
   async prev(): Promise<void> {
-    await cycleNeurospicyLoop(this.nhost, -1);
+    if (isLofiId(getNeurospicy().loopId) && isNeurospicyPlaying()) prevLofiTune();
+    else await cycleNeurospicyLoop(this.nhost, -1);
     this.emitChange();
+  }
+
+  /** A Lofi station's own controls: its mood (the three stations), drums, texture, and a
+   *  link to the tune now playing. Nothing for any other source. */
+  controls(): DockControl[] {
+    const mood = lofiMoodOf(getNeurospicy().loopId);
+    if (!mood) return [];
+    return [
+      {
+        kind: 'choice', id: 'lofi-mood', label: 'Mood',
+        options: LOFI_STATION_MOODS.map((m) => ({ id: m, label: LOFI_MOOD_LABEL[m] })),
+        get: () => lofiMoodOf(getNeurospicy().loopId) ?? mood,
+        set: (m) => this.select(lofiId(m as typeof mood)),
+      },
+      {
+        kind: 'toggle', id: 'lofi-drums', label: 'Drums',
+        get: () => getNeurospicy().lofi.drums,
+        set: (on) => setLofiDrums(this.nhost, on),
+      },
+      {
+        kind: 'range', id: 'lofi-texture', label: 'Texture', min: 0, max: 1, step: 0.05,
+        get: () => getNeurospicy().lofi.texture,
+        set: (v) => setLofiTexture(this.nhost, v),
+      },
+      {
+        kind: 'action', id: 'lofi-share', label: 'Share this tune',
+        run: async () => {
+          const url = typeof location !== 'undefined' ? lofiShareUrl(location.origin) : null;
+          if (!url) return 'Play it first';
+          try { await navigator.clipboard.writeText(url); return 'Link copied'; } catch { return 'Could not copy'; }
+        },
+      },
+    ];
   }
 
   // getNeurospicyProgress() is null for radio / while nothing local sounds → duration 0
@@ -644,6 +701,16 @@ class NeurospicyDockHost implements DockHost {
     const t = this.tracks.find((x) => x.id === id);
     if (!t) return { title: 'Select a track', kind: 'music' };
     const radio = trackCategory(t) === 'radio';
+    if (isLofiId(id)) {
+      // The tune itself: its key, tempo and instruments, since every one is different.
+      const tune = isNeurospicyPlaying() ? lofiTune() : null;
+      const lead = tune ? LOFI_LEAD_NAME[tune.style.lead] : '';
+      return {
+        title: t.name,
+        subtitle: tune ? `${tune.key} · ${tune.bpm} bpm · ${LOFI_KEYS_NAME[tune.style.keys]}${lead ? `, ${lead}` : ''}` : 'Generated, never the same tune twice',
+        kind: 'music',
+      };
+    }
     return {
       title: t.name,
       subtitle: radio ? 'Internet radio' : (trackMood(t.tags) || undefined),

@@ -27,6 +27,7 @@ import {
   type DockViz,
   type DockRepeat,
   type DockVolume,
+  type DockControl,
   type DockPlacement,
 } from '@lolly-tools/audio-dock';
 import { isNeuroDockCollapsed, setNeuroDockCollapsed } from './neuro-dock-pref.ts';
@@ -139,6 +140,8 @@ class ComposedHost implements DockHost {
   get repeat(): DockRepeat | undefined { return this.musicSrc?.repeat; }
   get volume(): DockVolume | undefined { return this.musicSrc?.volume; }
   get volumes(): DockVolume[] | undefined { return this.musicSrc?.volumes; }
+  /** The current source's own controls (a Lofi station's mood, drums, texture, share). */
+  controls(): DockControl[] { return this.musicSrc?.controls?.() ?? []; }
 
   private emit(): void {
     for (const l of this.listeners) { try { l(); } catch { /* one bad listener never blocks the rest */ } }
