@@ -20,6 +20,8 @@ import { applyAuthoredLayerOperations, applyAuthoredLayerPatches, hasDesignAutho
 import { liveAgentChange } from './live-agent-changes.ts';
 import type { AgentChange } from '@lolly-tools/core/agent-presence-v1';
 import { livePayloadDigest, queryLiveRows, scheduleLive } from './live-agent-query.ts';
+import { tRaw } from '../i18n.ts';
+import { viewingAs } from '../org/view-as.ts';
 
 /** What the session needs from the open editor. */
 export interface LiveEditor {
@@ -266,6 +268,7 @@ export function createLiveSession(editor: LiveEditor, opts: LiveSessionOpts = {}
     const parsed = parseLiveRequest(text);
     if (!parsed.ok) return parsed.reply;
     const { id, method, params = {} } = parsed.request;
+    if (viewingAs()) return liveError(id, LIVE_ERRORS.refused, tRaw('Not while viewing as a partner'));
     if (closed) return liveError(id, LIVE_ERRORS.notReady, 'The person disconnected this agent.');
     if (method === 'hello') {
       if (params.protocol !== LIVE_PROTOCOL) return liveError(id, LIVE_ERRORS.invalidParams, `This editor speaks ${LIVE_PROTOCOL}.`);

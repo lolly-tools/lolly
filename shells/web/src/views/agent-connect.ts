@@ -173,6 +173,7 @@ export function openAgentConnect(host: AgentConnectHost): void {
 
 function failureText(reason: PairFailure): string {
   switch (reason) {
+    case 'viewing-as': return tRaw('Not while viewing as a partner');
     case 'wrong-code': return t('The agent did not accept that code. Check it and try again.');
     case 'timeout': return t('The agent did not answer. Check that it is still running and gave you this code.');
     case 'closed': return t('The agent closed the connection before it was ready. Ask it for a new code.');

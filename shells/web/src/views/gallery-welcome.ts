@@ -3,6 +3,7 @@
 import { instanceFetch, instancePath } from '../lib/instance.ts';
 import { activeDesignSystemSource } from '../lib/design-system/active.ts';
 import { decideWelcome } from '../lib/welcome-gate.ts';
+import { viewingAs } from '../org/view-as.ts';
 import { isWorkspaceTemplateRef, listWorkspaceTemplates, workspaceCompany, workspaceCompanySettled, workspaceGoverned, workspaceTemplateOf } from '../lib/workspace-templates.ts';
 import type { AssetRef } from '@lolly-tools/core/host-v1';
 // The welcome is first content on a new public visit; fetch its code and CSS with boot.
@@ -77,6 +78,8 @@ type WelcomeStep =
 /** Keep maintenance behind the welcome decision and preserve route teardown. */
 export function galleryWelcomeStep(host: GalleryHost & PickerHost, isCurrent: () => boolean, force = false): Promise<WelcomeStep | null> {
   return decideWelcome(async (): Promise<WelcomeStep | null> => {
+    // Viewing as a partner: no welcome, even with ?welcome, and nothing is recorded.
+    if (viewingAs()) return { unbranded: false };
     if (!await galleryNeedsWelcome(host, isCurrent)) return { unbranded: false };
     if (!isCurrent()) return null;
     const due = force || !welcome.isWelcomeDismissed();

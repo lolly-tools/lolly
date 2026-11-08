@@ -35,8 +35,9 @@ import { openDB as idbOpen, deleteDB as idbDelete, unwrap } from 'idb';
 import type { IDBPDatabase } from 'idb';
 import { indexSavedWork, indexExport } from './history-index.ts';
 import { clearSignal } from '../lib/clear-signal.ts';
+import { viewingAs, VIEW_AS_DB } from '../org/view-as.ts';
 
-const DB_NAME = 'lolly';
+const DB_NAME = viewingAs() ? VIEW_AS_DB : 'lolly';
 const DB_VERSION = 26;
 let databaseUpdateRequired = false;
 
