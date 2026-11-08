@@ -2235,5 +2235,52 @@
       "anchor": "who-may-send",
       "label": "Who may send"
     }
+  },
+  "work-run-a-partner-programme": {
+    "partners-agents": {
+      "slug": "work-partner-agents",
+      "anchor": "partners-agents",
+      "label": "Partners' agents"
+    },
+    "1-create-the-programme": {
+      "slug": "work-partner-people",
+      "anchor": "1-create-the-programme",
+      "label": "1. Create the programme"
+    },
+    "2-give-the-programme-its-tools-and-logos": {
+      "slug": "work-partner-shared-assets",
+      "anchor": "2-give-the-programme-its-tools-and-logos",
+      "label": "2. Give the programme its tools and logos"
+    },
+    "3-add-northwind-it-and-its-details": {
+      "slug": "work-partner-co-branding",
+      "anchor": "3-add-northwind-it-and-its-details",
+      "label": "3. Add Northwind IT and its details"
+    },
+    "4-publish-the-data-sheet": {
+      "slug": "work-partner-templates",
+      "anchor": "4-publish-the-data-sheet",
+      "label": "4. Publish the data sheet"
+    },
+    "5-check-what-northwind-it-gets": {
+      "slug": "work-partner-people",
+      "anchor": "5-check-what-northwind-it-gets",
+      "label": "5. Check what Northwind IT gets"
+    },
+    "6-invite-rita": {
+      "slug": "work-partner-people",
+      "anchor": "6-invite-rita",
+      "label": "6. Invite Rita"
+    },
+    "7-give-rita-s-agent-a-token": {
+      "slug": "work-partner-agents",
+      "anchor": "7-give-rita-s-agent-a-token",
+      "label": "7. Give Rita's agent a token"
+    },
+    "8-end-the-partnership-on-a-date": {
+      "slug": "work-partner-people",
+      "anchor": "8-end-the-partnership-on-a-date",
+      "label": "8. End the partnership on a date"
+    }
   }
 }

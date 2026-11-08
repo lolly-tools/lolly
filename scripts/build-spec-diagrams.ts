@@ -14,6 +14,8 @@
  *   sources  docs/spec/document-model/diagrams/<name>.<mmd|dot|pikchr>
  *            docs/diagram-sources/shoulders-of-giants/<name>.txt
  *            docs/diagram-sources/concepts/<name>.dot
+ *            docs/diagram-sources/work-integrations/<name>.dot
+ *            docs/diagram-sources/work-partners/<name>.dot
  *   output   docs/diagrams/<set>/<name>.svg, plus docs/diagrams/<set>/recipes.json;
  *            a set marked `dark` also writes docs/diagrams/<set>/<name>.dark.svg
  *
@@ -53,6 +55,7 @@ const SET_DIRS = {
   'shoulders-of-giants': { src: join(ROOT, 'docs/diagram-sources/shoulders-of-giants'), out: join(ROOT, 'docs/diagrams/shoulders-of-giants'), dark: true },
   concepts: { src: join(ROOT, 'docs/diagram-sources/concepts'), out: join(ROOT, 'docs/diagrams/concepts'), dark: true },
   'work-integrations': { src: join(ROOT, 'docs/diagram-sources/work-integrations'), out: join(ROOT, 'docs/diagrams/work-integrations'), dark: true },
+  'work-partners': { src: join(ROOT, 'docs/diagram-sources/work-partners'), out: join(ROOT, 'docs/diagrams/work-partners'), dark: true },
 } as const;
 export type FigureSet = keyof typeof SET_DIRS;
 const CLI = join(ROOT, 'shells/cli/bin/lolly.ts');
@@ -182,8 +185,17 @@ export const WORK_INTEGRATION_FIGURES: Figure[] = [
   { set: 'work-integrations', name: 'agent-invite', lang: 'dot', title: 'An agent invitation', flags: ['--look=minimal', '--cardWidth=190', '--rowGap=36'] },
 ];
 
+/** Partner programme guides: how a programme fits together, what reaches a partner, the
+ *  approvals a partner team can turn on and a partnership from invitation to reopening. */
+export const WORK_PARTNER_FIGURES: Figure[] = [
+  { set: 'work-partners', name: 'programme-structure', lang: 'dot', title: 'How a programme fits together', flags: ['--look=minimal', '--cardWidth=176', '--siblingGap=20'] },
+  { set: 'work-partners', name: 'what-reaches-a-partner', lang: 'dot', title: 'What reaches a partner', flags: ['--look=minimal', '--cardWidth=176', '--siblingGap=18'] },
+  { set: 'work-partners', name: 'approval-paths', lang: 'dot', title: 'Approvals you can turn on', flags: ['--look=minimal', '--cardWidth=168', '--siblingGap=16'] },
+  { set: 'work-partners', name: 'partnership-lifecycle', lang: 'text', title: 'From invitation to reopening', flags: ['--look=minimal', '--diagramType=timeline', '--timelineDir=down', '--cardWidth=180', '--siblingGap=8'] },
+];
+
 /** Every figure the script renders, in set order. */
-export const ALL_FIGURES: Figure[] = [...FIGURES, ...GIANTS_FIGURES, ...CONCEPT_FIGURES, ...WORK_INTEGRATION_FIGURES];
+export const ALL_FIGURES: Figure[] = [...FIGURES, ...GIANTS_FIGURES, ...CONCEPT_FIGURES, ...WORK_INTEGRATION_FIGURES, ...WORK_PARTNER_FIGURES];
 
 const setOf = (fig: Figure): FigureSet => fig.set ?? 'document-model';
 const sourcePath = (fig: Figure): string => join(SET_DIRS[setOf(fig)].src, `${fig.name}.${EXT[fig.lang]}`);

@@ -1,0 +1,11 @@
+digraph approval_paths {
+  rankdir=TB
+  node [shape=box]
+  contact [label="Contact edits\ncompany details"]
+  kit [label="Kit changes\nanyone's edit"]
+  agent [label="Agent request\nits own render"]
+  chain [label="Approval chain\nyour people decide"]
+  contact -> chain
+  kit -> chain
+  agent -> chain
+}

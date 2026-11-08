@@ -100,6 +100,19 @@ test('the known directives render exactly as before, with no warning', (t) => {
   assert.equal(warn.mock.callCount(), 0);
 });
 
+test('a cards fence wraps its icon list, and an intro fence sets its icon beside the body', (t) => {
+  const warn = t.mock.method(console, 'warn', () => {});
+  const cards = mdToHtml('::: cards\n- <!--i:eti-users--> **[People](people.html)** Invite and end.\n- <!--i:eti-grid--> **Tools** Only what you choose.\n:::', ctx());
+  assert.equal(cards, '<div class="md-cards"><ul class="icon-list">\n'
+    + '<li class="ic"><span class="li-icon"><i data-icon="eti-users"></i></span><span><strong><a href="people.html">People</a></strong> Invite and end.</span></li>\n'
+    + '<li class="ic"><span class="li-icon"><i data-icon="eti-grid"></i></span><span><strong>Tools</strong> Only what you choose.</span></li>\n'
+    + '</ul></div>');
+  const intro = mdToHtml('::: intro eti-stamp\nApprovals are off by default.\n:::', ctx());
+  assert.equal(intro, '<div class="md-intro"><span class="md-intro-icon" aria-hidden="true"><i data-icon="eti-stamp"></i></span><div class="md-intro-body"><p>Approvals are off by default.</p></div></div>');
+  assert.equal(mdToHtml('::: intro\nNo icon.\n:::', ctx()), '<div class="md-intro"><div class="md-intro-body"><p>No icon.</p></div></div>');
+  assert.equal(warn.mock.callCount(), 0);
+});
+
 test('the markdown twin keeps every title and body and drops the fence lines', () => {
   const md = [
     'Intro.',

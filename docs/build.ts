@@ -11,6 +11,7 @@ import { syncDocsNavigation } from '../scripts/sync-docs-navigation.ts';
 import { publicWorkMarkdown, workApplicability } from './work-pages.ts';
 import { resolveSourceLink, unpublishedLinks } from './doc-links.ts';
 import { createIconSprite } from './icon-sprite.ts';
+import { etiquetteDocIcons } from './etiquette-icons.ts';
 import { readFileSync, writeFileSync, mkdirSync, copyFileSync, cpSync, existsSync, readdirSync, rmSync, statSync, watch } from 'node:fs';
 import { resolve, dirname, relative, sep } from 'node:path';
 import { createHash } from 'node:crypto';
@@ -429,7 +430,13 @@ const pages: Page[] = [
   { slug: 'work-identity', title: 'Sign-in and sessions', src: 'work/identity.md', pathway: 'managers', canonicalPath: 'manage/sign-in-and-sessions', contentLicense: 'MPL-2.0', description: 'Choose how colleagues sign in, decide who gets in, set session length and renewal, link several sign-ins to one person, and end access.' },
   { slug: 'work-account-lifecycle', title: 'Account data controls', src: 'work/account-lifecycle.md', pathway: 'managers', canonicalPath: 'manage/account-data-controls', contentLicense: 'MPL-2.0', description: 'Owner metadata exports, scoped offboarding, documented limits and review of shared content.' },
   { slug: 'work-invitations', title: 'Invite people and handle requests', src: 'work/invitations.md', pathway: 'managers', canonicalPath: 'manage/invite-people', contentLicense: 'MPL-2.0', description: 'Invite people to the workspace or a project, send invite links, set passwords from a link, and answer requests to join and for access.' },
-  { slug: 'work-run-a-partner-programme', title: 'Run a partner programme', src: 'work/run-a-partner-programme.md', pathway: 'managers', canonicalPath: 'manage/run-a-partner-programme', contentLicense: 'MPL-2.0', description: 'For partner teams: what a partner sees, can open, can change and cannot reach, and how to set up a programme, run it day to day and end a partnership.' },
+  { slug: 'work-run-a-partner-programme', title: 'Run a partner programme', src: 'work/run-a-partner-programme.md', pathway: 'managers', canonicalPath: 'manage/run-a-partner-programme', contentLicense: 'MPL-2.0', description: 'For partner teams: what partners get and see, how a programme fits together and where to start, with a guide for each subject from co-branding to ending a partnership.' },
+  { slug: 'work-partner-co-branding', title: 'Co-branding and partner kits', src: 'work/partner-co-branding.md', pathway: 'managers', canonicalPath: 'manage/partner-co-branding', contentLicense: 'MPL-2.0', description: 'Give each partner company its details, logos for light and dark surfaces and a partner kit, see what partners see of their company, and what a co-branded file records.' },
+  { slug: 'work-partner-templates', title: 'Partner templates', src: 'work/partner-templates.md', pathway: 'managers', canonicalPath: 'manage/partner-templates', contentLicense: 'MPL-2.0', description: 'Publish ready pieces to a partner programme, fill inputs from each company\'s details, keep a tool to its templates, and bring out new versions or retire a template.' },
+  { slug: 'work-partner-approvals', title: 'Partner approvals', src: 'work/partner-approvals.md', pathway: 'managers', canonicalPath: 'manage/partner-approvals', contentLicense: 'MPL-2.0', description: 'The reviews a partner team can turn on, all off by default: contact edits, partner kit changes, requests from partners\' agents and one approval for a template\'s variants.' },
+  { slug: 'work-partner-shared-assets', title: 'Shared assets and licences', src: 'work/partner-shared-assets.md', pathway: 'managers', canonicalPath: 'manage/partner-shared-assets', contentLicense: 'MPL-2.0', description: 'What reaches partners: collections, provider folders, the licence gate, files marked as your own, sharing a held file anyway, and the credits that travel with links.' },
+  { slug: 'work-partner-agents', title: 'Partners\' agents', src: 'work/partner-agents.md', pathway: 'managers', canonicalPath: 'manage/partner-agents', contentLicense: 'MPL-2.0', description: 'Give a partner\'s AI agent a token that sees what the company\'s people see: scopes, expiry, limits and usage, and the brand and company context it reads over MCP.' },
+  { slug: 'work-partner-people', title: 'People and the partnership', src: 'work/partner-people.md', pathway: 'managers', canonicalPath: 'manage/partner-people', contentLicense: 'MPL-2.0', description: 'Create a partner programme, check what partners get, invite people by list or domain, then end a partnership at once or on a date with a notice, and reopen an end.' },
   { slug: 'work-partner-programmes', title: 'Partner programmes', src: 'work/partner-programmes.md', pathway: 'managers', canonicalPath: 'manage/partner-programmes', contentLicense: 'MPL-2.0', description: 'The reference for partner programmes: tools and files, company details and logos, templates, licences, ending a partnership, agent tokens, routes and audit events.' },
   { slug: 'work-document-agents', title: 'Invite an agent', src: 'work/document-agents.md', pathway: 'builders', canonicalPath: 'build/document-agents', contentLicense: 'MPL-2.0', description: 'Let an AI agent read or edit a shared document or project under your identity, for a period you choose, with every call recorded.' },
   { slug: 'work-design-system-administration', title: 'Design-system administration', src: 'work/design-system-administration.md', pathway: 'managers', canonicalPath: 'manage/design-system-administration', contentLicense: 'MPL-2.0', description: 'Choose which design system a deployment serves, preview and apply a switch or retirement, manage connect downloads and connect brand rules to tools.' },
@@ -874,9 +881,17 @@ const SIDEBARS: Record<Pathway, { title: string; groups: SideGroup[] }> = {
       { slug: 'work-identity', label: 'Sign-in and sessions' },
       { slug: 'work-account-lifecycle', label: 'Account data controls' },
       { slug: 'work-invitations', label: 'Invite people and handle requests' },
-      { slug: 'work-run-a-partner-programme', label: 'Run a partner programme' },
-      { slug: 'work-partner-programmes', label: 'Partner programmes' },
       { slug: 'work-permissions', label: 'Roles and grants' },
+    ] },
+    { label: 'Partners', items: [
+      { slug: 'work-run-a-partner-programme', label: 'Run a partner programme' },
+      { slug: 'work-partner-co-branding', label: 'Co-branding and partner kits' },
+      { slug: 'work-partner-templates', label: 'Partner templates' },
+      { slug: 'work-partner-approvals', label: 'Partner approvals' },
+      { slug: 'work-partner-shared-assets', label: 'Shared assets and licences' },
+      { slug: 'work-partner-agents', label: 'Partners\' agents' },
+      { slug: 'work-partner-people', label: 'People and the partnership' },
+      { slug: 'work-partner-programmes', label: 'Partner programmes' },
     ] },
     { label: 'Jobs, sharing and delivery', items: [
       { slug: 'work-sharing', label: 'Share renders and links' },
@@ -1712,6 +1727,10 @@ DOC_ICONS['chrome-hash'] = appIcon('hash');
 DOC_ICONS['chrome-external'] = appIcon('externalLink');
 DOC_ICONS['chrome-back'] = appIcon('arrowLeft');
 DOC_ICONS['chrome-settings'] = appIcon('sliders');
+// Lolly Demo's two-tone Etiquette icons, as `eti-<slug>` (docs/etiquette-icons.ts): the
+// partner pages' cards and subject openings. Painted from --eti-accent and --eti-base,
+// which the stylesheet sets per theme, so they follow light, dark and brand.
+Object.assign(DOC_ICONS, etiquetteDocIcons());
 const DOC_ICON_SPRITE = createIconSprite(DOC_ICONS);
 function docIcon(key: string): string {
   const svg = DOC_ICON_SPRITE.icon(key);
@@ -3810,6 +3829,41 @@ html[data-a11y-motion="reduce"] .sidebar-chev{transition:none}
   .md-timeline .icon-list>li.ic:not(:last-child)::before{left:.875rem;top:1.75rem}}
 .li-icon{flex-shrink:0;width:1.35rem;height:1.35rem;margin-top:.2rem;color:var(--green)}
 .li-icon svg{width:100%;height:100%;display:block}
+/* Etiquette icons (eti-<slug>, docs/etiquette-icons.ts): Lolly Demo's two-tone glyphs,
+   painted from two custom properties so they follow the theme. Light keeps the icons'
+   own pairing, Green Apple on Spearmint; dark and brand paint the base in the page's ink
+   and the accent in the theme's green, the pairing the brand's dark surfaces use. */
+:root,[data-theme="light"]{--eti-accent:#50c369;--eti-base:hsl(var(--primary))}
+[data-theme="dark"],[data-theme="brand"]{--eti-accent:hsl(var(--primary));--eti-base:hsl(var(--foreground))}
+/* ::: cards: an icon list drawn as cards on a pale panel, the way the banked figures
+   lay out their parts. A card whose text opens with a bold link IS that link: the
+   link's ::after covers the card, so the whole card is one target with one name. */
+.md-cards{margin:1.75rem 0 2.25rem;padding:12px;border-radius:26px;background:var(--pale)}
+.docs-content .md-cards ul.icon-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,14.5rem),1fr));gap:10px;margin:0}
+.docs-content .md-cards ul.icon-list>li.ic{position:relative;flex-direction:column;gap:.7rem;margin:0;padding:1.05rem 1.1rem 1.15rem;border-radius:14px;background:hsl(var(--card));box-shadow:0 0 0 1px var(--border);color:var(--muted);font-size:.9375rem;line-height:1.5;transition:box-shadow var(--dur-2) ease,transform var(--dur-2) ease}
+.md-cards li.ic .li-icon{width:2.25rem;height:2.25rem;margin:0}
+.md-cards li.ic>span:not(.li-icon)>strong:first-child{display:block;margin-bottom:.25rem;color:var(--text);font-size:1.0625rem;font-weight:600;line-height:1.3}
+.md-cards li.ic>span:not(.li-icon)>strong:first-child>a{color:inherit;text-decoration:none}
+.md-cards li.ic>span:not(.li-icon)>strong:first-child>a::after{content:'';position:absolute;inset:0;border-radius:14px}
+.md-cards li.ic>span:not(.li-icon)>strong:first-child>a:focus-visible{outline:none}
+.md-cards li.ic>span:not(.li-icon)>strong:first-child:has(>a)::after{content:'\\2192';display:inline-block;margin-inline-start:.35em;color:var(--green)}
+[dir="rtl"] .md-cards li.ic>span:not(.li-icon)>strong:first-child:has(>a)::after{transform:scaleX(-1)}
+.docs-content .md-cards ul.icon-list>li.ic:has(>span>strong:first-child>a):hover{box-shadow:0 0 0 1.5px var(--green),0 8px 22px hsl(var(--foreground) / .08);transform:translateY(-1px)}
+.docs-content .md-cards ul.icon-list>li.ic:has(>span>strong:first-child>a:focus-visible){outline:2px solid hsl(var(--ring));outline-offset:2px}
+@media(prefers-reduced-motion:reduce){.docs-content .md-cards ul.icon-list>li.ic{transition:none}.docs-content .md-cards ul.icon-list>li.ic:hover{transform:none}}
+html[data-a11y-motion="reduce"] .docs-content .md-cards ul.icon-list>li.ic{transition:none}
+html[data-a11y-motion="reduce"] .docs-content .md-cards ul.icon-list>li.ic:hover{transform:none}
+/* One column on a phone: the icon moves beside the words, so six cards stay a short list. */
+@media(max-width:600px){.md-cards{padding:8px;border-radius:22px}.docs-content .md-cards ul.icon-list{gap:8px}.docs-content .md-cards ul.icon-list>li.ic{flex-direction:row;gap:.85rem;padding:.85rem .95rem}.md-cards li.ic .li-icon{width:1.9rem;height:1.9rem;margin-top:.1rem}}
+/* ::: intro <icon>: a subject page's opening paragraph, led by the subject's icon. */
+.md-intro{display:flex;gap:1.1rem;align-items:flex-start;margin:0 0 2rem}
+.docs-content>.md-intro{max-width:68ch}
+.md-intro-icon{flex:none;display:grid;place-items:center;width:3.5rem;height:3.5rem;border-radius:18px;background:var(--pale)}
+.md-intro-icon svg{width:2.1rem;height:2.1rem;display:block}
+.md-intro-body{min-width:0}
+.docs-content .md-intro-body>p{margin:0;color:var(--text);font-size:1.125rem;line-height:1.6}
+.docs-content .md-intro-body>p+p{margin-top:.75rem}
+@media(max-width:600px){.md-intro{gap:.85rem}.md-intro-icon{width:2.75rem;height:2.75rem;border-radius:14px}.md-intro-icon svg{width:1.7rem;height:1.7rem}.docs-content .md-intro-body>p{font-size:1.0625rem}}
 .docs-content{padding:2.75rem 3.5rem 6rem;min-width:0}
 /* No band (a page with no h1 at all): the column clears the fixed bar by itself. */
 .docs-content.no-mast{padding-top:calc(var(--site-bar-h) + 2.25rem)}
@@ -5956,7 +6010,8 @@ const FOOTER_SECTIONS: SitemapSection[] = [
   { hub: 'builders', label: 'Build and contribute to the apps', slugs: ['contributing-setup', 'build-guide', 'build-terminal', 'build-desktop', 'build-mobile', 'build-obs', 'ios-build'] },
   { hub: 'managers', label: 'Shared assets and provider connections', slugs: ['use-with-dam', 'dam-partners', 'dam-transition', 'work-design-system-administration', 'work-catalog', 'work-file-preview', 'work-offboarding', 'work-provider-guides', 'work-provider-webdav', 'work-provider-s3', 'work-provider-git', 'work-provider-brandfolder', 'work-provider-optimizely-cmp', 'work-provider-imagerelay', 'work-provider-canto', 'work-provider-acquia-dam', 'work-provider-intelligencebank', 'work-provider-cloudinary', 'work-provider-orange-logic', 'work-provider-penpot', 'work-provider-dropbox', 'work-provider-gdrive', 'work-provider-o365', 'work-provider-tenant-check'] },
   { hub: 'managers', label: 'Administration, policy and approvals', slugs: ['configuration', 'adoption-governance', 'work-governance', 'work-approvals', 'work-ai-policy'] },
-  { hub: 'managers', label: 'People and access', slugs: ['work-identity', 'work-account-lifecycle', 'work-invitations', 'work-run-a-partner-programme', 'work-partner-programmes', 'work-permissions'] },
+  { hub: 'managers', label: 'People and access', slugs: ['work-identity', 'work-account-lifecycle', 'work-invitations', 'work-permissions'] },
+  { hub: 'managers', label: 'Partners', slugs: ['work-run-a-partner-programme', 'work-partner-co-branding', 'work-partner-templates', 'work-partner-approvals', 'work-partner-shared-assets', 'work-partner-agents', 'work-partner-people', 'work-partner-programmes'] },
   { hub: 'managers', label: 'Jobs, sharing and delivery', slugs: ['work-sharing', 'work-team-projects', 'work-move-from-render-api', 'work-renders', 'work-delivery', 'work-project-portability'] },
   { hub: 'operators', label: 'Updates, qualification and release history', slugs: ['catalog-resource-reading', 'deploy-delivery', 'work-release-1-1-3', 'work-release-1-1-2', 'work-past-releases', 'work-instance-pack-production', 'work-shell-deployment-workflow'] },
   { hub: 'operators', label: 'Instance configuration, SSO and signing', slugs: ['connector-origins', 'work-enterprise-identity', 'work-identity-providers', 'work-customer-setup', 'work-configuration', 'work-c2pa'] },
@@ -6238,6 +6293,12 @@ const SIDEBAR_ICON: Record<string, string> = {
   'work-account-lifecycle': 'document',
   'work-invitations': 'usercheck',
   'work-run-a-partner-programme': 'usercheck',
+  'work-partner-co-branding': 'palette',
+  'work-partner-templates': 'document',
+  'work-partner-approvals': 'checklist',
+  'work-partner-shared-assets': 'folder',
+  'work-partner-agents': 'sparkle',
+  'work-partner-people': 'people',
   'work-partner-programmes': 'usercheck',
   'work-document-agents': 'document',
   'work-design-system-administration': 'document',
