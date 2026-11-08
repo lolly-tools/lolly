@@ -48,9 +48,9 @@ Only a plain `https` address on a named host is shown. When a credential does no
 
 ### Partner
 
-A file made for a partner company in a [Lolly Work partner programme](/info/manage/partner-programmes.html#the-partner-record-in-files) records the company beside the design system. Lolly Verify lists the record as **Partner** in the file's credential details, beside **Design system**: the company, the programme and the revision of the company's details, such as "Northwind IT, Resellers, EMEA programme, details revision 3". When the piece carried the company's partner kit, the fact ends with the kit's revision: ", kit revision 2". A programme with no company reads "Resellers, EMEA programme". The revision tells the workspace which of the company's details the file was made with, and the workspace keeps every revision.
+A file made for a partner company in a [Lolly Work partner programme](/info/manage/partner-programmes.html#the-partner-record-in-files) records the company beside the design system. Lolly Verify lists the record as **Partner** in the file's credential details, beside **Design system**: the company, the programme and the revision of the company's details, such as "Northwind IT, Resellers, EMEA programme, details revision 3". A programme with no company reads "Resellers, EMEA programme". The revision tells the workspace which of the company's details the file was made with, and the workspace keeps every revision.
 
-The record is the company's, written by whoever signed the file. It holds no person, contact details, address, currency, token or agent, and of a kit only its id and revision. It does not show that the company approved the piece, and Lolly does not check the company's own brand rules.
+The record is the company's, written by whoever signed the file. It holds no person, contact details, address, currency, token or agent. It does not show that the company approved the piece, and Lolly does not check the company's own brand rules.
 
 ## AI-generated content
 

@@ -6,8 +6,9 @@ answers two questions. What does a partner get in Lolly Work? And how do you sha
 first setup to the end of a partnership?
 
 Each step links to [Partner programmes](partner-programmes.md), the reference with every option,
-route and audit event. Most steps happen in the Lolly Work console, and `lw`, Lolly Work's
-command line, does the same from a terminal.
+route and audit event. Most steps happen in the Lolly Work console. A few are done with `lw`,
+Lolly Work's command line, until their console card arrives, and each of those steps gives the
+command.
 
 ## Four words
 
@@ -35,8 +36,8 @@ unaffected, and admins and owners are never narrowed.
 | **Their company** | A card for their company at the top of their home, with its logos and details. A template that takes company details fills them in, and partners cannot change the ones the template fixes. Named contacts may edit the details. | The company's page |
 | **What they can do** | Open tools and files, make, save and export pieces, comment, work in projects and make links to what they can see. Admin actions are refused for partners whatever a grant says: editing grants, policy, programmes or the catalog, inviting people, sending messages, making groups and deciding approvals. | Fixed |
 | **Their files** | Each export records the company and programme it was made for, and the revision of the company's details. Never the person, a contact's details, the address, the currency, a token or an agent. | Built in; the export panel's **Design system** card can leave the record out |
-| **Their agents** | A token you issue sees what the company's people see, within limits you set. | The **Agent tokens** card |
-| **When they leave** | Access ends at once, or on a date you choose with a notice before. Links they made stop working. | **End this partnership** |
+| **Their agents** | A token you issue sees what the company's people see, within limits you set. | `lw` today |
+| **When they leave** | Access ends at once, or on a date you choose with a notice before. Links they made stop working. | **End this partnership**, or `lw` for a date |
 
 ## Set up a programme
 
@@ -102,8 +103,7 @@ Rita works at Northwind IT, a company in Resellers, EMEA. When she signs in, her
 - **Her company's kit**, when it has one. New work starts with Northwind IT's kit attached: colours
   offer the company's colours under its name, the picture picker offers its logos first, and Lolly
   Design's checks point out a mark smaller than the kit allows or too close to other artwork. A
-  finding is a note to review and never stops an export. Her exports record which revision of the
-  kit was attached.
+  finding is a note to review and never stops an export.
 
 In a template, the inputs she may change are the only controls shown. Northwind IT's logo and
 details are already in place, and a logo the template takes by mode follows the piece between
@@ -146,45 +146,41 @@ held files with one programme or company, with a note: the card shows who chose 
 **Withdraw** takes a choice back. When you give a provider folder, the form says how many of its
 files record no licence ([Licences](partner-programmes.md#licences)).
 
-**Checking a limit.** The deployment page's **Limits and quotas** tab, for anyone with
-`policy.edit`, lists every limit a person meets, grouped by area, partner programmes and agent
-tokens included. Each limit shows its value and whether the figure comes from your
-configuration, the environment or the built-in default
-([Limits and quotas](partner-programmes.md#limits-and-quotas)).
-
-**Ending a partnership.** The **End this partnership** card on the programme's page ends the
-whole programme, and the same card on a company's page ends that company alone. It first shows what ending does, then does all of it in one step: nobody
+**Ending a partnership.** **End this partnership** on the programme's page ends the whole
+programme or one company. It first shows what ending does, then does all of it in one step: nobody
 new joins through its domains, accounts are disabled and signed out, their links and agent tokens
 stop working, open invitations are withdrawn, templates published only to them are retired, their
 provider folders end and their projects move as you chose. Someone who is also in another live
 programme keeps the account and leaves only this programme
 ([End a partnership](partner-programmes.md#end-a-partnership)).
 
-**Ending on a date.** In the same card, choose **At the end of a day** and the day. With **Tell
-them before the end** ticked, people are told in their notifications 14 days and 1 day before, and
-their company card gives the date. The scheduled end then shows on the page with **Change** and
-**Cancel the end** ([End on a date, with a notice](partner-programmes.md#end-on-a-date-with-a-notice)).
+**Ending on a date.** An end can wait for a day you choose. People are told in their notifications
+14 days and 1 day before, and their company card gives the date. Set the date with
+`lw people exit --at` today
+([End on a date, with a notice](partner-programmes.md#end-on-a-date-with-a-notice)).
 
-**Undoing an end.** An ended programme or company shows the date of the end and the person who
-ended the partnership. For 30 days its page offers **Reopen**, which first shows who signs in again
-and what comes back: the people, templates, folders and, with **Give their projects back**, their
-projects. Links, tokens, licence choices and sessions stay ended
+**Undoing an end.** Within 30 days, `lw people reopen` brings back the people, templates, folders
+and projects an end took away. Links, tokens and sessions stay ended
 ([Reopen an end](partner-programmes.md#reopen-an-end)).
 
 ## Partners' agents
 
-A partner can work through an AI agent too. On the programme's page, or a company's, the **Agent
-tokens** card mints a token for the agent, for the programme or one company, and shows its secret
-once. The token sees what that company's people see, reads your brand guidance and its company's
-details over your organisation's MCP endpoint, and the files it makes record the company, never the
-agent. When the agent asks for a piece by what the piece is for, your templates are offered where
-their purposes fit. Tokens have limits, by default 120 calls a minute and 2,000 renders a day, which
-the card shows with today's use, and **What agents did** counts what each token did. Approvals for
-agents are off unless you turn them on ([Partners' agents](partner-programmes.md#partners-agents)).
+A partner can work through an AI agent too. The programme's manager issues the agent a token for the
+programme, or for one company in it, with `lw tokens add --programme`. The token sees what that
+company's people see, reads your brand guidance and its company's details over your organisation's
+MCP endpoint, and the files it makes record the company, never the agent. When the agent asks for a
+piece by what the piece is for, your templates are offered where their purposes fit. Tokens have
+limits, by default 120 calls a minute and 2,000 renders a day, and you can read what each token did.
+Approvals for agents are off unless you turn them on. A console card for tokens is planned
+([Partners' agents](partner-programmes.md#partners-agents)).
 
 ## Not yet
 
-- **A console card for partner kits.** Kits are kept with `lw companies kit` until then.
+- **A console card for partner kits, and the kit in exported files.** Kits are kept with
+  `lw companies kit` until the card arrives.
+- **Console cards** for agent tokens and a planned end with Reopen. Use `lw` or the API until then.
+- **Limits and quotas**: one console page that lists the limits Lolly Work enforces, grouped by
+  area, with each value and where the value comes from.
 
 ## Related
 
