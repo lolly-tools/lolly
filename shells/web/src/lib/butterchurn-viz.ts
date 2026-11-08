@@ -377,6 +377,13 @@ export async function mountViz(
     meshHeight: MESH.height,
   }));
   if (analyser) viz.connectAudio(analyser);
+  // The context butterchurn just made on renderCanvas (asking again returns the same
+  // one). A browser drops the OLDEST WebGL context when a page has too many - easy in an
+  // app full of WebGL tools - and a lost context throws nothing: draws become no-ops and
+  // the canvas just keeps its last frame. So the loop checks for that every frame and
+  // stands down with an error the surface can recover from (see the dock's remount).
+  const gl = renderCanvas.getContext('webgl2');
+  renderCanvas.addEventListener('webglcontextlost', (e) => e.preventDefault());
 
   // Reused across frames and pre-filled with silence, so a provider that returns a
   // short window (or nothing at all) can't leave the previous frame's tail behind - 
@@ -439,6 +446,7 @@ export async function mountViz(
   const frame = (): void => {
     if (!alive) return;
     if (!canvas.isConnected || canvas.offsetParent === null) { raf = 0; alive = false; return; }
+    if (gl?.isContextLost()) { raf = 0; alive = false; onError?.(new Error('the WebGL context was lost')); return; }
     const { w, h } = box();
     if (w !== lastW || h !== lastH) {
       lastW = w; lastH = h;

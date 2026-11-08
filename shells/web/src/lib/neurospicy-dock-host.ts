@@ -150,6 +150,12 @@ class NeuroDockViz implements DockViz {
   /** The analyser the current handle is bound to, so we know to remount when the LIVE
    *  analyser appears (idle → reactive). */
   private mountedAnalyser: AnalyserNode | null = null;
+  /** When the renderer last stood down by itself, for the recovery budget (see recover). */
+  private failures: number[] = [];
+  /** The preset that was showing when the renderer last failed. */
+  private failedPreset = '';
+  /** Watches for the player swapping its analyser while the picture keeps running. */
+  private follow: ReturnType<typeof setInterval> | null = null;
   /** A silent, unconnected analyser (its own suspended AudioContext) so butterchurn
    *  IDLE-ANIMATES with nothing playing - many presets move from time alone, and the docs
    *  ?neuro=viz capture needs a live picture without audio. Created lazily. */
@@ -306,7 +312,7 @@ class NeuroDockViz implements DockViz {
     let handle: VizHandle | null = null;
     try {
       handle = await mountViz(canvas, this.host, this.presetId,
-        (err) => console.error('[lolly:viz] the dock visualiser stopped', err), palette,
+        (err) => { console.error('[lolly:viz] the dock visualiser stopped', err); this.recover(); }, palette,
         // pixelRatioCap 2 → crisp when the window is enlarged/fullscreen (the backdrop
         // just resamples down). `analyser` forces the silent idle source when there's no
         // live audio yet.
@@ -332,6 +338,46 @@ class NeuroDockViz implements DockViz {
     // An ARTIST preset opened on the fallback - fetch + apply the real one now.
     if (this.isStock(this.presetId)) void this.applyStock(this.presetId);
     this.startCycle();   // resume auto-cycling once there is a renderer to drive
+    this.startFollow();
+  }
+
+  /**
+   * The renderer stood down by itself while the music played on: a frame threw (a preset
+   * it could not run, or a lost GL context) and the picture froze. Mount it again a moment
+   * later, on the safe default preset if the same one failed twice running. At most a few
+   * times a minute, so a renderer that cannot run here does not thrash.
+   */
+  private recover(): void {
+    const now = Date.now();
+    this.failures = this.failures.filter((t) => now - t < 60_000);
+    if (this.failures.length >= 4) return;
+    this.failures.push(now);
+    const failing = this.handle?.presetId() ?? this.presetId;
+    if (failing && failing === this.failedPreset) this.presetId = defaultVizPresetId(prefersReducedMotion());
+    this.failedPreset = failing;
+    setTimeout(() => {
+      if (this.destroyed || !this.canvas || (this.handle && this.handle.running())) return;
+      void this.mount(this.canvas);
+    }, 600);
+  }
+
+  /**
+   * Follow the player's analyser. The player replaces its analyser when one stalls
+   * (lib/neurospicy.ts's watchdog), and a picture still wired to the old one reacts to
+   * silence: it looks frozen while the music plays. Checked once a second; mount() only
+   * rebuilds when the analyser has actually changed or the renderer has stopped.
+   */
+  private startFollow(): void {
+    if (this.follow != null || typeof setInterval === 'undefined') return;
+    this.follow = setInterval(() => {
+      if (this.destroyed || !this.canvas || !this.handle) return;
+      const live = getNeurospicyAnalyser();
+      if ((live && live !== this.mountedAnalyser) || !this.handle.running()) void this.mount(this.canvas);
+    }, 1000);
+  }
+  private stopFollow(): void {
+    if (this.follow != null) clearInterval(this.follow);
+    this.follow = null;
   }
 
   /** Re-measure the canvas and resize the renderer to its displayed size × dpr (crisp). */
@@ -339,6 +385,7 @@ class NeuroDockViz implements DockViz {
 
   unmount(): void {
     this.stopCycle();
+    this.stopFollow();
     if (this.handle) { this.handle.destroy(); this.handle = null; }
     this.canvas = null;
     this.mountedAnalyser = null;
