@@ -62,7 +62,7 @@ export {
 export type { CssBlendMode, RasterLayer, LayeredRasterDoc, InflateFn } from './raster-layers.ts';
 export { buildInputModel, summarizeInputs, CREDENTIAL_READABLE_TYPES, normalizeTableValue, deriveExportFilename, matchesShowIf, tokenRestoreRefsOf, DEFAULT_FILE_MAX_BYTES } from './inputs.ts';
 export type { TableValue, TableColumnEditor, ShowIf, InputWriteOptions } from './inputs.ts';
-export { parseUrlState, serializeUrlState, serializeHdr, encodeBlocksCompact, encodeTableCompact, decodeTableCompact, RESERVED, HDR_DEFAULTS, VIDEO_CODEC_STRINGS, parseVideoParams, hasVideoParams, parseSpots, parseTextSetting } from './url-mode.ts';
+export { parseUrlState, serializeUrlState, serializeHdr, encodeBlocksCompact, encodeTableCompact, decodeTableCompact, RESERVED, HDR_DEFAULTS, VIDEO_CODEC_STRINGS, parseVideoParams, hasVideoParams, parseSpots, parseTextSetting, parsePartnerKitParam, formatPartnerKitParam, readPartnerKitAttachment } from './url-mode.ts';
 // The `s=` state address + the still-export frame filter both shells apply (plan 112).
 export { parseFrameAddress, selectFramePage, frameFilterApplies } from './frame-address.ts';
 export {
@@ -1057,11 +1057,13 @@ export type { StudioPoseV1 } from './studio3d-motion.ts';
 
 export { brandContext, contextTokens } from './brand-context.ts';
 export { checkBrandDesign, applyBrandFix } from './brand-check.ts';
-export type { BrandCheckCatalogOpts, BrandFinding, BrandFix } from './brand-check.ts';
+export type { BrandCheckCatalogOpts, BrandCheckGuestOpts, BrandFinding, BrandFix } from './brand-check.ts';
 // Partner kits (Lolly Work plan 82 M8): a partner company's logos, colours and placement
 // rules as a guest in the lead brand's work. One reader for the app, the CLI and the server.
 export { checkPartnerKit, readPartnerKit, partnerKitLogoIds, partnerKitColoursFromTokens, partnerKitColoursFromInks } from './partner-kit.ts';
 export type { PartnerKitReadResult } from './partner-kit.ts';
+export { checkGuestMarks, guestRecolourFrom, guestUnmeasuredText } from './partner-kit-check.ts';
+export type { GuestMarkMeasure, GuestMarkReport, GuestMarkUnmeasured, GuestMarkUnmeasuredCode } from './partner-kit-check.ts';
 // The design brief and the Design house rules (plan 291 W3): the context plus the pack's
 // pairings, type, logos, icons, media, master and machine-checkable rules.
 export { designBrief, brandCheckCatalog } from './design-brief.ts';

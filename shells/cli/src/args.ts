@@ -155,9 +155,10 @@ export const READ_VALUE_FLAGS = ['media', 'pages', 'max-chars', 'from'] as const
 /**
  * `lolly check` flags that take a value, refused bare in bin/lolly.ts. `page-cap` is
  * here because a bare one parsing to "1" would read one page and call the rest clean;
- * `file` because a bare one would read a design system from a file called "1".
+ * `file` because a bare one would read a design system from a file called "1", and
+ * `kit` because a bare one would read a partner kit from a file called "1".
  */
-export const CHECK_VALUE_FLAGS = ['source', 'file', 'theme', 'browser', 'page-cap', 'edits', 'themes'] as const;
+export const CHECK_VALUE_FLAGS = ['source', 'file', 'theme', 'browser', 'page-cap', 'edits', 'themes', 'kit'] as const;
 /**
  * `lolly read`'s on/off flags: `force` overwrites pictures, `thumbnails` draws each slide
  * beside them, `extract` writes blocks in reading order instead of the inventory,

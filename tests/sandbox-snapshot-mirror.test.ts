@@ -90,3 +90,30 @@ test('mountShot cleans before anything joins the page and never re-parses the bo
   assert.match(mount, /document\.adoptNode\(/, 'cleaned nodes are adopted');
   assert.doesNotMatch(mount, /\.innerHTML\s*=/, 'no innerHTML: a serialise and re-parse round trip can undo a clean');
 });
+
+// Defect (2026-11-07): a pen's own html and body rules never reached the export. The shell
+// scopes the tool's `.rwc-shot-body` reset (`all: initial`, the design system's face) under
+// an id, so the pen's rules, re-scoped onto `.rwc-shot-body` alone, always lost: the export
+// drew the pen in the design system's face at 16px, with no background, while the preview
+// drew the pen's own font, size and colours.
+test('the pen\'s html and body rules out-rank the tool\'s own reset of the mirror body', async () => {
+  const src = await readFile(TEMPLATE, 'utf8');
+  assert.match(src, /shotEl\.id = 'rwc-shot-'/, 'the mirror gets an id of its own');
+  const dom = new JSDOM('<!doctype html><head><style>#tool-content .rwc-shot-body{font-family:BrandFace;font-size:16px}</style></head><body><div id="tool-content"><div data-rwc-shot id="rwc-shot-test"></div></div></body>');
+  const win = dom.window;
+  const shotEl = win.document.querySelector('[data-rwc-shot]');
+  const mountSrc = functionSource(src, 'mountShot');
+  const mountShot = new Function('window', 'document', 'DOMParser', 'shotEl',
+    `${functionSource(src, 'cleanShot')}; function exportMirrorDims() { return { w: 800, h: 600 }; } ${mountSrc}; return mountShot;`,
+  )(win, win.document, win.DOMParser, shotEl) as (html: string, w: number, h: number) => void;
+  mountShot('<!doctype html><html><head><style>body{font-family:PenFace;font-size:40px} body p{color:red} p.special{color:blue}</style></head><body><p id="t">x</p></body></html>', 800, 600);
+  const css = shotEl!.querySelector('style')!.textContent!;
+  assert.match(css, /#rwc-shot-test \.rwc-shot-body\.rwc-shot-body\{font-family:PenFace;font-size:40px\}/);
+  // A rule for what is inside the body keeps its old weight, so `p.special` still wins
+  // over `body p`, as in the preview.
+  assert.match(css, /\} \.rwc-shot-body p\{color:red\}/);
+  const body = shotEl!.querySelector('.rwc-shot-body')!;
+  const style = win.getComputedStyle(body);
+  assert.equal(style.fontFamily, 'PenFace', 'the pen\'s face wins over the tool\'s scoped reset');
+  assert.equal(style.fontSize, '40px', 'and so does its size');
+});

@@ -61,6 +61,13 @@
  *                  declared finish (foil, emboss, varnish, die) is not an ink and
  *                  keeps its own plate. Absent, or any other value, keeps the spot
  *                  plates. Read into `spots`.
+ *   - `_kit` - the PARTNER KIT this piece carries as a guest (Lolly Work plan 82 M8):
+ *                  `<id>@<revision>`, the kit asset's catalog id and the asset version
+ *                  attached (`_kit=inst/5b2e@2`). Read into `partnerKit` and written
+ *                  into a share link from `partnerKit`, because the kit a piece was made
+ *                  with belongs to the piece. The link points at a kit and never carries
+ *                  its bytes: a recipient the kit is not served to renders without the
+ *                  kit. A value that is not an id and a whole revision reads as absent.
  *   - `_text` - how an EMF export writes text. `_text=outline` draws every run as
  *                  vector outlines, the export panel's Outline fonts box, where the
  *                  default keeps GDI text records the reader's fonts draw. A run no font
@@ -268,6 +275,7 @@ import { normalizeTableValue, syntheticInputs } from './inputs.ts';
 import type { BlockFieldSpec, InputManifest, InputSpec, InputValue, TableValue } from './inputs.ts';
 import type { PrintMarksFlags } from './print-marks.ts';
 import type { AssetRef } from './bridge/host-v1.ts';
+import { PARTNER_KIT_ASSET_ID_PATTERN, PARTNER_KIT_MAX_ASSET_ID, PARTNER_KIT_MAX_LOGO_VERSION, type PartnerKitAttachmentV1 } from '@lolly-tools/core/partner-kit-v1';
 
 /** Content Credentials toggle parsed from the `c2pa` param. */
 export interface C2paSetting {
@@ -454,6 +462,10 @@ export interface UrlState {
    *  writes each ink as its process build; null ⇒ absent or any other value, which
    *  keeps the named spot plates. */
   spots?: SpotsSetting | null;
+  /** The partner kit attached (the `_kit` param): the kit asset's id and the revision.
+   *  null ⇒ absent or unreadable. Which kits a caller is served is not something
+   *  url-mode can know, so a kit it is not served is the caller's to leave out. */
+  partnerKit?: PartnerKitAttachmentV1 | null;
   /** How an EMF export writes text (the `_text` param). `outline` draws outlines;
    *  null ⇒ absent or any other value, which keeps live text records. */
   text?: TextSetting | null;
@@ -533,6 +545,8 @@ export interface SerializeUrlOpts {
   /** How the CMYK formats print spot inks (the `_spots` param). Only `process`
    *  writes the param; anything else keeps the default and writes nothing. */
   spots?: SpotsSetting | string | null;
+  /** The partner kit attached (the `_kit` param), written when it reads as an attachment. */
+  partnerKit?: PartnerKitAttachmentV1 | null;
   /** Keep device-local `user/…` asset ids in the serialised state (plan 171).
    *  Default FALSE - the engine-enforced product contract is that a device-local
    *  id never leaves the device (docs/url-mode.md), so a top-level `user/` asset
@@ -550,7 +564,7 @@ export interface SerializeUrlOpts {
 // Param names that are NOT tool inputs (export/render controls). Exported so the
 // engine contract test can assert it stays in lock-step with the documented list
 // (the header comment above + docs/url-mode.md) and nothing drifts silently.
-export const RESERVED = new Set(['format', 'export', 'copy', 'slot', 'output', 'filename', '_v', 'width', 'height', 'w', 'h', 'unit', 'dpi', 'profile', 'password', 'bleed', 'marks', 'c2pa', 'imprint', 'durable', 'meta', 'hdr', 'depth', 'cuts', 'sampletimes', 'motionblur', 'seqrange', 'lang', 'designv', 'ds', 'full', 'iframe', 'options', 'nostage', 'template', 'preset', 'present', 's', 'kiosk', 'z', 'zx', 'fps', 'seconds', 'wait', 'codec', 'vq', 'emoji', 'emojifx', 'emojistyle', 'licence', '_themes', '_madewith', '_spots', '_text']);
+export const RESERVED = new Set(['format', 'export', 'copy', 'slot', 'output', 'filename', '_v', 'width', 'height', 'w', 'h', 'unit', 'dpi', 'profile', 'password', 'bleed', 'marks', 'c2pa', 'imprint', 'durable', 'meta', 'hdr', 'depth', 'cuts', 'sampletimes', 'motionblur', 'seqrange', 'lang', 'designv', 'ds', 'full', 'iframe', 'options', 'nostage', 'template', 'preset', 'present', 's', 'kiosk', 'z', 'zx', 'fps', 'seconds', 'wait', 'codec', 'vq', 'emoji', 'emojifx', 'emojistyle', 'licence', '_themes', '_madewith', '_spots', '_text', '_kit']);
 // NOTE on the presentation-mode kiosk flag: it was the unreserved `loop` until
 // 2026-08-28 (plan 171 executed the rename inside the id-break window). `loop` is a
 // live *input* id in several tools (deck-builder, 3d, flythrough, digi-ad,
@@ -580,6 +594,39 @@ export type SpotsSetting = 'process';
  */
 export function parseSpots(raw: string | null | undefined): SpotsSetting | null {
   return typeof raw === 'string' && raw.trim().toLowerCase() === 'process' ? 'process' : null;
+}
+
+const PARTNER_KIT_ID = new RegExp(PARTNER_KIT_ASSET_ID_PATTERN);
+
+/**
+ * A partner kit attachment from a saved session's `__partnerKit` or any other untrusted
+ * value: a catalog asset id in the kit grammar and a whole revision from 1. Anything
+ * else is null, so a malformed record attaches nothing rather than a guess.
+ */
+export function readPartnerKitAttachment(value: unknown): PartnerKitAttachmentV1 | null {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return null;
+  // Own fields only: an inherited `id` or `revision` is not the record's.
+  if (!Object.hasOwn(value, 'id') || !Object.hasOwn(value, 'revision')) return null;
+  const { id, revision } = value as Record<string, unknown>;
+  if (typeof id !== 'string' || id.length > PARTNER_KIT_MAX_ASSET_ID || !PARTNER_KIT_ID.test(id)) return null;
+  if (typeof revision !== 'number' || !Number.isInteger(revision) || revision < 1 || revision > PARTNER_KIT_MAX_LOGO_VERSION) return null;
+  return { id, revision };
+}
+
+/** Read the `_kit` param, `<id>@<revision>`. Null when absent or when either half does not read. */
+export function parsePartnerKitParam(raw: string | null | undefined): PartnerKitAttachmentV1 | null {
+  if (typeof raw !== 'string') return null;
+  const at = raw.lastIndexOf('@');
+  if (at <= 0) return null;
+  const digits = raw.slice(at + 1);
+  if (!/^[1-9][0-9]{0,6}$/.test(digits)) return null;
+  return readPartnerKitAttachment({ id: raw.slice(0, at), revision: Number(digits) });
+}
+
+/** Write the `_kit` param's value, or null when the attachment does not read. */
+export function formatPartnerKitParam(attachment: unknown): string | null {
+  const att = readPartnerKitAttachment(attachment);
+  return att ? `${att.id}@${att.revision}` : null;
 }
 
 /** The one value of the `_text` param that does anything: draw EMF text as outlines. */
@@ -862,6 +909,8 @@ export function parseUrlState(searchParams: string | URLSearchParams, manifest: 
     madeWith: parseMeta(params.get('_madewith')),
     // How the CMYK formats print spot inks (see header). Opt-in: only `process` counts.
     spots: parseSpots(params.get('_spots')),
+    // The partner kit attached (see header). An id and a whole revision, else absent.
+    partnerKit: parsePartnerKitParam(params.get('_kit')),
     // How an EMF export writes text (see header). Opt-in: only `outline` counts.
     text: parseTextSetting(params.get('_text')),
   };
@@ -933,6 +982,9 @@ export function serializeUrlState(model: UrlSerializableInput[], opts: Serialize
   if (opts.madeWith === false) params.set('_madewith', '0');
   // Opt-in, off by default: only the request to print spot inks in process travels.
   if (parseSpots(opts.spots ?? null)) params.set('_spots', 'process');
+  // The partner kit a piece carries travels with it, as `<id>@<revision>`.
+  const kit = formatPartnerKitParam(opts.partnerKit);
+  if (kit) params.set('_kit', kit);
   // Opt-in, off by default: only an explicit request writes the param.
   if (opts.durable) params.set('durable', '1');
   if (opts.hdr) params.set('hdr', '1');

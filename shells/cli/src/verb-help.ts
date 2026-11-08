@@ -70,6 +70,7 @@ Usage:
   lolly check <design.json|file.lolly|export.pdf|.pptx|.png|.jpg|.webp|.svg|->
               [--source=<deck.pptx|deck.pdf|inventory.json>] [--edits=<edits.json>]
               [--file=<tokens.json>] [--theme=<name> | --themes=<a,b|all>]
+              [--kit=<partner-kit.json>]
               [--browser=auto|off|require] [--page-cap=N] [--ocr] [--strict] [--json]
 
 Input:
@@ -91,6 +92,11 @@ Options:
   --theme=<name>     check in one theme the design system declares
   --themes=<a,b|all> check in each of these themes: linked colours resolve per theme,
                      and each brand, render and Verify finding says which
+  --kit=<partner-kit.json>
+                     a partner kit (partner-kit-v1): the brand family also measures
+                     the document's partner marks against the kit's minimum size,
+                     clear space and treatments. Each is a finding to review, never
+                     an error, and runs with no design system too
   --browser=auto|off|require
                      the render family opens the document in the web shell. auto uses
                      it when it is there, off skips it, require exits 3 without it

@@ -97,6 +97,9 @@ html[data-a11y-motion="reduce"] .view-loading-mark .lolly-mark__spin-3 { animati
 }
 .open-progress-thumb img { display: block; max-width: 100%; max-height: 100%; object-fit: contain; }
 .open-progress .modal-title { overflow-wrap: anywhere; }
+/* The title holds focus when the card appears (so a stray Space or Enter presses
+   nothing); it is not a control, so it draws no focus ring. */
+.open-progress .modal-title:focus { outline: none; }
 /* The step on the left, the story count on the right: the count changes per story and
    is not in the live region, so it sits beside the step rather than inside it. */
 .open-progress-status { display: flex; align-items: baseline; justify-content: space-between; gap: var(--sp-4); margin: 0 0 var(--sp-5); }
