@@ -129,12 +129,12 @@ a.tile-primary[data-open-team-session] > .tile-cover { pointer-events: none; }
   font-size: var(--fs-2xs); font-weight: 600; line-height: 1; padding: 3px 5px;
   border-radius: var(--ui-radius-pill); background: var(--ui-color-surface-muted); color: var(--ui-color-text-muted);
 }
-.tile-badge--type { background: var(--ui-color-selection-surface); color: var(--ui-color-action-primary); }
-.tile-badge--rows { background: var(--ui-color-selection-surface); color: var(--ui-color-action-primary); }
+.tile-badge--type { background: var(--ui-color-selection-surface); color: var(--ui-color-text-accent); }
+.tile-badge--rows { background: var(--ui-color-selection-surface); color: var(--ui-color-text-accent); }
 /* A saved session's approval request (views/projects-tile-state.ts): the word carries
    the state, and the two weights keep them apart for anyone not reading colour. */
 .tile-badge--approval { background: var(--ui-color-surface-muted); color: var(--ui-color-text-default); }
-.tile-badge--approval[data-state="approved"] { background: var(--ui-color-selection-surface); color: var(--ui-color-action-primary); }
+.tile-badge--approval[data-state="approved"] { background: var(--ui-color-selection-surface); color: var(--ui-color-text-accent); }
 
 .tile-menu-btn {
   /* The box rides the icon scale with the glyph it holds - a 15px mark growing
@@ -183,7 +183,7 @@ a.tile-primary[data-open-team-session] > .tile-cover { pointer-events: none; }
 .folder-menu-item--danger { color: hsl(var(--destructive-text, 0 70% 50%)); }
 /* The Render action is the primary affordance - tint its icon + label so it stands
    out from Open/Rename/Move, matching the pronounced header "Render folder" button. */
-.folder-menu-item--render { color: var(--ui-color-action-primary); font-weight: 600; }
+.folder-menu-item--render { color: var(--ui-color-text-accent); font-weight: 600; }
 .folder-menu-item--render svg { opacity: 1; }
 /* Uppercase group label inside a folder menu - `--sep` is the folder overlay's "Move to"
    separator, `--head` the Projects view's own menu/popover section headings ("View",
@@ -337,7 +337,7 @@ html[data-a11y-previews="hidden"] .folder-export-tile img {
 }
 .folder-star {
   position: absolute; top: 3px; right: 6px; z-index: 1;
-  color: hsl(var(--primary));
+  color: hsl(var(--primary-text));
   font-size: var(--fs-sm); line-height: 1;
 }
 

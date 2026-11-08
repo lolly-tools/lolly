@@ -257,8 +257,10 @@ const APPROVAL_ID = /^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$/;
 const ISO_INSTANT = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,9})?(?:Z|[+-]\d{2}:\d{2})$/;
 
 // A template's id: an identifier with up to two namespace segments (`inst/<id>`). No
-// spaces and no free text, so a template's display name cannot travel in its place.
-export const APPROVAL_TEMPLATE_ID = /^[A-Za-z0-9][A-Za-z0-9_-]{0,63}(?:\/[A-Za-z0-9][A-Za-z0-9_-]{0,127}){0,2}$/;
+// spaces and no free text, so a template's display name cannot travel in its place. A
+// segment after the first may start with `-` or `_`, because Lolly Work mints a
+// template's id from random base64url (`inst/-x0…`).
+export const APPROVAL_TEMPLATE_ID = /^[A-Za-z0-9][A-Za-z0-9_-]{0,63}(?:\/[A-Za-z0-9_-]{1,128}){0,2}$/;
 const FILE_APPROVAL_KEYS: readonly string[] = ['approvalId', 'decidedAt', 'reviewedSha256'];
 const TEMPLATE_APPROVAL_KEYS: readonly string[] = ['approvalId', 'decidedAt', 'covers', 'templateId', 'templateVersion', 'exampleSha256'];
 

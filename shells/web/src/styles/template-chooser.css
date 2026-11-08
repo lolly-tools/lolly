@@ -103,7 +103,7 @@
   text-underline-offset: 2px;
   cursor: pointer;
 }
-.tmpl-chooser-startclear:hover { color: hsl(var(--primary)); }
+.tmpl-chooser-startclear:hover { color: hsl(var(--primary-text)); }
 .tmpl-chooser-startclear:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 2px; }
 
 /* Tag-filter chips - one row of pills (replaces the old per-category sections); "All" plus

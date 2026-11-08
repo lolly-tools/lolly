@@ -111,7 +111,7 @@
 .dtb-btn:active:not(:disabled) { filter: brightness(0.94); }
 .dtb-btn:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 2px; }
 .dtb-btn:disabled { opacity: 0.34; cursor: default; }
-.dtb-btn[aria-pressed="true"] { background: color-mix(in srgb, var(--ui-color-action-primary) 14%, transparent); color: var(--ui-color-action-primary); }
+.dtb-btn[aria-pressed="true"] { background: color-mix(in srgb, var(--ui-color-action-primary) 14%, transparent); color: var(--ui-color-text-accent); }
 .dtb-btn[aria-expanded="true"] { background: var(--ui-color-surface-muted); }
 
 .dtb-zoom-level { min-width: calc(52px * var(--a11y-fs)); font-variant-numeric: tabular-nums; }
@@ -267,7 +267,7 @@
   transform: rotate(-45deg);
   opacity: 0;
 }
-.dtb-menu-item[aria-checked="true"] { color: var(--ui-color-action-primary); font-weight: 600; }
+.dtb-menu-item[aria-checked="true"] { color: var(--ui-color-text-accent); font-weight: 600; }
 .dtb-menu-item[aria-checked="true"]::after { opacity: 1; }
 
 /* ── breakpoints ───────────────────────────────────────────────────────────── */

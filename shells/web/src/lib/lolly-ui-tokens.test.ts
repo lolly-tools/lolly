@@ -30,7 +30,13 @@ test('the Start studio can show every UI role without adding any of them to a br
   // 77 to 78: numeric inputs share their inset shadow through effect.inset.
   // 78 to 80: docked rail and input sidebar shadows have their own elevation roles.
   // 80 to 81: export controls share the input-well effect.
-  assert.equal(tokens.length, 81);
+  // 81 to 82: color.text.accent, the brand accent for words. Unlike the other
+  // colour roles it stays out of UI_SLOTS: its value is the action primary
+  // walked per theme until it reads (brand-vars.ts accentText), so a design
+  // system sets it through its primary, and one inline value would be one
+  // colour in every theme, the failure the role exists to remove.
+  assert.equal(tokens.length, 82);
+  assert.equal(tokens.find(t => t.path.join('.') === 'color.text.accent')?.type, 'color');
   for (const role of ['rail', 'sidebar']) assert.equal(tokens.find(t => t.path.join('.') === `elevation.${role}`)?.type, 'shadow');
   assert.equal(tokens.find(t => t.path.join('.') === 'effect.inset')?.type, 'shadow');
   assert.equal(tokens.find(t => t.path.join('.') === 'effect.input-well')?.type, 'shadow');
@@ -119,4 +125,10 @@ test('a real Penpot archive keeps Lolly semantic aliases and active UI overrides
   assert.equal(exported.lolly.ui.radius.panel.$value, '1rem');
   assert.equal(exported.lolly.ui.elevation.floating.$value, '{lolly.foundation.elevation.3}');
   assert.equal(exported.lolly.foundation.space['4'].$value, '8px');
+});
+
+test('the accent for words is listed as derived, so the studio offers no editor of its own', () => {
+  const accent = listLollyUiTokens().find(t => t.path.join('.') === 'color.text.accent');
+  assert.equal(accent?.derived, true);
+  assert.equal(listLollyUiTokens().filter(t => t.derived).length, 1, 'no other role is derived');
 });

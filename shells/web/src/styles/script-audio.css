@@ -78,7 +78,7 @@
   margin: 0;
   font-size: var(--fs-xs);
 }
-.script-audio-more a { color: hsl(var(--primary)); }
+.script-audio-more a { color: hsl(var(--primary-text)); }
 .script-audio-controls {
   display: flex;
   gap: 10px;

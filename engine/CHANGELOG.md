@@ -6,6 +6,10 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+## 1.342.0
+
+- The template approval record (`tools.lolly.approval`, `covers: 'template'`, 1.336.0) takes a template id whose segment after the first starts with `-` or `_`. Lolly Work mints a published template's id from random base64url (`inst/<11 characters>`), so about one id in thirty-two starts that way, and the writer and reader refused it: a variant render of such a template was signed without its approval record. `APPROVAL_TEMPLATE_ID` now allows `[A-Za-z0-9_-]` from the first character of each later segment. There are still no spaces, dots or free text, so a template's name cannot take the id's place. The record's shape and fields are unchanged.
+
 ## 1.341.0
 
 - Renditions record their picture as the parent (`renditionOf`). A tool manifest may name one top-level `asset` input as the picture its output is a rendition of, with the action it performs: `"renditionOf": { "input": "image", "action": "c2pa.color_adjustments" }`. The actions are `c2pa.color_adjustments`, `c2pa.filtered`, `c2pa.converted`, `c2pa.resized`, `c2pa.cropped` and `c2pa.edited` (`RENDITION_ACTIONS`, in the new dependency-free SDK subpath `@lolly-tools/core/rendition-v1`, also re-exported from the SDK root). Schema, SDK type and SDK mirror are updated together; `renditionOfErrors` (same subpath) refuses an `input` that is not a declared top-level asset input, in `validateTool`, the engine's `validateManifest` (so `loadTool`) and `validate:catalog`.

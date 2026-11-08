@@ -51,7 +51,7 @@
 }
 .dl-section .dl-button[aria-pressed="true"] {
   background: var(--ui-color-selection-surface);
-  color: var(--ui-color-action-primary);
+  color: var(--ui-color-text-accent);
 }
 .dl-section .dl-button[aria-pressed="mixed"] {
   border-color: var(--ui-color-border-default);

@@ -670,7 +670,7 @@ html[data-a11y-contrast="high"] .tl-btn svg { opacity: 1; }
 /* ON a diamond. A colour and a weight, never a border on one side - a one-sided
    accent rule is the pattern this shell does not use. */
 .tl-kf-state.is-on {
-  color: var(--ui-color-action-primary);
+  color: var(--ui-color-text-accent);
   font-weight: 600;
 }
 /* An action that says what it does in words, with the glyph beside the text. */
@@ -879,8 +879,8 @@ html[data-a11y-contrast="high"] .tl-btn svg { opacity: 1; }
   stroke-linejoin: round;
 }
 .tl-kf-prop[data-state="none"] .tl-kf-prop-glyph { opacity: 0.6; }
-.tl-kf-prop[data-state="animated"] { color: var(--ui-color-action-primary); }
-.tl-kf-prop[data-state="key"] { color: var(--ui-color-action-primary); }
+.tl-kf-prop[data-state="animated"] { color: var(--ui-color-text-accent); }
+.tl-kf-prop[data-state="key"] { color: var(--ui-color-text-accent); }
 .tl-kf-prop[data-state="key"] .tl-kf-prop-glyph { fill: currentColor; }
 .tl-kf-prop:hover:not([aria-disabled="true"]) { background: var(--ui-color-surface-muted); }
 .tl-kf-prop:hover:not([aria-disabled="true"]) .tl-kf-prop-glyph { opacity: 1; }
@@ -970,7 +970,7 @@ html[data-a11y-contrast="high"] .tl-btn svg { opacity: 1; }
 /* The property filter, while it hides keyframes, says so by its pressed state. */
 .tl-kf-filter.is-active {
   background: var(--ui-color-selection-surface);
-  color: var(--ui-color-action-primary);
+  color: var(--ui-color-text-accent);
 }
 .tl-kf-filter.is-active svg { opacity: 1; }
 .tl-kf-filter-menu .tl-kf-filter-all { border-bottom: 1px solid var(--ui-color-border-default); }
@@ -1417,7 +1417,7 @@ html[data-a11y-contrast="high"] .tl-btn svg { opacity: 1; }
 }
 .tl-seam.is-fade {
   border-color: var(--ui-color-action-primary);
-  color: var(--ui-color-action-primary);
+  color: var(--ui-color-text-accent);
 }
 .tl-seam.is-fade::before {
   width: 10px; height: 8px; border-radius: 2px;
@@ -1905,7 +1905,7 @@ html[data-a11y-motion="reduce"] .tl-always-on { transition: none; }
 /* The cue timing's beat grid sits on the ruler's lower edge, clear of the time labels. */
 .tl-beat { position: absolute; bottom: 0; width: 1px; height: 4px; background: var(--ui-color-text-muted); opacity: .55; pointer-events: none; }
 .tl-beat--bar { height: 8px; opacity: .9; }
-.tl-cue { top: auto; bottom: 0; height: 11px; font-size: 10px; line-height: 11px; color: var(--ui-color-action-primary); }
+.tl-cue { top: auto; bottom: 0; height: 11px; font-size: 10px; line-height: 11px; color: var(--ui-color-text-accent); }
 .tl-marks-menu { position: relative; }
 .tl-mix-preview { width: min(96vw, 1000px); max-width: min(96vw, 1000px); }
 .tl-mix-preview video { display: block; max-width: 100%; max-height: 70vh; }

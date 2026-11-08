@@ -218,7 +218,7 @@ em, i, cite { font-family: var(--font-italic, var(--font-brand)); }
    render is the person's output, and an export must not change because the
    chrome around it did. */
 :where(a:any-link):not(:where(.tool-canvas, #tool-content, #tool-canvas, .pro-export-canvas, .me-scale, .me-canvas) *) {
-  color: var(--ui-color-action-primary);
+  color: var(--ui-color-text-accent);
   text-decoration-thickness: 1px;
   text-underline-offset: .22em;
   text-decoration-color: color-mix(in srgb, currentColor 45%, transparent);

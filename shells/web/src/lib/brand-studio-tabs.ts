@@ -922,7 +922,9 @@ export function mountTokensPanel(mount: HTMLElement, ctx: StudioTabCtx): StudioP
               ${tokens.map(tok => {
                 const key = uiPath(tok.path);
                 const own = owned.get(key) ?? null;
-                const kind = UI_KIND[tok.type];
+                // A derived role (the accent for words) is made from another, per
+                // theme, so it shows its value and offers no editor of its own.
+                const kind = tok.derived ? undefined : UI_KIND[tok.type];
                 const current = uiCurrent(tok, own);
                 const textValue = uiValueText(current);
                 const editing = openUiEditor === key;
@@ -1057,7 +1059,7 @@ export function mountTokensPanel(mount: HTMLElement, ctx: StudioTabCtx): StudioP
     e.preventDefault();
     const token = UI_STARTER_TOKENS.find(item => uiPath(item.path) === form.dataset.uiEdit);
     const input = form.querySelector<HTMLInputElement | HTMLTextAreaElement>('[data-ui-value]');
-    const kind = token ? UI_KIND[token.type] : undefined;
+    const kind = token && !token.derived ? UI_KIND[token.type] : undefined;
     if (!token || !input) return;
     let value: unknown;
     let usable = !!kind;

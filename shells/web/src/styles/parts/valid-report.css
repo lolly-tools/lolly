@@ -88,7 +88,7 @@
   .valid-preview-unavailable svg { width: 2.5rem; height: 2.5rem; }
   .valid-preview.is-audio audio { min-width: 0; width: 100%; }
   .valid-audio-art { display: grid; place-items: center; padding: var(--ui-space-page); }
-  .valid-audio-art svg { width: 4rem; height: 4rem; color: var(--ui-color-action-primary); }
+  .valid-audio-art svg { width: 4rem; height: 4rem; color: var(--ui-color-text-accent); }
   .valid-preview.is-text { max-height: none; }
   .valid-preview-text { max-height: 22rem; width: 100%; box-sizing: border-box; overflow: auto; margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
   .valid-preview-dialog { width: min(96vw, 80rem); max-width: none; max-height: 95dvh; padding: var(--ui-space-panel); overflow: auto; }
@@ -179,7 +179,7 @@
 @layer views {
   /* Export dimensions are fixed; brand spacing and shape dress the report. */
   .valid-report-export { position: fixed; left: -12000px; top: 0; width: 880px; padding: calc(var(--ui-space-page) * 1.5); background: var(--ui-color-surface-raised); color: var(--ui-color-text-default); font-family: var(--ui-type-ui-family); border: 1px solid var(--ui-color-border-default); border-radius: var(--ui-radius-card); }
-  .valid-report-export-kicker { font-size: 13px; letter-spacing: .08em; text-transform: uppercase; color: var(--ui-color-action-primary); }
+  .valid-report-export-kicker { font-size: 13px; letter-spacing: .08em; text-transform: uppercase; color: var(--ui-color-text-accent); }
   .valid-report-export-title { font-size: 26px; font-weight: 700; margin: var(--ui-space-control-inline) 0 var(--sp-1); overflow-wrap: anywhere; }
   .valid-report-export-verdict { font-size: 16px; margin: 0 0 var(--ui-space-panel); color: var(--ui-color-text-muted); }
   .valid-report-export-row { display: flex; align-items: center; gap: var(--ui-space-control-inline); margin: var(--ui-space-control-block) 0; font-size: 15px; }

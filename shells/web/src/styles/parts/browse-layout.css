@@ -226,7 +226,7 @@
   background: none;
   font: inherit;
   font-weight: 600;
-  color: var(--ui-color-action-primary);
+  color: var(--ui-color-text-accent);
   text-align: start;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -302,7 +302,7 @@
 }
 .tool-masonry:is([data-browse-layout="card"],[data-browse-layout="list"]) .gtile-new-icon svg { width: var(--ui-size-icon-md); height: var(--ui-size-icon-md); }
 .tool-masonry:is([data-browse-layout="card"],[data-browse-layout="list"]) .gtile:is(:hover, :focus-within) .gtile-new-icon,
-.tool-masonry:is([data-browse-layout="card"],[data-browse-layout="list"]) .gtile-new-icon:focus-visible { opacity: 1; color: var(--ui-color-action-primary); }
+.tool-masonry:is([data-browse-layout="card"],[data-browse-layout="list"]) .gtile-new-icon:focus-visible { opacity: 1; color: var(--ui-color-text-accent); }
 .tool-masonry:is([data-browse-layout="card"],[data-browse-layout="list"]) .gtile-new-icon:hover { background: var(--ui-color-selection-surface); }
 .tool-masonry:is([data-browse-layout="card"],[data-browse-layout="list"]) .gtile-new-icon:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 2px; }
 @media (hover: none) {
@@ -310,7 +310,7 @@
     width: var(--ui-size-target);
     height: var(--ui-size-target);
     opacity: 1;
-    color: var(--ui-color-action-primary);
+    color: var(--ui-color-text-accent);
   }
 }
 
