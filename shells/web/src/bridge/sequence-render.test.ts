@@ -633,4 +633,5 @@ test('filmDrawTimes: the frames the compositor draws a layer in, and none for on
     'keyframed to no opacity throughout: on screen, never drawn');
   assert.equal(filmDrawTimes([demandLayer({ startMs: 900, durMs: 500 })], grid, 1000).has(0), false, 'after the last sample');
   assert.equal(filmDrawTimes([demandLayer({ kind: 'audio' })], grid, 1000).has(0), false, 'a sound has no picture');
+  assert.equal(filmDrawTimes([demandLayer({ clipPath: 'circle(0px)' })], grid, 1000).has(0), false, 'a clip that encloses nothing draws nothing');
 });

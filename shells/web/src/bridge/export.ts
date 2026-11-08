@@ -4401,7 +4401,7 @@ async function renderZip(node: Element, opts: ExportOpts): Promise<Blob> {
   const members: Array<{ name: string; bytes: Uint8Array }> = [];
   if (opts.portableDocument) {
     const { renderPresentationKit } = await import('./export-presentation-kit.ts');
-    const kit = await renderPresentationKit(node, memberOpts, renderFormat, renderPreparedFormat);
+    const kit = await renderPresentationKit(node, memberOpts, (n, f, o) => renderFormat(n, f, memberIngredientOpts(o)), (n, f, o) => renderPreparedFormat(n, f, memberIngredientOpts(o)));
     if (kit) return packZip(kit, opts);
   }
   for (const f of (opts.bundleFormats ?? []).filter(x => x !== 'zip')) {

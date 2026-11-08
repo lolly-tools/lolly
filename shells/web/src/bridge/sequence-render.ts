@@ -887,8 +887,8 @@ export function slideBoxesNeverShown(stageEl: HTMLElement, L: SeqLayer, timesMs:
 
 /**
  * The samples at which the compositor draws each layer's plate, by layer index: the
- * plan's items with some alpha and some area, the same skips the executors make before
- * a draw. A layer the plan never draws has no entry.
+ * plan's items with some alpha, some area and a clip that encloses something, the same
+ * skips the executors make before a draw. A layer the plan never draws has no entry.
  */
 export function filmDrawTimes(layers: SeqLayer[], sampleGrid: readonly number[], totalMs: number, env?: SeqPlanEnv | null): Map<number, number[]> {
   const drawnAt = new Map<number, number[]>();
@@ -898,6 +898,7 @@ export function filmDrawTimes(layers: SeqLayer[], sampleGrid: readonly number[],
       const bw = item.sized ? item.w : (Number.isFinite(item.w) && item.w > 0 ? item.w : L.rect.w);
       const bh = item.sized ? item.h : (Number.isFinite(item.h) && item.h > 0 ? item.h : L.rect.h);
       if (L.kind === 'audio' || L.kind === 'camera' || item.alpha <= 0 || bw <= 0 || bh <= 0) continue;
+      if (L.clipPath && parseClipShape(L.clipPath, bw, bh)?.kind === 'empty') continue;
       const times = drawnAt.get(L.idx);
       if (times) times.push(t);
       else drawnAt.set(L.idx, [t]);

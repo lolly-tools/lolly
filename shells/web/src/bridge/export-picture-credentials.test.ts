@@ -186,4 +186,6 @@ test('each member of a bundle keeps its own record, so one member\'s pictures ne
   const { readFileSync } = await import('node:fs');
   const exp = readFileSync(new URL('./export.ts', import.meta.url), 'utf8');
   assert.match(exp, /renderFormat\(node, f, memberIngredientOpts\(memberOpts\)\)/, 'the ZIP renders each member with its own record');
+  assert.match(exp, /renderPresentationKit\(node, memberOpts, \(n, f, o\) => renderFormat\(n, f, memberIngredientOpts\(o\)\), \(n, f, o\) => renderPreparedFormat\(n, f, memberIngredientOpts\(o\)\)\)/,
+    'and so does a presentation kit, member by member');
 });
