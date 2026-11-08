@@ -37,6 +37,7 @@
     "lolly/demo/sample-"
   ],
   "excludeAssetFamilies": [
+    "lolly/tunes/",
     "lolly/loops/",
     "lolly/songs/",
     "lolly/modules/",
