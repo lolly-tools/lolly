@@ -203,14 +203,18 @@ test('Tools Card: search still hides tools, Compact is shorter, RTL mirrors the 
     await page.locator('#filter-popover [data-density-mode="compact"]').click();
     assert.equal(await page.locator('.tool-masonry').getAttribute('data-browse-density'), 'compact');
     assert.ok(await cardHeight() < comfortable, 'Compact cards are shorter');
-    // Compact puts both detail lines on one; the description gives way, never the
-    // status badge ("Experimental" is what says exports carry a watermark).
-    const badges = await page.locator('.tool-masonry .gtile:not(.is-filtered)[data-tool-id] .gtile-meta > .gtile-status').evaluateAll(els => els.map((el) => {
+    // The detail line leads with the status badge; the description gives way, never the
+    // badge ("Experimental" is what says exports carry a watermark). "Community" alone is
+    // left to Grid's picture and the About dialog, so a row spends the line on the text.
+    const statuses = page.locator('.tool-masonry .gtile:not(.is-filtered)[data-tool-id] .gtile-meta > .gtile-status');
+    const badges = await statuses.evaluateAll(els => els.filter(el => el.getClientRects().length > 0).map((el) => {
       const meta = el.parentElement!.getBoundingClientRect(), b = el.querySelector('.badge')!.getBoundingClientRect();
       return b.width > 0 && b.left >= meta.left - 1 && b.right <= meta.right + 1 && el.scrollWidth <= el.clientWidth + 1;
     }));
     assert.ok(badges.length > 0, 'some tool carries a status');
     assert.deepEqual([...new Set(badges)], [true], 'every status badge shows whole in Compact');
+    const community = await statuses.evaluateAll(els => els.filter(el => el.querySelector(':scope > .badge-community:only-child')).map(el => el.getClientRects().length));
+    assert.deepEqual([...new Set(community)].filter(n => n > 0), [], 'a row draws no "Community" badge');
     await page.locator('#filter-popover [data-density-mode="comfortable"]').click();
     await page.keyboard.press('Escape');
 
