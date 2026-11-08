@@ -11339,7 +11339,7 @@
       "id": "sign",
       "name": "Sign",
       "description": "Place your signature on a PDF, optionally add a Content Credential and lock the result.",
-      "version": "1.0.2",
+      "version": "1.1.0",
       "status": "official",
       "category": "utility",
       "privacy": "on-device",

@@ -6,6 +6,10 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+## 1.340.0
+
+- `host.pdf.stamp` takes vector marks: `PdfStampOpts.paths` (SDK, optional, new `PdfStampPath`: `page`, `x`, `y`, `d`, `color`). `d` is SVG path data read y-down from the mark's origin at `x`, `y` in top-left PDF points, one unit a point, which is what `host.text.toPath` returns for a run shaped at that size, so a tool can stamp words in the design system's face as outlines where `texts` sets them in a standard PDF face. The shared stamp (`packages/node-shell/src/pdf.ts`, web and CLI) parses each path itself (`parseStampPath`: M, L, H, V, C, Q and Z, finite numbers rounded to a ten-thousandth of a point, whole argument groups, at most 20,000 commands; a quadratic becomes the cubic with the same shape) and refuses anything else with "a stamped path must be SVG path data". A host that predates `paths` ignores them, and its `stamps` count comes back short, so a tool can stamp `texts` instead. Sign 1.1.0 uses it for "Add today's date".
+
 ## 1.336.0
 
 - The approval record (`tools.lolly.approval`) gains its second closed shape, for one template version's variants (Lolly Work plans/82 M7, decision 5, approved by Andy on 2026-11-07): `{ version: 1, approvalId, decidedAt, covers: 'template', templateId, templateVersion, exampleSha256 }`. It holds no `reviewedSha256`, so the example's digest is never read as this file's. `C2paApprovalRecord` is now the union of `C2paFileApprovalRecord` (unchanged) and `C2paTemplateApprovalRecord`, and `isTemplateApproval` says which one a record is.
