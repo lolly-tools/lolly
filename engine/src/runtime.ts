@@ -622,6 +622,21 @@ export interface Runtime {
 // help here; JPEG has no alpha at all.
 const ALPHA_EXPORT_FORMATS = new Set(['jxl', 'jxl-lossless', 'png', 'webp', 'avif', 'apng', 'webp-anim', 'gif']);
 
+/** A `data:` URL's body that is not base64, as bytes: each `%XX` is one byte, any other
+ *  character its UTF-8 bytes (WHATWG percent-decode), so a binary picture survives. */
+function percentDecodedBytes(body: string): Uint8Array {
+  const out: number[] = [];
+  const enc = new TextEncoder();
+  for (let i = 0; i < body.length; i++) {
+    const hex = body[i] === '%' ? body.slice(i + 1, i + 3) : '';
+    if (/^[0-9a-fA-F]{2}$/.test(hex)) { out.push(parseInt(hex, 16)); i += 2; continue; }
+    const cp = body.codePointAt(i)!;
+    if (cp > 0xffff) i++;
+    out.push(...enc.encode(String.fromCodePoint(cp)));
+  }
+  return Uint8Array.from(out);
+}
+
 export async function createRuntime(
   tool: LoadedTool,
   host: HostV1,
@@ -2335,7 +2350,12 @@ export async function createRuntime(
       // picture's credential is the export's parent (`parentOf`, opened first), and the
       // tool's own action takes the place of `c2pa.created`. Only a credentialed picture
       // becomes the parent; a picture without a credential changes nothing and adds no ingredient.
-      const renditionOf = tool.manifest.renditionOf;
+      // The picture is the source only while nothing replaced it: no live camera frame or
+      // recording took its place, and no input the manifest lists in `unlessSet` holds anything.
+      const holds = (v: unknown): boolean => (Array.isArray(v) ? v.length > 0 : v !== undefined && v !== null && v !== '' && v !== false);
+      const renditionOf = tool.manifest.renditionOf && !liveCameraShown && !recordedCamera && !recordedScreen
+        && !(tool.manifest.renditionOf.unlessSet ?? []).some((id) => holds(model.find((input) => input.id === id)?.value))
+        ? tool.manifest.renditionOf : undefined;
       let parentKey: string | undefined;
       let c2paRendition: { action: RenditionAction } | undefined;
       if (!isOnDevice && meta !== undefined && host.assets?.credential) {
@@ -2371,7 +2391,10 @@ export async function createRuntime(
             if (ing && parent) c2paRendition = { action: renditionOf.action };
           } catch { /* unreadable credential - skip, don't fail the export */ }
         }
-        if (prepared.length) ingredients = prepared;
+        // One manifest is one ingredient: a picture that is the parent is not also placed.
+        const parentLabel = prepared.find((i) => i.relationship === 'parentOf')?.activeLabel;
+        const kept = prepared.filter((i) => i.relationship === 'parentOf' || i.activeLabel !== parentLabel);
+        if (kept.length) ingredients = kept;
       }
       // A rendition's picture given as a `data:` URL (a share link, the CLI, an agent) is
       // no stored asset, so its credential is read from the bytes themselves.
@@ -2383,11 +2406,12 @@ export async function createRuntime(
             const { extractC2paStore, prepareC2paIngredientFromStore } = await import('./c2pa-verify.ts');
             const comma = url.indexOf(',');
             const body = url.slice(comma + 1);
-            const bytes = /;base64$/i.test(url.slice(0, comma)) ? base64ToBytes(body) : new TextEncoder().encode(decodeURIComponent(body));
+            const bytes = /;base64$/i.test(url.slice(0, comma)) ? base64ToBytes(body) : percentDecodedBytes(body);
             const found = extractC2paStore(bytes);
             const ing = found ? prepareC2paIngredientFromStore(found.store, found.format) : null;
             if (ing) {
-              ingredients = [...(ingredients ?? []), { ...ing, relationship: 'parentOf' }];
+              const others = (ingredients ?? []).filter((i) => !('activeLabel' in i) || i.activeLabel !== ing.activeLabel);
+              ingredients = [{ ...ing, relationship: 'parentOf' }, ...others];
               c2paRendition = { action: renditionOf.action };
             }
           } catch { /* a picture with no readable credential is no parent */ }

@@ -156,17 +156,19 @@ test('two placed credentialed pictures are components, and the credential they m
 // component, after a created step that said the file was made from scratch.
 function renditionTool(action = 'c2pa.color_adjustments'): any {
   const tool = assetTool();
-  tool.manifest.inputs = [{ id: 'image', type: 'asset' }, { id: 'badge', type: 'asset' }];
-  tool.manifest.renditionOf = { input: 'image', action };
+  tool.manifest.inputs = [{ id: 'image', type: 'asset' }, { id: 'badge', type: 'asset' }, { id: 'layers', type: 'blocks', fields: [{ id: 'img', type: 'asset' }], default: [] }];
+  tool.manifest.renditionOf = { input: 'image', action, unlessSet: ['layers'] };
   return tool;
 }
 
 test('a rendition records its credentialed picture as the parent, and every other picture as a component', async () => {
-  const store = await credentialStore('Harbour photo', CAPTURE_SOURCE_TYPE);
-  const { host, rendered } = makeHost('user', store, []);
+  const photo = await credentialStore('Harbour photo', CAPTURE_SOURCE_TYPE);
+  const badge = await credentialStore('Badge');
+  const { host, rendered } = makeHost('user', photo, []);
+  host.assets.credential = async (id: string) => ({ store: id === 'user/badge' ? badge : photo, format: 'svg' });
   const rt = await createRuntime(renditionTool(), host, { image: { id: 'user/photo' }, badge: { id: 'user/badge' } });
   await rt.export({} as any, 'png', {});
-  assert.deepEqual(rendered[0].ingredients.map((i: any) => i.relationship), ['parentOf', 'componentOf']);
+  assert.deepEqual(rendered[0].ingredients.map((i: any) => `${i.title}/${i.relationship}`), ['Harbour photo/parentOf', 'Badge/componentOf']);
   assert.deepEqual(rendered[0].c2paRendition, { action: 'c2pa.color_adjustments' });
 });
 
@@ -214,6 +216,7 @@ test('a rendition credential opens its parent, names what was done, and verifies
   const own = steps.slice(steps.indexOf('c2pa.opened'));
   assert.deepEqual(own, ['c2pa.opened', 'c2pa.color_adjustments', 'c2pa.converted'], 'the parent opened, what the tool did to it, then the render');
   assert.equal(report.history?.[0]?.digitalSourceType, CAPTURE_SOURCE_TYPE, 'the parent keeps its own camera origin in the chain');
+  assert.equal(report.madeWithLolly, true, 'a rendition Lolly made reads as made with Lolly, not as parts of it');
   const { renditionFromSteps } = await import('../engine/src/c2pa.ts');
   assert.deepEqual(renditionFromSteps(report.history!.slice(steps.indexOf('c2pa.opened'))), { action: 'c2pa.color_adjustments' }, 'and a replacing shell reads the same step back');
 });
@@ -224,4 +227,33 @@ test('the engine refuses a renditionOf that names no top-level asset input, as t
   assert.equal(validateManifest(tool.manifest).valid, true);
   const wrong = { ...tool.manifest, renditionOf: { input: 'caption', action: 'c2pa.filtered' } };
   assert.deepEqual(validateManifest(wrong).errors.map((e) => e.path), ['/renditionOf/input']);
+});
+
+test('a rendition is not recorded while another input replaces the picture, and one manifest is one ingredient', async () => {
+  const store = await credentialStore('Harbour photo', CAPTURE_SOURCE_TYPE);
+  const layered = makeHost('user', store, []);
+  const rt = await createRuntime(renditionTool(), layered.host, { image: { id: 'user/photo' }, layers: [{ img: { id: 'user/layer' } }] });
+  await rt.export({} as any, 'png', {});
+  assert.equal(layered.rendered[0].c2paRendition, undefined, 'a layer stack took the photo\'s place');
+  assert.ok(layered.rendered[0].ingredients.every((i: any) => i.relationship === 'componentOf'));
+
+  // The same signed picture under two ids is the parent once, not also a component.
+  const twice = makeHost('user', store, []);
+  const rt2 = await createRuntime(renditionTool(), twice.host, { image: { id: 'user/photo' }, badge: { id: 'user/photo-copy' } });
+  await rt2.export({} as any, 'png', {});
+  assert.deepEqual(twice.rendered[0].ingredients.map((i: any) => i.relationship), ['parentOf']);
+});
+
+test('a percent-encoded binary data: picture is read byte for byte', async () => {
+  const png = (await import('../engine/src/png.ts')).packPng(new Uint8Array(4 * 4 * 4).fill(120), { width: 4, height: 4 });
+  const signed = await embedC2pa(png, 'png', { title: 'Binary photo' });
+  const url = `data:image/png,${Array.from(signed, (b) => `%${b.toString(16).padStart(2, '0')}`).join('')}`;
+  const seen: any[] = [];
+  const host: any = { ...makeHost('remote', null, []).host };
+  host.assets = { get: async (id: string) => ({ id, source: 'remote', type: 'raster', format: 'png', url }), credential: async () => null };
+  host.export = { render: async (_n: unknown, _f: string, opts: any) => { seen.push(opts); return {}; } };
+  const rt = await createRuntime(renditionTool(), host, { image: { id: 'linked', source: 'remote', type: 'raster', format: 'png', url } });
+  await rt.export({} as any, 'png', {});
+  assert.equal(seen[0].ingredients?.[0]?.title, 'Binary photo');
+  assert.equal(seen[0].ingredients?.[0]?.relationship, 'parentOf');
 });

@@ -1364,6 +1364,12 @@ var init_tool_schema = __esm({
               type: "string",
               enum: ["c2pa.color_adjustments", "c2pa.filtered", "c2pa.converted", "c2pa.resized", "c2pa.cropped", "c2pa.edited"],
               description: "What the tool did to that picture, written where a new file writes c2pa.created."
+            },
+            unlessSet: {
+              type: "array",
+              uniqueItems: true,
+              items: { type: "string", pattern: "^[a-zA-Z][a-zA-Z0-9_]*$" },
+              description: "Ids of inputs that replace the picture as the source while they hold anything (a non-empty list, a chosen asset, a non-empty value). While one does, the export is not recorded as a rendition."
             }
           },
           description: "The output is a rendition of one picture the person gives the tool. When that picture carries Content Credentials of its own, a stamped export records it as the parentOf ingredient, opened first, followed by this action (C2PA 2.2 section 18.15.3). A picture with no credential changes nothing."
@@ -4368,8 +4374,17 @@ var init_canvas_op_schema = __esm({
 import Ajv2 from "ajv/dist/2020.js";
 function renditionOfErrors(manifest) {
   const rendition = manifest.renditionOf;
-  if (!rendition || manifest.inputs?.some((input) => input.id === rendition.input && input.type === "asset")) return [];
-  return [{ path: "/renditionOf/input", message: "must name a declared top-level asset input" }];
+  if (!rendition) return [];
+  const issues = [];
+  if (!manifest.inputs?.some((input) => input.id === rendition.input && input.type === "asset")) {
+    issues.push({ path: "/renditionOf/input", message: "must name a declared top-level asset input" });
+  }
+  for (const [i, id3] of (rendition.unlessSet ?? []).entries()) {
+    if (id3 === rendition.input || !manifest.inputs?.some((input) => input.id === id3)) {
+      issues.push({ path: `/renditionOf/unlessSet/${i}`, message: "must name another declared input" });
+    }
+  }
+  return issues;
 }
 var ajv2, validate, validateOp;
 var init_validate = __esm({
@@ -5726,6 +5741,12 @@ var init_tool_schema2 = __esm({
               type: "string",
               enum: ["c2pa.color_adjustments", "c2pa.filtered", "c2pa.converted", "c2pa.resized", "c2pa.cropped", "c2pa.edited"],
               description: "What the tool did to that picture, written where a new file writes c2pa.created."
+            },
+            unlessSet: {
+              type: "array",
+              uniqueItems: true,
+              items: { type: "string", pattern: "^[a-zA-Z][a-zA-Z0-9_]*$" },
+              description: "Ids of inputs that replace the picture as the source while they hold anything (a non-empty list, a chosen asset, a non-empty value). While one does, the export is not recorded as a rendition."
             }
           },
           description: "The output is a rendition of one picture the person gives the tool. When that picture carries Content Credentials of its own, a stamped export records it as the parentOf ingredient, opened first, followed by this action (C2PA 2.2 section 18.15.3). A picture with no credential changes nothing."
@@ -57399,7 +57420,7 @@ async function verifyC2pa(bytes2, { trustAnchors, externalManifest, enrollmentTr
     }
   }
   const acts = report4.claim.actions || [];
-  const created = acts.some((a) => a.action === "c2pa.created");
+  const created = acts.some((a) => a.action === "c2pa.created") || renditionFromSteps(acts) !== void 0;
   const names = [report4.claim.claimGenerator, report4.claim.generatorInfo?.name].filter(Boolean).join(" ");
   const claimsLolly = created && /\blolly\b/i.test(names);
   report4.madeWithLolly = report4.state === "valid" && claimsLolly;
@@ -58276,6 +58297,22 @@ var init_brand_treatments = __esm({
 });
 
 // engine/src/runtime.ts
+function percentDecodedBytes(body) {
+  const out = [];
+  const enc6 = new TextEncoder();
+  for (let i = 0; i < body.length; i++) {
+    const hex4 = body[i] === "%" ? body.slice(i + 1, i + 3) : "";
+    if (/^[0-9a-fA-F]{2}$/.test(hex4)) {
+      out.push(parseInt(hex4, 16));
+      i += 2;
+      continue;
+    }
+    const cp = body.codePointAt(i);
+    if (cp > 65535) i++;
+    out.push(...enc6.encode(String.fromCodePoint(cp)));
+  }
+  return Uint8Array.from(out);
+}
 async function createRuntime(tool, host, initialState = {}, opts = {}) {
   let tokenSelection = opts.tokenSelection ?? parseTokenSelection(initialState.__tokenSelection ? JSON.stringify(initialState.__tokenSelection) : null);
   const unscopedHost = host;
@@ -59617,7 +59654,8 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
       lastExportMeta = meta ? structuredClone(meta) : null;
       const dataExtra = buildDataPayload(tool, format, model2, getHydratedText);
       let ingredients;
-      const renditionOf = tool.manifest.renditionOf;
+      const holds4 = (v) => Array.isArray(v) ? v.length > 0 : v !== void 0 && v !== null && v !== "" && v !== false;
+      const renditionOf = tool.manifest.renditionOf && !liveCameraShown && !recordedCamera && !recordedScreen && !(tool.manifest.renditionOf.unlessSet ?? []).some((id3) => holds4(model2.find((input) => input.id === id3)?.value)) ? tool.manifest.renditionOf : void 0;
       let parentKey;
       let c2paRendition;
       if (!isOnDevice && meta !== void 0 && host.assets?.credential) {
@@ -59652,7 +59690,9 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
           } catch {
           }
         }
-        if (prepared3.length) ingredients = prepared3;
+        const parentLabel = prepared3.find((i) => i.relationship === "parentOf")?.activeLabel;
+        const kept2 = prepared3.filter((i) => i.relationship === "parentOf" || i.activeLabel !== parentLabel);
+        if (kept2.length) ingredients = kept2;
       }
       if (renditionOf && !c2paRendition && !isOnDevice && meta !== void 0) {
         const value2 = model2.find((input) => input.id === renditionOf.input && input.type === "asset")?.value;
@@ -59662,11 +59702,12 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
             const { extractC2paStore: extractC2paStore2, prepareC2paIngredientFromStore: prepareC2paIngredientFromStore2 } = await Promise.resolve().then(() => (init_c2pa_verify(), c2pa_verify_exports));
             const comma = url.indexOf(",");
             const body = url.slice(comma + 1);
-            const bytes2 = /;base64$/i.test(url.slice(0, comma)) ? base64ToBytes(body) : new TextEncoder().encode(decodeURIComponent(body));
+            const bytes2 = /;base64$/i.test(url.slice(0, comma)) ? base64ToBytes(body) : percentDecodedBytes(body);
             const found = extractC2paStore2(bytes2);
             const ing = found ? prepareC2paIngredientFromStore2(found.store, found.format) : null;
             if (ing) {
-              ingredients = [...ingredients ?? [], { ...ing, relationship: "parentOf" }];
+              const others = (ingredients ?? []).filter((i) => !("activeLabel" in i) || i.activeLabel !== ing.activeLabel);
+              ingredients = [{ ...ing, relationship: "parentOf" }, ...others];
               c2paRendition = { action: renditionOf.action };
             }
           } catch {

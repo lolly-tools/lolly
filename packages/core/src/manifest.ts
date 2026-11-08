@@ -368,6 +368,10 @@ export interface RenditionOf {
   /** The id of a top-level `asset` input. */
   input: string;
   action: RenditionAction;
+  /** Inputs that replace the picture as the source while they hold anything (Darkroom's
+   *  layer stack). While one does, the export is not recorded as a rendition. A live
+   *  camera frame or a recording replaces the picture too, without being listed. */
+  unlessSet?: string[];
 }
 
 export interface ToolManifest {

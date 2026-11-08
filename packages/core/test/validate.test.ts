@@ -57,4 +57,7 @@ test('renditionOf names a top-level asset input and one of the rendition actions
   assert.deepEqual(notAsset.errors.map((e) => e.path), ['/renditionOf/input']);
   assert.equal(validateTool({ ...base, renditionOf: { input: 'missing', action: 'c2pa.filtered' } }).valid, false);
   assert.equal(validateTool({ ...base, renditionOf: { input: 'image', action: 'c2pa.created' } }).valid, false, 'a rendition is never a new file');
+  assert.equal(validateTool({ ...base, renditionOf: { input: 'image', action: 'c2pa.filtered', unlessSet: ['caption'] } }).valid, true);
+  assert.deepEqual(validateTool({ ...base, renditionOf: { input: 'image', action: 'c2pa.filtered', unlessSet: ['nope', 'image'] } }).errors.map((e) => e.path),
+    ['/renditionOf/unlessSet/0', '/renditionOf/unlessSet/1'], 'another declared input, not the picture itself');
 });

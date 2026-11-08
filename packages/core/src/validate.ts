@@ -43,10 +43,19 @@ const validateOp = ajv.compile(canvasOpSchema);
  * A rendition's parent is one picture, so `renditionOf.input` has to name a declared
  * top-level `asset` input. The schema checks the shape; this checks the reference.
  */
-export function renditionOfErrors(manifest: { renditionOf?: { input: string }; inputs?: { id: string; type: string }[] }): ValidationIssue[] {
+export function renditionOfErrors(manifest: { renditionOf?: { input: string; unlessSet?: string[] }; inputs?: { id: string; type: string }[] }): ValidationIssue[] {
   const rendition = manifest.renditionOf;
-  if (!rendition || manifest.inputs?.some((input) => input.id === rendition.input && input.type === 'asset')) return [];
-  return [{ path: '/renditionOf/input', message: 'must name a declared top-level asset input' }];
+  if (!rendition) return [];
+  const issues: ValidationIssue[] = [];
+  if (!manifest.inputs?.some((input) => input.id === rendition.input && input.type === 'asset')) {
+    issues.push({ path: '/renditionOf/input', message: 'must name a declared top-level asset input' });
+  }
+  for (const [i, id] of (rendition.unlessSet ?? []).entries()) {
+    if (id === rendition.input || !manifest.inputs?.some((input) => input.id === id)) {
+      issues.push({ path: `/renditionOf/unlessSet/${i}`, message: 'must name another declared input' });
+    }
+  }
+  return issues;
 }
 
 /** Validate a `tool.json` manifest object against the bundled schema. */
