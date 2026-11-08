@@ -179525,6 +179525,8 @@ var init_pdf_classic = __esm({
 // packages/node-shell/src/motion-inspect.ts
 var motion_inspect_exports = {};
 __export(motion_inspect_exports, {
+  FRAME_LOG_ARGS: () => FRAME_LOG_ARGS,
+  afterInputSummary: () => afterInputSummary,
   inspectMotionBytes: () => inspectMotionBytes
 });
 import { execFile } from "node:child_process";
@@ -179556,18 +179558,19 @@ async function inspectMotionBytes(bytes2, target2 = {}, binaries = { probe: "ffp
       return motionReport(facts2, target2, [{ id: "container", status: "not-run", reason: `ffprobe unavailable or could not read this file: ${error2.message}` }]);
     }
     if (!facts2.seconds || facts2.seconds > 3600) return motionReport(facts2, target2, [{ id: "decoded-analysis", status: "not-run", reason: "Decoding requires a known duration of at most one hour." }]);
-    const args = ["-hide_banner", "-nostdin", ...options2.strict ? ["-xerror", "-err_detect", "explode", "-abort_on", "empty_output_stream"] : [], "-protocol_whitelist", "file,pipe", "-i", path];
+    const args = ["-hide_banner", "-nostdin", "-nostats", ...options2.strict ? ["-xerror", "-err_detect", "explode", "-abort_on", "empty_output_stream"] : [], "-protocol_whitelist", "file,pipe", "-i", path, ...FRAME_LOG_ARGS];
     if (facts2.width) args.push("-vf", "blackdetect=d=0.5:pix_th=0.03,freezedetect=n=-50dB:d=1");
     if (facts2.audio) args.push("-af", `${options2.strict ? "ashowinfo," : ""}ebur128=peak=true,silencedetect=n=-50dB:d=1`);
     args.push("-f", "null", "-");
     try {
-      const { stderr } = await run(binaries.decode, args, { signal: options2.signal, timeout: options2.timeoutMs ?? 3e5, maxBuffer: 16 * 1024 * 1024 });
+      const { stderr: whole } = await run(binaries.decode, args, { signal: options2.signal, timeout: options2.timeoutMs ?? 3e5, maxBuffer: 16 * 1024 * 1024 });
+      const stderr = afterInputSummary(whole);
       if (facts2.audio) {
         facts2.loudness = measurement(stderr, /Integrated loudness:\s+I:\s+([-\w.]+)/g);
         facts2.truePeak = measurement(stderr, /True peak:\s+Peak:\s+([-\w.]+)/g);
       }
       if (options2.strict && facts2.audio) {
-        const audioFrames = [...stderr.matchAll(/\[Parsed_ashowinfo_[^\]]+\]\s+n:\s*(\d+)\s+pts:\s*[-\d]+\s+pts_time:([-\d.e+]+).*?rate:(\d+)\s+nb_samples:(\d+)/g)];
+        const audioFrames = [...stderr.matchAll(ASHOWINFO_FRAME)];
         let seconds3 = 0, timestampError = 0;
         const consistent = audioFrames.length > 0 && audioFrames.every((frame, index2) => {
           const time2 = Number(frame[2]), rate3 = Number(frame[3]), count4 = Number(frame[4]);
@@ -179598,7 +179601,7 @@ async function inspectMotionBytes(bytes2, target2 = {}, binaries = { probe: "ffp
     await rm3(directory, { recursive: true, force: true });
   }
 }
-var run, rate, measurement;
+var run, rate, measurement, ASHOWINFO_FRAME, FRAME_LOG_ARGS, afterInputSummary;
 var init_motion_inspect = __esm({
   "packages/node-shell/src/motion-inspect.ts"() {
     "use strict";
@@ -179614,6 +179617,13 @@ var init_motion_inspect = __esm({
       if (raw === void 0) return void 0;
       const n7 = Number(raw);
       return Number.isFinite(n7) ? n7 : null;
+    };
+    ASHOWINFO_FRAME = /n:\s*(\d+)\s+pts:\s*[-\d]+\s+pts_time:([-\d.e+]+).*?rate:(\d+)\s+nb_samples:(\d+)/g;
+    FRAME_LOG_ARGS = ["-map_metadata", "-1", "-map_chapters", "-1"];
+    afterInputSummary = (log) => {
+      if (log.startsWith("Stream mapping:")) return log;
+      const at = log.indexOf("\nStream mapping:");
+      return at < 0 ? log : log.slice(at + 1);
     };
   }
 });
@@ -179680,6 +179690,7 @@ async function collectProductionMotion(bytes2, contract2, signal, binaries = { p
     const args = [
       "-hide_banner",
       "-nostdin",
+      "-nostats",
       "-xerror",
       "-err_detect",
       "explode",
@@ -179692,6 +179703,7 @@ async function collectProductionMotion(bytes2, contract2, signal, binaries = { p
       path,
       "-map",
       "0:v:0",
+      ...FRAME_LOG_ARGS,
       "-filter_threads",
       "1",
       "-vf",
@@ -179703,7 +179715,7 @@ async function collectProductionMotion(bytes2, contract2, signal, binaries = { p
     else args.push("-f", "null", "-");
     const decoded = await run2(binaries.decode, args, { signal, timeout: 6e4, maxBuffer: Math.max(8 * 1024 * 1024, indices.length * width * height * 4 + 1), encoding: "buffer" });
     const log = decoded.stderr.toString();
-    const frames = [...log.matchAll(/\[Parsed_showinfo_[^\]]+\]\s+n:\s*(\d+)\s+pts:\s*[-\d]+\s+pts_time:([-\d.e+]+).*?\bs:(\d+)x(\d+)/g)].map((m2) => ({ index: Number(m2[1]), time: Number(m2[2]), width: Number(m2[3]), height: Number(m2[4]) }));
+    const frames = [...afterInputSummary(log).matchAll(/n:\s*(\d+)\s+pts:\s*[-\d]+\s+pts_time:([-\d.e+]+).*?\bs:(\d+)x(\d+)/g)].map((m2) => ({ index: Number(m2[1]), time: Number(m2[2]), width: Number(m2[3]), height: Number(m2[4]) }));
     if (!frames.length || frames.length > 14400 || frames.length * width * height > 1e9 || frames.some((f, i) => f.index !== i || !Number.isFinite(f.time) || f.width !== width || f.height !== height || i > 0 && f.time <= frames[i - 1].time)) {
       facts2.limitations.push("decoded-frame-ledger-unavailable-or-inconsistent");
       return facts2;
