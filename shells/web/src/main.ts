@@ -2376,7 +2376,10 @@ function parseRoute(): Route {
 
 // Only register the service worker in production builds. In dev it would cache
 // /tools/ files, so a slow reload could serve a stale edit instead of the file
-// just changed on disk.
+// just changed on disk. For the same reason dev also removes a worker left on
+// this origin by a production build or a preview served on the same port:
+// otherwise that worker keeps answering the dev server's requests with the
+// files its own build cached, so the app runs code that is not on disk.
 //
 // On window.load, not at module top level (plans/155 Task 3.5): registering here
 // used to start the SW install - and with it the whole precache - while the boot
@@ -2384,13 +2387,14 @@ function parseRoute(): Route {
 // bandwidth from the paint it exists to make faster next time. Nothing about the
 // FIRST load depends on the SW being registered early.
 if ('serviceWorker' in navigator) {
-  if (isTauriShell()) {
+  if (isTauriShell() || !import.meta.env.PROD) {
     // Native bundles already serve their files offline. A persisted PWA worker
-    // can intercept the next WebView2 launch with a stale protocol handler.
+    // can intercept the next WebView2 launch with a stale protocol handler. In
+    // dev, see above.
     void navigator.serviceWorker.getRegistrations()
       .then(registrations => Promise.all(registrations.map(registration => registration.unregister())))
       .catch(() => {});
-  } else if (import.meta.env.PROD) {
+  } else {
     onWindowLoad(() => { navigator.serviceWorker.register('/sw.js').catch(() => {}); });
   }
 }
