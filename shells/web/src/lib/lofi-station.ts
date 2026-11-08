@@ -87,6 +87,13 @@ interface Lanes { keys: GainNode; bass: GainNode; lead: GainNode; drums: GainNod
 
 export class LofiStation {
   readonly ctx: BaseAudioContext;
+  /**
+   * The station at full level, before the volume control, for a visualizer to listen to
+   * and never to be heard. Butterchurn reads 8-bit samples, so a quiet feed would lose
+   * the hats and the snare's crack in rounding; this one peaks near full scale at any
+   * volume, so every band can move the picture.
+   */
+  readonly tap: GainNode;
   /** The bar now playing (live only), and a callback when it changes. */
   current: LofiBar | null = null;
   onBar: ((bar: LofiBar) => void) | null = null;
@@ -111,6 +118,7 @@ export class LofiStation {
   private readonly music: GainNode;
   private readonly reverbSend: GainNode;
   private readonly tone: BiquadFilterNode;
+  private readonly drumTone: BiquadFilterNode;
   private readonly shaper: WaveShaperNode;
   private readonly wowDepth: GainNode;
   private readonly driftDepth: GainNode;
@@ -139,6 +147,8 @@ export class LofiStation {
     comp.threshold.value = -18; comp.knee.value = 10; comp.ratio.value = 2.5;
     comp.attack.value = 0.015; comp.release.value = 0.3;
     comp.connect(this.out);
+    this.tap = ctx.createGain();
+    comp.connect(this.tap);
     this.shaper = ctx.createWaveShaper();
     this.shaper.oversample = '2x';
     this.shaper.connect(comp);
@@ -198,8 +208,15 @@ export class LofiStation {
     this.leadBus.connect(this.music);
     this.bassBus = ctx.createGain();
     this.bassBus.connect(this.music);
+    // The drums get their own tone filter, opening well above the music's, so the snare's
+    // crack and the hats stay crisp when the music is muffled: the hits are what a
+    // visualizer's treble and mid bands jump on.
     this.drumBus = ctx.createGain();
-    this.drumBus.connect(this.tone);
+    this.drumTone = ctx.createBiquadFilter();
+    this.drumTone.type = 'lowpass';
+    this.drumTone.Q.value = 0.5;
+    this.drumTone.frequency.value = drumCutoff(MOOD_TONE[settings.mood]);
+    this.drumBus.connect(this.drumTone).connect(hp);
 
     // A room: a seeded, darkening noise tail, fed from the keys and lead.
     const reverb = ctx.createConvolver();
@@ -351,6 +368,7 @@ export class LofiStation {
       if (m.bar.index === 0) this.applyStyle(m.bar.tune.style, Math.max(m.at, now));
       this.lastOpen = m.bar.open;
       this.tone.frequency.setTargetAtTime(this.cutoff(m.bar.open), Math.max(m.at, now), 0.5);
+      this.drumTone.frequency.setTargetAtTime(drumCutoff(this.cutoff(m.bar.open)), Math.max(m.at, now), 0.5);
       if (this.onBar && typeof setTimeout === 'function' && this.timer) {
         setTimeout(() => { this.current = m.bar; this.onBar?.(m.bar); }, Math.max(0, (m.at - now) * 1000));
       }
@@ -369,7 +387,10 @@ export class LofiStation {
       case 'bass': V.bass(st.bass, k, lanes.bass, t, note.midi, vel * VARIANT.bass[st.bass], len); break;
       case 'lead': V.lead(st.lead, k, lanes.lead, t, note.midi, vel * VARIANT.lead[st.lead], len); break;
       case 'kick': V.kick(k, lanes.drums, t, vel, st.kick, st.kickLen); this.duck(t, st.duck); break;
-      case 'snare': V.snare(st.snare === 'rim' ? 'snare' : st.snare, k, lanes.drums, t, vel * VARIANT.snare[st.snare], st.snareTone); break;
+      case 'snare':
+        V.snare(st.snare === 'rim' ? 'snare' : st.snare, k, lanes.drums, t, vel * VARIANT.snare[st.snare], st.snareTone);
+        if (note.vel > 0.5) this.duck(t, st.duck * 0.45);   // a backbeat, not a ghost: the music gives it a little room
+        break;
       case 'rim': V.rim(k, lanes.drums, t, vel * VARIANT.snare.rim); break;
       case 'hat': V.hat(st.hats, k, lanes.drums, t, vel * VARIANT.hats[st.hats], st.hatTone); break;
       case 'openHat': V.hat(st.hats, k, lanes.drums, t, vel * VARIANT.hats[st.hats], st.hatTone, true); break;
@@ -419,6 +440,7 @@ export class LofiStation {
     set(this.hiss.gain, (0.002 + x * 0.008) * tex);
     set(this.rain.gain, this.settings.mood === 'rainy' ? (0.05 + x * 0.02) * tex : 0);
     set(this.tone.frequency, this.cutoff(this.lastOpen));
+    set(this.drumTone.frequency, drumCutoff(this.cutoff(this.lastOpen)));
     const k = 1.05 + x * 1.3;   // gentle: warmth, never crunch
     const curve = new Float32Array(1024);
     for (let i = 0; i < curve.length; i++) {
@@ -477,6 +499,11 @@ function noiseBuffer(ctx: BaseAudioContext, seconds: number, rng: () => number):
   const d = b.getChannelData(0);
   for (let i = 0; i < d.length; i++) d[i] = rng() * 2 - 1;
   return b;
+}
+
+/** The drums' tone filter: well above the music's, never below 3 kHz, at most 14 kHz. */
+function drumCutoff(musicCutoff: number): number {
+  return Math.max(3000, Math.min(14000, musicCutoff * 1.9));
 }
 
 /** A waveshaper curve that rounds every sample to one of `levels` steps. */

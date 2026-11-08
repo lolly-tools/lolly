@@ -310,10 +310,18 @@ export function kick(k: VoiceKit, out: AudioNode, t: number, vel: number, hz: nu
   noiseAt(k, t, 0.015).connect(lp).connect(cg).connect(out);
 }
 
-/** The backbeat, by the style's kit: a snare, a brush swish or a clap, around `tone` Hz. */
+/**
+ * The backbeat, by the style's kit: a snare, a brush or a clap, around `tone` Hz. Each
+ * starts with a HIT: a few milliseconds of bright noise (the crack of the stick, the
+ * slap of the hands, the brush landing) over its body, so it reads as sharp and loud
+ * through the lofi muffle and gives a visualizer's mid and treble bands a clear jump on
+ * every backbeat.
+ */
 export function snare(style: LofiStyle['snare'], k: VoiceKit, out: AudioNode, t: number, vel: number, tone: number): void {
   const { ctx } = k;
   const brush = style === 'brush';
+  // The hit: bright noise, full level at once, gone in 20 to 30 ms.
+  crack(k, out, t, vel * (brush ? 0.32 : style === 'clap' ? 0.5 : 0.62), brush ? 2600 : 3800, brush ? 0.02 : 0.03);
   const bp = ctx.createBiquadFilter();
   bp.type = 'bandpass';
   bp.frequency.value = brush ? tone * 1.3 : style === 'clap' ? tone * 0.7 : tone;
@@ -322,31 +330,48 @@ export function snare(style: LofiStyle['snare'], k: VoiceKit, out: AudioNode, t:
   if (style === 'clap') {
     // Three hands, a few milliseconds apart, then the room.
     g.gain.setValueAtTime(EPS, t);
-    for (const [d, a] of [[0, 0.3], [0.011, 0.26], [0.023, 0.34]] as const) {
+    for (const [d, a] of [[0, 0.42], [0.011, 0.36], [0.023, 0.48]] as const) {
       g.gain.setValueAtTime(a * vel, t + d);
-      g.gain.exponentialRampToValueAtTime(0.03 * vel, t + d + 0.009);
+      g.gain.exponentialRampToValueAtTime(0.04 * vel, t + d + 0.009);
     }
     g.gain.exponentialRampToValueAtTime(EPS, t + 0.2);
     noiseAt(k, t, 0.22).connect(bp).connect(g).connect(out);
     return;
   }
-  const decay = brush ? 0.26 : 0.17;
+  // The snap (the wires): a band of noise around `tone`.
+  const decay = brush ? 0.26 : 0.18;
   g.gain.setValueAtTime(EPS, t);
-  g.gain.exponentialRampToValueAtTime((brush ? 0.2 : 0.32) * vel, t + (brush ? 0.02 : 0.002));
+  g.gain.exponentialRampToValueAtTime((brush ? 0.24 : 0.44) * vel, t + (brush ? 0.012 : 0.0015));
   g.gain.exponentialRampToValueAtTime(EPS, t + decay);
   noiseAt(k, t, decay).connect(bp).connect(g).connect(out);
   if (brush) return;
-  const body = osc(k, 'triangle', 190, t, t + 0.1);
-  body.frequency.exponentialRampToValueAtTime(160, t + 0.08);
-  const bg = ctx.createGain();
-  bg.gain.setValueAtTime(EPS, t);
-  bg.gain.exponentialRampToValueAtTime(0.2 * vel, t + 0.002);
-  bg.gain.exponentialRampToValueAtTime(EPS, t + 0.09);
-  body.connect(bg).connect(out);
+  // The body (the drum): a short tone that drops, and a ring an interval above it.
+  for (const [type, from, to, level, len] of [['triangle', 205, 165, 0.3, 0.1], ['sine', 330, 290, 0.1, 0.07]] as const) {
+    const body = osc(k, type, from, t, t + len + 0.01);
+    body.frequency.exponentialRampToValueAtTime(to, t + len * 0.8);
+    const bg = ctx.createGain();
+    bg.gain.setValueAtTime(EPS, t);
+    bg.gain.exponentialRampToValueAtTime(level * vel, t + 0.0015);
+    bg.gain.exponentialRampToValueAtTime(EPS, t + len);
+    body.connect(bg).connect(out);
+  }
+}
+
+/** A drum's hit: high-passed noise at full level at once, falling away in `len` seconds. */
+function crack(k: VoiceKit, out: AudioNode, t: number, peak: number, from: number, len: number): void {
+  const hp = k.ctx.createBiquadFilter();
+  hp.type = 'highpass';
+  hp.frequency.value = from;
+  hp.Q.value = 0.7;
+  const g = k.ctx.createGain();
+  g.gain.setValueAtTime(peak, t);
+  g.gain.exponentialRampToValueAtTime(EPS, t + len);
+  noiseAt(k, t, len).connect(hp).connect(g).connect(out);
 }
 
 export function rim(k: VoiceKit, out: AudioNode, t: number, vel: number): void {
   const { ctx } = k;
+  crack(k, out, t, vel * 0.3, 4500, 0.012);
   const o = osc(k, 'sine', 1150, t, t + 0.04);
   const g = ctx.createGain();
   g.gain.setValueAtTime(EPS, t);
