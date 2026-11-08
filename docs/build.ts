@@ -98,7 +98,7 @@ import { buildSync } from 'esbuild';
 // The app's icon registry: pure path data with no imports, so the static build can use
 // the very glyphs the app draws (plan 277: the docs reading components).
 import { icon as appIcon } from '../shells/web/src/lib/icons.ts';
-import { LIGHTBOX_ICON_NAMES } from '../shells/web/src/lib/docs-lightbox.ts';
+import { lightboxIcons } from '../shells/web/src/lib/docs-lightbox.ts';
 // The /info locale list (LOLLY_INFO_LOCALES), parsed the same way the shell reads it so
 // the pages this build writes and the shell's docs links agree.
 import { parseInfoLocales } from '../shells/web/src/lib/info-locales.ts';
@@ -2728,8 +2728,7 @@ function lightboxScript(): string {
     _lightboxJs = out.outputFiles[0]!.text.trim();
   }
   // The glyphs come from the app's own registry at build time, once for every page.
-  const icons = JSON.stringify(Object.fromEntries(Object.entries(LIGHTBOX_ICON_NAMES).map(([k, name]) => [k, appIcon(name)])))
-    .replace(/</g, '\\u003c');
+  const icons = JSON.stringify(lightboxIcons((name) => appIcon(name))).replace(/</g, '\\u003c');
   return `<script>\n${_lightboxJs}\n(function(){var root=document.querySelector('main.docs-content');if(!root)return;`
     + `var l=null;try{l=JSON.parse(root.getAttribute('data-lightbox')||'null')}catch(e){}if(!l)return;`
     + `var lang=document.documentElement.lang||undefined;function num(n){try{return Number(n).toLocaleString(lang)}catch(e){return String(n)}}`

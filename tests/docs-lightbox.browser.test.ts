@@ -32,7 +32,7 @@ import { fileURLToPath } from 'node:url';
 import { buildSync } from 'esbuild';
 import type { Browser, BrowserContext, BrowserType, Page } from 'playwright';
 import { icon } from '../shells/web/src/lib/icons.ts';
-import { LIGHTBOX_ICON_NAMES } from '../shells/web/src/lib/docs-lightbox.ts';
+import { lightboxIcons } from '../shells/web/src/lib/docs-lightbox.ts';
 
 const REPO = fileURLToPath(new URL('..', import.meta.url));
 
@@ -57,7 +57,7 @@ const LIGHTBOX_JS = buildSync({
   bundle: true, write: false, format: 'iife', globalName: 'LollyDocsLightbox',
   platform: 'browser', target: 'es2019', logLevel: 'silent',
 }).outputFiles[0]!.text;
-const ICONS = JSON.stringify(Object.fromEntries(Object.entries(LIGHTBOX_ICON_NAMES).map(([k, name]) => [k, icon(name)]))).replace(/</g, '\\u003c');
+const ICONS = JSON.stringify(lightboxIcons((name) => icon(name))).replace(/</g, '\\u003c');
 const CSS = ['styles/tokens.css', 'styles/parts/docs-components.css']
   .map((rel) => readFileSync(join(REPO, 'shells/web/src', rel), 'utf8')).join('\n');
 

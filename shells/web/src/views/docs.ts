@@ -54,7 +54,7 @@ import { hydrateDocsTryIt } from '../lib/docs-tryit.ts';
 import { icon } from '../lib/icons.ts';
 import { createScope } from '../lib/dispose.ts';
 import { enhanceDocsReading } from '../lib/docs-enhance.ts';
-import { enhanceDocsLightbox, LIGHTBOX_ICON_NAMES, type DocsLightboxIcons, type DocsLightboxLabels } from '../lib/docs-lightbox.ts';
+import { enhanceDocsLightbox, lightboxIcons, type DocsLightboxLabels } from '../lib/docs-lightbox.ts';
 import { registerOverlay } from '../lib/overlay-back.ts';
 import { enhancePathwaysStrip, revealCurrentPage } from '../lib/docs-strip.ts';
 import { docsClipboardWriter, docsCopyLabels } from '../lib/docs-clipboard.ts';
@@ -317,7 +317,7 @@ export async function mountDocs(
   // closes it through the shell's one overlay stack, like every dialog in the app.
   scope.add(enhanceDocsLightbox(node, {
     labels: docsLightboxLabels(),
-    icons: Object.fromEntries(Object.entries(LIGHTBOX_ICON_NAMES).map(([k, name]) => [k, icon(name)])) as unknown as DocsLightboxIcons,
+    icons: lightboxIcons((name) => icon(name)),
     back: (dismiss) => {
       const entry = registerOverlay({
         nav: () => { entry.disown(); dismiss(); },

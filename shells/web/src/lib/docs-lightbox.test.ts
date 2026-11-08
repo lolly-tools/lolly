@@ -22,9 +22,9 @@ const dom = new JSDOM('<!doctype html><html><head></head><body></body></html>', 
 const w = dom.window;
 Object.assign(globalThis, { window: w, document: w.document, Element: w.Element, HTMLElement: w.HTMLElement });
 
-const { enhanceDocsLightbox, sameEntryBack, fitBox, clampPan, zoomAbout, isVectorSrc, LIGHTBOX_ICON_NAMES } = await import('./docs-lightbox.ts');
+const { enhanceDocsLightbox, sameEntryBack, fitBox, clampPan, zoomAbout, isVectorSrc, lightboxIcons } = await import('./docs-lightbox.ts');
 const { icon } = await import('./icons.ts');
-const icons = Object.fromEntries(Object.entries(LIGHTBOX_ICON_NAMES).map(([k, name]) => [k, icon(name)])) as unknown as import('./docs-lightbox.ts').DocsLightboxIcons;
+const icons = lightboxIcons((name) => icon(name));
 
 const labels = {
   enlarge: (alt: string) => (alt ? `Enlarge: ${alt}` : 'Enlarge picture'),

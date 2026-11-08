@@ -90,6 +90,18 @@ export const LIGHTBOX_ICON_NAMES = {
   close: 'close', previous: 'chevronLeft', next: 'chevronRight',
 } as const;
 
+/** One of the lib/icons.ts names above. */
+export type LightboxIconName = (typeof LIGHTBOX_ICON_NAMES)[keyof typeof LIGHTBOX_ICON_NAMES];
+
+/** The viewer's glyph set, drawn by the caller's icon function (lib/icons.ts icon()). */
+export function lightboxIcons(draw: (name: LightboxIconName) => string): DocsLightboxIcons {
+  const n = LIGHTBOX_ICON_NAMES;
+  return {
+    enlarge: draw(n.enlarge), zoomIn: draw(n.zoomIn), zoomOut: draw(n.zoomOut), fit: draw(n.fit),
+    close: draw(n.close), previous: draw(n.previous), next: draw(n.next),
+  };
+}
+
 export interface DocsLightboxOptions {
   labels: DocsLightboxLabels;
   icons: DocsLightboxIcons;
