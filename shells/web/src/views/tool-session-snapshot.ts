@@ -137,11 +137,11 @@ export function templateValuesFromSnapshot(
   manifest: { inputs?: ReadonlyArray<{ id: string; type?: string }> },
 ): Record<string, unknown> {
   const fileInputs = new Set((manifest.inputs ?? []).filter((i) => i.type === 'file').map((i) => i.id));
-  // Built with no prototype and filled with data properties, so a key is only ever a value:
-  // an input called `constructor` or `prototype` keeps its value, and nothing a
-  // template drops (such as `__partnerKit`) can come back through a prototype. `__proto__`
-  // itself is never a value a template carries.
-  const out = Object.create(null) as Record<string, unknown>;
+  // An ordinary object, as every caller expects, filled with data properties, so a key
+  // is only ever a value: an input called `constructor` or `prototype` keeps its
+  // value, no setter runs, and nothing a template drops (such as `__partnerKit`) can
+  // come back through the prototype. `__proto__` itself is never a value a template carries.
+  const out: Record<string, unknown> = {};
   for (const [key, value] of Object.entries(snapshot)) {
     if (key === '__proto__' || TEMPLATE_DROPPED_KEYS.has(key) || fileInputs.has(key) || value === undefined) continue;
     Object.defineProperty(out, key, { value, enumerable: true, writable: true, configurable: true });
