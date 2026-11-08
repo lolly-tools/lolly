@@ -608,6 +608,7 @@ test('ENGINE_VERSION is 1.337.0', () => {
   // 1.333.0 reads the `_text` URL param (EMF text as outlines) and counts an EMF's live text runs. Capture is unchanged.
   // 1.334.0 records the partner beside the design system. Capture is unchanged.
   // 1.335.0 adds the partner kit reader (partner-kit-v1). Capture is unchanged.
+  // 1.336.0 adds the template approval record and its Verify line. Capture is unchanged.
   // 1.337.0 adds the guest-mark checks against a partner kit. Capture is unchanged.
   assert.equal(ENGINE_VERSION, '1.337.0');
 });

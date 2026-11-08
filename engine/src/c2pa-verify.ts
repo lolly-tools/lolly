@@ -48,7 +48,7 @@
  */
 
 import { brandPageAddress } from './brand-page-address.ts';
-import { checkedIntentRecord, encodeCbor, INTENT_PROMPT_NOTE, LOLLY_APPROVAL_ASSERTION, LOLLY_EXPORT_ASSERTION, LOLLY_INTENT_ASSERTION } from './c2pa.ts';
+import { checkedIntentRecord, encodeCbor, INTENT_PROMPT_NOTE, LOLLY_APPROVAL_ASSERTION, LOLLY_EXPORT_ASSERTION, LOLLY_INTENT_ASSERTION, APPROVAL_TEMPLATE_ID, isTemplateApproval } from './c2pa.ts';
 import type { C2paApprovalRecord, C2paIntentRecord } from './c2pa.ts';
 // The check-code vocabulary lives in c2pa-verdict.ts (the shared verdict
 // module); every pass/fail below emits through this map so the strings can
@@ -409,9 +409,10 @@ export interface C2paReport {
   // recorded prompt words, because those are text someone wrote and travel with the file.
   intent?: C2paIntentRecord & { promptNote?: string };
   // An approval a signer recorded in this file (`tools.lolly.approval`): which request
-  // was decided, when and the digest of the file reviewed. A statement the signer made,
-  // to be read with `state` and `trusted`. It is not a verdict on the work, and it
-  // says nothing about what the review covered.
+  // was decided, when, and either the digest of the file reviewed or, for a template's
+  // variants, the template, its version and the digest of the example reviewed. A
+  // statement the signer made, to be read with `state` and `trusted`. It is not a
+  // verdict on the work.
   approval?: C2paApprovalRecord;
   // The brand page address the signer recorded with the design-system record (plan 351
   // B5): read only from a credential that verifies, and only as a plain https address.
@@ -922,12 +923,13 @@ export async function verifyC2pa(
   // stay in the parent, which was signed when the file was made. Read them from there,
   // so an approved file still says what it was made from and still declares any AI use.
   // The active claim signed the parent's hash, so a parent that fails it is a failure
-  // of this credential, and its facts are not read.
+  // of this credential, and its facts are not read. A template's approval is not an
+  // update: it sits in a variant render's own first credential, beside that render's facts.
   let factAssertions = parts.assertions;
   const approvalAssertion = parts.assertions.find((a) => a.label === LOLLY_APPROVAL_ASSERTION);
-  if (approvalAssertion) {
-    const record = readApprovalRecord(approvalAssertion.content);
-    if (record) report.approval = record;
+  const approvalRecord = approvalAssertion ? readApprovalRecord(approvalAssertion.content) : null;
+  if (approvalRecord) report.approval = approvalRecord;
+  if (approvalAssertion && !(approvalRecord && isTemplateApproval(approvalRecord))) {
     const parent = readParentManifest(extracted.manifest, parts);
     if (parent && hexOf(await sha256(parent.payload)) === hexOf(parent.recordedHash)) {
       factAssertions = parent.parts.assertions;
@@ -1468,20 +1470,32 @@ export function readIntentRecord(content: Uint8Array): (C2paIntentRecord & { pro
   }
 }
 
-/** The approval record's three fields, or null for any other shape. A record that
- *  claims more than it may is not read as a smaller one. */
-function readApprovalRecord(content: Uint8Array): C2paApprovalRecord | null {
+/** The approval record in one of its two closed shapes, or null for any other. A record
+ *  that claims more than it may is not read as a smaller one, and a template's record
+ *  is never read as a reviewed file's. Exported for the tests that pin both shapes. */
+export function readApprovalRecord(content: Uint8Array): C2paApprovalRecord | null {
   let map: unknown;
   try { map = decodeCbor(content); } catch { return null; }
   if (!(map instanceof Map)) return null;
   const keys = [...map.keys()];
-  if (map.get('version') !== 1 || keys.length !== 4) return null;
+  if (map.get('version') !== 1) return null;
   const approvalId = map.get('approvalId');
   const decidedAt = map.get('decidedAt');
-  const reviewedSha256 = map.get('reviewedSha256');
-  if (typeof approvalId !== 'string' || typeof decidedAt !== 'string' || typeof reviewedSha256 !== 'string') return null;
-  if (!/^sha256:[0-9a-f]{64}$/.test(reviewedSha256)) return null;
-  return { approvalId, decidedAt, reviewedSha256 };
+  if (typeof approvalId !== 'string' || typeof decidedAt !== 'string') return null;
+  const sha = (value: unknown): value is string => typeof value === 'string' && /^sha256:[0-9a-f]{64}$/.test(value);
+  if (keys.length === 4) {
+    const reviewedSha256 = map.get('reviewedSha256');
+    return sha(reviewedSha256) ? { approvalId, decidedAt, reviewedSha256 } : null;
+  }
+  if (keys.length === 7 && map.get('covers') === 'template') {
+    const templateId = map.get('templateId');
+    const templateVersion = map.get('templateVersion');
+    const exampleSha256 = map.get('exampleSha256');
+    if (typeof templateId !== 'string' || !APPROVAL_TEMPLATE_ID.test(templateId)) return null;
+    if (typeof templateVersion !== 'number' || !Number.isSafeInteger(templateVersion) || templateVersion < 1 || !sha(exampleSha256)) return null;
+    return { approvalId, decidedAt, covers: 'template', templateId, templateVersion, exampleSha256 };
+  }
+  return null;
 }
 
 /** @deprecated alias - verifyC2pa sniffs PDFs (and every other container). */

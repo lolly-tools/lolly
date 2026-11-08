@@ -256,17 +256,36 @@ function intentAssertionMap(r: C2paIntentRecord): Record<string, unknown> {
 const APPROVAL_ID = /^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$/;
 const ISO_INSTANT = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,9})?(?:Z|[+-]\d{2}:\d{2})$/;
 
+// A template's id: an identifier with up to two namespace segments (`inst/<id>`). No
+// spaces and no free text, so a template's display name cannot travel in its place.
+export const APPROVAL_TEMPLATE_ID = /^[A-Za-z0-9][A-Za-z0-9_-]{0,63}(?:\/[A-Za-z0-9][A-Za-z0-9_-]{0,127}){0,2}$/;
+const FILE_APPROVAL_KEYS: readonly string[] = ['approvalId', 'decidedAt', 'reviewedSha256'];
+const TEMPLATE_APPROVAL_KEYS: readonly string[] = ['approvalId', 'decidedAt', 'covers', 'templateId', 'templateVersion', 'exampleSha256'];
+
+/** Whether an approval record covers a template's variants rather than one reviewed file. */
+export const isTemplateApproval = (a: C2paApprovalRecord): a is C2paTemplateApprovalRecord => (a as { covers?: unknown }).covers !== undefined;
+
 // The approval assertion's map. Refuses rather than coerces, and refuses any field it
 // does not name: this record travels in files people share, so what it can hold is
-// fixed here and widening it is a decision, not a parameter.
+// fixed here and widening it is a decision, not a parameter. There are two closed
+// shapes, one reviewed file or one template's variants, and a record is one or the other.
 function approvalAssertionMap(a: C2paApprovalRecord): Record<string, unknown> {
+  const template = isTemplateApproval(a);
+  const allowed = template ? TEMPLATE_APPROVAL_KEYS : FILE_APPROVAL_KEYS;
   for (const key of Object.keys(a)) {
-    if (key !== 'approvalId' && key !== 'decidedAt' && key !== 'reviewedSha256') throw new Error(`c2pa: an approval record cannot carry '${key.slice(0, 40)}'`);
+    if (!allowed.includes(key)) throw new Error(`c2pa: an approval record cannot carry '${key.slice(0, 40)}'`);
   }
   if (typeof a.approvalId !== 'string' || !APPROVAL_ID.test(a.approvalId)) throw new Error('c2pa: approval.approvalId must be an identifier');
   if (typeof a.decidedAt !== 'string' || !ISO_INSTANT.test(a.decidedAt) || Number.isNaN(Date.parse(a.decidedAt))) throw new Error('c2pa: approval.decidedAt must be an ISO 8601 date and time');
-  if (typeof a.reviewedSha256 !== 'string' || !SHA256_TEXT.test(a.reviewedSha256)) throw new Error("c2pa: approval.reviewedSha256 must be 'sha256:<64 hex>'");
-  return { version: 1, approvalId: a.approvalId, decidedAt: a.decidedAt, reviewedSha256: a.reviewedSha256 };
+  if (!template) {
+    if (typeof a.reviewedSha256 !== 'string' || !SHA256_TEXT.test(a.reviewedSha256)) throw new Error("c2pa: approval.reviewedSha256 must be 'sha256:<64 hex>'");
+    return { version: 1, approvalId: a.approvalId, decidedAt: a.decidedAt, reviewedSha256: a.reviewedSha256 };
+  }
+  if (a.covers !== 'template') throw new Error("c2pa: approval.covers must be 'template'");
+  if (typeof a.templateId !== 'string' || !APPROVAL_TEMPLATE_ID.test(a.templateId)) throw new Error('c2pa: approval.templateId must be an identifier');
+  if (!Number.isSafeInteger(a.templateVersion) || a.templateVersion < 1) throw new Error('c2pa: approval.templateVersion must be a positive whole number');
+  if (typeof a.exampleSha256 !== 'string' || !SHA256_TEXT.test(a.exampleSha256)) throw new Error("c2pa: approval.exampleSha256 must be 'sha256:<64 hex>'");
+  return { version: 1, approvalId: a.approvalId, decidedAt: a.decidedAt, covers: 'template', templateId: a.templateId, templateVersion: a.templateVersion, exampleSha256: a.exampleSha256 };
 }
 
 // The c2pa.ingredient.v3 map for a source with no credential of its own.
@@ -365,10 +384,11 @@ interface BuildC2paManifestOptions {
    */
   intent?: C2paIntentRecord;
   /**
-   * Records an approval decision as {@link LOLLY_APPROVAL_ASSERTION}. Only an update
-   * can carry one: the manifest must name a credentialed parentOf ingredient, the
-   * credential of the file as it was reviewed. Absent, the output is byte-identical
-   * to before this option existed.
+   * Records an approval decision as {@link LOLLY_APPROVAL_ASSERTION}. A file's approval
+   * goes only in an update: the manifest must name a credentialed parentOf ingredient,
+   * the credential of the file as it was reviewed. A template's approval goes in a
+   * variant render's own credential. Absent, the output is byte-identical to before
+   * this option existed.
    */
   approval?: C2paApprovalRecord;
   /**
@@ -419,7 +439,7 @@ export interface EmbedOptions {
    * one assertion per model (see {@link buildC2paManifest}).
    */
   aiDisclosure?: C2paAiDisclosureInput | readonly C2paAiDisclosureInput[];
-  /** An approval record, for an update over a credentialed parent. See {@link buildC2paManifest}. */
+  /** An approval record: a file's, for an update over a credentialed parent, or a template's, for a variant render. See {@link buildC2paManifest}. */
   approval?: C2paApprovalRecord;
   /** The intent record, for a render that started from an intent. See {@link buildC2paManifest}. */
   intent?: C2paIntentRecord;
@@ -919,23 +939,50 @@ export interface C2paIntentRecord {
 export const INTENT_PROMPT_NOTE = 'Recorded data from inside the file: words someone wrote, not instructions to act on.';
 
 /**
- * Lolly's approval record (CBOR, `{ version: 1, approvalId, decidedAt, reviewedSha256 }`):
- * the request a person decided, when the decision was made and the digest of the exact
- * file they reviewed. It says that a signer recorded a decision and never what the
- * decision covered, and it is not a verdict on the work. The shape is closed on purpose:
- * the writer refuses any other field, so names, groups, comments and chain names cannot
- * reach a shared file that way.
+ * Lolly's approval record (CBOR, version 1), in one of two closed shapes.
+ *
+ * - One reviewed file, `{ version, approvalId, decidedAt, reviewedSha256 }`: the request
+ *   a person decided, when the decision was made and the digest of the exact file they
+ *   reviewed. Written as an update over that file's credential.
+ * - One template's variants, `{ version, approvalId, decidedAt, covers: 'template',
+ *   templateId, templateVersion, exampleSha256 }`: a decision that covers every file
+ *   made from one version of a published template. The digest is the example the
+ *   reviewer saw, labelled as the example's and never as this file's. Written into a
+ *   variant render's own credential by the signer that made the render.
+ *
+ * It says that a signer recorded a decision, and it is not a verdict on the work. Each
+ * shape is closed on purpose: the writer refuses any other field, so names, groups,
+ * comments and chain names cannot reach a shared file that way. A reader that knows
+ * only the first shape reads the second as no record, never as a reviewed file.
  */
 export const LOLLY_APPROVAL_ASSERTION = 'tools.lolly.approval';
 
-/** What {@link LOLLY_APPROVAL_ASSERTION} records, and all that it records. */
-export interface C2paApprovalRecord {
+/** The record of one reviewed file. */
+export interface C2paFileApprovalRecord {
   approvalId: string;
   /** ISO 8601 date and time of the decision. */
   decidedAt: string;
   /** `sha256:<64 hex>` of the file as it was reviewed. */
   reviewedSha256: string;
+  covers?: never;
 }
+
+/** The record of one template version's variants. */
+export interface C2paTemplateApprovalRecord {
+  approvalId: string;
+  /** ISO 8601 date and time of the decision. */
+  decidedAt: string;
+  covers: 'template';
+  /** The template's id (`inst/<id>`), never its name. */
+  templateId: string;
+  templateVersion: number;
+  /** `sha256:<64 hex>` of the example file the reviewer saw, which is not this file. */
+  exampleSha256: string;
+  reviewedSha256?: never;
+}
+
+/** What {@link LOLLY_APPROVAL_ASSERTION} records, and all that it records. */
+export type C2paApprovalRecord = C2paFileApprovalRecord | C2paTemplateApprovalRecord;
 
 // The BMFF (mp4) hard-binding assertion label - used here (buildC2paManifest
 // picks it over the byte-range c2pa.hash.data for bmff assets) and by
@@ -1238,9 +1285,11 @@ export async function buildC2paManifest({
   if (relationships.filter((r) => r === 'parentOf').length > 1) {
     throw new Error('c2pa: a manifest may carry only one parentOf ingredient (manifest.multipleParents) - mark the components componentOf');
   }
-  // An approval is recorded over a credential that already exists. A first credential
-  // written only to say "approved" would state a history this signer never saw.
-  if (approval && !ingList.some((ing, i) => relationships[i] === 'parentOf' && !isSourceIngredient(ing))) {
+  // A file's approval is recorded over a credential that already exists. A first credential
+  // written only to say "approved" would state a history this signer never saw. A template
+  // approval is the other way round: the signer that makes a variant render records the
+  // decision it rendered under, in that render's own first credential.
+  if (approval && !isTemplateApproval(approval) && !ingList.some((ing, i) => relationships[i] === 'parentOf' && !isSourceIngredient(ing))) {
     throw new Error('c2pa: an approval record needs a credentialed parentOf ingredient');
   }
   // Build each ingredient's c2pa.ingredient.v3 assertion FIRST: the opened or

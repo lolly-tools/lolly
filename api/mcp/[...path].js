@@ -48769,6 +48769,7 @@ __export(c2pa_exports, {
   AI_MODEL_TYPES: () => AI_MODEL_TYPES,
   AI_MODEL_TYPE_GENERIC: () => AI_MODEL_TYPE_GENERIC,
   ALGORITHMIC_SOURCE_TYPE: () => ALGORITHMIC_SOURCE_TYPE,
+  APPROVAL_TEMPLATE_ID: () => APPROVAL_TEMPLATE_ID,
   BMFF_HASH_LABEL: () => BMFF_HASH_LABEL,
   C2PA_ATTACHMENT_MIME: () => C2PA_ATTACHMENT_MIME,
   C2PA_BMFF_UUID: () => C2PA_BMFF_UUID,
@@ -48800,6 +48801,7 @@ __export(c2pa_exports, {
   exportActionSteps: () => exportActionSteps,
   generateSigner: () => generateSigner,
   ingredientFormatOfMime: () => ingredientFormatOfMime,
+  isTemplateApproval: () => isTemplateApproval,
   urnUuid: () => urnUuid
 });
 function ingredientRelationship(ing) {
@@ -48858,13 +48860,22 @@ function intentAssertionMap(r5) {
   };
 }
 function approvalAssertionMap(a) {
+  const template = isTemplateApproval(a);
+  const allowed = template ? TEMPLATE_APPROVAL_KEYS : FILE_APPROVAL_KEYS;
   for (const key2 of Object.keys(a)) {
-    if (key2 !== "approvalId" && key2 !== "decidedAt" && key2 !== "reviewedSha256") throw new Error(`c2pa: an approval record cannot carry '${key2.slice(0, 40)}'`);
+    if (!allowed.includes(key2)) throw new Error(`c2pa: an approval record cannot carry '${key2.slice(0, 40)}'`);
   }
   if (typeof a.approvalId !== "string" || !APPROVAL_ID.test(a.approvalId)) throw new Error("c2pa: approval.approvalId must be an identifier");
   if (typeof a.decidedAt !== "string" || !ISO_INSTANT.test(a.decidedAt) || Number.isNaN(Date.parse(a.decidedAt))) throw new Error("c2pa: approval.decidedAt must be an ISO 8601 date and time");
-  if (typeof a.reviewedSha256 !== "string" || !SHA256_TEXT.test(a.reviewedSha256)) throw new Error("c2pa: approval.reviewedSha256 must be 'sha256:<64 hex>'");
-  return { version: 1, approvalId: a.approvalId, decidedAt: a.decidedAt, reviewedSha256: a.reviewedSha256 };
+  if (!template) {
+    if (typeof a.reviewedSha256 !== "string" || !SHA256_TEXT.test(a.reviewedSha256)) throw new Error("c2pa: approval.reviewedSha256 must be 'sha256:<64 hex>'");
+    return { version: 1, approvalId: a.approvalId, decidedAt: a.decidedAt, reviewedSha256: a.reviewedSha256 };
+  }
+  if (a.covers !== "template") throw new Error("c2pa: approval.covers must be 'template'");
+  if (typeof a.templateId !== "string" || !APPROVAL_TEMPLATE_ID.test(a.templateId)) throw new Error("c2pa: approval.templateId must be an identifier");
+  if (!Number.isSafeInteger(a.templateVersion) || a.templateVersion < 1) throw new Error("c2pa: approval.templateVersion must be a positive whole number");
+  if (typeof a.exampleSha256 !== "string" || !SHA256_TEXT.test(a.exampleSha256)) throw new Error("c2pa: approval.exampleSha256 must be 'sha256:<64 hex>'");
+  return { version: 1, approvalId: a.approvalId, decidedAt: a.decidedAt, covers: "template", templateId: a.templateId, templateVersion: a.templateVersion, exampleSha256: a.exampleSha256 };
 }
 function sourceIngredientAssertion(ing) {
   const title = boundedText(ing.title, "source ingredient title", 1024);
@@ -49188,7 +49199,7 @@ async function buildC2paManifest({
   if (relationships.filter((r5) => r5 === "parentOf").length > 1) {
     throw new Error("c2pa: a manifest may carry only one parentOf ingredient (manifest.multipleParents) - mark the components componentOf");
   }
-  if (approval && !ingList.some((ing, i) => relationships[i] === "parentOf" && !isSourceIngredient(ing))) {
+  if (approval && !isTemplateApproval(approval) && !ingList.some((ing, i) => relationships[i] === "parentOf" && !isSourceIngredient(ing))) {
     throw new Error("c2pa: an approval record needs a credentialed parentOf ingredient");
   }
   const ingredientBoxes = [];
@@ -49368,7 +49379,7 @@ async function buildExternalC2paStore(bytes2, opts = {}) {
     assetHash: { exclusions: [], name: hashName || "whole document", hash: await sha256(bytes2) }
   });
 }
-var isSourceIngredient, HTTP_URL_MAX, boundedText, SHA256_TEXT, INTENT_RECORD_KEYS, INTENT_WORD, INTENT_SURFACE_ID, INTENT_TOOL_ID, INTENT_LANGUAGE, INTENT_RULES, APPROVAL_ID, ISO_INSTANT, te5, subtle4, CborTag, JUMBF_UUID_SUFFIX, boxUuid, UUID_C2PA_STORE, UUID_MANIFEST, UUID_ASSERTION_STORE, UUID_CLAIM, UUID_SIGNATURE, UUID_CBOR_CONTENT, UUID_JSON_CONTENT, COSE_HEADER_ALG, COSE_HEADER_X5CHAIN, isoSeconds, DIGITAL_SOURCE_TYPE, CAPTURE_SOURCE_TYPE, SCREEN_SOURCE_TYPE, GENERATED_SOURCE_TYPE, COMPOSITE_SOURCE_TYPE, ALGORITHMIC_SOURCE_TYPE, RASTER_OUTPUTS, VIDEO_OUTPUTS, INGREDIENT_MIME, AI_GRADE, LOLLY_EXPORT_ASSERTION, LOLLY_RIGHTS_ASSERTION, LOLLY_INTENT_ASSERTION, INTENT_PROMPT_NOTE, LOLLY_APPROVAL_ASSERTION, BMFF_HASH_LABEL, CREATIVE_WORK_ASSERTION, METADATA_ASSERTION, DC_CONTEXT, AI_DISCLOSURE_ASSERTION, AI_MODEL_TYPE_GENERIC, AI_MODEL_TYPES, NAMESPACED_LABEL_RE, HUMAN_OVERSIGHT_LEVELS, SCIENTIFIC_DOMAIN_RE, SEMVER_RE, C2PA_SPEC_VERSION;
+var isSourceIngredient, HTTP_URL_MAX, boundedText, SHA256_TEXT, INTENT_RECORD_KEYS, INTENT_WORD, INTENT_SURFACE_ID, INTENT_TOOL_ID, INTENT_LANGUAGE, INTENT_RULES, APPROVAL_ID, ISO_INSTANT, APPROVAL_TEMPLATE_ID, FILE_APPROVAL_KEYS, TEMPLATE_APPROVAL_KEYS, isTemplateApproval, te5, subtle4, CborTag, JUMBF_UUID_SUFFIX, boxUuid, UUID_C2PA_STORE, UUID_MANIFEST, UUID_ASSERTION_STORE, UUID_CLAIM, UUID_SIGNATURE, UUID_CBOR_CONTENT, UUID_JSON_CONTENT, COSE_HEADER_ALG, COSE_HEADER_X5CHAIN, isoSeconds, DIGITAL_SOURCE_TYPE, CAPTURE_SOURCE_TYPE, SCREEN_SOURCE_TYPE, GENERATED_SOURCE_TYPE, COMPOSITE_SOURCE_TYPE, ALGORITHMIC_SOURCE_TYPE, RASTER_OUTPUTS, VIDEO_OUTPUTS, INGREDIENT_MIME, AI_GRADE, LOLLY_EXPORT_ASSERTION, LOLLY_RIGHTS_ASSERTION, LOLLY_INTENT_ASSERTION, INTENT_PROMPT_NOTE, LOLLY_APPROVAL_ASSERTION, BMFF_HASH_LABEL, CREATIVE_WORK_ASSERTION, METADATA_ASSERTION, DC_CONTEXT, AI_DISCLOSURE_ASSERTION, AI_MODEL_TYPE_GENERIC, AI_MODEL_TYPES, NAMESPACED_LABEL_RE, HUMAN_OVERSIGHT_LEVELS, SCIENTIFIC_DOMAIN_RE, SEMVER_RE, C2PA_SPEC_VERSION;
 var init_c2pa2 = __esm({
   "engine/src/c2pa.ts"() {
     "use strict";
@@ -49393,6 +49404,10 @@ var init_c2pa2 = __esm({
     INTENT_RULES = /^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$/;
     APPROVAL_ID = /^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$/;
     ISO_INSTANT = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,9})?(?:Z|[+-]\d{2}:\d{2})$/;
+    APPROVAL_TEMPLATE_ID = /^[A-Za-z0-9][A-Za-z0-9_-]{0,63}(?:\/[A-Za-z0-9][A-Za-z0-9_-]{0,127}){0,2}$/;
+    FILE_APPROVAL_KEYS = ["approvalId", "decidedAt", "reviewedSha256"];
+    TEMPLATE_APPROVAL_KEYS = ["approvalId", "decidedAt", "covers", "templateId", "templateVersion", "exampleSha256"];
+    isTemplateApproval = (a) => a.covers !== void 0;
     te5 = new TextEncoder();
     subtle4 = globalThis.crypto.subtle;
     CborTag = class {
@@ -53015,6 +53030,7 @@ __export(c2pa_verify_exports, {
   parseCertificate: () => parseCertificate,
   prepareC2paIngredient: () => prepareC2paIngredient,
   prepareC2paIngredientFromStore: () => prepareC2paIngredientFromStore,
+  readApprovalRecord: () => readApprovalRecord,
   readIntentRecord: () => readIntentRecord,
   signedBy: () => signedBy,
   sniffFormat: () => sniffFormat,
@@ -53331,9 +53347,9 @@ async function verifyC2pa(bytes2, { trustAnchors, externalManifest, enrollmentTr
   const AI_DISCLOSURE_LABEL = /^c2pa\.ai-disclosure(\.v\d+)?(__\d+)?$/;
   let factAssertions = parts.assertions;
   const approvalAssertion = parts.assertions.find((a) => a.label === LOLLY_APPROVAL_ASSERTION);
-  if (approvalAssertion) {
-    const record49 = readApprovalRecord(approvalAssertion.content);
-    if (record49) report4.approval = record49;
+  const approvalRecord = approvalAssertion ? readApprovalRecord(approvalAssertion.content) : null;
+  if (approvalRecord) report4.approval = approvalRecord;
+  if (approvalAssertion && !(approvalRecord && isTemplateApproval(approvalRecord))) {
     const parent = readParentManifest(extracted.manifest, parts);
     if (parent && bytesToHex(await sha256(parent.payload)) === bytesToHex(parent.recordedHash)) {
       factAssertions = parent.parts.assertions;
@@ -53690,13 +53706,24 @@ function readApprovalRecord(content2) {
   }
   if (!(map instanceof Map)) return null;
   const keys2 = [...map.keys()];
-  if (map.get("version") !== 1 || keys2.length !== 4) return null;
+  if (map.get("version") !== 1) return null;
   const approvalId = map.get("approvalId");
   const decidedAt = map.get("decidedAt");
-  const reviewedSha256 = map.get("reviewedSha256");
-  if (typeof approvalId !== "string" || typeof decidedAt !== "string" || typeof reviewedSha256 !== "string") return null;
-  if (!/^sha256:[0-9a-f]{64}$/.test(reviewedSha256)) return null;
-  return { approvalId, decidedAt, reviewedSha256 };
+  if (typeof approvalId !== "string" || typeof decidedAt !== "string") return null;
+  const sha = (value2) => typeof value2 === "string" && /^sha256:[0-9a-f]{64}$/.test(value2);
+  if (keys2.length === 4) {
+    const reviewedSha256 = map.get("reviewedSha256");
+    return sha(reviewedSha256) ? { approvalId, decidedAt, reviewedSha256 } : null;
+  }
+  if (keys2.length === 7 && map.get("covers") === "template") {
+    const templateId = map.get("templateId");
+    const templateVersion = map.get("templateVersion");
+    const exampleSha256 = map.get("exampleSha256");
+    if (typeof templateId !== "string" || !APPROVAL_TEMPLATE_ID.test(templateId)) return null;
+    if (typeof templateVersion !== "number" || !Number.isSafeInteger(templateVersion) || templateVersion < 1 || !sha(exampleSha256)) return null;
+    return { approvalId, decidedAt, covers: "template", templateId, templateVersion, exampleSha256 };
+  }
+  return null;
 }
 var td4, te8, tdText, subtle7, MAX_CHAIN_INTERMEDIATES, COSE_ALGS, HASHED_URI_PREFIX, EPHEMERAL_CN, TEXT_BINDING_KIND, isCutWrapper, excludesWrapper, MAX_WRAPPER_CANDIDATES, sameRanges, SVGZ_MAX_DOCUMENT_BYTES, verifyC2paPdf;
 var init_c2pa_verify = __esm({
@@ -184826,12 +184853,13 @@ function verdictApproval(report4) {
   const fails = report4.checks.filter((chk) => !chk.ok && chk.code !== "signingCredential.untrusted");
   const changed = fails.some((chk) => chk.code === "assertion.dataHash.mismatch" || chk.code === "assertion.bmffHash.mismatch");
   const lapsed = fails.length === 1 && fails[0].code === "signingCredential.expired";
+  const covered = r5.covers === "template" ? [["Covers", `Approved as a template: ${cleanControlChars(r5.templateId)} v${r5.templateVersion}${report4.format ? ` (${cleanControlChars(report4.format).toUpperCase()})` : ""}. Example file sha256 ${cleanControlChars(r5.exampleSha256).replace(/^sha256:/, "")}`]] : [["Reviewed", cleanControlChars(r5.reviewedSha256)]];
   return {
     intact,
     facts: [
       ["Request", cleanControlChars(r5.approvalId)],
       ["Decided", cleanControlChars(r5.decidedAt)],
-      ["Reviewed", cleanControlChars(r5.reviewedSha256)],
+      ...covered,
       ["This file", intact ? "unchanged since the signer recorded this approval" : changed ? "does not match the signed record" : lapsed ? "still matches its credential" : "could not be confirmed"]
     ],
     note: intact ? "A record the signer made, not a review of the work." : changed ? "This file changed after the approval was recorded, or the record itself was altered." : lapsed ? "The signing certificate has lapsed, so this approval can no longer be confirmed." : "This approval record did not pass its checks, so it cannot be relied on."
