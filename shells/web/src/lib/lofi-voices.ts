@@ -345,7 +345,7 @@ export function snare(style: LofiStyle['snare'], k: VoiceKit, out: AudioNode, t:
   g.gain.exponentialRampToValueAtTime(EPS, t + decay);
   noiseAt(k, t, decay).connect(bp).connect(g).connect(out);
   if (brush) return;
-  // The body (the drum): a short tone that drops, and a ring an interval above it.
+  // The body (the drum): a short tone that drops, and a ring at about 330 Hz.
   for (const [type, from, to, level, len] of [['triangle', 205, 165, 0.3, 0.1], ['sine', 330, 290, 0.1, 0.07]] as const) {
     const body = osc(k, type, from, t, t + len + 0.01);
     body.frequency.exponentialRampToValueAtTime(to, t + len * 0.8);
