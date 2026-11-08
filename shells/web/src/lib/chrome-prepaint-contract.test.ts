@@ -186,10 +186,15 @@ test('a mirror from before the accent for words is not restored, so boot paints 
   const older = SHEETS.suse!.split('\n').filter((line) => !line.startsWith('  --primary-text:')).join('\n');
   assert.ok(older.includes('--primary:') && !older.includes('--primary-text:'));
   assert.equal(restored(run({ [CHROME_CACHE_KEY]: older })), null);
-  // A sheet that sets no accent at all (pack chrome alone) still restores.
+  // A pack room with no accent of its own states the accent for words too, so
+  // today's sheet restores and one written before the accent for words does not.
   const chromeOnly = chromeBrandCss({ primary: null, onPrimary: null }, { primary: null, onPrimary: null }, NEWSPRINT);
-  assert.ok(!chromeOnly.includes('--primary:'));
+  assert.ok(!chromeOnly.includes('--primary:') && chromeOnly.includes('--primary-text:'));
   assert.equal(restored(run({ [CHROME_CACHE_KEY]: chromeOnly })), chromeOnly);
+  const olderRoom = chromeOnly.split('\n').filter((line) => !line.startsWith('  --primary-text:')).join('\n');
+  assert.equal(restored(run({ [CHROME_CACHE_KEY]: olderRoom })), null);
+  // Every sheet the fixtures emit states it, so none is turned away.
+  for (const [name, css] of Object.entries(SHEETS)) assert.ok(css.includes('--primary-text:'), name);
 });
 
 test('with "Interface follows the design system" off the mirror is not restored', () => {
