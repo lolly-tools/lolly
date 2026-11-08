@@ -16,7 +16,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { Resvg } from '@resvg/resvg-js';
 import sharp from 'sharp';
-import { embedC2pa, generateSigner, LOLLY_APPROVAL_ASSERTION, LOLLY_EXPORT_ASSERTION, type C2paApprovalRecord } from '../engine/src/c2pa.ts';
+import { embedC2pa, generateSigner, isTemplateApproval, LOLLY_APPROVAL_ASSERTION, LOLLY_EXPORT_ASSERTION, type C2paApprovalRecord } from '../engine/src/c2pa.ts';
 import { APPROVAL_RECORD_FORMATS, artworkUnchanged, recordApprovalInCredential } from '../engine/src/c2pa-approval.ts';
 import { extractC2paStore, parseC2paStore, prepareC2paIngredient, readApprovalRecord, verifyC2pa } from '../engine/src/c2pa-verify.ts';
 import { decodeCbor } from '../engine/src/c2pa-extract.ts';
@@ -368,7 +368,9 @@ test('the template record is closed too: no other field, no name for an id, and 
   // Lolly Work mints a template's id from random base64url, so a segment may start with - or _.
   for (const templateId of ['inst/-x0AbCdEfGh', 'inst/_x0AbCdEfGh', 'inst/MuU9SdcSHiM']) {
     const file = await embedC2pa(png, 'png', { signer, approval: { ...TEMPLATE_APPROVAL, templateId } });
-    assert.equal((await verifyC2pa(file)).approval?.templateId, templateId, templateId);
+    const approval = (await verifyC2pa(file)).approval;
+    assert.ok(approval && isTemplateApproval(approval), templateId);
+    assert.equal(approval.templateId, templateId, templateId);
   }
   for (const templateId of ['Partner data sheet', 'inst/partner data sheet', '', 'inst//x', '../x', 'a/b/c/d', '-inst/x', 'inst/x.y']) {
     await assert.rejects(embedC2pa(png, 'png', { signer, approval: { ...TEMPLATE_APPROVAL, templateId } }), /templateId/, templateId);
