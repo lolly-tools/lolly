@@ -6,6 +6,10 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+## 1.342.0
+
+- The template approval record (`tools.lolly.approval`, `covers: 'template'`, 1.336.0) takes a template id whose segment after the first starts with `-` or `_`. Lolly Work mints a published template's id from random base64url (`inst/<11 characters>`), so about one id in thirty-two starts that way, and the writer and reader refused it: a variant render of such a template was signed without its approval record. `APPROVAL_TEMPLATE_ID` now allows `[A-Za-z0-9_-]` from the first character of each later segment. There are still no spaces, dots or free text, so a template's name cannot take the id's place. The record's shape and fields are unchanged.
+
 ## 1.338.0
 
 - New reserved URL param `_kit` (Lolly Work plan 82, M8): the partner kit a piece carries as a guest, `<id>@<revision>`, the kit asset's catalog id and the asset version attached. `parseUrlState` reads it into `partnerKit` (`PartnerKitAttachmentV1 | null`) and `serializeUrlState` writes it from `partnerKit`, so the attachment travels in a share link, as `emoji` does; the link never carries the kit's bytes. An id outside the kit grammar or a revision that is not a whole number from 1 reads as absent and writes nothing.
