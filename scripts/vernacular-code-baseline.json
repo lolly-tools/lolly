@@ -873,7 +873,7 @@
   "shells/web/src/lib/nearby-boot.ts": 1,
   "shells/web/src/lib/nearby.ts": 1,
   "shells/web/src/lib/neuro-demo-peek.ts": 1,
-  "shells/web/src/lib/neuro-demo.ts": 2,
+  "shells/web/src/lib/neuro-demo.ts": 1,
   "shells/web/src/lib/neurospicy-dock-host.ts": 3,
   "shells/web/src/lib/neurospicy-order.test.ts": 2,
   "shells/web/src/lib/neurospicy.ts": 9,
