@@ -52,6 +52,7 @@ import { armMotionPreviews, playMotionIn, stopMotionIn } from '../lib/preview-me
 import { galleryPreviewLooks, galleryLookHref, renderGalleryLook, galleryPreviewPriority } from '../lib/gallery-preview.ts';
 import { createPreviewQueue } from '../lib/preview-queue.ts';
 import { galleryWelcomeStep } from './gallery-welcome.ts';
+import { isProgrammeMember } from '../lib/workspace-templates.ts';
 import { loadGalleryLook } from './gallery-look-loader.ts';
 import { renderFeaturedVariant, renderFeaturedPages, coverFormats, displayFormatOf } from '../lib/featured-render.ts';
 import { currentTheme } from '../theme.ts';
@@ -102,6 +103,9 @@ export interface GalleryTool {
   privacy?: string;
   tags?: readonly string[];   // searched alongside name/description; never displayed
   listed?: boolean;   // false = unlisted from the gallery (a mechanism invoked from context, e.g. asset-export)
+  /** The workspace template a rules tool was built from. Such a tool is a card on the
+   *  workspace's shelf (views/published-shelf.ts onShelf), so the grid leaves it out. */
+  templateId?: string;
   formats?: readonly string[];
   width?: number;
   height?: number;
@@ -480,11 +484,11 @@ function galleryEmptyHtml(loadFailed: boolean): string {
  *  only is unlisted, and its templates belong on the shelf all the more. Called once the
  *  catalog answers, so the shelf never holds the grid back; with nothing published (every
  *  plain build) the mount stays empty and the gallery is as it was. */
-async function fillPublishedShelf(viewEl: HTMLElement, host: GalleryHost, tools: readonly GalleryTool[]): Promise<void> {
+async function fillPublishedShelf(viewEl: HTMLElement, host: GalleryHost, tools: readonly GalleryTool[], initialQuery = ''): Promise<void> {
   try {
     const mount = viewEl.querySelector<HTMLElement>('.published-mount');
     if (!mount) return;
-    const [{ listWorkspaceTemplates, fetchWorkspaceValues }, { publishedItems, publishedShelfHtml }, { getSessionSource }] = await Promise.all([
+    const [{ listWorkspaceTemplates, fetchWorkspaceValues, companyValuesFor }, { publishedItems, publishedShelfHtml, fillShelfCopies, wireShelfCopies }, { getSessionSource }] = await Promise.all([
       import('../lib/workspace-templates.ts'), import('./published-shelf.ts'), import('../lib/session-source.ts'),
     ]);
     const templates = await listWorkspaceTemplates(host as never);
@@ -502,16 +506,26 @@ async function fillPublishedShelf(viewEl: HTMLElement, host: GalleryHost, tools:
       void companyCard.drawCardLogo(card, view, host as never);
       card.addEventListener('click', () => companyCard.openCompanySheet(view, host as never, (next) => { view = next; void companyCard.drawCardLogo(card, next, host as never); }));
     }
-    // Previews: the template's own values, or a rules tool's defaults, drawn the way the
-    // Start chooser draws its tiles. A preview that cannot be drawn keeps the icon.
+    // The home search filters the shelf with the tiles (plans/82 M6): a search typed
+    // before the shelf arrived, or handed over by a #/?q= link, applies at once.
+    searchShelf(viewEl, shelfSearch.get(viewEl) ?? tokenize(initialQuery));
+    // The person's copies, once the page is idle: "Your copy" and "New version".
+    wireShelfCopies(mount);
+    whenIdle(() => { void fillShelfCopies(mount, host, items).catch(() => { /* the cards stay as drawn */ }); });
+    // Previews: the template's own values, or a rules tool's starting values, drawn the
+    // way the Start chooser draws its tiles, with the person's company details where the
+    // tool would take them (plans/82 M3): the same values the tool opens with. A
+    // preview that cannot be drawn keeps the icon.
     const { coverFormats, renderFeaturedVariant } = await import('../lib/featured-render.ts');
+    const { toolStartValues } = await import('../lib/input-policy.ts');
     for (const item of items) {
       if (!mount.isConnected) return;
       const formats = coverFormats({ formats: item.formats });
       if (!formats?.length) continue;
       const tpl = templates.find((x) => x.id === item.key && x.toolId === item.toolId);
-      const values = tpl ? await fetchWorkspaceValues(tpl) : {};
-      if (!values) continue;
+      const own = tpl ? await fetchWorkspaceValues(tpl) : {};
+      if (!own) continue;
+      const values = tpl ? { ...own, ...companyValuesFor(tpl.bindings, 'light') } : { ...toolStartValues(item.toolId), ...own };
       try {
         const src = await renderFeaturedVariant(host as Parameters<typeof renderFeaturedVariant>[0], item.toolId, formats, `published:${item.key}`, values, 'published');
         const media = mount.querySelector<HTMLElement>(`.published-card[data-published-key="${CSS.escape(item.key)}"] .published-card-media`);
@@ -524,6 +538,28 @@ async function fillPublishedShelf(viewEl: HTMLElement, host: GalleryHost, tools:
       } catch { /* the icon stays */ }
     }
   } catch { /* the shelf is an offer, never something the gallery waits on */ }
+}
+
+/** The home search's words per gallery mount, so a shelf drawn after the person started
+ *  typing opens filtered. */
+const shelfSearch = new WeakMap<HTMLElement, readonly string[]>();
+
+/** Filter the workspace's shelf with the home search (views/published-shelf.ts). The
+ *  module is asked for only when a shelf is on screen, so a plain build loads nothing.
+ *  When the shelf answers the search, the grid's "No tools match" line stands down, as
+ *  the matching card sits right above the grid. */
+function searchShelf(viewEl: HTMLElement, tokens: readonly string[]): void {
+  shelfSearch.set(viewEl, tokens);
+  if (!viewEl.querySelector('.published-shelf')) return;
+  void import('./published-shelf.ts').then(({ filterShelf }) => {
+    if (filterShelf(viewEl, tokens) > 0) viewEl.querySelector<HTMLElement>('.gallery-no-results')?.setAttribute('hidden', '');
+  });
+}
+
+/** Run `fn` when the page is idle, or soon where there is no idle callback. */
+function whenIdle(fn: () => void): void {
+  if (typeof requestIdleCallback === 'function') requestIdleCallback(fn, { timeout: 2000 });
+  else setTimeout(fn, 200);
 }
 
 /** The home shelves under the featured strip: the mount the workspace's published
@@ -579,7 +615,7 @@ export async function mountGallery(viewEl: HTMLElement, host: GalleryHost, opts:
   // Drop them once, here, so every downstream membership set (grid, search, favourites,
   // featured + utility strips, pill counts) excludes them with no per-site guard. They
   // still load via #/tool/<id>, URL mode and the CLI - this only hides them from the listing.
-  const index: { tools: GalleryTool[] } = { tools: rawIndex.tools.filter(t => t.listed !== false).map(tool => ({
+  const index: { tools: GalleryTool[] } = { tools: rawIndex.tools.filter(t => t.listed !== false && typeof t.templateId !== 'string').map(tool => ({
     ...tool,
     // Discovery artwork is rendered with this device's active tokens. Static
     // posters, motion cards and historic session thumbnails may belong to another brand.
@@ -791,7 +827,7 @@ export async function mountGallery(viewEl: HTMLElement, host: GalleryHost, opts:
   // Sorted before the cap because featured-row.ts re-sorts by `featured.order` anyway: slicing
   // catalog order first could drop a lower-order tool and leave a higher-order one as the hero.
   const firstRunFeatured = (): Set<string> | null => {
-    if (profile?.favourites !== undefined || FIRST_RUN_FEATURED_MAX <= 0) return null;
+    if (profile?.favourites !== undefined || FIRST_RUN_FEATURED_MAX <= 0 || isProgrammeMember()) return null;
     const curated = index.tools
       .filter(t => t.featured?.order != null && !hidden.has(t.category) && !hiddenTools.has(t.id))
       .sort((a, b) => a.featured!.order! - b.featured!.order!)
@@ -884,7 +920,7 @@ export async function mountGallery(viewEl: HTMLElement, host: GalleryHost, opts:
   // shows, nothing else does, and the answer to that is async (token discovery).
   // Placed ahead of the content so the phone-width nudge reads as an in-flow
   // card at the top of the gallery (A4); the privacy strip is fixed either way.
-  const firstRunBanner = privacyNoticeMarkup() || personalizeNudgeMarkup(profile) || offlineNudgeMarkup(profile);
+  const firstRunBanner = privacyNoticeMarkup() || (isProgrammeMember() ? '' : personalizeNudgeMarkup(profile)) || offlineNudgeMarkup(profile);
 
   const cardSizeView = opts.only ? 'utilities' : 'tools', cardSize = readCardSize(cardSizeView);
   let browseLayout = readLayout(cardSizeView, opts.params, GALLERY_LAYOUTS);
@@ -922,7 +958,7 @@ export async function mountGallery(viewEl: HTMLElement, host: GalleryHost, opts:
     </div>
   `;
 
-  if (!opts.only) void fillPublishedShelf(viewEl, host, rawIndex.tools); // views/published-shelf.ts
+  if (!opts.only) void fillPublishedShelf(viewEl, host, rawIndex.tools, initialQuery); // views/published-shelf.ts
 
   // Hidden until the ladder reveals it (see revealFirstRunBanner) - and hidden
   // from the accessibility tree with it, so a screen reader isn't told about a
@@ -1806,7 +1842,7 @@ export async function mountGallery(viewEl: HTMLElement, host: GalleryHost, opts:
     // Type-to-find on fine-pointer devices (the bar skips touch so the keyboard
     // doesn't pop over the gallery).
     autoFocus: true,
-    onQuery: (raw) => { query = raw.toLowerCase(); queryTokens = tokenize(raw); syncBrowseUrl(); applyView(); },
+    onQuery: (raw) => { query = raw.toLowerCase(); queryTokens = tokenize(raw); syncBrowseUrl(); applyView(); searchShelf(viewEl, queryTokens); },
   }));
 
   // "clear search" link inside the empty-state line (rebuilt by applyView). The <p> node

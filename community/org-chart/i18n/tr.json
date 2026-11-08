@@ -65,8 +65,6 @@
   "inputs.boxes.fields.weight.options.700": "Kalın",
   "inputs.boxes.fields.weight.options.800": "Ekstra Kalın",
   "inputs.boxes.fields.font.label": "Yazı tipi",
-  "inputs.boxes.fields.font.options.SUSE": "SUSE Sans",
-  "inputs.boxes.fields.font.options.SUSE Mono": "SUSE Mono",
   "inputs.boxes.fields.lineHeight.label": "Satır yüksekliği",
   "inputs.boxes.fields.tracking.label": "Harf Aralığı",
   "inputs.boxes.fields.ligatures.label": "Ligatürler",

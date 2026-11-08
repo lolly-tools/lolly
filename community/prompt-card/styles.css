@@ -35,7 +35,7 @@
      only means anything when the columns are filled in order. */
   column-fill: auto;
 
-  font-family: "SUSE Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-family: var(--font-mono, 'SUSE Mono', ui-monospace, monospace);
   font-size: var(--p2i-fs, 14px);
   line-height: var(--p2i-line, 1.35);
   font-variant-ligatures: none;
@@ -73,7 +73,7 @@
   justify-content: center;
   padding: 8cqmin;
   text-align: center;
-  font-family: "SUSE Mono", ui-monospace, monospace;
+  font-family: var(--font-mono, 'SUSE Mono', ui-monospace, monospace);
   font-size: 3.4cqmin;
   line-height: 1.6;
   color: #8a8a8a;
@@ -87,7 +87,7 @@
   padding: 1.4cqmin 2.2cqmin;
   border-radius: 1.6cqmin;
   background: rgba(244, 244, 244, 0.94);
-  font-family: "SUSE Mono", ui-monospace, monospace;
+  font-family: var(--font-mono, 'SUSE Mono', ui-monospace, monospace);
   font-size: 2.2cqmin;
   line-height: 1.5;
   color: #555555;
@@ -150,7 +150,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: "SUSE Mono", ui-monospace, monospace;
+  font-family: var(--font-mono, 'SUSE Mono', ui-monospace, monospace);
   font-size: 3.4cqmin;
   color: #333333;
   pointer-events: none;

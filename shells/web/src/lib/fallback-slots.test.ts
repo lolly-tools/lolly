@@ -92,7 +92,11 @@ test('the shipped tools whose own stacks get a slot', () => {
     const families = sheets.flatMap((css) => [...css.matchAll(/(?:^|[;{\s])font-family\s*:\s*([^;}]+)/g)].map((m) => m[1]!.replace(/\s*!important\s*$/, '')));
     if (families.some((f) => slotFamilies(f) !== f)) slotted.push(id);
   }
-  // Stacks that start with a font of their own: these tools' pages drew a script it lacks
-  // in a system font while their exports used the fallback font.
-  for (const id of ['frame', 'org-chart', 'prompt-card', 'record']) assert.ok(slotted.includes(id), id);
+  // These tools once named SUSE or SUSE Mono first, so their pages needed the slot. They now
+  // set their words in the design system's fonts (var(--font-brand), var(--font-mono)),
+  // which carry the fallback fonts already.
+  for (const id of ['frame', 'org-chart', 'prompt-card', 'record']) assert.ok(!slotted.includes(id), id);
+  // A utility's own controls, which never reach an export, still name a font first: those
+  // stacks get the slot.
+  for (const id of ['compress-pdf', 'convert-image']) assert.ok(slotted.includes(id), id);
 });
