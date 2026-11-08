@@ -35,7 +35,7 @@ unaffected, and admins and owners are never narrowed.
 | **Templates only** | Optional, per tool: the tool leaves their gallery, and they make pieces from your templates only. Off by default. | A switch under each template |
 | **Their company** | A card for their company at the top of their home, with its logos and details. A template that takes company details fills them in, and partners cannot change the ones the template fixes. Named contacts may edit the details. | The company's page |
 | **What they can do** | Open tools and files, make, save and export pieces, comment, work in projects and make links to what they can see. Admin actions are refused for partners whatever a grant says: editing grants, policy, programmes or the catalog, inviting people, sending messages, making groups and deciding approvals. | Fixed |
-| **Their files** | Each export records the company and programme it was made for, and the revision of the company's details. Never the person, a contact's details, the address, the currency, a token or an agent. | Built in; the export panel's **Design system** card can leave the record out |
+| **Their files** | Each export's partner record holds the company and programme it was made for, and the revision of the company's details. The record never holds the person, a contact's details, the address, the currency, a token or an agent. | Built in; the export panel's **Design system** card can leave the record out |
 | **Their agents** | A token you issue sees what the company's people see, within limits you set. | `lw` today |
 | **When they leave** | Access ends at once, or on a date you choose with a notice before. Links they made stop working. | **End this partnership**, or `lw` for a date |
 
@@ -235,6 +235,7 @@ may edit** off for now.
 lw companies add resellers-emea northwind-it --name "Northwind IT"
 lw companies profile set resellers-emea northwind-it --field website=https://northwind.example/ \
     --field contact.name="Rita Ortiz" --field contact.email=rita@northwind.example \
+    --field contact.phone="+49 30 1234 567" --field address="Unter den Linden 1, 10117 Berlin" \
     --field currency=EUR --field taxNote="Prices exclude VAT"
 lw companies profile logo resellers-emea northwind-it light ./northwind-light.svg
 lw companies profile logo resellers-emea northwind-it dark ./northwind-dark.svg
@@ -254,8 +255,9 @@ PUT /api/v1/programmes/resellers-emea/companies/northwind-it/profile
 ```
 
 The answer is `200` with `company`, `programme`, `revision` (1 after the first save), `profile`,
-the `logos` and the `limits` the server enforces. Each logo goes up on its own:
-`POST .../profile/logo?surface=light` with the SVG or PNG as the body.
+the `logos` and the `limits` the server enforces. Each logo goes up on its own,
+`POST .../profile/logo?surface=light` with the SVG or PNG as the body, and each upload is the
+next revision, so the three logos bring Northwind IT to revision 4.
 :::
 
 **Rita** still sees nothing, but every piece she makes from now on can carry these details.
@@ -276,12 +278,13 @@ lw templates set resellers-emea inst/7f3a… --bindings logo=logo,details=contac
 ```
 
 **Rita** is not in yet. When she is, the logo and the details line fill themselves from Northwind
-IT's details and are not offered to her, so the price is the only thing she changes.
+IT's details and are not offered to her. She types only the price, and may switch the colourway
+and between light and dark, which a Share with rules file leaves open.
 
 ### 5. Check what Northwind IT gets
 
 **Console.** On Northwind IT's page, press **See what they get**. Preview shows the company card
-at details revision 1, the two tools, the logos collection and the data sheet drawn with
+at its latest details revision, 4 here, the two tools, the logos collection and the data sheet drawn with
 Northwind IT's logo and contact line, as a watermarked preview. To see the app itself, choose
 **View as partner…** in the app's account menu, then Resellers, EMEA and Northwind IT, and press
 **Stop viewing** when you are done.
@@ -290,14 +293,16 @@ Northwind IT's logo and contact line, as a watermarked preview. To see the app i
 
 ### 6. Invite Rita
 
-**Console.** On the programme's page, press **Add people** and paste one line per person:
+**Console.** On the programme's page, under **Add people**, paste one line per person: the
+address, then optionally a name, a company and an end date. Rita's access will end with the
+company's in step 8, so her line has no end date of its own:
 
 ```
-rita@northwind.example,Rita Ortiz,Northwind IT,2027-06-30
+rita@northwind.example,Rita Ortiz,Northwind IT
 ```
 
-**Preview** lists Rita as new and to be invited. Press **Add**, then copy the one message Lolly
-Work offers and send it to her yourself.
+**Preview** lists Rita as new and to be invited. Press **Add 1 person**, then copy the one message
+Lolly Work offers and send it to her yourself.
 
 **`lw`.**
 
@@ -309,8 +314,9 @@ lw people import resellers-emea roster.csv --apply    # does it
 **Rita** signs in, and her home opens with Northwind IT's card first, then the data sheet.
 **Use** opens the sheet with Northwind IT's logo and contact line in place and one field, **Your
 price**. When she exports, the **Design system** card reads "Records: Lolly Demo · Colourway:
-Spearmint · Partner: Northwind IT (Resellers, EMEA)", and the file records nothing about Rita
-herself.
+Spearmint · Partner: Northwind IT (Resellers, EMEA)". The partner record holds Northwind IT and
+the programme, never Rita herself; the details line in the artwork shows the contact you set in
+step 3.
 
 ### 7. Give Rita's agent a token
 
@@ -332,8 +338,8 @@ secret (`lwt_…`). The secret appears in this answer only.
 :::
 
 **Rita's agent** connects to your organisation's MCP endpoint with the secret. It sees what Rita
-sees, renders the data sheet with only the price open, and its files record Northwind IT, never
-the agent.
+sees, renders the data sheet with only the price, colourway and mode open, and its files record
+Northwind IT, never the agent.
 
 ### 8. End the partnership on a date
 
