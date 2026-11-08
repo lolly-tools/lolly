@@ -5,7 +5,7 @@ description: "Operate the Lolly Sandbox tool (sandbox) using its declared inputs
 
 # Sandbox
 
-Tool ID: `sandbox`. Tool version: `1.7.1`. Engine range: `^1.0.0`.
+Tool ID: `sandbox`. Tool version: `1.9.0`. Engine range: `^1.0.0`.
 
 Paste HTML, CSS, JS - or a JSX/TypeScript component - and watch it run in a private, offline sandbox. Perfect for previewing code from an AI assistant.
 

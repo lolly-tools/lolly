@@ -65,8 +65,6 @@
   "inputs.boxes.fields.weight.options.700": "Tebal",
   "inputs.boxes.fields.weight.options.800": "Sangat tebal",
   "inputs.boxes.fields.font.label": "Fon",
-  "inputs.boxes.fields.font.options.SUSE": "SUSE Sans",
-  "inputs.boxes.fields.font.options.SUSE Mono": "SUSE Mono",
   "inputs.boxes.fields.lineHeight.label": "Tinggi baris",
   "inputs.boxes.fields.tracking.label": "Kerning",
   "inputs.boxes.fields.ligatures.label": "Ligatur",

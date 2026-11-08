@@ -16,7 +16,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
-import { bgOverscanPad, radiiOf, fitRect, plateShotFrame, plateWindowDemands, normalizeMixGain } from './sequence-render.ts';
+import { bgOverscanPad, radiiOf, fitRect, plateShotFrame, plateWindowDemands, normalizeMixGain, slideBoxesNeverShown, filmDrawTimes } from './sequence-render.ts';
 import { blurScratchNeedBytes, planPlateBudget } from './plate-budget.ts';
 import { EMPTY_KF_TRACK, kfTrackOf, sequenceDrawPlan, type SeqLayer } from './sequence-plan.ts';
 import { parseDropShadows, spillPad } from '../lib/canvas-blur.ts';
@@ -587,10 +587,51 @@ test('contract (plans/184 R1): a slide’s boxes are posed by the SAME rule the 
   assert.match(pm, /poseSlideBoxes\(clone, \{ reduced, clicks: 'park', pageStartMs: 0, authoredPageStartMs: frameStartMs, pageDurMs: null \}\)/);
   // A staged click deck says so, and the compositor reads it (deck-as-sequence.ts writes it).
   assert.match(src, /const staged = stageEl\.hasAttribute\('data-deck-staged'\)/);
+  // The plates and the credential's record of the pictures a slide shows pose it through one helper.
+  assert.match(src, /if \(!L\.frameScene \|\| L\.durMs <= 0\) continue;\s*const pose = filmSlidePose\(stageEl, L\);/);
+  assert.match(src, /const pose = filmSlidePose\(stageEl, L\);\s*try \{\s*const timings = pose\.boxes\.map/);
   assert.match(strip(read('../lib/deck-as-sequence.ts')), /set\(root, 'data-deck-staged', '1'\)/);
   // A posed slide is a live layer, its static plate is at rest with off-screen boxes hidden,
   // and everything is put back in the render’s outer finally.
   assert.match(src, /if \(slidePose && !liveBoxes\.has\(L\.idx\)\) \{\s*liveBoxes\.set\(L\.idx, \{ marker: null, box: el, hide: \[\] \}\);\s*needsLiveRaster = true;/);
   assert.match(src, /if \(slidePose\) plateHide = slideHiddenAt\(slidePose, slideRestMs\(slidePose, L\), L\.startMs \+ L\.durMs\);\s*under = await rasterBox\(el, PS, plateHide, plateOpts\);/);
   assert.match(src, /slideStore\.restoreAll\(\);\s*for \(const pose of slidePoses\.values\(\)\) \{\s*for \(const b of pose\.boxes\) b\.classList\.remove\(OFF_CLASS\);\s*pose\.restore\(\);/);
+});
+
+test('a slide box timed outside every exported frame is one the film never shows, and the slide is put back', async () => {
+  const { JSDOM } = await import('jsdom');
+  const doc = new JSDOM(`<div id="stage"><div id="slide" data-pdf-page data-t-start="0">
+    <div class="lolly-box" id="with"><img></div>
+    <div class="lolly-box" id="timed" data-t-start="5000" data-t-dur="1000"><img></div></div></div>`).window.document;
+  const stageEl = doc.getElementById('stage') as unknown as HTMLElement;
+  const slide = doc.getElementById('slide') as unknown as HTMLElement;
+  const before = slide.outerHTML;
+  const L = { el: slide, frameScene: true, startMs: 0, durMs: 8000 } as unknown as SeqLayer;
+  const first2s = [0, 500, 1000, 1500, 2000];
+  assert.deepEqual(slideBoxesNeverShown(stageEl, L, first2s, 8000).map((b) => b.id), ['timed']);
+  assert.deepEqual(slideBoxesNeverShown(stageEl, L, [...first2s, 5500], 8000), [], 'a frame inside its time shows it');
+  assert.equal(slide.outerHTML, before, 'the pose is put back');
+  assert.deepEqual(slideBoxesNeverShown(stageEl, { ...L, frameScene: false } as SeqLayer, first2s, 8000), [], 'only a slide poses its boxes');
+});
+
+test('a slide box shows only while every posed box around it is active too', async () => {
+  const { JSDOM } = await import('jsdom');
+  const doc = new JSDOM(`<div id="stage"><div id="slide" data-pdf-page data-t-start="0">
+    <div class="lolly-box" id="parent" data-t-start="0" data-t-dur="1000">
+      <div class="lolly-box" id="child" data-t-start="1000" data-t-dur="1000"><img></div></div></div></div>`).window.document;
+  const L = { el: doc.getElementById('slide'), frameScene: true, startMs: 0, durMs: 4000 } as unknown as SeqLayer;
+  const stageEl = doc.getElementById('stage') as unknown as HTMLElement;
+  assert.deepEqual(slideBoxesNeverShown(stageEl, L, [0, 500, 1000, 1500, 2000], 4000).map((b) => b.id), ['child'],
+    'the child is active only once its parent has gone, so no frame shows it');
+});
+
+test('filmDrawTimes: the frames the compositor draws a layer in, and none for one it never draws', () => {
+  const grid = [0, 250, 500, 750];
+  const shown = filmDrawTimes([demandLayer({ startMs: 250, durMs: 500 })], grid, 1000);
+  assert.deepEqual(shown.get(0), [250, 500]);
+  assert.equal(filmDrawTimes([demandLayer({ kf: kfTrackOf('t0_o0*t1000_o0') })], grid, 1000).has(0), false,
+    'keyframed to no opacity throughout: on screen, never drawn');
+  assert.equal(filmDrawTimes([demandLayer({ startMs: 900, durMs: 500 })], grid, 1000).has(0), false, 'after the last sample');
+  assert.equal(filmDrawTimes([demandLayer({ kind: 'audio' })], grid, 1000).has(0), false, 'a sound has no picture');
+  assert.equal(filmDrawTimes([demandLayer({ clipPath: 'circle(0px)' })], grid, 1000).has(0), false, 'a clip that encloses nothing draws nothing');
 });

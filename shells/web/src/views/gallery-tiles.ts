@@ -19,6 +19,7 @@ import { toolSupport } from '../capabilities.ts';
 import { resolveExamples } from '../components/featured-row.ts';
 import { coverFormats, displayFormatOf } from '../lib/featured-render.ts';
 import { selectToggle } from '../folder-tiles.ts';
+import { isProgrammeMember } from '../lib/workspace-templates.ts';
 import { carouselDotsMarkup, carouselNavMarkup } from './gallery-carousel.ts';
 import type { StateEntry } from '@lolly-tools/core/host-v1';
 import type { FeaturedVariant } from '../components/featured-row.ts';
@@ -161,7 +162,9 @@ export function cardMarkup(
     ? `<span class="badge badge-desktop">${t('Desktop')}</span>`
     : sup.status === 'install'
       ? `<span class="badge badge-install">${t('Add&#8209;on')}</span>`
-      : (tool.status !== 'official'
+      // A partner programme member sees no status chip but Experimental, which says
+      // their export carries a PREVIEW watermark (plans/82 M6).
+      : (tool.status !== 'official' && (tool.status === 'experimental' || !isProgrammeMember())
           ? `<span class="badge badge-${tool.status}"${tool.status === 'experimental' ? ` title="${escapeHtml(t('Experimental - exports carry a PREVIEW watermark until the tool graduates.'))}"` : ''}>${escapeHtml(t(statusLabel(tool.status) || ''))}</span>`
           : '');
 

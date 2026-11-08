@@ -5,7 +5,7 @@ description: "Operate the Lolly URL Screenshot tool (url-shot) using its declare
 
 # URL Screenshot
 
-Tool ID: `url-shot`. Tool version: `0.2.4`. Engine range: `^1.0.0`.
+Tool ID: `url-shot`. Tool version: `0.2.5`. Engine range: `^1.0.0`.
 
 Any web page, at any scroll depth, with custom CSS.
 

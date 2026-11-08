@@ -183,3 +183,32 @@ test('isFontContentType rejects HTML/SPA-fallback responses and accepts font typ
   assert.equal(isFontContentType('font/woff2'), true);
   assert.equal(isFontContentType('application/octet-stream'), true);
 });
+
+// Defect (2026-11-07): the registry was built once and kept, so a face a page declared
+// later (a Sandbox pen's own @font-face, copied into the export mirror) was never found,
+// and an outlined export fell back to live text in a family the reader did not have.
+test('a face added to the page after the registry was built starts a new generation', async () => {
+  const { documentFontsKey, fontRegistryGeneration, resolveVectorFont } = await import('./font-registry.ts');
+  assert.equal(documentFontsKey(null), '');
+  const a = { family: 'A', weight: '400', style: 'normal' };
+  assert.equal(documentFontsKey([a]), documentFontsKey([a]), 'the same faces give the same key');
+  assert.notEqual(documentFontsKey([a]), documentFontsKey([{ ...a, weight: '700' }]));
+  // A rule whose src changes is a new FontFace with the same family, weight and style.
+  assert.notEqual(documentFontsKey([a]), documentFontsKey([{ ...a }]), 'a replaced face changes the key');
+  const g = globalThis as { document?: unknown };
+  const saved = g.document;
+  const fonts = [{ family: 'SUSE', weight: '100 900', style: 'normal' }];
+  g.document = { fonts, styleSheets: [] };
+  try {
+    const style = { fontFamily: 'serif', fontWeight: '400', fontStyle: 'normal' };
+    await resolveVectorFont(style, 'x');
+    const built = fontRegistryGeneration();
+    await resolveVectorFont(style, 'x');
+    assert.equal(fontRegistryGeneration(), built, 'the same faces keep the registry');
+    fonts.push({ family: 'PenFace', weight: '100 900', style: 'normal' });
+    await resolveVectorFont(style, 'x');
+    assert.equal(fontRegistryGeneration(), built + 1, 'a new face rebuilds the registry');
+  } finally {
+    g.document = saved;
+  }
+});

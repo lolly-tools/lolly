@@ -43,7 +43,7 @@ import { beginAiProbe, finishAiProbe, knownManagedAi, startAiPolicyPolling, stop
 import type { AiPolicy } from '../lib/ai-policy.ts';
 import type { FieldPolicy } from '../lib/field-policy.ts';
 import { setToolInputPolicies, clearInputPolicies, setInputPolicyFailClosed, onToolInputMount, setToolStartValues, clearToolStartValues } from '../lib/input-policy.ts';
-import { companyLogo, setWorkspaceCompany, setWorkspaceProgramme, type WorkspaceCompany } from '../lib/workspace-templates.ts';
+import { companyLogo, setProgrammeMember, setWorkspaceCompany, setWorkspaceProgramme, type WorkspaceCompany } from '../lib/workspace-templates.ts';
 import { readPartnerKitOffer, setPartnerKitOffer } from '../lib/partner-kit-state.ts';
 import type { InputPolicy } from '../lib/input-policy.ts';
 import { registerShareSection } from '../lib/share-sections.ts';
@@ -223,6 +223,9 @@ export interface OrgConfig {
   tools?: Record<string, ToolPolicySpec>;
   /** The caller's partner company and programme, for programme members only. */
   partner?: PartnerSpec;
+  /** True when the caller reaches the workspace through a partner programme
+   *  (plans/82 M6). Absent for everyone else and on older servers. */
+  programmeScoped?: true;
   /** Capability flags the caller has on this instance (e.g. 'link.create',
    *  'export.download', 'export.request'. 'export.preflight' is LEGACY: the
    *  prepress card is a personal feature flag since 2026-08-06, and
@@ -827,6 +830,7 @@ export function applyOrgToolPolicies(): void {
   setWorkspaceCompany(company);
   setWorkspaceProgramme(partnerProgramme(orgConfigState));
   setPartnerKitOffer(readPartnerKitOffer(orgConfigState?.partner?.company?.kit));
+  setProgrammeMember(orgConfigState?.programmeScoped === true);
   const tools = orgConfigState?.tools;
   if (!tools) return;
   const instanceName = orgConfigState!.instance?.name || '';
@@ -1202,6 +1206,9 @@ export async function initOrgWithAuth(auth: AuthConfig): Promise<OrgState | null
       // And the programme, which an export records beside the company (plans/82 M3).
       setWorkspaceProgramme(partnerProgramme(orgConfigState));
       setPartnerKitOffer(readPartnerKitOffer(orgConfigState?.partner?.company?.kit));
+      // Whether the person reaches the workspace through a partner programme: the
+      // home keeps to what is published to them (plans/82 M6).
+      setProgrammeMember(orgConfigState?.programmeScoped === true);
       applySitePolicy(orgConfigState, failClosed);
       // Route the instance's injectables (plans/19): tool descriptors into the
       // gallery registry (pure data, beside the apply* group); chrome descriptors

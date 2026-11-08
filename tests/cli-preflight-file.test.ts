@@ -14,6 +14,7 @@ import { fileURLToPath } from 'node:url';
 const run = promisify(execFile);
 const entry = fileURLToPath(new URL('../shells/cli/bin/lolly.ts', import.meta.url));
 const tokens = fileURLToPath(new URL('./fixtures/plate-scenes/tokens/ink-and-foil.tokens.json', import.meta.url));
+const colourways = fileURLToPath(new URL('./fixtures/plate-scenes/tokens/two-colourways.tokens.json', import.meta.url));
 const env = { ...process.env, LOLLY_PROFILE: 'lolly-demo', NO_COLOR: '1' };
 
 type Report = { counts: { kind: string; value: number }[]; findings: { id: string; evidence?: Record<string, unknown> }[]; job?: unknown };
@@ -56,4 +57,16 @@ test('a pasted link cannot choose the design system file', async () => {
   const link = `https://lolly.tools/tool/design?width=400&height=200&file=${encodeURIComponent(tokens)}`;
   assert.equal(plates(await preflight([link])).finishPlates, undefined, 'the link\'s file= is not read');
   assert.deepEqual(plates(await preflight([link, `--file=${tokens}`])), { processPlates: 4, spotPlates: 1, finishPlates: 1 }, 'the flag typed after the link is');
+});
+
+test('a link\'s _themes choice decides the palette preflight counts, as it decides the export\'s', async () => {
+  const night = JSON.stringify({ '': 'night' });
+  // Day is the canonical colourway: one spot ink, no finish.
+  assert.deepEqual(plates(await preflight(['design', `--file=${colourways}`])), { processPlates: 4, spotPlates: 1 });
+  const chosen = await preflight(['design', `--file=${colourways}`, `--_themes=${night}`]);
+  assert.deepEqual(plates(chosen), { processPlates: 4, spotPlates: 2, finishPlates: 1 });
+  assert.equal(evidence(chosen, 'plates.finish-ceiling')?.finishes, 'Fixture Foil');
+  // The same choice carried by a pasted link.
+  const link = `https://lolly.tools/tool/design?width=400&height=200&_themes=${encodeURIComponent(night)}`;
+  assert.deepEqual(plates(await preflight([link, `--file=${colourways}`])), { processPlates: 4, spotPlates: 2, finishPlates: 1 });
 });

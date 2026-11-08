@@ -4114,7 +4114,7 @@ var ENGINE_VERSION;
 var init_version = __esm({
   "engine/src/version.ts"() {
     "use strict";
-    ENGINE_VERSION = "1.337.0";
+    ENGINE_VERSION = "1.338.0";
   }
 });
 
@@ -48769,6 +48769,7 @@ __export(c2pa_exports, {
   AI_MODEL_TYPES: () => AI_MODEL_TYPES,
   AI_MODEL_TYPE_GENERIC: () => AI_MODEL_TYPE_GENERIC,
   ALGORITHMIC_SOURCE_TYPE: () => ALGORITHMIC_SOURCE_TYPE,
+  APPROVAL_TEMPLATE_ID: () => APPROVAL_TEMPLATE_ID,
   BMFF_HASH_LABEL: () => BMFF_HASH_LABEL,
   C2PA_ATTACHMENT_MIME: () => C2PA_ATTACHMENT_MIME,
   C2PA_BMFF_UUID: () => C2PA_BMFF_UUID,
@@ -48800,6 +48801,7 @@ __export(c2pa_exports, {
   exportActionSteps: () => exportActionSteps,
   generateSigner: () => generateSigner,
   ingredientFormatOfMime: () => ingredientFormatOfMime,
+  isTemplateApproval: () => isTemplateApproval,
   urnUuid: () => urnUuid
 });
 function ingredientRelationship(ing) {
@@ -48858,13 +48860,22 @@ function intentAssertionMap(r5) {
   };
 }
 function approvalAssertionMap(a) {
+  const template = isTemplateApproval(a);
+  const allowed = template ? TEMPLATE_APPROVAL_KEYS : FILE_APPROVAL_KEYS;
   for (const key2 of Object.keys(a)) {
-    if (key2 !== "approvalId" && key2 !== "decidedAt" && key2 !== "reviewedSha256") throw new Error(`c2pa: an approval record cannot carry '${key2.slice(0, 40)}'`);
+    if (!allowed.includes(key2)) throw new Error(`c2pa: an approval record cannot carry '${key2.slice(0, 40)}'`);
   }
   if (typeof a.approvalId !== "string" || !APPROVAL_ID.test(a.approvalId)) throw new Error("c2pa: approval.approvalId must be an identifier");
   if (typeof a.decidedAt !== "string" || !ISO_INSTANT.test(a.decidedAt) || Number.isNaN(Date.parse(a.decidedAt))) throw new Error("c2pa: approval.decidedAt must be an ISO 8601 date and time");
-  if (typeof a.reviewedSha256 !== "string" || !SHA256_TEXT.test(a.reviewedSha256)) throw new Error("c2pa: approval.reviewedSha256 must be 'sha256:<64 hex>'");
-  return { version: 1, approvalId: a.approvalId, decidedAt: a.decidedAt, reviewedSha256: a.reviewedSha256 };
+  if (!template) {
+    if (typeof a.reviewedSha256 !== "string" || !SHA256_TEXT.test(a.reviewedSha256)) throw new Error("c2pa: approval.reviewedSha256 must be 'sha256:<64 hex>'");
+    return { version: 1, approvalId: a.approvalId, decidedAt: a.decidedAt, reviewedSha256: a.reviewedSha256 };
+  }
+  if (a.covers !== "template") throw new Error("c2pa: approval.covers must be 'template'");
+  if (typeof a.templateId !== "string" || !APPROVAL_TEMPLATE_ID.test(a.templateId)) throw new Error("c2pa: approval.templateId must be an identifier");
+  if (!Number.isSafeInteger(a.templateVersion) || a.templateVersion < 1) throw new Error("c2pa: approval.templateVersion must be a positive whole number");
+  if (typeof a.exampleSha256 !== "string" || !SHA256_TEXT.test(a.exampleSha256)) throw new Error("c2pa: approval.exampleSha256 must be 'sha256:<64 hex>'");
+  return { version: 1, approvalId: a.approvalId, decidedAt: a.decidedAt, covers: "template", templateId: a.templateId, templateVersion: a.templateVersion, exampleSha256: a.exampleSha256 };
 }
 function sourceIngredientAssertion(ing) {
   const title = boundedText(ing.title, "source ingredient title", 1024);
@@ -49188,7 +49199,7 @@ async function buildC2paManifest({
   if (relationships.filter((r5) => r5 === "parentOf").length > 1) {
     throw new Error("c2pa: a manifest may carry only one parentOf ingredient (manifest.multipleParents) - mark the components componentOf");
   }
-  if (approval && !ingList.some((ing, i) => relationships[i] === "parentOf" && !isSourceIngredient(ing))) {
+  if (approval && !isTemplateApproval(approval) && !ingList.some((ing, i) => relationships[i] === "parentOf" && !isSourceIngredient(ing))) {
     throw new Error("c2pa: an approval record needs a credentialed parentOf ingredient");
   }
   const ingredientBoxes = [];
@@ -49368,7 +49379,7 @@ async function buildExternalC2paStore(bytes2, opts = {}) {
     assetHash: { exclusions: [], name: hashName || "whole document", hash: await sha256(bytes2) }
   });
 }
-var isSourceIngredient, HTTP_URL_MAX, boundedText, SHA256_TEXT, INTENT_RECORD_KEYS, INTENT_WORD, INTENT_SURFACE_ID, INTENT_TOOL_ID, INTENT_LANGUAGE, INTENT_RULES, APPROVAL_ID, ISO_INSTANT, te5, subtle4, CborTag, JUMBF_UUID_SUFFIX, boxUuid, UUID_C2PA_STORE, UUID_MANIFEST, UUID_ASSERTION_STORE, UUID_CLAIM, UUID_SIGNATURE, UUID_CBOR_CONTENT, UUID_JSON_CONTENT, COSE_HEADER_ALG, COSE_HEADER_X5CHAIN, isoSeconds, DIGITAL_SOURCE_TYPE, CAPTURE_SOURCE_TYPE, SCREEN_SOURCE_TYPE, GENERATED_SOURCE_TYPE, COMPOSITE_SOURCE_TYPE, ALGORITHMIC_SOURCE_TYPE, RASTER_OUTPUTS, VIDEO_OUTPUTS, INGREDIENT_MIME, AI_GRADE, LOLLY_EXPORT_ASSERTION, LOLLY_RIGHTS_ASSERTION, LOLLY_INTENT_ASSERTION, INTENT_PROMPT_NOTE, LOLLY_APPROVAL_ASSERTION, BMFF_HASH_LABEL, CREATIVE_WORK_ASSERTION, METADATA_ASSERTION, DC_CONTEXT, AI_DISCLOSURE_ASSERTION, AI_MODEL_TYPE_GENERIC, AI_MODEL_TYPES, NAMESPACED_LABEL_RE, HUMAN_OVERSIGHT_LEVELS, SCIENTIFIC_DOMAIN_RE, SEMVER_RE, C2PA_SPEC_VERSION;
+var isSourceIngredient, HTTP_URL_MAX, boundedText, SHA256_TEXT, INTENT_RECORD_KEYS, INTENT_WORD, INTENT_SURFACE_ID, INTENT_TOOL_ID, INTENT_LANGUAGE, INTENT_RULES, APPROVAL_ID, ISO_INSTANT, APPROVAL_TEMPLATE_ID, FILE_APPROVAL_KEYS, TEMPLATE_APPROVAL_KEYS, isTemplateApproval, te5, subtle4, CborTag, JUMBF_UUID_SUFFIX, boxUuid, UUID_C2PA_STORE, UUID_MANIFEST, UUID_ASSERTION_STORE, UUID_CLAIM, UUID_SIGNATURE, UUID_CBOR_CONTENT, UUID_JSON_CONTENT, COSE_HEADER_ALG, COSE_HEADER_X5CHAIN, isoSeconds, DIGITAL_SOURCE_TYPE, CAPTURE_SOURCE_TYPE, SCREEN_SOURCE_TYPE, GENERATED_SOURCE_TYPE, COMPOSITE_SOURCE_TYPE, ALGORITHMIC_SOURCE_TYPE, RASTER_OUTPUTS, VIDEO_OUTPUTS, INGREDIENT_MIME, AI_GRADE, LOLLY_EXPORT_ASSERTION, LOLLY_RIGHTS_ASSERTION, LOLLY_INTENT_ASSERTION, INTENT_PROMPT_NOTE, LOLLY_APPROVAL_ASSERTION, BMFF_HASH_LABEL, CREATIVE_WORK_ASSERTION, METADATA_ASSERTION, DC_CONTEXT, AI_DISCLOSURE_ASSERTION, AI_MODEL_TYPE_GENERIC, AI_MODEL_TYPES, NAMESPACED_LABEL_RE, HUMAN_OVERSIGHT_LEVELS, SCIENTIFIC_DOMAIN_RE, SEMVER_RE, C2PA_SPEC_VERSION;
 var init_c2pa2 = __esm({
   "engine/src/c2pa.ts"() {
     "use strict";
@@ -49393,6 +49404,10 @@ var init_c2pa2 = __esm({
     INTENT_RULES = /^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$/;
     APPROVAL_ID = /^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$/;
     ISO_INSTANT = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,9})?(?:Z|[+-]\d{2}:\d{2})$/;
+    APPROVAL_TEMPLATE_ID = /^[A-Za-z0-9][A-Za-z0-9_-]{0,63}(?:\/[A-Za-z0-9][A-Za-z0-9_-]{0,127}){0,2}$/;
+    FILE_APPROVAL_KEYS = ["approvalId", "decidedAt", "reviewedSha256"];
+    TEMPLATE_APPROVAL_KEYS = ["approvalId", "decidedAt", "covers", "templateId", "templateVersion", "exampleSha256"];
+    isTemplateApproval = (a) => a.covers !== void 0;
     te5 = new TextEncoder();
     subtle4 = globalThis.crypto.subtle;
     CborTag = class {
@@ -53015,6 +53030,7 @@ __export(c2pa_verify_exports, {
   parseCertificate: () => parseCertificate,
   prepareC2paIngredient: () => prepareC2paIngredient,
   prepareC2paIngredientFromStore: () => prepareC2paIngredientFromStore,
+  readApprovalRecord: () => readApprovalRecord,
   readIntentRecord: () => readIntentRecord,
   signedBy: () => signedBy,
   sniffFormat: () => sniffFormat,
@@ -53331,9 +53347,9 @@ async function verifyC2pa(bytes2, { trustAnchors, externalManifest, enrollmentTr
   const AI_DISCLOSURE_LABEL = /^c2pa\.ai-disclosure(\.v\d+)?(__\d+)?$/;
   let factAssertions = parts.assertions;
   const approvalAssertion = parts.assertions.find((a) => a.label === LOLLY_APPROVAL_ASSERTION);
-  if (approvalAssertion) {
-    const record49 = readApprovalRecord(approvalAssertion.content);
-    if (record49) report4.approval = record49;
+  const approvalRecord = approvalAssertion ? readApprovalRecord(approvalAssertion.content) : null;
+  if (approvalRecord) report4.approval = approvalRecord;
+  if (approvalAssertion && !(approvalRecord && isTemplateApproval(approvalRecord))) {
     const parent = readParentManifest(extracted.manifest, parts);
     if (parent && bytesToHex(await sha256(parent.payload)) === bytesToHex(parent.recordedHash)) {
       factAssertions = parent.parts.assertions;
@@ -53690,13 +53706,24 @@ function readApprovalRecord(content2) {
   }
   if (!(map instanceof Map)) return null;
   const keys2 = [...map.keys()];
-  if (map.get("version") !== 1 || keys2.length !== 4) return null;
+  if (map.get("version") !== 1) return null;
   const approvalId = map.get("approvalId");
   const decidedAt = map.get("decidedAt");
-  const reviewedSha256 = map.get("reviewedSha256");
-  if (typeof approvalId !== "string" || typeof decidedAt !== "string" || typeof reviewedSha256 !== "string") return null;
-  if (!/^sha256:[0-9a-f]{64}$/.test(reviewedSha256)) return null;
-  return { approvalId, decidedAt, reviewedSha256 };
+  if (typeof approvalId !== "string" || typeof decidedAt !== "string") return null;
+  const sha = (value2) => typeof value2 === "string" && /^sha256:[0-9a-f]{64}$/.test(value2);
+  if (keys2.length === 4) {
+    const reviewedSha256 = map.get("reviewedSha256");
+    return sha(reviewedSha256) ? { approvalId, decidedAt, reviewedSha256 } : null;
+  }
+  if (keys2.length === 7 && map.get("covers") === "template") {
+    const templateId = map.get("templateId");
+    const templateVersion = map.get("templateVersion");
+    const exampleSha256 = map.get("exampleSha256");
+    if (typeof templateId !== "string" || !APPROVAL_TEMPLATE_ID.test(templateId)) return null;
+    if (typeof templateVersion !== "number" || !Number.isSafeInteger(templateVersion) || templateVersion < 1 || !sha(exampleSha256)) return null;
+    return { approvalId, decidedAt, covers: "template", templateId, templateVersion, exampleSha256 };
+  }
+  return null;
 }
 var td4, te8, tdText, subtle7, MAX_CHAIN_INTERMEDIATES, COSE_ALGS, HASHED_URI_PREFIX, EPHEMERAL_CN, TEXT_BINDING_KIND, isCutWrapper, excludesWrapper, MAX_WRAPPER_CANDIDATES, sameRanges, SVGZ_MAX_DOCUMENT_BYTES, verifyC2paPdf;
 var init_c2pa_verify = __esm({
@@ -137294,6 +137321,8 @@ function movesOrFloats(row, styled) {
   const keys2 = Object.keys(row);
   if (keys2.length > MAX_ROW_FIELDS) return true;
   if (styled && isSet(row.cls)) return true;
+  if (isSet(row.textStory) || isSet(row.textFrame)) return true;
+  if ((row.kind === "path" || isSet(row.path)) && typeof row.text === "string" && row.text.trim() !== "") return true;
   if (isSet(row.kf) || isSet(row.hold) || isSet(row.split) || designNum(row.build, 0) >= 1 || isSet(row.matchOf) || isSet(row.animationId) || isSet(row.animationEdits)) return true;
   if (isSet(row.enter) || isSet(row.exit)) return true;
   if (designNum(row.z, 0) !== 0 || designNum(row.rx, 0) !== 0 || designNum(row.ry, 0) !== 0) return true;
@@ -137309,7 +137338,7 @@ function reachOf(row, kind, ancestors, floats) {
   if (kind === "frame") return { reach: "exact", margin: 0 };
   if (floats(row) || ancestors.some((a) => a.kind !== "frame" && floats(a))) return { reach: "anywhere", margin: 0 };
   const margin = (stroked(row) ? Math.max(...strokeWidths(row)) : 0) + (shadowed(row) ? Math.abs(num14(row.shadowX)) + Math.abs(num14(row.shadowY)) + 3 * Math.max(0, num14(row.shadowBlur, 10)) : 0) + 3 * Math.max(0, num14(row.blur));
-  const local2 = margin > 0 || turnedRow(row) || shapeOf(row) !== "rect" || isSet(row.clip) || kind === "path" || isSet(row.path) || !MODELLED_KINDS.has(kind) || isSet(row.textStory) || isSet(row.textFrame);
+  const local2 = margin > 0 || turnedRow(row) || shapeOf(row) !== "rect" || isSet(row.clip) || kind === "path" || isSet(row.path) || !MODELLED_KINDS.has(kind);
   return { reach: local2 ? "local" : "exact", margin };
 }
 function colourCover(value2, resolve8) {
@@ -137382,7 +137411,7 @@ function intersect2(a, b) {
 function rendererNumbers(row) {
   const out = { ...row };
   for (const key2 of NUMBER_FIELDS) {
-    if (typeof out[key2] !== "string") continue;
+    if (out[key2] === void 0 || typeof out[key2] === "number") continue;
     const n7 = designNum(out[key2], Number.NaN);
     if (Number.isFinite(n7)) out[key2] = n7;
     else delete out[key2];
@@ -137554,7 +137583,7 @@ function drawnLayers(capped, measure3, unmeasured) {
     const own4 = paintCover(row, kind, image, measure3.resolveColor) * opacity;
     const cover = blend2 && own4 !== 0 ? Number.NaN : own4;
     const { reach: reach2, margin } = reachOf(row, kind, ancestors, floats);
-    const paints2 = !!image || cover !== 0 || typeof row.text === "string" && row.text.trim() !== "" || isSet(row.textStory) || isSet(row.textFrame) || stroked(row) || shadowed(row) || !MODELLED_KINDS.has(kind);
+    const paints2 = !!image || cover !== 0 || typeof row.text === "string" && row.text.trim() !== "" || isSet(row.textStory) || isSet(row.textFrame) || stroked(row) || shadowed(row) || !MODELLED_KINDS.has(kind) || Object.keys(row).some((k) => PROTOTYPE_KEYS.has(k));
     layers.push({
       row,
       id: id3,
@@ -137928,16 +137957,22 @@ var init_partner_kit_check = __esm({
     ]);
     record29 = (v) => !!v && typeof v === "object" && !Array.isArray(v);
     designNum = (v, fallback) => {
-      const n7 = typeof v === "number" ? v : typeof v === "string" ? Number.parseFloat(v) : Number.NaN;
+      let n7;
+      try {
+        n7 = typeof v === "number" ? v : Number.parseFloat(v);
+      } catch {
+        n7 = Number.NaN;
+      }
       return Number.isFinite(n7) ? n7 : fallback;
     };
     num14 = (v, fallback = 0) => designNum(v, fallback);
     designHasNum = (v) => v !== "" && Number.isFinite(designNum(v, Number.NaN));
     designBool2 = (v, fallback) => {
-      if (v === true || v === false) return v;
-      if (typeof v !== "string" && typeof v !== "number") return fallback;
-      const s = String(v).toLowerCase();
-      return s === "true" || s === "1" || s === "yes" || s === "on" ? true : s === "false" || s === "0" || s === "no" || s === "off" ? false : fallback;
+      try {
+        return designBool(v, fallback);
+      } catch {
+        return fallback;
+      }
     };
     isSet = (v) => !(v === void 0 || v === null || v === "" || v === false || v === 0 || v === "none" || typeof v === "string" && !v.trim());
     keyOf3 = (v) => typeof v === "string" ? v : typeof v === "number" && Number.isFinite(v) ? String(v) : "";
@@ -171368,6 +171403,50 @@ async function serveSessionOnce(page3, origin, path, bytes2) {
   await page3.route(matches3, handler);
   return { remove, requested };
 }
+async function probeOpenRoute(page3) {
+  let timer;
+  const late = new Promise((resolve8) => {
+    timer = setTimeout(() => resolve8(null), OPEN_ROUTE_PROBE_MS);
+  });
+  const asked = page3.evaluate((mountingAttr) => {
+    const view = document.getElementById("view");
+    return {
+      hash: location.hash,
+      card: document.querySelector("[data-open-route]")?.getAttribute("data-open-route") ?? null,
+      loading: !view || view.hasAttribute(mountingAttr) || !!document.querySelector("#view > .loading[data-drop-stand-in], dialog.view-loading[open]"),
+      webgpu: document.documentElement.dataset.webgpu ?? null,
+      error: document.querySelector("#view > .error p")?.textContent?.trim() || null,
+      gallery: !!view?.classList.contains("gallery-view")
+    };
+  }, ROUTE_MOUNTING_ATTR).catch(() => null);
+  try {
+    return await Promise.race([asked, late]);
+  } finally {
+    clearTimeout(timer);
+  }
+}
+function silentOpenMessage(probe, root2, name, waitedMs) {
+  const waited = waitedMs < 1e3 ? `${waitedMs} ms` : `${Number((waitedMs / 1e3).toFixed(1))} s`;
+  if (!probe) {
+    return `The web shell at ${root2} did not ask for ${name} within ${waited}, and the page did not answer when asked what it showed. The machine may be too busy: try again. If this keeps happening, check that the shell is current (pnpm run build:web, or LOLLY_WEB_BASE).`;
+  }
+  if (probe.webgpu === "unsupported") {
+    return `The web shell at ${root2} stopped at its WebGPU startup check, so it never asked for ${name}.`;
+  }
+  if (probe.error) {
+    return `The web shell at ${root2} showed an error before it asked for ${name}: ${probe.error}`;
+  }
+  if (probe.card !== null || probe.hash === "#/open") {
+    return `The web shell at ${root2} started opening ${name} but had not fetched it after ${waited}. The shell has the #/open route; the machine may be too busy. Try again.`;
+  }
+  if (probe.loading) {
+    return `The web shell at ${root2} was still loading after ${waited}, so it had not asked for ${name} yet. The machine may be too busy: try again.`;
+  }
+  if (probe.gallery && probe.hash.startsWith("#/open?")) {
+    return `The web shell at ${root2} opened the gallery for #/open and never asked for ${name}, so it has no #/open route (it predates plan 291 W8). Rebuild it (pnpm run build:web), or point LOLLY_WEB_BASE at a current one.`;
+  }
+  return `The web shell at ${root2} did not ask for ${name} within ${waited}, and the page is not opening it. Check that the shell is current (pnpm run build:web, or LOLLY_WEB_BASE) and try again.`;
+}
 async function settleEditor(page3, timeoutMs, opts = {}) {
   await page3.evaluate(() => {
     window.__lollyOpenSettled = 0;
@@ -171400,8 +171479,9 @@ async function openSessionInPage(page3, base, bytes2, name, opts = {}) {
     const never = () => new Promise(() => {
     });
     let quiet2;
+    const askMs = Math.min(timeout, opts.askTimeoutMs ?? OPEN_ROUTE_ASK_MS);
     const silent = new Promise((resolve8) => {
-      quiet2 = setTimeout(() => resolve8({ kind: "silent" }), Math.min(timeout, opts.askTimeoutMs ?? OPEN_ROUTE_ASK_MS));
+      quiet2 = setTimeout(() => resolve8({ kind: "silent" }), askMs);
     });
     void requested.then(() => clearTimeout(quiet2));
     const outcome = await Promise.race([
@@ -171416,9 +171496,7 @@ async function openSessionInPage(page3, base, bytes2, name, opts = {}) {
       page3.locator('[data-open-route="failed"]').waitFor({ state: "visible", timeout }).then(async () => ({ kind: "failed", message: (await page3.locator('[data-open-route="failed"] p').innerText().catch(() => "")).trim() })).catch(never),
       page3.locator('[data-dialog-tag="lolly-intake"]').waitFor({ state: "visible", timeout }).then(() => ({ kind: "asks" })).catch(never)
     ]).finally(() => clearTimeout(quiet2));
-    if (outcome.kind === "silent") {
-      throw new OpenSessionError(`The web shell at ${root2} never asked for ${name}, so it has no #/open route (it predates plan 291 W8). Rebuild it (pnpm run build:web), or point LOLLY_WEB_BASE at a current one.`);
-    }
+    if (outcome.kind === "silent") throw new OpenSessionError(silentOpenMessage(await probeOpenRoute(page3), root2, name, askMs));
     if (outcome.kind === "failed") throw new OpenSessionError(`The web shell did not open ${name}: ${outcome.message || "no reason was given."}`);
     if (outcome.kind === "asks") {
       throw new OpenSessionError(`${name} carries more than a saved session (a tool, a design system, templates, a renovation or a project), so the app asks a person what to do with it. Open it in the app instead.`);
@@ -171528,7 +171606,7 @@ async function checksInOpenedPage(page3, base, bytes2, name, tokenSelection, tim
 function shortenUrls(message, max = 2e3) {
   return message.replace(/(?:https?|data):[^\s"'<>]+/g, (url) => url.length > max ? `${url.slice(0, 200)}... (${url.length.toLocaleString("en")} characters)` : url);
 }
-var OPEN_ROUTE_PREFIX, OPEN_ROUTE_MAX_BYTES, OpenSessionError, OPEN_ROUTE_ASK_MS, ROUTE_MOUNTING_ATTR;
+var OPEN_ROUTE_PREFIX, OPEN_ROUTE_MAX_BYTES, OpenSessionError, OPEN_ROUTE_ASK_MS, OPEN_ROUTE_PROBE_MS, ROUTE_MOUNTING_ATTR;
 var init_open_session = __esm({
   "packages/node-shell/src/open-session.ts"() {
     "use strict";
@@ -171546,6 +171624,7 @@ var init_open_session = __esm({
       }
     };
     OPEN_ROUTE_ASK_MS = 45e3;
+    OPEN_ROUTE_PROBE_MS = 5e3;
     ROUTE_MOUNTING_ATTR = "data-route-mounting";
   }
 });
@@ -180250,6 +180329,8 @@ var init_pdf_classic = __esm({
 // packages/node-shell/src/motion-inspect.ts
 var motion_inspect_exports = {};
 __export(motion_inspect_exports, {
+  FRAME_LOG_ARGS: () => FRAME_LOG_ARGS,
+  afterInputSummary: () => afterInputSummary,
   inspectMotionBytes: () => inspectMotionBytes
 });
 import { execFile } from "node:child_process";
@@ -180281,18 +180362,19 @@ async function inspectMotionBytes(bytes2, target2 = {}, binaries = { probe: "ffp
       return motionReport(facts2, target2, [{ id: "container", status: "not-run", reason: `ffprobe unavailable or could not read this file: ${error2.message}` }]);
     }
     if (!facts2.seconds || facts2.seconds > 3600) return motionReport(facts2, target2, [{ id: "decoded-analysis", status: "not-run", reason: "Decoding requires a known duration of at most one hour." }]);
-    const args = ["-hide_banner", "-nostdin", ...options2.strict ? ["-xerror", "-err_detect", "explode", "-abort_on", "empty_output_stream"] : [], "-protocol_whitelist", "file,pipe", "-i", path];
+    const args = ["-hide_banner", "-nostdin", "-nostats", ...options2.strict ? ["-xerror", "-err_detect", "explode", "-abort_on", "empty_output_stream"] : [], "-protocol_whitelist", "file,pipe", "-i", path, ...FRAME_LOG_ARGS];
     if (facts2.width) args.push("-vf", "blackdetect=d=0.5:pix_th=0.03,freezedetect=n=-50dB:d=1");
     if (facts2.audio) args.push("-af", `${options2.strict ? "ashowinfo," : ""}ebur128=peak=true,silencedetect=n=-50dB:d=1`);
     args.push("-f", "null", "-");
     try {
-      const { stderr } = await run(binaries.decode, args, { signal: options2.signal, timeout: options2.timeoutMs ?? 3e5, maxBuffer: 16 * 1024 * 1024 });
+      const { stderr: whole } = await run(binaries.decode, args, { signal: options2.signal, timeout: options2.timeoutMs ?? 3e5, maxBuffer: 16 * 1024 * 1024 });
+      const stderr = afterInputSummary(whole);
       if (facts2.audio) {
         facts2.loudness = measurement(stderr, /Integrated loudness:\s+I:\s+([-\w.]+)/g);
         facts2.truePeak = measurement(stderr, /True peak:\s+Peak:\s+([-\w.]+)/g);
       }
       if (options2.strict && facts2.audio) {
-        const audioFrames = [...stderr.matchAll(/\[Parsed_ashowinfo_[^\]]+\]\s+n:\s*(\d+)\s+pts:\s*[-\d]+\s+pts_time:([-\d.e+]+).*?rate:(\d+)\s+nb_samples:(\d+)/g)];
+        const audioFrames = [...stderr.matchAll(ASHOWINFO_FRAME)];
         let seconds3 = 0, timestampError = 0;
         const consistent = audioFrames.length > 0 && audioFrames.every((frame, index2) => {
           const time2 = Number(frame[2]), rate3 = Number(frame[3]), count4 = Number(frame[4]);
@@ -180323,7 +180405,7 @@ async function inspectMotionBytes(bytes2, target2 = {}, binaries = { probe: "ffp
     await rm3(directory, { recursive: true, force: true });
   }
 }
-var run, rate, measurement;
+var run, rate, measurement, ASHOWINFO_FRAME, FRAME_LOG_ARGS, afterInputSummary;
 var init_motion_inspect = __esm({
   "packages/node-shell/src/motion-inspect.ts"() {
     "use strict";
@@ -180339,6 +180421,13 @@ var init_motion_inspect = __esm({
       if (raw === void 0) return void 0;
       const n7 = Number(raw);
       return Number.isFinite(n7) ? n7 : null;
+    };
+    ASHOWINFO_FRAME = /n:\s*(\d+)\s+pts:\s*[-\d]+\s+pts_time:([-\d.e+]+).*?rate:(\d+)\s+nb_samples:(\d+)/g;
+    FRAME_LOG_ARGS = ["-map_metadata", "-1", "-map_chapters", "-1"];
+    afterInputSummary = (log) => {
+      if (log.startsWith("Stream mapping:")) return log;
+      const at = log.indexOf("\nStream mapping:");
+      return at < 0 ? log : log.slice(at + 1);
     };
   }
 });
@@ -180405,6 +180494,7 @@ async function collectProductionMotion(bytes2, contract2, signal, binaries = { p
     const args = [
       "-hide_banner",
       "-nostdin",
+      "-nostats",
       "-xerror",
       "-err_detect",
       "explode",
@@ -180417,6 +180507,7 @@ async function collectProductionMotion(bytes2, contract2, signal, binaries = { p
       path,
       "-map",
       "0:v:0",
+      ...FRAME_LOG_ARGS,
       "-filter_threads",
       "1",
       "-vf",
@@ -180428,7 +180519,7 @@ async function collectProductionMotion(bytes2, contract2, signal, binaries = { p
     else args.push("-f", "null", "-");
     const decoded = await run2(binaries.decode, args, { signal, timeout: 6e4, maxBuffer: Math.max(8 * 1024 * 1024, indices.length * width * height * 4 + 1), encoding: "buffer" });
     const log = decoded.stderr.toString();
-    const frames = [...log.matchAll(/\[Parsed_showinfo_[^\]]+\]\s+n:\s*(\d+)\s+pts:\s*[-\d]+\s+pts_time:([-\d.e+]+).*?\bs:(\d+)x(\d+)/g)].map((m2) => ({ index: Number(m2[1]), time: Number(m2[2]), width: Number(m2[3]), height: Number(m2[4]) }));
+    const frames = [...afterInputSummary(log).matchAll(/n:\s*(\d+)\s+pts:\s*[-\d]+\s+pts_time:([-\d.e+]+).*?\bs:(\d+)x(\d+)/g)].map((m2) => ({ index: Number(m2[1]), time: Number(m2[2]), width: Number(m2[3]), height: Number(m2[4]) }));
     if (!frames.length || frames.length > 14400 || frames.length * width * height > 1e9 || frames.some((f, i) => f.index !== i || !Number.isFinite(f.time) || f.width !== width || f.height !== height || i > 0 && f.time <= frames[i - 1].time)) {
       facts2.limitations.push("decoded-frame-ledger-unavailable-or-inconsistent");
       return facts2;
@@ -184806,12 +184897,13 @@ function verdictApproval(report4) {
   const fails = report4.checks.filter((chk) => !chk.ok && chk.code !== "signingCredential.untrusted");
   const changed = fails.some((chk) => chk.code === "assertion.dataHash.mismatch" || chk.code === "assertion.bmffHash.mismatch");
   const lapsed = fails.length === 1 && fails[0].code === "signingCredential.expired";
+  const covered = r5.covers === "template" ? [["Covers", `Approved as a template: ${cleanControlChars(r5.templateId)} v${r5.templateVersion}${report4.format ? ` (${cleanControlChars(report4.format).toUpperCase()})` : ""}. Example file sha256 ${cleanControlChars(r5.exampleSha256).replace(/^sha256:/, "")}`]] : [["Reviewed", cleanControlChars(r5.reviewedSha256)]];
   return {
     intact,
     facts: [
       ["Request", cleanControlChars(r5.approvalId)],
       ["Decided", cleanControlChars(r5.decidedAt)],
-      ["Reviewed", cleanControlChars(r5.reviewedSha256)],
+      ...covered,
       ["This file", intact ? "unchanged since the signer recorded this approval" : changed ? "does not match the signed record" : lapsed ? "still matches its credential" : "could not be confirmed"]
     ],
     note: intact ? "A record the signer made, not a review of the work." : changed ? "This file changed after the approval was recorded, or the record itself was altered." : lapsed ? "The signing certificate has lapsed, so this approval can no longer be confirmed." : "This approval record did not pass its checks, so it cannot be relied on."
