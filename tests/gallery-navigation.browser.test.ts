@@ -185,3 +185,53 @@ test('the workspace shelf shows one card per published thing, answers search, an
     }
   } finally { await closeBrowser(); }
 });
+
+// A partner programme member's home (plans/82 M6): no first-run featured hero, no
+// "Add your details" nudge and no status chip but Experimental, at 390 and 360. The dev
+// shell is given a workspace that answers org-config with programmeScoped, the way Work
+// does for a programme member, and a staff home on the same shell keeps all three.
+test('a programme member home has no featured hero, no details nudge and no status chip but Experimental', {
+  skip: origin ? false : 'set LOLLY_IMPORT_TEST_URL to a local Vite shell', timeout: 180_000,
+}, async () => {
+  assert.ok(['localhost', '127.0.0.1', '[::1]'].includes(new URL(origin!).hostname));
+  const browser = await getBrowser();
+  try {
+    for (const [width, height] of [[390, 844], [360, 780]] as const) {
+      const home: Record<string, { hero: boolean; nudge: boolean; chips: string[]; overflow: boolean }> = {};
+      for (const who of ['staff', 'member'] as const) {
+        const context = await browser.newContext({ viewport: { width, height }, hasTouch: true, reducedMotion: 'reduce', serviceWorkers: 'block' });
+        try {
+          await context.addInitScript(() => {
+            for (const key of ['lolly-welcome-dismissed', 'lolly-tips-dismissed', 'lolly-privacy-ack']) localStorage.setItem(key, '1');
+          });
+          const json = (body: unknown) => ({ status: 200, contentType: 'application/json', body: JSON.stringify(body) });
+          await context.route('**/api/auth/config', (route) => route.fulfill(json({ mode: 'open', provider: 'oidc', loginPath: '/login' })));
+          await context.route('**/api/auth/session', (route) => route.fulfill(json({ kind: 'member', user: { sub: 'u1', email: 'rita@northwind.example', groups: [], role: 'member' } })));
+          await context.route('**/api/v1/org-config*', (route) => route.fulfill(json({ instance: { name: 'Example Workspace' }, inboxUnread: 0, can: {}, ...(who === 'member' ? { programmeScoped: true } : {}) })));
+          const page = await context.newPage();
+          const errors: string[] = [];
+          page.on('pageerror', (error) => errors.push(error.message));
+          await page.goto(`${origin}/#/`, { waitUntil: 'networkidle' }); await shellSettled(page);
+          await page.locator('.tool-masonry .gtile').first().waitFor({ timeout: 60_000 });
+          await page.waitForTimeout(600);
+          home[who] = await page.evaluate(() => ({
+            hero: !!document.querySelector('.gallery.has-featured'),
+            // The "Add your details" nudge; the offline nudge shares its look and stays.
+            nudge: !!document.querySelector('.personalize-nudge:not(.offline-nudge)'),
+            chips: [...new Set([...document.querySelectorAll('.tool-masonry .badge')].map((b) => b.className))],
+            overflow: document.documentElement.scrollWidth > innerWidth + 1,
+          }));
+          assert.deepEqual(errors, [], `${width} ${who}`);
+        } finally { await context.close(); }
+      }
+      const { staff, member } = home;
+      assert.equal(member!.hero, false, `${width}: no first-run featured hero (staff: ${staff!.hero})`);
+      assert.equal(member!.nudge, false, `${width}: no details nudge (staff: ${staff!.nudge})`);
+      assert.ok(member!.chips.every((c) => !/badge-(community|official)\b/.test(c)), `${width}: ${member!.chips.join(' ')}`);
+      assert.equal(member!.overflow, false);
+      // The staff home on the same workspace is unchanged.
+      assert.equal(staff!.hero, true, `${width}: staff keep the hero`);
+      assert.ok(staff!.chips.some((c) => /badge-community\b/.test(c)), `${width}: staff keep the chips`);
+    }
+  } finally { await closeBrowser(); }
+});

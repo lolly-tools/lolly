@@ -125,6 +125,22 @@ export function setWorkspaceProgramme(next: { id: string; name: string } | null)
   programme = next;
 }
 
+let programmeMember = false;
+
+/** Note whether the person reaches the workspace through a partner programme
+ *  (org-config `programmeScoped`, plans/82 M6). Set by org/index.ts with the company. */
+export function setProgrammeMember(on: boolean): void {
+  programmeMember = on;
+}
+
+/** True when the person reaches the workspace through a partner programme. Their home
+ *  keeps to what is published to them: no first-run featured hero, no "Add your
+ *  details" nudge and no status chip but Experimental. False on a plain build, for
+ *  staff, and on a workspace too old to say. */
+export function isProgrammeMember(): boolean {
+  return programmeMember;
+}
+
 /**
  * The partner an export records (Lolly Work plans/82 M3): the person's company,
  * once it has details, with their revision, and their programme. Null for neither.
@@ -174,6 +190,7 @@ export function workspaceGoverned(): boolean {
 /** Forget what boot learned, for tests. */
 export function _resetWorkspaceCompanyForTests(): void {
   company = null;
+  programmeMember = false;
   programme = null;
   companyKnown = false;
   governed = false;

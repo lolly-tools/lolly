@@ -52,6 +52,7 @@ import { armMotionPreviews, playMotionIn, stopMotionIn } from '../lib/preview-me
 import { galleryPreviewLooks, galleryLookHref, renderGalleryLook, galleryPreviewPriority } from '../lib/gallery-preview.ts';
 import { createPreviewQueue } from '../lib/preview-queue.ts';
 import { galleryWelcomeStep } from './gallery-welcome.ts';
+import { isProgrammeMember } from '../lib/workspace-templates.ts';
 import { loadGalleryLook } from './gallery-look-loader.ts';
 import { renderFeaturedVariant, renderFeaturedPages, coverFormats, displayFormatOf } from '../lib/featured-render.ts';
 import { currentTheme } from '../theme.ts';
@@ -826,7 +827,7 @@ export async function mountGallery(viewEl: HTMLElement, host: GalleryHost, opts:
   // Sorted before the cap because featured-row.ts re-sorts by `featured.order` anyway: slicing
   // catalog order first could drop a lower-order tool and leave a higher-order one as the hero.
   const firstRunFeatured = (): Set<string> | null => {
-    if (profile?.favourites !== undefined || FIRST_RUN_FEATURED_MAX <= 0) return null;
+    if (profile?.favourites !== undefined || FIRST_RUN_FEATURED_MAX <= 0 || isProgrammeMember()) return null;
     const curated = index.tools
       .filter(t => t.featured?.order != null && !hidden.has(t.category) && !hiddenTools.has(t.id))
       .sort((a, b) => a.featured!.order! - b.featured!.order!)
@@ -919,7 +920,7 @@ export async function mountGallery(viewEl: HTMLElement, host: GalleryHost, opts:
   // shows, nothing else does, and the answer to that is async (token discovery).
   // Placed ahead of the content so the phone-width nudge reads as an in-flow
   // card at the top of the gallery (A4); the privacy strip is fixed either way.
-  const firstRunBanner = privacyNoticeMarkup() || personalizeNudgeMarkup(profile) || offlineNudgeMarkup(profile);
+  const firstRunBanner = privacyNoticeMarkup() || (isProgrammeMember() ? '' : personalizeNudgeMarkup(profile)) || offlineNudgeMarkup(profile);
 
   const cardSizeView = opts.only ? 'utilities' : 'tools', cardSize = readCardSize(cardSizeView);
   let browseLayout = readLayout(cardSizeView, opts.params, GALLERY_LAYOUTS);
