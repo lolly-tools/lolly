@@ -32,7 +32,7 @@ unaffected, and admins and owners are never narrowed.
 | **Licences** | When the licence gate is on, only the shared files whose licence lets them be passed on, that your team marked as its own or that someone chose to share anyway. | An administrator's setting, and the programme's **Licences** card |
 | **Templates** | The templates published to them, on their home and in the tool's **Start** chooser. They change only what you left open; everything else is simply not there, with no note about why. | The programme's **Templates** card |
 | **Templates only** | Optional, per tool: the tool leaves their gallery, and they make pieces from your templates only. Off by default. | A switch under each template |
-| **Their company** | A card for their company at the top of their home, with its logos and details. A template that takes company details fills them in, and partners cannot change those inputs. Named contacts may edit the details. | The company's page |
+| **Their company** | A card for their company at the top of their home, with its logos and details. A template that takes company details fills them in, and partners cannot change the ones the template fixes. Named contacts may edit the details. | The company's page |
 | **What they can do** | Open tools and files, make, save and export pieces, comment, work in projects and make links to what they can see. Admin actions are refused for partners whatever a grant says: editing grants, policy, programmes or the catalog, inviting people, sending messages, making groups and deciding approvals. | Fixed |
 | **Their files** | Each export records the company and programme it was made for, and the revision of the company's details. Never the person, a contact's details, the address, the currency, a token or an agent. | Built in; the export panel's **Design system** card can leave the record out |
 | **Their agents** | A token you issue sees what the company's people see, within limits you set. | The **Agent tokens** card |
@@ -65,7 +65,8 @@ Work in this order. Everything can be changed later.
    team, depending on how your organisation works. Publish it from the programme's **Templates**
    card, choose who gets it and untick what partners may not change. Under **Change**, **Takes
    from the company** fills an input from each company's details, such as its logo or its contact
-   line, so partners never type them ([Templates](partner-programmes.md#templates),
+   line, so partners never type them. An input you leave out of what partners may change keeps
+   the company's value ([Templates](partner-programmes.md#templates),
    [Company details in templates](partner-programmes.md#company-details-in-templates)).
 5. **Check what they get.** On the programme's page, or a company's, **See what they get** shows
    the programme or the company as its partners get it: the tools, the files and the templates
@@ -126,8 +127,8 @@ from their home.
 
 **A partner in two programmes.** They get the tools and files of both. For each input, a company's
 rule overrides its programme's rule, and across two programmes the stricter rule wins. Someone in
-two companies gets company details filled in only by a template published to one of those
-companies; anywhere else those inputs start from the tool's own default
+two companies may get no company details filled in, because Lolly Work cannot always tell which
+company a piece is for, so put each person in one company where you can
 ([A person in two programmes](partner-programmes.md#a-person-in-two-programmes)).
 
 **A file the licence gate holds back.** With the licence gate on, a file that records no licence

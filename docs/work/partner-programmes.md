@@ -355,36 +355,39 @@ these limits as the server enforces them.
 **Contacts who may edit** is off by default: your team keeps the company's details. Tick **People
 at Northwind IT may edit these details**, then tick the contacts, up to 50, among the company's
 people who already sign in. Each of them gets **Edit** on their company card, with the same
-fields, logos and checks. A contact cannot rename the
+fields and checks and the two logos; the mark stays with your team. A contact cannot rename the
 company. A contact's change applies at once. To review contact changes first, tick **Changes by
 contacts need approval** and choose an approval chain; this is off by default too. A change that
-needs approval waits, one at a time, and applies on approval over whatever is current, so a change
-your team made meanwhile stays. A change your team makes never waits.
+needs approval waits, one at a time, and applies on approval over whatever is current: the fields
+the contact changed take the contact's values, and the others keep any change your team made
+meanwhile. A change your team makes never waits.
 
 ### Company details in templates
 
 A template, or a tool's policy, can take an input from the company's details. On the programme's
 **Templates** card, press **Change** on a template, then choose a company field for each input
-under **Takes from the company**. The tool policy editor has the same section. A text, long text,
-link or picture input can take one of: the company name, the logo by mode, the logo for light
-surfaces, the logo for dark surfaces, the mark, the website, the contact line, the contact email,
-the phone, the address, the currency or the tax note. A row with bindings reads "From the company:"
-followed by the inputs.
+under **Takes from the company**. The tool policy editor has the same section. A picture input can
+take the logo by mode, the logo for light surfaces, the logo for dark surfaces or the mark. A text,
+long text or link input can take the company name, the website, the contact line, the contact
+email, the phone, the address, the currency or the tax note. A row with bindings reads "From the
+company:" followed by the inputs.
 
 - **Fixed for partners.** An input the template takes from the company, and leaves out of what
   partners may change, is locked to the company's value. A Share with rules file locks every input
   it takes from the company. A locked input is not offered to partners at all; a server render
-  that sends one answers `422 INPUT_LOCKED`.
+  that sends one answers `422 INPUT_LOCKED`. An input the template takes from the company and
+  leaves open starts with the company's value, and partners may change that value.
 - **Logo by mode.** The logo by mode is the light-surface logo in light mode and the dark-surface
   logo in dark mode, and follows the piece when the mode changes. A company with only one of the
   two gets that one in both.
-- **Which company.** The person's company that the template was published to, or else their only
-  company. Someone in two companies gets no company values from a template published to the whole
-  programme, and those inputs start from the tool's default. A field the company has not filled in
-  leaves the template's own value.
-- **Order.** A value comes from the first of: the person's own entry, unless the input is locked;
-  the company's details; the template's values; the tool policy's defaults for the person's groups;
-  the tool's default.
+- **Which company.** The person's only company. A server render can also tell from the template:
+  the person's company that the template was published to. Otherwise someone in two companies gets
+  no company values, and those inputs keep the template's values or the defaults. A field the
+  company has not filled in leaves the template's own value.
+- **Order.** On a server render a value comes from the first of: the person's own entry, unless the
+  input is locked; the company's details; the template's values; the tool policy's defaults for the
+  person's groups; the tool's default. In the app, a value a tool policy takes from the company and
+  leaves open starts below the template's own values.
 - **New work only.** A piece starts from these values. A file already exported keeps what it was
   made with.
 
@@ -394,7 +397,8 @@ none of them, and the policy editor marks it, with a choice to apply them when y
 
 ### What partners see of their company
 
-A partner's home opens with their company's card: the logo on your design system's surface and
+A partner in one company sees their company's card first on their home, once the company has
+details or when they may edit them: the logo on your design system's surface and
 "Your details are on every piece". **Details** shows both logos on light and dark backgrounds,
 then the website, contact, address, currency and tax note. A named contact also gets **Edit**, with
 the limits listed. When an end date applies to the person, the card adds "Your access through
@@ -569,9 +573,8 @@ Each view's start and end are audited as `programme.view-as` and `programme.view
 ## A person in two programmes
 
 Someone in two programmes gets the tools and assets of both. Input rules combine as described
-next, and company details follow the template: a template published to one of their companies
-takes that company's details, and elsewhere their company inputs start from the tool's default
-([Company details in templates](#company-details-in-templates)).
+next. Someone in two companies may get no company details filled in
+([Which company](#company-details-in-templates)), so put each person in one company where you can.
 
 ## Input rules for partners
 
@@ -711,10 +714,12 @@ system and colourway ([The design-system record](/info/exporting.html#the-design
 **Never recorded:** the person, a contact's email or phone, the address, the currency, a token or
 an agent's name or model.
 
-A company is recorded once it has details, with the revision of those details, so a file says which
-details it was made with and the company page's history shows what that revision held. A programme
-with no company records the programme alone: "Partner programme: Resellers, EMEA". Someone in two
-companies, or in no programme, records no partner. The **Design system** card's one switch leaves
+The app records a company once it has details, with the revision of those details, so a file says
+which details it was made with and the company page's history shows what that revision held; a
+server render records the company with revision 0 before any details are saved. A programme with
+no company records the programme alone: "Partner programme: Resellers, EMEA". Someone in two
+companies records no company, and the programme alone when only one programme applies. Someone in
+no programme records no partner. The **Design system** card's one switch leaves
 the partner out together with the rest of the record.
 
 A server render records the same keys in its Content Credential, so a file a partner's agent makes
@@ -778,7 +783,8 @@ some.
 **What agents did**, on the same page, counts what each token did for the last 4 weeks by week or
 the last 7 days by day, with **Download CSV**. `lw programmes usage <programme>`
 (`GET /api/v1/programmes/:id/usage`) counts what each token did,
-by day or week, for up to 92 days: calls, renders by tool, format and outcome, batches, deliveries,
+by day or week, for up to 92 days: calls, renders (by tool, format and outcome for the renders
+that keep a record, the durable ones), batches, deliveries,
 approval requests and refusals by code, with totals per company and for the programme. `--csv` gives
 the same as a spreadsheet. The counts hold no input values, prompts, titles, file names or agent
 names.
@@ -826,15 +832,16 @@ values.
 Approvals stay off for agents unless you turn them on. Give a programme token the
 `approvals.request` scope and it may ask for review of one of its own finished renders, read its own
 requests and withdraw them. Deciding stays with people. The request goes to the tool's bound
-escalation chain, or else to a chain the programme lists (`PUT /api/v1/programmes/:id
-{ approvalChains }`); a partner's agent never reaches an internal chain by name. The approver's
+escalation chain, or else to a chain the programme lists (`approvalChains` on
+`PUT /api/v1/programmes/:id`, with the programme's `name`); a partner's agent never reaches an internal chain by name. The approver's
 notice gives the company and the label you wrote on the token, for example "Northwind IT's agent
 (Rita's agent) asked for your review", followed by the step. The approval card adds that an agent
 asked, and that the file under review is the agent's own render, exactly as Lolly Work made the
 file.
 
 A tool's policy can also let one approval cover a template's variants: with `enforce.approvalCovers`
-set to `template-variants`, approving one version of a published template clears every partner's
+set to `template-variants`, approving one version of a published template that lists what partners
+may change clears every partner's
 render from it, whatever the inputs the template leaves open, such as the price or the logo. This
 is off by default. Set it in the tool's policy under **One approval covers**: **This file only**,
 the default, or **Every file from one version of a published template**. A new version, or a change to what is open or
@@ -918,7 +925,8 @@ GET    /api/v1/context[/me|/brand|/partner/company|/partner/templates|...]   # w
 ```
 
 `POST /api/v1/programmes/exit` also takes `at` (`YYYY-MM-DD`) and `notice` for a programme or a
-company, and `PUT /api/v1/programmes/:id` takes `tokenLimits` and `approvalChains`.
+company, and `PUT /api/v1/programmes/:id` takes `tokenLimits` and `approvalChains` beside the
+`name` every programme `PUT` needs.
 
 A `PUT` that leaves out `tools` or `collections` keeps what the programme had. Each change is
 audited as `programme.create`, `programme.edit` or `programme.delete` with the before and after,
