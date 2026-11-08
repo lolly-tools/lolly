@@ -50,10 +50,659 @@ var init_asset_open_v1 = __esm({
   }
 });
 
-// schemas/tool.schema.json
+// packages/core/src/delivery-v1.ts
+function age(value2, fallback, ceiling) {
+  if (value2 === void 0) return fallback;
+  if (!Number.isSafeInteger(value2) || value2 < 0) throw new TypeError("Invalid delivery age");
+  return Math.min(value2, ceiling);
+}
+function cachePolicy(cls, opts = {}) {
+  let cacheControl = PRIVATE, cdnCacheControl = "no-store";
+  const status = opts.status ?? 200;
+  if (status < 400) {
+    switch (cls) {
+      case "public-immutable":
+        if ([200, 206, 304].includes(status)) {
+          cacheControl = "public, max-age=31536000, s-maxage=31536000, immutable, no-transform";
+          cdnCacheControl = "max-age=31536000, no-transform";
+        }
+        break;
+      case "public-revalidate":
+        cacheControl = "public, max-age=0, s-maxage=0, must-revalidate, no-transform";
+        cdnCacheControl = "max-age=0, must-revalidate, no-transform";
+        break;
+      case "public-bounded": {
+        const a = age(opts.boundedAgeSec, 3600, 3600);
+        const shared = opts.boundedAgeSec === void 0 ? 86400 : a;
+        const stale = opts.boundedAgeSec === void 0 ? ", stale-while-revalidate=604800" : "";
+        cacheControl = `public, max-age=${a}, s-maxage=${shared}${stale}, no-transform`;
+        cdnCacheControl = `max-age=${shared}${stale}, no-transform`;
+        break;
+      }
+      case "link":
+        cacheControl = `private, max-age=${age(opts.boundedAgeSec, 300, 300)}, no-transform`;
+        break;
+      case "instance-private":
+        cacheControl = opts.boundedAgeSec === void 0 ? "private, no-cache, no-transform" : `private, max-age=${age(opts.boundedAgeSec, 300, 300)}, no-transform`;
+        break;
+      case "person-private":
+        break;
+      default:
+        break;
+    }
+  }
+  return {
+    cacheControl,
+    cdnCacheControl,
+    // Fastly must not see an overriding public Surrogate-Control on a private response.
+    ...cacheControl.startsWith("public,") ? { surrogateControl: cdnCacheControl } : {},
+    validator: opts.signed && cls === "public-bounded" ? "weak" : "strong",
+    ...opts.tokenBearing ? { referrerPolicy: "no-referrer" } : {}
+  };
+}
+function tag(prefix, value2) {
+  const result = `${prefix}_${value2}`;
+  if (!PREFIXES.has(prefix) || !TAG_VALUE.test(value2) || result.length > 80) throw new TypeError("Invalid delivery tag");
+  return result;
+}
+function renderTags(tags3, style) {
+  if (style !== "comma" && style !== "space") throw new TypeError("Invalid tag style");
+  if (tags3.length > 12) throw new RangeError("Too many delivery tags");
+  for (const value2 of tags3) {
+    if (value2?.[1] !== "_" || tag(value2[0], value2.slice(2)) !== value2) throw new TypeError("Invalid delivery tag");
+  }
+  const result = [...new Set(tags3)].join(style === "comma" ? "," : " ");
+  if (result.length > 1e3) throw new RangeError("Delivery tag header exceeds budget");
+  return result;
+}
+function canonicalDeliveryPath(path, pattern) {
+  if (!path.startsWith("/") || path.includes("//") || /[%\\?#]/.test(path) || [...path].some((c) => c.charCodeAt(0) <= 32 || c.charCodeAt(0) >= 127) || path.split("/").some((p) => p === "." || p === "..")) return null;
+  const match = new RegExp(pattern.source, pattern.flags.replace(/[gy]/g, "")).exec(path);
+  return match && match.index === 0 && match[0] === path ? path : null;
+}
+function validHost(host) {
+  if (!host || host !== host.toLowerCase() || /[|\s/?#@\\]/.test(host)) return false;
+  try {
+    return new URL(`https://${host}`).host === host;
+  } catch {
+    return false;
+  }
+}
+function validContext(ctx) {
+  return validHost(ctx.canonicalHost) && (ctx.subject === void 0 || /^[0-9a-f]{64}$/.test(ctx.subject));
+}
+function validClaims(c) {
+  return c.v === 1 && /^[a-z0-9_-]{1,32}$/.test(c.kid) && Number.isSafeInteger(c.exp) && c.exp > 0 && ["link", "instance-private", "person-private"].includes(c.cls);
+}
+function tokenMessage(c, path, ctx) {
+  return new TextEncoder().encode(`lolly-dt1|${ctx.canonicalHost}|${path}|${c.exp}|${c.cls}${ctx.subject === void 0 ? "" : `|${ctx.subject}`}`).buffer;
+}
+function base64url(bytes2) {
+  return btoa(String.fromCharCode(...bytes2)).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+async function signDeliveryToken(c, path, ctx, key2) {
+  if (!validClaims(c) || !validContext(ctx) || !canonicalDeliveryPath(path, /^\/.+$/)) throw new TypeError("Invalid delivery token scope");
+  const signature2 = await crypto.subtle.sign("HMAC", key2, tokenMessage(c, path, ctx));
+  return `1.${c.kid}.${c.exp}.${base64url(new Uint8Array(signature2))}`;
+}
+async function verifyDeliveryToken(token2, path, ctx, keys2, now2) {
+  if (!validContext(ctx) || !canonicalDeliveryPath(path, ctx.pattern) || !["link", "instance-private", "person-private"].includes(ctx.cls)) return "scope";
+  if (!Number.isFinite(now2) || !Number.isSafeInteger(ctx.maxSkewSec) || ctx.maxSkewSec < 0 || ctx.maxSkewSec > 60) return "bad";
+  const match = /^1\.([a-z0-9_-]{1,32})\.([1-9][0-9]{0,15})\.([A-Za-z0-9_-]{43})$/.exec(token2);
+  if (!match) return "bad";
+  const c = { v: 1, kid: match[1], exp: Number(match[2]), cls: ctx.cls };
+  const key2 = keys2.get(c.kid);
+  if (!validClaims(c) || !key2) return "bad";
+  try {
+    const raw = Uint8Array.from(atob(match[3].replace(/-/g, "+").replace(/_/g, "/") + "="), (ch) => ch.charCodeAt(0));
+    if (base64url(raw) !== match[3] || !await crypto.subtle.verify("HMAC", key2, raw.buffer, tokenMessage(c, path, ctx))) return "bad";
+    return now2 >= c.exp + ctx.maxSkewSec ? "expired" : "ok";
+  } catch {
+    return "bad";
+  }
+}
+var PRIVATE, PREFIXES, TAG_VALUE;
+var init_delivery_v1 = __esm({
+  "packages/core/src/delivery-v1.ts"() {
+    "use strict";
+    PRIVATE = "private, no-store, max-age=0, no-transform";
+    PREFIXES = /* @__PURE__ */ new Set(["x", "r", "t", "e", "c", "a", "h", "u", "k", "p", "f", "s", "b", "o", "y"]);
+    TAG_VALUE = /^[a-z0-9!#$%&'*+.^_`|~-]+$/;
+  }
+});
+
+// packages/core/src/file-v1.ts
+function safeFileName(name, fallback = "file") {
+  const clean2 = (value2) => value2.normalize("NFC").replace(/\\/g, "/").split("/").pop().replace(/[\u0000-\u001f\u007f-\u009f<>:"|?*]/g, "-").replace(/[\u202a-\u202e\u2066-\u2069]/g, "").trim().replace(/[. ]+$/, "");
+  let base = clean2(name) || clean2(fallback) || "file";
+  if (/^(con|prn|aux|nul|com[1-9]|lpt[1-9])(?:\.|$)/i.test(base)) base = `_${base}`;
+  const encoder5 = new TextEncoder();
+  if (encoder5.encode(base).length > 220) {
+    const dot = base.lastIndexOf(".");
+    const ext = dot > 0 && base.length - dot <= 16 ? base.slice(dot) : "";
+    const chars = [...ext ? base.slice(0, dot) : base];
+    while (chars.length && encoder5.encode(chars.join("") + ext).length > 220) chars.pop();
+    base = chars.join("") + ext;
+  }
+  return base;
+}
+var FILE_CONTRACT_VERSION;
+var init_file_v1 = __esm({
+  "packages/core/src/file-v1.ts"() {
+    "use strict";
+    FILE_CONTRACT_VERSION = 1;
+  }
+});
+
+// packages/core/src/file-operation-v1.ts
+import { Ajv } from "ajv";
+function assertFileOperationRequest(value2) {
+  if (!requestValidator(value2)) throw new Error(`Invalid file operation: ${ajv.errorsText(requestValidator.errors)}`);
+}
+function assertFileOperationReport(value2) {
+  if (!reportValidator(value2)) throw new Error(`Invalid file report: ${ajv.errorsText(reportValidator.errors)}`);
+  const report4 = value2;
+  if (report4.state === "succeeded" && !report4.outputs.length) throw new Error("A successful file report needs an output.");
+  if (["failed", "cancelled"].includes(report4.state) && report4.outputs.length) throw new Error("An unsuccessful single operation cannot claim outputs.");
+}
+async function executeFileOperationV1(input, request3, adapter, context = {}) {
+  assertFileOperationRequest(request3);
+  const report4 = { version: 1, operation: request3.operation, state: "failed", inputs: [], outputs: [], options: { ...request3.options, target: request3.target }, changes: [], findings: [], metadata: "not-checked", execution: context.execution ?? "device" };
+  try {
+    context.signal?.throwIfAborted();
+    const original = await adapter.describe(input, context.signal);
+    report4.inputs = [original];
+    Object.assign(report4, adapter.effects(original, request3));
+    const output = await adapter.execute(input, request3, context.signal);
+    context.signal?.throwIfAborted();
+    const produced = await adapter.describe(output, context.signal);
+    context.signal?.throwIfAborted();
+    report4.outputs = [produced];
+    report4.state = "succeeded";
+    report4.changes = [`${original.format.toUpperCase()} \u2192 ${produced.format.toUpperCase()}`, `${original.size} \u2192 ${produced.size} bytes`];
+    if (original.width && produced.width) report4.changes.push(`${original.width} \xD7 ${original.height} \u2192 ${produced.width} \xD7 ${produced.height} pixels`);
+    assertFileOperationReport(report4);
+    return { output, report: report4 };
+  } catch (error2) {
+    report4.outputs = [];
+    report4.state = context.signal?.aborted ? "cancelled" : "failed";
+    report4.findings.push({ code: report4.state === "cancelled" ? "operation-cancelled" : "operation-failed", severity: "error", message: (error2 instanceof Error ? error2.message : String(error2)).slice(0, 4096) });
+    try {
+      assertFileOperationReport(report4);
+    } catch {
+      report4.inputs = [];
+      report4.metadata = "not-checked";
+      report4.changes = [];
+      report4.findings = [{ code: "adapter-contract-error", severity: "error", message: "The adapter returned invalid facts or findings. No output has been accepted." }];
+      assertFileOperationReport(report4);
+    }
+    return { report: report4 };
+  }
+}
+var text, options, facts, fileOperationRequestSchemaV1, fileOperationReportSchemaV1, ajv, requestValidator, reportValidator;
+var init_file_operation_v1 = __esm({
+  "packages/core/src/file-operation-v1.ts"() {
+    "use strict";
+    init_file_v1();
+    text = { type: "string", maxLength: 4096 };
+    options = { type: "object", maxProperties: 64, propertyNames: { maxLength: 80, pattern: "^(?!__proto__$|constructor$|prototype$)[a-zA-Z][a-zA-Z0-9_.-]*$" }, additionalProperties: { anyOf: [text, { type: "number" }, { type: "boolean" }] } };
+    facts = { type: "object", additionalProperties: false, required: ["name", "format", "mime", "size"], properties: {
+      name: text,
+      format: { type: "string", maxLength: 80 },
+      formatSource: { enum: ["detected", "declared"] },
+      mime: { type: "string", maxLength: 255 },
+      size: { type: "integer", minimum: 0, maximum: Number.MAX_SAFE_INTEGER },
+      sha256: { type: "string", pattern: "^[a-f0-9]{64}$" },
+      width: { type: "integer", minimum: 1 },
+      height: { type: "integer", minimum: 1 },
+      durationMs: { type: "number", minimum: 0 },
+      pages: { type: "integer", minimum: 0 }
+    } };
+    fileOperationRequestSchemaV1 = {
+      $id: "https://lolly.tools/schemas/file-operation-request-v1",
+      type: "object",
+      additionalProperties: false,
+      required: ["version", "operation", "target", "options"],
+      properties: {
+        version: { const: 1 },
+        operation: { type: "string", pattern: "^[a-z][a-z0-9.-]{0,63}$" },
+        target: { type: "string", pattern: "^[a-z][a-z0-9-]{0,31}$" },
+        options
+      }
+    };
+    fileOperationReportSchemaV1 = {
+      $id: "https://lolly.tools/schemas/file-operation-report-v1",
+      type: "object",
+      additionalProperties: false,
+      required: ["version", "operation", "state", "inputs", "outputs", "options", "changes", "findings", "metadata", "execution"],
+      properties: {
+        version: { const: FILE_CONTRACT_VERSION },
+        operation: text,
+        state: { enum: ["succeeded", "partially_succeeded", "failed", "cancelled"] },
+        inputs: { type: "array", maxItems: 200, items: facts },
+        outputs: { type: "array", maxItems: 200, items: facts },
+        options: { ...options, maxProperties: 65 },
+        changes: { type: "array", maxItems: 400, items: text },
+        findings: { type: "array", maxItems: 400, items: { type: "object", additionalProperties: false, required: ["code", "severity", "message"], properties: {
+          code: { type: "string", maxLength: 100 },
+          severity: { enum: ["info", "warning", "error"] },
+          message: text
+        } } },
+        metadata: { enum: ["preserved", "removed", "changed", "not-checked"] },
+        execution: { enum: ["device", "instance"] }
+      }
+    };
+    ajv = new Ajv({ allErrors: true, strict: false, strictNumbers: true });
+    requestValidator = ajv.compile(fileOperationRequestSchemaV1);
+    reportValidator = ajv.compile(fileOperationReportSchemaV1);
+  }
+});
+
+// packages/core/src/host-v1/apis.ts
+function presentApis(host) {
+  if (!host) return [];
+  return HOST_V1_OPTIONAL_APIS.filter((name) => host[name] !== void 0 && host[name] !== null);
+}
+function missingRequires(requires, host) {
+  if (!requires?.length) return [];
+  const present = new Set(presentApis(host));
+  return requires.filter((name) => !present.has(name));
+}
+var HOST_V1_OPTIONAL_APIS;
+var init_apis = __esm({
+  "packages/core/src/host-v1/apis.ts"() {
+    "use strict";
+    HOST_V1_OPTIONAL_APIS = [
+      "net",
+      "tokens",
+      "text",
+      "pdf",
+      "pptx",
+      "capture",
+      "compose",
+      "media",
+      "scan",
+      "lift",
+      "keyframes",
+      "recorder",
+      "audio",
+      "codec",
+      "layers",
+      "upscale",
+      "matte",
+      "ocr",
+      "speech",
+      "viz",
+      "color",
+      "images",
+      "raster",
+      "geom",
+      "connectors",
+      "c2pa",
+      "prepare",
+      "compare",
+      "textTools",
+      "emoji",
+      "models",
+      "layout",
+      "fonts",
+      "calc"
+    ];
+  }
+});
+
+// packages/core/src/host-v1/text-tools.ts
+var init_text_tools = __esm({
+  "packages/core/src/host-v1/text-tools.ts"() {
+    "use strict";
+  }
+});
+
+// packages/core/src/host-v1/asset-ref.ts
+var init_asset_ref = __esm({
+  "packages/core/src/host-v1/asset-ref.ts"() {
+    "use strict";
+  }
+});
+
+// packages/core/src/host-v1/assets.ts
+var init_assets = __esm({
+  "packages/core/src/host-v1/assets.ts"() {
+    "use strict";
+  }
+});
+
+// packages/core/src/host-v1/audio.ts
+var init_audio = __esm({
+  "packages/core/src/host-v1/audio.ts"() {
+    "use strict";
+  }
+});
+
+// packages/core/src/host-v1/c2pa.ts
+var init_c2pa = __esm({
+  "packages/core/src/host-v1/c2pa.ts"() {
+    "use strict";
+  }
+});
+
+// packages/core/src/host-v1/calc.ts
+var init_calc = __esm({
+  "packages/core/src/host-v1/calc.ts"() {
+    "use strict";
+  }
+});
+
+// packages/core/src/host-v1/capture.ts
+var init_capture = __esm({
+  "packages/core/src/host-v1/capture.ts"() {
+    "use strict";
+  }
+});
+
+// packages/core/src/host-v1/clipboard.ts
+var init_clipboard = __esm({
+  "packages/core/src/host-v1/clipboard.ts"() {
+    "use strict";
+  }
+});
+
+// packages/core/src/host-v1/codec.ts
+var init_codec = __esm({
+  "packages/core/src/host-v1/codec.ts"() {
+    "use strict";
+  }
+});
+
+// packages/core/src/host-v1/color.ts
+var init_color = __esm({
+  "packages/core/src/host-v1/color.ts"() {
+    "use strict";
+  }
+});
+
+// packages/core/src/host-v1/compose.ts
+var init_compose = __esm({
+  "packages/core/src/host-v1/compose.ts"() {
+    "use strict";
+  }
+});
+
+// packages/core/src/host-v1/connectors.ts
+var init_connectors = __esm({
+  "packages/core/src/host-v1/connectors.ts"() {
+    "use strict";
+  }
+});
+
+// packages/core/src/host-v1/emoji.ts
+var init_emoji = __esm({
+  "packages/core/src/host-v1/emoji.ts"() {
+    "use strict";
+  }
+});
+
+// packages/core/src/host-v1/export.ts
+var init_export = __esm({
+  "packages/core/src/host-v1/export.ts"() {
+    "use strict";
+  }
+});
+
+// packages/core/src/host-v1/fonts.ts
+var init_fonts = __esm({
+  "packages/core/src/host-v1/fonts.ts"() {
+    "use strict";
+  }
+});
+
+// packages/core/src/host-v1/geom.ts
+var init_geom = __esm({
+  "packages/core/src/host-v1/geom.ts"() {
+    "use strict";
+  }
+});
+
+// packages/core/src/host-v1/host.ts
+var init_host = __esm({
+  "packages/core/src/host-v1/host.ts"() {
+    "use strict";
+  }
+});
+
+// packages/core/src/host-v1/images.ts
+var init_images = __esm({
+  "packages/core/src/host-v1/images.ts"() {
+    "use strict";
+  }
+});
+
+// packages/core/src/host-v1/keyframes.ts
+var init_keyframes = __esm({
+  "packages/core/src/host-v1/keyframes.ts"() {
+    "use strict";
+  }
+});
+
+// packages/core/src/host-v1/layers.ts
+var init_layers = __esm({
+  "packages/core/src/host-v1/layers.ts"() {
+    "use strict";
+  }
+});
+
+// packages/core/src/host-v1/lift.ts
+var init_lift = __esm({
+  "packages/core/src/host-v1/lift.ts"() {
+    "use strict";
+  }
+});
+
+// packages/core/src/host-v1/matte.ts
+var init_matte = __esm({
+  "packages/core/src/host-v1/matte.ts"() {
+    "use strict";
+  }
+});
+
+// packages/core/src/host-v1/media.ts
+var init_media = __esm({
+  "packages/core/src/host-v1/media.ts"() {
+    "use strict";
+  }
+});
+
+// packages/core/src/host-v1/models.ts
+var init_models = __esm({
+  "packages/core/src/host-v1/models.ts"() {
+    "use strict";
+  }
+});
+
+// packages/core/src/host-v1/net.ts
+var init_net = __esm({
+  "packages/core/src/host-v1/net.ts"() {
+    "use strict";
+  }
+});
+
+// packages/core/src/host-v1/ocr.ts
+var init_ocr = __esm({
+  "packages/core/src/host-v1/ocr.ts"() {
+    "use strict";
+  }
+});
+
+// packages/core/src/host-v1/pdf.ts
+var init_pdf = __esm({
+  "packages/core/src/host-v1/pdf.ts"() {
+    "use strict";
+  }
+});
+
+// packages/core/src/host-v1/pptx.ts
+var init_pptx = __esm({
+  "packages/core/src/host-v1/pptx.ts"() {
+    "use strict";
+  }
+});
+
+// packages/core/src/host-v1/profile.ts
+var init_profile = __esm({
+  "packages/core/src/host-v1/profile.ts"() {
+    "use strict";
+  }
+});
+
+// packages/core/src/host-v1/prepare.ts
+var init_prepare = __esm({
+  "packages/core/src/host-v1/prepare.ts"() {
+    "use strict";
+  }
+});
+
+// packages/core/src/host-v1/compare.ts
+var init_compare = __esm({
+  "packages/core/src/host-v1/compare.ts"() {
+    "use strict";
+  }
+});
+
+// packages/core/src/host-v1/raster.ts
+var init_raster = __esm({
+  "packages/core/src/host-v1/raster.ts"() {
+    "use strict";
+  }
+});
+
+// packages/core/src/host-v1/recorder.ts
+var init_recorder = __esm({
+  "packages/core/src/host-v1/recorder.ts"() {
+    "use strict";
+  }
+});
+
+// packages/core/src/host-v1/scan.ts
+var init_scan = __esm({
+  "packages/core/src/host-v1/scan.ts"() {
+    "use strict";
+  }
+});
+
+// packages/core/src/host-v1/speech.ts
+var init_speech = __esm({
+  "packages/core/src/host-v1/speech.ts"() {
+    "use strict";
+  }
+});
+
+// packages/core/src/host-v1/state.ts
+var init_state = __esm({
+  "packages/core/src/host-v1/state.ts"() {
+    "use strict";
+  }
+});
+
+// packages/core/src/host-v1/text.ts
+var init_text = __esm({
+  "packages/core/src/host-v1/text.ts"() {
+    "use strict";
+  }
+});
+
+// packages/core/src/host-v1/tokens.ts
+var TOKEN_AXIS_KINDS, KNOWN_FINISH_KINDS;
+var init_tokens = __esm({
+  "packages/core/src/host-v1/tokens.ts"() {
+    "use strict";
+    TOKEN_AXIS_KINDS = Object.freeze(["mode", "colourway", "expression", "medium", "contrast", "density", "campaign", "brand"]);
+    KNOWN_FINISH_KINDS = [
+      "foil",
+      "emboss",
+      "deboss",
+      "spot-uv",
+      "soft-touch",
+      "cut",
+      "crease",
+      "perforate"
+    ];
+  }
+});
+
+// packages/core/src/host-v1/upscale.ts
+var init_upscale = __esm({
+  "packages/core/src/host-v1/upscale.ts"() {
+    "use strict";
+  }
+});
+
+// packages/core/src/host-v1/viz.ts
+var init_viz = __esm({
+  "packages/core/src/host-v1/viz.ts"() {
+    "use strict";
+  }
+});
+
+// packages/core/src/host-v1/layout.ts
+var init_layout = __esm({
+  "packages/core/src/host-v1/layout.ts"() {
+    "use strict";
+  }
+});
+
+// packages/core/src/host-v1.ts
+var init_host_v1 = __esm({
+  "packages/core/src/host-v1.ts"() {
+    "use strict";
+    init_apis();
+    init_text_tools();
+    init_asset_ref();
+    init_assets();
+    init_audio();
+    init_c2pa();
+    init_calc();
+    init_capture();
+    init_clipboard();
+    init_codec();
+    init_color();
+    init_compose();
+    init_connectors();
+    init_emoji();
+    init_export();
+    init_fonts();
+    init_geom();
+    init_host();
+    init_images();
+    init_keyframes();
+    init_layers();
+    init_lift();
+    init_matte();
+    init_media();
+    init_models();
+    init_net();
+    init_ocr();
+    init_pdf();
+    init_pptx();
+    init_profile();
+    init_prepare();
+    init_compare();
+    init_raster();
+    init_recorder();
+    init_scan();
+    init_speech();
+    init_state();
+    init_text();
+    init_tokens();
+    init_upscale();
+    init_viz();
+    init_layout();
+  }
+});
+
+// packages/core/schema/tool.schema.json
 var tool_schema_default;
 var init_tool_schema = __esm({
-  "schemas/tool.schema.json"() {
+  "packages/core/schema/tool.schema.json"() {
     tool_schema_default = {
       $schema: "https://json-schema.org/draft/2020-12/schema",
       $id: "https://lolly.tools/schemas/tool.schema.json",
@@ -704,6 +1353,4382 @@ var init_tool_schema = __esm({
             ]
           },
           description: "Declares what host capabilities this tool needs. The host disables the tool on shells that can't provide them (e.g. an ffmpeg-using tool is unavailable in the web shell; a 'microphone'/'camera'/'screen' recording tool is unavailable in the headless CLI). 'screen' (v1.54) is DISPLAY capture via host.recorder - the user picks a screen/window/tab in browser-native UI; distinct from 'capture', which rasterises a URL the tool itself names."
+        },
+        renditionOf: {
+          type: "object",
+          additionalProperties: false,
+          required: ["input", "action"],
+          properties: {
+            input: { type: "string", pattern: "^[a-zA-Z][a-zA-Z0-9_]*$", description: "The id of a top-level asset input: the picture the output is a rendition of." },
+            action: {
+              type: "string",
+              enum: ["c2pa.color_adjustments", "c2pa.filtered", "c2pa.converted", "c2pa.resized", "c2pa.cropped", "c2pa.edited"],
+              description: "What the tool did to that picture, written where a new file writes c2pa.created."
+            }
+          },
+          description: "The output is a rendition of one picture the person gives the tool. When that picture carries Content Credentials of its own, a stamped export records it as the parentOf ingredient, opened first, followed by this action (C2PA 2.2 section 18.15.3). A picture with no credential changes nothing."
+        },
+        requires: {
+          type: "array",
+          uniqueItems: true,
+          items: {
+            type: "string",
+            enum: [
+              "net",
+              "tokens",
+              "text",
+              "textTools",
+              "pdf",
+              "prepare",
+              "compare",
+              "pptx",
+              "capture",
+              "compose",
+              "media",
+              "scan",
+              "lift",
+              "keyframes",
+              "recorder",
+              "audio",
+              "codec",
+              "layers",
+              "upscale",
+              "matte",
+              "ocr",
+              "speech",
+              "viz",
+              "color",
+              "images",
+              "raster",
+              "geom",
+              "connectors",
+              "c2pa",
+              "emoji",
+              "models",
+              "layout",
+              "fonts",
+              "calc"
+            ]
+          },
+          description: "Optional HostV1 APIs (`host.text`, `host.pdf`, \u2026) this tool calls WITHOUT feature-detecting them. The runtime refuses to mount the tool on a shell that lacks one, before any hook runs, and the gallery greys it out there. An API the hooks guard (`if (host.text)`, `host.text?.`) is NOT required and must not be listed. `scripts/tool-requires.ts` computes this from hooks.js and can rewrite it (`--write`); `validate:catalog` warns when the two disagree. Distinct from `capabilities`, which names device abilities (camera, microphone, screen, \u2026) rather than bridge APIs."
+        },
+        network: {
+          type: "object",
+          required: [
+            "allowlist"
+          ],
+          additionalProperties: false,
+          description: `Configuration for the 'network' capability: which URLs host.net.fetch may reach. Only meaningful alongside capabilities:["network"]. Fail-closed - without this block (or for a URL no entry matches) every host.net fetch rejects.`,
+          properties: {
+            allowlist: {
+              type: "array",
+              minItems: 1,
+              maxItems: 32,
+              description: 'https URLs the host permits. A trailing /* makes an entry a prefix wildcard ("https://api.example.com/*" allows everything under that path); the wildcard must follow a path separator, so a prefix can never bleed into a lookalike host ("https://api.example.com*" would also match https://api.example.com.evil.io/). Without it the entry allows that exact URL only. The same matching rules apply on every shell.',
+              items: {
+                type: "string",
+                pattern: "^https://[^*\\s]+(/\\*)?$"
+              }
+            }
+          }
+        },
+        composes: {
+          type: "array",
+          maxItems: 24,
+          description: "Nested renders (tool composition). Each entry renders another tool's output to an embeddable asset, exposed to the template as an extra referenced via {{asset <id>}} (so a logic-less template can embed one tool's render inside another). Requires the 'compose' capability. Recursion is depth- and cycle-guarded by the host. Capped (maxItems) well under the render cache so a single tool's composes can't self-evict mid-render.",
+          items: {
+            type: "object",
+            required: [
+              "id",
+              "tool"
+            ],
+            additionalProperties: false,
+            properties: {
+              id: {
+                type: "string",
+                pattern: "^[a-zA-Z][a-zA-Z0-9_]*$",
+                description: "Name the composed asset is exposed under. Reference it in the template as {{asset <id>}}; guard with {{#if <id>}} since composition can fail gracefully."
+              },
+              tool: {
+                type: "string",
+                pattern: "^[a-z0-9][a-z0-9-]*[a-z0-9]$",
+                description: "id of the tool to render."
+              },
+              inputs: {
+                type: "object",
+                additionalProperties: true,
+                description: `Inputs passed to the composed tool, keyed by the child tool's input ids. String values are Handlebars, hydrated against THIS tool's own context (its input values + extras), so child inputs can bind to parent values, e.g. { "url": "{{url}}" }.`
+              },
+              format: {
+                type: "string",
+                enum: [
+                  "png",
+                  "jpg",
+                  "jpeg",
+                  "svg",
+                  "pdf",
+                  "webp"
+                ],
+                description: "Render format for the composed output. Default: svg when the child supports it (vector embeds stay crisp in svg/pdf exports), else png."
+              },
+              width: {
+                type: "integer",
+                minimum: 1,
+                description: "Render width in px. Defaults to the composed tool's native width."
+              },
+              height: {
+                type: "integer",
+                minimum: 1,
+                description: "Render height in px. Defaults to the composed tool's native height."
+              }
+            }
+          }
+        },
+        guide: {
+          type: "object",
+          additionalProperties: false,
+          required: [
+            "tracks"
+          ],
+          description: "A short 'how do I actually use the thing I just made' walkthrough, shown as a dialog behind a help button beside the tool's title (web shell) and opened once automatically on a device's first visit to the tool. For the last mile a render can't teach on its own - where the export goes and what to do with it there. Keep it to a handful of steps: it is a nudge, not documentation (link to docs from a step for the long version). Translatable via the tool's i18n sidecar under `guide.*`.",
+          properties: {
+            title: {
+              type: "string",
+              description: "Dialog heading. Defaults to a generic 'How to use it' in the shell when omitted."
+            },
+            tracks: {
+              type: "array",
+              minItems: 1,
+              maxItems: 4,
+              description: "One track per route the user might take (e.g. desktop vs phone). A single track renders as a plain step list; two or more render as tabs.",
+              items: {
+                type: "object",
+                additionalProperties: false,
+                required: [
+                  "id",
+                  "label",
+                  "steps"
+                ],
+                properties: {
+                  id: {
+                    type: "string",
+                    pattern: "^[a-z0-9-]+$",
+                    description: "Stable key for this track - the i18n sidecar path (`guide.tracks.<id>.\u2026`) is built from it, so treat it like an input id."
+                  },
+                  label: {
+                    type: "string",
+                    description: "Tab label. Keep it to one or two words."
+                  },
+                  steps: {
+                    type: "array",
+                    minItems: 1,
+                    maxItems: 8,
+                    description: "Ordered steps, rendered as a numbered list. Plain text - `**bold**` is the only markup, for naming the control being pointed at.",
+                    items: {
+                      type: "string"
+                    }
+                  },
+                  note: {
+                    type: "string",
+                    description: "Optional closing caveat under the steps (e.g. what this route cannot do)."
+                  }
+                }
+              }
+            }
+          }
+        },
+        hooks: {
+          type: "object",
+          additionalProperties: false,
+          description: "Optional escape hatch. If present, the tool ships a hooks.js file that the host loads in a sandboxed context.",
+          properties: {
+            onInit: {
+              type: "boolean"
+            },
+            onInput: {
+              type: "boolean"
+            },
+            onFrame: {
+              type: "boolean",
+              description: "The tool reacts to a live camera stream. When the shell provides host.media (a camera) the runtime drives this hook once per frame with { frame, model, host }, where frame is { width, height, data (RGBA), t }; the returned patch updates the render exactly like onInit/onInput. Pure progressive enhancement - the tool still runs as a still-image tool where no camera is available, so it must NOT be declared as a required 'camera' capability."
+            },
+            onLevel: {
+              type: "boolean",
+              description: "The tool reacts to live audio levels while metering/recording (e.g. a mic recorder's VU meter + coaching). When the shell provides host.recorder the runtime drives this hook per level sample with { level, model, host }, where level is { rms, peak, dbfs, clipping, t }; the returned patch updates the render like onFrame (drop-overlap, not time-boxed). The tool declares the 'microphone' capability, so - unlike onFrame - it only runs where a mic can be recorded."
+            },
+            beforeExport: {
+              type: "boolean"
+            },
+            afterExport: {
+              type: "boolean"
+            },
+            exportFile: {
+              type: "boolean",
+              description: "The tool produces output via the transform path (file in \u2192 transformed file out) rather than rasterising the DOM. The hook reads the picked file's bytes (input.value.bytes) and returns a { bytes, mime, filename } record; the host wraps it in a Blob and delivers it via host.export.file (no watermark, no embedded provenance). A batch tool (a `multiple` file input) may instead return an ARRAY of such records - one per file - which the host delivers as a single zip. Used by on-device utilities."
+            },
+            exportStill: {
+              type: "boolean",
+              description: "The tool owns a raster still export at a bit depth the 8-bit DOM raster cannot originate (16-bit/HDR PNG, OpenEXR, Radiance). The runtime calls this hook (engine 1.100+) before host.export.render with { node, format, opts (depth/hdr/width/height/dpi), host }; returning { bytes, mime } short-circuits the export to those bytes (via host.codec, computed in float), while returning null declines and falls through to the normal path for that format. Tool-supplied bytes carry no watermark or engine provenance."
+            }
+          }
+        },
+        isolate: {
+          type: "boolean",
+          description: "Request Worker execution for a verified built-in tool's hooks (engine 1.105+, plans/86-worker-isolation-hooks.md M2). The receiving shell assigns trust independently: sideloaded or remote hook code is forced into strict isolation and fails closed when it cannot be isolated, regardless of this manifest hint."
+        },
+        designTool: {
+          type: "object",
+          additionalProperties: false,
+          required: [
+            "schemaVersion",
+            "presentation",
+            "inputs",
+            "choices",
+            "variants",
+            "defaultVariant",
+            "formats"
+          ],
+          properties: {
+            schemaVersion: {
+              const: 1
+            },
+            presentation: {
+              enum: [
+                "sidebar",
+                "on-canvas"
+              ]
+            },
+            inputs: {
+              type: "array",
+              maxItems: 64,
+              items: {
+                type: "object",
+                additionalProperties: false,
+                required: [
+                  "input",
+                  "targets"
+                ],
+                properties: {
+                  input: {
+                    $ref: "#/$defs/input"
+                  },
+                  targets: {
+                    type: "array",
+                    maxItems: 1e3,
+                    items: {
+                      type: "object",
+                      additionalProperties: false,
+                      required: [
+                        "variantId",
+                        "layerId",
+                        "property"
+                      ],
+                      properties: {
+                        variantId: {
+                          type: "string",
+                          pattern: "^[a-zA-Z0-9][a-zA-Z0-9_-]{0,63}$"
+                        },
+                        layerId: {
+                          type: "string",
+                          maxLength: 2e3
+                        },
+                        property: {
+                          enum: [
+                            "text",
+                            "image",
+                            "fontSize",
+                            "font",
+                            "weight",
+                            "fg",
+                            "fill",
+                            "fit",
+                            "imageFraming"
+                          ]
+                        },
+                        text: {
+                          type: "object",
+                          additionalProperties: false,
+                          required: [
+                            "mode",
+                            "min",
+                            "max",
+                            "wrap"
+                          ],
+                          properties: {
+                            mode: {
+                              enum: [
+                                "fixed",
+                                "shrink"
+                              ]
+                            },
+                            min: {
+                              type: "number",
+                              exclusiveMinimum: 0
+                            },
+                            max: {
+                              type: "number",
+                              exclusiveMinimum: 0
+                            },
+                            maxLines: {
+                              type: "integer",
+                              minimum: 1,
+                              maximum: 100
+                            },
+                            wrap: {
+                              type: "boolean"
+                            },
+                            sharedSize: {
+                              type: "boolean"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  },
+                  common: {
+                    type: "object",
+                    additionalProperties: false,
+                    required: [
+                      "key",
+                      "subject",
+                      "source"
+                    ],
+                    properties: {
+                      key: {
+                        enum: [
+                          "firstname",
+                          "lastname",
+                          "email",
+                          "heading",
+                          "subheading",
+                          "body",
+                          "eventName",
+                          "organization",
+                          "headshot"
+                        ]
+                      },
+                      subject: {
+                        enum: [
+                          "person",
+                          "event",
+                          "content",
+                          "recipient",
+                          "presenter"
+                        ]
+                      },
+                      source: {
+                        enum: [
+                          "brief",
+                          "profile"
+                        ]
+                      }
+                    }
+                  },
+                  text: {
+                    type: "object",
+                    additionalProperties: false,
+                    required: [
+                      "mode",
+                      "min",
+                      "max",
+                      "wrap"
+                    ],
+                    properties: {
+                      mode: {
+                        enum: [
+                          "fixed",
+                          "shrink"
+                        ]
+                      },
+                      min: {
+                        type: "number",
+                        exclusiveMinimum: 0
+                      },
+                      max: {
+                        type: "number",
+                        exclusiveMinimum: 0
+                      },
+                      maxLines: {
+                        type: "integer",
+                        minimum: 1,
+                        maximum: 100
+                      },
+                      wrap: {
+                        type: "boolean"
+                      },
+                      sharedSize: {
+                        type: "boolean"
+                      }
+                    }
+                  },
+                  approved: {
+                    type: "array",
+                    maxItems: 1e3,
+                    items: {
+                      type: "string",
+                      maxLength: 2e3
+                    }
+                  },
+                  image: {
+                    type: "object",
+                    additionalProperties: false,
+                    properties: {
+                      minWidth: {
+                        type: "integer",
+                        minimum: 1,
+                        maximum: 32768
+                      },
+                      minHeight: {
+                        type: "integer",
+                        minimum: 1,
+                        maximum: 32768
+                      },
+                      formats: {
+                        type: "array",
+                        minItems: 1,
+                        uniqueItems: true,
+                        items: {
+                          enum: [
+                            "png",
+                            "jpeg",
+                            "webp",
+                            "avif",
+                            "svg"
+                          ]
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            choices: {
+              type: "array",
+              maxItems: 4,
+              items: {
+                type: "object",
+                additionalProperties: false,
+                required: [
+                  "inputId",
+                  "options"
+                ],
+                properties: {
+                  inputId: {
+                    type: "string",
+                    pattern: "^[a-zA-Z][a-zA-Z0-9_-]{0,63}$"
+                  },
+                  options: {
+                    type: "array",
+                    maxItems: 24,
+                    items: {
+                      type: "object",
+                      additionalProperties: false,
+                      required: [
+                        "value",
+                        "label",
+                        "writes"
+                      ],
+                      properties: {
+                        value: {
+                          type: "string",
+                          maxLength: 2e3
+                        },
+                        label: {
+                          type: "string",
+                          maxLength: 2e3
+                        },
+                        variantId: {
+                          type: "string",
+                          pattern: "^[a-zA-Z0-9][a-zA-Z0-9_-]{0,63}$"
+                        },
+                        thumbnail: {
+                          type: "string",
+                          maxLength: 1048576
+                        },
+                        writes: {
+                          type: "array",
+                          maxItems: 1e3,
+                          items: {
+                            type: "object",
+                            additionalProperties: false,
+                            required: [
+                              "variantId",
+                              "layerId",
+                              "property",
+                              "value"
+                            ],
+                            properties: {
+                              variantId: {
+                                type: "string",
+                                pattern: "^[a-zA-Z0-9][a-zA-Z0-9_-]{0,63}$"
+                              },
+                              layerId: {
+                                type: "string",
+                                maxLength: 2e3
+                              },
+                              property: {
+                                enum: [
+                                  "text",
+                                  "image",
+                                  "fontSize",
+                                  "font",
+                                  "weight",
+                                  "fg",
+                                  "fill",
+                                  "fit",
+                                  "imageFraming"
+                                ]
+                              },
+                              value: {},
+                              text: {
+                                type: "object",
+                                additionalProperties: false,
+                                required: [
+                                  "mode",
+                                  "min",
+                                  "max",
+                                  "wrap"
+                                ],
+                                properties: {
+                                  mode: {
+                                    enum: [
+                                      "fixed",
+                                      "shrink"
+                                    ]
+                                  },
+                                  min: {
+                                    type: "number",
+                                    exclusiveMinimum: 0
+                                  },
+                                  max: {
+                                    type: "number",
+                                    exclusiveMinimum: 0
+                                  },
+                                  maxLines: {
+                                    type: "integer",
+                                    minimum: 1,
+                                    maximum: 100
+                                  },
+                                  wrap: {
+                                    type: "boolean"
+                                  },
+                                  sharedSize: {
+                                    type: "boolean"
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        },
+                        defaults: {
+                          type: "object",
+                          maxProperties: 64
+                        },
+                        fixedInputs: {
+                          type: "array",
+                          maxItems: 64,
+                          items: {
+                            type: "string",
+                            pattern: "^[a-zA-Z][a-zA-Z0-9_-]{0,63}$"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            variants: {
+              type: "array",
+              maxItems: 24,
+              items: {
+                type: "object",
+                additionalProperties: false,
+                required: [
+                  "id",
+                  "label",
+                  "width",
+                  "height"
+                ],
+                properties: {
+                  id: {
+                    type: "string",
+                    pattern: "^[a-zA-Z0-9][a-zA-Z0-9_-]{0,63}$"
+                  },
+                  label: {
+                    type: "string",
+                    maxLength: 2e3
+                  },
+                  width: {
+                    type: "number",
+                    minimum: 1,
+                    maximum: 16384
+                  },
+                  height: {
+                    type: "number",
+                    minimum: 1,
+                    maximum: 16384
+                  }
+                }
+              }
+            },
+            defaultVariant: {
+              type: "string",
+              pattern: "^[a-zA-Z0-9][a-zA-Z0-9_-]{0,63}$"
+            },
+            formats: {
+              type: "array",
+              minItems: 1,
+              uniqueItems: true,
+              items: {
+                enum: [
+                  "png",
+                  "svg",
+                  "pdf"
+                ]
+              }
+            },
+            sourceTool: {
+              type: "object",
+              additionalProperties: false,
+              required: [
+                "id",
+                "version",
+                "inputs"
+              ],
+              properties: {
+                id: {
+                  type: "string",
+                  minLength: 1
+                },
+                version: {
+                  type: "string",
+                  minLength: 1
+                },
+                inputs: {
+                  type: "object",
+                  maxProperties: 64,
+                  additionalProperties: {
+                    type: "string",
+                    minLength: 1
+                  }
+                }
+              }
+            }
+          }
+        },
+        openWith: {
+          type: "array",
+          maxItems: 16,
+          items: {
+            type: "object",
+            additionalProperties: false,
+            required: [
+              "id",
+              "types",
+              "binding"
+            ],
+            properties: {
+              id: {
+                type: "string",
+                pattern: "^[a-z][a-z0-9-]{0,40}$"
+              },
+              types: {
+                type: "array",
+                minItems: 1,
+                uniqueItems: true,
+                items: {
+                  type: "string",
+                  enum: [
+                    "vector",
+                    "raster",
+                    "video",
+                    "audio",
+                    "lottie",
+                    "model",
+                    "lut",
+                    "palette",
+                    "tokens",
+                    "font",
+                    "profile",
+                    "ratecard",
+                    "text",
+                    "data"
+                  ]
+                }
+              },
+              formats: {
+                type: "array",
+                minItems: 1,
+                uniqueItems: true,
+                items: {
+                  type: "string",
+                  pattern: "^[a-z0-9-]+$"
+                }
+              },
+              multiple: {
+                type: "boolean"
+              },
+              binding: {
+                oneOf: [
+                  {
+                    type: "object",
+                    additionalProperties: false,
+                    required: [
+                      "kind",
+                      "input"
+                    ],
+                    properties: {
+                      kind: {
+                        const: "input"
+                      },
+                      input: {
+                        type: "string",
+                        minLength: 1
+                      }
+                    }
+                  },
+                  {
+                    type: "object",
+                    additionalProperties: false,
+                    required: [
+                      "kind"
+                    ],
+                    properties: {
+                      kind: {
+                        enum: [
+                          "canvas",
+                          "timeline",
+                          "text"
+                        ]
+                      }
+                    }
+                  }
+                ]
+              },
+              animated: {
+                type: "boolean",
+                description: "Accept animated raster sources without flattening their animation."
+              },
+              order: {
+                type: "integer",
+                minimum: 0,
+                maximum: 1e3,
+                description: "Lower numbers appear first among compatible destinations; default 100."
+              }
+            }
+          }
+        }
+      },
+      $defs: {
+        input: {
+          type: "object",
+          required: [
+            "id",
+            "type"
+          ],
+          properties: {
+            id: {
+              type: "string",
+              pattern: "^[a-zA-Z][a-zA-Z0-9_]*$",
+              description: "Referenced in the template as {{id}}. Also becomes a URL param."
+            },
+            urlKey: {
+              type: "string",
+              pattern: "^[a-z][a-z0-9]*$",
+              maxLength: 16,
+              description: "Short URL-param alias for compact links (e.g. textColor -> tc). A WIRE CONTRACT once shipped: links carry it forever, so never rename or reuse one. Lowercase alphanumeric; must be unique within the tool across all input ids and urlKeys, must not be a reserved URL param, and must not start with _ (the reserved namespace) - validate-catalog enforces all three."
+            },
+            label: {
+              type: "string"
+            },
+            help: {
+              type: "string"
+            },
+            notice: {
+              type: "string",
+              description: "Always-visible fine print rendered above the control (unlike help, which sits behind an info button). For what the user should read before typing - e.g. the consent disclosure on an input whose value triggers a network lookup."
+            },
+            type: {
+              type: "string",
+              enum: [
+                "text",
+                "longtext",
+                "number",
+                "boolean",
+                "color",
+                "select",
+                "asset",
+                "date",
+                "time",
+                "datetime-local",
+                "url",
+                "blocks",
+                "vector",
+                "file",
+                "table"
+              ]
+            },
+            required: {
+              type: "boolean",
+              default: false
+            },
+            default: {
+              description: "Type-appropriate default value."
+            },
+            sharePrivacy: {
+              type: "string",
+              enum: ["personal"],
+              description: "Personal content omitted from generated links until reviewed for sharing."
+            },
+            bindToProfile: {
+              type: "string",
+              description: "If set, pre-fills from the user profile field of this name (e.g. 'firstname', 'headshot'). User can override."
+            },
+            bindToMeta: {
+              type: "string",
+              enum: [
+                "author",
+                "contact",
+                "description",
+                "copyright",
+                "license"
+              ],
+              description: "If set, this input's value is embedded into the export's provenance metadata (EXIF/XMP/PNG text + the C2PA manifest) under this field, overriding the profile-derived default. 'copyright' and 'license' are user-asserted IP fields with no profile source (see the claim tool)."
+            },
+            matchExportFormat: {
+              type: "boolean",
+              description: "For an asset/file input: the default export format follows this input's uploaded format (a dropped JPEG defaults the export to jpg) until the user picks a format. The uploaded format must be one the tool's render.formats offers, else the first format is used."
+            },
+            group: {
+              type: "string",
+              description: "Optional grouping tag. The reserved value 'export' moves an input out of the sidebar into the export panel; the engine injects its own export-group toggles (transparentBg, convertPaths). Any other value is a free-form label for related controls."
+            },
+            showIf: {
+              description: 'Conditional visibility: the input renders in the sidebar only while the current model matches. One object is every { otherInputId: value } pair required, where a value may be a list of accepted values (e.g. { "vectorize": true } or { "chartType": ["bar", "line"] }); an array of such objects renders when ANY of them matches, for conditions an ANDed map cannot say ("vector bar, or a 3-D bar scene"). A visibility overlay only: URL params, hooks and validation see the input either way.',
+              oneOf: [
+                {
+                  type: "object",
+                  additionalProperties: true
+                },
+                {
+                  type: "array",
+                  minItems: 1,
+                  items: {
+                    type: "object",
+                    additionalProperties: true
+                  }
+                }
+              ]
+            },
+            attachTo: {
+              type: "string",
+              description: "Id of a sibling input. Renders THIS input's control inside that input's control row (leading) instead of on its own labelled row - for a compact modifier belonging to another control, e.g. a fit toggle on an asset slot. It stays an ordinary input everywhere else (URL params, hooks, state, undo); only its placement changes. Pair with display:'icon-toggle' to keep it to one button. Ignored if the target id does not exist."
+            },
+            framingFor: {
+              type: "string",
+              description: "On a `vector` input holding image framing ({ zoom, x, y, rotate? }): the id of the asset input whose content it frames. Declares the input as THE framing control for that image, which is what lets the shell mount its generic on-canvas pan/zoom/rotate overlay, bound zoom against the image's real aspect ratio, and offer 'Use as a new image' (bake the framing into a new library asset). Reuse the canonical `imageFraming` field set (schemas/canonical-inputs.json) so the values stay bulk-writable in /batch. Ignored if the target id does not exist or is not an asset input. See plans/148."
+            },
+            tableColumns: {
+              type: "array",
+              minItems: 1,
+              uniqueItems: true,
+              items: {
+                type: "string"
+              },
+              description: "On flat scalar blocks, edit rows using the shared table in this field-id order; unlisted fields follow in declaration order. Stored block objects and URL field order are unchanged. Fixed headings, spreadsheet paste, copy, and pop-out are available. Complex/nested blocks keep the block editor."
+            },
+            columnEditors: {
+              type: "array",
+              description: "On a `table` input: which editor each COLUMN uses, matched to the table columns by position. A column with no entry (or 'text') edits as a plain text cell. 'url' keeps the text cell but asks the device for a URL keyboard and turns autocapitalise, autocorrect and spellcheck off. 'emoji' turns that column's cells into buttons that open the emoji picker, and the chosen emoji becomes the whole cell value. Presentation only: columns and rows are still user data, the stored value is the same TableValue of strings either way, and URL mode plus the CLI are unaffected.",
+              items: {
+                type: "string",
+                enum: [
+                  "text",
+                  "url",
+                  "emoji"
+                ]
+              }
+            },
+            dataSource: {
+              type: "object",
+              description: "Adds a unified 'Add data' affordance to this input: the user picks a file (csv/json/txt/md/xlsx) or a catalog text/boilerplate asset, and its content fills the field. For a text/longtext input the content is applied as text (an .xlsx is serialised to CSV, first sheet). Replaces per-tool paste buttons / 'paste your CSV here' instructions. See plan 87.",
+              additionalProperties: false,
+              properties: {
+                tags: {
+                  type: "array",
+                  items: {
+                    type: "string"
+                  },
+                  description: 'Catalog text-asset tags to offer from the library, AND-matched. Default ["boilerplate"].'
+                },
+                accept: {
+                  type: "string",
+                  description: "Override the file-input accept filter (default covers csv/json/txt/md/xlsx)."
+                }
+              }
+            },
+            tableEditor: {
+              type: "object",
+              additionalProperties: false,
+              required: [
+                "title",
+                "fields"
+              ],
+              properties: {
+                title: {
+                  type: "string"
+                },
+                diagnostics: {
+                  type: "string"
+                },
+                preview: {
+                  type: "object",
+                  additionalProperties: false,
+                  required: [
+                    "date",
+                    "time",
+                    "input"
+                  ],
+                  properties: {
+                    date: {
+                      type: "string"
+                    },
+                    time: {
+                      type: "string"
+                    },
+                    input: {
+                      type: "string"
+                    }
+                  }
+                },
+                fields: {
+                  type: "array",
+                  minItems: 1,
+                  maxItems: 100,
+                  items: {
+                    type: "object",
+                    additionalProperties: false,
+                    required: [
+                      "key",
+                      "label"
+                    ],
+                    properties: {
+                      key: {
+                        type: "string"
+                      },
+                      label: {
+                        type: "string"
+                      },
+                      aliases: {
+                        type: "array",
+                        items: {
+                          type: "string"
+                        }
+                      },
+                      editor: {
+                        enum: [
+                          "text",
+                          "date",
+                          "time",
+                          "choice",
+                          "url"
+                        ]
+                      },
+                      choices: {
+                        type: "array",
+                        items: {
+                          type: "string"
+                        }
+                      },
+                      primary: {
+                        type: "boolean"
+                      },
+                      required: {
+                        type: "boolean"
+                      },
+                      identity: {
+                        type: "boolean"
+                      },
+                      dateField: {
+                        type: "string"
+                      },
+                      column: {
+                        type: "string"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          allOf: [
+            {
+              if: {
+                properties: {
+                  type: {
+                    const: "text"
+                  }
+                }
+              },
+              then: {
+                properties: {
+                  maxLength: {
+                    type: "integer"
+                  },
+                  minLength: {
+                    type: "integer"
+                  },
+                  pattern: {
+                    type: "string",
+                    description: "Regex."
+                  },
+                  display: {
+                    type: "string",
+                    enum: [
+                      "input",
+                      "curve"
+                    ],
+                    default: "input",
+                    description: "'curve' marks a text input that holds a tone curve (points on the 0..255 scale in the wire form in-out_in-out, e.g. 0-0_64-48_255-255, see engine/src/tone-curve.ts). The value stays plain text everywhere; the web shell adds an interactive curve plot beside the field that writes it."
+                  }
+                }
+              }
+            },
+            {
+              if: {
+                properties: {
+                  type: {
+                    const: "longtext"
+                  }
+                }
+              },
+              then: {
+                properties: {
+                  maxLength: {
+                    type: "integer"
+                  },
+                  rows: {
+                    type: "integer"
+                  }
+                }
+              }
+            },
+            {
+              if: {
+                properties: {
+                  type: {
+                    const: "number"
+                  }
+                }
+              },
+              then: {
+                properties: {
+                  min: {
+                    type: "number"
+                  },
+                  max: {
+                    type: "number"
+                  },
+                  step: {
+                    type: "number"
+                  },
+                  display: {
+                    type: "string",
+                    enum: [
+                      "input",
+                      "slider"
+                    ],
+                    default: "input"
+                  },
+                  rangeWhen: {
+                    type: "array",
+                    description: "Conditional slider bounds: the first entry whose `when` map matches the current model overrides min/max/step (e.g. per-mode limits). Drives the web slider UI only - a tool that must enforce the bound elsewhere (URL/CLI values are not auto-clamped) does so in a hook.",
+                    items: {
+                      type: "object",
+                      required: [
+                        "when"
+                      ],
+                      additionalProperties: false,
+                      properties: {
+                        when: {
+                          type: "object",
+                          additionalProperties: true
+                        },
+                        min: {
+                          type: "number"
+                        },
+                        max: {
+                          type: "number"
+                        },
+                        step: {
+                          type: "number"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            {
+              if: {
+                properties: {
+                  type: {
+                    const: "color"
+                  }
+                }
+              },
+              then: {
+                properties: {
+                  palette: {
+                    type: "string",
+                    description: "Asset ID of a palette asset to constrain choices, or `colourway-leads` to offer the design system's colourway leads: every colourway's primary in the document's look, canonical first. With fewer than two colourways the field offers the ordinary palette. If omitted, free color picker."
+                  },
+                  swatchesOnly: {
+                    type: "boolean",
+                    description: "Restrict to brand palette swatches only - hides the hex entry, native picker and alpha. Default false (full picker)."
+                  }
+                }
+              }
+            },
+            {
+              if: {
+                properties: {
+                  type: {
+                    const: "select"
+                  }
+                }
+              },
+              then: {
+                required: [
+                  "options"
+                ],
+                properties: {
+                  display: {
+                    type: "string",
+                    enum: [
+                      "select",
+                      "icon-toggle",
+                      "segmented"
+                    ],
+                    default: "select",
+                    description: "'icon-toggle' renders the select as ONE compact button that cycles its options, showing the current option's `icon` instead of a dropdown. Intended for 2-state modifiers (with attachTo); a longer option list still cycles, but a dropdown reads better past ~3. 'segmented' renders the options as a row of side-by-side tabs (a radiogroup) instead of a dropdown - for a small, mutually-exclusive mode switch (2\u20134 options) like Hue/Saturation/Luminance; past ~4 a dropdown reads better."
+                  },
+                  options: {
+                    type: "array",
+                    items: {
+                      type: "object",
+                      required: [
+                        "value"
+                      ],
+                      properties: {
+                        value: {
+                          type: "string"
+                        },
+                        label: {
+                          type: "string"
+                        },
+                        showIf: {
+                          description: "Offer this option only while the current model matches, with exactly the shape and semantics of an input's showIf (one object, every pair required, or an array of objects, any one sufficient). A visibility overlay: the option that is currently selected stays offered and marked not applicable, so a saved session or a link never changes meaning, and validation still runs against the whole option set.",
+                          oneOf: [
+                            {
+                              type: "object",
+                              additionalProperties: true
+                            },
+                            {
+                              type: "array",
+                              minItems: 1,
+                              items: {
+                                type: "object",
+                                additionalProperties: true
+                              }
+                            }
+                          ]
+                        },
+                        icon: {
+                          type: "string",
+                          description: "Icon name from the web shell's registry (shells/web/src/lib/icons.ts), shown instead of the label when display is 'icon-toggle'. Falls back to the label if the name is unknown."
+                        },
+                        badge: {
+                          type: "string",
+                          description: "Short pill shown beside this option's label. If ANY option carries a badge, the web shell renders the select as a badged picker (a radiogroup of labelled pills) instead of a native dropdown - so the badge is visible while choosing, not only after. For discovery/evaluation hints, e.g. 'vector' / 'raster' on a filter-effect picker. Keep it to one short word."
+                        },
+                        formats: {
+                          type: "array",
+                          items: {
+                            type: "string"
+                          },
+                          description: "Export formats to offer while THIS option is selected - a subset of render.formats. Lets one select (e.g. an effect picker) drive the export format bar so each choice offers only the formats it produces well, while render.formats stays the union. Intersected with the tool's render.formats and the device's capability filter. Ignored unless the shell wires the option to the format bar."
+                        },
+                        width: {
+                          type: "number",
+                          exclusiveMinimum: 0,
+                          description: "Export width this option implies, in `unit`. With `height`, selecting the option sets the export dimensions (so a 'size' select drives the printed page size). The shell applies it to the export bar; the user can still override."
+                        },
+                        height: {
+                          type: "number",
+                          exclusiveMinimum: 0,
+                          description: "Export height this option implies, in `unit`."
+                        },
+                        unit: {
+                          type: "string",
+                          enum: [
+                            "px",
+                            "mm",
+                            "cm",
+                            "in",
+                            "pt"
+                          ],
+                          description: "Unit for this option's width/height. Defaults to 'mm' when width/height are present."
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            {
+              if: {
+                properties: {
+                  type: {
+                    const: "asset"
+                  }
+                }
+              },
+              then: {
+                properties: {
+                  assetType: {
+                    type: "string",
+                    enum: [
+                      "vector",
+                      "raster",
+                      "image",
+                      "video",
+                      "audio",
+                      "lottie",
+                      "model",
+                      "any"
+                    ]
+                  },
+                  filter: {
+                    type: "object",
+                    description: "Constraints passed to host.assets.query(). Limits the picker.",
+                    properties: {
+                      tags: {
+                        type: "array",
+                        items: {
+                          type: "string"
+                        }
+                      },
+                      namespace: {
+                        type: "string"
+                      }
+                    }
+                  },
+                  allowUpload: {
+                    type: "boolean",
+                    default: false,
+                    description: "If true, picker offers user upload alongside library."
+                  }
+                }
+              }
+            },
+            {
+              if: {
+                properties: {
+                  type: {
+                    const: "file"
+                  }
+                }
+              },
+              then: {
+                properties: {
+                  accept: {
+                    type: "array",
+                    items: {
+                      type: "string"
+                    },
+                    description: 'Allowlist of accepted file types - MIME types and/or extensions (e.g. ["image/jpeg", "image/png", ".heic"]). Used as the file picker\'s `accept` attribute. Empty/omitted accepts any file. This is a UX hint, not a security boundary - the hook should still validate bytes.'
+                  },
+                  maxSize: {
+                    type: "integer",
+                    minimum: 1,
+                    description: "Maximum accepted file size in bytes. The host rejects larger files at pick time. Omit for no limit."
+                  },
+                  multiple: {
+                    type: "boolean",
+                    description: "Accept MANY files at once (batch tools). The input's value becomes an array of loaded files instead of a single one, the web file-picker sets the `multiple` attribute, and the CLI collects repeated --<id>=path occurrences. An `exportFile` hook may then return one { bytes, mime, filename } record per file (the host delivers them as a single zip). See the embed-track tool."
+                  }
+                }
+              }
+            },
+            {
+              if: {
+                properties: {
+                  type: {
+                    const: "blocks"
+                  }
+                }
+              },
+              then: {
+                properties: {
+                  addMenu: {
+                    type: "object",
+                    description: "Turns the '+ Add' button into a typed menu. Each option of the named discriminator sub-field becomes a menu entry; an entry already used is disabled unless its option sets repeatable:true. The discriminator is fixed at creation and shown as the block's label rather than an editable control.",
+                    required: [
+                      "field"
+                    ],
+                    properties: {
+                      field: {
+                        type: "string",
+                        description: "id of the select sub-field whose options drive the menu."
+                      },
+                      label: {
+                        type: "string",
+                        description: "Menu button label (default 'Add')."
+                      }
+                    }
+                  },
+                  labelledFields: {
+                    type: "boolean",
+                    default: false,
+                    description: "Show a text label above each sub-field (the layout typed/addMenu blocks always use). Turn on for untyped blocks whose controls aren't self-evident, or that carry several optional fields."
+                  },
+                  tokenBindingsField: {
+                    type: "string",
+                    pattern: "^[A-Za-z][A-Za-z0-9_]*$",
+                    description: "Declared text sub-field carrying JSON token references and local override state for scalar row properties. Append this field to preserve compact URL positions. The engine resolves compatible links before hooks; cached scalar properties remain usable by older readers."
+                  },
+                  rowActions: {
+                    type: "boolean",
+                    default: false,
+                    description: "Add copy / paste / clear buttons to each block's header (next to collapse + remove): copy a row's values, paste them onto another row to make the two match, or clear a row to its field defaults. Useful when rows are many-field states people want to duplicate (e.g. flythrough poses)."
+                  },
+                  fields: {
+                    type: "array",
+                    description: "Sub-fields for each repeatable block entry. A field may declare a `type` (text|color|select|asset|number|boolean); text is the default. `showFor` limits a field to blocks whose discriminator value is listed; `showIf` limits it by sibling-field and/or top-level input values.",
+                    items: {
+                      type: "object",
+                      required: [
+                        "id"
+                      ],
+                      properties: {
+                        id: {
+                          type: "string"
+                        },
+                        urlKey: {
+                          type: "string",
+                          pattern: "^[a-z][a-z0-9]*$",
+                          maxLength: 16,
+                          description: "Short alias for this sub-field in the compact blocks URL form. Same wire-contract rules as an input urlKey: permanent once shipped, unique within the blocks input, never a reserved param, never _-prefixed."
+                        },
+                        label: {
+                          type: "string"
+                        },
+                        placeholder: {
+                          type: "string"
+                        },
+                        type: {
+                          type: "string",
+                          enum: [
+                            "text",
+                            "color",
+                            "select",
+                            "asset",
+                            "number",
+                            "boolean"
+                          ],
+                          default: "text"
+                        },
+                        default: {
+                          description: "Value a newly-added block's field starts at."
+                        },
+                        help: {
+                          type: "string",
+                          description: "Short hint shown under the sub-field (labelledFields blocks only)."
+                        },
+                        showFor: {
+                          type: "array",
+                          items: {
+                            type: "string"
+                          },
+                          description: "Render this field only when the block's discriminator value is one of these."
+                        },
+                        showIf: {
+                          type: "object",
+                          description: 'Render this field only when the named values all match. Keys are looked up first among sibling fields of the same block, then among top-level input ids (e.g. { "vectorize": true, "tune": true }).'
+                        },
+                        multilineFor: {
+                          type: "array",
+                          items: {
+                            type: "string"
+                          },
+                          description: "Render a text field as a multi-line textarea (rather than a single-line input) when the block's discriminator value is one of these."
+                        },
+                        rows: {
+                          type: "integer",
+                          description: "Visible rows for a multi-line text field (see multilineFor). Default 3."
+                        },
+                        options: {
+                          type: "array",
+                          description: "Choices for a select sub-field. An option's repeatable:true lets the add-menu offer it more than once.",
+                          items: {
+                            type: "object",
+                            required: [
+                              "value"
+                            ],
+                            properties: {
+                              value: {
+                                type: "string"
+                              },
+                              label: {
+                                type: "string"
+                              },
+                              repeatable: {
+                                type: "boolean"
+                              }
+                            }
+                          }
+                        },
+                        min: {
+                          type: "number"
+                        },
+                        max: {
+                          type: "number"
+                        },
+                        step: {
+                          type: "number"
+                        },
+                        display: {
+                          type: "string",
+                          enum: [
+                            "input",
+                            "slider"
+                          ],
+                          default: "input"
+                        },
+                        assetType: {
+                          type: "string",
+                          enum: [
+                            "vector",
+                            "raster",
+                            "image",
+                            "video",
+                            "audio",
+                            "lottie",
+                            "model",
+                            "any"
+                          ]
+                        },
+                        allowUpload: {
+                          type: "boolean",
+                          default: false
+                        },
+                        framingFor: {
+                          type: "string",
+                          description: "On an ASSET sub-field: the shared PREFIX of the row's framing numbers - <prefix>Zoom / <prefix>X / <prefix>Y / <prefix>Rotate / <prefix>Pitch / <prefix>Yaw - declaring that those sibling values frame THIS image (plans/148). Normally the asset field's own id; name a different prefix only where the numbers already ship under one (color-block's bgImage + bgX/bgY/bgZoom), since those ids are permanent URL contracts. A block sub-field cannot be a `vector`, so a row spells the values out; this is what lets the shell's generic framing overlay bind a block row. Render with the {{framing}} helper's block mode."
+                        },
+                        filter: {
+                          type: "object",
+                          properties: {
+                            tags: {
+                              type: "array",
+                              items: {
+                                type: "string"
+                              }
+                            },
+                            namespace: {
+                              type: "string"
+                            }
+                          }
+                        },
+                        optionsFrom: {
+                          type: "object",
+                          description: "Render this sub-field as a reference picker whose choices are the rows of another blocks input (or several). The stored value is each target row's derived id (slug of its key field, else its label, else an ordinal) - the same id a tool's hook resolves - so it replaces hand-typed ID cross-references with a dropdown. A stored value matching no current row is surfaced as an '(unknown)' option rather than silently dropped.",
+                          properties: {
+                            input: {
+                              type: "string",
+                              description: "id of the blocks input to draw rows from (single-source form)."
+                            },
+                            value: {
+                              type: "string",
+                              default: "nodeId",
+                              description: "Source-row sub-field used as the stored id (slugged + de-duplicated to match the tool's resolution)."
+                            },
+                            label: {
+                              type: "string",
+                              default: "label",
+                              description: "Source-row sub-field shown to the user (falls back to the derived id)."
+                            },
+                            prefix: {
+                              type: "string",
+                              default: "node-",
+                              description: "Ordinal id prefix for rows with neither key nor label."
+                            },
+                            sources: {
+                              type: "array",
+                              description: "Several source inputs merged into one option list (e.g. cards AND layers). De-duplicated by value, first wins.",
+                              items: {
+                                type: "object",
+                                required: [
+                                  "input"
+                                ],
+                                properties: {
+                                  input: {
+                                    type: "string"
+                                  },
+                                  value: {
+                                    type: "string",
+                                    default: "nodeId"
+                                  },
+                                  label: {
+                                    type: "string",
+                                    default: "label"
+                                  },
+                                  prefix: {
+                                    type: "string"
+                                  }
+                                }
+                              }
+                            },
+                            freeText: {
+                              type: "boolean",
+                              default: false,
+                              description: "Render as a combobox (datalist) that also accepts a typed value not in the list - e.g. a kanban column invented on the spot."
+                            },
+                            excludeSelf: {
+                              type: "boolean",
+                              default: false,
+                              description: "Omit the current row from its own options (a card can't be its own parent)."
+                            },
+                            excludeDescendants: {
+                              type: "boolean",
+                              default: false,
+                              description: "Omit the current row's descendants (requires the input's `nesting`) so a node can't reparent into its own subtree."
+                            },
+                            emptyLabel: {
+                              type: "string",
+                              description: "Label for the blank/none option (default '- none -')."
+                            }
+                          }
+                        }
+                      }
+                    }
+                  },
+                  nesting: {
+                    type: "object",
+                    description: "Treat this blocks array as an editable TREE: the sidebar renders it as an indented outline and the header drag lets a card be dropped above, below, or INSIDE another, updating the dragged card's parent reference (its whole subtree travels with it). The data stays a flat reference-by-id array - only the presentation is tree-shaped - so it serialises and renders exactly as before.",
+                    required: [
+                      "parentField"
+                    ],
+                    properties: {
+                      parentField: {
+                        type: "string",
+                        description: "Sub-field holding each row's parent reference (the id of another row)."
+                      },
+                      keyField: {
+                        type: "string",
+                        default: "nodeId",
+                        description: "Sub-field used as a row's id (what parentField points at)."
+                      },
+                      labelField: {
+                        type: "string",
+                        default: "label",
+                        description: "Fallback id source when keyField is blank, and the human label for indentation."
+                      },
+                      prefix: {
+                        type: "string",
+                        default: "node-",
+                        description: "Ordinal id prefix for rows with neither key nor label."
+                      },
+                      activeWhen: {
+                        type: "object",
+                        description: 'Only treat the input as a tree when these top-level input values match (an array value matches by membership), e.g. { "diagramType": ["org", "mindmap"] }. Omit to always nest.',
+                        additionalProperties: true
+                      }
+                    }
+                  },
+                  dropToAdd: {
+                    type: "object",
+                    description: "Turns the blocks list into a drop zone: dragging or selecting several image files at once creates one block per file, each with the file uploaded into the named asset sub-field. Every other field of a new block starts at its declared default.",
+                    required: [
+                      "field"
+                    ],
+                    properties: {
+                      field: {
+                        type: "string",
+                        description: "id of the block's `asset` sub-field that each dropped file is uploaded into."
+                      },
+                      accept: {
+                        type: "string",
+                        description: 'MIME accept filter for dropped files (default "image/*"). A trailing /* matches a whole type group.'
+                      }
+                    }
+                  },
+                  mdPaste: {
+                    type: "boolean",
+                    default: false,
+                    description: "Adds a 'Paste Markdown' button to the blocks toolbar. It reads the clipboard, splits the Markdown into one block per heading (the heading line \u2192 the block's `heading` field, the section beneath it \u2192 its `body` field, kept as Markdown for the tool's {{markdown}} render), and appends the blocks - so a whole document lands as editable, page-flowing blocks. A block gets kind:'text' when the input has a `kind` discriminator; other fields start at their defaults."
+                  },
+                  importData: {
+                    type: "object",
+                    description: "Lets the user populate the whole list from a CSV or JSON file (the ingest counterpart to CSV/JSON export). The shell offers an 'Import data' control; the engine (parseDataRows) maps columns onto these fields - by explicit `columns` map, else by matching each column header/key case-insensitively to a field's id then its label - and sets the input value. Data stays flat and serialises exactly like hand-entered blocks.",
+                    additionalProperties: false,
+                    properties: {
+                      formats: {
+                        type: "array",
+                        items: {
+                          type: "string",
+                          enum: [
+                            "csv",
+                            "json"
+                          ]
+                        },
+                        description: "Accepted data formats. Defaults to both csv and json."
+                      },
+                      mode: {
+                        type: "string",
+                        enum: [
+                          "replace",
+                          "append"
+                        ],
+                        default: "replace",
+                        description: "Whether an import replaces the current rows or appends to them. Default replace."
+                      },
+                      columns: {
+                        type: "object",
+                        additionalProperties: {
+                          type: "string"
+                        },
+                        description: 'Explicit fieldId \u2192 source column/key overrides. Omit to auto-map by header (field id, then label). e.g. { "value": "Amount" }.'
+                      }
+                    }
+                  },
+                  canvas: {
+                    type: "object",
+                    description: "Marks this blocks array as a free-form WYSIWYG canvas of positioned 'boxes' (requires render.layout:'editor'). The web shell mounts a direct-manipulation overlay - select, drag, resize, rotate, re-stack (z-order = array order, later rows paint on top), align and distribute - that reads and writes this flat array through the normal input path. The fields named below give the overlay the geometry to manipulate; every field remains an ordinary block sub-field, so the layout stays flat, URL-expressible, and renders identically headless (CLI/URL) with no overlay. Field ORDER in `fields` is the compact-URL wire format - never reorder or remove once shipped. CLOSED SET: unknown keys are rejected, because a typo'd `*Field` name is silently inert at runtime (the overlay reads a field nothing writes) - so the schema, not a bug report, has to catch it. Every `*Field` value must also name a real sub-field id in the SIBLING `fields` array; scripts/validate-catalog.ts enforces that half. Adding a key here is therefore a BREAKING change for older shells: the same schema is what engine/src/loader.ts validates a manifest against at load time, so a manifest carrying a key an older engine's copy does not list is refused whole, not partially ignored. Ship a new canvas key together with an `engineVersion` floor that names the engine which introduced it - the loader checks that range BEFORE validating, so an old shell reports the version, not a schema error.",
+                    additionalProperties: false,
+                    properties: {
+                      idField: {
+                        type: "string",
+                        description: "Sub-field holding each box's stable id (used to track selection across re-stacking). Default 'id'."
+                      },
+                      xField: {
+                        type: "string",
+                        description: "Number sub-field: box left, in canvas (native render) pixels. Default 'x'."
+                      },
+                      yField: {
+                        type: "string",
+                        description: "Number sub-field: box top, in canvas pixels. Default 'y'."
+                      },
+                      wField: {
+                        type: "string",
+                        description: "Number sub-field: box width, in canvas pixels. Default 'w'."
+                      },
+                      hField: {
+                        type: "string",
+                        description: "Number sub-field: box height, in canvas pixels. Default 'h'."
+                      },
+                      rotationField: {
+                        type: "string",
+                        description: "Number sub-field: clockwise rotation in degrees about the box centre. Default 'rot'."
+                      },
+                      shapeField: {
+                        type: "string",
+                        description: "Select sub-field: box shape (e.g. rectangle/rounded/ellipse)."
+                      },
+                      radiusField: {
+                        type: "string",
+                        description: "Number sub-field: corner radius in px (used when shape is rounded)."
+                      },
+                      fillField: {
+                        type: "string",
+                        description: "Color sub-field: box background fill (empty = transparent)."
+                      },
+                      gradField: {
+                        type: "string",
+                        description: "Text sub-field: a gradient fill as a Lolly gradient spec (kind_angle_colour-pos_colour-pos, e.g. lin_90_30ba78-0_efefef-100). Painted OVER the flat fill, so a translucent stop composites onto it; empty = no gradient. The hook lowers it through host.color.gradientCss, so an engine that predates that primitive degrades to the flat fill."
+                      },
+                      opacityField: {
+                        type: "string",
+                        description: "Number sub-field: box opacity 0\u2013100."
+                      },
+                      imageField: {
+                        type: "string",
+                        description: "Asset sub-field: image drawn inside the box."
+                      },
+                      fitField: {
+                        type: "string",
+                        description: "Select sub-field: how the image fills the box (object-fit: cover/contain/fill)."
+                      },
+                      imgPosField: {
+                        type: "string",
+                        description: "Select sub-field: CSS object-position anchor (which edge/corner a contained image sits against, or which part of a cover-cropped image stays in frame). Honoured in raster + SVG (preserveAspectRatio) + PDF export."
+                      },
+                      blendField: {
+                        type: "string",
+                        description: "Select sub-field: CSS mix-blend-mode for the whole box (faithful in raster export; flattened in vector)."
+                      },
+                      textField: {
+                        type: "string",
+                        description: "Text sub-field: text drawn inside the box."
+                      },
+                      textColorField: {
+                        type: "string",
+                        description: "Color sub-field: text colour."
+                      },
+                      fontSizeField: {
+                        type: "string",
+                        description: "Number sub-field: text size in px."
+                      },
+                      alignField: {
+                        type: "string",
+                        description: "Select sub-field: horizontal text alignment (left/center/right)."
+                      },
+                      valignField: {
+                        type: "string",
+                        description: "Select sub-field: vertical text alignment (top/middle/bottom)."
+                      },
+                      weightField: {
+                        type: "string",
+                        description: "Select sub-field: text weight."
+                      },
+                      fontField: {
+                        type: "string",
+                        description: "Select sub-field: text font family."
+                      },
+                      lineHeightField: {
+                        type: "string",
+                        description: "Number sub-field: text line-height (unitless multiplier)."
+                      },
+                      padField: {
+                        type: "string",
+                        description: "Number sub-field: inner padding in px between the box edge and its text."
+                      },
+                      fitTextField: {
+                        type: "string",
+                        description: "Boolean sub-field: shrink the text until it fits inside the box (shrink-ONLY - never larger than the authored size). Off = the box is expected to grow to its text instead."
+                      },
+                      groupField: {
+                        type: "string",
+                        description: "Text sub-field: id of the group this box belongs to (empty = ungrouped). Boxes sharing a group id move / scale / rotate together; purely an editor concept (no render effect)."
+                      },
+                      clipField: {
+                        type: "string",
+                        description: "Text sub-field: id of another box whose shape clips this one (a clip-path mask). Faithful in raster + SVG export; flattened in PDF/EMF."
+                      },
+                      pathField: {
+                        type: "string",
+                        description: "Text sub-field holding a VECTOR path box's authored path - the pen tool's own form (nodes + handles + spline kind), encoded as one delimiter-safe value by host.geom.encodeAuthored. Node coordinates are NORMALISED to the box frame (fractions of w/h, values outside 0..1 legal), so the ordinary move / resize / rotate gestures act on a path box through x/y/w/h/rot without rewriting a single node. Machine-written and machine-read only: the field carries showFor:[] so it never renders as a sidebar control. The tool's hook lowers it via host.geom.fromNodes and emits an inline <svg><path>, which vector-exports with no extra export code."
+                      },
+                      strokeField: {
+                        type: "string",
+                        description: "Color sub-field: stroke paint for a path/box/image outline (empty = no stroke). Defaults to 'stroke' when the canvas omits it, so the overlay and the vector operations read the same sub-field."
+                      },
+                      strokeWField: {
+                        type: "string",
+                        description: "Number sub-field: stroke width in canvas px. Default 'strokeW'."
+                      },
+                      fillRuleField: {
+                        type: "string",
+                        description: "Select sub-field: a path's fill rule - nonzero or evenodd. Default 'fillRule'."
+                      },
+                      strokeDashField: {
+                        type: "string",
+                        description: "Select sub-field: dash STYLE as a keyword ('' solid / dashed / dotted). The pattern is derived from the stroke width so it keeps its proportions when the width changes; an authored `strokeDashArrayField` wins over it. Default 'strokeDash'."
+                      },
+                      strokeCapField: {
+                        type: "string",
+                        description: "Select sub-field: line cap - round, butt or square. Default 'strokeCap'."
+                      },
+                      strokeJoinField: {
+                        type: "string",
+                        description: "Select sub-field: line join - round, miter or bevel. Default 'strokeJoin'."
+                      },
+                      strokeDashArrayField: {
+                        type: "string",
+                        description: "Text sub-field: an AUTHORED dash pattern as SPACE-separated numbers in stroke-width units (\"6 4\" = a 6-long dash, a 4-long gap). A string, not a list, and space-separated rather than comma-separated, because one block sub-field is one scalar and a comma would split the compact blocks URL row. Set, it wins over the `strokeDashField` keyword. Default 'strokeDashArray'."
+                      },
+                      dashFitField: {
+                        type: "string",
+                        description: "Boolean sub-field: stretch the authored dash pattern slightly so a whole number of dashes fits between each corner and each end of the path (Illustrator's corner-aligned dashes) instead of a half dash landing on a corner. Applied by the tool's hook. Default 'dashFit'."
+                      },
+                      headStartField: {
+                        type: "string",
+                        description: "Select sub-field: the decoration drawn at the path's FIRST point, along that end's own tangent - none \xB7 triangle \xB7 open \xB7 circle \xB7 diamond \xB7 bar. Same vocabulary as the connector heads, because a spline, a line and a connector are one primitive carrying one decoration set. Default 'headStart'."
+                      },
+                      headEndField: {
+                        type: "string",
+                        description: "Select sub-field: the same decoration at the path's LAST point. Default 'headEnd'."
+                      },
+                      bindStartField: {
+                        type: "string",
+                        description: "Text sub-field: the id of the box this path's FIRST point is attached to, '' for a free end. Machine-written by the bind gesture (carries showFor:[]), never typed; a bound end is what hands the path to connector routing. Default 'bindStart'."
+                      },
+                      bindEndField: {
+                        type: "string",
+                        description: "Text sub-field: the same binding for the path's LAST point. Default 'bindEnd'."
+                      },
+                      routeField: {
+                        type: "string",
+                        description: "Select sub-field: how a path with a BOUND end routes between its boxes (straight, elbow-*, curved-*, arc-*). '' = auto, read off the path's own spline kind - the explicit value exists because six spline kinds cannot name the engine's thirteen routes. Default 'route'."
+                      },
+                      pathLayerClass: {
+                        type: "string",
+                        description: "Class the tool's hook puts on its committed BOUND-PATH <svg> layer. The overlay hides that layer for the duration of a drag so the live preview doesn't double up with the stale committed one - only the manifest knows what its own hook emits. Default 'lolly-connectors'."
+                      },
+                      trackingField: {
+                        type: "string",
+                        description: "Number sub-field: letter-spacing in px."
+                      },
+                      ligaturesField: {
+                        type: "string",
+                        description: "Boolean sub-field: enable common ligatures."
+                      },
+                      alternatesField: {
+                        type: "string",
+                        description: "Boolean/select sub-field: stylistic alternates."
+                      },
+                      shadowField: {
+                        type: "string",
+                        description: "SELECT sub-field (not a Boolean - a shadow has a target, and the value names it): 'none' \xB7 'box' (the frame's own silhouette, a box-shadow) \xB7 'text' (the type only, a text-shadow) \xB7 'content' (the artwork's alpha silhouette, a filter: drop-shadow). The vocabulary is additive: a depth-capable tool may extend it with 'depth', whose offset/blur are DERIVED from the box's `zField` rather than authored. Whatever the value, the x/y/blur/colour sub-fields below supply the geometry."
+                      },
+                      shadowColorField: {
+                        type: "string",
+                        description: "Color sub-field: drop-shadow colour."
+                      },
+                      shadowXField: {
+                        type: "string",
+                        description: "Number sub-field: drop-shadow x offset in px."
+                      },
+                      shadowYField: {
+                        type: "string",
+                        description: "Number sub-field: drop-shadow y offset in px."
+                      },
+                      shadowBlurField: {
+                        type: "string",
+                        description: "Number sub-field: drop-shadow blur radius in px."
+                      },
+                      zField: {
+                        type: "string",
+                        description: "Number sub-field: the box's DEPTH - how far it sits in front of (positive) or behind (negative) the stage plane, in canvas px. Layers stay parallel to the screen, so a camera turns z into a per-layer uniform scale + translate (parallax, push-in, depth-of-field) and the render stays affine end-to-end. Absent field or 0 = the flat, unlifted board; the authored slider runs 0\u2013300 and the value clamps to \u2212300\u2026900."
+                      },
+                      rxField: {
+                        type: "string",
+                        description: "Number sub-field: the box's own PITCH in degrees - it leans out of the stage plane about its own horizontal axis, pivoting on its centre. Unlike zField (which keeps every layer parallel to the screen and stays affine), a tilt is projective: the box gets its own vanishing point at the scene perspective, and it composes with a tilted camera as a product of homographies, not as a world-space rotation of the plate. Absent field or 0 = flat, and the whole render path stays byte-identical to the untilted one."
+                      },
+                      ryField: {
+                        type: "string",
+                        description: "Number sub-field: the box's own YAW in degrees, the companion to rxField. Applied BEFORE the pitch (R = Ry\xB7Rx, the pan/tilt-head order the camera channels already use), so a box wearing both angles never acquires roll - a third channel the wire does not have."
+                      },
+                      startField: {
+                        type: "string",
+                        description: "Number sub-field: when this box appears, in SECONDS from the start of the sequence. Empty = the box is 'scenery' (always visible). Timing is inert unless a shell mounts a timeline panel; static exports ignore it."
+                      },
+                      durField: {
+                        type: "string",
+                        description: "Number sub-field: how long the box stays visible, in SECONDS. Empty = runs to the end of the sequence."
+                      },
+                      clipInField: {
+                        type: "string",
+                        description: "Number sub-field: trim in-point WITHIN the box's own media (video/lottie/audio), in SECONDS from the media's start. Ignored for non-media boxes."
+                      },
+                      speedField: {
+                        type: "string",
+                        description: "Number sub-field: media playback rate multiplier (1 = normal). Affects how much source media a given timeline duration consumes."
+                      },
+                      enterField: {
+                        type: "string",
+                        description: "Select sub-field: named animate-in preset played at the box's start (e.g. fade, rise, pop; 'none' disables). Presets are shell-rendered; no keyframes are authored."
+                      },
+                      exitField: {
+                        type: "string",
+                        description: "Select sub-field: named animate-out preset played at the box's end (e.g. fade, rise, pop; 'none' disables). Presets are shell-rendered; no keyframes are authored."
+                      },
+                      enterMsField: {
+                        type: "string",
+                        description: "Number sub-field: duration of the enter preset, in MILLISECONDS."
+                      },
+                      exitMsField: {
+                        type: "string",
+                        description: "Number sub-field: duration of the exit preset, in MILLISECONDS."
+                      },
+                      enterEaseField: {
+                        type: "string",
+                        description: "String sub-field: the timing curve the enter preset's GEOMETRY follows - a preset name (linear, ease-out, ease-in, ease-in-out, overshoot, anticipate) or a CSS cubic-bezier(a,b,c,d). Empty = the preset's own built-in curve. Opacity is deliberately not governed by it: a fade that tracks a slow curve turns to mud under video compression, so alpha keeps its fixed ramp."
+                      },
+                      exitEaseField: {
+                        type: "string",
+                        description: "String sub-field: the same curve control for the exit preset. Same wire format, same geometry-only reach."
+                      },
+                      muteField: {
+                        type: "string",
+                        description: "Boolean sub-field: silence this box's own audio track when the sequence is mixed."
+                      },
+                      gainField: {
+                        type: "string",
+                        description: "Number sub-field: this box's audio level when the sequence is mixed (1 = as recorded, 0 = silent, up to 2 = boosted). Machine-written by the timeline inspector, so the sub-field carries showFor:[]. Absent or empty reads as unity gain."
+                      },
+                      panField: {
+                        type: "string",
+                        description: "Number sub-field: this box's stereo position when the sequence is mixed (-1 = left, 0 = centred, 1 = right; equal-power). Machine-written by the timeline inspector's Pan row, so the sub-field carries showFor:[]. Absent or empty reads as centred."
+                      },
+                      duckField: {
+                        type: "string",
+                        description: "Number sub-field: the level 0..1 this audio box drops to while any other clip's audio plays (clip-presence ducking; 1 or empty = no duck). Machine-written by the timeline inspector, so the sub-field carries showFor:[]."
+                      },
+                      pitchField: {
+                        type: "string",
+                        description: "Number sub-field: transpose this clip's audio in semitones (-12..12, formants preserved; 0 or empty = as recorded). Works at any speed. Machine-written by the timeline inspector's Pitch row, so the sub-field carries showFor:[]."
+                      },
+                      varispeedField: {
+                        type: "string",
+                        description: "Boolean sub-field: when true a speed-changed clip plays tape-style (pitch follows speed) instead of pitch-preserved. Absent or empty = preserve pitch, the editor default. Machine-written by the timeline inspector, so the sub-field carries showFor:[]."
+                      },
+                      fxField: {
+                        type: "string",
+                        description: "Text sub-field: this clip's audio effect chain in the engine's append-only fx grammar (dot-joined name(params) entries, e.g. hp(90).rv(20-35); unknown entries skipped, never an error; empty = none). The inspector's Effect presets write the EXPANDED chain, so a later preset re-tune never changes a shared link's sound. Machine-written, so the sub-field carries showFor:[]."
+                      },
+                      ignoredField: {
+                        type: "string",
+                        description: "Boolean sub-field: the reversible-cut / strikethrough flag (transcript-driven editing, plans/174). A true value keeps the box's media and its place on the timeline but skips it on playback and drops it from export - the dual of a hard delete. Machine-written by the transcript panel, so the sub-field carries showFor:[]. Absent reads as not-ignored."
+                      },
+                      linkField: {
+                        type: "string",
+                        description: "String sub-field: the id of the box this one is A/V-linked to (written on BOTH sides when audio is detached from a video). Absent or naming a missing box reads as unlinked."
+                      },
+                      labelField: {
+                        type: "string",
+                        description: "Text sub-field: the user's own name for this box on the timeline - shown on its clip bar in place of the derived text/media label. Machine-written by the timeline (double-click or context-menu rename), so the sub-field carries showFor:[]. Absent or empty falls back to the derived label."
+                      },
+                      laneField: {
+                        type: "string",
+                        description: "Select sub-field: '' places the box on a free overlay lane; 'seq' places it on the magnetic main sequence row, where clips are kept gapless and edits ripple."
+                      },
+                      kfField: {
+                        type: "string",
+                        description: "Text sub-field: the box's KEYFRAME TRACK - its whole authored animation as one compact, delimiter-safe string (times in ms, per-channel values at the pinned quanta, per-segment easing). Machine-written by the timeline, so the sub-field carries showFor:[] and never renders as a sidebar control. Absent or empty = the box is not keyframed and every keyframe path is inert for it."
+                      },
+                      splitField: {
+                        type: "string",
+                        description: "Select sub-field: the text-animation SPLIT TIER ('' whole text, 'word', 'line', 'letter') - the box's Animate in/out runs per unit with a stagger instead of as one block (plans/175 WP-A). Absent = the tool offers no text animation and every split path is inert."
+                      },
+                      staggerField: {
+                        type: "string",
+                        description: "Number sub-field: the start-to-start gap between text units, ms (0-2000). Only read when splitField names a tier."
+                      },
+                      splitOrderField: {
+                        type: "string",
+                        description: "Select sub-field: the order text units animate in ('' first-to-last, 'reverse', 'center', 'random'). Random deals from a seed hashed off the box id so preview, export and shared URLs shuffle identically."
+                      },
+                      holdField: {
+                        type: "string",
+                        description: "Select sub-field: the HOLD effect ('' still, 'pulse', 'bob', 'sway', 'flicker') - a small deterministic looping motion while the box is on screen (plans/175 WP-B). Absent = the tool offers no hold effect and every hold path is inert."
+                      },
+                      holdRateField: {
+                        type: "string",
+                        description: "Number sub-field: the hold motion's rate, cycles per second (0.2-4). Only read when holdField names an effect."
+                      },
+                      frameField: {
+                        type: "string",
+                        description: "Text sub-field: the id of the FRAME (page/artboard container) box this box belongs to; '' = it sits on the open board. Declaring it turns on the frame primitive - the overlay drives gestures in frame-local space via each frame's DOM offset, and re-buckets a moved/created/resized box into whichever frame its centre lands in on drop. Absent leaves every frame-aware path dead (byte-identical to a frameless editor)."
+                      },
+                      frameKind: {
+                        type: "string",
+                        description: "NOT a field name: the literal `kind` VALUE that marks a box as a frame rather than ordinary content (e.g. 'frame'). Frames render as free-placed [data-pdf-page] pages at their authored x/y."
+                      },
+                      orderField: {
+                        type: "string",
+                        description: "Number sub-field on a FRAME box: its page order in a multi-page export. Read by the tool's hook; the overlay's frame-reorder control writes it. Absent = no reorder affordance."
+                      },
+                      clipChildrenField: {
+                        type: "string",
+                        description: "Boolean sub-field on a FRAME box: whether content overflowing the frame is clipped to it. Absent = the overlay offers no clip toggle."
+                      },
+                      hiddenField: {
+                        type: "string",
+                        description: "Boolean sub-field on ANY box: the layer is hidden - not drawn and not exported. The tool's hook skips a hidden row everywhere it walks the boxes; the overlay refuses to hit-test one. Absent = no hide affordance."
+                      },
+                      lockedField: {
+                        type: "string",
+                        description: "Boolean sub-field on ANY box: the layer is locked - the overlay refuses to select or move it on the canvas. Editor-only: it changes no rendered pixel and no export. Absent = no lock affordance."
+                      },
+                      frameTransitionField: {
+                        type: "string",
+                        description: "Select sub-field on a FRAME box: how THIS slide changes into the next one, overriding the document's own transition. Empty follows the document. Absent = every slide uses the document transition."
+                      },
+                      minSize: {
+                        type: "number",
+                        description: "Smallest box width/height the overlay will create or resize to, in canvas px. Default 8."
+                      },
+                      addKinds: {
+                        type: "array",
+                        description: "The kinds of box the 'add' tool offers. Each entry seeds a new box's fields (id excluded - the shell assigns it).",
+                        items: {
+                          type: "object",
+                          required: [
+                            "id"
+                          ],
+                          properties: {
+                            id: {
+                              type: "string",
+                              description: "Kind id (also the default select value of the shape/kind field if present)."
+                            },
+                            label: {
+                              type: "string",
+                              description: "Menu label."
+                            },
+                            icon: {
+                              type: "string",
+                              description: "Optional inline SVG or glyph for the menu entry."
+                            },
+                            seed: {
+                              type: "object",
+                              description: "Field values a newly-added box of this kind starts at (merged over the block's declared defaults).",
+                              additionalProperties: true
+                            }
+                          }
+                        }
+                      },
+                      import: {
+                        type: "object",
+                        additionalProperties: false,
+                        description: "Opt into design-file IMPORT on this canvas: the editor's Lolly menu gains an 'Import a design' entry that maps an imported file's frames/shapes onto boxes of THIS array, using the tool's own font-select values and addKinds seed colours so the result is indistinguishable from natively-authored boxes. Absent (Design's historical state) = no import control at all.",
+                        properties: {
+                          formats: {
+                            type: "array",
+                            items: {
+                              type: "string"
+                            },
+                            description: "The design formats this canvas advertises accepting (today: svg, penpot, pdf, ai, idml). Documents intent for the import panel; the engine's importer is the authority on what it can actually parse."
+                          },
+                          mode: {
+                            type: "string",
+                            enum: [
+                              "scenes"
+                            ],
+                            description: "'scenes' (Sequence Studio): an imported design's frames land as timed clips APPENDED to the main sequence instead of replacing the canvas. Requires the full time model to be mapped; omit for editors whose import replaces the board."
+                          }
+                        }
+                      },
+                      connect: {
+                        type: "object",
+                        required: [
+                          "input"
+                        ],
+                        additionalProperties: false,
+                        description: "Opt into connector authoring (Org Chart): a SECOND blocks input holding {from,to} edges between boxes, plus a 'Connect' rail mode to author them (click a source card, then targets). The overlay reads/writes that array and draws a live preview; the tool's hooks.js owns the real routed geometry. Absent = the editor's toolbar and gestures are unchanged.",
+                        properties: {
+                          input: {
+                            type: "string",
+                            description: "id of the blocks input storing the connector edges. Its sub-fields - not this canvas's `fields` - are what the *Field names below refer to."
+                          },
+                          fromField: {
+                            type: "string",
+                            description: "Edge sub-field holding the SOURCE box id. Default 'from'."
+                          },
+                          toField: {
+                            type: "string",
+                            description: "Edge sub-field holding the TARGET box id. Default 'to'."
+                          },
+                          styleField: {
+                            type: "string",
+                            description: "Edge sub-field: route style (elbow, straight, curved \u2026)."
+                          },
+                          arrowField: {
+                            type: "string",
+                            description: "Edge sub-field: which ENDS carry an arrowhead (none/end/both)."
+                          },
+                          headField: {
+                            type: "string",
+                            description: "Edge sub-field: arrowhead SHAPE (triangle/open/circle/diamond/bar) - same vocabulary as the path decorations."
+                          },
+                          colorField: {
+                            type: "string",
+                            description: "Edge sub-field: line colour."
+                          },
+                          dashField: {
+                            type: "string",
+                            description: "Edge sub-field: dash style keyword."
+                          },
+                          widthField: {
+                            type: "string",
+                            description: "Edge sub-field: line width in canvas px."
+                          },
+                          layerClass: {
+                            type: "string",
+                            description: "Class of the tool's rendered connector <svg>, hidden mid-drag so the live preview doesn't double up with the committed one. Default 'oc-connectors'."
+                          },
+                          defaultStyle: {
+                            type: "string",
+                            description: "Route style a newly-authored edge starts at. Default 'elbow'."
+                          },
+                          defaultArrow: {
+                            type: "string",
+                            description: "Arrow ends a newly-authored edge starts at. Default 'end'."
+                          },
+                          defaultHead: {
+                            type: "string",
+                            description: "Arrowhead shape a newly-authored edge starts at. Default 'triangle'."
+                          },
+                          defaultColor: {
+                            type: "string",
+                            description: "Line colour a newly-authored edge starts at. Default '#94a3b8'."
+                          },
+                          defaultWidth: {
+                            type: "number",
+                            description: "Line width a newly-authored edge starts at. Default 2.5."
+                          }
+                        }
+                      },
+                      grid: {
+                        type: "object",
+                        description: "Opt into snap-to-grid: the overlay rounds drag/resize to this lattice (per-axis alignment smart-guides still win; Alt disables).",
+                        properties: {
+                          size: {
+                            type: "number",
+                            description: "Grid step in canvas px."
+                          },
+                          default: {
+                            type: "boolean",
+                            description: "Whether snap-to-grid starts on."
+                          }
+                        }
+                      },
+                      fixedCanvas: {
+                        type: "boolean",
+                        description: "Lock the canvas to render.width/height: the shell withholds setCanvasSize and ignores reserved ?width/?height, so box coordinates stay 1:1 with the render size (required when a hook draws into a fixed-viewBox overlay, e.g. connectors)."
+                      },
+                      textDocumentInput: {
+                        type: "string",
+                        description: "Input containing the canonical authored text document."
+                      },
+                      textStoryField: {
+                        type: "string",
+                        description: "Box field naming the story that owns this text frame."
+                      },
+                      textFrameField: {
+                        type: "string",
+                        description: "Box field containing authored text frame settings."
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            {
+              if: {
+                properties: {
+                  type: {
+                    const: "vector"
+                  }
+                }
+              },
+              then: {
+                required: [
+                  "fields"
+                ],
+                properties: {
+                  fields: {
+                    type: "array",
+                    minItems: 1,
+                    description: "Numeric sub-fields, each a labelled Figma-style scrubber. Stored as one compound value { fieldId: number } and rendered as a single control / column.",
+                    items: {
+                      type: "object",
+                      required: [
+                        "id"
+                      ],
+                      properties: {
+                        id: {
+                          type: "string"
+                        },
+                        label: {
+                          type: "string"
+                        },
+                        symbol: {
+                          type: "string",
+                          description: 'Single character shown inside the field as its scrub handle (e.g. "+" for zoom). Defaults to the first letter of the label.'
+                        },
+                        min: {
+                          type: "number"
+                        },
+                        max: {
+                          type: "number"
+                        },
+                        step: {
+                          type: "number"
+                        },
+                        default: {
+                          type: "number"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        },
+        exampleVariant: {
+          type: "object",
+          additionalProperties: false,
+          required: [
+            "values"
+          ],
+          description: "One example look: a set of input values (and optionally the UI theme it suits) rendered live to demonstrate the tool.",
+          properties: {
+            label: {
+              type: "string",
+              description: "Short human label for this look (not shown to end users; documents the intent)."
+            },
+            theme: {
+              type: "string",
+              enum: [
+                "light",
+                "dark"
+              ],
+              description: "Which UI theme this look suits - set only on looks that render ink on a TRANSPARENT background (e.g. a reverse/white logo). 'dark' looks show on the dark/SUSE themes, 'light' looks on the light theme; the clashing look is filtered out so it's never near-invisible on the tile. Omit for looks that bake their own background (shown on any theme)."
+            },
+            values: {
+              type: "object",
+              description: "Map of input id -> value seeded into the render - the same shape URL params resolve to. Scalar inputs (select/color/text/number/boolean/url) plus block arrays (e.g. chart data, badge tracks - an array of field objects) are supported; rely on the tool's default for asset inputs unless referencing a catalog asset id."
+            }
+          }
+        },
+        templateVariant: {
+          type: "object",
+          additionalProperties: false,
+          required: [
+            "id",
+            "name"
+          ],
+          description: 'One named starting point in the "New from template" chooser: an id, a display name, and (in the external per-template file) a full input seed. Two shapes validate against this def: the EXTERNAL file tools/<id>/templates/<tid>.json, which carries `values`; and the METADATA-ONLY entry the synced index carries, which strips `values` (hence `values` is optional). Like an exampleVariant\'s `values` but read directly into a fresh session rather than rendered as an illustrative preview.',
+          properties: {
+            galleryTheme: {
+              type: "string",
+              enum: [
+                "light",
+                "dark"
+              ],
+              description: "Gallery theme this transparent artwork suits; dark also serves the brand theme. Omit for artwork that suits either theme."
+            },
+            galleryCover: {
+              type: "boolean",
+              description: "Use this editable template as the first gallery preview. At most one cover per theme."
+            },
+            gallerySize: {
+              type: "object",
+              additionalProperties: false,
+              required: ["width", "height"],
+              properties: {
+                width: { type: "number", exclusiveMinimum: 0 },
+                height: { type: "number", exclusiveMinimum: 0 }
+              },
+              description: "The size this template is drawn at on its gallery card, usually 4:3 so it fills the card. It never changes the size the template opens at."
+            },
+            id: {
+              type: "string",
+              description: "Stable id, unique within this tool's `templates[]`. Addressable via the reserved `?template=<id>` param, so treat it as a permanent contract like a tool/asset id."
+            },
+            name: {
+              type: "string",
+              description: "Display name shown on the chooser tile."
+            },
+            description: {
+              type: "string",
+              description: "Optional one-line description shown under the name on the tile."
+            },
+            category: {
+              type: "string",
+              description: "Optional grouping label; tiles sharing a category are grouped together in the chooser."
+            },
+            thumb: {
+              type: "string",
+              description: "Optional thumbnail: a tool-relative asset path or data URI. Absent \u2192 the chooser draws a glyph tile."
+            },
+            motion: {
+              type: "object",
+              additionalProperties: false,
+              required: [
+                "collection",
+                "recipe",
+                "durationMs",
+                "posterMs",
+                "beats"
+              ],
+              properties: {
+                collection: {
+                  type: "string",
+                  minLength: 1
+                },
+                recipe: {
+                  type: "string",
+                  minLength: 1
+                },
+                durationMs: {
+                  type: "number",
+                  minimum: 800,
+                  maximum: 3e4
+                },
+                posterMs: {
+                  type: "number",
+                  minimum: 0
+                },
+                beats: {
+                  type: "array",
+                  minItems: 1,
+                  maxItems: 8,
+                  items: {
+                    type: "string",
+                    maxLength: 160
+                  }
+                }
+              }
+            },
+            values: {
+              type: "object",
+              description: "Map of input id -> value read directly into the fresh session - the same shape URL params resolve to, and the same shape a `default` composition uses. Authored in the EXTERNAL per-template file tools/<id>/templates/<tid>.json (not the synced index, which carries metadata only). Any size (a free-canvas `boxes` array can be many KB), because it is fetched on demand and seeded in-process, never serialised into a URL."
+            },
+            presets: {
+              type: "array",
+              description: "Curated variants INSIDE this template - each one a values overlay merged over the template's base `values` (shallow, per input id, the preset wins). Deep-linked as `?template=<tid>&preset=<pid>`. Same two shapes as the template itself: the external file carries each overlay's `values`, the synced index carries id/name/description only.",
+              items: {
+                $ref: "#/$defs/templatePreset"
+              }
+            }
+          }
+        },
+        templatePreset: {
+          type: "object",
+          additionalProperties: false,
+          required: [
+            "id",
+            "name"
+          ],
+          description: "One size or pace of a template: a values overlay merged over the template base. A different look is a template of its own.",
+          properties: {
+            kind: {
+              type: "string",
+              enum: ["size", "pace", "retired"],
+              description: "size and pace show as chips on the template tile. retired keeps the ?preset= address working for old links and shows nowhere in the app."
+            },
+            id: {
+              type: "string",
+              description: "Stable id, unique within this template's `presets[]`. Addressable via the reserved `?preset=<id>` param, so treat it as a permanent contract."
+            },
+            name: {
+              type: "string",
+              description: "Display name shown on the preset chip."
+            },
+            description: {
+              type: "string",
+              description: "Optional one-line description shown beside the name."
+            },
+            values: {
+              type: "object",
+              description: "The overlay merged over the template's base `values` - only the input ids this variant changes, each carrying a FULL replacement value (a blocks array is replaced whole, never merged element-wise). Lives in the external template file; the synced index strips it."
+            }
+          }
+        }
+      }
+    };
+  }
+});
+
+// packages/core/schema/asset.schema.json
+var asset_schema_default;
+var init_asset_schema = __esm({
+  "packages/core/schema/asset.schema.json"() {
+    asset_schema_default = {
+      $schema: "https://json-schema.org/draft/2020-12/schema",
+      $id: "https://lolly.tools/schemas/asset.schema.json",
+      title: "Asset Manifest Entry",
+      description: "One asset in the global catalog. Tools resolve assets by id via host.assets.get(). The id is a forever-stable contract; the version moves.",
+      type: "object",
+      required: ["id", "type", "version", "tier", "formats"],
+      additionalProperties: false,
+      properties: {
+        id: {
+          type: "string",
+          pattern: "^[a-z0-9]+(/[a-z0-9][a-z0-9-]*)+$",
+          description: "Namespaced. e.g. 'suse/logo/primary', 'event/kubecon-2026/badge'. NEVER changes. NEVER reused for a different asset."
+        },
+        name: { type: "string" },
+        description: { type: "string" },
+        type: {
+          type: "string",
+          enum: ["vector", "raster", "video", "audio", "lottie", "model", "lut", "palette", "tokens", "font", "profile", "ratecard", "text", "data", "skill"]
+        },
+        version: {
+          type: "string",
+          pattern: "^\\d+\\.\\d+\\.\\d+$",
+          description: "SemVer. Bump on every byte change. Drives cache invalidation."
+        },
+        tier: {
+          type: "string",
+          enum: ["core", "catalog", "on-demand"],
+          description: "core = always bundled with app; catalog = synced at launch, cached; on-demand = fetched when used."
+        },
+        tags: {
+          type: "array",
+          items: { type: "string" },
+          description: "Used by host.assets.query() and pickers to filter."
+        },
+        added: {
+          type: "string",
+          pattern: "^\\d{4}-\\d{2}-\\d{2}$",
+          description: "The date this asset's primary file was first added to its brand pack (YYYY-MM-DD). Never hand-authored: `scripts/gen-asset-added-dates.ts` mints a committed map from the packs' git history and `npm run build:catalog` stamps it here, so the index regenerates identically on a shallow CI checkout. Assets that moved in during the 2026-07 repository split floor at the split date."
+        },
+        formats: {
+          type: "array",
+          minItems: 1,
+          description: "Available format variants. The host picks the right one based on use.",
+          items: {
+            type: "object",
+            required: ["format", "url", "checksum"],
+            properties: {
+              format: {
+                type: "string",
+                description: "e.g. 'svg', 'png@1x', 'png@2x', 'png@3x', 'webp', 'mp4', 'json'."
+              },
+              url: {
+                type: "string",
+                description: "Relative to the catalog root, or absolute. Used by host to fetch bytes."
+              },
+              checksum: {
+                type: "string",
+                pattern: "^sha256-",
+                description: "SRI-format SHA-256. End-to-end integrity check."
+              },
+              size: { type: "integer", description: "Bytes. Used for sync progress estimation." },
+              width: { type: "integer" },
+              height: { type: "integer" },
+              depth: {
+                type: "integer",
+                minimum: 1,
+                maximum: 64,
+                description: "Bits per channel of THIS file. Raster containers only (png/tiff/jpeg/webp). SNIFFED, NOT ASSERTED: absent means unknown or not raster - a container that buries depth in codec boxes (heic/avif) stays absent rather than guessing. Never hand-authored: `npm run build:catalog` writes it from a bounded header sniff and `npm run validate:catalog` re-sniffs to catch drift. Depth follows provenance (plans/61-deeprichpixels.md section 10)."
+              },
+              durationMs: { type: "integer", minimum: 0, description: "Playback length in milliseconds, for video, audio and lottie assets." },
+              rendition: {
+                type: "object",
+                additionalProperties: false,
+                required: [
+                  "of",
+                  "spec"
+                ],
+                description: "Signed display derivative of an original file. Placement and export use original formats.",
+                properties: {
+                  of: {
+                    type: "string",
+                    pattern: "^[0-9a-f]{64}$"
+                  },
+                  spec: {
+                    type: "object",
+                    additionalProperties: false,
+                    required: [
+                      "fit",
+                      "format"
+                    ],
+                    properties: {
+                      w: {
+                        type: "integer",
+                        minimum: 1,
+                        maximum: 16384
+                      },
+                      h: {
+                        type: "integer",
+                        minimum: 1,
+                        maximum: 16384
+                      },
+                      fit: {
+                        enum: [
+                          "inside",
+                          "cover"
+                        ]
+                      },
+                      format: {
+                        enum: [
+                          "png",
+                          "jpeg",
+                          "webp",
+                          "avif"
+                        ]
+                      },
+                      q: {
+                        type: "integer",
+                        minimum: 1,
+                        maximum: 100
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        locales: {
+          type: "object",
+          description: "Locale-specific format overrides. Key is BCP-47 locale tag. Value mirrors the 'formats' structure.",
+          additionalProperties: {
+            type: "array",
+            items: { $ref: "#/properties/formats/items" }
+          }
+        },
+        license: {
+          type: "string",
+          description: "e.g. 'internal', 'cc-by-4.0', 'all-rights-reserved'."
+        },
+        meta: {
+          type: "object",
+          additionalProperties: true,
+          description: "Type-specific facts a shell needs before it downloads the bytes, such as an emoji pack's pin and glyph count. Not validated beyond being an object."
+        },
+        rights: {
+          type: "object",
+          additionalProperties: false,
+          required: ["works"],
+          description: "Structured rights evidence for the work or works this asset carries (plan 253; CreativeWorkRecordV1 in @lolly-tools/core/rights-v1). Additive beside the legacy license and attribution strings, which stay for display. A missing record means not recorded, never permission. A grant's private evidence pointer is deliberately not allowed here.",
+          properties: {
+            works: {
+              type: "array",
+              minItems: 1,
+              maxItems: 64,
+              items: {
+                type: "object",
+                additionalProperties: false,
+                required: ["id", "creators", "rights"],
+                properties: {
+                  id: { type: "string", minLength: 1, maxLength: 512 },
+                  title: { type: "string", maxLength: 512 },
+                  creators: {
+                    type: "array",
+                    maxItems: 64,
+                    items: {
+                      type: "object",
+                      additionalProperties: false,
+                      required: ["name"],
+                      properties: {
+                        name: { type: "string", minLength: 1, maxLength: 256 },
+                        role: { type: "string", maxLength: 64 },
+                        url: { type: "string", maxLength: 2048, pattern: "^https?://" }
+                      }
+                    }
+                  },
+                  sourceUrl: { type: "string", maxLength: 2048, pattern: "^https?://" },
+                  revision: { type: "string", maxLength: 256 },
+                  sourceHash: { type: "string", pattern: "^sha256:[0-9a-f]{64}$" },
+                  rights: {
+                    type: "array",
+                    minItems: 1,
+                    maxItems: 16,
+                    items: {
+                      type: "object",
+                      additionalProperties: false,
+                      required: ["declaration", "assertedBy", "evidence", "status"],
+                      properties: {
+                        declaration: { type: "string", minLength: 1, maxLength: 512 },
+                        expression: { type: "string", maxLength: 512 },
+                        version: { type: "string", maxLength: 64 },
+                        url: { type: "string", maxLength: 2048, pattern: "^https?://" },
+                        textHash: { type: "string", pattern: "^sha256:[0-9a-f]{64}$" },
+                        copyright: { type: "string", maxLength: 1024 },
+                        notices: { type: "array", maxItems: 16, items: { type: "string", maxLength: 65536 } },
+                        assertedBy: { enum: ["source", "catalog", "user", "credential", "exporter"] },
+                        evidence: { enum: ["manifest", "catalog-entry", "native-metadata", "sidecar", "notice-file", "user-declaration"] },
+                        capturedAt: { type: "string", maxLength: 64 },
+                        status: { enum: ["parsed", "unparsed", "missing", "not-applicable"] }
+                      }
+                    }
+                  },
+                  grants: {
+                    type: "array",
+                    maxItems: 16,
+                    items: {
+                      type: "object",
+                      additionalProperties: false,
+                      required: ["kind", "scope", "asserted"],
+                      properties: {
+                        kind: { enum: ["public-licence", "dedication", "specific-permission", "own-work"] },
+                        licence: { type: "string", maxLength: 128 },
+                        scope: { type: "string", maxLength: 1024 },
+                        purposes: { type: "array", maxItems: 16, items: { type: "string", maxLength: 128 } },
+                        recipients: { type: "array", maxItems: 16, items: { type: "string", maxLength: 256 } },
+                        territory: { type: "string", maxLength: 128 },
+                        expires: { type: "string", maxLength: 64 },
+                        asserted: { type: "boolean" }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        attribution: {
+          type: "string",
+          description: "Human-readable credit for a licensed asset that requires attribution (e.g. a CC-BY work). Shown in the catalog asset details view. e.g. 'SUSE \xB7 Peter Chamalian'."
+        },
+        aiGenerated: {
+          type: "string",
+          enum: ["full", "partial"],
+          description: "Generative-AI provenance disclosure. 'full' = the asset is wholly AI-generated; 'partial' = it contains AI-generated elements (an AI-composited/edited work). Surfaces a violet 'GEN AI' pill in the catalog + a note in the asset details. Omit for human-made assets. Author this honestly - only for assets actually produced with a trained generative model."
+        },
+        deprecated: {
+          type: "boolean",
+          default: false,
+          description: "Soft-deprecate before removal. Existing references still resolve."
+        },
+        replacedBy: {
+          type: "string",
+          description: "If deprecated, asset id that supersedes this one."
+        },
+        prefetch: {
+          type: "boolean",
+          default: false,
+          description: "Catalog tier only. If true, fetch bytes at sync time, not on first use."
+        },
+        brandLock: {
+          type: "boolean",
+          default: false,
+          description: "Tokens assets only. When true, this brand is authoritative: the app resolves ITS colours/fonts and IGNORES any user-installed brand, and the brand-customisation UI (the #/start wizard, brand fonts, brand-file import) is disabled. A locked catalog 'eats what it is given'. Omit/false for a customisable brand (e.g. lolly-start)."
+        }
+      }
+    };
+  }
+});
+
+// packages/core/schema/asset-ref.schema.json
+var asset_ref_schema_default;
+var init_asset_ref_schema = __esm({
+  "packages/core/schema/asset-ref.schema.json"() {
+    asset_ref_schema_default = {
+      $schema: "https://json-schema.org/draft/2020-12/schema",
+      $id: "https://lolly.tools/schemas/asset-ref.schema.json",
+      title: "AssetRef",
+      description: "The runtime object representing a resolved asset. Returned by host.assets.get(), host.assets.pick(), and stored in saved tool state. Uniform across library assets and user uploads - tools handle them identically.",
+      type: "object",
+      required: ["source", "id", "type", "format", "url"],
+      properties: {
+        source: {
+          type: "string",
+          enum: ["library", "user", "remote"],
+          description: "'library' = global catalog; 'user' = uploaded by this user; 'remote' = fetched by URL (rare, network capability only)."
+        },
+        id: {
+          type: "string",
+          description: "For library: the canonical asset id (e.g. 'suse/logo/primary'). For user: a host-generated local id. For remote: the source URL."
+        },
+        type: { type: "string", enum: ["vector", "raster", "video", "audio", "lottie", "model", "lut", "palette", "tokens", "font", "profile", "ratecard", "text", "data", "skill"] },
+        format: {
+          type: "string",
+          description: "The specific variant resolved, e.g. 'svg', 'png@2x'."
+        },
+        url: {
+          type: "string",
+          description: "An object URL or data URL the template can use directly in <img src>, <use href>, etc. The host manages its lifecycle."
+        },
+        original: {
+          type: "object",
+          additionalProperties: false,
+          required: [
+            "url",
+            "format"
+          ],
+          properties: {
+            url: {
+              type: "string"
+            },
+            format: {
+              type: "string"
+            }
+          },
+          description: "Original encoded file when url is a prepared display image. The host resolves these disposable URLs again from the asset identity."
+        },
+        width: { type: "integer" },
+        height: { type: "integer" },
+        version: {
+          type: "string",
+          description: "The version last resolved. This metadata alone does not change latest-resolution behavior; use pin for an exact dependency."
+        },
+        pin: {
+          type: "object",
+          required: ["version"],
+          additionalProperties: false,
+          properties: {
+            version: { type: "string", minLength: 1, maxLength: 256 },
+            format: { type: "string", minLength: 1, maxLength: 100 }
+          },
+          description: "An explicit immutable version/format request. An unavailable version must not fall back to latest."
+        },
+        checksum: { type: "string" },
+        meta: {
+          type: "object",
+          description: "Type-specific metadata. e.g. for palettes: { swatches: [...] }."
+        }
+      }
+    };
+  }
+});
+
+// packages/core/schema/canvas-op.schema.json
+var canvas_op_schema_default;
+var init_canvas_op_schema = __esm({
+  "packages/core/schema/canvas-op.schema.json"() {
+    canvas_op_schema_default = {
+      $schema: "https://json-schema.org/draft/2020-12/schema",
+      $id: "https://lolly.tools/schemas/canvas-op.schema.json",
+      title: "Canvas Op",
+      description: "One persisted collaboration operation on a live canvas (plans/99-canvas-op-contract.md). Mirrors the CanvasOp discriminated union in packages/core/src/canvas-op-v1.ts field-for-field - keep the two in sync by hand; there is no schema-from-types generator here. A discriminated union on `k`, expressed as allOf/if-then (not oneOf) so each branch is its own fully-closed (`additionalProperties: false`) object rather than an ambiguous alternative list. Every op carries `origin` - the Lamport-clock + client-id stamp the reference CRDT (ReferenceCanvasDoc) orders by; lolly-work's real Yjs adapter may ignore it. v1.1 (plans/100 section 3, additive): every box op takes an optional `col` (blocks-input collection scoping - never `param`, whose lane is collection-blind), and the presence $def gains focus/location/following/viewport/chat.",
+      type: "object",
+      required: ["k", "origin"],
+      properties: {
+        k: {
+          type: "string",
+          enum: ["geom", "field", "add", "remove", "order", "param"],
+          description: "The op kind. Deliberately small and append-only (plans/99 section 9) - geometry/field/structural/order, plus `param` for the params document lane (plans/99 section 6)."
+        },
+        origin: { $ref: "#/$defs/origin" }
+      },
+      allOf: [
+        {
+          if: {
+            properties: { k: { const: "geom" } },
+            required: ["k"]
+          },
+          then: {
+            description: "Set a subset of geometry fields on one box - the geometry lane (plans/99 section 4.1 `moved`). Never invalidates a raster/tile (plans/99 section 4.3).",
+            type: "object",
+            required: ["k", "id", "fields", "origin"],
+            additionalProperties: false,
+            properties: {
+              k: { const: "geom" },
+              id: { $ref: "#/$defs/boxId" },
+              col: { $ref: "#/$defs/collectionId" },
+              fields: {
+                type: "object",
+                description: "At least one geometry field to set. Field NAMES are the shipped defaults (x,y,w,h,rot); a tool with renamed BoxFieldConfig roles must resolve to these before crossing the seam.",
+                minProperties: 1,
+                additionalProperties: false,
+                properties: {
+                  x: { type: "number" },
+                  y: { type: "number" },
+                  w: { type: "number" },
+                  h: { type: "number" },
+                  rot: { type: "number" }
+                }
+              },
+              origin: { $ref: "#/$defs/origin" }
+            }
+          }
+        },
+        {
+          if: {
+            properties: { k: { const: "field" } },
+            required: ["k"]
+          },
+          then: {
+            description: "Set one content field on one box - the content lane (plans/99 section 4.1 `restyled`). `frame`/`group`/`order` membership are ordinary field writes too (plans/99 section 3).",
+            type: "object",
+            required: ["k", "id", "field", "value", "origin"],
+            additionalProperties: false,
+            properties: {
+              k: { const: "field" },
+              id: { $ref: "#/$defs/boxId" },
+              col: { $ref: "#/$defs/collectionId" },
+              field: { type: "string", minLength: 1 },
+              value: { $ref: "#/$defs/scalar" },
+              origin: { $ref: "#/$defs/origin" }
+            }
+          }
+        },
+        {
+          if: {
+            properties: { k: { const: "add" } },
+            required: ["k"]
+          },
+          then: {
+            description: "Insert a new box with its full row + a paint-order key (plans/99 section 4.1 `added`).",
+            type: "object",
+            required: ["k", "id", "row", "orderKey", "origin"],
+            additionalProperties: false,
+            properties: {
+              k: { const: "add" },
+              id: { $ref: "#/$defs/boxId" },
+              col: { $ref: "#/$defs/collectionId" },
+              row: {
+                type: "object",
+                description: "The box's flat row of fields - a BoxRow. Every value is a Scalar; file bytes, live frames, and unresolved bindings never enter an op (plans/99 section 7).",
+                additionalProperties: { $ref: "#/$defs/scalar" }
+              },
+              orderKey: {
+                type: "string",
+                description: "LWW fractional-index paint-order key (see ReferenceCanvasDoc). lolly-work's adapter uses Y.Array<BoxId> instead - documented order-model divergence (plans/99 section 3, section 8)."
+              },
+              origin: { $ref: "#/$defs/origin" }
+            }
+          }
+        },
+        {
+          if: {
+            properties: { k: { const: "remove" } },
+            required: ["k"]
+          },
+          then: {
+            description: "Delete a box (plans/99 section 4.1 `removed`). The id is never reused.",
+            type: "object",
+            required: ["k", "id", "origin"],
+            additionalProperties: false,
+            properties: {
+              k: { const: "remove" },
+              id: { $ref: "#/$defs/boxId" },
+              col: { $ref: "#/$defs/collectionId" },
+              origin: { $ref: "#/$defs/origin" }
+            }
+          }
+        },
+        {
+          if: {
+            properties: { k: { const: "order" } },
+            required: ["k"]
+          },
+          then: {
+            description: "Set a box's paint-order key (plans/99 section 4.1 `zChanged`, order move).",
+            type: "object",
+            required: ["k", "id", "orderKey", "origin"],
+            additionalProperties: false,
+            properties: {
+              k: { const: "order" },
+              id: { $ref: "#/$defs/boxId" },
+              col: { $ref: "#/$defs/collectionId" },
+              orderKey: { type: "string" },
+              origin: { $ref: "#/$defs/origin" }
+            }
+          }
+        },
+        {
+          if: {
+            properties: { k: { const: "param" } },
+            required: ["k"]
+          },
+          then: {
+            description: "Set a `params` entry - a separate document lane (`Y.Map<CanonicalId, ParamValue>`), not a box field (plans/99 section 6).",
+            type: "object",
+            required: ["k", "key", "value", "origin"],
+            additionalProperties: false,
+            properties: {
+              k: { const: "param" },
+              key: { type: "string", minLength: 1 },
+              value: { $ref: "#/$defs/paramValue" },
+              origin: { $ref: "#/$defs/origin" }
+            }
+          }
+        }
+      ],
+      $defs: {
+        origin: {
+          $anchor: "origin",
+          type: "object",
+          description: "The Lamport-clock + client-id stamp every op carries (plans/99 section 8). Higher `clock` wins the LWW merge; on a tie, the higher `client` id wins.",
+          required: ["client", "clock"],
+          additionalProperties: false,
+          properties: {
+            client: { type: "string", minLength: 1, description: "Client id - also the LWW tiebreak on equal clock." },
+            clock: { type: "integer", minimum: 0, description: "Lamport clock. Higher wins." }
+          }
+        },
+        boxId: {
+          $anchor: "boxId",
+          type: "string",
+          minLength: 1,
+          description: "A stable, client-generated ULID (plans/99 section 2). Everything keys on this, never an array index."
+        },
+        collectionId: {
+          $anchor: "collectionId",
+          type: "string",
+          minLength: 1,
+          description: "v1.1 (plans/100 section 3): the blocks-input collection an op targets; absent = the default canvas collection, so every v1.0 op stays valid. Never on `param` - the params lane is collection-blind."
+        },
+        scalar: {
+          $anchor: "scalar",
+          description: "The CRDT-syncable value of a single box field (plans/99 section 7). Deliberately narrow - no file bytes, no live frames.",
+          type: ["string", "number", "boolean", "null"]
+        },
+        providerRef: {
+          $anchor: "providerRef",
+          type: "object",
+          description: "A descriptor of WHICH dataset/query a binding reads - never the resolved datum (plans/99 section 6).",
+          required: ["provider"],
+          additionalProperties: false,
+          properties: {
+            provider: { type: "string", minLength: 1 },
+            query: { type: "string" },
+            version: { type: "string", description: "Optionally pins the provider so a schema change doesn't silently re-resolve differently across clients (plans/99 section 11)." }
+          }
+        },
+        paramBinding: {
+          $anchor: "paramBinding",
+          type: "object",
+          description: "A param binding syncs as a descriptor, never the resolved datum - live data does not travel through the CRDT (plans/99 section 6).",
+          required: ["bind"],
+          additionalProperties: false,
+          properties: {
+            bind: { $ref: "#/$defs/providerRef" }
+          }
+        },
+        paramValue: {
+          $anchor: "paramValue",
+          description: "The reactive/data-bus value stored per canonical id in `params` (plans/99 section 3, section 6): either a literal scalar or a binding descriptor.",
+          oneOf: [
+            { $ref: "#/$defs/scalar" },
+            { $ref: "#/$defs/paramBinding" }
+          ]
+        },
+        presence: {
+          $anchor: "presence",
+          type: "object",
+          title: "Awareness / Presence",
+          description: "Ephemeral presence - the Yjs awareness channel, NEVER written to the doc (plans/99 section 5). Carries no origin/clock: it is not an op and never converges. Broadcast at pointer-move rate. v1.1 (plans/100 section 3, section 4) adds focus/location/following/viewport/chat - all optional, all still never persisted. v1.2 adds presenting.",
+          required: ["userId", "name", "color", "cursor", "selection"],
+          additionalProperties: false,
+          properties: {
+            userId: { type: "string", minLength: 1 },
+            name: { type: "string" },
+            color: { type: "string" },
+            headshot: { type: "string", maxLength: 512, pattern: "^lolly-asset-v1:", description: "Portable workspace image reference; never an external URL or inline image." },
+            cursor: {
+              type: "object",
+              description: "Normalized 0..1 of the design's unit space, so every zoom level and every presenter renders it identically (plans/99 section 5).",
+              required: ["x", "y"],
+              additionalProperties: false,
+              properties: {
+                x: { type: "number", minimum: 0, maximum: 1 },
+                y: { type: "number", minimum: 0, maximum: 1 }
+              }
+            },
+            selection: {
+              type: "array",
+              items: { $ref: "#/$defs/boxId" }
+            },
+            drag: {
+              type: "object",
+              description: "In-flight drag delta (also normalized unit space) - never persisted.",
+              required: ["ids", "dxy"],
+              additionalProperties: false,
+              properties: {
+                ids: {
+                  type: "array",
+                  items: { $ref: "#/$defs/boxId" }
+                },
+                dxy: {
+                  type: "array",
+                  items: { type: "number" },
+                  minItems: 2,
+                  maxItems: 2
+                }
+              }
+            },
+            focus: {
+              type: "string",
+              description: 'v1.1 (plans/100 section 3, section 4.1): the focused input - an input id, or "<blocksId>:<rowId>" for a blocks row. Drives the focus-ring presence primitive on every tool.'
+            },
+            location: {
+              type: "string",
+              description: "v1.1 (plans/100 section 4.2): which slide/page/scene the user is on (big tools) - presence-bar grouping and the follow-mode target."
+            },
+            following: {
+              type: "string",
+              description: "v1.1 (plans/100 section 4.2): the userId this user is following - follow is a pure presence field, never a mode."
+            },
+            viewport: {
+              type: "object",
+              description: "v1.1 (plans/100 section 4.2): the follower-adoptable camera.",
+              required: ["x", "y", "zoom"],
+              additionalProperties: false,
+              properties: {
+                x: { type: "number" },
+                y: { type: "number" },
+                zoom: { type: "number" }
+              }
+            },
+            chat: {
+              type: "string",
+              maxLength: 64,
+              description: "v1.1 (plans/100 section 3): cursor chat - max 64 chars, rides the awareness channel only, never persisted."
+            },
+            presenting: { type: "boolean", const: true, description: "v1.2: presenting; never persisted." }
+          }
+        }
+      }
+    };
+  }
+});
+
+// packages/core/src/validate.ts
+import Ajv2 from "ajv/dist/2020.js";
+function renditionOfErrors(manifest) {
+  const rendition = manifest.renditionOf;
+  if (!rendition || manifest.inputs?.some((input) => input.id === rendition.input && input.type === "asset")) return [];
+  return [{ path: "/renditionOf/input", message: "must name a declared top-level asset input" }];
+}
+var ajv2, validate, validateOp;
+var init_validate = __esm({
+  "packages/core/src/validate.ts"() {
+    "use strict";
+    init_tool_schema();
+    init_asset_schema();
+    init_asset_ref_schema();
+    init_canvas_op_schema();
+    ajv2 = new Ajv2({ allErrors: true, strict: false });
+    ajv2.addSchema(tool_schema_default);
+    ajv2.addSchema(asset_schema_default);
+    ajv2.addSchema(asset_ref_schema_default);
+    ajv2.addSchema(canvas_op_schema_default);
+    validate = ajv2.compile(tool_schema_default);
+    validateOp = ajv2.compile(canvas_op_schema_default);
+  }
+});
+
+// packages/core/src/preflight.ts
+var SEVERITY_RANK;
+var init_preflight = __esm({
+  "packages/core/src/preflight.ts"() {
+    "use strict";
+    SEVERITY_RANK = { error: 0, warn: 1, info: 2 };
+  }
+});
+
+// packages/core/src/money.ts
+function minorUnitExponent(currency, locale) {
+  return exponentOf(currencyFormatter(currency, locale), currency);
+}
+function exponentOf(fmt6, currency) {
+  const exp = fmt6.resolvedOptions().maximumFractionDigits;
+  if (typeof exp !== "number") throw new CurrencyError(currency);
+  return exp;
+}
+function currencyFormatter(currency, locale) {
+  if (typeof currency !== "string" || currency.length === 0) throw new CurrencyError(currency);
+  try {
+    return new Intl.NumberFormat(locale ?? void 0, { style: "currency", currency });
+  } catch (e) {
+    throw new CurrencyError(currency, e);
+  }
+}
+function monetaryFigure(minorUnits, currency) {
+  if (!Number.isSafeInteger(minorUnits)) throw new MinorUnitError(minorUnits);
+  return { minorUnits, currency, exponent: minorUnitExponent(currency) };
+}
+var CurrencyError, MinorUnitError;
+var init_money = __esm({
+  "packages/core/src/money.ts"() {
+    "use strict";
+    CurrencyError = class extends Error {
+      currency;
+      constructor(currency, cause) {
+        super(
+          `Unusable currency code ${JSON.stringify(currency)}. A currency must come from the rate card; there is no default and no fallback symbol.`
+        );
+        this.name = "CurrencyError";
+        this.currency = currency;
+        if (cause !== void 0) this.cause = cause;
+      }
+    };
+    MinorUnitError = class extends Error {
+      minorUnits;
+      constructor(minorUnits) {
+        super(
+          `Money must be integer minor units; got ${minorUnits}. A non-integer amount means a float leaked into a subtotal.`
+        );
+        this.name = "MinorUnitError";
+        this.minorUnits = minorUnits;
+      }
+    };
+  }
+});
+
+// packages/core/src/chart-v1.ts
+var CHART_SPEC_VERSION;
+var init_chart_v1 = __esm({
+  "packages/core/src/chart-v1.ts"() {
+    "use strict";
+    CHART_SPEC_VERSION = 1;
+  }
+});
+
+// packages/core/src/design-v1.ts
+function finite(value2, fallback = 0) {
+  const n7 = typeof value2 === "string" && value2.trim() !== "" ? Number(value2) : value2;
+  return typeof n7 === "number" && Number.isFinite(n7) ? n7 : fallback;
+}
+function text2(value2) {
+  return typeof value2 === "string" ? value2 : "";
+}
+function assetId(value2) {
+  if (typeof value2 === "string" && value2) return value2;
+  if (!value2 || typeof value2 !== "object" || Array.isArray(value2)) return void 0;
+  const ref2 = value2;
+  if (typeof ref2.id === "string" && ref2.id) return ref2.id;
+  if (typeof ref2.url === "string" && ref2.url) return ref2.url;
+  return void 0;
+}
+function boundsOf(row) {
+  return {
+    x: finite(row.x),
+    y: finite(row.y),
+    width: finite(row.w),
+    height: finite(row.h),
+    rotation: finite(row.rot)
+  };
+}
+function contains(outer, inner) {
+  if (outer.rotation || inner.rotation) return true;
+  const epsilon = 0.01;
+  return inner.x >= outer.x - epsilon && inner.y >= outer.y - epsilon && inner.x + inner.width <= outer.x + outer.width + epsilon && inner.y + inner.height <= outer.y + outer.height + epsilon;
+}
+function finding(findings, id3, severity, path, message, refs = {}) {
+  findings.push({ id: id3, severity, path, message, ...refs });
+}
+function inspectDesignV1(boxes2, opts = {}) {
+  const findings = [];
+  if (!Array.isArray(boxes2)) {
+    finding(findings, "design.boxes.invalid", "error", "/boxes", "Boxes must be an array.");
+    return finish([], [], findings, opts);
+  }
+  const layers = [];
+  const rows2 = /* @__PURE__ */ new Map();
+  const seen = /* @__PURE__ */ new Set();
+  boxes2.forEach((value2, index2) => {
+    const path = `/boxes/${index2}`;
+    if (!value2 || typeof value2 !== "object" || Array.isArray(value2)) {
+      finding(findings, "design.layer.invalid", "error", path, "A layer must be an object.");
+      return;
+    }
+    const row = value2;
+    const id3 = text2(row.id).trim();
+    const rawKind = text2(row.kind) || "box";
+    const kind = KINDS.has(rawKind) ? rawKind : "unknown";
+    if (!id3) {
+      finding(
+        findings,
+        "design.layer.id-missing",
+        "error",
+        `${path}/id`,
+        "Every layer needs a stable id."
+      );
+    } else if (seen.has(id3)) {
+      finding(
+        findings,
+        "design.layer.id-duplicate",
+        "error",
+        `${path}/id`,
+        `Layer id "${id3}" is duplicated.`,
+        { layerId: id3 }
+      );
+    } else {
+      seen.add(id3);
+      rows2.set(id3, row);
+    }
+    if (kind === "unknown") {
+      finding(
+        findings,
+        "design.layer.kind-unknown",
+        "error",
+        `${path}/kind`,
+        `Unknown layer kind "${rawKind}".`,
+        id3 ? { layerId: id3 } : {}
+      );
+    }
+    const bounds = boundsOf(row);
+    if (bounds.width <= 0 || bounds.height <= 0) {
+      finding(
+        findings,
+        "design.layer.dimension-invalid",
+        "error",
+        path,
+        "Layer width and height must be greater than zero.",
+        id3 ? { layerId: id3 } : {}
+      );
+    }
+    const start = finite(row.start);
+    const duration = finite(row.dur);
+    const timed = row.start !== void 0 || row.dur !== void 0 || text2(row.lane) !== "";
+    const layer = {
+      id: id3,
+      index: index2,
+      kind,
+      name: text2(row.name).trim(),
+      bounds,
+      ...text2(row.frame) ? { artboardId: text2(row.frame) } : {},
+      zIndex: finite(row.z, index2),
+      hidden: row.hidden === true,
+      locked: row.locked === true,
+      ...kind === "text" ? { text: text2(row.text) } : {},
+      ...["image", "audio", "camera", "webcam"].includes(kind) && assetId(row.image) ? { assetId: assetId(row.image) } : {},
+      // A 3D scene box reads its `scene` field and raises nothing: an empty scene is
+      // a new, unedited box, not a fault, and the assets it references live inside
+      // the query rather than in `image` (engine/src/design-scene.ts reads them out).
+      ...kind === "3d" && text2(row.scene) ? { scene: text2(row.scene) } : {},
+      ...kind === "web" && text2(row.web).trim() ? { web: text2(row.web).trim() } : {},
+      ...timed ? {
+        timing: {
+          start,
+          duration,
+          end: start + duration,
+          ...text2(row.lane) ? { lane: text2(row.lane) } : {}
+        }
+      } : {}
+    };
+    layers.push(layer);
+    if (kind === "text" && !text2(row.text).trim() && !text2(row.textStory)) {
+      finding(
+        findings,
+        "design.text.empty",
+        "warn",
+        `${path}/text`,
+        "Text layer is empty.",
+        id3 ? { layerId: id3 } : {}
+      );
+    }
+    if (kind === "image" && !assetId(row.image)) {
+      finding(
+        findings,
+        "design.image.empty",
+        "warn",
+        `${path}/image`,
+        "Image layer has no asset.",
+        id3 ? { layerId: id3 } : {}
+      );
+    }
+    if (kind === "web" && !text2(row.web).trim()) {
+      finding(findings, "design.web.empty", "warn", `${path}/web`, "Web page layer has no link.", id3 ? { layerId: id3 } : {});
+    } else if (kind === "web" && !assetId(row.image)) {
+      finding(findings, "design.web.no-poster", "info", `${path}/image`, "Web page layer has no poster; exports show a card naming the site.", id3 ? { layerId: id3 } : {});
+    }
+  });
+  const artboardLayers = layers.filter((layer) => layer.kind === "frame");
+  const artboardIds = new Set(artboardLayers.map((layer) => layer.id).filter(Boolean));
+  const children2 = /* @__PURE__ */ new Map();
+  for (const id3 of artboardIds) children2.set(id3, []);
+  for (const layer of layers) {
+    if (layer.kind === "frame" || !layer.artboardId) continue;
+    const parent = layers.find(
+      (candidate) => candidate.id === layer.artboardId && candidate.kind === "frame"
+    );
+    if (!parent) {
+      finding(
+        findings,
+        "design.layer.artboard-missing",
+        "error",
+        `/boxes/${layer.index}/frame`,
+        `Layer references missing artboard "${layer.artboardId}".`,
+        { layerId: layer.id, artboardId: layer.artboardId }
+      );
+      continue;
+    }
+    children2.get(parent.id)?.push(layer.id);
+    if (!contains(parent.bounds, layer.bounds)) {
+      finding(
+        findings,
+        "design.layer.outside-artboard",
+        "warn",
+        `/boxes/${layer.index}`,
+        `Layer extends outside artboard "${parent.name || parent.id}".`,
+        { layerId: layer.id, artboardId: parent.id }
+      );
+    }
+  }
+  const artboards = artboardLayers.map((layer) => {
+    const row = rows2.get(layer.id) ?? {};
+    const childLayerIds = children2.get(layer.id) ?? [];
+    if (!layer.name) {
+      finding(
+        findings,
+        "design.artboard.unnamed",
+        "warn",
+        `/boxes/${layer.index}/name`,
+        "Artboard has no name.",
+        { layerId: layer.id, artboardId: layer.id }
+      );
+    }
+    if (!childLayerIds.length) {
+      finding(
+        findings,
+        "design.artboard.empty",
+        "warn",
+        `/boxes/${layer.index}`,
+        `Artboard "${layer.name || layer.id}" is empty.`,
+        { layerId: layer.id, artboardId: layer.id }
+      );
+    }
+    return {
+      id: layer.id,
+      name: layer.name,
+      order: finite(row.order, layer.index),
+      bounds: layer.bounds,
+      childLayerIds,
+      clipChildren: row.clipChildren !== false
+    };
+  }).sort((a, b) => a.order - b.order || a.bounds.x - b.bounds.x || a.id.localeCompare(b.id));
+  const looseLayerIds = layers.filter((layer) => layer.kind !== "frame" && !layer.artboardId).map((layer) => layer.id).filter(Boolean);
+  if (artboards.length) {
+    for (const id3 of looseLayerIds) {
+      const layer = layers.find((item2) => item2.id === id3);
+      finding(
+        findings,
+        "design.layer.unassigned",
+        "info",
+        `/boxes/${layer.index}/frame`,
+        "Layer is not assigned to an artboard.",
+        { layerId: id3 }
+      );
+    }
+  }
+  return finish(layers, artboards, findings, opts, looseLayerIds);
+}
+function finish(layers, artboards, findings, opts, looseLayerIds = []) {
+  void opts.width;
+  void opts.height;
+  const errors = findings.filter((item2) => item2.severity === "error").length;
+  const warnings2 = findings.filter((item2) => item2.severity === "warn").length;
+  return {
+    version: DESIGN_DOCUMENT_VERSION,
+    valid: errors === 0,
+    summary: {
+      artboards: artboards.length,
+      layers: layers.filter((layer) => layer.kind !== "frame").length,
+      hiddenLayers: layers.filter((layer) => layer.hidden).length,
+      timedLayers: layers.filter((layer) => layer.timing).length,
+      duration: layers.reduce((max, layer) => Math.max(max, layer.timing?.end ?? 0), 0),
+      errors,
+      warnings: warnings2
+    },
+    artboards,
+    layers,
+    looseLayerIds,
+    findings,
+    requiresMount: REQUIRES_MOUNT
+  };
+}
+var DESIGN_DOCUMENT_VERSION, DESIGN_LAYER_KINDS, KINDS, REQUIRES_MOUNT;
+var init_design_v1 = __esm({
+  "packages/core/src/design-v1.ts"() {
+    "use strict";
+    DESIGN_DOCUMENT_VERSION = 1;
+    DESIGN_LAYER_KINDS = [
+      "box",
+      "text",
+      "image",
+      "path",
+      "audio",
+      "camera",
+      "frame",
+      "3d",
+      "web",
+      "webcam",
+      "group"
+    ];
+    KINDS = new Set(DESIGN_LAYER_KINDS);
+    REQUIRES_MOUNT = ["text-overflow", "computed-contrast", "resolved-fonts"];
+  }
+});
+
+// packages/core/src/rebrand-v1.ts
+function isArchetypeRef(value2) {
+  return typeof value2 === "string" && STRUCTURE_ID_PATTERN.test(value2);
+}
+function isKnownArchetypeId(value2) {
+  return typeof value2 === "string" && ARCHETYPE_IDS.includes(value2);
+}
+var REBRAND_REFERENCE_DPI, PLACEHOLDER_TYPES, VECTOR_ITEMS_MAX, VECTOR_ITEMS_MAX_CHARS, VECTOR_DECK_ITEMS_MAX, OBJECT_CLASSES, PLAN_ACTIONS, REVIEW_STATES, ARCHETYPE_ROLES, ARCHETYPE_IDS, STRUCTURE_ID_PATTERN, PROJECT_THUMB_SVG_MAX, REBRAND_ERROR_CODES;
+var init_rebrand_v1 = __esm({
+  "packages/core/src/rebrand-v1.ts"() {
+    "use strict";
+    REBRAND_REFERENCE_DPI = 96;
+    PLACEHOLDER_TYPES = ["title", "ctrTitle", "subTitle", "body", "ftr", "sldNum", "dt", "pic"];
+    VECTOR_ITEMS_MAX = 2e3;
+    VECTOR_ITEMS_MAX_CHARS = 1048576;
+    VECTOR_DECK_ITEMS_MAX = 2e4;
+    OBJECT_CLASSES = [
+      "template-furniture",
+      "decoration",
+      "logo-candidate",
+      "known-logo",
+      "recurring-text",
+      "page-number",
+      "footer",
+      "date",
+      "title",
+      "subtitle",
+      "body",
+      "chart",
+      "screenshot",
+      "photo",
+      "table",
+      "diagram",
+      "unknown"
+    ];
+    PLAN_ACTIONS = ["keep", "replace", "remove"];
+    REVIEW_STATES = ["unreviewed", "accepted", "needs-attention"];
+    ARCHETYPE_ROLES = ["title", "subtitle", "body", "visual", "data", "caption", "number", "label", "quote", "attribution"];
+    ARCHETYPE_IDS = [
+      "title",
+      "section",
+      "content",
+      "two-column",
+      "split",
+      "visual",
+      "full-image",
+      "quote",
+      "big-number",
+      "main-point",
+      "agenda",
+      "table"
+    ];
+    STRUCTURE_ID_PATTERN = /^[a-z][a-z0-9-]{1,40}$/;
+    PROJECT_THUMB_SVG_MAX = 16 * 1024;
+    REBRAND_ERROR_CODES = [
+      "source.unreadable",
+      "source.too-large",
+      "source.encrypted",
+      "plan.hash-mismatch",
+      "plan.revision-stale",
+      "plan.invalid",
+      "design-system.master-missing",
+      "design-system.logo-missing",
+      "ocr.unavailable",
+      "compile.unresolved-objects",
+      "export.failed",
+      "storage.quota"
+    ];
+  }
+});
+
+// packages/core/src/live-v1.ts
+var LIVE_PROTOCOL, LIVE_LIMITS;
+var init_live_v1 = __esm({
+  "packages/core/src/live-v1.ts"() {
+    "use strict";
+    LIVE_PROTOCOL = "live-v1";
+    LIVE_LIMITS = {
+      /** Largest request frame, in bytes. */
+      maxRequestBytes: 4 * 1024 * 1024,
+      /** Largest reply frame, in bytes (a `look` SVG with embedded pictures). */
+      maxReplyBytes: 16 * 1024 * 1024,
+      /** Operations plus patches in one `document.apply`. */
+      maxEditsPerApply: 500,
+      /** `document.apply` calls a second, averaged over a few seconds. */
+      maxAppliesPerSecond: 10,
+      /** A connection with no request for this long is closed. */
+      idleMs: 30 * 60 * 1e3,
+      /** Wrong pairing codes before a web bridge stops listening. */
+      maxCodeAttempts: 3
+    };
+  }
+});
+
+// packages/core/src/text-v1.ts
+var init_text_v1 = __esm({
+  "packages/core/src/text-v1.ts"() {
+    "use strict";
+  }
+});
+
+// packages/core/src/slide-master-v1.ts
+function findArchetype(master, id3) {
+  return master.archetypes.find((a) => a.id === id3);
+}
+function roleFontSize(master, role, style) {
+  if (style && typeof style.fontSize === "number") return style.fontSize;
+  const scale = master.typeScale;
+  switch (role) {
+    case "title":
+      return scale.title;
+    case "subtitle":
+      return scale.subtitle;
+    case "caption":
+      return scale.caption;
+    case "number":
+      return scale.number;
+    case "label":
+      return scale.label;
+    case "attribution":
+      return scale.caption;
+    case "quote":
+      return scale.title;
+    default:
+      return scale.body;
+  }
+}
+var init_slide_master_v1 = __esm({
+  "packages/core/src/slide-master-v1.ts"() {
+    "use strict";
+  }
+});
+
+// packages/core/src/content-inventory-v1.ts
+var CONTENT_INVENTORY_VERSION, INVENTORY_SOURCE_KINDS, TEXT_LAYER_MODEL;
+var init_content_inventory_v1 = __esm({
+  "packages/core/src/content-inventory-v1.ts"() {
+    "use strict";
+    CONTENT_INVENTORY_VERSION = "lolly/content-inventory-v1";
+    INVENTORY_SOURCE_KINDS = ["pptx", "pdf", "psd"];
+    TEXT_LAYER_MODEL = "pdf-text-layer";
+  }
+});
+
+// packages/core/src/read-extract-v1.ts
+var READ_EXTRACT_VERSION, EXTRACT_BLOCK_KINDS;
+var init_read_extract_v1 = __esm({
+  "packages/core/src/read-extract-v1.ts"() {
+    "use strict";
+    READ_EXTRACT_VERSION = "lolly/read-extract-v1";
+    EXTRACT_BLOCK_KINDS = ["text", "table", "chart", "picture", "notes"];
+  }
+});
+
+// packages/core/src/design-package-v1.ts
+var DESIGN_PACKAGE_FORMAT, DESIGN_PACKAGE_VERSION, DESIGN_PACKAGE_ERROR_CODES;
+var init_design_package_v1 = __esm({
+  "packages/core/src/design-package-v1.ts"() {
+    "use strict";
+    DESIGN_PACKAGE_FORMAT = "lolly-package";
+    DESIGN_PACKAGE_VERSION = 1;
+    DESIGN_PACKAGE_ERROR_CODES = [
+      "input.unsupported",
+      "input.unreadable",
+      "authoring.invalid",
+      "asset.invalid",
+      "asset.not-image",
+      "media.mismatch",
+      "media.missing",
+      "reference.unknown",
+      "path.invalid",
+      "export.failed"
+    ];
+  }
+});
+
+// packages/core/src/intent-v1.ts
+var INTENT_RESOLUTION_FORMAT, INTENT_RESOLUTION_VERSION, VISUAL_INTENT_VERSION, INTENT_VOCABULARY_VERSION, INTENT_PURPOSES, INTENT_PURPOSE_MEANINGS, INTENT_ROLES, INTENT_SURFACE_UNITS, INTENT_SURFACES, INTENT_LIMITS, INTENT_FREE_TEXT_FIELDS, TOOL_INTENTS_FILE, TOOL_INTENTS_VERSION, INTENT_FITS, INTENT_PURPOSE_NEEDED;
+var init_intent_v1 = __esm({
+  "packages/core/src/intent-v1.ts"() {
+    "use strict";
+    INTENT_RESOLUTION_FORMAT = "lolly-intent-resolution";
+    INTENT_RESOLUTION_VERSION = 1;
+    VISUAL_INTENT_VERSION = 1;
+    INTENT_VOCABULARY_VERSION = 2;
+    INTENT_PURPOSES = [
+      "announce",
+      "compare",
+      "demonstrate",
+      "direct",
+      "explain",
+      "identify",
+      "invite",
+      "offer",
+      "present",
+      "promote",
+      "recognise",
+      "report",
+      "schedule"
+    ];
+    INTENT_PURPOSE_MEANINGS = Object.freeze({
+      announce: "Tell people that something has happened or is about to.",
+      compare: "Set options, values or results side by side so a reader can weigh them.",
+      demonstrate: "Show how something looks or works, as a mock-up or a framed example.",
+      direct: "Send a reader somewhere: to a place, a room or a link.",
+      explain: "Help a reader understand a subject or a set of numbers.",
+      identify: "Say who someone is and how to reach them.",
+      invite: "Ask a reader to attend something and give them the time and place.",
+      offer: "Say what is on offer and what it costs.",
+      present: "Carry a talk or a meeting, slide by slide.",
+      promote: "Bring a reader to a page, a product or an idea.",
+      recognise: "Honour a person, an achievement or the people behind something.",
+      report: "State results or progress over a period.",
+      schedule: "Say when things happen."
+    });
+    INTENT_ROLES = Object.freeze({
+      address: ["text"],
+      awarddate: ["date"],
+      awardtopic: ["text"],
+      bgImage: ["asset"],
+      body: ["longtext", "text"],
+      company: ["text"],
+      cta: ["text"],
+      currency: ["select"],
+      data: ["longtext", "table", "blocks"],
+      email: ["text"],
+      eventEnd: ["datetime-local"],
+      eventLocation: ["text"],
+      eventName: ["text"],
+      eventStart: ["datetime-local"],
+      firstname: ["text"],
+      heading: ["text"],
+      headshot: ["asset"],
+      image: ["asset"],
+      jobTitle: ["text"],
+      lastname: ["text"],
+      /** The partner's mark in a co-branded piece: the guest's logo, never the lead brand's
+       *  (vocabulary 2, Lolly Work plan 82 M7). The lead brand's own logo is not a role,
+       *  because the design system supplies the look. */
+      partnerMark: ["asset"],
+      phone: ["text"],
+      recipient: ["text"],
+      sender: ["text"],
+      sourceAuthor: ["text"],
+      subheading: ["text"],
+      url: ["url", "text"]
+    });
+    INTENT_SURFACE_UNITS = ["px", "mm", "cm", "in", "pt"];
+    INTENT_SURFACES = Object.freeze([
+      { id: "slide", width: 1920, height: 1080, unit: "px", medium: "screen" },
+      { id: "screen", width: 1600, height: 1e3, unit: "px", medium: "screen" },
+      { id: "social-landscape", width: 1200, height: 628, unit: "px", medium: "screen" },
+      { id: "social-square", width: 1080, height: 1080, unit: "px", medium: "screen" },
+      { id: "social-portrait", width: 1080, height: 1350, unit: "px", medium: "screen" },
+      { id: "story", width: 1080, height: 1920, unit: "px", medium: "screen" },
+      { id: "banner", width: 1200, height: 400, unit: "px", medium: "screen" },
+      { id: "a4-portrait", width: 210, height: 297, unit: "mm", medium: "print" },
+      { id: "a4-landscape", width: 297, height: 210, unit: "mm", medium: "print" },
+      { id: "a3-portrait", width: 297, height: 420, unit: "mm", medium: "print" },
+      { id: "a3-landscape", width: 420, height: 297, unit: "mm", medium: "print" },
+      { id: "a2-portrait", width: 420, height: 594, unit: "mm", medium: "print" },
+      { id: "a2-landscape", width: 594, height: 420, unit: "mm", medium: "print" },
+      { id: "a1-portrait", width: 594, height: 841, unit: "mm", medium: "print" },
+      { id: "letter-portrait", width: 8.5, height: 11, unit: "in", medium: "print" },
+      { id: "letter-landscape", width: 11, height: 8.5, unit: "in", medium: "print" },
+      { id: "business-card", width: 85, height: 55, unit: "mm", medium: "print" }
+    ]);
+    INTENT_LIMITS = Object.freeze({
+      /** UTF-16 units in `prompt`. Enough for a request typed at an agent, not for a brief. */
+      promptChars: 2e3,
+      /** UTF-16 units in each of occasion, audience and region. */
+      freeTextChars: 200,
+      /** Entries in `surfaces`. */
+      surfaces: 32,
+      /** Keys in `content`. The vocabulary is smaller; this bounds what is read before refusing the rest. */
+      contentKeys: 64,
+      /** Nesting depth of a content value. */
+      depth: 16,
+      /** UTF-16 units of the whole request once serialised. */
+      totalChars: 2 * 1024 * 1024,
+      /** UTF-16 units of one tool's `intents.json`. */
+      toolIntentsChars: 64 * 1024,
+      /** Pixels on one side of a sized surface, and its equal in other units once converted. */
+      sidePx: 1e5
+    });
+    INTENT_FREE_TEXT_FIELDS = ["occasion", "audience", "region"];
+    TOOL_INTENTS_FILE = "intents.json";
+    TOOL_INTENTS_VERSION = 1;
+    INTENT_FITS = ["declared", "option", "follows", "natural"];
+    INTENT_PURPOSE_NEEDED = "intent.purpose-needed";
+  }
+});
+
+// packages/core/src/design-compose-v1.ts
+var DESIGN_COMPOSE_TRANSITIONS;
+var init_design_compose_v1 = __esm({
+  "packages/core/src/design-compose-v1.ts"() {
+    "use strict";
+    DESIGN_COMPOSE_TRANSITIONS = ["slide", "fade", "morph", "flight"];
+  }
+});
+
+// packages/core/src/index.ts
+var init_src = __esm({
+  "packages/core/src/index.ts"() {
+    "use strict";
+    init_delivery_v1();
+    init_file_operation_v1();
+    init_host_v1();
+    init_validate();
+    init_apis();
+    init_preflight();
+    init_money();
+    init_chart_v1();
+    init_design_v1();
+    init_rebrand_v1();
+    init_rebrand_v1();
+    init_rebrand_v1();
+    init_live_v1();
+    init_text_v1();
+    init_slide_master_v1();
+    init_content_inventory_v1();
+    init_read_extract_v1();
+    init_design_package_v1();
+    init_design_compose_v1();
+  }
+});
+
+// schemas/tool.schema.json
+var tool_schema_default2;
+var init_tool_schema2 = __esm({
+  "schemas/tool.schema.json"() {
+    tool_schema_default2 = {
+      $schema: "https://json-schema.org/draft/2020-12/schema",
+      $id: "https://lolly.tools/schemas/tool.schema.json",
+      title: "Tool Manifest",
+      description: "Declares everything the engine needs to know about a tool: its identity, its inputs, its render target, and its capabilities. The template consumes inputs by name; this manifest declares them.",
+      type: "object",
+      required: [
+        "id",
+        "name",
+        "version",
+        "engineVersion",
+        "status",
+        "render",
+        "inputs"
+      ],
+      additionalProperties: false,
+      properties: {
+        id: {
+          type: "string",
+          pattern: "^[a-z0-9][a-z0-9-]*[a-z0-9]$",
+          description: "Stable, lowercase, hyphen-separated. NEVER changes once published. URL-safe."
+        },
+        extends: {
+          type: "string",
+          enum: [
+            "community"
+          ],
+          description: `Brand-overlay marker - only valid on a tool inside a brand pack (brands/<brand>/tools/<id>/), never on a community tool. Declares this directory a per-file OVERLAY of the base pack's tool with the SAME id: packages/node-shell/src/content-roots.ts reads the tool as the union of community/<id>/ plus this dir (overlay file wins on filename collision, recursing one level into subdirs such as i18n/ and assets/) and strips this field from the manifest it hands out, so shells and the engine never see it. The base community/<id>/tool.json must exist - a missing base is an error, never a silent partial tool. v1 supports only "community" as the base pack.`
+        },
+        name: {
+          type: "string",
+          description: "Human-readable display name."
+        },
+        description: {
+          type: "string",
+          description: "Shown in the tool gallery."
+        },
+        galleryArt: {
+          type: "string",
+          enum: [
+            "render",
+            "icon"
+          ],
+          description: "Gallery first impression. Default render uses editable templates or tool defaults. Use icon when a tool needs personal media or an explicit capture before it has a useful output."
+        },
+        a11yLabel: {
+          type: "string",
+          description: `Optional Handlebars template for the canvas's accessible label (the preview is exposed to screen readers as role=img). Hydrated live with input values, e.g. "QR code linking to {{url}}". Defaults to "<name> preview" when omitted.`
+        },
+        version: {
+          type: "string",
+          pattern: "^\\d+\\.\\d+\\.\\d+$",
+          description: "SemVer. Bumped on any change. Used for cache-busting and saved-state migration."
+        },
+        engineVersion: {
+          type: "string",
+          description: "SemVer range of engine versions this tool is compatible with, e.g. '^1.0.0'."
+        },
+        designVersion: {
+          type: "string",
+          pattern: "^[a-z0-9][a-z0-9-]*$",
+          description: "Optional design-system version this tool renders against (plans/97 section 6a): a published version's slug, or 'latest' for the edit head. Author-controlled stability - a pinned tool keeps rendering against its version whatever gets republished. Unlike engineVersion this is NOT enforced at load: a pin naming a version this device does not have falls through to the active version, then to the head, so a tool always draws. Overridden per render by ?designv=. On a device that never published a version it has no effect at all."
+        },
+        tokenAxes: {
+          type: "object",
+          additionalProperties: false,
+          description: `How this tool treats each kind of theme group a design system declares (plans/319). Keys are axis kinds; the one behaviour is "ignore". An ignored kind renders in that group's canonical option for this tool whatever a link, a saved session or the design system's stored choice asks for, and the web shell hides that group's control in this tool. Use it for a tool whose colours are its content: {"colourway": "ignore"} keeps a tonal ramp on the canonical lead, {"mode": "ignore"} keeps a print-only tool in its canonical look. The CLI and MCP report a theme choice the tool ignored instead of dropping it silently. A later behaviour is an additive value in each enum.`,
+          properties: {
+            mode: {
+              type: "string",
+              enum: [
+                "ignore"
+              ]
+            },
+            colourway: {
+              type: "string",
+              enum: [
+                "ignore"
+              ]
+            },
+            expression: {
+              type: "string",
+              enum: [
+                "ignore"
+              ]
+            },
+            medium: {
+              type: "string",
+              enum: [
+                "ignore"
+              ]
+            },
+            contrast: {
+              type: "string",
+              enum: [
+                "ignore"
+              ]
+            },
+            density: {
+              type: "string",
+              enum: [
+                "ignore"
+              ]
+            },
+            campaign: {
+              type: "string",
+              enum: [
+                "ignore"
+              ]
+            },
+            brand: {
+              type: "string",
+              enum: [
+                "ignore"
+              ]
+            }
+          }
+        },
+        status: {
+          type: "string",
+          enum: [
+            "official",
+            "community",
+            "experimental"
+          ],
+          description: "Drives gallery sorting, watermarking, and brand-approval messaging. Experimental tools watermark their exports."
+        },
+        category: {
+          type: "string",
+          enum: [
+            "everyone",
+            "designer",
+            "utility",
+            "event"
+          ],
+          description: "Free-form, used for gallery grouping. Examples: 'everyone', 'event', 'product', 'designer'."
+        },
+        new: {
+          type: "boolean",
+          description: "Force the gallery's 'New' badge on this tool regardless of catalog position. Newness is otherwise inferred from catalog order (the most-recently-appended tools wear the badge and it self-expires as more ship); set this to keep a tool flagged new even after later tools push it out of that trailing window."
+        },
+        deprecated: {
+          type: "boolean",
+          default: false,
+          description: "Soft-deprecate a tool before removal: its id stays a permanent contract (saved URLs and sessions still open it), but it must be `listed: false` so the gallery stops offering it, and it should name its successor in `replacedBy`. The validator refuses a deprecated tool that is still listed."
+        },
+        replacedBy: {
+          type: "string",
+          description: "If deprecated, the tool id that supersedes this one. Must exist in the same profile; the validator checks it."
+        },
+        listed: {
+          type: "boolean",
+          description: "Whether the tool appears in the gallery listing - the grid, search, favourites and the featured/utility strips (default true). Set false to UNLIST a tool that is a MECHANISM invoked from context rather than a destination the user browses to (e.g. asset-export, reached from the catalog's per-asset 'Download'). An unlisted tool still loads normally via #/tool/<id>, URL mode, and the CLI; unlisting only removes it from the gallery listing."
+        },
+        singleInstance: {
+          type: "boolean",
+          description: "The tool assumes it is the ONLY instance on the page - its template/hooks park a mutable handle on `window` and dispose the PREVIOUS instance when a new one mounts, and/or it holds a WebGL context (capped ~16 per tab), so N live copies cannot coexist. Set true for the WebGL / window-global tools (3D viewers, spatial-photo, synth, live viz). Multi-edit renders such a tool's cells as sequential still previews (rendered through the export path, so async loads land) instead of N live instances that would dispose each other; the single-tool view, URL mode and CLI are unaffected. Default false: an ordinary tool runs live in every multi-edit cell."
+        },
+        privacy: {
+          type: "string",
+          enum: [
+            "on-device"
+          ],
+          description: "Marks an on-device utility - a tool that processes the user's OWN content (file in \u2192 transformed file out) entirely on the device, with nothing uploaded. The host shows a 'Runs on your device - nothing is uploaded' badge. Enforced conventions (validated): status must not be 'experimental' (no watermark on the user's own file) and the tool must not embed provenance metadata into the output. This is the marker for the privacy-flagship utility category (EXIF strip, redact, compress, convert) that replaces content exfiltration to single-purpose SaaS."
+        },
+        tags: {
+          type: "array",
+          items: {
+            type: "string"
+          },
+          description: "Free-form search tags."
+        },
+        featured: {
+          type: "object",
+          additionalProperties: false,
+          description: "Marks this tool for the gallery's cinematic 'Featured' hero row. Its presence (even {}) includes the tool; `variants` drive the tile's slow cross-fade between example inputs and themes. SUSE-specific curation lives here in the manifest (not in the open-source shell), so the featured row stays clean across the eventual repo split.",
+          properties: {
+            blurb: {
+              type: "string",
+              description: "One-line end-user hook shown over the hero tile (sentence case, no period)."
+            },
+            order: {
+              type: "number",
+              description: "Optional sort key within the featured row (ascending). Entries without one sort after ordered ones, in catalog order."
+            },
+            variants: {
+              type: "array",
+              description: "DEPRECATED alias for top-level `examples` - kept for tools authored before `examples` existed. When both are present, `examples` wins (in the featured row and the gallery tile). Prefer authoring `examples` (it also drives the gallery tile's preview strip).",
+              items: {
+                $ref: "#/$defs/exampleVariant"
+              }
+            }
+          }
+        },
+        examples: {
+          type: "array",
+          description: "Example input value-sets that demonstrate the tool's range. They render live on the client (the same off-screen engine path an export takes) and are shown as the gallery tile's horizontally-scrollable preview strip - after the most-recent saved-session preview - and, when the tool is `featured`, as the hero row's cross-fade. Each is memoised so later visits are instant. Omit for a tool whose single committed preview says enough.",
+          items: {
+            $ref: "#/$defs/exampleVariant"
+          }
+        },
+        templates: {
+          type: "array",
+          description: 'Named starting points offered by the web shell\'s "New from template" chooser on a blank fresh open (no `?slot`, no URL values, no in-process seed, no `?template`). SOURCE OF TRUTH is the per-template files tools/<id>/templates/<tid>.json (each { id, name, category?, description?, thumb?, values }); build-catalog-index.ts scans that dir and the synced index carries METADATA ONLY (id/name/category/description/thumb) - the heavy `values` seed lives in the external file and is fetched on demand (chooser-select and the reserved `?template=<id>` launcher), never packed into the URL. This inline `templates[]` field is an OPTIONAL fallback for a tool that prefers inline metadata; when present the same items apply. Adding templates never changes a tool that lacks them, and never affects the manifest `default` composition (URL-mode / CLI / deep links still render with no chooser).',
+          items: {
+            $ref: "#/$defs/templateVariant"
+          }
+        },
+        render: {
+          type: "object",
+          required: [
+            "width",
+            "height",
+            "formats"
+          ],
+          additionalProperties: false,
+          description: "Defines the template render area and supported export formats.",
+          properties: {
+            portable: {
+              type: "boolean",
+              description: "Load the signed presentation.js browser runtime and include it in interactive HTML exports."
+            },
+            width: {
+              type: "integer",
+              minimum: 1
+            },
+            height: {
+              type: "integer",
+              minimum: 1
+            },
+            formats: {
+              type: "array",
+              items: {
+                type: "string",
+                enum: [
+                  "png",
+                  "jpg",
+                  "jpeg",
+                  "svg",
+                  "svg-anim",
+                  "emf",
+                  "eps",
+                  "eps-cmyk",
+                  "dxf",
+                  "pdf",
+                  "pdf-cmyk",
+                  "cmyk-tiff",
+                  "tiff",
+                  "exr",
+                  "hdr",
+                  "pptx",
+                  "scorm",
+                  "penpot",
+                  "docx",
+                  "odt",
+                  "html",
+                  "md",
+                  "txt",
+                  "json",
+                  "csv",
+                  "css",
+                  "scss",
+                  "gpl",
+                  "ase",
+                  "ics",
+                  "vcf",
+                  "srt",
+                  "vtt",
+                  "ttml",
+                  "scc",
+                  "ico",
+                  "zip",
+                  "webp",
+                  "webp-anim",
+                  "avif",
+                  "jxl",
+                  "jxl-lossless",
+                  "webm",
+                  "mp4",
+                  "gif",
+                  "apng",
+                  "wav",
+                  "mp3",
+                  "m4a",
+                  "opus",
+                  "mid",
+                  "ttf",
+                  "otf",
+                  "woff",
+                  "lottie",
+                  "idml",
+                  "premiere-xml"
+                ]
+              },
+              minItems: 1,
+              description: "Output formats the tool supports. The host filters action buttons to these. Clipboard is an action (see render.actions), not a format."
+            },
+            denseSections: {
+              type: "array",
+              items: {
+                type: "string"
+              },
+              description: "Section labels (input.section values) whose controls render in a denser 2-column grid instead of one control per row. A chrome-only presentation hint for input-dense pro tools; it never changes the input model, URL encoding, or determinism, and collapses back to one column on narrow panels/large-text. Wide controls (vector, blocks, textarea, asset, colour) still span the full width."
+            },
+            themeChoicesAfter: {
+              type: "string",
+              minLength: 1,
+              description: "The id of an input after which the web shell draws the design system's choices for the document (colourway, mode and any other theme group), inside that input's section, instead of in the separate Design system section. Keyed by input id so a translated section name cannot move it. A chrome-only presentation hint like sectionIcons: it never changes the input model, URL encoding or determinism, an id that names no input leaves the separate section in place, and the CLI and TUI ignore it."
+            },
+            sectionIcons: {
+              type: "object",
+              additionalProperties: {
+                type: "string"
+              },
+              description: "Section label (input.section value) to the name of a shell icon drawn before it on the folded section head, so a tool with many sections can be scanned by glyph as well as by word. A chrome-only presentation hint like denseSections: an unknown icon name draws nothing, and the CLI and TUI ignore it."
+            },
+            actions: {
+              type: "array",
+              items: {
+                type: "string",
+                enum: [
+                  "copy",
+                  "download",
+                  "save",
+                  "share"
+                ]
+              },
+              description: "Default actions to show. Defaults to ['copy', 'download', 'save'] if omitted."
+            },
+            filenameFrom: {
+              type: "array",
+              items: {
+                type: "string"
+              },
+              minItems: 1,
+              description: "Input ids whose VALUES name the exported file: their current values are slugified in order ('ana-kovac', or a URL value's host+path 'suse-com-events') and used as the download filename, falling back to the tool name when every listed value is empty. The batch grid uses the same derivation for its auto row filenames (row-number prefix kept). Engine: deriveExportFilename."
+            },
+            export: {
+              type: "boolean",
+              default: true,
+              description: "Set false for utility/interactive tools that have no export. Hides download, copy, format, and dimension controls. Shows Save only when the tool has inputs. Hides the sidebar entirely when there are no inputs."
+            },
+            sidebar: {
+              type: "boolean",
+              default: true,
+              description: "Set false to declare inputs that are NOT presented as a left-panel sidebar: the inputs live only in the synced input model (URL params, collaboration, saved sessions, CLI/URL mode) and the tool's own template owns their editing UI. A full-bleed tool that still exports (render.export:true) keeps its export pill and canvas - the input aside is simply suppressed, exactly as for a no-input full-bleed tool. Use this for an interactive editor whose controls belong on the canvas (e.g. Run Web Code's code panes) rather than in a sidebar. Distinct from render.layout:'canvas' (which is for a single file drop-zone and forces export off) and from the chromeless 'editor'/'document' layouts (which keep a fixed render canvas)."
+            },
+            layout: {
+              type: "string",
+              enum: [
+                "sidebar",
+                "canvas",
+                "editor",
+                "document",
+                "deck"
+              ],
+              default: "sidebar",
+              description: "Presentation of the tool's interface. 'sidebar' (default) renders inputs in the left control panel. 'canvas' hides the sidebar and presents the tool as a full-bleed working area - a single declared 'file' input is shown as a drag-and-drop / click-to-pick zone on the canvas itself (for on-device file utilities). 'editor' hides the sidebar too, but keeps the fixed-size render canvas AND the full render/export controls (render pill + export popup): a chromeless WYSIWYG surface. A tool using 'editor' declares one 'blocks' input carrying a `canvas` flag (which maps its geometry fields); the web shell mounts a direct-manipulation overlay (select / drag / resize / rotate / z-order / align / distribute) that reads and writes that flat blocks array. Data stays flat and URL-expressible, so CLI/URL mode render the same artwork with no overlay. Input semantics are unchanged. 'document' is a chromeless multi-page flowing-document surface (paged tools): it keeps the render/export controls like 'editor' but mounts a rich-text document editor (on-canvas format ribbon, per-block controls, contenteditable, rich-HTML paste) over a 'blocks' input whose rows are content blocks (heading/text/lolly/table). Pagination lives in the tool's hook, so CLI/URL render the same document with no editor. 'deck' is a slide-deck editor: it KEEPS the input sidebar (not chromeless) and mounts a live on-canvas overlay (deck-editor.js) over a 'blocks' input whose rows are slides - click a slide to edit its text/colour/images in place, navigate a thumbnail rail. Bounded DOM: an edit-mode hook render-mode shows one active slide plus tiny thumbnails, and the overlay restores a full-deck render before export."
+            },
+            dims: {
+              type: "boolean",
+              default: true,
+              description: "Set false to hide the export dimension inputs in the download bar."
+            },
+            units: {
+              type: "boolean",
+              default: true,
+              description: "Set false to offer pixels only - hides the physical-unit (mm/cm/in/pt) selector and the DPI field in the download bar. Width/height stay in px, so an on-screen pixel is an exported pixel. Use for tools whose output is inherently pixel-measured (screen assets, favicons, token-cost images) where a physical print size is meaningless and would make width/height inputs disagree with the true raster resolution."
+            },
+            paginate: {
+              type: "object",
+              required: [
+                "source"
+              ],
+              additionalProperties: false,
+              properties: {
+                source: {
+                  type: "string"
+                }
+              },
+              description: "Engine-driven pagination. `source` names a `table` input whose rows each produce one page: the runtime hydrates the template once per row (with a `page` context object: index/number/count, `first` = the row's first cell, `cells` = [{column, value}], `fields` = cells minus the first) and wraps each hydration in its own [data-pdf-page] box. The tool authors ONE page and never manages pagination itself. Pair with `paged: true` for the scrolling all-pages canvas + filmstrip."
+            },
+            paged: {
+              type: "boolean",
+              default: false,
+              description: "Marks a multi-page document tool - one whose output lays out several `[data-pdf-page]` boxes (e.g. multi-page-pdf). The gallery renders each page as its own horizontally-scrollable preview slide (via renderToolPages) instead of input-variant example looks."
+            },
+            webPreview: {
+              type: "boolean",
+              default: false,
+              description: "A no-export web-page tool (a landing page, an email): the editor preview becomes a real viewport instead of a scaled artboard - the canvas fills the preview pane's width, reflows live as the pane resizes, grows to its natural height and scrolls, so the page feels exactly as a visitor will see it. render.width then only names the artboard fallback for chromes that cannot flow."
+            },
+            filmstrip: {
+              type: "string",
+              enum: [
+                "left",
+                "bottom"
+              ],
+              default: "left",
+              description: "Which edge the paged tool's slide-sorter filmstrip runs along. `left` (the default) is a vertical rail beside the canvas - right for tall documents. `bottom` is the deck-strip shape, for tools whose pages are wide and few (cards, slides), where a left rail would eat the width the page needs. Only read when `paged: true`."
+            },
+            pages: {
+              type: "object",
+              additionalProperties: false,
+              required: [
+                "count",
+                "width",
+                "height"
+              ],
+              description: "Turns an `editor`-layout tool into a MULTI-PAGE canvas (carousel-maker): the web shell sizes `#tool-canvas` to a horizontal strip of N same-size page frames (fit-to-single-page off) and the free-canvas overlay places boxes across all frames. Box coordinates stay a single flat, global, URL-expressible array; the tool's hook derives which page each box belongs to (by centre) and emits one `[data-pdf-page]` frame per page, so headless CLI/URL render identically and export fans out (multi-page PDF, or one still image per page). Requires `layout:'editor'` and `paged:true`. Values name the input ids the page geometry is read from, so the shell stays generic.",
+              properties: {
+                count: {
+                  type: "string",
+                  description: "Input id (a number input) holding the page count. Clamped to [min, max]."
+                },
+                width: {
+                  type: "string",
+                  description: "Input id (a number input, px) holding each page's width. All pages share it."
+                },
+                height: {
+                  type: "string",
+                  description: "Input id (a number input, px) holding each page's height. All pages share it."
+                },
+                gap: {
+                  type: "integer",
+                  minimum: 0,
+                  default: 56,
+                  description: "Gap in px between page frames in the editor strip. MUST equal the tool template/hook's own frame gap so overlay handles and rendered boxes stay aligned."
+                },
+                min: {
+                  type: "integer",
+                  minimum: 1,
+                  default: 1,
+                  description: "Minimum page count."
+                },
+                max: {
+                  type: "integer",
+                  minimum: 1,
+                  default: 6,
+                  description: "Maximum page count."
+                }
+              }
+            },
+            printMarks: {
+              type: "boolean",
+              default: true,
+              description: "Set false to hide the 'Print marks & bleed' card from the download bar. The print-finishing path (crop/registration marks, bleed box, page boxes) applies to a single trim-sized artwork, so multi-page documents (which emit per-page boxes) opt out of it. Set true to DECLARE PRINT INTENT: the card's master toggle then defaults ON for every print-capable format. Left unset, the card is offered but starts OFF for the RGB vector formats (pdf/svg/eps) and ON only for the separating press formats (pdf-cmyk/cmyk-tiff/eps-cmyk) - marks and bleed are never a side effect of picking a physical unit or an everyday PDF/SVG."
+            },
+            transparentBg: {
+              type: "boolean",
+              default: false,
+              description: "Adds a 'No BG' (transparent background) toggle to the export bar. The engine injects it into the model so hooks can react to it via onInit/onInput."
+            },
+            followsCanvasSize: {
+              type: "boolean",
+              default: false,
+              description: "The tool lays itself out for the canvas size (engine 1.293). Every hook receives ctx.canvasSize, the size the shell is making the tool at in CSS pixels (96 per inch): the requested export size when both sides are known, else render.width x render.height; templates read it as {{@canvasSize.width}} and {{@canvasSize.height}}. With this set, a change of size runs onInput with id '__canvasSize', whose patch updates computed values only, and repaints. Without it the runtime only records the size, so the tool renders exactly as before. Raise engineVersion to ^1.293.0 when you set it."
+            },
+            c2pa: {
+              type: "boolean",
+              default: true,
+              description: "Whether the Content Credentials (C2PA) toggle is pre-checked in the export panel. Default TRUE - every tool stamps a signed provenance manifest by default (for the C2PA-capable formats it exports). Set FALSE to opt a tool out. Ignored (forced off) for privacy:'on-device' tools, which must never embed provenance into a user's own file. A ?c2pa= link/save value overrides this per export."
+            },
+            liveMaxEdge: {
+              type: "integer",
+              minimum: 1,
+              description: "For onFrame (live camera) tools only: the requested longest edge, in pixels, of the working camera frame handed to the hook. The shell downscales the source camera to a small default that suits a vector trace; a raster-output tool (whose result is a bitmap, not traced shapes - e.g. pixel-stretch) sets this higher for sharper output. The shell clamps it to the native camera frame (never upscales) and to its own ceiling. Ignored by tools without onFrame and by shells without a camera."
+            },
+            liveMaxEdgeInput: {
+              type: "string",
+              description: "For onFrame (live camera) tools: id of a number input whose value overrides liveMaxEdge, exposing camera resolution as a user-facing control (e.g. a slider). The runtime reads it at go-live and re-applies to the running stream whenever the input changes - no camera stop/start - so the working frame resolution follows the control. Falls back to liveMaxEdge when the input is unset or absent."
+            },
+            liveDefault: {
+              type: "string",
+              pattern: "^[a-z0-9]+(/[a-z0-9][a-z0-9-]*)+$",
+              description: "For onFrame tools: catalog id of an ANIMATED SVG asset the shell plays as a live, no-camera source (an off-screen <img> of the animation, sampled into onFrame like a camera would be) so the tool can show off its effect on a moving subject without a webcam. The shell auto-plays it when present; a still export still captures the current frame. Ignored by tools without onFrame."
+            },
+            liveFacing: {
+              type: "string",
+              enum: [
+                "user",
+                "environment"
+              ],
+              description: "For onFrame (live camera) tools: which camera to open by default - 'user' (front, the default) or 'environment' (rear). A code reader / document scanner wants 'environment'. The user can still flip front/rear from the live controls; this only sets the initial camera. Honoured where the shell can choose a facing; ignored on a single-camera device and by shells without a camera."
+            },
+            liveCameraWhen: {
+              type: "object",
+              additionalProperties: false,
+              required: [
+                "input",
+                "value"
+              ],
+              properties: {
+                input: {
+                  type: "string",
+                  description: "Id of an input whose value drives the live camera."
+                },
+                value: {
+                  type: "string",
+                  description: "The input value that means 'camera on'."
+                }
+              },
+              description: "For onFrame (live camera) tools: AUTO-start the camera when the named input holds `value`, and stop it otherwise - so a reader/scanner turns the camera on when it loads in that mode (and when the user selects it) without a manual 'Use camera' tap. Prompts for permission the first time; a denial degrades to the tool's non-camera modes. Honoured only where a camera is usable."
+            },
+            convertPaths: {
+              type: "boolean",
+              default: true,
+              description: "Controls the 'Convert paths' export toggle (outline text to vector paths in SVG/PDF/PDF-CMYK so output renders identically without the fonts installed). The engine auto-injects the toggle whenever the tool exports a vector format. Set false to suppress the toggle entirely and never outline text - e.g. capture tools, where the output is a raster and text-outlining doesn't apply."
+            },
+            preview: {
+              type: "object",
+              additionalProperties: false,
+              description: "Marks a tool whose live canvas is a placeholder until an explicit, expensive render runs (e.g. a capture tool that screenshots a page in beforeExport). The shell wires a [data-preview] control in the template to render into the frame - preview only, never a download - and re-shows the placeholder whenever an input changes (the last preview is invalidated).",
+              properties: {
+                format: {
+                  type: "string",
+                  enum: [
+                    "png",
+                    "jpg",
+                    "jpeg",
+                    "svg",
+                    "pdf",
+                    "webp",
+                    "avif"
+                  ],
+                  description: "Format used for the preview render. Defaults to the tool's first render format. Pick a cheap raster (e.g. webp) - the blob is discarded; only the painted frame is kept."
+                },
+                auto: {
+                  type: "boolean",
+                  default: false,
+                  description: "Generate a preview automatically once the tool finishes loading, so the user lands on a rendered frame rather than the placeholder. Fires once on load only - never on every input change - so deferred renders stay deliberate."
+                }
+              }
+            },
+            video: {
+              type: "object",
+              description: "Default video capture settings used when webm or mp4 is in formats.",
+              additionalProperties: false,
+              properties: {
+                wait: {
+                  type: "number",
+                  minimum: 0,
+                  description: "Seconds to wait before recording starts. Default 1."
+                },
+                duration: {
+                  type: "number",
+                  minimum: 0.5,
+                  description: "Length of the recorded clip in seconds. Default 5."
+                }
+              }
+            },
+            capture: {
+              type: "string",
+              enum: [
+                "audio",
+                "video",
+                "av",
+                "screen"
+              ],
+              description: "Marks a device-recording tool (requires host.recorder + the matching 'microphone'/'camera' capability). Tells the shell which record affordance to mount: 'audio' = mic-only (a voice recorder - also shows a live level meter when the tool declares an onLevel hook); 'video' = camera-only, SILENT (no mic track); 'av' = camera+mic (a talking-head/video recorder - use this, not 'video', when the clip needs sound, and declare BOTH 'camera' and 'microphone'; the shell also shows an audio-level + background-noise coaching HUD). 'screen' = display capture (requires the 'screen' capability): the shell mounts a Screenshot + Record pair and the browser's own picker chooses the screen/window/tab, so the tool never names or sees a target it wasn't handed. Absent = no record button. The recorded bytes reach the user via the transform path (host.export.file, never watermarked) or, for a compositing tool, become a template asset the render wraps."
+            },
+            transcribe: {
+              type: "object",
+              required: [
+                "source",
+                "target"
+              ],
+              additionalProperties: false,
+              description: "Speech to text, declared instead of built (engine 1.150). Names an audio/video input to listen to and a text input that receives the result, and the shell mounts one Transcribe affordance: the consent sheet for the one-time on-device speech-model download, a background job whose toast owns progress and cancel, and a single undoable write into the target input. Nothing is uploaded, and a clip with no speech writes an empty value rather than invented words. Feature-detected, never capability-gated: a shell without host.speech transcription (the CLI) simply mounts no button and leaves the target input exactly as the URL or the saved session set it.",
+              properties: {
+                source: {
+                  type: "string",
+                  description: "Id of the 'asset' input holding the audio or video to listen to. Empty value = the affordance is disabled with a plain reason."
+                },
+                target: {
+                  type: "string",
+                  description: "Id of the 'longtext' (or 'text') input the cues are written into. One write, so one undo step."
+                },
+                format: {
+                  type: "string",
+                  enum: [
+                    "srt",
+                    "vtt",
+                    "words"
+                  ],
+                  default: "srt",
+                  description: "What is written into the target input. 'srt' (default) and 'vtt' are numbered/headered subtitle cue blocks; 'words' is the plain spoken text, one cue per line, with no timestamps."
+                },
+                auto: {
+                  type: "string",
+                  description: "Optional id of a boolean input. While it is true, a newly recorded or newly picked source is transcribed with no click (the consent sheet still appears the first time the model is not on-device)."
+                }
+              }
+            },
+            aspectWarning: {
+              type: "object",
+              additionalProperties: false,
+              required: [
+                "message"
+              ],
+              description: "Editor-only guard for tools whose layout only suits a certain orientation (e.g. a portrait-only document). Shows a prominent warning beside the dimension controls when the current page aspect ratio (width \xF7 height) falls outside [min, max]. Never affects - or appears in - the rendered/exported output.",
+              properties: {
+                min: {
+                  type: "number",
+                  exclusiveMinimum: 0,
+                  description: "Minimum acceptable aspect ratio (width \xF7 height). Below this, the warning shows. Omit to leave the low end unbounded."
+                },
+                max: {
+                  type: "number",
+                  exclusiveMinimum: 0,
+                  description: "Maximum acceptable aspect ratio (width \xF7 height). Above this, the warning shows. Omit to leave the high end unbounded."
+                },
+                message: {
+                  type: "string",
+                  description: "The warning text shown to the editor."
+                }
+              }
+            },
+            urlSync: {
+              type: "boolean",
+              default: true,
+              description: "Set false to keep live edits out of the address bar. Explicit URL inputs and generated share links remain supported; local recovery uses the session slot."
+            }
+          }
+        },
+        inputs: {
+          type: "array",
+          description: "Declares user-facing inputs. The host generates UI from this. The template references inputs by id.",
+          items: {
+            $ref: "#/$defs/input"
+          }
+        },
+        capabilities: {
+          type: "array",
+          items: {
+            type: "string",
+            enum: [
+              "network",
+              "filesystem",
+              "clipboard",
+              "camera",
+              "microphone",
+              "ffmpeg",
+              "wasm",
+              "capture",
+              "compose",
+              "screen"
+            ]
+          },
+          description: "Declares what host capabilities this tool needs. The host disables the tool on shells that can't provide them (e.g. an ffmpeg-using tool is unavailable in the web shell; a 'microphone'/'camera'/'screen' recording tool is unavailable in the headless CLI). 'screen' (v1.54) is DISPLAY capture via host.recorder - the user picks a screen/window/tab in browser-native UI; distinct from 'capture', which rasterises a URL the tool itself names."
+        },
+        renditionOf: {
+          type: "object",
+          additionalProperties: false,
+          required: ["input", "action"],
+          properties: {
+            input: { type: "string", pattern: "^[a-zA-Z][a-zA-Z0-9_]*$", description: "The id of a top-level asset input: the picture the output is a rendition of." },
+            action: {
+              type: "string",
+              enum: ["c2pa.color_adjustments", "c2pa.filtered", "c2pa.converted", "c2pa.resized", "c2pa.cropped", "c2pa.edited"],
+              description: "What the tool did to that picture, written where a new file writes c2pa.created."
+            }
+          },
+          description: "The output is a rendition of one picture the person gives the tool. When that picture carries Content Credentials of its own, a stamped export records it as the parentOf ingredient, opened first, followed by this action (C2PA 2.2 section 18.15.3). A picture with no credential changes nothing."
         },
         requires: {
           type: "array",
@@ -3073,10 +8098,10 @@ var init_tool_schema = __esm({
 });
 
 // schemas/asset.schema.json
-var asset_schema_default;
-var init_asset_schema = __esm({
+var asset_schema_default2;
+var init_asset_schema2 = __esm({
   "schemas/asset.schema.json"() {
-    asset_schema_default = {
+    asset_schema_default2 = {
       $schema: "https://json-schema.org/draft/2020-12/schema",
       $id: "https://lolly.tools/schemas/asset.schema.json",
       title: "Asset Manifest Entry",
@@ -3336,10 +8361,10 @@ var init_asset_schema = __esm({
 });
 
 // schemas/asset-ref.schema.json
-var asset_ref_schema_default;
-var init_asset_ref_schema = __esm({
+var asset_ref_schema_default2;
+var init_asset_ref_schema2 = __esm({
   "schemas/asset-ref.schema.json"() {
-    asset_ref_schema_default = {
+    asset_ref_schema_default2 = {
       $schema: "https://json-schema.org/draft/2020-12/schema",
       $id: "https://lolly.tools/schemas/asset-ref.schema.json",
       title: "AssetRef",
@@ -3523,25 +8548,26 @@ var init_ratecard_schema = __esm({
 });
 
 // engine/src/validate.ts
-import Ajv from "ajv/dist/2020.js";
+import Ajv3 from "ajv/dist/2020.js";
 function schemas() {
-  if (!ajv) {
-    const instance = new Ajv({ allErrors: true, strict: false, code: { optimize: false } });
-    instance.addSchema(tool_schema_default);
-    instance.addSchema(asset_schema_default);
-    instance.addSchema(asset_ref_schema_default);
-    ajv = instance;
+  if (!ajv3) {
+    const instance = new Ajv3({ allErrors: true, strict: false, code: { optimize: false } });
+    instance.addSchema(tool_schema_default2);
+    instance.addSchema(asset_schema_default2);
+    instance.addSchema(asset_ref_schema_default2);
+    ajv3 = instance;
   }
-  return ajv;
+  return ajv3;
 }
 function validateManifest(manifest) {
-  if (!validateTool) validateTool = schemas().compile(tool_schema_default);
-  const ok3 = validateTool(manifest);
-  const errors = ok3 ? [] : (validateTool.errors ?? []).map(formatError);
+  if (!validateTool2) validateTool2 = schemas().compile(tool_schema_default2);
+  const ok3 = validateTool2(manifest);
+  const errors = ok3 ? [] : (validateTool2.errors ?? []).map(formatError);
   if (ok3) for (const [index2, input] of (manifest.inputs ?? []).entries()) {
     if (input.tokenBindingsField && (input.type !== "blocks" || !input.fields?.some((field2) => field2.id === input.tokenBindingsField && (field2.type ?? "text") === "text"))) errors.push({ path: `/inputs/${index2}/tokenBindingsField`, message: "must name a declared text sub-field of this blocks input" });
   }
   if (ok3) errors.push(...assetOpenErrors(manifest));
+  if (ok3) errors.push(...renditionOfErrors(manifest));
   return {
     valid: errors.length === 0,
     errors
@@ -3565,14 +8591,15 @@ function formatError(err) {
   }
   return { path, message };
 }
-var ajv, validateTool, rateCardValidator, validateRateCard;
-var init_validate = __esm({
+var ajv3, validateTool2, rateCardValidator, validateRateCard;
+var init_validate2 = __esm({
   "engine/src/validate.ts"() {
     "use strict";
     init_asset_open_v1();
-    init_tool_schema();
-    init_asset_schema();
-    init_asset_ref_schema();
+    init_src();
+    init_tool_schema2();
+    init_asset_schema2();
+    init_asset_ref_schema2();
     init_ratecard_schema();
     validateRateCard = (doc) => {
       if (!rateCardValidator) rateCardValidator = schemas().compile(ratecard_schema_default);
@@ -4114,7 +9141,7 @@ var ENGINE_VERSION;
 var init_version = __esm({
   "engine/src/version.ts"() {
     "use strict";
-    ENGINE_VERSION = "1.337.0";
+    ENGINE_VERSION = "1.341.0";
   }
 });
 
@@ -4325,7 +9352,7 @@ var init_skill_frontmatter_v1 = __esm({
 function isToolSkillReference(path) {
   return /^skill\/(?:[a-zA-Z0-9_-]+\/)*[a-zA-Z0-9_-]+\.(md|json)$/.test(path);
 }
-function text(value2) {
+function text3(value2) {
   return value2.replace(/[\r\n|`]/g, " ");
 }
 function bytes(value2) {
@@ -4338,21 +9365,21 @@ function generateToolSkill(manifest) {
     references.push("reference/examples.json");
     files["reference/examples.json"] = JSON.stringify(manifest.examples, null, 2) + "\n";
   }
-  const rows2 = manifest.inputs.map((input) => `| ${text(input.id)} | ${text(input.type)} | ${text(input.urlKey ?? "")} |`);
+  const rows2 = manifest.inputs.map((input) => `| ${text3(input.id)} | ${text3(input.type)} | ${text3(input.urlKey ?? "")} |`);
   const markdown = [
     "---",
     `name: lolly-${manifest.id.slice(0, 58)}`,
     `description: ${JSON.stringify(`Operate the Lolly ${manifest.name} tool (${manifest.id}) using its declared inputs and supported output formats.`)}`,
     "---",
     "",
-    `# ${text(manifest.name)}`,
+    `# ${text3(manifest.name)}`,
     "",
     `Tool ID: \`${manifest.id}\`. Tool version: \`${manifest.version}\`. Engine range: \`${manifest.engineVersion}\`.`,
     "",
-    ...manifest.description ? [text(manifest.description), ""] : [],
+    ...manifest.description ? [text3(manifest.description), ""] : [],
     "Read the overall Lolly skill first. Describe this exact tool before composing inputs. Use only declared input IDs or URL aliases; validate structured values before rendering.",
     "",
-    `Declared output formats: ${(manifest.render.formats ?? []).map(text).join(", ") || "none"}. The connected surface may support a subset; check its capabilities.`,
+    `Declared output formats: ${(manifest.render.formats ?? []).map(text3).join(", ") || "none"}. The connected surface may support a subset; check its capabilities.`,
     "",
     `Required host APIs: ${(manifest.requires ?? []).join(", ") || "none"}. Device capabilities: ${(manifest.capabilities ?? []).join(", ") || "none"}.`,
     "",
@@ -4701,7 +9728,7 @@ var integrityTextEncoder, envelopeTrust, warnedUnsignedCatalog, ToolLoadError;
 var init_loader = __esm({
   "engine/src/loader.ts"() {
     "use strict";
-    init_validate();
+    init_validate2();
     init_derived_formats();
     init_catalog_integrity();
     init_version();
@@ -8218,20 +13245,20 @@ function resolveChartTheme(brand = {}, style = "brand-default", overrides = {}) 
     }
   };
 }
-function finding(findings, id3, severity, message, path) {
+function finding2(findings, id3, severity, message, path) {
   findings.push({ id: id3, severity, message, ...path ? { path } : {} });
 }
 function validateChartSpec(spec) {
   const findings = [];
   if (!spec || typeof spec !== "object") {
-    finding(findings, "chart.spec.type", "error", "Chart spec must be an object.");
+    finding2(findings, "chart.spec.type", "error", "Chart spec must be an object.");
     return { ok: false, findings };
   }
   const s = spec;
   if (s.version !== 1)
-    finding(findings, "chart.spec.version", "error", "Unsupported chart spec version.", "version");
+    finding2(findings, "chart.spec.version", "error", "Unsupported chart spec version.", "version");
   if (!Array.isArray(s.datasets) || !s.datasets.length)
-    finding(
+    finding2(
       findings,
       "chart.dataset.missing",
       "error",
@@ -8239,7 +13266,7 @@ function validateChartSpec(spec) {
       "datasets"
     );
   if (!Array.isArray(s.series) || !s.series.length)
-    finding(
+    finding2(
       findings,
       "chart.series.missing",
       "error",
@@ -8250,9 +13277,9 @@ function validateChartSpec(spec) {
   const fieldsByDataset = /* @__PURE__ */ new Map();
   for (const [di, dataset] of (s.datasets ?? []).entries()) {
     if (!ID.test(dataset.id || ""))
-      finding(findings, "chart.dataset.id", "error", "Dataset id is invalid.", `datasets.${di}.id`);
+      finding2(findings, "chart.dataset.id", "error", "Dataset id is invalid.", `datasets.${di}.id`);
     if (datasetIds.has(dataset.id))
-      finding(
+      finding2(
         findings,
         "chart.dataset.duplicate",
         "error",
@@ -8263,7 +13290,7 @@ function validateChartSpec(spec) {
     const fieldIds = /* @__PURE__ */ new Set();
     for (const [fi, field2] of (dataset.fields ?? []).entries()) {
       if (!ID.test(field2.id || ""))
-        finding(
+        finding2(
           findings,
           "chart.field.id",
           "error",
@@ -8271,7 +13298,7 @@ function validateChartSpec(spec) {
           `datasets.${di}.fields.${fi}.id`
         );
       if (fieldIds.has(field2.id))
-        finding(
+        finding2(
           findings,
           "chart.field.duplicate",
           "error",
@@ -8282,7 +13309,7 @@ function validateChartSpec(spec) {
     }
     fieldsByDataset.set(dataset.id, fieldIds);
     if ((dataset.rows?.length ?? 0) > 1e5)
-      finding(
+      finding2(
         findings,
         "chart.rows.limit",
         "error",
@@ -8293,9 +13320,9 @@ function validateChartSpec(spec) {
   const seriesIds = /* @__PURE__ */ new Set();
   for (const [si, series] of (s.series ?? []).entries()) {
     if (!ID.test(series.id || ""))
-      finding(findings, "chart.series.id", "error", "Series id is invalid.", `series.${si}.id`);
+      finding2(findings, "chart.series.id", "error", "Series id is invalid.", `series.${si}.id`);
     if (seriesIds.has(series.id))
-      finding(
+      finding2(
         findings,
         "chart.series.duplicate",
         "error",
@@ -8304,7 +13331,7 @@ function validateChartSpec(spec) {
       );
     seriesIds.add(series.id);
     if (!datasetIds.has(series.dataset)) {
-      finding(
+      finding2(
         findings,
         "chart.series.dataset",
         "error",
@@ -8316,7 +13343,7 @@ function validateChartSpec(spec) {
     const fields2 = fieldsByDataset.get(series.dataset) ?? /* @__PURE__ */ new Set();
     for (const [channel5, encoding] of Object.entries(series.channels ?? {})) {
       if (encoding && !fields2.has(encoding.field))
-        finding(
+        finding2(
           findings,
           "chart.channel.field",
           "error",
@@ -8325,7 +13352,7 @@ function validateChartSpec(spec) {
         );
     }
     if ((series.mark === "bar3d" || series.mark === "line3d" || series.mark === "ribbon3d" || series.mark === "scatter3d" || series.mark === "surface3d" || series.mark === "mesh3d" || series.mark === "volume3d") && !series.channels.z) {
-      finding(
+      finding2(
         findings,
         "chart.channel.z",
         "error",
@@ -8335,7 +13362,7 @@ function validateChartSpec(spec) {
     }
   }
   if (!s.accessibility?.title?.trim())
-    finding(
+    finding2(
       findings,
       "chart.a11y.title",
       "error",
@@ -8343,7 +13370,7 @@ function validateChartSpec(spec) {
       "accessibility.title"
     );
   if (!s.accessibility?.description?.trim())
-    finding(
+    finding2(
       findings,
       "chart.a11y.description",
       "error",
@@ -8351,7 +13378,7 @@ function validateChartSpec(spec) {
       "accessibility.description"
     );
   if (s.accessibility?.colourOnly && (s.series?.length ?? 0) > 1)
-    finding(
+    finding2(
       findings,
       "chart.a11y.colour-only",
       "warning",
@@ -8359,7 +13386,7 @@ function validateChartSpec(spec) {
       "accessibility.colourOnly"
     );
   if (s.presentation?.dimension === 3 && s.presentation.exportFidelity === "vector") {
-    finding(
+    finding2(
       findings,
       "chart.export.3d-vector",
       "info",
@@ -8401,1326 +13428,6 @@ var init_chart_spec = __esm({
     init_clamp();
     HEX = /^#[0-9a-f]{6}$/i;
     ID = /^[a-zA-Z][a-zA-Z0-9._-]{0,127}$/;
-  }
-});
-
-// packages/core/src/delivery-v1.ts
-function age(value2, fallback, ceiling) {
-  if (value2 === void 0) return fallback;
-  if (!Number.isSafeInteger(value2) || value2 < 0) throw new TypeError("Invalid delivery age");
-  return Math.min(value2, ceiling);
-}
-function cachePolicy(cls, opts = {}) {
-  let cacheControl = PRIVATE, cdnCacheControl = "no-store";
-  const status = opts.status ?? 200;
-  if (status < 400) {
-    switch (cls) {
-      case "public-immutable":
-        if ([200, 206, 304].includes(status)) {
-          cacheControl = "public, max-age=31536000, s-maxage=31536000, immutable, no-transform";
-          cdnCacheControl = "max-age=31536000, no-transform";
-        }
-        break;
-      case "public-revalidate":
-        cacheControl = "public, max-age=0, s-maxage=0, must-revalidate, no-transform";
-        cdnCacheControl = "max-age=0, must-revalidate, no-transform";
-        break;
-      case "public-bounded": {
-        const a = age(opts.boundedAgeSec, 3600, 3600);
-        const shared = opts.boundedAgeSec === void 0 ? 86400 : a;
-        const stale = opts.boundedAgeSec === void 0 ? ", stale-while-revalidate=604800" : "";
-        cacheControl = `public, max-age=${a}, s-maxage=${shared}${stale}, no-transform`;
-        cdnCacheControl = `max-age=${shared}${stale}, no-transform`;
-        break;
-      }
-      case "link":
-        cacheControl = `private, max-age=${age(opts.boundedAgeSec, 300, 300)}, no-transform`;
-        break;
-      case "instance-private":
-        cacheControl = opts.boundedAgeSec === void 0 ? "private, no-cache, no-transform" : `private, max-age=${age(opts.boundedAgeSec, 300, 300)}, no-transform`;
-        break;
-      case "person-private":
-        break;
-      default:
-        break;
-    }
-  }
-  return {
-    cacheControl,
-    cdnCacheControl,
-    // Fastly must not see an overriding public Surrogate-Control on a private response.
-    ...cacheControl.startsWith("public,") ? { surrogateControl: cdnCacheControl } : {},
-    validator: opts.signed && cls === "public-bounded" ? "weak" : "strong",
-    ...opts.tokenBearing ? { referrerPolicy: "no-referrer" } : {}
-  };
-}
-function tag(prefix, value2) {
-  const result = `${prefix}_${value2}`;
-  if (!PREFIXES.has(prefix) || !TAG_VALUE.test(value2) || result.length > 80) throw new TypeError("Invalid delivery tag");
-  return result;
-}
-function renderTags(tags3, style) {
-  if (style !== "comma" && style !== "space") throw new TypeError("Invalid tag style");
-  if (tags3.length > 12) throw new RangeError("Too many delivery tags");
-  for (const value2 of tags3) {
-    if (value2?.[1] !== "_" || tag(value2[0], value2.slice(2)) !== value2) throw new TypeError("Invalid delivery tag");
-  }
-  const result = [...new Set(tags3)].join(style === "comma" ? "," : " ");
-  if (result.length > 1e3) throw new RangeError("Delivery tag header exceeds budget");
-  return result;
-}
-function canonicalDeliveryPath(path, pattern) {
-  if (!path.startsWith("/") || path.includes("//") || /[%\\?#]/.test(path) || [...path].some((c) => c.charCodeAt(0) <= 32 || c.charCodeAt(0) >= 127) || path.split("/").some((p) => p === "." || p === "..")) return null;
-  const match = new RegExp(pattern.source, pattern.flags.replace(/[gy]/g, "")).exec(path);
-  return match && match.index === 0 && match[0] === path ? path : null;
-}
-function validHost(host) {
-  if (!host || host !== host.toLowerCase() || /[|\s/?#@\\]/.test(host)) return false;
-  try {
-    return new URL(`https://${host}`).host === host;
-  } catch {
-    return false;
-  }
-}
-function validContext(ctx) {
-  return validHost(ctx.canonicalHost) && (ctx.subject === void 0 || /^[0-9a-f]{64}$/.test(ctx.subject));
-}
-function validClaims(c) {
-  return c.v === 1 && /^[a-z0-9_-]{1,32}$/.test(c.kid) && Number.isSafeInteger(c.exp) && c.exp > 0 && ["link", "instance-private", "person-private"].includes(c.cls);
-}
-function tokenMessage(c, path, ctx) {
-  return new TextEncoder().encode(`lolly-dt1|${ctx.canonicalHost}|${path}|${c.exp}|${c.cls}${ctx.subject === void 0 ? "" : `|${ctx.subject}`}`).buffer;
-}
-function base64url(bytes2) {
-  return btoa(String.fromCharCode(...bytes2)).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
-}
-async function signDeliveryToken(c, path, ctx, key2) {
-  if (!validClaims(c) || !validContext(ctx) || !canonicalDeliveryPath(path, /^\/.+$/)) throw new TypeError("Invalid delivery token scope");
-  const signature2 = await crypto.subtle.sign("HMAC", key2, tokenMessage(c, path, ctx));
-  return `1.${c.kid}.${c.exp}.${base64url(new Uint8Array(signature2))}`;
-}
-async function verifyDeliveryToken(token2, path, ctx, keys2, now2) {
-  if (!validContext(ctx) || !canonicalDeliveryPath(path, ctx.pattern) || !["link", "instance-private", "person-private"].includes(ctx.cls)) return "scope";
-  if (!Number.isFinite(now2) || !Number.isSafeInteger(ctx.maxSkewSec) || ctx.maxSkewSec < 0 || ctx.maxSkewSec > 60) return "bad";
-  const match = /^1\.([a-z0-9_-]{1,32})\.([1-9][0-9]{0,15})\.([A-Za-z0-9_-]{43})$/.exec(token2);
-  if (!match) return "bad";
-  const c = { v: 1, kid: match[1], exp: Number(match[2]), cls: ctx.cls };
-  const key2 = keys2.get(c.kid);
-  if (!validClaims(c) || !key2) return "bad";
-  try {
-    const raw = Uint8Array.from(atob(match[3].replace(/-/g, "+").replace(/_/g, "/") + "="), (ch) => ch.charCodeAt(0));
-    if (base64url(raw) !== match[3] || !await crypto.subtle.verify("HMAC", key2, raw.buffer, tokenMessage(c, path, ctx))) return "bad";
-    return now2 >= c.exp + ctx.maxSkewSec ? "expired" : "ok";
-  } catch {
-    return "bad";
-  }
-}
-var PRIVATE, PREFIXES, TAG_VALUE;
-var init_delivery_v1 = __esm({
-  "packages/core/src/delivery-v1.ts"() {
-    "use strict";
-    PRIVATE = "private, no-store, max-age=0, no-transform";
-    PREFIXES = /* @__PURE__ */ new Set(["x", "r", "t", "e", "c", "a", "h", "u", "k", "p", "f", "s", "b", "o", "y"]);
-    TAG_VALUE = /^[a-z0-9!#$%&'*+.^_`|~-]+$/;
-  }
-});
-
-// packages/core/src/file-v1.ts
-function safeFileName(name, fallback = "file") {
-  const clean2 = (value2) => value2.normalize("NFC").replace(/\\/g, "/").split("/").pop().replace(/[\u0000-\u001f\u007f-\u009f<>:"|?*]/g, "-").replace(/[\u202a-\u202e\u2066-\u2069]/g, "").trim().replace(/[. ]+$/, "");
-  let base = clean2(name) || clean2(fallback) || "file";
-  if (/^(con|prn|aux|nul|com[1-9]|lpt[1-9])(?:\.|$)/i.test(base)) base = `_${base}`;
-  const encoder5 = new TextEncoder();
-  if (encoder5.encode(base).length > 220) {
-    const dot = base.lastIndexOf(".");
-    const ext = dot > 0 && base.length - dot <= 16 ? base.slice(dot) : "";
-    const chars = [...ext ? base.slice(0, dot) : base];
-    while (chars.length && encoder5.encode(chars.join("") + ext).length > 220) chars.pop();
-    base = chars.join("") + ext;
-  }
-  return base;
-}
-var FILE_CONTRACT_VERSION;
-var init_file_v1 = __esm({
-  "packages/core/src/file-v1.ts"() {
-    "use strict";
-    FILE_CONTRACT_VERSION = 1;
-  }
-});
-
-// packages/core/src/file-operation-v1.ts
-import { Ajv as Ajv2 } from "ajv";
-function assertFileOperationRequest(value2) {
-  if (!requestValidator(value2)) throw new Error(`Invalid file operation: ${ajv2.errorsText(requestValidator.errors)}`);
-}
-function assertFileOperationReport(value2) {
-  if (!reportValidator(value2)) throw new Error(`Invalid file report: ${ajv2.errorsText(reportValidator.errors)}`);
-  const report4 = value2;
-  if (report4.state === "succeeded" && !report4.outputs.length) throw new Error("A successful file report needs an output.");
-  if (["failed", "cancelled"].includes(report4.state) && report4.outputs.length) throw new Error("An unsuccessful single operation cannot claim outputs.");
-}
-async function executeFileOperationV1(input, request3, adapter, context = {}) {
-  assertFileOperationRequest(request3);
-  const report4 = { version: 1, operation: request3.operation, state: "failed", inputs: [], outputs: [], options: { ...request3.options, target: request3.target }, changes: [], findings: [], metadata: "not-checked", execution: context.execution ?? "device" };
-  try {
-    context.signal?.throwIfAborted();
-    const original = await adapter.describe(input, context.signal);
-    report4.inputs = [original];
-    Object.assign(report4, adapter.effects(original, request3));
-    const output = await adapter.execute(input, request3, context.signal);
-    context.signal?.throwIfAborted();
-    const produced = await adapter.describe(output, context.signal);
-    context.signal?.throwIfAborted();
-    report4.outputs = [produced];
-    report4.state = "succeeded";
-    report4.changes = [`${original.format.toUpperCase()} \u2192 ${produced.format.toUpperCase()}`, `${original.size} \u2192 ${produced.size} bytes`];
-    if (original.width && produced.width) report4.changes.push(`${original.width} \xD7 ${original.height} \u2192 ${produced.width} \xD7 ${produced.height} pixels`);
-    assertFileOperationReport(report4);
-    return { output, report: report4 };
-  } catch (error2) {
-    report4.outputs = [];
-    report4.state = context.signal?.aborted ? "cancelled" : "failed";
-    report4.findings.push({ code: report4.state === "cancelled" ? "operation-cancelled" : "operation-failed", severity: "error", message: (error2 instanceof Error ? error2.message : String(error2)).slice(0, 4096) });
-    try {
-      assertFileOperationReport(report4);
-    } catch {
-      report4.inputs = [];
-      report4.metadata = "not-checked";
-      report4.changes = [];
-      report4.findings = [{ code: "adapter-contract-error", severity: "error", message: "The adapter returned invalid facts or findings. No output has been accepted." }];
-      assertFileOperationReport(report4);
-    }
-    return { report: report4 };
-  }
-}
-var text2, options, facts, fileOperationRequestSchemaV1, fileOperationReportSchemaV1, ajv2, requestValidator, reportValidator;
-var init_file_operation_v1 = __esm({
-  "packages/core/src/file-operation-v1.ts"() {
-    "use strict";
-    init_file_v1();
-    text2 = { type: "string", maxLength: 4096 };
-    options = { type: "object", maxProperties: 64, propertyNames: { maxLength: 80, pattern: "^(?!__proto__$|constructor$|prototype$)[a-zA-Z][a-zA-Z0-9_.-]*$" }, additionalProperties: { anyOf: [text2, { type: "number" }, { type: "boolean" }] } };
-    facts = { type: "object", additionalProperties: false, required: ["name", "format", "mime", "size"], properties: {
-      name: text2,
-      format: { type: "string", maxLength: 80 },
-      formatSource: { enum: ["detected", "declared"] },
-      mime: { type: "string", maxLength: 255 },
-      size: { type: "integer", minimum: 0, maximum: Number.MAX_SAFE_INTEGER },
-      sha256: { type: "string", pattern: "^[a-f0-9]{64}$" },
-      width: { type: "integer", minimum: 1 },
-      height: { type: "integer", minimum: 1 },
-      durationMs: { type: "number", minimum: 0 },
-      pages: { type: "integer", minimum: 0 }
-    } };
-    fileOperationRequestSchemaV1 = {
-      $id: "https://lolly.tools/schemas/file-operation-request-v1",
-      type: "object",
-      additionalProperties: false,
-      required: ["version", "operation", "target", "options"],
-      properties: {
-        version: { const: 1 },
-        operation: { type: "string", pattern: "^[a-z][a-z0-9.-]{0,63}$" },
-        target: { type: "string", pattern: "^[a-z][a-z0-9-]{0,31}$" },
-        options
-      }
-    };
-    fileOperationReportSchemaV1 = {
-      $id: "https://lolly.tools/schemas/file-operation-report-v1",
-      type: "object",
-      additionalProperties: false,
-      required: ["version", "operation", "state", "inputs", "outputs", "options", "changes", "findings", "metadata", "execution"],
-      properties: {
-        version: { const: FILE_CONTRACT_VERSION },
-        operation: text2,
-        state: { enum: ["succeeded", "partially_succeeded", "failed", "cancelled"] },
-        inputs: { type: "array", maxItems: 200, items: facts },
-        outputs: { type: "array", maxItems: 200, items: facts },
-        options: { ...options, maxProperties: 65 },
-        changes: { type: "array", maxItems: 400, items: text2 },
-        findings: { type: "array", maxItems: 400, items: { type: "object", additionalProperties: false, required: ["code", "severity", "message"], properties: {
-          code: { type: "string", maxLength: 100 },
-          severity: { enum: ["info", "warning", "error"] },
-          message: text2
-        } } },
-        metadata: { enum: ["preserved", "removed", "changed", "not-checked"] },
-        execution: { enum: ["device", "instance"] }
-      }
-    };
-    ajv2 = new Ajv2({ allErrors: true, strict: false, strictNumbers: true });
-    requestValidator = ajv2.compile(fileOperationRequestSchemaV1);
-    reportValidator = ajv2.compile(fileOperationReportSchemaV1);
-  }
-});
-
-// packages/core/src/host-v1/apis.ts
-function presentApis(host) {
-  if (!host) return [];
-  return HOST_V1_OPTIONAL_APIS.filter((name) => host[name] !== void 0 && host[name] !== null);
-}
-function missingRequires(requires, host) {
-  if (!requires?.length) return [];
-  const present = new Set(presentApis(host));
-  return requires.filter((name) => !present.has(name));
-}
-var HOST_V1_OPTIONAL_APIS;
-var init_apis = __esm({
-  "packages/core/src/host-v1/apis.ts"() {
-    "use strict";
-    HOST_V1_OPTIONAL_APIS = [
-      "net",
-      "tokens",
-      "text",
-      "pdf",
-      "pptx",
-      "capture",
-      "compose",
-      "media",
-      "scan",
-      "lift",
-      "keyframes",
-      "recorder",
-      "audio",
-      "codec",
-      "layers",
-      "upscale",
-      "matte",
-      "ocr",
-      "speech",
-      "viz",
-      "color",
-      "images",
-      "raster",
-      "geom",
-      "connectors",
-      "c2pa",
-      "prepare",
-      "compare",
-      "textTools",
-      "emoji",
-      "models",
-      "layout",
-      "fonts",
-      "calc"
-    ];
-  }
-});
-
-// packages/core/src/host-v1/text-tools.ts
-var init_text_tools = __esm({
-  "packages/core/src/host-v1/text-tools.ts"() {
-    "use strict";
-  }
-});
-
-// packages/core/src/host-v1/asset-ref.ts
-var init_asset_ref = __esm({
-  "packages/core/src/host-v1/asset-ref.ts"() {
-    "use strict";
-  }
-});
-
-// packages/core/src/host-v1/assets.ts
-var init_assets = __esm({
-  "packages/core/src/host-v1/assets.ts"() {
-    "use strict";
-  }
-});
-
-// packages/core/src/host-v1/audio.ts
-var init_audio = __esm({
-  "packages/core/src/host-v1/audio.ts"() {
-    "use strict";
-  }
-});
-
-// packages/core/src/host-v1/c2pa.ts
-var init_c2pa = __esm({
-  "packages/core/src/host-v1/c2pa.ts"() {
-    "use strict";
-  }
-});
-
-// packages/core/src/host-v1/calc.ts
-var init_calc = __esm({
-  "packages/core/src/host-v1/calc.ts"() {
-    "use strict";
-  }
-});
-
-// packages/core/src/host-v1/capture.ts
-var init_capture = __esm({
-  "packages/core/src/host-v1/capture.ts"() {
-    "use strict";
-  }
-});
-
-// packages/core/src/host-v1/clipboard.ts
-var init_clipboard = __esm({
-  "packages/core/src/host-v1/clipboard.ts"() {
-    "use strict";
-  }
-});
-
-// packages/core/src/host-v1/codec.ts
-var init_codec = __esm({
-  "packages/core/src/host-v1/codec.ts"() {
-    "use strict";
-  }
-});
-
-// packages/core/src/host-v1/color.ts
-var init_color = __esm({
-  "packages/core/src/host-v1/color.ts"() {
-    "use strict";
-  }
-});
-
-// packages/core/src/host-v1/compose.ts
-var init_compose = __esm({
-  "packages/core/src/host-v1/compose.ts"() {
-    "use strict";
-  }
-});
-
-// packages/core/src/host-v1/connectors.ts
-var init_connectors = __esm({
-  "packages/core/src/host-v1/connectors.ts"() {
-    "use strict";
-  }
-});
-
-// packages/core/src/host-v1/emoji.ts
-var init_emoji = __esm({
-  "packages/core/src/host-v1/emoji.ts"() {
-    "use strict";
-  }
-});
-
-// packages/core/src/host-v1/export.ts
-var init_export = __esm({
-  "packages/core/src/host-v1/export.ts"() {
-    "use strict";
-  }
-});
-
-// packages/core/src/host-v1/fonts.ts
-var init_fonts = __esm({
-  "packages/core/src/host-v1/fonts.ts"() {
-    "use strict";
-  }
-});
-
-// packages/core/src/host-v1/geom.ts
-var init_geom = __esm({
-  "packages/core/src/host-v1/geom.ts"() {
-    "use strict";
-  }
-});
-
-// packages/core/src/host-v1/host.ts
-var init_host = __esm({
-  "packages/core/src/host-v1/host.ts"() {
-    "use strict";
-  }
-});
-
-// packages/core/src/host-v1/images.ts
-var init_images = __esm({
-  "packages/core/src/host-v1/images.ts"() {
-    "use strict";
-  }
-});
-
-// packages/core/src/host-v1/keyframes.ts
-var init_keyframes = __esm({
-  "packages/core/src/host-v1/keyframes.ts"() {
-    "use strict";
-  }
-});
-
-// packages/core/src/host-v1/layers.ts
-var init_layers = __esm({
-  "packages/core/src/host-v1/layers.ts"() {
-    "use strict";
-  }
-});
-
-// packages/core/src/host-v1/lift.ts
-var init_lift = __esm({
-  "packages/core/src/host-v1/lift.ts"() {
-    "use strict";
-  }
-});
-
-// packages/core/src/host-v1/matte.ts
-var init_matte = __esm({
-  "packages/core/src/host-v1/matte.ts"() {
-    "use strict";
-  }
-});
-
-// packages/core/src/host-v1/media.ts
-var init_media = __esm({
-  "packages/core/src/host-v1/media.ts"() {
-    "use strict";
-  }
-});
-
-// packages/core/src/host-v1/models.ts
-var init_models = __esm({
-  "packages/core/src/host-v1/models.ts"() {
-    "use strict";
-  }
-});
-
-// packages/core/src/host-v1/net.ts
-var init_net = __esm({
-  "packages/core/src/host-v1/net.ts"() {
-    "use strict";
-  }
-});
-
-// packages/core/src/host-v1/ocr.ts
-var init_ocr = __esm({
-  "packages/core/src/host-v1/ocr.ts"() {
-    "use strict";
-  }
-});
-
-// packages/core/src/host-v1/pdf.ts
-var init_pdf = __esm({
-  "packages/core/src/host-v1/pdf.ts"() {
-    "use strict";
-  }
-});
-
-// packages/core/src/host-v1/pptx.ts
-var init_pptx = __esm({
-  "packages/core/src/host-v1/pptx.ts"() {
-    "use strict";
-  }
-});
-
-// packages/core/src/host-v1/profile.ts
-var init_profile = __esm({
-  "packages/core/src/host-v1/profile.ts"() {
-    "use strict";
-  }
-});
-
-// packages/core/src/host-v1/prepare.ts
-var init_prepare = __esm({
-  "packages/core/src/host-v1/prepare.ts"() {
-    "use strict";
-  }
-});
-
-// packages/core/src/host-v1/compare.ts
-var init_compare = __esm({
-  "packages/core/src/host-v1/compare.ts"() {
-    "use strict";
-  }
-});
-
-// packages/core/src/host-v1/raster.ts
-var init_raster = __esm({
-  "packages/core/src/host-v1/raster.ts"() {
-    "use strict";
-  }
-});
-
-// packages/core/src/host-v1/recorder.ts
-var init_recorder = __esm({
-  "packages/core/src/host-v1/recorder.ts"() {
-    "use strict";
-  }
-});
-
-// packages/core/src/host-v1/scan.ts
-var init_scan = __esm({
-  "packages/core/src/host-v1/scan.ts"() {
-    "use strict";
-  }
-});
-
-// packages/core/src/host-v1/speech.ts
-var init_speech = __esm({
-  "packages/core/src/host-v1/speech.ts"() {
-    "use strict";
-  }
-});
-
-// packages/core/src/host-v1/state.ts
-var init_state = __esm({
-  "packages/core/src/host-v1/state.ts"() {
-    "use strict";
-  }
-});
-
-// packages/core/src/host-v1/text.ts
-var init_text = __esm({
-  "packages/core/src/host-v1/text.ts"() {
-    "use strict";
-  }
-});
-
-// packages/core/src/host-v1/tokens.ts
-var TOKEN_AXIS_KINDS, KNOWN_FINISH_KINDS;
-var init_tokens = __esm({
-  "packages/core/src/host-v1/tokens.ts"() {
-    "use strict";
-    TOKEN_AXIS_KINDS = Object.freeze(["mode", "colourway", "expression", "medium", "contrast", "density", "campaign", "brand"]);
-    KNOWN_FINISH_KINDS = [
-      "foil",
-      "emboss",
-      "deboss",
-      "spot-uv",
-      "soft-touch",
-      "cut",
-      "crease",
-      "perforate"
-    ];
-  }
-});
-
-// packages/core/src/host-v1/upscale.ts
-var init_upscale = __esm({
-  "packages/core/src/host-v1/upscale.ts"() {
-    "use strict";
-  }
-});
-
-// packages/core/src/host-v1/viz.ts
-var init_viz = __esm({
-  "packages/core/src/host-v1/viz.ts"() {
-    "use strict";
-  }
-});
-
-// packages/core/src/host-v1/layout.ts
-var init_layout = __esm({
-  "packages/core/src/host-v1/layout.ts"() {
-    "use strict";
-  }
-});
-
-// packages/core/src/host-v1.ts
-var init_host_v1 = __esm({
-  "packages/core/src/host-v1.ts"() {
-    "use strict";
-    init_apis();
-    init_text_tools();
-    init_asset_ref();
-    init_assets();
-    init_audio();
-    init_c2pa();
-    init_calc();
-    init_capture();
-    init_clipboard();
-    init_codec();
-    init_color();
-    init_compose();
-    init_connectors();
-    init_emoji();
-    init_export();
-    init_fonts();
-    init_geom();
-    init_host();
-    init_images();
-    init_keyframes();
-    init_layers();
-    init_lift();
-    init_matte();
-    init_media();
-    init_models();
-    init_net();
-    init_ocr();
-    init_pdf();
-    init_pptx();
-    init_profile();
-    init_prepare();
-    init_compare();
-    init_raster();
-    init_recorder();
-    init_scan();
-    init_speech();
-    init_state();
-    init_text();
-    init_tokens();
-    init_upscale();
-    init_viz();
-    init_layout();
-  }
-});
-
-// packages/core/src/preflight.ts
-var SEVERITY_RANK;
-var init_preflight = __esm({
-  "packages/core/src/preflight.ts"() {
-    "use strict";
-    SEVERITY_RANK = { error: 0, warn: 1, info: 2 };
-  }
-});
-
-// packages/core/src/money.ts
-function minorUnitExponent(currency, locale) {
-  return exponentOf(currencyFormatter(currency, locale), currency);
-}
-function exponentOf(fmt6, currency) {
-  const exp = fmt6.resolvedOptions().maximumFractionDigits;
-  if (typeof exp !== "number") throw new CurrencyError(currency);
-  return exp;
-}
-function currencyFormatter(currency, locale) {
-  if (typeof currency !== "string" || currency.length === 0) throw new CurrencyError(currency);
-  try {
-    return new Intl.NumberFormat(locale ?? void 0, { style: "currency", currency });
-  } catch (e) {
-    throw new CurrencyError(currency, e);
-  }
-}
-function monetaryFigure(minorUnits, currency) {
-  if (!Number.isSafeInteger(minorUnits)) throw new MinorUnitError(minorUnits);
-  return { minorUnits, currency, exponent: minorUnitExponent(currency) };
-}
-var CurrencyError, MinorUnitError;
-var init_money = __esm({
-  "packages/core/src/money.ts"() {
-    "use strict";
-    CurrencyError = class extends Error {
-      currency;
-      constructor(currency, cause) {
-        super(
-          `Unusable currency code ${JSON.stringify(currency)}. A currency must come from the rate card; there is no default and no fallback symbol.`
-        );
-        this.name = "CurrencyError";
-        this.currency = currency;
-        if (cause !== void 0) this.cause = cause;
-      }
-    };
-    MinorUnitError = class extends Error {
-      minorUnits;
-      constructor(minorUnits) {
-        super(
-          `Money must be integer minor units; got ${minorUnits}. A non-integer amount means a float leaked into a subtotal.`
-        );
-        this.name = "MinorUnitError";
-        this.minorUnits = minorUnits;
-      }
-    };
-  }
-});
-
-// packages/core/src/chart-v1.ts
-var CHART_SPEC_VERSION;
-var init_chart_v1 = __esm({
-  "packages/core/src/chart-v1.ts"() {
-    "use strict";
-    CHART_SPEC_VERSION = 1;
-  }
-});
-
-// packages/core/src/design-v1.ts
-function finite(value2, fallback = 0) {
-  const n7 = typeof value2 === "string" && value2.trim() !== "" ? Number(value2) : value2;
-  return typeof n7 === "number" && Number.isFinite(n7) ? n7 : fallback;
-}
-function text3(value2) {
-  return typeof value2 === "string" ? value2 : "";
-}
-function assetId(value2) {
-  if (typeof value2 === "string" && value2) return value2;
-  if (!value2 || typeof value2 !== "object" || Array.isArray(value2)) return void 0;
-  const ref2 = value2;
-  if (typeof ref2.id === "string" && ref2.id) return ref2.id;
-  if (typeof ref2.url === "string" && ref2.url) return ref2.url;
-  return void 0;
-}
-function boundsOf(row) {
-  return {
-    x: finite(row.x),
-    y: finite(row.y),
-    width: finite(row.w),
-    height: finite(row.h),
-    rotation: finite(row.rot)
-  };
-}
-function contains(outer, inner) {
-  if (outer.rotation || inner.rotation) return true;
-  const epsilon = 0.01;
-  return inner.x >= outer.x - epsilon && inner.y >= outer.y - epsilon && inner.x + inner.width <= outer.x + outer.width + epsilon && inner.y + inner.height <= outer.y + outer.height + epsilon;
-}
-function finding2(findings, id3, severity, path, message, refs = {}) {
-  findings.push({ id: id3, severity, path, message, ...refs });
-}
-function inspectDesignV1(boxes2, opts = {}) {
-  const findings = [];
-  if (!Array.isArray(boxes2)) {
-    finding2(findings, "design.boxes.invalid", "error", "/boxes", "Boxes must be an array.");
-    return finish([], [], findings, opts);
-  }
-  const layers = [];
-  const rows2 = /* @__PURE__ */ new Map();
-  const seen = /* @__PURE__ */ new Set();
-  boxes2.forEach((value2, index2) => {
-    const path = `/boxes/${index2}`;
-    if (!value2 || typeof value2 !== "object" || Array.isArray(value2)) {
-      finding2(findings, "design.layer.invalid", "error", path, "A layer must be an object.");
-      return;
-    }
-    const row = value2;
-    const id3 = text3(row.id).trim();
-    const rawKind = text3(row.kind) || "box";
-    const kind = KINDS.has(rawKind) ? rawKind : "unknown";
-    if (!id3) {
-      finding2(
-        findings,
-        "design.layer.id-missing",
-        "error",
-        `${path}/id`,
-        "Every layer needs a stable id."
-      );
-    } else if (seen.has(id3)) {
-      finding2(
-        findings,
-        "design.layer.id-duplicate",
-        "error",
-        `${path}/id`,
-        `Layer id "${id3}" is duplicated.`,
-        { layerId: id3 }
-      );
-    } else {
-      seen.add(id3);
-      rows2.set(id3, row);
-    }
-    if (kind === "unknown") {
-      finding2(
-        findings,
-        "design.layer.kind-unknown",
-        "error",
-        `${path}/kind`,
-        `Unknown layer kind "${rawKind}".`,
-        id3 ? { layerId: id3 } : {}
-      );
-    }
-    const bounds = boundsOf(row);
-    if (bounds.width <= 0 || bounds.height <= 0) {
-      finding2(
-        findings,
-        "design.layer.dimension-invalid",
-        "error",
-        path,
-        "Layer width and height must be greater than zero.",
-        id3 ? { layerId: id3 } : {}
-      );
-    }
-    const start = finite(row.start);
-    const duration = finite(row.dur);
-    const timed = row.start !== void 0 || row.dur !== void 0 || text3(row.lane) !== "";
-    const layer = {
-      id: id3,
-      index: index2,
-      kind,
-      name: text3(row.name).trim(),
-      bounds,
-      ...text3(row.frame) ? { artboardId: text3(row.frame) } : {},
-      zIndex: finite(row.z, index2),
-      hidden: row.hidden === true,
-      locked: row.locked === true,
-      ...kind === "text" ? { text: text3(row.text) } : {},
-      ...["image", "audio", "camera", "webcam"].includes(kind) && assetId(row.image) ? { assetId: assetId(row.image) } : {},
-      // A 3D scene box reads its `scene` field and raises nothing: an empty scene is
-      // a new, unedited box, not a fault, and the assets it references live inside
-      // the query rather than in `image` (engine/src/design-scene.ts reads them out).
-      ...kind === "3d" && text3(row.scene) ? { scene: text3(row.scene) } : {},
-      ...kind === "web" && text3(row.web).trim() ? { web: text3(row.web).trim() } : {},
-      ...timed ? {
-        timing: {
-          start,
-          duration,
-          end: start + duration,
-          ...text3(row.lane) ? { lane: text3(row.lane) } : {}
-        }
-      } : {}
-    };
-    layers.push(layer);
-    if (kind === "text" && !text3(row.text).trim() && !text3(row.textStory)) {
-      finding2(
-        findings,
-        "design.text.empty",
-        "warn",
-        `${path}/text`,
-        "Text layer is empty.",
-        id3 ? { layerId: id3 } : {}
-      );
-    }
-    if (kind === "image" && !assetId(row.image)) {
-      finding2(
-        findings,
-        "design.image.empty",
-        "warn",
-        `${path}/image`,
-        "Image layer has no asset.",
-        id3 ? { layerId: id3 } : {}
-      );
-    }
-    if (kind === "web" && !text3(row.web).trim()) {
-      finding2(findings, "design.web.empty", "warn", `${path}/web`, "Web page layer has no link.", id3 ? { layerId: id3 } : {});
-    } else if (kind === "web" && !assetId(row.image)) {
-      finding2(findings, "design.web.no-poster", "info", `${path}/image`, "Web page layer has no poster; exports show a card naming the site.", id3 ? { layerId: id3 } : {});
-    }
-  });
-  const artboardLayers = layers.filter((layer) => layer.kind === "frame");
-  const artboardIds = new Set(artboardLayers.map((layer) => layer.id).filter(Boolean));
-  const children2 = /* @__PURE__ */ new Map();
-  for (const id3 of artboardIds) children2.set(id3, []);
-  for (const layer of layers) {
-    if (layer.kind === "frame" || !layer.artboardId) continue;
-    const parent = layers.find(
-      (candidate) => candidate.id === layer.artboardId && candidate.kind === "frame"
-    );
-    if (!parent) {
-      finding2(
-        findings,
-        "design.layer.artboard-missing",
-        "error",
-        `/boxes/${layer.index}/frame`,
-        `Layer references missing artboard "${layer.artboardId}".`,
-        { layerId: layer.id, artboardId: layer.artboardId }
-      );
-      continue;
-    }
-    children2.get(parent.id)?.push(layer.id);
-    if (!contains(parent.bounds, layer.bounds)) {
-      finding2(
-        findings,
-        "design.layer.outside-artboard",
-        "warn",
-        `/boxes/${layer.index}`,
-        `Layer extends outside artboard "${parent.name || parent.id}".`,
-        { layerId: layer.id, artboardId: parent.id }
-      );
-    }
-  }
-  const artboards = artboardLayers.map((layer) => {
-    const row = rows2.get(layer.id) ?? {};
-    const childLayerIds = children2.get(layer.id) ?? [];
-    if (!layer.name) {
-      finding2(
-        findings,
-        "design.artboard.unnamed",
-        "warn",
-        `/boxes/${layer.index}/name`,
-        "Artboard has no name.",
-        { layerId: layer.id, artboardId: layer.id }
-      );
-    }
-    if (!childLayerIds.length) {
-      finding2(
-        findings,
-        "design.artboard.empty",
-        "warn",
-        `/boxes/${layer.index}`,
-        `Artboard "${layer.name || layer.id}" is empty.`,
-        { layerId: layer.id, artboardId: layer.id }
-      );
-    }
-    return {
-      id: layer.id,
-      name: layer.name,
-      order: finite(row.order, layer.index),
-      bounds: layer.bounds,
-      childLayerIds,
-      clipChildren: row.clipChildren !== false
-    };
-  }).sort((a, b) => a.order - b.order || a.bounds.x - b.bounds.x || a.id.localeCompare(b.id));
-  const looseLayerIds = layers.filter((layer) => layer.kind !== "frame" && !layer.artboardId).map((layer) => layer.id).filter(Boolean);
-  if (artboards.length) {
-    for (const id3 of looseLayerIds) {
-      const layer = layers.find((item2) => item2.id === id3);
-      finding2(
-        findings,
-        "design.layer.unassigned",
-        "info",
-        `/boxes/${layer.index}/frame`,
-        "Layer is not assigned to an artboard.",
-        { layerId: id3 }
-      );
-    }
-  }
-  return finish(layers, artboards, findings, opts, looseLayerIds);
-}
-function finish(layers, artboards, findings, opts, looseLayerIds = []) {
-  void opts.width;
-  void opts.height;
-  const errors = findings.filter((item2) => item2.severity === "error").length;
-  const warnings2 = findings.filter((item2) => item2.severity === "warn").length;
-  return {
-    version: DESIGN_DOCUMENT_VERSION,
-    valid: errors === 0,
-    summary: {
-      artboards: artboards.length,
-      layers: layers.filter((layer) => layer.kind !== "frame").length,
-      hiddenLayers: layers.filter((layer) => layer.hidden).length,
-      timedLayers: layers.filter((layer) => layer.timing).length,
-      duration: layers.reduce((max, layer) => Math.max(max, layer.timing?.end ?? 0), 0),
-      errors,
-      warnings: warnings2
-    },
-    artboards,
-    layers,
-    looseLayerIds,
-    findings,
-    requiresMount: REQUIRES_MOUNT
-  };
-}
-var DESIGN_DOCUMENT_VERSION, DESIGN_LAYER_KINDS, KINDS, REQUIRES_MOUNT;
-var init_design_v1 = __esm({
-  "packages/core/src/design-v1.ts"() {
-    "use strict";
-    DESIGN_DOCUMENT_VERSION = 1;
-    DESIGN_LAYER_KINDS = [
-      "box",
-      "text",
-      "image",
-      "path",
-      "audio",
-      "camera",
-      "frame",
-      "3d",
-      "web",
-      "webcam",
-      "group"
-    ];
-    KINDS = new Set(DESIGN_LAYER_KINDS);
-    REQUIRES_MOUNT = ["text-overflow", "computed-contrast", "resolved-fonts"];
-  }
-});
-
-// packages/core/src/rebrand-v1.ts
-function isArchetypeRef(value2) {
-  return typeof value2 === "string" && STRUCTURE_ID_PATTERN.test(value2);
-}
-function isKnownArchetypeId(value2) {
-  return typeof value2 === "string" && ARCHETYPE_IDS.includes(value2);
-}
-var REBRAND_REFERENCE_DPI, PLACEHOLDER_TYPES, VECTOR_ITEMS_MAX, VECTOR_ITEMS_MAX_CHARS, VECTOR_DECK_ITEMS_MAX, OBJECT_CLASSES, PLAN_ACTIONS, REVIEW_STATES, ARCHETYPE_ROLES, ARCHETYPE_IDS, STRUCTURE_ID_PATTERN, PROJECT_THUMB_SVG_MAX, REBRAND_ERROR_CODES;
-var init_rebrand_v1 = __esm({
-  "packages/core/src/rebrand-v1.ts"() {
-    "use strict";
-    REBRAND_REFERENCE_DPI = 96;
-    PLACEHOLDER_TYPES = ["title", "ctrTitle", "subTitle", "body", "ftr", "sldNum", "dt", "pic"];
-    VECTOR_ITEMS_MAX = 2e3;
-    VECTOR_ITEMS_MAX_CHARS = 1048576;
-    VECTOR_DECK_ITEMS_MAX = 2e4;
-    OBJECT_CLASSES = [
-      "template-furniture",
-      "decoration",
-      "logo-candidate",
-      "known-logo",
-      "recurring-text",
-      "page-number",
-      "footer",
-      "date",
-      "title",
-      "subtitle",
-      "body",
-      "chart",
-      "screenshot",
-      "photo",
-      "table",
-      "diagram",
-      "unknown"
-    ];
-    PLAN_ACTIONS = ["keep", "replace", "remove"];
-    REVIEW_STATES = ["unreviewed", "accepted", "needs-attention"];
-    ARCHETYPE_ROLES = ["title", "subtitle", "body", "visual", "data", "caption", "number", "label", "quote", "attribution"];
-    ARCHETYPE_IDS = [
-      "title",
-      "section",
-      "content",
-      "two-column",
-      "split",
-      "visual",
-      "full-image",
-      "quote",
-      "big-number",
-      "main-point",
-      "agenda",
-      "table"
-    ];
-    STRUCTURE_ID_PATTERN = /^[a-z][a-z0-9-]{1,40}$/;
-    PROJECT_THUMB_SVG_MAX = 16 * 1024;
-    REBRAND_ERROR_CODES = [
-      "source.unreadable",
-      "source.too-large",
-      "source.encrypted",
-      "plan.hash-mismatch",
-      "plan.revision-stale",
-      "plan.invalid",
-      "design-system.master-missing",
-      "design-system.logo-missing",
-      "ocr.unavailable",
-      "compile.unresolved-objects",
-      "export.failed",
-      "storage.quota"
-    ];
-  }
-});
-
-// packages/core/src/live-v1.ts
-var LIVE_PROTOCOL, LIVE_LIMITS;
-var init_live_v1 = __esm({
-  "packages/core/src/live-v1.ts"() {
-    "use strict";
-    LIVE_PROTOCOL = "live-v1";
-    LIVE_LIMITS = {
-      /** Largest request frame, in bytes. */
-      maxRequestBytes: 4 * 1024 * 1024,
-      /** Largest reply frame, in bytes (a `look` SVG with embedded pictures). */
-      maxReplyBytes: 16 * 1024 * 1024,
-      /** Operations plus patches in one `document.apply`. */
-      maxEditsPerApply: 500,
-      /** `document.apply` calls a second, averaged over a few seconds. */
-      maxAppliesPerSecond: 10,
-      /** A connection with no request for this long is closed. */
-      idleMs: 30 * 60 * 1e3,
-      /** Wrong pairing codes before a web bridge stops listening. */
-      maxCodeAttempts: 3
-    };
-  }
-});
-
-// packages/core/src/text-v1.ts
-var init_text_v1 = __esm({
-  "packages/core/src/text-v1.ts"() {
-    "use strict";
-  }
-});
-
-// packages/core/src/slide-master-v1.ts
-function findArchetype(master, id3) {
-  return master.archetypes.find((a) => a.id === id3);
-}
-function roleFontSize(master, role, style) {
-  if (style && typeof style.fontSize === "number") return style.fontSize;
-  const scale = master.typeScale;
-  switch (role) {
-    case "title":
-      return scale.title;
-    case "subtitle":
-      return scale.subtitle;
-    case "caption":
-      return scale.caption;
-    case "number":
-      return scale.number;
-    case "label":
-      return scale.label;
-    case "attribution":
-      return scale.caption;
-    case "quote":
-      return scale.title;
-    default:
-      return scale.body;
-  }
-}
-var init_slide_master_v1 = __esm({
-  "packages/core/src/slide-master-v1.ts"() {
-    "use strict";
-  }
-});
-
-// packages/core/src/content-inventory-v1.ts
-var CONTENT_INVENTORY_VERSION, INVENTORY_SOURCE_KINDS, TEXT_LAYER_MODEL;
-var init_content_inventory_v1 = __esm({
-  "packages/core/src/content-inventory-v1.ts"() {
-    "use strict";
-    CONTENT_INVENTORY_VERSION = "lolly/content-inventory-v1";
-    INVENTORY_SOURCE_KINDS = ["pptx", "pdf", "psd"];
-    TEXT_LAYER_MODEL = "pdf-text-layer";
-  }
-});
-
-// packages/core/src/read-extract-v1.ts
-var READ_EXTRACT_VERSION, EXTRACT_BLOCK_KINDS;
-var init_read_extract_v1 = __esm({
-  "packages/core/src/read-extract-v1.ts"() {
-    "use strict";
-    READ_EXTRACT_VERSION = "lolly/read-extract-v1";
-    EXTRACT_BLOCK_KINDS = ["text", "table", "chart", "picture", "notes"];
-  }
-});
-
-// packages/core/src/design-package-v1.ts
-var DESIGN_PACKAGE_FORMAT, DESIGN_PACKAGE_VERSION, DESIGN_PACKAGE_ERROR_CODES;
-var init_design_package_v1 = __esm({
-  "packages/core/src/design-package-v1.ts"() {
-    "use strict";
-    DESIGN_PACKAGE_FORMAT = "lolly-package";
-    DESIGN_PACKAGE_VERSION = 1;
-    DESIGN_PACKAGE_ERROR_CODES = [
-      "input.unsupported",
-      "input.unreadable",
-      "authoring.invalid",
-      "asset.invalid",
-      "asset.not-image",
-      "media.mismatch",
-      "media.missing",
-      "reference.unknown",
-      "path.invalid",
-      "export.failed"
-    ];
-  }
-});
-
-// packages/core/src/intent-v1.ts
-var INTENT_RESOLUTION_FORMAT, INTENT_RESOLUTION_VERSION, VISUAL_INTENT_VERSION, INTENT_VOCABULARY_VERSION, INTENT_PURPOSES, INTENT_PURPOSE_MEANINGS, INTENT_ROLES, INTENT_SURFACE_UNITS, INTENT_SURFACES, INTENT_LIMITS, INTENT_FREE_TEXT_FIELDS, TOOL_INTENTS_FILE, TOOL_INTENTS_VERSION, INTENT_FITS, INTENT_PURPOSE_NEEDED;
-var init_intent_v1 = __esm({
-  "packages/core/src/intent-v1.ts"() {
-    "use strict";
-    INTENT_RESOLUTION_FORMAT = "lolly-intent-resolution";
-    INTENT_RESOLUTION_VERSION = 1;
-    VISUAL_INTENT_VERSION = 1;
-    INTENT_VOCABULARY_VERSION = 2;
-    INTENT_PURPOSES = [
-      "announce",
-      "compare",
-      "demonstrate",
-      "direct",
-      "explain",
-      "identify",
-      "invite",
-      "offer",
-      "present",
-      "promote",
-      "recognise",
-      "report",
-      "schedule"
-    ];
-    INTENT_PURPOSE_MEANINGS = Object.freeze({
-      announce: "Tell people that something has happened or is about to.",
-      compare: "Set options, values or results side by side so a reader can weigh them.",
-      demonstrate: "Show how something looks or works, as a mock-up or a framed example.",
-      direct: "Send a reader somewhere: to a place, a room or a link.",
-      explain: "Help a reader understand a subject or a set of numbers.",
-      identify: "Say who someone is and how to reach them.",
-      invite: "Ask a reader to attend something and give them the time and place.",
-      offer: "Say what is on offer and what it costs.",
-      present: "Carry a talk or a meeting, slide by slide.",
-      promote: "Bring a reader to a page, a product or an idea.",
-      recognise: "Honour a person, an achievement or the people behind something.",
-      report: "State results or progress over a period.",
-      schedule: "Say when things happen."
-    });
-    INTENT_ROLES = Object.freeze({
-      address: ["text"],
-      awarddate: ["date"],
-      awardtopic: ["text"],
-      bgImage: ["asset"],
-      body: ["longtext", "text"],
-      company: ["text"],
-      cta: ["text"],
-      currency: ["select"],
-      data: ["longtext", "table", "blocks"],
-      email: ["text"],
-      eventEnd: ["datetime-local"],
-      eventLocation: ["text"],
-      eventName: ["text"],
-      eventStart: ["datetime-local"],
-      firstname: ["text"],
-      heading: ["text"],
-      headshot: ["asset"],
-      image: ["asset"],
-      jobTitle: ["text"],
-      lastname: ["text"],
-      /** The partner's mark in a co-branded piece: the guest's logo, never the lead brand's
-       *  (vocabulary 2, Lolly Work plan 82 M7). The lead brand's own logo is not a role,
-       *  because the design system supplies the look. */
-      partnerMark: ["asset"],
-      phone: ["text"],
-      recipient: ["text"],
-      sender: ["text"],
-      sourceAuthor: ["text"],
-      subheading: ["text"],
-      url: ["url", "text"]
-    });
-    INTENT_SURFACE_UNITS = ["px", "mm", "cm", "in", "pt"];
-    INTENT_SURFACES = Object.freeze([
-      { id: "slide", width: 1920, height: 1080, unit: "px", medium: "screen" },
-      { id: "screen", width: 1600, height: 1e3, unit: "px", medium: "screen" },
-      { id: "social-landscape", width: 1200, height: 628, unit: "px", medium: "screen" },
-      { id: "social-square", width: 1080, height: 1080, unit: "px", medium: "screen" },
-      { id: "social-portrait", width: 1080, height: 1350, unit: "px", medium: "screen" },
-      { id: "story", width: 1080, height: 1920, unit: "px", medium: "screen" },
-      { id: "banner", width: 1200, height: 400, unit: "px", medium: "screen" },
-      { id: "a4-portrait", width: 210, height: 297, unit: "mm", medium: "print" },
-      { id: "a4-landscape", width: 297, height: 210, unit: "mm", medium: "print" },
-      { id: "a3-portrait", width: 297, height: 420, unit: "mm", medium: "print" },
-      { id: "a3-landscape", width: 420, height: 297, unit: "mm", medium: "print" },
-      { id: "a2-portrait", width: 420, height: 594, unit: "mm", medium: "print" },
-      { id: "a2-landscape", width: 594, height: 420, unit: "mm", medium: "print" },
-      { id: "a1-portrait", width: 594, height: 841, unit: "mm", medium: "print" },
-      { id: "letter-portrait", width: 8.5, height: 11, unit: "in", medium: "print" },
-      { id: "letter-landscape", width: 11, height: 8.5, unit: "in", medium: "print" },
-      { id: "business-card", width: 85, height: 55, unit: "mm", medium: "print" }
-    ]);
-    INTENT_LIMITS = Object.freeze({
-      /** UTF-16 units in `prompt`. Enough for a request typed at an agent, not for a brief. */
-      promptChars: 2e3,
-      /** UTF-16 units in each of occasion, audience and region. */
-      freeTextChars: 200,
-      /** Entries in `surfaces`. */
-      surfaces: 32,
-      /** Keys in `content`. The vocabulary is smaller; this bounds what is read before refusing the rest. */
-      contentKeys: 64,
-      /** Nesting depth of a content value. */
-      depth: 16,
-      /** UTF-16 units of the whole request once serialised. */
-      totalChars: 2 * 1024 * 1024,
-      /** UTF-16 units of one tool's `intents.json`. */
-      toolIntentsChars: 64 * 1024,
-      /** Pixels on one side of a sized surface, and its equal in other units once converted. */
-      sidePx: 1e5
-    });
-    INTENT_FREE_TEXT_FIELDS = ["occasion", "audience", "region"];
-    TOOL_INTENTS_FILE = "intents.json";
-    TOOL_INTENTS_VERSION = 1;
-    INTENT_FITS = ["declared", "option", "follows", "natural"];
-    INTENT_PURPOSE_NEEDED = "intent.purpose-needed";
-  }
-});
-
-// packages/core/src/design-compose-v1.ts
-var DESIGN_COMPOSE_TRANSITIONS;
-var init_design_compose_v1 = __esm({
-  "packages/core/src/design-compose-v1.ts"() {
-    "use strict";
-    DESIGN_COMPOSE_TRANSITIONS = ["slide", "fade", "morph", "flight"];
-  }
-});
-
-// packages/core/src/index.ts
-var init_src = __esm({
-  "packages/core/src/index.ts"() {
-    "use strict";
-    init_delivery_v1();
-    init_file_operation_v1();
-    init_host_v1();
-    init_apis();
-    init_preflight();
-    init_money();
-    init_chart_v1();
-    init_design_v1();
-    init_rebrand_v1();
-    init_rebrand_v1();
-    init_rebrand_v1();
-    init_live_v1();
-    init_text_v1();
-    init_slide_master_v1();
-    init_content_inventory_v1();
-    init_read_extract_v1();
-    init_design_package_v1();
-    init_design_compose_v1();
   }
 });
 
@@ -35891,11 +39598,11 @@ __export(emoji_pack_exports, {
   validateEmojiStyle: () => validateEmojiStyle,
   verifyEmojiArtwork: () => verifyEmojiArtwork
 });
-import Ajv3 from "ajv/dist/2020.js";
+import Ajv4 from "ajv/dist/2020.js";
 function schemas2() {
   if (!validators) {
-    const ajv4 = new Ajv3({ strict: true, allErrors: false, ownProperties: true });
-    validators = { pack: ajv4.compile(emoji_pack_v1_schema_default), style: ajv4.compile(emoji_style_v1_schema_default), pin: ajv4.compile(emoji_style_v1_schema_default.$defs.pin) };
+    const ajv5 = new Ajv4({ strict: true, allErrors: false, ownProperties: true });
+    validators = { pack: ajv5.compile(emoji_pack_v1_schema_default), style: ajv5.compile(emoji_style_v1_schema_default), pin: ajv5.compile(emoji_style_v1_schema_default.$defs.pin) };
   }
   return validators;
 }
@@ -41076,9 +44783,9 @@ var init_text_source = __esm({
 });
 
 // engine/src/text-story-document.ts
-import { Ajv as Ajv4 } from "ajv";
+import { Ajv as Ajv5 } from "ajv";
 function schemaValidator() {
-  if (!validator) validator = new Ajv4({ allErrors: false, strict: true, ownProperties: true }).compile(text_document_v1_schema_default);
+  if (!validator) validator = new Ajv5({ allErrors: false, strict: true, ownProperties: true }).compile(text_document_v1_schema_default);
   return validator;
 }
 function unique(items2, id3, label5) {
@@ -41168,8 +44875,8 @@ function parseTextDocument(input) {
   } catch {
     return error("document-json", "The text document is not valid JSON.");
   }
-  const validate = schemaValidator();
-  if (!validate(value2)) return error("document-schema", `Invalid text document at ${validate.errors?.[0]?.instancePath || "/"}: ${validate.errors?.[0]?.message ?? "schema mismatch"}`);
+  const validate2 = schemaValidator();
+  if (!validate2(value2)) return error("document-schema", `Invalid text document at ${validate2.errors?.[0]?.instancePath || "/"}: ${validate2.errors?.[0]?.message ?? "schema mismatch"}`);
   const doc = value2;
   unique(doc.stories, (story) => story.id, "story");
   const styles = unique(doc.styles, (style) => style.id, "style");
@@ -44531,9 +48238,9 @@ var init_text_frame_v1_schema = __esm({
 });
 
 // engine/src/text-frame.ts
-import { Ajv as Ajv5 } from "ajv";
+import { Ajv as Ajv6 } from "ajv";
 function schemaValidator2() {
-  if (!validator2) validator2 = new Ajv5({ strict: true, ownProperties: true }).compile(text_frame_v1_schema_default);
+  if (!validator2) validator2 = new Ajv6({ strict: true, ownProperties: true }).compile(text_frame_v1_schema_default);
   return validator2;
 }
 function textFrameKey(frame) {
@@ -44557,8 +48264,8 @@ function textFrameKey(frame) {
   ]);
 }
 function parseTextFrame(value2) {
-  const validate = schemaValidator2();
-  if (!validate(value2)) throw new TextSourceError("frame-schema", `Invalid text frame at ${validate.errors?.[0]?.instancePath || "/"}: ${validate.errors?.[0]?.message ?? "schema mismatch"}`);
+  const validate2 = schemaValidator2();
+  if (!validate2(value2)) throw new TextSourceError("frame-schema", `Invalid text frame at ${validate2.errors?.[0]?.instancePath || "/"}: ${validate2.errors?.[0]?.message ?? "schema mismatch"}`);
   if (value2.mode === "path" && !value2.path || value2.mode !== "path" && value2.path) throw new TextSourceError("frame-path", "Path settings must belong to a path text frame.");
   if (value2.path) {
     svgPath(value2.path.d);
@@ -44885,9 +48592,9 @@ __export(emoji_source_records_exports, {
   mergeEmojiSourceRecords: () => mergeEmojiSourceRecords,
   readEmojiSourceRecords: () => readEmojiSourceRecords
 });
-import { Ajv as Ajv6 } from "ajv";
+import { Ajv as Ajv7 } from "ajv";
 function schemaValidator3() {
-  if (!validator3) validator3 = new Ajv6({ strict: true, ownProperties: true }).compile(emoji_source_records_v1_schema_default);
+  if (!validator3) validator3 = new Ajv7({ strict: true, ownProperties: true }).compile(emoji_source_records_v1_schema_default);
   return validator3;
 }
 function readEmojiSourceRecords(value2) {
@@ -44895,8 +48602,8 @@ function readEmojiSourceRecords(value2) {
     if (value2.length > 2 * 1024 * 1024) throw new Error("The recorded emoji sources exceed the supported size.");
     value2 = JSON.parse(value2);
   }
-  const validate = schemaValidator3();
-  if (!validate(value2)) throw new Error("The recorded emoji sources are invalid.");
+  const validate2 = schemaValidator3();
+  if (!validate2(value2)) throw new Error("The recorded emoji sources are invalid.");
   return structuredClone(value2);
 }
 function mergeEmojiSourceRecords(sources) {
@@ -48802,6 +52509,7 @@ __export(c2pa_exports, {
   generateSigner: () => generateSigner,
   ingredientFormatOfMime: () => ingredientFormatOfMime,
   isTemplateApproval: () => isTemplateApproval,
+  renditionFromSteps: () => renditionFromSteps,
   urnUuid: () => urnUuid
 });
 function ingredientRelationship(ing) {
@@ -49082,7 +52790,7 @@ function exportActionSteps(format, flags = {}) {
   const upscaled = flags.aiUpscale;
   const aiPlaced = flags.aiIngredients?.length ? flags.aiIngredients : void 0;
   const created = upscaled ? { action: "c2pa.created", digitalSourceType: COMPOSITE_SOURCE_TYPE, description: "Composited from a real image enhanced by a trained algorithm" } : aiPlaced ? { action: "c2pa.created", digitalSourceType: COMPOSITE_SOURCE_TYPE, description: "Composited with ingredient media declared as AI-made" } : screened ? { action: "c2pa.created", digitalSourceType: SCREEN_SOURCE_TYPE, description: captureDescription(cap) } : captured ? { action: "c2pa.created", digitalSourceType: CAPTURE_SOURCE_TYPE, description: captureDescription(cap) } : { action: "c2pa.created", digitalSourceType: DIGITAL_SOURCE_TYPE };
-  const steps = [created];
+  const steps = [flags.rendition ? renditionStep(flags.rendition.action, created) : created];
   if (flags.cmyk) steps.push({ action: "c2pa.color_adjustments", description: "Converted colours to CMYK for print" });
   if (flags.paletteColors) steps.push({ action: "c2pa.color_adjustments", description: `Snapped colours to the brand palette (${flags.paletteColors} colour${flags.paletteColors === 1 ? "" : "s"})` });
   if (flags.marks?.length) steps.push({ action: "c2pa.edited", description: `Added ${joinList(flags.marks)}` });
@@ -49096,6 +52804,14 @@ function exportActionSteps(format, flags = {}) {
   else if (VIDEO_OUTPUTS.has(f)) steps.push({ action: "c2pa.converted", description: `Encoded to ${f.toUpperCase()}` });
   else if (f === "pdf" || f === "pdf-cmyk") steps.push({ action: "c2pa.converted", description: "Rendered to PDF" });
   return steps;
+}
+function renditionStep(action, created) {
+  const declared = created.digitalSourceType && created.digitalSourceType !== DIGITAL_SOURCE_TYPE ? created.digitalSourceType : void 0;
+  return {
+    action,
+    ...declared ? { digitalSourceType: declared } : {},
+    description: RENDITION_DESCRIPTIONS[action] ?? "Edited the picture"
+  };
 }
 function aiPlacedDescription(list4) {
   return `Placed AI-declared ingredient${list4.length === 1 ? "" : "s"}: ${joinList(list4.map((i) => `${i.name} (${AI_GRADE[i.kind]})`))}`;
@@ -49124,6 +52840,11 @@ function aiFactsFromSteps(steps) {
     }
   }
   return { aiIngredients, ...aiUpscale ? { aiUpscale } : {} };
+}
+function renditionFromSteps(steps) {
+  const head2 = steps.find((step) => step.action !== "c2pa.opened");
+  const action = typeof head2?.action === "string" ? head2.action : "";
+  return RENDITION_DESCRIPTIONS[action] !== void 0 && head2?.description === RENDITION_DESCRIPTIONS[action] ? { action } : void 0;
 }
 function captureDescription(cap) {
   if (cap.screen) return cap.microphone ? "Captured from the screen with microphone narration" : "Captured from the screen";
@@ -49379,7 +53100,7 @@ async function buildExternalC2paStore(bytes2, opts = {}) {
     assetHash: { exclusions: [], name: hashName || "whole document", hash: await sha256(bytes2) }
   });
 }
-var isSourceIngredient, HTTP_URL_MAX, boundedText, SHA256_TEXT, INTENT_RECORD_KEYS, INTENT_WORD, INTENT_SURFACE_ID, INTENT_TOOL_ID, INTENT_LANGUAGE, INTENT_RULES, APPROVAL_ID, ISO_INSTANT, APPROVAL_TEMPLATE_ID, FILE_APPROVAL_KEYS, TEMPLATE_APPROVAL_KEYS, isTemplateApproval, te5, subtle4, CborTag, JUMBF_UUID_SUFFIX, boxUuid, UUID_C2PA_STORE, UUID_MANIFEST, UUID_ASSERTION_STORE, UUID_CLAIM, UUID_SIGNATURE, UUID_CBOR_CONTENT, UUID_JSON_CONTENT, COSE_HEADER_ALG, COSE_HEADER_X5CHAIN, isoSeconds, DIGITAL_SOURCE_TYPE, CAPTURE_SOURCE_TYPE, SCREEN_SOURCE_TYPE, GENERATED_SOURCE_TYPE, COMPOSITE_SOURCE_TYPE, ALGORITHMIC_SOURCE_TYPE, RASTER_OUTPUTS, VIDEO_OUTPUTS, INGREDIENT_MIME, AI_GRADE, LOLLY_EXPORT_ASSERTION, LOLLY_RIGHTS_ASSERTION, LOLLY_INTENT_ASSERTION, INTENT_PROMPT_NOTE, LOLLY_APPROVAL_ASSERTION, BMFF_HASH_LABEL, CREATIVE_WORK_ASSERTION, METADATA_ASSERTION, DC_CONTEXT, AI_DISCLOSURE_ASSERTION, AI_MODEL_TYPE_GENERIC, AI_MODEL_TYPES, NAMESPACED_LABEL_RE, HUMAN_OVERSIGHT_LEVELS, SCIENTIFIC_DOMAIN_RE, SEMVER_RE, C2PA_SPEC_VERSION;
+var isSourceIngredient, HTTP_URL_MAX, boundedText, SHA256_TEXT, INTENT_RECORD_KEYS, INTENT_WORD, INTENT_SURFACE_ID, INTENT_TOOL_ID, INTENT_LANGUAGE, INTENT_RULES, APPROVAL_ID, ISO_INSTANT, APPROVAL_TEMPLATE_ID, FILE_APPROVAL_KEYS, TEMPLATE_APPROVAL_KEYS, isTemplateApproval, te5, subtle4, CborTag, JUMBF_UUID_SUFFIX, boxUuid, UUID_C2PA_STORE, UUID_MANIFEST, UUID_ASSERTION_STORE, UUID_CLAIM, UUID_SIGNATURE, UUID_CBOR_CONTENT, UUID_JSON_CONTENT, COSE_HEADER_ALG, COSE_HEADER_X5CHAIN, isoSeconds, DIGITAL_SOURCE_TYPE, CAPTURE_SOURCE_TYPE, SCREEN_SOURCE_TYPE, GENERATED_SOURCE_TYPE, COMPOSITE_SOURCE_TYPE, ALGORITHMIC_SOURCE_TYPE, RASTER_OUTPUTS, VIDEO_OUTPUTS, INGREDIENT_MIME, RENDITION_DESCRIPTIONS, AI_GRADE, LOLLY_EXPORT_ASSERTION, LOLLY_RIGHTS_ASSERTION, LOLLY_INTENT_ASSERTION, INTENT_PROMPT_NOTE, LOLLY_APPROVAL_ASSERTION, BMFF_HASH_LABEL, CREATIVE_WORK_ASSERTION, METADATA_ASSERTION, DC_CONTEXT, AI_DISCLOSURE_ASSERTION, AI_MODEL_TYPE_GENERIC, AI_MODEL_TYPES, NAMESPACED_LABEL_RE, HUMAN_OVERSIGHT_LEVELS, SCIENTIFIC_DOMAIN_RE, SEMVER_RE, C2PA_SPEC_VERSION;
 var init_c2pa2 = __esm({
   "engine/src/c2pa.ts"() {
     "use strict";
@@ -49457,6 +53178,14 @@ var init_c2pa2 = __esm({
       mp3: "audio/mpeg",
       ogg: "audio/ogg",
       avif: "image/avif"
+    };
+    RENDITION_DESCRIPTIONS = {
+      "c2pa.color_adjustments": "Adjusted the colours",
+      "c2pa.filtered": "Applied a filter",
+      "c2pa.converted": "Converted the picture",
+      "c2pa.resized": "Resized the picture",
+      "c2pa.cropped": "Cropped the picture",
+      "c2pa.edited": "Edited the picture"
     };
     AI_GRADE = { full: "AI-generated", partial: "AI-assisted" };
     LOLLY_EXPORT_ASSERTION = "tools.lolly.export";
@@ -52753,7 +56482,8 @@ function placedPicturesOf(store) {
       ...digitalSourceType ? { digitalSourceType } : {}
     });
   }
-  return { ingredients, ...aiFactsFromSteps(steps) };
+  const rendition = ingredients.some((i) => i.relationship === "parentOf") ? renditionFromSteps(steps) : void 0;
+  return { ingredients, ...aiFactsFromSteps(steps), ...rendition ? { rendition } : {} };
 }
 function readParentManifest(store, active) {
   for (const assertion of active.assertions) {
@@ -55887,16 +59617,23 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
       lastExportMeta = meta ? structuredClone(meta) : null;
       const dataExtra = buildDataPayload(tool, format, model2, getHydratedText);
       let ingredients;
+      const renditionOf = tool.manifest.renditionOf;
+      let parentKey;
+      let c2paRendition;
       if (!isOnDevice && meta !== void 0 && host.assets?.credential) {
         const ids2 = /* @__PURE__ */ new Set();
-        const note2 = (v) => {
+        const note2 = (v, parent = false) => {
           if (v && typeof v === "object") {
             const { id: id3, source } = v;
-            if (typeof id3 === "string" && (source === "user" || source === "library")) ids2.add(assetDependency(v).key);
+            if (typeof id3 === "string" && (source === "user" || source === "library")) {
+              const key2 = assetDependency(v).key;
+              ids2.add(key2);
+              if (parent) parentKey = key2;
+            }
           }
         };
         for (const input of model2) {
-          if (input.type === "asset") note2(input.value);
+          if (input.type === "asset") note2(input.value, input.id === renditionOf?.input);
           else if (input.type === "blocks" && Array.isArray(input.value)) {
             const assetFields = (input.fields ?? []).filter((f) => f.type === "asset").map((f) => f.id);
             for (const item2 of input.value) {
@@ -55909,11 +59646,32 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
           try {
             const cred = await host.assets.credential(id3);
             const ing = cred?.store ? (await Promise.resolve().then(() => (init_c2pa_verify(), c2pa_verify_exports))).prepareC2paIngredientFromStore(cred.store, cred.format) : null;
-            if (ing) prepared3.push({ ...ing, relationship: "componentOf" });
+            const parent = id3 === parentKey && !!renditionOf;
+            if (ing) prepared3.push({ ...ing, relationship: parent ? "parentOf" : "componentOf" });
+            if (ing && parent) c2paRendition = { action: renditionOf.action };
           } catch {
           }
         }
         if (prepared3.length) ingredients = prepared3;
+      }
+      if (renditionOf && !c2paRendition && !isOnDevice && meta !== void 0) {
+        const value2 = model2.find((input) => input.id === renditionOf.input && input.type === "asset")?.value;
+        const url = typeof value2?.url === "string" ? value2.url : "";
+        if (url.startsWith("data:")) {
+          try {
+            const { extractC2paStore: extractC2paStore2, prepareC2paIngredientFromStore: prepareC2paIngredientFromStore2 } = await Promise.resolve().then(() => (init_c2pa_verify(), c2pa_verify_exports));
+            const comma = url.indexOf(",");
+            const body = url.slice(comma + 1);
+            const bytes2 = /;base64$/i.test(url.slice(0, comma)) ? base64ToBytes(body) : new TextEncoder().encode(decodeURIComponent(body));
+            const found = extractC2paStore2(bytes2);
+            const ing = found ? prepareC2paIngredientFromStore2(found.store, found.format) : null;
+            if (ing) {
+              ingredients = [...ingredients ?? [], { ...ing, relationship: "parentOf" }];
+              c2paRendition = { action: renditionOf.action };
+            }
+          } catch {
+          }
+        }
       }
       let rightsPlan = null;
       if (!isOnDevice && meta !== void 0 && emojiPass.census.length) {
@@ -55973,6 +59731,7 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
           ...c2paCapture ? { c2paCapture } : {},
           ...c2paTextAdded ? { c2paTextAdded } : {},
           ...c2paAiUpscale ? { c2paAiUpscale } : {},
+          ...c2paRendition ? { c2paRendition } : {},
           ...c2paAiIngredients.length ? { c2paAiIngredients } : {},
           // The attribution this export promised, and the way back for what it
           // delivered. A host that reads its own bytes back calls onReceipt
@@ -56460,6 +60219,7 @@ var init_runtime = __esm({
     init_compose2();
     init_tool_url();
     init_bake();
+    init_bytes();
     init_asset_provider();
     init_captions();
     init_captions_ttml();
@@ -61174,7 +64934,7 @@ var init_document_api = __esm({
     "use strict";
     init_inputs();
     init_runtime();
-    init_validate();
+    init_validate2();
     init_url_mode();
     init_units();
     init_zip();
@@ -67337,14 +71097,14 @@ var init_brand_system_v1_schema = __esm({
 });
 
 // engine/src/brand-system.ts
-import Ajv7 from "ajv";
+import Ajv8 from "ajv";
 function schemaValidator4() {
-  if (!validator4) validator4 = new Ajv7({ allErrors: false }).compile(brand_system_v1_schema_default);
+  if (!validator4) validator4 = new Ajv8({ allErrors: false }).compile(brand_system_v1_schema_default);
   return validator4;
 }
 function readBrandSystem(value2) {
-  const validate = schemaValidator4();
-  if (!validate(value2)) return null;
+  const validate2 = schemaValidator4();
+  if (!validate2(value2)) return null;
   const unique3 = (items2) => new Set(items2.map((v) => v.id)).size === items2.length;
   if (![value2.roles, value2.bindings, value2.rules, value2.guide?.groups ?? []].every(unique3)) return null;
   const roles = new Set(value2.roles.map((v) => v.id));
@@ -79311,7 +83071,7 @@ function breaksAreValid(breaks) {
   }
   return true;
 }
-function parseRateCard(input, digest2, validate) {
+function parseRateCard(input, digest2, validate2) {
   if (digest2 === EXAMPLE_RATECARD_DIGEST) return { error: "example-card" };
   let doc;
   try {
@@ -79320,7 +83080,7 @@ function parseRateCard(input, digest2, validate) {
     return { error: "not-a-rate-card" };
   }
   if (!isObject(doc) || doc.$format !== "lolly-ratecard") return { error: "not-a-rate-card" };
-  if (!validate(doc)) return { error: "not-a-rate-card" };
+  if (!validate2(doc)) return { error: "not-a-rate-card" };
   const currency = doc.currency;
   try {
     new Intl.NumberFormat(void 0, { style: "currency", currency });
@@ -134059,15 +137819,15 @@ ${signals.findings.map((f) => f.label).join("\n")}`;
       break;
     }
     case "schema": {
-      const { default: Ajv10 } = await import("ajv");
-      const ajv4 = new Ajv10({ allErrors: true, strict: true, validateFormats: false });
-      const validate = ajv4.compile(JSON.parse(s("schema")));
-      const valid2 = validate(JSON.parse(text13));
-      out = valid2 ? "Valid against this schema." : JSON.stringify(validate.errors, null, 2);
+      const { default: Ajv11 } = await import("ajv");
+      const ajv5 = new Ajv11({ allErrors: true, strict: true, validateFormats: false });
+      const validate2 = ajv5.compile(JSON.parse(s("schema")));
+      const valid2 = validate2(JSON.parse(text13));
+      out = valid2 ? "Valid against this schema." : JSON.stringify(validate2.errors, null, 2);
       notes.push(
         "JSON Schema draft-07. External references are not fetched. Format annotations are not validated."
       );
-      details = { valid: valid2, errors: validate.errors };
+      details = { valid: valid2, errors: validate2.errors };
       break;
     }
     case "jwt": {
@@ -137030,9 +140790,9 @@ var init_partner_kit_v1 = __esm({
 });
 
 // engine/src/partner-kit.ts
-import Ajv8 from "ajv";
+import Ajv9 from "ajv";
 function schemaValidator5() {
-  if (!validator5) validator5 = new Ajv8({ allErrors: false }).compile(partner_kit_v1_schema_default);
+  if (!validator5) validator5 = new Ajv9({ allErrors: false }).compile(partner_kit_v1_schema_default);
   return validator5;
 }
 function checkPartnerKit(input) {
@@ -137057,9 +140817,9 @@ function checkPartnerKit(input) {
     size = utf8Length(text13);
     if (size > PARTNER_KIT_MAX_BYTES) return tooLarge2(size);
   }
-  const validate = schemaValidator5();
-  if (!validate(value2)) {
-    const error2 = validate.errors?.[0];
+  const validate2 = schemaValidator5();
+  if (!validate2(value2)) {
+    const error2 = validate2.errors?.[0];
     const path = error2?.instancePath || "";
     return {
       ok: false,
@@ -157683,7 +161443,7 @@ var init_src2 = __esm({
     init_chart_spec();
     init_src();
     init_catalog_integrity();
-    init_validate();
+    init_validate2();
     init_asset_provider();
     init_document_api();
     init_runtime();
@@ -167719,12 +171479,12 @@ async function loadSchemaValidator() {
   }
   if (!schemaFile) return structuralPlanProblems;
   const schema2 = JSON.parse(readFileSync2(schemaFile, "utf8"));
-  const { default: Ajv10 } = await import("ajv/dist/2020.js");
-  const ajv4 = new Ajv10({ allErrors: true, strict: false });
-  const validate = ajv4.compile(schema2);
+  const { default: Ajv11 } = await import("ajv/dist/2020.js");
+  const ajv5 = new Ajv11({ allErrors: true, strict: false });
+  const validate2 = ajv5.compile(schema2);
   return (doc) => {
-    if (validate(doc)) return structuralPlanProblems(doc);
-    return (validate.errors ?? []).map((error2) => `${error2.instancePath || "/"} ${error2.message ?? "is not valid"}`);
+    if (validate2(doc)) return structuralPlanProblems(doc);
+    return (validate2.errors ?? []).map((error2) => `${error2.instancePath || "/"} ${error2.message ?? "is not valid"}`);
   };
 }
 async function planProblems(doc) {
@@ -185133,6 +188893,7 @@ function buildExportC2paOpts(o) {
     if (!aiIngredients.some((have) => have.name === piece.name && have.kind === piece.kind)) aiIngredients.push(piece);
   }
   const aiUpscale = o.carried?.aiUpscale;
+  const rendition = o.carried?.rendition && o.ingredients?.some((i) => i.relationship === "parentOf") ? o.carried.rendition : void 0;
   return {
     title: name,
     claimGenerator: "Lolly lolly.tools",
@@ -185155,7 +188916,7 @@ function buildExportC2paOpts(o) {
     dates: o.signer && o.signerValidity ? { notBefore: o.signerValidity.notBefore, notAfter: o.signerValidity.notAfter } : { notBefore: new Date(Date.now() - 6e4), notAfter: new Date(Date.now() + days * 864e5) },
     // Carry a genAI source forward so the record stays accurate (default drops both).
     ...o.ingredients?.length ? { ingredients: o.ingredients } : {},
-    ...o.actions?.length ? { actions: o.actions } : aiIngredients.length || aiUpscale ? { actions: exportActionSteps(format, { aiIngredients, ...aiUpscale ? { aiUpscale } : {} }) } : {},
+    ...o.actions?.length ? { actions: o.actions } : aiIngredients.length || aiUpscale || rendition ? { actions: exportActionSteps(format, { aiIngredients, ...aiUpscale ? { aiUpscale } : {}, ...rendition ? { rendition } : {} }) } : {},
     ...o.aiDisclosure ? { aiDisclosure: o.aiDisclosure } : aiIngredients.length ? { aiDisclosure: {} } : {},
     ...o.specVersion ? { specVersion: o.specVersion } : {}
   };
@@ -194640,8 +198401,8 @@ var schemaCheck = null;
 async function planSchemaProblems(doc) {
   schemaCheck ??= (async () => {
     const { default: Ajv2020 } = await import("ajv/dist/2020.js");
-    const validate = new Ajv2020({ allErrors: true, strict: false }).compile(rebrand_plan_v1_schema_default);
-    return (value2) => validate(value2) ? [] : (validate.errors ?? []).map((error2) => `${error2.instancePath || "/"} ${error2.message ?? "is not valid"}`);
+    const validate2 = new Ajv2020({ allErrors: true, strict: false }).compile(rebrand_plan_v1_schema_default);
+    return (value2) => validate2(value2) ? [] : (validate2.errors ?? []).map((error2) => `${error2.instancePath || "/"} ${error2.message ?? "is not valid"}`);
   })();
   return (await schemaCheck)(doc);
 }
@@ -197358,8 +201119,8 @@ var inventoryCheck = null;
 async function inventoryProblems(doc) {
   inventoryCheck ??= (async () => {
     const { default: Ajv2020 } = await import("ajv/dist/2020.js");
-    const validate = new Ajv2020({ allErrors: true, strict: false }).compile(content_inventory_v1_schema_default);
-    return (value2) => validate(value2) ? [] : (validate.errors ?? []).map((e) => `${e.instancePath || "/"} ${e.message ?? "is not valid"}`);
+    const validate2 = new Ajv2020({ allErrors: true, strict: false }).compile(content_inventory_v1_schema_default);
+    return (value2) => validate2(value2) ? [] : (validate2.errors ?? []).map((e) => `${e.instancePath || "/"} ${e.message ?? "is not valid"}`);
   })();
   return (await inventoryCheck)(doc);
 }
@@ -202341,7 +206102,7 @@ init_src();
 import { lookup as lookup3 } from "node:dns/promises";
 import { request as request2 } from "node:https";
 import { BlockList as BlockList2, isIP as isIP3 } from "node:net";
-import Ajv9 from "ajv";
+import Ajv10 from "ajv";
 
 // packages/core/src/live-invite-v1.ts
 function readLiveInvitation(value2) {
@@ -202384,8 +206145,8 @@ var AGENT_TOOLS = LIVE_TOOLS.map((tool) => ({
   securitySchemes: [{ type: "noauth" }],
   _meta: { securitySchemes: [{ type: "noauth" }] }
 }));
-var ajv3 = new Ajv9({ strict: false });
-var validators2 = new Map(AGENT_TOOLS.map((tool) => [tool.name, ajv3.compile(tool.inputSchema)]));
+var ajv4 = new Ajv10({ strict: false });
+var validators2 = new Map(AGENT_TOOLS.map((tool) => [tool.name, ajv4.compile(tool.inputSchema)]));
 var transition = new BlockList2();
 for (const [network, prefix] of [["::ffff:0:0", 96], ["64:ff9b::", 96], ["64:ff9b:1::", 48], ["2002::", 16], ["2001::", 32]]) transition.addSubnet(network, prefix, "ipv6");
 var publicRelayAddress = (address) => isPublicAddress(address) && !(isIP3(address) === 6 && transition.check(address, "ipv6"));
@@ -202438,8 +206199,8 @@ async function requestAgentRelay(invitation, path, body) {
   });
 }
 async function callAgentTool(name, args, transport = requestAgentRelay) {
-  const validate = validators2.get(name);
-  if (!validate?.(args)) return { isError: true, content: [{ type: "text", text: "Use this tool's declared fields, including invitation on every call and documentId, ifRevision and transactionId when editing." }] };
+  const validate2 = validators2.get(name);
+  if (!validate2?.(args)) return { isError: true, content: [{ type: "text", text: "Use this tool's declared fields, including invitation on every call and documentId, ifRevision and transactionId when editing." }] };
   const invitation = readLiveInvitation(args.invitation);
   if (!invitation) return { isError: true, content: [{ type: "text", text: "Ask the person for the complete invitation from Share > Invite an agent." }] };
   const params2 = { ...args };
