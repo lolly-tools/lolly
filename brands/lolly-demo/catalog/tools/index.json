@@ -10884,7 +10884,7 @@
       "id": "sandbox",
       "name": "Sandbox",
       "description": "Paste HTML, CSS, JS - or a JSX/TypeScript component - and watch it run in a private, offline sandbox. Perfect for previewing code from an AI assistant.",
-      "version": "1.8.0",
+      "version": "1.9.0",
       "status": "official",
       "category": "utility",
       "tags": [
