@@ -24,6 +24,8 @@
 # FETCH_RELEASE_MAX_TIME (seconds, default 120) bounds each attempt on the
 # public URL, so a stalled connection leaves time for the API route.
 set -euo pipefail
+# Never trace this script, even under bash -x: a traced line that reads the token prints it.
+{ set +x; } 2> /dev/null
 
 fail() { printf 'fetch-release-asset: %s\n' "$*" >&2; exit 1; }
 

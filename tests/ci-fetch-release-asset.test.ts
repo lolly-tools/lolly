@@ -14,7 +14,7 @@ import { fileURLToPath } from 'node:url';
 const SCRIPT = join(dirname(fileURLToPath(import.meta.url)), '..', 'scripts', 'ci', 'fetch-release-asset.sh');
 const TOKEN = 'synthetic-token-value-7f3a';
 
-function run(options: { curl: 'ok' | 'fail'; gh: 'ok' | 'fail' | 'absent'; env?: Record<string, string>; args?: string[] }) {
+function run(options: { curl: 'ok' | 'fail'; gh: 'ok' | 'fail' | 'absent'; env?: Record<string, string>; args?: string[]; trace?: boolean }) {
   const dir = mkdtempSync(join(tmpdir(), 'lolly-fetch-release-'));
   try {
     const bin = join(dir, 'bin'), out = join(dir, 'out');
@@ -42,7 +42,7 @@ function run(options: { curl: 'ok' | 'fail'; gh: 'ok' | 'fail' | 'absent'; env?:
     const env = { PATH: bin, ...options.env };
     const output = join(out, 'asset.tar.gz');
     const args = options.args ?? ['rustsec/rustsec', 'cargo-audit/v0.22.2', 'cargo-audit-x86_64-unknown-linux-musl-v0.22.2.tgz', output];
-    const result = spawnSync('/bin/bash', [SCRIPT, ...args], { env, encoding: 'utf8' });
+    const result = spawnSync('/bin/bash', [...(options.trace ? ['-x'] : []), SCRIPT, ...args], { env, encoding: 'utf8' });
     const calls = existsSync(log) ? readFileSync(log, 'utf8') : '';
     return {
       status: result.status, stdout: result.stdout, stderr: result.stderr, calls,
@@ -75,6 +75,14 @@ test('a failing release URL falls back to the REST API, and the token stays in t
   assert.match(result.stdout, /::warning::Release download failed/);
   assert.match(result.stdout, /through the REST API/);
   assert.deepEqual(result.leftovers, []);
+});
+
+test('tracing with bash -x never prints the token', () => {
+  for (const env of [{ GH_TOKEN: TOKEN }, { GITHUB_TOKEN: TOKEN }]) {
+    const result = run({ curl: 'fail', gh: 'ok', env, trace: true });
+    assert.equal(result.status, 0, result.stderr);
+    assert.doesNotMatch(result.stdout + result.stderr, new RegExp(TOKEN));
+  }
 });
 
 test('when both routes fail the step fails and no file is left behind', () => {
