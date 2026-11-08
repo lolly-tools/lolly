@@ -593,7 +593,7 @@ function leadingNumber(value: unknown, fallback: number): number {
   return Number.isFinite(n) ? n : fallback;
 }
 /** The renderer's `boolVal`: true, 1, yes or on, and false, 0, no or off, in any case; anything else is `fallback`. */
-function designBool(value: unknown, fallback: boolean): boolean {
+export function designBool(value: unknown, fallback: boolean): boolean {
   if (value === true || value === false) return value;
   if (value === null || value === undefined || value === '') return fallback;
   const s = String(value).toLowerCase();

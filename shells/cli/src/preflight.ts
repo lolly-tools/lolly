@@ -105,6 +105,7 @@ import {
   unknownFlags,
 } from './run.ts';
 import { createCliBridge } from './bridge.ts';
+import { settleThemeChoices } from './token-axes-report.ts';
 import { isOn } from './args.ts';
 import { useColor } from './output.ts';
 import { EXIT } from './exit-codes.ts';
@@ -268,10 +269,6 @@ async function run(rest: string[], flags: Record<string, string>): Promise<numbe
   const tool = await loadToolOrThrow(toolId, readToolFile, { lang: normalizeLang(params.lang) ?? undefined });
   const profile = await readProfile(params['user-profile']);
   const { runDesignSystem } = await designSystemForRun(tool.manifest.id, fileFlag, undefined);
-  const host = await createCliBridge({
-    dom, profile, networkAllowlist: tool.manifest.network?.allowlist,
-    ...(runDesignSystem ? { tokensDocument: runDesignSystem } : {}),
-  });
 
   // Collector-side caveats. They go BOTH to stderr (so an interactive reader sees
   // them beside the report) and into the artifact as `info` findings, because
@@ -330,6 +327,13 @@ async function run(rest: string[], flags: Record<string, string>): Promise<numbe
   const query = await expandQuery(rawQuery);
   const state = parseUrlState(query, tool.manifest);
   const { values, width, height, unit, dpi, password, c2pa, bleed, imprint, durable, cuts, hdr } = state;
+  // Built after the query is parsed, as `lolly run` builds it, so the bridge reads the
+  // link's `_themes` choice: the palette counted below is the one the export separates.
+  const host = await createCliBridge({
+    dom, profile, networkAllowlist: tool.manifest.network?.allowlist,
+    tokenSelection: state.tokenSelection,
+    ...(runDesignSystem ? { tokensDocument: runDesignSystem } : {}),
+  });
   // `--input.<id>=<value>` - the explicit input namespace (contract B7), applied here
   // exactly as `runToolCli` applies it, and for the same reason: preflighting a job the
   // render would not produce is worse than not preflighting at all. It is the permanent,
@@ -347,7 +351,10 @@ async function run(rest: string[], flags: Record<string, string>): Promise<numbe
   let modelPhase: 'declared' | 'post-init' = 'post-init';
   let runtimeModel: Array<{ id: string; value: unknown }> = [];
   try {
-    const runtime = await createRuntime(tool, host, values);
+    const runtime = await createRuntime(tool, host, values, { tokenSelection: state.tokenSelection });
+    // A choice the tool's `tokenAxes` ignores is said, and the bridge follows the runtime's
+    // selection, exactly as on a render.
+    settleThemeChoices(host, runtime, state.tokenSelection, tool.manifest.name);
     runtimeModel = runtime.getModel() as Array<{ id: string; value: unknown }>;
     model = runtime.getModel() as unknown as readonly PreflightInput[];
   } catch (e) {

@@ -112,3 +112,80 @@ test('only the still raster formats read the page, and only when the export is s
   }
   await recordDrawnPictures(root, 'png', undefined);
 });
+
+// D2 (2026-11-07): an animated or video export of the same page recorded none of its
+// pictures. The frame source now records, at each captured frame's pose, the pictures
+// that frame draws; a film records the pictures of each plate it draws in some exported
+// frame.
+test('a clip records each picture any of its frames draws, once, and only when stamped', async () => {
+  const { recordFramePictures } = await import('./export-picture-credentials.ts');
+  const early = await signedPng('Shown in the first frame');
+  const late = await signedPng('Shown later', GENERATED_SOURCE_TYPE);
+  const root = page(`<img id="a" src="${early}"><img id="b" style="opacity:0" src="${late}"><img id="c" style="display:none" src="${await signedPng('Never shown')}">`);
+  await recordFramePictures(root, undefined);                  // an unstamped clip: nothing to record into
+  const sink: IngredientCredential[] = [];
+  await recordFramePictures(root, sink);                       // frame 1: only the first picture is drawn
+  assert.deepEqual(sink.map((i) => i.title), ['Shown in the first frame']);
+  (root.querySelector('#b') as HTMLElement).style.opacity = '1';
+  await recordFramePictures(root, sink);                       // a later frame fades the second one in
+  await recordFramePictures(root, sink);
+  assert.deepEqual(sink.map((i) => i.title), ['Shown in the first frame', 'Shown later'], 'each picture once, in the order the clip shows them');
+  assert.ok(sink.every((i) => i.relationship === 'componentOf'));
+  assert.equal(sink[1]!.digitalSourceType, GENERATED_SOURCE_TYPE);
+});
+
+test('a film records the pictures its plates draw: drawn layers, their subtrees and the stage background', async () => {
+  const { recordStagePictures } = await import('./export-picture-credentials.ts');
+  const root = page(`
+    <style>.seq-off { display: none }</style>
+    <div id="stage">
+      <img src="${await signedPng('On the stage background')}">
+      <div id="drawn" class="lolly-box seq-off"><img src="${await signedPng('Drawn, off the playhead')}">
+        <div id="nested" class="lolly-box"><img src="${await signedPng('Nested, in the parent plate')}"></div></div>
+      <div id="slide" data-pdf-page data-t-start="0">
+        <div class="lolly-box"><img src="${await signedPng('On the slide')}"></div>
+        <div id="later" class="lolly-box"><img src="${await signedPng('Timed after every exported frame')}"></div></div>
+      <div id="out" class="lolly-box"><img src="${await signedPng('Never in a frame')}"></div>
+      <div id="loose" class="lolly-box"><img src="${await signedPng('A box the background hides')}"></div>
+    </div>`);
+  const el = (id: string): Element => root.querySelector(`#${id}`)!;
+  const layers = [
+    { el: el('drawn'), drawn: true },
+    { el: el('nested'), drawn: false },
+    { el: el('slide'), drawn: true, hidden: [el('later')] },
+    { el: el('out'), drawn: false },
+  ];
+  const own = { offClass: 'seq-off', backgroundHides: '.lolly-box, [data-pdf-page][data-t-start]' };
+  const sink: IngredientCredential[] = [];
+  await recordStagePictures(el('stage'), layers, sink, own);
+  assert.deepEqual(sink.map((i) => i.title), ['Drawn, off the playhead', 'Nested, in the parent plate', 'On the slide', 'On the stage background'],
+    'a box the playhead hides is still in its plate, and a plate holds its whole subtree');
+  assert.ok(el('drawn').classList.contains('seq-off'), 'the playhead class is put back');
+  await recordStagePictures(el('stage'), layers, undefined, own);
+  assert.equal(sink.length, 4, 'an unstamped film reads no picture');
+});
+
+test('posedFrame runs the record at the frame pose, whether or not it takes the frame itself', async () => {
+  const { posedFrame } = await import('./frame-clock.ts');
+  const order: string[] = [];
+  const plain = document.createElement('div');
+  assert.equal(await posedFrame(plain, 0, null, async () => 'clone', async () => { order.push('posed'); }), null);
+  assert.equal(await posedFrame(plain, 0, async () => { order.push('shot'); return 'shot'; }, async () => 'clone', async () => { order.push('posed'); }), 'shot');
+  assert.deepEqual(order, ['posed', 'posed', 'shot'], 'recorded before the caller or the screenshot takes the frame');
+});
+
+test('each member of a bundle keeps its own record, so one member\'s pictures never reach another\'s credential', async () => {
+  const { memberIngredientOpts } = await import('./export-shared.ts');
+  const given = { title: 'Given by the caller' } as IngredientCredential;
+  const bundle = { c2pa: true, _ingredientSink: [given] };
+  const first = memberIngredientOpts(bundle);
+  const second = memberIngredientOpts(bundle);
+  first._ingredientSink!.push({ title: 'Only in the MP4' } as IngredientCredential);
+  assert.deepEqual(second._ingredientSink!.map((i) => i.title), ['Given by the caller'], 'each starts from what the caller gave');
+  assert.equal(bundle._ingredientSink.length, 1);
+  const { readFileSync } = await import('node:fs');
+  const exp = readFileSync(new URL('./export.ts', import.meta.url), 'utf8');
+  assert.match(exp, /renderFormat\(node, f, memberIngredientOpts\(memberOpts\)\)/, 'the ZIP renders each member with its own record');
+  assert.match(exp, /renderPresentationKit\(node, memberOpts, \(n, f, o\) => renderFormat\(n, f, memberIngredientOpts\(o\)\), \(n, f, o\) => renderPreparedFormat\(n, f, memberIngredientOpts\(o\)\)\)/,
+    'and so does a presentation kit, member by member');
+});
