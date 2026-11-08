@@ -640,6 +640,19 @@ export function printMarkNames(opts: ExportOpts): string[] {
   return marks;
 }
 
+/**
+ * A bundle member's own options: its ingredient record starts from what the caller gave
+ * the bundle, so the pictures and sources one member draws never reach another
+ * member's credential (a full MP4 beside a GIF capped short of the same film).
+ */
+export function memberIngredientOpts(opts: ExportOpts): ExportOpts {
+  return {
+    ...opts,
+    ...(opts._ingredientSink ? { _ingredientSink: [...opts._ingredientSink] } : {}),
+    ...(opts._sourceIngredientSink ? { _sourceIngredientSink: [...opts._sourceIngredientSink] } : {}),
+  };
+}
+
 export function foldIngredientSinks(opts: ExportOpts): void {
   if (opts._ingredientSink?.length) {
     // A source ingredient (no credential of its own) has no manifest label; it never collides.

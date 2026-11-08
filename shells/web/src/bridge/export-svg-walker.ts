@@ -9,7 +9,7 @@
 import { bakeNestedSvgPaint } from './export-svg-bake.ts';
 import { inlinePicture, isPaintSkipped } from './export-picture-credentials.ts';
 // export.ts reads the shared picture rule through the walker it already imports.
-export { inlinePicture, isPaintSkipped, recordDrawnPictures } from './export-picture-credentials.ts';
+export { inlinePicture, isPaintSkipped, recordDrawnPictures, recordFramePictures } from './export-picture-credentials.ts';
 import { canCarryWatermark, parseDropShadowFilter, splitCssArgs, parseConicGradient, toCssPx, toCssLength, parseClipShape, parseCssMatrix, isAxisAlignedMat, matToSvg, matAboutPivot, isNonAffineTransform, CSS_DPI, parseBoxShadow, roundedRectPath, insetCorners, gaussianShadowRings, uniformRadius } from '@lolly/engine';
 import type { Mat2D } from '@lolly/engine';
 import { textStrokeAttrs, canVectoriseText, textBaselineY, applyTextTransform } from './text-svg.ts';

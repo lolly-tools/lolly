@@ -6,8 +6,8 @@
  * Two defects this holds closed. A Design page with two placed uploads that each carry a
  * credential got no credential at all: each was recorded as the export's `parentOf`, and a
  * manifest may hold one. And a PNG or PDF of a page with a `data:` picture never recorded the
- * picture, where the SVG of the same page did. Read with verifyC2pa, and with c2patool where
- * it is installed.
+ * picture, where the SVG of the same page did; a GIF or video of it recorded neither. Read
+ * with verifyC2pa, and with c2patool where it is installed.
  *
  * Runs where a browser is named (LOLLY_BROWSER_CHANNEL=chromium or LOLLY_BROWSER_PATH).
  */
@@ -158,6 +158,25 @@ test('web link: Darkroom, Filter and Asset Export record their signed picture as
         assert.deepEqual(store.manifests[store.active_manifest]!.ingredients?.map((i) => i.relationship), ['parentOf']);
       }
     });
+  }
+});
+
+// D2: a GIF or a video of the same page recorded neither picture, on both motion routes:
+// the DOM frame capture (an untimed page) and the sequence compositor (a timed one).
+test('web link: a Design page with two signed data: pictures records both in its GIF and MP4, untimed and timed', { skip, timeout: 900_000 }, async () => {
+  for (const timed of [false, true]) {
+    const boxes = [
+      { id: 'page', kind: 'frame', name: 'Page', x: 0, y: 0, w: 800, h: 600, bg: '#ffffff' },
+      { id: 'photo', kind: 'image', frame: 'page', x: 40, y: 40, w: 320, h: 200, image: dataUrl(photo), ...(timed ? { start: 0, dur: 2 } : {}) },
+      { id: 'sky', kind: 'image', frame: 'page', x: 400, y: 300, w: 320, h: 200, image: dataUrl(sky), ...(timed ? { start: 1, dur: 2 } : {}) },
+    ];
+    for (const format of ['gif', 'mp4']) {
+      await withPage('design', async (page, base) => {
+        const download = page.waitForEvent('download', { timeout: 300_000 });
+        await page.goto(`${base}/#/tool/design?boxes=${encodeURIComponent(JSON.stringify(boxes))}&w=800&h=600${timed ? '' : '&seconds=1'}&format=${format}&export`, { waitUntil: 'commit' });
+        assert.deepEqual(await placedIn(new Uint8Array(await readFile((await (await download).path())!)), format), BOTH, `${timed ? 'timed' : 'untimed'} ${format}`);
+      });
+    }
   }
 });
 

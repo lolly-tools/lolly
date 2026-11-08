@@ -79,11 +79,11 @@ import { isOwnProfile, resolveEmbeddedProfile } from '../lib/press-profile-embed
 import { printSeparation } from '../lib/cmyk-separation.ts';
 import { rgbaToCmyk } from './export-cmyk-raster.ts';
 import type { EmbedResolution } from '../lib/press-profile-embed.ts';
-import { _host, dropInlinedCredentials, canvasToBlob, imprintCanvas, exportDims, getDomToImage, swapBlobUrls, thumbnailClone, fontMetricsPx, MAX_RASTER_PX, makeRoundedFill, setExportHost, foldIngredientSinks, printMarkNames } from './export-shared.ts';
+import { _host, dropInlinedCredentials, canvasToBlob, imprintCanvas, exportDims, getDomToImage, swapBlobUrls, thumbnailClone, fontMetricsPx, MAX_RASTER_PX, makeRoundedFill, setExportHost, foldIngredientSinks, printMarkNames, memberIngredientOpts } from './export-shared.ts';
 import { beginFrameClock, renderFrameAt, endFrameClock, withStillHold, posedFrame } from './frame-clock.ts';
 import { isTopTailStage, isRecordStage } from './export-shared.ts';
 import type { WebHost, ExportOpts, ExportDims, ImprintState, Rgba } from './export-shared.ts';
-import { renderSvgFromHtml, stripCommentNodes, inlineBlobUrlsInEl, inlineSvgFromImg, imprintEmbedCanvas, isPaintSkipped, inlinePicture, recordDrawnPictures, rotationPivot, rasterizePosedNodeToDataUrl, effectSpillCss, detectUnsupportedCss, rasterizeNodeToDataUrl, firstCssUrl, cssUrlToHref, bakeImageFilter, mergeDeco, decoFlags, pdfInlineNonText, type Deco } from './export-svg-walker.ts';
+import { renderSvgFromHtml, stripCommentNodes, inlineBlobUrlsInEl, inlineSvgFromImg, imprintEmbedCanvas, isPaintSkipped, inlinePicture, recordDrawnPictures, recordFramePictures, rotationPivot, rasterizePosedNodeToDataUrl, effectSpillCss, detectUnsupportedCss, rasterizeNodeToDataUrl, firstCssUrl, cssUrlToHref, bakeImageFilter, mergeDeco, decoFlags, pdfInlineNonText, type Deco } from './export-svg-walker.ts';
 import { designOpsSvg, renderDesignOpsPdf } from './export-design-ops.ts';
 import { finishPng, durableEmbedCanvas } from './export-raster-finish.ts';
 import { rasterStyle, coverRasterStyle } from './export-raster-style.ts';
@@ -4260,7 +4260,9 @@ export async function createFrameSource(node: Element, opts: ExportOpts & { fram
       scrubAnimations(node, t * durationMs, scrubbedAnims);
       // A Node caller's real screenshot replaces dom-to-image, and SMIL (which
       // scrubAnimations cannot reach) is posed at this frame's time: see posedFrame.
-      const posed = await posedFrame(node, t * durationMs, window.__lollyCaptureScreenshot ? () => captureViaExternalScreenshot(targetW, targetH, window.__lollyCaptureScreenshot!) : null, () => lib.toCanvas(node, dtoOpts));
+      // A stamped clip records the pictures each frame draws once the frame is posed,
+      // SMIL included, as a still records the ones it paints (#779).
+      const posed = await posedFrame(node, t * durationMs, window.__lollyCaptureScreenshot ? () => captureViaExternalScreenshot(targetW, targetH, window.__lollyCaptureScreenshot!) : null, () => lib.toCanvas(node, dtoOpts), () => recordFramePictures(node, opts._ingredientSink));
       if (posed) return posed;
       // ── Direct-canvas capture (opt-in, per-node) ──────────────────────────────
       // A raster tool that already holds the FINISHED frame on a working <canvas>
@@ -4396,11 +4398,11 @@ async function renderZip(node: Element, opts: ExportOpts): Promise<Blob> {
   const members: Array<{ name: string; bytes: Uint8Array }> = [];
   if (opts.portableDocument) {
     const { renderPresentationKit } = await import('./export-presentation-kit.ts');
-    const kit = await renderPresentationKit(node, memberOpts, renderFormat, renderPreparedFormat);
+    const kit = await renderPresentationKit(node, memberOpts, (n, f, o) => renderFormat(n, f, memberIngredientOpts(o)), (n, f, o) => renderPreparedFormat(n, f, memberIngredientOpts(o)));
     if (kit) return packZip(kit, opts);
   }
   for (const f of (opts.bundleFormats ?? []).filter(x => x !== 'zip')) {
-    const blob = await renderFormat(node, f, memberOpts);
+    const blob = await renderFormat(node, f, memberIngredientOpts(memberOpts));
     members.push({ name: zipMemberName(base, f), bytes: new Uint8Array(await blob.arrayBuffer()) });
   }
   return packZip(members, opts);
