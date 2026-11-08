@@ -137257,22 +137257,30 @@ function guestUnmeasuredText(entry2) {
       return `${marksText(n7)}: the document has more layers and marks than the check compares, so the rest were not measured`;
     case "findings-limit":
       return `${n7 === 1 ? "one more finding" : `${n7} more findings`} past the first ${entry2.limit ?? MAX_FINDINGS}, which are not listed`;
+    case "custom-css":
+      return "the document's own CSS: the CSS can restyle any layer, and the check reads each layer as Design draws the layer without that CSS";
   }
 }
-function movesOrFloats(row) {
+function movesOrFloats(row, styled) {
+  const keys2 = Object.keys(row);
+  if (keys2.length > MAX_ROW_FIELDS) return true;
+  if (styled && isSet(row.cls)) return true;
   if (isSet(row.kf) || isSet(row.hold) || isSet(row.split) || designNum(row.build, 0) >= 1 || isSet(row.matchOf) || isSet(row.animationId) || isSet(row.animationEdits)) return true;
   if (isSet(row.enter) || isSet(row.exit)) return true;
   if (designNum(row.z, 0) !== 0 || designNum(row.rx, 0) !== 0 || designNum(row.ry, 0) !== 0) return true;
   if (isSet(row.route) || isSet(row.bindStart) || isSet(row.bindEnd) || isSet(row.headStart) || isSet(row.headEnd)) return true;
   if (row.layout === "flex" || row.layout === "grid" || isSet(row.layoutOwner) || row.kind === "group" && (row.layoutW === "hug" || row.layoutH === "hug")) return true;
-  for (const key2 of Object.keys(row)) if (!GUEST_MARK_FIELDS.has(key2) && !key2.startsWith("__") && isSet(row[key2])) return true;
+  for (const key2 of keys2) {
+    if (PROTOTYPE_KEYS.has(key2)) return true;
+    if (!GUEST_MARK_FIELDS.has(key2) && !key2.startsWith("__") && isSet(row[key2])) return true;
+  }
   return false;
 }
-function reachOf(row, kind, ancestors) {
+function reachOf(row, kind, ancestors, floats) {
   if (kind === "frame") return { reach: "exact", margin: 0 };
-  if (movesOrFloats(row) || ancestors.some((a) => a.kind !== "frame" && movesOrFloats(a))) return { reach: "anywhere", margin: 0 };
+  if (floats(row) || ancestors.some((a) => a.kind !== "frame" && floats(a))) return { reach: "anywhere", margin: 0 };
   const margin = (stroked(row) ? Math.max(...strokeWidths(row)) : 0) + (shadowed(row) ? Math.abs(num14(row.shadowX)) + Math.abs(num14(row.shadowY)) + 3 * Math.max(0, num14(row.shadowBlur, 10)) : 0) + 3 * Math.max(0, num14(row.blur));
-  const local2 = margin > 0 || turnedRow(row) || shapeOf(row) !== "rect" || isSet(row.clip) || kind === "path" || isSet(row.path) || !MODELLED_KINDS.has(kind);
+  const local2 = margin > 0 || turnedRow(row) || shapeOf(row) !== "rect" || isSet(row.clip) || kind === "path" || isSet(row.path) || !MODELLED_KINDS.has(kind) || isSet(row.textStory) || isSet(row.textFrame);
   return { reach: local2 ? "local" : "exact", margin };
 }
 function colourCover(value2, resolve8) {
@@ -137342,10 +137350,20 @@ function intersect2(a, b) {
   const x = Math.max(a.x, b.x), y = Math.max(a.y, b.y);
   return { x, y, w: Math.max(0, Math.min(a.x + a.w, b.x + b.w) - x), h: Math.max(0, Math.min(a.y + a.h, b.y + b.h) - y) };
 }
+function rendererNumbers(row) {
+  const out = { ...row };
+  for (const key2 of NUMBER_FIELDS) {
+    if (typeof out[key2] !== "string") continue;
+    const n7 = designNum(out[key2], Number.NaN);
+    if (Number.isFinite(n7)) out[key2] = n7;
+    else delete out[key2];
+  }
+  return out;
+}
 function placeMark(row, base, measure3) {
   let op;
   try {
-    op = compileDesignRow(row, { x: 0, y: 0 });
+    op = compileDesignRow(rendererNumbers(row), { x: 0, y: 0 });
   } catch {
     return null;
   }
@@ -137458,6 +137476,16 @@ function groundOutcomes(list4) {
   return below;
 }
 function drawnLayers(capped, measure3, unmeasured) {
+  const styled = typeof measure3.customCss === "string" && measure3.customCss.trim() !== "";
+  const classified = /* @__PURE__ */ new Map();
+  const floats = (row) => {
+    let known3 = classified.get(row);
+    if (known3 === void 0) {
+      known3 = movesOrFloats(row, styled);
+      classified.set(row, known3);
+    }
+    return known3;
+  };
   let hierarchy = null;
   try {
     hierarchy = designHierarchyIndex(capped);
@@ -137483,6 +137511,7 @@ function drawnLayers(capped, measure3, unmeasured) {
     const id3 = keyOf3(row.id);
     if (hidden2(row) || id3 && hierarchy?.flags.get(id3)?.hidden === true) return;
     const ancestors = ancestorsOf(id3);
+    if (ancestors.some(hidden2)) return;
     const opacity = ancestors.filter((a) => a.kind === "group" || a.kind === "frame").reduce((o, a) => o * opacityOf(a), opacityOf(row));
     if (opacity <= 0) return;
     const time2 = timing(row);
@@ -137492,9 +137521,11 @@ function drawnLayers(capped, measure3, unmeasured) {
     const frame = kind === "frame" ? id3 : owner3 ? keyOf3(owner3.id) : keyOf3(row.frame);
     const page3 = id3 && hierarchy?.pageById.get(id3) || keyOf3(row.pageId);
     const image = imageId(row.image);
-    const cover = paintCover(row, kind, image, measure3.resolveColor) * opacity;
-    const { reach: reach2, margin } = reachOf(row, kind, ancestors);
-    const paints2 = !!image || cover !== 0 || typeof row.text === "string" && row.text.trim() !== "" || stroked(row) || shadowed(row) || !MODELLED_KINDS.has(kind);
+    const blend2 = blended(row) || ancestors.some((a) => (a.kind === "group" || a.kind === "frame") && blended(a));
+    const own4 = paintCover(row, kind, image, measure3.resolveColor) * opacity;
+    const cover = blend2 && own4 !== 0 ? Number.NaN : own4;
+    const { reach: reach2, margin } = reachOf(row, kind, ancestors, floats);
+    const paints2 = !!image || cover !== 0 || typeof row.text === "string" && row.text.trim() !== "" || isSet(row.textStory) || isSet(row.textFrame) || stroked(row) || shadowed(row) || !MODELLED_KINDS.has(kind);
     layers.push({
       row,
       id: id3,
@@ -137512,7 +137543,7 @@ function drawnLayers(capped, measure3, unmeasured) {
       margin,
       solid: !turnedRow(row) && !isSet(row.clip) && !(num14(row.blur) > 0),
       unknownPaint: !MODELLED_KINDS.has(kind) && kind !== "path",
-      blend: blended(row)
+      blend: blend2
     });
   });
   return layers;
@@ -137534,6 +137565,7 @@ function checkGuestMarks(boxes2, kit, measure3 = {}) {
   const said = [];
   if (rules.treatments?.length) said.push({ code: "reverse" });
   if (rules.minSize?.mm !== void 0 && !physical) said.push({ code: "mm-in-pixels" });
+  if (typeof measure3.customCss === "string" && measure3.customCss.trim() !== "" && checkedRules.length) said.push({ code: "custom-css" });
   const rows2 = Array.isArray(boxes2) ? boxes2.filter(record29) : [];
   const layers = drawnLayers(rows2.slice(0, MAX_ROWS3), measure3, said);
   if (rows2.length > MAX_ROWS3) said.push({ code: "layer-limit", limit: MAX_ROWS3 });
@@ -137679,7 +137711,7 @@ function checkGuestMarks(boxes2, kit, measure3 = {}) {
   if (dropped) said.push({ code: "findings-limit", count: dropped, limit: MAX_FINDINGS });
   return { findings, checked: { marks: marks.length, rules: checkedRules }, unmeasured: said, notMeasured: said.map(guestUnmeasuredText) };
 }
-var MAX_ROWS3, MAX_FINDINGS, MAX_TIME_S, MAX_WORK2, NOT_ON_PAGE, MODELLED_KINDS, TREATMENT_WORDS, GUEST_MARK_FIELDS, record29, num14, designNum, designHasNum, designBool2, isSet, keyOf3, clamp7, imageId, hidden2, opacityOf, turnedRow, strokeWidths, stroked, shadowed, shapeOf, blended, pxText, mmText, marksText, inflate2, mirrored, EPS4, overlaps2, together, samePlace2;
+var MAX_ROWS3, MAX_FINDINGS, MAX_TIME_S, MAX_WORK2, NOT_ON_PAGE, MODELLED_KINDS, TREATMENT_WORDS, GUEST_MARK_FIELDS, record29, designNum, num14, designHasNum, designBool2, isSet, keyOf3, clamp7, imageId, hidden2, opacityOf, turnedRow, strokeWidths, stroked, shadowed, shapeOf, blended, MAX_ROW_FIELDS, PROTOTYPE_KEYS, pxText, mmText, marksText, inflate2, mirrored, NUMBER_FIELDS, EPS4, overlaps2, together, samePlace2;
 var init_partner_kit_check = __esm({
   "engine/src/partner-kit-check.ts"() {
     "use strict";
@@ -137866,14 +137898,11 @@ var init_partner_kit_check = __esm({
       "imageFraming"
     ]);
     record29 = (v) => !!v && typeof v === "object" && !Array.isArray(v);
-    num14 = (v, fallback = 0) => {
-      const n7 = typeof v === "string" && v.trim() !== "" ? Number(v) : v;
-      return typeof n7 === "number" && Number.isFinite(n7) ? n7 : fallback;
-    };
     designNum = (v, fallback) => {
       const n7 = typeof v === "number" ? v : typeof v === "string" ? Number.parseFloat(v) : Number.NaN;
       return Number.isFinite(n7) ? n7 : fallback;
     };
+    num14 = (v, fallback = 0) => designNum(v, fallback);
     designHasNum = (v) => v !== "" && Number.isFinite(designNum(v, Number.NaN));
     designBool2 = (v, fallback) => {
       if (v === true || v === false) return v;
@@ -137893,6 +137922,8 @@ var init_partner_kit_check = __esm({
     shadowed = (row) => isSet(row.shadow);
     shapeOf = (row) => typeof row.shape === "string" && row.shape !== "" ? row.shape : "rect";
     blended = (row) => typeof row.blend === "string" && row.blend !== "" && row.blend !== "normal";
+    MAX_ROW_FIELDS = 512;
+    PROTOTYPE_KEYS = /* @__PURE__ */ new Set(["__proto__", "constructor", "prototype"]);
     pxText = (n7) => `${Math.round(n7)}`;
     mmText = (n7) => `${Math.round(n7 * 10) / 10}`;
     marksText = (n7, one = "one partner mark", many = "partner marks") => n7 === 1 ? one : `${n7} ${many}`;
@@ -137903,6 +137934,7 @@ var init_partner_kit_check = __esm({
       w: r5.w,
       h: r5.h
     });
+    NUMBER_FIELDS = ["x", "y", "w", "h", "rot", "radius", "strokeW", "strokeTop", "strokeRight", "strokeBottom", "strokeLeft", "opacity"];
     EPS4 = 0.01;
     overlaps2 = (a, b) => a.x < b.x + b.w - EPS4 && b.x < a.x + a.w - EPS4 && a.y < b.y + b.h - EPS4 && b.y < a.y + a.h - EPS4;
     together = (a, b) => a.start < b.end && b.start < a.end;
@@ -183165,7 +183197,9 @@ function partnerKitFindings(doc, partnerKit, lookup4, catalog, themes) {
       unit: unit2,
       ...Number.isFinite(dpi) && dpi > 0 ? { dpi } : {},
       recolour,
-      ...resolveColor4 ? { resolveColor: resolveColor4 } : {}
+      ...resolveColor4 ? { resolveColor: resolveColor4 } : {},
+      // The document's own CSS can restyle a layer, so the check is told the document has some.
+      ...typeof doc.values.customCss === "string" ? { customCss: doc.values.customCss } : {}
     })
   }));
   const first = runs2[0].report;

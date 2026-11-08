@@ -617,3 +617,71 @@ test('guest marks: a blend on the mark or beneath the mark leaves the colours or
   const blendedPanel = checkGuestMarks([PHOTO, { id: 'panel', kind: 'box', bg: '#ffffff', blend: 'multiply', x: 0, y: 0, w: 800, h: 600 }, markBox()], kit({ treatments: ['colour'] }));
   assert.deepEqual([blendedPanel.findings, codes(blendedPanel)], [[], ['reverse', 'ground-unmodelled']]);
 });
+
+// Fifth and last review pass (plans/82 M8, L-M8-2): each test fails on the pass-four checker.
+
+test('guest marks: a row wider than any Design row is followed nowhere unread, and each row is classified once', () => {
+  const wide = { id: 'g', kind: 'group', x: 0, y: 0, w: 800, h: 600, ...Object.fromEntries(Array.from({ length: 100_000 }, (_, n) => [`unused${n}`, ''])) };
+  const rows = [wide, ...Array.from({ length: 4999 }, (_, n) => markBox({ id: `m${n}`, h: 100, group: 'g' }))];
+  const began = Date.now();
+  const report = checkGuestMarks(rows, kit({ minSize: { px: 96 } }));
+  assert.ok(Date.now() - began < 5000, `took ${Date.now() - began} ms`);
+  assert.deepEqual(report.unmeasured, [{ code: 'size-unmodelled', count: 4999 }]);
+});
+
+test('guest marks: the document\'s own CSS can restyle a layer with a class, and the report says the CSS was not read', () => {
+  const css = '.tiny { height: 10px !important; }';
+  const classed = checkGuestMarks([markBox({ h: 100, cls: 'tiny' })], kit({ minSize: { px: 96 } }), { customCss: css });
+  assert.deepEqual([classed.findings, codes(classed)], [[], ['custom-css', 'size-unmodelled']]);
+  // Without a class the mark is measured, and the CSS is still said.
+  assert.deepEqual(codes(checkGuestMarks([markBox({ h: 100 })], kit({ minSize: { px: 96 } }), { customCss: css })), ['custom-css']);
+});
+
+test('guest marks: composed text paints, though its own text field is empty', () => {
+  const report = checkGuestMarks([markBox({ h: 50 }), { id: 't', kind: 'text', text: '', textStory: 's', textFrame: '{"mode":"fixed"}', x: 100, y: 160, w: 100, h: 20 }], CLEAR);
+  assert.deepEqual([report.findings, codes(report)], [[], ['clear-space-unmodelled']]);
+});
+
+test('guest marks: a group\'s or an artboard\'s blend reaches the mark\'s colours and the ground beneath', () => {
+  const groupBlend = checkGuestMarks([
+    { id: 'bg', kind: 'box', bg: '#0000ff', x: 0, y: 0, w: 800, h: 600 },
+    { id: 'g', kind: 'group', blend: 'multiply', x: 0, y: 0, w: 800, h: 600 },
+    markBox({ group: 'g' }),
+  ], kit({ treatments: ['colour', 'on-photo'] }));
+  assert.deepEqual([groupBlend.findings, codes(groupBlend)], [[], ['reverse', 'treatment-unmodelled']]);
+  const boardBlend = checkGuestMarks([{ id: 'board', kind: 'frame', blend: 'screen', x: 0, y: 0, w: 800, h: 600 }, markBox({ frame: 'board' })], kit({ treatments: ['mono'] }));
+  assert.deepEqual(codes(boardBlend), ['reverse', 'treatment-unmodelled']);
+  // A panel in a blended group is not a cover the check can read.
+  const veiled = checkGuestMarks([PHOTO, { id: 'g2', kind: 'group', blend: 'multiply', x: 0, y: 0, w: 800, h: 600 }, { id: 'panel', kind: 'box', bg: '#ffffff', group: 'g2', x: 0, y: 0, w: 800, h: 600 }, markBox()], kit({ treatments: ['colour'] }));
+  assert.deepEqual([veiled.findings, codes(veiled)], [[], ['reverse', 'ground-unmodelled']]);
+});
+
+test('guest marks: a hidden owner hides its members, read as the renderer reads hidden', () => {
+  for (const flag of ['yes', 'on', 'TRUE', 1]) {
+    const report = checkGuestMarks([{ id: 'g', kind: 'group', hidden: flag, x: 0, y: 0, w: 800, h: 600 }, markBox({ group: 'g', h: 48 })], kit({ minSize: { px: 96 } }));
+    assert.equal(report.checked.marks, 0, String(flag));
+  }
+});
+
+test('guest marks: a number written with a unit is read as its leading number, as the renderer reads it', () => {
+  const neighbour = checkGuestMarks([markBox({ h: 50 }), { id: 'n', kind: 'box', bg: '#000000', x: '310px', y: 100, w: 10, h: 10 }], CLEAR);
+  assert.deepEqual(neighbour.findings.map((f) => f.related), [['n']]);
+  const mark = checkGuestMarks([markBox({ x: '100px', h: '50px' })], kit({ minSize: { px: 96 } }));
+  assert.deepEqual(mark.findings.map((f) => f.value), ['50 px']);
+});
+
+test('guest marks: a key that changes a row\'s prototype is never skipped as private', () => {
+  const crafted = JSON.parse(`{"id":"m","kind":"image","image":"${LOGO}","fit":"fill","x":100,"y":100,"w":200,"h":48,"group":"g","__proto__":{"opacity":0}}`);
+  assert.equal(Object.hasOwn(crafted, '__proto__'), true);
+  const report = checkGuestMarks([{ id: 'g', kind: 'group', x: 0, y: 0, w: 800, h: 600 }, crafted], kit({ minSize: { px: 96 } }));
+  assert.deepEqual([report.findings, codes(report)], [[], ['size-unmodelled']]);
+  for (const key of ['constructor', 'prototype']) {
+    assert.deepEqual(codes(checkGuestMarks([markBox({ [key]: { opacity: 0 } })], kit({ minSize: { px: 96 } }))), ['size-unmodelled'], key);
+  }
+});
+
+test('guest marks: the check report passes the document\'s own CSS to the kit check', async () => {
+  const bytes = new TextEncoder().encode(JSON.stringify({ boxes: [markBox({ h: 100, cls: 'tiny' })], customCss: '.tiny { height: 10px !important; }' }));
+  const report = await checkFile(bytes, 'styled.json', { designSystem: null, partnerKit: kit({ minSize: { px: 96 } }), browser: 'off' });
+  assert.match(report.families.brand.reason ?? '', /Not measured: the document's own CSS: .*the drawn height of one partner mark: the mark moves, is placed by a layout or uses a field/);
+});

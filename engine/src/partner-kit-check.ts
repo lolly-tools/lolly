@@ -85,6 +85,11 @@ export interface GuestMarkMeasure {
    * that does not resolve is not taken to cover what lies beneath.
    */
   resolveColor?: (value: string) => string | null;
+  /**
+   * The document's own CSS (Design's `customCss`). It can restyle any layer: a layer with a
+   * class it may target is followed nowhere, and the report says the CSS was not read.
+   */
+  customCss?: string;
 }
 
 /**
@@ -129,13 +134,14 @@ export function guestRecolourFrom(catalog: { iconThemes?: unknown; photoTreatmen
  * catalog does not describe. `surface`: a mark that takes its colours from the surface
  * beneath. `size-unmodelled`, `clear-space-unmodelled`, `ground-unmodelled`: the same three,
  * left open by a layer using what the check does not model. `treatment-unmodelled`: a mark
- * mixed with what lies beneath by a blend. `work-limit`: marks past the work cap.
- * `findings-limit`: findings past `limit`.
+ * mixed with what lies beneath by a blend, its own or a group's or an artboard's. `work-limit`:
+ * marks past the work cap. `findings-limit`: findings past `limit`. `custom-css`: the
+ * document's own CSS, which can restyle any layer, was not read.
  */
 export type GuestMarkUnmeasuredCode =
   | 'reverse' | 'mm-in-pixels' | 'layer-tree' | 'layer-limit' | 'not-drawn' | 'size'
   | 'clear-space' | 'ground' | 'treatment' | 'surface' | 'size-unmodelled' | 'clear-space-unmodelled'
-  | 'ground-unmodelled' | 'treatment-unmodelled' | 'work-limit' | 'findings-limit';
+  | 'ground-unmodelled' | 'treatment-unmodelled' | 'work-limit' | 'findings-limit' | 'custom-css';
 
 export interface GuestMarkUnmeasured {
   code: GuestMarkUnmeasuredCode;
@@ -176,6 +182,7 @@ export function guestUnmeasuredText(entry: GuestMarkUnmeasured): string {
     case 'treatment-unmodelled': return `the colours of ${marksText(n)}: a blend mixes the mark with what lies beneath`;
     case 'work-limit': return `${marksText(n)}: the document has more layers and marks than the check compares, so the rest were not measured`;
     case 'findings-limit': return `${n === 1 ? 'one more finding' : `${n} more findings`} past the first ${entry.limit ?? MAX_FINDINGS}, which are not listed`;
+    case 'custom-css': return 'the document\'s own CSS: the CSS can restyle any layer, and the check reads each layer as Design draws the layer without that CSS';
   }
 }
 
@@ -246,15 +253,13 @@ export const GUEST_MARK_FIELDS: ReadonlySet<string> = new Set([
 ]);
 
 const record = (v: unknown): v is Row => !!v && typeof v === 'object' && !Array.isArray(v);
-const num = (v: unknown, fallback = 0): number => {
-  const n = typeof v === 'string' && v.trim() !== '' ? Number(v) : v;
-  return typeof n === 'number' && Number.isFinite(n) ? n : fallback;
-};
-/** The renderer's `num`: a number, or the leading number of a string; anything else is `fallback`. */
+/** The renderer's `num`: a number, or the leading number of a string ("310px" is 310); anything else is `fallback`. */
 const designNum = (v: unknown, fallback: number): number => {
   const n = typeof v === 'number' ? v : typeof v === 'string' ? Number.parseFloat(v) : Number.NaN;
   return Number.isFinite(n) ? n : fallback;
 };
+/** Every number in a row is read the way the renderer reads numbers. */
+const num = (v: unknown, fallback = 0): number => designNum(v, fallback);
 /** The renderer's `isFiniteNum`: authored, and a number. */
 const designHasNum = (v: unknown): boolean => v !== '' && Number.isFinite(designNum(v, Number.NaN));
 /** The renderer's `boolVal`: true, 1, yes or on, and false, 0, no or off, in any case. */
@@ -280,31 +285,47 @@ const shadowed = (row: Row): boolean => isSet(row.shadow);
 const shapeOf = (row: Row): string => (typeof row.shape === 'string' && row.shape !== '' ? row.shape : 'rect');
 const blended = (row: Row): boolean => typeof row.blend === 'string' && row.blend !== '' && row.blend !== 'normal';
 
+/** More fields than a Design row has: a row this wide is followed nowhere without being read. */
+const MAX_ROW_FIELDS = 512;
+/** Keys that change an object's prototype when the renderer copies the row, never metadata. */
+const PROTOTYPE_KEYS = new Set(['__proto__', 'constructor', 'prototype']);
+
 /**
  * Whether a row could be anywhere at some moment, for a reason of its own: it moves (keyframes,
  * an entrance or exit, a hold, a text split, a build, a morph or an animation), is placed by
- * a layout or a connector, is lifted or tilted out of the page, or uses a field the check
- * does not know.
+ * a layout or a connector, is lifted or tilted out of the page, carries a class the
+ * document's own CSS may restyle, carries a key that changes its prototype when the renderer
+ * copies the row, or uses a field the check does not know. A row with more fields than
+ * `MAX_ROW_FIELDS` is followed nowhere unread, so each row costs at most that many reads.
  */
-function movesOrFloats(row: Row): boolean {
+function movesOrFloats(row: Row, styled: boolean): boolean {
+  const keys = Object.keys(row);
+  if (keys.length > MAX_ROW_FIELDS) return true;
+  if (styled && isSet(row.cls)) return true;
   if (isSet(row.kf) || isSet(row.hold) || isSet(row.split) || designNum(row.build, 0) >= 1 || isSet(row.matchOf) || isSet(row.animationId) || isSet(row.animationEdits)) return true;
   if (isSet(row.enter) || isSet(row.exit)) return true;
   if (designNum(row.z, 0) !== 0 || designNum(row.rx, 0) !== 0 || designNum(row.ry, 0) !== 0) return true;
   if (isSet(row.route) || isSet(row.bindStart) || isSet(row.bindEnd) || isSet(row.headStart) || isSet(row.headEnd)) return true;
   if (row.layout === 'flex' || row.layout === 'grid' || isSet(row.layoutOwner) || (row.kind === 'group' && (row.layoutW === 'hug' || row.layoutH === 'hug'))) return true;
-  for (const key of Object.keys(row)) if (!GUEST_MARK_FIELDS.has(key) && !key.startsWith('__') && isSet(row[key])) return true;
+  for (const key of keys) {
+    if (PROTOTYPE_KEYS.has(key)) return true;
+    if (!GUEST_MARK_FIELDS.has(key) && !key.startsWith('__') && isSet(row[key])) return true;
+  }
   return false;
 }
 
 /** How far the check can follow a layer as a neighbour, and how far past its box it may paint. */
-function reachOf(row: Row, kind: string, ancestors: Row[]): { reach: Reach; margin: number } {
+function reachOf(row: Row, kind: string, ancestors: Row[], floats: (row: Row) => boolean): { reach: Reach; margin: number } {
   // An artboard is a page: it is never a neighbour, and whatever moves it moves what is drawn on it too.
   if (kind === 'frame') return { reach: 'exact', margin: 0 };
-  if (movesOrFloats(row) || ancestors.some((a) => a.kind !== 'frame' && movesOrFloats(a))) return { reach: 'anywhere', margin: 0 };
+  if (floats(row) || ancestors.some((a) => a.kind !== 'frame' && floats(a))) return { reach: 'anywhere', margin: 0 };
   const margin = (stroked(row) ? Math.max(...strokeWidths(row)) : 0)
     + (shadowed(row) ? Math.abs(num(row.shadowX)) + Math.abs(num(row.shadowY)) + 3 * Math.max(0, num(row.shadowBlur, 10)) : 0)
     + 3 * Math.max(0, num(row.blur));
-  const local = margin > 0 || turnedRow(row) || shapeOf(row) !== 'rect' || isSet(row.clip) || kind === 'path' || isSet(row.path) || !MODELLED_KINDS.has(kind);
+  // Composed text (a story flowing through text frames) is laid out elsewhere, so where the
+  // words fall in this box is not read.
+  const local = margin > 0 || turnedRow(row) || shapeOf(row) !== 'rect' || isSet(row.clip) || kind === 'path' || isSet(row.path) || !MODELLED_KINDS.has(kind)
+    || isSet(row.textStory) || isSet(row.textFrame);
   return { reach: local ? 'local' : 'exact', margin };
 }
 
@@ -411,6 +432,20 @@ const mirrored = (r: Rect, flipH: boolean, flipV: boolean, cx: number, cy: numbe
   x: flipH ? 2 * cx - (r.x + r.w) : r.x, y: flipV ? 2 * cy - (r.y + r.h) : r.y, w: r.w, h: r.h,
 });
 
+/** The fields the draw compiler reads as numbers, which the renderer reads as leading numbers. */
+const NUMBER_FIELDS = ['x', 'y', 'w', 'h', 'rot', 'radius', 'strokeW', 'strokeTop', 'strokeRight', 'strokeBottom', 'strokeLeft', 'opacity'];
+/** A copy of a row with each number field read as the renderer reads it ("310px" is 310), or left out when it reads as none. */
+function rendererNumbers(row: Row): Row {
+  const out: Row = { ...row };
+  for (const key of NUMBER_FIELDS) {
+    if (typeof out[key] !== 'string') continue;
+    const n = designNum(out[key], Number.NaN);
+    if (Number.isFinite(n)) out[key] = n;
+    else delete out[key];
+  }
+  return out;
+}
+
 /**
  * Where Design draws a mark's picture, from the draw compiler: exactly, when the fit can
  * be placed from what is known of the logo, or only the region it lies within and bounds
@@ -421,7 +456,7 @@ const mirrored = (r: Rect, flipH: boolean, flipV: boolean, cx: number, cy: numbe
 function placeMark(row: Row, base: string, measure: GuestMarkMeasure): Placement | null {
   let op: ReturnType<typeof compileDesignRow>;
   try {
-    op = compileDesignRow(row as DesignBoxRowV1, { x: 0, y: 0 });
+    op = compileDesignRow(rendererNumbers(row) as DesignBoxRowV1, { x: 0, y: 0 });
   } catch {
     return null;
   }
@@ -556,6 +591,14 @@ function groundOutcomes(list: GroundLayer[]): Set<Ground> {
 
 /** The layers Design draws, with their place, paint, paint order, time and how far the check follows them. */
 function drawnLayers(capped: Row[], measure: GuestMarkMeasure, unmeasured: GuestMarkUnmeasured[]): Layer[] {
+  // Each row is classified once, however many members ask about their group.
+  const styled = typeof measure.customCss === 'string' && measure.customCss.trim() !== '';
+  const classified = new Map<Row, boolean>();
+  const floats = (row: Row): boolean => {
+    let known = classified.get(row);
+    if (known === undefined) { known = movesOrFloats(row, styled); classified.set(row, known); }
+    return known;
+  };
   // A layer's own flag, and a hidden artboard, group or layout container takes its members
   // with it, from the hierarchy Design paints.
   let hierarchy: ReturnType<typeof designHierarchyIndex> | null = null;
@@ -583,6 +626,8 @@ function drawnLayers(capped: Row[], measure: GuestMarkMeasure, unmeasured: Guest
     const id = keyOf(row.id);
     if (hidden(row) || (id && hierarchy?.flags.get(id)?.hidden === true)) return;
     const ancestors = ancestorsOf(id);
+    // A hidden owner hides what it holds, read as the renderer reads `hidden` ('yes', 'on', 1 and so on).
+    if (ancestors.some(hidden)) return;
     // A layer at no opacity draws nothing. A group and an artboard wrap what they hold, so
     // their opacity is their members' too; a layout container's is its own artwork's.
     const opacity = ancestors.filter((a) => a.kind === 'group' || a.kind === 'frame').reduce((o, a) => o * opacityOf(a), opacityOf(row));
@@ -596,15 +641,19 @@ function drawnLayers(capped: Row[], measure: GuestMarkMeasure, unmeasured: Guest
     const frame = kind === 'frame' ? id : (owner ? keyOf(owner.id) : keyOf(row.frame));
     const page = (id && hierarchy?.pageById.get(id)) || keyOf(row.pageId);
     const image = imageId(row.image);
-    const cover = paintCover(row, kind, image, measure.resolveColor) * opacity;
-    const { reach, margin } = reachOf(row, kind, ancestors);
-    const paints = !!image || cover !== 0 || (typeof row.text === 'string' && row.text.trim() !== '') || stroked(row) || shadowed(row) || !MODELLED_KINDS.has(kind);
+    // A group's or an artboard's blend mixes everything it holds with what lies beneath.
+    const blend = blended(row) || ancestors.some((a) => (a.kind === 'group' || a.kind === 'frame') && blended(a));
+    const own = paintCover(row, kind, image, measure.resolveColor) * opacity;
+    const cover = blend && own !== 0 ? Number.NaN : own;
+    const { reach, margin } = reachOf(row, kind, ancestors, floats);
+    const paints = !!image || cover !== 0 || (typeof row.text === 'string' && row.text.trim() !== '') || isSet(row.textStory) || isSet(row.textFrame)
+      || stroked(row) || shadowed(row) || !MODELLED_KINDS.has(kind);
     layers.push({
       row, id, order: Number.isFinite(order[index]!) ? order[index]! : capped.length + index, rect: boundsOf(row), label: layerLabel(row, id), kind, image,
       ...time, frame, page, cover, paints, reach, margin,
       solid: !turnedRow(row) && !isSet(row.clip) && !(num(row.blur) > 0),
       unknownPaint: !MODELLED_KINDS.has(kind) && kind !== 'path',
-      blend: blended(row),
+      blend,
     });
   });
   return layers;
@@ -634,6 +683,7 @@ export function checkGuestMarks(boxes: unknown, kit: Pick<PartnerKitV1, 'label' 
   const said: GuestMarkUnmeasured[] = [];
   if (rules.treatments?.length) said.push({ code: 'reverse' });
   if (rules.minSize?.mm !== undefined && !physical) said.push({ code: 'mm-in-pixels' });
+  if (typeof measure.customCss === 'string' && measure.customCss.trim() !== '' && checkedRules.length) said.push({ code: 'custom-css' });
 
   const rows = Array.isArray(boxes) ? boxes.filter(record) : [];
   const layers = drawnLayers(rows.slice(0, MAX_ROWS), measure, said);

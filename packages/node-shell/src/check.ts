@@ -1217,6 +1217,8 @@ function partnerKitFindings(
       ...(Number.isFinite(dpi) && dpi > 0 ? { dpi } : {}),
       recolour,
       ...(resolveColor ? { resolveColor } : {}),
+      // The document's own CSS can restyle a layer, so the check is told the document has some.
+      ...(typeof doc.values.customCss === 'string' ? { customCss: doc.values.customCss } : {}),
     }),
   }));
   const first = runs[0]!.report;
