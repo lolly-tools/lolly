@@ -42,11 +42,11 @@ async function onInit() {
   return { rwcFaces: JSON.stringify(await brandFaceFiles(host)) };
 }
 
-var FACE_WEIGHTS = [100, 200, 300, 400, 500, 600, 700, 800, 900];
+var FACE_WEIGHTS = [100, 150, 200, 250, 300, 350, 400, 450, 500, 550, 600, 650, 700, 750, 800, 850, 900];
 // Each file is handed over once, with the range of weights the app's lookup answers
-// with that file, for each slant. The frame then picks the same file for a weight that
+// with that file, for each slant (asked every 50, so a 450 cut gets its own range). The frame then picks the same file for a weight that
 // the export does: a family with 400 and 700 files covers 100 to 500 with the first and
-// 600 to 900 with the second, so a `font-weight: 500` heading previews in the 400 file
+// 550 to 900 with the second, so a `font-weight: 500` heading previews in the 400 file
 // as it exports. A slant the family has no file for is left out (the lookup gives none,
 // or gives the upright file), and the frame makes its own.
 async function brandFaceFiles(host) {

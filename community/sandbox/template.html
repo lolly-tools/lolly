@@ -776,6 +776,27 @@
     if (brandFaces && brandFacesFor === stack) return brandFaces;
     brandFacesFor = stack;
     var want = stackFamilies(stack), jobs = [];
+    var slant = function (st) { return /italic|oblique/i.test(String(st || '')) ? 'italic' : 'normal'; };
+    var fetchFace = function (url, face) {
+      return fetch(url).then(function (res) { return res.ok ? res.arrayBuffer() : null; }).then(function (buffer) {
+        return buffer ? { family: face.family, buffer: buffer, weight: face.weight, style: face.style } : null;
+      }).catch(function () { return null; });
+    };
+    // First the files the hook resolved through the app's own font lookup (rwcFaces),
+    // the lookup the export draws with: a font uploaded to the brand, which no
+    // stylesheet declares, and the faces of a family the export takes from an upload
+    // rather than from the app's own stylesheet. Each is a same-origin or blob: file.
+    var given = [];
+    try { given = JSON.parse(root.getAttribute('data-rwc-faces') || '[]'); } catch (e) { given = []; }
+    var covered = {};
+    (Array.isArray(given) ? given : []).forEach(function (x) {
+      if (!x || typeof x.url !== 'string' || typeof x.family !== 'string' || want.indexOf(x.family.toLowerCase()) < 0) return;
+      try { if (new URL(x.url, location.href).origin !== location.origin) return; } catch (e) { return; }
+      covered[x.family.toLowerCase() + '|' + slant(x.style)] = true;
+      jobs.push(fetchFace(x.url, { family: x.family, weight: String(x.weight || 'normal'), style: slant(x.style) }));
+    });
+    // Then the stylesheets, for a family and slant the hook gave no file for (a host
+    // with no font lookup gives none at all).
     Array.prototype.forEach.call(document.styleSheets, function (sheet) {
       var rules;
       try { rules = sheet.cssRules; } catch (e) { return; }
@@ -783,40 +804,17 @@
         if (typeof CSSFontFaceRule === 'undefined' || !(r instanceof CSSFontFaceRule)) return;
         var fam = String(r.style.getPropertyValue('font-family')).trim().replace(/^['"]+|['"]+$/g, '');
         if (want.indexOf(fam.toLowerCase()) < 0) return;
+        var style = r.style.getPropertyValue('font-style') || 'normal';
+        if (covered[fam.toLowerCase() + '|' + slant(style)]) return;
         var m = /url\((['"]?)([^'")]+)\1\)/.exec(r.style.getPropertyValue('src'));
         if (!m) return;
         var url;
         try { url = new URL(m[2], sheet.href || location.href).href; } catch (e) { return; }
         if (new URL(url).origin !== location.origin) return;
-        jobs.push(fetch(url).then(function (res) { return res.ok ? res.arrayBuffer() : null; }).then(function (buffer) {
-          return buffer ? {
-            family: fam, buffer: buffer,
-            weight: r.style.getPropertyValue('font-weight') || 'normal',
-            style: r.style.getPropertyValue('font-style') || 'normal',
-          } : null;
-        }).catch(function () { return null; }));
+        jobs.push(fetchFace(url, { family: fam, weight: r.style.getPropertyValue('font-weight') || 'normal', style: style }));
       });
     });
-    // Then the faces the hook resolved through the app (rwcFaces): a family the
-    // stylesheets do not declare, such as a font uploaded to the brand, arrives here as
-    // a file the app can read (a blob: or same-origin URL). A family the stylesheets
-    // already gave keeps those faces.
-    var given = [];
-    try { given = JSON.parse(root.getAttribute('data-rwc-faces') || '[]'); } catch (e) { given = []; }
-    brandFaces = Promise.all(jobs).then(function (list) {
-      var found = list.filter(Boolean), have = {};
-      found.forEach(function (x) { have[String(x.family).toLowerCase()] = true; });
-      var more = (Array.isArray(given) ? given : []).filter(function (x) {
-        if (!x || typeof x.url !== 'string' || typeof x.family !== 'string' || have[x.family.toLowerCase()]) return false;
-        if (want.indexOf(x.family.toLowerCase()) < 0) return false;
-        try { return new URL(x.url, location.href).origin === location.origin; } catch (e) { return false; }
-      }).map(function (x) {
-        return fetch(x.url).then(function (res) { return res.ok ? res.arrayBuffer() : null; }).then(function (buffer) {
-          return buffer ? { family: x.family, buffer: buffer, weight: String(x.weight || 'normal'), style: x.style === 'italic' ? 'italic' : 'normal' } : null;
-        }).catch(function () { return null; });
-      });
-      return Promise.all(more).then(function (extra) { return found.concat(extra.filter(Boolean)); });
-    });
+    brandFaces = Promise.all(jobs).then(function (list) { return list.filter(Boolean); });
     return brandFaces;
   }
   function shareFonts() {

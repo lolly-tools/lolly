@@ -31,7 +31,7 @@ test('each face file is handed over once, for the weights the app answers with i
   });
   assert.deepEqual(await faces(h), [
     { family: 'Probe Upload', url: 'blob:http://localhost/regular', weight: '100 500', style: 'normal' },
-    { family: 'Probe Upload', url: 'blob:http://localhost/bold', weight: '600 900', style: 'normal' },
+    { family: 'Probe Upload', url: 'blob:http://localhost/bold', weight: '550 900', style: 'normal' },
     { family: 'SUSE', url: '/fonts/SUSE.woff2', weight: '100 900', style: 'normal' },
   ]);
   assert.ok(!asked.some((a) => a.startsWith('sans-serif')), 'a generic family is never looked up');
@@ -40,7 +40,7 @@ test('each face file is handed over once, for the weights the app answers with i
 test('a family with its own italic files hands those over as italic', async () => {
   const h = await hooksWith('Probe Upload', (_family, { weight, italic }) => ({ url: `blob:http://localhost/${weight < 600 ? 'r' : 'b'}${italic ? 'i' : ''}` }));
   assert.deepEqual((await faces(h)).map((f: { weight: string; style: string; url: string }) => `${f.url.slice(-2)} ${f.weight} ${f.style}`),
-    ['/r 100 500 normal', '/b 600 900 normal', 'ri 100 500 italic', 'bi 600 900 italic']);
+    ['/r 100 550 normal', '/b 600 900 normal', 'ri 100 550 italic', 'bi 600 900 italic']);
 });
 
 test('a host with no font lookup hands over nothing', async () => {
