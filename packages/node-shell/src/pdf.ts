@@ -557,6 +557,11 @@ export async function organizePdf(bytes: Uint8Array, opts: PdfOrganizeOpts): Pro
   };
 }
 
+/** The longest path data one stamped mark may carry: a date or a short line of words. */
+const STAMP_PATH_MAX = 200_000;
+/** SVG path data: commands, numbers, signs, exponents, separators. */
+const STAMP_PATH_DATA = /^[MmLlHhVvCcSsQqTtAaZz0-9eE.,+\-\s]+$/;
+
 export async function stampPdf(bytes: Uint8Array, opts: PdfStampOpts): Promise<PdfStampResult> {
   const doc = await loadEditablePdf(bytes);
   const { StandardFonts, rgb } = await import('pdf-lib');
@@ -594,6 +599,25 @@ export async function stampPdf(bytes: Uint8Array, opts: PdfStampOpts): Promise<P
       });
       stamps++;
     }
+  }
+  // Vector marks: words a tool outlined in the design system's face, drawn as filled
+  // paths so the PDF needs no font for them. Only path commands and numbers are
+  // accepted, and the data is capped, so a mark cannot carry anything else.
+  for (const mark of opts.paths ?? []) {
+    if (!Number.isInteger(mark.page) || mark.page < 1 || mark.page > doc.getPageCount()) {
+      throw pdfRefusal(`path page ${mark.page} is outside this ${doc.getPageCount()}-page document`);
+    }
+    const d = String(mark.d ?? '');
+    if (!d.trim() || d.length > STAMP_PATH_MAX || !STAMP_PATH_DATA.test(d)) throw pdfRefusal('a stamped path must be SVG path data');
+    const page = doc.getPage(mark.page - 1);
+    const hex = /^#([0-9a-f]{6})$/i.exec(String(mark.color ?? ''));
+    const n = hex ? parseInt(hex[1]!, 16) : null;
+    page.drawSvgPath(d, {
+      x: Math.max(0, Number(mark.x) || 0),
+      y: page.getHeight() - Math.max(0, Number(mark.y) || 0),
+      color: n === null ? rgb(0.08, 0.08, 0.08) : rgb(((n >> 16) & 255) / 255, ((n >> 8) & 255) / 255, (n & 255) / 255),
+    });
+    stamps++;
   }
   // A visual signature must not leave editable field appearances floating over
   // the stamped page. XFA was refused above; AcroForm fields can be flattened.

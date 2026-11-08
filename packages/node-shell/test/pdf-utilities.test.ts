@@ -108,6 +108,23 @@ test('Sign stamp placement uses exact top-left PDF points', async () => {
   assert.ok(Math.abs(image.h! - 30) < 0.01);
 });
 
+test('Sign stamps a path at its baseline in top-left PDF points, and only path data', async () => {
+  const doc = await PDFDocument.create(); doc.addPage([300, 400]);
+  const src = await doc.save();
+  // A 20 x 10 box drawn up from its baseline, as host.text.toPath outlines text (y-down).
+  const out = await stampPdf(src, { images: [], paths: [{ page: 1, x: 40, y: 100, d: 'M0 0L20 0L20 -10L0 -10Z', color: '#ff0000' }] });
+  assert.equal(out.stamps, 1, 'the path counts as a stamp');
+  const scan = await scanPdfPages(out.bytes);
+  const fill = scan.pages[0]!.nodes.find(node => node.kind === 'box');
+  assert.ok(fill, `a filled path is on the page: ${JSON.stringify(scan.pages[0]!.nodes.map(n => n.kind))}`);
+  assert.ok(Math.abs(fill.x! - 40) < 0.01 && Math.abs(fill.y! - 90) < 0.01, `at x 40, top 90: ${fill.x}, ${fill.y}`);
+  assert.ok(Math.abs(fill.w! - 20) < 0.01 && Math.abs(fill.h! - 10) < 0.01, `20 x 10: ${fill.w} x ${fill.h}`);
+  for (const d of ['', 'M0 0 <script>', 'M0 0L1 1'.repeat(30_000)]) {
+    await assert.rejects(stampPdf(src, { images: [], paths: [{ page: 1, x: 0, y: 0, d }] }), /SVG path data/);
+  }
+  await assert.rejects(stampPdf(src, { images: [], paths: [{ page: 2, x: 0, y: 0, d: 'M0 0L1 1Z' }] }), /outside/);
+});
+
 test('locked output needs its password and page transforms name the refusal', async () => {
   const locked = await lockPdf(await fixture(), 'correct horse battery staple');
   await assert.rejects(() => PDFDocument.load(locked.bytes), /encrypted/i);
