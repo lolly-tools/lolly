@@ -60,7 +60,8 @@ import { isTauriShell } from './lib/instance-choice.ts';
 // The memoised instance-base load. Boot has no wiring of its own to do here (every
 // syncing entry point awaits the same promise itself) - it needs the handle only to
 // hold the control-plane probe back until the base it fetches through is known.
-import { initInstanceBase } from './lib/instance.ts';
+import { initInstanceBase, instanceFetch } from './lib/instance.ts';
+import { mountViewAsBanner, stopViewAs, viewingAs } from './org/view-as.ts';
 // components/models-welcome.ts is NOT imported here: it is Tauri-only, yet its static
 // graph (lib/offline-manager.ts + the four model-catalog modules) rode the WEB boot
 // bundle - the exact regression scripts/check-bundle-budget.ts:74-76 records as fixed
@@ -1213,6 +1214,7 @@ async function boot(): Promise<void> {
   // Capture export intent before mounting can rewrite the address.
   const bootRoute = parseRoute();
   const scriptedExport = new URLSearchParams('params' in bootRoute ? bootRoute.params ?? '' : '').has('export');
+  mountViewAsBanner(document, () => stopViewAs(instanceFetch));
   installToolByteVerification();
   installVerifiedPreviews();
   // The view this tab leaves the app from, for the static docs' way back (lib/back-nav.ts).
@@ -1681,7 +1683,7 @@ async function boot(): Promise<void> {
   // inside the sheet, which re-checks it) so the module - and lib/offline-manager.ts
   // + the model-catalog chain behind it - is imported on Tauri alone and never joins
   // the web shell's boot graph (plans/155 Task 3.3).
-  if (isTauriShell()) {
+  if (isTauriShell() && !viewingAs()) {
     void import('./components/models-welcome.ts').then(m => m.maybeShowModelsWelcome());
   }
 

@@ -5,7 +5,7 @@ description: "Operate the Lolly Sign tool (sign) using its declared inputs and s
 
 # Sign
 
-Tool ID: `sign`. Tool version: `1.0.2`. Engine range: `^1.0.0`.
+Tool ID: `sign`. Tool version: `1.1.0`. Engine range: `^1.0.0`.
 
 Place your signature on a PDF, optionally add a Content Credential and lock the result.
 

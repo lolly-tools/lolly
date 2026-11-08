@@ -1353,7 +1353,7 @@ const RAW_HTML_ALLOWED: Record<string, number> = {
   // state and the card grid) became one, when the pane's markup moved to the shared
   // builder in views/picker-cards.ts.
   'components/photo-treatment-strip.ts': 1, // Moved from picker.ts: SVG filters from the validated catalogue treatment builder.
-  'views/picker.ts': 24,
+  'views/picker.ts': 25, // +1 plans/82 M8: the Partner marks section, built by the picker's own sectionHtml and card
   // The Projects tab (lolly plan 299 X8): one pane render. Folder, project, session and file
   // names, ids, crumbs and preview urls are escapeHtml()d; the rest is t() copy, registry
   // icon() markup and a tool's own registry icon, drawn as the Saved creations cards draw theirs.

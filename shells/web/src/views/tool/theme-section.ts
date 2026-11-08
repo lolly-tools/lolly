@@ -39,9 +39,13 @@ export interface ThemeSectionOpts {
   load?: () => Promise<{ mountThemeChoices: typeof import('../../components/theme-choices.ts').mountThemeChoices }>;
   /** The input whose row the choices follow (manifest `render.themeChoicesAfter`). */
   after?: string;
+  /** Something else the section holds that shows it with no theme group offered: the partner kit's line (plans/82 M8). */
+  extraVisible?: () => boolean;
 }
 
 export interface ThemeSection {
+  /** Show or hide the section again, after what `extraVisible` reads has changed. */
+  refresh?(): void;
   destroy(): void;
 }
 
@@ -75,8 +79,9 @@ export function mountThemeSection(opts: ThemeSectionOpts): ThemeSection {
     wanted = next;
     if (!section) return;
     if (hostedNode) hostedNode.hidden = inSlot() && !next;
-    if (inSlot()) { section.hidden = true; return; }
-    section.hidden = !next;
+    const extra = opts.extraVisible?.() === true;
+    if (inSlot()) { section.hidden = !extra; return; }
+    section.hidden = !next && !extra;
     if (next && !shownOnce) {
       shownOnce = true;
       if (opensByDefault(controller.groups())) section.open = true;
@@ -116,6 +121,7 @@ export function mountThemeSection(opts: ThemeSectionOpts): ThemeSection {
   void controller.ready.then(sync);
 
   return {
+    refresh() { if (!destroyed) show(wanted); },
     destroy() {
       destroyed = true;
       off();
