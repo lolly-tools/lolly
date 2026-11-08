@@ -872,15 +872,17 @@ record.
 
 ## Limits and quotas
 
-The deployment page's **Limits and quotas** tab, for people with `policy.edit`, lists every limit
-Lolly Work enforces, read from the same figures the code enforces. There is one card each for rate
-limits, agent tokens, renders, uploads and bodies, retention and purge, links and partner
-programmes. Each limit shows its value in words and where the value comes from: **Configuration**,
+The deployment page's **Limits and quotas** tab, for people with `policy.edit`, lists the limits
+Lolly Work enforces, grouped by area and read from the same figures the code enforces. The areas include rate limits,
+request bodies, approvals and submissions, uploads and files, renders, agent tokens, sign-in
+lifetimes and password lengths, live collaboration, document versions, sharing and access
+requests, comments, storage, retention and purge, links, providers and partner programmes. Each limit shows its value in words and where the value comes from: **Configuration**,
 **Environment** or **Built-in default**. A setting left at its default reads as built-in. For
 partner programmes, the cards cover the logo and profile limits, the licence gate's mode, the
 bounds on ending a partnership, the Reopen window, the notice days and the agent token defaults,
-maxima and lifetime. `GET /api/v1/limits` gives the same list. A few limits still written
-inline in the code, such as some request sizes, are not listed yet.
+maxima and lifetime. `GET /api/v1/limits` gives the same list. The panel covers every
+limit a person meets. It leaves out timing cadences, clock skew tolerances, provider field lists
+and caches.
 
 ## API and audit
 

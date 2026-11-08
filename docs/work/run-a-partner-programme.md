@@ -147,8 +147,8 @@ held files with one programme or company, with a note: the card shows who chose 
 files record no licence ([Licences](partner-programmes.md#licences)).
 
 **Checking a limit.** The deployment page's **Limits and quotas** tab, for anyone with
-`policy.edit`, lists every limit Lolly Work enforces, one card per area, partner programmes and
-agent tokens included. Each limit shows its value and whether the figure comes from your
+`policy.edit`, lists every limit a person meets, grouped by area, partner programmes and agent
+tokens included. Each limit shows its value and whether the figure comes from your
 configuration, the environment or the built-in default
 ([Limits and quotas](partner-programmes.md#limits-and-quotas)).
 
