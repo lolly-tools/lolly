@@ -54,6 +54,23 @@ test('the reviewed digest is shortened, with the whole value on hover and on Cop
   assert.match(html, new RegExp(`data-record-copy="${digest}"`));
 });
 
+test('a template\'s approval reads in the approved words, and the example\'s digest is never shown as this file\'s', () => {
+  const example = `sha256:${'cd'.repeat(32)}`;
+  const variant = { approvalId: 'apr_abc12345', decidedAt: '2026-11-05T10:15:00.000Z', covers: 'template' as const, templateId: 'inst/MuU9SdcSHiM', templateVersion: 3, exampleSha256: example };
+  const html = approvedPanelHtml(report({ approval: variant, format: 'pdf' }));
+  const dom = new JSDOM(html).window.document;
+  const rows = [...dom.querySelectorAll('dt')].map((dt) => dt.textContent?.trim());
+  assert.ok(rows.includes('Covers'), String(rows));
+  assert.ok(!rows.includes('Reviewed file'), 'no reviewed-file row: the example is a different file');
+  const line = [...dom.querySelectorAll('dd span[title]')].find((span) => span.getAttribute('title') === example);
+  assert.equal(line?.textContent, 'Approved as a template: inst/MuU9SdcSHiM v3 (PDF). Example file sha256 cdcdcdcdcdcd…');
+  assert.equal(dom.querySelector('[data-record-copy]')?.getAttribute('data-record-copy'), example, 'Copy digest copies the whole example digest');
+  assert.match(html, />Approved</);
+  // The id arrives as data and stays text.
+  const hostile = approvedPanelHtml(report({ approval: { ...variant, templateId: '<img src=x onerror=1>' } }));
+  assert.doesNotMatch(hostile, /<img/);
+});
+
 const HASH_FAILED = [{ code: 'assertion.dataHash.mismatch', ok: false }];
 const LAPSED = [{ code: 'signingCredential.expired', ok: false }];
 const SIGNATURE_FAILED = [{ code: 'claimSignature.mismatch', ok: false }];
