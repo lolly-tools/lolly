@@ -149,6 +149,7 @@ export function brandFindingMessage(finding: BrandFinding): string {
   if (finding.kind === 'reference')
     return `“${name}”: ${finding.value ?? ''} does not resolve to a colour in this design system.`;
   if (finding.kind === 'coverage') return 'No readable composition was available for brand checks.';
+  if (finding.kind === 'mark') return finding.message ?? `“${name}”: this partner mark does not follow its kit.`;
   if (finding.status === 'unknown')
     return `“${name}”: the ${field} could not be compared with the selected design system.`;
   if (finding.kind === 'asset')
@@ -215,11 +216,14 @@ export function checkFindingFromBrand(
   const evidence: Record<string, string> = { name: finding.label };
   if (finding.field) evidence.field = finding.field;
   if (finding.value !== undefined) evidence.value = finding.value;
+  if (finding.expected !== undefined) evidence.expected = finding.expected;
+  if (finding.company !== undefined) evidence.company = finding.company;
   const fix: CheckFixV1 | undefined = finding.fix
     ? { layerId: finding.fix.layerId, field: finding.fix.field, before: finding.fix.before ?? null, after: finding.fix.after }
     : undefined;
   return {
-    code: `brand.${codePart(finding.kind)}.${codePart(finding.status)}`,
+    // A partner mark's code carries the kit rule (`brand.mark.min-size`), so each rule is stable on its own.
+    code: finding.kind === 'mark' && finding.rule ? `brand.mark.${codePart(finding.rule)}` : `brand.${codePart(finding.kind)}.${codePart(finding.status)}`,
     family: 'brand',
     severity: review ? 'warn' : 'info',
     message: brandFindingMessage(finding),
