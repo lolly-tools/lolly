@@ -426,13 +426,17 @@ export async function rasterToOcrFrame(_cat: CatCtx, url: string): Promise<{ wid
   bmp.close?.();
   return frame;
 }
-// A row of two-colour theme swatches (the icon "colours" picker) - shared by the download
-// dialog, the asset-details modal and the icons-category header, so they all offer the same
-// control. Reuses the download dialog's .cat-dl-theme / .cat-dl-duo chrome; `active` marks
-// the current pairing.
+// A row of icon colour swatches (the icon "colours" picker) - shared by the asset-details
+// modal and the icons-category header, so they offer the same control as the download
+// dialog. "Original" leads (the icon's own colours, an empty id), then one pairing per
+// colourway of the design system (bridge/assets.ts _iconThemes). Reuses the download
+// dialog's .cat-dl-theme / .cat-dl-duo chrome; `active` marks the current pairing.
 export const iconSwatchRow = (cat: CatCtx, active: string | null): string =>
-  `<div class="cat-dl-themes" role="group" aria-label="${escapeText(t('Icon colours'))}">${cat.iconThemes.map(th =>
-      `<button type="button" class="cat-dl-theme${th.id === active ? ' is-active' : ''}" data-theme="${escapeText(th.id)}" data-sfx="shimmer" aria-pressed="${th.id === active}" title="${escapeText(th.label ?? th.id)}"><span class="cat-dl-duo" style="background:${escapeText(th.previewBg ?? '#fff')}"><i style="background:${escapeText(String(th.c2 ?? '#888'))}"></i><i style="background:${escapeText(String(th.c1 ?? '#333'))}"></i></span></button>`).join('')}</div>`;
+  `<div class="cat-dl-themes" role="group" aria-label="${escapeText(t('Icon colours'))}">`
+    + `<button type="button" class="cat-dl-theme${!active ? ' is-active' : ''}" data-theme="" aria-pressed="${!active}" title="${escapeText(t('Original'))}" style="width:auto;padding:0 9px;font-size:11px;font-weight:600">${t('Original')}</button>`
+    + cat.iconThemes.map(th =>
+      `<button type="button" class="cat-dl-theme${th.id === active ? ' is-active' : ''}" data-theme="${escapeText(th.id)}" data-sfx="shimmer" aria-pressed="${th.id === active}" title="${escapeText(th.label ?? th.id)}"><span class="cat-dl-duo" style="background:${escapeText(th.previewBg ?? '#fff')}"><i style="background:${escapeText(String(th.c2 ?? '#888'))}"></i><i style="background:${escapeText(String(th.c1 ?? '#333'))}"></i></span></button>`).join('')
+    + `</div>`;
 // The bitmap sibling of iconSwatchRow: a photo-treatment strip for raster groups. Leads
 // with an "Original" (no-treatment) button, then one gradient swatch per treatment
 // (lib/photo-treatment-swatch.ts, shared with the picker: a grey ramp, the duotone colours, or

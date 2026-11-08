@@ -6,6 +6,12 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+## 1.344.0
+
+- A design system's colourways now drive the icon colours and photo washes it offers. `colourwayIconThemes(doc)` gives one two-colour icon pairing per colourway, and `colourwayPhotoTreatments(doc)` one gradient map (a three-stop duotone), canonical first and named as the colourway is. A system with no colourways offers none. Both read the colourway's leads, text and surface (`colourwayInks`). When the deeper lead holds as an outline on the surface (4.5:1) and stands apart from the lighter one (2:1), the lighter lead is the accent and the deeper one the base; otherwise the more vivid lead is the accent and the text colour the base. The photo map runs from the deeper lead, or the text colour when that lead is not dark, through the vivid lead to a pale tint of the lead on the surface. The tint is mixed in whole 8-bit steps, so every host gives the same bytes. The canonical colourways reproduce the colours the Lolly Demo and SUSE icons already carry.
+- Their ids are `colourway-<option>` (`COLOURWAY_LOOK_PREFIX`, `isColourwayLookId`), so they never meet an id a catalog's hand-written `icon-themes` or `photo-treatments` palette declared. Those older ids still resolve, so a piece made with one keeps its colours; hosts no longer offer them. `withColourwayLooks(catalog, doc)` puts the colourway looks in front of a catalog's own, for the readers that judge or redraw a piece already made (`brandCheckCatalog`, `guestRecolourFrom`).
+- The design brief lists the colourway looks first, then the palette's own (`themesFrom`/`treatmentsFrom` read `derived` when only colourways supply them). A pack with neither still gets the palette-derived lists it had.
+
 ## 1.343.0
 
 - The partner record gains the piece's attached kit (Lolly Work plan 82, M8, L-M8-5). `ExportPartner.kit` (SDK 1.8.0) holds the kit asset's catalog id and attached revision, only beside a valid company. The web shell sets the record at mount and follows Attach and Detach, with a kit recorded only when its company id matches the workspace partner company.

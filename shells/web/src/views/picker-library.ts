@@ -65,12 +65,16 @@ export function pickerSectionHtml(
     </section>`;
 }
 
-/** The icon colour-pairing strip; the first pairing reads as active when none is chosen. */
+/** The icon colour strip: "Original", then one pairing per colourway; Original reads as active when none is chosen. */
 export function pickerThemeStripHtml(iconThemes: readonly IconTheme[], activeTheme: string | null | undefined): string {
+  // "Original" leads: the icon's own colours, which is the plain id. Then one pairing per
+  // colourway of the design system (bridge/assets.ts _iconThemes).
+  const original = !activeTheme;
   return `<div class="asset-picker-themes" role="group" aria-label="${escapeHtml(t('Theme'))}">`
     + `<span class="asset-picker-themes-label">${t('Colours')}</span>`
-    + iconThemes.map((theme, i) => {
-        const on = activeTheme ? theme.id === activeTheme : i === 0;
+    + `<button type="button" class="asset-picker-theme asset-picker-theme--original${original ? ' is-active' : ''}" data-theme-id="" aria-pressed="${original}"><span>${t('Original')}</span></button>`
+    + iconThemes.map((theme) => {
+        const on = theme.id === activeTheme;
         return `<button type="button" class="asset-picker-theme${on ? ' is-active' : ''}" data-theme-id="${escapeHtml(theme.id)}" data-sfx="shimmer" aria-pressed="${on}">
             <span class="asset-picker-theme-duo" style="background:${escapeHtml(theme.previewBg ?? '#ffffff')}"><i style="background:${escapeHtml(theme.c2)}"></i><i style="background:${escapeHtml(theme.c1)}"></i></span>
             <span>${escapeHtml(theme.label ?? theme.id)}</span>

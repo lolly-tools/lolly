@@ -24,6 +24,7 @@ import { buildCmykPaletteMap, parseDimension, toCssLength, toCssPx, toPixels, ca
 import type { CmykPaletteOptions, SeparateRgb } from '@lolly/engine';
 import { pressSeparationFor } from '@lolly-tools/node-shell/press-separation-node';
 import { isRasterPhotoLook, parseLutText, photoLookCacheKey, photoLookThemeKey, resolvePhotoLook, type GradeLut, type PhotoTreatment } from '@lolly/engine';
+import { colourwayIconThemes, colourwayPhotoTreatments } from '@lolly/engine';
 import type {
   HostV1, Profile, AssetsAPI, AssetRef, AssetQuery, ExportOpts,
   StateEntry, ComposeSpec, ExportFormat, TokenSet, TokenResolveOptions, C2paSignOpts, DesignSystemSummary,
@@ -487,29 +488,33 @@ export async function createCliBridge(
     },
   };
 
-  // Colour pairings for themable two-colour icons, from the catalog's palette
-  // asset tagged "icon-themes". The in-flight promise is cached so N themed
-  // refs resolving in parallel share one read per CLI invocation.
+  // Every colour pairing a themable icon's id can name: the run's design system's
+  // colourway pairings (engine brand-treatments.ts colourwayIconThemes), then the
+  // catalog's palette asset tagged "icon-themes", whose ids are no longer offered but
+  // still resolve, so a piece made with one keeps its colours. The in-flight promise is
+  // cached so N themed refs resolving in parallel share one read per CLI invocation.
   let iconThemesCache: Promise<IconThemeDef[]> | null = null;
   function iconThemes(): Promise<IconThemeDef[]> {
     iconThemesCache ??= (async () => {
+      let ours: IconThemeDef[] = [];
+      try { ours = colourwayIconThemes(await tokensDoc()) as IconThemeDef[]; } catch { ours = []; }
       const pal = [...assetById.values()].find(a => a.type === 'palette' && a.tags?.includes('icon-themes'));
-      if (!pal) return [];
-      const doc = JSON.parse(await readFile(assetFilePath(pal.formats[0]!.url), 'utf8'));
-      return parseIconThemesDoc(doc);
+      const theirs = (pal ? parseIconThemesDoc(JSON.parse(await readFile(assetFilePath(pal.formats[0]!.url), 'utf8'))) : []) as IconThemeDef[];
+      return [...ours, ...theirs.filter(t => !ours.some(o => o.id === t.id))];
     })().catch(() => []); // unavailable ≠ broken: icons just stay default
     return iconThemesCache;
   }
 
-  // Colour treatments for raster photos, from the catalog's palette asset tagged
-  // "photo-treatments" - the raster analogue of iconThemes() above.
+  // Every photo treatment an id can name: the colourway washes, then the catalog's
+  // palette asset tagged "photo-treatments" - the raster analogue of iconThemes() above.
   let photoTreatmentsCache: Promise<ReturnType<typeof parsePhotoTreatmentsDoc>> | null = null;
   function photoTreatments(): Promise<ReturnType<typeof parsePhotoTreatmentsDoc>> {
     photoTreatmentsCache ??= (async () => {
+      let ours: ReturnType<typeof parsePhotoTreatmentsDoc> = [];
+      try { ours = colourwayPhotoTreatments(await tokensDoc()); } catch { ours = []; }
       const pal = [...assetById.values()].find(a => a.type === 'palette' && a.tags?.includes('photo-treatments'));
-      if (!pal) return [];
-      const doc = JSON.parse(await readFile(assetFilePath(pal.formats[0]!.url), 'utf8'));
-      return parsePhotoTreatmentsDoc(doc);
+      const theirs = pal ? parsePhotoTreatmentsDoc(JSON.parse(await readFile(assetFilePath(pal.formats[0]!.url), 'utf8'))) : [];
+      return [...ours, ...theirs.filter(t => !ours.some(o => o.id === t.id))];
     })().catch(() => []); // unavailable ≠ broken: photos just stay untreated
     return photoTreatmentsCache;
   }

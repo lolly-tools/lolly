@@ -221,7 +221,7 @@ export function wire(cat: CatCtx): void {
     const catSw = target.closest<HTMLElement>('.cat-dl-theme');
     const catGroup = catSw?.closest<HTMLElement>('.cat-group');
     if (catSw && catGroup) {
-      cat.catIconTheme = catSw.dataset.theme ?? null;
+      cat.catIconTheme = catSw.dataset.theme || null;   // "Original" is the empty id
       catGroup.querySelectorAll<HTMLElement>('.cat-dl-theme').forEach(b => {
         const on = b === catSw; b.classList.toggle('is-active', on); b.setAttribute('aria-pressed', String(on));
       });

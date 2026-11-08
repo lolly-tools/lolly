@@ -171,6 +171,9 @@ export async function createBridge(): Promise<WebHost> {
   let preservePinned: ((id: string, o?: { reclaiming?: boolean }) => Promise<void>) | null = null;
   const assetsApi = createAssetsAPI(db as unknown as Parameters<typeof createAssetsAPI>[0], {
     preservePinned: (id, o) => preservePinned?.(id, o) ?? Promise.resolve(),
+    // The colourways that offer icon colours and photo washes. Read at call time: tokens
+    // is created further down this function, and it reads its document through assets.
+    designSystemDocument: async () => (await host.tokens?.snapshot())?.document ?? null,
   });
   host.assets = assetsApi as unknown as WebHost['assets'];
   // Fallback fonts come from the catalog cache like any on-demand catalog file: fetched

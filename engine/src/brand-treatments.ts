@@ -25,9 +25,11 @@
 import type { PhotoTreatment } from './photo-treatment.ts';
 import type { IconTheme } from './icon-theme.ts';
 import type { BrandSwatch } from './brand-map.ts';
-import { hexToOklch, oklchToHex } from './brand-derive.ts';
+import { contrastRatio, hexToOklch, oklchToHex } from './brand-derive.ts';
 import { colorToHex, createTokenSet } from './tokens.ts';
 import { clamp } from './clamp.ts';
+import { canonicalFirst, colourwayAxis } from './colourway.ts';
+import { modeAxis, readTokenAxes } from './token-axes.ts';
 
 /** The JSON payload written as a palette asset tagged "photo-treatments". */
 export interface DerivedPhotoTreatments {
@@ -282,5 +284,184 @@ export function deriveIconThemesDoc(source: unknown): DerivedIconThemes {
     description:
       'Colour pairings for themable two-colour icons, derived from the brand palette: c1 = accent, c2 = base. \'brand\' is the default pairing. previewBg is the surface a light pairing needs behind it to stay visible in pickers/previews.',
     themes,
+  };
+}
+
+// ─── Colourway looks ──────────────────────────────────────────────────────────
+
+/*
+ * The icon colours and photo washes a design system offers come from its colourways
+ * (colourway.ts): one icon pairing and one gradient map per colourway, canonical first,
+ * each named as its colourway is. A manager who adds, renames or recolours a colourway
+ * changes what is offered, with no other file to keep in step, and a system with no
+ * colourways offers none.
+ *
+ * The ids carry a prefix of their own, so a look made from a colourway never meets an
+ * id a catalog's hand-written "icon-themes" or "photo-treatments" palette declared.
+ * Hosts still resolve those older ids, so a piece made with one keeps its colours; they
+ * are no longer offered.
+ *
+ * Every colour is a value the colourway already holds, except a photo's highlight,
+ * which is the accent moved toward the colourway's surface in whole 8-bit steps, so
+ * the same document gives the same bytes on every host.
+ */
+
+/** The prefix of an icon theme or photo treatment id made from a colourway. */
+export const COLOURWAY_LOOK_PREFIX = 'colourway-';
+
+/** The most colourways a strip offers. */
+const MAX_COLOURWAY_LOOKS = 32;
+
+/** An icon's base is its outline: it must hold on the colourway's surface. WCAG asks 3:1
+ *  of a graphic; a thin icon stroke needs the 4.5:1 text asks for. */
+const BASE_ON_SURFACE = 4.5;
+
+/** A pairing's two tones must stand apart, or the icon reads as one colour. */
+const TONES_APART = 2;
+
+/** A photo's shadow must be dark enough to hold the picture's depth. */
+const SHADOW_ON_SURFACE = 7;
+
+/** How far a photo's highlight moves from the accent toward the surface, out of 255. */
+const HIGHLIGHT_TOWARD_SURFACE = 214;
+
+/** The look id for a colourway: its option id, lowercased, with anything else a hyphen. */
+export function colourwayLookId(option: string): string | null {
+  const slug = option.toLowerCase().replace(/[^a-z0-9-]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 64);
+  return slug ? `${COLOURWAY_LOOK_PREFIX}${slug}` : null;
+}
+
+/** Is this theme or treatment id one made from a colourway? */
+export const isColourwayLookId = (id: unknown): boolean => typeof id === 'string' && id.startsWith(COLOURWAY_LOOK_PREFIX);
+
+/** One colourway's colours, as the looks read them. */
+export interface ColourwayInks {
+  /** The look id (`colourway-<option>`). */
+  id: string;
+  /** The colourway's name. */
+  name: string;
+  /** The icon accent (c1). */
+  accent: string;
+  /** The icon base (c2). */
+  base: string;
+  /** The photo gradient map, shadow to highlight. */
+  shadow: string;
+  mid: string;
+  highlight: string;
+}
+
+const luminanceOrder = (hex: string): number => contrastRatio(hex, '#000000');
+const chromaOf = (hex: string): number => hexToOklch(hex)?.c ?? 0;
+
+/** Move `from` toward `to` by `step` out of 255, per 8-bit channel, in whole numbers. */
+function towards(from: string, to: string, step: number): string {
+  const ch = (hex: string, i: number): number => parseInt(hex.slice(1 + i * 2, 3 + i * 2), 16);
+  return `#${[0, 1, 2].map((i) => {
+    const a = ch(from, i), b = ch(to, i);
+    return Math.round(a + ((b - a) * step) / 255).toString(16).padStart(2, '0');
+  }).join('')}`;
+}
+
+/** A deep tone of the accent's own hue, for a colourway with no text colour. */
+const deepOf = (hex: string): string => {
+  const c = hexToOklch(hex);
+  return c ? oklchToHex({ l: 0.24, c: clamp(c.c * 0.5, 0.01, 0.06), h: c.h }) : '#111111';
+};
+
+/** The light and dark look selections of the document's mode group (both empty when it has none). */
+function lookSelections(doc: unknown): { light: Record<string, string>; dark: Record<string, string> } {
+  const mode = modeAxis(readTokenAxes(doc).axes);
+  if (!mode?.options.length) return { light: {}, dark: {} };
+  const named = (word: string) => mode.options.find((o) => o.id.toLowerCase() === word || o.name.toLowerCase() === word);
+  const light = named('light') ?? mode.options.find((o) => o.id === mode.canonical) ?? mode.options[0]!;
+  const dark = named('dark') ?? mode.options.find((o) => o !== light) ?? light;
+  return { light: { [mode.group]: light.id }, dark: { [mode.group]: dark.id } };
+}
+
+/**
+ * Each colourway's inks, canonical first. The icon pair: when the colourway's deeper
+ * lead (light or dark look) holds as an outline on its surface and stands apart from the
+ * lighter lead, the lighter lead is the accent and the deeper one the base, the way a
+ * brand's own two-colour icons usually sit. Otherwise the more vivid lead is the accent
+ * and the colourway's text colour (its ink) is the base. The photo map runs from the
+ * deeper lead, or the ink when that lead is not dark enough, through the more vivid lead
+ * to a pale tint of it on the colourway's surface. Empty when the document has no
+ * colourways. A colourway whose lead does not resolve to a colour is left out.
+ */
+export function colourwayInks(doc: unknown): ColourwayInks[] {
+  const axis = colourwayAxis(doc);
+  if (!axis) return [];
+  const looks = lookSelections(doc);
+  const out: ColourwayInks[] = [];
+  const seen = new Set<string>();
+  for (const option of canonicalFirst(axis)) {
+    if (out.length >= MAX_COLOURWAY_LOOKS) break;
+    const id = colourwayLookId(option.id);
+    if (!id || seen.has(id)) continue;
+    const read = (look: Record<string, string>) => {
+      const swatches = createTokenSet(doc, { selection: { ...look, [axis.group]: option.id } }).colors();
+      return (...roles: string[]): string | null => {
+        for (const role of roles) {
+          const value = swatches.find((s) => s.path === `color.semantic.${role}`)?.value;
+          const hex = typeof value === 'string' ? colorToHex(value) : null;
+          if (hex && /^#[0-9a-f]{6}$/i.test(hex)) return hex.toLowerCase();
+        }
+        return null;
+      };
+    };
+    const light = read(looks.light);
+    const dark = looks.dark === looks.light ? light : read(looks.dark);
+    const lead = light('primary');
+    if (!lead) continue;
+    const other = dark('primary') ?? lead;
+    const surface = light('surface', 'background') ?? '#ffffff';
+    const [lighter, deeper] = luminanceOrder(lead) >= luminanceOrder(other) ? [lead, other] : [other, lead];
+    const vivid = chromaOf(other) > chromaOf(lead) ? other : lead;
+    const ink = light('text', 'on-surface', 'foreground', 'on-background');
+    const inkFor = (accent: string): string => (ink && contrastRatio(ink, accent) >= TONES_APART ? ink : deepOf(accent));
+    const twoLeads = contrastRatio(deeper, surface) >= BASE_ON_SURFACE && contrastRatio(lighter, deeper) >= TONES_APART;
+    const accent = twoLeads ? lighter : vivid;
+    const base = twoLeads ? deeper : inkFor(accent);
+    const shadow = contrastRatio(deeper, surface) >= SHADOW_ON_SURFACE ? deeper : inkFor(vivid);
+    seen.add(id);
+    out.push({ id, name: option.name || option.id, accent, base, shadow, mid: vivid, highlight: towards(vivid, surface, HIGHLIGHT_TOWARD_SURFACE) });
+  }
+  return out;
+}
+
+/** The icon themes a design system offers: one per colourway, canonical first. */
+export function colourwayIconThemes(doc: unknown): IconTheme[] {
+  return colourwayInks(doc).map((c) => ({ id: c.id, label: c.name, c1: c.accent, c2: c.base }));
+}
+
+/** The photo treatments a design system offers: one gradient map per colourway, canonical first. */
+export function colourwayPhotoTreatments(doc: unknown): PhotoTreatment[] {
+  return colourwayInks(doc).map((c) => ({ id: c.id, label: c.name, kind: 'duotone', shadow: c.shadow, mid: c.mid, highlight: c.highlight }));
+}
+
+/**
+ * Catalog facts with the colourway looks in front: each list holds the design system's
+ * colourway looks, then whatever the pack's own palettes declare under another id. For the
+ * readers that judge or redraw a piece already made (brand checks, partner recolours), which
+ * must still know an older id; what is offered is `colourwayIconThemes` alone.
+ */
+export function withColourwayLooks<T extends { iconThemes?: unknown; photoTreatments?: unknown }>(catalog: T | null | undefined, doc: unknown): T {
+  const base = (catalog ?? {}) as T;
+  const listOf = (raw: unknown, key: 'themes' | 'treatments'): unknown[] => {
+    const v = raw && typeof raw === 'object' && !Array.isArray(raw) ? (raw as Record<string, unknown>)[key] : undefined;
+    return Array.isArray(v) ? v : [];
+  };
+  let themes: IconTheme[] = [];
+  let treatments: PhotoTreatment[] = [];
+  try { themes = colourwayIconThemes(doc); treatments = colourwayPhotoTreatments(doc); } catch { /* a document the reader cannot read adds nothing */ }
+  if (!themes.length && !treatments.length) return base;
+  const after = <L extends { id: string }>(ours: L[], theirs: unknown[]): unknown[] => {
+    const ids = new Set(ours.map((x) => x.id));
+    return [...ours, ...theirs.filter((x) => !(x && typeof x === 'object' && ids.has((x as { id?: unknown }).id as string)))];
+  };
+  return {
+    ...base,
+    iconThemes: { ...(base.iconThemes && typeof base.iconThemes === 'object' ? base.iconThemes : {}), themes: after(themes, listOf(base.iconThemes, 'themes')) },
+    photoTreatments: { ...(base.photoTreatments && typeof base.photoTreatments === 'object' ? base.photoTreatments : {}), treatments: after(treatments, listOf(base.photoTreatments, 'treatments')) },
   };
 }

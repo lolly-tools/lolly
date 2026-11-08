@@ -63,6 +63,7 @@ Some tools draw several colours at once, and they draw on the whole family: ever
 | Mesh Gradient | **Shuffle colours** draws on the leads before the rest of the design system. |
 | The visualiser's colour schemes | One scheme per colourway, in the design system's order and labelled with the colourway's name, with that colourway's partner as the counterpoint. A lead too dark or too grey to carry the picture hands the field to its partner. |
 | Audio and text covers in Assets and the picker | The leads come first in the colours the covers are drawn from. |
+| Icon colours and photo washes in Assets and the picker | One choice per colourway, after **Original**, named as the colourway is. A two-colour icon takes the colourway's lighter lead as its accent and the deeper lead as its base when the deeper lead holds as an outline on the surface; otherwise the more vivid lead and the colourway's text colour. A photo takes a gradient map from a dark tone through the lead to a pale tint of the lead. A design system with no colourways offers neither strip. |
 | Certificate | Celebration's printed confetti and the falling pieces of the **Confetti** motion use the piece's accent and partner, then the other colourways' leads. |
 
 When a piece's colourway or look changes, Lolly Chart, Mesh Gradient and Lolly Filter read the colours they keep from the design system again as the open tool redraws, and every input keeps its value. Covers belong to the app, not to a piece: they list the same leads whatever colourway a piece uses, in the app's own light or dark appearance.

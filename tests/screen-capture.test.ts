@@ -78,7 +78,7 @@ test('the sensor capabilities still validate (screen is additive, not a replacem
 
 // ─── version ─────────────────────────────────────────────────────────────────
 
-test('ENGINE_VERSION is 1.343.0', () => {
+test('ENGINE_VERSION is 1.344.0', () => {
   // A literal pin: the screencap surface shipped at 1.54, and tools declare
   // ^1.54.0 to require it. session-record only checks the stamp equals whatever
   // ENGINE_VERSION happens to be (tautological) - this catches an errant bump.
@@ -616,7 +616,8 @@ test('ENGINE_VERSION is 1.343.0', () => {
   // 1.341.0 records a rendition tool's picture as the parent (renditionOf). Capture is unchanged.
   // 1.342.0 lets a template approval's id segment start with - or _. Capture is unchanged.
   // 1.343.0 records the partner kit beside the partner. Capture is unchanged.
-  assert.equal(ENGINE_VERSION, '1.343.0');
+  // 1.344.0 offers icon colours and photo washes from the colourways. Capture is unchanged.
+  assert.equal(ENGINE_VERSION, '1.344.0');
 });
 
 // ─── loadTool: a ^1.54.0 tool loads against this engine ───────────────────────
