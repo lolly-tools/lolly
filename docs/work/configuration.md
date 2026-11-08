@@ -358,6 +358,7 @@ Room for a 500 MiB recording in a project, lifting the file cap and its budgets 
 | `submit.quota.bytes` | `0` | cumulative byte ceiling per group; `0` is unlimited |
 | `submit.quota.count` | `0` | cumulative submission-count ceiling per group; `0` is unlimited |
 | `catalog.versionKeep` | `0` | how many versions of one instance asset to keep, head included. `0` keeps every version; a positive number trims oldest-first and deletes the trimmed bytes. The served version is never trimmed, and a held asset is never trimmed at all |
+| `catalog.partnerRights` | *decided once* | `gate` or `report`: whether the licence each file records decides what reaches people in a partner programme. Absent, the instance decides at its first start on the release that added the setting: `gate` with no accounts yet, `report` when upgraded with accounts. The setting always wins. See [partner programmes](partner-programmes.md#licences) |
 
 Submit is **open to authors** by default: anyone holding `catalog.submit` submits and the
 asset goes live immediately. Name a `submit.chain` when the org wants review. Quota scopes are
@@ -663,6 +664,7 @@ Where automation may call back to. Absent (the default) leaves callbacks with th
 | Key | Default | What it does |
 |---|---|---|
 | `callbacks.allowedOrigins` | `[]` | exact HTTPS origins a job, durable render or render batch may name as its callback URL, such as `https://hooks.example.com`. A path or a plain `http` origin is refused at boot, and so is a list without `LW_WEBHOOK_SECRET`, because a callback is always signed |
+| `tokenLimits` | `{ "callsPerMinute": 120, "rendersPerDay": 2000, "rendersPerMonth": null }` | the instance default for service tokens placed in a partner programme: calls a minute, renders a UTC day and renders a UTC month, `null` for no cap. A programme's limits and a token's own limits come first. See [partner programmes](partner-programmes.md#limits-and-usage) |
 
 A durable render or batch that asks for any other URL is refused at submission. Every send checks the
 list again, so removing an origin stops callbacks still waiting. See [be told when a render

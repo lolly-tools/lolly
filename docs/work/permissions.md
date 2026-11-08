@@ -91,6 +91,14 @@ permission is checked against: a permission no route checks, or a resource it is
 against. The console marks such a rule if one was stored before this check, and deleting the
 rule changes nothing about access.
 
+People in a partner programme, and a programme's agent tokens, can only ever be allowed a fixed
+list of actions, whatever a role default or a grant says: reading the catalog, using tools, their
+own sessions and comments, joining live editing, creating projects, exporting, asking for an export
+review, making links and submitting files. Every admin action is refused for them. A grant that
+cannot apply to partners carries a `partnerScope` note in `GET /api/v1/grants` and in the answer
+when it is made. [Partner programmes](partner-programmes.md#what-partners-can-never-do) lists the
+actions.
+
 ::: details How evaluation works
 `server/src/rbac/evaluate.ts` makes every decision, in a fixed order: any matching deny wins,
 then any matching allow, then the role default. It never looks anything up itself. A resource

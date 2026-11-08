@@ -2446,6 +2446,23 @@
       }
     },
     {
+      "slug": "work-run-a-partner-programme",
+      "title": "Run a partner programme",
+      "src": "work/run-a-partner-programme.md",
+      "section": "manage",
+      "group": "People and access",
+      "path": "manage/run-a-partner-programme",
+      "icon": "usercheck",
+      "aliases": [],
+      "contentLicense": "MPL-2.0",
+      "description": "For partner teams: what a partner sees, can open, can change and cannot reach, and how to set up a programme, run it day to day and end a partnership.",
+      "work": {
+        "slug": "run-a-partner-programme",
+        "path": "run-a-partner-programme.md",
+        "icon": "instance"
+      }
+    },
+    {
       "slug": "work-partner-programmes",
       "title": "Partner programmes",
       "src": "work/partner-programmes.md",
@@ -2455,7 +2472,7 @@
       "icon": "usercheck",
       "aliases": [],
       "contentLicense": "MPL-2.0",
-      "description": "Name each kind of partner and choose the tools and assets its people get, with nothing internal shared by default.",
+      "description": "The reference for partner programmes: tools and files, company details and logos, templates, licences, ending a partnership, agent tokens, routes and audit events.",
       "work": {
         "slug": "partner-programmes",
         "path": "partner-programmes.md",
