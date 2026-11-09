@@ -25,8 +25,8 @@ const ICON_DIR = resolve(dirname(fileURLToPath(import.meta.url)), '../brands/lol
 /** The Etiquette icons the docs draw, each registered as the doc icon `eti-<slug>`. Add a
  *  slug here before using it in a page: an unregistered key draws nothing. */
 export const ETIQUETTE_DOC_ICONS = [
-  'building', 'calendar', 'eye', 'file-plus', 'folder-shared', 'gauge', 'grid', 'mail', 'palette',
-  'sparkles', 'stamp', 'users',
+  'badge-check', 'building', 'calendar', 'checklist', 'download', 'eye', 'file-plus', 'flask', 'folder-move',
+  'folder-shared', 'gauge', 'globe', 'grid', 'mail', 'package', 'palette', 'sparkles', 'stamp', 'users',
 ] as const;
 
 /** One icon file, repainted from the two custom properties. Throws on a file that does not

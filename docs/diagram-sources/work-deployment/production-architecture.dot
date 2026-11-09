@@ -1,0 +1,19 @@
+digraph production_architecture {
+  rankdir=TB
+  node [shape=box]
+  idp [label="Identity provider\nOIDC sign-in"]
+  people [label="People and agents\nbrowser, API and MCP"]
+  policy [label="Admission policy\noptional pod checks"]
+  ingress [label="Ingress and TLS\nyour HTTPS host"]
+  server [label="Lolly Work server\none writable replica", style=filled, fillcolor="#dcf3e6"]
+  db [label="PostgreSQL\nrecords and jobs", style=filled, fillcolor="#dcf3e6"]
+  assets [label="Object store\nS3-compatible, optional"]
+  workers [label="Render workers\noptional, can scale"]
+  people -> ingress
+  ingress -> server
+  idp -> server [style=dashed]
+  policy -> server [style=dashed]
+  server -> db
+  server -> assets
+  server -> workers
+}

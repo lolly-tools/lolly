@@ -16,6 +16,7 @@
  *            docs/diagram-sources/concepts/<name>.dot
  *            docs/diagram-sources/work-integrations/<name>.dot
  *            docs/diagram-sources/work-partners/<name>.dot
+ *            docs/diagram-sources/work-deployment/<name>.dot
  *   output   docs/diagrams/<set>/<name>.svg, plus docs/diagrams/<set>/recipes.json;
  *            a set marked `dark` also writes docs/diagrams/<set>/<name>.dark.svg
  *
@@ -56,6 +57,7 @@ const SET_DIRS = {
   concepts: { src: join(ROOT, 'docs/diagram-sources/concepts'), out: join(ROOT, 'docs/diagrams/concepts'), dark: true },
   'work-integrations': { src: join(ROOT, 'docs/diagram-sources/work-integrations'), out: join(ROOT, 'docs/diagrams/work-integrations'), dark: true },
   'work-partners': { src: join(ROOT, 'docs/diagram-sources/work-partners'), out: join(ROOT, 'docs/diagrams/work-partners'), dark: true },
+  'work-deployment': { src: join(ROOT, 'docs/diagram-sources/work-deployment'), out: join(ROOT, 'docs/diagrams/work-deployment'), dark: true },
 } as const;
 export type FigureSet = keyof typeof SET_DIRS;
 const CLI = join(ROOT, 'shells/cli/bin/lolly.ts');
@@ -208,8 +210,15 @@ export const WORK_PARTNER_FIGURES: Figure[] = [
   { set: 'work-partners', name: 'partnership-lifecycle', lang: 'text', title: 'From invitation to reopening', untitled: true, flags: [...PARTNER_LIGHT, '--diagramType=timeline', '--timelineDir=down', '--cardWidth=180', '--siblingGap=8'], darkFlags: PARTNER_DARK },
 ];
 
+/** Lolly Work install guides: what a production install on Kubernetes is made of. An IT
+ *  team reads these beside the partner pages, so they take the same Opal greens; the server
+ *  and its database, the two parts every install has, are tinted as the key cards. */
+export const WORK_DEPLOYMENT_FIGURES: Figure[] = [
+  { set: 'work-deployment', name: 'production-architecture', lang: 'dot', title: 'Lolly Work in production', untitled: true, flags: [...PARTNER_LIGHT, '--cardWidth=176', '--siblingGap=18'], darkFlags: PARTNER_DARK },
+];
+
 /** Every figure the script renders, in set order. */
-export const ALL_FIGURES: Figure[] = [...FIGURES, ...GIANTS_FIGURES, ...CONCEPT_FIGURES, ...WORK_INTEGRATION_FIGURES, ...WORK_PARTNER_FIGURES];
+export const ALL_FIGURES: Figure[] = [...FIGURES, ...GIANTS_FIGURES, ...CONCEPT_FIGURES, ...WORK_INTEGRATION_FIGURES, ...WORK_PARTNER_FIGURES, ...WORK_DEPLOYMENT_FIGURES];
 
 const setOf = (fig: Figure): FigureSet => fig.set ?? 'document-model';
 const sourcePath = (fig: Figure): string => join(SET_DIRS[setOf(fig)].src, `${fig.name}.${EXT[fig.lang]}`);

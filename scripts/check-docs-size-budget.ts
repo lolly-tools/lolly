@@ -19,9 +19,11 @@
  * The ceiling ratifies the CURRENT measured size plus headroom - it stops regressions,
  * it does not certify the size is small. On 2026-10-06, withdrawing Listen reduced
  * the measured build from 177.7 MiB gzip to 153.8 MiB. Unifying 196 guides on
- * 2026-10-16 increased the measured build to 221.5 MiB. The 260 MiB ceiling leaves
- * about 17% headroom for ordinary content growth while retaining a meaningful guard against
- * duplicated localized media and inline chrome. Lower it after structural savings;
+ * 2026-10-16 increased the measured build to 221.5 MiB, and the 1.2.0 guides (Lolly Work's
+ * partner and release pages, the music and import guides) took it to 281.2 MiB by
+ * 2026-11-09. The 300 MiB ceiling (Andy, 2026-11-09) leaves about 7% headroom for ordinary
+ * content growth while retaining a meaningful guard against duplicated localized media and
+ * inline chrome. Lower it after structural savings;
  * review measured growth before changing the ceiling. Override with LOLLY_DOCS_MAX_GZ_MB.
  */
 import { readFileSync, readdirSync, existsSync, statSync } from 'node:fs';
@@ -32,11 +34,11 @@ import { gzipSync } from 'node:zlib';
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const infoDir = path.join(root, 'shells/web/public/info');
 
-// 260 MiB: measured 221.5 MiB after unifying 196 guides in all 27 locales.
-// Work adds 66 guides, their signed assets and compatibility paths; shared chrome
-// and media still ship once. The increase covers that reviewed content migration.
+// 300 MiB (Andy, 2026-11-09): measured 281.2 MiB with the 1.2.0 guides; it was 221.5 MiB
+// after unifying 196 guides in all 27 locales. Work adds its guides, their signed assets
+// and compatibility paths; shared chrome and media still ship once.
 // This is a ceiling, not a size target.
-const MAX_INFO_GZ = (Number(process.env.LOLLY_DOCS_MAX_GZ_MB) || 260.0) * 1024 * 1024;
+const MAX_INFO_GZ = (Number(process.env.LOLLY_DOCS_MAX_GZ_MB) || 300.0) * 1024 * 1024;
 
 function fail(msg: string): never {
   console.error(`✗ docs size budget FAILED: ${msg}`);

@@ -24,6 +24,10 @@
    screenshots and the column layouts keep the full column. `ch` follows the
    element's own size, so the cap holds under Large text and browser zoom alike. */
 .docs-content > :is(p, ul, ol, dl, blockquote, .doc-note, .doc-details) { max-width: 68ch; }
+/* A disclosure that holds code or a table is mostly that code or table, so it keeps the
+   full column as they do; the prose inside it still stops at the measure. */
+.docs-content > .doc-details:has(> .doc-details-body > :is(.doc-code, .table-wrap)) { max-width: none; }
+.docs-content .doc-details-body > :is(p, ul, ol, .doc-note) { max-width: 68ch; }
 
 .docs-content .doc-visually-hidden {
   position: absolute !important; width: 1px; height: 1px; padding: 0; margin: -1px;
@@ -160,6 +164,37 @@
 .docs-content .doc-code pre code { font: inherit; background: none; padding: 0; color: inherit; white-space: inherit; overflow-wrap: inherit; }
 .docs-content .doc-code pre:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: -2px; }
 
+/* ── Terminal: a shell fence drawn by packages/docs-render/src/shell-highlight.ts ──
+   Every colour is a syntax role (tokens.css), so a design system that sets its own
+   syntax colours sets these too, and Light, Dark and Brand each keep the contrast their
+   roles were chosen for. The command is the one bold word on a line; flags and
+   variables take the accent; the punctuation steps back; a comment is set in italic.
+   Expected output sits on a faint band of its own, upright, so it reads as what the
+   terminal printed rather than as a note about it. A placeholder to fill in is tinted. */
+.docs-content .doc-code .sh-cmd { color: var(--ui-color-syntax-keyword); font-weight: 650; }
+.docs-content .doc-code :is(.sh-flag, .sh-var) { color: var(--ui-color-syntax-type); }
+.docs-content .doc-code .sh-key { color: var(--ui-color-syntax-function); font-weight: 550; }
+.docs-content .doc-code .sh-str { color: var(--ui-color-syntax-string); }
+.docs-content .doc-code :is(.sh-op, .sh-cont, .sh-prompt) { color: var(--ui-color-syntax-operator); }
+.docs-content .doc-code .sh-com { color: var(--ui-color-syntax-comment); font-style: italic; }
+.docs-content .doc-code .sh-out {
+  display: inline-block;
+  box-sizing: border-box;
+  min-width: calc(100% + 32px);
+  margin-inline: -16px;
+  padding-inline: 16px;
+  text-indent: 0;
+  background: color-mix(in srgb, var(--ui-color-text-default) 6%, transparent);
+  color: var(--ui-color-text-muted);
+}
+/* The words of a placeholder stay in the ink, so the tint can never cost them contrast. */
+.docs-content .doc-code .sh-ph {
+  border-radius: var(--radius-xs);
+  background: color-mix(in srgb, var(--ui-color-syntax-type) 16%, transparent);
+  color: var(--ui-color-syntax-string);
+  font-style: italic;
+}
+
 /* Copy, the app's button base under its own name. */
 .docs-content .doc-copy-slot { position: relative; flex: 0 0 auto; }
 .docs-content .doc-copy {
@@ -207,6 +242,134 @@
   font-size: calc(13px * var(--a11y-fs, 1));
 }
 .docs-content .doc-copy-help[hidden] { display: none; }
+
+/* ── Logo strip: ::: logos ────────────────────────────────────────────────
+   The marks a page is about, each with its name. Every mark sits on the same white
+   plate, because these are other people's marks, shipped in their own colours, and a
+   navy or blue mark disappears on a dark page; the plate is the one thing that keeps
+   them unmodified and legible on all three themes. The row wraps on a phone. */
+.docs-content ul.md-logos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 24px 0 28px;
+  padding: 0;
+  list-style: none;
+}
+.docs-content ul.md-logos > li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  margin: 0;
+  padding: 8px 20px 8px 8px;
+  border-radius: var(--ui-radius-card);
+  background: var(--ui-color-surface-raised);
+  box-shadow: var(--ui-edge-faint);
+}
+.docs-content .md-logo {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 3.5rem;
+  height: 3.5rem;
+  border-radius: var(--ui-radius-panel);
+  background: #ffffff;
+  box-shadow: var(--ui-edge-faint);
+}
+.docs-content .md-logo img {
+  display: block;
+  width: 2.75rem;
+  height: 2.75rem;
+  max-width: none;
+  margin: 0;
+  object-fit: contain;
+  border-radius: 0;
+  box-shadow: none;
+  background: none;
+}
+.docs-content .md-logo-name {
+  color: var(--ui-color-text-default);
+  font-size: calc(16px * var(--a11y-fs, 1));
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+/* ── Steps: ::: steps ────────────────────────────────────────────────────
+   The few steps a page walks through, as numbered cards in one row: the cards of
+   ::: cards, read left to right. The icon is a two-tone Etiquette glyph at 3rem; a
+   card whose text opens with a bold link is that link, as a card is. Two columns on
+   a tablet, one on a phone, where the icon moves beside the words. */
+.docs-content .md-steps {
+  margin: 28px 0 36px;
+  padding: 12px;
+  border-radius: calc(var(--ui-radius-card) * 2);
+  background: var(--ui-color-surface-muted);
+}
+.docs-content .md-steps > ol.icon-list {
+  counter-reset: md-step;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 11.5rem), 1fr));
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.docs-content .md-steps > ol.icon-list > li.ic {
+  counter-increment: md-step;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin: 0;
+  padding: 18px 18px 20px;
+  border-radius: var(--ui-radius-card);
+  background: var(--ui-color-surface-raised);
+  box-shadow: var(--ui-edge-faint);
+  color: var(--ui-color-text-muted);
+  font-size: calc(15px * var(--a11y-fs, 1));
+  line-height: 1.5;
+  transition: box-shadow var(--ui-motion-feedback, 150ms);
+}
+/* The step's number, in the card's top corner. */
+.docs-content .md-steps > ol.icon-list > li.ic::after {
+  content: counter(md-step);
+  position: absolute;
+  inset-block-start: 16px;
+  inset-inline-end: 18px;
+  color: var(--ui-color-text-muted);
+  font-size: calc(13px * var(--a11y-fs, 1));
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.docs-content .md-steps .li-icon { width: 3rem; height: 3rem; margin: 0; }
+.docs-content .md-steps li.ic > span:not(.li-icon) { min-width: 0; }
+.docs-content .md-steps li.ic > span:not(.li-icon) > strong:first-child {
+  display: block;
+  margin-block-end: 4px;
+  color: var(--ui-color-text-default);
+  font-size: calc(17px * var(--a11y-fs, 1));
+  font-weight: 600;
+  line-height: 1.3;
+}
+.docs-content .md-steps li.ic > span:not(.li-icon) > strong:first-child > a { color: inherit; text-decoration: none; }
+.docs-content .md-steps li.ic > span:not(.li-icon) > strong:first-child > a::after { content: ''; position: absolute; inset: 0; border-radius: var(--ui-radius-card); }
+.docs-content .md-steps li.ic > span:not(.li-icon) > strong:first-child > a:focus-visible { outline: none; }
+.docs-content .md-steps > ol.icon-list > li.ic:has(> span > strong:first-child > a:focus-visible) { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 2px; }
+.docs-content .md-steps > ol.icon-list > li.ic:has(> span > strong:first-child > a):hover { box-shadow: var(--ui-edge-strong), var(--ui-elevation-control); }
+
+/* ── Section icon: <!--i:eti-…--> on a line of its own, before a heading ──────
+   A large two-tone icon that opens the section under it, so a long page can be
+   scanned by its pictures as well as its headings. It carries the section's rule, as
+   a row of technology marks does, and the heading follows straight under it. */
+.docs-content .md-section-icon {
+  display: flex;
+  margin: 40px 0 14px;
+  padding-block-start: 32px;
+  border-block-start: 1px solid var(--ui-color-border-default);
+}
+.docs-content .md-section-icon svg { width: 3.5rem; height: 3.5rem; flex: none; }
+.docs-content .md-section-icon + :is(h2, h3) { margin-block-start: 0; padding-block-start: 0; border-block-start: 0; }
 
 /* ── Picture list: a bulleted list whose every item opens with a picture ──────
    Each picture sits on a plate of the same size with its caption underneath, so a
@@ -263,8 +426,25 @@
 .docs-content .md-pictures .shot-cred--asset .shot-cred-btn:hover + .shot-cred-line,
 .docs-content .md-pictures .shot-cred--asset .shot-cred-line:hover { opacity: 1; pointer-events: auto; }
 
+@media (max-width: 600px) {
+  .docs-content .md-steps { padding: 8px; }
+  .docs-content .md-steps > ol.icon-list { gap: 8px; }
+  .docs-content .md-steps > ol.icon-list > li.ic { flex-direction: row; gap: 14px; padding: 14px 40px 14px 14px; }
+  .docs-content .md-steps .li-icon { width: 2.75rem; height: 2.75rem; }
+  .docs-content .md-section-icon { margin-block-start: 32px; padding-block-start: 28px; }
+  .docs-content .md-section-icon svg { width: 3rem; height: 3rem; }
+}
 @media (max-width: 520px) {
   .docs-content ul.md-pictures:not(:has(> li:nth-child(3):last-child)) { --md-pic-cols: 2; }
+  .docs-content ul.md-logos { gap: 8px; }
+  .docs-content ul.md-logos > li { gap: 8px; padding: 5px 12px 5px 5px; }
+  .docs-content .md-logo { width: 3rem; height: 3rem; }
+  .docs-content .md-logo img { width: 2.4rem; height: 2.4rem; }
+  .docs-content .md-logo-name { font-size: calc(15px * var(--a11y-fs, 1)); }
+  /* Code in a disclosure starts at the summary's own edge, not past its icon column,
+     so a command keeps the width a phone has. */
+  :is(.docs-content, .docs-compact-nav) .doc-details-body > .doc-code { margin-inline-start: calc(-20px * var(--a11y-fs, 1) - 14px); }
+  .docs-content .doc-code .sh-out { min-width: calc(100% + 28px); margin-inline: -14px; padding-inline: 14px; }
   :is(.docs-content, .docs-compact-nav) .doc-details > summary { gap: 14px; padding-inline: 14px; }
   :is(.docs-content, .docs-compact-nav) .doc-details-body { padding-inline: calc(14px + 20px * var(--a11y-fs, 1) + 14px) 14px; }
   .docs-content .doc-note { padding: 14px; gap: 12px; }
@@ -272,8 +452,10 @@
 }
 @media (prefers-reduced-motion: reduce) {
   :is(.docs-content, .docs-compact-nav) .doc-details-chev { transition: none; }
+  .docs-content .md-steps > ol.icon-list > li.ic { transition: none; }
 }
 html[data-a11y-motion="reduce"] :is(.docs-content, .docs-compact-nav) .doc-details-chev { transition: none; }
+html[data-a11y-motion="reduce"] .docs-content .md-steps > ol.icon-list > li.ic { transition: none; }
 @media print {
   .docs-content .doc-copy-slot, .docs-content .doc-copy-help, .docs-content .doc-details-chev { display: none !important; }
   .docs-content .doc-details > .doc-details-body { display: block !important; }
@@ -282,6 +464,9 @@ html[data-a11y-motion="reduce"] :is(.docs-content, .docs-compact-nav) .doc-detai
   .docs-content .doc-note, .docs-content .doc-details { break-inside: avoid; background: none; box-shadow: none; outline: 1px solid #888; outline-offset: -1px; }
   .docs-content .doc-code { background: none; box-shadow: none; outline: 1px solid #888; outline-offset: -1px; }
   .docs-content .doc-code pre { white-space: pre-wrap; overflow: visible; }
+  /* Paper keeps the terminal's words and drops its bands: output stays upright. */
+  .docs-content .doc-code .sh-out { display: inline; margin: 0; padding: 0; background: none; }
+  .docs-content .md-steps, .docs-content .md-steps > ol.icon-list > li.ic, .docs-content ul.md-logos > li { break-inside: avoid; background: none; box-shadow: none; outline: 1px solid #888; outline-offset: -1px; }
 }
 
 /* ── Where the page sits, and where reading goes next (plan 354 D3) ─────────
