@@ -39,7 +39,7 @@
 import '../styles/parts/welcome-hero.css';
 import { currentLang, langOptions, setActiveLang, t, LANG_ICON_SVG, flagEmoji } from '../i18n.ts';
 import type { Lang } from '../i18n.ts';
-import { escape as escapeHtml, NAV_EVENTS } from '../utils.ts';
+import { escape as escapeHtml, NAV_EVENTS, safeHref } from '../utils.ts';
 import { icon } from '../lib/icons.ts';
 import { prefersReducedMotion } from '../lib/a11y-prefs.ts';
 import type { WebProfileAPI } from '../bridge/profile.ts';
@@ -96,7 +96,10 @@ export interface WelcomePrivacy { text: string; href: string }
 
 /** The quiet privacy line. The caller words it (views/gallery-welcome.ts, from the notice). */
 function privacyLine(p: WelcomePrivacy): string {
-  return `${escapeHtml(p.text)} <a href="${escapeHtml(p.href)}">${t('What we store')}</a>`;
+  // The link is the caller's, so its scheme is checked before it reaches the page.
+  // nosemgrep: lolly-href-escape-is-not-scheme-validation -- gated by safeHref() on this line
+  const link = safeHref(p.href) ? ` <a href="${escapeHtml(p.href)}">${t('What we store')}</a>` : '';
+  return `${escapeHtml(p.text)}${link}`;
 }
 
 function languageRow(open: boolean): string {
