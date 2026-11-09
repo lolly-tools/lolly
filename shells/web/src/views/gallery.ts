@@ -82,6 +82,7 @@ import type { createAssetsAPI } from '../bridge/assets.ts';
 import type { WebTokensAPI } from '../bridge/tokens.ts';
 import type { PreviewsAPI } from '../bridge/previews.ts';
 export { showGalleryWelcome } from './gallery-welcome.ts';
+import { adoptWelcomeHero } from '../components/welcome-hero.ts';
 
 /**
  * The slice of a catalog index entry that this view reads. Kept local: the index
@@ -2278,9 +2279,9 @@ export async function mountGallery(viewEl: HTMLElement, host: GalleryHost, opts:
   // components/welcome-dialog.ts) - no cleanup entry here, so the same-route
   // post-sync re-mount keeps it open without a flash. The decision and the open
   // dialog both hold lib/welcome-gate.ts, so boot-time maintenance waits for them.
-  const galleryRoot = viewEl.querySelector<HTMLElement>('.gallery');
+  const galleryRoot = viewEl.querySelector<HTMLElement>('.gallery'); adoptWelcomeHero(galleryRoot);
   void (async () => {
-    const step = await galleryWelcomeStep(host as unknown as GalleryHost & PickerHost, () => !!galleryRoot?.isConnected, deepLink.has('welcome'));
+    const step = await galleryWelcomeStep(host as unknown as GalleryHost & PickerHost, () => !!galleryRoot?.isConnected, deepLink.has('welcome'), { classic: deepLink.get('welcome') === 'classic', root: () => galleryRoot });
     if (!step || !galleryRoot?.isConnected) return;
     // Branded (or locked): no welcome to wait for, so the banner slot is free.
     // The branded intro strip that used to come first ("Your brand is loaded")
@@ -2290,16 +2291,16 @@ export async function mountGallery(viewEl: HTMLElement, host: GalleryHost, opts:
       revealFirstRunBanner();
       return;
     }
-    // The step opened the welcome when it was due. 'brand' navigates itself; the
-    // upload host enables the "Bring your design" card. A welcome visit is the
-    // whole ask - the banner stays hidden until a later visit, and previews stay
-    // paused until the dialog closes.
+    // The step opened the welcome when due (the greeting in place, or the classic dialog
+    // at #/?welcome=classic). A welcome visit is the whole ask: the banner waits for a
+    // later visit, and previews wait for the dialog but never for the greeting.
     // `#/?welcome` forces it open past the dismissed flag, so docs and screenshot
     // runs can capture the greeting deterministically instead of needing a virgin
     // profile. It rides INSIDE the ladder on purpose: everything above still
     // applies, so a locked or already-branded install has already returned and the
     // flag is silently ignored there - a deep link can't nag someone who has a brand.
     if (step.closed) {
+      if (step.inPlace) previewQueue.setPaused(false);
       await step.closed;
       return;
     }
