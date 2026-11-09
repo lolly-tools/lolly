@@ -2672,8 +2672,8 @@ function percussionBar(kind: Percussion, i: number, sb: (step: number) => number
   }
 }
 
-/** A chord's name moved `by` semitones: "F♯m7" up one is "Gm7". */
-function transposeChordName(name: string, by: number): string {
+/** A chord's name moved `by` semitones: "F♯m7" up one is "Gm7". Also a key's name: "D Shur" up two is "E Shur". */
+export function transposeChordName(name: string, by: number): string {
   const root = [...NAMES].sort((x, y) => y.length - x.length).find(n => name.startsWith(n));
   return root ? NAMES[(NAMES.indexOf(root) + by + 12) % 12] + name.slice(root.length) : name;
 }
