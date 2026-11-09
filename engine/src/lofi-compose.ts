@@ -38,11 +38,11 @@
 import { mulberry32 } from './zzfx-compose.ts';
 
 /** The dance genres in the Lolly Sings family, written by composeDanceTune. */
-export type DanceMood = 'sugar' | 'funk' | 'soul' | 'hiphop' | 'reggae' | 'spanish' | 'rock' | 'synthwave' | 'acid' | 'electro' | 'dubstep' | 'brostep' | 'dnb';
+export type DanceMood = 'sugar' | 'chiptune' | 'citypop' | 'funk' | 'soul' | 'nudisco' | 'hiphop' | 'triphop' | 'reggae' | 'spanish' | 'rock' | 'synthwave' | 'acid' | 'electro' | 'dubstep' | 'brostep' | 'dnb';
 /** The three Lofi moods, Lolly Sings (the melody-first genre, see LEAN.sings) and its dance genres. */
 export type LofiMood = 'warm' | 'lateNight' | 'rainy' | 'sings' | DanceMood;
-export const LOFI_MOODS: readonly LofiMood[] = ['warm', 'lateNight', 'rainy', 'sings', 'sugar', 'funk', 'soul', 'hiphop', 'reggae', 'spanish', 'rock', 'synthwave', 'acid', 'electro', 'dubstep', 'brostep', 'dnb'];
-export const DANCE_MOODS: readonly DanceMood[] = ['sugar', 'funk', 'soul', 'hiphop', 'reggae', 'spanish', 'rock', 'synthwave', 'acid', 'electro', 'dubstep', 'brostep', 'dnb'];
+export const LOFI_MOODS: readonly LofiMood[] = ['warm', 'lateNight', 'rainy', 'sings', 'sugar', 'chiptune', 'citypop', 'funk', 'soul', 'nudisco', 'hiphop', 'triphop', 'reggae', 'spanish', 'rock', 'synthwave', 'acid', 'electro', 'dubstep', 'brostep', 'dnb'];
+export const DANCE_MOODS: readonly DanceMood[] = ['sugar', 'chiptune', 'citypop', 'funk', 'soul', 'nudisco', 'hiphop', 'triphop', 'reggae', 'spanish', 'rock', 'synthwave', 'acid', 'electro', 'dubstep', 'brostep', 'dnb'];
 /** Whether `mood` is one of the dance genres. */
 export function isDanceMood(mood: LofiMood): mood is DanceMood { return (DANCE_MOODS as readonly string[]).includes(mood); }
 
@@ -53,7 +53,7 @@ export function isDanceMood(mood: LofiMood): mood is DanceMood { return (DANCE_M
 export type LofiVoice = 'keys' | 'bass' | 'lead' | 'kick' | 'snare' | 'rim' | 'hat' | 'openHat' | 'crash' | 'riser' | 'coin' | 'magpie' | 'hey';
 export const LOFI_DRUM_VOICES: readonly LofiVoice[] = ['kick', 'snare', 'rim', 'hat', 'openHat', 'crash'];
 
-export const LOFI_KEYS = ['rhodes', 'felt', 'wurli', 'pluck', 'pad', 'supersaw', 'nylon', 'crunch', 'wah'] as const;
+export const LOFI_KEYS = ['rhodes', 'felt', 'wurli', 'pluck', 'pad', 'supersaw', 'nylon', 'crunch', 'wah', 'chiparp'] as const;
 export const LOFI_LEADS = ['vibes', 'flute', 'soft', 'kalimba', 'chip', 'angel', 'pulse', 'guitar', 'overdrive', 'synthwave', 'metal', 'panflute', 'nylon', 'none'] as const;
 export const LOFI_BASSES = ['round', 'upright', 'synth', 'wobble', 'growl', 'reese', 'slap', 'screech', 'pulse', 'electro', 'picked', 'croak', 'eight', 'acid', 'motown'] as const;
 export const LOFI_SNARES = ['snare', 'brush', 'rim', 'clap'] as const;
@@ -777,6 +777,8 @@ interface DanceLean {
   band?: boolean;
   /** The hats, when not the closed hat. */
   hats?: LofiStyle['hats'];
+  /** Crackle and hiss (LofiStyle.dust), when not the dance genres' clean 0.15. */
+  dust?: number;
   /** Whether the drop is a groove the melody sings over from the start (sugar), or the bass's alone at first. */
   singingDrop: boolean;
   busy: number;
@@ -788,6 +790,42 @@ interface DanceLean {
 }
 
 const DANCE: Record<DanceMood, DanceLean> = {
+  // Chiptune: an old console's three channels. Pulse arpeggios, a pulse bass and a chip
+  // lead, coin dings, and the jazzy chords of game music.
+  chiptune: {
+    bpm: [128, 150], minor: 0.35, groove: 'rock', chordBars: 1,
+    keys: [['chiparp', 1]], lead: [['chip', 3], ['pulse', 3]],
+    bass: [['pulse', 1]], snare: [['snare', 1]], kick: [56, 64], kickLen: [0.15, 0.25], duck: [0.4, 0.7], crunch: 0.3,
+    swing: 0.5, intro: 4, build: [4], drop: 16, breakdown: 8, harmony: 'jazz', singingDrop: true, busy: 0.95,
+    softKeys: [['pluck', 1], ['felt', 1]], verseBass: [['pulse', 1]], switchBass: [['pulse', 1]],
+  },
+  // City pop: eighties Tokyo at sunset. Slap bass, Rhodes stabs, horn-like leads, four on
+  // the floor, bright major-ninth chords.
+  citypop: {
+    bpm: [108, 124], minor: 0.2, groove: 'disco', chordBars: 1,
+    keys: [['rhodes', 3], ['wurli', 1], ['pad', 1]], lead: [['soft', 3], ['vibes', 2], ['synthwave', 2], ['guitar', 2]],
+    bass: [['slap', 3], ['motown', 1]], snare: [['snare', 2], ['clap', 1]], kick: [52, 58], kickLen: [0.3, 0.4], duck: [0.6, 0.9], crunch: 0,
+    swing: 0.52, intro: 4, build: [4], drop: 8, breakdown: 8, harmony: 'jazz', singingDrop: true, busy: 0.75, band: true,
+    softKeys: [['felt', 1], ['pluck', 1]], verseBass: [['slap', 2], ['motown', 1]], switchBass: [['slap', 1]],
+  },
+  // Nu-disco: filtered disco. Octave bass, a wah guitar chanking, string pads, claps and
+  // four on the floor, with builds that open the filter.
+  nudisco: {
+    bpm: [115, 124], minor: 0.45, groove: 'disco', chordBars: 2,
+    keys: [['wah', 3], ['pad', 2], ['supersaw', 1]], lead: [['synthwave', 2], ['soft', 2], ['guitar', 2], ['vibes', 1]],
+    bass: [['synth', 2], ['electro', 1]], snare: [['clap', 3], ['snare', 1]], kick: [50, 56], kickLen: [0.3, 0.4], duck: [1.1, 1.5], crunch: 0.1,
+    swing: 0.52, intro: 8, build: [4], drop: 16, breakdown: 8, harmony: 'pop', singingDrop: true, busy: 0.65,
+    softKeys: [['pad', 2], ['rhodes', 1]], verseBass: [['synth', 1]], switchBass: [['synth', 2], ['electro', 1]],
+  },
+  // Trip hop: dark and dusty. A slow, swung break, an 808 under dark pads and Rhodes,
+  // an eerie lead, grit and plenty of record dust.
+  triphop: {
+    bpm: [78, 92], minor: 0.9, groove: 'boomBap', chordBars: 2,
+    keys: [['pad', 2], ['rhodes', 2], ['felt', 1]], lead: [['angel', 3], ['flute', 2], ['guitar', 2], ['soft', 1]],
+    bass: [['eight', 1]], snare: [['snare', 2], ['rim', 1]], kick: [46, 54], kickLen: [0.4, 0.55], duck: [0.6, 0.9], crunch: 0.6,
+    swing: 0.57, intro: 4, build: [4], drop: 8, breakdown: 8, harmony: 'pop', singingDrop: true, busy: 0.4, band: true, dust: 0.8,
+    softKeys: [['felt', 2], ['pluck', 1]], verseBass: [['eight', 1]], switchBass: [['eight', 1]],
+  },
   // Funk: slap bass up front, a wah guitar chanking sixteenths, horn-like stabs, tight
   // drums with ghost notes, and the jazz-funk chords.
   funk: {
@@ -903,8 +941,8 @@ const DANCE: Record<DanceMood, DanceLean> = {
 };
 
 /** Each dance genre's range of brightness and drive (see LofiStyle.bright and drive). */
-const BRIGHT: Record<DanceMood, [number, number]> = { funk: [1, 1.5], soul: [0.8, 1.2], acid: [0.8, 1.6], reggae: [0.7, 1.1], synthwave: [0.8, 1.3], hiphop: [0.8, 1.2], rock: [0.9, 1.3], spanish: [0.8, 1.2], sugar: [1.1, 1.6], electro: [0.8, 1.4], dubstep: [0.7, 1.4], brostep: [0.9, 1.6], dnb: [0.6, 1.2] };
-const DRIVE: Record<DanceMood, [number, number]> = { funk: [1.2, 2], soul: [1, 1.3], acid: [1.5, 3.5], reggae: [1, 1.4], synthwave: [1, 1.8], hiphop: [1.2, 2.2], rock: [2, 3.2], spanish: [1, 1.4], sugar: [1, 1.6], electro: [2.5, 4], dubstep: [1.2, 2.6], brostep: [2, 4], dnb: [1.8, 3.2] };
+const BRIGHT: Record<DanceMood, [number, number]> = { chiptune: [1.2, 1.6], citypop: [1, 1.4], nudisco: [0.9, 1.4], triphop: [0.6, 0.9], funk: [1, 1.5], soul: [0.8, 1.2], acid: [0.8, 1.6], reggae: [0.7, 1.1], synthwave: [0.8, 1.3], hiphop: [0.8, 1.2], rock: [0.9, 1.3], spanish: [0.8, 1.2], sugar: [1.1, 1.6], electro: [0.8, 1.4], dubstep: [0.7, 1.4], brostep: [0.9, 1.6], dnb: [0.6, 1.2] };
+const DRIVE: Record<DanceMood, [number, number]> = { chiptune: [1, 1.4], citypop: [1, 1.5], nudisco: [1.2, 2], triphop: [1.4, 2.4], funk: [1.2, 2], soul: [1, 1.3], acid: [1.5, 3.5], reggae: [1, 1.4], synthwave: [1, 1.8], hiphop: [1.2, 2.2], rock: [2, 3.2], spanish: [1, 1.4], sugar: [1, 1.6], electro: [2.5, 4], dubstep: [1.2, 2.6], brostep: [2, 4], dnb: [1.8, 3.2] };
 
 /** Pop progressions for the dance genres (sugar uses the jazz ones above). */
 const POP_MAJOR: readonly (readonly Step[])[] = [
@@ -1103,7 +1141,7 @@ function drawDanceStyle(rng: () => number, mood: DanceMood, fixed: Partial<LofiS
     kick: Math.round(range(lean.kick)), kickLen: r2(range(lean.kickLen)),
     snareTone: Math.round(range([1700, 2600])), hatTone: Math.round(range([8000, 10500])),
     wow: r2(range([0.1, 0.3])), room: r2(range([0.8, 1.2])), tone: r2(range([1.1, 1.25])), duck: r2(range(lean.duck)),
-    crunch: rng() < lean.crunch, dust: 0.15,
+    crunch: rng() < lean.crunch, dust: lean.dust ?? 0.15,
     bright: r2(range(BRIGHT[mood])), drive: r2(range(DRIVE[mood])),
   };
   return { ...drawn, ...fixed };
@@ -1123,6 +1161,10 @@ const INTROS: Record<DanceMood, Weights<IntroStyle>> = {
   sugar: [['keys', 2], ['beat', 2], ['bass', 2], ['lead', 1]],
   hiphop: [['beat', 3], ['keys', 2], ['full', 1]],
   reggae: [['full', 1]],   // reggae drops straight into the groove
+  chiptune: [['lead', 2], ['keys', 2], ['beat', 1]],
+  citypop: [['full', 2], ['keys', 2], ['bass', 1]],
+  nudisco: [['beat', 2], ['bass', 2], ['keys', 1]],
+  triphop: [['beat', 3], ['keys', 2]],
   funk: [['beat', 2], ['bass', 3], ['full', 1]],
   soul: [['keys', 2], ['full', 2], ['beat', 1]],
   acid: [['bass', 3], ['beat', 2]],
@@ -1325,8 +1367,8 @@ function composeDanceTune(seed: number, mood: DanceMood, fixed: Partial<LofiStyl
             const vel = muted ? 0.3 : build ? 0.35 + (i * 16 + step) / (part.bars * 16) * 0.4 : stroke === 'd' ? 0.6 : 0.48;
             order.forEach((p, n) => { notes.push({ voice: 'keys', midi: p, beat: sb(step) + n * 0.03, dur: muted ? 0.08 : 0.45, vel: clamp01(vel + (rng() - 0.5) * 0.06) }); });
           }
-        } else if (mood === 'synthwave' && keysV === 'pluck' && part.section !== 'intro' && part.section !== 'outro') {
-          // Synthwave's arpeggio: the chord's tones up and down in sixteenths.
+        } else if (((mood === 'synthwave' && keysV === 'pluck') || keysV === 'chiparp') && part.section !== 'intro' && part.section !== 'outro') {
+          // Synthwave's and chiptune's arpeggio: the chord's tones up and down in sixteenths.
           const arp = [...voicing, ...[...voicing].reverse().slice(1, -1)];
           for (let s = 0; s < 16; s++) notes.push({ voice: 'keys', midi: arp[s % arp.length]!, beat: s / 4, dur: 0.22, vel: s % 4 === 0 ? 0.55 : 0.4 });
         } else if (keysV === 'wah') {
@@ -1465,7 +1507,7 @@ function composeDanceTune(seed: number, mood: DanceMood, fixed: Partial<LofiStyl
         }
         // Sugar's coin dings at the end of a phrase, and now and then a magpie warbling
         // (Lolly's bird) where the music leaves room: an intro, a verse, the breakdown.
-        if (mood === 'sugar' && has('fx') && i % 4 === 3 && chance(0.7)) notes.push({ voice: 'coin', midi: coin, dur: 0.5, beat: sb(chance(0.5) ? 12 : 14), vel: 0.6 });
+        if ((mood === 'sugar' || mood === 'chiptune') && has('fx') && i % 4 === 3 && chance(0.7)) notes.push({ voice: 'coin', midi: coin, dur: 0.5, beat: sb(chance(0.5) ? 12 : 14), vel: 0.6 });
         // The shout: a "hey" calling the next phrase in a sugar drop, and on the offbeat in a
         // reggae chorus (always at its top).
         const hey = placeIn(key, 55, 66);

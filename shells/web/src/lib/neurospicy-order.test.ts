@@ -54,11 +54,12 @@ test('listLoops returns tracks grouped in NEURO_CATEGORY_ORDER, alphabetical wit
   const declared = NEURO_CATEGORY_ORDER.filter((k) => runs.includes(k));
   assert.deepEqual(runs, declared);
   // The exact list a user reads in the picker (catalog → uploads → lolly → Lofi stations → ambient → beats → radio…).
-  assert.deepEqual(names(loops).slice(0, 25), [
+  assert.deepEqual(names(loops).slice(0, 29), [
     'Bed A',                        // catalog
     'A First Upload', 'My Take Two',// uploads, A→Z
-    'Lolly Sings', 'Lolly Sings · Sugar', 'Lolly Sings · Funk', 'Lolly Sings · Soul',
-    'Lolly Sings · Hip hop', 'Lolly Sings · Reggae', 'Lolly Sings · Spanish guitar', 'Lolly Sings · Rock',
+    'Lolly Sings', 'Lolly Sings · Sugar', 'Lolly Sings · Chiptune', 'Lolly Sings · City pop',
+    'Lolly Sings · Funk', 'Lolly Sings · Soul', 'Lolly Sings · Nu-disco', 'Lolly Sings · Hip hop',
+    'Lolly Sings · Trip hop', 'Lolly Sings · Reggae', 'Lolly Sings · Spanish guitar', 'Lolly Sings · Rock',
     'Lolly Sings · Synthwave', 'Lolly Sings · Acid', 'Lolly Sings · Electro', 'Lolly Sings · Dubstep',
     'Lolly Sings · Brostep', 'Lolly Sings · D&B', 'Lofi · Warm', 'Lofi · Late night',
     'Lofi · Rainy',

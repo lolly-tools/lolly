@@ -124,7 +124,7 @@ function trackMood(tags: string[]): string {
 /** The words the now-playing line uses for a Lofi tune's instruments. */
 const LOFI_KEYS_NAME: Record<LofiStyle['keys'], string> = {
   rhodes: 'Rhodes', felt: 'felt piano', wurli: 'Wurlitzer', pluck: 'soft pluck', pad: 'pad', supersaw: 'saw chords',
-  nylon: 'nylon guitar', crunch: 'rhythm guitar', wah: 'wah guitar',
+  nylon: 'nylon guitar', crunch: 'rhythm guitar', wah: 'wah guitar', chiparp: 'chip arpeggio',
 };
 const LOFI_LEAD_NAME: Record<LofiStyle['lead'], string> = {
   vibes: 'vibes', flute: 'flute', soft: 'soft lead', kalimba: 'kalimba', chip: 'chip lead', angel: 'angel lead', pulse: 'pulse lead',

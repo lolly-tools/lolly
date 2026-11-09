@@ -42,8 +42,8 @@ test('a station plays one tune after another, each seed following from the last'
 });
 
 test('the dance genres: their tempo, a build with a riser and a roll, then a drop that opens on a crash', () => {
-  const BPM = { sugar: [116, 130], synthwave: [92, 118], acid: [122, 130], electro: [118, 126], dubstep: [138, 142], brostep: [145, 150], dnb: [170, 176] } as const;
-  for (const mood of ['sugar', 'synthwave', 'acid', 'electro', 'dubstep', 'brostep', 'dnb'] as const) for (const seed of SEEDS.slice(0, 6)) {
+  const BPM = { sugar: [116, 130], chiptune: [128, 150], nudisco: [115, 124], synthwave: [92, 118], acid: [122, 130], electro: [118, 126], dubstep: [138, 142], brostep: [145, 150], dnb: [170, 176] } as const;
+  for (const mood of ['sugar', 'chiptune', 'nudisco', 'synthwave', 'acid', 'electro', 'dubstep', 'brostep', 'dnb'] as const) for (const seed of SEEDS.slice(0, 6)) {
     const bars = composeLofiTune(seed, mood);
     const t = bars[0]!.tune;
     const where = `${mood} ${seed}`;
@@ -119,7 +119,7 @@ test('every dance tune draws its own brightness and drive, within its genre', ()
 });
 
 test('the band styles: a song with verses and choruses, a fill into each chorus and a solo', () => {
-  for (const mood of ['rock', 'spanish', 'hiphop', 'reggae', 'funk', 'soul'] as const) for (const seed of SEEDS.slice(0, 6)) {
+  for (const mood of ['rock', 'spanish', 'hiphop', 'reggae', 'funk', 'soul', 'citypop', 'triphop'] as const) for (const seed of SEEDS.slice(0, 6)) {
     const bars = composeLofiTune(seed, mood);
     const st = bars[0]!.tune.style;
     const where = `${mood} ${seed}`;
@@ -157,7 +157,7 @@ test('the band styles: a song with verses and choruses, a fill into each chorus 
       // The bass keeps moving: across the song it plays many different bar shapes.
       const shapes = new Set(bars.filter(b => b.section !== 'rest').map(b => b.notes.filter(n => n.voice === 'bass').map(n => Math.round(n.beat * 4)).join(',')));
       assert.ok(shapes.size >= 5, `${where}: ${shapes.size} bass rhythms`);
-    } else {
+    } else if (mood === 'spanish') {
       assert.equal(st.keys, 'nylon');
       const strum = verse.notes.filter(n => n.voice === 'keys' && n.beat < 0.2).map(n => n.beat);
       assert.ok(strum.length >= 3 && strum.every((b, i) => i === 0 || b > strum[i - 1]!), `${where}: a strum rolls across the strings`);

@@ -89,6 +89,7 @@ export function keys(style: LofiStyle['keys'], k: VoiceKit, out: AudioNode, t: n
   else if (style === 'nylon') nylon(k, out, t, midi, vel, dur, false);
   else if (style === 'crunch') crunch(k, out, t, midi, vel, dur);
   else if (style === 'wah') wah(k, out, t, midi, vel, dur);
+  else if (style === 'chiparp') chipArp(k, out, t, midi, vel, dur);
   else fmPiano(k, out, t, midi, vel, dur, style === 'wurli');
 }
 
@@ -230,6 +231,22 @@ function nylon(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number
   plucked(k, out, t, midi, vel, dur, lead
     ? { pickAt: 0.2, bright: 9, mellow: 2.6, ring: 1.1, body: 220, level: 0.13 }
     : { pickAt: 0.22, bright: 7, mellow: 2.2, ring: 0.8, body: 220, level: 0.08 });
+}
+
+/** A chiptune arpeggio note: a 25% pulse, short and bright, an old console's second channel. */
+function chipArp(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number, dur: number): void {
+  const { ctx } = k;
+  const len = Math.max(0.04, Math.min(dur, 0.25));
+  const lp = ctx.createBiquadFilter();
+  lp.type = 'lowpass';
+  lp.frequency.value = 7000;
+  const amp = ctx.createGain();
+  amp.gain.setValueAtTime(EPS, t);
+  amp.gain.exponentialRampToValueAtTime(0.045 * vel, t + 0.002);
+  amp.gain.setValueAtTime(0.045 * vel, t + len * 0.6);
+  amp.gain.exponentialRampToValueAtTime(EPS, t + len);
+  lp.connect(amp).connect(out);
+  pulseOsc(k, 0.25, mtof(midi), t, t + len + 0.02).connect(lp);
 }
 
 /**
@@ -712,7 +729,7 @@ export function bass(style: LofiStyle['bass'], k: VoiceKit, out: AudioNode, t: n
   if (style === 'pulse') { pulseBass(k, out, t, midi, vel, dur, tone); return; }
   if (style === 'electro') { electro(k, out, t, midi, vel, dur, tone); return; }
   if (style === 'picked') { pickedBass(k, out, t, midi, vel, dur, tone); return; }
-  if (style === 'croak') { slap(k, out, t, midi, vel, dur, Math.round(mod), tone); return; }   // the modelled string: bubbling, sliding, bending
+  if (style === 'croak') { slap(k, out, t, midi, vel, dur, Math.round(mod), tone, true); return; }   // the raw, buzzy string: bubbling, sliding, bending
   if (style === 'eight') { eightOhEight(k, out, t, midi, vel, dur, mod >= 2, tone); return; }
   if (style === 'acid') { acid(k, out, t, midi, vel, dur, Math.round(mod), tone); return; }
   const { ctx } = k;
@@ -927,16 +944,28 @@ function reese(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number
  *   1 pop    a finger snaps the string: a sharp, bright click and a ringing octave
  *   2 slide  comes up into the note from a fourth below
  *   3 bend   popped, then pushed up a tone and let back down
- *   4 dead   muted with the left hand: a percussive tick with almost no note
- * A sine under the string keeps the weight a modelled string loses as it decays, and a
- * little drive gives the attitude of a bass amp pushed hard.
+ *   4 dead   muted with the left hand: a percussive tick with no note at all
+ * A sine under the string keeps the weight a modelled string loses as it decays. `raw`
+ * is the croak: the same string left bright, buzzy and driven.
  */
-function slap(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number, dur: number, art: number, tone: Tone): void {
+function slap(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number, dur: number, art: number, tone: Tone, raw = false): void {
   const { ctx } = k;
   const f = mtof(midi);
   const pop = art === 1 || art === 3;
-  const dead = art === 4;
-  const len = dead ? 0.06 : Math.max(0.12, Math.min(dur + 0.08, 0.8));
+  // A dead note is a muted, percussive tick with no ringing string: a short pitched
+  // buzz at bass pitch is the fart-like sound a dead note must never make.
+  if (art === 4 && !raw) {
+    const tick = ctx.createBiquadFilter();
+    tick.type = 'bandpass';
+    tick.frequency.value = 1600;
+    tick.Q.value = 1.2;
+    const tg = ctx.createGain();
+    tg.gain.setValueAtTime(0.16 * vel, t);
+    tg.gain.exponentialRampToValueAtTime(EPS, t + 0.02);
+    noiseAt(k, t, 0.025).connect(tick).connect(tg).connect(out);
+    return;
+  }
+  const len = Math.max(0.12, Math.min(dur + 0.08, 0.8));
   const end = t + len + 0.05;
   // The string. A Web Audio loop holds at least one 128-frame block, which caps the
   // string at about 340 Hz; slap notes stay below that.
@@ -945,7 +974,7 @@ function slap(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number,
   const pitch = delay.delayTime;
   if (art === 2) {
     pitch.setValueAtTime(period(f * 2 ** (-5 / 12)), t);
-    pitch.linearRampToValueAtTime(period(f), t + 0.07);
+    pitch.linearRampToValueAtTime(period(f), t + (raw ? 0.07 : 0.035));
   } else if (art === 3) {
     pitch.setValueAtTime(period(f), t);
     pitch.linearRampToValueAtTime(period(f * 2 ** (2 / 12)), t + 0.09);
@@ -956,22 +985,23 @@ function slap(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number,
   } else {
     pitch.setValueAtTime(period(f), t);
   }
+  // Smooth by default: a darker string loop, a warmer strike, little drive and a
+  // low-pass after the drive. The croak (`raw`) keeps the bright, buzzy, driven string on purpose.
   const damp = ctx.createBiquadFilter();
   damp.type = 'lowpass';
-  damp.frequency.value = (dead ? 1200 : pop ? 7000 : 3200) * tone.bright;
-  const keep = dead ? 0.9 : pop ? 0.993 : 0.99;
+  damp.frequency.value = (raw ? (pop ? 7000 : 3200) : (pop ? 4500 : 1800)) * tone.bright;
+  const keep = pop ? 0.993 : 0.99;
   const loop = ctx.createGain();
   loop.gain.setValueAtTime(keep, t);
   loop.gain.setValueAtTime(keep, t + len);
   loop.gain.linearRampToValueAtTime(0, t + len + 0.03);   // let go of the string
   delay.connect(damp).connect(loop).connect(delay);
-  // The strike: the thumb's broad thwack, the pop's bright click, the dead note's tick.
   const excite = ctx.createBiquadFilter();
   excite.type = pop ? 'bandpass' : 'lowpass';
-  excite.frequency.value = dead ? 1500 : pop ? 3500 : 2600;
+  excite.frequency.value = pop ? 3500 : raw ? 2600 : 1500;
   excite.Q.value = pop ? 0.9 : 0.7;
   const eg = ctx.createGain();
-  eg.gain.setValueAtTime(pop ? 1.3 : 1.2, t);
+  eg.gain.setValueAtTime(pop ? 1.2 : 1, t);
   eg.gain.exponentialRampToValueAtTime(EPS, t + (pop ? 0.006 : 0.009));
   noiseAt(k, t, 0.012).connect(excite).connect(eg).connect(delay);
   // The string slapping the frets (or snapping back off them), heard directly.
@@ -980,30 +1010,33 @@ function slap(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number,
   fret.frequency.value = pop ? 4200 : 1900;
   fret.Q.value = 1.4;
   const fg = ctx.createGain();
-  fg.gain.setValueAtTime((pop ? 0.22 : dead ? 0.2 : 0.16) * vel, t);
+  fg.gain.setValueAtTime((pop ? 0.2 : 0.12) * vel, t);
   fg.gain.exponentialRampToValueAtTime(EPS, t + (pop ? 0.004 : 0.008));
   noiseAt(k, t, 0.01).connect(fret).connect(fg).connect(out);
-  const [push, ws] = drivenBy(ctx, 1.4);
+  const [push, ws] = drivenBy(ctx, raw ? 1.4 : 0.7);
+  const smooth = ctx.createBiquadFilter();
+  smooth.type = 'lowpass';
+  smooth.frequency.value = raw ? 9000 : pop ? 5000 : 2600;
   const amp = ctx.createGain();
-  amp.gain.setValueAtTime((dead ? 0.4 : pop ? 0.55 : 0.6) * vel, t);
-  amp.gain.setTargetAtTime(EPS, t + len, dead ? 0.01 : 0.03);
+  amp.gain.setValueAtTime((pop ? 0.5 : raw ? 0.6 : 0.42) * vel, t);
+  amp.gain.setTargetAtTime(EPS, t + len, 0.03);
   const hp = ctx.createBiquadFilter();
   hp.type = 'highpass';
   hp.frequency.value = 35;
   delay.connect(hp).connect(push);
-  ws.connect(amp).connect(out);
-  if (dead) return;
-  // The weight under the string, following its slides and bends.
+  ws.connect(smooth).connect(amp).connect(out);
+  // The weight under the string, following its slides and bends: a bigger share of the
+  // sound when smooth.
   const body = osc(k, 'sine', f, t, end);
   if (art === 2) {
     body.frequency.setValueAtTime(f * 2 ** (-5 / 12), t);
-    body.frequency.linearRampToValueAtTime(f, t + 0.07);
+    body.frequency.linearRampToValueAtTime(f, t + (raw ? 0.07 : 0.035));
   } else if (art === 3) {
     body.frequency.linearRampToValueAtTime(f * 2 ** (2 / 12), t + 0.09);
     body.frequency.linearRampToValueAtTime(f, t + 0.22);
   }
   const bg = ctx.createGain();
-  struck(bg.gain, t, len, (pop ? 0.14 : 0.26) * vel, 0.003, 0.2, 0.5, 0.03);
+  struck(bg.gain, t, len, (pop ? 0.16 : raw ? 0.26 : 0.34) * vel, 0.003, 0.2, 0.5, 0.03);
   body.connect(bg).connect(out);
 }
 
