@@ -16,7 +16,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { LOFI_TUNE_FORMAT, lofiTuneBytes, lofiTuneFromBytes, lofiTuneFromMeta, lofiTuneName } from './lofi-tune.ts';
+import { LOFI_TUNE_FORMAT, lofiTuneBytes, lofiTuneFromBytes, lofiTuneFromMeta, lofiTuneName, renderKey, shareRender } from './lofi-tune.ts';
 import { savedTuneOf, playsOnStation } from './neurospicy-lofi.ts';
 import { listLoops, trackCategory, invalidateNeurospicyTracks, type NeurospicyHost } from './neurospicy.ts';
 
@@ -108,4 +108,24 @@ test('a music generator track saves as a tune that keeps everything it was made 
   assert.equal(settings.bars, 16);
   assert.equal(settings.style?.lead, 'bit');
   assert.ok(Math.abs(trackSeconds(state) - (16 * 240) / 128) < 1e-9, 'sixteen bars at 128 bpm');
+});
+
+test('opening a tune renders once: the player and the waveform share one render', async () => {
+  const recipe = { mood: 'sugar' as const, seed: 2024, generator: 'style=sugar&seed=2024' };
+  assert.equal(renderKey(recipe, {}), renderKey({ ...recipe }, { seconds: undefined }), 'the same tune and options are the same render');
+  assert.notEqual(renderKey(recipe, {}), renderKey(recipe, { seconds: 40 }), 'a longer bed is another render');
+  assert.notEqual(renderKey(recipe, {}), renderKey({ ...recipe, generator: 'style=sugar&seed=2024&bpm=90' }, {}));
+  let runs = 0;
+  let finish: (v: string) => void = () => {};
+  const pending = new Map<string, Promise<string>>();
+  const make = (): Promise<string> => { runs++; return new Promise<string>((r) => { finish = r; }); };
+  const a = shareRender('k', make, pending);
+  const b = shareRender('k', make, pending);
+  assert.equal(runs, 1, 'the second caller joins the first render');
+  finish('pcm');
+  assert.equal(await a, 'pcm');
+  assert.equal(await b, 'pcm');
+  assert.equal(pending.size, 0, 'nothing is kept once the render is done');
+  shareRender('k', make, pending);
+  assert.equal(runs, 2, 'a later request renders again');
 });
