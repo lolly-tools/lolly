@@ -3882,6 +3882,12 @@ html[data-a11y-motion="reduce"] .sidebar-chev{transition:none}
    and the accent in the theme's green, the pairing the brand's dark surfaces use. */
 :root,[data-theme="light"]{--eti-accent:#50c369;--eti-base:hsl(var(--primary))}
 [data-theme="dark"],[data-theme="brand"]{--eti-accent:hsl(var(--primary));--eti-base:hsl(var(--foreground))}
+/* The terminal's colours (docs-components.css) read the app's syntax roles. On Opal's light
+   theme the primary is Spearmint, which on the Avocado code panel sits a shade from the ink,
+   so flags, variables and placeholder tints take Spearmint lifted toward Green Apple (5.3:1
+   on the panel) and comments and punctuation a lighter grey (5.1:1). The command keeps
+   Spearmint, in bold. Dark and Brand keep their roles, and High contrast keeps the app's. */
+html:not([data-theme="dark"]):not([data-theme="brand"]):not([data-a11y-contrast="high"]){--ui-color-syntax-type:color-mix(in oklab,hsl(var(--primary)) 55%,var(--eti-accent));--ui-color-syntax-number:var(--ui-color-syntax-type);--ui-color-syntax-comment:color-mix(in oklab,var(--muted) 75%,var(--pale));--ui-color-syntax-operator:var(--ui-color-syntax-comment)}
 /* ::: cards: an icon list drawn as cards on a pale panel, the way the banked figures
    lay out their parts. A card whose text opens with a bold link IS that link: the
    link's ::after covers the card, so the whole card is one target with one name. */

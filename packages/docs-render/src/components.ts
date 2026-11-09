@@ -10,6 +10,8 @@
 //   ::: check Title         an observable result that shows the step worked
 //   ::: details Title       optional depth, closed by default
 //   :::
+// and the layout pieces assembled here for render.ts: the `::: logos` strip, the
+// `::: steps` row and the large icon that opens a section.
 // Styles: shells/web/src/styles/parts/docs-components.css. Behaviour (Copy, feedback,
 // opening a disclosure from a link): docs/reader/enhance.ts.
 import { escAttr } from './esc.ts';
@@ -81,6 +83,33 @@ export function detailsBlock(p: DetailsParts): string {
     + `<div class="doc-details-body">${p.bodyHtml}</div></details>`;
 }
 
+/** One mark in a `::: logos` strip: the image, already rendered with an empty alt, and its
+ *  name, already escaped. */
+export interface LogoMark { imgHtml: string; nameHtml: string }
+
+/** The marks a page is about, in a row that wraps: each on a light plate, so a vendor's
+ *  own colours read on every theme, followed by the mark's name. A list, so a screen
+ *  reader hears each name once. */
+export function logoStrip(marks: readonly LogoMark[]): string {
+  return `<ul class="md-logos">${marks.map(m => `<li><span class="md-logo">${m.imgHtml}</span><span class="md-logo-name">${m.nameHtml}</span></li>`).join('')}</ul>`;
+}
+
+/** `::: steps`: an icon list in reading order. The list becomes an ordered one, so the
+ *  order is in the markup and not only in the layout. */
+export function stepsBlock(bodyHtml: string): string {
+  const one = bodyHtml.startsWith('<ul class="icon-list">') && bodyHtml.indexOf('</ul>') === bodyHtml.length - '</ul>'.length;
+  const ordered = one
+    ? `<ol class="icon-list">${bodyHtml.slice('<ul class="icon-list">'.length, -'</ul>'.length)}</ol>`
+    : bodyHtml;
+  return `<div class="md-steps">${ordered}</div>`;
+}
+
+/** The large two-tone icon that opens a section (`<!--i:eti-…-->` on a line of its own,
+ *  before the heading). Decoration only: the heading that follows says what the section is. */
+export function sectionIcon(glyph: string): string {
+  return glyph ? `<div class="md-section-icon" aria-hidden="true">${glyph}</div>` : '';
+}
+
 /** A fence info string: the first token is the language, restricted to a safe
  *  alphabet; later tokens are allowlisted flags. Anything else is dropped rather
  *  than written into a class attribute. */
@@ -136,6 +165,8 @@ export interface CodeParts {
   copyMode?: 'shell' | 'exact';
   wrap: boolean;
   codeHtml: string;
+  /** True when codeHtml already holds the wrap tokens (shell-highlight.ts codeRunsHtml). */
+  wrapped?: boolean;
 }
 
 /** A code block. The bar holds no text: its label is data, drawn by CSS, so search
@@ -146,7 +177,7 @@ export function codeBlock(p: CodeParts): string {
   // A wrapping block may break only between arguments: each whitespace-separated token
   // is held together, because a browser also breaks after a hyphen and would strand a
   // flag's "--" at a line end. The text, and so the copy, is unchanged.
-  const codeHtml = p.wrap ? p.codeHtml.replace(/\S+/g, (tok) => `<span class="doc-code-token">${tok}</span>`) : p.codeHtml;
+  const codeHtml = p.wrap && !p.wrapped ? p.codeHtml.replace(/\S+/g, (tok) => `<span class="doc-code-token">${tok}</span>`) : p.codeHtml;
   const copy = p.copy ? ` data-copy="${p.copyMode === 'shell' ? 'shell' : ''}"` : '';
   return `<div class="doc-code" data-label="${label}"${copy}${p.wrap ? ' data-wrap=""' : ''}>`
     + `<div class="doc-code-bar" data-label="${label}"></div>`
