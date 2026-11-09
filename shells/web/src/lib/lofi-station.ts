@@ -28,7 +28,7 @@
  * is hidden the station queues a few seconds ahead instead of a quarter of one.
  */
 import { lofiStream, LOFI_DRUM_VOICES } from '../../../../engine/src/lofi-compose.ts';
-import type { LofiBar, LofiMood, LofiNote, LofiStream, LofiStyle } from '../../../../engine/src/lofi-compose.ts';
+import type { LofiBar, LofiMood, LofiNote, LofiStream, LofiStyle, LofiBlend } from '../../../../engine/src/lofi-compose.ts';
 import { mulberry32 } from '../../../../engine/src/zzfx-compose.ts';
 import * as V from './lofi-voices.ts';
 
@@ -47,6 +47,8 @@ export interface LofiSettings {
   bars?: number;
   /** Change each bar before it plays (the music generator's per-section instruments). Must be pure. */
   shape?: (bar: LofiBar) => LofiBar;
+  /** A flavour blended into a dance genre (the music generator's Blend). */
+  blend?: LofiBlend;
 }
 
 /** Part levels, for tuning the balance. 1 is the designed level. */
@@ -79,8 +81,8 @@ const GRIT_MIX = 0.5;
 const VARIANT: { keys: Record<LofiStyle['keys'], number>; lead: Record<LofiStyle['lead'], number>; bass: Record<LofiStyle['bass'], number>; snare: Record<LofiStyle['snare'], number>; hats: Record<LofiStyle['hats'], number> } = {
   // Short, decaying sounds (pluck, kalimba, rim, clap) measure quieter than they sound,
   // so they take most of the measured difference, not the whole difference.
-  keys: { rhodes: 1, felt: 0.93, wurli: 1.4, pluck: 1.8, pad: 1, supersaw: 1, nylon: 1.8, crunch: 1, wah: 1, chiparp: 1.6, steel: 2.4, banjo: 2, honky: 1, organ: 2.2, brass: 2, jazzbox: 2 },
-  lead: { vibes: 1, flute: 0.82, soft: 1.35, kalimba: 1.7, chip: 0.8, angel: 0.76, pulse: 2.4, guitar: 2.1, overdrive: 0.5, synthwave: 0.86, metal: 0.6, panflute: 0.56, nylon: 1.9, riff: 0.6, twang: 2.2, banjo: 1.5, harmonica: 0.55, sax: 1, trumpet: 1, clarinet: 1, pedal: 0.44, fiddle: 1, none: 0 },
+  keys: { rhodes: 1, felt: 0.93, wurli: 1.4, pluck: 1.8, pad: 1, supersaw: 1, nylon: 1.8, crunch: 1, wah: 1, chiparp: 1.6, steel: 2.4, banjo: 2, honky: 1, organ: 2.2, brass: 2, jazzbox: 2, harp: 1.3, choir: 1 },
+  lead: { vibes: 1, flute: 0.82, soft: 1.35, kalimba: 1.7, chip: 0.8, angel: 0.76, pulse: 2.4, guitar: 2.1, overdrive: 0.5, synthwave: 0.86, metal: 0.6, panflute: 0.56, nylon: 1.9, riff: 0.6, twang: 2.2, banjo: 1.5, harmonica: 0.55, sax: 1, trumpet: 1, clarinet: 1, pedal: 0.44, fiddle: 1, bells: 1.6, none: 0 },
   // The reese is drum and bass's whole low end, so it sits about 4 dB up (Andy, 2026-11-08).
   bass: { round: 1, upright: 1.05, synth: 1.2, wobble: 1, growl: 1.8, reese: 1.6, slap: 1.6, screech: 1.7, pulse: 1, electro: 1, picked: 1, croak: 1, eight: 1, acid: 1, motown: 1, yidaki: 1.1 },
   snare: { snare: 1, brush: 1.15, rim: 1.8, clap: 2.3 },
@@ -151,7 +153,7 @@ export class LofiStation {
     this.ctx = ctx;
     this.settings = { ...settings };
     this.mix = { ...mix };
-    this.stream = lofiStream(seed, { mood: settings.mood, style: settings.style, repeat: settings.repeat });
+    this.stream = lofiStream(seed, { mood: settings.mood, style: settings.style, repeat: settings.repeat, blend: settings.blend });
     for (let i = 0; i < (settings.startBar ?? 0); i++) { this.stream.next(); this.taken++; }
     const noise = noiseBuffer(ctx, 2, mulberry32(seed ^ 0x51));
     this.kit = { ctx, noise, rng: mulberry32(seed ^ 0x5eed) };
@@ -307,7 +309,7 @@ export class LofiStation {
     for (const g of Object.values(old)) g.gain.setTargetAtTime(0, now, 0.06);
     if (typeof setTimeout === 'function') setTimeout(() => { for (const g of Object.values(old)) g.disconnect(); }, 800);
     this.lanes = this.newLanes();
-    this.stream = lofiStream(seed, { mood: this.settings.mood, style: this.settings.style, repeat: this.settings.repeat });
+    this.stream = lofiStream(seed, { mood: this.settings.mood, style: this.settings.style, repeat: this.settings.repeat, blend: this.settings.blend });
     this.queue = [];
     this.marks = [];
     this.nextBarAt = now + 0.15;
