@@ -96,6 +96,8 @@ export function keys(style: LofiStyle['keys'], k: VoiceKit, out: AudioNode, t: n
   else if (style === 'jazzbox') jazzbox(k, out, t, midi, vel, dur);
   else if (style === 'organ') organ(k, out, t, midi, vel, dur);
   else if (style === 'brass') brass(k, out, t, midi, vel, dur);
+  else if (style === 'harp') harp(k, out, t, midi, vel, dur);
+  else if (style === 'choir') choir(k, out, t, midi, vel, dur);
   else if (style === 'honky') { fmPiano(k, out, t, midi, vel * 0.75, dur, false, 9); fmPiano(k, out, t, midi, vel * 0.75, dur, false, -9); }
   else fmPiano(k, out, t, midi, vel, dur, style === 'wurli');
 }
@@ -239,6 +241,66 @@ export function lead(style: LofiStyle['lead'], k: VoiceKit, out: AudioNode, t: n
   else if (style === 'clarinet') clarinet(k, out, t, midi, vel, dur, art);
   else if (style === 'pedal') pedalSteel(k, out, t, midi, vel, dur, art);
   else if (style === 'fiddle') fiddle(k, out, t, midi, vel, dur, art);
+  else if (style === 'bells') bells(k, out, t, midi, vel, dur);
+}
+
+/** A concert harp: a mellow pluck from the middle of a long gut string, ringing on. */
+function harp(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number, dur: number): void {
+  plucked(k, out, t, midi, vel, Math.max(dur, 1.2), { pickAt: 0.5, bright: 9, mellow: 3, ring: 2.4, body: 520, level: 0.12 });
+}
+
+/**
+ * A choir singing "ah": three voices a few cents apart (a section, not a soloist), shaped
+ * by the vowel's formants, swelling in slowly with a gentle vibrato.
+ */
+function choir(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number, dur: number): void {
+  const { ctx } = k;
+  const f = mtof(midi);
+  const end = t + dur + 0.6;
+  const mix = ctx.createGain();
+  for (const cents of [-9, 0, 8]) {
+    const o = osc(k, 'sawtooth', f, t, end);
+    o.detune.setValueAtTime(cents, t);
+    vibrato(k, o.detune, t, end, 5 + k.rng(), 12, 0.3);
+    o.connect(mix);
+  }
+  const amp = ctx.createGain();
+  amp.gain.setValueAtTime(EPS, t);
+  amp.gain.exponentialRampToValueAtTime(0.27 * vel, t + 0.28);
+  amp.gain.setValueAtTime(0.27 * vel, t + Math.max(0.3, dur));
+  amp.gain.exponentialRampToValueAtTime(EPS, end);
+  amp.connect(out);
+  // "Ah": the vowel's first three formants, in parallel.
+  for (const [hz, q, level] of [[750, 5, 1], [1150, 6, 0.6], [2700, 8, 0.25]] as const) {
+    const bp = ctx.createBiquadFilter();
+    bp.type = 'bandpass';
+    bp.frequency.value = hz;
+    bp.Q.value = q;
+    const g = ctx.createGain();
+    g.gain.value = level;
+    mix.connect(bp).connect(g).connect(amp);
+  }
+}
+
+/**
+ * Bells (a celesta or glockenspiel): a bright FM strike whose metallic partials fade
+ * first, leaving the pure tone ringing.
+ */
+function bells(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number, dur: number): void {
+  const { ctx } = k;
+  const f = mtof(midi);
+  const ring = Math.max(1.2, Math.min(2.5, dur + 1));
+  const car = osc(k, 'sine', f, t, t + ring + 0.05);
+  const mod = osc(k, 'sine', f * 3.5, t, t + ring + 0.05);
+  const index = ctx.createGain();
+  index.gain.setValueAtTime(f * 2.2 * (0.6 + vel * 0.6), t);
+  index.gain.exponentialRampToValueAtTime(f * 0.05, t + 0.9);
+  mod.connect(index).connect(car.frequency);
+  const amp = ctx.createGain();
+  amp.gain.setValueAtTime(EPS, t);
+  amp.gain.exponentialRampToValueAtTime(0.09 * vel, t + 0.002);
+  amp.gain.exponentialRampToValueAtTime(EPS, t + ring);
+  car.connect(amp).connect(out);
 }
 
 // ── the roots instruments ───────────────────────────────────────────────────

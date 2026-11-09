@@ -23,8 +23,8 @@ import { mountHomeFab } from '../components/home-fab.ts';
 import { t } from '../i18n.ts';
 import { escape as escapeHtml } from '../utils.ts';
 import {
-  lofiStream, lofiSectionName, LOFI_KEYS, LOFI_LEADS, LOFI_BASSES, LOFI_SNARES, LOFI_HATS, LOFI_DRUM_VOICES,
-  type LofiBar, type LofiMood, type LofiStyle,
+  lofiStream, lofiSectionName, isDanceMood, LOFI_KEYS, LOFI_LEADS, LOFI_BASSES, LOFI_SNARES, LOFI_HATS, LOFI_DRUM_VOICES, LOFI_BLENDS,
+  type LofiBar, type LofiBlend, type LofiMood, type LofiStyle,
 } from '../../../../engine/src/lofi-compose.ts';
 import { LofiStation, LOFI_MIX, type LofiMix, type LofiSettings } from '../lib/lofi-station.ts';
 import { LOFI_STATION_MOODS, lofiStationName } from '../lib/neurospicy-lofi.ts';
@@ -61,8 +61,12 @@ const VIZ_KEY = 'lolly:musicViz';
 export type SectionVoices = Partial<Pick<LofiStyle, 'keys' | 'lead' | 'bass' | 'snare' | 'hats'>>;
 const SECTION_NAMES = ['intro', 'verse', 'build', 'drop', 'break', 'bridge', 'feature', 'groove', 'drums', 'outro'] as const;
 
+const BLEND_LABEL: Record<LofiBlend, string> = { fantasy: 'Fantasy', kpop: 'K-pop', dream: 'Dreamscape', metal: 'Metal' };
+
 export interface MusicState {
   mood: LofiMood;
+  /** A flavour blended into the style (dance styles only). */
+  blend?: LofiBlend;
   /** Per kind of section, the instruments chosen for it, over whatever the composer chose. */
   sections: Partial<Record<string, SectionVoices>>;
   seed: number;
@@ -110,6 +114,7 @@ export function parseMusicState(params: string): MusicState {
   return {
     sections,
     mood: pick(q.get('style'), LOFI_STATION_MOODS) ?? DEFAULT_STATE.mood,
+    blend: pick(q.get('blend'), LOFI_BLENDS),
     seed: Math.floor(num(q.get('seed'), 0, 4294967295) ?? DEFAULT_STATE.seed),
     bars: Math.round(num(q.get('bars'), 4, 512) ?? DEFAULT_STATE.bars),
     keys: pick(q.get('keys'), LOFI_KEYS),
@@ -129,6 +134,7 @@ export function musicStateParams(s: MusicState): string {
   q.set('style', s.mood);
   q.set('seed', String(s.seed >>> 0));
   q.set('bars', String(s.bars));
+  if (s.blend) q.set('blend', s.blend);
   if (s.keys) q.set('keys', s.keys);
   if (s.lead) q.set('lead', s.lead);
   if (s.bass) q.set('bass', s.bass);
@@ -169,7 +175,7 @@ export function shapeBar(s: MusicState): (bar: LofiBar) => LofiBar {
 
 /** The track's bars, composed: the same bars the station will play. */
 export function composeTrack(s: MusicState): LofiBar[] {
-  const stream = lofiStream(s.seed, { mood: s.mood, style: fixedStyle(s) });
+  const stream = lofiStream(s.seed, { mood: s.mood, style: fixedStyle(s), ...(s.blend && isDanceMood(s.mood) ? { blend: s.blend } : {}) });
   const shape = shapeBar(s);
   return Array.from({ length: s.bars }, () => shape(stream.next()));
 }
@@ -266,6 +272,9 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
       </button>
       <span class="ms-time" data-pos></span>
       <select class="field-select field-select--sm" data-style aria-label="${escapeHtml(t('Style'))}">${LOFI_STATION_MOODS.map(m => `<option value="${m}"${m === state.mood ? ' selected' : ''}>${escapeHtml(lofiStationName(m))}</option>`).join('')}</select>
+      <select class="field-select field-select--sm" data-blend aria-label="${escapeHtml(t('Blend'))}" title="${escapeHtml(t('Blend a flavour into the style'))}">
+        <option value="">${escapeHtml(t('No blend'))}</option>${LOFI_BLENDS.map(b => `<option value="${b}"${b === state.blend ? ' selected' : ''}>${escapeHtml(t(BLEND_LABEL[b]))}</option>`).join('')}
+      </select>
       <span class="ms-seed" role="group" aria-label="${escapeHtml(t('Seed'))}">
         ${iconBtn('data-seed-step="-1"', 'chevronLeft', t('Previous seed'))}
         <input type="number" class="field-input field-input--sm ms-seed-input" min="0" max="4294967295" value="${state.seed}" data-seed aria-label="${escapeHtml(t('Seed'))}" title="${escapeHtml(t('The seed: type one, or drag across it to slide through seeds'))}">
@@ -530,7 +539,7 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
     return m;
   }
   function settings(startBar: number): LofiSettings {
-    return { mood: state.mood, drums: state.drums, texture: state.texture, style: fixedStyle(state), startBar, bars: state.bars, shape: shapeBar(state) };
+    return { mood: state.mood, drums: state.drums, texture: state.texture, style: fixedStyle(state), startBar, bars: state.bars, shape: shapeBar(state), ...(state.blend && isDanceMood(state.mood) ? { blend: state.blend } : {}) };
   }
   const showPlaying = (on: boolean): void => {
     q<HTMLElement>('[data-play-icon]').hidden = on;
@@ -670,7 +679,12 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
     for (const el of page.querySelectorAll<HTMLElement>(sel)) el.addEventListener(type, e => fn(e, el));
   };
   listen('[data-play]', 'click', () => { if (station) stopPlayback(); else play(selected); });
-  listen('[data-style]', 'change', (_e, el) => { if (el instanceof HTMLSelectElement) { state.mood = parseMusicState(`style=${el.value}`).mood; recompose(); fit(); } });
+  const blendSelect = q<HTMLSelectElement>('[data-blend]');
+  // A blend flavours the dance styles; the Lofi moods have none.
+  const showBlend = (): void => { blendSelect.disabled = !isDanceMood(state.mood); };
+  listen('[data-style]', 'change', (_e, el) => { if (el instanceof HTMLSelectElement) { state.mood = parseMusicState(`style=${el.value}`).mood; showBlend(); recompose(); fit(); } });
+  listen('[data-blend]', 'change', (_e, el) => { if (el instanceof HTMLSelectElement) { state.blend = LOFI_BLENDS.find(b => b === el.value); recompose(); } });
+  showBlend();
   const setSeed = (seed: number): void => {
     state.seed = ((seed % 4294967296) + 4294967296) % 4294967296;
     q<HTMLInputElement>('[data-seed]').value = String(state.seed);
