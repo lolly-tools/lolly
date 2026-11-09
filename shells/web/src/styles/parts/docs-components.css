@@ -189,7 +189,7 @@
 }
 /* The words of a placeholder stay in the ink, so the tint can never cost them contrast. */
 .docs-content .doc-code .sh-ph {
-  border-radius: 4px;
+  border-radius: var(--radius-xs);
   background: color-mix(in srgb, var(--ui-color-syntax-type) 16%, transparent);
   color: var(--ui-color-syntax-string);
   font-style: italic;
