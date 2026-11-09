@@ -13,6 +13,7 @@ import { mountPeerViewport } from '../tool-peer-view.ts';
 import { mountViewAddress } from '../tool-view-address.ts';
 import { mountStageMotion } from '../../lib/stage-lod.ts';
 import { stageBottomReserve, stageSideReserve } from '../../lib/design-panel-layout.ts';
+import { hudClearance } from '../../lib/stage-hud-clearance.ts';
 import { carryMountState, willRemountForCollab } from '../../lib/collab-live-mount.ts';
 import { releaseTeamSessionOrigin } from '../../org/team-session-origin.ts';
 import type { ToolCollab } from '../tool-collab.ts';
@@ -142,21 +143,25 @@ export function fitCanvas(tview: ToolViewCtx): void {
   // overlay is inset to the stage's padding box, so padding would drag the toolbars in with
   // it); justify-content:center then honours the margins, floating the canvas into the band.
   const cs = getComputedStyle(stageEl);
-  const hud = stageEl.querySelector<HTMLElement>('.stage-nav')?.getBoundingClientRect();
-  const hudReserve = window.matchMedia('(max-width: 640px)').matches && hud?.width && hud.height
-    ? Math.max(0, hud.bottom - stageRect.top - topPad)
-    : 0;
-  const reserveTop = Math.max(stageSideReserve(cs, 'top'), hudReserve);
   const pill = stageEl.parentElement?.querySelector<HTMLElement>('.render-pill')?.getBoundingClientRect();
   const pillReserve = pill?.width && pill.height && pill.left < stageRect.right && pill.right > stageRect.left
     ? Math.max(0, stageRect.bottom - pill.top)
     : 0;
   const reserveBottom = Math.max(stageBottomReserve(cs), pillReserve);
+  // The phone zoom HUD: the canvas sits below the folded swirl, and beside the tall
+  // unfolded column (lib/stage-hud-clearance.ts).
+  const hud = window.matchMedia('(max-width: 640px)').matches
+    ? stageEl.querySelector<HTMLElement>('.stage-nav')?.getBoundingClientRect()
+    : null;
+  const hudClear = hudClearance(hud, {
+    left: stageRect.left, top: stageRect.top + topPad, right: stageRect.right, bottom: stageRect.bottom - reserveBottom,
+  });
+  const reserveTop = Math.max(stageSideReserve(cs, 'top'), hudClear.top);
   // Left band: the free-canvas rail docks into a fixed-width left panel while the
   // timeline is open (see dockRailForTimeline). Same margin mechanism as top/bottom -
   // centring the margin box puts the canvas exactly centred in the remaining band.
-  const reserveLeft = stageSideReserve(cs, 'left');
-  const reserveRight = stageSideReserve(cs, 'right');
+  const reserveLeft = Math.max(stageSideReserve(cs, 'left'), hudClear.left);
+  const reserveRight = Math.max(stageSideReserve(cs, 'right'), hudClear.right);
   // The edge dock reduces the stage itself. Rules uses an explicit right reserve.
   const availW = Math.max(40, stageRect.width - reserveLeft - reserveRight - 32);
   const availH = Math.max(40, stageRect.height - topPad - reserveTop - reserveBottom - 32);

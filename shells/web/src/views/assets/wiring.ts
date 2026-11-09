@@ -23,7 +23,7 @@ import { exportSwatches, paletteEntriesToSwatches } from '../../lib/swatch-expor
 import type { SwatchExportFormat } from '../../lib/swatch-export.ts';
 import { staggerReveal } from '../../lib/reveal.ts';
 import { restyleIconTheme, treatmentFilterSvg } from '@lolly/engine';
-import { CAT_ICONS, isThemable, setCatToggle, svgTextToDataUrl } from './shared.ts';
+import { CAT_ICONS, applyAssetGround, isThemable, readAssetGround, setCatToggle, svgTextToDataUrl, writeAssetGround } from './shared.ts';
 import { bindOp, type CatCtx } from './context.ts';
 import { findFacetOption, withProviderFacet } from '../assets-provider.ts';
 
@@ -43,8 +43,6 @@ export async function retheemeGroup(cat: CatCtx, group: HTMLElement, themeId: st
     const ref = id ? cat.assetById.get(id) : null;
     const img = tile.querySelector<HTMLImageElement>('.cat-thumb');
     if (!ref || !img || !isThemable(ref)) return;
-    // A pairing whose light colours need a dark ground gives that ground as previewBg.
-    if (img.closest('.cat-tile-fig--duo')) img.style.backgroundColor = th?.previewBg ?? '';
     if (!th) { img.src = ref.url; return; }   // back to base
     try {
       let base = iconSvgCache.get(id!);
@@ -53,6 +51,18 @@ export async function retheemeGroup(cat: CatCtx, group: HTMLElement, themeId: st
       img.src = svgTextToDataUrl(restyleIconTheme(base, th) || base);
     } catch { /* leave this tile on its current art */ }
   }));
+}
+// Put the grid, an open details sheet and every Dark ground switch on the current ground:
+// after the switch is pressed, and when the app's theme changes under the view.
+export function syncAssetGround(cat: CatCtx): void {
+  const { viewEl } = cat;
+  applyAssetGround(viewEl.querySelector('.catalog'));
+  applyAssetGround(cat.detailsDialog);
+  const dark = readAssetGround() === 'dark';
+  for (const btn of viewEl.querySelectorAll<HTMLElement>('.cat-ground')) {
+    btn.classList.toggle('is-on', dark);
+    btn.setAttribute('aria-pressed', String(dark));
+  }
 }
 // Inject the treatment <filter> defs once (a hidden 0×0 SVG in the view root) so the
 // grid can preview a wash with a live CSS `filter: url(#…)` - no re-encode, and
@@ -262,6 +272,13 @@ export function wire(cat: CatCtx): void {
     // Collapse-all / Expand-all - fold or unfold every section in place (no re-render,
     // so scroll is kept). Checked BEFORE .cat-showhidden since it reuses that button
     // style. If anything is open we collapse all; once all are folded we expand all.
+    // Dark ground: flip the checkerboard behind every asset. Checked before
+    // .cat-showhidden, whose button style it shares.
+    if (target.closest('.cat-ground')) {
+      writeAssetGround(readAssetGround() === 'dark' ? 'light' : 'dark');
+      syncAssetGround(cat);
+      return;
+    }
     const collapseAll = target.closest<HTMLElement>('.cat-collapse-all');
     if (collapseAll) {
       const groups = [...body.querySelectorAll<HTMLElement>('.cat-group')];
@@ -455,6 +472,7 @@ export const onTileDragStart = (_cat: CatCtx, e: DragEvent): void => {
 export function wiringOps(cat: CatCtx) {
   return {
     retheemeGroup: bindOp(cat, retheemeGroup),
+    syncAssetGround: bindOp(cat, syncAssetGround),
     ensureTreatmentDefs: bindOp(cat, ensureTreatmentDefs),
     retreatGroup: bindOp(cat, retreatGroup),
     reapplyTreatment: bindOp(cat, reapplyTreatment),

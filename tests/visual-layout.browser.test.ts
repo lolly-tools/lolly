@@ -190,6 +190,39 @@ test('phone tool controls clear the sheet grip and the Design top bar', { timeou
   } finally { await context.close(); }
 });
 
+// Unfolded, the phone zoom HUD is a column down the right of the stage. Its height used to
+// be reserved above the canvas, which left the fit at its 40px floor behind the Export
+// pill: no preview on open or after Fit, until a zoom moved the canvas into view.
+test('an unfolded phone zoom HUD leaves the fitted canvas in view beside the column', { timeout: 120_000 }, async () => {
+  const context = await browser.newContext({ viewport: { width: 393, height: 659 }, hasTouch: true, serviceWorkers: 'block', reducedMotion: 'reduce' });
+  await context.addInitScript(() => { try { localStorage.setItem('lolly:stage-nav-collapsed', '0'); } catch { /* the HUD stays folded */ } });
+  try {
+    const page = await context.newPage();
+    for (const route of ['tool/filter?effect=halftone', 'tool/chart?heading=Sample']) {
+      await open(page, route);
+      await page.waitForTimeout(400);
+      for (const step of ['open', 'fit']) {
+        if (step === 'fit') {
+          await page.locator('.stage-nav [data-nav="fit"]').click();
+          await page.waitForTimeout(200);
+        }
+        const geometry = await page.evaluate(() => {
+          const rect = (selector: string): DOMRect => document.querySelector(selector)!.getBoundingClientRect();
+          const art = rect('#tool-canvas'), hud = rect('.stage-nav');
+          return { artTop: art.top, artBottom: art.bottom, artRight: art.right, artHeight: art.height,
+            sheet: rect('#tool-sidebar').bottom, exportTop: rect('.render-pill').top, hudLeft: hud.left, hudWidth: hud.width, hudHeight: hud.height };
+        });
+        const detail = JSON.stringify({ route, step, geometry });
+        assert.ok(geometry.hudHeight > geometry.hudWidth * 3, `the HUD is unfolded: ${detail}`);
+        assert.ok(geometry.artHeight > 120, detail);
+        assert.ok(geometry.artTop >= geometry.sheet - 1, detail);
+        assert.ok(geometry.artBottom <= geometry.exportTop, detail);
+        assert.ok(geometry.artRight <= geometry.hudLeft, detail);
+      }
+    }
+  } finally { await context.close(); }
+});
+
 /** A one-field rules tool, the shape a workspace publishes: the sheet opens with the inputs. */
 async function rulesToolBytes(): Promise<number[]> {
   const inputs = [{ id: 'price', label: 'Your price', type: 'text', default: '$1,200', maxLength: 40 }];

@@ -140,18 +140,24 @@
   overflow: hidden;
 }
 
-/* Artwork drawn for one surface gets that surface when the chrome is the other way
-   round (views/assets/shared.ts tileGround). A two-colour icon's default pairing is a
-   dark base under a bright accent, and a logo tagged on-light is dark ink: both read
-   on light. A logo tagged on-dark is light ink. light-dark() follows the colour scheme
-   the chrome actually uses, so a dark Brand theme counts as dark too. The ground goes
-   on the thumbnail, which fills the figure, so the checker and the selected tint
-   underneath are untouched where no ground is needed. The foreground token is the
-   light ink of a dark scheme and the dark ink of a light one. A chosen icon pairing
-   that needs a ground of its own sets it inline (wiring.ts retheemeGroup, previewBg). */
-.cat-tile-fig--duo .cat-thumb,
-.cat-tile-fig--on-light .cat-thumb { background-color: light-dark(transparent, hsl(var(--foreground))); }
-.cat-tile-fig--on-dark .cat-thumb { background-color: light-dark(hsl(var(--foreground)), transparent); }
+/* Every asset sits on one soft checkerboard in the app's own scheme (object-tiles.css).
+   The Assets toolbar's Dark ground switch (views/assets/shared.ts readAssetGround) can
+   turn it the other way round, so a reverse logo or a light icon pairing is checked on
+   the kind of surface it is drawn for. The other ground is mixed from the theme's own
+   ink and canvas, so it follows every theme: near-ink tones under a light theme, near
+   paper tones under a dark one. Both the grid and the details sheet carry the mark.
+   A selected tile keeps its accent tint on either ground. */
+:is(.catalog, .cat-details)[data-ground-flipped] {
+  --asset-ground-a: color-mix(in srgb, var(--ui-color-text-default) 91%, var(--ui-color-surface-canvas));
+  --asset-ground-b: color-mix(in srgb, var(--ui-color-text-default) 86%, var(--ui-color-surface-canvas));
+}
+.catalog[data-ground-flipped] .cat-tile-fig:not(:has(.cat-thumb-emoji)),
+.cat-details[data-ground-flipped] .cat-details-preview:not(:has(.cat-thumb-emoji, .cat-thumb-audio, .cat-thumb-text, .cat-swatch-lab)) {
+  background: repeating-conic-gradient(var(--asset-ground-a) 0% 25%, var(--asset-ground-b) 0% 50%) 50% / 16px 16px;
+}
+.catalog[data-ground-flipped] .cat-tile.is-selected .cat-tile-fig:not(:has(.cat-thumb-emoji)) {
+  background: repeating-conic-gradient(color-mix(in srgb, var(--asset-ground-a) 70%, var(--ui-color-action-primary)) 0% 25%, color-mix(in srgb, var(--asset-ground-b) 80%, var(--ui-color-action-primary)) 0% 50%) 50% / 16px 16px;
+}
 .cat-thumb { max-width: 100%; max-height: 100%; object-fit: contain; display: block; }
 /* Fill the fixed 4/3 box absolutely. A percentage/max height can't resolve against the
    aspect-ratio-derived (indefinite) height of a grid item, so a portrait image overflows
