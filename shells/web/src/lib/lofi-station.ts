@@ -31,6 +31,7 @@ import { lofiStream, LOFI_DRUM_VOICES } from '../../../../engine/src/lofi-compos
 import type { LofiBar, LofiMood, LofiNote, LofiStream, LofiStyle } from '../../../../engine/src/lofi-compose.ts';
 import { mulberry32 } from '../../../../engine/src/zzfx-compose.ts';
 import * as V from './lofi-voices.ts';
+import * as W from './lofi-world-voices.ts';
 
 export interface LofiSettings {
   mood: LofiMood;
@@ -434,7 +435,8 @@ export class LofiStation {
       case 'keys': {
         // A future-bass chord's wub is swings a beat (the voice wants Hz), plus 16 for a bend.
         const m = note.mod ?? 0;
-        V.keys(keysV, k, lanes.keys, t, note.midi, vel * VARIANT.keys[keysV], len, { rate: (m % 16) / spb, bend: m >= 16 });
+        if (W.WORLD_KEYS.has(keysV)) W.keys(keysV, k, lanes.keys, t, note.midi, vel * VARIANT.keys[keysV], len);
+        else V.keys(keysV, k, lanes.keys, t, note.midi, vel * VARIANT.keys[keysV], len, { rate: (m % 16) / spb, bend: m >= 16 });
         break;
       }
       case 'bass': {
@@ -442,15 +444,20 @@ export class LofiStation {
         // other basses' `mod` is how the note is played, passed as it is.
         const swings = bassV === 'wobble' || bassV === 'growl' || bassV === 'screech';
         const mod = swings ? (note.mod ?? 0) / spb : (note.mod ?? 0);
-        V.bass(bassV, k, lanes.bass, t, note.midi, vel * VARIANT.bass[bassV], len, mod, { bright: st.bright ?? 1, drive: st.drive ?? 1 });
+        if (bassV === 'log') W.bass(k, lanes.bass, t, note.midi, vel * VARIANT.bass[bassV], len, mod, { bright: st.bright ?? 1, drive: st.drive ?? 1 });
+        else V.bass(bassV, k, lanes.bass, t, note.midi, vel * VARIANT.bass[bassV], len, mod, { bright: st.bright ?? 1, drive: st.drive ?? 1 });
         break;
       }
       case 'lead': {
         const lift = SINGS_FAMILY.has(bar.tune.mood) ? SINGS_LEAD : 1;
-        V.lead(leadV, k, lanes.lead, t, note.midi, vel * VARIANT.lead[leadV] * lift, len, note.mod ?? 0);
+        const play = (v: LofiStyle['lead'], level: number): void => {
+          if (W.WORLD_LEADS.has(v)) W.lead(v, k, lanes.lead, t, note.midi, level, len, note.mod ?? 0);
+          else V.lead(v, k, lanes.lead, t, note.midi, level, len, note.mod ?? 0);
+        };
+        play(leadV, vel * VARIANT.lead[leadV] * lift);
         // A doubled drop: a second instrument plays the same note a little quieter.
         const double = bar.voices?.double;
-        if (double) V.lead(double, k, lanes.lead, t, note.midi, vel * VARIANT.lead[double] * lift * 0.7, len, note.mod ?? 0);
+        if (double) play(double, vel * VARIANT.lead[double] * lift * 0.7);
         break;
       }
       case 'crash': V.crash(k, lanes.drums, t, vel); break;
@@ -461,7 +468,10 @@ export class LofiStation {
       case 'magpie': V.magpie(k, lanes.fx, t, note.midi, vel, len, note.mod ?? 0); break;
       case 'kookaburra': V.kookaburra(k, lanes.fx, t, note.midi, vel, note.mod ?? 0); break;
       case 'tom': V.tom(k, lanes.drums, t, note.midi, vel); break;
-      case 'perc': V.perc(k, lanes.drums, t, note.midi, vel, note.mod ?? 0); break;
+      case 'perc':
+        if ((note.mod ?? 0) >= W.WORLD_PERC_FROM) W.perc(k, lanes.drums, t, note.midi, vel, note.mod ?? 0);
+        else V.perc(k, lanes.drums, t, note.midi, vel, note.mod ?? 0);
+        break;
       case 'hey': V.hey(k, lanes.fx, t, note.midi, vel, note.mod ?? 0); break;
       case 'bwah': {
         // A bass shot's `mod` is the shot, plus 4 for each swing a beat (the voice wants Hz).
