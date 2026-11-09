@@ -31,7 +31,7 @@ waits until an administrator sets it up. The changes that apply on upgrade are l
 | Lolly source | `b2128b260525e82cd6d7d29647eef915354ffc8f` |
 | Engine | 1.343.0 |
 | Tool-author core | 1.8.0 |
-| Lolly web archive for YunoHost | `lolly-web-1.2.0-ynh1.tar.gz`, `<bytes>` bytes, SHA-256 `<sha256>` |
+| Lolly web archive for YunoHost | `lolly-web-1.2.0-ynh1.tar.gz`, 808,658,284 bytes, SHA-256 `3a324eef05128d32c6154ab88e360c40a8235ee181c3b49abe4ef5b556d1ac0f` |
 
 Engine and core versions describe their own contracts and are not reset to the
 product version. `engine-pin.json` and `content-resolver-pin.json` record the
@@ -648,7 +648,7 @@ Lolly 1.2.0 publishes a new web archive, and the Lolly Work YunoHost package pin
 the final Lolly Work commit:
 
 ```text
-node scripts/yunohost-release.ts --ynh-rev 1 --shell-url https://lolli.li/lolly-web-1.2.0-ynh1.tar.gz --shell-sha256 <sha256> --out ABS_NEW_ARTIFACT_DIRECTORY
+node scripts/yunohost-release.ts --ynh-rev 1 --shell-url https://lolli.li/lolly-web-1.2.0-ynh1.tar.gz --shell-sha256 3a324eef05128d32c6154ab88e360c40a8235ee181c3b49abe4ef5b556d1ac0f --out ABS_NEW_ARTIFACT_DIRECTORY
 ```
 
 Commit the generated manifest, recut into a separate directory and require full
