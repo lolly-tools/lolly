@@ -3,16 +3,18 @@
  * The music generator (#/music): a track editor for Lolly Sings, so a person or a brand
  * can dial in a track and keep the result.
  *
- * One row of controls (play, style, seed, length, tempo, sound, make, link), a visualiser, and
- * the track laid out like a sequence editor: the sections and chords above a lane for
- * each part, every note drawn. Click a section in a lane to change that part's
- * instrument in every section of that kind (the bass in every drop, the lead in every
- * solo); click the section ruler to play from there. The seed is a design-tool number:
- * type one, step it, shuffle it, or drag across it to slide through seeds and watch the
- * tune change. The tempo is the composer's for the seed until a person sets their own:
- * the notes stay where they are in the bar, so the tune plays faster or slower and no
- * other part of it changes. The Neurospicy player always plays a style at its own tempo.
- * Colours come from the brand's palette, with extra hues only where the palette runs out.
+ * One row of controls (play, shuffle, style, seed, length, tempo, reset, sound, make, link),
+ * a visualiser, and the track laid out like a sequence editor: the sections and chords
+ * above a lane for each part, every note drawn. Click a section in a lane to change that
+ * part's instrument in every section of that kind (the bass in every drop, the lead in
+ * every solo); click the section ruler to play from there. The seed is a design-tool
+ * number: type one, step it, or drag across it to slide through seeds and watch the tune
+ * change. Shuffle draws a new style, seed and sound at once (lib/music-shuffle.ts), and
+ * Reset puts every setting back to how the generator opens. The tempo is the composer's
+ * for the seed until a person sets their own: the notes stay where they are in the bar,
+ * so the tune plays faster or slower and no other part of it changes. The Neurospicy
+ * player always plays a style at its own tempo. Colours come from the brand's palette,
+ * with extra hues only where the palette runs out.
  *
  * Every setting lives in the link, so a link plays and edits the same track for anyone
  * who opens it: the composer is deterministic (engine/src/lofi-compose.ts). Making the
@@ -39,6 +41,7 @@ import { attachScrub } from '../lib/scrub.ts';
 import { mountViz, type VizHandle } from '../lib/butterchurn-viz.ts';
 import { defaultVizPresetId } from '../lib/viz-presets.ts';
 import { icon } from '../lib/icons.ts';
+import { shuffleMusic } from '../lib/music-shuffle.ts';
 import '../styles/parts/music-studio.css';
 
 type Track = 'lead' | 'keys' | 'bass' | 'drums' | 'fx';
@@ -248,6 +251,42 @@ export function musicPalette(colours: readonly string[], want: number): string[]
   return picked.slice(0, want).map(([h, sat, l]) => `hsl(${Math.round(h)} ${Math.round(sat * 100)}% ${Math.round(l * 100)}%)`);
 }
 
+const iconBtn = (attr: string, name: Parameters<typeof icon>[0], label: string, extra = ''): string =>
+  `<button type="button" class="btn btn--ghost btn--sm ms-icon" ${attr} aria-label="${escapeHtml(label)}" title="${escapeHtml(label)}"${extra}>${icon(name, { size: 18 })}</button>`;
+const slider = (id: string, label: string, min: number, max: number, step: number, value: number): string =>
+  `<label class="ms-slider"><span>${escapeHtml(label)}</span><input type="range" min="${min}" max="${max}" step="${step}" value="${value}" data-slider="${id}"><output data-out="${id}"></output></label>`;
+
+/** Put every control in step with the state and the muted and soloed tracks, after a shuffle or a reset. */
+function showState(page: HTMLElement, s: MusicState, muted: ReadonlySet<string>, solo: ReadonlySet<string>): void {
+  const set = (sel: string, value: string): void => {
+    const el = page.querySelector<HTMLInputElement | HTMLSelectElement>(sel);
+    if (el) el.value = value;
+  };
+  set('[data-style]', s.mood);
+  set('[data-seed]', String(s.seed));
+  set('[data-bars]', String(s.bars));
+  for (const tr of PITCHED) set(`[data-pick="${tr}"]`, s[tr] ?? '');
+  page.querySelector('[data-drums]')?.setAttribute('aria-pressed', String(s.drums));
+  for (const el of page.querySelectorAll<HTMLElement>('[data-mute]')) el.setAttribute('aria-pressed', String(muted.has(el.dataset.mute ?? '')));
+  for (const el of page.querySelectorAll<HTMLElement>('[data-solo]')) el.setAttribute('aria-pressed', String(solo.has(el.dataset.solo ?? '')));
+  // The sliders show 1 for a brightness and 2 for a drive left to the style, as they open.
+  const levels: Record<string, number> = { ...s.mix, texture: s.texture, bright: s.bright ?? 1, drive: s.drive ?? 2 };
+  for (const el of page.querySelectorAll<HTMLInputElement>('[data-slider]')) {
+    const v = levels[el.dataset.slider ?? ''];
+    if (v === undefined) continue;
+    el.value = String(v);
+    const out = page.querySelector(`[data-out="${el.dataset.slider ?? ''}"]`);
+    if (out) out.textContent = v.toFixed(2);
+  }
+}
+
+/** Play the shuffle button's pop from the start, however fast the presses come. */
+function popAgain(el: HTMLElement): void {
+  el.classList.remove('is-popping');
+  void el.offsetWidth; // a reflow, so the animation starts over
+  el.classList.add('is-popping');
+}
+
 interface UploadingAssets { _uploadUserAsset(record: { id: string; type: 'audio'; format: string; blob: Blob; meta: Record<string, unknown> }): Promise<void> }
 function canUpload(assets: unknown): assets is UploadingAssets {
   return typeof assets === 'object' && assets !== null && '_uploadUserAsset' in assets && typeof assets._uploadUserAsset === 'function';
@@ -280,10 +319,6 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
   const fillSelect = (sel: HTMLSelectElement, tr: Pitched, current: string | undefined, auto: string): void => {
     sel.replaceChildren(new Option(auto, ''), ...valuesOf(tr).map(v => new Option(namesOf(tr)[v] ?? v, v, false, v === current)));
   };
-  const iconBtn = (attr: string, name: Parameters<typeof icon>[0], label: string, extra = ''): string =>
-    `<button type="button" class="btn btn--ghost btn--sm ms-icon" ${attr} aria-label="${escapeHtml(label)}" title="${escapeHtml(label)}"${extra}>${icon(name, { size: 18 })}</button>`;
-  const slider = (id: string, label: string, min: number, max: number, step: number, value: number): string =>
-    `<label class="ms-slider"><span>${escapeHtml(label)}</span><input type="range" min="${min}" max="${max}" step="${step}" value="${value}" data-slider="${id}"><output data-out="${id}"></output></label>`;
 
   const page = document.createElement('section');
   page.className = 'ms-page';
@@ -293,13 +328,13 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
       <button type="button" class="btn btn--primary ms-play" data-play aria-label="${escapeHtml(t('Play'))}" title="${escapeHtml(t('Play or stop (space)'))}">
         <span data-play-icon>${icon('play', { size: 18 })}</span><span data-stop-icon hidden>${icon('pause', { size: 18 })}</span>
       </button>
+      <button type="button" class="ms-shuffle" data-shuffle aria-label="${escapeHtml(t('Shuffle style and settings'))}" title="${escapeHtml(t('Shuffle: a new style, seed and sound'))}">${icon('sparkle', { size: 26 })}</button>
       <span class="ms-time" data-pos></span>
       <select class="field-select field-select--sm" data-style aria-label="${escapeHtml(t('Style'))}">${LOFI_STATION_MOODS.map(m => `<option value="${m}"${m === state.mood ? ' selected' : ''}>${escapeHtml(lofiStationName(m))}</option>`).join('')}</select>
       <span class="ms-seed" role="group" aria-label="${escapeHtml(t('Seed'))}">
         ${iconBtn('data-seed-step="-1"', 'chevronLeft', t('Previous seed'))}
         <input type="number" class="field-input field-input--sm ms-seed-input" min="0" max="4294967295" value="${state.seed}" data-seed aria-label="${escapeHtml(t('Seed'))}" title="${escapeHtml(t('The seed: type one, or drag across it to slide through seeds'))}">
         ${iconBtn('data-seed-step="1"', 'chevronRight', t('Next seed'))}
-        ${iconBtn('data-dice', 'sparkle', t('Surprise me: a new seed'))}
       </span>
       <select class="field-select field-select--sm" data-bars aria-label="${escapeHtml(t('Length'))}">${LENGTHS.map(n => `<option value="${n}"${n === state.bars ? ' selected' : ''}>${n} ${escapeHtml(t('bars'))}</option>`).join('')}</select>
       <span class="ms-meta" data-meta></span>
@@ -309,6 +344,7 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
         ${iconBtn('data-bpm-reset hidden', 'undo', t('Back to the tune’s own tempo'))}
       </span>
       <span class="ms-bar-end">
+        <button type="button" class="btn btn--ghost btn--sm ms-reset" data-reset title="${escapeHtml(t('Every setting back to how the generator opens'))}">${icon('undo', { size: 16 })}<span>${escapeHtml(t('Reset'))}</span></button>
         ${iconBtn('data-panel="sound" aria-expanded="false"', 'sliders', t('Sound and mix'))}
         ${iconBtn('data-panel="make" aria-expanded="false"', 'download', t('Make, download or save the track'))}
         ${iconBtn('data-link', 'link', t('Copy a link to this track'))}
@@ -585,7 +621,7 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
     renderedBuffer = null; rendered = 0;
     downloadBtn.disabled = true; saveBtn.disabled = true; progress.hidden = true;
     writeLink(); meta(); draw();
-    if (station) play(Math.max(0, playheadBar));
+    if (station) play(Math.max(0, Math.min(playheadBar, bars.length - 1)));
   }
 
   // ── playback ─────────────────────────────────────────────────────────────────
@@ -747,7 +783,10 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
   };
   listen('[data-seed]', 'change', (_e, el) => { if (el instanceof HTMLInputElement) setSeed(Math.floor(Number(el.value) || 0)); });
   listen('[data-seed-step]', 'click', (_e, el) => setSeed(state.seed + Number(el.dataset.seedStep)));
-  listen('[data-dice]', 'click', () => setSeed(crypto.getRandomValues(new Uint32Array(1))[0]!));
+  // Shuffle and Reset set the whole state at once; a playing track plays on in the new one.
+  const restate = (next: MusicState): void => { Object.assign(state, next); closePop(); showState(page, state, muted, solo); recompose(); fit(); };
+  listen('[data-shuffle]', 'click', (_e, el) => { popAgain(el); restate({ ...state, ...shuffleMusic(Math.random, { bars: state.bars, after: state.mood }), bpm: undefined }); say(`${t('Shuffled')}: ${lofiStationName(state.mood)}`); });
+  listen('[data-reset]', 'click', () => { muted.clear(); solo.clear(); restate(parseMusicState('')); say(t('Every setting is back to how the generator opens.')); });
   listen('[data-bars]', 'change', (_e, el) => { if (el instanceof HTMLSelectElement) { state.bars = Number(el.value); recompose(); fit(); } });
   // The tempo: a number typed or dragged, back to the tune's own with the reset button.
   // Setting the composer's own tempo is the same as not setting one, so the link stays short.
