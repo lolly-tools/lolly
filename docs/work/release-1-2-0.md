@@ -75,7 +75,7 @@ Share with rules file, and the DESIGN.md writer. Core 1.8.0 carries the `partner
   `policy.approvalArtifacts.recordInCredentials` is on (the default), the server has a signing
   identity and the engine can write the record, the approved download is the reviewed bytes with
   a signed Content Credentials update that records the approval. In every other case it is the
-  reviewed bytes untouched, and the request names the reason. `?file=reviewed` and
+  reviewed bytes untouched, and the request gives the reason. `?file=reviewed` and
   `lw approvals artifact --reviewed` still give the reviewed bytes.
 - **Until approved.** A server render of a tool with `enforce.watermark: until-approved`
   carries the PREVIEW pattern unless an approved `export-review` matches its tool id, tool
@@ -106,7 +106,7 @@ Share with rules file, and the DESIGN.md writer. Core 1.8.0 carries the `partner
   writes.
 - **Templates in the feed.** A template published to a programme or company appears in its
   people's feed with `meta.version`, `meta.editable`, `meta.retired`, `meta.replacedBy`,
-  `meta.bindings` and, where set, `meta.intents`. It never names a rule or gives a reason. A Share
+  `meta.bindings` and, where set, `meta.intents`. It never gives a rule's name or a reason. A Share
   with rules file published the same way is served as a tool at `/tools/<id>/*`. Work rebuilds
   that tool from the file's data with the pinned Design compiler, and never stores, serves or
   runs the file's `hooks.js`. Where a programme keeps a tool to its templates, the tool index
@@ -301,7 +301,7 @@ Share with rules file, and the DESIGN.md writer. Core 1.8.0 carries the `partner
 - **HTML-layout tools render on the server.** A tool with no hooks whose template has no
   `<svg>` now goes to the Chromium worker. Without a worker it answers
   `501 SVG_TEMPLATE_REQUIRED` instead of a bare 500.
-- **Design token colours.** Worker renders keep a colour input that names a design token, such
+- **Design token colours.** Worker renders keep a colour input that points at a design token, such
   as `ink={color.brand.mint}`, instead of falling back to the tool's default.
 - **Server renders of hooked tools work again.** The worker's request budget per render
   follows the app files the shell lists in `precache.json`, plus 256, between 512 and 4096, and
@@ -352,10 +352,10 @@ Share with rules file, and the DESIGN.md writer. Core 1.8.0 carries the `partner
   both.
 - **A missing tool in plain words.** Every route that loads a tool answers `404 TOOL_NOT_FOUND`
   for a missing one and `500 TOOL_UNAVAILABLE` with one sentence for another filesystem failure.
-  No answer names a server path. An id that cannot name a tool directory is refused before
+  No answer gives a server path. An id that cannot name a tool directory is refused before
   anything is read.
 - **A pack with two owners for one file.** `inspectPack` now refuses an asset index where two
-  ids claim one catalogue file and names the file and both ids. Before, such a pack mounted and
+  ids claim one catalogue file and gives the file and both ids. Before, such a pack mounted and
   its catalogue files answered 503.
 
 **Retention and housekeeping**
@@ -471,7 +471,7 @@ Share with rules file, and the DESIGN.md writer. Core 1.8.0 carries the `partner
 - Schema and the document verbs answer `404 TOOL_NOT_FOUND` for a missing tool, where they
   answered `400 DOCUMENT_API_ERROR`. A failed read that is not a missing file answers 500, so a
   durable render retries it within its attempts.
-- `POST /api/v1/render` names the refused input in its 422, as `GET` always did, and sends
+- `POST /api/v1/render` gives the refused input in its 422, as `GET` always did, and sends
   `Retry-After` with `RENDER_BUSY`.
 - The served asset index writes instance asset checksums as `sha256-<base64>`.
 - org-config carries no `by` or `reason` on an input.
@@ -560,7 +560,7 @@ This release adds 21 SQL migrations since 1.1.3:
 
 The numbers 0091 and 0092 were never used, and the runner accepts the gap. `pnpm run
 migrate:classify` classes 17 files as additive and four as maintenance: `0079`, `0080`, `0082`
-and `0083`. An install that sets `LW_MIGRATE_EXPECT` names all 21 files or their manifest. An
+and `0083`. An install that sets `LW_MIGRATE_EXPECT` lists all 21 files or their manifest. An
 older release can run on the new schema, with one limit: rolled back while render callbacks are
 pending, it records those entries as `failed` and `not-sent` without sending them.
 
