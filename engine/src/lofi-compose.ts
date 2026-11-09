@@ -52,7 +52,7 @@ export type LofiVoice = 'keys' | 'bass' | 'lead' | 'kick' | 'snare' | 'rim' | 'h
 export const LOFI_DRUM_VOICES: readonly LofiVoice[] = ['kick', 'snare', 'rim', 'hat', 'openHat', 'crash'];
 
 export const LOFI_KEYS = ['rhodes', 'felt', 'wurli', 'pluck', 'pad', 'supersaw'] as const;
-export const LOFI_LEADS = ['vibes', 'flute', 'soft', 'kalimba', 'chip', 'angel', 'pulse', 'none'] as const;
+export const LOFI_LEADS = ['vibes', 'flute', 'soft', 'kalimba', 'chip', 'angel', 'pulse', 'guitar', 'overdrive', 'synthwave', 'metal', 'panflute', 'none'] as const;
 export const LOFI_BASSES = ['round', 'upright', 'synth', 'wobble', 'growl', 'reese', 'slap', 'screech', 'pulse', 'electro'] as const;
 export const LOFI_SNARES = ['snare', 'brush', 'rim', 'clap'] as const;
 export const LOFI_HATS = ['hat', 'shaker', 'none'] as const;
@@ -156,7 +156,10 @@ export interface LofiBar {
    * between sections: softer keys in an intro, a second lead and a bass switch-up in the
    * second drop). Absent means the style's own.
    */
-  voices?: Partial<Pick<LofiStyle, 'keys' | 'lead' | 'bass'>>;
+  voices?: Partial<Pick<LofiStyle, 'keys' | 'lead' | 'bass'>> & {
+    /** A second instrument playing the lead's notes with the lead (a drop's doubling). */
+    double?: LofiStyle['lead'];
+  };
 }
 
 export interface LofiStream {
@@ -775,28 +778,28 @@ const DANCE: Record<DanceMood, DanceLean> = {
   // coin dings over four on the floor, in the jazz-major chords of an old platform game.
   sugar: {
     bpm: [116, 130], minor: 0.15, groove: 'disco', chordBars: 1,
-    keys: [['supersaw', 4], ['rhodes', 1]], lead: [['chip', 3], ['pulse', 3], ['angel', 3], ['vibes', 1]],
+    keys: [['supersaw', 4], ['rhodes', 1]], lead: [['chip', 3], ['pulse', 3], ['angel', 2], ['guitar', 2], ['synthwave', 1], ['vibes', 1], ['panflute', 2], ['flute', 1]],
     bass: [['slap', 1]], snare: [['clap', 1]], kick: [52, 60], kickLen: [0.25, 0.35], duck: [1.3, 1.7], crunch: 0,
     swing: 0.53, intro: 8, build: [4], drop: 16, breakdown: 8, jazz: true, singingDrop: true, busy: 0.9,
     softKeys: [['rhodes', 2], ['pluck', 2], ['felt', 1]], verseBass: [['slap', 3], ['pulse', 2]], switchBass: [['slap', 1]],
   },
   dubstep: {
     bpm: [138, 142], minor: 0.45, groove: 'halfStep', chordBars: 2,
-    keys: [['pad', 4], ['supersaw', 2]], lead: [['chip', 2], ['kalimba', 2], ['vibes', 2], ['angel', 2]],
+    keys: [['pad', 4], ['supersaw', 2]], lead: [['chip', 2], ['kalimba', 2], ['vibes', 1], ['angel', 2], ['synthwave', 2], ['guitar', 1], ['metal', 2], ['panflute', 1]],
     bass: [['wobble', 1]], snare: [['snare', 3], ['clap', 2]], kick: [48, 56], kickLen: [0.35, 0.5], duck: [1.3, 1.7], crunch: 0,
     swing: 0.5, intro: 8, build: [4, 8], drop: 16, breakdown: 8, jazz: false, singingDrop: false, busy: 0.7,
     softKeys: [['pad', 2], ['pluck', 1], ['felt', 1]], verseBass: [['wobble', 1]], switchBass: [['wobble', 2], ['growl', 1]],
   },
   brostep: {
     bpm: [145, 150], minor: 0.75, groove: 'halfStep', chordBars: 2,
-    keys: [['pad', 3], ['supersaw', 2]], lead: [['chip', 3], ['soft', 2], ['angel', 1]],
+    keys: [['pad', 3], ['supersaw', 2]], lead: [['chip', 2], ['soft', 2], ['angel', 1], ['overdrive', 3], ['synthwave', 1], ['metal', 3]],
     bass: [['growl', 1], ['screech', 1]], snare: [['snare', 4], ['clap', 1]], kick: [50, 58], kickLen: [0.3, 0.45], duck: [1.4, 1.8], crunch: 0.4,
     swing: 0.5, intro: 8, build: [4, 8], drop: 16, breakdown: 8, jazz: false, singingDrop: false, busy: 0.75,
     softKeys: [['pad', 2], ['pluck', 1]], verseBass: [['growl', 1]], switchBass: [['growl', 1], ['screech', 1]],
   },
   dnb: {
     bpm: [170, 176], minor: 0.5, groove: 'twoStep', chordBars: 2,
-    keys: [['pad', 3], ['rhodes', 2], ['pluck', 2]], lead: [['vibes', 3], ['kalimba', 2], ['chip', 2], ['angel', 2]],
+    keys: [['pad', 3], ['rhodes', 2], ['pluck', 2]], lead: [['vibes', 2], ['kalimba', 2], ['chip', 1], ['angel', 2], ['guitar', 2], ['synthwave', 2], ['flute', 2], ['panflute', 1], ['metal', 1]],
     bass: [['reese', 1]], snare: [['snare', 4], ['clap', 1]], kick: [55, 62], kickLen: [0.22, 0.3], duck: [1.1, 1.4], crunch: 0,
     swing: 0.5, intro: 16, build: [8], drop: 16, breakdown: 8, jazz: false, singingDrop: false, busy: 0.6,
     softKeys: [['rhodes', 2], ['pad', 2], ['pluck', 1]], verseBass: [['reese', 1]], switchBass: [['reese', 1]],
@@ -805,7 +808,7 @@ const DANCE: Record<DanceMood, DanceLean> = {
   // riff jumping octaves, big saw chords, grit on the whole mix.
   electro: {
     bpm: [118, 126], minor: 0.6, groove: 'disco', chordBars: 1,
-    keys: [['supersaw', 3], ['pad', 1]], lead: [['soft', 3], ['pulse', 2], ['chip', 1]],
+    keys: [['supersaw', 3], ['pad', 1]], lead: [['soft', 2], ['pulse', 2], ['chip', 1], ['overdrive', 3], ['synthwave', 2], ['metal', 2], ['panflute', 1]],
     bass: [['electro', 1]], snare: [['clap', 3], ['snare', 2]], kick: [50, 58], kickLen: [0.3, 0.42], duck: [1.8, 2.2], crunch: 0.7,
     swing: 0.5, intro: 8, build: [4], drop: 16, breakdown: 8, jazz: false, singingDrop: true, busy: 0.7,
     softKeys: [['pad', 2], ['pluck', 1]], verseBass: [['electro', 2], ['pulse', 1]], switchBass: [['electro', 3], ['screech', 1]],
@@ -978,6 +981,11 @@ function composeDanceTune(seed: number, mood: DanceMood, fixed: Partial<LofiStyl
   };
   const softKeys = other(lean.softKeys, style.keys);
   const leadB = other(lean.lead, style.lead);
+  // More variety: most intros get a lead of their own, and some drops double the melody
+  // with another instrument (a metal guitar under a chip lead, a flute over a guitar).
+  const leadIntro = rng() < 0.6 ? other(lean.lead.filter(([v]) => v !== leadB), style.lead) : style.lead;
+  const doubleA = rng() < 0.4 ? other(lean.lead.filter(([v]) => v !== leadB), style.lead) : undefined;
+  const doubleB = rng() < 0.35 ? other(lean.lead.filter(([v]) => v !== style.lead), leadB) : undefined;
   const verseBass = weightedPick(rng, lean.verseBass);
   const bassB = weightedPick(rng, lean.switchBass);
   // A reese holds a note under the break, or rolls along with the drums.
@@ -988,10 +996,12 @@ function composeDanceTune(seed: number, mood: DanceMood, fixed: Partial<LofiStyl
   const figB: [Figure, Figure] = [pick(figuresOf(bassB)), pick(figuresOf(bassB))];
   const figVerse: [Figure, Figure] = [pick(figuresOf(verseBass)), pick(figuresOf(verseBass))];
   const voicesOf = (part: DancePart): LofiBar['voices'] => {
-    if (part.section === 'intro' || part.section === 'outro') return { keys: softKeys };
+    if (part.section === 'intro') return { keys: softKeys, lead: leadIntro };
+    if (part.section === 'outro') return { keys: softKeys };
     if (part.section === 'break') return { keys: softKeys, lead: leadB };
     if (part.section === 'verse') return { bass: verseBass };
-    if (part.section === 'drop' && part.alt) return { lead: leadB, bass: bassB };
+    if (part.section === 'drop' && part.alt) return { lead: leadB, bass: bassB, ...(doubleB ? { double: doubleB } : {}) };
+    if (part.section === 'drop' && doubleA) return { double: doubleA };
     return undefined;
   };
   const stabs = pick(STABS);

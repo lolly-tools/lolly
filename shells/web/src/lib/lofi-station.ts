@@ -73,7 +73,7 @@ const VARIANT: { keys: Record<LofiStyle['keys'], number>; lead: Record<LofiStyle
   // Short, decaying sounds (pluck, kalimba, rim, clap) measure quieter than they sound,
   // so they take most of the measured difference, not the whole difference.
   keys: { rhodes: 1, felt: 0.93, wurli: 1.4, pluck: 1.8, pad: 1, supersaw: 1 },
-  lead: { vibes: 1, flute: 0.82, soft: 1.35, kalimba: 1.7, chip: 0.8, angel: 1, pulse: 0.9, none: 0 },
+  lead: { vibes: 1, flute: 0.82, soft: 1.35, kalimba: 1.7, chip: 0.8, angel: 0.76, pulse: 2.4, guitar: 0.78, overdrive: 0.5, synthwave: 0.86, metal: 0.6, panflute: 0.56, none: 0 },
   // The reese is drum and bass's whole low end, so it sits about 4 dB up (Andy, 2026-11-08).
   bass: { round: 1, upright: 1.05, synth: 1.2, wobble: 1, growl: 1, reese: 1.6, slap: 1, screech: 1, pulse: 1, electro: 1 },
   snare: { snare: 1, brush: 1.15, rim: 1.8, clap: 2.3 },
@@ -401,7 +401,14 @@ export class LofiStation {
         V.bass(bassV, k, lanes.bass, t, note.midi, vel * VARIANT.bass[bassV], len, mod, { bright: st.bright ?? 1, drive: st.drive ?? 1 });
         break;
       }
-      case 'lead': V.lead(leadV, k, lanes.lead, t, note.midi, vel * VARIANT.lead[leadV] * (SINGS_FAMILY.has(bar.tune.mood) ? SINGS_LEAD : 1), len); break;
+      case 'lead': {
+        const lift = SINGS_FAMILY.has(bar.tune.mood) ? SINGS_LEAD : 1;
+        V.lead(leadV, k, lanes.lead, t, note.midi, vel * VARIANT.lead[leadV] * lift, len);
+        // A doubled drop: a second instrument plays the same note a little quieter.
+        const double = bar.voices?.double;
+        if (double) V.lead(double, k, lanes.lead, t, note.midi, vel * VARIANT.lead[double] * lift * 0.7, len);
+        break;
+      }
       case 'crash': V.crash(k, lanes.drums, t, vel); break;
       case 'riser': V.riser(k, lanes.keys, t, vel, len); break;
       case 'coin': V.coin(k, lanes.lead, t, note.midi, vel); break;

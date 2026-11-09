@@ -23,7 +23,10 @@
  *          slap (a thumbed or popped string: a bright attack, a resonant pop), screech
  *          (an FM cry), pulse (a console's bass channel) and electro (a driven riff
  *          with a wah); each takes the tune's brightness and drive
- *   lead   pulse (a thin chiptune pulse that blips into its note)
+ *   lead   pulse (a thin chiptune pulse that blips into its note), guitar (a clean
+ *          electric pluck), overdrive (a driven lead guitar that bends into its notes)
+ *          and synthwave (a swept saw lead with its own echoes), metal (a heavy
+ *          power-chord guitar an octave down) and panflute (a breathy pan flute)
  *   fx     crash (a cymbal with a low boom under a drop), riser (a build's noise sweep)
  *          and coin (a bright two-note square ding)
  *
@@ -202,6 +205,209 @@ export function lead(style: LofiStyle['lead'], k: VoiceKit, out: AudioNode, t: n
   else if (style === 'chip') chip(k, out, t, midi, vel, dur);
   else if (style === 'angel') angel(k, out, t, midi, vel, dur);
   else if (style === 'pulse') pulseLead(k, out, t, midi, vel, dur);
+  else if (style === 'guitar') guitar(k, out, t, midi, vel, dur);
+  else if (style === 'overdrive') overdrive(k, out, t, midi, vel, dur);
+  else if (style === 'synthwave') synthwave(k, out, t, midi, vel, dur);
+  else if (style === 'metal') metal(k, out, t, midi, vel, dur);
+  else if (style === 'panflute') panflute(k, out, t, midi, vel, dur);
+}
+
+/**
+ * Metal: a heavy, bassy guitar. Each melody note becomes a power chord (root, fifth and
+ * octave) an octave below the melody, driven very hard and shaped by a cabinet with
+ * boosted lows, scooped mids and an edge on top. A short note is palm-muted: a tight
+ * chug with the top rolled off.
+ */
+function metal(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number, dur: number): void {
+  const { ctx } = k;
+  const root = mtof(midi - 12);
+  const chug = dur < 0.18;
+  const end = t + dur + 0.15;
+  const [push, ws] = drivenBy(ctx, 9);
+  const hp = ctx.createBiquadFilter();
+  hp.type = 'highpass';
+  hp.frequency.value = 70;
+  const lows = ctx.createBiquadFilter();
+  lows.type = 'lowshelf';
+  lows.frequency.value = 160;
+  lows.gain.value = 7;
+  const scoop = ctx.createBiquadFilter();
+  scoop.type = 'peaking';
+  scoop.frequency.value = 750;
+  scoop.Q.value = 0.9;
+  scoop.gain.value = -6;
+  const edge = ctx.createBiquadFilter();
+  edge.type = 'peaking';
+  edge.frequency.value = 2800;
+  edge.Q.value = 1.4;
+  edge.gain.value = 4;
+  const cab = ctx.createBiquadFilter();
+  cab.type = 'lowpass';
+  cab.frequency.value = chug ? 2200 : 5200;
+  const amp = ctx.createGain();
+  amp.gain.setValueAtTime(EPS, t);
+  amp.gain.exponentialRampToValueAtTime(0.07 * vel, t + 0.006);
+  if (chug) amp.gain.setTargetAtTime(EPS, t + 0.05, 0.05);
+  else amp.gain.setTargetAtTime(EPS, t + dur, 0.09);
+  ws.connect(hp).connect(lows).connect(scoop).connect(edge).connect(cab).connect(amp).connect(out);
+  for (const [ratio, cents] of [[1, -5], [1, 6], [1.5, 0], [2, 3]] as const) {
+    const o = osc(k, 'sawtooth', root * ratio, t, end);
+    o.detune.value = cents;
+    if (!chug) vibrato(k, o.detune, t, end, 5, 10, 0.35);
+    o.connect(push);
+  }
+}
+
+/**
+ * Pan flute: a breathy, hollow pipe. A sine and a soft triangle carry the note under
+ * band-passed breath noise; a chiff of noise starts it, the pitch wavers a little as
+ * breath does, and a slow vibrato comes in on held notes.
+ */
+function panflute(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number, dur: number): void {
+  const { ctx } = k;
+  const f = mtof(midi);
+  const end = t + dur + 0.25;
+  const amp = ctx.createGain();
+  amp.gain.setValueAtTime(EPS, t);
+  amp.gain.exponentialRampToValueAtTime(0.1 * vel, t + 0.05);
+  amp.gain.setTargetAtTime(EPS, t + dur, 0.09);
+  amp.connect(out);
+  const tone = osc(k, 'sine', f, t, end);
+  const tri = osc(k, 'triangle', f, t, end);
+  const tg = ctx.createGain();
+  tg.gain.value = 0.3;
+  vibrato(k, tone.detune, t, end, 4.6, 14, 0.35);
+  vibrato(k, tri.detune, t, end, 4.6, 14, 0.35);
+  tone.connect(amp);
+  tri.connect(tg).connect(amp);
+  // Breath: noise on the note's own pitch, so the hiss sounds blown, not added.
+  const breath = ctx.createBiquadFilter();
+  breath.type = 'bandpass';
+  breath.frequency.value = f * 2;
+  breath.Q.value = 6;
+  const bg = ctx.createGain();
+  bg.gain.value = 0.9;
+  noiseAt(k, t, dur + 0.25).connect(breath).connect(bg).connect(amp);
+  // The chiff: a short burst of brighter noise as the note speaks.
+  const chiff = ctx.createBiquadFilter();
+  chiff.type = 'bandpass';
+  chiff.frequency.value = f * 4;
+  chiff.Q.value = 2;
+  const cg = ctx.createGain();
+  cg.gain.setValueAtTime(0.18 * vel, t);
+  cg.gain.exponentialRampToValueAtTime(EPS, t + 0.06);
+  noiseAt(k, t, 0.07).connect(chiff).connect(cg).connect(out);
+}
+
+/**
+ * Guitar: a clean electric pluck. A modelled string (as the slap bass uses) cannot reach
+ * a lead's pitch in Web Audio, so this one is built from partials: six sines, each a
+ * touch sharp of a true harmonic as a stiff string is, each fading faster the higher it
+ * sits, under a pick's click and a body resonance around 2 kHz.
+ */
+function guitar(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number, dur: number): void {
+  const { ctx } = k;
+  const f = mtof(midi);
+  const len = Math.min(dur + 0.35, 1.8);
+  const end = t + len + 0.1;
+  const body = ctx.createBiquadFilter();
+  body.type = 'peaking';
+  body.frequency.value = 2200;
+  body.Q.value = 1;
+  body.gain.value = 4;
+  const amp = ctx.createGain();
+  amp.gain.setValueAtTime(0.1 * vel, t);
+  amp.gain.setTargetAtTime(EPS, t + dur + 0.05, 0.09);
+  body.connect(amp).connect(out);
+  for (const [n, level] of [[1, 1], [2, 0.55], [3, 0.4], [4, 0.24], [5, 0.15], [6, 0.08]] as const) {
+    const o = osc(k, 'sine', f * n * (1 + 0.0004 * n * n), t, end);
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(EPS, t);
+    g.gain.exponentialRampToValueAtTime(level, t + 0.003);
+    g.gain.setTargetAtTime(EPS, t + 0.004, 1.1 / n);
+    o.connect(g).connect(body);
+  }
+  const pick = ctx.createBiquadFilter();
+  pick.type = 'bandpass';
+  pick.frequency.value = 3200;
+  pick.Q.value = 1.5;
+  const pg = ctx.createGain();
+  pg.gain.setValueAtTime(0.25 * vel, t);
+  pg.gain.exponentialRampToValueAtTime(EPS, t + 0.008);
+  noiseAt(k, t, 0.01).connect(pick).connect(pg).connect(out);
+}
+
+/**
+ * Overdrive: a lead guitar through a cranked amp, the synthwave solo. Two saws a few
+ * cents apart are driven hard into a clipper, then shaped by a cabinet (no lows below
+ * about 110 Hz, a push around 1.7 kHz, no fizz above 4 kHz). Each note bends up into
+ * its pitch from a semitone below, and vibrato comes in as the note holds.
+ */
+function overdrive(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number, dur: number): void {
+  const { ctx } = k;
+  const f = mtof(midi);
+  const end = t + dur + 0.2;
+  const [push, ws] = drivenBy(ctx, 5);
+  const hp = ctx.createBiquadFilter();
+  hp.type = 'highpass';
+  hp.frequency.value = 110;
+  const mid = ctx.createBiquadFilter();
+  mid.type = 'peaking';
+  mid.frequency.value = 1700;
+  mid.Q.value = 1.2;
+  mid.gain.value = 5;
+  const cab = ctx.createBiquadFilter();
+  cab.type = 'lowpass';
+  cab.frequency.value = 4200;
+  const amp = ctx.createGain();
+  amp.gain.setValueAtTime(EPS, t);
+  amp.gain.exponentialRampToValueAtTime(0.06 * vel, t + 0.012);
+  amp.gain.setTargetAtTime(EPS, t + dur, 0.08);
+  ws.connect(hp).connect(mid).connect(cab).connect(amp).connect(out);
+  for (const cents of [-6, 6]) {
+    const o = osc(k, 'sawtooth', f * 2 ** (-1 / 12), t, end);
+    o.frequency.exponentialRampToValueAtTime(f, t + 0.07);   // the bend up into the note
+    o.detune.value = cents;
+    vibrato(k, o.detune, t, end, 5.5, 22, 0.28);
+    o.connect(push);
+  }
+}
+
+/**
+ * Synthwave: two bright saws and a square an octave down through a resonant low-pass
+ * that sweeps open on each note, followed by two echoes (a third of a second apart,
+ * each quieter), the eighties lead.
+ */
+function synthwave(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number, dur: number): void {
+  const { ctx } = k;
+  const f = mtof(midi);
+  const end = t + dur + 0.15;
+  const lp = ctx.createBiquadFilter();
+  lp.type = 'lowpass';
+  lp.Q.value = 4;
+  lp.frequency.setValueAtTime(700, t);
+  lp.frequency.exponentialRampToValueAtTime(3600, t + 0.06);
+  lp.frequency.setTargetAtTime(2200, t + 0.1, 0.3);
+  const amp = ctx.createGain();
+  amp.gain.setValueAtTime(EPS, t);
+  amp.gain.exponentialRampToValueAtTime(0.055 * vel, t + 0.01);
+  amp.gain.setTargetAtTime(EPS, t + dur, 0.07);
+  lp.connect(amp).connect(out);
+  for (const [type, ratio, cents, level] of [['sawtooth', 1, -9, 1], ['sawtooth', 1, 9, 1], ['square', 0.5, 0, 0.5]] as const) {
+    const o = osc(k, type, f * ratio, t, end);
+    o.detune.value = cents;
+    vibrato(k, o.detune, t, end, 5, 12, 0.3);
+    const g = ctx.createGain();
+    g.gain.value = level;
+    o.connect(g).connect(lp);
+  }
+  for (const [delayS, level] of [[0.33, 0.32], [0.66, 0.14]] as const) {
+    const d = ctx.createDelay(1);
+    d.delayTime.value = delayS;
+    const g = ctx.createGain();
+    g.gain.value = level;
+    amp.connect(d).connect(g).connect(out);
+  }
 }
 
 /** Pulse lead: a thin 12.5% pulse that blips up an octave for its first moment, then holds with a little vibrato. */
