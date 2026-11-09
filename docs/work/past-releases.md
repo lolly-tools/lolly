@@ -2,7 +2,7 @@
 
 These are the records of earlier Lolly and Lolly Work releases: what each paired, what it
 changed, its migrations and its image digests. For the current release, read
-[Release 1.1.2](release-1-1-2.md). Each release's own tagged documentation stays on
+[Release 1.2.0](release-1-2-0.md). Each release's own tagged documentation stays on
 GitHub, linked from its section.
 
 ## 1.1.1

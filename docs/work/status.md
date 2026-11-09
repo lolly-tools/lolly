@@ -6,7 +6,7 @@ governed library of brand assets, server renders, links you can turn off, approv
 audit trail.
 
 The current release is Lolly Work %work{version}, paired with Lolly %work{version}. The
-[release notes](release-1-1-3.md) list the exact component versions. This page groups what
+[release notes](release-1-2-0.md) list the exact component versions. This page groups what
 the release does into lists: ready to use, worth checking against your own systems first and not
 built yet. A separate list names work that is finished on Lolly Work's main branch but is not
 in this release.
@@ -162,7 +162,8 @@ or date is set. The pull request numbers are in the
 ## Release history
 
 ::: timeline
-- <!--i:sparkle--> **1.1.3, 29 October 2026.** The current release, matched to Lolly 1.1.3. [Release notes](release-1-1-3.md).
+- <!--i:sparkle--> **1.2.0, 9 November 2026.** The current release, matched to Lolly 1.2.0. [Release notes](release-1-2-0.md).
+- <!--i:box--> **1.1.3, 29 October 2026.** Matched to Lolly 1.1.3. [Release notes](release-1-1-3.md).
 - <!--i:box--> **1.1.2, 20 October 2026.** Matched to Lolly 1.1.2. [Release notes](release-1-1-2.md).
 - <!--i:box--> **1.1.1, 15 October 2026.** Matched to Lolly 1.1.1.
 - <!--i:box--> **1.1.0, 12 October 2026.** Released together with Lolly web 1.1.0.

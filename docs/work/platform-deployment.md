@@ -21,7 +21,7 @@ Application Collection subscription is required.
   `ghcr.io/lolly-tools/lolly-work-server` and `...-render-worker` for each reviewed
   `v*` release. The %work{version} images are public and need no registry credentials. Pin
   their digests for production; the
-  [1.1.3 release notes](release-1-1-3.md#images-and-qualification) say where they are recorded.
+  [1.2.0 release notes](release-1-2-0.md#images-and-qualification) say where they are recorded.
 - **One collaboration owner.** Lolly Work keeps one writable collaboration owner, so run
   one application replica. Separate render workers can scale once you have tested
   the workload. A redundant cluster does not route rooms or fail over the
