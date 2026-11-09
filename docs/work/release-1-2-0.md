@@ -520,7 +520,7 @@ Share with rules file, and the DESIGN.md writer. Core 1.8.0 carries the `partner
   a busy pod and get `503 RENDER_BUSY`, where a busy pod used to leave the
   Service.
 - **A database that is down takes about 10 seconds to fail** on the migration runner, `lw migrate`,
-  the server's auto-migrate and the Vercel bootstrap, instead of failing at once.
+  the server's auto-migrate and the serverless function's bootstrap, instead of failing at once.
 
 ## Migrations
 
