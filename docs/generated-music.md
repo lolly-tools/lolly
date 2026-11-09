@@ -1,6 +1,6 @@
 # Generated music
 
-The Neurospicy player makes its own music. Its generated stations, all in the **Lolly Sings** group, compose every tune as they play: the original Lolly Sings, Sugar, Straya, Chiptune, City pop, Funk, Soul, Nu-disco, Hip hop, Trip hop, Reggae, Spanish guitar, Rock, Country, Blues, Jazz, Swing, Synthwave, Acid, Electro, Dubstep, Brostep and D&B, and the three **Lofi** moods (Warm, Late night and Rainy). Nothing is recorded or sampled. Each tune is written by Lolly's composer and played by instruments synthesised in your browser.
+The Neurospicy player makes its own music. Its generated stations, all in the **Lolly Sings** group, compose every tune as they play: the original Lolly Sings, Sugar, K-pop, Straya, Chiptune, City pop, Funk, Soul, Nu-disco, Hip hop, Trip hop, Reggae, Spanish guitar, Rock, Metal, Country, Blues, Jazz, Swing, Fantasy, Dreamscape, Synthwave, Acid, Electro, Dubstep, Brostep and D&B, and the three **Lofi** moods (Warm, Late night and Rainy). Nothing is recorded or sampled. Each tune is written by Lolly's composer and played by instruments synthesised in your browser.
 
 ## Every tune is a number
 
@@ -42,12 +42,15 @@ Each station leans the composer towards its genre without fixing the outcome:
 | Blues | A slow shuffle in twelve-bar choruses: a harmonica, an overdriven guitar or a sax answering its own call, an organ or a barrelhouse piano, a walking or boogie bass |
 | Jazz | A combo swinging on the ride: piano or archtop guitar comping, a walking upright bass, and sax, trumpet or vibes on the tune |
 | Swing | The big band: brass section stabs, a clarinet, trumpet or sax lead, a feathered kick, and floor toms in a jungle intro |
+| K-pop | Supersaw stabs and bright plucks, a pulse or chip lead, a synth bass or 808, claps on every beat and a chant in the chorus, and the last chorus a key higher |
+| Metal | A band with power-chord chugs, a metal or overdriven lead, a double kick and crashes through the chorus, toms to turn it, and a phrygian melody |
+| Fantasy | A harp rippling under a flute, bells or a choir, a lydian melody, a half-time pulse with toms, and a big room |
+| Dreamscape | Pads and a choir, a soft lead, chords held two bars, a slow beat with the hats on the beat, and a long room |
 
 ## The music generator
 
 **Music generator** (under Utilities, `#/music`, or **Open in the music generator** in the player's controls while a generated station plays) is a track editor for the same stations. One row of controls holds play, the style, the seed and the length. Below it are a visualiser and the track itself, laid out like a sequence editor: the sections and chords along the top, a lane for the lead, keys, bass, drums and effects, and every note drawn. Each section is named for its genre: a band's drop is its chorus, its break the solo.
 
-- **Blend.** Blend a flavour into a Lolly Sings style: **Fantasy** (harp, choir, bells and a lydian melody), **K-pop** (bright stabs and plucks, claps and a chant in the chorus, and the last chorus a key higher), **Dreamscape** (pads, a soft lead, a big room and gentler drums) or **Metal** (power chords, a metal lead and a double kick). The style's song stays the same: its sections, chords and rhythm come from the same seed.
 - **The seed.** Type any seed, step with the arrows, choose **Surprise me** for a new one, or drag across the number to slide through seeds and watch the tune change.
 - **Instruments.** A track's own menu sets its instrument for the whole track. Click a section in a lane to change that part in every section of that kind: the bass in every chorus, the lead in every solo, or the drums' snare and cymbals in every pre-chorus. Nothing else about the tune changes.
 - **Playing.** Click the top row to play from a section, double-click a bar to play from that bar, and press space to play or stop. Zoom in, zoom out or fit the whole track; a wide screen shows more of the track.
