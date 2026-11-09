@@ -71,6 +71,7 @@ class FakeFilter extends FakeNode {
   Q = new FakeParam('filter.Q');
   gain = new FakeParam('filter.gain');
 }
+class FakePanner extends FakeNode { pan = new FakeParam('panner.pan'); }
 class FakeSource extends FakeNode {
   buffer: unknown = null;
   loop = false;
@@ -88,6 +89,7 @@ class FakeCtx {
   createGain(): FakeGain { const n = new FakeGain(); this.gains.push(n); return n; }
   createOscillator(): FakeOsc { const n = new FakeOsc(); this.oscs.push(n); return n; }
   createBiquadFilter(): FakeFilter { return new FakeFilter(); }
+  createStereoPanner(): FakePanner { return new FakePanner(); }
   createBufferSource(): FakeSource { const n = new FakeSource(); this.sources.push(n); return n; }
   createBuffer(channels: number, n: number): { getChannelData: (c: number) => Float32Array; length: number } {
     const data = Array.from({ length: channels }, () => new Float32Array(n));

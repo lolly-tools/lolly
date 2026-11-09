@@ -49,19 +49,20 @@ export interface LofiSettings {
   shape?: (bar: LofiBar) => LofiBar;
 }
 
-/** Part levels, for tuning the balance. 1 is the designed level. */
-export interface LofiMix { keys: number; bass: number; lead: number; drums: number; reverb: number; texture: number }
-export const LOFI_MIX: LofiMix = { keys: 1, bass: 1, lead: 1, drums: 1, reverb: 1, texture: 1 };
+/** Part levels, for tuning the balance. 1 is the designed level. `fx` is the effects: the
+ *  risers, the console's sounds, the shouts, the birds, the sparkles, phasers and blips. */
+export interface LofiMix { keys: number; bass: number; lead: number; drums: number; fx: number; reverb: number; texture: number }
+export const LOFI_MIX: LofiMix = { keys: 1, bass: 1, lead: 1, drums: 1, fx: 1, reverb: 1, texture: 1 };
 
 /** The tone filter's most open cutoff per mood (Hz); texture and each bar close it from there. */
 const MOOD_TONE: Record<LofiMood, number> = {
-  warm: 7500, lateNight: 4300, rainy: 5400, sings: 8200, sugar: 11000, chiptune: 11000, citypop: 9500, nudisco: 9500, triphop: 5500, funk: 9500, soul: 8000, acid: 10000, hiphop: 8000, reggae: 7500, spanish: 8500, rock: 9000, synthwave: 9500, electro: 9000, dubstep: 9500, brostep: 10000, dnb: 10000,
+  warm: 7500, lateNight: 4300, rainy: 5400, sings: 8200, sugar: 11000, sherbert: 13000, chiptune: 11000, citypop: 9500, nudisco: 9500, triphop: 5500, funk: 9500, soul: 8000, acid: 10000, hiphop: 8000, reggae: 7500, spanish: 8500, rock: 9000, synthwave: 9500, electro: 9000, dubstep: 9500, brostep: 10000, dnb: 10000,
   country: 9500, blues: 7000, jazz: 7500, swing: 8500, straya: 10000,
   fantasy: 9000, dream: 6000, kpop: 11000, metal: 9500,
 };
 /** Lolly Sings is melody-first: its lead sits this much higher than Lofi's (about +4 dB), in every genre of the family. */
 const SINGS_LEAD = 1.6;
-const SINGS_FAMILY = new Set<LofiMood>(['sings', 'sugar', 'chiptune', 'citypop', 'nudisco', 'triphop', 'funk', 'soul', 'acid', 'hiphop', 'reggae', 'spanish', 'rock', 'synthwave', 'electro', 'dubstep', 'brostep', 'dnb', 'country', 'blues', 'jazz', 'swing', 'straya', 'fantasy', 'dream', 'kpop', 'metal']);
+const SINGS_FAMILY = new Set<LofiMood>(['sings', 'sugar', 'sherbert', 'chiptune', 'citypop', 'nudisco', 'triphop', 'funk', 'soul', 'acid', 'hiphop', 'reggae', 'spanish', 'rock', 'synthwave', 'electro', 'dubstep', 'brostep', 'dnb', 'country', 'blues', 'jazz', 'swing', 'straya', 'fantasy', 'dream', 'kpop', 'metal']);
 const DRUMS = new Set(LOFI_DRUM_VOICES);
 /**
  * Each part's designed level: first measured K-weighted and soloed (keys about -25 LUFS,
@@ -69,7 +70,9 @@ const DRUMS = new Set(LOFI_DRUM_VOICES);
  * 2026-11-08): the keys, bass, drums and room up, the lead a little back, and the crackle
  * and hiss well down. MASTER brings the sum back to the same headroom.
  */
-const BUS = { keys: 0.37, bass: 0.2, lead: 1.05, drums: 0.83, texture: 0.27, reverb: 0.44 };
+const BUS = { keys: 0.37, bass: 0.2, lead: 1.05, drums: 0.83, texture: 0.27, reverb: 0.44, fx: 1.05 };
+/** A riser rode the keys' bus (through its tremolo, about 0.92) before the effects had their own; this keeps its level. */
+const RISER_LEVEL = (BUS.keys * 0.92) / BUS.fx;
 /** The whole station's level under the volume control, leaving headroom above the busiest bar. */
 const MASTER = 0.62;
 /** How far the music is lifted into the grit's staircase: its loudest bars just reach full scale. */
@@ -80,11 +83,11 @@ const GRIT_MIX = 0.5;
 const VARIANT: { keys: Record<LofiStyle['keys'], number>; lead: Record<LofiStyle['lead'], number>; bass: Record<LofiStyle['bass'], number>; snare: Record<LofiStyle['snare'], number>; hats: Record<LofiStyle['hats'], number> } = {
   // Short, decaying sounds (pluck, kalimba, rim, clap) measure quieter than they sound,
   // so they take most of the measured difference, not the whole difference.
-  keys: { rhodes: 1, felt: 0.93, wurli: 1.4, pluck: 1.8, pad: 1, supersaw: 1, nylon: 1.8, crunch: 1, wah: 1, chiparp: 1.6, steel: 2.4, banjo: 2, honky: 1, organ: 2.2, brass: 2, jazzbox: 2, harp: 1.3, choir: 1 },
-  lead: { vibes: 1, flute: 0.82, soft: 1.35, kalimba: 1.7, chip: 0.8, angel: 0.76, pulse: 2.4, guitar: 2.1, overdrive: 0.5, synthwave: 0.86, metal: 0.6, panflute: 0.56, nylon: 1.9, riff: 0.6, twang: 2.2, banjo: 1.5, harmonica: 0.55, sax: 1, trumpet: 1, clarinet: 1, pedal: 0.44, fiddle: 1, bells: 1.6, none: 0 },
+  keys: { rhodes: 1, felt: 0.93, wurli: 1.4, pluck: 1.8, pad: 1, supersaw: 1, nylon: 1.8, crunch: 1, wah: 1, chiparp: 1.6, steel: 2.4, banjo: 2, honky: 1, organ: 2.2, brass: 2, jazzbox: 2, harp: 1.3, choir: 1, future: 1.5 },
+  lead: { vibes: 1, flute: 0.82, soft: 1.35, kalimba: 1.7, chip: 0.8, angel: 0.76, pulse: 2.4, guitar: 2.1, overdrive: 0.5, synthwave: 0.86, metal: 0.6, panflute: 0.56, nylon: 1.9, riff: 0.6, twang: 2.2, banjo: 1.5, harmonica: 0.55, sax: 1, trumpet: 1, clarinet: 1, pedal: 0.44, fiddle: 1, bells: 1.6, chop: 1, bit: 1, none: 0 },
   // The reese is drum and bass's whole low end, so it sits about 4 dB up (Andy, 2026-11-08).
   bass: { round: 1, upright: 1.05, synth: 1.2, wobble: 1, growl: 1.8, reese: 1.6, slap: 1.6, screech: 1.7, pulse: 1, electro: 1, picked: 1, croak: 1, eight: 1, acid: 1, motown: 1, yidaki: 1.1 },
-  snare: { snare: 1, brush: 1.15, rim: 1.8, clap: 2.3 },
+  snare: { snare: 1, brush: 1.15, rim: 1.8, clap: 2.3, stack: 1 },
   hats: { hat: 1, shaker: 1.15, ride: 0.8, none: 0 },
 };
 /** The style a station starts from, until its first tune's arrives. */
@@ -101,7 +104,7 @@ const LOOKAHEAD_HIDDEN = 3;
 interface Queued { at: number; spb: number; note: LofiNote; bar: LofiBar; lanes: Lanes }
 interface Mark { at: number; bar: LofiBar }
 /** One tune's inputs to the buses, so skipping can fade out what is still ringing. */
-interface Lanes { keys: GainNode; bass: GainNode; lead: GainNode; drums: GainNode }
+interface Lanes { keys: GainNode; bass: GainNode; lead: GainNode; drums: GainNode; fx: GainNode }
 
 export class LofiStation {
   readonly ctx: BaseAudioContext;
@@ -131,6 +134,7 @@ export class LofiStation {
   private readonly keysBus: GainNode;
   private readonly bassBus: GainNode;
   private readonly leadBus: GainNode;
+  private readonly fxBus: GainNode;
   private readonly drumBus: GainNode;
   private readonly music: GainNode;
   private readonly reverbSend: GainNode;
@@ -222,6 +226,9 @@ export class LofiStation {
     this.keysBus.connect(trem).connect(this.music);
     this.leadBus = ctx.createGain();
     this.leadBus.connect(this.music);
+    // The effects: their own level (the music generator's slider), ducked and given the room as the lead is.
+    this.fxBus = ctx.createGain();
+    this.fxBus.connect(this.music);
     this.bassBus = ctx.createGain();
     this.bassBus.connect(this.music);
     // The drums get their own tone filter, opening well above the music's, so the snare's
@@ -240,6 +247,7 @@ export class LofiStation {
     this.reverbSend = ctx.createGain();
     this.keysBus.connect(this.reverbSend);
     this.leadBus.connect(this.reverbSend);
+    this.fxBus.connect(this.reverbSend);
     this.reverbSend.connect(reverb).connect(this.tone);
 
     this.toneWander.connect(this.tone.frequency);
@@ -345,12 +353,21 @@ export class LofiStation {
 
   // ── offline ───────────────────────────────────────────────────────────────
 
-  /** Queue everything up to `seconds` at once (an OfflineAudioContext). */
+  /** Queue everything up to `seconds` at once (an OfflineAudioContext). Short renders and
+   *  tests only: see renderStation for a whole track. */
   scheduleAll(seconds: number): void {
     this.nextBarAt = 0.05;
     this.fill(seconds);
     this.flush(seconds);
   }
+
+  /** Queue the notes up to `until` seconds, from the start the first time (an offline render in windows). */
+  scheduleUntil(until: number): void {
+    if (!this.offlineStarted) { this.nextBarAt = 0.05; this.offlineStarted = true; }
+    this.fill(until);
+    this.flush(until);
+  }
+  private offlineStarted = false;
 
   // ── scheduling ────────────────────────────────────────────────────────────
 
@@ -412,7 +429,12 @@ export class LofiStation {
     const snareV = bar.voices?.snare ?? st.snare;
     const hatsV = bar.voices?.hats ?? st.hats;
     switch (note.voice) {
-      case 'keys': V.keys(keysV, k, lanes.keys, t, note.midi, vel * VARIANT.keys[keysV], len); break;
+      case 'keys': {
+        // A future-bass chord's wub is swings a beat (the voice wants Hz), plus 16 for a bend.
+        const m = note.mod ?? 0;
+        V.keys(keysV, k, lanes.keys, t, note.midi, vel * VARIANT.keys[keysV], len, { rate: (m % 16) / spb, bend: m >= 16 });
+        break;
+      }
       case 'bass': {
         // A wobble's, growl's or screech's swing is cycles a beat (the voice wants Hz); the
         // other basses' `mod` is how the note is played, passed as it is.
@@ -430,19 +452,30 @@ export class LofiStation {
         break;
       }
       case 'crash': V.crash(k, lanes.drums, t, vel); break;
-      case 'riser': V.riser(k, lanes.keys, t, vel, len); break;
-      case 'coin': V.coin(k, lanes.lead, t, note.midi, vel); break;
-      case 'magpie': V.magpie(k, lanes.lead, t, note.midi, vel, len, note.mod ?? 0); break;
-      case 'kookaburra': V.kookaburra(k, lanes.lead, t, note.midi, vel, note.mod ?? 0); break;
+      case 'riser': V.riser(k, lanes.fx, t, vel * RISER_LEVEL, len); break;
+      case 'coin': V.coin(k, lanes.fx, t, note.midi, vel); break;
+      case 'sparkle': V.sparkle(k, lanes.fx, t, note.midi, vel, len, note.mod ?? 4); break;
+      case 'game': V.game(k, lanes.fx, t, note.midi, vel, note.mod ?? 0); break;
+      case 'magpie': V.magpie(k, lanes.fx, t, note.midi, vel, len, note.mod ?? 0); break;
+      case 'kookaburra': V.kookaburra(k, lanes.fx, t, note.midi, vel, note.mod ?? 0); break;
       case 'tom': V.tom(k, lanes.drums, t, note.midi, vel); break;
       case 'perc': V.perc(k, lanes.drums, t, note.midi, vel, note.mod ?? 0); break;
-      case 'hey': V.hey(k, lanes.lead, t, note.midi, vel); break;
+      case 'hey': V.hey(k, lanes.fx, t, note.midi, vel, note.mod ?? 0); break;
+      case 'bwah': {
+        // A bass shot's `mod` is the shot, plus 4 for each swing a beat (the voice wants Hz).
+        const m = note.mod ?? 0;
+        V.bwah(k, lanes.bass, t, note.midi, vel, len, m % 4, Math.floor(m / 4) / spb, { bright: st.bright ?? 1, drive: st.drive ?? 1 });
+        break;
+      }
+      case 'phaser': V.phaser(k, lanes.fx, t, note.midi, vel, len, note.mod ?? 0); break;
+      case 'blip': V.blip(k, lanes.fx, t, note.midi, vel, note.mod ?? 0); break;
       case 'soar': V.soar(k, lanes.bass, t, note.midi, vel, len, note.mod === 1); break;
       case 'kick': V.kick(k, lanes.drums, t, vel, st.kick, st.kickLen); this.duck(t, st.duck); break;
       case 'snare':
         // A section given the cross-stick plays its snare hits on the rim.
         if (bar.voices?.snare === 'rim') { V.rim(k, lanes.drums, t, vel * VARIANT.snare.rim); break; }
-        V.snare(snareV === 'rim' ? 'snare' : snareV, k, lanes.drums, t, vel * VARIANT.snare[snareV], st.snareTone);
+        // A roll that climbs (Sherbert's builds) tunes each hit up by its `mod` in semitones.
+        V.snare(snareV === 'rim' ? 'snare' : snareV, k, lanes.drums, t, vel * VARIANT.snare[snareV], st.snareTone * 2 ** ((note.mod ?? 0) / 12));
         if (note.vel > 0.5) this.duck(t, st.duck * 0.45);   // a backbeat, not a ghost: the music gives it a little room
         break;
       case 'rim': {
@@ -452,7 +485,7 @@ export class LofiStation {
         else V.rim(k, lanes.drums, t, vel * VARIANT.snare.rim);
         break;
       }
-      case 'hat': V.hat(hatsV, k, lanes.drums, t, vel * VARIANT.hats[hatsV], st.hatTone); break;
+      case 'hat': V.hat(hatsV, k, lanes.drums, t, vel * VARIANT.hats[hatsV], st.hatTone, false, note.mod === 1); break;
       case 'openHat': V.hat(hatsV, k, lanes.drums, t, vel * VARIANT.hats[hatsV], st.hatTone, true); break;
     }
   }
@@ -522,13 +555,14 @@ export class LofiStation {
     this.keysBus.gain.value = BUS.keys * this.mix.keys;
     this.bassBus.gain.value = BUS.bass * this.mix.bass;
     this.leadBus.gain.value = BUS.lead * this.mix.lead;
+    this.fxBus.gain.value = BUS.fx * this.mix.fx;
     this.drumBus.gain.value = BUS.drums * this.mix.drums;
     this.reverbSend.gain.value = BUS.reverb * this.mix.reverb * this.colour.room;
   }
 
   private newLanes(): Lanes {
     const lane = (to: AudioNode): GainNode => { const g = this.ctx.createGain(); g.connect(to); return g; };
-    return { keys: lane(this.keysBus), bass: lane(this.bassBus), lead: lane(this.leadBus), drums: lane(this.drumBus) };
+    return { keys: lane(this.keysBus), bass: lane(this.bassBus), lead: lane(this.leadBus), drums: lane(this.drumBus), fx: lane(this.fxBus) };
   }
 
   /** A sine LFO into `depth`; returns `depth` to connect onward. */
@@ -555,8 +589,32 @@ export class LofiStation {
 export async function renderLofi(seed: number, settings: LofiSettings, seconds: number, sampleRate = 44100, mix: LofiMix = LOFI_MIX): Promise<AudioBuffer> {
   const ctx = new OfflineAudioContext(2, Math.ceil(seconds * sampleRate), sampleRate);
   const station = new LofiStation(ctx, ctx.destination, seed, settings, mix);
-  station.scheduleAll(seconds);
   station.fadeOutAt(Math.max(0, seconds - 2), 2);
+  return renderStation(ctx, station, seconds);
+}
+
+/** How far ahead of an offline render its notes are scheduled, and how often it stops to schedule more (seconds). */
+const OFFLINE_AHEAD = 4;
+const OFFLINE_STEP = 1;
+
+/**
+ * Render a station offline, scheduling its notes a few seconds ahead of the render as it
+ * goes, as the live station does, rather than the whole track at once. A graph that holds
+ * every note of a track is walked on every block, so the old way slowed with the square
+ * of the track's length: a 64-bar track crawled at a twentieth of real time and looked
+ * hung. The render stops once a second to schedule more, and tells `onProgress` how far
+ * it has got (0 to 1).
+ */
+export async function renderStation(ctx: OfflineAudioContext, station: LofiStation, seconds: number, onProgress?: (done: number) => void): Promise<AudioBuffer> {
+  station.scheduleUntil(Math.min(seconds, OFFLINE_AHEAD));
+  for (let s = OFFLINE_STEP; s < seconds; s += OFFLINE_STEP) {
+    const at = s;
+    void ctx.suspend(at).then(() => {
+      station.scheduleUntil(Math.min(seconds, at + OFFLINE_AHEAD));
+      onProgress?.(at / seconds);
+      void ctx.resume();
+    });
+  }
   return ctx.startRendering();
 }
 

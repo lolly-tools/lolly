@@ -36,6 +36,12 @@
   .ms-seed-input { width: 8.5em; cursor: ew-resize; touch-action: pan-y; font-variant-numeric: tabular-nums; }
   .ms-icon { display: inline-flex; align-items: center; justify-content: center; min-width: var(--ui-size-target); padding-inline: var(--sp-1); }
   .ms-icon[aria-expanded="true"] { color: var(--ui-color-action-primary); }
+  .ms-tempo { display: inline-flex; align-items: center; gap: var(--sp-1); }
+  .ms-bpm-input { width: 4.5em; cursor: ew-resize; touch-action: pan-y; font-variant-numeric: tabular-nums; }
+  /* A tempo the person set reads as theirs: the tune's own is plain. */
+  .ms-bpm-input.is-set { font-weight: 600; color: var(--ui-color-action-primary); }
+  .ms-unit { font-size: var(--fs-sm); color: var(--ui-color-text-muted); }
+  .ms-tempo .ms-icon[hidden] { display: none; }
   .ms-meta { font-size: var(--fs-sm); color: var(--ui-color-text-muted); font-variant-numeric: tabular-nums; }
   .ms-bar-end { margin-inline-start: auto; display: inline-flex; gap: 2px; }
 
@@ -116,6 +122,7 @@
     .ms-bar { padding: var(--sp-1) var(--sp-2); }
     .ms-meta { display: none; }
     .ms-seed-input { width: 7em; }
+    .ms-bpm-input { width: 4.2em; margin-inline-start: 2px; }
     .ms-stage { height: 64px; }
     .ms-editor { grid-template-columns: 124px 1fr; }
     .ms-pick, .ms-track [data-solo] { display: none; }
