@@ -14,6 +14,10 @@ One question decides most of the choice: will other people use this instance? Tr
 
 ## The paths in brief
 
+- **Trying it on a cluster?** The [cluster evaluation](platform-deployment.md#evaluate-on-a-cluster)
+  is one Helm command, with sample people and memory storage.
+- **Have a Kubernetes platform?** [Install on Kubernetes](platform-deployment.md)
+  with the Helm chart, your own PostgreSQL and your identity provider.
 - **Just looking?** Open the public demo at [lolly.work](https://lolly.work). Sign
   in with one click as a sample admin, brand lead, marketer or contractor. Browse
   the console at `/admin` or render a tool from a plain link such as
@@ -23,8 +27,6 @@ One question decides most of the choice: will other people use this instance? Tr
   sample data.
 - **Trying it on your computer?** The [local demo](install.md#1-try-it-on-your-computer)
   runs from source on Node 24 in about two minutes.
-- **Trying it on a cluster?** The [cluster evaluation](platform-deployment.md#evaluate-on-a-cluster)
-  is one Helm command, with sample people and memory storage.
 - **One Linux server for a small team?** The [ready-made package](ready-made-package.md)
   brings Lolly Work, PostgreSQL, the matching web app and automatic HTTPS, with email and
   password sign-in. If you would rather write your own configuration, run
@@ -32,8 +34,6 @@ One question decides most of the choice: will other people use this instance? Tr
   [Node and systemd](install.md#6-bare-metal-systemd).
 - **Already run YunoHost?** [Install the Lolly Work app](install.md#7-yunohost)
   and sign in with your YunoHost accounts.
-- **Have a Kubernetes platform?** [Install on Kubernetes](platform-deployment.md)
-  with the Helm chart, your own PostgreSQL and your identity provider.
 - **Starting from bare VMs on UpCloud or Evroc?** The
   [cloud modules](cloud-deployment.md) create the machine; then follow one of the
   server paths above.
@@ -54,8 +54,8 @@ server.
 - **macOS** runs the local demo from source, or Linux containers through Docker
   Desktop. See the [macOS steps](install.md#macos).
 - **Windows 11** runs the Linux steps inside WSL 2, or Docker Desktop with Linux
-  containers. See the [Windows steps](install.md#windows). On Windows Server, use a
-  Linux VM or your existing Kubernetes platform.
+  containers. See the [Windows steps](install.md#windows). On Windows Server, use
+  your existing Kubernetes platform or a Linux VM.
 
 The Lolly web app that Lolly Work can serve at `/` needs a secure address (HTTPS, or
 `localhost` while testing) and a browser with WebGPU. See
@@ -87,9 +87,9 @@ its checks are recorded.
 
 | Package | Use it for |
 |---|---|
-| **Lolly Work server image**: `ghcr.io/lolly-tools/lolly-work-server:%work{version}` | Compose and Kubernetes; Linux `amd64` and `arm64` manifests |
-| **Optional render worker**: `ghcr.io/lolly-tools/lolly-work-render-worker:%work{version}` | Browser-based server rendering; configure its authenticated HTTPS transport separately |
 | **Helm chart** %work{chart}: `deploy/helm` in the source code, and the published chart | Lolly Work %work{version} on an existing Kubernetes platform. The chart carries the release version; 1.1.3 is its first publication |
+| **Lolly Work server image**: `ghcr.io/lolly-tools/lolly-work-server:%work{version}` | Kubernetes and Compose; Linux `amd64` and `arm64` manifests |
+| **Optional render worker**: `ghcr.io/lolly-tools/lolly-work-render-worker:%work{version}` | Browser-based server rendering; configure its authenticated HTTPS transport separately |
 | **Source code** on the Lolly Work release page | Node and systemd installs, local evaluation, deployment recipes and custom image builds |
 | **[Lolly Work for YunoHost](https://github.com/lolly-tools/lolly-work_ynh)** | The complete server with host accounts; follow the package's version notes |
 | **[Lolly web app 1.2.0](https://lolli.li/lolly-web-1.2.0-ynh1.tar.gz)** | The browser app that matches a Lolly Work installation. Served by Lolly Work 1.2.0, it takes the installation's catalogue key and shows its tools. On its own, this archive is a static web app |

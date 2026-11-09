@@ -510,7 +510,7 @@
   "Adoption and governance": "Adoptare și guvernanță",
   "Governance": "Guvernanță",
   "Host Lolly": "Găzduiește Lolly",
-  "A static web host is the easy path, and an air-gapped network takes the same install. Lolly Work, the organisation server, is open source too: run it on one machine, on Kubernetes or with your platform team.": "O gazdă web statică este calea ușoară, iar o rețea izolată de internet primește aceeași instalare. Lolly Work, serverul organizației, este tot open source: rulează-l pe o singură mașină, pe Kubernetes sau împreună cu echipa ta de platformă.",
+  "A static web host is the easy path, and an air-gapped network takes the same install. Lolly Work, the organisation server, is open source too: run it on Kubernetes, on one machine or with your platform team.": "O gazdă web statică este calea ușoară, iar o rețea izolată de internet primește aceeași instalare. Lolly Work, serverul organizației, este tot open source: rulează-l pe Kubernetes, pe o singură mașină sau împreună cu echipa ta de platformă.",
   "Deployment": "Implementare",
   "Privacy": "Confidențialitate",
   "The utilities": "Utilitarele",

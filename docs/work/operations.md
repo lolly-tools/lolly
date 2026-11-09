@@ -58,13 +58,13 @@ lw migrate [--check]       # same, run where the database is reachable (not via 
 GET /api/v1/system/migrations      # pending list - owner-gated (instance.config)
 ```
 
-- **One node** (local or Compose): leave `LW_AUTO_MIGRATE` unset. The server applies
-  pending migrations at startup, with no separate step.
 - **Helm with its migration Job**: `migrate.enabled=true` sets `LW_AUTO_MIGRATE=false`.
   The application runs no schema changes and **refuses to start on a pending
   schema**. The chart runs one migrate Job as a pre-install and pre-upgrade hook that
   must succeed before new pods start, so a skipped migration fails loudly instead of
   serving a half-migrated database.
+- **One node** (local or Compose): leave `LW_AUTO_MIGRATE` unset. The server applies
+  pending migrations at startup, with no separate step.
 
 ::: details Notes on migrations 0075 and 0076
 **0075** adds the `uploads` table for scoped uploads and raises the project file size

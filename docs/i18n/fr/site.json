@@ -510,7 +510,7 @@
   "Adoption and governance": "Adoption et gouvernance",
   "Governance": "Gouvernance",
   "Host Lolly": "Héberger Lolly",
-  "A static web host is the easy path, and an air-gapped network takes the same install. Lolly Work, the organisation server, is open source too: run it on one machine, on Kubernetes or with your platform team.": "Un hébergeur web statique est la voie facile, et un réseau isolé accepte la même installation. Lolly Work, le serveur d'organisation, est lui aussi open source : lance-le sur une machine, sur Kubernetes ou avec ton équipe plateforme.",
+  "A static web host is the easy path, and an air-gapped network takes the same install. Lolly Work, the organisation server, is open source too: run it on Kubernetes, on one machine or with your platform team.": "Un hébergeur web statique est la voie facile, et un réseau isolé accepte la même installation. Lolly Work, le serveur d'organisation, est lui aussi open source : lance-le sur Kubernetes, sur une machine ou avec ton équipe plateforme.",
   "Deployment": "Déploiement",
   "Privacy": "Confidentialité",
   "The utilities": "Les utilitaires",

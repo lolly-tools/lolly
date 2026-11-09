@@ -47,8 +47,8 @@ What Lolly Work %work{version} does, what to check on your own systems before yo
   charts stay empty until a client sends them. See [Audit log](audit.md) and [Telemetry and dashboards](telemetry.md).
 - **Agents.** Invite an MCP agent to one document or one project, under your own identity.
   See [Invite an agent to a document](document-agents.md).
-- **Setup and packaging.** A six-step guided setup in the console, container images, Compose
-  and a Helm chart with an optional render-worker tier. See
+- **Setup and packaging.** A six-step guided setup in the console, container images, a Helm
+  chart (with an optional render-worker tier) and Compose. See
   [Configure your first Lolly Work instance](customer-setup.md) and [Install Lolly Work](install.md).
 
 Try the hosted demo at lolly.work before you install. It renders for real: `GET
