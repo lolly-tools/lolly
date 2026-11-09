@@ -45,6 +45,9 @@
  *   fx     sparkle (a console's chord: root, third and fifth taking turns fifty times a
  *          second, echoing across) and game (a jump, a power-up, a power-down, a bonus)
  *
+ * The world styles' instruments (Persian, Guzheng, Koto, Kora, Amapiano) live in
+ * ./lofi-world-voices.ts, built on the helpers exported here.
+ *
  * Each voice schedules its own nodes at `t` on the context it is given and lets them
  * end; nothing is kept. Levels sit low, and lofi-station.ts evens the variants out.
  */
@@ -58,10 +61,10 @@ export interface VoiceKit {
   rng: () => number;
 }
 
-const EPS = 0.0001;
-const mtof = (m: number): number => 440 * 2 ** ((m - 69) / 12);
+export const EPS = 0.0001;
+export const mtof = (m: number): number => 440 * 2 ** ((m - 69) / 12);
 
-function noiseAt(k: VoiceKit, t: number, dur: number): AudioBufferSourceNode {
+export function noiseAt(k: VoiceKit, t: number, dur: number): AudioBufferSourceNode {
   const src = k.ctx.createBufferSource();
   src.buffer = k.noise;
   src.loop = true;
@@ -70,7 +73,7 @@ function noiseAt(k: VoiceKit, t: number, dur: number): AudioBufferSourceNode {
   return src;
 }
 
-function osc(k: VoiceKit, type: OscillatorType, f: number, t: number, end: number): OscillatorNode {
+export function osc(k: VoiceKit, type: OscillatorType, f: number, t: number, end: number): OscillatorNode {
   const o = k.ctx.createOscillator();
   o.type = type;
   o.frequency.setValueAtTime(f, t);
@@ -359,6 +362,7 @@ export function lead(style: LofiStyle['lead'], k: VoiceKit, out: AudioNode, t: n
   else if (style === 'chop') chop(k, out, t, midi, vel, dur);
   else if (style === 'bit') bitLead(k, out, t, midi, vel, dur);
 }
+
 
 /** Vowels as their first three formants (Hz): ah, eh, ee, oh, oo, a high voice's. */
 const CHOP_VOWELS: ReadonlyArray<readonly [number, number, number]> = [
@@ -1088,20 +1092,41 @@ function pluckWave(ctx: BaseAudioContext, pickAt: number): PeriodicWave {
  * the body's resonance. Much more like a string than slowly fading sines, which is how
  * an electric piano is made.
  */
-function plucked(
+export function plucked(
   k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number, dur: number,
-  o: { pickAt: number; bright: number; mellow: number; ring: number; body: number; level: number },
+  o: {
+    pickAt: number; bright: number; mellow: number; ring: number; body: number; level: number;
+    /** A second string in the course, this many cents apart: the beating of a doubled or quadrupled course. */
+    course?: number;
+    /** Slide into the note from this many semitones away (a guzheng's press, a koto's oshide), over `slideTime`. */
+    slide?: number; slideTime?: number;
+    /** A left-hand vibrato as the note rings (the zither's rou), in cents. */
+    wobble?: number;
+  },
 ): void {
   const { ctx } = k;
   const f = mtof(midi);
   const len = Math.min(dur + o.ring * 0.4, o.ring * 1.6);
   const end = t + len + 0.1;
-  const string = ctx.createOscillator();
-  string.setPeriodicWave(pluckWave(ctx, o.pickAt));
-  string.frequency.setValueAtTime(f * 1.004, t);
-  string.frequency.exponentialRampToValueAtTime(f, t + 0.04);
-  string.start(t);
-  string.stop(end);
+  const strings: OscillatorNode[] = [];
+  for (const cents of o.course ? [-o.course / 2, o.course / 2] : [0]) {
+    const string = ctx.createOscillator();
+    string.setPeriodicWave(pluckWave(ctx, o.pickAt));
+    string.detune.value = cents;
+    if (o.slide) {
+      string.frequency.setValueAtTime(f * 2 ** (o.slide / 12), t);
+      string.frequency.setValueAtTime(f * 2 ** (o.slide / 12), t + 0.03);
+      string.frequency.exponentialRampToValueAtTime(f, t + 0.03 + (o.slideTime ?? 0.14));
+    } else {
+      string.frequency.setValueAtTime(f * 1.004, t);
+      string.frequency.exponentialRampToValueAtTime(f, t + 0.04);
+    }
+    if (o.wobble) vibrato(k, string.detune, t, end, 5.2, o.wobble, 0.25);
+    string.start(t);
+    string.stop(end);
+    strings.push(string);
+  }
+  const string = strings[0]!;
   const lp = ctx.createBiquadFilter();
   lp.type = 'lowpass';
   lp.Q.value = 0.6;
@@ -1120,6 +1145,7 @@ function plucked(
   amp.gain.setTargetAtTime(EPS, t + 0.1, o.ring * 0.6);
   amp.gain.setTargetAtTime(EPS, t + Math.max(0.1, dur), 0.06);
   string.connect(lp).connect(body).connect(amp).connect(out);
+  for (const other of strings.slice(1)) other.connect(lp);
   const pick = ctx.createBiquadFilter();
   pick.type = 'bandpass';
   pick.frequency.value = Math.min(6000, f * 6);
@@ -1281,7 +1307,7 @@ function chip(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number,
 }
 
 /** A vibrato (in cents) that eases in after the attack. */
-function vibrato(k: VoiceKit, target: AudioParam, t: number, end: number, rate: number, cents: number, delay: number): void {
+export function vibrato(k: VoiceKit, target: AudioParam, t: number, end: number, rate: number, cents: number, delay: number): void {
   const lfo = osc(k, 'sine', rate, t, end);
   const depth = k.ctx.createGain();
   depth.gain.setValueAtTime(0, t);
@@ -1438,7 +1464,7 @@ export function bass(style: LofiStyle['bass'], k: VoiceKit, out: AudioNode, t: n
 
 /** A dance tune's tone (LofiStyle.bright and drive): filter brightness and how hard the bass is driven. */
 export interface Tone { bright: number; drive: number }
-const PLAIN_TONE: Tone = { bright: 1, drive: 1 };
+export const PLAIN_TONE: Tone = { bright: 1, drive: 1 };
 
 /** A pulse wave of `duty` (0.5 is a square) as a band-limited PeriodicWave, one per context and duty. */
 const PULSES = new WeakMap<BaseAudioContext, Map<number, PeriodicWave>>();
@@ -1485,7 +1511,7 @@ function driven(ctx: BaseAudioContext): WaveShaperNode {
 
 /** A gain of `amount` feeding a clipper: the drive stage, louder in means dirtier out.
  *  `clean` oversamples the clipper, for a hard-driven bass whose aliasing would sizzle. */
-function drivenBy(ctx: BaseAudioContext, amount: number, clean = false): [GainNode, WaveShaperNode] {
+export function drivenBy(ctx: BaseAudioContext, amount: number, clean = false): [GainNode, WaveShaperNode] {
   const push = ctx.createGain();
   push.gain.value = amount;
   const ws = driven(ctx);
@@ -1961,6 +1987,7 @@ function pickedBass(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: n
   sub(k, out, t, f, vel * 0.7, len);
 }
 
+
 // ── effects ──────────────────────────────────────────────────────────────────
 
 /**
@@ -2351,7 +2378,7 @@ function metalBuffer(ctx: BaseAudioContext): AudioBuffer {
   }
   return buf;
 }
-function metalAt(k: VoiceKit, t: number, dur: number, rate = 1): AudioBufferSourceNode {
+export function metalAt(k: VoiceKit, t: number, dur: number, rate = 1): AudioBufferSourceNode {
   const src = k.ctx.createBufferSource();
   src.buffer = metalBuffer(k.ctx);
   src.loop = true;
@@ -2474,6 +2501,7 @@ export function perc(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: 
     noiseAt(k, t, 0.012).connect(band('bandpass', 2600, 1.5)).connect(env(0.2, 0.001, 0.012));
   }
 }
+
 
 /** A crash: cymbal metal and noise ringing for a couple of seconds, and on a drop a low boom under the kick. */
 export function crash(k: VoiceKit, out: AudioNode, t: number, vel: number): void {
@@ -2905,7 +2933,7 @@ function chipNoise(ctx: BaseAudioContext): AudioBuffer {
 }
 
 /** A drum's hit: high-passed noise at full level at once, falling away in `len` seconds. */
-function crack(k: VoiceKit, out: AudioNode, t: number, peak: number, from: number, len: number): void {
+export function crack(k: VoiceKit, out: AudioNode, t: number, peak: number, from: number, len: number): void {
   const hp = k.ctx.createBiquadFilter();
   hp.type = 'highpass';
   hp.frequency.value = from;

@@ -85,7 +85,27 @@ test('the player lists saved and preset tunes by genre and plays them on the sta
   assert.deepEqual(savedTuneOf(saved.id), { mood: 'sings', seed: 7 });
   assert.ok(playsOnStation(preset.id), 'a preset plays live on the station');
   const lolly = loops.filter((t) => trackCategory(t) === 'lolly').map((t) => t.id);
-  assert.deepEqual(lolly, ['lofi:sings', 'lofi:sugar', 'lofi:sherbert', 'lofi:kpop', 'lofi:straya', 'lofi:chiptune', 'lofi:citypop', 'lofi:funk', 'lofi:soul', 'lofi:nudisco', 'lofi:hiphop', 'lofi:triphop', 'lofi:reggae', 'lofi:spanish', 'lofi:rock', 'lofi:metal', 'lofi:country', 'lofi:blues', 'lofi:jazz', 'lofi:swing', 'lofi:fantasy', 'lofi:dream', 'lofi:synthwave', 'lofi:acid', 'lofi:electro', 'lofi:dubstep', 'lofi:brostep', 'lofi:dnb', 'lofi:warm', 'lofi:lateNight', 'lofi:rainy', 'lolly/tunes/warm-250249288', 'user/tune/1-sings-7'],
+  assert.deepEqual(lolly, ['lofi:sings', 'lofi:sugar', 'lofi:sherbert', 'lofi:kpop', 'lofi:straya', 'lofi:persian', 'lofi:guzheng', 'lofi:koto', 'lofi:kora', 'lofi:afrobeat', 'lofi:amapiano', 'lofi:chiptune', 'lofi:citypop', 'lofi:funk', 'lofi:soul', 'lofi:nudisco', 'lofi:hiphop', 'lofi:triphop', 'lofi:reggae', 'lofi:spanish', 'lofi:rock', 'lofi:metal', 'lofi:country', 'lofi:blues', 'lofi:jazz', 'lofi:swing', 'lofi:fantasy', 'lofi:dream', 'lofi:synthwave', 'lofi:acid', 'lofi:electro', 'lofi:dubstep', 'lofi:brostep', 'lofi:dnb', 'lofi:warm', 'lofi:lateNight', 'lofi:rainy', 'lolly/tunes/warm-250249288', 'user/tune/1-sings-7'],
     'the stations lead their group, then the saved tunes');
   invalidateNeurospicyTracks();
+});
+
+test('a music generator track saves as a tune that keeps everything it was made with', async () => {
+  const generator = 'style=sherbert&seed=4&bars=16&bpm=128&transpose=2&lead=bit&drop.keys=supersaw&mix.fx=1.4';
+  const recipe = { mood: 'sherbert' as const, seed: 4, generator };
+  const back = lofiTuneFromBytes(lofiTuneBytes(recipe));
+  assert.deepEqual(back, recipe, 'the bytes carry the generator\'s settings');
+  assert.equal(JSON.parse(new TextDecoder().decode(lofiTuneBytes(recipe))).version, 2);
+  assert.deepEqual(lofiTuneFromMeta({ mood: 'sherbert', seed: 4, generator }), recipe, 'and so does the asset\'s meta');
+  assert.deepEqual(lofiTuneFromMeta({ mood: 'sherbert', seed: 4, generator: 'x'.repeat(5000) }), { mood: 'sherbert', seed: 4 }, 'an oversized setting string is ignored');
+  assert.equal(JSON.parse(new TextDecoder().decode(lofiTuneBytes({ mood: 'warm', seed: 9 }))).version, 1, 'a station tune stays version 1');
+  // The settings the player and the renderer read back are the generator's own.
+  const { parseMusicState, trackSettings, trackSeconds } = await import('./music-state.ts');
+  const state = parseMusicState(generator);
+  assert.equal(state.bpm, 128);
+  assert.equal(state.transpose, 2);
+  const settings = trackSettings(state);
+  assert.equal(settings.bars, 16);
+  assert.equal(settings.style?.lead, 'bit');
+  assert.ok(Math.abs(trackSeconds(state) - (16 * 240) / 128) < 1e-9, 'sixteen bars at 128 bpm');
 });

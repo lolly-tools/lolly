@@ -3,9 +3,11 @@
  * The music generator (#/music): a track editor for Lolly Sings, so a person or a brand
  * can dial in a track and keep the result.
  *
- * One row of controls (play, style, seed, length, tempo, sound, make, link), a visualiser, and
+ * One row of controls (play, style, seed, shuffle, length, tempo, sound, make, link), a visualiser, and
  * the track laid out like a sequence editor: the sections and chords above a lane for
- * each part, every note drawn. Click a section in a lane to change that part's
+ * each part, every note drawn, each instrument in its own shade of the part's colour
+ * with its name where it comes in (filled when the person chose that instrument). Shuffle draws a
+ * new style, seed, instruments and mix at once. Click a section in a lane to change that part's
  * instrument in every section of that kind (the bass in every drop, the lead in every
  * solo); click the section ruler to play from there. The seed is a design-tool number:
  * type one, step it, shuffle it, or drag across it to slide through seeds and watch the
@@ -28,10 +30,10 @@ import { mountProfileFab } from '../components/profile-menu.ts';
 import { t } from '../i18n.ts';
 import { escape as escapeHtml } from '../utils.ts';
 import {
-  lofiStream, lofiSectionName, LOFI_KEYS, LOFI_LEADS, LOFI_BASSES, LOFI_SNARES, LOFI_HATS, LOFI_DRUM_VOICES,
-  type LofiBar, type LofiMood, type LofiStyle, type LofiTuneInfo,
+  lofiSectionName, transposeChordName, LOFI_KEYS, LOFI_LEADS, LOFI_BASSES, LOFI_SNARES, LOFI_HATS, LOFI_DRUM_VOICES, LOFI_PERCUSSION,
+  type LofiBar,
 } from '../../../../engine/src/lofi-compose.ts';
-import { LofiStation, LOFI_MIX, renderStation, type LofiMix, type LofiSettings } from '../lib/lofi-station.ts';
+import { LofiStation, renderStation, type LofiMix, type LofiSettings } from '../lib/lofi-station.ts';
 import { LOFI_STATION_MOODS, lofiStationName } from '../lib/neurospicy-lofi.ts';
 import { LOFI_KEYS_NAME, LOFI_LEAD_NAME, LOFI_BASS_NAME, LOFI_SNARE_NAME, LOFI_HATS_NAME } from '../lib/lofi-names.ts';
 import { encodeWav, encodeM4a, pcmFromAudioBuffer } from '../lib/audio-encode.ts';
@@ -39,7 +41,13 @@ import { attachScrub } from '../lib/scrub.ts';
 import { mountViz, type VizHandle } from '../lib/butterchurn-viz.ts';
 import { defaultVizPresetId } from '../lib/viz-presets.ts';
 import { icon } from '../lib/icons.ts';
+import { instrumentIcon, iconPath, musicIconNode, musicIconSvg } from '../lib/instrument-icons.ts';
+import { MIX_KEYS, BPM_RANGE, TRANSPOSE_RANGE, parseMusicState, musicStateParams, fixedStyle, shapeBar, composeTrack, barTimes, shuffleState, type SectionVoices } from '../lib/music-state.ts';
 import '../styles/parts/music-studio.css';
+
+// The track's settings and how they shape the composer's bars live in lib/music-state.ts
+// (pure, shared with the saved-tune renderer and the player); re-exported for the tests.
+export { parseMusicState, musicStateParams, composeTrack, shapeBar, shuffleState, BPM_RANGE, TRANSPOSE_RANGE, type MusicState, type SectionVoices } from '../lib/music-state.ts';
 
 type Track = 'lead' | 'keys' | 'bass' | 'drums' | 'fx';
 const TRACKS: readonly Track[] = ['lead', 'keys', 'bass', 'drums', 'fx'];
@@ -47,7 +55,6 @@ const TRACK_LABEL: Record<Track, string> = { lead: 'Lead', keys: 'Keys', bass: '
 /** Which mix level each track's slider moves. */
 const TRACK_MIX: Record<Track, keyof LofiMix> = { lead: 'lead', keys: 'keys', bass: 'bass', drums: 'drums', fx: 'fx' };
 const DRUM_VOICES = new Set<string>(LOFI_DRUM_VOICES);
-const MIX_KEYS: readonly (keyof LofiMix)[] = ['keys', 'bass', 'lead', 'drums', 'fx', 'reverb', 'texture'];
 /** The pitched tracks, whose instrument can be chosen for the whole track or a kind of section. */
 type Pitched = 'lead' | 'keys' | 'bass';
 const PITCHED: readonly Pitched[] = ['lead', 'keys', 'bass'];
@@ -62,149 +69,6 @@ const VIZ_MODES: readonly VizMode[] = ['bars', 'scope', 'milkdrop', 'off'];
 const VIZ_LABEL: Record<VizMode, string> = { bars: 'Visualiser: bars', scope: 'Visualiser: scope', milkdrop: 'Visualiser: full', off: 'Visualiser: off' };
 const VIZ_KEY = 'lolly:musicViz';
 
-/** Instruments a person chose for one kind of section (every drop, every build…). */
-export type SectionVoices = Partial<Pick<LofiStyle, 'keys' | 'lead' | 'bass' | 'snare' | 'hats'>>;
-const SECTION_NAMES = ['intro', 'verse', 'build', 'drop', 'break', 'bridge', 'feature', 'groove', 'drums', 'outro'] as const;
-/** The tempos a person can set, in beats a minute. */
-export const BPM_RANGE = [50, 220] as const;
-
-export interface MusicState {
-  mood: LofiMood;
-  /** Per kind of section, the instruments chosen for it, over whatever the composer chose. */
-  sections: Partial<Record<string, SectionVoices>>;
-  seed: number;
-  bars: number;
-  /** The tempo a person set, in beats a minute; absent plays the tune at the composer's. */
-  bpm?: number;
-  keys?: LofiStyle['keys'];
-  lead?: LofiStyle['lead'];
-  bass?: LofiStyle['bass'];
-  drums: boolean;
-  texture: number;
-  bright?: number;
-  drive?: number;
-  mix: LofiMix;
-}
-
-const DEFAULT_STATE: MusicState = { mood: 'sugar', seed: 2024, bars: 64, drums: true, texture: 0.3, mix: { ...LOFI_MIX }, sections: {} };
-
-/** Read a state from the link's parameters. Anything unknown or out of range falls back. */
-export function parseMusicState(params: string): MusicState {
-  const q = new URLSearchParams(params);
-  const pick = <T extends string>(v: string | null, from: readonly T[]): T | undefined => (from as readonly string[]).includes(v ?? '') ? from.find(x => x === v) : undefined;
-  const num = (v: string | null, lo: number, hi: number): number | undefined => {
-    const n = Number(v);
-    return v !== null && v !== '' && Number.isFinite(n) && n >= lo && n <= hi ? n : undefined;
-  };
-  const mix: LofiMix = { ...LOFI_MIX };
-  for (const k of MIX_KEYS) {
-    const v = num(q.get(`mix.${k}`), 0, 2);
-    if (v !== undefined) mix[k] = v;
-  }
-  const sections: Partial<Record<string, SectionVoices>> = {};
-  for (const name of SECTION_NAMES) {
-    const v: SectionVoices = {};
-    const keys = pick(q.get(`${name}.keys`), LOFI_KEYS);
-    const lead = pick(q.get(`${name}.lead`), LOFI_LEADS);
-    const bass = pick(q.get(`${name}.bass`), LOFI_BASSES);
-    const snare = pick(q.get(`${name}.snare`), LOFI_SNARES);
-    const hats = pick(q.get(`${name}.hats`), LOFI_HATS);
-    if (keys) v.keys = keys;
-    if (lead) v.lead = lead;
-    if (bass) v.bass = bass;
-    if (snare) v.snare = snare;
-    if (hats) v.hats = hats;
-    if (keys || lead || bass || snare || hats) sections[name] = v;
-  }
-  return {
-    sections,
-    mood: pick(q.get('style'), LOFI_STATION_MOODS) ?? DEFAULT_STATE.mood,
-    seed: Math.floor(num(q.get('seed'), 0, 4294967295) ?? DEFAULT_STATE.seed),
-    bars: Math.round(num(q.get('bars'), 4, 512) ?? DEFAULT_STATE.bars),
-    bpm: ((v) => v === undefined ? undefined : Math.round(v))(num(q.get('bpm'), BPM_RANGE[0], BPM_RANGE[1])),
-    keys: pick(q.get('keys'), LOFI_KEYS),
-    lead: pick(q.get('lead'), LOFI_LEADS),
-    bass: pick(q.get('bass'), LOFI_BASSES),
-    drums: q.get('drums') !== '0',
-    texture: num(q.get('texture'), 0, 1) ?? DEFAULT_STATE.texture,
-    bright: num(q.get('bright'), 0.5, 1.8),
-    drive: num(q.get('drive'), 0.8, 4.5),
-    mix,
-  };
-}
-
-/** The link's parameters for a state: only what differs from the defaults, so links stay short. */
-export function musicStateParams(s: MusicState): string {
-  const q = new URLSearchParams();
-  q.set('style', s.mood);
-  q.set('seed', String(s.seed >>> 0));
-  q.set('bars', String(s.bars));
-  if (s.bpm !== undefined) q.set('bpm', String(s.bpm));
-  if (s.keys) q.set('keys', s.keys);
-  if (s.lead) q.set('lead', s.lead);
-  if (s.bass) q.set('bass', s.bass);
-  if (!s.drums) q.set('drums', '0');
-  if (s.texture !== DEFAULT_STATE.texture) q.set('texture', String(s.texture));
-  if (s.bright !== undefined) q.set('bright', String(s.bright));
-  if (s.drive !== undefined) q.set('drive', String(s.drive));
-  for (const k of MIX_KEYS) if (s.mix[k] !== 1) q.set(`mix.${k}`, String(s.mix[k]));
-  for (const name of SECTION_NAMES) {
-    const v = s.sections[name];
-    if (v?.keys) q.set(`${name}.keys`, v.keys);
-    if (v?.lead) q.set(`${name}.lead`, v.lead);
-    if (v?.bass) q.set(`${name}.bass`, v.bass);
-    if (v?.snare) q.set(`${name}.snare`, v.snare);
-    if (v?.hats) q.set(`${name}.hats`, v.hats);
-  }
-  return q.toString();
-}
-
-/** The parts the person locked, as the composer's fixed style. */
-function fixedStyle(s: MusicState): Partial<LofiStyle> {
-  const f: Partial<LofiStyle> = {};
-  if (s.keys) f.keys = s.keys;
-  if (s.lead) f.lead = s.lead;
-  if (s.bass) f.bass = s.bass;
-  if (s.bright !== undefined) f.bright = s.bright;
-  if (s.drive !== undefined) f.drive = s.drive;
-  return f;
-}
-
-/**
- * Each bar with the instruments chosen for its kind of section, if any, and at the tempo
- * the person set: what the station plays too. One retimed tune for all of a tune's bars.
- */
-export function shapeBar(s: MusicState): (bar: LofiBar) => LofiBar {
-  const retimed = new WeakMap<LofiTuneInfo, LofiTuneInfo>();
-  const tempo = (tune: LofiTuneInfo): LofiTuneInfo => {
-    if (s.bpm === undefined || s.bpm === tune.bpm) return tune;
-    let at = retimed.get(tune);
-    if (!at || at.bpm !== s.bpm) { at = { ...tune, bpm: s.bpm }; retimed.set(tune, at); }
-    return at;
-  };
-  return (bar) => {
-    const chosen = s.sections[bar.section];
-    const voiced = chosen ? { ...bar, voices: { ...bar.voices, ...chosen, ...(chosen.lead ? { double: undefined } : {}) } } : bar;
-    const tune = tempo(bar.tune);
-    return tune === bar.tune ? voiced : { ...voiced, tune };
-  };
-}
-
-/** The track's bars, composed: the same bars the station will play. */
-export function composeTrack(s: MusicState): LofiBar[] {
-  const stream = lofiStream(s.seed, { mood: s.mood, style: fixedStyle(s) });
-  const shape = shapeBar(s);
-  return Array.from({ length: s.bars }, () => shape(stream.next()));
-}
-
-/** Where each bar starts, in seconds, and the whole track's length. */
-function barTimes(bars: readonly LofiBar[]): { starts: number[]; total: number } {
-  const starts: number[] = [];
-  let at = 0;
-  for (const b of bars) { starts.push(at); at += 240 / b.tune.bpm; }
-  return { starts, total: at };
-}
-
 const clock = (sec: number): string => `${Math.floor(sec / 60)}:${String(Math.floor(sec % 60)).padStart(2, '0')}`;
 
 /** Which track a note is drawn in. */
@@ -212,6 +76,21 @@ function trackOf(voice: string): Track {
   if (DRUM_VOICES.has(voice)) return 'drums';
   if (voice === 'soar' || voice === 'bwah') return 'bass';
   return voice === 'keys' || voice === 'lead' || voice === 'bass' ? voice : 'fx';
+}
+
+/**
+ * Which of the drum lane's three rows a hit sits on: the kick's row for the low strokes
+ * (a tombak's tom, a taiko's don, a djembe's bass, the dunun, a daf's boom), the snare's
+ * for the middle ones, the top for the cymbals, rings, beads and bells.
+ */
+export function drumRow(voice: string, mod = 0, stroke = 0): 0 | 1 | 2 {
+  if (voice === 'kick') return 2;
+  if (voice === 'snare' || voice === 'rim' || voice === 'tom') return 1;
+  if (voice !== 'perc') return 0;
+  const kind = LOFI_PERCUSSION[mod] ?? 'shaker';
+  if (kind === 'dunun' || ((kind === 'tombak' || kind === 'daf' || kind === 'tanggu' || kind === 'taiko' || kind === 'djembe') && stroke === 1)) return 2;
+  if (kind === 'shaker' || kind === 'tambourine' || kind === 'shekere' || kind === 'agogo' || kind === 'gong' || kind === 'cowbell' || (kind === 'daf' && stroke === 3)) return 0;
+  return 1;
 }
 
 /** The kinds of section, in the order their colours are given out. */
@@ -248,6 +127,22 @@ export function musicPalette(colours: readonly string[], want: number): string[]
   return picked.slice(0, want).map(([h, sat, l]) => `hsl(${Math.round(h)} ${Math.round(sat * 100)}% ${Math.round(l * 100)}%)`);
 }
 
+/**
+ * A track colour's shade for one instrument, so the notes change colour where the
+ * instrument changes: the hue turned and the lightness moved a little, the same for the
+ * same instrument every time. Colours that are not hsl() are kept as they are.
+ */
+export function instrumentShade(colour: string, instrument: string): string {
+  const m = /^hsl\(\s*([\d.]+)\s+([\d.]+)%\s+([\d.]+)%\s*\)$/.exec(colour.trim());
+  if (!m) return colour;
+  let h = 0;
+  for (let i = 0; i < instrument.length; i++) h = (h * 31 + instrument.charCodeAt(i)) >>> 0;
+  const turn = [-28, -14, 0, 14, 28][h % 5]!;
+  const light = [-7, 0, 7][(h >>> 3) % 3]!;
+  const hue = ((Number(m[1]) + turn) % 360 + 360) % 360;
+  return `hsl(${Math.round(hue)} ${m[2]}% ${Math.max(28, Math.min(68, Number(m[3]) + light))}%)`;
+}
+
 interface UploadingAssets { _uploadUserAsset(record: { id: string; type: 'audio'; format: string; blob: Blob; meta: Record<string, unknown> }): Promise<void> }
 function canUpload(assets: unknown): assets is UploadingAssets {
   return typeof assets === 'object' && assets !== null && '_uploadUserAsset' in assets && typeof assets._uploadUserAsset === 'function';
@@ -280,8 +175,9 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
   const fillSelect = (sel: HTMLSelectElement, tr: Pitched, current: string | undefined, auto: string): void => {
     sel.replaceChildren(new Option(auto, ''), ...valuesOf(tr).map(v => new Option(namesOf(tr)[v] ?? v, v, false, v === current)));
   };
-  const iconBtn = (attr: string, name: Parameters<typeof icon>[0], label: string, extra = ''): string =>
-    `<button type="button" class="btn btn--ghost btn--sm ms-icon" ${attr} aria-label="${escapeHtml(label)}" title="${escapeHtml(label)}"${extra}>${icon(name, { size: 18 })}</button>`;
+  // A null icon is the shuffle, which lives with the instrument icons (lib/instrument-icons.ts).
+  const iconBtn = (attr: string, name: Parameters<typeof icon>[0] | null, label: string, extra = ''): string =>
+    `<button type="button" class="btn btn--ghost btn--sm ms-icon" ${attr} aria-label="${escapeHtml(label)}" title="${escapeHtml(label)}"${extra}>${name ? icon(name, { size: 18 }) : musicIconSvg('shuffle', 18)}</button>`;
   const slider = (id: string, label: string, min: number, max: number, step: number, value: number): string =>
     `<label class="ms-slider"><span>${escapeHtml(label)}</span><input type="range" min="${min}" max="${max}" step="${step}" value="${value}" data-slider="${id}"><output data-out="${id}"></output></label>`;
 
@@ -300,9 +196,10 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
         <input type="number" class="field-input field-input--sm ms-seed-input" min="0" max="4294967295" value="${state.seed}" data-seed aria-label="${escapeHtml(t('Seed'))}" title="${escapeHtml(t('The seed: type one, or drag across it to slide through seeds'))}">
         ${iconBtn('data-seed-step="1"', 'chevronRight', t('Next seed'))}
         ${iconBtn('data-dice', 'sparkle', t('Surprise me: a new seed'))}
+        ${iconBtn('data-shuffle', null, t('Shuffle everything: the style, the seed, the instruments and the mix (Shift: only the instruments and the mix)'))}
       </span>
       <select class="field-select field-select--sm" data-bars aria-label="${escapeHtml(t('Length'))}">${LENGTHS.map(n => `<option value="${n}"${n === state.bars ? ' selected' : ''}>${n} ${escapeHtml(t('bars'))}</option>`).join('')}</select>
-      <span class="ms-meta" data-meta></span>
+      <select class="field-select field-select--sm ms-key" data-transpose aria-label="${escapeHtml(t('Key'))}" title="${escapeHtml(t('Move the tune to another key'))}"></select>
       <span class="ms-tempo" role="group" aria-label="${escapeHtml(t('Tempo'))}">
         <input type="number" class="field-input field-input--sm ms-bpm-input" min="${BPM_RANGE[0]}" max="${BPM_RANGE[1]}" step="1" data-bpm aria-label="${escapeHtml(t('Tempo in beats a minute'))}" title="${escapeHtml(t('The tempo: type one, or drag across it'))}">
         <span class="ms-unit" aria-hidden="true">bpm</span>
@@ -330,7 +227,7 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
       <progress max="1" value="0" data-progress hidden></progress>
       <select class="field-select field-select--sm" data-format aria-label="${escapeHtml(t('File type'))}"><option value="m4a">M4A</option><option value="wav">WAV</option></select>
       <button type="button" class="btn btn--sm" data-download disabled>${escapeHtml(t('Download'))}</button>
-      <button type="button" class="btn btn--sm" data-save disabled>${escapeHtml(t('Save to library'))}</button>
+      <button type="button" class="btn btn--sm" data-save>${escapeHtml(t('Save to library'))}</button>
     </div>
     <div class="ms-stage">
       <canvas class="ms-viz" data-viz aria-hidden="true"></canvas>
@@ -348,6 +245,7 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
           <div class="ms-lane-head ms-track" data-track="${tr}" style="height:${lane[tr]}px">
             <span class="ms-swatch" data-swatch="${tr}" aria-hidden="true"></span>
             <span class="ms-track-name">${escapeHtml(t(TRACK_LABEL[tr]))}</span>
+            ${tr === 'lead' || tr === 'keys' || tr === 'bass' ? `<span class="ms-inst" data-inst="${tr}" role="img"></span>` : ''}
             ${tr === 'fx' ? '' : tr === 'drums'
               ? `<button type="button" class="ms-ms" data-drums aria-pressed="${state.drums}" title="${escapeHtml(t('Drums on or off'))}">${escapeHtml(t('On'))}</button>`
               : `<select class="field-select field-select--sm ms-pick" data-pick="${tr}" aria-label="${escapeHtml(t(TRACK_LABEL[tr]))}"></select>`}
@@ -380,7 +278,6 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
   const pos = q<HTMLElement>('[data-pos]');
   const progress = q<HTMLProgressElement>('[data-progress]');
   const downloadBtn = q<HTMLButtonElement>('[data-download]');
-  const saveBtn = q<HTMLButtonElement>('[data-save]');
   const pop = q<HTMLElement>('[data-pop]');
   const popPick = q<HTMLSelectElement>('[data-pop-pick]');
   const popPick2 = q<HTMLSelectElement>('[data-pop-pick2]');
@@ -414,6 +311,20 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
     const v = tr === 'keys' ? bar.voices?.keys ?? st.keys : tr === 'lead' ? bar.voices?.lead ?? st.lead : bar.voices?.bass ?? st.bass;
     return namesOf(tr)[v] ?? v;
   };
+  /** The instrument a part plays in a bar, by the composer's own id for it (for its colour and icon). */
+  const instrumentIdOf = (bar: LofiBar, tr: Pitched): string => {
+    const st = bar.tune.style;
+    return tr === 'keys' ? bar.voices?.keys ?? st.keys : tr === 'lead' ? bar.voices?.lead ?? st.lead : bar.voices?.bass ?? st.bass;
+  };
+  const shades = new Map<string, string>();
+  const shadeOf = (tr: Pitched, instrument: string): string => {
+    const key = `${trackColour[tr]}|${instrument}`;
+    let c = shades.get(key);
+    if (!c) { c = instrumentShade(trackColour[tr], instrument); shades.set(key, c); }
+    return c;
+  };
+  /** Whether the person chose this part's instrument in this kind of section (or for the whole track). */
+  const chosenHere = (section: string, tr: Pitched): boolean => !!state.sections[section]?.[tr] || !!state[tr];
   let playheadBar = -1;
   let playheadBeat = 0;
   let rendered = 0;   // the share of the track already made, 0..1
@@ -455,12 +366,39 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
         const label = sectionLabel(sec);
         if (cx.measureText(label).width + 8 < x1 - x0) cx.fillText(label, x0 + 4, 18);
         cx.save();
-        cx.font = '10px system-ui, sans-serif';
-        cx.fillStyle = muteInk;
+        cx.font = '600 10px system-ui, sans-serif';
         for (const tr of PITCHED) {
+          // Where a part changes instrument: a bar of the new instrument's colour down its
+          // lane, and a chip with its name, filled when the person chose it, tinted when the
+          // composer did.
           const name = instrumentOf(bars[i]!, tr);
           const changed = i === 0 || instrumentOf(bars[i - 1]!, tr) !== name;
-          if (changed && name && cx.measureText(name).width + 8 < x1 - x0 && bars.slice(i, j + 1).some(b => b.notes.some(n => trackOf(n.voice) === tr))) cx.fillText(name, x0 + 4, laneTop(tr) + 11);
+          if (!changed || !name || !bars.slice(i, j + 1).some(b => b.notes.some(n => trackOf(n.voice) === tr))) continue;
+          const shade = shadeOf(tr, instrumentIdOf(bars[i]!, tr));
+          const top = laneTop(tr);
+          if (i > 0) { cx.fillStyle = shade; cx.fillRect(x0, top + 1, 2, lane[tr] - 2); }
+          const w = cx.measureText(name).width + 24;
+          const chosen = chosenHere(sec, tr);
+          const glyph = iconPath(instrumentIcon(tr, instrumentIdOf(bars[i]!, tr)));
+          const fits = w + 6 <= x1 - x0;
+          if (!fits && x1 - x0 < 22) continue;
+          cx.fillStyle = shade;
+          cx.globalAlpha = chosen ? 1 : 0.2;
+          cx.beginPath();
+          cx.roundRect(x0 + 4, top + 3, fits ? w : 18, 16, 8);
+          cx.fill();
+          cx.globalAlpha = 1;
+          // The instrument's family icon, then its name when the section has room.
+          cx.save();
+          cx.translate(x0 + 8, top + 5);
+          cx.scale(12 / 24, 12 / 24);
+          cx.lineWidth = 2.4;
+          cx.lineCap = 'round';
+          cx.lineJoin = 'round';
+          cx.strokeStyle = chosen ? '#fff' : ink;
+          cx.stroke(glyph);
+          cx.restore();
+          if (fits) { cx.fillStyle = chosen ? '#fff' : ink; cx.fillText(name, x0 + 23, top + 14.5); }
         }
         cx.restore();
       }
@@ -491,10 +429,9 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
         const x = beatX(i, n.beat);
         const top = laneTop(tr);
         cx.globalAlpha = silent ? 0.15 : 0.5 + n.vel * 0.5;
-        cx.fillStyle = trackColour[tr];
+        cx.fillStyle = tr === 'lead' || tr === 'keys' || tr === 'bass' ? (n.voice === 'soar' || n.voice === 'bwah' ? trackColour[tr] : shadeOf(tr, instrumentIdOf(bar, tr))) : trackColour[tr];
         if (tr === 'drums') {
-          const row = n.voice === 'kick' ? 2 : n.voice === 'snare' || n.voice === 'rim' || n.voice === 'tom' ? 1 : 0;
-          cx.fillRect(x, top + 8 + row * 14, 3, 9);
+          cx.fillRect(x, top + 8 + drumRow(n.voice, n.mod, n.midi) * 14, 3, 9);
         } else if (tr === 'fx') {
           const row = fxRow(n.voice);
           const y = top + 4 + row * fxRowH;
@@ -510,7 +447,29 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
     cx.globalAlpha = 1;
   }
 
+  /** What each lane head's icon shows now, so it is redrawn only when the instrument changes. */
+  let laneHeadKey = '';
+  /** Each pitched lane's head shows the instrument playing at the playhead (or the selected bar), in its shade. */
+  function laneHeads(): void {
+    const bar = bars[Math.max(0, Math.min(bars.length - 1, playheadBar >= 0 ? playheadBar : selected))];
+    if (!bar) return;
+    const ids = PITCHED.map(tr => instrumentIdOf(bar, tr));
+    const key = ids.join('|') + PITCHED.map(tr => trackColour[tr]).join('|');
+    if (key === laneHeadKey) return;
+    laneHeadKey = key;
+    PITCHED.forEach((tr, n) => {
+      const el = page.querySelector<HTMLElement>(`[data-inst="${tr}"]`);
+      if (!el) return;
+      const label = `${t(TRACK_LABEL[tr])}: ${instrumentOf(bar, tr)}`;
+      el.replaceChildren(musicIconNode(instrumentIcon(tr, ids[n]!), 16));
+      el.style.color = shadeOf(tr, ids[n]!);
+      el.title = label;
+      el.setAttribute('aria-label', label);
+    });
+  }
+
   function draw(): void {
+    laneHeads();
     // The canvas is only as wide as the view and is drawn at the scroll offset: a long
     // track at a close zoom would be wider than a canvas is allowed to be.
     const dpr = Math.min(2, window.devicePixelRatio || 1);
@@ -552,7 +511,14 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
 
   function meta(): void {
     const first = bars[0]!.tune;
-    q<HTMLElement>('[data-meta]').textContent = first.key;
+    // The key menu: every key a person can move the tune to, named, the tune's own first.
+    const keySel = q<HTMLSelectElement>('[data-transpose]');
+    const shift = state.transpose ?? 0;
+    const own = transposeChordName(first.key, -shift);
+    const options = Array.from({ length: TRANSPOSE_RANGE * 2 + 1 }, (_, n) => n - TRANSPOSE_RANGE)
+      .map(n => new Option(n === 0 ? own : `${transposeChordName(own, n)} (${n > 0 ? '+' : ''}${n})`, String(n), false, n === shift));
+    keySel.replaceChildren(...options);
+    keySel.classList.toggle('is-set', shift !== 0);
     const bpmInput = q<HTMLInputElement>('[data-bpm]');
     if (document.activeElement !== bpmInput) bpmInput.value = String(first.bpm);
     bpmInput.classList.toggle('is-set', state.bpm !== undefined);
@@ -583,7 +549,7 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
     times = barTimes(bars);
     selected = Math.min(selected, bars.length - 1);
     renderedBuffer = null; rendered = 0;
-    downloadBtn.disabled = true; saveBtn.disabled = true; progress.hidden = true;
+    downloadBtn.disabled = true; progress.hidden = true;
     writeLink(); meta(); draw();
     if (station) play(Math.max(0, playheadBar));
   }
@@ -671,7 +637,7 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
     });
     if (job !== rendering) return;
     renderedBuffer = buffer; rendered = 1; progress.value = 1; draw();
-    downloadBtn.disabled = false; saveBtn.disabled = false;
+    downloadBtn.disabled = false;
     say(t('Made. Download the track or save it to your library.'));
   }
   async function encoded(): Promise<{ blob: Blob; format: string }> {
@@ -748,6 +714,33 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
   listen('[data-seed]', 'change', (_e, el) => { if (el instanceof HTMLInputElement) setSeed(Math.floor(Number(el.value) || 0)); });
   listen('[data-seed-step]', 'click', (_e, el) => setSeed(state.seed + Number(el.dataset.seedStep)));
   listen('[data-dice]', 'click', () => setSeed(crypto.getRandomValues(new Uint32Array(1))[0]!));
+  /** Put every control back in step with the state (after a shuffle). */
+  const syncControls = (): void => {
+    q<HTMLSelectElement>('[data-style]').value = state.mood;
+    q<HTMLInputElement>('[data-seed]').value = String(state.seed);
+    for (const tr of PITCHED) fillSelect(q<HTMLSelectElement>(`[data-pick="${tr}"]`), tr, state[tr], t('Auto'));
+    const values: Record<string, number> = { ...state.mix, texture: state.texture, bright: state.bright ?? 1, drive: state.drive ?? 2 };
+    for (const el of page.querySelectorAll<HTMLInputElement>('[data-slider]')) {
+      const id = el.dataset.slider ?? '';
+      const v = values[id];
+      if (v !== undefined) { el.value = String(v); showSlider(id, v); }
+    }
+    station?.setMix(effectiveMix());
+    station?.setTexture(state.texture);
+  };
+  // Shuffle: a new style, seed, instruments and mix at once (see shuffleState). The
+  // drums switch and the length stay as the person left them.
+  listen('[data-shuffle]', 'click', (e) => {
+    const rand = (): number => crypto.getRandomValues(new Uint32Array(1))[0]! / 4294967296;
+    const { drums, mood, seed, transpose } = state;
+    // Shift keeps the style, the seed and the key, and shuffles only the instruments and the mix.
+    const keep = e instanceof MouseEvent && e.shiftKey ? { mood, seed, transpose } : { transpose: undefined };
+    Object.assign(state, shuffleState(rand, state.bars), { drums, bpm: undefined }, keep);
+    syncControls();
+    recompose();
+    fit();
+    say(`${t('Shuffled')}: ${lofiStationName(state.mood)} · ${t('seed')} ${state.seed}`);
+  });
   listen('[data-bars]', 'change', (_e, el) => { if (el instanceof HTMLSelectElement) { state.bars = Number(el.value); recompose(); fit(); } });
   // The tempo: a number typed or dragged, back to the tune's own with the reset button.
   // Setting the composer's own tempo is the same as not setting one, so the link stays short.
@@ -759,6 +752,13 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
   };
   listen('[data-bpm]', 'change', (_e, el) => { if (el instanceof HTMLInputElement) setBpm(el.value === '' ? undefined : Number(el.value)); });
   listen('[data-bpm-reset]', 'click', () => setBpm(undefined));
+  // The key: any of six semitones up or down, the tune's own key as the first choice.
+  listen('[data-transpose]', 'change', (_e, el) => {
+    if (!(el instanceof HTMLSelectElement)) return;
+    const n = Math.round(Number(el.value));
+    state.transpose = n >= -TRANSPOSE_RANGE && n <= TRANSPOSE_RANGE && n !== 0 ? n : undefined;
+    recompose();
+  });
   listen('[data-pick]', 'change', (_e, el) => {
     if (!(el instanceof HTMLSelectElement)) return;
     const v = el.value || undefined;
@@ -922,17 +922,25 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
   listen('[data-save]', 'click', () => {
     void (async () => {
       if (!canUpload(host.assets)) { say(t('This host cannot save to the library.')); return; }
-      const { blob, format } = await encoded();
+      // Saved as a tune (lib/lofi-tune.ts), not a recording: a few hundred bytes holding the
+      // track's settings, played and rendered from them wherever a tune plays (the player,
+      // the asset details, an audiogram, a video's music bed). Nothing to make first.
+      const { lofiTuneBytes, LOFI_TUNE_FORMAT } = await import('../lib/lofi-tune.ts');
+      const generator = musicStateParams(state);
+      const recipe = { mood: state.mood, seed: state.seed >>> 0, generator };
+      const bytes = lofiTuneBytes(recipe);
       await host.assets._uploadUserAsset({
-        id: `user/tune/${Date.now()}-${state.mood}-${state.seed}`, type: 'audio', format, blob,
+        id: `user/tune/${Date.now()}-${state.mood}-${state.seed}`, type: 'audio', format: LOFI_TUNE_FORMAT,
+        blob: new Blob([bytes.slice().buffer], { type: 'application/json' }),
         meta: {
           name: trackName(), tags: ['music', 'generated', 'lolly-sings'],
-          lofi: { mood: state.mood, seed: state.seed }, generator: musicStateParams(state),
-          durationMs: Math.round((renderedBuffer?.duration ?? 0) * 1000),
+          lofi: recipe, generator,
+          durationMs: Math.round(times.total * 1000),
         },
       });
-      document.dispatchEvent(new Event('lolly:neuro-tracks'));
-      say(t('Saved to your library.'));
+      // The player keeps a cached list of the library's audio: drop it, so the track is there now.
+      (await import('../lib/neurospicy.ts')).invalidateNeurospicyTracks();
+      say(t('Saved to your library: it plays in the Neurospicy player and in Assets, and works as a music bed or an audiogram\'s sound.'));
     })().catch(err => { say(String(err)); });
   });
   listen('[data-link]', 'click', () => {

@@ -36,6 +36,12 @@
   .ms-seed-input { width: 8.5em; cursor: ew-resize; touch-action: pan-y; font-variant-numeric: tabular-nums; }
   .ms-icon { display: inline-flex; align-items: center; justify-content: center; min-width: var(--ui-size-target); padding-inline: var(--sp-1); }
   .ms-icon[aria-expanded="true"] { color: var(--ui-color-action-primary); }
+  .ms-key { font-variant-numeric: tabular-nums; }
+  /* A key the person chose reads as theirs, as a set tempo does. */
+  .ms-key.is-set { font-weight: 600; color: var(--ui-color-action-primary); }
+  /* The instrument playing now, in its shade of the track's colour. */
+  .ms-inst { display: inline-flex; align-items: center; justify-content: center; flex: none; width: calc(18px * var(--a11y-fs)); height: calc(18px * var(--a11y-fs)); }
+  .ms-inst svg { width: 100%; height: 100%; }
   .ms-tempo { display: inline-flex; align-items: center; gap: var(--sp-1); }
   .ms-bpm-input { width: 4.5em; cursor: ew-resize; touch-action: pan-y; font-variant-numeric: tabular-nums; }
   /* A tempo the person set reads as theirs: the tune's own is plain. */
