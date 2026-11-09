@@ -145,7 +145,7 @@ onWindowLoad(() => { void welcomeSettled().then(() => import('./lib/tooltips.ts'
 type WebHost = Awaited<ReturnType<typeof createBridge>>;
 
 /** Route names the shell can be in. */
-type RouteName = 'learning' | 'gallery' | 'utilities' | 'tool' | 'profile' | 'dashboard' | 'pro' | 'projects' | 'history' | 'catalog' | 'verify' | 'convert' | 'data' | 'prepare' | 'rebrand' | 'compare' | 'start' | 'multi' | 'components' | 'document-model' | 'lab' | 'pdf' | 'extract' | 'script' | 'ask' | 'docs' | 'join' | 'join-reply' | 'team' | 'open';
+type RouteName = 'learning' | 'gallery' | 'utilities' | 'tool' | 'profile' | 'dashboard' | 'pro' | 'projects' | 'history' | 'catalog' | 'verify' | 'convert' | 'data' | 'prepare' | 'rebrand' | 'compare' | 'music' | 'start' | 'multi' | 'components' | 'document-model' | 'lab' | 'pdf' | 'extract' | 'script' | 'ask' | 'docs' | 'join' | 'join-reply' | 'team' | 'open';
 
 /** A parsed route: a discriminated union on `name`. */
 type Route =
@@ -157,6 +157,7 @@ type Route =
   | { name: 'prepare' }
   | { name: 'rebrand'; params?: string }
   | { name: 'compare'; params?: string }
+  | { name: 'music'; params?: string }
   | { name: 'data'; params?: string }
   | { name: 'pro'; params?: string }
   | { name: 'learning'; params?: string }
@@ -280,6 +281,7 @@ const ROUTES: Record<RouteName, RouteSpec> = {
   verify: { label: 'Verify', viewClasses: ['verify-view'], footer: 'none' },
   convert: { label: 'Convert', viewClasses: ['convert-view'], footer: 'none' },
   compare: { label: 'Compare', viewClasses: ['compare-view'], footer: 'none' },
+  music: { label: 'Music generator', viewClasses: ['music-view'], footer: 'none' },
   prepare: { label: 'Prepare for sharing', viewClasses: ['prepare-view'], footer: 'none' },
   // Rebrand (plan 274): keyed on params, so a dropped .lolly that names a different
   // project (`?project=<id>`) re-mounts rather than deduping onto the open one.
@@ -679,6 +681,12 @@ async function navigate(host: WebHost, opts: { force?: boolean } = {}): Promise<
     case 'compare': {
       const { mountCompare } = await navigationModule(import('./views/compare.ts'), navigation);
       mountCompare(view, host, route.params);
+      break;
+    }
+    // #/music - the music generator: Lolly Sings as a track editor (views/music-studio.ts).
+    case 'music': {
+      const { mountMusicStudio } = await navigationModule(import('./views/music-studio.ts'), navigation);
+      mountMusicStudio(view, host, route.params);
       break;
     }
     case 'prepare': {
@@ -2189,6 +2197,7 @@ function parseRoute(): Route {
     if (parts[0] === 'verify' || parts[0] === 'valid' || parts[0] === 'v') return { name: 'verify', params: query || '' };
     if (parts[0] === 'convert') return { name: 'convert', params: query || '' }; // on-device file converter
     if (parts[0] === 'compare') return { name: 'compare', params: query || '' };
+    if (parts[0] === 'music') return { name: 'music', params: query || '' }; // the music generator
     if (parts[0] === 'prepare') return { name: 'prepare' };
     if (parts[0] === 'rebrand') return { name: 'rebrand', params: query || '' }; // renovate a deck (plan 274)
     if (parts[0] === 'data') return { name: 'data', params: query || '' }; // on-device spreadsheet viewer/editor

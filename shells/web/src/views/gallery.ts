@@ -2342,6 +2342,9 @@ export interface UtilityView {
  * disagree about whether the card exists.
  */
 const utilityViews = (speechOk: boolean): UtilityView[] => [{
+  id: 'music', href: '#/music', icon: 'music', name: t('Music generator'),
+  description: t('Make a track in any Lolly Sings style: pick a seed, lock the instruments you like, mix it, then download it or save it to your library. A link opens the same track for anyone.'),
+}, {
   id: 'compare', href: '#/compare', icon: 'document', name: t('Compare'),
   description: t('Compare text, JSON, YAML, tables, documents, images, PDFs and saved versions locally. See what changed without changing either source.'),
 }, {

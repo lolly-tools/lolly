@@ -34,7 +34,7 @@ import {
   isLofiId, lofiId, lofiMoodOf, lofiTune, nextLofiTune, prevLofiTune, lofiShareUrl, playsOnStation, savedTuneOf,
   LOFI_ONLY_MOODS, LOFI_MOOD_LABEL, isSingsMood,
 } from './neurospicy-lofi.ts';
-import type { LofiStyle } from '../../../../engine/src/lofi-compose.ts';
+import { LOFI_KEYS_NAME, LOFI_LEAD_NAME, LOFI_BASS_NAME } from './lofi-names.ts';
 import { applySoundMaster } from './sound-master.ts';
 import {
   ATMOSPHERE_LAYERS, ATMOSPHERE_GROUPS, atmosphereLevel, setAtmosphereLevel,
@@ -121,26 +121,12 @@ function trackMood(tags: string[]): string {
   return '';
 }
 
-/** The words the now-playing line uses for a Lofi tune's instruments. */
-const LOFI_KEYS_NAME: Record<LofiStyle['keys'], string> = {
-  rhodes: 'Rhodes', felt: 'felt piano', wurli: 'Wurlitzer', pluck: 'soft pluck', pad: 'pad', supersaw: 'saw chords',
-  nylon: 'nylon guitar', crunch: 'rhythm guitar', wah: 'wah guitar', chiparp: 'chip arpeggio',
-};
-const LOFI_LEAD_NAME: Record<LofiStyle['lead'], string> = {
-  vibes: 'vibes', flute: 'flute', soft: 'soft lead', kalimba: 'kalimba', chip: 'chip lead', angel: 'angel lead', pulse: 'pulse lead',
-  guitar: 'guitar', overdrive: 'lead guitar', synthwave: 'synthwave lead', metal: 'metal guitar', panflute: 'pan flute', nylon: 'nylon guitar', riff: 'riff guitar', twang: 'twang guitar', none: '',
-};
 /** A heavy station: a dance genre of the Lolly Sings family, live or a saved tune of one. */
 function heavyStation(id: string): boolean {
   const mood = lofiMoodOf(id) ?? savedTuneOf(id)?.mood ?? null;
   return !!mood && isSingsMood(mood) && mood !== 'sings';
 }
 
-/** The dance genres name their bass, which is what each one is built around. */
-const LOFI_BASS_NAME: Partial<Record<LofiStyle['bass'], string>> = {
-  wobble: 'wobble bass', growl: 'growl bass', reese: 'reese bass', slap: 'slap bass', round: 'rolling bass',
-  screech: 'screech bass', pulse: 'chip bass', electro: 'electro bass', picked: 'bass guitar', upright: 'upright bass', croak: 'croak bass', eight: '808', synth: 'synth bass', acid: 'acid bass', motown: 'soul bass',
-};
 
 export interface NeurospicyDockHandle {
   /** The DockHost to hand to createAudioDock. */

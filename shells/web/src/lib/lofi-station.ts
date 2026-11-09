@@ -45,6 +45,8 @@ export interface LofiSettings {
   startBar?: number;
   /** Stop after this many bars from the start of the stream (the music generator's length). */
   bars?: number;
+  /** Change each bar before it plays (the music generator's per-section instruments). Must be pure. */
+  shape?: (bar: LofiBar) => LofiBar;
 }
 
 /** Part levels, for tuning the balance. 1 is the designed level. */
@@ -361,7 +363,8 @@ export class LofiStation {
   private fill(until: number): void {
     while (this.nextBarAt < until) {
       if (this.settings.bars !== undefined && this.taken >= this.settings.bars) return;
-      const bar = this.stream.next();
+      const raw = this.stream.next();
+      const bar = this.settings.shape ? this.settings.shape(raw) : raw;
       this.taken++;
       const spb = 60 / bar.tune.bpm;
       const at = this.nextBarAt;

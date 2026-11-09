@@ -32,6 +32,12 @@ Each station leans the composer towards its genre without fixing the outcome:
 3. **A running order.** Instruments enter, take the front and drop out at different moments in each tune. The Lolly Sings dance genres build tension with a roll and a riser, open the drop on a crash, and change instruments between sections, with softer keys in the quiet parts and a second lead and bass in the second drop.
 4. **Sound.** Your browser plays the notes with oscillators, filters and noise. The slap bass in Sugar, for example, is a modelled string that can be thumbed, popped, slid and bent.
 
+## The music generator
+
+**Music generator** (under Utilities, or `#/music`) is a track editor for the same stations. It sets the tune out like a sequence editor: a transport with the style, seed and length; tracks for the lead, keys, bass, drums and effects, each with an instrument picker, a level, mute and solo; the sections and the chords above the tracks; and every note in the lanes. Click a bar to see its section, chord and instruments, and double-click to play from there. **Shuffle** draws a new seed, the arrows step through seeds, and you can type any seed in the box.
+
+Choosing an instrument locks that part for the whole track, and nothing else about the tune changes. Room, texture, brightness and drive colour the sound. **Make the track** renders it, then **Download** saves an M4A or WAV file and **Save to library** keeps it in your assets with its recipe. Every setting is in the link, so **Copy link** shares a track that anyone can open, play and change.
+
 ## Performance
 
 The dance stations play many more synthesised voices at once than the Lofi stations. On those stations the player offers **Light visualiser**, which shows the simple level bars instead of the full visualiser so the music has the processing time it needs. The setting is on by default on a modest device, such as a phone or a computer with four cores or fewer, and you can change it in the station's controls at any time.
