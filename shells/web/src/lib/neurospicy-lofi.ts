@@ -20,14 +20,14 @@ import type { LofiStation } from './lofi-station.ts';
 
 export const LOFI_PREFIX = 'lofi:';
 /** The stations, in picker order. Kept here (not imported) so this module never loads the composer. */
-export const LOFI_STATION_MOODS: readonly LofiMood[] = ['sings', 'sugar', 'hiphop', 'reggae', 'spanish', 'rock', 'synthwave', 'electro', 'dubstep', 'brostep', 'dnb', 'warm', 'lateNight', 'rainy'];
+export const LOFI_STATION_MOODS: readonly LofiMood[] = ['sings', 'sugar', 'funk', 'soul', 'hiphop', 'reggae', 'spanish', 'rock', 'synthwave', 'acid', 'electro', 'dubstep', 'brostep', 'dnb', 'warm', 'lateNight', 'rainy'];
 /** The Lofi moods: the stations the Mood control moves between. */
 export const LOFI_ONLY_MOODS: readonly LofiMood[] = ['warm', 'lateNight', 'rainy'];
 /** The Lolly Sings family: the melody-first station and its dance genres, which the Style control moves between. */
-export const LOFI_SINGS_MOODS: readonly LofiMood[] = ['sings', 'sugar', 'hiphop', 'reggae', 'spanish', 'rock', 'synthwave', 'electro', 'dubstep', 'brostep', 'dnb'];
+export const LOFI_SINGS_MOODS: readonly LofiMood[] = ['sings', 'sugar', 'funk', 'soul', 'hiphop', 'reggae', 'spanish', 'rock', 'synthwave', 'acid', 'electro', 'dubstep', 'brostep', 'dnb'];
 export const LOFI_MOOD_LABEL: Record<LofiMood, string> = {
   warm: 'Warm', lateNight: 'Late night', rainy: 'Rainy', sings: 'Lolly Sings',
-  sugar: 'Sugar', hiphop: 'Hip hop', reggae: 'Reggae', spanish: 'Spanish guitar', rock: 'Rock', synthwave: 'Synthwave', electro: 'Electro', dubstep: 'Dubstep', brostep: 'Brostep', dnb: 'D&B',
+  sugar: 'Sugar', funk: 'Funk', soul: 'Soul', acid: 'Acid', hiphop: 'Hip hop', reggae: 'Reggae', spanish: 'Spanish guitar', rock: 'Rock', synthwave: 'Synthwave', electro: 'Electro', dubstep: 'Dubstep', brostep: 'Brostep', dnb: 'D&B',
 };
 
 /** Whether `mood` belongs to the Lolly Sings family. */

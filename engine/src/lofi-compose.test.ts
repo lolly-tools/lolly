@@ -42,8 +42,8 @@ test('a station plays one tune after another, each seed following from the last'
 });
 
 test('the dance genres: their tempo, a build with a riser and a roll, then a drop that opens on a crash', () => {
-  const BPM = { sugar: [116, 130], synthwave: [92, 118], electro: [118, 126], dubstep: [138, 142], brostep: [145, 150], dnb: [170, 176] } as const;
-  for (const mood of ['sugar', 'synthwave', 'electro', 'dubstep', 'brostep', 'dnb'] as const) for (const seed of SEEDS.slice(0, 6)) {
+  const BPM = { sugar: [116, 130], synthwave: [92, 118], acid: [122, 130], electro: [118, 126], dubstep: [138, 142], brostep: [145, 150], dnb: [170, 176] } as const;
+  for (const mood of ['sugar', 'synthwave', 'acid', 'electro', 'dubstep', 'brostep', 'dnb'] as const) for (const seed of SEEDS.slice(0, 6)) {
     const bars = composeLofiTune(seed, mood);
     const t = bars[0]!.tune;
     const where = `${mood} ${seed}`;
@@ -119,7 +119,7 @@ test('every dance tune draws its own brightness and drive, within its genre', ()
 });
 
 test('the band styles: a song with verses and choruses, a fill into each chorus and a solo', () => {
-  for (const mood of ['rock', 'spanish', 'hiphop', 'reggae'] as const) for (const seed of SEEDS.slice(0, 6)) {
+  for (const mood of ['rock', 'spanish', 'hiphop', 'reggae', 'funk', 'soul'] as const) for (const seed of SEEDS.slice(0, 6)) {
     const bars = composeLofiTune(seed, mood);
     const st = bars[0]!.tune.style;
     const where = `${mood} ${seed}`;
@@ -133,7 +133,14 @@ test('the band styles: a song with verses and choruses, a fill into each chorus 
     const solo = bars.filter(b => b.section === 'break');
     assert.ok(solo.every(b => b.notes.some(n => n.voice === 'lead')), `${where}: the break is a solo`);
     const verse = bars.find(b => b.section === 'verse')!;
-    if (mood === 'hiphop') {
+    if (mood === 'funk') {
+      assert.equal(st.bass, 'slap', `${where}: slap bass`);
+      const arts = new Set(bars.flatMap(b => b.notes.filter(n => n.voice === 'bass').map(n => n.mod)));
+      assert.ok(arts.has(4) && arts.has(1), `${where}: dead notes and pops`);
+      assert.ok(verse.notes.filter(n => n.voice === 'hat').length >= 14, `${where}: sixteenth hats`);
+    } else if (mood === 'soul') {
+      assert.equal(st.bass, 'motown', `${where}: the soul bass`);
+    } else if (mood === 'hiphop') {
       assert.equal(st.bass, 'eight', `${where}: an 808`);
       assert.ok(bars.some(b => b.notes.filter(n => n.voice === 'hat' && n.beat >= 3).length >= 8), `${where}: a trap roll`);
     } else if (mood === 'reggae') {

@@ -88,6 +88,7 @@ export function keys(style: LofiStyle['keys'], k: VoiceKit, out: AudioNode, t: n
   else if (style === 'pad' || style === 'supersaw') saws(k, out, t, midi, vel, dur, style === 'supersaw');
   else if (style === 'nylon') nylon(k, out, t, midi, vel, dur, false);
   else if (style === 'crunch') crunch(k, out, t, midi, vel, dur);
+  else if (style === 'wah') wah(k, out, t, midi, vel, dur);
   else fmPiano(k, out, t, midi, vel, dur, style === 'wurli');
 }
 
@@ -229,6 +230,32 @@ function nylon(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number
   plucked(k, out, t, midi, vel, dur, lead
     ? { pickAt: 0.2, bright: 9, mellow: 2.6, ring: 1.1, body: 220, level: 0.13 }
     : { pickAt: 0.22, bright: 7, mellow: 2.2, ring: 0.8, body: 220, level: 0.08 });
+}
+
+/**
+ * Wah: a funk guitar's chank, a short, bright pluck through a resonant band-pass that
+ * sweeps up as the string is struck and back down (the "wacka").
+ */
+function wah(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number, dur: number): void {
+  const { ctx } = k;
+  const f = mtof(midi);
+  const len = Math.max(0.05, Math.min(dur, 0.3));
+  const string = ctx.createOscillator();
+  string.setPeriodicWave(pluckWave(ctx, 0.1));
+  string.frequency.value = f;
+  string.start(t);
+  string.stop(t + len + 0.08);
+  const bp = ctx.createBiquadFilter();
+  bp.type = 'bandpass';
+  bp.Q.value = 4;
+  bp.frequency.setValueAtTime(500, t);
+  bp.frequency.exponentialRampToValueAtTime(2400, t + 0.05);
+  bp.frequency.exponentialRampToValueAtTime(800, t + len);
+  const amp = ctx.createGain();
+  amp.gain.setValueAtTime(EPS, t);
+  amp.gain.exponentialRampToValueAtTime(0.16 * vel, t + 0.002);
+  amp.gain.setTargetAtTime(EPS, t + len * 0.6, 0.03);
+  string.connect(bp).connect(amp).connect(out);
 }
 
 /**
@@ -687,6 +714,7 @@ export function bass(style: LofiStyle['bass'], k: VoiceKit, out: AudioNode, t: n
   if (style === 'picked') { pickedBass(k, out, t, midi, vel, dur, tone); return; }
   if (style === 'croak') { slap(k, out, t, midi, vel, dur, Math.round(mod), tone); return; }   // the modelled string: bubbling, sliding, bending
   if (style === 'eight') { eightOhEight(k, out, t, midi, vel, dur, mod >= 2, tone); return; }
+  if (style === 'acid') { acid(k, out, t, midi, vel, dur, Math.round(mod), tone); return; }
   const { ctx } = k;
   const f = mtof(midi);
   const end = t + dur + 0.3;
@@ -895,17 +923,20 @@ function reese(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number
  * noise runs round a delay line one period long, losing a little top on every trip
  * through a low-pass, so it rings and mellows like a real string. Because the pitch is
  * the delay's length, the note can move: `art` is how it is played (LofiNote.mod).
- *   0 thumb  a dull thud, woody and round
- *   1 pop    a bright snap with a quick, slightly sharp start
+ *   0 thumb  the thumb hits the string against the frets: a bright thwack, then a round note
+ *   1 pop    a finger snaps the string: a sharp, bright click and a ringing octave
  *   2 slide  comes up into the note from a fourth below
  *   3 bend   popped, then pushed up a tone and let back down
- * A sine under the string keeps the weight a modelled string loses as it decays.
+ *   4 dead   muted with the left hand: a percussive tick with almost no note
+ * A sine under the string keeps the weight a modelled string loses as it decays, and a
+ * little drive gives the attitude of a bass amp pushed hard.
  */
 function slap(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number, dur: number, art: number, tone: Tone): void {
   const { ctx } = k;
   const f = mtof(midi);
   const pop = art === 1 || art === 3;
-  const len = Math.max(0.12, Math.min(dur + 0.08, 0.8));
+  const dead = art === 4;
+  const len = dead ? 0.06 : Math.max(0.12, Math.min(dur + 0.08, 0.8));
   const end = t + len + 0.05;
   // The string. A Web Audio loop holds at least one 128-frame block, which caps the
   // string at about 340 Hz; slap notes stay below that.
@@ -927,28 +958,41 @@ function slap(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number,
   }
   const damp = ctx.createBiquadFilter();
   damp.type = 'lowpass';
-  damp.frequency.value = (pop ? 5200 : 2000) * tone.bright;
+  damp.frequency.value = (dead ? 1200 : pop ? 7000 : 3200) * tone.bright;
+  const keep = dead ? 0.9 : pop ? 0.993 : 0.99;
   const loop = ctx.createGain();
-  loop.gain.setValueAtTime(pop ? 0.992 : 0.986, t);
-  loop.gain.setValueAtTime(pop ? 0.992 : 0.986, t + len);
+  loop.gain.setValueAtTime(keep, t);
+  loop.gain.setValueAtTime(keep, t + len);
   loop.gain.linearRampToValueAtTime(0, t + len + 0.03);   // let go of the string
   delay.connect(damp).connect(loop).connect(delay);
-  // The pluck: a thud for the thumb, a click for the pop.
+  // The strike: the thumb's broad thwack, the pop's bright click, the dead note's tick.
   const excite = ctx.createBiquadFilter();
   excite.type = pop ? 'bandpass' : 'lowpass';
-  excite.frequency.value = pop ? 2600 : 900;
-  excite.Q.value = pop ? 0.8 : 0.7;
+  excite.frequency.value = dead ? 1500 : pop ? 3500 : 2600;
+  excite.Q.value = pop ? 0.9 : 0.7;
   const eg = ctx.createGain();
-  eg.gain.setValueAtTime(pop ? 1 : 0.9, t);
-  eg.gain.exponentialRampToValueAtTime(EPS, t + (pop ? 0.006 : 0.012));
-  noiseAt(k, t, 0.015).connect(excite).connect(eg).connect(delay);
+  eg.gain.setValueAtTime(pop ? 1.3 : 1.2, t);
+  eg.gain.exponentialRampToValueAtTime(EPS, t + (pop ? 0.006 : 0.009));
+  noiseAt(k, t, 0.012).connect(excite).connect(eg).connect(delay);
+  // The string slapping the frets (or snapping back off them), heard directly.
+  const fret = ctx.createBiquadFilter();
+  fret.type = 'bandpass';
+  fret.frequency.value = pop ? 4200 : 1900;
+  fret.Q.value = 1.4;
+  const fg = ctx.createGain();
+  fg.gain.setValueAtTime((pop ? 0.22 : dead ? 0.2 : 0.16) * vel, t);
+  fg.gain.exponentialRampToValueAtTime(EPS, t + (pop ? 0.004 : 0.008));
+  noiseAt(k, t, 0.01).connect(fret).connect(fg).connect(out);
+  const [push, ws] = drivenBy(ctx, 1.4);
   const amp = ctx.createGain();
-  amp.gain.setValueAtTime((pop ? 0.42 : 0.5) * vel, t);
-  amp.gain.setTargetAtTime(EPS, t + len, 0.03);
+  amp.gain.setValueAtTime((dead ? 0.4 : pop ? 0.55 : 0.6) * vel, t);
+  amp.gain.setTargetAtTime(EPS, t + len, dead ? 0.01 : 0.03);
   const hp = ctx.createBiquadFilter();
   hp.type = 'highpass';
   hp.frequency.value = 35;
-  delay.connect(hp).connect(amp).connect(out);
+  delay.connect(hp).connect(push);
+  ws.connect(amp).connect(out);
+  if (dead) return;
   // The weight under the string, following its slides and bends.
   const body = osc(k, 'sine', f, t, end);
   if (art === 2) {
@@ -959,8 +1003,38 @@ function slap(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number,
     body.frequency.linearRampToValueAtTime(f, t + 0.22);
   }
   const bg = ctx.createGain();
-  struck(bg.gain, t, len, (pop ? 0.12 : 0.22) * vel, 0.003, 0.2, 0.5, 0.03);
+  struck(bg.gain, t, len, (pop ? 0.14 : 0.26) * vel, 0.003, 0.2, 0.5, 0.03);
   body.connect(bg).connect(out);
+}
+
+/**
+ * Acid: a 303-style line. A saw through a very resonant low-pass whose envelope snaps
+ * open on each note and closes again (the squelch), wider on an accent (`art` 1); a slide
+ * (`art` 2) glides up into the note without striking the filter again. Driven a little.
+ */
+function acid(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number, dur: number, art: number, tone: Tone): void {
+  const { ctx } = k;
+  const f = mtof(midi);
+  const accent = art === 1;
+  const slide = art === 2;
+  const len = Math.max(0.08, dur);
+  const end = t + len + 0.06;
+  const o = osc(k, 'sawtooth', slide ? f * 2 ** (-2 / 12) : f, t, end);
+  if (slide) o.frequency.exponentialRampToValueAtTime(f, t + 0.06);
+  const lp = ctx.createBiquadFilter();
+  lp.type = 'lowpass';
+  lp.Q.value = 14;
+  const base = 260 * tone.bright;
+  const peak = (accent ? 3200 : 1800) * tone.bright;
+  lp.frequency.setValueAtTime(slide ? base * 2 : peak, t);
+  lp.frequency.exponentialRampToValueAtTime(base, t + (accent ? 0.25 : 0.16));
+  const [push, ws] = drivenBy(ctx, 0.9 * tone.drive);
+  const amp = ctx.createGain();
+  amp.gain.setValueAtTime(EPS, t);
+  amp.gain.exponentialRampToValueAtTime((accent ? 0.2 : 0.15) * vel, t + 0.004);
+  amp.gain.setTargetAtTime(EPS, t + len, 0.02);
+  o.connect(lp).connect(push);
+  ws.connect(amp).connect(out);
 }
 
 /**
