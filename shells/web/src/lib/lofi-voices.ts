@@ -220,44 +220,15 @@ export function lead(style: LofiStyle['lead'], k: VoiceKit, out: AudioNode, t: n
 }
 
 /**
- * Nylon: a classical guitar's string, warm and round. Four partials fade at their own
- * rates over a wooden body resonance near 300 Hz, with the top kept soft and a gentle
- * fingertip pick. Strummed as chords (the rumba) or picked as a melody, a little
- * brighter and longer as a lead.
+ * Nylon: a classical guitar (see plucked()). Plucked further from the bridge than an
+ * electric, so rounder, with the top mellowing sooner and a wooden body resonance
+ * near 220 Hz. Strummed as chords (the rumba) or picked as a melody, a touch brighter
+ * and longer as a lead.
  */
 function nylon(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number, dur: number, lead: boolean): void {
-  const { ctx } = k;
-  const f = mtof(midi);
-  const len = Math.min(dur + (lead ? 0.4 : 0.25), lead ? 1.8 : 1.2);
-  const end = t + len + 0.1;
-  const box = ctx.createBiquadFilter();
-  box.type = 'peaking';
-  box.frequency.value = 300;
-  box.Q.value = 1.2;
-  box.gain.value = 4;
-  const soft = ctx.createBiquadFilter();
-  soft.type = 'lowpass';
-  soft.frequency.value = lead ? 4200 : 3200;
-  const amp = ctx.createGain();
-  amp.gain.setValueAtTime((lead ? 0.12 : 0.07) * vel, t);
-  amp.gain.setTargetAtTime(EPS, t + dur + 0.04, lead ? 0.12 : 0.06);
-  box.connect(soft).connect(amp).connect(out);
-  for (const [n, level] of [[1, 1], [2, 0.45], [3, 0.26], [4, 0.12]] as const) {
-    const o = osc(k, 'sine', f * n * (1 + 0.0003 * n * n), t, end);
-    const g = ctx.createGain();
-    g.gain.setValueAtTime(EPS, t);
-    g.gain.exponentialRampToValueAtTime(level, t + 0.004);
-    g.gain.setTargetAtTime(EPS, t + 0.005, 1.4 / n);
-    o.connect(g).connect(box);
-  }
-  const pick = ctx.createBiquadFilter();
-  pick.type = 'bandpass';
-  pick.frequency.value = 1800;
-  pick.Q.value = 1;
-  const pg = ctx.createGain();
-  pg.gain.setValueAtTime(0.12 * vel, t);
-  pg.gain.exponentialRampToValueAtTime(EPS, t + 0.01);
-  noiseAt(k, t, 0.012).connect(pick).connect(pg).connect(out);
+  plucked(k, out, t, midi, vel, dur, lead
+    ? { pickAt: 0.2, bright: 9, mellow: 2.6, ring: 1.1, body: 220, level: 0.13 }
+    : { pickAt: 0.22, bright: 7, mellow: 2.2, ring: 0.8, body: 220, level: 0.08 });
 }
 
 /**
@@ -383,41 +354,79 @@ function panflute(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: num
 }
 
 /**
- * Guitar: a clean electric pluck. A modelled string (as the slap bass uses) cannot reach
- * a lead's pitch in Web Audio, so this one is built from partials: six sines, each a
- * touch sharp of a true harmonic as a stiff string is, each fading faster the higher it
- * sits, under a pick's click and a body resonance around 2 kHz.
+ * Guitar: a clean electric pluck (see plucked()). Brighter than nylon, plucked nearer
+ * the bridge, and it rings a little longer.
  */
 function guitar(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number, dur: number): void {
+  plucked(k, out, t, midi, vel, dur, { pickAt: 0.12, bright: 14, mellow: 3.2, ring: 1.2, body: 2400, level: 0.11 });
+}
+
+/** One waveform per pick position: harmonics fall as 1/n, and the pick's place on the string cancels some of them. */
+const PLUCKS = new WeakMap<BaseAudioContext, Map<number, PeriodicWave>>();
+function pluckWave(ctx: BaseAudioContext, pickAt: number): PeriodicWave {
+  let byPick = PLUCKS.get(ctx);
+  if (!byPick) { byPick = new Map(); PLUCKS.set(ctx, byPick); }
+  let wave = byPick.get(pickAt);
+  if (!wave) {
+    const n = 28;
+    const real = new Float32Array(n);
+    const imag = new Float32Array(n);
+    for (let h = 1; h < n; h++) imag[h] = Math.abs(Math.sin(Math.PI * h * pickAt)) / h;
+    wave = ctx.createPeriodicWave(real, imag);
+    byPick.set(pickAt, wave);
+  }
+  return wave;
+}
+
+/**
+ * A plucked string, cheaply. A modelled string (as the slap bass uses) cannot reach a
+ * guitar's pitch in Web Audio, so this models what the ear hears instead: a waveform
+ * with the pick position's missing harmonics, a low-pass that snaps from bright to
+ * mellow as the high partials die in the first quarter second, a strike that falls
+ * fast and then rings, a pitch a few cents sharp at the strike, a little pick noise and
+ * the body's resonance. Much more like a string than slowly fading sines, which is how
+ * an electric piano is made.
+ */
+function plucked(
+  k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number, dur: number,
+  o: { pickAt: number; bright: number; mellow: number; ring: number; body: number; level: number },
+): void {
   const { ctx } = k;
   const f = mtof(midi);
-  const len = Math.min(dur + 0.35, 1.8);
+  const len = Math.min(dur + o.ring * 0.4, o.ring * 1.6);
   const end = t + len + 0.1;
+  const string = ctx.createOscillator();
+  string.setPeriodicWave(pluckWave(ctx, o.pickAt));
+  string.frequency.setValueAtTime(f * 1.004, t);
+  string.frequency.exponentialRampToValueAtTime(f, t + 0.04);
+  string.start(t);
+  string.stop(end);
+  const lp = ctx.createBiquadFilter();
+  lp.type = 'lowpass';
+  lp.Q.value = 0.6;
+  lp.frequency.setValueAtTime(Math.min(11000, f * o.bright), t);
+  lp.frequency.exponentialRampToValueAtTime(Math.min(6000, f * o.mellow), t + 0.25);
+  lp.frequency.setTargetAtTime(Math.min(4000, f * (o.mellow * 0.6)), t + 0.3, 0.8);
   const body = ctx.createBiquadFilter();
   body.type = 'peaking';
-  body.frequency.value = 2200;
-  body.Q.value = 1;
-  body.gain.value = 4;
+  body.frequency.value = o.body;
+  body.Q.value = 1.3;
+  body.gain.value = 3.5;
   const amp = ctx.createGain();
-  amp.gain.setValueAtTime(0.1 * vel, t);
-  amp.gain.setTargetAtTime(EPS, t + dur + 0.05, 0.09);
-  body.connect(amp).connect(out);
-  for (const [n, level] of [[1, 1], [2, 0.55], [3, 0.4], [4, 0.24], [5, 0.15], [6, 0.08]] as const) {
-    const o = osc(k, 'sine', f * n * (1 + 0.0004 * n * n), t, end);
-    const g = ctx.createGain();
-    g.gain.setValueAtTime(EPS, t);
-    g.gain.exponentialRampToValueAtTime(level, t + 0.003);
-    g.gain.setTargetAtTime(EPS, t + 0.004, 1.1 / n);
-    o.connect(g).connect(body);
-  }
+  amp.gain.setValueAtTime(EPS, t);
+  amp.gain.exponentialRampToValueAtTime(o.level * vel, t + 0.002);
+  amp.gain.exponentialRampToValueAtTime(o.level * 0.45 * vel, t + 0.09);
+  amp.gain.setTargetAtTime(EPS, t + 0.1, o.ring * 0.6);
+  amp.gain.setTargetAtTime(EPS, t + Math.max(0.1, dur), 0.06);
+  string.connect(lp).connect(body).connect(amp).connect(out);
   const pick = ctx.createBiquadFilter();
   pick.type = 'bandpass';
-  pick.frequency.value = 3200;
-  pick.Q.value = 1.5;
+  pick.frequency.value = Math.min(6000, f * 6);
+  pick.Q.value = 1.2;
   const pg = ctx.createGain();
-  pg.gain.setValueAtTime(0.25 * vel, t);
-  pg.gain.exponentialRampToValueAtTime(EPS, t + 0.008);
-  noiseAt(k, t, 0.01).connect(pick).connect(pg).connect(out);
+  pg.gain.setValueAtTime(0.1 * vel, t);
+  pg.gain.exponentialRampToValueAtTime(EPS, t + 0.006);
+  noiseAt(k, t, 0.008).connect(pick).connect(pg).connect(out);
 }
 
 /**
@@ -1052,12 +1061,14 @@ function pickedBass(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: n
   const f = mtof(midi);
   const len = Math.max(0.1, dur);
   const end = t + len + 0.08;
+  // A steady, round tone with only a small brightening at the pick: a resonant filter
+  // swept on every note (fast repeats especially) croaks, which is Sugar's sound, not rock's.
   const lp = ctx.createBiquadFilter();
   lp.type = 'lowpass';
-  lp.Q.value = 1.5;
-  lp.frequency.setValueAtTime(1800 * tone.bright, t);
-  lp.frequency.exponentialRampToValueAtTime(380 * tone.bright, t + 0.12);
-  const [push, ws] = drivenBy(ctx, 0.6 * tone.drive);
+  lp.Q.value = 0.7;
+  lp.frequency.setValueAtTime(1300 * tone.bright, t);
+  lp.frequency.exponentialRampToValueAtTime(700 * tone.bright, t + 0.15);
+  const [push, ws] = drivenBy(ctx, 0.4 * tone.drive);
   const amp = ctx.createGain();
   amp.gain.setValueAtTime(EPS, t);
   amp.gain.exponentialRampToValueAtTime(0.2 * vel, t + 0.004);
@@ -1074,6 +1085,54 @@ function pickedBass(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: n
 }
 
 // ── effects ──────────────────────────────────────────────────────────────────
+
+/**
+ * A magpie's warble: two voices duetting in rising and falling glissandi, with fast
+ * trills and a gurgle, on the notes of a pentatonic scale around `midi`. `song` seeds
+ * the phrase, so a tune's magpie sings the same carol every time.
+ */
+export function magpie(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number, dur: number, song: number): void {
+  const { ctx } = k;
+  let seed = (song * 2654435761) >>> 0;
+  const rand = (): number => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; };
+  const scale = [0, 2, 4, 7, 9, 12, 14, 16];
+  for (let voice = 0; voice < 2; voice++) {
+    const start = t + voice * (0.12 + rand() * 0.25);
+    const end = Math.min(t + dur, start + 0.6 + rand() * dur);
+    if (end <= start + 0.2) continue;
+    const o = osc(k, 'sine', mtof(midi), start, end + 0.05);
+    const reed = osc(k, 'triangle', mtof(midi) * 2, start, end + 0.05);
+    const rg = ctx.createGain();
+    rg.gain.value = 0.12;
+    reed.connect(rg);
+    // The trill and the gurgle: fast vibrato that comes and goes.
+    const trill = osc(k, 'sine', 22 + rand() * 14, start, end + 0.05);
+    const depth = ctx.createGain();
+    depth.gain.value = 0;
+    trill.connect(depth);
+    depth.connect(o.detune);
+    depth.connect(reed.detune);
+    const amp = ctx.createGain();
+    amp.gain.setValueAtTime(EPS, start);
+    o.connect(amp);
+    rg.connect(amp);
+    amp.connect(out);
+    let at = start;
+    while (at < end - 0.06) {
+      const step = 0.07 + rand() * 0.16;
+      const note = midi + (voice ? -5 : 0) + scale[Math.floor(rand() * scale.length)]!;
+      const f = mtof(note);
+      // A glide into each note, sometimes a long swoop, then a short hold.
+      o.frequency.exponentialRampToValueAtTime(f, at + step * (rand() < 0.3 ? 0.9 : 0.4));
+      reed.frequency.exponentialRampToValueAtTime(f * 2, at + step * 0.5);
+      depth.gain.setValueAtTime(rand() < 0.35 ? 45 : 0, at);
+      amp.gain.setTargetAtTime((0.05 + rand() * 0.04) * vel, at, 0.012);
+      if (rand() < 0.25) amp.gain.setTargetAtTime(EPS, at + step * 0.8, 0.01);   // a gap between notes
+      at += step;
+    }
+    amp.gain.setTargetAtTime(EPS, end, 0.03);
+  }
+}
 
 /** A crash: bright noise that rings for a couple of seconds, and on a drop a low boom under the kick. */
 export function crash(k: VoiceKit, out: AudioNode, t: number, vel: number): void {

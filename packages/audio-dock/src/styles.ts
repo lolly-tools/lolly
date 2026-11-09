@@ -280,8 +280,10 @@ html[data-a11y-contrast="high"] .audio-dock input[type="range"]::-moz-range-trac
 .audio-dock-src-mood { flex: 0 0 auto; font-size: .62rem; text-transform: uppercase; letter-spacing: .02em;
   color: var(--dock-muted); font-family: var(--font-mono, ui-monospace, monospace); }
 
-/* atmosphere mixer (restored per-layer icons) */
-.audio-dock-atmo-row { display: flex; align-items: center; gap: 8px; padding: 2px 0; }
+/* atmosphere mixer (restored per-layer icons), in columns: two in the dock's usual
+   width, more when it is wide, one when it is narrow */
+.audio-dock-atmo-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); column-gap: 14px; }
+.audio-dock-atmo-row { display: flex; align-items: center; gap: 6px; padding: 1px 0; min-width: 0; }
 .audio-dock-atmo-icon { flex: 0 0 auto; width: 22px; height: 22px; display: inline-flex; align-items: center;
   justify-content: center; border-radius: 7px; background: hsl(0 0% 100% / .06); color: var(--dock-muted);
   border: 0; padding: 0; cursor: pointer; }   /* a button: tap to mute/unmute the layer (plans/147) */
@@ -289,7 +291,7 @@ html[data-a11y-contrast="high"] .audio-dock input[type="range"]::-moz-range-trac
 .audio-dock-atmo-row.is-on .audio-dock-atmo-icon:hover { filter: brightness(1.08); }
 .audio-dock-atmo-icon svg { width: 14px; height: 14px; }
 .audio-dock-atmo-row.is-on .audio-dock-atmo-icon { background: var(--dock-accent); color: var(--dock-accent-fg); }
-.audio-dock-atmo-label { flex: 0 0 6em; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: .76rem; color: var(--dock-muted); }
+.audio-dock-atmo-label { flex: 0 0 5.2em; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: .76rem; color: var(--dock-muted); }
 .audio-dock-atmo-row.is-on .audio-dock-atmo-label { color: var(--dock-fg); }
 .audio-dock-atmo-row input[type="range"] { flex: 1; min-width: 0; accent-color: var(--dock-accent); }
 

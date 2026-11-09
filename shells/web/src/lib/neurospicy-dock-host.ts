@@ -32,7 +32,7 @@ import {
 } from './neurospicy.ts';
 import {
   isLofiId, lofiId, lofiMoodOf, lofiTune, nextLofiTune, prevLofiTune, lofiShareUrl, playsOnStation, savedTuneOf,
-  LOFI_ONLY_MOODS, LOFI_SINGS_MOODS, LOFI_MOOD_LABEL, isSingsMood,
+  LOFI_ONLY_MOODS, LOFI_MOOD_LABEL, isSingsMood,
 } from './neurospicy-lofi.ts';
 import type { LofiStyle } from '../../../../engine/src/lofi-compose.ts';
 import { applySoundMaster } from './sound-master.ts';
@@ -752,11 +752,11 @@ class NeurospicyDockHost implements DockHost {
     const saved = savedTuneOf(id) !== null;
     const mood = lofiMoodOf(id);
     if (!mood && !saved) return [];
-    // Lofi stations choose a mood; the Lolly Sings family chooses a style.
-    const family = mood && isSingsMood(mood) ? LOFI_SINGS_MOODS : LOFI_ONLY_MOODS;
-    const moodControl: DockControl[] = !mood ? [] : [{
-      kind: 'choice', id: 'lofi-mood', label: isSingsMood(mood) ? 'Style' : 'Mood',
-      options: family.map((m) => ({ id: m, label: m === 'sings' ? 'Original' : LOFI_MOOD_LABEL[m] })),
+    // Lofi stations choose among their three moods here. The Lolly Sings family has too
+    // many styles for a row of tabs, so its styles are picked from the track list.
+    const moodControl: DockControl[] = !mood || isSingsMood(mood) ? [] : [{
+      kind: 'choice', id: 'lofi-mood', label: 'Mood',
+      options: LOFI_ONLY_MOODS.map((m) => ({ id: m, label: LOFI_MOOD_LABEL[m] })),
       get: () => lofiMoodOf(getNeurospicy().loopId) ?? mood,
       set: (m) => this.select(lofiId(m as NonNullable<typeof mood>)),
     }];

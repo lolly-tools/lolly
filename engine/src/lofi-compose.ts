@@ -46,9 +46,10 @@ export const DANCE_MOODS: readonly DanceMood[] = ['sugar', 'spanish', 'rock', 'e
 /** Whether `mood` is one of the dance genres. */
 export function isDanceMood(mood: LofiMood): mood is DanceMood { return (DANCE_MOODS as readonly string[]).includes(mood); }
 
-/** `riser` (a build's noise sweep), `crash` (a cymbal and a low boom on a drop) and `coin`
- *  (a bright two-note ding, for sugar) are effects, written by the dance genres only. */
-export type LofiVoice = 'keys' | 'bass' | 'lead' | 'kick' | 'snare' | 'rim' | 'hat' | 'openHat' | 'crash' | 'riser' | 'coin';
+/** `riser` (a build's noise sweep), `crash` (a cymbal and a low boom on a drop), `coin`
+ *  (a bright two-note ding) and `magpie` (a magpie's warble, Lolly's bird, for sugar) are
+ *  effects, written by the dance genres only. A magpie's `mod` seeds its song. */
+export type LofiVoice = 'keys' | 'bass' | 'lead' | 'kick' | 'snare' | 'rim' | 'hat' | 'openHat' | 'crash' | 'riser' | 'coin' | 'magpie';
 export const LOFI_DRUM_VOICES: readonly LofiVoice[] = ['kick', 'snare', 'rim', 'hat', 'openHat', 'crash'];
 
 export const LOFI_KEYS = ['rhodes', 'felt', 'wurli', 'pluck', 'pad', 'supersaw', 'nylon', 'crunch'] as const;
@@ -960,6 +961,13 @@ const ROCK_FILLS: readonly Figure[] = [
   [[0, 4, 0, 0], [4, 2, 0, 12], [6, 2, 0, 10], [8, 2, 0, 7], [10, 2, 0, 5], [12, 2, 0, THIRD], [14, 2, 0, APPROACH]],
 ];
 const ROCKBASS: readonly Figure[] = [...ROCK_DRIVE, ...ROCK_GROOVE];
+/** The croak: the modelled string in bubbling repeats, sliding up into notes and bending (mod 2 and 3, as slap). */
+const CROAKS: readonly Figure[] = [
+  [[0, 1, 0, 0], [1, 1, 0, 0], [2, 1, 2, 0], [4, 1, 0, 12], [5, 1, 0, 0], [6, 2, 3, 0], [8, 1, 0, 0], [9, 1, 0, 0], [10, 1, 2, 7], [12, 1, 0, 0], [13, 1, 0, 12], [14, 2, 3, 0]],
+  [[0, 2, 3, 0], [2, 1, 0, 0], [3, 1, 0, 0], [4, 2, 2, 12], [6, 1, 0, 7], [7, 1, 0, 7], [8, 2, 3, 0], [10, 1, 0, 0], [11, 1, 2, 10], [12, 2, 0, 12], [14, 1, 3, 7], [15, 1, 0, 0]],
+  [[0, 1, 2, 0], [1, 1, 0, 0], [2, 1, 0, 0], [3, 1, 3, 12], [6, 1, 0, 0], [7, 1, 0, 0], [8, 1, 2, 5], [9, 1, 0, 5], [10, 2, 3, 7], [12, 1, 0, 0], [13, 1, 0, 0], [14, 2, 2, 12]],
+];
+
 /** Rumba bass: the root and the fifth, pushed against the cajón. */
 const RUMBA: readonly Figure[] = [
   [[0, 3, 0, 0], [3, 3, 0, 7], [6, 2, 0, 12], [8, 3, 0, 0], [11, 3, 0, 7], [14, 2, 0, 12]],
@@ -1028,7 +1036,7 @@ function arrangeDance(rng: () => number, lean: DanceLean, mood: DanceMood): Danc
   }
   const half = lean.intro / 2;
   parts.push({ section: 'intro', bars: half, prog: 0, layers: ['keys', 'lead'], open: [0.35, 0.6] });
-  parts.push({ section: 'intro', bars: half, prog: 0, layers: mood === 'sugar' || mood === 'electro' || mood === 'dnb' ? ['keys', 'lead', 'hats', 'kick'] : ['keys', 'lead', 'hats'], open: [0.6, 0.85] });
+  parts.push({ section: 'intro', bars: half, prog: 0, layers: mood === 'sugar' ? ['keys', 'lead', 'hats', 'kick', 'fx'] : mood === 'electro' || mood === 'dnb' ? ['keys', 'lead', 'hats', 'kick'] : ['keys', 'lead', 'hats'], open: [0.6, 0.85] });
   if (mood === 'sugar' || mood === 'electro') parts.push({ section: 'verse', bars: 8, prog: 0, layers: ['keys', 'bass', 'lead', 'fx', ...drums] });
   const drop = (alt: boolean): void => {
     parts.push({ section: 'build', bars: pick(lean.build), prog: 0, layers: ['keys', 'lead', 'snare', 'fx', ...(mood === 'sugar' || mood === 'electro' || mood === 'dnb' ? ['kick' as const] : [])], open: [0.55, 1] });
@@ -1095,7 +1103,7 @@ function composeDanceTune(seed: number, mood: DanceMood, fixed: Partial<LofiStyl
   const bassB = weightedPick(rng, lean.switchBass);
   // A reese holds a note under the break, or rolls along with the drums.
   const figuresOf = (b: LofiStyle['bass']): readonly Figure[] => b === 'wobble' ? WOBBLES : b === 'growl' ? GROWLS : b === 'slap' ? SLAPS
-    : b === 'electro' ? RIFFS : b === 'pulse' ? BLIPS : b === 'screech' ? SCREECHES : b === 'picked' || b === 'croak' ? ROCKBASS : b === 'upright' ? RUMBA
+    : b === 'electro' ? RIFFS : b === 'pulse' ? BLIPS : b === 'screech' ? SCREECHES : b === 'picked' ? ROCKBASS : b === 'croak' ? CROAKS : b === 'upright' ? RUMBA
     : [...REESES, ...ROLLERS];
   // Two bars of bass figure for each drop and for the verse, a call and its answer.
   const figA: [Figure, Figure] = [pick(figuresOf(style.bass)), pick(figuresOf(style.bass))];
@@ -1290,8 +1298,13 @@ function composeDanceTune(seed: number, mood: DanceMood, fixed: Partial<LofiStyl
         if (build && lean.band && lastOfBuild && has('snare')) {
           for (let s = 8; s < 16; s++) notes.push({ voice: 'snare', midi: 0, dur: 0, beat: s / 4, vel: clamp01(0.45 + (s - 8) * 0.06) });
         }
-        // Sugar's coin dings at the end of a phrase.
+        // Sugar's coin dings at the end of a phrase, and now and then a magpie warbling
+        // (Lolly's bird) where the music leaves room: an intro, a verse, the breakdown.
         if (mood === 'sugar' && has('fx') && i % 4 === 3 && chance(0.7)) notes.push({ voice: 'coin', midi: coin, dur: 0.5, beat: sb(chance(0.5) ? 12 : 14), vel: 0.6 });
+        const quiet = part.section === 'intro' || part.section === 'verse' || part.section === 'break';
+        if (mood === 'sugar' && quiet && i % 4 === 1 && chance(0.4)) {
+          notes.push({ voice: 'magpie', midi: placeIn((key + 7) % 12, 84, 95), dur: 1.5 + rng() * 1.5, beat: sb(chance(0.5) ? 4 : 8), vel: 0.55, mod: Math.floor(rng() * 1000) });
+        }
       }
 
       notes.sort((a, b) => a.beat - b.beat);
