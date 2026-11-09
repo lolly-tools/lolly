@@ -92,7 +92,7 @@ its checks are recorded.
 | **Helm chart** %work{chart}: `deploy/helm` in the source code, and the published chart | Lolly Work %work{version} on an existing Kubernetes platform. The chart carries the release version; 1.1.3 is its first publication |
 | **Source code** on the Lolly Work release page | Node and systemd installs, local evaluation, deployment recipes and custom image builds |
 | **[Lolly Work for YunoHost](https://github.com/lolly-tools/lolly-work_ynh)** | The complete server with host accounts; follow the package's version notes |
-| **[Lolly web app 1.1.3](https://lolli.li/lolly-web-1.1.3-ynh1.tar.gz)** | The browser app that matches a Lolly Work installation. Served by Lolly Work 1.1.3, it takes the installation's catalogue key and shows its tools. On its own, this archive is a static web app |
+| **[Lolly web app 1.2.0](https://lolli.li/lolly-web-1.2.0-ynh1.tar.gz)** | The browser app that matches a Lolly Work installation. Served by Lolly Work 1.2.0, it takes the installation's catalogue key and shows its tools. On its own, this archive is a static web app |
 
 The Lolly Work YunoHost archive is an input to the YunoHost installer. It leaves out the
 demo pack and the deployment recipes, so use the source download for a manual
