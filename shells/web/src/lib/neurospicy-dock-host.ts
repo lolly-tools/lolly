@@ -31,7 +31,7 @@ import {
   type NeurospicyHost, type NeuroTrack,
 } from './neurospicy.ts';
 import {
-  isLofiId, lofiId, lofiMoodOf, lofiTune, nextLofiTune, prevLofiTune, lofiShareUrl, playsOnStation, savedTuneOf,
+  isLofiId, lofiId, lofiMoodOf, lofiTune, nextLofiTune, prevLofiTune, lofiShareUrl, playsOnStation, savedTuneOf, currentLofiRecipe,
   LOFI_ONLY_MOODS, LOFI_MOOD_LABEL, isSingsMood,
 } from './neurospicy-lofi.ts';
 import { LOFI_KEYS_NAME, LOFI_LEAD_NAME, LOFI_BASS_NAME } from './lofi-names.ts';
@@ -768,6 +768,15 @@ class NeurospicyDockHost implements DockHost {
         kind: 'range', id: 'lofi-texture', label: 'Texture', min: 0, max: 1, step: 0.05,
         get: () => getNeurospicy().lofi.texture,
         set: (v) => setLofiTexture(this.nhost, v),
+      },
+      {
+        kind: 'action', id: 'lofi-edit', label: 'Open in the music generator',
+        run: async () => {
+          const recipe = savedTuneOf(getNeurospicy().loopId) ?? currentLofiRecipe();
+          if (!recipe || typeof location === 'undefined') return 'Play it first';
+          location.hash = `#/music?style=${encodeURIComponent(recipe.mood)}&seed=${recipe.seed >>> 0}`;
+          return 'Opening';
+        },
       },
       {
         kind: 'action', id: 'lofi-share', label: 'Share this tune',

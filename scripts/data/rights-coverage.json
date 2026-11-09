@@ -984,6 +984,14 @@
       "note": "A song is recorded as a source ingredient by digest. No licence is evaluated for the song."
     },
     {
+      "id": "delivery.music-generator",
+      "kind": "delivery",
+      "title": "Music generator: a generated track downloaded or saved to the library, and its link copied",
+      "status": "not-assessed",
+      "code": ["shells/web/src/views/music-studio.ts"],
+      "note": "The track is synthesised from a seed by Lolly's own composer and instruments, so no outside source enters it. The file goes through host.export.download or the library with no Content Credential yet; the copied link carries only the recipe."
+    },
+    {
       "id": "census.lut-credit",
       "kind": "census",
       "title": "Credited LUTs applied in a grade",

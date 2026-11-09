@@ -9,16 +9,21 @@ import type { LofiStyle } from '../../../../engine/src/lofi-compose.ts';
 export const LOFI_KEYS_NAME: Record<LofiStyle['keys'], string> = {
   rhodes: 'Rhodes', felt: 'felt piano', wurli: 'Wurlitzer', pluck: 'soft pluck', pad: 'pad', supersaw: 'saw chords',
   nylon: 'nylon guitar', crunch: 'rhythm guitar', wah: 'wah guitar', chiparp: 'chip arpeggio',
+  steel: 'acoustic guitar', banjo: 'banjo', honky: 'honky-tonk piano', organ: 'organ', brass: 'brass section', jazzbox: 'jazz guitar',
 };
 
 export const LOFI_LEAD_NAME: Record<LofiStyle['lead'], string> = {
   vibes: 'vibes', flute: 'flute', soft: 'soft lead', kalimba: 'kalimba', chip: 'chip lead', angel: 'angel lead', pulse: 'pulse lead',
   guitar: 'guitar', overdrive: 'lead guitar', synthwave: 'synthwave lead', metal: 'metal guitar', panflute: 'pan flute',
-  nylon: 'nylon guitar', riff: 'riff guitar', twang: 'twang guitar', none: '',
+  nylon: 'nylon guitar', riff: 'riff guitar', twang: 'twang guitar', banjo: 'banjo', harmonica: 'harmonica', sax: 'sax',
+  trumpet: 'trumpet', clarinet: 'clarinet', pedal: 'pedal steel', fiddle: 'fiddle', none: '',
 };
+
+export const LOFI_SNARE_NAME: Record<LofiStyle['snare'], string> = { snare: 'snare', brush: 'brushes', rim: 'cross-stick', clap: 'claps' };
+export const LOFI_HATS_NAME: Record<LofiStyle['hats'], string> = { hat: 'hi-hat', shaker: 'shaker', ride: 'ride cymbal', none: 'no cymbals' };
 
 export const LOFI_BASS_NAME: Record<LofiStyle['bass'], string> = {
   round: 'rolling bass', upright: 'upright bass', synth: 'synth bass', wobble: 'wobble bass', growl: 'growl bass',
   reese: 'reese bass', slap: 'slap bass', screech: 'screech bass', pulse: 'chip bass', electro: 'electro bass',
-  picked: 'bass guitar', croak: 'croak bass', eight: '808', acid: 'acid bass', motown: 'soul bass',
+  picked: 'bass guitar', croak: 'croak bass', eight: '808', acid: 'acid bass', motown: 'soul bass', yidaki: 'yidaki',
 };
