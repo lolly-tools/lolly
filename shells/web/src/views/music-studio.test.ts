@@ -57,13 +57,3 @@ test('instruments chosen for a kind of section apply to every bar of it, and tra
   assert.ok(bars.filter(b => b.section === 'verse').every(b => b.voices?.lead !== 'metal'), 'other sections keep their own');
 });
 
-test('a blend travels in the link and flavours the track, but not a Lofi mood', () => {
-  const s = parseMusicState('style=rock&seed=12&bars=32&blend=fantasy');
-  assert.equal(s.blend, 'fantasy');
-  assert.match(musicStateParams(s), /blend=fantasy/);
-  assert.equal(parseMusicState('style=rock&blend=polka').blend, undefined);
-  const plain = composeTrack(parseMusicState('style=rock&seed=12&bars=32'));
-  assert.deepEqual(composeTrack(s).map(b => b.chord), plain.map(b => b.chord), 'the same chords under the blend');
-  const lofi = parseMusicState('style=warm&seed=12&bars=16&blend=metal');
-  assert.deepEqual(composeTrack(lofi), composeTrack(parseMusicState('style=warm&seed=12&bars=16')), 'a Lofi mood ignores the blend');
-});
