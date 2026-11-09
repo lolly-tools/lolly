@@ -128,7 +128,7 @@ const LOFI_KEYS_NAME: Record<LofiStyle['keys'], string> = {
 };
 const LOFI_LEAD_NAME: Record<LofiStyle['lead'], string> = {
   vibes: 'vibes', flute: 'flute', soft: 'soft lead', kalimba: 'kalimba', chip: 'chip lead', angel: 'angel lead', pulse: 'pulse lead',
-  guitar: 'guitar', overdrive: 'lead guitar', synthwave: 'synthwave lead', metal: 'metal guitar', panflute: 'pan flute', nylon: 'nylon guitar', none: '',
+  guitar: 'guitar', overdrive: 'lead guitar', synthwave: 'synthwave lead', metal: 'metal guitar', panflute: 'pan flute', nylon: 'nylon guitar', riff: 'riff guitar', twang: 'twang guitar', none: '',
 };
 /** A heavy station: a dance genre of the Lolly Sings family, live or a saved tune of one. */
 function heavyStation(id: string): boolean {

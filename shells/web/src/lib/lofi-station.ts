@@ -41,6 +41,10 @@ export interface LofiSettings {
   style?: Partial<LofiStyle>;
   /** Repeat the first tune rather than going on to new ones (a saved tune). */
   repeat?: boolean;
+  /** Start this many bars in (the music generator's seek): the bars before are composed, not played. */
+  startBar?: number;
+  /** Stop after this many bars from the start of the stream (the music generator's length). */
+  bars?: number;
 }
 
 /** Part levels, for tuning the balance. 1 is the designed level. */
@@ -73,9 +77,9 @@ const VARIANT: { keys: Record<LofiStyle['keys'], number>; lead: Record<LofiStyle
   // Short, decaying sounds (pluck, kalimba, rim, clap) measure quieter than they sound,
   // so they take most of the measured difference, not the whole difference.
   keys: { rhodes: 1, felt: 0.93, wurli: 1.4, pluck: 1.8, pad: 1, supersaw: 1, nylon: 1.8, crunch: 1, wah: 1, chiparp: 1.6 },
-  lead: { vibes: 1, flute: 0.82, soft: 1.35, kalimba: 1.7, chip: 0.8, angel: 0.76, pulse: 2.4, guitar: 2.1, overdrive: 0.5, synthwave: 0.86, metal: 0.6, panflute: 0.56, nylon: 1.9, none: 0 },
+  lead: { vibes: 1, flute: 0.82, soft: 1.35, kalimba: 1.7, chip: 0.8, angel: 0.76, pulse: 2.4, guitar: 2.1, overdrive: 0.5, synthwave: 0.86, metal: 0.6, panflute: 0.56, nylon: 1.9, riff: 0.6, twang: 2.2, none: 0 },
   // The reese is drum and bass's whole low end, so it sits about 4 dB up (Andy, 2026-11-08).
-  bass: { round: 1, upright: 1.05, synth: 1.2, wobble: 1, growl: 1, reese: 1.6, slap: 1.6, screech: 1, pulse: 1, electro: 1, picked: 1, croak: 1, eight: 1, acid: 1, motown: 1 },
+  bass: { round: 1, upright: 1.05, synth: 1.2, wobble: 1, growl: 1.8, reese: 1.6, slap: 1.6, screech: 1.7, pulse: 1, electro: 1, picked: 1, croak: 1, eight: 1, acid: 1, motown: 1 },
   snare: { snare: 1, brush: 1.15, rim: 1.8, clap: 2.3 },
   hats: { hat: 1, shaker: 1.15, none: 0 },
 };
@@ -108,6 +112,10 @@ export class LofiStation {
   private queue: Queued[] = [];
   private marks: Mark[] = [];
   private nextBarAt = 0;
+  /** Bars taken from the stream so far, skipped ones included. */
+  private taken = 0;
+  /** Whether a tune's colour has been applied yet (a station that starts mid-tune applies its tune's at once). */
+  private styled = false;
   private lastOpen = 1;
   private timer: ReturnType<typeof setInterval> | null = null;
   /** Playing live (set before the first tick, so the very first bar is announced too). */
@@ -141,6 +149,7 @@ export class LofiStation {
     this.settings = { ...settings };
     this.mix = { ...mix };
     this.stream = lofiStream(seed, { mood: settings.mood, style: settings.style, repeat: settings.repeat });
+    for (let i = 0; i < (settings.startBar ?? 0); i++) { this.stream.next(); this.taken++; }
     const noise = noiseBuffer(ctx, 2, mulberry32(seed ^ 0x51));
     this.kit = { ctx, noise, rng: mulberry32(seed ^ 0x5eed) };
 
@@ -351,7 +360,9 @@ export class LofiStation {
   /** Queue whole bars until the next one starts after `until`. */
   private fill(until: number): void {
     while (this.nextBarAt < until) {
+      if (this.settings.bars !== undefined && this.taken >= this.settings.bars) return;
       const bar = this.stream.next();
+      this.taken++;
       const spb = 60 / bar.tune.bpm;
       const at = this.nextBarAt;
       for (const note of bar.notes) this.queue.push({ at: at + note.beat * spb, spb, note, bar, lanes: this.lanes });
@@ -372,7 +383,7 @@ export class LofiStation {
     const marks = this.marks.filter(m => m.at < until);
     if (marks.length) this.marks = this.marks.filter(m => m.at >= until);
     for (const m of marks) {
-      if (m.bar.index === 0) this.applyStyle(m.bar.tune.style, Math.max(m.at, now));
+      if (m.bar.index === 0 || !this.styled) { this.applyStyle(m.bar.tune.style, Math.max(m.at, now)); this.styled = true; }
       this.lastOpen = m.bar.open;
       this.tone.frequency.setTargetAtTime(this.cutoff(m.bar.open), Math.max(m.at, now), 0.5);
       this.drumTone.frequency.setTargetAtTime(drumCutoff(this.cutoff(m.bar.open)), Math.max(m.at, now), 0.5);

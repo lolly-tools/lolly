@@ -54,7 +54,7 @@ export type LofiVoice = 'keys' | 'bass' | 'lead' | 'kick' | 'snare' | 'rim' | 'h
 export const LOFI_DRUM_VOICES: readonly LofiVoice[] = ['kick', 'snare', 'rim', 'hat', 'openHat', 'crash'];
 
 export const LOFI_KEYS = ['rhodes', 'felt', 'wurli', 'pluck', 'pad', 'supersaw', 'nylon', 'crunch', 'wah', 'chiparp'] as const;
-export const LOFI_LEADS = ['vibes', 'flute', 'soft', 'kalimba', 'chip', 'angel', 'pulse', 'guitar', 'overdrive', 'synthwave', 'metal', 'panflute', 'nylon', 'none'] as const;
+export const LOFI_LEADS = ['vibes', 'flute', 'soft', 'kalimba', 'chip', 'angel', 'pulse', 'guitar', 'overdrive', 'synthwave', 'metal', 'panflute', 'nylon', 'riff', 'twang', 'none'] as const;
 export const LOFI_BASSES = ['round', 'upright', 'synth', 'wobble', 'growl', 'reese', 'slap', 'screech', 'pulse', 'electro', 'picked', 'croak', 'eight', 'acid', 'motown'] as const;
 export const LOFI_SNARES = ['snare', 'brush', 'rim', 'clap'] as const;
 export const LOFI_HATS = ['hat', 'shaker', 'none'] as const;
@@ -884,7 +884,7 @@ const DANCE: Record<DanceMood, DanceLean> = {
   // rock beat, and an overdriven lead guitar that takes a solo in the break.
   rock: {
     bpm: [108, 140], minor: 0.45, groove: 'rock', chordBars: 1,
-    keys: [['crunch', 1]], lead: [['overdrive', 4], ['guitar', 2], ['metal', 1], ['synthwave', 1]],
+    keys: [['crunch', 1]], lead: [['overdrive', 3], ['riff', 3], ['twang', 2], ['guitar', 2], ['metal', 1], ['synthwave', 1]],
     bass: [['picked', 1]], snare: [['snare', 1]], kick: [52, 60], kickLen: [0.3, 0.4], duck: [0.6, 0.9], crunch: 0.3,
     swing: 0.5, intro: 4, build: [4], drop: 8, breakdown: 8, harmony: 'rock', singingDrop: true, busy: 0.75, band: true,
     softKeys: [['nylon', 2], ['rhodes', 1]], verseBass: [['picked', 1]], switchBass: [['picked', 1]],
@@ -924,7 +924,7 @@ const DANCE: Record<DanceMood, DanceLean> = {
   },
   dnb: {
     bpm: [170, 176], minor: 0.5, groove: 'twoStep', chordBars: 2,
-    keys: [['pad', 3], ['rhodes', 2], ['pluck', 2]], lead: [['vibes', 2], ['kalimba', 2], ['chip', 1], ['angel', 2], ['guitar', 2], ['synthwave', 2], ['flute', 2], ['panflute', 1], ['metal', 1]],
+    keys: [['pad', 3], ['rhodes', 2], ['pluck', 2]], lead: [['vibes', 2], ['kalimba', 2], ['chip', 1], ['angel', 2], ['guitar', 2], ['synthwave', 2], ['flute', 2], ['panflute', 1], ['metal', 1], ['riff', 2], ['twang', 1]],
     bass: [['reese', 1]], snare: [['snare', 4], ['clap', 1]], kick: [55, 62], kickLen: [0.22, 0.3], duck: [1.1, 1.4], crunch: 0,
     swing: 0.5, intro: 16, build: [8], drop: 16, breakdown: 8, harmony: 'pop', singingDrop: false, busy: 0.6,
     softKeys: [['rhodes', 2], ['pad', 2], ['pluck', 1]], verseBass: [['reese', 1]], switchBass: [['reese', 1]],
@@ -1269,15 +1269,25 @@ function composeDanceTune(seed: number, mood: DanceMood, fixed: Partial<LofiStyl
     const rest = w.filter(([v]) => v !== not);
     return rest.length ? weightedPick(rng, rest) : not;
   };
-  const softKeys = other(lean.softKeys, style.keys);
-  const leadB = other(lean.lead, style.lead);
+  // A part the caller fixed (the music generator's instrument pickers) plays all the way
+  // through: the variations are still drawn, so the rest of the tune is unchanged, then
+  // set aside.
+  const softKeysDrawn = other(lean.softKeys, style.keys);
+  const leadBDrawn = other(lean.lead, style.lead);
+  const softKeys = fixed.keys ?? softKeysDrawn;
+  const leadB = fixed.lead ?? leadBDrawn;
   // More variety: most intros get a lead of their own, and some drops double the melody
   // with another instrument (a metal guitar under a chip lead, a flute over a guitar).
-  const leadIntro = rng() < 0.6 ? other(lean.lead.filter(([v]) => v !== leadB), style.lead) : style.lead;
-  const doubleA = rng() < 0.4 ? other(lean.lead.filter(([v]) => v !== leadB), style.lead) : undefined;
-  const doubleB = rng() < 0.35 ? other(lean.lead.filter(([v]) => v !== style.lead), leadB) : undefined;
-  const verseBass = weightedPick(rng, lean.verseBass);
-  const bassB = weightedPick(rng, lean.switchBass);
+  const leadIntroDrawn = rng() < 0.6 ? other(lean.lead.filter(([v]) => v !== leadB), style.lead) : style.lead;
+  const doubleADrawn = rng() < 0.4 ? other(lean.lead.filter(([v]) => v !== leadB), style.lead) : undefined;
+  const doubleBDrawn = rng() < 0.35 ? other(lean.lead.filter(([v]) => v !== style.lead), leadB) : undefined;
+  const verseBassDrawn = weightedPick(rng, lean.verseBass);
+  const bassBDrawn = weightedPick(rng, lean.switchBass);
+  const leadIntro = fixed.lead ?? leadIntroDrawn;
+  const doubleA = fixed.lead ? undefined : doubleADrawn;
+  const doubleB = fixed.lead ? undefined : doubleBDrawn;
+  const verseBass = fixed.bass ?? verseBassDrawn;
+  const bassB = fixed.bass ?? bassBDrawn;
   // A reese holds a note under the break, or rolls along with the drums.
   const figuresOf = (b: LofiStyle['bass']): readonly Figure[] => b === 'wobble' ? WOBBLES : b === 'growl' ? GROWLS : b === 'slap' ? SLAPS
     : b === 'electro' ? RIFFS : b === 'pulse' ? BLIPS : b === 'screech' ? SCREECHES : b === 'picked' ? ROCKBASS : b === 'croak' ? CROAKS : b === 'upright' ? RUMBA : b === 'eight' ? EIGHTS : b === 'synth' ? OCTAVES : b === 'round' ? RIDDIMS : b === 'motown' ? SOUL : b === 'acid' ? ACIDS

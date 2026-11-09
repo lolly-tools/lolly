@@ -25,7 +25,8 @@
  *          with a wah); each takes the tune's brightness and drive
  *   lead   pulse (a thin chiptune pulse that blips into its note), guitar (a clean
  *          electric pluck), overdrive (a driven lead guitar that bends into its notes)
- *          and synthwave (a swept saw lead with its own echoes), metal (a heavy
+ *          and synthwave (a swept saw lead with its own echoes), riff and twang (driven
+ *          and clean mid-range guitars an octave down), metal (a heavy
  *          power-chord guitar an octave down) and panflute (a soft, breathy pan flute)
  *   guitar nylon (a warm nylon-string guitar, strummed as keys or picked as a lead),
  *          crunch (a mid-gain power-chord rhythm guitar) and a picked bass guitar
@@ -219,6 +220,58 @@ export function lead(style: LofiStyle['lead'], k: VoiceKit, out: AudioNode, t: n
   else if (style === 'metal') metal(k, out, t, midi, vel, dur);
   else if (style === 'panflute') panflute(k, out, t, midi, vel, dur);
   else if (style === 'nylon') nylon(k, out, t, midi, vel, dur, true);
+  else if (style === 'riff') riff(k, out, t, midi, vel, dur);
+  else if (style === 'twang') twang(k, out, t, midi, vel, dur);
+}
+
+/**
+ * Riff: a mid-range lead guitar, single notes an octave below the melody through a
+ * driven amp with a mid-forward cabinet: the rock riff, not the scooped metal chug.
+ */
+function riff(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number, dur: number): void {
+  const { ctx } = k;
+  const f = mtof(midi - 12);
+  const end = t + dur + 0.2;
+  const [push, ws] = drivenBy(ctx, 4, true);
+  const hp = ctx.createBiquadFilter();
+  hp.type = 'highpass';
+  hp.frequency.value = 120;
+  const mids = ctx.createBiquadFilter();
+  mids.type = 'peaking';
+  mids.frequency.value = 900;
+  mids.Q.value = 1;
+  mids.gain.value = 5;
+  const cab = ctx.createBiquadFilter();
+  cab.type = 'lowpass';
+  cab.frequency.value = 3800;
+  const amp = ctx.createGain();
+  amp.gain.setValueAtTime(EPS, t);
+  amp.gain.exponentialRampToValueAtTime(0.06 * vel, t + 0.008);
+  amp.gain.setTargetAtTime(EPS, t + dur, 0.07);
+  ws.connect(hp).connect(mids).connect(cab).connect(amp).connect(out);
+  for (const cents of [-5, 5]) {
+    const o = osc(k, 'sawtooth', f * 2 ** (-1 / 12), t, end);
+    o.frequency.exponentialRampToValueAtTime(f, t + 0.05);
+    o.detune.value = cents;
+    vibrato(k, o.detune, t, end, 5.2, 18, 0.3);
+    o.connect(push);
+  }
+}
+
+/**
+ * Twang: a clean mid-range guitar an octave below the melody, plucked (see plucked())
+ * through a tremolo, the surf and spaghetti-western sound.
+ */
+function twang(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number, dur: number): void {
+  const { ctx } = k;
+  const trem = ctx.createGain();
+  trem.gain.value = 0.75;
+  const lfo = osc(k, 'sine', 6.5, t, t + dur + 1.2);
+  const depth = ctx.createGain();
+  depth.gain.value = 0.25;
+  lfo.connect(depth).connect(trem.gain);
+  trem.connect(out);
+  plucked(k, trem, t, midi - 12, vel, dur, { pickAt: 0.14, bright: 10, mellow: 3, ring: 1.4, body: 1800, level: 0.16 });
 }
 
 /**
@@ -724,12 +777,12 @@ export function bass(style: LofiStyle['bass'], k: VoiceKit, out: AudioNode, t: n
   if (style === 'wobble') { wobble(k, out, t, midi, vel, dur, mod, tone); return; }
   if (style === 'growl') { growl(k, out, t, midi, vel, dur, mod, tone); return; }
   if (style === 'reese') { reese(k, out, t, midi, vel, dur, tone); return; }
-  if (style === 'slap') { slap(k, out, t, midi, vel, dur, Math.round(mod), tone); return; }
+  if (style === 'slap') { fmSlap(k, out, t, midi, vel, dur, Math.round(mod), tone); return; }
   if (style === 'screech') { screech(k, out, t, midi, vel, dur, mod, tone); return; }
   if (style === 'pulse') { pulseBass(k, out, t, midi, vel, dur, tone); return; }
   if (style === 'electro') { electro(k, out, t, midi, vel, dur, tone); return; }
   if (style === 'picked') { pickedBass(k, out, t, midi, vel, dur, tone); return; }
-  if (style === 'croak') { slap(k, out, t, midi, vel, dur, Math.round(mod), tone, true); return; }   // the raw, buzzy string: bubbling, sliding, bending
+  if (style === 'croak') { stringSlap(k, out, t, midi, vel, dur, Math.round(mod), tone, true); return; }   // the raw, buzzy string: bubbling, sliding, bending
   if (style === 'eight') { eightOhEight(k, out, t, midi, vel, dur, mod >= 2, tone); return; }
   if (style === 'acid') { acid(k, out, t, midi, vel, dur, Math.round(mod), tone); return; }
   const { ctx } = k;
@@ -819,11 +872,13 @@ function driven(ctx: BaseAudioContext): WaveShaperNode {
   return ws;
 }
 
-/** A gain of `amount` feeding a clipper: the drive stage, louder in means dirtier out. */
-function drivenBy(ctx: BaseAudioContext, amount: number): [GainNode, WaveShaperNode] {
+/** A gain of `amount` feeding a clipper: the drive stage, louder in means dirtier out.
+ *  `clean` oversamples the clipper, for a hard-driven bass whose aliasing would sizzle. */
+function drivenBy(ctx: BaseAudioContext, amount: number, clean = false): [GainNode, WaveShaperNode] {
   const push = ctx.createGain();
   push.gain.value = amount;
   const ws = driven(ctx);
+  if (clean) ws.oversample = '2x';
   push.connect(ws);
   return [push, ws];
 }
@@ -872,8 +927,12 @@ function growl(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number
   const f = mtof(midi);
   const end = t + dur + 0.08;
   const pre = ctx.createGain();
-  pre.gain.value = 0.6 * tone.drive;
+  pre.gain.value = 0.45 * tone.drive;
   const ws = driven(ctx);
+  ws.oversample = '2x';   // a hard-driven growl aliases into a sizzle without it
+  const fizz = ctx.createBiquadFilter();
+  fizz.type = 'lowpass';
+  fizz.frequency.value = 3600;
   const amp = ctx.createGain();
   amp.gain.setValueAtTime(EPS, t);
   amp.gain.exponentialRampToValueAtTime(0.24 * vel, t + 0.004);
@@ -887,8 +946,9 @@ function growl(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number
     const d = ctx.createGain();
     d.gain.value = swing;
     lfo.connect(d).connect(bp.frequency);
-    ws.connect(bp).connect(amp);
+    ws.connect(bp).connect(fizz);
   }
+  fizz.connect(amp);
   pre.connect(ws);
   amp.connect(out);
   for (const cents of [-10, 0, 9]) {
@@ -948,7 +1008,7 @@ function reese(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number
  * A sine under the string keeps the weight a modelled string loses as it decays. `raw`
  * is the croak: the same string left bright, buzzy and driven.
  */
-function slap(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number, dur: number, art: number, tone: Tone, raw = false): void {
+function stringSlap(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number, dur: number, art: number, tone: Tone, raw = false): void {
   const { ctx } = k;
   const f = mtof(midi);
   const pop = art === 1 || art === 3;
@@ -1041,6 +1101,78 @@ function slap(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number,
 }
 
 /**
+ * Slap: an FM slap bass, the synth slap of funk records and of the old consoles' bass
+ * channels. A sine carrier is frequency-modulated by a sine at the same pitch (a thumb)
+ * or three times it (a pop, more metallic); the modulation snaps deep at the strike and
+ * decays fast, which is the twang, then the note settles round. A slight pitch drop on
+ * the strike, an amp's scooped mids and a fret click finish the sound. `art` is how it is played
+ * (LofiNote.mod): 0 thumb, 1 pop, 2 slide up from a fourth below, 3 pop bent up a tone and
+ * back, 4 a dead note, an unpitched tick.
+ */
+function fmSlap(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number, dur: number, art: number, tone: Tone): void {
+  const { ctx } = k;
+  const f = mtof(midi);
+  const pop = art === 1 || art === 3;
+  const click = (hz: number, level: number, len: number): void => {
+    const bp = ctx.createBiquadFilter();
+    bp.type = 'bandpass';
+    bp.frequency.value = hz;
+    bp.Q.value = 1.2;
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(level * vel, t);
+    g.gain.exponentialRampToValueAtTime(EPS, t + len);
+    noiseAt(k, t, len + 0.005).connect(bp).connect(g).connect(out);
+  };
+  if (art === 4) { click(1600, 0.16, 0.02); return; }
+  const len = Math.max(0.1, Math.min(dur + 0.06, 0.9));
+  const end = t + len + 0.05;
+  const carrier = osc(k, 'sine', f, t, end);
+  const mod = osc(k, 'sine', f * (pop ? 3 : 1), t, end);
+  // The pitch: a slight drop on the strike, a slide up from a fourth below, or a bend.
+  const glide = (p: AudioParam, ratio: number): void => {
+    if (art === 2) {
+      p.setValueAtTime(f * ratio * 2 ** (-5 / 12), t);
+      p.exponentialRampToValueAtTime(f * ratio, t + 0.045);
+    } else if (art === 3) {
+      p.setValueAtTime(f * ratio, t);
+      p.exponentialRampToValueAtTime(f * ratio * 2 ** (2 / 12), t + 0.09);
+      p.exponentialRampToValueAtTime(f * ratio, t + 0.22);
+    } else {
+      p.setValueAtTime(f * ratio * 1.012, t);
+      p.exponentialRampToValueAtTime(f * ratio, t + 0.025);
+    }
+  };
+  glide(carrier.frequency, 1);
+  glide(mod.frequency, pop ? 3 : 1);
+  const index = ctx.createGain();
+  const deep = f * (pop ? 7 : 4.5) * tone.bright;
+  index.gain.setValueAtTime(deep, t);
+  index.gain.exponentialRampToValueAtTime(Math.max(1, f * 0.5), t + (pop ? 0.16 : 0.1));
+  mod.connect(index).connect(carrier.frequency);
+  // The amp: lows and top up, mids scooped.
+  const lows = ctx.createBiquadFilter();
+  lows.type = 'lowshelf';
+  lows.frequency.value = 110;
+  lows.gain.value = 3;
+  const scoop = ctx.createBiquadFilter();
+  scoop.type = 'peaking';
+  scoop.frequency.value = 700;
+  scoop.Q.value = 0.9;
+  scoop.gain.value = -4;
+  const top = ctx.createBiquadFilter();
+  top.type = 'highshelf';
+  top.frequency.value = 2800;
+  top.gain.value = 3;
+  const amp = ctx.createGain();
+  amp.gain.setValueAtTime(EPS, t);
+  amp.gain.exponentialRampToValueAtTime((pop ? 0.34 : 0.4) * vel, t + 0.002);
+  amp.gain.exponentialRampToValueAtTime((pop ? 0.2 : 0.26) * vel, t + 0.15);
+  amp.gain.setTargetAtTime(EPS, t + len, 0.03);
+  carrier.connect(lows).connect(scoop).connect(top).connect(amp).connect(out);
+  click(pop ? 4200 : 1900, pop ? 0.14 : 0.1, pop ? 0.004 : 0.007);
+}
+
+/**
  * Acid: a 303-style line. A saw through a very resonant low-pass whose envelope snaps
  * open on each note and closes again (the squelch), wider on an accent (`art` 1); a slide
  * (`art` 2) glides up into the note without striking the filter again. Driven a little.
@@ -1096,13 +1228,16 @@ function screech(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: numb
   const sweep = ctx.createGain();
   sweep.gain.value = 1100 * tone.bright;
   lfo.connect(sweep).connect(bp.frequency);
-  const [push, ws] = drivenBy(ctx, 0.9 * tone.drive);
+  const [push, ws] = drivenBy(ctx, 0.65 * tone.drive, true);
+  const fizz = ctx.createBiquadFilter();
+  fizz.type = 'lowpass';
+  fizz.frequency.value = 4800;
   const amp = ctx.createGain();
   amp.gain.setValueAtTime(EPS, t);
   amp.gain.exponentialRampToValueAtTime(0.2 * vel, t + 0.004);
   amp.gain.setTargetAtTime(EPS, t + dur, 0.015);
   carrier.connect(push);
-  ws.connect(bp).connect(amp).connect(out);
+  ws.connect(bp).connect(fizz).connect(amp).connect(out);
   sub(k, out, t, f / 2, vel * 0.85, dur);
 }
 
