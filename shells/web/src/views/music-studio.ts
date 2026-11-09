@@ -41,7 +41,7 @@ import { attachScrub } from '../lib/scrub.ts';
 import { mountViz, type VizHandle } from '../lib/butterchurn-viz.ts';
 import { defaultVizPresetId } from '../lib/viz-presets.ts';
 import { icon } from '../lib/icons.ts';
-import { instrumentIcon, iconPath } from '../lib/instrument-icons.ts';
+import { instrumentIcon, iconPath, musicIconNode, musicIconSvg } from '../lib/instrument-icons.ts';
 import { MIX_KEYS, BPM_RANGE, TRANSPOSE_RANGE, parseMusicState, musicStateParams, fixedStyle, shapeBar, composeTrack, barTimes, shuffleState, type SectionVoices } from '../lib/music-state.ts';
 import '../styles/parts/music-studio.css';
 
@@ -175,8 +175,9 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
   const fillSelect = (sel: HTMLSelectElement, tr: Pitched, current: string | undefined, auto: string): void => {
     sel.replaceChildren(new Option(auto, ''), ...valuesOf(tr).map(v => new Option(namesOf(tr)[v] ?? v, v, false, v === current)));
   };
-  const iconBtn = (attr: string, name: Parameters<typeof icon>[0], label: string, extra = ''): string =>
-    `<button type="button" class="btn btn--ghost btn--sm ms-icon" ${attr} aria-label="${escapeHtml(label)}" title="${escapeHtml(label)}"${extra}>${icon(name, { size: 18 })}</button>`;
+  // A null icon is the shuffle, which lives with the instrument icons (lib/instrument-icons.ts).
+  const iconBtn = (attr: string, name: Parameters<typeof icon>[0] | null, label: string, extra = ''): string =>
+    `<button type="button" class="btn btn--ghost btn--sm ms-icon" ${attr} aria-label="${escapeHtml(label)}" title="${escapeHtml(label)}"${extra}>${name ? icon(name, { size: 18 }) : musicIconSvg('shuffle', 18)}</button>`;
   const slider = (id: string, label: string, min: number, max: number, step: number, value: number): string =>
     `<label class="ms-slider"><span>${escapeHtml(label)}</span><input type="range" min="${min}" max="${max}" step="${step}" value="${value}" data-slider="${id}"><output data-out="${id}"></output></label>`;
 
@@ -195,7 +196,7 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
         <input type="number" class="field-input field-input--sm ms-seed-input" min="0" max="4294967295" value="${state.seed}" data-seed aria-label="${escapeHtml(t('Seed'))}" title="${escapeHtml(t('The seed: type one, or drag across it to slide through seeds'))}">
         ${iconBtn('data-seed-step="1"', 'chevronRight', t('Next seed'))}
         ${iconBtn('data-dice', 'sparkle', t('Surprise me: a new seed'))}
-        ${iconBtn('data-shuffle', 'shuffle', t('Shuffle everything: the style, the seed, the instruments and the mix (Shift: only the instruments and the mix)'))}
+        ${iconBtn('data-shuffle', null, t('Shuffle everything: the style, the seed, the instruments and the mix (Shift: only the instruments and the mix)'))}
       </span>
       <select class="field-select field-select--sm" data-bars aria-label="${escapeHtml(t('Length'))}">${LENGTHS.map(n => `<option value="${n}"${n === state.bars ? ' selected' : ''}>${n} ${escapeHtml(t('bars'))}</option>`).join('')}</select>
       <select class="field-select field-select--sm ms-key" data-transpose aria-label="${escapeHtml(t('Key'))}" title="${escapeHtml(t('Move the tune to another key'))}"></select>
@@ -460,7 +461,7 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
       const el = page.querySelector<HTMLElement>(`[data-inst="${tr}"]`);
       if (!el) return;
       const label = `${t(TRACK_LABEL[tr])}: ${instrumentOf(bar, tr)}`;
-      el.innerHTML = icon(instrumentIcon(tr, ids[n]!), { size: 16 });
+      el.replaceChildren(musicIconNode(instrumentIcon(tr, ids[n]!), 16));
       el.style.color = shadeOf(tr, ids[n]!);
       el.title = label;
       el.setAttribute('aria-label', label);

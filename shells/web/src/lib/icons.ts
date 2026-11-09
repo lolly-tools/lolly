@@ -297,20 +297,6 @@ const PATHS = {
   // ---- tool-actions.ts export bar ----
   // Lucide rotate-cw - the "Regenerate music" button on the video audio-track card.
   refresh: '<path d="M21 12a9 9 0 1 1-2.64-6.36"/><polyline points="21 3 21 9 15 9"/>',
-  // The music generator's instrument families (lib/instrument-icons.ts). Lucide (ISC):
-  // piano, guitar, drum, mic-vocal, audio-waveform, gamepad-2, bell. Lolly's own, in the
-  // same 24-unit stroke style: a bowed string with its bow, and a horn.
-  piano: '<path d="M18.5 8c-1.4 0-2.6-.8-3.2-2A6.87 6.87 0 0 0 2 9v11a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-8.5C22 9.6 20.4 8 18.5 8"/><path d="M2 14h20"/><path d="M6 14v4"/><path d="M10 14v4"/><path d="M14 14v4"/><path d="M18 14v4"/>',
-  guitar: '<path d="m11.9 12.1 4.514-4.514"/><path d="M20.1 2.3a1 1 0 0 0-1.4 0l-1.114 1.114A2 2 0 0 0 17 4.828v1.344a2 2 0 0 1-.586 1.414A2 2 0 0 1 17.828 7h1.344a2 2 0 0 0 1.414-.586L21.7 5.3a1 1 0 0 0 0-1.4z"/><path d="m6 16 2 2"/><path d="M8.2 9.9C8.7 8.8 9.8 8 11 8c2.8 0 5 2.2 5 5 0 1.2-.8 2.3-1.9 2.8l-.9.4A2 2 0 0 0 12 18a4 4 0 0 1-4 4c-3.3 0-6-2.7-6-6a4 4 0 0 1 4-4 2 2 0 0 0 1.8-1.2z"/>',
-  drum: '<path d="m2 2 8 8"/><path d="m22 2-8 8"/><ellipse cx="12" cy="9" rx="10" ry="5"/><path d="M7 13.4v7.9"/><path d="M12 14v8"/><path d="M17 13.4v7.9"/><path d="M2 9v8a10 5 0 0 0 20 0V9"/>',
-  micVocal: '<path d="m11 7.601-5.994 8.19a1 1 0 0 0 .1 1.298l.817.818a1 1 0 0 0 1.314.087L15.09 12"/><path d="M16.5 21.174C15.5 20.5 14.372 20 13 20c-2.058 0-3.928 2.356-6 2-2.072-.356-2.775-3.369-1.5-4.5"/><circle cx="16" cy="7" r="5"/>',
-  audioWaveform: '<path d="M2 13a2 2 0 0 0 2-2V7a2 2 0 0 1 4 0v13a2 2 0 0 0 4 0V4a2 2 0 0 1 4 0v13a2 2 0 0 0 4 0v-4a2 2 0 0 1 2-2"/>',
-  gamepad: '<line x1="6" x2="10" y1="11" y2="11"/><line x1="8" x2="8" y1="9" y2="13"/><line x1="15" x2="15.01" y1="12" y2="12"/><line x1="18" x2="18.01" y1="10" y2="10"/><path d="M17.32 5H6.68a4 4 0 0 0-3.978 3.59c-.006.052-.01.101-.017.152C2.604 9.416 2 14.456 2 16a3 3 0 0 0 3 3c1 0 1.5-.5 2-1l1.414-1.414A2 2 0 0 1 9.828 16h4.344a2 2 0 0 1 1.414.586L17 18c.5.5 1 1 2 1a3 3 0 0 0 3-3c0-1.545-.604-6.584-.685-7.258-.007-.05-.011-.1-.017-.151A4 4 0 0 0 17.32 5z"/>',
-  bell: '<path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>',
-  bowed: '<path d="M9 22c-2.5 0-4-1.6-4-3.5 0-1.2.6-2 1.4-2.6-.6-.6-1-1.4-1-2.4C5.4 11.6 7 10 9 10s3.6 1.6 3.6 3.5c0 1-.4 1.8-1 2.4.8.6 1.4 1.4 1.4 2.6C13 20.4 11.5 22 9 22z"/><path d="M9 10V2"/><path d="m14 3 7 16"/>',
-  horn: '<path d="M2 11h11"/><path d="M13 7.5c3 1.5 5 2 9-1.5v11c-4-3.5-6-3-9-1.5z"/><path d="M5 11v4"/><path d="M8 11v4"/><path d="M11 11v4"/>',
-  // Lucide shuffle (ISC) - the music generator's "shuffle everything" (style, seed, instruments, mix).
-  shuffle: '<path d="M2 18h1.4c1.3 0 2.5-.6 3.3-1.7l6.1-8.6c.7-1.1 2-1.7 3.3-1.7H22"/><path d="m18 2 4 4-4 4"/><path d="M2 6h1.9c1.5 0 2.9.9 3.6 2.2"/><path d="M22 18h-5.9c-1.3 0-2.6-.7-3.3-1.8l-.5-.8"/><path d="m18 14 4 4-4 4"/>',
   // Lucide repeat - the catalog's upload "Replace" action (swap bytes, keep the id).
   repeat: '<polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/>',
   // The export panel's "dock to the side" control (lib/export-panel-float.ts) - 
@@ -468,9 +454,6 @@ export function hasIcon(name: string): name is IconName {
  * unregistered name (callers that need a fallback glyph should check
  * `hasIcon()` first, or use `??`/`||` against another `icon()` call).
  */
-/** An icon's inner markup (its path, circle and line elements), for drawing it somewhere other than an <svg>, such as a canvas. */
-export function iconMarkup(name: IconName): string { return PATHS[name]; }
-
 export function icon(name: IconName, opts: IconOpts = {}): string {
   const paths = PATHS[name];
   if (!paths) return '';
