@@ -3,22 +3,20 @@
  * The music generator's instrument icons: each keys, lead or bass instrument belongs to a
  * family, and each family has an icon (a piano, a synth's waveform, a guitar for plucked
  * strings, a bowed string, a flute's wind, a horn, a voice, a bell for mallets and bells,
- * a games console for the 8-bit sounds, a drum for the drum-like basses), plus the
- * generator's shuffle. They live here rather than in lib/icons.ts, which every page loads
- * at startup, because only the music generator draws them. The editor draws them on its
+ * a games console for the 8-bit sounds, a drum for the drum-like basses). They live here
+ * rather than in lib/icons.ts, which every page loads at startup, because only the music
+ * generator draws them. The editor draws them on its
  * canvas too, so this also turns an icon's markup into canvas paths: its path, circle,
  * ellipse, line, polyline and rect elements, which are all these icons use.
  */
 import type { LofiStyle } from '../../../../engine/src/lofi-compose.ts';
 
 export type InstrumentIcon = 'piano' | 'audioWaveform' | 'guitar' | 'bowed' | 'wind' | 'horn' | 'micVocal' | 'bell' | 'gamepad' | 'drum';
-/** Every icon this module draws: the instrument families and the shuffle. */
-export type MusicIcon = InstrumentIcon | 'shuffle';
 
 /** The icons' markup, in the 24-unit stroke style of lib/icons.ts. Lucide (ISC): piano,
- *  guitar, drum, mic-vocal, audio-waveform, gamepad-2, bell, wind and shuffle. Lolly's own:
+ *  guitar, drum, mic-vocal, audio-waveform, gamepad-2, bell and wind. Lolly's own:
  *  a bowed string with its bow, and a horn. */
-const MARKUP: Record<MusicIcon, string> = {
+const MARKUP: Record<InstrumentIcon, string> = {
   piano: '<path d="M18.5 8c-1.4 0-2.6-.8-3.2-2A6.87 6.87 0 0 0 2 9v11a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-8.5C22 9.6 20.4 8 18.5 8"/><path d="M2 14h20"/><path d="M6 14v4"/><path d="M10 14v4"/><path d="M14 14v4"/><path d="M18 14v4"/>',
   guitar: '<path d="m11.9 12.1 4.514-4.514"/><path d="M20.1 2.3a1 1 0 0 0-1.4 0l-1.114 1.114A2 2 0 0 0 17 4.828v1.344a2 2 0 0 1-.586 1.414A2 2 0 0 1 17.828 7h1.344a2 2 0 0 0 1.414-.586L21.7 5.3a1 1 0 0 0 0-1.4z"/><path d="m6 16 2 2"/><path d="M8.2 9.9C8.7 8.8 9.8 8 11 8c2.8 0 5 2.2 5 5 0 1.2-.8 2.3-1.9 2.8l-.9.4A2 2 0 0 0 12 18a4 4 0 0 1-4 4c-3.3 0-6-2.7-6-6a4 4 0 0 1 4-4 2 2 0 0 0 1.8-1.2z"/>',
   drum: '<path d="m2 2 8 8"/><path d="m22 2-8 8"/><ellipse cx="12" cy="9" rx="10" ry="5"/><path d="M7 13.4v7.9"/><path d="M12 14v8"/><path d="M17 13.4v7.9"/><path d="M2 9v8a10 5 0 0 0 20 0V9"/>',
@@ -28,7 +26,6 @@ const MARKUP: Record<MusicIcon, string> = {
   bell: '<path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>',
   bowed: '<path d="M9 22c-2.5 0-4-1.6-4-3.5 0-1.2.6-2 1.4-2.6-.6-.6-1-1.4-1-2.4C5.4 11.6 7 10 9 10s3.6 1.6 3.6 3.5c0 1-.4 1.8-1 2.4.8.6 1.4 1.4 1.4 2.6C13 20.4 11.5 22 9 22z"/><path d="M9 10V2"/><path d="m14 3 7 16"/>',
   horn: '<path d="M2 11h11"/><path d="M13 7.5c3 1.5 5 2 9-1.5v11c-4-3.5-6-3-9-1.5z"/><path d="M5 11v4"/><path d="M8 11v4"/><path d="M11 11v4"/>',
-  shuffle: '<path d="M2 18h1.4c1.3 0 2.5-.6 3.3-1.7l6.1-8.6c.7-1.1 2-1.7 3.3-1.7H22"/><path d="m18 2 4 4-4 4"/><path d="M2 6h1.9c1.5 0 2.9.9 3.6 2.2"/><path d="M22 18h-5.9c-1.3 0-2.6-.7-3.3-1.8l-.5-.8"/><path d="m18 14 4 4-4 4"/>',
   wind: '<path d="M12.8 19.6A2 2 0 1 0 14 16H2"/><path d="M17.5 8a2.5 2.5 0 1 1 2 4H2"/><path d="M9.8 4.4A2 2 0 1 1 11 8H2"/>',
 };
 
@@ -66,14 +63,8 @@ export function instrumentIcon(part: 'keys' | 'lead' | 'bass', instrument: strin
 const SVG_NS = 'http://www.w3.org/2000/svg';
 const SVG_ATTRS = { viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': '2', 'stroke-linecap': 'round', 'stroke-linejoin': 'round', 'aria-hidden': 'true' };
 
-/** An icon as `<svg>` markup, for a template (the same attributes as lib/icons.ts icon()). */
-export function musicIconSvg(name: MusicIcon, size: number): string {
-  const attrs = Object.entries(SVG_ATTRS).map(([k, v]) => `${k}="${v}"`).join(' ');
-  return `<svg xmlns="${SVG_NS}" width="${size}" height="${size}" ${attrs}>${MARKUP[name]}</svg>`;
-}
-
 /** An icon as an `<svg>` element, built node by node (a lane head swaps its icon as the playhead moves). */
-export function musicIconNode(name: MusicIcon, size: number): SVGSVGElement {
+export function musicIconNode(name: InstrumentIcon, size: number): SVGSVGElement {
   const svg = document.createElementNS(SVG_NS, 'svg');
   for (const [k, v] of Object.entries({ ...SVG_ATTRS, width: String(size), height: String(size) })) svg.setAttribute(k, v);
   for (const el of MARKUP[name].match(/<[a-z]+\b[^>]*>/g) ?? []) {

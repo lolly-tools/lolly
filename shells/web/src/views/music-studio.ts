@@ -3,18 +3,20 @@
  * The music generator (#/music): a track editor for Lolly Sings, so a person or a brand
  * can dial in a track and keep the result.
  *
- * One row of controls (play, style, seed, shuffle, length, tempo, sound, make, link), a visualiser, and
- * the track laid out like a sequence editor: the sections and chords above a lane for
- * each part, every note drawn, each instrument in its own shade of the part's colour
- * with its name where it comes in (filled when the person chose that instrument). Shuffle draws a
- * new style, seed, instruments and mix at once. Click a section in a lane to change that part's
- * instrument in every section of that kind (the bass in every drop, the lead in every
- * solo); click the section ruler to play from there. The seed is a design-tool number:
- * type one, step it, shuffle it, or drag across it to slide through seeds and watch the
- * tune change. The tempo is the composer's for the seed until a person sets their own:
- * the notes stay where they are in the bar, so the tune plays faster or slower and no
- * other part of it changes. The Neurospicy player always plays a style at its own tempo.
- * Colours come from the brand's palette, with extra hues only where the palette runs out.
+ * One row of controls (play, shuffle, style, seed, length, key, tempo, reset, sound, make,
+ * link), a visualiser, and the track laid out like a sequence editor: the sections and
+ * chords above a lane for each part, every note drawn, each instrument in its own shade of
+ * the part's colour with its name where it comes in (filled when the person chose that
+ * instrument). Click a section in a lane to change that part's instrument in every section
+ * of that kind (the bass in every drop, the lead in every solo); click the section ruler to
+ * play from there. The seed is a design-tool number: type one, step it, or drag across it
+ * to slide through seeds and watch the tune change. Shuffle draws a new style, seed and
+ * sound at once (lib/music-shuffle.ts; with Shift, only the sound), and Reset puts every
+ * setting back to how the generator opens. The tempo is the composer's for the seed until
+ * a person sets their own: the notes stay where they are in the bar, so the tune plays
+ * faster or slower and no other part of it changes. The Neurospicy player always plays a
+ * style at its own tempo. Colours come from the brand's palette, with extra hues only where
+ * the palette runs out. The mix and tone are pill sliders (components/pill-slider.ts).
  *
  * Every setting lives in the link, so a link plays and edits the same track for anyone
  * who opens it: the composer is deterministic (engine/src/lofi-compose.ts). Making the
@@ -41,13 +43,15 @@ import { attachScrub } from '../lib/scrub.ts';
 import { mountViz, type VizHandle } from '../lib/butterchurn-viz.ts';
 import { defaultVizPresetId } from '../lib/viz-presets.ts';
 import { icon } from '../lib/icons.ts';
-import { instrumentIcon, iconPath, musicIconNode, musicIconSvg } from '../lib/instrument-icons.ts';
-import { MIX_KEYS, BPM_RANGE, TRANSPOSE_RANGE, parseMusicState, musicStateParams, fixedStyle, shapeBar, composeTrack, barTimes, shuffleState, type SectionVoices } from '../lib/music-state.ts';
+import { instrumentIcon, iconPath, musicIconNode } from '../lib/instrument-icons.ts';
+import { MIX_KEYS, BPM_RANGE, TRANSPOSE_RANGE, parseMusicState, musicStateParams, fixedStyle, shapeBar, composeTrack, barTimes, type MusicState, type SectionVoices } from '../lib/music-state.ts';
+import { shuffleMusic } from '../lib/music-shuffle.ts';
+import { pillSliderHtml, showPillSlider } from '../components/pill-slider.ts';
 import '../styles/parts/music-studio.css';
 
 // The track's settings and how they shape the composer's bars live in lib/music-state.ts
 // (pure, shared with the saved-tune renderer and the player); re-exported for the tests.
-export { parseMusicState, musicStateParams, composeTrack, shapeBar, shuffleState, BPM_RANGE, TRANSPOSE_RANGE, type MusicState, type SectionVoices } from '../lib/music-state.ts';
+export { parseMusicState, musicStateParams, composeTrack, shapeBar, BPM_RANGE, TRANSPOSE_RANGE, type MusicState, type SectionVoices } from '../lib/music-state.ts';
 
 type Track = 'lead' | 'keys' | 'bass' | 'drums' | 'fx';
 const TRACKS: readonly Track[] = ['lead', 'keys', 'bass', 'drums', 'fx'];
@@ -143,6 +147,13 @@ export function instrumentShade(colour: string, instrument: string): string {
   return `hsl(${Math.round(hue)} ${m[2]}% ${Math.max(28, Math.min(68, Number(m[3]) + light))}%)`;
 }
 
+/** Play the shuffle button's pop from the start, however fast the presses come. */
+function popAgain(el: HTMLElement): void {
+  el.classList.remove('is-popping');
+  void el.offsetWidth; // a reflow, so the animation starts over
+  el.classList.add('is-popping');
+}
+
 interface UploadingAssets { _uploadUserAsset(record: { id: string; type: 'audio'; format: string; blob: Blob; meta: Record<string, unknown> }): Promise<void> }
 function canUpload(assets: unknown): assets is UploadingAssets {
   return typeof assets === 'object' && assets !== null && '_uploadUserAsset' in assets && typeof assets._uploadUserAsset === 'function';
@@ -175,11 +186,10 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
   const fillSelect = (sel: HTMLSelectElement, tr: Pitched, current: string | undefined, auto: string): void => {
     sel.replaceChildren(new Option(auto, ''), ...valuesOf(tr).map(v => new Option(namesOf(tr)[v] ?? v, v, false, v === current)));
   };
-  // A null icon is the shuffle, which lives with the instrument icons (lib/instrument-icons.ts).
-  const iconBtn = (attr: string, name: Parameters<typeof icon>[0] | null, label: string, extra = ''): string =>
-    `<button type="button" class="btn btn--ghost btn--sm ms-icon" ${attr} aria-label="${escapeHtml(label)}" title="${escapeHtml(label)}"${extra}>${name ? icon(name, { size: 18 }) : musicIconSvg('shuffle', 18)}</button>`;
+  const iconBtn = (attr: string, name: Parameters<typeof icon>[0], label: string, extra = ''): string =>
+    `<button type="button" class="btn btn--ghost btn--sm ms-icon" ${attr} aria-label="${escapeHtml(label)}" title="${escapeHtml(label)}"${extra}>${icon(name, { size: 18 })}</button>`;
   const slider = (id: string, label: string, min: number, max: number, step: number, value: number): string =>
-    `<label class="ms-slider"><span>${escapeHtml(label)}</span><input type="range" min="${min}" max="${max}" step="${step}" value="${value}" data-slider="${id}"><output data-out="${id}"></output></label>`;
+    pillSliderHtml({ label, min, max, step, value, attrs: `data-slider="${id}"` });
 
   const page = document.createElement('section');
   page.className = 'ms-page';
@@ -189,14 +199,13 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
       <button type="button" class="btn btn--primary ms-play" data-play aria-label="${escapeHtml(t('Play'))}" title="${escapeHtml(t('Play or stop (space)'))}">
         <span data-play-icon>${icon('play', { size: 18 })}</span><span data-stop-icon hidden>${icon('pause', { size: 18 })}</span>
       </button>
+      <button type="button" class="ms-shuffle" data-shuffle aria-label="${escapeHtml(t('Shuffle style and settings'))}" title="${escapeHtml(t('Shuffle: a new style, seed and sound'))}">${icon('sparkle', { size: 26 })}</button>
       <span class="ms-time" data-pos></span>
       <select class="field-select field-select--sm" data-style aria-label="${escapeHtml(t('Style'))}">${LOFI_STATION_MOODS.map(m => `<option value="${m}"${m === state.mood ? ' selected' : ''}>${escapeHtml(lofiStationName(m))}</option>`).join('')}</select>
       <span class="ms-seed" role="group" aria-label="${escapeHtml(t('Seed'))}">
         ${iconBtn('data-seed-step="-1"', 'chevronLeft', t('Previous seed'))}
         <input type="number" class="field-input field-input--sm ms-seed-input" min="0" max="4294967295" value="${state.seed}" data-seed aria-label="${escapeHtml(t('Seed'))}" title="${escapeHtml(t('The seed: type one, or drag across it to slide through seeds'))}">
         ${iconBtn('data-seed-step="1"', 'chevronRight', t('Next seed'))}
-        ${iconBtn('data-dice', 'sparkle', t('Surprise me: a new seed'))}
-        ${iconBtn('data-shuffle', null, t('Shuffle everything: the style, the seed, the instruments and the mix (Shift: only the instruments and the mix)'))}
       </span>
       <select class="field-select field-select--sm" data-bars aria-label="${escapeHtml(t('Length'))}">${LENGTHS.map(n => `<option value="${n}"${n === state.bars ? ' selected' : ''}>${n} ${escapeHtml(t('bars'))}</option>`).join('')}</select>
       <select class="field-select field-select--sm ms-key" data-transpose aria-label="${escapeHtml(t('Key'))}" title="${escapeHtml(t('Move the tune to another key'))}"></select>
@@ -206,6 +215,7 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
         ${iconBtn('data-bpm-reset hidden', 'undo', t('Back to the tune’s own tempo'))}
       </span>
       <span class="ms-bar-end">
+        <button type="button" class="btn btn--ghost btn--sm ms-reset" data-reset title="${escapeHtml(t('Every setting back to how the generator opens'))}">${icon('undo', { size: 16 })}<span>${escapeHtml(t('Reset'))}</span></button>
         ${iconBtn('data-panel="sound" aria-expanded="false"', 'sliders', t('Sound and mix'))}
         ${iconBtn('data-panel="make" aria-expanded="false"', 'download', t('Make, download or save the track'))}
         ${iconBtn('data-link', 'link', t('Copy a link to this track'))}
@@ -551,7 +561,7 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
     renderedBuffer = null; rendered = 0;
     downloadBtn.disabled = true; progress.hidden = true;
     writeLink(); meta(); draw();
-    if (station) play(Math.max(0, playheadBar));
+    if (station) play(Math.max(0, Math.min(playheadBar, bars.length - 1)));
   }
 
   // ── playback ─────────────────────────────────────────────────────────────────
@@ -713,34 +723,42 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
   };
   listen('[data-seed]', 'change', (_e, el) => { if (el instanceof HTMLInputElement) setSeed(Math.floor(Number(el.value) || 0)); });
   listen('[data-seed-step]', 'click', (_e, el) => setSeed(state.seed + Number(el.dataset.seedStep)));
-  listen('[data-dice]', 'click', () => setSeed(crypto.getRandomValues(new Uint32Array(1))[0]!));
-  /** Put every control back in step with the state (after a shuffle). */
+  /** Put every control back in step with the state, after a shuffle or a reset. */
   const syncControls = (): void => {
     q<HTMLSelectElement>('[data-style]').value = state.mood;
     q<HTMLInputElement>('[data-seed]').value = String(state.seed);
+    q<HTMLSelectElement>('[data-bars]').value = String(state.bars);
     for (const tr of PITCHED) fillSelect(q<HTMLSelectElement>(`[data-pick="${tr}"]`), tr, state[tr], t('Auto'));
+    page.querySelector('[data-drums]')?.setAttribute('aria-pressed', String(state.drums));
+    for (const el of page.querySelectorAll<HTMLElement>('[data-mute]')) el.setAttribute('aria-pressed', String(muted.has(el.dataset.mute as Track)));
+    for (const el of page.querySelectorAll<HTMLElement>('[data-solo]')) el.setAttribute('aria-pressed', String(solo.has(el.dataset.solo as Track)));
+    // The sliders show 1 for a brightness and 2 for a drive left to the style, as they open.
     const values: Record<string, number> = { ...state.mix, texture: state.texture, bright: state.bright ?? 1, drive: state.drive ?? 2 };
     for (const el of page.querySelectorAll<HTMLInputElement>('[data-slider]')) {
-      const id = el.dataset.slider ?? '';
-      const v = values[id];
-      if (v !== undefined) { el.value = String(v); showSlider(id, v); }
+      const v = values[el.dataset.slider ?? ''];
+      if (v !== undefined) { el.value = String(v); showSlider(el); }
     }
     station?.setMix(effectiveMix());
     station?.setTexture(state.texture);
   };
-  // Shuffle: a new style, seed, instruments and mix at once (see shuffleState). The
-  // drums switch and the length stay as the person left them.
-  listen('[data-shuffle]', 'click', (e) => {
-    const rand = (): number => crypto.getRandomValues(new Uint32Array(1))[0]! / 4294967296;
-    const { drums, mood, seed, transpose } = state;
-    // Shift keeps the style, the seed and the key, and shuffles only the instruments and the mix.
-    const keep = e instanceof MouseEvent && e.shiftKey ? { mood, seed, transpose } : { transpose: undefined };
-    Object.assign(state, shuffleState(rand, state.bars), { drums, bpm: undefined }, keep);
-    syncControls();
-    recompose();
-    fit();
+  // Shuffle and Reset set the whole state at once: every setting the new state leaves out
+  // goes back to its default, and a playing track plays on in the new one.
+  const restate = (next: MusicState): void => {
+    for (const k of Object.keys(state) as (keyof MusicState)[]) delete state[k];
+    Object.assign(state, next);
+    closePop(); syncControls(); recompose(); fit();
+  };
+  // Shuffle: a new style, seed and sound (lib/music-shuffle.ts). Shift keeps the style, the
+  // seed and the key, and shuffles only the sound. The tempo goes back to the tune's own,
+  // and the length stays the person's.
+  listen('[data-shuffle]', 'click', (e, el) => {
+    popAgain(el);
+    const shift = e instanceof MouseEvent && e.shiftKey;
+    const drawn = shuffleMusic(Math.random, { bars: state.bars, after: state.mood, ...(shift ? { keep: { mood: state.mood, seed: state.seed } } : {}) });
+    restate({ ...drawn, bars: state.bars, ...(shift && state.transpose ? { transpose: state.transpose } : {}) });
     say(`${t('Shuffled')}: ${lofiStationName(state.mood)} · ${t('seed')} ${state.seed}`);
   });
+  listen('[data-reset]', 'click', () => { muted.clear(); solo.clear(); restate(parseMusicState('')); say(t('Every setting is back to how the generator opens.')); });
   listen('[data-bars]', 'change', (_e, el) => { if (el instanceof HTMLSelectElement) { state.bars = Number(el.value); recompose(); fit(); } });
   // The tempo: a number typed or dragged, back to the tune's own with the reset button.
   // Setting the composer's own tempo is the same as not setting one, so the link stays short.
@@ -785,15 +803,12 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
     for (const body of page.querySelectorAll<HTMLElement>('[data-panel-body]')) body.hidden = body.dataset.panelBody !== which || !body.hidden;
     for (const b of page.querySelectorAll<HTMLElement>('[data-panel]')) b.setAttribute('aria-expanded', String(!q<HTMLElement>(`[data-panel-body="${b.dataset.panel}"]`).hidden));
   });
-  const showSlider = (id: string, v: number): void => {
-    const out = page.querySelector<HTMLOutputElement>(`[data-out="${id}"]`);
-    if (out) out.textContent = v.toFixed(2);
-  };
+  const showSlider = (el: HTMLInputElement): void => { showPillSlider(el); };
   listen('[data-slider]', 'input', (_e, el) => {
     if (!(el instanceof HTMLInputElement)) return;
     const id = el.dataset.slider ?? '';
     const v = Number(el.value);
-    showSlider(id, v);
+    showSlider(el);
     const mixKey = MIX_KEYS.find(k => k === id);
     if (mixKey && mixKey !== 'texture') { state.mix[mixKey] = v; station?.setMix(effectiveMix()); }
     if (id === 'texture') { state.texture = v; station?.setTexture(v); }
@@ -802,7 +817,7 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
   // Brightness and drive change the tune's colour, so they recompose when let go.
   listen('[data-slider="bright"]', 'change', (_e, el) => { if (el instanceof HTMLInputElement) { state.bright = Number(el.value); recompose(); } });
   listen('[data-slider="drive"]', 'change', (_e, el) => { if (el instanceof HTMLInputElement) { state.drive = Number(el.value); recompose(); } });
-  for (const el of page.querySelectorAll<HTMLInputElement>('[data-slider]')) showSlider(el.dataset.slider ?? '', Number(el.value));
+  for (const el of page.querySelectorAll<HTMLInputElement>('[data-slider]')) showSlider(el);
 
   /** Zoom so the whole track fits the visible width. */
   function fit(): void {
