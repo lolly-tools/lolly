@@ -35,6 +35,16 @@
  *   fx     crash (a cymbal with a low boom under a drop), riser (a build's noise sweep)
  *          and coin (a bright two-note square ding)
  *
+ * Sherbert (future bass with an old console inside it) adds:
+ *   keys   future (wide saw chords, panned apart, that bend up into their pitch and wub)
+ *   lead   chop (chopped vowels: a voice of formant filters, one vowel to a key, cut
+ *          short like slices of a sample, no words) and bit (a console's pulse lead:
+ *          the duty cycle switching, the level and vibrato stepping once a frame)
+ *   snare  stack (a clap and a snare together over the console's buzzing noise, with a
+ *          long bright tail)
+ *   fx     sparkle (a console's chord: root, third and fifth taking turns fifty times a
+ *          second, echoing across) and game (a jump, a power-up, a power-down, a bonus)
+ *
  * Each voice schedules its own nodes at `t` on the context it is given and lets them
  * end; nothing is kept. Levels sit low, and lofi-station.ts evens the variants out.
  */
@@ -83,8 +93,13 @@ function struck(g: AudioParam, t: number, dur: number, peak: number, attack: num
 
 // ── keys ──────────────────────────────────────────────────────────────────────
 
-export function keys(style: LofiStyle['keys'], k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number, dur: number): void {
+/** How a future-bass chord moves: its wub in swings a second (0 holds it), and whether it bends up into its pitch. */
+export interface KeysArt { rate: number; bend: boolean }
+const HELD: KeysArt = { rate: 0, bend: false };
+
+export function keys(style: LofiStyle['keys'], k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number, dur: number, art: KeysArt = HELD): void {
   if (style === 'felt') felt(k, out, t, midi, vel, dur);
+  else if (style === 'future') future(k, out, t, midi, vel, dur, art);
   else if (style === 'pluck') pluck(k, out, t, midi, vel, dur);
   else if (style === 'pad' || style === 'supersaw') saws(k, out, t, midi, vel, dur, style === 'supersaw');
   else if (style === 'nylon') nylon(k, out, t, midi, vel, dur, false);
@@ -100,6 +115,105 @@ export function keys(style: LofiStyle['keys'], k: VoiceKit, out: AudioNode, t: n
   else if (style === 'choir') choir(k, out, t, midi, vel, dur);
   else if (style === 'honky') { fmPiano(k, out, t, midi, vel * 0.75, dur, false, 9); fmPiano(k, out, t, midi, vel * 0.75, dur, false, -9); }
   else fmPiano(k, out, t, midi, vel, dur, style === 'wurli');
+}
+
+/** A cosine (not a sine), one per context, so a wub starts each note at the top of its swing. */
+const COSINES = new WeakMap<BaseAudioContext, PeriodicWave>();
+function cosineOsc(k: VoiceKit, rate: number, t: number, end: number): OscillatorNode {
+  let wave = COSINES.get(k.ctx);
+  if (!wave) { wave = k.ctx.createPeriodicWave(new Float32Array([0, 1]), new Float32Array([0, 0])); COSINES.set(k.ctx, wave); }
+  const o = k.ctx.createOscillator();
+  o.setPeriodicWave(wave);
+  o.frequency.setValueAtTime(rate, t);
+  o.start(t);
+  o.stop(end);
+  return o;
+}
+
+/**
+ * Future-bass chords (Sherbert). Four saws a note, two panned left and two right with
+ * different detunes, so the chord is as wide as the speakers while the bass stays in the
+ * middle, and a quiet pulse an octave up for a console's glint. The filter strikes open
+ * and settles. A chord can bend up a whole tone into its pitch (the future-bass swoop) and
+ * can wub: its level and filter swinging together at `art.rate`, the swing starting at the
+ * top so every stab still hits hard. The station's kick ducking does the pumping.
+ */
+function future(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number, dur: number, art: KeysArt): void {
+  const { ctx } = k;
+  const f = mtof(midi);
+  const end = t + dur + 0.15;
+  const open = Math.min(12000, 6500 + f * 6);
+  const lp = ctx.createBiquadFilter();
+  lp.type = 'lowpass';
+  lp.Q.value = 0.7;
+  lp.frequency.value = open;   // held still (a moving filter is costly on every chord note); the wub alone moves it
+  // The 808 owns the low end: the chords are thinned below 260 Hz, as a producer would.
+  const thin = ctx.createBiquadFilter();
+  thin.type = 'highpass';
+  thin.frequency.value = 260;
+  thin.Q.value = 0.6;
+  // And brightened on top, where the records' chords shine.
+  const shine = ctx.createBiquadFilter();
+  shine.type = 'highshelf';
+  shine.frequency.value = 2500;
+  shine.gain.value = 5;
+  lp.connect(thin).connect(shine);
+  const env = ctx.createGain();
+  const peak = 0.12 * vel;
+  env.gain.setValueAtTime(EPS, t);
+  env.gain.exponentialRampToValueAtTime(peak, t + 0.006);
+  env.gain.setTargetAtTime(peak * 0.8, t + 0.04, 0.35);
+  env.gain.setTargetAtTime(EPS, t + dur, 0.04);
+  shine.connect(env);
+  if (art.rate > 0) {
+    // The wub: the chord swings between itself, bright, and a dark, muffled copy, with its
+    // level dipping between. A crossfade between two still filters, because a filter swept
+    // by an oscillator is redesigned every sample, which made these chords the costliest
+    // sound in the station.
+    const lfo = cosineOsc(k, art.rate, t, end);
+    const bright = ctx.createGain();
+    bright.gain.value = 0.55;
+    const bd = ctx.createGain();
+    bd.gain.value = 0.45;
+    lfo.connect(bd).connect(bright.gain);
+    const dark = ctx.createGain();
+    dark.gain.value = 0.35;
+    const dd = ctx.createGain();
+    dd.gain.value = -0.25;
+    lfo.connect(dd).connect(dark.gain);
+    const muffle = ctx.createBiquadFilter();
+    muffle.type = 'lowpass';
+    muffle.frequency.value = 900;
+    muffle.Q.value = 2;
+    env.connect(bright).connect(out);
+    env.connect(muffle).connect(dark).connect(out);
+  } else {
+    env.connect(out);
+  }
+  // The glide is a ramp that ends (a target never quite arrives, so the browser would
+  // work out every saw's pitch sample by sample for the whole note, which doubled the cost).
+  const from = art.bend ? f * 2 ** (-2 / 12) : f * 2 ** (-0.25 / 12);
+  const arrive = t + (art.bend ? 0.2 : 0.03);
+  const glide = (o: OscillatorNode, by = 1): void => {
+    o.frequency.setValueAtTime(from * by, t);
+    o.frequency.exponentialRampToValueAtTime(f * by, arrive);
+  };
+  for (const [pan, detunes] of [[-0.8, [-26, 9]], [0.8, [-9, 26]]] as const) {
+    const side = ctx.createStereoPanner();
+    side.pan.value = pan;
+    side.connect(lp);
+    for (const cents of detunes) {
+      const o = osc(k, 'sawtooth', f, t, end);
+      glide(o);
+      o.detune.value = cents + (k.rng() - 0.5) * 4;
+      o.connect(side);
+    }
+  }
+  const glint = pulseOsc(k, 0.25, f * 2, t, end);
+  glide(glint, 2);
+  const gg = ctx.createGain();
+  gg.gain.value = 0.22;
+  glint.connect(gg).connect(lp);
 }
 
 /**
@@ -242,6 +356,110 @@ export function lead(style: LofiStyle['lead'], k: VoiceKit, out: AudioNode, t: n
   else if (style === 'pedal') pedalSteel(k, out, t, midi, vel, dur, art);
   else if (style === 'fiddle') fiddle(k, out, t, midi, vel, dur, art);
   else if (style === 'bells') bells(k, out, t, midi, vel, dur);
+  else if (style === 'chop') chop(k, out, t, midi, vel, dur);
+  else if (style === 'bit') bitLead(k, out, t, midi, vel, dur);
+}
+
+/** Vowels as their first three formants (Hz): ah, eh, ee, oh, oo, a high voice's. */
+const CHOP_VOWELS: ReadonlyArray<readonly [number, number, number]> = [
+  [850, 1610, 2900], [600, 2100, 2850], [360, 2650, 3350], [540, 980, 2750], [420, 1150, 2650],
+];
+/** A chopped voice sounds sped up: its formants sit higher than a person's. */
+const CHOP_LIFT = 1.12;
+
+/**
+ * Chop (Sherbert): chopped vowels, the sound of a sung phrase cut into slices and played
+ * as an instrument. A saw (the voice) through three formant filters, so it sings a vowel,
+ * with a consonant's click at the front, breath on top, and a cut-off end, as a slice has.
+ * Each key keeps one vowel, the way a sampler maps one slice to a key, so a melody that
+ * comes round again sings the same syllables. Two voices a few cents apart, one to each
+ * side, sing it together, double-tracked, so the chops are wide. Synthesised: no
+ * recording and no words.
+ */
+function chop(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number, dur: number): void {
+  const { ctx } = k;
+  const f = mtof(midi);
+  const len = Math.max(0.05, dur);
+  const end = t + len + 0.06;
+  const [f1, f2, f3] = CHOP_VOWELS[(midi * 7) % CHOP_VOWELS.length]!;
+  const amp = ctx.createGain();
+  amp.gain.setValueAtTime(EPS, t);
+  amp.gain.exponentialRampToValueAtTime(0.26 * vel, t + 0.005);
+  amp.gain.setTargetAtTime(0.21 * vel, t + 0.02, 0.1);
+  amp.gain.setTargetAtTime(EPS, t + len, 0.01);
+  amp.connect(out);
+  const mouth = ctx.createGain();
+  for (const [pan, cents] of [[-0.45, -7], [0.45, 7]] as const) {
+    const voice = osc(k, 'sawtooth', f, t, end);
+    voice.detune.value = cents;
+    voice.frequency.setValueAtTime(f * 2 ** (-0.6 / 12), t);
+    voice.frequency.exponentialRampToValueAtTime(f, t + 0.035);   // the voice finding its note
+    if (len > 0.3) vibrato(k, voice.detune, t, end, 5.6, 18, 0.14);
+    const side = ctx.createStereoPanner();
+    side.pan.value = pan;
+    voice.connect(side).connect(mouth);
+  }
+  for (const [hz, q, level] of [[f1, 5, 0.7], [f2, 8, 1], [f3, 8, 0.75]] as const) {
+    const bp = ctx.createBiquadFilter();
+    bp.type = 'bandpass';
+    bp.Q.value = q;
+    bp.frequency.value = hz * CHOP_LIFT;   // held still: a moving filter is recomputed every sample, and chops come thick and fast
+    const g = ctx.createGain();
+    g.gain.value = level;
+    mouth.connect(bp).connect(g).connect(amp);
+  }
+  // The consonant at the front of the slice, then breath over the vowel: one noise for both.
+  const air = ctx.createBiquadFilter();
+  air.type = 'highpass';
+  air.frequency.value = 3200;
+  const ag = ctx.createGain();
+  ag.gain.setValueAtTime(0.06 * vel, t);
+  ag.gain.exponentialRampToValueAtTime(0.022 * vel, t + 0.008);
+  ag.gain.setTargetAtTime(EPS, t + len, 0.01);
+  noiseAt(k, t, len + 0.05).connect(air).connect(ag).connect(out);
+}
+
+/** An old console's video frame: its sound changed once a frame, so its envelopes step. */
+const FRAME = 1 / 60;
+
+/**
+ * Bit (Sherbert): a console's pulse lead. It starts thin (a 12.5% pulse) and fills out to
+ * a quarter pulse after two frames; its level steps down through a console's sixteen
+ * levels once a frame to where it holds, and steps out; a held note gets a vibrato that
+ * steps too, after a fifth of a second. The steps are what make it sound like the console
+ * and not a synthesiser imitating one.
+ */
+function bitLead(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number, dur: number): void {
+  const { ctx } = k;
+  const f = mtof(midi);
+  const len = Math.max(0.05, dur);
+  const end = t + len + 6 * FRAME;
+  const amp = ctx.createGain();
+  const level = (v: number): number => (v / 15) * 0.07 * vel;
+  const fall = [15, 14, 13, 12, 11, 11, 10, 10, 9];
+  amp.gain.setValueAtTime(level(fall[0]!), t);
+  for (let n = 1; n < fall.length && n * FRAME < len; n++) amp.gain.setValueAtTime(level(fall[n]!), t + n * FRAME);
+  [6, 4, 2, 1, 0].forEach((v, n) => { amp.gain.setValueAtTime(level(v), t + len + n * FRAME); });
+  const lp = ctx.createBiquadFilter();
+  lp.type = 'lowpass';
+  lp.frequency.value = 11000;
+  amp.connect(lp).connect(out);
+  const thin = pulseOsc(k, 0.125, f, t, end);
+  const full = pulseOsc(k, 0.25, f, t, end);
+  const tg = ctx.createGain();
+  tg.gain.setValueAtTime(1, t);
+  tg.gain.setValueAtTime(0, t + 2 * FRAME);
+  const fg = ctx.createGain();
+  fg.gain.setValueAtTime(0, t);
+  fg.gain.setValueAtTime(1, t + 2 * FRAME);
+  thin.connect(tg).connect(amp);
+  full.connect(fg).connect(amp);
+  if (len > 0.25) {
+    const wobble = [0, 14, 22, 14, 0, -14, -22, -14];
+    for (let n = 0, at = t + 12 * FRAME; at < t + len; n++, at += 2 * FRAME) {
+      for (const o of [thin, full]) o.detune.setValueAtTime(wobble[n % wobble.length]!, at);
+    }
+  }
 }
 
 /** A concert harp: a mellow pluck from the middle of a long gut string, ringing on. */
@@ -1778,7 +1996,8 @@ export function soar(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: 
  * the pitch falls, the way a shout does. Two of them, a few cents and milliseconds apart,
  * so it sounds like a few people calling out together.
  */
-export function hey(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number): void {
+export function hey(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number, which = 0): void {
+  if (which > 0 && SHOUTS[which]) { shout(k, out, t, midi, vel, SHOUTS[which]!); return; }
   const { ctx } = k;
   const f = mtof(midi);
   const len = 0.32;
@@ -1813,6 +2032,76 @@ export function hey(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: n
     hg.gain.exponentialRampToValueAtTime(0.09 * vel, at + 0.02);
     hg.gain.exponentialRampToValueAtTime(EPS, at + 0.08);
     noiseAt(k, at, 0.1).connect(h).connect(hg).connect(out);
+  }
+}
+
+/** A shout's shape: its length, how it starts, its pitch at the start, middle and end (times
+ *  the note), and its vowel moving through [fraction of the way, F1, F2, F3]. */
+interface Shout {
+  len: number;
+  onset: 'h' | 'glide' | 'none';
+  pitch: readonly [number, number, number];
+  vowels: ReadonlyArray<readonly [number, number, number, number]>;
+}
+/** The shouts after "hey", by LOFI_SHOUTS: yeah, woo, oh, ayy, uh. */
+const SHOUTS: ReadonlyArray<Shout | null> = [
+  null,
+  { len: 0.42, onset: 'glide', pitch: [1.12, 1.05, 0.8], vowels: [[0, 300, 2300, 3000], [0.25, 530, 1850, 2550], [0.55, 760, 1300, 2600], [1, 740, 1250, 2600]] },
+  { len: 0.55, onset: 'glide', pitch: [0.88, 1.38, 1.12], vowels: [[0, 300, 750, 2300], [0.5, 380, 850, 2400], [1, 470, 900, 2500]] },
+  { len: 0.36, onset: 'h', pitch: [1.08, 1, 0.86], vowels: [[0, 520, 880, 2550], [1, 430, 820, 2500]] },
+  { len: 0.46, onset: 'none', pitch: [1, 1.04, 1.08], vowels: [[0, 760, 1350, 2600], [0.45, 600, 1900, 2600], [1, 360, 2300, 3000]] },
+  { len: 0.17, onset: 'h', pitch: [1.1, 1, 0.82], vowels: [[0, 640, 1190, 2390], [1, 600, 1150, 2400]] },
+];
+
+/**
+ * A shout other than "hey" (Sherbert's yeah, woo, oh, ayy and uh): built as the "hey" is,
+ * a saw through three formants, but each with its own vowel moving (yeah from ee through
+ * eh to ah, woo from oo to oh, ayy from ah to ee) and its own pitch (a woo whoops up and
+ * falls back). Two voices a little apart in time, pitch and place, a few people calling.
+ */
+function shout(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number, sh: Shout): void {
+  const { ctx } = k;
+  const f = mtof(midi);
+  const { len } = sh;
+  for (const [delay, cents, pan] of [[0, 0, -0.25], [0.018, 14, 0.25]] as const) {
+    const at = t + delay;
+    const start = at + (sh.onset === 'h' ? 0.03 : 0);
+    const amp = ctx.createGain();
+    amp.gain.setValueAtTime(EPS, at);
+    amp.gain.setValueAtTime(EPS, start);
+    amp.gain.exponentialRampToValueAtTime(0.22 * vel, start + (sh.onset === 'glide' ? 0.045 : 0.018));
+    amp.gain.setTargetAtTime(0.18 * vel, start + 0.06, len * 0.4);
+    amp.gain.setTargetAtTime(EPS, start + len * 0.8, len * 0.12);
+    const side = ctx.createStereoPanner();
+    side.pan.value = pan;
+    amp.connect(side).connect(out);
+    const glottis = osc(k, 'sawtooth', f * sh.pitch[0], start, start + len + 0.1);
+    glottis.detune.value = cents;
+    glottis.frequency.linearRampToValueAtTime(f * sh.pitch[1], start + len * 0.45);
+    glottis.frequency.linearRampToValueAtTime(f * sh.pitch[2], start + len);
+    for (const [band, q, level] of [[1, 8, 1], [2, 10, 0.55], [3, 12, 0.3]] as const) {
+      const bp = ctx.createBiquadFilter();
+      bp.type = 'bandpass';
+      bp.Q.value = q;
+      sh.vowels.forEach((v, n) => {
+        if (n === 0) bp.frequency.setValueAtTime(v[band], start);
+        else bp.frequency.linearRampToValueAtTime(v[band], start + v[0] * len);
+      });
+      const g = ctx.createGain();
+      g.gain.value = level;
+      glottis.connect(bp).connect(g).connect(amp);
+    }
+    if (sh.onset === 'h') {
+      const h = ctx.createBiquadFilter();
+      h.type = 'bandpass';
+      h.frequency.value = 1700;
+      h.Q.value = 1.5;
+      const hg = ctx.createGain();
+      hg.gain.setValueAtTime(EPS, at);
+      hg.gain.exponentialRampToValueAtTime(0.09 * vel, at + 0.02);
+      hg.gain.exponentialRampToValueAtTime(EPS, at + 0.08);
+      noiseAt(k, at, 0.1).connect(h).connect(hg).connect(out);
+    }
   }
 }
 
@@ -2262,6 +2551,221 @@ export function coin(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: 
   o.connect(lp);
 }
 
+/** A console's level stepping down a frame at a time, from `peak` to silence over `len` seconds. */
+function stepFall(g: AudioParam, t: number, len: number, peak: number): void {
+  const frames = Math.max(2, Math.round(len / FRAME));
+  for (let n = 0; n <= frames; n++) g.setValueAtTime(peak * Math.max(0, Math.round(15 * (1 - n / frames))) / 15, t + n * FRAME);
+}
+
+/**
+ * Sparkle (Sherbert): an old console's chord on its one channel. The pulse takes the root,
+ * the third (`third` semitones up) and the fifth in turn fifty times a second, so the ear
+ * hears a glittering chord; it steps away a frame at a time, and an echo answers from the
+ * other side.
+ */
+export function sparkle(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number, dur: number, third: number): void {
+  const { ctx } = k;
+  const f = mtof(midi);
+  const len = Math.max(0.08, dur);
+  const turns = [0, third, 7];
+  const side = k.rng() < 0.5 ? -0.55 : 0.55;
+  for (const [delay, level, pan] of [[0, 1, side], [0.14, 0.4, -side]] as const) {
+    const at = t + delay;
+    const o = pulseOsc(k, 0.125, f, at, at + len + 0.02);
+    for (let n = 0, when = at; when < at + len; n++, when += 0.02) o.frequency.setValueAtTime(f * 2 ** (turns[n % 3]! / 12), when);
+    const g = ctx.createGain();
+    stepFall(g.gain, at, len, 0.03 * vel * level);
+    const p = ctx.createStereoPanner();
+    p.pan.value = pan;
+    o.connect(g).connect(p).connect(out);
+  }
+}
+
+/**
+ * Game (Sherbert): a console's sound effects, by `kind` (see LOFI_GAME_SOUNDS; 16 and up are
+ * the same in a minor key): a jump sweeping up, a power-up running up the key's chord, a
+ * power-down falling and wobbling, a bonus trill that climbs, a bounce (a spring's boing,
+ * overshooting and settling), a menu's blip, a laser's pew and a warp sliding down and up.
+ * Pulse waves, their pitch and level stepped by the frame.
+ */
+export function game(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number, kind: number): void {
+  const { ctx } = k;
+  const f = mtof(midi);
+  const third = kind >= 16 ? 3 : 4;
+  const sound = kind % 16;
+  const len = [0.22, 0.62, 0.7, 0.5, 0.45, 0.12, 0.2, 0.5][sound] ?? 0.3;
+  const duty = sound === 1 || sound === 4 ? 0.5 : sound === 6 ? 0.125 : 0.25;
+  const o = pulseOsc(k, duty, f, t, t + len + 0.05);
+  const frames = Math.round(len / FRAME);
+  for (let n = 0; n < frames; n++) {
+    let semis: number;
+    if (sound === 0) semis = n * 1.6;   // the jump: up and up
+    else if (sound === 1) semis = [0, third, 7, 12, 12 + third, 19, 24][Math.min(6, Math.floor(n / 3))]! + (n >= 21 && n % 2 ? 0.3 : 0);
+    else if (sound === 2) semis = 24 - n * 0.9 + (n % 2 ? 0.6 : -0.6);   // the power-down: falling and wobbling
+    else if (sound === 3) semis = 12 + [0, third, 7, 12][Math.min(3, Math.floor(n / 8))]! + (n % 2 ? 7 : 0);   // the bonus: a trill climbing
+    else if (sound === 4) semis = 9 - 9 * Math.exp(-n / 5) * Math.cos(n * 1.1);   // the bounce: up past the note and settling, a spring
+    else if (sound === 5) semis = n < 3 ? 24 : 31;   // the blip: two quick notes
+    else if (sound === 6) semis = 10 + 30 * Math.exp(-n / 3);   // the laser: a fast fall
+    else semis = 12 + 9 * Math.sin(n * 0.55) - n * 0.4;   // the warp: sliding down and up, sinking
+    o.frequency.setValueAtTime(f * 2 ** (semis / 12), t + n * FRAME);
+  }
+  const g = ctx.createGain();
+  stepFall(g.gain, t, len, 0.045 * vel);
+  const lp = ctx.createBiquadFilter();
+  lp.type = 'lowpass';
+  lp.frequency.value = 9000;
+  o.connect(g).connect(lp).connect(out);
+}
+
+/**
+ * A bass shot (the bass genres), by `shot` (see LOFI_BASS_SHOTS): the bwah, a saw and a
+ * square an octave under it dropping into the note while a resonant filter is flung open
+ * and swings shut; the yoi, the bass talking from oh to ee as its pitch scoops up; the
+ * throat, a growl through an open vowel, its filter and level shaking `rate` times a
+ * second; and the wub, a deep, round wobble at `rate`. Driven, over a sine for the weight.
+ */
+export function bwah(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number, dur: number, shot: number, rate: number, tone: Tone = PLAIN_TONE): void {
+  const { ctx } = k;
+  const f = mtof(midi);
+  const len = Math.max(0.12, dur);
+  const end = t + len + 0.1;
+  const bright = tone.bright;
+  const lp = ctx.createBiquadFilter();
+  lp.type = 'lowpass';
+  const mouth = ctx.createGain();
+  const [push, ws] = drivenBy(ctx, (shot === 3 ? 1.6 : 2.6) * tone.drive, true);
+  const amp = ctx.createGain();
+  amp.gain.setValueAtTime(EPS, t);
+  amp.gain.exponentialRampToValueAtTime(0.13 * vel, t + 0.008);
+  amp.gain.setTargetAtTime(0.1 * vel, t + 0.05, 0.2);
+  amp.gain.setTargetAtTime(EPS, t + len, 0.03);
+  lp.connect(mouth);
+  mouth.connect(push);
+  ws.connect(amp).connect(out);
+  const saw = osc(k, 'sawtooth', f, t, end);
+  const sq = osc(k, 'square', f / 2, t, end);
+  const sg = ctx.createGain();
+  sg.gain.value = 0.6;
+  saw.connect(lp);
+  sq.connect(sg).connect(lp);
+  if (shot === 0) {
+    // Bwah: the pitch drops in from a fifth up, the filter flies open and swings shut.
+    for (const o of [saw, sq]) { const base = o === sq ? f / 2 : f; o.frequency.setValueAtTime(base * 1.5, t); o.frequency.exponentialRampToValueAtTime(base, t + 0.06); }
+    lp.Q.value = 7;
+    lp.frequency.setValueAtTime(220, t);
+    lp.frequency.exponentialRampToValueAtTime(3600 * bright, t + 0.07);
+    lp.frequency.exponentialRampToValueAtTime(380, t + len);
+  } else if (shot === 1) {
+    // Yoi: the pitch scoops up from a fourth below as the vowel opens from oh to ee.
+    for (const o of [saw, sq]) { const base = o === sq ? f / 2 : f; o.frequency.setValueAtTime(base * 0.75, t); o.frequency.exponentialRampToValueAtTime(base, t + 0.09); }
+    lp.Q.value = 2;
+    lp.frequency.setValueAtTime(2600 * bright, t);
+    formants(k, lp, mouth, t, len, [[450, 800], [300, 2200]]);
+  } else {
+    // Throat and wub: the filter and the level shake at `rate`, through an open vowel for the throat.
+    const throat = shot === 2;
+    lp.Q.value = throat ? 5 : 4;
+    lp.frequency.setValueAtTime(throat ? 1300 * bright : 520, t);
+    const lfo = osc(k, throat ? 'square' : 'sine', Math.max(0.5, rate), t, end);
+    const depth = ctx.createGain();
+    depth.gain.value = throat ? 1100 * bright : 420;
+    lfo.connect(depth).connect(lp.frequency);
+    if (throat) formants(k, lp, mouth, t, len, [[650, 1050], [700, 1150]]);
+  }
+  sub(k, out, t, f, vel * 0.8, len);
+}
+
+/** Two vowel formants from `from` to `to` ([F1, F2] each), sung between `src` and `dst`, with a little of the plain sound under them. */
+function formants(k: VoiceKit, src: AudioNode, dst: AudioNode, t: number, len: number, [from, to]: ReadonlyArray<readonly [number, number]>): void {
+  for (let n = 0; n < 2; n++) {
+    const bp = k.ctx.createBiquadFilter();
+    bp.type = 'bandpass';
+    bp.Q.value = n === 0 ? 4 : 6;
+    bp.frequency.setValueAtTime(from![n]!, t);
+    bp.frequency.linearRampToValueAtTime(to![n]!, t + len);
+    const g = k.ctx.createGain();
+    g.gain.value = n === 0 ? 1.4 : 1;
+    src.connect(bp).connect(g).connect(dst);
+  }
+}
+
+/**
+ * A phaser sweep (Sherbert and the bass genres): two saws and a breath of noise through
+ * four all-pass filters a side, mixed back with the dry sound so notches sweep through
+ * it: rising across a build (`mode` 0, swelling), falling into a breakdown (1, fading),
+ * or a quick zip (2). The left and right sweeps run a little apart, so it swirls.
+ */
+export function phaser(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number, dur: number, mode: number): void {
+  const { ctx } = k;
+  const f = mtof(midi);
+  const len = mode === 2 ? Math.min(0.35, Math.max(0.15, dur)) : Math.max(0.3, dur);
+  const end = t + len + 0.1;
+  const src = ctx.createGain();
+  for (const cents of [-12, 12]) {
+    const o = osc(k, 'sawtooth', f, t, end);
+    o.detune.value = cents;
+    o.connect(src);
+  }
+  const ng = ctx.createGain();
+  ng.gain.value = 0.25;
+  noiseAt(k, t, len + 0.1).connect(ng).connect(src);
+  const amp = ctx.createGain();
+  const peak = 0.035 * vel;
+  amp.gain.setValueAtTime(mode === 0 ? peak * 0.05 : peak, t);
+  if (mode === 0) amp.gain.exponentialRampToValueAtTime(peak, t + len);
+  else amp.gain.exponentialRampToValueAtTime(peak * 0.03, t + len);
+  amp.gain.setValueAtTime(EPS, t + len + 0.01);
+  amp.connect(out);
+  const [lo, hi] = mode === 1 ? [6000, 220] : [220, mode === 2 ? 8000 : 6000];
+  for (const [pan, offset] of [[-0.6, 1], [0.6, 1.3]] as const) {
+    const side = ctx.createStereoPanner();
+    side.pan.value = pan;
+    side.connect(amp);
+    src.connect(side);   // the dry half
+    let at: AudioNode = src;
+    for (let n = 0; n < 4; n++) {
+      const ap = ctx.createBiquadFilter();
+      ap.type = 'allpass';
+      ap.Q.value = 0.7;
+      ap.frequency.setValueAtTime(lo * offset, t);
+      ap.frequency.exponentialRampToValueAtTime(hi * offset, t + len);
+      at.connect(ap);
+      at = ap;
+    }
+    at.connect(side);   // the swept half, summed with the dry: the notches
+  }
+}
+
+/**
+ * A blip (the bass genres): a short FM bleep in the gaps of a drop. `kind` 0 bleeps up,
+ * 1 bloops down, 2 is a pair a fifth apart. A sine carrier with a modulator twice its
+ * pitch, the brightness gone in a moment, placed a little to one side.
+ */
+export function blip(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number, kind: number): void {
+  const { ctx } = k;
+  const f = mtof(midi);
+  const side = ctx.createStereoPanner();
+  side.pan.value = (k.rng() - 0.5) * 0.9;
+  side.connect(out);
+  const hits = kind === 2 ? [[0, 0], [0.07, 7]] as const : [[0, 0]] as const;
+  for (const [delay, semis] of hits) {
+    const at = t + delay;
+    const p = f * 2 ** (semis / 12);
+    const car = osc(k, 'sine', kind === 1 ? p * 1.5 : p, at, at + 0.12);
+    car.frequency.exponentialRampToValueAtTime(kind === 1 ? p * 0.7 : kind === 0 ? p * 1.5 : p, at + 0.08);
+    const mod = osc(k, 'sine', p * 2, at, at + 0.12);
+    const idx = ctx.createGain();
+    idx.gain.setValueAtTime(p * 2.5, at);
+    idx.gain.exponentialRampToValueAtTime(p * 0.1, at + 0.06);
+    mod.connect(idx).connect(car.frequency);
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(EPS, at);
+    g.gain.exponentialRampToValueAtTime(0.06 * vel, at + 0.004);
+    g.gain.exponentialRampToValueAtTime(EPS, at + 0.09);
+    car.connect(g).connect(side);
+  }
+}
+
 // ── drums ─────────────────────────────────────────────────────────────────────
 
 export function kick(k: VoiceKit, out: AudioNode, t: number, vel: number, hz: number, len: number): void {
@@ -2291,6 +2795,7 @@ export function kick(k: VoiceKit, out: AudioNode, t: number, vel: number, hz: nu
  */
 export function snare(style: LofiStyle['snare'], k: VoiceKit, out: AudioNode, t: number, vel: number, tone: number): void {
   const { ctx } = k;
+  if (style === 'stack') { stack(k, out, t, vel, tone); return; }
   const brush = style === 'brush';
   // The hit: bright noise, full level at once, gone in 20 to 30 ms.
   crack(k, out, t, vel * (brush ? 0.32 : style === 'clap' ? 0.5 : 0.62), brush ? 2600 : 3800, brush ? 0.02 : 0.03);
@@ -2338,6 +2843,67 @@ export function snare(style: LofiStyle['snare'], k: VoiceKit, out: AudioNode, t:
   }
 }
 
+/**
+ * The stacked snare (Sherbert): a clap and a snare struck together, the console's noise
+ * channel buzzing under them, and a long, bright tail, the big room a future-bass snare
+ * sits in.
+ */
+function stack(k: VoiceKit, out: AudioNode, t: number, vel: number, tone: number): void {
+  const { ctx } = k;
+  snare('clap', k, out, t, vel * 0.75, tone);
+  // A quiet hit (a roll's, a ghost's) is the clap and the console's buzz alone: a roll is
+  // many hits, and the snare and the tail under each would cost more than they are heard.
+  const full = vel > 0.6;
+  if (full) snare('snare', k, out, t, vel * 0.6, tone);
+  const buzz = ctx.createBufferSource();
+  buzz.buffer = chipNoise(ctx);
+  buzz.loop = true;
+  buzz.playbackRate.value = tone / 2000;
+  buzz.start(t);
+  buzz.stop(t + 0.12);
+  const hp = ctx.createBiquadFilter();
+  hp.type = 'highpass';
+  hp.frequency.value = 900;
+  const bg = ctx.createGain();
+  bg.gain.setValueAtTime(0.11 * vel, t);
+  bg.gain.exponentialRampToValueAtTime(EPS, t + 0.1);
+  buzz.connect(hp).connect(bg).connect(out);
+  if (!full) return;
+  const bp = ctx.createBiquadFilter();
+  bp.type = 'bandpass';
+  bp.frequency.value = tone * 1.6;
+  bp.Q.value = 0.6;
+  const tail = ctx.createGain();
+  tail.gain.setValueAtTime(EPS, t);
+  tail.gain.exponentialRampToValueAtTime(0.07 * vel, t + 0.02);
+  tail.gain.exponentialRampToValueAtTime(EPS, t + 0.5);
+  noiseAt(k, t, 0.52).connect(bp).connect(tail).connect(out);
+}
+
+/**
+ * An old console's noise channel in its short mode: a 15-bit shift register fed back from
+ * its sixth bit, which repeats after a few dozen steps, so it buzzes at a pitch rather
+ * than hissing. One buffer per context, looped.
+ */
+const CHIP_NOISES = new WeakMap<BaseAudioContext, AudioBuffer>();
+function chipNoise(ctx: BaseAudioContext): AudioBuffer {
+  let b = CHIP_NOISES.get(ctx);
+  if (b) return b;
+  const hold = Math.max(1, Math.round(ctx.sampleRate / 22000));
+  let reg = 1;
+  const bits: number[] = [];
+  for (let n = 0; n < 93; n++) {
+    const fb = (reg ^ (reg >> 6)) & 1;
+    reg = (reg >> 1) | (fb << 14);
+    bits.push(reg & 1 ? 0.8 : -0.8);
+  }
+  b = ctx.createBuffer(1, bits.length * hold, ctx.sampleRate);
+  const d = b.getChannelData(0);
+  for (let i = 0; i < d.length; i++) d[i] = bits[Math.floor(i / hold)]!;
+  CHIP_NOISES.set(ctx, b);
+  return b;
+}
+
 /** A drum's hit: high-passed noise at full level at once, falling away in `len` seconds. */
 function crack(k: VoiceKit, out: AudioNode, t: number, peak: number, from: number, len: number): void {
   const hp = k.ctx.createBiquadFilter();
@@ -2369,10 +2935,22 @@ export function rim(k: VoiceKit, out: AudioNode, t: number, vel: number): void {
   noiseAt(k, t, 0.03).connect(bp).connect(ng).connect(out);
 }
 
-/** Hats by the style's kit: a closed or open hat around `tone` Hz, or a shaker. */
-export function hat(style: LofiStyle['hats'], k: VoiceKit, out: AudioNode, t: number, vel: number, tone: number, open = false): void {
+/** Hats by the style's kit: a closed or open hat around `tone` Hz, or a shaker. A `light`
+ *  hat (Sherbert's sixteenth ghosts and rolls) is the hiss alone, a third of the cost. */
+export function hat(style: LofiStyle['hats'], k: VoiceKit, out: AudioNode, t: number, vel: number, tone: number, open = false, light = false): void {
   if (style === 'ride') { ride(k, out, t, vel, tone); return; }
   const { ctx } = k;
+  if (light && style === 'hat' && !open) {
+    const bp = ctx.createBiquadFilter();
+    bp.type = 'bandpass';
+    bp.frequency.value = tone * 1.15;
+    bp.Q.value = 0.8;
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(0.2 * vel, t);
+    g.gain.exponentialRampToValueAtTime(EPS, t + 0.03);
+    noiseAt(k, t, 0.03).connect(bp).connect(g).connect(out);
+    return;
+  }
   const shaker = style === 'shaker';
   const hp = ctx.createBiquadFilter();
   hp.type = 'highpass';
