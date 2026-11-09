@@ -8,7 +8,7 @@
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { parseMusicState, musicStateParams, composeTrack } from './music-studio.ts';
+import { parseMusicState, musicStateParams, composeTrack, drumRow } from './music-studio.ts';
 
 test('a link carries every setting and reads back the same', () => {
   const s = parseMusicState('style=funk&seed=4111860815&bars=48&lead=riff&bass=slap&keys=wah&drums=0&texture=0.6&bright=1.3&drive=2.4&mix.bass=1.4&mix.reverb=0.5');
@@ -57,3 +57,29 @@ test('instruments chosen for a kind of section apply to every bar of it, and tra
   assert.ok(bars.filter(b => b.section === 'verse').every(b => b.voices?.lead !== 'metal'), 'other sections keep their own');
 });
 
+
+test('the tempo travels in the link, stays in range, and plays the same notes faster or slower', () => {
+  const set = parseMusicState('style=sherbert&seed=4&bars=8&bpm=128');
+  assert.equal(set.bpm, 128);
+  assert.match(musicStateParams(set), /(^|&)bpm=128(&|$)/);
+  assert.equal(parseMusicState('style=sherbert&bpm=9000').bpm, undefined, 'out of range falls back to the tune\'s own');
+  assert.equal(parseMusicState('style=sherbert&bpm=abc').bpm, undefined);
+  assert.ok(!/bpm=/.test(musicStateParams(parseMusicState('style=sherbert&seed=4'))), 'no tempo set, none in the link');
+  const own = composeTrack(parseMusicState('style=sherbert&seed=4&bars=8'));
+  const fast = composeTrack(set);
+  assert.notEqual(own[0]!.tune.bpm, 128);
+  assert.ok(fast.every(b => b.tune.bpm === 128), 'every bar at the tempo set');
+  assert.deepEqual(fast.map(b => b.notes), own.map(b => b.notes), 'the notes are the same notes');
+});
+
+test('a hand drum\'s strokes sit on the drum lane\'s rows by register', () => {
+  const idx = (kind: string): number => ['shaker', 'tambourine', 'conga', 'cowbell', 'sticks', 'tombak', 'daf', 'woodblock', 'tanggu', 'gong', 'taiko', 'kotsuzumi', 'djembe', 'dunun', 'shekere', 'agogo', 'talking'].indexOf(kind);
+  assert.equal(drumRow('kick'), 2);
+  assert.equal(drumRow('snare'), 1);
+  assert.equal(drumRow('hat'), 0);
+  assert.equal(drumRow('perc', idx('tombak'), 1), 2, 'the tom is low');
+  assert.equal(drumRow('perc', idx('tombak'), 2), 1, 'the bak is in the middle');
+  assert.equal(drumRow('perc', idx('daf'), 3), 0, 'the rings are high');
+  assert.equal(drumRow('perc', idx('dunun'), 2), 2);
+  assert.equal(drumRow('perc', idx('shekere'), 1), 0);
+});

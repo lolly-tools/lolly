@@ -28,7 +28,7 @@ import { mountProfileFab } from '../components/profile-menu.ts';
 import { t } from '../i18n.ts';
 import { escape as escapeHtml } from '../utils.ts';
 import {
-  lofiStream, lofiSectionName, LOFI_KEYS, LOFI_LEADS, LOFI_BASSES, LOFI_SNARES, LOFI_HATS, LOFI_DRUM_VOICES,
+  lofiStream, lofiSectionName, LOFI_KEYS, LOFI_LEADS, LOFI_BASSES, LOFI_SNARES, LOFI_HATS, LOFI_DRUM_VOICES, LOFI_PERCUSSION,
   type LofiBar, type LofiMood, type LofiStyle, type LofiTuneInfo,
 } from '../../../../engine/src/lofi-compose.ts';
 import { LofiStation, LOFI_MIX, renderStation, type LofiMix, type LofiSettings } from '../lib/lofi-station.ts';
@@ -212,6 +212,21 @@ function trackOf(voice: string): Track {
   if (DRUM_VOICES.has(voice)) return 'drums';
   if (voice === 'soar' || voice === 'bwah') return 'bass';
   return voice === 'keys' || voice === 'lead' || voice === 'bass' ? voice : 'fx';
+}
+
+/**
+ * Which of the drum lane's three rows a hit sits on: the kick's row for the low strokes
+ * (a tombak's tom, a taiko's don, a djembe's bass, the dunun, a daf's boom), the snare's
+ * for the middle ones, the top for the cymbals, rings, beads and bells.
+ */
+export function drumRow(voice: string, mod = 0, stroke = 0): 0 | 1 | 2 {
+  if (voice === 'kick') return 2;
+  if (voice === 'snare' || voice === 'rim' || voice === 'tom') return 1;
+  if (voice !== 'perc') return 0;
+  const kind = LOFI_PERCUSSION[mod] ?? 'shaker';
+  if (kind === 'dunun' || ((kind === 'tombak' || kind === 'daf' || kind === 'tanggu' || kind === 'taiko' || kind === 'djembe') && stroke === 1)) return 2;
+  if (kind === 'shaker' || kind === 'tambourine' || kind === 'shekere' || kind === 'agogo' || kind === 'gong' || kind === 'cowbell' || (kind === 'daf' && stroke === 3)) return 0;
+  return 1;
 }
 
 /** The kinds of section, in the order their colours are given out. */
@@ -493,8 +508,7 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
         cx.globalAlpha = silent ? 0.15 : 0.5 + n.vel * 0.5;
         cx.fillStyle = trackColour[tr];
         if (tr === 'drums') {
-          const row = n.voice === 'kick' ? 2 : n.voice === 'snare' || n.voice === 'rim' || n.voice === 'tom' ? 1 : 0;
-          cx.fillRect(x, top + 8 + row * 14, 3, 9);
+          cx.fillRect(x, top + 8 + drumRow(n.voice, n.mod, n.midi) * 14, 3, 9);
         } else if (tr === 'fx') {
           const row = fxRow(n.voice);
           const y = top + 4 + row * fxRowH;
