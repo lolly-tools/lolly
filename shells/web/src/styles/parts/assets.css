@@ -99,6 +99,14 @@
   color: hsl(var(--muted-foreground));
 }
 .cat-src--lib  { background: hsl(var(--muted) / .8); color: hsl(var(--muted-foreground)); }
+/* The caption's quieter pieces: a tile's format (or file count) and a provider note. */
+.catalog .cat-tile-sub :is(.cat-tile-fmt, .cat-tile-note) { min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-size: var(--fs-xs); color: var(--ui-color-text-muted); }
+/* Grid lets the picture and the name speak. "Catalogue" is where most assets come from,
+   so it says nothing a tile needs, and the format is in Card, List and the details
+   sheet. "Yours", "Shared project", a provider note and the Gen AI pill stay. A caption
+   left with nothing to show drops its line. */
+.catalog:not([data-browse-layout]) .cat-tile-sub :is(.cat-src--lib, .cat-tile-fmt) { display: none; }
+.catalog:not([data-browse-layout]) .cat-tile-sub:not(:has(> :not(.cat-src--lib, .cat-tile-fmt))) { display: none; }
 /* The Origins row: state line, then (own assets) the declare control + one
    quiet line of why. Buttons are ordinary .btn chips; the pressed one reads
    as chosen without colour doing the whole job. */

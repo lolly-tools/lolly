@@ -342,16 +342,44 @@ export const isThemable = (ref: AssetRef): boolean => {
   const tags = ref.meta?.tags as string[] | undefined;
   return Boolean(tags?.includes('themable') || tags?.includes('illustration'));
 };
-// The ground a tile should give its artwork when the chrome is the other way round
-// (asset-shared.css): a two-colour icon's default pairing and a logo tagged on-light
-// are drawn for light, a logo tagged on-dark for dark. Untagged art keeps the checker.
-export type TileGround = 'duo' | 'on-light' | 'on-dark' | '';
-export const tileGround = (ref: AssetRef): TileGround => {
-  const tags = (ref.meta?.tags as string[] | undefined) ?? [];
-  if (tags.includes('themable')) return 'duo';
-  if (!tags.includes('logo')) return '';
-  return tags.includes('on-dark') ? 'on-dark' : tags.includes('on-light') ? 'on-light' : '';
-};
+// The ground behind every asset: a soft checkerboard in the app's own light or dark
+// scheme (styles/parts/object-tiles.css). The toolbar's Dark ground switch flips it, so
+// artwork drawn for the other kind of surface, such as a reverse logo or a light icon
+// pairing, can be checked where it will be used. A chrome preference on this device,
+// stored only while it differs from the scheme, so a person who never touches the
+// switch always sees the ground follow the theme.
+export type AssetGround = 'light' | 'dark';
+export const ASSET_GROUND_KEY = 'lolly-asset-ground';
+/** The light or dark scheme the app chrome is drawn in right now. */
+export function appScheme(): AssetGround {
+  try {
+    const scheme = getComputedStyle(document.documentElement).colorScheme;
+    if (/dark/.test(scheme)) return 'dark';
+    if (/light/.test(scheme)) return 'light';
+  } catch { /* no styles yet: read the theme name below */ }
+  return (document.documentElement.dataset.theme ?? 'light') === 'light' ? 'light' : 'dark';
+}
+/** The ground the assets sit on: the stored choice, else the app's scheme. */
+export function readAssetGround(): AssetGround {
+  try {
+    const stored = localStorage.getItem(ASSET_GROUND_KEY);
+    if (stored === 'light' || stored === 'dark') return stored;
+  } catch { /* storage off: follow the scheme */ }
+  return appScheme();
+}
+/** Remember a ground, or forget it when it is the one the scheme gives anyway. */
+export function writeAssetGround(ground: AssetGround): void {
+  try {
+    if (ground === appScheme()) localStorage.removeItem(ASSET_GROUND_KEY);
+    else localStorage.setItem(ASSET_GROUND_KEY, ground);
+  } catch { /* storage off: the switch still works until the view closes */ }
+}
+/** Is the ground the other way round from the app's scheme? */
+export const groundFlipped = (): boolean => readAssetGround() !== appScheme();
+/** Mark an element whose assets sit on the other ground (the grid, the details sheet). */
+export function applyAssetGround(el: Element | null | undefined): void {
+  el?.toggleAttribute('data-ground-flipped', groundFlipped());
+}
 
 // Sentinel "theme" = the asset's own bytes, unchanged. Downloading the original
 // keeps any embedded Content Credential intact byte-for-byte; a recolour changes
