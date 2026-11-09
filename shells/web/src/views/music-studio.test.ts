@@ -8,7 +8,7 @@
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { parseMusicState, musicStateParams, composeTrack, drumRow, shuffleState, instrumentShade } from './music-studio.ts';
+import { parseMusicState, musicStateParams, composeTrack, drumRow, instrumentShade } from './music-studio.ts';
 
 test('a link carries every setting and reads back the same', () => {
   const s = parseMusicState('style=funk&seed=4111860815&bars=48&lead=riff&bass=slap&keys=wah&drums=0&texture=0.6&bright=1.3&drive=2.4&mix.bass=1.4&mix.reverb=0.5');
@@ -82,23 +82,6 @@ test('a hand drum\'s strokes sit on the drum lane\'s rows by register', () => {
   assert.equal(drumRow('perc', idx('daf'), 3), 0, 'the rings are high');
   assert.equal(drumRow('perc', idx('dunun'), 2), 2);
   assert.equal(drumRow('perc', idx('shekere'), 1), 0);
-});
-
-test('shuffle draws any style, seed, instruments and mix, and the link carries all of it', () => {
-  let x = 7;
-  const rand = (): number => { x = (x * 1103515245 + 12345) % 2147483648; return x / 2147483648; };
-  const moods = new Set<string>();
-  for (let n = 0; n < 40; n++) {
-    const s = shuffleState(rand, 32);
-    moods.add(s.mood);
-    assert.equal(s.bars, 32, 'the length stays');
-    assert.ok(Number.isInteger(s.seed) && s.seed >= 0 && s.seed <= 4294967295);
-    for (const k of ['keys', 'bass', 'lead', 'drums'] as const) assert.ok(s.mix[k] >= 0.75 && s.mix[k] <= 1.3, `${k} ${s.mix[k]}`);
-    assert.ok(s.texture >= 0 && s.texture <= 0.6);
-    assert.notEqual(s.lead, 'none');
-    assert.deepEqual(parseMusicState(musicStateParams(s)), { ...s, bpm: undefined, transpose: undefined }, 'a shuffled track round-trips through its link');
-  }
-  assert.ok(moods.size >= 10, `shuffles reach many styles (${moods.size})`);
 });
 
 test('an instrument has its own shade of its track\'s colour, the same every time', () => {

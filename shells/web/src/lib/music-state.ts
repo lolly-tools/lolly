@@ -177,31 +177,6 @@ export function barTimes(bars: readonly LofiBar[]): { starts: number[]; total: n
   return { starts, total: at };
 }
 
-/**
- * A shuffled track: any style and seed, each part's instrument either the composer's
- * (half the time) or any instrument at all, and a fresh mix within a listenable range.
- * The tempo and the per-section choices go back to the composer's. `rand` is 0..1.
- */
-export function shuffleState(rand: () => number, bars = DEFAULT_STATE.bars): MusicState {
-  const pickOf = <T>(a: readonly T[]): T => a[Math.floor(rand() * a.length)]!;
-  const step = (lo: number, hi: number, by = 0.05): number => Math.min(hi, Math.round(Math.round((lo + rand() * (hi - lo)) / by) * by * 100) / 100);
-  const maybe = <T>(a: readonly T[]): T | undefined => (rand() < 0.5 ? undefined : pickOf(a));
-  return {
-    mood: pickOf(LOFI_MOODS),
-    seed: Math.floor(rand() * 4294967296) >>> 0,
-    bars,
-    keys: maybe(LOFI_KEYS),
-    lead: maybe(LOFI_LEADS.filter(v => v !== 'none')),
-    bass: maybe(LOFI_BASSES),
-    drums: true,
-    texture: step(0, 0.6),
-    bright: rand() < 0.5 ? undefined : step(0.8, 1.5),
-    drive: rand() < 0.5 ? undefined : step(1, 3, 0.1),
-    mix: { keys: step(0.75, 1.25), bass: step(0.75, 1.25), lead: step(0.8, 1.3), drums: step(0.75, 1.25), fx: step(0.6, 1.5), reverb: step(0.6, 1.5), texture: 1 },
-    sections: {},
-  };
-}
-
 /** How long a track lasts at its own tempo (seconds), its last bar included. */
 export function trackSeconds(s: MusicState): number {
   return barTimes(composeTrack(s)).total;
