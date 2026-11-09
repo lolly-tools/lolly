@@ -43,7 +43,7 @@ test('a station plays one tune after another, each seed following from the last'
 
 test('the dance genres: their tempo, a build with a riser and a roll, then a drop that opens on a crash', () => {
   const BPM = { sugar: [116, 130], electro: [118, 126], dubstep: [138, 142], brostep: [145, 150], dnb: [170, 176] } as const;
-  for (const mood of DANCE_MOODS) for (const seed of SEEDS.slice(0, 6)) {
+  for (const mood of ['sugar', 'electro', 'dubstep', 'brostep', 'dnb'] as const) for (const seed of SEEDS.slice(0, 6)) {
     const bars = composeLofiTune(seed, mood);
     const t = bars[0]!.tune;
     const where = `${mood} ${seed}`;
@@ -73,7 +73,9 @@ test('sugar: slap bass in every drop (a chip bass now and then in the verse), fo
     assert.equal(st.bass, 'slap', `${seed}: ${st.bass}`);
     for (const b of bars.filter(x => x.section === 'verse')) verseBasses.add(b.voices?.bass ?? st.bass);
     const drop = bars.filter(b => b.section === 'drop');
-    assert.ok(drop.every(b => (b.voices?.bass ?? st.bass) === 'slap'), `${seed}: slap through both drops`);
+    const firstDrop = bars.filter(b => b.section === 'drop' && !b.voices?.bass);
+    assert.ok(firstDrop.length >= 8 && firstDrop.every(b => (b.voices?.bass ?? st.bass) === 'slap'), `${seed}: slap through the first drop`);
+    assert.ok(drop.every(b => ['slap', 'croak'].includes(b.voices?.bass ?? st.bass)), `${seed}: slap, or now and then the croak, in the second`);
     const arts = new Set(drop.flatMap(b => b.notes.filter(n => n.voice === 'bass').map(n => n.mod)));
     assert.ok(arts.has(0) && arts.has(1), `${seed}: thumbed and popped notes`);
     assert.ok(arts.has(2) || arts.has(3), `${seed}: a slide or a bend`);
@@ -85,7 +87,7 @@ test('sugar: slap bass in every drop (a chip bass now and then in the verse), fo
     }
     assert.ok(bars.some(b => b.notes.some(n => n.voice === 'coin')), `${seed}: a coin ding`);
   }
-  assert.deepEqual([...verseBasses].sort(), ['pulse', 'slap'], 'verses use both basses across a dozen tunes');
+  assert.ok(verseBasses.size >= 2 && [...verseBasses].every(b => ['slap', 'pulse', 'croak'].includes(b)), `verses vary their bass across a dozen tunes (${[...verseBasses].join(', ')})`);
 });
 
 test('the dance genres change instruments between sections', () => {
@@ -114,6 +116,40 @@ test('every dance tune draws its own brightness and drive, within its genre', ()
     assert.ok(new Set(tones.map(st => st.bright)).size > 4, `${mood}: brightness varies`);
   }
   assert.equal(composeLofiTune(12345, 'warm')[0]!.tune.style.bright, undefined, 'the Lofi tunes keep their own colour');
+});
+
+test('rock and Spanish guitar: a band song with verses and choruses, a fill into each chorus and a solo', () => {
+  for (const mood of ['rock', 'spanish'] as const) for (const seed of SEEDS.slice(0, 6)) {
+    const bars = composeLofiTune(seed, mood);
+    const st = bars[0]!.tune.style;
+    const where = `${mood} ${seed}`;
+    const order = bars.map(b => b.section).filter((s, i, a) => s !== a[i - 1]);
+    assert.deepEqual(order, ['intro', 'verse', 'build', 'drop', 'break', 'build', 'drop', 'outro', 'rest'], `${where}: ${order.join(' > ')}`);
+    assert.ok(!bars.some(b => b.notes.some(n => n.voice === 'riser')), `${where}: a band has no riser`);
+    const chorus = bars.find(b => b.section === 'drop')!;
+    assert.ok(chorus.notes.some(n => n.voice === 'crash' && n.beat === 0), `${where}: the chorus opens on a crash`);
+    const preEnd = bars[bars.indexOf(chorus) - 1]!;
+    assert.ok(preEnd.notes.filter(n => n.voice === 'snare' && n.beat >= 2).length >= 8, `${where}: a fill turns into the chorus`);
+    const solo = bars.filter(b => b.section === 'break');
+    assert.ok(solo.every(b => b.notes.some(n => n.voice === 'lead')), `${where}: the break is a solo`);
+    if (mood === 'rock') {
+      assert.equal(st.keys, 'crunch');
+      assert.equal(st.bass, 'picked');
+      const verse = bars.find(b => b.section === 'verse')!;
+      assert.ok(verse.notes.filter(n => n.voice === 'keys').length >= 8, `${where}: eighth-note chugs`);
+      assert.deepEqual(verse.notes.filter(n => n.voice === 'snare').map(n => n.beat), [1, 3], `${where}: the backbeat`);
+      // The bass keeps moving: across the song it plays many different bar shapes.
+      const shapes = new Set(bars.filter(b => b.section !== 'rest').map(b => b.notes.filter(n => n.voice === 'bass').map(n => Math.round(n.beat * 4)).join(',')));
+      assert.ok(shapes.size >= 5, `${where}: ${shapes.size} bass rhythms`);
+    } else {
+      assert.equal(st.keys, 'nylon');
+      const verse = bars.find(b => b.section === 'verse')!;
+      const strum = verse.notes.filter(n => n.voice === 'keys' && n.beat < 0.2).map(n => n.beat);
+      assert.ok(strum.length >= 3 && strum.every((b, i) => i === 0 || b > strum[i - 1]!), `${where}: a strum rolls across the strings`);
+      assert.ok(verse.notes.some(n => n.voice === 'rim'), `${where}: the cajón slaps`);
+      assert.ok(verse.notes.filter(n => n.voice === 'snare').length >= 4, `${where}: palmas`);
+    }
+  }
 });
 
 test('the wobble and the growl move: every note says how fast its filter swings', () => {

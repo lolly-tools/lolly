@@ -124,10 +124,11 @@ function trackMood(tags: string[]): string {
 /** The words the now-playing line uses for a Lofi tune's instruments. */
 const LOFI_KEYS_NAME: Record<LofiStyle['keys'], string> = {
   rhodes: 'Rhodes', felt: 'felt piano', wurli: 'Wurlitzer', pluck: 'soft pluck', pad: 'pad', supersaw: 'saw chords',
+  nylon: 'nylon guitar', crunch: 'rhythm guitar',
 };
 const LOFI_LEAD_NAME: Record<LofiStyle['lead'], string> = {
   vibes: 'vibes', flute: 'flute', soft: 'soft lead', kalimba: 'kalimba', chip: 'chip lead', angel: 'angel lead', pulse: 'pulse lead',
-  guitar: 'guitar', overdrive: 'lead guitar', synthwave: 'synthwave lead', metal: 'metal guitar', panflute: 'pan flute', none: '',
+  guitar: 'guitar', overdrive: 'lead guitar', synthwave: 'synthwave lead', metal: 'metal guitar', panflute: 'pan flute', nylon: 'nylon guitar', none: '',
 };
 /** A heavy station: a dance genre of the Lolly Sings family, live or a saved tune of one. */
 function heavyStation(id: string): boolean {
@@ -138,7 +139,7 @@ function heavyStation(id: string): boolean {
 /** The dance genres name their bass, which is what each one is built around. */
 const LOFI_BASS_NAME: Partial<Record<LofiStyle['bass'], string>> = {
   wobble: 'wobble bass', growl: 'growl bass', reese: 'reese bass', slap: 'slap bass', round: 'rolling bass',
-  screech: 'screech bass', pulse: 'chip bass', electro: 'electro bass',
+  screech: 'screech bass', pulse: 'chip bass', electro: 'electro bass', picked: 'bass guitar', upright: 'upright bass', croak: 'croak bass',
 };
 
 export interface NeurospicyDockHandle {
@@ -821,7 +822,7 @@ class NeurospicyDockHost implements DockHost {
       return {
         title: t.name,
         subtitle: tune
-          ? `${tune.key} · ${tune.bpm} bpm · ${(isSingsMood(tune.mood) && tune.mood !== 'sings' && LOFI_BASS_NAME[tune.style.bass]) || LOFI_KEYS_NAME[tune.style.keys]}${lead ? `, ${lead}` : ''}`
+          ? `${tune.key} · ${tune.bpm} bpm · ${(isSingsMood(tune.mood) && !['sings', 'rock', 'spanish'].includes(tune.mood) && LOFI_BASS_NAME[tune.style.bass]) || LOFI_KEYS_NAME[tune.style.keys]}${lead ? `, ${lead}` : ''}`
           : 'Generated, never the same tune twice',
         kind: 'music',
       };

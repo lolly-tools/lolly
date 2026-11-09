@@ -27,6 +27,10 @@
  *          electric pluck), overdrive (a driven lead guitar that bends into its notes)
  *          and synthwave (a swept saw lead with its own echoes), metal (a heavy
  *          power-chord guitar an octave down) and panflute (a breathy pan flute)
+ *   guitar nylon (a warm nylon-string guitar, strummed as keys or picked as a lead),
+ *          crunch (a mid-gain power-chord rhythm guitar) and a picked bass guitar
+ *   bass   croak (the modelled slap string thumbed in repeated eighths: guttural and
+ *          bubbling, a Sugar flavour)
  *   fx     crash (a cymbal with a low boom under a drop), riser (a build's noise sweep)
  *          and coin (a bright two-note square ding)
  *
@@ -82,6 +86,8 @@ export function keys(style: LofiStyle['keys'], k: VoiceKit, out: AudioNode, t: n
   if (style === 'felt') felt(k, out, t, midi, vel, dur);
   else if (style === 'pluck') pluck(k, out, t, midi, vel, dur);
   else if (style === 'pad' || style === 'supersaw') saws(k, out, t, midi, vel, dur, style === 'supersaw');
+  else if (style === 'nylon') nylon(k, out, t, midi, vel, dur, false);
+  else if (style === 'crunch') crunch(k, out, t, midi, vel, dur);
   else fmPiano(k, out, t, midi, vel, dur, style === 'wurli');
 }
 
@@ -210,6 +216,83 @@ export function lead(style: LofiStyle['lead'], k: VoiceKit, out: AudioNode, t: n
   else if (style === 'synthwave') synthwave(k, out, t, midi, vel, dur);
   else if (style === 'metal') metal(k, out, t, midi, vel, dur);
   else if (style === 'panflute') panflute(k, out, t, midi, vel, dur);
+  else if (style === 'nylon') nylon(k, out, t, midi, vel, dur, true);
+}
+
+/**
+ * Nylon: a classical guitar's string, warm and round. Four partials fade at their own
+ * rates over a wooden body resonance near 300 Hz, with the top kept soft and a gentle
+ * fingertip pick. Strummed as chords (the rumba) or picked as a melody, a little
+ * brighter and longer as a lead.
+ */
+function nylon(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number, dur: number, lead: boolean): void {
+  const { ctx } = k;
+  const f = mtof(midi);
+  const len = Math.min(dur + (lead ? 0.4 : 0.25), lead ? 1.8 : 1.2);
+  const end = t + len + 0.1;
+  const box = ctx.createBiquadFilter();
+  box.type = 'peaking';
+  box.frequency.value = 300;
+  box.Q.value = 1.2;
+  box.gain.value = 4;
+  const soft = ctx.createBiquadFilter();
+  soft.type = 'lowpass';
+  soft.frequency.value = lead ? 4200 : 3200;
+  const amp = ctx.createGain();
+  amp.gain.setValueAtTime((lead ? 0.12 : 0.07) * vel, t);
+  amp.gain.setTargetAtTime(EPS, t + dur + 0.04, lead ? 0.12 : 0.06);
+  box.connect(soft).connect(amp).connect(out);
+  for (const [n, level] of [[1, 1], [2, 0.45], [3, 0.26], [4, 0.12]] as const) {
+    const o = osc(k, 'sine', f * n * (1 + 0.0003 * n * n), t, end);
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(EPS, t);
+    g.gain.exponentialRampToValueAtTime(level, t + 0.004);
+    g.gain.setTargetAtTime(EPS, t + 0.005, 1.4 / n);
+    o.connect(g).connect(box);
+  }
+  const pick = ctx.createBiquadFilter();
+  pick.type = 'bandpass';
+  pick.frequency.value = 1800;
+  pick.Q.value = 1;
+  const pg = ctx.createGain();
+  pg.gain.setValueAtTime(0.12 * vel, t);
+  pg.gain.exponentialRampToValueAtTime(EPS, t + 0.01);
+  noiseAt(k, t, 0.012).connect(pick).connect(pg).connect(out);
+}
+
+/**
+ * Crunch: a rhythm guitar's power chord, the root an octave below the given note with
+ * its fifth and octave, through an amp at a classic rock's gain: driven but open, with a
+ * mid push near 1 kHz rather than metal's scoop. A short note is palm-muted.
+ */
+function crunch(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number, dur: number): void {
+  const { ctx } = k;
+  const root = mtof(midi - 12);
+  const chug = dur < 0.18;
+  const end = t + dur + 0.15;
+  const [push, ws] = drivenBy(ctx, 3.5);
+  const hp = ctx.createBiquadFilter();
+  hp.type = 'highpass';
+  hp.frequency.value = 80;
+  const mid = ctx.createBiquadFilter();
+  mid.type = 'peaking';
+  mid.frequency.value = 1000;
+  mid.Q.value = 0.9;
+  mid.gain.value = 3;
+  const cab = ctx.createBiquadFilter();
+  cab.type = 'lowpass';
+  cab.frequency.value = chug ? 2000 : 4600;
+  const amp = ctx.createGain();
+  amp.gain.setValueAtTime(EPS, t);
+  amp.gain.exponentialRampToValueAtTime(0.06 * vel, t + 0.005);
+  if (chug) amp.gain.setTargetAtTime(EPS, t + 0.06, 0.05);
+  else amp.gain.setTargetAtTime(EPS, t + dur, 0.08);
+  ws.connect(hp).connect(mid).connect(cab).connect(amp).connect(out);
+  for (const [ratio, cents] of [[1, -4], [1.5, 3], [2, 0]] as const) {
+    const o = osc(k, 'sawtooth', root * ratio, t, end);
+    o.detune.value = cents;
+    o.connect(push);
+  }
 }
 
 /**
@@ -592,6 +675,8 @@ export function bass(style: LofiStyle['bass'], k: VoiceKit, out: AudioNode, t: n
   if (style === 'screech') { screech(k, out, t, midi, vel, dur, mod, tone); return; }
   if (style === 'pulse') { pulseBass(k, out, t, midi, vel, dur, tone); return; }
   if (style === 'electro') { electro(k, out, t, midi, vel, dur, tone); return; }
+  if (style === 'picked') { pickedBass(k, out, t, midi, vel, dur, tone); return; }
+  if (style === 'croak') { slap(k, out, t, midi, vel, dur, 0, tone); return; }   // the modelled string, thumbed in repeated eighths
   const { ctx } = k;
   const f = mtof(midi);
   const end = t + dur + 0.3;
@@ -955,6 +1040,37 @@ function electro(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: numb
   sq.detune.value = -8;
   sq.connect(lp);
   sub(k, out, t, f, vel * 0.8, len);
+}
+
+/**
+ * Picked bass: a rock bass guitar played with a pick. A saw and a square through a
+ * low-pass that snaps from bright to round on each note, over a sine for the weight,
+ * with a little grit from the amp.
+ */
+function pickedBass(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number, dur: number, tone: Tone): void {
+  const { ctx } = k;
+  const f = mtof(midi);
+  const len = Math.max(0.1, dur);
+  const end = t + len + 0.08;
+  const lp = ctx.createBiquadFilter();
+  lp.type = 'lowpass';
+  lp.Q.value = 1.5;
+  lp.frequency.setValueAtTime(1800 * tone.bright, t);
+  lp.frequency.exponentialRampToValueAtTime(380 * tone.bright, t + 0.12);
+  const [push, ws] = drivenBy(ctx, 0.6 * tone.drive);
+  const amp = ctx.createGain();
+  amp.gain.setValueAtTime(EPS, t);
+  amp.gain.exponentialRampToValueAtTime(0.2 * vel, t + 0.004);
+  amp.gain.setTargetAtTime(0.13 * vel, t + 0.05, 0.12);
+  amp.gain.setTargetAtTime(EPS, t + len, 0.025);
+  lp.connect(push);
+  ws.connect(amp).connect(out);
+  osc(k, 'sawtooth', f, t, end).connect(lp);
+  const sq = osc(k, 'square', f, t, end);
+  const sg = ctx.createGain();
+  sg.gain.value = 0.5;
+  sq.connect(sg).connect(lp);
+  sub(k, out, t, f, vel * 0.7, len);
 }
 
 // ── effects ──────────────────────────────────────────────────────────────────

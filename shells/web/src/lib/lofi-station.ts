@@ -49,11 +49,11 @@ export const LOFI_MIX: LofiMix = { keys: 1, bass: 1, lead: 1, drums: 1, reverb: 
 
 /** The tone filter's most open cutoff per mood (Hz); texture and each bar close it from there. */
 const MOOD_TONE: Record<LofiMood, number> = {
-  warm: 7500, lateNight: 4300, rainy: 5400, sings: 8200, sugar: 11000, electro: 9000, dubstep: 9500, brostep: 10000, dnb: 10000,
+  warm: 7500, lateNight: 4300, rainy: 5400, sings: 8200, sugar: 11000, spanish: 8500, rock: 9000, electro: 9000, dubstep: 9500, brostep: 10000, dnb: 10000,
 };
 /** Lolly Sings is melody-first: its lead sits this much higher than Lofi's (about +4 dB), in every genre of the family. */
 const SINGS_LEAD = 1.6;
-const SINGS_FAMILY = new Set<LofiMood>(['sings', 'sugar', 'electro', 'dubstep', 'brostep', 'dnb']);
+const SINGS_FAMILY = new Set<LofiMood>(['sings', 'sugar', 'spanish', 'rock', 'electro', 'dubstep', 'brostep', 'dnb']);
 const DRUMS = new Set(LOFI_DRUM_VOICES);
 /**
  * Each part's designed level: first measured K-weighted and soloed (keys about -25 LUFS,
@@ -72,10 +72,10 @@ const GRIT_MIX = 0.5;
 const VARIANT: { keys: Record<LofiStyle['keys'], number>; lead: Record<LofiStyle['lead'], number>; bass: Record<LofiStyle['bass'], number>; snare: Record<LofiStyle['snare'], number>; hats: Record<LofiStyle['hats'], number> } = {
   // Short, decaying sounds (pluck, kalimba, rim, clap) measure quieter than they sound,
   // so they take most of the measured difference, not the whole difference.
-  keys: { rhodes: 1, felt: 0.93, wurli: 1.4, pluck: 1.8, pad: 1, supersaw: 1 },
-  lead: { vibes: 1, flute: 0.82, soft: 1.35, kalimba: 1.7, chip: 0.8, angel: 0.76, pulse: 2.4, guitar: 0.78, overdrive: 0.5, synthwave: 0.86, metal: 0.6, panflute: 0.56, none: 0 },
+  keys: { rhodes: 1, felt: 0.93, wurli: 1.4, pluck: 1.8, pad: 1, supersaw: 1, nylon: 1, crunch: 1 },
+  lead: { vibes: 1, flute: 0.82, soft: 1.35, kalimba: 1.7, chip: 0.8, angel: 0.76, pulse: 2.4, guitar: 0.78, overdrive: 0.5, synthwave: 0.86, metal: 0.6, panflute: 0.56, nylon: 1, none: 0 },
   // The reese is drum and bass's whole low end, so it sits about 4 dB up (Andy, 2026-11-08).
-  bass: { round: 1, upright: 1.05, synth: 1.2, wobble: 1, growl: 1, reese: 1.6, slap: 1, screech: 1, pulse: 1, electro: 1 },
+  bass: { round: 1, upright: 1.05, synth: 1.2, wobble: 1, growl: 1, reese: 1.6, slap: 1, screech: 1, pulse: 1, electro: 1, picked: 1, croak: 1 },
   snare: { snare: 1, brush: 1.15, rim: 1.8, clap: 2.3 },
   hats: { hat: 1, shaker: 1.15, none: 0 },
 };

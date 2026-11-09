@@ -85,7 +85,7 @@ test('the player lists saved and preset tunes by genre and plays them on the sta
   assert.deepEqual(savedTuneOf(saved.id), { mood: 'sings', seed: 7 });
   assert.ok(playsOnStation(preset.id), 'a preset plays live on the station');
   const lolly = loops.filter((t) => trackCategory(t) === 'lolly').map((t) => t.id);
-  assert.deepEqual(lolly, ['lofi:sings', 'lofi:sugar', 'lofi:electro', 'lofi:dubstep', 'lofi:brostep', 'lofi:dnb', 'user/tune/1-sings-7'],
+  assert.deepEqual(lolly, ['lofi:sings', 'lofi:sugar', 'lofi:spanish', 'lofi:rock', 'lofi:electro', 'lofi:dubstep', 'lofi:brostep', 'lofi:dnb', 'user/tune/1-sings-7'],
     'the stations lead their group, then the saved tunes');
   invalidateNeurospicyTracks();
 });
