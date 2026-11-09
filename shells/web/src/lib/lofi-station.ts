@@ -40,7 +40,8 @@ export interface LofiSettings {
   texture: number;
   /** Fix parts of every tune's style (for auditioning an instrument); normally empty. */
   style?: Partial<LofiStyle>;
-  /** Repeat the first tune rather than going on to new ones (a saved tune). */
+  /** Repeat the first tune rather than going on to new ones (a saved tune). With `bars`,
+   *  the stretch of `bars` repeats instead (a saved music generator track). */
   repeat?: boolean;
   /** Start this many bars in (the music generator's seek): the bars before are composed, not played. */
   startBar?: number;
@@ -118,6 +119,8 @@ export class LofiStation {
   private settings: LofiSettings;
   private mix: LofiMix;
   private stream: LofiStream;
+  /** The seed the stream started from, to start it again (a saved generator track repeating). */
+  private seed: number;
   private kit: V.VoiceKit;
   private queue: Queued[] = [];
   private marks: Mark[] = [];
@@ -159,6 +162,7 @@ export class LofiStation {
     this.ctx = ctx;
     this.settings = { ...settings };
     this.mix = { ...mix };
+    this.seed = seed;
     this.stream = lofiStream(seed, { mood: settings.mood, style: settings.style, repeat: settings.repeat });
     for (let i = 0; i < (settings.startBar ?? 0); i++) { this.stream.next(); this.taken++; }
     const noise = noiseBuffer(ctx, 2, mulberry32(seed ^ 0x51));
@@ -319,6 +323,7 @@ export class LofiStation {
     for (const g of Object.values(old)) g.gain.setTargetAtTime(0, now, 0.06);
     if (typeof setTimeout === 'function') setTimeout(() => { for (const g of Object.values(old)) g.disconnect(); }, 800);
     this.lanes = this.newLanes();
+    this.seed = seed;
     this.stream = lofiStream(seed, { mood: this.settings.mood, style: this.settings.style, repeat: this.settings.repeat });
     this.queue = [];
     this.marks = [];
@@ -384,7 +389,13 @@ export class LofiStation {
   /** Queue whole bars until the next one starts after `until`. */
   private fill(until: number): void {
     while (this.nextBarAt < until) {
-      if (this.settings.bars !== undefined && this.taken >= this.settings.bars) return;
+      if (this.settings.bars !== undefined && this.taken >= this.settings.bars) {
+        if (!this.settings.repeat) return;
+        // A saved generator track repeats: its stretch of bars starts again from the top.
+        this.stream = lofiStream(this.seed, { mood: this.settings.mood, style: this.settings.style, repeat: this.settings.repeat });
+        this.taken = 0;
+        for (let i = 0; i < (this.settings.startBar ?? 0); i++) { this.stream.next(); this.taken++; }
+      }
       const raw = this.stream.next();
       const bar = this.settings.shape ? this.settings.shape(raw) : raw;
       this.taken++;

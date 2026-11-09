@@ -123,7 +123,13 @@ export async function startLofi(ctx: AudioContext, dest: AudioNode, id: string, 
   if (!saved) queued = null;
   if (stationId !== id || heard[heard.length - 1] !== seed) heard = [...(stationId === id ? heard : []), seed].slice(-50);
   stationId = id;
-  const s = new LofiStation(ctx, dest, seed, { mood, drums: prefs.drums, texture: prefs.texture, repeat: Boolean(saved) });
+  // A track saved from the music generator plays exactly as it was made (its instruments,
+  // tempo, key, mix and length), repeating; the listener's drums switch still holds.
+  const track = saved?.generator ? await import('./music-state.ts') : null;
+  const state = track && saved?.generator ? track.parseMusicState(saved.generator) : null;
+  const s = state && track
+    ? new LofiStation(ctx, dest, state.seed, { ...track.trackSettings(state), drums: prefs.drums && state.drums, repeat: true }, state.mix)
+    : new LofiStation(ctx, dest, seed, { mood, drums: prefs.drums, texture: prefs.texture, repeat: Boolean(saved) });
   s.setVolume(1);
   let rounds = 0;
   s.onBar = (bar) => {
@@ -192,7 +198,7 @@ export function queueLofiSeed(seed: number): void { queued = seed >>> 0; }
 // ── shared links ─────────────────────────────────────────────────────────────
 
 /** A shared tune: its station's mood and its seed. */
-export interface LofiLink { mood: LofiMood; seed: number }
+export interface LofiLink { mood: LofiMood; seed: number; /** A music generator track's settings (lib/music-state.ts), for a saved one. */ generator?: string }
 
 /** The `lofi` link parameter's value for a tune: "<mood>.<seed>". */
 export function lofiLinkValue(link: LofiLink): string { return `${link.mood}.${link.seed >>> 0}`; }
@@ -207,8 +213,11 @@ export function parseLofiLink(value: string | null | undefined): LofiLink | null
   return { mood, seed };
 }
 
-/** A link that opens the app and plays the tune now playing. Null when nothing is. */
+/** A link that opens the app and plays the tune now playing (a saved generator track
+ *  opens in the music generator, the one place its settings travel). Null when nothing is. */
 export function lofiShareUrl(origin: string): string | null {
+  const generator = savedTunes.get(stationId)?.generator;
+  if (generator && station) return `${origin}/#/music?${generator}`;
   const mood = savedTunes.get(stationId)?.mood ?? lofiMoodOf(stationId);
   const seed = station?.current?.tune.seed ?? heard[heard.length - 1];
   if (!mood || seed === undefined || !station) return null;
