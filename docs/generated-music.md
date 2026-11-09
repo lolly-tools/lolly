@@ -1,6 +1,6 @@
 # Generated music
 
-The Neurospicy player makes its own music. Its generated stations compose every tune as they play: the three **Lofi** stations (Warm, Late night and Rainy) and the **Lolly Sings** family (the original Lolly Sings, Sugar, Electro, Dubstep, Brostep and D&B). Nothing is recorded or sampled. Each tune is written by Lolly's composer and played by instruments synthesised in your browser.
+The Neurospicy player makes its own music. Its generated stations, all in the **Lolly Sings** group, compose every tune as they play: the original Lolly Sings, Sugar, Hip hop, Reggae, Spanish guitar, Rock, Synthwave, Electro, Dubstep, Brostep and D&B, and the three **Lofi** moods (Warm, Late night and Rainy). Nothing is recorded or sampled. Each tune is written by Lolly's composer and played by instruments synthesised in your browser.
 
 ## Every tune is a number
 
@@ -36,6 +36,6 @@ Each station leans the composer towards its genre without fixing the outcome:
 
 The dance stations play many more synthesised voices at once than the Lofi stations. On those stations the player offers **Light visualiser**, which shows the simple level bars instead of the full visualiser so the music has the processing time it needs. The setting is on by default on a modest device, such as a phone or a computer with four cores or fewer, and you can change it in the station's controls at any time.
 
-## No samples, no voices
+## No samples, no recorded voices
 
-Every sound is synthesised by Lolly's own code. A generated tune contains no samples, loops or recordings, and nothing in a tune sings or speaks.
+Every sound is synthesised by Lolly's own code. A generated tune contains no samples, loops or recordings, and no recorded voice. The one vocal sound is the "hey" shout in Sugar and Reggae, which is built from the same oscillators and filters as every other instrument, and it says nothing else.

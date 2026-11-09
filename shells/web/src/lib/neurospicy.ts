@@ -25,7 +25,7 @@ import { RADIO_STATIONS, radioStation, isRadioId, radioAvailable, resolveStreamU
 import { isSfxMuted } from './sfx.ts';
 import {
   isLofiId, lofiId, lofiTracks, startLofi, stopLofi, lofiLive, applyLofiPrefs, queueLofiSeed, retiredTrackStation, LOFI_DEFAULTS, LOFI_STATION_MOODS,
-  playsOnStation, rememberSavedTune, currentLofiRecipe, lofiTune, lofiMoodOf, savedTuneOf, isSingsMood,
+  playsOnStation, rememberSavedTune, currentLofiRecipe, lofiTune, isSingsMood,
   type LofiPrefs, type LofiLink,
 } from './neurospicy-lofi.ts';
 import { LOFI_TUNE_FORMAT, lofiTuneBytes, lofiTuneFromMeta, lofiTuneFromUrl, lofiTuneName } from './lofi-tune.ts';
@@ -866,9 +866,8 @@ export const NEURO_CATEGORY_ORDER: string[] = ['catalog', 'uploads', 'lolly', 'l
 export function trackCategory(t: NeuroTrack): string {
   if (t.format === 'lofi') {
     // The generated stations, and the tunes saved from them (presets and the listener's
-    // own), grouped by genre: Lolly Sings, then Lofi.
-    const mood = lofiMoodOf(t.id) ?? savedTuneOf(t.id)?.mood ?? (t.tags.includes('lolly-sings') ? 'sings' : null);
-    return mood && isSingsMood(mood) ? 'lolly' : 'lofi';
+    // own), are all Lolly Sings: the family's genres first, then the Lofi moods.
+    return 'lolly';
   }
   if (t.format === 'stream' || t.tags.includes('radio') || t.tags.includes('stream')) return 'radio';
   if (t.id.startsWith('user/')) return 'uploads';       // the user's own uploads

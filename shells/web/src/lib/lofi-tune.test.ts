@@ -81,11 +81,11 @@ test('the player lists saved and preset tunes by genre and plays them on the sta
   const saved = loops.find((t) => t.id === 'user/tune/1-sings-7')!;
   const preset = loops.find((t) => t.id === 'lolly/tunes/warm-250249288')!;
   assert.equal(trackCategory(saved), 'lolly', 'a saved Lolly Sings tune sits with Lolly Sings');
-  assert.equal(trackCategory(preset), 'lofi', 'a Warm preset sits with the Lofi stations');
+  assert.equal(trackCategory(preset), 'lolly', 'a Warm preset is Lolly Sings too');
   assert.deepEqual(savedTuneOf(saved.id), { mood: 'sings', seed: 7 });
   assert.ok(playsOnStation(preset.id), 'a preset plays live on the station');
   const lolly = loops.filter((t) => trackCategory(t) === 'lolly').map((t) => t.id);
-  assert.deepEqual(lolly, ['lofi:sings', 'lofi:sugar', 'lofi:spanish', 'lofi:rock', 'lofi:electro', 'lofi:dubstep', 'lofi:brostep', 'lofi:dnb', 'user/tune/1-sings-7'],
+  assert.deepEqual(lolly, ['lofi:sings', 'lofi:sugar', 'lofi:hiphop', 'lofi:reggae', 'lofi:spanish', 'lofi:rock', 'lofi:synthwave', 'lofi:electro', 'lofi:dubstep', 'lofi:brostep', 'lofi:dnb', 'lofi:warm', 'lofi:lateNight', 'lofi:rainy', 'lolly/tunes/warm-250249288', 'user/tune/1-sings-7'],
     'the stations lead their group, then the saved tunes');
   invalidateNeurospicyTracks();
 });

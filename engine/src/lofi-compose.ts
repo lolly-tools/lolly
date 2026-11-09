@@ -38,26 +38,27 @@
 import { mulberry32 } from './zzfx-compose.ts';
 
 /** The dance genres in the Lolly Sings family, written by composeDanceTune. */
-export type DanceMood = 'sugar' | 'spanish' | 'rock' | 'electro' | 'dubstep' | 'brostep' | 'dnb';
+export type DanceMood = 'sugar' | 'hiphop' | 'reggae' | 'spanish' | 'rock' | 'synthwave' | 'electro' | 'dubstep' | 'brostep' | 'dnb';
 /** The three Lofi moods, Lolly Sings (the melody-first genre, see LEAN.sings) and its dance genres. */
 export type LofiMood = 'warm' | 'lateNight' | 'rainy' | 'sings' | DanceMood;
-export const LOFI_MOODS: readonly LofiMood[] = ['warm', 'lateNight', 'rainy', 'sings', 'sugar', 'spanish', 'rock', 'electro', 'dubstep', 'brostep', 'dnb'];
-export const DANCE_MOODS: readonly DanceMood[] = ['sugar', 'spanish', 'rock', 'electro', 'dubstep', 'brostep', 'dnb'];
+export const LOFI_MOODS: readonly LofiMood[] = ['warm', 'lateNight', 'rainy', 'sings', 'sugar', 'hiphop', 'reggae', 'spanish', 'rock', 'synthwave', 'electro', 'dubstep', 'brostep', 'dnb'];
+export const DANCE_MOODS: readonly DanceMood[] = ['sugar', 'hiphop', 'reggae', 'spanish', 'rock', 'synthwave', 'electro', 'dubstep', 'brostep', 'dnb'];
 /** Whether `mood` is one of the dance genres. */
 export function isDanceMood(mood: LofiMood): mood is DanceMood { return (DANCE_MOODS as readonly string[]).includes(mood); }
 
 /** `riser` (a build's noise sweep), `crash` (a cymbal and a low boom on a drop), `coin`
  *  (a bright two-note ding) and `magpie` (a magpie's warble, Lolly's bird, for sugar) are
- *  effects, written by the dance genres only. A magpie's `mod` seeds its song. */
-export type LofiVoice = 'keys' | 'bass' | 'lead' | 'kick' | 'snare' | 'rim' | 'hat' | 'openHat' | 'crash' | 'riser' | 'coin' | 'magpie';
+ *  effects, written by the dance genres only. A magpie's `mod` seeds its song. `hey` is a
+ *  synthesised shout (no recording, no words), for sugar and reggae. */
+export type LofiVoice = 'keys' | 'bass' | 'lead' | 'kick' | 'snare' | 'rim' | 'hat' | 'openHat' | 'crash' | 'riser' | 'coin' | 'magpie' | 'hey';
 export const LOFI_DRUM_VOICES: readonly LofiVoice[] = ['kick', 'snare', 'rim', 'hat', 'openHat', 'crash'];
 
 export const LOFI_KEYS = ['rhodes', 'felt', 'wurli', 'pluck', 'pad', 'supersaw', 'nylon', 'crunch'] as const;
 export const LOFI_LEADS = ['vibes', 'flute', 'soft', 'kalimba', 'chip', 'angel', 'pulse', 'guitar', 'overdrive', 'synthwave', 'metal', 'panflute', 'nylon', 'none'] as const;
-export const LOFI_BASSES = ['round', 'upright', 'synth', 'wobble', 'growl', 'reese', 'slap', 'screech', 'pulse', 'electro', 'picked', 'croak'] as const;
+export const LOFI_BASSES = ['round', 'upright', 'synth', 'wobble', 'growl', 'reese', 'slap', 'screech', 'pulse', 'electro', 'picked', 'croak', 'eight'] as const;
 export const LOFI_SNARES = ['snare', 'brush', 'rim', 'clap'] as const;
 export const LOFI_HATS = ['hat', 'shaker', 'none'] as const;
-export const LOFI_GROOVES = ['boomBap', 'halfTime', 'shuffle', 'lazy', 'sparse', 'bossa', 'disco', 'halfStep', 'twoStep', 'rock', 'rumba'] as const;
+export const LOFI_GROOVES = ['boomBap', 'halfTime', 'shuffle', 'lazy', 'sparse', 'bossa', 'disco', 'halfStep', 'twoStep', 'rock', 'rumba', 'oneDrop'] as const;
 export const LOFI_COMPS = ['hold', 'sparse', 'arp', 'pulse'] as const;
 
 /** Everything about how a tune sounds, besides its notes. */
@@ -504,6 +505,8 @@ const KICKS: Record<LofiStyle['groove'], readonly (readonly number[])[]> = {
   // A rock beat (the kick on one and three, pushed now and then), and the rumba's cajón.
   rock: [[0, 8], [0, 6, 8], [0, 8, 10], [0, 8, 11]],
   rumba: [[0, 6, 8, 14], [0, 3, 8, 11]],
+  // Reggae's one drop: no kick on one, the kick and the cross-stick together on three.
+  oneDrop: [[8], [8], [8, 14]],
 };
 /** The bossa's clave, played on the rim in place of a backbeat. */
 const CLAVE = [0, 3, 6, 10, 12];
@@ -782,6 +785,33 @@ interface DanceLean {
 }
 
 const DANCE: Record<DanceMood, DanceLean> = {
+  // Reggae: the one drop, an offbeat skank on the keys with an organ's bubble, a deep and
+  // melodic bass that leaves space, and a horn-like or flute lead.
+  reggae: {
+    bpm: [70, 84], minor: 0.5, groove: 'oneDrop', chordBars: 1,
+    keys: [['wurli', 3], ['rhodes', 2], ['pluck', 1]], lead: [['soft', 3], ['flute', 2], ['vibes', 2], ['kalimba', 1], ['guitar', 1]],
+    bass: [['round', 1]], snare: [['rim', 1]], kick: [46, 54], kickLen: [0.35, 0.5], duck: [0.5, 0.8], crunch: 0,
+    swing: 0.58, intro: 4, build: [4], drop: 8, breakdown: 8, harmony: 'pop', singingDrop: true, busy: 0.6, band: true,
+    softKeys: [['felt', 2], ['pad', 1]], verseBass: [['round', 1]], switchBass: [['round', 1]],
+  },
+  // Synthwave: the eighties at night. An eighth-note octave bass, arpeggios and pads, a
+  // backbeat with a big snare, a saw lead or a lead guitar, builds that open on a crash.
+  synthwave: {
+    bpm: [92, 118], minor: 0.8, groove: 'rock', chordBars: 2,
+    keys: [['pluck', 3], ['pad', 2], ['supersaw', 1]], lead: [['synthwave', 4], ['overdrive', 2], ['soft', 1], ['pulse', 1]],
+    bass: [['synth', 1]], snare: [['snare', 3], ['clap', 1]], kick: [50, 58], kickLen: [0.3, 0.42], duck: [1, 1.4], crunch: 0,
+    swing: 0.5, intro: 8, build: [4], drop: 16, breakdown: 8, harmony: 'pop', singingDrop: true, busy: 0.65,
+    softKeys: [['pad', 2], ['felt', 1]], verseBass: [['synth', 1]], switchBass: [['synth', 2], ['electro', 1]],
+  },
+  // Hip hop: a hard boom-bap with trap hat rolls, an 808 that slides, chopped keys and a
+  // bright lead singing the hook.
+  hiphop: {
+    bpm: [84, 98], minor: 0.55, groove: 'boomBap', chordBars: 2,
+    keys: [['rhodes', 3], ['wurli', 2], ['felt', 1], ['pluck', 2]], lead: [['chip', 2], ['kalimba', 2], ['vibes', 2], ['flute', 2], ['synthwave', 1], ['guitar', 1]],
+    bass: [['eight', 1]], snare: [['snare', 3], ['clap', 2]], kick: [48, 56], kickLen: [0.4, 0.6], duck: [0.8, 1.2], crunch: 0.2,
+    swing: 0.56, intro: 4, build: [4], drop: 8, breakdown: 8, harmony: 'pop', singingDrop: true, busy: 0.7, band: true,
+    softKeys: [['felt', 2], ['pluck', 1], ['pad', 1]], verseBass: [['eight', 1]], switchBass: [['eight', 1]],
+  },
   // Classic rock: a crunchy power-chord rhythm guitar chugging eighths, a picked bass, a
   // rock beat, and an overdriven lead guitar that takes a solo in the break.
   rock: {
@@ -843,8 +873,8 @@ const DANCE: Record<DanceMood, DanceLean> = {
 };
 
 /** Each dance genre's range of brightness and drive (see LofiStyle.bright and drive). */
-const BRIGHT: Record<DanceMood, [number, number]> = { rock: [0.9, 1.3], spanish: [0.8, 1.2], sugar: [1.1, 1.6], electro: [0.8, 1.4], dubstep: [0.7, 1.4], brostep: [0.9, 1.6], dnb: [0.6, 1.2] };
-const DRIVE: Record<DanceMood, [number, number]> = { rock: [2, 3.2], spanish: [1, 1.4], sugar: [1, 1.6], electro: [2.5, 4], dubstep: [1.2, 2.6], brostep: [2, 4], dnb: [1.8, 3.2] };
+const BRIGHT: Record<DanceMood, [number, number]> = { reggae: [0.7, 1.1], synthwave: [0.8, 1.3], hiphop: [0.8, 1.2], rock: [0.9, 1.3], spanish: [0.8, 1.2], sugar: [1.1, 1.6], electro: [0.8, 1.4], dubstep: [0.7, 1.4], brostep: [0.9, 1.6], dnb: [0.6, 1.2] };
+const DRIVE: Record<DanceMood, [number, number]> = { reggae: [1, 1.4], synthwave: [1, 1.8], hiphop: [1.2, 2.2], rock: [2, 3.2], spanish: [1, 1.4], sugar: [1, 1.6], electro: [2.5, 4], dubstep: [1.2, 2.6], brostep: [2, 4], dnb: [1.8, 3.2] };
 
 /** Pop progressions for the dance genres (sugar uses the jazz ones above). */
 const POP_MAJOR: readonly (readonly Step[])[] = [
@@ -968,6 +998,32 @@ const CROAKS: readonly Figure[] = [
   [[0, 1, 2, 0], [1, 1, 0, 0], [2, 1, 0, 0], [3, 1, 3, 12], [6, 1, 0, 0], [7, 1, 0, 0], [8, 1, 2, 5], [9, 1, 0, 5], [10, 2, 3, 7], [12, 1, 0, 0], [13, 1, 0, 0], [14, 2, 2, 12]],
 ];
 
+/** Reggae bass: deep, melodic, and as much about the rests as the notes. */
+const RIDDIMS: readonly Figure[] = [
+  [[0, 3, 0, 0], [4, 1, 0, 0], [6, 2, 0, 7], [10, 2, 0, 12], [12, 3, 0, 10], [15, 1, 0, 7]],
+  [[0, 4, 0, 0], [6, 1, 0, 0], [7, 1, 0, THIRD], [8, 4, 0, 7], [14, 2, 0, APPROACH]],
+  [[2, 2, 0, 0], [4, 2, 0, 0], [8, 3, 0, 12], [11, 1, 0, 10], [12, 2, 0, 7], [14, 2, 0, 5]],
+];
+
+/** Synthwave bass: octave eighths, the pulse of a night drive. */
+const OCTAVES: readonly Figure[] = [
+  [[0, 2, 0, 0], [2, 2, 0, 12], [4, 2, 0, 0], [6, 2, 0, 12], [8, 2, 0, 0], [10, 2, 0, 12], [12, 2, 0, 0], [14, 2, 0, 12]],
+  [[0, 2, 0, 0], [2, 2, 0, 0], [4, 2, 0, 12], [6, 2, 0, 0], [8, 2, 0, 0], [10, 2, 0, 0], [12, 2, 0, 12], [14, 2, 0, APPROACH]],
+];
+/** The 808: long notes under the kick, some sliding up into their pitch (mod 2). */
+const EIGHTS: readonly Figure[] = [
+  [[0, 6, 0, 0], [6, 2, 0, 0], [8, 4, 0, 7], [12, 4, 2, 12]],
+  [[0, 8, 0, 0], [10, 2, 0, 0], [12, 4, 2, 7]],
+  [[0, 3, 0, 0], [3, 5, 0, 0], [8, 6, 2, 0], [14, 2, 0, 12]],
+  [[0, 4, 0, 0], [7, 3, 2, 0], [10, 6, 0, APPROACH]],
+];
+/** Hip hop's chopped keys: [sixteenth, length in sixteenths]. */
+const CHOPS: ReadonlyArray<ReadonlyArray<readonly [number, number]>> = [
+  [[0, 5], [6, 2], [10, 4]],
+  [[0, 3], [3, 3], [8, 6]],
+  [[0, 6], [7, 2], [10, 2], [14, 2]],
+];
+
 /** Rumba bass: the root and the fifth, pushed against the cajón. */
 const RUMBA: readonly Figure[] = [
   [[0, 3, 0, 0], [3, 3, 0, 7], [6, 2, 0, 12], [8, 3, 0, 0], [11, 3, 0, 7], [14, 2, 0, 12]],
@@ -1014,16 +1070,35 @@ interface DancePart extends Part { alt?: boolean }
  * a build (a snare or clap roll that speeds up under a riser), the drop, a breakdown, a
  * second build and a second drop with its own bass figures, and an outro.
  */
+/** How a tune can open: on the keys, the beat alone, the bass and the beat, a lead alone, or the whole band. */
+type IntroStyle = 'keys' | 'beat' | 'bass' | 'lead' | 'full';
+const INTROS: Record<DanceMood, Weights<IntroStyle>> = {
+  sugar: [['keys', 2], ['beat', 2], ['bass', 2], ['lead', 1]],
+  hiphop: [['beat', 3], ['keys', 2], ['full', 1]],
+  reggae: [['full', 1]],   // reggae drops straight into the groove
+  spanish: [['keys', 3], ['beat', 2], ['lead', 1]],
+  rock: [['full', 2], ['beat', 1], ['keys', 2]],
+  synthwave: [['keys', 2], ['bass', 2], ['beat', 1], ['lead', 1]],
+  electro: [['beat', 2], ['bass', 2], ['keys', 1]],
+  dubstep: [['keys', 2], ['lead', 2], ['beat', 1]],
+  brostep: [['keys', 2], ['beat', 1], ['lead', 1]],
+  dnb: [['keys', 2], ['beat', 3], ['bass', 1]],
+};
+
 function arrangeDance(rng: () => number, lean: DanceLean, mood: DanceMood): DancePart[] {
   const pick = <T>(a: readonly T[]): T => a[Math.floor(rng() * a.length)] as T;
   const drums: readonly LofiLayer[] = ['kick', 'snare', 'hats'];
   const parts: DancePart[] = [];
+  const intro = weightedPick(rng, INTROS[mood]);
   if (lean.band) {
     // A band's song: an intro on the guitar (the rock band joins it), verse, a pre-chorus
     // that turns with a drum fill, the chorus on a crash, a solo, a last pre-chorus and
     // chorus, and an ending that rings out.
     const band: readonly LofiLayer[] = ['keys', 'bass', 'lead', 'fx', ...drums];
-    parts.push({ section: 'intro', bars: lean.intro, prog: 0, layers: mood === 'rock' ? ['keys', 'bass', 'fx', ...drums] : ['keys'], open: [0.6, 0.95] });
+    const opening: Record<IntroStyle, readonly LofiLayer[]> = {
+      keys: ['keys'], beat: ['fx', ...drums], bass: ['bass', 'fx', ...drums], lead: ['lead', 'keys'], full: ['keys', 'bass', 'fx', ...drums],
+    };
+    parts.push({ section: 'intro', bars: lean.intro, prog: 0, layers: opening[intro], open: intro === 'full' ? [0.95, 1] : [0.6, 0.95] });
     parts.push({ section: 'verse', bars: 8, prog: 0, layers: band });
     parts.push({ section: 'build', bars: pick(lean.build), prog: 0, layers: band, open: [0.85, 1] });
     parts.push({ section: 'drop', bars: lean.drop, prog: 1, layers: band });
@@ -1034,9 +1109,19 @@ function arrangeDance(rng: () => number, lean: DanceLean, mood: DanceMood): Danc
     parts.push({ section: 'outro', bars: 2, prog: 0, layers: ['keys'], open: [0.6, 0.4], fade: true });
     return parts;
   }
+  // The intro in two halves: what opens the tune, then the parts that join the opening.
   const half = lean.intro / 2;
-  parts.push({ section: 'intro', bars: half, prog: 0, layers: ['keys', 'lead'], open: [0.35, 0.6] });
-  parts.push({ section: 'intro', bars: half, prog: 0, layers: mood === 'sugar' ? ['keys', 'lead', 'hats', 'kick', 'fx'] : mood === 'electro' || mood === 'dnb' ? ['keys', 'lead', 'hats', 'kick'] : ['keys', 'lead', 'hats'], open: [0.6, 0.85] });
+  const withKick: readonly LofiLayer[] = mood === 'sugar' || mood === 'electro' || mood === 'dnb' || mood === 'synthwave' ? ['kick'] : [];
+  const plan: Record<IntroStyle, [readonly LofiLayer[], readonly LofiLayer[]]> = {
+    keys: [['keys', 'lead'], ['keys', 'lead', 'hats', 'fx', ...withKick]],
+    beat: [['kick', 'snare', 'hats'], ['kick', 'snare', 'hats', 'keys', 'fx']],
+    bass: [['bass', 'kick', 'hats'], ['bass', 'kick', 'snare', 'hats', 'keys', 'lead', 'fx']],
+    lead: [['lead'], ['lead', 'keys', 'hats', 'fx']],
+    full: [['keys', 'bass', 'kick', 'snare', 'hats'], ['keys', 'bass', 'lead', 'kick', 'snare', 'hats', 'fx']],
+  };
+  const [first, then] = plan[intro];
+  parts.push({ section: 'intro', bars: half, prog: 0, layers: first, open: intro === 'keys' || intro === 'lead' ? [0.35, 0.6] : [0.6, 0.8] });
+  parts.push({ section: 'intro', bars: half, prog: 0, layers: then, open: [0.6, 0.9] });
   if (mood === 'sugar' || mood === 'electro') parts.push({ section: 'verse', bars: 8, prog: 0, layers: ['keys', 'bass', 'lead', 'fx', ...drums] });
   const drop = (alt: boolean): void => {
     parts.push({ section: 'build', bars: pick(lean.build), prog: 0, layers: ['keys', 'lead', 'snare', 'fx', ...(mood === 'sugar' || mood === 'electro' || mood === 'dnb' ? ['kick' as const] : [])], open: [0.55, 1] });
@@ -1103,7 +1188,7 @@ function composeDanceTune(seed: number, mood: DanceMood, fixed: Partial<LofiStyl
   const bassB = weightedPick(rng, lean.switchBass);
   // A reese holds a note under the break, or rolls along with the drums.
   const figuresOf = (b: LofiStyle['bass']): readonly Figure[] => b === 'wobble' ? WOBBLES : b === 'growl' ? GROWLS : b === 'slap' ? SLAPS
-    : b === 'electro' ? RIFFS : b === 'pulse' ? BLIPS : b === 'screech' ? SCREECHES : b === 'picked' ? ROCKBASS : b === 'croak' ? CROAKS : b === 'upright' ? RUMBA
+    : b === 'electro' ? RIFFS : b === 'pulse' ? BLIPS : b === 'screech' ? SCREECHES : b === 'picked' ? ROCKBASS : b === 'croak' ? CROAKS : b === 'upright' ? RUMBA : b === 'eight' ? EIGHTS : b === 'synth' ? OCTAVES : b === 'round' ? RIDDIMS
     : [...REESES, ...ROLLERS];
   // Two bars of bass figure for each drop and for the verse, a call and its answer.
   const figA: [Figure, Figure] = [pick(figuresOf(style.bass)), pick(figuresOf(style.bass))];
@@ -1119,6 +1204,7 @@ function composeDanceTune(seed: number, mood: DanceMood, fixed: Partial<LofiStyl
     return undefined;
   };
   const stabs = pick(STABS);
+  const chops = pick(CHOPS);
   const motifs = [motif(rng, lean.busy), motif(rng, lean.busy), motif(rng, Math.min(1, lean.busy + 0.3))];
   let prevVoicing: number[] | null = null;
   let prevLead = 74;
@@ -1189,6 +1275,18 @@ function composeDanceTune(seed: number, mood: DanceMood, fixed: Partial<LofiStyl
             const vel = muted ? 0.3 : build ? 0.35 + (i * 16 + step) / (part.bars * 16) * 0.4 : stroke === 'd' ? 0.6 : 0.48;
             order.forEach((p, n) => { notes.push({ voice: 'keys', midi: p, beat: sb(step) + n * 0.03, dur: muted ? 0.08 : 0.45, vel: clamp01(vel + (rng() - 0.5) * 0.06) }); });
           }
+        } else if (mood === 'synthwave' && keysV === 'pluck' && part.section !== 'intro' && part.section !== 'outro') {
+          // Synthwave's arpeggio: the chord's tones up and down in sixteenths.
+          const arp = [...voicing, ...[...voicing].reverse().slice(1, -1)];
+          for (let s = 0; s < 16; s++) notes.push({ voice: 'keys', midi: arp[s % arp.length]!, beat: s / 4, dur: 0.22, vel: s % 4 === 0 ? 0.55 : 0.4 });
+        } else if (mood === 'reggae' && part.section !== 'intro' && part.section !== 'outro') {
+          // The skank: short chops on every offbeat, and the organ's bubble, a quiet chord
+          // on the sixteenths either side of them.
+          for (const s of [2, 6, 10, 14]) strike(sb(s), 0.16, 0.55);
+          if (part.section === 'drop') for (const s of [1, 3, 9, 11]) strike(sb(s), 0.1, 0.25);
+        } else if (mood === 'hiphop' && part.section !== 'intro' && part.section !== 'outro') {
+          // Hip hop's chops: the chord cut into a few hits, like a sampled record.
+          for (const [step, len] of chops) strike(sb(step), len / 4 - 0.05, step === 0 ? 0.6 : 0.5);
         } else if (part.section === 'drop' && keysV === 'supersaw') {
           for (const [step, len] of stabs) strike(sb(step), len / 4 - 0.05, step === 0 ? 0.62 : 0.5);
         } else if (part.section === 'drop' && (keysV === 'rhodes' || keysV === 'pluck')) {
@@ -1201,15 +1299,16 @@ function composeDanceTune(seed: number, mood: DanceMood, fixed: Partial<LofiStyl
 
       // BASS: the genre's figure, a call and its answer, on the chord's root.
       if (has('bass')) {
-        const root = ['slap', 'pulse', 'electro', 'picked', 'croak', 'upright'].includes(bassV) ? placeIn(chord.root, 33, 44) : placeIn(chord.root, 28, 39);
+        const root = ['slap', 'pulse', 'electro', 'picked', 'croak', 'upright', 'synth', 'round'].includes(bassV) ? placeIn(chord.root, 33, 44) : placeIn(chord.root, 28, 39);
         let fig = (part.section === 'verse' ? figVerse : part.alt ? figB : figA)[i % 2]!;
         if (lean.band) {
           // A band's bass draws a figure every bar, by section, and fills into the next
           // phrase on most fourth bars, so the line never settles into one loop.
           const rock = bassV === 'picked';
-          const fills = rock ? ROCK_FILLS : RUMBA_FILLS;
-          const pool = !rock ? RUMBA
-            : part.section === 'verse' ? ROCK_GROOVE : part.section === 'drop' || part.section === 'break' ? [...ROCK_DRIVE, ROCK_GROOVE[0]!] : ROCK_DRIVE;
+          const fills = rock ? ROCK_FILLS : bassV === 'upright' ? RUMBA_FILLS : figuresOf(bassV);
+          const pool = rock
+            ? (part.section === 'verse' ? ROCK_GROOVE : part.section === 'drop' || part.section === 'break' ? [...ROCK_DRIVE, ROCK_GROOVE[0]!] : ROCK_DRIVE)
+            : figuresOf(bassV);
           fig = i % 4 === 3 && chance(0.7) ? pick(fills) : pick(pool);
         }
         const third = (((chord.tones[1] ?? chord.root) - chord.root) % 12 + 12) % 12;
@@ -1274,6 +1373,10 @@ function composeDanceTune(seed: number, mood: DanceMood, fixed: Partial<LofiStyl
           for (const s of [4, 12]) notes.push({ voice: 'snare', midi: 0, dur: 0, beat: sb(s), vel: 0.9 });
           for (const s of [2, 6, 10, 14]) if (s === 6 || s === 14 || chance(0.6)) notes.push({ voice: 'snare', midi: 0, dur: 0, beat: sb(s), vel: 0.4 });
           for (const s of [7, 15]) notes.push({ voice: 'rim', midi: 0, dur: 0, beat: sb(s), vel: 0.6 });
+        } else if (has('snare') && style.groove === 'oneDrop') {
+          // The one drop: the cross-stick with the kick on three, and now and then a ghost.
+          notes.push({ voice: 'rim', midi: 0, dur: 0, beat: sb(8), vel: 0.9 });
+          if (chance(0.3)) notes.push({ voice: 'rim', midi: 0, dur: 0, beat: sb(14), vel: 0.4 });
         } else if (has('snare')) {
           const hits = style.groove === 'halfStep' ? [8] : [4, 12];
           for (const s of hits) notes.push({ voice: backbeat, midi: 0, dur: 0, beat: s / 4, vel: 0.95 });
@@ -1288,6 +1391,8 @@ function composeDanceTune(seed: number, mood: DanceMood, fixed: Partial<LofiStyl
             notes.push({ voice: 'hat', midi: 0, dur: 0, beat: sb(s), vel: clamp01((off ? 0.48 : 0.32) + (rng() - 0.5) * 0.08) });
             if (chance(style.groove === 'twoStep' ? 0.35 : 0.15)) notes.push({ voice: 'hat', midi: 0, dur: 0, beat: sb(s + 1), vel: 0.22 });
           }
+          // Hip hop's trap roll: thirty-second hats across the last beat of a phrase.
+          if (mood === 'hiphop' && i % 4 === 3 && chance(0.7)) for (let n = 0; n < 8; n++) notes.push({ voice: 'hat', midi: 0, dur: 0, beat: 3 + n / 8, vel: clamp01(0.22 + n * 0.04) });
           // Dubstep's triplet hat roll, now and then at the end of a phrase.
           if (style.groove === 'halfStep' && i % 4 === 3 && chance(0.5)) for (let n = 0; n < 6; n++) notes.push({ voice: 'hat', midi: 0, dur: 0, beat: 3 + n / 6, vel: clamp01(0.25 + n * 0.06) });
         }
@@ -1301,6 +1406,11 @@ function composeDanceTune(seed: number, mood: DanceMood, fixed: Partial<LofiStyl
         // Sugar's coin dings at the end of a phrase, and now and then a magpie warbling
         // (Lolly's bird) where the music leaves room: an intro, a verse, the breakdown.
         if (mood === 'sugar' && has('fx') && i % 4 === 3 && chance(0.7)) notes.push({ voice: 'coin', midi: coin, dur: 0.5, beat: sb(chance(0.5) ? 12 : 14), vel: 0.6 });
+        // The shout: a "hey" calling the next phrase in a sugar drop, and on the offbeat in a
+        // reggae chorus (always at its top).
+        const hey = placeIn(key, 55, 66);
+        if (mood === 'sugar' && part.section === 'drop' && has('fx') && i % 4 === 3 && chance(0.5)) notes.push({ voice: 'hey', midi: hey, dur: 0.3, beat: sb(14), vel: 0.7 });
+        if (mood === 'reggae' && part.section === 'drop' && ((i === 0 && firstOfSection) || (i % 4 === 1 && chance(0.4)))) notes.push({ voice: 'hey', midi: hey, dur: 0.3, beat: sb(i === 0 ? 2 : 6), vel: 0.65 });
         const quiet = part.section === 'intro' || part.section === 'verse' || part.section === 'break';
         if (mood === 'sugar' && quiet && i % 4 === 1 && chance(0.4)) {
           notes.push({ voice: 'magpie', midi: placeIn((key + 7) % 12, 84, 95), dur: 1.5 + rng() * 1.5, beat: sb(chance(0.5) ? 4 : 8), vel: 0.55, mod: Math.floor(rng() * 1000) });

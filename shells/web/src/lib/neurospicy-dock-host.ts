@@ -139,7 +139,7 @@ function heavyStation(id: string): boolean {
 /** The dance genres name their bass, which is what each one is built around. */
 const LOFI_BASS_NAME: Partial<Record<LofiStyle['bass'], string>> = {
   wobble: 'wobble bass', growl: 'growl bass', reese: 'reese bass', slap: 'slap bass', round: 'rolling bass',
-  screech: 'screech bass', pulse: 'chip bass', electro: 'electro bass', picked: 'bass guitar', upright: 'upright bass', croak: 'croak bass',
+  screech: 'screech bass', pulse: 'chip bass', electro: 'electro bass', picked: 'bass guitar', upright: 'upright bass', croak: 'croak bass', eight: '808', synth: 'synth bass',
 };
 
 export interface NeurospicyDockHandle {

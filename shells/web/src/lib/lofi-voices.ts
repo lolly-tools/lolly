@@ -26,7 +26,7 @@
  *   lead   pulse (a thin chiptune pulse that blips into its note), guitar (a clean
  *          electric pluck), overdrive (a driven lead guitar that bends into its notes)
  *          and synthwave (a swept saw lead with its own echoes), metal (a heavy
- *          power-chord guitar an octave down) and panflute (a breathy pan flute)
+ *          power-chord guitar an octave down) and panflute (a soft, breathy pan flute)
  *   guitar nylon (a warm nylon-string guitar, strummed as keys or picked as a lead),
  *          crunch (a mid-gain power-chord rhythm guitar) and a picked bass guitar
  *   bass   croak (the modelled slap string thumbed in repeated eighths: guttural and
@@ -320,11 +320,11 @@ function metal(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number
 function panflute(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number, dur: number): void {
   const { ctx } = k;
   const f = mtof(midi);
-  const end = t + dur + 0.25;
+  const end = t + dur + 0.9;
   const amp = ctx.createGain();
   amp.gain.setValueAtTime(EPS, t);
-  amp.gain.exponentialRampToValueAtTime(0.1 * vel, t + 0.05);
-  amp.gain.setTargetAtTime(EPS, t + dur, 0.09);
+  amp.gain.exponentialRampToValueAtTime(0.1 * vel, t + 0.09);
+  amp.gain.setTargetAtTime(EPS, t + dur, 0.12);
   amp.connect(out);
   const tone = osc(k, 'sine', f, t, end);
   const tri = osc(k, 'triangle', f, t, end);
@@ -334,23 +334,17 @@ function panflute(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: num
   vibrato(k, tri.detune, t, end, 4.6, 14, 0.35);
   tone.connect(amp);
   tri.connect(tg).connect(amp);
-  // Breath: noise on the note's own pitch, so the hiss sounds blown, not added.
+  // Breath: noise in a narrow band on the note's own pitch, so the air sounds blown
+  // rather than added, swelling with the note and never louder than the tone.
   const breath = ctx.createBiquadFilter();
   breath.type = 'bandpass';
   breath.frequency.value = f * 2;
-  breath.Q.value = 6;
+  breath.Q.value = 10;
   const bg = ctx.createGain();
-  bg.gain.value = 0.9;
-  noiseAt(k, t, dur + 0.25).connect(breath).connect(bg).connect(amp);
-  // The chiff: a short burst of brighter noise as the note speaks.
-  const chiff = ctx.createBiquadFilter();
-  chiff.type = 'bandpass';
-  chiff.frequency.value = f * 4;
-  chiff.Q.value = 2;
-  const cg = ctx.createGain();
-  cg.gain.setValueAtTime(0.18 * vel, t);
-  cg.gain.exponentialRampToValueAtTime(EPS, t + 0.06);
-  noiseAt(k, t, 0.07).connect(chiff).connect(cg).connect(out);
+  bg.gain.setValueAtTime(0, t);
+  bg.gain.linearRampToValueAtTime(0.7, t + 0.09);
+  bg.gain.setTargetAtTime(0.35, t + 0.12, 0.2);
+  noiseAt(k, t, dur + 0.9).connect(breath).connect(bg).connect(amp);
 }
 
 /**
@@ -609,12 +603,14 @@ function vibes(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number
 function flute(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number, dur: number): void {
   const { ctx } = k;
   const f = mtof(midi);
-  const end = t + dur + 0.3;
+  // A smooth swell in and a long fade out, with everything still running until the
+  // fade is silent: a note cut off mid-fade, or a broad band of breath, reads as static.
+  const end = t + dur + 0.9;
   const amp = ctx.createGain();
   const peak = 0.085 * vel;
   amp.gain.setValueAtTime(EPS, t);
-  amp.gain.exponentialRampToValueAtTime(peak, t + 0.07);
-  amp.gain.setTargetAtTime(EPS, t + Math.max(0.08, dur), 0.09);
+  amp.gain.exponentialRampToValueAtTime(peak, t + 0.1);
+  amp.gain.setTargetAtTime(EPS, t + Math.max(0.1, dur), 0.12);
   amp.connect(out);
   const o = osc(k, 'sine', f, t, end);
   vibrato(k, o.detune, t, end, 4.8, 9, 0.3);
@@ -623,13 +619,17 @@ function flute(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number
   const hg = ctx.createGain();
   hg.gain.value = 0.12;
   h2.connect(hg).connect(amp);
+  // Breath: a narrow band on the note's own harmonic, a touch more as the note speaks,
+  // then settling back, always under the tone.
   const bp = ctx.createBiquadFilter();
   bp.type = 'bandpass';
   bp.frequency.value = Math.min(9000, f * 2);
-  bp.Q.value = 2;
+  bp.Q.value = 9;
   const breath = ctx.createGain();
-  breath.gain.value = 0.35;
-  noiseAt(k, t, dur + 0.3).connect(bp).connect(breath).connect(amp);
+  breath.gain.setValueAtTime(0, t);
+  breath.gain.linearRampToValueAtTime(0.22, t + 0.08);
+  breath.gain.setTargetAtTime(0.1, t + 0.1, 0.15);
+  noiseAt(k, t, dur + 0.9).connect(bp).connect(breath).connect(amp);
 }
 
 /** A soft lead: a filtered saw that swells in, a little like a muted horn. */
@@ -685,7 +685,8 @@ export function bass(style: LofiStyle['bass'], k: VoiceKit, out: AudioNode, t: n
   if (style === 'pulse') { pulseBass(k, out, t, midi, vel, dur, tone); return; }
   if (style === 'electro') { electro(k, out, t, midi, vel, dur, tone); return; }
   if (style === 'picked') { pickedBass(k, out, t, midi, vel, dur, tone); return; }
-  if (style === 'croak') { slap(k, out, t, midi, vel, dur, 0, tone); return; }   // the modelled string, thumbed in repeated eighths
+  if (style === 'croak') { slap(k, out, t, midi, vel, dur, Math.round(mod), tone); return; }   // the modelled string: bubbling, sliding, bending
+  if (style === 'eight') { eightOhEight(k, out, t, midi, vel, dur, mod >= 2, tone); return; }
   const { ctx } = k;
   const f = mtof(midi);
   const end = t + dur + 0.3;
@@ -1052,6 +1053,29 @@ function electro(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: numb
 }
 
 /**
+ * The 808: a sine that drops from about two octaves above into its note for the punch,
+ * then holds long under the kick, a little driven so it carries on small speakers. A
+ * slide comes up into the note from a fourth below.
+ */
+function eightOhEight(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number, dur: number, slide: boolean, tone: Tone): void {
+  const { ctx } = k;
+  const f = mtof(midi);
+  const len = Math.max(0.2, dur);
+  const end = t + len + 0.15;
+  const o = osc(k, 'sine', slide ? f * 2 ** (-5 / 12) : f * 3.5, t, end);
+  if (slide) o.frequency.exponentialRampToValueAtTime(f, t + 0.12);
+  else o.frequency.exponentialRampToValueAtTime(f, t + 0.035);
+  const [push, ws] = drivenBy(ctx, 0.8 * tone.drive);
+  const amp = ctx.createGain();
+  amp.gain.setValueAtTime(EPS, t);
+  amp.gain.exponentialRampToValueAtTime(0.4 * vel, t + 0.004);
+  amp.gain.setTargetAtTime(0.28 * vel, t + 0.05, 0.25);
+  amp.gain.setTargetAtTime(EPS, t + len, 0.06);
+  o.connect(push);
+  ws.connect(amp).connect(out);
+}
+
+/**
  * Picked bass: a rock bass guitar played with a pick. A saw and a square through a
  * low-pass that snaps from bright to round on each note, over a sine for the weight,
  * with a little grit from the amp.
@@ -1085,6 +1109,50 @@ function pickedBass(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: n
 }
 
 // ── effects ──────────────────────────────────────────────────────────────────
+
+/**
+ * A "hey!": a synthesised shout, no recording and no words. A breath of noise (the h)
+ * leads into a saw through three vowel formants that glide from "e" towards "i" while
+ * the pitch falls, the way a shout does. Two of them, a few cents and milliseconds apart,
+ * so it sounds like a few people calling out together.
+ */
+export function hey(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number): void {
+  const { ctx } = k;
+  const f = mtof(midi);
+  const len = 0.32;
+  for (const [delay, cents] of [[0, 0], [0.018, 14]] as const) {
+    const at = t + delay;
+    const amp = ctx.createGain();
+    amp.gain.setValueAtTime(EPS, at);
+    amp.gain.setValueAtTime(EPS, at + 0.03);
+    amp.gain.exponentialRampToValueAtTime(0.22 * vel, at + 0.065);
+    amp.gain.exponentialRampToValueAtTime(EPS, at + len);
+    const glottis = osc(k, 'sawtooth', f * 1.1, at, at + len + 0.05);
+    glottis.frequency.exponentialRampToValueAtTime(f * 0.86, at + len);
+    glottis.detune.value = cents;
+    for (const [from, to, q, level] of [[620, 360, 8, 1], [1800, 2250, 10, 0.55], [2600, 3000, 12, 0.3]] as const) {
+      const bp = ctx.createBiquadFilter();
+      bp.type = 'bandpass';
+      bp.Q.value = q;
+      bp.frequency.setValueAtTime(from, at + 0.03);
+      bp.frequency.linearRampToValueAtTime(to, at + len);
+      const g = ctx.createGain();
+      g.gain.value = level;
+      glottis.connect(bp).connect(g).connect(amp);
+    }
+    amp.connect(out);
+    // The h: breath shaped by the same mouth, before the voice starts.
+    const h = ctx.createBiquadFilter();
+    h.type = 'bandpass';
+    h.frequency.value = 1700;
+    h.Q.value = 1.5;
+    const hg = ctx.createGain();
+    hg.gain.setValueAtTime(EPS, at);
+    hg.gain.exponentialRampToValueAtTime(0.09 * vel, at + 0.02);
+    hg.gain.exponentialRampToValueAtTime(EPS, at + 0.08);
+    noiseAt(k, at, 0.1).connect(h).connect(hg).connect(out);
+  }
+}
 
 /**
  * A magpie's warble: two voices duetting in rising and falling glissandi, with fast

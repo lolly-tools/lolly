@@ -54,13 +54,14 @@ test('listLoops returns tracks grouped in NEURO_CATEGORY_ORDER, alphabetical wit
   const declared = NEURO_CATEGORY_ORDER.filter((k) => runs.includes(k));
   assert.deepEqual(runs, declared);
   // The exact list a user reads in the picker (catalog → uploads → lolly → Lofi stations → ambient → beats → radio…).
-  assert.deepEqual(names(loops).slice(0, 19), [
+  assert.deepEqual(names(loops).slice(0, 22), [
     'Bed A',                        // catalog
     'A First Upload', 'My Take Two',// uploads, A→Z
-    'Lolly Sings', 'Lolly Sings · Sugar', 'Lolly Sings · Spanish guitar', 'Lolly Sings · Rock', 'Lolly Sings · Electro', 'Lolly Sings · Dubstep', 'Lolly Sings · Brostep', 'Lolly Sings · D&B',
-                                    // the generated Lolly Sings stations lead their group…
+    'Lolly Sings', 'Lolly Sings · Sugar', 'Lolly Sings · Hip hop', 'Lolly Sings · Reggae', 'Lolly Sings · Spanish guitar',
+    'Lolly Sings · Rock', 'Lolly Sings · Synthwave', 'Lolly Sings · Electro', 'Lolly Sings · Dubstep', 'Lolly Sings · Brostep',
+    'Lolly Sings · D&B', 'Lofi · Warm', 'Lofi · Late night', 'Lofi · Rainy',
+                                    // the generated stations lead the Lolly Sings group, Lofi last…
     'Amber Glow', 'Drift',          // …then any Lolly Sings songs (zzfxm), A→Z
-    'Lofi · Warm', 'Lofi · Late night', 'Lofi · Rainy',   // the generated stations, in mood order
     'Calm Tide',                    // ambient (lofi)
     'Aero Beat', 'Zulu Beat',       // beats, A→Z
   ]);
