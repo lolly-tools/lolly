@@ -74,6 +74,7 @@ class FakeFilter extends FakeNode {
 class FakeSource extends FakeNode {
   buffer: unknown = null;
   loop = false;
+  playbackRate = new FakeParam('source.playbackRate');
   start(t = 0, offset = 0): void { assert.ok(Number.isFinite(t) && Number.isFinite(offset)); }
   stop(): void { /* ends */ }
 }

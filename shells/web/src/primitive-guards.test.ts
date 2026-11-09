@@ -1857,6 +1857,10 @@ const RAW_HTML_ALLOWED: Record<string, number> = {
   // The locked tool's Preview button takes its eye glyph from the fixed icon
   // registry. Nothing is interpolated; the label is a text node.
   'views/locked-tool.ts': 1,
+  // 2026-11-09: the music generator's back pill and its page, written once. Station names,
+  // labels and titles go through escape(); icons come from the fixed registry; the rest
+  // is numbers. Instrument lists, the hint and the picker are filled with DOM APIs.
+  'views/music-studio.ts': 2,
 };
 
 test('R10: raw-HTML sinks are a pinned inventory, not a growing one', () => {

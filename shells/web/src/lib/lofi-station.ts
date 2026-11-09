@@ -41,6 +41,12 @@ export interface LofiSettings {
   style?: Partial<LofiStyle>;
   /** Repeat the first tune rather than going on to new ones (a saved tune). */
   repeat?: boolean;
+  /** Start this many bars in (the music generator's seek): the bars before are composed, not played. */
+  startBar?: number;
+  /** Stop after this many bars from the start of the stream (the music generator's length). */
+  bars?: number;
+  /** Change each bar before it plays (the music generator's per-section instruments). Must be pure. */
+  shape?: (bar: LofiBar) => LofiBar;
 }
 
 /** Part levels, for tuning the balance. 1 is the designed level. */
@@ -48,9 +54,13 @@ export interface LofiMix { keys: number; bass: number; lead: number; drums: numb
 export const LOFI_MIX: LofiMix = { keys: 1, bass: 1, lead: 1, drums: 1, reverb: 1, texture: 1 };
 
 /** The tone filter's most open cutoff per mood (Hz); texture and each bar close it from there. */
-const MOOD_TONE: Record<LofiMood, number> = { warm: 7500, lateNight: 4300, rainy: 5400, sings: 8200 };
-/** Lolly Sings is melody-first: its lead sits this much higher than Lofi's (about +4 dB). */
+const MOOD_TONE: Record<LofiMood, number> = {
+  warm: 7500, lateNight: 4300, rainy: 5400, sings: 8200, sugar: 11000, chiptune: 11000, citypop: 9500, nudisco: 9500, triphop: 5500, funk: 9500, soul: 8000, acid: 10000, hiphop: 8000, reggae: 7500, spanish: 8500, rock: 9000, synthwave: 9500, electro: 9000, dubstep: 9500, brostep: 10000, dnb: 10000,
+  country: 9500, blues: 7000, jazz: 7500, swing: 8500, straya: 10000,
+};
+/** Lolly Sings is melody-first: its lead sits this much higher than Lofi's (about +4 dB), in every genre of the family. */
 const SINGS_LEAD = 1.6;
+const SINGS_FAMILY = new Set<LofiMood>(['sings', 'sugar', 'chiptune', 'citypop', 'nudisco', 'triphop', 'funk', 'soul', 'acid', 'hiphop', 'reggae', 'spanish', 'rock', 'synthwave', 'electro', 'dubstep', 'brostep', 'dnb', 'country', 'blues', 'jazz', 'swing', 'straya']);
 const DRUMS = new Set(LOFI_DRUM_VOICES);
 /**
  * Each part's designed level: first measured K-weighted and soloed (keys about -25 LUFS,
@@ -69,16 +79,19 @@ const GRIT_MIX = 0.5;
 const VARIANT: { keys: Record<LofiStyle['keys'], number>; lead: Record<LofiStyle['lead'], number>; bass: Record<LofiStyle['bass'], number>; snare: Record<LofiStyle['snare'], number>; hats: Record<LofiStyle['hats'], number> } = {
   // Short, decaying sounds (pluck, kalimba, rim, clap) measure quieter than they sound,
   // so they take most of the measured difference, not the whole difference.
-  keys: { rhodes: 1, felt: 0.93, wurli: 1.4, pluck: 1.8 },
-  lead: { vibes: 1, flute: 0.82, soft: 1.35, kalimba: 1.7, chip: 0.8, none: 0 },
-  bass: { round: 1, upright: 1.05, synth: 1.2 },
+  keys: { rhodes: 1, felt: 0.93, wurli: 1.4, pluck: 1.8, pad: 1, supersaw: 1, nylon: 1.8, crunch: 1, wah: 1, chiparp: 1.6, steel: 2.4, banjo: 2, honky: 1, organ: 2.2, brass: 2, jazzbox: 2 },
+  lead: { vibes: 1, flute: 0.82, soft: 1.35, kalimba: 1.7, chip: 0.8, angel: 0.76, pulse: 2.4, guitar: 2.1, overdrive: 0.5, synthwave: 0.86, metal: 0.6, panflute: 0.56, nylon: 1.9, riff: 0.6, twang: 2.2, banjo: 1.5, harmonica: 0.55, sax: 1, trumpet: 1, clarinet: 1, pedal: 0.44, fiddle: 1, none: 0 },
+  // The reese is drum and bass's whole low end, so it sits about 4 dB up (Andy, 2026-11-08).
+  bass: { round: 1, upright: 1.05, synth: 1.2, wobble: 1, growl: 1.8, reese: 1.6, slap: 1.6, screech: 1.7, pulse: 1, electro: 1, picked: 1, croak: 1, eight: 1, acid: 1, motown: 1, yidaki: 1.1 },
   snare: { snare: 1, brush: 1.15, rim: 1.8, clap: 2.3 },
-  hats: { hat: 1, shaker: 1.15, none: 0 },
+  hats: { hat: 1, shaker: 1.15, ride: 0.8, none: 0 },
 };
 /** The style a station starts from, until its first tune's arrives. */
 const PLAIN: Pick<LofiStyle, 'wow' | 'room' | 'tone' | 'duck' | 'crunch' | 'dust'> = { wow: 1, room: 1, tone: 1, duck: 1, crunch: false, dust: 1 };
 /** How far the texture control reaches into the chain's range: past this it stops sounding like a record. */
 const TEXTURE_MAX = 0.4;
+/** The crackle and hiss at the middle of the texture slider, against the lab balance (about +3 dB). */
+const DUST_MID = 1.4;
 /** A record at 33⅓ rpm turns once every 1.8 s. */
 const REVOLUTION = 60 / (100 / 3);
 const LOOKAHEAD = 0.25;
@@ -102,6 +115,10 @@ export class LofiStation {
   private queue: Queued[] = [];
   private marks: Mark[] = [];
   private nextBarAt = 0;
+  /** Bars taken from the stream so far, skipped ones included. */
+  private taken = 0;
+  /** Whether a tune's colour has been applied yet (a station that starts mid-tune applies its tune's at once). */
+  private styled = false;
   private lastOpen = 1;
   private timer: ReturnType<typeof setInterval> | null = null;
   /** Playing live (set before the first tick, so the very first bar is announced too). */
@@ -135,6 +152,7 @@ export class LofiStation {
     this.settings = { ...settings };
     this.mix = { ...mix };
     this.stream = lofiStream(seed, { mood: settings.mood, style: settings.style, repeat: settings.repeat });
+    for (let i = 0; i < (settings.startBar ?? 0); i++) { this.stream.next(); this.taken++; }
     const noise = noiseBuffer(ctx, 2, mulberry32(seed ^ 0x51));
     this.kit = { ctx, noise, rng: mulberry32(seed ^ 0x5eed) };
 
@@ -345,7 +363,10 @@ export class LofiStation {
   /** Queue whole bars until the next one starts after `until`. */
   private fill(until: number): void {
     while (this.nextBarAt < until) {
-      const bar = this.stream.next();
+      if (this.settings.bars !== undefined && this.taken >= this.settings.bars) return;
+      const raw = this.stream.next();
+      const bar = this.settings.shape ? this.settings.shape(raw) : raw;
+      this.taken++;
       const spb = 60 / bar.tune.bpm;
       const at = this.nextBarAt;
       for (const note of bar.notes) this.queue.push({ at: at + note.beat * spb, spb, note, bar, lanes: this.lanes });
@@ -366,7 +387,7 @@ export class LofiStation {
     const marks = this.marks.filter(m => m.at < until);
     if (marks.length) this.marks = this.marks.filter(m => m.at >= until);
     for (const m of marks) {
-      if (m.bar.index === 0) this.applyStyle(m.bar.tune.style, Math.max(m.at, now));
+      if (m.bar.index === 0 || !this.styled) { this.applyStyle(m.bar.tune.style, Math.max(m.at, now)); this.styled = true; }
       this.lastOpen = m.bar.open;
       this.tone.frequency.setTargetAtTime(this.cutoff(m.bar.open), Math.max(m.at, now), 0.5);
       this.drumTone.frequency.setTargetAtTime(drumCutoff(this.cutoff(m.bar.open)), Math.max(m.at, now), 0.5);
@@ -383,18 +404,55 @@ export class LofiStation {
     const k = this.kit;
     const st = bar.tune.style;
     const len = note.dur * spb;
+    // A dance tune changes instruments between sections; the bar says which it plays.
+    const keysV = bar.voices?.keys ?? st.keys;
+    const leadV = bar.voices?.lead ?? st.lead;
+    const bassV = bar.voices?.bass ?? st.bass;
+    const snareV = bar.voices?.snare ?? st.snare;
+    const hatsV = bar.voices?.hats ?? st.hats;
     switch (note.voice) {
-      case 'keys': V.keys(st.keys, k, lanes.keys, t, note.midi, vel * VARIANT.keys[st.keys], len); break;
-      case 'bass': V.bass(st.bass, k, lanes.bass, t, note.midi, vel * VARIANT.bass[st.bass], len); break;
-      case 'lead': V.lead(st.lead, k, lanes.lead, t, note.midi, vel * VARIANT.lead[st.lead] * (bar.tune.mood === 'sings' ? SINGS_LEAD : 1), len); break;
+      case 'keys': V.keys(keysV, k, lanes.keys, t, note.midi, vel * VARIANT.keys[keysV], len); break;
+      case 'bass': {
+        // A wobble's, growl's or screech's swing is cycles a beat (the voice wants Hz); the
+        // other basses' `mod` is how the note is played, passed as it is.
+        const swings = bassV === 'wobble' || bassV === 'growl' || bassV === 'screech';
+        const mod = swings ? (note.mod ?? 0) / spb : (note.mod ?? 0);
+        V.bass(bassV, k, lanes.bass, t, note.midi, vel * VARIANT.bass[bassV], len, mod, { bright: st.bright ?? 1, drive: st.drive ?? 1 });
+        break;
+      }
+      case 'lead': {
+        const lift = SINGS_FAMILY.has(bar.tune.mood) ? SINGS_LEAD : 1;
+        V.lead(leadV, k, lanes.lead, t, note.midi, vel * VARIANT.lead[leadV] * lift, len, note.mod ?? 0);
+        // A doubled drop: a second instrument plays the same note a little quieter.
+        const double = bar.voices?.double;
+        if (double) V.lead(double, k, lanes.lead, t, note.midi, vel * VARIANT.lead[double] * lift * 0.7, len, note.mod ?? 0);
+        break;
+      }
+      case 'crash': V.crash(k, lanes.drums, t, vel); break;
+      case 'riser': V.riser(k, lanes.keys, t, vel, len); break;
+      case 'coin': V.coin(k, lanes.lead, t, note.midi, vel); break;
+      case 'magpie': V.magpie(k, lanes.lead, t, note.midi, vel, len, note.mod ?? 0); break;
+      case 'kookaburra': V.kookaburra(k, lanes.lead, t, note.midi, vel, note.mod ?? 0); break;
+      case 'tom': V.tom(k, lanes.drums, t, note.midi, vel); break;
+      case 'perc': V.perc(k, lanes.drums, t, note.midi, vel, note.mod ?? 0); break;
+      case 'hey': V.hey(k, lanes.lead, t, note.midi, vel); break;
+      case 'soar': V.soar(k, lanes.bass, t, note.midi, vel, len, note.mod === 1); break;
       case 'kick': V.kick(k, lanes.drums, t, vel, st.kick, st.kickLen); this.duck(t, st.duck); break;
       case 'snare':
-        V.snare(st.snare === 'rim' ? 'snare' : st.snare, k, lanes.drums, t, vel * VARIANT.snare[st.snare], st.snareTone);
+        // A section given the cross-stick plays its snare hits on the rim.
+        if (bar.voices?.snare === 'rim') { V.rim(k, lanes.drums, t, vel * VARIANT.snare.rim); break; }
+        V.snare(snareV === 'rim' ? 'snare' : snareV, k, lanes.drums, t, vel * VARIANT.snare[snareV], st.snareTone);
         if (note.vel > 0.5) this.duck(t, st.duck * 0.45);   // a backbeat, not a ghost: the music gives it a little room
         break;
-      case 'rim': V.rim(k, lanes.drums, t, vel * VARIANT.snare.rim); break;
-      case 'hat': V.hat(st.hats, k, lanes.drums, t, vel * VARIANT.hats[st.hats], st.hatTone); break;
-      case 'openHat': V.hat(st.hats, k, lanes.drums, t, vel * VARIANT.hats[st.hats], st.hatTone, true); break;
+      case 'rim': {
+        // A section given another snare plays its rim hits on that snare instead.
+        const over = bar.voices?.snare;
+        if (over && over !== 'rim') V.snare(over, k, lanes.drums, t, vel * VARIANT.snare[over], st.snareTone);
+        else V.rim(k, lanes.drums, t, vel * VARIANT.snare.rim);
+        break;
+      }
+      case 'hat': V.hat(hatsV, k, lanes.drums, t, vel * VARIANT.hats[hatsV], st.hatTone); break;
+      case 'openHat': V.hat(hatsV, k, lanes.drums, t, vel * VARIANT.hats[hatsV], st.hatTone, true); break;
     }
   }
 
@@ -437,9 +495,16 @@ export class LofiStation {
     set(this.flutterDepth.gain, (0.00001 + x * 0.00011) * w);
     set(this.toneWander.gain, this.cutoff(this.lastOpen) * (0.03 + x * 0.12));
     const tex = BUS.texture * this.mix.texture;
-    const dust = tex * this.colour.dust;
-    set(this.crackle.gain, x * 0.09 * dust);
-    set(this.hiss.gain, (0.002 + x * 0.008) * dust);
+    // Crackle and hiss: none at the bottom of the slider, a little at the middle (the
+    // balance Andy set in the lab), then a steep climb, so the top half of the slider
+    // goes from a faint surface to a worn record. They had run in a straight line
+    // to a top 38 dB under the music, and the slider seemed to do nothing. A cleaner
+    // genre starts with less dust and reaches the same full dust at the top.
+    const t = this.settings.texture;
+    const amount = this.colour.dust + (1 - this.colour.dust) * t * t;
+    const dust = tex * amount * DUST_MID * (t / 0.5) ** 3;
+    set(this.crackle.gain, 0.018 * dust);
+    set(this.hiss.gain, 0.0036 * dust);
     set(this.rain.gain, this.settings.mood === 'rainy' ? (0.03 + x * 0.016) * tex : 0);
     set(this.tone.frequency, this.cutoff(this.lastOpen));
     set(this.drumTone.frequency, drumCutoff(this.cutoff(this.lastOpen)));

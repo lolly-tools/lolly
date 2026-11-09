@@ -831,6 +831,8 @@ export function createAudioDock(opts: AudioDockOptions): DockController {
       const items = layers.filter((l) => (l.group ?? '') === g);
       if (!items.length) continue;
       if (g) html += `<div class="audio-dock-group">${esc(g)}</div>`;
+      // Each group's rows sit in columns, as many as the dock's width allows.
+      html += '<div class="audio-dock-atmo-grid">';
       for (const l of items) {
         const v = host.atmosphere.getLevel(l.id);
         html += `<div class="audio-dock-atmo-row${v > 0 ? ' is-on' : ''}" data-atmo-row="${esc(l.id)}">`
@@ -839,6 +841,7 @@ export function createAudioDock(opts: AudioDockOptions): DockController {
           + `<input type="range" min="0" max="1" step="0.01" value="${v}" data-atmo-range="${esc(l.id)}" aria-label="${esc(l.label)} level">`
           + `</div>`;
       }
+      html += '</div>';
     }
     atmoRows.innerHTML = html;
     for (const r of atmoRows.querySelectorAll<HTMLInputElement>('input[type="range"]')) setFill(r);

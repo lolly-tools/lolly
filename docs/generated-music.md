@@ -1,0 +1,64 @@
+# Generated music
+
+The Neurospicy player makes its own music. Its generated stations, all in the **Lolly Sings** group, compose every tune as they play: the original Lolly Sings, Sugar, Straya, Chiptune, City pop, Funk, Soul, Nu-disco, Hip hop, Trip hop, Reggae, Spanish guitar, Rock, Country, Blues, Jazz, Swing, Synthwave, Acid, Electro, Dubstep, Brostep and D&B, and the three **Lofi** moods (Warm, Late night and Rainy). Nothing is recorded or sampled. Each tune is written by Lolly's composer and played by instruments synthesised in your browser.
+
+## Every tune is a number
+
+A tune comes from two things: its station and a **seed**, a whole number from 0 to 4,294,967,295. The composer turns the station and the seed into the same tune every time, on every device: the same key and tempo, the same instruments, the same groove and running order, and every note in the same place. It reads no clock, rolls no dice of its own and fetches nothing from the internet, so there is nothing else for a tune to depend on.
+
+That is what makes the music deterministic, and everything below follows from that rule:
+
+- **A shared link plays the same tune.** **Share this tune** copies a link such as `#/?lofi=sugar.2024`. Whoever opens the link hears the tune you heard.
+- **A saved tune is a few bytes.** **Save to library** keeps the station and the seed as an asset in your library, about 70 bytes, not a recording. Playing the tune later composes the same music again.
+- **A music bed renders the same audio.** A saved tune used as a video's music bed is rendered from the seed when the video is made, repeating to fill the video.
+- **Next and Previous move between seeds.** Next starts a new tune with a fresh seed. Previous goes back to the seed before, so a tune you skipped past is never lost.
+
+## What stays the same, and what can differ
+
+| Stays the same for everyone | Can differ |
+|---|---|
+| The notes, their timing and their loudness | Your **Drums** and **Texture** settings, applied on top of the tune |
+| The instruments, the tempo and the key | Your volume, your speakers and your headphones |
+| The running order: intro, verses, builds, drops and the ending | How an instrument sounds after a Lolly update that improves that instrument |
+| | A percussion part (a shaker, a tambourine, congas) that an update adds to a genre; the other parts keep their notes |
+
+A Lolly update can change how an instrument is synthesised, to fix a harsh sound or balance a mix. The tune keeps its notes, so a shared link still plays the same piece. New stations are written so that existing tunes do not change. Lolly's tests pin known seeds to the tunes they compose, so an update that would rewrite an existing tune is caught before release.
+
+## How a tune is made
+
+Each station leans the composer towards its genre without fixing the outcome:
+
+1. **A style.** The seed picks the instruments (keys, lead, bass and drum kit), how the drums are tuned, the groove, how often the chords change, and how much tape wobble and room the tune gets.
+2. **Harmony and melody.** The tune draws two chord progressions in its key, voices each chord close to the last, and writes a short melody and its answer from the key's pentatonic scale, with a chord tone on each strong beat.
+3. **A running order.** Instruments enter, take the front and drop out at different moments in each tune. The Lolly Sings dance genres build tension with a roll and a riser, open the drop on a crash, and change instruments between sections, with softer keys in the quiet parts and a second lead and bass in the second drop. The band genres play songs: verses, a pre-chorus that turns into the chorus with a fill round the toms, a solo and a last chorus. Blues plays twelve-bar choruses with the turnaround as its intro, and Jazz and Swing trade four bars with the drummer.
+4. **Sound.** Your browser plays the notes with oscillators, filters and noise. The slap bass in Sugar is shaped by frequency modulation, so it can be thumbed, popped, slid and bent. The horns brighten as they get louder, as real horns do, with breath that buzzes at the note's pitch. The cymbals ring with metal rather than hiss, and each genre has its own hand percussion.
+
+### The genres' instruments
+
+| Genre | What you hear |
+|---|---|
+| Straya | A banjo picking rolls over a yidaki drone on the key note (pulsed by the breath, with toots, barks, the in-breath of circular breathing and a howl), an acoustic strum, a stomp and clap, clapsticks, magpies carolling between the phrases and now and then a kookaburra |
+| Country | An acoustic guitar's boom-chick or a honky-tonk piano, the train beat on the snare or brushes, a bass walking root to fifth, and a twanging guitar, pedal steel, fiddle or harmonica |
+| Blues | A slow shuffle in twelve-bar choruses: a harmonica, an overdriven guitar or a sax answering its own call, an organ or a barrelhouse piano, a walking or boogie bass |
+| Jazz | A combo swinging on the ride: piano or archtop guitar comping, a walking upright bass, and sax, trumpet or vibes on the tune |
+| Swing | The big band: brass section stabs, a clarinet, trumpet or sax lead, a feathered kick, and floor toms in a jungle intro |
+
+## The music generator
+
+**Music generator** (under Utilities, `#/music`, or **Open in the music generator** in the player's controls while a generated station plays) is a track editor for the same stations. One row of controls holds play, the style, the seed and the length. Below it are a visualiser and the track itself, laid out like a sequence editor: the sections and chords along the top, a lane for the lead, keys, bass, drums and effects, and every note drawn. Each section is named for its genre: a band's drop is its chorus, its break the solo.
+
+- **The seed.** Type any seed, step with the arrows, choose **Surprise me** for a new one, or drag across the number to slide through seeds and watch the tune change.
+- **Instruments.** A track's own menu sets its instrument for the whole track. Click a section in a lane to change that part in every section of that kind: the bass in every chorus, the lead in every solo, or the drums' snare and cymbals in every pre-chorus. Nothing else about the tune changes.
+- **Playing.** Click the top row to play from a section, double-click a bar to play from that bar, and press space to play or stop. Zoom in, zoom out or fit the whole track; a wide screen shows more of the track.
+- **Sound and mix.** The sliders button opens the levels of each part, the room, the texture, the brightness and the drive.
+- **Keeping a track.** The download button opens **Make the track**, which renders it with progress, then **Download** saves an M4A or WAV file and **Save to library** keeps it in your assets with its recipe. Every setting is in the link, so the link button copies a track that anyone can open, play and change.
+
+Escape closes a picker or a panel, then leaves the generator.
+
+## Performance
+
+The dance stations play many more synthesised voices at once than the Lofi stations. On those stations the player offers **Light visualiser**, which shows the simple level bars instead of the full visualiser so the music has the processing time it needs. The setting is on by default on a modest device, such as a phone or a computer with four cores or fewer, and you can change it in the station's controls at any time.
+
+## No samples, no recorded voices
+
+Every sound is synthesised by Lolly's own code. A generated tune contains no samples, loops or recordings, and no recorded voice. The one vocal sound is the "hey" shout in Sugar and Reggae, which is built from the same oscillators and filters as every other instrument, and it says nothing else. The magpies and the kookaburra are synthesised the same way.
