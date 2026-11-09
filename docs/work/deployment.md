@@ -243,7 +243,9 @@ choices, preferred image sources and Application Collection dependencies.
 
 ## RKE2 and K3s
 
-![Rancher](img/rancher-icon.svg) ![k3s](img/k3s-icon-color.svg) ![Helm](img/helm-icon-color.svg)
+::: logos
+![Rancher](img/rancher-icon.svg) ![K3s](img/k3s-icon-color.svg) ![Helm](img/helm-icon-color.svg)
+:::
 
 The chart uses only core Kubernetes objects (Deployment, Service, Ingress, Job and
 HorizontalPodAutoscaler), so it runs on any conformant cluster and is exercised on
