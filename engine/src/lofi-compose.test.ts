@@ -18,7 +18,7 @@
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { composeLofiTune, lofiStream, lofiTuneSeconds, nextLofiSeed, isDanceMood, LOFI_MOODS, LOFI_DRUM_VOICES, DANCE_MOODS, LOFI_BLENDS } from './lofi-compose.ts';
+import { composeLofiTune, lofiStream, lofiTuneSeconds, nextLofiSeed, isDanceMood, LOFI_MOODS, LOFI_DRUM_VOICES, DANCE_MOODS } from './lofi-compose.ts';
 import type { LofiBar } from './lofi-compose.ts';
 
 const SEEDS = Array.from({ length: 24 }, (_, i) => (i * 2654435761) >>> 0);
@@ -334,41 +334,29 @@ test('fixing one style part changes that part only', () => {
   assert.equal(fixed.style.lead, base.style.lead);
 });
 
-test('a blend keeps the genre\'s song and adds its own colour', () => {
+test('Fantasy, Dreamscape, K-pop and Metal each have their own colour and moments', () => {
   const pcOf = (m: number): number => ((m % 12) + 12) % 12;
-  for (const mood of ['sugar', 'rock', 'dnb', 'country', 'straya', 'citypop'] as const) for (const seed of SEEDS.slice(0, 4)) {
-    const plain = composeLofiTune(seed, mood);
-    for (const blend of LOFI_BLENDS) {
-      const bars = composeLofiTune(seed, mood, {}, blend);
-      const where = `${mood} ${seed} ${blend}`;
-      assert.deepEqual(bars.map(b => b.section), plain.map(b => b.section), `${where}: the same running order`);
-      // Every note stays playable and the keys stay on the chord, blended or not.
-      for (const b of bars) for (const n of b.notes) {
-        assert.ok(Number.isFinite(n.midi) && n.vel > 0 && n.vel <= 1, `${where}: a playable note`);
-        if (n.voice === 'keys') assert.ok(b.tones.includes(pcOf(n.midi)), `${where} bar ${b.index}: keys ${n.midi} off ${b.chord}`);
-        if (n.voice === 'lead') assert.ok(n.midi >= 64 && n.midi <= 84, `${where}: lead ${n.midi}`);
-        if (n.voice === 'keys') assert.ok(n.midi >= 52 && n.midi <= 76, `${where}: keys ${n.midi}`);
-      }
-      const drops = bars.filter(b => b.section === 'drop');
-      if (blend === 'kpop') {
-        const last = drops.at(-1)!;
-        const before = plain[bars.indexOf(last)]!;
-        assert.notEqual(last.chord, before.chord, `${where}: the last chorus goes up a key`);
-        assert.ok(drops.every(b => [0, 1, 2, 3].every(beat => b.notes.some(n => n.voice === 'snare' && Math.abs(n.beat - beat) < 0.05))), `${where}: claps on every beat`);
-      } else {
-        assert.deepEqual(bars.map(b => b.chord), plain.map(b => b.chord), `${where}: the same chords`);
-      }
-      if (blend === 'metal') assert.ok(drops.every(b => b.notes.filter(n => n.voice === 'kick').length >= 8), `${where}: the double kick`);
-      if (blend === 'dream') assert.ok(bars.every(b => b.notes.every(n => n.voice !== 'hat' || Math.abs(n.beat - Math.round(n.beat)) <= 0.05)), `${where}: hats only on the beat`);
-    }
+  const tonic = (b: LofiBar): number => ['C', 'D♭', 'D', 'E♭', 'E', 'F', 'F♯', 'G', 'A♭', 'A', 'B♭', 'B'].indexOf(b.tune.key.split(' ')[0]!);
+  let lydian = 0, keyChanges = 0;
+  for (const seed of SEEDS.slice(0, 8)) {
+    // Fantasy: a harp or a choir, and the lydian fourth in a major key's melody.
+    const fantasy = composeLofiTune(seed, 'fantasy');
+    assert.ok(['harp', 'choir', 'pad'].includes(fantasy[0]!.tune.style.keys), `fantasy ${seed}: ${fantasy[0]!.tune.style.keys}`);
+    if (fantasy.some(b => b.tune.key.endsWith('major') && b.notes.some(n => n.voice === 'lead' && pcOf(n.midi) === (tonic(b) + 6) % 12))) lydian++;
+    // Dreamscape: the hats only on the beat.
+    const dream = composeLofiTune(seed, 'dream');
+    assert.ok(dream.every(b => b.notes.every(n => n.voice !== 'hat' || Math.abs(n.beat - Math.round(n.beat)) <= 0.05)), `dream ${seed}: hats on the beat`);
+    // K-pop: claps on every beat of a chorus, and the last chorus a key up from the first.
+    const kpop = composeLofiTune(seed, 'kpop');
+    const drops = kpop.filter(b => b.section === 'drop');
+    assert.ok(drops.every(b => [0, 1, 2, 3].every(beat => b.notes.some(n => n.voice === 'snare' && Math.abs(n.beat - beat) < 0.05))), `kpop ${seed}: claps on every beat`);
+    if (drops.at(-1)!.chord !== drops[0]!.chord) keyChanges++;
+    // Metal: a band song with the double kick through the chorus.
+    const metal = composeLofiTune(seed, 'metal');
+    assert.equal(metal[0]!.tune.style.keys, 'crunch');
+    assert.ok(metal.filter(b => b.section === 'drop').every(b => b.notes.filter(n => n.voice === 'kick').length >= 8), `metal ${seed}: the double kick`);
   }
-  // Fantasy's melody takes the lydian fourth in a major key.
-  const fantasy = SEEDS.slice(0, 8).flatMap(seed => composeLofiTune(seed, 'sugar', {}, 'fantasy'));
-  assert.ok(fantasy.some(b => {
-    const tonic = ['C', 'D♭', 'D', 'E♭', 'E', 'F', 'F♯', 'G', 'A♭', 'A', 'B♭', 'B'].indexOf(b.tune.key.split(' ')[0]!);
-    return b.tune.key.endsWith('major') && b.notes.some(n => n.voice === 'lead' && pcOf(n.midi) === (tonic + 6) % 12);
-  }), 'a lydian fourth somewhere in a major fantasy tune');
-  // The blend's instruments come in.
-  const styles = SEEDS.map(seed => composeLofiTune(seed, 'rock', {}, 'fantasy')[0]!.tune.style);
-  assert.ok(styles.some(st => st.keys === 'harp' || st.keys === 'choir'), 'fantasy brings a harp or a choir');
+  assert.ok(lydian >= 1, 'a lydian fourth in some major fantasy tune');
+  assert.ok(keyChanges >= 6, `most K-pop tunes change key for the last chorus (${keyChanges} of 8)`);
 });
+

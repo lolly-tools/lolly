@@ -28,7 +28,7 @@
  * is hidden the station queues a few seconds ahead instead of a quarter of one.
  */
 import { lofiStream, LOFI_DRUM_VOICES } from '../../../../engine/src/lofi-compose.ts';
-import type { LofiBar, LofiMood, LofiNote, LofiStream, LofiStyle, LofiBlend } from '../../../../engine/src/lofi-compose.ts';
+import type { LofiBar, LofiMood, LofiNote, LofiStream, LofiStyle } from '../../../../engine/src/lofi-compose.ts';
 import { mulberry32 } from '../../../../engine/src/zzfx-compose.ts';
 import * as V from './lofi-voices.ts';
 
@@ -47,8 +47,6 @@ export interface LofiSettings {
   bars?: number;
   /** Change each bar before it plays (the music generator's per-section instruments). Must be pure. */
   shape?: (bar: LofiBar) => LofiBar;
-  /** A flavour blended into a dance genre (the music generator's Blend). */
-  blend?: LofiBlend;
 }
 
 /** Part levels, for tuning the balance. 1 is the designed level. */
@@ -59,10 +57,11 @@ export const LOFI_MIX: LofiMix = { keys: 1, bass: 1, lead: 1, drums: 1, reverb: 
 const MOOD_TONE: Record<LofiMood, number> = {
   warm: 7500, lateNight: 4300, rainy: 5400, sings: 8200, sugar: 11000, chiptune: 11000, citypop: 9500, nudisco: 9500, triphop: 5500, funk: 9500, soul: 8000, acid: 10000, hiphop: 8000, reggae: 7500, spanish: 8500, rock: 9000, synthwave: 9500, electro: 9000, dubstep: 9500, brostep: 10000, dnb: 10000,
   country: 9500, blues: 7000, jazz: 7500, swing: 8500, straya: 10000,
+  fantasy: 9000, dream: 6000, kpop: 11000, metal: 9500,
 };
 /** Lolly Sings is melody-first: its lead sits this much higher than Lofi's (about +4 dB), in every genre of the family. */
 const SINGS_LEAD = 1.6;
-const SINGS_FAMILY = new Set<LofiMood>(['sings', 'sugar', 'chiptune', 'citypop', 'nudisco', 'triphop', 'funk', 'soul', 'acid', 'hiphop', 'reggae', 'spanish', 'rock', 'synthwave', 'electro', 'dubstep', 'brostep', 'dnb', 'country', 'blues', 'jazz', 'swing', 'straya']);
+const SINGS_FAMILY = new Set<LofiMood>(['sings', 'sugar', 'chiptune', 'citypop', 'nudisco', 'triphop', 'funk', 'soul', 'acid', 'hiphop', 'reggae', 'spanish', 'rock', 'synthwave', 'electro', 'dubstep', 'brostep', 'dnb', 'country', 'blues', 'jazz', 'swing', 'straya', 'fantasy', 'dream', 'kpop', 'metal']);
 const DRUMS = new Set(LOFI_DRUM_VOICES);
 /**
  * Each part's designed level: first measured K-weighted and soloed (keys about -25 LUFS,
@@ -153,7 +152,7 @@ export class LofiStation {
     this.ctx = ctx;
     this.settings = { ...settings };
     this.mix = { ...mix };
-    this.stream = lofiStream(seed, { mood: settings.mood, style: settings.style, repeat: settings.repeat, blend: settings.blend });
+    this.stream = lofiStream(seed, { mood: settings.mood, style: settings.style, repeat: settings.repeat });
     for (let i = 0; i < (settings.startBar ?? 0); i++) { this.stream.next(); this.taken++; }
     const noise = noiseBuffer(ctx, 2, mulberry32(seed ^ 0x51));
     this.kit = { ctx, noise, rng: mulberry32(seed ^ 0x5eed) };
@@ -309,7 +308,7 @@ export class LofiStation {
     for (const g of Object.values(old)) g.gain.setTargetAtTime(0, now, 0.06);
     if (typeof setTimeout === 'function') setTimeout(() => { for (const g of Object.values(old)) g.disconnect(); }, 800);
     this.lanes = this.newLanes();
-    this.stream = lofiStream(seed, { mood: this.settings.mood, style: this.settings.style, repeat: this.settings.repeat, blend: this.settings.blend });
+    this.stream = lofiStream(seed, { mood: this.settings.mood, style: this.settings.style, repeat: this.settings.repeat });
     this.queue = [];
     this.marks = [];
     this.nextBarAt = now + 0.15;
