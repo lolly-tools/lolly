@@ -55,7 +55,7 @@ const PITCHED: readonly Pitched[] = ['lead', 'keys', 'bass'];
 /** Lane heights in CSS pixels: the section ruler, the chords, then each track. */
 const RULER = 26;
 const CHORDS = 22;
-const LANE: Record<Track, number> = { lead: 64, keys: 64, bass: 64, drums: 52, fx: 30 };
+const LANE: Record<Track, number> = { lead: 64, keys: 64, bass: 64, drums: 52, fx: 40 };
 const LENGTHS = [8, 16, 32, 48, 64, 96, 128, 192, 256];
 type VizMode = 'off' | 'bars' | 'scope' | 'milkdrop';
 const VIZ_MODES: readonly VizMode[] = ['bars', 'scope', 'milkdrop', 'off'];
@@ -418,27 +418,23 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
   let playheadBeat = 0;
   let rendered = 0;   // the share of the track already made, 0..1
 
-  function draw(): void {
-    // The canvas is only as wide as the view and is drawn at the scroll offset: a long
-    // track at a close zoom would be wider than a canvas is allowed to be.
-    const dpr = Math.min(2, window.devicePixelRatio || 1);
-    const total = bars.length * 4 * pxPerBeat + 2;
-    spacer.style.width = `${total}px`;
-    const width = Math.max(1, scroll.clientWidth);
-    const offset = scroll.scrollLeft;
-    canvas.style.width = `${width}px`;
-    canvas.style.height = `${height}px`;
-    if (canvas.width !== Math.round(width * dpr)) canvas.width = Math.round(width * dpr);
-    if (canvas.height !== Math.round(height * dpr)) canvas.height = Math.round(height * dpr);
-    const cx = canvas.getContext('2d');
-    if (!cx) return;
+  // The track (sections, chords and every note) is painted once into a layer and copied
+  // onto the canvas each frame; only the progress line, the selection and the playhead are
+  // drawn every frame. Repainting thousands of notes sixty times a second while a tune
+  // plays held up the page that also schedules the music.
+  const layer = document.createElement('canvas');
+  let layerKey = '';
+  /** Bumped whenever the bars or the colours change, so the layer is painted again. */
+  let paintVersion = 0;
+
+  /** The effects lane's rows, by what makes the sound: voices on top, then the console's sounds, its sparkles and bleeps, and the sweeps at the bottom. */
+  const fxRow = (voice: string): number => voice === 'hey' || voice === 'magpie' || voice === 'kookaburra' ? 0
+    : voice === 'game' || voice === 'coin' ? 1 : voice === 'sparkle' || voice === 'blip' ? 2 : 3;
+
+  function paintTrack(cx: CanvasRenderingContext2D, dpr: number, offset: number, width: number, ink: string, muteInk: string, line: string): void {
     cx.setTransform(dpr, 0, 0, dpr, -offset * dpr, 0);
     const first = Math.max(0, Math.floor(offset / (4 * pxPerBeat)) - 1);
     const last = Math.min(bars.length, Math.ceil((offset + width) / (4 * pxPerBeat)) + 1);
-    const css = getComputedStyle(page);
-    const ink = css.getPropertyValue('--ms-ink').trim() || '#123';
-    const muteInk = css.getPropertyValue('--ms-muted').trim() || '#789';
-    const line = css.getPropertyValue('--ms-line').trim() || 'rgba(0,0,0,.12)';
     cx.clearRect(offset, 0, width, height);
     // Sections: a tinted band for each run of bars in one section, its name on the ruler,
     // and in each pitched lane the instrument it plays there.
@@ -483,8 +479,10 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
       if (cx.measureText(chord).width <= room) { cx.fillStyle = muteInk; cx.fillText(chord, beatX(i, 0) + 3, RULER + 15); }
     }
     for (const tr of TRACKS) { cx.fillStyle = line; cx.fillRect(offset, laneTop(tr), width, 1); }
-    // Notes, each in its track: pitched parts by pitch, drums on three rows, effects as dots.
+    // Notes, each in its track: pitched parts by pitch, drums on three rows, effects on four
+    // (a sweep drawn as long as it lasts, the rest as short ticks so a run of them stays legible).
     const pitchRange: Record<Pitched, [number, number]> = { lead: [52, 96], keys: [48, 80], bass: [24, 64] };
+    const fxRowH = Math.max(5, (lane.fx - 8) / 4);
     for (let i = first; i < last; i++) {
       const bar = bars[i]!;
       for (const n of bar.notes) {
@@ -498,7 +496,10 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
           const row = n.voice === 'kick' ? 2 : n.voice === 'snare' || n.voice === 'rim' || n.voice === 'tom' ? 1 : 0;
           cx.fillRect(x, top + 8 + row * 14, 3, 9);
         } else if (tr === 'fx') {
-          cx.beginPath(); cx.arc(x + 3, top + lane.fx / 2, 4, 0, Math.PI * 2); cx.fill();
+          const row = fxRow(n.voice);
+          const y = top + 4 + row * fxRowH;
+          const sweep = n.voice === 'riser' || n.voice === 'phaser';
+          cx.fillRect(x, y, sweep ? Math.max(3, n.dur * pxPerBeat) : Math.max(2, Math.min(6, n.dur * pxPerBeat)), Math.max(3, fxRowH - 2));
         } else {
           const [lo, hi] = pitchRange[tr];
           const y = top + 14 + (1 - (Math.min(hi, Math.max(lo, n.midi)) - lo) / (hi - lo)) * (lane[tr] - 20);
@@ -507,6 +508,38 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
       }
     }
     cx.globalAlpha = 1;
+  }
+
+  function draw(): void {
+    // The canvas is only as wide as the view and is drawn at the scroll offset: a long
+    // track at a close zoom would be wider than a canvas is allowed to be.
+    const dpr = Math.min(2, window.devicePixelRatio || 1);
+    const total = bars.length * 4 * pxPerBeat + 2;
+    spacer.style.width = `${total}px`;
+    const width = Math.max(1, scroll.clientWidth);
+    const offset = scroll.scrollLeft;
+    canvas.style.width = `${width}px`;
+    canvas.style.height = `${height}px`;
+    if (canvas.width !== Math.round(width * dpr)) canvas.width = Math.round(width * dpr);
+    if (canvas.height !== Math.round(height * dpr)) canvas.height = Math.round(height * dpr);
+    const cx = canvas.getContext('2d');
+    if (!cx) return;
+    const css = getComputedStyle(page);
+    const ink = css.getPropertyValue('--ms-ink').trim() || '#123';
+    const muteInk = css.getPropertyValue('--ms-muted').trim() || '#789';
+    const line = css.getPropertyValue('--ms-line').trim() || 'rgba(0,0,0,.12)';
+    const key = [paintVersion, pxPerBeat, offset, canvas.width, canvas.height, dpr, ink, muteInk, line, [...muted].join(), [...solo].join(), state.drums, TRACKS.map(tr => lane[tr]).join()].join('|');
+    if (key !== layerKey) {
+      layer.width = canvas.width;
+      layer.height = canvas.height;
+      const lx = layer.getContext('2d');
+      if (lx) paintTrack(lx, dpr, offset, width, ink, muteInk, line);
+      layerKey = key;
+    }
+    cx.setTransform(1, 0, 0, 1, 0, 0);
+    cx.clearRect(0, 0, canvas.width, canvas.height);
+    cx.drawImage(layer, 0, 0);
+    cx.setTransform(dpr, 0, 0, dpr, -offset * dpr, 0);
     // What has been made so far, under the ruler, then the selection and the playhead.
     if (rendered > 0) { cx.fillStyle = trackColour.bass; cx.fillRect(0, RULER - 4, total * rendered, 3); }
     cx.strokeStyle = ink; cx.lineWidth = 1;
@@ -534,6 +567,7 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
     const pal = musicPalette(colours, TRACKS.length + 4);
     trackColour = { lead: pal[0]!, keys: pal[1]!, bass: pal[2]!, drums: pal[3]!, fx: pal[4]! };
     sectionColour = new Map(SECTION_ORDER.map((s, i) => [s, pal[i % pal.length]!]));
+    paintVersion++;
     for (const tr of TRACKS) page.querySelector<HTMLElement>(`[data-swatch="${tr}"]`)?.style.setProperty('background', trackColour[tr]);
     draw();
   })();
@@ -545,6 +579,7 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
   }
   function recompose(): void {
     bars = composeTrack(state);
+    paintVersion++;
     times = barTimes(bars);
     selected = Math.min(selected, bars.length - 1);
     renderedBuffer = null; rendered = 0;
@@ -931,13 +966,13 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
   // slides, only the picture follows; letting go plays and links the seed it stopped on.
   const detachScrub = attachScrub(page, {
     selector: '[data-seed]', min: 0, max: 4294967295, unitPerPx: 1, touch: true,
-    onDrag: (_el, value) => { state.seed = Math.round(value); bars = composeTrack(state); times = barTimes(bars); meta(); draw(); },
+    onDrag: (_el, value) => { state.seed = Math.round(value); bars = composeTrack(state); paintVersion++; times = barTimes(bars); meta(); draw(); },
     onCommit: (el) => setSeed(Math.floor(Number(el.value) || 0)),
   });
   // The tempo slides too: a beat a minute for every few pixels, the length following as it goes.
   const detachTempoScrub = attachScrub(page, {
     selector: '[data-bpm]', min: BPM_RANGE[0], max: BPM_RANGE[1], unitPerPx: 0.25, touch: true,
-    onDrag: (_el, value) => { state.bpm = Math.round(value); bars = composeTrack(state); times = barTimes(bars); meta(); draw(); },
+    onDrag: (_el, value) => { state.bpm = Math.round(value); bars = composeTrack(state); paintVersion++; times = barTimes(bars); meta(); draw(); },
     onCommit: (el) => setBpm(Number(el.value)),
   });
 

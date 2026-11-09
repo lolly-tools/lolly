@@ -122,7 +122,7 @@
     .ms-bar { padding: var(--sp-1) var(--sp-2); }
     .ms-meta { display: none; }
     .ms-seed-input { width: 7em; }
-    .ms-bpm-input { width: 4em; }
+    .ms-bpm-input { width: 4.2em; margin-inline-start: 2px; }
     .ms-stage { height: 64px; }
     .ms-editor { grid-template-columns: 124px 1fr; }
     .ms-pick, .ms-track [data-solo] { display: none; }
