@@ -49,8 +49,10 @@ export function isDanceMood(mood: LofiMood): mood is DanceMood { return (DANCE_M
 /** `riser` (a build's noise sweep), `crash` (a cymbal and a low boom on a drop), `coin`
  *  (a bright two-note ding) and `magpie` (a magpie's warble, Lolly's bird, for sugar) are
  *  effects, written by the dance genres only. A magpie's `mod` seeds its song. `hey` is a
- *  synthesised shout (no recording, no words), for sugar and reggae. */
-export type LofiVoice = 'keys' | 'bass' | 'lead' | 'kick' | 'snare' | 'rim' | 'hat' | 'openHat' | 'crash' | 'riser' | 'coin' | 'magpie' | 'hey';
+ *  synthesised shout (no recording, no words), for sugar and reggae. `soar` is a wide bass
+ *  layer an octave above the bass, held across a drop's chords and climbing through a build
+ *  (`mod` 1), for dubstep, brostep and drum and bass. */
+export type LofiVoice = 'keys' | 'bass' | 'lead' | 'kick' | 'snare' | 'rim' | 'hat' | 'openHat' | 'crash' | 'riser' | 'coin' | 'magpie' | 'hey' | 'soar';
 export const LOFI_DRUM_VOICES: readonly LofiVoice[] = ['kick', 'snare', 'rim', 'hat', 'openHat', 'crash'];
 
 export const LOFI_KEYS = ['rhodes', 'felt', 'wurli', 'pluck', 'pad', 'supersaw', 'nylon', 'crunch', 'wah', 'chiparp'] as const;
@@ -1438,6 +1440,17 @@ function composeDanceTune(seed: number, mood: DanceMood, fixed: Partial<LofiStyl
           const dead = bassV === 'slap' && mod === 4;
           notes.push({ voice: 'bass', midi, beat: sb(step), dur: len / 4 - 0.02, vel: dead ? 0.5 : step === 0 ? 0.92 : 0.8, mod });
         }
+      }
+
+      // SOAR: the bass genres' wide layer an octave over the bass, held through a drop's
+      // chords and climbing bar by bar through a build, so the bass itself builds.
+      if ((mood === 'dubstep' || mood === 'brostep' || mood === 'dnb') && has('bass') && part.section === 'drop' && (firstOfChord || i === 0)) {
+        const left = (style.chordBars - (i % style.chordBars)) * 4;
+        notes.push({ voice: 'soar', midi: placeIn(chord.root, 40, 51), beat: 0, dur: left - 0.2, vel: 0.5 });
+      }
+      if ((mood === 'dubstep' || mood === 'brostep' || mood === 'dnb') && build) {
+        const climb = [0, 3, 5, 7][Math.min(3, Math.floor((i / part.bars) * 4))]!;
+        notes.push({ voice: 'soar', midi: placeIn(chord.root, 40, 51) + climb, beat: 0, dur: 3.8, vel: clamp01(0.3 + (i / part.bars) * 0.35), mod: 1 });
       }
 
       // LEAD: the motif and its answer, as in the other tunes, kept to the lead's range.

@@ -1353,6 +1353,33 @@ function pickedBass(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: n
 // ── effects ──────────────────────────────────────────────────────────────────
 
 /**
+ * Soar: a wide bass layer an octave over the bass. Four detuned saws glide up into the
+ * note through a low-pass that opens as the note holds: slowly and far in a build
+ * (`climbing`), quickly to a warm middle in a drop.
+ */
+export function soar(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number, dur: number, climbing: boolean): void {
+  const { ctx } = k;
+  const f = mtof(midi);
+  const end = t + dur + 0.3;
+  const lp = ctx.createBiquadFilter();
+  lp.type = 'lowpass';
+  lp.Q.value = climbing ? 3 : 1.2;
+  lp.frequency.setValueAtTime(climbing ? 250 : 500, t);
+  lp.frequency.exponentialRampToValueAtTime(climbing ? 3200 : 1700, t + (climbing ? dur : 0.4));
+  const amp = ctx.createGain();
+  amp.gain.setValueAtTime(EPS, t);
+  amp.gain.exponentialRampToValueAtTime(0.055 * vel, t + (climbing ? dur * 0.6 : 0.08));
+  amp.gain.setTargetAtTime(EPS, t + dur, 0.12);
+  lp.connect(amp).connect(out);
+  for (const cents of [-14, -5, 6, 15]) {
+    const o = osc(k, 'sawtooth', f * 2 ** (-2 / 12), t, end);
+    o.frequency.exponentialRampToValueAtTime(f, t + 0.15);
+    o.detune.value = cents;
+    o.connect(lp);
+  }
+}
+
+/**
  * A "hey!": a synthesised shout, no recording and no words. A breath of noise (the h)
  * leads into a saw through three vowel formants that glide from "e" towards "i" while
  * the pitch falls, the way a shout does. Two of them, a few cents and milliseconds apart,

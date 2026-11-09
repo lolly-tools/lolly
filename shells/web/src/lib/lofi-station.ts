@@ -427,6 +427,7 @@ export class LofiStation {
       case 'coin': V.coin(k, lanes.lead, t, note.midi, vel); break;
       case 'magpie': V.magpie(k, lanes.lead, t, note.midi, vel, len, note.mod ?? 0); break;
       case 'hey': V.hey(k, lanes.lead, t, note.midi, vel); break;
+      case 'soar': V.soar(k, lanes.bass, t, note.midi, vel, len, note.mod === 1); break;
       case 'kick': V.kick(k, lanes.drums, t, vel, st.kick, st.kickLen); this.duck(t, st.duck); break;
       case 'snare':
         V.snare(st.snare === 'rim' ? 'snare' : st.snare, k, lanes.drums, t, vel * VARIANT.snare[st.snare], st.snareTone);
