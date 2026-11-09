@@ -1,6 +1,6 @@
-<div class="qw-page" style="--qw-accent: {{default accent "#2563eb"}}; --qw-bg: {{default background "#ffffff"}}; --qw-ink: {{default ink "#111827"}}; --qw-days: {{default dayCount "5"}};">
-  <div class="qw-sheet">
-    <header class="qw-head">
+<div class="qw-page" data-content-surface data-ground="{{ground}}" data-density="{{density}}" data-layout="{{layout}}" data-motion="{{motion}}" data-enter-seconds="{{surfaceEnterSeconds}}" data-curve="{{surfaceCurve}}" style="--content-space:{{surfaceSpacing}}; --qw-on-accent:{{surfaceOnAccent}}; --qw-accent: {{surfaceAccent}}; --qw-bg: {{surfaceGround}}; --qw-ink: {{surfaceInk}}; --qw-days: {{default dayCount "5"}};">
+  <div class="qw-sheet" data-content-fit>
+    <header class="qw-head" data-reveal>
       <div>
         {{#if subheading}}<span class="qw-kicker">{{subheading}}</span>{{/if}}
         <h1 class="qw-title">{{default heading "This week"}}</h1>
@@ -10,6 +10,15 @@
 
     {{!-- Day columns over an hour grid. Each event's place and length (top,
           height) are shares of the day shown, from hooks.js. --}}
+    <div class="qw-agenda" data-content-fit>
+      {{#each weekDays}}
+      <section class="qw-agenda-day" data-reveal>
+        <h2 class="qw-day-name">{{label}} {{date}}</h2>
+        {{#each events}}<div class="qw-agenda-event {{status}}"><b>{{title}}</b><span>{{time}}{{#if statusLabel}} · {{statusLabel}}{{/if}}</span></div>{{else}}<p class="qw-agenda-empty">No events</p>{{/each}}
+      </section>
+      {{/each}}
+    </div>
+
     <div class="qw-grid">
       <div class="qw-days-head">
         {{#each weekDays}}<div class="qw-day-name"><span>{{label}}</span>{{#if date}}<b>{{date}}</b>{{/if}}</div>{{/each}}
@@ -21,7 +30,7 @@
         <div class="qw-columns">
           {{#each hourMarks}}<span class="qw-rule" style="top: {{top}}"></span>{{/each}}
           {{#each weekDays}}
-          <div class="qw-column">
+          <div class="qw-column" data-reveal>
             {{#each events}}
             <div class="qw-event {{status}}" style="top: {{top}}; height: {{height}};">
               <div class="qw-event-in">
@@ -36,4 +45,7 @@
       </div>
     </div>
   </div>
+  {{#unless (eq motion "none")}}<button type="button" data-content-play data-export-hide>Play motion</button>{{/unless}}
+  <p data-content-fit-warning data-export-hide hidden role="status">This content needs more room. Choose a larger size, fewer columns or shorter text.</p>
+  <canvas data-content-clock width="0" height="0" aria-hidden="true" style="position:absolute;pointer-events:none"></canvas>
 </div>

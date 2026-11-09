@@ -2,7 +2,7 @@
   "id": "calendar-ics",
   "name": "Calendar",
   "description": "Turn event details into a calendar (.ics) file for any calendar app.",
-  "version": "1.2.4",
+  "version": "1.3.0",
   "engineVersion": "^1.0.0",
   "status": "official",
   "category": "event",
@@ -147,6 +147,33 @@
         { "id": "time", "label": "Time", "placeholder": "09:30", "help": "Optional, 24-hour. Blank means all day." },
         { "id": "title", "label": "Name", "placeholder": "e.g. Release review" }
       ]
+    },
+    {
+      "id": "ground",
+      "label": "Colour treatment",
+      "type": "select",
+      "default": "tint",
+      "options": [
+        {"value": "tint", "label": "Brand tint"},
+        {"value": "lead", "label": "Lead colour"},
+        {"value": "ink", "label": "Ink"},
+        {"value": "surface", "label": "Surface"}
+      ],
+      "help": "Follows this piece’s design system and colourway. Surface uses your background and text colours.",
+      "section": "Treatment"
+    },
+    {
+      "id": "density",
+      "label": "Spacing",
+      "type": "select",
+      "default": "auto",
+      "options": [
+        {"value": "auto", "label": "Fit content"},
+        {"value": "compact", "label": "Compact"},
+        {"value": "comfortable", "label": "Comfortable"},
+        {"value": "spacious", "label": "Spacious"}
+      ],
+      "section": "Treatment"
     }
   ]
 }

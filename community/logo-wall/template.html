@@ -1,13 +1,13 @@
 <svg class="lw-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {{default wallW 1280}} {{default wallH 720}}" width="{{default wallW 1280}}" height="{{default wallH 720}}" data-canvas-input="columns">
   {{{wallDefs}}}
-  {{#if wallBg}}<rect x="0" y="0" width="{{default wallW 1280}}" height="{{default wallH 720}}" fill="{{background}}"/>{{/if}}
+  {{#if wallBg}}<rect x="0" y="0" width="{{default wallW 1280}}" height="{{default wallH 720}}" fill="{{surfaceGround}}"/>{{/if}}
   <g{{#if wallClip}} clip-path="url(#lw-clip)"{{/if}}>
     {{#each wallCells}}
     {{#if cellSvg}}<g class="lw-logo lw-vec" data-canvas-input="logos:{{index}}"{{#if dim}} opacity="{{opacity}}"{{/if}}>{{{cellSvg}}}</g>{{else}}<image class="lw-logo" data-canvas-input="logos:{{index}}" href="{{href}}" x="{{x}}" y="{{y}}" width="{{w}}" height="{{h}}" preserveAspectRatio="xMidYMid meet"{{#if dim}} opacity="{{opacity}}"{{/if}}{{#if grey}} filter="url(#lw-grey)"{{/if}} aria-label="{{name}}"/>{{/if}}
     {{/each}}
   </g>
   {{#each wallHeadings}}
-  <text class="lw-heading" x="{{x}}" y="{{y}}" text-anchor="middle" font-family="{{@root.wallFont}}" font-size="{{size}}" font-weight="600" fill="{{#if @root.headingColor}}{{@root.headingColor}}{{else}}#1d1d1b{{/if}}">{{text}}</text>
+  <text class="lw-heading" x="{{x}}" y="{{y}}" text-anchor="middle" font-family="{{@root.wallFont}}" font-size="{{size}}" font-weight="600" fill="{{@root.surfaceInk}}">{{text}}</text>
   {{/each}}
 </svg>
 {{#unless wallCells}}

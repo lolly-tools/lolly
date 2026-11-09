@@ -3,8 +3,8 @@
   "name": "Link Card",
   "description": "Paste a link, get a social card in your design system - title, description, site chip and a thumbnail, at Open Graph, square or summary size.",
   "a11yLabel": "Link card for {{siteLabel}}: {{headingLabel}}",
-  "version": "1.0.4",
-  "engineVersion": "^1.0.0",
+  "version": "1.1.0",
+  "engineVersion": "^1.343.0",
   "status": "community",
   "category": "everyone",
   "tags": [
@@ -17,12 +17,14 @@
     "thumbnail"
   ],
   "render": {
+    "portable": true,
+    "video": { "duration": 4, "wait": 0 },
     "sectionIcons": {
       "Look": "paintbrush"
     },
     "width": 1200,
     "height": 630,
-    "formats": ["png", "jpg", "webp", "svg", "penpot", "pdf", "avif", "tiff"],
+    "formats": ["png", "jpg", "webp", "svg", "penpot", "pdf", "avif", "tiff", "mp4", "webm", "gif", "html"],
     "actions": ["copy", "download", "save"],
     "filenameFrom": ["siteName", "heading"],
     "transparentBg": false
@@ -142,6 +144,59 @@
       "group": "Look",
       "default": "{color.semantic.primary}",
       "help": "The chip, the rule under the title, and the monogram panel that stands in for a missing thumbnail."
+    },
+    {
+      "id": "ground",
+      "label": "Colour treatment",
+      "type": "select",
+      "default": "tint",
+      "options": [
+        {"value": "tint", "label": "Brand tint"},
+        {"value": "lead", "label": "Lead colour"},
+        {"value": "ink", "label": "Ink"},
+        {"value": "surface", "label": "Surface"}
+      ],
+      "help": "Follows this piece’s design system and colourway. Surface uses your background and text colours.",
+      "section": "Treatment"
+    },
+    {
+      "id": "density",
+      "label": "Spacing",
+      "type": "select",
+      "default": "auto",
+      "options": [
+        {"value": "auto", "label": "Fit content"},
+        {"value": "compact", "label": "Compact"},
+        {"value": "comfortable", "label": "Comfortable"},
+        {"value": "spacious", "label": "Spacious"}
+      ],
+      "section": "Treatment"
+    },
+    {
+      "id": "contentLayout",
+      "label": "Content layout",
+      "type": "select",
+      "default": "auto",
+      "options": [
+        {"value": "auto", "label": "Responsive"},
+        {"value": "split", "label": "Picture beside"},
+        {"value": "stack", "label": "Picture above"},
+        {"value": "text", "label": "Words only"}
+      ],
+      "section": "Treatment"
+    },
+    {
+      "id": "motion",
+      "label": "Motion",
+      "type": "select",
+      "default": "none",
+      "options": [
+        {"value": "none", "label": "Still"},
+        {"value": "fade", "label": "Fade in order"},
+        {"value": "rise", "label": "Rise in order"}
+      ],
+      "help": "Reveals the content in reading order. Still exports always show the complete piece.",
+      "section": "Treatment"
     }
   ],
   "examples": [

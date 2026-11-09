@@ -27,19 +27,19 @@
   flex-direction: column;
   gap: 3cqmin;
   padding: 5cqmin 5.5cqmin 4.5cqmin;
-  font-size: 2.2cqmin;
+  font-size: calc(2.2cqmin * var(--content-fit, 1));
 }
 
 .qw-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 4cqmin; }
 .qw-kicker {
   display: block;
   color: var(--qw-accent, #2563eb);
-  font-size: 2.1cqmin;
+  font-size: calc(2.1cqmin * var(--content-fit, 1));
   font-weight: 650;
   letter-spacing: 0.14em;
   text-transform: uppercase;
 }
-.qw-title { margin-top: 0.8cqmin; font-size: 5.2cqmin; font-weight: 750; line-height: 1.05; letter-spacing: -0.015em; }
+.qw-title { margin-top: 0.8cqmin; font-size: calc(5.2cqmin * var(--content-fit, 1)); font-weight: 750; line-height: 1.05; letter-spacing: -0.015em; }
 .qw-booked {
   flex: none;
   display: inline-flex;
@@ -48,8 +48,8 @@
   padding: 1cqmin 2.4cqmin;
   border-radius: 99cqmin;
   background: var(--qw-accent, #2563eb);
-  color: var(--qw-bg, #ffffff);
-  font-size: 2.4cqmin;
+  color: var(--qw-on-accent, #ffffff);
+  font-size: calc(2.4cqmin * var(--content-fit, 1));
   font-weight: 700;
 }
 .qw-booked svg { width: 2.8cqmin; height: 2.8cqmin; }
@@ -68,12 +68,12 @@
   gap: 1cqmin;
   margin-left: var(--qw-gutter);
 }
-.qw-day-name { display: flex; align-items: baseline; gap: 0.8cqmin; font-size: 2.2cqmin; letter-spacing: 0.08em; text-transform: uppercase; opacity: 0.75; }
-.qw-day-name b { font-size: 3cqmin; letter-spacing: 0; font-weight: 700; }
+.qw-day-name { display: flex; align-items: baseline; gap: 0.8cqmin; font-size: calc(2.2cqmin * var(--content-fit, 1)); letter-spacing: 0.08em; text-transform: uppercase; opacity: 0.75; }
+.qw-day-name b { font-size: calc(3cqmin * var(--content-fit, 1)); letter-spacing: 0; font-weight: 700; }
 
 .qw-body { flex: 1; min-height: 0; display: flex; position: relative; }
 .qw-hours { position: relative; width: var(--qw-gutter); flex: none; }
-.qw-hour { position: absolute; right: 1.4cqmin; transform: translateY(-50%); font-size: 1.7cqmin; opacity: 0.55; font-variant-numeric: tabular-nums; }
+.qw-hour { position: absolute; right: 1.4cqmin; transform: translateY(-50%); font-size: calc(1.7cqmin * var(--content-fit, 1)); opacity: 0.55; font-variant-numeric: tabular-nums; }
 .qw-columns {
   position: relative;
   flex: 1;
@@ -114,24 +114,49 @@
 .qw-event.is-tentative { background: var(--qw-bg, #ffffff); border: 0.25cqmin dashed var(--qw-accent, #2563eb); }
 .qw-event.is-declined { background: var(--qw-bg, #ffffff); border: 0.25cqmin solid color-mix(in srgb, currentColor 30%, var(--qw-bg, #ffffff)); color: color-mix(in srgb, currentColor 60%, var(--qw-bg, #ffffff)); }
 .qw-event.is-declined .qw-event-title { text-decoration: line-through; text-decoration-thickness: 0.2cqmin; }
-.qw-event.is-booked { background: var(--qw-accent, #2563eb); color: var(--qw-bg, #ffffff); }
+.qw-event.is-booked { background: var(--qw-accent, #2563eb); color: var(--qw-on-accent, #ffffff); }
 .qw-event.is-booked .qw-event-time { opacity: 0.85; }
+
+.qw-sheet { padding: calc(5cqmin * var(--content-space)) calc(5.5cqmin * var(--content-space)); gap: calc(3cqmin * var(--content-space)); }
+.qw-agenda { display: none; flex: 1; min-height: 0; grid-template-columns: repeat(var(--qw-days), minmax(0, 1fr)); gap: calc(2cqmin * var(--content-space)); }
+.qw-agenda-day { min-width: 0; display: flex; flex-direction: column; gap: calc(1.2cqmin * var(--content-space)); }
+.qw-agenda-event { padding: calc(1.5cqmin * var(--content-space)); border-left: 0.4cqmin solid var(--qw-accent); background: color-mix(in srgb, currentColor 5%, transparent); overflow-wrap: anywhere; }
+.qw-agenda-event b, .qw-agenda-event span { display: block; }
+.qw-agenda-event span { font-size: .82em; margin-top: .3em; }
+.qw-agenda-event.is-declined b { text-decoration: line-through; }
+.qw-agenda-event.is-booked { background: var(--qw-accent); color: var(--qw-on-accent); }
+.qw-agenda-event.is-tentative { border-left-style: dashed; }
+.qw-page[data-layout="agenda"] .qw-grid { display: none; }
+.qw-page[data-layout="agenda"] .qw-agenda { display: grid; }
 
 /* Portrait: the header stacks. */
 @container (max-aspect-ratio: 4 / 5) {
   .qw-head { flex-direction: column; align-items: flex-start; }
+  .qw-page .qw-grid { display: none; }
+  .qw-page .qw-agenda { display: grid; grid-template-columns: minmax(0, 1fr); }
+  .qw-agenda-day { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 3fr); align-content: start; }
+  .qw-agenda-day > .qw-day-name { grid-column: 1; }
+  .qw-agenda-event, .qw-agenda-empty { grid-column: 2; }
 }
 
 /* Wide: a screen or a slide, sized to the page's height (cqmin). */
 @container (min-aspect-ratio: 2 / 1) {
-  .qw-sheet { padding: 5.5cqmin 7cqmin 4.5cqmin; font-size: 3cqmin; }
-  .qw-kicker { font-size: 3cqmin; }
-  .qw-title { font-size: 7cqmin; }
-  .qw-booked { font-size: 3.4cqmin; padding: 1.4cqmin 3.2cqmin; }
+  .qw-sheet { padding: 5.5cqmin 7cqmin 4.5cqmin; font-size: calc(3cqmin * var(--content-fit, 1)); }
+  .qw-kicker { font-size: calc(3cqmin * var(--content-fit, 1)); }
+  .qw-title { font-size: calc(7cqmin * var(--content-fit, 1)); }
+  .qw-booked { font-size: calc(3.4cqmin * var(--content-fit, 1)); padding: 1.4cqmin 3.2cqmin; }
   .qw-booked svg { width: 3.8cqmin; height: 3.8cqmin; }
   .qw-grid { --qw-gutter: 9cqmin; }
-  .qw-day-name { font-size: 3cqmin; }
-  .qw-day-name b { font-size: 4cqmin; }
-  .qw-hour { font-size: 2.4cqmin; }
+  .qw-day-name { font-size: calc(3cqmin * var(--content-fit, 1)); }
+  .qw-day-name b { font-size: calc(4cqmin * var(--content-fit, 1)); }
+  .qw-hour { font-size: calc(2.4cqmin * var(--content-fit, 1)); }
   .qw-columns, .qw-days-head { gap: 1.8cqmin; }
 }
+
+[data-content-clock] { position: absolute; width: 0; height: 0; pointer-events: none; }
+[data-content-play] { position: absolute; top: 1cqmin; right: 1cqmin; z-index: 5; border: 1px solid currentColor; border-radius: 99px; background: transparent; color: inherit; padding: .3em .7em; font: 12px/1.3 system-ui; cursor: pointer; }
+[data-content-play]:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
+
+[data-content-fit-warning]:not([hidden]) { position: absolute; bottom: 1cqmin; left: 2cqmin; right: 2cqmin; margin: 0; padding: .6em; background: #fff4ce; color: #3d2a00; font: 14px/1.3 system-ui; z-index: 5; }
+
+.qw-title { font-family: var(--font-display, var(--font-brand, system-ui, sans-serif)); }

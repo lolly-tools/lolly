@@ -3,15 +3,17 @@
   "name": "Brief",
   "description": "A one-page brief from Markdown: a title line, labelled points and notes, laid out as a page. Paste what an assistant wrote, or write your own.",
   "a11yLabel": "Brief: {{default heading \"a one-page brief\"}}",
-  "version": "1.0.0",
-  "engineVersion": "^1.82.0",
+  "version": "1.1.0",
+  "engineVersion": "^1.343.0",
   "status": "community",
   "category": "everyone",
   "tags": ["brief", "one-pager", "account", "research", "markdown", "sales", "summary", "pdf"],
   "render": {
+    "portable": true,
+    "video": { "duration": 4, "wait": 0 },
     "width": 1600,
     "height": 1000,
-    "formats": ["pdf", "png", "svg", "jpeg", "webp"],
+    "formats": ["pdf", "png", "svg", "jpeg", "webp", "mp4", "webm", "gif", "html"],
     "actions": ["copy", "download", "save"],
     "sectionIcons": { "Style": "palette" }
   },
@@ -41,6 +43,59 @@
     },
     { "id": "accent", "label": "Accent", "type": "color", "default": "{color.semantic.primary}", "section": "Style" },
     { "id": "background", "label": "Background", "type": "color", "default": "{color.semantic.surface}", "section": "Style" },
-    { "id": "ink", "label": "Text colour", "type": "color", "default": "{color.semantic.text}", "section": "Style" }
+    { "id": "ink", "label": "Text colour", "type": "color", "default": "{color.semantic.text}", "section": "Style" },
+    {
+      "id": "ground",
+      "label": "Colour treatment",
+      "type": "select",
+      "default": "tint",
+      "options": [
+        {"value": "tint", "label": "Brand tint"},
+        {"value": "lead", "label": "Lead colour"},
+        {"value": "ink", "label": "Ink"},
+        {"value": "surface", "label": "Surface"}
+      ],
+      "help": "Follows this piece’s design system and colourway. Surface uses your background and text colours.",
+      "section": "Treatment"
+    },
+    {
+      "id": "density",
+      "label": "Spacing",
+      "type": "select",
+      "default": "auto",
+      "options": [
+        {"value": "auto", "label": "Fit content"},
+        {"value": "compact", "label": "Compact"},
+        {"value": "comfortable", "label": "Comfortable"},
+        {"value": "spacious", "label": "Spacious"}
+      ],
+      "section": "Treatment"
+    },
+    {
+      "id": "layout",
+      "label": "Layout",
+      "type": "select",
+      "default": "auto",
+      "options": [
+        {"value": "auto", "label": "Responsive"},
+        {"value": "columns", "label": "Columns"},
+        {"value": "stack", "label": "Reading list"},
+        {"value": "cards", "label": "Cards"}
+      ],
+      "section": "Treatment"
+    },
+    {
+      "id": "motion",
+      "label": "Motion",
+      "type": "select",
+      "default": "none",
+      "options": [
+        {"value": "none", "label": "Still"},
+        {"value": "fade", "label": "Fade in order"},
+        {"value": "rise", "label": "Rise in order"}
+      ],
+      "help": "Reveals the content in reading order. Still exports always show the complete piece.",
+      "section": "Treatment"
+    }
   ]
 }

@@ -42,6 +42,7 @@
 }
 
 .way-heading {
+  font-family: var(--font-display, var(--font-brand, system-ui, sans-serif));
   flex: none; text-align: center;
   font-size: 8.5cqmin; font-weight: var(--text-weight, 800);
   line-height: 1; letter-spacing: -0.02em;
@@ -103,15 +104,18 @@
 .way-landscape .way-logo { max-width: 40%; max-height: 16cqmin; }
 .way-landscape .way-event { text-align: right; }
 .way-landscape .way-heading { font-size: 7cqmin; text-align: left; padding: 1.5cqmin 6cqmin 0; }
+.way-list { padding: calc(4cqmin * var(--content-space)) calc(7cqmin * var(--content-space)) calc(6cqmin * var(--content-space)); }
+.way[data-layout="grid"] .way-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); grid-auto-rows: minmax(0, 1fr); gap: 2cqmin; }
+.way[data-layout="grid"] .way-row { min-width: 0; }
 /* Arrow + label auto-fit to each row's height (cqh) in any orientation. */
 </style>
 
 <div class="way-stage" data-lolly-anno="{{size}}">
-  <div class="way way-{{orient}}"
+  <div class="way way-{{orient}}" data-content-surface data-ground="{{ground}}" data-layout="{{layout}}" data-density="{{density}}"
        style="aspect-ratio: {{aspW}} / {{aspH}};
-              --accent: {{#if accent}}{{accent}}{{else}}#30ba78{{/if}}; --ink: {{ink}}; --muted: {{muted}}; --hairline: {{hairline}};
+              --content-space:{{surfaceSpacing}}; --accent: {{surfaceAccent}}; --ink: {{surfaceInk}}; --muted: {{surfaceMuted}}; --hairline: {{surfaceEdge}};
               --text-weight: {{default textWeight 800}};
-              background: {{bgStyle}};">
+              background: {{surfaceGround}};">
 
     <div class="way-accent"></div>
 
