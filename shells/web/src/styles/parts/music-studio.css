@@ -58,18 +58,18 @@
   }
   .ms-shuffle:hover { filter: brightness(1.08); }
   .ms-shuffle:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 3px; }
+  /* The pop's ring. Its accent edge is drawn only while the cap pops, never at rest. */
   .ms-shuffle::after {
     content: '';
     position: absolute;
     inset: 0;
-    border: 2px solid var(--ui-color-action-primary);
     border-radius: inherit;
     opacity: 0;
     pointer-events: none;
   }
   .ms-shuffle.is-popping { animation: ms-cap-pop var(--dur-3) var(--ease-out); }
   .ms-shuffle.is-popping svg { animation: ms-cap-spin var(--dur-3) var(--ease-spring); }
-  .ms-shuffle.is-popping::after { animation: ms-cap-ring var(--dur-3) var(--ease-out); }
+  .ms-shuffle.is-popping::after { border: 2px solid var(--ui-color-action-primary); animation: ms-cap-ring var(--dur-3) var(--ease-out); }
   @keyframes ms-cap-pop {
     0% { transform: scale(1); }
     20% { transform: scale(1.14, .84); }
