@@ -1098,7 +1098,7 @@ jobs:
       - name: Production build (info site + OG cards + web shell)
         run: pnpm run build:web
 
-      - name: Bundle budget (boot-path JS ≤ 115 KB gz, no heavy chunks preloaded)
+      - name: Bundle budget (boot-path JS ≤ 300 KB gz, no heavy chunks preloaded)
         run: pnpm run check:bundle
 
       - name: Docs size budget (/info ≤ 160 MB gz - every locale ships, chrome must not multiply)
