@@ -281,7 +281,7 @@ const initScript = (neutral: boolean): string =>
 
 const HIDE_CSS = `
   * { cursor: none !important; }
-  .tool-guide-steps, .privacy-notice, .welcome-dialog, .brand-tips, .job-toast, .toast, .helptip { display: none !important; }
+  .tool-guide-steps, .privacy-notice, .welcome-dialog, .welcome-hero, .brand-tips, .job-toast, .toast, .helptip { display: none !important; }
 `;
 
 async function main(): Promise<void> {

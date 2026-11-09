@@ -1,0 +1,276 @@
+// SPDX-License-Identifier: MPL-2.0
+/**
+ * The first-visit greeting, in place: the gallery's opening frame rather than a
+ * dialog over it (Andy approved the design on 2026-11-09). Lolly hands you a
+ * lollipop: one short branded gesture, one sentence, one obvious next step, and the
+ * gallery itself under it, loading as it would on any visit.
+ *
+ *   The mark       the swirl lollipop draws its line, closes into a shape and fills
+ *                  with colour, once (under 1.5 s), the first time the band is in
+ *                  view, and never on a later visit. Under Reduce motion it is simply
+ *                  the finished mark.
+ *   The sentence   "Make the next thing beautiful." The brand already says this on
+ *                  the featured poster, so the greeting and the product agree.
+ *   One action     chosen by who is visiting: on a shipped design system (Lolly
+ *                  Demo, lolly.tools) "Start making" opens Design on the lorikeet
+ *                  poster (its brand-starter template); on a blank install "Make it yours" opens Design System
+ *                  Setup, because there the brand is the point.
+ *   The lorikeet   perches by that button and turns to look at it
+ *                  (components/fauna-art.ts), which is what the drawings are for.
+ *   Quiet lines    bring a file, the other audience's path, the privacy promise with
+ *                  its "What we store" link, and a language chip only when the
+ *                  detected language may be wrong.
+ *
+ * What it keeps from the dialog (components/welcome-dialog.ts, still reachable at
+ * #/?welcome=classic): the gate rules (views/gallery-welcome.ts decides who sees
+ * it), any explicit choice settles the welcome for good, a route change is not a
+ * dismissal, Escape and the close button dismiss, the language choice persists, the
+ * file path is the drop router's. Every explicit choice also acknowledges the
+ * privacy notice, because the promise is on the band itself.
+ *
+ * Maintenance waits (lib/welcome-gate.ts) only while the mark draws, and never more
+ * than MAX_HOLD_MS: a greeting in place can stay on the page for a whole visit, and
+ * background work must not wait that long. The gallery's previews do not wait at all.
+ *
+ * Singleton, like the dialog: the gallery re-mounts after a catalog sync, and a
+ * second call while the greeting is up moves the same element into the new gallery
+ * and hands back the same promise, so the mark does not draw twice.
+ */
+import '../styles/parts/welcome-hero.css';
+import { currentLang, langOptions, setActiveLang, t, LANG_ICON_SVG, flagEmoji } from '../i18n.ts';
+import type { Lang } from '../i18n.ts';
+import { escape as escapeHtml, NAV_EVENTS } from '../utils.ts';
+import { icon } from '../lib/icons.ts';
+import { prefersReducedMotion } from '../lib/a11y-prefs.ts';
+import type { WebProfileAPI } from '../bridge/profile.ts';
+import type { PickerHost } from '../views/picker.ts';
+import { openDropFilePicker } from '../lib/drop-file-picker.ts';
+import { holdWelcomeGate, markWelcomeDismissed } from '../lib/welcome-gate.ts';
+import { APPROVED_FAUNA, hydrateFauna } from './fauna-art.ts';
+
+/** Who the greeting is for: a shipped design system to try, or a blank install to brand. */
+export type WelcomeAudience = 'demo' | 'blank';
+/** How the greeting ended. `make` and `brand` have already navigated when the promise settles. */
+export type HeroChoice = 'make' | 'brand' | 'import' | 'explore' | 'dismiss';
+
+/** Set once the mark has drawn, so a later visit shows it finished. */
+const DRAWN_KEY = 'lolly-welcome-mark-drawn';
+/** How long the drawing runs, with a moment after (welcome-hero.css adds up to 1.2 s). */
+const INTRO_MS = 1600;
+/** The longest maintenance waits for the greeting, whether or not the band came into view. */
+const MAX_HOLD_MS = 4000;
+
+let openPromise: Promise<HeroChoice> | null = null;
+let current: { el: HTMLElement; close: (choice: HeroChoice | null) => void; settle: () => void } | null = null;
+
+/** The lollipop's swirl: an Archimedean spiral from the centre out, about three turns. */
+function swirlPath(cx: number, cy: number, radius: number, turns: number): string {
+  const steps = 96;
+  const parts: string[] = [];
+  for (let i = 0; i <= steps; i++) {
+    const along = i / steps;
+    const angle = along * turns * Math.PI * 2;
+    const r = along * radius;
+    parts.push(`${i ? 'L' : 'M'}${(cx + r * Math.cos(angle)).toFixed(1)} ${(cy + r * Math.sin(angle)).toFixed(1)}`);
+  }
+  return parts.join('');
+}
+
+/** The mark: a stick, a round candy and its swirl, each drawn as one line (see welcome-hero.css). */
+function markSvg(): string {
+  return `<svg class="welcome-hero-mark" viewBox="0 0 120 120" aria-hidden="true" focusable="false">
+    <path class="whm-stick" d="M76 76L106 106" pathLength="1"/>
+    <circle class="whm-candy" cx="50" cy="50" r="38" pathLength="1"/>
+    <path class="whm-swirl" d="${swirlPath(50, 50, 31, 3.2)}" pathLength="1"/>
+  </svg>`;
+}
+
+/** Whether the detected language may be wrong: the browser's first language is not the one in use. */
+export function languageMayBeWrong(): boolean {
+  const first = (globalThis.navigator?.languages?.[0] ?? globalThis.navigator?.language ?? '').toLowerCase().split('-')[0];
+  return !!first && first !== currentLang().toLowerCase().split('-')[0];
+}
+
+/** The privacy promise the band carries, and where "What we store" leads. */
+export interface WelcomePrivacy { text: string; href: string }
+
+/** The quiet privacy line. The caller words it (views/gallery-welcome.ts, from the notice). */
+function privacyLine(p: WelcomePrivacy): string {
+  return `${escapeHtml(p.text)} <a href="${escapeHtml(p.href)}">${t('What we store')}</a>`;
+}
+
+function languageRow(open: boolean): string {
+  if (!open) {
+    const here = langOptions().find(o => o.code === currentLang());
+    return `<button type="button" class="welcome-hero-chip" data-lang-more aria-expanded="false">${LANG_ICON_SVG}<span>${escapeHtml(here?.nativeName ?? currentLang())}</span><span class="welcome-hero-dim">${t('Change')}</span></button>`;
+  }
+  return `<span class="welcome-hero-langs" role="group" aria-label="${t('Language')}">${langOptions().map(o => {
+    const flags = o.flags.length ? `<span aria-hidden="true">${o.flags.map(flagEmoji).join('')}</span>` : '';
+    return `<button type="button" class="welcome-hero-chip${o.code === currentLang() ? ' is-active' : ''}" data-lang="${o.code}" aria-pressed="${o.code === currentLang()}">${flags}${escapeHtml(o.nativeName)}</button>`;
+  }).join('')}</span>`;
+}
+
+/** The greeting's markup, painted again in place when the language changes. */
+function heroMarkup(audience: WelcomeAudience, withImport: boolean, langsOpen: boolean, privacy: WelcomePrivacy): string {
+  const primary = audience === 'demo'
+    ? `<button type="button" class="btn btn--primary welcome-hero-go" data-choice="make">${t('Start making')}</button>`
+    : `<button type="button" class="btn btn--primary welcome-hero-go" data-choice="brand">${t('Make it yours')}<span class="welcome-hero-go-sub">${t('One colour is enough')}</span></button>`;
+  const other = audience === 'demo'
+    ? `<button type="button" class="welcome-hero-link" data-choice="brand">${t('Make it yours')}</button>`
+    : `<button type="button" class="welcome-hero-link" data-choice="explore">${t('Explore the tools')}</button>`;
+  const file = withImport ? `<button type="button" class="welcome-hero-link" data-choice="import">${t('Bring a file')}</button>` : '';
+  return `
+    <button type="button" class="welcome-hero-close" data-choice="dismiss" aria-label="${t('Close the welcome')}">${icon('close', { size: 18 })}</button>
+    <div class="welcome-hero-lead">
+      ${markSvg()}
+      <h2 class="welcome-hero-title" id="welcome-hero-title">${t('Make the next thing beautiful.')}</h2>
+    </div>
+    <div class="welcome-hero-act">
+      <div class="welcome-hero-perch">
+        <span class="fauna-slot welcome-hero-bird" data-fauna="lorikeet" data-fauna-watch=".welcome-hero-go" data-fauna-key="welcome-hero" aria-hidden="true"></span>
+        ${primary}
+      </div>
+      <p class="welcome-hero-more">${[file, other].filter(Boolean).join('<span aria-hidden="true">·</span>')}</p>
+    </div>
+    <p class="welcome-hero-quiet">${privacyLine(privacy)}${languageMayBeWrong() || langsOpen ? ` ${languageRow(langsOpen)}` : ''}</p>`;
+}
+
+/**
+ * Show the greeting at the top of `root` (the gallery), or move the one already up
+ * there. Resolves with how it ended; a route change resolves 'dismiss' without
+ * settling anything, as the dialog does.
+ */
+export function showWelcomeHero(
+  root: HTMLElement,
+  opts: {
+    audience: WelcomeAudience; privacy: WelcomePrivacy;
+    /** Acknowledge the privacy notice: every explicit choice does, since the band carries the promise. */
+    ackPrivacy: () => void;
+    profileApi?: WebProfileAPI; uploadHost?: PickerHost;
+  },
+): Promise<HeroChoice> {
+  if (openPromise && current) {
+    adoptWelcomeHero(root);
+    return openPromise;
+  }
+  const releaseGate = holdWelcomeGate();
+  const holdTimer = setTimeout(releaseGate, MAX_HOLD_MS);
+  const pending = new Promise<HeroChoice>((resolve) => {
+    let langsOpen = false;
+    const el = document.createElement('section');
+    el.className = 'welcome-hero';
+    el.setAttribute('aria-labelledby', 'welcome-hero-title');
+    let drawn = false;
+    try { drawn = localStorage.getItem(DRAWN_KEY) === '1'; } catch { drawn = true; }
+    // The mark draws once, when the band is first in view: a finished mark from the
+    // start on a later visit, under Reduce motion, or where nothing can tell when the
+    // band is seen.
+    let drawTimer: ReturnType<typeof setTimeout> | undefined;
+    let seen: IntersectionObserver | null = null;
+    const settle = (): void => {
+      clearTimeout(drawTimer);
+      seen?.disconnect();
+      el.classList.remove('is-drawing');
+      el.classList.add('is-settled');
+      try { localStorage.setItem(DRAWN_KEY, '1'); } catch { /* storage off: it draws again next time */ }
+      releaseGate();
+    };
+    const paint = (focus?: string): void => {
+      el.innerHTML = heroMarkup(opts.audience, !!opts.uploadHost, langsOpen, opts.privacy);
+      hydrateFauna(el, { only: APPROVED_FAUNA });
+      if (focus) el.querySelector<HTMLElement>(focus)?.focus({ preventScroll: true });
+    };
+    paint();
+    root.prepend(el);
+    if (drawn || prefersReducedMotion() || typeof IntersectionObserver !== 'function') {
+      settle();
+    } else {
+      seen = new IntersectionObserver((entries) => {
+        if (!entries.some(entry => entry.isIntersecting)) return;
+        seen?.disconnect();
+        el.classList.add('is-drawing');
+        drawTimer = setTimeout(settle, INTRO_MS);
+      }, { threshold: 0.5 });
+      seen.observe(el);
+    }
+
+    const close = (choice: HeroChoice | null): void => {
+      if (!current) return;
+      current = null;
+      openPromise = null;
+      clearTimeout(holdTimer);
+      clearTimeout(drawTimer);
+      seen?.disconnect();
+      releaseGate();
+      for (const ev of NAV_EVENTS) window.removeEventListener(ev, onNav);
+      document.removeEventListener('keydown', onKey);
+      // Every explicit choice settles the welcome, and the band carried the privacy
+      // promise, so each also acknowledges the notice. A route change does neither.
+      if (choice) { markWelcomeDismissed(); opts.ackPrivacy(); }
+      el.remove();
+      resolve(choice ?? 'dismiss');
+    };
+    current = { el, close, settle };
+    const onNav = (): void => close(null);
+    const onKey = (e: KeyboardEvent): void => {
+      // Escape dismisses the greeting, unless another dialog is open above the page.
+      if (e.key === 'Escape' && !document.querySelector('dialog[open]')) close('dismiss');
+    };
+    for (const ev of NAV_EVENTS) window.addEventListener(ev, onNav);
+    document.addEventListener('keydown', onKey);
+
+    el.addEventListener('click', (e) => {
+      const target = e.target instanceof Element ? e.target : null;
+      const langBtn = target?.closest<HTMLButtonElement>('[data-lang]');
+      if (langBtn) {
+        const lang = langBtn.dataset.lang as Lang;
+        void (async () => {
+          await setActiveLang(lang, { persist: true });
+          if (opts.profileApi) {
+            try {
+              const saved = await opts.profileApi.get();
+              const { lang: _drop, ...rest } = saved as Record<string, unknown>;
+              await opts.profileApi.set(lang === 'en' ? rest : { ...rest, lang });
+            } catch { /* the preference save is best-effort */ }
+          }
+          langsOpen = false;
+          if (el.isConnected) paint('.welcome-hero-go');
+        })();
+        return;
+      }
+      if (target?.closest('[data-lang-more]')) {
+        langsOpen = true;
+        paint('[data-lang]');
+        return;
+      }
+      const chosen = target?.closest<HTMLElement>('[data-choice]');
+      if (!chosen) return;
+      const choice = chosen.dataset.choice as HeroChoice;
+      close(choice);
+      if (choice === 'make') window.location.hash = '#/tool/design?template=brand-starter';
+      else if (choice === 'brand') window.location.hash = '#/start';
+      else if (choice === 'import' && opts.uploadHost) openDropFilePicker(opts.uploadHost);
+    });
+    // Focus stays where the page put it: the band is part of the page, not a modal, so
+    // the keyboard reaches its action in reading order, first after the navigation.
+  });
+  openPromise = pending;
+  return pending;
+}
+
+/**
+ * Move an open greeting into a gallery that has just mounted, in the same task as the
+ * gallery's markup, so the band never leaves the screen while the welcome step catches
+ * up. Moving an element restarts its CSS animations, so a drawing caught mid-way is
+ * shown finished instead of drawn twice. A no-op when no greeting is open.
+ */
+export function adoptWelcomeHero(root: HTMLElement | null): void {
+  if (!root || !current || current.el.parentElement === root) return;
+  if (current.el.classList.contains('is-drawing')) current.settle();
+  root.prepend(current.el);
+}
+
+/** Take the greeting down without settling it (a host's safety hatch, and the tests'). */
+export function closeWelcomeHero(): void {
+  current?.close(null);
+}

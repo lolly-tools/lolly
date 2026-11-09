@@ -1861,6 +1861,10 @@ const RAW_HTML_ALLOWED: Record<string, number> = {
   // labels and titles go through escape(); icons come from the fixed registry; the rest
   // is numbers. Instrument lists, the hint and the picker are filled with DOM APIs.
   'views/music-studio.ts': 2,
+  // 2026-11-09: the first-visit greeting, painted again in place when the language
+  // changes. Language names, the privacy text and its link go through escape(); the
+  // rest is translated copy, the fixed icon registry and the module's own SVG.
+  'components/welcome-hero.ts': 1,
 };
 
 test('R10: raw-HTML sinks are a pinned inventory, not a growing one', () => {
