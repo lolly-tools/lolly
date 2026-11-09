@@ -10,7 +10,7 @@ Roughly 890,000 lines of TypeScript, tests included, and 67,000 lines of CSS.
 | Directory | Source | Tests | CSS |
 |---|---|---|---|
 | `views/` | 611 files, 226,698 lines | 330 files, 102,464 lines | 12 files, 1,686 lines |
-| `lib/` | 943 files, 199,362 lines | 586 files, 112,846 lines | 13 files, 1,856 lines |
+| `lib/` | 943 files, 199,837 lines | 586 files, 112,846 lines | 13 files, 1,856 lines |
 | `bridge/` | 272 files, 59,964 lines | 155 files, 32,531 lines | none |
 | `components/` | 137 files, 32,233 lines | 69 files, 17,176 lines | 24 files, 1,641 lines |
 | `org/` | 88 files, 22,038 lines | 62 files, 18,307 lines | none |
@@ -64,10 +64,10 @@ Do not be ambushed by these. The largest source files, by line count:
 | 3,794 | `views/tool-inputs.ts` | none |
 | 3,777 | `views/picker.ts` | partial - the format and embeddability rules are extracted to `picker-formats.ts` and covered by `picker-formats.test.ts`, plus `picker-initial-tab.test.ts`; the 3,000-line panel body is not. |
 | 3,624 | `views/color-lab.ts` | yes |
+| 3,452 | `lib/lofi-voices.ts` | **none** |
 | 3,252 | `bridge/export-svg-walker.ts` | **none** |
 | 3,066 | `bridge/sequence-render.ts` | yes |
 | 3,009 | `lib/rebrand/controller.ts` | yes |
-| 2,982 | `lib/lofi-voices.ts` | **none** |
 | 2,942 | `views/gallery.ts` | none |
 | 2,890 | `views/projects.ts` | none |
 | 2,665 | `views/deck-editor.ts` | yes |

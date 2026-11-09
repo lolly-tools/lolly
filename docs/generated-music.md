@@ -1,6 +1,6 @@
 # Generated music
 
-The Neurospicy player makes its own music. Its generated stations, all in the **Lolly Sings** group, compose every tune as they play: the original Lolly Sings, Sugar, Sherbert, K-pop, Straya, Chiptune, City pop, Funk, Soul, Nu-disco, Hip hop, Trip hop, Reggae, Spanish guitar, Rock, Metal, Country, Blues, Jazz, Swing, Fantasy, Dreamscape, Synthwave, Acid, Electro, Dubstep, Brostep and D&B, and the three **Lofi** moods (Warm, Late night and Rainy). Nothing is recorded or sampled. Each tune is written by Lolly's composer and played by instruments synthesised in your browser.
+The Neurospicy player makes its own music. Its generated stations, all in the **Lolly Sings** group, compose every tune as they play: the original Lolly Sings, Sugar, Sherbert, K-pop, Straya, Persian, Guzheng, Koto, Kora, Afrobeat, Amapiano, Chiptune, City pop, Funk, Soul, Nu-disco, Hip hop, Trip hop, Reggae, Spanish guitar, Rock, Metal, Country, Blues, Jazz, Swing, Fantasy, Dreamscape, Synthwave, Acid, Electro, Dubstep, Brostep and D&B, and the three **Lofi** moods (Warm, Late night and Rainy). Nothing is recorded or sampled. Each tune is written by Lolly's composer and played by instruments synthesised in your browser.
 
 ## Every tune is a number
 
@@ -27,7 +27,7 @@ A Lolly update can change how an instrument is synthesised, to fix a harsh sound
 
 ## How a tune is made
 
-Each station leans the composer towards its genre without fixing the outcome. Sherbert was tuned by measuring three Australian future-bass records of the mid-2010s for tempo, groove, stereo width and tonal balance (134 to 145 beats a minute, half-time, chords as wide as the speakers over a mono sub bass); it copies none of their notes or sounds.
+Each station leans the composer towards its genre without fixing the outcome. The instruments of Persian, Guzheng, Koto, Kora and Amapiano follow published acoustics and openly licensed instrument models: plucked and struck strings shaped by where they are played, bars and drumheads as their measured modes (the balafon's from the Synthesis ToolKit's wood bar), breathy flutes and bowed strings through their bodies' resonances, and the log drum after the MIT-licensed mda DX10's preset of that name. A Persian dastgah's koron is played a quarter-tone flat, a close approximation of the neutral steps musicians play. Sherbert was tuned by measuring three Australian future-bass records of the mid-2010s for tempo, groove, stereo width and tonal balance (134 to 145 beats a minute, half-time, chords as wide as the speakers over a mono sub bass); it copies none of their notes or sounds.
 
 1. **A style.** The seed picks the instruments (keys, lead, bass and drum kit), how the drums are tuned, the groove, how often the chords change, and how much tape wobble and room the tune gets.
 2. **Harmony and melody.** The tune draws two chord progressions in its key, voices each chord close to the last, and writes a short melody and its answer from the key's pentatonic scale, with a chord tone on each strong beat.
@@ -39,6 +39,12 @@ Each station leans the composer towards its genre without fixing the outcome. Sh
 | Genre | What you hear |
 |---|---|
 | Sherbert | Future bass with an old games console inside: fast and half-time, with the clap on three. Wide saw chords pump under the kick, bend up into their pitch and wub. Chopped vowels sing the hook in leaps over an 808. Hats roll in sixteenths and thirty-seconds. A console's chord arpeggios sparkle, with coins, jumps, bounces, blips, lasers and power-ups between phrases, and a crowd calls hey, yeah, woo, oh and ayy. Each build's roll climbs an octave and ends on a chopped stutter or a power-up |
+| Persian | A tar strumming the drone in six-eight, a santur's hammered runs and tremolos, a ney or a kamancheh singing in a dastgah (Shur, Homayoun, Chahargah, Mahur or Esfahan), the tombak's tom and bak with finger rolls, and the daf's boom and rings |
+| Guzheng | A Chinese zither's flowing arpeggios and glissandi in a pentatonic mode, an erhu, a dizi with its buzzing membrane, a pipa or the guzheng itself pressing up into its notes, a woodblock, the tanggu's big drum and a gong |
+| Koto | The koto and the shamisen in the in, yo or Ryukyu scale, a breathy shakuhachi bending its notes, the taiko's don and ka, and the kotsuzumi's calls |
+| Kora | The kora's ostinato in twelve-eight under its own running lines in one of its tunings (sauta, silaba or tomora), a buzzing balafon, the djembe's bass, tone and slap over the dunun and its bell, and a shekere |
+| Afrobeat | A long groove: horns, an organ, a guitar chopping sixteenths, a bass riff that never lets go, a busy kit with a shekere and an agogo bell, and a talking drum answering at the end of each phrase |
+| Amapiano | The log drum's woody, sliding bass, jazzy piano chords on the offbeats, a swung shaker, a soft four on the floor, and a flute, sax or soft lead floating over |
 | Dubstep, Brostep and D&B | The bass talks at the end of each phrase of a drop: a bwah flung open, a yoi from oh to ee, a throaty growl or a deep, round wub. FM bleeps sit in the gaps, and phaser sweeps rise through the builds and zip at the turns |
 | Straya | A banjo picking rolls over a yidaki drone on the key note (pulsed by the breath, with toots, barks, the in-breath of circular breathing and a howl), an acoustic strum, a stomp and clap, clapsticks, magpies carolling between the phrases and now and then a kookaburra |
 | Country | An acoustic guitar's boom-chick or a honky-tonk piano, the train beat on the snare or brushes, a bass walking root to fifth, and a twanging guitar, pedal steel, fiddle or harmonica |
