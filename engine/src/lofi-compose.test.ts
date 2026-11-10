@@ -356,7 +356,7 @@ test('every note is playable', () => {
         const dance = isDanceMood(mood);
         // The dance basses sit lower (a sub register), and a slap bass pops up to a twelfth above.
         const [lo, hi] = n.voice === 'bass' ? (dance ? [28, 64] : [33, 53]) : n.voice === 'keys' ? [52, 76] : n.voice === 'coin' || n.voice === 'magpie' ? [79, 95] : n.voice === 'hey' || n.voice === 'tag' ? [55, 66] : n.voice === 'soar' ? [40, 60]
-          : n.voice === 'bwah' ? [28, 60] : n.voice === 'phaser' ? [40, 72] : n.voice === 'blip' ? [64, 96] : [64, 84];
+          : n.voice === 'bwah' ? [28, 60] : n.voice === 'layer' ? [28, 66] : n.voice === 'phaser' ? [40, 72] : n.voice === 'blip' ? [64, 96] : [64, 84];
         assert.ok(n.midi >= lo && n.midi <= hi, `${where}: note ${n.midi} outside ${lo}..${hi}`);
       }
     }
@@ -583,4 +583,30 @@ test('the producer\'s tag: most tunes say "Lolly" once, in a delivery that suits
   const all = new Set<number>();
   for (const s of seen.values()) for (const m of s) all.add(m);
   assert.ok(all.size >= 7, 'many deliveries across the styles');
+});
+
+test('the bass styles layer their bass: a travelling line and percussive stabs that build through the song and play in the main bass\'s gaps', async () => {
+  for (const mood of ['dnb', 'dubstep', 'brostep', 'electro'] as const) {
+    for (const seed of [3, 5, 8]) {
+      const bars = composeLofiTune(seed, mood);
+      const at = (section: string, mod: number) => bars.filter(b => b.section === section).reduce((n, b) => n + b.notes.filter(x => x.voice === 'layer' && x.mod === mod).length, 0);
+      assert.equal(at('intro', 1) + at('intro', 2), 0, `${mood} ${seed}: not in the intro`);
+      assert.ok(at('drop', 1) > 0 && at('drop', 2) > 0, `${mood} ${seed}: a drop has the line and the stabs`);
+      for (const b of bars) {
+        const main = new Set(b.notes.filter(n => n.voice === 'bass').map(n => Math.round(n.beat * 4)));
+        for (const n of b.notes) if (n.voice === 'layer' && n.mod === 2) assert.ok(!main.has(Math.round(n.beat * 4)), `${mood} ${seed}: a stab in the main bass's gap`);
+        if (b.section === 'build') {
+          const builds = bars.filter(x => x.tune === b.tune && x.section === 'build');
+          const stabs = b.notes.some(n => n.voice === 'layer' && n.mod === 2);
+          if (stabs) assert.ok(b.index >= builds[builds.length - 1]!.index - 1 || builds.some(x => x.index === b.index + 2 && x.section === 'build') === false, `${mood} ${seed}: stabs only in a build's last bars`);
+        }
+      }
+      // The harmony: a drop's soar is a dyad.
+      const drop = bars.find(b => b.section === 'drop' && b.notes.filter(n => n.voice === 'soar').length >= 2);
+      assert.ok(drop, `${mood} ${seed}: the soar plays a dyad in the drop`);
+    }
+  }
+  for (const mood of ['rock', 'sugar', 'jazz', 'warm'] as const) {
+    assert.ok(composeLofiTune(4, mood).every(b => b.notes.every(n => n.voice !== 'layer')), `${mood} has no layered bass`);
+  }
 });

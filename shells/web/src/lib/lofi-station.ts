@@ -36,6 +36,7 @@ import * as D from './lofi-drums.ts';
 import * as W from './lofi-world-voices.ts';
 import * as G from './lofi-guitars.ts';
 import { perform } from './lofi-perform.ts';
+import * as BL from './lofi-bass-layers.ts';
 
 export interface LofiSettings {
   mood: LofiMood;
@@ -174,6 +175,8 @@ export class LofiStation {
   private seed: number;
   /** The last lead note (when it ends, its pitch, its instrument), to tell whether the next one is slurred. */
   private lastLead = { end: -1, midi: 0, voice: '' };
+  /** The travelling bass's last note, for the next note to glide from. */
+  private lastTravel = { end: -1, midi: 0 };
   /** Each tune's drum kit, drawn once from its seed (lib/lofi-drums.ts). */
   private kits = new Map<string, D.DrumKit>();
 
@@ -678,6 +681,14 @@ export class LofiStation {
         else V.perc(k, lanes.drums, t, note.midi, vel, note.mod ?? 0);
         break;
       case 'hey': V.hey(k, lanes.fx, t, note.midi, vel, note.mod ?? 0); break;
+      case 'layer': {
+        // The layered basses: the travelling line glides from its last note when it follows straight on.
+        if (note.mod === 2) { BL.stab(k, lanes.bass, t, note.midi, vel); break; }
+        const glide = t - this.lastTravel.end < 0.03 ? this.lastTravel.midi : undefined;
+        this.lastTravel = { end: t + len, midi: note.midi };
+        BL.travel(k, lanes.bass, t, note.midi, vel, len, glide);
+        break;
+      }
       case 'tag': lollyTag(k, lanes.fx, t, note.midi, vel, note.mod ?? 0, 60 / bar.tune.bpm, `${bar.tune.key}|${bar.tune.bpm}|${bar.tune.progressions[0].join(' ')}`, this.echoTimes[0]); break;
       case 'bwah': {
         // A bass shot's `mod` is the shot, plus 4 for each swing a beat (the voice wants Hz).

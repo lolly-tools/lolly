@@ -90,7 +90,7 @@ const clock = (sec: number): string => `${Math.floor(sec / 60)}:${String(Math.fl
 /** Which track a note is drawn in. */
 function trackOf(voice: string): Track {
   if (DRUM_VOICES.has(voice)) return 'drums';
-  if (voice === 'soar' || voice === 'bwah') return 'bass';
+  if (voice === 'soar' || voice === 'bwah' || voice === 'layer') return 'bass';
   return voice === 'keys' || voice === 'lead' || voice === 'bass' ? voice : 'fx';
 }
 

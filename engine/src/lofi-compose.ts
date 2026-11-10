@@ -59,7 +59,7 @@ export function isDanceMood(mood: LofiMood): mood is DanceMood { return (DANCE_M
  *  bass shot (its `mod` one of LOFI_BASS_SHOTS, plus 4 for each swing a beat of the
  *  throaty ones), `phaser`, a sweep through a phaser (`mod` 0 rises, 1 falls, 2 a quick
  *  zip), and `blip`, a short electronic bleep (`mod` 0 up, 1 down, 2 a pair). */
-export type LofiVoice = 'keys' | 'bass' | 'lead' | 'kick' | 'snare' | 'rim' | 'hat' | 'openHat' | 'crash' | 'tom' | 'perc' | 'riser' | 'coin' | 'magpie' | 'kookaburra' | 'hey' | 'soar' | 'sparkle' | 'game' | 'bwah' | 'phaser' | 'blip' | 'tag';
+export type LofiVoice = 'keys' | 'bass' | 'lead' | 'kick' | 'snare' | 'rim' | 'hat' | 'openHat' | 'crash' | 'tom' | 'perc' | 'riser' | 'coin' | 'magpie' | 'kookaburra' | 'hey' | 'soar' | 'sparkle' | 'game' | 'bwah' | 'phaser' | 'blip' | 'tag' | 'layer';
 export const LOFI_DRUM_VOICES: readonly LofiVoice[] = ['kick', 'snare', 'rim', 'hat', 'openHat', 'crash', 'tom', 'perc'];
 /** The percussion a `perc` note plays, by its `mod`: an egg shaker, a tambourine, congas (pitched by `midi`), a cowbell, clapsticks;
  *  and the world styles' hand drums and bells, whose `midi` is the stroke: the tombak (1 tom, 2 bak, 3 a snapped
@@ -590,6 +590,59 @@ export function composeLofiTune(seed: number, mood: LofiMood, fixed: Partial<Lof
 
 /** How softly a quiet verse is played, against its chorus. */
 const QUIET_VERSE = 0.55;
+/** The styles whose bass is three parts at once: the main bass, a travelling line and percussive stabs, with the soar's harmony. */
+const BASS_LAYERED = new Set<LofiMood>(['dnb', 'dubstep', 'brostep', 'electro']);
+/** A travelling line's bar: [sixteenth, length in sixteenths, where] (r root, o octave, f fifth, t third, a the approach to the next chord). */
+type Travel = ReadonlyArray<readonly [number, number, 'r' | 'o' | 'f' | 't' | 'a']>;
+const TRAVELS: readonly Travel[] = [
+  [[0, 3, 'r'], [4, 2, 'o'], [6, 2, 'f'], [8, 3, 'r'], [12, 2, 't'], [14, 2, 'a']],
+  [[0, 2, 'r'], [2, 2, 'r'], [6, 2, 'o'], [8, 4, 'f'], [12, 2, 'r'], [14, 2, 'a']],
+  [[0, 4, 'r'], [6, 2, 'f'], [8, 2, 'o'], [10, 2, 'f'], [12, 2, 't'], [14, 2, 'a']],
+  [[0, 3, 'o'], [3, 3, 'f'], [6, 2, 'r'], [10, 2, 't'], [12, 2, 'f'], [14, 2, 'a']],
+];
+/** Where a percussive bass may strike in a bar (sixteenths); each strike goes only where the main bass is not starting a note. */
+const STABS_BASS: ReadonlyArray<readonly number[]> = [[3, 6, 10, 14], [2, 7, 11, 15], [3, 7, 10, 13, 15], [1, 6, 9, 14], [3, 5, 11, 13]];
+function pick2<T>(r: () => number, xs: readonly T[]): T { return xs[Math.floor(r() * xs.length)]!; }
+
+/**
+ * The layered basses of a bar. They build through the song: a verse has the travelling
+ * line alone, sparsely; a build pulses it on the root and brings the stabs in over its last
+ * two bars, thickening; a drop has every layer, the line travelling and the stabs in the
+ * main bass's gaps; the second drop changes both. A breakdown and the intro leave them out.
+ * The travelling line sits an octave above the main bass and walks root, octave, fifth and
+ * third, approaching the next chord by a semitone; the stabs punch an octave lower.
+ */
+function bassLayers(notes: LofiNote[], r: () => number, plan: { travel: readonly [Travel, Travel]; stabs: readonly [readonly number[], readonly number[]] },
+  at: { section: LofiSection; alt: boolean; i: number; bars: number; chord: { root: number; tones: readonly number[] }; nextChord: { root: number }; sb: (step: number) => number }): void {
+  const { section, alt, i, bars, chord, nextChord, sb } = at;
+  if (section !== 'verse' && section !== 'build' && section !== 'drop') return;
+  const root = placeIn(chord.root, 40, 51);
+  const third = (((chord.tones[1] ?? chord.root) - chord.root) % 12 + 12) % 12;
+  const next = placeIn(nextChord.root, 40, 51);
+  const approach = nextChord.root === chord.root ? root + 7 : next + (next > root ? -1 : 1);
+  const pitch = (w: Travel[number][2]): number => (w === 'r' ? root : w === 'o' ? root + 12 : w === 'f' ? root + 7 : w === 't' ? root + third : approach);
+  // The travelling line.
+  if (section === 'build') {
+    // A pulse on the root in eighths, up an octave in the build's last bar.
+    for (let st = 0; st < 16; st += 2) notes.push({ voice: 'layer', midi: root + (i === bars - 1 ? 12 : 0), beat: sb(st), dur: 0.42, vel: 0.5 + (i / bars) * 0.25, mod: 1 });
+  } else {
+    const line = plan.travel[alt ? 1 : 0];
+    for (const [st, len, w] of line) {
+      if (section === 'verse' && st % 8 !== 0 && st !== 14) continue;   // a verse only marks the bar
+      notes.push({ voice: 'layer', midi: pitch(w), beat: sb(st), dur: len / 4 - 0.03, vel: section === 'verse' ? 0.5 : st % 8 === 0 ? 0.72 : 0.62, mod: 1 });
+    }
+  }
+  // The stabs: a drop's, and the build's last two bars, more of them in its very last.
+  const stabbing = section === 'drop' || (section === 'build' && i >= bars - 2);
+  if (!stabbing) return;
+  const main = new Set(notes.filter(n => n.voice === 'bass').map(n => Math.round(n.beat * 4)));
+  const steps = section === 'build' && i === bars - 1 ? [2, 6, 10, 12, 13, 14, 15] : plan.stabs[alt ? 1 : 0];
+  for (const st of steps) {
+    if (main.has(st)) continue;
+    notes.push({ voice: 'layer', midi: root - 12 + (r() < 0.25 ? 12 : 0), beat: sb(st), dur: 0.12, vel: 0.7 + r() * 0.15, mod: 2 });
+  }
+}
+
 /** How often a tune carries the tag. */
 const TAG_CHANCE = 0.6;
 type Tag = typeof LOFI_TAGS[number];
@@ -2137,6 +2190,9 @@ function composeDanceTune(seed: number, mood: DanceMood, fixed: Partial<LofiStyl
   // The console's newer sounds and the shouts' ad-libs (EXTRA_FX) draw from their own
   // stream, so adding them moved no other note of any tune.
   const extra = EXTRA_FX.has(mood) ? mulberry32((seed ^ 0x3e7a) >>> 0) : null;
+  // The layered basses (BASS_LAYERS) draw from a stream of their own too.
+  const layers = BASS_LAYERED.has(mood) ? mulberry32((seed ^ 0xba55) >>> 0) : null;
+  const layerPlan = layers ? { travel: [pick2(layers, TRAVELS), pick2(layers, TRAVELS)] as const, stabs: [pick2(layers, STABS_BASS), pick2(layers, STABS_BASS)] as const } : null;
   const shots = bassFx ? {
     talk: [Math.floor(bassFx() * BASS_TALKS.length), Math.floor(bassFx() * BASS_TALKS.length)] as const,
     blips: Math.floor(bassFx() * BLIP_STEPS.length),
@@ -2386,13 +2442,26 @@ function composeDanceTune(seed: number, mood: DanceMood, fixed: Partial<LofiStyl
 
       // SOAR: the bass genres' wide layer an octave over the bass, held through a drop's
       // chords and climbing bar by bar through a build, so the bass itself builds.
-      if ((mood === 'dubstep' || mood === 'brostep' || mood === 'dnb') && has('bass') && part.section === 'drop' && (firstOfChord || i === 0)) {
+      if ((mood === 'dubstep' || mood === 'brostep' || mood === 'dnb' || mood === 'electro') && has('bass') && part.section === 'drop' && (firstOfChord || i === 0)) {
         const left = (style.chordBars - (i % style.chordBars)) * 4;
-        notes.push({ voice: 'soar', midi: placeIn(chord.root, 40, 51), beat: 0, dur: left - 0.2, vel: 0.5 });
+        const low = placeIn(chord.root, 40, 51);
+        if (layerPlan) {
+          // The harmony bass: the chord's root with its fifth over it (its third in the second
+          // drop), so the bass itself carries the harmony.
+          const third = (((chord.tones[1] ?? chord.root) - chord.root) % 12 + 12) % 12;
+          notes.push({ voice: 'soar', midi: low, beat: 0, dur: left - 0.2, vel: 0.4 });
+          notes.push({ voice: 'soar', midi: low + (part.alt ? third : 7), beat: 0, dur: left - 0.2, vel: 0.32 });
+        } else notes.push({ voice: 'soar', midi: low, beat: 0, dur: left - 0.2, vel: 0.5 });
       }
       if ((mood === 'dubstep' || mood === 'brostep' || mood === 'dnb') && build) {
         const climb = [0, 3, 5, 7][Math.min(3, Math.floor((i / part.bars) * 4))]!;
         notes.push({ voice: 'soar', midi: placeIn(chord.root, 40, 51) + climb, beat: 0, dur: 3.8, vel: clamp01(0.3 + (i / part.bars) * 0.35), mod: 1 });
+      }
+
+      // LAYERS: the travelling bass and the percussive one (BASS_LAYERED), with the soar's
+      // harmony above: they build through the song and play into each other's gaps.
+      if (layerPlan && layers && (has('bass') || build)) {
+        bassLayers(notes, layers, layerPlan, { section: part.section, alt: !!part.alt, i, bars: part.bars, chord, nextChord, sb });
       }
 
       // SPARKLE: Sherbert's console arpeggios, through the second half of the first drop,
