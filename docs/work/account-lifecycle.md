@@ -36,6 +36,13 @@ confirmation. One store transaction then:
 - revokes its unrevoked share, guest and invitation links;
 - removes unused password setup or reset links for the account's linked email addresses.
 
+::: warning Offboarding revokes what the person issued permanently
+Re-enabling the account later brings back none of the revoked credentials and links. To stop
+someone's access while keeping their links for a possible return, disable the account instead:
+links a disabled person made stop serving and serve again if the account is re-enabled
+([Sign-in and sessions](identity.md#offboarding-disable-and-revocation)).
+:::
+
 Each issuance category is bounded at 1,000 rows. If any category is over that bound, apply
 refuses without changing the account or anything it issued. Review and revoke the relevant
 pages with the existing credential, link and password-link controls, then retry. An account
@@ -62,6 +69,11 @@ erasure. The erasure API removes only the account identity and attribution scope
 and it refuses while retained references remain. Shared content, original audit records,
 external copies and backup restoration need separate handling. An account-row deletion is not
 a complete personal-data erasure or a full subject export.
+
+**Partners.** To end access for everyone at a partner company, in a programme or at a partner
+domain, use **End this partnership** instead. It offboards each partner account the same way,
+can wait for a chosen day with a notice for a programme or a company, and can be reopened within
+30 days ([People and the partnership](partner-people.md#end-a-partnership)).
 
 <!--i:eti-user-check-->
 ## Joining and moving

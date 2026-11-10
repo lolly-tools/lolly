@@ -39,7 +39,9 @@ manager of the project.
 `project.manage`. The previous owner stays on the project as a manager, audited as
 `project.member.add` with `via: 'transfer'`, so they can still work there, leave or be
 removed. A previous owner whose account is disabled is not kept, so offboarding (disable, then
-transfer) leaves no row that re-enabling the account would bring back.
+transfer) leaves no row that re-enabling the account would bring back. Ending a partner
+programme can move its people's projects to the programme's owning team, archived and read-only
+([End a partnership](partner-people.md#end-a-partnership)).
 
 <!--i:eti-users-->
 ## People and roles
@@ -136,10 +138,14 @@ Signed in to an instance, the Share dialog offers a **Team** section:
 - **Copy team link** copies the session's [team link](#team-links).
 
 A session body may be up to 4 MiB, enough for a large Lolly Design document; a larger one is refused
-with `413`. Images uploaded on one device are stored on that device. Where shared files are on,
+with `413`.
+
+::: note Without shared files, a session's images stay on one device
+Images uploaded on one device are stored on that device. Where shared files are on,
 saving to a team project copies the images a session uses into the project's files, so the
 session opens elsewhere with them. Where they are off, the session opens elsewhere without
 those images, and Lolly warns about that when you save.
+:::
 
 | To | You need |
 |---|---|

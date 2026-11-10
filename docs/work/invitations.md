@@ -24,6 +24,11 @@ you a personal link and a ready-to-send message, and you send them yourself by c
 Both write one invitation per address. An address has at most one active invitation, and
 every project that invites it is added to that same invitation.
 
+**People from a partner company** join through a partner programme instead: its **Add people**
+takes a pasted list or a CSV, and **Domains** admits people with a verified address at a
+partner's proved domain, without an invitation each
+([Partner programmes](partner-programmes.md#add-people)).
+
 **Which account holds an address.** Lolly Work treats an address as an account's only when the
 account has shown it holds the address: a sign-in whose provider verified it, a source the operator
 vouches for (the reverse proxy, or a provider set to `emailVerification: "trusted"`), or an
@@ -52,11 +57,14 @@ active invitation for the email:
   when the invitation was written keeps its groups, and the acceptance records
   `groupsNotApplied: "existing-account"`.
 - An accepted invitation keeps admitting that email until someone revokes the invitation. Revoking blocks
-  the person's next sign-in unless `emails` or `domains` admit them. A session already open
-  stays open; disable the person to end that session.
+  the person's next sign-in unless `emails` or `domains` admit them.
 - An unverified email never takes an invitation.
 - With no `idp.admission` block everyone is admitted anyway, and a verified invited email
   still gets its invitation's groups at the first sign-in.
+
+::: warning Revoking an invitation does not end an open session
+A session already open stays open; disable the person to end that session.
+:::
 
 Attaching groups to an invitation assigns groups, so it carries the same controls as editing
 a person's local groups:
@@ -317,9 +325,12 @@ has an account, or giving their account groups in the console, needs manager on 
 
 Lolly reads `can['user.invite']` and `invites` (`domains`, `maxTtlHours`, `projectRoles`,
 `passwordSetup` and `passwordDomains`) from `GET /api/v1/org-config`, so it offers only what
-the server accepts. Older servers send neither, and Lolly then hides inviting. The policy is
-part of the instance configuration, so changing it means editing the configuration and
-redeploying.
+the server accepts. Older servers send neither, and Lolly then hides inviting.
+
+::: note The invite policy changes with a redeploy
+The policy is part of the instance configuration, so changing it means editing the
+configuration and redeploying.
+:::
 
 <!--i:eti-chat-->
 ## Requests

@@ -77,12 +77,14 @@ A forgotten password works the same way: ask the person who invited you for a ne
 old password keeps working until the new one is set. Setting it ends every session the
 account had, so a password that got out stops working everywhere at once.
 
+::: warning A password link signs in whoever holds it
 Whoever holds a link can sign in as its address, so some links are owner-only:
 
 - a link that leads to an owner: an owner's account, a `bootstrapOwners` address or an
   invitation into an owner group;
 - a link that adds a password to an account that already signs in another way, unless it is
   the issuer's own account.
+:::
 
 Each link is judged again when it is opened and when it is used, on its issuer's standing at
 that moment. If the issuer has been disabled or is no longer an admin, or the address now
@@ -150,11 +152,14 @@ URL that is an IP address turns them off.
   `POST /api/auth/passkeys/authenticate/options` and `.../authenticate/verify`, and
   `POST /api/auth/passkeys/:id/remove`.
 
+::: warning Signing out everywhere leaves a passkey working
 A passkey is a local credential with no provider session. A provider logout or **Sign out on
 all devices** leaves the passkey in place. To stop passkey sign-in, disable the account or
-send SCIM `active=false`. [Set up enterprise
-identity](enterprise-identity.md#5-operate-and-upgrade) explains how passkeys behave during
-offboarding.
+send SCIM `active=false`.
+:::
+
+[Set up enterprise identity](enterprise-identity.md#5-operate-and-upgrade) explains how
+passkeys behave during offboarding.
 
 ### Device-code sign-in
 
@@ -217,10 +222,12 @@ The checks run in this order, and the first one that applies decides:
    An existing staff account is admitted by the steps above or not at all. Both are kept in the database, not in this
    configuration ([Partner programmes](partner-programmes.md#add-people-by-domain)).
 
+::: note A hostedDomain pin refuses invited people outside it
 With `hostedDomain` set, only accounts in that Google Workspace get past step 2, invited
 people included. To let in people from outside it, add a second Google registration without
 `hostedDomain` (an `idp.additional` entry) and admit those people by exact `emails` or by
 invitation, never by `domains`.
+:::
 
 The refusal page starts with the workspace name ("Example Studio is invite only"), shows the
 account the person used, and says to sign in with the account the invitation went to or to

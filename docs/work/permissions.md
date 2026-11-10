@@ -90,6 +90,13 @@ so the console and CLI always offer the same things.
 Grants take effect on the **next request**: there is no cache to clear and no restart. Every
 change is audited.
 
+::: warning A deny wins for everyone it matches
+A deny overrides every allow and every role default it matches, admins' and owners' included. A
+`tool.use` deny hides the tool in the app as well as in Preview, and a deny for everyone (`*`)
+also reaches anonymous callers on an open deployment. Preview the groups it affects first
+([Checking your work](#checking-your-work)).
+:::
+
 A rule that could never apply is refused with `400 GRANT_NEVER_MATCHES`, which says what that
 permission is checked against: a permission no route checks, or a resource it is never checked
 against. The console marks such a rule if one was stored before this check, and deleting the
@@ -317,6 +324,10 @@ The console's **Preview** view and `GET /api/v1/org-config/preview?groups=…` g
 answer. The preview reports the resolved role, permissions, tool visibility, per-input
 governance and profile policy for that set of groups. It runs through the production code path,
 so it cannot drift from what the member actually receives.
+
+For a partner programme or one of its companies, **See what they get** gives the same answer
+before anyone is invited, and **View as partner** opens the app itself as one of its partners
+([Partner programmes](partner-programmes.md#see-what-they-get)).
 
 That answer is the org-config document a connected shell polls, `GET /api/v1/org-config`: the
 person's identity, role and permissions, tool and input governance, managed profile fields and

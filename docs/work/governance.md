@@ -29,7 +29,10 @@ rule whose groups match the person wins, and no match means `editable`.
 People in a partner programme are the exception: for them, order never decides. A rule for their
 company overrides their programme's rule, the stricter result wins across programmes, and a
 programme or company rule beats a rule for everyone. See
-[Partner programmes](partner-programmes.md#input-rules-for-partners).
+[Partner programmes](partner-programmes.md#input-rules-for-partners). A tool's policy can also
+take inputs from a partner company's details, such as its logo or contact line (`bindings`,
+under **Takes from the company**; see [company details in
+templates](partner-programmes.md#company-details-in-templates)).
 
 ::: figure work-governance-rule-order
 Lolly Work reads one input's rules from the top and stops at the first group that matches.
@@ -58,7 +61,9 @@ Lolly Work reads one input's rules from the top and stops at the first group tha
 Enforcement happens on the server, before rendering. A locked input supplied by a caller is a
 `422 INPUT_LOCKED`, and the locked value is used whatever the request said. The same pure
 functions filter the schema the shell sees, so the interface and the enforcement cannot
-disagree.
+disagree. An [open link](sharing.md#signed-links), whose recipients may set the tool's own
+inputs, still refuses a locked, hidden or disallowed one (`INPUT_LOCKED`, `INPUT_HIDDEN`,
+`INPUT_NOT_ALLOWED`).
 
 A person never reads policy notes in Lolly: a locked input shows its value with no line naming
 the rule, and a hidden input is simply absent. Give the overlay a `name` and a rule an optional
@@ -123,14 +128,20 @@ cache. An `x-lolly-watermark` header says how each one came out: `Marked until a
 `Approved, not marked`. A durable render's output carries the same words, and its receipt gives the
 id of the approval that matched. The words are in the record, not the artwork.
 
-- **Upgrading.** Until this release `until-approved` was stored and not enforced. An instance
-  already holding the setting starts showing PREVIEW on the first render after the upgrade. Change
-  the rule first if that is not what you want.
-- **What a match rests on.** The match uses the input values the requesting app states. A member
-  could send values that do not match the file they send. The mark is a preview signal for people,
-  not a security boundary.
-- **What it covers.** The rule applies to renders Lolly Work makes. Exports a person makes on their
-  own device follow **Approval chain for exports** and their `export.download` permission instead.
+::: warning An until-approved rule starts marking after the upgrade
+**Upgrading.** Until this release `until-approved` was stored and not enforced. An instance
+already holding the setting starts showing PREVIEW on the first render after the upgrade. Change
+the rule first if that is not what you want.
+:::
+
+::: note The mark is a preview signal, not a security boundary
+**What a match rests on.** The match uses the input values the requesting app states. A member
+could send values that do not match the file they send. The mark is a preview signal for people,
+not a security boundary.
+:::
+
+**What it covers.** The rule applies to renders Lolly Work makes. Exports a person makes on their
+own device follow **Approval chain for exports** and their `export.download` permission instead.
 
 ::: details Using the policy editor
 - The console keeps saved format restrictions and input defaults when you edit inputs,
@@ -278,6 +289,12 @@ lw apply governance.json --dry-run             # POST /api/v1/config/apply?dryRu
 lw apply governance.json                       # apply
 lw apply governance.json --prune               # also delete store-only entries
 ```
+
+::: warning `--prune` deletes what the document leaves out
+Grants, overlays, approval chains, feature flags and the other entries the store holds and the
+document does not are deleted; a catalog provider is pruned only while it is disabled. Run
+`lw apply governance.json --dry-run --prune` first and read the deletes in the diff.
+:::
 
 The diff reports create, update, delete and unchanged per category, and the response carries
 the document hash. Two guards apply:

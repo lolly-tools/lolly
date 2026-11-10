@@ -5,10 +5,12 @@ manager preparing to move a project to another Lolly Work instance. The preview 
 project's folders, current sessions, ready shared files and explicit memberships, and makes no
 changes to the project or its collaborators.
 
+::: note This preview moves nothing
 Export, import and moving a project are not built. A saved preview cannot restore a project or
 grant access on another instance. To prepare the destination, use the [platform deployment
 guide](platform-deployment.md), and for backup and recovery, the [operations
 guide](operations.md).
+:::
 
 <!--i:eti-search-->
 ## Inspect a project

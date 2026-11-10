@@ -36,6 +36,9 @@ Lolly Work has no colourway setting of its own. It serves the selected source's 
 [edit on this instance](#edit-this-instance-from-the-studio) on top, and server renders and their
 evidence do not record a colourway.
 
+A partner company's kit adds that company's own logo rules to its people's work and never
+replaces the selected design system ([Partner kits](partner-programmes.md#partner-kits)).
+
 ### Offer a second design system
 
 A source's catalog can carry a second design system for members to try, so they can switch to it in
@@ -88,9 +91,11 @@ Download actions use `"sourceId":"download"`. Explicit deny grants win. The olde
 `PUT /api/v1/brand/profile` and `DELETE /api/v1/instance-pack` use the same service, permissions
 and atomic state change.
 
+::: warning A catalog change can break existing references
 Private device documents, and references inside binary files, cannot be counted. Source files,
 stored versions, sessions and uploads are kept. A catalog change can make an existing reference
 unavailable or change a shared ID's appearance, so review those counts before applying.
+:::
 
 ::: details What `GET /api/v1/brand/profiles` returns
 `GET /api/v1/brand/profiles` lists what is installed, for members with `catalog.read`. It keeps
@@ -196,14 +201,17 @@ that route, so Lolly compares the tokens with the catalogue's checksum and the r
 A connect pack holds a copy of the tokens, so the pack you uploaded no longer matches once an edit is
 live. Offering that pack would put the old colours back on every device that imports the pack.
 
-- **A pack this instance's key signed** carries the edit in a derived copy: the token document changes,
-  Lolly Work signs the result with the same key and every other part keeps its bytes. The pack you uploaded is
-  kept. A derived copy is made only when an edit goes live, never for one awaiting approval, and a
-  rollback brings your pack back.
-- **Any other pack, or an instance with no signing key,** is not offered while an edit is live: new apps
-  cannot download a pack until the edit is rolled back or a new pack is uploaded. The studio shows that line
-  before a send, and the console shows it afterwards. Rollback is a button in the console. **Fleet** can upload a pack, but
-  building one from the edited document needs the pack builder.
+**A pack this instance's key signed** carries the edit in a derived copy: the token document changes,
+Lolly Work signs the result with the same key and every other part keeps its bytes. The pack you uploaded is
+kept. A derived copy is made only when an edit goes live, never for one awaiting approval, and a
+rollback brings your pack back.
+
+::: warning An edit can stop the connect download
+**Any other pack, or an instance with no signing key,** is not offered while an edit is live: new apps
+cannot download a pack until the edit is rolled back or a new pack is uploaded. The studio shows that line
+before a send, and the console shows it afterwards. Rollback is a button in the console. **Fleet** can upload a pack, but
+building one from the edited document needs the pack builder.
+:::
 
 Lolly Work never re-signs a pack its own key did not sign, because that would make an app accept a pack it refuses today.
 
