@@ -337,6 +337,7 @@ html[data-a11y-contrast="high"] .docs-content .doc-note--warning { --doc-note-to
    card whose text opens with a bold link is that link, as a card is. Two columns on
    a tablet, one on a phone, where the icon moves beside the words. */
 .docs-content .md-steps {
+  container: md-steps / inline-size;
   margin: 28px 0 36px;
   padding: 12px;
   border-radius: calc(var(--ui-radius-card) * 2);
@@ -393,6 +394,23 @@ html[data-a11y-contrast="high"] .docs-content .doc-note--warning { --doc-note-to
 .docs-content .md-steps li.ic > span:not(.li-icon) > strong:first-child > a:focus-visible { outline: none; }
 .docs-content .md-steps > ol.icon-list > li.ic:has(> span > strong:first-child > a:focus-visible) { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 2px; }
 .docs-content .md-steps > ol.icon-list > li.ic:has(> span > strong:first-child > a):hover { box-shadow: var(--ui-edge-strong), var(--ui-elevation-control); }
+
+/* Five steps never leave one card alone on a row. The row fits four cards at the
+   reading width, so five would wrap four and one: they lie three and two instead,
+   the two sharing the second row, or all five across where five fit. In two columns
+   the fifth takes the whole last row. One to four steps keep the row above. */
+@container md-steps (min-width: 23.625rem) and (max-width: 35.74rem) {
+  .docs-content .md-steps > ol.icon-list > li.ic:nth-child(5):last-child { grid-column: 1 / -1; }
+}
+@container md-steps (min-width: 35.75rem) {
+  .docs-content .md-steps > ol.icon-list:has(> li:nth-child(5):last-child) { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+  .docs-content .md-steps > ol.icon-list:has(> li:nth-child(5):last-child) > li.ic { grid-column: span 2; }
+  .docs-content .md-steps > ol.icon-list:has(> li:nth-child(5):last-child) > li.ic:nth-child(n+4) { grid-column: span 3; }
+}
+@container md-steps (min-width: 60rem) {
+  .docs-content .md-steps > ol.icon-list:has(> li:nth-child(5):last-child) { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+  .docs-content .md-steps > ol.icon-list:has(> li:nth-child(5):last-child) > li.ic:nth-child(n) { grid-column: auto; }
+}
 
 /* ── Section icon: <!--i:eti-…--> on a line of its own, before a heading ──────
    A large two-tone icon that opens the section under it, so a long page can be

@@ -4,7 +4,10 @@
  * stylesheet both readers ship (shells/web/src/styles/parts/docs-components.css): what a
  * string test cannot show.
  *
- *  1. ADMONITIONS. Each kind opens with its large two-tone Etiquette icon, and both parts
+ *  1. FIVE STEPS. A `::: steps` row fits four cards at the reading width, so five used to
+ *     wrap four and one. Five lie three and two at the reading width, all five across where
+ *     five fit, and in two columns the fifth takes the whole last row. Four keep one row.
+ *  2. ADMONITIONS. Each kind opens with its large two-tone Etiquette icon, and both parts
  *     of every icon are painted from the theme's roles: the base in the ink, the accent in
  *     the colourway's action colour lifted to a mid lightness (a grey one stays grey), a
  *     warning's accent in the docs' caution ink, and High contrast's in the accent ink for
@@ -51,6 +54,9 @@ const ctx = {
   credential: () => null, tryLink: () => null, showcase: () => null, art: () => null,
 } as unknown as DocsRenderContext;
 
+const STEP_ICONS = ['flask', 'folder-move', 'package', 'badge-check', 'globe'];
+const steps = (n: number): string => mdToHtml(['::: steps', ...STEP_ICONS.slice(0, n).map((icon, i) =>
+  `- <!--i:eti-${icon}--> **[Step ${i + 1}](#s${i + 1})** One short sentence about this step.`), ':::'].join('\n'), ctx);
 const notes = mdToHtml([
   '::: note Saved in this browser', 'Your work stays on this device until you export it.', ':::', '',
   '::: warning Clearing site data removes saved work', 'Export a backup first, with a long-unbroken-word-that-must-wrap-somewhere-safely.', ':::', '',
@@ -76,6 +82,46 @@ async function open(viewport: number, html: string): Promise<Page> {
   await p.setContent(html);
   return p;
 }
+
+/** The cards' rows, as the number of cards on each, top to bottom. */
+const rows = (p: Page) => p.evaluate(() => {
+  const tops = [...document.querySelectorAll('.md-steps li.ic')].map((li) => Math.round(li.getBoundingClientRect().top));
+  const counts = new Map<number, number>();
+  for (const t of tops) counts.set(t, (counts.get(t) ?? 0) + 1);
+  return [...counts.entries()].sort((a, b) => a[0] - b[0]).map(([, n]) => n);
+});
+
+test('five steps lie three and two at the reading width, never four and one', { skip }, async () => {
+  for (const width of [720, 900]) {
+    const p = await open(1440, page(width, steps(5)));
+    assert.deepEqual(await rows(p), [3, 2], `five steps at ${width}px`);
+    const [a, b] = await p.evaluate(() => [...document.querySelectorAll('.md-steps li.ic')].slice(3).map((li) => li.getBoundingClientRect()));
+    assert.ok(Math.abs(a!.left + a!.width + 10 - b!.left) < 1.5, 'the second row is the two cards side by side, filling it');
+    await p.context().close();
+  }
+});
+
+test('five steps go all five across where five fit, and the fifth fills the last row in two columns', { skip }, async () => {
+  let p = await open(1440, page(1100, steps(5)));
+  assert.deepEqual(await rows(p), [5]);
+  await p.context().close();
+  p = await open(1440, page(480, steps(5)));
+  assert.deepEqual(await rows(p), [2, 2, 1]);
+  const [row, last] = await p.evaluate(() => [document.querySelector('.md-steps > ol')!, document.querySelector('.md-steps li.ic:last-child')!].map((n) => n.getBoundingClientRect().width));
+  assert.ok(Math.abs(row! - last!) < 1, 'the fifth card is as wide as the row');
+  await p.context().close();
+});
+
+test('one to four steps keep the row they had', { skip }, async () => {
+  for (const [n, want] of [[4, [4]], [3, [3]], [2, [2]]] as const) {
+    const p = await open(1440, page(900, steps(n)));
+    assert.deepEqual(await rows(p), want, `${n} steps`);
+    await p.context().close();
+  }
+  const p = await open(390, page(390, steps(5)));
+  assert.deepEqual(await rows(p), [1, 1, 1, 1, 1], 'a phone keeps one column');
+  await p.context().close();
+});
 
 /** Each admonition's icon size and its two painted colours, as the browser resolved them,
  *  each read back through a canvas as an rgb() string so any colour syntax compares. */
