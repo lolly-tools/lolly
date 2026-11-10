@@ -97,10 +97,22 @@ curl -sS -b "$(cat ~/.config/lolly-work/session)" \
 shasum -a 256 /tmp/work-copy.bin
 ```
 
+An unattended check can send a member service token instead of the session cookie:
+`Authorization: Bearer lwt_…` reads `/catalog/*` ([service tokens](../api.md#service-tokens)).
+
 Download the same file from the source's own interface as the original and checksum that too.
-A match means Lolly Work serves the true original. A smaller file, other pixel dimensions or missing
+
+::: check The two checksums match
+A match means Lolly Work serves the true original.
+:::
+
+::: warning Materialize stores whatever it is given
+A smaller file, other pixel dimensions or missing
 EXIF or ICC data means the link served a rendition: report it, because materialize stores
-whatever it is given. A failure on this route shows as `502 PROVIDER_UNAVAILABLE`; the reason is
+whatever it is given.
+:::
+
+A failure on this route shows as `502 PROVIDER_UNAVAILABLE`; the reason is
 in the materialize output.
 
 ### Read drift

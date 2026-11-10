@@ -11,6 +11,9 @@ the source. Members' browsers only ever see Lolly Work URLs, never a Cloudinary 
 | Thumbnails from small raster originals | Generated thumbnails for other files |
 | Approval and dates from tags and metadata you choose | Territory, talent or channel clearance |
 
+Sending approved originals to Cloudinary is a separate delivery destination with its own write
+credential: [Configure Cloudinary writes](../delivery.md#configure-cloudinary-writes).
+
 <!--i:eti-checklist-->
 ## Onboarding
 
@@ -99,19 +102,26 @@ lw providers sync cloud-media
 lw providers enable cloud-media
 ```
 
-The credential prompt is hidden. Shape reports hold field names and types, never values. Check
-the mapped sample, groups and source scope before enabling, then run the
+The credential prompt is hidden. Shape reports hold field names and types, never values.
+
+::: check Before you enable the source
+Check the mapped sample, groups and source scope before enabling, then run the
 [Cloudinary check](tenant-check.md#cloudinary), including original checksums and private files.
+:::
+
 Contributors changing the driver follow its [maintainer runbook](https://github.com/lolly-tools/lolly-work/blob/main/server/src/catalog/providers/live-verify/cloudinary.md) in
 the Lolly Work repository.
 
 <!--i:eti-info-->
 ## Notes / limits
 
-- **Not yet confirmed against a live environment.** No authenticated Cloudinary account has been
-  tested. The driver accepts uploaded `image`, `video` and `raw` resources with `upload`,
-  `private` or `authenticated` delivery; external delivery types are skipped with a count and a
-  note.
+::: note Not yet confirmed live
+The driver is not yet confirmed against a live environment. No authenticated Cloudinary account has been
+tested. The driver accepts uploaded `image`, `video` and `raw` resources with `upload`,
+`private` or `authenticated` delivery; external delivery types are skipped with a count and a
+note.
+:::
+
 - **References follow the observed version.** Each file reference records the version Lolly Work saw,
   and opening it checks identity, folder, version, approval and dates again. A changed file
   needs a refresh. For a fixed local snapshot, materialize the source; this is not a backup of

@@ -72,9 +72,13 @@ lw providers health design-penpot
 ```
 
 A `penpot rpc get-profile <status>` error means the instance URL or token is wrong, or the
-`access-tokens` flag is off. The RPC command and field names come from Penpot's documentation and
+`access-tokens` flag is off.
+
+::: note Not yet confirmed live
+The RPC command and field names come from Penpot's documentation and
 are not yet confirmed against a live instance; a failed call reports the command
 (`penpot rpc <cmd> <status>`).
+:::
 
 <!--i:eti-info-->
 ## Notes / limits

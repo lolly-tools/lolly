@@ -105,17 +105,24 @@ lw providers sync orange-media
 lw providers enable orange-media
 ```
 
+::: check Before you enable the source
 Check the sample, metadata, rendition labels and group access before enabling, then run the
 [Orange Logic check](tenant-check.md#orange-logic). A successful HTTP call proves neither the
-file's fidelity nor an upstream rights clearance. Contributors changing the driver follow its
+file's fidelity nor an upstream rights clearance.
+:::
+
+Contributors changing the driver follow its
 [maintainer runbook](https://github.com/lolly-tools/lolly-work/blob/main/server/src/catalog/providers/live-verify/orange-logic.md) in the Lolly Work repository.
 
 <!--i:eti-info-->
 ## Notes / limits
 
-- **Not yet confirmed against a live tenant.** The endpoint is public Search v4 with JSON
-  forced, numbered pages, binned assets excluded and format generation turned off. It does not
-  turn on semantic search or treat a semantic result set as the full catalog.
+::: note Not yet confirmed live
+The driver is not yet confirmed against a live tenant. The endpoint is public Search v4 with JSON
+forced, numbered pages, binned assets excluded and format generation turned off. It does not
+turn on semantic search or treat a semantic result set as the full catalog.
+:::
+
 - **Identity.** `SystemIdentifier` is the permanent id. A file reference includes a fingerprint
   of the source's edit and checksum fields and the rendition code, so a rename keeps the asset
   and a changed source needs a refresh. This is not retrieval of past revisions or proof that a
@@ -141,7 +148,11 @@ file's fidelity nor an upstream rights clearance. Contributors changing the driv
 <!--i:eti-folder-move-->
 ## Off-boarding
 
-Materialize can copy exposed renditions, with that limitation retained in their metadata. **Lolly Work refuses cutover for Orange Logic** because protected originals are unavailable through this connector. A successful preview or rendition copy cannot qualify an exit that preserves originals.
+Materialize can copy exposed renditions, with that limitation retained in their metadata.
+
+::: warning Lolly Work refuses cutover for Orange Logic
+Protected originals are unavailable through this connector. A successful preview or rendition copy cannot qualify an exit that preserves originals.
+:::
 
 The [self-hosting strategy with S3 storage](../offboarding.md#self-host-lolly-work-with-s3-storage) explains how to run the destination, but does not remove this source limitation. An original-preserving migration needs a separately obtained, implemented and tested original-export path, plus checks for every required format. Keep Orange Logic authoritative until that work and the acceptance checks in [Leave a DAM](../offboarding.md) are complete.
 

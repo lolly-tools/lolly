@@ -52,10 +52,13 @@ activation. Lolly Work reads the folder and never writes to Drive.
 6. Confirm the folder and groups, then choose **Sync and enable source**. A failed sync, or a
    folder with no exposed files, leaves the source disabled.
 
+::: note What consent needs
 Consent needs an owner signed in to the console, `LW_CREDENTIAL_SECRET` on the server and an
 HTTPS instance URL (loopback HTTP is accepted for evaluation). Finish consent within ten
-minutes in the same signed-in browser; starting again replaces the earlier attempt. A
-config-managed source, or one with advanced settings, uses the
+minutes in the same signed-in browser; starting again replaces the earlier attempt.
+:::
+
+A config-managed source, or one with advanced settings, uses the
 [CLI consent flow](README.md#kinds-with-a-registered-consent-flow-dropbox-gdrive-o365) instead.
 
 ### Before you go live
@@ -65,11 +68,13 @@ config-managed source, or one with advanced settings, uses the
   **seven days**. Publishing the app does not promise a token will never expire or be revoked.
   See Google's [app states](https://developers.google.com/identity/protocols/oauth2/production-readiness/overview)
   and [refresh-token expiry rules](https://developers.google.com/identity/protocols/oauth2#expiration).
-- **Scope.** The grant reads the whole Drive of the connected account; the folder setting limits
-  what the catalog exposes, not what Google allows. Connect an account with suitably limited
-  access.
 - **A real check.** Run the [Google Drive check](tenant-check.md#google-drive) against the
   Workspace you will connect. Automated tests and a browser rehearsal do not replace that check.
+
+::: warning The grant reads the whole Drive of the connected account
+The folder setting limits what the catalog exposes, not what Google allows. Connect an account
+with suitably limited access.
+:::
 
 <!--i:eti-refresh-->
 ## Recover a saved connection

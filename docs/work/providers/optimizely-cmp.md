@@ -70,9 +70,11 @@ lw providers health acme-cmp
 grant was revoked: capture the credential again. `optimizely-cmp api 401` means the token
 exchange worked but the instance refused the access token.
 
+::: note Not yet confirmed live
 The CMP endpoint paths, asset field names, token endpoint and download host come from CMP's
 documentation and are not yet confirmed against a live tenant. Confirm them with a preview on
 your own tenant before you rely on this source.
+:::
 
 <!--i:eti-upload-->
 ## Publishing Lolly exports out
@@ -99,7 +101,9 @@ and are not yet confirmed against a live tenant.
 <!--i:eti-folder-move-->
 ## Off-boarding
 
-**Not an exit target.** This integration keeps CMP as the source for the website's assets and optionally publishes Lolly exports back. Do not run `cutover` against this source; keep its `ext/*` identities and the website's dependencies under CMP's authority.
+::: warning Not an exit target
+This integration keeps CMP as the source for the website's assets and optionally publishes Lolly exports back. Do not run `cutover` against this source; keep its `ext/*` identities and the website's dependencies under CMP's authority.
+:::
 
 You can [self-host Lolly Work with S3 storage](../offboarding.md#self-host-lolly-work-with-s3-storage) while retaining the CMP connection. That deployment choice does not migrate CMP or replace its web delivery. If retiring CMP is a separate project, obtain and verify a vendor export and plan the website's links and publishing changes separately. [Leave a DAM](../offboarding.md) records the connector limits and the supported exit paths for other sources.
 

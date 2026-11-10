@@ -9,7 +9,9 @@ An existing DAM can remain the source of record throughout this workflow. [Use L
 
 The source stays in charge. Lolly Work reads from it and never edits it, and you decide which groups
 see which files. Optimizely CMP is the one source that can also receive finished exports, and
-only when you turn that on. Penpot is a design-system source: its tokens feed a design system.
+only when you turn that on. Sending finished files to a bucket, a WebDAV folder, Brandfolder or
+Cloudinary is a separate feature with its own credentials:
+[organisation delivery destinations](../delivery.md#how-delivery-differs-from-a-source). Penpot is a design-system source: its tokens feed a design system.
 
 When you want the files in Lolly Work's own storage, the same connection copies them across and
 checks every file. That is the exit, covered in [Leave a DAM](../offboarding.md).
@@ -105,9 +107,11 @@ lw providers sync acme-s3
 lw providers enable acme-s3       # owner-only
 ```
 
+::: note Who can do each step
 Creating, syncing and deleting a source needs `catalog.provider.manage`. Setting a credential
 and enabling a source need `catalog.provider.credential`, which owners hold. An admin can
 prepare and sync a source, then hand the credential and the enable to an owner.
+:::
 
 The [`lw` CLI page](../cli.md#catalog-providers) lists every `lw providers` command.
 
@@ -152,8 +156,10 @@ call. [Check a source on your own tenant](tenant-check.md) explains how to read 
 - **Exposure decides what federates,** not the reach of the platform credential.
 - **You bring the tokens and apps.** No client ids or keys ship with Lolly Work.
 
+::: warning A shared credential does not carry each member's permissions
 A shared service credential does not carry each member's own upstream permissions. Set the
 exposure groups for the people who should see the files.
+:::
 
 <!--i:eti-sliders-->
 ## Settings every source shares
@@ -177,6 +183,12 @@ A source written into `instance.json` under `catalogProviders` is **config-manag
 creates it at boot and the console shows it read-only ("via instance.json"). Its credential
 comes from the environment variable its `credentialRef` gives. Change it in your deployment and
 redeploy.
+
+**One folder for a partner programme.** [Provider folders](../partner-programmes.md#provider-folders)
+give one folder of a connected source, and everything inside it, to a programme or one of its
+companies. Each kind reports folders in its own way: S3 and Dropbox by key prefix, WebDAV and
+OneDrive or SharePoint by directory, Brandfolder by section, and Google Drive only with
+`recursive` on.
 
 When a vendor credential expires on a schedule, record the date:
 `lw providers credential <id> --expires 2026-12-01`. From 14 days before that date,

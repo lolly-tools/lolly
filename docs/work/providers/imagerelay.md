@@ -63,8 +63,10 @@ once by hand against your app. `lw providers auth` refuses this kind; see
   (here `"Expiry Date"`, which becomes an
   [availability window](../catalog.md#imported-availability-windows) `availableUntil`). Without
   it, the manual `catalog.expire` control is the only expiry.
-- Image Relay sends **no approval signal**, so leave `exposure.requireApproved` off. With it on,
-  nothing federates.
+
+::: warning Image Relay sends no approval signal
+Leave `exposure.requireApproved` off. With it on, nothing federates.
+:::
 
 <!--i:eti-shield-check-->
 ## Verify
@@ -85,10 +87,13 @@ lw providers health acme-imagerelay
 <!--i:eti-info-->
 ## Notes / limits
 
-- **Not yet confirmed against a live tenant.** The endpoints and field names come from Image
-  Relay's documentation. [Check a source on your own tenant](tenant-check.md#image-relay) lists
-  what to look at. Contributors changing the driver follow its
-  [maintainer runbook](https://github.com/lolly-tools/lolly-work/blob/main/server/src/catalog/providers/live-verify/imagerelay.md) in the Lolly Work repository.
+::: note Not yet confirmed live
+The driver is not yet confirmed against a live tenant. The endpoints and field names come from Image
+Relay's documentation. [Check a source on your own tenant](tenant-check.md#image-relay) lists
+what to look at. Contributors changing the driver follow its
+[maintainer runbook](https://github.com/lolly-tools/lolly-work/blob/main/server/src/catalog/providers/live-verify/imagerelay.md) in the Lolly Work repository.
+:::
+
 - **Signed, short-lived download links,** fetched on each request and pinned to `imagerelay.com`.
   The driver sends the `User-Agent` Image Relay requires and keeps to **5 requests a second**.
 - **Deleted files leave the catalog.** A file Image Relay reports as deleted is dropped.

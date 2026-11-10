@@ -99,11 +99,14 @@ lw providers health acme-canto
 <!--i:eti-info-->
 ## Notes / limits
 
-- **Not yet confirmed against a live tenant.** The endpoint paths and field names come from
-  Canto's documentation, and Lolly Work holds no Canto account, so the check runs on your own
-  tenant under your contract. [Check a source on your own tenant](tenant-check.md#canto) lists
-  what to look at. Contributors changing the driver follow its
-  [maintainer runbook](https://github.com/lolly-tools/lolly-work/blob/main/server/src/catalog/providers/live-verify/canto.md) in the Lolly Work repository.
+::: note Not yet confirmed live
+The driver is not yet confirmed against a live tenant. The endpoint paths and field names come from
+Canto's documentation, and Lolly Work holds no Canto account, so the check runs on your own
+tenant under your contract. [Check a source on your own tenant](tenant-check.md#canto) lists
+what to look at. Contributors changing the driver follow its
+[maintainer runbook](https://github.com/lolly-tools/lolly-work/blob/main/server/src/catalog/providers/live-verify/canto.md) in the Lolly Work repository.
+:::
+
 - **Listing walks schemes.** Canto lists per scheme (image, video, audio, document,
   presentation, other), so each catalog id carries its scheme (`image:AB12C`). An album-scoped
   sync pages the album once instead.

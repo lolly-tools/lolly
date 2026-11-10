@@ -47,11 +47,14 @@ lw providers credential acme-ib     # prompts; never argv, never shell history
 ```
 
 - `options.platformUrl` (required) is your tenant URL, where the login happens.
-- `options.approvedStates` lists the workflow states that count as **approved**. Without it,
-  every asset federates as approved.
+- `options.approvedStates` lists the workflow states that count as **approved**.
 - `options.folderId` federates one folder.
 - IntelligenceBank's own publish, expiry and review dates import as an
   [availability window](../catalog.md#imported-availability-windows) with no mapping.
+
+::: warning Without `approvedStates`, every asset federates as approved
+Workflow states differ per tenant, so list the ones that count as approved in yours.
+:::
 
 <!--i:eti-shield-check-->
 ## Verify
@@ -65,11 +68,14 @@ A `login <status>` error means the platform URL or the API key is wrong.
 <!--i:eti-info-->
 ## Notes / limits
 
-- **Not yet confirmed against a live tenant.** The login response, field names and download
-  link come from IntelligenceBank's documentation.
-  [Check a source on your own tenant](tenant-check.md#intelligencebank) lists what to look at.
-  Contributors changing the driver follow its
-  [maintainer runbook](https://github.com/lolly-tools/lolly-work/blob/main/server/src/catalog/providers/live-verify/intelligencebank.md) in the Lolly Work repository.
+::: note Not yet confirmed live
+The driver is not yet confirmed against a live tenant. The login response, field names and download
+link come from IntelligenceBank's documentation.
+[Check a source on your own tenant](tenant-check.md#intelligencebank) lists what to look at.
+Contributors changing the driver follow its
+[maintainer runbook](https://github.com/lolly-tools/lolly-work/blob/main/server/src/catalog/providers/live-verify/intelligencebank.md) in the Lolly Work repository.
+:::
+
 - **v3 Graph API only.** Nothing uses the deprecated v2 resource endpoints. The one v2-named call
   is the login, which IntelligenceBank defines as the way to sign in to v3.
 - **Pinned hosts.** The discovered v3 address and every download are pinned to the

@@ -66,10 +66,13 @@ on means nothing matches `approvedStatuses`.
 <!--i:eti-info-->
 ## Notes / limits
 
-- **Not yet confirmed against a live collective.** The endpoints and field names come from
-  Widen's documentation. [Check a source on your own tenant](tenant-check.md#acquia-dam-widen)
-  lists what to look at. Contributors changing the driver follow its
-  [maintainer runbook](https://github.com/lolly-tools/lolly-work/blob/main/server/src/catalog/providers/live-verify/acquia-dam.md) in the Lolly Work repository.
+::: note Not yet confirmed live
+The driver is not yet confirmed against a live collective. The endpoints and field names come from
+Widen's documentation. [Check a source on your own tenant](tenant-check.md#acquia-dam-widen)
+lists what to look at. Contributors changing the driver follow its
+[maintainer runbook](https://github.com/lolly-tools/lolly-work/blob/main/server/src/catalog/providers/live-verify/acquia-dam.md) in the Lolly Work repository.
+:::
+
 - **Signed, short-lived download links,** fetched on each request and pinned to
   `widencollective.com` and `widencdn.net`.
 

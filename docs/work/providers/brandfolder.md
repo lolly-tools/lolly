@@ -22,11 +22,14 @@ That account confirms use of the integration, not every optional mapping. The tw
 <!--i:eti-clipboard-->
 ## What you need from Brandfolder
 
-- **A Brandfolder API key**, from *My Profile > Integrations > API key*. An admin-level key sees
-  the whole Brandfolder. It is a bearer token, so treat it as a secret.
+- **A Brandfolder API key**, from *My Profile > Integrations > API key*.
 - **The Brandfolder id**: the `…/brandfolders/<id>` part of the admin URL, or from the v4 API.
-- No app registration and no scopes. Choose what federates with Lolly Work's **exposure** settings,
-  not with the key.
+- No app registration and no scopes.
+
+::: warning An admin-level key sees the whole Brandfolder
+The key is a bearer token, so treat it as a secret. Choose what federates with Lolly Work's **exposure**
+settings, not with the key.
+:::
 
 <!--i:eti-lock-->
 ## Credential shape
@@ -64,8 +67,12 @@ lw providers preview  --kind brandfolder --options '{"brandfolderId":"…"}'   #
 lw providers health acme-bf
 ```
 
+::: check A good preview
 A good preview prints `health ok - brandfolder` and a mapped sample (`health.ok: true` with
-`--json`). `401` or `403` means the key is wrong or lacks access. An empty sample with
+`--json`).
+:::
+
+`401` or `403` means the key is wrong or lacks access. An empty sample with
 `requireApproved` on means nothing is approved yet.
 
 <!--i:eti-info-->
