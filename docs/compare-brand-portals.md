@@ -4,6 +4,7 @@ _Positioning updated: 31 October 2026. Vendor capability example checked: 28 Sep
 
 If your organisation keeps its approved assets in Bynder, Frontify, Marq or Brandfolder, this page compares that with Lolly plus Lolly Work: how people find brand assets, and how they make new files from them.
 
+<!--i:eti-folder-shared-->
 ## Keeping your existing portal
 
 An existing DAM can stay the source of record. Lolly Work's catalog connectors make a selected part of its library available in Lolly, where people make new files under the organisation's rules. The DAM's supported source constraints and Lolly Work's exposure rules govern access; final output review is a separate decision.
@@ -12,16 +13,19 @@ An existing DAM can stay the source of record. Lolly Work's catalog connectors m
 
 Lolly's purpose is [content sovereignty](/info/content-sovereignty.html), including control over production and the freedom to choose systems. Its own library and approvals support organisations that choose to operate those capabilities themselves. [Lolly for DAM vendors and implementation partners](/info/dam-partners.html) describes how the connected workflow can add value to an existing system of record.
 
+<!--i:eti-award-->
 ## What an established portal does better
 
 Established portals offer managed hosting, support and extensive asset-management workflows. For example, [Frontify's enterprise DAM](https://www.frontify.com/en/solution/enterprise-digital-asset-management) combines asset discovery, access controls, approval workflows and distribution. The Lolly stack is younger and its approval chains are sequential rather than arbitrary branching workflows. [Lolly Work status and roadmap](/info/work-status.html) records its deployment limits.
 
+<!--i:eti-blend-->
 ## Where they overlap
 
 Both cover approved assets, locked templates, access control, review and distribution. Lolly makes the files: templates, design tokens and permitted inputs define what someone can change, and rendering can stay on their device. Lolly Work adds identity, shared storage, policy, approvals and reporting on infrastructure the organisation controls.
 
 ![The active design system in Settings, shown as a cover and pages: the colours, type and logos every tool draws with](/info/shots/dashboard-brand.svg)
 
+<!--i:eti-lolly-->
 ## What Lolly and Lolly Work provide
 
 | Need | Lolly + Lolly Work |
@@ -38,6 +42,7 @@ Both cover approved assets, locked templates, access control, review and distrib
 
 [Catalog and content](/info/work-catalog.html), [Approvals](/info/work-approvals.html) and [Policy and governance](/info/work-governance.html) describe these features and their configuration.
 
+<!--i:eti-checklist-->
 ## Evaluate the combined workflow
 
 Use [the event-card production sequence](/info/dam-production.html) to test source access, permitted edits, output review and delivery with your own library. [What runs where](/info/compare.html#what-runs-where) lists the limits every comparison shares. A source connection does not itself establish a vendor partnership or qualification for every tenant.

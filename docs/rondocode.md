@@ -4,6 +4,7 @@
 
 A rondocode song is music written as code: synths, patterns and a mix, played as you type. Lolly can play a song under a video, and the **Rondocode** utility lets you write one and export it as audio. Both record the song in the file's Content Credentials, so the music says where it came from.
 
+<!--i:eti-music-->
 ## Play a song in Lolly
 
 The asset picker takes a song as a `.rondo` or `.rondo.json` file, or as a pasted `rondocode.com` share link. A song is code that makes its own sound, so it plays at whatever length its clip asks for. It can be the **music bed** under a video export or play in Neurospicy Mode's ambient player.
@@ -12,12 +13,14 @@ The song's code runs in Lolly's sandbox, with no network and no access to your f
 
 From the terminal, `lolly mix` takes a song as the whole soundtrack; see [CLI rendering](/info/cli-rendering.html).
 
+<!--i:eti-code-->
 ## Write and export a song
 
 Open the **Rondocode** tool from **Utilities** to write a song in rondocode's live editor and hear it as you type. Export it as **WAV**, **MP3**, **M4A**, **Opus** or **FLAC**, as a ZIP of stems, as **MIDI**, or as a recording of what is playing. From the terminal, `lolly rondocode --export=mid` writes the same MIDI file. **Export length** sets how many seconds an audio export lasts. The song file itself (`.rondo.json`) is your code as written and carries nothing added.
 
 A song can sing its lyrics with `sing()`. The singing is made on your device by downloaded voice models, and a file that holds synthesised singing always declares the singing as AI-generated (see [AI features](/info/ai-features.html)).
 
+<!--i:eti-badge-check-->
 ## Songs in the credential
 
 A video or audio export that plays a rondocode song records each song in its Content Credentials as a source:
@@ -28,6 +31,7 @@ A video or audio export that plays a rondocode song records each song in its Con
 
 Music computed from a song's code is marked as algorithmic media, so Lolly Verify does not flag it as AI. Before you export, a line under **Download** lists the songs the credential will record; after the export, the same line reports what a reading of the delivered file found. Untick **C2PA Credentials** to leave the record out. A still image records no song, because it carries no sound. `lolly mix` and the [MCP server](/info/mcp.html) write the same record.
 
+<!--i:eti-file-->
 ## Files from the Rondocode utility
 
 Most on-device utilities write no credential, because they transform a file you already own. Lolly Rondocode makes new audio, so every audio file it writes carries Content Credentials that record the song as its source: its name, the SHA-256 of its `.rondo.json` file and where its code ran. That covers WAV, MP3, M4A, Opus, FLAC, each stem in a stems ZIP and a recording of what is playing.
