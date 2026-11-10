@@ -8,7 +8,7 @@ import type { LofiStyle } from '../../../../engine/src/lofi-compose.ts';
 
 export const LOFI_KEYS_NAME: Record<LofiStyle['keys'], string> = {
   rhodes: 'Rhodes', felt: 'felt piano', wurli: 'Wurlitzer', pluck: 'soft pluck', pad: 'pad', supersaw: 'saw chords',
-  nylon: 'nylon guitar', crunch: 'rhythm guitar', wah: 'wah guitar', chiparp: 'chip arpeggio',
+  nylon: 'nylon guitar', crunch: 'rhythm guitar', heavy: 'heavy guitars', buzzsaw: 'buzzsaw guitars', wah: 'wah guitar', chiparp: 'chip arpeggio',
   steel: 'acoustic guitar', banjo: 'banjo', honky: 'honky-tonk piano', organ: 'organ', brass: 'brass section', jazzbox: 'jazz guitar', harp: 'harp', choir: 'choir', future: 'future-bass chords',
   tar: 'tar', santur: 'santur', zheng: 'guzheng', koto: 'koto', shamisen: 'shamisen', kora: 'kora', balafon: 'balafon',
 };
@@ -22,7 +22,7 @@ export const LOFI_LEAD_NAME: Record<LofiStyle['lead'], string> = {
   koto: 'koto', shamisen: 'shamisen', kora: 'kora', balafon: 'balafon', none: '',
 };
 
-export const LOFI_SNARE_NAME: Record<LofiStyle['snare'], string> = { snare: 'snare', brush: 'brushes', rim: 'cross-stick', clap: 'claps', stack: 'big snare' };
+export const LOFI_SNARE_NAME: Record<LofiStyle['snare'], string> = { snare: 'snare', brush: 'brushes', rim: 'cross-stick', clap: 'claps', stack: 'big snare', snap: 'finger snaps' };
 export const LOFI_HATS_NAME: Record<LofiStyle['hats'], string> = { hat: 'hi-hat', shaker: 'shaker', ride: 'ride cymbal', none: 'no cymbals' };
 
 export const LOFI_BASS_NAME: Record<LofiStyle['bass'], string> = {

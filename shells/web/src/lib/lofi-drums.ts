@@ -24,7 +24,7 @@
 import type { LofiMood, LofiStyle } from '../../../../engine/src/lofi-compose.ts';
 import { EPS, mtof, noiseAt, osc, crack, metalAt, type VoiceKit } from './lofi-voices.ts';
 
-export type KickKind = 'sub' | 'punch' | 'tight' | 'boom' | 'acoustic' | 'feather';
+export type KickKind = 'sub' | 'punch' | 'tight' | 'boom' | 'acoustic' | 'feather' | 'click';
 export type CrashKind = 'crash' | 'splash' | 'china';
 
 /** One tune's drum kit. The numbers are each about 1, the kit's lean from the middle. */
@@ -70,7 +70,9 @@ export function drumKit(seed: number, mood: LofiMood): DrumKit {
   const jazz = JAZZ.has(mood);
   const band = jazz || BAND.has(mood);
   const kick: KickKind = jazz ? 'feather'
-    : band ? (mood === 'metal' || mood === 'rock' ? pick(['acoustic', 'acoustic', 'punch'] as const) : 'acoustic')
+    : mood === 'metal' ? 'click'
+      : mood === 'punk' ? pick(['acoustic', 'punch'] as const)
+        : band ? (mood === 'rock' ? pick(['acoustic', 'acoustic', 'punch'] as const) : 'acoustic')
       : mood === 'hiphop' ? pick(['boom', 'punch', 'sub'] as const)
         : DUSTY.has(mood) ? pick(['boom', 'boom', 'tight'] as const)
         : SUBS.has(mood) ? pick(['sub', 'sub', 'punch'] as const)
@@ -124,11 +126,20 @@ function tap(k: VoiceKit, out: AudioNode, t: number, hz: number, q: number, leve
  * - acoustic: a bass drum: its head's first two modes, a small fall in pitch with the
  *   strike, the beater's click and the shell's thump.
  * - feather: a jazz drummer's kick, felt more than heard: low, soft, no click.
+ * - click: metal's kick, as its records have it: a short, tight body under a hard beater
+ *   click high enough to cut through the guitars, every stroke alike, so a double kick
+ *   reads as a run of distinct hits.
  * Every kind falls further and clicks louder the harder it is struck.
  */
 export function kick(k: VoiceKit, out: AudioNode, t: number, vel: number, hz: number, len: number, kind: KickKind = 'sub'): void {
   const { ctx } = k;
   const hard = vel * vel;
+  if (kind === 'click') {
+    mode(k, out, t, hz * 1.15, 0.7 * vel, 0.16, 3.5, 0.014);
+    tap(k, out, t, 4200, 1.3, 0.34 * vel, 0.01);   // the beater, hard enough to cut through
+    tap(k, out, t, 1800, 0.9, 0.12 * vel, 0.008);
+    return;
+  }
   if (kind === 'acoustic' || kind === 'feather') {
     const soft = kind === 'feather';
     const f = hz * (soft ? 0.92 : 1);
@@ -184,6 +195,7 @@ export function kick(k: VoiceKit, out: AudioNode, t: number, vel: number, hz: nu
 export function snare(style: LofiStyle['snare'], k: VoiceKit, out: AudioNode, t: number, vel: number, tone: number, kit: DrumKit = PLAIN_KIT): void {
   const { ctx } = k;
   if (style === 'stack') { stack(k, out, t, vel, tone, kit); return; }
+  if (style === 'snap') { snap(k, out, t, vel, kit); return; }
   const brush = style === 'brush';
   const hard = vel * vel;
   const bright = kit.snareBright * (0.82 + 0.3 * vel) * nudge(k, 0.03);
@@ -234,6 +246,17 @@ export function snare(style: LofiStyle['snare'], k: VoiceKit, out: AudioNode, t:
     bg.gain.exponentialRampToValueAtTime(EPS, t + ring);
     body.connect(bg).connect(out);
   }
+}
+
+/**
+ * A finger snap (R&B's backbeat): the finger slapping the palm, a sharp band of noise
+ * high in the mids, the skin's short pop under it, and the flick of the nail on top.
+ */
+function snap(k: VoiceKit, out: AudioNode, t: number, vel: number, kit: DrumKit): void {
+  const bright = kit.snareBright * nudge(k, 0.04);
+  tap(k, out, t, 2500 * bright, 1.6, 0.55 * vel, 0.05);
+  tap(k, out, t, 1250 * bright, 2.6, 0.28 * vel, 0.025);
+  crack(k, out, t, 0.22 * vel * vel, 5200, 0.01);
 }
 
 /**

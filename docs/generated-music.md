@@ -2,7 +2,7 @@
 
 The Neurospicy player makes its own music. Its generated stations compose every tune as they play. Nothing is recorded or sampled: each tune is written by Lolly's composer and played by instruments synthesised in your browser.
 
-- **The Lolly Sings group.** The original Lolly Sings and its genres. Lolly 1.2.0 ships 26 of them: Sugar, K-pop, Straya, Chiptune, City pop, Funk, Soul, Nu-disco, Hip hop, Trip hop, Reggae, Spanish guitar, Rock, Metal, Country, Blues, Jazz, Swing, Fantasy, Dreamscape, Synthwave, Acid, Electro, Dubstep, Brostep and D&B. Seven more have arrived since 1.2.0: Sherbert, Persian, Guzheng, Koto, Kora, Afrobeat and Amapiano.
+- **The Lolly Sings group.** The original Lolly Sings and its genres. Lolly 1.2.0 ships 26 of them: Sugar, K-pop, Straya, Chiptune, City pop, Funk, Soul, Nu-disco, Hip hop, Trip hop, Reggae, Spanish guitar, Rock, Metal, Country, Blues, Jazz, Swing, Fantasy, Dreamscape, Synthwave, Acid, Electro, Dubstep, Brostep and D&B. Ten more have arrived since 1.2.0: Sherbert, Persian, Guzheng, Koto, Kora, Afrobeat, Amapiano, Ska, Punk and R&B.
 - **The Lofi group.** Three moods: Warm, Late night and Rainy.
 
 The **[music generator](#the-music-generator)** opens any of these stations as a track you can change, down to the instrument each part plays in each section.
@@ -84,7 +84,10 @@ Sherbert was tuned by measuring three Australian future-bass records of the mid-
 | Jazz | A combo swinging on the ride: piano or archtop guitar comping, a walking upright bass, and sax, trumpet or vibes on the tune |
 | Swing | The big band: brass section stabs, a clarinet, trumpet or sax lead, a feathered kick, and floor toms in a jungle intro |
 | K-pop | Supersaw stabs and bright plucks, a pulse or chip lead, a synth bass or 808, claps on every beat and a chant in the chorus, and the last chorus a key higher |
-| Metal | A band with power-chord chugs, a metal or overdriven lead, a double kick and crashes through the chorus, toms to turn it, and a phrygian melody |
+| Metal | A band with heavy, double-tracked rhythm guitars through a high-gain amp and a four-by-twelve cabinet, palm-muted chugs, a metal or overdriven lead, a clicky kick and a double kick through the chorus, toms to turn it, and a phrygian melody |
+| Punk | Fast and loud: buzzsaw power chords, a picked bass driving eighths on the root through every section, a fast rock beat, and an overdriven lead or a riff |
+| Ska | Jamaica's fast dance music: a guitar or organ skanking on every offbeat, a walking bass, the hats' chick on the offbeats, and a trumpet, sax or clarinet on the tune |
+| R&B | Smooth and slow: lush sevenths and ninths on a Rhodes, a pad or a felt piano, an 808 sliding underneath or a Motown bass with a sub beneath it in the chorus, a clap or a finger snap on the backbeat, hats that roll, and a soft, sung lead |
 | Fantasy | A harp rippling under a flute, bells or a choir, a lydian melody, a half-time pulse with toms, and a big room |
 | Dreamscape | Pads and a choir, a soft lead, chords held two bars, a slow beat with the hats on the beat, and a long room |
 :::

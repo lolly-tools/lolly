@@ -107,6 +107,8 @@ export function keys(style: LofiStyle['keys'], k: VoiceKit, out: AudioNode, t: n
   else if (style === 'pad' || style === 'supersaw') saws(k, out, t, midi, vel, dur, style === 'supersaw');
   else if (style === 'nylon') nylon(k, out, t, midi, vel, dur, false);
   else if (style === 'crunch') crunch(k, out, t, midi, vel, dur);
+  else if (style === 'heavy') heavy(k, out, t, midi, vel, dur, METAL_AMP);
+  else if (style === 'buzzsaw') heavy(k, out, t, midi, vel, dur, PUNK_AMP);
   else if (style === 'wah') wah(k, out, t, midi, vel, dur);
   else if (style === 'chiparp') chipArp(k, out, t, midi, vel, dur);
   else if (style === 'steel') steel(k, out, t, midi, vel, dur);
@@ -1046,49 +1048,148 @@ function crunch(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: numbe
 }
 
 /**
- * Metal: a heavy, bassy guitar. Each melody note becomes a power chord (root, fifth and
- * octave) an octave below the melody, driven very hard and shaped by a cabinet with
- * boosted lows, scooped mids and an edge on top. A short note is palm-muted: a tight
- * chug with the top rolled off.
+ * A high-gain amp's clipping curve, made once: hard clipping, a touch asymmetric (a
+ * valve's even harmonics), exactly zero at silence so a note's tail goes quiet.
  */
-function metal(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number, dur: number): void {
+const HEAVY_CURVE = ((): Float32Array<ArrayBuffer> => {
+  const n = 2049;
+  const c = new Float32Array(n);
+  const lean = 0.08;
+  const raw = (x: number): number => Math.tanh(4 * (x + lean)) - Math.tanh(4 * lean);
+  const norm = Math.max(Math.abs(raw(1)), Math.abs(raw(-1)));
+  for (let i = 0; i < n; i++) c[i] = raw((i / (n - 1)) * 2 - 1) / norm;
+  return c;
+})();
+
+/** A guitar amp and its speaker cabinet: [Hz, gain dB] for each tone stage. */
+interface Amp {
+  /** How hard the preamp is driven. */
+  gain: number;
+  /** The high-pass before the drive that keeps the lows tight. */
+  tight: number;
+  /** The mid push into the drive (a boost pedal's), the cabinet's low resonance, the mids scooped or pushed after the drive, and the presence. */
+  push: readonly [number, number]; low: readonly [number, number]; mids: readonly [number, number]; presence: readonly [number, number];
+  /** The cabinet's top: where its speakers stop. */
+  cab: number;
+  level: number;
+}
+/** Metal: driven very hard, tight, the mids scooped after the drive, a 4x12's low thump and bite. */
+const METAL_AMP: Amp = { gain: 16, tight: 120, push: [900, 6], low: [115, 8], mids: [550, -5], presence: [2900, 4], cab: 5000, level: 0.07 };
+/** Punk: driven hard but less, the mids left in so it buzzes like a saw. */
+const PUNK_AMP: Amp = { gain: 8, tight: 110, push: [800, 4], low: [120, 5], mids: [1100, 3], presence: [2500, 3], cab: 5600, level: 0.07 };
+/** A metal lead: as much gain, more of the mids a solo needs to sing through the band. */
+const LEAD_AMP: Amp = { gain: 18, tight: 160, push: [1000, 7], low: [120, 2], mids: [700, -2], presence: [3000, 4], cab: 5400, level: 0.06 };
+
+/** A peaking filter at [Hz, dB]. */
+function peak(ctx: BaseAudioContext, [hz, db]: readonly [number, number], q = 0.9): BiquadFilterNode {
+  const f = ctx.createBiquadFilter();
+  f.type = 'peaking';
+  f.frequency.value = hz;
+  f.gain.value = db;
+  f.Q.value = q;
+  return f;
+}
+
+/**
+ * A guitar amp and cabinet, built once per amp and output and left running, the way a
+ * guitarist plugs into one amp for the whole song: every note's strings feed its input,
+ * so notes that overlap distort together, as they do in a real amp, and a note costs only
+ * its strings. The chain: a tightening high-pass and a mid push into a hard, oversampled
+ * clipper (oversampling keeps a high-gain tone from fizzing), the cabinet's resonance,
+ * mids and presence, and its speakers' steep top. `double` splits it into a double-tracked
+ * pair, the second side a few milliseconds behind, so a rhythm part fills the speakers.
+ */
+const AMPS = new WeakMap<AudioNode, Map<Amp, GainNode>>();
+function ampInput(k: VoiceKit, out: AudioNode, amp: Amp, double: boolean): GainNode {
+  let byAmp = AMPS.get(out);
+  if (!byAmp) { byAmp = new Map(); AMPS.set(out, byAmp); }
+  const ready = byAmp.get(amp);
+  if (ready) return ready;
   const { ctx } = k;
+  const input = ctx.createGain();
+  input.gain.value = amp.gain;
+  const tight = ctx.createBiquadFilter();
+  tight.type = 'highpass';
+  tight.frequency.value = amp.tight;
+  tight.Q.value = 0.7;
+  const ws = ctx.createWaveShaper();
+  ws.curve = HEAVY_CURVE;
+  ws.oversample = '2x';
+  const cabs = [0.8, 0.6].map((q, j) => {
+    const lp = ctx.createBiquadFilter();
+    lp.type = 'lowpass';
+    lp.Q.value = q;
+    lp.frequency.value = amp.cab * (1 + j * 0.12);
+    return lp;
+  });
+  const level = ctx.createGain();
+  level.gain.value = amp.level;
+  const cab = chain(input, [tight, peak(ctx, amp.push, 0.8), ws, peak(ctx, amp.low, 1), peak(ctx, amp.mids, 0.8), peak(ctx, amp.presence, 1.2), ...cabs, level]);
+  if (double) {
+    const left = ctx.createStereoPanner();
+    left.pan.value = -0.8;
+    const late = ctx.createDelay(0.05);
+    late.delayTime.value = 0.011;
+    const right = ctx.createStereoPanner();
+    right.pan.value = 0.8;
+    cab.connect(left).connect(out);
+    cab.connect(late).connect(right).connect(out);
+  } else {
+    cab.connect(out);
+  }
+  byAmp.set(amp, input);
+  return input;
+}
+
+/**
+ * One note's strings into an amp: saws at `freqs` (a power chord, or one note), picked
+ * with the note's envelope. A short note is palm-muted: the hand on the strings darkens
+ * them before they reach the amp, and the note stops dead.
+ */
+function strings(k: VoiceKit, input: AudioNode, t: number, freqs: readonly number[], vel: number, dur: number, chug: boolean, vib: boolean): void {
+  const { ctx } = k;
+  const end = t + dur + 0.14;
+  const g = ctx.createGain();
+  const level = (0.6 + 0.4 * vel) / freqs.length;
+  g.gain.setValueAtTime(EPS, t);
+  g.gain.exponentialRampToValueAtTime(level, t + 0.004);
+  if (chug) g.gain.setTargetAtTime(EPS, t + Math.min(0.05, dur), 0.035);
+  else g.gain.setTargetAtTime(EPS, t + dur, 0.07);
+  let into: AudioNode = g;
+  if (chug) {
+    const mute = ctx.createBiquadFilter();
+    mute.type = 'lowpass';
+    mute.frequency.value = 900;
+    mute.Q.value = 0.7;
+    g.connect(mute);
+    into = mute;
+  }
+  into.connect(input);
+  for (const [n, f] of freqs.entries()) {
+    const o = osc(k, 'sawtooth', f, t, end);
+    o.detune.value = n === 0 ? -4 : 3;
+    if (vib) vibrato(k, o.detune, t, end, 5.2, 14, 0.3);
+    o.connect(g);
+  }
+}
+
+/**
+ * A heavy rhythm guitar (metal's `heavy`, punk's `buzzsaw`): a power chord (root and
+ * fifth, the octave on held chords) an octave below the given note, through a high-gain
+ * amp, double-tracked. A short note is a palm-muted chug.
+ */
+function heavy(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number, dur: number, amp: Amp): void {
   const root = mtof(midi - 12);
   const chug = dur < 0.18;
-  const end = t + dur + 0.15;
-  const [push, ws] = drivenBy(ctx, 9);
-  const hp = ctx.createBiquadFilter();
-  hp.type = 'highpass';
-  hp.frequency.value = 70;
-  const lows = ctx.createBiquadFilter();
-  lows.type = 'lowshelf';
-  lows.frequency.value = 160;
-  lows.gain.value = 7;
-  const scoop = ctx.createBiquadFilter();
-  scoop.type = 'peaking';
-  scoop.frequency.value = 750;
-  scoop.Q.value = 0.9;
-  scoop.gain.value = -6;
-  const edge = ctx.createBiquadFilter();
-  edge.type = 'peaking';
-  edge.frequency.value = 2800;
-  edge.Q.value = 1.4;
-  edge.gain.value = 4;
-  const cab = ctx.createBiquadFilter();
-  cab.type = 'lowpass';
-  cab.frequency.value = chug ? 2200 : 5200;
-  const amp = ctx.createGain();
-  amp.gain.setValueAtTime(EPS, t);
-  amp.gain.exponentialRampToValueAtTime(0.07 * vel, t + 0.006);
-  if (chug) amp.gain.setTargetAtTime(EPS, t + 0.05, 0.05);
-  else amp.gain.setTargetAtTime(EPS, t + dur, 0.09);
-  ws.connect(hp).connect(lows).connect(scoop).connect(edge).connect(cab).connect(amp).connect(out);
-  for (const [ratio, cents] of [[1, -5], [1, 6], [1.5, 0], [2, 3]] as const) {
-    const o = osc(k, 'sawtooth', root * ratio, t, end);
-    o.detune.value = cents;
-    if (!chug) vibrato(k, o.detune, t, end, 5, 10, 0.35);
-    o.connect(push);
-  }
+  strings(k, ampInput(k, out, amp, true), t, chug ? [root, root * 1.5] : [root, root * 1.5, root * 2], vel, dur, chug, false);
+}
+
+/**
+ * Metal's lead guitar: the note itself through a high-gain amp with the mids a solo needs,
+ * vibrato on held notes, and a short note muted and tight.
+ */
+function metal(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number, dur: number): void {
+  strings(k, ampInput(k, out, LEAD_AMP, false), t, [mtof(midi)], vel, dur, dur < 0.18, dur >= 0.3);
 }
 
 /**
@@ -1608,7 +1709,7 @@ export function drivenBy(ctx: BaseAudioContext, amount: number, clean = false): 
 }
 
 /** A sine under a dance bass, an octave down when the note is high: what the low end feels. */
-function sub(k: VoiceKit, out: AudioNode, t: number, f: number, vel: number, dur: number): void {
+export function sub(k: VoiceKit, out: AudioNode, t: number, f: number, vel: number, dur: number): void {
   const g = k.ctx.createGain();
   g.gain.setValueAtTime(EPS, t);
   g.gain.exponentialRampToValueAtTime(0.42 * vel, t + 0.006);
