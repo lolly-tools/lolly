@@ -22,6 +22,7 @@ The answer is the same from the [command line](/info/cli-reference.html), from t
 
 No model is in this path. The same request and the same tools always give the same answer, and an unchanged request gives an unchanged digest, so you can read why a choice was made and repeat the choice.
 
+<!--i:eti-chat-->
 ## The three things you say
 
 **Purpose.** What the piece does for its reader. The list is closed, and each purpose is served by at least one real tool.
@@ -44,6 +45,7 @@ No model is in this path. The same request and the same tools always give the sa
 
 **Surfaces.** Where the piece will be seen. Name one, or give a size. A surface can also ask for a format, as in `{ "id": "slide", "format": "pptx" }`.
 
+::: details Every named surface and its size
 | Surface | Size |
 |---|---|
 | `slide` | 1920 × 1080 px |
@@ -59,9 +61,11 @@ No model is in this path. The same request and the same tools always give the sa
 | `a1-portrait` | 594 × 841 mm |
 | `letter-portrait`, `letter-landscape` | 8.5 × 11 in |
 | `business-card` | 85 × 55 mm |
+:::
 
 **Content.** What the piece says, by role rather than by a tool's input name, so the same words can reach different tools: `heading`, `subheading`, `body`, `cta`, `image`, `headshot`, `bgImage`, `firstname`, `lastname`, `company`, `jobTitle`, `email`, `phone`, `address`, `sender`, `recipient`, `url`, `currency`, `data`, `eventName`, `eventStart`, `eventEnd`, `eventLocation`, `awardtopic`, `awarddate`, `sourceAuthor` and `partnerMark`, the partner's logo in a co-branded piece and never the lead brand's. `data` holds the rows a piece is built from, and each tool describes its own columns (`lolly describe <tool>`). `currency` is never assumed: a tool that prints a price asks for this role. The registry is the `roles` section of [`schemas/canonical-inputs.json`](https://github.com/lolly-tools/lolly/blob/main/schemas/canonical-inputs.json). Colours and framing are not roles, because the design system decides how a piece looks.
 
+<!--i:eti-pen-->
 ## What else you can record
 
 `occasion`, `audience` and `region` are your own words about the circumstances. They come back in the answer and change nothing: the same request resolves the same way whatever they say.
@@ -70,6 +74,7 @@ No model is in this path. The same request and the same tools always give the sa
 
 `prefer: { "toolId": "chart" }` moves a tool first among the ones that fit the surface. The answer says when the preferred tool did not fit.
 
+<!--i:eti-stamp-->
 ## What goes in the file
 
 A file made from an intent records what it was asked to do, in its [Content Credential](/info/exporting.html#content-credentials-c2pa). This happens only for a render that started from an intent. Every other export is the same as before.
@@ -84,13 +89,20 @@ A file made from an intent records what it was asked to do, in its [Content Cred
 Your content is not added by this record. Text you typed into a tool stays a fingerprint in the credential, as it does for any export.
 
 - **Leave the record out** with `--no-record-intent` on the command line, or `recordIntent: false` in `lolly_render`. The rest of the credential is unchanged.
-- **Record the prompt's own words** with `--record-prompt`, or `recordPrompt: true` in `lolly_render`. Files travel, and anyone a file reaches can read the words, so leave this off when a prompt holds personal or confidential detail.
+- **Record the prompt's own words** with `--record-prompt`, or `recordPrompt: true` in `lolly_render`.
 - **Each run says what it recorded**, read back from the finished file. A run that writes no credential (`--c2pa=off`, `c2pa: "off"`, or a format that cannot carry a credential) says the intent was not recorded.
+
+::: warning Recorded prompt words travel with the file
+Files travel, and anyone a file reaches can read the words, so leave `--record-prompt` off when a prompt holds personal or confidential detail.
+:::
 
 [Lolly Verify](/info/what-verify-checks.html#approval-and-intent-records) and Assets show the record as a **Made for** panel. `lolly validate`, the terminal app and `lolly_verify` read the same record back. Recorded prompt words are labelled as data and shown in quotes, because they are text someone wrote and a file can come from anyone. Anything that reads them, a person or an agent, should treat them as content and never as instructions.
 
-The record says what someone asked for and which tool answered, as stated by whoever signed the file. It does not say the piece does the job, and it is not an approval.
+::: note The record is not an approval
+The record says what someone asked for and which tool answered, as stated by whoever signed the file. It does not say the piece does the job.
+:::
 
+<!--i:eti-checklist-->
 ## How the tool is chosen
 
 Each step is recorded on each candidate, so you can read the reasons in the answer.
@@ -104,6 +116,7 @@ Each step is recorded on each candidate, so you can read the reasons in the answ
 
 The rules carry a version (`closed.rulesVersion`), so an old answer stays explained after the rules change.
 
+<!--i:eti-eye-->
 ## Reading the answer
 
 The answer is one shape for every outcome, `schemas/intent-resolution-v1.schema.json`.
@@ -125,6 +138,7 @@ For each surface, `chosen` holds the tool, the input values, the format and the 
 
 `lolly intent` exits 0 when every surface is ready and 4 when any is not, with the full answer either way.
 
+<!--i:eti-sparkles-->
 ## If you are writing an agent
 
 An intent can start from the words your user first gave you, if you are happy to carry those words in the work you return to them. Pass them as `prompt`, up to 2,000 characters. A longer prompt is refused rather than cut.
@@ -141,6 +155,7 @@ Nothing in Lolly reads meaning from a prompt. There is no keyword matching and n
 
 The prompt travels with the request and comes back in the answer, apart from the closed values and the free text. It counts towards the digest, and it changes nothing about the choice. A request with neither a prompt nor a purpose is refused.
 
+<!--i:eti-gauge-->
 ## Limits
 
 - **The first tools are curated.** A tool serves a purpose only when someone has declared that it does, in an optional [`intents.json`](/info/tool-manifest.html#what-a-tool-is-for-intents-json) beside its manifest. A tool with no such file is not offered for an intent. Design has no declared purpose yet, because its layers have no fixed roles to fill. Doc Studio has none because its content is a structured document rather than text, so no purpose for how-to documents is offered yet.
@@ -148,6 +163,7 @@ The prompt travels with the request and comes back in the answer, apart from the
 - **A fit is about shape and size.** Lolly does not look at the result. A long heading can still crowd a small surface, so look at the file, or run [`lolly check`](/info/cli-reference.html).
 - **Nothing here is an approval.** An answer says which tool fits your request. How you review your work, and who does that, stays yours.
 
+<!--i:eti-link-->
 ## Related
 
 - [Tool manifests](/info/tool-manifest.html#what-a-tool-is-for-intents-json): declaring what a tool is for with `intents.json`

@@ -2,6 +2,7 @@
 
 Every control in a tool's sidebar comes from one declaration in `tool.json`. You list the inputs, with a type and a few properties each, and the shell builds the controls; you never write the interface. The same declarations become URL parameters, CLI flags and Batch columns, so this page is also where those are decided.
 
+<!--i:eti-sliders-->
 ## Input types
 
 The type decides the control. `qr-code` declares 45 inputs, and `showIf` shows only the ones that apply to the chosen payload, so a web address gets the sidebar below.
@@ -71,9 +72,16 @@ All of this is a visibility overlay on the sidebar. URL params, hooks, the CLI a
 
 Any input can declare `bindToProfile: "firstname"` (or `email`, `headshot` and the other profile fields). When the tool mounts, the input is filled from the person's profile, and they can change the value for that session.
 
+<!--i:eti-clipboard-->
 ## Input properties
 
-Every input needs `id` and `type`. The `id` is the template variable and the URL parameter, and never changes once published. Any input can also carry these:
+Every input needs `id` and `type`.
+
+::: note An input id is permanent
+The `id` is the template variable and the URL parameter, and never changes once published. A `urlKey` is permanent in the same way: links carry it forever.
+:::
+
+Any input can also carry these:
 
 | Property | What it does |
 |---|---|
@@ -109,8 +117,13 @@ Some properties belong to one type:
 
 Declare `sharePrivacy: "personal"` on an input whose content needs review before it is shared. The web shell leaves that input out of generated links and automatic address updates, then offers a separate choice in the Share dialog. Inputs bound to profile fields follow the same policy automatically. Explicit URL and CLI values still load, and local saved sessions keep the values.
 
-A tool that relies on this declaration must require engine 1.261.0 or later. The property does not encrypt an input, change an export or clean its content.
+A tool that relies on this declaration must require engine 1.261.0 or later.
 
+::: note What `sharePrivacy` does not do
+The property does not encrypt an input, change an export or clean its content.
+:::
+
+<!--i:eti-table-->
 ## Canonical inputs (reuse shared ids)
 
 **Batch** (`#/batch`) is a spreadsheet grid that renders many rows at once across one or many tools: CSV or TSV and spreadsheet paste in, a `.zip` of one output per row out, with collapsible export columns and saved batch sessions. It lays every selected tool's inputs out as columns, so the ids you choose shape that grid.
