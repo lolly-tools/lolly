@@ -215,6 +215,8 @@ export const WORK_PARTNER_FIGURES: Figure[] = [
  *  and its database, the two parts every install has, are tinted as the key cards. */
 export const WORK_DEPLOYMENT_FIGURES: Figure[] = [
   { set: 'work-deployment', name: 'production-architecture', lang: 'dot', title: 'Lolly Work in production', untitled: true, flags: [...PARTNER_LIGHT, '--cardWidth=176', '--siblingGap=18'], darkFlags: PARTNER_DARK },
+  { set: 'work-deployment', name: 'yunohost-package', lang: 'dot', title: 'Lolly Work for YunoHost', untitled: true, flags: [...PARTNER_LIGHT, '--cardWidth=176', '--siblingGap=18'], darkFlags: PARTNER_DARK },
+  { set: 'work-deployment', name: 'appliance', lang: 'dot', title: 'The Lolly appliance', untitled: true, flags: [...PARTNER_LIGHT, '--cardWidth=176', '--siblingGap=18'], darkFlags: PARTNER_DARK },
 ];
 
 /** Every figure the script renders, in set order. */

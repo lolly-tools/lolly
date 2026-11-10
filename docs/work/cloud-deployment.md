@@ -11,6 +11,7 @@ its own resources and render credential. Pick the install path at
 [Run Lolly Work](self-host.md); the [ready-made package](ready-made-package.md) has an
 UpCloud reference qualification.
 
+<!--i:eti-package-->
 ## What the modules give you
 
 | Part | Supported today | Still to qualify before a new deployment |
@@ -33,6 +34,7 @@ larger needs, provider storage and Longhorn for qualified multi-node storage. A 
 still uses the underlying VM or bare-metal capacity: sharing services on it reduces
 separate guest and service overhead, but not the cloud's compute charges.
 
+<!--i:eti-table-->
 ## How the two providers differ
 
 | Contract | UpCloud | Evroc |
@@ -47,8 +49,12 @@ separate guest and service overhead, but not the cloud's compute charges.
 | Object storage | Qualify bucket access, recovery and endpoint behaviour | Qualify the documented S3 feature compatibility, bucket access and recovery |
 | Application release | Signed web app, configured Lolly Work, worker and relay, database migrations, smoke checks | The same files, configuration, migration and acceptance contracts |
 
+::: note A mocked plan proves the configuration only
 A provider mock checks configuration against the schema; it cannot prove an image is
-available, or quota, compliance or performance. Both targets need real boot, SSH and
+available, or quota, compliance or performance.
+:::
+
+Both targets need real boot, SSH and
 reboot, host security, capacity and recovery checks before production. The openSUSE
 `provision.sh` does not support Ubuntu, so read the target runbook before choosing an
 image.
@@ -57,6 +63,7 @@ Keep public and private apart on either provider. Public APIs must not publish p
 packs, uploaded assets or member cookies, and the public CA, MCP and Penpot containers
 receive no private Lolly Work secrets.
 
+<!--i:eti-url-->
 ## Custom instance domain
 
 The [VM kit's custom-domain procedure](../deploy/vm/README.md#custom-instance-domains)
@@ -73,6 +80,7 @@ list of release files. Generating a host name does not register an OIDC client o
 DNS. Keep real image, SSH, reboot, owner sign-in, shared editing and export checks as the
 acceptance gates.
 
+<!--i:eti-folder-move-->
 ## Move a PostgreSQL database
 
 Choose managed PostgreSQL when its operations, availability and recovery policy fit.
@@ -154,14 +162,19 @@ Later deployments must use that same file list; the existing `push.sh` base-only
 does not manage this optional database. Keep the render and relay overlays in place.
 :::
 
+::: warning Never open a public PostgreSQL port for the helper
 For managed PostgreSQL, use its reviewed TLS connection or a temporary tunnel you
-control; never add a public PostgreSQL port for the helper.
+control.
+:::
 
 **Accepting the target** means checking owners and project memberships, session
 revisions, uploaded asset bytes on another device, sealed source credentials,
 Brandfolder queries, agent grants and activity, audit continuity and real exports.
+
+::: warning Rolling back after writes resume
 After writes resume on the target, rolling back means reconciling those writes:
 changing the URL alone would throw them away.
+:::
 
 Alongside the dump, keep `instance.json`, the governance export, the signing keys, the
 session, link and credential-sealing secrets, the exact application and web app
@@ -169,6 +182,7 @@ versions, source settings and independently kept audit heads. With the default `
 asset driver the database includes uploaded asset bytes; with `s3`, back up the bucket
 and its versions separately. See [backup and restore](operations.md#backup-and-restore).
 
+<!--i:eti-info-->
 ## What your instance serves at /info
 
 A Lolly Work instance that serves a signed web app also serves that web app's public
@@ -197,6 +211,7 @@ type, empty HEAD bodies, 404 answers for missing documents and refusals for priv
 and catalog routes. The server's own HTTP tests exercise these boundaries.
 :::
 
+<!--i:eti-gauge-->
 ## Capacity and recovery
 
 Leave room for the current signed web app, rollback copies, container layers, database
@@ -216,5 +231,8 @@ the asset driver and your backup needs. Evroc documents its
 [S3 compatibility](https://docs.evroc.com/products/storage/object-storage/s3compat.html),
 including the features it lacks. Prove private reads, original-byte hashes, version
 recovery, retention, CORS and Range and HEAD behaviour on a throwaway bucket before you
-change asset or archive addresses. A backup inside the same cloud is not independent of
-that cloud account or region.
+change asset or archive addresses.
+
+::: warning Keep one backup outside the cloud
+A backup inside the same cloud is not independent of that cloud account or region.
+:::
