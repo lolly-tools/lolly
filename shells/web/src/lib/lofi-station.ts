@@ -119,18 +119,19 @@ const VARIANT: { keys: Record<LofiStyle['keys'], number>; lead: Record<LofiStyle
 };
 /**
  * Each lead instrument's trim (dB): what brings it to the others' loudness on the same
- * phrase (measured, the sounds that ring and fade trimmed by only part of the difference).
+ * phrase (measured, the sounds that ring and fade trimmed by only part of the difference),
+ * then refined with the genre seats against the stems of every style.
  */
-const LEAD_TRIM: Partial<Record<LofiStyle['lead'], number>> = { angel: -0.9, balafon: 2.2, banjo: -1.4, bells: -0.2, bit: 4, chip: 4, chop: -0.4, clarinet: 1.5, dizi: -1.0, erhu: 1.4, fiddle: -0.1, flute: -2.0, guitar: -0.8, kalimba: -1.6, kamancheh: -0.1, kora: 0.1, koto: 2.2, metal: -0.3, ney: -0.6, nylon: -0.9, overdrive: -0.1, panflute: 0.1, pedal: 0.1, pipa: 3.3, pulse: 1.8, santur: 3.7, sax: 1.3, shakuhachi: -1.1, shamisen: 4, soft: 0.3, trumpet: 4, twang: -1.3, vibes: -0.6, zheng: 1.7 };
+const LEAD_TRIM: Partial<Record<LofiStyle['lead'], number>> = { angel: -0.2, balafon: 2.2, banjo: -1.8, bells: -0.6, bit: 4.0, chip: 4.0, chop: 0.3, clarinet: 1.5, dizi: -1.4, erhu: 1.4, fiddle: 0.2, flute: -2.1, guitar: -2.1, kalimba: -3.1, kamancheh: -0.1, kora: 0.1, koto: 2.2, metal: -0.3, ney: -0.6, nylon: -1.9, overdrive: 0.3, panflute: 0.3, pedal: 0.1, pipa: 3.3, pulse: 1.8, riff: -0.1, santur: 3.7, sax: 2.5, shakuhachi: -1.1, shamisen: 4.0, soft: -0.6, trumpet: 4.0, twang: -1.5, vibes: -0.7, zheng: 2.1 };
 /**
  * Each genre's seat for its lead (dB), with the instrument trimmed: the lead's place
- * against the band while the lead plays. Measured from the stems of two tunes a genre, and set
+ * against the band while the lead plays. Measured from the stems of two tunes a genre, fitted twice, and set
  * so the lead plays about 5 dB under the band, 6 in the calm styles and 4 in jazz and
  * swing, whose soloist is the point (Andy, 2026-11-10: "some instruments are obnoxiously
  * loud as the lead, perhaps the genre should set a rule for certain instruments so they
  * dont destroy the genre").
  */
-const LEAD_SEAT: Partial<Record<LofiMood, number>> = { acid: -3.2, afrobeat: 0.1, amapiano: -6.6, blues: -3.2, brostep: -8, chiptune: -7.9, citypop: 1.1, country: -2.0, dnb: -1.9, dream: -8, dubstep: -5.2, electro: -0.5, fantasy: -8, funk: 2.4, guzheng: -6.0, hiphop: 0.0, jazz: -0.4, kora: -1.6, koto: -2.8, kpop: 0.0, lateNight: -1.2, metal: 0.0, nudisco: -3.2, persian: -3.4, punk: -0.7, rainy: -0.7, reggae: -3.4, rnb: -1.5, rock: -0.6, sherbert: 0.2, sings: -3.0, ska: -1.8, soul: -0.2, spanish: -0.6, straya: -0.9, sugar: -1.0, swing: -0.7, synthwave: -7.7, triphop: -1.7, warm: -1.7 };
+const LEAD_SEAT: Partial<Record<LofiMood, number>> = { acid: -2.6, afrobeat: 0.3, amapiano: -6.2, blues: -3.7, brostep: -10.2, chiptune: -8.5, citypop: 1.2, country: -2.5, dnb: -1.8, dream: -12.0, dubstep: -5.5, electro: -0.7, fantasy: -8.8, funk: 3.7, guzheng: -6.2, hiphop: 0.1, jazz: -0.8, kora: -1.7, koto: -2.8, kpop: -0.2, lateNight: -1.7, metal: -0.8, nudisco: -2.8, persian: -3.4, punk: -1.0, rainy: 0.3, reggae: -3.3, rnb: -2.1, rock: -1.5, sherbert: 0.3, sings: -3.2, ska: -2.9, soul: 0.6, spanish: -0.4, straya: -1.3, sugar: -1.0, swing: -0.7, synthwave: -8.2, triphop: -1.6, warm: -1.8 };
 /** The styles whose horn lines are a section's (see the lead), and the section's levels: together about as loud as the one horn was. */
 const HORN_SECTION = new Set<LofiMood>(['ska', 'afrobeat', 'soul', 'funk', 'swing']);
 const SECTION_LEAD = 0.75;
