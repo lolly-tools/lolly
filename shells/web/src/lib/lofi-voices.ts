@@ -51,6 +51,7 @@
  * Each voice schedules its own nodes at `t` on the context it is given and lets them
  * end; nothing is kept. Levels sit low, and lofi-station.ts evens the variants out.
  */
+import { pluckString, type StringSpec } from './lofi-strings.ts';
 import type { LofiStyle } from '../../../../engine/src/lofi-compose.ts';
 
 export interface VoiceKit {
@@ -473,7 +474,7 @@ function bitLead(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: numb
 
 /** A concert harp: a mellow pluck from the middle of a long gut string, ringing on. */
 function harp(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number, dur: number): void {
-  plucked(k, out, t, midi, vel, Math.max(dur, 1.2), { pickAt: 0.5, bright: 9, mellow: 3, ring: 2.4, body: 520, level: 0.12 });
+  plucked(k, out, t, midi, vel, Math.max(dur, 1.2), { pickAt: 0.5, bright: 9, mellow: 3, ring: 2.4, body: 520, level: 0.24 });
 }
 
 /**
@@ -534,7 +535,7 @@ function bells(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number
 
 /** A steel-string acoustic: brighter and longer-ringing than nylon, with the body's jangle. */
 function steel(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number, dur: number): void {
-  plucked(k, out, t, midi, vel, dur, { pickAt: 0.1, bright: 20, mellow: 4.5, ring: 1.5, body: 2600, level: 0.1 });
+  plucked(k, out, t, midi, vel, dur, { pickAt: 0.1, bright: 20, mellow: 4.5, ring: 1.5, body: 2600, level: 0.08 });
 }
 
 /**
@@ -555,9 +556,9 @@ function banjo(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number
   plucked(k, hp, t, midi, vel, Math.min(dur, 0.5), { pickAt: 0.2, bright: 26, mellow: 7, ring: 0.45, body: 2800, level: 0.12 });
 }
 
-/** An archtop jazz guitar: picked near the neck through a dark amp, round and warm. */
+/** An archtop jazz guitar: flatwound strings picked softly, heard by the neck pickup through a dark amp, round and warm. */
 function jazzbox(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number, dur: number): void {
-  plucked(k, out, t, midi, vel, dur, { pickAt: 0.22, bright: 6, mellow: 2.2, ring: 1.3, body: 850, level: 0.13 });
+  plucked(k, out, t, midi, vel, dur, { pickAt: 0.22, bright: 6, mellow: 2.2, ring: 1.3, body: 850, level: 0.15, pickup: 0.3, top: 3500, noise: 0.08 });
 }
 
 /** The organ's drawbars (16', 8', 4', 2 2/3', 2'), as one waveform, made once per context. */
@@ -933,12 +934,16 @@ function riff(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number,
   amp.gain.exponentialRampToValueAtTime(0.06 * vel, t + 0.008);
   amp.gain.setTargetAtTime(EPS, t + dur, 0.07);
   ws.connect(hp).connect(mids).connect(cab).connect(amp).connect(out);
+  const drive = ctx.createGain();
+  drive.gain.value = ELECTRIC_DRIVE;
+  drive.connect(push);
   for (const cents of [-5, 5]) {
-    const o = osc(k, 'sawtooth', f * 2 ** (-1 / 12), t, end);
-    o.frequency.exponentialRampToValueAtTime(f, t + 0.05);
-    o.detune.value = cents;
-    vibrato(k, o.detune, t, end, 5.2, 18, 0.3);
-    o.connect(push);
+    const s = electric(k, f, t, end, vel, dur < 0.18);
+    s.playbackRate.setValueAtTime(2 ** (-1 / 12), t);
+    s.playbackRate.exponentialRampToValueAtTime(1, t + 0.05);
+    s.detune.value = cents;
+    vibrato(k, s.detune, t, end, 5.2, 18, 0.3);
+    s.connect(drive);
   }
 }
 
@@ -955,7 +960,7 @@ function twang(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number
   depth.gain.value = 0.25;
   lfo.connect(depth).connect(trem.gain);
   trem.connect(out);
-  plucked(k, trem, t, midi - 12, vel, dur, { pickAt: 0.14, bright: 10, mellow: 3, ring: 1.4, body: 1800, level: 0.16 });
+  plucked(k, trem, t, midi - 12, vel, dur, { pickAt: 0.14, bright: 10, mellow: 3, ring: 1.4, body: 1800, level: 0.145, pickup: 0.1, top: 6500 });
 }
 
 /**
@@ -994,9 +999,8 @@ function wah(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number, 
   const { ctx } = k;
   const f = mtof(midi);
   const len = Math.max(0.05, Math.min(dur, 0.3));
-  const string = ctx.createOscillator();
-  string.setPeriodicWave(pluckWave(ctx, 0.1));
-  string.frequency.value = f;
+  const string = ctx.createBufferSource();
+  string.buffer = stringBuffer(ctx, { f, seconds: 0.5, pickAt: 0.1, bright: vel >= 0.6 ? 18 : 11, decay: 1.2, mellow: 9, pickup: 0.12, noise: 0.3 }, k.rng() < 0.5 ? 0 : 1);
   string.start(t);
   string.stop(t + len + 0.08);
   const bp = ctx.createBiquadFilter();
@@ -1007,7 +1011,7 @@ function wah(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number, 
   bp.frequency.exponentialRampToValueAtTime(800, t + len);
   const amp = ctx.createGain();
   amp.gain.setValueAtTime(EPS, t);
-  amp.gain.exponentialRampToValueAtTime(0.16 * vel, t + 0.002);
+  amp.gain.exponentialRampToValueAtTime(0.16 * vel * WAH_LEVEL, t + 0.002);
   amp.gain.setTargetAtTime(EPS, t + len * 0.6, 0.03);
   string.connect(bp).connect(amp).connect(out);
 }
@@ -1040,10 +1044,14 @@ function crunch(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: numbe
   if (chug) amp.gain.setTargetAtTime(EPS, t + 0.06, 0.05);
   else amp.gain.setTargetAtTime(EPS, t + dur, 0.08);
   ws.connect(hp).connect(mid).connect(cab).connect(amp).connect(out);
-  for (const [ratio, cents] of [[1, -4], [1.5, 3], [2, 0]] as const) {
-    const o = osc(k, 'sawtooth', root * ratio, t, end);
-    o.detune.value = cents;
-    o.connect(push);
+  const drive = ctx.createGain();
+  drive.gain.value = ELECTRIC_DRIVE / 1.6;
+  drive.connect(push);
+  for (const [n, [ratio, cents]] of ([[1, -4], [1.5, 3], [2, 0]] as const).entries()) {
+    // A downstroke: the low string first, the next a few milliseconds behind.
+    const s = electric(k, root * ratio, t + n * 0.006, end, vel, chug);
+    s.detune.value = cents;
+    s.connect(drive);
   }
 }
 
@@ -1159,17 +1167,20 @@ function strings(k: VoiceKit, input: AudioNode, t: number, freqs: readonly numbe
   if (chug) {
     const mute = ctx.createBiquadFilter();
     mute.type = 'lowpass';
-    mute.frequency.value = 900;
+    mute.frequency.value = 1400;
     mute.Q.value = 0.7;
     g.connect(mute);
     into = mute;
   }
   into.connect(input);
+  const drive = ctx.createGain();
+  drive.gain.value = ELECTRIC_DRIVE;
+  drive.connect(g);
   for (const [n, f] of freqs.entries()) {
-    const o = osc(k, 'sawtooth', f, t, end);
-    o.detune.value = n === 0 ? -4 : 3;
-    if (vib) vibrato(k, o.detune, t, end, 5.2, 14, 0.3);
-    o.connect(g);
+    const s = electric(k, f, t + n * 0.005, end, vel, chug);
+    s.detune.value = n === 0 ? -4 : 3;
+    if (vib) vibrato(k, s.detune, t, end, 5.2, 14, 0.3);
+    s.connect(drive);
   }
 }
 
@@ -1232,98 +1243,131 @@ function panflute(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: num
  * the bridge, and it rings a little longer.
  */
 function guitar(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number, dur: number): void {
-  plucked(k, out, t, midi, vel, dur, { pickAt: 0.12, bright: 14, mellow: 3.2, ring: 1.2, body: 2400, level: 0.11 });
+  plucked(k, out, t, midi, vel, dur, { pickAt: 0.12, bright: 14, mellow: 3.2, ring: 1.2, body: 2400, level: 0.095, pickup: 0.2, top: 5500 });
 }
 
-/** One waveform per pick position: harmonics fall as 1/n, and the pick's place on the string cancels some of them. */
-const PLUCKS = new WeakMap<BaseAudioContext, Map<number, PeriodicWave>>();
-function pluckWave(ctx: BaseAudioContext, pickAt: number): PeriodicWave {
-  let byPick = PLUCKS.get(ctx);
-  if (!byPick) { byPick = new Map(); PLUCKS.set(ctx, byPick); }
-  let wave = byPick.get(pickAt);
-  if (!wave) {
-    const n = 28;
-    const real = new Float32Array(n);
-    const imag = new Float32Array(n);
-    for (let h = 1; h < n; h++) imag[h] = Math.abs(Math.sin(Math.PI * h * pickAt)) / h;
-    wave = ctx.createPeriodicWave(real, imag);
-    byPick.set(pickAt, wave);
+/** The strings rendered so far, per context: one recording per note, pluck and strength, played back by every pluck. */
+const STRINGS = new WeakMap<BaseAudioContext, Map<string, AudioBuffer>>();
+/** A note's recording from the string model (lib/lofi-strings.ts), made on first use. */
+export function stringBuffer(ctx: BaseAudioContext, spec: Omit<StringSpec, 'sr'>, variant: number): AudioBuffer {
+  let cache = STRINGS.get(ctx);
+  if (!cache) { cache = new Map(); STRINGS.set(ctx, cache); }
+  const key = `${spec.f.toFixed(2)}|${spec.seconds.toFixed(2)}|${spec.pickAt}|${spec.bright.toFixed(1)}|${spec.decay.toFixed(2)}|${spec.mellow}|${spec.pickup ?? 0}|${spec.noise ?? ''}|${spec.plane ?? ''}|${spec.top ?? ''}|${variant}`;
+  let buf = cache.get(key);
+  if (!buf) {
+    if (cache.size > 600) cache.clear();
+    // Each note and variant seeds its own pluck, so a tune renders the same every time.
+    let h = 2166136261;
+    for (let i = 0; i < key.length; i++) h = Math.imul(h ^ key.charCodeAt(i), 16777619) >>> 0;
+    const data = pluckString({ ...spec, sr: ctx.sampleRate }, mulberry(h));
+    buf = ctx.createBuffer(1, data.length, ctx.sampleRate);
+    buf.getChannelData(0).set(data);
+    cache.set(key, buf);
   }
-  return wave;
+  return buf;
+}
+
+/** A small seeded source, for the strings' plucks. */
+function mulberry(a: number): () => number {
+  return () => {
+    a = (a + 0x6d2b79f5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+/** How a plucked string is played: where, how bright, how long it rings, and the instrument around the string. */
+export interface Pluck {
+  pickAt: number; bright: number; mellow: number; ring: number; body: number; level: number;
+  /** A second string in the course, this many cents apart: the beating of a doubled or quadrupled course. */
+  course?: number;
+  /** Slide into the note from this many semitones away (a guzheng's press, a koto's oshide), over `slideTime`. */
+  slide?: number; slideTime?: number;
+  /** A left-hand vibrato as the note rings (the zither's rou), in cents. */
+  wobble?: number;
+  /** An electric's pickup, as a fraction of the string from the bridge (0.1 the bridge pickup, 0.28 the neck). */
+  pickup?: number;
+  /** How much of the pluck is noise: a pick's scrape (0.25) or a fingertip (0.1). */
+  noise?: number;
+  /** Where the body or speaker rolls the top off (Hz). */
+  top?: number;
 }
 
 /**
- * A plucked string, cheaply. A modelled string (as the slap bass uses) cannot reach a
- * guitar's pitch in Web Audio, so this models what the ear hears instead: a waveform
- * with the pick position's missing harmonics, a low-pass that snaps from bright to
- * mellow as the high partials die in the first quarter second, a strike that falls
- * fast and then rings, a pitch a few cents sharp at the strike, a little pick noise and
- * the body's resonance. Much more like a string than slowly fading sines, which is how
- * an electric piano is made.
+ * A plucked string, modelled (lib/lofi-strings.ts): each note is rendered once from a
+ * string's physics, a soft and a hard pluck and two of each so no two plucks are alike,
+ * and every pluck plays one back. The body's resonance and the release (a finger lifting
+ * off the fret, damping the string) are applied as it plays.
  */
-export function plucked(
-  k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number, dur: number,
-  o: {
-    pickAt: number; bright: number; mellow: number; ring: number; body: number; level: number;
-    /** A second string in the course, this many cents apart: the beating of a doubled or quadrupled course. */
-    course?: number;
-    /** Slide into the note from this many semitones away (a guzheng's press, a koto's oshide), over `slideTime`. */
-    slide?: number; slideTime?: number;
-    /** A left-hand vibrato as the note rings (the zither's rou), in cents. */
-    wobble?: number;
-  },
-): void {
+export function plucked(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number, dur: number, o: Pluck): void {
   const { ctx } = k;
   const f = mtof(midi);
   const len = Math.min(dur + o.ring * 0.4, o.ring * 1.6);
   const end = t + len + 0.1;
-  const strings: OscillatorNode[] = [];
-  for (const cents of o.course ? [-o.course / 2, o.course / 2] : [0]) {
-    const string = ctx.createOscillator();
-    string.setPeriodicWave(pluckWave(ctx, o.pickAt));
-    string.detune.value = cents;
-    if (o.slide) {
-      string.frequency.setValueAtTime(f * 2 ** (o.slide / 12), t);
-      string.frequency.setValueAtTime(f * 2 ** (o.slide / 12), t + 0.03);
-      string.frequency.exponentialRampToValueAtTime(f, t + 0.03 + (o.slideTime ?? 0.14));
-    } else {
-      string.frequency.setValueAtTime(f * 1.004, t);
-      string.frequency.exponentialRampToValueAtTime(f, t + 0.04);
-    }
-    if (o.wobble) vibrato(k, string.detune, t, end, 5.2, o.wobble, 0.25);
-    string.start(t);
-    string.stop(end);
-    strings.push(string);
-  }
-  const string = strings[0]!;
-  const lp = ctx.createBiquadFilter();
-  lp.type = 'lowpass';
-  lp.Q.value = 0.6;
-  lp.frequency.setValueAtTime(Math.min(11000, f * o.bright), t);
-  lp.frequency.exponentialRampToValueAtTime(Math.min(6000, f * o.mellow), t + 0.25);
-  lp.frequency.setTargetAtTime(Math.min(4000, f * (o.mellow * 0.6)), t + 0.3, 0.8);
+  const hard = vel >= 0.6;
+  const spec = {
+    f,
+    seconds: Math.min(3.4, o.ring * 1.6 + 0.2),
+    pickAt: o.pickAt,
+    bright: o.bright * (hard ? 1 : 0.6),
+    decay: Math.max(0.6, Math.min(6, o.ring * 2.6 * (f / 196) ** -0.3)),
+    mellow: Math.max(2, Math.round(o.mellow * 2.2)),
+    pickup: o.pickup,
+    noise: o.noise,
+    top: o.top,
+  };
+  const buf = stringBuffer(ctx, spec, k.rng() < 0.5 ? 0 : 1);
   const body = ctx.createBiquadFilter();
   body.type = 'peaking';
   body.frequency.value = o.body;
   body.Q.value = 1.3;
   body.gain.value = 3.5;
   const amp = ctx.createGain();
-  amp.gain.setValueAtTime(EPS, t);
-  amp.gain.exponentialRampToValueAtTime(o.level * vel, t + 0.002);
-  amp.gain.exponentialRampToValueAtTime(o.level * 0.45 * vel, t + 0.09);
-  amp.gain.setTargetAtTime(EPS, t + 0.1, o.ring * 0.6);
+  const level = o.level * PLUCK_LEVEL * (hard ? vel / 0.9 : (vel / 0.45) ** 1.5 * 0.5);
+  amp.gain.setValueAtTime(level, t);
   amp.gain.setTargetAtTime(EPS, t + Math.max(0.1, dur), 0.06);
-  string.connect(lp).connect(body).connect(amp).connect(out);
-  for (const other of strings.slice(1)) other.connect(lp);
-  const pick = ctx.createBiquadFilter();
-  pick.type = 'bandpass';
-  pick.frequency.value = Math.min(6000, f * 6);
-  pick.Q.value = 1.2;
-  const pg = ctx.createGain();
-  pg.gain.setValueAtTime(0.1 * vel, t);
-  pg.gain.exponentialRampToValueAtTime(EPS, t + 0.006);
-  noiseAt(k, t, 0.008).connect(pick).connect(pg).connect(out);
+  body.connect(amp).connect(out);
+  for (const cents of o.course ? [-o.course / 2, o.course / 2] : [0]) {
+    const src = ctx.createBufferSource();
+    src.buffer = buf;
+    src.detune.value = cents + (k.rng() - 0.5) * 3;
+    if (o.slide) {
+      const from = 2 ** (o.slide / 12);
+      src.playbackRate.setValueAtTime(from, t);
+      src.playbackRate.setValueAtTime(from, t + 0.03);
+      src.playbackRate.exponentialRampToValueAtTime(1, t + 0.03 + (o.slideTime ?? 0.14));
+    }
+    if (o.wobble) vibrato(k, src.detune, t, end, 5.2, o.wobble, 0.25);
+    src.connect(body);
+    src.start(t);
+    src.stop(end);
+  }
 }
+/** The modelled strings' level against the voice they replaced. */
+const PLUCK_LEVEL = 1.3;
+
+/**
+ * An electric guitar's string for the driven voices, modelled (lib/lofi-strings.ts):
+ * picked hard near the bridge and heard by the bridge pickup, ringing long so the amp
+ * can sustain it; palm-muted, the hand damps it to a short, dark thud. It plays at the
+ * level a sawtooth used to, so the amps drive as they were tuned to.
+ */
+function electric(k: VoiceKit, f: number, t: number, end: number, vel: number, muted: boolean): AudioBufferSourceNode {
+  const hard = vel >= 0.6;
+  const spec = muted
+    ? { f, seconds: 0.6, pickAt: 0.12, bright: hard ? 10 : 7, decay: 0.45, mellow: 3, pickup: 0.12, noise: 0.2, plane: 0.2 }
+    : { f, seconds: end - t <= 1.2 ? 1.3 : 4.2, pickAt: 0.12, bright: hard ? 22 : 14, decay: 6, mellow: 12, pickup: 0.12, noise: 0.25 };
+  const src = k.ctx.createBufferSource();
+  src.buffer = stringBuffer(k.ctx, spec, k.rng() < 0.5 ? 0 : 1);
+  src.start(t);
+  src.stop(end);
+  return src;
+}
+/** The modelled electric string's level into an amp, against the sawtooth it replaced. */
+const ELECTRIC_DRIVE = 2.6;
+/** The wah's level against its old waveform. */
+const WAH_LEVEL = 1.4;
 
 /**
  * Overdrive: a lead guitar through a cranked amp, the synthwave solo. Two saws a few
@@ -1352,12 +1396,16 @@ function overdrive(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: nu
   amp.gain.exponentialRampToValueAtTime(0.06 * vel, t + 0.012);
   amp.gain.setTargetAtTime(EPS, t + dur, 0.08);
   ws.connect(hp).connect(mid).connect(cab).connect(amp).connect(out);
+  const drive = ctx.createGain();
+  drive.gain.value = ELECTRIC_DRIVE;
+  drive.connect(push);
   for (const cents of [-6, 6]) {
-    const o = osc(k, 'sawtooth', f * 2 ** (-1 / 12), t, end);
-    o.frequency.exponentialRampToValueAtTime(f, t + 0.07);   // the bend up into the note
-    o.detune.value = cents;
-    vibrato(k, o.detune, t, end, 5.5, 22, 0.28);
-    o.connect(push);
+    const s = electric(k, f, t, end, vel, false);
+    s.playbackRate.setValueAtTime(2 ** (-1 / 12), t);
+    s.playbackRate.exponentialRampToValueAtTime(1, t + 0.07);   // the bend up into the note
+    s.detune.value = cents;
+    vibrato(k, s.detune, t, end, 5.5, 22, 0.28);
+    s.connect(drive);
   }
 }
 
@@ -1606,6 +1654,7 @@ export function bass(style: LofiStyle['bass'], k: VoiceKit, out: AudioNode, t: n
   if (style === 'pulse') { pulseBass(k, out, t, midi, vel, dur, tone); return; }
   if (style === 'electro') { electro(k, out, t, midi, vel, dur, tone); return; }
   if (style === 'picked') { pickedBass(k, out, t, midi, vel, dur, tone); return; }
+  if (style === 'upright') { upright(k, out, t, midi, vel, dur, tone); return; }
   if (style === 'croak') { stringSlap(k, out, t, midi, vel, dur, Math.round(mod), tone, true); return; }   // the raw, buzzy string: bubbling, sliding, bending
   if (style === 'eight') { eightOhEight(k, out, t, midi, vel, dur, mod >= 2, tone); return; }
   if (style === 'acid') { acid(k, out, t, midi, vel, dur, Math.round(mod), tone); return; }
@@ -1617,18 +1666,7 @@ export function bass(style: LofiStyle['bass'], k: VoiceKit, out: AudioNode, t: n
   const lp = ctx.createBiquadFilter();
   lp.type = 'lowpass';
   lp.connect(amp).connect(out);
-  if (style === 'upright') {
-    struck(amp.gain, t, dur, 0.38 * vel, 0.006, 0.45, 0.35, 0.05);
-    lp.frequency.setValueAtTime(1400, t);
-    lp.frequency.exponentialRampToValueAtTime(330, t + 0.12);
-    const tg = ctx.createGain();
-    tg.gain.setValueAtTime(0.12 * vel, t);
-    tg.gain.exponentialRampToValueAtTime(EPS, t + 0.03);
-    const thump = ctx.createBiquadFilter();
-    thump.type = 'lowpass';
-    thump.frequency.value = 300;
-    noiseAt(k, t, 0.04).connect(thump).connect(tg).connect(out);
-  } else if (style === 'synth') {
+  if (style === 'synth') {
     struck(amp.gain, t, dur, 0.24 * vel, 0.01, 0.5, 0.6, 0.06);
     lp.Q.value = 3;
     lp.frequency.setValueAtTime(950, t);
@@ -1640,7 +1678,7 @@ export function bass(style: LofiStyle['bass'], k: VoiceKit, out: AudioNode, t: n
   }
   const layers: ReadonlyArray<readonly [OscillatorType, number]> = style === 'synth'
     ? [['sawtooth', 0.6], ['sine', 1]]
-    : style === 'upright' ? [['triangle', 1], ['sine', 0.6]] : [['sine', 1], ['triangle', 0.35]];
+    : [['sine', 1], ['triangle', 0.35]];
   for (const [type, level] of layers) {
     const o = osc(k, type, f * 1.015, t, end);
     o.frequency.exponentialRampToValueAtTime(f, t + 0.03);   // the pluck settles into pitch
@@ -2167,13 +2205,61 @@ function pickedBass(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: n
   amp.gain.setTargetAtTime(EPS, t + len, 0.025);
   lp.connect(push);
   ws.connect(amp).connect(out);
-  osc(k, 'sawtooth', f, t, end).connect(lp);
-  const sq = osc(k, 'square', f, t, end);
+  // The string, picked near the bridge and heard by the bridge pickup (lib/lofi-strings.ts).
+  const string = ctx.createBufferSource();
+  string.buffer = stringBuffer(ctx, { f, seconds: len < 0.5 ? 0.7 : 2.2, pickAt: 0.12, bright: vel >= 0.6 ? 16 : 10, decay: 3.5, mellow: 9, pickup: 0.16, noise: 0.25, top: 5000 }, k.rng() < 0.5 ? 0 : 1);
+  string.start(t);
+  string.stop(end);
   const sg = ctx.createGain();
-  sg.gain.value = 0.5;
-  sq.connect(sg).connect(lp);
+  sg.gain.value = PICKED_DRIVE;
+  string.connect(sg).connect(lp);
   sub(k, out, t, f, vel * 0.7, len);
 }
+/** The picked bass's string into its amp, at the level the sawtooth and square used to drive the amp. */
+const PICKED_DRIVE = 3.6;
+
+/**
+ * An upright bass, plucked (pizzicato), modelled (lib/lofi-strings.ts): a long, heavy
+ * string plucked with the side of a finger near the end of the fingerboard, so the top
+ * dies almost at once and the low end blooms and rings, through the big body's warmth
+ * around 100 Hz and the wood's growl near 700 Hz. The finger slapping the string onto the
+ * fingerboard thumps the start of every note, and the note stops when the hand lets go.
+ */
+function upright(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number, dur: number, tone: Tone): void {
+  const { ctx } = k;
+  const f = mtof(midi);
+  const hard = vel >= 0.6;
+  const string = ctx.createBufferSource();
+  string.buffer = stringBuffer(ctx, { f, seconds: 2.4, pickAt: 0.22, bright: hard ? 9 : 6, decay: 2.6, mellow: 5, noise: 0.12, plane: 0.5, top: 2600 * tone.bright }, k.rng() < 0.5 ? 0 : 1);
+  string.detune.value = (k.rng() - 0.5) * 6;
+  const body = ctx.createBiquadFilter();
+  body.type = 'peaking';
+  body.frequency.value = 105;
+  body.Q.value = 1.1;
+  body.gain.value = 4;
+  const growl = ctx.createBiquadFilter();
+  growl.type = 'peaking';
+  growl.frequency.value = 720;
+  growl.Q.value = 1.4;
+  growl.gain.value = 2.5;
+  const amp = ctx.createGain();
+  const level = UPRIGHT_LEVEL * (hard ? vel / 0.9 : (vel / 0.45) ** 1.3 * 0.55);
+  amp.gain.setValueAtTime(level, t);
+  amp.gain.setTargetAtTime(EPS, t + Math.max(0.08, dur), 0.05);
+  string.connect(body).connect(growl).connect(amp).connect(out);
+  string.start(t);
+  string.stop(t + Math.max(0.08, dur) + 0.4);
+  // The thump of the finger and the string meeting the fingerboard.
+  const tg = ctx.createGain();
+  tg.gain.setValueAtTime(0.1 * vel, t);
+  tg.gain.exponentialRampToValueAtTime(EPS, t + 0.03);
+  const thump = ctx.createBiquadFilter();
+  thump.type = 'lowpass';
+  thump.frequency.value = 300;
+  noiseAt(k, t, 0.04).connect(thump).connect(tg).connect(out);
+}
+/** The modelled upright's level against the voice it replaced. */
+const UPRIGHT_LEVEL = 0.84;
 
 
 // ── effects ──────────────────────────────────────────────────────────────────

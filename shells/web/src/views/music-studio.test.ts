@@ -34,10 +34,11 @@ test('a short link: settings at their defaults are left out', () => {
   assert.equal(musicStateParams(parseMusicState('style=dnb&seed=5&bars=32')), 'style=dnb&seed=5&bars=32');
 });
 
-test('the track has the bars asked for, and a locked lead plays all the way through', () => {
+test('the track has about the bars asked for, ends with its outro, and a locked lead plays all the way through', () => {
   const s = parseMusicState('style=dubstep&seed=9&bars=96&lead=metal');
   const bars = composeTrack(s);
-  assert.equal(bars.length, 96);
+  assert.ok(Math.abs(bars.length - 96) <= 8, `${bars.length} bars, about 96`);
+  assert.equal(bars[bars.length - 1]!.section, 'rest', 'the track ends as a song does');
   assert.ok(bars.every(b => (b.voices?.lead ?? b.tune.style.lead) === 'metal'), 'no section swaps the locked lead');
   assert.ok(bars.every(b => !b.voices?.double), 'and no drop doubles it with another');
   // Locking the lead changes nothing else: the same seed's bass and chords.

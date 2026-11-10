@@ -27,7 +27,7 @@
  * clock a little ahead of time. A hidden tab's timers run slowly, so while the page
  * is hidden the station queues a few seconds ahead instead of a quarter of one.
  */
-import { lofiStream, LOFI_DRUM_VOICES } from '../../../../engine/src/lofi-compose.ts';
+import { lofiStream, lofiTrack, LOFI_DRUM_VOICES } from '../../../../engine/src/lofi-compose.ts';
 import type { LofiBar, LofiMood, LofiNote, LofiStream, LofiStyle, LofiTuneInfo } from '../../../../engine/src/lofi-compose.ts';
 import { mulberry32 } from '../../../../engine/src/zzfx-compose.ts';
 import * as V from './lofi-voices.ts';
@@ -117,6 +117,26 @@ const VARIANT: { keys: Record<LofiStyle['keys'], number>; lead: Record<LofiStyle
   snare: { snare: 1, brush: 1.15, rim: 1.8, clap: 2.3, stack: 1, snap: 2 },
   hats: { hat: 1, shaker: 1.15, ride: 0.8, none: 0 },
 };
+/**
+ * Each lead instrument's trim (dB): what brings it to the others' loudness on the same
+ * phrase (measured, the sounds that ring and fade trimmed by only part of the difference),
+ * then refined with the genre seats against the stems of every style.
+ */
+const LEAD_TRIM: Partial<Record<LofiStyle['lead'], number>> = { angel: -0.2, balafon: 2.2, banjo: -1.8, bells: -0.6, bit: 4.0, chip: 4.0, chop: 0.3, clarinet: 1.5, dizi: -1.4, erhu: 1.4, fiddle: 0.2, flute: -2.1, guitar: -2.1, kalimba: -3.1, kamancheh: -0.1, kora: 0.1, koto: 2.2, metal: -0.3, ney: -0.6, nylon: -1.9, overdrive: 0.3, panflute: 0.3, pedal: 0.1, pipa: 3.3, pulse: 1.8, riff: -0.1, santur: 3.7, sax: 2.5, shakuhachi: -1.1, shamisen: 4.0, soft: -0.6, trumpet: 4.0, twang: -1.5, vibes: -0.7, zheng: 2.1 };
+/**
+ * Each genre's seat for its lead (dB), with the instrument trimmed: the lead's place
+ * against the band while the lead plays. Measured from the stems of two tunes a genre, fitted twice, and set
+ * so the lead plays about 5 dB under the band, 6 in the calm styles and 4 in jazz and
+ * swing, whose soloist is the point (Andy, 2026-11-10: "some instruments are obnoxiously
+ * loud as the lead, perhaps the genre should set a rule for certain instruments so they
+ * dont destroy the genre").
+ */
+const LEAD_SEAT: Partial<Record<LofiMood, number>> = { acid: -2.6, afrobeat: 0.3, amapiano: -6.2, blues: -3.7, brostep: -10.2, chiptune: -8.5, citypop: 1.2, country: -2.5, dnb: -1.8, dream: -12.0, dubstep: -5.5, electro: -0.7, fantasy: -8.8, funk: 3.7, guzheng: -6.2, hiphop: 0.1, jazz: -0.8, kora: -1.7, koto: -2.8, kpop: -0.2, lateNight: -1.7, metal: -0.8, nudisco: -2.8, persian: -3.4, punk: -1.0, rainy: 0.3, reggae: -3.3, rnb: -2.1, rock: -1.5, sherbert: 0.3, sings: -3.2, ska: -2.9, soul: 0.6, spanish: -0.4, straya: -1.3, sugar: -1.0, swing: -0.7, synthwave: -8.2, triphop: -1.6, warm: -1.8 };
+/** The styles whose horn lines are a section's (see the lead), and the section's levels: together about as loud as the one horn was. */
+const HORN_SECTION = new Set<LofiMood>(['ska', 'afrobeat', 'soul', 'funk', 'swing']);
+const SECTION_LEAD = 0.75;
+const SECTION_UNISON = 0.5;
+const SECTION_TENOR = 0.45;
 /** The style a station starts from, until its first tune's arrives. */
 const PLAIN: Pick<LofiStyle, 'wow' | 'room' | 'tone' | 'duck' | 'crunch' | 'dust'> = { wow: 1, room: 1, tone: 1, duck: 1, crunch: false, dust: 1 };
 /** How far the texture control reaches into the chain's range: past this it stops sounding like a record. */
@@ -166,6 +186,8 @@ export class LofiStation {
   private nextBarAt = 0;
   /** Bars taken from the stream so far, skipped ones included. */
   private taken = 0;
+  /** A generator track's length in bars, once fitted to end with its outro (see lofiTrack). */
+  private trackBars = 0;
   /** Whether a tune's colour has been applied yet (a station that starts mid-tune applies its tune's at once). */
   private styled = false;
   private lastOpen = 1;
@@ -212,7 +234,7 @@ export class LofiStation {
     this.settings = { ...settings };
     this.mix = { ...mix };
     this.seed = seed;
-    this.stream = lofiStream(seed, { mood: settings.mood, style: settings.style, repeat: settings.repeat });
+    this.stream = this.open(seed);
     for (let i = 0; i < (settings.startBar ?? 0); i++) { this.stream.next(); this.taken++; }
     const noise = noiseBuffer(ctx, 2, mulberry32(seed ^ 0x51));
     this.kit = { ctx, noise, rng: mulberry32(seed ^ 0x5eed) };
@@ -411,6 +433,39 @@ export class LofiStation {
     this.marks = [];
   }
 
+  /** One gain per lead instrument on a tune's lead lane, set to the instrument's trim and the genre's seat. */
+  private readonly seats = new WeakMap<GainNode, Map<string, GainNode>>();
+  private leadSeat(lane: GainNode, mood: LofiMood, voice: LofiStyle['lead'], pan = 0): GainNode {
+    let byVoice = this.seats.get(lane);
+    if (!byVoice) { byVoice = new Map(); this.seats.set(lane, byVoice); }
+    const key = `${voice}:${pan}`;
+    let seat = byVoice.get(key);
+    if (!seat) {
+      seat = this.ctx.createGain();
+      seat.gain.value = 10 ** (((LEAD_TRIM[voice] ?? 0) + (LEAD_SEAT[mood] ?? 0)) / 20);
+      if (pan) {
+        const place = this.ctx.createStereoPanner();
+        place.pan.value = pan;
+        seat.connect(place).connect(lane);
+      } else seat.connect(lane);
+      byVoice.set(key, seat);
+    }
+    return seat;
+  }
+
+  /**
+   * The bars to play from `seed`: the endless stream, or a generator track's fitted bars,
+   * the same ones the generator composes (lofiTrack), ending with the last tune's outro.
+   */
+  private open(seed: number): LofiStream {
+    const { mood, style, repeat, bars } = this.settings;
+    if (bars === undefined) return lofiStream(seed, { mood, style, repeat });
+    const track = lofiTrack(seed, { mood, style }, bars);
+    this.trackBars = track.length;
+    let at = 0;
+    return { next: () => track[Math.min(at++, track.length - 1)]! };
+  }
+
   /** Start a new tune now, from `seed`, fading out whatever is still ringing. */
   skip(seed: number): void {
     const old = this.lanes;
@@ -419,7 +474,7 @@ export class LofiStation {
     if (typeof setTimeout === 'function') setTimeout(() => { for (const g of Object.values(old)) g.disconnect(); }, 800);
     this.lanes = this.newLanes();
     this.seed = seed;
-    this.stream = lofiStream(seed, { mood: this.settings.mood, style: this.settings.style, repeat: this.settings.repeat });
+    this.stream = this.open(seed);
     this.queue = [];
     this.marks = [];
     this.nextBarAt = now + 0.15;
@@ -484,10 +539,10 @@ export class LofiStation {
   /** Queue whole bars until the next one starts after `until`. */
   private fill(until: number): void {
     while (this.nextBarAt < until) {
-      if (this.settings.bars !== undefined && this.taken >= this.settings.bars) {
+      if (this.settings.bars !== undefined && this.taken >= this.trackBars) {
         if (!this.settings.repeat) return;
         // A saved generator track repeats: its stretch of bars starts again from the top.
-        this.stream = lofiStream(this.seed, { mood: this.settings.mood, style: this.settings.style, repeat: this.settings.repeat });
+        this.stream = this.open(this.seed);
         this.taken = 0;
         for (let i = 0; i < (this.settings.startBar ?? 0); i++) { this.stream.next(); this.taken++; }
       }
@@ -570,11 +625,21 @@ export class LofiStation {
         const gap = lt - prev.end;
         const from = prev.voice === leadV && gap > -0.25 && gap < SLUR_GAP && prev.midi !== note.midi ? prev.midi : undefined;
         this.lastLead = { end: lt + len, midi: note.midi, voice: leadV };
-        const play = (v: LofiStyle['lead'], level: number): void => {
-          if (W.WORLD_LEADS.has(v)) W.lead(v, k, lanes.lead, lt, note.midi, level, len, note.mod ?? 0);
-          else V.lead(v, k, lanes.lead, lt, note.midi, level, len, note.mod ?? 0, from);
+        const play = (v: LofiStyle['lead'], level: number, shift = 0, late = 0, pan = 0): void => {
+          const seat = this.leadSeat(lanes.lead, bar.tune.mood, v, pan);
+          const at = lt + late;
+          if (W.WORLD_LEADS.has(v)) W.lead(v, k, seat, at, note.midi + shift, level, len, note.mod ?? 0);
+          else V.lead(v, k, seat, at, note.midi + shift, level, len, note.mod ?? 0, from === undefined ? undefined : from + shift);
         };
-        play(leadV, vel * VARIANT.lead[leadV] * lift);
+        // A horn section: in the styles built on one, a horn's line is played by the
+        // section, a second horn in unison and a tenor an octave under, each a few
+        // milliseconds apart and placed across the stage, as a ska or soul section plays.
+        const section = HORN_SECTION.has(bar.tune.mood) && (leadV === 'trumpet' || leadV === 'sax');
+        play(leadV, vel * VARIANT.lead[leadV] * lift * (section ? SECTION_LEAD : 1));
+        if (section) {
+          play(leadV === 'trumpet' ? 'sax' : 'trumpet', vel * SECTION_UNISON * lift, 0, 0.007, 0.35);
+          play('sax', vel * SECTION_TENOR * lift, -12, 0.004, -0.35);
+        }
         // An echo throw: a phrase's last lead note (the fourth bar's, held at least half a
         // beat) thrown into the echo in the styles that throw, the send closing after the note.
         if (THROWS.has(bar.tune.mood) && bar.index % 4 === 3 && note.beat + note.dur >= 3.4 && note.dur >= 0.5 && bar.section !== 'intro') {
