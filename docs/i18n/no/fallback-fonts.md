@@ -10,18 +10,18 @@ Femten skrifter, alle fra Google Fonts på en fastlåst commit og alle under SIL
 
 | Skriftsystem | Skrift | Versjon | Nedlasting |
 |---|---|---|---|
-| Arabisk, med urdu- og persiske bokstaver | Noto Sans Arabic | 2.012 | 206 KB |
+| Arabisk, med urdu- og persiske bokstaver | Noto Sans Arabic | 2.012 | 211 KB |
 | Hebraisk | Noto Sans Hebrew | 3.001 | 37 KB |
-| Devanagari (hindi, marathi, nepali) | Noto Sans Devanagari | 2.007 | 147 KB |
-| Bengalsk | Noto Sans Bengali | 3.011 | 136 KB |
-| Thai | Noto Sans Thai | 2.002 | 61 KB |
-| Kyrillisk | Noto Sans, kyrilliske bokstaver | 2.015 | 112 KB, kursiv 129 KB |
-| Gresk | Noto Sans, greske bokstaver | 2.015 | 75 KB, kursiv 81 KB |
-| Latinsk, med vietnamesisk og andre aksentbokstaver | Noto Sans, latinske bokstaver | 2.015 | 309 KB, kursiv 342 KB |
-| Forenklet kinesisk, GB 2312-tegnene | Noto Sans SC | 2.004 | 1,9 MB |
-| Tradisjonell kinesisk, Big5-tegnene | Noto Sans TC | 2.004 | 3,6 MB |
-| Japansk, Shift_JIS-tegnene | Noto Sans JP | 2.004 | 2,1 MB |
-| Koreansk, hver hangul-stavelse og KS X 1001-tegnene | Noto Sans KR | 2.004 | 2,4 MB |
+| Devanagari (hindi, marathi, nepali) | Noto Sans Devanagari | 2.007 | 151 KB |
+| Bengalsk | Noto Sans Bengali | 3.011 | 139 KB |
+| Thai | Noto Sans Thai | 2.002 | 62 KB |
+| Kyrillisk | Noto Sans, kyrilliske bokstaver | 2.015 | 115 KB, kursiv 132 KB |
+| Gresk | Noto Sans, greske bokstaver | 2.015 | 77 KB, kursiv 83 KB |
+| Latinsk, med vietnamesisk og andre aksentbokstaver | Noto Sans, latinske bokstaver | 2.015 | 316 KB, kursiv 350 KB |
+| Forenklet kinesisk, GB 2312-tegnene | Noto Sans SC | 2.004 | 2,0 MB |
+| Tradisjonell kinesisk, Big5-tegnene | Noto Sans TC | 2.004 | 3,8 MB |
+| Japansk, Shift_JIS-tegnene | Noto Sans JP | 2.004 | 2,2 MB |
+| Koreansk, hver hangul-stavelse og KS X 1001-tegnene | Noto Sans KR | 2.004 | 2,5 MB |
 
 Vektaksen i hver skrift beholdes hel, så hver vekt et design ber om, tegnes fortsatt, og en halvfet kinesisk, japansk eller koreansk overskrift er halvfet. Breddeaksen i Noto Sans-skriftene er fastlåst på normal, noe som halverer hver fil; de kinesiske, japanske og koreanske skriftene har ingen breddeakse. Noto Sans er delt etter skriftsystem, så et kyrillisk ord laster bare ned de kyrilliske bokstavene. Konturene er de opprinnelige, uendret.
 
@@ -53,7 +53,7 @@ På siden viser et lerret med to av disse språkene begge skriftene, og nettlese
 
 Ingenting lastes ned før et dokument har et tegn som ingen skrift i designsystemet kan tegne. Et dokument på engelsk, eller på et hvilket som helst språk designsystemet dekker, laster aldri ned en reserveskrift. Et symbol på en engelsk linje, for eksempel ★ eller ※, laster aldri ned en kinesisk, japansk eller koreansk skrift.
 
-Første gang et dokument trenger en, laster Lolly ned den ene skriften, for det ene skriftsystemet, og beholder den på enheten din. Et japansk dokument laster ned bare den japanske skriften, 2,1 MB, og et tradisjonelt kinesisk dokument den tradisjonelle skriften på 3,6 MB. Fra da av tegnes skriftsystemet uten nett, og skriften blir liggende når katalogen ryddes. Skriften lagres sammen med katalogens egne filer, aldri blant skriftene du har lastet opp, så den vises ikke i merkets skriftliste.
+Første gang et dokument trenger en, laster Lolly ned den ene skriften, for det ene skriftsystemet, og beholder den på enheten din. Et japansk dokument laster ned bare den japanske skriften, 2,2 MB, og et tradisjonelt kinesisk dokument den tradisjonelle skriften på 3,8 MB. Fra da av tegnes skriftsystemet uten nett, og skriften blir liggende når katalogen ryddes. Skriften lagres sammen med katalogens egne filer, aldri blant skriftene du har lastet opp, så den vises ikke i merkets skriftliste.
 
 Kommandolinjen, terminalappen og MCP-serveren leser de samme filene fra disk, så de trenger ingen nedlasting.
 

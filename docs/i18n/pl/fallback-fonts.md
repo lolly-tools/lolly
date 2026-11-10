@@ -10,18 +10,18 @@ Piętnaście czcionek, wszystkie z Google Fonts w przypiętym commicie i wszystk
 
 | Pismo | Czcionka | Wersja | Pobranie |
 |---|---|---|---|
-| Arabskie, w tym litery urdu i perskie | Noto Sans Arabic | 2.012 | 206 KB |
+| Arabskie, w tym litery urdu i perskie | Noto Sans Arabic | 2.012 | 211 KB |
 | Hebrajskie | Noto Sans Hebrew | 3.001 | 37 KB |
-| Dewanagari (hindi, marathi, nepalski) | Noto Sans Devanagari | 2.007 | 147 KB |
-| Bengalskie | Noto Sans Bengali | 3.011 | 136 KB |
-| Tajskie | Noto Sans Thai | 2.002 | 61 KB |
-| Cyrylica | Noto Sans, litery cyrylicy | 2.015 | 112 KB, kursywa 129 KB |
-| Greckie | Noto Sans, litery greckie | 2.015 | 75 KB, kursywa 81 KB |
-| Łacińskie, w tym wietnamskie i inne litery z akcentami | Noto Sans, litery łacińskie | 2.015 | 309 KB, kursywa 342 KB |
-| Chiński uproszczony, znaki GB 2312 | Noto Sans SC | 2.004 | 1,9 MB |
-| Chiński tradycyjny, znaki Big5 | Noto Sans TC | 2.004 | 3,6 MB |
-| Japońskie, znaki Shift_JIS | Noto Sans JP | 2.004 | 2,1 MB |
-| Koreańskie, każda sylaba hangul i znaki KS X 1001 | Noto Sans KR | 2.004 | 2,4 MB |
+| Dewanagari (hindi, marathi, nepalski) | Noto Sans Devanagari | 2.007 | 151 KB |
+| Bengalskie | Noto Sans Bengali | 3.011 | 139 KB |
+| Tajskie | Noto Sans Thai | 2.002 | 62 KB |
+| Cyrylica | Noto Sans, litery cyrylicy | 2.015 | 115 KB, kursywa 132 KB |
+| Greckie | Noto Sans, litery greckie | 2.015 | 77 KB, kursywa 83 KB |
+| Łacińskie, w tym wietnamskie i inne litery z akcentami | Noto Sans, litery łacińskie | 2.015 | 316 KB, kursywa 350 KB |
+| Chiński uproszczony, znaki GB 2312 | Noto Sans SC | 2.004 | 2,0 MB |
+| Chiński tradycyjny, znaki Big5 | Noto Sans TC | 2.004 | 3,8 MB |
+| Japońskie, znaki Shift_JIS | Noto Sans JP | 2.004 | 2,2 MB |
+| Koreańskie, każda sylaba hangul i znaki KS X 1001 | Noto Sans KR | 2.004 | 2,5 MB |
 
 Oś grubości każdej czcionki jest zachowana w całości, więc każda grubość, o którą prosi projekt, nadal się rysuje, a pogrubiony nagłówek chiński, japoński lub koreański jest pogrubiony. Oś szerokości czcionek Noto Sans jest ustawiona na stałe na normalną, co zmniejsza każdy plik o połowę; czcionki chińskie, japońskie i koreańskie nie mają osi szerokości. Noto Sans jest podzielona według pisma, więc słowo cyrylicą pobiera tylko litery cyrylicy. Kontury są oryginalnymi konturami z upstreamu, bez zmian.
 
@@ -53,7 +53,7 @@ Na stronie kanwa zawierająca dwa z tych języków wymienia obie czcionki, a prz
 
 Nic się nie pobiera, dopóki dokument nie zawiera znaku, którego nie potrafi narysować żadna czcionka jego systemu projektowego. Dokument po angielsku lub w dowolnym języku, który pokrywa jego system projektowy, nigdy nie pobiera czcionki zastępczej. Symbol w angielskim wierszu, taki jak ★ lub ※, nigdy nie pobiera czcionki chińskiej, japońskiej ani koreańskiej.
 
-Gdy dokument potrzebuje takiej czcionki po raz pierwszy, Lolly pobiera tę jedną czcionkę, dla tego jednego pisma, i zachowuje ją na Twoim urządzeniu. Dokument japoński pobiera samą czcionkę japońską, 2,1 MB, a tradycyjny chiński czcionkę tradycyjną, 3,6 MB. Od tego momentu pismo rysuje się offline, a czcionka zostaje po uporządkowaniu katalogu. Czcionka jest przechowywana razem z własnymi plikami katalogu, nigdy wśród czcionek, które wgrałeś, więc nie pojawia się na liście czcionek Twojej marki.
+Gdy dokument potrzebuje takiej czcionki po raz pierwszy, Lolly pobiera tę jedną czcionkę, dla tego jednego pisma, i zachowuje ją na Twoim urządzeniu. Dokument japoński pobiera samą czcionkę japońską, 2,2 MB, a tradycyjny chiński czcionkę tradycyjną, 3,8 MB. Od tego momentu pismo rysuje się offline, a czcionka zostaje po uporządkowaniu katalogu. Czcionka jest przechowywana razem z własnymi plikami katalogu, nigdy wśród czcionek, które wgrałeś, więc nie pojawia się na liście czcionek Twojej marki.
 
 Wiersz poleceń, aplikacja terminalowa i serwer MCP czytają te same pliki z dysku, więc nie potrzebują pobierania.
 

@@ -10,18 +10,18 @@ Femton typsnitt, alla från Google Fonts vid en fastlåst commit och alla under 
 
 | Skriftsystem | Typsnitt | Version | Nedladdning |
 |---|---|---|---|
-| Arabiska, inklusive urdu- och persiska tecken | Noto Sans Arabic | 2.012 | 206 KB |
+| Arabiska, inklusive urdu- och persiska tecken | Noto Sans Arabic | 2.012 | 211 KB |
 | Hebreiska | Noto Sans Hebrew | 3.001 | 37 KB |
-| Devanagari (hindi, marathi, nepali) | Noto Sans Devanagari | 2.007 | 147 KB |
-| Bengaliska | Noto Sans Bengali | 3.011 | 136 KB |
-| Thailändska | Noto Sans Thai | 2.002 | 61 KB |
-| Kyrilliska | Noto Sans, kyrilliska tecken | 2.015 | 112 KB, kursiv 129 KB |
-| Grekiska | Noto Sans, grekiska tecken | 2.015 | 75 KB, kursiv 81 KB |
-| Latinska, inklusive vietnamesiska och andra accenttecken | Noto Sans, latinska tecken | 2.015 | 309 KB, kursiv 342 KB |
-| Förenklad kinesiska, GB 2312-tecknen | Noto Sans SC | 2.004 | 1,9 MB |
-| Traditionell kinesiska, Big5-tecknen | Noto Sans TC | 2.004 | 3,6 MB |
-| Japanska, Shift_JIS-tecknen | Noto Sans JP | 2.004 | 2,1 MB |
-| Koreanska, varje hangulstavelse och KS X 1001-tecknen | Noto Sans KR | 2.004 | 2,4 MB |
+| Devanagari (hindi, marathi, nepali) | Noto Sans Devanagari | 2.007 | 151 KB |
+| Bengaliska | Noto Sans Bengali | 3.011 | 139 KB |
+| Thailändska | Noto Sans Thai | 2.002 | 62 KB |
+| Kyrilliska | Noto Sans, kyrilliska tecken | 2.015 | 115 KB, kursiv 132 KB |
+| Grekiska | Noto Sans, grekiska tecken | 2.015 | 77 KB, kursiv 83 KB |
+| Latinska, inklusive vietnamesiska och andra accenttecken | Noto Sans, latinska tecken | 2.015 | 316 KB, kursiv 350 KB |
+| Förenklad kinesiska, GB 2312-tecknen | Noto Sans SC | 2.004 | 2,0 MB |
+| Traditionell kinesiska, Big5-tecknen | Noto Sans TC | 2.004 | 3,8 MB |
+| Japanska, Shift_JIS-tecknen | Noto Sans JP | 2.004 | 2,2 MB |
+| Koreanska, varje hangulstavelse och KS X 1001-tecknen | Noto Sans KR | 2.004 | 2,5 MB |
 
 Varje typsnitts viktaxel behålls hel, så varje vikt en design ber om ritas fortfarande, och en fetstilt kinesisk, japansk eller koreansk rubrik är fetstilt. Breddaxeln hos Noto Sans-typsnitten är låst till normal, vilket halverar varje fil; de kinesiska, japanska och koreanska typsnitten har ingen breddaxel. Noto Sans är delat per skriftsystem, så ett kyrilliskt ord laddar bara ner de kyrilliska tecknen. Konturerna är upphovstypsnittens konturer, oförändrade.
 
@@ -53,7 +53,7 @@ På sidan listar en yta med två av dessa språk båda typsnitten, och webbläsa
 
 Inget laddas ner förrän ett dokument innehåller ett tecken som inget av designsystemets typsnitt kan rita. Ett dokument på engelska, eller på något språk som designsystemet täcker, laddar aldrig ner ett reservtypsnitt. En symbol på en engelsk rad, som ★ eller ※, laddar aldrig ner ett kinesiskt, japanskt eller koreanskt typsnitt.
 
-Första gången ett dokument behöver ett laddar Lolly ner just det typsnittet, för just det skriftsystemet, och behåller det på din enhet. Ett japanskt dokument laddar ner bara det japanska typsnittet, 2,1 MB, och ett traditionellt kinesiskt det traditionella typsnittet på 3,6 MB. Därefter ritas skriftsystemet offline, och typsnittet finns kvar när katalogen städas upp. Typsnittet förvaras bland katalogens egna filer, aldrig bland typsnitten du laddat upp, så det syns inte i ditt varumärkes typsnittslista.
+Första gången ett dokument behöver ett laddar Lolly ner just det typsnittet, för just det skriftsystemet, och behåller det på din enhet. Ett japanskt dokument laddar ner bara det japanska typsnittet, 2,2 MB, och ett traditionellt kinesiskt det traditionella typsnittet på 3,8 MB. Därefter ritas skriftsystemet offline, och typsnittet finns kvar när katalogen städas upp. Typsnittet förvaras bland katalogens egna filer, aldrig bland typsnitten du laddat upp, så det syns inte i ditt varumärkes typsnittslista.
 
 Kommandoraden, terminalappen och MCP-servern läser samma filer från disk, så de behöver ingen nedladdning.
 

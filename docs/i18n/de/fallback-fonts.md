@@ -10,18 +10,18 @@ Fünfzehn Schriften, alle von Google Fonts bei einem festgelegten Commit und all
 
 | Schriftsystem | Schrift | Version | Download |
 |---|---|---|---|
-| Arabisch, einschließlich der Buchstaben für Urdu und Persisch | Noto Sans Arabic | 2.012 | 206 KB |
+| Arabisch, einschließlich der Buchstaben für Urdu und Persisch | Noto Sans Arabic | 2.012 | 211 KB |
 | Hebräisch | Noto Sans Hebrew | 3.001 | 37 KB |
-| Devanagari (Hindi, Marathi, Nepali) | Noto Sans Devanagari | 2.007 | 147 KB |
-| Bengalisch | Noto Sans Bengali | 3.011 | 136 KB |
-| Thai | Noto Sans Thai | 2.002 | 61 KB |
-| Kyrillisch | Noto Sans, kyrillische Buchstaben | 2.015 | 112 KB, kursiv 129 KB |
-| Griechisch | Noto Sans, griechische Buchstaben | 2.015 | 75 KB, kursiv 81 KB |
-| Lateinisch, einschließlich Vietnamesisch und anderer Buchstaben mit Akzent | Noto Sans, lateinische Buchstaben | 2.015 | 309 KB, kursiv 342 KB |
-| Vereinfachtes Chinesisch, die GB-2312-Zeichen | Noto Sans SC | 2.004 | 1,9 MB |
-| Traditionelles Chinesisch, die Big5-Zeichen | Noto Sans TC | 2.004 | 3,6 MB |
-| Japanisch, die Shift_JIS-Zeichen | Noto Sans JP | 2.004 | 2,1 MB |
-| Koreanisch, jede Hangul-Silbe und die KS-X-1001-Zeichen | Noto Sans KR | 2.004 | 2,4 MB |
+| Devanagari (Hindi, Marathi, Nepali) | Noto Sans Devanagari | 2.007 | 151 KB |
+| Bengalisch | Noto Sans Bengali | 3.011 | 139 KB |
+| Thai | Noto Sans Thai | 2.002 | 62 KB |
+| Kyrillisch | Noto Sans, kyrillische Buchstaben | 2.015 | 115 KB, kursiv 132 KB |
+| Griechisch | Noto Sans, griechische Buchstaben | 2.015 | 77 KB, kursiv 83 KB |
+| Lateinisch, einschließlich Vietnamesisch und anderer Buchstaben mit Akzent | Noto Sans, lateinische Buchstaben | 2.015 | 316 KB, kursiv 350 KB |
+| Vereinfachtes Chinesisch, die GB-2312-Zeichen | Noto Sans SC | 2.004 | 2,0 MB |
+| Traditionelles Chinesisch, die Big5-Zeichen | Noto Sans TC | 2.004 | 3,8 MB |
+| Japanisch, die Shift_JIS-Zeichen | Noto Sans JP | 2.004 | 2,2 MB |
+| Koreanisch, jede Hangul-Silbe und die KS-X-1001-Zeichen | Noto Sans KR | 2.004 | 2,5 MB |
 
 Die Gewichtsachse jeder Schrift bleibt vollständig erhalten, daher wird jedes Gewicht, das ein Design verlangt, weiterhin gezeichnet, und eine fette chinesische, japanische oder koreanische Überschrift ist fett. Die Breitenachse der Noto-Sans-Schriften ist auf normal festgelegt, was jede Datei halbiert; die chinesischen, japanischen und koreanischen Schriften haben keine Breitenachse. Noto Sans ist nach Schriftsystem aufgeteilt, daher lädt ein kyrillisches Wort nur die kyrillischen Buchstaben herunter. Die Umrisse sind die unveränderten Umrisse des Originals.
 
@@ -53,7 +53,7 @@ Auf der Seite führt eine Arbeitsfläche mit zwei dieser Sprachen beide Schrifte
 
 Nichts wird heruntergeladen, bis ein Dokument ein Zeichen enthält, das keine Schrift seines Designsystems zeichnen kann. Ein Dokument auf Englisch oder in einer anderen Sprache, die sein Designsystem abdeckt, lädt nie eine Ersatzschrift herunter. Ein Symbol in einer englischen Zeile, etwa ★ oder ※, lädt nie eine chinesische, japanische oder koreanische Schrift herunter.
 
-Beim ersten Mal, wenn ein Dokument eine braucht, lädt Lolly diese eine Schrift für dieses eine Schriftsystem herunter und behält sie auf Ihrem Gerät. Ein japanisches Dokument lädt allein die japanische Schrift herunter, 2,1 MB, ein traditionell chinesisches die traditionelle Schrift mit 3,6 MB. Von da an wird das Schriftsystem offline gezeichnet, und die Schrift bleibt erhalten, wenn der Katalog aufgeräumt wird. Die Schrift wird bei den eigenen Dateien des Katalogs aufbewahrt, nie unter den Schriften, die Sie hochgeladen haben, daher erscheint sie nicht in der Schriftenliste Ihrer Marke.
+Beim ersten Mal, wenn ein Dokument eine braucht, lädt Lolly diese eine Schrift für dieses eine Schriftsystem herunter und behält sie auf Ihrem Gerät. Ein japanisches Dokument lädt allein die japanische Schrift herunter, 2,2 MB, ein traditionell chinesisches die traditionelle Schrift mit 3,8 MB. Von da an wird das Schriftsystem offline gezeichnet, und die Schrift bleibt erhalten, wenn der Katalog aufgeräumt wird. Die Schrift wird bei den eigenen Dateien des Katalogs aufbewahrt, nie unter den Schriften, die Sie hochgeladen haben, daher erscheint sie nicht in der Schriftenliste Ihrer Marke.
 
 Die Kommandozeile, die Terminal-App und der MCP-Server lesen dieselben Dateien von der Festplatte, daher brauchen sie keinen Download.
 

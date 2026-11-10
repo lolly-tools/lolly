@@ -10,18 +10,18 @@ Patnáct písem, všechna z Google Fonts v pevně určeném commitu a všechna p
 
 | Znaková sada | Písmo | Verze | Stažení |
 |---|---|---|---|
-| Arabština, včetně urdských a perských písmen | Noto Sans Arabic | 2.012 | 206 KB |
+| Arabština, včetně urdských a perských písmen | Noto Sans Arabic | 2.012 | 211 KB |
 | Hebrejština | Noto Sans Hebrew | 3.001 | 37 KB |
-| Dévanágarí (hindština, maráthština, nepálština) | Noto Sans Devanagari | 2.007 | 147 KB |
-| Bengálština | Noto Sans Bengali | 3.011 | 136 KB |
-| Thajština | Noto Sans Thai | 2.002 | 61 KB |
-| Cyrilice | Noto Sans, cyrilská písmena | 2.015 | 112 KB, kurzíva 129 KB |
-| Řečtina | Noto Sans, řecká písmena | 2.015 | 75 KB, kurzíva 81 KB |
-| Latinka, včetně vietnamštiny a dalších písmen s diakritikou | Noto Sans, latinská písmena | 2.015 | 309 KB, kurzíva 342 KB |
-| Zjednodušená čínština, znaky GB 2312 | Noto Sans SC | 2.004 | 1,9 MB |
-| Tradiční čínština, znaky Big5 | Noto Sans TC | 2.004 | 3,6 MB |
-| Japonština, znaky Shift_JIS | Noto Sans JP | 2.004 | 2,1 MB |
-| Korejština, každá slabika hangul a znaky KS X 1001 | Noto Sans KR | 2.004 | 2,4 MB |
+| Dévanágarí (hindština, maráthština, nepálština) | Noto Sans Devanagari | 2.007 | 151 KB |
+| Bengálština | Noto Sans Bengali | 3.011 | 139 KB |
+| Thajština | Noto Sans Thai | 2.002 | 62 KB |
+| Cyrilice | Noto Sans, cyrilská písmena | 2.015 | 115 KB, kurzíva 132 KB |
+| Řečtina | Noto Sans, řecká písmena | 2.015 | 77 KB, kurzíva 83 KB |
+| Latinka, včetně vietnamštiny a dalších písmen s diakritikou | Noto Sans, latinská písmena | 2.015 | 316 KB, kurzíva 350 KB |
+| Zjednodušená čínština, znaky GB 2312 | Noto Sans SC | 2.004 | 2,0 MB |
+| Tradiční čínština, znaky Big5 | Noto Sans TC | 2.004 | 3,8 MB |
+| Japonština, znaky Shift_JIS | Noto Sans JP | 2.004 | 2,2 MB |
+| Korejština, každá slabika hangul a znaky KS X 1001 | Noto Sans KR | 2.004 | 2,5 MB |
 
 Osa tloušťky každého písma zůstává celá, takže se nakreslí každá tloušťka, kterou návrh žádá, a tučný čínský, japonský nebo korejský nadpis je tučný. Osa šířky písem Noto Sans je pevně nastavená na normální, což každý soubor zmenší na polovinu; čínská, japonská a korejská písma osu šířky nemají. Noto Sans je rozdělené podle písma, takže cyrilské slovo stáhne jen cyrilská písmena. Obrysy jsou původní obrysy z upstreamu, beze změny.
 
@@ -53,7 +53,7 @@ Na stránce plátno s dvěma z těchto jazyků uvádí obě písma a prohlíže�
 
 Nic se nestahuje, dokud dokument neobsahuje znak, který nenakreslí žádné písmo jeho designového systému. Dokument v angličtině nebo v kterémkoli jazyce, který jeho designový systém pokrývá, nikdy záložní písmo nestáhne. Symbol v anglickém řádku, například ★ nebo ※, nikdy nestáhne čínské, japonské ani korejské písmo.
 
-Když dokument poprvé nějaké potřebuje, Lolly stáhne právě to jedno písmo, pro tu jednu znakovou sadu, a ponechá ho na tvém zařízení. Japonský dokument stáhne jen japonské písmo, 2,1 MB, a tradiční čínský 3,6MB tradiční písmo. Od té chvíle se ta znaková sada kreslí i offline a písmo zůstane i po uklizení katalogu. Písmo se drží spolu s vlastními soubory katalogu, nikdy mezi písmy, která jsi nahrál, takže se neobjeví v seznamu písem tvé značky.
+Když dokument poprvé nějaké potřebuje, Lolly stáhne právě to jedno písmo, pro tu jednu znakovou sadu, a ponechá ho na tvém zařízení. Japonský dokument stáhne jen japonské písmo, 2,2 MB, a tradiční čínský 3,8MB tradiční písmo. Od té chvíle se ta znaková sada kreslí i offline a písmo zůstane i po uklizení katalogu. Písmo se drží spolu s vlastními soubory katalogu, nikdy mezi písmy, která jsi nahrál, takže se neobjeví v seznamu písem tvé značky.
 
 Příkazový řádek, terminálová aplikace a server MCP čtou stejné soubory z disku, takže nepotřebují žádné stahování.
 
