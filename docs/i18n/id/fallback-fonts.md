@@ -10,18 +10,18 @@ Lima belas font, semuanya dari Google Fonts pada commit yang dipatok dan semuany
 
 | Aksara | Font | Versi | Unduhan |
 |---|---|---|---|
-| Arab, termasuk huruf Urdu dan Persia | Noto Sans Arabic | 2.012 | 206 KB |
+| Arab, termasuk huruf Urdu dan Persia | Noto Sans Arabic | 2.012 | 211 KB |
 | Ibrani | Noto Sans Hebrew | 3.001 | 37 KB |
-| Devanagari (Hindi, Marathi, Nepal) | Noto Sans Devanagari | 2.007 | 147 KB |
-| Bengali | Noto Sans Bengali | 3.011 | 136 KB |
-| Thai | Noto Sans Thai | 2.002 | 61 KB |
-| Sirilik | Noto Sans, huruf Sirilik | 2.015 | 112 KB, miring 129 KB |
-| Yunani | Noto Sans, huruf Yunani | 2.015 | 75 KB, miring 81 KB |
-| Latin, termasuk huruf Vietnam dan huruf beraksen lainnya | Noto Sans, huruf Latin | 2.015 | 309 KB, miring 342 KB |
-| Tionghoa Sederhana, karakter GB 2312 | Noto Sans SC | 2.004 | 1,9 MB |
-| Tionghoa Tradisional, karakter Big5 | Noto Sans TC | 2.004 | 3,6 MB |
-| Jepang, karakter Shift_JIS | Noto Sans JP | 2.004 | 2,1 MB |
-| Korea, setiap suku kata Hangul dan karakter KS X 1001 | Noto Sans KR | 2.004 | 2,4 MB |
+| Devanagari (Hindi, Marathi, Nepal) | Noto Sans Devanagari | 2.007 | 151 KB |
+| Bengali | Noto Sans Bengali | 3.011 | 139 KB |
+| Thai | Noto Sans Thai | 2.002 | 62 KB |
+| Sirilik | Noto Sans, huruf Sirilik | 2.015 | 115 KB, miring 132 KB |
+| Yunani | Noto Sans, huruf Yunani | 2.015 | 77 KB, miring 83 KB |
+| Latin, termasuk huruf Vietnam dan huruf beraksen lainnya | Noto Sans, huruf Latin | 2.015 | 316 KB, miring 350 KB |
+| Tionghoa Sederhana, karakter GB 2312 | Noto Sans SC | 2.004 | 2,0 MB |
+| Tionghoa Tradisional, karakter Big5 | Noto Sans TC | 2.004 | 3,8 MB |
+| Jepang, karakter Shift_JIS | Noto Sans JP | 2.004 | 2,2 MB |
+| Korea, setiap suku kata Hangul dan karakter KS X 1001 | Noto Sans KR | 2.004 | 2,5 MB |
 
 Sumbu bobot setiap font dipertahankan utuh, sehingga setiap bobot yang diminta desain tetap tergambar, dan judul Tionghoa, Jepang, atau Korea yang tebal memang tebal. Sumbu lebar font Noto Sans dikunci pada normal, yang memangkas setiap file separuhnya; font Tionghoa, Jepang, dan Korea tidak punya sumbu lebar. Noto Sans dipecah menurut aksara, jadi kata Sirilik hanya mengunduh huruf Sirilik. Kontur yang dipakai adalah kontur asli dari hulu, tanpa perubahan.
 
@@ -53,7 +53,7 @@ Di halaman, kanvas yang berisi dua bahasa ini mencantumkan kedua font, dan brows
 
 Tidak ada yang diunduh sampai dokumen berisi karakter yang tidak dapat digambar oleh font design system-nya. Dokumen berbahasa Inggris, atau bahasa apa pun yang dicakup design system-nya, tidak pernah mengunduh font cadangan. Simbol dalam baris berbahasa Inggris, seperti ★ atau ※, tidak pernah mengunduh font Tionghoa, Jepang, atau Korea.
 
-Saat pertama kali dokumen membutuhkannya, Lolly mengunduh satu font itu, untuk satu aksara itu, dan menyimpannya di perangkat Anda. Dokumen Jepang hanya mengunduh font Jepang, 2,1 MB, dan dokumen Tionghoa Tradisional mengunduh font Tradisional 3,6 MB. Sejak itu aksara tersebut tergambar secara offline, dan font tetap ada ketika katalog dirapikan. Font disimpan bersama file katalog sendiri, tidak pernah di antara font yang Anda unggah, sehingga tidak muncul di daftar font brand Anda.
+Saat pertama kali dokumen membutuhkannya, Lolly mengunduh satu font itu, untuk satu aksara itu, dan menyimpannya di perangkat Anda. Dokumen Jepang hanya mengunduh font Jepang, 2,2 MB, dan dokumen Tionghoa Tradisional mengunduh font Tradisional 3,8 MB. Sejak itu aksara tersebut tergambar secara offline, dan font tetap ada ketika katalog dirapikan. Font disimpan bersama file katalog sendiri, tidak pernah di antara font yang Anda unggah, sehingga tidak muncul di daftar font brand Anda.
 
 Baris perintah, aplikasi terminal, dan server MCP membaca file yang sama dari disk, jadi tidak perlu unduhan.
 

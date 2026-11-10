@@ -309,6 +309,20 @@ Lolly livrează un singur profil CMYK, potrivit datelor de caracterizare FOGRA39
 Trei lucruri rețin pretenția păstrând output intent: arta RGB pe care trecerea CMYK nu a putut-o converti, textul de credit al marginii de probă `prov` (desenat într-un font standard care nu este încorporat) și o parolă **Strong**, deoarece PDF/X-4 interzice criptarea. Fiecare PDF poartă și metadate PDF/X-4: casete de pagină, XMP, un ID de document și un output intent sRGB cu profilul lui.
 :::
 
+### Culorile spot ca culori de proces
+
+A design system can give a colour a spot ink, such as a Pantone or HLC colour. The **Print PDF** then prints that colour on a plate of its own, so the printer runs the job with that ink. Lolly Demo gives every colour a spot ink except its whites, Sugar and Daylight, and its black, Void, so a Print PDF made in Lolly Demo prints most colours on spot plates and black on the black plate.
+
+When you need a plain four-colour file, tick **Print spot inks as process** in the export panel's Profile card. Each spot ink then prints with cyan, magenta, yellow and black, using the CMYK build the design system gives that colour. A colour with no build of its own takes the press profile's conversion, the same as every other colour in the artwork. The file then has the four process plates and nothing more. The choice is off by default. The panel shows the box for **Print PDF** only, and only when the design system gives a colour a spot ink.
+
+A finish is not an ink. Foil, emboss, deboss, spot varnish, soft touch, die cut, crease and perforation keep their own named plates with the box ticked, because a finish printed in process would put its black mask on the page.
+
+The **Before you export** card and `lolly preflight` count the plates the file will have. With the box ticked they count the four process plates and any finish plates, and say that the spot inks print as process and add no plates. With the box clear they count up to one spot plate for each spot ink the design system gives, as before. A rate card prices those counts, so it does not price spot plates that the file will not have.
+
+The **Print TIFF** and **EPS (CMYK)** have no named plates, so they print every ink in process with or without the choice. For those two formats the card and `lolly preflight` count the four process plates and never a spot or finish plate. A finish goes into them as its black mask on the black plate, and the card reports that as an error.
+
+A link asks for the same file with `_spots=process`, the command line with `--spots=process`, the [MCP server](/info/mcp.html) with `spots: "process"` and the terminal app with its **Spot inks** row. Nothing about the choice goes into the file: only the inks change.
+
 ### HDR (culori strălucitoare)
 
 Aceasta este cardul **HDR** al panoului de export, care luminează arta obișnuită pentru ecrane HDR. Păstrarea originalelor HDR în timpul editării este o altă funcție: [Editare cu culoare largă și HDR](/info/hdr-editing.html).

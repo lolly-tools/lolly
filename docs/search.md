@@ -23,12 +23,10 @@ The field sits in the middle of the bar at the foot of the window, between **Ope
 <!--
 SHOT NOTE (srch-footer-closed): the bar `footerNav()` writes is
 `[Open] [Settings] <search> [Verify] [Docs]` (components/footer-nav.ts).
-The last button was What? until 4961ce154 (2026-11-06); this shot predates the
-rename, so its alt text still says What? and it needs a recapture.
 Batch moved out of this bar to the Projects top bar.
 -->
 
-![the persistent search bar at rest: Open and Settings on the left, the search field with its magnifier icon and a Ctrl-Space hint chip, the Verify shortcut to Lolly Verify and What? on the right](/t/url-shot?url=%2F%23%2F&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone!important%7D&waitSelector=.gallery-view%5Bdata-shots-settled%5D&walker=1&format=svg&cropSelector=.gallery-footer&dark=1&filename=srch-footer-closed)
+![the persistent search bar at rest: Open and Settings on the left, the search field with its magnifier icon and a Ctrl-Space hint chip, the Verify shortcut to Lolly Verify and Docs on the right](/t/url-shot?url=%2F%23%2F&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone!important%7D&waitSelector=.gallery-view%5Bdata-shots-settled%5D&walker=1&format=svg&cropSelector=.gallery-footer&dark=1&filename=srch-footer-closed)
 
 ::: cols
 ## The bar shows on

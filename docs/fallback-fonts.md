@@ -11,18 +11,18 @@ Fifteen fonts, all from Google Fonts at a pinned commit and all under the SIL Op
 
 | Script | Font | Version | Download |
 |---|---|---|---|
-| Arabic, including Urdu and Persian letters | Noto Sans Arabic | 2.012 | 206 KB |
+| Arabic, including Urdu and Persian letters | Noto Sans Arabic | 2.012 | 211 KB |
 | Hebrew | Noto Sans Hebrew | 3.001 | 37 KB |
-| Devanagari (Hindi, Marathi, Nepali) | Noto Sans Devanagari | 2.007 | 147 KB |
-| Bengali | Noto Sans Bengali | 3.011 | 136 KB |
-| Thai | Noto Sans Thai | 2.002 | 61 KB |
-| Cyrillic | Noto Sans, Cyrillic letters | 2.015 | 112 KB, italic 129 KB |
-| Greek | Noto Sans, Greek letters | 2.015 | 75 KB, italic 81 KB |
-| Latin, including Vietnamese and other accented letters | Noto Sans, Latin letters | 2.015 | 309 KB, italic 342 KB |
-| Simplified Chinese, the GB 2312 characters | Noto Sans SC | 2.004 | 1.9 MB |
-| Traditional Chinese, the Big5 characters | Noto Sans TC | 2.004 | 3.6 MB |
-| Japanese, the Shift_JIS characters | Noto Sans JP | 2.004 | 2.1 MB |
-| Korean, every Hangul syllable and the KS X 1001 characters | Noto Sans KR | 2.004 | 2.4 MB |
+| Devanagari (Hindi, Marathi, Nepali) | Noto Sans Devanagari | 2.007 | 151 KB |
+| Bengali | Noto Sans Bengali | 3.011 | 139 KB |
+| Thai | Noto Sans Thai | 2.002 | 62 KB |
+| Cyrillic | Noto Sans, Cyrillic letters | 2.015 | 115 KB, italic 132 KB |
+| Greek | Noto Sans, Greek letters | 2.015 | 77 KB, italic 83 KB |
+| Latin, including Vietnamese and other accented letters | Noto Sans, Latin letters | 2.015 | 316 KB, italic 350 KB |
+| Simplified Chinese, the GB 2312 characters | Noto Sans SC | 2.004 | 2.0 MB |
+| Traditional Chinese, the Big5 characters | Noto Sans TC | 2.004 | 3.8 MB |
+| Japanese, the Shift_JIS characters | Noto Sans JP | 2.004 | 2.2 MB |
+| Korean, every Hangul syllable and the KS X 1001 characters | Noto Sans KR | 2.004 | 2.5 MB |
 
 The weight axis of each font is kept whole, so every weight a design asks for still draws, and a bold Chinese, Japanese or Korean heading is bold. The width axis of the Noto Sans fonts is fixed at normal, which halves each file; the Chinese, Japanese and Korean fonts have no width axis. Noto Sans is split by script, so a Cyrillic word downloads only the Cyrillic letters. The outlines are the upstream outlines, unchanged.
 
@@ -58,7 +58,7 @@ On the page, a canvas holding two of these languages lists both fonts, and the b
 
 Nothing downloads until a document holds a character that no font of its design system can draw. A document in English, or in any language its design system covers, never downloads a fallback font. A symbol in an English line, such as ★ or ※, never downloads a Chinese, Japanese or Korean font.
 
-The first time a document needs one, Lolly downloads that one font, for that one script, and keeps it on your device. A Japanese document downloads the Japanese font alone, 2.1 MB, and a Traditional Chinese one the 3.6 MB Traditional font. From then on the script draws offline, and the font stays when the catalog is tidied up. The font is kept with the catalog's own files, never among the fonts you uploaded, so it does not appear in your brand's font list.
+The first time a document needs one, Lolly downloads that one font, for that one script, and keeps it on your device. A Japanese document downloads the Japanese font alone, 2.2 MB, and a Traditional Chinese one the 3.8 MB Traditional font. From then on the script draws offline, and the font stays when the catalog is tidied up. The font is kept with the catalog's own files, never among the fonts you uploaded, so it does not appear in your brand's font list.
 
 The command line, the terminal app and the MCP server read the same files from disk, so they need no download.
 

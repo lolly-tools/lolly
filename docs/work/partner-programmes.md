@@ -857,8 +857,10 @@ Anyone with `programme.manage` for a programme issues its tokens from the **Agen
 on the programme's page or on a company's page for that company. **Mint token** takes a label, the
 company, the scopes, the days until the token expires and any limits, then shows the secret once,
 with **Copy**. From a terminal or the API: `lw tokens add --programme resellers-emea --company
-northwind --label "Rita's agent"`, or `POST /api/v1/programmes/:id/tokens`. A grant of `programme.manage` on `programme:<id>` lets its holder
-manage that programme's tokens only. The server sets what the request cannot: the `automation`
+northwind --label "Rita's agent"`, or `POST /api/v1/programmes/:id/tokens`. A grant of `programme.manage` on `programme:<id>` covers four things
+for that programme only: its tokens, its usage report, View as for the programme and its
+companies, and the review of a template published into the programme. Every other programme
+route needs `programme.manage` on `*`. The server sets what the request cannot: the `automation`
 role, the programme's and company's groups and the `partner` group. The secret appears once.
 
 - **Scopes.** `render` and `catalog.read` by default; `documents` and `files` may be added, and so
