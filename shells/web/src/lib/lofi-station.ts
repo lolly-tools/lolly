@@ -86,6 +86,8 @@ const SWEEPS = new Set<LofiMood>(['sugar', 'sherbert', 'kpop', 'chiptune', 'nudi
 const THROWS = new Set<LofiMood>(['reggae', 'synthwave', 'sugar', 'sherbert', 'kpop', 'dream', 'fantasy', 'triphop', 'rnb', 'citypop', 'chiptune', 'dubstep', 'amapiano', 'ska']);
 const ECHO_ALWAYS = new Set<LofiMood>(['synthwave', 'dream', 'reggae']);
 const ECHO_BED = 0.12;
+/** The drums' room send, at the middle of the arrangement; the room slider and the section scale the send. */
+const DRUM_ROOM = 0.32;
 const THROW_LEVEL = 0.55;
 /** The styles whose chorus puts a sine sub under the bass guitar, and the basses it goes under. */
 const SUB_UNDER = new Set<LofiMood>(['rnb', 'soul', 'citypop', 'kpop']);
@@ -181,6 +183,8 @@ export class LofiStation {
   private readonly drumBus: GainNode;
   private readonly music: GainNode;
   private readonly reverbSend: GainNode;
+  /** The drums' own room: what gives a snare its tail and a tom its space. */
+  private readonly drumRoom: GainNode;
   /** The build's sweep: a high-pass on the music (not the drums) that rises through a build and opens on the drop. */
   private readonly sweep: BiquadFilterNode;
   /** The echo: a tempo-synced ping-pong fed from the lead, opened for a phrase's last note (a throw). */
@@ -307,6 +311,18 @@ export class LofiStation {
     this.leadBus.connect(this.reverbSend);
     this.fxBus.connect(this.reverbSend);
     this.reverbSend.connect(reverb).connect(this.tone);
+
+    // The drums' room: a shorter, brighter space than the music's, fed from the drums above
+    // the kick's range (a high-pass at 300 Hz keeps the low end dry and tight), so a snare
+    // rings out into the room and drops off, as a kit in a real room does.
+    const room = ctx.createConvolver();
+    room.buffer = impulse(ctx, 1.1, mulberry32(seed ^ 0x5d));
+    const roomHp = ctx.createBiquadFilter();
+    roomHp.type = 'highpass';
+    roomHp.frequency.value = 300;
+    this.drumRoom = ctx.createGain();
+    this.drumRoom.gain.value = DRUM_ROOM;
+    this.drumBus.connect(roomHp).connect(this.drumRoom).connect(room).connect(this.drumTone);
 
     // The echo: a dotted eighth, ping-ponging left and right, each repeat darker and
     // quieter. Its send is closed until a note is thrown into it (see play), except in the
@@ -593,7 +609,7 @@ export class LofiStation {
       case 'phaser': V.phaser(k, lanes.fx, t, note.midi, vel, len, note.mod ?? 0); break;
       case 'blip': V.blip(k, lanes.fx, t, note.midi, vel, note.mod ?? 0); break;
       case 'soar': V.soar(k, lanes.bass, t, note.midi, vel, len, note.mod === 1); break;
-      case 'kick': D.kick(k, lanes.drums, t, vel, st.kick, st.kickLen, this.kitOf(bar.tune).kick); this.duck(t, st.duck); break;
+      case 'kick': { const kit = this.kitOf(bar.tune); D.kick(k, lanes.drums, t, vel, st.kick, st.kickLen, kit.kick, kit); this.duck(t, st.duck); break; }
       case 'snare':
         // A section given the cross-stick plays its snare hits on the rim.
         if (bar.voices?.snare === 'rim') { D.rim(k, lanes.drums, t, vel * VARIANT.snare.rim); break; }
@@ -638,6 +654,7 @@ export class LofiStation {
     if (room !== this.sectionRoom) {
       this.sectionRoom = room;
       this.reverbSend.gain.setTargetAtTime(BUS.reverb * this.mix.reverb * this.colour.room * room, at, 0.6);
+      this.drumRoom.gain.setTargetAtTime(DRUM_ROOM * this.mix.reverb * room, at, 0.6);
     }
     this.echoSend.gain.setTargetAtTime(ECHO_ALWAYS.has(bar.tune.mood) ? ECHO_BED : 0, at, 0.2);
     if (bar.section === 'build' && SWEEPS.has(bar.tune.mood)) {

@@ -23,6 +23,7 @@
  */
 import type { LofiMood, LofiStyle } from '../../../../engine/src/lofi-compose.ts';
 import { EPS, mtof, noiseAt, osc, crack, metalAt, type VoiceKit } from './lofi-voices.ts';
+import * as K from './lofi-kit.ts';
 
 export type KickKind = 'sub' | 'punch' | 'tight' | 'boom' | 'acoustic' | 'feather' | 'click';
 export type CrashKind = 'crash' | 'splash' | 'china';
@@ -41,6 +42,13 @@ export interface DrumKit {
   boom: boolean;
   /** A head's modes and a small fall (a band's toms) or a big electronic sweep. */
   acousticToms: boolean;
+  /** Real shells: the snare, the toms and an acoustic or feathered kick rendered as the instruments are (lib/lofi-kit.ts). */
+  real: boolean;
+  /** Real cymbals: the ride, the crash and the hats rendered the same way; an electronic kit keeps its synthesised metal. */
+  realCymbals: boolean;
+  /** The snare head's pitch (Hz), and the kit's own seed for rendering its pieces. */
+  snareHead: number;
+  id: string;
 }
 
 /** The kinds of music, by how their drums are played. */
@@ -48,6 +56,8 @@ const JAZZ = new Set<LofiMood>(['jazz', 'swing']);
 const BAND = new Set<LofiMood>(['blues', 'country', 'rock', 'metal', 'soul', 'funk', 'reggae', 'spanish', 'straya', 'afrobeat', 'kora', 'persian', 'guzheng', 'koto', 'citypop', 'fantasy']);
 const DUSTY = new Set<LofiMood>(['warm', 'lateNight', 'rainy', 'triphop', 'dream']);
 const SUBS = new Set<LofiMood>(['dubstep', 'brostep', 'dnb', 'amapiano']);
+/** The styles whose sound is the electronic kit's own synthesised metal. */
+const SYNTH_METAL = new Set<LofiMood>(['acid', 'electro', 'chiptune', 'sherbert']);
 
 /** A small seeded random source, its own stream, so drawing a kit moves nothing else. */
 function kitRandom(seed: number, mood: string): () => number {
@@ -85,11 +95,101 @@ export function drumKit(seed: number, mood: LofiMood): DrumKit {
     crash: pick(band ? ['crash', 'crash', 'splash', 'china'] as const : ['crash', 'crash', 'splash'] as const),
     boom: !band && !DUSTY.has(mood) && mood !== 'hiphop',
     acousticToms: band,
+    real: band || DUSTY.has(mood) || mood === 'hiphop' || mood === 'rnb',
+    realCymbals: !SYNTH_METAL.has(mood),
+    snareHead: Math.round(between(170, 235)),
+    id: `${seed >>> 0}:${mood}`,
   };
 }
 
 /** The kit a tune plays when none is known: the drums as they always sounded. */
-export const PLAIN_KIT: DrumKit = { kick: 'sub', wires: 1, ring: 1, snareBright: 1, hatDecay: 1, hatBright: 1, rideRate: 0.9, bell: 1, wash: 1, crash: 'crash', boom: true, acousticToms: false };
+export const PLAIN_KIT: DrumKit = { kick: 'sub', wires: 1, ring: 1, snareBright: 1, hatDecay: 1, hatBright: 1, rideRate: 0.9, bell: 1, wash: 1, crash: 'crash', boom: true, acousticToms: false, real: false, realCymbals: false, snareHead: 200, id: 'plain' };
+
+// ── the real kit's recordings ───────────────────────────────────────────────────
+
+/** The pieces a kit has rendered so far, per audio context: rendered at a piece's first hit, kept for the tune. */
+interface Bank { buffers: Map<string, AudioBuffer>; cymbals: Map<string, ReturnType<typeof K.cymbalBase>>; open: GainNode | null }
+const BANKS = new WeakMap<BaseAudioContext, Map<string, Bank>>();
+function bankOf(ctx: BaseAudioContext, kit: DrumKit): Bank {
+  let byKit = BANKS.get(ctx);
+  if (!byKit) { byKit = new Map(); BANKS.set(ctx, byKit); }
+  let bank = byKit.get(kit.id);
+  if (!bank) {
+    if (byKit.size > 8) byKit.clear();
+    bank = { buffers: new Map(), cymbals: new Map(), open: null };
+    byKit.set(kit.id, bank);
+  }
+  return bank;
+}
+/** A seeded source for one piece of one kit, so a piece renders the same every time. */
+function pieceRandom(kit: DrumKit, name: string): () => number {
+  let h = 2166136261;
+  for (let i = 0; i < name.length; i++) h = Math.imul(h ^ name.charCodeAt(i), 16777619) >>> 0;
+  return kitRandom(h, kit.id);
+}
+/** One piece at one strength, soft or hard (strokes in between play the nearer one, scaled), rendered on first use. */
+function piece(k: VoiceKit, kit: DrumKit, name: string, vel: number, make: (sr: number, vel: number, rand: () => number) => Float32Array): { buf: AudioBuffer; scale: number } {
+  const bank = bankOf(k.ctx, kit);
+  const hard = vel >= 0.6;
+  const at = hard ? 0.95 : 0.4;
+  const key = `${name}:${hard ? 'hard' : 'soft'}`;
+  let buf = bank.buffers.get(key);
+  if (!buf) {
+    const sr = k.ctx.sampleRate;
+    const data = make(sr, at, pieceRandom(kit, key));
+    buf = k.ctx.createBuffer(1, data.length, sr);
+    buf.getChannelData(0).set(data);
+    bank.buffers.set(key, buf);
+  }
+  // Below the soft stroke a note falls away faster than its velocity, as a drummer's ghost notes do (12 to 20 dB under an accent).
+  return { buf, scale: vel < at ? (vel / at) ** 2.5 : Math.min(1.25, vel / at) };
+}
+/** A cymbal's own partials, fixed for the kit, so every stroke is the same cymbal. */
+function cymbalOf(kit: DrumKit, k: VoiceKit, name: string, spec: K.CymbalSpec): ReturnType<typeof K.cymbalBase> {
+  const bank = bankOf(k.ctx, kit);
+  let base = bank.cymbals.get(name);
+  if (!base) { base = K.cymbalBase(spec, pieceRandom(kit, `${name}:base`)); bank.cymbals.set(name, base); }
+  return base;
+}
+/**
+ * The kit's channel strips: one panner per place across the speakers and per output, made
+ * once and kept, the way a desk has a channel per drum. A hit is then a buffer and a gain:
+ * a panner per hit made a busy hat part cost several times as much to render.
+ */
+const STRIPS = new WeakMap<AudioNode, Map<number, StereoPannerNode>>();
+function stripOf(k: VoiceKit, out: AudioNode, pan: number): StereoPannerNode {
+  let byPan = STRIPS.get(out);
+  if (!byPan) { byPan = new Map(); STRIPS.set(out, byPan); }
+  const key = Math.round(pan * 100);
+  let strip = byPan.get(key);
+  if (!strip) {
+    strip = k.ctx.createStereoPanner();
+    strip.pan.value = key / 100;
+    strip.connect(out);
+    byPan.set(key, strip);
+  }
+  return strip;
+}
+/** Play a piece: its buffer a hair off pitch each time, at `level`, through the strip at `pan`, as overhead mics hear a kit. */
+function hit(k: VoiceKit, out: AudioNode, t: number, p: { buf: AudioBuffer; scale: number }, level: number, pan: number): GainNode {
+  const src = k.ctx.createBufferSource();
+  src.buffer = p.buf;
+  src.playbackRate.value = 1 + (k.rng() - 0.5) * 0.012;
+  const g = k.ctx.createGain();
+  g.gain.value = level * p.scale * (0.94 + k.rng() * 0.12);
+  src.connect(g).connect(stripOf(k, out, pan));
+  src.start(t);
+  return g;
+}
+/** Each piece's place across the speakers, from the drummer's side: hats left, ride right. */
+const PAN = { hat: -0.32, ride: 0.36, crash: -0.22, snare: 0.04, kick: 0 } as const;
+/** Each piece's level against the synthesised voices it replaces, so the mix holds. */
+const LEVEL = { hat: 0.09, open: 0.12, ride: 0.045, crash: 0.25, snare: 0.54, tom: 0.38, kick: 0.62 } as const;
+
+/** The cymbal a crash note plays, by the kit, with its brightness and length. */
+function crashSpec(kit: DrumKit): K.CymbalSpec {
+  return kit.crash === 'splash' ? K.SPLASH : kit.crash === 'china' ? K.CHINA : K.CRASH;
+}
 
 /** A few per cent either way: no two strokes alike. */
 const nudge = (k: VoiceKit, by: number): number => 1 + (k.rng() - 0.5) * 2 * by;
@@ -131,13 +231,19 @@ function tap(k: VoiceKit, out: AudioNode, t: number, hz: number, q: number, leve
  *   reads as a run of distinct hits.
  * Every kind falls further and clicks louder the harder it is struck.
  */
-export function kick(k: VoiceKit, out: AudioNode, t: number, vel: number, hz: number, len: number, kind: KickKind = 'sub'): void {
+export function kick(k: VoiceKit, out: AudioNode, t: number, vel: number, hz: number, len: number, kind: KickKind = 'sub', kit?: DrumKit): void {
   const { ctx } = k;
   const hard = vel * vel;
   if (kind === 'click') {
     mode(k, out, t, hz * 1.15, 0.7 * vel, 0.16, 3.5, 0.014);
     tap(k, out, t, 4200, 1.3, 0.34 * vel, 0.01);   // the beater, hard enough to cut through
     tap(k, out, t, 1800, 0.9, 0.12 * vel, 0.008);
+    return;
+  }
+  if ((kind === 'acoustic' || kind === 'feather') && kit?.real) {
+    const soft = kind === 'feather';
+    const p = piece(k, kit, `kick:${Math.round(hz)}:${kind}`, vel, (sr, v, r) => K.kickStroke(sr, hz * (soft ? 0.92 : 1), v, soft ? 0.25 : 1, (soft ? 0.32 : 0.28) + len * 0.3, r));
+    hit(k, out, t, p, LEVEL.kick * (soft ? 0.85 : 1), PAN.kick);
     return;
   }
   if (kind === 'acoustic' || kind === 'feather') {
@@ -196,6 +302,11 @@ export function snare(style: LofiStyle['snare'], k: VoiceKit, out: AudioNode, t:
   const { ctx } = k;
   if (style === 'stack') { stack(k, out, t, vel, tone, kit); return; }
   if (style === 'snap') { snap(k, out, t, vel, kit); return; }
+  if (style === 'snare' && kit.real) {
+    const p = piece(k, kit, `snare:${Math.round(tone / 50)}`, vel, (sr, v, r) => K.snareStroke(sr, kit.snareHead * (tone / 2000) ** 0.25, v, kit.wires, kit.ring, r));
+    hit(k, out, t, p, LEVEL.snare, PAN.snare);
+    return;
+  }
   const brush = style === 'brush';
   const hard = vel * vel;
   const bright = kit.snareBright * (0.82 + 0.3 * vel) * nudge(k, 0.03);
@@ -341,6 +452,19 @@ export function rim(k: VoiceKit, out: AudioNode, t: number, vel: number): void {
  */
 export function hat(style: LofiStyle['hats'], k: VoiceKit, out: AudioNode, t: number, vel: number, tone: number, open = false, light = false, kit: DrumKit = PLAIN_KIT): void {
   if (style === 'ride') { ride(k, out, t, vel, tone, kit); return; }
+  if (style === 'hat' && kit.realCymbals && !light) {
+    const bank = bankOf(k.ctx, kit);
+    // A closed hat closes the plates on an open one still ringing.
+    if (bank.open) { bank.open.gain.setTargetAtTime(0, t, 0.008); bank.open = null; }
+    const spec: K.CymbalSpec = open
+      ? { ...K.HAT_OPEN, peak: K.HAT_OPEN.peak * kit.hatBright, choke: (K.HAT_OPEN.choke ?? 0.5) * kit.hatDecay }
+      : { ...K.HAT_CLOSED, peak: K.HAT_CLOSED.peak * kit.hatBright, choke: (K.HAT_CLOSED.choke ?? 0.05) * kit.hatDecay };
+    const name = open ? 'hat-open' : 'hat';
+    const base = cymbalOf(kit, k, 'hats', spec);
+    const g = hit(k, out, t, piece(k, kit, name, vel, (sr, v, r) => K.cymbal(sr, spec, base, v, r)), open ? LEVEL.open : LEVEL.hat, PAN.hat);
+    if (open) bank.open = g;
+    return;
+  }
   const { ctx } = k;
   const f = tone * kit.hatBright * (0.9 + 0.15 * vel) * nudge(k, 0.03);
   if (light && style === 'hat' && !open) {
@@ -401,6 +525,12 @@ export function pedal(k: VoiceKit, out: AudioNode, t: number, vel: number, tone:
  * rings longer.
  */
 export function ride(k: VoiceKit, out: AudioNode, t: number, vel: number, tone: number, kit: DrumKit = PLAIN_KIT): void {
+  if (kit.realCymbals) {
+    const spec: K.CymbalSpec = { ...K.RIDE, peak: K.RIDE.peak * kit.rideRate / 0.9, life: K.RIDE.life * kit.wash, bell: (K.RIDE.bell ?? 800) * kit.rideRate / 0.9 };
+    const base = cymbalOf(kit, k, 'ride', spec);
+    hit(k, out, t, piece(k, kit, 'ride', vel, (sr, v, r) => K.cymbal(sr, { ...spec, bell: kit.bell > 0.5 ? spec.bell : undefined }, base, v, r)), LEVEL.ride, PAN.ride);
+    return;
+  }
   const { ctx } = k;
   const rate = kit.rideRate * nudge(k, 0.02);
   const hp = ctx.createBiquadFilter();
@@ -435,6 +565,12 @@ export function ride(k: VoiceKit, out: AudioNode, t: number, vel: number, tone: 
  */
 export function tom(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number, kit: DrumKit = PLAIN_KIT): void {
   const { ctx } = k;
+  if (kit.real && kit.acousticToms) {
+    // Toms spread from the high tom on the left to the floor tom on the right.
+    const p = piece(k, kit, `tom:${midi}`, vel, (sr, v, r) => K.tomStroke(sr, mtof(midi), v, r));
+    hit(k, out, t, p, LEVEL.tom, Math.round(Math.max(-0.35, Math.min(0.35, (52 - midi) * 0.04)) * 10) / 10);
+    return;
+  }
   const f = mtof(midi) * nudge(k, 0.01);
   const ring = 0.28 + Math.max(0, 52 - midi) * 0.025;
   if (kit.acousticToms) {
@@ -474,6 +610,13 @@ export function tom(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: n
  * full-strength crash, the drop's; a band's kit never does.
  */
 export function crash(k: VoiceKit, out: AudioNode, t: number, vel: number, kit: DrumKit = PLAIN_KIT): void {
+  if (kit.realCymbals) {
+    const spec = crashSpec(kit);
+    const base = cymbalOf(kit, k, kit.crash, spec);
+    hit(k, out, t, piece(k, kit, kit.crash, vel, (sr, v, r) => K.cymbal(sr, spec, base, v, r)), LEVEL.crash, PAN.crash);
+    if (kit.boom && vel >= 0.8) boomUnder(k, out, t, vel);
+    return;
+  }
   const { ctx } = k;
   const splash = kit.crash === 'splash';
   const china = kit.crash === 'china';
@@ -500,10 +643,14 @@ export function crash(k: VoiceKit, out: AudioNode, t: number, vel: number, kit: 
   mg.gain.exponentialRampToValueAtTime(0.07 * vel, t + 0.4 * life / 2.4);
   mg.gain.exponentialRampToValueAtTime(EPS, t + life * 1.2);
   metalAt(k, t, life * 1.2, (splash ? 1.05 : china ? 0.62 : 0.82) * nudge(k, 0.02)).connect(mhp).connect(mg).connect(out);
-  if (!kit.boom || vel < 0.8) return;
+  if (kit.boom && vel >= 0.8) boomUnder(k, out, t, vel);
+}
+
+/** The sub boom a dance drop puts under its crash. */
+function boomUnder(k: VoiceKit, out: AudioNode, t: number, vel: number): void {
   const boom = osc(k, 'sine', 62, t, t + 1.1);
   boom.frequency.exponentialRampToValueAtTime(34, t + 0.9);
-  const bg = ctx.createGain();
+  const bg = k.ctx.createGain();
   bg.gain.setValueAtTime(0.5 * vel, t);
   bg.gain.exponentialRampToValueAtTime(EPS, t + 1);
   boom.connect(bg).connect(out);
