@@ -92,7 +92,7 @@ A successful build or multi-architecture manifest does not make every device
 qualified.
 :::
 
-**The Helm chart**, once published: download its `.tgz`, `SHA256SUMS`,
+**The Helm chart**: download its `.tgz`, `SHA256SUMS`,
 `chart-release.json` and `.tgz.sigstore.json` from the exact chart release. Check the
 sums, then verify the archive with `cosign verify-blob`, its bundle, the same OIDC issuer
 and the identity
@@ -247,8 +247,7 @@ when you compare the new package files.
   [`values-official-release.yaml`](https://github.com/lolly-tools/lolly-work/blob/main/deploy/helm/values-official-release.yaml),
   and do the same for `renderWorker.image` when the worker is on. Add
   `imagePullSecrets` if the registry needs credentials. Copy the verified chart package
-  into your own chart repository; until the first publication, package the reviewed
-  `deploy/helm` source instead. The chart downloads no web app and includes no
+  into your own chart repository. The chart downloads no web app and includes no
   database: supply PostgreSQL from your registry, and the verified web app through the
   chart's web app volume or `shell.image`. Kubernetes pulls on any node that lacks an
   image, so keep the registry available while the cluster runs. If admission control

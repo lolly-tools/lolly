@@ -17,7 +17,7 @@ Collection subscription is required.
 **What you'll do**, in four steps:
 
 ::: steps
-- <!--i:eti-flask--> **[Evaluate](#evaluate-on-a-cluster)** One Helm command: an in-memory store, sample people and the demo pack.
+- <!--i:eti-flask--> **[Evaluate](#evaluate-on-a-cluster)** One install from the published chart: an in-memory store, sample people and the demo pack.
 - <!--i:eti-folder-move--> **[Move to production](#move-from-evaluation-to-production)** A separate release from fresh, reviewed values. Nothing is copied over.
 - <!--i:eti-package--> **[Install](#install-for-production)** Your PostgreSQL, identity provider, Secrets and a pinned image digest.
 - <!--i:eti-badge-check--> **[Check](#check-the-installation)** Pods, the migration Job, health, readiness and real sign-in.
@@ -29,6 +29,11 @@ Collection subscription is required.
 - **Tools.** `kubectl` and **Helm 3**, pointed at the cluster you mean. Check with
   `kubectl cluster-info` and `helm version`. Select the exact kubeconfig, context and
   namespace for every command below; the examples assume you have.
+- **The chart.** Lolly Work's Helm chart is published in a chart repository and listed on
+  [Artifact Hub](https://artifacthub.io/packages/helm/lolly-work/lolly-work). The commands
+  below add that repository and install chart %work{chart};
+  [install from the chart repository or Rancher](#install-from-the-chart-repository-or-rancher)
+  says how to check the chart first.
 - **Images.** Multi-architecture images (amd64 and arm64) are published to
   `ghcr.io/lolly-tools/lolly-work-server` and `...-render-worker` for each reviewed
   `v*` release. The %work{version} images are public and need no registry credentials. Pin
@@ -61,12 +66,18 @@ The optional render worker needs a second image, built the same way from
 <!--i:eti-flask-->
 ## Evaluate on a cluster
 
-**One command**, with no PostgreSQL, no identity provider and no pack to mount:
+**One install**, with no PostgreSQL, no identity provider and no pack to mount. The
+evaluation values ship inside the chart package, so pull the package first:
 
 ```bash
+helm repo add lolly-work https://github.com/lolly-tools/lolly-work/releases/download/helm-index
+helm repo update lolly-work
+helm pull lolly-work/lolly-work --version %work{chart} --untar --untardir lolly-work-chart
+
 # Name the release lolly-work: Helm prefixes every object with it, so the Service
 # is then called lolly-work and the checks below work unchanged.
-helm install lolly-work deploy/helm -f deploy/helm/values-eval.yaml \
+helm install lolly-work lolly-work/lolly-work --version %work{chart} \
+  -f lolly-work-chart/lolly-work/values-eval.yaml \
   --set image.repository=ghcr.io/lolly-tools/lolly-work-server --set image.tag=%work{version}
 ```
 
@@ -118,7 +129,8 @@ node or load-balancer address directly. Browser sign-in and links need
 `instance.baseUrl` to match:
 
 ```bash
-helm upgrade lolly-work deploy/helm -f deploy/helm/values-eval.yaml \
+helm upgrade lolly-work lolly-work/lolly-work --version %work{chart} \
+  -f lolly-work-chart/lolly-work/values-eval.yaml \
   --set image.repository=ghcr.io/lolly-tools/lolly-work-server --set image.tag=%work{version} \
   --set config.instance.baseUrl=http://<node-or-lb-ip>
 ```
@@ -171,7 +183,7 @@ kubectl create secret generic lolly-work-secrets \
   --from-literal=LW_SESSION_SECRET="$(openssl rand -hex 32)" \
   --from-literal=LW_LINK_SECRET="$(openssl rand -hex 32)"
 
-helm install lolly-work deploy/helm \
+helm install lolly-work lolly-work/lolly-work --version %work{chart} \
   -f /path/to/reviewed-production-values.yaml \
   --set image.repository=<registry>/lolly-work-server --set image.digest=sha256:<qualified-digest> \
   --set existingSecret=lolly-work-secrets \
@@ -238,22 +250,27 @@ database migrations, infrastructure and content changes stay separate operations
 <!--i:eti-download-->
 ## Install from the chart repository or Rancher
 
-The chart repository is not published yet, so install from `deploy/helm` in the
-release checkout, as above. After the first chart publication, confirm the public
-`index.yaml` at the address in [official installation routes](official-installations.md),
-then add the repository and pick an exact chart version:
+The commands on this page install from the published chart repository,
+`https://github.com/lolly-tools/lolly-work/releases/download/helm-index`. Each chart
+version is an immutable `chart-v*` release on GitHub with a Sigstore bundle and a source
+record, and the chart is listed on
+[Artifact Hub](https://artifacthub.io/packages/helm/lolly-work/lolly-work). Pick an exact
+chart version and read what it holds:
 
 ```bash
 helm repo add lolly-work https://github.com/lolly-tools/lolly-work/releases/download/helm-index
 helm repo update lolly-work
+helm search repo lolly-work/lolly-work --versions
 helm show chart lolly-work/lolly-work --version %work{chart}
 ```
 
-In the production command, replace the local `deploy/helm` argument with
-`lolly-work/lolly-work --version %work{chart}` and keep your reviewed values, configuration
-and Secret references. Check the chart's Sigstore bundle and source record, as
+Check the chart's Sigstore bundle and source record, as
 [official installation routes](official-installations.md#release-verification)
-describes, before you apply the chart.
+describes, before you apply the chart. To install from a reviewed source checkout
+instead, use its `deploy/helm` directory in place of
+`lolly-work/lolly-work --version %work{chart}` and keep your reviewed values,
+configuration and Secret references. Mirrors are covered in
+[official installation routes](official-installations.md).
 
 In Rancher, add the same address under **Apps > Repositories**, then choose Lolly
 Work and the reviewed version. The form collects connection settings; review the
@@ -311,8 +328,10 @@ A few boundaries hold on every target:
   dependency. Keep Redis out of Lolly Work's PostgreSQL job path; Redis for public admission
   is a separate choice for the public services.
 - K3s and RKE2 bring their own containerd and need no second Podman runtime. Rootless
-  Podman image builds are documented; a complete Podman and Quadlet runtime is not
-  built yet.
+  Podman image builds are documented. For a small machine without Kubernetes, the
+  [Lolly appliance](aws-compatible.md#lolly-appliance-preview) has a podman profile:
+  Lolly Work, its PostgreSQL and Caddy as Podman containers defined by Quadlet units.
+  The appliance is a preview, and no appliance image is published.
 
 ::: details Image builds, WebAssembly, admission policy and alerts
 Release developers who build images with SUSE BCI and Podman should read the
