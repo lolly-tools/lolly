@@ -14,7 +14,20 @@ kits](partner-co-branding.md), [templates](partner-templates.md), [approvals](pa
 [shared assets and licences](partner-shared-assets.md), [agents](partner-agents.md) and [people and
 the partnership](partner-people.md).
 
+**Set up a programme** in five steps, each a section below:
+
+::: steps
+- <!--i:eti-folder-plus--> **[Create it](#create-a-programme)** A name, an id that never changes and an owning team.
+- <!--i:eti-grid--> **[Choose what it gets](#choose-what-it-gets)** Its tools and collections, before any template.
+- <!--i:eti-building--> **[Add companies](#companies)** Each partner organisation, with its details and logos.
+- <!--i:eti-file-plus--> **[Publish templates](#templates)** Ready pieces, with what partners may change.
+- <!--i:eti-users--> **[Add people](#add-people)** By list, by domain or one at a time, after a preview.
+:::
+
+<!--i:eti-layers-->
 ## What a programme does
+
+![How a programme fits together: your design system reaches the programme, the programme gives its tools, assets and templates to each company, each company adds its details, logos and kit, its people and its agent tokens make pieces, and the finished files record the company.](/info/diagrams/work-partners/programme-structure.svg)
 
 Each programme wraps one group, `programme-<id>`, and everyone in that group is in the
 programme. For a person in any programme:
@@ -53,6 +66,7 @@ A grant that cannot apply to partners is marked. `GET /api/v1/grants` and the an
 carry `partnerScope`: "Does not apply to partner programme members: `<action>` is not available to
 partners."
 
+<!--i:eti-folder-plus-->
 ## Create a programme
 
 In the console, open **Partner programmes**, type a name such as "Resellers, EMEA" and press
@@ -68,6 +82,7 @@ group, for example a partner team:
 lw grants add group:partner-team programme.manage '*' --effect allow
 ```
 
+<!--i:eti-grid-->
 ## Choose what it gets
 
 Open a programme with **Choose what they get**:
@@ -95,6 +110,7 @@ To give one folder of it, use [Provider folders](#provider-folders).
 Per-input locks work for programmes as for any group: add a rule for `programme-<id>` in the
 tool's overlay ([Policy and governance](governance.md#per-input-access)).
 
+<!--i:eti-folder-shared-->
 ## Provider folders
 
 **Provider folders** on the programme's page gives one folder of a connected source, and
@@ -121,6 +137,7 @@ With the [licence gate](#licences) on, a folder's files reach partners only as t
 records allow. When you choose a folder, the form says how many of its files have no licence
 record, and **These files are ours** marks the folder as your own in the same save.
 
+<!--i:eti-shield-check-->
 ## Licences
 
 The licence each file records can decide what reaches partners. One setting chooses,
@@ -251,6 +268,7 @@ Elsewhere in the console:
 `lw programmes rights-report <programme>` and `GET /api/v1/programmes/:id/rights-report` give the
 same report from a terminal, and `lw catalog rights` records marks and licences.
 
+<!--i:eti-file-plus-->
 ## Templates
 
 A template gives a programme a ready piece to finish, such as a product data sheet where a reseller
@@ -331,6 +349,7 @@ answers `410 TEMPLATE_RETIRED` with the replacement. When the tool is templates 
 caller, a render that gives no template answers `422 TEMPLATE_REQUIRED` with the templates they
 may use.
 
+<!--i:eti-building-->
 ## Companies
 
 A programme can hold companies: the partner organisations in it, such as one reseller or one
@@ -360,6 +379,7 @@ company without joining the programme.
   made for light surfaces looks faint on the dark preview. A replaced logo becomes the next version of the same asset, and only that
   company's people and agent tokens receive its logos.
 
+::: details Limits on company details and logos
 | Limit | Value |
 | --- | --- |
 | Logo file types | SVG or PNG. A JPEG is refused, because a logo needs a transparent background |
@@ -371,6 +391,7 @@ company without joining the programme.
 | Address | 600 characters on up to 6 lines |
 | Tax note | 200 characters |
 | Contacts who may edit | 50 |
+:::
 
 **Checks on every logo.** An SVG is cleaned the same way the app cleans one, and stored cleaned.
 An SVG with active content, such as a script, or with a reference to another file is refused
@@ -501,6 +522,7 @@ attachment travels in its share link as `_kit`, and someone the kit is not serve
 without the kit. An export records the kit's id and the revision attached, beside the company
 ([The partner record in files](#the-partner-record-in-files)).
 
+<!--i:eti-users-->
 ## Add people
 
 **Add people** on the programme's page takes a pasted list or a CSV file's text, one address per
@@ -540,6 +562,7 @@ Joining a programme also adds the `partner` group. Leaving a programme keeps it,
 partner sees only your design system's essentials rather than everything internal. To make an
 account internal, remove `partner` from that person in **People**.
 
+<!--i:eti-globe-->
 ## Add people by domain
 
 Under **Domains** on the programme's page, add a partner's domain, such as `northwind.example`,
@@ -570,17 +593,17 @@ not join**, with the count. Then choose how the domain is proved:
   waiting for its record has **Activate without DNS** for the same override, and an admin-asserted
   domain has **Prove by DNS instead** to move it to DNS proof.
 
-Two kinds of domain are refused either way: public mail domains, such as `gmail.com` or
+**Two kinds of domain are refused either way:** public mail domains, such as `gmail.com` or
 `outlook.com`, where anyone can have an address; and your own domains, which are your workspace's
 address, a domain a sign-in provider is limited to, and the domains of your owners' and admins'
 addresses. People at a public mail domain are added by list instead.
 
-When a domain becomes active, the partner accounts at it join at once, if a provider has verified
+**When a domain becomes active,** the partner accounts at it join at once, if a provider has verified
 their address, and the rest of them join at their next sign-in. People who sign in for the first
 time with an address there join too. A person joins through a domain once, so removing someone from
 the programme in **People** sticks.
 
-Staff are never moved by a domain on its own. Joining a programme limits someone to its tools and
+**Staff are never moved by a domain on its own.** Joining a programme limits someone to its tools and
 assets, so an account that already signs in here and is not a partner keeps its access when you add
 its domain, at that moment and at every later sign-in. That protects your own people when a domain
 also carries staff: a second corporate domain, a subsidiary, or a domain in
@@ -590,7 +613,7 @@ partners** in the preview. The move is recorded in Audit as `programme.domain.mo
 accounts moved. A partner domain never lets staff in on its own either, so revoking a staff
 member's invitation still stops their sign-in.
 
-Lolly Work never adds a domain's programme to an admin, an owner, a disabled account or an account
+**Lolly Work never adds a domain's programme** to an admin, an owner, a disabled account or an account
 your SCIM connector manages: SCIM decides for the people it manages. With single sign-on, the
 programme and company are added on top of the groups the provider sends.
 
@@ -598,6 +621,7 @@ programme and company are added on top of the groups the provider sends.
 their access or their end date passes. The programme's **People** list says who joined through a
 domain.
 
+<!--i:eti-calendar-->
 ## End dates
 
 An end date on a line, or on a domain, ends access through the programme at the end of that day,
@@ -608,6 +632,7 @@ end date also stops anyone new joining through it, audited as `programme.domain.
 deployment that runs as serverless functions calls `POST /api/v1/programmes/sweep` on a schedule
 instead.
 
+<!--i:eti-eye-->
 ## See what they get
 
 **See what they get** opens Preview for the programme's group, before anyone is invited. Preview
@@ -646,12 +671,14 @@ banner.
 Each view's start is audited as `programme.view-as`, and **Stop viewing** as
 `programme.view-as.end`; a view that runs out after its hour simply ends.
 
+<!--i:eti-blend-->
 ## A person in two programmes
 
 Someone in two programmes gets the tools and assets of both. Input rules combine as described
 next. Someone in two companies may get no company details filled in
 ([Which company](#company-details-in-templates)), so put each person in one company where you can.
 
+<!--i:eti-lock-->
 ## Input rules for partners
 
 For someone in a programme, the order you wrote a tool's input rules in never decides. Three rules
@@ -674,6 +701,7 @@ strict, the one written first counts.
 for Northwind IT, a company in Resellers, which overrides the rule for Resellers". Only admins see
 this. A partner sees the input locked, limited or editable, with no line about the rule.
 
+<!--i:eti-unlink-->
 ## When someone leaves
 
 Removing a person from a programme takes its tools and assets away on their next request. Links
@@ -771,11 +799,12 @@ provider folders it ended (where their own end date is still ahead), the domain 
 in again, and you mint tokens and choose again. After 30 days the receipt stays as the record and
 Reopen answers `409 REOPEN_CLOSED`.
 
-Deleting a programme removes its grants, takes its group off every collection and deletes the
+**Deleting** a programme removes its grants, takes its group off every collection and deletes the
 group. Its people keep the `partner` group. Deleting a company removes its grants, its collection
 entries, its details with their history and its receipts, and revokes its logos; files already made
 keep what they record.
 
+<!--i:eti-badge-check-->
 ## The partner record in files
 
 A file a partner makes records the company and programme it was made for, beside your design
@@ -806,6 +835,7 @@ A server render records the same keys in its Content Credential, so a file a par
 over the API or MCP says what a file made in the app says. A durable render's record carries the
 same words, for example `partner: "Partner: Northwind IT"`.
 
+<!--i:eti-sparkles-->
 ## Partners' agents
 
 A partner's AI agent works through a service token placed in the programme, and in one company
@@ -942,6 +972,7 @@ example file the reviewer saw. It never holds this file's own fingerprint, a nam
 "Approved as a template: inst/price-sheet v3 (SVG)". A render that is still marked, one in a format
 the approval did not cover and one from an instance with no signer carry no record.
 
+<!--i:eti-gauge-->
 ## Limits and quotas
 
 ![The Partner programmes card on the Limits and quotas tab: each limit with its value and where the value comes from, such as the 30-day Reopen window and the 512 KB SVG logo size](shots/partner-limits.svg)
@@ -958,8 +989,10 @@ maxima and lifetime. `GET /api/v1/limits` (`policy.edit`) gives the same list. T
 limit a person meets. It leaves out timing cadences, clock skew tolerances, provider field lists
 and caches.
 
+<!--i:eti-code-->
 ## API and audit
 
+::: details Every programme route
 ```
 GET    /api/v1/programmes                         # programme.manage: every programme, with its tools, collections and people
 GET    /api/v1/programmes/:id
@@ -1032,10 +1065,12 @@ GET    /api/v1/context[/me|/brand|/partner/company|/partner/templates|...]   # w
 
 `POST /api/v1/programmes/exit` also takes `at` (`YYYY-MM-DD`) and `notice` for a programme or a
 company, and `PUT /api/v1/programmes/:id` takes `tokenLimits` and `approvalChains` beside the
-`name` every programme `PUT` needs.
+`name` every programme `PUT` needs. A `PUT` that leaves out `tools` or `collections` keeps what
+the programme had.
+:::
 
-A `PUT` that leaves out `tools` or `collections` keeps what the programme had. Each change is
-audited as `programme.create`, `programme.edit` or `programme.delete` with the before and after,
+::: details Every audit event
+Each programme change is audited as `programme.create`, `programme.edit` or `programme.delete` with the before and after,
 and each grant and collection change it makes is audited as its own `grant.create`,
 `grant.delete` or `catalog.collection.edit`, with `via: "programme:<id>"`.
 
@@ -1061,9 +1096,9 @@ source, never the files or colours. Licences are audited as `catalog.rights.mark
 thing is audited as its own row with `via: "programme-exit"` or `via: "programme-exit-reopen"`.
 Notices are counted, never addressed. Tokens are audited as `token.create`, `token.limits`,
 `token.revoke` and `token.programme`, and a programme's limits as `programme.limits`.
+:::
 
-The same steps from the command line:
-
+::: details The same steps from the command line
 ```bash
 lw people import resellers-emea roster.csv            # a preview; add --apply to do it
 lw domains add northwind.example --programme resellers-emea --company northwind --ends 2027-06-30
@@ -1086,11 +1121,14 @@ lw tokens add --programme resellers-emea --company northwind --label "Rita's age
 lw programmes limits resellers-emea --renders-per-day 500
 lw programmes usage resellers-emea --by week --csv
 ```
+:::
 
+<!--i:eti-clock-->
 ## Not yet
 
 - **Share with rules files made from tools other than Design.**
 
+<!--i:eti-link-->
 ## Related
 
 - The guide for partner teams: [Run a partner programme](run-a-partner-programme.md)

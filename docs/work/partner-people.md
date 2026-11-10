@@ -10,6 +10,17 @@ people, a person in two programmes and ending a partnership at once or on a date
 
 This page is part of [Run a partner programme](run-a-partner-programme.md).
 
+**A partnership**, from start to end:
+
+::: steps
+- <!--i:eti-folder-plus--> **[Create the programme](#create-the-programme)** A name, an id that never changes and an owning team.
+- <!--i:eti-eye--> **[Check what they get](#check-what-they-get)** A preview, or the app as a partner sees it, before anyone is invited.
+- <!--i:eti-mail--> **[Invite the people](#invite-the-people)** A list with companies and end dates, or a proved domain.
+- <!--i:eti-unlink--> **[End the partnership](#end-a-partnership)** At once, or at the end of a day with a notice.
+- <!--i:eti-refresh--> **[Reopen an end](#reopen-an-end)** Within 30 days, if the end was a mistake.
+:::
+
+<!--i:eti-folder-plus-->
 ## Create the programme
 
 Open **Partner programmes**, type a name and press **Create programme**. The id comes from the name
@@ -27,6 +38,7 @@ Then give the programme its tools and assets
 add its companies ([Co-branding and partner kits](partner-co-branding.md#add-a-company-and-its-details))
 and publish its templates ([Partner templates](partner-templates.md#publish-a-template)).
 
+<!--i:eti-eye-->
 ## Check what they get
 
 On the programme's page, or a company's, **See what they get** shows the programme or the company
@@ -45,6 +57,7 @@ Northwind IT · Resellers, EMEA" and "Changes are not saved to the partner's acc
 - **Nothing else.** Every change to the partner's account is refused, first-run prompts are hidden
   and live collaboration stays closed: "Not while viewing as a partner".
 
+<!--i:eti-mail-->
 ## Invite the people
 
 On the programme's page, **Add people** takes a list, with a company and an end date on each line,
@@ -67,6 +80,7 @@ A domain is proved by a DNS record the partner publishes, or on your say-so whil
 Public mail domains and your own domains are refused, and staff are never moved by a domain on its
 own ([Add people by domain](partner-programmes.md#add-people-by-domain)).
 
+<!--i:eti-blend-->
 ## A person in two programmes
 
 They get the tools and files of both. For each input, a company's rule overrides its programme's
@@ -74,6 +88,7 @@ rule, and across two programmes the stricter rule wins. Someone in two companies
 details filled in, because Lolly Work cannot always tell which company a piece is for, so put each
 person in one company where you can.
 
+<!--i:eti-unlink-->
 ## End a partnership
 
 The **End this partnership** card on the programme's page ends the whole programme, and the same
@@ -96,6 +111,7 @@ Choose what happens to their projects:
 The programme or company is then **ended**, not deleted. The company's details and their history
 stay, because files already made record them.
 
+<!--i:eti-calendar-->
 ## End on a date
 
 In the same card, choose **At the end of a day** and the day. With **Tell them before the end**
@@ -107,6 +123,7 @@ saved to team projects stay with `<workspace>`, read-only. Download anything you
 then." and **Open Projects**. Someone who stays through another programme reads "Your access
 through your other programmes stays as it is." The person who scheduled the end is told too.
 
+<!--i:eti-refresh-->
 ## Reopen an end
 
 An ended programme or company shows the date of the end and the person who ended the partnership.
@@ -115,6 +132,7 @@ the people, templates, folders and, with **Give their projects back**, their pro
 tokens, licence choices and sessions stay ended. After the 30 days, the page says Reopen is no
 longer offered and to add the people again by list.
 
+<!--i:eti-gauge-->
 ## Limits and quotas
 
 The deployment page's **Limits and quotas** tab, for anyone with `policy.edit`, lists every limit a
@@ -126,6 +144,7 @@ default.
 ![The Partner programmes card on the Limits and quotas tab: each limit with its value and where the value comes from, such as the 30-day Reopen window and the 512 KB SVG logo size](shots/partner-limits.svg)
 :::
 
+<!--i:eti-map-pin-->
 ## Worked example: Northwind IT
 
 The worked example on [Run a partner programme](run-a-partner-programme.md#set-up-a-programme)
@@ -230,6 +249,7 @@ links and her agent's token stop, and her saved pieces stay with your team, read
 days, **Reopen** on the company's page brings back her access, the templates and her projects;
 links and tokens stay ended.
 
+<!--i:eti-sliders-->
 ## Every option
 
 - Creating and managing programmes: [Create a programme](partner-programmes.md#create-a-programme)

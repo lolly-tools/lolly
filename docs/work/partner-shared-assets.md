@@ -9,6 +9,7 @@ someone chose to share it anyway.
 
 This page is part of [Run a partner programme](run-a-partner-programme.md).
 
+<!--i:eti-package-->
 ## What reaches a partner
 
 ![What reaches a partner: your design system's tokens, fonts and palettes reach the person or agent directly; files a programme or a company was given pass the licence gate when it is on, and a file the gate holds back is listed on the Licences card.](/info/diagrams/work-partners/what-reaches-a-partner.svg)
@@ -23,6 +24,7 @@ This page is part of [Run a partner programme](run-a-partner-programme.md).
   reach them, and neither do announcements sent to everyone, projects shared with everyone in the
   workspace or injectables for everyone.
 
+<!--i:eti-grid-->
 ## Choose its tools and share its assets
 
 Open **Choose what they get** and tick the tools and the collections. A programme receives only the
@@ -39,6 +41,7 @@ licence gate on, a render that uses a missing file is refused.
   programme's group, for example
   `lw catalog submit ./price-sheet.pdf --name "Price sheet" --groups programme-resellers-emea`.
 
+<!--i:eti-folder-move-->
 ## Give one folder of a source
 
 **Provider folders** on the programme's page gives one folder of a connected source, such as your
@@ -53,6 +56,7 @@ the button lists them, so you can check what comes with your choice before you p
 When the end date passes, the files go at once. When you give a folder, the form says how many of
 its files record no licence.
 
+<!--i:eti-shield-check-->
 ## The licence gate
 
 With the licence gate on, a file that records no licence stays with your own people. The
@@ -83,6 +87,7 @@ because every tool needs them or because they are yours by nature: tokens, fonts
 templates, rules tools, user tools and brand skills, plus a company's own files for that company. A
 held file is simply absent for partners, and nothing tells a partner that more may come.
 
+<!--i:eti-stamp-->
 ## Mark your own files
 
 Most brand teams never recorded a licence on their own logos and photographs. A mark says once that
@@ -103,6 +108,7 @@ lw catalog rights licence ext/partner-dam/a1 CC-BY-4.0 --attribution "Photo by A
 lw catalog rights                                      # the marks and records in force
 ```
 
+<!--i:eti-external-link-->
 ## Share a held file anyway
 
 Someone with `programme.manage` can choose to send held files to one programme or one company, up
@@ -112,6 +118,7 @@ choice, and the report lists the file as needing a new choice. A choice covers t
 never a file synced later. Withdraw a choice at any time; ending a partnership withdraws its
 choices.
 
+<!--i:eti-link-->
 ## Links, ZIPs and credits
 
 - **A link a partner makes** carries only what their gated feed holds. A held file is refused when
@@ -123,6 +130,7 @@ choices.
 - **The collection link page** shows one credit line for a file whose licence asks for a credit,
   with the licence and the source.
 
+<!--i:eti-map-pin-->
 ## Worked example: Northwind IT
 
 The worked example on [Run a partner programme](run-a-partner-programme.md#set-up-a-programme)
@@ -147,6 +155,7 @@ colours, type and palettes, and the logos in the collection, and nothing else fr
 
 Next: [3. Add Northwind IT and its details](partner-co-branding.md#3-add-northwind-it-and-its-details).
 
+<!--i:eti-sliders-->
 ## Every option
 
 - Tools and collections: [Choose what it gets](partner-programmes.md#choose-what-it-gets)

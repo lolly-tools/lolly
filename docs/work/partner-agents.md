@@ -11,6 +11,7 @@ and the files it makes record the company and programme, never the agent.
 
 This page is part of [Run a partner programme](run-a-partner-programme.md).
 
+<!--i:eti-user-check-->
 ## Give an agent a token
 
 On the programme's page, or a company's, the **Agent tokens** card mints a token for the agent,
@@ -31,6 +32,7 @@ the `partner` group.
 - **Revoke** on the card, in two steps. A programme token is never moved out of its programme,
   only revoked. Ending the programme or company revokes its tokens.
 
+<!--i:eti-gauge-->
 ## Limits and usage
 
 Every token placed in a programme meets three limits:
@@ -60,6 +62,7 @@ The counts hold no input values, prompts, titles, file names or agent names.
 
 ![What agents did over the last 4 weeks: calls, renders, batches, deliveries, approvals and refusals for Rita's agent, for Northwind IT and for Resellers, EMEA, then renders by tool](shots/partner-agent-usage.svg)
 
+<!--i:eti-eye-->
 ## What an agent reads
 
 The organisation MCP endpoint offers resources to a service token, each read counted as one call:
@@ -76,6 +79,7 @@ The organisation MCP endpoint offers resources to a service token, each read cou
 
 The same answers are at `GET /api/v1/context/*` for REST callers.
 
+<!--i:eti-file-plus-->
 ## Templates by purpose
 
 An agent can ask for a piece by what the piece is for, with `resolve_intent`, rather than by tool.
@@ -85,6 +89,7 @@ template is for: Promote · Banner, Social landscape". Inputs the company fills 
 agent for Northwind IT is never asked for the partner's mark or the company name. A retired
 template is never offered.
 
+<!--i:eti-map-pin-->
 ## Worked example: Northwind IT
 
 The worked example on [Run a partner programme](run-a-partner-programme.md#set-up-a-programme)
@@ -120,6 +125,7 @@ Northwind IT, never the agent.
 
 Next: [8. End the partnership on a date](partner-people.md#8-end-the-partnership-on-a-date).
 
+<!--i:eti-sliders-->
 ## Every option
 
 - Minting, scopes, expiry and placing an existing token: [Programme tokens](partner-programmes.md#programme-tokens)

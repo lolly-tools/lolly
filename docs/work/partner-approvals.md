@@ -11,6 +11,7 @@ always stays with your own people.
 This page is part of [Run a partner programme](run-a-partner-programme.md). Approval chains
 themselves, who is in them and how a step is decided, are in [Approvals](approvals.md).
 
+<!--i:eti-shield-check-->
 ## What partners can never decide
 
 Deciding approvals is one of the admin actions refused for partners whatever a grant says, along
@@ -18,6 +19,7 @@ with editing grants, policy, programmes or the catalog, inviting people, sending
 groups. A programme's agent tokens and an admin viewing as a partner meet the same limits
 ([What partners can never do](partner-programmes.md#what-partners-can-never-do)).
 
+<!--i:eti-pen-->
 ## Changes by a company's contacts
 
 ![Northwind IT's page in the console, ending with the Contacts who may edit card: People at Northwind IT may edit these details, off, and Changes by contacts need approval, off](shots/partner-company.svg)
@@ -31,6 +33,7 @@ the others keep any change your team made meanwhile. A change your team makes ne
 
 A contact's change that waits for approval is an `approval.submit` in Audit.
 
+<!--i:eti-palette-->
 ## Changes to a partner kit
 
 Kit changes apply at once until you turn on **Kit changes need approval** on the company's
@@ -43,6 +46,7 @@ The kit switch is separate from the contact switch. While contact changes need a
 may change the kit only when kit review is on
 ([Keep a company's partner kit](partner-co-branding.md#keep-a-company-s-partner-kit)).
 
+<!--i:eti-sparkles-->
 ## Requests from partners' agents
 
 Approvals stay off for agents unless you turn them on. Give a programme token the
@@ -59,6 +63,7 @@ adds that an agent asked, and that the file under review is the agent's own rend
 Lolly Work made the file. **Ask for approval** is one of the scopes on the **Agent tokens** card
 ([Partners' agents](partner-agents.md#give-an-agent-a-token)).
 
+<!--i:eti-copy-->
 ## One approval for a template's variants
 
 A tool's policy can let one approval cover a template's variants: with `enforce.approvalCovers`
@@ -75,6 +80,7 @@ or a person. [Lolly Verify](/info/what-verify-checks.html#approval-and-intent-re
 record as "Approved as a template: inst/price-sheet v3 (SVG)". A render that is still marked, one in
 a format the approval did not cover and one from an instance with no signer carry no record.
 
+<!--i:eti-sliders-->
 ## Every option
 
 - Contact edits: [Contacts who may edit](partner-programmes.md#contacts-who-may-edit)
