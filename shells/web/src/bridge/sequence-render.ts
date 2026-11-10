@@ -124,6 +124,7 @@ import {
 } from './sequence-providers.ts';
 // Types only: a song's record is built lazily by lib/rondo-provenance.ts (plan 301).
 import type { RondoRendered, RondoSong } from '../lib/rondo-render.ts';
+import type { LofiTuneRecipe } from '../lib/lofi-tune.ts';
 // WP-3 (plan 154): the deep float HDR encode source + its flag/capability gates. Pure,
 // node-testable; nothing here runs unless hdrDeep (hdrActive && flag && probe) is true.
 import {
@@ -257,6 +258,8 @@ export interface SeqHost {
   notice?(msg: string): void;
   assets?: {
     credential?(id: string): Promise<{ store: Uint8Array; format: string } | null>;
+    /** A saved tune's asset, for the name, maker and licence its ingredient records. */
+    get?(id: string): Promise<{ format?: string; meta?: Record<string, unknown> } | null>;
   };
 }
 
@@ -1211,6 +1214,9 @@ async function mixSequenceAudio(
   // renderFormat merges after the render returns.
   const songSink = opts.c2pa ? opts._sourceIngredientSink : undefined;
   const songsHeard: { song: RondoSong; render: Pick<RondoRendered, 'run' | 'findings'> }[] = [];
+  // The saved tunes whose sound reaches this mix, recorded the same way (Andy's approval
+  // of 2026-11-10), each with the url its asset's record is found by.
+  const tunesHeard: { url: string; recipe: LofiTuneRecipe }[] = [];
 
   for (const L of layers) {
     if (L.kind !== 'video' && L.kind !== 'audio') continue;
@@ -1232,7 +1238,10 @@ async function mixSequenceAudio(
       clip = await createClipAudio(url, {
         log,
         notice: (m) => host?.notice?.(m),
-        ...(songSink ? { onSong: (song, render) => { songsHeard.push({ song, render }); } } : {}),
+        ...(songSink ? {
+          onSong: (song: RondoSong, render: Pick<RondoRendered, 'run' | 'findings'>) => { songsHeard.push({ song, render }); },
+          onTune: (recipe: LofiTuneRecipe) => { tunesHeard.push({ url, recipe }); },
+        } : {}),
       });
     } catch (err) {
       log('warn', `sequence audio: ${toCodedError(err).message} - clip will be silent`);
@@ -1433,6 +1442,18 @@ async function mixSequenceAudio(
       addSongIngredients(songSink, await Promise.all(songsHeard.map(({ song, render }) => songIngredient(song, render))));
     } catch (err) {
       log('warn', `sequence audio: the song record for Content Credentials could not be built (${(err as { message?: string })?.message ?? err}).`);
+    }
+  }
+  if (songSink && tunesHeard.length) {
+    try {
+      const { tuneAssetAt, tuneSource, tuneSourceIngredient } = await import('../lib/tune-provenance.ts');
+      const lookup = async (id: string) => (await host?.assets?.get?.(id)) ?? null;
+      for (const { url, recipe } of tunesHeard) {
+        const ing = await tuneSourceIngredient(tuneSource(recipe, await tuneAssetAt(url, lookup)));
+        if (!songSink.some((have) => have.instanceId === ing.instanceId)) songSink.push(ing);
+      }
+    } catch (err) {
+      log('warn', `sequence audio: the tune record for Content Credentials could not be built (${(err as { message?: string })?.message ?? err}).`);
     }
   }
 

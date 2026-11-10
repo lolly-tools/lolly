@@ -984,12 +984,28 @@
       "note": "A song is recorded as a source ingredient by digest. No licence is evaluated for the song."
     },
     {
+      "id": "census.saved-tunes",
+      "kind": "census",
+      "title": "Saved tunes in a soundtrack, a music bed or a tool's audio",
+      "status": "credential-only",
+      "code": ["shells/web/src/bridge/sequence-render.ts", "shells/web/src/views/tool-actions/wiring.ts", "engine/src/tune-provenance.ts", "shells/web/src/lib/tune-provenance.ts"],
+      "evidence": [
+        { "file": "shells/web/src/bridge/sequence-tune-provenance.test.ts", "test": "the tune ingredient survives the C2PA writer and reader: name, maker, licence, digest, algorithmic, no AI flag" },
+        { "file": "shells/web/src/lib/tune-provenance.test.ts", "test": "the readback finds songs and tunes in one pass, and a file with no credential records neither" }
+      ],
+      "note": "A saved tune is recorded as a source ingredient by the digest of its recipe, as algorithmic media, with the maker and the licence the tune records written into its description. No licence is evaluated for the tune and no credit is prepared; the export sheet lists the tunes before the export and reads the delivered file back after it."
+    },
+    {
       "id": "delivery.music-generator",
       "kind": "delivery",
       "title": "Music generator: a generated track downloaded or saved to the library, and its link copied",
-      "status": "not-assessed",
-      "code": ["shells/web/src/views/music-studio.ts"],
-      "note": "The track is synthesised from a seed by Lolly's own composer and instruments, so no outside source enters it. The file goes through host.export.download or the library with no Content Credential yet; the copied link carries only the recipe."
+      "status": "credential-only",
+      "code": ["shells/web/src/views/music-studio.ts", "engine/src/tune-sign.ts"],
+      "evidence": [
+        { "file": "engine/src/tune-sign.test.ts", "test": "a WAV from the music generator reads back as algorithmic media with the declaration" },
+        { "file": "shells/web/src/lib/tune-provenance.test.ts", "test": "a download is signed by the music generator and the hint repeats what the reading found" }
+      ],
+      "note": "The track is synthesised from a seed by Lolly's own composer and instruments, so no outside source enters it. A WAV or M4A download carries a Content Credential whose created step says it was made with Lolly's music generator (algorithmic media) while the Make panel's switch is ticked, read back before the hint reports it; unticked, the file carries none. A save to the library records the maker, the music generator and the versions on the asset, not in a file. The copied link carries only the recipe."
     },
     {
       "id": "census.lut-credit",

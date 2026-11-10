@@ -72,6 +72,14 @@ Each station leans the composer towards its genre without fixing the outcome. Th
 
 Escape closes a picker or a panel, then leaves the generator.
 
+## What a track records
+
+A track the generator makes says that Lolly composed it, so nobody mistakes it for a recording or for AI output. The Make panel says what each write records before you click.
+
+- **A saved tune.** **Save to library** records who made the tune, as the name in your profile under Settings → Preferences → Your details. With no name in the profile, no maker is recorded. The maker is a statement of who made the track, not a copyright claim. The tune also records that it was made in the music generator, and the Lolly and engine versions that made the track. Its licence starts as **Not recorded**. Open the tune in Assets to see each record in its details: **Source** reads *Made in the music generator*, with **Made by**, **Made with** and **Licence** below. The **Licence** menu sets a licence for your tune (CC0, CC BY, CC BY-SA and their NonCommercial and NoDerivatives forms), and **Not recorded** clears the licence. A tune saved from the Neurospicy player reads *Saved from the Neurospicy player* and records no maker.
+- **A download.** A WAV or M4A from **Download** carries [Content Credentials](/info/exporting.html#content-credentials-c2pa) while the **Content Credentials** switch in the Make panel is ticked, which it is by default. The credential's created step says *Made with Lolly's music generator (procedural, no AI)*, then the style and the seed. Its digital source type is algorithmic media: music computed by an algorithm, with no sampled or trained material, which Lolly Verify does not flag as AI. Untick the switch to download the file with no credential. After the download, the line under the track repeats what a reading of the written file found.
+- **A tune in another file.** A video or an audio export that plays a saved tune (a video's music bed, an audiogram's sound, a clip on a timeline) records the tune as a source in its Content Credentials: its name, the maker and the licence when the tune records them, the SHA-256 of the tune's recipe, the engine version that rendered the tune, and algorithmic media. Before you export, a line under **Download** lists the tunes and what the record will name; after the export, the same line reports what a reading of the delivered file found. Untick **C2PA Credentials** to leave the record out. A still image records no tune, because it carries no sound.
+
 ## Performance
 
 The dance stations play many more synthesised voices at once than the Lofi stations. On those stations the player offers **Light visualiser**, which shows the simple level bars instead of the full visualiser so the music has the processing time it needs. The setting is on by default on a modest device, such as a phone or a computer with four cores or fewer, and you can change it in the station's controls at any time.

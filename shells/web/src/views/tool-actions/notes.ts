@@ -13,6 +13,7 @@ import { isAudioFormat as isAudioFmt } from '../../lib/audio-encode.js';
 import { isTauriShell } from '../../lib/instance-choice.ts';
 import { madeWithWords } from '../../lib/made-with.ts';
 import { isC2paFmt, type ProfileStore } from './shared.ts';
+import type { TuneSource } from '../../lib/tune-provenance.ts';
 import { bindOp, type ActionsCtx } from './context.ts';
 
 // Ingredient provenance note (plans/126 WP-B item 2): when this design's
@@ -199,7 +200,7 @@ export function disposeMadeWith(ta: ActionsCtx): void {
   ta.madeWithSeq = (ta.madeWithSeq ?? 0) + 1;
 }
 
-// ── Songs in Content Credentials (plan 301) ─────────────────────────────────
+// ── Songs and tunes in Content Credentials (plan 301) ───────────────────────
 //
 // Andy approved on 2026-10-08 that an export holding a rondocode song records it
 // in its Content Credentials, on two conditions: the person sees it at the moment
@@ -209,6 +210,10 @@ export function disposeMadeWith(ta: ActionsCtx): void {
 // delivered bytes found (the docs/creative-rights.md wording rule). The record
 // follows the C2PA toggle: with credentials off, nothing is written and nothing
 // is said.
+//
+// Andy approved the same for a saved tune on 2026-11-10 (lib/tune-provenance.ts):
+// one line per tune, naming the maker and the licence the tune records, since both
+// travel in the file.
 
 /** Will this export carry a credential? The C2PA toggle and a format that can hold one. */
 function songCredentialOn(ta: ActionsCtx, fmt: string): boolean {
@@ -241,36 +246,75 @@ export async function exportSongNames(ta: ActionsCtx): Promise<string[]> {
   return distinctNames(songs);
 }
 
+/**
+ * The saved tunes the next export holds as sound: the timeline's audio boxes, the
+ * tool's own audio slot, and the export bar's track. As for songs, only a format that
+ * carries sound holds a tune.
+ */
+export async function exportTunes(ta: ActionsCtx): Promise<TuneSource[]> {
+  const fmt = ta.formatEl?.value || ta.initialFmt || '';
+  const video = ta.formatRules.isVideoFmt(fmt);
+  if (!video && !isAudioFmt(fmt)) return [];
+  const prov = await import('../../lib/tune-provenance.ts');
+  const lookup = (id: string) => ta.host.assets.get(id).catch(() => null);
+  const tunes: (TuneSource | null)[] = [];
+  if (ta.canvasEl?.querySelector?.('[data-sequence]')) tunes.push(...(await prov.timelineTunes(ta.canvasEl, lookup)));
+  const own = ta.hasToolAudioInput ? ta.audio.toolAudioRef() : null;
+  if (own && (own.format === 'lofi' || !own.format)) {
+    const ref = await ta.audio.resolveToolAudio().catch(() => null);
+    if (ref) tunes.push(await prov.tuneSourceOfRef(ref));
+  }
+  const track = video ? ta.el?.querySelector<HTMLSelectElement>('[data-action="video-audio"]')?.value : '';
+  if (track && track !== '__generate__') {
+    const ref = await lookup(track);
+    if (ref?.format === 'lofi') tunes.push(await prov.tuneSourceOfRef(ref));
+  }
+  return prov.distinctTunes(tunes);
+}
+
 /** Quote a list of song names for a sentence. */
 const quoted = (names: readonly string[]): string => names.map((n) => `“${n}”`).join(', ');
 
-/** Paint the pre-export line: which songs the credential will record. Hidden when none. */
+/** Paint the pre-export lines: which songs and tunes the credential will record. Hidden when none. */
 export async function fillSongNote(ta: ActionsCtx): Promise<void> {
   const slot = ta.el?.querySelector<HTMLElement>('[data-song-note]');
   if (!slot) return;
   const seq = (ta.songNoteSeq ?? 0) + 1;
   ta.songNoteSeq = seq;
   const fmt = ta.formatEl?.value || ta.initialFmt || '';
+  const on = songCredentialOn(ta, fmt);
   let names: string[] = [];
+  let tunes: TuneSource[] = [];
   try {
-    names = songCredentialOn(ta, fmt) ? await exportSongNames(ta) : [];
+    [names, tunes] = on ? await Promise.all([exportSongNames(ta), exportTunes(ta)]) : [[], []];
   } catch {
     names = [];
+    tunes = [];
   }
+  const tuneLines = tunes.length ? (await import('../../lib/tune-provenance.ts')).tuneNoteLines(tunes) : [];
   if (seq !== ta.songNoteSeq) return;
   ta.songNoteNames = names;
-  if (!names.length) {
+  ta.tuneNoteNames = tunes.map((tune) => tune.name);
+  if (!names.length && !tuneLines.length) {
     slot.hidden = true;
     slot.replaceChildren();
     return;
   }
-  const line = document.createElement('p');
-  line.className = 'export-song-note';
-  line.dataset.songNoteState = 'before';
-  line.textContent = names.length === 1
-    ? tRaw('Content Credentials will record the song {name}, rendered in Lolly’s sandbox, as a source of this file.', { name: quoted(names) })
-    : tRaw('Content Credentials will record the songs {names}, rendered in Lolly’s sandbox, as sources of this file.', { names: quoted(names) });
-  slot.replaceChildren(line);
+  const lines: HTMLElement[] = [];
+  const say = (text: string): void => {
+    const line = document.createElement('p');
+    line.className = 'export-song-note';
+    line.dataset.songNoteState = 'before';
+    line.textContent = text;
+    lines.push(line);
+  };
+  if (names.length) {
+    say(names.length === 1
+      ? tRaw('Content Credentials will record the song {name}, rendered in Lolly’s sandbox, as a source of this file.', { name: quoted(names) })
+      : tRaw('Content Credentials will record the songs {names}, rendered in Lolly’s sandbox, as sources of this file.', { names: quoted(names) }));
+  }
+  for (const text of tuneLines) say(text);
+  slot.replaceChildren(...lines);
   slot.hidden = false;
 }
 
@@ -285,17 +329,20 @@ export function scheduleSongNote(ta: ActionsCtx): void {
 
 /**
  * After an export: say what the delivered file's Content Credentials record about
- * its songs, read from its bytes. Silent when the sheet promised no song.
+ * its songs and tunes, read from its bytes in one pass. Silent when the sheet
+ * promised neither.
  */
 export async function reportSongRecord(ta: ActionsCtx, blob: Blob | null): Promise<void> {
   const slot = ta.el?.querySelector<HTMLElement>('[data-song-note]');
   const promised = ta.songNoteNames ?? [];
-  if (!slot || !blob || !promised.length) return;
+  const promisedTunes = ta.tuneNoteNames ?? [];
+  if (!slot || !blob || (!promised.length && !promisedTunes.length)) return;
   const seq = (ta.songNoteSeq ?? 0) + 1;
   ta.songNoteSeq = seq;
-  const { recordedSongNames } = await import('../../lib/rondo-provenance.ts');
-  const recorded = await recordedSongNames(blob);
+  const prov = await import('../../lib/tune-provenance.ts');
+  const both = await prov.recordedSourceNames(blob);
   if (seq !== ta.songNoteSeq) return;
+  const recorded = both ? both.songs : null;
   const lines: HTMLElement[] = [];
   const say = (cls: string, text: string): void => {
     const p = document.createElement('p');
@@ -304,9 +351,9 @@ export async function reportSongRecord(ta: ActionsCtx, blob: Blob | null): Promi
     p.textContent = text;
     lines.push(p);
   };
-  if (recorded === null) {
+  if (promised.length && recorded === null) {
     say('guide-absent', t('The song record was not checked: this file is too large to read back here.'));
-  } else {
+  } else if (promised.length && recorded) {
     const found = promised.filter((n) => recorded.includes(n));
     const missing = promised.filter((n) => !recorded.includes(n));
     if (found.length) {
@@ -319,6 +366,12 @@ export async function reportSongRecord(ta: ActionsCtx, blob: Blob | null): Promi
         ? tRaw('This file’s Content Credentials do not record the song {name}.', { name: quoted(missing) })
         : tRaw('This file’s Content Credentials do not record the songs {names}.', { names: quoted(missing) }));
     }
+  }
+  if (promisedTunes.length && !both) say('guide-absent', prov.tuneNotCheckedLine());
+  else if (promisedTunes.length && both) {
+    const { found, missing } = prov.tuneRecordLines(promisedTunes, both.tunes);
+    if (found) say('guide-fact', found);
+    if (missing) say('guide-absent', missing);
   }
   slot.replaceChildren(...lines);
   slot.hidden = !lines.length;
@@ -380,6 +433,7 @@ export function notesOps(ta: ActionsCtx) {
   return {
     fillIngredientNote: bindOp(ta, fillIngredientNote),
     exportSongNames: bindOp(ta, exportSongNames),
+    exportTunes: bindOp(ta, exportTunes),
     fillSongNote: bindOp(ta, fillSongNote),
     fillMadeWith: bindOp(ta, fillMadeWith),
     paintMadeWith: bindOp(ta, paintMadeWith),

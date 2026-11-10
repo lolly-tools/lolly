@@ -829,12 +829,30 @@ export function wireApprovalAndActions(ta: ActionsCtx): void {
             throw new Error(words.rondoFailureSentence(err));
           }
         };
+        // A saved tune is a recipe Lolly composes (Andy's approval of 2026-11-10): rendered
+        // to a WAV blob here, and recorded as one C2PA source ingredient of the file it
+        // sounds in, with its name, the maker and licence it records, the digest of its
+        // recipe and the engine version. The sheet said so before the click
+        // (notes.ts fillSongNote). A record that cannot be built never stops the export.
+        const tuneToWav = async (r: { url: string; meta?: Record<string, unknown> }, seconds?: number): Promise<string> => {
+          const url = trackBlobUrl(await (await import('../../lib/lofi-tune.ts')).lofiTuneUrlToWavBlobUrl(r.url, seconds));
+          try {
+            const prov = await import('../../lib/tune-provenance.ts');
+            const source = await prov.tuneSourceOfRef({ format: 'lofi', url: r.url, ...(r.meta ? { meta: r.meta } : {}) });
+            const ing = source ? await prov.tuneSourceIngredient(source) : null;
+            // One ingredient per tune: the same tune as the tool's audio and the bed is one source.
+            if (ing && !songIngredients.some((have) => have.instanceId === ing.instanceId)) songIngredients.push(ing);
+          } catch (err) {
+            host.log('warn', `export: the tune record for Content Credentials could not be built (${(err as Error)?.message || err}).`);
+          }
+          return url;
+        };
         // ZzFXM songs, tracker modules, rondocode songs and saved station tunes have no
         // playable audio file - render them to a transient WAV blob URL so the URL-driven
         // muxer paths consume them exactly like an encoded loop. (mod → libopenmpt,
         // zzfxm → the synth, rondo → the song renderer, lofi → the station, repeating
         // the tune to fill the video.)
-        const toWavIfNeeded = async (r: { url: string; format?: string }, seconds?: number): Promise<string> =>
+        const toWavIfNeeded = async (r: { url: string; format?: string; meta?: Record<string, unknown> }, seconds?: number): Promise<string> =>
           r.format === 'zzfxm'
             ? trackBlobUrl(await songUrlToWavBlobUrl(r.url))
             : isModuleFormat(r.format)
@@ -842,7 +860,7 @@ export function wireApprovalAndActions(ta: ActionsCtx): void {
               : r.format === 'rondo'
                 ? await songToWav(r.url, seconds)
                 : r.format === 'lofi'
-                  ? trackBlobUrl(await (await import('../../lib/lofi-tune.ts')).lofiTuneUrlToWavBlobUrl(r.url, seconds))
+                  ? await tuneToWav(r, seconds)
                   : r.url;
         // The video's own length, which a song bed is rendered to fill.
         const videoSec = (): number | undefined => {

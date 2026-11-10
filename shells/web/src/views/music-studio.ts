@@ -22,6 +22,12 @@
  * who opens it: the composer is deterministic (engine/src/lofi-compose.ts). Making the
  * track renders the whole of it offline with progress; it can then be downloaded or
  * saved to the library, with the recipe kept in the asset's details.
+ *
+ * What each of those writes is said in the Make panel before the click (Andy's approval
+ * of 2026-11-10, lib/tune-provenance.ts): a download carries Content Credentials that
+ * say the music generator made it, unless the person unticks the switch, and a saved
+ * tune records the person's profile name as its maker, the music generator and the
+ * Lolly and engine versions. After the click the hint says only what was written.
  */
 import type { HostV1 } from '@lolly-tools/core/host-v1';
 import { backHomeHtml, mountBackPill } from '../components/back-pill.ts';
@@ -29,7 +35,7 @@ import { mountHomeFab } from '../components/home-fab.ts';
 import { langFabHtml, attachLangMenu } from '../components/lang-menu.ts';
 import { mountThemeFab } from '../components/theme-toggle.ts';
 import { mountProfileFab } from '../components/profile-menu.ts';
-import { t } from '../i18n.ts';
+import { t, tRaw } from '../i18n.ts';
 import { escape as escapeHtml } from '../utils.ts';
 import {
   lofiSectionName, transposeChordName, LOFI_KEYS, LOFI_LEADS, LOFI_BASSES, LOFI_SNARES, LOFI_HATS, LOFI_DRUM_VOICES, LOFI_PERCUSSION,
@@ -47,6 +53,7 @@ import { instrumentIcon, iconPath, musicIconNode } from '../lib/instrument-icons
 import { MIX_KEYS, BPM_RANGE, TRANSPOSE_RANGE, parseMusicState, musicStateParams, fixedStyle, shapeBar, composeTrack, barTimes, type MusicState, type SectionVoices } from '../lib/music-state.ts';
 import { shuffleMusic } from '../lib/music-shuffle.ts';
 import { pillSliderHtml, showPillSlider } from '../components/pill-slider.ts';
+import { TUNE_DECLARATION } from '../../../../engine/src/tune-provenance.ts';
 import '../styles/parts/music-studio.css';
 
 // The track's settings and how they shape the composer's bars live in lib/music-state.ts
@@ -238,6 +245,14 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
       <select class="field-select field-select--sm" data-format aria-label="${escapeHtml(t('File type'))}"><option value="m4a">M4A</option><option value="wav">WAV</option></select>
       <button type="button" class="btn btn--sm" data-download disabled>${escapeHtml(t('Download'))}</button>
       <button type="button" class="btn btn--sm" data-save>${escapeHtml(t('Save to library'))}</button>
+      <label class="field-toggle ms-cred">
+        <input type="checkbox" class="field-check" data-cred checked>
+        <span>${escapeHtml(t('Content Credentials'))}</span>
+      </label>
+      <div class="ms-make-notes">
+        <p class="ms-make-note" data-cred-note></p>
+        <p class="ms-make-note" data-save-note></p>
+      </div>
     </div>
     <div class="ms-stage">
       <canvas class="ms-viz" data-viz aria-hidden="true"></canvas>
@@ -288,6 +303,7 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
   const pos = q<HTMLElement>('[data-pos]');
   const progress = q<HTMLProgressElement>('[data-progress]');
   const downloadBtn = q<HTMLButtonElement>('[data-download]');
+  const credToggle = q<HTMLInputElement>('[data-cred]');
   const pop = q<HTMLElement>('[data-pop]');
   const popPick = q<HTMLSelectElement>('[data-pop-pick]');
   const popPick2 = q<HTMLSelectElement>('[data-pop-pick2]');
@@ -927,11 +943,42 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
   });
   canvas.addEventListener('dblclick', e => { selected = barAt(e); closePop(); play(selected); });
   listen('[data-render]', 'click', () => { void render().catch(err => { say(`${t('Could not make the track')}: ${String(err)}`); }); });
+  // What a download and a save will record, said before either is clicked.
+  const paintCredNote = (): void => {
+    q<HTMLElement>('[data-cred-note]').textContent = credToggle.checked
+      ? tRaw('Downloads will carry Content Credentials that record: {declaration}.', { declaration: TUNE_DECLARATION })
+      : t('Downloads will carry no Content Credentials.');
+  };
+  credToggle.addEventListener('change', paintCredNote);
+  paintCredNote();
+  void (async () => {
+    const { profileMaker } = await import('../lib/tune-provenance.ts');
+    let maker = '';
+    try { maker = profileMaker(await host.profile.get()); } catch { /* no profile, no maker */ }
+    q<HTMLElement>('[data-save-note]').textContent = maker
+      ? tRaw('Save to library records {maker} as the maker, the music generator as the source, and the Lolly and engine versions. The licence stays not recorded until you set one in the tune’s details.', { maker })
+      : t('Save to library records the music generator as the source, and the Lolly and engine versions. Your profile has no name, so no maker is recorded. The licence stays not recorded until you set one in the tune’s details.');
+  })().catch(() => { /* the note is a courtesy; the save still says what it wrote */ });
   listen('[data-download]', 'click', () => {
     void (async () => {
       const { blob, format } = await encoded();
-      await host.export.download(blob, fileName(format));
-      say(t('File handed to your device’s save/download flow.'));
+      if (!credToggle.checked) {
+        await host.export.download(blob, fileName(format));
+        say(t('File handed to your device’s save/download flow, with no Content Credentials.'));
+        return;
+      }
+      const { signTrackDownload } = await import('../lib/tune-provenance.ts');
+      let signed: { blob: Blob; declaration: string | null } | null = null;
+      try {
+        signed = await signTrackDownload(host, blob, format, { name: trackName(), style: state.mood, styleName: lofiStationName(state.mood), seed: state.seed });
+      } catch { signed = null; }
+      await host.export.download(signed?.blob ?? blob, fileName(format));
+      // Only what the reading of the written file found.
+      say(!signed
+        ? t('File handed to your device’s save/download flow without Content Credentials: they could not be written.')
+        : signed.declaration
+          ? tRaw('File handed to your device’s save/download flow. Its Content Credentials record: {declaration}', { declaration: signed.declaration })
+          : t('File handed to your device’s save/download flow. Reading it back found no Content Credentials, so none are confirmed.'));
     })().catch(err => { say(String(err)); });
   });
   listen('[data-save]', 'click', () => {
@@ -940,7 +987,14 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
       // Saved as a tune (lib/lofi-tune.ts), not a recording: a few hundred bytes holding the
       // track's settings, played and rendered from them wherever a tune plays (the player,
       // the asset details, an audiogram, a video's music bed). Nothing to make first.
-      const { lofiTuneBytes, LOFI_TUNE_FORMAT } = await import('../lib/lofi-tune.ts');
+      // The tune also records who made it (the profile's name, left out when none is
+      // set: a fact, not a rights claim), the music generator and the versions that made
+      // it, all shown in its details. Its licence is not written: not recorded until set.
+      const [{ lofiTuneBytes, LOFI_TUNE_FORMAT }, { profileMaker, tuneSaveRecord }, { LOLLY_RELEASE }, { ENGINE_VERSION }] = await Promise.all([
+        import('../lib/lofi-tune.ts'), import('../lib/tune-provenance.ts'), import('../lib/lolly-release.ts'), import('../../../../engine/src/version.ts'),
+      ]);
+      let maker = '';
+      try { maker = profileMaker(await host.profile.get()); } catch { /* no profile, no maker */ }
       const generator = musicStateParams(state);
       const recipe = { mood: state.mood, seed: state.seed >>> 0, generator };
       const bytes = lofiTuneBytes(recipe);
@@ -951,11 +1005,14 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
           name: trackName(), tags: ['music', 'generated', 'lolly-sings'],
           lofi: recipe, generator,
           durationMs: Math.round(times.total * 1000),
+          ...tuneSaveRecord(maker, { lolly: LOLLY_RELEASE, engine: ENGINE_VERSION }),
         },
       });
       // The player keeps a cached list of the library's audio: drop it, so the track is there now.
       (await import('../lib/neurospicy.ts')).invalidateNeurospicyTracks();
-      say(t('Saved to your library: it plays in the Neurospicy player and in Assets, and works as a music bed or an audiogram\'s sound.'));
+      say(maker
+        ? tRaw('Saved to your library: it plays in the Neurospicy player and in Assets, and works as a music bed or an audiogram\'s sound. Its details record {maker} as the maker, the music generator, and Lolly {lolly} with engine {engine}.', { maker, lolly: LOLLY_RELEASE, engine: ENGINE_VERSION })
+        : tRaw('Saved to your library: it plays in the Neurospicy player and in Assets, and works as a music bed or an audiogram\'s sound. Its details record the music generator, and Lolly {lolly} with engine {engine}.', { lolly: LOLLY_RELEASE, engine: ENGINE_VERSION }));
     })().catch(err => { say(String(err)); });
   });
   listen('[data-link]', 'click', () => {
