@@ -10,6 +10,7 @@ Some rules hold for every table:
 - **Reserved namespaces.** Any name that starts with `_` is skipped before input matching, and no tool input or `urlKey` may claim one, so future reserved names come from there and can never collide with a tool's inputs. Parameters that start with `pkg.` are kept for Linux package metadata in the same way.
 - **The CLI.** Each name works on the command line as `--name=value`, unless its row says web only. A row marked CLI only has no meaning in a browser.
 
+<!--i:eti-external-link-->
 ## What happens on open
 
 | Param | Where | What it does |
@@ -41,6 +42,7 @@ Some rules hold for every table:
 **`slot`** is ignored by the CLI, which has no saved-session store.
 :::
 
+<!--i:eti-file-->
 ## The file
 
 | Param | Where | What it does |
@@ -55,6 +57,10 @@ Some rules hold for every table:
 | `password` | web + CLI | An open password for `pdf` and `zip`, standard tier only, read when a link opens. It deters casual opening and does not protect confidential material. Lolly never writes it into a link. [Exporting](/info/exporting.html#password-protection) |
 | `_text` | web + CLI (`--text=outline`) | How an `emf` export writes text. Off by default, so text stays live and the fonts on the reader's device draw the letters. `_text=outline` draws each line as vector outlines, the same as ticking **Outline fonts** in the export panel, and a line that no font here can draw goes in as a picture. The CLI sends it to the browser when `lolly <tool> --export=emf --text=outline` needs the browser. |
 
+::: warning A password in a link can stay in your browser's history
+The web app takes `password` out of the address as soon as the link opens, but your browser may still remember the address you opened. Type the password in the export panel when you can.
+:::
+
 ::: details Size on a document with several artboards
 On a Lolly Design document with more than one artboard, the artboards are the size truth. `width` and `height` describe the active artboard: the selected one for still formats, the one under the playhead for animated ones. In the app the export panel mirrors that artboard as it changes, and editing the fields resizes that artboard.
 
@@ -62,13 +68,14 @@ Each format resolves the boards its own way. Still images fan out to one file pe
 :::
 
 ::: details More on password
-A link can bring a password, and the web app reads the value and takes it out of the address straight away, along with `export` and `copy`, so a reload opens the tool instead of writing the file again with no lock. Your browser may still remember the address you opened, so type the password in the export panel when you can. The address bar, a copied link, a saved session and the file's own metadata never hold the password.
+A link can bring a password, and the web app reads the value and takes it out of the address straight away, along with `export` and `copy`, so a reload opens the tool instead of writing the file again with no lock. The address bar, a copied link, a saved session and the file's own metadata never hold the password.
 
 A password must be able to protect the file, or nothing is written. In the web app, the CLI and the TUI, `password` on any format other than `pdf` or `zip`, or on a `pdf` with `bleed` or `marks`, is refused. So is a `pdf` password beyond plain ASCII, because readers cannot open a file locked that way at this tier. Only the first 32 characters of a `pdf` password count. An encrypted PDF cannot take `c2pa`, so a locked PDF holds no credential.
 
 The export panel's strong AES-256 tier, which also covers `pdf-cmyk`, print marks and any alphabet, is typed at export and never travels in a link. The hot-link render URL has no lock, so it refuses `password` with a 400.
 :::
 
+<!--i:eti-animation-->
 ## Motion and timed documents
 
 | Param | Where | What it does |
@@ -97,6 +104,7 @@ Each of `fps`, `seconds`, `wait`, `codec` and `vq` is the URL form of a control 
 **`cuts`** at the default `1` keeps the playhead still. PNG, JPG, WebP and SVG sheets return a ZIP; PDF returns one document with a page per still. The CLI and MCP need the browser tier for a contact sheet.
 :::
 
+<!--i:eti-scissors-->
 ## Print
 
 | Param | Where | What it does |
@@ -107,11 +115,12 @@ Each of `fps`, `seconds`, `wait`, `codec` and `vq` is the URL form of a control 
 | `_spots` | web + CLI (`--spots=process`) + MCP (`spots: "process"`) + terminal app | How the CMYK formats print the design system's spot inks. Off by default, so each spot ink prints on its own named plate. `_spots=process` prints each spot ink with the four process inks instead. Finishes keep their own plates. [Exporting](/info/exporting.html#spot-inks-as-process) |
 
 ::: details More on profile and _spots
-For the print formats, a named condition such as `fogra51` is written into the PDF's output intent without profile bytes, because no CMYK ICC profile ships with Lolly, and recorded in the TIFF's provenance. `profile=own` embeds a CMYK profile loaded on the device the link is opened on, which a conformant PDF/X-4 Print PDF needs; [Print-ready output](/info/url-export.html#print-ready-output) covers what else can withhold that claim. `own` resolves only when exactly one such profile is loaded; otherwise it writes no output intent and declares nothing. A profile's digest never travels in a link: which profile is embedded, and so the file's size, is the recipient device's business.
+For the print formats, a named condition such as `fogra51` is written into the PDF's output intent without profile bytes, and recorded in the TIFF's provenance. Lolly's one bundled CMYK profile, Coated FOGRA39, converts colours for the default condition but is not embedded, because it is ICC version 4.3 and PDF/X-4 accepts versions up to 4.2. `profile=own` embeds a CMYK profile loaded on the device the link is opened on, which a conformant PDF/X-4 Print PDF needs; [Print-ready output](/info/url-export.html#print-ready-output) covers what else can withhold that claim. `own` resolves only when exactly one such profile is loaded; otherwise it writes no output intent and declares nothing. A profile's digest never travels in a link: which profile is embedded, and so the file's size, is the recipient device's business.
 
 **`_spots=process`** writes each spot ink as the CMYK build the design system gives that colour. A colour with no build of its own takes the press condition's conversion, the same as any other colour in the artwork. The Print PDF then has the four process plates and nothing more. A finish such as foil, emboss, spot varnish or a die line is not an ink, so it keeps its own named plate. Printing a finish in process would put its black mask on the page. The Print TIFF and `eps-cmyk` have no named plates, so they print each ink in process with or without this parameter. Only `process` turns the choice on: any other value, or none, keeps the spot plates. The choice travels in a share link, like `profile`, and is not recorded in the file.
 :::
 
+<!--i:eti-stamp-->
 ## Provenance and metadata
 
 | Param | Where | What it does |
@@ -147,6 +156,7 @@ A credential lives in a metadata container and is lost to any re-save or strip. 
 **`licence`** takes one of `CC0-1.0`, `CC-PDM-1.0`, `CC-BY-4.0`, `CC-BY-SA-4.0`, `CC-BY-NC-4.0`, `CC-BY-NC-SA-4.0`, `CC-BY-ND-4.0` or `CC-BY-NC-ND-4.0`. Its name and deed link go into EXIF, XMP, RIFF and the Content Credential's rights field, wherever the format carries one. Absent, or any other value, means no declaration: all rights reserved. A tool with its own licence input (Claim) keeps that input's value. It travels in a share link, because a licence belongs to the document.
 :::
 
+<!--i:eti-sun-->
 ## Colour depth and HDR
 
 | Param | Where | What it does |
@@ -170,6 +180,7 @@ On the CLI and MCP, `hdr` is also what makes the float formats possible. `--expo
 Formats that are deep by nature (OpenEXR, Radiance `.hdr`) ignore the parameter except for one choice: on the CLI, `depth=float` writes an EXR with 32-bit float samples instead of the default 16-bit half. An HDR PNG is written at 16 bits regardless, because 8-bit PQ bands; `depth=8` there falls back to the older encode. The CLI does not honour `depth=16` for `png` or `tiff`: its render path rasterises to 8-bit sRGB, so the request is ignored. Invalid values (`depth=32`, `depth=deep`, an empty value) read as `auto` rather than failing the export.
 :::
 
+<!--i:eti-palette-->
 ## Design system, language and emoji
 
 | Param | Where | What it does |
@@ -188,7 +199,7 @@ A tool whose manifest ignores a kind of theme group (`tokenAxes`, see [Tool mani
 :::
 
 ::: details More on ds and designv
-**`ds`** values that fail the id grammar read as absent. An id for a system the device does not hold falls through to the active one with a warning, so a link never fails to draw. It is never written into a share link: a design system belongs to whoever holds it, and a link must not pin its recipient to one that is not theirs. Pair it with `designv` to choose a published version of that system.
+**`ds`** values that fail the id grammar read as absent. `ds=shipped` also brings back a supplied design system you removed, as **Bring back** on its card does. An id for a system the device does not hold falls through to the active one with a warning, so a link never fails to draw. It is never written into a share link: a design system belongs to whoever holds it, and a link must not pin its recipient to one that is not theirs. Pair it with `designv` to choose a published version of that system.
 
 **`designv`** is the highest rung of the resolution ladder. It beats a tool's `designVersion` manifest pin and the active version, and it falls through to the next rung when it points at nothing this device has. It is a testing lever for authors ("check against `latest`, fix, then publish"). It is never written into a share link, because a version belongs to the design system it was published in. On a device that has never published a version, every value resolves to the edit head. The shells differ in one way today: the CLI reads the pin from the tool's manifest as the rung below this parameter, while the web app resolves this parameter and the active version only, so a manifest pin does not change what a browser draws yet.
 :::
@@ -207,6 +218,7 @@ The codes are `en` (the default), `es`, `de`, `fr`, `zh` (Simplified), `zh-hant`
 **`emojistyle`** includes manifest checksums, ordered fallback sets, the palette and the protection setting, and generated links pin the original palette in the snapshot. Malformed or oversized snapshots are reported. The set's own bytes travel in portable `.lolly` documents, not in links.
 :::
 
+<!--i:eti-link-->
 ## The link itself
 
 | Param | Where | What it does |

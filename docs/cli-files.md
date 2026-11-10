@@ -2,6 +2,7 @@
 
 Clean, convert or redact files you already have, or run speech and the on-device models. Your files are read on this machine and written as new files, and nothing is uploaded.
 
+<!--i:eti-refresh-->
 ## Clean or convert a file
 
 Some tools take **your own file** as input and hand back a transformed copy: strip hidden data, crop, convert. Pass the file as a path, and the CLI reads its bytes:
@@ -12,7 +13,7 @@ lolly strip-data --source=./holiday.jpg --output=./holiday-clean.jpg
 
 These tools transform bytes rather than render a page, so there is no render format to choose: the output follows the file you gave. `--export=` is therefore **refused**:
 
-```text
+```bash
 $ lolly strip-data --source=./photo.jpg --export=png --output=./clean.png
 Error: "strip-data" is an on-device transform (file in → file out), so --export=png has
 nothing to act on: the output container follows the file you gave it, and the reserved
@@ -27,6 +28,12 @@ lolly convert-image --source=./photo.heic --target=png --output=./photo.png
 ```
 
 An `--output` name whose extension disagrees with the bytes is a **warning**, not a refusal: the transform cannot change the container, so the file is written under your name and stderr says so. Without `--output` or `--filename`, the bytes go to stdout.
+
+Lolly Clean repairs a WAV recording here with no model: steady noise, mains hum, harsh s sounds, clicks and room echo. Its speech model stays in the browser, and other containers go to the browser tier or are refused by name ([Lolly Utilities](/info/utilities.html#audio-and-video)):
+
+```bash
+lolly clean --source=./take.wav --repairHum=50 --output=./take-clean.wav
+```
 
 ### Redaction rebuilds real pixels
 
@@ -47,8 +54,9 @@ lolly prepare report.docx --strip-hidden-data --output=report-clean.docx
 lolly files convert photo.png --to=webp --output=photo.webp
 ```
 
-`lolly prepare` inspects files for private values and hidden data, then writes cleaned copies; with no change flag it prints a report that leaves the private values themselves out. `lolly files inspect`, `files convert` and `files schema` read, convert and describe images, fonts, spreadsheets and PDFs. Neither ever overwrites an existing file. [Lolly Utilities](/info/utilities.html#prepare-for-sharing) explains both, with the same choices the app's **Prepare for sharing** and **Convert** views offer.
+`lolly prepare` inspects files for private values and hidden data, then writes cleaned copies; with no change flag it prints a report that leaves the private values themselves out. `lolly files inspect`, `files convert` and `files schema` read, convert and describe images, fonts, spreadsheets and PDFs. Neither ever overwrites an existing file. For a spreadsheet or delimited text, `files convert` also takes `--sheet=<name|position>` or `--all-sheets` (which writes a `.zip`), `--cells=cached|formulas`, `--delimiter`, `--encoding` and `--header`. [Lolly Utilities](/info/utilities.html#prepare-for-sharing) explains both, with the same choices the app's **Prepare for sharing** and **Convert** views offer.
 
+<!--i:eti-eye-off-->
 ## Redact many copies with one link
 
 A redaction is fully described by its bars and its options, and that description is ordinary URL state. So the same instructions work as a share link, as CLI flags and as an [MCP](/info/mcp.html) call. Bars are `page,x,y,w,h`: PDF bars in points from the page's top-left, image bars in pixels.
@@ -77,8 +85,13 @@ for f in ./inbox/*.pdf; do
 done
 ```
 
-`--verify` prints a line per file once the tool's own gate has run. The redacted copy is reopened and scanned again before any bytes are written: no metadata, one end-of-file marker, no recoverable covered text and every bar region solid. A failed check exits non-zero with the tool's own sentence and writes **no file**, so a shell loop can treat failures as failures. It cannot tell you whether an invisible whole-image watermark was present: nothing here detects or removes one.
+`--verify` prints a line per file once the tool's own gate has run. The redacted copy is reopened and scanned again before any bytes are written: no metadata, one end-of-file marker, no recoverable covered text and every bar region solid. A failed check exits non-zero with the tool's own sentence and writes **no file**, so a shell loop can treat failures as failures.
 
+::: warning Invisible watermarks are not checked
+`--verify` cannot tell you whether an invisible whole-image watermark was present: nothing here detects or removes one.
+:::
+
+<!--i:eti-speak-->
 ## Text to speech and back
 
 Two speech commands reach the same `host.speech` a tool's hooks use, and the models run on this machine. A tool that speaks its own text, such as a narration or caption track, also renders headlessly with no extra flags.
@@ -95,7 +108,7 @@ lolly transcribe ./clip.wav --lang=en --json
 
 Speech to text reads **WAV only**. Node has no MP3, AAC or Opus decoder, and the command does not call an `ffmpeg` it finds on `PATH`. So an `mp3`, `m4a`, `aac`, `ogg`, `oga`, `opus`, `flac`, `weba`, `webm`, `mp4` or `mov` file is refused **by name** rather than read as noise, and so is a generated ZzFXM song, which holds no speech:
 
-```text
+```bash
 $ lolly transcribe ./interview.m4a
 Error: speech: m4a needs a platform codec this shell does not have - hand it a WAV, or run
 it in a browser shell
@@ -103,6 +116,7 @@ it in a browser shell
 
 With `--json`, both commands answer in the [standard envelope](/info/cli-reference.html#the-json-envelope). `speak` reports `output`, `voice`, `speed`, `sampleRate`, `duration`, `granularity`, the sentence `script` and a `words` array of `{ text, start, end }` spans in seconds. The reverse direction reports `text`, `words`, `lang` and `granularity`. A caption or a karaoke highlight keys off those spans, so read `granularity` rather than inferring alignment from span lengths.
 
+<!--i:eti-cpu-->
 ## Run the on-device models
 
 Six utilities run the same models the app does. Each is a thin wrapper over the API a tool's hook reaches through `host.*`, so there is no second model, tiling scheme or gate in the CLI. `host.upscale`, `host.matte` and `host.ocr` are on the CLI bridge, so a tool that uses one works in a headless `lolly run`, and these commands are how you check a model runs on your machine.
@@ -133,6 +147,7 @@ The two speech commands and the six model commands are not a `lolly run`, so the
 
 The models run on the **CPU by default**, because that is what the app's WASM kernels match numerically and what every model is verified against. `LOLLY_ORT_EP=coreml` (or `=cuda`) opts into an accelerated provider, which is faster and can move the numbers on some graphs. `LOLLY_ORT_THREADS=<n>` caps the threads each model session may use (unset means every core); `1` runs on the calling thread with no pool, which is slower but predictable on a shared machine.
 
+<!--i:eti-download-->
 ## Download the models
 
 Nothing here fetches anything on its own. Every model is read from a models directory: `$LOLLY_MODELS_DIR` when you set one, then the checkout's own `shells/web/public/models` when it exists (so a checkout shares one copy with the web shell), then `~/.cache/lolly/models`.
@@ -154,7 +169,7 @@ Nothing here fetches anything on its own. Every model is read from a models dire
 
 A family that is not staged is refused by the command that needs it, naming the files, the size and the fetch command. The exit code is `3` with `error.kind` `MODEL_NOT_STAGED`, meaning it may well work on another runner. The missing files are listed biggest first:
 
-```text
+```bash
 $ lolly speak "hello there"
 Error: speech: the kokoro model is not on this machine - missing onnx/model_quantized.onnx,
 voices/bf_lily.bin, tokenizer.json, and 2 more under …/models/kokoro. It is a one-time

@@ -13,6 +13,7 @@ Both routes start from the old deck and end in a file the app opens.
 
 The deck verbs are also MCP tools over the same code ([The same verbs over MCP](#the-same-verbs-over-mcp)), and each one prints its own flags, inputs and exit codes with `--help`.
 
+<!--i:eti-refresh-->
 ## Renovate in place with lolly rebrand
 
 `lolly rebrand` reads a deck someone else made (`.pptx`, `.pdf` or Photoshop `.psd`) and works in three stages, so an agent or a script can look at the first pass before anything is written:
@@ -48,6 +49,7 @@ Every stage reads the content profile's design system (`LOLLY_PROFILE`) and touc
 :::
 
 <a id="rebuild-in-design-the-seven-commands"></a>
+<!--i:eti-hammer-->
 ## Rebuild in Lolly Design: the seven commands
 
 These commands take an old deck to a checked, exported PowerPoint file. The sections below explain each step.
@@ -64,6 +66,17 @@ lolly run review.lolly --export=pptx --output=review.pptx
 
 `read` and `check` need no catalog, so both run on a standalone CLI.
 
+**The rebuild**, step by step:
+
+::: steps
+- <!--i:eti-eye--> **[Read](#read-the-old-deck)** The old deck's text, notes and pictures, as an inventory.
+- <!--i:eti-grid--> **[Compose](#compose-slides-from-the-slide-master)** Each slide laid out from an archetype of the slide master.
+- <!--i:eti-type--> **[Fit the text](#write-and-fit-the-text)** Every text slot measured before it is drawn.
+- <!--i:eti-package--> **[Package and export](#package-and-export)** A `.lolly` the app reopens, and the file the app's own exporter writes.
+- <!--i:eti-badge-check--> **[Check](#check-the-recreation)** The package or its export against the source deck, in one findings list.
+:::
+
+<!--i:eti-eye-->
 ## Read the old deck
 
 `lolly read <deck>` reads a `.pptx`, a PDF or a Photoshop `.psd` (or `-` for standard input) with the same reader rebrand uses. For each slide it gives:
@@ -91,6 +104,7 @@ A hidden object, such as a Photoshop layer switched off, is left out of the text
 
 The app's Read and extract view (`#/extract`) runs the same extract on the device.
 
+<!--i:eti-palette-->
 ## Which design system a command uses
 
 The Lolly Design verbs on this page (`system context`, `compose`, `measure`, `package`, `check` and `run design`) look for a design system in the same three places, in this order:
@@ -117,6 +131,7 @@ The page holds the system in memory for that one job. Nothing is installed in it
 The desktop app renders in its own design system, so a Lolly Design render with one of these goes to Chromium first and falls back to the app, with a note, only when Chromium is not there. `--file` belongs to Lolly Design: another tool refuses the flag, and so does `--share`, because a link cannot carry a design system.
 :::
 
+<!--i:eti-grid-->
 ## Compose slides from the slide master
 
 Placing every layer by hand is the long way round. `lolly compose` lays out each slide from an archetype of the design system's slide master, the way **New slide from layout** does in the app, and writes the Lolly Design document that `package`, `check` and `run design --document` take.
@@ -159,10 +174,13 @@ Every composed text slot is measured with the faces the canvas loads. The report
 
 `--edits-out=<edits.json>` writes the source wording the composed slides leave out or change, as `{ "edits": [...] }`, which `lolly check --edits` reads. Each entry carries a generic reason; write the real one before you hand the file to a person.
 
+::: note Compose the whole deck
 Compose a whole deck, one slide per source slide. The fidelity check pairs artboards and source slides by their text, so a spec that recreates only some slides reports the others as missing.
+:::
 
 `compose` exits `0` when it composed (a slot that still clips is reported, not refused), `2` on a usage error (an unknown flag, a size or theme that is not one, a master or token file that will not read), `4` when it refuses the spec (with the JSON pointer of the key) or an output exists without `--force`, and `1` when the deck cannot be read. With `--json` the envelope's `result` holds the document (or, with `--output`, its path), the report, the edits, the pictures it named and the next commands to run.
 
+<!--i:eti-type-->
 ## Write and fit the text
 
 You can also write a Lolly Design document by hand, or edit the one compose wrote. Its rows may carry **authoring keys**, which start with `$`:
@@ -176,7 +194,9 @@ Before anything else reads the document, these are lowered to ordinary layers in
 
 Every verb here accepts an authoring document: `run design --document=<file|->`, `compile design --inputs=<file>`, `validate design --inputs=<file> --document`, `check`, `measure --text-layers` and `package`.
 
+::: note A placeholder picture has no bytes until you package
 A placeholder picture such as `photo:title` gets its bytes only when `lolly package --asset` writes the `.lolly`. Before that, `run design --document` draws the slide without it and warns `Asset not in catalog: photo:title`, `--asset` is refused there and `check` lists it as a `brand.asset.review` finding, because it is not one of the design system's asset ids. To preview or check a document with its pictures, package it first and run or check the `.lolly`.
+:::
 
 ### Measure text before it is drawn
 
@@ -191,6 +211,7 @@ The layer's fields are `--font`, `--weight`, `--size`, `--line-height`, `--pad`,
 
 `lolly measure <design.json|.lolly> --text-layers` measures every plain text layer with its own fields, including a document's own `$styles`; `--layer=<id>` (repeatable) picks layers. With `--json` the `result` follows `schemas/text-measure-v1.schema.json`. When `lolly check` cannot draw the page, it uses the same measure to report text that would clip, as a `design.text.overflow` warning.
 
+<!--i:eti-package-->
 ## Package and export
 
 ```bash
@@ -215,7 +236,11 @@ The last two also resolve a key ending in the first hex digits of a picture's SH
 - A `png`, `svg`, `jpg` or `webp` from a deck of several frames with no `--s` is the first frame, and stderr says so. A one-slide picture paints that slide's own background.
 - `--no-provenance`, `--c2pa`, `--imprint` and `--no-madewith` work as on any other render.
 
-This needs the browser tier, as every Lolly Design export does: a built web shell (`pnpm run build:web`), or `LOLLY_WEB_BASE` set to the address of one you run (`pnpm run dev:web`) under the same `LOLLY_PROFILE` as the CLI ([Render with the CLI](/info/cli-rendering.html#what-the-cli-can-render)). A reusable tool `.lolly` keeps its `--trust-tool` path; `--trust-tool` on a saved session is refused, because a session carries no code to trust.
+::: note A saved session needs the browser tier
+A saved session exports with the app's own exporter, so it needs the browser tier: a built web shell (`pnpm run build:web`), or `LOLLY_WEB_BASE` set to the address of one you run (`pnpm run dev:web`) under the same `LOLLY_PROFILE` as the CLI ([Render with the CLI](/info/cli-rendering.html#what-the-cli-can-render)). A static Lolly Design document given to `lolly run design --document` can write an outlined PDF (`--text=outline`), SVGZ or PPTX in Node instead, when its content allows ([A Lolly Design deck with no browser](/info/cli-rendering.html#a-lolly-design-deck-with-no-browser)).
+:::
+
+A reusable tool `.lolly` keeps its `--trust-tool` path; `--trust-tool` on a saved session is refused, because a session carries no code to trust.
 
 ### One document, every theme
 
@@ -239,6 +264,7 @@ The names are the themes the design system declares, and `all` takes every look 
 The desktop renderer keeps the address. Under `LOLLY_RENDERER=auto` (the default) or `desktop`, a running or installed Lolly app renders a Lolly Design document from its address when that address is under the app's 1 MiB request limit, and Chromium takes the session when no app is there. An address over 1 MiB goes to Chromium as a session, with a note when an app was there to take the job. On every path, `--durable` checks that the served web shell has the TrustMark encoder model before a browser starts.
 :::
 
+<!--i:eti-badge-check-->
 ## Check the recreation
 
 ```bash
@@ -273,6 +299,7 @@ A check never reads as clean on what it did not read. An export page with no tex
 
 [CLI batch and automation](/info/cli-automation.html#check-a-design-document-in-ci-lolly-check) shows `check` as a CI gate.
 
+<!--i:eti-code-->
 ## The same verbs over MCP
 
 The [MCP server](/info/mcp.html) offers each verb as a tool, over the same code, so an agent connected there gets the same answers:
