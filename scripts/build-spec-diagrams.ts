@@ -165,6 +165,7 @@ export const CONCEPT_FIGURES: Figure[] = [
   { set: 'concepts', name: 'one-render-path', lang: 'dot', title: 'Two transports, one render path', flags: ['--look=minimal', '--cardWidth=178'] },
   { set: 'concepts', name: 'rights-evidence-to-delivery', lang: 'dot', title: 'Evidence, obligation and delivery', flags: ['--look=minimal', '--cardWidth=190'] },
   { set: 'concepts', name: 'two-ways-to-resize', lang: 'dot', title: 'Two ways to resize a logo', flags: ['--look=minimal', '--cardWidth=180', '--siblingGap=24'] },
+  { set: 'concepts', name: 'tune-from-seed', lang: 'dot', title: 'One seed, one tune', flags: ['--look=minimal', '--cardWidth=180', '--siblingGap=20'] },
   { set: 'concepts', name: 'signing-architecture', lang: 'dot', title: 'From device key to verified signer', flags: ['--look=minimal', '--cardWidth=176', '--siblingGap=18'] },
   { set: 'concepts', name: 'trusted-two-gates', lang: 'dot', title: 'Two gates to trusted', flags: ['--look=minimal', '--cardWidth=178', '--siblingGap=18'] },
   { set: 'concepts', name: 'token-three-places', lang: 'dot', title: 'One token, three places', flags: ['--look=minimal', '--cardWidth=170', '--siblingGap=16'] },
