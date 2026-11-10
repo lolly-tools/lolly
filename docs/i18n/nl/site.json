@@ -510,7 +510,7 @@
   "Adoption and governance": "Invoering en governance",
   "Governance": "Governance",
   "Host Lolly": "Lolly hosten",
-  "A static web host is the easy path, and an air-gapped network takes the same install. Lolly Work, the organisation server, is open source too: run it on one machine, on Kubernetes or with your platform team.": "Een statische webhost is de makkelijkste weg, en een air-gapped netwerk gebruikt dezelfde installatie. Lolly Work, de organisatieserver, is ook open source: draai hem op één machine, op Kubernetes of samen met je platformteam.",
+  "A static web host is the easy path, and an air-gapped network takes the same install. Lolly Work, the organisation server, is open source too: run it on Kubernetes, on one machine or with your platform team.": "Een statische webhost is de makkelijkste weg, en een air-gapped netwerk gebruikt dezelfde installatie. Lolly Work, de organisatieserver, is ook open source: draai hem op Kubernetes, op één machine of samen met je platformteam.",
   "Deployment": "Implementatie",
   "Privacy": "Privacy",
   "The utilities": "De hulpprogramma's",

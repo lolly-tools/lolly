@@ -335,8 +335,13 @@ function pluck(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number
  * The lead, by the style's instrument. `art` 1 bends (harmonica, guitar, pedal steel) or
  * scoops (horns, fiddle) up into the note; the other leads play every note straight.
  */
-export function lead(style: LofiStyle['lead'], k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number, dur: number, art = 0): void {
-  if (style === 'flute') flute(k, out, t, midi, vel, dur);
+/**
+ * A lead note. `from` is the note before when this one is slurred onto it (it starts as the
+ * last one ends); the wind voices then glide from that pitch with no new attack, the way a
+ * player changes note without tonguing. The other voices take no notice of the pitch.
+ */
+export function lead(style: LofiStyle['lead'], k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number, dur: number, art = 0, from?: number): void {
+  if (style === 'flute') flute(k, out, t, midi, vel, dur, from);
   else if (style === 'soft') softLead(k, out, t, midi, vel, dur);
   else if (style === 'kalimba') kalimba(k, out, t, midi, vel);
   else if (style === 'vibes') vibes(k, out, t, midi, vel, dur);
@@ -352,10 +357,10 @@ export function lead(style: LofiStyle['lead'], k: VoiceKit, out: AudioNode, t: n
   else if (style === 'riff') riff(k, out, t, midi, vel, dur);
   else if (style === 'twang') twang(k, out, t, midi, vel, dur);
   else if (style === 'banjo') banjo(k, out, t, midi, vel, dur);
-  else if (style === 'harmonica') harmonica(k, out, t, midi, vel, dur, art);
-  else if (style === 'sax') horn(k, out, t, midi, vel, dur, art, SAX);
-  else if (style === 'trumpet') horn(k, out, t, midi, vel, dur, art, TRUMPET);
-  else if (style === 'clarinet') clarinet(k, out, t, midi, vel, dur, art);
+  else if (style === 'harmonica') harmonica(k, out, t, midi, vel, dur, art, from);
+  else if (style === 'sax') horn(k, out, t, midi, vel, dur, art, SAX, from);
+  else if (style === 'trumpet') horn(k, out, t, midi, vel, dur, art, TRUMPET, from);
+  else if (style === 'clarinet') clarinet(k, out, t, midi, vel, dur, art, from);
   else if (style === 'pedal') pedalSteel(k, out, t, midi, vel, dur, art);
   else if (style === 'fiddle') fiddle(k, out, t, midi, vel, dur, art);
   else if (style === 'bells') bells(k, out, t, midi, vel, dur);
@@ -591,45 +596,122 @@ function organ(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number
 }
 
 /**
- * A brass section stab: two saws a few cents apart, through a low-pass that opens with the
- * attack (harder notes brighter, as a horn's tone does) and settles as the note holds.
+ * A harmonic spectrum as a PeriodicWave, made once per context and key: `amps(n)` is the
+ * level of harmonic n. A PeriodicWave is band-limited by the browser, so a bright wave
+ * never aliases, and it costs one oscillator, where a waveshaper needed oversampling.
+ */
+const SPECTRA = new WeakMap<BaseAudioContext, Map<string, PeriodicWave>>();
+function spectrumWave(ctx: BaseAudioContext, key: string, count: number, amps: (n: number) => number): PeriodicWave {
+  let byKey = SPECTRA.get(ctx);
+  if (!byKey) { byKey = new Map(); SPECTRA.set(ctx, byKey); }
+  let wave = byKey.get(key);
+  if (!wave) {
+    const real = new Float32Array(count + 1);
+    const imag = new Float32Array(count + 1);
+    for (let n = 1; n <= count; n++) imag[n] = amps(n);
+    wave = ctx.createPeriodicWave(real, imag);
+    byKey.set(key, wave);
+  }
+  return wave;
+}
+const fromDb = (db: number): number => 10 ** (db / 20);
+
+/** An oscillator playing `wave` at `f`, or gliding into `f` from `from` Hz (a slur). */
+function waveOsc(k: VoiceKit, wave: PeriodicWave, f: number, t: number, end: number, from?: number): OscillatorNode {
+  const o = k.ctx.createOscillator();
+  o.setPeriodicWave(wave);
+  o.frequency.setValueAtTime(from ?? f, t);
+  if (from) o.frequency.exponentialRampToValueAtTime(f, t + 0.045);
+  o.start(t);
+  o.stop(end);
+  return o;
+}
+
+/**
+ * A wind's brightness, the way a real one behaves: two low-passes whose cutoff follows the
+ * note's loudness, a little behind the attack (the top harmonics of a horn speak last), so
+ * a soft note is nearly pure and a loud one opens right up. `low` and `high` are the
+ * cutoff, in harmonics of `f`, at a whisper and at full strength.
+ */
+function brightness(k: VoiceKit, f: number, t: number, dur: number, end: number, vel: number, low: number, high: number, attack: number): BiquadFilterNode[] {
+  const top = Math.min(15000, f * (low + (high - low) * vel ** 2));
+  const rest = Math.min(15000, f * low);
+  const open = Math.max(t + attack + 0.03, t + 0.01);
+  return [0.55, 0.8].map((q) => {
+    const lp = k.ctx.createBiquadFilter();
+    lp.type = 'lowpass';
+    lp.Q.value = q;
+    lp.frequency.setValueAtTime(rest, t);
+    lp.frequency.exponentialRampToValueAtTime(top * 1.12, open);
+    lp.frequency.exponentialRampToValueAtTime(top, open + 0.12);
+    lp.frequency.setValueAtTime(top, Math.max(open + 0.13, t + dur));
+    lp.frequency.exponentialRampToValueAtTime(rest, end);
+    return lp;
+  });
+}
+
+/** Chain `filters` from `from` and return the last. */
+function chain(from: AudioNode, filters: readonly AudioNode[]): AudioNode {
+  let node = from;
+  for (const f of filters) { node.connect(f); node = f; }
+  return node;
+}
+
+/** Peaking filters for a body's formants: [Hz, gain dB, Q]. */
+function formantChain(ctx: BaseAudioContext, formants: ReadonlyArray<readonly [number, number, number]>): BiquadFilterNode[] {
+  return formants.map(([hz, gain, q]) => {
+    const pk = ctx.createBiquadFilter();
+    pk.type = 'peaking';
+    pk.frequency.value = hz;
+    pk.gain.value = gain;
+    pk.Q.value = q;
+    return pk;
+  });
+}
+
+/**
+ * A brass section (the keys' horns): each chord tone played by two players a few cents
+ * apart, the second a few milliseconds late, the way a section never starts quite together,
+ * on brass's bright spectrum with brightness that opens with the swell (an analog brass
+ * patch's filter envelope, which is how real brass behaves) and the bell's formant.
  */
 function brass(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number, dur: number): void {
   const { ctx } = k;
   const f = mtof(midi);
-  const end = t + dur + 0.15;
-  const lp = ctx.createBiquadFilter();
-  lp.type = 'lowpass';
-  lp.Q.value = 1.1;
-  lp.frequency.setValueAtTime(500, t);
-  lp.frequency.exponentialRampToValueAtTime(Math.min(6000, 1400 + 3200 * vel), t + 0.05);
-  lp.frequency.setTargetAtTime(Math.min(4000, 1000 + 1600 * vel), t + 0.08, 0.15);
+  const end = t + dur + 0.18;
+  const wave = spectrumWave(ctx, 'brass', 40, (n) => n ** -0.55);
+  const lps = brightness(k, f, t, dur, end, vel, 1.3, 9, 0.04);
+  const body = formantChain(ctx, [[1150, 5, 1.1], [2600, 2, 1.6]]);
   const amp = ctx.createGain();
   amp.gain.setValueAtTime(EPS, t);
-  amp.gain.exponentialRampToValueAtTime(0.045 * vel, t + 0.03);
-  amp.gain.setValueAtTime(0.04 * vel, t + Math.max(0.04, dur));
+  amp.gain.exponentialRampToValueAtTime(0.08 * vel, t + 0.045);
+  amp.gain.exponentialRampToValueAtTime(0.068 * vel, t + 0.16);
+  amp.gain.setValueAtTime(0.068 * vel, t + Math.max(0.17, dur));
   amp.gain.exponentialRampToValueAtTime(EPS, end);
-  lp.connect(amp).connect(out);
-  for (const cents of [-7, 7]) {
-    const o = osc(k, 'sawtooth', f, t, end);
-    o.detune.setValueAtTime(cents - 30, t);
-    o.detune.linearRampToValueAtTime(cents, t + 0.04);   // the lip settling onto the note
-    o.connect(lp);
+  const mix = ctx.createGain();
+  chain(chain(mix, lps), body).connect(amp).connect(out);
+  for (const [cents, late] of [[-6, 0], [6, 0.004 + k.rng() * 0.01]] as const) {
+    const o = waveOsc(k, wave, f, t + late, end);
+    o.detune.setValueAtTime(cents - 25, t + late);
+    o.detune.linearRampToValueAtTime(cents, t + late + 0.05);   // the lip settling onto the note
+    o.connect(mix);
   }
 }
 
 /**
  * A blues harp: a reed's buzz (a narrow pulse) through the cupped hands and the mouth (two
- * formant bands), breath, a hand tremolo on long notes, and with `art` a bend up into the
- * note from a semitone and a half below.
+ * formant bands), brighter the harder it is blown, breath, a hand tremolo on long notes,
+ * and with `art` a bend up into the note from a semitone and a half below.
  */
-function harmonica(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number, dur: number, art: number): void {
+function harmonica(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number, dur: number, art: number, from?: number): void {
   const { ctx } = k;
   const f = mtof(midi);
   const end = t + dur + 0.12;
-  const reed = pulseOsc(k, 0.3, art ? f * 2 ** (-1.5 / 12) : f, t, end);
-  if (art) reed.frequency.exponentialRampToValueAtTime(f, t + 0.16);
+  const reed = pulseOsc(k, 0.3, from ? mtof(from) : art ? f * 2 ** (-1.5 / 12) : f, t, end);
+  if (from || art) reed.frequency.exponentialRampToValueAtTime(f, t + (from ? 0.045 : 0.16));
   vibrato(k, reed.detune, t, end, 5.2, 8, 0.3);
+  const lps = brightness(k, f, t, dur, end, vel, 3, 16, 0.02);
+  const shaped = chain(reed, lps);
   const mix = ctx.createGain();
   for (const [hz, q, level] of [[1050, 1.6, 1], [2500, 2.4, 0.7], [600, 1, 0.4]] as const) {
     const bp = ctx.createBiquadFilter();
@@ -638,15 +720,15 @@ function harmonica(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: nu
     bp.Q.value = q;
     const g = ctx.createGain();
     g.gain.value = level;
-    reed.connect(bp).connect(g).connect(mix);
+    shaped.connect(bp).connect(g).connect(mix);
   }
   const trem = ctx.createGain();
   trem.gain.value = 1;
   if (dur > 0.5) vibrato(k, trem.gain, t, end, 5, 0.35, 0.3);
   const amp = ctx.createGain();
-  amp.gain.setValueAtTime(EPS, t);
-  amp.gain.exponentialRampToValueAtTime(0.16 * vel, t + 0.025);
-  amp.gain.setValueAtTime(0.16 * vel, t + Math.max(0.03, dur));
+  amp.gain.setValueAtTime(from ? 0.06 * vel : EPS, t);
+  amp.gain.exponentialRampToValueAtTime(0.17 * vel, t + (from ? 0.015 : 0.025));
+  amp.gain.setValueAtTime(0.17 * vel, t + Math.max(0.03, dur));
   amp.gain.exponentialRampToValueAtTime(EPS, end);
   mix.connect(trem).connect(amp).connect(out);
   const breath = ctx.createBiquadFilter();
@@ -658,98 +740,86 @@ function harmonica(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: nu
   noiseAt(k, t, dur + 0.1).connect(breath).connect(bg).connect(out);
 }
 
-/**
- * A horn's waveshaping curve, made once per context: a sine through it gains harmonics
- * as it gets louder, which is how a horn's tone works (a soft note is nearly pure, a
- * loud one blares). `odd` is symmetric, odd harmonics only, the clarinet's hollow
- * cylinder; otherwise the curve leans, adding the even harmonics of a conical bore or
- * of brass.
- */
-const HORN_CURVES = new WeakMap<BaseAudioContext, Map<string, Float32Array<ArrayBuffer>>>();
-function hornCurve(ctx: BaseAudioContext, lean: number, drive: number): Float32Array<ArrayBuffer> {
-  let byKey = HORN_CURVES.get(ctx);
-  if (!byKey) { byKey = new Map(); HORN_CURVES.set(ctx, byKey); }
-  const key = `${lean}:${drive}`;
-  let curve = byKey.get(key);
-  if (!curve) {
-    // An odd length puts a sample exactly at zero input, where the curve is exactly zero:
-    // a curve that is not zero at silence keeps the node producing output after its note.
-    const n = 2049;
-    const c = new Float32Array(n);
-    const raw = (x: number): number => Math.tanh(drive * (x + lean)) - Math.tanh(drive * lean);
-    // Scaled by the larger side, so a leaning curve stays within -1..1.
-    const norm = Math.max(Math.abs(raw(1)), Math.abs(raw(-1)));
-    for (let i = 0; i < n; i++) c[i] = raw((i / (n - 1)) * 2 - 1) / norm;
-    curve = c;
-    byKey.set(key, curve);
-  }
-  return curve;
-}
-
-/** A horn's character: its waveshaping, its formants, and how it breathes and moves. */
+/** A horn's character: its source spectrum, how bright it gets, its body, how it breathes and moves. */
 interface Horn {
-  /** The curve's lean (0 is the clarinet's odd harmonics) and drive (how fast it brightens). */
-  lean: number; drive: number;
-  /** How loud the note gets into the curve, soft and hard: the brightness range. */
-  soft: number; hard: number;
+  /** The source wave for this note: its cache key and the level of each harmonic. */
+  wave(midi: number): { key: string; amps: (n: number) => number };
+  /** The brightness cutoff in harmonics of the note, at a whisper and at full strength. */
+  low: number; high: number;
   /** Formants: [Hz, gain dB, Q]. */
   formants: ReadonlyArray<readonly [number, number, number]>;
   /** Breath noise riding the tone, and its centre frequency. */
   breath: number; breathHz: number;
-  /** Vibrato depth (cents), the scoop into a note (cents), and the attack (s). */
-  vibrato: number; scoop: number; attack: number;
+  /** Vibrato depth (cents) and its rate, the scoop into a note (cents), and the attack (s). */
+  vibrato: number; rate: number; scoop: number; attack: number;
   level: number;
 }
-const SAX: Horn = { lean: 0.35, drive: 2.6, soft: 0.35, hard: 1.05, formants: [[560, 6, 1.4], [1650, 5, 1.6], [2900, 3, 2.5]], breath: 0.35, breathHz: 2400, vibrato: 16, scoop: 70, attack: 0.035, level: 0.037 };
-const TRUMPET: Horn = { lean: 0.22, drive: 3.4, soft: 0.3, hard: 1.2, formants: [[1250, 6, 1.6], [2500, 4, 2], [380, -3, 1]], breath: 0.12, breathHz: 3200, vibrato: 10, scoop: 40, attack: 0.022, level: 0.039 };
-const CLARINET: Horn = { lean: 0, drive: 2.2, soft: 0.3, hard: 0.85, formants: [[1500, 4, 1.4], [3400, 3, 2]], breath: 0.18, breathHz: 3000, vibrato: 5, scoop: 50, attack: 0.045, level: 0.036 };
+
+/** Brass: every harmonic up to the bell's cutoff, falling gently; the bell's formant does the rest. */
+const BRASS_WAVE = { key: 'brass', amps: (n: number): number => n ** -0.55 };
+/**
+ * A saxophone's conical bore drives the reed like a pulse whose duty is the missing cone's
+ * share of the length, about a tenth low in the range and a third at the top, so every
+ * 1/duty-th harmonic drops out: the sax's reedy, slightly hollow brightness.
+ */
+const saxWave = (midi: number): { key: string; amps: (n: number) => number } => {
+  const duty = Math.round((0.1 + Math.min(1, Math.max(0, (midi - 50) / 30)) * 0.2) * 50) / 50;
+  return { key: `sax:${duty}`, amps: (n) => Math.abs(Math.sin(n * Math.PI * duty)) / n ** 0.75 + 0.02 / n };
+};
+/**
+ * A clarinet's cylinder sounds the odd harmonics in its low register, the evens coming in
+ * only above the tone holes' cutoff (about 1.5 kHz); from about A4 up the difference fades
+ * and every harmonic sounds.
+ */
+const clarinetWave = (midi: number): { key: string; amps: (n: number) => number } => {
+  const up = Math.round(Math.min(1, Math.max(0, (midi - 66) / 10)) * 5) / 5;
+  const f = mtof(midi);
+  return {
+    key: `clarinet:${up}:${Math.round(1500 / f)}`,
+    amps: (n) => {
+      const odd = n ** -0.85;
+      const even = n * f > 1500 ? odd * 0.6 : odd * 0.03;
+      return n % 2 ? odd : even * (1 - up) + odd * 0.7 * up;
+    },
+  };
+};
+const SAX: Horn = { wave: saxWave, low: 1.3, high: 13, formants: [[560, 5, 1.4], [1650, 4, 1.6], [2900, 3, 2.5]], breath: 0.3, breathHz: 2400, vibrato: 14, rate: 5.4, scoop: 70, attack: 0.035, level: 0.062 };
+const TRUMPET: Horn = { wave: () => BRASS_WAVE, low: 1.2, high: 14, formants: [[1250, 6, 1.4], [2500, 3, 2], [380, -3, 1]], breath: 0.1, breathHz: 3200, vibrato: 8, rate: 5.1, scoop: 40, attack: 0.025, level: 0.072 };
+const CLARINET: Horn = { wave: clarinetWave, low: 1.6, high: 11, formants: [[1500, 3, 1.4], [3400, 2, 2]], breath: 0.16, breathHz: 3000, vibrato: 4, rate: 5.3, scoop: 30, attack: 0.04, level: 0.07 };
 
 /**
- * A horn, by waveshaping: a sine pushed into the horn's curve by the note's envelope,
- * so the tone opens as the note swells (a breathy start, a bright body, a mellow end),
- * shaped by the instrument's formants, with breath noise that buzzes in time with the
- * tone (the noise is modulated by the waveform, as a reed's or lips' air is), vibrato
- * that arrives late, and a scoop up into the pitch, wider with `art`.
+ * A horn: its source spectrum through brightness that follows the note's loudness, its
+ * body's formants, breath that buzzes in time with the tone (the noise is modulated by the
+ * waveform, as a reed's or lips' air is), a moment of unsettled pitch as the note speaks,
+ * vibrato that arrives late, and a scoop up into the pitch, wider with `art`. Slurred
+ * (`from`, the note before), it glides from the last pitch with no new attack, the way a
+ * player changes note without tonguing.
  */
-function horn(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number, dur: number, art: number, h: Horn): void {
+function horn(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number, dur: number, art: number, h: Horn, from?: number): void {
   const { ctx } = k;
   const f = mtof(midi);
   const end = t + dur + 0.12;
-  const o = osc(k, 'sine', f, t, end);
-  o.detune.setValueAtTime(-(art ? h.scoop * 1.6 : h.scoop * 0.4) + (k.rng() - 0.5) * 6, t);
-  o.detune.linearRampToValueAtTime(0, t + (art ? 0.09 : 0.045));
-  vibrato(k, o.detune, t, end, 5.2 + k.rng() * 0.6, h.vibrato, Math.min(0.32, dur * 0.6));
-  // The note's swell into the curve: its loudness and its brightness together.
-  const into = ctx.createGain();
-  const peak = h.soft + (h.hard - h.soft) * vel;
-  into.gain.setValueAtTime(0.02, t);
-  into.gain.linearRampToValueAtTime(peak * 1.08, t + h.attack);
-  into.gain.linearRampToValueAtTime(peak * 0.9, t + h.attack + 0.08);
-  into.gain.setValueAtTime(peak * 0.9, t + Math.max(h.attack + 0.09, dur));
-  into.gain.linearRampToValueAtTime(0.0001, end);
-  const shaper = ctx.createWaveShaper();
-  shaper.curve = hornCurve(ctx, h.lean, h.drive);
-  shaper.oversample = '2x';
-  const dc = ctx.createBiquadFilter();
-  dc.type = 'highpass';
-  dc.frequency.value = Math.max(60, f * 0.5);
-  let node: AudioNode = dc;
-  o.connect(into).connect(shaper).connect(dc);
-  for (const [hz, gain, q] of h.formants) {
-    const pk = ctx.createBiquadFilter();
-    pk.type = 'peaking';
-    pk.frequency.value = hz;
-    pk.gain.value = gain;
-    pk.Q.value = q;
-    node.connect(pk);
-    node = pk;
+  const src = h.wave(midi);
+  const o = waveOsc(k, spectrumWave(ctx, src.key, 48, src.amps), f, t, end, from ? mtof(from) : undefined);
+  if (!from) {
+    o.detune.setValueAtTime(-(art ? h.scoop * 1.6 : h.scoop * 0.4) + (k.rng() - 0.5) * 6, t);
+    o.detune.linearRampToValueAtTime(0, t + (art ? 0.09 : 0.045));
   }
+  vibrato(k, o.detune, t, end, h.rate + k.rng() * 0.5, h.vibrato, Math.min(0.32, dur * 0.6));
+  const lps = brightness(k, f, t, dur, end, vel, h.low, h.high, from ? 0.01 : h.attack);
+  const shaped = chain(chain(o, lps), formantChain(ctx, h.formants));
+  const amp = ctx.createGain();
+  const peak = h.level * (0.55 + 0.45 * vel);
+  const attack = from ? 0.015 : h.attack;
+  amp.gain.setValueAtTime(from ? peak * 0.45 : EPS, t);
+  amp.gain.exponentialRampToValueAtTime(peak * (from ? 1 : 1.08), t + attack);
+  amp.gain.exponentialRampToValueAtTime(peak * 0.92, t + attack + 0.1);
+  amp.gain.setValueAtTime(peak * 0.92, t + Math.max(attack + 0.11, dur));
+  amp.gain.exponentialRampToValueAtTime(EPS, end);
   const lp = ctx.createBiquadFilter();
   lp.type = 'lowpass';
-  lp.frequency.value = 7000;
-  const amp = ctx.createGain();
-  amp.gain.value = h.level;
-  node.connect(lp).connect(amp).connect(out);
+  lp.frequency.value = 9000;
+  shaped.connect(lp).connect(amp).connect(out);
   // Breath: noise whose level follows the waveform, so the air buzzes at the note's pitch.
   const air = ctx.createBiquadFilter();
   air.type = 'bandpass';
@@ -758,14 +828,14 @@ function horn(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number,
   const ride = ctx.createGain();
   ride.gain.value = 0;
   const depth = ctx.createGain();
-  depth.gain.value = h.breath * h.level;
-  dc.connect(depth).connect(ride.gain);
+  depth.gain.value = h.breath * peak;
+  o.connect(depth).connect(ride.gain);
   noiseAt(k, t, dur + 0.15).connect(air).connect(ride).connect(out);
 }
 
-/** A clarinet: the horn model with the cylinder's odd harmonics. */
-function clarinet(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number, dur: number, art: number): void {
-  horn(k, out, t, midi - (midi > 80 ? 12 : 0), vel, dur, art, CLARINET);
+/** A clarinet: the horn model with the cylinder's spectrum, in its own register. */
+function clarinet(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number, dur: number, art: number, from?: number): void {
+  horn(k, out, t, midi, vel, dur, art, CLARINET, from);
 }
 
 /**
@@ -1333,35 +1403,55 @@ function vibes(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number
 }
 
 /** A flute: a near-sine that breathes in, with a little air in the tone. */
-function flute(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number, dur: number): void {
+/**
+ * A flute: a near-pure tone whose upper harmonics come with the breath (louder is brighter)
+ * and whose vibrato is mostly in those harmonics, a breath-pressure swell at about five a
+ * second rather than a pitch wobble, as a real flute's is. A chiff of air as the note
+ * speaks, unless it is slurred (`from`), when it glides from the last pitch instead.
+ * Breath under the tone throughout. Everything runs until the fade is silent: a note cut
+ * off mid-fade, or a broad band of breath, reads as static.
+ */
+function flute(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number, dur: number, from?: number): void {
   const { ctx } = k;
   const f = mtof(midi);
-  // A smooth swell in and a long fade out, with everything still running until the
-  // fade is silent: a note cut off mid-fade, or a broad band of breath, reads as static.
   const end = t + dur + 0.9;
   const amp = ctx.createGain();
   const peak = 0.085 * vel;
-  amp.gain.setValueAtTime(EPS, t);
-  amp.gain.exponentialRampToValueAtTime(peak, t + 0.1);
+  amp.gain.setValueAtTime(from ? peak * 0.5 : EPS, t);
+  amp.gain.exponentialRampToValueAtTime(peak, t + (from ? 0.03 : 0.08));
   amp.gain.setTargetAtTime(EPS, t + Math.max(0.1, dur), 0.12);
   amp.connect(out);
-  const o = osc(k, 'sine', f, t, end);
-  vibrato(k, o.detune, t, end, 4.8, 9, 0.3);
+  const fromHz = from ? mtof(from) : undefined;
+  const o = waveOsc(k, spectrumWave(ctx, 'flute1', 1, () => 1), f, t, end, fromHz);
+  vibrato(k, o.detune, t, end, 4.9, 3, 0.3);
   o.connect(amp);
-  const h2 = osc(k, 'sine', f * 2, t, end);
-  const hg = ctx.createGain();
-  hg.gain.value = 0.12;
-  h2.connect(hg).connect(amp);
-  // Breath: a narrow band on the note's own harmonic, a touch more as the note speaks,
-  // then settling back, always under the tone.
+  // The upper harmonics: their level follows the breath, and swells with the vibrato.
+  const upper = waveOsc(k, spectrumWave(ctx, 'flute-upper', 6, (n) => (n === 1 ? 0 : fromDb(-9 * (n - 1) - 1))), f, t, end, fromHz);
+  vibrato(k, upper.detune, t, end, 4.9, 3, 0.3);
+  const ug = ctx.createGain();
+  ug.gain.value = 0.25 + 0.75 * vel;
+  vibrato(k, ug.gain, t, end, 4.9, 0.2 + 0.25 * vel, 0.25);
+  upper.connect(ug).connect(amp);
+  // The chiff: a puff of air on the second harmonic as the note speaks.
+  if (!from) {
+    const cbp = ctx.createBiquadFilter();
+    cbp.type = 'bandpass';
+    cbp.frequency.value = Math.min(9000, f * 2);
+    cbp.Q.value = 3;
+    const cg = ctx.createGain();
+    cg.gain.setValueAtTime(0.5 * vel, t);
+    cg.gain.exponentialRampToValueAtTime(EPS, t + 0.05);
+    noiseAt(k, t, 0.06).connect(cbp).connect(cg).connect(amp);
+  }
+  // Breath: a narrow band on the note's own harmonic, always under the tone.
   const bp = ctx.createBiquadFilter();
   bp.type = 'bandpass';
   bp.frequency.value = Math.min(9000, f * 2);
   bp.Q.value = 9;
   const breath = ctx.createGain();
   breath.gain.setValueAtTime(0, t);
-  breath.gain.linearRampToValueAtTime(0.22, t + 0.08);
-  breath.gain.setTargetAtTime(0.1, t + 0.1, 0.15);
+  breath.gain.linearRampToValueAtTime(from ? 0.1 : 0.18, t + 0.08);
+  breath.gain.setTargetAtTime(0.09, t + 0.1, 0.15);
   noiseAt(k, t, dur + 0.9).connect(bp).connect(breath).connect(amp);
 }
 

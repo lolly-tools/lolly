@@ -523,6 +523,8 @@ export function buildSheet(dt: DetailsCtx): void {
       cat.detailsMeterDispose = null;
       cat.detailsTransport?.destroy();
       cat.detailsTransport = null;
+      cat.detailsTune?.dispose();
+      cat.detailsTune = null;
       cat.vizTeardown?.();
       cat.vizTeardown = null;
       // Destroy any Lottie player mounted in the preview - lottie-web ticks every mounted player
@@ -1617,8 +1619,15 @@ export function wireSheetEvents(dt: DetailsCtx): void {
     const zzUrl = audioEl.dataset.zzfxmUrl;
     const modUrl = audioEl.dataset.modUrl;
     const lofiUrl = audioEl.dataset.lofiUrl;
-    const render = zzUrl ? songUrlToWavBlobUrl(zzUrl) : modUrl ? modUrlToWavBlobUrl(modUrl)
-      : lofiUrl ? import('../../lib/lofi-tune.ts').then((m) => m.lofiTuneUrlToWavBlobUrl(lofiUrl)) : null;
+    const render = zzUrl ? songUrlToWavBlobUrl(zzUrl) : modUrl ? modUrlToWavBlobUrl(modUrl) : null;
+    // A saved tune plays the moment play is pressed: live until its WAV is made, then the
+    // file (lib/tune-preview.ts). The sheet's close handler stops it and frees the WAV.
+    if (lofiUrl) {
+      const fail = (): void => { if (note && cat.detailsDialog === dlg) { note.textContent = t('Couldn’t render this track.'); note.hidden = false; } };
+      void import('../../lib/tune-preview.ts').then((m) => {
+        if (cat.detailsDialog === dlg) cat.detailsTune = m.attachTunePreview(audioEl, lofiUrl, fail);
+      });
+    }
     // A rondocode song renders the same way, and its section also shows the source
     // and names any part the render could not play (details-rondo.ts).
     if (audioEl.dataset.rondoUrl) void dt.rondo.wireRondo(audioEl, note ?? null);

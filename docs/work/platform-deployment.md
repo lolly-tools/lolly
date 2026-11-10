@@ -298,7 +298,7 @@ separates implemented automation, actual qualification and reference-only steps.
 
 The Lolly Work repository has tested OpenTofu and Terraform foundations for
 [UpCloud and Evroc](cloud-deployment.md). On-premises hardware, OVHcloud, Hetzner and
-other European or global providers can supply the same VM or Kubernetes interfaces.
+other European or global providers can supply the same Kubernetes or VM interfaces.
 Each still needs its own qualified host image, network, storage, quotas and restore
 evidence: a shared interface does not mean that provider has been tested.
 

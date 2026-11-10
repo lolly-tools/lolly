@@ -45,9 +45,9 @@ Connecting to a Lolly Work instance also turns on its sign-in, policy refresh an
 
 ## Air-gapped deployment, and how updates arrive
 
-The web build is plain static files, so the air-gapped path is the simple one, not a special edition: serve it from an internal host with the six security headers, as [Choose a deployment](/info/deployment.html#any-static-host-including-air-gapped) sets out. Once loaded, **Settings → Available offline** turns best-effort caching into a guarantee, downloading the app, the tools, the catalogue and the docs ahead of a disconnection.
-
 For a cluster, the repository ships signed container images and a Helm chart ([Run on Kubernetes](/info/build-kubernetes.html)). One brand profile is fixed in the web image when it is built, so the running container reads nothing at serve time: no pack to mount, no runtime configuration, no secret. Pods run as non-root with capabilities dropped and a read-only root filesystem by default, and MCP and CA stay off unless you turn them on.
+
+The web build is plain static files, so the air-gapped path is the simple one, not a special edition: serve it from an internal host with the six security headers, as [Choose a deployment](/info/deployment.html#any-static-host-including-air-gapped) sets out. Once loaded, **Settings → Available offline** turns best-effort caching into a guarantee, downloading the app, the tools, the catalogue and the docs ahead of a disconnection.
 
 Updates arrive the way any other controlled artefact does, in two separate streams:
 

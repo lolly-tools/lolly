@@ -221,9 +221,9 @@ Original Lolly prose is CC BY-SA 4.0; imported Lolly Work prose and screenshots 
 | Release 1.1.2 | [work/release-1-1-2.md](work/release-1-1-2.md) |
 | Past releases | [work/past-releases.md](work/past-releases.md) |
 | Lolly Work architecture | [work/overview.md](work/overview.md) |
+| Install on Kubernetes | [work/platform-deployment.md](work/platform-deployment.md) |
 | Install Lolly Work | [work/install.md](work/install.md) |
 | Install the ready-made package | [work/ready-made-package.md](work/ready-made-package.md) |
-| Install on Kubernetes | [work/platform-deployment.md](work/platform-deployment.md) |
 | Official installation routes | [work/official-installations.md](work/official-installations.md) |
 | Set up enterprise identity | [work/enterprise-identity.md](work/enterprise-identity.md) |
 | Sign-in provider recipes | [work/identity-providers.md](work/identity-providers.md) |

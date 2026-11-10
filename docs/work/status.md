@@ -62,8 +62,8 @@ What Lolly Work %work{version} does, what to check on your own systems before yo
   and tools, can also connect an agent to the organisation MCP endpoint for renders, batches,
   delivery, catalog search and visual intents. See
   [Connect an agent over MCP](automation-api.md#connect-an-agent-over-mcp).
-- **Setup and packaging.** A six-step guided setup in the console, container images, Compose
-  and a Helm chart with an optional render-worker tier. See
+- **Setup and packaging.** A six-step guided setup in the console, container images, a Helm
+  chart (with an optional render-worker tier) and Compose. See
   [Configure your first Lolly Work instance](customer-setup.md) and [Install Lolly Work](install.md).
 
 Try the hosted demo at lolly.work before you install. It renders for real: `GET
