@@ -23,6 +23,7 @@ function onInit({ model, host }) {
 
 [Build a tool](/info/authoring-tools.html) covers a tool's anatomy, and [Tool hooks](/info/tool-hooks.html) covers when each hook runs.
 
+<!--i:eti-checklist-->
 ## Rules of the contract
 
 - **Additive only.** Methods may be added in a minor version, and are never removed or changed in signature without a major version. When v2 ships, v1 keeps working.
@@ -32,6 +33,7 @@ function onInit({ model, host }) {
 - **Identify the host.** `host.version` is `'1'`; `host.shell` is one of `web`, `tauri-desktop`, `tauri-mobile` or `cli`.
 - **`host` is the portable surface, not a sandbox.** [Where hooks run](#where-hooks-run) says when a hook runs in the page and when it runs in a Worker.
 
+<!--i:eti-search-->
 ## Find the API for your job
 
 | Job | APIs |
@@ -46,6 +48,7 @@ function onInit({ model, host }) {
 | [On-device AI models](#on-device-ai-models) | [`upscale`](#host-upscale), [`matte`](#host-matte), [`ocr`](#host-ocr) |
 | [Provenance](#provenance) | [`c2pa`](#host-c2pa), [`export.imprint`](#host-export) |
 
+<!--i:eti-package-->
 ## What every shell provides
 
 ### `host.profile`
@@ -170,6 +173,7 @@ A `file`-typed input (the person's own file, picked into memory) arrives as an *
 
 `log(level, msg, ctx?)`: `level` is `debug`, `info`, `warn` or `error`. Goes to the console in development and to a diagnostics buffer for support. Hook errors are caught and logged, not thrown.
 
+<!--i:eti-type-->
 ## Brand and type
 
 ### `host.tokens`
@@ -298,6 +302,7 @@ An authored gradient is **one URL-safe string**: `lin_90_30ba78-0_efefef-100` is
 Read and written by `parseGradientSpec` / `formatGradientSpec` in the engine, and baked to CSS by `gradientCss`. The Design tool's per-box gradient fill is the reference consumer.
 :::
 
+<!--i:eti-image-->
 ## Pictures and pixels
 
 ### `host.images`
@@ -373,6 +378,7 @@ A **`ScanHit`** is `{ format, rawValue, rawBytes?, corners? }`. `rawValue` is un
 
 *Optional, v1.123.* `svg(source)` fetches and sanitises an SVG named by URL (a catalog asset, a `blob:` or a `data:` URL) and returns its layers in paint order as standalone SVG documents with their ink boxes, plus the source viewBox. A source that is not an SVG, or has fewer than two layers, comes back with `layers: []`; the method throws only on a fetch or parse failure. Turning layers into depth is the caller's job. The web and desktop shells provide it; the Node shells do not. Lolly Flythrough is the reference tool.
 
+<!--i:eti-pen-tool-->
 ## Vector, layout and motion
 
 ### `host.geom`
@@ -434,6 +440,7 @@ The currency both ways is an **SVG path-data string**, which already lives in yo
 
 *Optional, v1.124.* `sample(kf, count)` evaluates a `kf` track (the format the Design tool's camera and every keyframed input use) at `count` evenly spaced times across its own span, and returns each pose as a channel-to-value map (`x`, `y`, `z`, `rx`, `ry`, …). The engine owns the parsing, interpolation and easing, so a template's motion matches the Design tool's; the template decides how the channels map onto its own scene. An empty or unreadable track returns `[]`. The web and desktop shells provide it; the Node shells do not. Lolly Flythrough is the reference tool.
 
+<!--i:eti-file-->
 ## Documents and text
 
 ### `host.pdf`
@@ -446,11 +453,11 @@ Inspect a PDF, remove its metadata and make it smaller. The metadata and structu
 | `analyze(bytes)` | `Promise<{ findings }>` | Report the Info-dictionary and XMP metadata a PDF carries; read-only |
 | `strip(bytes)` | `Promise<{ bytes }>` | Re-save with that metadata removed (re-serialised, so not byte-identical, and any signature is invalidated) |
 | `compress(bytes, opts?)` | `Promise<{ bytes, before, after, images }>` | Re-save smaller: recompress oversized embedded JPEGs (canvas downsample and re-encode) and re-serialise with object streams. `opts.level` is `'light' \| 'balanced' \| 'strong'`; `opts.grayscale` drops colour. Text and vectors are untouched, and the result is never larger than the input. The lean CLI (no canvas) does the structural pass only |
-| `redact(bytes, opts)` *(optional)* | `Promise<PdfRedactResult>` | Rasterise each page, burn in the given bars as opaque fills and build a new document from those images alone, so no text layer, font, annotation or metadata survives. Bars are in PDF points from the top of the page. Needs a canvas; the CLI provides it over `@napi-rs/canvas` |
+| `redact(bytes, opts)` *(optional)* | `Promise<PdfRedactResult>` | By default, rasterise each page, burn in the given bars as opaque fills and build a new document from those images alone, so no text layer, font, annotation or metadata survives. Bars are in PDF points from the top of the page. Needs a canvas; the CLI provides it over `@napi-rs/canvas`. With `opts.keepText` (v1.303), remove only what sits under each bar and keep the rest of each page as real text and vectors; the host checks the result and rejects with no bytes when it cannot show that nothing is left under a bar, and the result's `mode` says which path ran. A host that does not know the field flattens, which removes more |
 | `pages(bytes, opts?)` *(optional)* | `Promise<PdfPagesResult>` | Each page as a self-contained SVG in PDF points from the top left, for a live preview to draw on. At most `maxPages` (default 40). The web shell provides it; the CLI does not |
-| `organize(bytes, opts)` *(optional)* | `Promise<PdfOrganizeResult>` | Reorder, rotate, extract, delete, merge or split pages without rasterising them. Encrypted documents and XFA forms are refused by name |
+| `organize(bytes, opts)` *(optional)* | `Promise<PdfOrganizeResult>` | Reorder, rotate, extract, delete, merge or split pages without rasterising them. Encrypted documents and XFA forms are refused by name. From v1.262 the result's optional `effects` says what happened to the bookmarks, annotations, links, form fields and signatures the inputs carry: `kept`, `removed`, `broken` or `invalidated` |
 | `fromImages(images, opts?)` *(optional, v1.262)* | `Promise<PdfImagesResult>` | A new PDF with one PNG or JPEG per page. JPEG data is embedded without re-encoding and its metadata is left out |
-| `stamp(bytes, opts)` *(optional)* | `Promise<PdfStampResult>` | Place PNG or JPEG stamps at top-left PDF-point coordinates |
+| `stamp(bytes, opts)` *(optional)* | `Promise<PdfStampResult>` | Place PNG or JPEG stamps at top-left PDF-point coordinates. `opts.texts` sets words in a standard PDF face; `opts.paths` places SVG path data, such as a run from `host.text.toPath`, so words stamp as outlines in the design system's face. A host that predates `paths` ignores them, and the result's `stamps` count comes back short |
 | `lock(bytes, password)` *(optional)* | `Promise<{ bytes }>` | Apply an AES-256 open password as the last step |
 | `accessibility(bytes)` *(optional)* | `Promise<PdfAccessibilitySummary>` | Run 32 PDF accessibility checks and list which passed, failed, did not apply or need a person, in Lolly's words. Read-only: nothing is tagged or fixed. It is a list of checks, not a PDF/UA verdict. Rejects with a `code` of `not-pdf`, `encrypted`, `damaged` or `too-large` when the file cannot be read |
 :::
@@ -519,6 +526,7 @@ async function onInput({ model }) {
 
 **Spreadsheet files.** `readXlsx` takes an optional `recalc` function for the same engine. With `recalcWhen: 'missing'`, which the shells use, only formulas the file saved no result for are worked out. That is what files written by libraries look like, and they arrive filled in instead of blank. Every other formula keeps the value its author saw, and the formulas that depend on it use that value. Pass `recalcWhen: 'always'` to work out every formula. Formulas saved by programs without dynamic arrays are read the way those programs did: a range where one value is wanted is cut down to its own row or column and never spills. Array formulas, data tables and formulas with table or workbook references keep their saved result. The read reports how many formulas it recomputed, how many kept their result and whether any was volatile.
 
+<!--i:eti-mic-->
 ## Sound, speech and camera
 
 Five APIs cover sound and video, and each faces a different way:
@@ -655,6 +663,7 @@ Transcription (v1.99) is the reverse: audio in, text plus word timings out, thro
 
 A `VizPresetInfo` is `{ id, name, author, calm }`. `author` is not decoration: twenty years of MilkDrop craft ships alongside Lolly's own presets, so credit only a preset the shell **confirms** it has. Naming an artist whose work is not on screen is worse than crediting nobody. `calm` marks a preset safe to offer under reduced motion.
 
+<!--i:eti-globe-->
 ## Reaching outside the tool
 
 ### `host.net`
@@ -712,6 +721,7 @@ The shell decides everything about the download. When a named file is not on the
 Only `sing` is readable: rondocode's singing models, named by their path in the family (`rondocode/vec-768.onnx`, `supertonic/onnx/tts.json`, `supertonic/voice_styles/F1.json`). The download in Settings is the int8 path with all three voices, about 1.1 GB. The full-size aligner and the full-size Supertonic vector estimator and vocoder are fallbacks: asking for one that is not on the device brings up a consent line of its own, with its size. `runtime/<file>` asks for the onnxruntime-web WebAssembly binary the shell itself runs (`runtime/ort-wasm-simd-threaded.jsep.wasm`), for a frame that cannot load the shell's `/ort/` files. That binary matches the shell's own onnxruntime-web version, so the caller's bundled glue must be the same version. `ModelFilesOpts` takes `reason` (a short phrase the offer shows after "needed for:"), `onProgress` (`{ loaded, total }` for whatever is moving: the download first when one is needed, then the read) and `signal` (an `AbortSignal`; the call rejects with `AbortError` between steps).
 :::
 
+<!--i:eti-cpu-->
 ## On-device AI models
 
 Three APIs run a model on the device: `upscale` enlarges a picture, `matte` cuts out its subject and `ocr` reads its text. They share one pattern. The shell owns the ONNX runtime, the one-time model download (made only with the person's consent) and the memory bound, and the tool only ever sees pixels. A run can take many seconds on a weak device, so it is never driven from a time-boxed hook: a shell offers it as an explicit, cancellable action with progress, whose result becomes an asset. Hide the control where the API is absent.
@@ -780,6 +790,7 @@ Two models tier the picker: `u2netp` (U²-Net lite, ~4.5 MB, the default and the
 | `canRun(src, opts?)` | `Promise<OcrFeasibility>` | The same shape as the upscale and matte answers |
 | `run(frame, opts?)` | `Promise<OcrResult>` | `{ text, lines, lang }`, each line `{ text, confidence, box }`. `opts` takes `model`, `singleLine`, `minConfidence`, `signal` and `onProgress` |
 
+<!--i:eti-stamp-->
 ## Provenance
 
 Ordinary exports get their Content Credentials through `host.export`, which owns ingredients, action history and the opt-in gates. Two narrower paths exist for files a tool did not render: [`host.export.imprint`](#host-export) marks an existing raster with the Lolly Imprint, and `host.c2pa` signs finished bytes.
@@ -793,9 +804,14 @@ Ordinary exports get their Content Credentials through `host.export`, which owns
 | `sign(bytes, format, opts?)` | `Promise<Uint8Array>` | The stamped bytes. `format` is the output format key (`pdf`, `png`, `jpg`, `mp4`, `m4a`, …). Two modes: the default derivative path (no ingredients), and the v1.104 any-media authorship path, which stamps an existing file with the artist's author, copyright and licence and carries manifests already inside it forward as ingredients. **Throws** when the format cannot carry a manifest or signing fails; the caller decides whether unsigned bytes may still ship |
 | `readIngredients(bytes)` *(v1.104)* | `Promise<IngredientCredential[]>` | Every manifest a file already carries, packaged ready to pass to `sign({ ingredients })`: the file's own container credential plus element-level credentials nested inside it (today, signed rasters an SVG embeds through `<image href="data:…">`). Read-only and **never throws**: a file with nothing signed resolves to `[]` |
 
+<!--i:eti-lock-->
 ## Where hooks run
 
-Hooks are loaded with `new Function('host', …)`, with `host` injected as closure scope. That is a **portability contract, not a security boundary**. A hook that runs in the page realm can, in a browser shell, reach `window`, `document` and `fetch`; `host` is the only surface guaranteed to exist on every shell. Module imports do not work, because hooks ship as a single source string.
+Hooks are loaded with `new Function('host', …)`, with `host` injected as closure scope. Module imports do not work, because hooks ship as a single source string.
+
+::: warning Closure scope is a portability contract, not a security boundary
+A hook that runs in the page realm can, in a browser shell, reach `window`, `document` and `fetch`; `host` is the only surface guaranteed to exist on every shell.
+:::
 
 Hooks can also run in a Worker:
 
