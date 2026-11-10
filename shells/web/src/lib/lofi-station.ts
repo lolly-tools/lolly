@@ -28,9 +28,10 @@
  * is hidden the station queues a few seconds ahead instead of a quarter of one.
  */
 import { lofiStream, LOFI_DRUM_VOICES } from '../../../../engine/src/lofi-compose.ts';
-import type { LofiBar, LofiMood, LofiNote, LofiStream, LofiStyle } from '../../../../engine/src/lofi-compose.ts';
+import type { LofiBar, LofiMood, LofiNote, LofiStream, LofiStyle, LofiTuneInfo } from '../../../../engine/src/lofi-compose.ts';
 import { mulberry32 } from '../../../../engine/src/zzfx-compose.ts';
 import * as V from './lofi-voices.ts';
+import * as D from './lofi-drums.ts';
 import * as W from './lofi-world-voices.ts';
 
 export interface LofiSettings {
@@ -75,6 +76,9 @@ const DRUMS = new Set(LOFI_DRUM_VOICES);
  */
 const BUS = { keys: 0.37, bass: 0.2, lead: 1.05, drums: 0.83, texture: 0.27, reverb: 0.44, fx: 1.05 };
 /** A riser rode the keys' bus (through its tremolo, about 0.92) before the effects had their own; this keeps its level. */
+/** The styles whose lead lays back behind the beat, and by how much (s). */
+const LAID_BACK = new Set<LofiMood>(['jazz', 'swing', 'blues']);
+const LAY_BACK = 0.024;
 /** Seconds between one lead note's end and the next one's start that still count as a slur. */
 const SLUR_GAP = 0.035;
 const RISER_LEVEL = (BUS.keys * 0.92) / BUS.fx;
@@ -125,6 +129,20 @@ export class LofiStation {
   private seed: number;
   /** The last lead note (when it ends, its pitch, its instrument), to tell whether the next one is slurred. */
   private lastLead = { end: -1, midi: 0, voice: '' };
+  /** Each tune's drum kit, drawn once from its seed (lib/lofi-drums.ts). */
+  private kits = new Map<string, D.DrumKit>();
+
+  /** The kit `tune` plays. */
+  private kitOf(tune: LofiTuneInfo): D.DrumKit {
+    const key = `${tune.mood}:${tune.seed}`;
+    let kit = this.kits.get(key);
+    if (!kit) {
+      if (this.kits.size > 16) this.kits.clear();
+      kit = D.drumKit(tune.seed, tune.mood);
+      this.kits.set(key, kit);
+    }
+    return kit;
+  }
   private kit: V.VoiceKit;
   private queue: Queued[] = [];
   private marks: Mark[] = [];
@@ -467,13 +485,16 @@ export class LofiStation {
         const lift = SINGS_FAMILY.has(bar.tune.mood) ? SINGS_LEAD : 1;
         // A note that starts as the last one ends, on the same instrument, is slurred onto
         // it: a wind glides from that pitch instead of tonguing a new attack.
+        // A jazz soloist lays back: the lead's notes on the beat sit a little behind it, the
+        // swung off-beats stay with the ride.
+        const lt = LAID_BACK.has(bar.tune.mood) && Math.abs(note.beat - Math.round(note.beat)) < 0.01 ? t + LAY_BACK : t;
         const prev = this.lastLead;
-        const gap = t - prev.end;
+        const gap = lt - prev.end;
         const from = prev.voice === leadV && gap > -0.25 && gap < SLUR_GAP && prev.midi !== note.midi ? prev.midi : undefined;
-        this.lastLead = { end: t + len, midi: note.midi, voice: leadV };
+        this.lastLead = { end: lt + len, midi: note.midi, voice: leadV };
         const play = (v: LofiStyle['lead'], level: number): void => {
-          if (W.WORLD_LEADS.has(v)) W.lead(v, k, lanes.lead, t, note.midi, level, len, note.mod ?? 0);
-          else V.lead(v, k, lanes.lead, t, note.midi, level, len, note.mod ?? 0, from);
+          if (W.WORLD_LEADS.has(v)) W.lead(v, k, lanes.lead, lt, note.midi, level, len, note.mod ?? 0);
+          else V.lead(v, k, lanes.lead, lt, note.midi, level, len, note.mod ?? 0, from);
         };
         play(leadV, vel * VARIANT.lead[leadV] * lift);
         // A doubled drop: a second instrument plays the same note a little quieter.
@@ -481,14 +502,14 @@ export class LofiStation {
         if (double) play(double, vel * VARIANT.lead[double] * lift * 0.7);
         break;
       }
-      case 'crash': V.crash(k, lanes.drums, t, vel); break;
+      case 'crash': D.crash(k, lanes.drums, t, vel, this.kitOf(bar.tune)); break;
       case 'riser': V.riser(k, lanes.fx, t, vel * RISER_LEVEL, len); break;
       case 'coin': V.coin(k, lanes.fx, t, note.midi, vel); break;
       case 'sparkle': V.sparkle(k, lanes.fx, t, note.midi, vel, len, note.mod ?? 4); break;
       case 'game': V.game(k, lanes.fx, t, note.midi, vel, note.mod ?? 0); break;
       case 'magpie': V.magpie(k, lanes.fx, t, note.midi, vel, len, note.mod ?? 0); break;
       case 'kookaburra': V.kookaburra(k, lanes.fx, t, note.midi, vel, note.mod ?? 0); break;
-      case 'tom': V.tom(k, lanes.drums, t, note.midi, vel); break;
+      case 'tom': D.tom(k, lanes.drums, t, note.midi, vel, this.kitOf(bar.tune)); break;
       case 'perc':
         if ((note.mod ?? 0) >= W.WORLD_PERC_FROM) W.perc(k, lanes.drums, t, note.midi, vel, note.mod ?? 0);
         else V.perc(k, lanes.drums, t, note.midi, vel, note.mod ?? 0);
@@ -503,23 +524,27 @@ export class LofiStation {
       case 'phaser': V.phaser(k, lanes.fx, t, note.midi, vel, len, note.mod ?? 0); break;
       case 'blip': V.blip(k, lanes.fx, t, note.midi, vel, note.mod ?? 0); break;
       case 'soar': V.soar(k, lanes.bass, t, note.midi, vel, len, note.mod === 1); break;
-      case 'kick': V.kick(k, lanes.drums, t, vel, st.kick, st.kickLen); this.duck(t, st.duck); break;
+      case 'kick': D.kick(k, lanes.drums, t, vel, st.kick, st.kickLen, this.kitOf(bar.tune).kick); this.duck(t, st.duck); break;
       case 'snare':
         // A section given the cross-stick plays its snare hits on the rim.
-        if (bar.voices?.snare === 'rim') { V.rim(k, lanes.drums, t, vel * VARIANT.snare.rim); break; }
+        if (bar.voices?.snare === 'rim') { D.rim(k, lanes.drums, t, vel * VARIANT.snare.rim); break; }
         // A roll that climbs (Sherbert's builds) tunes each hit up by its `mod` in semitones.
-        V.snare(snareV === 'rim' ? 'snare' : snareV, k, lanes.drums, t, vel * VARIANT.snare[snareV], st.snareTone * 2 ** ((note.mod ?? 0) / 12));
+        D.snare(snareV === 'rim' ? 'snare' : snareV, k, lanes.drums, t, vel * VARIANT.snare[snareV], st.snareTone * 2 ** ((note.mod ?? 0) / 12), this.kitOf(bar.tune));
         if (note.vel > 0.5) this.duck(t, st.duck * 0.45);   // a backbeat, not a ghost: the music gives it a little room
         break;
       case 'rim': {
         // A section given another snare plays its rim hits on that snare instead.
         const over = bar.voices?.snare;
-        if (over && over !== 'rim') V.snare(over, k, lanes.drums, t, vel * VARIANT.snare[over], st.snareTone);
-        else V.rim(k, lanes.drums, t, vel * VARIANT.snare.rim);
+        if (over && over !== 'rim') D.snare(over, k, lanes.drums, t, vel * VARIANT.snare[over], st.snareTone, this.kitOf(bar.tune));
+        else D.rim(k, lanes.drums, t, vel * VARIANT.snare.rim);
         break;
       }
-      case 'hat': V.hat(hatsV, k, lanes.drums, t, vel * VARIANT.hats[hatsV], st.hatTone, false, note.mod === 1); break;
-      case 'openHat': V.hat(hatsV, k, lanes.drums, t, vel * VARIANT.hats[hatsV], st.hatTone, true); break;
+      case 'hat':
+        // A `mod` of 2 is the hat's foot (the pedal), whatever the hats are played on.
+        if (note.mod === 2) D.pedal(k, lanes.drums, t, vel, st.hatTone, this.kitOf(bar.tune));
+        else D.hat(hatsV, k, lanes.drums, t, vel * VARIANT.hats[hatsV], st.hatTone, false, note.mod === 1, this.kitOf(bar.tune));
+        break;
+      case 'openHat': D.hat(hatsV, k, lanes.drums, t, vel * VARIANT.hats[hatsV], st.hatTone, true, false, this.kitOf(bar.tune)); break;
     }
   }
 

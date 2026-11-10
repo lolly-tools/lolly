@@ -159,12 +159,36 @@ test('sherbert: half-time future bass, an 808 in every drop, chords that bend an
   assert.ok(stutters >= 6 && powerUps >= 2, `builds end on a stutter (${stutters}) or a power-up (${powerUps})`);
 });
 
+/** A tune without the hat's foot under the ride (a hat with a `mod` of 2), the only notes added to jazz and swing since these fingerprints. */
+const withoutHatFoot = (bars: ReturnType<typeof composeLofiTune>): ReturnType<typeof composeLofiTune> =>
+  bars.map(b => ({ ...b, notes: b.notes.filter(n => !(n.voice === 'hat' && n.mod === 2)) }));
+
 test('adding Sherbert changed no other style: a seed still composes what it did', () => {
   // Fingerprints of a few styles' tunes composed before Sherbert existed (main at 2b9783498).
+  // Jazz has since gained the hat's foot, and only that: without it, the tune is unchanged.
   const before: Record<string, number> = FINGERPRINTS;
   for (const [key, want] of Object.entries(before)) {
     const [mood, seed] = key.split('.') as [Parameters<typeof composeLofiTune>[1], string];
-    assert.equal(fingerprint(composeLofiTune(Number(seed), mood)), want, `${key} composes as it did`);
+    assert.equal(fingerprint(withoutHatFoot(composeLofiTune(Number(seed), mood))), want, `${key} composes as it did`);
+  }
+});
+
+test('jazz and swing: the hat\'s foot on two and four under the ride, and nowhere else', () => {
+  for (const mood of ['jazz', 'swing'] as const) {
+    let feet = 0;
+    for (const seed of SEEDS.slice(0, 6)) {
+      for (const b of composeLofiTune(seed, mood)) {
+        const foot = b.notes.filter(n => n.voice === 'hat' && n.mod === 2);
+        const ride = b.notes.some(n => n.voice === 'hat' && n.mod !== 2);
+        if (foot.length) assert.ok(ride, `${mood}: a foot only where the ride plays`);
+        for (const n of foot) assert.ok(n.beat === 1 || n.beat === 3, `${mood}: the foot on two and four (beat ${n.beat})`);
+        feet += foot.length;
+      }
+    }
+    assert.ok(feet > 40, `${mood}: the foot keeps time (${feet})`);
+  }
+  for (const mood of ['sugar', 'rock', 'warm'] as const) {
+    for (const b of composeLofiTune(SEEDS[0]!, mood)) assert.ok(!b.notes.some(n => n.voice === 'hat' && n.mod === 2), `${mood} has no hat's foot`);
   }
 });
 
