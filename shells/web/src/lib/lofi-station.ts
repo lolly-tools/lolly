@@ -11,9 +11,9 @@
  *   drums, and a reverb send from the keys and lead
  *     → tone (a low-pass that the mood, the texture and each bar's "open" set)
  *     → gentle saturation → glue compression → volume
- *   texture: vinyl crackle (in dusty patches, and on some records a faint tick once a
- *   revolution), hiss and, in the rainy mood, rain, joins after the tone filter so it
- *   stays crisp under the muffled music.
+ *   texture: a record's crackle (stereo ticks and pops in dusty patches, and on some
+ *   records a scratch once a revolution), the record's surface noise and, in the rainy
+ *   mood, rain, joins after the tone filter so it stays crisp under the muffled music.
  *
  * Each tune's style (from the composer) picks its instruments and drum tuning, and as the
  * tune starts it sets how much wobble, room, tone and kick ducking the chain gives it,
@@ -288,15 +288,19 @@ export class LofiStation {
     this.crackle = ctx.createGain();
     this.crackle.connect(this.shaper);
     const crackleHp = ctx.createBiquadFilter();
-    crackleHp.type = 'highpass'; crackleHp.frequency.value = 600;
+    crackleHp.type = 'highpass'; crackleHp.frequency.value = 150;
     crackleHp.connect(this.crackle);
     this.loop(crackleBuffer(ctx, REVOLUTION * 4, mulberry32(seed ^ 0xc4)), crackleHp);
     this.hiss = ctx.createGain();
     this.hiss.connect(this.shaper);
     const hissLp = ctx.createBiquadFilter();
-    hissLp.type = 'lowpass'; hissLp.frequency.value = 6500;
+    hissLp.type = 'lowpass'; hissLp.frequency.value = 7000;
     hissLp.connect(this.hiss);
-    this.loop(noise, hissLp);
+    // The record's surface, not tape hiss (surfaceBuffer).
+    const surfaceHp = ctx.createBiquadFilter();
+    surfaceHp.type = 'highpass'; surfaceHp.frequency.value = 300;
+    surfaceHp.connect(hissLp);
+    this.loop(surfaceBuffer(ctx, mulberry32(seed ^ 0x5f)), surfaceHp);
     this.rain = ctx.createGain();
     this.rain.connect(this.shaper);
     const rainBp = ctx.createBiquadFilter();
@@ -602,8 +606,8 @@ export class LofiStation {
     const t = this.settings.texture;
     const amount = this.colour.dust + (1 - this.colour.dust) * t * t;
     const dust = tex * amount * DUST_MID * (t / 0.5) ** 3;
-    set(this.crackle.gain, 0.018 * dust);
-    set(this.hiss.gain, 0.0036 * dust);
+    set(this.crackle.gain, 0.06 * dust);
+    set(this.hiss.gain, 0.0053 * dust);
     set(this.rain.gain, this.settings.mood === 'rainy' ? (0.03 + x * 0.016) * tex : 0);
     set(this.tone.frequency, this.cutoff(this.lastOpen));
     set(this.drumTone.frequency, drumCutoff(this.cutoff(this.lastOpen)));
@@ -742,28 +746,85 @@ function wanderBuffer(ctx: BaseAudioContext, seconds: number, spacing: [number, 
 }
 
 /**
- * Vinyl: small ticks with the occasional louder pop, each a few samples long, gathered
- * in dusty patches rather than spread evenly; on some records, a faint tick once a
- * revolution where a scratch crosses the groove. The buffer is four revolutions long.
+ * Vinyl crackle, as a record makes it rather than as static: many tiny ticks and the
+ * occasional louder pop, gathered in dusty patches. Each tick is a short damped ring at its
+ * own pitch (dust knocking the stylus rings it, high and brief), in one groove wall or the
+ * other, so the crackle sits in stereo the way it does on a record; a pop is lower, longer
+ * and usually in both walls. Most ticks are tiny and a few are loud, as on a worn record. On
+ * some records a scratch crosses the groove and ticks once a revolution. The buffer is four
+ * revolutions long, in stereo.
  */
 function crackleBuffer(ctx: BaseAudioContext, seconds: number, rng: () => number): AudioBuffer {
-  const b = ctx.createBuffer(1, Math.ceil(seconds * ctx.sampleRate), ctx.sampleRate);
-  const d = b.getChannelData(0);
-  const tick = 34 / ctx.sampleRate;
-  const pop = 2.5 / ctx.sampleRate;
+  const sr = ctx.sampleRate;
+  const b = ctx.createBuffer(2, Math.ceil(seconds * sr), sr);
+  const L = b.getChannelData(0);
+  const R = b.getChannelData(1);
+  const tick = 30 / sr;
+  const pop = 0.6 / sr;
   const dust = wanderBuffer(ctx, seconds, [0.25, 1.2], 0, rng).getChannelData(0);
-  for (let i = 0; i < d.length - 8; i++) {
+  /** A damped ring at `hz`, falling by e in `tau` seconds, added at `at` into each wall by its share. */
+  const ring = (at: number, hz: number, tau: number, amp: number, left: number, right: number): void => {
+    const len = Math.min(Math.ceil(tau * 5 * sr), L.length - at - 1);
+    const w = 2 * Math.PI * hz / sr;
+    const fall = Math.exp(-1 / (tau * sr));
+    const phase = rng() * Math.PI * 2;
+    let env = amp;
+    for (let n = 0; n < len; n++) {
+      const v = env * Math.sin(phase + w * n);
+      L[at + n] = (L[at + n] ?? 0) + v * left;
+      R[at + n] = (R[at + n] ?? 0) + v * right;
+      env *= fall;
+    }
+  };
+  for (let i = 0; i < L.length - 8; i++) {
     const r = rng() / (0.25 + 1.9 * Math.max(0, (dust[i] ?? 0) + 0.45));   // a dusty patch is denser
     if (r >= tick) continue;
     const big = r < pop;
-    const a = (big ? 0.5 + rng() * 0.5 : 0.08 + rng() * 0.22) * (rng() < 0.5 ? -1 : 1);
-    const len = big ? 6 : 3;
-    for (let n = 0; n < len; n++) d[i + n] = (d[i + n] ?? 0) + a * (1 - n / len) * (n % 2 ? -0.6 : 1);
+    // Which wall: a tick is mostly in one, a pop mostly in both.
+    const side = rng();
+    const left = big ? 0.75 + rng() * 0.25 : side < 0.45 ? 1 : side < 0.9 ? 0.15 * rng() : 0.8;
+    const right = big ? 0.75 + rng() * 0.25 : side < 0.45 ? 0.15 * rng() : side < 0.9 ? 1 : 0.8;
+    const sign = rng() < 0.5 ? -1 : 1;
+    if (big) {
+      ring(i, 300 * 2 ** (rng() * 2.3), 0.0005 + rng() * 0.0012, sign * (0.3 + rng() * 0.4), left, right);
+      ring(i, 2500 + rng() * 3000, 0.00015, sign * 0.3, left, right);   // the pop's sharp front
+    } else {
+      // Most ticks tiny, a few loud: the level falls away like a worn record's.
+      ring(i, 1800 * 2 ** (rng() * 2.3), 0.00008 + rng() * 0.00025, sign * (0.06 + 0.75 * rng() ** 4), left, right);
+    }
   }
   if (rng() < 0.35) {
-    const at = Math.floor(rng() * REVOLUTION * ctx.sampleRate);
-    for (let rev = at; rev < d.length - 12; rev += Math.round(REVOLUTION * ctx.sampleRate)) {
-      for (let n = 0; n < 10; n++) d[rev + n] = (d[rev + n] ?? 0) + 0.28 * (1 - n / 10) * (n % 2 ? -0.7 : 1);
+    const at = Math.floor(rng() * REVOLUTION * sr);
+    const hz = 600 + rng() * 900;
+    for (let rev = at; rev < L.length - 400; rev += Math.round(REVOLUTION * sr)) ring(rev, hz, 0.0009, 0.24, 0.9, 0.7);
+  }
+  return b;
+}
+
+/**
+ * A record's surface: the soft noise of the stylus in the groove, darker than tape hiss
+ * (most of it between a few hundred hertz and a few kilohertz, falling like pink noise),
+ * a little different in each wall, and swelling gently once a revolution as the record
+ * turns. Two revolutions long, so the swell loops without a seam.
+ */
+function surfaceBuffer(ctx: BaseAudioContext, rng: () => number): AudioBuffer {
+  const sr = ctx.sampleRate;
+  const seconds = REVOLUTION * 2;
+  const b = ctx.createBuffer(2, Math.ceil(seconds * sr), sr);
+  for (let ch = 0; ch < 2; ch++) {
+    const d = b.getChannelData(ch);
+    // A pink-ish noise: three one-pole stages of white noise, summed (Voss and Kellet's way).
+    let p0 = 0;
+    let p1 = 0;
+    let p2 = 0;
+    const turn = rng() * Math.PI * 2;
+    for (let i = 0; i < d.length; i++) {
+      const white = rng() * 2 - 1;
+      p0 = 0.99765 * p0 + white * 0.099;
+      p1 = 0.963 * p1 + white * 0.2965;
+      p2 = 0.57 * p2 + white * 1.0526;
+      const swell = 1 + 0.22 * Math.sin(turn + (2 * Math.PI * i) / (REVOLUTION * sr));
+      d[i] = (p0 + p1 + p2 + white * 0.1848) * 0.11 * swell;
     }
   }
   return b;
