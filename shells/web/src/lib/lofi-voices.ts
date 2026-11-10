@@ -2258,7 +2258,7 @@ interface Shout {
   pitch: readonly [number, number, number];
   vowels: ReadonlyArray<readonly [number, number, number, number]>;
 }
-/** The shouts after "hey", by LOFI_SHOUTS: yeah, woo, oh, ayy, uh. */
+/** The shouts after "hey", by LOFI_SHOUTS: yeah, woo, oh, ayy, uh, ugh (low and short, from the throat), whoa (oo opening to oh) and yo. */
 const SHOUTS: ReadonlyArray<Shout | null> = [
   null,
   { len: 0.42, onset: 'glide', pitch: [1.12, 1.05, 0.8], vowels: [[0, 300, 2300, 3000], [0.25, 530, 1850, 2550], [0.55, 760, 1300, 2600], [1, 740, 1250, 2600]] },
@@ -2266,6 +2266,9 @@ const SHOUTS: ReadonlyArray<Shout | null> = [
   { len: 0.36, onset: 'h', pitch: [1.08, 1, 0.86], vowels: [[0, 520, 880, 2550], [1, 430, 820, 2500]] },
   { len: 0.46, onset: 'none', pitch: [1, 1.04, 1.08], vowels: [[0, 760, 1350, 2600], [0.45, 600, 1900, 2600], [1, 360, 2300, 3000]] },
   { len: 0.17, onset: 'h', pitch: [1.1, 1, 0.82], vowels: [[0, 640, 1190, 2390], [1, 600, 1150, 2400]] },
+  { len: 0.22, onset: 'none', pitch: [0.82, 0.76, 0.7], vowels: [[0, 600, 1100, 2350], [1, 520, 1000, 2300]] },
+  { len: 0.6, onset: 'glide', pitch: [0.95, 1.2, 1], vowels: [[0, 320, 760, 2300], [0.35, 560, 920, 2450], [1, 470, 860, 2450]] },
+  { len: 0.3, onset: 'glide', pitch: [1.05, 1.08, 0.92], vowels: [[0, 280, 2200, 3000], [0.3, 500, 900, 2450], [1, 450, 820, 2450]] },
 ];
 
 /**
@@ -2656,21 +2659,33 @@ export function riser(k: VoiceKit, out: AudioNode, t: number, vel: number, dur: 
   tone.connect(tl).connect(tg).connect(out);
 }
 
-/** A coin: a square blip at `midi`, then a held blip a fourth higher, ringing out. */
-export function coin(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number): void {
-  const { ctx } = k;
-  const g = ctx.createGain();
-  g.gain.setValueAtTime(EPS, t);
-  g.gain.exponentialRampToValueAtTime(0.07 * vel, t + 0.003);
-  g.gain.setValueAtTime(0.07 * vel, t + 0.07);
-  g.gain.exponentialRampToValueAtTime(EPS, t + 0.5);
-  const lp = ctx.createBiquadFilter();
-  lp.type = 'lowpass';
-  lp.frequency.value = 7000;
-  lp.connect(g).connect(out);
-  const o = osc(k, 'square', mtof(midi), t, t + 0.55);
-  o.frequency.setValueAtTime(mtof(midi + 5), t + 0.07);
-  o.connect(lp);
+/**
+ * A coin: a square blip at `midi`, then a held blip a fourth higher, ringing out, by
+ * `kind` (LOFI_COINS): the classic, a long ring with a second voice a few cents off (a
+ * coin that shimmers), an echo (the coin again and again, fading, as in a cave), or two
+ * coins in quick succession. Struck harder, it is brighter and rings longer.
+ */
+export function coin(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number, kind = 0): void {
+  const one = (at: number, level: number, ring: number, cents = 0): void => {
+    const g = k.ctx.createGain();
+    g.gain.setValueAtTime(EPS, at);
+    g.gain.exponentialRampToValueAtTime(0.07 * level, at + 0.003);
+    g.gain.setValueAtTime(0.07 * level, at + 0.07);
+    g.gain.exponentialRampToValueAtTime(EPS, at + ring);
+    const lp = k.ctx.createBiquadFilter();
+    lp.type = 'lowpass';
+    lp.frequency.value = 4000 + 5000 * vel;
+    lp.connect(g).connect(out);
+    const o = osc(k, 'square', mtof(midi), at, at + ring + 0.05);
+    o.detune.value = cents;
+    o.frequency.setValueAtTime(mtof(midi + 5), at + 0.07);
+    o.connect(lp);
+  };
+  const ring = 0.35 + 0.3 * vel;
+  if (kind === 1) { one(t, vel, ring * 2.6); one(t, vel * 0.5, ring * 2.6, 9); return; }
+  if (kind === 2) { for (let n = 0; n < 4; n++) one(t + n * 0.16, vel * 0.55 ** n, ring); return; }
+  if (kind === 3) { one(t, vel, ring * 0.6); one(t + 0.09, vel, ring); return; }
+  one(t, vel, ring);
 }
 
 /** A console's level stepping down a frame at a time, from `peak` to silence over `len` seconds. */
@@ -2707,16 +2722,19 @@ export function sparkle(k: VoiceKit, out: AudioNode, t: number, midi: number, ve
  * Game (Sherbert): a console's sound effects, by `kind` (see LOFI_GAME_SOUNDS; 16 and up are
  * the same in a minor key): a jump sweeping up, a power-up running up the key's chord, a
  * power-down falling and wobbling, a bonus trill that climbs, a bounce (a spring's boing,
- * overshooting and settling), a menu's blip, a laser's pew and a warp sliding down and up.
- * Pulse waves, their pitch and level stepped by the frame.
+ * overshooting and settling), a menu's blip, a laser's pew and a warp sliding down and up;
+ * a level-up's fanfare (the chord run up and the top note trilled), shrinking (a wobble
+ * between two notes falling away) and growing (the same, rising), a 1-up's quick run up
+ * the scale, and a gem's high sparkle. Pulse waves, their pitch and level stepped by the
+ * frame.
  */
 export function game(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number, kind: number): void {
   const { ctx } = k;
   const f = mtof(midi);
   const third = kind >= 16 ? 3 : 4;
   const sound = kind % 16;
-  const len = [0.22, 0.62, 0.7, 0.5, 0.45, 0.12, 0.2, 0.5][sound] ?? 0.3;
-  const duty = sound === 1 || sound === 4 ? 0.5 : sound === 6 ? 0.125 : 0.25;
+  const len = [0.22, 0.62, 0.7, 0.5, 0.45, 0.12, 0.2, 0.5, 0.95, 0.8, 0.8, 0.5, 0.35][sound] ?? 0.3;
+  const duty = sound === 1 || sound === 4 || sound === 8 ? 0.5 : sound === 6 || sound === 12 ? 0.125 : 0.25;
   const o = pulseOsc(k, duty, f, t, t + len + 0.05);
   const frames = Math.round(len / FRAME);
   for (let n = 0; n < frames; n++) {
@@ -2728,7 +2746,12 @@ export function game(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: 
     else if (sound === 4) semis = 9 - 9 * Math.exp(-n / 5) * Math.cos(n * 1.1);   // the bounce: up past the note and settling, a spring
     else if (sound === 5) semis = n < 3 ? 24 : 31;   // the blip: two quick notes
     else if (sound === 6) semis = 10 + 30 * Math.exp(-n / 3);   // the laser: a fast fall
-    else semis = 12 + 9 * Math.sin(n * 0.55) - n * 0.4;   // the warp: sliding down and up, sinking
+    else if (sound === 7) semis = 12 + 9 * Math.sin(n * 0.55) - n * 0.4;   // the warp: sliding down and up, sinking
+    else if (sound === 8) semis = n < 16 ? [0, third, 7, 12][Math.floor(n / 4)]! : 12 + (n % 2 ? 7 : 4);   // the level-up: the chord, then the top trilled
+    else if (sound === 9) semis = 12 - n * 0.55 + (n % 2 ? 0 : 7);   // shrinking: a wobble falling away
+    else if (sound === 10) semis = n * 0.55 + (n % 2 ? 0 : 7);   // growing: the same, rising
+    else if (sound === 11) semis = [12, 16, 19, 24, 21, 26][Math.min(5, Math.floor(n / 4))]!;   // the 1-up: a quick run up
+    else semis = 31 + (n % 3) * 5;   // the gem: a high sparkle
     o.frequency.setValueAtTime(f * 2 ** (semis / 12), t + n * FRAME);
   }
   const g = ctx.createGain();

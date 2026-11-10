@@ -64,18 +64,20 @@ const MOOD_TONE: Record<LofiMood, number> = {
   fantasy: 9000, dream: 6000, kpop: 11000, metal: 9500, ska: 9500, punk: 10000, rnb: 8500,
   persian: 11500, guzheng: 11000, koto: 11000, kora: 11500, afrobeat: 9500, amapiano: 10000,
 };
-/** Lolly Sings is melody-first: its lead sits this much higher than Lofi's (about +4 dB), in every genre of the family. */
-const SINGS_LEAD = 1.6;
-const SINGS_FAMILY = new Set<LofiMood>(['sings', 'sugar', 'sherbert', 'persian', 'guzheng', 'koto', 'kora', 'afrobeat', 'amapiano', 'chiptune', 'citypop', 'nudisco', 'triphop', 'funk', 'soul', 'acid', 'hiphop', 'reggae', 'spanish', 'rock', 'synthwave', 'electro', 'dubstep', 'brostep', 'dnb', 'country', 'blues', 'jazz', 'swing', 'straya', 'fantasy', 'dream', 'kpop', 'metal']);
+/** Lolly Sings is melody-first: its lead sits this much higher than Lofi's (about +2 dB), in every genre of the family. */
+const SINGS_LEAD = 1.3;
+const SINGS_FAMILY = new Set<LofiMood>(['sings', 'sugar', 'sherbert', 'persian', 'guzheng', 'koto', 'kora', 'afrobeat', 'amapiano', 'chiptune', 'citypop', 'nudisco', 'triphop', 'funk', 'soul', 'acid', 'hiphop', 'reggae', 'spanish', 'rock', 'synthwave', 'electro', 'dubstep', 'brostep', 'dnb', 'country', 'blues', 'jazz', 'swing', 'straya', 'fantasy', 'dream', 'kpop', 'metal', 'ska', 'punk', 'rnb']);
 const DRUMS = new Set(LOFI_DRUM_VOICES);
 /**
  * Each part's designed level: first measured K-weighted and soloed (keys about -25 LUFS,
  * drums -26, bass -27, lead -29, texture -40), then set by ear in the lofi lab (Andy,
  * 2026-11-08): the keys, bass, drums and room up, the lead a little back, and the crackle
- * and hiss well down. MASTER brings the sum back to the same headroom.
+ * and hiss well down. MASTER brings the sum back to the same headroom. Then by ear across
+ * the styles (Andy, 2026-11-10): the effects too quiet and the lead too loud on average, so
+ * the effects come up about 3 dB and the lead down about a decibel (and Lolly Sings' lift
+ * from 4 dB to 2).
  */
-const BUS = { keys: 0.37, bass: 0.2, lead: 1.05, drums: 0.83, texture: 0.27, reverb: 0.44, fx: 1.05 };
-/** A riser rode the keys' bus (through its tremolo, about 0.92) before the effects had their own; this keeps its level. */
+const BUS = { keys: 0.37, bass: 0.2, lead: 0.95, drums: 0.83, texture: 0.27, reverb: 0.44, fx: 1.5 };
 /** The styles whose chorus puts a sine sub under the bass guitar, and the basses it goes under. */
 const SUB_UNDER = new Set<LofiMood>(['rnb', 'soul', 'citypop', 'kpop']);
 const SUB_BASSES = new Set<string>(['motown', 'round', 'synth', 'picked']);
@@ -84,7 +86,8 @@ const LAID_BACK = new Set<LofiMood>(['jazz', 'swing', 'blues']);
 const LAY_BACK = 0.024;
 /** Seconds between one lead note's end and the next one's start that still count as a slur. */
 const SLUR_GAP = 0.035;
-const RISER_LEVEL = (BUS.keys * 0.92) / BUS.fx;
+/** A riser rode the keys' bus (through its tremolo, about 0.92) before the effects had their own: this keeps that level, raised a little with the other effects. */
+const RISER_LEVEL = (BUS.keys * 0.92 * 1.2) / BUS.fx;
 /** The whole station's level under the volume control, leaving headroom above the busiest bar. */
 const MASTER = 0.62;
 /** How far the music is lifted into the grit's staircase: its loudest bars just reach full scale. */
@@ -515,7 +518,7 @@ export class LofiStation {
       }
       case 'crash': D.crash(k, lanes.drums, t, vel, this.kitOf(bar.tune)); break;
       case 'riser': V.riser(k, lanes.fx, t, vel * RISER_LEVEL, len); break;
-      case 'coin': V.coin(k, lanes.fx, t, note.midi, vel); break;
+      case 'coin': V.coin(k, lanes.fx, t, note.midi, vel, note.mod ?? 0); break;
       case 'sparkle': V.sparkle(k, lanes.fx, t, note.midi, vel, len, note.mod ?? 4); break;
       case 'game': V.game(k, lanes.fx, t, note.midi, vel, note.mod ?? 0); break;
       case 'magpie': V.magpie(k, lanes.fx, t, note.midi, vel, len, note.mod ?? 0); break;

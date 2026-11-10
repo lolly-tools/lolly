@@ -159,9 +159,17 @@ test('sherbert: half-time future bass, an 808 in every drop, chords that bend an
   assert.ok(stutters >= 6 && powerUps >= 2, `builds end on a stutter (${stutters}) or a power-up (${powerUps})`);
 });
 
-/** A tune without the hat's foot under the ride (a hat with a `mod` of 2), the only notes added to jazz and swing since these fingerprints. */
+/**
+ * A tune without the notes added since these fingerprints, each its own kind so it can be
+ * told apart: jazz's hat's foot under the ride (a hat with a `mod` of 2), and the console's
+ * newer sounds and shouts (a game sound from the level-up on, a coin that rings, echoes or
+ * doubles, a shout from "ugh" on). Without them a pinned tune must compose as it did.
+ */
 const withoutHatFoot = (bars: ReturnType<typeof composeLofiTune>): ReturnType<typeof composeLofiTune> =>
-  bars.map(b => ({ ...b, notes: b.notes.filter(n => !(n.voice === 'hat' && n.mod === 2)) }));
+  bars.map(b => ({ ...b, notes: b.notes.filter(n => !(n.voice === 'hat' && n.mod === 2)
+    && !(n.voice === 'game' && (n.mod ?? 0) % 16 >= 8)
+    && !(n.voice === 'coin' && (n.mod ?? 0) >= 1)
+    && !(n.voice === 'hey' && (n.mod ?? 0) >= 6)) }));
 
 test('adding Sherbert changed no other style: a seed still composes what it did', () => {
   // Fingerprints of a few styles' tunes composed before Sherbert existed (main at 2b9783498).
@@ -480,10 +488,29 @@ test('Fantasy, Dreamscape, K-pop and Metal each have their own colour and moment
     if (drops.at(-1)!.chord !== drops[0]!.chord) keyChanges++;
     // Metal: a band song with the double kick through the chorus.
     const metal = composeLofiTune(seed, 'metal');
-    assert.equal(metal[0]!.tune.style.keys, 'crunch');
+    assert.equal(metal[0]!.tune.style.keys, 'heavy');
     assert.ok(metal.filter(b => b.section === 'drop').every(b => b.notes.filter(n => n.voice === 'kick').length >= 8), `metal ${seed}: the double kick`);
   }
   assert.ok(lydian >= 1, 'a lydian fourth in some major fantasy tune');
   assert.ok(keyChanges >= 6, `most K-pop tunes change key for the last chorus (${keyChanges} of 8)`);
 });
 
+
+test('the console\'s newer sounds and the ad-libs: where a game is played and where people call out', () => {
+  const kinds = (mood: Parameters<typeof composeLofiTune>[1]): Set<string> => {
+    const out = new Set<string>();
+    for (const seed of SEEDS.slice(0, 10)) for (const b of composeLofiTune(seed, mood)) for (const n of b.notes) {
+      if (n.voice === 'game') out.add(`game${(n.mod ?? 0) % 16}`);
+      if (n.voice === 'coin') out.add(`coin${n.mod ?? 0}`);
+      if (n.voice === 'hey') out.add(`hey${n.mod ?? 0}`);
+    }
+    return out;
+  };
+  const chip = kinds('chiptune');
+  for (const k of ['game8', 'game9', 'game10', 'game11']) assert.ok(chip.has(k), `chiptune plays ${k} (${[...chip].sort().join(' ')})`);
+  assert.ok(['coin1', 'coin2', 'coin3'].some(k => chip.has(k)), 'and coins that ring, echo or double');
+  const hip = kinds('hiphop');
+  assert.ok(['hey1', 'hey5', 'hey7', 'hey6'].filter(k => hip.has(k)).length >= 3, `hip hop's ad-libs (${[...hip].sort().join(' ')})`);
+  assert.ok(kinds('punk').has('hey0'), 'punk\'s gang shouts hey');
+  for (const mood of ['jazz', 'warm', 'rock'] as const) assert.equal(kinds(mood).size, 0, `${mood} calls no console and no ad-lib`);
+});

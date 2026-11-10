@@ -74,9 +74,11 @@ type Percussion = typeof LOFI_PERCUSSION[number];
  *  quick run up the key's chord), a power-down (a falling zap), a bonus (a trill climbing),
  *  a bounce (a spring's boing), a blip (a menu's two quick notes), a laser (a falling pew)
  *  and a warp (sliding down and up and down). 16 more plays it in a minor key. */
-export const LOFI_GAME_SOUNDS = ['jump', 'powerup', 'powerdown', 'bonus', 'bounce', 'blip', 'laser', 'warp'] as const;
+export const LOFI_GAME_SOUNDS = ['jump', 'powerup', 'powerdown', 'bonus', 'bounce', 'blip', 'laser', 'warp', 'levelup', 'shrink', 'grow', 'oneup', 'gem'] as const;
 /** The shouts a `hey` note can call, by its `mod`. Synthesised from vowels: no recording, no words beyond the call. */
-export const LOFI_SHOUTS = ['hey', 'yeah', 'woo', 'oh', 'ayy', 'uh'] as const;
+export const LOFI_SHOUTS = ['hey', 'yeah', 'woo', 'oh', 'ayy', 'uh', 'ugh', 'whoa', 'yo'] as const;
+/** The coins a `coin` note's `mod` plays: the classic blip, a long ring, an echo, a double. */
+export const LOFI_COINS = ['coin', 'ring', 'echo', 'double'] as const;
 /** The bass genres' shots, by a `bwah` note's `mod`: the bwah (a filter flung open and
  *  closed), the yoi (a bass that talks, oh to ee), the throat (a growl through an open
  *  vowel) and the wub (a deep, slow, round wobble). */
@@ -1075,7 +1077,7 @@ const DANCE: Record<DanceMood, DanceLean> = {
     keys: [['buzzsaw', 1]], lead: [['overdrive', 3], ['riff', 3], ['guitar', 1]],
     bass: [['picked', 1]], snare: [['snare', 1]], kick: [52, 60], kickLen: [0.22, 0.3], duck: [0.4, 0.7], crunch: 0.3,
     swing: 0.5, intro: 4, build: [4], drop: 8, breakdown: 8, harmony: 'rock', singingDrop: true, busy: 0.7, band: true,
-    softKeys: [['buzzsaw', 1]], verseBass: [['picked', 1]], switchBass: [['picked', 1]], room: [0.5, 0.8], dust: 0.1,
+    softKeys: [['crunch', 2], ['steel', 1]], verseBass: [['picked', 1]], switchBass: [['picked', 1]], room: [0.5, 0.8], dust: 0.1,
   },
   // R&B: smooth and slow. Lush sevenths and ninths on a Rhodes, a pad or a felt piano, an
   // 808 sliding under them or a Motown bass with a sub beneath, a clap and a finger snap on
@@ -1628,6 +1630,57 @@ const SPARKLES: ReadonlyArray<ReadonlyArray<readonly [number, number]>> = [
 ];
 
 /** Sherbert's shouts, the "yeah" and the "woo" most of all. */
+/** The styles whose tunes get the console's newer sounds or the shouts' ad-libs (extraFx). */
+const EXTRA_FX = new Set<DanceMood>(['chiptune', 'sugar', 'sherbert', 'kpop', 'hiphop', 'rnb', 'punk', 'ska', 'dubstep', 'brostep', 'dnb']);
+
+/**
+ * The console's newer sounds and the shouts' ad-libs, for one bar, from their own random
+ * stream (`r`), so they add notes without moving any. Where a game is played (chiptune,
+ * Sugar, Sherbert): the level-up fanfare ends a build into a drop, the music shrinks as a
+ * breakdown starts and grows back as it ends, coins ring, echo or come in pairs at a
+ * drop's phrase ends (struck harder deeper into the drop), a 1-up crowns the last bar of a
+ * drop, and a gem sparkles now and then. Where people call out: hip hop's ad-libs (yeah,
+ * uh, yo, ugh) end a phrase, R&B's softer oh, yeah and whoa answer the melody, punk's gang
+ * shouts a hey on the downbeat of a chorus, ska's band calls a hey on the offbeat, and the
+ * bass genres grunt an ugh into the drop. In a style whose tunes the tests pin (Sugar,
+ * chiptune, K-pop) only the newer kinds are added, so a test can take them away again.
+ */
+function extraFx(
+  r: () => number, mood: DanceMood, section: LofiSection, i: number, bars: number,
+  at: { build: boolean; lastOfBuild: boolean; dropStart: boolean; fx: boolean },
+  t: { key: number; minor: boolean; coin: number; sb: (step: number) => number },
+): LofiNote[] {
+  const out: LofiNote[] = [];
+  const chance = (p: number): boolean => r() < p;
+  const game = (beat: number, kind: typeof LOFI_GAME_SOUNDS[number], dur = 1, vel = 0.8): void => {
+    out.push({ voice: 'game', midi: placeIn(t.key, 64, 75), dur, beat, vel, mod: GAME(kind) + (t.minor ? 16 : 0) });
+  };
+  const shout = (beat: number, which: typeof LOFI_SHOUTS[number], vel = 0.82): void => {
+    out.push({ voice: 'hey', midi: placeIn(t.key, 55, 66), dur: 0.4, beat, vel, ...(SHOUT(which) ? { mod: SHOUT(which) } : {}) });
+  };
+  const coin = (beat: number, kind: typeof LOFI_COINS[number], vel: number): void => {
+    out.push({ voice: 'coin', midi: t.coin, dur: 0.5, beat, vel, mod: LOFI_COINS.indexOf(kind) });
+  };
+  const gamey = mood === 'chiptune' || mood === 'sugar' || mood === 'sherbert';
+  if (gamey) {
+    if (at.lastOfBuild && mood !== 'sherbert' && chance(0.6)) game(2, 'levelup', 1.5);
+    if (section === 'break' && i === 0 && chance(0.55)) game(t.sb(2), 'shrink', 1.5, 0.7);
+    if (section === 'break' && i === bars - 1 && chance(0.5)) game(t.sb(8), 'grow', 1.5, 0.7);
+    if (at.fx && section === 'drop' && i % 4 === 1 && chance(0.4)) coin(t.sb(r() < 0.5 ? 6 : 14), (['ring', 'echo', 'double'] as const)[Math.floor(r() * 3)]!, 0.45 + Math.min(0.4, i * 0.03));
+    if (at.fx && section === 'drop' && i === bars - 1 && chance(0.45)) game(t.sb(12), 'oneup', 1);
+    if (at.fx && (section === 'verse' || section === 'intro') && i % 4 === 2 && chance(0.25)) game(t.sb(14), 'gem', 0.5, 0.55);
+  }
+  if (section !== 'drop' && !(at.build && at.lastOfBuild)) return out;
+  if (mood === 'hiphop' && i % 4 === 3 && chance(0.6)) shout(t.sb(14), (['yeah', 'uh', 'yo', 'ugh'] as const)[Math.floor(r() * 4)]!, 0.7);
+  if (mood === 'rnb' && i % 4 === 1 && chance(0.35)) shout(t.sb(10), (['oh', 'yeah', 'whoa'] as const)[Math.floor(r() * 3)]!, 0.5);
+  if (mood === 'punk' && at.dropStart) { shout(0, 'hey', 0.9); shout(2, 'hey', 0.9); }
+  else if (mood === 'punk' && i % 4 === 0 && chance(0.5)) shout(0, 'hey', 0.85);
+  if (mood === 'ska' && i % 4 === 2 && chance(0.4)) shout(t.sb(6), 'hey', 0.75);
+  if ((mood === 'dubstep' || mood === 'brostep' || mood === 'dnb') && at.lastOfBuild && chance(0.5)) shout(t.sb(14), 'ugh', 0.9);
+  if (mood === 'kpop' && at.lastOfBuild && chance(0.5)) shout(t.sb(12), 'whoa', 0.85);
+  return out;
+}
+
 const SHERBERT_SHOUTS: Weights<number> = [[SHOUT('hey'), 3], [SHOUT('yeah'), 4], [SHOUT('woo'), 4], [SHOUT('oh'), 1], [SHOUT('ayy'), 2], [SHOUT('uh'), 1]];
 /** The console sounds that answer Sherbert's phrases. */
 const SHERBERT_GAMES = [GAME('jump'), GAME('bounce'), GAME('blip'), GAME('laser'), GAME('bounce'), GAME('jump')] as const;
@@ -1903,6 +1956,9 @@ function composeDanceTune(seed: number, mood: DanceMood, fixed: Partial<LofiStyl
   // The bass genres' shots, sweeps and bleeps come from a stream of their own, so the notes
   // they had before these existed are still drawn the same.
   const bassFx = mood === 'dubstep' || mood === 'brostep' || mood === 'dnb' ? mulberry32((seed ^ 0xb3a5) >>> 0) : null;
+  // The console's newer sounds and the shouts' ad-libs (EXTRA_FX) draw from their own
+  // stream, so adding them moved no other note of any tune.
+  const extra = EXTRA_FX.has(mood) ? mulberry32((seed ^ 0x3e7a) >>> 0) : null;
   const shots = bassFx ? {
     talk: [Math.floor(bassFx() * BASS_TALKS.length), Math.floor(bassFx() * BASS_TALKS.length)] as const,
     blips: Math.floor(bassFx() * BLIP_STEPS.length),
@@ -2093,6 +2149,10 @@ function composeDanceTune(seed: number, mood: DanceMood, fixed: Partial<LofiStyl
           strike(0, (lastOfBuild ? 3.5 : left) - 0.1, part.section === 'intro' ? 0.5 : 0.56);
         }
       }
+
+      // The console's level-ups, shrinks and coins, and the shouts' ad-libs, by style
+      // (EXTRA_FX): every bar, builds included, from their own stream.
+      if (extra) notes.push(...extraFx(extra, mood, part.section, i, part.bars, { build, lastOfBuild, dropStart, fx: has('fx') }, { key, minor, coin, sb }));
 
       // BASS: the genre's figure, a call and its answer, on the chord's root.
       if (has('bass')) {
