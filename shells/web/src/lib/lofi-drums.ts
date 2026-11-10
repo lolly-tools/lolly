@@ -53,7 +53,7 @@ export interface DrumKit {
 
 /** The kinds of music, by how their drums are played. */
 const JAZZ = new Set<LofiMood>(['jazz', 'swing']);
-const BAND = new Set<LofiMood>(['blues', 'country', 'rock', 'metal', 'soul', 'funk', 'reggae', 'spanish', 'straya', 'afrobeat', 'kora', 'persian', 'guzheng', 'koto', 'citypop', 'fantasy']);
+const BAND = new Set<LofiMood>(['blues', 'country', 'rock', 'metal', 'soul', 'funk', 'reggae', 'spanish', 'straya', 'afrobeat', 'kora', 'persian', 'guzheng', 'koto', 'citypop', 'fantasy', 'grunge', 'stoner', 'shoegaze']);
 const DUSTY = new Set<LofiMood>(['warm', 'lateNight', 'rainy', 'triphop', 'dream']);
 const SUBS = new Set<LofiMood>(['dubstep', 'brostep', 'dnb', 'amapiano']);
 /** The styles whose sound is the electronic kit's own synthesised metal. */
@@ -148,8 +148,15 @@ function piece(k: VoiceKit, kit: DrumKit, name: string, vel: number, make: (sr: 
     buf.getChannelData(0).set(data);
     bank.buffers.set(key, buf);
   }
-  // Below the soft stroke a note falls away faster than its velocity, as a drummer's ghost notes do (12 to 20 dB under an accent).
-  return { buf, scale: vel < at ? (vel / at) ** 2.5 : Math.min(1.25, vel / at) };
+  return { buf, scale: strokeLevel(vel) };
+}
+/**
+ * How loud a stroke is, by its velocity, whichever recording plays it (each is brought to
+ * the same peak): in step with the velocity, a full stroke at 0.95 being 1, and below 0.4
+ * falling away faster, as a drummer's ghost notes do (12 to 20 dB under an accent).
+ */
+export function strokeLevel(vel: number): number {
+  return Math.min(1.25, vel >= 0.4 ? vel / 0.95 : (0.4 / 0.95) * (vel / 0.4) ** 2.5);
 }
 /** A cymbal's own partials, fixed for the kit, so every stroke is the same cymbal. */
 function cymbalOf(kit: DrumKit, k: VoiceKit, name: string, spec: K.CymbalSpec): ReturnType<typeof K.cymbalBase> {
@@ -191,7 +198,7 @@ function hit(k: VoiceKit, out: AudioNode, t: number, p: { buf: AudioBuffer; scal
 /** Each piece's place across the speakers, from the drummer's side: hats left, ride right. */
 const PAN = { hat: -0.32, ride: 0.36, crash: -0.22, snare: 0.04, kick: 0 } as const;
 /** Each piece's level against the synthesised voices it replaces, so the mix holds. */
-const LEVEL = { hat: 0.09, open: 0.12, ride: 0.045, crash: 0.25, snare: 0.54, tom: 0.38, kick: 0.62 } as const;
+const LEVEL = { hat: 0.13, open: 0.165, ride: 0.057, crash: 0.21, snare: 0.455, tom: 0.32, kick: 0.52 } as const;
 
 /** The cymbal a crash note plays, by the kit, with its brightness and length. */
 function crashSpec(kit: DrumKit): K.CymbalSpec {

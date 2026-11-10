@@ -8,7 +8,7 @@ import type { LofiStyle } from '../../../../engine/src/lofi-compose.ts';
 
 export const LOFI_KEYS_NAME: Record<LofiStyle['keys'], string> = {
   rhodes: 'Rhodes', felt: 'felt piano', wurli: 'Wurlitzer', pluck: 'soft pluck', pad: 'pad', supersaw: 'saw chords',
-  nylon: 'nylon guitar', crunch: 'rhythm guitar', heavy: 'heavy guitars', buzzsaw: 'buzzsaw guitars', wah: 'wah guitar', chiparp: 'chip arpeggio',
+  nylon: 'nylon guitar', crunch: 'rhythm guitar', heavy: 'heavy guitars', buzzsaw: 'buzzsaw guitars', clean: 'clean chorus guitar', fuzz: 'fuzz guitars', wall: 'wall of guitars', wah: 'wah guitar', chiparp: 'chip arpeggio',
   steel: 'acoustic guitar', banjo: 'banjo', honky: 'honky-tonk piano', organ: 'organ', brass: 'brass section', jazzbox: 'jazz guitar', harp: 'harp', choir: 'choir', future: 'future-bass chords',
   tar: 'tar', santur: 'santur', zheng: 'guzheng', koto: 'koto', shamisen: 'shamisen', kora: 'kora', balafon: 'balafon',
 };

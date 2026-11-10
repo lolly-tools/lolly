@@ -1070,7 +1070,7 @@ const HEAVY_CURVE = ((): Float32Array<ArrayBuffer> => {
 })();
 
 /** A guitar amp and its speaker cabinet: [Hz, gain dB] for each tone stage. */
-interface Amp {
+export interface Amp {
   /** How hard the preamp is driven. */
   gain: number;
   /** The high-pass before the drive that keeps the lows tight. */
@@ -1108,7 +1108,7 @@ function peak(ctx: BaseAudioContext, [hz, db]: readonly [number, number], q = 0.
  * pair, the second side a few milliseconds behind, so a rhythm part fills the speakers.
  */
 const AMPS = new WeakMap<AudioNode, Map<Amp, GainNode>>();
-function ampInput(k: VoiceKit, out: AudioNode, amp: Amp, double: boolean): GainNode {
+export function ampInput(k: VoiceKit, out: AudioNode, amp: Amp, double: boolean): GainNode {
   let byAmp = AMPS.get(out);
   if (!byAmp) { byAmp = new Map(); AMPS.set(out, byAmp); }
   const ready = byAmp.get(amp);
@@ -1154,7 +1154,7 @@ function ampInput(k: VoiceKit, out: AudioNode, amp: Amp, double: boolean): GainN
  * with the note's envelope. A short note is palm-muted: the hand on the strings darkens
  * them before they reach the amp, and the note stops dead.
  */
-function strings(k: VoiceKit, input: AudioNode, t: number, freqs: readonly number[], vel: number, dur: number, chug: boolean, vib: boolean): void {
+export function strings(k: VoiceKit, input: AudioNode, t: number, freqs: readonly number[], vel: number, dur: number, chug: boolean, vib: boolean): void {
   const { ctx } = k;
   const end = t + dur + 0.14;
   const g = ctx.createGain();
@@ -1324,7 +1324,7 @@ export function plucked(k: VoiceKit, out: AudioNode, t: number, midi: number, ve
   body.Q.value = 1.3;
   body.gain.value = 3.5;
   const amp = ctx.createGain();
-  const level = o.level * PLUCK_LEVEL * (hard ? vel / 0.9 : (vel / 0.45) ** 1.5 * 0.5);
+  const level = o.level * PLUCK_LEVEL * pluckLevel(vel);
   amp.gain.setValueAtTime(level, t);
   amp.gain.setTargetAtTime(EPS, t + Math.max(0.1, dur), 0.06);
   body.connect(amp).connect(out);
@@ -1346,6 +1346,14 @@ export function plucked(k: VoiceKit, out: AudioNode, t: number, midi: number, ve
 }
 /** The modelled strings' level against the voice they replaced. */
 const PLUCK_LEVEL = 1.3;
+/**
+ * How loud a pluck is, by its velocity, whichever recording plays it (soft and hard are
+ * brought to the same loudness): in step with the velocity, 0.9 being 1, and below 0.45
+ * falling away faster, as a soft pluck does.
+ */
+export function pluckLevel(vel: number): number {
+  return vel >= 0.45 ? vel / 0.9 : 0.5 * (vel / 0.45) ** 1.5;
+}
 
 /**
  * An electric guitar's string for the driven voices, modelled (lib/lofi-strings.ts):
@@ -2243,7 +2251,7 @@ function upright(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: numb
   growl.Q.value = 1.4;
   growl.gain.value = 2.5;
   const amp = ctx.createGain();
-  const level = UPRIGHT_LEVEL * (hard ? vel / 0.9 : (vel / 0.45) ** 1.3 * 0.55);
+  const level = UPRIGHT_LEVEL * pluckLevel(vel);
   amp.gain.setValueAtTime(level, t);
   amp.gain.setTargetAtTime(EPS, t + Math.max(0.08, dur), 0.05);
   string.connect(body).connect(growl).connect(amp).connect(out);

@@ -34,6 +34,7 @@ import * as V from './lofi-voices.ts';
 import { lollyTag } from './lofi-tag.ts';
 import * as D from './lofi-drums.ts';
 import * as W from './lofi-world-voices.ts';
+import * as G from './lofi-guitars.ts';
 
 export interface LofiSettings {
   mood: LofiMood;
@@ -65,7 +66,7 @@ export const LOFI_MIX: LofiMix = { keys: 1, bass: 1, lead: 1, drums: 1, fx: 1, r
 /** The tone filter's most open cutoff per mood (Hz); texture and each bar close it from there. */
 const MOOD_TONE: Record<LofiMood, number> = {
   warm: 7500, lateNight: 4300, rainy: 5400, sings: 8200, sugar: 11000, sherbert: 13000, chiptune: 11000, citypop: 9500, nudisco: 9500, triphop: 5500, funk: 9500, soul: 8000, acid: 10000, hiphop: 8000, reggae: 7500, spanish: 8500, rock: 9000, synthwave: 9500, electro: 9000, dubstep: 9500, brostep: 10000, dnb: 10000,
-  country: 9500, blues: 7000, jazz: 7500, swing: 8500, straya: 10000,
+  country: 9500, blues: 7000, jazz: 7500, swing: 8500, straya: 10000, grunge: 7500, stoner: 6500, shoegaze: 7000,
   fantasy: 9000, dream: 6000, kpop: 11000, metal: 9500, ska: 9500, punk: 10000, rnb: 8500,
   persian: 11500, guzheng: 11000, koto: 11000, kora: 11500, afrobeat: 9500, amapiano: 10000,
 };
@@ -114,7 +115,7 @@ const GRIT_MIX = 0.5;
 const VARIANT: { keys: Record<LofiStyle['keys'], number>; lead: Record<LofiStyle['lead'], number>; bass: Record<LofiStyle['bass'], number>; snare: Record<LofiStyle['snare'], number>; hats: Record<LofiStyle['hats'], number> } = {
   // Short, decaying sounds (pluck, kalimba, rim, clap) measure quieter than they sound,
   // so they take most of the measured difference, not the whole difference.
-  keys: { rhodes: 1, felt: 0.93, wurli: 1.4, pluck: 1.8, pad: 1, supersaw: 1, nylon: 1.8, crunch: 1, heavy: 1, buzzsaw: 1, wah: 1, chiparp: 1.6, steel: 2.4, banjo: 2, honky: 1, organ: 2.2, brass: 2, jazzbox: 2, harp: 1.3, choir: 1, future: 1.5, tar: 1, santur: 1, zheng: 1.2, koto: 1, shamisen: 1, kora: 1.2, balafon: 1.1 },
+  keys: { rhodes: 1, felt: 0.93, wurli: 1.4, pluck: 1.8, pad: 1, supersaw: 1, nylon: 1.8, crunch: 1, heavy: 1, buzzsaw: 1, clean: 1, fuzz: 1, wall: 1, wah: 1, chiparp: 1.6, steel: 2.4, banjo: 2, honky: 1, organ: 2.2, brass: 2, jazzbox: 2, harp: 1.3, choir: 1, future: 1.5, tar: 1, santur: 1, zheng: 1.2, koto: 1, shamisen: 1, kora: 1.2, balafon: 1.1 },
   lead: { vibes: 1, flute: 0.82, soft: 1.35, kalimba: 1.7, chip: 0.8, angel: 0.76, pulse: 2.4, guitar: 2.1, overdrive: 0.5, synthwave: 0.86, metal: 0.6, panflute: 0.56, nylon: 1.9, riff: 0.6, twang: 2.2, banjo: 1.5, harmonica: 0.55, sax: 1, trumpet: 1, clarinet: 1, pedal: 0.44, fiddle: 1, bells: 1.6, chop: 1, bit: 1,
     santur: 1, ney: 1, kamancheh: 1, erhu: 1, dizi: 1, zheng: 1, pipa: 1, shakuhachi: 1, koto: 1, shamisen: 1, kora: 1, balafon: 1, none: 0 },
   // The reese is drum and bass's whole low end, so it sits about 4 dB up (Andy, 2026-11-08).
@@ -132,11 +133,12 @@ const LEAD_TRIM: Partial<Record<LofiStyle['lead'], number>> = { angel: -0.2, bal
  * Each genre's seat for its lead (dB), with the instrument trimmed: the lead's place
  * against the band while the lead plays. Measured from the stems of two tunes a genre, fitted twice, and set
  * so the lead plays about 5 dB under the band, 6 in the calm styles and 4 in jazz and
- * swing, whose soloist is the point (Andy, 2026-11-10: "some instruments are obnoxiously
+ * swing, whose soloist is the point; shoegaze's stays half-buried in its wall of guitars,
+ * as the style's singers are (Andy, 2026-11-10: "some instruments are obnoxiously
  * loud as the lead, perhaps the genre should set a rule for certain instruments so they
  * dont destroy the genre").
  */
-const LEAD_SEAT: Partial<Record<LofiMood, number>> = { acid: -2.6, afrobeat: 0.3, amapiano: -6.2, blues: -3.7, brostep: -10.2, chiptune: -8.5, citypop: 1.2, country: -2.5, dnb: -1.8, dream: -12.0, dubstep: -5.5, electro: -0.7, fantasy: -8.8, funk: 3.7, guzheng: -6.2, hiphop: 0.1, jazz: -0.8, kora: -1.7, koto: -2.8, kpop: -0.2, lateNight: -1.7, metal: -0.8, nudisco: -2.8, persian: -3.4, punk: -1.0, rainy: 0.3, reggae: -3.3, rnb: -2.1, rock: -1.5, sherbert: 0.3, sings: -3.2, ska: -2.9, soul: 0.6, spanish: -0.4, straya: -1.3, sugar: -1.0, swing: -0.7, synthwave: -8.2, triphop: -1.6, warm: -1.8 };
+const LEAD_SEAT: Partial<Record<LofiMood, number>> = { acid: -2.6, afrobeat: 0.3, amapiano: -6.2, blues: -3.7, brostep: -10.2, chiptune: -8.5, citypop: 1.2, country: -2.5, dnb: -1.8, dream: -12.0, dubstep: -5.5, electro: -0.7, fantasy: -8.8, funk: 3.7, guzheng: -6.2, hiphop: 0.1, jazz: -0.8, kora: -1.7, koto: -2.8, kpop: -0.2, lateNight: -1.7, metal: -0.8, nudisco: -2.8, persian: -3.4, punk: -1.0, rainy: 0.3, reggae: -3.3, rnb: -2.1, rock: -1.5, sherbert: 0.3, sings: -3.2, ska: -2.9, soul: 0.6, spanish: -0.4, straya: -1.3, sugar: -1.0, swing: -0.7, synthwave: -8.2, triphop: -1.6, warm: -1.8, grunge: 1.5, stoner: 3, shoegaze: 0 };
 /** The styles whose horn lines are a section's (see the lead), and the section's levels: together about as loud as the one horn was. */
 const HORN_SECTION = new Set<LofiMood>(['ska', 'afrobeat', 'soul', 'funk', 'swing']);
 const SECTION_LEAD = 0.75;
@@ -602,7 +604,8 @@ export class LofiStation {
       case 'keys': {
         // A future-bass chord's wub is swings a beat (the voice wants Hz), plus 16 for a bend.
         const m = note.mod ?? 0;
-        if (W.WORLD_KEYS.has(keysV)) W.keys(keysV, k, lanes.keys, t, note.midi, vel * VARIANT.keys[keysV], len);
+        if (G.GUITAR_KEYS.has(keysV)) G.keys(keysV, k, lanes.keys, t, note.midi, vel * VARIANT.keys[keysV], len);
+        else if (W.WORLD_KEYS.has(keysV)) W.keys(keysV, k, lanes.keys, t, note.midi, vel * VARIANT.keys[keysV], len);
         else V.keys(keysV, k, lanes.keys, t, note.midi, vel * VARIANT.keys[keysV], len, { rate: (m % 16) / spb, bend: m >= 16 });
         break;
       }
@@ -725,7 +728,8 @@ export class LofiStation {
     if (room !== this.sectionRoom) {
       this.sectionRoom = room;
       this.reverbSend.gain.setTargetAtTime(BUS.reverb * this.mix.reverb * this.colour.room * room, at, 0.6);
-      this.drumRoom.gain.setTargetAtTime(DRUM_ROOM * this.mix.reverb * room, at, 0.6);
+      // The drums' room follows the style's room, more gently than the music's: a grunge kit in a big room, a punk one tight.
+      this.drumRoom.gain.setTargetAtTime(DRUM_ROOM * this.mix.reverb * room * Math.sqrt(this.colour.room), at, 0.6);
     }
     this.echoSend.gain.setTargetAtTime(ECHO_ALWAYS.has(bar.tune.mood) ? ECHO_BED : 0, at, 0.2);
     if (bar.section === 'build' && SWEEPS.has(bar.tune.mood)) {

@@ -31,13 +31,12 @@ test('a piece renders the same from the same seed, and differently from another'
   assert.notDeepEqual(a, c);
 });
 
-test('every piece is finite and peaks inside full scale, a soft stroke below a hard one', () => {
+test('every piece is finite and peaks inside full scale; soft and hard strokes share a peak (the player sets loudness)', () => {
   for (const spec of [K.RIDE, K.CRASH, K.SPLASH, K.CHINA, K.HAT_CLOSED, K.HAT_OPEN]) {
     const base = K.cymbalBase(spec, seeded(4));
     const soft = K.cymbal(SR, spec, base, 0.4, seeded(5));
     const hard = K.cymbal(SR, spec, base, 0.95, seeded(5));
-    for (const x of [soft, hard]) assert.ok(x.every(Number.isFinite) && peak(x) <= 0.9001);
-    assert.ok(peak(soft) < peak(hard));
+    for (const x of [soft, hard]) assert.ok(x.every(Number.isFinite) && Math.abs(peak(x) - 0.9) < 1e-3);
   }
   for (const x of [K.snareStroke(SR, 200, 0.9, 1, 1, seeded(6)), K.tomStroke(SR, 110, 0.8, seeded(6)), K.kickStroke(SR, 55, 0.9, 1, 0.3, seeded(6))]) {
     assert.ok(x.every(Number.isFinite) && peak(x) <= 0.951 && peak(x) > 0.3);
@@ -71,4 +70,17 @@ test('a snare rings out and drops off; a floor tom rings longer than a high one'
   const high = K.tomStroke(SR, 190, 0.8, seeded(13));
   const floor = K.tomStroke(SR, 85, 0.8, seeded(13));
   assert.ok(rms(floor, 0.4, 0.5) / rms(floor, 0, 0.02) > rms(high, 0.4, 0.5) / rms(high, 0, 0.02));
+});
+
+test('a stroke\'s loudness follows its velocity, whichever recording plays it', async () => {
+  const { strokeLevel } = await import('./lofi-drums.ts');
+  let last = 0;
+  for (let v = 0.05; v <= 1; v += 0.05) {
+    const level = strokeLevel(v);
+    assert.ok(level > last, `louder at ${v.toFixed(2)} than just below`);
+    last = level;
+  }
+  // A ghost note at 0.25 sits 12 to 20 dB under an accent at 0.95.
+  const under = 20 * Math.log10(strokeLevel(0.95) / strokeLevel(0.25));
+  assert.ok(under > 12 && under < 20, `${under.toFixed(1)} dB under`);
 });
