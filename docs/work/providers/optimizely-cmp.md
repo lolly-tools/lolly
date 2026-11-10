@@ -5,12 +5,14 @@ Lolly Work catalog. Optimizely stays the owner of those assets. If you turn on p
 finished Lolly exports can also go the other way: into CMP, carrying their Content Credentials
 onto the website.
 
+<!--i:eti-checklist-->
 ## Onboarding
 
-1. Identify the website workflow, folders or labels and Lolly Work groups. Keep CMP authoritative for its web assets. Start read-only; enable `publish` only when the outbound workflow has been separately agreed.
-2. Register your app, obtain the sealed OAuth credential described below and follow the [four-step connection](README.md#connect-a-source-in-four-steps). Inspect public, archived and expired samples before enabling the source.
-3. Confirm the documented endpoints, fields and download bytes on your tenant using [Lolly Verify](#verify) and the [tenant-check process](tenant-check.md). Test member access in one Lolly task. If publishing is needed, separately qualify the signer, grant and upload behaviour in [Publishing](#publishing-lolly-exports-out).
+1. **Scope.** Identify the website workflow, folders or labels and Lolly Work groups. Keep CMP authoritative for its web assets. Start read-only; enable `publish` only when the outbound workflow has been separately agreed.
+2. **Connection.** Register your app, obtain the sealed OAuth credential described below and follow the [four-step connection](README.md#connect-a-source-in-four-steps). Inspect public, archived and expired samples before enabling the source.
+3. **Tenant check.** Confirm the documented endpoints, fields and download bytes on your tenant using [Verify](#verify) and the [tenant-check process](tenant-check.md). Test member access in one Lolly task. If publishing is needed, separately qualify the signer, grant and upload behaviour in [Publishing](#publishing-lolly-exports-out).
 
+<!--i:eti-clipboard-->
 ## What you need from Optimizely CMP
 
 - **An OAuth2 app** registered in your CMP instance (one app per instance) with a refreshable
@@ -18,6 +20,7 @@ onto the website.
 - The client id, client secret and the refresh token your instance issues against them are
   yours. Nothing ships with Lolly Work.
 
+<!--i:eti-lock-->
 ## Credential shape
 
 One sealed OAuth credential, pasted rather than captured:
@@ -34,6 +37,7 @@ Get the refresh token by running **CMP's own documented OAuth2 authorization-cod
 hand against your app. `lw providers auth` refuses this kind; see
 [OAuth sources](README.md#kinds-whose-consent-flow-is-not-registered-canto-imagerelay-optimizely-cmp).
 
+<!--i:eti-code-->
 ## instance.json / `lw providers add`
 
 ```json
@@ -55,6 +59,7 @@ hand against your app. `lw providers auth` refuses this kind; see
   [availability window](../catalog.md#imported-availability-windows).
 - A folder name or a label can scope an `includeSections` slice.
 
+<!--i:eti-shield-check-->
 ## Verify
 ```bash
 lw providers preview --kind optimizely-cmp --options '{}'   # dry run, nothing stored
@@ -69,6 +74,7 @@ The CMP endpoint paths, asset field names, token endpoint and download host come
 documentation and are not yet confirmed against a live tenant. Confirm them with a preview on
 your own tenant before you rely on this source.
 
+<!--i:eti-upload-->
 ## Publishing Lolly exports out
 
 With `publish: true` and an owner grant of `catalog.provider.publish`:
@@ -83,12 +89,14 @@ the instance needs an export signer ([c2pa](../c2pa.md)). Each publish is audite
 provenance chain. The upload request and response formats are modelled on CMP's documentation
 and are not yet confirmed against a live tenant.
 
+<!--i:eti-info-->
 ## Notes / limits
 
 - **Signed, short-lived download links,** fetched on each request and pinned to the CMP and
   Welcome hosts.
 - **The only source that accepts published exports.**
 
+<!--i:eti-folder-move-->
 ## Off-boarding
 
 **Not an exit target.** This integration keeps CMP as the source for the website's assets and optionally publishes Lolly exports back. Do not run `cutover` against this source; keep its `ext/*` identities and the website's dependencies under CMP's authority.

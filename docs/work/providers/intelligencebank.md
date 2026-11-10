@@ -5,12 +5,14 @@ expiry and review dates and workflow states carried across. No custom-field mapp
 needed. IntelligenceBank stays the source: Lolly Work reads through the current v3 Graph API and
 never writes back.
 
+<!--i:eti-checklist-->
 ## Onboarding
 
-1. Choose the supported platform URL, folder and Lolly Work groups. Explicitly configure the workflow states that should count as approved; without that list every asset federates as approved.
-2. Obtain the tenant API key described below and follow the [four-step connection](README.md#connect-a-source-in-four-steps). The driver discovers its v3 API address through the login handshake.
-3. Run the [IntelligenceBank tenant check](tenant-check.md#intelligencebank). Verify the login response, download bytes, publish, expiry and review dates, then test member access and a real production task before broadening the source.
+1. **Scope.** Choose the supported platform URL, folder and Lolly Work groups. Explicitly configure the workflow states that should count as approved; without that list every asset federates as approved.
+2. **Connection.** Obtain the tenant API key described below and follow the [four-step connection](README.md#connect-a-source-in-four-steps). The driver discovers its v3 API address through the login handshake.
+3. **Tenant check.** Run the [IntelligenceBank tenant check](tenant-check.md#intelligencebank). Verify the login response, download bytes, publish, expiry and review dates, then test member access and a real production task before broadening the source.
 
+<!--i:eti-clipboard-->
 ## What you need from IntelligenceBank
 
 - **Your platform URL**: your tenant's address, such as `https://acme.intelligencebank.com`
@@ -22,6 +24,7 @@ never writes back.
 - **Which workflow states count as approved** in your tenant, for `approvedStates`. They differ
   per tenant.
 
+<!--i:eti-lock-->
 ## Credential shape
 
 A single sealed string: the tenant API key used for the login.
@@ -30,6 +33,7 @@ A single sealed string: the tenant API key used for the login.
 lw providers credential acme-ib     # prompts; never argv, never shell history
 ```
 
+<!--i:eti-code-->
 ## instance.json / `lw providers add`
 
 ```json
@@ -49,6 +53,7 @@ lw providers credential acme-ib     # prompts; never argv, never shell history
 - IntelligenceBank's own publish, expiry and review dates import as an
   [availability window](../catalog.md#imported-availability-windows) with no mapping.
 
+<!--i:eti-shield-check-->
 ## Verify
 ```bash
 lw providers preview --kind intelligencebank --options '{"platformUrl":"https://acme.intelligencebank.com"}'
@@ -57,6 +62,7 @@ lw providers health acme-ib
 
 A `login <status>` error means the platform URL or the API key is wrong.
 
+<!--i:eti-info-->
 ## Notes / limits
 
 - **Not yet confirmed against a live tenant.** The login response, field names and download
@@ -69,6 +75,7 @@ A `login <status>` error means the platform URL or the API key is wrong.
 - **Pinned hosts.** The discovered v3 address and every download are pinned to the
   `intelligencebank.com` hosts; a `platformUrl` elsewhere is refused.
 
+<!--i:eti-folder-move-->
 ## Off-boarding
 
 IntelligenceBank supports the exit sequence after its [tenant check](tenant-check.md#intelligencebank). Qualify `publish_date`, `expiry_date`, `review_date` and the configured approved workflow states; those mappings do not recreate the vendor's review history or complete rights records.

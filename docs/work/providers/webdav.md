@@ -8,6 +8,7 @@ The kind is the protocol, not a vendor. Nextcloud is the documented path; ownClo
 `mod_dav`, Sabre/DAV and any other server that answers RFC 4918 `PROPFIND` use the same kind
 with `flavor: "generic"`.
 
+<!--i:eti-clipboard-->
 ## What you need from the server
 
 ::: cols
@@ -43,6 +44,7 @@ with `flavor: "generic"`.
   network.
 :::
 
+<!--i:eti-monitor-->
 ## Guided connection in the app
 
 1. Open **Assets & tools > Providers** at `/admin#/providers` and choose **Guided connection**
@@ -62,7 +64,7 @@ with `flavor: "generic"`.
    or when the panel closes. Nothing goes into browser storage.
 4. Choose **Test files and original**. The preview lists a sample of the folder and reads one
    original, showing its byte count, content type and SHA-256. Compare that checksum with a
-   copy of the same file you trust. The preview's limits are under [Lolly Verify](#verify).
+   copy of the same file you trust. The preview's limits are under [Verify](#verify).
 5. An owner chooses **Save source and seal credential**. This creates a disabled source and
    checks the credential again before sealing the credential; the server needs
    `LW_CREDENTIAL_SECRET` set first. If sealing fails, the panel keeps the disabled source and
@@ -77,13 +79,14 @@ An admin can save a disabled source and hand the credential and the enable to an
 Disabling the source from its row stops federation. A config-managed source stays read-only
 here: change your deployment and redeploy.
 
+<!--i:eti-lock-->
 ## Credential shape
 
 One string: the login and the password joined by a colon, or a bearer token for a server behind
 a token-issuing proxy. For Nextcloud the password must be the app password. The driver accepts nothing else and refuses before sending a
 request.
 
-```
+```text
 "<username>:<app password>"
 "bearer:<token>"
 ```
@@ -94,6 +97,7 @@ lw providers credential acme-nextcloud   # hidden prompt; never argv, never shel
 
 To rotate, run the same command with a new app password, then revoke the old one in Nextcloud.
 
+<!--i:eti-code-->
 ## instance.json / `lw providers add`
 
 Nextcloud:
@@ -120,6 +124,7 @@ Generic WebDAV:
 }
 ```
 
+::: details Options
 | Option | What it does |
 |---|---|
 | `baseUrl` (required) | The server URL. Its host is the pin: an `<href>` naming another host is refused, and a redirect is an error naming its target, never followed. |
@@ -128,6 +133,7 @@ Generic WebDAV:
 | `root` | Federate only this folder under the files root. Point it at the shared folder rather than a whole home directory. |
 | `recursive` | Walk subfolders (default `false`). Each folder level below the root becomes a **section**, so `exposure.includeSections` works on the folders you already have. |
 | `minGapMs` | The gap between calls, default `250` (about four a second). WebDAV publishes no rate limit; raise it for a small server. |
+:::
 
 **Availability dates.** WebDAV has no approval status, so curate a folder of approved files.
 If your server returns a custom DAV property carrying a date, name it in
@@ -136,6 +142,7 @@ If your server returns a custom DAV property carrying a date, name it in
 the namespace prefix (`embargo-until`, not `x:embargo-until`). Setting it switches the listing
 to `<d:allprop/>` so the custom property comes back, which is a more expensive call.
 
+<!--i:eti-shield-check-->
 ## Verify
 ```bash
 lw providers preview --kind webdav --options '{"baseUrl":"https://cloud.example","flavor":"nextcloud","username":"lolly-federation","root":"Brand"}'
@@ -149,6 +156,7 @@ inspects at most 1,000 files and reads one original of up to 32 MiB. Each listin
 2 MiB and the whole preview at 30 seconds. A partial response, an empty original, a size
 mismatch or a refused download fails the check. A sample is not a full inventory.
 
+::: details What each error means
 | Symptom | What it means |
 |---|---|
 | `webdav propfind 401 - the server rejected the credential` | Wrong login or password, or the account password where an app password is required. |
@@ -158,6 +166,7 @@ mismatch or a refused download fails the check. A sample is not a full inventory
 | `webdav propfind 301 for /… - the server redirected, sending it to …` | Usually a missing trailing slash or a `baseUrl` one hop off. The driver refuses every redirect, so it never streams another origin's bytes as your file. |
 | `webdav credential must be "<username>:<password>" …` | The sealed string is neither accepted form. Nothing was fetched. |
 | `none of the N resource(s) PROPFIND returned sit under the files root this driver built` | The server describes its files by a different path: a proxy rewriting the prefix, or the wrong login. |
+:::
 
 To see which properties your server returns (names and value types, never values), add
 `--shape`:
@@ -166,6 +175,7 @@ To see which properties your server returns (names and value types, never values
 lw providers preview --kind webdav --shape --options '{"baseUrl":"https://cloud.example","flavor":"nextcloud","username":"lolly-federation"}'
 ```
 
+<!--i:eti-info-->
 ## Notes / limits
 
 - **Not yet confirmed against a running server.** The URL templates, property names and
@@ -187,6 +197,7 @@ lw providers preview --kind webdav --shape --options '{"baseUrl":"https://cloud.
   to leave. It is more often where an [exit](../offboarding.md#exit-readiness-by-kind) copies
   files to than where one starts.
 
+<!--i:eti-folder-move-->
 ## Use as an offboarding destination
 
 Nextcloud or another WebDAV server you run can hold the files after a DAM exit. Export permitted originals and supporting records, copy them with your file service's upload or sync tools, then connect a narrow root using this guide. Lolly Work's source is read-only; materialize cannot write a DAM library into this folder. Verify the inventory within the walk limits and plan replacement references and governance.

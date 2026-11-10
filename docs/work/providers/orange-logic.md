@@ -17,12 +17,14 @@ connection does not use yet.
 | Approval and dates from fields you choose | AI calls, uploads, metadata edits or new public shares |
 | Byte ranges for large files | A DAM cutover |
 
+<!--i:eti-checklist-->
 ## Onboarding
 
-1. Agree the exact tenant and storage origins, administrator query, rendition codes and Lolly Work groups. Label this pilot as rendition access: it does not provide protected originals.
-2. Seal the application credential or bearer token described below, map your tenant's approval and date fields, and follow the [four-step connection](README.md#connect-a-source-in-four-steps).
-3. Run the [Orange Logic tenant check](tenant-check.md#orange-logic). Check rendition labels and bytes, refusal of substituted files, mapped governance and group access in a real Lolly task before widening the source.
+1. **Scope.** Agree the exact tenant and storage origins, administrator query, rendition codes and Lolly Work groups. Label this pilot as rendition access: it does not provide protected originals.
+2. **Connection.** Seal the application credential or bearer token described below, map your tenant's approval and date fields, and follow the [four-step connection](README.md#connect-a-source-in-four-steps).
+3. **Tenant check.** Run the [Orange Logic tenant check](tenant-check.md#orange-logic). Check rendition labels and bytes, refusal of substituted files, mapped governance and group access in a real Lolly task before widening the source.
 
+<!--i:eti-clipboard-->
 ## What you need
 
 - **The exact HTTPS origin** of your Orange Logic environment, including a custom domain if you
@@ -34,6 +36,7 @@ connection does not use yet.
 
 Use the advanced **Providers > Orange Logic** form or `lw`.
 
+<!--i:eti-lock-->
 ## Credential shape
 
 JSON with `clientId` and `clientSecret` for your organisation's application account. Lolly Work
@@ -46,6 +49,7 @@ the command line or a source URL. A config-managed source gives, in `credentialR
 an environment variable holding the credential. A token bound to an IP address needs a stable
 outbound path from the Lolly Work instance.
 
+<!--i:eti-code-->
 ## instance.json
 
 ```json
@@ -90,6 +94,7 @@ mapping, approval is unknown; with a field set, a record without a matching valu
 approved. Availability fields read the exact metadata keys returned, as ISO 8601 dates. This is
 not a full territory, channel or agreement rights evaluator.
 
+<!--i:eti-shield-check-->
 ## Verify
 ```bash
 lw providers preview --kind orange-logic --options '{"baseUrl":"https://dam.your-host.example","query":"ParentFolderIdentifier:APPROVED"}' --shape
@@ -105,6 +110,7 @@ Check the sample, metadata, rendition labels and group access before enabling, t
 file's fidelity nor an upstream rights clearance. Contributors changing the driver follow its
 [maintainer runbook](https://github.com/lolly-tools/lolly-work/blob/main/server/src/catalog/providers/live-verify/orange-logic.md) in the Lolly Work repository.
 
+<!--i:eti-info-->
 ## Notes / limits
 
 - **Not yet confirmed against a live tenant.** The endpoint is public Search v4 with JSON
@@ -132,6 +138,7 @@ file's fidelity nor an upstream rights clearance. Contributors changing the driv
   responses, proxies and storage origins all need checking on your tenant. An approval mapping
   grants no AI processing authority and is not a full rights policy.
 
+<!--i:eti-folder-move-->
 ## Off-boarding
 
 Materialize can copy exposed renditions, with that limitation retained in their metadata. **Lolly Work refuses cutover for Orange Logic** because protected originals are unavailable through this connector. A successful preview or rendition copy cannot qualify an exit that preserves originals.

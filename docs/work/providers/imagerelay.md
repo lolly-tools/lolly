@@ -8,12 +8,14 @@ Canto acquired Image Relay in September 2024. If your tenant has moved to Canto,
 [Canto source](canto.md). If you are not sure which applies, read [Off-boarding](#off-boarding)
 first.
 
+<!--i:eti-checklist-->
 ## Onboarding
 
-1. Confirm that the tenant still uses Image Relay's API. If it now lives on Canto, use the [Canto guide](canto.md). Select a curated folder and Lolly Work groups; this driver has no upstream approval signal, so leave `requireApproved` off.
-2. Register your app, obtain the sealed OAuth credential described below and follow the [four-step connection](README.md#connect-a-source-in-four-steps). Map your expiry field if you use one.
-3. Run the [Image Relay tenant check](tenant-check.md#image-relay), compare required originals and test group access and expiry in a real Lolly task before expanding the source.
+1. **Scope.** Confirm that the tenant still uses Image Relay's API. If it now lives on Canto, use the [Canto guide](canto.md). Select a curated folder and Lolly Work groups; this driver has no upstream approval signal, so leave `requireApproved` off.
+2. **Connection.** Register your app, obtain the sealed OAuth credential described below and follow the [four-step connection](README.md#connect-a-source-in-four-steps). Map your expiry field if you use one.
+3. **Tenant check.** Run the [Image Relay tenant check](tenant-check.md#image-relay), compare required originals and test group access and expiry in a real Lolly task before expanding the source.
 
+<!--i:eti-clipboard-->
 ## What you need from Image Relay
 
 - **An OAuth2 app** you register in Image Relay, with **read** access to the files and folders
@@ -23,6 +25,7 @@ first.
 - If you keep expiry dates, **the custom-metadata field** that holds them. Image Relay has no
   native availability field, so you map one.
 
+<!--i:eti-lock-->
 ## Credential shape
 
 One sealed OAuth credential, pasted rather than captured:
@@ -39,6 +42,7 @@ Get the refresh token by running **Image Relay's own documented OAuth2 authoriza
 once by hand against your app. `lw providers auth` refuses this kind; see
 [OAuth sources](README.md#kinds-whose-consent-flow-is-not-registered-canto-imagerelay-optimizely-cmp).
 
+<!--i:eti-code-->
 ## instance.json / `lw providers add`
 
 ```json
@@ -62,19 +66,23 @@ once by hand against your app. `lw providers auth` refuses this kind; see
 - Image Relay sends **no approval signal**, so leave `exposure.requireApproved` off. With it on,
   nothing federates.
 
+<!--i:eti-shield-check-->
 ## Verify
 ```bash
 lw providers preview --kind imagerelay --options '{"folderId":"1234"}'   # dry run, nothing stored
 lw providers health acme-imagerelay
 ```
 
+::: details What each error means
 | Error | Meaning |
 |---|---|
 | `oauth token refresh failed (401)` | The client id, secret or refresh token is wrong, or the grant was revoked. Capture the credential again. |
 | `oauth token refresh failed (400)` | The token endpoint refuses the request format. A new credential cannot fix this; report it with the [tenant check](tenant-check.md#image-relay). |
 | `imagerelay api 401` | The token exchange worked; the tenant refused the access token. |
 | `imagerelay url outside allowed hosts` | A `baseUrl` or `tokenUrl` override, or a download link, points outside `imagerelay.com`. |
+:::
 
+<!--i:eti-info-->
 ## Notes / limits
 
 - **Not yet confirmed against a live tenant.** The endpoints and field names come from Image
@@ -85,6 +93,7 @@ lw providers health acme-imagerelay
   The driver sends the `User-Agent` Image Relay requires and keeps to **5 requests a second**.
 - **Deleted files leave the catalog.** A file Image Relay reports as deleted is dropped.
 
+<!--i:eti-folder-move-->
 ## Off-boarding
 
 Choose the exit driver by the API serving your tenant: `imagerelay` for the legacy tenant and [`canto`](canto.md#off-boarding) after a move to Canto. When both remain active, inventory both sets and reconcile overlap; materialization is idempotent within a provider, not a promise to deduplicate two providers.
