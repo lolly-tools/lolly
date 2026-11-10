@@ -2128,7 +2128,9 @@ function planBars(data, cfg, ctx) {
     }
   }
   const front = z0 + zs * 0.5;
-  cats.forEach((c, ci) => labels.push({ p: [r4(x0 + ci * pitch), 0.02, r4(front + zs * 0.4)], text: String(c), kind: 'category', size: cfg.labelSize, weight: cfg.labelWeight, pri: 1 }));
+  // A category is named at the foot of its bars and dropped a fixed distance
+  // below on screen, so a wide lens cannot push the name under a neighbour.
+  cats.forEach((c, ci) => labels.push({ p: [r4(x0 + ci * pitch), 0, r4(front + zs * 0.05)], text: String(c), kind: 'category', size: cfg.labelSize, weight: cfg.labelWeight, pri: 1, below: 1 }));
   if (layout === 'grid' && nz > 1) series.forEach((s, si) => labels.push({ p: [r4(x0 + (nx - 1) * pitch + xs * 0.62), 0.02, r4(z0 - zs * rowOf[si])], text: String(s.name), kind: 'series', size: Math.round(cfg.labelSize * 0.86), weight: cfg.labelWeight, pri: 1, anchor: 'start' }));
   const ax0 = Math.min(x0, x0 + (nx - 1) * pitch) - 0.5, ax1 = Math.max(x0, x0 + (nx - 1) * pitch) + 0.5;
   const az0 = -(rows - 1) / 2 - 0.5, az1 = (rows - 1) / 2 + 0.5;
@@ -2277,7 +2279,7 @@ function planSurface(data, cfg, ctx) {
   }
   marks.push({ t: 'surface', nx: rx, nz: rz, pts, cols, lines, skirt: 1, c: ctx.ramp[ctx.ramp.length - 1], q: 0, g: 0 });
   const camZ = ctx.camDir[2] >= 0 ? 1 : -1, camX = ctx.camDir[0] >= 0 ? 1 : -1;
-  cats.forEach((c, ci) => labels.push({ p: [r4((ci / (nx - 1) - 0.5) * SX), 0.02, r4(camZ * (SZ / 2 + 0.6))], text: String(c), kind: 'category', size: cfg.labelSize, weight: cfg.labelWeight, pri: 1 }));
+  cats.forEach((c, ci) => labels.push({ p: [r4((ci / (nx - 1) - 0.5) * SX), 0, r4(camZ * (SZ / 2 + 0.05))], text: String(c), kind: 'category', size: cfg.labelSize, weight: cfg.labelWeight, pri: 1, below: 1 }));
   series.forEach((s, si) => labels.push({ p: [r4(camX * (SX / 2 + 0.55)), 0.02, r4((si / (nz - 1) - 0.5) * SZ)], text: String(s.name), kind: 'series', size: Math.round(cfg.labelSize * 0.86), weight: cfg.labelWeight, pri: 1, anchor: camX > 0 ? 'start' : 'end' }));
   // The peak, named.
   let best = null;
@@ -2392,18 +2394,25 @@ function placeSceneLabels(labels, project, W, H, pad, bottom) {
   for (const { l, q } of order) {
     if (!(q[2] > 0)) continue;
     const size = l.size || 16, text = String(l.text || '');
-    const w = Math.max(text.length, l.sub ? String(l.sub).length : 0) * size * 0.56 + 6;
+    const w = Math.max(text.length, l.sub ? String(l.sub).length : 0) * size * 0.53 + 6;
     const h = size * (l.sub ? 2.3 : 1.25);
     let anchor = l.anchor || 'middle';
     if (l.side != null) anchor = l.side > 0.25 ? 'start' : l.side < -0.25 ? 'end' : 'middle';
     let x = q[0] + (l.dx || 0), y = q[1];
     if (l.kind === 'value') y -= size * 0.4 + (l.sub && l.up ? size * 1.15 : 0);
-    else if (l.kind === 'category' || l.kind === 'series' || l.kind === 'axis' || l.kind === 'tick') y += size * 0.35;
+    else if (l.kind === 'category' || l.kind === 'series' || l.kind === 'axis' || l.kind === 'tick') y += size * (l.below ? 1.35 : 0.35);
+    // A name under a bar that would touch its neighbour's name tries one row
+    // lower before it is left out, so close bars get staggered names.
+    const tries = l.below ? [0, size * 1.32] : [0];
     const left = anchor === 'start' ? x : anchor === 'end' ? x - w : x - w / 2;
-    const top = y - size * 0.95;
-    const box = [left, top, left + w, top + h];
-    if (box[0] < pad * 0.25 || box[2] > W - pad * 0.25 || box[1] < pad * 0.25 || box[3] > limit) { placed.offFrame = (placed.offFrame || 0) + 1; continue; }
-    if (boxes.some((b) => box[0] < b[2] && box[2] > b[0] && box[1] < b[3] && box[3] > b[1])) continue;
+    let box = null;
+    for (const dy of tries) {
+      const top = y + dy - size * 0.95, cand = [left, top, left + w, top + h];
+      if (cand[0] < pad * 0.25 || cand[2] > W - pad * 0.25 || cand[1] < pad * 0.25 || cand[3] > limit) { placed.offFrame = (placed.offFrame || 0) + 1; break; }
+      if (boxes.some((b) => cand[0] < b[2] && cand[2] > b[0] && cand[1] < b[3] && cand[3] > b[1])) continue;
+      box = cand; y += dy; break;
+    }
+    if (!box) continue;
     boxes.push(box);
     placed.push({ x: r4(x), y: r4(y), anchor, text, sub: l.sub || '', size, weight: l.weight || 500, kind: l.kind, colour: l.colour || null });
   }

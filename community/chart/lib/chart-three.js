@@ -409,15 +409,21 @@
         var l = o.l, q = o.q;
         if (!q) return;
         var size = l.size || 16, text = String(l.text || '');
-        var w = Math.max(text.length, l.sub ? String(l.sub).length : 0) * size * .56 + 6, h = size * (l.sub ? 2.3 : 1.25);
+        var w = Math.max(text.length, l.sub ? String(l.sub).length : 0) * size * .53 + 6, h = size * (l.sub ? 2.3 : 1.25);
         var anchor = l.anchor || 'middle';
         if (l.side != null) anchor = l.side > .25 ? 'start' : l.side < -.25 ? 'end' : 'middle';
         var x = q[0] + (l.dx || 0), y = q[1];
-        if (l.kind === 'value') y -= size * .4 + (l.sub && l.up ? size * 1.15 : 0); else y += size * .35;
-        var left = anchor === 'start' ? x : anchor === 'end' ? x - w : x - w / 2, top = y - size * .95;
-        var box = [left, top, left + w, top + h];
-        if (box[0] < pad * .25 || box[2] > W - pad * .25 || box[1] < pad * .25 || box[3] > limit) return;
-        for (var k = 0; k < boxes.length; k++) { var b = boxes[k]; if (box[0] < b[2] && box[2] > b[0] && box[1] < b[3] && box[3] > b[1]) return; }
+        if (l.kind === 'value') y -= size * .4 + (l.sub && l.up ? size * 1.15 : 0); else y += size * (l.below ? 1.35 : .35);
+        var left = anchor === 'start' ? x : anchor === 'end' ? x - w : x - w / 2;
+        var tries = l.below ? [0, size * 1.32] : [0], box = null;
+        for (var t = 0; t < tries.length && !box; t++) {
+          var top = y + tries[t] - size * .95, cand = [left, top, left + w, top + h];
+          if (cand[0] < pad * .25 || cand[2] > W - pad * .25 || cand[1] < pad * .25 || cand[3] > limit) break;
+          var hit = false;
+          for (var k = 0; k < boxes.length; k++) { var b = boxes[k]; if (cand[0] < b[2] && cand[2] > b[0] && cand[1] < b[3] && cand[3] > b[1]) { hit = true; break; } }
+          if (!hit) { box = cand; y += tries[t]; }
+        }
+        if (!box) return;
         boxes.push(box);
         placed.push({ x: x, y: y, anchor: anchor, text: text, sub: l.sub || '', size: size, weight: l.weight || 500, kind: l.kind, colour: l.colour || null });
       });
